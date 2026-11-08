@@ -442,3 +442,20 @@ Expected: **Verschieben** ist wieder bedienbar, **−1 Tag** ist gesperrt.
 Expected: Antwort 409 mit „Termine lassen sich nicht in die Vergangenheit verschieben. Bitte heute oder einen späteren Tag wählen.“; der Termin bleibt an seinem Platz.
 Closes: L2 (live-tests-rezeption-onboarding.md, Abschnitt 3)
 Result: ☐
+
+### Rezeptions-Lücken B – Einchecken nur am Tag des Termins, Rechnung nur eingecheckt oder erledigt
+Start: `dotnet run --project src/AispaStudio.AppHost`, im Aspire-Dashboard die Ressource `windows-app` starten, als Rezeption anmelden, im Kalender auf morgen blättern und einen gebuchten Termin anklicken
+1. Das Terminfenster ansehen und den Termin markieren.
+Expected: Kein Knopf **Einchecken**; die Tastenleiste zeigt **E** gesperrt mit „Einchecken: nur am Tag des Termins“; Rechtsklick auf den Termin bietet kein **Einchecken**.
+2. Im Terminfenster **Mehr** aufklappen.
+Expected: **Erledigt** und **Nicht erschienen** sind gesperrt; beim Zeigen darauf steht „Verfügbar ab dem Tag des Termins.“
+3. Zurück auf heute, einen gebuchten Termin von heute anklicken.
+Expected: **Einchecken** ist da, **E** in der Tastenleiste bedienbar.
+4. **Kassa** öffnen und in „Heute abzurechnen“ unter „Später heute“ die Zeile eines noch nicht eingecheckten Termins ansehen und anklicken.
+Expected: Die Zeile trägt „noch nicht eingecheckt“; es erscheint „Einchecken und kassieren?“ mit **Einchecken und kassieren** und **Abbrechen**.
+5. **Abbrechen** wählen, dann erneut klicken und **Einchecken und kassieren** wählen.
+Expected: Nach Abbrechen ändert sich nichts; nach Bestätigen steht der Termin auf der Rechnung, im Kalender ist er eingecheckt, die Zeile hat den Zusatz nicht mehr.
+6. Mit einem zweiten Werkzeug (z. B. `curl`) `POST /api/pos/bills` mit der Id eines nur gebuchten Termins senden.
+Expected: Antwort 409 „Der Gast ist noch nicht eingecheckt. Zuerst im Kalender einchecken.“
+Closes: L1 (live-tests-rezeption-onboarding.md, Abschnitt 3)
+Result: ☐

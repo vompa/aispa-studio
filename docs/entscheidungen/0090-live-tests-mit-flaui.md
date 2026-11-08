@@ -46,6 +46,10 @@ Der Auftraggeber wollte eine kleine Windows-App, aus der man die Live-Tests mit 
 - Die Starter-App liegt schmal und immer oben am rechten Rand; der Tester setzt das App-Fenster über UI Automation (`WindowPattern`, `TransformPattern`) auf die Fläche links daneben. So treffen Klicks und Bilder die Starter-App nicht.
 - Die Konsolentasten bleiben für den Konsolenbetrieb; beide Wege rufen dieselben Befehle in `LiveControl`.
 
+## Nachtrag 08.11.2026: Tagesregel beim Einchecken
+
+Der Knopf heißt **Einchecken**, nicht „Ist da“. Bis zur Aufgabe B der [Arbeitsanweisung Rezeptions-Lücken](../umsetzung/arbeitsanweisung-rezeption-luecken.md) prüfte weder der Server noch die App den Tag; seit dieser Aufgabe gilt die Tagesregel wirklich (Einchecken nur am Tag des Termins, Kassieren nur eingecheckter oder erledigter Termine). Ein Live-Test des Kassierens braucht deshalb einen Termin am Tag des Laufs; die Live-Test-Sitzung setzt das um, hier nur vermerkt.
+
 ## Quellen
 
 - [FlaUI](https://github.com/FlaUI/FlaUI) (MIT)

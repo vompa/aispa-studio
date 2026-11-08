@@ -297,8 +297,14 @@ internal static class CalendarEndpoints
             .WithSummary("Die Rezeption hat die Treatwell-Buchung in Treatwell angenommen; der Hinweis „In Treatwell noch annehmen“ am Termin verschwindet.");
 
         group.MapPost("/appointments/{appointmentId:guid}/status", async Task<Results<Ok<AppointmentDto>, ValidationProblem, ProblemHttpResult, Conflict<BookingRejected>>> (
-                Guid appointmentId, AppointmentStatusChange change, BookingService booking, RoomCareService roomCare, CancellationToken ct) =>
+                Guid appointmentId, AppointmentStatusChange change, BookingService booking, RoomCareService roomCare, AispaDbContext db, TimeProvider time,
+                CancellationToken ct) =>
             {
+                if (await StatusDays.CheckAsync(db, time, appointmentId, change.Status, ct) is { } blocked)
+                {
+                    return Invalid(blocked);
+                }
+
                 var outcome = await booking.ChangeStatusAsync(appointmentId, change.Status, ct, change.ExpectedVersion);
                 if (outcome is BookingOutcome.Success { Appointment: var appointment } && change.Status == AppointmentStatus.CheckedIn)
                 {
@@ -315,7 +321,8 @@ internal static class CalendarEndpoints
             .WithName("ChangeAppointmentStatus")
             .RequirePermission(AccessRight.ChangeStatus)
             .AllowChannel(AccessChannel.StaffApp)
-            .WithSummary("Eingecheckt, abgeschlossen oder nicht erschienen. Beim Einchecken stehen in Warnings Hinweise zu Raumpflege und Tagesstart des Raums; eingecheckt wird trotzdem. "
+            .WithSummary("Eingecheckt, abgeschlossen oder nicht erschienen. Einchecken geht nur am Tag des Termins, Erledigt und Nicht erschienen erst ab dem Tag des Termins (sonst 400). "
+                + "Beim Einchecken stehen in Warnings Hinweise zu Raumpflege und Tagesstart des Raums; eingecheckt wird trotzdem. "
                 + "„Gebucht“ nimmt das Einchecken zurück, solange der Termin eingecheckt und noch nicht kassiert ist (sonst 400).");
 
         group.MapPost("/appointments/{appointmentId:guid}/begin", async Task<Results<Ok<AppointmentDto>, ValidationProblem, ProblemHttpResult, Conflict<BookingRejected>>> (

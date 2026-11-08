@@ -409,6 +409,12 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
                         throw PosFailure.Invalid(nameof(input.AppointmentId), "Der Termin ist storniert.");
                     }
 
+                    // L1: Kassiert wird nur, wer da war; die Kassa-Liste bietet sonst „Einchecken und kassieren“ an.
+                    if (appointment.Status is not (AppointmentStatus.CheckedIn or AppointmentStatus.Completed))
+                    {
+                        throw PosFailure.Conflict("Der Gast ist noch nicht eingecheckt. Zuerst im Kalender einchecken.");
+                    }
+
                     if (await db.BillLines.AnyAsync(l => l.AppointmentId == appointment.Id && l.Kind == BillLineKind.Appointment, ct))
                     {
                         throw PosFailure.Conflict("Dieser Termin steht schon auf einer Rechnung.");

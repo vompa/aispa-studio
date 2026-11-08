@@ -255,9 +255,9 @@
           <StackPanel Spacing="8" IsVisible="{Binding #MoreToggle.IsChecked}">
             <UniformGrid Columns="2" ColumnSpacing="8" IsVisible="{Binding CanChangeStatus}">
               <Button Content="Erledigt" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
-                      Command="{Binding CompleteCommand}" IsEnabled="{Binding ShowComplete}" ui:DisabledHint.Text="Verfügbar bei gebuchten und eingecheckten Terminen." />
+                      Command="{Binding CompleteCommand}" IsEnabled="{Binding ShowComplete}" ui:DisabledHint.Text="{Binding CompleteHint}" />
               <Button Content="Nicht erschienen" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
-                      Command="{Binding NoShowCommand}" IsEnabled="{Binding ShowNoShow}" ui:DisabledHint.Text="Verfügbar bei gebuchten Terminen." />
+                      Command="{Binding NoShowCommand}" IsEnabled="{Binding ShowNoShow}" ui:DisabledHint.Text="{Binding NoShowHint}" />
             </UniformGrid>
             <Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
                     Command="{Binding EditSeriesCommand}" IsVisible="{Binding ShowRepeat}" ToolTip.Tip="Serie ab diesem Termin">

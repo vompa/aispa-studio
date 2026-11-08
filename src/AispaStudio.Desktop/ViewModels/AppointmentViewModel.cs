@@ -114,15 +114,32 @@ public partial class AppointmentViewModel(
 
     public bool IsProblem => Appointment.Status is AppointmentStatus.NoShow or AppointmentStatus.Cancelled;
 
-    /// <summary>Einchecken nur vor der Behandlung, Erledigt erst nach dem Einchecken (oder direkt aus „Gebucht“).</summary>
-    public bool ShowCheckIn => CanChangeStatus && IsBooked;
+    /// <summary>Einchecken nur vor der Behandlung und nur am Tag des Termins (L1); Erledigt und Nicht erschienen erst ab dem Tag des Termins, wie der Server es prüft.</summary>
+    public bool ShowCheckIn => CanChangeStatus && IsBooked && IsOnToday;
 
-    public bool ShowComplete => CanChangeStatus && Appointment.Status is AppointmentStatus.Booked or AppointmentStatus.CheckedIn;
+    public bool ShowComplete => HasStatusActions && !IsOnFutureDay;
 
-    public bool ShowNoShow => CanChangeStatus && IsBooked;
+    public bool ShowNoShow => CanChangeStatus && IsBooked && !IsOnFutureDay;
+
+    /// <summary>Grund am gesperrten Knopf hinter „Mehr“.</summary>
+    public string CompleteHint => IsOnFutureDay ? FutureDayHint : "Verfügbar bei gebuchten und eingecheckten Terminen.";
+
+    public string NoShowHint => IsOnFutureDay ? FutureDayHint : "Verfügbar bei gebuchten Terminen.";
+
+    private const string FutureDayHint = "Verfügbar ab dem Tag des Termins.";
+
+    private DateOnly AppointmentDay => DateOnly.FromDateTime(DayLayout.Local(Appointment.Start, zone));
+
+    /// <summary>Der Termin liegt am heutigen Tag des Standorts.</summary>
+    public bool IsOnToday => AppointmentDay == LocalToday;
+
+    private bool IsOnFutureDay => AppointmentDay > LocalToday;
+
+    /// <summary>Erledigt oder Nicht erschienen stehen hinter „Mehr“, an künftigen Tagen gesperrt mit Grund.</summary>
+    private bool HasStatusActions => CanChangeStatus && Appointment.Status is AppointmentStatus.Booked or AppointmentStatus.CheckedIn;
 
     /// <summary>Hinter „Mehr“ steht etwas: Erledigt, Nicht erschienen, Wiederholen oder Zeiten ändern. Stornieren und Einchecken zurücknehmen stehen im Aktionsblock (Ä81).</summary>
-    public bool HasMore => ShowComplete || ShowNoShow || CanRepeat || CanChangeTimes;
+    public bool HasMore => HasStatusActions || CanRepeat || CanChangeTimes;
 
     public string Price => Money.Format(Appointment.Price, currency);
 
@@ -542,7 +559,7 @@ public partial class AppointmentViewModel(
         .OrderBy(a => a.Start).ThenBy(a => a.CustomerName, StringComparer.Ordinal).ThenBy(a => a.Id);
 
     /// <summary>Gemeinsam einchecken: alle Teile, die noch gebucht sind. Nur mit Buchungsrecht, damit niemand fremde Termine einchecken kann.</summary>
-    public bool CanCheckInGroup => IsGroup && MayBook && CanChangeStatus && groupChanged is not null && GroupAppointments.Any(a => a.Status == AppointmentStatus.Booked);
+    public bool CanCheckInGroup => IsGroup && MayBook && CanChangeStatus && IsOnToday && groupChanged is not null && GroupAppointments.Any(a => a.Status == AppointmentStatus.Booked);
 
     public string CheckInGroupText => $"Alle einchecken ({GroupAppointments.Count(a => a.Status == AppointmentStatus.Booked)})";
 

@@ -15,6 +15,7 @@ Ein Termin ist zuerst „Gebucht“. Kommt der Gast, wird er eingecheckt; nach d
 
 - Rezeption, Standortleitung, Inhaber oder Therapeut:in (nur eigene Termine).
 - Einchecken und „Nicht erschienen“ gehen nur bei „Gebucht“, „Erledigt“ bei „Gebucht“ und „Eingecheckt“.
+- Einchecken geht nur am Tag des Termins; an anderen Tagen fehlt der Knopf, und die Tastenleiste nennt den Grund. „Erledigt“ und „Nicht erschienen“ gehen erst ab dem Tag des Termins, vorher sind sie unter **Mehr** gesperrt („Verfügbar ab dem Tag des Termins.“).
 - Ohne Verbindung wird der Statuswechsel vorgemerkt und beim Abgleich gesendet, siehe [Arbeiten ohne Verbindung](hilfe:kalender-offline).
 
 ## Schritte {#schritte}

@@ -98,7 +98,7 @@ public partial class CalendarViewModel
             var hints = new List<KeyHint> { new("Enter", "Details", Key.Enter) };
             if (marked.Status == AppointmentStatus.Booked && CanChangeStatus(marked))
             {
-                hints.Add(new("E", "Einchecken", Key.E));
+                hints.Add(IsOnToday(marked) ? new("E", "Einchecken", Key.E) : new("E", "Einchecken", BlockedReason: "Einchecken: nur am Tag des Termins"));
             }
             else if (CheckoutRequested is not null && CanBook && marked.Status is AppointmentStatus.CheckedIn or AppointmentStatus.Completed)
             {
@@ -313,6 +313,10 @@ public partial class CalendarViewModel
 
     private bool CanMoveAppointment(AppointmentDto appointment) =>
         CanBook && HasResourceColumns && appointment.Status is AppointmentStatus.Booked or AppointmentStatus.CheckedIn;
+
+    /// <summary>Einchecken nur am Tag des Termins (L1), gerechnet in der Zeitzone des Standorts wie am Server.</summary>
+    private bool IsOnToday(AppointmentDto appointment) =>
+        DateOnly.FromDateTime(DayLayout.Local(appointment.Start, _zone)) == DateOnly.FromDateTime(DayLayout.Local(_time.GetUtcNow(), _zone));
 
     // ---------- Tasten ----------
 
@@ -543,7 +547,7 @@ public partial class CalendarViewModel
             case Key.Enter:
                 OpenAppointment(marked);
                 return true;
-            case Key.E when marked.Status == AppointmentStatus.Booked && CanChangeStatus(marked):
+            case Key.E when marked.Status == AppointmentStatus.Booked && CanChangeStatus(marked) && IsOnToday(marked):
                 _ = RunOnAppointmentAsync(marked, panel => panel.CheckInCommand.ExecuteAsync(null), $"{marked.CustomerName} eingecheckt.");
                 return true;
             case Key.K when CheckoutRequested is not null && CanBook && marked.Status is AppointmentStatus.CheckedIn or AppointmentStatus.Completed:
@@ -773,7 +777,7 @@ public partial class CalendarViewModel
         }
 
         var canStatus = CanChangeStatus(appointment);
-        if (appointment.Status == AppointmentStatus.Booked && canStatus)
+        if (appointment.Status == AppointmentStatus.Booked && canStatus && IsOnToday(appointment))
         {
             actions.Add(new("Einchecken", "E", () => _ = RunOnAppointmentAsync(appointment, p => p.CheckInCommand.ExecuteAsync(null),
                 $"{appointment.CustomerName} eingecheckt."), Icon: Icons.SignIn));

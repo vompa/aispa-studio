@@ -1115,7 +1115,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Eingecheckt, abgeschlossen oder nicht erschienen. Beim Einchecken stehen in Warnings Hinweise zu Raumpflege und Tagesstart des Raums; eingecheckt wird trotzdem. „Gebucht“ nimmt das Einchecken zurück, solange der Termin eingecheckt und noch nicht kassiert ist (sonst 400). */
+        /** Eingecheckt, abgeschlossen oder nicht erschienen. Einchecken geht nur am Tag des Termins, Erledigt und Nicht erschienen erst ab dem Tag des Termins (sonst 400). Beim Einchecken stehen in Warnings Hinweise zu Raumpflege und Tagesstart des Raums; eingecheckt wird trotzdem. „Gebucht“ nimmt das Einchecken zurück, solange der Termin eingecheckt und noch nicht kassiert ist (sonst 400). */
         post: operations["ChangeAppointmentStatus"];
         delete?: never;
         options?: never;

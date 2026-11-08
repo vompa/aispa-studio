@@ -15,6 +15,46 @@ public sealed class PosDayListTests
 
     private static async Task<PosViewModel> LoadedPos() => (await LoadedPosWithApi()).Pos;
 
+    /// <summary>Gebuchter, noch nicht eingecheckter Termin von heute, wie ihn der Server unter „Später heute“ liefert.</summary>
+    private static readonly AppointmentDto BookedToday = SpaSample.Paying with { Id = Guid.NewGuid(), Start = SpaSample.At(16), End = SpaSample.At(16, 45), Status = AppointmentStatus.Booked };
+
+    [Fact]
+    public async Task Nicht_eingecheckter_Termin_traegt_den_Zusatz_und_wird_erst_nach_Rueckfrage_eingecheckt_und_kassiert()
+    {
+        var list = SpaSample.DayList();
+        var stub = new StubApi()
+            .On("GET /api/locations", new List<LocationDto> { SpaSample.Vienna })
+            .On("GET /api/pos/registers", new List<CashRegisterDto> { SpaSample.Register })
+            .On("GET /api/pos/articles", SpaSample.Articles)
+            .On($"GET /api/pos/locations/{SpaSample.LocationId}/day-list?date=2026-10-19", list with { Later = [.. list.Later, SpaSample.DayEntry(BookedToday)] })
+            .On($"GET /api/pos/registers/{SpaSample.Register.Id}/bills", new List<BillDto>())
+            .On($"POST /api/appointments/{BookedToday.Id}/status", BookedToday with { Status = AppointmentStatus.CheckedIn })
+            .On("POST /api/pos/bills", SpaSample.Bill());
+        var dialogs = new FakeDialogs();
+        var pos = new PosViewModel(stub.Client(), new SampleTime()) { Dialogs = dialogs };
+        await pos.InitializeAsync(SpaSample.LocationId);
+        await pos.LoadDayAsync();
+
+        var row = Assert.Single(pos.Unbilled, r => r.Appointment?.Id == BookedToday.Id);
+        Assert.True(row.NeedsCheckIn);
+        Assert.EndsWith("noch nicht eingecheckt", row.SecondLine, StringComparison.Ordinal);
+        Assert.Contains("noch nicht eingecheckt", row.AccessibleName, StringComparison.Ordinal);
+        Assert.All(pos.Unbilled.Where(r => r != row), r => Assert.DoesNotContain("eingecheckt", r.SecondLine, StringComparison.Ordinal));
+
+        // Ohne Antwort gilt „Abbrechen“: nichts wird gesendet.
+        await pos.AddUnbilledCommand.ExecuteAsync(row);
+        Assert.Equal("Einchecken und kassieren?", Assert.Single(dialogs.Asked).Title);
+        Assert.DoesNotContain(stub.Calls, c => c.Route.StartsWith("POST ", StringComparison.Ordinal));
+
+        dialogs.Answer(ConfirmChoice.Confirmed);
+        await pos.AddUnbilledCommand.ExecuteAsync(row);
+
+        dialogs.AssertRules();
+        Assert.Equal([$"POST /api/appointments/{BookedToday.Id}/status", "POST /api/pos/bills"],
+            stub.Calls.Where(c => c.Route.StartsWith("POST ", StringComparison.Ordinal)).Select(c => c.Route));
+        Assert.NotNull(pos.Bill);
+    }
+
     private static async Task<(PosViewModel Pos, StubApi Api)> LoadedPosWithApi()
     {
         var stub = new StubApi()
