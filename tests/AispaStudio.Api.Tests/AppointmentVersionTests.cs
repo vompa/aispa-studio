@@ -14,6 +14,9 @@ public sealed class AppointmentVersionTests(ApiFixture fixture)
 
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
 
+    /// <summary>Uhrzeit am heutigen Tag in Wien: Die Tagesregel am Status-Endpunkt rechnet mit der echten Uhr.</summary>
+    private static DateTimeOffset TodayAt(int hour) => TestSpa.At(hour, 0, DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Europe/Vienna")).DateTime));
+
     private static string PathOf(AppointmentDto appointment, string action) => $"/api/appointments/{appointment.Id}/{action}";
 
     [Fact]
@@ -80,7 +83,8 @@ public sealed class AppointmentVersionTests(ApiFixture fixture)
     public async Task Aenderung_im_Panel_von_altem_Stand_ergibt_409_und_aendert_nichts(string action)
     {
         var spa = await TestSpa.CreateAsync(fixture, Ct);
-        var seen = await spa.BookOkAsync(TestSpa.At(10), Ct, spa.Anna.Id);
+        // Die Tagesregel prüft vor der Version: Einchecken braucht einen Termin am heutigen Tag, sonst gäbe es 400 statt 409.
+        var seen = await spa.BookOkAsync(action == "status" ? TodayAt(10) : TestSpa.At(10), Ct, spa.Anna.Id);
         await spa.PutAsync<AppointmentDto>(PathOf(seen, "note"), new AppointmentNoteRequest("Vom anderen Arbeitsplatz"), Ct);
 
         var response = action switch

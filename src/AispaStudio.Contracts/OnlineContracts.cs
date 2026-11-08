@@ -138,8 +138,11 @@ public sealed record OnlineDeposit(
     decimal Amount, string Currency, int Percent, OnlineDepositStatus Status, string? PaymentUrl, bool TestMode, int DeadlineHours,
     DateTimeOffset? PayUntil, string? Receipt);
 
-/// <summary>Was die Rezeption per Link verlangen kann: Ausfallgebühr laut Regel des Standorts, oder warum es nicht geht.</summary>
-public sealed record CardRequestOffer(bool Possible, decimal FeeAmount, string Currency, int FeePercent, string? Reason);
+/// <summary>
+/// Was die Rezeption per Link verlangen kann: Ausfallgebühr laut Regel des Standorts, oder warum es nicht geht. <c>CancellationDeadlineAt</c>:
+/// bis wann der Gast ohne Gebühr absagt (Beginn minus Stornofrist des Standorts), auch wenn keine Karte verlangt werden kann; ohne Frist leer.
+/// </summary>
+public sealed record CardRequestOffer(bool Possible, decimal FeeAmount, string Currency, int FeePercent, string? Reason, DateTimeOffset? CancellationDeadlineAt = null);
 
 /// <summary>Nur im Testbetrieb: Hinterlegen der Karte simulieren (<c>Saved</c>) oder abbrechen.</summary>
 public sealed record TestCardResult(bool Saved);
@@ -285,7 +288,8 @@ public sealed record LocationOnlineRules(
 /// Kartenhinterlegung eines Termins für das Team. <c>CanCharge</c>: die Ausfallgebühr darf jetzt belastet werden (Karte
 /// hinterlegt und Termin „nicht erschienen“ oder nach der Stornofrist storniert); sonst sagt <c>Hint</c>, warum nicht.
 /// <c>ReceiptId</c>: Beleg der Kasse über die belastete Gebühr. <c>CardRemovedAt</c>: Karte nach Ablauf der Frist beim
-/// Anbieter gelöscht. <c>ReleaseAt</c>: ohne Karte wird der Termin dann freigegeben.
+/// Anbieter gelöscht. <c>ReleaseAt</c>: ohne Karte wird der Termin dann freigegeben. <c>CancellationDeadlineAt</c>: bis wann der Gast ohne
+/// Gebühr absagt (Beginn minus der Frist, der er zugestimmt hat).
 /// </summary>
 public sealed record CardGuaranteeStaffDto(
     Guid Id,
@@ -301,7 +305,8 @@ public sealed record CardGuaranteeStaffDto(
     Guid? ReceiptId,
     string? Error,
     DateTimeOffset? CardRemovedAt = null,
-    DateTimeOffset? ReleaseAt = null);
+    DateTimeOffset? ReleaseAt = null,
+    DateTimeOffset? CancellationDeadlineAt = null);
 
 /// <summary>
 /// Anzahlung eines Termins für das Team. <c>ReceiptId</c>: Anzahlungsbeleg der Kasse. <c>Settled</c>: beim Kassieren der

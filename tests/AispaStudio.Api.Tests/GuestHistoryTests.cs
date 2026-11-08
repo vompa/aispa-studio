@@ -21,7 +21,7 @@ public sealed class GuestHistoryTests(ApiFixture fixture)
         spa.BookOkAsync(TestSpa.At(hour, date: day), Ct, employee.Id, customer: guest.Id);
 
     private static Task<AppointmentDto> StatusAsync(TestSpa spa, AppointmentDto appointment, AppointmentStatus status) =>
-        spa.PostAsync<AppointmentDto>($"/api/appointments/{appointment.Id}/status", new AppointmentStatusChange(status), Ct);
+        spa.SetStatusAsync(appointment.Id, status, Ct);
 
     /// <summary>Ein Besuch an einem vergangenen Montag, eingecheckt.</summary>
     private static async Task VisitAsync(TestSpa spa, CustomerDto guest, DateOnly day, EmployeeDto employee) =>

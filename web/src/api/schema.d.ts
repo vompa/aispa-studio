@@ -962,7 +962,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Verschiebt einen Termin; ohne Angabe bleiben Person, Raum und Gerät, wenn sie zur neuen Zeit frei sind. Mit expectedVersion (Version des Stands, von dem aus geändert wird) antwortet der Server mit 409 und dem aktuellen Termin in current, wenn der Termin inzwischen geändert wurde; das gilt ebenso für Zeiten, Notiz, Storno, Status und Zurücknehmen. */
+        /** Verschiebt einen Termin auf heute oder später (ein früherer Tag ergibt 409); ohne Angabe bleiben Person, Raum und Gerät, wenn sie zur neuen Zeit frei sind. Mit expectedVersion (Version des Stands, von dem aus geändert wird) antwortet der Server mit 409 und dem aktuellen Termin in current, wenn der Termin inzwischen geändert wurde; das gilt ebenso für Zeiten, Notiz, Storno, Status und Zurücknehmen. */
         post: operations["MoveAppointment"];
         delete?: never;
         options?: never;
@@ -1115,7 +1115,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Eingecheckt, abgeschlossen oder nicht erschienen. Beim Einchecken stehen in Warnings Hinweise zu Raumpflege und Tagesstart des Raums; eingecheckt wird trotzdem. „Gebucht“ nimmt das Einchecken zurück, solange der Termin eingecheckt und noch nicht kassiert ist (sonst 400). */
+        /** Eingecheckt, abgeschlossen oder nicht erschienen. Einchecken geht nur am Tag des Termins, Erledigt und Nicht erschienen erst ab dem Tag des Termins (sonst 400). Beim Einchecken stehen in Warnings Hinweise zu Raumpflege und Tagesstart des Raums; eingecheckt wird trotzdem. „Gebucht“ nimmt das Einchecken zurück, solange der Termin eingecheckt und noch nicht kassiert ist (sonst 400). */
         post: operations["ChangeAppointmentStatus"];
         delete?: never;
         options?: never;
@@ -1268,7 +1268,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Verschiebt eine ganze gemeinsame Buchung (Paar, Spa-Tag) auf einen neuen Beginn: alle Termine oder keiner. */
+        /** Verschiebt eine ganze gemeinsame Buchung (Paar, Spa-Tag) auf einen neuen Beginn an heute oder später (ein früherer Tag ergibt 409): alle Termine oder keiner. */
         post: operations["MoveAppointmentGroup"];
         delete?: never;
         options?: never;
@@ -8620,6 +8620,8 @@ export interface components {
             cardRemovedAt?: null | string;
             /** Format: date-time */
             releaseAt?: null | string;
+            /** Format: date-time */
+            cancellationDeadlineAt?: null | string;
         };
         /** @enum {unknown} */
         CardGuaranteeStatus: "Pending" | "Saved" | "Failed" | "Charging" | "Charged" | "ChargeFailed" | "Refunded" | "AwaitingConsent" | "Released";
@@ -8662,6 +8664,8 @@ export interface components {
             /** Format: int32 */
             feePercent: number;
             reason: null | string;
+            /** Format: date-time */
+            cancellationDeadlineAt?: null | string;
         };
         CardTerminalResult: {
             approved: boolean;

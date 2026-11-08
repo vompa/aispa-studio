@@ -22,7 +22,8 @@ internal static partial class ReceptionJourney
         new("checkin-undo-late", "Einchecken später zurücknehmen", "Einchecken, Meldung abwarten, dann im Panel „Einchecken zurücknehmen“", UndoLate, TermNeeds),
         new("checkin-noshow", "Nicht erschienen nach dem Einchecken", "Bei einem eingecheckten Termin ist „Nicht erschienen“ gesperrt", NoShowAfterCheckIn, TermNeeds),
         new("reschedule", "Termin verschieben", "Panel „Verschieben …“, „+1 Tag“, „Verschieben“, dann „Rückgängig“", Reschedule, TermNeeds),
-        new("reschedule-past", "Verschieben in die Vergangenheit", "Das Panel lässt ein Datum von gestern zu (Lücke L2); der Test holt den Termin zurück", ReschedulePast, TermNeeds),
+        new("reschedule-past", "Verschieben in die Vergangenheit", Unchecked + "Bei einem Termin von heute ist „−1 Tag“ gesperrt (Lücke L2 behoben)", ReschedulePast, TermNeeds,
+            Leaves: "Legt nichts an."),
         new("reschedule-checked-in", "Eingecheckten Termin verschieben", "Bei einem eingecheckten Termin fehlt „Verschieben …“", RescheduleCheckedIn, TermNeeds),
         new("cancel", "Termin stornieren und zurücknehmen", "" + Unchecked + "„Termin stornieren …“, „Stornieren“, mit „Rückgängig“ zurück", Cancel, TermNeeds),
         new("cancel-restore", "Stornierung später zurücknehmen", "" + Unchecked + "Storno, Meldung abwarten, im Panel „Stornierung zurücknehmen“", CancelRestore, TermNeeds),
@@ -41,8 +42,23 @@ internal static partial class ReceptionJourney
         s.Find(e => e.Properties.AutomationId.ValueOrDefault == "PART_PrimaryButton" && e.Properties.Name.ValueOrDefault == "Termin",
             "Knopf „Termin“");
 
-    /// <summary>Die Meldung unten im Kalender (Toast), deren Text mit <paramref name="start"/> beginnt.</summary>
-    private static Func<AutomationElement, bool> Toast(string start) => Class("TextBlock", NameStarts(start));
+    /// <summary>
+    /// Die Meldung unten im Kalender (Toast), deren Text mit <paramref name="start"/> beginnt. Der Text heißt für UI Automation fest
+    /// „Meldung“; den Wortlaut liefert Avalonia über den ToolTip als Hilfetext.
+    /// </summary>
+    private static Func<AutomationElement, bool> Toast(string start) =>
+        Class("TextBlock", e => e.Properties.Name.ValueOrDefault == "Meldung"
+                                && e.Properties.HelpText.ValueOrDefault?.StartsWith(start, StringComparison.Ordinal) == true);
+
+    /// <summary>Einchecken geht nur am Tag des Termins; ohne Termin von heute scheitert das Thema mit klarer Meldung statt an einem fehlenden Knopf.</summary>
+    private static void RequireToday(BookedAppointment booked)
+    {
+        if (booked.DaysAhead != 0)
+        {
+            throw new InvalidOperationException(
+                $"Einchecken geht nur am Tag des Termins; der Termin des Laufs liegt am {booked.Date}, heute war keine Zeit mehr frei.");
+        }
+    }
 
     /// <summary>Wählt im Buchungspanel den Gast: suchen, Treffer klicken, warten bis „Ändern“ erscheint.</summary>
     private static void ChooseGuest(LiveSession s, string customer)
@@ -79,11 +95,11 @@ internal static partial class ReceptionJourney
         var customer = GuestOf(context);
         var today = default(DateTime);
         OpenCalendar(s);
-        s.Step("Bei „Heute“ beginnen, dann auf den nächsten Tag", () =>
+        // Einchecken und Kassieren gehen nur am Tag des Termins; die Suche nach freier Zeit beginnt deshalb heute.
+        s.Step("Auf „Heute“ stellen", () =>
         {
             s.Click(Button("Heute"), "Knopf „Heute“");
             today = ParseShownDate(ShownDate(s));
-            s.Click("Nächster Tag");
         });
         s.Step("Neuen Termin beginnen", () =>
         {
@@ -113,7 +129,7 @@ internal static partial class ReceptionJourney
                                 || e.Properties.Name.ValueOrDefault == "Buchen (Enter)",
                 "Knopf „Buchen“ unter den freien Zeiten"));
             // Ein Stammgast hat schon Termine; erst die Meldung belegt, dass dieser Lauf gebucht hat.
-            s.Expect(NameStarts($"Gebucht: {customer},"), $"Meldung „Gebucht: {customer}, …“");
+            s.Expect(Toast($"Gebucht: {customer},"), $"Meldung „Gebucht: {customer}, …“");
             // Die Kalenderkarte heißt „<Zeit> <Kundin>, <Behandlung>, Gebucht“; der Name allein stünde auch im Kundenfeld.
             var card = s.Find(Class("AppointmentCard", e => e.Properties.Name.ValueOrDefault is { } name
                                                           && name.Contains($" {customer}, {Treatment}, Gebucht", StringComparison.Ordinal)),
@@ -239,6 +255,7 @@ internal static partial class ReceptionJourney
     private static void CheckIn(LiveSession s, LiveRunContext context)
     {
         var booked = context.Appointment!;
+        RequireToday(booked);
         OpenCalendar(s);
         s.Step("Karte des Termins anklicken", () =>
         {
@@ -280,6 +297,7 @@ internal static partial class ReceptionJourney
     private static void UndoLate(LiveSession s, LiveRunContext context)
     {
         var booked = context.Appointment!;
+        RequireToday(booked);
         OpenCalendar(s);
         s.Step("Termin einchecken", () =>
         {
@@ -299,6 +317,7 @@ internal static partial class ReceptionJourney
     private static void NoShowAfterCheckIn(LiveSession s, LiveRunContext context)
     {
         var booked = context.Appointment!;
+        RequireToday(booked);
         OpenCalendar(s);
         s.Step("Termin einchecken", () =>
         {
@@ -328,27 +347,14 @@ internal static partial class ReceptionJourney
         });
 
     /// <summary>
-    /// Verschiebt im offenen Panel um Tage, bis der Server annimmt: dieselbe Uhrzeit ist an einem Tag oft schon belegt („Zeitraum ist
-    /// belegt“), dann geht es einen Tag weiter. <paramref name="dayButton"/> ist „+1 Tag“ oder „−1 Tag“; <paramref name="firstClicks"/>
-    /// Klicks davor stellen die Grenze ein (gestern liegt zwei Tage vor dem Termin von morgen).
+    /// Verschiebt im offenen Panel mit „+1 Tag“, bis der Server annimmt: dieselbe Uhrzeit ist an einem Tag oft schon belegt („Zeitraum ist
+    /// belegt“), dann geht es einen Tag weiter.
     /// </summary>
-    private static void MoveDays(LiveSession s, string dayButton, int firstClicks, string? begin = null)
+    private static void MoveDaysForward(LiveSession s)
     {
-        if (begin is not null)
-        {
-            // Die Vergangenheit ist nach vier Wochen Demo-Verlauf dicht gebucht; am späten Nachmittag ist noch Platz.
-            s.Type("Beginn", begin);
-            LiveSession.Press(VirtualKeyShort.TAB);
-        }
-
-        for (var i = 0; i < firstClicks - 1; i++)
-        {
-            s.Click(Button(dayButton), $"Knopf „{dayButton}“");
-        }
-
         for (var attempt = 0; attempt < 10; attempt++)
         {
-            s.Click(Button(dayButton), $"Knopf „{dayButton}“");
+            s.Click(Button("+1 Tag"), "Knopf „+1 Tag“");
             s.Click(Button("Verschieben"), "Knopf „Verschieben“");
             if (s.TryFind(Toast("Verschoben auf"), TimeSpan.FromSeconds(4)) is not null)
             {
@@ -427,7 +433,7 @@ internal static partial class ReceptionJourney
         s.Step("„Verschieben …“, „+1 Tag“ und „Verschieben“", () =>
         {
             s.Click(Button("Verschieben …"), "Knopf „Verschieben …“");
-            MoveDays(s, "+1 Tag", 1);
+            MoveDaysForward(s);
         });
         s.Step("Meldung „Verschoben auf“, der Kalender folgt dem Termin; „Rückgängig“ holt ihn zurück", () => MovedThenUndone(s, before, booked));
     }
@@ -435,21 +441,26 @@ internal static partial class ReceptionJourney
     private static void ReschedulePast(LiveSession s, LiveRunContext context)
     {
         var booked = context.Appointment!;
+        RequireToday(booked);
         OpenCalendar(s);
-        var before = ShownDate(s);
         OpenPanel(s, booked);
-        s.Step("Zwei Tage zurück (der Termin liegt morgen, das ist vor gestern) und „Verschieben“", () =>
+        s.Step("„Verschieben …“: der Termin liegt heute, „−1 Tag“ ist gesperrt", () =>
         {
             s.Click(Button("Verschieben …"), "Knopf „Verschieben …“");
-            MoveDays(s, "−1 Tag", booked.DaysAhead + 1, begin: "16:00");
+            s.Expect(Button("−1 Tag"), "Knopf „−1 Tag“");
+            s.ExpectMissing(EnabledButton("−1 Tag"), "Freigegebener Knopf „−1 Tag“");
         });
-        s.Step("Es gibt keine Sperre: Meldung „Verschoben auf“, der Kalender folgt auf den früheren Tag; „Rückgängig“ holt den Termin zurück",
-            () => MovedThenUndone(s, before, booked));
+        s.Step("Panel schließen: der Termin bleibt", () =>
+        {
+            ClosePanelWithEscape(s);
+            s.Expect(Card(booked, "Gebucht"), "Karte mit Status „Gebucht“");
+        });
     }
 
     private static void RescheduleCheckedIn(LiveSession s, LiveRunContext context)
     {
         var booked = context.Appointment!;
+        RequireToday(booked);
         OpenCalendar(s);
         OpenPanel(s, booked);
         s.Step("Einchecken", () =>

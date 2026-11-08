@@ -12,7 +12,7 @@ Am Telefon den Wunsch des Gastes einfach eintippen, z. B. „Massage morgen 17 U
 
 ## Vorschläge holen und buchen {#ablauf}
 
-1. **Strg+K** drücken, oder im Menü neben **Termin anlegen** **Wunsch eintippen (KI)** wählen, oder per Rechtsklick auf eine freie Stelle.
+1. **Strg+K** drücken, oder im Menü neben **Termin** **Wunsch eintippen (KI)** wählen, oder per Rechtsklick auf eine freie Stelle.
 2. Im Panel **Wunsch eintippen** den Wunsch ins Feld schreiben und **Enter** drücken.
 3. Aus dem Wunsch werden Bausteine, z. B. Tag, Uhrzeit, Behandlung, Person, „nicht bei …“, Raum („im Raum Lotus“) und die Zahl der Gäste („zu zweit“ ergibt „2 Personen · Paarraum“). Darunter stehen drei nummerierte Vorschläge mit Tag, Uhrzeit, Person, Raum, Behandlung, Preis und einer kurzen Begründung. Wird zur Behandlung etwas bereitgestellt (Tee, Früchteteller), steht das als Hinweis unter den Bausteinen.
 4. Mit **↑** und **↓** einen Vorschlag wählen, oder anklicken.

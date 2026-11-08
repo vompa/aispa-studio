@@ -425,4 +425,37 @@ public sealed class CalendarDayNotesTests
         Assert.Equal("Ersatz für Ben", vm.Absence?.Title);
         Assert.Contains("krank gemeldet", vm.Toast, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public async Task Krank_melden_im_Rechtsklick_fragt_nach_und_speichert_erst_nach_Bestaetigung()
+    {
+        var open = TestData.Appointment(10, TestData.Ben);
+        var api = Api(TestData.Day(open))
+            .On($"PUT /api/locations/{TestData.LocationId}/roster/{TestData.Ben.Id}/2027-03-01",
+                new RosterDayResult(new RosterCell(TestData.Monday, RosterSource.Plan, [new RosterEntry(RosterKind.Sick, null, null, null)], null, []), [open]))
+            .On($"POST /api/locations/{TestData.LocationId}/absence/proposal", new AbsenceProposal(TestData.Ben.Id, TestData.Monday, []));
+        var manager = TestData.Reception() with { Rights = [AccessRight.ViewCalendar, AccessRight.Book, AccessRight.ManageLocation] };
+        var dialogs = new FakeDialogs().Answer(ConfirmChoice.Cancelled).Answer(ConfirmChoice.Confirmed);
+        var vm = new CalendarViewModel(api.Client(), manager, null, new FixedTime()) { Dialogs = dialogs };
+        await vm.InitializeAsync();
+        await vm.LoadAsync();
+        var ben = vm.Columns.Single(c => c.Id == TestData.Ben.Id);
+
+        // Abbrechen: nichts gespeichert.
+        await vm.AskReportSickAsync(ben);
+        var request = Assert.Single(dialogs.Asked);
+        Assert.Equal("Ben krank melden?", request.Title);
+        Assert.Equal("Krank melden", request.ConfirmText);
+        Assert.True(request.IsDestructive);
+        Assert.Contains("01.03.", request.Message, StringComparison.Ordinal);
+        Assert.DoesNotContain(api.Calls, c => c.Route.StartsWith("PUT /api/locations", StringComparison.Ordinal));
+
+        // Bestätigen: der Krankenstand wird einmal gespeichert.
+        vm.ActionsForColumn(ben).Single(a => a.Header == "Ben krank melden").Run!();
+        await Until(() => vm.Absence is not null);
+
+        dialogs.AssertRules();
+        Assert.Single(api.Calls, c => c.Route.StartsWith("PUT /api/locations", StringComparison.Ordinal));
+        Assert.Equal("Ersatz für Ben", vm.Absence?.Title);
+    }
 }

@@ -25,6 +25,12 @@ public partial class AppointmentViewModel
     [NotifyPropertyChangedFor(nameof(HasCardSection), nameof(CardLines), nameof(CanRequestCard))]
     public partial CardRequestOffer? CardOffer { get; private set; }
 
+    /// <summary>Bis wann der Gast ohne Gebühr absagt, aus der Hinterlegung oder dem Angebot des Servers; für den Hinweis in der Storno-Rückfrage (L3).</summary>
+    public DateTimeOffset? CancellationDeadlineAt { get; private set; }
+
+    /// <summary>Wirksame Ausfallgebühr in Prozent nach den Regeln des Servers (Behandlung vor Standort, „nur neue Gäste“, Zahlungsanbieter); 0 ohne Regel.</summary>
+    public int LateCancelFeePercent { get; private set; }
+
     public bool HasCardSection => CardGuarantee is not null || CardOffer is not null;
 
     public bool HasCardState => CardGuarantee is not null;
@@ -73,9 +79,16 @@ public partial class AppointmentViewModel
     public async Task LoadCardGuaranteeAsync()
     {
         CardGuarantee = (await Api.GetAsync<CardGuaranteeStaffDto>(CardPath).ConfigureAwait(true)).Value;
-        if (CardGuarantee is null && IsBooked && MayBook)
+        if (CardGuarantee is { } card)
+        {
+            CancellationDeadlineAt = card.CancellationDeadlineAt;
+            LateCancelFeePercent = card.FeePercent;
+        }
+        else if (IsBooked && MayBook)
         {
             var offer = await Api.GetAsync<CardRequestOffer>($"{CardPath}/offer").ConfigureAwait(true);
+            CancellationDeadlineAt = offer.Value?.CancellationDeadlineAt;
+            LateCancelFeePercent = offer.Value?.FeePercent ?? 0;
             CardOffer = offer.Value is { Possible: true } possible ? possible : null;
         }
 

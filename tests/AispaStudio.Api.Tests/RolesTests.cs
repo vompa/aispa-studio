@@ -288,7 +288,7 @@ public sealed class RolesTests(ApiFixture fixture)
         var spa = await TestSpa.CreateAsync(fixture, Ct);
         await SellTeaAsync(spa);
         var done = await spa.BookOkAsync(TestSpa.At(10), Ct, spa.Anna.Id);
-        await spa.PostAsync<AppointmentDto>($"/api/appointments/{done.Id}/status", new AppointmentStatusChange(AppointmentStatus.Completed), Ct);
+        await spa.SetStatusAsync(done.Id, AppointmentStatus.Completed, Ct);
         using var leitung = await JoinAsync(spa, StaffRole.Manager);
         var leitungId = (await leitung.GetFromJsonAsync<CurrentUser>("/api/auth/me", TestSpa.Json, Ct))!.Id;
         var today = $"{DateTime.UtcNow:yyyy-MM-dd}";

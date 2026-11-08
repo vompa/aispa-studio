@@ -108,6 +108,18 @@ internal sealed class TestSpa
         return outcome is BookingOutcome.Success success ? success.Appointment : throw new InvalidOperationException($"Buchung in der Vergangenheit abgelehnt: {outcome}");
     }
 
+    /// <summary>
+    /// Setzt den Status am Endpunkt vorbei über den Buchungsdienst: Am Endpunkt gilt die Tagesregel (<see cref="Scheduling.StatusDays"/>), der Testkalender
+    /// liegt aber im März 2027. Tests zum Endpunkt selbst buchen relativ zu heute (<see cref="StatusDayTests"/>).
+    /// </summary>
+    public async Task<AppointmentDto> SetStatusAsync(Guid appointmentId, AppointmentStatus status, CancellationToken ct)
+    {
+        await using var scope = Fixture.Factory.Services.CreateAsyncScope();
+        scope.ServiceProvider.GetRequiredService<TenantContext>().Use(TenantId);
+        var outcome = await scope.ServiceProvider.GetRequiredService<BookingService>().ChangeStatusAsync(appointmentId, status, ct);
+        return outcome is BookingOutcome.Success success ? success.Appointment : throw new InvalidOperationException($"Statuswechsel abgelehnt: {outcome}");
+    }
+
     public async Task<T> PostAsync<T>(string path, object body, CancellationToken ct) =>
         await ReadAsync<T>(await Client.PostAsJsonAsync(path, body, Json, ct), ct);
 

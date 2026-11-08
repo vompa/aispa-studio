@@ -44,7 +44,7 @@ public sealed class RoomRestockTests(ApiFixture fixture)
     private static async Task<AppointmentDto> CompletedAsync(TestSpa spa, int hour)
     {
         var appointment = await spa.BookOkAsync(TestSpa.At(hour), Ct, spa.Anna.Id, spa.RoomA.Id);
-        await spa.PostAsync<AppointmentDto>($"/api/appointments/{appointment.Id}/status", new AppointmentStatusChange(AppointmentStatus.Completed), Ct);
+        await spa.SetStatusAsync(appointment.Id, AppointmentStatus.Completed, Ct);
         return appointment;
     }
 
@@ -64,7 +64,7 @@ public sealed class RoomRestockTests(ApiFixture fixture)
         var appointment = await spa.BookOkAsync(TestSpa.At(10), Ct, spa.Anna.Id, spa.RoomA.Id);
 
         var booked = Assert.Single((await CareAsync(spa)).Tasks);
-        await spa.PostAsync<AppointmentDto>($"/api/appointments/{appointment.Id}/status", new AppointmentStatusChange(AppointmentStatus.Completed), Ct);
+        await spa.SetStatusAsync(appointment.Id, AppointmentStatus.Completed, Ct);
         var completed = Assert.Single((await CareAsync(spa)).Tasks);
 
         Assert.Empty(booked.Restock!);
@@ -249,7 +249,7 @@ public sealed class RoomRestockTests(ApiFixture fixture)
         var card = () => anna.GetFromJsonAsync<TreatmentCard>($"/api/reports/appointments/{appointment.Id}/card", TestSpa.Json, Ct);
 
         var before = await card();
-        await spa.PostAsync<AppointmentDto>($"/api/appointments/{appointment.Id}/status", new AppointmentStatusChange(AppointmentStatus.Completed), Ct);
+        await spa.SetStatusAsync(appointment.Id, AppointmentStatus.Completed, Ct);
         var after = await card();
         var plan = await anna.GetFromJsonAsync<DayPlanDto>($"/api/reports/locations/{spa.Location.Id}/day-plan?date={Iso(TestSpa.Monday)}", TestSpa.Json, Ct);
 

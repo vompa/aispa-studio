@@ -15,6 +15,9 @@ public sealed class AccessTests(ApiFixture fixture)
 {
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
 
+    /// <summary>Uhrzeit am heutigen Tag in Wien: Die Tagesregel am Status-Endpunkt rechnet mit der echten Uhr.</summary>
+    private static DateTimeOffset TodayAt(int hour) => TestSpa.At(hour, 0, DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Europe/Vienna")).DateTime));
+
     [Fact]
     public async Task Inhaber_sieht_seine_Rolle_und_alle_Rechte()
     {
@@ -88,8 +91,8 @@ public sealed class AccessTests(ApiFixture fixture)
     public async Task Therapeutin_sieht_Kalender_und_setzt_nur_eigene_Termine_auf_eingecheckt()
     {
         var spa = await TestSpa.CreateAsync(fixture, Ct);
-        var own = await spa.BookOkAsync(TestSpa.At(10), Ct, employee: spa.Anna.Id);
-        var other = await spa.BookOkAsync(TestSpa.At(10), Ct, employee: spa.Ben.Id);
+        var own = await spa.BookOkAsync(TodayAt(10), Ct, employee: spa.Anna.Id);
+        var other = await spa.BookOkAsync(TodayAt(10), Ct, employee: spa.Ben.Id);
         using var anna = await TestUsers.ClientAsync(fixture, Ct, StaffRole.Therapist, [spa.Location.Id], spa.Anna.Id);
 
         var calendar = await anna.GetAsync($"/api/locations/{spa.Location.Id}/calendar?date={TestSpa.Monday:yyyy-MM-dd}", Ct);

@@ -122,7 +122,7 @@ public sealed class OnlineRefundTests(ApiFixture fixture)
             TestSpa.At(10), new OnlineContact("Nora", "Karte", NewEmail(), null), null, true, "de", true), TestSpa.Json, Ct);
         var booked = await TestSpa.ReadAsync<OnlineBookingConfirmation>(booking, Ct);
         await client.PostAsJsonAsync($"/api/online/bookings/{booked.ManageToken}/card/test", new TestCardResult(true), TestSpa.Json, Ct);
-        await spa.PostAsync<AppointmentDto>($"/api/appointments/{booked.Appointment.Id}/status", new AppointmentStatusChange(AppointmentStatus.NoShow), Ct);
+        await spa.SetStatusAsync(booked.Appointment.Id, AppointmentStatus.NoShow, Ct);
         await spa.Client.PostAsync($"/api/appointments/{booked.Appointment.Id}/card-guarantee/charge", null, Ct);
         var charged = await WaitForAsync(() => spa.GetAsync<CardGuaranteeStaffDto>($"/api/appointments/{booked.Appointment.Id}/card-guarantee", Ct),
             g => g.Status == CardGuaranteeStatus.Charged);

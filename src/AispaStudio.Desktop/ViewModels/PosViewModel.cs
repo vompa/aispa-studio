@@ -23,11 +23,16 @@ public sealed record UnbilledItem(string Time, string Customer, string Treatment
 
     public bool HasFinishedText => FinishedText is not null;
 
-    /// <summary>Zweite Zeile: Behandlung, Person und Raum („Hot-Stone-Massage · Lena · Lotus“).</summary>
-    public string SecondLine => HasDetails ? $"{Treatment} · {Details}" : Treatment;
+    /// <summary>Noch gebucht, nicht eingecheckt: Die Zeile sagt es, und ein Klick fragt „Einchecken und kassieren?“ (L1).</summary>
+    public bool NeedsCheckIn => Appointment is { Status: AppointmentStatus.Booked };
+
+    private string? StatusText => NeedsCheckIn ? "noch nicht eingecheckt" : null;
+
+    /// <summary>Zweite Zeile: Behandlung, Person und Raum („Hot-Stone-Massage · Lena · Lotus“), bei gebuchten Terminen mit „noch nicht eingecheckt“.</summary>
+    public string SecondLine => string.Join(" · ", new[] { Treatment, Details, StatusText }.Where(t => !string.IsNullOrEmpty(t)));
 
     /// <summary>Name für den Screenreader wie angezeigt: „10:30 Brigitte Müller, Hot-Stone-Massage, € 95,00, Lena · Lotus, fertig seit 10:55“.</summary>
-    public string AccessibleName => AccessibleNames.Join($"{Time} {Customer}", Treatment, Price, Details, FinishedText);
+    public string AccessibleName => AccessibleNames.Join($"{Time} {Customer}", Treatment, Price, Details, StatusText, FinishedText);
 
     /// <summary>Passt zur Suche: Gast, Behandlung, Person oder Raum enthalten den Text (Groß- und Kleinschreibung egal).</summary>
     public bool Matches(string search) =>
@@ -760,9 +765,39 @@ public partial class PosViewModel : ViewModelBase
         await ShowBillAsync(result).ConfigureAwait(true);
     }
 
+    /// <summary>Zeile der Tagesliste auf die Rechnung; ein noch nicht eingecheckter Termin wird nach Rückfrage zuerst eingecheckt (L1), sonst lehnt der Server ab.</summary>
     [RelayCommand]
-    private Task AddUnbilledAsync(UnbilledItem item) =>
-        item.Visit is { } visit ? AddVisitAsync(visit) : AddAppointmentAsync(item.Appointment!);
+    private async Task AddUnbilledAsync(UnbilledItem item)
+    {
+        if (item.Visit is { } visit)
+        {
+            await AddVisitAsync(visit).ConfigureAwait(true);
+            return;
+        }
+
+        var appointment = item.Appointment!;
+        if (item.NeedsCheckIn)
+        {
+            var answer = await AskAsync(new ConfirmRequest("Einchecken und kassieren?",
+                "Der Gast ist noch nicht eingecheckt. Der Termin wird eingecheckt und dann auf die Rechnung gelegt.", "Einchecken und kassieren", IsDestructive: false)).ConfigureAwait(true);
+            if (!answer.IsConfirmed)
+            {
+                return;
+            }
+
+            var checkedIn = await _api.PostAsync<AppointmentDto>($"api/appointments/{appointment.Id}/status",
+                new AppointmentStatusChange(AppointmentStatus.CheckedIn, appointment.Version)).ConfigureAwait(true);
+            if (checkedIn.Value is null)
+            {
+                Error = checkedIn.Error;
+                return;
+            }
+
+            appointment = checkedIn.Value;
+        }
+
+        await AddAppointmentAsync(appointment).ConfigureAwait(true);
+    }
 
     [RelayCommand]
     private Task AddArticleAsync(ArticleDto article) =>

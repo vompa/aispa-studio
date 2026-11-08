@@ -26,14 +26,15 @@ public sealed class CustomerInsightsTests(ApiFixture fixture)
         foreach (var (weeks, employee) in new[] { (0, spa.Anna), (4, spa.Ben), (8, spa.Anna) })
         {
             var visit = await spa.BookOkAsync(TestSpa.At(10, date: TestSpa.Monday.AddDays(7 * weeks)), Ct, employee.Id);
+            await spa.SetStatusAsync(visit.Id, AppointmentStatus.CheckedIn, Ct);
             var bill = await spa.PostAsync<BillDto>("/api/pos/bills", new BillInput(register.Id, null, [visit.Id]), Ct);
             await spa.PostAsync<ReceiptDto>($"/api/pos/bills/{bill.Id}/checkout",
                 new CheckoutRequest(null, [new PaymentInput(PaymentMethod.Cash, 79m, null, null)]), Ct);
-            await spa.PostAsync<AppointmentDto>($"/api/appointments/{visit.Id}/status", new AppointmentStatusChange(AppointmentStatus.Completed), Ct);
+            await spa.SetStatusAsync(visit.Id, AppointmentStatus.Completed, Ct);
         }
 
         var missed = await spa.BookOkAsync(TestSpa.At(10, date: TestSpa.Monday.AddDays(7 * 12)), Ct, spa.Anna.Id);
-        await spa.PostAsync<AppointmentDto>($"/api/appointments/{missed.Id}/status", new AppointmentStatusChange(AppointmentStatus.NoShow), Ct);
+        await spa.SetStatusAsync(missed.Id, AppointmentStatus.NoShow, Ct);
         await spa.Client.PutAsJsonAsync($"/api/customers/{spa.Customer.Id}/reception-note", new CustomerReceptionNoteInput(" Mann holt ab "), TestSpa.Json, Ct);
 
         var owner = await spa.GetAsync<CustomerInsights>(path, Ct);
@@ -73,6 +74,11 @@ public sealed class CustomerInsightsTests(ApiFixture fixture)
             "Test-Spa GmbH", "Test-Spa GmbH", "AT61 1904 3002 3457 3201", null), Ct);
         async Task<ReceiptDto> SellAsync(CustomerDto guest, Guid[] appointments, BillLineInput[] lines, params PaymentInput[] payments)
         {
+            foreach (var appointmentId in appointments)
+            {
+                await spa.SetStatusAsync(appointmentId, AppointmentStatus.CheckedIn, Ct);
+            }
+
             var bill = await spa.PostAsync<BillDto>("/api/pos/bills", new BillInput(register.Id, guest.Id, appointments), Ct);
             foreach (var line in lines)
             {

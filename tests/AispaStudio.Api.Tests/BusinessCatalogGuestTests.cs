@@ -92,8 +92,8 @@ public sealed class BusinessCatalogGuestTests(ApiFixture fixture)
         var spa = await TestSpa.CreateAsync(fixture, Ct);
         var guest = await spa.PostAsync<CustomerDto>("/api/customers", new CustomerInput("Brigitte", "Müller", "bm@example.at", "+43 664 1234567", null, null), Ct);
         var visit = await TestSpa.ReadAsync<AppointmentDto>(await spa.BookAsync(TestSpa.At(10), Ct, spa.Anna.Id, customer: guest.Id), Ct);
-        await spa.PostAsync<AppointmentDto>($"/api/appointments/{visit.Id}/status", new AppointmentStatusChange(AppointmentStatus.CheckedIn), Ct);
-        await spa.PostAsync<AppointmentDto>($"/api/appointments/{visit.Id}/status", new AppointmentStatusChange(AppointmentStatus.Completed), Ct);
+        await spa.SetStatusAsync(visit.Id, AppointmentStatus.CheckedIn, Ct);
+        await spa.SetStatusAsync(visit.Id, AppointmentStatus.Completed, Ct);
         await spa.BookOkAsync(TestSpa.At(11, date: TestSpa.Monday.AddDays(14)), Ct, spa.Anna.Id);
 
         var block = await _kit.AnswerAsync(spa, "Wann war Frau Müller zuletzt da?");
@@ -152,7 +152,7 @@ public sealed class BusinessCatalogGuestTests(ApiFixture fixture)
         var spa = await TestSpa.CreateAsync(fixture, Ct);
         var guest = await GuestAsync(spa, "Hans", "Berger");
         var visit = await TestSpa.ReadAsync<AppointmentDto>(await spa.BookAsync(TestSpa.At(10), Ct, spa.Anna.Id, customer: guest.Id), Ct);
-        await spa.PostAsync<AppointmentDto>($"/api/appointments/{visit.Id}/status", new AppointmentStatusChange(AppointmentStatus.CheckedIn), Ct);
+        await spa.SetStatusAsync(visit.Id, AppointmentStatus.CheckedIn, Ct);
         var other = await spa.CreateLocationAsync("Graz", [DayOfWeek.Monday], Ct);
         using var grazOnly = await TestUsers.ClientAsync(fixture, Ct, StaffRole.Reception, [other.Id]);
 

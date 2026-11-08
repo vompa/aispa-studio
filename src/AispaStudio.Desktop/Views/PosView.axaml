@@ -646,7 +646,7 @@
                   </StackPanel>
                 </Border>
                 <ui:FormField Label="Gutschein-Code" IsRequired="True" IsVisible="{Binding IsVoucher}" Help="{Binding VoucherHelp}" Error="{Binding VoucherError}">
-                  <TextBox Text="{Binding VoucherCode}" PlaceholderText="z. B. GS-7K3M-Q9" LostFocus="OnVoucherCodeLostFocus" />
+                  <TextBox Text="{Binding VoucherCode}" PlaceholderText="z. B. K7M3-Q9XA-B2CD" LostFocus="OnVoucherCodeLostFocus" />
                 </ui:FormField>
               </StackPanel>
             </DataTemplate>
@@ -878,11 +878,12 @@
         </Border>
         <Border Classes="card">
           <StackPanel Spacing="10">
-            <TextBlock Text="Einlage oder Entnahme" Classes="h2" />
+            <TextBlock Text="{Binding MovementTitle}" Classes="h2" />
             <Border Classes="segmented" HorizontalAlignment="Left">
               <StackPanel Orientation="Horizontal">
                 <ui:TabButton Content="Einlage" IsSelected="{Binding !MovementIsWithdrawal}" Click="OnDeposit" />
-                <ui:TabButton Content="Entnahme" IsSelected="{Binding MovementIsWithdrawal}" Click="OnWithdrawal" />
+                <!-- L6: Entnehmen darf nur die Kassenaufsicht; der Tab fehlt sonst, statt erst beim Buchen zu scheitern -->
+                <ui:TabButton Content="Entnahme" IsSelected="{Binding MovementIsWithdrawal}" Click="OnWithdrawal" IsVisible="{Binding MaySuperviseCash}" />
               </StackPanel>
             </Border>
             <ui:FormField Label="{Binding Currency, StringFormat='Betrag ({0})'}" IsRequired="True">

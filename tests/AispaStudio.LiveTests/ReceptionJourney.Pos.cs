@@ -33,6 +33,7 @@ internal static partial class ReceptionJourney
     private static void Checkout(LiveSession s, LiveRunContext context)
     {
         var booked = context.Appointment!;
+        RequireToday(booked);
         OpenCalendar(s);
         s.Step("Termin einchecken und „Kassieren“", () =>
         {

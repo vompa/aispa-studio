@@ -19,7 +19,7 @@ Bereiche wie Sauna oder Ruheraum haben keine Termine, sondern Eintritte mit Von,
 
 ## Eintritt buchen {#buchen}
 
-1. **S** drücken, oder im Menü neben **Termin anlegen** **Sauna-Eintritt** wählen, oder den Bereichs-Knopf anklicken.
+1. **S** drücken, oder im Menü neben **Termin** **Sauna-Eintritt** wählen, oder den Bereichs-Knopf anklicken.
 2. Unter **Neuer Eintritt** den Gast suchen und wählen.
 3. Gibt es mehrere Bereiche, den Bereich wählen.
 4. **Von** und **Bis** prüfen. Vorbelegt ist heute die nächste Viertelstunde, sonst 10:00, jeweils für drei Stunden.

@@ -44,7 +44,8 @@ internal sealed class CardRequests(
         }
 
         var location = await db.Locations.AsNoTracking().FirstAsync(l => l.Id == appointment.LocationId, ct);
-        var percent = await cards.PercentForAsync(await rules.ForAsync(location.Id, ct), appointment.Treatment, appointment.CustomerId, ct);
+        var locationRules = await rules.ForAsync(location.Id, ct);
+        var percent = await cards.PercentForAsync(locationRules, appointment.Treatment, appointment.CustomerId, ct);
         var fee = CardGuarantees.Fee(appointment.Price, percent);
         var existing = await online.CardGuarantees.AsNoTracking().Where(g => g.AppointmentId == appointmentId).Select(g => (CardGuaranteeStatus?)g.Status)
             .FirstOrDefaultAsync(ct);
@@ -57,7 +58,8 @@ internal sealed class CardRequests(
             _ when fee <= 0 => "Der Termin hat keinen Preis.",
             _ => null,
         };
-        return new CardRequestOffer(reason is null, fee, location.Currency, percent, reason);
+        return new CardRequestOffer(reason is null, fee, location.Currency, percent, reason,
+            CardGuarantees.CancellationDeadline(appointment.Start, locationRules.CancellationDeadlineHours));
     }
 
     /// <summary>Legt die Hinterlegung an (wartet auf Zustimmung) und mailt den Link; ein zweiter Aufruf schickt einen neuen Link.</summary>
