@@ -298,6 +298,25 @@ public sealed class CalendarTests
     }
 
     [Fact]
+    public async Task Buchen_aus_dem_Panel_meldet_Gebucht_mit_Gast_Tag_und_Uhrzeit()
+    {
+        var api = Api();
+        var vm = await OpenAsync(api);
+        var eva = new CustomerDto(Guid.NewGuid(), "Eva", "Muster", null, null, null, null);
+        var booked = TestData.Appointment(9, TestData.Anna) with { CustomerId = eva.Id, Start = TestData.At(9, 30), End = TestData.At(10, 20) };
+        api.On("POST /api/appointments", booked).On("GET /api/customers?search=eva", new List<CustomerDto> { eva });
+
+        vm.StartBooking(vm.Columns[0], 30 * DayLayout.PixelsPerMinute);
+        var booking = vm.Booking!;
+        await booking.SearchAsync("eva");
+        booking.Customer = booking.Customers[0];
+        await booking.BookCommand.ExecuteAsync(null);
+
+        Assert.Null(vm.Booking);
+        Assert.Equal("Gebucht: Eva Muster, Montag, 1. März 2027 09:30", vm.Toast);
+    }
+
+    [Fact]
     public async Task Buchen_von_freier_Stelle_waehlt_passende_Behandlung_und_zeigt_Ablehnung()
     {
         var api = Api();

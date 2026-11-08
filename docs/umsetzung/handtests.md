@@ -494,3 +494,18 @@ Expected: Unter dem Gast steht die Pille **Keine Kontaktmöglichkeit**; beim Zei
 Expected: Keine Pille.
 Closes: L5 (live-tests-rezeption-onboarding.md, Abschnitt 3)
 Result: ☐
+
+### Rezeptions-Lücken F – Toast beim Buchen, Taste V, Automation-Namen
+Start: `dotnet run --project src/AispaStudio.AppHost`, als Rezeption anmelden, Kalender
+1. **Termin** klicken, Gast und Behandlung wählen, **Buchen**.
+Expected: Unten erscheint „Gebucht: <Gast>, <Tag> <HH:mm>“ wie nach der Freie-Zeit-Suche.
+2. Einen gebuchten Termin anklicken (markieren) und **V** drücken.
+Expected: Das Terminfenster öffnet sich mit der Verschieben-Karte (Tag, Beginn).
+3. Einen eingecheckten Termin markieren und **V** drücken.
+Expected: Nur der Hinweis „Verschieben: ziehen oder Alt + Pfeiltasten, zurück mit Strg+Z“.
+4. **F1** drücken.
+Expected: In der Gruppe „Markierter Termin“ steht **V** „Verschieben-Karte: anderer Tag oder Beginn“.
+5. Mit einem UI-Automation-Werkzeug (z. B. Accessibility Insights) den Knopf **Termin** und den Text der Meldung unten ansehen.
+Expected: Name „Termin“ bzw. „Meldung“.
+Closes: L11, L16 (live-tests-rezeption-onboarding.md, Abschnitt 3)
+Result: ☐

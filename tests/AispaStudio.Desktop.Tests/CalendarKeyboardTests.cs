@@ -202,6 +202,26 @@ public sealed class CalendarKeyboardTests
     }
 
     [Fact]
+    public async Task V_oeffnet_die_Verschieben_Karte_des_markierten_Termins_bei_eingecheckten_bleibt_der_Hinweis()
+    {
+        var booked = TestData.Appointment(10, TestData.Anna);
+        var checkedIn = TestData.Appointment(14, TestData.Anna, AppointmentStatus.CheckedIn);
+        var vm = await OpenAsync(Api(booked, checkedIn));
+
+        vm.Mark(vm.Columns[0].Items.Single(i => i.Id == booked.Id));
+        Assert.True(vm.HandleKey(Key.V, KeyModifiers.None));
+        Assert.Equal(booked.Id, vm.Selected?.Appointment.Id);
+        Assert.True(vm.Selected!.IsMovingToDay);
+        Assert.Null(vm.Toast);
+
+        vm.Mark(vm.Columns[0].Items.Single(i => i.Id == checkedIn.Id));
+        Assert.True(vm.HandleKey(Key.V, KeyModifiers.None));
+        Assert.False(vm.Selected!.IsMovingToDay);
+        Assert.StartsWith("Verschieben: ziehen", vm.Toast, StringComparison.Ordinal);
+        Assert.Contains(CalendarViewModel.AllKeys.Single(g => g.Title == "Markierter Termin").Keys, h => h.Key == "V");
+    }
+
+    [Fact]
     public async Task E_checkt_ein_ohne_das_Panel_zu_oeffnen()
     {
         var appointment = TestData.Appointment(10, TestData.Anna);

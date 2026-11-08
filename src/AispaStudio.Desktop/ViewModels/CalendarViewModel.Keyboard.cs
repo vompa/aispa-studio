@@ -159,6 +159,7 @@ public partial class CalendarViewModel
             new("F", "Folgetermin in vier Wochen"),
             new("Alt+↑ ↓", "Um eine Viertelstunde verschieben"),
             new("Alt+← →", "Zur Nachbarspalte verschieben"),
+            new("V", "Verschieben-Karte: anderer Tag oder Beginn"),
             new("Entf", "Stornieren (mit Rückfrage und Grund)"),
             new("Strg+Z", "Verschieben, Stornieren, Einchecken zurücknehmen"),
         ]),
@@ -313,6 +314,19 @@ public partial class CalendarViewModel
 
     private bool CanMoveAppointment(AppointmentDto appointment) =>
         CanBook && HasResourceColumns && appointment.Status is AppointmentStatus.Booked or AppointmentStatus.CheckedIn;
+
+    /// <summary>V öffnet die Verschieben-Karte des markierten Termins (L16) wie der Panel-Knopf „Verschieben …“; wo die Karte nicht gilt (eingecheckt, gemeinsame Buchung), bleibt der Hinweis.</summary>
+    private void MoveViaPanel(AppointmentDto appointment)
+    {
+        OpenAppointment(appointment);
+        if (Selected is { CanMoveToDay: true } panel)
+        {
+            panel.AskMoveToDayCommand.Execute(null);
+            return;
+        }
+
+        ShowToast("Verschieben: ziehen oder Alt + Pfeiltasten, zurück mit Strg+Z");
+    }
 
     /// <summary>Einchecken nur am Tag des Termins (L1), gerechnet in der Zeitzone des Standorts wie am Server.</summary>
     private bool IsOnToday(AppointmentDto appointment) =>
@@ -557,7 +571,7 @@ public partial class CalendarViewModel
                 _ = FollowUpAsync(marked);
                 return true;
             case Key.V when CanMoveAppointment(marked):
-                ShowToast("Verschieben: ziehen oder Alt + Pfeiltasten, zurück mit Strg+Z");
+                MoveViaPanel(marked);
                 return true;
             case Key.Delete when CanBook && marked.Status is AppointmentStatus.Booked or AppointmentStatus.CheckedIn:
                 AskCancel(marked);

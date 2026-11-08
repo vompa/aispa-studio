@@ -2104,7 +2104,7 @@
             </Button>
             <!-- Termin-Gruppe (Auftraggeber, 29.10.2026): „+ Termin“ mit Menü, daneben als zweite Schaltfläche „Freie Zeit suchen“ (Kalender mit Lupe) -->
             <StackPanel x:Name="AppointmentGroup" Orientation="Horizontal" Spacing="4" IsVisible="{Binding CanBook}">
-              <SplitButton Command="{Binding NewAppointmentCommand}" ToolTip.Tip="Neuer Termin (N)">
+              <SplitButton Command="{Binding NewAppointmentCommand}" ToolTip.Tip="Neuer Termin (N)" AutomationProperties.Name="Termin">
                 <SplitButton.Flyout>
                   <MenuFlyout Placement="BottomEdgeAlignedRight">
                     <MenuItem Command="{Binding NewAppointmentCommand}" AutomationProperties.Name="Termin" AutomationProperties.AcceleratorKey="N">
@@ -2948,7 +2948,7 @@
                   AutomationProperties.LiveSetting="Polite">
             <!-- Eine Zeile, höchstens eine Aktion („Rückgängig“); Entscheidungen gehören in ein Flyout am Termin (meldungen.md, M1) -->
             <StackPanel Orientation="Horizontal" Spacing="8">
-              <TextBlock Classes="msg" Text="{Binding Toast}" Foreground="{DynamicResource ToastFgBrush}" VerticalAlignment="Center" MaxWidth="540"
+              <TextBlock Classes="msg" Text="{Binding Toast}" Foreground="{DynamicResource ToastFgBrush}" VerticalAlignment="Center" MaxWidth="540" AutomationProperties.Name="Meldung"
                          ToolTip.Tip="{Binding Toast}" />
               <Button Classes="ghost" Command="{Binding UndoMoveCommand}" IsVisible="{Binding CanUndo}" Foreground="{DynamicResource ToastFgBrush}">
                 <StackPanel Orientation="Horizontal" Spacing="6">

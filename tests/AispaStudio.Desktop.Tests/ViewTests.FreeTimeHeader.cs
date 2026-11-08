@@ -26,6 +26,10 @@ public sealed partial class ViewTests
         Assert.True(LeftOf(window, button) > LeftOf(window, newAppointment) + newAppointment.Bounds.Width - 1);
         Assert.Equal("Freie Zeit suchen (Strg+N)", ToolTip.GetTip(button)?.ToString());
         Assert.Equal("Freie Zeit suchen", AutomationProperties.GetName(button));
+        // Namen für den Live-Tester (UI Automation): der Knopf „Termin“ und der Text der Meldung unten.
+        Assert.Equal("Termin", AutomationProperties.GetName(newAppointment));
+        var toastText = window.GetVisualDescendants().OfType<Border>().First(b => b.Name == "ToastBar").GetVisualDescendants().OfType<TextBlock>().First(t => t.Classes.Contains("msg"));
+        Assert.Equal("Meldung", AutomationProperties.GetName(toastText));
         Assert.False(ShowsText(window, "Freie Zeit suchen"));
 
         Assert.Null(calendar.FreeTime);

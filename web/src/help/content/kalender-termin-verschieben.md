@@ -48,7 +48,7 @@ Die alte Zeit gilt als frei; der Server schreibt passenden Gästen auf der [Wart
 - Auf einen vergangenen Tag lässt sich kein Termin verschieben, auch keine ganze Buchung: Das Feld „Tag“ nimmt nur heute oder einen späteren Tag an, **−1 Tag** und **Verschieben** sind dann gesperrt („Verfügbar für heute oder einen späteren Tag.“). Ziehen und Alt + Pfeiltasten bleiben ohnehin im angezeigten Tag.
 - Hat jemand den Termin inzwischen an einem anderen Arbeitsplatz geändert, verschiebt der Server nicht. Oben steht „Nicht verschoben“ mit „Der Termin wurde inzwischen an einem anderen Arbeitsplatz geändert. Bitte den aktuellen Stand prüfen.“, und der Kalender zeigt den Termin so, wie ihn der andere Arbeitsplatz gespeichert hat. Dasselbe gilt im Terminfenster für Zeiten, Notiz, Stornieren, Status und Zurücknehmen; die Meldung steht dann oben im Terminfenster. Die eigene Änderung bei Bedarf neu eingeben.
 - Fehlermeldungen bleiben stehen, bis man sie mit dem Kreuz schließt.
-- **V** auf einem markierten Termin erinnert nur, wie das Verschieben geht.
+- **V** auf einem markierten, gebuchten Termin öffnet die Verschieben-Karte im Terminfenster ([anderer Tag](hilfe:kalender-termin-verschieben#anderer-tag)); bei eingecheckten Terminen und gemeinsamen Buchungen erinnert die Taste nur, wie das Verschieben geht.
 - Ohne Verbindung wird die Verschiebung vorgemerkt; siehe [Arbeiten ohne Verbindung](hilfe:kalender-offline).
 
 
@@ -75,7 +75,7 @@ Innerhalb der 8 Sekunden, die die Meldung unten steht (ohne **Rückgängig** sin
 Ziehen und Alt + Pfeile bleiben im angezeigten Tag. Für einen anderen Tag:
 
 1. Den Termin anklicken; rechts öffnet sich das Terminfenster.
-2. Auf **Verschieben …** klicken (der Knopf über die volle Breite unter dem Hauptknopf).
+2. Auf **Verschieben …** klicken (der Knopf über die volle Breite unter dem Hauptknopf), oder bei markiertem Termin **V** drücken.
 3. Bei „Tag“ das Datum eintippen (`21.10.2026`, kurz auch `21102026` oder `21.10.`) oder mit **+1 Tag**, **+1 Woche** bzw. **−1 Tag** weiterzählen, im Feld auch mit **↑ ↓**. Bei „Beginn“ die Uhrzeit, z. B. `14:00` oder `1400`. Ungültiges meldet das Feld, siehe [Felder ausfüllen](hilfe:kalender-tastenkuerzel#felder).
 4. Auf **Verschieben** klicken. Der Kalender springt auf den neuen Tag und markiert den Termin; unten steht die Meldung mit **Rückgängig**.
 
