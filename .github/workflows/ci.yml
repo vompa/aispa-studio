@@ -172,6 +172,15 @@ jobs:
           foreach ($part in 'bin', 'lib', 'share') { Copy-Item (Join-Path $env:PGROOT $part) publish/desktop/postgres -Recurse }
           & publish/desktop/postgres/bin/postgres.exe --version
 
+      # Lizenzhinweise (ADR 0088): aus den echten Abhängigkeiten dieses Stands erzeugt, nicht aus der Datei im Repository,
+      # damit ein Paket-Update (Dependabot) die CI nicht rot macht.
+      - name: Lizenzhinweise ins Paket
+        shell: pwsh
+        run: |
+          python scripts/third-party-notices.py
+          if ($LASTEXITCODE -ne 0) { throw "Lizenzhinweise nicht erzeugt" }
+          Copy-Item LICENSE, THIRD-PARTY-NOTICES.md publish/desktop
+
       - name: Einzelplatz mit dem echten Paket starten
         timeout-minutes: 10
         env:

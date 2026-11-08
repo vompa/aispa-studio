@@ -5444,3 +5444,12 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Geprüft:** Neuer Ansichtstest `Fehler_im_UI_Thread_zeigt_eine_Meldung_bis_Schliessen` (vor der Anmeldung kein Absturz, danach Text sichtbar, nach „Schließen“ weg).
 - **Nicht geprüft:** Ein echter Fehler im UI-Thread in der laufenden App unter Windows (die Verdrahtung in `App` hat keinen eigenen Test).
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md) und meldungen.md M1/M5.
+
+## Lizenzhinweise der Fremdbausteine im Paket (Aufgabe T-058, 08.11.2026)
+
+- **Auftrag:** [ADR 0088](../entscheidungen/0088-oeffentliches-repository-mit-mit-lizenz.md) nennt die Third-Party-Notices offen, die CI veröffentlicht das Release `windows-app` aber schon. MIT, BSD und Apache-2.0 verlangen den Lizenztext mit dem Copyright im Paket.
+- **Was:** `scripts/third-party-notices.py` schreibt `THIRD-PARTY-NOTICES.md` aus den echten Abhängigkeiten: NuGet-Pakete der Windows-App und der API (direkt und transitiv, Lizenz und Copyright aus der `.nuspec`), npm-Pakete des Web-Bundles ohne Entwicklungswerkzeuge und das mitgelieferte PostgreSQL. Die Standardtexte je SPDX-Kennung liegen unter `scripts/third-party-licenses/` (aus `spdx/license-list-data`); Pakete mit eigener Lizenzdatei bringen ihren Wortlaut mit. Die CI erzeugt die Datei vor dem Packen neu und legt sie mit `LICENSE` in `publish/desktop`.
+- **Detailentscheidungen:** (1) Die CI erzeugt neu statt die Datei im Repository zu prüfen: Sonst macht jedes Paket-Update von Dependabot die CI rot. Die Datei im Repository zeigt den Stand beim letzten Aufruf. (2) `AvaloniaUI.DiagnosticsSupport` fehlt bewusst: nur im Debug-Build eingebunden. (3) Pakete, die nur beim Bauen wirken (Analyzer, MSBuild), stehen mit in der Liste; zu viel nennen schadet nicht. (4) NOTICE-Dateien: Keines der Apache-2.0-Pakete im Paket hat eine (geprüft am 08.11.2026); das Muster liest nur `LICENSE`, `LICENCE` und `COPYING`.
+- **Geprüft:** 179 Bausteine in 20 Lizenztexten (MIT, Apache-2.0, BSD-2/3-Clause, PostgreSQL, Unlicense, eine eigene Lizenz von `Avalonia.Angle.Windows.Natives`), kein Copyleft; zweiter Lauf erzeugt dieselbe Datei; Dateimuster mit Gegenbeispielen (`LICENSE-MIT`, `license.js` werden nicht gelesen).
+- **Nicht geprüft:** Der neue CI-Schritt läuft erst mit dem nächsten Push. Offen bleibt die Liste der Bibliotheken im PostgreSQL-Build von EnterpriseDB (OpenSSL, ICU, zlib und weitere); die Datei sagt das.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
