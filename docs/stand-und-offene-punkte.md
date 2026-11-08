@@ -306,15 +306,22 @@ Stand: 20.10.2026, nach PR #172; Übergabe an Claude Code ([ADR 0046](entscheidu
 | Dienstplan: Klick auf eine Zelle öffnet den Tag als Popover direkt unter der Zelle, Aufgabe T-017 (Ä370): im Wochenplan und auf der Personenkarte liegt das Bearbeiten als Karte mit Schatten über der Tabelle (höchstens 560 breit, innerhalb der Ansicht, folgt der Zelle beim waagrechten Scrollen), die Meldung nach dem Speichern bricht im Popover um. | umgesetzt | #182 |
 | Kundenkarte: Verlauf mit offenen Gutscheinen und letzten Käufen, Aufgabe T-020 (Ä367): die Kennzahlen der Kundenkarte liefern Wertgutscheine mit Restwert (Codeende, Behandlung, gültig bis) und die letzten fünf Positionen ohne Termin auf nicht stornierten Belegen; beides nur mit dem Recht zu buchen, wie im Assistenten. | umgesetzt | #182 |
 | Handbuchbilder neu erzeugt, Aufgabe T-026: `ki-antwort-*`, `ki-betrieb-*`, `kunden*`, `kassa-belege`, `ki-und-hilfe-buchen`, `verwaltung-team-wochenplan`, `verwaltung-team-karte-dienstplan` aus den Bildtests neu; neues Bild `ki-auftrag-buchen` (Ä387) mit eigenem Bildtest, Hilfe „KI-Assistent fragen“ nennt die Lage des Hinweises richtig. | umgesetzt | #182 |
-| Windows-App: globale Ausnahmebehandlung, Aufgabe T-052: Fehler im UI-Thread, in nicht abgewarteten Aufgaben, in fremden Threads und aus der Hauptschleife landen in `protokollepp.log` im Datenordner (`CrashLog`, `UnhandledExceptionLogger`); ein Fehler im UI-Thread gilt als behandelt, die App läuft weiter. Eine sichtbare Meldung an die Person gibt es noch nicht. | umgesetzt | dev |
+| Windows-App: globale Ausnahmebehandlung, Aufgabe T-052: Fehler im UI-Thread, in nicht abgewarteten Aufgaben, in fremden Threads und aus der Hauptschleife landen in `protokollepp.log` im Datenordner (`CrashLog`, `UnhandledExceptionLogger`); ein Fehler im UI-Thread gilt als behandelt, die App läuft weiter. Die sichtbare Meldung folgt mit T-055. | umgesetzt | dev |
 | Windows-App: Beenden ohne Hänger, Aufgabe T-053: `ShutdownRequested` bricht ab, `LocalServer.StopAsync` läuft im Hintergrund (`GracefulShutdown`), danach löst die App das Beenden erneut aus; vorher fror das Fenster bis zu 20 s ein. Scheitert das Stoppen, steht der Fehler in `app.log` und die App beendet sich trotzdem. | umgesetzt | dev |
 | CI: Avalonia-Linter, Aufgabe T-054: eigener Job `avalonia-lint` (ubuntu-latest, Python) ruft `avalonia_lint.py . --fail-on error` auf; Skill und `.avalonia-lint.json` sind jetzt im Repository eingecheckt. Nur Fehler der Stufe error brechen den Lauf, Warnungen (6) und Hinweise (109) stehen im Protokoll. | umgesetzt (CI-Lauf noch nicht gesehen) | dev |
+| Windows-App: Meldung bei einem Fehler im UI-Thread, Aufgabe T-055: nach der Anmeldung zeigt die Shell die Warnung „Unerwarteter Fehler protokolliert. Bitte erneut versuchen“ bis „Schließen“; protokolliert wird wie bei T-052. | umgesetzt | dev |
+| Live-Meldungen: bricht die Verbindung zu Redis mitten im Lesen ab, wird nur gewarnt, Aufgabe T-057: `LiveDelivery` erkennt auch Fehler aus dem Redis-Client ohne `RedisException` (ADR 0087, keine Wiederholung). | umgesetzt | dev |
+| Lizenzhinweise der Fremdbausteine, Aufgabe T-058: `scripts/third-party-notices.py` erzeugt `THIRD-PARTY-NOTICES.md`, die CI legt sie mit `LICENSE` ins Paket; die Bibliotheken im PostgreSQL-Build stehen noch nicht einzeln darin. | umgesetzt (CI-Lauf noch nicht gesehen) | dev |
+| Windows-App: Fenster- und Programmsymbol aus dem AISPA-Zeichen statt dem Avalonia-Logo; Favicon des Webs statt dem Vite-Logo. | umgesetzt | dev |
 
 ## Nicht auf `main`: offene Pull Requests und fertige Branch-Stände
 
-| Was | Wo | Stand am 20.10.2026 | Nächster Schritt |
+Seit dem 08.11.2026 im öffentlichen Repository `vompa/aispa-studio`; PR-Nummern davor gehören zum früheren Repository.
+
+| Was | Wo | Stand am 08.11.2026 | Nächster Schritt |
 | --- | --- | --- | --- |
-| Dependabot: vier npm-Pakete im Web | PR #151 | offen seit 19.10. | CI abwarten, grün mergen |
+| Sammelstand `dev` → `main` | PR #3 (Entwurf) | offen | volle Prüfkette am Rundenende, dann Merge-Commit ([ADR 0060](entscheidungen/0060-weiterarbeit-auf-einem-branch-dev.md)) |
+| Dependabot: acht npm-Pakete im Web, darunter TypeScript 7 | PR #2 | offen | erledigt sich, sobald die Regel „TypeScript ohne Hauptversion“ in `.github/dependabot.yml` auf `main` liegt; Dependabot schlägt dann ohne TypeScript 7 neu vor |
 
 Dazu der eigene Branch des Auftraggebers `feature/dev-sign-in-without-codes` (drei Commits vom 18.10.2026); Startmeldung ohne Datenbank und Visual-Studio-Dateien sind mit #144 und #141 auf `main`, offen ist nur `DevSignIn:SkipCodes`; ob er das noch braucht, entscheidet der Auftraggeber. Die übrigen `claude/...`-Branches sind gemergte Stände und können gelöscht werden (Liste in der [Übergabe](uebergabe.md#43-branches-und-pull-requests)).
 
