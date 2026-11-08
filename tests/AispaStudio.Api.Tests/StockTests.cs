@@ -19,9 +19,9 @@ public sealed class StockTests(ApiFixture fixture)
             new[] { new MaterialLine("", 30m, "", 0, oil.Id), new MaterialLine("Laken", 1m, "Stück", 0.30m) }, Ct);
         var appointment = await spa.BookOkAsync(TestSpa.At(10), Ct, spa.Anna.Id);
 
-        await spa.PostAsync<AppointmentDto>($"/api/appointments/{appointment.Id}/status", new AppointmentStatusChange(AppointmentStatus.Completed), Ct);
+        await spa.SetStatusAsync(appointment.Id, AppointmentStatus.Completed, Ct);
         var used = await WaitAsync(spa, oil.Id, q => q == 970m);
-        await spa.PostAsync<AppointmentDto>($"/api/appointments/{appointment.Id}/status", new AppointmentStatusChange(AppointmentStatus.NoShow), Ct);
+        await spa.SetStatusAsync(appointment.Id, AppointmentStatus.NoShow, Ct);
         var reverted = await WaitAsync(spa, oil.Id, q => q == 1000m);
         var movements = await spa.GetAsync<List<StockMovementDto>>(
             $"/api/stock/locations/{spa.Location.Id}/movements?from=2000-01-01&until=2000-12-31", Ct);
@@ -212,7 +212,7 @@ public sealed class StockTests(ApiFixture fixture)
         var appointment = await spa.BookOkAsync(TestSpa.At(10), Ct, spa.Anna.Id);
 
         // Behandlung: 7 Tiegel, zuerst die 5 der ablaufenden Charge C0, dann 2 aus A1.
-        await spa.PostAsync<AppointmentDto>($"/api/appointments/{appointment.Id}/status", new AppointmentStatusChange(AppointmentStatus.Completed), Ct);
+        await spa.SetStatusAsync(appointment.Id, AppointmentStatus.Completed, Ct);
         await WaitAsync(spa, cream.Id, q => q == 8m);
         // Verkauf von 3 aus A1, Storno zurück nach A1.
         var bill = await spa.PostAsync<BillDto>("/api/pos/bills", new BillInput(register.Id, spa.Customer.Id, []), Ct);
@@ -223,7 +223,7 @@ public sealed class StockTests(ApiFixture fixture)
         var usedA1 = await spa.GetAsync<StockBatchUsageDto>($"/api/stock/batch-usage?itemId={cream.Id}&batch=A1", Ct);
         await spa.PostAsync<ReceiptDto>($"/api/pos/receipts/{receipt.Id}/void", new VoidRequest("Retour"), Ct);
         await WaitAsync(spa, cream.Id, q => q == 8m);
-        await spa.PostAsync<AppointmentDto>($"/api/appointments/{appointment.Id}/status", new AppointmentStatusChange(AppointmentStatus.NoShow), Ct);
+        await spa.SetStatusAsync(appointment.Id, AppointmentStatus.NoShow, Ct);
         await WaitAsync(spa, cream.Id, q => q == 15m);
         var afterA1 = await spa.GetAsync<StockBatchUsageDto>($"/api/stock/batch-usage?itemId={cream.Id}&batch=A1", Ct);
         var batches = await spa.GetAsync<StockBatchesDto>($"/api/stock/locations/{spa.Location.Id}/batches", Ct);

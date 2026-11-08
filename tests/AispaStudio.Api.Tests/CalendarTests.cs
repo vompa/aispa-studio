@@ -11,6 +11,9 @@ public sealed class CalendarTests(ApiFixture fixture)
 {
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
 
+    /// <summary>Uhrzeit am heutigen Tag in Wien: Die Tagesregel am Status-Endpunkt rechnet mit der echten Uhr.</summary>
+    private static DateTimeOffset TodayAt(int hour) => TestSpa.At(hour, 0, DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Europe/Vienna")).DateTime));
+
     [Fact]
     public async Task Buchung_waehlt_Person_und_Raum_und_sperrt_Vor_und_Nachbereitung()
     {
@@ -391,7 +394,7 @@ public sealed class CalendarTests(ApiFixture fixture)
         foreach (var (weeksAgo, status) in new[] { (2, AppointmentStatus.Completed), (3, AppointmentStatus.Completed), (4, AppointmentStatus.NoShow) })
         {
             var past = await spa.BookOkAsync(TestSpa.At(10, date: TestSpa.Monday.AddDays(-7 * weeksAgo)), Ct);
-            await spa.PostAsync<AppointmentDto>($"/api/appointments/{past.Id}/status", new AppointmentStatusChange(status), Ct);
+            await spa.SetStatusAsync(past.Id, status, Ct);
         }
 
         var today = await spa.BookOkAsync(TestSpa.At(10), Ct);
@@ -514,7 +517,8 @@ public sealed class CalendarTests(ApiFixture fixture)
     public async Task Check_in_aendert_den_Status()
     {
         var spa = await TestSpa.CreateAsync(fixture, Ct);
-        var appointment = await spa.BookOkAsync(TestSpa.At(10), Ct);
+        // Der Test prüft den Endpunkt; die Tagesregel verlangt für das Einchecken einen Termin am heutigen Tag.
+        var appointment = await spa.BookOkAsync(TodayAt(10), Ct);
 
         var checkedIn = await spa.PostAsync<AppointmentDto>($"/api/appointments/{appointment.Id}/status",
             new AppointmentStatusChange(AppointmentStatus.CheckedIn), Ct);

@@ -108,7 +108,7 @@ public sealed class CardGuaranteeTests(ApiFixture fixture)
         var early = await spa.Client.PostAsync($"/api/appointments/{booked.Appointment.Id}/card-guarantee/charge", null, Ct);
         Assert.Equal(HttpStatusCode.Conflict, early.StatusCode);
 
-        await spa.PostAsync<AppointmentDto>($"/api/appointments/{booked.Appointment.Id}/status", new AppointmentStatusChange(AppointmentStatus.NoShow), Ct);
+        await spa.SetStatusAsync(booked.Appointment.Id, AppointmentStatus.NoShow, Ct);
         var due = await spa.GetAsync<CardGuaranteeStaffDto>($"/api/appointments/{booked.Appointment.Id}/card-guarantee", Ct);
         Assert.True(due.CanCharge);
 
@@ -226,7 +226,7 @@ public sealed class CardGuaranteeTests(ApiFixture fixture)
         var booked = await BookAsync(spa, TestSpa.At(10), NewEmail());
         using var client = spa.OnlineClient();
         await client.PostAsJsonAsync($"/api/online/bookings/{booked.ManageToken}/card/test", new TestCardResult(true), TestSpa.Json, Ct);
-        await spa.PostAsync<AppointmentDto>($"/api/appointments/{booked.Appointment.Id}/status", new AppointmentStatusChange(AppointmentStatus.NoShow), Ct);
+        await spa.SetStatusAsync(booked.Appointment.Id, AppointmentStatus.NoShow, Ct);
         var cleanup = fixture.Factory.Services.GetRequiredService<SavedCardCleanup>();
 
         // Innerhalb der 14 Tage nach dem Termin bleibt die Karte, damit die Gebühr noch belastet werden kann.
@@ -298,7 +298,7 @@ public sealed class CardGuaranteeTests(ApiFixture fixture)
         foreach (var (hour, status) in new[] { (10, AppointmentStatus.Completed), (12, AppointmentStatus.NoShow), (13, AppointmentStatus.NoShow) })
         {
             var visit = await TestSpa.ReadAsync<AppointmentDto>(await spa.BookAsync(TestSpa.At(hour), Ct, customer: regular.Id), Ct);
-            await spa.PostAsync<AppointmentDto>($"/api/appointments/{visit.Id}/status", new AppointmentStatusChange(status), Ct);
+            await spa.SetStatusAsync(visit.Id, status, Ct);
         }
 
         using var client = spa.OnlineClient();
@@ -319,7 +319,7 @@ public sealed class CardGuaranteeTests(ApiFixture fixture)
         var regularEmail = NewEmail();
         var regular = await spa.PostAsync<CustomerDto>("/api/customers", new CustomerInput("Rita", "Stamm", regularEmail, null, null, null), Ct);
         var past = await TestSpa.ReadAsync<AppointmentDto>(await spa.BookAsync(TestSpa.At(10), Ct, customer: regular.Id), Ct);
-        await spa.PostAsync<AppointmentDto>($"/api/appointments/{past.Id}/status", new AppointmentStatusChange(AppointmentStatus.Completed), Ct);
+        await spa.SetStatusAsync(past.Id, AppointmentStatus.Completed, Ct);
         // Diese Behandlung verlangt immer 20 %, auch an Standorten ohne Regel.
         var strict = await spa.PostAsync<TreatmentDto>("/api/treatments",
             new TreatmentInput("Ritual", 60, 0, 0, 200m, [spa.Massage.Id], [spa.RoomA.Id], [], null, null, 20), Ct);

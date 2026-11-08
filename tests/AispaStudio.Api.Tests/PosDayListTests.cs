@@ -95,8 +95,10 @@ public sealed class PosDayListTests(ApiFixture fixture)
         var paid = await spa.BookOkAsync(TestSpa.At(10), Ct, spa.Anna.Id);
         var parked = await spa.BookOkAsync(TestSpa.At(10), Ct, spa.Ben.Id);
         var later = await spa.BookOkAsync(TestSpa.At(14), Ct, spa.Anna.Id);
+        await spa.SetStatusAsync(paid.Id, AppointmentStatus.CheckedIn, Ct);
         var paidBill = await spa.PostAsync<BillDto>("/api/pos/bills", new BillInput(register.Id, null, [paid.Id]), Ct);
         await PayAsync(spa, paidBill.Id, paid.Price);
+        await spa.SetStatusAsync(parked.Id, AppointmentStatus.CheckedIn, Ct);
         await spa.PostAsync<BillDto>("/api/pos/bills", new BillInput(register.Id, null, [parked.Id]), Ct);
 
         var list = await DayListAsync(spa);

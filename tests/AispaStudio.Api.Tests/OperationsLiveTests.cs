@@ -108,7 +108,7 @@ public sealed class OperationsLiveTests(ApiFixture fixture)
         var appointment = await spa.BookOkAsync(TestSpa.At(10), Ct, spa.Anna.Id, spa.RoomA.Id);
         await listener.SettleAsync();
 
-        await spa.PostAsync<AppointmentDto>($"/api/appointments/{appointment.Id}/status", new AppointmentStatusChange(AppointmentStatus.Completed), Ct);
+        await spa.SetStatusAsync(appointment.Id, AppointmentStatus.Completed, Ct);
 
         var (location, _) = await listener.NextAsync(OperationsChangeKind.RoomCare);
         Assert.Equal(spa.Location.Id, location);
@@ -159,7 +159,7 @@ public sealed class OperationsLiveTests(ApiFixture fixture)
         await spa.PostAsync<List<StockMovementDto>>($"{url}/movements", new StockMovementInput(oil.Id, StockMovementKind.GoodsReceipt, 1000m, 0.05m), Ct);
         await spa.PostAsync<List<StockMovementDto>>($"{url}/movements", new StockMovementInput(oil.Id, StockMovementKind.Refill, 200m, StoragePlaceId: main.Id, TargetStoragePlaceId: cabinet.Id), Ct);
         var appointment = await spa.BookOkAsync(TestSpa.At(10), Ct, spa.Anna.Id, spa.RoomA.Id);
-        await spa.PostAsync<AppointmentDto>($"/api/appointments/{appointment.Id}/status", new AppointmentStatusChange(AppointmentStatus.Completed), Ct);
+        await spa.SetStatusAsync(appointment.Id, AppointmentStatus.Completed, Ct);
         await listener.SettleAsync();
 
         (await spa.Client.PutAsJsonAsync($"/api/appointments/{appointment.Id}/room-care/restock/{oil.Id}", new RestockAnswer(RestockState.Refilled, 300m), TestSpa.Json, Ct))

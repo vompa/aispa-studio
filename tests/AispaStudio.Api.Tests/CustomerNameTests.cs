@@ -86,6 +86,7 @@ public sealed class CustomerNameTests(ApiFixture fixture)
                 "Test-Spa GmbH", "AT61 1904 3002 3457 3201", null), Ct);
         var visit = await spa.BookOkAsync(TestSpa.At(10), Ct);
 
+        await spa.SetStatusAsync(visit.Id, AppointmentStatus.CheckedIn, Ct);
         var bill = await spa.PostAsync<BillDto>("/api/pos/bills", new BillInput(register.Id, null, [visit.Id]), Ct);
 
         Assert.Equal($"Steffi {spa.Customer.LastName}", bill.CustomerName);
