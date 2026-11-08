@@ -282,3 +282,27 @@ Aus Sicht der Rezeption, die den Tag damit verbringt. Nur, was die App heute nic
 - ADR 0090, Abschnitt „Kassieren ist noch nicht dabei: Es braucht „Ist da“, und das geht nur am Tag des Termins“: nach diesem Befund korrigieren (Einchecken heißt der Knopf, eine Tagesregel gibt es nicht; Kassieren ist über den Kalender-Knopf auch für morgen prüfbar).
 - Reihenfolge im Lauf: `day-closing` immer zuletzt, `sick-leave` nur allein; beide mit Vermerk zum Neuladen im Bericht.
 - Für Thema 14 und 16 vor dem Lauf prüfen, ob Terminannahme und Gesundheitsschlüssel im Testbetrieb eingerichtet sind; sonst melden die Themen „nicht anwendbar“ statt zu scheitern.
+
+## 5. Stand der Umsetzung (08.11.2026)
+
+Gebaut in `tests/AispaStudio.LiveTests` (Dateien `ReceptionJourney*.cs`). **geprüft** = in einem Lauf bestanden (Kunden-, Termin- und Einchecken-Themen mit Gegenprobe), **nicht geprüft** = nach dem Code geschrieben, Lauf steht aus (der Auftraggeber hat die Läufe auf später verschoben), **offen** = nicht gebaut.
+
+| Thema | Schlüssel | Stand |
+| --- | --- | --- |
+| 1 Anmelden | `signin`, `signin-other-account` | geprüft |
+| 2 Tagesüberblick | `overview` | geprüft (Gegenproben „Team“, „Tastenhilfe schließen“); Sonntag-Fall offen |
+| 3 Kundin suchen | `customer-search`, `customer-search-alias` | geprüft; Rabattzeile „10“ nicht gelesen, sie steht nicht im sichtbaren Teil der Karte |
+| 4 Kundin anlegen | `customer`, `customer-duplicate`, `customer-minimal`, `customer-empty`, `customer-phone-format`, `customer-badmail` | geprüft, mit Gegenproben |
+| 5 Termin buchen | `appointment`, `appointment-conflict`, `appointment-past`, `appointment-closed` | geprüft; `-off-duty`, `-no-free-time`, `-room-blocked` offen |
+| 6 Einchecken | `checkin`, `checkin-late`, `checkin-undo-late`, `checkin-noshow` | geprüft, mit Gegenproben; `complete` offen |
+| 7 Verschieben | `reschedule`, `reschedule-past`, `reschedule-checked-in` | geprüft, ohne Gegenprobe (`reschedule-past` nach den Lücken neu: nicht geprüft); „Ziel belegt“ offen |
+| 13 Stornieren | `cancel`, `cancel-restore`, `cancel-esc`, `cancel-no-fee` | nicht geprüft; „Zeit inzwischen belegt“ offen |
+| 8 Kassieren | `checkout` | nicht geprüft; Rückgeld auf Karte, ohne Einchecken, zweimal kassieren offen |
+| 10 Gutschein | `voucher`, `voucher-invalid` | nicht geprüft; Einlösen, aufgebraucht offen |
+| 11 Beleg | `receipt-void-empty-reason` | nicht geprüft; fremder Beleg, Stornieren, Parken offen |
+| 12 Tagesabschluss | `day-closing` | nicht geprüft |
+| 9, 14 bis 20 | `pos-sale`, `inbox`, `group`, `anamnesis`, `calendar-extras`, `sick-leave`, `sauna`, `offline` | offen |
+
+Befunde aus den Läufen: „Gesichtsbehandlung Klassik“ war nach vielen Läufen in den nächsten 14 Tagen ausgebucht (der Lauf bucht jetzt „Maniküre mit Lack“); der Kalender folgt einem verschobenen Termin auf den neuen Tag; Verschieben in die Vergangenheit war nicht gesperrt (L2 belegt durch `reschedule-past`, inzwischen behoben); die Tastenhilfe öffnet mit `?`, nicht mit F1.
+
+**Nachtrag nach den Rezeptions-Lücken (08.11.2026):** Der Tester ist an den Branch der Lücken angepasst, aber danach nicht mehr gelaufen; „geprüft“ oben gilt für den Stand davor. Geändert: `appointment` bucht am Tag des Laufs (Einchecken und Kassieren gehen nur am Tag des Termins), die Themen mit Einchecken und `checkout` scheitern mit klarer Meldung, wenn heute keine Zeit mehr frei war; `reschedule-past` erwartet jetzt ein gesperrtes „−1 Tag“ (L2 behoben); die Meldung unten heißt für UI Automation „Meldung“, ihren Wortlaut liest der Tester aus dem Hilfetext (ToolTip), was ein Desktop-Test bestätigt hat.

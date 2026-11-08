@@ -115,6 +115,7 @@ internal sealed class LiveSession : IDisposable
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
             var image = Shot($"{number:00}-{name}-fehler");
+            DumpVisible($"{number:00}-{name}-fehler");
             Report.AddStep(number, name, started, watch.Elapsed, false, image, ex.Message);
             StepFinished?.Invoke(new LiveStepResult(number, name, watch.Elapsed, false, ex.Message, image));
             throw;
@@ -142,6 +143,21 @@ internal sealed class LiveSession : IDisposable
     public AutomationElement? TryFind(Func<AutomationElement, bool> match, TimeSpan timeout) =>
         Retry.WhileNull(() => FindOnce(match), timeout, TimeSpan.FromMilliseconds(200)).Result;
 
+    private List<AutomationElement> AllVisible()
+    {
+        try
+        {
+            return _app.GetAllTopLevelWindows(_automation)
+                .SelectMany(window => window.FindAllDescendants())
+                .Where(element => !element.Properties.IsOffscreen.ValueOrDefault)
+                .ToList();
+        }
+        catch (System.Runtime.InteropServices.COMException)
+        {
+            return [];
+        }
+    }
+
     private AutomationElement? FindOnce(Func<AutomationElement, bool> match)
     {
         try
@@ -160,10 +176,169 @@ internal sealed class LiveSession : IDisposable
     /// <summary>Hebt das Element kurz hervor und klickt mit der Maus darauf.</summary>
     public void Click(string nameOrId) => Click(Find(nameOrId));
 
+    /// <summary>Wartet auf das Element, auf das <paramref name="match"/> zutrifft, und klickt es an.</summary>
+    public void Click(Func<AutomationElement, bool> match, string what = "Element") => Click(Find(match, what));
+
     public void Click(AutomationElement element)
     {
         Highlight(element);
+        if (IsSkippedForProbe(element))
+        {
+            Report.AddEvent($"Gegenprobe: Klick auf „{element.Properties.Name.ValueOrDefault}“ ausgelassen.");
+            return;
+        }
+
         element.Click(moveMouse: true);
+    }
+
+    /// <summary>
+    /// Gegenprobe (Umgebungsvariable <c>AISPA_LIVE_SKIP_CLICK</c>, Namen mit „|“ getrennt): Ein Klick auf ein Element dieses Namens
+    /// wird ausgelassen; ein „*“ am Ende steht für beliebigen Rest des Namens. Die Prüfung dahinter muss dann scheitern; so zeigt ein Lauf, dass eine Prüfung ohne das Ergebnis rot wird.
+    /// </summary>
+    private static bool IsSkippedForProbe(AutomationElement element)
+    {
+        var names = Environment.GetEnvironmentVariable("AISPA_LIVE_SKIP_CLICK");
+        return !string.IsNullOrEmpty(names)
+               && element.Properties.Name.ValueOrDefault is { } name
+               && names.Split('|').Any(skipped => skipped.EndsWith('*')
+                   ? name.StartsWith(skipped[..^1], StringComparison.Ordinal)
+                   : name == skipped);
+    }
+
+    /// <summary>
+    /// Sucht ein Element in der Zeile von <paramref name="anchor"/>: steigt bis zu fünf Ebenen auf und nimmt unter dem ersten Vorfahren,
+    /// der ein Element mit <paramref name="match"/> enthält, dieses. So trifft „Diese Kundin nehmen“ den Knopf der gemeinten Zeile.
+    /// </summary>
+    public static AutomationElement FindInRow(AutomationElement anchor, Func<AutomationElement, bool> match, string what)
+    {
+        var level = anchor.Parent;
+        for (var i = 0; i < 5 && level is not null; i++, level = level.Parent)
+        {
+            if (level.FindAllDescendants().FirstOrDefault(match) is { } found)
+            {
+                return found;
+            }
+        }
+
+        throw new InvalidOperationException($"{what} in der Zeile von „{anchor.Properties.Name.ValueOrDefault}“ nicht gefunden.");
+    }
+
+    /// <summary>Rechtsklick mit der Maus auf die Mitte des Elements.</summary>
+    public void RightClick(AutomationElement element)
+    {
+        Highlight(element);
+        element.RightClick(moveMouse: true);
+    }
+
+    /// <summary>Rechtsklick auf einen Punkt des Bildschirms (freie Stelle im Kalender).</summary>
+    public static void RightClickAt(Point point)
+    {
+        Mouse.MoveTo(point);
+        Mouse.RightClick(point);
+    }
+
+    /// <summary>Klick auf einen Punkt des Bildschirms.</summary>
+    public static void ClickAt(Point point)
+    {
+        Mouse.MoveTo(point);
+        Mouse.Click(point);
+    }
+
+    /// <summary>Klickt den Eintrag des offenen Rechtsklick-Menüs, dessen Name mit <paramref name="itemName"/> beginnt.</summary>
+    public void ChooseMenuItem(string itemName) =>
+        Click(Find(e => e.Properties.ClassName.ValueOrDefault == "MenuItem"
+                        && e.Properties.Name.ValueOrDefault?.StartsWith(itemName, StringComparison.Ordinal) == true,
+            $"Menüeintrag „{itemName}“"));
+
+    /// <summary>Die Namen aller sichtbaren Menüeinträge (für Fehlermeldungen und Prüfungen).</summary>
+    public List<string> VisibleMenuItems() => AllVisible()
+        .Where(e => e.Properties.ClassName.ValueOrDefault == "MenuItem")
+        .Select(e => e.Properties.Name.ValueOrDefault ?? "?")
+        .ToList();
+
+    /// <summary>
+    /// Prüft, dass kein sichtbares Element auf <paramref name="match"/> zutrifft; wartet dazu <paramref name="timeout"/> (Standard
+    /// 1,5 Sekunden) und scheitert, sobald eines auftaucht. Immer erst etwas Sichtbares erwarten, das beweist, dass die Maske da ist.
+    /// </summary>
+    public void ExpectMissing(Func<AutomationElement, bool> match, string what, TimeSpan? timeout = null)
+    {
+        var deadline = DateTime.UtcNow + (timeout ?? TimeSpan.FromMilliseconds(1500));
+        do
+        {
+            if (FindOnce(match) is { } found)
+            {
+                Highlight(found);
+                throw new InvalidOperationException($"{what} ist da, sollte aber fehlen.");
+            }
+
+            Thread.Sleep(200);
+        }
+        while (DateTime.UtcNow < deadline);
+    }
+
+    /// <summary>Wartet bis zu <paramref name="timeout"/>, dass kein sichtbares Element mehr auf <paramref name="match"/> zutrifft (etwa eine Meldung, die von selbst verschwindet).</summary>
+    public void WaitUntilMissing(Func<AutomationElement, bool> match, string what, TimeSpan timeout)
+    {
+        if (Retry.WhileFalse(() => FindOnce(match) is null, timeout, TimeSpan.FromMilliseconds(250)).Result is false)
+        {
+            throw new InvalidOperationException($"{what} ist nach {timeout.TotalSeconds:0} Sekunden noch da.");
+        }
+    }
+
+    /// <summary>
+    /// Schiebt den Kalender seitwärts, bis das Rechteck von <paramref name="element"/> ganz in der Kalenderfläche liegt (bei vielen
+    /// Spalten ragt eine Karte sonst über den Rand, und ein Klick daneben trifft nichts).
+    /// </summary>
+    public void ScrollIntoBody(AutomationElement element)
+    {
+        var body = Find("BodyScroll").BoundingRectangle;
+        for (var i = 0; i < 12; i++)
+        {
+            var rect = element.BoundingRectangle;
+            if (rect.Left >= body.Left && rect.Right <= body.Right)
+            {
+                return;
+            }
+
+            Mouse.MoveTo(new Point(body.X + (body.Width / 2), body.Y + (body.Height / 2)));
+            Mouse.HorizontalScroll(rect.Right > body.Right ? 3 : -3);
+            Thread.Sleep(250);
+        }
+    }
+
+    /// <summary>Die Rechtecke aller sichtbaren Elemente, auf die <paramref name="match"/> zutrifft (Bildschirmkoordinaten).</summary>
+    public List<Rectangle> VisibleRects(Func<AutomationElement, bool> match) =>
+        AllVisible().Where(match).Select(e => e.BoundingRectangle).ToList();
+
+    /// <summary>Prüft, dass kein sichtbares Element den Namen oder die AutomationId <paramref name="nameOrId"/> trägt.</summary>
+    public void ExpectMissing(string nameOrId) =>
+        ExpectMissing(e => e.Properties.Name.ValueOrDefault == nameOrId || e.Properties.AutomationId.ValueOrDefault == nameOrId, $"„{nameOrId}“");
+
+    /// <summary>
+    /// Liest den Text eines Elements: den eingetippten Wert eines Feldes oder, ohne Wert, den Namen. Für Prüfungen auf Zahlen
+    /// und Codes, die der Lauf nicht kennt (Gutscheincode, Sollbestand).
+    /// </summary>
+    public static string TextOf(AutomationElement element)
+    {
+        if (element.Patterns.Value.PatternOrDefault?.Value.ValueOrDefault is { Length: > 0 } value)
+        {
+            return value;
+        }
+
+        return element.Properties.Name.ValueOrDefault ?? "";
+    }
+
+    /// <summary>Wartet auf ein Element und liefert seinen Text (<see cref="TextOf"/>).</summary>
+    public string Read(Func<AutomationElement, bool> match, string what) => TextOf(Find(match, what));
+
+    /// <summary>
+    /// Holt den Fokus auf die Kalenderfläche: Buchstaben-Kürzel greifen nur, wenn kein Feld im Seitenpanel den Fokus hat. Esc
+    /// schließt das Panel (und ein offenes Menü); danach gehört die Taste dem Kalender (<c>OnKeyWithoutFocus</c>).
+    /// </summary>
+    public static void FocusCalendar()
+    {
+        Press(VirtualKeyShort.ESCAPE);
+        Thread.Sleep(300);
     }
 
     /// <summary>
@@ -288,6 +463,17 @@ internal sealed class LiveSession : IDisposable
         }
 
         return file;
+    }
+
+    /// <summary>Schreibt die sichtbaren Elemente auf Wunsch in <c>liste-&lt;name&gt;.txt</c> im Laufordner; Hilfe beim Schreiben neuer Themen.</summary>
+    public void Dump(string name) => DumpVisible($"liste-{name}");
+
+    /// <summary>Schreibt Klasse, AutomationId und Name aller sichtbaren Elemente neben das Fehlerbild; das spart das Raten beim Nachbessern.</summary>
+    private void DumpVisible(string name)
+    {
+        var lines = AllVisible().Select(e =>
+            $"{e.Properties.ClassName.ValueOrDefault} | {e.Properties.AutomationId.ValueOrDefault} | {e.Properties.Name.ValueOrDefault}");
+        File.WriteAllLines(Path.Combine(_folder, $"{Slug(name)}.txt"), lines);
     }
 
     private static string Slug(string name)

@@ -67,7 +67,8 @@ pwsh scripts/live-tests.ps1 -Gui
 - Tasten in der Konsole: Leertaste Pause/Weiter, Enter ein Schritt (in der Pause), `S` Bild jetzt, `Q` Stopp.
 - Bericht und Bilder: `.test-logs/live/<Zeitstempel>-<rolle>/bericht.md`, ein Bild je Schritt, bei einem Fehler zusätzlich `-fehler.png`.
 - Exitcode: 0 bestanden, 1 Schritt gescheitert, 2 Aufruf oder Server, 3 mit `Q` gestoppt.
-- Bisher gibt es die Rolle Rezeption. „Kundin anlegen“ legt eine Kundin `Eva Live<Zeitstempel>` an, „Termin buchen“ bucht für sie oder, ohne dieses Thema, für Ingrid Wallner aus den Demo-Daten; zum Aufräumen die Datenbank wie bei den Demo-Daten neu laden.
+- Themen der Rezeption (Schlüssel für `-Topics`, feste Reihenfolge; Themen mit „braucht“ verlangen das genannte Thema vorher im selben Lauf): `signin`, `signin-other-account`, `overview`, `customer-search`, `customer-search-alias`, `customer`, `customer-duplicate`, `customer-minimal`, `customer-empty`, `customer-phone-format`, `customer-badmail`, `appointment`, `appointment-conflict` (braucht `appointment`), `appointment-past`, `appointment-closed`, `checkin`, `checkin-late`, `checkin-undo-late`, `checkin-noshow`, `reschedule`, `reschedule-past`, `reschedule-checked-in`, `cancel`, `cancel-restore`, `cancel-esc`, `cancel-no-fee` (alle ab `checkin` brauchen `appointment`), `checkout` (braucht `appointment`), `voucher`, `voucher-invalid`, `receipt-void-empty-reason`, `day-closing` (immer zuletzt). Der Stand je Thema (geprüft oder nicht) steht im [Katalog](umsetzung/live-tests-rezeption-onboarding.md). Der Lauf bucht am Tag des Laufs (Einchecken und Kassieren gehen nur am Tag des Termins) „Maniküre mit Lack“ für die Kundin des Themas `customer` oder, ohne dieses, für den Stammgast Anna Bauer; zum Aufräumen die Datenbank neu laden.
+- Gegenprobe: `AISPA_LIVE_SKIP_CLICK="Anlegen"` lässt Klicks auf Elemente dieses Namens aus; die Prüfung dahinter muss scheitern.
 
 ## 4. Commits und Pull Requests
 
