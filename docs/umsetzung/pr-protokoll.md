@@ -5541,7 +5541,7 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 ## Hinweis „Keine Kontaktmöglichkeit“ beim Buchen (Rezeptions-Lücken, Aufgabe E, 08.11.2026)
 
 - **Auftrag:** [Arbeitsanweisung Rezeptions-Lücken](arbeitsanweisung-rezeption-luecken.md), Aufgabe E (Lücke L5): Beim Buchen für einen Gast ohne Telefon und E-Mail fehlte ein Hinweis; Erinnerungen und Zusagen laufen dann ins Leere.
-- **Was:** Im Buchungsbereich „Neuer Termin“ steht unter dem gewählten Gast die Pille **Keine Kontaktmöglichkeit** (wie „Anamnese prüfen“, Tooltip „Ohne Telefon oder E-Mail gehen keine Erinnerung und keine Zusage. Kontakt in der Kundenkarte ergänzen.“), sobald der gewählte Treffer weder Telefon noch E-Mail hat (`BookingViewModel.HasNoContact`). Sie blockiert nichts; Datenquelle ist der geladene Kundentreffer, kein neuer Aufruf. Handbuch `kalender-termin-buchen.md`.
+- **Was:** Im Buchungsbereich „Neuer Termin“ steht unter dem gewählten Gast die Pille **Keine Kontaktmöglichkeit** (wie „Anamnese prüfen“, Tooltip „Ohne Telefon oder E-Mail gehen keine Erinnerung und keine Zusage hinaus, bis der Kontakt in der Kundenkarte ergänzt ist“; ein Satz, weil `TermsAndTooltipTests` feste Tooltips auf einen Satz begrenzt, nachgezogen im Commit zu G), sobald der gewählte Treffer weder Telefon noch E-Mail hat (`BookingViewModel.HasNoContact`). Sie blockiert nichts; Datenquelle ist der geladene Kundentreffer, kein neuer Aufruf. Handbuch `kalender-termin-buchen.md`.
 - **Detailentscheidungen:** (1) Keine Pille in der Kundenkarte: Das brauchte eine Eigenschaft am Kunden-ViewModel und einen Block in der Ansicht, also mehr als die eine Zeile, die die Anweisung erlaubt. (2) Leerzeichen zählen als leer (`IsNullOrWhiteSpace`), wie beim Anlegen.
 - **Geprüft:** Neuer Test `CalendarTests.Gast_ohne_Telefon_und_Mail_bekommt_beim_Buchen_die_Pille_Keine_Kontaktmoeglichkeit` (ohne beides sichtbar, mit Telefon nicht); Klasse `CalendarTests` grün; `dotnet format --verify-no-changes`, Release-Build ohne Warnung; Hilfe `textRules.test.ts` grün.
 - **Nicht geprüft:** Die Pille in der laufenden App; Bilder unverändert (die Bilder der Seite zeigen Gäste mit Kontakt).
@@ -5555,3 +5555,13 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Geprüft:** Neue Tests `CalendarTests.Buchen_aus_dem_Panel_meldet_Gebucht_mit_Gast_Tag_und_Uhrzeit`, `CalendarKeyboardTests.V_oeffnet_die_Verschieben_Karte_des_markierten_Termins_bei_eingecheckten_bleibt_der_Hinweis`; `ViewTests.Kalenderkopf_zeigt_Freie_Zeit_suchen_als_zweite_Schaltflaeche_neben_Termin` prüft jetzt beide Namen; Klassen `CalendarKeyboardTests`, `CalendarTests` grün; `dotnet format --verify-no-changes`, Release-Build ohne Warnung; Hilfe `textRules.test.ts` grün.
 - **Nicht geprüft:** Der Toast und die Karte in der laufenden App; der Live-Tester gegen die neuen Namen (parallele Sitzung); Bilder unverändert.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md) und meldungen.md (M1: Toast eine Zeile, ohne Schlusspunkt).
+
+## Kassa: Tab „Entnahme“ nur mit Kassenaufsicht (Rezeptions-Lücken, Aufgabe G, 08.11.2026)
+
+- **Auftrag:** [Arbeitsanweisung Rezeptions-Lücken](arbeitsanweisung-rezeption-luecken.md), Aufgabe G (Lücke L6): Der Tab „Entnahme“ war für alle sichtbar und scheiterte erst beim Buchen am Server.
+- **Was:** Der Tab „Entnahme“ in der Kassenlade ist an `MaySuperviseCash` gebunden; ohne Recht heißt der Kasten „Einlage“ (`PosViewModel.MovementTitle`), „Einlage“ ist gewählt, die Fußzeile „Kein Umsatz. Entnehmen darf nur, wer die Kassenaufsicht hat.“ bleibt. Die Serverregel bleibt unverändert. Handbuch `seite-kassa.md`, `kassa-einlage-entnahme.md`.
+- **Detailentscheidungen:** (1) `MaySuperviseCash` wird beobachtbar, damit die Ansicht auch nach einem Rollenwechsel in derselben Sitzung stimmt und der Ansichtstest den Wechsel prüfen kann; ein Wechsel auf „ohne Recht“ setzt die Auswahl auf „Einlage“ zurück. (2) Die Fußzeile bleibt auch ohne Recht, weil sie erklärt, warum nur Einlage da ist.
+- **Geprüft:** Neuer Ansichtstest `ViewTests.Entnahme_in_der_Kassenlade_sieht_nur_die_Kassenaufsicht` (mit Recht beide Tabs; ohne Recht kein „Entnahme“, Überschrift „Einlage“); `dotnet format --verify-no-changes`, Release-Build ohne Warnung; `TermsAndTooltipTests` und `DesignTokenTests` grün; Hilfe `textRules.test.ts` grün.
+- **Nicht geprüft:** Die Kassenlade in der laufenden App als Rezeption; Bilder unverändert (das Bild der Seite „Kassa“ zeigt die Leitung).
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+

@@ -489,7 +489,7 @@ Result: ☐
 ### Rezeptions-Lücken E – Hinweis „Keine Kontaktmöglichkeit“ beim Buchen
 Start: `dotnet run --project src/AispaStudio.AppHost`, als Rezeption anmelden, unter **Kunden** eine Kundin nur mit Namen anlegen (ohne Telefon und E-Mail), dann im Kalender **Termin** wählen
 1. Im Buchungsbereich die neue Kundin suchen und wählen.
-Expected: Unter dem Gast steht die Pille **Keine Kontaktmöglichkeit**; beim Zeigen darauf „Ohne Telefon oder E-Mail gehen keine Erinnerung und keine Zusage. Kontakt in der Kundenkarte ergänzen.“; **Buchen** bleibt möglich.
+Expected: Unter dem Gast steht die Pille **Keine Kontaktmöglichkeit**; beim Zeigen darauf „Ohne Telefon oder E-Mail gehen keine Erinnerung und keine Zusage hinaus, bis der Kontakt in der Kundenkarte ergänzt ist“; **Buchen** bleibt möglich.
 2. **Ändern** und eine Kundin mit Telefon wählen.
 Expected: Keine Pille.
 Closes: L5 (live-tests-rezeption-onboarding.md, Abschnitt 3)
@@ -509,3 +509,13 @@ Expected: In der Gruppe „Markierter Termin“ steht **V** „Verschieben-Karte
 Expected: Name „Termin“ bzw. „Meldung“.
 Closes: L11, L16 (live-tests-rezeption-onboarding.md, Abschnitt 3)
 Result: ☐
+
+### Rezeptions-Lücken G – Tab „Entnahme“ nur mit Kassenaufsicht
+Start: `dotnet run --project src/AispaStudio.AppHost`, als Rezeption anmelden, **Kassa** › oben **Kassenlade** (Tagesabschluss)
+1. Den Kasten rechts ansehen.
+Expected: Überschrift „Einlage“, nur der Tab **Einlage**, darunter „Kein Umsatz. Entnehmen darf nur, wer die Kassenaufsicht hat.“
+2. Abmelden, als Standortleitung anmelden, dieselbe Stelle öffnen.
+Expected: Überschrift „Einlage oder Entnahme“, Tabs **Einlage** und **Entnahme**.
+Closes: L6 (live-tests-rezeption-onboarding.md, Abschnitt 3)
+Result: ☐
+

@@ -10,8 +10,21 @@ public partial class PosViewModel
 {
     private const int RefundPolls = 20;
 
-    /// <summary>Kassenaufsicht: nur sie sieht „Erstattung erneut anstoßen“. Die Shell setzt es aus den Rechten; der Server prüft es ebenso.</summary>
-    public bool MaySuperviseCash { get; set; }
+    /// <summary>Kassenaufsicht: nur sie sieht „Erstattung erneut anstoßen“ und den Tab „Entnahme“ (L6). Die Shell setzt es aus den Rechten; der Server prüft es ebenso.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanRetryOnlineRefund), nameof(MovementTitle))]
+    public partial bool MaySuperviseCash { get; set; }
+
+    /// <summary>Überschrift des Kastens in der Kassenlade: ohne Kassenaufsicht gibt es nur die Einlage.</summary>
+    public string MovementTitle => MaySuperviseCash ? "Einlage oder Entnahme" : "Einlage";
+
+    partial void OnMaySuperviseCashChanged(bool value)
+    {
+        if (!value)
+        {
+            MovementIsWithdrawal = false;
+        }
+    }
 
     /// <summary>
     /// Fragt den Code beim Verlassen des Felds ab: Restwert und Gültigkeit stammen vom Server, ob eingelöst werden kann, prüft er beim Bezahlen noch einmal.

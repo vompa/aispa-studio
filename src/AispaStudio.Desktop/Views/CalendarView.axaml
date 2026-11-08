@@ -1271,7 +1271,7 @@
         </Border>
         <!-- L5: Gast ohne Telefon und E-Mail; Hinweis am Objekt (meldungen.md, M3), blockiert nichts -->
         <Border Classes="pill warn" HorizontalAlignment="Left" IsVisible="{Binding HasNoContact}"
-                ToolTip.Tip="Ohne Telefon oder E-Mail gehen keine Erinnerung und keine Zusage. Kontakt in der Kundenkarte ergänzen.">
+                ToolTip.Tip="Ohne Telefon oder E-Mail gehen keine Erinnerung und keine Zusage hinaus, bis der Kontakt in der Kundenkarte ergänzt ist">
           <StackPanel Orientation="Horizontal" Spacing="6">
             <ui:Icon Data="{x:Static ui:Icons.Warning}" Width="14" Height="14" Foreground="{DynamicResource WarnBrush}" />
             <TextBlock Text="Keine Kontaktmöglichkeit" />
