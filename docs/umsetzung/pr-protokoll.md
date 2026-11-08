@@ -5528,3 +5528,13 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Nicht geprüft:** Der Dialog in der laufenden App (Umbruch der Hinweiszeile in der 420 Pixel breiten Karte); Bilder unverändert (`termin-stornieren-2.png` zeigt eine Absage außerhalb der Frist).
 - **Beim Schreiben festgestellt:** Der Auftrag „sag … ab“ des Assistenten (Ä319) hängt seinen eigenen Gebührensatz an den Text der Rückfrage; beide Hinweise können zusammen erscheinen (nur vermerkt).
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md) und meldungen.md (M3: Hinweis am Objekt mit Symbol und Text).
+
+## Rückfrage vor „krank melden“ (Rezeptions-Lücken, Aufgabe D, 08.11.2026)
+
+- **Auftrag:** [Arbeitsanweisung Rezeptions-Lücken](arbeitsanweisung-rezeption-luecken.md), Aufgabe D (Lücke L10): Krank melden, Pause löschen und Sperrzeit löschen sollen nachfragen; ein Rückgängig wird bewusst nicht gebaut.
+- **Was:** „<Name> krank melden“ im Rechtsklick am Spaltenkopf öffnet die Rückfrage „<Name> krank melden?“ („Der Dienstplan bekommt für den dd.MM. einen Krankenstand. Danach schlägt der Ausfall-Assistent für die offenen Termine Ersatz vor.“, Knopf **Krank melden**, zerstörend, Fokus auf **Abbrechen**); erst Bestätigen speichert (`CalendarViewModel.AskReportSickAsync`). Handbuch `kalender-krankmeldung.md` (Rückfrage, Zurücknehmen nur im Dienstplan) und `kalender-pausen-und-notizen.md` (Rückfrage beim Löschen).
+- **Detailentscheidungen:** (1) Pause löschen und Sperrzeit löschen fragten schon nach (`AskDeleteBlockAsync`, „Pause löschen?“ / „Sperrzeit löschen?“ mit der Zeit); der Befund L10 war an dieser Stelle überholt. Die vorhandenen Texte bleiben, das Handbuch nennt die Rückfrage jetzt. (2) Im Text steht das Datum des angezeigten Tags statt „heute“, weil die Meldung für den angezeigten Tag gilt. (3) `ReportSickAsync` bleibt öffentlich ohne Rückfrage für den Ausfall-Assistenten und die bestehenden Tests; nur der Menüeintrag fragt. (4) Kein Rückgängig (Anweisung); den Weg zurück nennt das Handbuch.
+- **Geprüft:** Neuer Test `CalendarDayNotesTests.Krank_melden_im_Rechtsklick_fragt_nach_und_speichert_erst_nach_Bestaetigung` (Abbrechen: kein Aufruf; Bestätigen über den Menüeintrag: ein Aufruf, Assistent offen); Klasse `CalendarDayNotesTests` grün; `dotnet format --verify-no-changes`, Release-Build ohne Warnung; Hilfe `textRules.test.ts` grün.
+- **Nicht geprüft:** Der Dialog in der laufenden App; Bilder unverändert (kein Bild zeigt den Menüeintrag).
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md) und meldungen.md (Rückfrage: Frage als Titel, Folge im Text, Antwort als Verb).
+

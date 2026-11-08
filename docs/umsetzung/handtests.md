@@ -472,3 +472,17 @@ Expected: Keine Hinweiszeile, „Grund“ ist mit „An der Rezeption storniert�
 Expected: Nur „Absage innerhalb der Stornofrist (bis <gestern> HH:mm).“
 Closes: L3 (live-tests-rezeption-onboarding.md, Abschnitt 3)
 Result: ☐
+
+### Rezeptions-Lücken D – Rückfrage vor „krank melden“
+Start: `dotnet run --project src/AispaStudio.AppHost`, im Aspire-Dashboard die Ressource `windows-app` starten, als Standortleitung anmelden, Kalender mit Team-Spalten
+1. Rechtsklick auf den Spaltenkopf einer Person mit offenen Terminen, **… krank melden** wählen.
+Expected: Rückfrage „<Name> krank melden?“ mit dem Datum des Tages, Knopf **Krank melden** rot, Fokus auf **Abbrechen**.
+2. **Abbrechen** wählen.
+Expected: Der Spaltenkopf ist unverändert, kein Krankenstand, kein Assistent.
+3. Erneut wählen und **Krank melden** bestätigen.
+Expected: Spaltenkopf „krank gemeldet“, Meldung unten, der Ausfall-Assistent öffnet sich.
+4. Rechtsklick auf eine Pause und auf eine Sperrzeit, jeweils **… löschen** wählen.
+Expected: Rückfrage „Pause löschen?“ bzw. „Sperrzeit löschen?“ mit der Zeit; erst **Löschen** entfernt den Eintrag.
+Closes: L10 (live-tests-rezeption-onboarding.md, Abschnitt 3)
+Result: ☐
+

@@ -60,6 +60,26 @@ public partial class CalendarViewModel
     }
 
     /// <summary>
+    /// Krank melden fragt nach (L10): Ein Fehlklick im Rechtsklick-Menü am Spaltenkopf ändert sonst sofort den Dienstplan, und zurücknehmen kann das nur
+    /// die Leitung dort. Fokus auf „Abbrechen“ wie bei jeder zerstörenden Rückfrage.
+    /// </summary>
+    public async Task AskReportSickAsync(CalendarColumn column)
+    {
+        if (!CanReportSick || column.IsRoom || column.IsSick)
+        {
+            return;
+        }
+
+        var answer = await AskAsync(new ConfirmRequest($"{column.Title} krank melden?",
+            $"Der Dienstplan bekommt für den {Date:dd.MM.} einen Krankenstand. Danach schlägt der Ausfall-Assistent für die offenen Termine Ersatz vor.",
+            "Krank melden")).ConfigureAwait(true);
+        if (answer.IsConfirmed)
+        {
+            await ReportSickAsync(column).ConfigureAwait(true);
+        }
+    }
+
+    /// <summary>
     /// Krank melden für den angezeigten Tag: Der Dienstplan bekommt einen Krankenstand (sofort gültig), danach öffnet der
     /// Ausfall-Assistent für die offenen Termine.
     /// </summary>
@@ -113,7 +133,7 @@ public partial class CalendarViewModel
 
         if (CanReportSick && !column.IsSick)
         {
-            actions.Add(new($"{column.Title} krank melden", null, () => _ = ReportSickAsync(column), IsDanger: true));
+            actions.Add(new($"{column.Title} krank melden", null, () => _ = AskReportSickAsync(column), IsDanger: true));
         }
 
         return actions;

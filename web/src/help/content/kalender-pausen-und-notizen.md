@@ -65,7 +65,7 @@ Eine Pause und eine Notiz mit Uhrzeit lassen sich direkt im Kalender in der Höh
 
 ## Pause oder Sperrzeit löschen {#loeschen}
 
-Rechtsklick auf die Pause bzw. Sperrzeit, dann **Pause löschen** bzw. **Sperrzeit löschen**.
+Rechtsklick auf die Pause bzw. Sperrzeit, dann **Pause löschen** bzw. **Sperrzeit löschen**. Eine Rückfrage „Pause löschen?“ bzw. „Sperrzeit löschen?“ nennt die Zeit; **Löschen** bestätigt, **Abbrechen** lässt alles, wie es ist.
 
 ## Notiz an einer Uhrzeit {#notiz}
 
