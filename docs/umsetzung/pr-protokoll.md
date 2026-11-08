@@ -5472,6 +5472,15 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Nicht geprüft:** Der CI-Lauf mit dem gekürzten Paket („Einzelplatz mit dem echten Paket starten“) bis zum nächsten Push; die Copyright-Zeilen stammen aus den Projektseiten, nicht aus den Binärdateien.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
 
+## Live-Tests der Windows-App, Probelauf Rezeption (08.11.2026)
+
+- **Auftrag:** Der Auftraggeber möchte drei Tester (Inhaberin, Rezeption, Mitarbeiterin), die die App live durchspielen, zum Zusehen, Anhalten, Bildermachen und Protokollieren. Freigegeben ist zuerst ein Probelauf für die Rezeption („Ja, Probelauf“).
+- **Was:** [ADR 0090](../entscheidungen/0090-live-tests-mit-flaui.md); neues Projekt `tests/AispaStudio.LiveTests` (FlaUI.UIA3 5.0.0, MIT, nicht in der Solution) mit Schritten, Hervorhebung, Bild je Schritt, Bericht und Steuerung in der Konsole; Skript `scripts/live-tests.ps1`; Abschnitt „Live-Tests der Windows-App“ in der [Arbeitsweise](../arbeitsweise.md#live-tests-der-windows-app).
+- **Detailentscheidungen:** (1) Nicht in `AispaStudio.slnx`, weil die CI die Solution unter Linux baut. (2) Vor dem Lauf meldet der Tester eine gemerkte Anmeldung über die Oberfläche ab; die App speichert sie fest in `LocalAppData`. (3) Kundin und Telefon tragen einen Zeitstempel, sonst schlägt die Kundenmaske die Kundin des letzten Laufs als Dublette vor. (4) Der Lauf bucht über „Freie Zeit suchen“ statt zu einer festen Uhrzeit, weil jeder Lauf einen Termin hinterlässt. (5) Am Sonntag hat in den Demo-Daten niemand Dienst, der Lauf geht deshalb auf den nächsten Tag; Kassieren braucht „Ist da“ am Tag des Termins und bleibt offen, der Bericht nennt das. (6) Auswahl nur unter `ComboBoxItem` und Prüfung an der `AppointmentCard`: Ein erster Stand fand „Gesichtsbehandlung Klassik“ in fremden Kalenderkarten und meldete fälschlich bestanden. (7) Ein Manifest macht den Tester DPI-bewusst, sonst fehlt bei 125 % rechts ein Teil des Bildes.
+- **Geprüft:** `scripts/live-tests.ps1 -Role Reception -Speed slow`: 10 von 10 Schritten bestanden, Exitcode 0, Termin in der Kalenderkarte. Gegenprobe mit einer Behandlung, die es nicht gibt: ✗ in Schritt 8 mit den sichtbaren Einträgen, Exitcode 1, Fehlerbild. `dotnet format` des Projekts ohne Änderung, Release-Build ohne Warnung.
+- **Nicht geprüft:** Die Tasten (Leertaste, Enter, `S`, `Q`) von Hand in einer echten Konsole; Rollen Inhaberin und Mitarbeiterin; Kassieren.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
 ## oxlint: Regel `react/immutability` aus (08.11.2026)
 
 - **Auftrag:** Dependabot-PR #4 (sieben npm-Pakete, darunter oxlint 1.88 → 1.91) läuft im Job „Web“ rot: oxlint 1.91 bringt die Regel `react/immutability` mit, `--deny-warnings` macht drei Warnungen zum Fehler.

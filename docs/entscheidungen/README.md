@@ -95,5 +95,6 @@ Neue Entscheidungen bekommen die nächste freie Nummer und die Vorlage [`vorlage
 | 0087 | [Mehrinstanz-Betrieb: Rollen, zentrale Schlüssel, eigener Migrationslauf, Backplane, auf Container Apps](0087-mehrinstanz-betrieb.md) | 06.11.2026 | Code-Teil angenommen (delegiert, 08.11.2026), Zielplattform entscheidet der Auftraggeber; Vorlage Claude nach der Arbeitsanweisung |
 | 0088 | [Öffentliches Repository unter MIT-Lizenz, Konzeptstudie zur KI-nativen Entwicklung](0088-oeffentliches-repository-mit-mit-lizenz.md) | 07.11.2026 | Auftraggeber |
 | 0089 | [Valkey statt Redis 8 für die Backplane des Live-Kanals](0089-valkey-statt-redis-8.md) | 08.11.2026 | Claude mit dem Council, vom Auftraggeber delegiert |
+| 0090 | [Live-Tests der Windows-App mit FlaUI](0090-live-tests-mit-flaui.md) | 08.11.2026 | Auftraggeber (Probelauf Rezeption), Umsetzung Claude |
 
 Detailentscheidungen einzelner Pull Requests stehen im [PR-Protokoll](../umsetzung/pr-protokoll.md).

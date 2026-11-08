@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Live-Tests der Windows-App (ADR 0090): steuert die echte App sichtbar über UI Automation. Kein Testprojekt,
+       läuft nur über scripts/live-tests.ps1 und ist bewusst nicht in AispaStudio.slnx (die CI baut sie unter Linux). -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FlaUI.UIA3" />
+  </ItemGroup>
+
+</Project>
