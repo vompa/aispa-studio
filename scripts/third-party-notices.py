@@ -7,10 +7,12 @@ Lizenztexte stehen je SPDX-Kennung einmal in `scripts/third-party-licenses/`; Pa
 
 Aufruf aus dem Hauptordner nach `dotnet restore` und `npm ci` in `web` (die CI tut das vor dem Packen):
     python scripts/third-party-notices.py
+    python scripts/third-party-notices.py --postgres-bin publish/desktop/postgres/bin   # CI: prüft die DLLs im Paket
 """
 
 from __future__ import annotations
 
+import argparse
 import json
 import os
 import pathlib
@@ -160,6 +162,45 @@ def postgresql() -> Component:
     )
 
 
+# Fremdbibliotheken in postgres/bin des EDB-Builds (gemessen am Paket des CI-Laufs 42476799810, 08.11.2026).
+# Der EDB-Build liefert dazu keine Lizenzdateien mit; Name, Lizenz und Copyright stehen deshalb hier.
+# DLL-Präfix → (Name, SPDX-Kennung, Copyright, Adresse)
+POSTGRES_LIBRARIES = {
+    "icu": ("ICU 67", "ICU", "Copyright (c) 1991-2020 Unicode, Inc. and others", "https://icu.unicode.org/"),
+    "libcrypto-3": ("OpenSSL 3", "Apache-2.0", "Copyright (c) 1998-2025 The OpenSSL Project Authors", "https://www.openssl.org/"),
+    "libssl-3": ("OpenSSL 3", "Apache-2.0", "Copyright (c) 1998-2025 The OpenSSL Project Authors", "https://www.openssl.org/"),
+    "libcurl": ("curl (libcurl)", "curl", "Copyright (c) Daniel Stenberg and many contributors", "https://curl.se/"),
+    "libiconv": ("GNU libiconv", "LGPL-2.1-or-later", "Copyright (C) Free Software Foundation, Inc.", "https://www.gnu.org/software/libiconv/"),
+    "libintl": ("GNU gettext (libintl)", "LGPL-2.1-or-later", "Copyright (C) Free Software Foundation, Inc.", "https://www.gnu.org/software/gettext/"),
+    "liblz4": ("LZ4", "BSD-2-Clause", "Copyright (c) Yann Collet", "https://lz4.org/"),
+    "libxml2": ("libxml2", "MIT", "Copyright (C) Daniel Veillard", "https://gitlab.gnome.org/GNOME/libxml2"),
+    "libxslt": ("libxslt", "MIT", "Copyright (C) Daniel Veillard", "https://gitlab.gnome.org/GNOME/libxslt"),
+    "libzstd": ("Zstandard", "BSD-3-Clause", "Copyright (c) Meta Platforms, Inc. and affiliates", "https://facebook.github.io/zstd/"),
+    "libwinpthread": ("mingw-w64 winpthreads", "MIT", "Copyright (c) 2011 mingw-w64 project", "https://www.mingw-w64.org/"),
+    "zlib": ("zlib", "Zlib", "Copyright (C) 1995-2024 Jean-loup Gailly and Mark Adler", "https://zlib.net/"),
+}
+# Bibliotheken von PostgreSQL selbst (Lizenz PostgreSQL oben).
+POSTGRES_OWN_DLLS = {"libpq", "libecpg", "libecpg_compat", "libpgtypes", "testplug"}
+
+
+def postgres_libraries() -> list[Component]:
+    unique = set(POSTGRES_LIBRARIES.values())
+    return [
+        Component(name=name, version="EDB-Build", source="PostgreSQL-Paket", license=spdx, copyright=holder, url=url)
+        for name, spdx, holder, url in sorted(unique)
+    ]
+
+
+def unknown_postgres_dlls(bin_folder: pathlib.Path) -> list[str]:
+    """DLLs in postgres/bin, die weder zu PostgreSQL gehören noch in POSTGRES_LIBRARIES stehen."""
+    unknown = []
+    for dll in sorted(bin_folder.glob("*.dll")):
+        stem = dll.stem.lower()
+        if stem not in POSTGRES_OWN_DLLS and not any(stem.startswith(prefix) for prefix in POSTGRES_LIBRARIES):
+            unknown.append(dll.name)
+    return unknown
+
+
 def standard_text(spdx: str) -> str:
     path = LICENSE_TEXTS / f"{spdx}.txt"
     if not path.exists():
@@ -190,8 +231,10 @@ def render(groups: list[LicenseGroup]) -> str:
         "Lizenzen behalten. Diese Datei nennt sie mit Copyright und Lizenztext. Erzeugt mit",
         "`python scripts/third-party-notices.py`; nicht von Hand ändern.",
         "",
-        "Das mitgelieferte PostgreSQL (Ordner `postgres`) bringt weitere Bibliotheken des EnterpriseDB-Builds mit",
-        "(zum Beispiel OpenSSL, ICU, zlib). Sie sind hier noch nicht einzeln aufgeführt.",
+        "Das mitgelieferte PostgreSQL (Ordner `postgres`, Build von EnterpriseDB) steht mit seinen Fremdbibliotheken",
+        "unten (Herkunft „PostgreSQL-Paket“). Seine Erweiterungen in `postgres/lib` gehören zu PostgreSQL, dazu kommen",
+        "`plugin_debugger` und `system_stats` von EnterpriseDB. Die LGPL-Bibliotheken (libiconv, libintl) sind dynamisch",
+        "gebunden und lassen sich durch eigene Fassungen ersetzen; ihr Quelltext steht unter den genannten Adressen.",
         "",
     ]
     for license_group in groups:
@@ -204,9 +247,20 @@ def render(groups: list[LicenseGroup]) -> str:
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("--postgres-bin", type=pathlib.Path,
+                        help="Ordner postgres/bin im Paket: bricht ab, wenn dort eine unbekannte DLL liegt")
+    arguments = parser.parse_args()
+    if arguments.postgres_bin:
+        unknown = unknown_postgres_dlls(arguments.postgres_bin)
+        if unknown:
+            print("Unbekannte DLLs im PostgreSQL-Paket, bitte in POSTGRES_LIBRARIES eintragen: " + ", ".join(unknown), file=sys.stderr)
+            return 1
+
     components = [nuget_component(i, v) for i, v in sorted(nuget_packages().items())]
     components += npm_components()
     components.append(postgresql())
+    components += postgres_libraries()
     groups = group(components)
     OUTPUT.write_bytes(render(groups).encode("utf-8"))
     print(f"{OUTPUT.name}: {len(components)} Bausteine, {len(groups)} Lizenztexte")

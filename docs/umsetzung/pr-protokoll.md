@@ -5462,3 +5462,12 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Geprüft:** `LiveBackplaneTests` 30/30 grün zuerst gegen einen externen Valkey (`AISPA_TEST_REDIS`, 19 Verbindungen, 292 Befehle im Server gezählt), dann 30/30 mit eigenen Valkey-Containern; Release-Build von Tests und AppHost ohne Warnung; `dotnet format` für die geänderten Dateien.
 - **Nicht geprüft:** AppHost mit `--Live:Backplane=Redis` und `compose.scale.yaml` im laufenden Betrieb.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Lizenzhinweise für das mitgelieferte PostgreSQL (08.11.2026)
+
+- **Auftrag:** Dritte Council-Frage derselben Runde: Die Bibliotheken im PostgreSQL-Build von EnterpriseDB fehlten in `THIRD-PARTY-NOTICES.md`. Der Vorsitz wollte die Lizenzdateien aus `PGROOT` sammeln und, wo keine liegen, die Bibliotheken namentlich mit Quelle nennen.
+- **Was:** Gemessen am Paket des CI-Laufs 42476799810: Der EDB-Build bringt keine Lizenzdateien mit. `scripts/third-party-notices.py` nennt deshalb die zwölf Fremdbibliotheken aus `postgres/bin` (ICU, OpenSSL, curl, libiconv, libintl, LZ4, libxml2, libxslt, Zstandard, winpthreads, zlib) mit Lizenz, Copyright und Adresse; die SPDX-Texte für ICU, curl, LGPL-2.1, BSD-2-Clause und Zlib liegen neu unter `scripts/third-party-licenses/`. Mit `--postgres-bin` bricht das Skript ab, wenn eine DLL weder zu PostgreSQL gehört noch in der Liste steht; die CI ruft es so auf. Die CI entfernt `stackbuilder.exe` und die acht `wx*.dll` aus dem Paket (rund 14 MB).
+- **Detailentscheidungen:** (1) Liste nach DLL-Präfix statt Versionsnummern: Ein neues Runner-Image mit neuer Version bricht nichts, eine neue Bibliothek schon. (2) wxWidgets nicht aufnehmen, sondern weglassen: Nur StackBuilder nutzt es, und den braucht der Einzelplatz nicht. (3) Die Erweiterungen `plugin_debugger` und `system_stats` in `postgres/lib` stehen nur im Kopftext; ihre Lizenz und die Weitergabe des EDB-Builds mit LGPL-Bibliotheken prüft der Auftraggeber (Aufgabe T-059).
+- **Geprüft:** Lauf gegen `postgres/bin` des CI-Pakets mit wx-DLLs: Exit 1 mit den acht Namen; ohne sie: Exit 0, 190 Bausteine in 25 Lizenztexten.
+- **Nicht geprüft:** Der CI-Lauf mit dem gekürzten Paket („Einzelplatz mit dem echten Paket starten“) bis zum nächsten Push; die Copyright-Zeilen stammen aus den Projektseiten, nicht aus den Binärdateien.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
