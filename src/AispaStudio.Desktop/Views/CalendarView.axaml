@@ -212,7 +212,8 @@
               <ContentControl Content="{Binding Conflict}" IsVisible="{Binding ConflictInMove}" />
               <UniformGrid Columns="2" ColumnSpacing="8">
                 <Button Classes="primary" Content="Verschieben" Command="{Binding MoveToDayCommand}" HorizontalAlignment="Stretch"
-                        HorizontalContentAlignment="Center" IsDefault="True" ui:SaveShortcut.IsSave="True" ToolTip.Tip="{Binding MoveToDayTip}" ToolTip.ShowOnDisabled="True" />
+                        HorizontalContentAlignment="Center" IsDefault="True" ui:SaveShortcut.IsSave="True" ToolTip.Tip="Verschieben (Strg+S)"
+                        ui:DisabledHint.Text="Verfügbar für heute oder einen späteren Tag." />
                 <Button Classes="ghost" Content="Abbrechen" Command="{Binding CancelMoveToDayCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
               </UniformGrid>
             </StackPanel>
