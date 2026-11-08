@@ -590,6 +590,25 @@ public sealed class CalendarTests
     }
 
     [Fact]
+    public async Task Gast_ohne_Telefon_und_Mail_bekommt_beim_Buchen_die_Pille_Keine_Kontaktmoeglichkeit()
+    {
+        var silent = new CustomerDto(Guid.NewGuid(), "Ohne", "Kontakt", null, null, null, null);
+        var reachable = new CustomerDto(Guid.NewGuid(), "Mit", "Telefon", null, "+43 664 1", null, null);
+        var api = Api()
+            .On("GET /api/customers?search=ohne", new List<CustomerDto> { silent })
+            .On("GET /api/customers?search=mit", new List<CustomerDto> { reachable });
+        var vm = await OpenAsync(api);
+        vm.StartBooking(vm.Columns[0], 30 * DayLayout.PixelsPerMinute);
+        var booking = vm.Booking!;
+
+        Assert.False(booking.HasNoContact);
+        booking.Customer = silent;
+        Assert.True(booking.HasNoContact);
+        booking.Customer = reachable;
+        Assert.False(booking.HasNoContact);
+    }
+
+    [Fact]
     public async Task Verschieben_Karte_sperrt_Tage_vor_heute_und_nennt_den_Grund_im_Tooltip()
     {
         var appointment = TestData.Appointment(10, TestData.Anna);

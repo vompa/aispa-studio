@@ -5538,3 +5538,11 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Nicht geprüft:** Der Dialog in der laufenden App; Bilder unverändert (kein Bild zeigt den Menüeintrag).
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md) und meldungen.md (Rückfrage: Frage als Titel, Folge im Text, Antwort als Verb).
 
+## Hinweis „Keine Kontaktmöglichkeit“ beim Buchen (Rezeptions-Lücken, Aufgabe E, 08.11.2026)
+
+- **Auftrag:** [Arbeitsanweisung Rezeptions-Lücken](arbeitsanweisung-rezeption-luecken.md), Aufgabe E (Lücke L5): Beim Buchen für einen Gast ohne Telefon und E-Mail fehlte ein Hinweis; Erinnerungen und Zusagen laufen dann ins Leere.
+- **Was:** Im Buchungsbereich „Neuer Termin“ steht unter dem gewählten Gast die Pille **Keine Kontaktmöglichkeit** (wie „Anamnese prüfen“, Tooltip „Ohne Telefon oder E-Mail gehen keine Erinnerung und keine Zusage. Kontakt in der Kundenkarte ergänzen.“), sobald der gewählte Treffer weder Telefon noch E-Mail hat (`BookingViewModel.HasNoContact`). Sie blockiert nichts; Datenquelle ist der geladene Kundentreffer, kein neuer Aufruf. Handbuch `kalender-termin-buchen.md`.
+- **Detailentscheidungen:** (1) Keine Pille in der Kundenkarte: Das brauchte eine Eigenschaft am Kunden-ViewModel und einen Block in der Ansicht, also mehr als die eine Zeile, die die Anweisung erlaubt. (2) Leerzeichen zählen als leer (`IsNullOrWhiteSpace`), wie beim Anlegen.
+- **Geprüft:** Neuer Test `CalendarTests.Gast_ohne_Telefon_und_Mail_bekommt_beim_Buchen_die_Pille_Keine_Kontaktmoeglichkeit` (ohne beides sichtbar, mit Telefon nicht); Klasse `CalendarTests` grün; `dotnet format --verify-no-changes`, Release-Build ohne Warnung; Hilfe `textRules.test.ts` grün.
+- **Nicht geprüft:** Die Pille in der laufenden App; Bilder unverändert (die Bilder der Seite zeigen Gäste mit Kontakt).
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md) und meldungen.md (M3: Hinweis am Objekt).

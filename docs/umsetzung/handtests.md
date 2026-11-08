@@ -486,3 +486,11 @@ Expected: Rückfrage „Pause löschen?“ bzw. „Sperrzeit löschen?“ mit de
 Closes: L10 (live-tests-rezeption-onboarding.md, Abschnitt 3)
 Result: ☐
 
+### Rezeptions-Lücken E – Hinweis „Keine Kontaktmöglichkeit“ beim Buchen
+Start: `dotnet run --project src/AispaStudio.AppHost`, als Rezeption anmelden, unter **Kunden** eine Kundin nur mit Namen anlegen (ohne Telefon und E-Mail), dann im Kalender **Termin** wählen
+1. Im Buchungsbereich die neue Kundin suchen und wählen.
+Expected: Unter dem Gast steht die Pille **Keine Kontaktmöglichkeit**; beim Zeigen darauf „Ohne Telefon oder E-Mail gehen keine Erinnerung und keine Zusage. Kontakt in der Kundenkarte ergänzen.“; **Buchen** bleibt möglich.
+2. **Ändern** und eine Kundin mit Telefon wählen.
+Expected: Keine Pille.
+Closes: L5 (live-tests-rezeption-onboarding.md, Abschnitt 3)
+Result: ☐

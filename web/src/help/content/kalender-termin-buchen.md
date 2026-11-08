@@ -80,6 +80,8 @@ Solange das Fenster **Neuer Termin** offen ist, steht der geplante Eintrag als g
 
 Steht unter dem Gast **Anamnese prüfen**, trägt die Behandlung dieses Merkmal und der Anamnesebogen des Gastes enthält Angaben. Was darin steht, zeigt das Panel nicht; gebucht werden kann trotzdem. Vor der Behandlung liest die Therapeut:in den Bogen. Welche Behandlungen das Merkmal tragen, steht unter [Behandlungen](hilfe:behandlungen#anamnese-pruefen).
 
+Steht unter dem Gast **Keine Kontaktmöglichkeit**, hat er weder Telefon noch E-Mail in der Kundenkarte: Erinnerung und Zusage per Link gehen dann nicht hinaus. Gebucht werden kann trotzdem; den Kontakt ergänzt man in der [Kundenkarte](hilfe:seite-kunden).
+
 ## Vorschlag nach freier Zeit {#vorschlag}
 
 An einem Schließtag und an einem Tag ohne Dienst steht oben im Fenster der Hinweis „Der Standort hat an diesem Tag geschlossen.“. Er sperrt nichts: **Termin buchen** bleibt aktiv, und der Termin wird gespeichert. Gäste bekommen an solchen Tagen online keine Zeiten ([Schließzeiten](hilfe:schliesszeiten)).

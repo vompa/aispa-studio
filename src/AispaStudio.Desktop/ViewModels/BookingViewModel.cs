@@ -268,8 +268,11 @@ public partial class BookingViewModel : ViewModelBase
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(BookCommand), nameof(BookAnywayCommand))]
-    [NotifyPropertyChangedFor(nameof(PreferenceHint), nameof(HasPreferenceHint), nameof(PreferenceIsWarning), nameof(HasChosenCustomer), nameof(IsPicking), nameof(PanelTabText))]
+    [NotifyPropertyChangedFor(nameof(PreferenceHint), nameof(HasPreferenceHint), nameof(PreferenceIsWarning), nameof(HasChosenCustomer), nameof(IsPicking), nameof(PanelTabText), nameof(HasNoContact))]
     public partial CustomerDto? Customer { get; set; }
+
+    /// <summary>Pille „Keine Kontaktmöglichkeit“ (L5): Der gewählte Gast hat weder Telefon noch E-Mail, Erinnerung und Zusage gehen ins Leere. Blockiert nichts.</summary>
+    public bool HasNoContact => Customer is { } customer && string.IsNullOrWhiteSpace(customer.Phone) && string.IsNullOrWhiteSpace(customer.Email);
 
     /// <summary>Der Treffer ist gewählt, sein Name steht im Suchfeld (Ä82); die Trefferliste ist dann zu.</summary>
     public bool HasChosenCustomer => Customer is not null && CustomerQuery == Customer.InHouseName;

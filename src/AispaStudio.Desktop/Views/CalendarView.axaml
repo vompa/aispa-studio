@@ -1269,6 +1269,14 @@
             <TextBlock Text="Anamnese prüfen" />
           </StackPanel>
         </Border>
+        <!-- L5: Gast ohne Telefon und E-Mail; Hinweis am Objekt (meldungen.md, M3), blockiert nichts -->
+        <Border Classes="pill warn" HorizontalAlignment="Left" IsVisible="{Binding HasNoContact}"
+                ToolTip.Tip="Ohne Telefon oder E-Mail gehen keine Erinnerung und keine Zusage. Kontakt in der Kundenkarte ergänzen.">
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <ui:Icon Data="{x:Static ui:Icons.Warning}" Width="14" Height="14" Foreground="{DynamicResource WarnBrush}" />
+            <TextBlock Text="Keine Kontaktmöglichkeit" />
+          </StackPanel>
+        </Border>
         <Border Classes="panelcard" IsVisible="{Binding HasSuggestions}">
           <StackPanel Spacing="6">
             <TextBlock Text="Vorschläge" FontWeight="SemiBold" />
