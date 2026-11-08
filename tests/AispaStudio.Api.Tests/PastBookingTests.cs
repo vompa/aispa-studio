@@ -106,12 +106,13 @@ public sealed class PastBookingTests(ApiFixture fixture)
     [Fact]
     public async Task Ganze_Buchung_auf_gestern_verschieben_wird_mit_409_abgelehnt()
     {
-        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        // Eine gemeinsame Buchung braucht zwei Personen im Dienst; der Standort „Rund um die Uhr“ hat sie an jedem Wochentag.
+        var (spa, location, treatment, _) = await OpenAllDayAsync();
         var partner = await spa.PostAsync<CustomerDto>("/api/customers", new CustomerInput("Paul", $"Gast{Guid.NewGuid():N}", null, null, null, null), Ct);
-        var group = await spa.PostAsync<GroupBookingResult>("/api/appointment-groups", new GroupBookingRequest(spa.Location.Id, LocalToday(10, 0, 1),
-            [new GroupBookingItem(spa.MassageTreatment.Id, spa.Customer.Id, 0), new GroupBookingItem(spa.MassageTreatment.Id, partner.Id, 0)]), Ct);
+        var group = await spa.PostAsync<GroupBookingResult>("/api/appointment-groups", new GroupBookingRequest(location.Id, LocalToday(10, 0, 1),
+            [new GroupBookingItem(treatment.Id, spa.Customer.Id, 0), new GroupBookingItem(treatment.Id, partner.Id, 0)]), Ct);
 
-        var response = await spa.Client.PostAsJsonAsync($"/api/locations/{spa.Location.Id}/appointment-groups/{group.GroupId}/move",
+        var response = await spa.Client.PostAsJsonAsync($"/api/locations/{location.Id}/appointment-groups/{group.GroupId}/move",
             new MoveGroupRequest(LocalToday(10, 0, -1)), TestSpa.Json, Ct);
 
         await AssertRejectedAsync(response, PastBookings.MoveMessage);
