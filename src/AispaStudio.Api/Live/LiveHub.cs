@@ -3,7 +3,6 @@ using AispaStudio.Api.Tenancy;
 using AispaStudio.Contracts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
-using StackExchange.Redis;
 
 namespace AispaStudio.Api.Live;
 
@@ -79,7 +78,7 @@ public sealed class LiveHub : Hub<ILiveClient>
             {
                 await Groups.RemoveFromGroupAsync(Context.ConnectionId, group);
             }
-            catch (Exception rollback) when (rollback is RedisException or RedisTimeoutException)
+            catch (Exception rollback) when (LiveDelivery.IsRedisFailure(rollback))
             {
                 // Redis ist weiterhin nicht erreichbar; die Verbindung endet mit dem Client, der Fehler des Eintragens geht unten weiter.
             }

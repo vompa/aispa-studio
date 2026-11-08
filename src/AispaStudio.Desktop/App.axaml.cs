@@ -63,6 +63,9 @@ public partial class App : Application
                 desktop.ShutdownRequested += (_, e) => e.Cancel = shutdown.OnShutdownRequested();
             }
 
+            // Protokolliert und als behandelt markiert wird in Program; hier nur die sichtbare Meldung (T-055).
+            Dispatcher.UIThread.UnhandledException += (_, _) => viewModel.ReportUiError();
+
             // Maximiert, damit der Startbildschirm schon die Fläche der Arbeit füllt (die Kassa steht sofort, das Fenster wird nicht animiert).
             desktop.MainWindow = new MainWindow { DataContext = viewModel, WindowState = Avalonia.Controls.WindowState.Maximized };
             _ = viewModel.StartAsync();

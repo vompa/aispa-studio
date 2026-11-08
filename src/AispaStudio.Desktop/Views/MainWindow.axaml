@@ -8,7 +8,7 @@
         mc:Ignorable="d" d:DesignWidth="1440" d:DesignHeight="900"
         x:Class="AispaStudio.Desktop.Views.MainWindow"
         x:DataType="vm:MainViewModel"
-        Icon="/Assets/avalonia-logo.ico"
+        Icon="/Assets/aispa.ico"
         Title="AISPA Studio – Rezeption"
         FontFamily="fonts:Inter#Inter, Segoe UI Variable Text, Segoe UI"
         Width="1440" Height="900" MinWidth="1100" MinHeight="680">

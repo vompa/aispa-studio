@@ -348,4 +348,10 @@ public partial class MainViewModel(IWorkstationApi api, Func<ILiveUpdates>? live
         Content = shell;
         await shell.InitializeAsync().ConfigureAwait(true);
     }
+
+    /// <summary>
+    /// Ein Fehler im UI-Thread ist protokolliert (Program, UnhandledExceptionLogger); nach der Anmeldung meldet ihn die Shell unten (T-055).
+    /// Vor der Anmeldung gibt es keine Meldungsfläche: Start und Anmeldung zeigen ihre eigenen Fehler.
+    /// </summary>
+    public void ReportUiError() => (Content as ShellViewModel)?.ReportUnexpectedError();
 }

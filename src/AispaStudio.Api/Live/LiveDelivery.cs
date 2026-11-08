@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using StackExchange.Redis;
 
 namespace AispaStudio.Api.Live;
@@ -18,12 +19,23 @@ internal static partial class LiveDelivery
         {
             await send();
         }
-        // RedisTimeoutException (Redis hängt statt abzulehnen) erbt von TimeoutException, nicht von RedisException.
-        catch (Exception exception) when (exception is RedisException or RedisTimeoutException)
+        catch (Exception exception) when (IsRedisFailure(exception))
         {
             NotDelivered(logger, what, exception.GetType().Name, exception.Message);
         }
     }
+
+    /// <summary>
+    /// Ein Fehler der Backplane: RedisTimeoutException (Redis hängt statt abzulehnen) erbt von TimeoutException, nicht von RedisException.
+    /// Bricht die Verbindung mitten im Lesen ab, wirft der Client außerdem Fehler ohne Redis-Typ, etwa eine InvalidOperationException
+    /// aus seiner Pipe („Reading is not allowed after reader was completed“); sie erkennt man daran, dass sie im Client entstanden sind.
+    /// </summary>
+    internal static bool IsRedisFailure(Exception exception) =>
+        exception is RedisException or RedisTimeoutException || RaisedInRedisClient(exception);
+
+    private static bool RaisedInRedisClient(Exception exception) =>
+        new StackTrace(exception, fNeedFileInfo: false).GetFrames()
+            .Any(frame => frame.GetMethod()?.DeclaringType?.Assembly == typeof(RedisException).Assembly);
 
     [LoggerMessage(Level = LogLevel.Warning,
         Message = "Live-Meldung „{What}“ nicht zugestellt: Redis (Live:Backplane) ist nicht erreichbar ({Reason}: {Message}). Keine Wiederholung; die Clients sehen die Änderung erst beim nächsten Laden.")]

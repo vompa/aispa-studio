@@ -977,6 +977,15 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
     [RelayCommand]
     private void CloseToast() => Toast = null;
 
+    /// <summary>Text der Meldung nach einem unerwarteten Fehler in der Oberfläche (T-055); der Fehler selbst steht in protokolle\app.log.</summary>
+    internal const string UnexpectedErrorText = "Unerwarteter Fehler protokolliert. Bitte erneut versuchen";
+
+    /// <summary>
+    /// Ein Fehler im UI-Thread wurde protokolliert und die App läuft weiter (T-052). Ohne Meldung täte ein Klick still nichts;
+    /// deshalb dieselbe Warnung unten, die bis „Schließen“ stehen bleibt (meldungen.md M1).
+    /// </summary>
+    internal void ReportUnexpectedError() => Toast = UnexpectedErrorText;
+
     /// <summary>
     /// Eine Antwort des Assistenten verweist auf eine Einstellung oder einen Bericht („Im Bericht öffnen“): die Verwaltung öffnet bei dieser Seite und diesem Reiter,
     /// bei Berichten mit dem Standort und dem Zeitraum der Antwort. Der Assistent führt nichts aus; geöffnet wird erst nach dem Klick.
