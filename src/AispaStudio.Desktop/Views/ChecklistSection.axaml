@@ -1,0 +1,27 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             x:Class="AispaStudio.Desktop.Views.ChecklistSection"
+             x:DataType="vm:RoomChecklistViewModel">
+  <!-- Tagesstart-Kontrolle (R05 Slice 95), nach web/src/admin/RoomChecklist.tsx: die Punkte des gewählten Raums, einer je Zeile; ohne Räume entfällt der Abschnitt -->
+  <StackPanel Spacing="8" IsVisible="{Binding HasRooms}" AutomationProperties.Name="Tagesstart-Kontrolle">
+    <Grid ColumnDefinitions="*,Auto">
+      <TextBlock Text="Tagesstart-Kontrolle" Classes="h2" VerticalAlignment="Center" />
+      <ui:HelpButton Grid.Column="1" Topic="standorte" Section="tagesstart-kontrolle" />
+    </Grid>
+    <TextBlock Classes="muted" TextWrapping="Wrap"
+               Text="Was das Team vor dem ersten Termin im Raum abhakt, z. B. „Sauna aufheizen“. Ohne Punkte gibt es keine Kontrolle." />
+    <ui:FormField Label="Raum">
+      <ComboBox x:Name="ChecklistRoomField" ItemsSource="{Binding Rooms}" SelectedItem="{Binding SelectedRoom}" MinWidth="240" HorizontalAlignment="Left" />
+    </ui:FormField>
+    <ui:FormField Label="Punkte" Help="Einer je Zeile.">
+      <TextBox x:Name="ChecklistText" Text="{Binding Text}" AcceptsReturn="True" TextWrapping="NoWrap" MinHeight="112" />
+    </ui:FormField>
+    <ui:InfoBar Severity="Error" Message="{Binding Error}" IsVisible="{Binding HasError}" />
+    <StackPanel Orientation="Horizontal" Spacing="8">
+      <Button Content="Checkliste speichern" Command="{Binding SaveCommand}" />
+      <TextBlock Text="{Binding StatusText}" Classes="muted" VerticalAlignment="Center" AutomationProperties.LiveSetting="Polite" />
+    </StackPanel>
+  </StackPanel>
+</UserControl>

@@ -1,0 +1,33 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             x:Class="AispaStudio.Desktop.Views.PeriodList"
+             x:DataType="vm:PeriodAreaViewModel">
+  <!-- Die Einträge des Reiters (R05 Slice 95): Art, Zeitraum und eine Nebenzeile; leer sagt der Text, was fehlt -->
+  <Border Classes="card" Padding="8" VerticalAlignment="Top">
+    <StackPanel Spacing="8">
+      <ui:InfoBar Severity="Error" Title="{Binding LoadFailedText}" Message="{Binding LoadError}" IsVisible="{Binding HasLoadError}"
+                  ActionText="Erneut laden" ActionCommand="{Binding LoadCommand}" />
+      <TextBlock Text="Wird geladen …" Classes="muted" Margin="8,4" IsVisible="{Binding !IsLoaded}" />
+      <TextBlock Text="{Binding EmptyText}" Classes="muted" TextWrapping="Wrap" Margin="8,4" IsVisible="{Binding ShowEmpty}" />
+      <ListBox x:Name="PeriodListBox" Classes="plain" ItemsSource="{Binding Rows}" SelectedItem="{Binding SelectedRow}" AutomationProperties.Name="{Binding ListLabel}">
+        <ListBox.Styles>
+          <!-- Der Name der Zeile nennt Art, Zeitraum und Nebenzeile; sonst liest der Screenreader den Typnamen -->
+          <Style Selector="ListBoxItem" x:DataType="vm:PeriodRow">
+            <Setter Property="AutomationProperties.Name" Value="{Binding Name}" />
+          </Style>
+        </ListBox.Styles>
+        <ListBox.ItemTemplate>
+          <DataTemplate x:DataType="vm:PeriodRow">
+            <StackPanel Spacing="2" Margin="0,2">
+              <TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis" />
+              <TextBlock Text="{Binding Period}" Classes="muted small num" TextTrimming="CharacterEllipsis" />
+              <TextBlock Text="{Binding Detail}" Classes="muted small" TextTrimming="CharacterEllipsis" />
+            </StackPanel>
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+    </StackPanel>
+  </Border>
+</UserControl>

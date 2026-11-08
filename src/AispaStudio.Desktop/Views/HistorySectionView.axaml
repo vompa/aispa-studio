@@ -1,0 +1,42 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             x:Class="AispaStudio.Desktop.Views.HistorySectionView"
+             x:DataType="vm:HistorySectionViewModel">
+  <!-- Abschnitt „Verlauf“ im Termin-Panel, auf der Kundenkarte „Änderungen“ (Ä184, ADR 0082, Ä369), aufgebaut wie „Kunde“: eingeklappt nur der Kopf, aufgeklappt jede Änderung
+       mit Person, Kanal und Zeitpunkt, neueste oben; die Sätze kommen vom Server -->
+  <Border x:Name="HistorySection" Classes="panelcard" Padding="0">
+    <StackPanel>
+      <ui:AccordionHeader x:Name="HistoryHeader" Classes="accordion" IsChecked="{Binding IsOpen, Mode=TwoWay}" AutomationProperties.Name="{Binding Title}"
+                          ToolTip.Tip="{Binding Tip}">
+        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8">
+          <ui:Icon Data="{x:Static ui:Icons.Clock}" Foreground="{DynamicResource Fg2Brush}" Width="16" Height="16" VerticalAlignment="Center" />
+          <TextBlock Grid.Column="1" Text="{Binding Title}" FontWeight="Medium" VerticalAlignment="Center" />
+          <ui:Icon Grid.Column="2" Classes="chevron" Data="{x:Static ui:Icons.ChevronDown}" Foreground="{DynamicResource Fg2Brush}" Width="16" Height="16" VerticalAlignment="Center" />
+        </Grid>
+      </ui:AccordionHeader>
+      <StackPanel Spacing="8" Margin="16,0,16,12" IsVisible="{Binding IsOpen}">
+        <Border Classes="divider" />
+        <TextBlock Text="Wird geladen …" Classes="muted small" IsVisible="{Binding IsLoading}" />
+        <ui:InfoBar Severity="Error" Message="{Binding NotLoadedMessage}" ActionText="Erneut laden" ActionCommand="{Binding LoadCommand}" IsVisible="{Binding HasError}" />
+        <TextBlock Text="Noch keine Einträge." Classes="muted small" IsVisible="{Binding IsEmpty}" />
+        <ItemsControl x:Name="HistoryList" ItemsSource="{Binding Entries}" IsVisible="{Binding HasEntries}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <StackPanel Spacing="8" />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:HistoryRow">
+              <StackPanel Spacing="2" AutomationProperties.Name="{Binding Name}" AutomationProperties.ControlTypeOverride="Text" AutomationProperties.AccessibilityView="Content">
+                <TextBlock Text="{Binding Text}" TextWrapping="Wrap" AutomationProperties.AccessibilityView="Raw" />
+                <TextBlock Text="{Binding WhenText}" Classes="muted small num" AutomationProperties.AccessibilityView="Raw" />
+              </StackPanel>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </StackPanel>
+    </StackPanel>
+  </Border>
+</UserControl>

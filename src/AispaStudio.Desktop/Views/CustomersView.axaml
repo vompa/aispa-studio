@@ -1,0 +1,717 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:c="using:AispaStudio.Contracts"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             xmlns:local="using:AispaStudio.Desktop.Views"
+             x:Class="AispaStudio.Desktop.Views.CustomersView"
+             x:Name="Root"
+             x:DataType="vm:CustomersViewModel">
+  <Grid ColumnDefinitions="380,*" RowDefinitions="Auto,*" Margin="16">
+    <!-- Kopfzeile -->
+    <Grid Grid.ColumnSpan="2" ColumnDefinitions="*,Auto" Margin="0,0,0,12">
+      <StackPanel>
+        <TextBlock Text="Kunden" Classes="h1" />
+        <TextBlock Text="Gemeinsamer Kundenstamm aller Standorte" Classes="muted" />
+      </StackPanel>
+      <Button x:Name="NewButton" Grid.Column="1" Classes.primary="{Binding IsNewPrimary}" Command="{Binding StartNewCommand}" VerticalAlignment="Center">
+        <StackPanel Orientation="Horizontal" Spacing="6">
+          <ui:Icon Data="{x:Static ui:Icons.Plus}" Width="16" Height="16" />
+          <TextBlock Text="Neue Kundin / neuer Kunde" />
+        </StackPanel>
+      </Button>
+    </Grid>
+
+    <!-- Suche und Trefferliste -->
+    <Border Grid.Row="1" Classes="card" Padding="12" Margin="0,0,16,0">
+      <Grid RowDefinitions="Auto,Auto,*">
+        <ui:SearchField Text="{Binding Query}" PlaceholderText="Name, Telefon oder E-Mail" AutomationProperties.Name="Kunden suchen" />
+        <StackPanel Grid.Row="1">
+          <ui:InfoBar Severity="Error" Margin="0,10,0,0" Message="{Binding Error}" IsVisible="{Binding Error, Converter={x:Static ObjectConverters.IsNotNull}}" />
+          <ui:InfoBar Severity="Warning" Margin="0,10,0,0" Message="{Binding Notice}" IsVisible="{Binding Notice, Converter={x:Static ObjectConverters.IsNotNull}}" />
+        </StackPanel>
+        <!-- Keine Treffer: „Neue Kundin ‚…‘ anlegen“ mit dem Suchtext als Namen -->
+        <StackPanel Grid.Row="2" Margin="0,10,0,0" Spacing="8" IsVisible="{Binding ShowCreateFromSearch}">
+          <TextBlock Text="Keine Kundin gefunden." Classes="muted" />
+          <Button Content="{Binding CreateFromSearchText}" Command="{Binding StartNewCommand}" HorizontalAlignment="Left" />
+        </StackPanel>
+        <ListBox Grid.Row="2" Classes="plain" Margin="0,10,0,0" ItemsSource="{Binding Results}" SelectedItem="{Binding Selected}">
+          <ListBox.Styles>
+            <!-- Der Name der Zeile ist ihr sichtbarer Inhalt; sonst liest der Screenreader den Record-Typ -->
+            <Style Selector="ListBoxItem" x:DataType="c:CustomerDto">
+              <Setter Property="AutomationProperties.Name" Value="{Binding Converter={x:Static vm:Converters.CustomerListName}}" />
+              <Setter Property="AutomationProperties.HelpText" Value="{Binding Phone}" />
+            </Style>
+          </ListBox.Styles>
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="c:CustomerDto">
+              <Grid ColumnDefinitions="Auto,*">
+                <Border Classes="avatar soft" Width="34" Height="34" CornerRadius="17">
+                  <TextBlock Text="{Binding Converter={x:Static vm:Converters.CustomerInitials}}" />
+                </Border>
+                <StackPanel Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center">
+                  <TextBlock FontWeight="Medium" TextTrimming="CharacterEllipsis">
+                    <Run Text="{Binding LastName, Mode=OneWay}" /><Run Text=", " /><Run Text="{Binding InHouseFirstName, Mode=OneWay}" />
+                  </TextBlock>
+                  <TextBlock Text="{Binding Phone, FallbackValue=''}" Classes="muted small" />
+                </StackPanel>
+              </Grid>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </Grid>
+    </Border>
+
+    <!-- Neue Kundin / neuer Kunde: Name und Telefon zuerst, der Rest zugeklappt (R07 Slice 140); Enter legt an, Esc bricht ab -->
+    <Border x:Name="NewMask" Grid.Row="1" Grid.Column="1" Classes="card" Padding="24" IsVisible="{Binding ShowNew}" VerticalAlignment="Top" MaxWidth="640"
+            HorizontalAlignment="Left">
+      <StackPanel Spacing="12" Width="520">
+        <TextBlock Text="Neue Kundin / neuer Kunde" Classes="h2" />
+        <TextBlock Text="Nur ein Name ist Pflicht." Classes="muted small" />
+        <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+          <ui:FormField Label="Vorname">
+            <TextBox x:Name="NewFirstNameBox" Text="{Binding NewFirstName}" AutomationProperties.Name="Vorname" />
+          </ui:FormField>
+          <ui:FormField Grid.Column="1" Label="Nachname">
+            <TextBox x:Name="NewLastNameBox" Text="{Binding NewLastName}" AutomationProperties.Name="Nachname" />
+          </ui:FormField>
+        </Grid>
+        <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+          <ui:FormField Label="Telefon">
+            <TextBox Text="{Binding NewPhone}" PlaceholderText="z. B. 0664 1234567" MaxLength="40" AutomationProperties.Name="Telefon"
+                     LostFocus="OnNewPhoneLostFocus" />
+          </ui:FormField>
+          <ui:FormField Grid.Column="1" Label="E-Mail">
+            <TextBox Text="{Binding NewEmail}" PlaceholderText="z. B. name@beispiel.at" AutomationProperties.Name="E-Mail" />
+          </ui:FormField>
+        </Grid>
+        <Border Classes="card" Background="{DynamicResource WarnSoftBrush}" BorderBrush="{DynamicResource WarnBrush}" Padding="12,10"
+                IsVisible="{Binding Matches.HasOptions}">
+          <StackPanel Spacing="6">
+            <TextBlock Text="Schon vorhanden?" FontWeight="SemiBold" />
+            <ItemsControl ItemsSource="{Binding Matches.Options}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:CustomerMatchOption">
+                  <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10" Margin="0,0,0,4">
+                    <StackPanel Spacing="1">
+                      <TextBlock Text="{Binding Name}" FontWeight="Medium" />
+                      <TextBlock Text="{Binding Phone, FallbackValue=''}" Classes="muted small" />
+                    </StackPanel>
+                    <Button Grid.Column="1" Content="Diese Kundin nehmen" Command="{Binding TakeCommand}" VerticalAlignment="Center" />
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </Border>
+
+        <!-- Weitere Angaben: zugeklappt, damit die Maske mit vier Feldern beginnt -->
+        <Grid ColumnDefinitions="*,Auto">
+          <ui:AccordionHeader x:Name="NewMoreToggle" Classes="more" IsChecked="{Binding NewMoreOpen, Mode=TwoWay}" HorizontalAlignment="Left" Padding="0,4,10,4"
+                              HorizontalContentAlignment="Left" AutomationProperties.Name="Weitere Angaben">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <ui:Icon Classes="chevron" Data="{x:Static ui:Icons.ChevronRight}" Width="14" Height="14" Foreground="{DynamicResource Fg3Brush}" VerticalAlignment="Center" />
+              <TextBlock Text="Weitere Angaben" Classes="h2" VerticalAlignment="Center" />
+              <TextBlock Text="Anrede, Titel, Rufname, Notiz" Classes="muted small" VerticalAlignment="Center" />
+            </StackPanel>
+            <ui:AccordionHeader.Styles>
+              <Style Selector="ui|Icon.chevron">
+                <Setter Property="RenderTransform" Value="rotate(0deg)" />
+              </Style>
+              <Style Selector="ToggleButton:checked ui|Icon.chevron">
+                <Setter Property="RenderTransform" Value="rotate(90deg)" />
+              </Style>
+            </ui:AccordionHeader.Styles>
+          </ui:AccordionHeader>
+          <ui:HelpButton Grid.Column="1" Topic="kunden-name-und-anrede" Section="weitere-angaben" VerticalAlignment="Center" />
+        </Grid>
+        <StackPanel Spacing="12" IsVisible="{Binding NewMoreOpen}">
+          <Grid ColumnDefinitions="160,*,*" ColumnSpacing="12">
+            <ui:FormField Label="Anrede">
+              <ComboBox ItemsSource="{x:Static vm:SalutationChoice.All}" SelectedItem="{Binding NewSalutation}" HorizontalAlignment="Stretch" AutomationProperties.Name="Anrede" />
+            </ui:FormField>
+            <ui:FormField Grid.Column="1" Label="Titel vorangestellt">
+              <TextBox Text="{Binding NewTitlesBefore}" PlaceholderText="z. B. Mag. oder Dr." AutomationProperties.Name="Titel vorangestellt" />
+            </ui:FormField>
+            <ui:FormField Grid.Column="2" Label="Rufname im Haus">
+              <TextBox Text="{Binding NewPreferredName}" PlaceholderText="z. B. Steffi; leer = Vorname" AutomationProperties.Name="Rufname im Haus" />
+            </ui:FormField>
+          </Grid>
+          <ui:FormField Label="Notiz" Help="Vorlieben; keine Gesundheitsdaten (die gehören in die Anamnese).">
+            <TextBox Text="{Binding NewNote}" MaxLength="500" AutomationProperties.Name="Notiz" />
+          </ui:FormField>
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <Button Classes="primary" Content="Anlegen und Termin buchen" Command="{Binding CreateAndBookCommand}"
+                  ui:DisabledHint.Text="Verfügbar, sobald ein Vor- oder Nachname eingetragen ist." />
+          <Button Content="Anlegen" Command="{Binding CreateCommand}" ui:DisabledHint.Text="Verfügbar, sobald ein Vor- oder Nachname eingetragen ist." />
+          <Button Classes="ghost" Content="Abbrechen" Command="{Binding CancelNewCommand}" />
+        </StackPanel>
+      </StackPanel>
+    </Border>
+
+    <!-- Kundenkarte -->
+    <TextBlock Grid.Row="1" Grid.Column="1" Text="Eine Kundin oder einen Kunden aus der Liste wählen." Classes="muted"
+               HorizontalAlignment="Center" VerticalAlignment="Center">
+      <TextBlock.IsVisible>
+        <MultiBinding Converter="{x:Static BoolConverters.And}">
+          <Binding Path="!HasSelection" />
+          <Binding Path="!ShowNew" />
+        </MultiBinding>
+      </TextBlock.IsVisible>
+    </TextBlock>
+    <!-- Kundenkarte (R07 Slice 141, Ä349): eine ruhige Fläche; oben Gast, Kontakt und „Termin buchen“, darunter links „Gut zu wissen“, rechts der Verlauf.
+         Unten 72 px Innenabstand: mit dem Seitenrand 16 endet die letzte Zeile über dem Knopf „KI und Hilfe“ (48 hoch, Rand 20) -->
+    <ScrollViewer Grid.Row="1" Grid.Column="1" Padding="0,0,0,72" IsVisible="{Binding HasSelection}">
+      <Border x:Name="CustomerCard" Classes="card" Padding="24,20">
+        <StackPanel Spacing="16">
+          <!-- Kopf: Avatar, Name, Stammgast; Telefon und E-Mail als schlichte Zeile (Klick kopiert); rechts „Kassieren“, „Termin buchen“, „…“ und ein Fragezeichen -->
+          <Grid x:Name="CardHead" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="16">
+            <Border Classes="avatar" Width="56" Height="56" CornerRadius="28" Background="{DynamicResource AccentGradientBrush}" VerticalAlignment="Top">
+              <TextBlock Text="{Binding SelectedInitials}" FontSize="18" Foreground="{DynamicResource AccentFgBrush}" />
+            </Border>
+            <StackPanel Grid.Column="1" Spacing="6" IsVisible="{Binding !IsEditingContact}">
+              <WrapPanel>
+                <TextBlock Text="{Binding SelectedName}" Classes="h1 value" Margin="0,0,8,0" VerticalAlignment="Center" />
+                <ui:Icon Data="{Binding SelectedSymbolIcon}" Width="18" Height="18" Foreground="{DynamicResource Fg2Brush}" VerticalAlignment="Center" Margin="0,0,8,0"
+                         IsVisible="{Binding SelectedSymbolIcon, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                <TextBlock Text="{Binding SelectedPronouns}" Classes="secondary" VerticalAlignment="Center" Margin="0,0,8,0"
+                           IsVisible="{Binding SelectedPronouns, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                <!-- Der Rahmen trägt Namen und Tooltip, weil ein TextBlock dem Screenreader immer seinen Text als Namen nennt -->
+                <Border x:Name="StarsChip" Classes="tag" VerticalAlignment="Center" IsVisible="{Binding HasStars}" ToolTip.Tip="{Binding Insights?.StarsText, TargetNullValue=''}"
+                        ui:ToolTipBehavior.Reachable="True" AutomationProperties.Name="{Binding StarsName}" AutomationProperties.ControlTypeOverride="Text"
+                        AutomationProperties.AccessibilityView="Content">
+                  <TextBlock Text="{Binding StarsChipText}" AutomationProperties.AccessibilityView="Raw" />
+                </Border>
+              </WrapPanel>
+              <!-- Gültiger Name mit Titeln (Belege, Nachrichten) und die Anrede in Nachrichten; Tab-Stopps, damit ihr Tooltip auch per Tastatur erscheint (W-Muster 12) -->
+              <TextBlock Text="{Binding SelectedAddressLine}" Classes="secondary" ToolTip.Tip="Adresszeile mit dem gültigen Namen: so steht es auf Rechnungen und Belegen."
+                         IsVisible="{Binding SelectedAddressLine, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" ui:ToolTipBehavior.Reachable="True" />
+              <TextBlock Text="{Binding SelectedGreeting}" Classes="secondary small" TextWrapping="Wrap"
+                         ToolTip.Tip="So beginnen Mails, Erinnerungen und Antworten der KI an diesen Gast." ui:ToolTipBehavior.Reachable="True" />
+              <WrapPanel x:Name="ContactLine">
+                <Button Classes="copy" Command="{Binding CopyPhoneCommand}" ToolTip.Tip="Klicken kopiert die Nummer."
+                        AutomationProperties.Name="{Binding Selected?.Phone, StringFormat='Telefon {0} kopieren', TargetNullValue=''}"
+                        IsVisible="{Binding Selected?.Phone, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <ui:Icon Data="{x:Static ui:Icons.Phone}" Foreground="{DynamicResource Fg2Brush}" Width="16" Height="16" />
+                    <TextBlock Text="{Binding Selected?.Phone, TargetNullValue=''}" Classes="value" />
+                  </StackPanel>
+                </Button>
+                <Button Classes="copy" Command="{Binding CopyEmailCommand}" ToolTip.Tip="Klicken kopiert die Adresse."
+                        AutomationProperties.Name="{Binding Selected?.Email, StringFormat='E-Mail {0} kopieren', TargetNullValue=''}"
+                        IsVisible="{Binding Selected?.Email, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <ui:Icon Data="{x:Static ui:Icons.Mail}" Foreground="{DynamicResource Fg2Brush}" Width="16" Height="16" />
+                    <TextBlock Text="{Binding Selected?.Email, TargetNullValue=''}" Classes="value" />
+                  </StackPanel>
+                </Button>
+                <!-- T-024: kurze Bestätigung nach dem Kopieren, vom Bildschirmleser angesagt (LiveSetting am TextBlock, dessen Text sich ändert). -->
+                <TextBlock Text="{Binding Copy.Text}" Classes="secondary small" Margin="0,0,20,6" VerticalAlignment="Center"
+                           AutomationProperties.LiveSetting="Polite"
+                           IsVisible="{Binding Copy.Text, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,0,20,6" VerticalAlignment="Center"
+                            IsVisible="{Binding SelectedPostalAddress, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                  <ui:Icon Data="{x:Static ui:Icons.Location}" Foreground="{DynamicResource Fg2Brush}" Width="16" Height="16" />
+                  <SelectableTextBlock Text="{Binding SelectedPostalAddress}" Classes="value" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,0,20,6" VerticalAlignment="Center"
+                            IsVisible="{Binding SelectedBirthday, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                  <ui:Icon Data="{x:Static ui:Icons.Calendar}" Foreground="{DynamicResource Fg2Brush}" Width="16" Height="16" />
+                  <TextBlock Text="{Binding SelectedBirthday}" Classes="value" />
+                  <TextBlock Text="{Binding BirthdayInfo, StringFormat='· {0}'}" Classes="secondary" AutomationProperties.Name="{Binding BirthdayInfo}"
+                             IsVisible="{Binding BirthdayInfo, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,0,20,6" VerticalAlignment="Center"
+                            IsVisible="{Binding SelectedLanguage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                  <ui:Icon Data="{x:Static ui:Icons.Globe}" Foreground="{DynamicResource Fg2Brush}" Width="16" Height="16" />
+                  <TextBlock Text="{Binding SelectedLanguage}" Classes="value" />
+                </StackPanel>
+              </WrapPanel>
+              <Border Classes="pill warn" HorizontalAlignment="Left" IsVisible="{Binding CreatedFromText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                      ToolTip.Tip="Die Terminannahme hat den Kunden aus einer Nachricht angelegt; Name, Telefon und Adresse stammen daher">
+                <StackPanel>
+                  <TextBlock Text="{Binding CreatedFromText}" />
+                </StackPanel>
+              </Border>
+            </StackPanel>
+            <StackPanel Grid.Column="1" IsVisible="{Binding IsEditingContact}" HorizontalAlignment="Left">
+              <local:CustomerContactForm x:Name="ContactForm" DataContext="{Binding Contact}" />
+            </StackPanel>
+            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Top">
+              <Button x:Name="CheckoutButton" Content="Kassieren" Command="{Binding CheckoutCommand}" IsVisible="{Binding CanCheckout}"
+                      ToolTip.Tip="Den heutigen Termin auf die Rechnung setzen" />
+              <Button x:Name="BookButton" Classes.primary="{Binding IsBookPrimary}" Command="{Binding BookCommand}" IsVisible="{Binding CanBook}">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <ui:Icon Data="{x:Static ui:Icons.CalendarPlus}" Width="16" Height="16" />
+                  <TextBlock Text="Termin buchen" />
+                </StackPanel>
+              </Button>
+              <Button x:Name="MoreButton" Classes="ghost icon" Content="…" ToolTip.Tip="Weitere Aktionen" AutomationProperties.Name="Weitere Aktionen" IsVisible="{Binding CanBook}">
+                <Button.Flyout>
+                  <MenuFlyout Placement="BottomEdgeAlignedRight">
+                    <MenuItem Header="Bearbeiten (Name, Anrede, Kontakt, Notiz)" Command="{Binding EditContactCommand}" />
+                    <MenuItem Header="Weitere E-Mail-Adresse" Command="{Binding StartAddEmailCommand}" />
+                    <MenuItem Header="Rechnungsempfänger" Command="{Binding EditBillingCommand}" />
+                    <MenuItem Header="Stammrabatt" Command="{Binding EditDiscountCommand}" />
+                    <Separator IsVisible="{Binding MayManage}" />
+                    <MenuItem Classes="manage" Header="Leitung informieren …" Command="{Binding AddManagementFlagCommand}"
+                              CommandParameter="{x:Static c:CustomerFlagKind.InformManagement}" IsVisible="{Binding MayManage}" />
+                    <MenuItem Classes="manage" Header="Nicht mehr buchen …" Command="{Binding AddManagementFlagCommand}"
+                              CommandParameter="{x:Static c:CustomerFlagKind.DoNotBook}" IsVisible="{Binding MayManage}" />
+                  </MenuFlyout>
+                </Button.Flyout>
+              </Button>
+              <ui:HelpButton Topic="kunden-kundenkarte" VerticalAlignment="Center" />
+            </StackPanel>
+          </Grid>
+
+          <!-- Kennzahlen als eine Zeile; Warnungen in warn mit Dreieck (nie die Farbe allein, Brief 5.9); der nächste Termin hervorgehoben mit „buchen“ -->
+          <StackPanel Spacing="4">
+            <WrapPanel>
+              <TextBlock x:Name="StatsLine" Text="{Binding StatsLine}" Classes="value" TextWrapping="Wrap" Margin="0,0,12,0" VerticalAlignment="Center" />
+              <StackPanel x:Name="StatsWarning" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center" ToolTip.Tip="{Binding StatsWarningTip}"
+                          ui:ToolTipBehavior.Reachable="True" AutomationProperties.Name="{Binding StatsWarning}"
+                          IsVisible="{Binding StatsWarning, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                <ui:Icon Data="{x:Static ui:Icons.Warning}" Width="16" Height="16" Foreground="{DynamicResource WarnBrush}" />
+                <TextBlock Text="{Binding StatsWarning}" Classes="warn" />
+              </StackPanel>
+            </WrapPanel>
+            <StackPanel Orientation="Horizontal" Spacing="12" IsVisible="{Binding NextLine, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+              <TextBlock x:Name="NextLine" Text="{Binding NextLine}" Classes="value" FontWeight="SemiBold" VerticalAlignment="Center" TextWrapping="Wrap" />
+              <Button x:Name="NextBookLink" Classes="link" Content="buchen" Command="{Binding BookCommand}" IsVisible="{Binding CanBook}" VerticalAlignment="Center"
+                      AutomationProperties.Name="Termin buchen" />
+            </StackPanel>
+          </StackPanel>
+
+          <Grid ColumnDefinitions="*,*" ColumnSpacing="32">
+            <!-- Links „Gut zu wissen“: ein Abschnitt nur, wenn etwas gesetzt ist oder gerade bearbeitet wird; der Stift erscheint beim Überfahren und bei Fokus -->
+            <StackPanel x:Name="GoodToKnow">
+              <TextBlock Text="Gut zu wissen" Classes="h2" Margin="0,0,0,8" />
+
+              <Border x:Name="WishesSection" Classes="section" IsVisible="{Binding WishesSectionVisible}">
+                <StackPanel Spacing="8">
+                  <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Text="Wünsche" Classes="group" VerticalAlignment="Center" />
+                    <Button x:Name="EditWishesButton" Grid.Column="1" Classes="ghost icon edit" Command="{Binding EditWishesCommand}" IsVisible="{Binding !IsEditingWishes}"
+                            ToolTip.Tip="Wünsche ändern" AutomationProperties.Name="Wünsche ändern">
+                      <ui:Icon Data="{x:Static ui:Icons.Pencil}" Width="16" Height="16" />
+                    </Button>
+                  </Grid>
+                  <ItemsControl x:Name="WishChipList" ItemsSource="{Binding WishChips}" IsVisible="{Binding !IsEditingWishes}">
+                    <ItemsControl.ItemsPanel>
+                      <ItemsPanelTemplate>
+                        <WrapPanel />
+                      </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="vm:PreferenceChip">
+                        <Border Classes="tag" Classes.warn="{Binding IsWarning}" ToolTip.Tip="{Binding Tip}" AutomationProperties.Name="{Binding Text}" AutomationProperties.HelpText="{Binding Tip}" AutomationProperties.ControlTypeOverride="Text"
+                                AutomationProperties.AccessibilityView="Content">
+                          <StackPanel Orientation="Horizontal" Spacing="4">
+                            <ui:Icon Data="{x:Static ui:Icons.Warning}" Width="14" Height="14" Foreground="{DynamicResource WarnBrush}" IsVisible="{Binding IsWarning}" />
+                            <TextBlock Text="{Binding Text}" AutomationProperties.AccessibilityView="Raw" />
+                          </StackPanel>
+                        </Border>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                  <StackPanel Spacing="6" IsVisible="{Binding IsEditingWishes}" MaxWidth="560" HorizontalAlignment="Left">
+                    <UniformGrid Columns="2" ColumnSpacing="8" RowSpacing="6">
+                      <ui:FormField Label="Druck">
+                        <TextBox x:Name="WishPressureBox" Text="{Binding WishPressure}" PlaceholderText="z. B. kräftig" />
+                      </ui:FormField>
+                      <ui:FormField Label="Öl oder Duft">
+                        <TextBox Text="{Binding WishScent}" PlaceholderText="z. B. Lavendel" />
+                      </ui:FormField>
+                      <ui:FormField Label="Raumtemperatur">
+                        <TextBox Text="{Binding WishTemperature}" PlaceholderText="z. B. eher warm" />
+                      </ui:FormField>
+                      <ui:FormField Label="Musik">
+                        <TextBox Text="{Binding WishMusic}" PlaceholderText="z. B. leise Klavier" />
+                      </ui:FormField>
+                      <ui:FormField Label="Fokus">
+                        <TextBox Text="{Binding WishFocus}" PlaceholderText="z. B. Nacken" />
+                      </ui:FormField>
+                      <ui:FormField Label="Nicht behandeln">
+                        <TextBox Text="{Binding WishAvoid}" PlaceholderText="z. B. Füße" />
+                      </ui:FormField>
+                    </UniformGrid>
+                    <ui:FormField Label="Sonstiges">
+                      <TextBox Text="{Binding WishOther}" PlaceholderText="z. B. Decke statt Handtuch" />
+                    </ui:FormField>
+                    <CheckBox Content="wenig Gespräch" IsChecked="{Binding WishQuiet}" />
+                    <ui:InfoBar Severity="Warning" Message="{Binding WishesWarning}" IsVisible="{Binding WishesWarning, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                      <Button Classes="primary" Content="Speichern" Command="{Binding SaveWishesCommand}" IsDefault="True" />
+                      <Button Classes="ghost" Content="Abbrechen" Command="{Binding CancelWishesCommand}" />
+                    </StackPanel>
+                  </StackPanel>
+                </StackPanel>
+              </Border>
+
+              <Border x:Name="FlagsSection" Classes="section" IsVisible="{Binding FlagsSectionVisible}">
+                <StackPanel Spacing="8">
+                  <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Text="Kennzeichen" Classes="group" VerticalAlignment="Center" />
+                    <Button x:Name="AddFlagButton" Grid.Column="1" Classes="ghost icon edit" Command="{Binding AddFlagCommand}" IsVisible="{Binding !IsAddingFlag}"
+                            ToolTip.Tip="Kennzeichen setzen" AutomationProperties.Name="Kennzeichen setzen">
+                      <ui:Icon Data="{x:Static ui:Icons.Plus}" Width="16" Height="16" />
+                    </Button>
+                  </Grid>
+                  <ItemsControl ItemsSource="{Binding Flags}">
+                    <ItemsControl.ItemsPanel>
+                      <ItemsPanelTemplate>
+                        <WrapPanel />
+                      </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="vm:FlagRow">
+                        <!-- Wirkung und Grund im Tooltip; „Aufheben“ als Kreuz am Chip, nur wer es darf -->
+                        <Border Classes="tag" ToolTip.Tip="{Binding Tip}" ui:ToolTipBehavior.Reachable="True" AutomationProperties.Name="{Binding Title}"
+                                AutomationProperties.HelpText="{Binding Tip}">
+                          <StackPanel Orientation="Horizontal" Spacing="4">
+                            <TextBlock Text="{Binding Title}" VerticalAlignment="Center" />
+                            <Button Classes="ghost chipx" VerticalAlignment="Center" IsVisible="{Binding MayRemove}" ToolTip.Tip="Aufheben"
+                                    AutomationProperties.Name="{Binding Title, StringFormat='{}{0} aufheben'}"
+                                    Command="{Binding $parent[UserControl].((vm:CustomersViewModel)DataContext)?.RemoveFlagCommand}" CommandParameter="{Binding}">
+                              <ui:Icon Data="{x:Static ui:Icons.Close}" Width="12" Height="12" />
+                            </Button>
+                          </StackPanel>
+                        </Border>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                  <StackPanel Spacing="6" IsVisible="{Binding IsAddingFlag}" MaxWidth="560" HorizontalAlignment="Left">
+                    <TextBlock Text="Ihre Rolle darf hier keine Kennzeichen setzen." Classes="secondary small" IsVisible="{Binding !CanAddFlag}" />
+                    <ui:FormField Label="Kennzeichen" IsVisible="{Binding CanAddFlag}">
+                      <ComboBox x:Name="FlagBox" ItemsSource="{Binding FlagChoices}" SelectedItem="{Binding NewFlag}" HorizontalAlignment="Stretch" />
+                    </ui:FormField>
+                    <TextBlock Text="{Binding FlagHint}" Classes="secondary small" TextWrapping="Wrap" />
+                    <ui:FormField Label="Grund" Help="Bei „Nicht mehr buchen“ Pflicht; sachlich, der Gast kann ihn einsehen." IsVisible="{Binding CanAddFlag}">
+                      <TextBox Text="{Binding NewFlagReason}" MaxLength="500" />
+                    </ui:FormField>
+                    <ui:InfoBar Severity="Warning" Message="{Binding FlagReasonWarning}" IsVisible="{Binding FlagReasonWarning, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                      <Button Classes="primary" Content="Setzen" Command="{Binding SaveFlagCommand}" IsDefault="True" IsVisible="{Binding CanAddFlag}" ui:DisabledHint.Text="Verfügbar, sobald ein Kennzeichen gewählt ist (manche brauchen einen Grund)." />
+                      <Button x:Name="CancelFlagButton" Classes="ghost" Content="Abbrechen" Command="{Binding CancelFlagCommand}" />
+                    </StackPanel>
+                  </StackPanel>
+                </StackPanel>
+              </Border>
+
+              <Border x:Name="NoteSection" Classes="section" IsVisible="{Binding NoteSectionVisible}">
+                <StackPanel Spacing="8">
+                  <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Text="Notiz" Classes="group" VerticalAlignment="Center" />
+                    <Button Grid.Column="1" Classes="ghost icon edit" Command="{Binding EditContactCommand}" ToolTip.Tip="Notiz ändern" AutomationProperties.Name="Notiz ändern">
+                      <ui:Icon Data="{x:Static ui:Icons.Pencil}" Width="16" Height="16" />
+                    </Button>
+                  </Grid>
+                  <SelectableTextBlock Text="{Binding Selected?.Note, TargetNullValue=''}" Classes="value" TextWrapping="Wrap" />
+                </StackPanel>
+              </Border>
+
+              <Border x:Name="ReceptionNoteSection" Classes="section" IsVisible="{Binding ReceptionNoteSectionVisible}">
+                <StackPanel Spacing="8">
+                  <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Text="Rezeptionsvermerk" Classes="group" VerticalAlignment="Center" />
+                    <Button x:Name="EditReceptionNoteButton" Grid.Column="1" Classes="ghost icon edit" Command="{Binding EditReceptionNoteCommand}" IsVisible="{Binding !IsEditingReceptionNote}"
+                            ToolTip.Tip="Rezeptionsvermerk ändern" AutomationProperties.Name="Rezeptionsvermerk ändern">
+                      <ui:Icon Data="{x:Static ui:Icons.Pencil}" Width="16" Height="16" />
+                    </Button>
+                  </Grid>
+                  <SelectableTextBlock Text="{Binding ReceptionNoteText}" Classes="value" TextWrapping="Wrap" IsVisible="{Binding !IsEditingReceptionNote}" />
+                  <StackPanel Spacing="6" IsVisible="{Binding IsEditingReceptionNote}" MaxWidth="560" HorizontalAlignment="Left">
+                    <TextBox x:Name="ReceptionNoteBox" Text="{Binding ReceptionNoteDraft}" AcceptsReturn="True" MaxLength="1000" AutomationProperties.Name="Rezeptionsvermerk"
+                             PlaceholderText="z. B. zahlt immer mit Firmenkarte; so schreiben, als läse der Gast mit" />
+                    <ui:InfoBar Severity="Warning" Message="{Binding ReceptionNoteWarning}" IsVisible="{Binding ReceptionNoteWarning, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                      <Button Classes="primary" Content="Speichern" Command="{Binding SaveReceptionNoteCommand}" IsDefault="True" />
+                      <Button Classes="ghost" Content="Abbrechen" Command="{Binding CancelReceptionNoteCommand}" />
+                    </StackPanel>
+                  </StackPanel>
+                </StackPanel>
+              </Border>
+
+              <Border x:Name="BookingSection" Classes="section" IsVisible="{Binding BookingSectionVisible}">
+                <StackPanel Spacing="8">
+                  <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Text="Termine am liebsten" Classes="group" VerticalAlignment="Center" />
+                    <Button x:Name="EditBookingButton" Grid.Column="1" Classes="ghost icon edit" Command="{Binding EditBookingCommand}" IsVisible="{Binding !IsEditingBooking}"
+                            ToolTip.Tip="Termine am liebsten ändern" AutomationProperties.Name="Termine am liebsten ändern">
+                      <ui:Icon Data="{x:Static ui:Icons.Pencil}" Width="16" Height="16" />
+                    </Button>
+                  </Grid>
+                  <TextBlock Text="{Binding BookingText}" Classes="value" TextWrapping="Wrap" IsVisible="{Binding !IsEditingBooking}" />
+                  <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12" IsVisible="{Binding IsEditingBooking}">
+                    <TextBlock Text="{Binding Suggestion?.Text, StringFormat='Aus den Besuchen: {0}', TargetNullValue=''}" Classes="secondary small" TextWrapping="Wrap" VerticalAlignment="Center" />
+                    <Button Grid.Column="1" Classes="ghost" Content="Übernehmen" Command="{Binding TakeSuggestionCommand}" />
+                  </Grid>
+                  <StackPanel Spacing="8" IsVisible="{Binding IsEditingBooking}" MaxWidth="520" HorizontalAlignment="Left">
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                      <ui:FormField Label="Person">
+                        <ComboBox x:Name="BookingEmployeeBox" ItemsSource="{Binding EmployeeChoices}" SelectedItem="{Binding BookingEmployee}" HorizontalAlignment="Stretch" />
+                      </ui:FormField>
+                      <CheckBox Grid.Column="1" Content="fest (nur diese Person)" IsChecked="{Binding BookingFixed}" IsEnabled="{Binding CanBeFixed}" VerticalAlignment="Bottom" />
+                    </Grid>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                      <ui:FormField Label="Wünscht">
+                        <ComboBox ItemsSource="{x:Static vm:GenderChoice.All}" SelectedItem="{Binding BookingGender}" MinWidth="150" />
+                      </ui:FormField>
+                      <ui:HelpButton Topic="kunden-termine-am-liebsten" Section="therapeutin" VerticalAlignment="Bottom" Margin="0,0,0,7" />
+                    </StackPanel>
+                    <ItemsControl ItemsSource="{Binding Weekdays}">
+                      <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                          <StackPanel Orientation="Horizontal" Spacing="6" />
+                        </ItemsPanelTemplate>
+                      </ItemsControl.ItemsPanel>
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:WeekdayChoice">
+                          <ToggleButton Classes="day" Content="{Binding Label}" IsChecked="{Binding IsChecked}" />
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                      <ui:FormField Label="Frühester Beginn">
+                        <ui:TimeField x:Name="BookingFromBox" CommittedText="{Binding BookingFrom}" PlaceholderText="z. B. 14:00" />
+                      </ui:FormField>
+                      <ui:FormField Label="Spätestes Ende">
+                        <ui:TimeField CommittedText="{Binding BookingUntil}" NotBefore="{Binding #BookingFromBox.Value}" PlaceholderText="z. B. 18:00" />
+                      </ui:FormField>
+                    </StackPanel>
+                    <TextBlock Text="Die Terminannahme schlägt zuerst diese Person vor und erst, wenn sie nicht frei ist, andere. Bei „fest“ zeigt der Kalender FEST am Termin und warnt beim Verschieben zu jemand anderem."
+                               Classes="secondary small" TextWrapping="Wrap" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                      <Button Classes="primary" Content="Speichern" Command="{Binding SaveBookingCommand}" IsDefault="True" ui:DisabledHint.Text="Verfügbar, sobald die Zeiten lesbar sind und der Beginn vor dem Ende liegt." />
+                      <Button Classes="ghost" Content="Abbrechen" Command="{Binding CancelBookingCommand}" />
+                      <Button Classes="danger" Content="Entfernen" Command="{Binding AskRemoveBookingCommand}"
+                              IsVisible="{Binding Selected?.Booking, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                    </StackPanel>
+                  </StackPanel>
+                </StackPanel>
+              </Border>
+
+              <Border x:Name="EmailsSection" Classes="section" IsVisible="{Binding EmailsSectionVisible}">
+                <StackPanel Spacing="8">
+                  <TextBlock Text="Weitere E-Mail-Adressen" Classes="group" />
+                  <ItemsControl ItemsSource="{Binding OtherEmails}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="vm:OtherEmailRow">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                          <ui:Icon Data="{x:Static ui:Icons.Mail}" Foreground="{DynamicResource Fg2Brush}" Width="16" Height="16" />
+                          <SelectableTextBlock Text="{Binding Address}" Classes="value" VerticalAlignment="Center" />
+                          <Button Classes="ghost icon" Command="{Binding RemoveCommand}" ToolTip.Tip="Adresse entfernen"
+                                  AutomationProperties.Name="{Binding Address, StringFormat='Adresse {0} entfernen'}">
+                            <ui:Icon Data="{x:Static ui:Icons.Close}" Width="14" Height="14" />
+                          </Button>
+                        </StackPanel>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                  <StackPanel Spacing="6" IsVisible="{Binding IsAddingEmail}" MaxWidth="420" HorizontalAlignment="Left">
+                    <TextBox x:Name="OtherEmailBox" Text="{Binding NewOtherEmail}" PlaceholderText="z. B. privat@example.at" AutomationProperties.Name="Weitere E-Mail-Adresse" />
+                    <TextBlock Text="Nachrichten von diesen Adressen werden diesem Kunden sicher zugeordnet." Classes="secondary small" TextWrapping="Wrap" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                      <Button Classes="primary" Content="Hinzufügen" Command="{Binding AddEmailCommand}" IsDefault="True"
+                              ui:DisabledHint.Text="Verfügbar, sobald eine E-Mail-Adresse mit @ eingetragen ist." />
+                      <Button x:Name="CancelEmailButton" Classes="ghost" Content="Abbrechen" Command="{Binding CancelAddEmailCommand}" />
+                    </StackPanel>
+                  </StackPanel>
+                </StackPanel>
+              </Border>
+
+              <Border x:Name="BillingSection" Classes="section" IsVisible="{Binding BillingSectionVisible}">
+                <StackPanel Spacing="8">
+                  <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Text="Rechnungsempfänger" Classes="group" VerticalAlignment="Center" />
+                    <Button x:Name="EditBillingButton" Grid.Column="1" Classes="ghost icon edit" Command="{Binding EditBillingCommand}" IsVisible="{Binding !IsEditingBilling}"
+                            ToolTip.Tip="Rechnungsempfänger ändern" AutomationProperties.Name="Rechnungsempfänger ändern">
+                      <ui:Icon Data="{x:Static ui:Icons.Pencil}" Width="16" Height="16" />
+                    </Button>
+                  </Grid>
+                  <SelectableTextBlock Text="{Binding BillingText}" Classes="value" TextWrapping="Wrap" IsVisible="{Binding !IsEditingBilling}" />
+                  <StackPanel Spacing="6" IsVisible="{Binding IsEditingBilling}" MaxWidth="480" HorizontalAlignment="Left">
+                    <ui:FormField Label="Empfänger" IsRequired="True">
+                      <TextBox x:Name="BillingNameBox" Text="{Binding BillingName}" PlaceholderText="Name oder Firma" />
+                    </ui:FormField>
+                    <ui:FormField Label="Anschrift" IsRequired="True">
+                      <TextBox Text="{Binding BillingAddress}" AcceptsReturn="True" />
+                    </ui:FormField>
+                    <ui:FormField Label="UID-Nummer">
+                      <TextBox Text="{Binding BillingVatId}" PlaceholderText="z. B. ATU12345678" />
+                    </ui:FormField>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                      <Button Classes="primary" Content="Speichern" Command="{Binding SaveBillingCommand}" IsDefault="True" ui:DisabledHint.Text="Verfügbar, sobald Name und Anschrift eingetragen sind." />
+                      <Button Classes="ghost" Content="Abbrechen" Command="{Binding CancelBillingCommand}" />
+                      <Button Classes="danger" Content="Entfernen" Command="{Binding AskRemoveBillingCommand}"
+                              IsVisible="{Binding Selected?.Billing, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                    </StackPanel>
+                  </StackPanel>
+                </StackPanel>
+              </Border>
+
+              <Border x:Name="DiscountSection" Classes="section" IsVisible="{Binding DiscountSectionVisible}">
+                <StackPanel Spacing="8">
+                  <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Text="Rabatt" Classes="group" VerticalAlignment="Center" />
+                    <Button x:Name="EditDiscountButton" Grid.Column="1" Classes="ghost icon edit" Command="{Binding EditDiscountCommand}" IsVisible="{Binding !IsEditingDiscount}"
+                            ToolTip.Tip="Rabatt ändern" AutomationProperties.Name="Rabatt ändern">
+                      <ui:Icon Data="{x:Static ui:Icons.Pencil}" Width="16" Height="16" />
+                    </Button>
+                  </Grid>
+                  <TextBlock Text="{Binding DiscountText}" Classes="value" TextWrapping="Wrap" IsVisible="{Binding !IsEditingDiscount}" />
+                  <StackPanel Spacing="6" IsVisible="{Binding IsEditingDiscount}" MaxWidth="480" HorizontalAlignment="Left">
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                      <ui:FormField Label="Rabatt (%)">
+                        <ui:NumberField x:Name="DiscountPercentBox" CommittedText="{Binding DiscountPercent}" Minimum="0.01" Maximum="99.99" DecimalPlaces="2" PlaceholderText="z. B. 10" />
+                      </ui:FormField>
+                      <ui:FormField Grid.Column="1" Label="Gilt für">
+                        <ComboBox ItemsSource="{x:Static vm:CustomersViewModel.DiscountScopes}" SelectedItem="{Binding DiscountScope}" HorizontalAlignment="Stretch" />
+                      </ui:FormField>
+                    </Grid>
+                    <TextBlock Text="Gutscheine werden immer zum vollen Wert verkauft. Ein an der Kassa von Hand gegebener Rabatt geht vor."
+                               Classes="secondary small" TextWrapping="Wrap" />
+                    <TextBlock Text="{Binding DiscountLimitHint}" Classes="secondary small" TextWrapping="Wrap"
+                               IsVisible="{Binding DiscountLimitHint, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                    <Grid ColumnDefinitions="*,120" ColumnSpacing="8" IsVisible="{Binding NeedsApproval}">
+                      <ui:FormField Label="Freigabe durch" IsRequired="True">
+                        <ComboBox ItemsSource="{Binding Approvers}" SelectedItem="{Binding Approver}" HorizontalAlignment="Stretch">
+                          <ComboBox.ItemTemplate>
+                            <DataTemplate x:DataType="c:QuickSwitchPerson">
+                              <TextBlock Text="{Binding DisplayName}" />
+                            </DataTemplate>
+                          </ComboBox.ItemTemplate>
+                        </ComboBox>
+                      </ui:FormField>
+                      <ui:FormField Grid.Column="1" Label="PIN" IsRequired="True">
+                        <TextBox Text="{Binding ApprovalPin}" PasswordChar="•" MaxLength="8" Classes="num" />
+                      </ui:FormField>
+                    </Grid>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                      <Button Classes="primary" Content="Speichern" Command="{Binding SaveDiscountCommand}" IsDefault="True" ui:DisabledHint.Text="Verfügbar, sobald der Rabatt lesbar ist (und, wenn nötig, die Freigabe mit PIN)." />
+                      <Button Classes="ghost" Content="Abbrechen" Command="{Binding CancelDiscountCommand}" />
+                      <Button Classes="danger" Content="Entfernen" Command="{Binding AskRemoveDiscountCommand}"
+                              IsVisible="{Binding Selected?.Discount, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                    </StackPanel>
+                  </StackPanel>
+                </StackPanel>
+              </Border>
+
+              <!-- Nicht Erfasstes in einer Zeile; was es bewirkt, sagen Tooltip und Hilfe -->
+              <WrapPanel x:Name="MissingLine" Margin="0,12,0,0" IsVisible="{Binding HasMissing}">
+                <TextBlock Text="Noch nicht erfasst:" Classes="secondary" Margin="0,0,12,0" VerticalAlignment="Center" />
+                <Button x:Name="AddWishesLink" Classes="link" Content="+ Wünsche" Command="{Binding EditWishesCommand}" IsVisible="{Binding MissingWishes}" Margin="0,0,16,0"
+                        ToolTip.Tip="Vorlieben wie Druck oder Musik; das Team sieht sie in „Mein Tag“ und am Termin im Kalender." />
+                <Button x:Name="AddFlagLink" Classes="link" Content="+ Kennzeichen" Command="{Binding AddFlagCommand}" IsVisible="{Binding MissingFlags}" Margin="0,0,16,0"
+                        ToolTip.Tip="Kennzeichen beschreiben sachlich einen Bedarf und wirken im Kalender, zum Beispiel 10 Minuten Puffer." />
+                <Button x:Name="AddReceptionNoteLink" Classes="link" Content="+ Rezeptionsvermerk" Command="{Binding EditReceptionNoteCommand}" IsVisible="{Binding MissingReceptionNote}" Margin="0,0,16,0"
+                        ToolTip.Tip="Organisatorisches wie „zahlt mit Firmenkarte“ oder „Mann holt ab“; sehen nur Rezeption und Leitung." />
+                <Button x:Name="AddBookingLink" Classes="link" Content="+ Termine am liebsten" Command="{Binding EditBookingCommand}" IsVisible="{Binding MissingBooking}"
+                        ToolTip.Tip="Wenn der Gast immer zur selben Person möchte, jemanden bestimmten wünscht oder feste Tage und Zeiten hat; Kalender und Terminannahme richten sich danach." />
+              </WrapPanel>
+            </StackPanel>
+
+            <!-- Rechts der Verlauf: nächste und letzte Termine mit Behandlung und Person, offene Pakete, Namensänderungen, darunter alle Termine und die Änderungen -->
+            <StackPanel x:Name="Timeline" Grid.Column="1" Spacing="12">
+              <TextBlock Text="Verlauf" Classes="h2" />
+              <TextBlock Text="Noch keine Termine." Classes="secondary" IsVisible="{Binding !Visits.Count}" />
+              <StackPanel Spacing="6" IsVisible="{Binding UpcomingEntries.Count}">
+                <TextBlock Text="Demnächst" Classes="group" />
+                <ItemsControl ItemsSource="{Binding UpcomingEntries}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:TimelineEntry">
+                      <Grid ColumnDefinitions="120,*" Margin="0,2">
+                        <TextBlock Text="{Binding When}" Classes="value num" FontWeight="Medium" />
+                        <TextBlock Grid.Column="1" Text="{Binding Text}" Classes="value" TextWrapping="Wrap" />
+                      </Grid>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+              <StackPanel Spacing="6" IsVisible="{Binding RecentEntries.Count}">
+                <TextBlock Text="Zuletzt" Classes="group" />
+                <ItemsControl ItemsSource="{Binding RecentEntries}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:TimelineEntry">
+                      <Grid ColumnDefinitions="120,*,Auto" Margin="0,2">
+                        <TextBlock Text="{Binding When}" Classes="value num" />
+                        <TextBlock Grid.Column="1" Text="{Binding Text}" Classes="value" TextWrapping="Wrap" />
+                        <Border Grid.Column="2" Classes="pill" Classes.crit="{Binding IsProblem}" Margin="8,0,0,0"
+                                IsVisible="{Binding Status, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                          <TextBlock Text="{Binding Status}" />
+                        </Border>
+                      </Grid>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+              <StackPanel Spacing="6" IsVisible="{Binding HasPackages}">
+                <TextBlock Text="Offene Pakete" Classes="group" />
+                <ItemsControl ItemsSource="{Binding PackageLines}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="x:String">
+                      <TextBlock Text="{Binding}" Classes="value" TextWrapping="Wrap" Margin="0,2" />
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+              <StackPanel Spacing="6" IsVisible="{Binding HasVouchers}">
+                <TextBlock Text="Offene Gutscheine" Classes="group" />
+                <ItemsControl Name="VoucherList" ItemsSource="{Binding VoucherLines}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="x:String">
+                      <TextBlock Text="{Binding}" Classes="value" TextWrapping="Wrap" Margin="0,2" />
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+              <StackPanel Spacing="6" IsVisible="{Binding HasPurchases}">
+                <TextBlock Text="Letzte Käufe" Classes="group" />
+                <ItemsControl Name="PurchaseList" ItemsSource="{Binding PurchaseLines}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="x:String">
+                      <TextBlock Text="{Binding}" Classes="value" TextWrapping="Wrap" Margin="0,2" />
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+              <StackPanel Spacing="6" IsVisible="{Binding HasNameChanges}">
+                <TextBlock Text="Name geändert" Classes="group" />
+                <ItemsControl ItemsSource="{Binding NameChangeLines}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="x:String">
+                      <TextBlock Text="{Binding}" Classes="value" TextWrapping="Wrap" Margin="0,2" />
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+              <!-- Alle Termine (höchstens die letzten 100) mit Status und Preis, aufgeklappt mit „Alle Termine“ -->
+              <Button x:Name="AllVisitsToggle" Classes="link" Command="{Binding ToggleAllVisitsCommand}" IsVisible="{Binding Visits.Count}" HorizontalAlignment="Left">
+                <TextBlock Text="{Binding Visits.Count, StringFormat='Alle Termine ({0})'}" />
+              </Button>
+              <ItemsControl ItemsSource="{Binding Visits}" IsVisible="{Binding ShowAllVisits}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:CustomerVisit">
+                    <Grid ColumnDefinitions="96,52,*,Auto,72" Margin="0,3">
+                      <TextBlock Text="{Binding Date}" Classes="value num" />
+                      <TextBlock Grid.Column="1" Text="{Binding Time}" Classes="secondary num" />
+                      <TextBlock Grid.Column="2" Text="{Binding Treatment}" Classes="value" TextTrimming="CharacterEllipsis" />
+                      <Border Grid.Column="3" Classes="pill" Classes.crit="{Binding IsProblem}" Classes.accent="{Binding IsUpcoming}" Margin="8,0">
+                        <TextBlock Text="{Binding Status}" />
+                      </Border>
+                      <TextBlock Grid.Column="4" Text="{Binding Price}" Classes="value num" TextAlignment="Right" />
+                    </Grid>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+              <ContentControl Content="{Binding HistorySection}" IsVisible="{Binding HasSelection}" />
+            </StackPanel>
+          </Grid>
+        </StackPanel>
+      </Border>
+    </ScrollViewer>
+  </Grid>
+</UserControl>

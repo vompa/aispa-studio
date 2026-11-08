@@ -1,0 +1,88 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             xmlns:views="using:AispaStudio.Desktop.Views"
+             x:Class="AispaStudio.Desktop.Views.DayPlanReportView"
+             x:DataType="vm:DayPlanReportViewModel">
+  <!-- Reiter „Mein Tag“ nach web/src/reports/DayPlanView.tsx (R07 Slice 144): Status und Werte oben, dann ein Abschnitt je Termin auf einer Fläche statt gerahmter Karten. -->
+  <StackPanel Spacing="16">
+    <ui:FormField Label="Person" IsVisible="{Binding CanChoosePerson}">
+      <ComboBox x:Name="DayPlanPersonField" ItemsSource="{Binding People}" SelectedItem="{Binding SelectedPerson}" Width="240" />
+    </ui:FormField>
+    <TextBlock Text="Dieses Konto ist mit keiner Person im Team verknüpft." Classes="muted" IsVisible="{Binding HasNoPerson}" />
+    <ui:InfoBar Severity="Error" Title="Tagesplan nicht geladen" Message="{Binding LoadError}" IsVisible="{Binding HasLoadError}"
+                ActionText="Erneut laden" ActionCommand="{Binding RetryCommand}" />
+    <StackPanel Spacing="12" IsVisible="{Binding IsLoaded}">
+      <TextBlock Text="{Binding Heading}" Classes="h2" />
+      <views:ReportOverviewView />
+    </StackPanel>
+    <TextBlock Text="Keine Behandlungen." Classes="muted" IsVisible="{Binding NoCards}" />
+    <ItemsControl ItemsSource="{Binding Cards}">
+      <ItemsControl.ItemTemplate>
+        <DataTemplate x:DataType="vm:TreatmentCardRow">
+          <Border Classes="section">
+            <StackPanel Spacing="8">
+              <TextBlock Text="{Binding Title}" FontWeight="Medium" TextWrapping="Wrap" />
+              <TextBlock Text="{Binding Guest}" TextWrapping="Wrap" />
+              <TextBlock Text="{Binding Anamnesis}" Classes="muted" Classes.error="{Binding IsAnamnesisWarning}" TextWrapping="Wrap" />
+              <TextBlock Text="{Binding BookingNote}" TextWrapping="Wrap" IsVisible="{Binding HasBookingNote}" />
+              <TextBlock Text="Vorbereitung" Classes="muted small" />
+              <ItemsControl ItemsSource="{Binding Todo}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:ReportCheckRow">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                      <CheckBox Content="{Binding Text}" IsChecked="{Binding Done}" Command="{Binding ToggleCommand}" />
+                      <TextBlock Text="{Binding Detail}" Classes="muted small" VerticalAlignment="Center" IsVisible="{Binding HasDetail}" />
+                    </StackPanel>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+              <ItemsControl ItemsSource="{Binding TodoNotes}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="x:String">
+                    <TextBlock Text="{Binding}" TextWrapping="Wrap" />
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+              <StackPanel Spacing="4" IsVisible="{Binding HasHistory}">
+                <TextBlock Text="Letzte Behandlungen" Classes="muted small" />
+                <ItemsControl ItemsSource="{Binding History}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="x:String">
+                      <TextBlock Text="{Binding}" TextWrapping="Wrap" />
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+              <Button Content="Vorlieben bearbeiten" Classes="ghost" Command="{Binding EditPreferencesCommand}" IsVisible="{Binding IsNotEditing}" />
+              <StackPanel Spacing="8" IsVisible="{Binding IsEditingPreferences}">
+                <TextBlock Text="Vorlieben" Classes="muted small" />
+                <WrapPanel ItemSpacing="12" LineSpacing="8">
+                  <ui:FormField Label="Druck"><TextBox Text="{Binding Pressure}" Width="200" /></ui:FormField>
+                  <ui:FormField Label="Duft"><TextBox Text="{Binding Scent}" Width="200" /></ui:FormField>
+                  <ui:FormField Label="Raumtemperatur"><TextBox Text="{Binding RoomTemperature}" Width="200" /></ui:FormField>
+                  <ui:FormField Label="Musik"><TextBox Text="{Binding Music}" Width="200" /></ui:FormField>
+                  <ui:FormField Label="Fokus"><TextBox Text="{Binding FocusAreas}" Width="200" /></ui:FormField>
+                  <ui:FormField Label="Nicht behandeln"><TextBox Text="{Binding AvoidAreas}" Width="200" /></ui:FormField>
+                  <ui:FormField Label="Sonstiges"><TextBox Text="{Binding Other}" Width="200" /></ui:FormField>
+                </WrapPanel>
+                <CheckBox Content="Wenig Gespräch" IsChecked="{Binding PrefersQuiet}" />
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <Button Content="Vorlieben speichern" Classes="primary" Command="{Binding SavePreferencesCommand}" />
+                  <Button Content="Abbrechen" Classes="ghost" Command="{Binding CancelPreferencesCommand}" />
+                </StackPanel>
+              </StackPanel>
+              <ui:FormField Label="Nachbereitung (für die nächste Behandlung)">
+                <TextBox Text="{Binding Note}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="56" />
+              </ui:FormField>
+              <Button Content="Notiz speichern" Classes="ghost" Command="{Binding SaveNoteCommand}" />
+              <TextBlock Text="{Binding Message}" Classes="muted small" IsVisible="{Binding HasMessage}" AutomationProperties.LiveSetting="Polite" />
+              <ui:InfoBar Severity="Error" Message="{Binding Error}" IsVisible="{Binding HasError}" />
+            </StackPanel>
+          </Border>
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
+  </StackPanel>
+</UserControl>

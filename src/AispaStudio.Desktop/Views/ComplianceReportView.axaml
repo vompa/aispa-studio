@@ -1,0 +1,107 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             x:Class="AispaStudio.Desktop.Views.ComplianceReportView"
+             x:DataType="vm:ComplianceReportViewModel">
+  <!-- Reiter „Pflichtberichte“ nach web/src/reports/ComplianceView.tsx. Exporte werden unverändert gespeichert. -->
+  <StackPanel Spacing="16">
+    <ui:InfoBar Severity="Error" Title="Pflichtberichte nicht geladen" Message="{Binding LoadError}" IsVisible="{Binding HasLoadError}"
+                ActionText="Erneut laden" ActionCommand="{Binding RetryCommand}" />
+    <ui:InfoBar Severity="Info" Message="{x:Static vm:ManagementReportViewModel.AmountsHint}" IsVisible="{Binding ShowAmountsHint}" />
+    <ui:InfoBar Severity="Error" Message="{Binding Error}" IsVisible="{Binding HasError}" CloseCommand="{Binding CloseErrorCommand}" />
+    <ui:InfoBar Severity="Success" Message="{Binding Message}" IsVisible="{Binding HasMessage}" CloseCommand="{Binding CloseMessageCommand}" />
+    <ItemsControl ItemsSource="{Binding Reminders}">
+      <ItemsControl.ItemTemplate>
+        <DataTemplate x:DataType="x:String">
+          <ui:InfoBar Severity="Warning" Message="{Binding}" Margin="0,0,0,8" />
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
+
+    <StackPanel Spacing="8">
+      <TextBlock Text="Kassen" Classes="h2" />
+      <TextBlock Text="Keine Kasse an diesem Standort." Classes="muted" IsVisible="{Binding NoRegisters}" />
+      <ItemsControl ItemsSource="{Binding Registers}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="vm:RegisterComplianceRow">
+            <Border Classes="card" Padding="12" Margin="0,0,0,8">
+              <StackPanel Spacing="8">
+                <TextBlock Text="{Binding Title}" FontWeight="Medium" />
+                <TextBlock Text="{Binding Details}" Classes="muted" TextWrapping="Wrap" />
+                <ItemsControl ItemsSource="{Binding Duties}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="x:String">
+                      <TextBlock Text="{Binding}" TextWrapping="Wrap" />
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <Button Content="{Binding ExportText}" Command="{Binding ExportCommand}" IsVisible="{Binding ShowExport}" HorizontalAlignment="Left" />
+                <StackPanel Spacing="8" IsVisible="{Binding ShowTse}">
+                  <Button Content="TSE-Export anfordern" Classes="primary" Command="{Binding RequestTseCommand}" HorizontalAlignment="Left" />
+                  <ItemsControl ItemsSource="{Binding TseExports}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="vm:TseExportRow">
+                        <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,0,0,4">
+                          <TextBlock Text="{Binding Text}" VerticalAlignment="Center" TextWrapping="Wrap" />
+                          <Button Content="{Binding SaveText}" Classes="ghost small" Command="{Binding SaveCommand}" IsVisible="{Binding IsDone}" />
+                        </StackPanel>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </StackPanel>
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </StackPanel>
+
+    <StackPanel Spacing="4">
+      <TextBlock Text="Gutscheine" Classes="h2" />
+      <TextBlock Text="{Binding Vouchers}" TextWrapping="Wrap" />
+    </StackPanel>
+
+    <StackPanel Spacing="4" Grid.IsSharedSizeScope="True">
+      <TextBlock Text="Arbeitszeitaufzeichnung laut Dienstplan" Classes="h2" />
+      <Grid ColumnSpacing="12" AutomationProperties.AccessibilityView="Raw">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="Auto" SharedSizeGroup="Person" />
+          <ColumnDefinition Width="Auto" SharedSizeGroup="Hours" />
+          <ColumnDefinition Width="Auto" SharedSizeGroup="Work" />
+          <ColumnDefinition Width="Auto" SharedSizeGroup="Vacation" />
+          <ColumnDefinition Width="Auto" SharedSizeGroup="Sick" />
+          <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <TextBlock Text="Person" Classes="muted small" />
+        <TextBlock Grid.Column="1" Text="Stunden" Classes="muted small" />
+        <TextBlock Grid.Column="2" Text="Arbeitstage" Classes="muted small" />
+        <TextBlock Grid.Column="3" Text="Urlaub" Classes="muted small" />
+        <TextBlock Grid.Column="4" Text="Krank" Classes="muted small" />
+        <TextBlock Grid.Column="5" Text="Hinweise" Classes="muted small" />
+      </Grid>
+      <ItemsControl ItemsSource="{Binding WorkingTime}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="vm:WorkingTimeRow">
+            <Grid ColumnSpacing="12" Margin="0,0,0,4">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" SharedSizeGroup="Person" />
+                <ColumnDefinition Width="Auto" SharedSizeGroup="Hours" />
+                <ColumnDefinition Width="Auto" SharedSizeGroup="Work" />
+                <ColumnDefinition Width="Auto" SharedSizeGroup="Vacation" />
+                <ColumnDefinition Width="Auto" SharedSizeGroup="Sick" />
+                <ColumnDefinition Width="*" />
+              </Grid.ColumnDefinitions>
+              <TextBlock Text="{Binding Name}" />
+              <TextBlock Grid.Column="1" Text="{Binding Hours}" Classes="num" />
+              <TextBlock Grid.Column="2" Text="{Binding WorkDays}" Classes="num" />
+              <TextBlock Grid.Column="3" Text="{Binding VacationDays}" Classes="num" />
+              <TextBlock Grid.Column="4" Text="{Binding SickDays}" Classes="num" />
+              <TextBlock Grid.Column="5" Text="{Binding Warnings}" Classes="error" TextWrapping="Wrap" />
+            </Grid>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </StackPanel>
+  </StackPanel>
+</UserControl>

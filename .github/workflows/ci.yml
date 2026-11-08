@@ -1,0 +1,280 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  backend:
+    name: Backend (.NET, Tests mit PostgreSQL, Gruppe ${{ matrix.group }})
+    runs-on: ubuntu-latest
+    # 2026-10-23: 20 Minuten reichten nach Runde 5b nicht mehr (Testlauf nach 13 min abgebrochen,
+    # StartupStateTests spielt die Beispieldaten über die Dienste ein); Grenze dient nur gegen Hängen.
+    # 2026-11-07: Die ganze Suite in einem Job brach seit T-046 dreimal ohne roten Test ab (SIGTERM, Läufer beendet, Zeitlimit);
+    # deshalb zwei Gruppen (scripts/api-tests.sh), jede auf einem eigenen Läufer.
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        group: [0, 1]
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+
+      - name: Pakete wiederherstellen
+        run: dotnet restore AispaStudio.slnx
+
+      - name: Formatierung prüfen
+        if: matrix.group == 0
+        run: dotnet format AispaStudio.slnx --verify-no-changes --no-restore
+
+      - name: Bauen (Warnungen sind Fehler)
+        run: dotnet build AispaStudio.slnx -c Release --no-restore
+
+      - name: OpenAPI-Dokument ist aktuell
+        if: matrix.group == 0
+        run: |
+          git diff --exit-code -- web/openapi/ || {
+            echo "::error::web/openapi/aispa-api.json ist veraltet. Lokal 'dotnet build' ausführen und die Datei committen."
+            exit 1
+          }
+
+      # Nur die API: die Desktop-Tests laufen vollständig unter Windows (Jobs desktop und desktop-views).
+      # Eigene, kürzere Grenze als der Job: Bricht der Testlauf ab, laufen die Schritte danach noch und das Protokoll bleibt erhalten
+      # (bei einem Abbruch am Job-Zeitlimit liefert GitHub kein Log).
+      - name: Testen
+        timeout-minutes: 30
+        # shell: bash setzt pipefail; ohne das liefert die Pipe den Exitcode von tee und ein roter Testlauf fiele durch.
+        shell: bash
+        run: scripts/api-tests.sh ${{ matrix.group }} 2>&1 | tee api-tests.log
+
+      - name: Protokoll der Tests sichern
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: api-tests-gruppe-${{ matrix.group }}
+          path: api-tests.log
+          if-no-files-found: ignore
+          retention-days: 7
+
+  web:
+    name: Web (React, TypeScript)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - run: npm ci
+
+      - name: API-Typen sind aktuell
+        run: |
+          npm run gen:api
+          git diff --exit-code -- src/api/schema.d.ts || {
+            echo "::error::src/api/schema.d.ts ist veraltet. 'npm run gen:api' ausführen und committen."
+            exit 1
+          }
+
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+
+      - name: Kundenbereich bleibt klein
+        run: npm run check:bundle
+
+  avalonia-lint:
+    name: Windows-App (Avalonia-Linter)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+
+      # Der Linter kommt aus dem öffentlichen Skill-Repository, fest auf einen Commit gesetzt. Unter .claude/, weil der
+      # Linter diesen Ordner überspringt und die absichtlich fehlerhaften Beispiele des Skills sonst mitprüfen würde.
+      - uses: actions/checkout@v7
+        with:
+          repository: vompa/avalonia-lint-skill
+          ref: 6abc956c00d5d588ac07ace99267aca062cbe899
+          path: .claude/avalonia-lint-skill
+
+      # Prüft AXAML, C# und Projektdateien gegen die Avalonia-Dokumentation (Skill avalonia-lint, nur Standardbibliothek von Python).
+      # Nur Regeln der Stufe error brechen den Lauf; Warnungen und Hinweise stehen im Protokoll. Gewollte Abweichungen mit Begründung in .avalonia-lint.json.
+      - name: Avalonia-Linter
+        run: python .claude/avalonia-lint-skill/avalonia-lint/scripts/avalonia_lint.py . --fail-on error
+
+  desktop:
+    name: Windows-App (Avalonia)
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+
+      - name: Läufer
+        shell: pwsh
+        run: |
+          "Kerne: $([Environment]::ProcessorCount)"
+          "Arbeitsspeicher: $([math]::Round((Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemory / 1GB, 1)) GB"
+
+      # 04.11.2026: Die ganze Suite in einem Prozess riss die 30 Minuten (2728 Tests nach 26m 59s);
+      # die Ansichtstests laufen deshalb im Job desktop-views auf vier Läufern.
+      - name: Tests ohne Ansichtstests
+        run: dotnet test --project tests/AispaStudio.Desktop.Tests -c Release -- --filter-not-class "AispaStudio.Desktop.Tests.ViewTests"
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Für Windows veröffentlichen
+        # win-x64 und selbstständig stehen in der Projektdatei (ADR 0078).
+        run: dotnet publish src/AispaStudio.Desktop -c Release -o publish/desktop
+
+      # Einzelplatz-Betrieb (ADR 0041): API, Web-Oberfläche und PostgreSQL kommen mit ins Paket.
+      - name: Einzelplatz-Teile ins Paket
+        shell: pwsh
+        run: |
+          dotnet publish src/AispaStudio.Api -c Release -r win-x64 --self-contained -o publish/desktop/api
+          Push-Location web; npm ci; npm run build; Pop-Location
+          Copy-Item web/dist publish/desktop/web -Recurse
+          # PostgreSQL des Runner-Images (EDB-Build); nur bin, lib und share werden gebraucht.
+          if (-not $env:PGROOT -or -not (Test-Path (Join-Path $env:PGROOT 'bin/pg_ctl.exe'))) { throw "PostgreSQL des Runners nicht gefunden (PGROOT=$env:PGROOT)" }
+          New-Item publish/desktop/postgres -ItemType Directory | Out-Null
+          foreach ($part in 'bin', 'lib', 'share') { Copy-Item (Join-Path $env:PGROOT $part) publish/desktop/postgres -Recurse }
+          & publish/desktop/postgres/bin/postgres.exe --version
+
+      - name: Einzelplatz mit dem echten Paket starten
+        timeout-minutes: 10
+        env:
+          AISPA_LOCAL_PACKAGE: ${{ github.workspace }}/publish/desktop
+        run: dotnet test --project tests/AispaStudio.Desktop.Tests -c Release --filter-class "*LocalServerPackageTests"
+
+      - name: Protokolle des Einzelplatzes zeigen
+        if: failure()
+        shell: pwsh
+        run: |
+          Get-ChildItem -Path $env:TEMP -Filter 'aispa-einzelplatz-*' -Directory | ForEach-Object {
+            Get-ChildItem -Path (Join-Path $_.FullName 'protokolle') -File -ErrorAction SilentlyContinue | ForEach-Object {
+              Write-Host "===== $($_.FullName)"
+              Get-Content $_.FullName -Tail 80
+            }
+          }
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: aispa-desktop-win-x64
+          path: publish/desktop
+          retention-days: 14
+
+  desktop-views:
+    name: Windows-App, Ansichtstests (Gruppe ${{ matrix.group }})
+    runs-on: windows-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        group: [0, 1, 2, 3]
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+
+      - name: Bauen
+        run: dotnet build tests/AispaStudio.Desktop.Tests -c Release
+
+      # Die Aufteilung nach Anfangsbuchstaben steht allein im Skript.
+      - name: Ansichtstests
+        run: pwsh scripts/view-tests.ps1 -Group ${{ matrix.group }}
+
+  windows-download:
+    name: Windows-App zum Herunterladen
+    needs: [backend, desktop, desktop-views]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v7
+        with:
+          name: aispa-desktop-win-x64
+          path: AispaStudio-Windows
+
+      # Immer derselbe Link: Release "windows-app" zeigt den letzten grünen Stand von main.
+      - name: Release aktualisieren
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          zip -qr AispaStudio-Windows.zip AispaStudio-Windows
+          gh release delete windows-app --yes --cleanup-tag || true
+          gh release create windows-app AispaStudio-Windows.zip --prerelease --target "$GITHUB_SHA" \
+            --title "Windows-App (Prototyp, neuester Stand)" \
+            --notes "Stand ${GITHUB_SHA::7}. ZIP entpacken, AispaStudio.Desktop.exe starten. Verbindet sich mit http://localhost:5086 (Installation: docs/installation/standalone.md). Ohne Server: AispaStudio.Desktop.exe --standalone startet Datenbank und API auf diesem PC (Einzelplatz)."
+
+  docker:
+    name: Lokaler Testbetrieb (Docker Compose)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Bauen und starten
+        run: |
+          docker compose up -d --build
+          # Beim ersten Start legt die API den Testdatensatz an (einige Minuten) und hört erst danach.
+          for i in $(seq 1 300); do curl -sf http://localhost:5086/health && exit 0; sleep 2; done
+          exit 1
+
+      - name: Beispiel-Spa, Testkonten, Web und Anmeldung der Windows-App
+        run: |
+          curl -sf http://localhost:5086/health
+          curl -sf http://localhost:5173/anmelden/ > /dev/null
+          curl -sf http://localhost:5173/buchen/ > /dev/null
+          curl -sf http://localhost:8025/ > /dev/null
+          accounts=$(curl -sf http://localhost:5173/api/auth/dev/accounts | jq length)
+          echo "Testkonten: $accounts"
+          test "$accounts" -ge 17
+          curl -sf -c web.txt -H 'Content-Type: application/json' \
+            -d '{"email":"empfang.wien@demo.aispa.test"}' http://localhost:5173/api/auth/dev/login > /dev/null
+          code=$(curl -sf -b web.txt -X POST http://localhost:5173/api/auth/device-code | jq -r .code)
+          curl -sf -c app.txt -H 'Content-Type: application/json' -d "{\"code\":\"$code\"}" \
+            http://localhost:5086/api/auth/device-code/redeem > /dev/null
+          count=$(curl -sf -b app.txt http://localhost:5086/api/locations | jq length)
+          echo "Standorte im Beispiel-Spa: $count"
+          test "$count" -ge 1
+
+      - name: Protokoll der API
+        if: failure()
+        run: docker compose logs api

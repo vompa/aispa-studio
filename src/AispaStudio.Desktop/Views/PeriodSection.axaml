@@ -1,0 +1,34 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             x:Class="AispaStudio.Desktop.Views.PeriodSection"
+             x:DataType="vm:PeriodAreaViewModel">
+  <!--
+    Zeitraum (R05 Slice 95), nach den Gruppen „Zeitraum“ von ClosuresPage.tsx und RoomClosuresPage.tsx: Von und Bis sind Kalendertage am Standort (beide zählen mit); mit
+    „Nur ein Teil der Tage“ kommen die Uhrzeiten dazu. Datum und Uhrzeit lassen sich kurz eintippen (21.10., 9, 1430).
+  -->
+  <StackPanel Spacing="8">
+    <Grid ColumnDefinitions="*,Auto">
+      <TextBlock Text="Zeitraum" Classes="h2" VerticalAlignment="Center" />
+      <ui:HelpButton Grid.Column="1" Topic="{Binding HelpTopic}" Section="zeitraum" />
+    </Grid>
+    <StackPanel Orientation="Horizontal" Spacing="12">
+      <ui:FormField Label="Von" IsRequired="True" Error="{Binding Period.FromDateError}">
+        <ui:DateField x:Name="FromDateField" CommittedText="{Binding Period.FromDate}" />
+      </ui:FormField>
+      <ui:FormField Label="Bis" IsRequired="True" Error="{Binding Period.UntilDateError}">
+        <ui:DateField x:Name="UntilDateField" CommittedText="{Binding Period.UntilDate}" />
+      </ui:FormField>
+    </StackPanel>
+    <CheckBox x:Name="PartialBox" IsChecked="{Binding Period.IsPartial}" Content="Nur ein Teil der Tage (mit Uhrzeit)" />
+    <StackPanel Orientation="Horizontal" Spacing="12" IsVisible="{Binding Period.IsPartial}">
+      <ui:FormField Label="Ab Uhrzeit" Help="Am ersten Tag; leer: ab 0:00 Uhr." Error="{Binding Period.FromTimeError}" MinWidth="200">
+        <ui:TimeField x:Name="FromTimeField" CommittedText="{Binding Period.FromTime}" HorizontalAlignment="Left" />
+      </ui:FormField>
+      <ui:FormField Label="Bis Uhrzeit" Help="Am letzten Tag; leer: bis zum Ende des Tages." Error="{Binding Period.UntilTimeError}" MinWidth="200">
+        <ui:TimeField x:Name="UntilTimeField" CommittedText="{Binding Period.UntilTime}" HorizontalAlignment="Left" />
+      </ui:FormField>
+    </StackPanel>
+  </StackPanel>
+</UserControl>

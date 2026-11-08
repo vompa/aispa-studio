@@ -1,0 +1,64 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             x:Class="AispaStudio.Desktop.Views.BackupView"
+             x:DataType="vm:BackupViewModel">
+  <ScrollViewer>
+    <StackPanel Margin="16" Spacing="16" MaxWidth="720" HorizontalAlignment="Left">
+      <StackPanel>
+        <TextBlock Text="Sicherung" Classes="h1" />
+        <TextBlock Text="Die Datenbank liegt auf diesem PC. Die App sichert sie einmal am Tag, unter Windows auch abends, wenn sie geschlossen ist, und behält die letzten 14 Sicherungen. Kassa-Daten müssen sieben Jahre (AT) bzw. zehn Jahre (DE) aufbewahrt werden."
+                   Classes="muted" TextWrapping="Wrap" />
+      </StackPanel>
+
+      <!-- Neuer Wiederherstellungsschlüssel: nur jetzt sichtbar -->
+      <ui:InfoBar Severity="Warning" IsVisible="{Binding HasNewCode}" Title="Wiederherstellungsschlüssel notieren"
+                  Message="Ohne diesen Schlüssel sind die Gesundheitsdaten einer Sicherung auf einem anderen PC nicht lesbar, und er setzt vergessene Passwörter zurück. Ausdrucken oder aufschreiben und bei der Leitung aufbewahren, getrennt vom PC. Die App zeigt ihn nur jetzt."
+                  ActionText="Verstanden" ActionCommand="{Binding CodeNotedCommand}">
+        <ui:InfoBar.Detail>
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <SelectableTextBlock Text="{Binding NewCode}" FontFamily="Consolas, Menlo, monospace" FontSize="22" FontWeight="SemiBold" VerticalAlignment="Center" />
+            <ui:HelpButton Topic="sicherung" Section="wiederherstellungsschluessel" VerticalAlignment="Center" />
+          </StackPanel>
+        </ui:InfoBar.Detail>
+      </ui:InfoBar>
+
+      <Border Classes="card">
+        <StackPanel Spacing="10">
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <ui:Icon Data="{x:Static ui:Icons.Archive}" Width="18" Height="18" />
+            <TextBlock Text="Stand" Classes="h2" />
+            <ui:HelpButton Topic="sicherung" Section="stand" />
+          </StackPanel>
+          <TextBlock Text="{Binding FolderText}" TextWrapping="Wrap" />
+          <TextBlock Text="{Binding LastBackupText}" TextWrapping="Wrap" />
+          <TextBlock Text="{Binding ScheduleText}" Classes="muted small" TextWrapping="Wrap"
+                     IsVisible="{Binding ScheduleText, Converter={x:Static ObjectConverters.IsNotNull}}" />
+          <ui:InfoBar Severity="Error" Message="{Binding ErrorText}" IsVisible="{Binding ErrorText, Converter={x:Static ObjectConverters.IsNotNull}}" />
+          <StackPanel Orientation="Horizontal" Spacing="10">
+            <Button Content="Jetzt sichern" Command="{Binding BackupNowCommand}" ui:DisabledHint.Text="Verfügbar, sobald ein Sicherungsordner gespeichert ist." />
+            <TextBlock Text="{Binding Message}" VerticalAlignment="Center" Classes="muted" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
+          </StackPanel>
+        </StackPanel>
+      </Border>
+
+      <Border Classes="card" IsVisible="{Binding CanConfigure}">
+        <StackPanel Spacing="10">
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <TextBlock Text="Ordner" Classes="h2" />
+            <ui:HelpButton Topic="sicherung" Section="ordner" />
+          </StackPanel>
+          <TextBlock Text="Am besten ein zweites Laufwerk, ein USB-Laufwerk, das angesteckt bleibt, oder ein Netzordner. Nicht dieselbe Festplatte wie Windows: fällt sie aus, ist sonst auch die Sicherung weg."
+                     Classes="muted small" TextWrapping="Wrap" />
+          <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+            <TextBox Text="{Binding FolderInput}" AutomationProperties.Name="Sicherungsordner" PlaceholderText="z. B. D:\Sicherung oder \\server\freigabe\aispa" />
+            <Button Grid.Column="1" Classes="primary" Content="Speichern und sichern" Command="{Binding SaveFolderCommand}" ui:DisabledHint.Text="Verfügbar, sobald ein Ordner eingetragen ist." />
+          </Grid>
+          <Button Classes="ghost" Content="Neuen Wiederherstellungsschlüssel erzeugen" Command="{Binding NewRecoveryKeyCommand}" HorizontalAlignment="Left"
+                  ToolTip.Tip="Falls der alte verloren ist; ältere Sicherungen brauchen weiter den alten Schlüssel" />
+        </StackPanel>
+      </Border>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

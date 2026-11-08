@@ -1,0 +1,53 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             x:Class="AispaStudio.Desktop.Views.TreatmentsView"
+             x:DataType="vm:TreatmentsViewModel"
+             ui:SaveShortcut.IsScope="True">
+  <!--
+    Behandlungen (R05 Slice 94): links die Behandlungen nach Kategorie mit „Behandlung anlegen“ (wie web/src/admin/TreatmentsTab.tsx), rechts die gewählte
+    Behandlung (TreatmentEditorView). Leiste „Speichern / Verwerfen“ fest im Fuß für die ganze Behandlung, Strg+S speichert (SaveShortcut).
+  -->
+  <Grid RowDefinitions="Auto,*,Auto">
+    <StackPanel Spacing="8" Margin="0,0,16,0">
+      <ui:InfoBar Severity="Error" Title="Behandlungen nicht geladen" Message="{Binding LoadError}" IsVisible="{Binding HasLoadError}"
+                  ActionText="Erneut laden" ActionCommand="{Binding LoadCommand}" />
+      <TextBlock Text="Lade Behandlungen …" Classes="muted" IsVisible="{Binding !IsLoaded}" />
+    </StackPanel>
+
+    <Grid Grid.Row="1" ColumnDefinitions="260,*" IsVisible="{Binding IsLoaded}">
+      <Border Classes="card" Padding="8" Margin="0,0,16,0" VerticalAlignment="Top">
+        <ListBox x:Name="TreatmentList" Classes="plain" ItemsSource="{Binding Entries}" SelectedItem="{Binding SelectedEntry}"
+                 AutomationProperties.Name="Behandlungen">
+          <ListBox.Styles>
+            <!-- Der Name der Zeile ist ihr Titel; Kategorien sind Überschriften und nicht wählbar -->
+            <Style Selector="ListBoxItem" x:DataType="vm:TreatmentEntry">
+              <Setter Property="AutomationProperties.Name" Value="{Binding Title}" />
+              <Setter Property="IsEnabled" Value="{Binding !IsHeading}" />
+            </Style>
+          </ListBox.Styles>
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="vm:TreatmentEntry">
+              <TextBlock Text="{Binding Title}" Classes.muted="{Binding IsHeading}" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Title}" />
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </Border>
+
+      <ContentControl Grid.Column="1" x:Name="EditorHost" Content="{Binding Editor}" />
+    </Grid>
+
+    <StackPanel x:Name="Footer" Grid.Row="2" Spacing="12" MaxWidth="760" HorizontalAlignment="Left" Margin="276,12,16,0" IsVisible="{Binding IsLoaded}">
+      <ui:InfoBar Severity="Warning" Message="{Binding Notice}" IsVisible="{Binding HasNotice}" CloseCommand="{Binding CloseNoticeCommand}" />
+      <ui:InfoBar Severity="Error" Title="Nicht gespeichert" Message="{Binding Error}" IsVisible="{Binding HasError}"
+                  ActionText="Erneut versuchen" ActionCommand="{Binding SaveCommand}" CloseCommand="{Binding CloseErrorCommand}" />
+      <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+        <ui:SaveBar SaveCommand="{Binding SaveCommand}" DiscardCommand="{Binding DiscardChangesCommand}" CanDiscard="{Binding HasUnsavedChanges}"
+                    Status="{Binding StatusText}" />
+        <Button Grid.Column="1" x:Name="DeactivateButton" Classes="ghost danger" Content="Nicht mehr anbieten" Command="{Binding DeactivateCommand}"
+                IsVisible="{Binding CanDeactivate}" ToolTip.Tip="Neue Buchungen sind danach nicht mehr möglich; gebuchte Termine bleiben." />
+      </Grid>
+    </StackPanel>
+  </Grid>
+</UserControl>

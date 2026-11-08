@@ -1,0 +1,126 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             x:Class="AispaStudio.Desktop.Views.StartupScreen"
+             x:DataType="vm:MainViewModel"
+             AutomationProperties.Name="AISPA Studio startet">
+  <!-- Startbildschirm (Design-Brief 5.31): die Petrolfläche wird nach dem Start zur Navigationsleiste bzw. zur Markenspalte der Anmeldung -->
+  <UserControl.Styles>
+    <!-- Auf Petrol: accent wäre nicht zu sehen, deshalb rail-mark für den Knopf und rail-hover für Hover -->
+    <Style Selector="ToggleButton.startup-details /template/ ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+      <Setter Property="Foreground" Value="{DynamicResource RailFgBrush}" />
+    </Style>
+    <Style Selector="ToggleButton.startup-details:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource RailHoverBrush}" />
+    </Style>
+    <Style Selector="ToggleButton.startup-details:checked /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource RailHoverBrush}" />
+    </Style>
+    <Style Selector="Button.startup-retry /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource RailMarkBrush}" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+      <Setter Property="Foreground" Value="{DynamicResource RailBrush}" />
+    </Style>
+    <Style Selector="Button.startup-retry:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource RailFgBrush}" />
+    </Style>
+    <!-- Unbestimmter Balken: das Segment läuft in 1400 ms durch die Spur, solange die Klasse gesetzt ist (nie bei „Animationen aus“) -->
+    <Style Selector="Border#BarSegment.running">
+      <Style.Animations>
+        <Animation Duration="0:0:1.4" IterationCount="Infinite" Easing="0.33,0,0.67,1">
+          <KeyFrame Cue="0%">
+            <Setter Property="TranslateTransform.X" Value="-56" />
+          </KeyFrame>
+          <KeyFrame Cue="100%">
+            <Setter Property="TranslateTransform.X" Value="160" />
+          </KeyFrame>
+        </Animation>
+      </Style.Animations>
+    </Style>
+  </UserControl.Styles>
+
+  <Panel>
+    <Border x:Name="Surface" Background="{DynamicResource RailBrush}" />
+
+    <!-- Wie in der Vorschau: die Kachel steht über der Mitte, Name und Stand darunter -->
+    <StackPanel x:Name="Center" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-96,0,0">
+      <Border x:Name="Tile" Width="96" Height="96" CornerRadius="28" Background="{DynamicResource RailMarkBrush}" HorizontalAlignment="Center"
+              BoxShadow="{DynamicResource RaisedShadow}" RenderTransformOrigin="0,0">
+        <!-- Das Logo (Icons.Logo) in drei Pfaden, damit sich die Wellen einzeln zeichnen -->
+        <Viewbox Width="55" Height="55">
+          <Canvas Width="24" Height="24">
+            <Path x:Name="Wave1" Data="M3 17c3-1 4.5-4 9-4s6 3 9 4" Stroke="{DynamicResource RailBrush}" StrokeThickness="2"
+                  StrokeLineCap="Round" StrokeJoin="Round" />
+            <Path x:Name="Wave2" Data="M3 21c3-1 4.5-3 9-3s6 2 9 3" Stroke="{DynamicResource RailBrush}" StrokeThickness="2"
+                  StrokeLineCap="Round" StrokeJoin="Round" />
+            <Path x:Name="Drop" Data="M12 3c2 2.5 2 5.5 0 8c-2-2.5-2-5.5 0-8z" Stroke="{DynamicResource RailBrush}" StrokeThickness="2"
+                  StrokeLineCap="Round" StrokeJoin="Round" />
+          </Canvas>
+        </Viewbox>
+      </Border>
+      <TextBlock x:Name="BrandName" Text="AISPA Studio" FontSize="34" FontWeight="SemiBold" Foreground="{DynamicResource RailFgBrush}"
+                 HorizontalAlignment="Center" Margin="0,24,0,0" RenderTransformOrigin="0,0" />
+
+      <StackPanel x:Name="Status" Spacing="12" Margin="0,20,0,0" HorizontalAlignment="Center">
+        <TextBlock x:Name="StatusLine" Text="{Binding StartupStatus}" Foreground="{DynamicResource RailFg2Brush}" HorizontalAlignment="Center"
+                   AutomationProperties.LiveSetting="Polite" />
+        <Border x:Name="Bar" Width="160" Height="4" CornerRadius="4" Background="{DynamicResource RailHoverBrush}" ClipToBounds="True"
+                HorizontalAlignment="Center">
+          <Border x:Name="BarSegment" Width="56" CornerRadius="4" Background="{DynamicResource RailMarkBrush}" HorizontalAlignment="Left">
+            <Border.RenderTransform>
+              <TranslateTransform X="-56" />
+            </Border.RenderTransform>
+          </Border>
+        </Border>
+        <StackPanel Spacing="6" HorizontalAlignment="Center" IsVisible="{Binding IsSlowStart}">
+          <TextBlock Text="Das dauert länger als üblich." Classes="small" Foreground="{DynamicResource RailFg2Brush}" HorizontalAlignment="Center" />
+          <ToggleButton x:Name="DetailsToggle" Classes="startup-details small" Content="Technische Angaben" HorizontalAlignment="Center" />
+          <Border Background="{DynamicResource RailHoverBrush}" CornerRadius="8" Padding="12,8" HorizontalAlignment="Center"
+                  IsVisible="{Binding #DetailsToggle.IsChecked}">
+            <Grid x:Name="Details" ColumnDefinitions="Auto,Auto" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="2">
+              <TextBlock Text="Adresse" Classes="small" Foreground="{DynamicResource RailFg2Brush}" />
+              <TextBlock Grid.Column="1" Text="{Binding ApiAddress}" Classes="small" Foreground="{DynamicResource RailFgBrush}" />
+              <TextBlock Grid.Row="1" Text="Phase" Classes="small" Foreground="{DynamicResource RailFg2Brush}" />
+              <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding StartupStep}" Classes="small" Foreground="{DynamicResource RailFgBrush}" />
+            </Grid>
+          </Border>
+        </StackPanel>
+      </StackPanel>
+
+      <!-- Server nicht erreichbar: die heutige Karte, auf der Petrolfläche -->
+      <StackPanel Spacing="12" Margin="0,20,0,0" IsVisible="{Binding IsOffline}">
+        <Border x:Name="OfflineCard" Width="480" Padding="24,20" CornerRadius="12" Background="{DynamicResource RailHoverBrush}">
+          <StackPanel Spacing="8">
+            <TextBlock Text="{Binding ConnectionTitle}" Classes="h1" Foreground="{DynamicResource RailFgBrush}" />
+            <TextBlock Text="{Binding StatusText}" Foreground="{DynamicResource RailFg2Brush}" TextWrapping="Wrap" AutomationProperties.LiveSetting="Assertive" />
+            <TextBlock Text="{Binding ApiAddress}" Classes="small" Foreground="{DynamicResource RailFg2Brush}" />
+            <Button x:Name="Retry" Classes="startup-retry" Command="{Binding StartCommand}" HorizontalAlignment="Left" Margin="0,8,0,0">
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <ui:Icon Data="{x:Static ui:Icons.Refresh}" />
+                <TextBlock Text="Erneut versuchen" />
+              </StackPanel>
+            </Button>
+          </StackPanel>
+        </Border>
+        <!-- Die zwei Wege zu einem Server nebeneinander, damit der Bildschirm bei 1366 × 768 reicht -->
+        <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Center" VerticalAlignment="Top">
+          <!-- Weiterer PC im Spa: mit dem Haupt-PC im Netz verbinden -->
+          <Border Classes="card" Width="480" Padding="24" VerticalAlignment="Top" IsVisible="{Binding Connect, Converter={x:Static ObjectConverters.IsNotNull}}">
+            <ContentControl Content="{Binding Connect}" />
+          </Border>
+          <!-- Verwalten von zu Hause: Adresse eines Servers eintragen -->
+          <Border Classes="card" Width="480" Padding="24" VerticalAlignment="Top" IsVisible="{Binding ServerConnect, Converter={x:Static ObjectConverters.IsNotNull}}">
+            <ContentControl Content="{Binding ServerConnect}" />
+          </Border>
+        </StackPanel>
+        <!-- Einzelplatz: Zugangsdaten unlesbar oder neuer PC -->
+        <Border Classes="card" Width="480" Padding="24" IsVisible="{Binding Restore, Converter={x:Static ObjectConverters.IsNotNull}}">
+          <ContentControl Content="{Binding Restore}" />
+        </Border>
+      </StackPanel>
+    </StackPanel>
+  </Panel>
+</UserControl>

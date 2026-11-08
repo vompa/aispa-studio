@@ -1,0 +1,256 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:views="using:AispaStudio.Desktop.Views"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             x:Class="AispaStudio.Desktop.App"
+             RequestedThemeVariant="Default">
+  <!-- "Default" folgt dem Hell/Dunkel-Modus von Windows; in der App umschaltbar. -->
+
+  <Application.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceInclude Source="/Themes/Colors.axaml" />
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+  </Application.Resources>
+
+  <Application.Styles>
+    <FluentTheme>
+      <!-- Eingabefelder, Auswahllisten und Häkchen bekommen dieselbe Akzentfarbe wie die eigenen Bausteine. -->
+      <FluentTheme.Palettes>
+        <ColorPaletteResources x:Key="Light" Accent="#0d5c63" RegionColor="#f3f0ea" />
+        <ColorPaletteResources x:Key="Dark" Accent="#52b3ba" RegionColor="#0c1211" />
+      </FluentTheme.Palettes>
+    </FluentTheme>
+    <StyleInclude Source="/Themes/Styles.axaml" />
+  </Application.Styles>
+
+  <Application.DataTemplates>
+    <DataTemplate DataType="vm:LoginViewModel">
+      <views:LoginView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:ShellViewModel">
+      <views:ShellView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:CompanionViewModel">
+      <views:CompanionContent />
+    </DataTemplate>
+    <DataTemplate DataType="vm:CalendarViewModel">
+      <views:CalendarView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:InboxViewModel">
+      <views:InboxView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:HistorySectionViewModel">
+      <views:HistorySectionView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:CustomersViewModel">
+      <views:CustomersView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:PosViewModel">
+      <views:PosView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:DevicesViewModel">
+      <views:DevicesView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:SyncViewModel">
+      <views:SyncView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:HelpViewModel">
+      <views:HelpView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:BackupViewModel">
+      <views:BackupView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:NetworkViewModel">
+      <views:NetworkView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:NetworkConnectViewModel">
+      <views:NetworkConnectView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:ServerConnectViewModel">
+      <views:ServerConnectView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:ServerLinkViewModel">
+      <views:ServerLinkView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:RestoreViewModel">
+      <views:RestoreView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:JoinViewModel">
+      <views:JoinView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:AdminPageViewModel">
+      <views:AdminPageView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:CompanyViewModel">
+      <views:CompanyView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:LocationsViewModel">
+      <views:LocationsView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:ClosuresViewModel">
+      <views:ClosuresView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:RoomClosuresViewModel">
+      <views:RoomClosuresView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:SubscriptionsViewModel">
+      <views:SubscriptionsView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:TreatmentsViewModel">
+      <views:TreatmentsView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:RemindersViewModel">
+      <views:RemindersView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:PaymentsViewModel">
+      <views:PaymentsView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:PosSettingsViewModel">
+      <views:PosSettingsView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:TreatmentEditorViewModel">
+      <views:TreatmentEditorView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:TeamViewModel">
+      <views:TeamView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:PersonCardViewModel">
+      <views:PersonCardView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:PersonDetailsViewModel">
+      <views:PersonDetailsView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:PersonQualificationsViewModel">
+      <views:PersonQualificationsView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:PersonAccessViewModel">
+      <views:PersonAccessView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:IntakeViewModel">
+      <views:IntakeView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:AiViewModel">
+      <views:AiView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:HandbookViewModel">
+      <views:HandbookView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:StockViewModel">
+      <views:StockView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:AccountingViewModel">
+      <views:AccountingView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:CostsViewModel">
+      <views:CostsView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:BusinessInfoViewModel">
+      <views:BusinessInfoView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:ReportsViewModel">
+      <views:ReportsView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:DayPlanReportViewModel">
+      <views:DayPlanReportView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:BriefingReportViewModel">
+      <views:BriefingReportView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:HygieneReportViewModel">
+      <views:HygieneReportView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:ManagementReportViewModel">
+      <views:ManagementReportView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:ComplianceReportViewModel">
+      <views:ComplianceReportView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:PromotionsViewModel">
+      <views:PromotionsView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:RosterPlanViewModel">
+      <views:RosterPlanView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:RosterDayEditorViewModel">
+      <views:RosterDayEditorView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:TimesheetViewModel">
+      <views:TimesheetView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:PayrollViewModel">
+      <views:PayrollView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:PersonPayrollViewModel">
+      <views:PersonPayrollView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:PersonHrFileViewModel">
+      <views:PersonHrFileView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:PersonRegulationsViewModel">
+      <views:PersonRegulationsView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:PowerOverviewViewModel">
+      <views:PowerOverviewView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:PersonDutiesViewModel">
+      <views:PersonDutiesView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:DutyOverviewViewModel">
+      <views:DutyOverviewView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:TimeDayEditorViewModel">
+      <views:TimeDayEditorView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:AbsenceRequestsViewModel">
+      <views:AbsenceRequestsView />
+    </DataTemplate>
+
+    <!-- Der Ausfall-Assistent steht im Kalender und im Tageseditor des Dienstplans (Slice 99), deshalb hier. Zeile des Assistenten: eigener Standort, andere Standorte, Raumsperre -->
+    <DataTemplate DataType="vm:AbsenceRow">
+      <Border Classes="panelcard" Margin="0,0,0,12">
+        <Grid ColumnDefinitions="Auto,*">
+          <CheckBox IsChecked="{Binding IsChosen}" IsEnabled="{Binding CanApply}" VerticalAlignment="Top" Margin="0,0,6,0">
+            <AutomationProperties.Name>
+              <MultiBinding StringFormat="{}{0}, {1}">
+                <Binding Path="Guest" />
+                <Binding Path="Before" />
+              </MultiBinding>
+            </AutomationProperties.Name>
+          </CheckBox>
+          <StackPanel Grid.Column="1" Spacing="2">
+            <TextBlock Text="{Binding Guest}" FontWeight="SemiBold" />
+            <TextBlock Text="{Binding Before}" Classes="muted small num" />
+            <TextBlock Text="{Binding After, StringFormat='Neu: {0}'}" FontWeight="Medium" TextWrapping="Wrap" Classes.absent="{Binding NeedsCall}" />
+            <TextBlock Text="{Binding Explanation}" Classes="muted small" TextWrapping="Wrap" />
+            <TextBlock Text="{Binding Outcome}" Classes="small" FontWeight="SemiBold" TextWrapping="Wrap"
+                       IsVisible="{Binding Outcome, Converter={x:Static ObjectConverters.IsNotNull}}" />
+          </StackPanel>
+        </Grid>
+      </Border>
+    </DataTemplate>
+
+    <DataTemplate DataType="vm:AbsenceAssistantViewModel">
+      <StackPanel Spacing="12">
+        <TextBlock Text="Vorschläge werden gesucht …" Classes="muted" IsVisible="{Binding IsLoading}" />
+        <TextBlock Text="{Binding EmptyText}" Classes="muted" IsVisible="{Binding IsEmpty}" />
+        <ItemsControl ItemsSource="{Binding Rows}" />
+        <StackPanel Spacing="4" IsVisible="{Binding HasOtherRows}">
+          <TextBlock Text="Andere Standorte" Classes="group" />
+          <TextBlock Text="Hier ist niemand frei. Nur nach Rücksprache mit dem Gast anhaken; der Termin wird dann dorthin verlegt, der Preis bleibt."
+                     Classes="muted small" TextWrapping="Wrap" />
+          <ItemsControl ItemsSource="{Binding OtherRows}" Margin="0,8,0,0" />
+        </StackPanel>
+        <CheckBox IsChecked="{Binding NotifyCustomers}" IsVisible="{Binding HasRows}" Content="Gäste per Mail über die Änderung informieren" />
+        <ui:InfoBar Severity="Error" Message="{Binding Error}" IsVisible="{Binding Error, Converter={x:Static ObjectConverters.IsNotNull}}" />
+        <Border IsVisible="{Binding HasSummary}" Padding="12,10" CornerRadius="8" Background="{DynamicResource OkSoftBrush}">
+          <TextBlock Text="{Binding Summary}" TextWrapping="Wrap" />
+        </Border>
+        <Button Classes="primary" HorizontalAlignment="Stretch" Command="{Binding ApplyCommand}" IsEnabled="{Binding !IsBusy}"
+                IsVisible="{Binding HasRows}" Content="Gewählte übernehmen" />
+      </StackPanel>
+    </DataTemplate>
+  </Application.DataTemplates>
+</Application>

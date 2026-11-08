@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Handbuch und Hilfe: Texte aus web/src/help/content, Leser und Suche für API (KI-Assistent) und Windows-App.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Dieselben Dateien wie in der Team-Oberfläche, eingebaut: Hilfe und Suche gehen ohne Server und ohne Internet. -->
+    <EmbeddedResource Include="..\..\web\src\help\content\*.md" LogicalName="HelpText.%(Filename).md" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="AispaStudio.Api.Tests" />
+    <InternalsVisibleTo Include="AispaStudio.Desktop.Tests" />
+  </ItemGroup>
+
+</Project>

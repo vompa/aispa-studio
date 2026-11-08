@@ -1,0 +1,216 @@
+<views:FocusRequestView xmlns="https://github.com/avaloniaui"
+                        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                        xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+                        xmlns:ui="using:AispaStudio.Desktop.Controls"
+                        xmlns:views="using:AispaStudio.Desktop.Views"
+                        x:Class="AispaStudio.Desktop.Views.BusinessInfoView"
+                        x:DataType="vm:BusinessInfoViewModel"
+                        ui:SaveShortcut.IsScope="True">
+  <!--
+    Betriebsinformationen (R05 Slice 102, ADR 0074), native Maske nach web/src/businessinfo/BusinessInfoPage.tsx: links Suche, Kategorie und die Liste nach Kategorie,
+    rechts der Eintrag: zum Nachschlagen, oder als Formular, wenn die API ihn als änderbar meldet. Keine Passwörter eintragen.
+  -->
+  <Grid ColumnDefinitions="300,*">
+    <Border Classes="card" Padding="8" Margin="0,0,16,0" VerticalAlignment="Top">
+      <StackPanel Spacing="8">
+        <Button x:Name="NewBusinessContactButton" Content="Neuer Eintrag" Command="{Binding NewCommand}" IsVisible="{Binding CanManage}" HorizontalAlignment="Stretch" />
+        <ui:FormField Label="Suchen">
+          <TextBox x:Name="BusinessSearchField" Text="{Binding Query}" PlaceholderText="z. B. Versicherung, Heizung" />
+        </ui:FormField>
+        <ui:FormField Label="Kategorie">
+          <ComboBox x:Name="BusinessCategoryFilter" ItemsSource="{Binding CategoryFilters}" SelectedItem="{Binding CategoryFilter}" HorizontalAlignment="Stretch" />
+        </ui:FormField>
+        <CheckBox x:Name="BusinessArchivedBox" IsChecked="{Binding ShowArchived}" Content="Archivierte zeigen" IsVisible="{Binding CanManage}" Margin="4,0" />
+        <ui:InfoBar Severity="Error" Title="Betriebsinformationen nicht geladen" Message="{Binding LoadError}" IsVisible="{Binding HasLoadError}"
+                    ActionText="Erneut laden" ActionCommand="{Binding LoadCommand}" />
+        <TextBlock Text="Wird geladen …" Classes="muted" Margin="8,4" IsVisible="{Binding !IsLoaded}" />
+        <TextBlock Classes="muted" TextWrapping="Wrap" Margin="8,4" IsVisible="{Binding ShowEmpty}" Text="{Binding EmptyText}" />
+        <ListBox x:Name="BusinessContactList" Classes="plain" ItemsSource="{Binding Rows}" SelectedItem="{Binding SelectedRow}" AutomationProperties.Name="Betriebsinformationen nach Kategorie">
+          <ListBox.Styles>
+            <Style Selector="ListBoxItem" x:DataType="vm:BusinessContactRow">
+              <Setter Property="AutomationProperties.Name" Value="{Binding SpokenName}" />
+            </Style>
+          </ListBox.Styles>
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="vm:BusinessContactRow">
+              <StackPanel Spacing="4" Margin="0,4">
+                <TextBlock Text="{Binding GroupHeader}" Classes="muted small" FontWeight="SemiBold" IsVisible="{Binding HasGroupHeader}" />
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                  <TextBlock Text="{Binding Designation}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                  <Border Grid.Column="1" Classes="pill" IsVisible="{Binding IsArchived}">
+                    <TextBlock Text="Archiviert" />
+                  </Border>
+                </Grid>
+                <TextBlock Text="{Binding Detail}" Classes="muted small" TextTrimming="CharacterEllipsis" IsVisible="{Binding HasDetail}" />
+                <TextBlock Text="Nur Leitung" Classes="muted small" IsVisible="{Binding IsManagementOnly}" />
+              </StackPanel>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </StackPanel>
+    </Border>
+
+    <ScrollViewer Grid.Column="1" x:Name="FormScroll" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+      <StackPanel Spacing="20" MaxWidth="720" HorizontalAlignment="Left" Margin="0,0,16,16" IsVisible="{Binding IsLoaded}">
+        <ui:InfoBar Severity="Success" Message="{Binding Message}" IsVisible="{Binding HasMessage}" CloseCommand="{Binding CloseMessageCommand}" />
+        <TextBlock Classes="muted" TextWrapping="Wrap" IsVisible="{Binding ShowPlaceholder}" Text="{Binding PlaceholderText}" />
+
+        <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto" ColumnSpacing="8" IsVisible="{Binding !ShowPlaceholder}">
+          <StackPanel Orientation="Horizontal" Spacing="12">
+            <TextBlock Text="{Binding HeadingText}" Classes="h2" VerticalAlignment="Center" TextWrapping="Wrap" />
+            <Border Classes="pill" IsVisible="{Binding IsArchived}" VerticalAlignment="Center">
+              <TextBlock Text="Archiviert" />
+            </Border>
+            <Border Classes="pill" IsVisible="{Binding IsManagementOnly}" VerticalAlignment="Center">
+              <TextBlock Text="Nur Leitung" />
+            </Border>
+          </StackPanel>
+          <Button Grid.Column="1" x:Name="CopyAllButton" Content="Alles kopieren" Command="{Binding CopyAllCommand}" IsVisible="{Binding !IsCreating}" />
+          <Button Grid.Column="2" x:Name="BusinessArchiveButton" Content="Archivieren" Command="{Binding ArchiveCommand}" IsVisible="{Binding CanArchive}" />
+          <Button Grid.Column="3" x:Name="BusinessUnarchiveButton" Content="Zurückholen" Command="{Binding UnarchiveCommand}" IsVisible="{Binding CanUnarchive}" />
+          <ui:HelpButton Grid.Column="4" Topic="betriebsinformationen" Section="verwalten" />
+        </Grid>
+
+        <ItemsControl x:Name="BusinessReachList" ItemsSource="{Binding Reach}" IsVisible="{Binding HasReach}" AutomationProperties.Name="Erreichen">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:BusinessReachEntry">
+              <Grid ColumnDefinitions="120,Auto,Auto" ColumnSpacing="12" Margin="0,4">
+                <TextBlock Text="{Binding Label}" Classes="muted" VerticalAlignment="Center" />
+                <Button Grid.Column="1" Classes="link" Content="{Binding Value}" Command="{Binding LaunchCommand}" AutomationProperties.Name="{Binding LaunchName}" />
+                <Button Grid.Column="2" Classes="small" Content="Kopieren" Command="{Binding CopyCommand}" AutomationProperties.Name="{Binding CopyName}" />
+              </Grid>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <!-- Nachschlagen -->
+        <ItemsControl x:Name="BusinessDetailList" ItemsSource="{Binding Details}" IsVisible="{Binding ShowLookup}" AutomationProperties.Name="Angaben">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:BusinessDetailLine">
+              <Grid ColumnDefinitions="200,*" ColumnSpacing="12" Margin="0,4">
+                <TextBlock Text="{Binding Label}" Classes="muted" />
+                <TextBlock Grid.Column="1" Text="{Binding Value}" TextWrapping="Wrap" />
+              </Grid>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <!-- Formular -->
+        <StackPanel Spacing="20" IsVisible="{Binding ShowForm}">
+          <TextBlock Classes="muted" TextWrapping="Wrap" IsVisible="{Binding IsArchived}"
+                     Text="Dieser Eintrag ist archiviert und wird nicht mehr genannt. Mit „Zurückholen“ lässt er sich wieder bearbeiten." />
+          <StackPanel Spacing="20" IsEnabled="{Binding IsEditable}">
+            <StackPanel Spacing="8">
+              <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Text="Eintrag" Classes="h2" VerticalAlignment="Center" />
+                <ui:HelpButton Grid.Column="1" Topic="betriebsinformationen" Section="eintrag" />
+              </Grid>
+              <ui:FormField Label="Kategorie" IsRequired="True">
+                <ComboBox x:Name="BusinessCategoryField" ItemsSource="{Binding CategoryChoices}" SelectedItem="{Binding Category}" HorizontalAlignment="Stretch" />
+              </ui:FormField>
+              <ui:FormField Label="Bezeichnung" IsRequired="True" Error="{Binding DesignationError}" Help="Wofür der Eintrag steht, z. B. „Installateur“.">
+                <TextBox x:Name="BusinessDesignationField" Text="{Binding Designation}" MaxLength="80" />
+              </ui:FormField>
+              <ui:FormField Label="Firma">
+                <TextBox x:Name="BusinessCompanyField" Text="{Binding Company}" MaxLength="120" />
+              </ui:FormField>
+              <ui:FormField Label="Ansprechperson">
+                <TextBox x:Name="BusinessPersonField" Text="{Binding ContactPerson}" MaxLength="120" />
+              </ui:FormField>
+              <ui:FormField Label="Zuständig für" Help="Wofür man den Kontakt anruft, z. B. „Wasserschaden, Heizung“. Der Assistent sucht hier.">
+                <TextBox x:Name="BusinessResponsibilityField" Text="{Binding Responsibility}" MaxLength="300" />
+              </ui:FormField>
+              <TextBlock Text="{Binding ReachError}" Classes="small error" TextWrapping="Wrap" IsVisible="{Binding HasReachError}" />
+            </StackPanel>
+
+            <StackPanel Spacing="8">
+              <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Text="Erreichbarkeit" Classes="h2" VerticalAlignment="Center" />
+                <ui:HelpButton Grid.Column="1" Topic="betriebsinformationen" Section="erreichbarkeit" />
+              </Grid>
+              <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                <ui:FormField Label="Telefon" Error="{Binding PhoneError}">
+                  <TextBox x:Name="BusinessPhoneField" Text="{Binding Phone}" MaxLength="40" PlaceholderText="z. B. +43 1 234 56 78" />
+                </ui:FormField>
+                <ui:FormField Grid.Column="1" Label="Mobil" Error="{Binding MobileError}">
+                  <TextBox x:Name="BusinessMobileField" Text="{Binding Mobile}" MaxLength="40" />
+                </ui:FormField>
+              </Grid>
+              <ui:FormField Label="E-Mail" Error="{Binding EmailError}">
+                <TextBox x:Name="BusinessEmailField" Text="{Binding Email}" MaxLength="200" />
+              </ui:FormField>
+              <ui:FormField Label="Adresse">
+                <TextBox x:Name="BusinessAddressField" Text="{Binding Address}" MaxLength="300" />
+              </ui:FormField>
+            </StackPanel>
+
+            <StackPanel Spacing="8" IsVisible="{Binding IsInsurance}">
+              <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Text="Versicherung" Classes="h2" VerticalAlignment="Center" />
+                <ui:HelpButton Grid.Column="1" Topic="betriebsinformationen" Section="versicherung" />
+              </Grid>
+              <ui:FormField Label="Versicherer">
+                <TextBox x:Name="BusinessInsurerField" Text="{Binding Insurer}" MaxLength="120" />
+              </ui:FormField>
+              <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                <ui:FormField Label="Polizzennummer">
+                  <TextBox x:Name="BusinessPolicyField" Text="{Binding PolicyNumber}" MaxLength="60" />
+                </ui:FormField>
+                <ui:FormField Grid.Column="1" Label="Schadenshotline" Error="{Binding HotlineError}">
+                  <TextBox x:Name="BusinessHotlineField" Text="{Binding ClaimsHotline}" MaxLength="40" />
+                </ui:FormField>
+              </Grid>
+              <ui:FormField Label="Deckung" Help="Frei beschreiben, z. B. „Betriebshaftpflicht bis 3 Mio. EUR“.">
+                <TextBox x:Name="BusinessCoverageField" Text="{Binding Coverage}" MaxLength="300" />
+              </ui:FormField>
+            </StackPanel>
+
+            <StackPanel Spacing="8">
+              <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Text="Sichtbarkeit und Standorte" Classes="h2" VerticalAlignment="Center" />
+                <ui:HelpButton Grid.Column="1" Topic="betriebsinformationen" Section="sichtbarkeit" />
+              </Grid>
+              <StackPanel Spacing="4" AutomationProperties.Name="Wer den Eintrag liest">
+                <RadioButton x:Name="BusinessTeamOption" GroupName="BusinessVisibility" IsChecked="{Binding IsTeamVisible}" Content="Team" />
+                <RadioButton x:Name="BusinessManagementOption" GroupName="BusinessVisibility" IsChecked="{Binding IsManagementVisible}" Content="Leitung" />
+              </StackPanel>
+              <TextBlock Classes="muted small" TextWrapping="Wrap" Text="{Binding VisibilityHint}" />
+              <StackPanel Spacing="4" AutomationProperties.Name="Wo der Eintrag gilt">
+                <RadioButton x:Name="BusinessAllLocationsOption" GroupName="BusinessPlaces" IsChecked="{Binding AllLocations}" Content="Alle Standorte" />
+                <RadioButton x:Name="BusinessSomeLocationsOption" GroupName="BusinessPlaces" IsChecked="{Binding SomeLocations}" Content="Ausgewählte Standorte" />
+              </StackPanel>
+              <ItemsControl x:Name="BusinessLocationList" ItemsSource="{Binding Locations}" IsVisible="{Binding ShowLocationList}" AutomationProperties.Name="Standorte" Margin="24,0,0,0">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:BusinessLocationChoice">
+                    <CheckBox IsChecked="{Binding IsSelected}" Content="{Binding Name}" />
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+              <TextBlock Text="{Binding LocationsError}" Classes="small error" TextWrapping="Wrap" IsVisible="{Binding HasLocationsError}" />
+            </StackPanel>
+
+            <StackPanel Spacing="8">
+              <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Text="Weitere Angaben" Classes="h2" VerticalAlignment="Center" />
+                <ui:HelpButton Grid.Column="1" Topic="betriebsinformationen" Section="weitere-angaben" />
+              </Grid>
+              <ui:FormField Label="Kunden-/Vertragsnummer">
+                <TextBox x:Name="BusinessCustomerNumberField" Text="{Binding CustomerNumber}" MaxLength="60" />
+              </ui:FormField>
+              <ui:FormField Label="Notizen" Help="Keine Passwörter oder Zugangsdaten eintragen.">
+                <TextBox x:Name="BusinessNotesField" Text="{Binding Notes}" MaxLength="1000" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="64" />
+              </ui:FormField>
+            </StackPanel>
+          </StackPanel>
+
+          <StackPanel x:Name="Footer" Spacing="12">
+            <ui:InfoBar Severity="Error" Title="Nicht gespeichert" Message="{Binding Error}" IsVisible="{Binding HasError}"
+                        ActionText="Erneut versuchen" ActionCommand="{Binding SaveCommand}" CloseCommand="{Binding CloseErrorCommand}" />
+            <ui:SaveBar SaveCommand="{Binding SaveCommand}" DiscardCommand="{Binding DiscardCommand}" CanDiscard="{Binding HasUnsavedChanges}" Status="{Binding StatusText}"
+                        IsVisible="{Binding IsEditable}" />
+          </StackPanel>
+        </StackPanel>
+      </StackPanel>
+    </ScrollViewer>
+  </Grid>
+</views:FocusRequestView>

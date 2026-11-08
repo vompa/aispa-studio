@@ -1,0 +1,50 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             x:Class="AispaStudio.Desktop.Views.PersonPayrollView"
+             x:DataType="vm:PersonPayrollViewModel">
+  <!--
+    Reiter „Lohn“ der Personenkarte (R05 Slice 100, Ä191, Ä250): die Personalnummer der Lohnverrechnung (gespeichert mit der Leiste der Karte) und die Monatswerte der Person
+    aus der Vorschau der API, nach web/src/payroll/PayrollPage.tsx. Den Export für alle gibt es im Team unter „Lohn“.
+  -->
+  <StackPanel x:Name="PersonPayrollSection" Spacing="20">
+    <ui:InfoBar Severity="Error" Title="Lohn nicht geladen" Message="{Binding LoadError}" IsVisible="{Binding HasLoadError}"
+                ActionText="Erneut laden" ActionCommand="{Binding ReloadCommand}" />
+
+    <StackPanel Spacing="8">
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Text="Personalnummer" Classes="h3" VerticalAlignment="Center" />
+        <ui:HelpButton Topic="lohn" Section="personalnummern" Grid.Column="1" />
+      </Grid>
+      <TextBlock Classes="muted" TextWrapping="Wrap" Text="Die Nummer der Lohnverrechnung oder Steuerberatung (Dienstnehmernummer in BMD, Personalnummer in DATEV)." />
+      <ui:FormField Label="Personalnummer" IsEnabled="{Binding CanEditNumber}">
+        <TextBox x:Name="PersonnelNumberField" Text="{Binding PersonnelNumber}" MaxLength="20" Width="200" HorizontalAlignment="Left" />
+      </ui:FormField>
+      <TextBlock Classes="muted" TextWrapping="Wrap" Text="Nur lesen: Die Personalnummer ändern Inhaberin und Manager." IsVisible="{Binding !IsEditable}" />
+    </StackPanel>
+
+    <StackPanel Spacing="8">
+      <TextBlock Text="Monatswerte" Classes="h3" />
+      <ui:FormField Label="Monat">
+        <ComboBox x:Name="PersonPayrollMonthField" ItemsSource="{Binding Months}" SelectedItem="{Binding SelectedMonth}" MinWidth="200" HorizontalAlignment="Left"
+                  AutomationProperties.Name="Monat" />
+      </ui:FormField>
+      <TextBlock Text="Lade Monatswerte …" Classes="muted" IsVisible="{Binding !IsLoaded}" />
+      <TextBlock Text="Keine Dienste oder Abwesenheiten im Monat." Classes="muted" IsVisible="{Binding ShowsEmpty}" />
+      <ItemsControl x:Name="PersonPayrollRows" ItemsSource="{Binding Rows}" AutomationProperties.Name="Monatswerte der Person">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="vm:PayrollRow">
+            <Grid ColumnDefinitions="2*,1.2*,*" ColumnSpacing="12" Margin="0,0,0,4" AutomationProperties.Name="{Binding AutomationName}">
+              <TextBlock Text="{Binding Item}" />
+              <TextBlock Grid.Column="1" Text="{Binding Quantity}" HorizontalAlignment="Right" />
+              <TextBlock Grid.Column="2" Text="{Binding WageType}" Classes="muted" />
+            </Grid>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+      <TextBlock Classes="muted small" TextWrapping="Wrap"
+                 Text="Die Mengen kommen aus dem Dienstplan. Eine Provision gibt es nicht; die Lohnverrechnung rechnet Zuschläge über die Lohnart." />
+    </StackPanel>
+  </StackPanel>
+</UserControl>

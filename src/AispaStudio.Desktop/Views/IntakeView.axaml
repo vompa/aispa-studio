@@ -1,0 +1,147 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             xmlns:local="using:AispaStudio.Desktop.Views"
+             x:Class="AispaStudio.Desktop.Views.IntakeView"
+             x:DataType="vm:IntakeViewModel"
+             ui:SaveShortcut.IsScope="True">
+  <!--
+    Postfach & Nummern (R05 Slice 97), native Maske nach web/src/admin/IntakeTab.tsx: eigenes Postfach, Antworten aus dem Postfach, Nummern (nur lesend) und die Absenderregeln
+    als eigene Speicherebene. Aufbau nach docs/gestaltung/masken.md wie die Firmendaten: Gruppen mit Überschrift und Fragezeichen am Titel, Leiste „Speichern / Verwerfen“ fest im
+    Fuß (Strg+S) mit „Jetzt prüfen“ und „Postfach entfernen“. Das Passwort ist maskiert und wird nie angezeigt.
+  -->
+  <Grid RowDefinitions="*,Auto">
+    <ScrollViewer x:Name="FieldsScroll" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+      <StackPanel Spacing="20" MaxWidth="720" HorizontalAlignment="Left" Margin="0,0,16,16">
+
+        <StackPanel Spacing="8">
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Text="Eigenes Postfach" Classes="h2" VerticalAlignment="Center" />
+            <ui:HelpButton Grid.Column="1" Topic="postfach" Section="eigenes-postfach" />
+          </Grid>
+          <TextBlock Classes="muted" TextWrapping="Wrap"
+                     Text="Anfragen an dieses Postfach landen im Posteingang dieses Spas. Verarbeitete Mails bleiben im Postfach und werden nur markiert." />
+        </StackPanel>
+
+        <ui:InfoBar Severity="Error" Title="Postfach nicht geladen" Message="{Binding LoadError}" IsVisible="{Binding HasLoadError}"
+                    ActionText="Erneut laden" ActionCommand="{Binding LoadCommand}" />
+        <TextBlock Text="Lade Postfach …" Classes="muted" IsVisible="{Binding !IsLoaded}" />
+
+        <StackPanel Spacing="20" IsVisible="{Binding IsLoaded}">
+          <StackPanel Spacing="12">
+            <ui:InfoBar Severity="Warning" Message="{Binding StatusLine}" IsVisible="{Binding StatusIsWarning}" />
+            <TextBlock Text="{Binding StatusLine}" Classes="muted" IsVisible="{Binding !StatusIsWarning}" />
+            <CheckBox x:Name="EnabledBox" IsChecked="{Binding Enabled}" Content="Postfach abrufen" />
+
+            <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="12">
+              <ui:FormField Label="Art">
+                <ComboBox x:Name="KindField" ItemsSource="{x:Static vm:IntakeViewModel.MailboxKinds}" SelectedItem="{Binding Kind}" HorizontalAlignment="Stretch" />
+              </ui:FormField>
+              <ui:FormField Grid.Column="1" Label="Adresse des Postfachs">
+                <TextBox x:Name="AddressField" Text="{Binding Address}" />
+              </ui:FormField>
+            </Grid>
+
+            <!-- IMAP -->
+            <Grid ColumnDefinitions="*,120,*" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="12" IsVisible="{Binding IsImap}">
+              <ui:FormField Label="Server">
+                <TextBox x:Name="HostField" Text="{Binding Host}" />
+              </ui:FormField>
+              <ui:FormField Grid.Column="1" Label="Port">
+                <ui:NumberField x:Name="PortField" Value="{Binding Port}" Minimum="1" Maximum="65535" />
+              </ui:FormField>
+              <ui:FormField Grid.Column="2" Label="Verschlüsselung">
+                <ComboBox x:Name="SecurityField" ItemsSource="{x:Static vm:IntakeViewModel.SecurityOptions}" SelectedItem="{Binding Security}" HorizontalAlignment="Stretch" />
+              </ui:FormField>
+              <ui:FormField Grid.Row="1" Label="Benutzername">
+                <TextBox x:Name="UserNameField" Text="{Binding UserName}" />
+              </ui:FormField>
+              <ui:FormField Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Label="Ordner">
+                <TextBox x:Name="FolderField" Text="{Binding Folder}" PlaceholderText="Inbox" />
+              </ui:FormField>
+            </Grid>
+
+            <!-- Microsoft 365 -->
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="12" IsVisible="{Binding IsGraph}">
+              <ui:FormField Label="Verzeichnis-ID (Tenant)">
+                <TextBox x:Name="DirectoryTenantField" Text="{Binding DirectoryTenantId}" />
+              </ui:FormField>
+              <ui:FormField Grid.Column="1" Label="Anwendungs-ID (Client)">
+                <TextBox x:Name="ClientIdField" Text="{Binding ClientId}" />
+              </ui:FormField>
+            </Grid>
+
+            <ui:FormField Label="{Binding SecretLabel}">
+              <TextBox x:Name="SecretField" Text="{Binding Secret}" PasswordChar="●" PlaceholderText="{Binding SecretPlaceholder}" />
+            </ui:FormField>
+          </StackPanel>
+
+          <!-- Antworten und Erinnerungen -->
+          <StackPanel Spacing="8">
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Text="Antworten und Erinnerungen" Classes="h2" VerticalAlignment="Center" />
+              <ui:HelpButton Grid.Column="1" Topic="postfach" Section="antworten-und-erinnerungen" />
+            </Grid>
+            <CheckBox x:Name="SendRepliesBox" IsChecked="{Binding SendReplies}" Content="Aus diesem Postfach senden" />
+            <TextBlock Text="{Binding RepliesHint}" Classes="muted" TextWrapping="Wrap" />
+            <StackPanel Spacing="12" IsVisible="{Binding ShowSmtp}">
+              <Grid ColumnDefinitions="*,120,*" ColumnSpacing="12">
+                <ui:FormField Label="SMTP-Server">
+                  <TextBox x:Name="SmtpHostField" Text="{Binding SmtpHost}" />
+                </ui:FormField>
+                <ui:FormField Grid.Column="1" Label="SMTP-Port">
+                  <ui:NumberField x:Name="SmtpPortField" Value="{Binding SmtpPort}" Minimum="1" Maximum="65535" />
+                </ui:FormField>
+                <ui:FormField Grid.Column="2" Label="Verschlüsselung beim Senden">
+                  <ComboBox x:Name="SmtpSecurityField" ItemsSource="{x:Static vm:IntakeViewModel.SecurityOptions}" SelectedItem="{Binding SmtpSecurity}" HorizontalAlignment="Stretch" />
+                </ui:FormField>
+              </Grid>
+              <CheckBox x:Name="SaveSentCopyBox" IsChecked="{Binding SaveSentCopy}" Content="Kopie im Ordner „Gesendet“ ablegen" />
+              <ui:FormField Label="Ordner für gesendete Mails" IsVisible="{Binding ShowSentFolder}">
+                <TextBox x:Name="SentFolderField" Text="{Binding SentFolder}" PlaceholderText="automatisch" />
+              </ui:FormField>
+              <TextBlock Classes="muted" TextWrapping="Wrap" Text="Bei Gmail ausschalten: Gmail legt über SMTP gesendete Mails selbst unter „Gesendet“ ab." />
+            </StackPanel>
+            <ui:InfoBar Severity="Warning" Message="{Binding SendNotice}" IsVisible="{Binding HasSendNotice}" />
+          </StackPanel>
+
+          <!-- Nummern -->
+          <StackPanel Spacing="8">
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Text="Nummern" Classes="h2" VerticalAlignment="Center" />
+              <ui:HelpButton Grid.Column="1" Topic="postfach" Section="nummern" />
+            </Grid>
+            <TextBlock Classes="muted" TextWrapping="Wrap" IsVisible="{Binding !HasRoutes}"
+                       Text="Noch keine eigene Nummer. SMS, WhatsApp und Anrufe kommen über die gemeinsame Nummer." />
+            <ItemsControl ItemsSource="{Binding Routes}" IsVisible="{Binding HasRoutes}" AutomationProperties.Name="Nummern des Spas">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="x:String">
+                  <TextBlock Text="{Binding}" Margin="0,2" />
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <TextBlock Classes="muted" TextWrapping="Wrap"
+                       Text="Nummern richtet der Betreiber ein. Nachrichten an diese Nummern landen bei diesem Spa, Antworten gehen von dort." />
+          </StackPanel>
+
+          <local:SenderRulesSection DataContext="{Binding SenderRules}" />
+        </StackPanel>
+      </StackPanel>
+    </ScrollViewer>
+
+    <StackPanel x:Name="Footer" Grid.Row="1" Spacing="12" MaxWidth="720" HorizontalAlignment="Left" Margin="0,12,16,0" IsVisible="{Binding IsLoaded}">
+      <ui:InfoBar Severity="Error" Title="Nicht gespeichert" Message="{Binding Error}" IsVisible="{Binding HasError}"
+                  ActionText="Erneut versuchen" ActionCommand="{Binding SaveCommand}" CloseCommand="{Binding CloseErrorCommand}" />
+      <ui:InfoBar Severity="{Binding MessageSeverity}" Message="{Binding Message}" IsVisible="{Binding HasMessage}" CloseCommand="{Binding CloseMessageCommand}" />
+      <StackPanel Orientation="Horizontal" Spacing="24">
+        <ui:SaveBar SaveCommand="{Binding SaveCommand}" DiscardCommand="{Binding DiscardCommand}" CanDiscard="{Binding HasUnsavedChanges}" Status="{Binding StatusText}" />
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <Button x:Name="CheckButton" Classes="ghost" Content="{Binding CheckText}" Command="{Binding CheckCommand}"
+                  ui:DisabledHint.Text="Verfügbar, sobald ein eingeschaltetes Postfach gespeichert ist." />
+          <Button x:Name="RemoveButton" Classes="danger" Content="Postfach entfernen" Command="{Binding RemoveCommand}" IsVisible="{Binding HasMailbox}" />
+        </StackPanel>
+      </StackPanel>
+    </StackPanel>
+  </Grid>
+</UserControl>

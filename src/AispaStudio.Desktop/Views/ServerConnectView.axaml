@@ -1,0 +1,24 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             x:Class="AispaStudio.Desktop.Views.ServerConnectView"
+             x:DataType="vm:ServerConnectViewModel">
+  <StackPanel Spacing="8">
+    <StackPanel Orientation="Horizontal" Spacing="8">
+      <TextBlock Text="Mit Server verbinden" Classes="h2" />
+      <ui:HelpButton Topic="im-netz" Section="verbinden-server" />
+    </StackPanel>
+    <TextBlock Text="Läuft AISPA Studio auf einem Server, z. B. für die Verwaltung von zu Hause, trägt man hier dessen Adresse ein."
+               Classes="muted small" TextWrapping="Wrap" />
+    <ui:FormField Label="Serveradresse" Help="z. B. spa.example.at; https:// ergänzt die App." IsRequired="True">
+      <TextBox Text="{Binding Address}" PlaceholderText="z. B. https://spa.example.at" />
+    </ui:FormField>
+    <ui:InfoBar Severity="Error" Message="{Binding Error}" IsVisible="{Binding Error, Converter={x:Static ObjectConverters.IsNotNull}}" />
+    <StackPanel Orientation="Horizontal" Spacing="10">
+      <Button Classes="primary" Content="Server verbinden" Command="{Binding ConnectCommand}" />
+      <Button Classes="ghost" Content="Eintrag vergessen" Command="{Binding ForgetCommand}" IsVisible="{Binding HasSaved}" />
+    </StackPanel>
+    <TextBlock Text="{Binding SavedText}" Classes="muted small" IsVisible="{Binding HasSaved}" />
+  </StackPanel>
+</UserControl>

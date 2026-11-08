@@ -1,0 +1,211 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             xmlns:views="using:AispaStudio.Desktop.Views"
+             x:Class="AispaStudio.Desktop.Views.ConfirmDialogView"
+             x:DataType="vm:ConfirmDialogHost"
+             IsVisible="{Binding HasDialog}">
+  <!-- Rückfragedialog (Design-Brief 5.27): Alert über dem ganzen Fenster, Overlay 0,45, Karte 420 breit, Radius 12, Innenabstand 24, kein Schatten.
+       Klicks neben die Karte schließen nichts; Esc ist „Abbrechen“; Tab bleibt im Dialog (Cycle). -->
+  <ContentControl Content="{Binding Current}">
+    <ContentControl.DataTemplates>
+      <!-- Absage der Termine einer Schließzeit (ADR 0073): derselbe Dialog (Scrim, Karte, Fokus auf Abbrechen, Esc), 600 breit, mit Liste und Textfeld; die Knöpfe stehen fest unten -->
+      <DataTemplate DataType="vm:CancelClosureDialogViewModel" x:DataType="vm:CancelClosureDialogViewModel">
+        <Panel>
+          <Border x:Name="Scrim" Background="{DynamicResource ScrimBrush}" />
+          <Border x:Name="DialogCard" Classes="confirmdialog wide" AutomationProperties.Name="{Binding Title}" KeyboardNavigation.TabNavigation="Cycle">
+            <Grid RowDefinitions="Auto,*,Auto" RowSpacing="8">
+              <StackPanel Spacing="8">
+                <TextBlock x:Name="DialogTitle" Classes="h2" Text="{Binding Title}" TextWrapping="Wrap" />
+                <TextBlock x:Name="DialogMessage" Text="{Binding Message}" TextWrapping="Wrap" />
+              </StackPanel>
+              <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="-4,0" Padding="4,0">
+                <StackPanel Spacing="12" Margin="0,8">
+                  <TextBlock x:Name="ClosureEmpty" Text="{Binding EmptyText}" IsVisible="{Binding IsEmpty}" Classes="muted" TextWrapping="Wrap" />
+                  <StackPanel Spacing="6" IsVisible="{Binding HasRows}">
+                    <TextBlock Text="{Binding ListLabel}" Classes="group" />
+                    <CheckBox x:Name="ClosureAll" Content="Alle auswählen" IsChecked="{Binding AllChecked}" />
+                    <Border Classes="closurelist">
+                      <ScrollViewer MaxHeight="190" VerticalScrollBarVisibility="Auto">
+                        <ItemsControl x:Name="ClosureRows" ItemsSource="{Binding Rows}" Margin="12,4">
+                          <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:ClosureAppointmentRow">
+                              <CheckBox IsChecked="{Binding IsChecked}" AutomationProperties.Name="{Binding Name}" Margin="0,2">
+                                <StackPanel>
+                                  <TextBlock Text="{Binding Guest}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                                  <TextBlock Text="{Binding Detail}" Classes="num" TextTrimming="CharacterEllipsis" />
+                                  <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <TextBlock Text="{Binding ChannelText}" Classes="muted small" VerticalAlignment="Center" />
+                                    <Border Classes="pill" Padding="6,0" ToolTip.Tip="{Binding LanguageName}">
+                                      <TextBlock Text="{Binding LanguageCode}" />
+                                    </Border>
+                                    <TextBlock Text="{Binding Hint, StringFormat='· {0}'}" Classes="muted small" IsVisible="{Binding HasHint}" VerticalAlignment="Center" />
+                                  </StackPanel>
+                                </StackPanel>
+                              </CheckBox>
+                            </DataTemplate>
+                          </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                      </ScrollViewer>
+                    </Border>
+                  </StackPanel>
+                  <!-- Warteliste (Ä48): Einträge, deren Wunschzeitraum in die Schließzeit fällt; sie bleiben auf der Liste -->
+                  <StackPanel x:Name="ClosureWaitlist" Spacing="6" IsVisible="{Binding HasWaitlist}">
+                    <TextBlock Text="{Binding WaitlistLabel}" Classes="group" />
+                    <TextBlock Text="{Binding WaitlistHint}" Classes="muted small" TextWrapping="Wrap" />
+                    <CheckBox x:Name="ClosureWaitlistAll" Content="Alle auswählen" IsChecked="{Binding AllWaitlistChecked}" />
+                    <Border Classes="closurelist">
+                      <ScrollViewer MaxHeight="130" VerticalScrollBarVisibility="Auto">
+                        <ItemsControl x:Name="ClosureWaitlistRows" ItemsSource="{Binding WaitlistRows}" Margin="12,4">
+                          <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:ClosureWaitlistRow">
+                              <CheckBox IsChecked="{Binding IsChecked}" AutomationProperties.Name="{Binding Name}" Margin="0,2">
+                                <StackPanel>
+                                  <TextBlock Text="{Binding Guest}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                                  <TextBlock Text="{Binding Detail}" Classes="num" TextTrimming="CharacterEllipsis" />
+                                  <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <TextBlock Text="{Binding ChannelText}" Classes="muted small" VerticalAlignment="Center" />
+                                    <Border Classes="pill" Padding="6,0" ToolTip.Tip="{Binding LanguageName}">
+                                      <TextBlock Text="{Binding LanguageCode}" />
+                                    </Border>
+                                  </StackPanel>
+                                </StackPanel>
+                              </CheckBox>
+                            </DataTemplate>
+                          </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                      </ScrollViewer>
+                    </Border>
+                  </StackPanel>
+                  <StackPanel Spacing="12" IsVisible="{Binding HasRows}">
+                    <ui:FormField Label="Betreff (Mail)">
+                      <TextBox x:Name="ClosureSubject" Text="{Binding Subject}" MaxLength="200" />
+                    </ui:FormField>
+                    <ui:FormField Label="Nachricht" Help="{Binding TextHint}" Error="{Binding TextError}">
+                      <StackPanel Spacing="6">
+                        <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding AiWritten}">
+                          <views:AiPill />
+                        </StackPanel>
+                        <TextBox x:Name="ClosureText" Text="{Binding Text}" AcceptsReturn="True" TextWrapping="Wrap" MaxLength="2000" Height="170" AutomationProperties.Name="Nachricht" />
+                        <WrapPanel x:Name="ClosureRevise" ItemSpacing="6" LineSpacing="6" IsVisible="{Binding AiAvailable}">
+                          <Button Content="Freundlicher formulieren (KI)" Command="{Binding ReviseCommand}" CommandParameter="Friendlier" IsEnabled="{Binding !IsRevising}" />
+                          <Button Content="Mit Entschuldigung (KI)" Command="{Binding ReviseCommand}" CommandParameter="Apology" IsEnabled="{Binding !IsRevising}" />
+                          <Button Content="Förmlicher formulieren (KI)" Command="{Binding ReviseCommand}" CommandParameter="Formal" IsEnabled="{Binding !IsRevising}" />
+                        </WrapPanel>
+                      </StackPanel>
+                    </ui:FormField>
+                    <CheckBox x:Name="ClosureRebook" Content="Umbuchung anbieten (Link in den Kundenbereich)" IsChecked="{Binding OfferRebooking}" />
+                  </StackPanel>
+                  <StackPanel Spacing="4" IsVisible="{Binding !IsEmpty}">
+                    <TextBlock x:Name="ClosureSummary" Text="{Binding Summary}" FontWeight="Medium" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
+                    <TextBlock x:Name="ClosureLanguages" Text="{Binding LanguageSummary}" Classes="muted small" TextWrapping="Wrap" IsVisible="{Binding HasLanguageSummary}" />
+                    <TextBlock x:Name="ClosureRefunds" Text="{Binding RefundSummary}" Classes="small" TextWrapping="Wrap" IsVisible="{Binding HasRefundSummary}" />
+                  </StackPanel>
+                </StackPanel>
+              </ScrollViewer>
+              <StackPanel Grid.Row="2" x:Name="DialogButtons" Classes="confirmbuttons">
+                <Button x:Name="ConfirmButton" Classes="danger filled" Content="{Binding SendText}" Command="{Binding SendCommand}" IsVisible="{Binding !IsEmpty}" />
+                <Button x:Name="CancelButton" Classes="ghost" Content="{Binding CancelText}" Command="{Binding CancelCommand}" />
+              </StackPanel>
+            </Grid>
+          </Border>
+        </Panel>
+      </DataTemplate>
+      <!-- Papierbogen prüfen (Ä300): derselbe Dialog, 960 breit, links das Foto, rechts der Vorschlag der KI; Schließen speichert nichts -->
+      <DataTemplate DataType="vm:ScanReviewDialogViewModel" x:DataType="vm:ScanReviewDialogViewModel">
+        <Panel>
+          <Border x:Name="Scrim" Background="{DynamicResource ScrimBrush}" />
+          <Border x:Name="DialogCard" Classes="confirmdialog wide" Width="960" AutomationProperties.Name="{Binding Title}" KeyboardNavigation.TabNavigation="Cycle">
+            <Grid RowDefinitions="Auto,*,Auto" RowSpacing="8">
+              <StackPanel Spacing="8">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <TextBlock x:Name="DialogTitle" Classes="h2" Text="{Binding Title}" />
+                  <views:AiPill x:Name="ScanAiPill" IsVisible="{Binding IsReadByAi}" />
+                </StackPanel>
+                <TextBlock Text="Die KI liest den Bogen …" Classes="muted" IsVisible="{Binding IsReading}" AutomationProperties.LiveSetting="Polite" />
+                <TextBlock x:Name="DialogMessage" Text="{Binding Message}" TextWrapping="Wrap" IsVisible="{Binding IsReadByAi}" />
+                <TextBlock Text="{Binding ReaderText}" Classes="muted" TextWrapping="Wrap" IsVisible="{Binding HasForm}" />
+                <Border Classes="hint warn" IsVisible="{Binding HasNote}">
+                  <TextBlock Text="{Binding Note}" TextWrapping="Wrap" />
+                </Border>
+              </StackPanel>
+              <Grid Grid.Row="1" ColumnDefinitions="*,*" ColumnSpacing="16">
+                <Panel>
+                  <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                    <Image x:Name="ScanPhoto" Source="{Binding Photo}" Stretch="Uniform" VerticalAlignment="Top" AutomationProperties.Name="Foto des ausgefüllten Papierbogens" />
+                  </ScrollViewer>
+                  <TextBlock x:Name="ScanPhotoStatus" Text="{Binding PhotoStatus}" Classes="muted" TextWrapping="Wrap" IsVisible="{Binding HasPhotoStatus}" AutomationProperties.LiveSetting="Polite" />
+                </Panel>
+                <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto" Padding="0,0,12,0">
+                  <StackPanel Spacing="12" IsVisible="{Binding HasForm}">
+                    <ItemsControl ItemsSource="{Binding Questions}">
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:ScanQuestionRow">
+                          <Border Classes.hint="{Binding IsUncertain}" Classes.warn="{Binding IsUncertain}" Margin="0,0,0,12">
+                            <StackPanel Spacing="6">
+                              <TextBlock Text="{Binding Label}" FontWeight="Medium" TextWrapping="Wrap" />
+                              <TextBlock Text="{Binding UncertainText}" Classes="small" TextWrapping="Wrap" IsVisible="{Binding IsUncertain}" />
+                              <StackPanel Orientation="Horizontal" Spacing="16" IsVisible="{Binding IsYesNo}">
+                                <RadioButton x:Name="ScanYes" Content="Ja" AutomationProperties.Name="{Binding YesName}" GroupName="{Binding Key}" IsChecked="{Binding YesChecked}" />
+                                <RadioButton x:Name="ScanNo" Content="Nein" AutomationProperties.Name="{Binding NoName}" GroupName="{Binding Key}" IsChecked="{Binding NoChecked}" />
+                              </StackPanel>
+                              <ui:FormField Label="{Binding DetailsLabel}">
+                                <TextBox Text="{Binding Details}" MaxLength="1000" />
+                              </ui:FormField>
+                            </StackPanel>
+                          </Border>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <Border Classes.hint="{Binding IsSignatureUncertain}" Classes.warn="{Binding IsSignatureUncertain}">
+                      <StackPanel Spacing="6">
+                        <TextBlock Text="Unterschrift" FontWeight="Medium" />
+                        <ui:FormField Label="Name wie auf dem Bogen">
+                          <TextBox x:Name="ScanSignature" Text="{Binding Signature}" MaxLength="200" />
+                        </ui:FormField>
+                        <CheckBox x:Name="ScanSignedBox" Content="Der Bogen ist unterschrieben" IsChecked="{Binding IsSigned}" />
+                        <CheckBox x:Name="ScanConsentBox" Content="Einwilligung ist auf dem Papier angekreuzt" IsChecked="{Binding HasConsentOnPaper}" />
+                      </StackPanel>
+                    </Border>
+                    <TextBlock Text="{Binding MissingText}" Classes="muted" IsVisible="{Binding HasMissing}" />
+                    <TextBlock Text="{Binding OpenText}" Classes="muted" IsVisible="{Binding HasOpen}" />
+                  </StackPanel>
+                </ScrollViewer>
+              </Grid>
+              <StackPanel Grid.Row="2" Spacing="8">
+                <ui:InfoBar Severity="Error" Message="{Binding Error}" IsVisible="{Binding HasError}" />
+                <StackPanel x:Name="DialogButtons" Classes="confirmbuttons">
+                  <Button x:Name="ConfirmButton" Classes="filled" Content="{Binding ConfirmText}" Command="{Binding AcceptCommand}" IsEnabled="{Binding CanAccept}" />
+                  <Button x:Name="DiscardScanButton" Classes="danger" Content="Foto verwerfen" Command="{Binding DiscardCommand}" IsVisible="{Binding !IsReading}" IsEnabled="{Binding !IsBusy}" />
+                  <Button x:Name="CancelButton" Classes="ghost" Content="{Binding CancelText}" Command="{Binding CancelCommand}" />
+                </StackPanel>
+              </StackPanel>
+            </Grid>
+          </Border>
+        </Panel>
+      </DataTemplate>
+      <DataTemplate DataType="vm:ConfirmDialogViewModel" x:DataType="vm:ConfirmDialogViewModel">
+        <Panel>
+          <Border x:Name="Scrim" Background="{DynamicResource ScrimBrush}" />
+          <Border x:Name="DialogCard" Classes="confirmdialog" AutomationProperties.Name="{Binding Title}" KeyboardNavigation.TabNavigation="Cycle">
+            <StackPanel Spacing="8">
+              <TextBlock x:Name="DialogTitle" Classes="h2" Text="{Binding Title}" TextWrapping="Wrap" />
+              <TextBlock x:Name="DialogMessage" Text="{Binding Message}" TextWrapping="Wrap" />
+              <ui:FormField x:Name="DialogInputField" Label="{Binding InputLabel}" IsVisible="{Binding HasInput}" Margin="0,8,0,0">
+                <TextBox x:Name="DialogInput" Text="{Binding Input}" />
+              </ui:FormField>
+              <StackPanel x:Name="DialogButtons" Classes="confirmbuttons" Classes.stacked="{Binding HasAlternative}">
+                <Button x:Name="ConfirmButton" Classes.primary="{Binding !IsDestructive}" Classes.danger="{Binding IsDestructive}" Classes.filled="{Binding IsDestructive}"
+                        Content="{Binding ConfirmText}" Command="{Binding ConfirmCommand}" />
+                <Button x:Name="AlternativeButton" Classes="danger" Content="{Binding AlternativeText}" Command="{Binding AlternativeCommand}"
+                        IsVisible="{Binding HasAlternative}" />
+                <Button x:Name="CancelButton" Classes="ghost" Content="{Binding CancelText}" Command="{Binding CancelCommand}" />
+              </StackPanel>
+            </StackPanel>
+          </Border>
+        </Panel>
+      </DataTemplate>
+    </ContentControl.DataTemplates>
+  </ContentControl>
+</UserControl>

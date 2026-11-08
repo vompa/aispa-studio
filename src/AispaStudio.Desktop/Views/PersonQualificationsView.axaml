@@ -1,0 +1,58 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             x:Class="AispaStudio.Desktop.Views.PersonQualificationsView"
+             x:DataType="vm:PersonQualificationsViewModel">
+  <!--
+    Reiter „Qualifikationen“ (R05 Slice 98): welche Qualifikationen die Person hat (gespeichert mit der Leiste), darunter „Qualifikationen verwalten“ wie
+    web/src/admin/QualificationsTab.tsx: Umbenennen und Hinzufügen wirken sofort.
+  -->
+  <StackPanel x:Name="QualificationsSection" Spacing="20">
+    <StackPanel Spacing="8">
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Text="Qualifikationen der Person" Classes="h3" VerticalAlignment="Center" />
+        <ui:HelpButton Topic="team" Section="qualifikationen" Grid.Column="1" />
+      </Grid>
+      <TextBlock Classes="muted" TextWrapping="Wrap" Text="Wer eine Qualifikation hat, bekommt die Behandlungen angeboten, die sie verlangen." />
+      <TextBlock Text="Noch keine Qualifikationen angelegt." Classes="muted" IsVisible="{Binding HasNone}" />
+      <ItemsControl x:Name="PersonQualificationsField" ItemsSource="{Binding Options}" AutomationProperties.Name="Qualifikationen der Person">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <WrapPanel ItemSpacing="16" />
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="vm:CheckOption">
+            <CheckBox Content="{Binding Label}" IsChecked="{Binding IsChecked}" />
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </StackPanel>
+
+    <StackPanel x:Name="ManageQualifications" Spacing="8">
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Text="Qualifikationen verwalten" Classes="h3" VerticalAlignment="Center" />
+        <ui:HelpButton Topic="qualifikationen" Section="qualifikationen" Grid.Column="1" />
+      </Grid>
+      <TextBlock Classes="muted" TextWrapping="Wrap" Text="Umbenennen und Hinzufügen gilt sofort für das ganze Team und alle Behandlungen." />
+      <ItemsControl ItemsSource="{Binding Rows}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="vm:QualificationRow">
+            <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,0,0,8">
+              <TextBox Text="{Binding Name}" Width="240" MaxLength="60" AutomationProperties.Name="Qualifikation" />
+              <Button Content="Umbenennen" Command="{Binding RenameCommand}" IsVisible="{Binding CanRename}" />
+            </StackPanel>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+      <StackPanel Orientation="Horizontal" Spacing="8">
+        <TextBox x:Name="NewQualificationField" Text="{Binding NewName}" Width="240" MaxLength="60" PlaceholderText="z. B. Hot Stone"
+                 AutomationProperties.Name="Neue Qualifikation" />
+        <Button x:Name="AddQualificationButton" Content="Hinzufügen" Command="{Binding AddCommand}"
+                ui:DisabledHint.Text="Verfügbar, sobald ein Name eingetragen ist." />
+      </StackPanel>
+      <ui:InfoBar Severity="Error" Message="{Binding ManageError}" IsVisible="{Binding HasManageError}" />
+    </StackPanel>
+  </StackPanel>
+</UserControl>

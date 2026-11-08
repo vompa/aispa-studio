@@ -1,0 +1,79 @@
+<views:FocusRequestView xmlns="https://github.com/avaloniaui"
+                         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                         xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+                         xmlns:ui="using:AispaStudio.Desktop.Controls"
+                         xmlns:views="using:AispaStudio.Desktop.Views"
+                         x:Class="AispaStudio.Desktop.Views.StockItemFormSection"
+                         x:DataType="vm:StockItemFormViewModel">
+  <!--
+    Material anlegen und ändern (R05 Slice 101, Slice 112) nach web/src/stock/StockItemForm.tsx: Material oder Verkaufsprodukt, es gilt für alle Standorte. Pflicht sind Bezeichnung und
+    Einheit; ohne sie ist der Knopf aus. Dazu Lieferant aus dem Stamm, Packung, Gebinde, Richtwert je Behandlung und Ablaufwarnung.
+  -->
+  <Border Classes="card">
+    <StackPanel Spacing="12">
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Text="{Binding HeadingText}" Classes="h2" VerticalAlignment="Center" />
+        <ui:HelpButton Grid.Column="1" Topic="lager" Section="material-anlegen" />
+      </Grid>
+      <TextBlock Classes="muted small" TextWrapping="Wrap"
+                 Text="Ist ein Verkaufsprodukt der Kassa verknüpft, bucht jeder Verkauf ab. In der Rezeptur einer Behandlung (Seite „Kosten“) gewählt, bucht jede abgeschlossene Behandlung ab." />
+      <Grid ColumnDefinitions="*,120" ColumnSpacing="12">
+        <ui:FormField Label="Bezeichnung" IsRequired="True" Error="{Binding NameError}">
+          <TextBox x:Name="ItemNameField" Text="{Binding ItemName}" MaxLength="200" />
+        </ui:FormField>
+        <ui:FormField Grid.Column="1" Label="Einheit" IsRequired="True" Error="{Binding UnitError}">
+          <TextBox x:Name="ItemUnitField" Text="{Binding Unit}" MaxLength="20" />
+        </ui:FormField>
+      </Grid>
+      <Grid ColumnDefinitions="*,*,*" ColumnSpacing="12">
+        <ui:FormField Label="Einstandspreis netto" Help="In Euro je Einheit, ohne Umsatzsteuer." Error="{Binding UnitCostError}">
+          <TextBox x:Name="ItemUnitCostField" Text="{Binding UnitCost}" Classes="num" />
+        </ui:FormField>
+        <ui:FormField Grid.Column="1" Label="Mindestbestand je Standort" Error="{Binding MinimumError}">
+          <TextBox x:Name="ItemMinimumField" Text="{Binding MinimumQuantity}" Classes="num" />
+        </ui:FormField>
+        <ui:FormField Grid.Column="2" Label="Verkaufsprodukt der Kassa">
+          <ComboBox x:Name="ItemArticleField" ItemsSource="{Binding Articles}" SelectedItem="{Binding SelectedArticle}" HorizontalAlignment="Stretch" />
+        </ui:FormField>
+      </Grid>
+      <Grid ColumnDefinitions="*,*,*" ColumnSpacing="12">
+        <ui:FormField Label="Lieferant">
+          <ComboBox x:Name="ItemSupplierField" ItemsSource="{Binding Suppliers}" SelectedItem="{Binding SelectedSupplier}" HorizontalAlignment="Stretch" />
+        </ui:FormField>
+        <ui:FormField Grid.Column="1" Label="Artikelnummer beim Lieferanten">
+          <TextBox x:Name="ItemSupplierNumberField" Text="{Binding SupplierArticleNumber}" MaxLength="50" />
+        </ui:FormField>
+        <ui:FormField Grid.Column="2" Label="Barcode">
+          <TextBox x:Name="ItemBarcodeField" Text="{Binding Barcode}" MaxLength="50" />
+        </ui:FormField>
+      </Grid>
+      <Grid ColumnDefinitions="*,*,*,*" ColumnSpacing="12">
+        <ui:FormField Label="Packung" Help="z. B. Flasche" Error="{Binding PackUnitError}">
+          <TextBox x:Name="ItemPackUnitField" Text="{Binding PackUnit}" MaxLength="20" />
+        </ui:FormField>
+        <ui:FormField Grid.Column="1" Label="Menge je Packung" Help="In der Einheit, z. B. 500" Error="{Binding PackSizeError}">
+          <TextBox x:Name="ItemPackSizeField" Text="{Binding PackSize}" Classes="num" />
+        </ui:FormField>
+        <ui:FormField Grid.Column="2" Label="Gebinde" Help="z. B. Karton" Error="{Binding CaseUnitError}">
+          <TextBox x:Name="ItemCaseUnitField" Text="{Binding CaseUnit}" MaxLength="20" />
+        </ui:FormField>
+        <ui:FormField Grid.Column="3" Label="Packungen je Gebinde" Help="z. B. 4" Error="{Binding PacksPerCaseError}">
+          <TextBox x:Name="ItemPacksPerCaseField" Text="{Binding PacksPerCase}" Classes="num" />
+        </ui:FormField>
+      </Grid>
+      <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+        <ui:FormField Label="Menge je Behandlung" Help="Richtwert in der Einheit, z. B. 15. Abgebucht wird nach der Rezeptur." Error="{Binding DoseError}">
+          <TextBox x:Name="ItemDoseField" Text="{Binding TreatmentDose}" Classes="num" />
+        </ui:FormField>
+        <ui:FormField Grid.Column="1" Label="Ablaufwarnung in Tagen" Help="Ab dann steht eine Charge in den Aufgaben." Error="{Binding WarningError}">
+          <TextBox x:Name="ItemWarningField" Text="{Binding ExpiryWarningDays}" Classes="num" />
+        </ui:FormField>
+      </Grid>
+      <ui:InfoBar Severity="Error" Title="{Binding ErrorTitle}" Message="{Binding Error}" IsVisible="{Binding HasError}" CloseCommand="{Binding CloseErrorCommand}" />
+      <StackPanel Orientation="Horizontal" Spacing="8">
+        <Button x:Name="CreateItemButton" Classes="primary" Content="{Binding ButtonText}" Command="{Binding CreateCommand}" />
+        <Button x:Name="CancelItemEditButton" Content="Abbrechen" Command="{Binding ClearCommand}" IsVisible="{Binding IsEditing}" />
+      </StackPanel>
+    </StackPanel>
+  </Border>
+</views:FocusRequestView>

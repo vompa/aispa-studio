@@ -1,0 +1,1305 @@
+diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml
+index 9fec9a5..2724459 100644
+--- a/.github/workflows/ci.yml
++++ b/.github/workflows/ci.yml
+@@ -85,7 +85,7 @@ jobs:
+   desktop:
+     name: Windows-App (Avalonia)
+     runs-on: windows-latest
+-    timeout-minutes: 20
++    timeout-minutes: 30
+     steps:
+       - uses: actions/checkout@v7
+ 
+@@ -96,9 +96,32 @@ jobs:
+       - name: Testen
+         run: dotnet test --project tests/AispaStudio.Desktop.Tests -c Release
+ 
++      - uses: actions/setup-node@v7
++        with:
++          node-version: 22
++          cache: npm
++          cache-dependency-path: web/package-lock.json
++
+       - name: Für Windows veröffentlichen
+         run: dotnet publish src/AispaStudio.Desktop -c Release -r win-x64 --self-contained -o publish/desktop
+ 
++      # Einzelplatz-Betrieb (ADR 0041): API, Web-Oberfläche und PostgreSQL kommen mit ins Paket.
++      - name: Einzelplatz-Teile ins Paket
++        shell: pwsh
++        run: |
++          dotnet publish src/AispaStudio.Api -c Release -r win-x64 --self-contained -o publish/desktop/api
++          Push-Location web; npm ci; npm run build; Pop-Location
++          Copy-Item web/dist publish/desktop/web -Recurse
++          # PostgreSQL des Runner-Images (EDB-Build); nur bin, lib und share werden gebraucht.
++          New-Item publish/desktop/postgres -ItemType Directory | Out-Null
++          foreach ($part in 'bin', 'lib', 'share') { Copy-Item (Join-Path $env:PGROOT $part) publish/desktop/postgres -Recurse }
++          & publish/desktop/postgres/bin/postgres.exe --version
++
++      - name: Einzelplatz mit dem echten Paket starten
++        env:
++          AISPA_LOCAL_PACKAGE: ${{ github.workspace }}/publish/desktop
++        run: dotnet test --project tests/AispaStudio.Desktop.Tests -c Release -- --filter-class "*LocalServerPackageTests"
++
+       - uses: actions/upload-artifact@v7
+         with:
+           name: aispa-desktop-win-x64
+@@ -129,7 +152,7 @@ jobs:
+           gh release delete windows-app --yes --cleanup-tag || true
+           gh release create windows-app AispaStudio-Windows.zip --prerelease --target "$GITHUB_SHA" \
+             --title "Windows-App (Prototyp, neuester Stand)" \
+-            --notes "Stand ${GITHUB_SHA::7}. ZIP entpacken, AispaStudio.Desktop.exe starten. Verbindet sich mit http://localhost:5086 (siehe README, Lokal mit Docker testen)."
++            --notes "Stand ${GITHUB_SHA::7}. ZIP entpacken, AispaStudio.Desktop.exe starten. Verbindet sich mit http://localhost:5086 (siehe README, Lokal mit Docker testen). Ohne Server: AispaStudio.Desktop.exe --standalone startet Datenbank und API auf diesem PC (Einzelplatz)."
+ 
+   docker:
+     name: Lokaler Testbetrieb (Docker Compose)
+diff --git a/src/AispaStudio.Api/Program.cs b/src/AispaStudio.Api/Program.cs
+index 49137e4..f61b6e7 100644
+--- a/src/AispaStudio.Api/Program.cs
++++ b/src/AispaStudio.Api/Program.cs
+@@ -168,6 +168,7 @@ var app = builder.Build();
+ 
+ app.UseExceptionHandler();
+ app.UseStatusCodePages();
++app.UseTeamWebRoot();
+ 
+ if (app.Environment.IsDevelopment())
+ {
+diff --git a/src/AispaStudio.Api/System/TeamWebRoot.cs b/src/AispaStudio.Api/System/TeamWebRoot.cs
+new file mode 100644
+index 0000000..b25e878
+--- /dev/null
++++ b/src/AispaStudio.Api/System/TeamWebRoot.cs
+@@ -0,0 +1,56 @@
++using Microsoft.Extensions.FileProviders;
++
++namespace AispaStudio.Api.System;
++
++/// <summary>
++/// Liefert die gebaute Web-Oberfläche aus der API aus, wenn <c>Hosting:WebRoot</c> gesetzt ist (ADR 0041). Im Einzelplatz-Betrieb
++/// startet die Windows-App die API mit diesem Ordner, damit die Team-Oberfläche ohne nginx im Browser unter derselben Adresse läuft.
++/// Im Server-Betrieb macht das weiter nginx oder ein anderer Webserver davor.
++/// </summary>
++internal static class TeamWebRoot
++{
++    // Teil-Oberflächen mit eigener index.html, wie in docker/nginx.conf.
++    private static readonly string[] Apps = ["buchen", "mein-tag", "betreiber"];
++
++    public static WebApplication UseTeamWebRoot(this WebApplication app)
++    {
++        var root = app.Configuration["Hosting:WebRoot"];
++        if (string.IsNullOrWhiteSpace(root))
++        {
++            return app;
++        }
++
++        var path = Path.GetFullPath(root);
++        if (!File.Exists(Path.Combine(path, "index.html")))
++        {
++            app.Logger.LogWarning("Hosting:WebRoot {Path} enthält keine index.html; die Web-Oberfläche wird nicht ausgeliefert.", path);
++            return app;
++        }
++
++        var files = new PhysicalFileProvider(path);
++        app.UseDefaultFiles(new DefaultFilesOptions { FileProvider = files });
++        app.UseStaticFiles(new StaticFileOptions { FileProvider = files });
++        app.MapFallback(async context =>
++        {
++            var request = context.Request.Path;
++            if (request.StartsWithSegments("/api") || request.StartsWithSegments("/hubs") || Path.HasExtension(request.Value))
++            {
++                context.Response.StatusCode = StatusCodes.Status404NotFound;
++                return;
++            }
++
++            var sub = Apps.FirstOrDefault(a => request.StartsWithSegments($"/{a}"));
++            var index = files.GetFileInfo(sub is null ? "index.html" : $"{sub}/index.html");
++            if (!index.Exists)
++            {
++                context.Response.StatusCode = StatusCodes.Status404NotFound;
++                return;
++            }
++
++            context.Response.ContentType = "text/html; charset=utf-8";
++            context.Response.Headers.CacheControl = "no-cache";
++            await context.Response.SendFileAsync(index);
++        });
++        return app;
++    }
++}
+diff --git a/src/AispaStudio.Desktop/App.axaml.cs b/src/AispaStudio.Desktop/App.axaml.cs
+index 598084f..1e06903 100644
+--- a/src/AispaStudio.Desktop/App.axaml.cs
++++ b/src/AispaStudio.Desktop/App.axaml.cs
+@@ -11,7 +11,7 @@ namespace AispaStudio.Desktop;
+ 
+ public partial class App : Application
+ {
+-    // Adresse der API; überschreibbar mit der Umgebungsvariable AISPA_API_URL.
++    // Adresse der API im Server-Betrieb; überschreibbar mit der Umgebungsvariable AISPA_API_URL.
+     private static readonly Uri ApiAddress =
+         new(Environment.GetEnvironmentVariable("AISPA_API_URL") ?? "http://localhost:5086/");
+ 
+@@ -28,10 +28,23 @@ public partial class App : Application
+         {
+             ISessionStore store = OperatingSystem.IsWindows() ? new WindowsSessionStore() : new MemorySessionStore();
+             IOfflineStore offline = OperatingSystem.IsWindows() ? new WindowsOfflineStore() : new MemoryOfflineStore();
+-            var api = new ApiClient(ApiAddress, store, offline: new OfflineCache(offline));
++            var local = StandaloneMode.Resolve(desktop.Args ?? [], FileSettingsStore.Default)
++                ? new LocalServer(LocalServerPaths.Default, new SystemProcessRunner(),
++                    OperatingSystem.IsWindows() ? new DpapiProtector() : new PlainProtector())
++                : null;
++            // Im Einzelplatz kein Offline-Stand: die Datenbank liegt ja auf diesem PC.
++            var api = local is null
++                ? new ApiClient(ApiAddress, store, offline: new OfflineCache(offline))
++                : new ApiClient(local.ApiAddress, store);
+             var theme = new ThemeController(FileSettingsStore.Default);
+             theme.Apply();
+-            var viewModel = new MainViewModel(api, () => new LiveUpdates(api), theme: theme);
++            var viewModel = new MainViewModel(api, () => new LiveUpdates(api), theme: theme, local: local);
++            if (local is not null)
++            {
++                // Beim Beenden API und Datenbank geordnet herunterfahren.
++                desktop.ShutdownRequested += (_, _) => local.StopAsync().GetAwaiter().GetResult();
++            }
++
+             desktop.MainWindow = new MainWindow { DataContext = viewModel };
+             _ = viewModel.StartAsync();
+         }
+diff --git a/src/AispaStudio.Desktop/Services/ApiClient.cs b/src/AispaStudio.Desktop/Services/ApiClient.cs
+index 874c58b..b1c7fd3 100644
+--- a/src/AispaStudio.Desktop/Services/ApiClient.cs
++++ b/src/AispaStudio.Desktop/Services/ApiClient.cs
+@@ -125,6 +125,18 @@ public sealed class ApiClient
+         return result;
+     }
+ 
++    /// <summary>Einzelplatz, erster Start: Spa, ersten Standort und Inhaber-Konto anlegen; meldet gleich an.</summary>
++    public async Task<ApiResult<CurrentUser>> CompleteStandaloneSetupAsync(StandaloneSetup setup, CancellationToken ct = default)
++    {
++        var result = await SendAsync<CurrentUser>(HttpMethod.Post, "api/auth/standalone/setup", setup, ct).ConfigureAwait(false);
++        if (result.Ok)
++        {
++            Remember();
++        }
++
++        return result;
++    }
++
+     /// <summary>Eigenes Passwort ändern; nach einem Startpasswort Pflicht. Das neue Anmelde-Cookie wird gemerkt.</summary>
+     public async Task<ApiResult<CurrentUser>> ChangePasswordAsync(string currentPassword, string newPassword, CancellationToken ct = default)
+     {
+diff --git a/src/AispaStudio.Desktop/Services/LocalServer.cs b/src/AispaStudio.Desktop/Services/LocalServer.cs
+new file mode 100644
+index 0000000..7c344d2
+--- /dev/null
++++ b/src/AispaStudio.Desktop/Services/LocalServer.cs
+@@ -0,0 +1,426 @@
++using System.Diagnostics;
++using System.Net;
++using System.Net.Sockets;
++using System.Runtime.Versioning;
++using System.Security.Cryptography;
++using System.Text;
++using System.Text.Json;
++
++namespace AispaStudio.Desktop.Services;
++
++/// <summary>
++/// Einzelplatz-Betrieb (ADR 0041): Die Windows-App startet die mitgelieferte PostgreSQL und die API selbst, beide nur an
++/// 127.0.0.1. Beim ersten Start legt sie die Datenbank unter <c>%LOCALAPPDATA%\AispaStudio\daten</c> an, mit eigenem Passwort
++/// und eigenem Schlüssel für Gesundheitsdaten, beide DPAPI-geschützt. Die Team-Oberfläche im Browser liefert dieselbe API aus.
++/// </summary>
++public interface ILocalServer
++{
++    /// <summary>Adresse der lokalen API, schon vor dem Start bekannt.</summary>
++    Uri ApiAddress { get; }
++
++    /// <summary>Startet Datenbank und API, falls sie nicht schon laufen, und wartet, bis die API antwortet.</summary>
++    Task StartAsync(IProgress<string>? progress = null, CancellationToken ct = default);
++
++    /// <summary>Beendet API und Datenbank geordnet.</summary>
++    Task StopAsync();
++}
++
++/// <summary>Wo die mitgelieferten Teile liegen und wohin die Daten kommen.</summary>
++/// <param name="AppDirectory">Ordner der App; darin <c>postgres\bin</c>, <c>api</c> und <c>web</c> aus dem Windows-Paket.</param>
++/// <param name="DataDirectory">Datenordner im Benutzerprofil.</param>
++public sealed record LocalServerPaths(string AppDirectory, string DataDirectory)
++{
++    public static LocalServerPaths Default { get; } = new(AppContext.BaseDirectory,
++        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "AispaStudio", "daten"));
++
++    private static string Exe(string name) => OperatingSystem.IsWindows() ? name + ".exe" : name;
++
++    public string PostgresBin => Path.Combine(AppDirectory, "postgres", "bin");
++
++    public string Tool(string name) => Path.Combine(PostgresBin, Exe(name));
++
++    public string Api => Path.Combine(AppDirectory, "api", Exe("AispaStudio.Api"));
++
++    public string WebRoot => Path.Combine(AppDirectory, "web");
++
++    public string Cluster => Path.Combine(DataDirectory, "pg");
++
++    public string Logs => Path.Combine(DataDirectory, "protokolle");
++
++    public string Config => Path.Combine(DataDirectory, "einzelplatz.json");
++
++    public string Secrets => Path.Combine(DataDirectory, "zugang.bin");
++}
++
++/// <summary>Ports dieses Einzelplatzes; einmal gewählt und gemerkt, damit die Adresse im Browser gleich bleibt.</summary>
++public sealed record LocalServerConfig(int DatabasePort, int ApiPort);
++
++/// <summary>Datenbank-Passwort und Schlüssel für Gesundheitsdaten (Base64, 32 Byte).</summary>
++public sealed record LocalSecrets(string DatabasePassword, string HealthKey);
++
++/// <summary>Schützt die Zugangsdaten auf der Platte; unter Windows mit DPAPI für das angemeldete Windows-Konto.</summary>
++public interface ISecretProtector
++{
++    byte[] Protect(byte[] data);
++
++    byte[] Unprotect(byte[] data);
++}
++
++[SupportedOSPlatform("windows")]
++public sealed class DpapiProtector : ISecretProtector
++{
++    public byte[] Protect(byte[] data) => ProtectedData.Protect(data, null, DataProtectionScope.CurrentUser);
++
++    public byte[] Unprotect(byte[] data) => ProtectedData.Unprotect(data, null, DataProtectionScope.CurrentUser);
++}
++
++/// <summary>Ohne Schutz, nur für Tests.</summary>
++public sealed class PlainProtector : ISecretProtector
++{
++    public byte[] Protect(byte[] data) => data;
++
++    public byte[] Unprotect(byte[] data) => data;
++}
++
++public sealed record ProcessResult(int ExitCode, string Output);
++
++public interface IRunningProcess
++{
++    bool HasExited { get; }
++
++    void Kill();
++}
++
++/// <summary>Startet Programme; austauschbar, damit sich der Ablauf ohne PostgreSQL testen lässt.</summary>
++public interface IProcessRunner
++{
++    Task<ProcessResult> RunAsync(string file, IReadOnlyList<string> args, IReadOnlyDictionary<string, string>? env = null,
++        CancellationToken ct = default);
++
++    IRunningProcess Start(string file, IReadOnlyList<string> args, IReadOnlyDictionary<string, string> env, string logFile);
++}
++
++public sealed class LocalServerException(string message) : Exception(message);
++
++public sealed class LocalServer : ILocalServer
++{
++    public const string DatabaseName = "aispadb";
++    public const string DatabaseUser = "aispa";
++    private const string HealthKeyId = "lokal1";
++
++    private readonly LocalServerPaths _paths;
++    private readonly IProcessRunner _runner;
++    private readonly ISecretProtector _protector;
++    private readonly Func<Uri, CancellationToken, Task<bool>> _isApiReady;
++    private readonly TimeSpan _apiTimeout;
++    private readonly LocalServerConfig _config;
++    private IRunningProcess? _api;
++
++    public LocalServer(LocalServerPaths paths, IProcessRunner runner, ISecretProtector protector,
++        Func<Uri, CancellationToken, Task<bool>>? isApiReady = null, TimeSpan? apiTimeout = null)
++    {
++        _paths = paths;
++        _runner = runner;
++        _protector = protector;
++        _isApiReady = isApiReady ?? PingAsync;
++        _apiTimeout = apiTimeout ?? TimeSpan.FromMinutes(3);
++        _config = LoadOrCreateConfig();
++    }
++
++    public Uri ApiAddress => new($"http://127.0.0.1:{_config.ApiPort}/");
++
++    public LocalServerConfig Config => _config;
++
++    public async Task StartAsync(IProgress<string>? progress = null, CancellationToken ct = default)
++    {
++        foreach (var required in new[] { _paths.Tool("pg_ctl"), _paths.Api })
++        {
++            if (!File.Exists(required))
++            {
++                throw new LocalServerException(
++                    $"Für den Einzelplatz-Betrieb fehlt {required}. Bitte das vollständige Windows-Paket entpacken.");
++            }
++        }
++
++        Directory.CreateDirectory(_paths.Logs);
++        var secrets = LoadOrCreateSecrets();
++
++        if (!File.Exists(Path.Combine(_paths.Cluster, "PG_VERSION")))
++        {
++            progress?.Report("Lege die lokale Datenbank an …");
++            await InitClusterAsync(secrets, ct).ConfigureAwait(false);
++        }
++
++        var status = await _runner.RunAsync(_paths.Tool("pg_ctl"), ["status", "-D", _paths.Cluster], ct: ct).ConfigureAwait(false);
++        if (status.ExitCode != 0)
++        {
++            progress?.Report("Starte die lokale Datenbank …");
++            var started = await _runner.RunAsync(_paths.Tool("pg_ctl"),
++            [
++                "start", "-D", _paths.Cluster, "-w", "-t", "60", "-l", Path.Combine(_paths.Logs, "datenbank.log"),
++                "-o", $"-p {_config.DatabasePort} -c listen_addresses=127.0.0.1",
++            ], ct: ct).ConfigureAwait(false);
++            if (started.ExitCode != 0)
++            {
++                throw new LocalServerException($"Die lokale Datenbank startet nicht. Protokoll: {Path.Combine(_paths.Logs, "datenbank.log")}");
++            }
++        }
++
++        await EnsureDatabaseAsync(secrets, ct).ConfigureAwait(false);
++
++        if (await _isApiReady(ApiAddress, ct).ConfigureAwait(false))
++        {
++            return;
++        }
++
++        progress?.Report("Starte AISPA Studio auf diesem PC …");
++        _api = _runner.Start(_paths.Api, [], ApiEnvironment(secrets), Path.Combine(_paths.Logs, "api.log"));
++        var deadline = DateTime.UtcNow + _apiTimeout;
++        while (!await _isApiReady(ApiAddress, ct).ConfigureAwait(false))
++        {
++            if (_api.HasExited || DateTime.UtcNow > deadline)
++            {
++                throw new LocalServerException($"AISPA Studio startet auf diesem PC nicht. Protokoll: {Path.Combine(_paths.Logs, "api.log")}");
++            }
++
++            await Task.Delay(500, ct).ConfigureAwait(false);
++        }
++    }
++
++    public async Task StopAsync()
++    {
++        if (_api is { HasExited: false })
++        {
++            _api.Kill();
++        }
++
++        if (File.Exists(Path.Combine(_paths.Cluster, "postmaster.pid")))
++        {
++            await _runner.RunAsync(_paths.Tool("pg_ctl"), ["stop", "-D", _paths.Cluster, "-m", "fast", "-w"]).ConfigureAwait(false);
++        }
++    }
++
++    /// <summary>Umgebung der API: Einzelplatz, eigene Datenbank, Web-Oberfläche, Migration beim Start, Schlüssel für Gesundheitsdaten.</summary>
++    public IReadOnlyDictionary<string, string> ApiEnvironment(LocalSecrets secrets) => new Dictionary<string, string>
++    {
++        ["ASPNETCORE_ENVIRONMENT"] = "Production",
++        ["ASPNETCORE_URLS"] = $"http://127.0.0.1:{_config.ApiPort}",
++        ["ConnectionStrings__aispadb"] =
++            $"Host=127.0.0.1;Port={_config.DatabasePort};Database={DatabaseName};Username={DatabaseUser};Password={secrets.DatabasePassword}",
++        ["Hosting__Standalone"] = "true",
++        ["Hosting__WebRoot"] = _paths.WebRoot,
++        ["Database__MigrateOnStartup"] = "true",
++        ["HealthData__CurrentKeyId"] = HealthKeyId,
++        [$"HealthData__Keys__{HealthKeyId}"] = secrets.HealthKey,
++    };
++
++    private async Task InitClusterAsync(LocalSecrets secrets, CancellationToken ct)
++    {
++        Directory.CreateDirectory(_paths.DataDirectory);
++        if (Directory.Exists(_paths.Cluster))
++        {
++            // Rest eines abgebrochenen ersten Starts (ohne PG_VERSION); initdb verlangt einen leeren Ordner.
++            Directory.Delete(_paths.Cluster, recursive: true);
++        }
++
++        var passwordFile = Path.Combine(_paths.DataDirectory, "initdb.tmp");
++        await File.WriteAllTextAsync(passwordFile, secrets.DatabasePassword, ct).ConfigureAwait(false);
++        try
++        {
++            var result = await _runner.RunAsync(_paths.Tool("initdb"),
++            [
++                "-D", _paths.Cluster, "-U", DatabaseUser, "--pwfile", passwordFile, "-A", "scram-sha-256", "-E", "UTF8",
++                "--locale=C", "--locale-provider=icu", "--icu-locale=de-AT",
++            ], ct: ct).ConfigureAwait(false);
++            if (result.ExitCode != 0)
++            {
++                throw new LocalServerException($"Die lokale Datenbank ließ sich nicht anlegen: {result.Output.Trim()}");
++            }
++        }
++        finally
++        {
++            File.Delete(passwordFile);
++        }
++    }
++
++    private async Task EnsureDatabaseAsync(LocalSecrets secrets, CancellationToken ct)
++    {
++        var env = new Dictionary<string, string> { ["PGPASSWORD"] = secrets.DatabasePassword };
++        string[] connection = ["-h", "127.0.0.1", "-p", _config.DatabasePort.ToString(System.Globalization.CultureInfo.InvariantCulture), "-U", DatabaseUser];
++        var exists = await _runner.RunAsync(_paths.Tool("psql"),
++            [.. connection, "-d", "postgres", "-tAc", $"SELECT 1 FROM pg_database WHERE datname = '{DatabaseName}'"], env, ct).ConfigureAwait(false);
++        if (exists.ExitCode != 0)
++        {
++            throw new LocalServerException($"Keine Verbindung zur lokalen Datenbank: {exists.Output.Trim()}");
++        }
++
++        // Die Datenbank muss vor der API da sein, weil Wolverine vor der Migration verbindet.
++        if (exists.Output.Trim() != "1")
++        {
++            var created = await _runner.RunAsync(_paths.Tool("createdb"), [.. connection, DatabaseName], env, ct).ConfigureAwait(false);
++            if (created.ExitCode != 0)
++            {
++                throw new LocalServerException($"Die Datenbank {DatabaseName} ließ sich nicht anlegen: {created.Output.Trim()}");
++            }
++        }
++    }
++
++    private LocalServerConfig LoadOrCreateConfig()
++    {
++        try
++        {
++            if (File.Exists(_paths.Config) && JsonSerializer.Deserialize<LocalServerConfig>(File.ReadAllText(_paths.Config), ApiClient.Json) is
++                { DatabasePort: > 0, ApiPort: > 0 } saved)
++            {
++                return saved;
++            }
++        }
++        catch (JsonException)
++        {
++            // Kaputte Datei: neu wählen.
++        }
++
++        var config = new LocalServerConfig(FreePort(55432), FreePort(55086));
++        Directory.CreateDirectory(_paths.DataDirectory);
++        File.WriteAllText(_paths.Config, JsonSerializer.Serialize(config, ApiClient.Json));
++        return config;
++    }
++
++    private LocalSecrets LoadOrCreateSecrets()
++    {
++        if (File.Exists(_paths.Secrets))
++        {
++            try
++            {
++                var json = Encoding.UTF8.GetString(_protector.Unprotect(File.ReadAllBytes(_paths.Secrets)));
++                if (JsonSerializer.Deserialize<LocalSecrets>(json, ApiClient.Json) is { } saved)
++                {
++                    return saved;
++                }
++            }
++            catch (Exception ex) when (ex is CryptographicException or JsonException)
++            {
++                // Ohne diese Daten ist die Datenbank nicht mehr lesbar; nie still neu anlegen.
++            }
++
++            throw new LocalServerException(
++                "Die Zugangsdaten der lokalen Datenbank lassen sich nicht lesen (anderes Windows-Konto oder anderer PC?). Bitte mit der Sicherung wiederherstellen.");
++        }
++
++        var secrets = new LocalSecrets(Convert.ToHexString(RandomNumberGenerator.GetBytes(24)), Convert.ToBase64String(RandomNumberGenerator.GetBytes(32)));
++        Directory.CreateDirectory(_paths.DataDirectory);
++        File.WriteAllBytes(_paths.Secrets, _protector.Protect(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(secrets, ApiClient.Json))));
++        return secrets;
++    }
++
++    /// <summary>Der Wunsch-Port, wenn frei; sonst einer, den das System vergibt.</summary>
++    private static int FreePort(int preferred)
++    {
++        foreach (var port in new[] { preferred, 0 })
++        {
++            try
++            {
++                var listener = new TcpListener(IPAddress.Loopback, port);
++                listener.Start();
++                var chosen = ((IPEndPoint)listener.LocalEndpoint).Port;
++                listener.Stop();
++                return chosen;
++            }
++            catch (SocketException)
++            {
++                // Belegt: nächster Versuch.
++            }
++        }
++
++        throw new LocalServerException("Kein freier Port für den Einzelplatz-Betrieb.");
++    }
++
++    private static async Task<bool> PingAsync(Uri address, CancellationToken ct)
++    {
++        using var http = new HttpClient { BaseAddress = address, Timeout = TimeSpan.FromSeconds(2) };
++        try
++        {
++            using var response = await http.GetAsync("api/system/status", ct).ConfigureAwait(false);
++            return response.IsSuccessStatusCode;
++        }
++        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
++        {
++            return false;
++        }
++    }
++}
++
++/// <summary>Echte Prozesse ohne Fenster; Ausgabe der API in eine Protokolldatei.</summary>
++public sealed class SystemProcessRunner : IProcessRunner
++{
++    public async Task<ProcessResult> RunAsync(string file, IReadOnlyList<string> args, IReadOnlyDictionary<string, string>? env = null,
++        CancellationToken ct = default)
++    {
++        using var process = new Process { StartInfo = Info(file, args, env) };
++        process.StartInfo.RedirectStandardOutput = true;
++        process.StartInfo.RedirectStandardError = true;
++        process.Start();
++        var output = process.StandardOutput.ReadToEndAsync(ct);
++        var error = process.StandardError.ReadToEndAsync(ct);
++        await process.WaitForExitAsync(ct).ConfigureAwait(false);
++        return new ProcessResult(process.ExitCode, await output.ConfigureAwait(false) + await error.ConfigureAwait(false));
++    }
++
++    public IRunningProcess Start(string file, IReadOnlyList<string> args, IReadOnlyDictionary<string, string> env, string logFile)
++    {
++        var process = new Process { StartInfo = Info(file, args, env), EnableRaisingEvents = true };
++        process.StartInfo.RedirectStandardOutput = true;
++        process.StartInfo.RedirectStandardError = true;
++        var log = new StreamWriter(logFile, append: false) { AutoFlush = true };
++        process.OutputDataReceived += (_, e) => Write(log, e.Data);
++        process.ErrorDataReceived += (_, e) => Write(log, e.Data);
++        process.Exited += (_, _) => log.Dispose();
++        process.Start();
++        process.BeginOutputReadLine();
++        process.BeginErrorReadLine();
++        return new Running(process);
++    }
++
++    private static void Write(StreamWriter log, string? line)
++    {
++        if (line is null)
++        {
++            return;
++        }
++
++        lock (log)
++        {
++            try
++            {
++                log.WriteLine(line);
++            }
++            catch (ObjectDisposedException)
++            {
++                // Prozess schon beendet.
++            }
++        }
++    }
++
++    private static ProcessStartInfo Info(string file, IReadOnlyList<string> args, IReadOnlyDictionary<string, string>? env)
++    {
++        var info = new ProcessStartInfo(file) { UseShellExecute = false, CreateNoWindow = true, WorkingDirectory = Path.GetDirectoryName(file)! };
++        foreach (var arg in args)
++        {
++            info.ArgumentList.Add(arg);
++        }
++
++        foreach (var (key, value) in env ?? new Dictionary<string, string>())
++        {
++            info.Environment[key] = value;
++        }
++
++        return info;
++    }
++
++    private sealed class Running(Process process) : IRunningProcess
++    {
++        public bool HasExited => process.HasExited;
++
++        public void Kill() => process.Kill(entireProcessTree: true);
++    }
++}
+diff --git a/src/AispaStudio.Desktop/Services/Settings.cs b/src/AispaStudio.Desktop/Services/Settings.cs
+index 6e40aad..5945ea8 100644
+--- a/src/AispaStudio.Desktop/Services/Settings.cs
++++ b/src/AispaStudio.Desktop/Services/Settings.cs
+@@ -16,12 +16,14 @@ public enum ThemeChoice
+ /// <param name="PrinterWidth">Zeichen je Zeile: 42 für 80-mm-Papier, 32 für 58 mm.</param>
+ /// <param name="PrintAutomatically">Nach dem Bezahlen gleich drucken.</param>
+ /// <param name="TerminalId">Kartenterminal im Netz, das dieser PC ansteuert (nur ein PC je Terminal).</param>
++/// <param name="Standalone">Einzelplatz-Betrieb: Datenbank und API laufen auf diesem PC (ADR 0041); gesetzt mit <c>--standalone</c>.</param>
+ public sealed record DesktopSettings(
+     ThemeChoice Theme = ThemeChoice.System,
+     string? PrinterAddress = null,
+     int PrinterWidth = 42,
+     bool PrintAutomatically = true,
+-    Guid? TerminalId = null);
++    Guid? TerminalId = null,
++    bool Standalone = false);
+ 
+ public interface ISettingsStore
+ {
+diff --git a/src/AispaStudio.Desktop/Services/StandaloneMode.cs b/src/AispaStudio.Desktop/Services/StandaloneMode.cs
+new file mode 100644
+index 0000000..fe97c81
+--- /dev/null
++++ b/src/AispaStudio.Desktop/Services/StandaloneMode.cs
+@@ -0,0 +1,23 @@
++namespace AispaStudio.Desktop.Services;
++
++/// <summary>
++/// Betriebsart der Windows-App (ADR 0041). <c>--standalone</c> schaltet den Einzelplatz-Betrieb ein und merkt ihn sich,
++/// <c>--server</c> schaltet zurück auf den Server-Betrieb. Ohne Schalter gilt der gemerkte Stand.
++/// </summary>
++public static class StandaloneMode
++{
++    public static bool Resolve(IReadOnlyList<string> args, ISettingsStore settings)
++    {
++        var current = settings.Load();
++        bool? requested = args.Contains("--standalone", StringComparer.OrdinalIgnoreCase) ? true
++            : args.Contains("--server", StringComparer.OrdinalIgnoreCase) ? false
++            : null;
++        if (requested is { } value && value != current.Standalone)
++        {
++            settings.Save(current with { Standalone = value });
++            return value;
++        }
++
++        return current.Standalone;
++    }
++}
+diff --git a/src/AispaStudio.Desktop/ViewModels/LoginViewModel.cs b/src/AispaStudio.Desktop/ViewModels/LoginViewModel.cs
+index 9104642..393f5b1 100644
+--- a/src/AispaStudio.Desktop/ViewModels/LoginViewModel.cs
++++ b/src/AispaStudio.Desktop/ViewModels/LoginViewModel.cs
+@@ -27,21 +27,39 @@ public partial class LoginViewModel(ApiClient api, Func<CurrentUser, Task> signe
+ 
+     public bool IsServer => !IsStandalone;
+ 
+-    /// <summary>Einzelplatz-Betrieb, noch kein Spa angelegt: die Einrichtung läuft im Browser über die lokale API.</summary>
++    /// <summary>Einzelplatz-Betrieb, noch kein Spa angelegt: Einrichtung gleich hier (oder im Browser über die lokale API).</summary>
+     [ObservableProperty]
+     [NotifyPropertyChangedFor(nameof(ShowPasswordLogin))]
+     public partial bool SetupRequired { get; private set; }
+ 
+     public bool ShowPasswordLogin => IsStandalone && !SetupRequired && !ChangePasswordRequired;
+ 
+-    public string SetupHint => $"Noch nicht eingerichtet. Bitte im Browser unter {api.BaseAddress} das Spa und das Inhaber-Konto anlegen, dann hier anmelden.";
++    public string SetupHint => $"Dieser PC betreibt AISPA Studio allein, ohne Server. Lege einmal das Spa und dein Inhaber-Konto an; das Team bekommt danach unter „Zugänge“ Benutzername und Startpasswort. Die Team-Oberfläche im Browser: {api.BaseAddress}";
++
++    public static IReadOnlyList<CountryChoice> Countries { get; } =
++        [new("AT", "Österreich"), new("DE", "Deutschland"), new("CH", "Schweiz")];
++
++    [ObservableProperty]
++    [NotifyCanExecuteChangedFor(nameof(CompleteSetupCommand))]
++    public partial string SpaName { get; set; } = "";
++
++    [ObservableProperty]
++    public partial CountryChoice Country { get; set; } = Countries[0];
++
++    [ObservableProperty]
++    [NotifyCanExecuteChangedFor(nameof(CompleteSetupCommand))]
++    public partial string LocationName { get; set; } = "";
+ 
+     [ObservableProperty]
+-    [NotifyCanExecuteChangedFor(nameof(SignInWithPasswordCommand))]
++    [NotifyCanExecuteChangedFor(nameof(CompleteSetupCommand))]
++    public partial string OwnerName { get; set; } = "";
++
++    [ObservableProperty]
++    [NotifyCanExecuteChangedFor(nameof(SignInWithPasswordCommand), nameof(CompleteSetupCommand))]
+     public partial string UserName { get; set; } = "";
+ 
+     [ObservableProperty]
+-    [NotifyCanExecuteChangedFor(nameof(SignInWithPasswordCommand))]
++    [NotifyCanExecuteChangedFor(nameof(SignInWithPasswordCommand), nameof(CompleteSetupCommand))]
+     public partial string Password { get; set; } = "";
+ 
+     /// <summary>Das Startpasswort der Leitung gilt noch; ohne eigenes Passwort geht es nicht weiter.</summary>
+@@ -54,7 +72,7 @@ public partial class LoginViewModel(ApiClient api, Func<CurrentUser, Task> signe
+     public partial string NewPassword { get; set; } = "";
+ 
+     [ObservableProperty]
+-    [NotifyCanExecuteChangedFor(nameof(ChangePasswordCommand))]
++    [NotifyCanExecuteChangedFor(nameof(ChangePasswordCommand), nameof(CompleteSetupCommand))]
+     public partial string NewPasswordRepeat { get; set; } = "";
+ 
+     /// <summary>Testkonten; bleibt leer, wenn die API nicht in der Entwicklungsumgebung läuft.</summary>
+@@ -111,6 +129,31 @@ public partial class LoginViewModel(ApiClient api, Func<CurrentUser, Task> signe
+         await CompleteAsync(await api.SignInWithPasswordAsync(UserName.Trim(), Password).ConfigureAwait(true)).ConfigureAwait(true);
+     }
+ 
++    private bool CanCompleteSetup => SpaName.Trim().Length > 0 && LocationName.Trim().Length > 0 && OwnerName.Trim().Length > 0
++        && UserName.Trim().Length > 0 && Password.Length >= 8 && NewPasswordRepeat.Length > 0;
++
++    /// <summary>Einrichtung beim ersten Start; die Wiederholung des Passworts steht in <see cref="NewPasswordRepeat"/>.</summary>
++    [RelayCommand(CanExecute = nameof(CanCompleteSetup))]
++    private async Task CompleteSetupAsync()
++    {
++        Error = null;
++        if (Password != NewPasswordRepeat)
++        {
++            Error = "Die beiden Passwörter stimmen nicht überein.";
++            return;
++        }
++
++        var result = await api.CompleteStandaloneSetupAsync(new StandaloneSetup(SpaName.Trim(), Country.Code, LocationName.Trim(), OwnerName.Trim(),
++            UserName.Trim(), Password)).ConfigureAwait(true);
++        if (result.Ok)
++        {
++            SetupRequired = false;
++            Password = NewPasswordRepeat = "";
++        }
++
++        await CompleteAsync(result).ConfigureAwait(true);
++    }
++
+     private bool CanChangePassword => NewPassword.Length >= 8 && NewPasswordRepeat.Length > 0;
+ 
+     [RelayCommand(CanExecute = nameof(CanChangePassword))]
+@@ -168,3 +211,9 @@ public partial class LoginViewModel(ApiClient api, Func<CurrentUser, Task> signe
+         await signedIn(result.Value).ConfigureAwait(true);
+     }
+ }
++
++/// <summary>Land zur Auswahl bei der Einrichtung.</summary>
++public sealed record CountryChoice(string Code, string Label)
++{
++    public override string ToString() => Label;
++}
+diff --git a/src/AispaStudio.Desktop/ViewModels/MainViewModel.cs b/src/AispaStudio.Desktop/ViewModels/MainViewModel.cs
+index 1893c3e..2f24ab6 100644
+--- a/src/AispaStudio.Desktop/ViewModels/MainViewModel.cs
++++ b/src/AispaStudio.Desktop/ViewModels/MainViewModel.cs
+@@ -6,7 +6,9 @@ using CommunityToolkit.Mvvm.Input;
+ namespace AispaStudio.Desktop.ViewModels;
+ 
+ /// <summary>Rahmen der App: Verbindung prüfen, dann Anmeldung oder die Arbeitsfläche mit Navigation.</summary>
+-public partial class MainViewModel(ApiClient api, Func<ILiveUpdates>? liveFactory = null, TimeProvider? time = null, ThemeController? theme = null)
++/// <param name="local">Einzelplatz-Betrieb: Datenbank und API auf diesem PC, die App startet sie selbst (ADR 0041).</param>
++public partial class MainViewModel(ApiClient api, Func<ILiveUpdates>? liveFactory = null, TimeProvider? time = null, ThemeController? theme = null,
++    ILocalServer? local = null)
+     : ViewModelBase
+ {
+     private readonly ThemeController _theme = theme ?? new ThemeController(new MemorySettingsStore());
+@@ -19,6 +21,12 @@ public partial class MainViewModel(ApiClient api, Func<ILiveUpdates>? liveFactor
+ 
+     public string ApiAddress => api.BaseAddress.ToString();
+ 
++    public bool IsLocal => local is not null;
++
++    /// <summary>Überschrift, solange keine Verbindung besteht.</summary>
++    [ObservableProperty]
++    public partial string ConnectionTitle { get; private set; } = local is null ? "Keine Verbindung zum Server" : "AISPA Studio startet …";
++
+     [ObservableProperty]
+     public partial string StatusText { get; set; } = "Noch nicht geprüft.";
+ 
+@@ -60,6 +68,11 @@ public partial class MainViewModel(ApiClient api, Func<ILiveUpdates>? liveFactor
+     [RelayCommand]
+     public async Task StartAsync()
+     {
++        if (local is not null && !await StartLocalAsync().ConfigureAwait(true))
++        {
++            return;
++        }
++
+         await CheckStatusAsync().ConfigureAwait(true);
+ 
+         // Ohne Verbindung, aber mit lokalem Stand: mit der zuletzt angemeldeten Person weiterarbeiten (ADR 0005).
+@@ -80,6 +93,24 @@ public partial class MainViewModel(ApiClient api, Func<ILiveUpdates>? liveFactor
+         }
+     }
+ 
++    /// <summary>Einzelplatz: Datenbank und API starten; der Fortschritt steht im Statustext.</summary>
++    private async Task<bool> StartLocalAsync()
++    {
++        IsConnected = false;
++        ConnectionTitle = "AISPA Studio startet …";
++        try
++        {
++            await local!.StartAsync(new Progress<string>(step => StatusText = step)).ConfigureAwait(true);
++            return true;
++        }
++        catch (LocalServerException ex)
++        {
++            ConnectionTitle = "Einzelplatz startet nicht";
++            StatusText = ex.Message;
++            return false;
++        }
++    }
++
+     [RelayCommand]
+     private async Task SignOutAsync()
+     {
+diff --git a/src/AispaStudio.Desktop/Views/LoginView.axaml b/src/AispaStudio.Desktop/Views/LoginView.axaml
+index d91ca30..9036800 100644
+--- a/src/AispaStudio.Desktop/Views/LoginView.axaml
++++ b/src/AispaStudio.Desktop/Views/LoginView.axaml
+@@ -5,8 +5,8 @@
+              xmlns:c="using:AispaStudio.Contracts"
+              x:Class="AispaStudio.Desktop.Views.LoginView"
+              x:DataType="vm:LoginViewModel">
+-  <Panel>
+-    <Border Classes="card" Width="460" Padding="32" HorizontalAlignment="Center" VerticalAlignment="Center"
++  <ScrollViewer>
++    <Border Classes="card" Width="460" Padding="32" Margin="0,24" HorizontalAlignment="Center" VerticalAlignment="Center"
+             BoxShadow="0 12 40 0 #1a0c201e">
+       <StackPanel Spacing="18">
+         <StackPanel Orientation="Horizontal" Spacing="12">
+@@ -29,9 +29,20 @@
+           <TextBlock Text="Passwort vergessen? Die Leitung setzt unter „Zugänge“ ein neues Startpasswort." Classes="muted small" TextWrapping="Wrap" />
+         </StackPanel>
+ 
+-        <Border Classes="card" Padding="14" IsVisible="{Binding SetupRequired}">
++        <!-- Einzelplatz, erster Start: Spa und Inhaber-Konto anlegen -->
++        <StackPanel Spacing="10" IsVisible="{Binding SetupRequired}">
++          <TextBlock Text="Spa einrichten" Classes="h2" />
+           <TextBlock Text="{Binding SetupHint}" TextWrapping="Wrap" Classes="secondary" />
+-        </Border>
++          <TextBox Text="{Binding SpaName}" PlaceholderText="Name des Spas" MinHeight="40" />
++          <ComboBox ItemsSource="{x:Static vm:LoginViewModel.Countries}" SelectedItem="{Binding Country}" HorizontalAlignment="Stretch" MinHeight="40" />
++          <TextBox Text="{Binding LocationName}" PlaceholderText="Erster Standort (z. B. Ort oder Adresse)" MinHeight="40" />
++          <TextBox Text="{Binding OwnerName}" PlaceholderText="Dein Name" MinHeight="40" />
++          <TextBox Text="{Binding UserName}" PlaceholderText="Benutzername" MinHeight="40" />
++          <TextBox Text="{Binding Password}" PlaceholderText="Passwort (mindestens 8 Zeichen)" PasswordChar="●" MinHeight="40" />
++          <TextBox Text="{Binding NewPasswordRepeat}" PlaceholderText="Passwort wiederholen" PasswordChar="●" MinHeight="40" />
++          <Button Classes="primary" Content="Spa einrichten" Command="{Binding CompleteSetupCommand}" IsDefault="True"
++                  HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" MinHeight="42" />
++        </StackPanel>
+ 
+         <StackPanel Spacing="10" IsVisible="{Binding ChangePasswordRequired}">
+           <TextBlock Text="Eigenes Passwort wählen" Classes="h2" />
+@@ -87,5 +98,5 @@
+         </Border>
+       </StackPanel>
+     </Border>
+-  </Panel>
++  </ScrollViewer>
+ </UserControl>
+diff --git a/src/AispaStudio.Desktop/Views/MainWindow.axaml b/src/AispaStudio.Desktop/Views/MainWindow.axaml
+index e3342fb..235309e 100644
+--- a/src/AispaStudio.Desktop/Views/MainWindow.axaml
++++ b/src/AispaStudio.Desktop/Views/MainWindow.axaml
+@@ -25,13 +25,13 @@
+         <Border Width="44" Height="44" CornerRadius="12" Background="{DynamicResource WarnSoftBrush}" HorizontalAlignment="Left">
+           <ui:Icon Data="{x:Static ui:Icons.Wifi}" Foreground="{DynamicResource WarnBrush}" Width="24" Height="24" />
+         </Border>
+-        <TextBlock Text="Keine Verbindung zum Server" Classes="h1" />
++        <TextBlock Text="{Binding ConnectionTitle}" Classes="h1" />
+         <TextBlock Text="{Binding StatusText}" Classes="secondary" TextWrapping="Wrap" />
+         <TextBlock Text="{Binding ApiAddress}" Classes="muted small" />
+         <Button Classes="primary" Command="{Binding StartCommand}" HorizontalAlignment="Left">
+           <StackPanel Orientation="Horizontal" Spacing="8">
+             <ui:Icon Data="{x:Static ui:Icons.Refresh}" />
+-            <TextBlock Text="Erneut verbinden" />
++            <TextBlock Text="Erneut versuchen" />
+           </StackPanel>
+         </Button>
+       </StackPanel>
+diff --git a/tests/AispaStudio.Api.Tests/TeamWebRootTests.cs b/tests/AispaStudio.Api.Tests/TeamWebRootTests.cs
+new file mode 100644
+index 0000000..065a687
+--- /dev/null
++++ b/tests/AispaStudio.Api.Tests/TeamWebRootTests.cs
+@@ -0,0 +1,46 @@
++using System.Net;
++
++namespace AispaStudio.Api.Tests;
++
++/// <summary>Web-Oberfläche direkt aus der API im Einzelplatz-Betrieb (ADR 0041).</summary>
++public sealed class TeamWebRootTests(ApiFixture fixture)
++{
++    private static CancellationToken Ct => TestContext.Current.CancellationToken;
++
++    [Fact]
++    public async Task Hosting_WebRoot_liefert_Oberflaeche_und_Teilseiten_aus_ohne_die_API_zu_verdecken()
++    {
++        var root = Directory.CreateTempSubdirectory("aispa-web-");
++        try
++        {
++            File.WriteAllText(Path.Combine(root.FullName, "index.html"), "<p>Team</p>");
++            Directory.CreateDirectory(Path.Combine(root.FullName, "buchen"));
++            File.WriteAllText(Path.Combine(root.FullName, "buchen", "index.html"), "<p>Buchen</p>");
++            Directory.CreateDirectory(Path.Combine(root.FullName, "assets"));
++            File.WriteAllText(Path.Combine(root.FullName, "assets", "app.js"), "console.log(1)");
++
++            await using var host = fixture.Factory.WithWebHostBuilder(b => b.UseSetting("Hosting:WebRoot", root.FullName));
++            using var client = host.CreateClient();
++
++            Assert.Contains("Team", await client.GetStringAsync("/", Ct));
++            Assert.Contains("Team", await client.GetStringAsync("/kalender/heute", Ct));
++            Assert.Contains("Buchen", await client.GetStringAsync("/buchen/spa-am-see", Ct));
++            Assert.Equal("console.log(1)", await client.GetStringAsync("/assets/app.js", Ct));
++            Assert.Equal(HttpStatusCode.NotFound, (await client.GetAsync("/assets/fehlt.js", Ct)).StatusCode);
++            Assert.Equal(HttpStatusCode.NotFound, (await client.GetAsync("/api/gibt-es-nicht", Ct)).StatusCode);
++            Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/api/system/status", Ct)).StatusCode);
++        }
++        finally
++        {
++            root.Delete(recursive: true);
++        }
++    }
++
++    [Fact]
++    public async Task Ohne_WebRoot_liefert_die_API_keine_Oberflaeche()
++    {
++        using var client = fixture.CreateClient();
++
++        Assert.Equal(HttpStatusCode.NotFound, (await client.GetAsync("/kalender", Ct)).StatusCode);
++    }
++}
+diff --git a/tests/AispaStudio.Desktop.Tests/LocalServerPackageTests.cs b/tests/AispaStudio.Desktop.Tests/LocalServerPackageTests.cs
+new file mode 100644
+index 0000000..ca9f685
+--- /dev/null
++++ b/tests/AispaStudio.Desktop.Tests/LocalServerPackageTests.cs
+@@ -0,0 +1,61 @@
++using System.Net;
++using System.Net.Http.Json;
++using AispaStudio.Contracts;
++using AispaStudio.Desktop.Services;
++
++namespace AispaStudio.Desktop.Tests;
++
++/// <summary>
++/// Einzelplatz mit dem echten Windows-Paket (PostgreSQL, API, Web-Oberfläche): läuft in der CI nach dem Veröffentlichen,
++/// wenn <c>AISPA_LOCAL_PACKAGE</c> auf den Paketordner zeigt; sonst übersprungen.
++/// </summary>
++public sealed class LocalServerPackageTests
++{
++    private static CancellationToken Ct => TestContext.Current.CancellationToken;
++
++    [Fact]
++    public async Task Paket_startet_Datenbank_und_API_richtet_ein_und_startet_erneut()
++    {
++        var package = Environment.GetEnvironmentVariable("AISPA_LOCAL_PACKAGE");
++        if (string.IsNullOrWhiteSpace(package))
++        {
++            Assert.Skip("AISPA_LOCAL_PACKAGE ist nicht gesetzt.");
++        }
++
++        var data = Directory.CreateTempSubdirectory("aispa-einzelplatz-");
++        var paths = new LocalServerPaths(package, data.FullName);
++        var server = new LocalServer(paths, new SystemProcessRunner(), new PlainProtector());
++        try
++        {
++            await server.StartAsync(ct: Ct);
++            using var http = new HttpClient { BaseAddress = server.ApiAddress };
++
++            var modules = await http.GetFromJsonAsync<SystemModules>("api/system/modules", ApiClient.Json, Ct);
++            Assert.True(modules!.Standalone);
++            Assert.Contains("<html", await http.GetStringAsync("", Ct), StringComparison.OrdinalIgnoreCase);
++            var setup = await http.PostAsJsonAsync("api/auth/standalone/setup",
++                new StandaloneSetup("Spa am See", "AT", "Gmunden", "Eva Huber", "eva", "seeblick-2026"), ApiClient.Json, Ct);
++            Assert.Equal(HttpStatusCode.OK, setup.StatusCode);
++
++            // Neustart wie am nächsten Morgen: dieselbe Datenbank, das Konto ist noch da.
++            await server.StopAsync();
++            var again = new LocalServer(paths, new SystemProcessRunner(), new PlainProtector());
++            await again.StartAsync(ct: Ct);
++            server = again;
++            var login = await http.PostAsJsonAsync("api/auth/standalone/login", new PasswordLogin("eva", "seeblick-2026"), ApiClient.Json, Ct);
++            Assert.Equal(HttpStatusCode.OK, login.StatusCode);
++        }
++        finally
++        {
++            await server.StopAsync();
++            try
++            {
++                data.Delete(recursive: true);
++            }
++            catch (IOException)
++            {
++                // Protokolldateien können unter Windows kurz gesperrt bleiben.
++            }
++        }
++    }
++}
+diff --git a/tests/AispaStudio.Desktop.Tests/LocalServerTests.cs b/tests/AispaStudio.Desktop.Tests/LocalServerTests.cs
+new file mode 100644
+index 0000000..7e3735a
+--- /dev/null
++++ b/tests/AispaStudio.Desktop.Tests/LocalServerTests.cs
+@@ -0,0 +1,222 @@
++using System.Text;
++using AispaStudio.Desktop.Services;
++
++namespace AispaStudio.Desktop.Tests;
++
++/// <summary>Einzelplatz-Betrieb (ADR 0041): Die App legt Datenbank und API auf diesem PC an und startet sie.</summary>
++public sealed class LocalServerTests : IDisposable
++{
++    private readonly DirectoryInfo _root = Directory.CreateTempSubdirectory("aispa-local-");
++
++    private static CancellationToken Ct => TestContext.Current.CancellationToken;
++
++    private LocalServerPaths Paths => new(Path.Combine(_root.FullName, "app"), Path.Combine(_root.FullName, "daten"));
++
++    public void Dispose() => _root.Delete(recursive: true);
++
++    private void InstallPackage()
++    {
++        foreach (var file in new[] { Paths.Tool("pg_ctl"), Paths.Tool("initdb"), Paths.Tool("psql"), Paths.Tool("createdb"), Paths.Api })
++        {
++            Directory.CreateDirectory(Path.GetDirectoryName(file)!);
++            File.WriteAllText(file, "");
++        }
++    }
++
++    [Fact]
++    public async Task Erster_Start_legt_Datenbank_an_startet_sie_und_dann_die_API()
++    {
++        InstallPackage();
++        var runner = new FakeRunner(Paths);
++        var ready = 0;
++        var server = new LocalServer(Paths, runner, new PlainProtector(), (_, _) => Task.FromResult(runner.ApiStarted && ++ready > 1));
++        var steps = new List<string>();
++
++        await server.StartAsync(new SyncProgress(steps), Ct);
++
++        Assert.Equal(["initdb", "pg_ctl status", "pg_ctl start", "psql", "createdb", "api"], runner.Calls);
++        Assert.Equal(["Lege die lokale Datenbank an …", "Starte die lokale Datenbank …", "Starte AISPA Studio auf diesem PC …"], steps);
++        Assert.Equal(new Uri($"http://127.0.0.1:{server.Config.ApiPort}/"), server.ApiAddress);
++        Assert.False(File.Exists(Path.Combine(Paths.DataDirectory, "initdb.tmp")));
++
++        var env = runner.ApiEnvironment!;
++        Assert.Equal("true", env["Hosting__Standalone"]);
++        Assert.Equal(Paths.WebRoot, env["Hosting__WebRoot"]);
++        Assert.Equal($"http://127.0.0.1:{server.Config.ApiPort}", env["ASPNETCORE_URLS"]);
++        Assert.Contains($"Port={server.Config.DatabasePort};Database=aispadb;Username=aispa;Password=", env["ConnectionStrings__aispadb"], StringComparison.Ordinal);
++        Assert.Equal(32, Convert.FromBase64String(env["HealthData__Keys__lokal1"]).Length);
++        Assert.Contains($"-p {server.Config.DatabasePort} -c listen_addresses=127.0.0.1", runner.StartArgs, StringComparison.Ordinal);
++        Assert.Equal(runner.InitPassword, runner.PsqlPassword);
++    }
++
++    [Fact]
++    public async Task Zweiter_Start_behaelt_Ports_Passwort_und_Schluessel_und_legt_nichts_neu_an()
++    {
++        InstallPackage();
++        var first = new FakeRunner(Paths);
++        var server = new LocalServer(Paths, first, new PlainProtector(), (_, _) => Task.FromResult(first.ApiStarted));
++        await server.StartAsync(ct: Ct);
++
++        var again = new FakeRunner(Paths) { DatabaseRunning = true, DatabaseExists = true };
++        var restarted = new LocalServer(Paths, again, new PlainProtector(), (_, _) => Task.FromResult(again.ApiStarted));
++        await restarted.StartAsync(ct: Ct);
++
++        Assert.Equal(server.Config, restarted.Config);
++        Assert.Equal(["pg_ctl status", "psql", "api"], again.Calls);
++        Assert.Equal(first.ApiEnvironment!["ConnectionStrings__aispadb"], again.ApiEnvironment!["ConnectionStrings__aispadb"]);
++        Assert.Equal(first.ApiEnvironment["HealthData__Keys__lokal1"], again.ApiEnvironment["HealthData__Keys__lokal1"]);
++    }
++
++    [Fact]
++    public async Task Laeuft_die_API_schon_wird_sie_nicht_doppelt_gestartet()
++    {
++        InstallPackage();
++        var runner = new FakeRunner(Paths) { DatabaseRunning = true, DatabaseExists = true };
++        Directory.CreateDirectory(Paths.Cluster);
++        File.WriteAllText(Path.Combine(Paths.Cluster, "PG_VERSION"), "17");
++        var server = new LocalServer(Paths, runner, new PlainProtector(), (_, _) => Task.FromResult(true));
++
++        await server.StartAsync(ct: Ct);
++
++        Assert.Equal(["pg_ctl status", "psql"], runner.Calls);
++    }
++
++    [Fact]
++    public async Task Fehlt_das_Paket_erklaert_die_App_was_fehlt()
++    {
++        var server = new LocalServer(Paths, new FakeRunner(Paths), new PlainProtector(), (_, _) => Task.FromResult(false));
++
++        var error = await Assert.ThrowsAsync<LocalServerException>(() => server.StartAsync(ct: Ct));
++
++        Assert.Contains("vollständige Windows-Paket", error.Message, StringComparison.Ordinal);
++    }
++
++    [Fact]
++    public async Task Startet_die_API_nicht_zeigt_die_App_das_Protokoll()
++    {
++        InstallPackage();
++        var runner = new FakeRunner(Paths) { ApiExitsImmediately = true };
++        var server = new LocalServer(Paths, runner, new PlainProtector(), (_, _) => Task.FromResult(false), TimeSpan.FromSeconds(5));
++
++        var error = await Assert.ThrowsAsync<LocalServerException>(() => server.StartAsync(ct: Ct));
++
++        Assert.Contains("api.log", error.Message, StringComparison.Ordinal);
++    }
++
++    [Fact]
++    public async Task Unlesbare_Zugangsdaten_werden_nie_still_ersetzt()
++    {
++        InstallPackage();
++        Directory.CreateDirectory(Paths.DataDirectory);
++        File.WriteAllBytes(Paths.Secrets, Encoding.UTF8.GetBytes("kaputt"));
++        var server = new LocalServer(Paths, new FakeRunner(Paths), new PlainProtector(), (_, _) => Task.FromResult(false));
++
++        var error = await Assert.ThrowsAsync<LocalServerException>(() => server.StartAsync(ct: Ct));
++
++        Assert.Contains("Sicherung", error.Message, StringComparison.Ordinal);
++        Assert.Equal("kaputt", File.ReadAllText(Paths.Secrets));
++    }
++
++    [Fact]
++    public async Task Beenden_stoppt_API_und_Datenbank()
++    {
++        InstallPackage();
++        var runner = new FakeRunner(Paths);
++        var server = new LocalServer(Paths, runner, new PlainProtector(), (_, _) => Task.FromResult(runner.ApiStarted));
++        await server.StartAsync(ct: Ct);
++        File.WriteAllText(Path.Combine(Paths.Cluster, "postmaster.pid"), "1");
++
++        await server.StopAsync();
++
++        Assert.True(runner.ApiKilled);
++        Assert.Equal("pg_ctl stop", runner.Calls[^1]);
++    }
++
++    [Fact]
++    public void Schalter_standalone_wird_gemerkt_und_server_schaltet_zurueck()
++    {
++        var settings = new MemorySettingsStore();
++
++        Assert.False(StandaloneMode.Resolve([], settings));
++        Assert.True(StandaloneMode.Resolve(["--standalone"], settings));
++        Assert.True(StandaloneMode.Resolve([], settings));
++        Assert.False(StandaloneMode.Resolve(["--server"], settings));
++        Assert.False(settings.Load().Standalone);
++    }
++
++    private sealed class SyncProgress(List<string> steps) : IProgress<string>
++    {
++        public void Report(string value) => steps.Add(value);
++    }
++
++    /// <summary>Spielt PostgreSQL und API nach: initdb legt PG_VERSION an, psql meldet, ob die Datenbank schon da ist.</summary>
++    private sealed class FakeRunner(LocalServerPaths paths) : IProcessRunner
++    {
++        public List<string> Calls { get; } = [];
++
++        public bool DatabaseRunning { get; set; }
++
++        public bool DatabaseExists { get; set; }
++
++        public bool ApiExitsImmediately { get; set; }
++
++        public bool ApiStarted { get; private set; }
++
++        public bool ApiKilled { get; private set; }
++
++        public IReadOnlyDictionary<string, string>? ApiEnvironment { get; private set; }
++
++        public string StartArgs { get; private set; } = "";
++
++        public string? InitPassword { get; private set; }
++
++        public string? PsqlPassword { get; private set; }
++
++        public Task<ProcessResult> RunAsync(string file, IReadOnlyList<string> args, IReadOnlyDictionary<string, string>? env = null,
++            CancellationToken ct = default)
++        {
++            var tool = Path.GetFileNameWithoutExtension(file);
++            var call = tool == "pg_ctl" ? $"pg_ctl {args[0]}" : tool;
++            Calls.Add(call);
++            switch (call)
++            {
++                case "initdb":
++                    InitPassword = File.ReadAllText(args[args.ToList().IndexOf("--pwfile") + 1]);
++                    Directory.CreateDirectory(paths.Cluster);
++                    File.WriteAllText(Path.Combine(paths.Cluster, "PG_VERSION"), "17");
++                    return Done(0);
++                case "pg_ctl status":
++                    return Done(DatabaseRunning ? 0 : 3);
++                case "pg_ctl start":
++                    StartArgs = args[^1];
++                    DatabaseRunning = true;
++                    return Done(0);
++                case "psql":
++                    PsqlPassword = env!["PGPASSWORD"];
++                    return Done(0, DatabaseExists ? "1\n" : "");
++                case "createdb":
++                    DatabaseExists = true;
++                    return Done(0);
++                default:
++                    return Done(0);
++            }
++        }
++
++        public IRunningProcess Start(string file, IReadOnlyList<string> args, IReadOnlyDictionary<string, string> env, string logFile)
++        {
++            Calls.Add("api");
++            ApiEnvironment = env;
++            ApiStarted = !ApiExitsImmediately;
++            return new Process(this);
++        }
++
++        private static Task<ProcessResult> Done(int code, string output = "") => Task.FromResult(new ProcessResult(code, output));
++
++        private sealed class Process(FakeRunner runner) : IRunningProcess
++        {
++            public bool HasExited => runner.ApiExitsImmediately || runner.ApiKilled;
++
++            public void Kill() => runner.ApiKilled = true;
++        }
++    }
++}
+diff --git a/tests/AispaStudio.Desktop.Tests/StandaloneLoginTests.cs b/tests/AispaStudio.Desktop.Tests/StandaloneLoginTests.cs
+index 64d5a85..12d6d15 100644
+--- a/tests/AispaStudio.Desktop.Tests/StandaloneLoginTests.cs
++++ b/tests/AispaStudio.Desktop.Tests/StandaloneLoginTests.cs
+@@ -46,7 +46,7 @@ public sealed class StandaloneLoginTests
+ 
+         Assert.True(login.SetupRequired);
+         Assert.False(login.ShowPasswordLogin);
+-        Assert.Contains("im Browser", login.SetupHint, StringComparison.Ordinal);
++        Assert.Contains("http://localhost/", login.SetupHint, StringComparison.Ordinal);
+ 
+         login.UserName = "rita";
+         login.Password = "falsch";
+@@ -86,6 +86,43 @@ public sealed class StandaloneLoginTests
+         Assert.Contains(api.Calls, c => c.Route == "POST /api/auth/standalone/password" && c.Body!.Contains("start-1234", StringComparison.Ordinal));
+     }
+ 
++    [Fact]
++    public async Task Einrichtung_beim_ersten_Start_legt_Spa_an_und_meldet_an()
++    {
++        var owner = Rita(false) with { DisplayName = "Eva Huber", UserName = "eva" };
++        var api = new StubApi()
++            .On("GET /api/system/modules", Standalone)
++            .On("GET /api/auth/standalone/setup", new StandaloneSetupState(true))
++            .On("POST /api/auth/standalone/setup", owner);
++        CurrentUser? signedIn = null;
++        var login = new LoginViewModel(api.Client(), user => { signedIn = user; return Task.CompletedTask; });
++        await login.LoadAsync();
++
++        Assert.True(login.SetupRequired);
++        Assert.False(login.CompleteSetupCommand.CanExecute(null));
++        login.SpaName = "Spa am See";
++        login.Country = LoginViewModel.Countries.Single(c => c.Code == "DE");
++        login.LocationName = "Gmunden";
++        login.OwnerName = "Eva Huber";
++        login.UserName = "eva";
++        login.Password = "seeblick-2026";
++        login.NewPasswordRepeat = "seeblick-2025";
++        Assert.True(login.CompleteSetupCommand.CanExecute(null));
++
++        await login.CompleteSetupCommand.ExecuteAsync(null);
++        Assert.Equal("Die beiden Passwörter stimmen nicht überein.", login.Error);
++        Assert.Null(signedIn);
++
++        login.NewPasswordRepeat = "seeblick-2026";
++        await login.CompleteSetupCommand.ExecuteAsync(null);
++
++        Assert.Equal("Eva Huber", signedIn?.DisplayName);
++        Assert.False(login.SetupRequired);
++        var body = api.Calls.Single(c => c.Route == "POST /api/auth/standalone/setup").Body!;
++        Assert.Contains("\"country\":\"DE\"", body, StringComparison.Ordinal);
++        Assert.Contains("\"locationName\":\"Gmunden\"", body, StringComparison.Ordinal);
++    }
++
+     [Fact]
+     public async Task Server_Betrieb_zeigt_den_Einmal_Code()
+     {

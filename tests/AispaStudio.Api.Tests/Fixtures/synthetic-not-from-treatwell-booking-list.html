@@ -1,0 +1,27 @@
+<!-- SYNTHETISCH, NICHT VON TREATWELL: erfundenes Testbeispiel nach den Angaben in der Aufgabe (ADR 0062). Das echte Mailformat von Treatwell ist nicht öffentlich und muss mit Mails aus einem Partnerkonto geprüft werden. Nur für Tests. -->
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Neue Buchung</title>
+<style>td { padding: 4px; } a.button { background: #1a1a1a; color: #ffffff; }</style>
+</head>
+<body>
+<p>Hallo, Sie haben eine neue Buchung erhalten.</p>
+<ul>
+<li><strong>Kunde:</strong> <span>Anna Schmidt</span></li>
+<li><strong>Telefon:</strong> <span>0664 7654321</span></li>
+<li><strong>Termin:</strong> <span>{{DATE_TEXT}}</span></li>
+<li><strong>Behandlung:</strong> <span>{{TREATMENT}}</span></li>
+<li><strong>Mitarbeiter:</strong> <span>{{STAFF}}</span></li>
+<li><strong>Standort:</strong> <span>{{LOCATION}}</span></li>
+<li><strong>Status:</strong> <span>Zahlung im Salon</span></li>
+<li><strong>Zu kassieren:</strong> <span>129,00 &euro;</span></li>
+<li><strong>Ref:</strong> <span>#{{REFERENCE}}</span></li>
+</ul>
+<p>
+<a class="button" href="https://example.invalid/synthetic/accept">Annehmen</a>
+<a class="button" href="https://example.invalid/synthetic/edit">Bearbeiten</a>
+</p>
+</body>
+</html>

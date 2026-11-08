@@ -1,0 +1,86 @@
+<views:PeriodAreaView xmlns="https://github.com/avaloniaui"
+                      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                      xmlns:views="using:AispaStudio.Desktop.Views"
+                      xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+                      xmlns:ui="using:AispaStudio.Desktop.Controls"
+                      x:Class="AispaStudio.Desktop.Views.RoomClosuresView"
+                      x:DataType="vm:RoomClosuresViewModel"
+                      ui:SaveShortcut.IsScope="True">
+  <!--
+    Raumsperren (R05 Slice 95, ADR 0076), native Maske nach web/src/closures/RoomClosuresPage.tsx: oben Reiter, Standort und „Neue Raumsperre“, links die Liste, rechts das
+    Formular mit Raum, Zeitraum sowie Art und Grund (Gruppen mit Überschrift und Fragezeichen am Titel, Brief 5.11). „Speichern / Verwerfen“ steht am Ende des Formulars (Strg+S),
+    „Löschen“ daneben.
+  -->
+  <Grid RowDefinitions="Auto,Auto,*" RowSpacing="12">
+    <views:PeriodHeader />
+
+    <ui:InfoBar Grid.Row="1" Severity="{Binding MessageSeverity}" Message="{Binding Message}" IsVisible="{Binding HasMessage}" CloseCommand="{Binding CloseMessageCommand}" />
+
+    <Grid Grid.Row="2" ColumnDefinitions="300,*">
+      <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" Margin="0,0,16,0">
+        <views:PeriodList />
+      </ScrollViewer>
+
+      <ScrollViewer Grid.Column="1" x:Name="FormScroll" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+        <StackPanel Spacing="20" MaxWidth="800" HorizontalAlignment="Left" Margin="0,0,16,16">
+          <Border Classes="card" Padding="16" IsVisible="{Binding ShowSelectHint}">
+            <TextBlock Text="{Binding SelectHint}" Classes="muted" TextWrapping="Wrap" />
+          </Border>
+
+          <StackPanel Spacing="20" IsVisible="{Binding HasForm}">
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+              <TextBlock Text="{Binding HeadingText}" Classes="h2" VerticalAlignment="Center" TextWrapping="Wrap" />
+              <Border Grid.Column="1" Classes="pill" IsVisible="{Binding HasPhase}">
+                <TextBlock Text="{Binding PhaseText}" />
+              </Border>
+            </Grid>
+
+            <ui:InfoBar Severity="Warning" Message="{Binding OpenNotice}" IsVisible="{Binding HasOpenNotice}" />
+
+            <!-- Raum -->
+            <StackPanel Spacing="8">
+              <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Text="Raum" Classes="h2" VerticalAlignment="Center" />
+                <ui:HelpButton Grid.Column="1" Topic="raumsperren" Section="raum" />
+              </Grid>
+              <ui:FormField Label="Raum" IsRequired="True" Error="{Binding RoomError}">
+                <ComboBox x:Name="RoomField" ItemsSource="{Binding Rooms}" SelectedItem="{Binding SelectedRoom}" IsEnabled="{Binding CanSelectRoom}" MinWidth="280" HorizontalAlignment="Left" />
+              </ui:FormField>
+            </StackPanel>
+
+            <views:PeriodSection />
+
+            <!-- Art und Grund -->
+            <StackPanel Spacing="8">
+              <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Text="Art und Grund" Classes="h2" VerticalAlignment="Center" />
+                <ui:HelpButton Grid.Column="1" Topic="raumsperren" Section="art" />
+              </Grid>
+              <StackPanel Spacing="4" AutomationProperties.Name="Art der Raumsperre">
+                <RadioButton x:Name="KindMaintenance" GroupName="RoomClosureKind" IsChecked="{Binding Kinds[0].IsSelected}" Content="{Binding Kinds[0].Label}" />
+                <RadioButton x:Name="KindDamage" GroupName="RoomClosureKind" IsChecked="{Binding Kinds[1].IsSelected}" Content="{Binding Kinds[1].Label}" />
+                <RadioButton x:Name="KindRenovation" GroupName="RoomClosureKind" IsChecked="{Binding Kinds[2].IsSelected}" Content="{Binding Kinds[2].Label}" />
+                <RadioButton x:Name="KindOther" GroupName="RoomClosureKind" IsChecked="{Binding Kinds[3].IsSelected}" Content="{Binding Kinds[3].Label}" />
+              </StackPanel>
+              <ui:FormField Label="Grund für das Team" Error="{Binding ReasonError}"
+                            Help="Steht im Kalender im Kopf des Raums, z. B. „Wasserschaden, Trocknung bis Freitag“.">
+                <TextBox x:Name="ReasonField" Text="{Binding Reason}" MaxLength="200" />
+              </ui:FormField>
+            </StackPanel>
+
+            <TextBlock Text="{Binding CreatedText}" Classes="muted small" IsVisible="{Binding HasCreatedText}" />
+
+            <StackPanel x:Name="Footer" Spacing="12">
+              <ui:InfoBar Severity="Error" Title="Nicht gespeichert" Message="{Binding Error}" IsVisible="{Binding HasError}"
+                          ActionText="Erneut versuchen" ActionCommand="{Binding SaveCommand}" CloseCommand="{Binding CloseErrorCommand}" />
+              <StackPanel Orientation="Horizontal" Spacing="24">
+                <ui:SaveBar SaveCommand="{Binding SaveCommand}" DiscardCommand="{Binding DiscardCommand}" CanDiscard="{Binding HasUnsavedChanges}" Status="{Binding StatusText}" />
+                <Button x:Name="DeleteButton" Classes="danger" Content="Löschen" Command="{Binding DeleteCommand}" IsVisible="{Binding CanDelete}" />
+              </StackPanel>
+            </StackPanel>
+          </StackPanel>
+        </StackPanel>
+      </ScrollViewer>
+    </Grid>
+  </Grid>
+</views:PeriodAreaView>

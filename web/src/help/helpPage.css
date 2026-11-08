@@ -1,0 +1,316 @@
+/* Hilfe-Seite (/help/): links Themenliste nach Design-Brief 5.6, rechts das Thema. Farben und Schrift kommen aus index.css. */
+
+.help-page {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  height: 100vh;
+  height: 100dvh;
+  background: var(--bg);
+}
+
+.help-page-nav {
+  overflow: auto;
+  padding: 16px 12px;
+  border-right: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.help-page-title {
+  margin: 0 4px 4px;
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 28px;
+}
+
+/* Die Gruppen der gemeinsamen Übersicht sind hier keine Karten, die Liste ist selbst die Karte. */
+.help-page-nav .help-index section {
+  margin: 0 0 8px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+
+.help-page-nav .help-index h3 {
+  margin: 12px 4px 4px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  color: var(--muted);
+}
+
+.help-index h4 {
+  margin: 8px 4px 2px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  color: var(--muted);
+}
+
+.help-page-nav .help-topics {
+  margin: 0;
+}
+
+.help-page-nav .help-topics button {
+  justify-content: flex-start;
+  min-height: 40px;
+  padding: 10px 12px;
+  border-color: transparent;
+  border-left: 3px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  text-align: left;
+}
+
+@media (hover: hover) {
+  .help-page-nav .help-topics button:hover:not(:disabled) {
+    background: var(--surface-2);
+    border-color: transparent;
+    border-left-color: transparent;
+  }
+}
+
+.help-page-nav .help-topics button[aria-current='page'] {
+  background: var(--accent-soft);
+  border-left-color: var(--accent);
+}
+
+/* Rollenfilter und Bereichsgruppen der Navigation */
+.help-role-chip {
+  min-height: 32px;
+  margin: 4px 4px 8px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.help-role-chip[aria-pressed='true'] {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
+.help-group > summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  padding: 4px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  color: var(--muted);
+  cursor: pointer;
+  list-style: none;
+}
+
+.help-group > summary::-webkit-details-marker {
+  display: none;
+}
+
+.help-group > summary::before {
+  content: '›';
+  display: inline-block;
+  width: 8px;
+  transition: transform 120ms ease;
+}
+
+.help-group[open] > summary::before {
+  transform: rotate(90deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .help-group > summary::before {
+    transition: none;
+  }
+}
+
+.help-group > summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+/* Alle Einträge eine Einrückung; der aktive Eintrag ist eine Pille, keine Linie und keine Unterstreichung. */
+.help-group .help-topics button {
+  padding-left: 28px;
+  border-left: 0;
+  border-radius: 999px;
+  text-decoration: none;
+}
+
+.help-page-nav .help-group .help-topics button[aria-current='page'] {
+  border-left: 0;
+  font-weight: 600;
+}
+
+/* Die Seite überschreibt die Vorgaben für main und .help-body aus index.css (Breite 720, Außenabstand). */
+.help-page .help-page-content {
+  max-width: none;
+  margin: 0;
+  padding: 48px 32px 64px;
+  overflow: auto;
+}
+
+/* Text höchstens etwa 720 px breit; rechts daneben „Auf dieser Seite“, ein Scrollbereich je Spalte (die Seite scrollt als Ganzes). */
+.help-page-grid {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 48px;
+}
+
+.help-article {
+  flex: 0 1 720px;
+  min-width: 0;
+}
+
+.help-toc-side {
+  position: sticky;
+  top: 0;
+  flex: 0 0 200px;
+  max-height: calc(100dvh - 96px);
+  overflow: auto;
+}
+
+.help-toc-side .help-toc {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+
+.help-toc-side .help-toc a,
+.help-toc-fold .help-toc a {
+  display: block;
+  padding: 4px 12px;
+  border-left: 2px solid var(--border);
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.help-toc-side .help-toc a[aria-current='location'] {
+  border-left-color: var(--accent);
+  color: var(--fg);
+  font-weight: 600;
+}
+
+.help-toc-fold {
+  margin: 16px 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-2);
+}
+
+.help-toc-fold > summary {
+  padding: 8px 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.help-toc-fold .help-toc {
+  margin: 0;
+  padding: 0 16px 12px;
+  border: 0;
+  background: none;
+}
+
+/* Brotkrumen schlicht als kleiner Text, Rollen als Chips unter dem Titel */
+.help-article .help-crumbs ol {
+  margin: 0 0 8px;
+}
+
+.help-article .help-crumbs button {
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.help-article .help-roles {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--surface-2);
+}
+
+/* Schritte als nummerierte Blöcke, Bilder mit runden Ecken, Links im Fließtext unterstrichen */
+.help-article ol:not(.help-crumbs ol) {
+  padding-left: 0;
+  list-style: none;
+  counter-reset: step;
+}
+
+.help-article ol:not(.help-crumbs ol) > li {
+  position: relative;
+  padding: 12px 16px 12px 48px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  counter-increment: step;
+}
+
+.help-article ol:not(.help-crumbs ol) > li::before {
+  content: counter(step);
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 24px;
+  text-align: center;
+}
+
+.help-article .help-image img {
+  border-radius: 12px;
+}
+
+.help-article :is(p, li) a {
+  text-decoration: underline;
+}
+
+.help-article .help-foot a,
+.help-article .help-foot button {
+  text-decoration: none;
+}
+
+.help-page-content h1 {
+  margin: 0 0 8px;
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 36px;
+}
+
+.help-page-content h2 {
+  margin: 32px 0 8px;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 28px;
+  scroll-margin-top: 12px;
+}
+
+.help-page-content h3 {
+  margin: 16px 0 4px;
+  scroll-margin-top: 12px;
+}
+
+.help-page-content .help-target {
+  color: var(--accent);
+}
+
+@media (max-width: 720px) {
+  .help-page {
+    display: block;
+    height: auto;
+  }
+
+  .help-page-nav {
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+  }
+}

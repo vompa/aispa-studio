@@ -1,0 +1,33 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             x:Class="AispaStudio.Desktop.Views.AiFooter"
+             x:Name="Self">
+  <!--
+    Eine Zeile unter einer KI-Ausgabe (Design-Brief 5.28, gekürzt am 29.10.2026 vom Auftraggeber): Hinweis (zentraler Wortlaut oder der Hinweis des Servers) und dahinter
+    „Warum?“; aufgeklappt stehen Quelle und Regel darunter. Keine Rückmeldeknöpfe.
+  -->
+  <StackPanel Spacing="2">
+    <!-- Immer eine Zeile: ein zu langer Hinweis wird gekürzt, der volle Wortlaut steht im Tooltip -->
+    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8" HorizontalAlignment="Left">
+      <TextBlock x:Name="DisclaimerText" Text="{Binding #Self.Disclaimer}" Classes="muted small" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                 ToolTip.Tip="{Binding #Self.Disclaimer}" />
+      <ui:AccordionHeader x:Name="WhyToggle" Grid.Column="1" Classes="more" Padding="0,0,6,0" MinHeight="24"
+                          IsVisible="{Binding #Self.Why, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+        <StackPanel Orientation="Horizontal" Spacing="4">
+          <TextBlock Text="{Binding #Self.WhyTitle}" Classes="small" FontWeight="Medium" />
+          <ui:Icon Classes="chevron" Data="{x:Static ui:Icons.ChevronRight}" Width="12" Height="12" Foreground="{DynamicResource Fg3Brush}" VerticalAlignment="Center" />
+        </StackPanel>
+        <ui:AccordionHeader.Styles>
+          <Style Selector="ui|Icon.chevron">
+            <Setter Property="RenderTransform" Value="rotate(90deg)" />
+          </Style>
+          <Style Selector="ToggleButton:checked ui|Icon.chevron">
+            <Setter Property="RenderTransform" Value="rotate(-90deg)" />
+          </Style>
+        </ui:AccordionHeader.Styles>
+      </ui:AccordionHeader>
+    </Grid>
+    <TextBlock Text="{Binding #Self.Why}" Classes="small secondary" TextWrapping="Wrap" IsVisible="{Binding #WhyToggle.IsChecked}" />
+  </StackPanel>
+</UserControl>

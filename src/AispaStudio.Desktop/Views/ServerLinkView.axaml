@@ -1,0 +1,28 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             x:Class="AispaStudio.Desktop.Views.ServerLinkView"
+             x:DataType="vm:ServerLinkViewModel">
+  <ScrollViewer>
+    <StackPanel Margin="16" Spacing="16" MaxWidth="720" HorizontalAlignment="Left">
+      <StackPanel>
+        <TextBlock Text="Netz" Classes="h1" />
+        <TextBlock Text="Hier steht, mit welchem Server diese App arbeitet. Von zu Hause verwaltet man über dieselbe App und dieselbe Anmeldung."
+                   Classes="muted" TextWrapping="Wrap" />
+      </StackPanel>
+
+      <Border Classes="card">
+        <StackPanel Spacing="10">
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <ui:Icon Data="{x:Static ui:Icons.Wifi}" Width="18" Height="18" />
+            <TextBlock Text="Verbindung" Classes="h2" />
+            <ui:HelpButton Topic="im-netz" Section="verbinden-server" />
+          </StackPanel>
+          <TextBlock Text="{Binding Text}" TextWrapping="Wrap" />
+          <Button Content="Verbindung lösen" Command="{Binding ReleaseCommand}" HorizontalAlignment="Left" />
+        </StackPanel>
+      </Border>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

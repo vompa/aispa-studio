@@ -1,0 +1,33 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             x:Class="AispaStudio.Desktop.Views.PowerOverviewView"
+             x:DataType="vm:PowerOverviewViewModel">
+  <!-- „Wer darf was?“ (R05 Slice 111, E11): je Vollmacht wer und bis wann; gepflegt wird auf der Personenkarte -->
+  <StackPanel x:Name="PowerOverview" Spacing="16" MaxWidth="760" HorizontalAlignment="Left">
+    <Grid ColumnDefinitions="*,Auto">
+      <TextBlock Text="Wer darf was?" Classes="h2" VerticalAlignment="Center" />
+      <ui:HelpButton Topic="regelungen-vollmachten" Section="wer-darf-was" Grid.Column="1" />
+    </Grid>
+    <ui:InfoBar Severity="Error" Title="Nicht geladen" Message="{Binding LoadError}" IsVisible="{Binding HasLoadError}" ActionText="Erneut laden" ActionCommand="{Binding LoadCommand}" />
+    <ItemsControl x:Name="PowerRows" ItemsSource="{Binding Rows}" AutomationProperties.Name="Vollmachten">
+      <ItemsControl.ItemTemplate>
+        <DataTemplate x:DataType="vm:PowerOverviewRow">
+          <StackPanel Spacing="2" Margin="0,0,0,16">
+            <TextBlock Text="{Binding Label}" Classes="heading" />
+            <TextBlock Text="{Binding Effect}" Classes="muted small" />
+            <TextBlock Text="Niemand" Classes="muted" IsVisible="{Binding HasNoHolders}" />
+            <ItemsControl ItemsSource="{Binding Holders}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:PowerHolderRow">
+                  <TextBlock Text="{Binding Text}" Classes.muted="{Binding IsExpired}" TextWrapping="Wrap" />
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
+  </StackPanel>
+</UserControl>

@@ -1,0 +1,89 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:contracts="using:AispaStudio.Contracts"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             xmlns:views="using:AispaStudio.Desktop.Views"
+             x:Class="AispaStudio.Desktop.Views.HygieneReportView"
+             x:DataType="vm:HygieneReportViewModel">
+  <!-- Reiter „Hygiene“ nach web/src/reports/HygieneView.tsx (R07 Slice 144: Status und Werte oben, die Räume als Abschnitte auf einer Fläche). Abhaken lädt den Stand neu; die Zeilen bleiben dabei stehen, damit der Tastaturfokus nicht verloren geht. -->
+  <StackPanel Spacing="16">
+    <Grid ColumnDefinitions="*,Auto">
+      <TextBlock Text="Tagesstart-Kontrolle und Raumpflege" Classes="h2" VerticalAlignment="Center" />
+      <ui:HelpButton Grid.Column="1" Topic="hygiene" />
+    </Grid>
+    <ui:InfoBar Severity="Error" Title="Hygiene nicht geladen" Message="{Binding LoadError}" IsVisible="{Binding HasLoadError}"
+                ActionText="Erneut laden" ActionCommand="{Binding RetryCommand}" />
+    <StackPanel Orientation="Horizontal" Spacing="12" IsVisible="{Binding NeedsPin}">
+      <ui:FormField Label="Abnahme durch">
+        <ComboBox x:Name="HygieneApproverField" ItemsSource="{Binding Approvers}" SelectedItem="{Binding SelectedApprover}" PlaceholderText="Standortleitung wählen"
+                  DisplayMemberBinding="{Binding DisplayName, x:DataType=contracts:QuickSwitchPerson}" Width="240" />
+      </ui:FormField>
+      <ui:FormField Label="PIN der Leitung">
+        <TextBox x:Name="HygienePinField" Text="{Binding Pin}" PasswordChar="•" MaxLength="8" Classes="num" Width="120" />
+      </ui:FormField>
+    </StackPanel>
+    <ui:InfoBar Severity="Error" Message="{Binding Error}" IsVisible="{Binding HasError}" CloseCommand="{Binding CloseErrorCommand}" />
+    <ui:InfoBar Severity="Success" Message="{Binding Message}" IsVisible="{Binding HasMessage}" CloseCommand="{Binding CloseMessageCommand}" />
+    <views:ReportOverviewView IsVisible="{Binding IsLoaded}" />
+
+    <StackPanel Spacing="8">
+      <TextBlock Text="Tagesstart je Raum" Classes="h2" />
+      <TextBlock Text="Für diesen Standort gibt es keine Checklisten." Classes="muted" IsVisible="{Binding NoRooms}" />
+      <ItemsControl ItemsSource="{Binding Rooms}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="vm:HygieneRoomRow">
+            <Border Classes="section">
+              <StackPanel Spacing="8">
+                <TextBlock Text="{Binding Heading}" FontWeight="Medium" TextWrapping="Wrap" />
+                <ItemsControl ItemsSource="{Binding Items}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:ReportCheckRow">
+                      <StackPanel Orientation="Horizontal" Spacing="8">
+                        <CheckBox Content="{Binding Text}" IsChecked="{Binding Done}" IsEnabled="{Binding CanToggle}" Command="{Binding ToggleCommand}" />
+                        <TextBlock Text="{Binding Detail}" Classes="muted small" VerticalAlignment="Center" IsVisible="{Binding HasDetail}" />
+                      </StackPanel>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <TextBlock Text="{Binding Equipment}" Classes.error="{Binding EquipmentIsWarning}" TextWrapping="Wrap" IsVisible="{Binding HasEquipment}" />
+                <ItemsControl ItemsSource="{Binding EquipmentLines}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="x:String">
+                      <TextBlock Text="{Binding}" Classes="muted" TextWrapping="Wrap" />
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <Button Content="Tagesstart abnehmen" Command="{Binding ApproveCommand}" IsVisible="{Binding CanApprove}" HorizontalAlignment="Left" />
+              </StackPanel>
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </StackPanel>
+
+    <StackPanel Spacing="8">
+      <TextBlock Text="Raumpflege" Classes="h2" />
+      <TextBlock Text="Keine Raumpflege an diesem Tag." Classes="muted" IsVisible="{Binding NoCareTasks}" />
+      <ItemsControl ItemsSource="{Binding CareTasks}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="vm:ReportCheckRow">
+            <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,0,0,4">
+              <CheckBox Content="{Binding Text}" IsChecked="{Binding Done}" Command="{Binding ToggleCommand}" />
+              <TextBlock Text="{Binding Detail}" Classes="muted small" Classes.error="{Binding IsWarning}" VerticalAlignment="Center" IsVisible="{Binding HasDetail}" />
+            </StackPanel>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+      <ItemsControl ItemsSource="{Binding CareApprovals}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="vm:RoomCareApprovalRow">
+            <Button Content="{Binding Label}" Command="{Binding ApproveCommand}" HorizontalAlignment="Left" Margin="0,0,0,4" />
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </StackPanel>
+
+    <Button x:Name="HygieneLogButton" Content="Hygieneprotokoll (CSV)" ToolTip.Tip="Hygieneprotokoll der letzten 30 Tage" Classes="ghost" Command="{Binding SaveLogCommand}" IsVisible="{Binding IsLeader}" HorizontalAlignment="Left" />
+  </StackPanel>
+</UserControl>

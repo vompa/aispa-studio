@@ -1,0 +1,56 @@
+<views:FocusRequestView xmlns="https://github.com/avaloniaui"
+                        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                        xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+                        xmlns:contracts="using:AispaStudio.Contracts"
+                        xmlns:ui="using:AispaStudio.Desktop.Controls"
+                        xmlns:views="using:AispaStudio.Desktop.Views"
+                        x:Class="AispaStudio.Desktop.Views.ReportsView"
+                        x:DataType="vm:ReportsViewModel"
+                        ui:SaveShortcut.IsScope="True">
+  <!--
+    „Zahlen“ (R05 Slice 102, R07 Slice 144, Ä352): eine einzige Reiterebene (Tagesstart · Mein Tag · Hygiene · Berichte · Betriebsinfo, je nach Recht), Standort und Datum rechts im Kopf.
+    Management und Pflichtberichte sind Unterreiter rechts im Reiter „Berichte“ (Ä353: Alltag oben, Verwaltung dahinter). Die Betriebsinfo hat ihre eigene Maske ohne Standort und Datum.
+    Die Inhalte der Reiter stehen in eigenen Ansichten, die App.axaml den ViewModels zuordnet.
+  -->
+  <Grid RowDefinitions="Auto,Auto,*">
+    <StackPanel Spacing="12" Margin="0,0,16,12">
+      <ui:InfoBar Severity="Error" Title="Berichte nicht geladen" Message="{Binding LoadError}" IsVisible="{Binding HasLoadError}"
+                  ActionText="Erneut laden" ActionCommand="{Binding RetryCommand}" />
+      <TextBlock Text="Wird geladen …" Classes="muted" IsVisible="{Binding !IsLoaded}" />
+    </StackPanel>
+
+    <ui:ReflowRow x:Name="ReportHeader" Grid.Row="1" Spacing="16" LineSpacing="8" Margin="0,0,16,16" IsVisible="{Binding IsLoaded}">
+      <Border Classes="segmented" HorizontalAlignment="Left" VerticalAlignment="Bottom" ui:RegionNavigation.IsRegion="True" AutomationProperties.Name="Reiter von Zahlen">
+        <StackPanel Orientation="Horizontal">
+          <ui:TabButton x:Name="ReportBriefingTab" Content="Tagesstart" IsVisible="{Binding CanSeeBriefing}" IsSelected="{Binding IsBriefingTab}" Command="{Binding SelectTabCommand}" CommandParameter="briefing" />
+          <ui:TabButton x:Name="ReportDayTab" Content="Mein Tag" IsVisible="{Binding CanSeeDay}" IsSelected="{Binding IsDayTab}" Command="{Binding SelectTabCommand}" CommandParameter="day" />
+          <ui:TabButton x:Name="ReportHygieneTab" Content="Hygiene" IsVisible="{Binding CanSeeHygiene}" IsSelected="{Binding IsHygieneTab}" Command="{Binding SelectTabCommand}" CommandParameter="hygiene" />
+          <ui:TabButton x:Name="ReportManagementTab" Content="Berichte" IsVisible="{Binding CanSeeManagement}" IsSelected="{Binding IsReportsTab}" Command="{Binding SelectTabCommand}" CommandParameter="reports" />
+          <ui:TabButton x:Name="ReportBusinessInfoTab" Content="Betriebsinfo" IsVisible="{Binding CanSeeBusinessInfo}" IsSelected="{Binding IsBusinessInfoTab}" Command="{Binding SelectTabCommand}" CommandParameter="businessInfo" />
+        </StackPanel>
+      </Border>
+      <StackPanel Orientation="Horizontal" Spacing="12" IsVisible="{Binding ShowFilters}">
+        <ui:FormField Label="Standort">
+          <ComboBox x:Name="ReportLocationField" ItemsSource="{Binding Locations}" SelectedItem="{Binding SelectedLocation}" DisplayMemberBinding="{Binding Name, x:DataType=contracts:LocationDto}" Width="200" />
+        </ui:FormField>
+        <ui:FormField Label="Datum" IsVisible="{Binding ShowDate}">
+          <ui:DateField x:Name="ReportDateField" Value="{Binding Date}" />
+        </ui:FormField>
+      </StackPanel>
+    </ui:ReflowRow>
+
+    <ScrollViewer Grid.Row="2" x:Name="FormScroll" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" IsVisible="{Binding !IsBusinessInfoTab}">
+      <StackPanel Spacing="16" Margin="0,0,16,16" IsVisible="{Binding IsLoaded}">
+        <Border Classes="segmented" HorizontalAlignment="Right" IsVisible="{Binding IsReportsTab}" ui:RegionNavigation.IsRegion="True" AutomationProperties.Name="Berichte">
+          <StackPanel Orientation="Horizontal">
+            <ui:TabButton x:Name="ReportManagementSubTab" Content="Management" IsSelected="{Binding IsManagementTab}" Command="{Binding SelectTabCommand}" CommandParameter="management" />
+            <ui:TabButton x:Name="ReportComplianceTab" Content="Pflichtberichte" IsVisible="{Binding CanSeeCompliance}" IsSelected="{Binding IsComplianceTab}" Command="{Binding SelectTabCommand}" CommandParameter="compliance" />
+          </StackPanel>
+        </Border>
+        <ContentControl Content="{Binding CurrentTab}" />
+      </StackPanel>
+    </ScrollViewer>
+
+    <ContentControl Grid.Row="2" x:Name="BusinessInfoHost" Margin="0,0,16,16" Content="{Binding BusinessInfo}" IsVisible="{Binding IsBusinessInfoTab}" />
+  </Grid>
+</views:FocusRequestView>

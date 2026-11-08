@@ -1,0 +1,248 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             x:Class="AispaStudio.Desktop.Views.RosterPlanView"
+             x:DataType="vm:RosterPlanViewModel">
+  <!--
+    Dienstplan einer Woche (R05 Slice 99, Ä191, Ä250; R07 Slice 142, Ä350), nach web/src/roster/RosterPage.tsx: Standort, Wochenwahl, Band für Entwürfe, eine Zeile je Person auf einer Fläche mit
+    feinen Linien. Dienste sind Chips in der Farbe der Person, Abwesenheiten ein Balken über die Tage, Stunden und Soll stehen beim Namen, die Spalte von heute ist hervorgehoben, unten zählt die Zeile „Besetzung“.
+    Eine Zelle ist ein Knopf (nur mit dem Recht zu planen); ein Entwurf trägt einen gestrichelten Rand. Der Balken liegt über den Zellen und fängt keine Klicks ab: jeder Tag bleibt einzeln anklickbar.
+    Farben nur über Ressourcen; die Chip-Fläche mischt RosterChip aus der Farbe der Person und dem Token RosterChipBaseBrush je Farbschema (T-039, Ä372).
+    Ein Klick auf eine Zelle öffnet den Tag als Popover direkt unter der Zelle (Ä370, T-017): DayHost liegt in derselben Ansicht über der Tabelle (kein Flyout, damit Fokus, Strg+S und
+    DataContext im selben Baum bleiben); die Lage setzt RosterPlanView.axaml.cs. Weil DayHost ein Kind der Wurzel mit Margin ist, wächst die Ansicht mit und nichts wird abgeschnitten.
+  -->
+  <UserControl.Resources>
+    <DataTemplate x:Key="RosterCellContent" x:DataType="vm:RosterCellViewModel">
+      <StackPanel Spacing="2" HorizontalAlignment="Stretch">
+        <ItemsControl ItemsSource="{Binding Chips}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:RosterChipViewModel">
+              <ui:RosterChip Classes="chip" PersonColor="{Binding PersonColor}" CornerRadius="999" Padding="6,2" Margin="0,0,0,2" HorizontalAlignment="Stretch">
+                <TextBlock Text="{Binding Text}" Classes="num small" Classes.planned="{Binding IsPlanned}" Foreground="{DynamicResource RosterChipInkBrush}" TextWrapping="Wrap" TextAlignment="Center"
+                           AutomationProperties.AccessibilityView="Raw" />
+              </ui:RosterChip>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        <TextBlock Text="frei" Classes="small muted" HorizontalAlignment="Center" IsVisible="{Binding IsFree}" AutomationProperties.AccessibilityView="Raw" />
+        <ItemsControl ItemsSource="{Binding Warnings}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="x:String">
+              <TextBlock Text="{Binding}" Classes="small" Foreground="{DynamicResource WarnBrush}" FontWeight="Medium" TextWrapping="Wrap" MaxWidth="70" AutomationProperties.AccessibilityView="Raw" />
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </StackPanel>
+    </DataTemplate>
+  </UserControl.Resources>
+  <UserControl.Styles>
+    <Style Selector="Button.rcell, ContentControl.rcell">
+      <Setter Property="MinWidth" Value="0" />
+      <Setter Property="HorizontalAlignment" Value="Stretch" />
+      <Setter Property="VerticalAlignment" Value="Stretch" />
+      <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+      <Setter Property="Padding" Value="4,6" />
+      <Setter Property="Margin" Value="2" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
+    </Style>
+    <Style Selector="Button.rcell.open">
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+      <Setter Property="BorderThickness" Value="2" />
+    </Style>
+    <Style Selector="TextBlock.planned">
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="TextBlock.today">
+      <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="Border.bar">
+      <Setter Property="Height" Value="24" />
+      <Setter Property="Margin" Value="6,0" />
+      <Setter Property="CornerRadius" Value="999" />
+      <Setter Property="Padding" Value="10,0" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+      <Setter Property="Background" Value="{DynamicResource Surface3Brush}" />
+    </Style>
+    <Style Selector="Border.bar > TextBlock">
+      <Setter Property="Foreground" Value="{DynamicResource Fg2Brush}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+      <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+    </Style>
+    <Style Selector="Border.bar.vacation">
+      <Setter Property="Background" Value="{DynamicResource AccentSoftBrush}" />
+    </Style>
+    <Style Selector="Border.bar.vacation > TextBlock">
+      <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+    </Style>
+    <Style Selector="Border.bar.sick">
+      <Setter Property="Background" Value="{DynamicResource CritSoftBrush}" />
+    </Style>
+    <Style Selector="Border.bar.sick > TextBlock">
+      <Setter Property="Foreground" Value="{DynamicResource CritBrush}" />
+    </Style>
+    <Style Selector="Border.bar.training">
+      <Setter Property="Background" Value="{DynamicResource WarnSoftBrush}" />
+    </Style>
+    <Style Selector="Border.bar.training > TextBlock">
+      <Setter Property="Foreground" Value="{DynamicResource WarnBrush}" />
+    </Style>
+  </UserControl.Styles>
+
+  <Panel x:Name="PlanRoot">
+  <StackPanel Spacing="12">
+    <ui:InfoBar Severity="Error" Title="Dienstplan nicht geladen" Message="{Binding LoadError}" IsVisible="{Binding HasLoadError}"
+                ActionText="Erneut laden" ActionCommand="{Binding LoadCommand}" />
+
+    <WrapPanel Orientation="Horizontal" ItemSpacing="8" LineSpacing="8">
+      <ComboBox x:Name="RosterLocation" ItemsSource="{Binding Locations}" SelectedItem="{Binding SelectedLocation}" MinWidth="200" VerticalAlignment="Center"
+                AutomationProperties.Name="Standort" />
+      <Button x:Name="PreviousWeekButton" Content="‹" Command="{Binding PreviousWeekCommand}" Classes="icon" AutomationProperties.Name="Vorherige Woche" ToolTip.Tip="Vorherige Woche" />
+      <Button x:Name="ThisWeekButton" Content="Diese Woche" Command="{Binding ThisWeekCommand}" />
+      <Button x:Name="NextWeekButton" Content="›" Command="{Binding NextWeekCommand}" Classes="icon" AutomationProperties.Name="Nächste Woche" ToolTip.Tip="Nächste Woche" />
+      <TextBlock x:Name="WeekTitleText" Text="{Binding WeekTitle}" Classes="h3" VerticalAlignment="Center" />
+      <ui:HelpButton Topic="seite-roster" VerticalAlignment="Center" />
+    </WrapPanel>
+
+    <Border x:Name="DraftBand" Background="{DynamicResource AccentSoftBrush}" BorderBrush="{DynamicResource AccentLineBrush}" BorderThickness="1" CornerRadius="8" Padding="12,8"
+            IsVisible="{Binding CanPublish}">
+      <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+        <TextBlock x:Name="DraftBandText" Text="{Binding DraftBandText}" FontWeight="SemiBold" VerticalAlignment="Center" TextWrapping="Wrap" />
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+          <Button x:Name="PublishButton" Classes="primary" Content="Veröffentlichen" Command="{Binding PublishCommand}" />
+          <Button x:Name="DiscardDraftsButton" Classes="ghost danger" Content="Verwerfen" Command="{Binding DiscardDraftsCommand}" />
+        </StackPanel>
+      </Grid>
+    </Border>
+    <TextBlock Text="{Binding LastPublishedText}" Classes="muted small" IsVisible="{Binding HasLastPublished}" />
+
+    <ui:InfoBar x:Name="PublishInfo" Severity="{Binding PublishSeverity}" Message="{Binding PublishMessage}" IsVisible="{Binding HasPublishMessage}"
+                CloseCommand="{Binding ClosePublishMessageCommand}" />
+    <ui:InfoBar Severity="Error" Title="Nicht erledigt" Message="{Binding Error}" IsVisible="{Binding HasError}" CloseCommand="{Binding CloseErrorCommand}" />
+
+    <TextBlock Text="Lade Dienstplan …" Classes="muted" IsVisible="{Binding !IsLoaded}" />
+    <TextBlock x:Name="RosterEmpty" Text="{Binding EmptyText}" Classes="muted" IsVisible="{Binding IsEmpty}" />
+
+    <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" IsVisible="{Binding IsLoaded}">
+      <StackPanel x:Name="RosterTable" AutomationProperties.Name="Dienstplan">
+        <Grid ColumnDefinitions="Auto,*" Margin="0,0,0,6">
+          <Border Width="{Binding NameColumnWidth}" />
+          <ItemsControl Grid.Column="1" ItemsSource="{Binding Heads}" MinWidth="728">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <UniformGrid Rows="1" />
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:RosterHeadViewModel">
+                <TextBlock Text="{Binding Text}" Classes="group" Classes.today="{Binding IsToday}" HorizontalAlignment="Center" />
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </Grid>
+
+        <ItemsControl ItemsSource="{Binding Rows}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:RosterRowViewModel">
+              <Border BorderBrush="{DynamicResource LineBrush}" BorderThickness="0,1,0,0" Padding="0,4">
+                <Grid ColumnDefinitions="Auto,*">
+                  <StackPanel Width="{Binding NameColumnWidth}" Spacing="2" Margin="0,0,8,0" VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding ShowsName}">
+                      <Ellipse Width="8" Height="8" Fill="{Binding Color}" VerticalAlignment="Center" />
+                      <Button Classes="link" Content="{Binding Name}" Command="{Binding OpenPersonCommand}" IsVisible="{Binding CanOpenPerson}"
+                              AutomationProperties.Name="{Binding OpenPersonName}" VerticalAlignment="Center" />
+                      <TextBlock Text="{Binding Name}" IsVisible="{Binding IsPlainName}" VerticalAlignment="Center" TextWrapping="Wrap" />
+                      <Border x:Name="RosterNoteSymbol" Background="Transparent" VerticalAlignment="Center" IsVisible="{Binding HasNote}"
+                              ToolTip.Tip="{Binding NoteText}" ui:ToolTipBehavior.Reachable="True" AutomationProperties.Name="{Binding NoteText, StringFormat='Hinweis: {0}'}"
+                              AutomationProperties.ControlTypeOverride="Text" AutomationProperties.AccessibilityView="Content">
+                        <ui:Icon Data="{x:Static ui:Icons.Note}" Width="16" Height="16" Foreground="{DynamicResource Fg2Brush}" />
+                      </Border>
+                    </StackPanel>
+                    <TextBlock x:Name="RosterHours" Text="{Binding HoursText}" Classes="num small" Margin="16,0,0,0" />
+                    <ItemsControl ItemsSource="{Binding Warnings}">
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="x:String">
+                          <TextBlock Text="{Binding}" Classes="small" Foreground="{DynamicResource WarnBrush}" FontWeight="Medium" TextWrapping="Wrap" />
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                  </StackPanel>
+                  <Panel Grid.Column="1" MinWidth="728">
+                    <ItemsControl ItemsSource="{Binding Cells}">
+                      <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                          <UniformGrid Rows="1" />
+                        </ItemsPanelTemplate>
+                      </ItemsControl.ItemsPanel>
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:RosterCellViewModel">
+                          <Panel>
+                            <Border Background="{DynamicResource AccentSoftBrush}" CornerRadius="8" Margin="2" IsVisible="{Binding IsToday}" IsHitTestVisible="False" />
+                            <Button Classes="rcell" Classes.open="{Binding IsOpen}" Command="{Binding OpenCommand}" IsVisible="{Binding CanOpen}"
+                                    AutomationProperties.Name="{Binding AutomationName}" Content="{Binding}" ContentTemplate="{StaticResource RosterCellContent}" />
+                            <!-- Ohne Recht zu planen ist die Zelle Text, kein abgeschalteter Knopf (Deckkraft 0,5): der Plan muss gut lesbar bleiben. -->
+                            <ContentControl Classes="rcell" IsVisible="{Binding !CanOpen}" AutomationProperties.Name="{Binding AutomationName}"
+                                            AutomationProperties.ControlTypeOverride="Text" Content="{Binding}" ContentTemplate="{StaticResource RosterCellContent}" />
+                            <Rectangle Classes="draft" Stroke="{DynamicResource AccentBrush}" StrokeThickness="1" StrokeDashArray="4,3" RadiusX="8" RadiusY="8" Margin="2"
+                                       IsVisible="{Binding IsDraft}" IsHitTestVisible="False" />
+                          </Panel>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <ItemsControl ItemsSource="{Binding Bars}" IsHitTestVisible="False" AutomationProperties.AccessibilityView="Raw">
+                      <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                          <Grid ColumnDefinitions="*,*,*,*,*,*,*" />
+                        </ItemsPanelTemplate>
+                      </ItemsControl.ItemsPanel>
+                      <ItemsControl.Styles>
+                        <Style Selector="ContentPresenter" x:DataType="vm:RosterBarViewModel">
+                          <Setter Property="Grid.Column" Value="{Binding Column}" />
+                          <Setter Property="Grid.ColumnSpan" Value="{Binding Span}" />
+                        </Style>
+                      </ItemsControl.Styles>
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:RosterBarViewModel">
+                          <Border Classes="bar" Classes.vacation="{Binding IsVacation}" Classes.sick="{Binding IsSick}" Classes.training="{Binding IsTraining}">
+                            <TextBlock Text="{Binding Text}" Classes="small" />
+                          </Border>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                  </Panel>
+                </Grid>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <Border x:Name="RosterCoverage" BorderBrush="{DynamicResource LineBrush}" BorderThickness="0,1,0,0" Padding="0,8" IsVisible="{Binding ShowsCoverage}">
+          <Grid ColumnDefinitions="Auto,*">
+            <TextBlock Text="Besetzung" Classes="small muted" Width="176" VerticalAlignment="Center" />
+            <ItemsControl Grid.Column="1" ItemsSource="{Binding Coverage}" MinWidth="728">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <UniformGrid Rows="1" />
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:RosterCoverageViewModel">
+                  <TextBlock Text="{Binding Text}" Classes="num" Classes.today="{Binding IsToday}" HorizontalAlignment="Center"
+                             AutomationProperties.Name="{Binding Text, StringFormat='{}{0} im Dienst'}" />
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </Grid>
+        </Border>
+      </StackPanel>
+    </ScrollViewer>
+  </StackPanel>
+
+  <ContentControl x:Name="DayHost" Content="{Binding Day}" IsVisible="{Binding HasDay}" HorizontalAlignment="Left" VerticalAlignment="Top" ZIndex="1" />
+  </Panel>
+</UserControl>

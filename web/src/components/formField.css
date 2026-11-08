@@ -1,0 +1,45 @@
+/*
+ * Gemeinsamer Formularbaustein (FormField.tsx): Feldbreiten (5.2), Fehlertext mit Symbol (R8) und Gruppen als <fieldset> (R1). Werte nur aus docs/design.md.
+ * Die Gruppe steht doppelt (`.form-group.form-group`), damit sie `.admin fieldset` und `.admin h3` aus index.css unabhängig von der Ladereihenfolge schlägt.
+ */
+
+.form-field.short {
+  max-width: 280px;
+}
+
+.form-field.date {
+  max-width: 160px;
+}
+
+.form-field.full {
+  max-width: 100%;
+}
+
+.form-message {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.form-group.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.form-group.form-group > legend {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  padding: 0;
+}
+
+.form-group.form-group h3 {
+  margin: 0;
+}
+
+/* Zeile aus Feldern und Knopf (Dienst im Tagespanel): der Knopf steht auf der Linie der Felder, nicht in der Höhe der Beschriftung. */
+.actions:has(> .form-field) {
+  align-items: flex-end;
+}

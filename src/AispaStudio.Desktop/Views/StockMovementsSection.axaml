@@ -1,0 +1,75 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             x:Class="AispaStudio.Desktop.Views.StockMovementsSection"
+             x:DataType="vm:StockMovementsViewModel">
+  <!--
+    Bewegungen (R05 Slice 101) nach web/src/stock/StockMovements.tsx: die Bewegungen eines Zeitraums, neueste zuerst. Verbrauch und Verkauf bucht das System selbst; sie stehen hier
+    neben den Buchungen von Hand.
+  -->
+  <Border Classes="card">
+    <StackPanel Spacing="12" Grid.IsSharedSizeScope="True">
+      <TextBlock Text="Bewegungen" Classes="h2" />
+      <StackPanel Orientation="Horizontal" Spacing="12">
+        <ui:FormField Label="Von">
+          <ui:DateField x:Name="MovementsFromField" Value="{Binding From}" Width="160" />
+        </ui:FormField>
+        <ui:FormField Label="Bis" Error="{Binding PeriodError}">
+          <ui:DateField x:Name="MovementsUntilField" Value="{Binding Until}" Width="160" />
+        </ui:FormField>
+      </StackPanel>
+      <ui:InfoBar Severity="Error" Title="Bewegungen nicht geladen" Message="{Binding LoadError}" IsVisible="{Binding HasLoadError}" ActionText="Erneut laden" ActionCommand="{Binding LoadCommand}" />
+      <TextBlock Text="Wird geladen …" Classes="muted" IsVisible="{Binding !IsLoaded}" />
+      <TextBlock Text="Noch keine Einträge." Classes="muted" IsVisible="{Binding ShowEmpty}" />
+
+      <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+        <StackPanel Spacing="8">
+          <Grid AutomationProperties.AccessibilityView="Raw" IsVisible="{Binding IsLoaded}">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="Auto" SharedSizeGroup="At" />
+              <ColumnDefinition Width="Auto" SharedSizeGroup="Kind" />
+              <ColumnDefinition Width="*" MinWidth="120" />
+              <ColumnDefinition Width="Auto" SharedSizeGroup="Place" />
+              <ColumnDefinition Width="Auto" SharedSizeGroup="Quantity" />
+              <ColumnDefinition Width="Auto" SharedSizeGroup="Price" />
+              <ColumnDefinition Width="*" MinWidth="120" />
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="Datum" Classes="group" MinWidth="104" />
+            <TextBlock Grid.Column="1" Text="Art" Classes="group" MinWidth="104" Margin="12,0,0,0" />
+            <TextBlock Grid.Column="2" Text="Material" Classes="group" Margin="12,0,0,0" />
+            <TextBlock Grid.Column="3" Text="Lagerort" Classes="group" MinWidth="112" Margin="12,0,0,0" />
+            <TextBlock Grid.Column="4" Text="Menge" Classes="group" MinWidth="72" Margin="12,0,0,0" TextAlignment="Right" />
+            <TextBlock Grid.Column="5" Text="Preis" Classes="group" MinWidth="80" Margin="12,0,0,0" TextAlignment="Right" />
+            <TextBlock Grid.Column="6" Text="Grund und Bezug" Classes="group" Margin="12,0,0,0" />
+          </Grid>
+          <ItemsControl x:Name="MovementList" ItemsSource="{Binding Rows}" AutomationProperties.Name="Bewegungen">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:MovementRow">
+                <Grid Margin="0,4" AutomationProperties.Name="{Binding Summary}">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="At" />
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="Kind" />
+                    <ColumnDefinition Width="*" MinWidth="120" />
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="Place" />
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="Quantity" />
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="Price" />
+                    <ColumnDefinition Width="*" MinWidth="120" />
+                  </Grid.ColumnDefinitions>
+                  <TextBlock Text="{Binding AtText}" Classes="num" MinWidth="104" VerticalAlignment="Center" />
+                  <TextBlock Grid.Column="1" Text="{Binding KindText}" MinWidth="104" Margin="12,0,0,0" VerticalAlignment="Center" />
+                  <TextBlock Grid.Column="2" Text="{Binding Item}" Margin="12,0,0,0" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                  <TextBlock Grid.Column="3" Text="{Binding Place}" MinWidth="112" Margin="12,0,0,0" VerticalAlignment="Center" />
+                  <TextBlock Grid.Column="4" Text="{Binding QuantityText}" Classes="num" MinWidth="72" Margin="12,0,0,0" TextAlignment="Right" VerticalAlignment="Center" />
+                  <TextBlock Grid.Column="5" Text="{Binding PriceText}" Classes="num" MinWidth="80" Margin="12,0,0,0" TextAlignment="Right" VerticalAlignment="Center" />
+                  <TextBlock Grid.Column="6" Text="{Binding Detail}" Classes="muted" Margin="12,0,0,0" TextWrapping="Wrap" VerticalAlignment="Center" />
+                </Grid>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+
+        </StackPanel>
+      </ScrollViewer>
+    </StackPanel>
+  </Border>
+</UserControl>

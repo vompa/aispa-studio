@@ -1,0 +1,91 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             x:Class="AispaStudio.Desktop.Views.ReceiptPaper"
+             x:DataType="vm:ReceiptViewModel">
+  <!-- Beleg wie gedruckt: Kopf, Positionen, Summe, Zahlungen, Steuern, Signatur -->
+    <Border Classes="card" Background="{DynamicResource Surface2Brush}" Padding="16" MaxWidth="420" HorizontalAlignment="Left">
+      <StackPanel Spacing="6" Width="380">
+        <ItemsControl ItemsSource="{Binding Header}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="x:String">
+              <TextBlock Text="{Binding}" HorizontalAlignment="Center" Classes="small secondary" />
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        <ItemsControl ItemsSource="{Binding CompanyLines}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="x:String">
+              <TextBlock Text="{Binding}" HorizontalAlignment="Center" Classes="small secondary" />
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        <StackPanel IsVisible="{Binding HasRecipient}" Margin="0,6,0,0">
+          <TextBlock Text="Rechnung an:" Classes="muted small" />
+          <ItemsControl ItemsSource="{Binding RecipientLines}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="x:String">
+                <TextBlock Text="{Binding}" FontWeight="Medium" />
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+        <Border Classes="divider" Margin="0,4" />
+        <ItemsControl ItemsSource="{Binding Lines}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:ReceiptRow">
+              <Grid ColumnDefinitions="*,Auto" Margin="0,2">
+                <TextBlock Text="{Binding Label}" TextWrapping="Wrap" />
+                <TextBlock Grid.Column="1" Text="{Binding Value}" Classes="num" Margin="12,0,0,0" />
+              </Grid>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        <Border Classes="divider" Margin="0,4" />
+        <Grid ColumnDefinitions="*,Auto">
+          <TextBlock Text="Summe" FontWeight="SemiBold" FontSize="16" />
+          <TextBlock Grid.Column="1" Text="{Binding Total}" FontWeight="SemiBold" FontSize="16" Classes="num" />
+        </Grid>
+        <ItemsControl ItemsSource="{Binding Payments}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:ReceiptRow">
+              <Grid ColumnDefinitions="*,Auto" Margin="0,2">
+                <TextBlock Text="{Binding Label}" Classes="secondary" />
+                <TextBlock Grid.Column="1" Text="{Binding Value}" Classes="num secondary" />
+              </Grid>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding HasChange}">
+          <TextBlock Text="Rückgeld" FontWeight="SemiBold" />
+          <TextBlock Grid.Column="1" Text="{Binding Change}" FontWeight="SemiBold" Classes="num" />
+        </Grid>
+        <StackPanel IsVisible="{Binding HasVouchers}" Margin="0,6,0,0" Spacing="2">
+          <TextBlock Text="Ausgestellte Gutscheine" Classes="label" />
+          <ItemsControl ItemsSource="{Binding Vouchers}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:ReceiptRow">
+                <Grid ColumnDefinitions="*,Auto" Margin="0,1">
+                  <TextBlock Text="{Binding Label}" FontWeight="Medium" />
+                  <TextBlock Grid.Column="1" Text="{Binding Value}" Classes="num" />
+                </Grid>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+        <ItemsControl ItemsSource="{Binding Taxes}" Margin="0,6,0,0">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:ReceiptRow">
+              <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Text="{Binding Label}" Classes="muted small" />
+                <TextBlock Grid.Column="1" Text="{Binding Value}" Classes="num muted small" />
+              </Grid>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        <Border Classes="pill ok" Classes.crit="{Binding SignatureFailed}" Margin="0,8,0,0" HorizontalAlignment="Center">
+          <TextBlock Text="{Binding SignatureText}" />
+        </Border>
+      </StackPanel>
+    </Border>
+</UserControl>

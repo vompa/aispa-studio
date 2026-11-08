@@ -1,0 +1,80 @@
+# Lokaler Testbetrieb ohne .NET und Node: Datenbank, API, Web-Apps und Test-Postfach in Docker.
+#   docker compose up -d --build
+# Web (Apps wie /anmelden/, /buchen/, /mein-tag/): http://localhost:5173  ·  API (für die Windows-App): http://localhost:5086  ·  Mails: http://localhost:8025
+# Die API läuft in der Entwicklungsumgebung: legt beim ersten Start das Beispiel-Spa an (einige Minuten, siehe docs/testdaten.md)
+# und bietet die Anmeldung mit Testkonten ohne Passkey. Nie öffentlich betreiben.
+# Optional lokale KI ohne Internet (ADR 0057): in .env AISPA_LOCAL_AI_URL=http://ollama:11434 und COMPOSE_PROFILES=ki-lokal,
+# dann das Modell unter Stammdaten > KI laden. Braucht etwa 4 GB Image, 3,3 GB Modell und 8 GB Arbeitsspeicher.
+name: aispa
+
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: aispa-lokal
+      POSTGRES_DB: aispadb
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d aispadb"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - "127.0.0.1:8025:8025"
+
+  api:
+    build:
+      context: .
+      dockerfile: docker/api.Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+      mailpit:
+        condition: service_started
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__aispadb: "Host=db;Database=aispadb;Username=postgres;Password=aispa-lokal"
+      Mail__Smtp__Host: mailpit
+      Mail__Smtp__Port: "1025"
+      Mail__Smtp__Security: None
+      OnlineBooking__PublicUrl: http://localhost:5173
+      # Optional: Claude für Assistent und Terminannahme, z. B. in einer Datei .env neben dieser Datei.
+      Ai__Claude__ApiKey: ${AISPA_CLAUDE_API_KEY:-}
+      # Optional: lokales KI-Modell im Container „ollama“ (Profil ki-lokal), z. B. http://ollama:11434.
+      Ai__Local__Url: ${AISPA_LOCAL_AI_URL:-}
+      Ai__Local__Model: ${AISPA_LOCAL_AI_MODEL:-gemma3:4b}
+    volumes:
+      - api-keys:/home/app/.aspnet/DataProtection-Keys
+    ports:
+      - "127.0.0.1:5086:8080"
+
+  # Lokales KI-Modell, nur mit Profil ki-lokal. Läuft ohne Grafikkarte; das Modell liegt im Volume und bleibt beim Neustart.
+  ollama:
+    image: ollama/ollama:0.40.6
+    profiles: ["ki-lokal"]
+    environment:
+      OLLAMA_KEEP_ALIVE: 10m
+      OLLAMA_NUM_PARALLEL: "1"
+    volumes:
+      - ollama-models:/root/.ollama
+    ports:
+      - "127.0.0.1:11434:11434"
+
+  web:
+    build:
+      context: .
+      dockerfile: docker/web.Dockerfile
+    depends_on:
+      - api
+    ports:
+      - "127.0.0.1:5173:80"
+
+volumes:
+  db-data:
+  api-keys:
+  ollama-models:

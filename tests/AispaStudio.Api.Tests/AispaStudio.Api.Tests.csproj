@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" />
+    <PackageReference Include="Testcontainers.PostgreSql" />
+    <PackageReference Include="Testcontainers.Redis" />
+    <PackageReference Include="xunit.v3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\AispaStudio.Api\AispaStudio.Api.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Label="Logik der Dashboard-Befehle (AppHost) ohne Aspire-Paket mitprüfen">
+    <Compile Include="..\..\src\AispaStudio.AppHost\DatabaseBackupFiles.cs" Link="AppHost\DatabaseBackupFiles.cs" />
+    <Compile Include="..\..\src\AispaStudio.AppHost\PostgresContainer.cs" Link="AppHost\PostgresContainer.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Fixtures\**" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

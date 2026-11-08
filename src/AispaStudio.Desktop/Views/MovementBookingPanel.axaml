@@ -1,0 +1,78 @@
+<views:FocusRequestView xmlns="https://github.com/avaloniaui"
+                         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                         xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+                         xmlns:ui="using:AispaStudio.Desktop.Controls"
+                         xmlns:views="using:AispaStudio.Desktop.Views"
+                         xmlns:contracts="using:AispaStudio.Contracts"
+                         x:Class="AispaStudio.Desktop.Views.MovementBookingPanel"
+                         x:DataType="vm:MovementBookingViewModel">
+  <!--
+    Bewegung buchen (R05 Slice 101) nach web/src/stock/MovementPanel.tsx und Design-Brief 5.12: Art als Reiter (Wareneingang, Nachfüllen, Umbuchen, Korrektur), darunter die Felder der
+    Art. Die Inventur hat einen eigenen Reiter, Verbrauch und Verkauf bucht das System. „Buchen“ ist erst bedienbar, wenn Material, Menge und (je Art) Ziel und Grund stehen.
+  -->
+  <Border Classes="card" x:Name="BookingCard">
+    <StackPanel Spacing="12">
+      <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="4">
+        <StackPanel Spacing="2">
+          <TextBlock Text="Bewegung buchen" Classes="h2" />
+          <TextBlock Text="{Binding LocationName}" Classes="muted small" />
+        </StackPanel>
+        <ui:HelpButton Grid.Column="1" Topic="{Binding HelpTopic}" Section="{Binding HelpSection}" VerticalAlignment="Top" />
+        <Button Grid.Column="2" x:Name="CloseBookingButton" Classes="ghost icon" Width="28" Height="28" MinHeight="28" Command="{Binding CloseCommand}" ToolTip.Tip="Schließen"
+                AutomationProperties.Name="Seitenleiste schließen" VerticalAlignment="Top">
+          <ui:Icon Data="{x:Static ui:Icons.Close}" Width="16" Height="16" />
+        </Button>
+      </Grid>
+
+      <Border Classes="segmented" x:Name="KindTabs" HorizontalAlignment="Left">
+        <StackPanel Orientation="Horizontal">
+          <ui:TabButton x:Name="ReceiptTab" Content="Wareneingang" IsSelected="{Binding IsReceipt}" Command="{Binding ShowKindCommand}"
+                        CommandParameter="{x:Static contracts:StockMovementKind.GoodsReceipt}" Padding="8,3" AutomationProperties.Name="Wareneingang" />
+          <ui:TabButton x:Name="RefillTab" Content="Nachfüllen" IsSelected="{Binding IsRefill}" Command="{Binding ShowKindCommand}" IsVisible="{Binding ShowRefillTab}"
+                        CommandParameter="{x:Static contracts:StockMovementKind.Refill}" Padding="8,3" AutomationProperties.Name="Nachfüllen" />
+          <ui:TabButton x:Name="TransferTab" Content="Umbuchen" IsSelected="{Binding IsTransfer}" Command="{Binding ShowKindCommand}" IsVisible="{Binding ShowTransferTab}"
+                        CommandParameter="{x:Static contracts:StockMovementKind.Transfer}" Padding="8,3" AutomationProperties.Name="Umbuchen" />
+          <ui:TabButton x:Name="CorrectionTab" Content="Korrektur" IsSelected="{Binding IsCorrection}" Command="{Binding ShowKindCommand}"
+                        CommandParameter="{x:Static contracts:StockMovementKind.Correction}" Padding="8,3" AutomationProperties.Name="Korrektur" />
+        </StackPanel>
+      </Border>
+
+      <ui:FormField Label="Material" IsRequired="True">
+        <ComboBox x:Name="MovementItemField" ItemsSource="{Binding Items}" SelectedItem="{Binding SelectedItem}" HorizontalAlignment="Stretch" />
+      </ui:FormField>
+      <ui:FormField Label="{Binding PlaceLabel}" IsVisible="{Binding ShowPlace}">
+        <ComboBox x:Name="MovementPlaceField" ItemsSource="{Binding PlaceOptions}" SelectedItem="{Binding SelectedPlace}" HorizontalAlignment="Stretch" />
+      </ui:FormField>
+      <ui:FormField Label="{Binding TargetLabel}" IsRequired="True" IsVisible="{Binding ShowTarget}">
+        <ComboBox x:Name="MovementTargetField" ItemsSource="{Binding Targets}" SelectedItem="{Binding SelectedTarget}" HorizontalAlignment="Stretch" />
+      </ui:FormField>
+      <ui:FormField Label="Erfasst in" IsVisible="{Binding ShowPackages}">
+        <ComboBox x:Name="MovementPackageField" ItemsSource="{Binding PackageOptions}" SelectedItem="{Binding SelectedPackage}" HorizontalAlignment="Stretch" />
+      </ui:FormField>
+      <ui:FormField Label="{Binding AmountLabel}" IsRequired="True" Help="{Binding AmountHelp}" Error="{Binding AmountError}">
+        <TextBox x:Name="MovementAmountField" Text="{Binding Amount}" Classes="num" />
+      </ui:FormField>
+      <TextBlock x:Name="MovementPackagePreview" Text="{Binding PackagePreview}" Classes="muted small" IsVisible="{Binding PackagePreview, Converter={x:Static ObjectConverters.IsNotNull}}" />
+      <StackPanel Spacing="12" IsVisible="{Binding ShowReceiptFields}">
+        <ui:FormField Label="{Binding UnitCostLabel}" Help="In Euro, ohne Umsatzsteuer. Leer lässt den Einstandspreis unverändert." Error="{Binding UnitCostError}">
+          <TextBox x:Name="MovementUnitCostField" Text="{Binding UnitCost}" Classes="num" />
+        </ui:FormField>
+        <ui:FormField Label="Charge">
+          <TextBox x:Name="MovementBatchField" Text="{Binding Batch}" MaxLength="50" />
+        </ui:FormField>
+        <ui:FormField Label="Ablaufdatum">
+          <ui:DateField x:Name="MovementExpiresField" Value="{Binding ExpiresOn}" />
+        </ui:FormField>
+      </StackPanel>
+      <ui:FormField Label="{Binding ReasonLabel}" IsRequired="{Binding IsCorrection}">
+        <TextBox x:Name="MovementReasonField" Text="{Binding Reason}" MaxLength="200" />
+      </ui:FormField>
+
+      <TextBlock Text="{Binding Hint}" Classes="muted small" TextWrapping="Wrap" IsVisible="{Binding Hint, Converter={x:Static ObjectConverters.IsNotNull}}" />
+      <ui:InfoBar Severity="Error" Title="Nicht gebucht" Message="{Binding Error}" IsVisible="{Binding HasError}" />
+      <StackPanel Orientation="Horizontal">
+        <Button x:Name="BookButton" Classes="primary" Content="Buchen" Command="{Binding BookCommand}" />
+      </StackPanel>
+    </StackPanel>
+  </Border>
+</views:FocusRequestView>

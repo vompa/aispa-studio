@@ -1,0 +1,216 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             xmlns:c="using:AispaStudio.Contracts"
+             x:Class="AispaStudio.Desktop.Views.DevicesView"
+             x:Name="Root"
+             x:DataType="vm:DevicesViewModel">
+  <ScrollViewer>
+    <StackPanel Margin="16" Spacing="16" MaxWidth="720" HorizontalAlignment="Left">
+      <StackPanel>
+        <TextBlock Text="Geräte" Classes="h1" />
+        <TextBlock Text="Bondrucker und Kartenterminal an diesem PC. Die Einstellungen gelten nur für diesen Arbeitsplatz." Classes="muted" TextWrapping="Wrap" />
+      </StackPanel>
+
+      <Border Classes="card">
+        <StackPanel Spacing="10">
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <ui:Icon Data="{x:Static ui:Icons.Printer}" Width="18" Height="18" />
+            <TextBlock Text="Bondrucker" Classes="h2" />
+            <ui:HelpButton Topic="geraete" Section="bondrucker" />
+          </StackPanel>
+          <TextBlock Text="Netzwerkdrucker im Spa (Epson, Star, Bixolon). Den Beleg samt QR-Code erzeugt der Server."
+                     Classes="muted small" TextWrapping="Wrap" />
+          <ui:TechnicalDetails Text="Der Drucker versteht ESC/POS und nimmt die Daten an Port 9100 an." />
+          <TextBlock Text="Adresse" Classes="label" />
+          <TextBox Text="{Binding PrinterAddress}" PlaceholderText="z. B. 192.168.1.60 oder 192.168.1.60:9100" AutomationProperties.Name="Adresse des Bondruckers" />
+          <TextBlock Text="Zeichen pro Zeile" Classes="label" />
+          <ComboBox ItemsSource="{Binding Widths}" SelectedItem="{Binding PrinterWidth}" MinWidth="160" AutomationProperties.Name="Zeichen pro Zeile">
+            <ComboBox.ItemTemplate>
+              <DataTemplate x:DataType="x:Int32">
+                <TextBlock Text="{Binding StringFormat='{}{0} Zeichen'}" />
+              </DataTemplate>
+            </ComboBox.ItemTemplate>
+          </ComboBox>
+          <TextBlock Text="80 mm Papier: 42 oder 48 Zeichen, 58 mm Papier: 32 Zeichen." Classes="muted small" />
+          <CheckBox IsChecked="{Binding PrintAutomatically}" Content="Nach dem Kassieren und Stornieren automatisch drucken" />
+          <StackPanel Orientation="Horizontal" Spacing="10">
+            <Button Content="Probedruck" Command="{Binding TestPrintCommand}" />
+            <TextBlock Text="{Binding PrinterText}" VerticalAlignment="Center" Classes="muted" AutomationProperties.LiveSetting="Polite" />
+          </StackPanel>
+        </StackPanel>
+      </Border>
+
+      <Border Classes="card">
+        <StackPanel Spacing="10">
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <ui:Icon Data="{x:Static ui:Icons.Card}" Width="18" Height="18" />
+            <TextBlock Text="Kartenterminal" Classes="h2" />
+            <ui:HelpButton Topic="geraete" Section="kartenterminal" />
+          </StackPanel>
+          <TextBlock Text="Kartenterminals im Netz. Wählen Sie das Terminal nur an dem PC, neben dem es steht: nur dieser PC schickt Zahlungen an das Gerät."
+                     Classes="muted small" TextWrapping="Wrap" />
+          <ui:TechnicalDetails Text="Das Terminal spricht ZVT oder OPI." />
+          <ComboBox ItemsSource="{Binding Terminals}" SelectedItem="{Binding Terminal}" HorizontalAlignment="Stretch" AutomationProperties.Name="Kartenterminal">
+            <ComboBox.ItemTemplate>
+              <DataTemplate x:DataType="vm:TerminalChoice">
+                <TextBlock Text="{Binding Title}" />
+              </DataTemplate>
+            </ComboBox.ItemTemplate>
+          </ComboBox>
+          <ui:InfoBar Severity="Warning" Message="{Binding Agent?.Status, TargetNullValue=''}"
+                      IsVisible="{Binding Agent?.NeedsAttention, TargetNullValue=False}" />
+          <TextBlock Text="{Binding Agent?.Status, TargetNullValue=''}" Classes="muted" TextWrapping="Wrap"
+                     IsVisible="{Binding Agent?.NeedsAttention, Converter={x:Static BoolConverters.Not}, TargetNullValue=False}" />
+          <StackPanel Spacing="8" IsVisible="{Binding CanManageTerminals}">
+            <Button Classes="ghost" Content="Gewähltes Terminal entfernen" Command="{Binding AskRemoveTerminalCommand}" HorizontalAlignment="Left"
+                    ToolTip.Tip="Legt das Terminal still; es steht danach an keinem PC und in keiner Kassa mehr zur Wahl" ui:DisabledHint.Text="Verfügbar, sobald ein Terminal gewählt ist." />
+            <TextBlock Text="Neues Terminal im Netz" Classes="label" />
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+              <TextBox Text="{Binding NewTerminalName}" PlaceholderText="Name, z. B. Empfang" AutomationProperties.Name="Name des neuen Terminals" />
+              <ComboBox Grid.Column="1" ItemsSource="{Binding Locations}" SelectedItem="{Binding NewTerminalLocation}" HorizontalAlignment="Stretch"
+                        AutomationProperties.Name="Standort des neuen Terminals">
+                <ComboBox.ItemTemplate>
+                  <DataTemplate x:DataType="c:LocationDto">
+                    <TextBlock Text="{Binding Name}" />
+                  </DataTemplate>
+                </ComboBox.ItemTemplate>
+              </ComboBox>
+            </Grid>
+            <ComboBox ItemsSource="{Binding Protocols}" SelectedItem="{Binding NewTerminalProtocol}" HorizontalAlignment="Stretch"
+                      AutomationProperties.Name="Protokoll des neuen Terminals">
+              <ComboBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:ProtocolChoice">
+                  <TextBlock Text="{Binding Title}" />
+                </DataTemplate>
+              </ComboBox.ItemTemplate>
+            </ComboBox>
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+              <TextBox Text="{Binding NewTerminalAddress}" PlaceholderText="Adresse, z. B. 192.168.1.50:20007" AutomationProperties.Name="Adresse des neuen Terminals" />
+              <Button Grid.Column="1" Content="Terminal anlegen" Command="{Binding AddTerminalCommand}" ui:DisabledHint.Text="Verfügbar, sobald Name und Adresse eingetragen sind." />
+            </Grid>
+            <TextBlock Text="{Binding TerminalText}" Classes="muted small" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite"
+                       IsVisible="{Binding TerminalText, Converter={x:Static ObjectConverters.IsNotNull}}" />
+          </StackPanel>
+        </StackPanel>
+      </Border>
+
+      <!-- Anzeigen im Pausenraum: Kopplung mit dem Code vom Bildschirm, widerrufbar (Slice 104) -->
+      <Border Classes="card" IsVisible="{Binding CanManageDisplays}">
+        <StackPanel Spacing="10">
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <ui:Icon Data="{x:Static ui:Icons.Monitor}" Width="18" Height="18" />
+            <TextBlock Text="Anzeigen im Pausenraum" Classes="h2" />
+            <ui:HelpButton Topic="geraete" Section="anzeigen" />
+          </StackPanel>
+          <TextBlock Text="Ein Bildschirm im Pausenraum zeigt den Tag mit Initialen statt Namen. Er liest nur und ändert nichts. Öffnen Sie dort die Anzeige, tippen Sie den angezeigten Code hier ein und koppeln Sie ihn."
+                     Classes="muted small" TextWrapping="Wrap" />
+          <ItemsControl ItemsSource="{Binding Displays}" IsVisible="{Binding HasDisplays}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="c:DisplayDeviceDto">
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10" Margin="0,2">
+                  <TextBlock VerticalAlignment="Center" Text="{Binding Name}" />
+                  <Button Grid.Column="1" Classes="ghost" Content="Widerrufen"
+                          Command="{Binding #Root.((vm:DevicesViewModel)DataContext)?.AskRevokeDisplayCommand}"
+                          CommandParameter="{Binding}" AutomationProperties.Name="{Binding Name, StringFormat='Anzeige {0} widerrufen'}" />
+                </Grid>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+          <Grid ColumnDefinitions="*,*,*" ColumnSpacing="10" RowDefinitions="Auto,Auto" RowSpacing="4">
+            <TextBlock Text="Code vom Bildschirm" Classes="label" />
+            <TextBlock Grid.Column="1" Text="Name der Anzeige" Classes="label" />
+            <TextBlock Grid.Column="2" Text="Standort" Classes="label" />
+            <TextBox Grid.Row="1" Name="DisplayCode" Text="{Binding DisplayCode}" MaxLength="9" PlaceholderText="z. B. K7QM-2XRT" AutomationProperties.Name="Code vom Bildschirm" />
+            <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding DisplayName}" MaxLength="100" AutomationProperties.Name="Name der Anzeige" />
+            <ComboBox Grid.Row="1" Grid.Column="2" ItemsSource="{Binding Locations}" SelectedItem="{Binding DisplayLocation}" HorizontalAlignment="Stretch"
+                      AutomationProperties.Name="Standort der Anzeige">
+              <ComboBox.ItemTemplate>
+                <DataTemplate x:DataType="c:LocationDto">
+                  <TextBlock Text="{Binding Name}" />
+                </DataTemplate>
+              </ComboBox.ItemTemplate>
+            </ComboBox>
+          </Grid>
+          <Button Name="PairDisplay" Content="Anzeige koppeln" Command="{Binding PairDisplayCommand}" HorizontalAlignment="Left"
+                  ui:DisabledHint.Text="Verfügbar, sobald Code, Name und Standort eingetragen sind." />
+          <TextBlock Text="{Binding DisplayText}" Classes="muted small" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite"
+                     IsVisible="{Binding DisplayText, Converter={x:Static ObjectConverters.IsNotNull}}" />
+          <ui:InfoBar Severity="Error" Message="{Binding DisplayError}" IsVisible="{Binding DisplayError, Converter={x:Static ObjectConverters.IsNotNull}}" />
+        </StackPanel>
+      </Border>
+
+      <StackPanel Orientation="Horizontal" Spacing="10">
+        <Button Classes="primary" Content="Speichern" Command="{Binding SaveCommand}" />
+        <TextBlock Text="{Binding SavedText}" VerticalAlignment="Center" Classes="muted" AutomationProperties.LiveSetting="Polite" />
+      </StackPanel>
+
+      <!-- Empfangsgerät: Schnellwechsel per PIN (ADR 0042) -->
+      <Border Classes="card">
+        <Border.IsVisible>
+          <MultiBinding Converter="{x:Static BoolConverters.Or}">
+            <Binding Path="CanManageDevice" />
+            <Binding Path="IsSharedDevice" />
+          </MultiBinding>
+        </Border.IsVisible>
+        <StackPanel Spacing="10">
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <ui:Icon Data="{x:Static ui:Icons.Users}" Width="18" Height="18" />
+            <TextBlock Text="Empfangsgerät" Classes="h2" />
+            <ui:HelpButton Topic="geraete" Section="empfangsgeraet" />
+          </StackPanel>
+          <TextBlock Text="Am Empfangsgerät wechselt das Team mit Name und PIN statt mit Code. Die PIN gilt nur auf angemeldeten Empfangsgeräten und nur für Personen mit Zugang an diesem Standort."
+                     Classes="muted small" TextWrapping="Wrap" />
+          <TextBlock Text="{Binding SharedDeviceText}" TextWrapping="Wrap" IsVisible="{Binding IsSharedDevice}" />
+          <Button Content="Kein Empfangsgerät mehr" Command="{Binding RevokeDeviceCommand}" HorizontalAlignment="Left">
+            <Button.IsVisible>
+              <MultiBinding Converter="{x:Static BoolConverters.And}">
+                <Binding Path="CanManageDevice" />
+                <Binding Path="IsSharedDevice" />
+              </MultiBinding>
+            </Button.IsVisible>
+          </Button>
+          <Grid ColumnDefinitions="*,*,Auto" ColumnSpacing="10" RowDefinitions="Auto,Auto" RowSpacing="4">
+            <Grid.IsVisible>
+              <MultiBinding Converter="{x:Static BoolConverters.And}">
+                <Binding Path="CanManageDevice" />
+                <Binding Path="!IsSharedDevice" />
+              </MultiBinding>
+            </Grid.IsVisible>
+            <TextBlock Text="Name des Geräts" Classes="label" />
+            <TextBlock Grid.Column="1" Text="Standort" Classes="label" />
+            <TextBlock Grid.Column="2" Text="Abmelden ohne Eingabe nach" Classes="label" />
+            <TextBox Grid.Row="1" Text="{Binding DeviceName}" MaxLength="100" AutomationProperties.Name="Name des Geräts" />
+            <ComboBox Grid.Row="1" Grid.Column="1" ItemsSource="{Binding Locations}" SelectedItem="{Binding DeviceLocation}" HorizontalAlignment="Stretch"
+                      AutomationProperties.Name="Standort">
+              <ComboBox.ItemTemplate>
+                <DataTemplate x:DataType="c:LocationDto">
+                  <TextBlock Text="{Binding Name}" />
+                </DataTemplate>
+              </ComboBox.ItemTemplate>
+            </ComboBox>
+            <ComboBox Grid.Row="1" Grid.Column="2" ItemsSource="{Binding IdleChoices}" SelectedItem="{Binding DeviceIdleMinutes}" MinWidth="140"
+                      AutomationProperties.Name="Abmelden ohne Eingabe nach">
+              <ComboBox.ItemTemplate>
+                <DataTemplate x:DataType="x:Int32">
+                  <TextBlock Text="{Binding StringFormat='{}{0} Minuten'}" />
+                </DataTemplate>
+              </ComboBox.ItemTemplate>
+            </ComboBox>
+          </Grid>
+          <Button Content="Diesen PC als Empfangsgerät anmelden" Command="{Binding RegisterDeviceCommand}" HorizontalAlignment="Left"
+                  ui:DisabledHint.Text="Verfügbar, sobald Name und Standort gewählt sind.">
+            <Button.IsVisible>
+              <MultiBinding Converter="{x:Static BoolConverters.And}">
+                <Binding Path="CanManageDevice" />
+                <Binding Path="!IsSharedDevice" />
+              </MultiBinding>
+            </Button.IsVisible>
+          </Button>
+          <ui:InfoBar Severity="Error" Message="{Binding DeviceError}" IsVisible="{Binding DeviceError, Converter={x:Static ObjectConverters.IsNotNull}}" />
+        </StackPanel>
+      </Border>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

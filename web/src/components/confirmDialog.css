@@ -1,0 +1,100 @@
+/* Rückfragedialog (Design-Brief 5.27): Breite 420, Fläche surface, Rahmen 1 px, Radius 12, Innenabstand 24, kein Schatten, Overlay 0,45.
+   Aufbau von oben: Titel, 8 px, Text, 24 px, Knopfleiste (Aktion links, Abbrechen rechts, Abstand 8, rechtsbündig). Werte nur aus Tokens; die Betreiber-Seite kennt nur einen Teil, daher die Rückfallwerte. Den Fokusumriss liefert die globale Regel. */
+.confirm-dialog {
+  box-sizing: border-box;
+  width: 420px;
+  max-width: calc(100vw - 32px);
+  padding: 24px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--fg);
+  font-weight: 400;
+}
+
+.confirm-dialog--wide {
+  width: 640px;
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+}
+
+.confirm-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.confirm-dialog h2 {
+  margin: 0;
+  font-size: 18px;
+  line-height: 24px;
+  font-weight: 600;
+}
+
+.confirm-dialog .confirm-dialog__text {
+  margin: 8px 0 0;
+}
+
+.confirm-dialog .confirm-dialog__error {
+  margin: 12px 0 0;
+  color: var(--danger);
+}
+
+.confirm-dialog__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 24px;
+}
+
+.confirm-dialog__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--border-strong, var(--border));
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--fg);
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.confirm-dialog__btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.confirm-dialog__btn.primary {
+  background: var(--accent-gradient, var(--accent));
+  border-color: var(--accent-hover, var(--accent));
+  color: var(--on-accent, var(--accent-fg));
+}
+
+.confirm-dialog__btn.danger {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: var(--on-accent, var(--accent-fg));
+}
+
+.confirm-dialog__btn.ghost {
+  border-color: transparent;
+  background: transparent;
+  color: var(--muted, var(--fg));
+}
+
+@media (hover: hover) {
+  .confirm-dialog__btn.primary:hover:not(:disabled) {
+    background: var(--accent-hover, var(--accent));
+  }
+
+  .confirm-dialog__btn.danger:hover:not(:disabled) {
+    opacity: 0.9;
+  }
+
+  .confirm-dialog__btn.ghost:hover:not(:disabled) {
+    background: var(--surface-3, var(--border));
+    color: var(--fg);
+  }
+}

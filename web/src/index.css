@@ -1,0 +1,3091 @@
+/* Hausschrift wie die Windows-App (Brief 3, B62): Inter 3.019 als lokale Variable-WOFF2, Teilmenge Latin, Gewicht 400 bis 600.
+   Herkunft und Lizenz: assets/fonts/README.md; der Preload steht in help/index.html. */
+@font-face {
+  font-family: Inter;
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url('./assets/fonts/inter-latin-var.woff2') format('woff2');
+}
+
+:root {
+  /* Farben wie in der Windows-App (Themes/Colors.axaml), damit die Verwaltung dort nicht fremd wirkt (ADR 0053). */
+  --bg: #f3f0ea;
+  --fg: #1a2321;
+  --muted: #47524f;
+  --fg-3: #757e7a;
+  --accent: #0d5c63;
+  --accent-hover: #0a4a50;
+  --accent-soft: #d9ebea;
+  --accent-line: #86bcbf;
+  --accent-gradient: linear-gradient(180deg, #11717a, #0b5258);
+  --on-accent: #ffffff;
+  --surface: #ffffff;
+  --surface-2: #f9f7f3;
+  --surface-3: #ece8e0;
+  --border: #e4ded3;
+  --border-strong: #c7bfb1;
+  --off: rgba(26, 35, 33, 0.05);
+  --danger: #b42318;
+  --danger-soft: #fbe2df;
+  --ok: #2c6e46;
+  --ok-soft: #dbeee2;
+  --warn: #8f5900;
+  --warn-soft: #f6e9cf;
+  --note: #7a6000;
+  --note-soft: #fff2b3;
+  --hatch: #e5e0d6;
+  --toast: #1a2321;
+  --toast-fg: #f3f0ea;
+  --st-booked: #3a6a9c;
+  --st-booked-bg: #e3edf7;
+  --st-checked-in: #2e8150;
+  --st-checked-in-bg: #dcf1e4;
+  --st-done: #656c68;
+  --st-done-bg: #efede8;
+  --rail: #0d3d42;
+  --rail-fg: #f2f7f6;
+  --rail-fg-2: #a7c4c3;
+  --rail-hover: #164c52;
+  --rail-bar-hover: #1a565c;
+  --rail-selected: #1f6067;
+  --rail-mark: #e3b77a;
+  --shadow: 0 1px 2px rgba(26, 35, 33, 0.05), 0 4px 14px -6px rgba(26, 35, 33, 0.12);
+  --shadow-raised: 0 2px 8px rgba(0, 0, 0, 0.18);
+  /* Abstände nach docs/gestaltung/masken.md, Abschnitt 4 (Raster 4 und 8 px) */
+  --space-label: 4px;
+  --space-field: 16px;
+  --space-heading: 12px;
+  --space-group: 32px;
+  font-family: Inter, 'Segoe UI Variable Text', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--fg);
+  background: var(--bg);
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0c1211;
+    --fg: #e2eae7;
+    --muted: #a9b8b4;
+    --fg-3: #7e8f8a;
+    --accent: #52b3ba;
+    --accent-hover: #71c5cb;
+    --accent-soft: #163638;
+    --accent-line: #2f767b;
+    --accent-gradient: linear-gradient(180deg, #5cbcc3, #3f9ca3);
+    --on-accent: #061f21;
+    --surface: #151c1b;
+    --surface-2: #1a2321;
+    --surface-3: #232e2c;
+    --border: #26322f;
+    --border-strong: #41524e;
+    --off: rgba(226, 234, 231, 0.04);
+    --danger: #f2796c;
+    --danger-soft: #3d1a16;
+    --ok: #5ec28a;
+    --ok-soft: #163626;
+    --warn: #e2a744;
+    --warn-soft: #382a10;
+    --note: #e8cf6a;
+    --note-soft: #3a3312;
+    --hatch: #25302e;
+    --toast: #e2eae7;
+    --toast-fg: #0c1211;
+    --st-booked: #7fa8d4;
+    --st-booked-bg: #1a2a3a;
+    --st-checked-in: #5ec28a;
+    --st-checked-in-bg: #163525;
+    --st-done: #97a6a2;
+    --st-done-bg: #1f2826;
+    --rail: #0a1f21;
+    --rail-fg: #e6efed;
+    --rail-fg-2: #86a3a1;
+    --rail-hover: #12302f;
+    --rail-bar-hover: #153837;
+    --rail-selected: #18403f;
+    --rail-mark: #e3b77a;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 6px 18px -8px rgba(0, 0, 0, 0.6);
+    --shadow-raised: 0 2px 8px rgba(0, 0, 0, 0.5);
+  }
+}
+
+body {
+  margin: 0;
+}
+
+main {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 32px 16px;
+}
+
+section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  padding: 16px 20px;
+  margin-bottom: 16px;
+}
+
+section section {
+  box-shadow: none;
+  background: var(--surface-2);
+  border-radius: 8px;
+  padding: 12px 16px;
+}
+
+/* Schriftstufen (Design-Brief 3): Titel 22/28, Überschrift 18/24, Zwischentitel 16/22, alle 600 */
+h1 {
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 28px;
+  margin-bottom: 4px;
+}
+
+h2 {
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 24px;
+  letter-spacing: -0.18px;
+  margin-top: 0;
+}
+
+h3 {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 22px;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+/* Statusregionen stehen von Anfang an im Baum; leer nehmen sie keinen Platz ein, bleiben aber für Screenreader da. */
+[role='status']:empty {
+  margin: 0;
+}
+
+/* Nur für Screenreader, z. B. Person und Tag vor dem Inhalt einer Dienstplan-Zelle; gleiche Regel wie im Kundenbereich. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Knöpfe nach Design-Brief 5.1: ohne Klasse sekundär, primär nur mit .primary (höchstens einer je Karte, Dialog, Seitenleiste). */
+button,
+a.button {
+  font: inherit;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  box-sizing: border-box;
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--fg);
+  cursor: pointer;
+  transition:
+    background-color 0.12s,
+    border-color 0.12s,
+    color 0.12s,
+    transform 0.1s cubic-bezier(0.33, 0, 0.67, 1);
+}
+
+@media (hover: hover) {
+  button:hover:not(:disabled):not([aria-disabled='true']),
+  a.button:hover {
+    background: var(--surface-2);
+    border-color: var(--accent);
+  }
+}
+
+button.primary,
+a.button.primary {
+  background: var(--accent-gradient);
+  color: var(--on-accent);
+  border-color: var(--accent-hover);
+}
+
+@media (hover: hover) {
+  button.primary:hover:not(:disabled):not([aria-disabled='true']),
+  a.button.primary:hover {
+    background: var(--accent-hover);
+    border-color: var(--accent-hover);
+  }
+}
+
+button.small {
+  min-height: 28px;
+  padding: 0 8px;
+  font-size: 12px;
+}
+
+button.icon {
+  width: 34px;
+  padding: 0;
+  background: transparent;
+  color: var(--muted);
+  border-color: transparent;
+}
+
+@media (hover: hover) {
+  button.icon:hover:not(:disabled) {
+    background: var(--surface-3);
+    color: var(--fg);
+    border-color: transparent;
+  }
+}
+
+button.icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+button.icon.small {
+  width: 28px;
+}
+
+/* Fokusrahmen als Umriss in Akzentfarbe (deutlich über 3:1 zum Grund, WCAG 1.4.11 und 2.4.7). Der frühere Schatten mit 22 %
+   Deckkraft war auf Weiß kaum zu sehen und verschwindet im Kontrastmodus von Windows; ein Umriss bleibt dort erhalten. */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline-offset: 0;
+  border-color: var(--accent);
+}
+
+/* Kontrollkästchen und Optionsfelder haben keinen Rahmen, der die Farbe wechseln könnte: Umriss mit Abstand (Design-Brief 4.5) */
+input[type='checkbox']:focus-visible,
+input[type='radio']:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Auf der dunklen Kopfzeile (nicht eingebettet) in der Markenfarbe der Leiste */
+.app:not(.embedded) .topbar :focus-visible {
+  outline-color: var(--rail-mark);
+}
+
+/* „Animationen aus“ im System: kein Übergang und keine Animation, auch in Lager und Hilfe (Design-Brief 4.6, Befund B5). */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition-duration: 0s !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+button:disabled,
+button[aria-disabled='true'] {
+  opacity: 0.5;
+  cursor: default;
+}
+
+button.ghost {
+  background: var(--surface);
+  color: var(--fg);
+  border-color: var(--border-strong);
+}
+
+@media (hover: hover) {
+  button.ghost:hover:not(:disabled):not([aria-disabled='true']) {
+    background: var(--surface-2);
+    border-color: var(--accent);
+  }
+}
+
+button.danger {
+  background: transparent;
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+@media (hover: hover) {
+  button.danger:hover:not(:disabled) {
+    background: var(--danger-soft);
+    border-color: var(--danger);
+  }
+}
+
+/* Gefüllt nur für den Bestätigen-Knopf in einer Rückfrage (Design-Brief 5.1). */
+button.danger.filled {
+  background: var(--danger);
+  color: var(--on-accent);
+}
+
+@media (hover: hover) {
+  button.danger.filled:hover:not(:disabled) {
+    background: var(--danger);
+    opacity: 0.9;
+  }
+}
+
+button.ok {
+  background: var(--ok-soft);
+  color: var(--ok);
+  border-color: var(--ok);
+}
+
+@media (hover: hover) {
+  button.ok:hover:not(:disabled) {
+    background: var(--ok-soft);
+    border-color: var(--ok);
+    opacity: 0.9;
+  }
+}
+
+/* Zerstörende Nebenaktionen (Entfernen, Löschen, Aus dem Team nehmen) leise: rote Schrift ohne Rahmen, Fläche erst beim
+   Darüberfahren. Fünf rot umrandete Knöpfe in einer Tabelle zogen mehr Blick als „Speichern“. */
+button.ghost.danger {
+  background: transparent;
+  color: var(--danger);
+  border-color: transparent;
+}
+
+@media (hover: hover) {
+  button.ghost.danger:hover:not(:disabled) {
+    background: var(--danger-soft);
+    border-color: transparent;
+  }
+}
+
+/* Gedrückt nach Design-Brief 4.6 und Z. 202: Knöpfe geben nach (0,97 in 100 ms), Knöpfe ohne eigene Farbe dunkeln auf
+   surface-3. Ausgenommen: Terminkarten (ziehbar), Links und das Lager (eigene Zustände in stock.css). */
+button:not(.appointment, .link, [class*='stock-']):active:not(:disabled),
+a.button:active {
+  transform: scale(0.97);
+}
+
+button:not(.primary, .danger, .ok, .appointment, .link, [class*='stock-']):active:not(:disabled),
+a.button:not(.primary):active {
+  background: var(--surface-3);
+}
+
+/* In einer Aktionsleiste steht die zerstörende Aktion getrennt am rechten Rand, nie direkt neben „Speichern“ (masken.md, R5).
+   Nur die Darstellung rückt; die Reihenfolge für Tastatur und Vorlesen bleibt. */
+.actions > button.ghost.danger {
+  order: 1;
+  margin-left: auto;
+}
+
+/* Felder nach Design-Brief 5.2: Höhe 34, Innenabstand 6/10, Rahmen line-strong; Breite nach erwarteter Eingabe mit den Klassen w-… */
+input,
+select,
+textarea {
+  font: inherit;
+  box-sizing: border-box;
+  min-height: 34px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--fg);
+}
+
+textarea {
+  min-height: 68px;
+}
+
+input:hover:not(:disabled),
+select:hover:not(:disabled),
+textarea:hover:not(:disabled) {
+  border-color: var(--muted);
+}
+
+input[readonly],
+textarea[readonly] {
+  background: var(--surface-2);
+  border-color: var(--border);
+}
+
+input[type='checkbox'],
+input[type='radio'] {
+  accent-color: var(--accent);
+  min-height: 0;
+  padding: 0;
+}
+
+.w-num {
+  max-width: 120px;
+}
+
+.w-time {
+  max-width: 100px;
+}
+
+.w-date {
+  max-width: 160px;
+}
+
+.w-short {
+  max-width: 280px;
+}
+
+.w-select {
+  max-width: 220px;
+}
+
+.w-amount {
+  max-width: 140px;
+}
+
+/* Angemeldet: volle Breite für den Kalender */
+
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+/* Landmarke der Seite (B12): ohne Breite und Abstände des Anmeldebildschirms, die Seiten füllen sie wie vorher die Shell. */
+.app > .app-main {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+
+.app > .app-main:focus {
+  outline: 2px solid transparent;
+}
+
+.skip-link {
+  position: absolute;
+  left: 8px;
+  top: -64px;
+  z-index: 30;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--fg);
+  box-shadow: var(--shadow);
+}
+
+.skip-link:focus {
+  top: 8px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Kopfzeile in der Farbe der Navigationsleiste der Windows-App */
+/* Eine Zeile, 48 px (Design-Brief 5.13): Marke, Seiten als Reiter, rechts Uhr und Kontomenü. */
+.topbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 12px;
+  box-sizing: border-box;
+  min-height: 48px;
+  padding: 0 16px;
+  background: var(--rail);
+  color: var(--rail-fg);
+}
+
+.topbar > strong {
+  flex: none;
+  white-space: nowrap;
+}
+
+.topbar > strong {
+  font-weight: 600;
+}
+
+/* Passen die Seiten nicht in die Zeile, scrollt die Schiene waagrecht; sie bricht nie um (Brief 5.4). */
+.topbar .segmented {
+  flex-wrap: nowrap;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.topbar .segmented button {
+  white-space: nowrap;
+}
+
+.topbar .muted,
+.topbar .tenant {
+  color: var(--rail-fg-2);
+}
+
+.topbar button.ghost {
+  background: transparent;
+  color: var(--rail-fg-2);
+  border-color: transparent;
+}
+
+@media (hover: hover) {
+  .topbar button.ghost:hover:not(:disabled):not(.selected) {
+    background: var(--rail-hover);
+    color: var(--rail-fg);
+  }
+}
+
+.topbar button.selected {
+  background: var(--rail-selected);
+  color: var(--rail-fg);
+  border-color: transparent;
+  box-shadow: inset 0 -2px 0 var(--rail-mark);
+}
+
+/* Konto-Menü rechts in der Kopfzeile: Knopf mit Popover (B16), Aussehen wie vorher mit `details` */
+.topbar .account-button {
+  flex: none;
+  white-space: nowrap;
+  min-height: 0;
+  padding: 4px 12px;
+  font-weight: 400;
+  background: transparent;
+  border-color: transparent;
+  color: var(--rail-fg-2);
+}
+
+.topbar .account-button::after {
+  content: ' ▾';
+  white-space: pre;
+}
+
+.topbar .account-button:has(+ .account-menu:popover-open) {
+  background: var(--rail-hover);
+  color: var(--rail-fg);
+}
+
+@media (hover: hover) {
+  .topbar .account-button:hover {
+    background: var(--rail-hover);
+    color: var(--rail-fg);
+  }
+}
+
+/* Im Top-Layer; `placeAccountMenu` setzt top und left unter den Knopf. */
+.topbar .account-menu[popover] {
+  position: fixed;
+  inset: auto;
+  margin: 0;
+  border: 0;
+  min-width: 210px;
+  padding: 8px;
+  border-radius: 10px;
+  background: var(--rail);
+  color: var(--rail-fg);
+  box-shadow: var(--shadow);
+}
+
+.topbar .account-menu:popover-open {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+}
+
+.topbar .account-menu > * {
+  text-align: left;
+}
+
+.topbar .account-menu > button {
+  justify-content: flex-start;
+}
+
+.topbar .account-menu > span {
+  padding: 4px 12px;
+}
+
+/* Eingebettet in die Windows-App: die App hat schon ihre Leiste, hier reicht eine helle Reiterzeile. */
+.app.embedded .topbar {
+  background: var(--surface);
+  color: var(--fg);
+  border-bottom: 1px solid var(--border);
+}
+
+.app.embedded .topbar .tenant {
+  color: var(--muted);
+}
+
+/* In schmalen App-Fenstern bleibt die Reiterzeile einzeilig: die Reiter rücken enger zusammen, der Name des Spas wird
+   gekürzt (voller Name im Tooltip) und unter 1000 px ausgeblendet, und erst wenn auch das nicht reicht, lässt sich die Reiterzeile seitlich schieben. */
+@media (max-width: 1100px) {
+  .app.embedded .topbar .tenant {
+    /* gibt zuerst Platz ab, die Reiter erst danach */
+    flex-shrink: 100;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .app.embedded .topbar .segmented button {
+    padding-inline: 8px;
+  }
+}
+
+/* Unter 1000 px reicht der Platz nur für die Reiter; ein auf „A…“ gekürzter Name hilft niemandem. */
+@media (max-width: 1000px) {
+  .app.embedded .topbar .tenant {
+    display: none;
+  }
+}
+
+.app.embedded .topbar button.ghost {
+  color: var(--muted);
+}
+
+@media (hover: hover) {
+  .app.embedded .topbar button.ghost:hover:not(:disabled):not(.selected) {
+    background: var(--surface-3);
+    color: var(--fg);
+  }
+}
+
+.app.embedded .topbar button.selected {
+  background: var(--accent-soft);
+  color: var(--accent);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+
+.spacer {
+  flex: 1;
+}
+
+.notice {
+  /* Meldung wie die InfoBar aus meldungen.md (M2): Schweregrad mit Symbol und Farbe, nicht nur Farbe. */
+  --notice-fg: var(--accent);
+  --notice-bg: var(--accent-soft);
+  --notice-border: var(--border);
+  --notice-text: var(--fg);
+  --notice-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1Zm0 3a1 1 0 1 1 0 2 1 1 0 0 1 0-2Zm1 8H7V7h2v5Z'/%3E%3C/svg%3E");
+  position: relative;
+  margin: 8px 16px;
+  padding: 10px 12px 10px calc(12px + 16px + 8px);
+  border-radius: 8px;
+  background: var(--notice-bg);
+  border: 1px solid var(--notice-border);
+  color: var(--notice-text);
+}
+
+.notice::before {
+  content: '';
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  width: 16px;
+  height: 16px;
+  background: var(--notice-fg);
+  mask: var(--notice-icon) no-repeat center / contain;
+}
+
+.notice.warning {
+  --notice-fg: var(--warn);
+  --notice-bg: var(--warn-soft);
+  --notice-border: var(--warn);
+  --notice-text: var(--warn);
+  --notice-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M8 1 0.5 14.5h15L8 1Zm1 11H7v-2h2v2Zm0-3H7V5.5h2V9Z'/%3E%3C/svg%3E");
+}
+
+.notice.error {
+  --notice-fg: var(--danger);
+  --notice-bg: var(--danger-soft);
+  --notice-border: var(--danger);
+  --notice-text: var(--danger);
+  --notice-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1Zm2.8 8.4-1.4 1.4L8 9.4l-1.4 1.4-1.4-1.4L6.6 8 5.2 6.6l1.4-1.4L8 6.6l1.4-1.4 1.4 1.4L9.4 8l1.4 1.4Z'/%3E%3C/svg%3E");
+}
+
+.notice.ok {
+  --notice-fg: var(--ok);
+  --notice-bg: var(--ok-soft);
+  --notice-border: var(--ok);
+  --notice-text: var(--ok);
+  --notice-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1ZM4.6 8.4l.8-.8L7 9.2l3.6-3.6.8.8L7 10.8Z'/%3E%3C/svg%3E");
+}
+
+/* Innerhalb einer Seite oder Karte fluchtet die Meldung mit dem Inhalt statt eingerückt zu sein. */
+:is(.admin, .pos) .notice {
+  margin-inline: 0;
+}
+
+.calendar-page {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 12px 16px;
+}
+
+.toolbar h2 {
+  margin: 0 0 0 8px;
+  font-size: 16px;
+}
+
+.date-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+}
+
+.date-nav button {
+  padding: 4px 12px;
+}
+
+/* Reiter wie die Umschalter der Windows-App: eine Schiene, der gewählte Reiter hebt sich ab */
+.segmented {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 10px;
+  background: var(--surface-3);
+  width: fit-content;
+}
+
+.segmented button {
+  padding: 4px 12px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--muted);
+}
+
+@media (hover: hover) {
+  .segmented button:hover:not(:disabled):not(.selected) {
+    color: var(--fg);
+  }
+}
+
+.segmented button.selected {
+  background: var(--surface);
+  color: var(--accent);
+  border-color: var(--border);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.13);
+}
+
+.topbar .segmented {
+  background: transparent;
+  padding: 0;
+}
+
+.topbar .segmented button {
+  color: var(--rail-fg-2);
+}
+
+@media (hover: hover) {
+  .topbar .segmented button:hover:not(:disabled):not(.selected) {
+    background: var(--rail-hover);
+    color: var(--rail-fg);
+  }
+}
+
+.topbar .segmented button.selected {
+  background: var(--rail-selected);
+  color: var(--rail-fg);
+  border-color: transparent;
+  box-shadow: inset 0 -2px 0 var(--rail-mark);
+}
+
+.app.embedded .topbar .segmented button {
+  color: var(--muted);
+}
+
+@media (hover: hover) {
+  .app.embedded .topbar .segmented button:hover:not(:disabled):not(.selected) {
+    background: var(--surface-3);
+    color: var(--fg);
+  }
+}
+
+.app.embedded .topbar .segmented button.selected {
+  background: var(--accent-soft);
+  color: var(--accent);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+
+.live {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.live::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 4px;
+  background: var(--muted);
+}
+
+.live.on::before {
+  background: var(--accent);
+}
+
+.calendar-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  border-top: 1px solid var(--border);
+}
+
+.calendar-scroll {
+  flex: 1;
+  overflow: auto;
+  padding: 0 16px 16px 0;
+}
+
+.day-grid {
+  display: grid;
+  min-width: min-content;
+}
+
+.corner,
+.column-head {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  padding: 8px;
+  font-weight: 600;
+}
+
+.column-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.hours {
+  position: relative;
+}
+
+.hours span {
+  position: absolute;
+  right: 8px;
+  transform: translateY(-50%);
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.hours span:first-child {
+  transform: none;
+}
+
+.column {
+  position: relative;
+  border-left: 1px solid var(--border);
+  cursor: copy;
+}
+
+.column .hour-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 1px solid var(--border);
+  pointer-events: none;
+}
+
+.column .off {
+  position: absolute;
+  left: 0;
+  right: 0;
+  background: repeating-linear-gradient(135deg, var(--off), var(--off) 6px, transparent 6px, transparent 12px);
+  pointer-events: none;
+}
+
+.column .block {
+  position: absolute;
+  left: 2px;
+  right: 2px;
+  border-radius: 6px;
+  background: repeating-linear-gradient(135deg, var(--border), var(--border) 6px, var(--off) 6px, var(--off) 12px);
+  font-size: 12px;
+  padding: 4px 8px;
+  color: var(--muted);
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.column .buffer {
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  border-radius: 6px;
+  background: var(--off);
+  outline: 1px dashed var(--border);
+  pointer-events: none;
+}
+
+.appointment {
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  overflow: hidden;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  border-left: 4px solid var(--c);
+  background: color-mix(in srgb, var(--c) 18%, var(--surface));
+  color: var(--fg);
+  font-size: 12px;
+  text-align: left;
+  cursor: grab;
+}
+
+.appointment span {
+  color: var(--muted);
+}
+
+.appointment strong,
+.appointment span {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Kurze Termine: Uhrzeit, Name und Behandlung in einer Zeile statt abgeschnitten untereinander. */
+.appointment.compact {
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.appointment.compact strong {
+  flex-shrink: 0;
+  max-width: 60%;
+}
+
+.appointment.compact span {
+  flex: 1;
+  min-width: 0;
+}
+
+.appointment.selected {
+  outline: 2px solid var(--c);
+  z-index: 2;
+}
+
+.appointment.pending {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.appointment.status-CheckedIn {
+  background: color-mix(in srgb, var(--c) 35%, var(--surface));
+}
+
+.appointment.status-Completed,
+.appointment.status-NoShow {
+  opacity: 0.55;
+}
+
+.appointment.status-NoShow strong {
+  text-decoration: line-through;
+}
+
+.now {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--danger);
+  z-index: 2;
+  pointer-events: none;
+}
+
+.panel {
+  width: 330px;
+  flex-shrink: 0;
+  overflow: auto;
+  border-left: 1px solid var(--border);
+  background: var(--surface);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.panel header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.panel h2 {
+  margin: 0;
+}
+
+/* Die Überschrift nimmt den Fokus nur programmatisch auf (SidePanel), sie ist kein Bedienelement. */
+.panel h2:focus {
+  outline: 2px solid transparent;
+}
+
+.panel label,
+.new-customer label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+}
+
+.panel fieldset {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.panel dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 12px;
+  margin: 0;
+}
+
+.panel dt {
+  color: var(--muted);
+}
+
+.panel dd {
+  margin: 0;
+}
+
+.slots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.chip {
+  padding: 4px 8px;
+  background: transparent;
+  color: var(--fg);
+  border-color: var(--border);
+}
+
+.chip.snug {
+  border-color: var(--accent);
+  border-width: 2px;
+}
+
+.chip.gap {
+  border-style: dashed;
+  color: var(--muted);
+}
+
+.legend .chip {
+  display: inline-block;
+  font-size: 12px;
+}
+
+.chip.selected {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--surface);
+}
+
+.customer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.customer-search,
+.new-customer,
+.confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.results {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.results button {
+  width: 100%;
+  text-align: left;
+  border: none;
+}
+
+.hint {
+  font-size: 12px;
+}
+
+@media (max-width: 720px) {
+  .calendar-body {
+    flex-direction: column;
+  }
+
+  .panel {
+    width: auto;
+    border-left: none;
+    border-top: 1px solid var(--border);
+  }
+}
+
+/* Stammdaten */
+
+.admin {
+  flex: 1;
+  overflow: auto;
+  padding: 16px;
+}
+
+.admin .tabs {
+  margin-bottom: var(--space-field);
+}
+
+/* Karten einer Seite, Filterzeile und Meldungen stehen nicht aneinander, sondern mit Feldabstand untereinander. */
+:is(.admin, .admin-panel) > :is(section, .form-grid, .notice) + :is(section, .notice),
+:is(.admin, .admin-panel) > .form-grid + * {
+  margin-top: var(--space-field);
+}
+
+.admin-split {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+/* Liste links wie die Listen der Windows-App: eine Karte, die gewählte Zeile mit Akzentstrich */
+.admin-list {
+  list-style: none;
+  margin: 0;
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+}
+
+.admin-list .list-heading {
+  font-size: 12px;
+  margin-top: 8px;
+}
+
+.admin-list button {
+  width: 100%;
+  text-align: left;
+  display: block;
+  padding: 8px 8px;
+  font-weight: 500;
+  border-color: transparent;
+}
+
+.admin-list button.ghost {
+  background: transparent;
+}
+
+.admin-list button .sub {
+  display: block;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+@media (hover: hover) {
+  .admin-list button.ghost:hover:not(:disabled) {
+    background: var(--surface-2);
+    border-color: transparent;
+  }
+}
+
+.admin-list button.selected {
+  background: var(--accent-soft);
+  color: var(--fg);
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
+.admin-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.admin section {
+  margin: 0;
+}
+
+.admin h3 {
+  font-size: 14px;
+  margin: var(--space-group) 0 var(--space-heading);
+}
+
+/* Eine zweite Überschrift in derselben Karte beginnt eine neue Gruppe. */
+.admin section > * + h2 {
+  margin-top: var(--space-group);
+}
+
+.admin section > h3:first-child {
+  margin-top: 0;
+}
+
+.admin h2 + h3,
+.admin h2 + p + h3 {
+  margin-top: var(--space-field);
+}
+
+/* Die Aktionsleiste rückt von den Feldern ab, statt an der letzten Zeile zu kleben. */
+.admin section > * + .actions,
+table + .form-grid,
+:is(.form-grid, fieldset, table, .checks, label, ul, .money-field) + .actions {
+  margin-top: var(--space-field);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: var(--space-field);
+}
+
+.form-grid label,
+.admin fieldset {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-label);
+  font-size: 12px;
+}
+
+/* Feld mit Hilfe-Knopf neben der Beschriftung: der Knopf steht außerhalb des <label>, das per htmlFor am Feld hängt (Design-Brief 5.2).
+   Zahlenfeld mit Fehlertext darunter (Verwaltung > Behandlungen). */
+.field,
+.minutes-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+}
+
+.minutes-field input {
+  max-width: 120px;
+}
+
+.field-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Kontrollkästchen mit Hilfe-Knopf: Knopf neben dem <label>, nicht darin */
+.inline-help {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Fehlertext am Feld (masken.md R8): 12 px danger mit Symbol, ersetzt den Hilfetext; der Rahmen des Feldes wird danger und bleibt es
+   auch unter der Maus (Design-Brief 5.2). */
+.field-error {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--danger);
+}
+
+input[aria-invalid='true'],
+input[aria-invalid='true']:hover {
+  border-color: var(--danger);
+}
+
+/* Betragsfeld (Design-Brief 5.20, Befund B37): Beschriftung über dem Feld, Fehlertext darunter; in Zahlenspalten rechtsbündig wie der Wert. */
+.money-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-label);
+}
+
+.money-field > label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.num > .money-field {
+  align-items: flex-end;
+}
+
+/* Wird eine Beschriftung zweizeilig, rutschen die Felder der Zeile nicht auseinander: alle Felder fluchten unten. */
+.form-grid > :is(label:not(.inline), .field, .form-field, .money-field) {
+  justify-content: flex-end;
+}
+
+/* Das Fragezeichen in einer Beschriftung macht die Zeile nicht höher als die Nachbarn. */
+.form-grid :is(label, .field-head) .help-button {
+  margin-block: -4px;
+}
+
+/* Beschriftung eines Feldes (Design-Brief 3): 12,5 px, Gewicht 500, --muted, über dem Feld; Text neben Kontrollkästchen (label.inline) bleibt Text */
+.form-grid label:not(.inline),
+.panel label:not(.inline),
+.new-customer label,
+label.stacked,
+.field-head label {
+  font-weight: 500;
+  color: var(--muted);
+}
+
+/* Das Farbfeld ist so hoch wie die anderen Felder, damit die Beschriftungen einer Zeile auf einer Höhe stehen. */
+.form-grid input[type='color'] {
+  block-size: calc(1lh + 14px + 2px);
+  inline-size: 68px;
+  padding: 4px;
+}
+
+/* Wiederholte Zeilen (Material, Vorbereitungsschritte): Spaltenköpfe einmal oben, Felder fluchten, „Entfernen“ am Zeilenende. */
+.line-grid {
+  display: grid;
+  gap: 8px var(--space-heading);
+  align-items: center;
+}
+
+.line-grid > :is(.line-head, .line-row) {
+  display: grid;
+  grid-template-columns: subgrid;
+  grid-column: 1 / -1;
+  align-items: center;
+}
+
+.line-grid > .line-head {
+  margin-bottom: calc(var(--space-label) - 8px);
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.line-grid :is(.number, input[inputmode='decimal'], input[type='number']) {
+  text-align: right;
+}
+
+.line-grid :is(input, select) {
+  inline-size: 100%;
+  min-inline-size: 0;
+  box-sizing: border-box;
+}
+
+.line-grid .line-cell {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-label);
+  min-inline-size: 0;
+}
+
+.line-grid .line-cell .muted {
+  font-size: 12px;
+}
+
+.line-grid.material {
+  grid-template-columns: minmax(150px, 210px) minmax(120px, 1fr) 75px 105px 90px auto;
+}
+
+.line-grid.material.no-stock {
+  grid-template-columns: minmax(120px, 1fr) 75px 105px 90px auto;
+}
+
+.line-grid.preparation {
+  grid-template-columns: minmax(180px, 1fr) 105px minmax(150px, 240px) auto;
+}
+
+/* Posteingang der KI-Terminannahme */
+
+.inbox-page {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.inbox-list {
+  flex: 1;
+  overflow: auto;
+  padding: 0 16px 16px;
+}
+
+.inline {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+}
+
+.admin fieldset {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin: 8px 0;
+}
+
+label.inline {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
+}
+
+.checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  align-items: center;
+}
+
+.edit-table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.edit-table th {
+  text-align: left;
+  font-weight: 500;
+  color: var(--muted);
+  font-size: 12px;
+  border-bottom: 1px solid var(--border-strong);
+}
+
+/* Zelle 8 oben/unten, 12 links/rechts, erste Spalte links 0; Zeile mindestens 36 hoch (Design-Brief 4.1, 5.7).
+   Der Kopf hat dieselben Abstände wie die Zellen, damit rechtsbündige Köpfe genau über den Zahlen stehen. */
+.edit-table th,
+.edit-table td,
+.hours-table td {
+  padding: 8px 12px;
+}
+
+.edit-table :is(th, td):first-child,
+.hours-table td:first-child {
+  padding-left: 0;
+}
+
+.edit-table td,
+.hours-table td {
+  height: 36px;
+}
+
+th.num,
+td.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.row-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.plain-list {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Abhaklisten (Tagesstart, Raumpflege, Bereitstellen): das Kontrollkästchen ist das Aufzählungszeichen. Die Klasse
+   wurde schon verwendet, hatte aber keine Regel, deshalb standen Punkt und Kästchen doppelt. */
+ul.plain {
+  list-style: none;
+  padding-left: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-label);
+}
+
+/* Links in der Akzentfarbe statt Browser-Blau, Unterstreichung etwas abgesetzt */
+a:not(.button) {
+  color: var(--accent);
+  text-underline-offset: 3px;
+}
+
+a:not(.button):hover {
+  color: var(--accent-hover);
+}
+
+.mail-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.plain-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+@media (max-width: 720px) {
+  .admin-split {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Kassa */
+.pos {
+  flex: 1;
+  overflow: auto;
+  padding: 16px;
+}
+.pos-grid {
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr) 285px;
+  gap: 16px;
+  align-items: start;
+}
+.pos section {
+  margin: 0 0 16px;
+}
+.pos h2 {
+  font-size: 16px;
+  margin: 0 0 8px;
+}
+.pos .plain-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+/* Text nimmt den Platz, der Knopf behält seine Breite und ragt nicht aus der Karte. */
+.pos .plain-list li > span {
+  flex: 1;
+  min-width: 0;
+}
+.pos .plain-list li > button {
+  flex: none;
+  white-space: nowrap;
+}
+.pos h3 {
+  font-size: 14px;
+  margin: var(--space-field) 0 var(--space-heading);
+}
+.pos details {
+  margin: 8px 0 16px;
+}
+.pos details .actions {
+  margin-top: 8px;
+}
+.pos .payment {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.pos .inline {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+input.money {
+  width: 98px;
+  text-align: right;
+}
+input.qty {
+  width: 52px;
+}
+.num {
+  text-align: right;
+  white-space: nowrap;
+}
+/* Raumausstattung am Tagesstart: grün, wenn vollständig, sonst orange mit der Liste (nie rot). */
+.equipment {
+  margin: 4px 0;
+  font-weight: 600;
+}
+.equipment.ok {
+  color: var(--ok);
+}
+.equipment.warn,
+.equipment-list {
+  color: var(--warn);
+}
+.report {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 12px;
+  margin: 0 0 12px;
+}
+.report dt {
+  color: var(--muted);
+}
+.report dd {
+  margin: 0;
+  text-align: right;
+}
+.receipt {
+  max-width: 360px;
+  font-family: ui-monospace, 'Cascadia Mono', monospace;
+  font-size: 12px;
+}
+.online-refund {
+  font-family: system-ui, sans-serif;
+  border-left: 3px solid var(--border);
+  padding-left: 12px;
+  margin: 12px 0;
+}
+.online-refund p {
+  margin: 4px 0;
+}
+.receipt-header {
+  font: inherit;
+  margin: 0 0 8px;
+  white-space: pre-wrap;
+}
+.receipt-lines {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 8px 0;
+}
+.receipt-lines .total td {
+  border-top: 1px solid var(--border);
+  font-weight: 600;
+}
+.voucher-code strong {
+  letter-spacing: 1.12px;
+}
+@media (max-width: 1050px) {
+  .pos-grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media print {
+  .topbar,
+  .pos-grid > aside,
+  .pos .toolbar,
+  .no-print {
+    display: none;
+  }
+}
+
+.mail {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+  text-align: left;
+  background: var(--surface);
+  color: var(--fg);
+  border-color: var(--border);
+}
+
+.mail.selected {
+  border-color: var(--accent);
+}
+
+.mail .muted {
+  flex-basis: 100%;
+  font-size: 12px;
+}
+
+.status {
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+}
+
+.status-NeedsReview,
+.status-Failed {
+  border-color: var(--warn);
+  color: var(--warn);
+}
+
+.status-Booked {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.badge {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.mail-detail {
+  width: 450px;
+}
+
+.mail-detail textarea,
+.test-mail textarea {
+  font: inherit;
+  resize: vertical;
+}
+
+.mail-body {
+  white-space: pre-wrap;
+  font: inherit;
+  font-size: 12px;
+}
+
+.test-mail {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.test-mail label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Dienstplan */
+.roster-table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 12px;
+  background: var(--surface);
+}
+
+.roster-table th,
+.roster-table td {
+  border-bottom: 1px solid var(--border);
+  padding: 8px 12px;
+  text-align: left;
+  vertical-align: top;
+  white-space: nowrap;
+}
+
+.roster-table td {
+  height: 36px;
+}
+
+.roster-table thead th {
+  position: sticky;
+  top: 0;
+  background: var(--surface);
+  font-weight: 500;
+  color: var(--muted);
+  border-bottom-color: var(--border-strong);
+}
+
+.roster-cell button {
+  width: 100%;
+  min-height: 39px;
+  text-align: left;
+  padding: 4px 8px;
+  white-space: normal;
+}
+
+.roster-cell.pattern button {
+  color: var(--muted);
+}
+
+.roster-cell.planned button {
+  font-weight: 600;
+}
+
+.roster-cell.draft button {
+  outline: 2px dashed var(--accent);
+  outline-offset: -3px;
+}
+
+.roster-warning {
+  color: var(--danger);
+  font-size: 12px;
+  font-weight: 400;
+}
+
+ul.roster-warning {
+  margin: 0;
+  padding-left: 16px;
+}
+
+.panel .segmented {
+  flex-wrap: wrap;
+}
+
+.topbar .tenant {
+  font-weight: 600;
+}
+
+.signup {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 420px;
+}
+
+.signup label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+}
+
+/* Buchhaltung */
+
+a.button {
+  text-decoration: none;
+  display: inline-block;
+}
+
+/* Zahlenspalten: Kopf und Werte rechtsbündig, Ziffern gleich breit, damit Kopf und Zahl untereinander stehen. */
+td.amount,
+th.amount {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Anamnese im Termin */
+.anamnesis h3 {
+  margin: 0 0 4px;
+  font-size: 14px;
+}
+
+.anamnesis p {
+  margin: 4px 0;
+}
+
+.anamnesis-answers {
+  display: grid;
+  gap: 4px;
+  margin: 4px 0;
+}
+
+.anamnesis-answers div {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 8px;
+}
+
+.anamnesis-answers .flag dd {
+  font-weight: 600;
+}
+
+.tablet-link {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.modal {
+  box-sizing: border-box;
+  background: var(--surface);
+  color: var(--fg);
+  border: none;
+  border-radius: 10px;
+  padding: 16px;
+  width: min(1080px, calc(100vw - 32px));
+  max-height: calc(100vh - 32px);
+  overflow: auto;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.modal[open] {
+  display: flex;
+}
+
+.modal::backdrop {
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.modal > header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal h2 {
+  margin: 0;
+}
+
+.scan-review {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 16px;
+}
+
+.scan-photo {
+  margin: 0;
+}
+
+.scan-photo img {
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+}
+
+.scan-answers {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.scan-answers fieldset {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.scan-answers label:not(.inline) {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+}
+
+.scan-answers .yesno {
+  display: flex;
+  gap: 16px;
+}
+
+/* Unsicher gelesen: gelb, mit Text dazu (Farbe allein reicht nicht). */
+.scan-answers fieldset.uncertain {
+  background: var(--note-soft);
+  border-color: var(--note);
+  color: var(--note);
+}
+
+.uncertain-reason {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+@media (max-width: 720px) {
+  .scan-review {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Papierbogen: am Bildschirm als Vorschau, beim Drucken allein auf der Seite. */
+.print-sheet {
+  background: #fff;
+  color: #000;
+  padding: 24px;
+  border: 1px solid var(--border);
+  font-size: 11pt;
+}
+
+.print-sheet > header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.print-sheet h1 {
+  margin: 0 0 8px;
+  font-size: 16pt;
+}
+
+.print-sheet figure {
+  margin: 0;
+  max-width: 150px;
+  text-align: center;
+  font-size: 8pt;
+}
+
+.sheet-questions {
+  padding-left: 20px;
+}
+
+.sheet-questions li {
+  break-inside: avoid;
+  margin-bottom: 12px;
+}
+
+.sheet-questions p {
+  margin: 4px 0;
+}
+
+.sheet-boxes {
+  display: flex;
+  gap: 32px;
+  font-size: 13pt;
+}
+
+.sheet-line {
+  border-bottom: 1px solid #000;
+  min-height: 24px;
+}
+
+/* Unterschrift: Linie zum Schreiben, Beschriftung darunter. */
+.sheet-signature {
+  margin-top: 45px;
+  min-height: 0;
+  border-bottom: none;
+  border-top: 1px solid #000;
+  padding-top: 4px;
+  font-size: 9pt;
+}
+
+.print-sheet footer {
+  margin-top: 16px;
+  font-size: 8pt;
+  color: #444;
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .print-sheet,
+  .print-sheet * {
+    visibility: visible;
+  }
+
+  .print-sheet {
+    position: absolute;
+    inset: 0;
+    border: none;
+    padding: 0;
+  }
+
+  /* Das Dialogfenster liegt im Top-Layer: für den Druck auf die ganze Seite ausbreiten, ohne Rahmen und Hintergrund. */
+  .modal {
+    position: absolute;
+    inset: 0;
+    width: auto;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    background: none;
+  }
+
+  .modal::backdrop {
+    background: none;
+  }
+}
+
+td.amount.negative {
+  color: var(--danger);
+}
+
+/* Berichte */
+
+article.card {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin: 12px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+article.card header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+ul.todo {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+
+dl.kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(165px, 1fr));
+  gap: 12px;
+}
+
+dl.kpis div {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 16px;
+}
+
+dl.kpis dt {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+dl.kpis dd {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 28px;
+  font-variant-numeric: tabular-nums;
+}
+
+dl.kpis dd.muted {
+  font-size: 12px;
+}
+
+/* Warteliste im Kalender */
+.plain-list.waitlist li {
+  display: grid;
+  gap: 4px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.plain-list.waitlist button {
+  justify-self: start;
+}
+
+/* KI-Assistent: Seitenleiste rechts über der jeweiligen Seite. */
+.assistant {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  width: min(390px, 100vw);
+  overflow: auto;
+  border-left: 1px solid var(--border);
+  background: var(--surface);
+  /* Seitenleisten im Web: Rahmen links, kein Schatten (Design-Brief 5.12) */
+  box-shadow: none;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.assistant header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.assistant h2 {
+  margin: 0;
+}
+
+.assistant-ask label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.assistant-examples,
+.assistant-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.assistant-scope {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: 12px;
+}
+
+.assistant-answer p {
+  margin: 0 0 8px;
+}
+
+.assistant-answer table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 8px;
+}
+
+.assistant-answer th,
+.assistant-answer td {
+  text-align: left;
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.assistant-confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 8px 0;
+}
+
+.assistant-disclosure {
+  font-size: 12px;
+}
+
+/* Antwort aus den Daten des Spas (ADR 0072): Pille, Tabelle, Quelle, Verweise, „Warum diese Antwort?“ und Rückmeldung. */
+.ai-pill {
+  display: inline-block;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 18px;
+  vertical-align: baseline;
+}
+
+.assistant-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.assistant-block p,
+.assistant-block table {
+  margin: 0;
+}
+
+.assistant-source {
+  font-size: 12px;
+}
+
+/* Abschnitt „Unvollständig“: Angabe fehlt im Spa; der Streifen links trägt den Schweregrad, der Text sagt es auch ohne Farbe. */
+.assistant-incomplete {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  padding: 6px 10px;
+  border-left: 3px solid var(--warn);
+  border-radius: 4px;
+  background: var(--surface-2);
+}
+
+.assistant-incomplete p {
+  flex: 1 1 100%;
+  color: var(--warn);
+}
+
+.assistant-actions,
+.assistant-feedback {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.assistant-why summary {
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.assistant-why p {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* Vergleich mit anderen Spas (Management) */
+.form-grid > button {
+  align-self: end;
+}
+
+.benchmark {
+  margin: 16px 0 24px;
+  padding: 12px 16px 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.benchmark-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.benchmark-head h3 {
+  margin: 0;
+}
+
+.sample-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 0 8px;
+  border: 1px dashed var(--muted);
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.benchmark-summary {
+  font-weight: 600;
+}
+
+.benchmark-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  gap: 12px;
+}
+
+.benchmark-list li {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+
+.benchmark-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+}
+
+.benchmark-label {
+  flex: 1 1 100%;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.benchmark-row strong {
+  font-size: 18px;
+  font-variant-numeric: tabular-nums;
+}
+
+.rating {
+  font-size: 12px;
+  padding: 0 8px;
+  border-radius: 4px;
+  border: 1px solid currentColor;
+}
+
+.rating-Top,
+.rating-AboveMedian {
+  color: var(--accent);
+}
+
+.rating-BelowMedian,
+.rating-Bottom {
+  color: var(--danger);
+}
+
+.rating-none {
+  color: var(--muted);
+}
+
+.benchmark-scale {
+  position: relative;
+  height: 14px;
+  margin: 8px 0 4px;
+  border-radius: 6px;
+  background: var(--off);
+}
+
+.benchmark-scale .band {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--muted) 30%, transparent);
+}
+
+.benchmark-scale .median {
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--fg);
+}
+
+.benchmark-scale .own {
+  position: absolute;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  margin: -8px 0 0 -8px;
+  border-radius: 50%;
+  border: 2px solid var(--surface);
+  background: currentColor;
+}
+
+.benchmark-peers,
+.benchmark-tip {
+  margin: 4px 0 0;
+  font-size: 12px;
+}
+
+.benchmark-peers {
+  color: var(--muted);
+}
+
+/* Regeln der Online-Buchung je Standort (Stammdaten) */
+.admin fieldset.plain-fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  gap: 12px;
+}
+
+/* Gruppe mit Überschrift ohne Rahmen (Zugänge > Standorte): die Legende sieht aus wie eine Überschrift .admin h3.
+   Der Abstand nach oben steht am fieldset, weil der obere Rand einer Legende nicht wirkt. */
+.admin fieldset.group-fieldset {
+  border: 0;
+  padding: 0;
+  margin: var(--space-group) 0 0;
+  min-inline-size: 0;
+  font-size: inherit;
+}
+
+.admin fieldset.group-fieldset > legend {
+  padding: 0;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 22px;
+  margin: 0 0 var(--space-heading);
+}
+
+/* Im fieldset fallen Ränder nicht mehr mit Legende und Folgezeile zusammen (Hinweis beim Backoffice). */
+.admin fieldset.group-fieldset > p {
+  margin: 0;
+}
+
+label.stacked {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-label);
+  font-size: 12px;
+}
+
+label.stacked + label.stacked,
+.admin section > .form-field + .form-field {
+  margin-top: var(--space-field);
+}
+
+/* Feldbreite nach erwarteter Eingabe (masken.md, R4) statt Standardbreite des Browsers */
+.field-medium {
+  width: min(300px, 100%);
+  box-sizing: border-box;
+}
+
+.field-date {
+  width: 150px;
+  align-self: flex-start;
+}
+
+.field-wide {
+  width: min(600px, 100%);
+  box-sizing: border-box;
+}
+
+.field-hint {
+  margin: var(--space-label) 0 0;
+}
+
+/* Kontrollkästchen einer Maske untereinander, mit Feldabstand zum Feld darüber */
+.check-list {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-heading);
+  margin-top: var(--space-field);
+}
+
+.check-list + .checks {
+  margin-top: var(--space-heading);
+}
+
+label.stacked textarea {
+  font: inherit;
+  resize: vertical;
+}
+
+/* Zeiterfassung */
+.time-clock {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.time-records {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0;
+}
+
+.time-records > li {
+  padding: 4px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.time-editor h3 {
+  margin: 12px 0 4px;
+  font-size: 14px;
+}
+
+/* Popover im Top-Layer; die Lage unter dem Knopf setzt SyncStatus.tsx beim Öffnen. */
+.sync-popover[popover] {
+  position: fixed;
+  inset: auto;
+  margin: 0;
+  width: 360px;
+  max-width: 90vw;
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--fg);
+  box-shadow: var(--shadow);
+}
+
+.sync-popover ul {
+  margin: 0;
+  padding-left: 16px;
+  display: grid;
+  gap: 8px;
+}
+
+/* Auswahl mit Erklärung je Möglichkeit (z. B. Zahlungskonto) */
+
+.admin fieldset.choice {
+  gap: 8px;
+  padding: 12px;
+}
+
+.choice .option {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  cursor: pointer;
+}
+
+.choice .option.selected {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.choice .option:has(input:disabled) {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.choice .option > span {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.choice .option input {
+  margin-top: 4px;
+}
+
+/* Hilfe: Fragezeichen neben Einstellungen und Seitenleiste mit den Texten */
+.help-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  min-height: 0;
+  margin-left: 8px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  vertical-align: middle;
+  cursor: help;
+}
+
+.help-button::before {
+  content: '?';
+}
+
+@media (hover: hover) {
+  .help-button:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+}
+
+/* Hex-Wert der Kalenderfarbe als Text neben dem Farbfeld (B11): die Farbe ist sonst die einzige Angabe */
+.color-value {
+  margin-left: 8px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.help-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 30;
+  width: min(450px, 100vw);
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid var(--border);
+  background: var(--surface);
+  /* Seitenleisten im Web: Rahmen links, kein Schatten (Design-Brief 5.12) */
+  box-shadow: none;
+}
+
+.help-drawer header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.help-drawer header h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+/* Überschriften der Hilfe und von „KI und Hilfe“ bekommen den Fokus beim Öffnen nur per Code; kein Rahmen wie bei .app-main. */
+.help-drawer header h2:focus,
+.companion header h2:focus {
+  outline: 2px solid transparent;
+}
+
+.help-body {
+  overflow: auto;
+  padding: 0 16px 32px;
+  line-height: 1.5;
+}
+
+.help-body h3 {
+  margin: 20px 0 8px;
+  scroll-margin-top: 12px;
+}
+
+.help-body h4 {
+  margin: 16px 0 4px;
+  scroll-margin-top: 12px;
+}
+
+.help-body .help-target {
+  color: var(--accent);
+}
+
+.help-topics {
+  list-style: none;
+  padding: 0;
+}
+
+/* Offene Fragen an die Hilfe (Slice 56): Frage mit Seite und Datum, „Erledigt“ rechts daneben. */
+.open-questions-head {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.open-questions ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.open-questions li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.open-questions-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.open-questions-meta {
+  font-size: 12px;
+}
+
+.help-search {
+  width: 100%;
+  margin: 12px 0 8px;
+}
+
+.help-image {
+  margin: 8px 0;
+}
+
+.help-image img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.help-image figcaption {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+/* Aufbau eines Hilfethemas (Design-Brief 5.30): Brotkrumen, Rollenkennzeichen, Inhaltsverzeichnis, Kästen, Schritte, Fuß. */
+.help-crumbs ol {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  margin: 16px 0 4px;
+  padding: 0;
+  list-style: none;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--muted);
+}
+
+.help-crumbs li + li::before {
+  content: '›';
+  margin-right: 4px;
+}
+
+.help-crumbs li[aria-current='page'] {
+  color: var(--fg);
+}
+
+.help-crumbs button {
+  min-height: 24px;
+  padding: 0;
+  font-size: inherit;
+  text-decoration: underline;
+}
+
+.help-roles {
+  margin: 0 0 12px;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.help-toc {
+  margin: 16px 0;
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-2);
+}
+
+.help-toc-title {
+  margin: 0 0 4px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  color: var(--muted);
+}
+
+.help-toc ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.help-toc li {
+  padding: 2px 0;
+}
+
+.help-body .help-callout {
+  margin: 16px 0;
+}
+
+.help-body ol > li + li,
+.help-body ul > li + li {
+  margin-top: 8px;
+}
+
+.help-image-missing {
+  margin: 8px 0;
+  padding: 12px;
+  border: 1px dashed var(--border-strong);
+  border-radius: 8px;
+}
+
+.help-foot {
+  margin-top: 32px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.help-foot-title {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+.help-feedback {
+  margin: 0 0 16px;
+}
+
+.help-feedback-choice {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.help-feedback-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 8px;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.help-feedback-text textarea {
+  width: 100%;
+  resize: vertical;
+}
+
+.help-foot ul {
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+}
+
+.help-hit-area {
+  display: block;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--muted);
+}
+
+.help-topics mark {
+  background: var(--note-soft);
+  color: inherit;
+  border-radius: 2px;
+}
+
+.help-alternatives {
+  margin: 8px 0;
+}
+
+.help-topics button {
+  width: 100%;
+  text-align: left;
+}
+
+/* KI und Hilfe: ruhiger Knopf unten rechts, Leiste rechts (auf breiten Bildschirmen neben dem Inhalt, sonst darüber) */
+.companion-fab {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 15;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--accent);
+  box-shadow: var(--shadow);
+}
+
+@media (hover: hover) {
+  .companion-fab:hover:not(:disabled) {
+    background: var(--accent-soft);
+  }
+}
+
+.companion {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 15;
+  width: min(360px, 100vw);
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 12px 16px 16px;
+  border-left: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow: none;
+}
+
+.companion > header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--accent);
+}
+
+.companion h2 {
+  margin: 0;
+  font-size: 16px;
+  color: var(--fg);
+}
+
+.companion-page h3 {
+  margin: 0 0 8px;
+  font-size: 14px;
+}
+
+.companion-page p {
+  margin: 0 0 8px;
+  color: var(--muted);
+}
+
+.assistant.inline {
+  /* Im Companion fließt der Assistent mit: die feste Seitenleiste von .assistant (Lage, Breite, Fläche) entfällt, sonst deckt er „KI und Hilfe“ zu. */
+  position: static;
+  z-index: auto;
+  width: auto;
+  overflow: visible;
+  background: none;
+  border-left: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-top: 1px solid var(--border);
+  padding: 12px 0 0;
+}
+
+.assistant.inline h2 {
+  font-size: 14px;
+}
+
+@media (min-width: 1050px) {
+  .app.with-companion {
+    margin-right: 360px;
+  }
+}
+
+/* Kontrastdesign von Windows: Farben und Schatten entfallen, Zustände zeigen Systemfarben und Rahmen (B85). */
+@media (forced-colors: active) {
+  button[aria-pressed='true'],
+  .topbar button.selected,
+  .segmented button.selected,
+  .chip.selected,
+  .admin-list button.selected {
+    background: Highlight;
+    color: HighlightText;
+    border: 2px solid HighlightText;
+    forced-color-adjust: none;
+  }
+
+  .choice .option.selected,
+  .mail.selected {
+    border: 3px solid Highlight;
+  }
+
+  .appointment {
+    border-color: CanvasText;
+  }
+
+  .appointment.selected {
+    outline: 3px solid Highlight;
+  }
+
+  .appointment.status-CheckedIn {
+    border: 2px solid Highlight;
+  }
+
+  .appointment.status-Completed,
+  .appointment.status-NoShow {
+    opacity: 1;
+    border-style: dashed;
+    border-color: GrayText;
+  }
+}
+
+/* Verlauf (HistorySection): Kopf als Aufklapp-Knopf mit Pfeil, darunter die Einträge, neueste oben. */
+.history {
+  margin-top: var(--space-group);
+}
+
+.roster > .history {
+  margin-inline: 16px;
+}
+
+.history-toggle::after {
+  content: '▸';
+  margin-inline-start: 8px;
+}
+
+.history-toggle[aria-expanded='true']::after {
+  content: '▾';
+}
+
+.history-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-field);
+}
+
+.history-list li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.history-list time {
+  font-size: 12px;
+}

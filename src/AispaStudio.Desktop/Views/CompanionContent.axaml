@@ -1,0 +1,290 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             xmlns:svc="using:AispaStudio.Desktop.Services"
+             xmlns:contracts="using:AispaStudio.Contracts"
+             xmlns:help="using:AispaStudio.Help"
+             xmlns:views="using:AispaStudio.Desktop.Views"
+             x:Class="AispaStudio.Desktop.Views.CompanionContent"
+             x:DataType="vm:CompanionViewModel">
+  <!-- Inhalt von „KI und Hilfe“: Erklärung zur Seite und KI-Assistent. Er steht im Kalender als Reiter der Seitenleiste, auf den übrigen Seiten in der Leiste der Shell. -->
+  <StackPanel Spacing="12">
+    <!-- Diese Seite; auf der Seite „Hilfe“ entfällt der Teil, dort bleibt nur der Assistent (Ä347) -->
+    <StackPanel Spacing="12" IsVisible="{Binding ShowsPageSection}">
+    <StackPanel Spacing="6" IsVisible="{Binding HasTopic}">
+      <TextBlock Text="{Binding Topic.Title, FallbackValue=''}" FontWeight="SemiBold" FontSize="16" TextWrapping="Wrap" />
+      <ItemsControl ItemsSource="{Binding Intro}">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <StackPanel Spacing="6" />
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="help:HelpParagraph">
+            <ui:HelpText Spans="{Binding Spans}" Classes="secondary" />
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+      <Button Classes="ghost" Content="Ganze Beschreibung öffnen" Command="{Binding OpenHelpCommand}" HorizontalAlignment="Left" />
+    </StackPanel>
+    <StackPanel Spacing="6" IsVisible="{Binding !HasTopic}">
+      <TextBlock Text="Zu jeder Einstellung öffnet das Fragezeichen daneben die Beschreibung." Classes="muted" TextWrapping="Wrap" />
+      <Button Classes="ghost" Content="Alle Hilfethemen" Command="{Binding OpenHelpCommand}" HorizontalAlignment="Left" />
+    </StackPanel>
+    <Border Classes="divider" />
+    </StackPanel>
+
+    <!-- KI-Assistent -->
+    <TextBlock Text="Der KI-Assistent ist für dieses Spa oder diesen Zugang nicht eingeschaltet." Classes="muted" TextWrapping="Wrap"
+               IsVisible="{Binding !CanAsk}" />
+    <StackPanel Spacing="10" IsVisible="{Binding CanAsk}">
+      <!-- „Neu beginnen“ steht im Kopf der Leiste neben dem Kreuz (Ä359) -->
+      <StackPanel Orientation="Horizontal" Spacing="8">
+        <views:AiPill />
+        <TextBlock Text="Assistent" FontWeight="SemiBold" FontSize="16" VerticalAlignment="Center" />
+      </StackPanel>
+      <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+        <!-- Pfeil nach oben im leeren Feld holt die letzte Frage zurück (Ä316, Code-Behind) -->
+        <TextBox x:Name="CompanionQuestion" Text="{Binding Question}" PlaceholderText="{x:Static svc:AiLabels.QuestionPlaceholder}" TextWrapping="Wrap" AcceptsReturn="False"
+                 AutomationProperties.Name="Frage an den Assistenten">
+          <TextBox.KeyBindings>
+            <KeyBinding Gesture="Enter" Command="{Binding AskCommand}" />
+          </TextBox.KeyBindings>
+        </TextBox>
+        <Button Grid.Column="1" Classes="primary" Content="Fragen" Command="{Binding AskCommand}" VerticalAlignment="Top" />
+      </Grid>
+      <!-- Die letzten Fragen von heute (nur dieses Gerät, nur diese Person, nur die Fragen): ein Klick stellt sie neu und holt eine frische Antwort (Ä347) -->
+      <StackPanel x:Name="RecentQuestionsList" Spacing="2" IsVisible="{Binding HasRecentQuestions}">
+        <TextBlock Text="Zuletzt gefragt" Classes="muted small" />
+        <ItemsControl ItemsSource="{Binding RecentQuestions}" Margin="-8,0">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="x:String">
+              <Button Classes="ghost" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Padding="8,4"
+                      Command="{Binding $parent[ItemsControl].((vm:CompanionViewModel)DataContext).AskRecentCommand}" CommandParameter="{Binding}"
+                      ToolTip.Tip="{Binding}" AutomationProperties.Name="{Binding}">
+                <TextBlock Text="{Binding}" TextTrimming="WordEllipsis" />
+              </Button>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </StackPanel>
+      <!-- Während der Antwort: die Frage als Kopf und der Ladezustand; die Frage bleibt auch im Feld, bis die Antwort da ist (Ä316) -->
+      <Border Classes="card" Padding="12" IsVisible="{Binding IsAsking}">
+        <StackPanel Spacing="8">
+          <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+            <views:AiPill VerticalAlignment="Top" />
+            <TextBlock Grid.Column="1" Text="{Binding Pending}" Classes="muted small" TextWrapping="Wrap" VerticalAlignment="Center" />
+          </Grid>
+          <ProgressBar IsIndeterminate="True" AutomationProperties.Name="Der Assistent denkt nach" />
+          <TextBlock Text="Der Assistent denkt nach …" Classes="muted small" />
+        </StackPanel>
+      </Border>
+      <!-- Fehler oder leere Antwort: was nicht ging, „Erneut fragen“ stellt die Frage im Feld noch einmal; ein Weg ohne KI darunter (Design-Brief 5.28, meldungen.md) -->
+      <StackPanel x:Name="ErrorBar" Spacing="4" IsVisible="{Binding HasError}" AutomationProperties.LiveSetting="Assertive">
+        <ui:InfoBar Severity="Error" Message="{Binding Error}" ActionText="Erneut fragen" ActionCommand="{Binding AskCommand}" Stacked="True">
+          <ui:InfoBar.Detail>
+            <StackPanel Spacing="4">
+              <TextBlock Text="{x:Static svc:AiLabels.WayOutHelp}" TextWrapping="Wrap" />
+              <Button Classes="ghost" Content="Handbuch öffnen" Command="{Binding OpenHelpCommand}" HorizontalAlignment="Left" />
+            </StackPanel>
+          </ui:InfoBar.Detail>
+        </ui:InfoBar>
+      </StackPanel>
+      <StackPanel Spacing="4" IsVisible="{Binding !HasAnswer}">
+        <TextBlock Text="{x:Static svc:AiLabels.AssistantScope}" Classes="muted small" TextWrapping="Wrap" />
+        <TextBlock Text="Zum Beispiel:" Classes="muted small" />
+        <ItemsControl ItemsSource="{Binding Examples}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <WrapPanel />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="x:String">
+              <Button Classes="chip" Content="{Binding}" Margin="0,0,6,6"
+                      Command="{Binding $parent[ItemsControl].((vm:CompanionViewModel)DataContext).AskExampleCommand}"
+                      CommandParameter="{Binding}" />
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </StackPanel>
+      <Border x:Name="AnswerCard" Classes="card" Padding="12" IsVisible="{Binding ShowsAnswer}">
+        <StackPanel Spacing="8">
+          <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+            <views:AiPill VerticalAlignment="Top" />
+            <TextBlock Grid.Column="1" Text="{Binding Asked}" Classes="muted small" TextWrapping="Wrap" VerticalAlignment="Center" />
+          </Grid>
+          <!-- Avalonia sagt eine Live-Region an, wenn sich der Name ändert; der Name des Texts ist die Antwort, der Rahmen der Karte hätte keinen -->
+          <TextBlock Text="{Binding Answer?.Text, TargetNullValue=''}" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
+          <ItemsControl ItemsSource="{Binding Answer?.Figures}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="contracts:AssistantFigure">
+                <Grid ColumnDefinitions="*,Auto" Margin="0,2">
+                  <TextBlock Text="{Binding Label}" Classes="secondary" TextWrapping="Wrap" />
+                  <StackPanel Grid.Column="1" HorizontalAlignment="Right">
+                    <TextBlock Text="{Binding Value}" FontWeight="SemiBold" HorizontalAlignment="Right" />
+                    <TextBlock Text="{Binding Previous, StringFormat='vorher {0}'}" Classes="muted small" HorizontalAlignment="Right"
+                               IsVisible="{Binding Previous, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                  </StackPanel>
+                </Grid>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+          <!-- Listen-Antwort (Ä316): eine Liste, je Zeile Uhrzeit, Gast und darunter Behandlung und Person wie „Heute abzurechnen“; die ganze Zeile ist der Sprung.
+               Eine Zeile bricht nie um: lange Namen enden an der Wortgrenze mit Auslassungspunkten, der volle Text steht im Tooltip. -->
+          <ItemsControl x:Name="AnswerRows" ItemsSource="{Binding Rows}" IsVisible="{Binding HasRows}" Margin="-8,0">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:CompanionRow">
+                <Button Classes="ghost" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Padding="8,6"
+                        IsHitTestVisible="{Binding CanOpen}" Focusable="{Binding CanOpen}"
+                        Command="{Binding $parent[ItemsControl].((vm:CompanionViewModel)DataContext).OpenRowCommand}" CommandParameter="{Binding}"
+                        ToolTip.Tip="{Binding Action}" AutomationProperties.Name="{Binding AccessibleName}">
+                  <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                    <TextBlock Text="{Binding Lead}" FontWeight="SemiBold" Classes="num" MinWidth="40" IsVisible="{Binding HasLead}" />
+                    <StackPanel Grid.Column="1">
+                      <TextBlock Text="{Binding Title}" FontWeight="Medium" TextTrimming="WordEllipsis" ToolTip.Tip="{Binding Title}" />
+                      <TextBlock Text="{Binding Detail}" Classes="muted small" TextTrimming="WordEllipsis" ToolTip.Tip="{Binding Detail}"
+                                 IsVisible="{Binding HasDetail}" />
+                    </StackPanel>
+                  </Grid>
+                </Button>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+          <Button Classes="ghost" Content="{Binding ShowAllText}" Command="{Binding ShowAllRowsCommand}" IsVisible="{Binding HasMoreRows}" HorizontalAlignment="Left" />
+          <!-- Antwort aus den Daten des Spas (ADR 0072): Tabelle, Quelle, Verweis in die Verwaltung, Kopieren und Angebote als Fragen -->
+          <ui:AnswerTable Table="{Binding BlockTable}" IsVisible="{Binding BlockTable, Converter={x:Static ObjectConverters.IsNotNull}}" />
+          <TextBlock Text="{Binding SourceText}" Classes="muted small" TextWrapping="Wrap"
+                     IsVisible="{Binding SourceText, Converter={x:Static ObjectConverters.IsNotNull}}" />
+          <!-- Angaben, die dem Spa fehlen: Ort und „Jetzt ergänzen“ mit Recht, sonst „Nur Leitung“ -->
+          <ItemsControl ItemsSource="{Binding Gaps}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:CompanionGap">
+                <!-- Hinweisfläche statt Meldungsleiste: in der schmalen Leiste steht der Knopf unter dem Text, nicht daneben -->
+                <Border Classes="hint warn" Margin="0,0,0,6">
+                  <StackPanel Spacing="8">
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                      <ui:Icon Data="{x:Static ui:Icons.Warning}" Foreground="{DynamicResource WarnBrush}" VerticalAlignment="Top" />
+                      <TextBlock Grid.Column="1" Text="{Binding Message}" TextWrapping="Wrap" Foreground="{DynamicResource WarnBrush}" />
+                    </Grid>
+                    <Button Content="{Binding ActionText}" HorizontalAlignment="Left" IsVisible="{Binding HasAction}"
+                            Command="{Binding $parent[ItemsControl].((vm:CompanionViewModel)DataContext).OpenGapCommand}" CommandParameter="{Binding Link}"
+                            ToolTip.Tip="Öffnet die Verwaltung an dieser Stelle" />
+                  </StackPanel>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+          <ui:InfoBar Severity="Info" Message="{Binding SavedNotice}" ActionText="Frage wiederholen" ActionCommand="{Binding RepeatQuestionCommand}"
+                      CloseCommand="{Binding DismissSavedCommand}" IsVisible="{Binding SavedNotice, Converter={x:Static ObjectConverters.IsNotNull}}" />
+          <!-- Link und Kopieren umbrechen in der schmalen Leiste, wenn beide da sind (z. B. „Betriebsinformationen öffnen“) -->
+          <WrapPanel ItemSpacing="8" LineSpacing="8" IsVisible="{Binding HasBlockActions}">
+            <Button Content="{Binding LinkLabel}" Command="{Binding OpenBlockLinkCommand}" IsVisible="{Binding HasBlockLink}"
+                    ToolTip.Tip="Öffnet die Verwaltung an dieser Stelle" />
+            <Button Content="Kopieren" Click="OnCopyAnswerClick" Tag="{Binding CopyText}" IsVisible="{Binding HasCopy}"
+                    ToolTip.Tip="Legt den Text in die Zwischenablage" />
+          </WrapPanel>
+          <TextBlock Text="{Binding CopiedText}" Classes="muted small" AutomationProperties.LiveSetting="Polite"
+                     IsVisible="{Binding CopiedText, Converter={x:Static ObjectConverters.IsNotNull}}" />
+          <ItemsControl ItemsSource="{Binding FollowUps}">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <WrapPanel />
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="contracts:AssistantFollowUp">
+                <Button Classes="chip" Content="{Binding Label}" Margin="0,0,6,6"
+                        Command="{Binding $parent[ItemsControl].((vm:CompanionViewModel)DataContext).AskFollowUpCommand}"
+                        CommandParameter="{Binding}" />
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+          <!-- Weitere Schritte, die keine Zeile der Liste sind („Freie Zeit suchen“, „Alle Termine von …“): je ein Knopf mit der Beschriftung, der Tooltip sagt,
+               was er tut; gebucht wird erst nach Wahl des Kunden -->
+          <ItemsControl ItemsSource="{Binding Suggestions}" IsVisible="{Binding !IsBooking}">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <StackPanel Spacing="6" />
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:CompanionSuggestion">
+                <Button HorizontalAlignment="Left" ToolTip.Tip="{Binding Action}" AutomationProperties.Name="{Binding Label}"
+                        Command="{Binding $parent[ItemsControl].((vm:CompanionViewModel)DataContext).UseSuggestionCommand}"
+                        CommandParameter="{Binding}">
+                  <TextBlock Text="{Binding Label}" TextTrimming="WordEllipsis" />
+                </Button>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+          <Border Classes="card" Padding="10" IsVisible="{Binding IsBooking}">
+            <StackPanel Spacing="8">
+              <TextBlock Text="{Binding Pick?.Label, TargetNullValue=''}" FontWeight="SemiBold" TextWrapping="Wrap" />
+              <StackPanel Spacing="6" DataContext="{Binding Guest}" x:DataType="vm:CustomerSearchViewModel">
+                <!-- Die Beschriftung bleibt stehen, wenn der Gast gewählt ist; Name und „Ändern“ stehen dann darunter -->
+                <ui:FormField Label="Für wen?">
+                  <TextBox x:Name="CompanionGuest" Text="{Binding Query}" PlaceholderText="z. B. Name, Telefon oder E-Mail"
+                           IsVisible="{Binding !HasCustomer}" />
+                </ui:FormField>
+                <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding HasCustomer}">
+                  <TextBlock Text="{Binding Name}" FontWeight="Medium" VerticalAlignment="Center" />
+                  <Button Grid.Column="1" Classes="ghost" Content="Ändern" Command="{Binding ChangeCommand}" />
+                </Grid>
+                <ListBox Classes="plain" ItemsSource="{Binding Results}" SelectedItem="{Binding Customer}" MaxHeight="160"
+                         IsVisible="{Binding IsPicking}">
+                  <ListBox.Styles>
+                    <!-- Der Name der Zeile ist ihr sichtbarer Inhalt; sonst liest der Screenreader den Record-Typ -->
+                    <Style Selector="ListBoxItem" x:DataType="contracts:CustomerDto">
+                      <Setter Property="AutomationProperties.Name" Value="{Binding LegalName}" />
+                      <Setter Property="AutomationProperties.HelpText" Value="{Binding Phone}" />
+                    </Style>
+                  </ListBox.Styles>
+                  <ListBox.ItemTemplate>
+                    <DataTemplate x:DataType="contracts:CustomerDto">
+                      <StackPanel>
+                        <TextBlock FontWeight="Medium">
+                          <Run Text="{Binding FirstName, Mode=OneWay}" />
+                          <Run Text="{Binding LastName, Mode=OneWay}" />
+                        </TextBlock>
+                        <TextBlock Text="{Binding Phone}" Classes="muted small" />
+                      </StackPanel>
+                    </DataTemplate>
+                  </ListBox.ItemTemplate>
+                </ListBox>
+              </StackPanel>
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <!-- Sekundär: in der Leiste ist „Fragen“ der einzige Primärknopf (Brief 5.12 Punkt 6) -->
+                <Button Content="Termin buchen" Command="{Binding BookCommand}" />
+                <Button Classes="ghost" Content="Abbrechen" Command="{Binding CancelBookingCommand}" />
+              </StackPanel>
+            </StackPanel>
+          </Border>
+          <!-- Farbe ist nie der einzige Träger (Brief 9): Haken vor dem Text -->
+          <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8" IsVisible="{Binding BookedText, Converter={x:Static ObjectConverters.IsNotNull}}">
+            <ui:Icon Data="{x:Static ui:Icons.CheckCircle}" Foreground="{DynamicResource OkBrush}" Width="16" Height="16" VerticalAlignment="Top" />
+            <TextBlock Grid.Column="1" Text="{Binding BookedText}" Foreground="{DynamicResource OkBrush}" TextWrapping="Wrap" />
+          </Grid>
+          <!-- „Wie mache ich …?“: der beste Treffer mit erstem Satz und Knopf in die Hilfe, weitere als Verweis -->
+          <ui:HelpTeaser Topic="{Binding FirstHelp?.Topic}" Section="{Binding FirstHelp?.Section}"
+                         IsVisible="{Binding FirstHelp, Converter={x:Static ObjectConverters.IsNotNull}}" />
+          <!-- Unter der Antwort ein Knopf, der die beschriebene Funktion öffnet („Jetzt suchen“); geöffnet wird erst nach dem Klick -->
+          <Button Content="{Binding HelpAction?.Label, TargetNullValue=''}" Command="{Binding RunHelpActionCommand}"
+                  IsVisible="{Binding HelpAction, Converter={x:Static ObjectConverters.IsNotNull}}" HorizontalAlignment="Left"
+                  ToolTip.Tip="{Binding HelpAction?.Tip, TargetNullValue=''}" />
+          <ItemsControl ItemsSource="{Binding MoreHelp}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="contracts:AssistantHelpLink">
+                <Button Classes="ghost" Content="{Binding Title}" HorizontalAlignment="Left"
+                        Command="{Binding $parent[ItemsControl].((vm:CompanionViewModel)DataContext).OpenHelpLinkCommand}"
+                        CommandParameter="{Binding}" />
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+          <views:AiFooter Disclaimer="{Binding Answer?.Disclosure, TargetNullValue=''}" Why="{Binding WhyText}" WhyTitle="{Binding WhyTitle}" />
+        </StackPanel>
+      </Border>
+    </StackPanel>
+  </StackPanel>
+</UserControl>

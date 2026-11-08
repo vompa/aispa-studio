@@ -1,0 +1,72 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             x:Class="AispaStudio.Desktop.Views.StockBatchTraceSection"
+             x:DataType="vm:StockBatchTraceViewModel">
+  <!-- Chargen-Rückverfolgung (R05 Slice 123, Ä223) nach web/src/stock/BatchTrace.tsx: wer hat Material dieser Charge bekommen, über alle Standorte? Zusammengestellt wird in der API. -->
+  <Border Classes="card">
+    <StackPanel Spacing="12" Grid.IsSharedSizeScope="True">
+      <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+        <TextBlock Text="Charge zurückverfolgen" Classes="h2" VerticalAlignment="Center" />
+        <ui:HelpButton Grid.Column="1" Topic="lager" Section="rueckverfolgung" />
+      </Grid>
+      <TextBlock Text="Bei einem Rückruf zeigt die Liste über alle Standorte, wer Material dieser Charge in einer Behandlung oder beim Kauf bekommen hat. Verbrauch und Verkauf buchen zuerst die Charge, die zuerst abläuft." Classes="muted small" TextWrapping="Wrap" />
+      <WrapPanel ItemSpacing="12" LineSpacing="8">
+        <ui:FormField Label="Material der Charge">
+          <ComboBox x:Name="TraceItemField" ItemsSource="{Binding Items}" SelectedItem="{Binding SelectedItem}" MinWidth="200" />
+        </ui:FormField>
+        <ui:FormField Label="Chargennummer">
+          <TextBox x:Name="TraceBatchField" Text="{Binding Batch}" MaxLength="50" Width="160" />
+        </ui:FormField>
+        <Button x:Name="TraceBatchButton" Content="Zurückverfolgen" Command="{Binding TraceCommand}" VerticalAlignment="Bottom" />
+      </WrapPanel>
+      <ui:InfoBar Severity="Error" Title="Nicht zurückverfolgt" Message="{Binding Error}" IsVisible="{Binding HasError}" />
+      <TextBlock Text="{Binding ResultText}" TextWrapping="Wrap" IsVisible="{Binding HasResult}" />
+      <TextBlock Text="Zu dieser Charge ist nichts gebucht." Classes="muted" IsVisible="{Binding ShowNothingBooked}" />
+
+      <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" IsVisible="{Binding HasRows}">
+        <StackPanel Spacing="8">
+          <Grid AutomationProperties.AccessibilityView="Raw">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="Auto" SharedSizeGroup="At" />
+              <ColumnDefinition Width="Auto" SharedSizeGroup="Location" />
+              <ColumnDefinition Width="Auto" SharedSizeGroup="Kind" />
+              <ColumnDefinition Width="Auto" SharedSizeGroup="Quantity" />
+              <ColumnDefinition Width="*" MinWidth="120" />
+              <ColumnDefinition Width="*" MinWidth="120" />
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="Zeit" Classes="group" MinWidth="104" />
+            <TextBlock Grid.Column="1" Text="Standort" Classes="group" MinWidth="112" Margin="12,0,0,0" />
+            <TextBlock Grid.Column="2" Text="Art" Classes="group" MinWidth="104" Margin="12,0,0,0" />
+            <TextBlock Grid.Column="3" Text="Menge" Classes="group" MinWidth="72" Margin="12,0,0,0" TextAlignment="Right" />
+            <TextBlock Grid.Column="4" Text="Kunde" Classes="group" Margin="12,0,0,0" />
+            <TextBlock Grid.Column="5" Text="Behandlung oder Beleg" Classes="group" Margin="12,0,0,0" />
+          </Grid>
+          <ItemsControl x:Name="BatchUsageList" ItemsSource="{Binding Rows}" AutomationProperties.Name="Buchungen zur Charge">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:BatchUsageRow">
+                <Grid Margin="0,4" AutomationProperties.Name="{Binding Summary}">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="At" />
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="Location" />
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="Kind" />
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="Quantity" />
+                    <ColumnDefinition Width="*" MinWidth="120" />
+                    <ColumnDefinition Width="*" MinWidth="120" />
+                  </Grid.ColumnDefinitions>
+                  <TextBlock Text="{Binding AtText}" Classes="num" MinWidth="104" VerticalAlignment="Center" />
+                  <TextBlock Grid.Column="1" Text="{Binding Location}" MinWidth="112" Margin="12,0,0,0" VerticalAlignment="Center" />
+                  <TextBlock Grid.Column="2" Text="{Binding KindText}" MinWidth="104" Margin="12,0,0,0" VerticalAlignment="Center" />
+                  <TextBlock Grid.Column="3" Text="{Binding QuantityText}" Classes="num" MinWidth="72" Margin="12,0,0,0" TextAlignment="Right" VerticalAlignment="Center" />
+                  <TextBlock Grid.Column="4" Text="{Binding Customer}" Margin="12,0,0,0" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                  <TextBlock Grid.Column="5" Text="{Binding Detail}" Classes="muted" Margin="12,0,0,0" TextWrapping="Wrap" VerticalAlignment="Center" />
+                </Grid>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </ScrollViewer>
+    </StackPanel>
+  </Border>
+</UserControl>

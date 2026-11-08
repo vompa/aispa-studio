@@ -1,0 +1,216 @@
+/* Betreiber-Seite: eigenes, kleines Stylesheet. Farben wie in „Mein Tag“; Kontraste mindestens 4,5:1 (Text) bzw. 3:1
+   (Bedienelemente, Fokus) in hellem und dunklem Modus. */
+
+:root {
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  line-height: 1.5;
+  color: var(--fg);
+  background: var(--bg);
+  color-scheme: light dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+}
+
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem 1rem;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.bar h1 {
+  font-size: 1.25rem;
+  margin: 0 auto 0 0;
+}
+
+main {
+  max-width: 48rem;
+  margin: 0 auto;
+  padding: 1rem 1rem 2rem;
+}
+
+h2 {
+  font-size: 1.25rem;
+  margin: 0 0 0.25rem;
+}
+
+h3 {
+  font-size: 1rem;
+  margin: 1rem 0 0.25rem;
+}
+
+p {
+  margin: 0 0 0.5rem;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.error {
+  color: var(--danger);
+}
+
+.success {
+  color: var(--success);
+}
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+}
+
+/* Felder des Formularbausteins (components/FormField.tsx); die Werte von stock.css, das dieser Einstieg nicht lädt (Bundle-Budget). */
+.stock-label-row label {
+  font-size: 12.5px;
+  line-height: 16px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.stock-hint,
+.stock-error {
+  margin: 0;
+  font-weight: 400;
+  font-size: 12.5px;
+  line-height: 16px;
+  color: var(--muted);
+}
+
+.stock-error {
+  color: var(--danger);
+}
+
+input[aria-invalid='true'],
+select[aria-invalid='true'] {
+  border-color: var(--danger);
+}
+
+input,
+select {
+  font: inherit;
+  font-weight: 400;
+  min-height: 44px;
+  padding: 0.5rem 0.75rem;
+  color: var(--fg);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+}
+
+button {
+  font: inherit;
+  min-height: 44px;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: var(--accent-fg);
+  cursor: pointer;
+}
+
+button.ghost {
+  background: transparent;
+  color: var(--accent);
+}
+
+button.danger {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: var(--surface);
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.routes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.routes li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.25rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.confirm {
+  display: inline-flex;
+  gap: 0.5rem;
+}
+
+.add {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0 0.75rem;
+  margin-top: 1rem;
+}
+
+.add .field {
+  flex: 1 1 12rem;
+}
+
+.add button {
+  margin-bottom: 0.75rem;
+}
+
+.add p {
+  flex-basis: 100%;
+}
+
+.plan {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.plan select {
+  flex: 1 1 16rem;
+}
+
+/* Kontrastdesign von Windows: Fehler und gesperrte Knöpfe über Rahmen und Systemfarben. */
+@media (forced-colors: active) {
+  input[aria-invalid='true'],
+  select[aria-invalid='true'] {
+    border: 3px solid Highlight;
+  }
+
+  button:disabled {
+    opacity: 1;
+    color: GrayText;
+    border-color: GrayText;
+  }
+}

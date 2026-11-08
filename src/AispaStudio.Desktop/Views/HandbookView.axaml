@@ -1,0 +1,88 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             x:Class="AispaStudio.Desktop.Views.HandbookView"
+             x:DataType="vm:HandbookViewModel"
+             ui:SaveShortcut.IsScope="True">
+  <!--
+    Handbuch (R05 Slice 97), das Rezeptionshandbuch nach web/src/admin/HandbookTab.tsx: links die Einträge und „Neuen Eintrag anlegen“, rechts das Formular. Wichtige Einträge
+    erinnern am Tagesstart (★ in der Liste). „Speichern / Verwerfen“ steht am Ende des Formulars (Strg+S), „Löschen“ daneben und fragt nach.
+  -->
+  <Grid ColumnDefinitions="300,*">
+    <Border Classes="card" Padding="8" Margin="0,0,16,0" VerticalAlignment="Top">
+      <StackPanel Spacing="8">
+        <Button x:Name="NewEntryButton" Content="Neuen Eintrag anlegen" Command="{Binding NewCommand}" HorizontalAlignment="Stretch" />
+        <ui:InfoBar Severity="Error" Title="Handbuch nicht geladen" Message="{Binding LoadError}" IsVisible="{Binding HasLoadError}"
+                    ActionText="Erneut laden" ActionCommand="{Binding LoadCommand}" />
+        <TextBlock Text="Wird geladen …" Classes="muted" Margin="8,4" IsVisible="{Binding !IsLoaded}" />
+        <TextBlock Classes="muted" TextWrapping="Wrap" Margin="8,4" IsVisible="{Binding ShowEmpty}" Text="Noch kein Eintrag im Handbuch." />
+        <ListBox x:Name="EntryList" Classes="plain" ItemsSource="{Binding Entries}" SelectedItem="{Binding SelectedRow}" AutomationProperties.Name="Handbucheinträge">
+          <ListBox.Styles>
+            <!-- Der Name der Zeile ist ihr Text mit Stern und „(aus)“; sonst liest der Screenreader den Record-Typ -->
+            <Style Selector="ListBoxItem" x:DataType="vm:HandbookRow">
+              <Setter Property="AutomationProperties.Name" Value="{Binding Name}" />
+            </Style>
+          </ListBox.Styles>
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="vm:HandbookRow">
+              <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" Margin="0,2" />
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </StackPanel>
+    </Border>
+
+    <ScrollViewer Grid.Column="1" x:Name="FormScroll" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+      <StackPanel Spacing="20" MaxWidth="720" HorizontalAlignment="Left" Margin="0,0,16,16" IsVisible="{Binding IsLoaded}">
+        <ui:InfoBar Severity="Success" Message="{Binding Message}" IsVisible="{Binding HasMessage}" CloseCommand="{Binding CloseMessageCommand}" />
+
+        <Grid ColumnDefinitions="*,Auto">
+          <TextBlock Text="{Binding HeadingText}" Classes="h2" VerticalAlignment="Center" TextWrapping="Wrap" />
+          <ui:HelpButton Grid.Column="1" Topic="handbuch" />
+        </Grid>
+
+        <StackPanel Spacing="12">
+          <ui:FormField Label="Titel" IsRequired="True" Error="{Binding TitleError}">
+            <TextBox x:Name="EntryTitleField" Text="{Binding EntryTitle}" MaxLength="200" />
+          </ui:FormField>
+          <ui:FormField Label="Bereich">
+            <TextBox x:Name="AreaField" Text="{Binding Area}" MaxLength="100" PlaceholderText="z. B. Empfang, Sauna, Hygiene" />
+          </ui:FormField>
+          <ui:FormField Label="Text" IsRequired="True" Error="{Binding TextError}">
+            <TextBox x:Name="TextField" Text="{Binding Text}" MaxLength="4000" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="120" />
+          </ui:FormField>
+        </StackPanel>
+
+        <StackPanel Spacing="8">
+          <Grid ColumnDefinitions="Auto,Auto,*" ColumnSpacing="4">
+            <CheckBox x:Name="RemindBox" IsChecked="{Binding RemindAtDayStart}" Content="Wichtig – am Tagesstart erinnern" />
+            <ui:HelpButton Grid.Column="1" Topic="handbuch" Section="erinnern" />
+          </Grid>
+          <StackPanel Spacing="4" IsVisible="{Binding RemindAtDayStart}" AutomationProperties.Name="Wochentage der Erinnerung">
+            <TextBlock Classes="muted" TextWrapping="Wrap" Text="Nur an diesen Tagen (keiner gewählt heißt täglich):" />
+            <WrapPanel Orientation="Horizontal">
+              <CheckBox x:Name="DayMonday" IsChecked="{Binding Days[0].IsSelected}" Content="{Binding Days[0].Label}" Margin="0,0,16,0" />
+              <CheckBox x:Name="DayTuesday" IsChecked="{Binding Days[1].IsSelected}" Content="{Binding Days[1].Label}" Margin="0,0,16,0" />
+              <CheckBox x:Name="DayWednesday" IsChecked="{Binding Days[2].IsSelected}" Content="{Binding Days[2].Label}" Margin="0,0,16,0" />
+              <CheckBox x:Name="DayThursday" IsChecked="{Binding Days[3].IsSelected}" Content="{Binding Days[3].Label}" Margin="0,0,16,0" />
+              <CheckBox x:Name="DayFriday" IsChecked="{Binding Days[4].IsSelected}" Content="{Binding Days[4].Label}" Margin="0,0,16,0" />
+              <CheckBox x:Name="DaySaturday" IsChecked="{Binding Days[5].IsSelected}" Content="{Binding Days[5].Label}" Margin="0,0,16,0" />
+              <CheckBox x:Name="DaySunday" IsChecked="{Binding Days[6].IsSelected}" Content="{Binding Days[6].Label}" Margin="0,0,16,0" />
+            </WrapPanel>
+          </StackPanel>
+          <CheckBox x:Name="ActiveBox" IsChecked="{Binding IsActive}" Content="Gilt (ausgeschaltete Einträge erinnern nicht mehr)" />
+        </StackPanel>
+
+        <StackPanel x:Name="Footer" Spacing="12">
+          <ui:InfoBar Severity="Error" Title="Nicht gespeichert" Message="{Binding Error}" IsVisible="{Binding HasError}"
+                      ActionText="Erneut versuchen" ActionCommand="{Binding SaveCommand}" CloseCommand="{Binding CloseErrorCommand}" />
+          <StackPanel Orientation="Horizontal" Spacing="24">
+            <ui:SaveBar SaveCommand="{Binding SaveCommand}" DiscardCommand="{Binding DiscardCommand}" CanDiscard="{Binding HasUnsavedChanges}" Status="{Binding StatusText}" />
+            <Button x:Name="DeleteButton" Classes="danger" Content="Löschen" Command="{Binding DeleteCommand}" IsVisible="{Binding CanDelete}" />
+          </StackPanel>
+        </StackPanel>
+      </StackPanel>
+    </ScrollViewer>
+  </Grid>
+</UserControl>

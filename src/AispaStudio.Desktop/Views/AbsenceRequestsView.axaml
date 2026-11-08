@@ -1,0 +1,44 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             x:Class="AispaStudio.Desktop.Views.AbsenceRequestsView"
+             x:DataType="vm:AbsenceRequestsViewModel">
+  <!--
+    Offene Abwesenheitsanträge aus der Handy-App (R05 Slice 99): je Antrag Person, Art, Zeitraum, Anmerkung und die Zahl der Termine in der Zeit, mit Genehmigen und Ablehnen.
+    Die API dazu kommt mit Slice 106; bis dahin ist die Liste leer.
+  -->
+  <StackPanel Spacing="12" MaxWidth="760" HorizontalAlignment="Left">
+    <Grid ColumnDefinitions="*,Auto">
+      <TextBlock Text="Abwesenheitsanträge" Classes="h2" VerticalAlignment="Center" />
+      <ui:HelpButton Topic="dienstplan-antrag-entscheiden" Grid.Column="1" />
+    </Grid>
+    <ui:InfoBar Severity="Error" Title="Anträge nicht geladen" Message="{Binding LoadError}" IsVisible="{Binding HasLoadError}"
+                ActionText="Erneut laden" ActionCommand="{Binding LoadCommand}" />
+    <ui:InfoBar x:Name="RequestMessage" Severity="{Binding MessageSeverity}" Message="{Binding Message}" IsVisible="{Binding HasMessage}" CloseCommand="{Binding CloseMessageCommand}" />
+    <TextBlock Text="Lade Anträge …" Classes="muted" IsVisible="{Binding !IsLoaded}" />
+    <TextBlock x:Name="RequestsEmpty" Text="Es gibt keine offenen Anträge." Classes="muted" IsVisible="{Binding IsEmpty}" />
+    <TextBlock Text="{Binding CountText}" Classes="group" IsVisible="{Binding !IsEmpty}" />
+    <ItemsControl x:Name="RequestList" ItemsSource="{Binding Rows}" AutomationProperties.Name="Offene Anträge">
+      <ItemsControl.ItemTemplate>
+        <DataTemplate x:DataType="vm:AbsenceRequestRow">
+          <Border Classes="card" Padding="16,12" Margin="0,0,0,12">
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">
+              <StackPanel Spacing="4">
+                <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                <TextBlock Text="{Binding Description}" Classes="num" TextWrapping="Wrap" />
+                <TextBlock Text="{Binding Note}" TextWrapping="Wrap" IsVisible="{Binding HasNote}" />
+                <TextBlock Text="{Binding AffectedText}" Classes="small" Foreground="{DynamicResource WarnBrush}" FontWeight="Medium" IsVisible="{Binding HasAffected}" />
+                <TextBlock Text="{Binding RequestedText}" Classes="muted small" />
+              </StackPanel>
+              <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Top">
+                <Button Content="Genehmigen" Classes="primary" Command="{Binding ApproveCommand}" AutomationProperties.Name="{Binding ApproveName}" />
+                <Button Content="Ablehnen" Command="{Binding RejectCommand}" AutomationProperties.Name="{Binding RejectName}" />
+              </StackPanel>
+            </Grid>
+          </Border>
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
+  </StackPanel>
+</UserControl>

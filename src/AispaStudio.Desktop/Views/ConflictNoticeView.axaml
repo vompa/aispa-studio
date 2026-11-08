@@ -1,0 +1,36 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             x:Class="AispaStudio.Desktop.Views.ConflictNoticeView"
+             x:DataType="vm:ConflictNotice">
+  <!--
+    Konfliktmeldung (Design-Brief 5.9, Art Fehler; meldungen.md M2): InfoBar mit Titel, Handlungszeile, einer Aktion und dem Schließen-Kreuz; als Inhalt je Konflikt
+    eine Zeile mit Symbol und Zeit in Ortszeit. Eine Terminzeile ist anklickbar und markiert den Termin im Kalender.
+  -->
+  <ui:InfoBar Severity="Error" Stacked="True" Title="{Binding Title}" Message="{Binding Action}" ActionText="{Binding ActionText}" ActionCommand="{Binding ActionCommand}"
+              CloseCommand="{Binding DismissCommand}" IsVisible="{Binding !IsDismissed}">
+    <ui:InfoBar.Detail>
+      <ItemsControl ItemsSource="{Binding Lines}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="vm:ConflictLine">
+            <Panel>
+              <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8" Margin="0,2" IsVisible="{Binding IsPlain}">
+                <ui:Icon Data="{Binding Icon}" Width="16" Height="16" VerticalAlignment="Center" />
+                <TextBlock Grid.Column="1" Text="{Binding Text}" VerticalAlignment="Center" TextWrapping="Wrap" />
+              </Grid>
+              <Button Classes="ghost" Command="{Binding ShowCommand}" IsVisible="{Binding CanShow}" HorizontalAlignment="Left"
+                      HorizontalContentAlignment="Left" Padding="0,2" MinHeight="0" ToolTip.Tip="Im Kalender markieren"
+                      AutomationProperties.Name="{Binding Text}">
+                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                  <ui:Icon Data="{Binding Icon}" Width="16" Height="16" VerticalAlignment="Center" />
+                  <TextBlock Grid.Column="1" Text="{Binding Text}" VerticalAlignment="Center" TextDecorations="Underline" TextWrapping="Wrap" />
+                </Grid>
+              </Button>
+            </Panel>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </ui:InfoBar.Detail>
+  </ui:InfoBar>
+</UserControl>

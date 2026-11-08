@@ -1,0 +1,302 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             xmlns:c="using:AispaStudio.Contracts"
+             x:Class="AispaStudio.Desktop.Views.LoginView"
+             x:DataType="vm:LoginViewModel"
+             x:Name="Root">
+  <Grid ColumnDefinitions="5*,7*">
+    <!-- Markenfläche links: dieselbe Petrolfarbe wie die Navigationsleiste nach der Anmeldung -->
+    <!-- BrandSurface, BrandTile und BrandName: hierhin wandern Fläche, Logo und Name des Startbildschirms -->
+    <Border x:Name="BrandSurface" Background="{DynamicResource RailBrush}" ClipToBounds="True">
+      <Panel>
+        <!-- Großes, angeschnittenes Logo als Lichtschein: statisch weichgezeichnet (Auftraggeber, 29.10.2026), dafür mit kräftigerem Strich; kleines Logo und Texte bleiben scharf -->
+        <ui:Icon x:Name="BrandGlow" Data="{x:Static ui:Icons.Logo}" Foreground="{DynamicResource RailHoverBrush}" Width="420" Height="420" StrokeThickness="3"
+                 HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,-120,-90">
+          <ui:Icon.Effect>
+            <BlurEffect Radius="40" />
+          </ui:Icon.Effect>
+        </ui:Icon>
+        <StackPanel VerticalAlignment="Center" Margin="56,0,40,0" Spacing="20" MaxWidth="420" HorizontalAlignment="Left">
+          <Border x:Name="BrandTile" Width="60" Height="60" CornerRadius="18" Background="{DynamicResource RailMarkBrush}" HorizontalAlignment="Left"
+                  BoxShadow="{DynamicResource RaisedShadow}">
+            <ui:Icon Data="{x:Static ui:Icons.Logo}" Foreground="{DynamicResource RailBrush}" Width="34" Height="34" StrokeThickness="2" />
+          </Border>
+          <StackPanel Spacing="6">
+            <TextBlock x:Name="BrandName" Text="AISPA Studio" FontSize="34" FontWeight="SemiBold" Foreground="{DynamicResource RailFgBrush}" />
+            <TextBlock Text="Rezeption, Kalender und Kassa für Ihr Day-Spa." FontSize="16" Foreground="{DynamicResource RailFg2Brush}"
+                       TextWrapping="Wrap" />
+            <TextBlock Text="Eine Konzeptstudie zur KI-nativen Softwareentwicklung." FontSize="14" Foreground="{DynamicResource RailFg2Brush}"
+                       TextWrapping="Wrap" />
+          </StackPanel>
+          <StackPanel Spacing="12" Margin="0,8,0,0">
+            <StackPanel Orientation="Horizontal" Spacing="12">
+              <ui:Icon Data="{x:Static ui:Icons.Calendar}" Foreground="{DynamicResource RailMarkBrush}" />
+              <TextBlock Text="Team und Räume in einem Kalender" Foreground="{DynamicResource RailFgBrush}" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="12">
+              <ui:Icon Data="{x:Static ui:Icons.Register}" Foreground="{DynamicResource RailMarkBrush}" />
+              <TextBlock Text="Kassa mit RKSV-Signatur und Tagesabschluss" Foreground="{DynamicResource RailFgBrush}" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="12">
+              <ui:Icon Data="{x:Static ui:Icons.Mail}" Foreground="{DynamicResource RailMarkBrush}" />
+              <TextBlock Text="Anfragen aus allen Kanälen, von der KI vorbereitet" Foreground="{DynamicResource RailFgBrush}" />
+            </StackPanel>
+          </StackPanel>
+        </StackPanel>
+      </Panel>
+    </Border>
+
+  <ScrollViewer Grid.Column="1">
+    <Border Classes="card" Width="460" Padding="24" Margin="0,24" HorizontalAlignment="Center" VerticalAlignment="Center"
+            BoxShadow="{DynamicResource CardShadow}">
+      <StackPanel Spacing="16">
+        <StackPanel Orientation="Horizontal" Spacing="12">
+          <Border Width="44" Height="44" CornerRadius="12" Background="{DynamicResource AccentGradientBrush}">
+            <ui:Icon Data="{x:Static ui:Icons.Logo}" Foreground="{DynamicResource AccentFgBrush}" Width="26" Height="26" />
+          </Border>
+          <StackPanel VerticalAlignment="Center">
+            <TextBlock Text="Willkommen" Classes="h1" />
+            <TextBlock Text="Rezeption" Classes="muted" />
+          </StackPanel>
+        </StackPanel>
+
+        <!-- Empfangsgerät: Name wählen, PIN eingeben (ADR 0042) -->
+        <StackPanel Spacing="10" IsVisible="{Binding IsQuickSwitch}">
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <TextBlock Text="Wer meldet sich an?" Classes="h2" />
+            <ui:HelpButton Topic="geraete" Section="empfangsgeraet" />
+          </StackPanel>
+          <TextBlock Text="{Binding DeviceText}" Classes="muted small" />
+          <TextBlock Text="Noch niemand hat eine PIN. Nach der Anmeldung mit Code legt jede Person ihre PIN über ihr Profilbild in der Navigationsleiste fest."
+                     Classes="muted" TextWrapping="Wrap" IsVisible="{Binding !HasPeople}" />
+          <ItemsControl ItemsSource="{Binding People}">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <WrapPanel ItemSpacing="8" LineSpacing="8" />
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:QuickSwitchChoice">
+                <ToggleButton IsChecked="{Binding IsSelected, Mode=OneWay}" Padding="12,8"
+                              Command="{Binding #Root.((vm:LoginViewModel)DataContext).ChoosePersonCommand}" CommandParameter="{Binding}">
+                  <StackPanel>
+                    <TextBlock Text="{Binding Name}" FontWeight="Medium" />
+                    <TextBlock Text="{Binding Role}" Classes="small" Opacity="0.75" />
+                  </StackPanel>
+                </ToggleButton>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+          <StackPanel Spacing="8" IsVisible="{Binding HasPerson}">
+            <ui:FormField Label="{Binding PinTitle}" Help="4 bis 8 Ziffern." IsRequired="True">
+              <TextBox Text="{Binding Pin}" PasswordChar="•" MaxLength="8" FontSize="24" Classes="num" LetterSpacing="6"
+                       HorizontalContentAlignment="Center" />
+            </ui:FormField>
+            <!-- Standardknopf nur, solange „Anderes Konto“ nicht aufgeklappt ist: sonst feuerten beide Anmeldeknöpfe bei Enter -->
+            <Button Classes="primary" Content="Anmelden" Command="{Binding QuickSwitchCommand}"
+                    HorizontalAlignment="Stretch" HorizontalContentAlignment="Center">
+              <Button.IsDefault>
+                <MultiBinding Converter="{x:Static BoolConverters.And}">
+                  <Binding Path="IsQuickSwitch" />
+                  <Binding Path="!CodeRequested" />
+                </MultiBinding>
+              </Button.IsDefault>
+            </Button>
+          </StackPanel>
+          <ui:InfoBar Severity="Error" Message="{Binding Error}" IsVisible="{Binding Error, Converter={x:Static ObjectConverters.IsNotNull}}" />
+          <Button Classes="ghost" Content="{Binding OtherAccountText}" Command="{Binding RequestCodeCommand}" HorizontalAlignment="Center"
+                  IsVisible="{Binding !CodeRequested}" />
+        </StackPanel>
+
+        <!-- Einzelplatz-Betrieb (ADR 0041): Benutzername und Passwort -->
+        <StackPanel Spacing="10" IsVisible="{Binding ShowPasswordLogin}">
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <TextBlock Text="Anmelden" Classes="h2" />
+            <ui:HelpButton Topic="einzelplatz" Section="anmelden" />
+          </StackPanel>
+          <ui:FormField Label="Benutzername" IsRequired="True">
+            <TextBox Text="{Binding UserName}" />
+          </ui:FormField>
+          <ui:FormField Label="Passwort" IsRequired="True">
+            <TextBox Text="{Binding Password}" PasswordChar="●" />
+          </ui:FormField>
+          <Button Classes="primary" Content="Anmelden" Command="{Binding SignInWithPasswordCommand}" IsDefault="{Binding ShowPasswordLogin}"
+                  HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
+          <Button Classes="ghost" Content="Passwort vergessen?" Command="{Binding ToggleRecoveryCommand}" HorizontalAlignment="Left" />
+        </StackPanel>
+
+        <!-- Einzelplatz: Passwort vergessen, auch ohne Leitung -->
+        <StackPanel Spacing="10" IsVisible="{Binding ShowRecovery}">
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <TextBlock Text="Passwort vergessen" Classes="h2" />
+            <ui:HelpButton Topic="einzelplatz" Section="passwort-vergessen" />
+          </StackPanel>
+          <TextBlock Text="Die Leitung kann unter „Zugänge“ ein neues Startpasswort vergeben. Ohne Leitung geht es am Haupt-PC mit dem Wiederherstellungsschlüssel, der beim Einrichten der Sicherung notiert wurde."
+                     TextWrapping="Wrap" Classes="secondary" />
+          <ui:FormField Label="Benutzername" IsRequired="True">
+            <TextBox Text="{Binding UserName}" />
+          </ui:FormField>
+          <ui:FormField Label="Wiederherstellungsschlüssel" Help="24 Zeichen, beim Einrichten der Sicherung notiert." IsRequired="True">
+            <TextBox Text="{Binding RecoveryCode}" PlaceholderText="z. B. K7QM-2XRT-…" />
+          </ui:FormField>
+          <ui:FormField Label="Neues Passwort" Help="Mindestens 8 Zeichen." IsRequired="True">
+            <TextBox Text="{Binding NewPassword}" PasswordChar="●" />
+          </ui:FormField>
+          <ui:FormField Label="Neues Passwort wiederholen" IsRequired="True">
+            <TextBox Text="{Binding NewPasswordRepeat}" PasswordChar="●" />
+          </ui:FormField>
+          <Button Classes="primary" Content="Passwort setzen und anmelden" Command="{Binding RecoverPasswordCommand}" IsDefault="{Binding ShowRecovery}"
+                  HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
+          <Button Classes="ghost" Content="Zurück zur Anmeldung" Command="{Binding ToggleRecoveryCommand}" HorizontalAlignment="Left" />
+        </StackPanel>
+
+        <!-- Einzelplatz, erster Start: Spa und Inhaber-Konto anlegen -->
+        <!-- Neuer PC eines bestehenden Spas: wartet auf den ersten Abgleich -->
+        <StackPanel Spacing="10" IsVisible="{Binding Joining}">
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <TextBlock Text="Mit dem Spa verbinden" Classes="h2" />
+            <ui:HelpButton Topic="einzelplatz" Section="verbinden" />
+          </StackPanel>
+          <TextBlock Text="Die zentrale Datenbank ist eingetragen. Der erste Abgleich holt das Spa mit allen Zugängen; beim ersten Mal dauert das etwas. Danach erscheint hier die Anmeldung."
+                     TextWrapping="Wrap" Classes="secondary" />
+          <ui:InfoBar Severity="Error" Message="{Binding JoinError}" IsVisible="{Binding JoinError, Converter={x:Static ObjectConverters.IsNotNull}}" />
+          <Button Classes="ghost" Content="Neu prüfen" Command="{Binding RefreshSetupCommand}" HorizontalAlignment="Left" />
+          <ContentControl Content="{Binding Join}" IsVisible="{Binding Join, Converter={x:Static ObjectConverters.IsNotNull}}" />
+        </StackPanel>
+
+        <StackPanel Spacing="10" IsVisible="{Binding ShowSetupForm}">
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <TextBlock Text="Spa einrichten" Classes="h2" />
+            <ui:HelpButton Topic="einzelplatz" Section="einrichten" />
+          </StackPanel>
+          <TextBlock Text="{Binding SetupHint}" TextWrapping="Wrap" Classes="secondary" />
+          <ui:FormField Label="Name des Spas" IsRequired="True">
+            <TextBox Text="{Binding SpaName}" />
+          </ui:FormField>
+          <ui:FormField Label="Land" IsRequired="True">
+            <ComboBox ItemsSource="{x:Static vm:LoginViewModel.Countries}" SelectedItem="{Binding Country}" HorizontalAlignment="Stretch" />
+          </ui:FormField>
+          <ui:FormField Label="Erster Standort" IsRequired="True">
+            <TextBox Text="{Binding LocationName}" PlaceholderText="z. B. Ort oder Adresse" />
+          </ui:FormField>
+          <ui:FormField Label="Ihr Name" IsRequired="True">
+            <TextBox Text="{Binding OwnerName}" />
+          </ui:FormField>
+          <ui:FormField Label="Benutzername" IsRequired="True">
+            <TextBox Text="{Binding UserName}" />
+          </ui:FormField>
+          <ui:FormField Label="Passwort" Help="Mindestens 8 Zeichen." IsRequired="True">
+            <TextBox Text="{Binding Password}" PasswordChar="●" />
+          </ui:FormField>
+          <ui:FormField Label="Passwort wiederholen" IsRequired="True">
+            <TextBox Text="{Binding NewPasswordRepeat}" PasswordChar="●" />
+          </ui:FormField>
+          <Button Classes="primary" Content="Spa einrichten" Command="{Binding CompleteSetupCommand}" IsDefault="{Binding ShowSetupForm}"
+                  HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
+          <!-- Neuer PC: statt neu einrichten aus der täglichen Sicherung -->
+          <ContentControl Content="{Binding Restore}" IsVisible="{Binding Restore, Converter={x:Static ObjectConverters.IsNotNull}}" />
+          <!-- Weiterer PC eines bestehenden Spas: verbinden statt neu einrichten -->
+          <ContentControl Content="{Binding Join}" IsVisible="{Binding Join, Converter={x:Static ObjectConverters.IsNotNull}}" />
+        </StackPanel>
+
+        <StackPanel Spacing="10" IsVisible="{Binding ChangePasswordRequired}">
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <TextBlock Text="Eigenes Passwort wählen" Classes="h2" />
+            <ui:HelpButton Topic="einzelplatz" Section="passwort-waehlen" />
+          </StackPanel>
+          <TextBlock Text="Sie haben ein Startpasswort bekommen. Wählen Sie jetzt ein eigenes mit mindestens 8 Zeichen, bevor es weitergeht."
+                     TextWrapping="Wrap" Classes="secondary" />
+          <ui:FormField Label="Neues Passwort" Help="Mindestens 8 Zeichen." IsRequired="True">
+            <TextBox Text="{Binding NewPassword}" PasswordChar="●" />
+          </ui:FormField>
+          <ui:FormField Label="Neues Passwort wiederholen" IsRequired="True">
+            <TextBox Text="{Binding NewPasswordRepeat}" PasswordChar="●" />
+          </ui:FormField>
+          <Button Classes="primary" Content="Passwort ändern und anmelden" Command="{Binding ChangePasswordCommand}" IsDefault="{Binding ChangePasswordRequired}"
+                  HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
+        </StackPanel>
+
+        <ui:InfoBar Severity="Error" Message="{Binding Error}">
+          <ui:InfoBar.IsVisible>
+            <MultiBinding Converter="{x:Static BoolConverters.And}">
+              <Binding Path="IsStandalone" />
+              <Binding Path="!IsQuickSwitch" />
+              <Binding Path="Error" Converter="{x:Static ObjectConverters.IsNotNull}" />
+            </MultiBinding>
+          </ui:InfoBar.IsVisible>
+        </ui:InfoBar>
+
+        <StackPanel Spacing="16" IsVisible="{Binding ShowCodeForm}">
+        <StackPanel Spacing="10">
+          <TextBlock Text="Diesen PC verbinden" Classes="h2" />
+          <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="8" ColumnSpacing="10">
+            <Border Classes="pill accent"><TextBlock Text="1" /></Border>
+            <TextBlock Grid.Column="1" Text="{Binding CodeStep}" TextWrapping="Wrap" Classes="secondary" />
+            <Border Grid.Row="1" Classes="pill accent"><TextBlock Text="2" /></Border>
+            <TextBlock Grid.Row="1" Grid.Column="1" Text="„Code für die Windows-App“ wählen." TextWrapping="Wrap" Classes="secondary" />
+            <Border Grid.Row="2" Classes="pill accent"><TextBlock Text="3" /></Border>
+            <TextBlock Grid.Row="2" Grid.Column="1" Text="Den angezeigten Code hier eintippen." TextWrapping="Wrap" Classes="secondary" />
+          </Grid>
+        </StackPanel>
+
+        <ui:FormField Label="Code" IsRequired="True">
+          <TextBox Text="{Binding Code}" PlaceholderText="ABCD-EFGH" FontSize="24" MaxLength="9" Classes="num"
+                   HorizontalContentAlignment="Center" LetterSpacing="3" />
+        </ui:FormField>
+        <Button Classes="primary" Content="Anmelden" Command="{Binding SignInCommand}" IsDefault="{Binding ShowCodeForm}"
+                HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
+        <ui:InfoBar Severity="Error" Message="{Binding Error}">
+          <ui:InfoBar.IsVisible>
+            <MultiBinding Converter="{x:Static BoolConverters.And}">
+              <Binding Path="!IsQuickSwitch" />
+              <Binding Path="Error" Converter="{x:Static ObjectConverters.IsNotNull}" />
+            </MultiBinding>
+          </ui:InfoBar.IsVisible>
+        </ui:InfoBar>
+        <TextBlock Text="Die App bleibt danach auf diesem PC angemeldet." Classes="muted small" HorizontalAlignment="Center" />
+        </StackPanel>
+
+        <!-- Entwicklung: API migriert noch oder spielt das Beispiel-Spa ein (oder das scheiterte) -->
+        <Border Classes="card" Background="{DynamicResource WarnSoftBrush}" BorderBrush="{DynamicResource WarnBrush}" Padding="12,10"
+                IsVisible="{Binding HasStartupNotice}">
+          <StackPanel Spacing="8">
+            <TextBlock Text="Entwicklung: API startet noch" Classes="group" Foreground="{DynamicResource WarnBrush}" />
+            <TextBlock Text="{Binding StartupNotice}" TextWrapping="Wrap" />
+          </StackPanel>
+        </Border>
+
+        <!-- Nur wenn die API in der Entwicklungsumgebung läuft -->
+        <Border Classes="card" Background="{DynamicResource WarnSoftBrush}" BorderBrush="{DynamicResource WarnBrush}" Padding="12,10"
+                IsVisible="{Binding HasTestAccounts}">
+          <StackPanel Spacing="8">
+            <TextBlock Text="Entwicklung: Testkonto des Beispiel-Spas" Classes="group" Foreground="{DynamicResource WarnBrush}" />
+            <!-- Schnellanmeldung mit einem Klick; die Liste darunter für alle übrigen Konten -->
+            <UniformGrid Columns="2" ColumnSpacing="8">
+              <Button Classes="primary" Content="Als Inhaberin" Command="{Binding SignInAsOwnerCommand}" IsVisible="{Binding HasOwnerAccount}"
+                      HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" ToolTip.Tip="Alle Seiten samt Stammdaten" />
+              <Button Content="Als Rezeption" Command="{Binding SignInAsReceptionCommand}" IsVisible="{Binding HasReceptionAccount}"
+                      HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" ToolTip.Tip="So sieht es der Empfang" />
+            </UniformGrid>
+            <ui:FormField Label="Testkonto">
+              <ComboBox ItemsSource="{Binding TestAccounts}" SelectedItem="{Binding TestAccount}" HorizontalAlignment="Stretch">
+                <ComboBox.ItemTemplate>
+                  <DataTemplate x:DataType="c:DevAccount">
+                    <StackPanel>
+                      <TextBlock Text="{Binding DisplayName}" FontWeight="Medium" />
+                      <TextBlock Text="{Binding Converter={x:Static vm:Converters.TestAccountDetail}}" Classes="muted small" />
+                    </StackPanel>
+                  </DataTemplate>
+                </ComboBox.ItemTemplate>
+              </ComboBox>
+            </ui:FormField>
+            <Button Content="Als Testkonto anmelden" Command="{Binding SignInAsTestAccountCommand}" HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Center" />
+          </StackPanel>
+        </Border>
+      </StackPanel>
+    </Border>
+  </ScrollViewer>
+  </Grid>
+</UserControl>

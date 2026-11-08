@@ -1,0 +1,163 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             x:Class="AispaStudio.Desktop.Views.CustomerContactForm"
+             x:Name="Root"
+             x:DataType="vm:CustomerContactFormViewModel"
+             ui:SaveShortcut.IsScope="True">
+  <!--
+    Stammdaten eines Gastes bearbeiten; in der Kundenkarte und im Seitenpanel des Kalenders dasselbe Formular.
+    Strg+S speichert wie der Knopf „Speichern“, auch in der Kundenkarte (SaveShortcut).
+    Aufbau nach docs/gestaltung/masken.md, Abschnitt 7: drei Gruppen mit Überschrift (Name, Kontakt, Anschrift), dazu eingeklappt
+    „Weitere Angaben“; Feld zu Feld 12, Gruppe zu Gruppe 20, Überschrift zu erstem Feld 8 (masken.md, Abschnitt 4); Aktionsleiste fest im Fuß.
+  -->
+  <Grid RowDefinitions="*,Auto" MaxWidth="560" HorizontalAlignment="Left">
+    <ScrollViewer x:Name="FieldsScroll" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+      <StackPanel x:Name="Fields" Spacing="20" Margin="0,0,0,16">
+
+        <!-- Name -->
+        <StackPanel Spacing="8">
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Text="Name" Classes="h2" VerticalAlignment="Center" />
+            <ui:HelpButton Grid.Column="1" Topic="kunden-name-und-anrede" Section="name" />
+          </Grid>
+          <StackPanel Spacing="12">
+            <Grid ColumnDefinitions="160,*,*" ColumnSpacing="12">
+              <ui:FormField Label="Anrede">
+                <ComboBox ItemsSource="{x:Static vm:SalutationChoice.All}" SelectedItem="{Binding Salutation}" HorizontalAlignment="Stretch" />
+              </ui:FormField>
+              <ui:FormField Grid.Column="1" Label="Vorname" IsRequired="True">
+                <TextBox x:Name="FirstNameBox" Text="{Binding FirstName}" />
+              </ui:FormField>
+              <ui:FormField Grid.Column="2" Label="Nachname" IsRequired="True">
+                <TextBox x:Name="LastNameBox" Text="{Binding LastName}" />
+              </ui:FormField>
+            </Grid>
+            <TextBlock Text="Der gültige Name wie im Ausweis; Rufname und Titel unter Weitere Angaben." Classes="muted small" Margin="0,-8,0,0" />
+            <!-- Abgeleitete Werte als ruhige Textzeile, ohne Karte (R11) -->
+            <StackPanel Spacing="2" IsVisible="{Binding ShowPreview}" Margin="0,-4,0,0">
+              <TextBlock Classes="secondary small" TextWrapping="Wrap">
+                <Run Text="Anschrift: " FontWeight="Medium" /><Run Text="{Binding AddressPreview, Mode=OneWay}" />
+              </TextBlock>
+              <TextBlock Text="{Binding GreetingPreview}" Classes="secondary small" TextWrapping="Wrap" />
+            </StackPanel>
+          </StackPanel>
+        </StackPanel>
+
+        <!-- Kontakt -->
+        <StackPanel Spacing="8">
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Text="Kontakt" Classes="h2" VerticalAlignment="Center" />
+            <ui:HelpButton Grid.Column="1" Topic="kunden-name-und-anrede" Section="kontakt" />
+          </Grid>
+          <StackPanel Spacing="12">
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+              <ui:FormField Label="Telefon">
+                <TextBox Text="{Binding Phone}" PlaceholderText="z. B. +43 664 1234567" MaxLength="40" />
+              </ui:FormField>
+              <ui:FormField Grid.Column="1" Label="E-Mail" Error="{Binding EmailError}">
+                <TextBox x:Name="EmailBox" Text="{Binding Email}" PlaceholderText="z. B. name@beispiel.at" />
+              </ui:FormField>
+            </Grid>
+            <Grid ColumnDefinitions="240,160" ColumnSpacing="12">
+              <ui:FormField Label="Sprache">
+                <ComboBox ItemsSource="{x:Static vm:CustomerContactFormViewModel.AllLanguages}" SelectedItem="{Binding Language}" HorizontalAlignment="Stretch" />
+              </ui:FormField>
+              <ui:FormField Grid.Column="1" Label="Geburtstag" Error="{Binding BirthDateError}">
+                <ui:DateField x:Name="BirthDateBox" CommittedText="{Binding BirthDate}" PlaceholderText="z. B. 14.03.1985" RequireYear="True" NotInFuture="True" />
+              </ui:FormField>
+            </Grid>
+          </StackPanel>
+        </StackPanel>
+
+        <!-- Anschrift (die Hilfe steht bei „Kontakt“) -->
+        <StackPanel Spacing="8">
+          <TextBlock Text="Anschrift" Classes="h2" />
+          <StackPanel Spacing="12">
+            <ui:FormField Label="Straße und Hausnummer">
+              <TextBox Text="{Binding Street}" />
+            </ui:FormField>
+            <!-- Die Fehlertexte der schmalen Felder PLZ und Land stehen in einer Zeile über die ganze Zeilenbreite unter den Feldern (Brief 5.2, HideMessage) -->
+            <Grid ColumnDefinitions="96,*,72" RowDefinitions="Auto,Auto" ColumnSpacing="12">
+              <ui:FormField Label="PLZ" Error="{Binding PostalCodeError}" HideMessage="True">
+                <TextBox x:Name="PostalCodeBox" Text="{Binding PostalCode}" MaxLength="16" />
+              </ui:FormField>
+              <ui:FormField Grid.Column="1" Label="Ort">
+                <TextBox Text="{Binding City}" />
+              </ui:FormField>
+              <ui:FormField Grid.Column="2" Label="Land" Error="{Binding CountryError}" HideMessage="True">
+                <TextBox x:Name="CountryBox" Text="{Binding Country}" PlaceholderText="AT" MaxLength="2" />
+              </ui:FormField>
+              <StackPanel Grid.Row="1" Grid.ColumnSpan="3">
+                <ui:FormField Error="{Binding PostalCodeError}" />
+                <ui:FormField Error="{Binding CountryError}" />
+              </StackPanel>
+            </Grid>
+          </StackPanel>
+        </StackPanel>
+
+        <!-- Weitere Angaben: eingeklappt, öffnet von selbst, wenn eines der Felder befüllt ist (R2) -->
+        <StackPanel Spacing="8">
+          <Grid ColumnDefinitions="*,Auto">
+            <ui:AccordionHeader x:Name="MoreToggle" Classes="more" IsChecked="{Binding MoreOpen, Mode=TwoWay}" HorizontalAlignment="Left" Padding="0,4,10,4"
+                                HorizontalContentAlignment="Left" AutomationProperties.Name="Weitere Angaben">
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <ui:Icon Classes="chevron" Data="{x:Static ui:Icons.ChevronRight}" Width="14" Height="14" Foreground="{DynamicResource Fg3Brush}" VerticalAlignment="Center" />
+                <TextBlock Text="Weitere Angaben" Classes="h2" VerticalAlignment="Center" />
+                <TextBlock Text="{x:Static vm:CustomerContactFormViewModel.MoreSummary}" Classes="muted small" VerticalAlignment="Center" />
+              </StackPanel>
+              <ui:AccordionHeader.Styles>
+                <Style Selector="ui|Icon.chevron">
+                  <Setter Property="RenderTransform" Value="rotate(0deg)" />
+                </Style>
+                <Style Selector="ToggleButton:checked ui|Icon.chevron">
+                  <Setter Property="RenderTransform" Value="rotate(90deg)" />
+                </Style>
+              </ui:AccordionHeader.Styles>
+            </ui:AccordionHeader>
+            <ui:HelpButton Grid.Column="1" Topic="kunden-name-und-anrede" Section="weitere-angaben" VerticalAlignment="Center" />
+          </Grid>
+          <StackPanel Spacing="12" IsVisible="{Binding #MoreToggle.IsChecked}">
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+              <ui:FormField Label="Rufname im Haus">
+                <TextBox Text="{Binding PreferredName}" PlaceholderText="z. B. Steffi" />
+              </ui:FormField>
+              <ui:FormField Grid.Column="1" Label="Pronomen">
+                <TextBox Text="{Binding Pronouns}" PlaceholderText="z. B. sie/ihr" MaxLength="40" />
+              </ui:FormField>
+            </Grid>
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+              <ui:FormField Label="Titel vorangestellt">
+                <AutoCompleteBox x:Name="TitlesBeforeBox" Text="{Binding TitlesBefore, Mode=TwoWay}" ItemsSource="{x:Static vm:CustomerContactFormViewModel.TitlesBeforeChoices}"
+                                 MinimumPrefixLength="0" PlaceholderText="z. B. Mag. Dr." />
+              </ui:FormField>
+              <ui:FormField Grid.Column="1" Label="Titel nachgestellt">
+                <AutoCompleteBox x:Name="TitlesAfterBox" Text="{Binding TitlesAfter, Mode=TwoWay}" ItemsSource="{x:Static vm:CustomerContactFormViewModel.TitlesAfterChoices}"
+                                 MinimumPrefixLength="0" PlaceholderText="z. B. MSc" />
+              </ui:FormField>
+            </Grid>
+            <ui:FormField Label="Titel in der Anrede" Help="Ob der Titel in der Anrede erscheint." HorizontalAlignment="Left">
+              <ComboBox ItemsSource="{x:Static vm:GreetingTitleChoice.All}" SelectedItem="{Binding TitleInGreeting}" Width="200" HorizontalAlignment="Left" />
+            </ui:FormField>
+            <ui:FormField Label="Notiz" Help="Vorlieben; keine Gesundheitsdaten (die gehören in die Anamnese).">
+              <TextBox Text="{Binding Note}" AcceptsReturn="True" MaxLength="500" />
+            </ui:FormField>
+          </StackPanel>
+        </StackPanel>
+      </StackPanel>
+    </ScrollViewer>
+
+    <!-- Fuß: Speichern und Abbrechen links, ein maskenweiter Fehler als Meldung darüber (R5, R8) -->
+    <StackPanel x:Name="Footer" Grid.Row="1" Spacing="12">
+      <Border x:Name="FooterDivider" Classes="divider" IsVisible="False" />
+      <ui:InfoBar Severity="Error" Title="Nicht gespeichert" Message="{Binding Error}" IsVisible="{Binding HasError}"
+                  ActionText="Erneut versuchen" ActionCommand="{Binding SaveCommand}" CloseCommand="{Binding CloseErrorCommand}" />
+      <StackPanel Orientation="Horizontal" Spacing="8">
+        <Button Classes="primary" Content="Speichern" Command="{Binding SaveCommand}" IsDefault="True"
+                ui:SaveShortcut.IsSave="True" ToolTip.Tip="Speichern (Strg+S)" ui:DisabledHint.Text="Verfügbar, sobald ein Vor- oder Nachname eingetragen ist." />
+        <Button Classes="ghost" Content="Abbrechen" Command="{Binding CancelCommand}" />
+      </StackPanel>
+    </StackPanel>
+  </Grid>
+</UserControl>

@@ -1,0 +1,49 @@
+# 0074. Betriebsinformationen und Kontakte als eigenes Verzeichnis, der Assistent liest sie nach Recht
+
+- **Status:** angenommen
+- **Datum:** 22.10.2026
+- **Entschieden von:** Auftraggeber (Runde 5b, Ä39), Ausgestaltung Claude
+
+## Kontext
+
+Die Vorgabe des Auftraggebers (Runde 5b, Ä39), wörtlich: Der Assistent soll auch „Versicherungsdaten, Ansprechpartner, Kontaktdaten, Handwerker-Nummern, betriebsfremde Vertrauenspersonen mit Zuständigkeiten, Lohnverrechnung- oder Buchhaltungs-Kontakte, alles, was es so um einen Betrieb gibt und Informationen benötigt werden“ beantworten.
+
+Heute kennt das Spa die Kontaktdaten des Standorts (Telefon, Mail, Adresse, Anreise) und das Rezeptionshandbuch (Freitext mit Erinnerung am Tagesstart). Wen man bei einem Wasserschaden anruft, welche Polizzennummer die Haftpflicht hat und wer die Lohnverrechnung macht, steht im Kopf der Leitung oder auf einem Zettel. Der Assistent aus [ADR 0072](0072-assistent-beantwortet-betriebsfragen.md) kann das nicht beantworten, weil es nirgends als Daten steht; das Handbuch ist Freitext ohne Zuständigkeit, Kategorie und Vertraulichkeit.
+
+## Optionen
+
+| Option | Bewertung |
+| --- | --- |
+| Freitext in den Standort-Einstellungen („Wichtige Nummern“) | schnell gebaut, aber für Assistent und Suche nicht auswertbar (keine Kategorie, keine Zuständigkeit, nichts für „Nummer der Versicherung“), kein Unterschied zwischen Team und Leitung, ein Textfeld je Standort statt je Eintrag |
+| Eintrag im Rezeptionshandbuch | das Handbuch ist für Abläufe und Wissen gedacht, hat keine Felder für Telefon, Polizze oder Standorte und keine Stufen; jeder Zugang liest alles |
+| Externes Adressbuch (Outlook, Google Kontakte, CRM) anbinden | Abhängigkeit, Datenschutz und Ausfall; Einzelplatz ohne Verbindung; Zuständigkeiten und Stufen gäbe es dort nicht |
+| Eigenes Verzeichnis im Kern (`BusinessContact`) mit Kategorie, Zuständigkeit, Standorten und Vertraulichkeitsstufe | gewählt |
+
+## Entscheidung
+
+- **Eigenes Entity im Kern** (Ordner `BusinessInfo`, mandantengetrennt, `ValueGeneratedNever` auf den Ids): `BusinessContact` mit Kategorie (Versicherung, Handwerker und Technik, Lieferant, Behörde, Buchhaltung, Lohnverrechnung, Steuerberatung, Vertrauensperson, Notfall, Sonstiges), Bezeichnung (Pflicht, z. B. „Installateur“), Firma, Ansprechperson, Telefon, Mobil, E-Mail, Adresse, Zuständigkeit als Freitext („Wasserschaden, Heizung“), Vertrags- oder Kundennummer, bei Versicherungen Versicherer, Polizzennummer, Deckung (Freitext) und Schadenshotline, Standorte (alle oder Auswahl, `BusinessContactLocation`), Notizen, Vertraulichkeitsstufe und `ArchivedAt`. Mindestens eines von Firma, Ansprechperson, Telefon, Mobil und E-Mail ist Pflicht. Die Versicherungsfelder gibt es nur bei der Kategorie Versicherung (der Server lehnt sie sonst ab, die Oberfläche lässt sie dann weg). Migration `Betriebsinformationen`.
+- **Vertraulichkeitsstufen: „Team“ und „Leitung“.** „Team“ lesen alle Zugänge, „Leitung“ nur Inhaber, Manager, Standortleitung und Backoffice (`UserAccess.SeesManagementContacts`: Recht „Standort verwalten“ oder Rolle Backoffice). Der Server filtert Einträge der Stufe „Leitung“ für alle anderen **aus der Antwort heraus** (nicht erst in der Oberfläche); dieselbe Regel (`BusinessContactRules.CanRead`) gilt im Assistenten. Archivierte Einträge sieht nur, wer verwalten darf, und nur auf Wunsch.
+- **Rechte der Endpunkte** (`/api/business-contacts`): Lesen für jeden Zugang mit Kalender oder Berichten (`ViewCalendar`, zusätzlich `ViewFinance` für das Backoffice, `AlsoAllow`); Anlegen, Ändern, Archivieren und Zurückholen mit `ManageLocation` (Inhaber, Manager, Standortleitung). Die Standortleitung liest Einträge ihrer Standorte und der „alle Standorte“, ändert aber nur Einträge, die ganz in ihren Standorten liegen, und legt keine für alle Standorte an (wie bei den Aktionen, [ADR 0071](0071-aktionen-und-rabatte.md)); die Antwort sagt je Eintrag mit `CanEdit`, ob die Person ihn ändern darf. Das Backoffice liest alles und schreibt nichts ([ADR 0070](0070-rollen-manager-und-backoffice.md)). Kein neues Recht und keine Änderung der Rechtetabelle.
+- **Der Assistent liest nur mit Recht.** Neues Thema `BusinessContacts` mit eigenem Antwortgeber (`BusinessContactAnswers`): „Wer ist unser Installateur?“, „Nummer der Versicherung“, „Wer ist für die Heizung zuständig?“, „Kontakt der Lohnverrechnung“, „Wen rufe ich bei Wasserschaden an?“. Die Absicht erkennen Regeln (`BusinessIntents`: Kategoriewörter wie Versicherung, Polizze, Installateur, Elektriker, Handwerker, Steuerberater, Buchhaltung, Lohnverrechnung, Notfall, dazu „zuständig“, „wer kümmert sich“, „wen rufe ich an“ und „Nummer von …“), sonst das Sprachmodell im selben Schema. Gesucht wird nach Kategorie und nach den Wörtern der Frage in Bezeichnung, Firma, Ansprechperson, Zuständigkeit und Kategorie; ein Treffer wird mit allen Angaben genannt, mehrere (bis zehn) als Tabelle. Quelle ist „Betriebsinformationen“, **Kopieren** liefert die Angaben, ein Verweis führt zur Seite. Findet jemand nur Einträge der Stufe „Leitung“, die er nicht lesen darf, lautet die Antwort „Dafür fehlt die Berechtigung.“; findet er nichts, „Dazu ist nichts hinterlegt“ mit Link zur Seite. Mischt sich beides, nennt der Assistent nur die lesbaren Einträge.
+- **Diese Antworten formuliert die KI nie um.** `ModelAnswerPhraser` lässt sie aus: Nummern und Namen müssen stimmen, und die Kontaktdaten (auch der Stufe „Team“) gehen nicht an ein Sprachmodell. Die Absicht erkennt das Modell wie bisher aus der Frage allein.
+- **Das Backoffice darf den Assistenten hier fragen,** obwohl [ADR 0072](0072-assistent-beantwortet-betriebsfragen.md) ihm sonst nur Auswertungen und Handbuch gibt: es liest die Einträge auch auf der Seite, und die Lohnverrechnung und Buchhaltung sind genau seine Kontakte.
+- **Oberfläche:** Seite „Betriebsinfo“ (Verwaltung, in der Windows-App eingebettet) mit Liste nach Kategorie, Suche und Kategorie-Filter, Telefon und Mail als Links (`tel:`, `mailto:`) mit **Kopieren**, Maske nach `docs/gestaltung/masken.md` (Gruppen Eintrag, Erreichbarkeit, Versicherung nur bei Versicherungen, Sichtbarkeit und Standorte, eingeklappt Weitere Angaben), Archivieren mit Rückfrage. **Eigene Seite statt Reiter in „Stammdaten“:** Stammdaten sehen nur Personen, die etwas pflegen; nachschlagen soll jeder Zugang, auch Rezeption und Therapeut:innen, die Seite steht deshalb in der Navigation neben „Stammdaten“ und ist für jeden mit Kalender oder Berichten sichtbar. Hilfe mit Fragezeichen je Gruppe ([ADR 0055](0055-hilfe-zu-jeder-einstellung-im-repository.md)).
+- **Keine Passwörter.** Das Verzeichnis ist für Nummern und Zuständigkeiten gedacht. Es gibt kein Feld für Passwörter oder Zugangsdaten; die Hilfe und der Hinweis am Notizfeld sagen ausdrücklich, dass keine einzutragen sind. Der Server erkennt solche Inhalte im Freitext nicht.
+
+## Begründung
+
+Zuständigkeiten, Kategorien, Standorte und Stufen sind Struktur, die ein Freitext nicht hat; erst als Daten kann der Assistent „Wer ist für die Heizung zuständig?“ beantworten, ohne zu raten, und erst die Stufe lässt Polizzennummern und Vertrauenspersonen von der Rezeption fernhalten. Ein eigenes Verzeichnis im Kern hält die Daten im Spa (Einzelplatz, kein Dienst von außen) und folgt der Regel, dass der Server bei jedem Aufruf prüft: die Stufe wird im Dienst gefiltert, nicht in der Oberfläche. Dass der Assistent dieselbe Regel nutzt wie die Endpunkte, verhindert einen Umweg zu Daten, die die Seite nicht zeigt. Kein neues Recht: die Leitung ist über „Standort verwalten“ und die Rolle Backoffice schon beschrieben, eine eigene Rechtestufe für Kontakte wäre mehr Tabelle als Nutzen.
+
+## Folgen und Stand
+
+- Neue Tabellen `BusinessContacts` und `BusinessContactLocations` (Migration `Betriebsinformationen`), Endpunkte unter `/api/business-contacts`, Seite „Betriebsinfo“ in der Verwaltung, Antwortgeber `BusinessContactAnswers` mit Suche (`BusinessContactSearch`), Beispieldaten (zehn Einträge, fünf davon nur für die Leitung).
+- Tests: `BusinessContactTests` (Verwalten, Prüfregeln, Stufe je Rolle, Backoffice, Standortleitung), `BusinessContactAnswerTests` (Absicht, Treffer, Stufe, nichts hinterlegt, über die API), `DemoBulkTests` (beide Wege des Einspielens), Web (`BusinessInfoPage`, `App`), Windows-App (Bildtest der Antwort).
+- Folge für die Antwort in der Windows-App: zwei Knöpfe (Verweis und Kopieren) brechen in der schmalen Leiste um; bei Tabellen mit zwei Spalten behält die Beschriftung ihre Breite und ein langer Wert bricht in der Wertspalte um.
+- **Offen:** Eintrag löschen (bewusst nur archivieren); Behörden und Elektriker fehlen in den Beispieldaten mit Absicht („nichts hinterlegt“ zeigen); Erinnerung an Fristen (z. B. Polizze läuft ab); Eintrag direkt aus dem Assistenten anlegen (der Assistent schlägt nur vor und ändert nichts, [ADR 0008](0008-ki-schlaegt-vor-mensch-bestaetigt.md)); Kontakte im Kundenbereich oder in Mails (nein, nur intern).
+- **Nachtrag (05.11.2026, T-025):** In der Windows-App steht die Betriebsinfo seit Slice 144 als Reiter unter „Zahlen“; sichtbar ist sie für alle, die Berichte sehen oder buchen dürfen, also auch für die Rezeption (Auftraggeber). Therapeut:innen ohne Buchungsrecht fragen den Assistenten. Einträge der Stufe „Leitung“ filtert weiter der Server (`BusinessContactRules`).
+
+## Quellen
+
+- [ADR 0008](0008-ki-schlaegt-vor-mensch-bestaetigt.md), [ADR 0055](0055-hilfe-zu-jeder-einstellung-im-repository.md), [ADR 0067](0067-masken-und-meldungen-nach-material-3-und-fluent-2.md), [ADR 0070](0070-rollen-manager-und-backoffice.md), [ADR 0071](0071-aktionen-und-rabatte.md), [ADR 0072](0072-assistent-beantwortet-betriebsfragen.md)
+- [PR-Protokoll, Runde 5b: Block M (Betriebsinformationen)](../umsetzung/pr-protokoll.md)
+- Hilfe: `web/src/help/content/betriebsinformationen.md`, `betriebsinformationen-eintragen.md`, `ki-assistent-fragen.md`

@@ -1,0 +1,59 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             x:Class="AispaStudio.Desktop.Views.HelpView"
+             x:Name="Root"
+             x:DataType="vm:HelpViewModel">
+  <DockPanel>
+    <!-- Offene Fragen an die Hilfe (Slice 56): nativ über dem Browser, weil die Fragen in der App liegen, nicht in der Hilfe-Seite; nur Leitung und Inhaber. -->
+    <Border x:Name="OpenQuestionsBar" DockPanel.Dock="Top" Classes="card" Margin="16,16,16,0" IsVisible="{Binding CanReviewQuestions}">
+      <StackPanel Spacing="8">
+        <StackPanel Orientation="Horizontal" Spacing="4">
+          <ToggleButton x:Name="OpenQuestionsToggle" Classes="ghost" Content="{Binding QuestionsTitle}" IsChecked="{Binding QuestionsExpanded}" />
+          <ui:HelpButton Topic="ki-assistent-fragen" Section="offene-fragen" VerticalAlignment="Center" />
+        </StackPanel>
+        <StackPanel Spacing="8" IsVisible="{Binding QuestionsExpanded}">
+          <TextBlock Text="Fragen, auf die der Assistent auf diesem PC nichts gefunden hat, ohne Gästenamen und Kontaktdaten. Sie bleiben 90 Tage."
+                     Classes="muted" TextWrapping="Wrap" />
+          <TextBlock Text="Keine offenen Fragen." Classes="muted" IsVisible="{Binding HasNoQuestions}" />
+          <ScrollViewer MaxHeight="240">
+            <ItemsControl x:Name="OpenQuestionList" ItemsSource="{Binding OpenQuestions}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:OpenQuestionRow">
+                  <Grid ColumnDefinitions="*,Auto" Margin="0,4">
+                    <StackPanel Spacing="2" VerticalAlignment="Center">
+                      <TextBlock Text="{Binding Question}" TextWrapping="Wrap" />
+                      <TextBlock Text="{Binding Meta}" Classes="muted small" />
+                    </StackPanel>
+                    <Button Grid.Column="1" Content="Erledigt" VerticalAlignment="Center" Margin="12,0,0,0"
+                            AutomationProperties.Name="{Binding DoneLabel}"
+                            Command="{Binding #Root.((vm:HelpViewModel)DataContext)?.MarkDoneCommand, TargetNullValue={x:Null}}" CommandParameter="{Binding}" />
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </ScrollViewer>
+        </StackPanel>
+      </StackPanel>
+    </Border>
+
+    <Panel>
+      <!-- Hier sitzt der eingebettete Browser mit der Hilfe-Seite (ADR 0079). -->
+      <Panel x:Name="Host" />
+
+      <Border x:Name="Placeholder" Classes="card" Margin="16" MaxWidth="620" HorizontalAlignment="Left" VerticalAlignment="Top"
+              IsVisible="{Binding Error, Converter={x:Static ObjectConverters.IsNull}}">
+        <StackPanel Spacing="10">
+          <TextBlock Text="Hilfe" Classes="h1" />
+          <TextBlock Text="Abläufe Schritt für Schritt, jede Seite und jede Einstellung. Das Fragezeichen neben einer Einstellung öffnet die passende Stelle."
+                     Classes="muted" TextWrapping="Wrap" />
+          <TextBlock Text="Wird geladen …" Classes="muted small" />
+        </StackPanel>
+      </Border>
+
+      <ui:InfoBar Severity="Error" Title="Hilfe nicht erreichbar" Message="{Binding Error}" Margin="16" MaxWidth="620" HorizontalAlignment="Left" VerticalAlignment="Top"
+                  IsVisible="{Binding Error, Converter={x:Static ObjectConverters.IsNotNull}}" />
+    </Panel>
+  </DockPanel>
+</UserControl>

@@ -1,0 +1,135 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             xmlns:views="using:AispaStudio.Desktop.Views"
+             x:Class="AispaStudio.Desktop.Views.BriefingReportView"
+             x:DataType="vm:BriefingReportViewModel">
+  <!--
+    Reiter „Tagesstart“ nach web/src/reports/BriefingView.tsx, als Übersicht (R07 Slice 144, Ä352): oben Status und Werte, darunter Abschnitte mit feinen Linien auf einer Fläche statt gerahmter
+    Karten: Personal als Zeitleiste von Öffnung bis Schluss, Kassa, Gäste, Räume, Handbuch, Bereitstellen. Der KI-Text steht immer mit dem Hinweis der API; die Zahlen kommen nie von der KI.
+  -->
+  <StackPanel Spacing="16">
+    <ui:InfoBar Severity="Error" Title="Tagesstart nicht geladen" Message="{Binding LoadError}" IsVisible="{Binding HasLoadError}"
+                ActionText="Erneut laden" ActionCommand="{Binding RetryCommand}" />
+    <ui:InfoBar Severity="Error" Message="{Binding Error}" IsVisible="{Binding HasError}" CloseCommand="{Binding CloseErrorCommand}" />
+    <views:ReportOverviewView />
+
+    <TextBlock Text="Die KI fasst den Tag zusammen …" Classes="muted" IsVisible="{Binding IsAiPending}" AutomationProperties.LiveSetting="Polite" />
+    <Border Classes="section" IsVisible="{Binding HasAiSummary}">
+      <StackPanel Spacing="4">
+        <TextBlock Text="{Binding AiSummary}" TextWrapping="Wrap" />
+        <TextBlock Text="{Binding AiNotice}" Classes="muted small" TextWrapping="Wrap" />
+      </StackPanel>
+    </Border>
+
+    <Border x:Name="StaffSection" Classes="section" IsVisible="{Binding HasStaff}">
+      <StackPanel Spacing="8">
+        <TextBlock Text="Personal" Classes="h2" />
+        <Grid ColumnDefinitions="160,*,170" ColumnSpacing="12" IsVisible="{Binding OpensText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+          <Grid Grid.Column="1" ColumnDefinitions="*,*">
+            <TextBlock Text="{Binding OpensText}" Classes="muted small" HorizontalAlignment="Left" />
+            <TextBlock Grid.Column="1" Text="{Binding ClosesText}" Classes="muted small" HorizontalAlignment="Right" />
+          </Grid>
+        </Grid>
+        <ItemsControl ItemsSource="{Binding StaffBars}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:StaffBarRow">
+              <Grid ColumnDefinitions="160,*,170" ColumnSpacing="12" MinHeight="28" Margin="0,0,0,4" AutomationProperties.Name="{Binding SpokenName}">
+                <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                <ui:StaffBar Grid.Column="1" Spans="{Binding Spans}" VerticalAlignment="Center" IsVisible="{Binding !IsAbsent}" />
+                <Border Grid.Column="1" Classes="pill" IsVisible="{Binding IsAbsent}">
+                  <TextBlock Text="{Binding Chip}" />
+                </Border>
+                <TextBlock Grid.Column="2" Text="{Binding Times}" Classes="muted small" VerticalAlignment="Center" IsVisible="{Binding HasTimes}" />
+              </Grid>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </StackPanel>
+    </Border>
+
+    <Border x:Name="RegisterSection" Classes="section" IsVisible="{Binding HasRegister}">
+      <StackPanel Spacing="8">
+        <TextBlock Text="Kassa" Classes="h2" />
+        <ItemsControl ItemsSource="{Binding RegisterValues}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <WrapPanel />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:ReportValue">
+              <StackPanel Spacing="2" Margin="0,0,40,8">
+                <TextBlock Text="{Binding Text}" Classes="bigvalue" />
+                <TextBlock Text="{Binding Label}" Classes="muted small" />
+              </StackPanel>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        <ItemsControl ItemsSource="{Binding RegisterWarnings}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="x:String">
+              <ui:InfoBar Severity="Warning" Message="{Binding}" Margin="0,0,0,8" />
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </StackPanel>
+    </Border>
+
+    <ItemsControl ItemsSource="{Binding Sections}">
+      <ItemsControl.ItemTemplate>
+        <DataTemplate x:DataType="vm:ReportSection">
+          <Border Classes="section">
+            <StackPanel Spacing="4">
+              <TextBlock Text="{Binding Title}" Classes="h2" />
+              <ItemsControl ItemsSource="{Binding Lines}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="x:String">
+                    <TextBlock Text="{Binding}" TextWrapping="Wrap" Margin="0,0,0,4" />
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </Border>
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
+
+    <Border Classes="section" IsVisible="{Binding Reminders.Count}">
+      <StackPanel Spacing="4">
+        <TextBlock Text="Wichtig laut Handbuch" Classes="h2" />
+        <ItemsControl ItemsSource="{Binding Reminders}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="x:String">
+              <TextBlock Text="{Binding}" TextWrapping="Wrap" Margin="0,0,0,4" />
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </StackPanel>
+    </Border>
+
+    <Border Classes="section" IsVisible="{Binding HasServings}">
+      <StackPanel Spacing="8">
+        <TextBlock Text="Bereitstellen" Classes="h2" />
+        <ItemsControl ItemsSource="{Binding ServingTotals}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="x:String">
+              <TextBlock Text="{Binding}" Classes="muted" TextWrapping="Wrap" />
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        <ItemsControl ItemsSource="{Binding Servings}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:ReportCheckRow">
+              <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,0,0,4">
+                <CheckBox Content="{Binding Text}" IsChecked="{Binding Done}" Command="{Binding ToggleCommand}" />
+                <TextBlock Text="{Binding Detail}" Classes="muted small" VerticalAlignment="Center" IsVisible="{Binding HasDetail}" />
+              </StackPanel>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </StackPanel>
+    </Border>
+  </StackPanel>
+</UserControl>

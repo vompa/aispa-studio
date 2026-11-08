@@ -1,0 +1,97 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             x:Class="AispaStudio.Desktop.Views.StockOverviewSection"
+             x:DataType="vm:StockOverviewViewModel">
+  <!--
+    Reiter „Bestand“ (R05 Slice 101, R07 Slice 143, Ä351): vier Spalten statt neun (Material, Bestand mit Balken gegen den Mindestbestand, „Reicht für“, Status-Chip); die übrigen Werte und die Aktionen
+    einer Zeile stehen im Seitenpanel rechts. Das Suchfeld sitzt oben in der Maske (gemeinsam mit dem Scanner). Verbrauch geplant, Bestellt und Bestellvorschlag gelten nur für den Standort und stehen
+    nur bei „Alle Lagerorte“ im Seitenpanel.
+  -->
+  <Grid ColumnDefinitions="*,Auto">
+    <Border Classes="card" VerticalAlignment="Top">
+      <StackPanel Spacing="12">
+        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="16">
+          <TextBlock Text="Bestand" Classes="h2" VerticalAlignment="Center" />
+          <CheckBox x:Name="OnlyBelowBox" Grid.Column="1" IsChecked="{Binding OnlyBelow}" Content="Nur unter Minimum" VerticalAlignment="Center" />
+          <ui:HelpButton Grid.Column="2" Topic="lager" Section="bestand" />
+        </Grid>
+        <TextBlock x:Name="ValueLine" Classes="muted small">
+          <Run Text="Lagerwert " /><Run Text="{Binding ValueText}" /><Run Text=" " /><Run Text="{Binding ValueNote}" />
+        </TextBlock>
+
+        <Grid ColumnDefinitions="*,200,150,130" ColumnSpacing="12" Margin="10,0" AutomationProperties.AccessibilityView="Raw">
+          <TextBlock Text="Material" Classes="group" />
+          <TextBlock Grid.Column="1" Text="Bestand" Classes="group" />
+          <TextBlock Grid.Column="2" Text="Reicht für" Classes="group" />
+          <TextBlock Grid.Column="3" Text="Status" Classes="group" />
+        </Grid>
+
+        <TextBlock Text="Noch keine Einträge." Classes="muted" IsVisible="{Binding ShowEmpty}" />
+        <ListBox x:Name="StockList" Classes="plain" ItemsSource="{Binding Rows}" SelectedItem="{Binding SelectedRow}" AutomationProperties.Name="Bestand">
+          <ListBox.Styles>
+            <!-- Der Name der Zeile nennt Material, Bestand und Hinweise; sonst liest der Screenreader den Record-Typ -->
+            <Style Selector="ListBoxItem" x:DataType="vm:StockRow">
+              <Setter Property="AutomationProperties.Name" Value="{Binding Summary}" />
+            </Style>
+          </ListBox.Styles>
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="vm:StockRow">
+              <Grid ColumnDefinitions="*,200,150,130" ColumnSpacing="12" VerticalAlignment="Center" Margin="0,6">
+                <StackPanel Spacing="2" VerticalAlignment="Center">
+                  <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
+                  <TextBlock Text="{Binding PlacesText}" Classes="muted small" IsVisible="{Binding HasPlaces}" TextTrimming="CharacterEllipsis" />
+                </StackPanel>
+                <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
+                  <TextBlock Classes="num">
+                    <Run Text="{Binding QuantityText}" /><Run Text=" " /><Run Text="{Binding Unit}" />
+                  </TextBlock>
+                  <ProgressBar Classes="stockbar" Classes.warn="{Binding Below}" Minimum="0" Maximum="1" Value="{Binding Fill}" IsVisible="{Binding HasBar}" AutomationProperties.AccessibilityView="Raw" />
+                </StackPanel>
+                <TextBlock Grid.Column="2" Text="{Binding ReachText}" VerticalAlignment="Center" />
+                <Border Grid.Column="3" Classes="pill" Classes.crit="{Binding Expired}" Classes.warn="{Binding !Expired}" IsVisible="{Binding HasStatus}">
+                  <TextBlock Text="{Binding StatusText}" />
+                </Border>
+              </Grid>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </StackPanel>
+    </Border>
+
+    <!-- Seitenpanel der gewählten Zeile: die übrigen Werte und die Aktionen -->
+    <ContentControl Grid.Column="1" x:Name="RowDetail" Content="{Binding SelectedRow}" VerticalAlignment="Top">
+      <ContentControl.ContentTemplate>
+        <DataTemplate x:DataType="vm:StockRow">
+          <Border Classes="card" Padding="16" Width="300" Margin="16,0,0,0">
+            <StackPanel Spacing="12">
+              <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                <TextBlock Text="{Binding Name}" Classes="h3" TextWrapping="Wrap" VerticalAlignment="Center" />
+                <Button Grid.Column="1" x:Name="CloseRowDetailButton" Classes="icon" Command="{Binding $parent[UserControl].((vm:StockOverviewViewModel)DataContext)?.CloseDetailCommand}"
+                        AutomationProperties.Name="Seitenpanel schließen" VerticalAlignment="Top">
+                  <ui:Icon Data="{x:Static ui:Icons.Close}" Width="14" Height="14" />
+                </Button>
+              </Grid>
+              <ItemsControl ItemsSource="{Binding Details}" AutomationProperties.Name="Werte des Materials">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:StockDetailLine">
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12" Margin="0,4" AutomationProperties.Name="{Binding Summary}">
+                      <TextBlock Text="{Binding Label}" Classes="muted small" VerticalAlignment="Center" />
+                      <TextBlock Grid.Column="1" Text="{Binding Value}" Classes="num" TextWrapping="Wrap" TextAlignment="Right" />
+                    </Grid>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+              <WrapPanel ItemSpacing="8" LineSpacing="8">
+                <Button Content="Buchen" Classes="small" Command="{Binding BookCommand}" IsVisible="{Binding CanBook}" AutomationProperties.Name="{Binding BookName}" />
+                <Button Content="Nachfüllen" Classes="small" Command="{Binding RefillCommand}" IsVisible="{Binding CanRefill}" AutomationProperties.Name="{Binding RefillName}" />
+                <Button Content="Ändern" Classes="small" Command="{Binding ChangeCommand}" IsVisible="{Binding CanChange}" AutomationProperties.Name="{Binding ChangeName}" />
+              </WrapPanel>
+            </StackPanel>
+          </Border>
+        </DataTemplate>
+      </ContentControl.ContentTemplate>
+    </ContentControl>
+  </Grid>
+</UserControl>

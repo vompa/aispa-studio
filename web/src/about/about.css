@@ -1,0 +1,598 @@
+/* Seite „Über AISPA Studio“ (/ueber/): Aufbau nach der Erklärseite von OPCAgentSample, Farben und Schrift aus dem
+   Design-Brief über index.css. Schriftgrößen nur aus den Stufen; der Seitentitel nutzt 34 und 24 wie die Anmeldemaske
+   (Ausnahme im Brief, Abschnitt 3). Keine eigenen Farbwerte (designTokens.test.ts). */
+@import '../index.css';
+
+/* Sprungziele landen unter der festen Kopfleiste (56 px), nicht dahinter (WCAG 2.4.11). */
+html:has(.about-page) {
+  scroll-padding-top: 72px;
+}
+
+.about-page {
+  background: var(--bg);
+  color: var(--fg);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+/* Die Kartenoptik von main und section aus index.css gilt hier nicht; :where() hält die Spezifität niedrig. */
+:where(.about-page) main {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+
+:where(.about-page) section {
+  background: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 0;
+  margin: 0;
+}
+
+.about-wrap {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.skip-link {
+  position: absolute;
+  left: 16px;
+  top: -48px;
+  z-index: 10;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--accent);
+}
+
+.skip-link:focus-visible {
+  top: 8px;
+}
+
+/* Kopfleiste in der Farbe der App-Leiste */
+.about-top {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: var(--rail);
+  color: var(--rail-fg);
+}
+
+.about-top-in {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  min-height: 56px;
+}
+
+.about-top a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.about-top :focus-visible {
+  outline-color: var(--rail-mark);
+}
+
+.about-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.about-mark {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--rail-mark);
+}
+
+.about-mark svg {
+  fill: none;
+  stroke: var(--rail);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.about-nav {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.about-top .about-nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 8px;
+  color: var(--rail-fg-2);
+}
+
+.about-top .about-top-cta {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 8px;
+  background: var(--rail-fg);
+  color: var(--rail);
+  font-weight: 500;
+}
+
+@media (hover: hover) {
+  .about-top .about-nav a:hover {
+    background: var(--rail-hover);
+    color: var(--rail-fg);
+  }
+
+  .about-top .about-top-cta:hover {
+    background: var(--rail-fg-2);
+  }
+}
+
+/* Einstieg */
+.about-hero {
+  padding: 48px 0;
+}
+
+.about-hero-in {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  gap: 32px;
+  align-items: center;
+}
+
+.about-eyebrow {
+  margin: 0 0 12px;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+}
+
+.about-title {
+  margin: 0;
+  font-size: 34px;
+  line-height: 40px;
+  font-weight: 600;
+  letter-spacing: -0.4px;
+}
+
+.about-title-accent {
+  display: block;
+  color: var(--accent);
+}
+
+.about-lead {
+  margin: 16px 0 0;
+  max-width: 52ch;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 24px;
+}
+
+.about-cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+a.about-button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 16px;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--fg);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+a.about-button-primary {
+  border-color: transparent;
+  background: var(--accent-gradient);
+  color: var(--on-accent);
+}
+
+@media (hover: hover) {
+  /* Schriftfarbe ausdrücklich: sonst gewinnt a:not(.button):hover aus index.css (spezifischer als die Knopfregel)
+     und färbt die Schrift des primären Knopfs in seine Füllfarbe (gemessen 1:1). */
+  a.about-button:hover {
+    background: var(--surface-3);
+    color: var(--fg);
+  }
+
+  a.about-button-primary:hover {
+    background: var(--accent-hover);
+    color: var(--on-accent);
+  }
+}
+
+.about-shots {
+  position: relative;
+  padding-bottom: 32px;
+}
+
+.about-shots img {
+  display: block;
+  height: auto;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+
+.about-shot-desktop {
+  width: 100%;
+  border-radius: 12px;
+}
+
+.about-shot-phone {
+  position: absolute;
+  right: -8px;
+  bottom: 0;
+  width: 24%;
+  border-radius: 12px;
+}
+
+/* Kernaussage */
+.about-claim {
+  padding: 32px 0;
+  background: var(--rail);
+  color: var(--rail-fg);
+}
+
+.about-claim-text {
+  margin: 0;
+  max-width: 64ch;
+  font-size: 22px;
+  line-height: 32px;
+  font-weight: 500;
+}
+
+.about-mark-text {
+  color: var(--rail-mark);
+}
+
+.about-claim-sub {
+  margin: 12px 0 0;
+  color: var(--rail-fg-2);
+}
+
+/* Abschnitte */
+.about-section {
+  padding: 48px 0;
+}
+
+.about-section-tint {
+  background: var(--surface-2);
+  border-block: 1px solid var(--border);
+}
+
+.about-h2 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 12px;
+  font-size: 22px;
+  line-height: 28px;
+}
+
+.about-intro {
+  margin: 0 0 24px;
+  max-width: 68ch;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 24px;
+}
+
+.about-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 8px;
+  border: 1px solid var(--warn);
+  border-radius: 999px;
+  background: var(--warn-soft);
+  color: var(--warn);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 14px;
+  letter-spacing: 0;
+}
+
+/* Vergleichstabelle */
+.about-table-wrap {
+  overflow-x: auto;
+  margin-bottom: 32px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.about-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.about-table th,
+.about-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+}
+
+.about-table tbody tr:last-child > * {
+  border-bottom: 0;
+}
+
+.about-table thead th {
+  background: var(--surface-3);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.about-table tbody th {
+  width: 26%;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+}
+
+/* Schaubilder als Zonen mit Kästen; sie brechen auf schmalen Bildschirmen von selbst um. */
+.about-figure {
+  margin: 0 0 32px;
+  padding: 24px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.about-figure-title h3 {
+  margin: 0;
+}
+
+.about-figure-title p {
+  margin: 4px 0 16px;
+  color: var(--muted);
+}
+
+.zone {
+  padding: 16px;
+  border: 1px dashed var(--border-strong);
+  border-radius: 12px;
+}
+
+.zone-title {
+  margin: 0 0 12px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  color: var(--muted);
+}
+
+.zone-nodes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 140px), 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.node {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px;
+  border: 1px solid var(--accent-line);
+  border-radius: 8px;
+  background: var(--accent-soft);
+}
+
+.node strong {
+  font-weight: 600;
+}
+
+.node span {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.node-server {
+  border-color: var(--rail-selected);
+  background: var(--rail);
+  color: var(--rail-fg);
+}
+
+.node-server span {
+  color: var(--rail-fg-2);
+}
+
+.node-optional,
+.node-external {
+  border-style: dashed;
+}
+
+.node-external {
+  border-color: var(--fg-3);
+  background: var(--surface-3);
+}
+
+.zone-link {
+  margin: 0 0 0 24px;
+  padding: 8px 0 8px 24px;
+  border-left: 2px solid var(--border-strong);
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.about-means {
+  margin: 16px 0 0;
+  padding-left: 20px;
+}
+
+.about-means li + li {
+  margin-top: 4px;
+}
+
+/* Dienste */
+.about-services {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.about-service {
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.about-service h3 {
+  margin: 0;
+}
+
+.about-service-tech {
+  margin: 2px 0 12px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.about-service dl {
+  margin: 0;
+}
+
+.about-service dt {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+}
+
+.about-service dd {
+  margin: 0 0 8px;
+}
+
+/* Verlässlich */
+.about-duo {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  gap: 16px;
+}
+
+.about-panel {
+  padding: 24px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.about-panel h3 {
+  margin: 0 0 12px;
+}
+
+.about-list {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.about-list li + li {
+  margin-top: 8px;
+}
+
+.about-list strong {
+  font-weight: 600;
+}
+
+/* Fuß */
+.about-foot {
+  padding: 24px 0;
+  background: var(--rail);
+  color: var(--rail-fg-2);
+}
+
+.about-foot-in {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.about-foot p {
+  margin: 0;
+}
+
+.about-foot a {
+  color: var(--rail-fg);
+}
+
+.about-foot :focus-visible {
+  outline-color: var(--rail-mark);
+}
+
+@media (max-width: 860px) {
+  .about-hero-in {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .about-nav {
+    display: none;
+  }
+
+  .about-top .about-top-cta {
+    margin-left: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .about-wrap {
+    padding: 0 16px;
+  }
+
+  .about-title {
+    font-size: 24px;
+    line-height: 32px;
+  }
+
+  .about-claim-text {
+    font-size: 18px;
+    line-height: 24px;
+  }
+
+  .about-figure {
+    padding: 16px;
+  }
+
+  .zone-link {
+    margin-left: 12px;
+    padding-left: 12px;
+  }
+}
+
+@media (forced-colors: active) {
+  .node,
+  .zone,
+  .about-badge {
+    border-color: CanvasText;
+  }
+}

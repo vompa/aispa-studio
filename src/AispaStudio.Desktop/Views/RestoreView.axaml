@@ -1,0 +1,32 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             x:Class="AispaStudio.Desktop.Views.RestoreView"
+             x:DataType="vm:RestoreViewModel">
+  <StackPanel Spacing="10">
+    <Button Classes="ghost" Content="Aus einer Sicherung wiederherstellen …" Command="{Binding OpenCommand}"
+            HorizontalAlignment="Left" IsVisible="{Binding !IsOpen}" />
+    <StackPanel Spacing="10" IsVisible="{Binding IsOpen}">
+      <StackPanel Orientation="Horizontal" Spacing="8">
+        <TextBlock Text="Aus einer Sicherung wiederherstellen" Classes="h2" />
+        <ui:HelpButton Topic="einzelplatz" Section="wiederherstellen" />
+      </StackPanel>
+      <TextBlock Text="Die Sicherung (aispa-….dump) und die Schlüsseldatei daneben aus dem Sicherungsordner, dazu der notierte Wiederherstellungsschlüssel. Bisherige Daten auf diesem PC werden beiseitegelegt, nicht gelöscht."
+                 Classes="muted small" TextWrapping="Wrap" />
+      <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+        <ui:FormField Label="Sicherungsdatei" IsRequired="True">
+          <TextBox Text="{Binding DumpFile}" PlaceholderText="z. B. D:\Sicherung\aispa-20261019-080000.dump" />
+        </ui:FormField>
+        <Button Grid.Column="1" Content="Datei wählen" Click="PickFile" VerticalAlignment="Bottom" />
+      </Grid>
+      <ui:FormField Label="Wiederherstellungsschlüssel" Help="24 Zeichen, beim Einrichten der Sicherung notiert." IsRequired="True">
+        <TextBox Text="{Binding Code}" PlaceholderText="z. B. K7QM-2XRT-…" Classes="num" />
+      </ui:FormField>
+      <Button Classes="primary" Content="Wiederherstellen" Command="{Binding RestoreCommand}" HorizontalAlignment="Left" />
+      <TextBlock Text="{Binding Message}" AutomationProperties.LiveSetting="Polite" Classes="muted" TextWrapping="Wrap"
+                 IsVisible="{Binding Message, Converter={x:Static ObjectConverters.IsNotNull}}" />
+      <ui:InfoBar Severity="Error" Message="{Binding ErrorText}" IsVisible="{Binding ErrorText, Converter={x:Static ObjectConverters.IsNotNull}}" />
+    </StackPanel>
+  </StackPanel>
+</UserControl>

@@ -1,0 +1,127 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             x:Class="AispaStudio.Desktop.Views.PersonRegulationsView"
+             x:DataType="vm:PersonRegulationsViewModel">
+  <!--
+    Reiter „Regelungen und Vollmachten“ der Personenkarte (R05 Slice 111, Ä252): drei Listen, abgelaufene Einträge ausgegraut. Ein Eintrag öffnet sich als Formular über den Listen.
+    Nur Inhaberin und Manager; bei Ausgeschiedenen nur lesen.
+  -->
+  <UserControl.DataTemplates>
+    <DataTemplate DataType="vm:RegulationRow">
+      <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8" Margin="0,0,0,12">
+        <StackPanel Spacing="2">
+          <TextBlock Text="{Binding Title}" Classes="heading" Classes.muted="{Binding IsExpired}" TextWrapping="Wrap" />
+          <ItemsControl ItemsSource="{Binding Lines}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="x:String">
+                <TextBlock Text="{Binding}" Classes="muted small" TextWrapping="Wrap" />
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" IsVisible="{Binding IsEditable}">
+          <Button Content="Ändern" Command="{Binding EditCommand}" MinWidth="0" AutomationProperties.Name="{Binding Title, StringFormat='Ändern: {0}'}" />
+          <Button Content="Löschen" Command="{Binding DeleteCommand}" MinWidth="0" AutomationProperties.Name="{Binding Title, StringFormat='Löschen: {0}'}" />
+        </StackPanel>
+      </Grid>
+    </DataTemplate>
+  </UserControl.DataTemplates>
+
+  <StackPanel x:Name="RegulationsSection" Spacing="16">
+    <StackPanel Spacing="4">
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Text="Regelungen und Vollmachten" Classes="h3" VerticalAlignment="Center" />
+        <ui:HelpButton Topic="regelungen-vollmachten" Grid.Column="1" />
+      </Grid>
+      <TextBlock Classes="muted" TextWrapping="Wrap" Text="Sonderregelungen warnen beim Planen und Buchen, sie sperren nie. Vollmachten gelten zusätzlich zur Rolle." />
+    </StackPanel>
+
+    <ui:InfoBar Severity="Error" Title="Nicht geladen" Message="{Binding LoadError}" IsVisible="{Binding HasLoadError}"
+                ActionText="Erneut laden" ActionCommand="{Binding LoadCommand}" />
+    <ui:InfoBar Severity="Error" Title="Nicht möglich" Message="{Binding Error}" IsVisible="{Binding ShowsListError}" CloseCommand="{Binding CloseErrorCommand}" />
+
+    <WrapPanel ItemSpacing="8" LineSpacing="8" IsVisible="{Binding ShowsAddButtons}">
+      <Button x:Name="AddNoteButton" Content="Hinweis anlegen" Command="{Binding AddNoteCommand}" />
+      <Button x:Name="AddRuleButton" Content="Sonderregelung anlegen" Command="{Binding AddRuleCommand}" />
+      <Button x:Name="AddPowerButton" Content="Vollmacht erteilen" Command="{Binding AddPowerCommand}" />
+    </WrapPanel>
+
+    <StackPanel x:Name="RegulationForm" Spacing="12" IsVisible="{Binding IsEditing}" ui:SaveShortcut.IsScope="True">
+      <TextBlock Text="{Binding FormTitle}" Classes="h3" />
+
+      <StackPanel Spacing="12" IsVisible="{Binding IsNoteForm}">
+        <ui:FormField Label="Hinweis" IsRequired="True" Error="{Binding NoteTextError}">
+          <TextBox x:Name="NoteTextField" Text="{Binding NoteText}" MaxLength="500" />
+        </ui:FormField>
+        <ui:FormField Label="Sichtbar für">
+          <ComboBox x:Name="VisibilityField" ItemsSource="{Binding Visibilities}" SelectedItem="{Binding SelectedVisibility}" MinWidth="200" AutomationProperties.Name="Sichtbar für" />
+        </ui:FormField>
+        <CheckBox x:Name="ShowAsSymbolField" Content="Als Symbol im Dienstplan und im Kalender zeigen" IsChecked="{Binding ShowAsSymbol}" />
+      </StackPanel>
+
+      <StackPanel Spacing="12" IsVisible="{Binding IsRuleForm}">
+        <ui:FormField Label="Art">
+          <ComboBox x:Name="RuleKindField" ItemsSource="{Binding RuleKinds}" SelectedItem="{Binding SelectedRuleKind}" MinWidth="260" AutomationProperties.Name="Art der Sonderregelung" />
+        </ui:FormField>
+        <ui:FormField Label="Keine Termine nach" IsRequired="True" Error="{Binding ValueError}" IsVisible="{Binding ShowsLatestEnd}">
+          <ui:TimeField x:Name="LatestEndField" Value="{Binding LatestEnd}" />
+        </ui:FormField>
+        <ui:FormField Label="Stunden pro Tag" IsRequired="True" Error="{Binding ValueError}" IsVisible="{Binding ShowsMaxHours}">
+          <ui:NumberField x:Name="MaxHoursField" Value="{Binding MaxHours}" Minimum="0" Maximum="24" DecimalPlaces="2" />
+        </ui:FormField>
+        <ui:FormField Label="Freie Wochentage" IsRequired="True" Error="{Binding ValueError}" IsVisible="{Binding ShowsDaysOff}">
+          <ItemsControl x:Name="DaysOffField" ItemsSource="{Binding Days}" AutomationProperties.Name="Freie Wochentage">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <WrapPanel ItemSpacing="12" />
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:RegulationDayOption">
+                <CheckBox Content="{Binding Label}" IsChecked="{Binding IsChecked}" AutomationProperties.Name="{Binding Label}" />
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </ui:FormField>
+        <ui:FormField Label="Grund" Help="Sehen nur Inhaberin und Manager; die Warnung beim Planen und Buchen nennt ihn nicht.">
+          <TextBox x:Name="ReasonField" Text="{Binding Reason}" MaxLength="500" />
+        </ui:FormField>
+      </StackPanel>
+
+      <ui:FormField Label="Vollmacht" IsVisible="{Binding IsPowerForm}">
+        <ComboBox x:Name="PowerKindField" ItemsSource="{Binding PowerKinds}" SelectedItem="{Binding SelectedPowerKind}" MinWidth="260" AutomationProperties.Name="Vollmacht" />
+      </ui:FormField>
+
+      <ui:FormField Label="Gültig von" Error="{Binding ValidFromError}">
+        <ui:DateField x:Name="ValidFromField" Value="{Binding ValidFrom}" />
+      </ui:FormField>
+      <ui:FormField Label="Gültig bis" Error="{Binding ValidUntilError}" Help="Leer: ohne Ende. Der Tag selbst zählt noch.">
+        <ui:DateField x:Name="ValidUntilField" Value="{Binding ValidUntil}" />
+      </ui:FormField>
+
+      <ui:InfoBar Severity="Error" Title="Nicht gespeichert" Message="{Binding Error}" IsVisible="{Binding ShowsFormError}" CloseCommand="{Binding CloseErrorCommand}" />
+      <ui:SaveBar SaveCommand="{Binding SaveCommand}" DiscardCommand="{Binding CancelCommand}" CanDiscard="True" />
+    </StackPanel>
+
+    <TextBlock x:Name="RegulationsStatus" Text="{Binding StatusText}" Classes="muted" IsVisible="{Binding !IsEditing}" />
+    <TextBlock Text="Lade Regelungen und Vollmachten …" Classes="muted" IsVisible="{Binding ShowsLoading}" />
+
+    <StackPanel Spacing="8">
+      <TextBlock Text="Hinweise" Classes="label" />
+      <TextBlock Text="Keine Hinweise." Classes="muted" IsVisible="{Binding HasNoNotes}" />
+      <ItemsControl x:Name="NotesList" ItemsSource="{Binding Notes}" AutomationProperties.Name="Hinweise" />
+    </StackPanel>
+    <StackPanel Spacing="8">
+      <TextBlock Text="Sonderregelungen" Classes="label" />
+      <TextBlock Text="Keine Sonderregelungen." Classes="muted" IsVisible="{Binding HasNoRules}" />
+      <ItemsControl x:Name="RulesList" ItemsSource="{Binding Rules}" AutomationProperties.Name="Sonderregelungen" />
+    </StackPanel>
+    <StackPanel Spacing="8">
+      <TextBlock Text="Vollmachten" Classes="label" />
+      <TextBlock Text="Keine Vollmachten." Classes="muted" IsVisible="{Binding HasNoPowers}" />
+      <ItemsControl x:Name="PowersList" ItemsSource="{Binding Powers}" AutomationProperties.Name="Vollmachten" />
+    </StackPanel>
+  </StackPanel>
+</UserControl>

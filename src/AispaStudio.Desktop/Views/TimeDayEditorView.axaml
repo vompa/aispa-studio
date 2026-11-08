@@ -1,0 +1,78 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             x:Class="AispaStudio.Desktop.Views.TimeDayEditorView"
+             x:DataType="vm:TimeDayEditorViewModel">
+  <!--
+    Zeiten eines Tages (R05 Slice 99), nach DayPanel und RecordEditor in web/src/time/TimesheetPage.tsx: Soll, Ist und Pause, Hinweise, die Abschnitte mit „Ändern“ und „Verlauf“,
+    darunter Nachtragen und Ändern mit Beginn, Ende und Pflichtgrund. Die Leiste „Speichern / Verwerfen“ gehört zum Editor; Strg+S gilt über den Bereich Team (TeamView).
+    Mit nur Leserecht (Backoffice) fehlen „Ändern“ und „Zeit nachtragen“.
+  -->
+  <Border x:Name="TimeDay" Classes="card" Padding="16" AutomationProperties.Name="Zeiten des Tages">
+    <StackPanel Spacing="12">
+      <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+        <TextBlock x:Name="TimeDayHeading" Text="{Binding Heading}" Classes="h3" VerticalAlignment="Center" TextWrapping="Wrap" />
+        <Button Grid.Column="1" x:Name="CloseTimeDayButton" Content="Schließen" Command="{Binding CloseCommand}" Classes="ghost" ToolTip.Tip="Tag schließen" />
+      </Grid>
+
+      <TextBlock x:Name="TimeSummary" Text="{Binding SummaryText}" Classes="muted num" />
+      <ui:InfoBar x:Name="TimeWarnings" Severity="Warning" Title="Hinweise zur Arbeitszeit" Message="{Binding WarningsText}" IsVisible="{Binding HasWarnings}" />
+
+      <TextBlock Text="An diesem Tag gibt es keine Zeiten." Classes="muted small" IsVisible="{Binding HasNoRecords}" />
+      <ItemsControl x:Name="TimeRecords" ItemsSource="{Binding Records}" AutomationProperties.Name="Abschnitte des Tages">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="vm:TimeRecordRow">
+            <StackPanel Spacing="4" Margin="0,0,0,8">
+              <Grid ColumnDefinitions="*,88,88" ColumnSpacing="8">
+                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                  <TextBlock Text="{Binding SpanText}" Classes="num" />
+                  <TextBlock Text="{Binding DetailText}" Classes="muted small" IsVisible="{Binding HasDetail}" VerticalAlignment="Center" />
+                </StackPanel>
+                <Button Grid.Column="1" Content="Ändern" Classes="ghost" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Command="{Binding ChangeCommand}" IsVisible="{Binding CanChange}"
+                        AutomationProperties.Name="{Binding ChangeName}" />
+                <Button Grid.Column="2" Content="Verlauf" Classes="ghost" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Command="{Binding HistoryCommand}" IsVisible="{Binding CanHistory}"
+                        AutomationProperties.Name="{Binding HistoryName}" />
+              </Grid>
+              <ItemsControl ItemsSource="{Binding History}" IsVisible="{Binding HasHistory}" Margin="12,0,0,0">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="x:String">
+                    <TextBlock Text="{Binding}" Classes="muted small" TextWrapping="Wrap" />
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+
+      <Button x:Name="AddTimeButton" Content="Zeit nachtragen" Command="{Binding AddCommand}" IsVisible="{Binding CanAdd}" HorizontalAlignment="Left" />
+
+      <StackPanel x:Name="TimeEditor" Spacing="12" IsVisible="{Binding IsEditing}">
+        <Grid ColumnDefinitions="*,Auto">
+          <TextBlock Text="{Binding EditorTitle}" Classes="h3" VerticalAlignment="Center" />
+          <ui:HelpButton Topic="zeiten-korrigieren" Grid.Column="1" />
+        </Grid>
+        <StackPanel Orientation="Horizontal" Spacing="16">
+          <ui:FormField Label="Beginn" IsRequired="True" Error="{Binding StartError}">
+            <ui:TimeField x:Name="StartField" Value="{Binding Start}" AutomationProperties.Name="Beginn" />
+          </ui:FormField>
+          <ui:FormField Label="Ende" Help="{Binding NextDayHint}">
+            <ui:TimeField Value="{Binding End}" AutomationProperties.Name="Ende" />
+          </ui:FormField>
+        </StackPanel>
+        <ui:FormField Label="Grund (wird protokolliert)" IsRequired="True" Error="{Binding ReasonError}">
+          <TextBox x:Name="TimeReason" Text="{Binding Reason}" PlaceholderText="z. B. Stempeln vergessen" AutomationProperties.Name="Grund" />
+        </ui:FormField>
+        <ui:InfoBar Severity="Error" Title="Nicht gespeichert" Message="{Binding Error}" IsVisible="{Binding HasError}" CloseCommand="{Binding CloseErrorCommand}" />
+        <StackPanel Orientation="Horizontal" Spacing="24">
+          <ui:SaveBar SaveCommand="{Binding SaveCommand}" DiscardCommand="{Binding DiscardChangesCommand}" CanDiscard="True" Status="{Binding StatusText}" />
+          <Button x:Name="RemoveTimeButton" Content="Entfernen" Classes="ghost danger" Command="{Binding RemoveCommand}" IsVisible="{Binding CanRemove}"
+                  ToolTip.Tip="Der Abschnitt wird entfernt und bleibt mit dem Grund im Verlauf" />
+        </StackPanel>
+      </StackPanel>
+
+      <TextBlock x:Name="TimeStatus" Text="{Binding StatusText}" Classes="muted small" IsVisible="{Binding !IsEditing}" />
+    </StackPanel>
+  </Border>
+</UserControl>

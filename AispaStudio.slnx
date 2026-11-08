@@ -1,0 +1,15 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/AispaStudio.Api/AispaStudio.Api.csproj" />
+    <Project Path="src/AispaStudio.AppHost/AispaStudio.AppHost.csproj" />
+    <Project Path="src/AispaStudio.Client/AispaStudio.Client.csproj" />
+    <Project Path="src/AispaStudio.Contracts/AispaStudio.Contracts.csproj" />
+    <Project Path="src/AispaStudio.Desktop/AispaStudio.Desktop.csproj" />
+    <Project Path="src/AispaStudio.Help/AispaStudio.Help.csproj" />
+    <Project Path="src/AispaStudio.ServiceDefaults/AispaStudio.ServiceDefaults.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/AispaStudio.Api.Tests/AispaStudio.Api.Tests.csproj" />
+    <Project Path="tests/AispaStudio.Desktop.Tests/AispaStudio.Desktop.Tests.csproj" />
+  </Folder>
+</Solution>

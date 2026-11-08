@@ -1,0 +1,55 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             x:Class="AispaStudio.Desktop.Views.RoomsSection"
+             x:DataType="vm:LocationsViewModel">
+  <!--
+    Räume und Tagesstart-Kontrolle (R05 Slice 95), nach web/src/admin/LocationsTab.tsx (RoomList, RoomRow) und RoomChecklist.tsx: eine Zeile je Raum mit eigenem
+    Speichern (Knopf erst mit einer Änderung und einem Namen), die letzte Zeile ist die neue. Darunter die Checkliste des gewählten Raums, ein Punkt je Zeile.
+  -->
+  <UserControl.DataTemplates>
+    <DataTemplate DataType="vm:RoomRowViewModel" x:DataType="vm:RoomRowViewModel">
+      <Grid ColumnDefinitions="*,104,72,64,180,170" ColumnSpacing="8" Margin="0,0,0,8">
+        <StackPanel Spacing="2">
+          <TextBox x:Name="RoomNameField" Text="{Binding Name}" PlaceholderText="{Binding Placeholder}" AutomationProperties.Name="Raumname" MaxLength="100" />
+          <TextBlock Text="Nicht gespeichert" Classes="small warn" Margin="2,0,0,0" IsVisible="{Binding HasPendingChanges}" />
+        </StackPanel>
+        <ui:NumberField Grid.Column="1" Width="NaN" HorizontalAlignment="Stretch" VerticalAlignment="Top" Value="{Binding CleaningMinutes}" Minimum="0" Maximum="240" Increment="5" LargeIncrement="15"
+                        AutomationProperties.Name="Raumpflege in Minuten" />
+        <ui:NumberField Grid.Column="2" Width="NaN" HorizontalAlignment="Stretch" VerticalAlignment="Top" Value="{Binding Places}" Minimum="1" Maximum="{Binding PlacesMaximum}" AutomationProperties.Name="Plätze" />
+        <CheckBox x:Name="RoomAreaField" Grid.Column="3" VerticalAlignment="Top" IsChecked="{Binding IsArea}" AutomationProperties.Name="Bereich (Sauna, Ruheraum)" MinWidth="0" />
+        <ComboBox Grid.Column="4" VerticalAlignment="Top" ItemsSource="{Binding Articles}" SelectedItem="{Binding Admission}" IsVisible="{Binding IsArea}" HorizontalAlignment="Stretch"
+                  AutomationProperties.Name="Artikel für den Eintritt" />
+        <StackPanel Grid.Column="5" Orientation="Horizontal" Spacing="4" VerticalAlignment="Top">
+          <Button Content="{Binding SaveText}" Command="{Binding SaveCommand}" IsVisible="{Binding CanSave}" AutomationProperties.Name="{Binding SaveName}" />
+          <Button Classes="ghost icon" Width="28" Height="28" MinHeight="28" Command="{Binding DeactivateCommand}" IsVisible="{Binding CanDeactivate}"
+                  ToolTip.Tip="Entfernen" AutomationProperties.Name="{Binding DeactivateName}">
+            <ui:Icon Data="{x:Static ui:Icons.Trash}" Width="16" Height="16" />
+          </Button>
+        </StackPanel>
+      </Grid>
+    </DataTemplate>
+  </UserControl.DataTemplates>
+
+  <StackPanel Spacing="8" AutomationProperties.Name="Räume">
+    <Grid ColumnDefinitions="*,Auto">
+      <TextBlock Text="Räume" Classes="h2" VerticalAlignment="Center" />
+      <ui:HelpButton Grid.Column="1" Topic="standorte" Section="raeume" />
+    </Grid>
+    <Grid ColumnDefinitions="*,104,72,64,180,170" ColumnSpacing="8" Margin="0,4,0,0">
+      <TextBlock Text="Name" Classes="label" />
+      <TextBlock Grid.Column="1" Text="Raumpflege (min)" Classes="label" TextTrimming="CharacterEllipsis"
+                 ToolTip.Tip="Minuten nach jedem Termin, in denen der Raum für die Raumpflege gesperrt bleibt" />
+      <TextBlock Grid.Column="2" Text="Plätze" Classes="label"
+                 ToolTip.Tip="Gäste einer gemeinsamen Buchung, die hier gleichzeitig behandelt werden (2 für eine Paarsuite); im Bereich die Kapazität" />
+      <TextBlock Grid.Column="3" Text="Bereich" Classes="label"
+                 ToolTip.Tip="Gemeinschaftsbereich wie Sauna oder Ruheraum: Gäste buchen einen Eintritt und teilen sich die Plätze" />
+      <TextBlock Grid.Column="4" Text="Eintritt" Classes="label"
+                 ToolTip.Tip="Kassa-Artikel, mit dem ein Eintritt in den Bereich je Person abgerechnet wird (Preis, Steuersatz und Erlöskonto kommen vom Artikel)" />
+    </Grid>
+    <ItemsControl x:Name="RoomList" ItemsSource="{Binding Rooms}" />
+    <ContentControl x:Name="NewRoomRow" Content="{Binding NewRoom}" />
+    <ui:InfoBar Severity="Error" Message="{Binding RoomMessage}" IsVisible="{Binding HasRoomMessage}" />
+  </StackPanel>
+</UserControl>

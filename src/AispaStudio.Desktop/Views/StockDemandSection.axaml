@@ -1,0 +1,68 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             x:Class="AispaStudio.Desktop.Views.StockDemandSection"
+             x:DataType="vm:StockDemandViewModel">
+  <!-- Bedarfsprüfung (R05 Slice 123, Ä223) nach web/src/stock/StockDemand.tsx: reicht der Bestand für die gebuchten, offenen Termine des Zeitraums? Alle Zahlen stammen aus der API. -->
+  <Border Classes="card">
+    <StackPanel Spacing="12" Grid.IsSharedSizeScope="True">
+      <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+        <TextBlock Text="Bedarfsprüfung" Classes="h2" VerticalAlignment="Center" />
+        <ui:HelpButton Grid.Column="1" Topic="lager-bedarf-pruefen" />
+      </Grid>
+      <ui:FormField Label="Zeitraum" HorizontalAlignment="Left">
+        <ComboBox x:Name="DemandPeriodField" ItemsSource="{Binding Periods}" SelectedItem="{Binding SelectedPeriod}" MinWidth="200" />
+      </ui:FormField>
+      <ui:InfoBar Severity="Error" Title="Bedarf nicht geladen" Message="{Binding LoadError}" IsVisible="{Binding HasLoadError}" ActionText="Erneut laden" ActionCommand="{Binding LoadCommand}" />
+      <!-- Die Hinweise stehen hinter einer Zeile mit ihrer Zahl, nicht als gelbe Textwand (R07 Slice 143) -->
+      <Expander x:Name="DemandWarnings" Header="{Binding WarningTitle}" IsVisible="{Binding HasWarnings}" HorizontalAlignment="Stretch">
+        <TextBlock Text="{Binding WarningText}" Classes="warn small" TextWrapping="Wrap" />
+      </Expander>
+      <TextBlock Text="{Binding SummaryText}" Classes="muted" TextWrapping="Wrap" IsVisible="{Binding HasSummary}" />
+
+      <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" IsVisible="{Binding HasRows}">
+        <StackPanel Spacing="8">
+          <Grid AutomationProperties.AccessibilityView="Raw">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*" MinWidth="160" />
+              <ColumnDefinition Width="Auto" SharedSizeGroup="OnHand" />
+              <ColumnDefinition Width="Auto" SharedSizeGroup="Needed" />
+              <ColumnDefinition Width="Auto" SharedSizeGroup="Shortfall" />
+              <ColumnDefinition Width="Auto" SharedSizeGroup="Appointments" />
+              <ColumnDefinition Width="Auto" SharedSizeGroup="Left" />
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="Material" Classes="group" />
+            <TextBlock Grid.Column="1" Text="Bestand" Classes="group" MinWidth="96" Margin="12,0,0,0" TextAlignment="Right" />
+            <TextBlock Grid.Column="2" Text="Bedarf" Classes="group" MinWidth="96" Margin="12,0,0,0" TextAlignment="Right" />
+            <TextBlock Grid.Column="3" Text="Fehlt" Classes="group" MinWidth="96" Margin="12,0,0,0" TextAlignment="Right" />
+            <TextBlock Grid.Column="4" Text="Termine" Classes="group" MinWidth="80" Margin="12,0,0,0" />
+            <TextBlock Grid.Column="5" Text="Danach noch für" Classes="group" MinWidth="120" Margin="12,0,0,0" />
+          </Grid>
+          <ItemsControl x:Name="DemandList" ItemsSource="{Binding Rows}" AutomationProperties.Name="Bedarf je Material">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:DemandRow">
+                <Grid Margin="0,4" AutomationProperties.Name="{Binding Summary}">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" MinWidth="160" />
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="OnHand" />
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="Needed" />
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="Shortfall" />
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="Appointments" />
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="Left" />
+                  </Grid.ColumnDefinitions>
+                  <TextBlock Text="{Binding Material}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                  <TextBlock Grid.Column="1" Text="{Binding OnHandText}" Classes="num" MinWidth="96" Margin="12,0,0,0" TextAlignment="Right" VerticalAlignment="Center" />
+                  <TextBlock Grid.Column="2" Text="{Binding NeededText}" Classes="num" MinWidth="96" Margin="12,0,0,0" TextAlignment="Right" VerticalAlignment="Center" />
+                  <TextBlock Grid.Column="3" Text="{Binding ShortfallText}" Classes="num warn" MinWidth="96" Margin="12,0,0,0" TextAlignment="Right" VerticalAlignment="Center" />
+                  <TextBlock Grid.Column="4" Text="{Binding AppointmentsText}" MinWidth="80" Margin="12,0,0,0" VerticalAlignment="Center" />
+                  <TextBlock Grid.Column="5" Text="{Binding LeftText}" MinWidth="120" Margin="12,0,0,0" VerticalAlignment="Center" />
+                </Grid>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </ScrollViewer>
+    </StackPanel>
+  </Border>
+</UserControl>

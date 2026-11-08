@@ -1,0 +1,121 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             x:Class="AispaStudio.Desktop.Views.PaymentsView"
+             x:DataType="vm:PaymentsViewModel"
+             ui:SaveShortcut.IsScope="True">
+  <!--
+    Zahlungskonto (ADR 0054, R05 Slice 96): dieselben Möglichkeiten, Texte und Hilfe wie web/src/admin/PaymentsTab.tsx. Schlüsselfelder bleiben leer und maskiert;
+    ein hinterlegter Schlüssel steht nur als „••••“ mit den letzten vier Zeichen im Platzhalter. Bei „Mit Stripe verbinden“ gibt es keine Leiste (wie im Web).
+  -->
+  <Grid RowDefinitions="*,Auto">
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+      <StackPanel Spacing="20" MaxWidth="720" HorizontalAlignment="Left" Margin="0,0,16,16">
+        <ui:InfoBar Severity="Error" Title="Zahlungskonto nicht geladen" Message="{Binding LoadError}" IsVisible="{Binding HasLoadError}"
+                    ActionText="Erneut laden" ActionCommand="{Binding LoadCommand}" />
+        <TextBlock Text="Lade Zahlungskonto …" Classes="muted" IsVisible="{Binding !IsLoaded}" />
+
+        <StackPanel Spacing="20" IsVisible="{Binding IsLoaded}">
+          <StackPanel Spacing="8">
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Text="Online-Zahlungen" Classes="h2" VerticalAlignment="Center" />
+              <ui:HelpButton Grid.Column="1" Topic="zahlungen" Section="online-zahlungen" />
+            </Grid>
+            <TextBlock Classes="muted" TextWrapping="Wrap"
+                       Text="Online gekaufte Gutscheine, hinterlegte Karten und Ausfallgebühren gehen direkt auf das Stripe-Konto des Spas. AISPA hält nie Geld; jede Zahlung landet trotzdem mit Beleg in der Kassa." />
+            <TextBlock x:Name="AccountStatusText" Text="{Binding AccountStatus}" TextWrapping="Wrap" IsVisible="{Binding !HasAccountError}"
+                       AutomationProperties.LiveSetting="Polite" />
+            <ui:InfoBar Severity="Error" Title="Zahlungskonto" Message="{Binding AccountStatus}" IsVisible="{Binding HasAccountError}" />
+          </StackPanel>
+
+          <StackPanel Spacing="20" IsVisible="{Binding IsStripe}">
+            <StackPanel Spacing="8">
+              <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Text="Wie nimmt das Spa Online-Zahlungen an?" Classes="h2" VerticalAlignment="Center" TextWrapping="Wrap" />
+                <ui:HelpButton Grid.Column="1" Topic="zahlungen" Section="zahlungsart" />
+              </Grid>
+              <StackPanel Spacing="8">
+                <RadioButton x:Name="ConnectOption" GroupName="PaymentMode" IsChecked="{Binding IsConnect}" IsEnabled="{Binding ConnectAvailable}"
+                             AutomationProperties.Name="Mit Stripe verbinden (empfohlen)">
+                  <StackPanel Spacing="2">
+                    <TextBlock Text="Mit Stripe verbinden (empfohlen)" FontWeight="SemiBold" />
+                    <TextBlock Text="{Binding ConnectDescription}" Classes="muted" TextWrapping="Wrap" />
+                  </StackPanel>
+                </RadioButton>
+                <RadioButton x:Name="OwnKeysOption" GroupName="PaymentMode" IsChecked="{Binding IsOwnKeys}" AutomationProperties.Name="Eigene Stripe-Schlüssel">
+                  <StackPanel Spacing="2">
+                    <TextBlock Text="Eigene Stripe-Schlüssel" FontWeight="SemiBold" />
+                    <TextBlock Text="Für ein bestehendes Stripe-Konto: geheimen Schlüssel und Webhook-Geheimnis eintragen." Classes="muted" TextWrapping="Wrap" />
+                  </StackPanel>
+                </RadioButton>
+                <RadioButton x:Name="NoneOption" GroupName="PaymentMode" IsChecked="{Binding IsNone}" AutomationProperties.Name="Keine Online-Zahlung">
+                  <StackPanel Spacing="2">
+                    <TextBlock Text="Keine Online-Zahlung" FontWeight="SemiBold" />
+                    <TextBlock Text="{Binding NoneDescription}" Classes="muted" TextWrapping="Wrap" />
+                  </StackPanel>
+                </RadioButton>
+              </StackPanel>
+              <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding ShowPlatformHint}">
+                <TextBlock Text="Stripe Connect einrichten (für den Betreiber)" Classes="muted" VerticalAlignment="Center" />
+                <ui:HelpButton Grid.Column="1" Topic="zahlungen" Section="plattform-einrichten" />
+              </Grid>
+              <ui:InfoBar Severity="Warning" Title="Wechsel des Kontos" IsVisible="{Binding IsSwitching}"
+                          Message="Hinterlegte Karten und Erstattungen bisheriger Zahlungen gehören zum bisherigen Konto. Nach dem Wechsel lassen sie sich nicht mehr über AISPA belasten oder erstatten, sondern nur noch im Stripe-Dashboard." />
+            </StackPanel>
+
+            <!-- Stripe Connect -->
+            <StackPanel Spacing="8" IsVisible="{Binding ShowConnect}">
+              <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Text="Stripe Connect" Classes="h2" VerticalAlignment="Center" />
+                <ui:HelpButton Grid.Column="1" Topic="zahlungen" Section="stripe-connect" />
+              </Grid>
+              <TextBlock Text="{Binding ConnectAccountLine}" IsVisible="{Binding HasConnectAccount}" TextWrapping="Wrap" />
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button x:Name="ConnectButton" Classes="primary" Content="{Binding ConnectButtonText}" Command="{Binding ConnectCommand}"
+                        IsVisible="{Binding ShowConnectButton}" />
+                <Button x:Name="OpenStripeButton" Content="Stripe öffnen" Command="{Binding OpenStripeCommand}" IsVisible="{Binding CanOpenStripe}" />
+                <Button x:Name="CheckButton" Classes="ghost" Content="Stand abfragen" Command="{Binding CheckCommand}" IsVisible="{Binding ShowCheck}" />
+              </StackPanel>
+              <TextBlock Classes="muted" TextWrapping="Wrap" IsVisible="{Binding CanOpenStripe}"
+                         Text="Stripe öffnet sich im Browser. Nach dem Abschluss hierher zurückkehren und „Stand abfragen“ wählen." />
+            </StackPanel>
+
+            <!-- Eigene Stripe-Schlüssel -->
+            <StackPanel Spacing="8" IsVisible="{Binding ShowOwnKeys}">
+              <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Text="Eigene Stripe-Schlüssel" Classes="h2" VerticalAlignment="Center" />
+                <ui:HelpButton Grid.Column="1" Topic="zahlungen" Section="eigene-schluessel" />
+              </Grid>
+              <TextBlock Classes="muted" TextWrapping="Wrap"
+                         Text="Beides steht im Stripe-Dashboard unter „Entwickler“. Die Schlüssel werden verschlüsselt gespeichert und nie wieder angezeigt." />
+              <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                <ui:FormField Label="Geheimer Schlüssel">
+                  <TextBox x:Name="SecretKeyField" Text="{Binding SecretKey}" PasswordChar="•" PlaceholderText="{Binding SecretKeyPlaceholder}" />
+                </ui:FormField>
+                <ui:FormField Grid.Column="1" Label="Webhook-Geheimnis">
+                  <TextBox x:Name="WebhookSecretField" Text="{Binding WebhookSecret}" PasswordChar="•" PlaceholderText="{Binding WebhookSecretPlaceholder}" />
+                </ui:FormField>
+              </Grid>
+              <ui:InfoBar Severity="Warning" Title="Testschlüssel hinterlegt" IsVisible="{Binding ShowTestKeyWarning}"
+                          Message="Zahlungen sind nur Probe, es fließt kein echtes Geld." />
+              <StackPanel Spacing="4" IsVisible="{Binding HasWebhookUrl}">
+                <TextBlock Classes="muted" Text="Als Webhook im Stripe-Dashboard eintragen, mit den Ereignissen unten:" TextWrapping="Wrap" />
+                <SelectableTextBlock x:Name="WebhookUrlText" Text="{Binding WebhookUrl}" TextWrapping="Wrap" />
+                <TextBlock Classes="muted" TextWrapping="Wrap" Text="{x:Static vm:PaymentsViewModel.CheckoutEvents}" />
+              </StackPanel>
+              <TextBlock Classes="muted" Text="Die Adresse für den Webhook erscheint nach dem Speichern." IsVisible="{Binding !HasWebhookUrl}" TextWrapping="Wrap" />
+              <TextBlock Text="{Binding OwnKeysAccountLine}" IsVisible="{Binding HasOwnKeysAccount}" TextWrapping="Wrap" />
+            </StackPanel>
+          </StackPanel>
+        </StackPanel>
+      </StackPanel>
+    </ScrollViewer>
+
+    <StackPanel Grid.Row="1" Spacing="12" MaxWidth="720" HorizontalAlignment="Left" Margin="0,12,16,0" IsVisible="{Binding IsLoaded}">
+      <ui:InfoBar Severity="Error" Title="{Binding ErrorTitle}" Message="{Binding Error}" IsVisible="{Binding HasError}" CloseCommand="{Binding CloseErrorCommand}" />
+      <ui:SaveBar SaveCommand="{Binding SaveCommand}" DiscardCommand="{Binding DiscardCommand}" CanDiscard="{Binding HasUnsavedChanges}" Status="{Binding StatusText}"
+                  IsVisible="{Binding ShowSaveBar}" />
+    </StackPanel>
+  </Grid>
+</UserControl>

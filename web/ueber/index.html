@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="preload" href="/src/assets/fonts/inter-latin-var.woff2" as="font" type="font/woff2" crossorigin />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <meta
+      name="description"
+      content="AISPA Studio, eine Konzeptstudie zur KI-nativen Softwareentwicklung, auf einen Blick: was im Spa läuft, was im Rechenzentrum, welche Dienste anderer Firmen angebunden sind und wie die Software mit KI entsteht."
+    />
+    <title>Über AISPA Studio</title>
+    <link rel="stylesheet" href="/src/about/about.css" />
+  </head>
+  <body class="about-page">
+    <a class="skip-link" href="#inhalt">Zum Inhalt springen</a>
+
+    <header class="about-top">
+      <div class="about-wrap about-top-in">
+        <a class="about-brand" href="#top" aria-label="AISPA Studio, zum Seitenanfang">
+          <span class="about-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="18" height="18" focusable="false">
+              <path d="M3 17c3-1 4.5-4 9-4s6 3 9 4M3 21c3-1 4.5-3 9-3s6 2 9 3M12 3c2 2.5 2 5.5 0 8c-2-2.5-2-5.5 0-8z" />
+            </svg>
+          </span>
+          <span class="about-brand-text">AISPA Studio</span>
+        </a>
+        <nav class="about-nav" aria-label="Abschnitte der Seite">
+          <a href="#betriebsarten">So läuft es</a>
+          <a href="#dienste">Dienste</a>
+          <a href="#ausblick">Ausblick</a>
+          <a href="#verlaesslich">Verlässlich</a>
+          <a href="#entwicklung">Entwicklung</a>
+        </nav>
+        <a class="about-top-cta" href="/help/">Zur Hilfe</a>
+      </div>
+    </header>
+
+    <main id="inhalt">
+      <section id="top" class="about-hero" aria-labelledby="about-title">
+        <div class="about-wrap about-hero-in">
+          <div class="about-hero-copy">
+            <p class="about-eyebrow">Eine Konzeptstudie zur KI-nativen Softwareentwicklung · am Beispiel einer Software für Day-Spas</p>
+            <h1 id="about-title" class="about-title">
+              Ein Kalender für das ganze Haus.
+              <span class="about-title-accent">Die KI nimmt Termine an.</span>
+            </h1>
+            <p class="about-lead">
+              Kalender, Kassa, Team und Gäste in einer Software. Sie läuft auf einem einzigen PC im Spa oder für mehrere
+              Arbeitsplätze aus dem Rechenzentrum.
+            </p>
+            <div class="about-cta">
+              <a class="about-button about-button-primary" href="#betriebsarten">So läuft AISPA Studio</a>
+              <a class="about-button" href="#dienste">Angebundene Dienste</a>
+            </div>
+          </div>
+          <div class="about-shots">
+            <img
+              class="about-shot-desktop"
+              src="/src/help/images/app/kalender.png"
+              width="1440"
+              height="900"
+              fetchpriority="high"
+              alt="Die Windows-App mit dem Kalender: je Mitarbeiterin eine Spalte, darin die Termine des Tages."
+            />
+            <img
+              class="about-shot-phone"
+              src="/src/help/images/web/myday-heute.png"
+              width="400"
+              height="860"
+              loading="lazy"
+              alt="Die Handy-App „Mein Tag“ mit den Terminen einer Therapeutin."
+            />
+          </div>
+        </div>
+      </section>
+
+      <section class="about-claim" aria-label="Kernaussage">
+        <div class="about-wrap">
+          <p class="about-claim-text">
+            Der Kalender zeigt, <span class="about-mark-text">wer wann frei ist</span>. Die KI liest Mails, Nachrichten und
+            Anrufe und <span class="about-mark-text">schlägt den passenden Termin vor</span>.
+          </p>
+          <p class="about-claim-sub">Beträge, Steuern und Belege rechnet immer die Software selbst, nie die KI.</p>
+        </div>
+      </section>
+
+      <section id="betriebsarten" class="about-section" aria-labelledby="h-modes">
+        <div class="about-wrap">
+          <h2 id="h-modes" class="about-h2">So läuft AISPA Studio</h2>
+          <p class="about-intro">
+            Es gibt zwei Betriebsarten. Welche passt, hängt davon ab, wie viele Plätze gleichzeitig arbeiten und ob das
+            Team auch am Handy planen soll.
+          </p>
+          <div class="about-table-wrap">
+            <table class="about-table">
+              <caption class="visually-hidden">Vergleich der Betriebsarten</caption>
+              <thead>
+                <tr>
+                  <th scope="col"><span class="visually-hidden">Merkmal</span></th>
+                  <th scope="col">Ein Arbeitsplatz</th>
+                  <th scope="col">Mehrere Arbeitsplätze</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <th scope="row">Für wen</th>
+                  <td>Kleine Spas mit einer Rezeption</td>
+                  <td>Spas mit mehreren Plätzen, Handy-Apps und Online-Buchung</td>
+                </tr>
+                <tr>
+                  <th scope="row">Wo die Daten liegen</th>
+                  <td>Auf dem PC im Spa</td>
+                  <td>Im Rechenzentrum (Microsoft Azure)</td>
+                </tr>
+                <tr>
+                  <th scope="row">Internet nötig</th>
+                  <td>Nur für zugeschaltete Dienste</td>
+                  <td>Ja, für jeden Arbeitsplatz</td>
+                </tr>
+                <tr>
+                  <th scope="row">Handy-Apps und Online-Buchung</th>
+                  <td>Nein</td>
+                  <td>Ja, je nach Abo-Stufe</td>
+                </tr>
+                <tr>
+                  <th scope="row">Laufende Kosten</th>
+                  <td>Nur die genutzten Dienste anderer Firmen</td>
+                  <td>Rechenzentrum und die genutzten Dienste</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <figure class="about-figure" aria-labelledby="fig-single">
+            <figcaption id="fig-single" class="about-figure-title">
+              <h3>Ein Arbeitsplatz</h3>
+              <p>Alles läuft auf einem PC im Spa. Ein Rechenzentrum braucht es nicht.</p>
+            </figcaption>
+            <div class="zone zone-spa">
+              <p class="zone-title">Im Spa · ein PC</p>
+              <ul class="zone-nodes">
+                <li class="node"><strong>Windows-App</strong><span>alle Masken der Rezeption</span></li>
+                <li class="node node-server"><strong>Server-Programm</strong><span>läuft im Hintergrund mit</span></li>
+                <li class="node node-server"><strong>Datenbank</strong><span>PostgreSQL, auf dem PC</span></li>
+                <li class="node node-server node-optional"><strong>Lokale KI</strong><span>wahlweise, ohne Internet</span></li>
+                <li class="node"><strong>Kartenterminal</strong><span>am Kassaplatz</span></li>
+                <li class="node"><strong>Bondrucker</strong><span>am Kassaplatz</span></li>
+                <li class="node"><strong>Signaturkarte</strong><span>für die Registrierkasse (Österreich)</span></li>
+              </ul>
+            </div>
+            <p class="zone-link" aria-hidden="true">nur wenn eingeschaltet</p>
+            <div class="zone zone-external">
+              <p class="zone-title">Dienste anderer Firmen · nur wenn eingeschaltet</p>
+              <ul class="zone-nodes">
+                <li class="node node-external"><strong>Mail</strong><span>Postfach des Spas</span></li>
+                <li class="node node-external"><strong>KI von Anthropic</strong><span>statt lokaler KI</span></li>
+                <li class="node node-external"><strong>Finanzamt</strong><span>Meldung der Kassa</span></li>
+                <li class="node node-external"><strong>Weitere</strong><span>SMS, Online-Zahlung …</span></li>
+              </ul>
+            </div>
+            <ul class="about-means">
+              <li>Die Daten verlassen den PC nur, wenn ein Dienst eingeschaltet ist.</li>
+              <li>Ohne Internet arbeiten Kalender und Kassa weiter.</li>
+              <li>Handy-Apps und Online-Buchung gibt es in dieser Betriebsart nicht.</li>
+            </ul>
+          </figure>
+
+          <figure class="about-figure" aria-labelledby="fig-multi">
+            <figcaption id="fig-multi" class="about-figure-title">
+              <h3>Mehrere Arbeitsplätze</h3>
+              <p>Die Daten liegen im Rechenzentrum. Rezeption, Handys und die Tafel im Pausenraum sehen denselben Stand.</p>
+            </figcaption>
+            <div class="zone zone-spa">
+              <p class="zone-title">Im Spa · vor Ort</p>
+              <ul class="zone-nodes">
+                <li class="node"><strong>Windows-App</strong><span>an jedem Arbeitsplatz</span></li>
+                <li class="node"><strong>Handys und Pausenraum</strong><span>im Browser</span></li>
+                <li class="node"><strong>Kartenterminal</strong><span>am Kassaplatz oder im Netz</span></li>
+                <li class="node"><strong>Bondrucker</strong><span>am Kassaplatz oder im Netz</span></li>
+              </ul>
+            </div>
+            <p class="zone-link" aria-hidden="true">über das Internet</p>
+            <div class="zone zone-cloud">
+              <p class="zone-title">Unser Rechenzentrum · Microsoft Azure</p>
+              <ul class="zone-nodes">
+                <li class="node node-server"><strong>Web-Apps</strong><span>Handy, Pausenraum, Online-Buchung</span></li>
+                <li class="node node-server"><strong>Server-Programm</strong><span>mehrfach, je nach Last</span></li>
+                <li class="node node-server"><strong>Hintergrunddienst</strong><span>Mails, KI, Nachrichten</span></li>
+                <li class="node node-server"><strong>Datenbank</strong><span>PostgreSQL und Redis</span></li>
+              </ul>
+            </div>
+            <p class="zone-link" aria-hidden="true">nur für eingeschaltete Dienste</p>
+            <div class="zone zone-external">
+              <p class="zone-title">Dienste anderer Firmen</p>
+              <ul class="zone-nodes">
+                <li class="node node-external"><strong>Mail</strong><span>IMAP, Microsoft 365</span></li>
+                <li class="node node-external"><strong>KI von Anthropic</strong><span>Claude</span></li>
+                <li class="node node-external"><strong>Telefon-KI</strong><span>Azure Speech</span></li>
+                <li class="node node-external"><strong>SMS und WhatsApp</strong><span>Twilio, Meta</span></li>
+                <li class="node node-external"><strong>Online-Zahlung</strong><span>Stripe</span></li>
+                <li class="node node-external"><strong>Finanzamt</strong><span>FinanzOnline, TSE</span></li>
+                <li class="node node-external"><strong>UID-Prüfung</strong><span>Firmenkunden</span></li>
+                <li class="node node-external"><strong>Kalender</strong><span>Feeds, Treatwell</span></li>
+              </ul>
+            </div>
+            <ul class="about-means">
+              <li>Jeder Platz braucht Internet; dafür arbeiten alle am selben Kalender.</li>
+              <li>
+                Kartenterminals und Bondrucker mit Netzanschluss erreicht das Rechenzentrum direkt, die anderen laufen über
+                die Windows-App am Kassaplatz.
+              </li>
+              <li>Server und Datenbank betreut der Betreiber, nicht das Spa.</li>
+            </ul>
+          </figure>
+        </div>
+      </section>
+
+      <section id="dienste" class="about-section about-section-tint" aria-labelledby="h-services">
+        <div class="about-wrap">
+          <h2 id="h-services" class="about-h2">Angebundene Dienste</h2>
+          <p class="about-intro">
+            Jeder Dienst ist ein eigener Baustein und lässt sich abschalten. Kalender, Kassa, Team und Gäste funktionieren
+            ohne sie.
+          </p>
+          <ul class="about-services">
+            <li class="about-service">
+              <h3>Mail</h3>
+              <p class="about-service-tech">IMAP, Microsoft 365, SMTP</p>
+              <dl>
+                <dt>Wofür</dt>
+                <dd>Terminanfragen aus dem Postfach lesen und Antworten senden.</dd>
+                <dt>Wohin gehen Daten</dt>
+                <dd>Zum Mailanbieter des Spas.</dd>
+              </dl>
+            </li>
+            <li class="about-service">
+              <h3>KI-Terminannahme</h3>
+              <p class="about-service-tech">Claude von Anthropic oder lokales Modell</p>
+              <dl>
+                <dt>Wofür</dt>
+                <dd>Anfragen verstehen und passende Termine und Antworten vorschlagen.</dd>
+                <dt>Wohin gehen Daten</dt>
+                <dd>Der Text der Anfrage zu Anthropic; mit lokalem Modell bleibt er im Haus.</dd>
+              </dl>
+            </li>
+            <li class="about-service">
+              <h3>Telefon-KI</h3>
+              <p class="about-service-tech">Azure Speech von Microsoft</p>
+              <dl>
+                <dt>Wofür</dt>
+                <dd>Gesprochenes am Telefon in Text wandeln und Antworten sprechen.</dd>
+                <dt>Wohin gehen Daten</dt>
+                <dd>Die Sprache des Anrufs zu Microsoft.</dd>
+              </dl>
+            </li>
+            <li class="about-service">
+              <h3>SMS und WhatsApp</h3>
+              <p class="about-service-tech">Twilio, WhatsApp Cloud von Meta</p>
+              <dl>
+                <dt>Wofür</dt>
+                <dd>Anfragen empfangen, Erinnerungen und Antworten senden.</dd>
+                <dt>Wohin gehen Daten</dt>
+                <dd>Nummer und Nachricht zu Twilio bzw. Meta.</dd>
+              </dl>
+            </li>
+            <li class="about-service">
+              <h3>Online-Zahlung</h3>
+              <p class="about-service-tech">Stripe Connect</p>
+              <dl>
+                <dt>Wofür</dt>
+                <dd>Anzahlungen, Gutscheinkauf und Kartenhinterlegung bei der Online-Buchung.</dd>
+                <dt>Wohin gehen Daten</dt>
+                <dd>Die Zahlungsdaten zu Stripe.</dd>
+              </dl>
+            </li>
+            <li class="about-service">
+              <h3>Finanzamt</h3>
+              <p class="about-service-tech">FinanzOnline (Österreich), TSE (Deutschland)</p>
+              <dl>
+                <dt>Wofür</dt>
+                <dd>Registrierkasse anmelden und Belege nach Gesetz signieren.</dd>
+                <dt>Wohin gehen Daten</dt>
+                <dd>Die gesetzlich verlangten Kassendaten zur Behörde bzw. zum TSE-Anbieter.</dd>
+              </dl>
+            </li>
+            <li class="about-service">
+              <h3>UID-Prüfung</h3>
+              <p class="about-service-tech">Behördliche Register</p>
+              <dl>
+                <dt>Wofür</dt>
+                <dd>Die UID-Nummer von Firmenkunden vor der Rechnung prüfen.</dd>
+                <dt>Wohin gehen Daten</dt>
+                <dd>Die UID-Nummer zum Register.</dd>
+              </dl>
+            </li>
+            <li class="about-service">
+              <h3>Kalender und Plattformen</h3>
+              <p class="about-service-tech">Kalender-Feeds (ICS), Treatwell</p>
+              <dl>
+                <dt>Wofür</dt>
+                <dd>Termine aus anderen Kalendern und Buchungsplattformen übernehmen.</dd>
+                <dt>Wohin gehen Daten</dt>
+                <dd>AISPA Studio liest die Termine dort ab.</dd>
+              </dl>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <section id="ausblick" class="about-section" aria-labelledby="h-outlook">
+        <div class="about-wrap">
+          <h2 id="h-outlook" class="about-h2">
+            Ausblick: AISPA Studio im Browser
+            <span class="about-badge">Versuch, noch nicht verfügbar</span>
+          </h2>
+          <p class="about-intro">
+            Dieselbe Windows-App läuft im Versuch auch im Browser, ohne Installation. Bis sie verfügbar ist, fehlen zwei
+            Dinge: Ein Screenreader erkennt im Browser keine Felder und Knöpfe, und der Browser erreicht Kartenterminal und
+            Bondrucker nur, wenn sie einen Netzanschluss haben.
+          </p>
+          <figure class="about-figure about-figure-outlook" aria-labelledby="fig-browser">
+            <figcaption id="fig-browser" class="visually-hidden">Aufbau der Browser-Fassung im Versuch</figcaption>
+            <div class="zone zone-spa">
+              <p class="zone-title">Im Spa · jeder Browser</p>
+              <ul class="zone-nodes">
+                <li class="node"><strong>App im Browser</strong><span>einmal laden, dann wie die Windows-App</span></li>
+                <li class="node"><strong>Kartenterminal und Drucker</strong><span>nur mit Netzanschluss</span></li>
+              </ul>
+            </div>
+            <p class="zone-link" aria-hidden="true">über das Internet</p>
+            <div class="zone zone-cloud">
+              <p class="zone-title">Unser Rechenzentrum · wie bei mehreren Arbeitsplätzen</p>
+              <ul class="zone-nodes">
+                <li class="node node-server"><strong>Server-Programm, Hintergrunddienst, Datenbank</strong><span>unverändert</span></li>
+              </ul>
+            </div>
+          </figure>
+        </div>
+      </section>
+
+      <section id="verlaesslich" class="about-section about-section-tint" aria-labelledby="h-trust">
+        <div class="about-wrap">
+          <h2 id="h-trust" class="about-h2">Verlässlich und ehrlich</h2>
+          <div class="about-duo">
+            <article class="about-panel" aria-labelledby="h-rules">
+              <h3 id="h-rules">Feste Regeln</h3>
+              <ul class="about-list">
+                <li><strong>Kassa nach Gesetz.</strong> Registrierkasse nach RKSV bzw. TSE; kein Umsatz läuft an der Kassa vorbei.</li>
+                <li><strong>Zahlen ohne KI.</strong> Beträge, Steuern und Berichte für Behörden rechnet die Software selbst.</li>
+                <li><strong>Gesundheitsdaten verschlüsselt.</strong> Anamnese-Antworten sieht nur, wer mit Gästen arbeitet.</li>
+                <li><strong>Getrennte Spas.</strong> Jedes Spa sieht nur seine eigenen Daten.</li>
+              </ul>
+            </article>
+            <article class="about-panel" aria-labelledby="h-honest">
+              <h3 id="h-honest">Offen gesagt</h3>
+              <ul class="about-list">
+                <li><strong>KI ist gekennzeichnet.</strong> Nachrichten der KI nach außen tragen einen Hinweis darauf.</li>
+                <li>
+                  <strong>KI kann irren.</strong> Ihre Termine prüft der Kalender auf freie Räume und Personen, bevor
+                  etwas gebucht wird.
+                </li>
+                <li><strong>Alles abschaltbar.</strong> Online-Buchung, KI, Erinnerungen und Kanäle sind einzelne Bausteine.</li>
+                <li><strong>Windows zuerst.</strong> Zum Start gibt es nur die Windows-App.</li>
+              </ul>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="entwicklung" class="about-section" aria-labelledby="h-build">
+        <div class="about-wrap">
+          <h2 id="h-build" class="about-h2">So entsteht AISPA Studio</h2>
+          <p class="about-intro">
+            AISPA Studio ist eine Konzeptstudie zur KI-nativen Softwareentwicklung. Die Software für Day-Spas ist das Beispiel, an
+            dem sich zeigt, wie Mensch und KI gemeinsam eine vollständige Anwendung bauen.
+          </p>
+          <div class="about-duo">
+            <article class="about-panel" aria-labelledby="h-team">
+              <h3 id="h-team">Mensch und KI im Team</h3>
+              <ul class="about-list">
+                <li><strong>Der Mensch entscheidet.</strong> Ziele, Reihenfolge und jede fachliche Grundsatzfrage legt der Auftraggeber fest.</li>
+                <li><strong>KI-Agenten bauen.</strong> Sie planen, schreiben Programm und Tests und halten die Beschreibung aktuell.</li>
+                <li><strong>Regeln stehen fest.</strong> Was die Agenten dürfen und wie sie arbeiten, ist schriftlich vorgegeben.</li>
+              </ul>
+            </article>
+            <article class="about-panel" aria-labelledby="h-trace">
+              <h3 id="h-trace">Geprüft und nachvollziehbar</h3>
+              <ul class="about-list">
+                <li><strong>Tausende Prüfungen.</strong> Jede Änderung durchläuft automatische Tests, bevor sie dazukommt.</li>
+                <li><strong>Jede Entscheidung begründet.</strong> Warum etwas so gebaut ist, steht mit Datum und Begründung dabei.</li>
+                <li><strong>Offen für alle.</strong> Programm und Beschreibung sind frei unter der MIT-Lizenz.</li>
+              </ul>
+            </article>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="about-foot">
+      <div class="about-wrap about-foot-in">
+        <p>AISPA Studio · Konzeptstudie zur KI-nativen Softwareentwicklung</p>
+        <a href="/help/">Zur Hilfe und zum Handbuch</a>
+      </div>
+    </footer>
+  </body>
+</html>

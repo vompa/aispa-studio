@@ -1,0 +1,26 @@
+<!-- SYNTHETISCH, NICHT VON TREATWELL: erfundenes Testbeispiel nach den Angaben in der Aufgabe (ADR 0062). Das echte Mailformat von Treatwell ist nicht öffentlich und muss mit Mails aus einem Partnerkonto geprüft werden. Nur für Tests. -->
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Buchung geändert</title>
+<style>td { padding: 4px; } a.button { background: #1a1a1a; color: #ffffff; }</style>
+</head>
+<body>
+<p>Die folgende Buchung wurde verschoben.</p>
+<table>
+<tr><td><strong>Kunde:</strong></td><td>Max Mustermann</td></tr>
+<tr><td><strong>Datum &amp; Uhrzeit:</strong></td><td>{{DATE_TEXT}}</td></tr>
+<tr><td><strong>Mitarbeiter:</strong></td><td>{{STAFF}}</td></tr>
+<tr><td><strong>Dienstleistung:</strong></td><td>{{TREATMENT}}</td></tr>
+<tr><td><strong>Salon:</strong></td><td>{{LOCATION}}</td></tr>
+<tr><td><strong>Zahlungsstatus:</strong></td><td>Online bezahlt (Treatwell Pay)</td></tr>
+<tr><td><strong>Gesamtbetrag:</strong></td><td>35,00 &euro;</td></tr>
+<tr><td><strong>Buchungs-ID:</strong></td><td>#{{REFERENCE}}</td></tr>
+</table>
+<p>
+<a class="button" href="https://example.invalid/synthetic/accept">Annehmen</a>
+<a class="button" href="https://example.invalid/synthetic/edit">Bearbeiten</a>
+</p>
+</body>
+</html>

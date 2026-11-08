@@ -1,0 +1,118 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             x:Class="AispaStudio.Desktop.Views.StockOrdersSection"
+             x:DataType="vm:StockOrdersViewModel">
+  <!--
+    Bestellungen (R05 Slice 113, Slice 123): oben der Bestellvorschlag mit Rechenweg, darunter die Bestellungen. Entwürfe lassen sich ändern, verwerfen und nach der Bestätigung per Mail senden
+    oder als bestellt markieren. Danach bucht die Karte Lieferungen, auch in Teilen.
+  -->
+  <StackPanel Spacing="16">
+    <ui:InfoBar Severity="Error" Title="Bestellungen nicht geladen" Message="{Binding LoadError}" IsVisible="{Binding HasLoadError}" />
+
+    <Border Classes="card">
+      <StackPanel Spacing="12">
+        <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="12">
+          <TextBlock Text="Bestellvorschlag" Classes="h2" VerticalAlignment="Center" />
+          <ui:HelpButton Grid.Column="1" Topic="lager-bestellen" />
+          <Button Grid.Column="2" x:Name="CreateDraftsButton" Classes="primary" Content="Bestellung anlegen" Command="{Binding CreateDraftsCommand}" IsVisible="{Binding HasSuggestions}" />
+        </Grid>
+        <TextBlock Text="Bedarf bis zur Lieferung aus dem Tagesverbrauch der letzten 90 Tage und den gebuchten Terminen. Aufgefüllt wird bis zur Höchstmenge, auf ganze Packungen aufgerundet. Je Lieferant entsteht ein Entwurf." Classes="muted small" TextWrapping="Wrap" />
+        <TextBlock Text="Gerade ist nichts zu bestellen." Classes="muted" IsVisible="{Binding ShowNoSuggestions}" />
+        <ItemsControl x:Name="ReorderList" ItemsSource="{Binding Suggestions}" IsVisible="{Binding HasSuggestions}" AutomationProperties.Name="Bestellvorschlag">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:ReorderRow">
+              <Grid ColumnDefinitions="*,Auto,Auto,Auto" Margin="0,4" AutomationProperties.Name="{Binding Summary}">
+                <StackPanel Spacing="2">
+                  <TextBlock Text="{Binding Material}" TextTrimming="CharacterEllipsis" />
+                  <TextBlock Text="{Binding SupplierText}" Classes="muted small" TextTrimming="CharacterEllipsis" />
+                </StackPanel>
+                <StackPanel Grid.Column="1" Spacing="2" Margin="12,0,0,0">
+                  <TextBlock Text="{Binding UseText}" Classes="small" />
+                  <TextBlock Classes="muted small">
+                    <Run Text="Bestand " /><Run Text="{Binding OnHandText}" /><Run Text=", Ziel " /><Run Text="{Binding TargetText}" />
+                  </TextBlock>
+                </StackPanel>
+                <TextBlock Grid.Column="2" Text="{Binding SuggestedText}" Classes="num" MinWidth="176" Margin="12,0,0,0" TextAlignment="Right" VerticalAlignment="Center" />
+                <TextBlock Grid.Column="3" Text="{Binding CostText}" Classes="num" MinWidth="96" Margin="12,0,0,0" TextAlignment="Right" VerticalAlignment="Center" />
+              </Grid>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </StackPanel>
+    </Border>
+
+    <TextBlock Text="Noch keine Bestellungen." Classes="muted" IsVisible="{Binding ShowNoOrders}" />
+    <ItemsControl x:Name="OrderList" ItemsSource="{Binding Orders}" IsVisible="{Binding HasOrders}" AutomationProperties.Name="Bestellungen">
+      <ItemsControl.ItemTemplate>
+        <DataTemplate x:DataType="vm:PurchaseOrderCard">
+          <Border Classes="card" Margin="0,0,0,16">
+            <StackPanel Spacing="12">
+              <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="12">
+                <TextBlock Text="{Binding Title}" Classes="h3" VerticalAlignment="Center" TextWrapping="Wrap" />
+                <TextBlock Grid.Column="1" Text="{Binding StatusText}" Classes="muted" VerticalAlignment="Center" />
+                <TextBlock Grid.Column="2" Text="{Binding TotalText}" Classes="num" VerticalAlignment="Center" />
+              </Grid>
+              <ui:InfoBar Severity="Warning" Message="{Binding MinimumWarning}" IsVisible="{Binding IsBelowMinimum}" />
+              <ItemsControl ItemsSource="{Binding Lines}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:PurchaseOrderLineRow">
+                    <StackPanel Spacing="8" Margin="0,2">
+                      <Grid ColumnDefinitions="*,Auto,Auto">
+                        <TextBlock Text="{Binding Material}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="1" Text="{Binding PackageText}" Classes="muted small" Margin="12,0,0,0" VerticalAlignment="Center" />
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" Margin="12,0,0,0" MinWidth="176" HorizontalAlignment="Right">
+                          <ui:FormField Error="{Binding QuantityError}" Width="120" IsVisible="{Binding $parent[ItemsControl].((vm:PurchaseOrderCard)DataContext)?.IsDraft, TargetNullValue=False}">
+                            <TextBox Text="{Binding Quantity}" Classes="num" AutomationProperties.Name="{Binding QuantityName}" />
+                          </ui:FormField>
+                          <TextBlock Text="{Binding Unit}" VerticalAlignment="Center" IsVisible="{Binding $parent[ItemsControl].((vm:PurchaseOrderCard)DataContext)?.IsDraft, TargetNullValue=False}" />
+                          <TextBlock Text="{Binding ReceivedText}" Classes="muted small" VerticalAlignment="Center" IsVisible="{Binding $parent[ItemsControl].((vm:PurchaseOrderCard)DataContext)?.IsNotDraft, TargetNullValue=False}" />
+                          <TextBlock Text="{Binding OrderedText}" Classes="num" VerticalAlignment="Center" IsVisible="{Binding $parent[ItemsControl].((vm:PurchaseOrderCard)DataContext)?.IsNotDraft, TargetNullValue=False}" />
+                        </StackPanel>
+                      </Grid>
+                      <WrapPanel ItemSpacing="12" LineSpacing="8" IsVisible="{Binding IsReceiving}">
+                        <ui:FormField Label="Geliefert" Error="{Binding DeliveryError}" Width="120">
+                          <TextBox Text="{Binding DeliveryQuantity}" Classes="num" AutomationProperties.Name="{Binding DeliveryQuantityName}" />
+                        </ui:FormField>
+                        <ui:FormField Label="Charge" Width="160">
+                          <TextBox Text="{Binding Batch}" MaxLength="50" AutomationProperties.Name="{Binding BatchName}" />
+                        </ui:FormField>
+                        <ui:FormField Label="Ablaufdatum">
+                          <ui:DateField Value="{Binding ExpiresOn}" Width="160" PropertyChanged="OnExpiresFieldChanged" AutomationProperties.Name="{Binding ExpiresName}" />
+                        </ui:FormField>
+                      </WrapPanel>
+                    </StackPanel>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+              <StackPanel Spacing="8" IsVisible="{Binding IsDraft}">
+                <TextBlock Text="{Binding MailText}" Classes="muted small" IsVisible="{Binding HasMail}" TextWrapping="Wrap" />
+                <TextBlock Text="Beim Lieferanten fehlt die Mailadresse. Trage sie im Reiter „Lieferanten“ ein, dann lässt sich die Bestellung senden." Classes="warn small" IsVisible="{Binding ShowMissingMail}" TextWrapping="Wrap" />
+              </StackPanel>
+              <ui:FormField Label="Lieferschein" Width="240" HorizontalAlignment="Left" IsVisible="{Binding IsReceiving}">
+                <TextBox Text="{Binding DeliveryNote}" MaxLength="100" AutomationProperties.Name="{Binding DeliveryNoteName}" />
+              </ui:FormField>
+              <WrapPanel ItemSpacing="8" LineSpacing="8">
+                <Button Classes="primary" Content="Bestellen und senden" Command="{Binding SendCommand}" IsVisible="{Binding IsDraft}" AutomationProperties.Name="{Binding SendName}" />
+                <Button Content="Mengen speichern" Command="{Binding SaveCommand}" IsVisible="{Binding IsDraft}" ui:SaveShortcut.IsSave="True" ToolTip.Tip="Speichern (Strg+S)" AutomationProperties.Name="{Binding SaveName}" />
+                <Button Content="Als bestellt markieren" Command="{Binding MarkOrderedCommand}" IsVisible="{Binding IsDraft}" AutomationProperties.Name="{Binding MarkOrderedName}" />
+                <Button Classes="primary" Content="Lieferung buchen" Command="{Binding DeliverCommand}" IsVisible="{Binding IsReceiving}" AutomationProperties.Name="{Binding DeliverName}" />
+                <Button Content="Bestelltext" Command="{Binding ShowTextCommand}" AutomationProperties.Name="{Binding ShowTextName}" />
+                <Button Classes="danger" Margin="16,0,0,0" Content="Entwurf verwerfen" Command="{Binding DiscardCommand}" IsVisible="{Binding IsDraft}" AutomationProperties.Name="{Binding DiscardName}" />
+                <Button Classes="danger" Margin="16,0,0,0" Content="{Binding CloseText}" Command="{Binding CloseCommand}" IsVisible="{Binding IsReceiving}" AutomationProperties.Name="{Binding CloseName}" />
+              </WrapPanel>
+              <StackPanel Spacing="8" IsVisible="{Binding HasOrderText}">
+                <TextBox Text="{Binding OrderText, Mode=OneWay}" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="160" MaxHeight="320" AutomationProperties.Name="{Binding OrderTextName}" />
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <Button Content="Kopieren" Click="OnCopyTextClick" AutomationProperties.Name="{Binding CopyTextName}" />
+                  <TextBlock Text="{Binding CopyHint}" Classes="muted small" VerticalAlignment="Center" TextWrapping="Wrap" />
+                </StackPanel>
+              </StackPanel>
+            </StackPanel>
+          </Border>
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
+  </StackPanel>
+</UserControl>

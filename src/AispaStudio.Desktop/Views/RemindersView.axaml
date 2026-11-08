@@ -1,0 +1,112 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             x:Class="AispaStudio.Desktop.Views.RemindersView"
+             x:DataType="vm:RemindersViewModel"
+             ui:SaveShortcut.IsScope="True">
+  <!--
+    Erinnerungen (R05 Slice 96): Terminerinnerungen und Wiederbuchungs-Hinweise mit denselben Feldern, Grenzen, Texten und Hilfen wie
+    web/src/admin/RemindersTab.tsx und RebookSection.tsx; ein gemeinsames „Speichern“ im Fuß, Strg+S speichert.
+  -->
+  <Grid RowDefinitions="*,Auto">
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+      <StackPanel Spacing="20" MaxWidth="720" HorizontalAlignment="Left" Margin="0,0,16,16">
+        <ui:InfoBar Severity="Error" Title="Erinnerungen nicht geladen" Message="{Binding LoadError}" IsVisible="{Binding HasLoadError}"
+                    ActionText="Erneut laden" ActionCommand="{Binding LoadCommand}" />
+        <TextBlock Text="Lade Einstellungen …" Classes="muted" IsVisible="{Binding !IsLoaded}" />
+
+        <StackPanel Spacing="20" IsVisible="{Binding IsLoaded}">
+          <!-- Terminerinnerungen -->
+          <StackPanel Spacing="8">
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Text="Terminerinnerungen" Classes="h2" VerticalAlignment="Center" />
+              <ui:HelpButton Grid.Column="1" Topic="erinnerungen" Section="terminerinnerungen" />
+            </Grid>
+            <TextBlock Classes="muted" TextWrapping="Wrap"
+                       Text="Gäste bekommen vor dem Termin eine Erinnerung mit Link zum Ansehen oder Absagen. Das ist keine Werbung und braucht keine Einwilligung." />
+            <CheckBox x:Name="EnabledField" Content="Erinnerungen verschicken" IsChecked="{Binding Enabled}" />
+            <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="12">
+              <ui:FormField Label="Erste Erinnerung (Stunden vorher, 0 = keine)">
+                <ui:NumberField x:Name="FirstHoursField" Value="{Binding FirstHours}" Minimum="0" Maximum="168" Width="200" HorizontalAlignment="Left" />
+              </ui:FormField>
+              <ui:FormField Grid.Column="1" Label="Zweite Erinnerung (Stunden vorher, 0 = keine)" Error="{Binding SecondHoursError}">
+                <ui:NumberField x:Name="SecondHoursField" Value="{Binding SecondHours}" Minimum="0" Maximum="168" Width="200" HorizontalAlignment="Left" />
+              </ui:FormField>
+              <ui:FormField Grid.Row="1" Label="Kanal">
+                <ComboBox x:Name="ChannelField" ItemsSource="{x:Static vm:RemindersViewModel.Channels}" SelectedItem="{Binding Channel}" HorizontalAlignment="Stretch" />
+              </ui:FormField>
+            </Grid>
+          </StackPanel>
+
+          <!-- WhatsApp-Vorlage, nur für WhatsApp -->
+          <StackPanel Spacing="8" IsVisible="{Binding IsWhatsApp}">
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Text="Vorlage für WhatsApp" Classes="h2" VerticalAlignment="Center" />
+              <ui:HelpButton Grid.Column="1" Topic="erinnerungen" Section="whatsapp-vorlage" />
+            </Grid>
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+              <ui:FormField Label="WhatsApp-Vorlage (Meta: Name, Twilio: Content-SID)" IsRequired="True" Error="{Binding TemplateError}">
+                <TextBox x:Name="TemplateField" Text="{Binding WhatsAppTemplate}" />
+              </ui:FormField>
+              <ui:FormField Grid.Column="1" Label="Sprache der Vorlage" IsRequired="True" Error="{Binding LanguageError}">
+                <TextBox x:Name="LanguageField" Text="{Binding WhatsAppLanguage}" />
+              </ui:FormField>
+            </Grid>
+            <TextBlock Classes="muted" TextWrapping="Wrap"
+                       Text="Platzhalter der Vorlage: {{1}} Vorname, {{2}} Behandlung, {{3}} Datum und Uhrzeit, {{4}} Standort, {{5}} Link zum Termin." />
+          </StackPanel>
+
+          <!-- Wiederbuchungs-Hinweise -->
+          <StackPanel Spacing="8">
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Text="Wiederbuchungs-Hinweise" Classes="h2" VerticalAlignment="Center" />
+              <ui:HelpButton Grid.Column="1" Topic="erinnerungen" Section="naechste-behandlung" />
+            </Grid>
+            <TextBlock Classes="muted" TextWrapping="Wrap"
+                       Text="Gäste bekommen nach einer abgeschlossenen Behandlung eine Mail mit Link zum Buchen, wenn der eingestellte Abstand vorbei ist und kein Termin gebucht ist. Das ist Werbung: nur für Gäste, die ihre Einwilligung per Mail bestätigt haben (im Termin unter „Wiederbuchungs-Hinweis“ anfragen). Den persönlichen Teil schreibt die KI, ohne Preise oder Angebote." />
+            <CheckBox x:Name="RebookEnabledField" Content="Wiederbuchungs-Hinweise verschicken" IsChecked="{Binding RebookEnabled}" />
+            <ItemsControl x:Name="IntervalList" ItemsSource="{Binding Intervals}">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <WrapPanel />
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:RebookIntervalRow">
+                  <ui:FormField Label="{Binding Label}" Width="348" Margin="0,0,12,12">
+                    <ui:NumberField Value="{Binding Days}" Minimum="7" Maximum="730" Width="200" HorizontalAlignment="Left" />
+                  </ui:FormField>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+
+          <!-- Zuletzt verschickt -->
+          <StackPanel Spacing="8" IsVisible="{Binding HasRecent}">
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Text="Zuletzt verschickt" Classes="h2" VerticalAlignment="Center" />
+              <ui:HelpButton Grid.Column="1" Topic="erinnerungen" Section="zuletzt-verschickt" />
+            </Grid>
+            <ItemsControl x:Name="RecentList" ItemsSource="{Binding Recent}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:RebookReminderRow">
+                  <StackPanel Spacing="2" Margin="0,0,0,8">
+                    <TextBlock Text="{Binding Line}" TextWrapping="Wrap" />
+                    <TextBlock Text="{Binding Text}" Classes="muted" TextWrapping="Wrap" IsVisible="{Binding Text, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                  </StackPanel>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </StackPanel>
+      </StackPanel>
+    </ScrollViewer>
+
+    <StackPanel Grid.Row="1" Spacing="12" MaxWidth="720" HorizontalAlignment="Left" Margin="0,12,16,0" IsVisible="{Binding IsLoaded}">
+      <ui:InfoBar Severity="Error" Title="Nicht gespeichert" Message="{Binding Error}" IsVisible="{Binding HasError}"
+                  ActionText="Erneut versuchen" ActionCommand="{Binding SaveCommand}" CloseCommand="{Binding CloseErrorCommand}" />
+      <ui:SaveBar SaveCommand="{Binding SaveCommand}" DiscardCommand="{Binding DiscardCommand}" CanDiscard="{Binding HasUnsavedChanges}" Status="{Binding StatusText}" />
+    </StackPanel>
+  </Grid>
+</UserControl>

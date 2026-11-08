@@ -1,0 +1,32 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             x:Class="AispaStudio.Desktop.Views.PeriodHeader"
+             x:DataType="vm:PeriodAreaViewModel">
+  <!--
+    Kopf der Masken „Schließzeiten“ und „Raumsperren“ (R05 Slice 95), nach ClosuresPage.tsx und RoomClosuresPage.tsx: die Reiter „Aktuell“ und „Beendet“ mit Zahl, bei mehreren
+    Standorten die Wahl des Standorts, der Satz, was die Sperre bewirkt, das Fragezeichen der Hilfe und „Neu“ rechts.
+  -->
+  <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto" ColumnSpacing="12">
+    <Border Classes="segmented" x:Name="Tabs" VerticalAlignment="Center">
+      <UniformGrid Columns="2">
+        <ui:TabButton x:Name="CurrentTab" Content="{Binding CurrentTabLabel}" IsSelected="{Binding IsCurrentTab}" Command="{Binding ShowCurrentCommand}"
+                      HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="12,3" AutomationProperties.Name="{Binding CurrentTabLabel}" />
+        <ui:TabButton x:Name="EndedTab" Content="{Binding EndedTabLabel}" IsSelected="{Binding IsEndedTab}" Command="{Binding ShowEndedCommand}"
+                      HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="12,3" AutomationProperties.Name="{Binding EndedTabLabel}" />
+      </UniformGrid>
+    </Border>
+    <ui:FormField Grid.Column="1" Label="Standort" IsVisible="{Binding HasSeveralLocations}">
+      <ComboBox x:Name="LocationField" ItemsSource="{Binding Locations}" SelectedItem="{Binding SelectedLocation}" MinWidth="200" />
+    </ui:FormField>
+    <TextBlock Grid.Column="2" Text="{Binding HintText}" Classes="muted" TextWrapping="Wrap" VerticalAlignment="Center" />
+    <ui:HelpButton Grid.Column="3" Topic="{Binding HelpTopic}" Section="{Binding HelpSection}" VerticalAlignment="Center" />
+    <Button Grid.Column="4" x:Name="NewButton" Classes="primary" Command="{Binding NewCommand}" VerticalAlignment="Center" AutomationProperties.Name="{Binding NewText}">
+      <StackPanel Orientation="Horizontal" Spacing="6">
+        <ui:Icon Data="{x:Static ui:Icons.Plus}" Width="16" Height="16" />
+        <TextBlock Text="{Binding NewText}" VerticalAlignment="Center" />
+      </StackPanel>
+    </Button>
+  </Grid>
+</UserControl>

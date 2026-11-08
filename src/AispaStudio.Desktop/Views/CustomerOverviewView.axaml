@@ -1,0 +1,111 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             x:Class="AispaStudio.Desktop.Views.CustomerOverviewView"
+             x:DataType="vm:CustomerOverviewViewModel">
+  <!-- Kundenübersicht im Flyout: hinter Initialen und Namen im Terminkopf und im Posteingang beim erkannten Absender, gestaltet wie die Raum-Infos -->
+  <StackPanel Spacing="10" Width="320">
+    <TextBlock Text="Wird geladen …" Classes="muted small" IsVisible="{Binding IsLoading}" />
+    <ui:InfoBar Severity="Error" Message="{Binding Error}" IsVisible="{Binding Error, Converter={x:Static ObjectConverters.IsNotNull}}" />
+    <StackPanel Spacing="10" IsVisible="{Binding !IsLoading}">
+      <StackPanel Spacing="2">
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <TextBlock Text="{Binding Name}" Classes="h2" TextWrapping="Wrap" MaxWidth="240" VerticalAlignment="Center" />
+          <ui:Icon Data="{Binding SymbolIcon}" Width="14" Height="14" Foreground="{DynamicResource Fg2Brush}" VerticalAlignment="Center"
+                   IsVisible="{Binding SymbolIcon, Converter={x:Static ObjectConverters.IsNotNull}}" />
+          <TextBlock Text="{Binding Pronouns}" Classes="secondary small" VerticalAlignment="Center"
+                     IsVisible="{Binding Pronouns, Converter={x:Static ObjectConverters.IsNotNull}}" />
+        </StackPanel>
+        <TextBlock Text="{Binding AddressLine}" Classes="secondary small" TextWrapping="Wrap" />
+        <TextBlock Text="{Binding PreferredNameText}" Classes="muted small" IsVisible="{Binding PreferredNameText, Converter={x:Static ObjectConverters.IsNotNull}}" />
+      </StackPanel>
+
+      <!-- Telefon und E-Mail zum Kopieren -->
+      <StackPanel Spacing="2">
+        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8" IsVisible="{Binding HasPhone}">
+          <ui:Icon Data="{x:Static ui:Icons.Phone}" Foreground="{DynamicResource Fg3Brush}" Width="16" Height="16" />
+          <SelectableTextBlock Grid.Column="1" Text="{Binding Phone}" VerticalAlignment="Center" />
+          <Button Grid.Column="2" Classes="ghost icon" Command="{Binding CopyPhoneCommand}" ToolTip.Tip="Telefonnummer kopieren"
+                  AutomationProperties.Name="Telefonnummer kopieren">
+            <ui:Icon Data="{x:Static ui:Icons.Copy}" Width="14" Height="14" />
+          </Button>
+        </Grid>
+        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8" IsVisible="{Binding HasEmail}">
+          <ui:Icon Data="{x:Static ui:Icons.Mail}" Foreground="{DynamicResource Fg3Brush}" Width="16" Height="16" />
+          <SelectableTextBlock Grid.Column="1" Text="{Binding Email}" VerticalAlignment="Center" TextWrapping="Wrap" />
+          <Button Grid.Column="2" Classes="ghost icon" Command="{Binding CopyEmailCommand}" ToolTip.Tip="E-Mail-Adresse kopieren"
+                  AutomationProperties.Name="E-Mail-Adresse kopieren">
+            <ui:Icon Data="{x:Static ui:Icons.Copy}" Width="14" Height="14" />
+          </Button>
+        </Grid>
+        <!-- T-031: kurze Bestätigung nach dem Kopieren, vom Bildschirmleser angesagt (LiveSetting am TextBlock, dessen Text sich ändert). -->
+        <TextBlock Text="{Binding Copy.Text}" Classes="secondary small" AutomationProperties.LiveSetting="Polite"
+                   IsVisible="{Binding Copy.Text, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+        <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding PostalAddress, Converter={x:Static ObjectConverters.IsNotNull}}">
+          <ui:Icon Data="{x:Static ui:Icons.Location}" Foreground="{DynamicResource Fg3Brush}" Width="16" Height="16" VerticalAlignment="Top" />
+          <TextBlock Text="{Binding PostalAddress}" TextWrapping="Wrap" MaxWidth="280" />
+        </StackPanel>
+      </StackPanel>
+
+      <Border Classes="divider" />
+      <StackPanel Spacing="2">
+        <TextBlock Text="{Binding VisitsText}" FontWeight="Medium" />
+        <TextBlock Text="{Binding LastVisitText}" Classes="secondary small" />
+      </StackPanel>
+      <StackPanel Spacing="3" IsVisible="{Binding HasNext}">
+        <TextBlock Text="Nächste Termine" Classes="group" />
+        <ItemsControl ItemsSource="{Binding Next}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="x:String">
+              <TextBlock Text="{Binding}" Classes="small num" TextWrapping="Wrap" />
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </StackPanel>
+      <WrapPanel IsVisible="{Binding HasFlags}">
+        <ItemsControl ItemsSource="{Binding Flags}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <WrapPanel />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="x:String">
+              <Border Classes="pill warn" Margin="0,0,6,4">
+                <TextBlock Text="{Binding}" />
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </WrapPanel>
+      <Border Classes="hint warn"
+              IsVisible="{Binding Note, Converter={x:Static ObjectConverters.IsNotNull}}">
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <ui:Icon Data="{x:Static ui:Icons.Note}" Foreground="{DynamicResource WarnBrush}" VerticalAlignment="Top" />
+          <TextBlock Text="{Binding Note}" TextWrapping="Wrap" Foreground="{DynamicResource WarnBrush}" MaxWidth="250" />
+        </StackPanel>
+      </Border>
+      <StackPanel Spacing="2" IsVisible="{Binding WishesText, Converter={x:Static ObjectConverters.IsNotNull}}">
+        <TextBlock Text="Wünsche" Classes="group" />
+        <TextBlock Text="{Binding WishesText}" Classes="small" TextWrapping="Wrap" />
+      </StackPanel>
+      <StackPanel Spacing="3" IsVisible="{Binding HasPackages}">
+        <TextBlock Text="Offene Pakete" Classes="group" />
+        <ItemsControl ItemsSource="{Binding Packages}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="x:String">
+              <TextBlock Text="{Binding}" Classes="small" TextWrapping="Wrap" />
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </StackPanel>
+
+      <Border Classes="divider" />
+      <StackPanel Orientation="Horizontal" Spacing="8">
+        <Button Command="{Binding OpenCardCommand}" IsVisible="{Binding CanOpenCard}" Click="OnAction" Content="Kundenkarte öffnen" />
+        <Button Command="{Binding EditCommand}" IsVisible="{Binding CanEdit}" Click="OnAction" Content="Bearbeiten" />
+      </StackPanel>
+    </StackPanel>
+  </StackPanel>
+</UserControl>

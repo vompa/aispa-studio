@@ -1,0 +1,207 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             xmlns:svc="using:AispaStudio.Desktop.Services"
+             xmlns:contracts="using:AispaStudio.Contracts"
+             xmlns:help="using:AispaStudio.Help"
+             xmlns:views="using:AispaStudio.Desktop.Views"
+             x:Class="AispaStudio.Desktop.Views.ShellView"
+             x:DataType="vm:ShellViewModel"
+             x:Name="Root">
+  <UserControl.Styles>
+    <!-- Der Name der Navigationszeile ist die Seite, mit Zähler „Anfragen, 3 offen“; sonst nennt der Screenreader den Typnamen des Modells -->
+    <Style Selector="ListBox.nav ListBoxItem" x:DataType="vm:NavItem">
+      <Setter Property="AutomationProperties.Name" Value="{Binding AccessibleName}" />
+    </Style>
+    <Style Selector="Button.companionfab /template/ ContentPresenter">
+      <Setter Property="BoxShadow" Value="{DynamicResource RaisedShadow}" />
+    </Style>
+    <Style Selector="Button.companionfab:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource RailHoverBrush}" />
+    </Style>
+  </UserControl.Styles>
+  <Grid ColumnDefinitions="88,*">
+    <!-- Navigation -->
+    <!-- BrandSurface und BrandTile: hierhin wandern Fläche und Logo des Startbildschirms -->
+    <Border x:Name="BrandSurface" Classes="rail" Background="{DynamicResource RailBrush}" ui:RegionNavigation.IsRegion="True" AutomationProperties.Name="Navigation">
+      <Grid RowDefinitions="Auto,*,Auto">
+        <StackPanel Margin="0,16,0,12" Spacing="2" HorizontalAlignment="Center">
+          <Border x:Name="BrandTile" Width="44" Height="44" CornerRadius="14" Background="{DynamicResource RailMarkBrush}" HorizontalAlignment="Center"
+                  BoxShadow="{DynamicResource RaisedShadow}" ToolTip.Tip="AISPA Studio · Rezeption">
+            <ui:Icon Data="{x:Static ui:Icons.Logo}" Foreground="{DynamicResource RailBrush}" Width="26" Height="26" StrokeThickness="2" />
+          </Border>
+          <TextBlock Text="AISPA" FontSize="12" FontWeight="SemiBold" LetterSpacing="1" HorizontalAlignment="Center" Margin="0,8,0,0"
+                     Foreground="{DynamicResource RailFgBrush}" />
+        </StackPanel>
+
+        <ListBox Grid.Row="1" Classes="nav" ItemsSource="{Binding Pages}" SelectedItem="{Binding SelectedPage}" SelectionMode="AlwaysSelected">
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="vm:NavItem">
+              <StackPanel Spacing="4" HorizontalAlignment="Center">
+                <Panel HorizontalAlignment="Center">
+                  <Border Classes="navmark" Background="{DynamicResource RailMarkBrush}" Width="3" Height="20" CornerRadius="2"
+                          HorizontalAlignment="Left" VerticalAlignment="Center" Margin="-20,0,0,0" />
+                  <ui:Icon Data="{Binding Icon}" Width="22" Height="22" HorizontalAlignment="Center" />
+                  <Border IsVisible="{Binding HasBadge}" Background="{DynamicResource CritBrush}" CornerRadius="8" MinWidth="16" Height="16"
+                          Padding="4,0" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-6,-12,0">
+                    <TextBlock Text="{Binding Badge}" Foreground="{DynamicResource AccentFgBrush}" FontSize="12" FontWeight="SemiBold" HorizontalAlignment="Center"
+                               VerticalAlignment="Center" />
+                  </Border>
+                </Panel>
+                <TextBlock Text="{Binding Title}" Classes="navtitle" FontSize="12" FontWeight="Medium" HorizontalAlignment="Center" />
+              </StackPanel>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+
+        <StackPanel Grid.Row="2" Spacing="6" Margin="0,0,0,14">
+          <Button Classes="ghost navbtn" Command="{Binding NextThemeCommand}" AutomationProperties.Name="{Binding ThemeText, StringFormat='Farbschema: {0}'}"
+                  ToolTip.Tip="{Binding ThemeText, StringFormat='Farbschema: {0} (klicken zum Wechseln)'}">
+            <StackPanel Spacing="4" HorizontalAlignment="Center">
+              <Panel HorizontalAlignment="Center">
+                <ui:Icon Data="{x:Static ui:Icons.Sun}" Width="22" Height="22" IsVisible="{Binding ThemeIsLight}" />
+                <ui:Icon Data="{x:Static ui:Icons.Moon}" Width="22" Height="22" IsVisible="{Binding ThemeIsDark}" />
+                <ui:Icon Data="{x:Static ui:Icons.Monitor}" Width="22" Height="22" IsVisible="{Binding ThemeIsSystem}" />
+              </Panel>
+              <TextBlock Text="{Binding ThemeText}" Classes="navtitle" FontSize="12" FontWeight="Medium" HorizontalAlignment="Center" />
+            </StackPanel>
+          </Button>
+          <Border Classes="pill" Classes.ok="{Binding !IsOffline}" Classes.warn="{Binding IsOffline}" HorizontalAlignment="Center"
+                  ToolTip.Tip="{Binding ConnectionTip}">
+            <StackPanel Orientation="Horizontal" Spacing="5">
+              <Panel VerticalAlignment="Center">
+                <Ellipse Width="7" Height="7" Fill="{DynamicResource OkBrush}" IsVisible="{Binding !IsOffline}" />
+                <Ellipse Width="7" Height="7" Fill="{DynamicResource WarnBrush}" IsVisible="{Binding IsOffline}" />
+              </Panel>
+              <TextBlock Text="{Binding ConnectionText}" />
+            </StackPanel>
+          </Border>
+          <Button Classes="ghost navbtn" ToolTip.Tip="{Binding UserText}" AutomationProperties.Name="{Binding AccountName}">
+            <Border Classes="avatar" Width="36" Height="36" CornerRadius="18" Background="{DynamicResource RailSelectedBrush}"
+                    BorderBrush="{DynamicResource RailMarkBrush}" BorderThickness="1.5">
+              <TextBlock Text="{Binding Initials}" Foreground="{DynamicResource RailFgBrush}" />
+            </Border>
+            <Button.Flyout>
+              <Flyout Placement="RightEdgeAlignedBottom">
+                <StackPanel Spacing="10" MinWidth="220" Margin="4">
+                  <TextBlock Text="{Binding UserText}" TextWrapping="Wrap" />
+                  <StackPanel Spacing="6">
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                      <ui:FormField Label="{Binding PinLabel}" Help="{Binding PinHelp}">
+                        <TextBox Text="{Binding PinInput}" PasswordChar="•" MaxLength="8" Classes="num" />
+                      </ui:FormField>
+                      <Button Grid.Column="1" Content="Speichern" Command="{Binding SavePinCommand}" VerticalAlignment="Top" Margin="0,22,0,0"
+                              ui:DisabledHint.Text="Verfügbar, sobald die PIN die Mindestlänge hat." />
+                    </Grid>
+                    <Button Classes="ghost" Content="PIN entfernen" Command="{Binding RemovePinCommand}" IsVisible="{Binding HasPin}" />
+                    <TextBlock Text="{Binding PinText}" Classes="muted small" TextWrapping="Wrap" MaxWidth="260"
+                               IsVisible="{Binding PinText, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                    <TextBlock Text="Mit Name und PIN wechseln Sie am Empfangsgerät schnell zu Ihrem Zugang. Die PIN gilt nur dort."
+                               Classes="muted small" TextWrapping="Wrap" MaxWidth="260" />
+                  </StackPanel>
+                  <Button Command="{Binding SignOutCommand}" HorizontalAlignment="Stretch">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                      <ui:Icon Data="{x:Static ui:Icons.SignOut}" />
+                      <TextBlock Text="{Binding SignOutText}" />
+                    </StackPanel>
+                  </Button>
+                </StackPanel>
+              </Flyout>
+            </Button.Flyout>
+          </Button>
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <Grid Grid.Column="1" ColumnDefinitions="*,Auto">
+    <Grid RowDefinitions="Auto,Auto,Auto,*">
+      <!-- Ohne Verbindung: was weiterhin geht und was nicht -->
+      <!-- Höchstens zwei Banner gleichzeitig, der Abgleichfehler zuerst; was nicht passt, nennt die letzte Zeile (Design-Brief 5.15) -->
+      <ui:InfoBar Grid.Row="1" Severity="Warning" Margin="16,12,16,0" Message="{Binding OfflineBanner}" ActionText="Verbindung prüfen"
+                  ActionCommand="{Binding CheckConnectionCommand}" IsVisible="{Binding Banners.Offline}" />
+      <!-- Beim Abgleich abgelehnt: die Rezeption muss das neu klären -->
+      <StackPanel Grid.Row="0" Margin="16,12,16,0" Spacing="6" IsVisible="{Binding Banners.Failed}">
+        <ui:InfoBar Severity="Error" Title="Beim Abgleich nicht übernommen" Message="Bitte neu klären." />
+        <StackPanel Margin="12,0">
+          <ItemsControl ItemsSource="{Binding Failed}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="svc:FailedChange">
+                <Grid ColumnDefinitions="*,Auto" Margin="0,2">
+                  <TextBlock TextWrapping="Wrap" VerticalAlignment="Center">
+                    <Run Text="{Binding Description}" FontWeight="Medium" />
+                    <Run Text=" – " />
+                    <Run Text="{Binding Reason}" />
+                  </TextBlock>
+                  <Button Grid.Column="1" Classes="ghost" Content="Erledigt" Margin="8,0,0,0" AutomationProperties.Name="{Binding Description, StringFormat='Erledigt: {0}'}"
+                          Command="{Binding #Root.((vm:ShellViewModel)DataContext).DismissFailedCommand}" CommandParameter="{Binding}" />
+                </Grid>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </StackPanel>
+      <!-- Einzelplatz: letzte Sicherung fehlt oder ist älter als sieben Tage -->
+      <ui:InfoBar Grid.Row="2" Severity="Warning" Margin="16,12,16,0" Message="{Binding Backup?.ReminderText, TargetNullValue=''}"
+                  ActionText="Sicherung öffnen" ActionCommand="{Binding OpenBackupCommand}" IsVisible="{Binding Banners.Backup}" />
+      <!-- Steht nur, wenn die dritte Meldung verborgen ist; dann ist das Sicherungs-Banner in derselben Zeile unsichtbar -->
+      <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="8" Margin="16,8,16,0"
+                  IsVisible="{Binding Banners.HiddenText, Converter={x:Static ObjectConverters.IsNotNull}}">
+        <TextBlock Text="{Binding Banners.HiddenText}" Classes="muted" VerticalAlignment="Center" />
+        <Button Classes="ghost" Content="Alle zeigen" Command="{Binding RevealBannersCommand}" />
+      </StackPanel>
+      <ContentControl Grid.Row="3" x:Name="PageHost" Content="{Binding SelectedPage.Page, FallbackValue={x:Null}}" AutomationProperties.Name="{Binding SelectedPage.Title, FallbackValue=Seite}" />
+      <!-- Ein Sprung in die Verwaltung ging nicht, und die Person hat dort keinen Bereich (Slice 103): Warnung unten mittig, bleibt bis „Schließen“ (meldungen.md M1) -->
+      <!-- Ohne Meldung auch unsichtbar: der Schließen-Knopf soll kein Tab-Halt sein, solange nichts steht -->
+      <Border Grid.Row="3" x:Name="ShellToast" Classes="toast" Classes.shown="{Binding Toast, Converter={x:Static ObjectConverters.IsNotNull}}"
+              IsVisible="{Binding Toast, Converter={x:Static ObjectConverters.IsNotNull}}"
+              HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="16,0,16,20" CornerRadius="8" Padding="16,10,6,10"
+              BoxShadow="{DynamicResource RaisedShadow}" MaxWidth="760" AutomationProperties.LiveSetting="Assertive">
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <ui:Icon Data="{x:Static ui:Icons.Warning}" Width="16" Height="16" Foreground="{DynamicResource ToastFgBrush}" VerticalAlignment="Center" />
+          <TextBlock Classes="msg" Text="{Binding Toast}" Foreground="{DynamicResource ToastFgBrush}" VerticalAlignment="Center" MaxWidth="540"
+                     AutomationProperties.LiveSetting="Assertive" />
+          <Button Classes="ghost icon" Command="{Binding CloseToastCommand}" Foreground="{DynamicResource ToastFgBrush}" ToolTip.Tip="Schließen"
+                  AutomationProperties.Name="Meldung schließen">
+            <ui:Icon Data="{x:Static ui:Icons.Close}" Width="16" Height="16" />
+          </Button>
+        </StackPanel>
+      </Border>
+      <!-- KI und Hilfe: ein ruhiger Knopf, der sich nie von selbst meldet -->
+      <Button Grid.Row="3" x:Name="CompanionFab" Classes="companionfab" Command="{Binding Companion.ToggleCommand}"
+              IsVisible="{Binding !Companion.IsOpen}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,20,20"
+              Width="48" Height="48" CornerRadius="24" Padding="0" Background="{DynamicResource RailBrush}"
+              ToolTip.Tip="KI und Hilfe (Strg+Leertaste)" AutomationProperties.Name="KI und Hilfe öffnen">
+        <!-- Dasselbe Zeichen wie an jeder KI-Ausgabe: der Knopf öffnet auch den Assistenten; „KI“ steht im Knopf, damit nichts über die Leiste ragt (Design-Brief 5.28) -->
+        <StackPanel Spacing="0" HorizontalAlignment="Center" VerticalAlignment="Center">
+          <ui:Icon Data="{x:Static ui:Icons.Logo}" Foreground="{DynamicResource RailMarkBrush}" Width="20" Height="20" StrokeThickness="2" HorizontalAlignment="Center" />
+          <TextBlock Text="{x:Static svc:AiLabels.Pill}" FontSize="12" LineHeight="14" FontWeight="Medium" Foreground="{DynamicResource RailMarkBrush}" HorizontalAlignment="Center" />
+        </StackPanel>
+      </Button>
+    </Grid>
+
+    <!-- Leiste rechts für die Seiten ohne Reiterschiene (Kunden, Kassa, Verwaltung, Hilfe …): Erklärung zur offenen Seite und der KI-Assistent; gleiche Breite, gleicher Kopf und
+         gleiche Bewegung wie die Seitenleiste im Kalender. Dort ist der Assistent ein Reiter (Ä66) und diese Leiste bleibt zu. -->
+    <Border Grid.Column="1" x:Name="CompanionPanel" Width="360" Padding="0" Classes="sidepanel" Classes.open="{Binding Companion.ShellOpen}"
+            Classes.instant="{Binding Companion.Presence.UsingKeyboard}" IsVisible="{Binding Companion.Presence.IsVisible}"
+            ui:RegionNavigation.IsRegion="True" AutomationProperties.Name="KI und Hilfe">
+      <DockPanel DataContext="{Binding Companion}" x:DataType="vm:CompanionViewModel">
+        <ui:SidePanelHeader DockPanel.Dock="Top" Margin="20,16,12,12" Title="KI und Hilfe" CloseTip="Schließen (Esc oder Strg+Leertaste)" CloseCommand="{Binding CloseCommand}">
+          <ui:SidePanelHeader.Leading>
+            <ui:Icon Data="{x:Static ui:Icons.Logo}" Foreground="{DynamicResource AccentBrush}" Width="22" Height="22" Margin="0,2,0,0" />
+          </ui:SidePanelHeader.Leading>
+          <!-- „Neu beginnen“ im Kopf neben dem Kreuz, nur wenn es etwas zurückzusetzen gibt (Ä347, Ä359) -->
+          <ui:SidePanelHeader.Action>
+            <Button x:Name="CompanionReset" Classes="ghost" Margin="0,0,4,0" Content="{Binding PanelActionText}" Command="{Binding PanelAction}" IsVisible="{Binding HasPanelAction}"
+                    ToolTip.Tip="{Binding PanelActionTip}" AutomationProperties.Name="{Binding PanelActionText}" />
+          </ui:SidePanelHeader.Action>
+        </ui:SidePanelHeader>
+        <Border DockPanel.Dock="Top" Classes="divider" />
+        <ScrollViewer>
+          <ContentControl Content="{Binding ShellContent}" Margin="16" />
+        </ScrollViewer>
+      </DockPanel>
+    </Border>
+    </Grid>
+  </Grid>
+</UserControl>

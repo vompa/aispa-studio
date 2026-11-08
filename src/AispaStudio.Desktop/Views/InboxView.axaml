@@ -1,0 +1,359 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             xmlns:c="using:AispaStudio.Contracts"
+             xmlns:views="using:AispaStudio.Desktop.Views"
+             xmlns:svc="using:AispaStudio.Desktop.Services"
+             x:Class="AispaStudio.Desktop.Views.InboxView"
+             x:DataType="vm:InboxViewModel">
+  <UserControl.Styles>
+    <!-- Name des erkannten Kunden im Kopf: zeigt wie im Terminkopf die Kundenübersicht -->
+    <Style Selector="TextBlock#SenderName.overview">
+      <Setter Property="Cursor" Value="Hand" />
+    </Style>
+  </UserControl.Styles>
+  <Grid ColumnDefinitions="440,*" RowDefinitions="Auto,*" Margin="16">
+    <!-- Kopfzeile -->
+    <Grid Grid.ColumnSpan="2" ColumnDefinitions="*,Auto" Margin="0,0,0,12">
+      <StackPanel>
+        <TextBlock Text="Posteingang" Classes="h1" />
+        <TextBlock Text="Anfragen per Mail, SMS, WhatsApp, Anruf und Treatwell, von der KI vorbereitet" Classes="muted" />
+      </StackPanel>
+      <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+        <!-- Filter, der sofort wirkt: ein Schalter (Design-Brief 5.23), kein Kontrollkästchen -->
+        <ToggleSwitch Content="Nur „Prüfen“" IsChecked="{Binding OnlyOpen}" VerticalAlignment="Center" />
+        <Border Classes="pill" Classes.ok="{Binding IsLive}" ToolTip.Tip="{Binding LiveTip}">
+          <TextBlock Text="{Binding LiveText}" />
+        </Border>
+        <Button Classes="icon" Command="{Binding RefreshCommand}" ToolTip.Tip="Aktualisieren">
+          <ui:Icon Data="{x:Static ui:Icons.Refresh}" />
+        </Button>
+      </StackPanel>
+    </Grid>
+
+    <!-- Liste -->
+    <Border Grid.Row="1" Classes="card" Padding="8" Margin="0,0,16,0">
+      <Grid RowDefinitions="Auto,*">
+        <StackPanel Margin="8">
+          <TextBlock Text="Lade …" Classes="muted" IsVisible="{Binding !Loaded}" />
+          <TextBlock Text="Keine Nachrichten." Classes="muted" IsVisible="{Binding IsEmpty}" />
+          <ui:InfoBar Severity="Error" Message="{Binding Error}" IsVisible="{Binding Error, Converter={x:Static ObjectConverters.IsNotNull}}" />
+        </StackPanel>
+        <ListBox Grid.Row="1" Classes="plain" ItemsSource="{Binding Mails}" SelectedItem="{Binding SelectedRow}">
+          <ListBox.Styles>
+            <!-- Der Name der Zeile ist ihr sichtbarer Inhalt; sonst liest der Screenreader den Record-Typ -->
+            <Style Selector="ListBoxItem" x:DataType="vm:InboxRow">
+              <Setter Property="AutomationProperties.Name" Value="{Binding AccessibleName}" />
+            </Style>
+          </ListBox.Styles>
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="vm:InboxRow">
+              <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto" Margin="0,2">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <Border Classes="pill" Classes.crit="{Binding IsCritical}" Classes.warn="{Binding IsWarn}" Classes.ok="{Binding IsOk}">
+                    <TextBlock Text="{Binding StatusText}" />
+                  </Border>
+                  <TextBlock Text="{Binding From}" FontWeight="SemiBold" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="220" />
+                  <Border Classes="pill" IsVisible="{Binding ShowChannel}">
+                    <TextBlock Text="{Binding ChannelText}" />
+                  </Border>
+                </StackPanel>
+                <TextBlock Grid.Column="1" Text="{Binding TimeText}" Classes="muted small num" VerticalAlignment="Center" />
+                <TextBlock Grid.Row="1" Grid.ColumnSpan="2" Text="{Binding Subject}" TextTrimming="CharacterEllipsis" Margin="0,4,0,0" />
+                <!-- Die Zusammenfassung ist eine KI-Ausgabe und trägt deshalb die Pille wie im Detail (Brief 5.28) -->
+                <Grid Grid.Row="2" Grid.ColumnSpan="2" ColumnDefinitions="Auto,*" ColumnSpacing="6" Margin="0,2,0,0" IsVisible="{Binding HasSummary}">
+                  <views:AiPill />
+                  <TextBlock Grid.Column="1" Text="{Binding Summary}" Classes="muted small" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                </Grid>
+              </Grid>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </Grid>
+    </Border>
+
+    <!-- Einzelheiten -->
+    <Border Grid.Row="1" Grid.Column="1" Classes="card" Padding="0">
+      <Panel>
+        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="8" IsVisible="{Binding !HasDetail}">
+          <ui:Icon Data="{x:Static ui:Icons.Mail}" Foreground="{DynamicResource Fg3Brush}" Width="32" Height="32" HorizontalAlignment="Center" />
+          <TextBlock Text="Eine Nachricht aus der Liste wählen." Classes="muted" />
+        </StackPanel>
+        <!-- Unten 72 px Innenabstand: mit dem Seitenrand 16 endet die letzte Zeile über dem Knopf „KI und Hilfe“ (48 hoch, Rand 20) -->
+        <ScrollViewer Padding="20,20,20,72" IsVisible="{Binding HasDetail}">
+          <ContentControl Content="{Binding Detail}">
+            <ContentControl.ContentTemplate>
+              <DataTemplate x:DataType="vm:InboxDetailViewModel">
+                <!-- Aus Sicht der Rezeption (Auftraggeber, 29.10.2026): oben die Nachricht, rechts daneben die freie Zeit; Hinweise höchstens eine Zeile -->
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="20">
+                  <StackPanel Spacing="12" MaxWidth="760" HorizontalAlignment="Left">
+                    <!-- Kopf wie im Terminkopf des Kalenders: ist der Absender erkannt, zeigen Initialen und Name die Kundenübersicht -->
+                    <Grid x:Name="InboxHeader" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                      <Button x:Name="SenderAvatar" Classes="ghost" Padding="0" MinHeight="0" MinWidth="0" CornerRadius="22" VerticalAlignment="Top"
+                              Click="OnSenderOverviewClick" IsVisible="{Binding HasAssigned}" ToolTip.Tip="Kundenübersicht" AutomationProperties.Name="Kundenübersicht">
+                        <Border Classes="avatar" Width="44" Height="44" CornerRadius="22" Background="{DynamicResource AccentSoftBrush}">
+                          <TextBlock Text="{Binding AssignedInitials}" FontSize="16" Foreground="{DynamicResource AccentBrush}" />
+                        </Border>
+                        <Button.Flyout>
+                          <Flyout Placement="BottomEdgeAlignedLeft">
+                            <ContentControl Content="{Binding Overview}">
+                              <ContentControl.ContentTemplate>
+                                <DataTemplate x:DataType="vm:CustomerOverviewViewModel">
+                                  <views:CustomerOverviewView />
+                                </DataTemplate>
+                              </ContentControl.ContentTemplate>
+                            </ContentControl>
+                          </Flyout>
+                        </Button.Flyout>
+                      </Button>
+                      <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
+                        <TextBlock x:Name="SenderName" Text="{Binding HeaderName}" Classes="h2" Classes.overview="{Binding HasAssigned}" TextWrapping="Wrap" HorizontalAlignment="Left"
+                                   PointerPressed="OnSenderNamePressed" ToolTip.Tip="{Binding SenderTip}">
+                          <FlyoutBase.AttachedFlyout>
+                            <Flyout Placement="BottomEdgeAlignedLeft">
+                              <ContentControl Content="{Binding Overview}">
+                                <ContentControl.ContentTemplate>
+                                  <DataTemplate x:DataType="vm:CustomerOverviewViewModel">
+                                    <views:CustomerOverviewView />
+                                  </DataTemplate>
+                                </ContentControl.ContentTemplate>
+                              </ContentControl>
+                            </Flyout>
+                          </FlyoutBase.AttachedFlyout>
+                        </TextBlock>
+                        <TextBlock Text="{Binding SenderLine}" Classes="secondary small" TextWrapping="Wrap"
+                                   IsVisible="{Binding SenderLine, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                          <Border Classes="pill" Classes.crit="{Binding IsCritical}" Classes.warn="{Binding IsWarn}" Classes.ok="{Binding IsOk}">
+                            <TextBlock Text="{Binding StatusText}" />
+                          </Border>
+                          <TextBlock Text="{Binding Details}" Classes="muted small" VerticalAlignment="Center" />
+                        </StackPanel>
+                      </StackPanel>
+                      <Button Grid.Column="2" Classes="ghost icon" Command="{Binding CloseCommand}" ToolTip.Tip="Schließen" AutomationProperties.Name="Schließen"
+                              VerticalAlignment="Top">
+                        <ui:Icon Data="{x:Static ui:Icons.Close}" />
+                      </Button>
+                    </Grid>
+
+                    <!-- Die Nachricht selbst, gleich lesbar; fremdsprachig zeigt „DE“ die Übersetzung (Taste O) -->
+                    <Border x:Name="MessageCard" Classes="card" Padding="16,12">
+                      <StackPanel Spacing="6">
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                          <TextBlock Text="{Binding Subject}" FontWeight="SemiBold" TextWrapping="Wrap" VerticalAlignment="Center" />
+                          <Button x:Name="LanguageButton" Grid.Column="1" Classes="ghost" Padding="8,2" Content="{Binding LanguageButton}"
+                                  Command="{Binding ToggleOriginalCommand}" IsVisible="{Binding HasTranslation}"
+                                  ToolTip.Tip="{Binding LanguageButtonTip}" AutomationProperties.Name="{Binding LanguageButtonTip}" />
+                        </Grid>
+                        <TextBlock Text="{Binding MessageSubject}" Classes="secondary" TextWrapping="Wrap" IsVisible="{Binding HasMessageSubject}" />
+                        <SelectableTextBlock x:Name="MessageText" Text="{Binding MessageText}" TextWrapping="Wrap" />
+                        <TextBlock Text="{Binding TranslationNote}" Classes="small warn" TextWrapping="Wrap" IsVisible="{Binding HasTranslationNote}" />
+                      </StackPanel>
+                    </Border>
+
+                    <!-- Was die KI erkannt hat, mit Pille und einer Hinweiszeile -->
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8" IsVisible="{Binding HasSummary}">
+                      <views:AiPill VerticalAlignment="Top" Margin="0,1,0,0" />
+                      <StackPanel Grid.Column="1" Spacing="2">
+                        <TextBlock Text="{Binding Summary}" TextWrapping="Wrap" />
+                        <views:AiFooter Why="{x:Static svc:AiLabels.WhyInboxRead}" />
+                      </StackPanel>
+                    </Grid>
+                    <Border Classes="card" Background="{DynamicResource WarnSoftBrush}" BorderBrush="{DynamicResource WarnBrush}" Padding="10,8"
+                            IsVisible="{Binding HasNote}">
+                      <StackPanel Orientation="Horizontal" Spacing="8">
+                        <ui:Icon Data="{x:Static ui:Icons.Note}" Foreground="{DynamicResource WarnBrush}" />
+                        <TextBlock Text="{Binding Note}" TextWrapping="Wrap" Foreground="{DynamicResource WarnBrush}" MaxWidth="640" />
+                      </StackPanel>
+                    </Border>
+
+                    <!-- Vorgemerkte Zeit (ADR 0083): bestätigen oder freigeben -->
+                    <Border x:Name="HoldCard" Classes="card" Padding="12" Background="{DynamicResource AccentSoftBrush}" BorderThickness="0" IsVisible="{Binding HasHold}">
+                      <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                        <ui:Icon Data="{x:Static ui:Icons.CalendarSearch}" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Top" />
+                        <StackPanel Grid.Column="1" Spacing="2">
+                          <TextBlock Text="{Binding HoldText}" FontWeight="SemiBold" />
+                          <TextBlock Text="{Binding HoldDetail}" Classes="secondary small" TextWrapping="Wrap" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                          <Button Classes="primary" Content="Bestätigen" Command="{Binding ConfirmHoldCommand}"
+                                  ToolTip.Tip="Der Termin ist fest gebucht; die Bestätigung an den Gast wird entworfen." />
+                          <Button Content="Freigeben" Command="{Binding ReleaseHoldCommand}" ToolTip.Tip="Die Zeit ist wieder frei; der Gast bekommt keine Nachricht." />
+                        </StackPanel>
+                      </Grid>
+                    </Border>
+
+                    <Border Classes="card" Background="{DynamicResource OkSoftBrush}" Padding="10,8" IsVisible="{Binding HasPaymentText}">
+                      <TextBlock Text="{Binding PaymentText}" TextWrapping="Wrap" FontWeight="Medium" />
+                    </Border>
+                    <Border Classes="card" Background="{DynamicResource WarnSoftBrush}" BorderBrush="{DynamicResource WarnBrush}" Padding="12"
+                            IsVisible="{Binding ShowAcceptPending}">
+                      <StackPanel Spacing="6">
+                        <TextBlock Text="In Treatwell noch annehmen" Classes="group" />
+                        <TextBlock Text="{Binding AcceptPendingText}" TextWrapping="Wrap" />
+                        <Button Content="Erledigt" Command="{Binding PlatformAcceptedCommand}" HorizontalAlignment="Left"
+                                ToolTip.Tip="Ich habe die Buchung in Treatwell angenommen" />
+                      </StackPanel>
+                    </Border>
+
+                    <Border Classes="card" Padding="16,12" IsVisible="{Binding HasCandidates}">
+                      <StackPanel Spacing="8">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                          <views:AiPill />
+                          <TextBlock Text="Wer ist das?" Classes="group" VerticalAlignment="Center" />
+                        </StackPanel>
+                        <TextBlock Text="{Binding CandidatesHint}" Classes="muted small" TextWrapping="Wrap" />
+                        <ItemsControl ItemsSource="{Binding Candidates}">
+                          <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:CandidateOption">
+                              <Border Classes="card" Padding="10,8" Margin="0,0,0,6" Background="{DynamicResource Surface2Brush}">
+                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                                  <StackPanel Spacing="2">
+                                    <!-- Der Name zeigt die Kundenübersicht wie im Kalender: wer ist das, wie oft war er da -->
+                                    <Button Classes="link" HorizontalAlignment="Left" Click="OnCandidateOverviewClick"
+                                            ToolTip.Tip="Kundenübersicht" AutomationProperties.Name="{Binding Name, StringFormat='Kundenübersicht {0}'}">
+                                      <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                                      <Button.Flyout>
+                                        <Flyout Placement="BottomEdgeAlignedLeft">
+                                          <ContentControl Content="{Binding Overview}">
+                                            <ContentControl.ContentTemplate>
+                                              <DataTemplate x:DataType="vm:CustomerOverviewViewModel">
+                                                <views:CustomerOverviewView />
+                                              </DataTemplate>
+                                            </ContentControl.ContentTemplate>
+                                          </ContentControl>
+                                        </Flyout>
+                                      </Button.Flyout>
+                                    </Button>
+                                    <TextBlock Text="{Binding Reason}" Classes="secondary" TextWrapping="Wrap" />
+                                    <TextBlock Text="{Binding StageText}" Classes="muted small" TextWrapping="Wrap" />
+                                  </StackPanel>
+                                  <Button Grid.Column="1" Content="Zuordnen" Command="{Binding AssignCommand}" VerticalAlignment="Center" />
+                                </Grid>
+                              </Border>
+                            </DataTemplate>
+                          </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <WrapPanel ItemSpacing="12" LineSpacing="6">
+                          <CheckBox Content="Adresse/Nummer merken" IsChecked="{Binding RememberContact}"
+                                    ToolTip.Tip="Merkt die Mailadresse bzw. Nummer des Absenders in der Kundenkarte; die nächste Nachricht von dort ist dann sicher zugeordnet." />
+                          <Button Content="{Binding CreateCustomerText}" Command="{Binding CreateCustomerCommand}"
+                                  ToolTip.Tip="Legt einen neuen Kunden aus Name, Telefon und Mailadresse der Nachricht an." />
+                        </WrapPanel>
+                      </StackPanel>
+                    </Border>
+                    <Border Classes="card" Padding="10,8" Background="{DynamicResource AccentSoftBrush}" BorderThickness="0" IsVisible="{Binding HasAssigned}">
+                      <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8">
+                        <ui:Icon Data="{x:Static ui:Icons.User}" Foreground="{DynamicResource AccentBrush}" Width="16" Height="16" />
+                        <TextBlock Grid.Column="1" Text="{Binding AssignedText}" FontWeight="Medium" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                        <Button Grid.Column="2" Classes="ghost" Content="Zuordnung lösen" Command="{Binding ReleaseCustomerCommand}" IsVisible="{Binding CanReleaseCustomer}"
+                                ToolTip.Tip="Der Kunde war es doch nicht: er wird nicht mehr vorgeschlagen." />
+                      </Grid>
+                    </Border>
+                    <Border Classes="card" Padding="10,6" BorderThickness="0" Background="{DynamicResource Surface3Brush}"
+                            IsVisible="{Binding SalutationSuggestionText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                      <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                        <views:AiPill VerticalAlignment="Top" />
+                        <TextBlock Grid.Column="1" Text="{Binding SalutationSuggestionText}" Classes="secondary small" TextWrapping="Wrap" VerticalAlignment="Center" />
+                      </Grid>
+                    </Border>
+
+                    <StackPanel Spacing="6" IsVisible="{Binding CanCancelAppointment}">
+                      <Button Content="Termin stornieren" Command="{Binding AskCancelAppointmentCommand}" />
+                      <TextBlock Text="Storniert den Termin aus dem Hinweis, wie im Kalender." Classes="muted small" />
+                    </StackPanel>
+
+                    <Border Classes="card" Padding="16,12" IsVisible="{Binding ShowReply}">
+                      <StackPanel Spacing="8">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                          <views:AiPill />
+                          <TextBlock Text="{x:Static svc:AiLabels.DraftNotice}" Classes="label" VerticalAlignment="Center" Margin="0" IsVisible="{Binding IsDraft}" />
+                        </StackPanel>
+                        <ui:FormField Label="Betreff" IsVisible="{Binding !IsShortMessage}">
+                          <TextBox Text="{Binding ReplySubject}" IsEnabled="{Binding IsDraft}" />
+                        </ui:FormField>
+                        <ui:FormField Label="{Binding ReplyLabel}">
+                          <TextBox Text="{Binding ReplyBody}" AcceptsReturn="True" Height="160"
+                                   IsEnabled="{Binding IsDraft}" />
+                        </ui:FormField>
+                        <Border Classes="card" Padding="10" Background="{DynamicResource Surface2Brush}" IsVisible="{Binding HasReplyTranslation}">
+                          <StackPanel Spacing="4">
+                            <TextBlock Text="Auf Deutsch, zur Kontrolle" Classes="group" />
+                            <TextBlock Text="{Binding ReplyTranslation}" TextWrapping="Wrap" Classes="secondary" />
+                          </StackPanel>
+                        </Border>
+                        <StackPanel Spacing="6" IsVisible="{Binding CanRevise}">
+                          <TextBlock Text="Mit KI überarbeiten" Classes="label" />
+                          <WrapPanel ItemSpacing="6" LineSpacing="6">
+                            <Button Content="Freundlicher formulieren" Command="{Binding ReviseCommand}" CommandParameter="{x:Static c:ReplyRevisionKind.Friendlier}" />
+                            <Button Content="Kürzer formulieren" Command="{Binding ReviseCommand}" CommandParameter="{x:Static c:ReplyRevisionKind.Shorter}" />
+                            <Button Content="Siezen" Command="{Binding ReviseCommand}" CommandParameter="{x:Static c:ReplyRevisionKind.Formal}" />
+                            <Button Content="Duzen" Command="{Binding ReviseCommand}" CommandParameter="{x:Static c:ReplyRevisionKind.Informal}" />
+                            <Button Content="Entschuldigung ergänzen" Command="{Binding ReviseCommand}" CommandParameter="{x:Static c:ReplyRevisionKind.Apology}" />
+                            <Button Classes="ghost" Content="Rückgängig" Command="{Binding UndoRevisionCommand}" ToolTip.Tip="Fassung vor der letzten Überarbeitung (Strg+Z)" />
+                          </WrapPanel>
+                          <Grid ColumnDefinitions="*,8,Auto">
+                            <ui:FormField Label="Eigener Hinweis">
+                              <TextBox Text="{Binding ReviseInstruction}" PlaceholderText="z. B. Parkplatz erwähnen" MaxLength="300" />
+                            </ui:FormField>
+                            <Button Grid.Column="2" Content="Überarbeiten" Command="{Binding ReviseCustomCommand}" VerticalAlignment="Bottom" />
+                          </Grid>
+                          <TextBlock Text="Die KI überarbeitet den Entwurf …" Classes="muted small" IsVisible="{Binding IsRevising}" />
+                        </StackPanel>
+                        <ui:InfoBar Severity="Warning" Message="{Binding ReplyNotice}" IsVisible="{Binding HasReplyNotice}" Stacked="True" />
+                        <!-- Eine Zeile: was beim Senden angehängt wird (ADR 0008), dahinter „Warum?“ -->
+                        <views:AiFooter Why="{x:Static svc:AiLabels.WhyInboxDraft}" Disclaimer="{Binding DraftHint}" />
+                        <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding IsDraft}">
+                          <Button Content="Entwurf speichern" Command="{Binding SaveDraftCommand}" ui:DisabledHint.Text="Verfügbar, sobald der Text des Entwurfs geändert ist." />
+                          <Button Classes="primary" Command="{Binding SendCommand}" ui:DisabledHint.Text="Verfügbar, sobald der Entwurf gespeichert ist.">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                              <ui:Icon Data="{x:Static ui:Icons.Mail}" Width="16" Height="16" />
+                              <TextBlock Text="Senden" />
+                            </StackPanel>
+                          </Button>
+                        </StackPanel>
+                        <TextBlock Text="{Binding ReplyState}" Classes="muted" IsVisible="{Binding !IsDraft}" />
+                      </StackPanel>
+                    </Border>
+
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                      <Button Content="Erneut verarbeiten" Command="{Binding RetryCommand}" IsVisible="{Binding CanRetry}" />
+                      <Button Classes="ghost" Content="Erledigt, ohne Termin und Antwort" Command="{Binding DismissCommand}" IsVisible="{Binding CanDismiss}" />
+                    </StackPanel>
+
+                    <ui:InfoBar Severity="{Binding NoticeSeverity}" Message="{Binding Notice}" IsVisible="{Binding HasNotice}" />
+                  </StackPanel>
+
+                  <!-- Rechts: freie Zeit für diese Anfrage; ein Klick merkt die Zeit vor und schreibt den Vorschlag in den Entwurf (ADR 0083) -->
+                  <StackPanel x:Name="InboxFreeTime" Grid.Column="1" Width="340" Spacing="12" IsVisible="{Binding ShowFreeTime}"
+                              ui:RegionNavigation.IsRegion="True" AutomationProperties.Name="Freie Zeit">
+                    <TextBlock Text="Freie Zeit" Classes="h3" />
+                    <ui:FormField Label="Standort" IsVisible="{Binding HasLocationChoice}">
+                      <ComboBox ItemsSource="{Binding FreeTimeLocations}" SelectedItem="{Binding FreeTimeLocation}" HorizontalAlignment="Stretch"
+                                PlaceholderText="Standort wählen">
+                        <ComboBox.ItemTemplate>
+                          <DataTemplate x:DataType="c:LocationDto">
+                            <TextBlock Text="{Binding Name}" />
+                          </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                      </ComboBox>
+                    </ui:FormField>
+                    <ui:InfoBar Severity="Error" Message="{Binding FreeTimeError}" IsVisible="{Binding HasFreeTimeError}" />
+                    <ContentControl Content="{Binding FreeTime}">
+                      <ContentControl.ContentTemplate>
+                        <DataTemplate x:DataType="vm:FreeTimeViewModel">
+                          <views:FreeTimeView />
+                        </DataTemplate>
+                      </ContentControl.ContentTemplate>
+                    </ContentControl>
+                  </StackPanel>
+                </Grid>
+              </DataTemplate>
+            </ContentControl.ContentTemplate>
+          </ContentControl>
+        </ScrollViewer>
+      </Panel>
+    </Border>
+  </Grid>
+</UserControl>

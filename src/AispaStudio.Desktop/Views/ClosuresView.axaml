@@ -1,0 +1,150 @@
+<views:PeriodAreaView xmlns="https://github.com/avaloniaui"
+                      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                      xmlns:views="using:AispaStudio.Desktop.Views"
+                      xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+                      xmlns:ui="using:AispaStudio.Desktop.Controls"
+                      x:Class="AispaStudio.Desktop.Views.ClosuresView"
+                      x:DataType="vm:ClosuresViewModel"
+                      ui:SaveShortcut.IsScope="True">
+  <!--
+    Schließzeiten (R05 Slice 95, ADR 0073), native Maske nach web/src/closures/ClosuresPage.tsx: oben Reiter, Standort und „Neue Schließzeit“, darunter die Wartezeit vor der
+    Nachricht an den Gast, links die Liste, rechts das Formular mit Zeitraum, Art und Texten (Gruppen mit Überschrift und Fragezeichen am Titel, Brief 5.11), „Termine absagen …“
+    und dem Protokoll der Absagen. „Speichern / Verwerfen“ steht am Ende des Formulars (Strg+S), „Löschen“ daneben.
+  -->
+  <Grid RowDefinitions="Auto,Auto,Auto,*" RowSpacing="12">
+    <views:PeriodHeader />
+
+    <Border Grid.Row="1" Classes="card" Padding="12" HorizontalAlignment="Left" IsVisible="{Binding HasGuestDelay}">
+      <StackPanel Spacing="4">
+        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+          <TextBlock Text="Wartezeit vor der Nachricht an den Gast (Minuten)" Classes="label" VerticalAlignment="Center" />
+          <ui:HelpButton Grid.Column="1" Topic="schliesszeiten" Section="wartezeit" />
+        </Grid>
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <ui:NumberField x:Name="GuestDelayField" Value="{Binding GuestDelayMinutes}" Minimum="0" Maximum="60" Width="100" AutomationProperties.Name="Wartezeit vor der Nachricht an den Gast in Minuten" />
+          <Button x:Name="GuestDelayButton" Content="Wartezeit speichern" Command="{Binding SaveGuestDelayCommand}" />
+          <TextBlock Text="{Binding GuestDelayStatus}" Classes="muted" VerticalAlignment="Center" AutomationProperties.LiveSetting="Polite" />
+        </StackPanel>
+        <TextBlock Text="{Binding GuestDelayError}" Classes="small error" TextWrapping="Wrap" IsVisible="{Binding GuestDelayError, Converter={x:Static ObjectConverters.IsNotNull}}" />
+        <TextBlock Text="{x:Static vm:ClosuresViewModel.GuestDelayHint}" Classes="muted small" TextWrapping="Wrap" MaxWidth="560" />
+      </StackPanel>
+    </Border>
+
+    <ui:InfoBar Grid.Row="2" Severity="{Binding MessageSeverity}" Message="{Binding Message}" IsVisible="{Binding HasMessage}" CloseCommand="{Binding CloseMessageCommand}" />
+
+    <Grid Grid.Row="3" ColumnDefinitions="300,*">
+      <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" Margin="0,0,16,0">
+        <views:PeriodList />
+      </ScrollViewer>
+
+      <ScrollViewer Grid.Column="1" x:Name="FormScroll" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+        <StackPanel Spacing="20" MaxWidth="800" HorizontalAlignment="Left" Margin="0,0,16,16">
+          <Border Classes="card" Padding="16" IsVisible="{Binding ShowSelectHint}">
+            <TextBlock Text="{Binding SelectHint}" Classes="muted" TextWrapping="Wrap" />
+          </Border>
+
+          <StackPanel Spacing="20" IsVisible="{Binding HasForm}">
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+              <TextBlock Text="{Binding HeadingText}" Classes="h2" VerticalAlignment="Center" TextWrapping="Wrap" />
+              <Border Grid.Column="1" Classes="pill" IsVisible="{Binding HasPhase}">
+                <TextBlock Text="{Binding PhaseText}" />
+              </Border>
+            </Grid>
+
+            <StackPanel Spacing="8" IsVisible="{Binding HasOpenNotice}">
+              <ui:InfoBar Severity="Warning" Message="{Binding OpenNotice}" />
+              <Button x:Name="CancelAppointmentsButton" Content="Termine absagen …" Command="{Binding CancelAppointmentsCommand}" IsVisible="{Binding CanCancelAppointments}"
+                      HorizontalAlignment="Left" AutomationProperties.HelpText="{Binding OpenNotice}" />
+              <TextBlock Text="{Binding CancelHint}" Classes="muted small" IsVisible="{Binding HasCancelHint}" />
+            </StackPanel>
+
+            <views:PeriodSection />
+
+            <!-- Art -->
+            <StackPanel Spacing="8">
+              <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Text="Art" Classes="h2" VerticalAlignment="Center" />
+                <ui:HelpButton Grid.Column="1" Topic="schliesszeiten" Section="art" />
+              </Grid>
+              <StackPanel Spacing="4" AutomationProperties.Name="Art der Schließzeit">
+                <RadioButton x:Name="KindVacation" GroupName="ClosureKind" IsChecked="{Binding Kinds[0].IsSelected}" Content="{Binding Kinds[0].Label}" />
+                <RadioButton x:Name="KindSpecial" GroupName="ClosureKind" IsChecked="{Binding Kinds[1].IsSelected}" Content="{Binding Kinds[1].Label}" />
+                <RadioButton x:Name="KindOutage" GroupName="ClosureKind" IsChecked="{Binding Kinds[2].IsSelected}" Content="{Binding Kinds[2].Label}" />
+              </StackPanel>
+            </StackPanel>
+
+            <!-- Texte -->
+            <StackPanel Spacing="8">
+              <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Text="Texte" Classes="h2" VerticalAlignment="Center" />
+                <ui:HelpButton Grid.Column="1" Topic="schliesszeiten" Section="texte" />
+              </Grid>
+              <ui:FormField Label="Grund für das Team" Error="{Binding InternalReasonError}"
+                            Help="Sehen nur Mitarbeitende, z. B. „Wasserschaden im Keller, Trocknung“.">
+                <TextBox x:Name="InternalReasonField" Text="{Binding InternalReason}" MaxLength="200" />
+              </ui:FormField>
+              <ui:FormField Label="Text für Gäste" Error="{Binding GuestTextError}" Help="{Binding GuestTextHint}">
+                <TextBox x:Name="GuestTextField" Text="{Binding GuestText}" MaxLength="200" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="64" />
+              </ui:FormField>
+            </StackPanel>
+
+            <TextBlock Text="{Binding CreatedText}" Classes="muted small" IsVisible="{Binding HasCreatedText}" />
+
+            <StackPanel x:Name="Footer" Spacing="12">
+              <ui:InfoBar Severity="Error" Title="Nicht gespeichert" Message="{Binding Error}" IsVisible="{Binding HasError}"
+                          ActionText="Erneut versuchen" ActionCommand="{Binding SaveCommand}" CloseCommand="{Binding CloseErrorCommand}" />
+              <StackPanel Orientation="Horizontal" Spacing="24">
+                <ui:SaveBar SaveCommand="{Binding SaveCommand}" DiscardCommand="{Binding DiscardCommand}" CanDiscard="{Binding HasUnsavedChanges}" Status="{Binding StatusText}" />
+                <Button x:Name="DeleteButton" Classes="danger" Content="Löschen" Command="{Binding DeleteCommand}" IsVisible="{Binding CanDelete}" />
+              </StackPanel>
+              <TextBlock Text="{Binding NoDeleteHint}" Classes="muted small" TextWrapping="Wrap" IsVisible="{Binding HasNoDeleteHint}" />
+            </StackPanel>
+
+            <!-- Protokoll der Absagen -->
+            <Border x:Name="ProtocolSection" Classes="panelcard" Padding="0" IsVisible="{Binding HasProtocol}">
+              <StackPanel>
+                <Grid ColumnDefinitions="*,Auto">
+                  <ui:AccordionHeader x:Name="ProtocolHeader" Classes="accordion" IsChecked="{Binding IsProtocolOpen, Mode=TwoWay}" AutomationProperties.Name="{Binding ProtocolHeader}">
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                      <TextBlock Text="{Binding ProtocolHeader}" FontWeight="Medium" VerticalAlignment="Center" />
+                      <ui:Icon Grid.Column="1" Classes="chevron" Data="{x:Static ui:Icons.ChevronDown}" Foreground="{DynamicResource Fg2Brush}" Width="16" Height="16" VerticalAlignment="Center" />
+                    </Grid>
+                  </ui:AccordionHeader>
+                  <!-- Neben der Zeile zum Aufklappen, nicht darin: ein Knopf im Aufklappknopf wäre verschachtelt -->
+                  <ui:HelpButton Grid.Column="1" Topic="schliesszeiten" Section="protokoll" Margin="0,0,8,0" VerticalAlignment="Center" />
+                </Grid>
+                <StackPanel Spacing="8" Margin="16,0,16,12" IsVisible="{Binding IsProtocolOpen}">
+                  <Border Classes="divider" />
+                  <TextBlock Text="Wird geladen …" Classes="muted small" IsVisible="{Binding IsProtocolLoading}" />
+                  <ItemsControl x:Name="NoticeList" ItemsSource="{Binding Notices}" AutomationProperties.Name="Absagen wegen dieser Schließzeit">
+                    <ItemsControl.ItemsPanel>
+                      <ItemsPanelTemplate>
+                        <StackPanel Spacing="12" />
+                      </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="vm:ClosureNoticeRow">
+                        <StackPanel Spacing="2">
+                          <TextBlock Text="{Binding Guest}" FontWeight="Medium" TextWrapping="Wrap" />
+                          <TextBlock Text="{Binding WhenText}" Classes="muted small" TextWrapping="Wrap" />
+                          <TextBlock Classes="small" TextWrapping="Wrap" ToolTip.Tip="{Binding LanguageTip}" Text="{Binding ChannelText}" />
+                          <TextBlock Text="{Binding RefundText}" Classes="small" TextWrapping="Wrap" ToolTip.Tip="{Binding RefundTip}" IsVisible="{Binding HasRefund}" />
+                          <TextBlock Text="{Binding StateText}" Classes="small" TextWrapping="Wrap" ToolTip.Tip="{Binding ErrorTip}" />
+                          <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding CanAct}">
+                            <Button Classes="small" Content="Jetzt senden" Command="{Binding SendNowCommand}" AutomationProperties.Name="{Binding SendNowName}" />
+                            <Button Classes="small" Content="Nicht senden" Command="{Binding CancelCommand}" AutomationProperties.Name="{Binding CancelName}" />
+                          </StackPanel>
+                          <TextBlock Text="{Binding ByText}" Classes="muted small" TextWrapping="Wrap" />
+                        </StackPanel>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </StackPanel>
+            </Border>
+          </StackPanel>
+        </StackPanel>
+      </ScrollViewer>
+    </Grid>
+  </Grid>
+</views:PeriodAreaView>

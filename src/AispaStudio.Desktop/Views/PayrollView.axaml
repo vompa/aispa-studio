@@ -1,0 +1,113 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             x:Class="AispaStudio.Desktop.Views.PayrollView"
+             x:DataType="vm:PayrollViewModel"
+             ui:SaveShortcut.IsScope="True">
+  <!--
+    Ansicht „Lohn“ im Bereich Team (R05 Slice 100, Ä191, Ä250), nach web/src/payroll/PayrollPage.tsx: Monat, Monatswerte, Export als Datei und Einstellungen der
+    Lohnverrechnung. Die Personalnummern stehen auf der Personenkarte im Reiter „Lohn“. Die Datei kommt unverändert von der API; „Speichern / Verwerfen“ gilt nur für die Einstellungen (Strg+S).
+  -->
+  <StackPanel Spacing="20" MaxWidth="900" HorizontalAlignment="Left">
+    <ui:InfoBar Severity="Error" Title="Lohn nicht geladen" Message="{Binding LoadError}" IsVisible="{Binding HasLoadError}"
+                ActionText="Erneut laden" ActionCommand="{Binding LoadCommand}" />
+
+    <StackPanel x:Name="PayrollExportSection" Spacing="12">
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Text="Export für die Lohnverrechnung" Classes="h3" VerticalAlignment="Center" />
+        <ui:HelpButton Topic="lohn" Section="export" Grid.Column="1" />
+      </Grid>
+      <TextBlock Classes="muted" TextWrapping="Wrap"
+                 Text="Aus dem Dienstplan (Soll-Zeiten) mit den gesetzlichen Feiertagen des Landes. Übergeben werden Mengen; die Zuschläge rechnet die Lohnverrechnung über die Lohnart." />
+      <ui:FormField Label="Monat">
+        <ComboBox x:Name="PayrollMonthField" ItemsSource="{Binding Months}" SelectedItem="{Binding SelectedMonth}" MinWidth="200" HorizontalAlignment="Left"
+                  AutomationProperties.Name="Monat" />
+      </ui:FormField>
+      <WrapPanel ItemSpacing="8" LineSpacing="8">
+        <Button x:Name="PayrollPreviewButton" Content="Monatswerte anzeigen" Command="{Binding ShowPreviewCommand}" IsEnabled="{Binding !IsBusy}" />
+        <Button x:Name="PayrollExportBmdButton" Content="BMD Lohn" Command="{Binding ExportBmdCommand}" IsEnabled="{Binding !IsBusy}" />
+        <Button x:Name="PayrollExportLodasButton" Content="DATEV Lodas" Command="{Binding ExportLodasCommand}" IsEnabled="{Binding !IsBusy}" />
+        <Button x:Name="PayrollExportLohnButton" Content="DATEV Lohn und Gehalt" Command="{Binding ExportLohnUndGehaltCommand}" IsEnabled="{Binding !IsBusy}" />
+      </WrapPanel>
+      <ui:InfoBar Severity="Error" Title="Kein Export" Message="{Binding Error}" IsVisible="{Binding HasError}" />
+      <ui:InfoBar Severity="Success" Message="{Binding Message}" IsVisible="{Binding HasMessage}" />
+      <ItemsControl ItemsSource="{Binding Warnings}" IsVisible="{Binding HasWarnings}" AutomationProperties.Name="Hinweise zum Monat">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="x:String">
+            <ui:InfoBar Severity="Warning" Message="{Binding}" Margin="0,0,0,8" />
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+
+      <StackPanel x:Name="PayrollTable" Spacing="4" IsVisible="{Binding HasPreview}" AutomationProperties.Name="Monatswerte">
+        <TextBlock Text="Keine Dienste oder Abwesenheiten im Monat." Classes="muted" IsVisible="{Binding ShowsEmpty}" />
+        <ItemsControl ItemsSource="{Binding Rows}" IsVisible="{Binding !ShowsEmpty}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:PayrollRow">
+              <Grid ColumnDefinitions="2*,*,1.5*,1.2*,*" ColumnSpacing="12" Margin="0,0,0,4" AutomationProperties.Name="{Binding AutomationName}">
+                <TextBlock Text="{Binding Person}" TextTrimming="CharacterEllipsis" />
+                <TextBlock Grid.Column="1" Text="{Binding PersonnelNumber}" Classes="muted" />
+                <TextBlock Grid.Column="2" Text="{Binding Item}" />
+                <TextBlock Grid.Column="3" Text="{Binding Quantity}" HorizontalAlignment="Right" />
+                <TextBlock Grid.Column="4" Text="{Binding WageType}" Classes="muted" />
+              </Grid>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        <TextBlock Classes="muted small" TextWrapping="Wrap" IsVisible="{Binding !ShowsEmpty}"
+                   Text="Person, Personalnummer, Position, Menge und Lohnart. Eine Zeile ohne Personalnummer oder Lohnart wird nicht übergeben." />
+      </StackPanel>
+    </StackPanel>
+
+    <StackPanel x:Name="PayrollSettingsSection" Spacing="12" IsVisible="{Binding IsLoaded}">
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Text="Einstellungen der Lohnverrechnung" Classes="h3" VerticalAlignment="Center" />
+        <ui:HelpButton Topic="lohn" Section="einstellungen" Grid.Column="1" />
+      </Grid>
+      <TextBlock Classes="muted" TextWrapping="Wrap" Text="Lohnarten bitte mit der Lohnverrechnung oder Steuerberatung abstimmen. Leer heißt: nicht übergeben." />
+      <TextBlock Classes="muted" TextWrapping="Wrap" Text="Nur lesen: Die Einstellungen ändern Inhaberin und Manager." IsVisible="{Binding !IsEditable}" />
+      <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" ColumnSpacing="12" RowSpacing="12" IsEnabled="{Binding IsEditable}">
+        <ui:FormField Label="Feiertage">
+          <ComboBox x:Name="PayrollCountryField" ItemsSource="{Binding Countries}" SelectedItem="{Binding SelectedCountry}" MinWidth="200" AutomationProperties.Name="Feiertage" />
+        </ui:FormField>
+        <ui:FormField Grid.Column="1" Label="Nacht ab" Error="{Binding NightStartError}">
+          <TextBox x:Name="PayrollNightStartField" Text="{Binding NightStartText}" MaxLength="5" Width="100" HorizontalAlignment="Left" PlaceholderText="22:00" />
+        </ui:FormField>
+        <ui:FormField Grid.Row="1" Label="Nacht bis" Error="{Binding NightEndError}">
+          <TextBox x:Name="PayrollNightEndField" Text="{Binding NightEndText}" MaxLength="5" Width="100" HorizontalAlignment="Left" PlaceholderText="06:00" />
+        </ui:FormField>
+        <ui:FormField Grid.Row="2" Label="DATEV-Beraternummer">
+          <TextBox x:Name="PayrollConsultantField" Text="{Binding ConsultantNumber}" MaxLength="7" />
+        </ui:FormField>
+        <ui:FormField Grid.Row="2" Grid.Column="1" Label="DATEV-Mandantennummer">
+          <TextBox x:Name="PayrollClientField" Text="{Binding ClientNumber}" MaxLength="5" />
+        </ui:FormField>
+        <ui:FormField Grid.Row="3" Label="Lohnart Stunden">
+          <TextBox x:Name="PayrollHoursWageField" Text="{Binding HoursWageType}" MaxLength="10" />
+        </ui:FormField>
+        <ui:FormField Grid.Row="3" Grid.Column="1" Label="Lohnart Sonntag">
+          <TextBox Text="{Binding SundayWageType}" MaxLength="10" />
+        </ui:FormField>
+        <ui:FormField Grid.Row="4" Label="Lohnart Feiertag">
+          <TextBox Text="{Binding HolidayWageType}" MaxLength="10" />
+        </ui:FormField>
+        <ui:FormField Grid.Row="4" Grid.Column="1" Label="Lohnart Nacht">
+          <TextBox Text="{Binding NightWageType}" MaxLength="10" />
+        </ui:FormField>
+        <ui:FormField Grid.Row="5" Label="Lohnart Urlaub">
+          <TextBox Text="{Binding VacationWageType}" MaxLength="10" />
+        </ui:FormField>
+        <ui:FormField Grid.Row="5" Grid.Column="1" Label="Lohnart Krankenstand">
+          <TextBox Text="{Binding SickWageType}" MaxLength="10" />
+        </ui:FormField>
+      </Grid>
+      <ui:FormField Label="Lohnart Schulung" IsEnabled="{Binding IsEditable}">
+        <TextBox Text="{Binding TrainingWageType}" MaxLength="10" Width="200" HorizontalAlignment="Left" />
+      </ui:FormField>
+      <ui:InfoBar Severity="Error" Title="Nicht gespeichert" Message="{Binding SettingsError}" IsVisible="{Binding HasSettingsError}" />
+      <ui:SaveBar SaveCommand="{Binding SaveSettingsCommand}" DiscardCommand="{Binding DiscardSettingsCommand}" CanDiscard="{Binding HasUnsavedChanges}"
+                  Status="{Binding StatusText}" IsVisible="{Binding IsEditable}" />
+    </StackPanel>
+  </StackPanel>
+</UserControl>

@@ -1,0 +1,86 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             x:Class="AispaStudio.Desktop.Views.DutyOverviewView"
+             x:DataType="vm:DutyOverviewViewModel">
+  <!--
+    Ansicht „Zuständigkeiten“ im Bereich Team (R05 Slice 117, Ä274, E14): wer wofür zuständig ist, was bald abläuft, und die pflegbare Liste der Zuständigkeiten
+    mit verlangtem Zertifikat und Mindestzahl Ersthelferinnen im Dienst. Die Zuständigkeiten einer Person pflegt man auf ihrer Karte.
+  -->
+  <StackPanel x:Name="DutyOverview" Spacing="24" MaxWidth="760" HorizontalAlignment="Left" ui:SaveShortcut.IsScope="True">
+    <ui:InfoBar Severity="Error" Title="Nicht geladen" Message="{Binding LoadError}" IsVisible="{Binding HasLoadError}" ActionText="Erneut laden" ActionCommand="{Binding LoadCommand}" />
+
+    <StackPanel Spacing="12">
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Text="Wer ist wofür zuständig?" Classes="h2" VerticalAlignment="Center" />
+        <ui:HelpButton Topic="zustaendigkeiten-zertifikate" Section="uebersicht" Grid.Column="1" />
+      </Grid>
+      <ItemsControl x:Name="DutyRows" ItemsSource="{Binding Rows}" AutomationProperties.Name="Zuständigkeiten">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="vm:DutyOverviewRow">
+            <StackPanel Spacing="2" Margin="0,0,0,16">
+              <TextBlock Text="{Binding Name}" Classes="heading" />
+              <TextBlock Text="{Binding Certificate}" Classes="muted small" IsVisible="{Binding HasCertificate}" />
+              <TextBlock Text="Niemand eingetragen" Classes="muted" IsVisible="{Binding HasNoHolders}" />
+              <ItemsControl ItemsSource="{Binding Holders}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:DutyHolderRow">
+                    <TextBlock Text="{Binding Text}" Classes.muted="{Binding IsExpired}" TextWrapping="Wrap" />
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </StackPanel>
+
+    <StackPanel Spacing="12">
+      <TextBlock Text="Was läuft bald ab?" Classes="h2" />
+      <TextBlock Text="Kein Zertifikat ist in der Erinnerungsfrist oder abgelaufen." Classes="muted" IsVisible="{Binding HasNoExpiring}" />
+      <ItemsControl x:Name="ExpiringRows" ItemsSource="{Binding Expiring}" AutomationProperties.Name="Was läuft bald ab?">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="vm:ExpiringRow">
+            <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,0,0,8" AutomationProperties.Name="{Binding AutomationName}">
+              <ui:Icon Data="{x:Static ui:Icons.Warning}" Width="16" Height="16" Foreground="{DynamicResource WarnBrush}" VerticalAlignment="Center" IsVisible="{Binding IsExpired}" />
+              <TextBlock Text="{Binding Text}" TextWrapping="Wrap" VerticalAlignment="Center" />
+            </StackPanel>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </StackPanel>
+
+    <StackPanel Spacing="12">
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Text="Liste der Zuständigkeiten" Classes="h2" VerticalAlignment="Center" />
+        <ui:HelpButton Topic="zustaendigkeiten-zertifikate" Section="liste" Grid.Column="1" />
+      </Grid>
+      <TextBlock Classes="muted" TextWrapping="Wrap" Text="Vorgaben lassen sich umbenennen und ausblenden, nicht löschen. Das Programm prüft keine Rechtsvorschrift." />
+      <ItemsControl x:Name="DutyTypeRows" ItemsSource="{Binding Types}" AutomationProperties.Name="Liste der Zuständigkeiten">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="vm:DutyTypeRow">
+            <Grid ColumnDefinitions="220,220,140,Auto" ColumnSpacing="12" Margin="0,0,0,12">
+              <ui:FormField Label="Name" IsRequired="True" Error="{Binding NameError}">
+                <TextBox x:Name="DutyTypeNameField" Text="{Binding Name}" MaxLength="100" AutomationProperties.Name="Name der Zuständigkeit" />
+              </ui:FormField>
+              <ui:FormField Grid.Column="1" Label="Verlangtes Zertifikat">
+                <TextBox x:Name="RequiredCertificateField" Text="{Binding RequiredCertificate}" MaxLength="200" PlaceholderText="z. B. Erste-Hilfe-Kurs"
+                         AutomationProperties.Name="Verlangtes Zertifikat" />
+              </ui:FormField>
+              <ui:FormField Grid.Column="2" Label="Mindestzahl im Dienst" Error="{Binding MinimumError}" IsVisible="{Binding ShowsMinimum}">
+                <ui:NumberField x:Name="MinimumOnDutyField" Value="{Binding MinimumOnDuty}" Minimum="0" Maximum="20" DecimalPlaces="0" Width="120" HorizontalAlignment="Left"
+                                AutomationProperties.Name="Mindestzahl Ersthelferinnen im Dienst" />
+              </ui:FormField>
+              <CheckBox Grid.Column="3" Content="Ausblenden" IsChecked="{Binding IsHidden}" VerticalAlignment="Top" Margin="0,20,0,0"
+                        AutomationProperties.Name="{Binding Name, StringFormat='Ausblenden: {0}'}" />
+            </Grid>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+      <Button x:Name="AddDutyTypeButton" Content="Eintrag hinzufügen" Command="{Binding AddTypeCommand}" HorizontalAlignment="Left" />
+      <ui:InfoBar Severity="Error" Title="Nicht gespeichert" Message="{Binding Error}" IsVisible="{Binding HasError}" CloseCommand="{Binding CloseErrorCommand}" />
+      <ui:SaveBar x:Name="DutyTypesSaveBar" SaveCommand="{Binding SaveCommand}" DiscardCommand="{Binding DiscardChangesCommand}" CanDiscard="{Binding HasUnsavedChanges}" Status="{Binding StatusText}" />
+    </StackPanel>
+  </StackPanel>
+</UserControl>

@@ -1,0 +1,78 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             x:Class="AispaStudio.Desktop.Views.PersonDetailsView"
+             x:DataType="vm:PersonDetailsViewModel">
+  <!--
+    Reiter „Stammdaten“ (R05 Slice 98): dieselben Felder, Grenzen und Texte wie EmployeeForm in web/src/admin/TeamTab.tsx ohne die Qualifikationen
+    (eigener Reiter). Feld zu Feld 12, Gruppe zu Gruppe 20 (masken.md), Fragezeichen am Gruppentitel (Brief 5.11).
+  -->
+  <StackPanel x:Name="DetailsSection" Spacing="20" IsEnabled="{Binding IsEditable}">
+    <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="12">
+      <ui:FormField Label="Vollständiger Name" IsRequired="True" Error="{Binding NameError}">
+        <TextBox x:Name="PersonNameField" Text="{Binding Name}" MaxLength="100" />
+      </ui:FormField>
+      <ui:FormField Grid.Column="1" Label="Name im Haus" Help="So heißt die Person im Kalender und für Gäste, z. B. Lena.">
+        <TextBox x:Name="PreferredNameField" Text="{Binding PreferredName}" MaxLength="40" />
+      </ui:FormField>
+      <ui:FormField Grid.Row="1" Label="Farbe im Kalender">
+        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+          <Border Width="24" Height="24" CornerRadius="4" Background="{Binding ColorSwatch}" BorderBrush="{DynamicResource LineStrongBrush}" BorderThickness="1"
+                  VerticalAlignment="Center" />
+          <TextBox Grid.Column="1" x:Name="ColorField" Text="{Binding Color}" MaxLength="7" Width="120" HorizontalAlignment="Left"
+                   PlaceholderText="{x:Static vm:PersonDetailsViewModel.ColorExample}" AutomationProperties.Name="Farbe im Kalender" />
+        </Grid>
+      </ui:FormField>
+      <ui:FormField Grid.Row="1" Grid.Column="1" Label="Für Gäste mit Wunsch">
+        <ComboBox x:Name="GenderField" ItemsSource="{x:Static vm:PersonGenderChoice.All}" SelectedItem="{Binding Gender}" MinWidth="200" />
+      </ui:FormField>
+    </Grid>
+
+    <StackPanel Spacing="8">
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Text="Sprachen" Classes="h3" VerticalAlignment="Center" />
+        <ui:HelpButton Topic="team" Section="sprachen" Grid.Column="1" />
+      </Grid>
+      <TextBlock Classes="muted" TextWrapping="Wrap" Text="Außer Deutsch, in denen die Person behandeln kann." />
+      <ItemsControl x:Name="LanguagesField" ItemsSource="{Binding Languages}" AutomationProperties.Name="Sprachen">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <WrapPanel ItemSpacing="16" />
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="vm:LanguageOption">
+            <CheckBox Content="{Binding Label}" IsChecked="{Binding IsChecked}" />
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </StackPanel>
+
+    <StackPanel Spacing="8">
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Text="Wochenarbeitszeiten" Classes="h3" VerticalAlignment="Center" />
+        <ui:HelpButton Topic="team" Section="wochenarbeitszeiten" Grid.Column="1" />
+      </Grid>
+      <ItemsControl ItemsSource="{Binding WorkingHours}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="vm:WorkingHoursRow">
+            <Grid ColumnDefinitions="150,*,Auto,Auto,Auto" ColumnSpacing="8" Margin="0,0,0,8">
+              <ComboBox ItemsSource="{x:Static vm:WorkDayChoice.All}" SelectedItem="{Binding Day}" HorizontalAlignment="Stretch" AutomationProperties.Name="Tag" />
+              <ComboBox Grid.Column="1" ItemsSource="{Binding Locations}" SelectedItem="{Binding Location}" HorizontalAlignment="Stretch"
+                        AutomationProperties.Name="Standort" />
+              <ui:TimeField Grid.Column="2" Value="{Binding Start}" AutomationProperties.Name="Beginn" />
+              <ui:TimeField Grid.Column="3" Value="{Binding End}" NotBefore="{Binding Start}" AutomationProperties.Name="Ende" />
+              <Button Grid.Column="4" Classes="ghost icon" Width="32" Height="32" Command="{Binding RemoveCommand}" ToolTip.Tip="Arbeitszeit entfernen"
+                      AutomationProperties.Name="Arbeitszeit entfernen">
+                <ui:Icon Data="{x:Static ui:Icons.Trash}" Width="16" Height="16" />
+              </Button>
+            </Grid>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+      <Button x:Name="AddHoursButton" Content="Arbeitszeit hinzufügen" Command="{Binding AddHoursCommand}" IsEnabled="{Binding CanAddHours}"
+              HorizontalAlignment="Left" ToolTip.Tip="Nächster Tag ohne Eintrag, mit den Zeiten des letzten Eintrags" />
+    </StackPanel>
+  </StackPanel>
+</UserControl>

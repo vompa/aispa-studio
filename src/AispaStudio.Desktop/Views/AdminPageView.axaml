@@ -1,0 +1,28 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             x:Class="AispaStudio.Desktop.Views.AdminPageView"
+             x:DataType="vm:AdminPageViewModel">
+  <!--
+    Seite „Verwaltung“ (R05 Slice 93, ADR 0084; Slice 125, Brief 6): oben der Balken mit den Gruppen, darunter die Masken der Gruppe als Reiter und die native Maske des Bereichs.
+    Ein Sprung ohne Recht oder ohne Ziel zeigt über der Maske einen Hinweis (Slice 103, meldungen.md M2). Die Einträge von Balken und Reitern legt die Ansicht aus den Gruppen an,
+    weil der OverflowStrip seine Kinder selbst misst.
+  -->
+  <Grid RowDefinitions="Auto,Auto,Auto,*">
+    <Border Classes="adminbar" ui:RegionNavigation.IsRegion="True" AutomationProperties.Name="Gruppen der Verwaltung">
+      <ui:OverflowStrip x:Name="GroupStrip" Spacing="4" />
+    </Border>
+
+    <Border Grid.Row="1" Classes="segmented" HorizontalAlignment="Left" Margin="16,12,16,0" IsVisible="{Binding SelectedGroup?.HasTabs, TargetNullValue=False}"
+            ui:RegionNavigation.IsRegion="True" AutomationProperties.Name="Masken der Gruppe">
+      <ui:OverflowStrip x:Name="AreaStrip" Spacing="2" />
+    </Border>
+
+    <ui:InfoBar Grid.Row="2" x:Name="NoticeBar" Severity="Warning" Margin="16,12,16,0" Message="{Binding Notice}" CloseCommand="{Binding CloseNoticeCommand}"
+                IsVisible="{Binding Notice, Converter={x:Static ObjectConverters.IsNotNull}}" />
+
+    <ContentControl Grid.Row="3" x:Name="AreaHost" Margin="16" Content="{Binding Content}" ui:RegionNavigation.IsRegion="True"
+                    AutomationProperties.Name="{Binding SelectedArea?.Title, TargetNullValue=Verwaltung}" />
+  </Grid>
+</UserControl>

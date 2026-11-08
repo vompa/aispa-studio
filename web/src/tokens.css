@@ -1,0 +1,39 @@
+/* Gemeinsame Farben der schlanken Oberflächen: Kundenbereich (booking), „Mein Tag“ (myday) und Betreiber (operator).
+   Die Werte entsprechen den bisherigen Kopien; --border-control ist der Rand der Kundenbereich-Bedienelemente.
+   Die Hilfe hat ihre Palette in index.css. Keine Imports aus der Team-Oberfläche. */
+
+:root {
+  --bg: #f7f5f2;
+  --fg: #1f2421;
+  --muted: #545e58;
+  --accent: #2a6354;
+  --accent-fg: #ffffff;
+  --surface: #ffffff;
+  --border: #8a948e;
+  --border-control: #808a84;
+  --soft: #e7ece9;
+  --danger: #9b2f27;
+  --success: #1f5a33;
+  --focus: #1b4fd1;
+  --notice: #fff4d6;
+  --notice-border: #8a6a00;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #141816;
+    --fg: #ecf0ed;
+    --muted: #b4beb8;
+    --accent: #7fd0b5;
+    --accent-fg: #0d1a15;
+    --surface: #1d2320;
+    --border: #7d8a83;
+    --border-control: #7d8a83;
+    --soft: #26302b;
+    --danger: #ff9c92;
+    --success: #8fe0a9;
+    --focus: #9cb8ff;
+    --notice: #3a3115;
+    --notice-border: #e0c060;
+  }
+}

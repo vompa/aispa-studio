@@ -1,0 +1,131 @@
+# Ergänzung zu compose.yaml für den Betrieb mit mehreren Instanzen (ADR 0087): ein Migrationslauf, zwei API-Instanzen, ein Worker, Redis.
+# Alles zusammen läuft lokal so, wie es später in der Cloud läuft. Aufruf (beide Dateien, in dieser Reihenfolge):
+#   docker compose -f compose.yaml -f compose.scale.yaml up -d --build
+# Web, Mails und Ports wie in compose.yaml: Web http://localhost:5173, Mails http://localhost:8025. Die API hat in diesem Aufbau keinen
+# festen Host-Port (zwei Instanzen teilen sich keinen); alles läuft über nginx im Dienst web.
+# Wie compose.yaml in der Entwicklungsumgebung (Testkonten ohne Passkey, Beispiel-Spa): nie öffentlich betreiben.
+#
+# - migrate: bringt die Datenbank mit dem Befehl migrate auf den neuesten Stand und endet; api und worker warten darauf.
+# - api (zwei Instanzen, Hosting:Role=Api): beantwortet Anfragen, startet keine Hintergrunddienste. Schlüsselring in der Datenbank, deshalb
+#   braucht es das Volume api-keys nicht mehr. Live-Meldungen über Redis.
+# - worker (genau eine Instanz, Hosting:Role=Worker): Hintergrunddienste und Mail-Queue. Nie auf mehr als eine Instanz skalieren.
+#   Er legt auch das Beispiel-Spa an (Database:SeedDemoData): drei Instanzen, die zugleich eine leere Datenbank füllen, wären falsch.
+#   Die Testkonten erscheinen daher erst nach dem Einspielen (gemessen: rund eine Minute); /health des Workers meldet bis dahin 503.
+# - nginx (Dienst web) hat eine feste Adresse und ist der einzige Proxy, dem die API Adresse und Schema glaubt. /api/ verteilt er reihum,
+#   /hubs/ mit fester Zuordnung je Client-Adresse (docker/nginx-hubs-hash.conf, Upstream api_hubs in docker/nginx.conf).
+# - nginx löst den Namen api nur beim Start auf: nach einem Neuanlegen der API-Instanzen (nicht nach restart) docker compose ... restart web.
+name: aispa
+
+x-api-image: &api-build
+  image: aispa-scale-api
+  build:
+    context: .
+    dockerfile: docker/api.Dockerfile
+
+x-database: &database
+  ConnectionStrings__aispadb: "Host=db;Database=aispadb;Username=postgres;Password=aispa-lokal"
+  Database__MigrateOnStartup: "false"
+  DataProtection__Store: Database
+
+x-instance: &instance
+  <<: *database
+  ASPNETCORE_ENVIRONMENT: Development
+  ConnectionStrings__redis: "redis:6379"
+  Live__Backplane: Redis
+  Hosting__ForwardedHeaders__Enabled: "true"
+  Hosting__ForwardedHeaders__KnownProxies: "10.200.0.10"
+  Hosting__HealthEndpoints: "true"
+  Mail__Smtp__Host: mailpit
+  Mail__Smtp__Port: "1025"
+  Mail__Smtp__Security: None
+  OnlineBooking__PublicUrl: http://localhost:5173
+  Ai__Claude__ApiKey: ${AISPA_CLAUDE_API_KEY:-}
+
+# Das aspnet-Image hat weder curl noch wget; die Probe liest die Statuszeile über ein TCP-Socket von bash (/bin/sh kennt /dev/tcp nicht).
+x-health: &health
+  test:
+    - CMD
+    - bash
+    - -c
+    - "exec 3<>/dev/tcp/127.0.0.1/8080 && printf 'GET /health HTTP/1.0\\r\\n\\r\\n' >&3 && head -n 1 <&3 | grep -q ' 200 '"
+  interval: 5s
+  timeout: 3s
+  retries: 60
+  start_period: 10s
+
+services:
+  # Nur im internen Netz, ohne Port und ohne Passwort (Pub/Sub, kein Volume nötig). Im Betrieb Passwort setzen, siehe Server-Einstellungen.
+  redis:
+    image: redis:8-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+  migrate:
+    <<: *api-build
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["migrate"]
+    restart: "no"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      <<: *database
+    volumes: !reset []
+    ports: !reset []
+
+  api:
+    <<: *api-build
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      mailpit:
+        condition: service_started
+    deploy:
+      replicas: 2
+    environment:
+      <<: *instance
+      Hosting__Role: Api
+      Database__SeedDemoData: "false"
+    healthcheck: *health
+    volumes: !reset []
+    ports: !reset []
+
+  worker:
+    <<: *api-build
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      mailpit:
+        condition: service_started
+    environment:
+      <<: *instance
+      Hosting__Role: Worker
+      Database__SeedDemoData: "true"
+    healthcheck: *health
+
+  web:
+    depends_on:
+      api:
+        condition: service_healthy
+    # Legt die feste Zuordnung für /hubs/ vor dem Start in den Ordner, den nginx.conf einliest (kein Bind-Mount: der Pfad des Repositorys
+    # muss für Docker Desktop nicht freigegeben sein).
+    command:
+      - sh
+      - -c
+      - "mkdir -p /etc/nginx/conf.d/hubs-balancing && cp /etc/nginx/hubs-hash.conf /etc/nginx/conf.d/hubs-balancing/hash.conf && exec nginx -g 'daemon off;'"
+    networks:
+      default:
+        ipv4_address: 10.200.0.10
+
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: 10.200.0.0/24

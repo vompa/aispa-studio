@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Gemeinsame Datentypen (DTOs) für API, Windows-App und Tests.</Description>
+  </PropertyGroup>
+
+</Project>

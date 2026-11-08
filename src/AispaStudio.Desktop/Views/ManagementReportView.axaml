@@ -1,0 +1,188 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             x:Class="AispaStudio.Desktop.Views.ManagementReportView"
+             x:DataType="vm:ManagementReportViewModel">
+  <!-- Reiter „Management“ nach web/src/reports/ManagementView.tsx und BenchmarkView.tsx. Der Vergleich zeigt die Werte als Text; ein Balken wäre eine eigene Zeichnung (Ä226). -->
+  <StackPanel Spacing="16">
+    <StackPanel Orientation="Horizontal" Spacing="12">
+      <ui:FormField Label="Von">
+        <ui:DateField x:Name="ManagementFromField" Value="{Binding From}" />
+      </ui:FormField>
+      <ui:FormField Label="Bis">
+        <ui:DateField x:Name="ManagementUntilField" Value="{Binding Until}" />
+      </ui:FormField>
+      <CheckBox x:Name="ManagementCompareField" Content="Mit anderen Spas vergleichen" IsChecked="{Binding Compare}" VerticalAlignment="Bottom" />
+    </StackPanel>
+    <ui:InfoBar Severity="Error" Title="Bericht nicht geladen" Message="{Binding LoadError}" IsVisible="{Binding HasLoadError}"
+                ActionText="Erneut laden" ActionCommand="{Binding RetryCommand}" />
+    <ui:InfoBar Severity="Info" Message="{x:Static vm:ManagementReportViewModel.AmountsHint}" IsVisible="{Binding AmountsHidden}" />
+    <ItemsControl ItemsSource="{Binding Alerts}">
+      <ItemsControl.ItemTemplate>
+        <DataTemplate x:DataType="x:String">
+          <ui:InfoBar Severity="Warning" Message="{Binding}" Margin="0,0,0,8" />
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
+
+    <!-- Vergleich mit anderen Spas -->
+    <StackPanel Spacing="8" IsVisible="{Binding Compare}">
+      <TextBlock Text="Vergleich mit anderen Spas" Classes="h2" />
+      <ui:FormField Label="Zeitraum">
+        <ComboBox x:Name="BenchmarkPeriodField" ItemsSource="{Binding BenchmarkPeriods}" SelectedItem="{Binding SelectedPeriod}" Width="160" />
+      </ui:FormField>
+      <ui:InfoBar Severity="Error" Title="Vergleich nicht geladen" Message="{Binding BenchmarkError}" IsVisible="{Binding HasBenchmarkError}" />
+      <StackPanel Spacing="8" IsVisible="{Binding HasBenchmark}">
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <TextBlock Text="{Binding BenchmarkTitle}" TextWrapping="Wrap" />
+          <Border Classes="pill" IsVisible="{Binding BenchmarkIsSample}">
+            <TextBlock Text="Beispieldaten" Classes="small" />
+          </Border>
+        </StackPanel>
+        <TextBlock Text="{Binding BenchmarkSummary}" Classes="muted" TextWrapping="Wrap" />
+        <ItemsControl ItemsSource="{Binding BenchmarkRows}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:BenchmarkRow">
+              <Border Classes="card" Padding="12" Margin="0,0,0,8">
+                <StackPanel Spacing="4">
+                  <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="12">
+                    <TextBlock Text="{Binding Label}" FontWeight="Medium" TextWrapping="Wrap" />
+                    <TextBlock Grid.Column="1" Text="{Binding Own}" Classes="num" />
+                    <TextBlock Grid.Column="2" Text="{Binding Rating}" Classes="muted" />
+                  </Grid>
+                  <TextBlock Text="{Binding Range}" Classes="muted small" TextWrapping="Wrap" />
+                  <TextBlock Text="{Binding Tip}" TextWrapping="Wrap" IsVisible="{Binding HasTip}" />
+                </StackPanel>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        <ItemsControl ItemsSource="{Binding BenchmarkNotes}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="x:String">
+              <TextBlock Text="{Binding}" Classes="muted small" TextWrapping="Wrap" />
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </StackPanel>
+    </StackPanel>
+
+    <ItemsControl ItemsSource="{Binding Kpis}">
+      <ItemsControl.ItemsPanel>
+        <ItemsPanelTemplate>
+          <WrapPanel ItemSpacing="12" LineSpacing="12" />
+        </ItemsPanelTemplate>
+      </ItemsControl.ItemsPanel>
+      <ItemsControl.ItemTemplate>
+        <DataTemplate x:DataType="vm:KpiRow">
+          <Border Classes="card" Padding="12" MinWidth="168">
+            <StackPanel Spacing="4">
+              <TextBlock Text="{Binding Label}" Classes="muted small" />
+              <TextBlock Text="{Binding Value}" Classes="h2 num" />
+              <TextBlock Text="{Binding Previous}" Classes="muted small num" IsVisible="{Binding HasPrevious}" />
+            </StackPanel>
+          </Border>
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
+
+    <StackPanel Spacing="8" IsVisible="{Binding ShowAmounts}">
+      <TextBlock Text="Umsatz nach Erlöskonto" Classes="h2" />
+      <ItemsControl ItemsSource="{Binding RevenueByAccount}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="vm:RevenueRow">
+            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="12" Margin="0,0,0,4">
+              <TextBlock Text="{Binding Label}" TextWrapping="Wrap" />
+              <TextBlock Grid.Column="1" Text="{Binding Gross}" Classes="num" />
+              <TextBlock Grid.Column="2" Text="{Binding Net}" Classes="muted num" />
+            </Grid>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+      <TextBlock Text="Umsatz nach Zahlungsart" Classes="h2" />
+      <ItemsControl ItemsSource="{Binding RevenueByPayment}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="vm:RevenueRow">
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12" Margin="0,0,0,4">
+              <TextBlock Text="{Binding Label}" TextWrapping="Wrap" />
+              <TextBlock Grid.Column="1" Text="{Binding Gross}" Classes="num" />
+            </Grid>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </StackPanel>
+
+    <StackPanel Spacing="8" Grid.IsSharedSizeScope="True">
+      <TextBlock Text="Personal" Classes="h2" />
+      <Grid ColumnSpacing="12" AutomationProperties.AccessibilityView="Raw">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="Auto" SharedSizeGroup="Shift" />
+          <ColumnDefinition Width="Auto" SharedSizeGroup="Treatment" />
+          <ColumnDefinition Width="Auto" SharedSizeGroup="Use" />
+          <ColumnDefinition Width="Auto" SharedSizeGroup="PerHour" />
+        </Grid.ColumnDefinitions>
+        <TextBlock Text="Person" Classes="muted small" />
+        <TextBlock Grid.Column="1" Text="Dienststunden" Classes="muted small" />
+        <TextBlock Grid.Column="2" Text="Behandlungsstunden" Classes="muted small" />
+        <TextBlock Grid.Column="3" Text="Auslastung" Classes="muted small" />
+        <TextBlock Grid.Column="4" Text="Umsatz je Stunde" Classes="muted small" IsVisible="{Binding ShowAmounts}" />
+      </Grid>
+      <ItemsControl ItemsSource="{Binding Employees}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="vm:EmployeeKpiRow">
+            <Grid ColumnSpacing="12" Margin="0,0,0,4">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" SharedSizeGroup="Shift" />
+                <ColumnDefinition Width="Auto" SharedSizeGroup="Treatment" />
+                <ColumnDefinition Width="Auto" SharedSizeGroup="Use" />
+                <ColumnDefinition Width="Auto" SharedSizeGroup="PerHour" />
+              </Grid.ColumnDefinitions>
+              <TextBlock Text="{Binding Name}" />
+              <TextBlock Grid.Column="1" Text="{Binding ShiftHours}" Classes="num" />
+              <TextBlock Grid.Column="2" Text="{Binding TreatmentHours}" Classes="num" />
+              <TextBlock Grid.Column="3" Text="{Binding Utilization}" Classes="num" />
+              <TextBlock Grid.Column="4" Text="{Binding RevenuePerHour}" Classes="num" />
+            </Grid>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </StackPanel>
+
+    <StackPanel Spacing="8" Grid.IsSharedSizeScope="True">
+      <TextBlock Text="Behandlungen" Classes="h2" />
+      <Grid ColumnSpacing="12" AutomationProperties.AccessibilityView="Raw">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="Auto" SharedSizeGroup="Count" />
+          <ColumnDefinition Width="Auto" SharedSizeGroup="Revenue" />
+          <ColumnDefinition Width="Auto" SharedSizeGroup="Margin" />
+        </Grid.ColumnDefinitions>
+        <TextBlock Text="Behandlung" Classes="muted small" />
+        <TextBlock Grid.Column="1" Text="Termine" Classes="muted small" />
+        <TextBlock Grid.Column="2" Text="Umsatz netto" Classes="muted small" IsVisible="{Binding ShowAmounts}" />
+        <TextBlock Grid.Column="3" Text="Marge je Termin (Vollkosten)" Classes="muted small" IsVisible="{Binding ShowAmounts}" />
+      </Grid>
+      <ItemsControl ItemsSource="{Binding Treatments}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="vm:TreatmentKpiRow">
+            <Grid ColumnSpacing="12" Margin="0,0,0,4">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" SharedSizeGroup="Count" />
+                <ColumnDefinition Width="Auto" SharedSizeGroup="Revenue" />
+                <ColumnDefinition Width="Auto" SharedSizeGroup="Margin" />
+              </Grid.ColumnDefinitions>
+              <TextBlock Text="{Binding Name}" TextWrapping="Wrap" />
+              <TextBlock Grid.Column="1" Text="{Binding Appointments}" Classes="num" />
+              <TextBlock Grid.Column="2" Text="{Binding Revenue}" Classes="num" />
+              <TextBlock Grid.Column="3" Text="{Binding Margin}" Classes="num" Classes.error="{Binding IsLoss}" />
+            </Grid>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </StackPanel>
+  </StackPanel>
+</UserControl>

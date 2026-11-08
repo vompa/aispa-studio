@@ -1,0 +1,19 @@
+{
+  "id": "/buchen/",
+  "name": "Meine Termine",
+  "short_name": "Termine",
+  "description": "Die Handy-App für Gäste: eigene Termine ansehen, verschieben und absagen, in den Kalender übernehmen, Gutscheine ansehen, Fragebogen vorab ausfüllen und neu buchen.",
+  "lang": "de",
+  "start_url": "/buchen/#/termine",
+  "scope": "/buchen/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#2a6354",
+  "background_color": "#f7f5f2",
+  "icons": [
+    { "src": "/buchen/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/buchen/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/buchen/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/buchen/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

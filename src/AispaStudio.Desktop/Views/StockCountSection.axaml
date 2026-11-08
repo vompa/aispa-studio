@@ -1,0 +1,109 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             x:Class="AispaStudio.Desktop.Views.StockCountSection"
+             x:DataType="vm:StockCountViewModel">
+  <!--
+    Inventur (R05 Slice 101) nach web/src/stock/StockCount.tsx: Lagerort wählen, Zählung starten, Zählfeld je Zeile mit Differenz und Wert live. Gebucht wird nur, was gezählt wurde und
+    vom Soll abweicht, nach einer Rückfrage. „Soll ausblenden“ zählt blind.
+  -->
+  <Border Classes="card">
+    <StackPanel Spacing="12" Grid.IsSharedSizeScope="True">
+      <!-- Vor der Zählung -->
+      <StackPanel Spacing="12" IsVisible="{Binding IsIdle}">
+        <Grid ColumnDefinitions="*,Auto">
+          <TextBlock Text="Inventur" Classes="h2" VerticalAlignment="Center" />
+          <ui:HelpButton Grid.Column="1" Topic="lager-inventur" Section="schritte" />
+        </Grid>
+        <TextBlock Classes="muted" TextWrapping="Wrap" Text="Lagerort wählen und die Zählung starten. Gebucht wird der Unterschied zum bisherigen Bestand des Lagerorts." />
+        <!-- Zählungen vom Handy (R05 Slice 116, Ä272): abgeschickt, warten auf die Leitung -->
+        <StackPanel x:Name="HandyBlock" Spacing="8" IsVisible="{Binding HasHandySessions}">
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Text="{Binding HandyHeading}" Classes="h3" VerticalAlignment="Center" AutomationProperties.LiveSetting="Polite" />
+            <ui:HelpButton Grid.Column="1" Topic="lager-inventur-handy" />
+          </Grid>
+          <ItemsControl x:Name="HandySessionList" ItemsSource="{Binding HandySessions}" AutomationProperties.Name="Zählungen vom Handy">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:HandySessionRow">
+                <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8" Margin="0,4">
+                  <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="{Binding PlaceName}" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Text="{Binding Detail}" Classes="muted small" TextWrapping="Wrap" />
+                  </StackPanel>
+                  <Button Grid.Column="1" Content="Übernehmen" Classes="small" Command="{Binding AdoptCommand}" AutomationProperties.Name="{Binding AdoptName}" />
+                  <Button Grid.Column="2" Content="Verwerfen" Classes="small" Command="{Binding DiscardCommand}" AutomationProperties.Name="{Binding DiscardName}" />
+                </Grid>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+        <ui:InfoBar Severity="Error" Title="Zählungen vom Handy nicht geladen" Message="{Binding HandyError}" IsVisible="{Binding HasHandyError}" />
+        <ui:FormField Label="Lagerort">
+          <ComboBox x:Name="CountPlaceField" ItemsSource="{Binding PlaceOptions}" SelectedItem="{Binding SelectedPlace}" MinWidth="240" HorizontalAlignment="Left" />
+        </ui:FormField>
+        <ui:InfoBar Severity="Error" Title="Zählung nicht gestartet" Message="{Binding Error}" IsVisible="{Binding HasError}" />
+        <StackPanel Orientation="Horizontal">
+          <Button x:Name="StartCountButton" Classes="primary" Content="Zählung starten" Command="{Binding StartCommand}" />
+        </StackPanel>
+      </StackPanel>
+
+      <!-- Während der Zählung -->
+      <StackPanel Spacing="12" IsVisible="{Binding IsCounting}">
+        <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto" ColumnSpacing="12">
+          <TextBlock Text="{Binding Heading}" Classes="h2" VerticalAlignment="Center" />
+          <ui:HelpButton Grid.Column="1" Topic="lager-inventur" Section="schritte" />
+          <CheckBox Grid.Column="2" x:Name="HideTargetBox" IsChecked="{Binding HideTarget}" Content="Soll ausblenden" VerticalAlignment="Center" />
+          <Button Grid.Column="3" x:Name="LeaveAdoptedButton" Content="Zurück" Command="{Binding LeaveAdoptedCommand}" IsVisible="{Binding IsAdopted}" />
+          <Button Grid.Column="4" x:Name="BookCountButton" Classes="primary" Content="Inventur buchen" Command="{Binding BookCommand}" />
+        </Grid>
+        <ui:InfoBar Severity="Error" Title="Nicht gebucht" Message="{Binding Error}" IsVisible="{Binding HasError}" />
+        <TextBlock Text="Der gezählte Bestand darf nicht negativ sein." Classes="warn" IsVisible="{Binding HasInvalid}" />
+        <TextBlock Text="Noch kein Material angelegt." Classes="muted" IsVisible="{Binding ShowEmpty}" />
+
+        <Grid AutomationProperties.AccessibilityView="Raw">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" MinWidth="160" />
+            <ColumnDefinition Width="Auto" SharedSizeGroup="Unit" />
+            <ColumnDefinition Width="Auto" SharedSizeGroup="Target" />
+            <ColumnDefinition Width="Auto" SharedSizeGroup="Counted" />
+            <ColumnDefinition Width="Auto" SharedSizeGroup="Difference" />
+            <ColumnDefinition Width="Auto" SharedSizeGroup="Worth" />
+          </Grid.ColumnDefinitions>
+          <TextBlock Text="Material" Classes="group" />
+          <TextBlock Grid.Column="1" Text="Einheit" Classes="group" MinWidth="56" Margin="12,0,0,0" />
+          <TextBlock Grid.Column="2" Text="Soll" Classes="group" MinWidth="72" Margin="12,0,0,0" TextAlignment="Right" IsVisible="{Binding ShowTarget}" />
+          <TextBlock Grid.Column="3" Text="Gezählt" Classes="group" Width="104" Margin="12,0,0,0" TextAlignment="Right" />
+          <TextBlock Grid.Column="4" Text="Differenz" Classes="group" MinWidth="80" Margin="12,0,0,0" TextAlignment="Right" IsVisible="{Binding ShowTarget}" />
+          <TextBlock Grid.Column="5" Text="Wert" Classes="group" MinWidth="88" Margin="12,0,0,0" TextAlignment="Right" IsVisible="{Binding ShowTarget}" />
+        </Grid>
+        <ItemsControl x:Name="CountList" ItemsSource="{Binding Rows}" IsEnabled="{Binding CanEditRows}" AutomationProperties.Name="Zählliste">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:CountRow">
+              <Grid Margin="0,2">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*" MinWidth="160" />
+                  <ColumnDefinition Width="Auto" SharedSizeGroup="Unit" />
+                  <ColumnDefinition Width="Auto" SharedSizeGroup="Target" />
+                  <ColumnDefinition Width="Auto" SharedSizeGroup="Counted" />
+                  <ColumnDefinition Width="Auto" SharedSizeGroup="Difference" />
+                  <ColumnDefinition Width="Auto" SharedSizeGroup="Worth" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                <TextBlock Grid.Column="1" Text="{Binding Unit}" MinWidth="56" Margin="12,0,0,0" VerticalAlignment="Center" />
+                <TextBlock Grid.Column="2" Text="{Binding TargetText}" Classes="num" MinWidth="72" Margin="12,0,0,0" TextAlignment="Right" VerticalAlignment="Center" IsVisible="{Binding ShowTarget}" />
+                <TextBox Grid.Column="3" Text="{Binding Entered}" IsReadOnly="{Binding IsReadOnly}" Classes="num" Width="104" Margin="12,0,0,0" TextAlignment="Right" AutomationProperties.Name="{Binding Name, StringFormat='Gezählt {0}'}" />
+                <TextBlock Grid.Column="4" Text="{Binding DifferenceText}" Classes="num" MinWidth="80" Margin="12,0,0,0" TextAlignment="Right" VerticalAlignment="Center" IsVisible="{Binding ShowTarget}" />
+                <TextBlock Grid.Column="5" Text="{Binding WorthText}" Classes="num" MinWidth="88" Margin="12,0,0,0" TextAlignment="Right" VerticalAlignment="Center" IsVisible="{Binding ShowTarget}" />
+              </Grid>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding ShowTarget}">
+          <TextBlock Text="{Binding SumText}" Classes="muted" />
+          <TextBlock Grid.Column="1" Text="{Binding WorthSumText}" Classes="num" />
+        </Grid>
+      </StackPanel>
+    </StackPanel>
+  </Border>
+</UserControl>

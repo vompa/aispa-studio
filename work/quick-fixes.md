@@ -1,0 +1,4 @@
+| Date | Id | Finding | Test | Commit |
+|---|---|---|---|---|
+| 02.11.2026 | Ä308 | Handbuchbild „Gutschein verkaufen“: Der Knopf **Wertgutschein verkaufen** lag nach den Slices 114 und 115 unterhalb des Fensters (y = 933 bei 900 px), der Bildtest war rot. Der Test rollt den Gutschein-Block jetzt vor dem Bild in den sichtbaren Bereich, die drei Bilder sind neu erzeugt. | `ViewTests.Handbuch_Gutschein_verkaufen` | 5fe464a5 |
+| 02.11.2026 | Ä309 | Anamnese: Der Auftraggeber hat entschieden, dass dieselben Grenzen wie für Kundendaten gelten. Die Rezeption bekommt das Recht „Anamnese lesen“ (Antworten, Fotos prüfen, übernehmen, verwerfen); das Backoffice bleibt ohne. ADR 0013 (Nachtrag), Architektur, CLAUDE.md, Hilfe und Rollenhinweise angeglichen. | `RolesTests.Standardrechte_je_Rolle`, `AnamnesisChannelTests.Jede_Rolle_bekommt_bei_jedem_Anamnese_Aufruf_die_Antwort_der_Rechtetabelle` | 65e51ee4 |

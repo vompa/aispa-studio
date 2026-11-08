@@ -1,0 +1,98 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             x:Class="AispaStudio.Desktop.Views.RosterDayEditorView"
+             x:DataType="vm:RosterDayEditorViewModel">
+  <!--
+    Tag planen (R05 Slice 99), nach DayEditor in web/src/roster/RosterPage.tsx: Art, Dienste mit Standort, Beginn und Ende, Notiz, „Sofort gültig, ohne Veröffentlichen“ und
+    „Wie Wochenarbeitszeit“. Die Leiste „Speichern / Verwerfen“ gehört zum Tag; Strg+S gilt über den Bereich Team (TeamView), der Fokus entscheidet, welche Leiste gemeint ist. Nach dem Speichern stehen
+    Warnungen der API und die Zahl der Termine außerhalb des Dienstes darunter; „Ersatz vorschlagen“ öffnet den Ausfall-Assistenten.
+  -->
+  <!-- Als Popover an der Zelle (Ä370): der Schatten hebt den Tag über die Tabelle -->
+  <Border x:Name="DayEditor" Classes="card" Padding="16" BoxShadow="{DynamicResource RaisedShadow}" AutomationProperties.Name="Tag planen">
+    <StackPanel Spacing="12">
+      <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+        <TextBlock x:Name="DayHeading" Text="{Binding Heading}" Classes="h3" VerticalAlignment="Center" TextWrapping="Wrap" />
+        <Button Grid.Column="1" x:Name="CloseDayButton" Content="Schließen" Command="{Binding CloseCommand}" Classes="ghost" ToolTip.Tip="Tag schließen" />
+      </Grid>
+
+      <Border Classes="segmented" HorizontalAlignment="Left" AutomationProperties.Name="Art">
+        <ItemsControl x:Name="KindList" ItemsSource="{Binding Kinds}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <StackPanel Orientation="Horizontal" />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:RosterKindOption">
+              <ui:TabButton Content="{Binding Label}" IsSelected="{Binding IsOn}" Command="{Binding SelectCommand}" Padding="10,3" MinWidth="0"
+                            AutomationProperties.Name="{Binding Label}" />
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </Border>
+
+      <StackPanel x:Name="ShiftSection" Spacing="8" IsVisible="{Binding ShowsShifts}">
+        <ItemsControl x:Name="ShiftList" ItemsSource="{Binding Shifts}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:ShiftRow">
+              <StackPanel Spacing="4" Margin="0,0,0,8">
+                <Grid ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="8">
+                  <ComboBox ItemsSource="{Binding Locations}" SelectedItem="{Binding Location}" HorizontalAlignment="Stretch"
+                            AutomationProperties.Name="{Binding LocationName}" />
+                  <ui:TimeField Grid.Column="1" Value="{Binding Start}" AutomationProperties.Name="{Binding StartName}" />
+                  <ui:TimeField Grid.Column="2" Value="{Binding End}" NotBefore="{Binding Start}" AutomationProperties.Name="{Binding EndName}" />
+                  <Button Grid.Column="3" Classes="ghost icon" Width="32" Height="32" Command="{Binding RemoveCommand}" ToolTip.Tip="Dienst entfernen"
+                          AutomationProperties.Name="{Binding RemoveName}">
+                    <ui:Icon Data="{x:Static ui:Icons.Trash}" Width="16" Height="16" />
+                  </Button>
+                </Grid>
+                <TextBlock Text="{Binding FieldError}" Classes="small error" IsVisible="{Binding HasFieldError}" />
+              </StackPanel>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        <Button x:Name="AddShiftButton" Content="Dienst hinzufügen" Command="{Binding AddShiftCommand}" IsEnabled="{Binding CanAddShift}" HorizontalAlignment="Left" />
+        <TextBlock Text="Ohne Dienst ist die Person an diesem Tag nicht eingeteilt." Classes="muted small" IsVisible="{Binding HasNoShifts}" />
+      </StackPanel>
+
+      <ui:FormField Label="Notiz">
+        <TextBox x:Name="DayNote" Text="{Binding Note}" PlaceholderText="z. B. Dienst getauscht mit Lena" />
+      </ui:FormField>
+
+      <StackPanel Spacing="4">
+        <CheckBox x:Name="ImmediateBox" Content="Sofort gültig, ohne Veröffentlichen" IsChecked="{Binding IsImmediate}" IsEnabled="{Binding CanChooseImmediate}" />
+        <TextBlock x:Name="SickHint" Text="Krankenstand gilt immer sofort." Classes="muted small" IsVisible="{Binding ShowsSickHint}" />
+      </StackPanel>
+
+      <ui:InfoBar Severity="Error" Title="Nicht gespeichert" Message="{Binding Error}" IsVisible="{Binding HasError}" CloseCommand="{Binding CloseErrorCommand}" />
+      <ui:InfoBar x:Name="RuleWarningInfo" Severity="Warning" Title="Sonderregelung" Message="{Binding RuleWarning}" IsVisible="{Binding HasRuleWarning}"
+                  ActionText="Trotzdem speichern" ActionCommand="{Binding SaveAnywayCommand}" />
+
+      <StackPanel Orientation="Horizontal" Spacing="24">
+        <ui:SaveBar SaveCommand="{Binding SaveCommand}" DiscardCommand="{Binding DiscardChangesCommand}" CanDiscard="{Binding HasUnsavedChanges}" />
+        <Button x:Name="ResetButton" Content="Wie Wochenarbeitszeit" Command="{Binding ResetCommand}" IsVisible="{Binding CanReset}"
+                ToolTip.Tip="Für diesen Tag gilt wieder die regelmäßige Wochenarbeitszeit" />
+      </StackPanel>
+      <!-- Die Meldung nach dem Speichern bricht im Popover um (Ä370): in der SaveBar stünde sie in einer Zeile und wäre breiter als der Tag; angesagt wird sie wie dort -->
+      <TextBlock x:Name="DayStatus" Text="{Binding StatusText}" Classes="muted" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite"
+                 IsVisible="{Binding StatusText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+      <StackPanel Spacing="8" IsVisible="{Binding ShowsOpenWeekPlan}">
+        <ui:InfoBar Severity="Info" Message="Der Entwurf gilt erst, wenn der Dienstplan veröffentlicht ist. Das geht im Wochenplan." />
+        <Button x:Name="OpenWeekPlanButton" Content="Wochenplan öffnen" Command="{Binding OpenWeekPlanCommand}" HorizontalAlignment="Left" />
+      </StackPanel>
+
+      <ui:InfoBar x:Name="DayWarnings" Severity="Warning" Title="Hinweise zum Dienstplan" Message="{Binding WarningsText}" IsVisible="{Binding HasWarnings}" />
+
+      <StackPanel Spacing="8" IsVisible="{Binding HasOutside}">
+        <ui:InfoBar x:Name="OutsideInfo" Severity="Warning" Message="{Binding OutsideText}" />
+        <Button x:Name="SuggestButton" Content="Ersatz vorschlagen" Command="{Binding SuggestReplacementCommand}" IsVisible="{Binding CanSuggestReplacement}"
+                HorizontalAlignment="Left" />
+      </StackPanel>
+
+      <ContentControl x:Name="AssistantHost" Content="{Binding Assistant}" IsVisible="{Binding HasAssistant}" />
+    </StackPanel>
+  </Border>
+</UserControl>

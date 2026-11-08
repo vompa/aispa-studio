@@ -1,0 +1,27 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             x:Class="AispaStudio.Desktop.Views.JoinView"
+             x:DataType="vm:JoinViewModel">
+  <StackPanel Spacing="10">
+    <Button Classes="ghost" Content="Mit einem bestehenden Spa verbinden …" Command="{Binding OpenCommand}"
+            HorizontalAlignment="Left" IsVisible="{Binding !IsOpen}" />
+    <StackPanel Spacing="10" IsVisible="{Binding IsOpen}">
+      <StackPanel Orientation="Horizontal" Spacing="8">
+        <TextBlock Text="Mit einem bestehenden Spa verbinden" Classes="h2" />
+        <ui:HelpButton Topic="einzelplatz" Section="verbinden" />
+      </StackPanel>
+      <TextBlock Text="Für einen weiteren PC eines Spas, das schon mit einer zentralen Datenbank abgleicht: die Verbindung zur zentralen Datenbank und den Schlüsselcode des Spas eintragen. Beides zeigt die Leitung am ersten PC unter „Abgleich“. Danach meldet sich jede Person mit ihrem gewohnten Benutzernamen an."
+                 Classes="muted small" TextWrapping="Wrap" />
+      <ui:FormField Label="Verbindung zur zentralen Datenbank" Help="Steht am ersten PC unter „Abgleich“." IsRequired="True">
+        <TextBox Text="{Binding ConnectionInput}" PasswordChar="•" PlaceholderText="Host=…;Database=…;Username=…;Password=…" />
+      </ui:FormField>
+      <ui:FormField Label="Schlüsselcode" Help="24 Zeichen, steht ebenfalls unter „Abgleich“." IsRequired="True">
+        <TextBox Text="{Binding ShareCodeInput}" PlaceholderText="z. B. K7QM-2XRT-…" Classes="num" />
+      </ui:FormField>
+      <Button Classes="primary" Content="Verbinden" Command="{Binding JoinCommand}" HorizontalAlignment="Left" />
+      <ui:InfoBar Severity="Error" Message="{Binding ErrorText}" IsVisible="{Binding ErrorText, Converter={x:Static ObjectConverters.IsNotNull}}" />
+    </StackPanel>
+  </StackPanel>
+</UserControl>

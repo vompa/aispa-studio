@@ -1,0 +1,136 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             x:Class="AispaStudio.Desktop.Views.PersonAccessView"
+             x:DataType="vm:PersonAccessViewModel">
+  <!--
+    Reiter „Zugang und Rolle“ (R05 Slice 98): Rolle, Rechte, Befristung und Standorte wie AccessForm in web/src/admin/StaffPage.tsx; dazu Einladen (Server),
+    Zugang anlegen und Startpasswort (Einzelplatz) und die offene Einladung. Rollen- und Rechte-Texte aus web/src/admin/access.ts.
+  -->
+  <StackPanel x:Name="AccessSection" Spacing="20">
+    <Grid ColumnDefinitions="*,Auto">
+      <TextBlock Text="{Binding Heading}" Classes="h3" VerticalAlignment="Center" />
+      <ui:HelpButton Grid.Column="1" Topic="zugaenge" Section="{Binding HelpSection}" />
+    </Grid>
+    <TextBlock Text="{Binding InfoText}" Classes="muted" IsVisible="{Binding HasInfoText}" TextWrapping="Wrap" />
+
+    <!-- Eigener Zugang: nur lesbar. -->
+    <TextBlock IsVisible="{Binding IsOwn}" TextWrapping="Wrap"
+               Text="Das ist dein eigener Zugang. Ändern kann ihn eine andere Person mit Verwaltungsrecht." />
+
+    <!-- Offene Einladung. -->
+    <StackPanel Spacing="8" IsVisible="{Binding IsInvitation}">
+      <TextBlock Text="{Binding InvitationText}" TextWrapping="Wrap" />
+      <Button x:Name="RevokeButton" Classes="ghost danger" Content="Einladung zurückziehen" Command="{Binding RevokeCommand}" HorizontalAlignment="Left" />
+    </StackPanel>
+
+    <!-- Person einladen bzw. Zugang anlegen. -->
+    <Grid ColumnDefinitions="*,*" ColumnSpacing="12" RowSpacing="12" RowDefinitions="Auto" IsVisible="{Binding IsInvite}">
+      <ui:FormField Label="Name" IsRequired="True">
+        <TextBox x:Name="InviteNameField" Text="{Binding InviteName}" MaxLength="100" />
+      </ui:FormField>
+      <ui:FormField Grid.Column="1" Label="E-Mail" IsRequired="True">
+        <TextBox x:Name="InviteEmailField" Text="{Binding InviteEmail}" MaxLength="200" PlaceholderText="z. B. lena@spa.at" />
+      </ui:FormField>
+    </Grid>
+    <Grid ColumnDefinitions="*,*,*" ColumnSpacing="12" RowDefinitions="Auto" IsVisible="{Binding IsAccount}">
+      <ui:FormField Label="Name" IsRequired="True">
+        <TextBox x:Name="AccountNameField" Text="{Binding AccountName}" MaxLength="100" />
+      </ui:FormField>
+      <ui:FormField Grid.Column="1" Label="Benutzername" IsRequired="True">
+        <TextBox x:Name="UserNameField" Text="{Binding UserName}" MaxLength="60" />
+      </ui:FormField>
+      <ui:FormField Grid.Column="2" Label="Startpasswort" IsRequired="True" Help="Mindestens 8 Zeichen; die Person wählt bei der ersten Anmeldung ein eigenes.">
+        <TextBox x:Name="PasswordField" Text="{Binding Password}" PasswordChar="●" MaxLength="100" />
+      </ui:FormField>
+    </Grid>
+
+    <!-- Rolle und Rechte. -->
+    <StackPanel Spacing="12" IsVisible="{Binding ShowsFields}">
+      <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+        <ui:FormField Label="Rolle" Help="{Binding RoleHint}" Error="{Binding RoleError}">
+          <ComboBox x:Name="RoleField" ItemsSource="{x:Static vm:RoleChoice.All}" SelectedItem="{Binding Role}" HorizontalAlignment="Stretch" />
+        </ui:FormField>
+        <ui:FormField Grid.Column="1" Label="Person im Team">
+          <ComboBox x:Name="PersonField" ItemsSource="{Binding People}" SelectedItem="{Binding Person}" HorizontalAlignment="Stretch" />
+        </ui:FormField>
+      </Grid>
+      <ui:FormField Label="Auswertungen ohne Beträge im Assistenten" IsVisible="{Binding ShowsPlainReports}" Help="Top-Behandlungen, Auslastung, Termine je Person">
+        <CheckBox x:Name="PlainReportsField" Content="Erlaubt" IsChecked="{Binding PlainReports}" />
+      </ui:FormField>
+      <ui:FormField Label="Berichte mit Beträgen" IsVisible="{Binding ShowsAmountReports}" Help="Umsätze, Kosten, Buchhaltungsexport">
+        <StackPanel Spacing="4">
+          <CheckBox x:Name="AmountReportsField" Content="Erlaubt" IsChecked="{Binding AmountReports}" IsEnabled="{Binding CanGrant}" />
+          <TextBlock Classes="muted small" Text="Vergeben können das nur Inhaber und Manager." IsVisible="{Binding ShowsAmountHint}" />
+        </StackPanel>
+      </ui:FormField>
+      <ui:FormField Label="Befristet bis einschließlich" IsVisible="{Binding ShowsUntil}"
+                    Help="Leer heißt unbefristet. Danach wirkt der Zugang wie gesperrt, z. B. für Aushilfen oder Praktika.">
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <ui:DateField x:Name="UntilField" Value="{Binding Until}" Width="160" PlaceholderText="z. B. 30.04.2027" AutomationProperties.Name="Befristet bis einschließlich" />
+          <Button x:Name="ExtendButton" Content="Um 30 Tage verlängern" Command="{Binding ExtendCommand}" IsVisible="{Binding CanExtend}"
+                  ToolTip.Tip="Danach speichern." />
+        </StackPanel>
+      </ui:FormField>
+      <StackPanel Spacing="8">
+        <Grid ColumnDefinitions="*,Auto">
+          <TextBlock Text="Standorte" Classes="h3" VerticalAlignment="Center" />
+          <ui:HelpButton Topic="zugaenge" Section="standorte" Grid.Column="1" />
+        </Grid>
+        <TextBlock Classes="muted" Text="Das Backoffice arbeitet für alle Standorte, auch künftige." IsVisible="{Binding IsBackoffice}" TextWrapping="Wrap" />
+        <StackPanel Spacing="8" IsVisible="{Binding ShowsLocationChoice}">
+          <CheckBox x:Name="AllLocationsField" Content="Alle Standorte, auch künftige" IsChecked="{Binding AllLocations}" IsVisible="{Binding CanAllLocations}" />
+          <ItemsControl x:Name="LocationsField" ItemsSource="{Binding Locations}" IsVisible="{Binding ShowsLocationList}" AutomationProperties.Name="Standorte">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <WrapPanel ItemSpacing="16" />
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:CheckOption">
+                <CheckBox Content="{Binding Label}" IsChecked="{Binding IsChecked}" />
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </StackPanel>
+      <ui:FormField Label="Zugang aktiv" IsVisible="{Binding IsMember}" Help="Ausschalten sperrt sofort, auch auf angemeldeten Geräten.">
+        <CheckBox x:Name="ActiveField" Content="Aktiv" IsChecked="{Binding IsActive}" />
+      </ui:FormField>
+    </StackPanel>
+
+    <!-- Aktionen für neue Zugänge. -->
+    <Button x:Name="InviteButton" Classes="primary" Content="Einladung senden" Command="{Binding InviteCommand}" IsEnabled="{Binding CanInvite}"
+            IsVisible="{Binding IsInvite}" HorizontalAlignment="Left" ui:DisabledHint.Text="{Binding InviteReason}" />
+    <Button x:Name="CreateAccountButton" Classes="primary" Content="Zugang anlegen" Command="{Binding CreateAccountCommand}" IsEnabled="{Binding CanCreateAccount}"
+            IsVisible="{Binding IsAccount}" HorizontalAlignment="Left" ui:DisabledHint.Text="{Binding AccountReason}" />
+
+    <StackPanel Spacing="8" IsVisible="{Binding HasSent}">
+      <ui:InfoBar Severity="Success" Message="{Binding SentText}" />
+      <TextBlock Text="Diesen Link der Person schicken (7 Tage gültig, einmal verwendbar). Sie legt damit ihren Passkey an." TextWrapping="Wrap" />
+      <StackPanel Orientation="Horizontal" Spacing="8">
+        <TextBox x:Name="InviteLinkField" Text="{Binding InviteLink}" IsReadOnly="True" Width="420" AutomationProperties.Name="Einladungslink" />
+        <Button x:Name="CopyLinkButton" Content="Einladungslink kopieren" Click="OnCopyLinkClick" />
+      </StackPanel>
+      <TextBlock Text="{Binding CopyText}" Classes="muted small" />
+    </StackPanel>
+    <ui:InfoBar Severity="Success" Message="{Binding CreatedText}" IsVisible="{Binding HasCreated}" />
+
+    <!-- Einzelplatz: Startpasswort neu setzen. -->
+    <StackPanel Spacing="8" IsVisible="{Binding CanResetPassword}">
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Text="Neues Startpasswort" Classes="h3" VerticalAlignment="Center" />
+        <ui:HelpButton Topic="zugaenge" Section="neues-startpasswort" Grid.Column="1" />
+      </Grid>
+      <StackPanel Orientation="Horizontal" Spacing="8">
+        <TextBox x:Name="NewPasswordField" Text="{Binding NewPassword}" PasswordChar="●" Width="240" MaxLength="100" AutomationProperties.Name="Neues Startpasswort" />
+        <Button x:Name="ResetPasswordButton" Content="Passwort zurücksetzen" Command="{Binding ResetPasswordCommand}" IsEnabled="{Binding CanReset}"
+                ui:DisabledHint.Text="{Binding ResetReason}" />
+      </StackPanel>
+      <ui:InfoBar Severity="Success" Message="{Binding ResetText}" IsVisible="{Binding HasResetText}" />
+    </StackPanel>
+
+    <ui:InfoBar Severity="Error" Message="{Binding ActionError}" IsVisible="{Binding HasActionError}" CloseCommand="{Binding CloseActionErrorCommand}" />
+  </StackPanel>
+</UserControl>

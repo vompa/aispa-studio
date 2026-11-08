@@ -1,0 +1,45 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             x:Class="AispaStudio.Desktop.Views.AiView"
+             x:DataType="vm:AiViewModel">
+  <!--
+    KI (R05 Slice 97, ADR 0057), native Maske nach web/src/admin/AiTab.tsx: nur Anzeige. Stand von Claude (der Schlüssel ist eine Einstellung des Servers, hier gibt es kein Feld
+    dafür) und vom lokalen Modell mit Fortschritt und „Modell herunterladen“. Es gibt nichts zu speichern, deshalb keine Leiste „Speichern / Verwerfen“.
+  -->
+  <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+    <StackPanel Spacing="20" MaxWidth="720" HorizontalAlignment="Left" Margin="0,0,16,16">
+
+      <ui:InfoBar Severity="Error" Title="Stand der KI nicht geladen" Message="{Binding LoadError}" IsVisible="{Binding HasLoadError}"
+                  ActionText="Erneut laden" ActionCommand="{Binding LoadCommand}" />
+      <TextBlock Text="Lade Stand der KI …" Classes="muted" IsVisible="{Binding !IsLoaded}" />
+
+      <StackPanel Spacing="20" IsVisible="{Binding IsLoaded}">
+        <StackPanel Spacing="8">
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Text="Claude" Classes="h2" VerticalAlignment="Center" />
+            <ui:HelpButton Grid.Column="1" Topic="ki" Section="claude" />
+          </Grid>
+          <TextBlock x:Name="ClaudeState" Text="{Binding ClaudeText}" TextWrapping="Wrap" />
+          <TextBlock Classes="muted" TextWrapping="Wrap"
+                     Text="Claude schreibt Antworten an Gäste, übersetzt, fasst zusammen und liest Anamnesebögen. Das braucht Internet." />
+        </StackPanel>
+
+        <StackPanel Spacing="8">
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Text="Lokales Modell" Classes="h2" VerticalAlignment="Center" />
+            <ui:HelpButton Grid.Column="1" Topic="ki" Section="lokales-modell" />
+          </Grid>
+          <TextBlock x:Name="LocalState" Text="{Binding LocalText}" TextWrapping="Wrap" />
+          <TextBlock Text="{Binding ModelText}" Classes="muted" IsVisible="{Binding HasModelText}" />
+          <ProgressBar x:Name="DownloadProgress" Minimum="0" Maximum="100" Value="{Binding DownloadPercent}" IsVisible="{Binding IsDownloading}"
+                       AutomationProperties.Name="Fortschritt des Downloads" />
+          <ui:InfoBar Severity="Error" Message="{Binding LocalError}" IsVisible="{Binding HasLocalError}" />
+          <Button x:Name="DownloadButton" Content="Modell herunterladen" Command="{Binding DownloadCommand}" IsVisible="{Binding CanDownload}" HorizontalAlignment="Left" />
+          <ui:InfoBar Severity="{Binding MessageSeverity}" Message="{Binding Message}" IsVisible="{Binding HasMessage}" CloseCommand="{Binding CloseMessageCommand}" />
+        </StackPanel>
+      </StackPanel>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

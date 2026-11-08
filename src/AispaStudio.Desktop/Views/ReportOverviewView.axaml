@@ -1,0 +1,40 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             x:Class="AispaStudio.Desktop.Views.ReportOverviewView"
+             x:DataType="vm:ReportTabViewModel">
+  <!--
+    Status und Werte eines Reiters in „Zahlen“ (R07 Slice 144, Ä352): oben ein Satz als Meldung (ruhig oder Warnung, Symbol und Text, nie die Farbe allein), bei offenen Punkten die Punkte darunter,
+    dann eine Zeile Werte (Bezeichnung klein in der Zweitfarbe, Wert groß in der Hauptfarbe). Tagesstart, Mein Tag und Hygiene benutzen dieselbe Ansicht.
+  -->
+  <StackPanel Spacing="12">
+    <ui:InfoBar x:Name="ReportStatusOk" Severity="Success" Message="{Binding StatusText}" IsVisible="{Binding StatusIsOk}" AutomationProperties.LiveSetting="Polite" />
+    <StackPanel Spacing="8" IsVisible="{Binding StatusIsWarning}">
+      <ui:InfoBar x:Name="ReportStatusWarning" Severity="Warning" Message="{Binding StatusText}" IsVisible="{Binding StatusText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                  AutomationProperties.LiveSetting="Polite" />
+      <ItemsControl x:Name="ReportStatusPoints" ItemsSource="{Binding StatusPoints}" IsVisible="{Binding HasStatusPoints}" Margin="12,0,0,0">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="x:String">
+            <TextBlock Text="{Binding}" TextWrapping="Wrap" Margin="0,0,0,4" />
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </StackPanel>
+    <ItemsControl x:Name="ReportValues" ItemsSource="{Binding Values}" IsVisible="{Binding HasValues}">
+      <ItemsControl.ItemsPanel>
+        <ItemsPanelTemplate>
+          <WrapPanel />
+        </ItemsPanelTemplate>
+      </ItemsControl.ItemsPanel>
+      <ItemsControl.ItemTemplate>
+        <DataTemplate x:DataType="vm:ReportValue">
+          <StackPanel Spacing="2" Margin="0,0,40,8">
+            <TextBlock Text="{Binding Text}" Classes="bigvalue" />
+            <TextBlock Text="{Binding Label}" Classes="muted small" />
+          </StackPanel>
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
+  </StackPanel>
+</UserControl>

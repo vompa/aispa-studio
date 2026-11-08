@@ -1,0 +1,69 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             x:Class="AispaStudio.Desktop.Views.OnlineRulesSection"
+             x:DataType="vm:OnlineRulesViewModel">
+  <!--
+    Online-Buchung je Standort (R05 Slice 95), nach web/src/admin/OnlineRulesSection.tsx: eigene Regeln mit eigenem Speichern („Regeln speichern“) und
+    „Vorgaben wiederherstellen“. Ohne das Recht ManageLocation sind die Felder gesperrt.
+  -->
+  <StackPanel Spacing="8" AutomationProperties.Name="Online-Buchung">
+    <Grid ColumnDefinitions="*,Auto">
+      <TextBlock Text="Online-Buchung" Classes="h2" VerticalAlignment="Center" />
+      <ui:HelpButton Grid.Column="1" Topic="standorte" Section="online-buchung" />
+    </Grid>
+    <ui:InfoBar Severity="Error" Message="{Binding Error}" IsVisible="{Binding HasError}" />
+    <TextBlock Text="Lade Regeln …" Classes="muted" IsVisible="{Binding !IsLoaded}" />
+    <StackPanel Spacing="12" IsVisible="{Binding IsLoaded}" IsEnabled="{Binding CanEdit}">
+      <TextBlock Classes="muted" TextWrapping="Wrap" IsVisible="{Binding IsDefault}"
+                 Text="Es gelten die Vorgaben für alle Standorte. Änderungen gelten nur für diesen Standort." />
+      <CheckBox IsChecked="{Binding BookingEnabled}" Content="Termine an diesem Standort online buchbar" />
+      <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto" ColumnSpacing="12" RowSpacing="12">
+        <ui:FormField Label="Vorlauf (Minuten)">
+          <ui:NumberField Value="{Binding MinLeadMinutes}" Minimum="0" Maximum="10080" HorizontalAlignment="Left" Width="120" />
+        </ui:FormField>
+        <ui:FormField Grid.Column="1" Label="Buchbar im Voraus (Tage)">
+          <ui:NumberField Value="{Binding MaxDaysAhead}" Minimum="1" Maximum="365" HorizontalAlignment="Left" Width="120" />
+        </ui:FormField>
+        <ui:FormField Grid.Row="1" Label="Online-Storno bis (Stunden vorher)">
+          <ui:NumberField Value="{Binding CancellationDeadlineHours}" Minimum="0" Maximum="336" HorizontalAlignment="Left" Width="120" />
+        </ui:FormField>
+        <ui:FormField Grid.Row="1" Grid.Column="1" Label="Startzeiten im Raster">
+          <ComboBox ItemsSource="{x:Static vm:OnlineRulesViewModel.Steps}" SelectedItem="{Binding SlotStep}" MinWidth="160" />
+        </ui:FormField>
+        <ui:FormField Grid.Row="2" Label="Ausfallgebühr (% des Preises, 0 = keine)">
+          <ui:NumberField Value="{Binding NoShowFeePercent}" Minimum="0" Maximum="100" HorizontalAlignment="Left" Width="120" />
+        </ui:FormField>
+        <ui:FormField Grid.Row="2" Grid.Column="1" Label="Anzahlung (% des Preises, 100 = Vorauszahlung)">
+          <ui:NumberField Value="{Binding DepositPercent}" Minimum="0" Maximum="100" HorizontalAlignment="Left" Width="120" />
+        </ui:FormField>
+        <ui:FormField Grid.Row="3" Label="Ohne Karte oder Anzahlung freigeben nach (Stunden, 0 = nie)">
+          <ui:NumberField Value="{Binding CardHoldHours}" Minimum="0" Maximum="168" HorizontalAlignment="Left" Width="120" />
+        </ui:FormField>
+      </Grid>
+      <TextBlock Classes="muted small" TextWrapping="Wrap"
+                 Text="Mit Ausfallgebühr stimmt der Gast beim Online-Buchen zu und hinterlegt eine Karte. Belastet wird nur auf Knopfdruck im Termin, bei „Nicht erschienen“ oder einer Absage nach der Stornofrist, und immer mit Beleg an der Kassa. Mit Frist wird ein online gebuchter Termin freigegeben, wenn so viele Stunden nach dem Buchen keine Karte hinterlegt ist. Eine Behandlung kann in den Stammdaten eigene Prozent haben. Mit Anzahlung bezahlt der Gast online einen Teil oder alles im Voraus und bekommt einen Anzahlungsbeleg der Kassa; beim Kassieren der Behandlung wird sie abgezogen. Die Anzahlung ersetzt dann die Karte. Wirkt nur mit eingerichtetem Zahlungsanbieter, die Anzahlung zusätzlich nur mit aktiver Kasse am Standort." />
+      <CheckBox IsChecked="{Binding NewCustomersOnly}"
+                Content="Ausfallgebühr und Anzahlung nur von neuen Gästen verlangen (ohne abgeschlossene Behandlung im Spa)" />
+      <ui:FormField Label="Hinweis für Gäste, erscheint vor dem Buchen">
+        <TextBox Text="{Binding GuestNote}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="56" MaxLength="300"
+                 PlaceholderText="z. B. Bitte kommen Sie 10 Minuten vor Ihrem Termin." />
+      </ui:FormField>
+      <Grid ColumnDefinitions="*,Auto" ColumnSpacing="4">
+        <ui:FormField Label="Stornoregel in eigenen Worten, für Team und KI-Assistent"
+                      Help="Dient nur dem Team und dem KI-Assistenten; Frist, Gebühr und Anzahlung gelten über die Felder oben.">
+          <TextBox x:Name="CancellationPolicyField" Text="{Binding CancellationPolicy}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="56" MaxLength="500"
+                   PlaceholderText="z. B. Absage bis 24 Stunden vorher ist kostenlos, danach 50 % des Preises." />
+        </ui:FormField>
+        <ui:HelpButton Grid.Column="1" Topic="standorte" Section="stornoregel" VerticalAlignment="Top" Margin="0,22,0,0" />
+      </Grid>
+    </StackPanel>
+    <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding CanEdit}">
+      <Button Content="Regeln speichern" Command="{Binding SaveCommand}" IsEnabled="{Binding IsLoaded}" />
+      <Button Classes="ghost" Content="Vorgaben wiederherstellen" Command="{Binding ResetCommand}"
+              ui:DisabledHint.Text="Verfügbar, sobald dieser Standort eigene Regeln hat." />
+      <TextBlock Text="{Binding StatusText}" Classes="muted" VerticalAlignment="Center" AutomationProperties.LiveSetting="Polite" />
+    </StackPanel>
+  </StackPanel>
+</UserControl>

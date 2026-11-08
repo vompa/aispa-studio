@@ -1,0 +1,1901 @@
+<!-- Grundbausteine: Flächen, Schrift, Schaltflächen, Pillen, Navigation. Farben nur über DynamicResource, damit Hell/Dunkel sofort wechselt. -->
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:c="using:AispaStudio.Desktop.Controls">
+
+  <!-- Kurven (Design-Brief 4.6, Fluent 2): Hover und Farbwechsel, Eintretendes, Austretendes -->
+  <Styles.Resources>
+    <SplineEasing x:Key="EaseHover" X1="0.33" Y1="0" X2="0.67" Y2="1" />
+    <SplineEasing x:Key="EaseEnter" X1="0" Y1="0" X2="0" Y2="1" />
+    <SplineEasing x:Key="EaseExit" X1="1" Y1="0" X2="1" Y2="1" />
+  </Styles.Resources>
+
+  <Style Selector="Window">
+    <Setter Property="Background" Value="{DynamicResource BgBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
+    <Setter Property="FontSize" Value="14" />
+  </Style>
+
+  <!-- Schrift -->
+  <!-- Schriftstufen (Design-Brief 3, Größe/Zeilenhöhe): Titel 22/28, Überschrift 18/24, Zwischentitel 16/22, Text 14, Klein 12/16, Beschriftung 12/16 (500), Mini 12/14 (500) -->
+  <Style Selector="TextBlock.h1">
+    <Setter Property="FontSize" Value="22" />
+    <Setter Property="LineHeight" Value="28" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+  <Style Selector="TextBlock.h2">
+    <Setter Property="FontSize" Value="18" />
+    <Setter Property="LineHeight" Value="24" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+  <Style Selector="TextBlock.h3">
+    <Setter Property="FontSize" Value="16" />
+    <Setter Property="LineHeight" Value="22" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+  <Style Selector="TextBlock.heading">
+    <Setter Property="FontSize" Value="18" />
+    <Setter Property="LineHeight" Value="24" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+  <Style Selector="TextBlock.muted">
+    <Setter Property="Foreground" Value="{DynamicResource Fg2Brush}" />
+  </Style>
+  <Style Selector="TextBlock.secondary">
+    <Setter Property="Foreground" Value="{DynamicResource Fg2Brush}" />
+  </Style>
+  <Style Selector="TextBlock.ok">
+    <Setter Property="Foreground" Value="{DynamicResource OkBrush}" />
+  </Style>
+  <Style Selector="TextBlock.crit">
+    <Setter Property="Foreground" Value="{DynamicResource CritBrush}" />
+  </Style>
+  <Style Selector="TextBlock.warn">
+    <Setter Property="Foreground" Value="{DynamicResource WarnBrush}" />
+  </Style>
+  <Style Selector="TextBlock.small">
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="LineHeight" Value="16" />
+  </Style>
+  <Style Selector="TextBlock.label">
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="LineHeight" Value="16" />
+    <Setter Property="FontWeight" Value="Medium" />
+    <Setter Property="Foreground" Value="{DynamicResource Fg2Brush}" />
+    <Setter Property="Margin" Value="0,0,0,4" />
+  </Style>
+  <!-- Gruppentitel über Listen und Abschnitten (Design-Brief 3 und 5.6): Stufe „Beschriftung“ in Satzschreibweise, ohne den Feldabstand von TextBlock.label -->
+  <Style Selector="TextBlock.group">
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="LineHeight" Value="16" />
+    <Setter Property="FontWeight" Value="Medium" />
+    <Setter Property="Foreground" Value="{DynamicResource Fg2Brush}" />
+  </Style>
+  <Style Selector="TextBlock.num">
+    <Setter Property="FontFeatures" Value="+tnum" />
+  </Style>
+  <Style Selector="TextBlock.error">
+    <Setter Property="Foreground" Value="{DynamicResource CritBrush}" />
+    <Setter Property="TextWrapping" Value="Wrap" />
+  </Style>
+
+  <!-- Flächen -->
+  <Style Selector="Border.card">
+    <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="12" />
+    <Setter Property="Padding" Value="20,16" />
+    <Setter Property="BoxShadow" Value="{DynamicResource CardShadow}" />
+  </Style>
+  <!-- Karten in Karten und in Seitenleisten liegen flach auf, nur die äußere Karte wirft Schatten. -->
+  <Style Selector="Border.card Border.card, Border.sidepanel Border.card">
+    <Setter Property="BoxShadow" Value="none" />
+  </Style>
+  <Style Selector="Border.divider">
+    <Setter Property="Height" Value="1" />
+    <Setter Property="Background" Value="{DynamicResource LineBrush}" />
+  </Style>
+  <!-- Abschnitt auf einer Fläche (Kundenkarte, R07 Slice 141): dünne Linie oben statt eigener Karte; der Stift zum Ändern erscheint erst bei Hover oder Fokus
+       im Abschnitt und bleibt in der Tab-Reihenfolge -->
+  <Style Selector="Border.section">
+    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+    <Setter Property="BorderThickness" Value="0,1,0,0" />
+    <Setter Property="Padding" Value="0,12" />
+  </Style>
+  <Style Selector="Border.section Button.edit">
+    <Setter Property="Opacity" Value="0" />
+  </Style>
+  <Style Selector="Border.section:pointerover Button.edit, Border.section:focus-within Button.edit">
+    <Setter Property="Opacity" Value="1" />
+  </Style>
+  <!-- Chip für Gesetztes (Wünsche, Kennzeichen, Stammgast): Text in fg, Rand line; warn mit Dreieck und warn-Fläche, nie die Farbe allein (Brief 5.9) -->
+  <Style Selector="Border.tag">
+    <Setter Property="CornerRadius" Value="999" />
+    <Setter Property="Padding" Value="10,3" />
+    <Setter Property="MinHeight" Value="26" />
+    <Setter Property="Margin" Value="0,0,6,6" />
+    <Setter Property="Background" Value="{DynamicResource Surface2Brush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+  </Style>
+  <Style Selector="Border.tag > TextBlock, Border.tag > StackPanel > TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="Border.tag.warn">
+    <Setter Property="Background" Value="{DynamicResource WarnSoftBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource WarnBrush}" />
+  </Style>
+  <!-- Wert in der Hauptfarbe (Beschriftungen bleiben klein in fg-2) -->
+  <Style Selector="TextBlock.value, SelectableTextBlock.value">
+    <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
+  </Style>
+  <!-- Wertezeile in „Zahlen“ (R07 Slice 144): der Wert groß in der Hauptfarbe (22/600, tabellarische Ziffern), die Bezeichnung darunter klein in fg-2 (muted small) -->
+  <Style Selector="TextBlock.bigvalue">
+    <Setter Property="FontSize" Value="22" />
+    <Setter Property="LineHeight" Value="28" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="FontFeatures" Value="+tnum" />
+    <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
+  </Style>
+  <!-- Zeitleiste des Personals (R07 Slice 144): Leiste surface-3, Dienstabschnitte in der Hauptfarbe des Auftritts; die Zeiten stehen daneben als Text -->
+  <Style Selector="c|StaffBar Border.lane">
+    <Setter Property="Background" Value="{DynamicResource Surface3Brush}" />
+    <Setter Property="CornerRadius" Value="5" />
+  </Style>
+  <Style Selector="c|StaffBar Border.span">
+    <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+    <Setter Property="CornerRadius" Value="5" />
+    <Setter Property="Margin" Value="1,0" />
+  </Style>
+  <!-- Kopierbarer Wert (Telefon, E-Mail): schlicht wie Text, ein Klick kopiert; Unterstreichung bei Hover und Fokus zeigt, dass er klickbar ist -->
+  <Style Selector="Button.copy">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="MinHeight" Value="0" />
+    <Setter Property="Margin" Value="0,0,20,6" />
+    <Setter Property="Cursor" Value="Hand" />
+  </Style>
+  <Style Selector="Button.copy:pointerover /template/ ContentPresenter#PART_ContentPresenter, Button.copy:pressed /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+  </Style>
+  <Style Selector="Button.copy:pointerover TextBlock, Button.copy:focus-visible TextBlock">
+    <Setter Property="TextDecorations" Value="Underline" />
+  </Style>
+  <!-- Rückfragedialog (Design-Brief 5.27): Breite 420, Fläche surface, Rahmen 1 px line, Radius 12, Innenabstand 24, kein Schatten -->
+  <Style Selector="Border.confirmdialog">
+    <Setter Property="Width" Value="420" />
+    <Setter Property="HorizontalAlignment" Value="Center" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="12" />
+    <Setter Property="Padding" Value="24" />
+  </Style>
+  <!-- Knopfleiste: die Aktion links, Abbrechen rechts, rechtsbündig mit 8 px Abstand; mit einer zweiten Aktion stehen die drei Knöpfe untereinander, damit nichts über die Karte hinausragt -->
+  <!-- Rückfrage mit Liste und Textfeld (Absage wegen einer Schließzeit, ADR 0073): 600 breit, scrollt in sich; sonst dieselben Werte -->
+  <Style Selector="Border.confirmdialog.wide">
+    <Setter Property="Width" Value="600" />
+  </Style>
+  <Style Selector="Border.closurelist">
+    <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="8" />
+  </Style>
+
+  <!-- Schließband (ADR 0073, Design-Brief 7): Fläche der Art über allen Spalten mit 55 % Deckkraft, 1 px Rand oben und unten und der Text in der Farbe der Art.
+       Betriebsurlaub accent, Sonderschließung warn, Ausfall danger; die Termine darunter bleiben lesbar. -->
+  <Style Selector="Border.closurefill">
+    <Setter Property="Background" Value="{DynamicResource AccentSoftBrush}" />
+    <Setter Property="Opacity" Value="0.55" />
+  </Style>
+  <Style Selector="Border.closurefill.special">
+    <Setter Property="Background" Value="{DynamicResource WarnSoftBrush}" />
+  </Style>
+  <Style Selector="Border.closurefill.outage">
+    <Setter Property="Background" Value="{DynamicResource CritSoftBrush}" />
+  </Style>
+  <Style Selector="Border.closureedge">
+    <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+    <Setter Property="BorderThickness" Value="0,1" />
+  </Style>
+  <Style Selector="Border.closureedge.special">
+    <Setter Property="BorderBrush" Value="{DynamicResource WarnBrush}" />
+  </Style>
+  <Style Selector="Border.closureedge.outage">
+    <Setter Property="BorderBrush" Value="{DynamicResource CritBrush}" />
+  </Style>
+  <!-- Der Text steht in einer Kapsel oben links im Band (Fläche der Art, 1 px Rand, Radius 999, Innenabstand 2/8), damit er auch über Terminen lesbar bleibt -->
+  <Style Selector="Border.closurelabelbox">
+    <Setter Property="Background" Value="{DynamicResource AccentSoftBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="999" />
+    <Setter Property="Padding" Value="8,2" />
+    <Setter Property="Margin" Value="6,4" />
+    <Setter Property="HorizontalAlignment" Value="Left" />
+    <Setter Property="VerticalAlignment" Value="Top" />
+    <Setter Property="MaxWidth" Value="360" />
+  </Style>
+  <Style Selector="Border.closurelabelbox.special">
+    <Setter Property="Background" Value="{DynamicResource WarnSoftBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource WarnBrush}" />
+  </Style>
+  <Style Selector="Border.closurelabelbox.outage">
+    <Setter Property="Background" Value="{DynamicResource CritSoftBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource CritBrush}" />
+  </Style>
+  <Style Selector="TextBlock.closurelabel">
+    <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+  </Style>
+  <Style Selector="TextBlock.closurelabel.special">
+    <Setter Property="Foreground" Value="{DynamicResource WarnBrush}" />
+  </Style>
+  <Style Selector="TextBlock.closurelabel.outage">
+    <Setter Property="Foreground" Value="{DynamicResource CritBrush}" />
+  </Style>
+
+  <Style Selector="StackPanel.confirmbuttons">
+    <Setter Property="Orientation" Value="Horizontal" />
+    <Setter Property="Spacing" Value="8" />
+    <Setter Property="HorizontalAlignment" Value="Right" />
+    <Setter Property="Margin" Value="0,16,0,0" />
+  </Style>
+  <Style Selector="StackPanel.confirmbuttons.stacked">
+    <Setter Property="Orientation" Value="Vertical" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+  </Style>
+  <Style Selector="StackPanel.confirmbuttons.stacked > Button">
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+  </Style>
+
+  <!-- Taste in Unterleiste und Tastenhilfe -->
+  <Style Selector="Border.kbd">
+    <Setter Property="CornerRadius" Value="4" />
+    <Setter Property="Padding" Value="5,0" />
+    <Setter Property="MinWidth" Value="20" />
+    <Setter Property="Background" Value="{DynamicResource Surface2Brush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+    <Setter Property="BorderThickness" Value="1,1,1,2" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="Border.kbd > TextBlock">
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="LineHeight" Value="14" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="HorizontalAlignment" Value="Center" />
+    <Setter Property="Foreground" Value="{DynamicResource Fg2Brush}" />
+  </Style>
+
+  <!-- Pillen für Status und Hinweise -->
+  <Style Selector="Border.pill">
+    <Setter Property="CornerRadius" Value="999" />
+    <Setter Property="Padding" Value="8,2" />
+    <Setter Property="Background" Value="{DynamicResource Surface3Brush}" />
+    <Setter Property="HorizontalAlignment" Value="Left" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="Border.pill > TextBlock">
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="LineHeight" Value="14" />
+    <Setter Property="FontWeight" Value="Medium" />
+    <Setter Property="Foreground" Value="{DynamicResource Fg2Brush}" />
+  </Style>
+  <Style Selector="Border.pill.booked">
+    <Setter Property="Background" Value="{DynamicResource StBookedBgBrush}" />
+  </Style>
+  <Style Selector="Border.pill.booked > TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource StBookedBrush}" />
+  </Style>
+  <Style Selector="Border.pill.ok">
+    <Setter Property="Background" Value="{DynamicResource OkSoftBrush}" />
+  </Style>
+  <Style Selector="Border.pill.ok > TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource OkBrush}" />
+  </Style>
+  <Style Selector="Border.pill.warn">
+    <Setter Property="Background" Value="{DynamicResource WarnSoftBrush}" />
+  </Style>
+  <Style Selector="Border.pill.warn > StackPanel > TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource WarnBrush}" />
+  </Style>
+  <Style Selector="Border.pill.crit">
+    <Setter Property="Background" Value="{DynamicResource CritSoftBrush}" />
+  </Style>
+  <Style Selector="Border.pill.crit > TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource CritBrush}" />
+  </Style>
+  <Style Selector="Border.pill.accent">
+    <Setter Property="Background" Value="{DynamicResource AccentSoftBrush}" />
+  </Style>
+  <Style Selector="Border.pill.accent > TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+  </Style>
+
+  <!-- Symbol in einer farbigen Kachel, z. B. vor Kennzahlen -->
+  <Style Selector="Border.icontile">
+    <Setter Property="Width" Value="38" />
+    <Setter Property="Height" Value="38" />
+    <Setter Property="CornerRadius" Value="11" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="Background" Value="{DynamicResource AccentSoftBrush}" />
+  </Style>
+  <Style Selector="Border.icontile > c|Icon">
+    <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+    <Setter Property="Width" Value="20" />
+    <Setter Property="Height" Value="20" />
+  </Style>
+  <Style Selector="Border.icontile.ok">
+    <Setter Property="Background" Value="{DynamicResource OkSoftBrush}" />
+  </Style>
+  <Style Selector="Border.icontile.ok > c|Icon">
+    <Setter Property="Foreground" Value="{DynamicResource OkBrush}" />
+  </Style>
+  <Style Selector="Border.icontile.warn">
+    <Setter Property="Background" Value="{DynamicResource WarnSoftBrush}" />
+  </Style>
+  <Style Selector="Border.icontile.warn > c|Icon">
+    <Setter Property="Foreground" Value="{DynamicResource WarnBrush}" />
+  </Style>
+  <Style Selector="Border.icontile.crit">
+    <Setter Property="Background" Value="{DynamicResource CritSoftBrush}" />
+  </Style>
+  <Style Selector="Border.icontile.crit > c|Icon">
+    <Setter Property="Foreground" Value="{DynamicResource CritBrush}" />
+  </Style>
+
+  <!-- Initialen-Kreis -->
+  <Style Selector="Border.avatar">
+    <Setter Property="Width" Value="30" />
+    <Setter Property="Height" Value="30" />
+    <Setter Property="CornerRadius" Value="15" />
+  </Style>
+  <Style Selector="Border.avatar > TextBlock">
+    <Setter Property="Foreground" Value="White" />
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="HorizontalAlignment" Value="Center" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="Border.avatar.soft">
+    <Setter Property="Background" Value="{DynamicResource AccentSoftBrush}" />
+  </Style>
+  <Style Selector="Border.avatar.soft > TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+  </Style>
+
+  <!-- Schaltflächen -->
+  <Style Selector="Button, ToggleButton">
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="MinHeight" Value="34" />
+    <Setter Property="Padding" Value="12,6" />
+    <Setter Property="FontWeight" Value="Medium" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource LineStrongBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
+    <Setter Property="RenderTransform" Value="none" />
+    <Setter Property="Transitions">
+      <Transitions>
+        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.1" Easing="{StaticResource EaseHover}" />
+      </Transitions>
+    </Setter>
+  </Style>
+  <!-- Knopfdruck: kurz einsinken, hin und zurück 100 ms. Bei abgeschalteten Animationen in Windows entfällt das (Services/ReducedMotion). -->
+  <Style Selector="Button:pressed, ToggleButton:pressed">
+    <Setter Property="RenderTransform" Value="scale(0.97)" />
+  </Style>
+  <!-- Hover und Fokus (Design-Brief 4.6): Fläche, Rahmen und Text wechseln in 100 ms mit (0.33,0,0.67,1); bei „Animationen aus“ ohne Dauer (Services/ReducedMotion) -->
+  <Style Selector="Button /template/ ContentPresenter#PART_ContentPresenter, ToggleButton /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Transitions">
+      <Transitions>
+        <BrushTransition Property="Background" Duration="0:0:0.1" Easing="{StaticResource EaseHover}" />
+        <BrushTransition Property="BorderBrush" Duration="0:0:0.1" Easing="{StaticResource EaseHover}" />
+        <BrushTransition Property="Foreground" Duration="0:0:0.1" Easing="{StaticResource EaseHover}" />
+      </Transitions>
+    </Setter>
+  </Style>
+  <Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter, ToggleButton:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource Surface2Brush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource LineStrongBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
+  </Style>
+  <Style Selector="Button:pressed /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource Surface3Brush}" />
+  </Style>
+  <Style Selector="Button:disabled /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Opacity" Value="0.5" />
+  </Style>
+
+  <!-- Mindestbreite eines Knopfs mit Text 96 (Design-Brief 5.1); Symbol-Knöpfe, Chips, Reiter, Links und kleine Knöpfe stehen ausdrücklich darunter -->
+  <Style Selector="Button">
+    <Setter Property="MinWidth" Value="96" />
+  </Style>
+  <Style Selector="Button.small">
+    <Setter Property="MinWidth" Value="64" />
+  </Style>
+  <Style Selector="Button.icon, Button.help, Button.chipx, Button.chip, Button.headchip, Button.paneltab, Button.link, Button.part, Button.stat, Button.treatmentcard, Button.tile, Button.infobar-action, Button.messagecard, Button.more, Button.copy, Button.companionfab, SplitButton /template/ Button, CalendarItem /template/ Button">
+    <Setter Property="MinWidth" Value="0" />
+  </Style>
+
+  <Style Selector="Button.primary">
+    <Setter Property="Background" Value="{DynamicResource AccentGradientBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="BorderBrush" Value="{DynamicResource AccentHoverBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource AccentFgBrush}" />
+  </Style>
+  <Style Selector="Button.primary:pointerover /template/ ContentPresenter#PART_ContentPresenter, Button.primary:pressed /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource AccentHoverBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource AccentHoverBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource AccentFgBrush}" />
+  </Style>
+
+  <!-- Link (Design-Brief 5.24): Text accent, keine Fläche, kein Rahmen; bei Hover, Fokus und Drücken unterstrichen (Farbe und Unterstreichung sind zwei Hinweise); nur für Verweise,
+       eine Aktion mit Wirkung ist ein Knopf -->
+  <Style Selector="Button.link">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="MinHeight" Value="0" />
+    <Setter Property="FontWeight" Value="Normal" />
+    <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+    <Setter Property="Cursor" Value="Hand" />
+  </Style>
+  <Style Selector="Button.link:pointerover /template/ ContentPresenter#PART_ContentPresenter, Button.link:pressed /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+    <Setter Property="Foreground" Value="{DynamicResource AccentHoverBrush}" />
+  </Style>
+  <Style Selector="Button.link:pointerover TextBlock, Button.link:pressed TextBlock, Button.link:focus-visible TextBlock">
+    <Setter Property="TextDecorations" Value="Underline" />
+  </Style>
+
+  <Style Selector="Button.ghost">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+  </Style>
+  <Style Selector="Button.ghost:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource Surface3Brush}" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+  </Style>
+
+  <!-- Akkordeon-Kopf (ui:AccordionHeader, Klasse accordion; Brief 5.6/7, Runde 5 Ä34): ein Knopf ohne Rahmen über die ganze Breite der Karte, Fläche nur bei Hover, Höhe mindestens 44; der Pfeil dreht sich beim Aufklappen -->
+  <Style Selector="ToggleButton.accordion">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
+    <Setter Property="Padding" Value="16,10" />
+    <Setter Property="MinHeight" Value="44" />
+    <Setter Property="CornerRadius" Value="12" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    <Setter Property="VerticalContentAlignment" Value="Top" />
+    <Setter Property="Cursor" Value="Hand" />
+  </Style>
+  <Style Selector="ToggleButton.accordion /template/ ContentPresenter#PART_ContentPresenter, ToggleButton.accordion:checked /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+    <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
+  </Style>
+  <Style Selector="ToggleButton.accordion:pointerover /template/ ContentPresenter#PART_ContentPresenter, ToggleButton.accordion:checked:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource Surface2Brush}" />
+    <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
+  </Style>
+  <Style Selector="ToggleButton.accordion:pressed /template/ ContentPresenter#PART_ContentPresenter, ToggleButton.accordion:checked:pressed /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource Surface3Brush}" />
+    <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
+  </Style>
+  <Style Selector="ToggleButton.accordion:checked c|Icon.chevron">
+    <Setter Property="RenderTransform" Value="rotate(180deg)" />
+  </Style>
+
+  <!-- „Technische Angaben“ (c:TechnicalDetails): der Pfeil dreht sich beim Aufklappen -->
+  <Style Selector="c|TechnicalDetails ToggleButton:checked c|Icon.chevron">
+    <Setter Property="RenderTransform" Value="rotate(180deg)" />
+  </Style>
+
+  <!-- „Mehr“ im Terminpanel: wie ein ghost-Knopf, auch wenn aufgeklappt -->
+  <Style Selector="ToggleButton.more">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+  </Style>
+  <Style Selector="ToggleButton.more:checked /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+    <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
+  </Style>
+  <Style Selector="ToggleButton.more:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource Surface3Brush}" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+  </Style>
+
+  <Style Selector="Button.danger">
+    <Setter Property="Foreground" Value="{DynamicResource CritBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource CritBrush}" />
+    <Setter Property="Background" Value="Transparent" />
+  </Style>
+  <Style Selector="Button.danger:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource CritSoftBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource CritBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource CritBrush}" />
+  </Style>
+
+  <!-- Nur der Bestätigen-Knopf in einem Rückfrage-Dialog (Design-Brief 5.1) -->
+  <Style Selector="Button.danger.filled">
+    <Setter Property="Foreground" Value="{DynamicResource AccentFgBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource CritBrush}" />
+    <Setter Property="Background" Value="{DynamicResource CritBrush}" />
+  </Style>
+  <Style Selector="Button.danger.filled:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource CritBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource CritBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource AccentFgBrush}" />
+    <Setter Property="Opacity" Value="0.9" />
+  </Style>
+
+  <Style Selector="Button.ok">
+    <Setter Property="Foreground" Value="{DynamicResource OkBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource OkBrush}" />
+    <Setter Property="Background" Value="{DynamicResource OkSoftBrush}" />
+  </Style>
+  <Style Selector="Button.ok:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource OkSoftBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource OkBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource OkBrush}" />
+  </Style>
+
+  <!-- Kacheln zum Antippen, z. B. Artikel in der Kassa: beim Zeigen in der Akzentfarbe getönt -->
+  <Style Selector="Button.tile">
+    <Setter Property="Background" Value="{DynamicResource Surface2Brush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+    <Setter Property="CornerRadius" Value="10" />
+  </Style>
+  <Style Selector="Button.tile:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource AccentSoftBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+  </Style>
+
+  <Style Selector="Button.icon">
+    <Setter Property="Width" Value="34" />
+    <Setter Property="Height" Value="34" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+  </Style>
+
+  <!-- Hilfe: Fragezeichen neben Einstellungen -->
+  <Style Selector="Button.help">
+    <Setter Property="Width" Value="22" />
+    <Setter Property="Height" Value="22" />
+    <Setter Property="MinHeight" Value="0" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="CornerRadius" Value="11" />
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="Foreground" Value="{DynamicResource Fg2Brush}" />
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderBrush" Value="{DynamicResource LineStrongBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+
+  <!-- Geteilte Schaltfläche „+ Termin ▾“ in der Akzentfarbe -->
+  <Style Selector="SplitButton.primary /template/ Button">
+    <Setter Property="Background" Value="{DynamicResource AccentGradientBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource AccentFgBrush}" />
+  </Style>
+  <Style Selector="SplitButton.primary /template/ Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource AccentHoverBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource AccentHoverBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource AccentFgBrush}" />
+  </Style>
+  <Style Selector="SplitButton.primary">
+    <Setter Property="Foreground" Value="{DynamicResource AccentFgBrush}" />
+  </Style>
+
+  <!-- Vorschläge und Antworten als Chips (die Kopfzeile des Kalenders nutzt headchip) -->
+  <Style Selector="Button.chip">
+    <Setter Property="CornerRadius" Value="999" />
+    <Setter Property="MinHeight" Value="32" />
+    <Setter Property="Padding" Value="12,4" />
+    <Setter Property="FontWeight" Value="Normal" />
+    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource Fg2Brush}" />
+  </Style>
+  <!-- Kopfzeilen-Chip (Design-Brief 5.8, Ä17): jedes Element der Kopfzeile außer dem primären Knopf. Höhe 34, Kapsel, Symbol 16 links, Text 14/400;
+       Zustände nur über die weiche Fläche: on (aktiver Filter, gewählter Umschalter), warn, crit -->
+  <Style Selector="Button.headchip">
+    <Setter Property="CornerRadius" Value="999" />
+    <Setter Property="Height" Value="34" />
+    <Setter Property="MinHeight" Value="34" />
+    <Setter Property="Padding" Value="12,0" />
+    <Setter Property="FontSize" Value="14" />
+    <Setter Property="FontWeight" Value="Normal" />
+    <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
+  </Style>
+  <Style Selector="Button.headchip:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource Surface2Brush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
+  </Style>
+  <Style Selector="Button.headchip.on /template/ ContentPresenter#PART_ContentPresenter, Button.headchip.on:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource AccentSoftBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+  </Style>
+  <Style Selector="Button.headchip.warn /template/ ContentPresenter#PART_ContentPresenter, Button.headchip.warn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource WarnSoftBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource WarnBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource WarnBrush}" />
+  </Style>
+  <Style Selector="Button.headchip.crit /template/ ContentPresenter#PART_ContentPresenter, Button.headchip.crit:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource CritSoftBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource CritBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource CritBrush}" />
+  </Style>
+  <!-- Umschalter Team / Räume: zwei Chips nebeneinander, der gewählte in 600 -->
+  <Style Selector="Button.headchip.pair.on /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+
+  <!-- Kleiner Knopf (Design-Brief 5.1): Höhe 28, Innenabstand 8, Schrift 12 -->
+  <Style Selector="Button.small">
+    <Setter Property="MinHeight" Value="28" />
+    <Setter Property="Padding" Value="8,0" />
+    <Setter Property="FontSize" Value="12" />
+  </Style>
+
+  <!-- Karte einer Meldung (Button.messagecard in einer Border.panelcard): der Kopfteil der Karte ist der Knopf, Hover wie eine Listenzeile; Aktion und „Wegklicken“ liegen darunter -->
+  <Style Selector="Button.messagecard">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="CornerRadius" Value="11" />
+    <Setter Property="Padding" Value="16,12" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
+    <Setter Property="FontWeight" Value="Normal" />
+    <Setter Property="Cursor" Value="Hand" />
+  </Style>
+  <Style Selector="Button.messagecard:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource Surface2Brush}" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+  </Style>
+  <Style Selector="Button.messagecard:pressed /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource Surface3Brush}" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+  </Style>
+
+  <!-- Wochentag in den Buchungsvorlieben der Kundenkarte -->
+  <Style Selector="ToggleButton.day">
+    <Setter Property="CornerRadius" Value="999" />
+    <Setter Property="MinHeight" Value="32" />
+    <Setter Property="MinWidth" Value="44" />
+    <Setter Property="Padding" Value="10,4" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource Fg2Brush}" />
+  </Style>
+  <Style Selector="ToggleButton.day:checked /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource AccentSoftBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+  </Style>
+
+  <!-- Zahl im Tagesüberblick: klickbar, hebt die passenden Termine hervor -->
+  <Style Selector="Button.stat">
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="HorizontalContentAlignment" Value="Left" />
+    <Setter Property="Padding" Value="6,4" />
+  </Style>
+
+  <!-- Umschalter mit zwei Teilen (Team / Räume) -->
+  <Style Selector="Border.segmented">
+    <Setter Property="Background" Value="{DynamicResource Surface3Brush}" />
+    <Setter Property="CornerRadius" Value="10" />
+    <Setter Property="Padding" Value="3" />
+  </Style>
+  <Style Selector="Border.segmented Button">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="MinHeight" Value="28" />
+    <Setter Property="Padding" Value="12,0" />
+    <Setter Property="Foreground" Value="{DynamicResource Fg2Brush}" />
+  </Style>
+  <Style Selector="Border.segmented Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
+  </Style>
+  <Style Selector="Border.segmented Button.on /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
+    <Setter Property="BoxShadow" Value="{DynamicResource SegmentShadow}" />
+  </Style>
+
+  <!-- Tooltip (Design-Brief 5.22): Fläche wie die Meldung unten (toast), Text 12, Radius 8, Innenabstand 6/10, Höchstbreite 240, keine Bedienelemente darin.
+       Verzögerung 250 ms, Abstand 4 und Esc/Strg stehen in Controls/ToolTipBehavior. Hover-Karten im Kalender (Klasse hovercard) sind reich und bleiben hell und breiter. -->
+  <Style Selector="ToolTip">
+    <Setter Property="MaxWidth" Value="240" />
+    <Setter Property="Padding" Value="10,6" />
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="Background" Value="{DynamicResource ToastBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource ToastFgBrush}" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="IsHitTestVisible" Value="False" />
+  </Style>
+  <Style Selector="ToolTip /template/ Border#PART_LayoutRoot">
+    <Setter Property="BoxShadow" Value="{DynamicResource CardShadow}" />
+  </Style>
+  <Style Selector="ToolTip.hovercard">
+    <Setter Property="MaxWidth" Value="420" />
+    <Setter Property="FontSize" Value="14" />
+    <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+  </Style>
+
+  <!-- Tastaturfokus: Rahmen 2 px AccentBrush im Abstand von 2 px (Design-Brief 4.5); erscheint nur bei Bedienung per Tastatur; .tipstop sind per Tab erreichbare Tooltip-Ziele (ToolTipBehavior.Reachable) -->
+  <Style Selector="Button, ToggleButton, TextBox, ComboBox, CheckBox, RadioButton, ToggleSwitch, ListBoxItem, :is(Control).tipstop">
+    <Setter Property="FocusAdorner">
+      <FocusAdornerTemplate>
+        <Border BorderBrush="{DynamicResource AccentBrush}" BorderThickness="2" CornerRadius="8" Margin="-4" AdornerLayer.IsClipEnabled="False" />
+      </FocusAdornerTemplate>
+    </Setter>
+  </Style>
+
+  <!-- Eingaben (Design-Brief 5.2): Fläche surface, Rahmen 1 px line-strong, Unterkante 1 px fg-3 (Kontrast 3:1), Radius 8, Höhe 34. Zustandsfarben stehen
+       nur hier, nie als lokaler Wert am Element. Unterkante und Fokus-Unterstrich setzt FieldChrome als Border.field-edge und Border.field-underline ein. -->
+  <Style Selector="TextBox">
+    <Setter Property="c:FieldBehaviors.IsActive" Value="True" />
+    <Setter Property="c:FieldChrome.IsEnabled" Value="True" />
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="MinHeight" Value="34" />
+    <Setter Property="Padding" Value="10,6" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource LineStrongBrush}" />
+    <Setter Property="PlaceholderForeground" Value="{DynamicResource Fg2Brush}" />
+    <Setter Property="SelectionBrush" Value="{DynamicResource AccentBrush}" />
+    <Setter Property="SelectionForegroundBrush" Value="{DynamicResource AccentFgBrush}" />
+    <Setter Property="CaretBrush" Value="{DynamicResource FgBrush}" />
+  </Style>
+  <Style Selector="TextBox.num">
+    <Setter Property="FontFeatures" Value="+tnum" />
+  </Style>
+  <Style Selector="TextBox /template/ Border#PART_BorderElement">
+    <Setter Property="Transitions">
+      <Transitions>
+        <BrushTransition Property="BorderBrush" Duration="0:0:0.1" Easing="{StaticResource EaseHover}" />
+      </Transitions>
+    </Setter>
+  </Style>
+  <Style Selector="TextBox:pointerover /template/ Border#PART_BorderElement">
+    <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Fg2Brush}" />
+  </Style>
+  <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
+    <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+  </Style>
+  <!-- Nur lesbar: Fläche surface-2, Rahmen line; Fokus und Kopieren bleiben möglich (5.2) -->
+  <Style Selector="TextBox[IsReadOnly=True] /template/ Border#PART_BorderElement">
+    <Setter Property="Background" Value="{DynamicResource Surface2Brush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+  </Style>
+  <!-- Deaktiviert: Deckkraft 0,5 am Eingabeelement, nicht an Beschriftung und Hilfetext (5.5) -->
+  <Style Selector="TextBox:disabled">
+    <Setter Property="Opacity" Value="0.5" />
+    <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
+  </Style>
+  <Style Selector="TextBox:disabled /template/ Border#PART_BorderElement">
+    <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource LineStrongBrush}" />
+  </Style>
+  <!-- Warnung und Fehler am Feld (5.2): der Rahmen behält die Farbe auch beim Fokus, damit der Fehler beim Korrigieren sichtbar bleibt
+       (gewollte Abweichung von Fluent 2, dort ist der Rahmen beim Fokus wieder neutral) -->
+  <Style Selector="TextBox.warning /template/ Border#PART_BorderElement, TextBox.warning:pointerover /template/ Border#PART_BorderElement, TextBox.warning:focus /template/ Border#PART_BorderElement">
+    <Setter Property="BorderBrush" Value="{DynamicResource WarnBrush}" />
+  </Style>
+  <Style Selector="TextBox.invalid /template/ Border#PART_BorderElement, TextBox.invalid:pointerover /template/ Border#PART_BorderElement, TextBox.invalid:focus /template/ Border#PART_BorderElement">
+    <Setter Property="BorderBrush" Value="{DynamicResource CritBrush}" />
+  </Style>
+  <!-- Mehrzeiliges Feld (Design-Brief 5.16): feste Höhe 68, höchstens 200, wächst nicht mit dem Text, Scrollleiste bei Überlauf, Marke oben -->
+  <Style Selector="TextBox[AcceptsReturn=True]">
+    <Setter Property="Height" Value="68" />
+    <Setter Property="MaxHeight" Value="200" />
+    <Setter Property="TextWrapping" Value="Wrap" />
+    <Setter Property="VerticalContentAlignment" Value="Top" />
+    <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
+  </Style>
+  <Style Selector="TextBox.negative">
+    <Setter Property="Foreground" Value="{DynamicResource CritBrush}" />
+  </Style>
+
+  <!-- Unterkante und Fokus-Unterstrich der Felder (Design-Brief 2.6, 4.5): zwei dünne, unten abgerundete Streifen in der Fläche des Felds.
+       Unterkante 1 px fg-3, Hover fg-2; Unterstrich 2 px accent wächst beim Fokus in 200 ms von der Mitte aus und geht in 50 ms (bei „Animationen aus“ ohne Dauer, ReducedMotion). -->
+  <Style Selector="Border.field-edge">
+    <Setter Property="Height" Value="8" />
+    <Setter Property="CornerRadius" Value="0,0,8,8" />
+    <Setter Property="BorderThickness" Value="0,0,0,1" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Fg3Brush}" />
+    <Setter Property="Transitions">
+      <Transitions>
+        <BrushTransition Property="BorderBrush" Duration="0:0:0.1" Easing="{StaticResource EaseHover}" />
+      </Transitions>
+    </Setter>
+  </Style>
+  <Style Selector="Border.field-edge.hover">
+    <Setter Property="BorderBrush" Value="{DynamicResource Fg2Brush}" />
+  </Style>
+  <Style Selector="Border.field-edge.readonly">
+    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+  </Style>
+  <Style Selector="Border.field-edge.warning, Border.field-edge.warning.hover">
+    <Setter Property="BorderBrush" Value="{DynamicResource WarnBrush}" />
+  </Style>
+  <Style Selector="Border.field-edge.invalid, Border.field-edge.invalid.hover">
+    <Setter Property="BorderBrush" Value="{DynamicResource CritBrush}" />
+  </Style>
+  <Style Selector="Border.field-underline">
+    <Setter Property="Height" Value="8" />
+    <Setter Property="CornerRadius" Value="0,0,8,8" />
+    <Setter Property="BorderThickness" Value="0,0,0,2" />
+    <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+    <Setter Property="RenderTransformOrigin" Value="50%,50%" />
+    <Setter Property="RenderTransform" Value="scaleX(0)" />
+    <Setter Property="Transitions">
+      <Transitions>
+        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.05" Easing="{StaticResource EaseExit}" />
+      </Transitions>
+    </Setter>
+  </Style>
+  <Style Selector="Border.field-underline.on">
+    <Setter Property="RenderTransform" Value="scaleX(1)" />
+    <Setter Property="Transitions">
+      <Transitions>
+        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.2" Easing="{StaticResource EaseEnter}" />
+      </Transitions>
+    </Setter>
+  </Style>
+
+  <!-- Pfeilknöpfe des Zahlenfelds (5.19): nur für die Maus, 24 px breit, zwei übereinander -->
+  <Style Selector="RepeatButton.spin">
+    <Setter Property="Width" Value="24" />
+    <Setter Property="Height" Value="15" />
+    <Setter Property="MinHeight" Value="0" />
+    <Setter Property="MinWidth" Value="0" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="CornerRadius" Value="4" />
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Foreground" Value="{DynamicResource Fg2Brush}" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+  </Style>
+  <Style Selector="RepeatButton.spin:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource Surface3Brush}" />
+    <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
+  </Style>
+  <Style Selector="RepeatButton.spin:disabled /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Opacity" Value="0.4" />
+  </Style>
+
+  <!-- Feldrahmen (Design-Brief 5.2): Beschriftung über dem Feld, Stern in der Textfarbe, Hilfe oder Meldung darunter -->
+  <Style Selector="c|FormField">
+    <Setter Property="Template">
+      <ControlTemplate>
+        <StackPanel>
+          <StackPanel Orientation="Horizontal" IsVisible="{TemplateBinding Label, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+            <TextBlock x:Name="PART_Label" Classes="label" Text="{TemplateBinding Label}" TextWrapping="Wrap" />
+            <TextBlock Classes="label star" Text="*" Margin="3,0,0,4" IsVisible="{TemplateBinding IsRequired}" />
+          </StackPanel>
+          <ContentPresenter x:Name="PART_ContentPresenter" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
+          <Grid x:Name="PART_Message" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="4" Margin="0,4,0,0" IsVisible="False">
+            <c:Icon x:Name="PART_MessageIcon" Width="12" Height="12" VerticalAlignment="Top" Margin="0,2,0,0" />
+            <TextBlock x:Name="PART_MessageText" Grid.Column="1" Classes="small" TextWrapping="Wrap" />
+            <TextBlock x:Name="PART_Counter" Grid.Column="2" Classes="small num muted" Margin="8,0,0,0" HorizontalAlignment="Right" VerticalAlignment="Top" IsVisible="False" />
+          </Grid>
+        </StackPanel>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+  <Style Selector="TextBlock.label.star">
+    <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
+  </Style>
+  <Style Selector="c|Icon.searchicon">
+    <Setter Property="Foreground" Value="{DynamicResource Fg3Brush}" />
+  </Style>
+  <Style Selector="Button.icon.searchclear">
+    <Setter Property="Width" Value="28" />
+    <Setter Property="Height" Value="28" />
+    <Setter Property="MinHeight" Value="0" />
+    <Setter Property="CornerRadius" Value="6" />
+  </Style>
+  <Style Selector="Button.icon.searchadd">
+    <Setter Property="Width" Value="28" />
+    <Setter Property="Height" Value="28" />
+    <Setter Property="MinHeight" Value="0" />
+    <Setter Property="CornerRadius" Value="6" />
+  </Style>
+  <Style Selector="c|Icon.crit">
+    <Setter Property="Foreground" Value="{DynamicResource CritBrush}" />
+  </Style>
+  <Style Selector="c|Icon.warn">
+    <Setter Property="Foreground" Value="{DynamicResource WarnBrush}" />
+  </Style>
+  <Style Selector="c|Icon.ok">
+    <Setter Property="Foreground" Value="{DynamicResource OkBrush}" />
+  </Style>
+  <!-- Aufklappliste (Design-Brief 5.3): wie ein Eingabefeld (Fläche surface, Rahmen line-strong, Unterkante fg-3, Fokus-Unterstrich, Höhe 34, Radius 8).
+       Die Vorlage füllt bei Tastaturfokus das ganze Feld in der Akzentfarbe; das entfällt, der Fokus zeigt Rahmen, Unterstrich und Ring wie beim Textfeld. -->
+  <Style Selector="ComboBox">
+    <Setter Property="c:FieldChrome.IsEnabled" Value="True" />
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="MinHeight" Value="34" />
+    <Setter Property="Padding" Value="10,6,0,6" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="MaxDropDownHeight" Value="266" />
+    <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource LineStrongBrush}" />
+  </Style>
+  <Style Selector="ComboBox /template/ Border#Background">
+    <Setter Property="Transitions">
+      <Transitions>
+        <BrushTransition Property="BorderBrush" Duration="0:0:0.1" Easing="{StaticResource EaseHover}" />
+      </Transitions>
+    </Setter>
+  </Style>
+  <Style Selector="ComboBox:pointerover /template/ Border#Background, ComboBox:pressed /template/ Border#Background">
+    <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Fg2Brush}" />
+  </Style>
+  <Style Selector="ComboBox:focus /template/ Border#Background, ComboBox:dropdownopen /template/ Border#Background, ComboBox:focus-visible /template/ Border#Background">
+    <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+  </Style>
+  <Style Selector="ComboBox /template/ Border#HighlightBackground">
+    <Setter Property="IsVisible" Value="False" />
+  </Style>
+  <Style Selector="ComboBox:focus-visible /template/ ContentControl#ContentPresenter, ComboBox:focus /template/ ContentControl#ContentPresenter, ComboBox:pressed /template/ ContentControl#ContentPresenter">
+    <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
+  </Style>
+  <Style Selector="ComboBox /template/ PathIcon#DropDownGlyph">
+    <Setter Property="Foreground" Value="{DynamicResource Fg2Brush}" />
+  </Style>
+  <Style Selector="ComboBox:disabled">
+    <Setter Property="Opacity" Value="0.5" />
+  </Style>
+  <Style Selector="ComboBox:disabled /template/ Border#Background">
+    <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource LineStrongBrush}" />
+  </Style>
+  <Style Selector="ComboBox.warning /template/ Border#Background, ComboBox.warning:pointerover /template/ Border#Background, ComboBox.warning:focus /template/ Border#Background">
+    <Setter Property="BorderBrush" Value="{DynamicResource WarnBrush}" />
+  </Style>
+  <Style Selector="ComboBox.invalid /template/ Border#Background, ComboBox.invalid:pointerover /template/ Border#Background, ComboBox.invalid:focus /template/ Border#Background">
+    <Setter Property="BorderBrush" Value="{DynamicResource CritBrush}" />
+  </Style>
+  <!-- Einträge der geöffneten Liste (5.3): 32 hoch, Radius 6, Hover surface-2, markiert per Tastatur surface-3, gewählt accent-soft -->
+  <Style Selector="ComboBoxItem">
+    <Setter Property="MinHeight" Value="32" />
+    <Setter Property="Padding" Value="10,6" />
+    <Setter Property="CornerRadius" Value="6" />
+    <Setter Property="Margin" Value="4,0" />
+    <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
+  </Style>
+  <Style Selector="ComboBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource Surface2Brush}" />
+    <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
+  </Style>
+  <Style Selector="ComboBoxItem:focus /template/ ContentPresenter#PART_ContentPresenter, ComboBoxItem:focus-visible /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource Surface3Brush}" />
+    <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
+  </Style>
+  <Style Selector="ComboBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter, ComboBoxItem:selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource AccentSoftBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
+  </Style>
+  <Style Selector="ComboBoxItem:selected:focus /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource AccentSoftBrush}" />
+  </Style>
+
+  <!-- Navigation links -->
+  <Style Selector="ListBox.nav">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Padding" Value="0" />
+  </Style>
+  <Style Selector="ListBox.nav ListBoxItem">
+    <Setter Property="Padding" Value="2,10" />
+    <Setter Property="Margin" Value="8,3" />
+    <Setter Property="CornerRadius" Value="12" />
+    <Setter Property="Foreground" Value="{DynamicResource RailFg2Brush}" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="Cursor" Value="Hand" />
+  </Style>
+  <Style Selector="ListBox.nav ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource RailHoverBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource RailFgBrush}" />
+  </Style>
+  <Style Selector="ListBox.nav ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource RailSelectedBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource RailFgBrush}" />
+  </Style>
+  <Style Selector="ListBox.nav ListBoxItem:selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource RailSelectedBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource RailFgBrush}" />
+  </Style>
+  <!-- Markierung der gewählten Seite: kurzer Sandstrich links neben dem Symbol -->
+  <Style Selector="ListBox.nav ListBoxItem Border.navmark">
+    <Setter Property="IsVisible" Value="False" />
+  </Style>
+  <Style Selector="ListBox.nav ListBoxItem:selected Border.navmark">
+    <Setter Property="IsVisible" Value="True" />
+  </Style>
+  <Style Selector="ListBox.nav ListBoxItem:selected TextBlock.navtitle">
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+
+  <!--
+    Datumswahl (Kalenderblatt im Flyout, Auftraggeber 23.10.2026 „sehr unruhig“): kein Raster und keine grauen Flächen zwischen den Tagen,
+    Tage als ruhige runde Felder (Hover als Fläche statt Rand), heute als Akzentfläche, der gewählte Tag mit Akzentrand, Tage des
+    Nachbarmonats gedämpft in fg-2 (fg-3 ist als Text zu schwach, Brief 10). Die Fluent-Vorlage zeichnet das Raster über die Hintergrundfarbe des Rahmens (BackgroundLayer).
+  -->
+  <Style Selector="Calendar">
+    <Setter Property="BorderBrush" Value="Transparent" />
+  </Style>
+  <Style Selector="CalendarItem /template/ Border#BackgroundLayer">
+    <Setter Property="Background" Value="Transparent" />
+  </Style>
+  <Style Selector="CalendarItem /template/ Grid#PART_YearView">
+    <Setter Property="Background" Value="Transparent" />
+  </Style>
+  <Style Selector="CalendarItem /template/ Button#PART_HeaderButton">
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+  <Style Selector="CalendarDayButton, CalendarButton">
+    <Setter Property="Margin" Value="2" />
+    <Setter Property="MinWidth" Value="36" />
+    <Setter Property="MinHeight" Value="34" />
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+  </Style>
+  <Style Selector="CalendarDayButton /template/ Border#Root, CalendarButton /template/ Border#Root">
+    <Setter Property="CornerRadius" Value="8" />
+  </Style>
+  <Style Selector="CalendarDayButton /template/ Border#Border, CalendarButton /template/ Border#Border">
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="BorderThickness" Value="1.5" />
+  </Style>
+  <Style Selector="CalendarDayButton:pointerover /template/ Border#Root, CalendarButton:pointerover /template/ Border#Root">
+    <Setter Property="Background" Value="{DynamicResource Surface3Brush}" />
+  </Style>
+  <Style Selector="CalendarDayButton:pointerover /template/ Border#Border, CalendarButton:pointerover /template/ Border#Border">
+    <Setter Property="BorderBrush" Value="Transparent" />
+  </Style>
+  <Style Selector="CalendarDayButton:pressed /template/ Border#Border, CalendarButton:pressed /template/ Border#Border">
+    <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+  </Style>
+  <Style Selector="CalendarDayButton:selected /template/ Border#Border, CalendarDayButton:selected:pointerover /template/ Border#Border, CalendarButton:selected /template/ Border#Border">
+    <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+  </Style>
+  <Style Selector="CalendarButton:selected /template/ Border#Root">
+    <Setter Property="Background" Value="{DynamicResource AccentSoftBrush}" />
+  </Style>
+  <Style Selector="CalendarDayButton:today /template/ Border#Root">
+    <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+  </Style>
+  <Style Selector="CalendarDayButton:today:pointerover /template/ Border#Root">
+    <Setter Property="Background" Value="{DynamicResource AccentHoverBrush}" />
+  </Style>
+  <Style Selector="CalendarDayButton:today /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Foreground" Value="{DynamicResource AccentFgBrush}" />
+  </Style>
+  <Style Selector="CalendarDayButton:inactive /template/ Border#Root">
+    <Setter Property="Background" Value="Transparent" />
+  </Style>
+  <Style Selector="CalendarDayButton:inactive /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Foreground" Value="{DynamicResource Fg2Brush}" />
+  </Style>
+
+  <!-- Schaltflächen unten in der Navigationsleiste: dieselbe Fläche, Rundung und Farbe wie die Navigationseinträge (Auftraggeber, 23.10.2026) -->
+  <Style Selector="Border.rail Button.navbtn">
+    <Setter Property="Padding" Value="2,10" />
+    <Setter Property="Margin" Value="8,0" />
+    <Setter Property="MinWidth" Value="0" />
+    <Setter Property="CornerRadius" Value="12" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="Foreground" Value="{DynamicResource RailFg2Brush}" />
+  </Style>
+  <Style Selector="Border.rail Button.navbtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource RailHoverBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource RailFgBrush}" />
+  </Style>
+
+  <!-- Listen in Karten: ruhige Auswahl statt Fluent-Blau -->
+  <Style Selector="ListBox.plain">
+    <Setter Property="Background" Value="Transparent" />
+  </Style>
+  <Style Selector="ListBox.plain ListBoxItem">
+    <Setter Property="CornerRadius" Value="6" />
+    <Setter Property="Padding" Value="10,7" />
+  </Style>
+  <Style Selector="ListBox.plain ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource Surface2Brush}" />
+  </Style>
+  <Style Selector="ListBox.plain ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource AccentSoftBrush}" />
+  </Style>
+
+  <!-- Auswahl als Chips, z. B. freie Startzeiten -->
+  <Style Selector="ListBox.chips">
+    <Setter Property="Background" Value="Transparent" />
+  </Style>
+  <Style Selector="ListBox.chips ListBoxItem">
+    <Setter Property="CornerRadius" Value="999" />
+    <Setter Property="Padding" Value="12,5" />
+    <Setter Property="Margin" Value="0,0,6,6" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+    <Setter Property="MinWidth" Value="0" />
+  </Style>
+  <Style Selector="ListBox.chips ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource Surface2Brush}" />
+  </Style>
+  <Style Selector="ListBox.chips ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource AccentFgBrush}" />
+  </Style>
+
+  <!-- Belegungsverlauf eines Bereichs -->
+  <Style Selector="Rectangle.load">
+    <Setter Property="Fill" Value="{DynamicResource AccentLineBrush}" />
+  </Style>
+  <Style Selector="Rectangle.load.high">
+    <Setter Property="Fill" Value="{DynamicResource WarnBrush}" />
+  </Style>
+  <Style Selector="Rectangle.load.full">
+    <Setter Property="Fill" Value="{DynamicResource CritBrush}" />
+  </Style>
+
+  <!-- Kalender-Hintergrund -->
+  <Style Selector="c|TimeGrid">
+    <Setter Property="AvailableBrush" Value="{DynamicResource SurfaceBrush}" />
+    <Setter Property="OffBrush" Value="{DynamicResource OffDutyBrush}" />
+    <Setter Property="HatchBrush" Value="{DynamicResource HatchBrush}" />
+    <Setter Property="HourLineBrush" Value="{DynamicResource LineBrush}" />
+    <Setter Property="QuarterLineBrush" Value="{DynamicResource GridQuarterBrush}" />
+  </Style>
+
+  <!-- Termine im Kalender: Farbe nach Status wie im Prototyp -->
+  <Style Selector="Border.appt">
+    <Setter Property="Background" Value="{DynamicResource StBookedBgBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource StBookedBrush}" />
+    <Setter Property="BorderThickness" Value="4,0,0,0" />
+    <Setter Property="CornerRadius" Value="6" />
+    <Setter Property="BoxShadow" Value="{DynamicResource ApptShadow}" />
+    <Setter Property="Padding" Value="7,4,6,4" />
+    <Setter Property="ClipToBounds" Value="True" />
+  </Style>
+  <Style Selector="Border.appt.checkedin">
+    <Setter Property="Background" Value="{DynamicResource StCheckedInBgBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource StCheckedInBrush}" />
+  </Style>
+  <Style Selector="Border.appt.done">
+    <Setter Property="Background" Value="{DynamicResource StDoneBgBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource StDoneBrush}" />
+  </Style>
+  <Style Selector="Border.appt.noshow">
+    <Setter Property="Background" Value="{DynamicResource CritSoftBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource CritBrush}" />
+  </Style>
+  <Style Selector="Border.appt.block">
+    <Setter Property="Background" Value="{DynamicResource Surface3Brush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource LineStrongBrush}" />
+    <Setter Property="Cursor" Value="Arrow" />
+  </Style>
+  <Style Selector="Border.appt.overdue">
+    <Setter Property="Background" Value="{DynamicResource WarnSoftBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource WarnBrush}" />
+  </Style>
+  <Style Selector="Border.appt.grouped">
+    <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+    <Setter Property="BorderThickness" Value="4,2,2,2" />
+    <Setter Property="Padding" Value="7,2,4,2" />
+  </Style>
+  <!-- Auswahl: Ring über der Karte; Hintergrund und Statusbalken bleiben, damit „überfällig“ oder „eingecheckt“ lesbar bleibt -->
+  <Style Selector="Border.selring">
+    <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+    <Setter Property="BorderThickness" Value="3" />
+    <Setter Property="CornerRadius" Value="6" />
+  </Style>
+
+  <!-- Raumansicht: Kürzel der Person, die behandelt -->
+  <Style Selector="Border.who">
+    <Setter Property="Width" Value="20" />
+    <Setter Property="Height" Value="20" />
+    <Setter Property="CornerRadius" Value="10" />
+    <Setter Property="Margin" Value="0,0,5,0" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="Border.who > TextBlock">
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="LineHeight" Value="14" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="Foreground" Value="White" />
+    <Setter Property="HorizontalAlignment" Value="Center" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="TextBlock.overdue">
+    <Setter Property="Foreground" Value="{DynamicResource WarnBrush}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+
+  <!-- Kennzeichen oben rechts im Termin -->
+  <Style Selector="Border.flag">
+    <Setter Property="Width" Value="16" />
+    <Setter Property="Height" Value="16" />
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource LineStrongBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+  </Style>
+  <Style Selector="Border.flag > TextBlock">
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="LineHeight" Value="14" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="HorizontalAlignment" Value="Center" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="Foreground" Value="{DynamicResource Fg2Brush}" />
+  </Style>
+  <Style Selector="Border.flag.wide">
+    <Setter Property="Width" Value="NaN" />
+    <Setter Property="Padding" Value="4,0" />
+  </Style>
+  <Style Selector="Border.flag.wide > TextBlock">
+    <Setter Property="FontSize" Value="12" />
+  </Style>
+  <Style Selector="Border.flag.note">
+    <Setter Property="Background" Value="{DynamicResource WarnSoftBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource WarnBrush}" />
+  </Style>
+  <Style Selector="Border.flag.note > TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource WarnBrush}" />
+  </Style>
+  <Style Selector="Border.flag.regular > TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource WarnBrush}" />
+  </Style>
+
+  <!-- Pausen, Abwesenheit, Vorbereitung und Notizen -->
+  <Style Selector="Border.appt.pause">
+    <Setter Property="Background" Value="{DynamicResource Surface3Brush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Fg3Brush}" />
+  </Style>
+  <Style Selector="Border.appt.affected">
+    <Setter Property="BorderBrush" Value="{DynamicResource CritBrush}" />
+    <Setter Property="BorderThickness" Value="4,1.5,1.5,1.5" />
+    <Setter Property="Padding" Value="7,2.5,4.5,2.5" />
+  </Style>
+  <Style Selector="Border.absentcol">
+    <Setter Property="Background" Value="{DynamicResource HatchBrush}" />
+    <Setter Property="Opacity" Value="0.55" />
+  </Style>
+  <Style Selector="Border.absentcol.sick">
+    <Setter Property="Background" Value="{DynamicResource CritSoftBrush}" />
+    <Setter Property="Opacity" Value="0.8" />
+  </Style>
+  <Style Selector="TextBlock.absent">
+    <Setter Property="Foreground" Value="{DynamicResource CritBrush}" />
+  </Style>
+  <!-- Einwirkzeit im Termin der Person: schraffiertes, halbtransparentes Band mit Linien oben und unten; der Text steht klein am unteren Rand -->
+  <Style Selector="Border.processing">
+    <Setter Property="Background" Value="{DynamicResource ProcessingHatchBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource LineStrongBrush}" />
+    <Setter Property="BorderThickness" Value="0,1,0,1" />
+    <Setter Property="VerticalAlignment" Value="Top" />
+    <Setter Property="IsHitTestVisible" Value="False" />
+  </Style>
+  <Style Selector="Border.processing TextBlock">
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="LineHeight" Value="14" />
+    <Setter Property="Foreground" Value="{DynamicResource Fg2Brush}" />
+    <Setter Property="Margin" Value="11,0,6,1" />
+    <Setter Property="VerticalAlignment" Value="Bottom" />
+    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+  </Style>
+  <Style Selector="Border.stripe">
+    <Setter Property="Background" Value="{DynamicResource Surface3Brush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource LineStrongBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="ClipToBounds" Value="True" />
+  </Style>
+  <Style Selector="Border.stripe.prep">
+    <Setter Property="CornerRadius" Value="3,3,0,0" />
+  </Style>
+  <Style Selector="Border.stripe.after">
+    <Setter Property="CornerRadius" Value="0,0,3,3" />
+  </Style>
+  <!-- Nur das direkte Kind: der Tooltip des Streifens hängt logisch unter ihm, und „Border.stripe TextBlock“ färbte seinen Text in fg auf die dunkle Meldungsfläche (Runde 5, Ä28). -->
+  <Style Selector="Border.stripe > TextBlock">
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="LineHeight" Value="14" />
+    <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
+    <Setter Property="Margin" Value="7,0,4,0" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+  </Style>
+  <!-- Raumpflege als Aufgabe: offen bleibt ruhig, erledigt grün, überfällig orange; die Stelle ist anklickbar -->
+  <Style Selector="Border.stripe.care">
+    <Setter Property="Cursor" Value="Hand" />
+  </Style>
+  <Style Selector="Border.stripe.care:pointerover">
+    <Setter Property="Background" Value="{DynamicResource AccentSoftBrush}" />
+  </Style>
+  <Style Selector="Border.stripe.caredone">
+    <Setter Property="Background" Value="{DynamicResource OkSoftBrush}" />
+  </Style>
+  <Style Selector="Border.stripe.careoverdue">
+    <Setter Property="Background" Value="{DynamicResource WarnSoftBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource WarnBrush}" />
+    <Setter Property="BorderThickness" Value="2,0,0,0" />
+  </Style>
+  <Style Selector="Border.stripe.careoverdue > TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource WarnBrush}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+  <Style Selector="Border.sticky">
+    <Setter Property="Background" Value="{DynamicResource NoteSoftBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource NoteBrush}" />
+    <Setter Property="BorderThickness" Value="0,0,0,2" />
+    <Setter Property="CornerRadius" Value="3" />
+    <Setter Property="Padding" Value="6,2" />
+    <Setter Property="BoxShadow" Value="{DynamicResource RaisedShadow}" />
+    <Setter Property="Cursor" Value="Hand" />
+  </Style>
+  <Style Selector="Border.sticky > TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource NoteBrush}" />
+    <Setter Property="VerticalAlignment" Value="Top" />
+  </Style>
+  <Style Selector="Border.sticky.done > TextBlock">
+    <Setter Property="TextDecorations" Value="Strikethrough" />
+  </Style>
+  <!-- KI-Anfrage: Bausteine des Wunsches und Nummern der Vorschläge -->
+  <Style Selector="Border.wishchip">
+    <Setter Property="CornerRadius" Value="999" />
+    <Setter Property="Padding" Value="10,3,4,3" />
+    <Setter Property="MinHeight" Value="26" />
+    <Setter Property="Background" Value="{DynamicResource AccentSoftBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource AccentLineBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+  </Style>
+  <Style Selector="Border.wishchip.excluded">
+    <Setter Property="Background" Value="{DynamicResource CritSoftBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource CritBrush}" />
+  </Style>
+  <Style Selector="Border.keynum">
+    <Setter Property="Width" Value="20" />
+    <Setter Property="Height" Value="20" />
+    <Setter Property="CornerRadius" Value="4" />
+    <Setter Property="Background" Value="{DynamicResource Surface3Brush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource LineStrongBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+  </Style>
+  <Style Selector="Border.keynum TextBlock">
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="LineHeight" Value="14" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="HorizontalAlignment" Value="Center" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+
+  <Style Selector="TextBlock.done">
+    <Setter Property="TextDecorations" Value="Strikethrough" />
+    <Setter Property="Opacity" Value="0.6" />
+  </Style>
+
+  <Style Selector="Border.pill.warn > TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource WarnBrush}" />
+  </Style>
+
+  <!-- Bestandsbalken im Lager (R07 Slice 143): Spur surface-3, Füllung accent, unter dem Mindestbestand warn; der Balken ist nur ein Bild, die Zeile nennt die Zahlen -->
+  <Style Selector="ProgressBar.stockbar">
+    <Setter Property="Height" Value="4" />
+    <Setter Property="MinHeight" Value="4" />
+    <Setter Property="Background" Value="{DynamicResource Surface3Brush}" />
+    <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+    <Setter Property="CornerRadius" Value="2" />
+  </Style>
+  <Style Selector="ProgressBar.stockbar.warn">
+    <Setter Property="Foreground" Value="{DynamicResource WarnBrush}" />
+  </Style>
+
+  <!-- Hover: etwas kräftigerer Schatten statt Abblenden; der Rand ist die Statusfarbe und bleibt. -->
+  <Style Selector="Border.appt:pointerover">
+    <Setter Property="BoxShadow" Value="{DynamicResource RaisedShadow}" />
+  </Style>
+
+  <!-- InfoBar: Meldung zu einem Zustand der Seite oder des Formulars; Symbol und Farbe zusammen (Info, Erfolg, Warnung, Fehler) -->
+  <Style Selector="Border.infobar">
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="Padding" Value="12,10,8,10" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="Background" Value="{DynamicResource AccentSoftBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource AccentLineBrush}" />
+  </Style>
+  <Style Selector="Border.infobar c|Icon.sev">
+    <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+  </Style>
+  <Style Selector="Border.infobar.ok">
+    <Setter Property="Background" Value="{DynamicResource OkSoftBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource OkBrush}" />
+  </Style>
+  <Style Selector="Border.infobar.ok c|Icon.sev">
+    <Setter Property="Foreground" Value="{DynamicResource OkBrush}" />
+  </Style>
+  <Style Selector="Border.infobar.warn">
+    <Setter Property="Background" Value="{DynamicResource WarnSoftBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource WarnBrush}" />
+  </Style>
+  <Style Selector="Border.infobar.warn c|Icon.sev">
+    <Setter Property="Foreground" Value="{DynamicResource WarnBrush}" />
+  </Style>
+  <Style Selector="Border.infobar.crit">
+    <Setter Property="Background" Value="{DynamicResource CritSoftBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource CritBrush}" />
+  </Style>
+  <Style Selector="Border.infobar.crit c|Icon.sev">
+    <Setter Property="Foreground" Value="{DynamicResource CritBrush}" />
+  </Style>
+  <Style Selector="Border.infobar Button.infobar-close">
+    <Setter Property="Width" Value="26" />
+    <Setter Property="Height" Value="26" />
+    <Setter Property="MinHeight" Value="0" />
+    <Setter Property="MinWidth" Value="0" />
+    <Setter Property="Padding" Value="0" />
+  </Style>
+
+  <!-- Rückmeldung unten im Kalender (Design-Brief 4.6): Einblenden 160 ms mit (0,0,0,1), Ausblenden 120 ms mit (1,0,1,1) -->
+  <Style Selector="Border.toast">
+    <Setter Property="Background" Value="{DynamicResource ToastBrush}" />
+    <Setter Property="Opacity" Value="0" />
+    <Setter Property="RenderTransform" Value="translateY(8px)" />
+    <Setter Property="IsHitTestVisible" Value="False" />
+    <Setter Property="Transitions">
+      <Transitions>
+        <DoubleTransition Property="Opacity" Duration="0:0:0.12" Easing="{StaticResource EaseExit}" />
+        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.12" Easing="{StaticResource EaseExit}" />
+      </Transitions>
+    </Setter>
+  </Style>
+  <!-- Eine Zeile bis 60 Zeichen; Fehler und Warnungen stehen als InfoBar oben (meldungen.md M1) -->
+  <Style Selector="Border.toast TextBlock.msg">
+    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+  </Style>
+  <Style Selector="Border.toast.shown">
+    <Setter Property="Opacity" Value="1" />
+    <Setter Property="RenderTransform" Value="none" />
+    <Setter Property="IsHitTestVisible" Value="True" />
+    <Setter Property="Transitions">
+      <Transitions>
+        <DoubleTransition Property="Opacity" Duration="0:0:0.16" Easing="{StaticResource EaseEnter}" />
+        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.16" Easing="{StaticResource EaseEnter}" />
+      </Transitions>
+    </Setter>
+  </Style>
+
+  <!-- Rechte Seitenleisten (Design-Brief 5.12 Punkt 1): Fläche surface, Rahmen links 1 px line, kein Schatten, kein Radius, von rechts angelegt.
+       Bewegung (4.6): Einblenden 200 ms mit (0,0,0,1) und kurzem Weg von rechts, Schließen 120 ms mit (1,0,1,1); bei Kurzbefehlen ohne Bewegung -->
+  <Style Selector="Border.sidepanel">
+    <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+    <Setter Property="BorderThickness" Value="1,0,0,0" />
+    <Setter Property="CornerRadius" Value="0" />
+    <Setter Property="BoxShadow" Value="none" />
+    <Setter Property="Opacity" Value="0" />
+    <Setter Property="RenderTransform" Value="translateX(20px)" />
+    <Setter Property="Transitions">
+      <Transitions>
+        <DoubleTransition Property="Opacity" Duration="0:0:0.12" Easing="{StaticResource EaseExit}" />
+        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.12" Easing="{StaticResource EaseExit}" />
+      </Transitions>
+    </Setter>
+  </Style>
+  <Style Selector="Border.sidepanel.open">
+    <Setter Property="Opacity" Value="1" />
+    <Setter Property="RenderTransform" Value="none" />
+    <Setter Property="Transitions">
+      <Transitions>
+        <DoubleTransition Property="Opacity" Duration="0:0:0.2" Easing="{StaticResource EaseEnter}" />
+        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.2" Easing="{StaticResource EaseEnter}" />
+      </Transitions>
+    </Setter>
+  </Style>
+  <Style Selector="Border.sidepanel.instant">
+    <Setter Property="Transitions">
+      <Transitions />
+    </Setter>
+  </Style>
+  <Style Selector="c|SidePanelHeader">
+    <Setter Property="MinHeight" Value="40" />
+  </Style>
+
+  <!-- Karte in einer Seitenleiste (Design-Brief 5.12, Punkt 5): surface, Rahmen 1 px line, Radius 12, Innenabstand 12/16, kein Schatten -->
+  <Style Selector="Border.panelcard">
+    <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="12" />
+    <Setter Property="Padding" Value="16,12" />
+  </Style>
+  <!-- Hinweis (Design-Brief 5.9): Radius 8, Rahmen 1 px, Innenabstand 10/12; neutral accent-soft, dazu warn, ok, crit mit ihrer Bedeutungsfarbe -->
+  <Style Selector="Border.hint">
+    <Setter Property="Background" Value="{DynamicResource AccentSoftBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="Padding" Value="12,10" />
+  </Style>
+  <Style Selector="Border.hint.warn">
+    <Setter Property="Background" Value="{DynamicResource WarnSoftBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource WarnBrush}" />
+  </Style>
+  <Style Selector="Border.hint.ok">
+    <Setter Property="Background" Value="{DynamicResource OkSoftBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource OkBrush}" />
+  </Style>
+  <Style Selector="Border.hint.crit">
+    <Setter Property="Background" Value="{DynamicResource CritSoftBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource CritBrush}" />
+  </Style>
+
+  <!-- Zeitbalken im Termin-Panel (Design-Brief 5.12, Punkt 5): Vorbereitung schraffiert, Behandlung in der Statusfarbe der Karte, Einwirken halbtransparent, Puffer warn -->
+  <Style Selector="c|TimeBar TextBlock.tbmin">
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="LineHeight" Value="14" />
+    <Setter Property="FontWeight" Value="Medium" />
+    <Setter Property="Foreground" Value="{DynamicResource Fg2Brush}" />
+  </Style>
+  <Style Selector="c|TimeBar Border.tbseg">
+    <Setter Property="Background" Value="{DynamicResource Surface3Brush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource LineStrongBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+  </Style>
+  <Style Selector="c|TimeBar Border.tbseg.preparation">
+    <Setter Property="Background" Value="{DynamicResource ProcessingHatchBrush}" />
+  </Style>
+  <Style Selector="c|TimeBar Border.tbseg.treatment, c|TimeBar Border.tbseg.handson, c|TimeBar Border.tbseg.processing, c|TimeBar Border.tbseg.finishing">
+    <Setter Property="Background" Value="{DynamicResource StBookedBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource StBookedBrush}" />
+  </Style>
+  <Style Selector="c|TimeBar.checkedin Border.tbseg.treatment, c|TimeBar.checkedin Border.tbseg.handson, c|TimeBar.checkedin Border.tbseg.processing, c|TimeBar.checkedin Border.tbseg.finishing">
+    <Setter Property="Background" Value="{DynamicResource StCheckedInBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource StCheckedInBrush}" />
+  </Style>
+  <Style Selector="c|TimeBar.done Border.tbseg.treatment, c|TimeBar.done Border.tbseg.handson, c|TimeBar.done Border.tbseg.processing, c|TimeBar.done Border.tbseg.finishing">
+    <Setter Property="Background" Value="{DynamicResource StDoneBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource StDoneBrush}" />
+  </Style>
+  <Style Selector="c|TimeBar.noshow Border.tbseg.treatment, c|TimeBar.noshow Border.tbseg.handson, c|TimeBar.noshow Border.tbseg.processing, c|TimeBar.noshow Border.tbseg.finishing">
+    <Setter Property="Background" Value="{DynamicResource CritBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource CritBrush}" />
+  </Style>
+  <Style Selector="c|TimeBar Border.tbseg.processing">
+    <Setter Property="Opacity" Value="0.45" />
+  </Style>
+  <Style Selector="c|TimeBar Border.tbseg.buffer, c|TimeBar Border.tbseg.roomcare.warn">
+    <Setter Property="Background" Value="{DynamicResource WarnSoftBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource WarnBrush}" />
+  </Style>
+  <Style Selector="c|TimeBar Border.tbseg.roomcare.ok">
+    <Setter Property="Background" Value="{DynamicResource OkSoftBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource OkBrush}" />
+  </Style>
+  <Style Selector="c|TimeBar Border.tbseg.editable:pointerover">
+    <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+  </Style>
+
+  <!-- Reiter am unteren Rand der Seitenleiste (Design-Brief 5.12, Punkt 7): Schiene surface-2 mit Rahmen oben, Reiter 28 px hoch, der gewählte surface mit Text accent -->
+  <Style Selector="Border.panelrail">
+    <Setter Property="Background" Value="{DynamicResource Surface2Brush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+    <Setter Property="BorderThickness" Value="0,1,0,0" />
+    <Setter Property="CornerRadius" Value="0" />
+    <Setter Property="Padding" Value="8,4" />
+  </Style>
+  <Style Selector="Button.paneltab">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="MinHeight" Value="28" />
+    <Setter Property="Height" Value="28" />
+    <Setter Property="Padding" Value="8,0" />
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="Foreground" Value="{DynamicResource Fg2Brush}" />
+  </Style>
+  <Style Selector="Button.paneltab:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
+  </Style>
+  <Style Selector="Button.paneltab.on /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+  </Style>
+
+  <!-- Behandlung als anklickbare Karte (Wunsch eintippen); Baustein entfernen als kleines Kreuz im Baustein -->
+  <Style Selector="Button.treatmentcard">
+    <Setter Property="Background" Value="{DynamicResource Surface2Brush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="Padding" Value="12,8" />
+  </Style>
+  <Style Selector="Button.treatmentcard:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource AccentSoftBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+  </Style>
+  <Style Selector="Button.chipx">
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="MinWidth" Value="0" />
+    <Setter Property="MinHeight" Value="0" />
+    <Setter Property="Width" Value="20" />
+    <Setter Property="Height" Value="20" />
+    <Setter Property="CornerRadius" Value="10" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+  </Style>
+
+  <!-- Kontrollkästchen und Optionsfelder (Design-Brief 5.2): Rand 1 px in fg-3 (3:1), Hover fg-2; gewählt bleibt die Akzentfläche des Themes. Die ganze Zeile samt Beschriftung ist klickbar, Höhe 34.
+       Eine Optionsgruppe ist ein Tab-Stopp, Pfeile bewegen und wählen (Controls/RadioGroupBehavior). -->
+  <Style Selector="CheckBox, RadioButton">
+    <Setter Property="MinHeight" Value="34" />
+  </Style>
+  <Style Selector="CheckBox:unchecked /template/ Border#NormalRectangle">
+    <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Fg3Brush}" />
+  </Style>
+  <Style Selector="CheckBox:unchecked:pointerover /template/ Border#NormalRectangle">
+    <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Fg2Brush}" />
+  </Style>
+  <Style Selector="CheckBox:unchecked:pressed /template/ Border#NormalRectangle">
+    <Setter Property="Background" Value="{DynamicResource Surface3Brush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource FgBrush}" />
+  </Style>
+  <Style Selector="RadioButton:unchecked /template/ Ellipse#OuterEllipse">
+    <Setter Property="Fill" Value="{DynamicResource SurfaceBrush}" />
+    <Setter Property="Stroke" Value="{DynamicResource Fg3Brush}" />
+  </Style>
+  <Style Selector="RadioButton:unchecked:pointerover /template/ Ellipse#OuterEllipse">
+    <Setter Property="Fill" Value="{DynamicResource SurfaceBrush}" />
+    <Setter Property="Stroke" Value="{DynamicResource Fg2Brush}" />
+  </Style>
+  <Style Selector="RadioButton:unchecked:pressed /template/ Ellipse#OuterEllipse">
+    <Setter Property="Fill" Value="{DynamicResource Surface3Brush}" />
+    <Setter Property="Stroke" Value="{DynamicResource FgBrush}" />
+  </Style>
+
+  <!-- Schalter (Design-Brief 5.23): Spur 40 × 20, Radius 999, Rand 1 px, Daumen 18, 200 ms mit (0.33,0,0.67,1); nur für sofort wirkende Einstellungen in Masken ohne Speichern-Knopf.
+       Aus: Fläche surface, Rand und Daumen fg-3; an: Fläche und Rand accent, Daumen on-accent; Hover: Rand fg-2 bzw. Fläche accent-hover. Die Beschriftung steht rechts mit 8 px Abstand. -->
+  <Style Selector="ToggleSwitch">
+    <Setter Property="MinHeight" Value="34" />
+    <Setter Property="HorizontalAlignment" Value="Left" />
+    <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Border Background="Transparent" MinHeight="{TemplateBinding MinHeight}">
+          <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+            <Border x:Name="Track" Width="40" Height="20" CornerRadius="999" BorderThickness="1">
+              <Border x:Name="Thumb" Width="18" Height="18" CornerRadius="9" HorizontalAlignment="Left" VerticalAlignment="Center" />
+            </Border>
+            <ContentPresenter x:Name="PART_ContentPresenter" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" VerticalAlignment="Center"
+                              RecognizesAccessKey="True" />
+            <!-- Teile, die ToggleSwitch für das Ziehen des Daumens verlangt; die Vorlage braucht sie nicht, der Schalter schaltet per Klick und Leertaste -->
+            <Canvas x:Name="PART_SwitchKnob" Width="0" Height="0" IsVisible="False">
+              <Grid x:Name="PART_MovingKnobs" />
+            </Canvas>
+          </StackPanel>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+  <Style Selector="ToggleSwitch /template/ Border#Track">
+    <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Fg3Brush}" />
+    <Setter Property="Transitions">
+      <Transitions>
+        <BrushTransition Property="Background" Duration="0:0:0.2" Easing="{StaticResource EaseHover}" />
+        <BrushTransition Property="BorderBrush" Duration="0:0:0.2" Easing="{StaticResource EaseHover}" />
+      </Transitions>
+    </Setter>
+  </Style>
+  <Style Selector="ToggleSwitch /template/ Border#Thumb">
+    <Setter Property="Background" Value="{DynamicResource Fg3Brush}" />
+    <Setter Property="RenderTransform" Value="translateX(0px)" />
+    <Setter Property="Transitions">
+      <Transitions>
+        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.2" Easing="{StaticResource EaseHover}" />
+        <BrushTransition Property="Background" Duration="0:0:0.2" Easing="{StaticResource EaseHover}" />
+      </Transitions>
+    </Setter>
+  </Style>
+  <Style Selector="ToggleSwitch:pointerover /template/ Border#Track">
+    <Setter Property="BorderBrush" Value="{DynamicResource Fg2Brush}" />
+  </Style>
+  <Style Selector="ToggleSwitch:pointerover /template/ Border#Thumb">
+    <Setter Property="Background" Value="{DynamicResource Fg2Brush}" />
+  </Style>
+  <Style Selector="ToggleSwitch:checked /template/ Border#Track">
+    <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+  </Style>
+  <Style Selector="ToggleSwitch:checked /template/ Border#Thumb">
+    <Setter Property="Background" Value="{DynamicResource AccentFgBrush}" />
+    <Setter Property="RenderTransform" Value="translateX(20px)" />
+  </Style>
+  <Style Selector="ToggleSwitch:checked:pointerover /template/ Border#Track">
+    <Setter Property="Background" Value="{DynamicResource AccentHoverBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource AccentHoverBrush}" />
+  </Style>
+  <Style Selector="ToggleSwitch:checked:pointerover /template/ Border#Thumb">
+    <Setter Property="Background" Value="{DynamicResource AccentFgBrush}" />
+  </Style>
+  <Style Selector="ToggleSwitch:disabled">
+    <Setter Property="Opacity" Value="0.5" />
+  </Style>
+
+  <!-- Menü und Kontextmenü (Design-Brief 5.21): Breite 138 bis 300, Fläche surface, Rahmen 1 px line, Radius 8, Innenabstand 4, Schatten; Eintrag 32 hoch, Radius 6, Innenabstand 6/10,
+       Abstand 2, Symbol 16, Text 14; Hover surface-2, gedrückt surface-3; riskante Einträge unten nach einem Trenner in danger. -->
+  <Style Selector="MenuFlyoutPresenter, ContextMenu">
+    <Setter Property="MinWidth" Value="138" />
+    <Setter Property="MaxWidth" Value="300" />
+    <Setter Property="Padding" Value="4" />
+    <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="FontSize" Value="14" />
+    <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
+  </Style>
+  <Style Selector="MenuFlyoutPresenter /template/ Border#LayoutRoot">
+    <Setter Property="BoxShadow" Value="{DynamicResource CardShadow}" />
+  </Style>
+  <Style Selector="MenuItem">
+    <Setter Property="MinHeight" Value="32" />
+    <Setter Property="Padding" Value="10,6" />
+    <Setter Property="Margin" Value="0,1" />
+    <Setter Property="CornerRadius" Value="6" />
+    <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
+  </Style>
+  <Style Selector="MenuItem:pointerover /template/ Border#PART_LayoutRoot, MenuItem:selected /template/ Border#PART_LayoutRoot">
+    <Setter Property="Background" Value="{DynamicResource Surface2Brush}" />
+  </Style>
+  <Style Selector="MenuItem:pressed /template/ Border#PART_LayoutRoot">
+    <Setter Property="Background" Value="{DynamicResource Surface3Brush}" />
+  </Style>
+  <Style Selector="MenuItem /template/ ContentControl#PART_IconPresenter">
+    <Setter Property="Width" Value="16" />
+    <Setter Property="Height" Value="16" />
+    <Setter Property="Margin" Value="0,0,8,0" />
+  </Style>
+  <Style Selector="MenuItem /template/ TextBlock#PART_InputGestureText">
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="Foreground" Value="{DynamicResource Fg2Brush}" />
+    <Setter Property="Margin" Value="24,0,0,0" />
+  </Style>
+  <Style Selector="TextBlock.menugesture">
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="Foreground" Value="{DynamicResource Fg2Brush}" />
+    <Setter Property="Margin" Value="24,0,0,0" />
+  </Style>
+  <Style Selector="MenuItem.danger">
+    <Setter Property="Foreground" Value="{DynamicResource CritBrush}" />
+  </Style>
+  <Style Selector="MenuItem:disabled">
+    <Setter Property="Opacity" Value="0.5" />
+  </Style>
+  <Style Selector="MenuFlyoutPresenter Separator, ContextMenu Separator">
+    <Setter Property="Height" Value="1" />
+    <Setter Property="Margin" Value="4,4" />
+    <Setter Property="Background" Value="{DynamicResource LineBrush}" />
+  </Style>
+
+  <!-- Reiterleisten (Design-Brief 5.4 und 5.12): die Schiene ist ein Tab-Stopp, der gewählte Reiter; ←/→ bewegen den Fokus (Controls/TabStripBehavior). Die Einträge der Klappliste
+       „⋯ n“ (Klasse entry) bleiben normale Tab-Stopps. -->
+  <Style Selector="Border.segmented Button:not(.on)">
+    <Setter Property="IsTabStop" Value="False" />
+  </Style>
+  <Style Selector="Border.panelrail Button:not(.on)">
+    <Setter Property="IsTabStop" Value="False" />
+  </Style>
+  <Style Selector="Button.paneltab.entry">
+    <Setter Property="IsTabStop" Value="True" />
+  </Style>
+
+  <!-- Balken der Verwaltung (Design-Brief 6, Ä293): im Stil der linken Leiste, eine Stufe heller; Fläche rail-hover, Überfahren rail-bar-hover, gewählt rail-selected mit Sandstrich. -->
+  <Style Selector="Border.adminbar">
+    <Setter Property="Background" Value="{DynamicResource RailHoverBrush}" />
+    <Setter Property="Padding" Value="8,6" />
+  </Style>
+  <Style Selector="Border.adminbar Button:not(.on)">
+    <Setter Property="IsTabStop" Value="False" />
+  </Style>
+  <Style Selector="Border.adminbar Button">
+    <Setter Property="FocusAdorner">
+      <FocusAdornerTemplate>
+        <Border BorderBrush="{DynamicResource RailFgBrush}" BorderThickness="2" CornerRadius="12" AdornerLayer.IsClipEnabled="False" />
+      </FocusAdornerTemplate>
+    </Setter>
+  </Style>
+  <Style Selector="Button.adminbaritem TextBlock.navtitle">
+    <Setter Property="FontWeight" Value="Medium" />
+  </Style>
+  <Style Selector="Button.adminbaritem">
+    <Setter Property="MinWidth" Value="72" />
+    <Setter Property="Padding" Value="10,6" />
+    <Setter Property="CornerRadius" Value="12" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{DynamicResource RailFg2Brush}" />
+  </Style>
+  <Style Selector="Button.adminbaritem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource RailBarHoverBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource RailFgBrush}" />
+  </Style>
+  <Style Selector="Button.adminbaritem:pressed /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource RailSelectedBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource RailFgBrush}" />
+  </Style>
+  <Style Selector="Button.adminbaritem.on /template/ ContentPresenter#PART_ContentPresenter, Button.adminbaritem.on:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource RailSelectedBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource RailFgBrush}" />
+  </Style>
+  <Style Selector="Button.adminbaritem.on TextBlock.navtitle">
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+  <Style Selector="Button.adminbaritem Border.barmark">
+    <Setter Property="Background" Value="Transparent" />
+  </Style>
+  <Style Selector="Button.adminbaritem.on Border.barmark">
+    <Setter Property="Background" Value="{DynamicResource RailMarkBrush}" />
+  </Style>
+
+  <!-- Weichzeichner nur hinter Overlays (Abmelde-Warnung, Tastenhilfe), nie auf Arbeitsflächen (Auftraggeber, 29.10.2026): Avalonia kennt keinen Backdrop-Filter,
+       deshalb verschwimmt der Inhalt dahinter selbst (blurhost, solange das Overlay offen ist zusätzlich blurred) und ein Scrim liegt darüber.
+       Ein- und Ausblenden 180 ms; bei „Animationen aus“ nimmt ReducedMotion den Übergang weg. Scrim-Farbe wie beim Rückfragedialog (Brief 5.27, Overlay 0,45). -->
+  <Style Selector=":is(Control).blurhost">
+    <Setter Property="Transitions">
+      <Transitions>
+        <EffectTransition Property="Effect" Duration="0:0:0.18" Easing="{StaticResource EaseHover}" />
+      </Transitions>
+    </Setter>
+  </Style>
+  <Style Selector=":is(Control).blurhost.blurred">
+    <Setter Property="Effect">
+      <BlurEffect Radius="14" />
+    </Setter>
+  </Style>
+  <Style Selector="Border.scrim">
+    <Setter Property="Background" Value="{DynamicResource ScrimBrush}" />
+  </Style>
+</Styles>

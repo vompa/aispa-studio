@@ -1,0 +1,193 @@
+<views:FocusRequestView xmlns="https://github.com/avaloniaui"
+                        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                        xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+                        xmlns:contracts="using:AispaStudio.Contracts"
+                        xmlns:ui="using:AispaStudio.Desktop.Controls"
+                        xmlns:views="using:AispaStudio.Desktop.Views"
+                        x:Class="AispaStudio.Desktop.Views.AccountingView"
+                        x:DataType="vm:AccountingViewModel"
+                        ui:SaveShortcut.IsScope="True">
+  <!--
+    Buchhaltung (R05 Slice 102), native Maske nach web/src/accounting/AccountingPage.tsx: Export für die Steuerberatung, Erlöskonten und Kontenzuordnung untereinander.
+    Die Exportdatei kommt unverändert von der API; „Speichern / Verwerfen“ gilt nur für die Kontenzuordnung (Strg+S).
+  -->
+  <ScrollViewer x:Name="FormScroll" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+    <StackPanel Spacing="24" Margin="0,0,16,16">
+      <ui:InfoBar Severity="Error" Title="Buchhaltung nicht geladen" Message="{Binding LoadError}" IsVisible="{Binding HasLoadError}"
+                  ActionText="Erneut laden" ActionCommand="{Binding LoadCommand}" />
+      <TextBlock Text="Wird geladen …" Classes="muted" IsVisible="{Binding !IsLoaded}" />
+
+      <!-- Export -->
+      <StackPanel Spacing="12" IsVisible="{Binding IsLoaded}">
+        <Grid ColumnDefinitions="*,Auto">
+          <TextBlock Text="Export für die Buchhaltung" Classes="h2" VerticalAlignment="Center" />
+          <ui:HelpButton Grid.Column="1" Topic="buchhaltung" Section="export" />
+        </Grid>
+        <StackPanel Orientation="Horizontal" Spacing="12">
+          <ui:FormField Label="Von" IsRequired="True" Error="{Binding FromError}">
+            <ui:DateField x:Name="AccountingFromField" Value="{Binding From}" />
+          </ui:FormField>
+          <ui:FormField Label="Bis" IsRequired="True" Error="{Binding UntilError}">
+            <ui:DateField x:Name="AccountingUntilField" Value="{Binding Until}" />
+          </ui:FormField>
+        </StackPanel>
+        <WrapPanel ItemSpacing="8" LineSpacing="8">
+          <Button x:Name="ShowPostingsButton" Content="Buchungen anzeigen" Command="{Binding ShowPostingsCommand}" />
+          <Button x:Name="ExportDatevButton" Classes="primary" Content="DATEV-Buchungsstapel" Command="{Binding ExportDatevCommand}" />
+          <Button x:Name="ExportBmdButton" Content="BMD-Import" Command="{Binding ExportBmdCommand}" />
+          <Button x:Name="ExportRzlButton" Content="RZL-Import" Command="{Binding ExportRzlCommand}" />
+          <Button x:Name="ExportSwissButton" Content="Schweiz (Abacus, bexio)" Command="{Binding ExportSwissCommand}" />
+        </WrapPanel>
+        <ui:InfoBar Severity="Error" Title="Kein Export" Message="{Binding ExportError}" IsVisible="{Binding HasExportError}" CloseCommand="{Binding CloseExportErrorCommand}" />
+        <ui:InfoBar Severity="Success" Message="{Binding ExportMessage}" IsVisible="{Binding HasExportMessage}" CloseCommand="{Binding CloseExportMessageCommand}" />
+        <TextBlock Classes="muted" TextWrapping="Wrap"
+                   Text="Je Beleg über das Verrechnungskonto, Stornos als Gegenbuchung. DATEV, BMD und RZL enthalten die Kassen in Euro, der Schweizer Export die Kassen in CHF als CSV, deren Spalten man in Abacus oder bexio beim ersten Import einmal zuordnet." />
+        <TextBlock Classes="muted" Text="Keine Buchungen im Zeitraum." IsVisible="{Binding ShowNoPostings}" />
+        <Border Classes="card" Padding="12" IsVisible="{Binding ShowPostings}">
+          <StackPanel Grid.IsSharedSizeScope="True" Spacing="4">
+            <Grid AutomationProperties.AccessibilityView="Raw" ColumnSpacing="12">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" SharedSizeGroup="Date" />
+                <ColumnDefinition Width="Auto" SharedSizeGroup="Document" />
+                <ColumnDefinition Width="Auto" SharedSizeGroup="Debit" />
+                <ColumnDefinition Width="Auto" SharedSizeGroup="Credit" />
+                <ColumnDefinition Width="Auto" SharedSizeGroup="Amount" />
+                <ColumnDefinition Width="Auto" SharedSizeGroup="Tax" />
+                <ColumnDefinition Width="Auto" SharedSizeGroup="Center" />
+                <ColumnDefinition Width="*" />
+              </Grid.ColumnDefinitions>
+              <TextBlock Text="Datum" Classes="muted small" />
+              <TextBlock Grid.Column="1" Text="Beleg" Classes="muted small" />
+              <TextBlock Grid.Column="2" Text="Soll" Classes="muted small" />
+              <TextBlock Grid.Column="3" Text="Haben" Classes="muted small" />
+              <TextBlock Grid.Column="4" Text="Betrag" Classes="muted small" HorizontalAlignment="Right" />
+              <TextBlock Grid.Column="5" Text="USt" Classes="muted small" HorizontalAlignment="Right" />
+              <TextBlock Grid.Column="6" Text="Kostenstelle" Classes="muted small" />
+              <TextBlock Grid.Column="7" Text="Text" Classes="muted small" />
+            </Grid>
+            <ItemsControl x:Name="PostingList" ItemsSource="{Binding Postings}" AutomationProperties.Name="Buchungen">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:PostingRow">
+                  <Grid Margin="0,4" ColumnSpacing="12" AutomationProperties.Name="{Binding SpokenName}">
+                    <Grid.ColumnDefinitions>
+                      <ColumnDefinition Width="Auto" SharedSizeGroup="Date" />
+                      <ColumnDefinition Width="Auto" SharedSizeGroup="Document" />
+                      <ColumnDefinition Width="Auto" SharedSizeGroup="Debit" />
+                      <ColumnDefinition Width="Auto" SharedSizeGroup="Credit" />
+                      <ColumnDefinition Width="Auto" SharedSizeGroup="Amount" />
+                      <ColumnDefinition Width="Auto" SharedSizeGroup="Tax" />
+                      <ColumnDefinition Width="Auto" SharedSizeGroup="Center" />
+                      <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="{Binding Date}" Classes="num" />
+                    <TextBlock Grid.Column="1" Text="{Binding Document}" />
+                    <TextBlock Grid.Column="2" Text="{Binding DebitAccount}" Classes="num" />
+                    <TextBlock Grid.Column="3" Text="{Binding CreditAccount}" Classes="num" />
+                    <TextBlock Grid.Column="4" Text="{Binding Amount}" Classes="num" HorizontalAlignment="Right" />
+                    <TextBlock Grid.Column="5" Text="{Binding Tax}" Classes="num" HorizontalAlignment="Right" />
+                    <TextBlock Grid.Column="6" Text="{Binding CostCenter}" />
+                    <TextBlock Grid.Column="7" Text="{Binding Text}" TextWrapping="Wrap" />
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </Border>
+        <TextBlock Classes="muted" TextWrapping="Wrap" Text="{Binding DatevHint}" IsVisible="{Binding HasDatevHint}" />
+      </StackPanel>
+
+      <!-- Erlöskonten -->
+      <StackPanel Spacing="12" IsVisible="{Binding IsLoaded}">
+        <Grid ColumnDefinitions="*,Auto">
+          <TextBlock Text="Erlöskonten" Classes="h2" VerticalAlignment="Center" />
+          <ui:HelpButton Grid.Column="1" Topic="buchhaltung" Section="erloeskonten" />
+        </Grid>
+        <TextBlock Classes="muted" TextWrapping="Wrap" Text="Eigene Erlöskonten trennen Geschäftsbereiche, z. B. Shop oder Hotelgäste; jeder Umsatz bleibt voll versteuert." />
+        <ItemsControl x:Name="AccountList" ItemsSource="{Binding Accounts}" AutomationProperties.Name="Erlöskonten">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="contracts:RevenueAccountDto">
+              <Grid Margin="0,4" ColumnDefinitions="96,*,160" ColumnSpacing="12">
+                <TextBlock Text="{Binding Code}" Classes="num" />
+                <TextBlock Grid.Column="1" Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
+                <TextBlock Grid.Column="2" Text="{Binding CostCenter}" />
+              </Grid>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        <StackPanel Spacing="12" IsVisible="{Binding CanAddAccount}">
+          <Grid ColumnDefinitions="*,*,*" ColumnSpacing="12">
+            <ui:FormField Label="Kontonummer" IsRequired="True" Error="{Binding AccountCodeError}">
+              <TextBox x:Name="RevenueAccountCodeField" Text="{Binding AccountCode}" />
+            </ui:FormField>
+            <ui:FormField Grid.Column="1" Label="Bezeichnung" IsRequired="True" Error="{Binding AccountNameError}">
+              <TextBox x:Name="RevenueAccountNameField" Text="{Binding AccountName}" />
+            </ui:FormField>
+            <ui:FormField Grid.Column="2" Label="Kostenstelle">
+              <TextBox x:Name="RevenueAccountCenterField" Text="{Binding AccountCostCenter}" />
+            </ui:FormField>
+          </Grid>
+          <Button x:Name="AddAccountButton" Content="Erlöskonto anlegen" Command="{Binding AddAccountCommand}" HorizontalAlignment="Left" />
+          <ui:InfoBar Severity="Error" Title="Nicht angelegt" Message="{Binding AccountError}" IsVisible="{Binding HasAccountError}" CloseCommand="{Binding CloseAccountErrorCommand}" />
+          <ui:InfoBar Severity="Success" Message="{Binding AccountMessage}" IsVisible="{Binding HasAccountMessage}" CloseCommand="{Binding CloseAccountMessageCommand}" />
+        </StackPanel>
+      </StackPanel>
+
+      <!-- Kontenzuordnung -->
+      <StackPanel Spacing="12" MaxWidth="720" HorizontalAlignment="Left" IsVisible="{Binding IsLoaded}">
+        <Grid ColumnDefinitions="*,Auto">
+          <TextBlock Text="Kontenzuordnung" Classes="h2" VerticalAlignment="Center" />
+          <ui:HelpButton Grid.Column="1" Topic="buchhaltung" Section="kontenzuordnung" />
+        </Grid>
+        <ui:FormField Label="Gilt für" HorizontalAlignment="Left">
+          <ComboBox x:Name="AccountingCountryField" ItemsSource="{Binding Countries}" SelectedItem="{Binding SelectedCountry}" Width="240" />
+        </ui:FormField>
+        <TextBlock Classes="muted" TextWrapping="Wrap" Text="{Binding CountryHint}" />
+        <StackPanel Spacing="12" IsEnabled="{Binding CanEditSettings}">
+          <ItemsControl ItemsSource="{Binding MappingFields}">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <UniformGrid Columns="2" ColumnSpacing="12" RowSpacing="12" />
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:AccountMappingField">
+                <ui:FormField Label="{Binding Label}">
+                  <TextBox Text="{Binding Value}" AutomationProperties.Name="{Binding Label}" />
+                </ui:FormField>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+          <Grid ColumnDefinitions="*,*" ColumnSpacing="12" RowDefinitions="Auto,Auto" RowSpacing="12">
+            <ui:FormField Label="DATEV-Beraternummer">
+              <TextBox x:Name="DatevConsultantField" Text="{Binding ConsultantNumber}" />
+            </ui:FormField>
+            <ui:FormField Grid.Column="1" Label="DATEV-Mandantennummer">
+              <TextBox x:Name="DatevClientField" Text="{Binding ClientNumber}" />
+            </ui:FormField>
+            <ui:FormField Grid.Row="1" Label="Sachkontenlänge" IsRequired="True" Error="{Binding AccountLengthError}">
+              <ui:NumberField x:Name="AccountLengthField" Value="{Binding AccountLength}" Minimum="4" Maximum="8" DecimalPlaces="0" />
+            </ui:FormField>
+            <ui:FormField Grid.Row="1" Grid.Column="1" Label="Beginn Wirtschaftsjahr (Monat)" IsRequired="True" Error="{Binding FiscalYearError}">
+              <ui:NumberField x:Name="FiscalYearStartField" Value="{Binding FiscalYearStart}" Minimum="1" Maximum="12" DecimalPlaces="0" />
+            </ui:FormField>
+          </Grid>
+          <ui:FormField Label="DATEV-BU-Schlüssel je Steuersatz" Help="Zum Beispiel 19=3;7=2.">
+            <TextBox x:Name="DatevTaxKeysField" Text="{Binding TaxKeys}" />
+          </ui:FormField>
+          <ui:FormField Label="MWST-Codes Schweiz je Satz" Help="Zum Beispiel 8.1=UN81.">
+            <TextBox x:Name="SwissTaxCodesField" Text="{Binding SwissCodes}" />
+          </ui:FormField>
+          <ui:FormField Label="Erlöskonten umschlüsseln" Help="Zum Beispiel 4000=3400.">
+            <TextBox x:Name="RevenueCodesField" Text="{Binding RevenueCodes}" />
+          </ui:FormField>
+        </StackPanel>
+        <TextBlock Classes="muted" TextWrapping="Wrap" IsVisible="{Binding ShowReadOnlyHint}" Text="Ändern kann nur der Inhaber, weil die Zuordnung für alle Standorte eines Landes gilt." />
+        <ui:InfoBar Severity="Error" Title="Nicht gespeichert" Message="{Binding Error}" IsVisible="{Binding HasError}"
+                    ActionText="Erneut versuchen" ActionCommand="{Binding SaveCommand}" CloseCommand="{Binding CloseErrorCommand}" />
+        <Button x:Name="ResetCountryButton" Content="Auf Standard zurücksetzen" Command="{Binding ResetCountryCommand}" IsVisible="{Binding CanResetCountry}" HorizontalAlignment="Left" />
+        <ui:SaveBar SaveCommand="{Binding SaveCommand}" DiscardCommand="{Binding DiscardCommand}" CanDiscard="{Binding HasUnsavedChanges}" Status="{Binding StatusText}"
+                    IsVisible="{Binding CanEditSettings}" />
+      </StackPanel>
+    </StackPanel>
+  </ScrollViewer>
+</views:FocusRequestView>

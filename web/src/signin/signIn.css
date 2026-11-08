@@ -1,0 +1,202 @@
+/* Seite „Anmelden“ (Slice 103): eigenes, kleines Stylesheet mit den Farben aus tokens.css wie die Betreiber-Seite; keine
+   Schrift außer der Systemschrift, nichts aus der Team-Oberfläche. Kontraste mindestens 4,5:1 (Text) bzw. 3:1 (Bedienelemente,
+   Fokus) in hellem und dunklem Modus. */
+
+:root {
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  line-height: 1.5;
+  color: var(--fg);
+  background: var(--bg);
+  color-scheme: light dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+}
+
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.bar {
+  padding: 0.5rem 1rem;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.bar h1 {
+  font-size: 1.25rem;
+  margin: 0;
+}
+
+main {
+  max-width: 36rem;
+  margin: 0 auto;
+  padding: 1rem 1rem 2rem;
+}
+
+h2 {
+  font-size: 1.25rem;
+  margin: 0 0 0.5rem;
+}
+
+p {
+  margin: 0 0 0.5rem;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.panel,
+.signin-form,
+.signup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+.panel > *,
+.signin-form > *,
+.signup > * {
+  margin: 0;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.notice {
+  padding: 0.5rem 0.75rem;
+  background: var(--notice);
+  border: 2px solid var(--notice-border);
+  border-radius: 0.5rem;
+}
+
+.notice.error {
+  background: var(--surface);
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.device-code .code {
+  font-size: 1.5rem;
+  letter-spacing: 0.1em;
+  font-variant-numeric: tabular-nums;
+}
+
+.links {
+  display: flex;
+  gap: 1rem;
+}
+
+a {
+  color: var(--accent);
+}
+
+/* Felder des Formularbausteins (components/FormField.tsx); die Werte von stock.css wie in operator.css (Bundle-Budget). */
+.stock-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.stock-label-row label {
+  font-size: 12.5px;
+  line-height: 16px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.stock-hint,
+.stock-error {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 16px;
+  color: var(--muted);
+}
+
+.stock-error {
+  color: var(--danger);
+}
+
+input,
+select {
+  font: inherit;
+  min-height: 44px;
+  padding: 0.5rem 0.75rem;
+  color: var(--fg);
+  background: var(--bg);
+  border: 1px solid var(--border-control);
+  border-radius: 0.5rem;
+}
+
+input[aria-invalid='true'],
+select[aria-invalid='true'] {
+  border-color: var(--danger);
+}
+
+button {
+  font: inherit;
+  min-height: 44px;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--accent);
+  background: var(--surface);
+  color: var(--accent);
+  cursor: pointer;
+}
+
+button.primary {
+  background: var(--accent);
+  color: var(--accent-fg);
+}
+
+button.ghost {
+  background: transparent;
+  border-color: transparent;
+}
+
+@media (hover: hover) {
+  button.ghost:hover {
+    border-color: var(--accent);
+  }
+}
+
+button[aria-disabled='true'],
+button:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+/* Kontrastdesign von Windows: Fehler und gesperrte Knöpfe über Rahmen und Systemfarben. */
+@media (forced-colors: active) {
+  input[aria-invalid='true'],
+  select[aria-invalid='true'] {
+    border: 3px solid Highlight;
+  }
+
+  button.ghost {
+    border-color: ButtonText;
+  }
+
+  button[aria-disabled='true'],
+  button:disabled {
+    opacity: 1;
+    color: GrayText;
+    border-color: GrayText;
+  }
+}

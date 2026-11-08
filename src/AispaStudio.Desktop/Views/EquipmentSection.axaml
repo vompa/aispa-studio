@@ -1,0 +1,37 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             x:Class="AispaStudio.Desktop.Views.EquipmentSection"
+             x:DataType="vm:LocationsViewModel">
+  <!-- Geräte des Standorts (R05 Slice 95), nach EquipmentList in web/src/admin/LocationsTab.tsx: Liste mit „Entfernen“ und eine Zeile zum Hinzufügen -->
+  <StackPanel Spacing="8" AutomationProperties.Name="Geräte">
+    <Grid ColumnDefinitions="*,Auto">
+      <TextBlock Text="Geräte" Classes="h2" VerticalAlignment="Center" />
+      <ui:HelpButton Grid.Column="1" Topic="standorte" Section="geraete" />
+    </Grid>
+    <ItemsControl x:Name="EquipmentList" ItemsSource="{Binding Equipment}">
+      <ItemsControl.ItemsPanel>
+        <ItemsPanelTemplate>
+          <StackPanel Spacing="4" />
+        </ItemsPanelTemplate>
+      </ItemsControl.ItemsPanel>
+      <ItemsControl.ItemTemplate>
+        <DataTemplate x:DataType="vm:EquipmentRowViewModel">
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
+            <Button Grid.Column="1" Classes="ghost icon" Width="28" Height="28" MinHeight="28" Command="{Binding RemoveCommand}" ToolTip.Tip="Entfernen"
+                    AutomationProperties.Name="{Binding RemoveName}">
+              <ui:Icon Data="{x:Static ui:Icons.Trash}" Width="16" Height="16" />
+            </Button>
+          </Grid>
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
+    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+      <TextBox x:Name="NewEquipmentField" Text="{Binding NewEquipmentName}" PlaceholderText="Neues Gerät" AutomationProperties.Name="Neues Gerät" MaxLength="100" />
+      <Button Grid.Column="1" Content="Hinzufügen" Command="{Binding AddEquipmentCommand}" ui:DisabledHint.Text="Verfügbar, sobald ein Name eingetragen ist." />
+    </Grid>
+    <ui:InfoBar Severity="Error" Message="{Binding EquipmentMessage}" IsVisible="{Binding HasEquipmentMessage}" />
+  </StackPanel>
+</UserControl>

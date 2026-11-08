@@ -1,0 +1,185 @@
+<views:FocusRequestView xmlns="https://github.com/avaloniaui"
+                        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                        xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+                        xmlns:contracts="using:AispaStudio.Contracts"
+                        xmlns:ui="using:AispaStudio.Desktop.Controls"
+                        xmlns:views="using:AispaStudio.Desktop.Views"
+                        x:Class="AispaStudio.Desktop.Views.CostsView"
+                        x:DataType="vm:CostsViewModel"
+                        ui:SaveShortcut.IsScope="True">
+  <!--
+    Kosten (R05 Slice 102), native Maske nach web/src/costs/CostsPage.tsx: oben Vollkosten je Behandlung für Standort und Monat (Zeile aufklappen zeigt die Herleitung),
+    darunter Kostensätze, Räume und Stundensätze des Standorts mit einer Leiste „Speichern / Verwerfen“ (Strg+S). Alle Beträge rechnet die API.
+  -->
+  <ScrollViewer x:Name="FormScroll" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+    <StackPanel Spacing="24" Margin="0,0,16,16">
+      <ui:InfoBar Severity="Error" Title="Kosten nicht geladen" Message="{Binding LoadError}" IsVisible="{Binding HasLoadError}"
+                  ActionText="Erneut laden" ActionCommand="{Binding LoadCommand}" />
+      <TextBlock Text="Wird geladen …" Classes="muted" IsVisible="{Binding !IsLoaded}" />
+
+      <StackPanel Spacing="12" IsVisible="{Binding IsLoaded}">
+        <Grid ColumnDefinitions="*,Auto">
+          <TextBlock Text="Vollkosten pro Behandlung" Classes="h2" VerticalAlignment="Center" />
+          <ui:HelpButton Grid.Column="1" Topic="kosten" Section="berechnung" />
+        </Grid>
+        <StackPanel Orientation="Horizontal" Spacing="12">
+          <ui:FormField Label="Standort">
+            <ComboBox x:Name="CostLocationField" ItemsSource="{Binding Locations}" SelectedItem="{Binding SelectedLocation}" DisplayMemberBinding="{Binding Name, x:DataType=contracts:LocationDto}" Width="240" />
+          </ui:FormField>
+          <ui:FormField Label="Monat">
+            <ComboBox x:Name="CostMonthField" ItemsSource="{Binding Months}" SelectedItem="{Binding SelectedMonth}" Width="200" />
+          </ui:FormField>
+        </StackPanel>
+        <TextBlock Classes="muted" TextWrapping="Wrap" Text="{Binding CapacityText}" />
+        <TextBlock Classes="muted" Text="Keine Behandlungen mit Räumen an diesem Standort." IsVisible="{Binding ShowEmpty}" />
+        <Border Classes="card" Padding="12" IsVisible="{Binding ShowTable}">
+          <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+            <StackPanel Grid.IsSharedSizeScope="True" Spacing="4">
+              <Grid AutomationProperties.AccessibilityView="Raw" ColumnSpacing="12">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="Auto" SharedSizeGroup="Name" MinWidth="200" />
+                  <ColumnDefinition Width="Auto" SharedSizeGroup="Net" />
+                  <ColumnDefinition Width="Auto" SharedSizeGroup="Material" />
+                  <ColumnDefinition Width="Auto" SharedSizeGroup="Staff" />
+                  <ColumnDefinition Width="Auto" SharedSizeGroup="Room" />
+                  <ColumnDefinition Width="Auto" SharedSizeGroup="Cleaning" />
+                  <ColumnDefinition Width="Auto" SharedSizeGroup="Overhead" />
+                  <ColumnDefinition Width="Auto" SharedSizeGroup="Total" />
+                  <ColumnDefinition Width="Auto" SharedSizeGroup="Margin" />
+                  <ColumnDefinition Width="Auto" SharedSizeGroup="Count" />
+                  <ColumnDefinition Width="Auto" SharedSizeGroup="Contribution" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="Behandlung" Classes="muted small" />
+                <TextBlock Grid.Column="1" Text="Preis netto" Classes="muted small" HorizontalAlignment="Right" />
+                <TextBlock Grid.Column="2" Text="Material" Classes="muted small" HorizontalAlignment="Right" />
+                <TextBlock Grid.Column="3" Text="Personal" Classes="muted small" HorizontalAlignment="Right" />
+                <TextBlock Grid.Column="4" Text="Raum" Classes="muted small" HorizontalAlignment="Right" />
+                <TextBlock Grid.Column="5" Text="Raumpflege" Classes="muted small" HorizontalAlignment="Right" />
+                <TextBlock Grid.Column="6" Text="Gemeinkosten" Classes="muted small" HorizontalAlignment="Right" />
+                <TextBlock Grid.Column="7" Text="Vollkosten" Classes="muted small" HorizontalAlignment="Right" />
+                <TextBlock Grid.Column="8" Text="Marge" Classes="muted small" HorizontalAlignment="Right" />
+                <TextBlock Grid.Column="9" Text="Termine" Classes="muted small" HorizontalAlignment="Right" />
+                <TextBlock Grid.Column="10" Text="Deckungsbeitrag" Classes="muted small" HorizontalAlignment="Right" />
+              </Grid>
+              <ItemsControl x:Name="CostRows" ItemsSource="{Binding Rows}" AutomationProperties.Name="Vollkosten">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:CostRow">
+                    <StackPanel Spacing="4" Margin="0,4">
+                      <Grid ColumnSpacing="12" AutomationProperties.Name="{Binding SpokenName}">
+                        <Grid.ColumnDefinitions>
+                          <ColumnDefinition Width="Auto" SharedSizeGroup="Name" MinWidth="200" />
+                          <ColumnDefinition Width="Auto" SharedSizeGroup="Net" />
+                          <ColumnDefinition Width="Auto" SharedSizeGroup="Material" />
+                          <ColumnDefinition Width="Auto" SharedSizeGroup="Staff" />
+                          <ColumnDefinition Width="Auto" SharedSizeGroup="Room" />
+                          <ColumnDefinition Width="Auto" SharedSizeGroup="Cleaning" />
+                          <ColumnDefinition Width="Auto" SharedSizeGroup="Overhead" />
+                          <ColumnDefinition Width="Auto" SharedSizeGroup="Total" />
+                          <ColumnDefinition Width="Auto" SharedSizeGroup="Margin" />
+                          <ColumnDefinition Width="Auto" SharedSizeGroup="Count" />
+                          <ColumnDefinition Width="Auto" SharedSizeGroup="Contribution" />
+                        </Grid.ColumnDefinitions>
+                        <ToggleButton IsChecked="{Binding IsOpen}" Content="{Binding Name}" AutomationProperties.Name="{Binding ToggleName}" HorizontalAlignment="Left" />
+                        <TextBlock Grid.Column="1" Text="{Binding NetPrice}" Classes="num" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="2" Text="{Binding Material}" Classes="num" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="3" Text="{Binding Staff}" Classes="num" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="4" Text="{Binding Room}" Classes="num" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="5" Text="{Binding Cleaning}" Classes="num" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="6" Text="{Binding Overhead}" Classes="num" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="7" Text="{Binding Total}" Classes="num" FontWeight="SemiBold" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="8" Text="{Binding Margin}" Classes="num" Classes.error="{Binding IsMarginNegative}" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="9" Text="{Binding Appointments}" Classes="num" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="10" Text="{Binding Contribution}" Classes="num" Classes.error="{Binding IsContributionNegative}" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                      </Grid>
+                      <TextBlock Text="{Binding MissingText}" Classes="small error" TextWrapping="Wrap" MaxWidth="480" HorizontalAlignment="Left" IsVisible="{Binding HasMissing}" />
+                      <StackPanel Spacing="4" Margin="12,4,0,4" IsVisible="{Binding IsOpen}">
+                        <ItemsControl ItemsSource="{Binding Parts}" />
+                        <Button Content="Material pflegen" Command="{Binding OpenTreatmentCommand}" IsVisible="{Binding CanOpenTreatment}" HorizontalAlignment="Left" />
+                      </StackPanel>
+                    </StackPanel>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </ScrollViewer>
+        </Border>
+      </StackPanel>
+
+      <StackPanel Spacing="12" MaxWidth="720" HorizontalAlignment="Left" IsVisible="{Binding IsLoaded}">
+        <Grid ColumnDefinitions="*,Auto">
+          <TextBlock Text="Kostensätze des Standorts" Classes="h2" VerticalAlignment="Center" />
+          <ui:HelpButton Grid.Column="1" Topic="kosten" Section="kostensaetze" />
+        </Grid>
+        <StackPanel Spacing="24" IsEnabled="{Binding CanEdit}">
+          <StackPanel Spacing="12">
+            <Grid ColumnDefinitions="*,*,*" ColumnSpacing="12" RowDefinitions="Auto,Auto" RowSpacing="12">
+              <ui:FormField Label="Raumpflege pro Stunde">
+                <ui:MoneyField x:Name="CleaningHourlyField" Value="{Binding CleaningHourly}" />
+              </ui:FormField>
+              <ui:FormField Grid.Column="1" Label="Standard-Stundensatz Personal">
+                <ui:MoneyField x:Name="DefaultStaffHourlyField" Value="{Binding DefaultStaffHourly}" />
+              </ui:FormField>
+              <ui:FormField Grid.Column="2" Label="Gemeinkosten pro Monat">
+                <ui:MoneyField x:Name="OtherMonthlyField" Value="{Binding OtherMonthly}" />
+              </ui:FormField>
+              <ui:FormField Grid.Row="1" Label="Geplante Raumauslastung (%)" IsRequired="True" Error="{Binding UtilizationError}">
+                <ui:NumberField x:Name="PlannedUtilizationField" Value="{Binding PlannedUtilization}" Minimum="1" Maximum="100" DecimalPlaces="0" />
+              </ui:FormField>
+              <ui:FormField Grid.Row="1" Grid.Column="1" Label="Produktive Arbeitszeit (%)" IsRequired="True" Error="{Binding ProductivityError}">
+                <ui:NumberField x:Name="StaffProductivityField" Value="{Binding StaffProductivity}" Minimum="1" Maximum="100" DecimalPlaces="0" />
+              </ui:FormField>
+            </Grid>
+            <TextBlock Classes="muted" TextWrapping="Wrap" Text="Gemeinkosten: Rezeption, Energie, Versicherung, Software und Ähnliches; sie werden wie die Miete auf die Raumminuten verteilt." />
+          </StackPanel>
+
+          <StackPanel Spacing="12">
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Text="Räume" Classes="h2" VerticalAlignment="Center" />
+              <ui:HelpButton Grid.Column="1" Topic="kosten" Section="raeume" />
+            </Grid>
+            <Grid ColumnDefinitions="*,200,200" ColumnSpacing="12" AutomationProperties.AccessibilityView="Raw">
+              <TextBlock Text="Raum" Classes="muted small" />
+              <TextBlock Grid.Column="1" Text="Miete und Nebenkosten pro Monat" Classes="muted small" TextWrapping="Wrap" />
+              <TextBlock Grid.Column="2" Text="Pflegematerial je Reinigung" Classes="muted small" TextWrapping="Wrap" />
+            </Grid>
+            <ItemsControl x:Name="RoomCostList" ItemsSource="{Binding Rooms}" AutomationProperties.Name="Raumkosten">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:RoomCostRow">
+                  <Grid ColumnDefinitions="*,200,200" ColumnSpacing="12" Margin="0,4">
+                    <TextBlock Text="{Binding Name}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                    <ui:MoneyField Grid.Column="1" Value="{Binding MonthlyCost}" AutomationProperties.Name="{Binding MonthlyName}" />
+                    <ui:MoneyField Grid.Column="2" Value="{Binding MaterialCost}" AutomationProperties.Name="{Binding MaterialName}" />
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+
+          <StackPanel Spacing="12">
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Text="Personal" Classes="h2" VerticalAlignment="Center" />
+              <ui:HelpButton Grid.Column="1" Topic="kosten" Section="personal" />
+            </Grid>
+            <TextBlock Classes="muted" TextWrapping="Wrap" Text="Arbeitgeberkosten pro bezahlter Stunde. Leer: Standard-Stundensatz." />
+            <ItemsControl x:Name="EmployeeCostList" ItemsSource="{Binding Employees}" AutomationProperties.Name="Personalkosten">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:EmployeeCostRow">
+                  <Grid ColumnDefinitions="*,200" ColumnSpacing="12" Margin="0,4">
+                    <TextBlock Text="{Binding Name}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                    <ui:MoneyField Grid.Column="1" Value="{Binding HourlyCost}" AutomationProperties.Name="{Binding HourlyName}" />
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </StackPanel>
+
+        <TextBlock Classes="muted" TextWrapping="Wrap" IsVisible="{Binding ShowReadOnlyHint}" Text="Nur lesen: Kostensätze ändern Inhaber, Manager und Standortleitung." />
+        <ui:InfoBar Severity="Error" Title="Nicht gespeichert" Message="{Binding Error}" IsVisible="{Binding HasError}"
+                    ActionText="Erneut versuchen" ActionCommand="{Binding SaveCommand}" CloseCommand="{Binding CloseErrorCommand}" />
+        <ui:SaveBar SaveCommand="{Binding SaveCommand}" DiscardCommand="{Binding DiscardCommand}" CanDiscard="{Binding HasUnsavedChanges}" Status="{Binding StatusText}"
+                    IsVisible="{Binding CanEdit}" />
+      </StackPanel>
+    </StackPanel>
+  </ScrollViewer>
+</views:FocusRequestView>

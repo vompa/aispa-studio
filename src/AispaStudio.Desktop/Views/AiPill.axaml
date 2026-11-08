@@ -1,0 +1,13 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:svc="using:AispaStudio.Desktop.Services"
+             x:Class="AispaStudio.Desktop.Views.AiPill"
+             HorizontalAlignment="Left" VerticalAlignment="Center">
+  <!--
+    Pille „KI“ (Design-Brief 5.28): an jeder Stelle, an der eine KI etwas ausgibt, Mini 12/500, accent-soft mit Text accent, Kapsel.
+    Der Text steht zentral in AiLabels; der Screenreader nennt „Von der KI erstellt“.
+  -->
+  <Border Classes="pill accent" ToolTip.Tip="{x:Static svc:AiLabels.PillName}" AutomationProperties.Name="{x:Static svc:AiLabels.PillName}">
+    <TextBlock Text="{x:Static svc:AiLabels.Pill}" />
+  </Border>
+</UserControl>

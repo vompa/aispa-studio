@@ -1,0 +1,74 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             x:Class="AispaStudio.Desktop.Views.SenderRulesSection"
+             x:DataType="vm:SenderRulesViewModel">
+  <!--
+    Absenderregeln (R05 Slice 97, ADR 0062), nach web/src/admin/SenderRulesSection.tsx: eigene Speicherebene. Plattform, Verarbeitung, Aktiv und Notiz speichern je Zeile sofort
+    (die Notiz beim Verlassen des Feldes), „Löschen“ fragt nach, „Regel hinzufügen“ legt eine neue an.
+  -->
+  <StackPanel Spacing="8" AutomationProperties.Name="Absenderregeln">
+    <Grid ColumnDefinitions="*,Auto">
+      <TextBlock Text="Absender-Regeln" Classes="h2" VerticalAlignment="Center" />
+      <ui:HelpButton Grid.Column="1" Topic="postfach" Section="absender-regeln" />
+    </Grid>
+    <TextBlock Classes="muted" TextWrapping="Wrap"
+               Text="Hier steht, welche Absender Buchungsplattformen sind und was mit ihren Mails geschieht. Eine Mailadresse gilt genau, eine Domain auch für ihre Unterdomains. Treatwell ist vorbelegt. „Automatisch übernehmen“ gilt nur, wenn das Postfach den Absender bestätigt hat (SPF/DKIM); sonst bleibt die Buchung als Vorschlag im Posteingang." />
+
+    <ui:InfoBar Severity="Error" Title="Regeln nicht geladen" Message="{Binding LoadError}" IsVisible="{Binding HasLoadError}"
+                ActionText="Erneut laden" ActionCommand="{Binding LoadCommand}" />
+    <ui:InfoBar Severity="{Binding MessageSeverity}" Message="{Binding Message}" IsVisible="{Binding HasMessage}" CloseCommand="{Binding CloseMessageCommand}" />
+    <TextBlock Text="Lade Regeln …" Classes="muted" IsVisible="{Binding !IsLoaded}" />
+    <TextBlock Classes="muted" TextWrapping="Wrap" IsVisible="{Binding ShowEmpty}"
+               Text="Keine Regel. Mails aller Absender bearbeitet die Terminannahme wie normale Anfragen." />
+
+    <ItemsControl x:Name="RuleList" ItemsSource="{Binding Rules}" IsVisible="{Binding HasRules}" AutomationProperties.Name="Absenderregeln">
+      <ItemsControl.ItemTemplate>
+        <DataTemplate x:DataType="vm:SenderRuleRow">
+          <Border Classes="card" Padding="12" Margin="0,0,0,8">
+            <StackPanel Spacing="8">
+              <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="12">
+                <TextBlock Text="{Binding Pattern}" FontWeight="SemiBold" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                <CheckBox Grid.Column="1" IsChecked="{Binding Active}" Content="Aktiv" AutomationProperties.Name="{Binding ActiveName}" />
+                <Button Grid.Column="2" x:Name="DeleteRuleButton" Classes="danger" Content="Löschen" Command="{Binding DeleteCommand}"
+                        AutomationProperties.Name="{Binding DeleteName}" />
+              </Grid>
+              <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                <ui:FormField Label="Plattform">
+                  <ComboBox ItemsSource="{x:Static vm:SenderRulesViewModel.Platforms}" SelectedItem="{Binding Platform}" HorizontalAlignment="Stretch"
+                            AutomationProperties.Name="{Binding PlatformName}" />
+                </ui:FormField>
+                <ui:FormField Grid.Column="1" Label="Verarbeitung">
+                  <ComboBox ItemsSource="{x:Static vm:SenderRulesViewModel.Handlings}" SelectedItem="{Binding Handling}" HorizontalAlignment="Stretch"
+                            AutomationProperties.Name="{Binding HandlingName}" />
+                </ui:FormField>
+              </Grid>
+              <ui:FormField Label="Notiz">
+                <TextBox Text="{Binding Note}" MaxLength="200" AutomationProperties.Name="{Binding NoteName}" LostFocus="OnNoteLostFocus" />
+              </ui:FormField>
+            </StackPanel>
+          </Border>
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
+
+    <TextBlock Text="Regel hinzufügen" Classes="h2" Margin="0,8,0,0" />
+    <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="12">
+      <ui:FormField Grid.ColumnSpan="2" Label="Adresse oder Domain">
+        <TextBox x:Name="RulePatternField" Text="{Binding NewPattern}" PlaceholderText="buchungen@plattform.example oder plattform.example" />
+      </ui:FormField>
+      <ui:FormField Grid.Row="1" Label="Plattform">
+        <ComboBox x:Name="RulePlatformField" ItemsSource="{x:Static vm:SenderRulesViewModel.Platforms}" SelectedItem="{Binding NewPlatform}" HorizontalAlignment="Stretch" />
+      </ui:FormField>
+      <ui:FormField Grid.Row="1" Grid.Column="1" Label="Verarbeitung">
+        <ComboBox x:Name="RuleHandlingField" ItemsSource="{x:Static vm:SenderRulesViewModel.Handlings}" SelectedItem="{Binding NewHandling}" HorizontalAlignment="Stretch" />
+      </ui:FormField>
+    </Grid>
+    <ui:FormField Label="Notiz">
+      <TextBox x:Name="RuleNoteField" Text="{Binding NewNote}" MaxLength="200" />
+    </ui:FormField>
+    <Button x:Name="AddRuleButton" Content="Regel hinzufügen" Command="{Binding AddCommand}" HorizontalAlignment="Left"
+            ui:DisabledHint.Text="Verfügbar, sobald eine Adresse oder Domain eingetragen ist." />
+  </StackPanel>
+</UserControl>

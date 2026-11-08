@@ -1,0 +1,165 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             xmlns:local="using:AispaStudio.Desktop.Views"
+             x:Class="AispaStudio.Desktop.Views.CompanyView"
+             x:DataType="vm:CompanyViewModel"
+             ui:SaveShortcut.IsScope="True">
+  <!--
+    Firmendaten (ADR 0052), erste native Maske der Verwaltung (R05 Slice 93): dieselben Felder, Platzhalter, Hinweise und Hilfe wie web/src/admin/CompanyTab.tsx.
+    Aufbau nach docs/gestaltung/masken.md: Gruppen mit Überschrift und Fragezeichen am Titel (Brief 5.11), Feld zu Feld 12, Gruppe zu Gruppe 20,
+    Überschrift zu erstem Feld 8; Leiste „Speichern / Verwerfen“ fest im Fuß, Strg+S speichert (SaveShortcut).
+  -->
+  <Grid RowDefinitions="*,Auto">
+    <ScrollViewer x:Name="FieldsScroll" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+      <StackPanel Spacing="20" MaxWidth="720" HorizontalAlignment="Left" Margin="0,0,16,16">
+
+        <StackPanel Spacing="8">
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Text="Firmendaten" Classes="h2" VerticalAlignment="Center" />
+            <ui:HelpButton Grid.Column="1" Topic="firmendaten" Section="firmendaten" />
+          </Grid>
+          <TextBlock Classes="muted" TextWrapping="Wrap"
+                     Text="Gelten für alle Standorte, die keine eigene Gesellschaft eingetragen haben: auf Rechnungen, für die Sofortüberweisung und im Impressum der Online-Buchung." />
+        </StackPanel>
+
+        <ui:InfoBar Severity="Error" Title="Firmendaten nicht geladen" Message="{Binding LoadError}" IsVisible="{Binding HasLoadError}"
+                    ActionText="Erneut laden" ActionCommand="{Binding LoadCommand}" />
+        <TextBlock Text="Lade Firmendaten …" Classes="muted" IsVisible="{Binding !IsLoaded}" />
+
+        <StackPanel Spacing="20" IsVisible="{Binding IsLoaded}">
+          <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+            <ui:FormField Label="Name des Spas, wie Gäste und Team ihn sehen" IsRequired="True" Error="{Binding NameError}">
+              <TextBox x:Name="NameField" Text="{Binding Name}" />
+            </ui:FormField>
+            <ui:FormField Grid.Column="1" Label="Land des Unternehmenssitzes">
+              <ComboBox x:Name="CountryField" ItemsSource="{x:Static vm:CompanyViewModel.Countries}" SelectedItem="{Binding Country}" HorizontalAlignment="Stretch" />
+            </ui:FormField>
+          </Grid>
+
+          <!-- Unternehmen -->
+          <StackPanel Spacing="8">
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Text="Unternehmen" Classes="h2" VerticalAlignment="Center" />
+              <ui:HelpButton Grid.Column="1" Topic="firmendaten" Section="unternehmen" />
+            </Grid>
+            <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="12">
+              <ui:FormField Label="Firmenwortlaut mit Rechtsform">
+                <TextBox x:Name="LegalNameField" Text="{Binding LegalName}" PlaceholderText="z. B. Day Spa Huber GmbH" />
+              </ui:FormField>
+              <ui:FormField Grid.Column="1" Label="UID-Nummer">
+                <TextBox Text="{Binding VatId}" PlaceholderText="z. B. ATU12345678" />
+              </ui:FormField>
+              <ui:FormField Grid.Row="1" Label="Firmenbuch- bzw. Handelsregisternummer">
+                <TextBox Text="{Binding CompanyRegisterNumber}" PlaceholderText="FN 123456a" />
+              </ui:FormField>
+              <ui:FormField Grid.Row="1" Grid.Column="1" Label="Firmenbuchgericht">
+                <TextBox Text="{Binding CompanyRegisterCourt}" PlaceholderText="Handelsgericht Wien" />
+              </ui:FormField>
+            </Grid>
+          </StackPanel>
+
+          <!-- Sitz und Kontakt -->
+          <StackPanel Spacing="8">
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Text="Sitz und Kontakt" Classes="h2" VerticalAlignment="Center" />
+              <ui:HelpButton Grid.Column="1" Topic="firmendaten" Section="sitz-und-kontakt" />
+            </Grid>
+            <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="12" RowSpacing="12">
+              <ui:FormField Label="Straße und Nummer">
+                <TextBox Text="{Binding Street}" />
+              </ui:FormField>
+              <Grid Grid.Column="1" ColumnDefinitions="100,*" ColumnSpacing="12">
+                <ui:FormField Label="PLZ">
+                  <TextBox Text="{Binding PostalCode}" />
+                </ui:FormField>
+                <ui:FormField Grid.Column="1" Label="Ort">
+                  <TextBox x:Name="CityField" Text="{Binding City}" />
+                </ui:FormField>
+              </Grid>
+              <ui:FormField Grid.Row="1" Label="Telefon">
+                <TextBox Text="{Binding Phone}" />
+              </ui:FormField>
+              <ui:FormField Grid.Row="1" Grid.Column="1" Label="E-Mail">
+                <TextBox Text="{Binding Email}" />
+              </ui:FormField>
+              <ui:FormField Grid.Row="2" Label="Website">
+                <TextBox x:Name="WebsiteField" Text="{Binding Website}" PlaceholderText="https://" />
+              </ui:FormField>
+            </Grid>
+          </StackPanel>
+
+          <!-- Bankverbindung -->
+          <StackPanel Spacing="8">
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Text="Bankverbindung" Classes="h2" VerticalAlignment="Center" />
+              <ui:HelpButton Grid.Column="1" Topic="firmendaten" Section="bankverbindung" />
+            </Grid>
+            <TextBlock Classes="muted" TextWrapping="Wrap"
+                       Text="Für die Sofortüberweisung an der Kassa (QR-Code) und später für Zahlungsanbieter. Eine Kasse mit eigenem Konto verwendet ihres." />
+            <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="12">
+              <ui:FormField Label="Kontoinhaber">
+                <TextBox Text="{Binding AccountHolder}" />
+              </ui:FormField>
+              <ui:FormField Grid.Row="1" Label="IBAN">
+                <TextBox Text="{Binding Iban}" />
+              </ui:FormField>
+              <ui:FormField Grid.Row="1" Grid.Column="1" Label="BIC">
+                <TextBox Text="{Binding Bic}" />
+              </ui:FormField>
+            </Grid>
+          </StackPanel>
+
+          <!-- Impressum -->
+          <StackPanel Spacing="8">
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Text="Impressum" Classes="h2" VerticalAlignment="Center" />
+              <ui:HelpButton Grid.Column="1" Topic="firmendaten" Section="impressum" />
+            </Grid>
+            <TextBlock Classes="muted" TextWrapping="Wrap"
+                       Text="Ergänzt das Impressum der Online-Buchung. Firmenwortlaut, Sitz und E-Mail stehen dort ohnehin." />
+            <StackPanel Spacing="12">
+              <ui:FormField Label="Unternehmensgegenstand">
+                <TextBox Text="{Binding BusinessPurpose}" PlaceholderText="Betrieb eines Day-Spas" />
+              </ui:FormField>
+              <ui:FormField Label="Gewerbe- bzw. Aufsichtsbehörde">
+                <TextBox Text="{Binding SupervisoryAuthority}" PlaceholderText="Magistratisches Bezirksamt …" />
+              </ui:FormField>
+              <ui:FormField Label="Kammer und berufsrechtliche Vorschriften">
+                <TextBox Text="{Binding ChamberAndRules}" PlaceholderText="Mitglied der WKO; Gewerbeordnung, www.ris.bka.gv.at" />
+              </ui:FormField>
+            </StackPanel>
+          </StackPanel>
+
+          <!-- Kundenbereich einbetten (ADR 0080, Nachtrag): im Web ein eigener Abschnitt unter den Firmendaten, hier mit demselben Speichern -->
+          <StackPanel Spacing="8">
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Text="Kundenbereich einbetten" Classes="h2" VerticalAlignment="Center" />
+              <ui:HelpButton Grid.Column="1" Topic="firmendaten" Section="einbetten" />
+            </Grid>
+            <ui:FormField Label="Einbetten erlaubt auf: Websites, eine Adresse je Zeile" Error="{Binding EmbedError}"
+                          Help="Nur mit https:// und ohne Pfad, z. B. https://www.beispiel-spa.at. Leer: Die Online-Buchung lässt sich nur auf ihrer eigenen Adresse zeigen.">
+              <TextBox x:Name="EmbedField" Text="{Binding EmbedOrigins}" AcceptsReturn="True" TextWrapping="NoWrap" MinHeight="96"
+                       PlaceholderText="https://www.beispiel-spa.at" />
+            </ui:FormField>
+            <StackPanel Orientation="Horizontal" Spacing="12" IsVisible="{Binding HasEmbedCode}">
+              <Button x:Name="CopyEmbedButton" Content="Code kopieren" Click="OnCopyEmbedClick" />
+              <TextBlock Text="{Binding EmbedStatus}" Classes="muted" VerticalAlignment="Center" AutomationProperties.LiveSetting="Polite" />
+            </StackPanel>
+            <TextBlock Classes="muted" TextWrapping="Wrap" IsVisible="{Binding HasEmbedCode}"
+                       Text="Der Code zeigt die Online-Buchung dieses Spas. Den Code in die Seite der Website einfügen; die Website muss oben eingetragen sein." />
+          </StackPanel>
+
+          <local:HistorySectionView DataContext="{Binding History}" />
+        </StackPanel>
+      </StackPanel>
+    </ScrollViewer>
+
+    <StackPanel x:Name="Footer" Grid.Row="1" Spacing="12" MaxWidth="720" HorizontalAlignment="Left" Margin="0,12,16,0" IsVisible="{Binding IsLoaded}">
+      <ui:InfoBar Severity="Error" Title="Nicht gespeichert" Message="{Binding Error}" IsVisible="{Binding HasError}"
+                  ActionText="Erneut versuchen" ActionCommand="{Binding SaveCommand}" CloseCommand="{Binding CloseErrorCommand}" />
+      <ui:SaveBar SaveCommand="{Binding SaveCommand}" DiscardCommand="{Binding DiscardCommand}" CanDiscard="{Binding HasUnsavedChanges}" Status="{Binding StatusText}" />
+    </StackPanel>
+  </Grid>
+</UserControl>

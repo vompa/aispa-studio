@@ -1,0 +1,397 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             xmlns:contracts="using:AispaStudio.Contracts"
+             xmlns:local="using:AispaStudio.Desktop.Views"
+             x:Class="AispaStudio.Desktop.Views.TreatmentEditorView"
+             x:DataType="vm:TreatmentEditorViewModel">
+  <!--
+    Eine Behandlung (R05 Slice 94): dieselben Felder, Grenzen, Platzhalter und Hilfen wie web/src/admin/TreatmentsTab.tsx und seine Abschnitte
+    (PriceRules, PreparationSection, MaterialSection, ExtrasSection). Abschnitte als segmentierte Reiterleiste (Brief 5.12), Fragezeichen am Gruppentitel
+    (Brief 5.11), Feld zu Feld 12, Gruppe zu Gruppe 20 (masken.md). Gespeichert wird alles mit der Leiste im Fuß der Seite.
+  -->
+  <ScrollViewer x:Name="FieldsScroll" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+    <StackPanel Spacing="20" MaxWidth="760" HorizontalAlignment="Left" Margin="0,0,16,16">
+
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Text="{Binding Title}" Classes="h2" VerticalAlignment="Center" TextWrapping="Wrap" />
+        <ui:HelpButton Grid.Column="1" Topic="behandlungen" Section="behandlung" />
+      </Grid>
+
+      <Border Classes="segmented" x:Name="SectionTabs" HorizontalAlignment="Left" AutomationProperties.Name="Bereiche der Behandlung">
+        <ItemsControl ItemsSource="{Binding Sections}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <StackPanel Orientation="Horizontal" />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:TreatmentSection">
+              <ui:TabButton Content="{Binding Label}" IsSelected="{Binding IsOn}" Command="{Binding SelectCommand}" Padding="10,3"
+                            AutomationProperties.Name="{Binding Label}" />
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </Border>
+
+      <ui:InfoBar Severity="Error" Title="Behandlung nicht vollständig geladen" Message="{Binding LoadError}" IsVisible="{Binding HasLoadError}"
+                  ActionText="Erneut laden" ActionCommand="{Binding LoadCommand}" />
+
+      <!-- Grunddaten -->
+      <StackPanel x:Name="BasicsSection" Spacing="12" IsVisible="{Binding ShowsBasics}">
+        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="12" RowSpacing="12">
+          <ui:FormField Label="Name" IsRequired="True" Error="{Binding NameError}">
+            <TextBox x:Name="NameField" Text="{Binding Name}" />
+          </ui:FormField>
+          <ui:FormField Grid.Column="1" Label="Dauer (min)">
+            <ui:NumberField x:Name="DurationField" Value="{Binding Duration}" Minimum="1" Maximum="600" Increment="5" LargeIncrement="30" />
+          </ui:FormField>
+          <ui:FormField Grid.Row="1" Label="Preis (€)" IsRequired="True" Error="{Binding PriceError}">
+            <ui:MoneyField x:Name="PriceField" Value="{Binding Price}" Minimum="0" />
+          </ui:FormField>
+          <ui:FormField Grid.Row="1" Grid.Column="1" Label="Kategorie">
+            <TextBox x:Name="CategoryField" Text="{Binding Category}" PlaceholderText="z. B. Massagen" MaxLength="60" />
+          </ui:FormField>
+          <ui:FormField Grid.Row="2" Label="Ausfallgebühr (% des Preises)">
+            <ui:NumberField Value="{Binding NoShowFeePercent}" Minimum="0" Maximum="100" PlaceholderText="Regel des Standorts" Width="200" />
+          </ui:FormField>
+          <ui:FormField Grid.Row="2" Grid.Column="1" Label="Anzahlung (% des Preises)">
+            <ui:NumberField Value="{Binding DepositPercent}" Minimum="0" Maximum="100" PlaceholderText="Regel des Standorts" Width="200" />
+          </ui:FormField>
+        </Grid>
+        <StackPanel Spacing="8">
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Text="Hinweis für Gäste" Classes="h3" VerticalAlignment="Center" />
+            <ui:HelpButton Grid.Column="1" Topic="behandlungen" Section="hinweis-fuer-gaeste" />
+          </Grid>
+          <TextBox Text="{Binding GuestHint}" AcceptsReturn="True" TextWrapping="Wrap" MaxLength="300" MinHeight="56"
+                   PlaceholderText="z. B. Bitte 15 Minuten früher kommen, Badekleidung mitbringen" AutomationProperties.Name="Hinweis für Gäste" />
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" Spacing="4">
+          <CheckBox Content="Anamnese prüfen" IsChecked="{Binding CheckAnamnesis}" />
+          <ui:HelpButton Topic="behandlungen" Section="anamnese-pruefen" />
+        </StackPanel>
+      </StackPanel>
+
+      <!-- Ablauf -->
+      <StackPanel x:Name="ProcessSection" Spacing="20" IsVisible="{Binding ShowsProcess}">
+        <StackPanel Spacing="8">
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Text="Vor- und Nachbereitung" Classes="h3" VerticalAlignment="Center" />
+            <ui:HelpButton Grid.Column="1" Topic="behandlungen" Section="ablauf" />
+          </Grid>
+          <TextBlock Classes="muted" TextWrapping="Wrap" Text="Person und Raum sind in dieser Zeit schon bzw. noch gebunden." />
+          <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="12">
+            <ui:FormField Label="Vorbereitung (min)">
+              <ui:NumberField x:Name="PreparationField" Value="{Binding PreparationMinutes}" Minimum="0" Maximum="120" Increment="5" />
+            </ui:FormField>
+            <ui:FormField Grid.Column="1" Label="Nachbereitung (min)">
+              <ui:NumberField x:Name="FollowUpField" Value="{Binding FollowUpMinutes}" Minimum="0" Maximum="120" Increment="5" />
+            </ui:FormField>
+            <ui:FormField Grid.Row="1" Label="Am Gast bis Einwirkzeit (min)">
+              <ui:NumberField Value="{Binding HandsOnMinutes}" Minimum="0" Maximum="120" Increment="5" />
+            </ui:FormField>
+            <ui:FormField Grid.Row="1" Grid.Column="1" Label="Einwirkzeit (min)">
+              <ui:NumberField Value="{Binding ProcessingMinutes}" Minimum="0" Maximum="120" Increment="5" />
+            </ui:FormField>
+          </Grid>
+        </StackPanel>
+
+        <StackPanel Spacing="8" IsVisible="{Binding !IsNew}">
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Text="Vorbereitungsschritte" Classes="h3" VerticalAlignment="Center" />
+            <ui:HelpButton Grid.Column="1" Topic="behandlungen" Section="vorbereitungsschritte" />
+          </Grid>
+          <ItemsControl ItemsSource="{Binding PreparationSteps}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:PreparationStepRow">
+                <Grid ColumnDefinitions="*,100,200,Auto" ColumnSpacing="8" Margin="0,0,0,8">
+                  <TextBox Text="{Binding Text}" PlaceholderText="z. B. Steine auf 55 °C aufheizen" AutomationProperties.Name="Schritt" />
+                  <ui:NumberField Grid.Column="1" Value="{Binding MinutesBefore}" Minimum="0" Maximum="240" PlaceholderText="Min. vorher" Width="NaN"
+                                  AutomationProperties.Name="Minuten vorher" />
+                  <StackPanel Grid.Column="2" Spacing="4">
+                    <ComboBox ItemsSource="{Binding Stock}" SelectedItem="{Binding StockItem}" HorizontalAlignment="Stretch"
+                              AutomationProperties.Name="Material aus dem Lager" />
+                    <TextBlock Text="{Binding QuantityText}" IsVisible="{Binding HasQuantity}" Classes="muted small" TextWrapping="Wrap" />
+                  </StackPanel>
+                  <Button Grid.Column="3" Classes="ghost icon" Width="32" Height="32" Command="{Binding RemoveCommand}" ToolTip.Tip="Schritt entfernen"
+                          AutomationProperties.Name="Schritt entfernen" VerticalAlignment="Top">
+                    <ui:Icon Data="{x:Static ui:Icons.Trash}" Width="16" Height="16" />
+                  </Button>
+                </Grid>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+          <Button x:Name="AddStepButton" Content="Schritt hinzufügen" Command="{Binding AddStepCommand}" HorizontalAlignment="Left" />
+        </StackPanel>
+      </StackPanel>
+
+      <!-- Material -->
+      <StackPanel x:Name="MaterialSection" Spacing="8" IsVisible="{Binding ShowsMaterial}">
+        <Grid ColumnDefinitions="*,Auto">
+          <TextBlock Text="Material je Termin" Classes="h3" VerticalAlignment="Center" />
+          <ui:HelpButton Grid.Column="1" Topic="behandlungen" Section="material" />
+        </Grid>
+        <ItemsControl ItemsSource="{Binding Materials}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:MaterialRow">
+              <Grid ColumnDefinitions="180,*,80,110,90,Auto" ColumnSpacing="8" Margin="0,0,0,8">
+                <ComboBox ItemsSource="{Binding Stock}" SelectedItem="{Binding StockItem}" HorizontalAlignment="Stretch" IsVisible="{Binding HasStockChoice}"
+                          AutomationProperties.Name="Aus dem Lager" />
+                <TextBox Grid.Column="1" Text="{Binding Name}" PlaceholderText="z. B. Massageöl" IsReadOnly="{Binding IsFromStock}"
+                         AutomationProperties.Name="Bezeichnung" />
+                <TextBox Grid.Column="2" Text="{Binding Unit}" PlaceholderText="ml" IsReadOnly="{Binding IsFromStock}" AutomationProperties.Name="Einheit" />
+                <ui:NumberField Grid.Column="3" Value="{Binding UnitCost}" Minimum="0" DecimalPlaces="4" IsVisible="{Binding IsFree}" PlaceholderText="€ je Einheit" Width="NaN"
+                                AutomationProperties.Name="Preis je Einheit" />
+                <TextBlock Grid.Column="3" Text="{Binding UnitCostText}" Classes="num" VerticalAlignment="Center" IsVisible="{Binding IsFromStock}" />
+                <ui:NumberField Grid.Column="4" Value="{Binding Quantity}" Minimum="0" DecimalPlaces="3" PlaceholderText="Menge" Width="NaN" AutomationProperties.Name="Menge" />
+                <Button Grid.Column="5" Classes="ghost icon" Width="32" Height="32" Command="{Binding RemoveCommand}" ToolTip.Tip="Material entfernen"
+                        AutomationProperties.Name="Material entfernen">
+                  <ui:Icon Data="{x:Static ui:Icons.Trash}" Width="16" Height="16" />
+                </Button>
+              </Grid>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        <Button Content="Material hinzufügen" Command="{Binding AddMaterialCommand}" HorizontalAlignment="Left" />
+      </StackPanel>
+
+      <!-- Zum Termin bereitstellen -->
+      <StackPanel x:Name="ProvideSection" Spacing="8" IsVisible="{Binding ShowsProvide}">
+        <Grid ColumnDefinitions="*,Auto">
+          <TextBlock Text="Zum Termin bereitstellen" Classes="h3" VerticalAlignment="Center" />
+          <ui:HelpButton Grid.Column="1" Topic="behandlungen" Section="zum-termin-bereitstellen" />
+        </Grid>
+        <ItemsControl ItemsSource="{Binding Extras}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:ExtraRow">
+              <Grid ColumnDefinitions="*,170,80,170,90,Auto" ColumnSpacing="8" Margin="0,0,0,8">
+                <TextBox Text="{Binding Name}" PlaceholderText="z. B. Früchteteller" AutomationProperties.Name="Bezeichnung" />
+                <ComboBox Grid.Column="1" ItemsSource="{x:Static vm:TimingChoice.All}" SelectedItem="{Binding Timing}" HorizontalAlignment="Stretch"
+                          AutomationProperties.Name="Zeitpunkt" />
+                <ui:NumberField Grid.Column="2" Value="{Binding MinutesBeforeEnd}" Minimum="0" Maximum="240" IsVisible="{Binding IsBeforeEnd}" Width="NaN"
+                                PlaceholderText="Min." AutomationProperties.Name="Minuten vor Ende" />
+                <ComboBox Grid.Column="3" ItemsSource="{Binding Stock}" SelectedItem="{Binding StockItem}" HorizontalAlignment="Stretch"
+                          AutomationProperties.Name="Lagerartikel" />
+                <ui:NumberField Grid.Column="4" Value="{Binding Quantity}" Minimum="0" DecimalPlaces="3" IsVisible="{Binding HasStock}" PlaceholderText="Menge" Width="NaN"
+                                AutomationProperties.Name="Menge je Termin" />
+                <Button Grid.Column="5" Classes="ghost icon" Width="32" Height="32" Command="{Binding RemoveCommand}" ToolTip.Tip="Eintrag entfernen"
+                        AutomationProperties.Name="Eintrag entfernen">
+                  <ui:Icon Data="{x:Static ui:Icons.Trash}" Width="16" Height="16" />
+                </Button>
+              </Grid>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        <Button Content="Eintrag hinzufügen" Command="{Binding AddExtraCommand}" HorizontalAlignment="Left" />
+      </StackPanel>
+
+      <!-- Verkauf (Slice 115): „Passt dazu“, höchstens fünf Kassa-Artikel -->
+      <StackPanel x:Name="SalesSection" Spacing="8" IsVisible="{Binding ShowsSales}">
+        <Grid ColumnDefinitions="*,Auto">
+          <TextBlock Text="Passt dazu" Classes="h3" VerticalAlignment="Center" />
+          <ui:HelpButton Grid.Column="1" Topic="behandlungen" Section="passt-dazu" />
+        </Grid>
+        <TextBlock Classes="muted" TextWrapping="Wrap" Text="Die Kassa und das Termin-Panel schlagen diese Artikel vor, wenn sie am Verkaufsregal liegen." />
+        <ui:InfoBar Severity="Warning" Message="Die Kassa-Artikel wurden nicht geladen. „Passt dazu“ lässt sich gerade nicht ändern." IsVisible="{Binding HasSalesLoadError}" />
+        <ItemsControl ItemsSource="{Binding RecommendedArticles}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:RecommendedArticleRow">
+              <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8" Margin="0,0,0,8">
+                <TextBlock Text="{Binding Name}" VerticalAlignment="Center" TextWrapping="Wrap" />
+                <Button Grid.Column="1" Classes="ghost icon" Width="32" Height="32" Command="{Binding RemoveCommand}" ToolTip.Tip="Artikel entfernen"
+                        AutomationProperties.Name="{Binding Name, StringFormat='{}{0} entfernen'}">
+                  <ui:Icon Data="{x:Static ui:Icons.Trash}" Width="16" Height="16" />
+                </Button>
+              </Grid>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+          <ComboBox x:Name="RecommendedArticlePicker" ItemsSource="{Binding ArticleChoices}" SelectedItem="{Binding ArticleToAdd}" HorizontalAlignment="Stretch"
+                    PlaceholderText="Artikel wählen" AutomationProperties.Name="Artikel für „Passt dazu“">
+            <ComboBox.ItemTemplate>
+              <DataTemplate x:DataType="contracts:ArticleDto">
+                <TextBlock Text="{Binding Name}" />
+              </DataTemplate>
+            </ComboBox.ItemTemplate>
+          </ComboBox>
+          <Button Grid.Column="1" Content="Artikel hinzufügen" Command="{Binding AddRecommendedArticleCommand}"
+                  ui:DisabledHint.Text="Verfügbar, sobald ein Artikel gewählt ist und weniger als fünf in der Liste stehen." />
+        </Grid>
+      </StackPanel>
+
+      <!-- Qualifikationen, Räume und Geräte -->
+      <StackPanel x:Name="ResourcesSection" Spacing="20" IsVisible="{Binding ShowsResources}">
+        <StackPanel Spacing="8">
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Text="Nötige Qualifikationen" Classes="h3" VerticalAlignment="Center" />
+            <ui:HelpButton Grid.Column="1" Topic="behandlungen" Section="noetige-qualifikationen" />
+          </Grid>
+          <ui:FormField Label="Nur wer alle gewählten hat, kann die Behandlung übernehmen" Warning="{Binding QualificationNotice}">
+            <ItemsControl x:Name="QualificationsField" ItemsSource="{Binding Qualifications}" AutomationProperties.Name="Nötige Qualifikationen">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <WrapPanel ItemSpacing="16" />
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:CheckOption">
+                  <CheckBox Content="{Binding Label}" IsChecked="{Binding IsChecked}" />
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </ui:FormField>
+        </StackPanel>
+
+        <StackPanel x:Name="WhoCanDoSection" Spacing="8">
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Text="Wer kann das?" Classes="h3" VerticalAlignment="Center" />
+            <ui:HelpButton Grid.Column="1" Topic="behandlungen" Section="wer-kann-das" />
+          </Grid>
+          <TextBlock Classes="muted" TextWrapping="Wrap" Text="Personen mit allen gewählten Qualifikationen. Qualifikationen einer Person ändert der Bereich „Team“." />
+          <TextBlock Text="Niemand im Team hat alle gewählten Qualifikationen." IsVisible="{Binding HasNobody}" />
+          <ItemsControl ItemsSource="{Binding WhoCanDo}">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <WrapPanel />
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:PersonEntry">
+                <Button Classes="chip" Content="{Binding Name}" Command="{Binding Open}" Margin="0,0,6,6" ToolTip.Tip="Im Bereich „Team“ öffnen"
+                        AutomationProperties.Name="{Binding OpenName}" />
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+
+        <ItemsControl ItemsSource="{Binding LocationGroups}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:LocationResourceGroup">
+              <StackPanel Spacing="8" Margin="0,0,0,20">
+                <TextBlock Text="{Binding Name}" Classes="h3" />
+                <TextBlock Text="Geeignete Räume:" Classes="muted" />
+                <ItemsControl ItemsSource="{Binding Rooms}">
+                  <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                      <WrapPanel ItemSpacing="16" />
+                    </ItemsPanelTemplate>
+                  </ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:CheckOption">
+                      <CheckBox Content="{Binding Label}" IsChecked="{Binding IsChecked}" />
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <TextBlock Text="Braucht eines dieser Geräte:" Classes="muted" IsVisible="{Binding HasEquipment}" />
+                <ItemsControl ItemsSource="{Binding Equipment}" IsVisible="{Binding HasEquipment}">
+                  <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                      <WrapPanel ItemSpacing="16" />
+                    </ItemsPanelTemplate>
+                  </ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:CheckOption">
+                      <CheckBox Content="{Binding Label}" IsChecked="{Binding IsChecked}" />
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        <StackPanel Orientation="Horizontal" Spacing="4">
+          <TextBlock Classes="muted" TextWrapping="Wrap" VerticalAlignment="Center"
+                     Text="Angeboten wird die Behandlung an allen Standorten, an denen ein geeigneter Raum gewählt ist." />
+          <ui:HelpButton Topic="behandlungen" Section="raeume-und-geraete" />
+        </StackPanel>
+      </StackPanel>
+
+      <!-- Preise -->
+      <StackPanel x:Name="PricesSection" Spacing="20" IsVisible="{Binding ShowsPrices}">
+        <StackPanel Spacing="8" IsVisible="{Binding HasSeveralLocations}">
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Text="Preis je Standort" Classes="h3" VerticalAlignment="Center" />
+            <ui:HelpButton Grid.Column="1" Topic="behandlungen" Section="preis-je-standort" />
+          </Grid>
+          <TextBlock Classes="muted" TextWrapping="Wrap" Text="Leer lassen, wenn der Grundpreis gilt. Gebuchte Termine behalten ihren Preis." />
+          <ItemsControl ItemsSource="{Binding LocationPrices}">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <WrapPanel ItemSpacing="12" LineSpacing="12" />
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:LocationPriceRow">
+                <ui:FormField Label="{Binding Name}">
+                  <ui:MoneyField Value="{Binding Price}" Minimum="0" PlaceholderText="Grundpreis" />
+                </ui:FormField>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+
+        <StackPanel Spacing="8" IsVisible="{Binding !IsNew}">
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Text="Preise nach Wochentag und Uhrzeit" Classes="h3" VerticalAlignment="Center" />
+            <ui:HelpButton Grid.Column="1" Topic="behandlungen" Section="preise-nach-zeit" />
+          </Grid>
+          <TextBlock Classes="muted" TextWrapping="Wrap"
+                     Text="Zum Beispiel günstiger am Vormittag oder teurer am Wochenende. Maßgeblich ist der Beginn des Termins; gebuchte Termine behalten ihren Preis, auch wenn sie verschoben werden. Ohne passende Regel gilt der Preis von oben." />
+          <ItemsControl ItemsSource="{Binding PriceRules}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:PriceRuleRow">
+                <Border Classes="card" Padding="12" Margin="0,0,0,12">
+                  <StackPanel Spacing="12">
+                    <Grid ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="12">
+                      <ui:FormField Label="Bezeichnung">
+                        <TextBox Text="{Binding Name}" PlaceholderText="z. B. Vormittag" />
+                      </ui:FormField>
+                      <ui:FormField Grid.Column="1" Label="Von">
+                        <ui:TimeField Value="{Binding From}" />
+                      </ui:FormField>
+                      <ui:FormField Grid.Column="2" Label="Bis">
+                        <ui:TimeField Value="{Binding Until}" NotBefore="{Binding From}" />
+                      </ui:FormField>
+                      <ui:FormField Grid.Column="3" Label="Preis (€)" IsRequired="True">
+                        <ui:MoneyField Value="{Binding Price}" Minimum="0" />
+                      </ui:FormField>
+                    </Grid>
+                    <ui:FormField Label="Standort" IsVisible="{Binding HasLocations}">
+                      <ComboBox ItemsSource="{Binding Locations}" SelectedItem="{Binding Location}" MinWidth="200" />
+                    </ui:FormField>
+                    <Grid ColumnDefinitions="*,Auto">
+                      <ItemsControl ItemsSource="{Binding Days}">
+                        <ItemsControl.ItemsPanel>
+                          <ItemsPanelTemplate>
+                            <WrapPanel ItemSpacing="12" />
+                          </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate x:DataType="vm:DayOption">
+                            <CheckBox Content="{Binding Label}" IsChecked="{Binding IsChecked}" AutomationProperties.Name="{Binding Name}" />
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                      <Button Grid.Column="1" Classes="ghost icon" Width="32" Height="32" Command="{Binding RemoveCommand}" ToolTip.Tip="Preisregel entfernen"
+                              AutomationProperties.Name="Preisregel entfernen">
+                        <ui:Icon Data="{x:Static ui:Icons.Trash}" Width="16" Height="16" />
+                      </Button>
+                    </Grid>
+                  </StackPanel>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+          <Button Content="Preisregel hinzufügen" Command="{Binding AddPriceRuleCommand}" HorizontalAlignment="Left" />
+        </StackPanel>
+      </StackPanel>
+
+      <Panel IsVisible="{Binding HasHistory}">
+        <local:HistorySectionView DataContext="{Binding History}" />
+      </Panel>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

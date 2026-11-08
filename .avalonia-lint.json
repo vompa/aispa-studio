@@ -1,0 +1,11 @@
+{
+  "ignore": [
+    {"rule": "AV-APP-07", "path": "src/AispaStudio.Desktop/Services/ScheduledBackup.cs", "reason": "Kommandozeilen-Pfad: einziger Aufrufer ist Program.cs vor dem Start von Avalonia, es gibt noch keinen UI-Thread."},
+    {"rule": "AV-APP-07", "path": "tests/**", "reason": "Test-Doubles laufen nicht im UI-Thread der App."},
+    {"rule": "AV-APP-43", "path": "src/AispaStudio.Desktop/Services/ReducedMotion.cs", "reason": "DllImport statt LibraryImport bewusst: LibraryImport bräuchte unsicheren Code im ganzen Projekt für einen einzigen Aufruf (Kommentar in der Datei)."},
+    {"rule": "AV-BIND-03", "path": "src/AispaStudio.Desktop/Views/CalendarView.axaml", "reason": "SelectedValueBinding wertet den Pfad auf den Elementen von Options aus, nicht auf dem DataContext der View; dort bewusst ReflectionBinding."},
+    {"rule": "AV-PROP-01", "path": "src/AispaStudio.Desktop/Views/StartupScreen.axaml.cs", "reason": "Private StyledProperty Handover ohne CLR-Wrapper, nur für die Startanimation im Code-Behind."},
+    {"rule": "AV-TPL-06", "path": "src/AispaStudio.Desktop/Views/PosView.axaml", "reason": "TodayList bleibt eine ListBox wegen der Tastaturnavigation in der Kassa."},
+    {"rule": "AV-TEST-04", "path": "tests/**", "reason": "Die Tests prüfen Click-Handler im Code-Behind, nicht gebundene Commands; sie laufen grün."}
+  ]
+}

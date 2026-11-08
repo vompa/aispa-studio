@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Zugang zur API über HTTP ohne Oberfläche und ohne Plattformbezug; die Windows-App und spätere Clients nutzen ihn gemeinsam (Ä282).</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AispaStudio.Contracts\AispaStudio.Contracts.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,37 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+        xmlns:ui="using:AispaStudio.Desktop.Controls"
+        xmlns:local="using:AispaStudio.Desktop.Views"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="1440" d:DesignHeight="900"
+        x:Class="AispaStudio.Desktop.Views.MainWindow"
+        x:DataType="vm:MainViewModel"
+        Icon="/Assets/avalonia-logo.ico"
+        Title="AISPA Studio – Rezeption"
+        FontFamily="fonts:Inter#Inter, Segoe UI Variable Text, Segoe UI"
+        Width="1440" Height="900" MinWidth="1100" MinHeight="680">
+
+  <Design.DataContext>
+    <vm:MainViewModel />
+  </Design.DataContext>
+
+  <Panel>
+    <!-- Während der Abmelde-Warnung ist der ganze Inhalt weichgezeichnet: Namen und Termine sind für Gäste an der Theke nicht lesbar (Datenschutz) -->
+    <ContentControl x:Name="Main" Content="{Binding Content}" IsVisible="{Binding IsConnected}" Classes="blurhost" Classes.blurred="{Binding IsIdleWarning}" />
+
+    <!-- Startbildschirm bis die API bereit ist, danach ohne Verbindung die Karte „Keine Verbindung zum Server“ (Design-Brief 5.31) -->
+    <local:StartupScreen Target="{Binding #Main}" />
+
+    <!-- Empfangsgerät: Warnung vor dem Abmelden ohne Eingabe als Karte in der Mitte über dem Scrim; jede Eingabe (auch ein Klick auf den Scrim) hebt sie auf -->
+    <Panel x:Name="IdleOverlay" IsVisible="{Binding IsIdleWarning}">
+      <Border x:Name="IdleScrim" Classes="scrim" />
+      <ui:InfoBar x:Name="IdleCard" Severity="Warning" Message="{Binding IdleText}" ActionText="Weiter arbeiten" ActionCommand="{Binding KeepWorkingCommand}"
+                  HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="480" BoxShadow="{DynamicResource RaisedShadow}" />
+    </Panel>
+
+    <!-- Rückfragedialog über allem (Design-Brief 5.27): höchstens einer je Fenster -->
+    <local:ConfirmDialogView DataContext="{Binding DialogHost}" />
+  </Panel>
+</Window>

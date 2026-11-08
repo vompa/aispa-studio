@@ -1,0 +1,53 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             x:Class="AispaStudio.Desktop.Views.PosSettingsView"
+             x:DataType="vm:PosSettingsViewModel"
+             ui:SaveShortcut.IsScope="True">
+  <!--
+    Kassa-Einstellungen (R05 Slice 96): dieselben Felder, Texte und Hilfe wie web/src/admin/PosTab.tsx. Aufbau nach docs/gestaltung/masken.md wie die Firmendaten:
+    Gruppen mit Überschrift und Fragezeichen am Titel (Brief 5.11), Leiste „Speichern / Verwerfen“ fest im Fuß, Strg+S speichert.
+  -->
+  <Grid RowDefinitions="*,Auto">
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+      <StackPanel Spacing="20" MaxWidth="720" HorizontalAlignment="Left" Margin="0,0,16,16">
+        <ui:InfoBar Severity="Error" Title="Kassa-Einstellungen nicht geladen" Message="{Binding LoadError}" IsVisible="{Binding HasLoadError}"
+                    ActionText="Erneut laden" ActionCommand="{Binding LoadCommand}" />
+        <TextBlock Text="Lade Einstellungen …" Classes="muted" IsVisible="{Binding !IsLoaded}" />
+
+        <StackPanel Spacing="20" IsVisible="{Binding IsLoaded}">
+          <StackPanel Spacing="8">
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Text="Rabatte" Classes="h2" VerticalAlignment="Center" />
+              <ui:HelpButton Grid.Column="1" Topic="kassa" Section="rabatte" />
+            </Grid>
+            <TextBlock Classes="muted" TextWrapping="Wrap"
+                       Text="Rabatte werden immer in Prozent gerechnet und auf dem Beleg mit Prozentsatz ausgewiesen. Bis zur Grenze darf jede Person an der Kassa und in der Kundenkartei Rabatt geben, darüber gibt die Leitung mit ihrer PIN frei." />
+            <ui:FormField Label="Rabatt ohne Freigabe bis (%)" IsRequired="True" Error="{Binding LimitError}">
+              <ui:NumberField x:Name="LimitField" Value="{Binding DiscountLimit}" Minimum="0" Maximum="100" DecimalPlaces="2" Width="200" HorizontalAlignment="Left" />
+            </ui:FormField>
+          </StackPanel>
+
+          <StackPanel Spacing="8">
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Text="Barzahlungsrabatt" Classes="h2" VerticalAlignment="Center" />
+              <ui:HelpButton Grid.Column="1" Topic="kassa" Section="barzahlungsrabatt" />
+            </Grid>
+            <TextBlock Classes="muted" TextWrapping="Wrap"
+                       Text="Der Barzahlungsrabatt gilt, wenn ein Beleg ganz bar bezahlt wird, nicht auf verkaufte Gutscheine. Er steht als eigene Zeile auf dem Beleg, die Umsatzsteuer wird vom verminderten Betrag gerechnet." />
+            <ui:FormField Label="Barzahlungsrabatt (%, 0 = aus)">
+              <ui:NumberField x:Name="CashDiscountField" Value="{Binding CashDiscount}" Minimum="0" Maximum="100" DecimalPlaces="2" Width="200" HorizontalAlignment="Left" />
+            </ui:FormField>
+          </StackPanel>
+        </StackPanel>
+      </StackPanel>
+    </ScrollViewer>
+
+    <StackPanel Grid.Row="1" Spacing="12" MaxWidth="720" HorizontalAlignment="Left" Margin="0,12,16,0" IsVisible="{Binding IsLoaded}">
+      <ui:InfoBar Severity="Error" Title="Nicht gespeichert" Message="{Binding Error}" IsVisible="{Binding HasError}"
+                  ActionText="Erneut versuchen" ActionCommand="{Binding SaveCommand}" CloseCommand="{Binding CloseErrorCommand}" />
+      <ui:SaveBar SaveCommand="{Binding SaveCommand}" DiscardCommand="{Binding DiscardCommand}" CanDiscard="{Binding HasUnsavedChanges}" Status="{Binding StatusText}" />
+    </StackPanel>
+  </Grid>
+</UserControl>

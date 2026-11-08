@@ -1,0 +1,142 @@
+<!--
+  Farben der Rezeptions-App, abgestimmt auf den Oberflächen-Prototyp und die Web-Oberfläche:
+  warmes Sand als Grund, Petrol als Akzent und für die Navigationsleiste, Statusfarben wie im Kalender des Prototyps.
+  Hell und Dunkel folgen Windows oder der Wahl in der App.
+-->
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <ResourceDictionary.ThemeDictionaries>
+    <ResourceDictionary x:Key="Light">
+      <SolidColorBrush x:Key="BgBrush" Color="#f3f0ea" />
+      <!-- Schatten der Karten nach Design-Brief 2.5 (shadow) -->
+      <BoxShadows x:Key="CardShadow">0 1 2 0 #0D1A2321, 0 4 14 -6 #1F1A2321</BoxShadows>
+      <!-- shadow-raised (2.5) für schwebende Elemente, Termin in Ruhe (Abschnitt 7) und gewählter Reiter (5.4); Overlay hinter dem Rückfragedialog (5.27) -->
+      <BoxShadows x:Key="RaisedShadow">0 2 8 0 #2E000000</BoxShadows>
+      <BoxShadows x:Key="ApptShadow">0 1 2 0 #0F000000</BoxShadows>
+      <BoxShadows x:Key="SegmentShadow">0 1 2 0 #21000000</BoxShadows>
+      <SolidColorBrush x:Key="ScrimBrush" Color="#73000000" />
+      <SolidColorBrush x:Key="SurfaceBrush" Color="#ffffff" />
+      <SolidColorBrush x:Key="Surface2Brush" Color="#f9f7f3" />
+      <SolidColorBrush x:Key="Surface3Brush" Color="#ece8e0" />
+      <SolidColorBrush x:Key="LineBrush" Color="#e4ded3" />
+      <SolidColorBrush x:Key="LineStrongBrush" Color="#c7bfb1" />
+      <SolidColorBrush x:Key="GridQuarterBrush" Color="#f3f0eb" />
+      <SolidColorBrush x:Key="FgBrush" Color="#1a2321" />
+      <SolidColorBrush x:Key="Fg2Brush" Color="#47524f" />
+      <SolidColorBrush x:Key="Fg3Brush" Color="#757e7a" />
+      <SolidColorBrush x:Key="AccentBrush" Color="#0d5c63" />
+      <SolidColorBrush x:Key="AccentHoverBrush" Color="#0a4a50" />
+      <SolidColorBrush x:Key="AccentFgBrush" Color="#ffffff" />
+      <SolidColorBrush x:Key="AccentSoftBrush" Color="#d9ebea" />
+      <SolidColorBrush x:Key="AccentLineBrush" Color="#86bcbf" />
+      <SolidColorBrush x:Key="OkBrush" Color="#2c6e46" />
+      <SolidColorBrush x:Key="OkSoftBrush" Color="#dbeee2" />
+      <SolidColorBrush x:Key="WarnBrush" Color="#8f5900" />
+      <SolidColorBrush x:Key="WarnSoftBrush" Color="#f6e9cf" />
+      <SolidColorBrush x:Key="CritBrush" Color="#b42318" />
+      <SolidColorBrush x:Key="CritSoftBrush" Color="#fbe2df" />
+      <SolidColorBrush x:Key="NoteBrush" Color="#7a6000" />
+      <SolidColorBrush x:Key="NoteSoftBrush" Color="#fff2b3" />
+      <SolidColorBrush x:Key="StBookedBrush" Color="#3a6a9c" />
+      <SolidColorBrush x:Key="StBookedBgBrush" Color="#e3edf7" />
+      <SolidColorBrush x:Key="StCheckedInBrush" Color="#2e8150" />
+      <SolidColorBrush x:Key="StCheckedInBgBrush" Color="#dcf1e4" />
+      <SolidColorBrush x:Key="StDoneBrush" Color="#656c68" />
+      <SolidColorBrush x:Key="StDoneBgBrush" Color="#efede8" />
+      <SolidColorBrush x:Key="RosterChipBaseBrush" Color="#ffffff" />
+      <SolidColorBrush x:Key="RosterChipInkBrush" Color="#1a2321" />
+      <SolidColorBrush x:Key="HatchBrush" Color="#e5e0d6" />
+      <!-- Einwirkzeit im Termin: Fläche wie Surface3 mit 55 % Deckkraft und diagonale Linien in LineStrong -->
+      <VisualBrush x:Key="ProcessingHatchBrush" TileMode="Tile" SourceRect="0,0,8,8" DestinationRect="0,0,8,8">
+        <VisualBrush.Visual>
+          <Canvas Width="8" Height="8" Background="#8cece8e0">
+            <Line StartPoint="0,8" EndPoint="8,0" Stroke="#c7bfb1" StrokeThickness="1" />
+          </Canvas>
+        </VisualBrush.Visual>
+      </VisualBrush>
+      <SolidColorBrush x:Key="OffDutyBrush" Color="#f3efe8" />
+      <SolidColorBrush x:Key="ToastBrush" Color="#1a2321" />
+      <SolidColorBrush x:Key="ToastFgBrush" Color="#f3f0ea" />
+      <!-- Navigationsleiste: tiefes Petrol in beiden Schemata, damit die App eine klare Marke hat. -->
+      <SolidColorBrush x:Key="RailBrush" Color="#0d3d42" />
+      <SolidColorBrush x:Key="RailFgBrush" Color="#f2f7f6" />
+      <SolidColorBrush x:Key="RailFg2Brush" Color="#a7c4c3" />
+      <SolidColorBrush x:Key="RailHoverBrush" Color="#164c52" />
+      <SolidColorBrush x:Key="RailBarHoverBrush" Color="#1a565c" />
+      <SolidColorBrush x:Key="RailSelectedBrush" Color="#1f6067" />
+      <SolidColorBrush x:Key="RailMarkBrush" Color="#e3b77a" />
+      <LinearGradientBrush x:Key="AccentGradientBrush" StartPoint="0%,0%" EndPoint="0%,100%">
+        <GradientStop Offset="0" Color="#11717a" />
+        <GradientStop Offset="1" Color="#0b5258" />
+      </LinearGradientBrush>
+      <LinearGradientBrush x:Key="HeroBrush" StartPoint="0%,0%" EndPoint="100%,100%">
+        <GradientStop Offset="0" Color="#e6f1ef" />
+        <GradientStop Offset="1" Color="#f7efe3" />
+      </LinearGradientBrush>
+    </ResourceDictionary>
+    <ResourceDictionary x:Key="Dark">
+      <SolidColorBrush x:Key="BgBrush" Color="#0c1211" />
+      <BoxShadows x:Key="CardShadow">0 1 2 0 #66000000, 0 6 18 -8 #99000000</BoxShadows>
+      <BoxShadows x:Key="RaisedShadow">0 2 8 0 #80000000</BoxShadows>
+      <BoxShadows x:Key="ApptShadow">0 1 2 0 #0F000000</BoxShadows>
+      <BoxShadows x:Key="SegmentShadow">0 1 2 0 #21000000</BoxShadows>
+      <SolidColorBrush x:Key="ScrimBrush" Color="#73000000" />
+      <SolidColorBrush x:Key="SurfaceBrush" Color="#151c1b" />
+      <SolidColorBrush x:Key="Surface2Brush" Color="#1a2321" />
+      <SolidColorBrush x:Key="Surface3Brush" Color="#232e2c" />
+      <SolidColorBrush x:Key="LineBrush" Color="#26322f" />
+      <SolidColorBrush x:Key="LineStrongBrush" Color="#41524e" />
+      <SolidColorBrush x:Key="GridQuarterBrush" Color="#1a2321" />
+      <SolidColorBrush x:Key="FgBrush" Color="#e2eae7" />
+      <SolidColorBrush x:Key="Fg2Brush" Color="#a9b8b4" />
+      <SolidColorBrush x:Key="Fg3Brush" Color="#7e8f8a" />
+      <SolidColorBrush x:Key="AccentBrush" Color="#52b3ba" />
+      <SolidColorBrush x:Key="AccentHoverBrush" Color="#71c5cb" />
+      <SolidColorBrush x:Key="AccentFgBrush" Color="#061f21" />
+      <SolidColorBrush x:Key="AccentSoftBrush" Color="#163638" />
+      <SolidColorBrush x:Key="AccentLineBrush" Color="#2f767b" />
+      <SolidColorBrush x:Key="OkBrush" Color="#5ec28a" />
+      <SolidColorBrush x:Key="OkSoftBrush" Color="#163626" />
+      <SolidColorBrush x:Key="WarnBrush" Color="#e2a744" />
+      <SolidColorBrush x:Key="WarnSoftBrush" Color="#382a10" />
+      <SolidColorBrush x:Key="CritBrush" Color="#f2796c" />
+      <SolidColorBrush x:Key="CritSoftBrush" Color="#3d1a16" />
+      <SolidColorBrush x:Key="NoteBrush" Color="#e8cf6a" />
+      <SolidColorBrush x:Key="NoteSoftBrush" Color="#3a3312" />
+      <SolidColorBrush x:Key="StBookedBrush" Color="#7fa8d4" />
+      <SolidColorBrush x:Key="StBookedBgBrush" Color="#1a2a3a" />
+      <SolidColorBrush x:Key="StCheckedInBrush" Color="#5ec28a" />
+      <SolidColorBrush x:Key="StCheckedInBgBrush" Color="#163525" />
+      <SolidColorBrush x:Key="StDoneBrush" Color="#97a6a2" />
+      <SolidColorBrush x:Key="StDoneBgBrush" Color="#1f2826" />
+      <SolidColorBrush x:Key="RosterChipBaseBrush" Color="#0c1211" />
+      <SolidColorBrush x:Key="RosterChipInkBrush" Color="#e2eae7" />
+      <SolidColorBrush x:Key="HatchBrush" Color="#25302e" />
+      <VisualBrush x:Key="ProcessingHatchBrush" TileMode="Tile" SourceRect="0,0,8,8" DestinationRect="0,0,8,8">
+        <VisualBrush.Visual>
+          <Canvas Width="8" Height="8" Background="#8c232e2c">
+            <Line StartPoint="0,8" EndPoint="8,0" Stroke="#41524e" StrokeThickness="1" />
+          </Canvas>
+        </VisualBrush.Visual>
+      </VisualBrush>
+      <SolidColorBrush x:Key="OffDutyBrush" Color="#121918" />
+      <SolidColorBrush x:Key="ToastBrush" Color="#e2eae7" />
+      <SolidColorBrush x:Key="ToastFgBrush" Color="#0c1211" />
+      <SolidColorBrush x:Key="RailBrush" Color="#0a1f21" />
+      <SolidColorBrush x:Key="RailFgBrush" Color="#e6efed" />
+      <SolidColorBrush x:Key="RailFg2Brush" Color="#86a3a1" />
+      <SolidColorBrush x:Key="RailHoverBrush" Color="#12302f" />
+      <SolidColorBrush x:Key="RailBarHoverBrush" Color="#153837" />
+      <SolidColorBrush x:Key="RailSelectedBrush" Color="#18403f" />
+      <SolidColorBrush x:Key="RailMarkBrush" Color="#e3b77a" />
+      <LinearGradientBrush x:Key="AccentGradientBrush" StartPoint="0%,0%" EndPoint="0%,100%">
+        <GradientStop Offset="0" Color="#5cbcc3" />
+        <GradientStop Offset="1" Color="#3f9ca3" />
+      </LinearGradientBrush>
+      <LinearGradientBrush x:Key="HeroBrush" StartPoint="0%,0%" EndPoint="100%,100%">
+        <GradientStop Offset="0" Color="#13292a" />
+        <GradientStop Offset="1" Color="#1d211c" />
+      </LinearGradientBrush>
+    </ResourceDictionary>
+  </ResourceDictionary.ThemeDictionaries>
+</ResourceDictionary>

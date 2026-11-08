@@ -1,0 +1,80 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             x:Class="AispaStudio.Desktop.Views.StockUsageSection"
+             x:DataType="vm:StockUsageViewModel">
+  <!--
+    Verbrauch (R05 Slice 116, Ä271) nach web/src/stock/StockUsage.tsx: je Artikel Soll (laut Rezept gebuchter Verbrauch), Ist (Soll plus Mehrverbrauch aus den Inventuren) und darunter die
+    Behandlungen, die den Artikel nutzen. Alle Zahlen stammen aus der API; den Wert in Euro gibt es nur mit dem Recht „Berichte mit Beträgen“.
+  -->
+  <Border Classes="card">
+    <StackPanel Spacing="12" Grid.IsSharedSizeScope="True">
+      <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+        <TextBlock Text="Verbrauch" Classes="h2" VerticalAlignment="Center" />
+        <ui:HelpButton Grid.Column="1" Topic="lager" Section="verbrauch" />
+      </Grid>
+      <TextBlock Classes="muted" TextWrapping="Wrap"
+                 Text="Soll ist der Verbrauch laut Rezept der gebuchten Behandlungen. Ist ist das Soll plus der Mehrverbrauch, den die Inventuren gezeigt haben." />
+      <ui:FormField Label="Zeitraum" HorizontalAlignment="Left">
+        <ComboBox x:Name="UsagePeriodField" ItemsSource="{Binding Periods}" SelectedItem="{Binding SelectedPeriod}" MinWidth="200" />
+      </ui:FormField>
+      <ui:InfoBar Severity="Error" Title="Verbrauch nicht geladen" Message="{Binding LoadError}" IsVisible="{Binding HasLoadError}" ActionText="Erneut laden" ActionCommand="{Binding LoadCommand}" />
+      <TextBlock Text="Im Zeitraum gibt es keinen Verbrauch zu zeigen." Classes="muted" IsVisible="{Binding ShowEmpty}" />
+      <TextBlock Text="Den Wert in Euro zeigt der Bericht nur mit dem Recht „Berichte mit Beträgen“." Classes="muted" TextWrapping="Wrap" IsVisible="{Binding AmountsHidden}" />
+      <TextBlock Text="{Binding TotalText}" Classes="num" IsVisible="{Binding HasTotal}" />
+
+      <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" IsVisible="{Binding HasRows}">
+        <StackPanel Spacing="8">
+          <Grid AutomationProperties.AccessibilityView="Raw">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*" MinWidth="160" />
+              <ColumnDefinition Width="Auto" SharedSizeGroup="Planned" />
+              <ColumnDefinition Width="Auto" SharedSizeGroup="Actual" />
+              <ColumnDefinition Width="Auto" SharedSizeGroup="Excess" />
+              <ColumnDefinition Width="Auto" SharedSizeGroup="Value" />
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="Material" Classes="group" />
+            <TextBlock Grid.Column="1" Text="Soll" Classes="group" MinWidth="104" Margin="12,0,0,0" TextAlignment="Right" />
+            <TextBlock Grid.Column="2" Text="Ist" Classes="group" MinWidth="104" Margin="12,0,0,0" TextAlignment="Right" />
+            <TextBlock Grid.Column="3" Text="Mehrverbrauch" Classes="group" MinWidth="120" Margin="12,0,0,0" TextAlignment="Right" />
+            <TextBlock Grid.Column="4" Text="Wert" Classes="group" MinWidth="96" Margin="12,0,0,0" TextAlignment="Right" IsVisible="{Binding !AmountsHidden}" />
+          </Grid>
+          <ItemsControl x:Name="UsageList" ItemsSource="{Binding Rows}" AutomationProperties.Name="Verbrauch je Material">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:UsageRow">
+                <StackPanel Margin="0,4" Spacing="2">
+                  <Grid AutomationProperties.Name="{Binding Summary}">
+                    <Grid.ColumnDefinitions>
+                      <ColumnDefinition Width="*" MinWidth="160" />
+                      <ColumnDefinition Width="Auto" SharedSizeGroup="Planned" />
+                      <ColumnDefinition Width="Auto" SharedSizeGroup="Actual" />
+                      <ColumnDefinition Width="Auto" SharedSizeGroup="Excess" />
+                      <ColumnDefinition Width="Auto" SharedSizeGroup="Value" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="{Binding Material}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1" Text="{Binding PlannedText}" Classes="num" MinWidth="104" Margin="12,0,0,0" TextAlignment="Right" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="2" Text="{Binding ActualText}" Classes="num" MinWidth="104" Margin="12,0,0,0" TextAlignment="Right" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="3" Text="{Binding ExcessText}" Classes="num" Classes.warn="{Binding IsLoss}" MinWidth="120" Margin="12,0,0,0" TextAlignment="Right" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="4" Text="{Binding ValueText}" Classes="num" MinWidth="96" Margin="12,0,0,0" TextAlignment="Right" VerticalAlignment="Center" />
+                  </Grid>
+                  <ItemsControl ItemsSource="{Binding Treatments}" Margin="16,0,0,0" IsVisible="{Binding HasTreatments}" AutomationProperties.Name="{Binding Material, StringFormat='Behandlungen mit {0}'}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="vm:UsageTreatmentRow">
+                        <Grid ColumnDefinitions="*,Auto,Auto" AutomationProperties.Name="{Binding Summary}">
+                          <TextBlock Text="{Binding Name}" Classes="muted small" TextTrimming="CharacterEllipsis" />
+                          <TextBlock Grid.Column="1" Text="{Binding PlannedText}" Classes="muted small num" MinWidth="104" Margin="12,0,0,0" TextAlignment="Right" />
+                          <TextBlock Grid.Column="2" Text="{Binding AppointmentsText}" Classes="muted small" MinWidth="80" Margin="12,0,0,0" />
+                        </Grid>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </ScrollViewer>
+    </StackPanel>
+  </Border>
+</UserControl>

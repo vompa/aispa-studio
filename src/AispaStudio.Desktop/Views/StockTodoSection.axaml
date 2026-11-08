@@ -1,0 +1,39 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             x:Class="AispaStudio.Desktop.Views.StockTodoSection"
+             x:DataType="vm:StockTodoViewModel">
+  <!--
+    Übersicht des Lagers (R07 Slice 143, Ä351): „Was ist zu tun“ als eine Fläche, die Punkte durch feine Linien getrennt, jeder mit dem Link in den Reiter, in dem man ihn erledigt. Der Lagerwert steht klein darunter.
+    Werte stehen in der Hauptfarbe, Bezeichnungen und Einzelheiten klein in der Sekundärfarbe (docs/design.md, 5.5 und 5.8).
+  -->
+  <Border Classes="card">
+    <StackPanel Spacing="0">
+      <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,12">
+        <TextBlock Text="Was ist zu tun" Classes="h2" VerticalAlignment="Center" />
+        <ui:HelpButton Grid.Column="1" Topic="lager" Section="uebersicht" />
+      </Grid>
+      <TextBlock x:Name="TodoEmpty" Text="Nichts zu tun. Bestand und Chargen sind in Ordnung." Classes="muted" IsVisible="{Binding IsEmpty}" Margin="0,0,0,12" />
+      <TextBlock x:Name="TodoGaps" Text="Chargen oder Bestellvorschlag sind nicht geladen. Lade das Lager neu." Classes="warn" IsVisible="{Binding HasGaps}" TextWrapping="Wrap" Margin="0,0,0,12" />
+      <ItemsControl x:Name="TodoList" ItemsSource="{Binding Items}" AutomationProperties.Name="Was ist zu tun">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="vm:StockTodoItem">
+            <Border BorderBrush="{DynamicResource LineBrush}" BorderThickness="0,1,0,0" Padding="0,12">
+              <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16" AutomationProperties.Name="{Binding Summary}">
+                <StackPanel Spacing="2">
+                  <TextBlock Text="{Binding Title}" FontWeight="Medium" TextWrapping="Wrap" />
+                  <TextBlock Text="{Binding Detail}" Classes="muted small" TextWrapping="Wrap" IsVisible="{Binding HasDetail}" />
+                </StackPanel>
+                <Button Grid.Column="1" Classes="small" Content="{Binding LinkText}" Command="{Binding LinkCommand}" IsVisible="{Binding HasLink}" VerticalAlignment="Center" />
+              </Grid>
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+      <Border BorderBrush="{DynamicResource LineBrush}" BorderThickness="0,1,0,0" Padding="0,12,0,0">
+        <TextBlock x:Name="ValueLine" Text="{Binding ValueText}" Classes="muted small" />
+      </Border>
+    </StackPanel>
+  </Border>
+</UserControl>

@@ -1,0 +1,123 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             x:Class="AispaStudio.Desktop.Views.TimesheetView"
+             x:DataType="vm:TimesheetViewModel">
+  <!--
+    Zeiten einer Woche (R05 Slice 99, Ä191, Ä250), nach web/src/time/TimesheetPage.tsx: Standort, Wochenwahl, Legende, eine Zeile je Person mit sieben Zellen „Soll / Ist“ und
+    Hinweisen, darunter der geöffnete Tag. Eine Zelle ist ein Knopf; mit nur Leserecht öffnet sie den Tag zum Ansehen. Farben nur über Ressourcen.
+  -->
+  <UserControl.Styles>
+    <Style Selector="Button.tcell">
+      <Setter Property="MinWidth" Value="0" />
+      <Setter Property="HorizontalAlignment" Value="Stretch" />
+      <Setter Property="VerticalAlignment" Value="Stretch" />
+      <Setter Property="HorizontalContentAlignment" Value="Left" />
+      <Setter Property="VerticalContentAlignment" Value="Top" />
+      <Setter Property="Padding" Value="12,8" />
+      <Setter Property="Margin" Value="4" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+      <Setter Property="Background" Value="{DynamicResource Surface2Brush}" />
+      <Setter Property="Foreground" Value="{DynamicResource Fg3Brush}" />
+    </Style>
+    <Style Selector="Button.tcell.recorded">
+      <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="Button.tcell.open">
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+      <Setter Property="BorderThickness" Value="2" />
+    </Style>
+  </UserControl.Styles>
+
+  <StackPanel Spacing="12">
+    <ui:InfoBar Severity="Error" Title="Zeiten nicht geladen" Message="{Binding LoadError}" IsVisible="{Binding HasLoadError}"
+                ActionText="Erneut laden" ActionCommand="{Binding LoadCommand}" />
+
+    <WrapPanel Orientation="Horizontal" ItemSpacing="8" LineSpacing="8">
+      <ComboBox x:Name="TimesLocation" ItemsSource="{Binding Locations}" SelectedItem="{Binding SelectedLocation}" MinWidth="200" VerticalAlignment="Center"
+                AutomationProperties.Name="Standort" />
+      <Button x:Name="TimesPreviousWeekButton" Content="‹" Command="{Binding PreviousWeekCommand}" Classes="icon" AutomationProperties.Name="Vorherige Woche" ToolTip.Tip="Vorherige Woche" />
+      <Button x:Name="TimesThisWeekButton" Content="Diese Woche" Command="{Binding ThisWeekCommand}" />
+      <Button x:Name="TimesNextWeekButton" Content="›" Command="{Binding NextWeekCommand}" Classes="icon" AutomationProperties.Name="Nächste Woche" ToolTip.Tip="Nächste Woche" />
+      <TextBlock x:Name="TimesWeekTitleText" Text="{Binding WeekTitle}" Classes="h3" VerticalAlignment="Center" />
+      <ui:HelpButton Topic="seite-time" VerticalAlignment="Center" />
+    </WrapPanel>
+
+    <TextBlock Text="{Binding Legend}" Classes="muted small" TextWrapping="Wrap" />
+
+    <TextBlock Text="Lade Zeiten …" Classes="muted" IsVisible="{Binding !IsLoaded}" />
+    <TextBlock x:Name="TimesEmpty" Text="{Binding EmptyText}" Classes="muted" IsVisible="{Binding IsEmpty}" />
+
+    <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" IsVisible="{Binding IsLoaded}">
+      <StackPanel x:Name="TimesTable" Spacing="4" AutomationProperties.Name="Zeiten">
+        <Grid ColumnDefinitions="Auto,*,Auto">
+          <Border Width="176" IsVisible="{Binding ShowsNames}" />
+          <ItemsControl Grid.Column="1" MinWidth="728" ItemsSource="{Binding DayHeads}">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <UniformGrid Rows="1" />
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="x:String">
+                <TextBlock Text="{Binding}" Classes="group" HorizontalAlignment="Center" />
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+          <TextBlock Grid.Column="2" Text="Woche" Classes="group" MinWidth="104" TextAlignment="Right" />
+        </Grid>
+
+        <ItemsControl ItemsSource="{Binding Rows}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:TimesheetRowViewModel">
+              <Grid ColumnDefinitions="Auto,*,Auto">
+                <StackPanel Orientation="Horizontal" Spacing="8" Width="176" VerticalAlignment="Top" IsVisible="{Binding ShowsName}">
+                  <Ellipse Width="8" Height="8" Fill="{Binding Color}" VerticalAlignment="Center" />
+                  <Button Classes="link" Content="{Binding Name}" Command="{Binding OpenPersonCommand}" IsVisible="{Binding CanOpenPerson}"
+                          AutomationProperties.Name="{Binding OpenPersonName}" VerticalAlignment="Center" />
+                  <TextBlock Text="{Binding Name}" IsVisible="{Binding IsPlainName}" VerticalAlignment="Center" TextWrapping="Wrap" />
+                </StackPanel>
+                <ItemsControl Grid.Column="1" MinWidth="728" ItemsSource="{Binding Cells}">
+                  <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                      <UniformGrid Rows="1" />
+                    </ItemsPanelTemplate>
+                  </ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:TimesheetCellViewModel">
+                      <Button Classes="tcell" Classes.recorded="{Binding HasRecords}" Classes.open="{Binding IsOpen}"
+                              Command="{Binding OpenCommand}" AutomationProperties.Name="{Binding AutomationName}">
+                        <StackPanel Spacing="2">
+                          <TextBlock Text="{Binding HoursText}" Classes="num small" IsVisible="{Binding HasHours}" />
+                          <TextBlock Text="–" Classes="small" IsVisible="{Binding HasNoHours}" />
+                          <TextBlock Text="{Binding WarningHint}" Classes="small" Foreground="{DynamicResource WarnBrush}" FontWeight="Medium" IsVisible="{Binding HasWarnings}"
+                                     ToolTip.Tip="{Binding WarningTip}" />
+                        </StackPanel>
+                      </Button>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <StackPanel Grid.Column="2" Width="104" Margin="8,4,0,0" VerticalAlignment="Top">
+                  <TextBlock Text="{Binding HoursText}" Classes="num" TextAlignment="Right" />
+                  <ItemsControl ItemsSource="{Binding Warnings}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="x:String">
+                        <TextBlock Text="{Binding}" Classes="small" Foreground="{DynamicResource WarnBrush}" FontWeight="Medium" TextWrapping="Wrap" MaxWidth="104" />
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </Grid>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </StackPanel>
+    </ScrollViewer>
+
+    <ContentControl x:Name="TimeDayHost" Content="{Binding Day}" IsVisible="{Binding HasDay}" />
+  </StackPanel>
+</UserControl>

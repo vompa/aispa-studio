@@ -1,0 +1,108 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             x:Class="AispaStudio.Desktop.Views.PersonHrFileView"
+             x:DataType="vm:PersonHrFileViewModel">
+  <!--
+    Reiter „Personalakte“ der Personenkarte (R05 Slice 110, Ä252): Einträge neueste oben, darüber Anlegen und die Auskunft als PDF. Ein Eintrag öffnet sich als Formular mit eigener Leiste (Strg+S).
+    Nur Inhaberin und Manager; bei Ausgeschiedenen nur lesen und exportieren.
+  -->
+  <StackPanel x:Name="HrFileSection" Spacing="16">
+    <StackPanel Spacing="4">
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Text="Personalakte" Classes="h3" VerticalAlignment="Center" />
+        <ui:HelpButton Topic="personalakte" Grid.Column="1" />
+      </Grid>
+      <TextBlock Classes="muted" TextWrapping="Wrap" Text="Nur Inhaberin und Manager sehen diese Einträge. Die Person bekommt sie auf Anfrage als PDF." />
+    </StackPanel>
+
+    <ui:InfoBar Severity="Error" Title="Personalakte nicht geladen" Message="{Binding LoadError}" IsVisible="{Binding HasLoadError}"
+                ActionText="Erneut laden" ActionCommand="{Binding LoadCommand}" />
+    <ui:InfoBar Severity="Error" Title="Nicht möglich" Message="{Binding Error}" IsVisible="{Binding ShowsListError}" CloseCommand="{Binding CloseErrorCommand}" />
+    <ui:InfoBar Severity="Success" Message="{Binding Message}" IsVisible="{Binding HasMessage}" CloseCommand="{Binding CloseMessageCommand}" />
+
+    <WrapPanel ItemSpacing="8" LineSpacing="8">
+      <Button x:Name="HrAddConversationButton" Content="Gespräch anlegen" Command="{Binding AddConversationCommand}" IsVisible="{Binding ShowsAddButtons}" />
+      <Button x:Name="HrAddNoteButton" Content="Anmerkung anlegen" Command="{Binding AddNoteCommand}" IsVisible="{Binding ShowsAddButtons}" />
+      <Button x:Name="HrAddWarningButton" Content="Verwarnung anlegen" Command="{Binding AddWarningCommand}" IsVisible="{Binding ShowsAddButtons}" />
+      <Button x:Name="HrExportButton" Content="Als PDF speichern" Command="{Binding ExportCommand}" IsEnabled="{Binding !IsBusy}" />
+    </WrapPanel>
+
+    <StackPanel x:Name="HrForm" Spacing="12" IsVisible="{Binding IsEditing}" ui:SaveShortcut.IsScope="True">
+      <TextBlock Text="{Binding FormTitle}" Classes="h3" />
+      <ui:FormField Label="Datum" IsRequired="True" Error="{Binding DateError}">
+        <ui:DateField x:Name="HrDateField" Value="{Binding Date}" />
+      </ui:FormField>
+      <ui:FormField Label="Art" IsVisible="{Binding IsConversation}">
+        <ComboBox x:Name="HrConversationKindField" ItemsSource="{Binding ConversationKinds}" SelectedItem="{Binding SelectedConversation}" MinWidth="200" AutomationProperties.Name="Art" />
+      </ui:FormField>
+      <ui:FormField Label="Teilnehmende" IsVisible="{Binding IsConversation}">
+        <TextBox x:Name="HrParticipantsField" Text="{Binding Participants}" MaxLength="200" />
+      </ui:FormField>
+      <ui:FormField Label="{Binding TextLabel}" IsRequired="True" Error="{Binding TextError}">
+        <TextBox x:Name="HrTextField" Text="{Binding Text}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="96" MaxLength="4000" />
+      </ui:FormField>
+
+      <StackPanel Spacing="8" IsVisible="{Binding IsConversation}">
+        <TextBlock Text="Vereinbarungen" Classes="label" />
+        <ItemsControl x:Name="HrAgreements" ItemsSource="{Binding Agreements}" AutomationProperties.Name="Vereinbarungen">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:HrAgreementRow">
+              <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8" Margin="0,0,0,8">
+                <CheckBox IsChecked="{Binding IsDone}" AutomationProperties.Name="Erledigt" VerticalAlignment="Center" />
+                <TextBox Grid.Column="1" Text="{Binding Text}" MaxLength="300" AutomationProperties.Name="Vereinbarung" />
+                <Button Grid.Column="2" Content="Entfernen" Command="{Binding RemoveCommand}" MinWidth="0" />
+              </Grid>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        <Button x:Name="HrAddAgreementButton" Content="Vereinbarung hinzufügen" Command="{Binding AddAgreementCommand}" HorizontalAlignment="Left" />
+      </StackPanel>
+
+      <ui:FormField Label="Folgetermin" IsVisible="{Binding IsConversation}" Help="Ab diesem Tag erinnert der Kalender die Leitung.">
+        <ui:DateField x:Name="HrFollowUpField" Value="{Binding FollowUpOn}" />
+      </ui:FormField>
+      <CheckBox x:Name="HrFollowUpDoneField" Content="Folgegespräch geführt" IsChecked="{Binding FollowUpDone}" IsVisible="{Binding IsConversation}" />
+
+      <ui:FormField Label="Ausgesprochen von" IsRequired="True" Error="{Binding IssuedByError}" IsVisible="{Binding IsWarning}">
+        <TextBox x:Name="HrIssuedByField" Text="{Binding IssuedBy}" MaxLength="100" />
+      </ui:FormField>
+      <CheckBox x:Name="HrHandedOverField" Content="Schriftlich übergeben" IsChecked="{Binding HandedOverInWriting}" IsVisible="{Binding IsWarning}" />
+      <ui:FormField Label="Ablaufdatum" Error="{Binding ExpiresError}" IsVisible="{Binding IsWarning}" Help="Leer: 2 Jahre nach dem Datum. Danach wird die Verwarnung gelöscht.">
+        <ui:DateField x:Name="HrExpiresField" Value="{Binding ExpiresOn}" />
+      </ui:FormField>
+
+      <ui:InfoBar x:Name="HrFormError" Severity="Error" Title="Nicht gespeichert" Message="{Binding Error}" IsVisible="{Binding ShowsFormError}" CloseCommand="{Binding CloseErrorCommand}" />
+      <ui:SaveBar SaveCommand="{Binding SaveCommand}" DiscardCommand="{Binding CancelCommand}" CanDiscard="True" />
+    </StackPanel>
+
+    <TextBlock x:Name="HrStatus" Text="{Binding StatusText}" Classes="muted" IsVisible="{Binding !IsEditing}" />
+    <TextBlock Text="Lade Personalakte …" Classes="muted" IsVisible="{Binding ShowsLoading}" />
+    <TextBlock Text="Noch keine Einträge." Classes="muted" IsVisible="{Binding ShowsEmpty}" />
+
+    <ItemsControl x:Name="HrEntries" ItemsSource="{Binding Rows}" AutomationProperties.Name="Einträge der Personalakte">
+      <ItemsControl.ItemTemplate>
+        <DataTemplate x:DataType="vm:HrEntryRow">
+          <StackPanel Spacing="4" Margin="0,0,0,16">
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+              <TextBlock Text="{Binding Title}" Classes="heading" VerticalAlignment="Center" TextWrapping="Wrap" />
+              <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" IsVisible="{Binding IsEditable}">
+                <Button Content="Bearbeiten" Command="{Binding EditCommand}" MinWidth="0" />
+                <Button Content="Löschen" Classes="danger" Command="{Binding DeleteCommand}" MinWidth="0" />
+              </StackPanel>
+            </Grid>
+            <TextBlock Text="{Binding Text}" TextWrapping="Wrap" />
+            <ItemsControl ItemsSource="{Binding Lines}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="x:String">
+                  <TextBlock Text="{Binding}" Classes="muted" TextWrapping="Wrap" />
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
+  </StackPanel>
+</UserControl>
