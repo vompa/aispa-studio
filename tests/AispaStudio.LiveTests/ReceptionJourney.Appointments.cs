@@ -21,6 +21,15 @@ internal static partial class ReceptionJourney
         new("checkin-late", "Gast kommt später", "Rechtsklick „Kommt 10 Min. später“, dann „Doch pünktlich“", Late, TermNeeds),
         new("checkin-undo-late", "Einchecken später zurücknehmen", "Einchecken, Meldung abwarten, dann im Panel „Einchecken zurücknehmen“", UndoLate, TermNeeds),
         new("checkin-noshow", "Nicht erschienen nach dem Einchecken", "Bei einem eingecheckten Termin ist „Nicht erschienen“ gesperrt", NoShowAfterCheckIn, TermNeeds),
+        new("reschedule", "Termin verschieben", "Panel „Verschieben …“, „+1 Tag“, „Verschieben“, dann „Rückgängig“", Reschedule, TermNeeds),
+        new("reschedule-past", "Verschieben in die Vergangenheit", "Das Panel lässt ein Datum von gestern zu (Lücke L2); der Test holt den Termin zurück", ReschedulePast, TermNeeds),
+        new("reschedule-checked-in", "Eingecheckten Termin verschieben", "Bei einem eingecheckten Termin fehlt „Verschieben …“", RescheduleCheckedIn, TermNeeds),
+        new("cancel", "Termin stornieren und zurücknehmen", "" + Unchecked + "„Termin stornieren …“, „Stornieren“, mit „Rückgängig“ zurück", Cancel, TermNeeds),
+        new("cancel-restore", "Stornierung später zurücknehmen", "" + Unchecked + "Storno, Meldung abwarten, im Panel „Stornierung zurücknehmen“", CancelRestore, TermNeeds),
+        new("cancel-esc", "Stornieren mit Esc abbrechen", "" + Unchecked + "Der Dialog „Termin stornieren?“ schließt mit Esc, die Karte bleibt", CancelEsc, TermNeeds,
+            Leaves: "Legt nichts an."),
+        new("cancel-no-fee", "Keine Ausfallgebühr für die Rezeption", "" + Unchecked + "„Ausfallgebühr belasten …“ fehlt im Panel (Lücke L3)", CancelNoFee, TermNeeds,
+            Leaves: "Legt nichts an."),
     ];
 
     private static string GuestOf(LiveRunContext context) => context.CustomerName ?? DemoCustomer;
@@ -68,7 +77,14 @@ internal static partial class ReceptionJourney
     private static void BookAppointment(LiveSession s, LiveRunContext context)
     {
         var customer = GuestOf(context);
+        var today = default(DateTime);
         OpenCalendar(s);
+        s.Step("Bei „Heute“ beginnen, dann auf den nächsten Tag", () =>
+        {
+            s.Click(Button("Heute"), "Knopf „Heute“");
+            today = ParseShownDate(ShownDate(s));
+            s.Click("Nächster Tag");
+        });
         s.Step("Neuen Termin beginnen", () =>
         {
             s.Click(NewAppointmentButton(s));
@@ -102,7 +118,9 @@ internal static partial class ReceptionJourney
             var card = s.Find(Class("AppointmentCard", e => e.Properties.Name.ValueOrDefault is { } name
                                                           && name.Contains($" {customer}, {Treatment}, Gebucht", StringComparison.Ordinal)),
                 $"Kalenderkarte „{customer}, {Treatment}“");
-            context.Appointment = new BookedAppointment(customer, Treatment, card.Properties.Name.ValueOrDefault![..5]);
+            var shown = ShownDate(s);
+            context.Appointment = new BookedAppointment(customer, Treatment, card.Properties.Name.ValueOrDefault![..5], shown,
+                (int)(ParseShownDate(shown) - today).TotalDays);
         });
         s.Report.AddEvent($"Termin des Laufs: {context.Appointment!.CardPrefix}.");
     }
@@ -181,8 +199,14 @@ internal static partial class ReceptionJourney
             s.Expect(Toast("Termine lassen sich nicht in der Vergangenheit eintragen"), "Meldung „Termine lassen sich nicht in der Vergangenheit eintragen“");
             s.ExpectMissing(Class("TextBox", NameIs("Kundin oder Kunde suchen")), "Buchungspanel");
         });
-        s.Step("Wieder auf den nächsten Tag stellen", () =>
+        s.Step("Wieder auf den Tag des Laufs stellen", () =>
         {
+            if (context.Appointment is { } booked)
+            {
+                ShowDay(s, booked, startFromToday: true);
+                return;
+            }
+
             s.Click(Button("Heute"), "Knopf „Heute“");
             s.Click("Nächster Tag");
         });
@@ -294,5 +318,224 @@ internal static partial class ReceptionJourney
             s.Click(Button("Einchecken zurücknehmen"), "Knopf „Einchecken zurücknehmen“");
             s.Expect(Card(booked, "Gebucht"), "Karte mit Status „Gebucht“");
         });
+    }
+
+    private static void OpenPanel(LiveSession s, BookedAppointment booked, string status = "Gebucht") =>
+        s.Step("Karte des Termins anklicken: Panel öffnet", () =>
+        {
+            SelectCard(s, booked, status);
+            s.Expect(Button("Termin stornieren …"), "Knopf „Termin stornieren …“");
+        });
+
+    /// <summary>
+    /// Verschiebt im offenen Panel um Tage, bis der Server annimmt: dieselbe Uhrzeit ist an einem Tag oft schon belegt („Zeitraum ist
+    /// belegt“), dann geht es einen Tag weiter. <paramref name="dayButton"/> ist „+1 Tag“ oder „−1 Tag“; <paramref name="firstClicks"/>
+    /// Klicks davor stellen die Grenze ein (gestern liegt zwei Tage vor dem Termin von morgen).
+    /// </summary>
+    private static void MoveDays(LiveSession s, string dayButton, int firstClicks, string? begin = null)
+    {
+        if (begin is not null)
+        {
+            // Die Vergangenheit ist nach vier Wochen Demo-Verlauf dicht gebucht; am späten Nachmittag ist noch Platz.
+            s.Type("Beginn", begin);
+            LiveSession.Press(VirtualKeyShort.TAB);
+        }
+
+        for (var i = 0; i < firstClicks - 1; i++)
+        {
+            s.Click(Button(dayButton), $"Knopf „{dayButton}“");
+        }
+
+        for (var attempt = 0; attempt < 10; attempt++)
+        {
+            s.Click(Button(dayButton), $"Knopf „{dayButton}“");
+            s.Click(Button("Verschieben"), "Knopf „Verschieben“");
+            if (s.TryFind(Toast("Verschoben auf"), TimeSpan.FromSeconds(4)) is not null)
+            {
+                return;
+            }
+        }
+
+        throw new InvalidOperationException("Der Termin ließ sich an keinem der nächsten Tage verschieben.");
+    }
+
+    /// <summary>Das Datum in der Kopfzeile des Kalenders („22. November 2026“); der Kalender folgt einem verschobenen Termin auf dessen neuen Tag.</summary>
+    private static DateTime ParseShownDate(string text)
+    {
+        // Für „Heute“ steht der Wochentag davor („Sonntag, 8. November 2026“).
+        var comma = text.IndexOf(", ", StringComparison.Ordinal);
+        var date = comma < 0 ? text : text[(comma + 2)..];
+        return DateTime.ParseExact(date, "d. MMMM yyyy", System.Globalization.CultureInfo.GetCultureInfo("de-AT"));
+    }
+
+    /// <summary>Stellt den Kalender auf den Tag des Termins: „Heute“, dann „Nächster Tag“ bis das Datum stimmt.</summary>
+    private static void ShowDay(LiveSession s, BookedAppointment booked, bool startFromToday = false)
+    {
+        if (!startFromToday && ShownDate(s) == booked.Date)
+        {
+            return;
+        }
+
+        s.Click(Button("Heute"), "Knopf „Heute“");
+        for (var i = 0; i < booked.DaysAhead; i++)
+        {
+            s.Click("Nächster Tag");
+        }
+
+        if (ShownDate(s) != booked.Date)
+        {
+            throw new InvalidOperationException($"Der Kalender zeigt {ShownDate(s)}, erwartet {booked.Date}.");
+        }
+    }
+
+    private static string ShownDate(LiveSession s) => LiveSession.TextOf(s.Find("DateLine"));
+
+    /// <summary>
+    /// Die Meldung zum Verschieben und ihr „Rückgängig“ verschwinden nach acht Sekunden; deshalb ein Schritt: Meldung, der Kalender
+    /// zeigt einen anderen Tag, „Rückgängig“ geklickt, der Termin ist wieder am alten Tag.
+    /// </summary>
+    private static void MovedThenUndone(LiveSession s, string dateBefore, BookedAppointment booked)
+    {
+        s.Expect(Toast("Verschoben auf"), "Meldung „Verschoben auf …“");
+        var undo = s.Find(Class("Button", NameContains("Rückgängig")), "Knopf „Rückgängig“");
+        if (ShownDate(s) == dateBefore)
+        {
+            throw new InvalidOperationException($"Der Kalender zeigt weiter {dateBefore}: der Termin ist nicht auf einen anderen Tag gewandert.");
+        }
+
+        s.Click(undo);
+        ExpectBackOn(s, dateBefore, booked);
+    }
+
+    /// <summary>Nach „Rückgängig“ bleibt der Kalender auf dem Tag, auf den er dem Termin gefolgt war; „Heute“ und „Nächster Tag“ führen zum Tag des Termins zurück.</summary>
+    private static void ExpectBackOn(LiveSession s, string dateBefore, BookedAppointment booked)
+    {
+        ShowDay(s, booked);
+        s.Expect(Card(booked, "Gebucht"), "Karte mit Status „Gebucht“");
+        if (ShownDate(s) != dateBefore)
+        {
+            throw new InvalidOperationException($"Der Kalender zeigt {ShownDate(s)}, erwartet wieder {dateBefore}.");
+        }
+    }
+
+    private static void Reschedule(LiveSession s, LiveRunContext context)
+    {
+        var booked = context.Appointment!;
+        OpenCalendar(s);
+        var before = ShownDate(s);
+        OpenPanel(s, booked);
+        s.Step("„Verschieben …“, „+1 Tag“ und „Verschieben“", () =>
+        {
+            s.Click(Button("Verschieben …"), "Knopf „Verschieben …“");
+            MoveDays(s, "+1 Tag", 1);
+        });
+        s.Step("Meldung „Verschoben auf“, der Kalender folgt dem Termin; „Rückgängig“ holt ihn zurück", () => MovedThenUndone(s, before, booked));
+    }
+
+    private static void ReschedulePast(LiveSession s, LiveRunContext context)
+    {
+        var booked = context.Appointment!;
+        OpenCalendar(s);
+        var before = ShownDate(s);
+        OpenPanel(s, booked);
+        s.Step("Zwei Tage zurück (der Termin liegt morgen, das ist vor gestern) und „Verschieben“", () =>
+        {
+            s.Click(Button("Verschieben …"), "Knopf „Verschieben …“");
+            MoveDays(s, "−1 Tag", booked.DaysAhead + 1, begin: "16:00");
+        });
+        s.Step("Es gibt keine Sperre: Meldung „Verschoben auf“, der Kalender folgt auf den früheren Tag; „Rückgängig“ holt den Termin zurück",
+            () => MovedThenUndone(s, before, booked));
+    }
+
+    private static void RescheduleCheckedIn(LiveSession s, LiveRunContext context)
+    {
+        var booked = context.Appointment!;
+        OpenCalendar(s);
+        OpenPanel(s, booked);
+        s.Step("Einchecken", () =>
+        {
+            s.Click(Button("Einchecken"), "Knopf „Einchecken“");
+            s.Expect(Card(booked, "Eingecheckt"), "Karte mit Status „Eingecheckt“");
+        });
+        s.Step("Im Panel fehlt „Verschieben …“", () =>
+        {
+            s.Expect(Button("Einchecken zurücknehmen"), "Knopf „Einchecken zurücknehmen“");
+            s.ExpectMissing(Button("Verschieben …"), "Knopf „Verschieben …“");
+        });
+        s.Step("Einchecken zurücknehmen (Zustand wie vorher)", () =>
+        {
+            s.Click(Button("Einchecken zurücknehmen"), "Knopf „Einchecken zurücknehmen“");
+            s.Expect(Card(booked, "Gebucht"), "Karte mit Status „Gebucht“");
+        });
+    }
+
+    private static void BeginCancel(LiveSession s) =>
+        s.Step("„Termin stornieren …“: Dialog „Termin stornieren?“", () =>
+        {
+            s.Click(Button("Termin stornieren …"), "Knopf „Termin stornieren …“");
+            s.Expect("Termin stornieren?");
+            s.Expect("ConfirmButton");
+        });
+
+    private static void Cancel(LiveSession s, LiveRunContext context)
+    {
+        var booked = context.Appointment!;
+        OpenCalendar(s);
+        OpenPanel(s, booked);
+        BeginCancel(s);
+        // Die Meldung mit „Rückgängig“ verschwindet nach acht Sekunden; deshalb alles in einem Schritt.
+        s.Step("„Stornieren“: Meldung „Termin storniert“, Karte weg; „Rückgängig“ bringt sie zurück", () =>
+        {
+            s.Click("ConfirmButton");
+            s.Expect(Toast("Termin storniert"), "Meldung „Termin storniert“");
+            var undo = s.Find(Class("Button", NameContains("Rückgängig")), "Knopf „Rückgängig“");
+            s.ExpectMissing(Card(booked), $"Karte „{booked.CardPrefix}“");
+            s.Click(undo);
+            s.Expect(Card(booked, "Gebucht"), "Karte mit Status „Gebucht“");
+        });
+    }
+
+    private static void CancelRestore(LiveSession s, LiveRunContext context)
+    {
+        var booked = context.Appointment!;
+        OpenCalendar(s);
+        OpenPanel(s, booked);
+        BeginCancel(s);
+        s.Step("„Stornieren“, Meldung läuft ab", () =>
+        {
+            s.Click("ConfirmButton");
+            s.Expect(Toast("Termin storniert"), "Meldung „Termin storniert“");
+            s.WaitUntilMissing(Toast("Termin storniert"), "Meldung „Termin storniert“", TimeSpan.FromSeconds(20));
+        });
+        s.Step("Panel „Stornierung zurücknehmen“ und „Zurücknehmen“", () =>
+        {
+            s.Click(Button("Stornierung zurücknehmen"), "Knopf „Stornierung zurücknehmen“");
+            s.Expect("Stornierung zurücknehmen?");
+            s.Click(Button("Zurücknehmen"), "Knopf „Zurücknehmen“");
+            s.Expect(Card(booked, "Gebucht"), "Karte mit Status „Gebucht“");
+        });
+    }
+
+    private static void CancelEsc(LiveSession s, LiveRunContext context)
+    {
+        var booked = context.Appointment!;
+        OpenCalendar(s);
+        OpenPanel(s, booked);
+        BeginCancel(s);
+        s.Step("Esc: Dialog zu, Karte unverändert", () =>
+        {
+            LiveSession.Press(VirtualKeyShort.ESCAPE);
+            s.ExpectMissing("ConfirmButton");
+            s.Expect(Card(booked, "Gebucht"), "Karte mit Status „Gebucht“");
+        });
+    }
+
+    private static void CancelNoFee(LiveSession s, LiveRunContext context)
+    {
+        var booked = context.Appointment!;
+        OpenCalendar(s);
+        OpenPanel(s, booked);
+        s.Step("Im Panel gibt es keine „Ausfallgebühr belasten …“", () =>
+            s.ExpectMissing(Class("Button", NameStarts("Ausfallgebühr")), "Knopf „Ausfallgebühr belasten …“"));
     }
 }

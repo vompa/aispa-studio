@@ -10,14 +10,14 @@ namespace AispaStudio.LiveTests;
 /// </summary>
 internal static partial class ReceptionJourney
 {
-    /// <summary>Behandlung des Laufs; Wien bietet sie an, und ihr Preis (95,00 €) steht in den Demo-Daten fest.</summary>
-    private const string Treatment = "Gesichtsbehandlung Klassik";
+    /// <summary>Behandlung des Laufs; Wien bietet sie an; die Gesichtsbehandlungen waren nach vielen Läufen ausgebucht.</summary>
+    private const string Treatment = "Maniküre mit Lack";
 
     /// <summary>Stammgast der Demo-Daten (Demo/DemoCustomers.cs), den der Lauf für Termine ohne eigene Kundin nimmt.</summary>
     private const string DemoCustomer = "Anna Bauer";
 
     /// <summary>Zweiter Stammgast für Fälle, in denen zwei verschiedene Gäste nötig sind.</summary>
-    internal const string OtherDemoCustomer = "Thomas Leitner";
+    private const string OtherDemoCustomer = "Thomas Leitner";
 
     public static LiveJourney Journey { get; } = new(
         "Rezeption",
@@ -27,6 +27,7 @@ internal static partial class ReceptionJourney
             .. AccountTopics,
             .. CustomerTopics,
             .. AppointmentTopics,
+            .. PosTopics,
         ]);
 
     private static void SignIn(LiveSession s)
@@ -43,6 +44,7 @@ internal static partial class ReceptionJourney
             // Die App merkt sich den zuletzt gezeigten Tag; „Heute“ macht den Ausgangspunkt eindeutig.
             s.Click(Button("Heute"), "Knopf „Heute“");
             s.Click("Nächster Tag");
+            s.Report.AddEvent($"Der Lauf arbeitet am {LiveSession.TextOf(s.Find("DateLine"))}.");
         });
 
     private static void SignInAs(LiveSession s, string person) =>
@@ -92,7 +94,7 @@ internal static partial class ReceptionJourney
     private static Func<AutomationElement, bool> Button(string name) => Class("Button", NameIs(name));
 
     /// <summary>Die Kalenderkarte des Termins, mit dem Status am Ende („Gebucht“, „Eingecheckt“ …); ohne Status trifft jede.</summary>
-    internal static Func<AutomationElement, bool> Card(BookedAppointment appointment, string? status = null) =>
+    private static Func<AutomationElement, bool> Card(BookedAppointment appointment, string? status = null) =>
         Class("AppointmentCard", e => e.Properties.Name.ValueOrDefault is { } card
                                       && card.Contains(appointment.CardPrefix, StringComparison.Ordinal)
                                       && (status is null || card.EndsWith($", {status}", StringComparison.Ordinal)));

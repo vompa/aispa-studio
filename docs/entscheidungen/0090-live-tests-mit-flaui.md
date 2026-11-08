@@ -46,6 +46,16 @@ Der Auftraggeber wollte eine kleine Windows-App, aus der man die Live-Tests mit 
 - Die Starter-App liegt schmal und immer oben am rechten Rand; der Tester setzt das App-Fenster über UI Automation (`WindowPattern`, `TransformPattern`) auf die Fläche links daneben. So treffen Klicks und Bilder die Starter-App nicht.
 - Die Konsolentasten bleiben für den Konsolenbetrieb; beide Wege rufen dieselben Befehle in `LiveControl`.
 
+## Nachtrag 08.11.2026: Themen der Rezeption nach dem Onboarding-Katalog
+
+Der Katalog [live-tests-rezeption-onboarding.md](../umsetzung/live-tests-rezeption-onboarding.md) (20 Themen, 72 Sonderfälle, 16 Lücken) ist im Tester umgesetzt, soweit er stabil prüfbar ist. Der Auftraggeber hat die Prüfung durch Läufe zum Schluss auf später verschoben; der Stand je Thema steht im Katalog.
+
+- **Berichtigung „Einchecken“:** Den Knopf „Ist da“ gibt es nicht; er heißt **Einchecken** (Taste E, Status „Eingecheckt“). Eine Tagesregel gibt es nicht: `BookingService.ChangeStatusAsync` prüft kein Datum, der Knopf steht bei jedem gebuchten Termin. Die Aussage „Kassieren braucht ‚Ist da‘ am Tag des Termins“ gilt damit nicht; der Kalender-Knopf **Kassieren** setzt auch einen Termin von morgen auf die Rechnung (Lücke L1). Das Thema `checkout` nutzt das.
+- **Neue Bausteine** in `LiveSession`: `ExpectMissing` (kurzer Timeout, scheitert, sobald das Element auftaucht), `WaitUntilMissing`, `RightClick`/`RightClickAt`, `ChooseMenuItem`, `TextOf`/`Read`, `FocusCalendar`, `ScrollIntoBody`, `FindInRow`, `VisibleRects`, bei einem Fehler zusätzlich eine Liste der sichtbaren Elemente neben dem Fehlerbild. `LiveRunContext` kennt Termin (Kundin, Behandlung, Beginn, Tag) und Gutscheincode; `LiveTopic.Needs` verlangt ein früheres Thema und scheitert vor dem Start mit klarer Meldung, `LiveTopic.Leaves` steht als Vermerk im Bericht.
+- **Gegenprobe:** Die Umgebungsvariable `AISPA_LIVE_SKIP_CLICK` (Namen mit `|`, `*` am Ende für einen Namensanfang) lässt einen Klick aus; die Prüfung dahinter muss scheitern. So wurde gezeigt, dass die Prüfungen der Kunden-, Termin- und Einchecken-Themen ohne das Ergebnis rot werden.
+- **App:** nur zwei `AutomationProperties.Name` (SplitButton „Termin“, Toast-Text) in `CalendarView.axaml`.
+- **Erkenntnisse:** Ein `Border` mit `x:Name` steht nicht im Automationsbaum, Prüfungen hängen an einem Text der Maske. Die Freie-Zeit-Suche nimmt die erste freie Zeit; nach vielen Läufen war „Gesichtsbehandlung Klassik“ in den nächsten 14 Tagen ausgebucht, der Lauf nimmt deshalb „Maniküre mit Lack“. Der Kalender folgt einem verschobenen Termin auf den neuen Tag, nach „Rückgängig“ bleibt er dort. Die Meldung mit „Rückgängig“ verschwindet nach acht Sekunden, Prüfen und Klicken stehen daher in einem Schritt. „Schon vorhanden?“ zeigt alle Namensvettern, der Knopf muss zur Zeile der gemeinten Kundin gehören. Die Tastenhilfe öffnet mit `?`, nicht mit F1.
+
 ## Quellen
 
 - [FlaUI](https://github.com/FlaUI/FlaUI) (MIT)

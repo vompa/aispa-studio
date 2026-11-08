@@ -37,8 +37,12 @@ internal sealed class LiveRunContext
     public string? VoucherCode { get; set; }
 }
 
-/// <summary>Ein Termin des Laufs, wie ihn der Kalender zeigt.</summary>
-internal sealed record BookedAppointment(string Customer, string Treatment, string Begin)
+/// <summary>
+/// Ein Termin des Laufs, wie ihn der Kalender zeigt. <see cref="Date"/> ist das Datum in der Kopfzeile („9. November 2026“) und
+/// <see cref="DaysAhead"/> der Abstand zu „Heute“: die Freie-Zeit-Suche nimmt die erste freie Zeit, und die liegt nach vielen
+/// Läufen nicht mehr morgen.
+/// </summary>
+internal sealed record BookedAppointment(string Customer, string Treatment, string Begin, string Date, int DaysAhead)
 {
     /// <summary>Die Kalenderkarte heißt „&lt;Beginn&gt; &lt;Kundin&gt;, &lt;Behandlung&gt;, &lt;Status&gt;“.</summary>
     public string CardPrefix => $"{Begin} {Customer}, {Treatment}";
