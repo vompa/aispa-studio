@@ -71,7 +71,7 @@ sich an `http://localhost:5173` an. Einzelheiten zu Rollen, Redis, Proxy und Hea
 | Datenbank | `postgres:17-alpine` | 5432 | alle Daten aller Spas, getrennt je Mandant |
 | API | aus `docker/api.Dockerfile` (.NET 10) | 8080 | Geschäftslogik, Anmeldung, Live-Meldungen, Hintergrundläufe |
 | Web | aus `docker/web.Dockerfile` (nginx 1.29) | 80 | Web-Apps ausliefern, `/api/` und `/hubs/` an die API weiterleiten |
-| Redis | `redis:8-alpine` | 6379 | nur bei mehreren API-Instanzen: Live-Meldungen verteilen |
+| Redis-Protokoll (Valkey) | `valkey/valkey:8-alpine` | 6379 | nur bei mehreren API-Instanzen: Live-Meldungen verteilen |
 | Mailpit | `axllent/mailpit` | 8025 | nur zum Testen: fängt alle Mails ab |
 | Ollama | `ollama/ollama:0.40.6` | 11434 | optional: KI ohne Internet |
 

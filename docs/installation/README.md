@@ -69,13 +69,13 @@ Auf dem PC laufen dann auch die Datenbank und der Server von AISPA Studio. Die W
 | Docker Compose | 2.24 oder neuer | nötig für `compose.scale.yaml` |
 | Prozessor, Speicher | wie „Einzelplatz“ oben | je weitere Instanz rund 300 MB Arbeitsspeicher (gemessen je Server-Prozess) |
 | Datenbank | PostgreSQL 17 | Image `postgres:17-alpine`, 424 MB |
-| Redis | 8 | nur bei mehreren Server-Instanzen, Image `redis:8-alpine`, 120 MB |
+| Redis-Protokoll | Valkey 8 | nur bei mehreren Server-Instanzen, Image `valkey/valkey:8-alpine`, 42 MB |
 | HTTPS | eigener Reverse Proxy mit Zertifikat | nicht im Paket enthalten |
 
 - **Docker Desktop** ist für Firmen ab 250 Mitarbeitenden oder 10 Mio. USD Umsatz kostenpflichtig; Day-Spas bis
   50 Mitarbeitende fallen nicht darunter.
-- **Lizenz von Redis 8:** steht nicht mehr unter BSD. Für den Eigenbetrieb kein Hindernis; wer Redis mitliefert oder
-  als Dienst anbietet, prüft die Lizenz neu.
+- **Valkey statt Redis 8** ([ADR 0089](../entscheidungen/0089-valkey-statt-redis-8.md)): Redis 8 steht nicht mehr unter BSD,
+  Valkey schon. Ein vorhandener Redis-Server geht weiterhin; wer Redis 8 mitliefert oder als Dienst anbietet, prüft dessen Lizenz.
 
 ### Optional: lokale KI ohne Internet
 

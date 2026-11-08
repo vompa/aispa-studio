@@ -6,7 +6,7 @@
 
 ## Kontext
 
-[ADR 0014](0014-buchungsplattformen-treatwell-per-mail-und-kalender-feed.md) liest Treatwell-Mails mit einem regelbasierten Leser
+[ADR 0014](0014-buchungsplattformen-ohne-partnervertrag.md) liest Treatwell-Mails mit einem regelbasierten Leser
 (`TreatwellMail`), der Zeilen „Bezeichnung: Wert“ annimmt und nie mit echten Mails geprüft wurde. Welche Absender als Treatwell gelten,
 stand in der Server-Konfiguration (`MailIntake:TreatwellSenderDomains`), für alle Spas gleich und ohne Oberfläche. Seit
 [ADR 0061](0061-kundenzuordnung-eingehender-nachrichten.md) wartete eine Treatwell-Buchung mit Kandidaten „noch nicht im Kalender“ auf
@@ -94,7 +94,7 @@ mit Beleg ist der einzige Weg, vorab Bezahltes zu verrechnen, ohne Umsatz an der
 
 ## Quellen
 
-- [ADR 0010](0010-kassa-compliance-by-design.md), [ADR 0014](0014-buchungsplattformen-treatwell-per-mail-und-kalender-feed.md), [ADR 0047](0047-anzahlung-und-vorauszahlung.md),
+- [ADR 0010](0010-kassa-compliance-by-design.md), [ADR 0014](0014-buchungsplattformen-ohne-partnervertrag.md), [ADR 0047](0047-anzahlung-und-vorauszahlung.md),
   [ADR 0055](0055-hilfe-zu-jeder-einstellung-im-repository.md), [ADR 0057](0057-lokale-ki-optional-mit-ollama.md), [ADR 0061](0061-kundenzuordnung-eingehender-nachrichten.md)
 - [Buchungsplattformen-Konzept](../konzepte/buchungsplattformen-anbindung.md), README, Abschnitt „KI-Terminannahme per Mail“
 - Treatwell-Partnerhilfe und anny-Dokumentation (Format nur beschrieben, nicht öffentlich)

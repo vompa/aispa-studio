@@ -170,7 +170,18 @@ jobs:
           if (-not $env:PGROOT -or -not (Test-Path (Join-Path $env:PGROOT 'bin/pg_ctl.exe'))) { throw "PostgreSQL des Runners nicht gefunden (PGROOT=$env:PGROOT)" }
           New-Item publish/desktop/postgres -ItemType Directory | Out-Null
           foreach ($part in 'bin', 'lib', 'share') { Copy-Item (Join-Path $env:PGROOT $part) publish/desktop/postgres -Recurse }
+          # StackBuilder (Installer für Zusatzpakete) braucht als Einziges wxWidgets; der Einzelplatz nutzt beides nicht.
+          Remove-Item publish/desktop/postgres/bin/stackbuilder.exe, publish/desktop/postgres/bin/wx*.dll
           & publish/desktop/postgres/bin/postgres.exe --version
+
+      # Lizenzhinweise (ADR 0088): aus den echten Abhängigkeiten dieses Stands erzeugt, nicht aus der Datei im Repository,
+      # damit ein Paket-Update (Dependabot) die CI nicht rot macht.
+      - name: Lizenzhinweise ins Paket
+        shell: pwsh
+        run: |
+          python scripts/third-party-notices.py --postgres-bin publish/desktop/postgres/bin
+          if ($LASTEXITCODE -ne 0) { throw "Lizenzhinweise nicht erzeugt" }
+          Copy-Item LICENSE, THIRD-PARTY-NOTICES.md publish/desktop
 
       - name: Einzelplatz mit dem echten Paket starten
         timeout-minutes: 10

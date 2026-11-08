@@ -37,6 +37,9 @@ public sealed partial class ViewTests
             await Pump();
             var current = () => calendar.Columns.SelectMany(c => c.Items).First(x => x.Appointment?.Id == SpaSample.Selected.Id);
 
+            // Die Frist des Toasts läuft mit echter Zeit (SampleTime stellt nur die Uhr); unter Last schloss er sich vor der Prüfung.
+            // Festgehalten wie mit der Maus darüber, damit der Test nur den Text prüft, nicht die Frist.
+            calendar.HoldToast(true);
             await ChooseFromContextMenuAsync(window, "Kommt 15 Min. später");
 
             // Das Menü ist zu und bleibt zu, der Termin steht an seiner Zeit mit der Markierung, der Toast bestätigt.

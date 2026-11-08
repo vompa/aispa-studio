@@ -56,7 +56,8 @@ x-health: &health
 services:
   # Nur im internen Netz, ohne Port und ohne Passwort (Pub/Sub, kein Volume nötig). Im Betrieb Passwort setzen, siehe Server-Einstellungen.
   redis:
-    image: redis:8-alpine
+    # Valkey statt Redis 8 (ADR 0089): BSD-lizenziert, spricht dasselbe Protokoll.
+    image: valkey/valkey:8-alpine
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 2s

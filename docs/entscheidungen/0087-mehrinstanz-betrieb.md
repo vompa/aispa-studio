@@ -1,6 +1,6 @@
 # 0087. Mehrinstanz-Betrieb: Rollen, zentrale Schlüssel, eigener Migrationslauf, Backplane, auf Container Apps
 
-- **Status:** vorgeschlagen
+- **Status:** Code-Teil angenommen (08.11.2026, Nachtrag unten), Zielplattform vorgeschlagen
 - **Datum:** 06.11.2026
 - **Entschieden von:** Auftraggeber (offen), Vorlage Claude nach der [Arbeitsanweisung](../umsetzung/arbeitsanweisung-mehrinstanz-betrieb.md)
 
@@ -118,6 +118,9 @@ Option (b) löst die Probleme, die jeder Betrieb mit mehr als einer Instanz hat,
   - **Redis-Image:** `redis:8-alpine`, gemessen mit `docker image inspect` 120 MB (ADR-Nachtrag T-046: 119,6 MB), unter der Schwelle von 200 MB, daher ohne Warnung. Gewählt wegen der kleinsten Größe der in T-046 gemessenen Standardbilder (`redis:8.6` 141 MB), derselben Hauptversion wie im Test und Docker Hub wie bei `postgres:17-alpine` in `compose.yaml`; `mirror.gcr.io` ist nur für Cloud-Container ohne Zugang zu Docker Hub nötig. Kein Passwort und kein Port nach außen im lokalen Aufbau (Hilfe verlangt beides im Betrieb).
   - **Gemeinsames Image:** `migrate`, `api` und `worker` bauen aus demselben Dockerfile unter dem Namen `aispa-scale-api` (das Image von `compose.yaml` heißt `aispa-api`); der Build läuft je Dienst, aber über den Zwischenspeicher.
   - **Grenzen:** Die festen Host-Ports von `web` (5173) und `mailpit` (8025) stehen in `compose.yaml`; neben einem laufenden Standardaufbau braucht der Scale-Aufbau eine dritte Datei mit `ports: !override`. `volumes: !reset []` und `ports: !reset []` verlangen Docker Compose ab 2.24 (geprüft mit 5.6.1). Die Adressen der API löst nginx nur beim Start auf: nach einem Neuanlegen der Instanzen `restart web`; nach `restart api` blieben die Adressen gleich (geprüft). Nicht geprüft sind der Versand einer Antwort über den Worker (Handtest T-047 Schritt 7), der Rückruf einer Google-Anmeldung an der zweiten Instanz (Schritt 8) und die Windows-App.
+- **Nachtrag (08.11.2026): Code-Teil angenommen, Plattform bleibt offen.** Der Auftraggeber hat am 08.11.2026 delegiert („Entscheide du bzw frag die Berater und Arbeite automatisch weiter“); der Council hat einstimmig so entschieden:
+  - **Angenommen:** der umgesetzte Code-Teil T-041 bis T-048 (Rollen, Schlüsselring in der Datenbank, Befehl `migrate`, Forwarded Headers, Health-Endpunkte, Backplane, Mail-Queue, `compose.scale.yaml`). Seit [ADR 0089](0089-valkey-statt-redis-8.md) mit Valkey statt Redis 8.
+  - **Weiter beim Auftraggeber:** die Zielplattform Azure Container Apps mit ihren Kosten, Key Vault, das echte Deployment und das Rate Limiting am Ingress. Die Delegation deckt keine Ausgaben.
 
 ## Quellen
 
