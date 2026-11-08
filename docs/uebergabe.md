@@ -89,28 +89,9 @@ cd web && npm run gen:api && npm run lint && npm run typecheck && npm test && np
 
 ## 4. Außerhalb von `main`
 
-Geprüft am 20.10.2026. Alles Übrige aus der ersten Übergabe ist erledigt: #88 und #92 sind gemergt, der Patch-Entwurf ist in #96 aufgegangen, die Anzahlung in #161.
+Stand 08.11.2026: Seit diesem Tag ist dieses öffentliche Repository das einzige. Das frühere, nicht öffentliche Repository mit der ganzen Historie ist gelöscht. Alle PR-Nummern vor dem 08.11.2026 (in dieser Datei, im [PR-Protokoll](umsetzung/pr-protokoll.md) und in den ADRs) beziehen sich auf dieses frühere Repository. Ihr Inhalt steht im PR-Protokoll, die Historie hat der Auftraggeber lokal gesichert.
 
-### 4.1 Offene Pull Requests
-
-| PR | Inhalt | Branch, Kopf | Noch relevant? | Zum Abschließen |
-| --- | --- | --- | --- | --- |
-| #91 | Rückverfolgung je Charge bei Rückruf (Lager): Abgänge buchen aus den zuerst ablaufenden Chargen, „Charge zurückverfolgen“ zeigt, wer eine Charge bekommen hat | `claude/kassa-yhmip3`, `84e57c8`, 82 Commits hinter `main` | ja, nichts davon ist auf `main` | `main` einmischen (Konflikte in Protokoll und Stand: beide Seiten behalten), Migration `ChargenRueckverfolgung` auf dem Snapshot von `main` neu erzeugen, `dotnet build` und `npm run gen:api`, Prüfkette, nach grüner CI mergen |
-| #151 | Dependabot: vier npm-Pakete im Web | `dependabot/npm_and_yarn/web/web-1780582442`, 20 hinter `main` | ja | CI abwarten; grün mergen, sonst schließen und Dependabot neu laufen lassen |
-
-### 4.2 Fertiger Stand ohne Pull Request
-
-Keiner. „Ersatz an anderen Standorten“ (Kalender-Kern, Commit `b7c1144`) ist am 23.10.2026 auf `dev` übernommen und zeigt die Vorschläge auch im Ausfall-Assistenten der Windows-App ([PR-Protokoll](umsetzung/pr-protokoll.md)).
-
-### 4.3 Branches
-
-| Branch | Zustand | Empfehlung |
-| --- | --- | --- |
-| `claude/kassa-yhmip3` | PR #91 | abschließen (4.1) |
-| `claude/kalender-kern-9m7c4i` | übernommen auf `dev` am 23.10.2026 | kann gelöscht werden (Auftraggeber) |
-| `feature/dev-sign-in-without-codes` | eigener Branch des Auftraggebers, drei Commits vom 18.10. | Startmeldung ohne Datenbank kam mit #144, Visual-Studio-Dateien mit #141; offen ist nur `DevSignIn:SkipCodes` (Anmeldung ohne Codes in der Entwicklung). Die Windows-App wählt inzwischen Testkonten direkt (#55); der Auftraggeber entscheidet, ob er den Rest noch braucht |
-| `claude/project-thread-osadul`, `claude/project-thread-h5vria`, `claude/online-buchung-ceyrvq`, `claude/ki-terminannahme-rci4gj`, `claude/project-thread-3o3vps`, `-afo38o`, `-cqpma2`, `-gktf5c`, `-ovjsoe`, `-yhdx2l`, `-yz178h`, `-7jb0iw`, `-lpajlg`, `claude/demo-behandlungen-wien-lwwruu`, `claude/grundgeruest-ci-q2889t` | per Squash gemergte Stände; Git zeigt sie als „voraus“, weil die Commits auf `main` andere Hashes haben | löschen |
-| `claude/project-thread-r29rb1` | dieser Dokumentations-PR | nach Merge löschen |
+Offen sind nur die Dependabot-PRs dieses Repositorys. Halbfertige Stände außerhalb von `main` gibt es nicht.
 
 ## 5. Offene Arbeit, in vorgeschlagener Reihenfolge
 
@@ -120,7 +101,7 @@ Je Modul ausführlich in [stand-und-offene-punkte.md](stand-und-offene-punkte.md
 
 **Runde R05 (29.10.2026, [ADR 0084](entscheidungen/0084-alle-masken-nativ-web-fuer-dashboard-und-handy.md)):** Alle Masken werden nativ in der Windows-App gebaut, das Web liefert nur Dashboard, Handy-Apps und Hilfe; dazu Team mit Personenkarte und HR, besseres Lager. Slices und Reihenfolge in `work/rounds/R05-native-masks-web-apps.md`, Zuordnung der Web-Seiten im [Masken-Inventar](umsetzung/masken-inventar.md). Die Liste unten bleibt gültig, wo sie die Web-Verwaltung nicht betrifft.
 
-1. **Halbfertiges abschließen** (Abschnitt 4): #91, #151.
+1. **Dependabot-PRs abarbeiten** (Abschnitt 4).
 2. **Prototyp unter Windows ausprobieren** (nächster Schritt des Auftraggebers laut [ADR 0019](entscheidungen/0019-autonomes-arbeiten-bis-zum-prototyp.md)): Hilfe mit WebView2, Einzelplatz, Mehrplatz im Netz, Speicher der App, ZVT/OPI an einem echten Gerät. Bisher nur unter Linux und in Tests geprüft.
 3. **Windows-App** ([windows-app-2.md](uebergabe/threads/windows-app-2.md)): neuen Kunden aus der Leiste „KI und Hilfe“ anlegen; Handbuch-Bild `web-calendar-assistent.png` neu erzeugen; Lotus-Knopf verdeckt auf manchen Seiten die rechte untere Ecke; Verwaltung über Aspire beim Auftraggeber prüfen (Ursache der fehlenden Weiterleitung API → Vite ungeklärt, #145 umgeht sie); Kassa ohne Verbindung mit Ersatzbelegen nach RKSV; Anzahlung anzeigen; Pakete in der Web-Kassa.
 4. **Kalender:** Ausfall-Assistent zu Ende denken (Gäste ohne Ersatz per SMS/WhatsApp, andere Tage, Paar und Spa-Tag verlegen), Empfangsgeräte verwalten, Lückenketten; aus den Rezeptions-Schritten: „Kommt später“ durch den Gast selbst, Sauna und Ausfallgebühr für Gäste ohne Namen, Wunsch ♀/♂ online, Anamnese-Hinweis bei Paar, Spa-Tag und in „Mein Tag“, automatische Vorschläge für Kennzeichen.
@@ -161,7 +142,7 @@ Ausführlich mit Ablauf, Prüfkette, PR-Text und PR-Protokoll: [arbeitsweise.md]
 Aus dem Projektchat, verbindlich für jede Weiterarbeit (Quellen in den ADRs):
 
 - **Sprache:** Alles, was der Auftraggeber liest, auf Deutsch (Oberfläche, Fehlermeldungen, PR-Titel und -Texte, Commits, Doku); Bezeichner im Code englisch.
-- **Branch und Pull Request auf `main`, Merge erst nach grüner CI** ([ADR 0019](entscheidungen/0019-autonomes-arbeiten-bis-zum-prototyp.md)). GitHub Actions hat seit dem 19.10.2026 ein Budget von 60 USD und läuft; ein Lauf dauert etwa 10 bis 15 Minuten. Nur wenn die Jobs wirklich nicht starten, nach voller lokaler Prüfkette mergen und „CI ausgefallen, lokal geprüft“ vermerken ([ADR 0044](entscheidungen/0044-pull-requests-bleiben-merge-auch-bei-ci-ausfall.md)).
+- **Branch und Pull Request auf `main`, Merge erst nach grüner CI** ([ADR 0019](entscheidungen/0019-autonomes-arbeiten-bis-zum-prototyp.md)). GitHub Actions ist für dieses öffentliche Repository kostenlos; ein Lauf dauert etwa 10 bis 15 Minuten. Nur wenn die Jobs wirklich nicht starten, nach voller lokaler Prüfkette mergen und „CI ausgefallen, lokal geprüft“ vermerken ([ADR 0044](entscheidungen/0044-pull-requests-bleiben-merge-auch-bei-ci-ausfall.md)).
 - **Detailentscheidungen** trifft Claude selbst nach den bisherigen Festlegungen und hält sie im PR-Text fest; danach Abschnitt im [PR-Protokoll](umsetzung/pr-protokoll.md) und [Stand](stand-und-offene-punkte.md) nachziehen. Grundsatzentscheidungen als neuer ADR nach der [Vorlage](entscheidungen/vorlage.md); nächste freie Nummer: 0068 (0063 ist für die offene Schnittstelle für Personal und Kunden reserviert).
 - **Hilfe und Handbuch im selben PR:** neue Einstellungen mit Hilfetext und Fragezeichen ([ADR 0055](entscheidungen/0055-hilfe-zu-jeder-einstellung-im-repository.md)), neue oder geänderte Abläufe mit Handbuch und neu erzeugten Bildern ([ADR 0056](entscheidungen/0056-handbuch-mit-ablaeufen-und-bildern-als-grundlage-der-ki-hilfe.md)).
 - **Nicht ohne den Auftraggeber:** Produktion, Löschen, Nachrichten an Dritte (Partneranfragen an Treatwell und Google ruhen, [ADR 0014](entscheidungen/0014-buchungsplattformen-ohne-partnervertrag.md)).

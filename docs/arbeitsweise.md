@@ -43,7 +43,7 @@ cd web && npm run gen:api && npm run lint && npm run typecheck && npm test && np
 
 Die Ansichtstests laufen getrennt in vier Prozessen (`scripts/view-tests.ps1`, ein Oberflächen-Thread je Prozess). Nach API-Änderungen `web/openapi/aispa-api.json` und `web/src/api/schema.d.ts` mit committen, sonst scheitert die CI.
 
-**Actions-Minuten sind knapp.** Das Konto hat GitHub Pro (3.000 Minuten im Monat für private Repositorys), Windows-Läufe zählen doppelt, und der Auftraggeber hat das Ausgabenlimit am 18.10. auf 20 USD und am 19.10.2026 auf 60 USD gesetzt. Ist es aufgebraucht, starten Jobs nicht (kein Läufer, keine Logs). Deshalb:
+**Actions sparsam nutzen.** Seit 08.11.2026 läuft die CI im öffentlichen Repository, dort kosten die Minuten nichts. Ein Lauf blockiert trotzdem 10 bis 15 Minuten lang die Merge-Entscheidung. Deshalb:
 
 - Nicht mehrfach „zum Testen“ pushen; erst lokal prüfen, dann pushen. Keine leeren Commits und kein Schließen und Öffnen des PRs, um die CI anzustoßen.
 - Läuft die CI, **auf grün warten**. Ein Lauf dauert einige Minuten; mit einer Wartezeit im Hintergrund prüfen statt ständig abzufragen. Bei Rot zuerst die Ursache klären und beheben, nie Tests überspringen oder abschalten. Ein wackeliger Test wird stabilisiert (Beispiel: PR #84).
