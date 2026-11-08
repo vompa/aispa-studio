@@ -640,11 +640,9 @@ public sealed class CalendarTests
         Assert.True(panel.MoveToDayCommand.CanExecute(null));
         Assert.False(panel.MoveDaysCommand.CanExecute("-1"));
         Assert.True(panel.MoveDaysCommand.CanExecute("1"));
-        Assert.Equal("Verschieben (Strg+S)", panel.MoveToDayTip);
 
         panel.MoveDateText = "28.02.2027";
         Assert.False(panel.MoveToDayCommand.CanExecute(null));
-        Assert.Equal("Verfügbar für heute oder einen späteren Tag.", panel.MoveToDayTip);
 
         panel.MoveDateText = "02.03.2027";
         Assert.True(panel.MoveToDayCommand.CanExecute(null));

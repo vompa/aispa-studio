@@ -478,16 +478,13 @@ public partial class AppointmentViewModel(
     /// <summary>Neuer Tag als „TT.MM.JJJJ“, vorbelegt mit dem bisherigen.</summary>
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(MoveToDayCommand), nameof(MoveDaysCommand))]
-    [NotifyPropertyChangedFor(nameof(MoveToDayTip))]
     public partial string MoveDateText { get; set; } = $"{DayLayout.Local(appointment.Start, zone):dd.MM.yyyy}";
 
     /// <summary>Untergrenze des Tag-Felds: Verschoben wird nur auf heute oder später (L2), wie der Server es prüft.</summary>
     public DateOnly Today => LocalToday;
 
-    /// <summary>Der eingegebene Tag liegt nicht vor heute; ein unlesbarer Tag bleibt erlaubt, damit „Verschieben“ ihn meldet statt still zu sperren.</summary>
+    /// <summary>Der eingegebene Tag liegt nicht vor heute; ein unlesbarer Tag bleibt erlaubt, damit „Verschieben“ ihn meldet statt still zu sperren. Den Grund am gesperrten Knopf nennt die Ansicht (DisabledHint).</summary>
     public bool MoveDateIsAllowed => ParseMoveDate() is not { } date || date >= LocalToday;
-
-    public string MoveToDayTip => MoveDateIsAllowed ? "Verschieben (Strg+S)" : "Verfügbar für heute oder einen späteren Tag.";
 
     [ObservableProperty]
     public partial string MoveTimeText { get; set; } = $"{DayLayout.Local(appointment.Start, zone):HH:mm}";
