@@ -50,6 +50,21 @@ Die Ansichtstests laufen getrennt in vier Prozessen (`scripts/view-tests.ps1`, e
 - Startet die CI nicht, gilt [ADR 0044](entscheidungen/0044-pull-requests-bleiben-merge-auch-bei-ci-ausfall.md): `main` einmischen, die volle lokale Prüfkette laufen lassen, mergen und im PR-Text **„CI ausgefallen, lokal geprüft“** mit den Zahlen der gelaufenen Tests vermerken.
 - Spar-Idee für später: Desktop-Job nur bei Änderungen unter `src/AispaStudio.Desktop`, oder eigener Runner.
 
+### Live-Tests der Windows-App
+
+Ein Live-Test spielt eine Rolle sichtbar in der echten App gegen einen Server mit Demo-Daten durch ([ADR 0090](entscheidungen/0090-live-tests-mit-flaui.md)). Er ist kein Teil der Prüfkette und läuft nicht in der CI; er dient zum Zusehen und Belegen.
+
+```bash
+docker compose up -d --build
+pwsh scripts/live-tests.ps1 -Role Reception -Speed slow
+```
+
+- `-Speed slow|normal|fast`: Pause je Schritt 1,5 s, 0,5 s oder keine. `-Step` beginnt angehalten.
+- Tasten in der Konsole: Leertaste Pause/Weiter, Enter ein Schritt (in der Pause), `S` Bild jetzt, `Q` Stopp.
+- Bericht und Bilder: `.test-logs/live/<Zeitstempel>-<rolle>/bericht.md`, ein Bild je Schritt, bei einem Fehler zusätzlich `-fehler.png`.
+- Exitcode: 0 bestanden, 1 Schritt gescheitert, 2 Aufruf oder Server, 3 mit `Q` gestoppt.
+- Bisher gibt es die Rolle Rezeption (Kundin anlegen, freie Zeit suchen, Termin buchen). Jeder Lauf legt eine Kundin `Eva Live<Zeitstempel>` mit Termin an; zum Aufräumen die Datenbank wie bei den Demo-Daten neu laden.
+
 ## 4. Commits und Pull Requests
 
 - **Mergen per Squash.** Der Titel des PRs wird zum Commit auf `main`, mit der PR-Nummer in Klammern: „Rechnungsempfänger in der Kundenkarte der Windows-App ändern (#104)“. Der Titel beschreibt, was die Nutzerin danach kann, in einem deutschen Satz; keine Präfixe wie `feat:`.
