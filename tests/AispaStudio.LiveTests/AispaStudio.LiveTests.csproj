@@ -13,4 +13,9 @@
     <PackageReference Include="FlaUI.UIA3" />
   </ItemGroup>
 
+  <!-- Die Starter-App (tests/AispaStudio.LiveTests.Launcher) nutzt dieselben Klassen mit Knöpfen statt Tasten. -->
+  <ItemGroup>
+    <InternalsVisibleTo Include="AispaStudio.LiveTests.Launcher" />
+  </ItemGroup>
+
 </Project>

@@ -1,0 +1,126 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:AispaStudio.LiveTests.Launcher"
+        x:Class="AispaStudio.LiveTests.Launcher.MainWindow"
+        x:DataType="local:MainViewModel"
+        Title="AISPA Live-Tests"
+        Width="380" MinWidth="320" Height="820"
+        Topmost="True"
+        Background="{StaticResource BgBrush}">
+  <Grid RowDefinitions="Auto,*,Auto,Auto" Margin="16">
+
+    <StackPanel Grid.Row="0" Spacing="2">
+      <TextBlock Text="Live-Tests" FontSize="20" FontWeight="SemiBold" Foreground="{StaticResource FgBrush}" />
+      <TextBlock Classes="hint" Text="Spielt eine Rolle sichtbar in der AISPA-App durch. Die App erscheint links daneben." />
+    </StackPanel>
+
+    <ScrollViewer Grid.Row="1" Margin="0,8,0,8">
+      <StackPanel>
+        <StackPanel IsEnabled="{Binding IsIdle}">
+          <TextBlock Classes="label" Text="Rolle" />
+          <ComboBox ItemsSource="{Binding Roles}" SelectedItem="{Binding SelectedRole}" HorizontalAlignment="Stretch"
+                    AutomationProperties.Name="Rolle">
+            <ComboBox.Styles>
+              <Style Selector="ComboBoxItem" x:DataType="local:RoleOption">
+                <Setter Property="IsEnabled" Value="{Binding IsAvailable}" />
+              </Style>
+            </ComboBox.Styles>
+            <ComboBox.ItemTemplate>
+              <DataTemplate x:DataType="local:RoleOption">
+                <TextBlock Text="{Binding Display}" />
+              </DataTemplate>
+            </ComboBox.ItemTemplate>
+          </ComboBox>
+
+          <TextBlock Classes="label" Text="Themen" />
+          <CheckBox IsChecked="True" IsEnabled="False" AutomationProperties.Name="Anmelden (immer)">
+            <StackPanel>
+              <TextBlock Text="Anmelden (immer)" />
+              <TextBlock Classes="hint" Text="{Binding SetupName}" />
+            </StackPanel>
+          </CheckBox>
+          <ItemsControl ItemsSource="{Binding Topics}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="local:TopicOption">
+                <CheckBox IsChecked="{Binding IsChecked}" AutomationProperties.Name="{Binding Topic.Name}">
+                  <StackPanel>
+                    <TextBlock Text="{Binding Topic.Name}" />
+                    <TextBlock Classes="hint" Text="{Binding Topic.Description}" />
+                  </StackPanel>
+                </CheckBox>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+
+          <TextBlock Classes="label" Text="Tempo" />
+          <ComboBox ItemsSource="{Binding Speeds}" SelectedIndex="{Binding SpeedIndex}" HorizontalAlignment="Stretch"
+                    AutomationProperties.Name="Tempo" />
+          <CheckBox Content="Angehalten beginnen" IsChecked="{Binding StartPaused}" Margin="0,8,0,0" />
+
+          <TextBlock Classes="label" Text="Server" />
+          <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+            <TextBox Text="{Binding ApiUrl}" AutomationProperties.Name="Serveradresse" />
+            <Button Grid.Column="1" Content="Prüfen" Command="{Binding CheckServerCommand}" />
+          </Grid>
+          <TextBlock Classes="hint" Text="{Binding ServerText}" Margin="0,4,0,0" />
+          <TextBlock Classes="hint" Text="AISPA-App nicht gebaut. Zuerst: dotnet build src/AispaStudio.Desktop -c Release" IsVisible="{Binding AppMissing}"
+                     Foreground="{StaticResource CritBrush}" Margin="0,4,0,0" />
+        </StackPanel>
+
+        <TextBlock Classes="label" Text="Schritte" />
+        <ItemsControl ItemsSource="{Binding Steps}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="local:StepRow">
+              <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="1"
+                      CornerRadius="6" Padding="8,6" Margin="0,0,0,4">
+                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8">
+                  <TextBlock Text="{Binding Number}" Foreground="{StaticResource Fg2Brush}" />
+                  <StackPanel Grid.Column="1">
+                    <TextBlock Text="{Binding Name}" TextWrapping="Wrap" />
+                    <TextBlock Classes="hint" Text="{Binding Error}" IsVisible="{Binding HasError}"
+                               Foreground="{StaticResource CritBrush}" />
+                  </StackPanel>
+                  <TextBlock Grid.Column="2" Text="{Binding Status}"
+                             Classes.ok="{Binding IsOk}" Classes.failed="{Binding IsFailed}">
+                    <TextBlock.Styles>
+                      <Style Selector="TextBlock.ok">
+                        <Setter Property="Foreground" Value="{StaticResource OkBrush}" />
+                      </Style>
+                      <Style Selector="TextBlock.failed">
+                        <Setter Property="Foreground" Value="{StaticResource CritBrush}" />
+                      </Style>
+                    </TextBlock.Styles>
+                  </TextBlock>
+                </Grid>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </StackPanel>
+    </ScrollViewer>
+
+    <StackPanel Grid.Row="2" Spacing="8">
+      <Button Classes="accent" Content="Start" Command="{Binding StartCommand}" HorizontalAlignment="Stretch"
+              HorizontalContentAlignment="Center" />
+      <UniformGrid Columns="4" ColumnSpacing="6">
+        <Button Content="{Binding PauseText}" Command="{Binding TogglePauseCommand}" HorizontalAlignment="Stretch"
+                HorizontalContentAlignment="Center" />
+        <Button Content="Schritt" Command="{Binding StepOnceCommand}" HorizontalAlignment="Stretch"
+                HorizontalContentAlignment="Center" ToolTip.Tip="In der Pause genau einen Schritt" />
+        <Button Content="Bild" Command="{Binding ShotCommand}" HorizontalAlignment="Stretch"
+                HorizontalContentAlignment="Center" ToolTip.Tip="Bild des App-Fensters vor dem nächsten Schritt" />
+        <Button Content="Stopp" Command="{Binding StopCommand}" HorizontalAlignment="Stretch"
+                HorizontalContentAlignment="Center" />
+      </UniformGrid>
+      <UniformGrid Columns="2" ColumnSpacing="6">
+        <Button Content="Bericht öffnen" Command="{Binding OpenReportCommand}" HorizontalAlignment="Stretch"
+                HorizontalContentAlignment="Center" />
+        <Button Content="Ordner öffnen" Command="{Binding OpenFolderCommand}" HorizontalAlignment="Stretch"
+                HorizontalContentAlignment="Center" />
+      </UniformGrid>
+    </StackPanel>
+
+    <TextBlock Grid.Row="3" Text="{Binding StatusText}" TextWrapping="Wrap" Margin="0,8,0,0"
+               Foreground="{StaticResource FgBrush}" AutomationProperties.LiveSetting="Polite" />
+  </Grid>
+</Window>
