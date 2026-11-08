@@ -5481,6 +5481,15 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Nicht geprüft:** Die Tasten (Leertaste, Enter, `S`, `Q`) von Hand in einer echten Konsole; Rollen Inhaberin und Mitarbeiterin; Kassieren.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
 
+## Starter-App für die Live-Tests mit Themenauswahl (08.11.2026)
+
+- **Auftrag:** „Schreib zuerst eine kleine Windows App, aus der man die Live-Tests mit Themenauswahl starten kann.“ Der Auftraggeber hat „Themen je Rolle“ und „Knöpfe in der App“ gewählt.
+- **Was:** Nachtrag in [ADR 0090](../entscheidungen/0090-live-tests-mit-flaui.md); der Tester ist zugleich Bibliothek mit Rollen (`LiveJourney`) und Themen (`LiveTopic`), die Konsole nimmt `--topics`; neue Starter-App `tests/AispaStudio.LiveTests.Launcher` (Avalonia, nicht in der Solution); `scripts/live-tests.ps1` mit `-Gui` und `-Topics`; [Arbeitsweise](../arbeitsweise.md#live-tests-der-windows-app) ergänzt.
+- **Detailentscheidungen:** (1) Die Anmeldung ist fester Vorlauf jeder Rolle und in der Starter-App angehakt und gesperrt, weil kein Thema ohne sie läuft. (2) „Termin buchen“ ohne „Kundin anlegen“ bucht für Ingrid Wallner aus den Demo-Daten und prüft die Buchung an der Meldung „Gebucht: …“ und an der Kalenderkarte. (3) Die Starter-App liegt immer oben am rechten Rand, das App-Fenster kommt per UI Automation auf die Fläche daneben; so landen Klicks und Bilder nie in der Starter-App. (4) Der Lauf läuft in einem Hintergrund-Thread, die Schritte kommen über Ereignisse von `LiveSession` und den Dispatcher in die Liste; Konsole und Knöpfe rufen dieselben Befehle in `LiveControl`. (5) Inhaberin und Mitarbeiterin stehen ausgegraut mit „kommt noch“ in der Auswahl.
+- **Geprüft:** Konsole: alle Themen 13 von 13, `--topics appointment` 9 von 9, `-Topics customer` über das Skript 7 von 7 mit Exitcode 0. Starter-App echt bedient (Klicks über UI Automation): nur „Kundin anlegen“ 7 von 7; nur „Termin buchen“ angehalten begonnen, mit Schritt, Bild und Weiter 9 von 9, im Bericht „Bild auf Wunsch“ und „Weiter“; Stopp nach dem ersten Schritt ergibt „Gestoppt“ und im Bericht „Stopp“; „Bericht öffnen“ öffnet `bericht.md`. Gegenprobe: falsche Serveradresse zeigt „Server nicht erreichbar“, Start ist gesperrt. Die Bilder zeigen nur die AISPA-App. `-Gui` startet die Starter-App. `dotnet format` beider Projekte ohne Änderung, Release-Build ohne Warnung.
+- **Nicht geprüft:** Rollen Inhaberin und Mitarbeiterin; Kassieren; Bildschirme mit anderer Skalierung als 125 %; die CI (Windows-Oberfläche, nicht in der Solution).
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
 ## oxlint: Regel `react/immutability` aus (08.11.2026)
 
 - **Auftrag:** Dependabot-PR #4 (sieben npm-Pakete, darunter oxlint 1.88 → 1.91) läuft im Job „Web“ rot: oxlint 1.91 bringt die Regel `react/immutability` mit, `--deny-warnings` macht drei Warnungen zum Fehler.

@@ -4,6 +4,7 @@ using System.Text.Json;
 using FlaUI.Core;
 using FlaUI.Core.AutomationElements;
 using FlaUI.Core.Capturing;
+using FlaUI.Core.Definitions;
 using FlaUI.Core.Input;
 using FlaUI.Core.Tools;
 using FlaUI.Core.WindowsAPI;
@@ -22,7 +23,6 @@ internal sealed class LiveSession : IDisposable
     private readonly LiveOptions _options;
     private readonly UIA3Automation _automation = new();
     private readonly Application _app;
-    private readonly LiveControl _control;
     private readonly string _folder;
     private int _step;
     private int _extraShot;
@@ -33,14 +33,30 @@ internal sealed class LiveSession : IDisposable
         _app = app;
         _folder = folder;
         Report = new LiveReport(folder, role, options);
-        _control = new LiveControl(options.StartPaused, Report.AddEvent);
+        Control = new LiveControl(options.StartPaused, options.ConsoleKeys, Report.AddEvent);
         Window = app.GetMainWindow(_automation, TimeSpan.FromSeconds(60))
                  ?? throw new InvalidOperationException("Das Fenster der App ist nicht erschienen.");
-        Console.WriteLine($"Live-Test {role}: Bericht in {folder}");
-        Console.WriteLine("Tasten: Leertaste Pause/Weiter, Enter Einzelschritt, S Bild, Q Stopp");
+        if (options.AppArea is { } area)
+        {
+            PlaceWindow(area);
+        }
     }
 
+    /// <summary>Vor jedem Schritt: Nummer und Name.</summary>
+    public event Action<int, string>? StepStarted;
+
+    /// <summary>Nach jedem Schritt, auch bei einem Fehler.</summary>
+    public event Action<LiveStepResult>? StepFinished;
+
     public LiveReport Report { get; }
+
+    public LiveControl Control { get; }
+
+    /// <summary>Laufordner mit Bericht und Bildern.</summary>
+    public string Folder => _folder;
+
+    /// <summary>Ergebnis in einem Satz, sobald <see cref="Run"/> fertig ist.</summary>
+    public string? Result { get; private set; }
 
     public Window Window { get; }
 
@@ -55,52 +71,56 @@ internal sealed class LiveSession : IDisposable
         return new LiveSession(options, Application.Launch(start), folder, role);
     }
 
-    /// <summary>Führt den Ablauf aus und liefert den Exitcode: 0 alles bestanden, 1 ein Schritt gescheitert, 3 mit Q gestoppt.</summary>
+    /// <summary>Führt den Ablauf aus und liefert den Exitcode: 0 alles bestanden, 1 ein Schritt gescheitert, 3 gestoppt.</summary>
     public int Run(Action journey)
     {
+        int code;
         try
         {
             journey();
-            Report.Finish($"Bestanden: alle {_step} Schritte.");
-            Console.WriteLine($"Bestanden: alle {_step} Schritte.");
-            return 0;
+            Result = $"Bestanden: alle {_step} Schritte.";
+            code = 0;
         }
         catch (OperationCanceledException ex)
         {
-            Report.Finish($"Gestoppt nach {_step} Schritten: {ex.Message}");
-            return 3;
+            Result = $"Gestoppt nach {_step} {(_step == 1 ? "Schritt" : "Schritten")}: {ex.Message}";
+            code = 3;
         }
         catch (Exception ex)
         {
-            Report.Finish($"Nicht bestanden in Schritt {_step}: {ex.Message}");
-            Console.WriteLine($"Nicht bestanden in Schritt {_step}.");
-            return 1;
+            Result = $"Nicht bestanden in Schritt {_step}: {ex.Message}";
+            code = 1;
         }
+
+        Report.Finish(Result);
+        return code;
     }
 
     /// <summary>Ein benannter Schritt: wartet bei Pause, führt aus, macht ein Bild und trägt das Ergebnis ein.</summary>
     public void Step(string name, Action action)
     {
-        _control.WaitBeforeStep(name, () => Shot("bild"));
+        Control.WaitBeforeStep(name, () => Shot("bild"));
         var number = ++_step;
         var started = DateTime.Now;
         var watch = Stopwatch.StartNew();
-        Console.Write($"{number,3}. {name} … ");
+        StepStarted?.Invoke(number, name);
         try
         {
             action();
             Thread.Sleep(_options.StepDelay);
-            Report.AddStep(number, name, started, watch.Elapsed, true, Shot($"{number:00}-{name}"), null);
-            Console.WriteLine("✓");
+            var image = Shot($"{number:00}-{name}");
+            Report.AddStep(number, name, started, watch.Elapsed, true, image, null);
+            StepFinished?.Invoke(new LiveStepResult(number, name, watch.Elapsed, true, null, image));
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            Report.AddStep(number, name, started, watch.Elapsed, false, Shot($"{number:00}-{name}-fehler"), ex.Message);
-            Console.WriteLine($"✗ {ex.Message}");
+            var image = Shot($"{number:00}-{name}-fehler");
+            Report.AddStep(number, name, started, watch.Elapsed, false, image, ex.Message);
+            StepFinished?.Invoke(new LiveStepResult(number, name, watch.Elapsed, false, ex.Message, image));
             throw;
         }
 
-        if (_control.TakeShotRequest())
+        if (Control.TakeShotRequest())
         {
             Shot("bild");
         }
@@ -213,6 +233,20 @@ internal sealed class LiveSession : IDisposable
 
     /// <summary>Wartet, bis ein Element sichtbar ist, auf das <paramref name="match"/> zutrifft; <paramref name="what"/> steht in der Fehlermeldung.</summary>
     public void Expect(Func<AutomationElement, bool> match, string what) => Highlight(Find(match, what));
+
+    /// <summary>Setzt das App-Fenster auf die Fläche neben der Starter-App, damit Klicks und Bilder sie nie treffen.</summary>
+    private void PlaceWindow(Rectangle area)
+    {
+        var state = Window.Patterns.Window.PatternOrDefault;
+        if (state is not null && state.WindowVisualState.ValueOrDefault != WindowVisualState.Normal)
+        {
+            state.SetWindowVisualState(WindowVisualState.Normal);
+        }
+
+        var transform = Window.Patterns.Transform.Pattern;
+        transform.Move(area.X, area.Y);
+        transform.Resize(area.Width, area.Height);
+    }
 
     public void Dispose()
     {

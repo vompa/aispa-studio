@@ -1,0 +1,32 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="AispaStudio.LiveTests.Launcher.App"
+             RequestedThemeVariant="Light">
+  <!-- Werte aus docs/design.md (helles Schema); die Starter-App ist ein Werkzeug, kein Teil des Produkts. -->
+  <Application.Resources>
+    <SolidColorBrush x:Key="BgBrush" Color="#f3f0ea" />
+    <SolidColorBrush x:Key="SurfaceBrush" Color="#ffffff" />
+    <SolidColorBrush x:Key="LineBrush" Color="#e4ded3" />
+    <SolidColorBrush x:Key="FgBrush" Color="#1a2321" />
+    <SolidColorBrush x:Key="Fg2Brush" Color="#47524f" />
+    <SolidColorBrush x:Key="OkBrush" Color="#2c6e46" />
+    <SolidColorBrush x:Key="WarnBrush" Color="#8f5900" />
+    <SolidColorBrush x:Key="CritBrush" Color="#b42318" />
+    <Color x:Key="SystemAccentColor">#0d5c63</Color>
+    <Color x:Key="SystemAccentColorDark1">#0a4a50</Color>
+    <Color x:Key="SystemAccentColorLight1">#11717a</Color>
+  </Application.Resources>
+  <Application.Styles>
+    <FluentTheme />
+    <Style Selector="TextBlock.label">
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="{StaticResource Fg2Brush}" />
+      <Setter Property="Margin" Value="0,12,0,4" />
+    </Style>
+    <Style Selector="TextBlock.hint">
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="Foreground" Value="{StaticResource Fg2Brush}" />
+      <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+  </Application.Styles>
+</Application>

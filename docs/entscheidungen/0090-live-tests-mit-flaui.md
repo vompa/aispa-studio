@@ -34,8 +34,17 @@ Nur die echte App gegen einen echten Server zeigt, was eine Rezeptionistin sieht
 - Probelauf Rezeption: anmelden als Nina Kovač, nächster Tag, neue Kundin mit eindeutigem Namen und Telefon, „Anlegen und Termin buchen“, Behandlung wählen, „Freie Zeit suchen“, erste freie Zeit buchen, Prüfung an der Kalenderkarte. Zehn Schritte, rund 75 Sekunden bei `-Speed slow`.
 - Eine feste Uhrzeit hält nicht, weil jeder Lauf einen Termin in der Datenbank hinterlässt; die Rezeption sucht deshalb freie Zeit wie im Betrieb.
 - Kassieren ist noch nicht dabei: Es braucht „Ist da“, und das geht nur am Tag des Termins. Der Bericht vermerkt das.
-- Offen: Rolle Inhaberin (Windows-App), Rolle Mitarbeiterin (Handy-App im Web, sichtbar per Playwright), Kassieren mit einem Termin am selben Tag, eigenes Steuerfenster statt Konsole, Lauf in der CI (braucht eine echte Bildschirmsitzung).
+- Offen: Rolle Inhaberin (Windows-App), Rolle Mitarbeiterin (Handy-App im Web, sichtbar per Playwright), Kassieren mit einem Termin am selben Tag, Lauf in der CI (braucht eine echte Bildschirmsitzung).
 - Erkenntnisse zur Steuerung: Die Auswahl „Behandlung“ ist virtualisiert, Buchstaben lösen im Kalender Tastenkürzel aus; gesucht wird deshalb nur unter `ComboBoxItem`. Gleichnamige Texte stehen oft auch im Kalender, Prüfungen nennen deshalb die Art des Elements (`AppointmentCard`).
+
+## Nachtrag 08.11.2026: Starter-App und Themen
+
+Der Auftraggeber wollte eine kleine Windows-App, aus der man die Live-Tests mit einer Auswahl der Themen startet. Entschieden hat er „Themen je Rolle“ und „Knöpfe in der App“.
+
+- Der Tester ist zugleich Bibliothek: Eine Rolle ist ein `LiveJourney` mit festem Vorlauf (abmelden, anmelden, nächster Tag) und Themen. Die Rezeption hat „Kundin anlegen“ und „Termin buchen“; ohne neue Kundin bucht „Termin buchen“ für Ingrid Wallner aus den Demo-Daten. Die Konsole nimmt `--topics customer,appointment`, das Skript `-Topics`; ohne Angabe laufen alle Themen.
+- Neue Starter-App `tests/AispaStudio.LiveTests.Launcher` (Avalonia, FluentTheme, CommunityToolkit.Mvvm, wie der Tester nicht in `AispaStudio.slnx`), Start mit `pwsh scripts/live-tests.ps1 -Gui`. Sie zeigt Rolle (Inhaberin und Mitarbeiterin ausgegraut, „kommt noch“), Themen zum Anhaken, Tempo, „Angehalten beginnen“, die Serveradresse mit Prüfung über `/api/system/status`, die Schritte live mit ✓/✗ und die Knöpfe Start, Pause/Weiter, Schritt, Bild, Stopp, „Bericht öffnen“ und „Ordner öffnen“.
+- Die Starter-App liegt schmal und immer oben am rechten Rand; der Tester setzt das App-Fenster über UI Automation (`WindowPattern`, `TransformPattern`) auf die Fläche links daneben. So treffen Klicks und Bilder die Starter-App nicht.
+- Die Konsolentasten bleiben für den Konsolenbetrieb; beide Wege rufen dieselben Befehle in `LiveControl`.
 
 ## Quellen
 
