@@ -429,7 +429,17 @@ public partial class AppointmentViewModel(
 
     /// <summary>Neuer Tag als „TT.MM.JJJJ“, vorbelegt mit dem bisherigen.</summary>
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(MoveToDayCommand), nameof(MoveDaysCommand))]
+    [NotifyPropertyChangedFor(nameof(MoveToDayTip))]
     public partial string MoveDateText { get; set; } = $"{DayLayout.Local(appointment.Start, zone):dd.MM.yyyy}";
+
+    /// <summary>Untergrenze des Tag-Felds: Verschoben wird nur auf heute oder später (L2), wie der Server es prüft.</summary>
+    public DateOnly Today => LocalToday;
+
+    /// <summary>Der eingegebene Tag liegt nicht vor heute; ein unlesbarer Tag bleibt erlaubt, damit „Verschieben“ ihn meldet statt still zu sperren.</summary>
+    public bool MoveDateIsAllowed => ParseMoveDate() is not { } date || date >= LocalToday;
+
+    public string MoveToDayTip => MoveDateIsAllowed ? "Verschieben (Strg+S)" : "Verfügbar für heute oder einen späteren Tag.";
 
     [ObservableProperty]
     public partial string MoveTimeText { get; set; } = $"{DayLayout.Local(appointment.Start, zone):HH:mm}";
@@ -454,7 +464,7 @@ public partial class AppointmentViewModel(
     [RelayCommand]
     private void CancelMoveToDay() => IsMovingToDay = false;
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanMoveDays))]
     private void MoveDays(string? days)
     {
         if (int.TryParse(days, System.Globalization.CultureInfo.InvariantCulture, out var offset) && ParseMoveDate() is { } date)
@@ -463,12 +473,16 @@ public partial class AppointmentViewModel(
         }
     }
 
+    /// <summary>„−1 Tag“ ist gesperrt, sobald das Ziel vor heute läge.</summary>
+    private bool CanMoveDays(string? days) =>
+        !(int.TryParse(days, System.Globalization.CultureInfo.InvariantCulture, out var offset) && ParseMoveDate() is { } date) || date.AddDays(offset) >= LocalToday;
+
     /// <summary>Der heutige Tag in der Ortszeit des Standorts, für Datumsangaben ohne Jahr und zweistellige Jahre.</summary>
     private DateOnly LocalToday => DateOnly.FromDateTime(DayLayout.Local(Time.GetUtcNow(), zone));
 
     private DateOnly? ParseMoveDate() => DateInputParser.TryParse(MoveDateText, LocalToday);
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(MoveDateIsAllowed))]
     private async Task MoveToDayAsync()
     {
         var (moveDate, dateError) = DateInputParser.ParseRequired(MoveDateText, LocalToday);

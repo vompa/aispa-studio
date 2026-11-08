@@ -962,7 +962,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Verschiebt einen Termin; ohne Angabe bleiben Person, Raum und Gerät, wenn sie zur neuen Zeit frei sind. Mit expectedVersion (Version des Stands, von dem aus geändert wird) antwortet der Server mit 409 und dem aktuellen Termin in current, wenn der Termin inzwischen geändert wurde; das gilt ebenso für Zeiten, Notiz, Storno, Status und Zurücknehmen. */
+        /** Verschiebt einen Termin auf heute oder später (ein früherer Tag ergibt 409); ohne Angabe bleiben Person, Raum und Gerät, wenn sie zur neuen Zeit frei sind. Mit expectedVersion (Version des Stands, von dem aus geändert wird) antwortet der Server mit 409 und dem aktuellen Termin in current, wenn der Termin inzwischen geändert wurde; das gilt ebenso für Zeiten, Notiz, Storno, Status und Zurücknehmen. */
         post: operations["MoveAppointment"];
         delete?: never;
         options?: never;
@@ -1268,7 +1268,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Verschiebt eine ganze gemeinsame Buchung (Paar, Spa-Tag) auf einen neuen Beginn: alle Termine oder keiner. */
+        /** Verschiebt eine ganze gemeinsame Buchung (Paar, Spa-Tag) auf einen neuen Beginn an heute oder später (ein früherer Tag ergibt 409): alle Termine oder keiner. */
         post: operations["MoveAppointmentGroup"];
         delete?: never;
         options?: never;

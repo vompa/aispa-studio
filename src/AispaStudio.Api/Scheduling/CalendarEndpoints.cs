@@ -208,11 +208,18 @@ internal static class CalendarEndpoints
                 + "Außerhalb der Öffnungszeit oder des Dienstes trägt die 409 OutsideHours; mit OutsideHoursConfirmed („Trotzdem buchen“) bucht die Rezeption trotzdem, Warnings trägt dann „Außerhalb der Öffnungszeit oder des Dienstes gebucht.“.");
 
         group.MapPost("/appointments/{appointmentId:guid}/move", async Task<Results<Ok<AppointmentDto>, ValidationProblem, ProblemHttpResult, Conflict<BookingRejected>>> (
-                Guid appointmentId, MoveAppointmentRequest request, BookingService booking, CancellationToken ct) =>
-                Respond(await booking.MoveAsync(appointmentId, request, ct, house: true)))
+                Guid appointmentId, MoveAppointmentRequest request, BookingService booking, AispaDbContext db, TimeProvider time, CancellationToken ct) =>
+            {
+                if (await PastBookings.CheckMoveAsync(db, time, appointmentId, request.Start, ct) is { } past)
+                {
+                    return TypedResults.Conflict(past);
+                }
+
+                return Respond(await booking.MoveAsync(appointmentId, request, ct, house: true));
+            })
             .WithName("MoveAppointment")
             .RequirePermission(AccessRight.Book)
-            .WithSummary("Verschiebt einen Termin; ohne Angabe bleiben Person, Raum und Gerät, wenn sie zur neuen Zeit frei sind. "
+            .WithSummary("Verschiebt einen Termin auf heute oder später (ein früherer Tag ergibt 409); ohne Angabe bleiben Person, Raum und Gerät, wenn sie zur neuen Zeit frei sind. "
                 + "Mit expectedVersion (Version des Stands, von dem aus geändert wird) antwortet der Server mit 409 und dem aktuellen Termin in current, "
                 + "wenn der Termin inzwischen geändert wurde; das gilt ebenso für Zeiten, Notiz, Storno, Status und Zurücknehmen.");
 
@@ -399,18 +406,25 @@ internal static class CalendarEndpoints
             .WithSummary("Storniert alle offenen Termine einer gemeinsamen Buchung.");
 
         group.MapPost("/locations/{locationId:guid}/appointment-groups/{groupId:guid}/move", async Task<Results<Ok<GroupBookingResult>, ValidationProblem, ProblemHttpResult, Conflict<BookingRejected>>> (
-                Guid locationId, Guid groupId, MoveGroupRequest request, BookingService booking, CancellationToken ct) =>
-                await booking.MoveGroupAsync(locationId, groupId, request.Start, ct) switch
+                Guid locationId, Guid groupId, MoveGroupRequest request, BookingService booking, AispaDbContext db, TimeProvider time, CancellationToken ct) =>
+            {
+                if (await PastBookings.CheckAsync(db, time, locationId, request.Start, ct, PastBookings.MoveMessage) is { } past)
+                {
+                    return TypedResults.Conflict(past);
+                }
+
+                return await booking.MoveGroupAsync(locationId, groupId, request.Start, ct) switch
                 {
                     BookingOutcome.GroupBooked g => TypedResults.Ok(g.Result),
                     BookingOutcome.NotFound n => NotFound(n),
                     BookingOutcome.Invalid i => Invalid(i),
                     BookingOutcome.Rejected r => TypedResults.Conflict(r.Reason),
                     var other => throw Unexpected(other),
-                })
+                };
+            })
             .WithName("MoveAppointmentGroup")
             .RequirePermission(AccessRight.Book)
-            .WithSummary("Verschiebt eine ganze gemeinsame Buchung (Paar, Spa-Tag) auf einen neuen Beginn: alle Termine oder keiner.");
+            .WithSummary("Verschiebt eine ganze gemeinsame Buchung (Paar, Spa-Tag) auf einen neuen Beginn an heute oder später (ein früherer Tag ergibt 409): alle Termine oder keiner.");
 
         group.MapGet("/locations/{locationId:guid}/areas", async Task<Results<Ok<IReadOnlyList<AreaDay>>, NotFound>> (
                 Guid locationId, DateOnly date, AreaVisitService areas, CancellationToken ct) =>

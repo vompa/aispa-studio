@@ -192,7 +192,7 @@
               <TextBlock Text="Verschieben" FontWeight="Medium" />
               <StackPanel Orientation="Horizontal" Spacing="12">
                 <ui:FormField Label="Tag">
-                  <ui:DateField x:Name="MoveDateBox" CommittedText="{Binding MoveDateText}" />
+                  <ui:DateField x:Name="MoveDateBox" CommittedText="{Binding MoveDateText}" Minimum="{Binding Today}" />
                 </ui:FormField>
                 <ui:FormField Label="Beginn">
                   <ui:TimeField CommittedText="{Binding MoveTimeText}" />
@@ -212,7 +212,7 @@
               <ContentControl Content="{Binding Conflict}" IsVisible="{Binding ConflictInMove}" />
               <UniformGrid Columns="2" ColumnSpacing="8">
                 <Button Classes="primary" Content="Verschieben" Command="{Binding MoveToDayCommand}" HorizontalAlignment="Stretch"
-                        HorizontalContentAlignment="Center" IsDefault="True" ui:SaveShortcut.IsSave="True" ToolTip.Tip="Verschieben (Strg+S)" />
+                        HorizontalContentAlignment="Center" IsDefault="True" ui:SaveShortcut.IsSave="True" ToolTip.Tip="{Binding MoveToDayTip}" ToolTip.ShowOnDisabled="True" />
                 <Button Classes="ghost" Content="Abbrechen" Command="{Binding CancelMoveToDayCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
               </UniformGrid>
             </StackPanel>

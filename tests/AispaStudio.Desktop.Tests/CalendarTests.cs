@@ -590,6 +590,34 @@ public sealed class CalendarTests
     }
 
     [Fact]
+    public async Task Verschieben_Karte_sperrt_Tage_vor_heute_und_nennt_den_Grund_im_Tooltip()
+    {
+        var appointment = TestData.Appointment(10, TestData.Anna);
+        var vm = await OpenAsync(Api(appointment));
+        vm.Open(vm.Columns[0].Items[0]);
+        var panel = vm.Selected!;
+        panel.AskMoveToDayCommand.Execute(null);
+
+        Assert.Equal(TestData.Monday, panel.Today);
+        Assert.True(panel.MoveToDayCommand.CanExecute(null));
+        Assert.False(panel.MoveDaysCommand.CanExecute("-1"));
+        Assert.True(panel.MoveDaysCommand.CanExecute("1"));
+        Assert.Equal("Verschieben (Strg+S)", panel.MoveToDayTip);
+
+        panel.MoveDateText = "28.02.2027";
+        Assert.False(panel.MoveToDayCommand.CanExecute(null));
+        Assert.Equal("Verfügbar für heute oder einen späteren Tag.", panel.MoveToDayTip);
+
+        panel.MoveDateText = "02.03.2027";
+        Assert.True(panel.MoveToDayCommand.CanExecute(null));
+        Assert.True(panel.MoveDaysCommand.CanExecute("-1"));
+
+        // Ein unlesbarer Tag bleibt erlaubt: „Verschieben“ meldet ihn im Feld statt still zu sperren.
+        panel.MoveDateText = "32.03.2027";
+        Assert.True(panel.MoveToDayCommand.CanExecute(null));
+    }
+
+    [Fact]
     public async Task Einzeltermin_aus_dem_Terminfenster_auf_einen_anderen_Tag_verschieben()
     {
         var appointment = TestData.Appointment(10, TestData.Anna);

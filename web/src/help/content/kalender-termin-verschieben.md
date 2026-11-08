@@ -45,6 +45,7 @@ Die alte Zeit gilt als frei; der Server schreibt passenden Gästen auf der [Wart
 
 - Lehnt der Server ab (z. B. Person, Raum oder Gerät belegt), springt der Termin zurück und unten steht „Nicht verschoben: …“ mit der Begründung; belegte Zeiträume stehen darin in Ortszeit des Standorts („Zeitraum ist belegt. Termin · 11:00–11:50 · Clara Fischer“).
 - Erledigte, nicht erschienene und stornierte Termine lassen sich nicht verschieben, eingecheckte schon.
+- Auf einen vergangenen Tag lässt sich kein Termin verschieben, auch keine ganze Buchung: Das Feld „Tag“ nimmt nur heute oder einen späteren Tag an, **−1 Tag** und **Verschieben** sind dann gesperrt („Verfügbar für heute oder einen späteren Tag.“). Ziehen und Alt + Pfeiltasten bleiben ohnehin im angezeigten Tag.
 - Hat jemand den Termin inzwischen an einem anderen Arbeitsplatz geändert, verschiebt der Server nicht. Oben steht „Nicht verschoben“ mit „Der Termin wurde inzwischen an einem anderen Arbeitsplatz geändert. Bitte den aktuellen Stand prüfen.“, und der Kalender zeigt den Termin so, wie ihn der andere Arbeitsplatz gespeichert hat. Dasselbe gilt im Terminfenster für Zeiten, Notiz, Stornieren, Status und Zurücknehmen; die Meldung steht dann oben im Terminfenster. Die eigene Änderung bei Bedarf neu eingeben.
 - Fehlermeldungen bleiben stehen, bis man sie mit dem Kreuz schließt.
 - **V** auf einem markierten Termin erinnert nur, wie das Verschieben geht.

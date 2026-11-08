@@ -429,3 +429,16 @@ Expected: Die Daten sind da; die Datenbank wurde geordnet gestoppt (kein Wiederh
 Expected: Die App endet trotzdem, spätestens nach etwa 20 Sekunden, ohne eingefrorenes Fenster.
 Closes: – (T-053, Linter AV-APP-07)
 Result: ☐
+
+### Rezeptions-Lücken A – Verschieben nicht in die Vergangenheit
+Start: `dotnet run --project src/AispaStudio.AppHost`, im Aspire-Dashboard die Ressource `windows-app` starten, als Rezeption anmelden, im Kalender einen gebuchten Termin von morgen anklicken
+1. Im Terminfenster **Verschieben …** klicken.
+Expected: Das Feld „Tag“ zeigt den Termintag; **−1 Tag** ist bedienbar.
+2. Bei „Tag“ das Datum von gestern eintippen und das Feld verlassen.
+Expected: Das Feld meldet das Datum als zu früh, **Verschieben** ist gesperrt; beim Zeigen darauf steht „Verfügbar für heute oder einen späteren Tag.“
+3. Das Datum auf heute setzen.
+Expected: **Verschieben** ist wieder bedienbar, **−1 Tag** ist gesperrt.
+4. Mit einem zweiten Werkzeug (z. B. `curl`) `POST /api/appointments/{id}/move` mit einem Beginn von gestern senden.
+Expected: Antwort 409 mit „Termine lassen sich nicht in die Vergangenheit verschieben. Bitte heute oder einen späteren Tag wählen.“; der Termin bleibt an seinem Platz.
+Closes: L2 (live-tests-rezeption-onboarding.md, Abschnitt 3)
+Result: ☐
