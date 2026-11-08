@@ -92,7 +92,7 @@ public sealed class AppointmentUndoTests(ApiFixture fixture)
     {
         var spa = await TestSpa.CreateAsync(fixture, Ct);
         var booked = await spa.BookOkAsync(TestSpa.At(10, 0, Day), Ct);
-        await spa.PostAsync<AppointmentDto>(Path(booked, "status"), new AppointmentStatusChange(AppointmentStatus.CheckedIn), Ct);
+        await spa.SetStatusAsync(booked.Id, AppointmentStatus.CheckedIn, Ct);
 
         var back = await spa.PostAsync<AppointmentDto>(Path(booked, "status"), new AppointmentStatusChange(AppointmentStatus.Booked), Ct);
 
@@ -104,7 +104,7 @@ public sealed class AppointmentUndoTests(ApiFixture fixture)
     {
         var spa = await TestSpa.CreateAsync(fixture, Ct);
         var done = await spa.BookOkAsync(TestSpa.At(10, 0, Day), Ct);
-        await spa.PostAsync<AppointmentDto>(Path(done, "status"), new AppointmentStatusChange(AppointmentStatus.Completed), Ct);
+        await spa.SetStatusAsync(done.Id, AppointmentStatus.Completed, Ct);
         Assert.Equal(HttpStatusCode.BadRequest, (await SetStatusRawAsync(spa, done, AppointmentStatus.Booked)).StatusCode);
 
         // Eingecheckt, aber schon auf einer Rechnung der Kassa: kassiert.
@@ -112,7 +112,7 @@ public sealed class AppointmentUndoTests(ApiFixture fixture)
             spa.Location.Id, $"A-{Guid.NewGuid():N}"[..14], FiscalCountry.AT, "Test-Spa GmbH\nTeststraße 1, 1010 Wien\nATU12345678",
             "Test-Spa GmbH", "AT61 1904 3002 3457 3201", null), Ct);
         var billed = await spa.BookOkAsync(TestSpa.At(13, 0, Day), Ct);
-        await spa.PostAsync<AppointmentDto>(Path(billed, "status"), new AppointmentStatusChange(AppointmentStatus.CheckedIn), Ct);
+        await spa.SetStatusAsync(billed.Id, AppointmentStatus.CheckedIn, Ct);
         await spa.PostAsync<BillDto>("/api/pos/bills", new BillInput(register.Id, null, [billed.Id]), Ct);
 
         Assert.Equal(HttpStatusCode.BadRequest, (await SetStatusRawAsync(spa, billed, AppointmentStatus.Booked)).StatusCode);
@@ -128,7 +128,7 @@ public sealed class AppointmentUndoTests(ApiFixture fixture)
         var spa = await TestSpa.CreateAsync(fixture, Ct);
         var booked = await spa.BookOkAsync(TestSpa.At(10, 0, Day), Ct);
         var noShow = await spa.BookOkAsync(TestSpa.At(13, 0, Day), Ct);
-        await spa.PostAsync<AppointmentDto>(Path(noShow, "status"), new AppointmentStatusChange(AppointmentStatus.NoShow), Ct);
+        await spa.SetStatusAsync(noShow.Id, AppointmentStatus.NoShow, Ct);
 
         Assert.Equal(HttpStatusCode.BadRequest, (await SetStatusRawAsync(spa, booked, AppointmentStatus.Booked)).StatusCode);
         Assert.Equal(HttpStatusCode.BadRequest, (await SetStatusRawAsync(spa, noShow, AppointmentStatus.Booked)).StatusCode);

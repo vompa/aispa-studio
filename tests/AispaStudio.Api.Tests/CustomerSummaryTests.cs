@@ -13,7 +13,7 @@ public sealed class CustomerSummaryTests(ApiFixture fixture)
     private static async Task<AppointmentDto> VisitAsync(TestSpa spa, int weeks, EmployeeDto employee, AppointmentStatus status)
     {
         var appointment = await spa.BookOkAsync(TestSpa.At(10, date: TestSpa.Monday.AddDays(7 * weeks)), Ct, employee.Id);
-        return await spa.PostAsync<AppointmentDto>($"/api/appointments/{appointment.Id}/status", new AppointmentStatusChange(status), Ct);
+        return await spa.SetStatusAsync(appointment.Id, status, Ct);
     }
 
     [Fact]
@@ -74,8 +74,10 @@ public sealed class CustomerSummaryTests(ApiFixture fixture)
 
         // Offene Rechnung über eine Massage, dazu ein Paket aus einer anderen, bezahlten Rechnung.
         var open = await spa.BookOkAsync(TestSpa.At(10), Ct, spa.Anna.Id);
+        await spa.SetStatusAsync(open.Id, AppointmentStatus.CheckedIn, Ct);
         await spa.PostAsync<BillDto>("/api/pos/bills", new BillInput(register.Id, null, [open.Id]), Ct);
         var packageVisit = await spa.BookOkAsync(TestSpa.At(13), Ct, spa.Anna.Id);
+        await spa.SetStatusAsync(packageVisit.Id, AppointmentStatus.CheckedIn, Ct);
         var packageBill = await spa.PostAsync<BillDto>("/api/pos/bills", new BillInput(register.Id, null, [packageVisit.Id]), Ct);
         var validUntil = new DateOnly(2028, 12, 31);
         await spa.PostAsync<BillDto>($"/api/pos/bills/{packageBill.Id}/lines",

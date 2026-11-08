@@ -12,7 +12,7 @@ Manchmal bleibt im Tag einer Person eine Lücke, in die keine Behandlung passt. 
 
 ## Vorschläge ansehen und verschieben {#verschieben}
 
-1. Im Menü neben **Termin anlegen** **Lücken schließen** wählen.
+1. Im Menü neben **Termin** **Lücken schließen** wählen.
 2. Die Seite zeigt je Vorschlag den Gast und die Behandlung, die Person mit alter und neuer Zeit und den Grund des Servers.
 3. Sprechen Sie das Verschieben vorher mit dem Gast ab.
 4. **Auf … verschieben** verschiebt den Termin. Die Meldung nennt den Gast und bietet **Rückgängig**; der Vorschlag verschwindet.

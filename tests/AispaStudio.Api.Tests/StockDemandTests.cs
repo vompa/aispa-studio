@@ -53,7 +53,7 @@ public sealed class StockDemandTests(ApiFixture fixture)
         var cancelled = await spa.BookOkAsync(TestSpa.At(12), Ct, spa.Anna.Id);
         await spa.BookOkAsync(TestSpa.At(14), Ct, spa.Anna.Id);
         await spa.PostAsync<AppointmentDto>($"/api/appointments/{cancelled.Id}/cancel", new CancelAppointmentRequest("Test"), Ct);
-        await spa.PostAsync<AppointmentDto>($"/api/appointments/{done.Id}/status", new AppointmentStatusChange(AppointmentStatus.Completed), Ct);
+        await spa.SetStatusAsync(done.Id, AppointmentStatus.Completed, Ct);
 
         var demand = await spa.GetAsync<StockDemandDto>($"/api/stock/locations/{spa.Location.Id}/demand?from={Day}&until={Day}", Ct);
 

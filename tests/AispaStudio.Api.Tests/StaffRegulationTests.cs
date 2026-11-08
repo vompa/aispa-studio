@@ -50,6 +50,7 @@ public sealed class StaffRegulationTests(ApiFixture fixture)
         var register = await spa.PostAsync<CashRegisterDto>("/api/pos/registers", new CashRegisterInput(spa.Location.Id, $"V-{Guid.NewGuid():N}"[..14], FiscalCountry.AT,
             "Test-Spa GmbH\nTeststraße 1, 1010 Wien\nATU12345678", "Test-Spa GmbH", "AT61 1904 3002 3457 3201", null), Ct);
         var appointment = await spa.BookOkAsync(TestSpa.At(10), Ct);
+        await spa.SetStatusAsync(appointment.Id, AppointmentStatus.CheckedIn, Ct);
         var bill = await spa.PostAsync<BillDto>("/api/pos/bills", new BillInput(register.Id, null, [appointment.Id]), Ct);
         return await spa.PostAsync<ReceiptDto>($"/api/pos/bills/{bill.Id}/checkout", new CheckoutRequest(null, [new PaymentInput(PaymentMethod.Cash, 100m, null, null)]), Ct);
     }

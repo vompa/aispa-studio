@@ -94,6 +94,7 @@ public sealed class DepositTests(ApiFixture fixture)
         Assert.StartsWith($"{register.Code} Nr. {depositReceipt.Number}", guest.Deposit.Receipt, StringComparison.Ordinal);
 
         // Kassieren der Behandlung: nur der Rest ist offen, die Anzahlung steht als Abzug mit gleichem Steuersatz auf dem Beleg.
+        await spa.SetStatusAsync(booked.Appointment.Id, AppointmentStatus.CheckedIn, Ct);
         var bill = await spa.PostAsync<BillDto>("/api/pos/bills", new BillInput(register.Id, null, [booked.Appointment.Id]), Ct);
         Assert.Equal((79m, 23.70m, 55.30m), (bill.Total, bill.DepositCredit, bill.Open));
         Assert.Equal(23.70m, Assert.Single(bill.Lines).DepositCredit);
@@ -158,7 +159,7 @@ public sealed class DepositTests(ApiFixture fixture)
         await CreateRegisterAsync(spa);
         var booked = await BookAsync(spa, TestSpa.At(12), NewEmail());
         await PayAsync(spa, booked);
-        await spa.PostAsync<AppointmentDto>($"/api/appointments/{booked.Appointment.Id}/status", new AppointmentStatusChange(AppointmentStatus.NoShow), Ct);
+        await spa.SetStatusAsync(booked.Appointment.Id, AppointmentStatus.NoShow, Ct);
         var kept = await spa.GetAsync<DepositStaffDto>($"/api/appointments/{booked.Appointment.Id}/deposit", Ct);
 
         Assert.True(kept.Kept);

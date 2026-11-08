@@ -73,7 +73,7 @@ public sealed class AppointmentTimesTests(ApiFixture fixture)
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
 
-        await spa.PostAsync<AppointmentDto>($"/api/appointments/{appointment.Id}/status", new AppointmentStatusChange(AppointmentStatus.CheckedIn), Ct);
+        await spa.SetStatusAsync(appointment.Id, AppointmentStatus.CheckedIn, Ct);
         var checkedIn = await spa.PutAsync<AppointmentDto>(TimesPath(appointment), new AppointmentTimesRequest(5, 10), Ct);
         Assert.Equal((5, 10), (checkedIn.PreparationMinutes, checkedIn.FollowUpMinutes));
     }

@@ -50,7 +50,7 @@ public sealed class ArrivalAndCancellationTests(ApiFixture fixture)
         var here = await GuestAsync(spa, "Petra", "Schwarz");
         await spa.BookOkAsync(TestSpa.At(10), Ct, spa.Anna.Id, customer: late.Id);
         var checkedIn = await spa.BookOkAsync(TestSpa.At(10), Ct, spa.Ben.Id, customer: here.Id);
-        await spa.PostAsync<AppointmentDto>($"/api/appointments/{checkedIn.Id}/status", new AppointmentStatusChange(AppointmentStatus.CheckedIn), Ct);
+        await spa.SetStatusAsync(checkedIn.Id, AppointmentStatus.CheckedIn, Ct);
 
         var block = await _kit.AnswerAsync(spa, "wer ist noch nicht da", now: TestSpa.At(10, 10));
 

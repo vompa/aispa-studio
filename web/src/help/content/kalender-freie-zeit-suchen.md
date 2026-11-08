@@ -21,7 +21,7 @@ Für eine Behandlung zeigt der Kalender die freien Zeiten: in einer Liste rechts
 
 ### 1. Suche öffnen
 
-Im Kalenderkopf rechts neben **Termin anlegen** auf das Symbol **Freie Zeit suchen** (Kalender mit Lupe) klicken, oder **Strg+N** drücken, oder im Menü von **Termin anlegen** **Freie Zeit suchen** wählen, oder im **Tagesüberblick** auf **Auslastung Team** klicken.
+Im Kalenderkopf rechts neben **Termin** auf das Symbol **Freie Zeit suchen** (Kalender mit Lupe) klicken, oder **Strg+N** drücken, oder im Menü von **Termin** **Freie Zeit suchen** wählen, oder im **Tagesüberblick** auf **Auslastung Team** klicken.
 
 ![Kalenderkopf mit markiertem Symbol Freie Zeit suchen](images/app/freie-zeit-suchen-1.png)
 

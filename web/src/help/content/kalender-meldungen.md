@@ -14,7 +14,7 @@ Alles, was am Tag Aufmerksamkeit braucht, steht an einer Stelle: in der Seitenle
 
 ## Schaltfläche, Taste und Symbol {#schaltflaeche}
 
-- Die Schaltfläche **Meldungen** steht im Kalenderkopf neben **Termin anlegen**. Mit offenen Meldungen zeigt sie die Zahl („Meldungen 2“): orange, sobald eine Warnung dabei ist, rot bei einem Fehler, sonst grau. Ohne Meldungen steht nur „Meldungen“. Gibt es Tagesnotizen, trägt die Schaltfläche daneben einen kleinen Notiz-Punkt; die Zahl zählt nur Meldungen.
+- Die Schaltfläche **Meldungen** steht im Kalenderkopf neben **Termin**. Mit offenen Meldungen zeigt sie die Zahl („Meldungen 2“): orange, sobald eine Warnung dabei ist, rot bei einem Fehler, sonst grau. Ohne Meldungen steht nur „Meldungen“. Gibt es Tagesnotizen, trägt die Schaltfläche daneben einen kleinen Notiz-Punkt; die Zahl zählt nur Meldungen.
 - Die Taste **M** öffnet die Seitenleiste, ein zweites Mal schließt sie.
 - Im Kopf einer Person oder eines Raums steht höchstens ein kleines Symbol (Dreieck bei Warnungen, Kreis bei Fehlern). Der Hinweis daran nennt kurz, worum es geht, z. B. „2 Raumpflege offen · Tagesstart offen“. Ein Klick öffnet **Meldungen** nur mit den Meldungen dieser Spalte; **Filter aufheben** zeigt wieder alle. „3 Termine umbuchen“ bei einer Krankmeldung bleibt unverändert im Kopf.
 

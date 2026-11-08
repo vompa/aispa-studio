@@ -192,6 +192,13 @@
             <StackPanel Spacing="8">
               <TextBlock x:Name="DialogTitle" Classes="h2" Text="{Binding Title}" TextWrapping="Wrap" />
               <TextBlock x:Name="DialogMessage" Text="{Binding Message}" TextWrapping="Wrap" />
+              <!-- Hinweis zum Objekt (meldungen.md, M3): Symbol und Text, z. B. die Stornofrist (L3) -->
+              <Border x:Name="DialogNotice" Classes="hint warn" IsVisible="{Binding HasNotice}">
+                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                  <ui:Icon Data="{x:Static ui:Icons.Warning}" Width="16" Height="16" VerticalAlignment="Top" Foreground="{DynamicResource WarnBrush}" />
+                  <TextBlock x:Name="DialogNoticeText" Grid.Column="1" Text="{Binding Notice}" TextWrapping="Wrap" />
+                </Grid>
+              </Border>
               <ui:FormField x:Name="DialogInputField" Label="{Binding InputLabel}" IsVisible="{Binding HasInput}" Margin="0,8,0,0">
                 <TextBox x:Name="DialogInput" Text="{Binding Input}" />
               </ui:FormField>

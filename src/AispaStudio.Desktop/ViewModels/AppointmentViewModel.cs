@@ -114,15 +114,32 @@ public partial class AppointmentViewModel(
 
     public bool IsProblem => Appointment.Status is AppointmentStatus.NoShow or AppointmentStatus.Cancelled;
 
-    /// <summary>Einchecken nur vor der Behandlung, Erledigt erst nach dem Einchecken (oder direkt aus „Gebucht“).</summary>
-    public bool ShowCheckIn => CanChangeStatus && IsBooked;
+    /// <summary>Einchecken nur vor der Behandlung und nur am Tag des Termins (L1); Erledigt und Nicht erschienen erst ab dem Tag des Termins, wie der Server es prüft.</summary>
+    public bool ShowCheckIn => CanChangeStatus && IsBooked && IsOnToday;
 
-    public bool ShowComplete => CanChangeStatus && Appointment.Status is AppointmentStatus.Booked or AppointmentStatus.CheckedIn;
+    public bool ShowComplete => HasStatusActions && !IsOnFutureDay;
 
-    public bool ShowNoShow => CanChangeStatus && IsBooked;
+    public bool ShowNoShow => CanChangeStatus && IsBooked && !IsOnFutureDay;
+
+    /// <summary>Grund am gesperrten Knopf hinter „Mehr“.</summary>
+    public string CompleteHint => IsOnFutureDay ? FutureDayHint : "Verfügbar bei gebuchten und eingecheckten Terminen.";
+
+    public string NoShowHint => IsOnFutureDay ? FutureDayHint : "Verfügbar bei gebuchten Terminen.";
+
+    private const string FutureDayHint = "Verfügbar ab dem Tag des Termins.";
+
+    private DateOnly AppointmentDay => DateOnly.FromDateTime(DayLayout.Local(Appointment.Start, zone));
+
+    /// <summary>Der Termin liegt am heutigen Tag des Standorts.</summary>
+    public bool IsOnToday => AppointmentDay == LocalToday;
+
+    private bool IsOnFutureDay => AppointmentDay > LocalToday;
+
+    /// <summary>Erledigt oder Nicht erschienen stehen hinter „Mehr“, an künftigen Tagen gesperrt mit Grund.</summary>
+    private bool HasStatusActions => CanChangeStatus && Appointment.Status is AppointmentStatus.Booked or AppointmentStatus.CheckedIn;
 
     /// <summary>Hinter „Mehr“ steht etwas: Erledigt, Nicht erschienen, Wiederholen oder Zeiten ändern. Stornieren und Einchecken zurücknehmen stehen im Aktionsblock (Ä81).</summary>
-    public bool HasMore => ShowComplete || ShowNoShow || CanRepeat || CanChangeTimes;
+    public bool HasMore => HasStatusActions || CanRepeat || CanChangeTimes;
 
     public string Price => Money.Format(Appointment.Price, currency);
 
@@ -195,8 +212,37 @@ public partial class AppointmentViewModel(
     [RelayCommand]
     private Task NoShowAsync() => SetStatusAsync(AppointmentStatus.NoShow);
 
+    private const string DefaultCancelReason = "An der Rezeption storniert";
+
+    /// <summary>Vorbelegung des Grunds bei einer Absage innerhalb der Stornofrist (L3), damit der Verlauf es zeigt.</summary>
+    private const string LateCancelReason = "Kurzfristig an der Rezeption storniert";
+
     [ObservableProperty]
-    public partial string CancelReason { get; set; } = "An der Rezeption storniert";
+    public partial string CancelReason { get; set; } = DefaultCancelReason;
+
+    /// <summary>
+    /// Hinweis in der Storno-Rückfrage (L3, meldungen.md M3): Liegt die Absage innerhalb der Stornofrist, nennt er die Frist, die Gebühr laut Regel
+    /// und wer sie belasten kann; außerhalb der Frist oder ohne Regel keiner. Frist und Gebühr kommen vom Server (<see cref="CancellationDeadlineAt"/>).
+    /// </summary>
+    public string? LateCancelNotice
+    {
+        get
+        {
+            if (CancellationDeadlineAt is not { } deadline || Time.GetUtcNow() <= deadline)
+            {
+                return null;
+            }
+
+            var until = $"Absage innerhalb der Stornofrist (bis {DayLayout.Local(deadline, zone):dd.MM. HH:mm}).";
+            if (LateCancelFeePercent <= 0)
+            {
+                return until;
+            }
+
+            var charge = MayChargeFee ? ". Belasten unter „Ausfallgebühr belasten …“ nach dem Stornieren." : "; belasten kann die Standortleitung.";
+            return $"{until} Laut Regel fallen {LateCancelFeePercent} % Ausfallgebühr an{charge}";
+        }
+    }
 
     /// <summary>
     /// Stornieren fragt nach (Rückfragedialog, Design-Brief 5.27): die Frage als Titel, zuerst die Folge, ein Feld für den Grund und die Aktion;
@@ -217,9 +263,11 @@ public partial class AppointmentViewModel(
             return;
         }
 
+        var notice = LateCancelNotice;
+        var reason = notice is not null && CancelReason == DefaultCancelReason ? LateCancelReason : CancelReason;
         var answer = await AskAsync(new ConfirmRequest("Termin stornieren?",
             $"Der Termin von {Title} am {DateText}, {TimeText}, ist danach storniert und blockiert keine Zeit mehr.{(fee is null ? "" : $" {fee}")}", CancelOneText,
-            AlternativeText: CanCancelFollowing ? "Diesen und alle folgenden" : null, InputLabel: "Grund", InputText: CancelReason)).ConfigureAwait(true);
+            AlternativeText: CanCancelFollowing ? "Diesen und alle folgenden" : null, InputLabel: "Grund", InputText: reason, Notice: notice)).ConfigureAwait(true);
         if (answer.Choice == ConfirmChoice.Cancelled)
         {
             return;
@@ -429,7 +477,14 @@ public partial class AppointmentViewModel(
 
     /// <summary>Neuer Tag als „TT.MM.JJJJ“, vorbelegt mit dem bisherigen.</summary>
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(MoveToDayCommand), nameof(MoveDaysCommand))]
     public partial string MoveDateText { get; set; } = $"{DayLayout.Local(appointment.Start, zone):dd.MM.yyyy}";
+
+    /// <summary>Untergrenze des Tag-Felds: Verschoben wird nur auf heute oder später (L2), wie der Server es prüft.</summary>
+    public DateOnly Today => LocalToday;
+
+    /// <summary>Der eingegebene Tag liegt nicht vor heute; ein unlesbarer Tag bleibt erlaubt, damit „Verschieben“ ihn meldet statt still zu sperren. Den Grund am gesperrten Knopf nennt die Ansicht (DisabledHint).</summary>
+    public bool MoveDateIsAllowed => ParseMoveDate() is not { } date || date >= LocalToday;
 
     [ObservableProperty]
     public partial string MoveTimeText { get; set; } = $"{DayLayout.Local(appointment.Start, zone):HH:mm}";
@@ -454,7 +509,7 @@ public partial class AppointmentViewModel(
     [RelayCommand]
     private void CancelMoveToDay() => IsMovingToDay = false;
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanMoveDays))]
     private void MoveDays(string? days)
     {
         if (int.TryParse(days, System.Globalization.CultureInfo.InvariantCulture, out var offset) && ParseMoveDate() is { } date)
@@ -463,12 +518,16 @@ public partial class AppointmentViewModel(
         }
     }
 
+    /// <summary>„−1 Tag“ ist gesperrt, sobald das Ziel vor heute läge.</summary>
+    private bool CanMoveDays(string? days) =>
+        !(int.TryParse(days, System.Globalization.CultureInfo.InvariantCulture, out var offset) && ParseMoveDate() is { } date) || date.AddDays(offset) >= LocalToday;
+
     /// <summary>Der heutige Tag in der Ortszeit des Standorts, für Datumsangaben ohne Jahr und zweistellige Jahre.</summary>
     private DateOnly LocalToday => DateOnly.FromDateTime(DayLayout.Local(Time.GetUtcNow(), zone));
 
     private DateOnly? ParseMoveDate() => DateInputParser.TryParse(MoveDateText, LocalToday);
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(MoveDateIsAllowed))]
     private async Task MoveToDayAsync()
     {
         var (moveDate, dateError) = DateInputParser.ParseRequired(MoveDateText, LocalToday);
@@ -528,7 +587,7 @@ public partial class AppointmentViewModel(
         .OrderBy(a => a.Start).ThenBy(a => a.CustomerName, StringComparer.Ordinal).ThenBy(a => a.Id);
 
     /// <summary>Gemeinsam einchecken: alle Teile, die noch gebucht sind. Nur mit Buchungsrecht, damit niemand fremde Termine einchecken kann.</summary>
-    public bool CanCheckInGroup => IsGroup && MayBook && CanChangeStatus && groupChanged is not null && GroupAppointments.Any(a => a.Status == AppointmentStatus.Booked);
+    public bool CanCheckInGroup => IsGroup && MayBook && CanChangeStatus && IsOnToday && groupChanged is not null && GroupAppointments.Any(a => a.Status == AppointmentStatus.Booked);
 
     public string CheckInGroupText => $"Alle einchecken ({GroupAppointments.Count(a => a.Status == AppointmentStatus.Booked)})";
 

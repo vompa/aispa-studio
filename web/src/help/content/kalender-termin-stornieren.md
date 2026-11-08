@@ -29,6 +29,8 @@ Den Termin anklicken (markieren). Alternativ im Panel auf **Termin stornieren �
 
 **Entf** drücken. Eine Rückfrage „Termin stornieren?“ erscheint. Unter **Grund** den Grund eintragen; vorbelegt ist „An der Rezeption storniert“.
 
+Liegt die Absage innerhalb der Stornofrist des Standorts, steht über dem Feld ein Hinweis: „Absage innerhalb der Stornofrist (bis 21.10. 09:00). Laut Regel fallen 50 % Ausfallgebühr an; belasten kann die Standortleitung.“ Wer die Kassenaufsicht hat, liest stattdessen den Weg „Belasten unter **Ausfallgebühr belasten …** nach dem Stornieren“. Der Grund ist dann mit „Kurzfristig an der Rezeption storniert“ vorbelegt. Frist und Gebühr kommen aus den [Regeln des Standorts](hilfe:standorte#ausfallgebuehr) (Behandlung vor Standort, „nur neue Gäste“); ohne Frist oder außerhalb der Frist gibt es keine Zeile. Belastet wird nie automatisch.
+
 ![Rückfrage zum Stornieren mit markiertem Feld Grund](images/app/termin-stornieren-2.png)
 
 ### 3. Stornieren
@@ -73,9 +75,10 @@ Später geht es im Panel des stornierten Termins: **Stornierung zurücknehmen** 
 ## Ganze Buchung stornieren (Paar, Spa-Tag) {#ganze-buchung}
 
 1. Einen Termin der gemeinsamen Buchung anklicken.
-2. Im Kasten **GEMEINSAM GEBUCHT** auf **Ganze Buchung stornieren** klicken.
+2. Im Kasten der Buchung (Überschrift **Paar**, **Spa-Tag** oder **Gruppe · n Gäste**) auf **Ganze Buchung stornieren** klicken.
+3. Die Rückfrage „Ganze Buchung stornieren?“ mit **Stornieren** bestätigen; **Abbrechen** lässt alles, wie es ist.
 
-- Achtung: Hier gibt es keine Rückfrage, alle Termine der Buchung werden sofort storniert (Grund „An der Rezeption storniert (ganze Buchung)“).
+- Alle Termine der Buchung werden storniert (Grund „An der Rezeption storniert (ganze Buchung)“).
 - Nur einen Teil stornieren: diesen Termin wie oben einzeln stornieren.
 
 ## Hinweise {#hinweise}

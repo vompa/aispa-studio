@@ -200,7 +200,7 @@ public sealed partial class ViewTests
         await shell.CheckoutAsync(SpaSample.Paying);
         await Pump(Settling);
         var page = window.GetVisualDescendants().OfType<PosView>().First();
-        var box = page.GetVisualDescendants().OfType<TextBox>().First(t => t.PlaceholderText == "z. B. GS-7K3M-Q9");
+        var box = page.GetVisualDescendants().OfType<TextBox>().First(t => t.PlaceholderText == "z. B. K7M3-Q9XA-B2CD");
         box.Focus();
         box.Text = code;
         await Pump();

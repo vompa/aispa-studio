@@ -189,13 +189,19 @@ public partial class CalendarViewModel
             await booking.BookCommand.ExecuteAsync(null).ConfigureAwait(true);
             if (Booking is null)
             {
-                ShowToast($"Gebucht: {guest.InHouseName}, {DayLayout.DateText(day)} {DayLayout.Local(slot.Start, _zone):HH:mm}");
-
+                ShowBookedToast(guest.InHouseName, slot.Start);
                 return true;
             }
         }
 
         return false;
+    }
+
+    /// <summary>Erfolgsmeldung nach dem Buchen (meldungen.md M1), gleich für die Freie-Zeit-Suche und den Buchungsbereich (L11): „Gebucht: Gast, Tag HH:mm“.</summary>
+    private void ShowBookedToast(string guest, DateTimeOffset start)
+    {
+        var local = DayLayout.Local(start, _zone);
+        ShowToast($"Gebucht: {guest}, {DayLayout.DateText(DateOnly.FromDateTime(local))} {local:HH:mm}");
     }
 }
 

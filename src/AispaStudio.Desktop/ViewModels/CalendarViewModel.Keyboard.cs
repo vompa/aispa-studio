@@ -98,7 +98,7 @@ public partial class CalendarViewModel
             var hints = new List<KeyHint> { new("Enter", "Details", Key.Enter) };
             if (marked.Status == AppointmentStatus.Booked && CanChangeStatus(marked))
             {
-                hints.Add(new("E", "Einchecken", Key.E));
+                hints.Add(IsOnToday(marked) ? new("E", "Einchecken", Key.E) : new("E", "Einchecken", BlockedReason: "Einchecken: nur am Tag des Termins"));
             }
             else if (CheckoutRequested is not null && CanBook && marked.Status is AppointmentStatus.CheckedIn or AppointmentStatus.Completed)
             {
@@ -159,6 +159,7 @@ public partial class CalendarViewModel
             new("F", "Folgetermin in vier Wochen"),
             new("Alt+↑ ↓", "Um eine Viertelstunde verschieben"),
             new("Alt+← →", "Zur Nachbarspalte verschieben"),
+            new("V", "Verschieben-Karte: anderer Tag oder Beginn"),
             new("Entf", "Stornieren (mit Rückfrage und Grund)"),
             new("Strg+Z", "Verschieben, Stornieren, Einchecken zurücknehmen"),
         ]),
@@ -313,6 +314,23 @@ public partial class CalendarViewModel
 
     private bool CanMoveAppointment(AppointmentDto appointment) =>
         CanBook && HasResourceColumns && appointment.Status is AppointmentStatus.Booked or AppointmentStatus.CheckedIn;
+
+    /// <summary>V öffnet die Verschieben-Karte des markierten Termins (L16) wie der Panel-Knopf „Verschieben …“; wo die Karte nicht gilt (eingecheckt, gemeinsame Buchung), bleibt der Hinweis.</summary>
+    private void MoveViaPanel(AppointmentDto appointment)
+    {
+        OpenAppointment(appointment);
+        if (Selected is { CanMoveToDay: true } panel)
+        {
+            panel.AskMoveToDayCommand.Execute(null);
+            return;
+        }
+
+        ShowToast("Verschieben: ziehen oder Alt + Pfeiltasten, zurück mit Strg+Z");
+    }
+
+    /// <summary>Einchecken nur am Tag des Termins (L1), gerechnet in der Zeitzone des Standorts wie am Server.</summary>
+    private bool IsOnToday(AppointmentDto appointment) =>
+        DateOnly.FromDateTime(DayLayout.Local(appointment.Start, _zone)) == DateOnly.FromDateTime(DayLayout.Local(_time.GetUtcNow(), _zone));
 
     // ---------- Tasten ----------
 
@@ -543,7 +561,7 @@ public partial class CalendarViewModel
             case Key.Enter:
                 OpenAppointment(marked);
                 return true;
-            case Key.E when marked.Status == AppointmentStatus.Booked && CanChangeStatus(marked):
+            case Key.E when marked.Status == AppointmentStatus.Booked && CanChangeStatus(marked) && IsOnToday(marked):
                 _ = RunOnAppointmentAsync(marked, panel => panel.CheckInCommand.ExecuteAsync(null), $"{marked.CustomerName} eingecheckt.");
                 return true;
             case Key.K when CheckoutRequested is not null && CanBook && marked.Status is AppointmentStatus.CheckedIn or AppointmentStatus.Completed:
@@ -553,7 +571,7 @@ public partial class CalendarViewModel
                 _ = FollowUpAsync(marked);
                 return true;
             case Key.V when CanMoveAppointment(marked):
-                ShowToast("Verschieben: ziehen oder Alt + Pfeiltasten, zurück mit Strg+Z");
+                MoveViaPanel(marked);
                 return true;
             case Key.Delete when CanBook && marked.Status is AppointmentStatus.Booked or AppointmentStatus.CheckedIn:
                 AskCancel(marked);
@@ -773,7 +791,7 @@ public partial class CalendarViewModel
         }
 
         var canStatus = CanChangeStatus(appointment);
-        if (appointment.Status == AppointmentStatus.Booked && canStatus)
+        if (appointment.Status == AppointmentStatus.Booked && canStatus && IsOnToday(appointment))
         {
             actions.Add(new("Einchecken", "E", () => _ = RunOnAppointmentAsync(appointment, p => p.CheckInCommand.ExecuteAsync(null),
                 $"{appointment.CustomerName} eingecheckt."), Icon: Icons.SignIn));

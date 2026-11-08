@@ -24,6 +24,7 @@ public sealed class TreatwellPaymentTests(ApiFixture fixture)
         var reference = NewReference();
         var appointment = await TreatwellAppointmentAsync(spa, MailFixtures.BookingTable, reference, "10:00");
 
+        await spa.SetStatusAsync(appointment.Id, AppointmentStatus.CheckedIn, Ct);
         var bill = await spa.PostAsync<BillDto>("/api/pos/bills", new BillInput(register.Id, null, [appointment.Id]), Ct);
 
         Assert.Contains(PaymentMethod.Treatwell, register.PaymentMethods);
@@ -55,8 +56,11 @@ public sealed class TreatwellPaymentTests(ApiFixture fixture)
         var onSite = await TreatwellAppointmentAsync(spa, MailFixtures.BookingList, NewReference(), "12:00");
         var ordinary = await spa.BookOkAsync(TestSpa.At(14), Ct);
 
+        await spa.SetStatusAsync(prepaid.Id, AppointmentStatus.CheckedIn, Ct);
         var overpaid = await spa.PostAsync<BillDto>("/api/pos/bills", new BillInput(register.Id, null, [prepaid.Id]), Ct);
+        await spa.SetStatusAsync(onSite.Id, AppointmentStatus.CheckedIn, Ct);
         var payOnSite = await spa.PostAsync<BillDto>("/api/pos/bills", new BillInput(register.Id, null, [onSite.Id]), Ct);
+        await spa.SetStatusAsync(ordinary.Id, AppointmentStatus.CheckedIn, Ct);
         var plain = await spa.PostAsync<BillDto>("/api/pos/bills", new BillInput(register.Id, null, [ordinary.Id]), Ct);
 
         Assert.Equal((0m, 0m), (payOnSite.PlatformPrepaid, plain.PlatformPrepaid));

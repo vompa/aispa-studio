@@ -192,7 +192,7 @@
               <TextBlock Text="Verschieben" FontWeight="Medium" />
               <StackPanel Orientation="Horizontal" Spacing="12">
                 <ui:FormField Label="Tag">
-                  <ui:DateField x:Name="MoveDateBox" CommittedText="{Binding MoveDateText}" />
+                  <ui:DateField x:Name="MoveDateBox" CommittedText="{Binding MoveDateText}" Minimum="{Binding Today}" />
                 </ui:FormField>
                 <ui:FormField Label="Beginn">
                   <ui:TimeField CommittedText="{Binding MoveTimeText}" />
@@ -212,7 +212,8 @@
               <ContentControl Content="{Binding Conflict}" IsVisible="{Binding ConflictInMove}" />
               <UniformGrid Columns="2" ColumnSpacing="8">
                 <Button Classes="primary" Content="Verschieben" Command="{Binding MoveToDayCommand}" HorizontalAlignment="Stretch"
-                        HorizontalContentAlignment="Center" IsDefault="True" ui:SaveShortcut.IsSave="True" ToolTip.Tip="Verschieben (Strg+S)" />
+                        HorizontalContentAlignment="Center" IsDefault="True" ui:SaveShortcut.IsSave="True" ToolTip.Tip="Verschieben (Strg+S)"
+                        ui:DisabledHint.Text="Verfügbar für heute oder einen späteren Tag." />
                 <Button Classes="ghost" Content="Abbrechen" Command="{Binding CancelMoveToDayCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
               </UniformGrid>
             </StackPanel>
@@ -255,9 +256,9 @@
           <StackPanel Spacing="8" IsVisible="{Binding #MoreToggle.IsChecked}">
             <UniformGrid Columns="2" ColumnSpacing="8" IsVisible="{Binding CanChangeStatus}">
               <Button Content="Erledigt" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
-                      Command="{Binding CompleteCommand}" IsEnabled="{Binding ShowComplete}" ui:DisabledHint.Text="Verfügbar bei gebuchten und eingecheckten Terminen." />
+                      Command="{Binding CompleteCommand}" IsEnabled="{Binding ShowComplete}" ui:DisabledHint.Text="{Binding CompleteHint}" />
               <Button Content="Nicht erschienen" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
-                      Command="{Binding NoShowCommand}" IsEnabled="{Binding ShowNoShow}" ui:DisabledHint.Text="Verfügbar bei gebuchten Terminen." />
+                      Command="{Binding NoShowCommand}" IsEnabled="{Binding ShowNoShow}" ui:DisabledHint.Text="{Binding NoShowHint}" />
             </UniformGrid>
             <Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
                     Command="{Binding EditSeriesCommand}" IsVisible="{Binding ShowRepeat}" ToolTip.Tip="Serie ab diesem Termin">
@@ -1269,6 +1270,14 @@
             <TextBlock Text="Anamnese prüfen" />
           </StackPanel>
         </Border>
+        <!-- L5: Gast ohne Telefon und E-Mail; Hinweis am Objekt (meldungen.md, M3), blockiert nichts -->
+        <Border Classes="pill warn" HorizontalAlignment="Left" IsVisible="{Binding HasNoContact}"
+                ToolTip.Tip="Ohne Telefon oder E-Mail gehen keine Erinnerung und keine Zusage hinaus, bis der Kontakt in der Kundenkarte ergänzt ist">
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <ui:Icon Data="{x:Static ui:Icons.Warning}" Width="14" Height="14" Foreground="{DynamicResource WarnBrush}" />
+            <TextBlock Text="Keine Kontaktmöglichkeit" />
+          </StackPanel>
+        </Border>
         <Border Classes="panelcard" IsVisible="{Binding HasSuggestions}">
           <StackPanel Spacing="6">
             <TextBlock Text="Vorschläge" FontWeight="SemiBold" />
@@ -2096,7 +2105,7 @@
             </Button>
             <!-- Termin-Gruppe (Auftraggeber, 29.10.2026): „+ Termin“ mit Menü, daneben als zweite Schaltfläche „Freie Zeit suchen“ (Kalender mit Lupe) -->
             <StackPanel x:Name="AppointmentGroup" Orientation="Horizontal" Spacing="4" IsVisible="{Binding CanBook}">
-              <SplitButton Command="{Binding NewAppointmentCommand}" ToolTip.Tip="Neuer Termin (N)">
+              <SplitButton Command="{Binding NewAppointmentCommand}" ToolTip.Tip="Neuer Termin (N)" AutomationProperties.Name="Termin">
                 <SplitButton.Flyout>
                   <MenuFlyout Placement="BottomEdgeAlignedRight">
                     <MenuItem Command="{Binding NewAppointmentCommand}" AutomationProperties.Name="Termin" AutomationProperties.AcceleratorKey="N">
@@ -2940,7 +2949,7 @@
                   AutomationProperties.LiveSetting="Polite">
             <!-- Eine Zeile, höchstens eine Aktion („Rückgängig“); Entscheidungen gehören in ein Flyout am Termin (meldungen.md, M1) -->
             <StackPanel Orientation="Horizontal" Spacing="8">
-              <TextBlock Classes="msg" Text="{Binding Toast}" Foreground="{DynamicResource ToastFgBrush}" VerticalAlignment="Center" MaxWidth="540"
+              <TextBlock Classes="msg" Text="{Binding Toast}" Foreground="{DynamicResource ToastFgBrush}" VerticalAlignment="Center" MaxWidth="540" AutomationProperties.Name="Meldung"
                          ToolTip.Tip="{Binding Toast}" />
               <Button Classes="ghost" Command="{Binding UndoMoveCommand}" IsVisible="{Binding CanUndo}" Foreground="{DynamicResource ToastFgBrush}">
                 <StackPanel Orientation="Horizontal" Spacing="6">

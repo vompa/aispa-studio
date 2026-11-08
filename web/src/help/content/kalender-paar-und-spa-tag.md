@@ -88,7 +88,7 @@ Bei Gruppen und Firmen-Events kennt die Rezeption beim Buchen oft nur die Person
 3. **Alle einchecken (2)** checkt alle Teile ein, die noch gebucht sind.
 4. **Alle kassieren** legt alle eingecheckten oder erledigten Teile auf eine gemeinsame Rechnung der Kassa; die Rechnung gehört zum Gast des ersten Teils. Der Knopf erscheint, sobald mindestens zwei Teile bereit sind.
 5. **Ganze Buchung verschieben**: neuen Beginn eintippen und klicken. Geht nur, solange noch niemand eingecheckt ist, und nur am selben Tag.
-6. **Ganze Buchung stornieren** storniert alle Termine sofort, ohne Rückfrage.
+6. **Ganze Buchung stornieren** fragt „Ganze Buchung stornieren?“ und storniert nach **Stornieren** alle Termine der Buchung.
 
 ![Geöffneter Termin einer Paar-Buchung mit allen Teilen](images/app/kalender-gemeinsam.png)
 

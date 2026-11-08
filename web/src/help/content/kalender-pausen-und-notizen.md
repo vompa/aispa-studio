@@ -65,7 +65,7 @@ Eine Pause und eine Notiz mit Uhrzeit lassen sich direkt im Kalender in der Höh
 
 ## Pause oder Sperrzeit löschen {#loeschen}
 
-Rechtsklick auf die Pause bzw. Sperrzeit, dann **Pause löschen** bzw. **Sperrzeit löschen**.
+Rechtsklick auf die Pause bzw. Sperrzeit, dann **Pause löschen** bzw. **Sperrzeit löschen**. Eine Rückfrage „Pause löschen?“ bzw. „Sperrzeit löschen?“ nennt die Zeit; **Löschen** bestätigt, **Abbrechen** lässt alles, wie es ist.
 
 ## Notiz an einer Uhrzeit {#notiz}
 
@@ -85,7 +85,7 @@ Rechtsklick auf die Pause bzw. Sperrzeit, dann **Pause löschen** bzw. **Sperrze
 
 Eine Notiz für den ganzen Tag am Standort, z. B. „Lieferung Öle um 11“. Sie steht in der Seitenleiste **Meldungen** ganz oben in der Gruppe **Notizen heute**.
 
-1. **.** (Punkt) drücken, oder im Menü neben **Termin anlegen** **Tagesnotiz** wählen, oder Rechtsklick auf eine freie Stelle und **Tagesnotiz**, oder in **Meldungen** bei **Notizen heute** auf **+ Notiz** klicken. Die Seitenleiste geht auf, und das Notizfeld hat den Fokus.
+1. **.** (Punkt) drücken, oder im Menü neben **Termin** **Tagesnotiz** wählen, oder Rechtsklick auf eine freie Stelle und **Tagesnotiz**, oder in **Meldungen** bei **Notizen heute** auf **+ Notiz** klicken. Die Seitenleiste geht auf, und das Notizfeld hat den Fokus.
 2. Text eintragen (höchstens 500 Zeichen, der Zähler unter dem Feld zählt mit) und **Notiz speichern** klicken oder **Strg+Enter** drücken. **Esc** stellt den Text zurück, ein zweites **Esc** schließt das Feld.
 
 - Alle am Standort sehen die Notiz. Das Kästchen davor hakt sie ab (der Text steht dann durchgestrichen und blass), der Stift ändert sie, der Papierkorb löscht sie nach einer Rückfrage. Ändern und Löschen sind gesperrt, solange ein Notizfeld offen ist.

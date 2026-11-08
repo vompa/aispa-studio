@@ -13,11 +13,12 @@ Fällt eine Person aus, schlägt der Ausfall-Assistent für jeden ihrer offenen 
 ## Krank melden {#krank-melden}
 
 1. Mit der rechten Maustaste auf den Spaltenkopf der Person klicken.
-2. **… krank melden** wählen (z. B. „Lena Huber krank melden“).
+2. **… krank melden** wählen (z. B. „Lena Huber krank melden“). Eine Rückfrage „Lena Huber krank melden?“ erscheint; **Krank melden** bestätigt, **Abbrechen** lässt alles, wie es ist.
 3. Der Dienstplan bekommt für den angezeigten Tag einen Krankenstand. Der Spaltenkopf zeigt „krank gemeldet“.
 4. Hat die Person offene Termine, öffnet sich gleich der Ausfall-Assistent.
 
 - Krank melden dürfen nur Standortleitung und Inhaber, weil es den Dienstplan ändert.
+- Eine Krankmeldung lässt sich im Kalender nicht zurücknehmen; die Leitung löscht den Krankenstand im Dienstplan der Verwaltung, siehe [Abwesenheit eintragen](hilfe:dienstplan-abwesenheit-eintragen).
 - Gemeldet wird nur der angezeigte Tag. Längere Krankenstände und Urlaub werden im Dienstplan der Verwaltung eingetragen.
 
 ## Ausfall-Assistent {#ausfall-assistent}

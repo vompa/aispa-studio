@@ -239,6 +239,7 @@ public sealed class PromotionTests(ApiFixture fixture)
     private static async Task<BillDto> BillWithAppointmentAsync(TestSpa spa, CashRegisterDto register, int hour = 10)
     {
         var appointment = await spa.BookOkAsync(TestSpa.At(hour), Ct);
+        await spa.SetStatusAsync(appointment.Id, AppointmentStatus.CheckedIn, Ct);
         return await spa.PostAsync<BillDto>("/api/pos/bills", new BillInput(register.Id, null, [appointment.Id]), Ct);
     }
 
@@ -334,8 +335,10 @@ public sealed class PromotionTests(ApiFixture fixture)
         var register = await CreateRegisterAsync(spa);
         var promotion = await CreateAsync(spa, Input("Fünfer", percent: null, amount: 5m));
         var bill = await BillWithAppointmentAsync(spa, register);
+        var second = await spa.BookOkAsync(TestSpa.At(12), Ct);
+        await spa.SetStatusAsync(second.Id, AppointmentStatus.CheckedIn, Ct);
         bill = await spa.PostAsync<BillDto>($"/api/pos/bills/{bill.Id}/lines", new BillLineInput(BillLineKind.Appointment,
-            (await spa.BookOkAsync(TestSpa.At(12), Ct)).Id, null, 1, null, 0, null, null, null, null, null), Ct);
+            second.Id, null, 1, null, 0, null, null, null, null, null), Ct);
         var big = await CreateAsync(spa, Input("Riesenrabatt", percent: null, amount: 500m));
 
         var offers = await OffersAsync(spa.Client, bill.Id);

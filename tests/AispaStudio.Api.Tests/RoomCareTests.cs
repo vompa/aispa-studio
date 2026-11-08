@@ -9,6 +9,9 @@ public sealed class RoomCareTests(ApiFixture fixture)
 {
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
 
+    /// <summary>Uhrzeit am heutigen Tag in Wien: Die Tagesregel am Status-Endpunkt rechnet mit der echten Uhr.</summary>
+    private static DateTimeOffset TodayAt(int hour) => TestSpa.At(hour, 0, DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Europe/Vienna")).DateTime));
+
     /// <summary>Ein vergangener Montag: die Pflegezeit ist vorbei, der Tag liegt nicht in der Zukunft.</summary>
     private static readonly DateOnly Past = new(2026, 10, 5);
 
@@ -151,9 +154,10 @@ public sealed class RoomCareTests(ApiFixture fixture)
     {
         var spa = await TestSpa.CreateAsync(fixture, Ct);
         await spa.PutAsync<List<RoomStartItemDto>>($"/api/rooms/{spa.RoomA.Id}/start-checklist", new RoomStartItemInput[] { new("Liege beziehen"), new("Temperatur prüfen") }, Ct);
-        var first = await spa.BookOkAsync(TestSpa.At(10), Ct, spa.Anna.Id, spa.RoomA.Id);
-        var second = await spa.BookOkAsync(TestSpa.At(13), Ct, spa.Anna.Id, spa.RoomA.Id);
-        var other = await spa.BookOkAsync(TestSpa.At(13), Ct, spa.Ben.Id, spa.RoomB.Id);
+        // Der Test prüft die Hinweise der Endpunkt-Antwort; die Tagesregel verlangt dafür Termine am heutigen Tag.
+        var first = await spa.BookOkAsync(TodayAt(10), Ct, spa.Anna.Id, spa.RoomA.Id);
+        var second = await spa.BookOkAsync(TodayAt(13), Ct, spa.Anna.Id, spa.RoomA.Id);
+        var other = await spa.BookOkAsync(TodayAt(13), Ct, spa.Ben.Id, spa.RoomB.Id);
 
         var firstIn = await CheckIn(spa, first.Id);
         var secondIn = await CheckIn(spa, second.Id);
