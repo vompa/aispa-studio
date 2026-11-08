@@ -8620,6 +8620,8 @@ export interface components {
             cardRemovedAt?: null | string;
             /** Format: date-time */
             releaseAt?: null | string;
+            /** Format: date-time */
+            cancellationDeadlineAt?: null | string;
         };
         /** @enum {unknown} */
         CardGuaranteeStatus: "Pending" | "Saved" | "Failed" | "Charging" | "Charged" | "ChargeFailed" | "Refunded" | "AwaitingConsent" | "Released";
@@ -8662,6 +8664,8 @@ export interface components {
             /** Format: int32 */
             feePercent: number;
             reason: null | string;
+            /** Format: date-time */
+            cancellationDeadlineAt?: null | string;
         };
         CardTerminalResult: {
             approved: boolean;

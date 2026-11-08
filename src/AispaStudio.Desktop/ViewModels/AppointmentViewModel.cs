@@ -212,8 +212,37 @@ public partial class AppointmentViewModel(
     [RelayCommand]
     private Task NoShowAsync() => SetStatusAsync(AppointmentStatus.NoShow);
 
+    private const string DefaultCancelReason = "An der Rezeption storniert";
+
+    /// <summary>Vorbelegung des Grunds bei einer Absage innerhalb der Stornofrist (L3), damit der Verlauf es zeigt.</summary>
+    private const string LateCancelReason = "Kurzfristig an der Rezeption storniert";
+
     [ObservableProperty]
-    public partial string CancelReason { get; set; } = "An der Rezeption storniert";
+    public partial string CancelReason { get; set; } = DefaultCancelReason;
+
+    /// <summary>
+    /// Hinweis in der Storno-Rückfrage (L3, meldungen.md M3): Liegt die Absage innerhalb der Stornofrist, nennt er die Frist, die Gebühr laut Regel
+    /// und wer sie belasten kann; außerhalb der Frist oder ohne Regel keiner. Frist und Gebühr kommen vom Server (<see cref="CancellationDeadlineAt"/>).
+    /// </summary>
+    public string? LateCancelNotice
+    {
+        get
+        {
+            if (CancellationDeadlineAt is not { } deadline || Time.GetUtcNow() <= deadline)
+            {
+                return null;
+            }
+
+            var until = $"Absage innerhalb der Stornofrist (bis {DayLayout.Local(deadline, zone):dd.MM. HH:mm}).";
+            if (LateCancelFeePercent <= 0)
+            {
+                return until;
+            }
+
+            var charge = MayChargeFee ? ". Belasten unter „Ausfallgebühr belasten …“ nach dem Stornieren." : "; belasten kann die Standortleitung.";
+            return $"{until} Laut Regel fallen {LateCancelFeePercent} % Ausfallgebühr an{charge}";
+        }
+    }
 
     /// <summary>
     /// Stornieren fragt nach (Rückfragedialog, Design-Brief 5.27): die Frage als Titel, zuerst die Folge, ein Feld für den Grund und die Aktion;
@@ -234,9 +263,11 @@ public partial class AppointmentViewModel(
             return;
         }
 
+        var notice = LateCancelNotice;
+        var reason = notice is not null && CancelReason == DefaultCancelReason ? LateCancelReason : CancelReason;
         var answer = await AskAsync(new ConfirmRequest("Termin stornieren?",
             $"Der Termin von {Title} am {DateText}, {TimeText}, ist danach storniert und blockiert keine Zeit mehr.{(fee is null ? "" : $" {fee}")}", CancelOneText,
-            AlternativeText: CanCancelFollowing ? "Diesen und alle folgenden" : null, InputLabel: "Grund", InputText: CancelReason)).ConfigureAwait(true);
+            AlternativeText: CanCancelFollowing ? "Diesen und alle folgenden" : null, InputLabel: "Grund", InputText: reason, Notice: notice)).ConfigureAwait(true);
         if (answer.Choice == ConfirmChoice.Cancelled)
         {
             return;

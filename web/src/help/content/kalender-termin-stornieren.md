@@ -29,6 +29,8 @@ Den Termin anklicken (markieren). Alternativ im Panel auf **Termin stornieren �
 
 **Entf** drücken. Eine Rückfrage „Termin stornieren?“ erscheint. Unter **Grund** den Grund eintragen; vorbelegt ist „An der Rezeption storniert“.
 
+Liegt die Absage innerhalb der Stornofrist des Standorts, steht über dem Feld ein Hinweis: „Absage innerhalb der Stornofrist (bis 21.10. 09:00). Laut Regel fallen 50 % Ausfallgebühr an; belasten kann die Standortleitung.“ Wer die Kassenaufsicht hat, liest stattdessen den Weg „Belasten unter **Ausfallgebühr belasten …** nach dem Stornieren“. Der Grund ist dann mit „Kurzfristig an der Rezeption storniert“ vorbelegt. Frist und Gebühr kommen aus den [Regeln des Standorts](hilfe:standorte#ausfallgebuehr) (Behandlung vor Standort, „nur neue Gäste“); ohne Frist oder außerhalb der Frist gibt es keine Zeile. Belastet wird nie automatisch.
+
 ![Rückfrage zum Stornieren mit markiertem Feld Grund](images/app/termin-stornieren-2.png)
 
 ### 3. Stornieren

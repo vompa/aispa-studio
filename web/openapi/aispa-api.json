@@ -31511,6 +31511,13 @@
               "string"
             ],
             "format": "date-time"
+          },
+          "cancellationDeadlineAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
           }
         }
       },
@@ -31677,6 +31684,13 @@
               "null",
               "string"
             ]
+          },
+          "cancellationDeadlineAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
           }
         }
       },

@@ -277,6 +277,10 @@ internal sealed class CardGuarantees(
             && (a.Status == AppointmentStatus.NoShow || late);
         return new CardGuaranteeStaffDto(g.Id, g.Status, g.FeeAmount, g.Currency, g.FeePercent, g.AcceptedAt, g.SavedAt, canCharge,
             hint, g.ChargedAt, g.ReceiptId, g.Error, g.CardRemovedAt,
-            g.Status is CardGuaranteeStatus.Pending or CardGuaranteeStatus.Failed && a.Status == AppointmentStatus.Booked ? g.ReleaseAt : null);
+            g.Status is CardGuaranteeStatus.Pending or CardGuaranteeStatus.Failed && a.Status == AppointmentStatus.Booked ? g.ReleaseAt : null,
+            CancellationDeadline(a.Start, g.DeadlineHours));
     }
+
+    /// <summary>Bis wann der Gast ohne Gebühr absagt: Beginn minus Stornofrist in Stunden; ohne Frist <c>null</c> (L3, Hinweis im Storno-Dialog der Rezeption).</summary>
+    public static DateTimeOffset? CancellationDeadline(DateTimeOffset start, int deadlineHours) => deadlineHours > 0 ? start.AddHours(-deadlineHours) : null;
 }

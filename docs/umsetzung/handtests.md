@@ -459,3 +459,16 @@ Expected: Nach Abbrechen ändert sich nichts; nach Bestätigen steht der Termin 
 Expected: Antwort 409 „Der Gast ist noch nicht eingecheckt. Zuerst im Kalender einchecken.“
 Closes: L1 (live-tests-rezeption-onboarding.md, Abschnitt 3)
 Result: ☐
+
+### Rezeptions-Lücken C – Storno-Dialog mit Frist und Ausfallgebühr
+Start: `dotnet run --project src/AispaStudio.AppHost`, als Inhaber unter **Verwaltung** › **Standorte** für Wien Stornofrist 24 Stunden und Ausfallgebühr 50 % einstellen; dann als Rezeption im Kalender einen gebuchten Termin von heute Nachmittag anklicken
+1. **Termin stornieren …** klicken.
+Expected: Über dem Feld „Grund“ steht mit Warnsymbol „Absage innerhalb der Stornofrist (bis <gestern> HH:mm). Laut Regel fallen 50 % Ausfallgebühr an; belasten kann die Standortleitung.“; „Grund“ ist mit „Kurzfristig an der Rezeption storniert“ vorbelegt.
+2. **Abbrechen**, dann als Inhaber anmelden und denselben Termin stornieren wollen.
+Expected: Der Hinweis endet mit „Belasten unter „Ausfallgebühr belasten …“ nach dem Stornieren.“
+3. Einen gebuchten Termin in zwei Wochen anklicken und **Termin stornieren …** klicken.
+Expected: Keine Hinweiszeile, „Grund“ ist mit „An der Rezeption storniert“ vorbelegt.
+4. Die Ausfallgebühr des Standorts auf 0 % stellen und einen Termin von heute Nachmittag stornieren wollen.
+Expected: Nur „Absage innerhalb der Stornofrist (bis <gestern> HH:mm).“
+Closes: L3 (live-tests-rezeption-onboarding.md, Abschnitt 3)
+Result: ☐
