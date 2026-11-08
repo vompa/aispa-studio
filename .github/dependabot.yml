@@ -16,6 +16,10 @@ updates:
     groups:
       web:
         patterns: ["*"]
+    ignore:
+      # openapi-typescript 7 bricht mit TypeScript 7 (gen:api: createKeywordTypeNode undefined); Pin ~6.0 bleibt bis dahin
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: github-actions
     directory: /
