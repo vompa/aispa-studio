@@ -178,6 +178,16 @@ internal sealed partial class MainViewModel : ObservableObject
     {
         var journey = SelectedRole!.Journey!;
         var topics = Topics.Where(topic => topic.IsChecked).Select(topic => topic.Topic).ToList();
+        try
+        {
+            journey.CheckDependencies(topics);
+        }
+        catch (ArgumentException ex)
+        {
+            StatusText = ex.Message;
+            return;
+        }
+
         var options = new LiveOptions(_appPath!, new Uri(ApiUrl), LiveOptions.SpeedOf(SpeedKeys[SpeedIndex]), StartPaused, _outputRoot,
             topics.Select(topic => topic.Key).ToList(), ConsoleKeys: false, AppArea: _appArea());
         Steps.Clear();
