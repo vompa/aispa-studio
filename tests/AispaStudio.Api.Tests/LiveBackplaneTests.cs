@@ -30,12 +30,15 @@ public sealed class LiveBackplaneTests(ApiFixture fixture, LiveBackplaneTests.Re
 
     private const string RedisConnection = "ConnectionStrings:redis";
 
+    /// <summary>Valkey statt Redis 8 (ADR 0089), wie in <c>compose.scale.yaml</c> und im AppHost.</summary>
+    private const string RedisImage = "valkey/valkey:8-alpine";
+
     /// <summary>Ein Redis für die ganze Testklasse. Ohne Docker: <c>AISPA_TEST_REDIS</c> auf einen vorhandenen Server setzen (z. B. <c>localhost:6379</c>).</summary>
     public sealed class RedisServer : IAsyncLifetime
     {
         private static readonly string? ExternalServer = Environment.GetEnvironmentVariable("AISPA_TEST_REDIS");
 
-        private readonly RedisContainer? _container = ExternalServer is null ? new RedisBuilder("redis:8-alpine").Build() : null;
+        private readonly RedisContainer? _container = ExternalServer is null ? new RedisBuilder(RedisImage).Build() : null;
 
         public string ConnectionString { get; private set; } = "";
 
@@ -275,7 +278,7 @@ public sealed class LiveBackplaneTests(ApiFixture fixture, LiveBackplaneTests.Re
 
     /// <summary>Eigener Redis nur für diesen Test (Anhalten, Pausieren, späterer Start), mit festem Port, damit die Instanz ihn nach dem Neustart wiederfindet.</summary>
     private static RedisContainer OwnRedis(int? port = null) =>
-        port is null ? new RedisBuilder("redis:8-alpine").Build() : new RedisBuilder("redis:8-alpine").WithPortBinding(port.Value, 6379).Build();
+        port is null ? new RedisBuilder(RedisImage).Build() : new RedisBuilder(RedisImage).WithPortBinding(port.Value, 6379).Build();
 
     private static async Task PublishAsync(WebApplicationFactory<Program> host, object message)
     {

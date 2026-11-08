@@ -92,7 +92,8 @@ Neue Entscheidungen bekommen die nächste freie Nummer und die Vorlage [`vorlage
 | 0084 | [Alle Masken nativ in der Windows-App, Web nur für Dashboard, Mitarbeiter-App und Kunden-App; Team an einer Stelle](0084-alle-masken-nativ-web-fuer-dashboard-und-handy.md) | 29.10.2026 | Auftraggeber (Vorgabe, E1–E14 der Runde R05), Ausgestaltung Claude (R05, Slice 92) |
 | 0085 | [API-Version in den Pfaden: `/api/v1`, alte Pfade bleiben als Alias, Breaking Changes nur über eine neue Version](0085-api-version-in-den-pfaden.md) | 02.11.2026 | Auftraggeber (Arbeitsanweisung, Ä283), Ausgestaltung Claude, autonom nach ADR 0019 (R06, Slice 121) |
 | 0086 | [Code Guardian statt vibe-coding, volle Prüfung nur am Rundenende](0086-code-guardian-statt-vibe-coding.md) | 03.11.2026 | Auftraggeber (Vorgabe und Einzelentscheidungen), Ausgestaltung Claude |
-| 0087 | [Mehrinstanz-Betrieb: Rollen, zentrale Schlüssel, eigener Migrationslauf, Backplane, auf Container Apps](0087-mehrinstanz-betrieb.md) | 06.11.2026 | vorgeschlagen, entscheidet der Auftraggeber; Vorlage Claude nach der Arbeitsanweisung |
+| 0087 | [Mehrinstanz-Betrieb: Rollen, zentrale Schlüssel, eigener Migrationslauf, Backplane, auf Container Apps](0087-mehrinstanz-betrieb.md) | 06.11.2026 | Code-Teil angenommen (delegiert, 08.11.2026), Zielplattform entscheidet der Auftraggeber; Vorlage Claude nach der Arbeitsanweisung |
 | 0088 | [Öffentliches Repository unter MIT-Lizenz, Konzeptstudie zur KI-nativen Entwicklung](0088-oeffentliches-repository-mit-mit-lizenz.md) | 07.11.2026 | Auftraggeber |
+| 0089 | [Valkey statt Redis 8 für die Backplane des Live-Kanals](0089-valkey-statt-redis-8.md) | 08.11.2026 | Claude mit dem Council, vom Auftraggeber delegiert |
 
 Detailentscheidungen einzelner Pull Requests stehen im [PR-Protokoll](../umsetzung/pr-protokoll.md).

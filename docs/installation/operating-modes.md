@@ -90,4 +90,4 @@ Netzen in `KnownNetworks` und den Proxys in `KnownProxies`; ohne Angaben nur von
 `Hosting:HealthEndpoints=true` schaltet `/health` (bereit) und `/alive` (lebt) auch im Betrieb ein, für die Proben von Container Apps oder Kubernetes; sie melden nur den Status, im Einzelplatz
 bricht der Start ab ([Server-Einstellungen](../../web/src/help/content/server.md#betriebsart-und-module-betriebsart)).
 `Live:Backplane=Redis` mit `ConnectionStrings:redis` verteilt die Live-Meldungen (Kalender, Tafel, Posteingang) über Redis an alle Instanzen, auch die des Workers; der Ingress braucht Sticky Sessions
-([Server-Einstellungen](../../web/src/help/content/server.md#live-meldungen-mit-mehreren-instanzen-live-backplane)). Im AppHost schaltet `-- --Live:Backplane=Redis` einen Redis-Container dazu.
+([Server-Einstellungen](../../web/src/help/content/server.md#live-meldungen-mit-mehreren-instanzen-live-backplane)). Im AppHost schaltet `-- --Live:Backplane=Redis` einen Valkey-Container (Redis-Protokoll, [ADR 0089](../entscheidungen/0089-valkey-statt-redis-8.md)) dazu.

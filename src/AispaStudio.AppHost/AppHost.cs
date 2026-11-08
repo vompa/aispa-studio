@@ -47,7 +47,8 @@ if (bool.TryParse(builder.Configuration["LocalAi:Enabled"], out var localAi) && 
 // Ohne den Schalter fehlt Redis, und die normale Entwicklung bleibt unverändert.
 if (string.Equals(builder.Configuration["Live:Backplane"], "Redis", StringComparison.OrdinalIgnoreCase))
 {
-    var redis = builder.AddRedis("redis");
+    // Valkey statt Redis 8 (ADR 0089); das Image bringt redis-server und redis-cli als Verweise mit.
+    var redis = builder.AddRedis("redis").WithImage("valkey/valkey").WithImageTag("8-alpine");
     api.WithReference(redis)
         .WaitFor(redis)
         .WithEnvironment("Live__Backplane", "Redis");

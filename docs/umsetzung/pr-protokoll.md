@@ -5453,3 +5453,12 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Geprüft:** 179 Bausteine in 20 Lizenztexten (MIT, Apache-2.0, BSD-2/3-Clause, PostgreSQL, Unlicense, eine eigene Lizenz von `Avalonia.Angle.Windows.Natives`), kein Copyleft; zweiter Lauf erzeugt dieselbe Datei; Dateimuster mit Gegenbeispielen (`LICENSE-MIT`, `license.js` werden nicht gelesen).
 - **Nicht geprüft:** Der neue CI-Schritt läuft erst mit dem nächsten Push. Offen bleibt die Liste der Bibliotheken im PostgreSQL-Build von EnterpriseDB (OpenSSL, ICU, zlib und weitere); die Datei sagt das.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Valkey statt Redis 8, ADR 0087 zum Teil angenommen (08.11.2026)
+
+- **Auftrag:** Der Auftraggeber hat offene Entscheidungen delegiert („Entscheide du bzw frag die Berater und Arbeite automatisch weiter“). Drei Fragen gingen an den Council (fünf Berater, Peer-Review, Vorsitz): Status von ADR 0087, Lizenz von Redis 8, Lizenzhinweise des mitgelieferten PostgreSQL.
+- **Was:** [ADR 0089](../entscheidungen/0089-valkey-statt-redis-8.md): `compose.scale.yaml`, AppHost und `LiveBackplaneTests` nutzen `valkey/valkey:8-alpine`; Installationsdoku nachgezogen. [ADR 0087](../entscheidungen/0087-mehrinstanz-betrieb.md) bekommt einen Nachtrag: Code-Teil T-041 bis T-048 angenommen, Zielplattform Azure Container Apps, Key Vault, Deployment und Rate Limiting bleiben beim Auftraggeber.
+- **Detailentscheidungen:** (1) Kein neues Paket (`Aspire.Hosting.Valkey`): Das Valkey-Image bringt `redis-server` und `redis-cli` als Verweise mit, `AddRedis(...).WithImage(...)` und `RedisBuilder` reichen. (2) Schlüssel und Einstellungen heißen weiter `redis`; ein vorhandener Redis-Server bleibt möglich. (3) Der Council war bei Valkey gespalten (3:2); entschieden hat die Messung, die alle fünf verlangt hatten.
+- **Geprüft:** `LiveBackplaneTests` 30/30 grün zuerst gegen einen externen Valkey (`AISPA_TEST_REDIS`, 19 Verbindungen, 292 Befehle im Server gezählt), dann 30/30 mit eigenen Valkey-Containern; Release-Build von Tests und AppHost ohne Warnung; `dotnet format` für die geänderten Dateien.
+- **Nicht geprüft:** AppHost mit `--Live:Backplane=Redis` und `compose.scale.yaml` im laufenden Betrieb.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
