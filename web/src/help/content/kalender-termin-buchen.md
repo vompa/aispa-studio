@@ -110,7 +110,7 @@ In **Neuer Termin** stehen die Behandlungen, die mit Vor- und Nachbereitung in d
 ## Mit Taste oder Knopf {#taste}
 
 - **N** öffnet das Panel an der Stelle unter dem Mauszeiger mit der vorgeschlagenen Art; steht die Maus nicht über dem Kalender, ab jetzt in der ersten Spalte.
-- **Termin anlegen** im Kalenderkopf (oder im Menü daneben **Termin**) öffnet ihn heute etwa eine Viertelstunde ab jetzt in der ersten Spalte, an anderen Tagen zum Tagesbeginn. Gut für Gäste, die spontan hereinkommen.
+- **Termin** im Kalenderkopf (oder im Menü daneben ebenfalls **Termin**) öffnet ihn heute etwa eine Viertelstunde ab jetzt in der ersten Spalte, an anderen Tagen zum Tagesbeginn. Gut für Gäste, die spontan hereinkommen.
 - Rechtsklick auf eine freie Stelle, dann **Termin hier (…)**; das öffnet immer **Neuer Termin**, ohne Vorschlag.
 
 ## Person oder Raum steht fest {#frei-waehlen}

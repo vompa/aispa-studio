@@ -75,9 +75,10 @@ Später geht es im Panel des stornierten Termins: **Stornierung zurücknehmen** 
 ## Ganze Buchung stornieren (Paar, Spa-Tag) {#ganze-buchung}
 
 1. Einen Termin der gemeinsamen Buchung anklicken.
-2. Im Kasten **GEMEINSAM GEBUCHT** auf **Ganze Buchung stornieren** klicken.
+2. Im Kasten der Buchung (Überschrift **Paar**, **Spa-Tag** oder **Gruppe · n Gäste**) auf **Ganze Buchung stornieren** klicken.
+3. Die Rückfrage „Ganze Buchung stornieren?“ mit **Stornieren** bestätigen; **Abbrechen** lässt alles, wie es ist.
 
-- Achtung: Hier gibt es keine Rückfrage, alle Termine der Buchung werden sofort storniert (Grund „An der Rezeption storniert (ganze Buchung)“).
+- Alle Termine der Buchung werden storniert (Grund „An der Rezeption storniert (ganze Buchung)“).
 - Nur einen Teil stornieren: diesen Termin wie oben einzeln stornieren.
 
 ## Hinweise {#hinweise}

@@ -38,7 +38,7 @@ Die Zahlung eintragen und auf **Bezahlen und Beleg erstellen** klicken, siehe [B
 
 ## Was danach {#was-danach}
 
-Auf dem Beleg steht unter „Ausgestellte Gutscheine“ der Code, z. B. „Gutschein GS-7K3M-Q9“. Den Beleg drucken oder den Code dem Gast mitgeben. Einlösen: [Gutschein einlösen](hilfe:kassa-gutschein-einloesen).
+Auf dem Beleg steht unter „Ausgestellte Gutscheine“ der Code, z. B. „Gutschein K7M3-Q9XA-B2CD“ (drei Blöcke zu vier Zeichen, ohne 0, O, 1, I und L). Den Beleg drucken oder den Code dem Gast mitgeben. Einlösen: [Gutschein einlösen](hilfe:kassa-gutschein-einloesen).
 
 ## Wenn etwas schiefgeht {#wenn-etwas-schiefgeht}
 

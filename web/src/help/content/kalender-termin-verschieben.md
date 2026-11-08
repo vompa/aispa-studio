@@ -89,7 +89,7 @@ Ziehen und Alt + Pfeile bleiben im angezeigten Tag. Für einen anderen Tag:
 Einzelne Teile einer gemeinsamen Buchung lassen sich wie jeder Termin ziehen. Die ganze Buchung auf einmal verschieben:
 
 1. Einen Termin der Buchung anklicken.
-2. Im Kasten **GEMEINSAM GEBUCHT** den neuen Beginn eintippen (z. B. `15:00`).
+2. Im Kasten der Buchung (Überschrift **Paar**, **Spa-Tag** oder **Gruppe · n Gäste**) den neuen Beginn eintippen (z. B. `15:00`).
 3. Auf **Ganze Buchung verschieben** klicken. Der ganze Ablauf rückt mit, am selben Tag.
 
 - Das geht nur, solange noch niemand der Gruppe eingecheckt ist.

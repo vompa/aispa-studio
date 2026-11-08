@@ -519,3 +519,15 @@ Expected: Überschrift „Einlage oder Entnahme“, Tabs **Einlage** und **Entna
 Closes: L6 (live-tests-rezeption-onboarding.md, Abschnitt 3)
 Result: ☐
 
+### Rezeptions-Lücken H – Handbuch an die App angleichen
+Start: `dotnet run --project src/AispaStudio.AppHost`, als Rezeption anmelden, Leiste **KI und Hilfe** öffnen
+1. „Termin buchen“ aufschlagen und den Kalenderkopf daneben vergleichen.
+Expected: Das Handbuch nennt den Knopf **Termin**, so steht er im Kopf.
+2. „Paar und Spa-Tag“ und „Termin stornieren“ aufschlagen, einen Teil einer Paarbuchung anklicken.
+Expected: Der Kasten im Terminfenster heißt **Paar**; **Ganze Buchung stornieren** fragt nach, wie beschrieben.
+3. „Gutschein einlösen“ aufschlagen und in der Kassa das Feld **Gutschein-Code** ansehen.
+Expected: Beispiel und Platzhalter haben die Form `K7M3-Q9XA-B2CD`.
+4. „Kunden“ aufschlagen und eine Kundenkarte öffnen.
+Expected: Kein Knopf **Bearbeiten** neben dem Kopf; der Weg geht über **…** › **Bearbeiten (Name, Anrede, Kontakt, Notiz)** oder den Stift **Notiz ändern**, wie beschrieben.
+Closes: L15 (live-tests-rezeption-onboarding.md, Abschnitt 3)
+Result: ☐

@@ -28,7 +28,7 @@ Den Termin anklicken (markieren). Rechts öffnet sich das Terminfenster.
 
 ### 2. Einchecken
 
-Auf **Einchecken** klicken oder **E** drücken. Unten erscheint „… eingecheckt.“ Per Rechtsklick geht es auch: **Einchecken** wählen.
+Auf **Einchecken** klicken oder **E** drücken. Unten erscheint „… eingecheckt“. Per Rechtsklick geht es auch: **Einchecken** wählen.
 
 ![Terminfenster mit markiertem Knopf Einchecken](images/app/status-setzen-2.png)
 
@@ -53,7 +53,7 @@ Erst ein erledigter Termin zählt als Besuch, z. B. für die Kennzeichen **N** (
 ## Einchecken {#einchecken}
 
 1. Den Termin anklicken (markieren).
-2. **E** drücken. Unten erscheint „… eingecheckt.“
+2. **E** drücken. Unten erscheint „… eingecheckt“.
 
 Oder: Termin anklicken und im Panel auf **Einchecken** klicken, oder per Rechtsklick **Einchecken** wählen.
 
