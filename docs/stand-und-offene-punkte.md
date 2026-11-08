@@ -359,7 +359,7 @@ Die Nummern sind die Reihenfolge, die der jeweilige Thread gewählt hätte ([Üb
 - Später: Chipkarte oder NFC für den Schnellwechsel; Entfernung oder bevorzugter Ausweichstandort; Lückenbewertung in Online-Buchung und KI-Terminannahme; SSO; Zeiterfassung am Empfangstablet per PIN, Korrekturwünsche, Monatsbestätigung, Ist-Zeiten in den Berichten; Benachrichtigung beim Veröffentlichen des Dienstplans; KI-Vorschläge im Dienstplan (Entwurf `RosterDraftTests`).
 
 **Kassa, Buchhaltung, Lager**
-1. Zeitabhängigen Test `CardGuaranteeTests.Online_Termin_ohne_Karte_wird_nach_der_Frist_freigegeben` robust machen.
+1. Test `CardGuaranteeTests.Online_Termin_ohne_Karte_wird_nach_der_Frist_freigegeben` beobachten: am 08.11.2026 in 18 Läufen (auch unter Last) nicht reproduziert; erst mit Fehlermeldung aus dem CI-Log ändern.
 2. Schweizer UID über das UID-Register des BFS prüfen.
 3. Preisregeln nach Wochentag und Uhrzeit auch für Eintritte und Kassa-Artikel.
 4. DSFinV-K und TSE-Export mit dem Prüfprogramm prüfen.

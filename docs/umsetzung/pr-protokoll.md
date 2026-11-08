@@ -5471,3 +5471,12 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Geprüft:** Lauf gegen `postgres/bin` des CI-Pakets mit wx-DLLs: Exit 1 mit den acht Namen; ohne sie: Exit 0, 190 Bausteine in 25 Lizenztexten.
 - **Nicht geprüft:** Der CI-Lauf mit dem gekürzten Paket („Einzelplatz mit dem echten Paket starten“) bis zum nächsten Push; die Copyright-Zeilen stammen aus den Projektseiten, nicht aus den Binärdateien.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## oxlint: Regel `react/immutability` aus (08.11.2026)
+
+- **Auftrag:** Dependabot-PR #4 (sieben npm-Pakete, darunter oxlint 1.88 → 1.91) läuft im Job „Web“ rot: oxlint 1.91 bringt die Regel `react/immutability` mit, `--deny-warnings` macht drei Warnungen zum Fehler.
+- **Was:** `web/.oxlintrc.json` schaltet `react/immutability` ab.
+- **Detailentscheidungen:** (1) Alle drei Treffer (`Pairing.tsx`, `Vouchers.tsx`, `MyDayApp.tsx`) sind das Abbruch-Muster der React-Doku: eine lokale Variable im Effekt, die beim Aufräumen oder in einem Rückruf gesetzt wird. Das Muster steht 9-mal im Web, die Regel meldet davon nur 3; sie gilt Variablen im Render-Bereich und trifft hier falsch. (2) Abschalten statt dreimal Ausnahme im Code: Jeder neue Effekt mit Abbruch würde sonst wieder rot.
+- **Geprüft:** `npm run lint` grün mit oxlint 1.88 (dev) und 1.91 (Stand von PR #4); ohne die Einstellung mit 1.91 rot mit den drei Warnungen.
+- **Nicht geprüft:** PR #4 selbst, bis diese Änderung auf `main` liegt und Dependabot neu aufsetzt.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).

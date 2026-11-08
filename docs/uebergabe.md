@@ -112,7 +112,7 @@ Je Modul ausführlich in [stand-und-offene-punkte.md](stand-und-offene-punkte.md
 
 ## 6. Bekannte Fehler und Fallen
 
-- `CardGuaranteeTests.Online_Termin_ohne_Karte_wird_nach_der_Frist_freigegeben` schlug einmal im Gesamtlauf fehl und lief dann grün; vermutlich zeitabhängig.
+- `CardGuaranteeTests.Online_Termin_ohne_Karte_wird_nach_der_Frist_freigegeben` schlug einmal im Gesamtlauf fehl und lief dann grün. Am 08.11.2026 nicht reproduziert: 15 Läufe der Klasse und 3 Läufe parallel mit `OnlineBookingTests` und `DepositTests`, alle grün; der Test nutzt feste Daten (2027), eine Abhängigkeit von der Uhrzeit ist im Code nicht zu sehen. Ohne Fehlerprotokoll bleibt er unverändert; schlägt er wieder fehl, die Meldung aus dem CI-Log festhalten.
 - Das Treatwell-Mailformat ist angenommen, nicht mit echten Mails geprüft. ZVT und OPI nur gegen nachgebaute Terminals. Lokale KI nur gegen einen echten Ollama-Container ohne geladenes Modell geprüft.
 - Ohne Verbindung bucht die Leiste „KI und Hilfe“ bewusst nicht; vorgemerkte Änderungen, die nach dem Abmelden gesendet werden, tragen im Änderungsprotokoll die Person, die beim Senden angemeldet ist.
 - Parallel entstandene PRs kollidieren fast immer in `docs/umsetzung/pr-protokoll.md` und `docs/stand-und-offene-punkte.md`: beim Einmischen beide Seiten behalten. ADR-Nummern vor dem Merge prüfen (0042 und 0056 wurden doppelt angesetzt). Migrationen nach dem Einmischen auf dem Snapshot von `main` neu erzeugen.
