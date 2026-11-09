@@ -531,3 +531,16 @@ Expected: Beispiel und Platzhalter haben die Form `K7M3-Q9XA-B2CD`.
 Expected: Kein Knopf **Bearbeiten** neben dem Kopf; der Weg geht über **…** › **Bearbeiten (Name, Anrede, Kontakt, Notiz)** oder den Stift **Notiz ändern**, wie beschrieben.
 Closes: L15 (live-tests-rezeption-onboarding.md, Abschnitt 3)
 Result: ☐
+
+### B8 – Klicks gehen nicht mehr an der Hover-Karte verloren
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Rezeption anmelden, **Kalender**, Tag „Heute“ mit einem Termin im Status „Gebucht“
+1. Den Zeiger auf eine Termin-Karte setzen und warten, bis die Hover-Karte erscheint; dann den Zeiger langsam nach rechts zum Seitenpanel führen und dabei über einer anderen Karte eine Sekunde stehen bleiben, bis deren Hover-Karte aufgeht.
+Expected: Die Hover-Karte ist sichtbar und lesbar, auch dort, wo sie das Panel überdeckt.
+2. Den Termin anklicken (Panel öffnet), den Zeiger in einem Zug auf **Einchecken** führen und klicken. Zehnmal wiederholen (jedes Mal **Einchecken zurücknehmen**).
+Expected: Jedes Mal wird der Termin eingecheckt; kein Klick verpufft.
+3. Den Zeiger bei geöffneter Hover-Karte auf einen Knopf im Panel führen, der unter der Karte liegt, und klicken.
+Expected: Der Knopf löst aus. Die Hover-Karte reagiert nicht auf die Maus (Text darin lässt sich nicht anklicken).
+4. Tooltips der Knöpfe (z. B. „Einchecken (E)“) und die Meldung unten mit **Rückgängig** ansehen.
+Expected: Beide erscheinen wie bisher und sind lesbar.
+Closes: B8 (live-sichtpruefung-2026-11-09.md)
+Result: ☐
