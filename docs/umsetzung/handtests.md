@@ -617,4 +617,16 @@ Expected: Unter dem Feld **Grund** steht „Der Grund fehlt.“; keine rote Leis
 3. Einen Termin für gestern buchen bzw. auf gestern verschieben (Tag per Hand eintippen).
 Expected: Meldung „Termine lassen sich nicht in der Vergangenheit buchen. Möglich ist heute oder ein späterer Tag.“ (beim Verschieben „… verschieben …“).
 Closes: B20, B23, B24 (live-sichtpruefung-2026-11-09.md)
+
+### Befunde Kunden A3 – E-Mail-Fehler am Feld, Liste ohne hängendes Komma
+Start: `dotnet run --project src/AispaStudio.AppHost`, als Rezeption anmelden, **Kunden** › **Neue Kundin / neuer Kunde**
+1. Im Nachnamen „Probe“ eintragen, im E-Mail-Feld „keine-adresse“ tippen und mit Tab verlassen.
+Expected: Unter dem E-Mail-Feld steht rot „Keine gültige E-Mail-Adresse. Mit @ angeben, z. B. name@beispiel.at.“; die Leiste über der Kundenliste bleibt leer.
+2. Auf **Anlegen** klicken.
+Expected: Der Cursor steht im E-Mail-Feld, die Fehlermeldung bleibt unter dem Feld, es wird keine Kundin angelegt, links erscheint keine rote Leiste.
+3. Die Adresse in „probe@beispiel.at“ ändern und auf **Anlegen** klicken.
+Expected: Der Fehler verschwindet beim Tippen, die Kundin wird angelegt.
+4. Eine Kundin nur mit Nachname anlegen (kein Vorname) und in der Liste links ansehen.
+Expected: Die Zeile heißt „Probe“ ohne Komma am Ende.
+Closes: B5, B12 (live-sichtpruefung-2026-11-09.md)
 Result: ☐
