@@ -2230,6 +2230,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/pos/registers/{registerId}/day-closings/{closingId}/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Ein gespeicherter Tagesabschluss als PDF (A4) mit Summen, Differenz, Einlagen und Entnahmen und Unterschriftenzeilen; nur mit dem Recht „Berichte mit Beträgen“. */
+        get: operations["DayClosingPdf"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/pos/locations/{locationId}/unbilled-appointments": {
         parameters: {
             query?: never;
@@ -19285,6 +19302,36 @@ export interface operations {
                 content: {
                     "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
+            };
+        };
+    };
+    DayClosingPdf: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                registerId: string;
+                closingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

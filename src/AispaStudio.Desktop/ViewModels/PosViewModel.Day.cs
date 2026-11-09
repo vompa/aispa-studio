@@ -108,6 +108,13 @@ public partial class PosViewModel
     [ObservableProperty]
     public partial bool MovementIsWithdrawal { get; set; }
 
+    /// <summary>Knopfblock „Drucken · PDF speichern“ (ADR 0091) für den eben gespeicherten Tagesabschluss; null beim Zwischenbericht. Ohne Senden: der Abschluss wird abgeheftet.</summary>
+    [ObservableProperty]
+    public partial DocumentActionsViewModel? ClosingDocument { get; private set; }
+
+    /// <summary>Das Recht „Berichte mit Beträgen“: ohne es liest der Server den Abschluss nicht, die Knöpfe sind gesperrt. Die Shell setzt es aus den Rechten.</summary>
+    public bool MaySeeAmountReports { get; set; }
+
     public bool HasReport => Report is not null;
 
     public string ReportTitle => IsClosed ? "Tagesabschluss gespeichert" : "Zwischenbericht seit dem letzten Abschluss";
@@ -197,6 +204,7 @@ public partial class PosViewModel
     {
         Mode = PosMode.Closing;
         IsClosed = false;
+        ClosingDocument = null;
         return LoadReportAsync();
     }
 
@@ -205,6 +213,7 @@ public partial class PosViewModel
         Receipts.Clear();
         Report = null;
         IsClosed = false;
+        ClosingDocument = null;
         if (Mode == PosMode.Receipts)
         {
             _ = LoadReceiptsAsync();
@@ -372,9 +381,15 @@ public partial class PosViewModel
 
         Report = result.Value;
         IsClosed = true;
+        ClosingDocument = new DocumentActionsViewModel(ClosingDocumentSource(result.Value, MaySeeAmountReports), _api, Dialogs) { ShowToast = ShowToast };
         CountedCash = ClosingNote = "";
         CloseDayCommand.NotifyCanExecuteChanged();
     }
+
+    /// <summary>Pfad des PDFs des gespeicherten Abschlusses; Speichern und Drucken, kein Versand.</summary>
+    internal static DocumentSource ClosingDocumentSource(DayClosingDto closing, bool mayReadAmounts) =>
+        new("Tagesabschluss", $"api/pos/registers/{closing.RegisterId}/day-closings/{closing.Id}/pdf", IsAllowed: mayReadAmounts,
+            DisabledHint: "Dafür braucht es das Recht „Berichte mit Beträgen“.");
 
     private string ClosingConsequence(DayClosingDto fresh)
     {

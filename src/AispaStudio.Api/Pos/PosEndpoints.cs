@@ -292,6 +292,32 @@ internal static class PosEndpoints
             .AlsoAllow(AccessRight.ViewAmountReports, insteadOf: AccessRight.Book)
             .WithSummary("Die letzten 60 Tagesabschlüsse einer Kasse mit allen Zahlen; nur mit dem Recht „Berichte mit Beträgen“.");
 
+        // PDF-Ausgaben (ADR 0091): der gespeicherte Tagesabschluss als PDF zum Abheften; Recht wie das Lesen der Abschlüsse, kein Versand.
+        group.MapGet("/registers/{registerId:guid}/day-closings/{closingId:guid}/pdf", async Task<Results<FileContentHttpResult, NotFound>> (
+                Guid registerId, Guid closingId, ClaimsPrincipal user, AispaDbContext db, DocumentHeaders headers, CancellationToken ct) =>
+            {
+                var stored = await db.DayClosings.AsNoTracking().Where(c => c.Id == closingId && c.RegisterId == registerId).Select(c => c.Report).FirstOrDefaultAsync(ct);
+                if (stored is null)
+                {
+                    return TypedResults.NotFound();
+                }
+
+                var closing = JsonSerializer.Deserialize<DayClosingDto>(stored, PosJson.Options)!;
+                var code = await db.CashRegisters.Where(r => r.Id == registerId).Select(r => r.Code).FirstAsync(ct);
+                var location = await RegisterLocationAsync(db, registerId, ct);
+                var zone = LocalTime.Zone(location.TimeZone);
+                var numbers = await db.Receipts.AsNoTracking()
+                    .Where(r => r.RegisterId == registerId && r.IssuedAt >= closing.From && r.IssuedAt < closing.Until && (r.Kind == ReceiptKind.Sale || r.Kind == ReceiptKind.Void))
+                    .GroupBy(r => 1).Select(g => new DayClosingDocument.ReceiptRange(g.Min(r => r.Number), g.Max(r => r.Number))).FirstOrDefaultAsync(ct);
+                var movements = await db.CashMovements.AsNoTracking().Where(m => m.RegisterId == registerId && m.At >= closing.From && m.At < closing.Until).ToListAsync(ct);
+                var pdf = DayClosingDocument.Build(closing, code, numbers, movements, await headers.ForAsync(location.Id, user, ct), zone, location.Currency);
+                return DocumentFiles.Pdf(pdf, DayClosingDocument.FileName(code, closing, zone));
+            })
+            .WithName("DayClosingPdf")
+            .RequirePermission(AccessRight.ViewAmountReports)
+            .AlsoAllow(AccessRight.ViewAmountReports, insteadOf: AccessRight.Book)
+            .WithSummary("Ein gespeicherter Tagesabschluss als PDF (A4) mit Summen, Differenz, Einlagen und Entnahmen und Unterschriftenzeilen; nur mit dem Recht „Berichte mit Beträgen“.");
+
         // ---------- Termine abrechnen ----------
 
         group.MapGet("/locations/{locationId:guid}/unbilled-appointments", async (

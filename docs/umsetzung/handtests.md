@@ -698,3 +698,16 @@ Expected: Unter dem Kopf der Karte erscheint „Auskunft über gespeicherte Date
 Expected: Das Menü „…“ fehlt (kein Recht „Buchen“); die API lässt das Lesen der Bestätigung und der Auskunft wie das Lesen des Termins bzw. der Kundenkarte zu.
 Closes: Arbeitsanweisung PDF-Ausgaben, Aufgabe C
 Result: ☐
+
+### PDF-Ausgaben D – Tagesabschluss als PDF
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Inhaberin anmelden; in der Kassa einige Verkäufe (bar und Karte) und je eine Einlage und Entnahme mit Grund gebucht
+1. **Kassa** öffnen, Reiter **Kassenlade & Abschluss**, bei „Gezählter Bestand“ einen Betrag eintragen, der um einige Euro vom Soll abweicht, eine Notiz eintragen und **Tagesabschluss durchführen** bestätigen.
+Expected: Die Karte „Tagesabschluss gespeichert“ erscheint, rechts oben die Karte „Tagesabschluss als PDF“ mit „Drucken“ und „PDF speichern“ (ohne „Per Mail senden“). Vor dem Abschluss (Zwischenbericht) fehlt die Karte.
+2. **PDF speichern** klicken, speichern und die Datei öffnen.
+Expected: Vorschlag `Tagesabschluss-<Kasse>-<JJJJ-MM-TT>.pdf`; Titel „Tagesabschluss <Kasse>“, Zeitraum, Belege von–bis mit Anzahl Verkäufe und Stornos, Summen je Zahlart mit „Umsatz gesamt“, Steuern, Kassenlade mit Soll-Bestand, gezähltem Bestand und Differenz, die Notiz, die Einlage und die Entnahme mit Grund, unten „Gezählt von“ und „Geprüft von“ als Unterschriftenzeilen; Fuß „Erstellt am … von <Vorname>“. Toast: „Gespeichert: Tagesabschluss-….pdf“.
+3. **Drucken** klicken.
+Expected: Das PDF geht an den Standarddrucker von Windows (nicht an den Bondrucker); Toast „Gedruckt“.
+4. Als Rezeption ohne das Recht „Berichte mit Beträgen“ einen Abschluss durchführen.
+Expected: Die Knöpfe „Drucken“ und „PDF speichern“ sind gesperrt, der Hinweis nennt das Recht „Berichte mit Beträgen“; die API antwortet auf `…/day-closings/<id>/pdf` mit 403.
+Closes: Arbeitsanweisung PDF-Ausgaben, Aufgabe D
+Result: ☐
