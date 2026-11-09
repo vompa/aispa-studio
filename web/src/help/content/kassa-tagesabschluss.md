@@ -39,7 +39,7 @@ Rechts unter „Tagesabschluss“ den „Gezählter Bestand“ eintragen. Darunt
 
 ### 4. Tagesabschluss durchführen
 
-Auf **Tagesabschluss durchführen** klicken.
+Auf **Tagesabschluss durchführen** klicken. Die Kassa lädt den Bericht noch einmal neu und fragt „Tagesabschluss durchführen?“. Der Text nennt die Folge: Der Abschluss wird unveränderlich gespeichert. Weicht der gezählte Bestand vom Soll ab, steht dort die aktuelle Differenz, z. B. „Differenz zum Soll: −174,20 €“. Stimmt die Zahl, auf **Abschließen** klicken; mit **Abbrechen** (oder Esc) wird nichts gespeichert und der gezählte Bestand bleibt stehen.
 
 ![Kassa mit markiertem Knopf Tagesabschluss durchführen](images/app/tagesabschluss-4.png)
 
@@ -50,6 +50,7 @@ Links steht nun „Tagesabschluss gespeichert“ mit „Keine Differenz“ oder 
 ## Wenn etwas schiefgeht {#wenn-etwas-schiefgeht}
 
 - „Kartenzahlung über … ist genehmigt, aber noch keinem Beleg zugeordnet: zuerst kassieren oder am Terminal stornieren.“ Erst den Beleg erstellen oder die Zahlung am Terminal stornieren, dann erneut abschließen.
+- Die Differenz in der Rückfrage weicht von der Anzeige links ab: Seit dem Öffnen kam ein Beleg dazu. Die Rückfrage rechnet mit dem frisch geladenen Bericht und ist maßgeblich; **Abbrechen** und den Bestand neu zählen, falls nötig.
 - **Tagesabschluss durchführen** bleibt grau, solange der gezählte Bestand fehlt.
 - Eine falsche Buchung vor dem Abschluss: den Beleg [stornieren](hilfe:kassa-beleg-stornieren).
 

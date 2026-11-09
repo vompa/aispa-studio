@@ -8,7 +8,7 @@ stichwoerter: Artikel verkaufen, Produkt verkaufen, Ware, Creme, Öl, Getränk, 
 ---
 # Artikel verkaufen
 
-Produkte und andere Kassa-Artikel liegen als Kacheln unter „Artikel“ im Panel „Artikel und Gutscheine“ neben der Rechnung. Ein Klick setzt den Artikel auf die offene Rechnung. Schneller geht es oft über das Suchfeld „Gast, Code oder Artikel“: den Namen tippen und den Artikel unter „Artikel“ anklicken.
+Produkte und andere Kassa-Artikel liegen als Kacheln untereinander unter „Artikel“ im Panel „Artikel und Gutscheine“ neben der Rechnung, jede mit dem ganzen Namen und darunter dem Preis. Ein Klick setzt den Artikel auf die offene Rechnung. Schneller geht es oft über das Suchfeld „Gast, Code oder Artikel“: den Namen tippen und den Artikel unter „Artikel“ anklicken.
 
 1. In der Navigation **Kassa** öffnen, oben **Kassieren** wählen.
 2. Das Panel „Artikel und Gutscheine“ neben der Rechnung aufklappen (zu Beginn ist es eine schmale Leiste) und unter „Artikel“ die Kachel mit Name und Preis anklicken. Für zwei Stück zweimal klicken.

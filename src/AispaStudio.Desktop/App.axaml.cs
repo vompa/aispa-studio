@@ -46,6 +46,8 @@ public partial class App : Application
             var api = local is null
                 ? new ApiClient(server.Address, store, offline: new OfflineCache(offline), deviceStore: device, certificateCode: server.Code)
                 : new ApiClient(local.ApiAddress, store, deviceStore: device);
+            // Die Oberfläche nennt nur Problem und Weg; der Systemtext mit Host und Port steht im Protokoll der App.
+            api.TransportFailed += error => CrashLog.Default.Write("Server nicht erreichbar", error);
             var theme = new ThemeController(FileSettingsStore.Default);
             theme.Apply();
             var viewModel = new MainViewModel(api, () => new LiveUpdates(api), theme: theme, local: local)
