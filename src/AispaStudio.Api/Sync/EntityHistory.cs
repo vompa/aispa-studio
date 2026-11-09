@@ -56,6 +56,10 @@ public sealed class EntityHistory(AispaDbContext db)
 
     private static readonly string[] DutyTables = ["StaffDuties", "StaffCertificates", "StaffCertificateScans"];
 
+    /// <summary>Export-Protokoll des Spas (Export/Import, Aufgabe A): wer wann welche Liste in welchem Format herausgeholt hat.</summary>
+    public Task<List<HistoryEntry>> ForExportsAsync(Guid tenantId, CancellationToken ct) => ReadAsync(
+        "tenant_id = {0} AND table_schema = 'aispa' AND table_name = 'Exports'", [tenantId], ct);
+
     private async Task<List<HistoryEntry>> ReadAsync(string where, object[] args, CancellationToken ct)
     {
         // Nur @where kommt als Text in die Abfrage, und zwar eine feste Bedingung der Methoden oben; alle Werte sind Parameter.
@@ -292,6 +296,7 @@ public sealed class EntityHistory(AispaDbContext db)
                 "TreatmentLocationPrices" => PriceAtLocation(row.Operation, by, changes, context),
                 "TreatmentPriceRules" => PriceRule(row.Operation, by, changes, context),
                 "CustomerEmails" => Email(row.Operation, by, changes, context),
+                "Exports" => Export(by, context),
                 _ => row.Operation switch
                 {
                     "I" => row.Table == "StaffAccess" ? $"Zugang angelegt {by}{RoleSuffix(context)}" : $"Angelegt {by}",
@@ -312,6 +317,16 @@ public sealed class EntityHistory(AispaDbContext db)
             "D" => $"E-Mail-Adresse {Address(context)} entfernt {by}",
             _ => $"E-Mail-Adresse geändert {by}{ChangeList("CustomerEmails", changes)}",
         };
+
+        /// <summary>„Export Kundenliste (Excel, 312 Zeilen, Suche „Huber“) von Lena“; Exporte werden nur angelegt, nie geändert.</summary>
+        private static string Export(string by, Dictionary<string, JsonElement> context)
+        {
+            var kind = context.TryGetValue("Kind", out var k) ? Text(k) ?? "Liste" : "Liste";
+            var format = context.TryGetValue("Format", out var f) && Text(f) is { } code && Enum.TryParse<ExportFormat>(code, out var parsed) ? Exports.ExportFiles.Label(parsed) : "Datei";
+            var rows = context.TryGetValue("Rows", out var r) && r.ValueKind == JsonValueKind.Number ? r.GetInt32() : 0;
+            var filter = context.TryGetValue("Filter", out var fi) && Text(fi) is { Length: > 0 } text ? $", {text}" : "";
+            return $"Export {kind} ({format}, {rows} Zeilen{filter}) {by}";
+        }
 
         private static string Address(Dictionary<string, JsonElement> context) => context.TryGetValue("Address", out var address) ? Text(address) ?? "–" : "–";
 

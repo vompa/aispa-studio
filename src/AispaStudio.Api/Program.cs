@@ -11,6 +11,7 @@ using AispaStudio.Api.Closures;
 using AispaStudio.Api.Costs;
 using AispaStudio.Api.Data;
 using AispaStudio.Api.Demo;
+using AispaStudio.Api.Exports;
 using AispaStudio.Api.HrFile;
 using AispaStudio.Api.Live;
 using AispaStudio.Api.LocalAi;
@@ -201,6 +202,7 @@ else
     builder.Services.AddSingleton<IVatIdValidator, ViesVatIdValidator>();
 }
 builder.Services.AddScoped<AccountingExport>();
+builder.Services.AddScoped<ExportLog>();
 builder.Services.AddScoped<CostAnalysis>();
 builder.Services.AddScoped<StockService>();
 builder.Services.AddScoped<StockDemandService>();
@@ -325,6 +327,7 @@ static void MapApplicationEndpoints(WebApplication app)
     app.MapCustomerEndpoints();
     app.MapCustomerFlagEndpoints();
     app.MapCustomerEmailEndpoints();
+    app.MapExportEndpoints();
     app.MapCalendarEndpoints();
     app.MapAbsenceEndpoints();
     app.MapStaffEndpoints();

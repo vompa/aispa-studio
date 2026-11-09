@@ -28,6 +28,7 @@ public static class ChangeHistory
         "aispa.RosterDays", "aispa.RosterDayEntries",
         "aispa.StaffAccess",
         "aispa.Tenants",
+        "aispa.Exports",
     ];
 
     private static string TableList => string.Join(", ", Tables.Select(t => $"'{t}'"));
@@ -137,6 +138,9 @@ public static class ChangeHistory
                         ctx := jsonb_build_object('Role', r -> 'Role');
                     WHEN 'CustomerEmails' THEN
                         ctx := jsonb_build_object('Address', r -> 'Address');
+                    WHEN 'Exports' THEN
+                        -- Export-Protokoll: der Satz „Export Kundenliste (Excel, 312 Zeilen) von Lena“ entsteht aus diesem Kontext.
+                        ctx := jsonb_build_object('Kind', r -> 'Kind', 'Format', r -> 'Format', 'Rows', r -> 'RowCount', 'Filter', r -> 'Filter');
                     ELSE NULL;
                 END CASE;
             END IF;

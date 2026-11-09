@@ -60,6 +60,19 @@ internal sealed class StubApi : HttpMessageHandler
         return this;
     }
 
+    /// <summary>Eine Datei zum Speichern (Export) mit dem Dateinamen im Content-Disposition, wie die Export-Endpunkte sie liefern.</summary>
+    public StubApi OnFile(string route, byte[] body, string fileName, string contentType = "application/octet-stream")
+    {
+        _routes[route] = _ =>
+        {
+            var content = new ByteArrayContent(body);
+            content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(contentType);
+            content.Headers.ContentDisposition = new System.Net.Http.Headers.ContentDispositionHeaderValue("attachment") { FileNameStar = fileName };
+            return new HttpResponseMessage(HttpStatusCode.OK) { Content = content };
+        };
+        return this;
+    }
+
     public ApiClient Client(OfflineCache? offline = null) => new(new Uri("http://localhost/"), new MemorySessionStore(), this, offline);
 
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)

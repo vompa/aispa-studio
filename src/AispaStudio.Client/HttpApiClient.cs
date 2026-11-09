@@ -279,6 +279,28 @@ public class HttpApiClient : IAispaApi
         }
     }
 
+    /// <summary>Eine Datei zum Speichern (Export); der Dateiname kommt aus <c>Content-Disposition</c> (<c>filename*</c> vor <c>filename</c>).</summary>
+    public async Task<ApiResult<ApiFile>> GetFileAsync(string path, CancellationToken ct = default)
+    {
+        try
+        {
+            using var response = await _http.GetAsync(Versioned(path), ct).ConfigureAwait(false);
+            if (!response.IsSuccessStatusCode)
+            {
+                return new(null, await ErrorAsync(response, ct).ConfigureAwait(false), response.StatusCode);
+            }
+
+            var disposition = response.Content.Headers.ContentDisposition;
+            var name = (disposition?.FileNameStar ?? disposition?.FileName)?.Trim('"');
+            return new(new ApiFile(await response.Content.ReadAsByteArrayAsync(ct).ConfigureAwait(false), string.IsNullOrWhiteSpace(name) ? null : name), null, response.StatusCode);
+        }
+        catch (HttpRequestException ex)
+        {
+            ReportTransportFailure(ex);
+            return new(null, Unreachable, 0);
+        }
+    }
+
     public Task<ApiResult<T>> PutAsync<T>(string path, object? body, CancellationToken ct = default) => SendAsync<T>(HttpMethod.Put, path, body, ct);
 
     public Task<ApiResult<T>> PatchAsync<T>(string path, object? body, CancellationToken ct = default) => SendAsync<T>(HttpMethod.Patch, path, body, ct);

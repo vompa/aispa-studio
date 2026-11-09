@@ -2837,6 +2837,150 @@
         }
       }
     },
+    "/api/v1/exports/history": {
+      "get": {
+        "tags": [
+          "Verlauf"
+        ],
+        "summary": "Listet, wer wann welche Liste in welchem Format exportiert hat (nur Inhaber und Manager), neueste oben.",
+        "operationId": "GetExportHistory",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/HistoryEntry"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/channel/staff-app": {
+      "post": {
+        "tags": [
+          "Anmeldung"
+        ],
+        "summary": "Schränkt die laufende Anmeldung auf die Mitarbeiter-App ein: nur freigegebene Endpunkte und nur eigene Daten.",
+        "operationId": "UseStaffAppChannel",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CurrentUser"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/employee-notes/symbols": {
+      "get": {
+        "tags": [
+          "Regelungen und Vollmachten"
+        ],
+        "summary": "Hinweise als Symbol im Dienstplan und im Kopf der Kalenderspalte; Hinweise „nur Leitung“ nur für Inhaber und Manager.",
+        "operationId": "ListStaffNoteSymbols",
+        "parameters": [
+          {
+            "name": "on",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/StaffNoteSymbolDto"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/staff-duties/reminders": {
+      "get": {
+        "tags": [
+          "Zuständigkeiten und Zertifikate"
+        ],
+        "summary": "Erinnerungen der angemeldeten Person: eigene Zertifikate vor dem Ablauf, bei Inhaber und Manager die aller aktiven Personen; mit locationId die Lageraufgaben, wenn sie an diese Person gehen. In der Mitarbeiter-App nur die eigenen Zertifikate.",
+        "operationId": "ListDutyReminders",
+        "parameters": [
+          {
+            "name": "locationId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DutyReminderDto"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/locations/{locationId}/calendar": {
       "get": {
         "tags": [
@@ -6048,116 +6192,6 @@
           },
           "404": {
             "description": "Not Found"
-          },
-          "403": {
-            "description": "Forbidden",
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/auth/channel/staff-app": {
-      "post": {
-        "tags": [
-          "Anmeldung"
-        ],
-        "summary": "Schränkt die laufende Anmeldung auf die Mitarbeiter-App ein: nur freigegebene Endpunkte und nur eigene Daten.",
-        "operationId": "UseStaffAppChannel",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CurrentUser"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/employee-notes/symbols": {
-      "get": {
-        "tags": [
-          "Regelungen und Vollmachten"
-        ],
-        "summary": "Hinweise als Symbol im Dienstplan und im Kopf der Kalenderspalte; Hinweise „nur Leitung“ nur für Inhaber und Manager.",
-        "operationId": "ListStaffNoteSymbols",
-        "parameters": [
-          {
-            "name": "on",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "date"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/StaffNoteSymbolDto"
-                  }
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Forbidden",
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/staff-duties/reminders": {
-      "get": {
-        "tags": [
-          "Zuständigkeiten und Zertifikate"
-        ],
-        "summary": "Erinnerungen der angemeldeten Person: eigene Zertifikate vor dem Ablauf, bei Inhaber und Manager die aller aktiven Personen; mit locationId die Lageraufgaben, wenn sie an diese Person gehen. In der Mitarbeiter-App nur die eigenen Zertifikate.",
-        "operationId": "ListDutyReminders",
-        "parameters": [
-          {
-            "name": "locationId",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/DutyReminderDto"
-                  }
-                }
-              }
-            }
           },
           "403": {
             "description": "Forbidden",
@@ -48060,22 +48094,22 @@
       "name": "Kunden"
     },
     {
-      "name": "Kalender"
-    },
-    {
-      "name": "Zugänge"
-    },
-    {
       "name": "Verlauf"
-    },
-    {
-      "name": "Anzeige"
     },
     {
       "name": "Regelungen und Vollmachten"
     },
     {
       "name": "Zuständigkeiten und Zertifikate"
+    },
+    {
+      "name": "Kalender"
+    },
+    {
+      "name": "Zugänge"
+    },
+    {
+      "name": "Anzeige"
     },
     {
       "name": "Kassa"
