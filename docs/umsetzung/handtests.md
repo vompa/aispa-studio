@@ -513,7 +513,7 @@ Result: ☐
 ### Rezeptions-Lücken G – Tab „Entnahme“ nur mit Kassenaufsicht
 Start: `dotnet run --project src/AispaStudio.AppHost`, als Rezeption anmelden, **Kassa** › oben **Kassenlade** (Tagesabschluss)
 1. Den Kasten rechts ansehen.
-Expected: Überschrift „Einlage“, nur der Tab **Einlage**, darunter „Kein Umsatz. Entnehmen darf nur, wer die Kassenaufsicht hat.“
+Expected: Überschrift „Einlage“, kein Reiter (es gibt nur die Einlage), darunter „Kein Umsatz. Entnehmen darf nur, wer die Kassenaufsicht hat.“
 2. Abmelden, als Standortleitung anmelden, dieselbe Stelle öffnen.
 Expected: Überschrift „Einlage oder Entnahme“, Tabs **Einlage** und **Entnahme**.
 Closes: L6 (live-tests-rezeption-onboarding.md, Abschnitt 3)
@@ -531,6 +531,51 @@ Expected: Beispiel und Platzhalter haben die Form `K7M3-Q9XA-B2CD`.
 Expected: Kein Knopf **Bearbeiten** neben dem Kopf; der Weg geht über **…** › **Bearbeiten (Name, Anrede, Kontakt, Notiz)** oder den Stift **Notiz ändern**, wie beschrieben.
 Closes: L15 (live-tests-rezeption-onboarding.md, Abschnitt 3)
 Result: ☐
+
+### Befunde Kassa A1 – Rückfrage vor dem Tagesabschluss
+Start: `dotnet run --project src/AispaStudio.AppHost`, als Rezeption anmelden, **Kassa** › **Kassenlade & Abschluss**
+1. Bei „Gezählter Bestand“ einen Betrag eintragen, der vom Soll abweicht (z. B. 800,00), auf **Tagesabschluss durchführen** klicken.
+Expected: Rückfrage „Tagesabschluss durchführen?“, Text „Der Abschluss wird unveränderlich gespeichert. Differenz zum Soll: …“, Fokus auf **Abbrechen**.
+2. **Abbrechen** (oder Esc).
+Expected: Nichts gespeichert, der Bericht links heißt weiter „Zwischenbericht seit dem letzten Abschluss“, der Zählbestand steht noch im Feld.
+3. In einem zweiten Fenster einen Beleg bar kassieren, dann im ersten erneut **Tagesabschluss durchführen**.
+Expected: Die Differenz in der Rückfrage rechnet den neuen Beleg schon ein.
+4. **Abschließen**.
+Expected: „Tagesabschluss gespeichert“ mit der Differenz aus der Rückfrage.
+Closes: B1 (live-sichtpruefung-2026-11-09.md)
+Result: ☐
+
+### Befunde Kassa A8 – Kassa ohne Verbindung
+Start: `dotnet run --project src/AispaStudio.AppHost`, als Rezeption anmelden, **Kassa** öffnen, in „Später heute“ einen noch nicht eingecheckten Termin suchen
+1. Den API-Dienst anhalten (Verbindung kappen), den Termin anklicken und **Einchecken und kassieren** wählen.
+Expected: Rückfrage „Der Termin wird eingecheckt und auf die Rechnung gelegt.“; während des Wartens läuft ein Fortschrittsbalken; danach „Server nicht erreichbar. Verbindung prüfen und erneut versuchen.“ ohne „Zielcomputer“, Host oder Port.
+2. Den Termin noch einmal anklicken.
+Expected: Keine Rückfrage, stattdessen „Kassieren braucht eine Verbindung. Verbindung prüfen und erneut versuchen.“
+3. Die Leisten oben ansehen.
+Expected: Höchstens zwei (Offline-Banner und diese Meldung); die Signatur-Warnung der Kasse fehlt.
+4. API-Dienst wieder starten, kurz warten.
+Expected: Das Banner verschwindet, die Warnung der Kasse steht wieder da (falls sie bestand); der Termin lässt sich einchecken und kassieren; im Protokoll `protokolle\app.log` steht die technische Ursache einmal.
+Closes: B2, B14, B15 (live-sichtpruefung-2026-11-09.md)
+Result: ☐
+
+### Befunde Kassa A5 – Artikel in einer Spalte
+Start: `dotnet run --project src/AispaStudio.AppHost`, als Rezeption anmelden, **Kassa** › **Kassieren**, in der Leiste „Artikel und Gutscheine“ aufklappen
+1. Unter „Artikel“ alle Kacheln ansehen.
+Expected: Eine Spalte, jeder Artikelname ganz und in einer Zeile (z. B. „Gesichtscreme Hydro 50 ml“), der Preis darunter; kein Wort ist mitten abgebrochen.
+2. Unter „Gutschein verkaufen“ den Knopf ansehen.
+Expected: „Wertgutschein verkaufen“ steht ganz da (bei Platzmangel in zwei Zeilen), ohne „…“.
+3. Einen Artikel anklicken.
+Expected: Er steht auf der Rechnung.
+Closes: B6 (live-sichtpruefung-2026-11-09.md)
+Result: ☐
+
+### Befunde Kassa B19 – Kassenlade ohne einzelnen Reiter
+Start: `dotnet run --project src/AispaStudio.AppHost`, als Rezeption anmelden, **Kassa** › **Kassenlade & Abschluss**
+1. Den Kasten rechts unter „Tagesabschluss“ ansehen.
+Expected: Überschrift „Einlage“, darunter gleich die Felder **Betrag** und **Grund**; kein Reiter „Einlage“.
+2. Abmelden, als Standortleitung anmelden, dieselbe Stelle öffnen.
+Expected: Überschrift „Einlage oder Entnahme“ mit den Reitern **Einlage** und **Entnahme**.
+Closes: B19 (live-sichtpruefung-2026-11-09.md)
 
 ### Kalender A2 – Toasts mit kurzem Zeitpunkt
 Start: `dotnet run --project src/AispaStudio.AppHost`, als Rezeption anmelden, **Kalender**

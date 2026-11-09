@@ -27,8 +27,10 @@ internal static partial class ReceptionJourney
             .. AccountTopics,
             .. CustomerTopics,
             .. AppointmentTopics,
+            .. ExtraTopics,
             .. PosTopics,
-        ]);
+        ],
+        ResetToBaseline);
 
     private static void SignIn(LiveSession s)
     {
@@ -47,14 +49,14 @@ internal static partial class ReceptionJourney
             s.Report.AddEvent($"Der Lauf arbeitet am {LiveSession.TextOf(s.Find("DateLine"))}.");
         });
 
-    private static void SignInAs(LiveSession s, string person) =>
-        s.Step($"Als {person} (Rezeption) anmelden", () =>
+    private static void SignInAs(LiveSession s, string person, string role = "Rezeption") =>
+        s.Step($"Als {person} ({role}) anmelden", () =>
         {
             s.Click("Testkonto");
             s.Click(person);
             s.Click("Als Testkonto anmelden");
-            s.Expect(e => e.Properties.Name.ValueOrDefault?.StartsWith($"Konto {person}, Rezeption", StringComparison.Ordinal) == true,
-                $"Kontoknopf „Konto {person}, Rezeption …“");
+            s.Expect(e => e.Properties.Name.ValueOrDefault?.StartsWith($"Konto {person}, {role}", StringComparison.Ordinal) == true,
+                $"Kontoknopf „Konto {person}, {role} …“");
         });
 
     /// <summary>Eintrag der Seitennavigation; „Kalender“ heißt im Kalender auch ein Ansichtsknopf.</summary>
@@ -87,6 +89,11 @@ internal static partial class ReceptionJourney
 
     private static Func<AutomationElement, bool> NameContains(string text) =>
         e => e.Properties.Name.ValueOrDefault?.Contains(text, StringComparison.Ordinal) == true;
+
+    /// <summary>Text im Namen oder im Hilfetext; Meldungen an Feldern stehen als Hilfetext des Feldes (FormField).</summary>
+    private static Func<AutomationElement, bool> NameOrHelpContains(string text) =>
+        e => e.Properties.Name.ValueOrDefault?.Contains(text, StringComparison.Ordinal) == true
+             || e.Properties.HelpText.ValueOrDefault?.Contains(text, StringComparison.Ordinal) == true;
 
     private static Func<AutomationElement, bool> Class(string className, Func<AutomationElement, bool> also) =>
         e => e.Properties.ClassName.ValueOrDefault == className && also(e);

@@ -777,11 +777,83 @@ public sealed class PosTests
         Assert.False(pos.CloseDayCommand.CanExecute(null));
         pos.CountedCash = "460,30";
         Assert.Equal("Differenz −2,00 €", pos.DifferenceText);
+        pos.Dialogs = new FakeDialogs().Answer(ConfirmChoice.Confirmed);
         await pos.CloseDayCommand.ExecuteAsync(null);
         Assert.True(pos.IsClosed);
         Assert.Equal("Tagesabschluss gespeichert", pos.ReportTitle);
         Assert.Equal("Differenz −2,00 €", pos.DifferenceText);
         Assert.False(pos.CloseDayCommand.CanExecute(null));
+    }
+
+    private static string DayClosingRoute => $"POST /api/pos/registers/{SpaSample.Register.Id}/day-closings";
+
+    [Fact]
+    public async Task Given_Zaehlbestand_When_Tagesabschluss_Then_fragt_vorher_und_Abbrechen_speichert_nichts()
+    {
+        var stub = Api()
+            .On($"GET /api/pos/registers/{SpaSample.Register.Id}/day-report", Report())
+            .On(DayClosingRoute, Report(460.30m, -2m) with { Id = Guid.NewGuid() });
+        var pos = new PosViewModel(stub.Client(), new SampleTime());
+        await pos.InitializeAsync(SpaSample.LocationId);
+        await pos.LoadReportAsync();
+        pos.CountedCash = "460,30";
+        var dialogs = new FakeDialogs().Answer(ConfirmChoice.Cancelled).Answer(ConfirmChoice.Confirmed);
+        pos.Dialogs = dialogs;
+
+        await pos.CloseDayCommand.ExecuteAsync(null);
+        Assert.DoesNotContain(stub.Calls, c => c.Route == DayClosingRoute);
+        Assert.False(pos.IsClosed);
+        Assert.Equal("460,30", pos.CountedCash);
+
+        await pos.CloseDayCommand.ExecuteAsync(null);
+        Assert.Single(stub.Calls, c => c.Route == DayClosingRoute);
+        Assert.True(pos.IsClosed);
+
+        Assert.Equal(2, dialogs.Asked.Count);
+        Assert.Equal("Tagesabschluss durchführen?", dialogs.Asked[0].Title);
+        Assert.Equal("Abschließen", dialogs.Asked[0].ConfirmText);
+        Assert.True(dialogs.Asked[0].IsDestructive);
+        Assert.StartsWith("Der Abschluss wird unveränderlich gespeichert.", dialogs.Asked[0].Message, StringComparison.Ordinal);
+        dialogs.AssertRules();
+    }
+
+    [Fact]
+    public async Task Given_neuer_Beleg_nach_dem_Oeffnen_When_Tagesabschluss_Then_nennt_die_Rueckfrage_die_frische_Differenz()
+    {
+        var stub = Api()
+            .On($"GET /api/pos/registers/{SpaSample.Register.Id}/day-report", Report())
+            .On(DayClosingRoute, Report(460.30m, -12m) with { Id = Guid.NewGuid() });
+        var pos = new PosViewModel(stub.Client(), new SampleTime());
+        await pos.InitializeAsync(SpaSample.LocationId);
+        await pos.LoadReportAsync();
+        pos.CountedCash = "460,30";
+        Assert.Equal("Differenz −2,00 €", pos.DifferenceText);
+        // Zwischen Öffnen des Reiters und Abschluss kommt eine Barzahlung dazu: Soll-Bestand 472,30 €.
+        stub.On($"GET /api/pos/registers/{SpaSample.Register.Id}/day-report", Report() with { ExpectedCash = 472.30m });
+        var dialogs = new FakeDialogs().Answer(ConfirmChoice.Cancelled);
+        pos.Dialogs = dialogs;
+
+        await pos.CloseDayCommand.ExecuteAsync(null);
+
+        Assert.Contains("Differenz zum Soll: −12,00 €.", dialogs.Asked.Single().Message, StringComparison.Ordinal);
+        Assert.Equal("Differenz −12,00 €", pos.DifferenceText);
+    }
+
+    [Fact]
+    public async Task Given_Zaehlbestand_gleich_Soll_When_Tagesabschluss_Then_Rueckfrage_ohne_Differenz()
+    {
+        var stub = Api().On($"GET /api/pos/registers/{SpaSample.Register.Id}/day-report", Report());
+        var pos = new PosViewModel(stub.Client(), new SampleTime());
+        await pos.InitializeAsync(SpaSample.LocationId);
+        await pos.LoadReportAsync();
+        pos.CountedCash = "462,30";
+        var dialogs = new FakeDialogs().Answer(ConfirmChoice.Cancelled);
+        pos.Dialogs = dialogs;
+
+        await pos.CloseDayCommand.ExecuteAsync(null);
+
+        Assert.DoesNotContain("Differenz", dialogs.Asked.Single().Message, StringComparison.Ordinal);
+        Assert.Contains("stimmt mit dem Soll überein", dialogs.Asked.Single().Message, StringComparison.Ordinal);
     }
 
     private static async Task<PosViewModel> PayingBillAsync(StubApi? stub = null)

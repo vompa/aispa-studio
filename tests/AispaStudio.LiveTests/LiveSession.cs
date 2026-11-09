@@ -24,6 +24,9 @@ internal sealed class LiveSession : IDisposable
     private readonly UIA3Automation _automation = new();
     private readonly Application _app;
     private readonly string _folder;
+    private static LiveSession? ActiveSession;
+    private readonly List<string> _redTopics = [];
+    private readonly List<string> _skippedTopics = [];
     private int _step;
     private int _extraShot;
 
@@ -32,6 +35,7 @@ internal sealed class LiveSession : IDisposable
         _options = options;
         _app = app;
         _folder = folder;
+        ActiveSession = this;
         Report = new LiveReport(folder, role, options);
         Control = new LiveControl(options.StartPaused, options.ConsoleKeys, Report.AddEvent);
         Window = app.GetMainWindow(_automation, TimeSpan.FromSeconds(60))
@@ -60,6 +64,34 @@ internal sealed class LiveSession : IDisposable
 
     public Window Window { get; }
 
+    /// <summary>Adresse des Servers, für Proben der Themen über die API.</summary>
+    public Uri ApiUrl => _options.ApiUrl;
+
+    /// <summary>Zusätzliches Bild des Fensters mitten in einem Schritt; der Bericht verweist darauf.</summary>
+    public string Snapshot(string name)
+    {
+        var file = Shot(name);
+        Report.AddEvent($"Bild: [{file}]({file})");
+        return file;
+    }
+
+    /// <summary>Namen (Text) aller sichtbaren Elemente, auf die <paramref name="match"/> zutrifft; ohne Bedingung alle Textelemente mit Inhalt.</summary>
+    public List<string> VisibleTexts(Func<AutomationElement, bool>? match = null) =>
+        AllVisible().Where(e => match?.Invoke(e) ?? e.Properties.ClassName.ValueOrDefault == "TextBlock")
+            .Select(e => e.Properties.Name.ValueOrDefault)
+            .Where(name => !string.IsNullOrWhiteSpace(name))
+            .Select(name => name!)
+            .Distinct(StringComparer.Ordinal)
+            .ToList();
+
+    /// <summary>Fährt die Maus auf das Element und wartet, bis der Tooltip da ist (für Bilder von Hinweisen an gesperrten Knöpfen).</summary>
+    public static void Hover(AutomationElement element)
+    {
+        var rect = element.BoundingRectangle;
+        Mouse.MoveTo(new Point(rect.X + (rect.Width / 2), rect.Y + (rect.Height / 2)));
+        Thread.Sleep(1500);
+    }
+
     /// <summary>Wartet auf den Server, startet die App im Server-Betrieb und legt den Laufordner an.</summary>
     public static LiveSession Start(LiveOptions options, string role)
     {
@@ -71,15 +103,47 @@ internal sealed class LiveSession : IDisposable
         return new LiveSession(options, Application.Launch(start), folder, role);
     }
 
-    /// <summary>Führt den Ablauf aus und liefert den Exitcode: 0 alles bestanden, 1 ein Schritt gescheitert, 3 gestoppt.</summary>
+    /// <summary>Themen, die rot geworden sind („Schlüssel: Schritt, Fehler“), für das Ergebnis und den Exitcode.</summary>
+    public IReadOnlyList<string> RedTopics => _redTopics;
+
+    /// <summary>Themen, die übersprungen wurden, weil ein Thema davor rot war.</summary>
+    public IReadOnlyList<string> SkippedTopics => _skippedTopics;
+
+    /// <summary>Der Name des Schritts, der zuletzt gescheitert ist.</summary>
+    public string? LastFailedStep { get; private set; }
+
+    /// <summary>Trägt ein rotes Thema ein; der Lauf geht mit dem nächsten Thema weiter (Sichtprüfung 09.11.2026, T8).</summary>
+    public void MarkTopicRed(string key, string error)
+    {
+        _redTopics.Add($"{key}: {LastFailedStep ?? "?"}, {error}");
+        Report.AddEvent($"THEMA ROT: {key}. Schritt „{LastFailedStep}“: {error}");
+    }
+
+    /// <summary>Trägt ein übersprungenes Thema ein.</summary>
+    public void MarkTopicSkipped(string key, IEnumerable<string> blockedBy)
+    {
+        _skippedTopics.Add(key);
+        Report.AddEvent($"THEMA ÜBERSPRUNGEN: {key}, weil vorher rot oder übersprungen: {string.Join(", ", blockedBy)}.");
+    }
+
+    /// <summary>Führt den Ablauf aus und liefert den Exitcode: 0 alles bestanden, 1 ein Schritt oder Thema gescheitert, 3 gestoppt.</summary>
     public int Run(Action journey)
     {
         int code;
         try
         {
             journey();
-            Result = $"Bestanden: alle {_step} Schritte.";
-            code = 0;
+            if (_redTopics.Count > 0)
+            {
+                Result = $"Nicht bestanden: {_redTopics.Count} Thema/Themen rot ({string.Join("; ", _redTopics)}); "
+                         + $"übersprungen: {(_skippedTopics.Count == 0 ? "keines" : string.Join(", ", _skippedTopics))}. Schritte insgesamt: {_step}.";
+                code = 1;
+            }
+            else
+            {
+                Result = $"Bestanden: alle {_step} Schritte.";
+                code = 0;
+            }
         }
         catch (OperationCanceledException ex)
         {
@@ -114,6 +178,8 @@ internal sealed class LiveSession : IDisposable
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
+            LastFailedStep = name;
+            Report.AddEvent($"Fehlerstelle in „{name}“: {string.Join(" ← ", (ex.StackTrace ?? "").Split((char)10).Take(3).Select(line => line.Trim()))}");
             var image = Shot($"{number:00}-{name}-fehler");
             DumpVisible($"{number:00}-{name}-fehler");
             Report.AddStep(number, name, started, watch.Elapsed, false, image, ex.Message);
@@ -188,8 +254,51 @@ internal sealed class LiveSession : IDisposable
             return;
         }
 
-        element.Click(moveMouse: true);
+        var isButton = element.Properties.ClassName.ValueOrDefault == "Button";
+        if (isButton && MouseProbe is { } pauseMs)
+        {
+            // Gegenprobe B8 (AISPA_LIVE_MOUSE=1): echter Mausklick mit Pause davor, kein Invoke.
+            Thread.Sleep(pauseMs);
+            Report.AddEvent($"Mausklick auf „{element.Properties.Name.ValueOrDefault}“ nach {pauseMs} ms Pause.");
+            element.Click(moveMouse: true);
+            return;
+        }
+
+        // Sichtprüfung 09.11.2026: Mausklicks auf Knöpfe im Seitenpanel kamen gelegentlich nicht an (nur Hover); Knöpfe lösen deshalb über „Invoke“ aus.
+        if (isButton && element.Patterns.Invoke.IsSupported && element.Properties.Name.ValueOrDefault?.StartsWith("Wertgutschein", StringComparison.Ordinal) != true)
+        {
+            var name = element.Properties.Name.ValueOrDefault;
+            try
+            {
+                element.Patterns.Invoke.Pattern.Invoke();
+            }
+            catch (System.Runtime.InteropServices.COMException ex)
+            {
+                // Der Knopf schließt beim Auslösen seinen Dialog; UI Automation meldet dann, dass der Aufruf kein Element mehr fand (0x80040201). Die Aktion ist geschehen.
+                Report.AddEvent($"Knopf „{name}“ war nach dem Auslösen weg ({ex.HResult:X8}).");
+            }
+
+            return;
+        }
+
+        try
+        {
+            element.Click(moveMouse: true);
+        }
+        catch (System.Runtime.InteropServices.COMException ex)
+        {
+            throw new InvalidOperationException($"Das Element war beim Klicken nicht mehr da ({ex.HResult:X8}); der Baum hat sich geändert.", ex);
+        }
     }
+
+    /// <summary>
+    /// Pause vor einem Mausklick auf einen Knopf in Millisekunden, wenn <c>AISPA_LIVE_MOUSE=1</c> gesetzt ist (Standard 300,
+    /// <c>AISPA_LIVE_MOUSE_PAUSE_MS</c> ändert sie); sonst null, und Knöpfe lösen per Invoke aus.
+    /// </summary>
+    private static int? MouseProbe =>
+        Environment.GetEnvironmentVariable("AISPA_LIVE_MOUSE") == "1"
+            ? int.TryParse(Environment.GetEnvironmentVariable("AISPA_LIVE_MOUSE_PAUSE_MS"), out var pause) ? pause : 300
+            : null;
 
     /// <summary>
     /// Gegenprobe (Umgebungsvariable <c>AISPA_LIVE_SKIP_CLICK</c>, Namen mit „|“ getrennt): Ein Klick auf ein Element dieses Namens
@@ -350,7 +459,8 @@ internal sealed class LiveSession : IDisposable
     {
         var combo = Find(comboName);
         Click(combo);
-        var item = TryFind(element => IsComboItem(element) && StartsWith(element, itemName), FindTimeout);
+        var item = TryFind(element => IsComboItem(element) && StartsWith(element, itemName), FindTimeout)
+                   ?? ScrollToComboItem(itemName);
         if (item is null)
         {
             var offered = string.Join(", ", VisibleComboItems());
@@ -363,6 +473,55 @@ internal sealed class LiveSession : IDisposable
         {
             throw new InvalidOperationException($"Die Auswahl „{comboName}“ zeigt nach dem Klick nicht „{itemName}“.");
         }
+    }
+
+    /// <summary>
+    /// Die offene Auswahl ist virtualisiert: Einträge weiter unten stehen erst nach dem Blättern im Automationsbaum. Blättert mit dem
+    /// Die Liste wird über das <c>ScrollPattern</c> ihres Rollbereichs nach oben gesetzt und dann seitenweise nach unten bewegt, bis
+    /// <paramref name="itemName"/> auftaucht (Mausrad und Pfeiltasten erreichten die Liste nicht verlässlich, gemessen 09.11.2026).
+    /// </summary>
+    private AutomationElement? ScrollToComboItem(string itemName)
+    {
+        var scroll = ComboListScroll();
+        if (scroll is null)
+        {
+            return null;
+        }
+
+        scroll.SetScrollPercent(-1, 0);
+        for (var page = 0; page < 30; page++)
+        {
+            var item = TryFind(element => IsComboItem(element) && StartsWith(element, itemName), TimeSpan.FromMilliseconds(400));
+            if (item is not null)
+            {
+                return item;
+            }
+
+            if (scroll.VerticalScrollPercent.ValueOrDefault >= 100)
+            {
+                return null;
+            }
+
+            scroll.Scroll(ScrollAmount.NoAmount, ScrollAmount.LargeIncrement);
+        }
+
+        return null;
+    }
+
+    /// <summary>Der Rollbereich der offenen Auswahl: der nächste Vorfahr eines Eintrags, der <c>ScrollPattern</c> anbietet.</summary>
+    private FlaUI.Core.Patterns.IScrollPattern? ComboListScroll()
+    {
+        var element = TryFind(IsComboItem, TimeSpan.FromSeconds(1));
+        for (var depth = 0; element is not null && depth < 6; depth++)
+        {
+            element = element.Parent;
+            if (element?.Patterns.Scroll.PatternOrDefault is { } scroll && scroll.VerticallyScrollable.ValueOrDefault)
+            {
+                return scroll;
+            }
+        }
+
+        return null;
     }
 
     private static bool IsComboItem(AutomationElement element) => element.Properties.ClassName.ValueOrDefault == "ComboBoxItem";
@@ -391,17 +550,77 @@ internal sealed class LiveSession : IDisposable
     }
 
     /// <summary>Klickt in das Feld, markiert den alten Inhalt und tippt den Text Taste für Taste.</summary>
-    public void Type(string field, string text)
+    public void Type(string field, string text) => TypeInto(Find(field), text);
+
+    /// <summary>Wie <see cref="Type(string, string)"/> für ein schon gefundenes Feld.</summary>
+    public void TypeInto(AutomationElement element, string text)
     {
-        var element = Find(field);
         Highlight(element);
         element.Click(moveMouse: true);
+        EnsureAppInForeground();
         Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_A);
+        EnsureAppInForeground();
         Keyboard.Type(text);
     }
 
-    /// <summary>Drückt eine Taste in der App.</summary>
-    public static void Press(VirtualKeyShort key) => Keyboard.Type(key);
+    /// <summary>Drückt eine Taste in der App; nie in ein fremdes Fenster (<see cref="EnsureAppInForeground"/>).</summary>
+    public static void Press(VirtualKeyShort key)
+    {
+        EnsureAppInForeground();
+        Keyboard.Type(key);
+    }
+
+    /// <summary>Drückt zwei Tasten zugleich (Strg+F) in der App.</summary>
+    public static void Chord(VirtualKeyShort first, VirtualKeyShort second)
+    {
+        EnsureAppInForeground();
+        Keyboard.TypeSimultaneously(first, second);
+    }
+
+    /// <summary>Tippt Text in die App, ohne vorher ein Feld anzuklicken.</summary>
+    public static void TypeText(string text)
+    {
+        EnsureAppInForeground();
+        Keyboard.Type(text);
+    }
+
+    /// <summary>
+    /// Sichtprüfung 09.11.2026 (T5): Vor jeder Tasten- und Texteingabe muss das Vordergrundfenster zum Prozess der App gehören; sonst ging
+    /// Strg+A an ein Explorer-Fenster. Nach <c>SetForeground</c> wartet die Prüfung bis zu zwei Sekunden, danach endet der Lauf mit klarer
+    /// Meldung, und es wurde keine Taste gesendet.
+    /// </summary>
+    public static void EnsureAppInForeground()
+    {
+        var session = ActiveSession ?? throw new InvalidOperationException("Kein Lauf aktiv.");
+        var appId = session._app.ProcessId;
+        if (NativeWindow.ForegroundProcessId() == appId)
+        {
+            return;
+        }
+
+        try
+        {
+            session.Window.SetForeground();
+        }
+        catch (Exception ex) when (ex is System.Runtime.InteropServices.COMException or InvalidOperationException)
+        {
+            // Das Fenster ließ sich nicht nach vorn holen; die Prüfung unten entscheidet.
+        }
+
+        var deadline = DateTime.UtcNow.AddSeconds(2);
+        while (DateTime.UtcNow < deadline)
+        {
+            if (NativeWindow.ForegroundProcessId() == appId)
+            {
+                return;
+            }
+
+            Thread.Sleep(100);
+        }
+
+        var other = NativeWindow.ProcessName(NativeWindow.ForegroundProcessId());
+        throw new ForegroundLostException($"Abbruch: Im Vordergrund liegt nicht die App, sondern {other}. Es wurden keine Tasten gesendet.");
+    }
 
     /// <summary>Wartet, bis das Element sichtbar ist, und hebt es hervor (Prüfschritt).</summary>
     public void Expect(string nameOrId) => Highlight(Find(nameOrId));
@@ -472,7 +691,7 @@ internal sealed class LiveSession : IDisposable
     private void DumpVisible(string name)
     {
         var lines = AllVisible().Select(e =>
-            $"{e.Properties.ClassName.ValueOrDefault} | {e.Properties.AutomationId.ValueOrDefault} | {e.Properties.Name.ValueOrDefault}");
+            $"{e.Properties.ClassName.ValueOrDefault} | {e.Properties.AutomationId.ValueOrDefault} | {e.Properties.Name.ValueOrDefault} | {e.Properties.HelpText.ValueOrDefault}");
         File.WriteAllLines(Path.Combine(_folder, $"{Slug(name)}.txt"), lines);
     }
 
