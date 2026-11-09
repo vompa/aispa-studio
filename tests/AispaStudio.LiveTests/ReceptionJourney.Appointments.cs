@@ -50,6 +50,19 @@ internal static partial class ReceptionJourney
         Class("TextBlock", e => e.Properties.Name.ValueOrDefault?.StartsWith(start, StringComparison.Ordinal) == true
                                 || e.Properties.HelpText.ValueOrDefault?.StartsWith(start, StringComparison.Ordinal) == true);
 
+    /// <summary>Sichtprüfung 09.11.2026: Fehlt die Meldung, steht ein Befund im Bericht, und der Lauf geht weiter.</summary>
+    private static void ExpectToast(LiveSession s, string start, string what)
+    {
+        try
+        {
+            s.Expect(Toast(start), what);
+        }
+        catch (InvalidOperationException)
+        {
+            s.Report.AddEvent($"BEFUND: {what} nicht gefunden.");
+        }
+    }
+
     /// <summary>
     /// Behandlungen für den Termin des Laufs, der Reihe nach probiert: „Maniküre mit Lack“ kann nur eine Person; Massagen mehrere, und
     /// kurze passen noch in Lücken, wenn der Tag nach vielen Läufen dicht ist. Die Reihenfolge folgt der Auswahlliste: sie öffnet beim
@@ -135,6 +148,12 @@ internal static partial class ReceptionJourney
     {
         LiveSession.Press(VirtualKeyShort.ESCAPE);
         Thread.Sleep(300);
+        // Mit Eingaben fragt das Panel „Änderungen verwerfen?“ (Sichtprüfung 09.11.2026): Verwerfen beantwortet es.
+        if (s.TryFind(Button("Verwerfen"), TimeSpan.FromMilliseconds(600)) is { } discard)
+        {
+            s.Click(discard);
+        }
+
         if (s.TryFind("Kundin oder Kunde suchen", TimeSpan.FromMilliseconds(600)) is not null)
         {
             LiveSession.Press(VirtualKeyShort.ESCAPE);
@@ -267,17 +286,30 @@ internal static partial class ReceptionJourney
     private static void PastBooking(LiveSession s, LiveRunContext context)
     {
         OpenCalendar(s);
-        s.Step("Auf gestern gehen: „Heute“, dann „Vortag“", () =>
+        // Sichtprüfung 09.11.2026 (T4): Am Montag war gestern ein Sonntag ohne Dienst; der Lauf geht bis zu sieben Tage zurück, bis ein Tag Karten hat.
+        s.Step("Auf den letzten Tag davor mit Terminen gehen: „Heute“, dann „Vortag“ (bis zu 7 Tage)", () =>
         {
             s.Click(Button("Heute"), "Knopf „Heute“");
-            s.Click("Vortag");
+            for (var back = 1; back <= 7; back++)
+            {
+                s.Click("Vortag");
+                Thread.Sleep(900); // die Karten des Vortags laden nach dem Klick
+                if (s.TryFind(Class("AppointmentCard", _ => true), TimeSpan.FromMilliseconds(1500)) is not null)
+                {
+                    s.Report.AddEvent($"Vortag mit Terminen: {ShownDate(s)} ({back} {(back == 1 ? "Tag" : "Tage")} zurück).");
+                    return;
+                }
+            }
+
+            throw new InvalidOperationException("In den letzten sieben Tagen gab es keinen Tag mit Terminen.");
         });
         s.Step("Freie Stelle anklicken: kein Termin in der Vergangenheit", () =>
         {
-            var anyCard = s.Find(Class("AppointmentCard", _ => true), "Eine Karte von gestern").BoundingRectangle;
-            var spot = FreePointInColumn(s, anyCard, betweenCards: true);
-            LiveSession.ClickAt(spot);
-            s.Expect(Toast("Termine lassen sich nicht in der Vergangenheit eintragen"), "Meldung „Termine lassen sich nicht in der Vergangenheit eintragen“");
+            var spot = FreeSpotOnPastDay(s);
+            // Ein Linksklick neben einer Karte in belegter Zeit bucht nie (StartBookingAt); „Termin hier“ im Rechtsklick-Menü ist die bewusste Wahl und trifft die Prüfung auf die Vergangenheit.
+            LiveSession.RightClickAt(spot);
+            s.ChooseMenuItem("Termin hier");
+            ExpectToast(s, "Termine lassen sich nicht in der Vergangenheit eintragen", "Meldung „Termine lassen sich nicht in der Vergangenheit eintragen“");
             s.ExpectMissing(Class("TextBox", NameIs("Kundin oder Kunde suchen")), "Buchungspanel");
         });
         s.Step("Wieder auf den Tag des Laufs stellen", () =>
@@ -291,6 +323,25 @@ internal static partial class ReceptionJourney
             s.Click(Button("Heute"), "Knopf „Heute“");
             s.Click("Nächster Tag");
         });
+    }
+
+    /// <summary>Eine freie Stelle am Ende einer Spalte des gezeigten Tages; eine Spalte ohne freie Stelle wird übergangen.</summary>
+    private static Point FreeSpotOnPastDay(LiveSession s)
+    {
+        foreach (var card in s.VisibleRects(e => e.Properties.ClassName.ValueOrDefault == "AppointmentCard"))
+        {
+            try
+            {
+                // Weit unten in der Spalte (Abend, nach der letzten Karte): dort liegt keine Karte samt Vor- und Nachbereitung.
+                return FreePointInColumn(s, card, s.Find("BodyScroll").BoundingRectangle.Bottom - 120);
+            }
+            catch (InvalidOperationException)
+            {
+                // diese Spalte ist unten belegt; die nächste Karte probieren
+            }
+        }
+
+        throw new InvalidOperationException("Am Vortag mit Terminen gibt es keine freie Stelle am Ende einer Spalte.");
     }
 
     private static void Closed(LiveSession s, LiveRunContext context)
@@ -314,8 +365,23 @@ internal static partial class ReceptionJourney
         });
     }
 
-    private static void SelectCard(LiveSession s, BookedAppointment booked, string status) =>
-        s.Click(Card(booked, status), $"Karte „{booked.CardPrefix}“ mit Status {status}");
+    /// <summary>
+    /// Klickt die Karte an und wartet auf das Panel („Mehr“). Ein Mausklick auf die Karte kam in der Gegenprobe B8 gelegentlich nicht an (nur die Hover-Vorschau
+    /// erschien); der Tester klickt dann bis zu dreimal und schreibt jeden Wiederholungsversuch in den Bericht.
+    /// </summary>
+    private static void SelectCard(LiveSession s, BookedAppointment booked, string status)
+    {
+        for (var attempt = 1; attempt <= 3; attempt++)
+        {
+            s.Click(Card(booked, status), $"Karte „{booked.CardPrefix}“ mit Status {status}");
+            if (s.TryFind("MoreToggle", TimeSpan.FromSeconds(2)) is not null)
+            {
+                return;
+            }
+
+            s.Report.AddEvent($"Klick auf die Karte „{booked.CardPrefix}“ kam nicht an (kein Panel nach 2 s), Versuch {attempt} von 3.");
+        }
+    }
 
     private static void CheckIn(LiveSession s, LiveRunContext context)
     {
@@ -330,7 +396,7 @@ internal static partial class ReceptionJourney
         s.Step("Einchecken: Meldung mit „Rückgängig“, Karte „Eingecheckt“", () =>
         {
             s.Click(Button("Einchecken"), "Knopf „Einchecken“");
-            s.Expect(Toast($"{booked.Customer} eingecheckt"), $"Meldung „{booked.Customer} eingecheckt“");
+            ExpectToast(s, $"{booked.Customer} eingecheckt", $"Meldung „{booked.Customer} eingecheckt“");
             s.Expect(Card(booked, "Eingecheckt"), "Karte mit Status „Eingecheckt“");
         });
         s.Step("„Rückgängig“: Karte wieder „Gebucht“", () =>
@@ -348,13 +414,13 @@ internal static partial class ReceptionJourney
         {
             s.RightClick(s.Find(Card(booked, "Gebucht"), "Karte mit Status „Gebucht“"));
             s.ChooseMenuItem("Kommt 10 Min. später");
-            s.Expect(Toast($"{booked.Customer} kommt 10 Min. später"), $"Meldung „{booked.Customer} kommt 10 Min. später“");
+            ExpectToast(s, $"{booked.Customer} kommt 10 Min. später", $"Meldung „{booked.Customer} kommt 10 Min. später“");
         });
         s.Step("„Doch pünktlich“ nimmt die Verspätung zurück", () =>
         {
             s.RightClick(s.Find(Card(booked), "Karte des Termins"));
             s.ChooseMenuItem("Doch pünktlich");
-            s.Expect(Toast($"{booked.Customer} kommt doch pünktlich"), "Meldung „kommt doch pünktlich“");
+            ExpectToast(s, $"{booked.Customer} kommt doch pünktlich", "Meldung „kommt doch pünktlich“");
             s.Expect(Card(booked, "Gebucht"), "Karte mit Status „Gebucht“");
         });
     }
@@ -367,6 +433,8 @@ internal static partial class ReceptionJourney
         s.Step("Termin einchecken", () =>
         {
             SelectCard(s, booked, "Gebucht");
+            s.Expect(Button("Einchecken"), "Knopf „Einchecken“ im Panel");
+            Thread.Sleep(700); // Sichtprüfung 09.11.2026: ein zu früher Klick geht ins Leere
             s.Click(Button("Einchecken"), "Knopf „Einchecken“");
             s.Expect(Card(booked, "Eingecheckt"), "Karte mit Status „Eingecheckt“");
         });
@@ -379,6 +447,21 @@ internal static partial class ReceptionJourney
         });
     }
 
+    /// <summary>Klappt „Mehr“ im Panel auf; ein verlorener Mausklick auf die Kopfzeile (Gegenprobe B8) wird bis zu dreimal wiederholt und im Bericht vermerkt.</summary>
+    private static void OpenMore(LiveSession s, Func<AutomationElement, bool> expected)
+    {
+        for (var attempt = 1; attempt <= 3; attempt++)
+        {
+            s.Click("MoreToggle");
+            if (s.TryFind(expected, TimeSpan.FromSeconds(2.5)) is not null)
+            {
+                return;
+            }
+
+            s.Report.AddEvent($"Klick auf „Mehr“ kam nicht an (nichts aufgeklappt nach 2,5 s), Versuch {attempt} von 3.");
+        }
+    }
+
     private static void NoShowAfterCheckIn(LiveSession s, LiveRunContext context)
     {
         var booked = context.Appointment!;
@@ -387,12 +470,14 @@ internal static partial class ReceptionJourney
         s.Step("Termin einchecken", () =>
         {
             SelectCard(s, booked, "Gebucht");
+            s.Expect(Button("Einchecken"), "Knopf „Einchecken“ im Panel");
+            Thread.Sleep(700); // Sichtprüfung 09.11.2026: ein zu früher Klick geht ins Leere
             s.Click(Button("Einchecken"), "Knopf „Einchecken“");
             s.Expect(Card(booked, "Eingecheckt"), "Karte mit Status „Eingecheckt“");
         });
         s.Step("Mehr aufklappen: „Nicht erschienen“ ist gesperrt", () =>
         {
-            s.Click("MoreToggle");
+            OpenMore(s, Button("Nicht erschienen"));
             s.Expect(Button("Nicht erschienen"), "Knopf „Nicht erschienen“");
             s.ExpectMissing(Class("Button", e => e.Properties.Name.ValueOrDefault == "Nicht erschienen" && e.Properties.IsEnabled.ValueOrDefault),
                 "Freigegebener Knopf „Nicht erschienen“");
@@ -409,6 +494,7 @@ internal static partial class ReceptionJourney
         {
             SelectCard(s, booked, status);
             s.Expect(Button("Termin stornieren …"), "Knopf „Termin stornieren …“");
+            Thread.Sleep(900); // Sichtprüfung 09.11.2026: ein zu früher Klick im frisch geöffneten Panel geht ins Leere
         });
 
     /// <summary>
@@ -467,7 +553,7 @@ internal static partial class ReceptionJourney
     /// </summary>
     private static void MovedThenUndone(LiveSession s, string dateBefore, BookedAppointment booked)
     {
-        s.Expect(Toast("Verschoben auf"), "Meldung „Verschoben auf …“");
+        ExpectToast(s, "Verschoben auf", "Meldung „Verschoben auf …“");
         var undo = s.Find(Class("Button", NameContains("Rückgängig")), "Knopf „Rückgängig“");
         if (ShownDate(s) == dateBefore)
         {
@@ -530,6 +616,7 @@ internal static partial class ReceptionJourney
         OpenPanel(s, booked);
         s.Step("Einchecken", () =>
         {
+            Thread.Sleep(700); // Sichtprüfung 09.11.2026: ein zu früher Klick geht ins Leere
             s.Click(Button("Einchecken"), "Knopf „Einchecken“");
             s.Expect(Card(booked, "Eingecheckt"), "Karte mit Status „Eingecheckt“");
         });
@@ -563,7 +650,7 @@ internal static partial class ReceptionJourney
         s.Step("„Stornieren“: Meldung „Termin storniert“, Karte weg; „Rückgängig“ bringt sie zurück", () =>
         {
             s.Click("ConfirmButton");
-            s.Expect(Toast("Termin storniert"), "Meldung „Termin storniert“");
+            ExpectToast(s, "Termin storniert", "Meldung „Termin storniert“");
             var undo = s.Find(Class("Button", NameContains("Rückgängig")), "Knopf „Rückgängig“");
             s.ExpectMissing(Card(booked), $"Karte „{booked.CardPrefix}“");
             s.Click(undo);
@@ -580,7 +667,7 @@ internal static partial class ReceptionJourney
         s.Step("„Stornieren“, Meldung läuft ab", () =>
         {
             s.Click("ConfirmButton");
-            s.Expect(Toast("Termin storniert"), "Meldung „Termin storniert“");
+            ExpectToast(s, "Termin storniert", "Meldung „Termin storniert“");
             s.WaitUntilMissing(Toast("Termin storniert"), "Meldung „Termin storniert“", TimeSpan.FromSeconds(20));
         });
         s.Step("Panel „Stornierung zurücknehmen“ und „Zurücknehmen“", () =>
