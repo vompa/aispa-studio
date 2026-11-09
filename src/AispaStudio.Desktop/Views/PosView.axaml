@@ -64,6 +64,7 @@
       </Style>
     </ContainerQuery>
   </UserControl.Styles>
+  <Panel>
   <ScrollViewer x:Name="PageScroll" HorizontalScrollBarVisibility="Disabled" Classes.checkout="{Binding IsCheckout}" Classes.salesopen="{Binding IsSalesColumnOpen}">
   <Grid ColumnSpacing="16" RowDefinitions="Auto,Auto,*,Auto" Margin="16">
     <Grid.ColumnDefinitions>
@@ -303,6 +304,15 @@
               <TextBlock Text="{x:Static vm:PosViewModel.NoPrinterHint}" Classes="muted small" VerticalAlignment="Center"
                          IsVisible="{Binding !#Root.((vm:PosViewModel)DataContext)?.HasPrinter, TargetNullValue=False}" />
             </StackPanel>
+            <!-- PDF-Ausgaben (ADR 0091): Drucken auf dem Standarddrucker, PDF speichern, per Mail an den Gast; darunter die Vermerke der gesendeten Mails -->
+            <ui:DocumentActions DataContext="{Binding Document}" />
+            <ItemsControl ItemsSource="{Binding SentMailLines}" IsVisible="{Binding HasSentMails}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="x:String">
+                  <TextBlock Text="{Binding}" Classes="muted small" />
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
           </StackPanel>
         </Panel>
       </Border>
@@ -730,6 +740,15 @@
             <TextBlock Text="{x:Static vm:PosViewModel.NoPrinterHint}" Classes="muted small" VerticalAlignment="Center"
                        IsVisible="{Binding !#Root.((vm:PosViewModel)DataContext)?.HasPrinter, TargetNullValue=False}" />
           </StackPanel>
+          <!-- Nachdruck (ADR 0091): das PDF trägt „Kopie“; der Bondrucker bleibt der erste Knopf -->
+          <ui:DocumentActions DataContext="{Binding Document}" />
+          <ItemsControl ItemsSource="{Binding SentMailLines}" IsVisible="{Binding HasSentMails}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="x:String">
+                <TextBlock Text="{Binding}" Classes="muted small" />
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
           <Border Classes="card" Padding="16" Width="420" IsVisible="{Binding CanAddRecipient}">
             <StackPanel Spacing="8">
               <TextBlock Text="Rechnung mit Empfänger" Classes="h2" />
@@ -904,4 +923,15 @@
     </Grid>
   </Grid>
   </ScrollViewer>
+  <!-- Meldung unten (design.md 5.10, ADR 0091): „Gespeichert: …“, „Gesendet an …“, „Gedruckt“; eine Zeile, verschwindet nach 5 s -->
+  <Border x:Name="PosToast" Classes="toast" Classes.shown="{Binding HasToast}" IsVisible="{Binding HasToast}" HorizontalAlignment="Center" VerticalAlignment="Bottom"
+          Margin="16,0,16,20" CornerRadius="8" Padding="16,10,6,10" BoxShadow="{DynamicResource RaisedShadow}" MaxWidth="760" AutomationProperties.LiveSetting="Polite">
+    <StackPanel Orientation="Horizontal" Spacing="8">
+      <TextBlock Classes="msg" Text="{Binding Toast}" Foreground="{DynamicResource ToastFgBrush}" VerticalAlignment="Center" MaxWidth="540" AutomationProperties.Name="Meldung" />
+      <Button Classes="ghost icon" Command="{Binding CloseToastCommand}" Foreground="{DynamicResource ToastFgBrush}" ToolTip.Tip="Schließen" AutomationProperties.Name="Meldung schließen">
+        <ui:Icon Data="{x:Static ui:Icons.Close}" Width="16" Height="16" />
+      </Button>
+    </StackPanel>
+  </Border>
+  </Panel>
 </UserControl>

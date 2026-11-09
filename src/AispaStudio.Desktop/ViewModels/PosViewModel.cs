@@ -218,6 +218,34 @@ public partial class PosViewModel : ViewModelBase
     [ObservableProperty]
     public partial string? PrintText { get; private set; }
 
+    private static readonly TimeSpan ToastDuration = TimeSpan.FromSeconds(5);
+    private int _toastClock;
+
+    /// <summary>Meldung unten (design.md 5.10): eine Zeile ohne Schlusspunkt, z. B. „Gespeichert: Beleg-K1-142.pdf“; verschwindet nach 5 s.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasToast))]
+    public partial string? Toast { get; private set; }
+
+    public bool HasToast => Toast is not null;
+
+    public void ShowToast(string text)
+    {
+        Toast = text;
+        _ = ExpireToastAsync(++_toastClock);
+    }
+
+    [RelayCommand]
+    private void CloseToast() => Toast = null;
+
+    private async Task ExpireToastAsync(int clock)
+    {
+        await Task.Delay(ToastDuration, _time).ConfigureAwait(true);
+        if (clock == _toastClock)
+        {
+            Toast = null;
+        }
+    }
+
     /// <summary>Panel „Artikel und Gutscheine“ neben der Rechnung aufgeklappt; Standard zugeklappt, der Zustand gilt je Arbeitsplatz und bleibt über den Neustart.</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(SalesColumnTip))]
@@ -1092,7 +1120,7 @@ public partial class PosViewModel : ViewModelBase
         }
 
         InvoiceCustomer = null;
-        var updated = new ReceiptViewModel(result.Value, Zone, Register?.Country ?? FiscalCountry.AT, OwnerLevel);
+        var updated = ReceiptFor(result.Value, copy: false);
         if (Receipt?.Receipt.Id == result.Value.Id)
         {
             Receipt = updated;
@@ -1326,7 +1354,7 @@ public partial class PosViewModel : ViewModelBase
         }
 
         SetBill(null);
-        Receipt = new ReceiptViewModel(result.Value, Zone, Register?.Country ?? FiscalCountry.AT, OwnerLevel);
+        Receipt = ReceiptFor(result.Value, copy: false);
         await LoadDayAsync().ConfigureAwait(true);
         if (_settings.Load().PrintAutomatically)
         {
@@ -1362,6 +1390,23 @@ public partial class PosViewModel : ViewModelBase
 
     [RelayCommand]
     private void CloseReceipt() => Receipt = null;
+
+    /// <summary>Beleg mit Knopfblock „Drucken · PDF speichern · Per Mail senden“ (ADR 0091); der Nachdruck aus der Belegliste trägt „Kopie“.</summary>
+    internal ReceiptViewModel ReceiptFor(ReceiptDto receipt, bool copy) => new(receipt, Zone, Register?.Country ?? FiscalCountry.AT, OwnerLevel)
+    {
+        Document = new DocumentActionsViewModel(ReceiptDocumentSource(receipt, copy), _api, Dialogs) { ShowToast = ShowToast },
+    };
+
+    /// <summary>Pfade des Beleg-PDFs: A4 als Standard („A4 drucken“, weil „Drucken“ der Bondrucker ist), Bon-Format im Menü, Versand an den Gast.</summary>
+    internal static DocumentSource ReceiptDocumentSource(ReceiptDto receipt, bool copy)
+    {
+        var copyQuery = copy ? "copy=true" : null;
+        return new DocumentSource(ReceiptViewModel.TitleOf(receipt), WithQuery($"api/pos/receipts/{receipt.Id}/pdf", copyQuery), $"api/pos/receipts/{receipt.Id}/send",
+            AlternativePdfPath: WithQuery($"api/pos/receipts/{receipt.Id}/pdf", "format=Receipt", copyQuery), PrintLabel: "A4 drucken");
+
+        static string WithQuery(string path, params string?[] query) =>
+            string.Join('&', query.Where(q => q is not null)) is { Length: > 0 } joined ? $"{path}?{joined}" : path;
+    }
 
     private bool CanPayNow() => CanPay && !Busy;
 
@@ -1451,14 +1496,26 @@ public sealed class ReceiptViewModel(ReceiptDto receipt, TimeZoneInfo zone, Fisc
 {
     public ReceiptDto Receipt { get; } = receipt;
 
+    /// <summary>Knopfblock „Drucken · PDF speichern · Per Mail senden“ (ADR 0091); null in Masken ohne Knopfblock.</summary>
+    public DocumentActionsViewModel? Document { get; init; }
+
+    /// <summary>Vermerke „Per Mail gesendet an … am … von …“, damit die Rezeption Doppelsendungen sieht.</summary>
+    public IReadOnlyList<string> SentMailLines => Receipt.SentMails is { } sent
+        ? [.. sent.Select(m => $"Per Mail gesendet an {m.To} am {DayLayout.Local(m.SentAt, zone):dd.MM.yyyy HH:mm}{(m.SentBy is null ? "" : $" von {m.SentBy}")}")]
+        : [];
+
+    public bool HasSentMails => SentMailLines.Count > 0;
+
     private string Format(decimal amount) => Money.Format(amount, Money.CurrencyOf(country));
 
-    public string Title => Receipt.Kind switch
+    public string Title => TitleOf(Receipt);
+
+    public static string TitleOf(ReceiptDto receipt) => receipt.Kind switch
     {
-        ReceiptKind.Void => $"Stornobeleg Nr. {Receipt.Number}",
-        ReceiptKind.Sale when HasRecipient => $"Rechnung Nr. {Receipt.RegisterCode}-{Receipt.Number}",
-        ReceiptKind.Sale => $"Beleg Nr. {Receipt.Number}",
-        _ => $"Sonderbeleg Nr. {Receipt.Number}",
+        ReceiptKind.Void => $"Stornobeleg Nr. {receipt.Number}",
+        ReceiptKind.Sale when receipt.Recipient is not null => $"Rechnung Nr. {receipt.RegisterCode}-{receipt.Number}",
+        ReceiptKind.Sale => $"Beleg Nr. {receipt.Number}",
+        _ => $"Sonderbeleg Nr. {receipt.Number}",
     };
 
     /// <summary>Rechnungsempfänger (Firmenkunden): einmal je Beleg, danach druckt der Beleg als Rechnung.</summary>

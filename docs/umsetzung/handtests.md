@@ -664,3 +664,20 @@ Expected: Die neue UID steht rechts oben im Kopf.
 Closes: Arbeitsanweisung PDF-Ausgaben, Aufgabe A (der Knopfblock „Drucken · PDF speichern · Per Mail senden“ erscheint erst mit Aufgabe B in der Kassa)
 Result: ☐
 
+
+### PDF-Ausgaben B – Beleg und Rechnung als PDF, per Mail senden
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Inhaberin anmelden, **Kassa**, einen Gast mit Mailadresse in der Kundenkarte abrechnen und bar bezahlen
+1. Unter dem Beleg in der Mitte die Knöpfe ansehen.
+Expected: Zuerst „Drucken“ (Bondrucker, ohne Bondrucker gesperrt mit Hinweis auf „Geräte“), darunter „A4 drucken“, „PDF speichern“ mit Pfeil und „Per Mail senden“; alle Knöpfe weiß mit Rahmen.
+2. **PDF speichern** klicken, speichern und die Datei öffnen; dann am Pfeil **PDF im Bon-Format speichern** wählen und auch diese Datei öffnen.
+Expected: Vorschlag `Beleg-<Kasse>-<Nr>.pdf`; A4 mit Belegkopf, Positionen, Summe, Steuerzeile, Zahlung mit Rückgeld und QR-Code „Signierter Belegcode (RKSV)“; das Bon-Format ist 80 mm schmal mit demselben Inhalt. Unten erscheint kurz „Gespeichert: Beleg-….pdf“.
+3. **Per Mail senden** klicken, Adresse und Betreff ansehen, **Senden**.
+Expected: Die Adresse aus der Kundenkarte ist vorbelegt, Betreff „Ihr Beleg Nr. … von <Spa>“; danach Toast „Gesendet an …“ und unter dem Beleg „Per Mail gesendet an … am <Datum Uhrzeit> von <Vorname>“. Im Postfach (Mailpit) liegt die Mail mit dem PDF im Anhang.
+4. Reiter **Belege**, denselben Beleg wählen, **Empfänger erfassen** (Firma, Anschrift, UID), dann **PDF speichern**.
+Expected: Vorschlag `Rechnung-<Kasse>-<Nr>.pdf`; Titel „Rechnung Nr. <Kasse>-<Nr>“, „Rechnung an“ mit Firma, Anschrift und UID, „Rechnungs- und Leistungsdatum“, darunter „Kopie“; der Vermerk der Mail aus Schritt 3 steht auch hier.
+5. Einen Beleg stornieren und den Stornobeleg als PDF speichern.
+Expected: „Stornobeleg Nr. …“ mit dem Grund und negativen Beträgen.
+6. Als Therapeutin (ohne „Kassieren“ und „Belege ansehen“) anmelden und die Kassa suchen.
+Expected: Belege und ihre PDFs sind nicht zu sehen; die API antwortet auf `…/pdf` und `…/send` mit 403.
+Closes: Arbeitsanweisung PDF-Ausgaben, Aufgabe B
+Result: ☐

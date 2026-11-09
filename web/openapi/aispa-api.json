@@ -8395,6 +8395,156 @@
         }
       }
     },
+    "/api/v1/pos/receipts/{receiptId}/pdf": {
+      "get": {
+        "tags": [
+          "Kassa"
+        ],
+        "summary": "Beleg oder Rechnung als PDF: A4 (Standard) oder Bon-Format 80 mm (format=Receipt); copy=true kennzeichnet den Nachdruck als Kopie.",
+        "operationId": "ReceiptPdf",
+        "parameters": [
+          {
+            "name": "receiptId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/DocumentPageFormat"
+            }
+          },
+          {
+            "name": "copy",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/v1/pos/receipts/{receiptId}/send": {
+      "get": {
+        "tags": [
+          "Kassa"
+        ],
+        "summary": "Vorbelegung für „Per Mail senden“: Adresse des Gastes aus der Kundenkarte, Betreff und Text.",
+        "operationId": "ReceiptMailDraft",
+        "parameters": [
+          {
+            "name": "receiptId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentMailDraft"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Kassa"
+        ],
+        "summary": "Beleg oder Rechnung als PDF per Mail an den Gast (über die Queue), mit Vermerk am Beleg; ohne Betreff und Text gilt die Vorbelegung.",
+        "operationId": "SendReceipt",
+        "parameters": [
+          {
+            "name": "receiptId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendDocumentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "Accepted"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/pos/receipts/{receiptId}/recipient": {
       "post": {
         "tags": [
@@ -34654,6 +34804,35 @@
           }
         }
       },
+      "DocumentMailDraft": {
+        "required": [
+          "to",
+          "subject",
+          "text"
+        ],
+        "type": "object",
+        "properties": {
+          "to": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "subject": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          }
+        }
+      },
+      "DocumentPageFormat": {
+        "enum": [
+          "A4",
+          "Receipt",
+          null
+        ]
+      },
       "DuplicateCheckInput": {
         "required": [
           "firstName",
@@ -40805,6 +40984,15 @@
           "isDepositReceipt": {
             "type": "boolean",
             "default": false
+          },
+          "sentMails": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/SentDocumentDto"
+            }
           }
         }
       },
@@ -42408,6 +42596,29 @@
           }
         }
       },
+      "SendDocumentRequest": {
+        "required": [
+          "to"
+        ],
+        "type": "object",
+        "properties": {
+          "to": {
+            "type": "string"
+          },
+          "subject": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "text": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "SenderHandling": {
         "enum": [
           "Automatic",
@@ -42478,6 +42689,29 @@
             "default": true
           },
           "note": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "SentDocumentDto": {
+        "required": [
+          "to",
+          "sentAt",
+          "sentBy"
+        ],
+        "type": "object",
+        "properties": {
+          "to": {
+            "type": "string"
+          },
+          "sentAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "sentBy": {
             "type": [
               "null",
               "string"

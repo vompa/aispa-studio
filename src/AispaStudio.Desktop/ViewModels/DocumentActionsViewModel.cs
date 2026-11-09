@@ -7,9 +7,11 @@ namespace AispaStudio.Desktop.ViewModels;
 
 /// <summary>
 /// Ein Dokument der API für den Knopfblock (ADR 0091): Titel für die Rückfrage („Rechnung K1-142“), Pfad des PDF, Pfad des Versands (ohne: kein Knopf „Per Mail senden“),
-/// das Recht und der Hinweis, wenn es fehlt (<c>ui:DisabledHint</c>).
+/// das Recht und der Hinweis, wenn es fehlt (<c>ui:DisabledHint</c>). <paramref name="AlternativePdfPath"/>: ein zweites Format zum Speichern, z. B. der Beleg im Bon-Format (im Menü an „PDF speichern“);
+/// <paramref name="PrintLabel"/>: Beschriftung des Druckknopfs, wo ein zweiter „Drucken“ steht (Kassa: Bondrucker).
 /// </summary>
-public sealed record DocumentSource(string Title, string PdfPath, string? SendPath = null, bool IsAllowed = true, string? DisabledHint = null);
+public sealed record DocumentSource(string Title, string PdfPath, string? SendPath = null, bool IsAllowed = true, string? DisabledHint = null,
+    string? AlternativePdfPath = null, string AlternativeLabel = "PDF im Bon-Format speichern", string PrintLabel = "Drucken");
 
 /// <summary>
 /// Der Knopfblock „Drucken · PDF speichern · Per Mail senden“ (ADR 0091): lädt das PDF von der API, speichert es über den Dialog des Fensters mit dem Dateinamen
@@ -34,10 +36,16 @@ public sealed partial class DocumentActionsViewModel(DocumentSource source, IAis
 
     public bool HasSend => source.SendPath is not null;
 
+    public bool HasAlternative => source.AlternativePdfPath is not null;
+
+    public string AlternativeLabel => source.AlternativeLabel;
+
+    public string PrintLabel => source.PrintLabel;
+
     public string? DisabledHint => source.IsAllowed ? null : source.DisabledHint ?? "Dafür fehlt das Recht.";
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(PrintCommand), nameof(SaveCommand), nameof(SendCommand))]
+    [NotifyCanExecuteChangedFor(nameof(PrintCommand), nameof(SaveCommand), nameof(SaveAlternativeCommand), nameof(SendCommand))]
     public partial bool IsBusy { get; private set; }
 
     [ObservableProperty]
@@ -49,7 +57,7 @@ public sealed partial class DocumentActionsViewModel(DocumentSource source, IAis
     [RelayCommand(CanExecute = nameof(CanWork))]
     private async Task PrintAsync()
     {
-        if (await LoadAsync().ConfigureAwait(true) is not { } file)
+        if (await LoadAsync(source.PdfPath).ConfigureAwait(true) is not { } file)
         {
             return;
         }
@@ -59,9 +67,15 @@ public sealed partial class DocumentActionsViewModel(DocumentSource source, IAis
     }
 
     [RelayCommand(CanExecute = nameof(CanWork))]
-    private async Task SaveAsync()
+    private Task SaveAsync() => SaveFromAsync(source.PdfPath);
+
+    /// <summary>Das zweite Format, z. B. der Beleg schmal wie ein Bon.</summary>
+    [RelayCommand(CanExecute = nameof(CanSaveAlternative))]
+    private Task SaveAlternativeAsync() => SaveFromAsync(source.AlternativePdfPath!);
+
+    private async Task SaveFromAsync(string path)
     {
-        if (await LoadAsync().ConfigureAwait(true) is not { } file || Files is null)
+        if (await LoadAsync(path).ConfigureAwait(true) is not { } file || Files is null)
         {
             return;
         }
@@ -127,15 +141,17 @@ public sealed partial class DocumentActionsViewModel(DocumentSource source, IAis
 
     private bool CanWork() => source.IsAllowed && !IsBusy;
 
+    private bool CanSaveAlternative() => CanWork() && HasAlternative;
+
     private bool CanSend() => source.IsAllowed && HasSend && !IsBusy;
 
-    private async Task<ApiFile?> LoadAsync()
+    private async Task<ApiFile?> LoadAsync(string path)
     {
         IsBusy = true;
         try
         {
             Error = null;
-            var result = await api.GetFileAsync(source.PdfPath).ConfigureAwait(true);
+            var result = await api.GetFileAsync(path).ConfigureAwait(true);
             if (result.Value is null)
             {
                 Error = result.Error ?? "Das Dokument kam nicht an.";

@@ -2447,6 +2447,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/pos/receipts/{receiptId}/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Beleg oder Rechnung als PDF: A4 (Standard) oder Bon-Format 80 mm (format=Receipt); copy=true kennzeichnet den Nachdruck als Kopie. */
+        get: operations["ReceiptPdf"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pos/receipts/{receiptId}/send": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Vorbelegung für „Per Mail senden“: Adresse des Gastes aus der Kundenkarte, Betreff und Text. */
+        get: operations["ReceiptMailDraft"];
+        put?: never;
+        /** Beleg oder Rechnung als PDF per Mail an den Gast (über die Queue), mit Vermerk am Beleg; ohne Betreff und Text gilt die Vorbelegung. */
+        post: operations["SendReceipt"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/pos/receipts/{receiptId}/recipient": {
         parameters: {
             query?: never;
@@ -9428,6 +9463,13 @@ export interface components {
             /** Format: date-time */
             end: string;
         };
+        DocumentMailDraft: {
+            to: null | string;
+            subject: string;
+            text: string;
+        };
+        /** @enum {unknown} */
+        DocumentPageFormat: "A4" | "Receipt" | null;
         DuplicateCheckInput: {
             firstName: null | string;
             lastName: null | string;
@@ -11065,6 +11107,7 @@ export interface components {
             smallInvoiceLimit?: null | number;
             /** @default false */
             isDepositReceipt: boolean;
+            sentMails?: null | components["schemas"]["SentDocumentDto"][];
         };
         /** @enum {unknown} */
         ReceiptKind: "Sale" | "Void" | "Start" | "Monthly" | "Yearly" | "Null" | "Closing";
@@ -11528,6 +11571,11 @@ export interface components {
             /** Format: date-time */
             lastPublishedAt?: null | string;
         };
+        SendDocumentRequest: {
+            to: string;
+            subject?: null | string;
+            text?: null | string;
+        };
         /** @enum {unknown} */
         SenderHandling: "Automatic" | "Suggest" | "Ignore";
         /** @enum {unknown} */
@@ -11548,6 +11596,12 @@ export interface components {
             /** @default true */
             active: boolean;
             note?: null | string;
+        };
+        SentDocumentDto: {
+            to: string;
+            /** Format: date-time */
+            sentAt: string;
+            sentBy: null | string;
         };
         SeriesCreate: {
             rule: components["schemas"]["SeriesInput"];
@@ -19708,6 +19762,125 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ReceiptPdf: {
+        parameters: {
+            query?: {
+                format?: components["schemas"]["DocumentPageFormat"];
+                copy?: boolean;
+            };
+            header?: never;
+            path: {
+                receiptId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ReceiptMailDraft: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                receiptId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentMailDraft"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    SendReceipt: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                receiptId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SendDocumentRequest"];
+            };
+        };
+        responses: {
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description Bad Request */
             400: {
                 headers: {

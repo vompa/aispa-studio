@@ -45,7 +45,8 @@ Zeilenhöhe ist das 1,3-Fache der Schriftgröße. Mehrseitige Dokumente gibt es 
 ## 5. Dateinamen und Mail
 
 - Dateiname aus Art und Nummer oder Name: `Rechnung-K1-142.pdf`, `Beleg-K1-143.pdf`, `Terminbestaetigung-…`, `Auskunft-Eva-Muster.pdf`, `Tagesabschluss-K1-2026-11-09.pdf`. Buchstaben und Ziffern bleiben (auch Umlaute), alles andere wird ein Bindestrich (`DocumentFiles.PdfName`).
-- Mail: Betreff nennt das Dokument und das Spa („Ihre Rechnung Nr. K1-142 von Day-Spa Wien“); Text in zwei bis drei Sätzen, unpersönlich oder mit „Sie“ (texte.md T1), mit Gruß und Spa-Name; das PDF hängt an; Absender ist der Name des Spas, Antwortadresse das Postfach des Spas. Jede gesendete Mail steht danach als Vermerk am Beleg oder im Verlauf des Termins („Per Mail gesendet an …, 09.11.2026 10:12 von Lena“).
+- Mail: Betreff nennt das Dokument und das Spa („Ihre Rechnung Nr. K1-142 von Day-Spa Wien“); Text in zwei bis drei Sätzen, unpersönlich oder mit „Sie“ (texte.md T1), mit Gruß und Spa-Name; das PDF hängt an; Absender ist der Name des Spas, Antwortadresse das Postfach des Spas. Jede gesendete Mail steht danach als Vermerk am Beleg oder im Verlauf des Termins („Per Mail gesendet an eva@example.at am 09.11.2026 10:12 von Lena“).
+- Knopfblock: „Drucken · PDF speichern · Per Mail senden“; ein zweites Format (Beleg im Bon-Format) steht im Menü an „PDF speichern“. Wo daneben ein anderer „Drucken“-Knopf steht (Kassa: Bondrucker), heißt der Druck des PDFs „A4 drucken“.
 
 ## 6. Datenschutz
 

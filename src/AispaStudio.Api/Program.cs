@@ -165,6 +165,7 @@ builder.Services.AddScoped<BookingService>();
 builder.Services.AddScoped<AppointmentHistory>();
 builder.Services.AddScoped<EntityHistory>();
 builder.Services.AddScoped<DocumentHeaders>();
+builder.Services.AddScoped<SentDocuments>();
 builder.Services.AddSingleton<HrFileCleanup>();
 builder.Services.AddBackgroundService<HrFileCleanup>(modules);
 builder.Services.AddMemoryCache();

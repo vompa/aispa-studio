@@ -139,6 +139,7 @@ public sealed class AispaDbContext(DbContextOptions<AispaDbContext> options, Ten
     public DbSet<Closure> Closures => Set<Closure>();
     public DbSet<ClosureNotice> ClosureNotices => Set<ClosureNotice>();
     public DbSet<RoomClosure> RoomClosures => Set<RoomClosure>();
+    public DbSet<Documents.SentDocument> SentDocuments => Set<Documents.SentDocument>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -173,6 +174,7 @@ public sealed class AispaDbContext(DbContextOptions<AispaDbContext> options, Ten
         HrFile.HrFileModel.Configure(builder);
         Staff.StaffRegulationModel.Configure(builder);
         Staff.StaffDutyModel.Configure(builder);
+        Documents.SentDocumentModel.Configure(builder);
 
         // Zuletzt, damit alle Fachtabellen bekannt sind.
         TenantModel.Configure(builder, (type, shared) =>

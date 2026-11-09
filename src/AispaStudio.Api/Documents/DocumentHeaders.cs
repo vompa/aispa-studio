@@ -21,10 +21,11 @@ internal sealed class DocumentHeaders(AispaDbContext db, TenantContext tenants, 
         var tenant = tenants.TenantId is { } tenantId ? await db.Tenants.AsNoTracking().FirstOrDefaultAsync(t => t.Id == tenantId, ct) : null;
         var location = locationId is { } id ? await db.Locations.AsNoTracking().FirstOrDefaultAsync(l => l.Id == id, ct) : null;
         var zone = location?.TimeZone ?? await db.Locations.AsNoTracking().OrderBy(l => l.Name).Select(l => l.TimeZone).FirstOrDefaultAsync(ct) ?? DefaultZone;
-        return new DocumentHeader(tenant?.Name ?? "", CompanyLines(tenant, location), LocationLines(location), time.GetUtcNow(), LocalTime.Zone(zone), await CreatedByAsync(user, ct));
+        return new DocumentHeader(tenant?.Name ?? "", CompanyLines(tenant, location), LocationLines(location), time.GetUtcNow(), LocalTime.Zone(zone), await FirstNameAsync(user, ct));
     }
 
-    private async Task<string?> CreatedByAsync(ClaimsPrincipal? user, CancellationToken ct)
+    /// <summary>Vorname des Rufnamens der angemeldeten Person (ADR 0064); null ohne Anmeldung oder ohne Mitarbeiter-Eintrag.</summary>
+    public async Task<string?> FirstNameAsync(ClaimsPrincipal? user, CancellationToken ct)
     {
         if (user is null || await access.GetAsync(user, ct) is not { EmployeeId: { } employeeId })
         {

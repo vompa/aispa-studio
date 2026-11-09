@@ -65,9 +65,8 @@ public partial class PosViewModel
     [NotifyPropertyChangedFor(nameof(SelectedReceipt), nameof(VoidDisabledHint))]
     public partial ReceiptListItem? SelectedReceiptItem { get; set; }
 
-    public ReceiptViewModel? SelectedReceipt => SelectedReceiptItem is { } item
-        ? new ReceiptViewModel(item.Receipt, Zone, Register?.Country ?? FiscalCountry.AT, OwnerLevel)
-        : null;
+    /// <summary>Der gewählte Beleg der Liste; sein PDF ist ein Nachdruck und trägt „Kopie“.</summary>
+    public ReceiptViewModel? SelectedReceipt => SelectedReceiptItem is { } item ? ReceiptFor(item.Receipt, copy: true) : null;
 
     /// <summary>Warum „Stornieren“ gesperrt ist: wegen der Rolle bei einem Anzahlungsbeleg, sonst fehlt der Grund.</summary>
     public string VoidDisabledHint => SelectedReceipt?.VoidBlockedByRole == true

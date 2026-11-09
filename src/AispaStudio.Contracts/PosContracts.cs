@@ -313,7 +313,8 @@ public sealed record ReceiptDto(
     InvoiceRecipient? Recipient = null,
     LocationCompany? Company = null,
     decimal? SmallInvoiceLimit = null,
-    bool IsDepositReceipt = false);
+    bool IsDepositReceipt = false,
+    IReadOnlyList<SentDocumentDto>? SentMails = null);
 
 /// <summary>
 /// Empfänger einer Rechnung zu einem Beleg, z. B. für Firmenkunden: Name und Anschrift, bei Unternehmen die UID-Nummer.
