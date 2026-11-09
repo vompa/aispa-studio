@@ -10,10 +10,10 @@ namespace AispaStudio.Api.Scheduling;
 /// </summary>
 internal static class PastBookings
 {
-    public const string Message = "Termine lassen sich nicht in der Vergangenheit buchen. Bitte heute oder einen späteren Tag wählen.";
+    public const string Message = "Termine lassen sich nicht in der Vergangenheit buchen. Möglich ist heute oder ein späterer Tag.";
 
     /// <summary>Dieselbe Regel beim Verschieben (L2): Ein Tippfehler im Tag darf den Termin nicht auf gestern legen, wo ihn niemand mehr sieht.</summary>
-    public const string MoveMessage = "Termine lassen sich nicht in die Vergangenheit verschieben. Bitte heute oder einen späteren Tag wählen.";
+    public const string MoveMessage = "Termine lassen sich nicht in die Vergangenheit verschieben. Möglich ist heute oder ein späterer Tag.";
 
     /// <summary>Die Ablehnung, wenn <paramref name="start"/> vor dem heutigen Tag des Standorts liegt; sonst <c>null</c> (auch bei unbekanntem Standort, den meldet die Buchung selbst).</summary>
     public static async Task<BookingRejected?> CheckAsync(AispaDbContext db, TimeProvider time, Guid locationId, DateTimeOffset start, CancellationToken ct, string message = Message)

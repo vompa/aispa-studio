@@ -167,6 +167,10 @@ public partial class CalendarEntryViewModel : ViewModelBase
     [ObservableProperty]
     public partial ConflictNotice? Conflict { get; private set; }
 
+    /// <summary>Feldfehler am Feld „Grund“ der Sperrzeit.</summary>
+    [ObservableProperty]
+    public partial string? TextError { get; private set; }
+
     [ObservableProperty]
     public partial bool IsBusy { get; private set; }
 
@@ -174,10 +178,20 @@ public partial class CalendarEntryViewModel : ViewModelBase
     public async Task SaveAsync()
     {
         Error = null;
+        TextError = null;
         Conflict = null;
         if (HasText && string.IsNullOrWhiteSpace(Text))
         {
-            Error = IsBlock ? "Bitte einen Grund angeben." : "Bitte einen Text eingeben.";
+            // Eine Sperrzeit ohne Grund: Feldfehler am Feld „Grund“ (meldungen.md, Feldfehler), nicht als Leiste über dem Knopf.
+            if (IsBlock)
+            {
+                TextError = "Der Grund fehlt.";
+            }
+            else
+            {
+                Error = "Bitte einen Text eingeben.";
+            }
+
             return;
         }
 

@@ -197,6 +197,18 @@ public partial class PosViewModel : ViewModelBase
         IsSalesColumnOpen = _settings.Load().PosSalesPanelOpen;
         _printer = printer ?? (address => new NetworkReceiptPrinter(address));
         _cardPoll = cardPoll ?? TimeSpan.FromSeconds(1.5);
+        var ui = SynchronizationContext.Current;
+        api.ConnectivityChanged += () =>
+        {
+            if (ui is null || SynchronizationContext.Current == ui)
+            {
+                OnPropertyChanged(nameof(ShowWarning));
+            }
+            else
+            {
+                ui.Post(_ => OnPropertyChanged(nameof(ShowWarning)), null);
+            }
+        };
     }
 
     /// <summary>Angebundene Kartenterminals am Standort der Kasse.</summary>
@@ -436,7 +448,20 @@ public partial class PosViewModel : ViewModelBase
     public partial string? Error { get; set; }
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowWarning))]
     public partial string? Warning { get; private set; }
+
+    /// <summary>
+    /// Die Warnung der Kasse (z. B. Signatur) steht nicht, solange das Offline-Banner der Shell schon die Ursache nennt: höchstens zwei Leisten (meldungen.md M2).
+    /// Sie kommt mit der Verbindung zurück.
+    /// </summary>
+    public bool ShowWarning => Warning is not null && !_api.IsOffline;
+
+    /// <summary>Ein Aufruf läuft, der die Kassa warten lässt (Einchecken vor dem Kassieren): die Ansicht zeigt einen Fortschrittsbalken.</summary>
+    [ObservableProperty]
+    public partial bool IsWorking { get; private set; }
+
+    private const string NeedsConnection = "Kassieren braucht eine Verbindung. Verbindung prüfen und erneut versuchen.";
 
     [ObservableProperty]
     public partial string CoverText { get; private set; } = "";
@@ -778,15 +803,34 @@ public partial class PosViewModel : ViewModelBase
         var appointment = item.Appointment!;
         if (item.NeedsCheckIn)
         {
+            // Wer nicht einchecken kann, wird nicht erst gefragt: Kassieren braucht die Verbindung zum Server.
+            if (_api.IsOffline)
+            {
+                Error = NeedsConnection;
+                return;
+            }
+
+            // Die Antwort „Einchecken und kassieren“ hat drei Wörter (Ausnahme zu 5.27): sie nennt genau, was geschieht; „Einchecken“ allein verschwiege die Rechnung.
             var answer = await AskAsync(new ConfirmRequest("Einchecken und kassieren?",
-                "Der Gast ist noch nicht eingecheckt. Der Termin wird eingecheckt und dann auf die Rechnung gelegt.", "Einchecken und kassieren", IsDestructive: false)).ConfigureAwait(true);
+                "Der Termin wird eingecheckt und auf die Rechnung gelegt.", "Einchecken und kassieren", IsDestructive: false)).ConfigureAwait(true);
             if (!answer.IsConfirmed)
             {
                 return;
             }
 
-            var checkedIn = await _api.PostAsync<AppointmentDto>($"api/appointments/{appointment.Id}/status",
-                new AppointmentStatusChange(AppointmentStatus.CheckedIn, appointment.Version)).ConfigureAwait(true);
+            Error = null;
+            IsWorking = true;
+            ApiResult<AppointmentDto> checkedIn;
+            try
+            {
+                checkedIn = await _api.PostAsync<AppointmentDto>($"api/appointments/{appointment.Id}/status",
+                    new AppointmentStatusChange(AppointmentStatus.CheckedIn, appointment.Version)).ConfigureAwait(true);
+            }
+            finally
+            {
+                IsWorking = false;
+            }
+
             if (checkedIn.Value is null)
             {
                 Error = checkedIn.Error;

@@ -50,9 +50,7 @@
                   <TextBlock Text="{Binding Converter={x:Static vm:Converters.CustomerInitials}}" />
                 </Border>
                 <StackPanel Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center">
-                  <TextBlock FontWeight="Medium" TextTrimming="CharacterEllipsis">
-                    <Run Text="{Binding LastName, Mode=OneWay}" /><Run Text=", " /><Run Text="{Binding InHouseFirstName, Mode=OneWay}" />
-                  </TextBlock>
+                  <TextBlock Text="{Binding Converter={x:Static vm:Converters.CustomerListName}}" FontWeight="Medium" TextTrimming="CharacterEllipsis" />
                   <TextBlock Text="{Binding Phone, FallbackValue=''}" Classes="muted small" />
                 </StackPanel>
               </Grid>
@@ -81,8 +79,9 @@
             <TextBox Text="{Binding NewPhone}" PlaceholderText="z. B. 0664 1234567" MaxLength="40" AutomationProperties.Name="Telefon"
                      LostFocus="OnNewPhoneLostFocus" />
           </ui:FormField>
-          <ui:FormField Grid.Column="1" Label="E-Mail">
-            <TextBox Text="{Binding NewEmail}" PlaceholderText="z. B. name@beispiel.at" AutomationProperties.Name="E-Mail" />
+          <ui:FormField Grid.Column="1" Label="E-Mail" Error="{Binding NewEmailError}">
+            <TextBox x:Name="NewEmailBox" Text="{Binding NewEmail}" PlaceholderText="z. B. name@beispiel.at" AutomationProperties.Name="E-Mail"
+                     LostFocus="OnNewEmailLostFocus" />
           </ui:FormField>
         </Grid>
         <Border Classes="card" Background="{DynamicResource WarnSoftBrush}" BorderBrush="{DynamicResource WarnBrush}" Padding="12,10"

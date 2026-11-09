@@ -11,9 +11,13 @@ public static class Converters
     public static readonly IValueConverter CustomerInitials =
         new FuncValueConverter<CustomerDto?, string>(c => c is null ? "" : DayLayout.Initials(c.InHouseName));
 
-    /// <summary>Name einer Zeile der Kundenliste, wie sie angezeigt wird: „Müller, Brigitte“ (Nachname, Rufname).</summary>
+    /// <summary>Name einer Zeile der Kundenliste, wie sie angezeigt wird: „Müller, Brigitte“ (Nachname, Rufname); das Komma nur, wenn beides da ist.</summary>
     public static readonly IValueConverter CustomerListName =
-        new FuncValueConverter<CustomerDto?, string>(c => c is null ? "" : $"{c.LastName}, {c.InHouseFirstName}");
+        new FuncValueConverter<CustomerDto?, string>(c => c is null ? "" : ListName(c));
+
+    /// <summary>„Müller, Brigitte“; fehlt ein Teil, steht nur der andere, ohne Komma.</summary>
+    public static string ListName(CustomerDto c) =>
+        string.Join(", ", new[] { c.LastName, c.InHouseFirstName }.Where(part => !string.IsNullOrWhiteSpace(part)));
 
     /// <summary>„Rezeption · Wien Innere Stadt“ unter dem Namen eines Testkontos.</summary>
     public static readonly IValueConverter TestAccountDetail =

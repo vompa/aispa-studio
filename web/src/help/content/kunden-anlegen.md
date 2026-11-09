@@ -25,7 +25,7 @@ Ohne Verbindung zum Server merkt sich die App die Anlage vor und zeigt „Ohne V
 ## Gut zu wissen {#hinweise}
 
 - Nur ein Name ist Pflicht, z. B. „Huber“ für „Frau Huber“ am Telefon.
-- Eine E-Mail-Adresse muss ein @ enthalten, sonst kommt „Keine gültige E-Mail-Adresse.“
+- Eine E-Mail-Adresse muss ein @ enthalten. Sonst steht unter dem Feld „Keine gültige E-Mail-Adresse. Mit @ angeben, z. B. name@beispiel.at.“, sobald man das Feld verlässt oder auf **Anlegen** klickt; beim Anlegen springt der Cursor ins Feld, und es wird nichts angelegt, bis die Adresse stimmt oder das Feld leer ist.
 - In die Notiz gehören Vorlieben, keine Gesundheitsdaten; die gehören in die Anamnese.
 - Telefon, E-Mail, Geburtstag und Notiz lassen sich später in der Kundenkarte mit **Bearbeiten** ergänzen oder ändern: [Kundendaten ändern](hilfe:kunden-bearbeiten).
 - Neue Gäste lassen sich auch beim Buchen im Kalender anlegen; dort erscheint „Gibt es schon?“.
