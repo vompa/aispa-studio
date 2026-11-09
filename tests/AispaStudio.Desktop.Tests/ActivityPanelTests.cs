@@ -157,23 +157,35 @@ public sealed class ActivityPanelTests
     }
 
     [Fact]
-    public async Task Bei_einem_Storno_fuehrt_Termin_oeffnen_zur_Kundenkarte()
+    public async Task Bei_einem_Storno_oeffnet_Termin_oeffnen_das_Panel_des_stornierten_Termins_und_Kundenkarte_oeffnen_bleibt_ein_eigener_Knopf()
     {
-        var activity = await OpenAsync(Api(Entry(ActivityKind.Cancelled, "Storniert von Rita", Guid.NewGuid())));
+        var id = Guid.NewGuid();
+        var cancelled = CancelledAppointment(id);
+        var activity = await OpenAsync(Api(Entry(ActivityKind.Cancelled, "Storniert von Rita", id)).On($"GET /api/appointments/{id}", cancelled));
+        (Guid, DateTimeOffset?)? requested = null;
+        var plainAppointment = false;
         Guid? customer = null;
-        var appointment = false;
-        activity.CustomerRequested = id =>
+        activity.CancelledAppointmentRequested = (appointmentId, start) => requested = (appointmentId, start);
+        activity.AppointmentRequested = (_, _) => plainAppointment = true;
+        activity.CustomerRequested = guest =>
         {
-            customer = id;
+            customer = guest;
             return Task.CompletedTask;
         };
-        activity.AppointmentRequested = (_, _) => appointment = true;
         Open(activity);
+        Assert.True(activity.ShowAppointment);
+        Assert.True(activity.ShowCustomer);
+        Assert.Equal("Öffnet den stornierten Termin im Kalender.", activity.AppointmentTip);
 
         await activity.OpenAppointmentCommand.ExecuteAsync(null);
 
+        Assert.Equal((id, (DateTimeOffset?)cancelled.Start), requested);
+        Assert.False(plainAppointment);
+        Assert.Null(customer);
+
+        await activity.OpenCustomerCommand.ExecuteAsync(null);
+
         Assert.Equal(CustomerId, customer);
-        Assert.False(appointment);
     }
 
     [Fact]
@@ -243,7 +255,7 @@ public sealed class ActivityPanelTests
         // Der Grund steht schon in der Hauptkarte und kommt nicht doppelt in die Tabelle.
         Assert.Equal([new ActivityValueRow("Status", "Gebucht", "Storniert")], activity.PanelValues);
         Assert.True(activity.IsRestorePrimary);
-        Assert.False(activity.ShowCustomer);
+        Assert.True(activity.ShowCustomer);
     }
 
     [Fact]
@@ -319,26 +331,268 @@ public sealed class ActivityPanelTests
         Assert.True(activity.HasPanel);
     }
 
+    private static readonly BookingRejected OccupiedByAnna = new("Zu dieser Zeit ist Anna schon belegt.",
+        [new BookingConflict(ResourceKind.Employee, TestData.Anna.Id, "Anna", "ist zu dieser Zeit schon belegt", TestData.At(14), TestData.At(15), Guid.NewGuid())]);
+
+    private static StubApi CancelledApi(Guid id, AppointmentRestoration restoration) => Api(Entry(ActivityKind.Cancelled, "Storniert von Rita", id))
+        .On($"GET /api/appointments/{id}", CancelledAppointment(id))
+        .On($"GET /api/appointments/{id}/restoration", restoration);
+
     [Fact]
-    public async Task Antwortet_der_Server_mit_409_steht_seine_Meldung_als_Fehler_im_Panel()
+    public async Task Antwortet_der_Server_mit_409_fragt_die_zweite_Rueckfrage_nach_einer_neuen_Zeit_und_meldet_den_Wunsch()
     {
         var id = Guid.NewGuid();
-        var cancelled = CancelledAppointment(id);
-        var conflict = new BookingConflict(ResourceKind.Employee, TestData.Anna.Id, "Anna", "ist zu dieser Zeit schon belegt", TestData.At(14), TestData.At(15), Guid.NewGuid());
-        var api = Api(Entry(ActivityKind.Cancelled, "Storniert von Rita", id))
-            .On($"GET /api/appointments/{id}", cancelled)
-            .On($"GET /api/appointments/{id}/restoration", new AppointmentRestoration(CancellationNoticeState.None, false))
-            .On($"POST /api/appointments/{id}/restore", new BookingRejected("Zu dieser Zeit ist Anna schon belegt.", [conflict]), HttpStatusCode.Conflict);
-        var activity = await OpenAsync(api, dialogs: new FakeDialogs().Answer(ConfirmChoice.Confirmed));
+        var api = CancelledApi(id, new AppointmentRestoration(CancellationNoticeState.None, false))
+            .On($"POST /api/appointments/{id}/restore", OccupiedByAnna, HttpStatusCode.Conflict);
+        var dialogs = new FakeDialogs().Answer(ConfirmChoice.Confirmed).Answer(ConfirmChoice.Confirmed);
+        var activity = await OpenAsync(api, dialogs: dialogs);
+        NewTimeRequest? wanted = null;
+        activity.NewTimeRequested = request =>
+        {
+            wanted = request;
+            return Task.CompletedTask;
+        };
         Open(activity);
         var loads = api.Calls.Count(c => c.Route == HistoryRoute);
 
         await activity.RestoreCommand.ExecuteAsync(null);
 
-        Assert.Equal("Zu dieser Zeit ist Anna schon belegt.", activity.PanelError);
+        Assert.Equal(["Stornierung zurücknehmen?", "Zu anderer Zeit zurücknehmen?"], dialogs.AssertRules().Asked.Select(a => a.Title));
+        Assert.Equal(CancelledAppointment(id), wanted?.Appointment);
+        Assert.Equal(OccupiedByAnna.Conflicts, wanted?.Conflict?.Conflicts);
+        Assert.Null(activity.PanelError);
+        Assert.Null(activity.Toast);
+        Assert.Equal(loads, api.Calls.Count(c => c.Route == HistoryRoute));
+    }
+
+    [Fact]
+    public async Task Liegt_der_Termin_in_der_Vergangenheit_fragt_die_Rueckfrage_nach_einer_neuen_Zeit_und_Neue_Zeit_waehlen_meldet_den_Wunsch_ohne_restore()
+    {
+        var id = Guid.NewGuid();
+        var api = CancelledApi(id, new AppointmentRestoration(CancellationNoticeState.None, false, InPast: true));
+        var dialogs = new FakeDialogs().Answer(ConfirmChoice.Confirmed);
+        var activity = await OpenAsync(api, dialogs: dialogs);
+        NewTimeRequest? wanted = null;
+        activity.NewTimeRequested = request =>
+        {
+            wanted = request;
+            return Task.CompletedTask;
+        };
+        Open(activity);
+
+        await activity.RestoreCommand.ExecuteAsync(null);
+
+        var asked = Assert.Single(dialogs.AssertRules().Asked);
+        Assert.Equal(("Zu neuer Zeit zurücknehmen?", "Neue Zeit wählen"), (asked.Title, asked.ConfirmText));
+        Assert.False(asked.IsDestructive);
+        Assert.Contains("Der Termin liegt in der Vergangenheit.", asked.Message, StringComparison.Ordinal);
+        Assert.Contains("nur zu einer neuen Zeit zurücknehmen", asked.Message, StringComparison.Ordinal);
+        Assert.Equal(CancelledAppointment(id), wanted?.Appointment);
+        Assert.Null(wanted?.Conflict);
+        Assert.DoesNotContain(api.Calls, c => c.Route.EndsWith("/restore", StringComparison.Ordinal));
         Assert.Null(activity.Toast);
         Assert.True(activity.HasPanel);
+    }
+
+    [Fact]
+    public async Task Ist_die_Zeit_belegt_nennt_die_Rueckfrage_den_Grund_und_der_Wunsch_traegt_die_Belegung()
+    {
+        var id = Guid.NewGuid();
+        var api = CancelledApi(id, new AppointmentRestoration(CancellationNoticeState.None, false, Conflict: OccupiedByAnna));
+        var dialogs = new FakeDialogs().Answer(ConfirmChoice.Confirmed);
+        var activity = await OpenAsync(api, dialogs: dialogs);
+        NewTimeRequest? wanted = null;
+        activity.NewTimeRequested = request =>
+        {
+            wanted = request;
+            return Task.CompletedTask;
+        };
+        Open(activity);
+
+        await activity.RestoreCommand.ExecuteAsync(null);
+
+        var asked = Assert.Single(dialogs.AssertRules().Asked);
+        Assert.Equal("Zu neuer Zeit zurücknehmen?", asked.Title);
+        Assert.Contains("Die Zeit ist inzwischen belegt: Termin · 14:00–15:00 · Anna", asked.Message, StringComparison.Ordinal);
+        Assert.Equal(OccupiedByAnna.Conflicts, wanted?.Conflict?.Conflicts);
+        Assert.DoesNotContain(api.Calls, c => c.Route.EndsWith("/restore", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task Ist_die_Absage_schon_beim_Gast_sagt_die_Rueckfrage_zur_neuen_Zeit_es_und_der_Wunsch_sendet_die_Korrektur_mit()
+    {
+        var id = Guid.NewGuid();
+        var api = CancelledApi(id, new AppointmentRestoration(CancellationNoticeState.Sent, true, InPast: true));
+        var dialogs = new FakeDialogs().Answer(ConfirmChoice.Confirmed);
+        var activity = await OpenAsync(api, dialogs: dialogs);
+        NewTimeRequest? wanted = null;
+        activity.NewTimeRequested = request =>
+        {
+            wanted = request;
+            return Task.CompletedTask;
+        };
+        Open(activity);
+
+        await activity.RestoreCommand.ExecuteAsync(null);
+
+        var asked = Assert.Single(dialogs.AssertRules().Asked);
+        Assert.Contains("Der Gast hat die Absage schon bekommen und erhält mit der neuen Zeit eine Korrektur.", asked.Message, StringComparison.Ordinal);
+        Assert.Contains("Die Anzahlung ging mit der Absage zurück", asked.Message, StringComparison.Ordinal);
+        Assert.True(wanted?.SendCorrection);
+    }
+
+    [Fact]
+    public async Task Abbrechen_in_der_Rueckfrage_zur_neuen_Zeit_laesst_alles_stehen()
+    {
+        var id = Guid.NewGuid();
+        var api = CancelledApi(id, new AppointmentRestoration(CancellationNoticeState.None, false, InPast: true));
+        var activity = await OpenAsync(api, dialogs: new FakeDialogs().Answer(ConfirmChoice.Cancelled));
+        var wanted = false;
+        activity.NewTimeRequested = _ =>
+        {
+            wanted = true;
+            return Task.CompletedTask;
+        };
+        Open(activity);
+        var loads = api.Calls.Count(c => c.Route == HistoryRoute);
+
+        await activity.RestoreCommand.ExecuteAsync(null);
+
+        Assert.False(wanted);
+        Assert.DoesNotContain(api.Calls, c => c.Route.EndsWith("/restore", StringComparison.Ordinal));
+        Assert.Null(activity.Toast);
+        Assert.Null(activity.PanelError);
+        Assert.True(activity.HasPanel);
         Assert.Equal(loads, api.Calls.Count(c => c.Route == HistoryRoute));
+    }
+
+    [Fact]
+    public async Task Ein_veralteter_Stand_beim_Zuruecknehmen_zeigt_die_Meldung_des_Servers_als_Fehler_im_Panel()
+    {
+        var id = Guid.NewGuid();
+        var current = CancelledAppointment(id) with { Version = 9 };
+        var api = CancelledApi(id, new AppointmentRestoration(CancellationNoticeState.None, false))
+            .On($"POST /api/appointments/{id}/restore", new BookingRejected("Der Termin wurde inzwischen geändert.", [], Current: current), HttpStatusCode.Conflict);
+        var dialogs = new FakeDialogs().Answer(ConfirmChoice.Confirmed);
+        var activity = await OpenAsync(api, dialogs: dialogs);
+        Open(activity);
+
+        await activity.RestoreCommand.ExecuteAsync(null);
+
+        Assert.Equal("Der Termin wurde inzwischen geändert.", activity.PanelError);
+        Assert.Single(dialogs.Asked);
+    }
+
+    [Fact]
+    public async Task Ohne_Antwort_der_Pruefung_zeigt_das_Panel_den_Fehler_und_fragt_nicht()
+    {
+        var id = Guid.NewGuid();
+        var api = Api(Entry(ActivityKind.Cancelled, "Storniert von Rita", id)).On($"GET /api/appointments/{id}", CancelledAppointment(id));
+        var dialogs = new FakeDialogs().Answer(ConfirmChoice.Confirmed);
+        var activity = await OpenAsync(api, dialogs: dialogs);
+        Open(activity);
+
+        await activity.RestoreCommand.ExecuteAsync(null);
+
+        Assert.True(activity.HasPanelError);
+        Assert.Empty(dialogs.Asked);
+    }
+
+    // ---------- Sprünge zu Behandlung, Dienstplan und Zugang ----------
+
+    private static ActivityEntry Admin(ActivityKind kind, Guid? treatment = null, Guid? employee = null) =>
+        new(5, Local(8, 40), kind, "Geändert von Katrin", "Katrin", ActivityChannel.Reception, null, null, null, treatment, employee, [], null);
+
+    private static CurrentUser Viewer() => new("u9", "k@aispa.test", "Kim", 1, TestData.Reception().Access, null, [AccessRight.ViewCalendar]);
+
+    [Fact]
+    public async Task Behandlung_oeffnen_meldet_die_Behandlung_und_ist_primaer()
+    {
+        var treatment = Guid.NewGuid();
+        var activity = await OpenAsync(Api(Admin(ActivityKind.TreatmentChanged, treatment)));
+        Guid? requested = null;
+        activity.TreatmentRequested = id => requested = id;
+        Open(activity);
+
+        Assert.True(activity.ShowTreatment);
+        Assert.True(activity.IsTreatmentPrimary);
+        Assert.False(activity.ShowCustomer);
+        Assert.False(activity.ShowRoster || activity.ShowAccess);
+        activity.OpenTreatmentCommand.Execute(null);
+
+        Assert.Equal(treatment, requested);
+    }
+
+    [Fact]
+    public async Task Ohne_das_Recht_den_Katalog_zu_verwalten_ist_Behandlung_oeffnen_gesperrt_mit_Hinweis_und_ruft_nichts()
+    {
+        var activity = await OpenAsync(Api(Admin(ActivityKind.TreatmentChanged, Guid.NewGuid())), Viewer());
+        var requested = false;
+        activity.TreatmentRequested = _ => requested = true;
+        Open(activity);
+
+        activity.OpenTreatmentCommand.Execute(null);
+
+        Assert.False(activity.CanOpenTreatment);
+        Assert.Equal("Dafür braucht der Zugang das Recht, Behandlungen zu verwalten.", activity.TreatmentHint);
+        Assert.False(requested);
+    }
+
+    [Fact]
+    public async Task Dienstplan_oeffnen_meldet_den_Tag_des_Eintrags_und_die_Person()
+    {
+        var employee = Guid.NewGuid();
+        var activity = await OpenAsync(Api(Admin(ActivityKind.RosterChanged, employee: employee)));
+        (DateOnly, Guid?)? requested = null;
+        activity.RosterRequested = (day, person) => requested = (day, person);
+        Open(activity);
+
+        Assert.True(activity.ShowRoster);
+        Assert.True(activity.IsRosterPrimary);
+        activity.OpenRosterCommand.Execute(null);
+
+        Assert.Equal((new DateOnly(2027, 3, 1), (Guid?)employee), requested);
+    }
+
+    [Fact]
+    public async Task Zugang_oeffnen_meldet_die_Person()
+    {
+        var employee = Guid.NewGuid();
+        var activity = await OpenAsync(Api(Admin(ActivityKind.AccessChanged, employee: employee)));
+        Guid? requested = null;
+        activity.AccessRequested = id => requested = id;
+        Open(activity);
+
+        Assert.True(activity.ShowAccess);
+        Assert.True(activity.IsAccessPrimary);
+        activity.OpenAccessCommand.Execute(null);
+
+        Assert.Equal(employee, requested);
+    }
+
+    [Fact]
+    public async Task Ohne_das_Recht_das_Team_zu_verwalten_sind_Dienstplan_und_Zugang_gesperrt_mit_Hinweis()
+    {
+        var activity = await OpenAsync(Api(Admin(ActivityKind.RosterChanged, employee: Guid.NewGuid())), Viewer());
+        var requested = false;
+        activity.RosterRequested = (_, _) => requested = true;
+        Open(activity);
+
+        activity.OpenRosterCommand.Execute(null);
+
+        Assert.False(activity.CanOpenTeam);
+        Assert.Equal("Dafür braucht der Zugang das Recht, das Team zu verwalten.", activity.TeamHint);
+        Assert.False(requested);
+    }
+
+    [Fact]
+    public async Task Eine_Firmenaenderung_hat_keinen_Sprung()
+    {
+        var activity = await OpenAsync(Api(Admin(ActivityKind.CompanyChanged)));
+
+        Open(activity);
+
+        Assert.False(activity.ShowTreatment || activity.ShowRoster || activity.ShowAccess || activity.ShowCustomer || activity.ShowAppointment);
     }
 
     [Fact]
@@ -408,5 +662,30 @@ public sealed class ActivityPanelTests
 
         Assert.Same(shell.Pos, shell.SelectedPage?.Page);
         Assert.Equal((PosMode.Receipts, 2), (shell.Pos.Mode, shell.Pos.ReceiptDaysBack));
+    }
+
+    [Fact]
+    public async Task Die_Shell_oeffnet_einen_stornierten_Termin_im_Kalender_mit_seinem_Panel()
+    {
+        var cancelled = CancelledAppointment(Guid.NewGuid()) with { Start = TestData.At(14), End = TestData.At(14, 50), BlockedFrom = TestData.At(14), BlockedUntil = TestData.At(15) };
+        var api = Api()
+            .On("GET /api/locations", new List<LocationDto> { TestData.Location })
+            .On($"GET /api/locations/{TestData.LocationId}/resources", TestData.Resources)
+            .On($"GET /api/locations/{TestData.LocationId}/calendar?date=2027-03-01", TestData.Day(cancelled))
+            .On("GET /api/pos/registers", new List<CashRegisterDto>());
+        var shell = new ShellViewModel(api.Client(), TestData.Owner(), null, new ActivityTests.TimerTime(Local(10)), new ThemeController(new MemorySettingsStore()), "Test", () => Task.CompletedTask);
+        await shell.Calendar.InitializeAsync();
+        await shell.Calendar.LoadAsync();
+
+        shell.ShowCancelledAppointment(cancelled.Id, cancelled.Start);
+
+        Assert.Same(shell.Calendar, shell.SelectedPage?.Page);
+        Assert.Equal(cancelled.Id, shell.Calendar.Selected?.Appointment.Id);
+        Assert.True(shell.Calendar.Selected?.ShowRestore);
+        Assert.NotNull(shell.Activity.CancelledAppointmentRequested);
+        Assert.NotNull(shell.Activity.NewTimeRequested);
+        Assert.NotNull(shell.Activity.TreatmentRequested);
+        Assert.NotNull(shell.Activity.RosterRequested);
+        Assert.NotNull(shell.Activity.AccessRequested);
     }
 }

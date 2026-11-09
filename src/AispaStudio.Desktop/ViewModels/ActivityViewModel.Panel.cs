@@ -28,7 +28,8 @@ public sealed partial class ActivityViewModel
         nameof(HasPanel), nameof(PanelTitle), nameof(PanelSubtitle), nameof(PanelText), nameof(PanelGuest), nameof(HasPanelGuest), nameof(PanelActor), nameof(HasPanelActor),
         nameof(PanelChannel), nameof(PanelReason), nameof(HasPanelReason), nameof(PanelValues), nameof(HasPanelValues), nameof(ShowRestore), nameof(ShowReceipt), nameof(ShowAppointment),
         nameof(ShowCustomer), nameof(IsRestorePrimary), nameof(IsReceiptPrimary), nameof(IsAppointmentPrimary), nameof(IsCustomerPrimary), nameof(AppointmentTip),
-        nameof(HasPanelPhone), nameof(HasLateNotice),
+        nameof(HasPanelPhone), nameof(HasLateNotice), nameof(ShowTreatment), nameof(ShowRoster), nameof(ShowAccess), nameof(IsTreatmentPrimary), nameof(IsRosterPrimary),
+        nameof(IsAccessPrimary),
     ];
 
     private int _panelVersion;
@@ -39,6 +40,18 @@ public sealed partial class ActivityViewModel
 
     /// <summary>„Termin öffnen“: die Shell wechselt in den Kalender auf den Tag (Beginn des Termins) und wählt den Termin.</summary>
     public Action<Guid, DateTimeOffset?>? AppointmentRequested { get; set; }
+
+    /// <summary>„Termin öffnen“ bei einem Storno: die Shell wechselt in den Kalender auf den Tag und öffnet das Panel des stornierten Termins (der Kalender zeigt ihn nicht als Karte).</summary>
+    public Action<Guid, DateTimeOffset>? CancelledAppointmentRequested { get; set; }
+
+    /// <summary>„Behandlung öffnen“: die Verwaltung zeigt die Behandlung in den Stammdaten.</summary>
+    public Action<Guid>? TreatmentRequested { get; set; }
+
+    /// <summary>„Dienstplan öffnen“: die Verwaltung zeigt den Wochenplan der Woche des Tages, mit der Person.</summary>
+    public Action<DateOnly, Guid?>? RosterRequested { get; set; }
+
+    /// <summary>„Zugang öffnen“: die Verwaltung zeigt den Zugang der Person.</summary>
+    public Action<Guid?>? AccessRequested { get; set; }
 
     /// <summary>„Beleg anzeigen“: die Shell öffnet die Kassa auf dem Reiter Belege, am Tag des Belegs (Ausstellung), mit dem Beleg gewählt.</summary>
     public Func<Guid, DateTimeOffset, Task>? ReceiptRequested { get; set; }
@@ -133,10 +146,15 @@ public sealed partial class ActivityViewModel
 
     public bool ShowAppointment => PanelEntry is { AppointmentId: not null };
 
-    /// <summary>Bei einer Stornierung führt „Termin öffnen“ zur Kundenkarte; ein eigener Knopf dafür wäre dasselbe Ziel.</summary>
-    public bool ShowCustomer => PanelEntry is { CustomerId: not null } entry && !(ShowAppointment && entry.Kind == ActivityKind.Cancelled);
+    public bool ShowCustomer => PanelEntry is { CustomerId: not null };
 
-    /// <summary>Genau ein Knopf ist primär (5.12 Punkt 6): Zurücknehmen, sonst Beleg, sonst Termin, sonst Kundenkarte.</summary>
+    public bool ShowTreatment => PanelEntry is { Kind: ActivityKind.TreatmentChanged, TreatmentId: not null };
+
+    public bool ShowRoster => PanelEntry is { Kind: ActivityKind.RosterChanged };
+
+    public bool ShowAccess => PanelEntry is { Kind: ActivityKind.AccessChanged };
+
+    /// <summary>Genau ein Knopf ist primär (5.12 Punkt 6): Zurücknehmen, sonst Beleg, Termin, Kundenkarte, Behandlung, Dienstplan, Zugang.</summary>
     public bool IsRestorePrimary => ShowRestore;
 
     public bool IsReceiptPrimary => !ShowRestore && ShowReceipt;
@@ -145,11 +163,27 @@ public sealed partial class ActivityViewModel
 
     public bool IsCustomerPrimary => !ShowRestore && !ShowReceipt && !ShowAppointment && ShowCustomer;
 
+    public bool IsTreatmentPrimary => !ShowRestore && !ShowReceipt && !ShowAppointment && !ShowCustomer && ShowTreatment;
+
+    public bool IsRosterPrimary => !ShowRestore && !ShowReceipt && !ShowAppointment && !ShowCustomer && ShowRoster;
+
+    public bool IsAccessPrimary => !ShowRestore && !ShowReceipt && !ShowAppointment && !ShowCustomer && ShowAccess;
+
     public string AppointmentTip => PanelEntry?.Kind == ActivityKind.Cancelled
-        ? "Öffnet die Kundenkarte, dort steht der stornierte Termin."
+        ? "Öffnet den stornierten Termin im Kalender."
         : "Zeigt den Termin im Kalender.";
 
     public bool CanRestore => _user.Rights.Contains(AccessRight.Book);
+
+    public bool CanOpenTreatment => _user.Rights.Contains(AccessRight.ManageCatalog);
+
+    public bool CanOpenTeam => _user.Rights.Contains(AccessRight.ManageStaff);
+
+    /// <summary>Warum „Behandlung öffnen“ gesperrt ist; leer, solange es geht.</summary>
+    public string TreatmentHint => CanOpenTreatment ? "" : "Dafür braucht der Zugang das Recht, Behandlungen zu verwalten.";
+
+    /// <summary>Warum „Dienstplan öffnen“ und „Zugang öffnen“ gesperrt sind; leer, solange es geht.</summary>
+    public string TeamHint => CanOpenTeam ? "" : "Dafür braucht der Zugang das Recht, das Team zu verwalten.";
 
     /// <summary>Warum „Stornierung zurücknehmen“ gesperrt ist; leer, solange es geht.</summary>
     public string RestoreHint => CanRestore ? "" : "Dafür braucht der Zugang das Recht, Termine zu buchen.";
@@ -254,10 +288,7 @@ public sealed partial class ActivityViewModel
 
     // ---------- Sprünge ----------
 
-    /// <summary>
-    /// „Termin öffnen“: der Kalender zeigt den Tag und wählt den Termin. Einen stornierten Termin zeigt der Kalender nicht; dort führt der Knopf zur Kundenkarte,
-    /// die ihn mit „Stornierung zurücknehmen“ führt.
-    /// </summary>
+    /// <summary>„Termin öffnen“: der Kalender zeigt den Tag und wählt den Termin; ein stornierter Termin öffnet mit seinem Panel (dort steht „Stornierung zurücknehmen“).</summary>
     [RelayCommand]
     private async Task OpenAppointmentAsync()
     {
@@ -266,17 +297,17 @@ public sealed partial class ActivityViewModel
             return;
         }
 
-        if (entry.Kind == ActivityKind.Cancelled)
-        {
-            await OpenCustomerAsync().ConfigureAwait(true);
-            return;
-        }
-
         PanelError = null;
         var appointment = await _api.GetAsync<AppointmentDto>($"api/appointments/{id}").ConfigureAwait(true);
         if (appointment.Value is not { } found)
         {
             PanelError = appointment.Error ?? "Der Termin konnte nicht geladen werden.";
+            return;
+        }
+
+        if (entry.Kind == ActivityKind.Cancelled)
+        {
+            CancelledAppointmentRequested?.Invoke(id, found.Start);
             return;
         }
 
@@ -289,6 +320,33 @@ public sealed partial class ActivityViewModel
         if (PanelEntry?.CustomerId is { } id && CustomerRequested is { } open)
         {
             await open(id).ConfigureAwait(true);
+        }
+    }
+
+    [RelayCommand]
+    private void OpenTreatment()
+    {
+        if (PanelEntry?.TreatmentId is { } id && CanOpenTreatment)
+        {
+            TreatmentRequested?.Invoke(id);
+        }
+    }
+
+    [RelayCommand]
+    private void OpenRoster()
+    {
+        if (PanelEntry is { } entry && CanOpenTeam)
+        {
+            RosterRequested?.Invoke(DateOnly.FromDateTime(DayLayout.Local(entry.At, Zone())), entry.EmployeeId);
+        }
+    }
+
+    [RelayCommand]
+    private void OpenAccess()
+    {
+        if (PanelEntry is { } entry && CanOpenTeam)
+        {
+            AccessRequested?.Invoke(entry.EmployeeId);
         }
     }
 

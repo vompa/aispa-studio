@@ -705,3 +705,22 @@ Expected: In der Kopfzeile nach „Warteliste“ steht „Storniert 1“; Klick 
 Expected: „Stornierung zurücknehmen“ ist gesperrt mit Hinweis auf das fehlende Recht.
 Closes: –
 Result: ☐
+
+### Verlauf E – Zurücknehmen aus dem Verlauf, auch zu neuer Zeit
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Inhaberin anmelden; heute einen Termin stornieren, einen zweiten stornieren und seine Zeit danach mit einem anderen Termin derselben Person belegen
+1. **Verlauf**, Chip **Stornos**, den ersten Storno öffnen, **Stornierung zurücknehmen**.
+Expected: Rückfrage „Stornierung zurücknehmen?“; nach **Zurücknehmen** Toast „Termin wiederhergestellt: <Gast>, <Zeit>“, der Verlauf lädt neu.
+2. Den zweiten Storno öffnen, **Stornierung zurücknehmen**.
+Expected: Rückfrage „Zu neuer Zeit zurücknehmen?“ mit „Die Zeit ist inzwischen belegt: …“ und **Neue Zeit wählen**.
+3. **Neue Zeit wählen**.
+Expected: Der Kalender springt auf den Tag des ersten freien Vorschlags; rechts das Panel des stornierten Termins mit offener Verschieben-Karte, darunter „Freie Zeiten“ für Gast, Behandlung und Person.
+4. Einen Vorschlag anklicken, **Verschieben**.
+Expected: Der Termin steht zur neuen Zeit wieder gebucht im Kalender.
+5. Einen Storno von gestern (Zeitraum **Gestern**) zurücknehmen und bei **Neue Zeit wählen** abbrechen.
+Expected: Grund „Der Termin liegt in der Vergangenheit.“; nach Abbrechen bleibt der Termin storniert und steht weiter im Verlauf.
+6. Bei einem Storno **Termin öffnen**, bei einer Zahlung **Beleg anzeigen**, bei einer Behandlungsänderung **Behandlung öffnen**.
+Expected: Kalender mit dem Panel des stornierten Termins; Kassa, Reiter Belege, Beleg gewählt; Verwaltung mit der Behandlung.
+7. Als Rezeption anmelden, **Verlauf** öffnen.
+Expected: Das Feld „Person“ nennt die Personen, die im Zeitraum etwas getan haben; „Dienstplan öffnen“ und „Zugang öffnen“ gibt es nicht.
+Closes: –
+Result: ☐

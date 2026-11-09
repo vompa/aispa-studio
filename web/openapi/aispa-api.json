@@ -3660,7 +3660,7 @@
         "tags": [
           "Kalender"
         ],
-        "summary": "Was beim Zurücknehmen der Stornierung zu beachten ist: wartet die Absage-Nachricht noch, ist sie schon raus, und ging eine Anzahlung mit der Absage zurück.",
+        "summary": "Was beim Zurücknehmen der Stornierung zu beachten ist: wartet die Absage-Nachricht noch, ist sie schon raus, ging eine Anzahlung mit der Absage zurück, liegt der Termin in der Vergangenheit (inPast) oder sind Zeit, Person oder Raum inzwischen belegt (conflict); dann braucht das Zurücknehmen eine neue Zeit.",
         "operationId": "GetAppointmentRestoration",
         "parameters": [
           {
@@ -3702,7 +3702,7 @@
         "tags": [
           "Kalender"
         ],
-        "summary": "Nimmt eine Stornierung zurück: der Termin ist wieder gebucht, wenn Zeit, Person und Raum frei sind (409 mit den Belegungen, sonst). Mit „start“ zu einem neuen Beginn. Eine noch wartende Absage-Nachricht geht nie raus; mit „sendCorrection“ bekommt der Gast, der die Absage schon hat, eine Korrektur.",
+        "summary": "Nimmt eine Stornierung zurück: der Termin ist wieder gebucht, wenn Zeit, Person und Raum frei sind (409 mit den Belegungen, sonst) und der Tag nicht vorbei ist (409 mit der Meldung, sonst). Mit „start“ zu einem neuen Beginn, heute oder später. Eine noch wartende Absage-Nachricht geht nie raus; mit „sendCorrection“ bekommt der Gast, der die Absage schon hat, eine Korrektur.",
         "operationId": "RestoreAppointment",
         "parameters": [
           {
@@ -27277,6 +27277,21 @@
           }
         }
       },
+      "ActivityActor": {
+        "required": [
+          "id",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
       "ActivityChannel": {
         "enum": [
           "Reception",
@@ -27419,6 +27434,15 @@
               "integer"
             ],
             "format": "int64"
+          },
+          "actors": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/ActivityActor"
+            }
           }
         }
       },
@@ -28395,6 +28419,20 @@
           },
           "depositReturned": {
             "type": "boolean"
+          },
+          "inPast": {
+            "type": "boolean",
+            "default": false
+          },
+          "conflict": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/BookingRejected"
+              }
+            ]
           }
         }
       },

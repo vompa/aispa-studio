@@ -4,11 +4,14 @@ using CommunityToolkit.Mvvm.Input;
 namespace AispaStudio.Desktop.ViewModels;
 
 /// <summary>
-/// „Stornierung zurücknehmen“ im Seitenpanel eines Stornos: dieselbe Rückfrage wie im Termin-Panel (<see cref="AppointmentViewModel.RestoreText"/>), dann <c>POST restore</c>.
-/// Antwortet der Server mit einer Ablehnung (Zeit belegt, Vergangenheit), steht seine Meldung als Fehler im Panel; den Weg zu einer neuen Zeit baut die Aufgabe E auf diesem Ablauf.
+/// „Stornierung zurücknehmen“ im Seitenpanel eines Stornos (Aufgabe E): derselbe Ablauf wie im Termin-Panel (<see cref="AppointmentRestorer"/>). Ist die Zeit frei, steht der
+/// Termin danach wieder im Kalender; sonst übergibt „Neue Zeit wählen“ den Wunsch an die Shell, die den Kalender mit der Verschieben-Karte öffnet.
 /// </summary>
 public sealed partial class ActivityViewModel
 {
+    /// <summary>„Neue Zeit wählen“ in der Rückfrage: die Shell wechselt in den Kalender auf den nächsten freien Tag und öffnet den stornierten Termin mit den Vorschlägen.</summary>
+    public Func<NewTimeRequest, Task>? NewTimeRequested { get; set; }
+
     [RelayCommand]
     public async Task RestoreAsync()
     {
@@ -25,34 +28,35 @@ public sealed partial class ActivityViewModel
             return;
         }
 
-        var info = await _api.GetAsync<AppointmentRestoration>($"api/appointments/{id}/restoration").ConfigureAwait(true);
-        if (info.Value is not { } restoration)
-        {
-            PanelError = info.Error ?? "Die Stornierung ließ sich nicht prüfen.";
-            return;
-        }
-
         var zone = Zone();
+        var restorer = new AppointmentRestorer(_api, AskAsync, zone, ReportedStale);
         var shortDate = DayLayout.ShortDay(DateOnly.FromDateTime(DayLayout.Local(found.Start, zone)));
-        var sent = restoration.Notice == CancellationNoticeState.Sent;
-        var answer = await AskAsync(new ConfirmRequest("Stornierung zurücknehmen?",
-            AppointmentViewModel.RestoreText(restoration, found.CustomerName, shortDate, DayLayout.TimeText(found.Start, found.End, zone)),
-            sent ? "Mit Korrektur zurücknehmen" : "Zurücknehmen", IsDestructive: false, AlternativeText: sent ? "Ohne Korrektur" : null)).ConfigureAwait(true);
-        if (answer.Choice == ConfirmChoice.Cancelled)
+        var outcome = await restorer.AskAsync(found, found.CustomerName, shortDate, DayLayout.TimeText(found.Start, found.End, zone)).ConfigureAwait(true);
+        switch (outcome.Step)
         {
-            return;
+            case RestoreStep.Restored:
+                var restored = outcome.Restored!;
+                ShowToast($"Termin wiederhergestellt: {restored.CustomerName}, {DayLayout.WhenText(restored.Start, zone, Today())}");
+                await ReloadAsync().ConfigureAwait(true);
+                break;
+            case RestoreStep.NewTimeWanted when NewTimeRequested is { } request:
+                await request(new NewTimeRequest(found, outcome.SendCorrection, outcome.Rejection)).ConfigureAwait(true);
+                break;
+            case RestoreStep.Failed:
+                PanelError = outcome.Error ?? "Die Stornierung ließ sich nicht zurücknehmen.";
+                break;
+        }
+    }
+
+    /// <summary>Der Termin hat sich inzwischen geändert: die Meldung des Servers steht als Fehler im Panel.</summary>
+    private bool ReportedStale(ApiResult<AppointmentDto> result)
+    {
+        if (result.Rejection is not { Current: not null } rejection)
+        {
+            return false;
         }
 
-        var result = await _api.PostAsync<AppointmentDto>($"api/appointments/{id}/restore",
-            new RestoreAppointmentRequest(null, sent && answer.Choice == ConfirmChoice.Confirmed, found.Version)).ConfigureAwait(true);
-        if (result.Value is not { } restored)
-        {
-            PanelError = result.Rejection?.Message ?? result.Error ?? "Die Stornierung ließ sich nicht zurücknehmen.";
-            return;
-        }
-
-        var today = DateOnly.FromDateTime(DayLayout.Local(_time.GetUtcNow(), zone));
-        ShowToast($"Termin wiederhergestellt: {restored.CustomerName}, {DayLayout.WhenText(restored.Start, zone, today)}");
-        await ReloadAsync().ConfigureAwait(true);
+        PanelError = rejection.Message;
+        return true;
     }
 }

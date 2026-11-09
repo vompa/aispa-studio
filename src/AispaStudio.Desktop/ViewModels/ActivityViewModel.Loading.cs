@@ -5,31 +5,36 @@ namespace AispaStudio.Desktop.ViewModels;
 
 public sealed partial class ActivityViewModel
 {
-    /// <summary>Beim Öffnen der Seite: Personen des Standorts einmal laden, die Liste immer neu (es ist inzwischen etwas passiert).</summary>
-    public async Task RefreshAsync()
-    {
-        _initialization ??= LoadPeopleAsync();
-        await _initialization.ConfigureAwait(true);
-        await ReloadAsync().ConfigureAwait(true);
-    }
+    /// <summary>Beim Öffnen der Seite: die Liste immer neu laden (es ist inzwischen etwas passiert).</summary>
+    public Task RefreshAsync() => ReloadAsync();
 
-    /// <summary>Die Personen mit Zugang zum Standort für das Feld „Person“; ohne Recht auf Zugänge oder ohne Verbindung bleibt das Feld weg.</summary>
-    private async Task LoadPeopleAsync()
+    /// <summary>
+    /// Die Personen im Zeitraum für das Feld „Person“, aus der Antwort des Servers (für jede Rolle gleich): fehlende kommen dazu, überzählige gehen, nach Namen sortiert.
+    /// Bestehende Einträge bleiben dieselben Objekte, damit das Auswahlfeld seine Wahl behält; die gewählte Person bleibt auch dann, wenn die Antwort sie nicht nennt.
+    /// </summary>
+    private void SyncPeople(IReadOnlyList<ActivityActor>? actors)
     {
-        if (!_user.Rights.Contains(AccessRight.ManageStaff) || LocationSource?.Invoke() is not { } location)
+        var wanted = (actors ?? []).Select(a => new ActivityPersonOption(a.Id, a.Name)).ToList();
+        if (Person.UserId is not null && !wanted.Contains(Person))
         {
-            return;
+            wanted.Add(Person);
         }
 
-        var staff = await _api.GetAsync<List<StaffMemberDto>>("api/staff").ConfigureAwait(true);
-        if (staff.Value is null)
+        wanted.Sort((a, b) => StringComparer.CurrentCultureIgnoreCase.Compare(a.Name, b.Name));
+        for (var i = People.Count - 1; i >= 1; i--)
         {
-            return;
+            if (!wanted.Contains(People[i]))
+            {
+                People.RemoveAt(i);
+            }
         }
 
-        foreach (var member in staff.Value.Where(m => m.IsActive && (m.AllLocations || m.LocationIds.Contains(location.Id))).OrderBy(m => m.DisplayName, StringComparer.CurrentCultureIgnoreCase))
+        for (var i = 0; i < wanted.Count; i++)
         {
-            People.Add(new ActivityPersonOption(member.UserId, member.DisplayName));
+            if (People.Count <= i + 1 || People[i + 1] != wanted[i])
+            {
+                People.Insert(i + 1, wanted[i]);
+            }
         }
 
         OnPropertyChanged(nameof(HasPersonChoice));
@@ -57,8 +62,6 @@ public sealed partial class ActivityViewModel
         OnPropertyChanged(nameof(HasFilter));
         OnPropertyChanged(nameof(IsModified));
         OnPropertyChanged(nameof(EmptyText));
-        _initialization ??= LoadPeopleAsync();
-        await _initialization.ConfigureAwait(true);
         await ReloadAsync().ConfigureAwait(true);
     }
 
@@ -100,6 +103,7 @@ public sealed partial class ActivityViewModel
         }
 
         Append(page, location);
+        SyncPeople(page.Actors);
         Refreshed();
     }
 

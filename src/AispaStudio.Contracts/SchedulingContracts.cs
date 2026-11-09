@@ -547,8 +547,11 @@ public enum CancellationNoticeState
     Sent,
 }
 
-/// <summary>Was beim Zurücknehmen einer Stornierung zu beachten ist: Stand der Absage-Nachricht und eine retournierte Anzahlung.</summary>
-public sealed record AppointmentRestoration(CancellationNoticeState Notice, bool DepositReturned);
+/// <summary>
+/// Was beim Zurücknehmen einer Stornierung zu beachten ist: Stand der Absage-Nachricht, eine retournierte Anzahlung, und ob eine neue Zeit nötig ist, weil der Termin
+/// in der Vergangenheit liegt (<c>InPast</c>) oder Zeit, Person oder Raum inzwischen belegt sind (<c>Conflict</c>: die Belegungen, die das Zurücknehmen melden würde).
+/// </summary>
+public sealed record AppointmentRestoration(CancellationNoticeState Notice, bool DepositReturned, bool InPast = false, BookingRejected? Conflict = null);
 
 /// <summary>Namen für einen Gast ohne Namen nachtragen; gilt für alle seine Termine in der Buchung.</summary>
 public sealed record AssignGuestRequest(Guid CustomerId);

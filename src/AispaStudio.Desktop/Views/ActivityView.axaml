@@ -184,6 +184,15 @@
                       Classes.primary="{Binding IsAppointmentPrimary}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" ToolTip.Tip="{Binding AppointmentTip}" />
               <Button x:Name="CustomerButton" Content="Kundenkarte öffnen" Command="{Binding OpenCustomerCommand}" IsVisible="{Binding ShowCustomer}"
                       Classes.primary="{Binding IsCustomerPrimary}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" ToolTip.Tip="Öffnet die Kundenkarte des Gastes." />
+              <Button x:Name="TreatmentButton" Content="Behandlung öffnen" Command="{Binding OpenTreatmentCommand}" IsVisible="{Binding ShowTreatment}"
+                      Classes.primary="{Binding IsTreatmentPrimary}" IsEnabled="{Binding CanOpenTreatment}" ui:DisabledHint.Text="{Binding TreatmentHint}"
+                      HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" ToolTip.Tip="Zeigt die Behandlung in den Stammdaten." />
+              <Button x:Name="RosterButton" Content="Dienstplan öffnen" Command="{Binding OpenRosterCommand}" IsVisible="{Binding ShowRoster}"
+                      Classes.primary="{Binding IsRosterPrimary}" IsEnabled="{Binding CanOpenTeam}" ui:DisabledHint.Text="{Binding TeamHint}"
+                      HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" ToolTip.Tip="Zeigt den Wochenplan der Woche des Eintrags." />
+              <Button x:Name="AccessButton" Content="Zugang öffnen" Command="{Binding OpenAccessCommand}" IsVisible="{Binding ShowAccess}"
+                      Classes.primary="{Binding IsAccessPrimary}" IsEnabled="{Binding CanOpenTeam}" ui:DisabledHint.Text="{Binding TeamHint}"
+                      HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" ToolTip.Tip="Zeigt den Zugang der Person im Team." />
             </StackPanel>
           </StackPanel>
         </ScrollViewer>

@@ -140,7 +140,6 @@ public sealed partial class ActivityViewModel : ViewModelBase
     private long? _nextBefore;
     private bool _suspended;
     private int _searchVersion;
-    private Task? _initialization;
 
     public ActivityViewModel(IWorkstationApi api, CurrentUser user, TimeProvider time)
     {
@@ -165,7 +164,7 @@ public sealed partial class ActivityViewModel : ViewModelBase
 
     public IReadOnlyList<ActivityChannelOption> Channels { get; }
 
-    /// <summary>„Alle Personen“ und die Personen mit Zugang zum Standort; nur gefüllt, wer Zugänge verwalten darf (nur dann kennt die App die Benutzer-Ids).</summary>
+    /// <summary>„Alle Personen“ und die Personen, die im Zeitraum etwas getan haben (aus der Antwort des Servers, für jede Rolle).</summary>
     public ObservableCollection<ActivityPersonOption> People { get; } = [new(null, "Alle Personen")];
 
     public bool HasPersonChoice => People.Count > 1;

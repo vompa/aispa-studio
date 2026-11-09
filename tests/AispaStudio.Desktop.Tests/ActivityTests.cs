@@ -270,4 +270,81 @@ public sealed class ActivityTests
 
         Assert.Equal(1, opened?.Seq);
     }
+
+    // ---------- Feld „Person“ aus den Personen der Antwort (Aufgabe E) ----------
+
+    private static readonly ActivityActor[] Actors = [new("u-lena", "Lena"), new("u-rita", "Rita")];
+
+    private static StubApi ApiWithActors(IReadOnlyList<ActivityActor>? actors, string query = "") => new StubApi()
+        .On($"{HistoryRoute}?from={Today}&until={Today}{query}", new ActivityPage([Entry(1, Local(9))], null, actors));
+
+    private static bool CalledStaff(StubApi api) => api.Calls.Any(c => c.Route.StartsWith("GET /api/staff", StringComparison.Ordinal));
+
+    [Fact]
+    public async Task Die_Rezeption_sieht_das_Feld_Person_mit_genau_den_Personen_der_Antwort_und_ruft_api_staff_nicht_auf()
+    {
+        var api = ApiWithActors(Actors);
+        var activity = Open(api, TestData.Reception());
+
+        await activity.RefreshAsync();
+
+        Assert.True(activity.HasPersonChoice);
+        Assert.Equal(["Alle Personen", "Lena", "Rita"], activity.People.Select(p => p.Name));
+        Assert.Equal([null, "u-lena", "u-rita"], activity.People.Select(p => p.UserId));
+        Assert.False(CalledStaff(api));
+    }
+
+    [Fact]
+    public async Task Auch_die_Inhaberin_bekommt_die_Personen_aus_der_Antwort_und_nicht_aus_api_staff()
+    {
+        var api = ApiWithActors(Actors);
+        var activity = Open(api);
+
+        await activity.RefreshAsync();
+
+        Assert.Equal(["Alle Personen", "Lena", "Rita"], activity.People.Select(p => p.Name));
+        Assert.False(CalledStaff(api));
+    }
+
+    [Fact]
+    public async Task Ohne_Personen_in_der_Antwort_bleibt_das_Feld_Person_weg()
+    {
+        var activity = Open(ApiWithActors(null), TestData.Reception());
+
+        await activity.RefreshAsync();
+
+        Assert.False(activity.HasPersonChoice);
+        Assert.Equal(["Alle Personen"], activity.People.Select(p => p.Name));
+    }
+
+    [Fact]
+    public async Task Beim_Neuladen_bleibt_die_gewaehlte_Person_und_neue_Personen_der_Antwort_kommen_dazu()
+    {
+        var api = ApiWithActors(Actors)
+            .On($"{HistoryRoute}?from={Today}&until={Today}&actor=u-rita", new ActivityPage([Entry(2, Local(9))], null, [.. Actors, new ActivityActor("u-tom", "Tom")]));
+        var activity = Open(api, TestData.Reception());
+        await activity.RefreshAsync();
+
+        activity.Person = activity.People[2];
+        await WaitUntilAsync(() => activity.People.Count == 4);
+
+        Assert.Equal("Rita", activity.Person.Name);
+        Assert.Equal(["Alle Personen", "Lena", "Rita", "Tom"], activity.People.Select(p => p.Name));
+        Assert.Same(activity.People[2], activity.Person);
+    }
+
+    [Fact]
+    public async Task Eine_gewaehlte_Person_bleibt_in_der_Liste_auch_wenn_die_Antwort_sie_nicht_mehr_nennt()
+    {
+        var api = ApiWithActors(Actors)
+            .On($"{HistoryRoute}?from={Today}&until={Today}&actor=u-rita", new ActivityPage([], null, [Actors[0]]));
+        var activity = Open(api, TestData.Reception());
+        await activity.RefreshAsync();
+
+        activity.Person = activity.People[2];
+        await WaitUntilAsync(() => activity.People.Count == 3 && !activity.IsLoading);
+
+        Assert.Equal("Rita", activity.Person.Name);
+        Assert.Equal(["Alle Personen", "Lena", "Rita"], activity.People.Select(p => p.Name));
+    }
 }

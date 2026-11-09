@@ -203,8 +203,10 @@ public partial class AppointmentViewModel(
     /// <summary>Was der Kalender der Konfliktmeldung mitgibt: Termin markieren, „Zum Konflikt“, Gegenstück von Person und Raum.</summary>
     public ConflictLinks? Links { get; init; }
 
-    private ConflictNotice? ConflictOf<T>(ApiResult<T> result) =>
-        ConflictNotice.From(result.Rejection, zone, DateOnly.FromDateTime(DayLayout.Local(Appointment.Start, zone)), Links ?? new ConflictLinks(null));
+    private ConflictNotice? ConflictOf<T>(ApiResult<T> result) => ConflictOf(result.Rejection);
+
+    private ConflictNotice? ConflictOf(BookingRejected? rejection) =>
+        ConflictNotice.From(rejection, zone, DateOnly.FromDateTime(DayLayout.Local(Appointment.Start, zone)), Links ?? new ConflictLinks(null));
 
     [RelayCommand]
     private Task CheckInAsync() => SetStatusAsync(AppointmentStatus.CheckedIn);
@@ -304,9 +306,11 @@ public partial class AppointmentViewModel(
     [RelayCommand]
     private Task UndoCheckInAsync() => SetStatusAsync(AppointmentStatus.Booked);
 
+    private AppointmentRestorer Restorer => new(api, AskAsync, zone, result => ReportedStale(result));
+
     /// <summary>
-    /// Fragt vor dem Zurücknehmen nach: wartet die Absage-Nachricht an den Gast noch, geht sie nie raus; ist sie schon raus, entscheidet das Team über eine Korrektur.
-    /// Ist die Zeit inzwischen belegt, nennt die zweite Rückfrage den Konflikt und bietet „Verschieben“ an.
+    /// Fragt vor dem Zurücknehmen nach (<see cref="AppointmentRestorer"/>): wartet die Absage-Nachricht an den Gast noch, geht sie nie raus; ist sie schon raus, entscheidet das Team über eine Korrektur.
+    /// Liegt der Termin in der Vergangenheit oder ist die Zeit belegt, nennt die Rückfrage den Grund und öffnet „Verschieben“.
     /// </summary>
     [RelayCommand]
     public async Task AskRestoreAsync()
@@ -318,67 +322,36 @@ public partial class AppointmentViewModel(
 
         Error = null;
         Conflict = null;
-        var info = await api.GetAsync<AppointmentRestoration>($"api/appointments/{Appointment.Id}/restoration").ConfigureAwait(true);
-        if (info.Value is not { } restoration)
-        {
-            Error = info.Error;
-            return;
-        }
-
-        var sent = restoration.Notice == CancellationNoticeState.Sent;
-        var answer = await AskAsync(new ConfirmRequest("Stornierung zurücknehmen?", RestoreText(restoration, Title, ShortDateText, TimeText), sent ? "Mit Korrektur zurücknehmen" : "Zurücknehmen",
-            IsDestructive: false, AlternativeText: sent ? "Ohne Korrektur" : null)).ConfigureAwait(true);
-        if (answer.Choice != ConfirmChoice.Cancelled)
-        {
-            _restoreCorrection = sent && answer.Choice == ConfirmChoice.Confirmed;
-            Error = await RestoreAsync(null, _restoreCorrection).ConfigureAwait(true);
-        }
+        Error = await ApplyAsync(Restorer.AskAsync(Appointment, Title, ShortDateText, TimeText)).ConfigureAwait(true);
     }
 
     /// <summary>Die Wahl aus der Rückfrage gilt auch, wenn das Team danach zu einer anderen Zeit zurücknimmt.</summary>
     private bool _restoreCorrection;
 
-    /// <summary>Der Text der Rückfrage „Stornierung zurücknehmen?“; auch die Seite „Verlauf“ nutzt ihn, damit beide Orte dasselbe fragen.</summary>
-    internal static string RestoreText(AppointmentRestoration restoration, string guest, string shortDate, string time)
-    {
-        var text = $"Der Termin von {guest} am {shortDate}, {time}, ist danach wieder gebucht. Das Programm prüft zuerst, ob Zeit, Person und Raum noch frei sind.";
-        text += restoration.Notice switch
-        {
-            CancellationNoticeState.Waiting => " Die Absage an den Gast ist noch nicht raus und wird nicht mehr gesendet.",
-            CancellationNoticeState.Sent => " Der Gast hat die Absage schon bekommen. Soll er eine Korrektur erhalten?",
-            _ => "",
-        };
-        return restoration.DepositReturned ? text + " Die Anzahlung ging mit der Absage zurück; sie ist an der Kassa neu zu verlangen." : text;
-    }
-
     /// <returns>Der Fehler, wenn es nicht ging, sonst <c>null</c>.</returns>
-    private async Task<string?> RestoreAsync(DateTimeOffset? start, bool sendCorrection)
+    private async Task<string?> ApplyAsync(Task<RestoreOutcome> restoring)
     {
-        var result = await api.PostAsync<AppointmentDto>($"api/appointments/{Appointment.Id}/restore", new RestoreAppointmentRequest(start, sendCorrection, Appointment.Version))
-            .ConfigureAwait(true);
-        if (result.Value is { } restored)
+        var outcome = await restoring.ConfigureAwait(true);
+        _restoreCorrection = outcome.SendCorrection;
+        if (outcome.Rejection is not null)
         {
-            IsMovingToDay = false;
-            await changed(restored).ConfigureAwait(true);
-            return null;
+            Conflict = ConflictOf(outcome.Rejection);
         }
 
-        if (ReportedStale(result))
+        switch (outcome.Step)
         {
-            return null;
+            case RestoreStep.Restored:
+                IsMovingToDay = false;
+                await changed(outcome.Restored!).ConfigureAwait(true);
+                return null;
+            case RestoreStep.NewTimeWanted:
+                IsMovingToDay = true;
+                return null;
+            case RestoreStep.Failed:
+                return outcome.Error;
+            default:
+                return null;
         }
-
-        if (result.Rejection is null)
-        {
-            return result.Error;
-        }
-
-        Conflict = ConflictOf(result);
-        var reason = Conflict?.Summary ?? result.Error ?? result.Rejection.Message;
-        var answer = await AskAsync(new ConfirmRequest("Zu anderer Zeit zurücknehmen?",
-            $"{reason} Die Stornierung lässt sich nur zu einer anderen Zeit zurücknehmen.", "Verschieben …", IsDestructive: false)).ConfigureAwait(true);
-        IsMovingToDay = answer.IsConfirmed;
-        return null;
     }
 
     // ---------- Vor- und Nachbereitung dieses Termins ändern ----------
@@ -476,7 +449,7 @@ public partial class AppointmentViewModel(
     public bool CanMoveToDay => moveTo is not null && IsBooked && !IsGroup;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsEditingCard), nameof(ErrorOnTop), nameof(ErrorInMove), nameof(ConflictOnTop), nameof(ConflictInMove))]
+    [NotifyPropertyChangedFor(nameof(IsEditingCard), nameof(ErrorOnTop), nameof(ErrorInMove), nameof(ConflictOnTop), nameof(ConflictInMove), nameof(ShowRestoreSlots))]
     public partial bool IsMovingToDay { get; private set; }
 
     /// <summary>Neuer Tag als „TT.MM.JJJJ“, vorbelegt mit dem bisherigen.</summary>
@@ -549,7 +522,7 @@ public partial class AppointmentViewModel(
         }
 
         var start = DayLayout.LocalToUtc(date, time, zone);
-        Error = ShowRestore ? await RestoreAsync(start, _restoreCorrection).ConfigureAwait(true) : await moveTo!(start).ConfigureAwait(true);
+        Error = ShowRestore ? await ApplyAsync(Restorer.RestoreAtAsync(Appointment, start, _restoreCorrection)).ConfigureAwait(true) : await moveTo!(start).ConfigureAwait(true);
     }
 
     // ---------- Gemeinsame Buchung ----------

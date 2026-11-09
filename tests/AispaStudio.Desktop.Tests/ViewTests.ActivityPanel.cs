@@ -62,7 +62,7 @@ public sealed partial class ViewTests
         Assert.Equal(["Status", "Gebucht", "Storniert", "Ausfallgebühr", "–", "–"], values);
         Assert.Equal("Stornierung zurücknehmen", Label(Assert.Single(VisiblePrimaries(panel))));
         Assert.True(Named<Button>(panel, "RestoreButton").IsEnabled);
-        Assert.Equal(["Stornierung zurücknehmen", "Termin öffnen"], panel.GetVisualDescendants().OfType<Button>().Where(b => b.IsEffectivelyVisible && b.Name is not null).Select(Label));
+        Assert.Equal(["Stornierung zurücknehmen", "Termin öffnen", "Kundenkarte öffnen"], panel.GetVisualDescendants().OfType<Button>().Where(b => b.IsEffectivelyVisible && b.Name is not null).Select(Label));
         return shell.Calendar;
     }, PanelApi());
 
@@ -160,5 +160,83 @@ public sealed partial class ViewTests
         return Api().On($"GET /api/locations/{SpaSample.LocationId}/calendar?date=2026-10-19", day with { Appointments = [.. day.Appointments, .. cancelled] })
             .On($"{ActivityToday}&kinds=Cancelled&kinds=Restored", new ActivityPage([PanelCancelled], null))
             .On(ActivityToday, new ActivityPage([PanelCancelled], null));
+    }
+
+    // ---------- Aufgabe E: Rücknahme zu einer neuen Zeit ----------
+
+    private static StubApi RestoreApi(AppointmentRestoration restoration) =>
+        PanelApi().On($"GET /api/appointments/{SpaSample.Selected.Id}/restoration", restoration);
+
+    [Theory]
+    [InlineData("hell")]
+    [InlineData("dunkel")]
+    public Task Verlauf_Rueckfrage_zu_neuer_Zeit_nennt_bei_einem_vergangenen_Termin_den_Grund_und_bietet_Neue_Zeit_waehlen_an(string theme) =>
+        Render(theme, "verlauf-rueckfrage-neue-zeit", async (window, main) =>
+        {
+            var shell = await OpenPanel(main, 2);
+
+            _ = shell.Activity.RestoreCommand.ExecuteAsync(null);
+            await Pump(Settling);
+
+            var dialog = Assert.IsType<ConfirmDialogViewModel>(main.DialogHost.Current);
+            Assert.Equal(("Zu neuer Zeit zurücknehmen?", "Neue Zeit wählen"), (dialog.Title, dialog.ConfirmText));
+            var texts = VisibleTexts(Dialog(window));
+            Assert.Contains("Zu neuer Zeit zurücknehmen?", texts);
+            Assert.Contains(texts, t => t.StartsWith("Der Termin liegt in der Vergangenheit.", StringComparison.Ordinal));
+            Assert.Equal("Neue Zeit wählen", Label(DialogButton(window, "ConfirmButton")));
+            Assert.Equal("Abbrechen", Label(DialogButton(window, "CancelButton")));
+            return shell.Calendar;
+        }, RestoreApi(new AppointmentRestoration(CancellationNoticeState.None, false, InPast: true)));
+
+    [Fact]
+    public Task Verlauf_Rueckfrage_zu_neuer_Zeit_nennt_bei_belegter_Zeit_die_Belegung() => Render("hell", "verlauf-rueckfrage-belegt", async (window, main) =>
+    {
+        var shell = await OpenPanel(main, 2);
+
+        _ = shell.Activity.RestoreCommand.ExecuteAsync(null);
+        await Pump(Settling);
+
+        var texts = VisibleTexts(Dialog(window));
+        Assert.Contains(texts, t => t.StartsWith("Die Zeit ist inzwischen belegt: Termin · 10:30–11:30 · Lena Huber.", StringComparison.Ordinal));
+        return shell.Calendar;
+    }, RestoreApi(new AppointmentRestoration(CancellationNoticeState.None, false, Conflict: new BookingRejected("Zu dieser Zeit ist Lena Huber schon belegt.",
+        [new BookingConflict(ResourceKind.Employee, SpaSample.Lena.Id, "Lena Huber", "ist zu dieser Zeit schon belegt", SpaSample.At(10, 30), SpaSample.At(11, 30), Guid.NewGuid())]))));
+
+    [Theory]
+    [InlineData("hell")]
+    [InlineData("dunkel")]
+    public Task Kalender_Panel_Stornierung_zu_neuer_Zeit_zeigt_die_Verschieben_Karte_mit_den_Vorschlaegen_des_Gastes(string theme)
+    {
+        var api = PanelApi().On($"GET /api/customers/{SpaSample.Selected.CustomerId}", SpaSample.Customers[0] with { Id = SpaSample.Selected.CustomerId })
+            .On($"GET /api/locations/{SpaSample.LocationId}/availability?treatmentId={SpaSample.Selected.TreatmentId}&date=2026-10-19&employeeId={SpaSample.Selected.EmployeeId}"
+                + $"&roomId={SpaSample.Selected.RoomId}&customerId={SpaSample.Selected.CustomerId}&minSlots=3&days=14", SpaSample.FreeSlots());
+        return Render(theme, "kalender-panel-neue-zeit", async (window, main) =>
+        {
+            var calendar = await SignedInCalendar(main);
+            var selected = SpaSample.Selected;
+            var cancelled = selected with
+            {
+                Id = Guid.NewGuid(),
+                Status = AppointmentStatus.Cancelled,
+                Start = selected.Start.AddDays(-1),
+                End = selected.End.AddDays(-1),
+                BlockedFrom = selected.BlockedFrom.AddDays(-1),
+                BlockedUntil = selected.BlockedUntil.AddDays(-1),
+            };
+
+            await calendar.ShowRestoreAtNewTimeAsync(new NewTimeRequest(cancelled, false, null));
+            await Pump(Settling);
+
+            var panel = Named<Border>(window, "SidePanel");
+            panel.GetVisualDescendants().OfType<ScrollViewer>().First().ScrollToEnd();
+            await Pump(Settling);
+            var texts = VisibleTexts(panel);
+            Assert.Contains("Verschieben", texts);
+            Assert.Contains("Freie Zeiten", texts);
+            Assert.Equal(5, calendar.Selected!.RestoreSlots.Count);
+            Assert.Equal(("19.10.2026", "11:50"), (calendar.Selected.MoveDateText, calendar.Selected.MoveTimeText));
+            Assert.Contains(panel.GetVisualDescendants().OfType<Button>(), b => b.IsEffectivelyVisible && b.Classes.Contains("slot"));
+            return calendar;
+        }, api);
     }
 }

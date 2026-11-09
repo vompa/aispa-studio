@@ -235,6 +235,11 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
         Calendar.CancelledRequested = day => _ = ShowCancelledAsync(day);
         Activity.CustomerRequested = ShowCustomerAsync;
         Activity.AppointmentRequested = ShowAppointment;
+        Activity.CancelledAppointmentRequested = ShowCancelledAppointment;
+        Activity.NewTimeRequested = ShowRestoreAtNewTimeAsync;
+        Activity.TreatmentRequested = ShowTreatment;
+        Activity.RosterRequested = ShowRosterWeek;
+        Activity.AccessRequested = ShowAccess;
         Calendar.AdminRequested = ShowAdmin;
         Calendar.InboxRequested = ShowInboxMailAsync;
         Calendar.HrFileRequested = ShowHrFile;
@@ -828,6 +833,29 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
         SelectedPage = Pages.First(p => p.Page == Calendar);
         Calendar.OpenSearchHit(new CalendarSearchHit("", "", date, id));
     }
+
+    /// <summary>„Termin öffnen“ bei einem Storno im Verlauf: der Kalender springt auf den Tag und zeigt das Panel des stornierten Termins (wie über die Kundenkarte).</summary>
+    internal void ShowCancelledAppointment(Guid id, DateTimeOffset start)
+    {
+        SelectedPage = Pages.First(p => p.Page == Calendar);
+        Calendar.OpenAppointmentOn(id, start);
+    }
+
+    /// <summary>„Neue Zeit wählen“ im Verlauf: der Kalender zeigt den nächsten freien Tag und den stornierten Termin mit der Verschieben-Karte und den Freie-Zeit-Vorschlägen.</summary>
+    internal async Task ShowRestoreAtNewTimeAsync(NewTimeRequest request)
+    {
+        SelectedPage = Pages.First(p => p.Page == Calendar);
+        await Calendar.ShowRestoreAtNewTimeAsync(request).ConfigureAwait(true);
+    }
+
+    /// <summary>„Behandlung öffnen“ im Verlauf: die Behandlung in den Stammdaten der Verwaltung.</summary>
+    internal void ShowTreatment(Guid treatmentId) => OpenAdmin(AdminPage.Show("masterData", "treatments", treatmentId));
+
+    /// <summary>„Dienstplan öffnen“ im Verlauf: der Wochenplan im Bereich Team, die Woche des Tages am gewählten Standort.</summary>
+    internal void ShowRosterWeek(DateOnly day, Guid? employeeId) => OpenAdmin(AdminPage.Show("roster", id: employeeId, location: Calendar.Location?.Id, from: day));
+
+    /// <summary>„Zugang öffnen“ im Verlauf: der Zugang der Person auf ihrer Karte im Bereich Team.</summary>
+    internal void ShowAccess(Guid? employeeId) => OpenAdmin(AdminPage.Show("staff", id: employeeId));
 
     /// <summary>„Storniert n“ in der Kopfzeile des Kalenders: der Verlauf zeigt die Stornos dieses Tages.</summary>
     internal async Task ShowCancelledAsync(DateOnly day)

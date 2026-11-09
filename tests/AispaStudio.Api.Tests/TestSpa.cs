@@ -99,12 +99,12 @@ internal sealed class TestSpa
     /// Tests zu Raumpflege und Tagesstart brauchen aber einen Termin, dessen Zeit schon vorbei ist.
     /// </summary>
     public async Task<AppointmentDto> BookInThePastAsync(DateTimeOffset start, CancellationToken ct, Guid? employee = null, Guid? room = null,
-        TreatmentDto? treatment = null, Guid? customer = null)
+        TreatmentDto? treatment = null, Guid? customer = null, Guid? location = null)
     {
         await using var scope = Fixture.Factory.Services.CreateAsyncScope();
         scope.ServiceProvider.GetRequiredService<TenantContext>().Use(TenantId);
         var outcome = await scope.ServiceProvider.GetRequiredService<BookingService>().BookAsync(
-            new AppointmentRequest(Location.Id, (treatment ?? MassageTreatment).Id, customer ?? Customer.Id, start, employee, room, null, null), ct);
+            new AppointmentRequest(location ?? Location.Id, (treatment ?? MassageTreatment).Id, customer ?? Customer.Id, start, employee, room, null, null), ct);
         return outcome is BookingOutcome.Success success ? success.Appointment : throw new InvalidOperationException($"Buchung in der Vergangenheit abgelehnt: {outcome}");
     }
 

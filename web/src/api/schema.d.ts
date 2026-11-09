@@ -1062,7 +1062,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Was beim Zurücknehmen der Stornierung zu beachten ist: wartet die Absage-Nachricht noch, ist sie schon raus, und ging eine Anzahlung mit der Absage zurück. */
+        /** Was beim Zurücknehmen der Stornierung zu beachten ist: wartet die Absage-Nachricht noch, ist sie schon raus, ging eine Anzahlung mit der Absage zurück, liegt der Termin in der Vergangenheit (inPast) oder sind Zeit, Person oder Raum inzwischen belegt (conflict); dann braucht das Zurücknehmen eine neue Zeit. */
         get: operations["GetAppointmentRestoration"];
         put?: never;
         post?: never;
@@ -1081,7 +1081,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Nimmt eine Stornierung zurück: der Termin ist wieder gebucht, wenn Zeit, Person und Raum frei sind (409 mit den Belegungen, sonst). Mit „start“ zu einem neuen Beginn. Eine noch wartende Absage-Nachricht geht nie raus; mit „sendCorrection“ bekommt der Gast, der die Absage schon hat, eine Korrektur. */
+        /** Nimmt eine Stornierung zurück: der Termin ist wieder gebucht, wenn Zeit, Person und Raum frei sind (409 mit den Belegungen, sonst) und der Tag nicht vorbei ist (409 mit der Meldung, sonst). Mit „start“ zu einem neuen Beginn, heute oder später. Eine noch wartende Absage-Nachricht geht nie raus; mit „sendCorrection“ bekommt der Gast, der die Absage schon hat, eine Korrektur. */
         post: operations["RestoreAppointment"];
         delete?: never;
         options?: never;
@@ -7503,6 +7503,10 @@ export interface components {
             scope: components["schemas"]["PromotionScope"];
             treatments: components["schemas"]["PromotionTreatmentDto"][];
         };
+        ActivityActor: {
+            id: string;
+            name: string;
+        };
         /** @enum {unknown} */
         ActivityChannel: "Reception" | "Online" | "Assistant" | "Background";
         ActivityEntry: {
@@ -7534,6 +7538,7 @@ export interface components {
             items: components["schemas"]["ActivityEntry"][];
             /** Format: int64 */
             nextBefore: null | number;
+            actors?: null | components["schemas"]["ActivityActor"][];
         };
         ActivityValue: {
             label: string;
@@ -7814,6 +7819,9 @@ export interface components {
         AppointmentRestoration: {
             notice: components["schemas"]["CancellationNoticeState"];
             depositReturned: boolean;
+            /** @default false */
+            inPast: boolean;
+            conflict?: null | components["schemas"]["BookingRejected"];
         };
         /**
          * @default Reception

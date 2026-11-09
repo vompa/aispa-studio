@@ -238,7 +238,9 @@ internal sealed partial class BookingService(AispaDbContext db, RosterService ro
     /// <param name="house">Die Rezeption verschiebt im Kalender: an einem Schließtag trägt sie trotzdem ein; Gäste, Plattformen und der Ausfall-Assistent planen streng.</param>
     /// <param name="toLocationId">Anderer Standort desselben Spas (nur Ausfall-Assistent); sonst bleibt der Termin, wo er ist.</param>
     /// <param name="restore">Nimmt eine Stornierung zurück (Ä95): derselbe Weg wie das Verschieben, aber für einen stornierten Termin, der danach wieder „Gebucht“ ist.</param>
-    public async Task<BookingOutcome> MoveAsync(Guid id, MoveAppointmentRequest request, CancellationToken ct, Guid? toLocationId = null, bool restore = false, bool house = false)
+    /// <param name="check">Nur prüfen, ob die Zeit geht: die Antwort ist der unveränderte Termin oder die Ablehnung, gespeichert wird nichts.</param>
+    public async Task<BookingOutcome> MoveAsync(Guid id, MoveAppointmentRequest request, CancellationToken ct, Guid? toLocationId = null, bool restore = false, bool house = false,
+        bool check = false)
     {
         var appointment = await LoadAsync(id, ct);
         if (appointment is null)
@@ -315,6 +317,11 @@ internal sealed partial class BookingService(AispaDbContext db, RosterService ro
             return new BookingOutcome.Rejected(new BookingRejected(result.Message!, result.Conflicts));
         }
 
+        if (check)
+        {
+            return new BookingOutcome.Success(ToDto(appointment, appointment.Treatment.Name));
+        }
+
         // Verschieben fragt nicht nach: Der Termin zieht um, die Antwort nennt die Sonderregelung (R05 Slice 111).
         var ruleWarning = house
             ? await StaffRuleCheck.AppointmentWarningAsync(db, plan.Employee, plan.Times.Start, plan.Times.End, LocalTime.Zone(zoneId), appointment.Id, ct)
@@ -350,7 +357,14 @@ internal sealed partial class BookingService(AispaDbContext db, RosterService ro
     }
 
     /// <summary>Stornierung zurücknehmen (Ä95): ohne <paramref name="start"/> zur selben Zeit mit denselben Ressourcen, sonst zum neuen Beginn mit freier Wahl wie beim Verschieben.</summary>
-    public async Task<BookingOutcome> RestoreAsync(Guid id, DateTimeOffset? start, CancellationToken ct, uint? expectedVersion = null)
+    public Task<BookingOutcome> RestoreAsync(Guid id, DateTimeOffset? start, CancellationToken ct, uint? expectedVersion = null) =>
+        RestoreAsync(id, start, expectedVersion, check: false, ct);
+
+    /// <summary>Ob die Stornierung zur alten Zeit zurückgenommen werden könnte: die Ablehnung mit den Belegungen, sonst <c>null</c>; speichert nichts (Verlauf, Aufgabe E).</summary>
+    public async Task<BookingRejected?> RestoreConflictAsync(Guid id, CancellationToken ct) =>
+        await RestoreAsync(id, null, null, check: true, ct) is BookingOutcome.Rejected rejected ? rejected.Reason : null;
+
+    private async Task<BookingOutcome> RestoreAsync(Guid id, DateTimeOffset? start, uint? expectedVersion, bool check, CancellationToken ct)
     {
         var appointment = await LoadAsync(id, ct);
         if (appointment is null)
@@ -366,7 +380,7 @@ internal sealed partial class BookingService(AispaDbContext db, RosterService ro
         var move = start is { } at
             ? new MoveAppointmentRequest(at, null, null, null)
             : new MoveAppointmentRequest(appointment.Start, appointment.EmployeeId, appointment.RoomId, appointment.EquipmentId);
-        return await MoveAsync(id, move, ct, restore: true);
+        return await MoveAsync(id, move, ct, restore: true, check: check);
     }
 
     /// <param name="byBusiness">Der Betrieb sagt ab (Schließzeit, ADR 0073): nie eine Ausfallgebühr, die Anzahlung ist zu erstatten.</param>

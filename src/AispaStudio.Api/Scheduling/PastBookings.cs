@@ -15,6 +15,9 @@ internal static class PastBookings
     /// <summary>Dieselbe Regel beim Verschieben (L2): Ein Tippfehler im Tag darf den Termin nicht auf gestern legen, wo ihn niemand mehr sieht.</summary>
     public const string MoveMessage = "Termine lassen sich nicht in die Vergangenheit verschieben. Möglich ist heute oder ein späterer Tag.";
 
+    /// <summary>Dieselbe Regel beim Zurücknehmen einer Stornierung zur alten Zeit (Verlauf, Aufgabe E): ein vergangener Termin kommt nur zu einer neuen Zeit zurück.</summary>
+    public const string RestoreMessage = "Der Termin liegt in der Vergangenheit. Die Stornierung lässt sich nur zu einer neuen Zeit zurücknehmen.";
+
     /// <summary>Die Ablehnung, wenn <paramref name="start"/> vor dem heutigen Tag des Standorts liegt; sonst <c>null</c> (auch bei unbekanntem Standort, den meldet die Buchung selbst).</summary>
     public static async Task<BookingRejected?> CheckAsync(AispaDbContext db, TimeProvider time, Guid locationId, DateTimeOffset start, CancellationToken ct, string message = Message)
     {

@@ -218,6 +218,34 @@
               </UniformGrid>
             </StackPanel>
           </Border>
+          <!-- Stornierung zu neuer Zeit zurücknehmen: freie Zeiten des Gastes, ein Klick füllt Tag und Beginn der Karte darüber -->
+          <Border x:Name="RestoreSlotsCard" Classes="panelcard" IsVisible="{Binding ShowRestoreSlots}">
+            <StackPanel Spacing="8">
+              <TextBlock Text="Freie Zeiten" FontWeight="Medium" />
+              <ItemsControl ItemsSource="{Binding RestoreSlots}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:FreeSlotRow">
+                    <Button Classes="ghost slot" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" AutomationProperties.Name="{Binding AccessibleName}"
+                            Command="{Binding #Root.((vm:CalendarViewModel)DataContext)?.Selected?.ChooseRestoreSlotCommand}" CommandParameter="{Binding}">
+                      <Grid ColumnDefinitions="96,*">
+                        <StackPanel VerticalAlignment="Center">
+                          <TextBlock Text="{Binding DayText}" IsVisible="{Binding HasDay}" Classes="small warn" FontWeight="SemiBold" />
+                          <TextBlock Text="{Binding Time}" FontWeight="SemiBold" Classes="num" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                          <Grid ColumnDefinitions="Auto,*" ColumnSpacing="6">
+                            <Ellipse Width="8" Height="8" Fill="{Binding WhoColor}" VerticalAlignment="Center" />
+                            <TextBlock Grid.Column="1" Text="{Binding Who}" TextTrimming="CharacterEllipsis" />
+                          </Grid>
+                          <TextBlock Text="{Binding Room}" Classes="muted small" TextTrimming="CharacterEllipsis" />
+                        </StackPanel>
+                      </Grid>
+                    </Button>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </Border>
           <Button Content="Einchecken zurücknehmen" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
                   Command="{Binding UndoCheckInCommand}" ToolTip.Tip="Der Termin steht wieder auf Gebucht, solange noch nicht kassiert ist">
             <Button.IsVisible>
