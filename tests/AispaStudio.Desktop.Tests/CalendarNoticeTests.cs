@@ -229,6 +229,21 @@ public sealed class CalendarNoticeTests
     }
 
     [Fact]
+    public async Task Eine_Sperrzeit_ohne_Grund_meldet_den_Fehler_am_Feld_Grund_ohne_Bitte()
+    {
+        var vm = await OpenAsync(Api(TestData.Day()));
+        vm.OpenNoteAt(10, 100);
+        Assert.True(vm.SelectNewEntry(4));
+        var entry = vm.Entry!;
+        entry.Text = "";
+
+        await entry.SaveAsync();
+
+        Assert.Equal("Der Grund fehlt.", entry.TextError);
+        Assert.Null(entry.Error);
+    }
+
+    [Fact]
     public async Task Ein_gescheiterter_Aufruf_ist_ein_Fehler_als_InfoBar_mit_Erneut_versuchen_und_kein_Toast()
     {
         var appointment = TestData.Appointment(10, TestData.Anna);

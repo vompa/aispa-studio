@@ -562,3 +562,14 @@ Expected: „Änderungen verwerfen?“ mit dem Text „Die Eingaben gehen beim S
 Expected: „Termin stornieren?“ mit „Der Termin von … am Do. 12.11., 14:35–15:20, ist danach storniert …“ (kurzes Datum).
 Closes: B9, B10 (live-sichtpruefung-2026-11-09.md)
 Result: ☐
+
+### Kalender – kleine Textbefunde B20, B23, B24
+Start: `dotnet run --project src/AispaStudio.AppHost`, als Rezeption anmelden, **Kalender**
+1. **Neuer Termin** öffnen, die Behandlung „Anti-Aging-Gesichtsbehandlung mit Gesichtsmassage“ wählen.
+Expected: Die Vorschau im Kalender bricht den Namen um, statt mit „…“ zu enden.
+2. Rechtsklick auf eine freie Stelle › **Sperrzeit hier**, den Grund leer lassen, **Sperren** klicken.
+Expected: Unter dem Feld **Grund** steht „Der Grund fehlt.“; keine rote Leiste.
+3. Einen Termin für gestern buchen bzw. auf gestern verschieben (Tag per Hand eintippen).
+Expected: Meldung „Termine lassen sich nicht in der Vergangenheit buchen. Möglich ist heute oder ein späterer Tag.“ (beim Verschieben „… verschieben …“).
+Closes: B20, B23, B24 (live-sichtpruefung-2026-11-09.md)
+Result: ☐

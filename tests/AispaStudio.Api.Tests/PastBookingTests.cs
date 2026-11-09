@@ -71,6 +71,14 @@ public sealed class PastBookingTests(ApiFixture fixture)
         Assert.True(PastBookings.IsBeforeToday(Utc(2027, 3, 28, 21, 30), Utc(2027, 3, 28, 22, 30), Vienna));
     }
 
+    [Fact]
+    public void Die_Ablehnungstexte_nennen_den_Weg_ohne_Bitte()
+    {
+        Assert.EndsWith("Möglich ist heute oder ein späterer Tag.", PastBookings.Message, StringComparison.Ordinal);
+        Assert.EndsWith("Möglich ist heute oder ein späterer Tag.", PastBookings.MoveMessage, StringComparison.Ordinal);
+        Assert.DoesNotContain("Bitte", PastBookings.Message + PastBookings.MoveMessage, StringComparison.Ordinal);
+    }
+
     // ---------- Endpunkte ----------
 
     private static async Task AssertRejectedAsync(HttpResponseMessage response, string message = PastBookings.Message)

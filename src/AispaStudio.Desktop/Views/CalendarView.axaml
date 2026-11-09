@@ -1187,7 +1187,7 @@
             <ui:TimeField CommittedText="{Binding EndText}" NotBefore="{Binding #EntryStartBox.Value}" />
           </ui:FormField>
         </StackPanel>
-        <ui:FormField Label="{Binding TextLabel}" IsVisible="{Binding HasText}">
+        <ui:FormField Label="{Binding TextLabel}" IsVisible="{Binding HasText}" Error="{Binding TextError}">
           <!-- Die Notiz ist mehrzeilig und wächst mit (Ä148), der Grund einer Sperrzeit bleibt eine Zeile -->
           <TextBox x:Name="EntryTextBox" Classes="grow" Text="{Binding Text}" PlaceholderText="{Binding TextHint}" AcceptsReturn="{Binding IsNote}" />
         </ui:FormField>
@@ -2846,9 +2846,9 @@
                     <Rectangle RadiusX="5" RadiusY="5" Fill="{DynamicResource WarnSoftBrush}" Stroke="{DynamicResource WarnBrush}"
                                StrokeThickness="1.5" StrokeDashArray="4,3" IsVisible="{Binding Ghost?.IsWarning, TargetNullValue=False}" />
                     <TextBlock Text="{Binding Ghost?.Text, TargetNullValue=''}" Foreground="{DynamicResource AccentBrush}" FontSize="12"
-                               FontWeight="SemiBold" Margin="8,2" Classes="num" TextTrimming="CharacterEllipsis" IsVisible="{Binding Ghost?.IsWarning, Converter={x:Static BoolConverters.Not}, TargetNullValue=False}" />
+                               FontWeight="SemiBold" Margin="8,2" Classes="num" TextWrapping="Wrap" TextTrimming="CharacterEllipsis" IsVisible="{Binding Ghost?.IsWarning, Converter={x:Static BoolConverters.Not}, TargetNullValue=False}" />
                     <TextBlock Text="{Binding Ghost?.Text, TargetNullValue=''}" Foreground="{DynamicResource WarnBrush}" FontSize="12"
-                               FontWeight="SemiBold" Margin="8,2" Classes="num" TextTrimming="CharacterEllipsis" IsVisible="{Binding Ghost?.IsWarning, TargetNullValue=False}" />
+                               FontWeight="SemiBold" Margin="8,2" Classes="num" TextWrapping="Wrap" TextTrimming="CharacterEllipsis" IsVisible="{Binding Ghost?.IsWarning, TargetNullValue=False}" />
                   </Panel>
                 </Canvas>
               </Panel>
