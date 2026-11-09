@@ -512,7 +512,7 @@
                   </ItemsControl.ItemsPanel>
                   <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="c:ArticleDto">
-                      <Button Classes="tile" MinHeight="40" Padding="10,6" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" VerticalContentAlignment="Center"
+                      <Button Classes="tile" MinHeight="34" Padding="10,6" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" VerticalContentAlignment="Center"
                               Command="{Binding #Root.((vm:PosViewModel)DataContext)?.AddArticleCommand}" CommandParameter="{Binding}">
                         <StackPanel>
                           <TextBlock Text="{Binding Name}" TextWrapping="Wrap" FontSize="12" />
