@@ -106,6 +106,9 @@
       <Button x:Name="ThisWeekButton" Content="Diese Woche" Command="{Binding ThisWeekCommand}" />
       <Button x:Name="NextWeekButton" Content="›" Command="{Binding NextWeekCommand}" Classes="icon" AutomationProperties.Name="Nächste Woche" ToolTip.Tip="Nächste Woche" />
       <TextBlock x:Name="WeekTitleText" Text="{Binding WeekTitle}" Classes="h3" VerticalAlignment="Center" />
+      <!-- Export des Dienstplans und der Abwesenheiten der Woche, nur für Inhaberin und Geschäftsführung (Export/Import, Aufgabe D) -->
+      <ui:ExportButton x:Name="RosterExportButton" DataContext="{Binding Export}" VerticalAlignment="Center" />
+      <TextBlock x:Name="RosterExportSaved" Text="{Binding ExportSaved}" Classes="muted small" IsVisible="{Binding HasExportSaved}" VerticalAlignment="Center" AutomationProperties.LiveSetting="Polite" />
       <ui:HelpButton Topic="seite-roster" VerticalAlignment="Center" />
     </WrapPanel>
 

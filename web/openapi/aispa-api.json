@@ -2871,6 +2871,322 @@
         }
       }
     },
+    "/api/v1/pos/locations/{locationId}/export": {
+      "get": {
+        "tags": [
+          "Kassa"
+        ],
+        "summary": "Listen der Kassa als Excel oder CSV, nur für die Leitung: list=receipts (Belegliste), revenue-days, revenue-payments, revenue-treatments (Umsatz je Tag, Zahlart, Behandlung und Person), day-closings (Tagesabschlüsse) für den Zeitraum from bis until; vouchers (Gutscheinbestand) ohne Zeitraum.",
+        "operationId": "ExportPosList",
+        "parameters": [
+          {
+            "name": "locationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "list",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "until",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/stock/locations/{locationId}/export": {
+      "get": {
+        "tags": [
+          "Lager"
+        ],
+        "summary": "Listen des Lagers als Excel oder CSV, nur für die Leitung: list=levels (Bestand je Lagerort), count (Inventur mit Differenzen: sessionId oder die zuletzt eingereichte Zählung), movements (Bewegungen von from bis until), orders (Bestellungen), expiry (Ablaufliste der Chargen).",
+        "operationId": "ExportStockList",
+        "parameters": [
+          {
+            "name": "locationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "list",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "until",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "sessionId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/locations/{locationId}/staff/export": {
+      "get": {
+        "tags": [
+          "Zeiterfassung"
+        ],
+        "summary": "Listen des Personals als Excel oder CSV, nur für die Leitung: list=hours (Stundenliste je Person und Tag für month=JJJJ-MM), absences (Abwesenheiten von from bis until), roster (Dienstplan der Woche ab from, Personen als Zeilen, Tage als Spalten); wahlweise nur employeeId.",
+        "operationId": "ExportStaffList",
+        "parameters": [
+          {
+            "name": "locationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "list",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "month",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "until",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "employeeId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/reports/locations/{locationId}/management/export": {
+      "get": {
+        "tags": [
+          "Berichte"
+        ],
+        "summary": "Kennzahlen des Management-Berichts für from bis until (höchstens ein Jahr) als Excel oder CSV: Kennzahl, Wert, Vorperiode, Einheit; ohne das Recht „Berichte mit Beträgen“ ohne Geldbeträge.",
+        "operationId": "ExportManagementKpis",
+        "parameters": [
+          {
+            "name": "locationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "until",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/auth/channel/staff-app": {
       "post": {
         "tags": [
@@ -48461,6 +48777,18 @@
       "name": "Verlauf"
     },
     {
+      "name": "Kassa"
+    },
+    {
+      "name": "Lager"
+    },
+    {
+      "name": "Zeiterfassung"
+    },
+    {
+      "name": "Berichte"
+    },
+    {
       "name": "Regelungen und Vollmachten"
     },
     {
@@ -48477,9 +48805,6 @@
     },
     {
       "name": "Anzeige"
-    },
-    {
-      "name": "Kassa"
     },
     {
       "name": "Aktionen"
@@ -48501,9 +48826,6 @@
     },
     {
       "name": "Dienstplan"
-    },
-    {
-      "name": "Zeiterfassung"
     },
     {
       "name": "Kundenbereich"
@@ -48537,12 +48859,6 @@
     },
     {
       "name": "Kosten"
-    },
-    {
-      "name": "Lager"
-    },
-    {
-      "name": "Berichte"
     },
     {
       "name": "Betrieb"

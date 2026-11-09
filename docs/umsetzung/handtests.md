@@ -692,3 +692,24 @@ Expected: Neben dem Knopf steht „Gespeichert: Kalender_<Name>.ics“. Im Kalen
 Expected: Der Knopf **Kalenderdatei …** fehlt; im Kalender exportiert die Terminliste ohne Spalte „Notiz“.
 Closes: Export/Import Aufgabe C (arbeitsanweisung-export-import.md)
 Result: ☐
+
+### Export/Import D – Listen von Kassa, Lager, Personal und Berichten
+Start: `dotnet run --project src/AispaStudio.AppHost`, im Aspire-Dashboard die Ressource `windows-app` starten, als Inhaberin anmelden, **Kassa** öffnen und eine Kasse wählen
+1. Im Bereich **Belege** einen Tag mit Belegen wählen, in der Kopfzeile **Exportieren** › **Belegliste (Excel)** wählen und speichern.
+Expected: Der Speicherdialog schlägt `Belege_<Tag>.xlsx` vor; daneben steht „Gespeichert: …“. In Excel: Kasse, Nummer, Tag als Datum, Zeit als Uhrzeit, Zahlarten, Betrag als Betrag, Storno („storniert“ bzw. „Storno zu Nr. …“), Gast; Autofilter in der Kopfzeile.
+2. **Exportieren** › **Umsatz je Tag (CSV)** speichern und in Excel öffnen.
+Expected: Umlaute richtig, Spalten durch Strichpunkt getrennt, Beträge mit Komma.
+3. **Exportieren** › **Gutscheinbestand (Excel)** und **Tagesabschlüsse (Excel)** speichern.
+Expected: Gutscheine mit Code, Art, Wert, Rest, Gültig bis, Status und Käufer; Tagesabschlüsse mit Soll, Gezählt und Differenz.
+4. **Verwaltung** › **Lager** öffnen, **Exportieren** › **Bestand je Lagerort (Excel)** und **Lagerbewegungen (Excel)** speichern.
+Expected: Bestand je Material und Lagerort; Bewegungen der letzten 30 Tage bis heute.
+5. **Team** › **Zeiten** öffnen, **Exportieren** › **Stundenliste (Excel)** speichern.
+Expected: `Stundenliste_<Monatserster>.xlsx` mit Person, Tag, Soll, Ist, Pause und Differenz für den Monat, in dem die gezeigte Woche beginnt.
+6. **Team** › **Wochenplan** öffnen, **Exportieren** › **Dienstplan der Woche (Excel)** speichern.
+Expected: Personen als Zeilen, Montag bis Sonntag als Spalten („Mo 1.3.“), Dienste als „9:00–17:00“, Abwesenheiten als „Urlaub“ usw., ganz rechts die Stunden.
+7. **Zahlen** › **Berichte** › **Management** öffnen, **Exportieren** › **Kennzahlen (Excel)** speichern.
+Expected: Kennzahl, Wert, Vorperiode und Einheit mit denselben Zahlen wie auf der Seite.
+8. Abmelden, als Manager eines Standorts anmelden, Kassa, Lager, Zeiten und Wochenplan öffnen.
+Expected: Der Knopf **Exportieren** fehlt dort; im Bericht „Management“ ist er da.
+Closes: Export/Import Aufgabe D (arbeitsanweisung-export-import.md)
+Result: ☐

@@ -8,6 +8,7 @@ using AispaStudio.Api.Scheduling;
 using AispaStudio.Contracts;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
+using static AispaStudio.Api.Exports.ExportRequests;
 
 namespace AispaStudio.Api.Exports;
 
@@ -17,12 +18,7 @@ namespace AispaStudio.Api.Exports;
 /// </summary>
 internal static class AppointmentExports
 {
-    /// <summary>Längster Zeitraum einer Datei: ein Jahr.</summary>
-    private const int MaxDays = 366;
-
     private const string OwnCalendarOnly = "Den Kalender einer Person exportieren nur die Leitung und die Person selbst.";
-
-    private static readonly CultureInfo German = CultureInfo.GetCultureInfo("de-AT");
 
     private static readonly TimeSpan GuestReminder = TimeSpan.FromHours(24);
 
@@ -185,14 +181,6 @@ internal static class AppointmentExports
     }
 
     /// <summary>Hinweis zum Zeitraum oder null: Beginn und Ende nötig, Ende nicht vor dem Beginn, höchstens <see cref="MaxDays"/> Tage.</summary>
-    private static string? RangeError(DateOnly? from, DateOnly? until) => (from, until) switch
-    {
-        ({ } f, { } u) when u < f => "Das Ende liegt vor dem Beginn.",
-        ({ } f, { } u) when u.DayNumber - f.DayNumber >= MaxDays => "Höchstens ein Jahr auf einmal.",
-        ({ }, { }) => null,
-        _ => "Zeitraum fehlt: from und until angeben (JJJJ-MM-TT).",
-    };
-
     private static AppointmentStatus? ParseStatus(string text) =>
         !int.TryParse(text, out _) && Enum.TryParse<AppointmentStatus>(text.Trim(), ignoreCase: true, out var status) ? status : null;
 
@@ -208,15 +196,9 @@ internal static class AppointmentExports
         return parts.All(p => p is "appointments" or "shifts") ? (parts.Contains("appointments"), parts.Contains("shifts")) : null;
     }
 
-    private static ValidationProblem Problem(string field, string message) => TypedResults.ValidationProblem(new Dictionary<string, string[]> { [field] = [message] });
-
-    private static TimeZoneInfo ZoneOf(Location location) => LocalTime.IsKnownZone(location.TimeZone) ? LocalTime.Zone(location.TimeZone) : TimeZoneInfo.Utc;
-
     /// <summary>Zeitzone des ersten Standorts für die <c>VTIMEZONE</c> der Datei; die Zeitpunkte selbst stimmen in jeder Zone.</summary>
     private static async Task<TimeZoneInfo> FirstZoneAsync(AispaDbContext db, CancellationToken ct) =>
         await db.Locations.AsNoTracking().OrderBy(l => l.Name).FirstOrDefaultAsync(ct) is { } location ? ZoneOf(location) : TimeZoneInfo.Utc;
-
-    private static string Day(DateOnly date) => date.ToString("d.M.yyyy", German);
 
     private static ExportTable ListTable(List<Appointment> appointments, Dictionary<Guid, string> employees, Dictionary<Guid, string> rooms, TimeZoneInfo zone, bool leadership)
     {

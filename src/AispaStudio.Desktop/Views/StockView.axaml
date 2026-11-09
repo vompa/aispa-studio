@@ -45,7 +45,12 @@
             <ComboBox x:Name="PlaceFilterField" ItemsSource="{Binding PlaceFilter}" SelectedItem="{Binding SelectedPlace}" MinWidth="200" />
           </ui:FormField>
         </StackPanel>
-        <ui:HelpButton Grid.Column="2" Topic="lager" VerticalAlignment="Center" />
+        <!-- Export der Lager-Listen, nur für Inhaberin und Geschäftsführung (Export/Import, Aufgabe D) -->
+        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+          <TextBlock x:Name="StockExportSaved" Text="{Binding ExportSaved}" Classes="muted small" IsVisible="{Binding HasExportSaved}" VerticalAlignment="Center" AutomationProperties.LiveSetting="Polite" />
+          <ui:ExportButton x:Name="StockExportButton" DataContext="{Binding Export}" />
+          <ui:HelpButton Topic="lager" VerticalAlignment="Center" />
+        </StackPanel>
         <Button Grid.Column="3" x:Name="BookMovementButton" Classes="primary" Command="{Binding OpenBookingPanelCommand}" IsVisible="{Binding ShowBookButton}" VerticalAlignment="Center"
                 AutomationProperties.Name="Bewegung buchen">
           <StackPanel Orientation="Horizontal" Spacing="8">

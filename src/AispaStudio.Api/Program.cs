@@ -330,6 +330,10 @@ static void MapApplicationEndpoints(WebApplication app)
     app.MapExportEndpoints();
     app.MapCustomerExportEndpoints();
     app.MapAppointmentExportEndpoints();
+    app.MapPosExportEndpoints();
+    app.MapStockExportEndpoints();
+    app.MapStaffExportEndpoints();
+    app.MapReportExportEndpoints();
     app.MapCalendarEndpoints();
     app.MapAbsenceEndpoints();
     app.MapStaffEndpoints();
