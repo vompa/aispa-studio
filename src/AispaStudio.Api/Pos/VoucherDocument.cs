@@ -14,9 +14,6 @@ internal static class VoucherDocument
 
     public static string FileName(Voucher voucher) => DocumentFiles.PdfName("Gutschein", voucher.Code);
 
-    /// <summary>Betrag mit Zeichen für den Euro, sonst mit dem Kürzel der Währung.</summary>
-    public static string Amount(decimal amount, string currency) => $"{DocumentBuilder.Money(amount)} {(currency == "EUR" ? "€" : currency)}";
-
     /// <summary>Was der Gutschein wert ist: der Betrag, die Behandlung oder die Zahl der Behandlungen eines Pakets.</summary>
     public static string Worth(Data data)
     {
@@ -26,7 +23,7 @@ internal static class VoucherDocument
             return $"{units} {(units == 1 ? "Behandlung" : "Behandlungen")}{(data.TreatmentName is null ? "" : $" {data.TreatmentName}")}";
         }
 
-        return voucher.Kind == VoucherKind.SinglePurpose && data.TreatmentName is { } name ? name : Amount(voucher.InitialValue, data.Currency);
+        return voucher.Kind == VoucherKind.SinglePurpose && data.TreatmentName is { } name ? name : DocumentBuilder.Amount(voucher.InitialValue, data.Currency);
     }
 
     private static string Kind(Data data) => data.Voucher switch

@@ -9,6 +9,33 @@
   -->
   <StackPanel Spacing="16">
     <ui:InfoBar Severity="Error" Title="Aufgaben nicht geladen" Message="{Binding LoadError}" IsVisible="{Binding HasLoadError}" />
+
+    <!-- Ablaufliste als PDF (PDF-Ausgaben F, ADR 0091): „Ablaufliste als PDF“ öffnet die Wahl des Zeitraums und den Knopfblock ohne Senden -->
+    <Border Classes="card">
+      <StackPanel Spacing="12">
+        <Grid ColumnDefinitions="*,Auto">
+          <TextBlock Text="Ablaufliste" Classes="h2" VerticalAlignment="Center" />
+          <Button x:Name="ExpiringDocumentButton" Grid.Column="1" Content="Ablaufliste als PDF" Command="{Binding ToggleDocumentCommand}"
+                  ToolTip.Tip="Druckt oder speichert die Chargen, die in den nächsten Tagen ablaufen." />
+        </Grid>
+        <StackPanel x:Name="ExpiringDocumentCard" Spacing="8" IsVisible="{Binding IsDocumentOpen}">
+          <ui:FormField Label="Zeitraum">
+            <ComboBox x:Name="ExpiringDays" ItemsSource="{Binding DaysOptions}" SelectedItem="{Binding SelectedDays}" MinWidth="160" HorizontalAlignment="Left"
+                      AutomationProperties.Name="Zeitraum der Ablaufliste">
+              <ComboBox.ItemTemplate>
+                <DataTemplate x:DataType="x:Int32">
+                  <TextBlock Text="{Binding StringFormat='{}{0} Tage'}" />
+                </DataTemplate>
+              </ComboBox.ItemTemplate>
+            </ComboBox>
+          </ui:FormField>
+          <TextBlock Text="Druckt die Chargen, die in diesem Zeitraum ablaufen, zuerst ablaufend zuerst." Classes="muted small" TextWrapping="Wrap" />
+          <ui:DocumentActions DataContext="{Binding Document}" />
+          <TextBlock Text="{Binding DocumentMessage}" Classes="secondary small" AutomationProperties.LiveSetting="Polite"
+                     IsVisible="{Binding DocumentMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+        </StackPanel>
+      </StackPanel>
+    </Border>
     <Border Classes="card" IsVisible="{Binding ShowEmpty}">
       <TextBlock Text="Keine Aufgaben. Es läuft gerade keine Charge ab." Classes="muted" />
     </Border>

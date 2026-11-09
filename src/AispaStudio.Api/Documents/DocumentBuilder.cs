@@ -52,6 +52,9 @@ internal sealed class DocumentBuilder(DocumentFormat format, DocumentHeader head
 
     public static string Money(decimal amount) => amount.ToString("#,##0.00", German);
 
+    /// <summary>Betrag mit Zeichen für den Euro, sonst mit dem Kürzel der Währung: „25,00 €“.</summary>
+    public static string Amount(decimal amount, string currency) => $"{Money(amount)} {(currency == "EUR" ? "€" : currency)}";
+
     public static string Number(decimal value) => value.ToString("#,##0.##", German);
 
     public static string Date(DateOnly day) => day.ToString("dd.MM.yyyy", German);

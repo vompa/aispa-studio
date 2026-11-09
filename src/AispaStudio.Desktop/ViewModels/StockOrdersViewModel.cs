@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Text;
 using AispaStudio.Contracts;
+using AispaStudio.Desktop.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
@@ -118,11 +119,26 @@ public sealed partial class PurchaseOrderCard : ObservableObject
         ShowTextCommand = new AsyncRelayCommand(() => _owner.ShowTextAsync(this));
         DeliverCommand = new AsyncRelayCommand(() => _owner.DeliverAsync(this));
         CloseCommand = new AsyncRelayCommand(() => _owner.CloseAsync(this));
+        Document = new DocumentActionsViewModel(OrderSource(order), owner.Api, owner.DocumentDialogs) { ShowToast = owner.ShowMessage, Sent = owner.ReloadStock };
     }
 
     internal PurchaseOrderDto Order { get; }
 
     public IReadOnlyList<PurchaseOrderLineRow> Lines { get; }
+
+    /// <summary>Knopfblock „Drucken · PDF speichern · Per Mail senden“ für die Bestellung als PDF (PDF-Ausgaben F, ADR 0091); die Adresse des Lieferanten ist vorbelegt.</summary>
+    public DocumentActionsViewModel Document { get; }
+
+    /// <summary>Vermerke „Gesendet am … an …“, damit Doppelsendungen auffallen.</summary>
+    public IReadOnlyList<string> SentMailLines => Order.SentMails is { } sent
+        ? [.. sent.Select(m => $"Gesendet am {DayLayout.Local(m.SentAt, _owner.Zone):dd.MM.yyyy HH:mm} an {m.To}{(m.SentBy is null ? "" : $" von {m.SentBy}")}")]
+        : [];
+
+    public bool HasSentMails => SentMailLines.Count > 0;
+
+    /// <summary>Pfade des Bestell-PDFs und der Mail an den Lieferanten; die Rechte prüft die API (ManageLocation), die Maske gibt es nur dafür.</summary>
+    internal static DocumentSource OrderSource(PurchaseOrderDto order) =>
+        new($"Bestellung {order.Number}", $"api/purchase-orders/{order.Id}/pdf", $"api/purchase-orders/{order.Id}/send");
 
     public AsyncRelayCommand SendCommand { get; }
 
@@ -223,6 +239,18 @@ public sealed partial class StockOrdersViewModel : ViewModelBase, IEditableArea
     internal StockOrdersViewModel(StockViewModel owner) => _owner = owner;
 
     public string Title => "Bestellungen";
+
+    internal IWorkstationApi Api => _owner.Api;
+
+    internal IConfirmDialogs? DocumentDialogs => _owner.Dialogs;
+
+    internal TimeZoneInfo Zone => _owner.Time.LocalTimeZone;
+
+    /// <summary>Meldung der Maske nach dem Speichern, Drucken oder Senden eines Bestell-PDFs.</summary>
+    internal void ShowMessage(string text) => _owner.ShowMessage(text);
+
+    /// <summary>Nach dem Senden: lädt das Lager neu, damit der Vermerk an der Bestellung steht.</summary>
+    internal void ReloadStock() => _ = _owner.ReloadAsync();
 
     public ObservableCollection<ReorderRow> Suggestions { get; } = [];
 

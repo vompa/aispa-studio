@@ -30,10 +30,11 @@ public sealed class TestMailbox : IMailSender
         return Task.CompletedTask;
     }
 
-    public async Task<OutgoingMail> WaitForAsync(string to, Func<OutgoingMail, bool> match, CancellationToken ct)
+    /// <summary>Wartet auf die Mail; <paramref name="wait"/> ist die längste Zeit (Standard 15 Sekunden), die Queue braucht bei voller Last von vielen parallelen Tests länger.</summary>
+    public async Task<OutgoingMail> WaitForAsync(string to, Func<OutgoingMail, bool> match, CancellationToken ct, TimeSpan? wait = null)
     {
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
-        timeout.CancelAfter(TimeSpan.FromSeconds(15));
+        timeout.CancelAfter(wait ?? TimeSpan.FromSeconds(15));
         while (true)
         {
             if (_mails.FirstOrDefault(m => string.Equals(m.To, to, StringComparison.OrdinalIgnoreCase) && match(m)) is { } mail)

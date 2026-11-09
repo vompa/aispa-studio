@@ -45,7 +45,20 @@
       <Button x:Name="TimesNextWeekButton" Content="›" Command="{Binding NextWeekCommand}" Classes="icon" AutomationProperties.Name="Nächste Woche" ToolTip.Tip="Nächste Woche" />
       <TextBlock x:Name="TimesWeekTitleText" Text="{Binding WeekTitle}" Classes="h3" VerticalAlignment="Center" />
       <ui:HelpButton Topic="seite-time" VerticalAlignment="Center" />
+      <Button x:Name="TimesDocumentButton" Content="Stundenliste als PDF" Command="{Binding ToggleDocumentCommand}" IsVisible="{Binding CanOfferDocument}"
+              ToolTip.Tip="Druckt oder speichert die Stundenliste dieser Person für den gezeigten Monat." />
     </WrapPanel>
+
+    <!-- Stundenliste (PDF-Ausgaben F): „Stundenliste als PDF“ auf der Karte einer Person öffnet den Knopfblock ohne Senden -->
+    <Border x:Name="TimesDocumentCard" Classes="section" IsVisible="{Binding IsDocumentOpen}" HorizontalAlignment="Left">
+      <StackPanel Spacing="8">
+        <TextBlock Text="Stundenliste" FontWeight="Medium" />
+        <TextBlock Text="{Binding DocumentHint}" Classes="muted small" TextWrapping="Wrap" MaxWidth="480" />
+        <ui:DocumentActions DataContext="{Binding Document}" />
+        <TextBlock Text="{Binding DocumentMessage}" Classes="secondary small" AutomationProperties.LiveSetting="Polite"
+                   IsVisible="{Binding DocumentMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+      </StackPanel>
+    </Border>
 
     <TextBlock Text="{Binding Legend}" Classes="muted small" TextWrapping="Wrap" />
 

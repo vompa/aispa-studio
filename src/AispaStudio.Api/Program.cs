@@ -351,6 +351,8 @@ static void MapApplicationEndpoints(WebApplication app)
     app.MapRosterEndpoints();
     app.MapAbsenceRequestEndpoints();
     app.MapTimeTrackingEndpoints();
+    app.MapTimesheetDocumentEndpoints();
+    app.MapRosterDocumentEndpoints();
     app.ForModule(AppModule.OnlineBooking).MapOnlineEndpoints();
     // Anamnese am Tablet und auf Papier gehört zum Kern, auch ohne Kundenbereich.
     app.MapAnamnesisEndpoints();
@@ -361,6 +363,9 @@ static void MapApplicationEndpoints(WebApplication app)
     app.MapAccountingEndpoints();
     app.MapCostEndpoints();
     app.MapStockEndpoints();
+    app.MapStockCountDocumentEndpoints();
+    app.MapPurchaseOrderDocumentEndpoints();
+    app.MapExpiringStockDocumentEndpoints();
     app.MapProductRecommendationEndpoints();
     app.MapReportEndpoints();
     app.MapOperationsEndpoints();

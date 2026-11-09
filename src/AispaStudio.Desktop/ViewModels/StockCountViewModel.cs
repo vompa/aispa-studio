@@ -226,6 +226,7 @@ public sealed partial class StockCountViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsAdopted));
         NotifyHandyChanged();
         Changed();
+        RefreshDocument();
     }
 
     /// <summary>Lädt die abgeschickten Zählungen vom Handy des Standorts; bei einem Fehler bleibt die alte Liste stehen und die Maske nennt ihn.</summary>
@@ -312,6 +313,7 @@ public sealed partial class StockCountViewModel : ViewModelBase
         IsCounting = true;
         OnPropertyChanged(nameof(IsAdopted));
         Changed();
+        RefreshDocument();
     }
 
     private async Task DiscardSessionAsync(StockCountSessionDto session)
@@ -480,6 +482,7 @@ public sealed partial class StockCountViewModel : ViewModelBase
 
     partial void OnSelectedPlaceChanged(StockPlaceOption? value)
     {
+        RefreshDocument();
         StartCommand.NotifyCanExecuteChanged();
         OnPropertyChanged(nameof(CanStart));
         OnPropertyChanged(nameof(Heading));

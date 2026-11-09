@@ -11,6 +11,7 @@ public sealed class SentDocument
     public const string ReceiptKind = "receipt";
     public const string AppointmentConfirmationKind = "appointment-confirmation";
     public const string VoucherKind = "voucher";
+    public const string PurchaseOrderKind = "purchase-order";
 
     public Guid Id { get; init; } = Guid.CreateVersion7();
     public required string Kind { get; init; }

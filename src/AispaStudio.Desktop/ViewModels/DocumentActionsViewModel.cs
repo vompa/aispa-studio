@@ -32,6 +32,9 @@ public sealed partial class DocumentActionsViewModel(DocumentSource source, IAis
     /// <summary>Meldung unten (Toast, ohne Punkt): „Gespeichert: Beleg-K1-142.pdf“, „Gesendet an anna@…“, „Gedruckt“.</summary>
     public Action<string>? ShowToast { get; init; }
 
+    /// <summary>Wird nach einem erfolgreichen Senden aufgerufen, z. B. damit die Maske den neuen Vermerk „Gesendet am … an …“ lädt.</summary>
+    public Action? Sent { get; init; }
+
     public bool IsAllowed => source.IsAllowed;
 
     public bool HasSend => source.SendPath is not null;
@@ -124,6 +127,7 @@ public sealed partial class DocumentActionsViewModel(DocumentSource source, IAis
             if (sent.Ok)
             {
                 ShowToast?.Invoke($"Gesendet an {to}");
+                Sent?.Invoke();
             }
             else
             {

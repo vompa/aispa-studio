@@ -32,6 +32,7 @@ public sealed record PurchaseOrderLineDto(
 /// <summary>
 /// Bestellung mit laufender Nummer je Unternehmen; <c>Total</c> netto zu den Bestellpreisen. <c>MinimumOrderValue</c>: Mindestbestellwert des Lieferanten,
 /// <c>MissingToMinimum</c>: was bis dahin fehlt (sonst 0). <c>SupplierEmail</c>: Mailadresse des Lieferanten für „Bestellen und senden“.
+/// <c>SentMails</c>: die Vermerke „Gesendet am … an …“ der Bestellung als PDF per Mail (PDF-Ausgaben F), damit Doppelsendungen auffallen.
 /// </summary>
 public sealed record PurchaseOrderDto(
     Guid Id,
@@ -47,7 +48,8 @@ public sealed record PurchaseOrderDto(
     IReadOnlyList<PurchaseOrderLineDto> Lines,
     decimal? MinimumOrderValue = null,
     decimal MissingToMinimum = 0,
-    string? SupplierEmail = null);
+    string? SupplierEmail = null,
+    IReadOnlyList<SentDocumentDto>? SentMails = null);
 
 /// <summary>
 /// Eine Zeile des Bestellvorschlags mit dem Rechenweg: <c>DailyUse</c> aus Verbrauch und Verkauf der letzten 90 Tage, <c>BookedUse</c> der gebuchten Termine bis zur Lieferung,

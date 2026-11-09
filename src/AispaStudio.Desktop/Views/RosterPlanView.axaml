@@ -107,7 +107,20 @@
       <Button x:Name="NextWeekButton" Content="›" Command="{Binding NextWeekCommand}" Classes="icon" AutomationProperties.Name="Nächste Woche" ToolTip.Tip="Nächste Woche" />
       <TextBlock x:Name="WeekTitleText" Text="{Binding WeekTitle}" Classes="h3" VerticalAlignment="Center" />
       <ui:HelpButton Topic="seite-roster" VerticalAlignment="Center" />
+      <Button x:Name="RosterDocumentButton" Content="Aushang als PDF" Command="{Binding ToggleDocumentCommand}" IsVisible="{Binding CanOfferDocument}"
+              ToolTip.Tip="Druckt oder speichert den veröffentlichten Dienstplan dieser Woche als Aushang." />
     </WrapPanel>
+
+    <!-- Aushang (PDF-Ausgaben F): „Aushang als PDF“ öffnet den Knopfblock ohne Senden; nur der veröffentlichte Stand, ohne Entwürfe -->
+    <Border x:Name="RosterDocumentCard" Classes="section" IsVisible="{Binding IsDocumentOpen}" HorizontalAlignment="Left">
+      <StackPanel Spacing="8">
+        <TextBlock Text="Dienstplan-Aushang" FontWeight="Medium" />
+        <TextBlock Text="{Binding DocumentHint}" Classes="muted small" TextWrapping="Wrap" MaxWidth="480" />
+        <ui:DocumentActions DataContext="{Binding Document}" />
+        <TextBlock Text="{Binding DocumentMessage}" Classes="secondary small" AutomationProperties.LiveSetting="Polite"
+                   IsVisible="{Binding DocumentMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+      </StackPanel>
+    </Border>
 
     <Border x:Name="DraftBand" Background="{DynamicResource AccentSoftBrush}" BorderBrush="{DynamicResource AccentLineBrush}" BorderThickness="1" CornerRadius="8" Padding="12,8"
             IsVisible="{Binding CanPublish}">
