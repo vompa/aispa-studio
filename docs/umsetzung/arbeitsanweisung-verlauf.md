@@ -18,8 +18,9 @@ Die Grundlage gibt es: Seit [ADR 0082](../entscheidungen/0082-aenderungsverlauf-
 2. Zahlungen zum Termin erscheinen als eigene Art („Bezahlt bar: 85,00 €“, „Bezahlt Karte + Gutschein: 120,00 €“, „Anzahlung 30,00 € bar“, „Beleg storniert“) in der Verlaufsseite **und** im Verlauf des Termin-Panels.
 3. In der App gibt es den Navigationseintrag **Verlauf** mit Suchfeld, Zeitraum-Chips, Art-Chips, Auswahl Person und Kanal, einer nach Tagen gruppierten Liste mit Nachladen beim Scrollen und einem Seitenpanel je Eintrag mit allen Werten alt → neu und den Sprüngen „Termin öffnen“, „Kundenkarte öffnen“, bei Stornos „Stornierung zurücknehmen“.
 4. In der Kalender-Kopfzeile steht neben „Warteliste n“ der Zähler „Storniert n“ für den angezeigten Tag; er öffnet den Verlauf mit vorgewähltem Filter „Stornos, dieser Tag“.
-5. Hilfe: eine Seitenbeschreibung `seite-verlauf.md` und ein Ablauf `verlauf-suchen.md`, Handbuchbilder in Hell, Verweise aus `kalender-termin-verlauf.md`, `kalender-termin-stornieren.md` und `kunden-kundenkarte.md`.
-6. Alle bestehenden Tests bleiben grün; jede Regel (Rechte, Filter, Suche, Seitenweise) hat einen Test, der ohne die Regel rot ist; die Ansicht hat Tests in Hell und Dunkel; `DesignTokenTests`, `TermsAndTooltipTests`, `GridValueTests` und die AXAML-Regeltests laufen grün.
+5. Jeder Eintrag ist verlinkt: zum Gast (Kundenkarte), zum Termin (Kalender, auch bei stornierten Terminen) und zur Rechnung (Beleg in der Kassa). Aus dem Verlauf lässt sich eine Stornierung zurücknehmen; ist die Zeit inzwischen belegt oder liegt der Termin in der Vergangenheit, führt die App ohne Umweg zur Wahl einer neuen Zeit und nimmt die Stornierung zu dieser Zeit zurück (Aufgabe E).
+6. Hilfe: eine Seitenbeschreibung `seite-verlauf.md` und ein Ablauf `verlauf-suchen.md`, Handbuchbilder in Hell, Verweise aus `kalender-termin-verlauf.md`, `kalender-termin-stornieren.md` und `kunden-kundenkarte.md`.
+7. Alle bestehenden Tests bleiben grün; jede Regel (Rechte, Filter, Suche, Seitenweise) hat einen Test, der ohne die Regel rot ist; die Ansicht hat Tests in Hell und Dunkel; `DesignTokenTests`, `TermsAndTooltipTests`, `GridValueTests` und die AXAML-Regeltests laufen grün.
 
 **Nicht Teil dieser Anweisung:** Anfragen (Mail-Eingang, Treatwell), Lagerbewegungen, Kassen-Einlagen und -Entnahmen ohne Terminbezug, Abgleich-Vorgänge, Export (CSV, Druck), Anonymisieren im Verlauf, Verlauf im Web. Alles davon nur im PR-Protokoll als „bewusst offen“ nennen.
 
@@ -42,7 +43,8 @@ Die Grundlage gibt es: Seit [ADR 0082](../entscheidungen/0082-aenderungsverlauf-
 | A | API: Verlauf je Standort mit Filtern, Suche, Seiten und Zahlungen; Zahlungen auch im Termin-Verlauf | opus | – |
 | B | App: Seite „Verlauf“ mit Suchfeld, Chips, Liste nach Tagen, Nachladen | sonnet | A |
 | C | App: Seitenpanel je Eintrag mit Werten und Sprüngen; Zähler „Storniert n“ im Kalender | sonnet | B |
-| D | Hilfe, Handbuchbilder, Verweise, Fertigmeldung | sonnet | C |
+| E | Rücknahme aus dem Verlauf: belegte Zeit und Vergangenheit führen zur neuen Zeit; Sprünge zu Gast, Termin, Rechnung | opus | C |
+| D | Hilfe, Handbuchbilder, Verweise, Fertigmeldung (zuletzt, nach E) | sonnet | C, E |
 
 ## Aufgabe A: API-Endpunkt Verlauf je Standort
 
@@ -86,11 +88,27 @@ Die Grundlage gibt es: Seit [ADR 0082](../entscheidungen/0082-aenderungsverlauf-
 
 **Prüfen:** Basisprüfung, neue Klassen, `CalendarTests`, `CalendarKeyboardTests`, `AppointmentPanelFlowTests`, Regeltests.
 
+## Aufgabe E: Stornierung aus dem Verlauf zurücknehmen; Sprünge zu Gast, Termin und Rechnung
+
+**Was heute gilt:** Im Panel eines stornierten Termins fragt `AppointmentViewModel.RestoreAsync` zuerst `GET /appointments/{id}/restoration` ab (Absage-Nachricht, Anzahlung), stellt dann über `POST /appointments/{id}/restore` wieder her; antwortet die API 409 (Zeit, Person oder Raum belegt), fragt die App „Zu anderer Zeit zurücknehmen?“ und öffnet mit „Verschieben …“ die Verschieben-Karte (`IsMovingToDay`), die den `restore` mit neuem `start` schickt. Was fehlt: Der `restore`-Endpunkt prüft **nicht**, ob der Termin in der Vergangenheit liegt (`PastBookings` sitzt an Buchen und Verschieben, nicht an `restore`), die Vergangenheit erzeugt also heute keinen Konflikt, sondern einen Termin in der Vergangenheit; und aus dem Verlauf heraus gibt es den Ablauf noch nicht.
+
+**Was:**
+
+- **API:** `POST /appointments/{id}/restore` ohne `start` prüft `PastBookings.CheckAsync` für den Beginn des Termins (Meldung „Der Termin liegt in der Vergangenheit. Die Stornierung lässt sich nur zu einer neuen Zeit zurücknehmen.“, 409 wie bei belegter Zeit, als `BookingRejected`); mit `start` gilt `PastBookings.CheckMoveAsync` wie beim Verschieben. `GET /appointments/{id}/restoration` bekommt zusätzlich `InPast` (bool) und `Conflict` (die Belegungen, die `MoveAsync` melden würde, ohne zu speichern), damit die App **vor** der Rückfrage weiß, ob eine neue Zeit nötig ist. `npm run gen:api`.
+- **App, Verlauf-Panel:** „Stornierung zurücknehmen“ nutzt denselben Ablauf wie das Termin-Panel (die Logik aus `AppointmentViewModel` in einen gemeinsamen Dienst `AppointmentRestorer` ziehen, der von beiden Panels aufgerufen wird; keine Kopie). Ist weder `InPast` noch `Conflict` gesetzt: Rückfrage „Stornierung zurücknehmen?“ mit den bekannten Hinweisen (Absage-Nachricht, Anzahlung), danach Toast „Termin wiederhergestellt: <Gast>, <Tag> <Zeit>“ und der Verlauf lädt neu. Ist eine neue Zeit nötig: Rückfrage „Zu neuer Zeit zurücknehmen?“ mit dem Grund („Die Zeit ist inzwischen belegt: …“ oder „Der Termin liegt in der Vergangenheit.“) und dem Knopf „Neue Zeit wählen“; der wechselt in den Kalender auf den nächsten freien Tag, öffnet den stornierten Termin im Panel mit offener Verschieben-Karte und zeigt darunter die Freie-Zeit-Vorschläge für Gast, Behandlung und Person (bestehende Freie-Zeit-Suche mit Vorbelegung); Bestätigen schickt `restore` mit dem neuen `start`. Bricht die Rezeption ab, bleibt der Termin storniert und der Verlauf zeigt ihn weiter.
+- **Sprünge:** „Kundenkarte öffnen“ wechselt zur Kundenseite und wählt den Gast; „Termin öffnen“ wechselt in den Kalender auf den Tag des Termins und wählt ihn, bei einem stornierten Termin öffnet es das Panel des stornierten Termins (wie über die Kundenkarte, Hilfe `kalender-termin-stornieren.md` Abschnitt „zurücknehmen“); „Beleg anzeigen“ wechselt in die Kassa, Reiter Belege, auf den Tag des Belegs und wählt ihn (Beleg-Id aus dem Eintrag). Einträge zu Kunden ohne Termin zeigen nur „Kundenkarte öffnen“; Einträge zu Behandlungen „Behandlung öffnen“ (Stammdaten), zu Dienstplan „Dienstplan öffnen“ auf der Woche, zu Zugängen „Zugang öffnen“, jeweils nur mit dem passenden Recht (`ui:DisabledHint.Text` sonst).
+- Hilfe (in D): Abschnitt „Aus dem Verlauf zurücknehmen“ in `verlauf-suchen.md` und ein Satz in `kalender-termin-stornieren.md`, dass ein vergangener Termin nur zu einer neuen Zeit zurückkommt.
+
+**Tests zuerst:** API `PastBookingTests`: Rücknahme eines gestrigen Termins ohne `start` ergibt 409 mit der Meldung; mit `start` morgen klappt sie; `restoration` meldet `InPast` und `Conflict` (Test mit belegter Zeit durch einen zweiten Termin). App `ActivityPanelTests`: frei → Rückfrage → `restore` → Toast und Neuladen; belegt → Rückfrage „Zu neuer Zeit zurücknehmen?“ → Kalender mit Verschieben-Karte und Vorschlägen; Abbruch lässt alles stehen; Sprünge setzen Seite, Tag und Auswahl; Rechte sperren mit Hinweis. `AppointmentPanelFlowTests`: der bestehende Ablauf im Termin-Panel ist unverändert (gleicher gemeinsamer Dienst). Ansichtstest der Rückfrage mit Grund in Hell und Dunkel.
+
+**Prüfen:** Basisprüfung, `PastBookingTests`, `AppointmentRestoreTests` (oder die zuständige Klasse der Rücknahme), `ClosureCancellationTests` (Absage-Nachricht bleibt korrekt), `AppointmentPanelFlowTests`, `CalendarTests`, Regeltests. PR-Protokoll mit der Entscheidung, dass die Vergangenheit am `restore`-Endpunkt sitzt (wie `PastBookings` sonst) und nicht im `BookingService`.
+
 ## Aufgabe D: Hilfe und Fertigmeldung
 
 **Was:**
 
-- `web/src/help/content/seite-verlauf.md` (Frontmatter wie `seite-kunden.md`, Rollen `rezeption, leitung, inhaber, manager`) mit Aufbau, Arten, Rechten („Was die Rezeption sieht“), Pillen; `verlauf-suchen.md` als Ablauf (Zeitraum wählen, Filter setzen, suchen, Eintrag öffnen, zum Termin springen, Stornierung zurücknehmen) mit Beispielen aus den Beispieldaten; Verweise aus `kalender-termin-verlauf.md` (Zahlungen im Verlauf, Link zur Seite), `kalender-termin-stornieren.md` (Storno-Zähler, Rückrufe über den Verlauf), `kunden-kundenkarte.md`, `seite-kalender.md` (Zähler „Storniert“). Stichwörter: Verlauf, Protokoll, Historie, Journal, Aktivitäten, wer hat was gemacht, Stornos heute, bezahlt bar, bezahlt Karte.
+- Aufgabe D läuft zuletzt, nach E.
+- `web/src/help/content/seite-verlauf.md` (Frontmatter wie `seite-kunden.md`, Rollen `rezeption, leitung, inhaber, manager`) mit Aufbau, Arten, Rechten („Was die Rezeption sieht“), Pillen; `verlauf-suchen.md` als Ablauf (Zeitraum wählen, Filter setzen, suchen, Eintrag öffnen, zum Gast, Termin oder Beleg springen, Stornierung zurücknehmen, auch zu neuer Zeit) mit Beispielen aus den Beispieldaten; Verweise aus `kalender-termin-verlauf.md` (Zahlungen im Verlauf, Link zur Seite), `kalender-termin-stornieren.md` (Storno-Zähler, Rückrufe über den Verlauf), `kunden-kundenkarte.md`, `seite-kalender.md` (Zähler „Storniert“). Stichwörter: Verlauf, Protokoll, Historie, Journal, Aktivitäten, wer hat was gemacht, Stornos heute, bezahlt bar, bezahlt Karte.
 - Handbuchbilder in Hell über `scripts/help-images.sh` als Inhaberin (Seite mit Filtern, Panel eines Stornos, Kalender-Kopf mit Zähler), Größe unter 300 KB (`help-images-shrink.py`).
 - `npm run test` im Ordner `web` (Textregeln der Hilfe), Linkprüfung.
 - Fertigmeldung nach Abschnitt 4.
