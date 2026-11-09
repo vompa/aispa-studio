@@ -459,7 +459,8 @@ internal sealed class LiveSession : IDisposable
     {
         var combo = Find(comboName);
         Click(combo);
-        var item = TryFind(element => IsComboItem(element) && StartsWith(element, itemName), FindTimeout);
+        var item = TryFind(element => IsComboItem(element) && StartsWith(element, itemName), FindTimeout)
+                   ?? ScrollToComboItem(itemName);
         if (item is null)
         {
             var offered = string.Join(", ", VisibleComboItems());
@@ -472,6 +473,55 @@ internal sealed class LiveSession : IDisposable
         {
             throw new InvalidOperationException($"Die Auswahl „{comboName}“ zeigt nach dem Klick nicht „{itemName}“.");
         }
+    }
+
+    /// <summary>
+    /// Die offene Auswahl ist virtualisiert: Einträge weiter unten stehen erst nach dem Blättern im Automationsbaum. Blättert mit dem
+    /// Die Liste wird über das <c>ScrollPattern</c> ihres Rollbereichs nach oben gesetzt und dann seitenweise nach unten bewegt, bis
+    /// <paramref name="itemName"/> auftaucht (Mausrad und Pfeiltasten erreichten die Liste nicht verlässlich, gemessen 09.11.2026).
+    /// </summary>
+    private AutomationElement? ScrollToComboItem(string itemName)
+    {
+        var scroll = ComboListScroll();
+        if (scroll is null)
+        {
+            return null;
+        }
+
+        scroll.SetScrollPercent(-1, 0);
+        for (var page = 0; page < 30; page++)
+        {
+            var item = TryFind(element => IsComboItem(element) && StartsWith(element, itemName), TimeSpan.FromMilliseconds(400));
+            if (item is not null)
+            {
+                return item;
+            }
+
+            if (scroll.VerticalScrollPercent.ValueOrDefault >= 100)
+            {
+                return null;
+            }
+
+            scroll.Scroll(ScrollAmount.NoAmount, ScrollAmount.LargeIncrement);
+        }
+
+        return null;
+    }
+
+    /// <summary>Der Rollbereich der offenen Auswahl: der nächste Vorfahr eines Eintrags, der <c>ScrollPattern</c> anbietet.</summary>
+    private FlaUI.Core.Patterns.IScrollPattern? ComboListScroll()
+    {
+        var element = TryFind(IsComboItem, TimeSpan.FromSeconds(1));
+        for (var depth = 0; element is not null && depth < 6; depth++)
+        {
+            element = element.Parent;
+            if (element?.Patterns.Scroll.PatternOrDefault is { } scroll && scroll.VerticallyScrollable.ValueOrDefault)
+            {
+                return scroll;
+            }
+        }
+
+        return null;
     }
 
     private static bool IsComboItem(AutomationElement element) => element.Properties.ClassName.ValueOrDefault == "ComboBoxItem";
@@ -641,7 +691,7 @@ internal sealed class LiveSession : IDisposable
     private void DumpVisible(string name)
     {
         var lines = AllVisible().Select(e =>
-            $"{e.Properties.ClassName.ValueOrDefault} | {e.Properties.AutomationId.ValueOrDefault} | {e.Properties.Name.ValueOrDefault}");
+            $"{e.Properties.ClassName.ValueOrDefault} | {e.Properties.AutomationId.ValueOrDefault} | {e.Properties.Name.ValueOrDefault} | {e.Properties.HelpText.ValueOrDefault}");
         File.WriteAllLines(Path.Combine(_folder, $"{Slug(name)}.txt"), lines);
     }
 

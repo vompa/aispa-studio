@@ -43,8 +43,8 @@ internal static partial class ReceptionJourney
             "Knopf „Termin“");
 
     /// <summary>
-    /// Die Meldung unten im Kalender (Toast), deren Text mit <paramref name="start"/> beginnt. Der Text heißt für UI Automation fest
-    /// „Meldung“; den Wortlaut liefert Avalonia über den ToolTip als Hilfetext.
+    /// Die Meldung unten im Kalender (Toast), deren Text mit <paramref name="start"/> beginnt. Im Lauf trägt der Text trotz
+    /// <c>AutomationProperties.Name="Meldung"</c> seinen Wortlaut als Namen (gemessen 09.11.2026); der ToolTip liefert ihn zusätzlich als Hilfetext.
     /// </summary>
     private static Func<AutomationElement, bool> Toast(string start) =>
         Class("TextBlock", e => e.Properties.Name.ValueOrDefault?.StartsWith(start, StringComparison.Ordinal) == true
@@ -61,6 +61,57 @@ internal static partial class ReceptionJourney
         {
             s.Report.AddEvent($"BEFUND: {what} nicht gefunden.");
         }
+    }
+
+    /// <summary>
+    /// Behandlungen für den Termin des Laufs, der Reihe nach probiert: „Maniküre mit Lack“ kann nur eine Person; Massagen mehrere, und
+    /// kurze passen noch in Lücken, wenn der Tag nach vielen Läufen dicht ist. Die Reihenfolge folgt der Auswahlliste: sie öffnet beim
+    /// gewählten Eintrag, und virtualisierte Einträge weiter unten erreicht der Lauf zuverlässig nur durch Blättern nach unten.
+    /// </summary>
+    private static readonly string[] TreatmentsForToday =
+    [
+        Treatment, "Pediküre", "Kokos-Körperpeeling", "Balinesische Massage", "Klassische Massage", "Rückenmassage Express",
+        "Thai-Aromaölmassage (60 Min.)", "Traditionelle Thai-Massage (60 Min.)",
+    ];
+
+    /// <summary>
+    /// Ein Treffer der Freie-Zeit-Suche: „14:15–15:00, Elif Demir, …“ am gesuchten Tag, „Do. 12.11., 14:15–15:00, …“ an anderen Tagen
+    /// (<c>FreeTimeViewModel</c> setzt den Tag nur, wenn er vom gesuchten abweicht).
+    /// </summary>
+    private static bool FreeSlot(AutomationElement e) =>
+        e.Properties.ClassName.ValueOrDefault == "ListBoxItem"
+        && System.Text.RegularExpressions.Regex.IsMatch(e.Properties.Name.ValueOrDefault ?? "", @"(^|, )\d\d:\d\d–");
+
+    /// <summary>Ein Treffer am gesuchten Tag (die Suche läuft auf „Heute“): sein Name beginnt mit der Uhrzeit.</summary>
+    private static bool TodaySlot(AutomationElement e) =>
+        FreeSlot(e) && System.Text.RegularExpressions.Regex.IsMatch(e.Properties.Name.ValueOrDefault ?? "", @"^\d\d:\d\d–");
+
+    private static string FreeSlotBegin(AutomationElement slot) =>
+        System.Text.RegularExpressions.Regex.Match(slot.Properties.Name.ValueOrDefault!, @"(?:^|, )(\d\d:\d\d)–").Groups[1].Value;
+
+    /// <summary>
+    /// Wählt in der Freie-Zeit-Suche die erste Behandlung, für die heute noch etwas frei ist („An diesem Tag ist nichts frei.“ fehlt).
+    /// Ist heute für keine etwas frei, scheitert der Schritt mit klarer Meldung, denn Einchecken und Kassieren gehen nur am Tag des Termins.
+    /// </summary>
+    private static string TreatmentFreeToday(LiveSession s)
+    {
+        foreach (var treatment in TreatmentsForToday)
+        {
+            if (treatment != Treatment)
+            {
+                s.Choose("FreeTimeTreatment", treatment);
+                Thread.Sleep(1500);
+            }
+
+            if (s.TryFind(TodaySlot, TimeSpan.FromSeconds(3)) is not null)
+            {
+                s.Report.AddEvent($"Heute frei: {treatment}.");
+                return treatment;
+            }
+        }
+
+        throw new InvalidOperationException(
+            $"Heute ist für keine der Behandlungen ({string.Join(", ", TreatmentsForToday)}) mehr Zeit frei; Einchecken und Kassieren brauchen einen Termin von heute.");
     }
 
     /// <summary>Einchecken geht nur am Tag des Termins; ohne Termin von heute scheitert das Thema mit klarer Meldung statt an einem fehlenden Knopf.</summary>
@@ -140,41 +191,36 @@ internal static partial class ReceptionJourney
                                 && e.Properties.ClassName.ValueOrDefault == "Button"
                                 && e.Properties.AutomationId.ValueOrDefault != "FreeTimeButton",
                 "Knopf „Freie Zeit suchen“ im Buchungsbereich"));
-            s.Expect(e => e.Properties.ClassName.ValueOrDefault == "ListBoxItem", "Erste freie Zeit");
+            s.Expect(FreeSlot, "Erste freie Zeit");
+        });
+        var treatment = Treatment;
+        var begin = "";
+        s.Step("Behandlung mit freier Zeit heute wählen", () =>
+        {
+            treatment = TreatmentFreeToday(s);
+            // „Buchen“ bucht den markierten Treffer; die Suche markiert nicht immer den obersten, und UI Automation meldet die Markierung
+            // nicht. Der Lauf markiert deshalb selbst den ersten Treffer von heute.
+            var slot = s.Find(TodaySlot, "Erste freie Zeit von heute");
+            begin = FreeSlotBegin(slot);
+            s.Click(slot);
         });
         s.Step("Erste freie Zeit buchen", () =>
         {
             s.Click(s.Find(e => e.Properties.Name.ValueOrDefault?.EndsWith("buchen (Enter)", StringComparison.Ordinal) == true
                                 || e.Properties.Name.ValueOrDefault == "Buchen (Enter)",
                 "Knopf „Buchen“ unter den freien Zeiten"));
-            // Ein Stammgast hat schon Termine; erst die Meldung belegt, dass dieser Lauf gebucht hat.
-            try
+            // Die Meldung steht nur kurz; Beleg der Buchung ist die Karte zur gewählten Zeit, die vorher frei war.
+            if (s.TryFind(Toast($"Gebucht: {customer},"), TimeSpan.FromSeconds(3)) is null)
             {
-                ExpectToast(s, $"Gebucht: {customer},", $"Meldung „Gebucht: {customer}, …“");
-            }
-            catch (Exception)
-            {
-                // Sichtprüfung 09.11.2026: Der Toast war nicht zu finden; der Lauf geht weiter, die Karte belegt die Buchung.
-                s.Report.AddEvent("BEFUND: Toast „Gebucht: …“ nach dem Buchen nicht gefunden.");
-            }
-            // Die Kalenderkarte heißt „<Zeit> <Kundin>, <Behandlung>, Gebucht“; der Name allein stünde auch im Kundenfeld.
-            // Der Name der Karte ist beim Neuaufbau des Kalenders kurz leer (Sichtprüfung 09.11.2026, Gegenprobe B8): nochmal lesen.
-            string cardName = "";
-            for (var attempt = 0; attempt < 10 && cardName.Length < 5; attempt++)
-            {
-                var card = s.Find(Class("AppointmentCard", e => e.Properties.Name.ValueOrDefault is { } name
-                                                              && name.Contains($" {customer}, {Treatment}, Gebucht", StringComparison.Ordinal)),
-                    $"Kalenderkarte „{customer}, {Treatment}“");
-                cardName = card.Properties.Name.ValueOrDefault ?? "";
-                if (cardName.Length < 5)
-                {
-                    Thread.Sleep(300);
-                }
+                s.Report.AddEvent($"Meldung „Gebucht: {customer}, …“ nicht gesehen; Beleg ist die Karte.");
             }
 
+            var card = s.Find(Card(new BookedAppointment(customer, treatment, begin, "", 0), "Gebucht"),
+                $"Kalenderkarte „{begin} {customer}, {treatment}, Gebucht“");
             var shown = ShownDate(s);
-            context.Appointment = new BookedAppointment(customer, Treatment, cardName[..5], shown,
+            context.Appointment = new BookedAppointment(customer, treatment, card.Properties.Name.ValueOrDefault![..5], shown,
                 (int)(ParseShownDate(shown) - today).TotalDays);
+            RequireToday(context.Appointment);
         });
         s.Report.AddEvent($"Termin des Laufs: {context.Appointment!.CardPrefix}.");
     }
