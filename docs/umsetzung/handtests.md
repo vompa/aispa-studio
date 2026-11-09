@@ -724,3 +724,14 @@ Expected: Kalender mit dem Panel des stornierten Termins; Kassa, Reiter Belege, 
 Expected: Das Feld „Person“ nennt die Personen, die im Zeitraum etwas getan haben; „Dienstplan öffnen“ und „Zugang öffnen“ gibt es nicht.
 Closes: –
 Result: ☐
+
+### Verlauf D – Hilfe zur Seite „Verlauf“
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Inhaberin anmelden
+1. Navigation **Hilfe** öffnen und „Verlauf“ suchen.
+Expected: Die Hilfe zeigt „Seite „Verlauf“ in der Windows-App“ mit Bild, Aufbau, Pillen, Seitenpanel und Rechten.
+2. In der Hilfe nach „Stornos heute“, „bezahlt bar“ und „Storno zurücknehmen“ suchen.
+Expected: „Seite „Verlauf““ bzw. „Im Verlauf suchen“ steht oben in den Treffern.
+3. In „Im Verlauf suchen“ den Link „Stornierung zurücknehmen“ und in „Termin stornieren“ den Link „Aus dem Verlauf zurücknehmen“ anklicken.
+Expected: Beide führen zum richtigen Abschnitt.
+Closes: –
+Result: ☐

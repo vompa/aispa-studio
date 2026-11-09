@@ -22,6 +22,7 @@ Jeder Eintrag sagt, was geschah, darunter stehen Datum und Uhrzeit in der Ortsze
 - „Verschoben von Lena: 14:00 → 15:30“: An einem anderen Tag steht das Datum dabei, bei einer anderen Person oder einem anderen Raum beide Namen.
 - „Storniert von Lena: Gast krank“: Mit dem Grund aus der Rückfrage. Bei einer Schließzeit steht „Vom Betrieb abgesagt“.
 - „Als nicht erschienen markiert von Lena“, „Eingecheckt von Lena“, „Notiz geändert von Lena“.
+- „Bezahlt bar: 85,00 € von Lena (Beleg …)“, „Anzahlung …“ und „Beleg … storniert …“: Zahlungen zum Termin, sichtbar für alle, die die Kassa sehen.
 
 ## Ausfallgebühr und Erinnerungen {#ausfallgebuehr}
 
@@ -34,6 +35,7 @@ Im Termin-Panel stehen zwei weitere Abschnitte, sobald es dazu etwas gibt:
 ## Gut zu wissen {#gut-zu-wissen}
 
 - Den Verlauf sieht, wer den Termin sieht.
+- Alles, was am Standort passiert ist, über alle Termine hinweg, zeigt die Seite [Verlauf](hilfe:seite-verlauf).
 - Was ohne Person geschieht, nennt den Weg: „automatisch“ für Aufgaben im Hintergrund, „beim Abgleich“ für Änderungen vom zentralen Server.
 - Der Verlauf bleibt 3 Jahre und wird mit dem Gast gelöscht. Inhalte von Gesundheitsdaten stehen nie darin.
 - Termine aus der Zeit vor dem Verlauf zeigen „Noch keine Einträge.“
