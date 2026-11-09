@@ -270,6 +270,17 @@
             <Button Content="Zeiten dieses Termins ändern …" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
                     Command="{Binding BeginEditTimesCommand}" IsVisible="{Binding CanChangeTimes}"
                     ToolTip.Tip="Vor- und Nachbereitung nur dieses Termins ändern" />
+            <!-- Terminbestätigung (PDF-Ausgaben C): öffnet unter „Mehr“ den Knopfblock; Inhalt, Dateiname und Mailtext kommen von der API -->
+            <Button x:Name="ConfirmationButton" Content="Bestätigung …" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                    Command="{Binding ToggleConfirmationCommand}" IsVisible="{Binding CanConfirm}"
+                    ToolTip.Tip="Terminbestätigung als PDF drucken, speichern oder dem Gast per Mail schicken" />
+            <Border x:Name="ConfirmationCard" Classes="panelcard" IsVisible="{Binding IsConfirmationOpen}">
+              <StackPanel Spacing="8">
+                <TextBlock Text="Terminbestätigung" FontWeight="Medium" />
+                <TextBlock Text="Für den Gast: Termin mit Zeit, Ort, Preis und Stornofrist." Classes="muted small" TextWrapping="Wrap" MaxWidth="280" />
+                <ui:DocumentActions DataContext="{Binding ConfirmationDocument}" />
+              </StackPanel>
+            </Border>
           </StackPanel>
         </StackPanel>
 

@@ -141,8 +141,8 @@ public partial class AppointmentViewModel(
     /// <summary>Erledigt oder Nicht erschienen stehen hinter „Mehr“, an künftigen Tagen gesperrt mit Grund.</summary>
     private bool HasStatusActions => CanChangeStatus && Appointment.Status is AppointmentStatus.Booked or AppointmentStatus.CheckedIn;
 
-    /// <summary>Hinter „Mehr“ steht etwas: Erledigt, Nicht erschienen, Wiederholen oder Zeiten ändern. Stornieren und Einchecken zurücknehmen stehen im Aktionsblock (Ä81).</summary>
-    public bool HasMore => HasStatusActions || CanRepeat || CanChangeTimes;
+    /// <summary>Hinter „Mehr“ steht etwas: Erledigt, Nicht erschienen, Wiederholen, Zeiten ändern oder die Bestätigung. Stornieren und Einchecken zurücknehmen stehen im Aktionsblock (Ä81).</summary>
+    public bool HasMore => HasStatusActions || CanRepeat || CanChangeTimes || CanConfirm;
 
     public string Price => Money.Format(Appointment.Price, currency);
 

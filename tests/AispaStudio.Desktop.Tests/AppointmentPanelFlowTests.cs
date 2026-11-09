@@ -94,4 +94,62 @@ public sealed class AppointmentPanelFlowTests
         Assert.False(panel.CanCancel);
         Assert.False(panel.ShowUndoCheckIn);
     }
+
+    private sealed class RecordingFileSaver : IFileSaver
+    {
+        public string? SavedName { get; private set; }
+
+        public Task<bool> SaveAsync(string suggestedName, string typeName, IReadOnlyList<string> patterns, byte[] content)
+        {
+            SavedName = suggestedName;
+            return Task.FromResult(true);
+        }
+    }
+
+    [Theory]
+    [InlineData(AppointmentStatus.Booked, true)]
+    [InlineData(AppointmentStatus.CheckedIn, true)]
+    [InlineData(AppointmentStatus.Completed, true)]
+    [InlineData(AppointmentStatus.Cancelled, false)]
+    public async Task Given_ein_Termin_When_sein_Panel_geoeffnet_wird_Then_steht_Bestaetigung_hinter_Mehr_ausser_beim_stornierten(AppointmentStatus status, bool offered)
+    {
+        var panel = await PanelOfAsync(status);
+
+        Assert.Equal(offered, panel.CanConfirm);
+        Assert.True(!offered || panel.HasMore, "Hinter „Mehr“ steht die Bestätigung.");
+    }
+
+    [Fact]
+    public async Task Given_ein_gebuchter_Termin_When_Bestaetigung_geoeffnet_und_gespeichert_wird_Then_kommt_das_PDF_der_API_mit_deren_Dateinamen_und_dem_Toast_des_Kalenders()
+    {
+        var panel = await PanelOfAsync(AppointmentStatus.Booked);
+        var id = panel.Appointment.Id;
+        var api = new StubApi()
+            .OnFile($"GET /api/appointments/{id}/confirmation/pdf", [0x25, 0x50, 0x44, 0x46], "Terminbestätigung-01-03-2027.pdf")
+            .On($"GET /api/appointments/{id}/history", new List<HistoryEntry>());
+        var toasts = new List<string>();
+        var saver = new RecordingFileSaver();
+        var shown = new AppointmentViewModel(api.Client(), panel.Appointment, "Anna", "Raum Zeder", Vienna, true, true, _ => Task.CompletedTask, () => { }) { ShowToast = toasts.Add };
+        Assert.False(shown.IsConfirmationOpen);
+
+        shown.ToggleConfirmationCommand.Execute(null);
+        shown.ConfirmationDocument!.Files = saver;
+        await shown.ConfirmationDocument.SaveCommand.ExecuteAsync(null);
+
+        Assert.True(shown.IsConfirmationOpen);
+        Assert.Equal($"api/appointments/{id}/confirmation/send", shown.ConfirmationDocument.Source.SendPath);
+        Assert.Equal("Terminbestätigung-01-03-2027.pdf", saver.SavedName);
+        Assert.Equal(["Gespeichert: Terminbestätigung-01-03-2027.pdf"], toasts);
+
+        // Nach dem Senden steht der Vermerk gleich im geöffneten Verlauf des Termins.
+        await shown.HistorySection.LoadAsync();
+        shown.HistorySection.IsOpen = true;
+        var loads = api.Calls.Count(c => c.Route == $"GET /api/appointments/{id}/history");
+        shown.ConfirmationDocument.ShowToast!("Gesendet an eva@example.at");
+        await Task.Delay(100, TestContext.Current.CancellationToken);
+        Assert.Equal(loads + 1, api.Calls.Count(c => c.Route == $"GET /api/appointments/{id}/history"));
+
+        shown.ToggleConfirmationCommand.Execute(null);
+        Assert.False(shown.IsConfirmationOpen);
+    }
 }

@@ -254,6 +254,7 @@
                     <MenuItem Header="Weitere E-Mail-Adresse" Command="{Binding StartAddEmailCommand}" />
                     <MenuItem Header="Rechnungsempfänger" Command="{Binding EditBillingCommand}" />
                     <MenuItem Header="Stammrabatt" Command="{Binding EditDiscountCommand}" />
+                    <MenuItem x:Name="DataAccessMenuItem" Header="Auskunft als PDF" Command="{Binding ToggleDataAccessCommand}" />
                     <Separator IsVisible="{Binding MayManage}" />
                     <MenuItem Classes="manage" Header="Leitung informieren …" Command="{Binding AddManagementFlagCommand}"
                               CommandParameter="{x:Static c:CustomerFlagKind.InformManagement}" IsVisible="{Binding MayManage}" />
@@ -265,6 +266,17 @@
               <ui:HelpButton Topic="kunden-kundenkarte" VerticalAlignment="Center" />
             </StackPanel>
           </Grid>
+
+          <!-- Datenschutz-Auskunft (PDF-Ausgaben C): „…“ › „Auskunft als PDF“ öffnet den Knopfblock ohne Senden; Gesundheitsangaben nur, wenn die API das Recht sieht -->
+          <Border x:Name="DataAccessCard" Classes="section" IsVisible="{Binding IsDataAccessOpen}" HorizontalAlignment="Left">
+            <StackPanel Spacing="8">
+              <TextBlock Text="Auskunft über gespeicherte Daten" FontWeight="Medium" />
+              <TextBlock Text="Alle gespeicherten Daten dieser Person (Art. 15 DSGVO) als PDF, ohne Versand: Speichern oder Drucken und persönlich übergeben." Classes="muted small" TextWrapping="Wrap" MaxWidth="480" />
+              <ui:DocumentActions DataContext="{Binding DataAccessDocument}" />
+              <TextBlock Text="{Binding DataAccessMessage}" Classes="secondary small" AutomationProperties.LiveSetting="Polite"
+                         IsVisible="{Binding DataAccessMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+            </StackPanel>
+          </Border>
 
           <!-- Kennzahlen als eine Zeile; Warnungen in warn mit Dreieck (nie die Farbe allein, Brief 5.9); der nächste Termin hervorgehoben mit „buchen“ -->
           <StackPanel Spacing="4">

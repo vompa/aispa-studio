@@ -681,3 +681,20 @@ Expected: „Stornobeleg Nr. …“ mit dem Grund und negativen Beträgen.
 Expected: Belege und ihre PDFs sind nicht zu sehen; die API antwortet auf `…/pdf` und `…/send` mit 403.
 Closes: Arbeitsanweisung PDF-Ausgaben, Aufgabe B
 Result: ☐
+
+### PDF-Ausgaben C – Terminbestätigung und Datenschutz-Auskunft
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Rezeption anmelden; im Standort Anschrift, Stornofrist und Hinweistext eingetragen, bei einer Behandlung einen Gästehinweis („Bitte Badekleidung mitbringen.“), ein Gast mit Mailadresse und einem Termin
+1. Den Termin im Kalender anklicken, im Seitenpanel **Mehr** aufklappen und **Bestätigung …** klicken.
+Expected: Unter „Mehr“ erscheint die Karte „Terminbestätigung“ mit „Drucken“, „PDF speichern“ und „Per Mail senden“; ein zweiter Klick auf „Bestätigung …“ schließt sie. Bei einem stornierten Termin fehlt der Knopf.
+2. **PDF speichern** klicken, speichern und die Datei öffnen.
+Expected: Vorschlag `Terminbestätigung-<TT-MM-JJJJ>.pdf`; Titel „Terminbestätigung“, Gast, Tag mit Wochentag, Tabelle mit Zeit, Behandlung, Dauer, nur dem Vornamen der Person und Preis, „Wo“ mit Standort und Anschrift, „Absagen“ mit Datum und Uhrzeit der Stornofrist und dem Hinweistext, „Was mitbringen“ mit dem Gästehinweis; unten „Erstellt am … von <Vorname>“.
+3. **Per Mail senden** klicken, Adresse und Betreff ansehen, **Senden**; danach im Panel **Verlauf** aufklappen.
+Expected: Die Adresse aus der Kundenkarte ist vorbelegt, Betreff „Ihre Terminbestätigung: <Behandlung> am <TT.MM.JJJJ>“; Toast „Gesendet an …“; im Verlauf steht oben „Bestätigung per Mail an … gesendet von <Vorname>“ (ein schon geöffneter Verlauf lädt von selbst neu). Im Postfach (Mailpit) liegt die Mail mit dem PDF im Anhang.
+4. Ein Paar oder einen Spa-Tag mit zwei Teilen buchen und die Bestätigung eines Teils speichern.
+Expected: Beide Teile stehen in der Tabelle, mit Spalte „Gast“ und einer Zeile „Summe“.
+5. **Kunden** öffnen, einen Gast mit Terminen, Zahlungen und (wenn vorhanden) Anamnese wählen, im Menü **…** **Auskunft als PDF** klicken, **PDF speichern**.
+Expected: Unter dem Kopf der Karte erscheint „Auskunft über gespeicherte Daten“ mit „Drucken“ und „PDF speichern“ (ohne „Per Mail senden“), darunter nach dem Speichern „Gespeichert: Auskunft-….pdf“. Das PDF zeigt Stammdaten, Kontakt, Wünsche und Vermerke, Termine mit Status, Zahlungen, Gutscheine auf den Namen, Online-Konto, Gesundheitsangaben (mit Recht die Antworten des Bogens) und den Verlauf der Änderungen; Seitenumbruch mit wiederholter Kopfzeile, „Seite n von m“. Wählt man einen anderen Gast, schließt die Karte.
+6. Als Therapeutin anmelden und die Kundenkarte öffnen.
+Expected: Das Menü „…“ fehlt (kein Recht „Buchen“); die API lässt das Lesen der Bestätigung und der Auskunft wie das Lesen des Termins bzw. der Kundenkarte zu.
+Closes: Arbeitsanweisung PDF-Ausgaben, Aufgabe C
+Result: ☐

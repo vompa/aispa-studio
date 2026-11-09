@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text.Json;
 using AispaStudio.Api.Data;
+using AispaStudio.Api.Documents;
 using AispaStudio.Api.Sync;
 using AispaStudio.Contracts;
 using Microsoft.EntityFrameworkCore;
@@ -9,7 +10,7 @@ namespace AispaStudio.Api.Scheduling;
 
 /// <summary>
 /// Verlauf eines Termins für Menschen (ADR 0082): liest <c>sync.history</c> und macht aus jedem Eintrag einen Satz wie „Angelegt per SMS“,
-/// „Verschoben von Lena: 14:00 → 15:30“ oder „Storniert von Lena: Gast krank“. Uhrzeiten in der Zeitzone des Standorts, Personen mit ihrem
+/// „Verschoben von Lena: 14:00 → 15:30“ oder „Storniert von Lena: Gast krank“; dazu „Bestätigung per Mail an … gesendet von Lena“ (PDF-Ausgaben C). Uhrzeiten in der Zeitzone des Standorts, Personen mit ihrem
 /// Anzeigenamen zur Zeit des Lesens. Den Verlauf sieht, wer den Termin sieht: der Termin kommt über den Mandantenfilter.
 /// </summary>
 public sealed class AppointmentHistory(AispaDbContext db)
@@ -47,7 +48,10 @@ public sealed class AppointmentHistory(AispaDbContext db)
         }
 
         var describer = new Describer(appointment.Source, zone, people, resources);
-        return [.. rows.Select((row, i) => new HistoryEntry(row.ChangedAt, describer.Describe(row, changes[i])))];
+        var sent = (await SentDocuments.ListAsync(db, SentDocument.AppointmentConfirmationKind, [appointmentId], ct)).GetValueOrDefault(appointmentId) ?? [];
+        return [.. rows.Select((row, i) => new HistoryEntry(row.ChangedAt, describer.Describe(row, changes[i])))
+            .Concat(sent.Select(d => new HistoryEntry(d.SentAt, $"Bestätigung per Mail an {d.To} gesendet{(d.SentBy is null ? "" : $" von {d.SentBy}")}")))
+            .OrderByDescending(e => e.At)];
     }
 
     private static Dictionary<string, (JsonElement Old, JsonElement New)> Changes(string? json)

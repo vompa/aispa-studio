@@ -95,6 +95,8 @@ public partial class CustomersViewModel(IWorkstationApi api, TimeProvider time) 
         }
 
         Suggestion = null;
+        DataAccessDocument = null;
+        DataAccessMessage = null;
         ResetCard();
         HistorySection = value is null
             ? null
