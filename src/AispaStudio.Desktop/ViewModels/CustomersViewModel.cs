@@ -113,7 +113,11 @@ public partial class CustomersViewModel(IWorkstationApi api, TimeProvider time) 
 
     partial void OnNewPhoneChanged(string value) => CheckMatches();
 
-    partial void OnNewEmailChanged(string value) => CheckMatches();
+    partial void OnNewEmailChanged(string value)
+    {
+        NewEmailError = null;
+        CheckMatches();
+    }
 
     private void CheckMatches() => _ = Matches.CheckAsync(NewLastName, NewPhone, NewEmail);
 
@@ -590,6 +594,11 @@ public partial class CustomersViewModel(IWorkstationApi api, TimeProvider time) 
     private async Task CreateCustomerAsync(bool thenBook)
     {
         Error = null;
+        if (!ValidateNewEmail(focusOnError: true))
+        {
+            return;
+        }
+
         static string? Blank(string value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
         var result = await api.CreateCustomerAsync(new CustomerInput(NewFirstName.Trim(), NewLastName.Trim(),
             Blank(NewEmail), Blank(NewPhone), null, Blank(NewNote), Salutation: NewSalutation.Value, PreferredName: Blank(NewPreferredName),

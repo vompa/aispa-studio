@@ -67,4 +67,15 @@ public sealed class ListRowNameTests
 
         Assert.Equal("Müller, Gitti", Converters.CustomerListName.Convert(customer, typeof(string), null, CultureInfo.InvariantCulture));
     }
+
+    [Theory]
+    [InlineData("", "Live1109022313n", "Live1109022313n")]
+    [InlineData("  ", "Müller", "Müller")]
+    [InlineData("Anna", "", "Anna")]
+    public void Kundenzeile_ohne_Vor_oder_Nachname_hat_kein_haengendes_Komma(string first, string last, string expected)
+    {
+        var customer = SpaSample.Customers[0] with { FirstName = first, LastName = last, PreferredName = null };
+
+        Assert.Equal(expected, Converters.CustomerListName.Convert(customer, typeof(string), null, CultureInfo.InvariantCulture));
+    }
 }

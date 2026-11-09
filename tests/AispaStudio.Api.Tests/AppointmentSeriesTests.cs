@@ -92,7 +92,7 @@ public sealed class AppointmentSeriesTests(ApiFixture fixture)
         Assert.Equal(TestSpa.At(10, date: Week(4)), Assert.Single(preview).Start);
         // Der nächste Termin kommt vier Wochen nach dem erledigten in Woche 4, also in Woche 8; dort ist Anna weg, also bei Ben.
         await AwayAsync(spa, spa.Anna.Id, TestSpa.At(8, date: Week(8)), TestSpa.At(18, date: Week(8)));
-        await spa.PostAsync<AppointmentDto>($"/api/appointments/{next.Id}/status", new AppointmentStatusChange(AppointmentStatus.Completed), Ct);
+        await spa.SetStatusAsync(next.Id, AppointmentStatus.Completed, Ct);
 
         var third = await WaitForStartsAsync(spa, Week(8), created.Series.Id, 3);
         Assert.Equal(TestSpa.At(10, date: Week(8)), third.Starts[2]);
@@ -100,7 +100,7 @@ public sealed class AppointmentSeriesTests(ApiFixture fixture)
         Assert.Equal(spa.Ben.Id, Assert.Single(day.Appointments).EmployeeId);
 
         // Anzahl erreicht (zwei weitere Termine): nach dem dritten kommt keiner mehr.
-        await spa.PostAsync<AppointmentDto>($"/api/appointments/{day.Appointments[0].Id}/status", new AppointmentStatusChange(AppointmentStatus.Completed), Ct);
+        await spa.SetStatusAsync(day.Appointments[0].Id, AppointmentStatus.Completed, Ct);
         await Task.Delay(500, Ct);
         var after = await spa.GetAsync<CalendarDay>($"/api/locations/{spa.Location.Id}/calendar?date={Week(8):yyyy-MM-dd}", Ct);
         Assert.Equal(3, Assert.Single(after.Series!).Starts.Count);

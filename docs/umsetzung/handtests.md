@@ -430,6 +430,206 @@ Expected: Die App endet trotzdem, spätestens nach etwa 20 Sekunden, ohne eingef
 Closes: – (T-053, Linter AV-APP-07)
 Result: ☐
 
+### Rezeptions-Lücken A – Verschieben nicht in die Vergangenheit
+Start: `dotnet run --project src/AispaStudio.AppHost`, im Aspire-Dashboard die Ressource `windows-app` starten, als Rezeption anmelden, im Kalender einen gebuchten Termin von morgen anklicken
+1. Im Terminfenster **Verschieben …** klicken.
+Expected: Das Feld „Tag“ zeigt den Termintag; **−1 Tag** ist bedienbar.
+2. Bei „Tag“ das Datum von gestern eintippen und das Feld verlassen.
+Expected: Das Feld meldet das Datum als zu früh, **Verschieben** ist gesperrt; beim Zeigen darauf steht „Verfügbar für heute oder einen späteren Tag.“
+3. Das Datum auf heute setzen.
+Expected: **Verschieben** ist wieder bedienbar, **−1 Tag** ist gesperrt.
+4. Mit einem zweiten Werkzeug (z. B. `curl`) `POST /api/appointments/{id}/move` mit einem Beginn von gestern senden.
+Expected: Antwort 409 mit „Termine lassen sich nicht in die Vergangenheit verschieben. Bitte heute oder einen späteren Tag wählen.“; der Termin bleibt an seinem Platz.
+Closes: L2 (live-tests-rezeption-onboarding.md, Abschnitt 3)
+Result: ☐
+
+### Rezeptions-Lücken B – Einchecken nur am Tag des Termins, Rechnung nur eingecheckt oder erledigt
+Start: `dotnet run --project src/AispaStudio.AppHost`, im Aspire-Dashboard die Ressource `windows-app` starten, als Rezeption anmelden, im Kalender auf morgen blättern und einen gebuchten Termin anklicken
+1. Das Terminfenster ansehen und den Termin markieren.
+Expected: Kein Knopf **Einchecken**; die Tastenleiste zeigt **E** gesperrt mit „Einchecken: nur am Tag des Termins“; Rechtsklick auf den Termin bietet kein **Einchecken**.
+2. Im Terminfenster **Mehr** aufklappen.
+Expected: **Erledigt** und **Nicht erschienen** sind gesperrt; beim Zeigen darauf steht „Verfügbar ab dem Tag des Termins.“
+3. Zurück auf heute, einen gebuchten Termin von heute anklicken.
+Expected: **Einchecken** ist da, **E** in der Tastenleiste bedienbar.
+4. **Kassa** öffnen und in „Heute abzurechnen“ unter „Später heute“ die Zeile eines noch nicht eingecheckten Termins ansehen und anklicken.
+Expected: Die Zeile trägt „noch nicht eingecheckt“; es erscheint „Einchecken und kassieren?“ mit **Einchecken und kassieren** und **Abbrechen**.
+5. **Abbrechen** wählen, dann erneut klicken und **Einchecken und kassieren** wählen.
+Expected: Nach Abbrechen ändert sich nichts; nach Bestätigen steht der Termin auf der Rechnung, im Kalender ist er eingecheckt, die Zeile hat den Zusatz nicht mehr.
+6. Mit einem zweiten Werkzeug (z. B. `curl`) `POST /api/pos/bills` mit der Id eines nur gebuchten Termins senden.
+Expected: Antwort 409 „Der Gast ist noch nicht eingecheckt. Zuerst im Kalender einchecken.“
+Closes: L1 (live-tests-rezeption-onboarding.md, Abschnitt 3)
+Result: ☐
+
+### Rezeptions-Lücken C – Storno-Dialog mit Frist und Ausfallgebühr
+Start: `dotnet run --project src/AispaStudio.AppHost`, als Inhaber unter **Verwaltung** › **Standorte** für Wien Stornofrist 24 Stunden und Ausfallgebühr 50 % einstellen; dann als Rezeption im Kalender einen gebuchten Termin von heute Nachmittag anklicken
+1. **Termin stornieren …** klicken.
+Expected: Über dem Feld „Grund“ steht mit Warnsymbol „Absage innerhalb der Stornofrist (bis <gestern> HH:mm). Laut Regel fallen 50 % Ausfallgebühr an; belasten kann die Standortleitung.“; „Grund“ ist mit „Kurzfristig an der Rezeption storniert“ vorbelegt.
+2. **Abbrechen**, dann als Inhaber anmelden und denselben Termin stornieren wollen.
+Expected: Der Hinweis endet mit „Belasten unter „Ausfallgebühr belasten …“ nach dem Stornieren.“
+3. Einen gebuchten Termin in zwei Wochen anklicken und **Termin stornieren …** klicken.
+Expected: Keine Hinweiszeile, „Grund“ ist mit „An der Rezeption storniert“ vorbelegt.
+4. Die Ausfallgebühr des Standorts auf 0 % stellen und einen Termin von heute Nachmittag stornieren wollen.
+Expected: Nur „Absage innerhalb der Stornofrist (bis <gestern> HH:mm).“
+Closes: L3 (live-tests-rezeption-onboarding.md, Abschnitt 3)
+Result: ☐
+
+### Rezeptions-Lücken D – Rückfrage vor „krank melden“
+Start: `dotnet run --project src/AispaStudio.AppHost`, im Aspire-Dashboard die Ressource `windows-app` starten, als Standortleitung anmelden, Kalender mit Team-Spalten
+1. Rechtsklick auf den Spaltenkopf einer Person mit offenen Terminen, **… krank melden** wählen.
+Expected: Rückfrage „<Name> krank melden?“ mit dem Datum des Tages, Knopf **Krank melden** rot, Fokus auf **Abbrechen**.
+2. **Abbrechen** wählen.
+Expected: Der Spaltenkopf ist unverändert, kein Krankenstand, kein Assistent.
+3. Erneut wählen und **Krank melden** bestätigen.
+Expected: Spaltenkopf „krank gemeldet“, Meldung unten, der Ausfall-Assistent öffnet sich.
+4. Rechtsklick auf eine Pause und auf eine Sperrzeit, jeweils **… löschen** wählen.
+Expected: Rückfrage „Pause löschen?“ bzw. „Sperrzeit löschen?“ mit der Zeit; erst **Löschen** entfernt den Eintrag.
+Closes: L10 (live-tests-rezeption-onboarding.md, Abschnitt 3)
+Result: ☐
+
+### Rezeptions-Lücken E – Hinweis „Keine Kontaktmöglichkeit“ beim Buchen
+Start: `dotnet run --project src/AispaStudio.AppHost`, als Rezeption anmelden, unter **Kunden** eine Kundin nur mit Namen anlegen (ohne Telefon und E-Mail), dann im Kalender **Termin** wählen
+1. Im Buchungsbereich die neue Kundin suchen und wählen.
+Expected: Unter dem Gast steht die Pille **Keine Kontaktmöglichkeit**; beim Zeigen darauf „Ohne Telefon oder E-Mail gehen keine Erinnerung und keine Zusage hinaus, bis der Kontakt in der Kundenkarte ergänzt ist“; **Buchen** bleibt möglich.
+2. **Ändern** und eine Kundin mit Telefon wählen.
+Expected: Keine Pille.
+Closes: L5 (live-tests-rezeption-onboarding.md, Abschnitt 3)
+Result: ☐
+
+### Rezeptions-Lücken F – Toast beim Buchen, Taste V, Automation-Namen
+Start: `dotnet run --project src/AispaStudio.AppHost`, als Rezeption anmelden, Kalender
+1. **Termin** klicken, Gast und Behandlung wählen, **Buchen**.
+Expected: Unten erscheint „Gebucht: <Gast>, <Tag> <HH:mm>“ wie nach der Freie-Zeit-Suche.
+2. Einen gebuchten Termin anklicken (markieren) und **V** drücken.
+Expected: Das Terminfenster öffnet sich mit der Verschieben-Karte (Tag, Beginn).
+3. Einen eingecheckten Termin markieren und **V** drücken.
+Expected: Nur der Hinweis „Verschieben: ziehen oder Alt + Pfeiltasten, zurück mit Strg+Z“.
+4. **F1** drücken.
+Expected: In der Gruppe „Markierter Termin“ steht **V** „Verschieben-Karte: anderer Tag oder Beginn“.
+5. Mit einem UI-Automation-Werkzeug (z. B. Accessibility Insights) den Knopf **Termin** und den Text der Meldung unten ansehen.
+Expected: Name „Termin“ bzw. „Meldung“.
+Closes: L11, L16 (live-tests-rezeption-onboarding.md, Abschnitt 3)
+Result: ☐
+
+### Rezeptions-Lücken G – Tab „Entnahme“ nur mit Kassenaufsicht
+Start: `dotnet run --project src/AispaStudio.AppHost`, als Rezeption anmelden, **Kassa** › oben **Kassenlade** (Tagesabschluss)
+1. Den Kasten rechts ansehen.
+Expected: Überschrift „Einlage“, kein Reiter (es gibt nur die Einlage), darunter „Kein Umsatz. Entnehmen darf nur, wer die Kassenaufsicht hat.“
+2. Abmelden, als Standortleitung anmelden, dieselbe Stelle öffnen.
+Expected: Überschrift „Einlage oder Entnahme“, Tabs **Einlage** und **Entnahme**.
+Closes: L6 (live-tests-rezeption-onboarding.md, Abschnitt 3)
+Result: ☐
+
+### Rezeptions-Lücken H – Handbuch an die App angleichen
+Start: `dotnet run --project src/AispaStudio.AppHost`, als Rezeption anmelden, Leiste **KI und Hilfe** öffnen
+1. „Termin buchen“ aufschlagen und den Kalenderkopf daneben vergleichen.
+Expected: Das Handbuch nennt den Knopf **Termin**, so steht er im Kopf.
+2. „Paar und Spa-Tag“ und „Termin stornieren“ aufschlagen, einen Teil einer Paarbuchung anklicken.
+Expected: Der Kasten im Terminfenster heißt **Paar**; **Ganze Buchung stornieren** fragt nach, wie beschrieben.
+3. „Gutschein einlösen“ aufschlagen und in der Kassa das Feld **Gutschein-Code** ansehen.
+Expected: Beispiel und Platzhalter haben die Form `K7M3-Q9XA-B2CD`.
+4. „Kunden“ aufschlagen und eine Kundenkarte öffnen.
+Expected: Kein Knopf **Bearbeiten** neben dem Kopf; der Weg geht über **…** › **Bearbeiten (Name, Anrede, Kontakt, Notiz)** oder den Stift **Notiz ändern**, wie beschrieben.
+Closes: L15 (live-tests-rezeption-onboarding.md, Abschnitt 3)
+Result: ☐
+
+### Befunde Kassa A1 – Rückfrage vor dem Tagesabschluss
+Start: `dotnet run --project src/AispaStudio.AppHost`, als Rezeption anmelden, **Kassa** › **Kassenlade & Abschluss**
+1. Bei „Gezählter Bestand“ einen Betrag eintragen, der vom Soll abweicht (z. B. 800,00), auf **Tagesabschluss durchführen** klicken.
+Expected: Rückfrage „Tagesabschluss durchführen?“, Text „Der Abschluss wird unveränderlich gespeichert. Differenz zum Soll: …“, Fokus auf **Abbrechen**.
+2. **Abbrechen** (oder Esc).
+Expected: Nichts gespeichert, der Bericht links heißt weiter „Zwischenbericht seit dem letzten Abschluss“, der Zählbestand steht noch im Feld.
+3. In einem zweiten Fenster einen Beleg bar kassieren, dann im ersten erneut **Tagesabschluss durchführen**.
+Expected: Die Differenz in der Rückfrage rechnet den neuen Beleg schon ein.
+4. **Abschließen**.
+Expected: „Tagesabschluss gespeichert“ mit der Differenz aus der Rückfrage.
+Closes: B1 (live-sichtpruefung-2026-11-09.md)
+Result: ☐
+
+### Befunde Kassa A8 – Kassa ohne Verbindung
+Start: `dotnet run --project src/AispaStudio.AppHost`, als Rezeption anmelden, **Kassa** öffnen, in „Später heute“ einen noch nicht eingecheckten Termin suchen
+1. Den API-Dienst anhalten (Verbindung kappen), den Termin anklicken und **Einchecken und kassieren** wählen.
+Expected: Rückfrage „Der Termin wird eingecheckt und auf die Rechnung gelegt.“; während des Wartens läuft ein Fortschrittsbalken; danach „Server nicht erreichbar. Verbindung prüfen und erneut versuchen.“ ohne „Zielcomputer“, Host oder Port.
+2. Den Termin noch einmal anklicken.
+Expected: Keine Rückfrage, stattdessen „Kassieren braucht eine Verbindung. Verbindung prüfen und erneut versuchen.“
+3. Die Leisten oben ansehen.
+Expected: Höchstens zwei (Offline-Banner und diese Meldung); die Signatur-Warnung der Kasse fehlt.
+4. API-Dienst wieder starten, kurz warten.
+Expected: Das Banner verschwindet, die Warnung der Kasse steht wieder da (falls sie bestand); der Termin lässt sich einchecken und kassieren; im Protokoll `protokolle\app.log` steht die technische Ursache einmal.
+Closes: B2, B14, B15 (live-sichtpruefung-2026-11-09.md)
+Result: ☐
+
+### Befunde Kassa A5 – Artikel in einer Spalte
+Start: `dotnet run --project src/AispaStudio.AppHost`, als Rezeption anmelden, **Kassa** › **Kassieren**, in der Leiste „Artikel und Gutscheine“ aufklappen
+1. Unter „Artikel“ alle Kacheln ansehen.
+Expected: Eine Spalte, jeder Artikelname ganz und in einer Zeile (z. B. „Gesichtscreme Hydro 50 ml“), der Preis darunter; kein Wort ist mitten abgebrochen.
+2. Unter „Gutschein verkaufen“ den Knopf ansehen.
+Expected: „Wertgutschein verkaufen“ steht ganz da (bei Platzmangel in zwei Zeilen), ohne „…“.
+3. Einen Artikel anklicken.
+Expected: Er steht auf der Rechnung.
+Closes: B6 (live-sichtpruefung-2026-11-09.md)
+Result: ☐
+
+### Befunde Kassa B19 – Kassenlade ohne einzelnen Reiter
+Start: `dotnet run --project src/AispaStudio.AppHost`, als Rezeption anmelden, **Kassa** › **Kassenlade & Abschluss**
+1. Den Kasten rechts unter „Tagesabschluss“ ansehen.
+Expected: Überschrift „Einlage“, darunter gleich die Felder **Betrag** und **Grund**; kein Reiter „Einlage“.
+2. Abmelden, als Standortleitung anmelden, dieselbe Stelle öffnen.
+Expected: Überschrift „Einlage oder Entnahme“ mit den Reitern **Einlage** und **Entnahme**.
+Closes: B19 (live-sichtpruefung-2026-11-09.md)
+
+### Kalender A2 – Toasts mit kurzem Zeitpunkt
+Start: `dotnet run --project src/AispaStudio.AppHost`, als Rezeption anmelden, **Kalender**
+1. Einen Termin für einen Gast mit langem Namen (z. B. Elif Demir, Behandlung im Hand- und Fußpflegeplatz) für heute buchen.
+Expected: Meldung „Gebucht: Elif Demir, 14:35“ ohne „…“ am Ende.
+2. Den Termin stornieren und in der Meldung **Rückgängig** klicken.
+Expected: „Wieder gebucht: Elif Demir, 14:35“ in einer Zeile.
+3. Einen Termin auf einen anderen Tag ziehen (7-Tage-Ansicht), dann **Rückgängig**.
+Expected: „Verschoben auf Do 14:35“, danach „Zurück auf 14:35“ (am heutigen Tag nur die Uhrzeit).
+Closes: B3, B4 (live-sichtpruefung-2026-11-09.md)
+Result: ☐
+
+### Kalender A4 – „Neuer Termin“ mit festem Fuß
+Start: `dotnet run --project src/AispaStudio.AppHost`, als Rezeption anmelden, Fenster nicht höher als Full HD, **Kalender**
+1. Eine freie Stelle anklicken (Panel **Neuer Termin**), einen Gast und eine Behandlung wählen, als Beginn eine belegte Zeit eintragen, **Termin buchen** klicken.
+Expected: „Zeitraum ist belegt.“ steht ganz sichtbar direkt über **Termin buchen**; beide bleiben am unteren Rand des Panels, auch wenn die Eingaben darüber scrollen.
+2. Einen Gast mit früherer Behandlung wählen.
+Expected: In der Karte **Vorschläge** stehen **Übernehmen** bzw. **Freie Zeit suchen** unter dem Text, der Text bricht nicht auf fünf Zeilen.
+3. Strg+S drücken.
+Expected: Bucht wie ein Klick auf **Termin buchen**.
+Closes: B7, B13 (live-sichtpruefung-2026-11-09.md)
+Result: ☐
+
+### Kalender A6 – Texte der Rückfragen
+Start: `dotnet run --project src/AispaStudio.AppHost`, als Rezeption anmelden, **Kalender**
+1. **Neuer Termin** öffnen, eine Notiz tippen, mit dem Kreuz schließen.
+Expected: „Änderungen verwerfen?“ mit dem Text „Die Eingaben gehen beim Schließen verloren.“, Antworten **Verwerfen** und **Weiter bearbeiten**.
+2. Einen Termin an einem anderen Tag anklicken, **Stornieren** wählen.
+Expected: „Termin stornieren?“ mit „Der Termin von … am Do. 12.11., 14:35–15:20, ist danach storniert …“ (kurzes Datum).
+Closes: B9, B10 (live-sichtpruefung-2026-11-09.md)
+Result: ☐
+
+### Kalender – kleine Textbefunde B20, B23, B24
+Start: `dotnet run --project src/AispaStudio.AppHost`, als Rezeption anmelden, **Kalender**
+1. **Neuer Termin** öffnen, die Behandlung „Anti-Aging-Gesichtsbehandlung mit Gesichtsmassage“ wählen.
+Expected: Die Vorschau im Kalender bricht den Namen um, statt mit „…“ zu enden.
+2. Rechtsklick auf eine freie Stelle › **Sperrzeit hier**, den Grund leer lassen, **Sperren** klicken.
+Expected: Unter dem Feld **Grund** steht „Der Grund fehlt.“; keine rote Leiste.
+3. Einen Termin für gestern buchen bzw. auf gestern verschieben (Tag per Hand eintippen).
+Expected: Meldung „Termine lassen sich nicht in der Vergangenheit buchen. Möglich ist heute oder ein späterer Tag.“ (beim Verschieben „… verschieben …“).
+Closes: B20, B23, B24 (live-sichtpruefung-2026-11-09.md)
+
+### Befunde Kunden A3 – E-Mail-Fehler am Feld, Liste ohne hängendes Komma
+Start: `dotnet run --project src/AispaStudio.AppHost`, als Rezeption anmelden, **Kunden** › **Neue Kundin / neuer Kunde**
+1. Im Nachnamen „Probe“ eintragen, im E-Mail-Feld „keine-adresse“ tippen und mit Tab verlassen.
+Expected: Unter dem E-Mail-Feld steht rot „Keine gültige E-Mail-Adresse. Mit @ angeben, z. B. name@beispiel.at.“; die Leiste über der Kundenliste bleibt leer.
+2. Auf **Anlegen** klicken.
+Expected: Der Cursor steht im E-Mail-Feld, die Fehlermeldung bleibt unter dem Feld, es wird keine Kundin angelegt, links erscheint keine rote Leiste.
+3. Die Adresse in „probe@beispiel.at“ ändern und auf **Anlegen** klicken.
+Expected: Der Fehler verschwindet beim Tippen, die Kundin wird angelegt.
+4. Eine Kundin nur mit Nachname anlegen (kein Vorname) und in der Liste links ansehen.
+Expected: Die Zeile heißt „Probe“ ohne Komma am Ende.
+Closes: B5, B12 (live-sichtpruefung-2026-11-09.md)
+
 ### Einwirkzeit-Band im Kalender (flach)
 Start: `dotnet run --project src/AispaStudio.AppHost`, im Aspire-Dashboard die Ressource `windows-app` starten, als Rezeption anmelden, im Kalender einen Tag mit einer Packung oder Maske öffnen (Beispieldaten: „Reismilch-Körperpackung“, „Gesichtsbehandlung Klassik“), bei Bedarf mit dem Zoom hineingehen
 1. Das Band „Einwirkzeit … Min. · frei“ im Termin der Person ansehen, zuerst hell, dann im dunklen Aussehen (Einstellungen).

@@ -66,6 +66,19 @@ public sealed class CustomerNewFormTests
     }
 
     [Fact]
+    public async Task Given_ein_Treffer_nur_mit_Nachnamen_When_Schon_vorhanden_erscheint_Then_steht_der_Name_ohne_haengendes_Komma()
+    {
+        var customers = new CustomersViewModel(Api(Huber with { FirstName = "" }).Client(), TimeProvider.System);
+        await customers.InitializeAsync();
+        customers.Matches.Delay = TimeSpan.Zero;
+        customers.StartNewCommand.Execute(null);
+
+        await customers.Matches.CheckAsync("Huber", "");
+
+        Assert.Equal("Huber", customers.Matches.Options.Single().Name);
+    }
+
+    [Fact]
     public async Task Given_ein_Treffer_When_Diese_Kundin_nehmen_Then_oeffnet_die_vorhandene_Karte_statt_neu_anzulegen()
     {
         var customers = new CustomersViewModel(Api(Huber).Client(), TimeProvider.System);
@@ -276,6 +289,77 @@ public sealed class CustomerNewFormTests
         customers.NewLastName = "Huber";
         Assert.True(customers.CreateCommand.CanExecute(null));
         Assert.True(customers.CreateAndBookCommand.CanExecute(null));
+    }
+
+    // ---------- E-Mail: Feldfehler am Feld statt Leiste über der Liste (Befund B5) ----------
+
+    [Fact]
+    public async Task Given_eine_Adresse_ohne_At_When_Anlegen_Then_steht_der_Fehler_am_E_Mail_Feld_ohne_Anfrage_und_ohne_Leiste()
+    {
+        var stub = Api().On("POST /api/customers", Created("Anna", "Gruber"));
+        var customers = new CustomersViewModel(stub.Client(), TimeProvider.System);
+        await customers.InitializeAsync();
+        customers.StartNewCommand.Execute(null);
+        customers.NewLastName = "Gruber";
+        customers.NewEmail = "keine-adresse";
+
+        await customers.CreateCommand.ExecuteAsync(null);
+
+        Assert.Equal("Keine gültige E-Mail-Adresse. Mit @ angeben, z. B. name@beispiel.at.", customers.NewEmailError);
+        Assert.Equal(CustomersViewModel.NewEmailField, customers.FocusTarget);
+        Assert.Null(customers.Error);
+        Assert.DoesNotContain(stub.Calls, c => c.Route == "POST /api/customers");
+        Assert.True(customers.ShowNew);
+    }
+
+    [Fact]
+    public async Task Given_ein_E_Mail_Fehler_When_die_Adresse_stimmt_und_Anlegen_Then_ist_der_Fehler_weg_und_die_Kundin_angelegt()
+    {
+        var stub = Api().On("POST /api/customers", Created("Anna", "Gruber"));
+        var customers = new CustomersViewModel(stub.Client(), TimeProvider.System);
+        await customers.InitializeAsync();
+        customers.StartNewCommand.Execute(null);
+        customers.NewLastName = "Gruber";
+        customers.NewEmail = "keine-adresse";
+        await customers.CreateCommand.ExecuteAsync(null);
+
+        customers.NewEmail = "anna@gruber.at";
+        await customers.CreateCommand.ExecuteAsync(null);
+
+        Assert.Null(customers.NewEmailError);
+        Assert.Contains(stub.Calls, c => c.Route == "POST /api/customers");
+        Assert.False(customers.ShowNew);
+    }
+
+    [Fact]
+    public async Task Given_eine_Adresse_ohne_At_When_das_Feld_verlassen_wird_Then_steht_der_Fehler_gleich_am_Feld_ohne_den_Fokus_zu_holen()
+    {
+        var customers = new CustomersViewModel(Api().Client(), TimeProvider.System);
+        await customers.InitializeAsync();
+        customers.StartNewCommand.Execute(null);
+
+        customers.NewEmail = "keine-adresse";
+        customers.ValidateNewEmail();
+
+        Assert.NotNull(customers.NewEmailError);
+        Assert.Null(customers.FocusTarget);
+        customers.NewEmail = "";
+        customers.ValidateNewEmail();
+        Assert.Null(customers.NewEmailError);
+    }
+
+    [Fact]
+    public async Task Abbrechen_raeumt_den_E_Mail_Fehler_weg()
+    {
+        var customers = new CustomersViewModel(Api().Client(), TimeProvider.System);
+        await customers.InitializeAsync();
+        customers.StartNewCommand.Execute(null);
+        customers.NewEmail = "keine-adresse";
+        customers.ValidateNewEmail();
+
+        customers.CancelNewCommand.Execute(null);
+
+        Assert.Null(customers.NewEmailError);
     }
 
     // ---------- Telefon beim Verlassen des Feldes im Format „+43 664 1234567“ (T-019, Ä364) ----------

@@ -14,7 +14,7 @@ Ein Termin kommt mit Behandlung und Preis auf die Rechnung, entweder direkt aus 
 ## Voraussetzungen {#voraussetzungen}
 
 - Rezeption, Standortleitung oder Inhaber; ohne Verbindung zum Server geht Kassieren nicht.
-- Der Termin ist eingecheckt oder erledigt, sonst fehlt **Kassieren** im Kalender, siehe [Status setzen](hilfe:kalender-status-setzen#einchecken).
+- Der Termin ist eingecheckt oder erledigt, sonst fehlt **Kassieren** im Kalender, siehe [Status setzen](hilfe:kalender-status-setzen#einchecken); der Server nimmt einen nur gebuchten Termin nicht auf die Rechnung („Der Gast ist noch nicht eingecheckt. Zuerst im Kalender einchecken.“). Aus der Liste „Heute abzurechnen“ fragt die Kassa stattdessen **Einchecken und kassieren?**.
 - Gehört der Termin zu einem anderen Standort, wählt die Kassa die Kasse dieses Standorts, sofern es dort eine gibt.
 
 ## Schritte {#schritte}
@@ -52,6 +52,7 @@ Der Beleg wird am Server signiert und im Kassenjournal gespeichert. Der Termin b
 - Ein Termin kann nur auf einer Rechnung stehen. Sonst kommt „Dieser Termin steht schon auf einer Rechnung.“
 - Eine falsche Position entfernt das × rechts daneben. **Verwerfen** löscht die ganze Rechnung, solange nichts darauf bezahlt ist; die Termine stehen danach wieder unter „Heute abzurechnen“.
 - Ein bezahlter Beleg mit Fehler lässt sich [stornieren](hilfe:kassa-beleg-stornieren).
+- **Ohne Verbindung zum Server** geht Kassieren nicht. Ist die Verbindung schon als verloren bekannt, fragt die Kassa bei einem nicht eingecheckten Termin gar nicht erst und zeigt „Kassieren braucht eine Verbindung. Verbindung prüfen und erneut versuchen.“ Reißt sie erst beim Einchecken ab, steht nach kurzem Warten „Server nicht erreichbar. Verbindung prüfen und erneut versuchen.“ Dann das Netzwerk prüfen und den Termin noch einmal anklicken; nichts wurde eingecheckt. Die Warnung der Kasse (z. B. zur Signatur) bleibt so lange ausgeblendet, bis die Verbindung wieder da ist; das Banner oben nennt die Ursache.
 
 
 
@@ -65,6 +66,7 @@ Der Beleg wird am Server signiert und im Kassenjournal gespeichert. Der Termin b
 ![Kassa mit der Liste Heute abzurechnen](images/app/kassa-heute-abzurechnen.png)
 
 - „Wartet auf Abrechnung“ zeigt die fertigen Termine, die noch auf keiner Rechnung stehen, mit „fertig seit …“; „Später heute“ die übrigen Termine und Eintritte des Tages an diesem Standort, auch solche, die noch nicht eingecheckt sind. Stornierte Termine fehlen.
+- Ein noch nicht eingecheckter Termin trägt in der Zeile „noch nicht eingecheckt“. Ein Klick darauf fragt **Einchecken und kassieren?** („Der Termin wird eingecheckt und auf die Rechnung gelegt.“); mit **Einchecken und kassieren** wird der Gast eingecheckt und der Termin auf die Rechnung gelegt, **Abbrechen** lässt alles, wie es ist. Solange der Server antwortet, läuft oben ein Fortschrittsbalken.
 - Ein Termin mit bezahlter Anzahlung steht weiter in der Liste, bis der Rest kassiert ist; die Anzahlung zieht die Kassa auf der Rechnung ab.
 - Eine geparkte Rechnung nimmt ihre Termine aus der Liste; sie stehen unter „Geparkte Rechnungen“. Bezahlte Termine stehen zugeklappt unter „Erledigt“.
 - Sind alle abgerechnet, steht dort „Alle Termine und Eintritte von heute sind abgerechnet.“

@@ -26,7 +26,7 @@ public sealed class GuestFuzzyNameTests(ApiFixture fixture)
     private static async Task VisitAsync(TestSpa spa, CustomerDto guest, int hour)
     {
         var visit = await BookAsync(spa, guest, TestSpa.Monday, hour);
-        await spa.PostAsync<AppointmentDto>($"/api/appointments/{visit.Id}/status", new AppointmentStatusChange(AppointmentStatus.CheckedIn), Ct);
+        await spa.SetStatusAsync(visit.Id, AppointmentStatus.CheckedIn, Ct);
     }
 
     private async Task<AssistantBlock> AskAsync(TestSpa spa, string question, AssistantReference? reference = null, Guid? guest = null, Guid? location = null,

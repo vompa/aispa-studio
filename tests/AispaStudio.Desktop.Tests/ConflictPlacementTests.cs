@@ -29,7 +29,6 @@ public sealed class ConflictPlacementTests
     }
 
     [Theory]
-    [InlineData("BookingViewModel", "Command=\"{Binding BookCommand}\"")]
     [InlineData("GroupBookingViewModel", "Command=\"{Binding BookCommand}\"")]
     [InlineData("CalendarEntryViewModel", "Command=\"{Binding SaveCommand}\"")]
     public void Given_ein_Panel_mit_Aktion_When_eine_Meldung_erscheint_Then_steht_sie_ueber_dem_Knopf(string viewModel, string action)
@@ -40,6 +39,22 @@ public sealed class ConflictPlacementTests
         Assert.True(button >= 0);
         Assert.InRange(template.IndexOf("Content=\"{Binding Conflict}\"", StringComparison.Ordinal), 0, button);
         Assert.InRange(template.IndexOf("Message=\"{Binding Error}\"", StringComparison.Ordinal), 0, button);
+    }
+
+    [Fact]
+    public void Given_Neuer_Termin_When_eine_Meldung_erscheint_Then_steht_sie_im_festen_Fuss_direkt_ueber_Termin_buchen()
+    {
+        // Seit A4 stehen Meldungen und Knopf im Fuß der Seitenleiste (BookingFoot), nicht mehr in der Vorlage; die Regel M7 gilt dort unverändert.
+        Assert.DoesNotContain("Command=\"{Binding BookCommand}\"", Template("BookingViewModel"), StringComparison.Ordinal);
+        var start = CalendarAxaml.IndexOf("x:Name=\"BookingFoot\"", StringComparison.Ordinal);
+        Assert.True(start >= 0, "Fuß BookingFoot fehlt.");
+        var foot = CalendarAxaml[start..CalendarAxaml.IndexOf("</Border>", start, StringComparison.Ordinal)];
+
+        var button = foot.IndexOf("Command=\"{Binding BookCommand}\"", StringComparison.Ordinal);
+        Assert.True(button >= 0);
+        Assert.InRange(foot.IndexOf("Content=\"{Binding Conflict}\"", StringComparison.Ordinal), 0, button);
+        Assert.InRange(foot.IndexOf("Message=\"{Binding Error}\"", StringComparison.Ordinal), 0, button);
+        Assert.InRange(foot.IndexOf("Message=\"{Binding OutsideHours}\"", StringComparison.Ordinal), 0, button);
     }
 
     [Fact]

@@ -68,6 +68,12 @@ public class HttpApiClient : IAispaApi
     /// <summary>Verbindung verloren oder wieder da.</summary>
     public event Action? ConnectivityChanged;
 
+    /// <summary>Ein Aufruf erreichte den Server nicht (technische Ursache für das Protokoll; die Oberfläche zeigt nur <see cref="Unreachable"/>).</summary>
+    public event Action<Exception>? TransportFailed;
+
+    /// <summary>Lesbarer Fehler mit Weg, ohne Systemtext (meldungen.md M5).</summary>
+    public const string Unreachable = "Server nicht erreichbar. Verbindung prüfen und erneut versuchen.";
+
     /// <summary>Aktuelles Anmelde-Cookie für SignalR (das eine eigene Verbindung aufbaut).</summary>
     public string? SessionCookie => _cookies.GetCookies(BaseAddress)[CookieName]?.Value ?? _store.Load();
 
@@ -268,7 +274,8 @@ public class HttpApiClient : IAispaApi
         }
         catch (HttpRequestException ex)
         {
-            return new(null, $"Server nicht erreichbar: {ex.Message}", 0);
+            ReportTransportFailure(ex);
+            return new(null, Unreachable, 0);
         }
     }
 
@@ -321,8 +328,9 @@ public class HttpApiClient : IAispaApi
         }
         catch (HttpRequestException ex)
         {
+            ReportTransportFailure(ex);
             SetOffline(true);
-            return new(default, $"Server nicht erreichbar: {ex.Message}", 0);
+            return new(default, Unreachable, 0);
         }
         catch (TaskCanceledException) when (!ct.IsCancellationRequested)
         {
@@ -339,6 +347,15 @@ public class HttpApiClient : IAispaApi
         path.StartsWith(ApiPrefix, StringComparison.Ordinal) && !SkipPrefixes.Any(p => path.StartsWith(p, StringComparison.Ordinal))
             ? VersionPrefix + path[ApiPrefix.Length..]
             : path;
+
+    /// <summary>Die technische Ursache (Systemtext mit Host und Port) gehört ins Protokoll der App, nicht in die Oberfläche; einmal je Übergang zu „ohne Verbindung“.</summary>
+    private void ReportTransportFailure(HttpRequestException error)
+    {
+        if (!IsOffline)
+        {
+            TransportFailed?.Invoke(error);
+        }
+    }
 
     private void SetOffline(bool offline)
     {

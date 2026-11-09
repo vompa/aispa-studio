@@ -18,7 +18,7 @@ Die Seite sehen alle Angemeldeten. Anlegen, Kundendaten, den Rechnungsempfänger
 
 - **Kopfzeile**: „Kunden“ und rechts der Knopf **Neue Kundin / neuer Kunde**.
 - **Links**: das Suchfeld „Name, Telefon oder E-Mail“ und die Treffer mit Nachname, Vorname und Telefon. Ohne Suchbegriff stehen die ersten Einträge nach Nachname da.
-- **Rechts** die Kundenkarte: oben Name, Telefon, E-Mail, Geburtstag, Sprache und die Notiz (gelb hinterlegt); daneben **Bearbeiten** zum Ändern. Die Sprache bestimmt das Kürzel im Kalender, siehe [Sprachen und Quelle](hilfe:sprachen-und-quelle).
+- **Rechts** die Kundenkarte: oben Name, Telefon, E-Mail, Geburtstag, Sprache und die Notiz (gelb hinterlegt); geändert wird über **…** (Weitere Aktionen) › **Bearbeiten (Name, Anrede, Kontakt, Notiz)** oder den Stift **Notiz ändern** an der Notiz. Die Sprache bestimmt das Kürzel im Kalender, siehe [Sprachen und Quelle](hilfe:sprachen-und-quelle).
 - Unter den Kontaktdaten „Weitere E-Mail-Adressen“ mit **Hinzufügen**; ein Hinweis „Aus Mail angelegt“ zeigt Kunden, die die Terminannahme aus einer Nachricht angelegt hat.
 - Neben dem Namen die **Sterne** (★ bis ★★★), berechnet aus Besuchen und Umsatz.
 - Darunter vier Kacheln: **Besuche** (erledigte Termine), **Letzter Besuch**, **Nächster Termin** und **Nicht erschienen**.

@@ -24,6 +24,11 @@ public sealed class GuestBalanceTests(ApiFixture fixture)
 
     private static async Task<BillDto> BillAsync(TestSpa spa, CashRegisterDto register, CustomerDto guest, BillLineInput? line = null, params Guid[] appointments)
     {
+        foreach (var appointmentId in appointments)
+        {
+            await spa.SetStatusAsync(appointmentId, AppointmentStatus.CheckedIn, Ct);
+        }
+
         var bill = await spa.PostAsync<BillDto>("/api/pos/bills", new BillInput(register.Id, guest.Id, appointments), Ct);
         return line is null ? bill : await spa.PostAsync<BillDto>($"/api/pos/bills/{bill.Id}/lines", line, Ct);
     }

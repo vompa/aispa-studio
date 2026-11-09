@@ -53,6 +53,23 @@ public sealed class UndoCancelCheckInTests
         appointment with { Status = status, UpdatedAt = TestData.At(9, minute) };
 
     [Fact]
+    public async Task Die_Rueckfrage_Termin_stornieren_nennt_den_Termin_mit_kurzem_Datum()
+    {
+        var appointment = TestData.Appointment(10, TestData.Anna);
+        var vm = await OpenAsync(Api(appointment));
+        var dialogs = new FakeDialogs();
+        vm.Dialogs = dialogs;
+        vm.Mark(vm.Columns[0].Items[0]);
+
+        vm.HandleKey(Key.Delete, KeyModifiers.None);
+        await Until(() => dialogs.Asked.Count == 1);
+
+        var asked = Assert.Single(dialogs.Asked);
+        Assert.Equal("Termin stornieren?", asked.Title);
+        Assert.Equal("Der Termin von Eva Muster am Mo. 1.3., 10:00–10:50, ist danach storniert und blockiert keine Zeit mehr.", asked.Message);
+    }
+
+    [Fact]
     public async Task Given_ein_soeben_stornierter_Termin_When_Strg_Z_gedrueckt_wird_Then_steht_der_Termin_wieder_auf_Gebucht()
     {
         var appointment = TestData.Appointment(10, TestData.Anna);
@@ -95,7 +112,7 @@ public sealed class UndoCancelCheckInTests
         await vm.UndoMoveCommand.ExecuteAsync(null);
 
         Assert.Single(vm.Columns[0].Items);
-        Assert.StartsWith("Termin wieder gebucht", vm.Toast, StringComparison.Ordinal);
+        Assert.StartsWith("Wieder gebucht", vm.Toast, StringComparison.Ordinal);
     }
 
     [Fact]

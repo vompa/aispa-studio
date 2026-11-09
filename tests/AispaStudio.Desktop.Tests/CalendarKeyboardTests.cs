@@ -174,6 +174,53 @@ public sealed class CalendarKeyboardTests
         Assert.StartsWith("10:00–10:50", vm.Columns[0].Items[0].MetaText, StringComparison.Ordinal);
     }
 
+    /// <summary>Der Tag vor dem Testkalender: Der Termin am Montag liegt dann morgen.</summary>
+    private sealed class DayBeforeTime : TimeProvider
+    {
+        public override DateTimeOffset GetUtcNow() => TestData.At(10).AddDays(-1);
+
+        public override TimeZoneInfo LocalTimeZone => Vienna;
+    }
+
+    [Fact]
+    public async Task An_einem_anderen_Tag_checken_E_und_Rechtsklick_nicht_ein_und_die_Tastenleiste_nennt_den_Grund()
+    {
+        var appointment = TestData.Appointment(10, TestData.Anna);
+        var api = Api(appointment).On($"GET /api/locations/{TestData.LocationId}/calendar?date=2027-02-28", TestData.Day() with { Date = new DateOnly(2027, 2, 28) });
+        var vm = new CalendarViewModel(api.Client(), TestData.Reception(), null, new DayBeforeTime());
+        await vm.InitializeAsync();
+        vm.Date = TestData.Monday;
+        await vm.LoadAsync();
+        vm.Mark(vm.Columns[0].Items[0]);
+
+        var hint = Assert.Single(vm.KeyHints, h => h.Key == "E");
+        Assert.False(hint.IsEnabled);
+        Assert.Equal("Einchecken: nur am Tag des Termins", hint.Tip);
+        vm.HandleKey(Key.E, KeyModifiers.None);
+        Assert.DoesNotContain(api.Calls, c => c.Route.EndsWith("/status", StringComparison.Ordinal));
+        Assert.DoesNotContain(vm.ActionsFor(vm.Columns[0].Items[0]), a => a.Header == "Einchecken");
+    }
+
+    [Fact]
+    public async Task V_oeffnet_die_Verschieben_Karte_des_markierten_Termins_bei_eingecheckten_bleibt_der_Hinweis()
+    {
+        var booked = TestData.Appointment(10, TestData.Anna);
+        var checkedIn = TestData.Appointment(14, TestData.Anna, AppointmentStatus.CheckedIn);
+        var vm = await OpenAsync(Api(booked, checkedIn));
+
+        vm.Mark(vm.Columns[0].Items.Single(i => i.Id == booked.Id));
+        Assert.True(vm.HandleKey(Key.V, KeyModifiers.None));
+        Assert.Equal(booked.Id, vm.Selected?.Appointment.Id);
+        Assert.True(vm.Selected!.IsMovingToDay);
+        Assert.Null(vm.Toast);
+
+        vm.Mark(vm.Columns[0].Items.Single(i => i.Id == checkedIn.Id));
+        Assert.True(vm.HandleKey(Key.V, KeyModifiers.None));
+        Assert.False(vm.Selected!.IsMovingToDay);
+        Assert.StartsWith("Verschieben: ziehen", vm.Toast, StringComparison.Ordinal);
+        Assert.Contains(CalendarViewModel.AllKeys.Single(g => g.Title == "Markierter Termin").Keys, h => h.Key == "V");
+    }
+
     [Fact]
     public async Task E_checkt_ein_ohne_das_Panel_zu_oeffnen()
     {

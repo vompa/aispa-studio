@@ -15,22 +15,22 @@ Der Kalender zeigt einen Tag an einem Standort: je Person eine Spalte (oder je R
 ## Wer die Seite sieht {#wer}
 
 - Alle Rollen sehen den ganzen Tag des Standorts, auch Therapeut:innen.
-- Buchen, Verschieben, Stornieren, Pausen, Sperrzeiten und Notizen gibt es nur mit dem Recht zu buchen (Rezeption, Standortleitung, Inhaber). Ohne dieses Recht fehlen **Termin anlegen**, die Einträge im Rechtsklick-Menü und die Tasten dafür.
+- Buchen, Verschieben, Stornieren, Pausen, Sperrzeiten und Notizen gibt es nur mit dem Recht zu buchen (Rezeption, Standortleitung, Inhaber). Ohne dieses Recht fehlen **Termin**, die Einträge im Rechtsklick-Menü und die Tasten dafür.
 - Therapeut:innen setzen den Status nur bei ihren eigenen Terminen (**Einchecken**, **Erledigt**, **Nicht erschienen**).
 - **Umsatz laut Kalender** im Tagesüberblick sieht nur, wer Umsätze sehen darf (Standortleitung, Inhaber).
 - Krank melden darf nur, wer den Standort verwaltet (Standortleitung, Inhaber).
 
 ## Kopfzeile {#kopfzeile}
 
-Die Kopfzeile hat **zwei Zeilen**, nie eine dritte. Alle Schaltflächen außer **Termin anlegen** haben dieselbe Form: eine Kapsel mit Symbol und Text (ein **Chip**); Zustände zeigen nur die weiche Fläche (blaugrün für „eingeschaltet“, orange für Warnungen, rot für Fehler).
+Die Kopfzeile hat **zwei Zeilen**, nie eine dritte. Alle Schaltflächen außer **Termin** haben dieselbe Form: eine Kapsel mit Symbol und Text (ein **Chip**); Zustände zeigen nur die weiche Fläche (blaugrün für „eingeschaltet“, orange für Warnungen, rot für Fehler).
 
 **Zeile 1**
 
 - Ganz links **Heute**, Pfeil links (**Vortag**) und Pfeil rechts (**Nächster Tag**). Sie stehen immer an derselben Stelle, auch wenn der Tagestitel daneben wechselt.
 - **Tag und Datum** danach („Heute“ bzw. der Wochentag, darunter das Datum). Bei mehreren Standorten steht der Name dahinter und wird bei Platzmangel gekürzt (der volle Name steht im Tooltip). Ein Klick öffnet den Datumswähler; gibt es mehrere Standorte, steht darüber **Standort** zur Auswahl. Ohne Verbindung steht darunter „Ohne Verbindung · Stand …“.
-- Rechts das Suchfeld **Suchen (Strg+F)**, siehe [Termin finden](hilfe:kalender-termin-finden), der Pfeilkreis **Aktualisieren (F5)**, der Chip **Meldungen**, **Termin anlegen** und **Freie Zeit suchen**.
-- **Termin anlegen** (normaler Knopf, öffnet sofort **Neuer Termin**) mit Pfeil daneben für das Menü: **Termin**, **Freie Zeit suchen**, **Wunsch eintippen (KI)** und, durch einen Trenner abgesetzt, **Paar oder Spa-Tag**, **Sauna-Eintritt**, **Warteliste ansehen**, **Lücken schließen**, **Tagesnotiz**.
-- **Freie Zeit suchen** (Symbol Kalender mit Lupe, die zweite Schaltfläche direkt rechts neben **Termin anlegen**, Strg+N): öffnet die [Suche nach freier Zeit](hilfe:kalender-freie-zeit-suchen).
+- Rechts das Suchfeld **Suchen (Strg+F)**, siehe [Termin finden](hilfe:kalender-termin-finden), der Pfeilkreis **Aktualisieren (F5)**, der Chip **Meldungen**, **Termin** und **Freie Zeit suchen**.
+- **Termin** (normaler Knopf, öffnet sofort **Neuer Termin**) mit Pfeil daneben für das Menü: **Termin**, **Freie Zeit suchen**, **Wunsch eintippen (KI)** und, durch einen Trenner abgesetzt, **Paar oder Spa-Tag**, **Sauna-Eintritt**, **Warteliste ansehen**, **Lücken schließen**, **Tagesnotiz**.
+- **Freie Zeit suchen** (Symbol Kalender mit Lupe, die zweite Schaltfläche direkt rechts neben **Termin**, Strg+N): öffnet die [Suche nach freier Zeit](hilfe:kalender-freie-zeit-suchen).
 
 **Zeile 2**
 
@@ -52,7 +52,7 @@ Die Kopfzeile hat **zwei Zeilen**, nie eine dritte. Alle Schaltflächen außer *
 
 Über den Spalten gibt es keine gelben oder roten Bänder mehr. Was Aufmerksamkeit braucht, steht in der Seitenleiste **Meldungen**:
 
-- Der Chip **Meldungen** steht in der ersten Zeile der Kopfzeile links neben **Termin anlegen** und zeigt die Zahl der offenen Meldungen („Meldungen 2“): orange bei Warnungen, rot bei Fehlern, sonst wie die anderen Chips. Gibt es Tagesnotizen, trägt er daneben einen kleinen Notiz-Punkt; die Zahl zählt nur Meldungen. Ein Klick oder die Taste **M** öffnet die Seitenleiste.
+- Der Chip **Meldungen** steht in der ersten Zeile der Kopfzeile links neben **Termin** und zeigt die Zahl der offenen Meldungen („Meldungen 2“): orange bei Warnungen, rot bei Fehlern, sonst wie die anderen Chips. Gibt es Tagesnotizen, trägt er daneben einen kleinen Notiz-Punkt; die Zahl zählt nur Meldungen. Ein Klick oder die Taste **M** öffnet die Seitenleiste.
 - Im Kopf einer Person oder eines Raums steht höchstens ein kleines Symbol (Dreieck bei Warnungen, Kreis bei Fehlern), dessen Hinweis kurz sagt, was los ist. Ein Klick öffnet die Meldungen nur für diese Spalte. „3 Termine umbuchen“ bei einer Krankmeldung bleibt im Kopf.
 - **Notizen heute**: die Tagesnotizen stehen ganz oben in der Seitenleiste **Meldungen** (Kästchen zum Abhaken, **+ Notiz** für eine neue, die Taste **.**). Wer heute nicht da ist, zeigen die Spalten mit **Alle Mitarbeitenden**. Mehr unter [Pausen, Sperrzeiten und Notizen](hilfe:kalender-pausen-und-notizen).
 

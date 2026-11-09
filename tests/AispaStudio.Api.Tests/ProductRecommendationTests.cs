@@ -25,6 +25,7 @@ public sealed class ProductRecommendationTests(ApiFixture fixture)
         var oil = await ArticleAsync(spa, shop, "Massageöl Lavendel", onShelf: 3m);
         await spa.PutAsync<List<Guid>>(MappingUrl(spa), new[] { oil.Id }, Ct);
         var appointment = await CompleteAsync(spa, await spa.BookOkAsync(TestSpa.At(10), Ct, spa.Anna.Id, spa.RoomA.Id));
+        await spa.SetStatusAsync(appointment.Id, AppointmentStatus.CheckedIn, Ct);
         var bill = await spa.PostAsync<BillDto>("/api/pos/bills", new BillInput(shop.Register.Id, null, [appointment.Id]), Ct);
 
         var atPos = await spa.GetAsync<List<RecommendedArticleDto>>($"/api/pos/bills/{bill.Id}/recommendations", Ct);
@@ -44,6 +45,7 @@ public sealed class ProductRecommendationTests(ApiFixture fixture)
         var oil = await ArticleAsync(spa, shop, "Massageöl Lavendel", onShelf: 0m, inMain: 10m);
         await spa.PutAsync<List<Guid>>(MappingUrl(spa), new[] { oil.Id }, Ct);
         var appointment = await CompleteAsync(spa, await spa.BookOkAsync(TestSpa.At(10), Ct, spa.Anna.Id, spa.RoomA.Id));
+        await spa.SetStatusAsync(appointment.Id, AppointmentStatus.CheckedIn, Ct);
         var bill = await spa.PostAsync<BillDto>("/api/pos/bills", new BillInput(shop.Register.Id, null, [appointment.Id]), Ct);
 
         var atPos = await spa.GetAsync<List<RecommendedArticleDto>>($"/api/pos/bills/{bill.Id}/recommendations", Ct);
@@ -61,6 +63,7 @@ public sealed class ProductRecommendationTests(ApiFixture fixture)
         var oil = await ArticleAsync(spa, shop, "Massageöl Lavendel", onShelf: 3m);
         await spa.PutAsync<List<Guid>>(MappingUrl(spa), new[] { oil.Id }, Ct);
         var appointment = await CompleteAsync(spa, await spa.BookOkAsync(TestSpa.At(10), Ct, spa.Anna.Id, spa.RoomA.Id));
+        await spa.SetStatusAsync(appointment.Id, AppointmentStatus.CheckedIn, Ct);
         var bill = await spa.PostAsync<BillDto>("/api/pos/bills", new BillInput(shop.Register.Id, null, [appointment.Id]), Ct);
         await spa.PostAsync<BillDto>($"/api/pos/bills/{bill.Id}/lines",
             new BillLineInput(BillLineKind.Article, null, oil.Id, 1, null, 0, null, null, null, null, null), Ct);
@@ -162,5 +165,5 @@ public sealed class ProductRecommendationTests(ApiFixture fixture)
     }
 
     private static Task<AppointmentDto> CompleteAsync(TestSpa spa, AppointmentDto appointment) =>
-        spa.PostAsync<AppointmentDto>($"/api/appointments/{appointment.Id}/status", new AppointmentStatusChange(AppointmentStatus.Completed), Ct);
+        spa.SetStatusAsync(appointment.Id, AppointmentStatus.Completed, Ct);
 }

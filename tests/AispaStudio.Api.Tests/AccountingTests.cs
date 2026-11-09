@@ -22,6 +22,7 @@ public sealed class AccountingTests(ApiFixture fixture)
         await spa.PostAsync<CashMovementDto>($"/api/pos/registers/{register.Id}/cash-movements",
             new CashMovementInput(CashMovementKind.Deposit, 150m, "Wechselgeld"), Ct);
         var appointment = await spa.BookOkAsync(TestSpa.At(10), Ct);
+        await spa.SetStatusAsync(appointment.Id, AppointmentStatus.CheckedIn, Ct);
         var bill = await spa.PostAsync<BillDto>("/api/pos/bills", new BillInput(register.Id, null, [appointment.Id]), Ct);
         await spa.PostAsync<BillDto>($"/api/pos/bills/{bill.Id}/lines",
             new BillLineInput(BillLineKind.Article, null, article.Id, 1, null, 0, null, null, null, null, null), Ct);

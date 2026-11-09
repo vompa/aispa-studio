@@ -15,6 +15,7 @@ Ein Termin ist zuerst „Gebucht“. Kommt der Gast, wird er eingecheckt; nach d
 
 - Rezeption, Standortleitung, Inhaber oder Therapeut:in (nur eigene Termine).
 - Einchecken und „Nicht erschienen“ gehen nur bei „Gebucht“, „Erledigt“ bei „Gebucht“ und „Eingecheckt“.
+- Einchecken geht nur am Tag des Termins; an anderen Tagen fehlt der Knopf, und die Tastenleiste nennt den Grund. „Erledigt“ und „Nicht erschienen“ gehen erst ab dem Tag des Termins, vorher sind sie unter **Mehr** gesperrt („Verfügbar ab dem Tag des Termins.“).
 - Ohne Verbindung wird der Statuswechsel vorgemerkt und beim Abgleich gesendet, siehe [Arbeiten ohne Verbindung](hilfe:kalender-offline).
 
 ## Schritte {#schritte}
@@ -27,7 +28,7 @@ Den Termin anklicken (markieren). Rechts öffnet sich das Terminfenster.
 
 ### 2. Einchecken
 
-Auf **Einchecken** klicken oder **E** drücken. Unten erscheint „… eingecheckt.“ Per Rechtsklick geht es auch: **Einchecken** wählen.
+Auf **Einchecken** klicken oder **E** drücken. Unten erscheint „… eingecheckt“. Per Rechtsklick geht es auch: **Einchecken** wählen.
 
 ![Terminfenster mit markiertem Knopf Einchecken](images/app/status-setzen-2.png)
 
@@ -52,7 +53,7 @@ Erst ein erledigter Termin zählt als Besuch, z. B. für die Kennzeichen **N** (
 ## Einchecken {#einchecken}
 
 1. Den Termin anklicken (markieren).
-2. **E** drücken. Unten erscheint „… eingecheckt.“
+2. **E** drücken. Unten erscheint „… eingecheckt“.
 
 Oder: Termin anklicken und im Panel auf **Einchecken** klicken, oder per Rechtsklick **Einchecken** wählen.
 

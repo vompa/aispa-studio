@@ -51,6 +51,7 @@ public sealed class PosTests(ApiFixture fixture)
         var spa = await TestSpa.CreateAsync(fixture, Ct);
         var register = await CreateRegisterAsync(spa);
         var appointment = await spa.BookOkAsync(TestSpa.At(10), Ct);
+        await spa.SetStatusAsync(appointment.Id, AppointmentStatus.CheckedIn, Ct);
         var bill = await spa.PostAsync<BillDto>("/api/pos/bills", new BillInput(register.Id, null, [appointment.Id]), Ct);
 
         var receipt = await CheckoutAsync(spa, bill.Id, null, Cash(100m));
@@ -82,6 +83,7 @@ public sealed class PosTests(ApiFixture fixture)
         var spa = await TestSpa.CreateAsync(fixture, Ct);
         var register = await CreateRegisterAsync(spa);
         var appointment = await spa.BookOkAsync(TestSpa.At(10), Ct);
+        await spa.SetStatusAsync(appointment.Id, AppointmentStatus.CheckedIn, Ct);
         await spa.PostAsync<BillDto>("/api/pos/bills", new BillInput(register.Id, null, [appointment.Id]), Ct);
 
         var second = await spa.Client.PostAsJsonAsync("/api/pos/bills", new BillInput(register.Id, null, [appointment.Id]), TestSpa.Json, Ct);
@@ -100,6 +102,7 @@ public sealed class PosTests(ApiFixture fixture)
         var appointment = await spa.BookOkAsync(TestSpa.At(10), Ct);
         var oil = await spa.PostAsync<ArticleDto>("/api/pos/articles",
             new ArticleInput("Massageöl", 24.90m, TaxCategory.Normal, PosModel.Products.Id), Ct);
+        await spa.SetStatusAsync(appointment.Id, AppointmentStatus.CheckedIn, Ct);
         var bill = await spa.PostAsync<BillDto>("/api/pos/bills", new BillInput(register.Id, null, [appointment.Id]), Ct);
         bill = await spa.PostAsync<BillDto>($"/api/pos/bills/{bill.Id}/lines", ArticleLine(oil.Id, 2), Ct);
         Assert.Equal(79m + 49.80m, bill.Total);
@@ -165,6 +168,7 @@ public sealed class PosTests(ApiFixture fixture)
         var voucher = Assert.Single(sold.IssuedVouchers);
 
         var appointment = await spa.BookOkAsync(TestSpa.At(10), Ct);
+        await spa.SetStatusAsync(appointment.Id, AppointmentStatus.CheckedIn, Ct);
         var bill = await spa.PostAsync<BillDto>("/api/pos/bills", new BillInput(register.Id, null, [appointment.Id]), Ct);
         var redeemed = await CheckoutAsync(spa, bill.Id, null,
             new PaymentInput(PaymentMethod.Voucher, 79m, voucher.Code.ToLowerInvariant(), null));
@@ -184,6 +188,7 @@ public sealed class PosTests(ApiFixture fixture)
         var spa = await TestSpa.CreateAsync(fixture, Ct);
         var register = await CreateRegisterAsync(spa);
         var appointment = await spa.BookOkAsync(TestSpa.At(10), Ct);
+        await spa.SetStatusAsync(appointment.Id, AppointmentStatus.CheckedIn, Ct);
         var bill = await spa.PostAsync<BillDto>("/api/pos/bills", new BillInput(register.Id, null, [appointment.Id]), Ct);
         bill = await spa.PostAsync<BillDto>($"/api/pos/bills/{bill.Id}/lines", VoucherLine(VoucherKind.MultiPurpose, 50m, null), Ct);
         var (treatment, voucher) = (bill.Lines[0], bill.Lines[1]);
@@ -218,6 +223,7 @@ public sealed class PosTests(ApiFixture fixture)
         bill = await spa.PostAsync<BillDto>($"/api/pos/bills/{bill.Id}/lines",
             new BillLineInput(BillLineKind.Custom, null, null, 1, 12.50m, 0, "Tee", TaxCategory.Normal, null, null, null), Ct);
         Assert.Equal(0m, bill.Lines[0].Discount);
+        await spa.SetStatusAsync(appointment.Id, AppointmentStatus.CheckedIn, Ct);
         bill = await spa.PostAsync<BillDto>($"/api/pos/bills/{bill.Id}/lines",
             new BillLineInput(BillLineKind.Appointment, appointment.Id, null, 1, null, 0, null, null, null, null, null), Ct);
         bill = await spa.PostAsync<BillDto>($"/api/pos/bills/{bill.Id}/lines", VoucherLine(VoucherKind.MultiPurpose, 50m, null), Ct);
@@ -258,6 +264,7 @@ public sealed class PosTests(ApiFixture fixture)
         var register = await CreateRegisterAsync(spa);
         using var reception = await TestUsers.ClientAsync(fixture, Ct, StaffRole.Reception, [spa.Location.Id]);
         var appointment = await spa.BookOkAsync(TestSpa.At(10), Ct);
+        await spa.SetStatusAsync(appointment.Id, AppointmentStatus.CheckedIn, Ct);
         var bill = await spa.PostAsync<BillDto>("/api/pos/bills", new BillInput(register.Id, null, [appointment.Id]), Ct);
         var path = $"/api/pos/bills/{bill.Id}/lines/{bill.Lines[0].Id}/discount";
 
@@ -300,6 +307,7 @@ public sealed class PosTests(ApiFixture fixture)
         var oil = await spa.PostAsync<ArticleDto>("/api/pos/articles",
             new ArticleInput("Massageöl", 20m, TaxCategory.Normal, PosModel.Products.Id), Ct);
         var appointment = await spa.BookOkAsync(TestSpa.At(10), Ct);
+        await spa.SetStatusAsync(appointment.Id, AppointmentStatus.CheckedIn, Ct);
         var bill = await spa.PostAsync<BillDto>("/api/pos/bills", new BillInput(register.Id, null, [appointment.Id]), Ct);
         bill = await spa.PostAsync<BillDto>($"/api/pos/bills/{bill.Id}/lines", ArticleLine(oil.Id, 2), Ct);
         var removed = await spa.PutAsync<CustomerDto>(path, new CustomerDiscount(0m), Ct);
@@ -331,6 +339,7 @@ public sealed class PosTests(ApiFixture fixture)
         async Task<BillDto> FullBillAsync(int hour)
         {
             var appointment = await spa.BookOkAsync(TestSpa.At(hour), Ct);
+            await spa.SetStatusAsync(appointment.Id, AppointmentStatus.CheckedIn, Ct);
             var bill = await spa.PostAsync<BillDto>("/api/pos/bills", new BillInput(register.Id, null, [appointment.Id]), Ct);
             bill = await spa.PostAsync<BillDto>($"/api/pos/bills/{bill.Id}/lines",
                 new BillLineInput(BillLineKind.Custom, null, null, 1, 30m, 0, "Buch", TaxCategory.Reduced1, null, null, null), Ct);
@@ -376,6 +385,7 @@ public sealed class PosTests(ApiFixture fixture)
         (await spa.Client.PutAsJsonAsync("/api/auth/pin", new QuickSwitchPin("258014"), TestSpa.Json, Ct)).EnsureSuccessStatusCode();
         (await colleague.PutAsJsonAsync("/api/auth/pin", new QuickSwitchPin("4711"), TestSpa.Json, Ct)).EnsureSuccessStatusCode();
         var appointment = await spa.BookOkAsync(TestSpa.At(10), Ct);
+        await spa.SetStatusAsync(appointment.Id, AppointmentStatus.CheckedIn, Ct);
         var bill = await spa.PostAsync<BillDto>("/api/pos/bills", new BillInput(register.Id, null, [appointment.Id]), Ct);
         var path = $"/api/pos/bills/{bill.Id}/lines/{bill.Lines[0].Id}/discount";
 
@@ -419,6 +429,7 @@ public sealed class PosTests(ApiFixture fixture)
         var voucher = Assert.Single(sold.IssuedVouchers);
 
         var appointment = await spa.BookOkAsync(TestSpa.At(10), Ct);
+        await spa.SetStatusAsync(appointment.Id, AppointmentStatus.CheckedIn, Ct);
         var bill = await spa.PostAsync<BillDto>("/api/pos/bills", new BillInput(register.Id, null, [appointment.Id]), Ct);
         var redeemed = await CheckoutAsync(spa, bill.Id, null, new PaymentInput(PaymentMethod.Voucher, 0, voucher.Code, null));
 
@@ -442,6 +453,7 @@ public sealed class PosTests(ApiFixture fixture)
 
         // Heute bezahlt der Gast seine Massage und kauft dazu einen 3er-Block zum Paketpreis.
         var today = await spa.BookOkAsync(TestSpa.At(10), Ct, employee: spa.Anna.Id);
+        await spa.SetStatusAsync(today.Id, AppointmentStatus.CheckedIn, Ct);
         var bill = await spa.PostAsync<BillDto>("/api/pos/bills", new BillInput(register.Id, null, [today.Id]), Ct);
         bill = await spa.PostAsync<BillDto>($"/api/pos/bills/{bill.Id}/lines", package, Ct);
         var sold = await CheckoutAsync(spa, bill.Id, null, Cash(279m));
@@ -459,6 +471,8 @@ public sealed class PosTests(ApiFixture fixture)
         Assert.Equal(voucher.Code, Assert.Single(await spa.GetAsync<List<VoucherDto>>($"/api/pos/customers/{spa.Customer.Id}/packages", Ct)).Code);
 
         // Zwei Termine auf einer Rechnung: beide werden abgezogen, zu zahlen bleibt nichts.
+        await spa.SetStatusAsync(first.Id, AppointmentStatus.CheckedIn, Ct);
+        await spa.SetStatusAsync(second.Id, AppointmentStatus.CheckedIn, Ct);
         var visit = await spa.PostAsync<BillDto>("/api/pos/bills", new BillInput(register.Id, null, [first.Id, second.Id]), Ct);
         var redeemed = await CheckoutAsync(spa, visit.Id, null, new PaymentInput(PaymentMethod.Voucher, 0, voucher.Code, null));
         var after = await spa.GetAsync<VoucherDto>($"/api/pos/vouchers/{voucher.Code}", Ct);
@@ -482,6 +496,7 @@ public sealed class PosTests(ApiFixture fixture)
         Assert.Equal(0m, three.Total);
         var lastDay = TestSpa.Monday.AddDays(14);
         var last = await spa.BookOkAsync(TestSpa.At(10, date: lastDay), Ct, employee: spa.Anna.Id);
+        await spa.SetStatusAsync(last.Id, AppointmentStatus.CheckedIn, Ct);
         var lastBill = await spa.PostAsync<BillDto>("/api/pos/bills", new BillInput(register.Id, null, [last.Id]), Ct);
         await CheckoutAsync(spa, lastBill.Id, null, new PaymentInput(PaymentMethod.Voucher, 0, voucher.Code, null));
         var empty = await spa.GetAsync<VoucherDto>($"/api/pos/vouchers/{voucher.Code}", Ct);
@@ -495,6 +510,7 @@ public sealed class PosTests(ApiFixture fixture)
         var spa = await TestSpa.CreateAsync(fixture, Ct);
         var register = await CreateRegisterAsync(spa);
         var appointment = await spa.BookOkAsync(TestSpa.At(10), Ct);
+        await spa.SetStatusAsync(appointment.Id, AppointmentStatus.CheckedIn, Ct);
         var bill = await spa.PostAsync<BillDto>("/api/pos/bills", new BillInput(register.Id, null, [appointment.Id]), Ct);
         var receipt = await CheckoutAsync(spa, bill.Id, null, new PaymentInput(PaymentMethod.Card, 79m, null, null));
 
@@ -580,6 +596,7 @@ public sealed class PosTests(ApiFixture fixture)
         var spa = await TestSpa.CreateAsync(fixture, Ct);
         var register = await CreateRegisterAsync(spa);
         var appointment = await spa.BookOkAsync(TestSpa.At(10), Ct);
+        await spa.SetStatusAsync(appointment.Id, AppointmentStatus.CheckedIn, Ct);
         var bill = await spa.PostAsync<BillDto>("/api/pos/bills", new BillInput(register.Id, null, [appointment.Id]), Ct);
 
         var response = await spa.Client.PostAsJsonAsync($"/api/pos/bills/{bill.Id}/checkout",
@@ -629,6 +646,7 @@ public sealed class PosTests(ApiFixture fixture)
         var spa = await TestSpa.CreateAsync(fixture, Ct);
         var register = await CreateRegisterAsync(spa);
         var appointment = await spa.BookOkAsync(TestSpa.At(10), Ct);
+        await spa.SetStatusAsync(appointment.Id, AppointmentStatus.CheckedIn, Ct);
         var bill = await spa.PostAsync<BillDto>("/api/pos/bills", new BillInput(register.Id, null, [appointment.Id]), Ct);
 
         var qr = await spa.GetAsync<InstantTransferQr>($"/api/pos/bills/{bill.Id}/instant-transfer", Ct);
@@ -677,6 +695,7 @@ public sealed class PosTests(ApiFixture fixture)
         Assert.Equal(here, await db.CashRegisters.Where(r => r.Id == register.Id).Select(r => r.SiteId).SingleAsync(Ct));
         Assert.False(register.OtherSite);
         var appointment = await spa.BookOkAsync(TestSpa.At(10), Ct);
+        await spa.SetStatusAsync(appointment.Id, AppointmentStatus.CheckedIn, Ct);
         var bill = await spa.PostAsync<BillDto>("/api/pos/bills", new BillInput(register.Id, null, [appointment.Id]), Ct);
 
         // Wie vom Abgleich gebracht: die Kasse gehört einer anderen Stelle.
@@ -708,6 +727,7 @@ public sealed class PosTests(ApiFixture fixture)
         var spa = await TestSpa.CreateAsync(fixture, Ct);
         var register = await CreateRegisterAsync(spa);
         var appointment = await spa.BookOkAsync(TestSpa.At(10), Ct);
+        await spa.SetStatusAsync(appointment.Id, AppointmentStatus.CheckedIn, Ct);
         var bill = await spa.PostAsync<BillDto>("/api/pos/bills", new BillInput(register.Id, null, [appointment.Id]), Ct);
         var digital = new PaymentInput(PaymentMethod.DigitalEuro, bill.Open, null, "DE-TX-1");
 

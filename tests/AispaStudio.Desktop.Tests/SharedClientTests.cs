@@ -101,6 +101,26 @@ public sealed class SharedClientTests
         Assert.Equal(1, changes);
     }
 
+    [Fact]
+    public async Task Given_Verbindung_verweigert_When_Aufruf_Then_Fehler_nennt_den_Weg_ohne_Systemtext_und_die_Ursache_geht_ans_Protokoll()
+    {
+        var api = new StubApi { Down = true }.Client();
+        var logged = new List<Exception>();
+        api.TransportFailed += logged.Add;
+
+        var json = await api.GetAsync<List<LocationDto>>("api/locations", Ct);
+        var again = await api.GetAsync<List<LocationDto>>("api/locations", Ct);
+        var bytes = await api.GetBytesAsync("api/pos/receipts/x/escpos", Ct);
+
+        const string Expected = "Server nicht erreichbar. Verbindung prüfen und erneut versuchen.";
+        Assert.Equal(Expected, json.Error);
+        Assert.Equal(Expected, again.Error);
+        Assert.Equal(Expected, bytes.Error);
+        Assert.DoesNotContain("Keine Verbindung", json.Error, StringComparison.Ordinal);
+        // Die Ursache steht einmal im Protokoll (beim Übergang zu „ohne Verbindung“), nicht bei jedem weiteren Versuch.
+        Assert.Equal("Keine Verbindung", Assert.Single(logged).Message);
+    }
+
     /// <summary>Der Typ selbst oder ein Typargument darin (<c>Func&lt;ApiClient&gt;</c>, <c>Lazy&lt;HttpClient&gt;</c>) ist ein HTTP-Typ.</summary>
     private static bool UsesHttp(Type type) =>
         HttpTypes.Contains(type.FullName ?? type.Name) || type.GetGenericArguments().Any(UsesHttp) || (type.HasElementType && UsesHttp(type.GetElementType()!));

@@ -20,7 +20,7 @@ public sealed class ReportTests(ApiFixture fixture)
         await spa.PutAsync<CustomerPreferences>($"/api/reports/customers/{spa.Customer.Id}/preferences",
             new CustomerPreferences("fest", "Lavendel", "24 °C", null, true, "Nacken", "Füße", null), Ct);
         var first = await spa.BookOkAsync(TestSpa.At(10), Ct, spa.Anna.Id);
-        await spa.PostAsync<AppointmentDto>($"/api/appointments/{first.Id}/status", new AppointmentStatusChange(AppointmentStatus.Completed), Ct);
+        await spa.SetStatusAsync(first.Id, AppointmentStatus.Completed, Ct);
         var note = await spa.Client.PutAsJsonAsync($"/api/reports/appointments/{first.Id}/follow-up", new FollowUpNote("Mag festeren Druck im Nacken."), TestSpa.Json, Ct);
         var second = await spa.BookOkAsync(TestSpa.At(13), Ct, spa.Ben.Id);
 
@@ -133,8 +133,8 @@ public sealed class ReportTests(ApiFixture fixture)
         var done = await spa.BookOkAsync(TestSpa.At(10), Ct, spa.Anna.Id);
         var missed = await spa.BookOkAsync(TestSpa.At(12), Ct, spa.Ben.Id);
         await spa.BookOkAsync(TestSpa.At(14), Ct, spa.Anna.Id);
-        await spa.PostAsync<AppointmentDto>($"/api/appointments/{done.Id}/status", new AppointmentStatusChange(AppointmentStatus.Completed), Ct);
-        await spa.PostAsync<AppointmentDto>($"/api/appointments/{missed.Id}/status", new AppointmentStatusChange(AppointmentStatus.NoShow), Ct);
+        await spa.SetStatusAsync(done.Id, AppointmentStatus.Completed, Ct);
+        await spa.SetStatusAsync(missed.Id, AppointmentStatus.NoShow, Ct);
         await spa.PutAsync<RosterDayResult>($"/api/locations/{spa.Location.Id}/roster/{spa.Ben.Id}/2027-03-08",
             new RosterDayInput([new RosterEntry(RosterKind.Sick, null, null, null)], null), Ct);
         using var reception = await TestUsers.ClientAsync(fixture, Ct, StaffRole.Reception, [spa.Location.Id]);

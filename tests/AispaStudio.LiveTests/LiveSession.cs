@@ -24,6 +24,9 @@ internal sealed class LiveSession : IDisposable
     private readonly UIA3Automation _automation = new();
     private readonly Application _app;
     private readonly string _folder;
+    private static LiveSession? ActiveSession;
+    private readonly List<string> _redTopics = [];
+    private readonly List<string> _skippedTopics = [];
     private int _step;
     private int _extraShot;
 
@@ -32,6 +35,7 @@ internal sealed class LiveSession : IDisposable
         _options = options;
         _app = app;
         _folder = folder;
+        ActiveSession = this;
         Report = new LiveReport(folder, role, options);
         Control = new LiveControl(options.StartPaused, options.ConsoleKeys, Report.AddEvent);
         Window = app.GetMainWindow(_automation, TimeSpan.FromSeconds(60))
@@ -60,6 +64,34 @@ internal sealed class LiveSession : IDisposable
 
     public Window Window { get; }
 
+    /// <summary>Adresse des Servers, für Proben der Themen über die API.</summary>
+    public Uri ApiUrl => _options.ApiUrl;
+
+    /// <summary>Zusätzliches Bild des Fensters mitten in einem Schritt; der Bericht verweist darauf.</summary>
+    public string Snapshot(string name)
+    {
+        var file = Shot(name);
+        Report.AddEvent($"Bild: [{file}]({file})");
+        return file;
+    }
+
+    /// <summary>Namen (Text) aller sichtbaren Elemente, auf die <paramref name="match"/> zutrifft; ohne Bedingung alle Textelemente mit Inhalt.</summary>
+    public List<string> VisibleTexts(Func<AutomationElement, bool>? match = null) =>
+        AllVisible().Where(e => match?.Invoke(e) ?? e.Properties.ClassName.ValueOrDefault == "TextBlock")
+            .Select(e => e.Properties.Name.ValueOrDefault)
+            .Where(name => !string.IsNullOrWhiteSpace(name))
+            .Select(name => name!)
+            .Distinct(StringComparer.Ordinal)
+            .ToList();
+
+    /// <summary>Fährt die Maus auf das Element und wartet, bis der Tooltip da ist (für Bilder von Hinweisen an gesperrten Knöpfen).</summary>
+    public static void Hover(AutomationElement element)
+    {
+        var rect = element.BoundingRectangle;
+        Mouse.MoveTo(new Point(rect.X + (rect.Width / 2), rect.Y + (rect.Height / 2)));
+        Thread.Sleep(1500);
+    }
+
     /// <summary>Wartet auf den Server, startet die App im Server-Betrieb und legt den Laufordner an.</summary>
     public static LiveSession Start(LiveOptions options, string role)
     {
@@ -71,15 +103,47 @@ internal sealed class LiveSession : IDisposable
         return new LiveSession(options, Application.Launch(start), folder, role);
     }
 
-    /// <summary>Führt den Ablauf aus und liefert den Exitcode: 0 alles bestanden, 1 ein Schritt gescheitert, 3 gestoppt.</summary>
+    /// <summary>Themen, die rot geworden sind („Schlüssel: Schritt, Fehler“), für das Ergebnis und den Exitcode.</summary>
+    public IReadOnlyList<string> RedTopics => _redTopics;
+
+    /// <summary>Themen, die übersprungen wurden, weil ein Thema davor rot war.</summary>
+    public IReadOnlyList<string> SkippedTopics => _skippedTopics;
+
+    /// <summary>Der Name des Schritts, der zuletzt gescheitert ist.</summary>
+    public string? LastFailedStep { get; private set; }
+
+    /// <summary>Trägt ein rotes Thema ein; der Lauf geht mit dem nächsten Thema weiter (Sichtprüfung 09.11.2026, T8).</summary>
+    public void MarkTopicRed(string key, string error)
+    {
+        _redTopics.Add($"{key}: {LastFailedStep ?? "?"}, {error}");
+        Report.AddEvent($"THEMA ROT: {key}. Schritt „{LastFailedStep}“: {error}");
+    }
+
+    /// <summary>Trägt ein übersprungenes Thema ein.</summary>
+    public void MarkTopicSkipped(string key, IEnumerable<string> blockedBy)
+    {
+        _skippedTopics.Add(key);
+        Report.AddEvent($"THEMA ÜBERSPRUNGEN: {key}, weil vorher rot oder übersprungen: {string.Join(", ", blockedBy)}.");
+    }
+
+    /// <summary>Führt den Ablauf aus und liefert den Exitcode: 0 alles bestanden, 1 ein Schritt oder Thema gescheitert, 3 gestoppt.</summary>
     public int Run(Action journey)
     {
         int code;
         try
         {
             journey();
-            Result = $"Bestanden: alle {_step} Schritte.";
-            code = 0;
+            if (_redTopics.Count > 0)
+            {
+                Result = $"Nicht bestanden: {_redTopics.Count} Thema/Themen rot ({string.Join("; ", _redTopics)}); "
+                         + $"übersprungen: {(_skippedTopics.Count == 0 ? "keines" : string.Join(", ", _skippedTopics))}. Schritte insgesamt: {_step}.";
+                code = 1;
+            }
+            else
+            {
+                Result = $"Bestanden: alle {_step} Schritte.";
+                code = 0;
+            }
         }
         catch (OperationCanceledException ex)
         {
@@ -114,7 +178,10 @@ internal sealed class LiveSession : IDisposable
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
+            LastFailedStep = name;
+            Report.AddEvent($"Fehlerstelle in „{name}“: {string.Join(" ← ", (ex.StackTrace ?? "").Split((char)10).Take(3).Select(line => line.Trim()))}");
             var image = Shot($"{number:00}-{name}-fehler");
+            DumpVisible($"{number:00}-{name}-fehler");
             Report.AddStep(number, name, started, watch.Elapsed, false, image, ex.Message);
             StepFinished?.Invoke(new LiveStepResult(number, name, watch.Elapsed, false, ex.Message, image));
             throw;
@@ -142,6 +209,21 @@ internal sealed class LiveSession : IDisposable
     public AutomationElement? TryFind(Func<AutomationElement, bool> match, TimeSpan timeout) =>
         Retry.WhileNull(() => FindOnce(match), timeout, TimeSpan.FromMilliseconds(200)).Result;
 
+    private List<AutomationElement> AllVisible()
+    {
+        try
+        {
+            return _app.GetAllTopLevelWindows(_automation)
+                .SelectMany(window => window.FindAllDescendants())
+                .Where(element => !element.Properties.IsOffscreen.ValueOrDefault)
+                .ToList();
+        }
+        catch (System.Runtime.InteropServices.COMException)
+        {
+            return [];
+        }
+    }
+
     private AutomationElement? FindOnce(Func<AutomationElement, bool> match)
     {
         try
@@ -160,10 +242,212 @@ internal sealed class LiveSession : IDisposable
     /// <summary>Hebt das Element kurz hervor und klickt mit der Maus darauf.</summary>
     public void Click(string nameOrId) => Click(Find(nameOrId));
 
+    /// <summary>Wartet auf das Element, auf das <paramref name="match"/> zutrifft, und klickt es an.</summary>
+    public void Click(Func<AutomationElement, bool> match, string what = "Element") => Click(Find(match, what));
+
     public void Click(AutomationElement element)
     {
         Highlight(element);
-        element.Click(moveMouse: true);
+        if (IsSkippedForProbe(element))
+        {
+            Report.AddEvent($"Gegenprobe: Klick auf „{element.Properties.Name.ValueOrDefault}“ ausgelassen.");
+            return;
+        }
+
+        var isButton = element.Properties.ClassName.ValueOrDefault == "Button";
+        if (isButton && MouseProbe is { } pauseMs)
+        {
+            // Gegenprobe B8 (AISPA_LIVE_MOUSE=1): echter Mausklick mit Pause davor, kein Invoke.
+            Thread.Sleep(pauseMs);
+            Report.AddEvent($"Mausklick auf „{element.Properties.Name.ValueOrDefault}“ nach {pauseMs} ms Pause.");
+            element.Click(moveMouse: true);
+            return;
+        }
+
+        // Sichtprüfung 09.11.2026: Mausklicks auf Knöpfe im Seitenpanel kamen gelegentlich nicht an (nur Hover); Knöpfe lösen deshalb über „Invoke“ aus.
+        if (isButton && element.Patterns.Invoke.IsSupported && element.Properties.Name.ValueOrDefault?.StartsWith("Wertgutschein", StringComparison.Ordinal) != true)
+        {
+            var name = element.Properties.Name.ValueOrDefault;
+            try
+            {
+                element.Patterns.Invoke.Pattern.Invoke();
+            }
+            catch (System.Runtime.InteropServices.COMException ex)
+            {
+                // Der Knopf schließt beim Auslösen seinen Dialog; UI Automation meldet dann, dass der Aufruf kein Element mehr fand (0x80040201). Die Aktion ist geschehen.
+                Report.AddEvent($"Knopf „{name}“ war nach dem Auslösen weg ({ex.HResult:X8}).");
+            }
+
+            return;
+        }
+
+        try
+        {
+            element.Click(moveMouse: true);
+        }
+        catch (System.Runtime.InteropServices.COMException ex)
+        {
+            throw new InvalidOperationException($"Das Element war beim Klicken nicht mehr da ({ex.HResult:X8}); der Baum hat sich geändert.", ex);
+        }
+    }
+
+    /// <summary>
+    /// Pause vor einem Mausklick auf einen Knopf in Millisekunden, wenn <c>AISPA_LIVE_MOUSE=1</c> gesetzt ist (Standard 300,
+    /// <c>AISPA_LIVE_MOUSE_PAUSE_MS</c> ändert sie); sonst null, und Knöpfe lösen per Invoke aus.
+    /// </summary>
+    private static int? MouseProbe =>
+        Environment.GetEnvironmentVariable("AISPA_LIVE_MOUSE") == "1"
+            ? int.TryParse(Environment.GetEnvironmentVariable("AISPA_LIVE_MOUSE_PAUSE_MS"), out var pause) ? pause : 300
+            : null;
+
+    /// <summary>
+    /// Gegenprobe (Umgebungsvariable <c>AISPA_LIVE_SKIP_CLICK</c>, Namen mit „|“ getrennt): Ein Klick auf ein Element dieses Namens
+    /// wird ausgelassen; ein „*“ am Ende steht für beliebigen Rest des Namens. Die Prüfung dahinter muss dann scheitern; so zeigt ein Lauf, dass eine Prüfung ohne das Ergebnis rot wird.
+    /// </summary>
+    private static bool IsSkippedForProbe(AutomationElement element)
+    {
+        var names = Environment.GetEnvironmentVariable("AISPA_LIVE_SKIP_CLICK");
+        return !string.IsNullOrEmpty(names)
+               && element.Properties.Name.ValueOrDefault is { } name
+               && names.Split('|').Any(skipped => skipped.EndsWith('*')
+                   ? name.StartsWith(skipped[..^1], StringComparison.Ordinal)
+                   : name == skipped);
+    }
+
+    /// <summary>
+    /// Sucht ein Element in der Zeile von <paramref name="anchor"/>: steigt bis zu fünf Ebenen auf und nimmt unter dem ersten Vorfahren,
+    /// der ein Element mit <paramref name="match"/> enthält, dieses. So trifft „Diese Kundin nehmen“ den Knopf der gemeinten Zeile.
+    /// </summary>
+    public static AutomationElement FindInRow(AutomationElement anchor, Func<AutomationElement, bool> match, string what)
+    {
+        var level = anchor.Parent;
+        for (var i = 0; i < 5 && level is not null; i++, level = level.Parent)
+        {
+            if (level.FindAllDescendants().FirstOrDefault(match) is { } found)
+            {
+                return found;
+            }
+        }
+
+        throw new InvalidOperationException($"{what} in der Zeile von „{anchor.Properties.Name.ValueOrDefault}“ nicht gefunden.");
+    }
+
+    /// <summary>Rechtsklick mit der Maus auf die Mitte des Elements.</summary>
+    public void RightClick(AutomationElement element)
+    {
+        Highlight(element);
+        element.RightClick(moveMouse: true);
+    }
+
+    /// <summary>Rechtsklick auf einen Punkt des Bildschirms (freie Stelle im Kalender).</summary>
+    public static void RightClickAt(Point point)
+    {
+        Mouse.MoveTo(point);
+        Mouse.RightClick(point);
+    }
+
+    /// <summary>Klick auf einen Punkt des Bildschirms.</summary>
+    public static void ClickAt(Point point)
+    {
+        Mouse.MoveTo(point);
+        Mouse.Click(point);
+    }
+
+    /// <summary>Klickt den Eintrag des offenen Rechtsklick-Menüs, dessen Name mit <paramref name="itemName"/> beginnt.</summary>
+    public void ChooseMenuItem(string itemName) =>
+        Click(Find(e => e.Properties.ClassName.ValueOrDefault == "MenuItem"
+                        && e.Properties.Name.ValueOrDefault?.StartsWith(itemName, StringComparison.Ordinal) == true,
+            $"Menüeintrag „{itemName}“"));
+
+    /// <summary>Die Namen aller sichtbaren Menüeinträge (für Fehlermeldungen und Prüfungen).</summary>
+    public List<string> VisibleMenuItems() => AllVisible()
+        .Where(e => e.Properties.ClassName.ValueOrDefault == "MenuItem")
+        .Select(e => e.Properties.Name.ValueOrDefault ?? "?")
+        .ToList();
+
+    /// <summary>
+    /// Prüft, dass kein sichtbares Element auf <paramref name="match"/> zutrifft; wartet dazu <paramref name="timeout"/> (Standard
+    /// 1,5 Sekunden) und scheitert, sobald eines auftaucht. Immer erst etwas Sichtbares erwarten, das beweist, dass die Maske da ist.
+    /// </summary>
+    public void ExpectMissing(Func<AutomationElement, bool> match, string what, TimeSpan? timeout = null)
+    {
+        var deadline = DateTime.UtcNow + (timeout ?? TimeSpan.FromMilliseconds(1500));
+        do
+        {
+            if (FindOnce(match) is { } found)
+            {
+                Highlight(found);
+                throw new InvalidOperationException($"{what} ist da, sollte aber fehlen.");
+            }
+
+            Thread.Sleep(200);
+        }
+        while (DateTime.UtcNow < deadline);
+    }
+
+    /// <summary>Wartet bis zu <paramref name="timeout"/>, dass kein sichtbares Element mehr auf <paramref name="match"/> zutrifft (etwa eine Meldung, die von selbst verschwindet).</summary>
+    public void WaitUntilMissing(Func<AutomationElement, bool> match, string what, TimeSpan timeout)
+    {
+        if (Retry.WhileFalse(() => FindOnce(match) is null, timeout, TimeSpan.FromMilliseconds(250)).Result is false)
+        {
+            throw new InvalidOperationException($"{what} ist nach {timeout.TotalSeconds:0} Sekunden noch da.");
+        }
+    }
+
+    /// <summary>
+    /// Schiebt den Kalender seitwärts, bis das Rechteck von <paramref name="element"/> ganz in der Kalenderfläche liegt (bei vielen
+    /// Spalten ragt eine Karte sonst über den Rand, und ein Klick daneben trifft nichts).
+    /// </summary>
+    public void ScrollIntoBody(AutomationElement element)
+    {
+        var body = Find("BodyScroll").BoundingRectangle;
+        for (var i = 0; i < 12; i++)
+        {
+            var rect = element.BoundingRectangle;
+            if (rect.Left >= body.Left && rect.Right <= body.Right)
+            {
+                return;
+            }
+
+            Mouse.MoveTo(new Point(body.X + (body.Width / 2), body.Y + (body.Height / 2)));
+            Mouse.HorizontalScroll(rect.Right > body.Right ? 3 : -3);
+            Thread.Sleep(250);
+        }
+    }
+
+    /// <summary>Die Rechtecke aller sichtbaren Elemente, auf die <paramref name="match"/> zutrifft (Bildschirmkoordinaten).</summary>
+    public List<Rectangle> VisibleRects(Func<AutomationElement, bool> match) =>
+        AllVisible().Where(match).Select(e => e.BoundingRectangle).ToList();
+
+    /// <summary>Prüft, dass kein sichtbares Element den Namen oder die AutomationId <paramref name="nameOrId"/> trägt.</summary>
+    public void ExpectMissing(string nameOrId) =>
+        ExpectMissing(e => e.Properties.Name.ValueOrDefault == nameOrId || e.Properties.AutomationId.ValueOrDefault == nameOrId, $"„{nameOrId}“");
+
+    /// <summary>
+    /// Liest den Text eines Elements: den eingetippten Wert eines Feldes oder, ohne Wert, den Namen. Für Prüfungen auf Zahlen
+    /// und Codes, die der Lauf nicht kennt (Gutscheincode, Sollbestand).
+    /// </summary>
+    public static string TextOf(AutomationElement element)
+    {
+        if (element.Patterns.Value.PatternOrDefault?.Value.ValueOrDefault is { Length: > 0 } value)
+        {
+            return value;
+        }
+
+        return element.Properties.Name.ValueOrDefault ?? "";
+    }
+
+    /// <summary>Wartet auf ein Element und liefert seinen Text (<see cref="TextOf"/>).</summary>
+    public string Read(Func<AutomationElement, bool> match, string what) => TextOf(Find(match, what));
+
+    /// <summary>
+    /// Holt den Fokus auf die Kalenderfläche: Buchstaben-Kürzel greifen nur, wenn kein Feld im Seitenpanel den Fokus hat. Esc
+    /// schließt das Panel (und ein offenes Menü); danach gehört die Taste dem Kalender (<c>OnKeyWithoutFocus</c>).
+    /// </summary>
+    public static void FocusCalendar()
+    {
+        Press(VirtualKeyShort.ESCAPE);
+        Thread.Sleep(300);
     }
 
     /// <summary>
@@ -175,7 +459,8 @@ internal sealed class LiveSession : IDisposable
     {
         var combo = Find(comboName);
         Click(combo);
-        var item = TryFind(element => IsComboItem(element) && StartsWith(element, itemName), FindTimeout);
+        var item = TryFind(element => IsComboItem(element) && StartsWith(element, itemName), FindTimeout)
+                   ?? ScrollToComboItem(itemName);
         if (item is null)
         {
             var offered = string.Join(", ", VisibleComboItems());
@@ -188,6 +473,55 @@ internal sealed class LiveSession : IDisposable
         {
             throw new InvalidOperationException($"Die Auswahl „{comboName}“ zeigt nach dem Klick nicht „{itemName}“.");
         }
+    }
+
+    /// <summary>
+    /// Die offene Auswahl ist virtualisiert: Einträge weiter unten stehen erst nach dem Blättern im Automationsbaum. Blättert mit dem
+    /// Die Liste wird über das <c>ScrollPattern</c> ihres Rollbereichs nach oben gesetzt und dann seitenweise nach unten bewegt, bis
+    /// <paramref name="itemName"/> auftaucht (Mausrad und Pfeiltasten erreichten die Liste nicht verlässlich, gemessen 09.11.2026).
+    /// </summary>
+    private AutomationElement? ScrollToComboItem(string itemName)
+    {
+        var scroll = ComboListScroll();
+        if (scroll is null)
+        {
+            return null;
+        }
+
+        scroll.SetScrollPercent(-1, 0);
+        for (var page = 0; page < 30; page++)
+        {
+            var item = TryFind(element => IsComboItem(element) && StartsWith(element, itemName), TimeSpan.FromMilliseconds(400));
+            if (item is not null)
+            {
+                return item;
+            }
+
+            if (scroll.VerticalScrollPercent.ValueOrDefault >= 100)
+            {
+                return null;
+            }
+
+            scroll.Scroll(ScrollAmount.NoAmount, ScrollAmount.LargeIncrement);
+        }
+
+        return null;
+    }
+
+    /// <summary>Der Rollbereich der offenen Auswahl: der nächste Vorfahr eines Eintrags, der <c>ScrollPattern</c> anbietet.</summary>
+    private FlaUI.Core.Patterns.IScrollPattern? ComboListScroll()
+    {
+        var element = TryFind(IsComboItem, TimeSpan.FromSeconds(1));
+        for (var depth = 0; element is not null && depth < 6; depth++)
+        {
+            element = element.Parent;
+            if (element?.Patterns.Scroll.PatternOrDefault is { } scroll && scroll.VerticallyScrollable.ValueOrDefault)
+            {
+                return scroll;
+            }
+        }
+
+        return null;
     }
 
     private static bool IsComboItem(AutomationElement element) => element.Properties.ClassName.ValueOrDefault == "ComboBoxItem";
@@ -216,17 +550,77 @@ internal sealed class LiveSession : IDisposable
     }
 
     /// <summary>Klickt in das Feld, markiert den alten Inhalt und tippt den Text Taste für Taste.</summary>
-    public void Type(string field, string text)
+    public void Type(string field, string text) => TypeInto(Find(field), text);
+
+    /// <summary>Wie <see cref="Type(string, string)"/> für ein schon gefundenes Feld.</summary>
+    public void TypeInto(AutomationElement element, string text)
     {
-        var element = Find(field);
         Highlight(element);
         element.Click(moveMouse: true);
+        EnsureAppInForeground();
         Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_A);
+        EnsureAppInForeground();
         Keyboard.Type(text);
     }
 
-    /// <summary>Drückt eine Taste in der App.</summary>
-    public static void Press(VirtualKeyShort key) => Keyboard.Type(key);
+    /// <summary>Drückt eine Taste in der App; nie in ein fremdes Fenster (<see cref="EnsureAppInForeground"/>).</summary>
+    public static void Press(VirtualKeyShort key)
+    {
+        EnsureAppInForeground();
+        Keyboard.Type(key);
+    }
+
+    /// <summary>Drückt zwei Tasten zugleich (Strg+F) in der App.</summary>
+    public static void Chord(VirtualKeyShort first, VirtualKeyShort second)
+    {
+        EnsureAppInForeground();
+        Keyboard.TypeSimultaneously(first, second);
+    }
+
+    /// <summary>Tippt Text in die App, ohne vorher ein Feld anzuklicken.</summary>
+    public static void TypeText(string text)
+    {
+        EnsureAppInForeground();
+        Keyboard.Type(text);
+    }
+
+    /// <summary>
+    /// Sichtprüfung 09.11.2026 (T5): Vor jeder Tasten- und Texteingabe muss das Vordergrundfenster zum Prozess der App gehören; sonst ging
+    /// Strg+A an ein Explorer-Fenster. Nach <c>SetForeground</c> wartet die Prüfung bis zu zwei Sekunden, danach endet der Lauf mit klarer
+    /// Meldung, und es wurde keine Taste gesendet.
+    /// </summary>
+    public static void EnsureAppInForeground()
+    {
+        var session = ActiveSession ?? throw new InvalidOperationException("Kein Lauf aktiv.");
+        var appId = session._app.ProcessId;
+        if (NativeWindow.ForegroundProcessId() == appId)
+        {
+            return;
+        }
+
+        try
+        {
+            session.Window.SetForeground();
+        }
+        catch (Exception ex) when (ex is System.Runtime.InteropServices.COMException or InvalidOperationException)
+        {
+            // Das Fenster ließ sich nicht nach vorn holen; die Prüfung unten entscheidet.
+        }
+
+        var deadline = DateTime.UtcNow.AddSeconds(2);
+        while (DateTime.UtcNow < deadline)
+        {
+            if (NativeWindow.ForegroundProcessId() == appId)
+            {
+                return;
+            }
+
+            Thread.Sleep(100);
+        }
+
+        var other = NativeWindow.ProcessName(NativeWindow.ForegroundProcessId());
+        throw new ForegroundLostException($"Abbruch: Im Vordergrund liegt nicht die App, sondern {other}. Es wurden keine Tasten gesendet.");
+    }
 
     /// <summary>Wartet, bis das Element sichtbar ist, und hebt es hervor (Prüfschritt).</summary>
     public void Expect(string nameOrId) => Highlight(Find(nameOrId));
@@ -288,6 +682,17 @@ internal sealed class LiveSession : IDisposable
         }
 
         return file;
+    }
+
+    /// <summary>Schreibt die sichtbaren Elemente auf Wunsch in <c>liste-&lt;name&gt;.txt</c> im Laufordner; Hilfe beim Schreiben neuer Themen.</summary>
+    public void Dump(string name) => DumpVisible($"liste-{name}");
+
+    /// <summary>Schreibt Klasse, AutomationId und Name aller sichtbaren Elemente neben das Fehlerbild; das spart das Raten beim Nachbessern.</summary>
+    private void DumpVisible(string name)
+    {
+        var lines = AllVisible().Select(e =>
+            $"{e.Properties.ClassName.ValueOrDefault} | {e.Properties.AutomationId.ValueOrDefault} | {e.Properties.Name.ValueOrDefault} | {e.Properties.HelpText.ValueOrDefault}");
+        File.WriteAllLines(Path.Combine(_folder, $"{Slug(name)}.txt"), lines);
     }
 
     private static string Slug(string name)

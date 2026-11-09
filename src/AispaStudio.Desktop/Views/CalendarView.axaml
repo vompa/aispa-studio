@@ -192,7 +192,7 @@
               <TextBlock Text="Verschieben" FontWeight="Medium" />
               <StackPanel Orientation="Horizontal" Spacing="12">
                 <ui:FormField Label="Tag">
-                  <ui:DateField x:Name="MoveDateBox" CommittedText="{Binding MoveDateText}" />
+                  <ui:DateField x:Name="MoveDateBox" CommittedText="{Binding MoveDateText}" Minimum="{Binding Today}" />
                 </ui:FormField>
                 <ui:FormField Label="Beginn">
                   <ui:TimeField CommittedText="{Binding MoveTimeText}" />
@@ -212,7 +212,8 @@
               <ContentControl Content="{Binding Conflict}" IsVisible="{Binding ConflictInMove}" />
               <UniformGrid Columns="2" ColumnSpacing="8">
                 <Button Classes="primary" Content="Verschieben" Command="{Binding MoveToDayCommand}" HorizontalAlignment="Stretch"
-                        HorizontalContentAlignment="Center" IsDefault="True" ui:SaveShortcut.IsSave="True" ToolTip.Tip="Verschieben (Strg+S)" />
+                        HorizontalContentAlignment="Center" IsDefault="True" ui:SaveShortcut.IsSave="True" ToolTip.Tip="Verschieben (Strg+S)"
+                        ui:DisabledHint.Text="Verfügbar für heute oder einen späteren Tag." />
                 <Button Classes="ghost" Content="Abbrechen" Command="{Binding CancelMoveToDayCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
               </UniformGrid>
             </StackPanel>
@@ -255,9 +256,9 @@
           <StackPanel Spacing="8" IsVisible="{Binding #MoreToggle.IsChecked}">
             <UniformGrid Columns="2" ColumnSpacing="8" IsVisible="{Binding CanChangeStatus}">
               <Button Content="Erledigt" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
-                      Command="{Binding CompleteCommand}" IsEnabled="{Binding ShowComplete}" ui:DisabledHint.Text="Verfügbar bei gebuchten und eingecheckten Terminen." />
+                      Command="{Binding CompleteCommand}" IsEnabled="{Binding ShowComplete}" ui:DisabledHint.Text="{Binding CompleteHint}" />
               <Button Content="Nicht erschienen" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
-                      Command="{Binding NoShowCommand}" IsEnabled="{Binding ShowNoShow}" ui:DisabledHint.Text="Verfügbar bei gebuchten Terminen." />
+                      Command="{Binding NoShowCommand}" IsEnabled="{Binding ShowNoShow}" ui:DisabledHint.Text="{Binding NoShowHint}" />
             </UniformGrid>
             <Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
                     Command="{Binding EditSeriesCommand}" IsVisible="{Binding ShowRepeat}" ToolTip.Tip="Serie ab diesem Termin">
@@ -1186,7 +1187,7 @@
             <ui:TimeField CommittedText="{Binding EndText}" NotBefore="{Binding #EntryStartBox.Value}" />
           </ui:FormField>
         </StackPanel>
-        <ui:FormField Label="{Binding TextLabel}" IsVisible="{Binding HasText}">
+        <ui:FormField Label="{Binding TextLabel}" IsVisible="{Binding HasText}" Error="{Binding TextError}">
           <!-- Die Notiz ist mehrzeilig und wächst mit (Ä148), der Grund einer Sperrzeit bleibt eine Zeile -->
           <TextBox x:Name="EntryTextBox" Classes="grow" Text="{Binding Text}" PlaceholderText="{Binding TextHint}" AcceptsReturn="{Binding IsNote}" />
         </ui:FormField>
@@ -1269,23 +1270,31 @@
             <TextBlock Text="Anamnese prüfen" />
           </StackPanel>
         </Border>
+        <!-- L5: Gast ohne Telefon und E-Mail; Hinweis am Objekt (meldungen.md, M3), blockiert nichts -->
+        <Border Classes="pill warn" HorizontalAlignment="Left" IsVisible="{Binding HasNoContact}"
+                ToolTip.Tip="Ohne Telefon oder E-Mail gehen keine Erinnerung und keine Zusage hinaus, bis der Kontakt in der Kundenkarte ergänzt ist">
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <ui:Icon Data="{x:Static ui:Icons.Warning}" Width="14" Height="14" Foreground="{DynamicResource WarnBrush}" />
+            <TextBlock Text="Keine Kontaktmöglichkeit" />
+          </StackPanel>
+        </Border>
         <Border Classes="panelcard" IsVisible="{Binding HasSuggestions}">
           <StackPanel Spacing="6">
             <TextBlock Text="Vorschläge" FontWeight="SemiBold" />
-            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8" IsVisible="{Binding HasTreatmentSuggestion}">
-              <TextBlock Text="{Binding SuggestedTreatmentText}" VerticalAlignment="Center" TextWrapping="Wrap" />
-              <Button Grid.Column="1" Content="Übernehmen" Command="{Binding AcceptTreatmentCommand}" AutomationProperties.Name="Behandlung übernehmen"
+            <StackPanel Spacing="4" IsVisible="{Binding HasTreatmentSuggestion}">
+              <TextBlock Text="{Binding SuggestedTreatmentText}" TextWrapping="Wrap" />
+              <Button Content="Übernehmen" Command="{Binding AcceptTreatmentCommand}" AutomationProperties.Name="Behandlung übernehmen" HorizontalAlignment="Left"
                       IsVisible="{Binding SuggestionIsDoable}" />
               <!-- Die Spalte kann den Vorschlag nicht: der Weg zu jemandem, der ihn kann -->
-              <Button Grid.Column="1" Content="Freie Zeit suchen" Command="{Binding SearchFreeTimeCommand}" CommandParameter="{Binding SuggestedTreatment}"
+              <Button Content="Freie Zeit suchen" Command="{Binding SearchFreeTimeCommand}" CommandParameter="{Binding SuggestedTreatment}" HorizontalAlignment="Left"
                       AutomationProperties.Name="Freie Zeit für die zuletzt gebuchte Behandlung suchen"
                       IsVisible="{Binding !SuggestionIsDoable}" />
-            </Grid>
+            </StackPanel>
             <TextBlock Text="{Binding HabitualPersonText}" Classes="muted small" IsVisible="{Binding HasHabitualPerson}" />
-            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8" IsVisible="{Binding HasWishSuggestion}">
-              <TextBlock Text="{Binding SuggestedWishText}" VerticalAlignment="Center" TextWrapping="Wrap" />
-              <Button Grid.Column="1" Content="Übernehmen" Command="{Binding AcceptWishCommand}" AutomationProperties.Name="Wunsch in die Notiz übernehmen" />
-            </Grid>
+            <StackPanel Spacing="4" IsVisible="{Binding HasWishSuggestion}">
+              <TextBlock Text="{Binding SuggestedWishText}" TextWrapping="Wrap" />
+              <Button Content="Übernehmen" Command="{Binding AcceptWishCommand}" AutomationProperties.Name="Wunsch in die Notiz übernehmen" HorizontalAlignment="Left" />
+            </StackPanel>
           </StackPanel>
         </Border>
         <Border Classes="panelcard" IsVisible="{Binding ShowNewCustomer}">
@@ -1347,11 +1356,11 @@
           </ComboBox>
         </ui:FormField>
         <!-- Nur was die Spalte kann (Auftraggeber, 27.10.2026); alles andere über die freie Zeit -->
-        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-          <TextBlock Text="{Binding ColumnScopeText}" Classes="muted small" TextWrapping="Wrap" VerticalAlignment="Center" />
-          <Button Grid.Column="1" Classes="ghost" Content="Freie Zeit suchen" Command="{Binding SearchFreeTimeCommand}"
+        <StackPanel Spacing="4">
+          <TextBlock Text="{Binding ColumnScopeText}" Classes="muted small" TextWrapping="Wrap" />
+          <Button Classes="ghost" Content="Freie Zeit suchen" Command="{Binding SearchFreeTimeCommand}" HorizontalAlignment="Left"
                   IsVisible="{Binding CanSearchFreeTime}" />
-        </Grid>
+        </StackPanel>
 
         <Grid ColumnDefinitions="160,110" ColumnSpacing="12">
           <ui:FormField Label="Datum" IsRequired="True">
@@ -1368,13 +1377,7 @@
         <ui:InfoBar Severity="Info" Message="{Binding DayNotice}" IsVisible="{Binding HasDayNotice}" />
         <!-- Von „KI und Hilfe“ vorausgefüllt (Ä319): Hinweis auf den Vorschlag der KI -->
         <ui:InfoBar Severity="Info" Message="{Binding AssistantNote}" IsVisible="{Binding AssistantNote, Converter={x:Static ObjectConverters.IsNotNull}}" />
-        <!-- Meldung über dem Knopf der Aktion (meldungen.md, M7); außerhalb der Öffnungszeit oder des Dienstes als Warnung mit „Trotzdem buchen“ (Slice 85) -->
-        <ui:InfoBar Severity="Warning" Message="{Binding OutsideHours}" ActionText="Trotzdem buchen" ActionCommand="{Binding BookAnywayCommand}"
-                    IsVisible="{Binding OutsideHours, Converter={x:Static ObjectConverters.IsNotNull}}" />
-        <ui:InfoBar Severity="Error" Message="{Binding Error}" IsVisible="{Binding Error, Converter={x:Static ObjectConverters.IsNotNull}}" />
-        <ContentControl Content="{Binding Conflict}" IsVisible="{Binding Conflict, Converter={x:Static ObjectConverters.IsNotNull}}" />
-        <Button Classes="primary" Content="Termin buchen" Command="{Binding BookCommand}" HorizontalAlignment="Stretch"
-                HorizontalContentAlignment="Center" ui:SaveShortcut.IsSave="True" ToolTip.Tip="Termin buchen (Strg+S)" ui:DisabledHint.Text="Verfügbar, sobald Gast, Behandlung und Beginn gewählt sind." />
+        <!-- Meldung und Knopf „Termin buchen“ stehen fest im Fuß der Seitenleiste (Border BookingFoot unten im Panel, außerhalb des Scrollbereichs, design.md 5.1) -->
       </StackPanel>
     </DataTemplate>
     <!-- Kundin suchen und wählen (Gäste, Eintritte) -->
@@ -1941,6 +1944,11 @@
   </UserControl.DataTemplates>
 
   <UserControl.Styles>
+    <!-- Steht der Fuß mit „Termin buchen“ darunter, braucht der scrollende Inhalt keinen eigenen Abstand für den Knopf „KI und Hilfe“ -->
+    <Style Selector="ScrollViewer.panelbody.withfoot">
+      <Setter Property="Margin" Value="0" />
+      <Setter Property="Padding" Value="16,12,16,12" />
+    </Style>
     <!-- Notizen in den Eingaben der Seitenleiste wachsen mit dem Text von 68 bis 200, danach scrollen sie (Ä148, Nachtrag zu Brief 5.16) -->
     <Style Selector="TextBox.grow[AcceptsReturn=True]">
       <Setter Property="Height" Value="NaN" />
@@ -2096,7 +2104,7 @@
             </Button>
             <!-- Termin-Gruppe (Auftraggeber, 29.10.2026): „+ Termin“ mit Menü, daneben als zweite Schaltfläche „Freie Zeit suchen“ (Kalender mit Lupe) -->
             <StackPanel x:Name="AppointmentGroup" Orientation="Horizontal" Spacing="4" IsVisible="{Binding CanBook}">
-              <SplitButton Command="{Binding NewAppointmentCommand}" ToolTip.Tip="Neuer Termin (N)">
+              <SplitButton Command="{Binding NewAppointmentCommand}" ToolTip.Tip="Neuer Termin (N)" AutomationProperties.Name="Termin">
                 <SplitButton.Flyout>
                   <MenuFlyout Placement="BottomEdgeAlignedRight">
                     <MenuItem Command="{Binding NewAppointmentCommand}" AutomationProperties.Name="Termin" AutomationProperties.AcceleratorKey="N">
@@ -2838,9 +2846,9 @@
                     <Rectangle RadiusX="5" RadiusY="5" Fill="{DynamicResource WarnSoftBrush}" Stroke="{DynamicResource WarnBrush}"
                                StrokeThickness="1.5" StrokeDashArray="4,3" IsVisible="{Binding Ghost?.IsWarning, TargetNullValue=False}" />
                     <TextBlock Text="{Binding Ghost?.Text, TargetNullValue=''}" Foreground="{DynamicResource AccentBrush}" FontSize="12"
-                               FontWeight="SemiBold" Margin="8,2" Classes="num" TextTrimming="CharacterEllipsis" IsVisible="{Binding Ghost?.IsWarning, Converter={x:Static BoolConverters.Not}, TargetNullValue=False}" />
+                               FontWeight="SemiBold" Margin="8,2" Classes="num" TextWrapping="Wrap" TextTrimming="CharacterEllipsis" IsVisible="{Binding Ghost?.IsWarning, Converter={x:Static BoolConverters.Not}, TargetNullValue=False}" />
                     <TextBlock Text="{Binding Ghost?.Text, TargetNullValue=''}" Foreground="{DynamicResource WarnBrush}" FontSize="12"
-                               FontWeight="SemiBold" Margin="8,2" Classes="num" TextTrimming="CharacterEllipsis" IsVisible="{Binding Ghost?.IsWarning, TargetNullValue=False}" />
+                               FontWeight="SemiBold" Margin="8,2" Classes="num" TextWrapping="Wrap" TextTrimming="CharacterEllipsis" IsVisible="{Binding Ghost?.IsWarning, TargetNullValue=False}" />
                   </Panel>
                 </Canvas>
               </Panel>
@@ -2940,7 +2948,7 @@
                   AutomationProperties.LiveSetting="Polite">
             <!-- Eine Zeile, höchstens eine Aktion („Rückgängig“); Entscheidungen gehören in ein Flyout am Termin (meldungen.md, M1) -->
             <StackPanel Orientation="Horizontal" Spacing="8">
-              <TextBlock Classes="msg" Text="{Binding Toast}" Foreground="{DynamicResource ToastFgBrush}" VerticalAlignment="Center" MaxWidth="540"
+              <TextBlock Classes="msg" Text="{Binding Toast}" Foreground="{DynamicResource ToastFgBrush}" VerticalAlignment="Center" MaxWidth="540" AutomationProperties.Name="Meldung"
                          ToolTip.Tip="{Binding Toast}" />
               <Button Classes="ghost" Command="{Binding UndoMoveCommand}" IsVisible="{Binding CanUndo}" Foreground="{DynamicResource ToastFgBrush}">
                 <StackPanel Orientation="Horizontal" Spacing="6">
@@ -3057,8 +3065,9 @@
           </WrapPanel>
         </Border>
         <!-- Unten 32 Rand: der runde Knopf „KI und Hilfe“ der Shell (48 px, 20 px vom Rand) ragt 32 px über die Reiterschiene in die Leiste, seit sie ohne Rand am Fenster anliegt; so endet der scrollende Inhalt oberhalb (das Kundenformular behält seine Aktionsleiste im Fuß) (bis Slice 31 den Knopf verlegt, Ä74) -->
-        <Panel Grid.Row="4">
-          <ScrollViewer Padding="16,12,16,32" Margin="0,0,0,32" IsVisible="{Binding !Selected?.IsEditingCustomer, TargetNullValue=True}">
+        <Grid Grid.Row="4" RowDefinitions="*,Auto">
+          <ScrollViewer Classes="panelbody" Classes.withfoot="{Binding Booking, Converter={x:Static ObjectConverters.IsNotNull}}" Padding="16,12,16,32" Margin="0,0,0,32"
+                        IsVisible="{Binding !Selected?.IsEditingCustomer, TargetNullValue=True}">
             <Panel>
               <ContentControl Content="{Binding Selected}" />
               <ContentControl Content="{Binding NewEntry}" />
@@ -3077,7 +3086,19 @@
           <Border IsVisible="{Binding Selected?.IsEditingCustomer, TargetNullValue=False}">
             <local:CustomerContactForm x:Name="PanelCustomerForm" Docked="True" DataContext="{Binding Selected?.CustomerForm}" HorizontalAlignment="Stretch" />
           </Border>
-        </Panel>
+          <!-- Neuer Termin: Meldung über dem Knopf der Aktion (meldungen.md, M7) und „Termin buchen“ fest im Fuß (design.md 5.1: Trennlinie oben, Innenabstand 12/16; unten 32 für den Knopf „KI und Hilfe“); außerhalb der Öffnungszeit oder des Dienstes als Warnung mit „Trotzdem buchen“ (Slice 85) -->
+          <Border Grid.Row="1" x:Name="BookingFoot" BorderThickness="0,1,0,0" BorderBrush="{DynamicResource LineBrush}" Padding="16,12,16,32"
+                  IsVisible="{Binding Booking, Converter={x:Static ObjectConverters.IsNotNull}}">
+            <StackPanel Spacing="8" DataContext="{Binding Booking}" x:DataType="vm:BookingViewModel">
+              <ui:InfoBar Severity="Warning" Message="{Binding OutsideHours}" ActionText="Trotzdem buchen" ActionCommand="{Binding BookAnywayCommand}"
+                          IsVisible="{Binding OutsideHours, Converter={x:Static ObjectConverters.IsNotNull}}" />
+              <ui:InfoBar Severity="Error" Message="{Binding Error}" IsVisible="{Binding Error, Converter={x:Static ObjectConverters.IsNotNull}}" />
+              <ContentControl Content="{Binding Conflict}" IsVisible="{Binding Conflict, Converter={x:Static ObjectConverters.IsNotNull}}" />
+              <Button Classes="primary" Content="Termin buchen" Command="{Binding BookCommand}" HorizontalAlignment="Stretch"
+                      HorizontalContentAlignment="Center" ui:SaveShortcut.IsSave="True" ToolTip.Tip="Termin buchen (Strg+S)" ui:DisabledHint.Text="Verfügbar, sobald Gast, Behandlung und Beginn gewählt sind." />
+            </StackPanel>
+          </Border>
+        </Grid>
         <!-- Reiter unten (5.12, Punkt 7), im Quelltext nach dem Inhalt, damit Tab ihn zuletzt erreicht: jede offene Seite ein Reiter; rechts bleibt Platz für den Knopf „KI und Hilfe“, der über der Ecke der Leiste schwebt -->
         <Border Grid.Row="5" x:Name="PanelRail" Classes="panelrail" Padding="8,4,60,4" ui:RegionNavigation.IsRegion="True" AutomationProperties.Name="Offene Seiten">
           <Grid ColumnDefinitions="*,Auto">

@@ -77,7 +77,7 @@ Nur für Inhaber und Standortleitung. Legt das oben gewählte Terminal still: Es
 
 ## Anzeigen im Pausenraum {#anzeigen}
 
-Ein Bildschirm im Pausenraum zeigt den Tag des Standorts: wer wann Termine hat, welche Räume frei sind und die nächsten Termine. Statt der Gastnamen stehen dort nur Initialen, Gesundheitsdaten nie. Die Anzeige liest nur; sie kann keinen Termin anlegen, verschieben oder absagen.
+Ein Bildschirm im Pausenraum zeigt den Tag des Standorts: wer wann Termine hat, welche Räume frei sind und die nächsten Termine. Statt der Gastnamen stehen dort nur Initialen, Gesundheitsdaten nie. Die Anzeige liest nur; sie kann keinen Termin buchen, verschieben oder absagen.
 
 Den Abschnitt sehen nur Inhaber, Manager und Standortleitung (Recht „Standort verwalten“). Jede gekoppelte Anzeige steht mit ihrem Namen in der Liste.
 

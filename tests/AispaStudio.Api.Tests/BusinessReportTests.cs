@@ -56,11 +56,11 @@ public sealed class BusinessReportTests(ApiFixture fixture)
             switch (status)
             {
                 case AppointmentStatus.Completed:
-                    await spa.PostAsync<AppointmentDto>($"/api/appointments/{booked.Id}/status", new AppointmentStatusChange(AppointmentStatus.CheckedIn), Ct);
-                    await spa.PostAsync<AppointmentDto>($"/api/appointments/{booked.Id}/status", new AppointmentStatusChange(AppointmentStatus.Completed), Ct);
+                    await spa.SetStatusAsync(booked.Id, AppointmentStatus.CheckedIn, Ct);
+                    await spa.SetStatusAsync(booked.Id, AppointmentStatus.Completed, Ct);
                     break;
                 case AppointmentStatus.NoShow:
-                    await spa.PostAsync<AppointmentDto>($"/api/appointments/{booked.Id}/status", new AppointmentStatusChange(AppointmentStatus.NoShow), Ct);
+                    await spa.SetStatusAsync(booked.Id, AppointmentStatus.NoShow, Ct);
                     break;
                 case AppointmentStatus.Cancelled:
                     await spa.PostAsync<AppointmentDto>($"/api/appointments/{booked.Id}/cancel", new CancelAppointmentRequest(null), Ct);

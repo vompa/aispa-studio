@@ -258,6 +258,7 @@ public partial class CalendarViewModel
                         Clear();
                         Apply(booked);
                         ShowWarnings(booked);
+                        ShowBookedToast(booked.CustomerName, booked.Start);
                         ShowPending();
                         await Task.CompletedTask.ConfigureAwait(true);
                     },

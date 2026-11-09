@@ -1231,6 +1231,16 @@ public static class DayLayout
         return $"{ShortDay(DateOnly.FromDateTime(local))} {local:HH:mm}";
     }
 
+    /// <summary>Zeitpunkt für Toasts und Rückfragen (meldungen.md M1): am heutigen Tag nur „14:35“, sonst „Do 14:35“.</summary>
+    public static string WhenText(DateTimeOffset at, TimeZoneInfo zone, DateOnly today)
+    {
+        var local = Local(at, zone);
+        var date = DateOnly.FromDateTime(local);
+        return date == today
+            ? $"{local:HH:mm}"
+            : $"{German.DateTimeFormat.GetAbbreviatedDayName(date.DayOfWeek).TrimEnd('.')} {local:HH:mm}";
+    }
+
     public static string DateText(DateOnly date) => date.ToString("dddd, d. MMMM yyyy", German);
 
     /// <summary>Erste und letzte sichtbare Stunde eines Tages (Öffnung, Dienste und Termine mit Vor- und Nachbereitung).</summary>

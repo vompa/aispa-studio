@@ -46,6 +46,28 @@ Der Auftraggeber wollte eine kleine Windows-App, aus der man die Live-Tests mit 
 - Die Starter-App liegt schmal und immer oben am rechten Rand; der Tester setzt das App-Fenster über UI Automation (`WindowPattern`, `TransformPattern`) auf die Fläche links daneben. So treffen Klicks und Bilder die Starter-App nicht.
 - Die Konsolentasten bleiben für den Konsolenbetrieb; beide Wege rufen dieselben Befehle in `LiveControl`.
 
+## Nachtrag 08.11.2026: Tagesregel beim Einchecken
+
+Der Knopf heißt **Einchecken**, nicht „Ist da“. Bis zur Aufgabe B der [Arbeitsanweisung Rezeptions-Lücken](../umsetzung/arbeitsanweisung-rezeption-luecken.md) prüfte weder der Server noch die App den Tag; seit dieser Aufgabe gilt die Tagesregel wirklich (Einchecken nur am Tag des Termins, Kassieren nur eingecheckter oder erledigter Termine). Ein Live-Test des Kassierens braucht deshalb einen Termin am Tag des Laufs; die Live-Test-Sitzung setzt das um, hier nur vermerkt.
+
+## Nachtrag 08.11.2026: Themen der Rezeption nach dem Onboarding-Katalog
+
+Der Katalog [live-tests-rezeption-onboarding.md](../umsetzung/live-tests-rezeption-onboarding.md) (20 Themen, 72 Sonderfälle, 16 Lücken) ist im Tester umgesetzt, soweit er stabil prüfbar ist. Der Auftraggeber hat die Prüfung durch Läufe zum Schluss auf später verschoben; der Stand je Thema steht im Katalog.
+
+- **Berichtigung „Einchecken“:** Den Knopf „Ist da“ gibt es nicht; er heißt **Einchecken** (Taste E, Status „Eingecheckt“). Seit den Rezeptions-Lücken gilt die Tagesregel (Nachtrag „Tagesregel beim Einchecken“): Das Thema `appointment` bucht deshalb am Tag des Laufs, `checkout` kassiert erst nach dem Einchecken.
+- **Neue Bausteine** in `LiveSession`: `ExpectMissing` (kurzer Timeout, scheitert, sobald das Element auftaucht), `WaitUntilMissing`, `RightClick`/`RightClickAt`, `ChooseMenuItem`, `TextOf`/`Read`, `FocusCalendar`, `ScrollIntoBody`, `FindInRow`, `VisibleRects`, bei einem Fehler zusätzlich eine Liste der sichtbaren Elemente neben dem Fehlerbild. `LiveRunContext` kennt Termin (Kundin, Behandlung, Beginn, Tag) und Gutscheincode; `LiveTopic.Needs` verlangt ein früheres Thema und scheitert vor dem Start mit klarer Meldung, `LiveTopic.Leaves` steht als Vermerk im Bericht.
+- **Gegenprobe:** Die Umgebungsvariable `AISPA_LIVE_SKIP_CLICK` (Namen mit `|`, `*` am Ende für einen Namensanfang) lässt einen Klick aus; die Prüfung dahinter muss scheitern. So wurde gezeigt, dass die Prüfungen der Kunden-, Termin- und Einchecken-Themen ohne das Ergebnis rot werden.
+- **App:** keine eigene Änderung; die Namen „Termin“ (SplitButton) und „Meldung“ (Text der Meldung unten) kommen aus den Rezeptions-Lücken. Im echten Automationsbaum trägt der Meldungstext trotzdem seinen Wortlaut als Namen (der ToolTip zusätzlich als Hilfetext, gemessen 09.11.2026); der Tester prüft beides. Die Meldung steht nur gut eine Sekunde im Baum, Beleg einer Buchung ist deshalb die Karte.
+- **Erkenntnisse:** Ein `Border` mit `x:Name` steht nicht im Automationsbaum, Prüfungen hängen an einem Text der Maske. Die Freie-Zeit-Suche nimmt die erste freie Zeit; nach vielen Läufen war „Gesichtsbehandlung Klassik“ in den nächsten 14 Tagen ausgebucht, der Lauf nimmt deshalb „Maniküre mit Lack“. Der Kalender folgt einem verschobenen Termin auf den neuen Tag, nach „Rückgängig“ bleibt er dort. Die Meldung mit „Rückgängig“ verschwindet nach acht Sekunden, Prüfen und Klicken stehen daher in einem Schritt. „Schon vorhanden?“ zeigt alle Namensvettern, der Knopf muss zur Zeile der gemeinten Kundin gehören. Die Tastenhilfe öffnet mit `?`, nicht mit F1.
+
+## Nachtrag 09.11.2026: Sichtprüfung der Rezeption, Erweiterungen des Testers
+
+- **Roter Schritt zählt, Lauf geht weiter:** `LiveJourney.Run` fängt Fehler je Thema, schreibt „THEMA ROT“ in den Bericht und bringt die App in den Grundzustand (`Baseline`). Themen mit `Needs` auf ein rotes Thema werden übersprungen („THEMA ÜBERSPRUNGEN“). Exitcode 1, wenn ein Thema rot war.
+- **Vordergrundschutz:** Tasten und Text gehen nur in die App (`LiveSession.EnsureAppInForeground`, `NativeWindow`); bei einem fremden Fenster im Vordergrund endet der Lauf mit Exitcode 3. Anlass: In einem Lauf bekam ein Explorer-Fenster Strg+A. Weder die App noch der Tester starten den Explorer (Suche nach `Process.Start` in `tests/AispaStudio.LiveTests` und `src/AispaStudio.Desktop`: nur der Neustart der App selbst); das fremde Fenster ließ sich deshalb nicht auf den Code zurückführen, der Schutz verhindert den Schaden unabhängig von der Ursache.
+- **Mausprobe (`AISPA_LIVE_MOUSE`)** und Wiederholung beim Klick auf eine Karte: Mausklicks auf Knöpfe und Karten kommen gelegentlich nicht an (nur Hover). Die Zahlen der Gegenprobe stehen im Ergebnisbericht der Sichtprüfung; der Tester klickt auf eine Karte bis zu dreimal, bis das Panel da ist, und schreibt den Wiederholungsversuch in den Bericht.
+- **Zusätzliche Themen `extra-…`** mit Standortregel, Konto der Standortleitung, Fehlerfällen vom Server (`LiveApi`) und dem Thema `extra-offline` (Container anhalten über `docker compose`, nur im Thema und nur für das Projekt `aispa-sicht`).
+- **Erkenntnisse:** Eine Meldung am Feld (FormField) steht für UI Automation als Hilfetext des Feldes, nicht als eigener Text. Der Name einer Karte ist beim Neuaufbau des Kalenders kurz leer; der Tester liest ihn neu. Ein Knopf, der seinen Dialog schließt, löst beim Invoke den COM-Fehler 0x80040201 aus; die Aktion ist dann geschehen.
+
 ## Quellen
 
 - [FlaUI](https://github.com/FlaUI/FlaUI) (MIT)

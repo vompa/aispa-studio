@@ -1,107 +1,66 @@
+using FlaUI.Core.AutomationElements;
+
 namespace AispaStudio.LiveTests;
 
 /// <summary>
-/// Ablauf der Rezeption: anmelden als Nina Kovač (Wien, Demo-Daten), dann die Themen „Kundin anlegen“ und „Termin buchen“.
-/// Gebucht wird für die Kundin des Laufs, ohne sie für eine Kundin aus den Demo-Daten.
+/// Ablauf der Rezeption: anmelden als Nina Kovač (Wien, Demo-Daten), dann die Themen des Onboarding-Katalogs
+/// (<c>docs/umsetzung/live-tests-rezeption-onboarding.md</c>). Gearbeitet wird mit der Kundin und dem Termin des Laufs oder mit
+/// den festen Stammgästen der Demo-Daten; jedes Thema lässt den Kalender auf dem nächsten Tag zurück, wie der Vorlauf ihn hinterlässt.
+/// Die Reihenfolge der Themen ist fest; <c>day-closing</c> steht zuletzt.
 /// </summary>
-internal static class ReceptionJourney
+internal static partial class ReceptionJourney
 {
-    private const string Treatment = "Gesichtsbehandlung Klassik";
-    private const string DemoCustomer = "Ingrid Wallner";
+    /// <summary>Behandlung des Laufs; Wien bietet sie an; die Gesichtsbehandlungen waren nach vielen Läufen ausgebucht.</summary>
+    private const string Treatment = "Maniküre mit Lack";
+
+    /// <summary>Stammgast der Demo-Daten (Demo/DemoCustomers.cs), den der Lauf für Termine ohne eigene Kundin nimmt.</summary>
+    private const string DemoCustomer = "Anna Bauer";
+
+    /// <summary>Zweiter Stammgast für Fälle, in denen zwei verschiedene Gäste nötig sind.</summary>
+    private const string OtherDemoCustomer = "Thomas Leitner";
 
     public static LiveJourney Journey { get; } = new(
         "Rezeption",
         "Anmelden als Nina Kovač (Rezeption Wien)",
         SignIn,
         [
-            new("customer", "Kundin anlegen", "Neue Kundin mit Name und Telefon anlegen", CreateCustomer),
-            new("appointment", "Termin buchen", $"{Treatment} zur ersten freien Zeit buchen, ohne neue Kundin für {DemoCustomer}", BookAppointment),
-        ]);
+            .. AccountTopics,
+            .. CustomerTopics,
+            .. AppointmentTopics,
+            .. ExtraTopics,
+            .. PosTopics,
+        ],
+        ResetToBaseline);
 
     private static void SignIn(LiveSession s)
     {
         s.Step("Abgemeldet beginnen", () => SignOutIfSignedIn(s));
-        s.Step("Als Nina Kovač (Rezeption Wien) anmelden", () =>
+        SignInAs(s, "Nina Kovač");
+        TomorrowStep(s);
+    }
+
+    /// <summary>Am Sonntag hat in den Demo-Daten niemand Dienst; der Lauf arbeitet deshalb mit dem nächsten Tag.</summary>
+    private static void TomorrowStep(LiveSession s) =>
+        s.Step("Kalender auf den nächsten Tag stellen", () =>
+        {
+            // Die App merkt sich den zuletzt gezeigten Tag; „Heute“ macht den Ausgangspunkt eindeutig.
+            s.Click(Button("Heute"), "Knopf „Heute“");
+            s.Click("Nächster Tag");
+            s.Report.AddEvent($"Der Lauf arbeitet am {LiveSession.TextOf(s.Find("DateLine"))}.");
+        });
+
+    private static void SignInAs(LiveSession s, string person, string role = "Rezeption") =>
+        s.Step($"Als {person} ({role}) anmelden", () =>
         {
             s.Click("Testkonto");
-            s.Click("Nina Kovač");
+            s.Click(person);
             s.Click("Als Testkonto anmelden");
-            s.Expect("Konto Nina Kovač, Rezeption · AISPA Day Spa GmbH");
+            s.Expect(e => e.Properties.Name.ValueOrDefault?.StartsWith($"Konto {person}, {role}", StringComparison.Ordinal) == true,
+                $"Kontoknopf „Konto {person}, {role} …“");
         });
-        // Am Sonntag hat in den Demo-Daten niemand Dienst.
-        s.Step("Kalender auf den nächsten Tag stellen", () => s.Click("Nächster Tag"));
-    }
-
-    private static void CreateCustomer(LiveSession s, LiveRunContext context)
-    {
-        var name = $"Eva Live{context.Stamp}";
-        s.Step("Kunden öffnen", () => s.Click(Navigation(s, "Kunden")));
-        s.Step("Neue Kundin beginnen", () => s.Click("NewButton"));
-        s.Step($"Kundin {name} eintragen", () =>
-        {
-            s.Type("Vorname", "Eva");
-            s.Type("Nachname", $"Live{context.Stamp}");
-            s.Type("Telefon", $"+43 660 {context.Stamp}");
-        });
-        s.Step("Anlegen", () =>
-        {
-            s.Click("Anlegen");
-            // Das Feld trägt den Namen als Wert, nicht als Name; gefunden wird also nur die angelegte Kundin.
-            s.Expect(e => e.Properties.Name.ValueOrDefault == name, $"Kundin „{name}“");
-        });
-        context.CustomerName = name;
-    }
-
-    private static void BookAppointment(LiveSession s, LiveRunContext context)
-    {
-        var customer = context.CustomerName ?? DemoCustomer;
-        s.Step("Kalender öffnen", () => s.Click(Navigation(s, "Kalender")));
-        s.Step("Neuen Termin beginnen", () =>
-        {
-            s.Click(s.Find(e => e.Properties.AutomationId.ValueOrDefault == "PART_PrimaryButton"
-                                && e.Properties.Name.ValueOrDefault == "Termin",
-                "Knopf „+ Termin“"));
-            s.Expect("Kundin oder Kunde suchen");
-        });
-        s.Step($"Kundin {customer} suchen und wählen", () =>
-        {
-            s.Type("Kundin oder Kunde suchen", customer);
-            s.Click(s.Find(e => e.Properties.ClassName.ValueOrDefault is "ListBoxItem" or "Button"
-                                && e.Properties.Name.ValueOrDefault?.StartsWith(customer, StringComparison.Ordinal) == true,
-                $"Treffer „{customer}“"));
-            s.Expect("Ändern");
-        });
-        s.Step($"{Treatment} wählen", () => s.Choose("Behandlung", Treatment));
-        // Eine feste Uhrzeit hielte nicht: jeder Lauf hinterlässt einen Termin. Die Rezeption sucht deshalb wie im Betrieb freie Zeit.
-        s.Step("Freie Zeit suchen", () =>
-        {
-            s.Click(s.Find(e => e.Properties.Name.ValueOrDefault == "Freie Zeit suchen"
-                                && e.Properties.ClassName.ValueOrDefault == "Button"
-                                && e.Properties.AutomationId.ValueOrDefault != "FreeTimeButton",
-                "Knopf „Freie Zeit suchen“ im Buchungsbereich"));
-            s.Expect(e => e.Properties.ClassName.ValueOrDefault == "ListBoxItem", "Erste freie Zeit");
-        });
-        s.Step("Erste freie Zeit buchen", () =>
-        {
-            s.Click(s.Find(e => e.Properties.Name.ValueOrDefault?.EndsWith("buchen (Enter)", StringComparison.Ordinal) == true
-                                || e.Properties.Name.ValueOrDefault == "Buchen (Enter)",
-                "Knopf „Buchen“ unter den freien Zeiten"));
-            // Eine Kundin aus den Demo-Daten hat schon Termine; erst die Meldung belegt, dass dieser Lauf gebucht hat.
-            s.Expect(e => e.Properties.Name.ValueOrDefault?.StartsWith($"Gebucht: {customer},", StringComparison.Ordinal) == true,
-                $"Meldung „Gebucht: {customer}, …“");
-            // Die Kalenderkarte heißt „<Zeit> <Kundin>, <Behandlung>, Gebucht“; der Name allein stünde auch im Kundenfeld.
-            s.Expect(
-                e => e.Properties.ClassName.ValueOrDefault == "AppointmentCard"
-                     && e.Properties.Name.ValueOrDefault is { } card
-                     && card.Contains($" {customer}, {Treatment}", StringComparison.Ordinal),
-                $"Kalenderkarte „{customer}, {Treatment}“");
-        });
-        // Kassieren braucht „Ist da“, und das geht nur am Tag des Termins; der Lauf bucht für den nächsten Tag.
-        s.Report.AddEvent("Kassieren nicht geprüft: braucht „Ist da“ am Tag des Termins, der Lauf bucht für den nächsten Tag.");
-    }
 
     /// <summary>Eintrag der Seitennavigation; „Kalender“ heißt im Kalender auch ein Ansichtsknopf.</summary>
-    private static FlaUI.Core.AutomationElements.AutomationElement Navigation(LiveSession s, string page) =>
+    private static AutomationElement Navigation(LiveSession s, string page) =>
         s.Find(e => e.Properties.ClassName.ValueOrDefault == "ListBoxItem"
                     && e.Properties.Name.ValueOrDefault?.StartsWith(page, StringComparison.Ordinal) == true,
             $"Navigation „{page}“");
@@ -121,4 +80,29 @@ internal static class ReceptionJourney
         s.Click("Abmelden");
         s.Expect("Als Testkonto anmelden");
     }
+
+    // Kurzformen für Suchbedingungen; Elemente werden immer an Klasse und Name festgemacht, nie am Namen allein.
+    private static Func<AutomationElement, bool> NameIs(string name) => e => e.Properties.Name.ValueOrDefault == name;
+
+    private static Func<AutomationElement, bool> NameStarts(string text) =>
+        e => e.Properties.Name.ValueOrDefault?.StartsWith(text, StringComparison.Ordinal) == true;
+
+    private static Func<AutomationElement, bool> NameContains(string text) =>
+        e => e.Properties.Name.ValueOrDefault?.Contains(text, StringComparison.Ordinal) == true;
+
+    /// <summary>Text im Namen oder im Hilfetext; Meldungen an Feldern stehen als Hilfetext des Feldes (FormField).</summary>
+    private static Func<AutomationElement, bool> NameOrHelpContains(string text) =>
+        e => e.Properties.Name.ValueOrDefault?.Contains(text, StringComparison.Ordinal) == true
+             || e.Properties.HelpText.ValueOrDefault?.Contains(text, StringComparison.Ordinal) == true;
+
+    private static Func<AutomationElement, bool> Class(string className, Func<AutomationElement, bool> also) =>
+        e => e.Properties.ClassName.ValueOrDefault == className && also(e);
+
+    private static Func<AutomationElement, bool> Button(string name) => Class("Button", NameIs(name));
+
+    /// <summary>Die Kalenderkarte des Termins, mit dem Status am Ende („Gebucht“, „Eingecheckt“ …); ohne Status trifft jede.</summary>
+    private static Func<AutomationElement, bool> Card(BookedAppointment appointment, string? status = null) =>
+        Class("AppointmentCard", e => e.Properties.Name.ValueOrDefault is { } card
+                                      && card.Contains(appointment.CardPrefix, StringComparison.Ordinal)
+                                      && (status is null || card.EndsWith($", {status}", StringComparison.Ordinal)));
 }
