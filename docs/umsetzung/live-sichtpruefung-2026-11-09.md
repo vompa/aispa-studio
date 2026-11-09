@@ -6,18 +6,13 @@ Stand: Branch `claude/live-sichtpruefung-fe3810` (Inhalt von `dev` mit den Rezep
 
 **Umgebung.** Die Windows-App (Release) lief gegen einen eigenen Docker-Stack aus dem Worktree (`docker compose -p aispa-sicht`, API auf Port 5186, frische Demo-Daten), nicht gegen den AppHost: Auf Port 5086 lief schon der Stack einer anderen Sitzung (gleicher `src/`-Stand), und dessen Datenbank neu zu laden war nicht freigegeben. Tempo `-Speed fast`, Rolle Rezeption, angemeldet als Nina Kovač.
 
-**Ergebnis nach Themen** (31 Themen, Schlüssel nach [Arbeitsweise](../arbeitsweise.md)):
+**Ergebnis nach Themen** (31 Themen des Katalogs, Schlüssel nach [Arbeitsweise](../arbeitsweise.md)): Im vierten Gesamtlauf waren **alle 31 Themen grün**, dazu `appointment-past`, `voucher`, `voucher-invalid` (beim ersten Durchgang rot, siehe T4, T5) und neun neue Zusatzthemen `extra-…` (203 Schritte, Exitcode 0). Der erste Durchgang (28 Anläufe) kam auf 28 grüne Themen; `appointment-past`, `voucher` und `voucher-invalid` scheiterten am Tester. Die Zusatzthemen decken ab: Storno innerhalb der Stornofrist als Rezeption und Standortleitung, „… krank melden?“, Pause und Sperrzeit anlegen und löschen, Verschieben auf gestern, Einchecken bei einem Termin von morgen, „Einchecken und kassieren?“, Reiter „Entnahme“, Pille „Keine Kontaktmöglichkeit“, Taste V, 400 und 409 am Server, Verbindung weg.
 
-| Stand | Themen |
-| --- | --- |
-| grün, Bilder gesichtet (28) | `signin`, `signin-other-account`, `overview`, `customer-search`, `customer-search-alias`, `customer`, `customer-duplicate`, `customer-minimal`, `customer-empty`, `customer-phone-format`, `customer-badmail`, `appointment`, `appointment-conflict`, `appointment-closed`, `checkin`, `checkin-late`, `checkin-undo-late`, `checkin-noshow`, `reschedule`, `reschedule-past`, `reschedule-checked-in`, `cancel`, `cancel-restore`, `cancel-esc`, `cancel-no-fee`, `checkout`, `receipt-void-empty-reason`, `day-closing` |
-| nicht durchgelaufen (3) | `appointment-past` (Tester-Annahme „gestern hat Dienst“ stimmt am Montag nicht, gestern war Sonntag), `voucher` und `voucher-invalid` (Ursache siehe T5) |
+„Bilder gesichtet“ heißt: die Bilder der Dialoge, Meldungen und Fehlerbilder wurden einzeln angesehen (Befundbilder `b01` bis `b10`, Zusatzbilder `c01` bis `c21`); die übrigen Schrittbilder (rund 800) wurden anhand der grünen Prüfungen und Stichproben nicht einzeln gesichtet.
 
-`sick-leave` ist kein Thema des Testers und wurde nicht live gespielt (nur Quelltext, Abschnitt 3). „Bilder gesichtet“ heißt: die Bilder der Dialoge, Meldungen und Fehlerbilder wurden einzeln angesehen; die übrigen Schrittbilder (rund 600) wurden anhand der grünen Prüfungen und Stichproben nicht einzeln gesichtet.
+**Dauer (erster Durchgang).** Ein Lauf über 17 Themen (79 Schritte) dauerte reine Schrittzeit 339 s (rund 6 Minuten mit Start und Anmeldung), 61 Schritte (12 Themen) 234 bis 245 s, ein Einzelthema 30 bis 110 s. Gesamt waren 28 Anläufe nötig; der Gesamtlauf mit allen Themen und Zusatzthemen (203 Schritte) war erst im vierten Versuch ohne rotes Thema (Bericht je Lauf unter `.test-logs/live/`, nicht im Repository), weil der Tester beim ersten roten Schritt endet.
 
-**Dauer.** Ein Lauf über 17 Themen (79 Schritte) dauerte reine Schrittzeit 339 s (rund 6 Minuten mit Start und Anmeldung), 61 Schritte (12 Themen) 234 bis 245 s, ein Einzelthema 30 bis 110 s. Gesamt waren 28 Anläufe nötig (Bericht je Lauf unter `.test-logs/live/`, nicht im Repository), weil der Tester beim ersten roten Schritt endet.
-
-**Rote Schritte und Ursache** (alle waren Tester- oder Datenfehler, kein roter Schritt zeigte einen Fehler der App):
+**Rote Schritte und Ursache** (alle waren Tester- oder Datenfehler; ob B8 die App betrifft, ist offen):
 
 | Schritt | Ursache | Wiederholt |
 | --- | --- | --- |
@@ -25,9 +20,9 @@ Stand: Branch `claude/live-sichtpruefung-fe3810` (Inhalt von `dev` mit den Rezep
 | „Erste freie Zeit buchen“ (mehrere Läufe) | Suche nach der Meldung mit Name „Meldung“; die App meldet den Text selbst als Name (T1) | ja; Suche angepasst |
 | „Einchecken“, „Termin stornieren …“ (je mehrere Läufe) | Mausklick auf einen Knopf im frisch geöffneten Seitenpanel kam nicht an, nur Hover (Befund B8) | ja; Knöpfe lösen jetzt per UI Automation aus |
 | „Karte … nicht gefunden“ nach `appointment-closed` | Esc auf „Neuer Termin“ öffnet „Änderungen verwerfen?“, der Tester antwortete nicht (T2) | ja; Tester antwortet „Verwerfen“ |
-| „Freie Stelle von gestern“ | gestern war Sonntag, keine Karte (T4) | nicht behoben |
+| „Freie Stelle von gestern“ | gestern war Sonntag, keine Karte (T4) | ja; der Tester geht bis zu 7 Tage zurück, grün |
 | „Wert“, „Betrag“, „Gezählter Bestand“ | Feldnamen in der Kassa heißen jetzt „… (EUR)“, „Gezählter Bestand (EUR)“ ist Pflicht (T6) | ja; Namen angepasst |
-| `voucher`, `voucher-invalid` | T5 | nicht behoben |
+| `voucher`, `voucher-invalid` | T5: Bei offener Verkaufsspalte liegt „Bezahlen“ außerhalb des Fensters, der Klick traf die KI-Taste | ja; Spalte wird zugeklappt, grün |
 | „Einchecken geht nur am Tag des Termins …“ | Maniküre war nach drei Läufen heute ausgebucht, der Lauf buchte auf Donnerstag (T9) | Datenbank des eigenen Stacks neu geladen |
 
 ## 2. Befunde der App
@@ -37,52 +32,64 @@ Schwere: **hoch** Fehler oder Fehlbedienung am Gast, **mittel** wöchentlich st�
 | Nr | Stelle | Beleg | Ist | Soll (Regel) | Schwere | Vorschlag |
 | --- | --- | --- | --- | --- | --- | --- |
 | B1 | Kassa, Reiter „Kassenlade & Abschluss“, Thema `day-closing` | live, [b08](live-sichtpruefung/b08-tagesabschluss-vorher.jpg), [b07](live-sichtpruefung/b07-tagesabschluss-differenz.jpg) | „Tagesabschluss durchführen“ speichert sofort und unveränderlich („Der Abschluss wird unveränderlich gespeichert“), auch bei einem Zählbestand von 800,00 € gegen einen Soll-Bestand von 974,20 €. Danach steht „Differenz −174,20 €“, ohne Rückfrage, ohne Pflicht zur Notiz. | Nicht umkehrbare Aktion: Rückfrage mit Frage als Titel, Folge zuerst, Verb als Antwort (meldungen.md Abschnitt 2 „Dialog“, Entscheidungsfolge; texte.md). Bei einer Differenz Hinweis am Objekt (M3) und Notiz verlangen. | hoch | Rückfrage „Tagesabschluss durchführen?“ mit „Der Abschluss lässt sich nicht mehr ändern. Differenz zum Soll: −174,20 €.“, Antworten „Abschließen“ und „Abbrechen“; ab Differenz ungleich 0 die Notiz verpflichtend. |
-| B2 | Kassa, Liste „Heute abzurechnen“, Klick auf einen noch nicht eingecheckten Termin | Quelltext `PosViewModel.cs` 779 bis 793 (nicht live: Verbindung wegnehmen war im Lauf nicht möglich) | Die Rückfrage „Einchecken und kassieren?“ kommt vor dem Server-Aufruf; ohne Verbindung folgt erst danach die Fehlermeldung (`Error = checkedIn.Error`). | Fehler nennen Problem und Weg (M5); wer nicht einchecken kann, soll nicht erst gefragt werden. | mittel | Bei fehlender Verbindung die Zeile sperren oder die Rückfrage durch „Ohne Verbindung geht das nicht“ ersetzen. |
+| B2 | Kassa, Liste „Heute abzurechnen“, Klick auf einen noch nicht eingecheckten Termin | live ohne Verbindung, [c17](live-sichtpruefung/c17-offline-kassa-fehlermeldung.jpg); Quelltext `PosViewModel.cs` 779 bis 793 | Die Rückfrage „Einchecken und kassieren?“ kommt auch ohne Verbindung; nach „Einchecken und kassieren“ steht 2 bis 5 Sekunden nichts, dann die rote Leiste (siehe B15). | Fehler nennen Problem und Weg (M5); wer nicht einchecken kann, soll nicht erst gefragt werden. | mittel | Bei fehlender Verbindung die Zeile sperren oder die Rückfrage durch „Ohne Verbindung geht das nicht“ ersetzen. |
 | B3 | Kalender, Toast nach „Stornierung zurücknehmen“ | live, [b02](live-sichtpruefung/b02-toast-wieder-gebucht-abgeschnitten.jpg) | „Termin wieder gebucht: 14:35–15:20 (Elif Demir, Hand- und F…“ wird abgeschnitten; der Text hat 74 Zeichen. | Toast eine Zeile, höchstens 60 Zeichen, ohne Schlusspunkt (M1). | mittel | Kurzform „Wieder gebucht: Do 14:35“ (Quelle `CalendarViewModel.cs` um Zeile 1430, `Describe`). |
 | B4 | Kalender, Toast „Gebucht: …“ | live (Probe der Meldung), Quelle `CalendarViewModel.FreeTime.cs` 204 | „Gebucht: Anna Bauer, Montag, 9. November 2026 09:05“ (51 Zeichen) benutzt das lange Datum; ab einem langen Namen sind es über 60 Zeichen. | Toast höchstens 60 Zeichen, Beispiel in M1: „Termin verschoben auf Do 14:30“. | mittel | Kurzes Datum („Mo 09:05“, am Tag selbst nur die Zeit). |
 | B5 | Kunden, Maske „Neue Kundin“, Thema `customer-badmail` | live, [b03](live-sichtpruefung/b03-kunden-fehler-ueber-der-liste.jpg) | „Keine gültige E-Mail-Adresse.“ steht als rote Leiste **über der Kundenliste** links, weit vom E-Mail-Feld rechts; am Feld selbst ist nichts markiert. Der Text nennt keinen Weg. | Feldfehler am Feld (meldungen.md Abschnitt 2), Meldung zu einer Aktion über deren Knopf (M7, masken.md R8); Fehler nennen Problem und Weg (M5). | mittel | Fehler am Feld („Die E-Mail-Adresse braucht ein @.“) und Fokus auf das Feld; Leiste über „Anlegen“ nur für Serverfehler. |
 | B6 | Kassa, Spalte „Artikel und Gutscheine“ | live, [b06](live-sichtpruefung/b06-kassa-kacheln.jpg) | Artikelkacheln brechen mitten im Wort („Gesichtscr eme Hydro“, „Körperpeel ing Kokos“, „Tageseintri tt Sauna“, „Zirbenkiss en“); der Knopf heißt „Wertgutschein ver…“ (abgeschnitten). | Kein Abschneiden oder falscher Umbruch (Auftrag, texte.md). | mittel | Kacheln in einer Spalte oder breiter, Silbentrennung statt Wortbruch, Knopf „Verkaufen“ unter der Überschrift „Wertgutschein“. |
 | B7 | Kalender, Panel „Neuer Termin“, Meldung „Zeitraum ist belegt.“ | live, [b04](live-sichtpruefung/b04-zeitraum-belegt-panel.jpg) | Die Meldung steht am unteren Rand des Panels und ist angeschnitten (nur der Kopf und der Beginn der Konfliktzeile); „Termin buchen“ und „Zum Konflikt“ sind erst nach dem Scrollen zu sehen. | Meldung zu einer Aktion direkt über dem Knopf dieser Aktion, sichtbar (M7). | mittel | Nach dem Fehler die Meldung in den sichtbaren Bereich scrollen (`BringIntoView`) oder die Knopfleiste am Panelrand festsetzen. |
-| B8 | Seitenpanel (Termin), Knöpfe „Einchecken“ und „Termin stornieren …“ | live: Einchecken in drei, Stornieren in zwei Läufen | Ein Mausklick direkt nach dem Öffnen des Panels löste nichts aus; Bild: nur Hover und Tooltip („Einchecken (E)“, „Stornieren (Entf)“), Zustand unverändert. Per UI Automation (Invoke) wirkt derselbe Knopf sofort. Unklar, ob das nur die synthetische Maus des Testers trifft oder die Rezeption im Betrieb. | Ein Klick auf einen sichtbaren, freigegebenen Knopf wirkt (Fehlbedienung am Gast). | mittel, ungeklärt | Council und Code Guardian prüfen: Baut das Panel nach dem Öffnen asynchron neu auf (Fokus, L16)? Mit echter Maus nachstellen. |
+| B8 | Seitenpanel (Termin), Knöpfe „Einchecken“ und „Termin stornieren …“, Klick auf Karten | live, [c20](live-sichtpruefung/c20-mausklick-einchecken-verloren-nur-hover.jpg), [c21](live-sichtpruefung/c21-mausklick-karte-verloren-nur-hover-vorschau.jpg); Gegenprobe `AISPA_LIVE_MOUSE=1` | Ein echter Mausklick wirkte gelegentlich nicht (nur Hover und Tooltip, Zustand unverändert). Gegenprobe mit 300 ms Pause: „Einchecken“ 5 von 9 verloren, „Termin stornieren …“ 1 von 9, „Stornieren“ im Dialog 0 von 8, Kartenklicks 3 von 24; ohne Pause „Einchecken“ 1 von 3, Karten 2 von 5. Mit UI-Automation-Invoke ging kein Knopfklick verloren. Mit und ohne Pause ist kein Unterschied zu sehen; ob die synthetische Maus des Testers oder die App die Ursache ist, bleibt offen. | Ein Klick auf einen sichtbaren, freigegebenen Knopf wirkt (Fehlbedienung am Gast). | mittel, hoch falls App | Verluste nur bei Zielen mit Tooltip oder Hover-Karte, null bei „Stornieren“ im Dialog (0 von 8, kein Tooltip) und bei Invoke; Probe „Tooltips aus“ und Handtest vor jeder Änderung (Bewertung, zweite Runde). |
 | B9 | Kalender, Rückfrage „Änderungen verwerfen?“ | live, [b05](live-sichtpruefung/b05-aenderungen-verwerfen.jpg) | Titel Frage, Antworten „Verwerfen“ und „Weiter bearbeiten“ (Verben, kurz), Fokus auf „Weiter bearbeiten“. Der Text „Was Sie hier eingetragen haben, geht beim Schließen verloren.“ redet die Person an. | Sachlich, Sie-frei (M5); Folge zuerst. | niedrig | „Die Eingaben gehen beim Schließen verloren.“ |
 | B10 | Kalender, Rückfrage „Termin stornieren?“ (Rezeption, außerhalb der Stornofrist) | live, [b01](live-sichtpruefung/b01-storno-dialog.jpg) | Titel Frage, Antworten „Stornieren“ und „Abbrechen“, Fokus im Feld „Grund“ (vorbelegt „An der Rezeption storniert“). Der Text beginnt mit dem Termin samt Wochentag und Jahr, die Folge steht erst im zweiten Teil. | Text nennt zuerst die Folge (texte.md). | niedrig | „Der Termin ist danach storniert und blockiert keine Zeit mehr: Anna Bauer, Do 12.11., 14:35.“ |
 | B11 | Kunden, Maske „Neue Kundin“, Hinweis „Schon vorhanden?“ | live, [b10](live-sichtpruefung/b10-schon-vorhanden.jpg) | Der Knopf „Diese Kundin nehmen“ steht auch bei „Moser, Alexander“. | Geschlechtsneutrale Form wie „Kundin / Kunde“ in der Maske. | niedrig | „Diese Person nehmen“ oder „Übernehmen“. |
 | B12 | Kunden, Liste nach „Anlegen“ mit nur dem Nachnamen | live, [b03](live-sichtpruefung/b03-kunden-fehler-ueber-der-liste.jpg) | Der Eintrag heißt „Live1109022313n,“ mit hängendem Komma. | Kein Zeichen ohne Inhalt. | niedrig | Komma nur, wenn der Vorname da ist. |
 | B13 | Kalender, Panel „Neuer Termin“, Karte „Vorschläge“ | live, [b04](live-sichtpruefung/b04-zeitraum-belegt-panel.jpg), [b05](live-sichtpruefung/b05-aenderungen-verwerfen.jpg) | Der Text neben „Freie Zeit suchen“ und „Übernehmen“ bricht in einer engen Spalte auf fünf bis sechs Zeilen. | Kein falscher Umbruch. | niedrig | Knöpfe unter den Text legen. |
 | B14 | Kassa, Rückfrage „Einchecken und kassieren?“ | Quelltext `PosViewModel.cs` 781 | Text beginnt mit dem Zustand („Der Gast ist noch nicht eingecheckt.“), dann die Folge; Antwort „Einchecken und kassieren“ (drei Wörter, Verben). | Folge zuerst (texte.md). | niedrig | „Der Termin wird eingecheckt und auf die Rechnung gelegt.“ |
+| B15 | Kassa ohne Verbindung | live, [c17](live-sichtpruefung/c17-offline-kassa-fehlermeldung.jpg) | Drei Leisten untereinander: Offline-Banner, rote Fehlerleiste „Server nicht erreichbar: Es konnte keine Verbindung hergestellt werden, da der Zielcomputer die Verbindung verweigerte. (localhost:5186)“ und die Signatur-Warnung. Die Fehlerleiste zeigt den Systemtext von Windows mit Host und Port und nennt keinen Weg. | Höchstens zwei InfoBars (M2); Problem und Weg, technische Ursache nur im Detail (M5). | mittel | Fehlerleiste durch „Ohne Verbindung geht das nicht. Bitte Verbindung prüfen.“ ersetzen, Systemtext ins Detail, Signatur-Hinweis unter „Weitere Meldungen“. |
+| B16 | entfällt (in B2 aufgegangen) | | | | | | |
+| B17 | Neuer Termin ohne Verbindung | live, [c19](live-sichtpruefung/c19-offline-neuer-termin.jpg) | Das Banner verspricht „Buchungen … werden vorgemerkt“, aber die Kundensuche findet ohne Verbindung keine Kundin; Buchen ist so nicht möglich. | Meldung und Verhalten stimmen überein. | niedrig (nach Prüfung: Die App sucht offline in den schon geladenen Kundinnen, der Lauf hatte den Zwischenspeicher durch den Kontowechsel geleert) | Bannertext schärfen („nur schon geladene Kundinnen“), Hinweis in der leeren Suche. |
+| B18 | Kalender, Termin von morgen und Verschieben auf gestern | live, [c10](live-sichtpruefung/c10-termin-morgen-mehr-gesperrt.jpg), [c09](live-sichtpruefung/c09-verschieben-auf-gestern.jpg) | Im Panel fehlt „Einchecken“, die Tastenleiste zeigt „E Einchecken“ gesperrt; der Grund („Einchecken: nur am Tag des Termins“, „Verfügbar ab dem Tag des Termins.“, „Verfügbar für heute oder einen späteren Tag.“) steht nur als Tooltip. | Hinweis am Objekt (M3) sichtbar, nicht nur bei Hover. | niedrig, gewollt (Arbeitsanweisung Rezeptions-Lücken, Handtests verlangen genau das) | Optional mit Ja des Auftraggebers: sichtbare Zeile „Einchecken geht erst am Tag des Termins.“ |
+| B19 | Kassa, Kassenlade, Rezeption | live, [c12](live-sichtpruefung/c12-kassenlade-rezeption-nur-einlage.jpg) | Überschrift „Einlage“ und darunter ein einziger Reiter „Einlage“ (doppelt); die Leitung sieht „Einlage oder Entnahme“ mit zwei Reitern. | Kein doppelter Titel. | niedrig | Bei einem Reiter den Reiter weglassen. |
+| B20 | Kalender, Vorschau eines neuen Termins | live, [c14](live-sichtpruefung/c14-pille-keine-kontaktmoeglichkeit.jpg) | „Anti-Aging-Gesichtsbehandlung mit Gesi…“ ist in der Vorschau abgeschnitten. | Kein Abschneiden. | niedrig | Zweizeilig oder Tooltip. |
+| B21 | Neuer Termin, Zeit belegt | live per API | Der Server antwortet „Zu dieser Zeit ist nicht alles frei, was die Behandlung braucht.“, die App zeigt im Panel „Zeitraum ist belegt.“. | Einheitliche Texte, oder die Übersetzung ist gewollt. | gewollt (meldungen.md M7 schreibt „Zeitraum ist belegt.“ vor) | keiner. |
+| B22 | Server, Status „Erledigt“ | live per API | `POST …/status` mit „Erledigt“ setzt einen gebuchten, nicht eingecheckten Termin von heute direkt auf erledigt (200). | Frage an den Auftraggeber: gewollt neben der Tagesregel L1? | gewollt (Server, Test `StatusDayTests` und Hilfe erlauben es) | keiner. |
+| B23 | Kalender, Panel „Sperrzeit“, „Sperren“ ohne Grund | live, Bericht der Zusatzläufe | Rote Leiste „Bitte einen Grund angeben.“ unter dem Feld „Grund“, der Knopf bleibt stehen. | Feldfehler am Feld, Text ohne „Bitte“ (texte.md, meldungen.md Feldfehler). | niedrig | Feldfehler „Der Grund fehlt.“ am Feld. |
+| B24 | Server, 409 beim Verschieben und Buchen in die Vergangenheit | live per API | „… Bitte heute oder einen späteren Tag wählen.“ | Ohne „Bitte“ (texte.md). | niedrig | „Nur heute oder ein späterer Tag ist möglich.“ |
 
-**Positiv geprüft** (kein Befund): Toast „… eingecheckt“ mit „Rückgängig“ und Schließen ([b09](live-sichtpruefung/b09-toast-eingecheckt-ok.jpg)); Tastenleiste im Kalender stimmt mit den Tasten überein (E Einchecken, K Kassieren, Entf Stornieren, Strg+Z Rückgängig, ? Alle Tasten); „−1 Tag“ beim Verschieben eines Termins von heute ist gesperrt (`reschedule-past`); bei einem eingecheckten Termin fehlt „Verschieben …“; im Panel eines stornierbaren Termins fehlt für die Rezeption „Ausfallgebühr belasten …“; im Reiter „Kassenlade & Abschluss“ gibt es für die Rezeption nur „Einlage“, der Hinweis „Entnahmen darf nur, wer die Kassenaufsicht hat.“ erklärt es; die Rückfragen „Änderungen verwerfen?“ und „Termin stornieren?“ schließen mit Esc.
+**Positiv geprüft** (kein Befund): Toast „… eingecheckt“ mit „Rückgängig“ und Schließen ([b09](live-sichtpruefung/b09-toast-eingecheckt-ok.jpg)); Tastenleiste im Kalender stimmt mit den Tasten überein (E Einchecken, K Kassieren, Entf Stornieren, Strg+Z Rückgängig, ? Alle Tasten); „−1 Tag“ beim Verschieben eines Termins von heute ist gesperrt (`reschedule-past`); bei einem eingecheckten Termin fehlt „Verschieben …“; im Panel eines stornierbaren Termins fehlt für die Rezeption „Ausfallgebühr belasten …“; im Reiter „Kassenlade & Abschluss“ gibt es für die Rezeption nur „Einlage“, der Hinweis „Entnahmen darf nur, wer die Kassenaufsicht hat.“ erklärt es; die Rückfragen „Änderungen verwerfen?“ und „Termin stornieren?“ schließen mit Esc. Zusatzläufe ohne Beanstandung: Storno-Rückfrage innerhalb der Stornofrist als Rezeption und als Standortleitung ([c03](live-sichtpruefung/c03-storno-stornofrist-rezeption.jpg), [c04](live-sichtpruefung/c04-storno-stornofrist-standortleitung.jpg): Hinweiszeile mit Frist und Gebühr, Vorbelegung „Kurzfristig an der Rezeption storniert“, Umbruch sauber, Schlusssatz je Rolle); „… krank melden?“, „Pause löschen?“, „Sperrzeit löschen?“ ([c05](live-sichtpruefung/c05-krank-melden-rueckfrage.jpg) bis [c07](live-sichtpruefung/c07-sperrzeit-loeschen-rueckfrage.jpg): Titel Frage, Folge im Text, Antworten „Krank melden“, „Löschen“, „Abbrechen“); „Verschieben“ auf gestern gesperrt, Server 409; Einchecken morgen: kein Knopf, Server 400; „Einchecken und kassieren?“ mit Abbrechen und Bestätigen ([c11](live-sichtpruefung/c11-kassa-einchecken-und-kassieren-rueckfrage.jpg)); Reiter „Entnahme“ nur für die Leitung; Pille „Keine Kontaktmöglichkeit“ ([c14](live-sichtpruefung/c14-pille-keine-kontaktmoeglichkeit.jpg)); Taste V öffnet bei einem gebuchten Termin das Verschieben.
 
 ## 3. Nicht geprüft (und warum)
 
-- **Startbestand aus dem Review:** Fokus im Seitenpanel (Buchstaben-Kürzel greifen nicht, solange ein Feld den Fokus hat, L16) nur mittelbar durch B8, nicht gezielt; **Umbruch der Hinweiszeile im 420 Pixel breiten Rückfragedialog** nicht geprüft, weil die Stornofrist-Zeile nur nach der Frist erscheint und die Standortregel nicht gesetzt wurde (die Rückfrage in [b01](live-sichtpruefung/b01-storno-dialog.jpg) ist rund 490 Pixel breit und bricht den Text sauber); **Handbuchbilder mit geänderten Texten** nicht verglichen; **Tastenleiste und Tooltips gegen `web/src/help/content`** nur die Tastenleiste im Kalender, nicht gegen das Handbuch.
-- Nur im Quelltext gelesen, nicht live: „… krank melden?“ (`CalendarViewModel.Absence.cs` 73: Titel Frage, Folge zuerst, Antwort „Krank melden“, in Ordnung), „Pause löschen?“ und „Sperrzeit löschen?“ (`CalendarViewModel.Notes.cs` 159: Folge „Die Zeit … ist danach wieder frei.“, Antwort „Löschen“, in Ordnung).
-- Nicht gespielt: Storno-Dialog mit Stornofrist (Standortregel 24 Stunden und 50 %), Verschieben auf gestern mit Karte gesperrt und Server-409, Einchecken an einem anderen Tag (Knopf fehlt, Tastenleiste nennt den Grund), Tab „Entnahme“ für die Leitung, Pille „Keine Kontaktmöglichkeit“, Taste V, Fehlerfälle (Verbindung weg, 400 und 409 vom Server), Gutschein verkaufen und ungültiger Gutschein-Code (T5). Für diese Fälle braucht der Tester Zusatzschritte; die Läufe oben haben sie nicht von selbst getroffen.
-- Tempo `slow` und `normal` wurden nicht gelaufen; Hell- und Dunkelschema nicht verglichen.
+- **Startbestand aus dem Review:** Fokus im Seitenpanel (Buchstaben-Kürzel greifen nicht, solange ein Feld den Fokus hat, L16) nur mittelbar durch B8, nicht gezielt; **Handbuchbilder mit geänderten Texten** nicht verglichen; **Tastenleiste und Tooltips gegen `web/src/help/content`** nur die Tastenleiste im Kalender, nicht gegen das Handbuch. Der **Umbruch der Hinweiszeile im Rückfragedialog** ist geprüft: In [c03](live-sichtpruefung/c03-storno-stornofrist-rezeption.jpg) und [c04](live-sichtpruefung/c04-storno-stornofrist-standortleitung.jpg) bricht die Hinweiszeile in drei Zeilen, nichts ist abgeschnitten (Fensterbreite 2560 px; bei schmalerem Fenster nicht geprüft).
+- Nicht bestätigt, nur Rückfrage gelesen: „Termin stornieren“ innerhalb der Stornofrist, „… krank melden“. „Ausfallgebühr belasten …“ braucht eine hinterlegte Karte (Zahlungsanbieter), im Demo-Stack nicht vorhanden.
+- Taste V bei einem gebuchten, aber nicht verschiebbaren Termin (Meldung „Verschieben: ziehen oder Alt + Pfeiltasten …“) nicht gespielt; bei einem erledigten Termin tut V nichts.
+- Ohne Verbindung: „Termin buchen“ mit vorhandener Kundin und das Anlegen einer Kundin nicht gespielt (die Kundensuche liefert ohne Verbindung nichts, siehe B17); Zeit bis zur Fehlermeldung nur grob (2 bis 5 s).
+- B8: Gegenprobe mit kleiner Stichprobe (21 und 5 Läufe), keine Aussage über die Ursache der verlorenen Klicks.
+- Tempo `slow` und `normal`, Hell- und Dunkelschema, Starter-App (nur gebaut), Vordergrundschutz des Testers im Ernstfall (nie ausgelöst); `sick-leave` ist kein Thema des Testers, der Fall „… krank melden?“ lief als Zusatzthema.
 
 ## 4. Befunde des Testers (für `tests/AispaStudio.LiveTests`)
 
-Die folgenden Änderungen am Tester stehen auf diesem Branch, damit der Lauf weiterging; sie gehören nach Freigabe in einen eigenen Commit.
+Alle Änderungen am Tester stehen auf diesem Branch in eigenen Commits (`ef6497ff` erste Anpassungen, `20fb32da` Erweiterung: Vordergrundschutz, Weiterlaufen nach rotem Thema, Schalter `AISPA_LIVE_MOUSE`, neun Zusatzthemen, `LiveApi`).
 
 | Nr | Befund | Änderung |
 | --- | --- | --- |
 | T1 | `Toast()` suchte ein Element mit Name „Meldung“; Avalonia meldet den Text der Meldung selbst als Name und Hilfetext. Alle Toast-Prüfungen scheiterten damit, obwohl die App den Toast zeigt. | Suche nach Name oder Hilfetext; `ExpectToast` schreibt einen Befund in den Bericht, statt den Lauf zu beenden. |
 | T2 | Esc auf „Neuer Termin“ mit Eingaben öffnet „Änderungen verwerfen?“; `appointment-closed` ließ die Rückfrage offen, das nächste Thema scheiterte. | `ClosePanelWithEscape` klickt „Verwerfen“. |
 | T3 | Klicks direkt nach dem Öffnen des Panels (Einchecken, Stornieren) kamen nicht an (B8). | Knöpfe mit Klasse `Button` lösen per Invoke aus, kurze Pause nach dem Öffnen. |
-| T4 | `appointment-past`: „Eine Karte von gestern“ gibt es am Montag nicht (Sonntag ohne Dienst). | offen: Tag davor mit Dienst wählen oder das Thema am Montag überspringen. |
-| T5 | `voucher`: Ab Schritt 6 („Bar bezahlen“) stand ein Explorer-Fenster („Repositories“, alle Einträge markiert) im Vordergrund; der Tester schickte Strg+A und Tasten dorthin (nichts gelöscht, nur markiert). Ursache unklar (nicht das App-Fenster; das Fenster wurde nach dem Minimieren wieder sichtbar). `voucher-invalid`: Die Meldung „Diesen Gutschein-Code gibt es nicht.“ erscheint ohne offene Rechnung nicht. | offen. Der Tester sollte vor jeder Eingabe prüfen, dass das App-Fenster im Vordergrund ist, und sonst abbrechen (Sicherheit). |
+| T4 | `appointment-past`: „Eine Karte von gestern“ gibt es am Montag nicht (Sonntag ohne Dienst). | behoben: bis zu 7 Tage zurück bis zu einem Tag mit Karten (Samstag 7.11.); grün. |
+| T5 | `voucher`: Ab Schritt 6 („Bar bezahlen“) stand ein Explorer-Fenster („Repositories“, alle Einträge markiert) im Vordergrund; der Tester schickte Strg+A und Tasten dorthin (nichts gelöscht, nur markiert). Ursache unklar (nicht das App-Fenster; das Fenster wurde nach dem Minimieren wieder sichtbar). `voucher-invalid`: Die Meldung „Diesen Gutschein-Code gibt es nicht.“ erscheint ohne offene Rechnung nicht. | behoben: `EnsureAppInForeground` vor jeder Tasteneingabe, sonst Abbruch (Exitcode 3); die Gutschein-Themen legen eine offene Rechnung an und klappen die Verkaufsspalte zu, grün. Das Explorer-Fenster ist aus dem Code nicht erklärbar (der Tester startet nirgends `explorer`), es kam vermutlich von außen. |
 | T6 | Feldnamen der Kassa haben sich geändert („Wert (EUR)“, „Betrag (EUR)“); „Gezählter Bestand (EUR)“ ist jetzt Pflicht für den Tagesabschluss. | Namen angepasst, Zählbestand 800,00 € eingetragen (erzeugt die Differenz in B1). |
 | T7 | Der Bereich „Artikel und Gutscheine“ merkt sich offen oder zu; ein Klick auf die Kopfzeile schloss ihn. | `OpenSales` klappt nur auf, wenn „Wert (EUR)“ fehlt. |
-| T8 | Der Tester endet beim ersten roten Schritt; Sammelläufe über 30 Themen brauchen deshalb Wiederholungen. | Vorschlag: roter Schritt zählt, der Lauf geht mit dem nächsten Thema weiter. |
+| T8 | Der Tester endet beim ersten roten Schritt; Sammelläufe über 30 Themen brauchen deshalb Wiederholungen. | behoben: roter Schritt zählt („THEMA ROT“), `ResetToBaseline`, abhängige Themen „THEMA ÜBERSPRUNGEN“, Exitcode 1. |
 | T9 | Die Freie-Zeit-Suche für „Maniküre mit Lack“ ist nach etwa drei Läufen am selben Tag ausgebucht; der Lauf bucht dann nicht heute, Einchecken scheitert. | Datenbank neu laden oder eine zweite Behandlung wählen. |
 
 ## 5. Bewertung
 
 **Verfahren und Grenzen.** Die Bewertung machte ein Opus-Agent in einem Lauf, der das Befund-Gate von Code Guardian (drei Linsen: Ausführung, Absicht, Umgebung) und die Rollen des Councils (Rezeptionistin, Entwickler, Gestalter) zusammenfasst; es ist nicht der volle Lauf der Skills `code-guardian` und `llm-council` mit getrennten Agenten und fünf Beratern. Er las nur Quelltext und Bilder, startete nichts und baute nichts. Die Zahl der Schweregrade nach Prüfung weicht an zwei Stellen von der Liste ab: B1 bleibt als begründete Ausnahme „hoch“ (nicht umkehrbarer Kassenabschluss), B2 sinkt auf „niedrig“.
 
-**Empfehlung.** Umsetzen in dieser Reihenfolge, je Aufgabe ein Commit: A1 (Rückfrage vor dem Tagesabschluss), A2 (Toast-Texte kurz), A3 (E-Mail-Fehler am Feld), A4 (fester Fuß in „Neuer Termin“), A5 (Kassa-Artikel einspaltig), A6 (Rückfragetexte), A7 (Einchecken ohne Verbindung), danach der Tester als eigener Commit (T1 bis T9 mit Vordergrundprüfung). **Vor jeder App-Änderung zu B8** die Gegenprobe (T-Probe): Mausklick mit Pause ohne Invoke, zehn Läufe; erst wenn dabei Klicks verloren gehen, gibt es eine App-Aufgabe. Entscheidungen des Auftraggebers: Notizpflicht bei Differenz im Tagesabschluss (ab 0,01 € oder ab einer Schwelle) und die neutrale Form „Diese Kundin nehmen“ (B11, Vorschlag „Übernehmen“).
+**Empfehlung (nach der zweiten Runde).** Umsetzen in dieser Reihenfolge, je Aufgabe ein Commit: A1 (Rückfrage vor dem Tagesabschluss), danach die **Probe zu B8** (Tooltips aus, Handtest; bei Bestätigung sofort A15, sonst bleibt B8 ein Tester-Thema), A2 bis A6, **A8 statt A7** (Kassa offline: Fortschritt, Fehlertext ohne Systemtext, schließbar), A9 (höchstens zwei InfoBars in der Kassa), A12, A10, A11, A13; A14 nur mit Ja des Auftraggebers; der Tester steht schon in eigenen Commits (`ef6497ff`, `20fb32da`). Entscheidungen des Auftraggebers: Notizpflicht bei Differenz im Tagesabschluss (ab 0,01 € oder ab einer Schwelle), neutrale Form „Diese Kundin nehmen“ (B11, Vorschlag „Übernehmen“) und ob der Grund bei fehlendem „Einchecken“ sichtbar stehen soll (B18).
 
-Grundlage: `docs/umsetzung/live-sichtpruefung-2026-11-09.md` (Abschnitte 1 bis 4), `docs/gestaltung/meldungen.md`, `docs/gestaltung/texte.md`, `docs/design.md` (5.1, 5.10, 5.27), `CLAUDE.md`, Belegbilder b01 bis b08 und b10, Quelltext im Worktree `live-sichtpruefung-fe3810`. Alle Pfade relativ zum Worktree. Nichts im Repository geändert, nichts ausgeführt (kein Build, kein Test, kein App-Lauf).
+**Zahlen nach der zweiten Runde.** 23 Befunde der App: 1 hoch (B1), 8 mittel (B2, B3, B4, B5, B6, B7, B8 ungeklärt, B15), 12 niedrig (B9 bis B14, B17, B18, B19, B20, B23, B24), 2 gewollt ohne Auftrag (B21, B22); B8 wird hoch, wenn die Probe die App bestätigt. 9 Befunde des Testers, alle behoben.
 
 ### 0. Kurzfassung
 
@@ -254,4 +261,205 @@ Nicht als Aufgabe empfohlen: B10-Satzbau (gewollt), B11 ohne Ja des Auftraggeber
 - Bilder b05 und b09 nicht angesehen (B9 nur über den Quelltext geprüft).
 - `docs/gestaltung/masken.md` nicht gelesen; R8 nur über die Verweise in meldungen.md bewertet.
 - Ob Avalonia weiche Trennstriche unterstützt, nicht geprüft.
+
+### Zweite Runde: Zusatzthemen (c01 bis c21)
+
+*Bewertung durch denselben Opus-Rat nach den Zusatzläufen. „B8 neu“ ersetzt das Urteil zu B8 oben, A8 ersetzt A7.*
+
+Grundlage: `extras-ergebnis.md`, Bilder c14, c17, c20, c21 selbst angesehen, Quelltext im Worktree `live-sichtpruefung-fe3810`. Nichts im Repository geändert.
+Drei Linsen wie in Runde 1: **vorne** (Ausführung: was der Code tut), **hinten** (Absicht: was Regeln, Arbeitsanweisung, Hilfe wollen), **Mitte** (Umgebung: Tester, Daten, Windows, Ablauf des Laufs).
+Pfade relativ zu `src/AispaStudio.Desktop/`, sofern nicht anders angegeben.
+
+#### Übersicht
+
+| Punkt | Urteil | Schwere | Aufwand | Kurzbegründung |
+|---|---|---|---|---|
+| B8 neu (verlorene Mausklicks) | **UNENTSCHIEDEN**, Richtung App | hoch, falls App | Probe S, Fix S–M | Verluste fallen genau auf Ziele mit Tooltip/Hover-Karte; Ziele ohne Tooltip und Invoke verlieren nichts |
+| B2 (Kassa offline) | **BESTÄTIGT** | mittel | S–M | Systemtext im Fehler, kein Fortschritt während 2–5 s; A7 greift beim ersten Fehler nicht |
+| B15 (drei InfoBars, Systemtext) | **BESTÄTIGT** | mittel | M | M2-Grenze überschritten, kein Schließen-Kreuz an Fehler/Warnung |
+| B17 (offline buchen/suchen) | **WIDERLEGT** als App-Fehler, **UNENTSCHIEDEN** für den Lauf; Bannertext **BESTÄTIGT** schwach | niedrig | S | Suche offline bewusst nur über schon geladene Kundinnen; Cache wird bei Abmelden geleert |
+| B18 (Grund nur als Tooltip) | **GEWOLLT** | niedrig | S (optional) | Arbeitsanweisung und Handtests verlangen genau das |
+| B19 („Einlage“ doppelt) | **BESTÄTIGT** | niedrig | S | Segment mit nur einer Option plus gleichlautender Titel |
+| B20 (Geistervorschau abgeschnitten) | **BESTÄTIGT** | niedrig | S | `TextTrimming` ohne `TextWrapping` trotz Platz für mehrere Zeilen |
+| B21 (409-Text Server ≠ App) | **GEWOLLT** | – | – | M7 schreibt den App-Titel vor; App setzt Ortszeit ein |
+| B22 (Gebucht → Erledigt direkt) | **GEWOLLT** | – | – | Server, Test und Hilfe erlauben es ausdrücklich |
+| Dialogtexte c03–c07 | konform, außer langem Datum (wie B10) | niedrig | in A6 | |
+| c08 Sperrzeit ohne Grund | **BESTÄTIGT** | niedrig | S | „Bitte …“ verstößt gegen T8, Fehler steht als InfoBar statt am Feld |
+| Server-409 „Bitte heute …“ | **BESTÄTIGT** | niedrig | S | T8 |
+
+#### B8 neu: verlorene Mausklicks
+
+##### Zahlen des Gegentests (aus `extras-ergebnis.md`, Abschnitt 3)
+
+| Ziel | Tooltip/Hover-Karte am Ziel | Pause vor Klick | verloren |
+|---|---|---|---|
+| „Einchecken“ im Panel | ja, „Einchecken (E)“ | 300 ms | 5/9 |
+| „Einchecken“ im Panel | ja | 0 ms | 1/3 |
+| Kartenklick | ja, Hover-Karte | 300 ms | 1/19 |
+| Kartenklick | ja | 0 ms | 2/5 |
+| „Termin stornieren …“ | ja | 300 ms | 1/9 |
+| „Stornieren“ im Dialog | **nein** | 300 ms | **0/8** |
+| alle Knöpfe per Invoke | – (kein Zeiger) | – | **0** |
+| „Mehr“ (AccordionHeader) | ja | – | ebenfalls Verluste |
+
+„Echte Maus“ heißt hier `AISPA_LIVE_MOUSE=1`, also synthetisches `SendInput`, nicht eine Hand. Die Stichproben sind klein (3 bis 19); die Zahlen zeigen eine Richtung, keinen Beweis.
+
+##### Drei Linsen
+
+| Linse | Befund |
+|---|---|
+| vorne | `Controls/ToolTipBehavior.cs:183-189` setzt ShowDelay 250 ms, BetweenShowDelay 250 ms, Placement Bottom, VerticalOffset 4 – der Tooltip öffnet als eigenes Popup **direkt unter** dem Knopf (c20 zeigt genau das: Zeiger auf „Einchecken“, Tooltip offen, Status weiter „Gebucht“). Karten-Hover-Karte: `Views/CalendarView.axaml:2630-2631` (ShowDelay 500, BetweenShowDelay 400, RightEdgeAlignedTop). `Views/CalendarView.axaml.cs:689-693` schließt eine offene Hover-Karte beim Drücken mit dem Kommentar „Eine offene Hover-Karte würde dem Klick im Weg stehen“ – die Autoren kannten das Muster schon. Für Knopf-Tooltips gibt es diese Abwehr nicht. Andere Ursachen geprüft und geschwächt: `CheckInCommand` (`ViewModels/AppointmentViewModel.cs:207`) hat kein CanExecute; über „Einchecken“ springt nichts (Empfehlungen laden nur bei `IsDone`, `AppointmentViewModel.Recommendations.cs`); Fokus spielt für Mausklicks keine Rolle. Offen bleibt der Live-Echo-Neubau `CalendarViewModel.cs:756-758` (`Selected = PanelFor(appointment)`), der den Knopf zwischen Drücken und Loslassen austauschen könnte. |
+| hinten | Keine Regel verlangt, dass Klicks verloren gehen dürfen; design.md 5.x verlangt Tooltips ohne Störung der Bedienung (WCAG 1.4.13 „hover content“ verlangt u. a., dass sie den Auslöser nicht verdecken – c20 zeigt den Tooltip unterhalb, also nicht verdeckend; daher eher Ereignis- als Geometriefrage). |
+| Mitte | Der Tester fährt per `SendInput` sprunghaft auf den Knopf („Teleport“) und klickt. Die Pause 300 ms liegt zwischen Panel-Öffnen und Klick, nicht zwischen Ankunft des Zeigers und Klick. Nach dem Karten-Hover ist BetweenShowDelay noch aktiv, der Knopf-Tooltip kann also fast sofort öffnen – genau im Fenster Drücken/Loslassen. Ein Mensch fährt den Zeiger heran und klickt typisch 200–400 ms nach dem Eintritt: dasselbe Fenster. |
+
+##### Urteil
+
+**UNENTSCHIEDEN, Richtung App.** Die Korrelation „Verlust nur bei Zielen mit Tooltip/Hover-Karte, null ohne Tooltip und null per Invoke“ spricht deutlich für eine Wechselwirkung Tooltip-Popup ↔ Klick in der App (bzw. in Avalonia), nicht für einen reinen Testerfehler. Bewiesen ist es nicht: Stichproben klein, Live-Echo-Neubau nicht ausgeschlossen, Avalonia-Verhalten nicht nachgelesen.
+
+**Warum gerade „Einchecken“:** erster, breiter Knopf im Panel; der Zeiger landet unmittelbar nach dem Karten-Hover darauf, BetweenShowDelay ist noch scharf, der Tooltip öffnet im Klickfenster. „Stornieren“ im Dialog hat keinen Tooltip und verliert nichts.
+
+**Neue Schwere:** trifft die Tooltip-These zu, sind auch Menschen betroffen; ein verlorenes „Einchecken“ sieht nach erledigt aus, ist es aber nicht (Kassa findet den Termin dann nicht als eingecheckt). Schwere **hoch** statt bisher „Testerfehler, niedrig“. Ist es der Tester, bleibt es niedrig.
+
+##### Probe, die App und Tester trennt (T-Probe, Aufwand S)
+
+| Nr. | Probe | Erwartung bei „App/Tooltip“ | Erwartung bei „Tester“ |
+|---|---|---|---|
+| 1 | Lauf mit abgeschalteten Tooltips (ShowDelay sehr groß per Debug-Schalter oder `ToolTip.ServiceEnabled=false`, falls vorhanden), 10× „Einchecken“ mit Maus | 0 Verluste | Verluste bleiben |
+| 2 | Zeiger auf den Knopf, 600 ms warten (Tooltip schon offen), dann klicken – gegen Teleport+sofort | Verluste hängen am Öffnungsmoment, nicht am offenen Tooltip | kein Unterschied |
+| 3 | Debug-Build: PointerPressed, PointerReleased, PointerCaptureLost, Click, ToolTip.Opened und `Selected`-Wechsel mit Zeitstempel loggen | `CaptureLost` oder fehlendes Released kurz nach `ToolTip.Opened` | Kein Pressed am Knopf (Zeiger nicht dort) |
+| 4 | Handtest: 10× zügig „Einchecken“ mit echter Hand | Verluste auch per Hand | keine |
+
+Probe 3 beantwortet zugleich die Live-Echo-Frage (`Selected`-Wechsel zwischen Pressed und Released).
+
+**Möglicher Weg, falls bestätigt:** Tooltip beim PointerPressed schließen und bis zum Verlassen unterdrücken (analog `CalendarView.axaml.cs:689-693`, zentral in `ToolTipBehavior`), oder BetweenShowDelay nach dem Karten-Hover nicht greifen lassen. Aufwand S–M plus Test.
+
+##### Council
+
+Die Linsen weichen ab: vorne sieht eine schlüssige App-Ursache (Popup im Klickfenster, Vorbild-Abwehr schon im Code), Mitte hält den Tester für mitschuldig (Teleport, synthetische Eingabe, kleine Stichprobe). Abwägung: Gewicht hat die Kontrollgruppe „Stornieren im Dialog 0/8“ und „Invoke 0“ – beide schließen „Tester trifft generell nicht“ aus, aber nicht „Tester erzeugt das Popup-Timing unnatürlich“. Darum UNENTSCHIEDEN mit Probe vor jedem App-Fix, Probe früh einplanen.
+
+#### B2: Kassa offline (live bestätigt)
+
+| Linse | Befund |
+|---|---|
+| vorne | `src/AispaStudio.Client/HttpApiClient.cs:271` und `:325` liefern `$"Server nicht erreichbar: {ex.Message}"` – der Windows-Systemtext landet ungefiltert in der Oberfläche. `SetOffline(true)` fällt erst **nach** dem gescheiterten Aufruf (`:324`). HttpClient-Timeout 20 s (`:59-60`). Während der 2–5 s Wartezeit zeigt die Kassa keinen Fortschritt. |
+| hinten | meldungen.md M1/M4: Meldung sagt, was passiert ist und was zu tun ist, ohne Systemtext; M2: höchstens zwei Leisten. |
+| Mitte | Die 2–5 s sind vermutlich Windows' TCP-Wiederholungen bei abgewiesener Verbindung (::1 und 127.0.0.1) – **nicht geprüft**. |
+
+**Urteil: BESTÄTIGT.** **Korrektur zu A7 aus Runde 1:** „vor der Rückfrage `IsOffline` prüfen“ fängt den **ersten** Fehler nicht, weil `IsOffline` dann noch false ist. A7 wird ersetzt durch A8 (siehe unten): Fortschritt während des Aufrufs, lesbarer Fehlertext ohne Systemtext, „Erneut versuchen“; die `IsOffline`-Prüfung bleibt als Zusatz für jeden weiteren Versuch sinnvoll.
+
+#### B15: drei InfoBars und Systemtext
+
+| Linse | Befund |
+|---|---|
+| vorne | c17 zeigt gleichzeitig: Offline-Banner der Shell (`Views/ShellView.axaml:121`, Text `ViewModels/ShellViewModel.cs:410-414`, dreizeilig), rote Fehlerleiste (`Views/PosView.axaml:104`) mit Systemtext, Warnleiste Signatur (`Views/PosView.axaml:105`). Fehler- und Warnleiste ohne sichtbares Schließen-Kreuz. |
+| hinten | M2: höchstens zwei Leisten, schließbar; Offline ist Grund für die Signaturwarnung, die Warnung ist dann redundant. |
+| Mitte | Szene entsteht nur offline; online sieht man höchstens zwei. |
+
+**Urteil: BESTÄTIGT.** Weg: offline die Signaturwarnung unterdrücken (Ursache steht schon im Banner), Fehlerleiste schließbar, Systemtext weg (gemeinsam mit A8). Aufwand M.
+
+**Korrektur zu Runde 1:** c17 zeigt „Gutschein-Code*“ in der Zahlungsspalte **ohne** offene Rechnung. Meine Aussage „das Feld gibt es nur bei offener Rechnung“ war falsch; der zugehörige Befund ist neu zu lesen (Feld sichtbar, obwohl nichts zu bezahlen ist – kleine Frage, ob gewollt; nicht weiter geprüft).
+
+#### B17: offline buchen und Kundensuche
+
+| Linse | Befund |
+|---|---|
+| vorne | `Services/Offline.cs:102-105` cacht `api/customers` und `api/locations`; `Get` (`:181-206`) beantwortet `api/customers?search=` offline aus `KnownCustomers()` (`:308`), Abgleich `Matches` (`:337-342`). Buchen läuft über `PostOrQueueAsync` (`ApiClient.cs:72-85`), Neuanlage über `CreateCustomerAsync`. Suchpfade `ViewModels/CustomerSearchViewModel.cs:57`, `ViewModels/BookingViewModel.cs:508`. `ApiClient.cs:38`: `OnSessionEnded => Offline?.Clear()` – Abmelden leert den Cache. |
+| hinten | Offline-Betrieb ist für bekannte Kundinnen gedacht; das Banner sagt das nicht deutlich genug. |
+| Mitte | Die Zusatzläufe haben das Konto gewechselt (Rezeption ↔ Standortleitung) – der Cache war danach sehr wahrscheinlich leer. |
+
+**Urteil:** „Offline kann man nicht buchen“ **WIDERLEGT** als allgemeine Aussage; die leere Suche im Lauf **UNENTSCHIEDEN** (wahrscheinlich geleerter Cache, nicht nachgestellt). **BESTÄTIGT** schwach: Banner und Suche sagen nicht, dass offline nur schon geladene Kundinnen auffindbar sind. Weg: Bannertext schärfen, in der leeren Suche offline einen Hinweis zeigen („Offline: nur Kundinnen, die schon geladen waren.“). Aufwand S.
+
+#### B18: Grund für fehlendes „Einchecken“ nur als Tooltip
+
+Quellen: `docs/umsetzung/arbeitsanweisung-rezeption-luecken.md:76` (Knopf fehlt an anderen Tagen, Fußleiste nennt den Grund), `docs/umsetzung/handtests.md:449-451`, Hilfe `kalender-status-setzen.md:18`.
+
+**Urteil: GEWOLLT.** Verbesserung möglich (M3: Hinweis am Objekt sichtbar statt nur Tooltip; Tastatur- und Screenreader-Nutzerinnen sehen Tooltips schlecht). Nur mit Ja des Auftraggebers – A14, optional.
+
+#### B19: „Einlage“ doppelt
+
+`ViewModels/PosViewModel.OnlineInfo.cs:19`: `MovementTitle => MaySuperviseCash ? "Einlage oder Entnahme" : "Einlage"`. `Views/PosView.axaml:881-887`: Segment-Schalter mit einem einzigen sichtbaren TabButton „Einlage“, „Entnahme“ nur bei `MaySuperviseCash`.
+
+**Urteil: BESTÄTIGT.** Rezeption sieht Titel „Einlage“ und ein Ein-Knopf-Segment „Einlage“. Weg: Segment ausblenden, wenn nur eine Option bleibt. Aufwand S.
+
+#### B20: Geistervorschau abgeschnitten
+
+`Views/CalendarView.axaml:2849-2852`: beide TextBlocks der Vorschau haben `TextTrimming="CharacterEllipsis"` und kein `TextWrapping`; die Höhe kommt aus `Ghost?.Height` (`:2842`). c14 zeigt eine Zeile mit „…“ bei rund einer Stunde Höhe.
+
+**Urteil: BESTÄTIGT.** Weg: `TextWrapping="Wrap"` mit Trimming als Rest (Avalonia trimmt dann die letzte sichtbare Zeile). Aufwand S.
+
+#### B21: 409-Text Server ≠ App
+
+`src/AispaStudio.Api/.../ResourcePlanner.cs:162`: „Zu dieser Zeit ist nicht alles frei, was die Behandlung braucht.“ `ConflictNotice.cs:47` baut „Zeitraum ist belegt.“ plus Zeilen in Ortszeit, weil der Server nur UTC-Zeiträume nennt (`:39-41`). meldungen.md M7 (Zeile 79) schreibt genau diesen Titel vor.
+
+**Urteil: GEWOLLT.** Randnotiz: API-Konsumenten ohne App lesen einen anderen Text – kein Handlungsbedarf für die Rezeption.
+
+#### B22: „Gebucht“ direkt auf „Erledigt“
+
+`src/AispaStudio.Api/Scheduling/StatusDays.cs`: CheckedIn nur am Tag, Completed und NoShow, sobald der Tag nicht in der Zukunft liegt, ohne Statusvorbedingung. Test `tests/AispaStudio.Api.Tests/StatusDayTests.cs:53`. Hilfe `kalender-status-setzen.md:17` („Erledigt“ bei „Gebucht“ und „Eingecheckt“). App: `AppointmentViewModel.cs:120` (ShowComplete), `:139` (HasStatusActions für Booked oder CheckedIn).
+
+**Urteil: GEWOLLT.** Hinweis: Hilfe Zeile 48 sagt, „Erledigt“ lasse sich in der App nicht zurücknehmen – zusammen mit B8 (verlorenes „Einchecken“) wird das Risiko eines falschen Status relevanter; kein eigener Auftrag.
+
+#### Dialogtexte c03–c07 (gegen texte.md und meldungen.md)
+
+Geprüft wurde nach: Folge zuerst, Antworten als Verb mit höchstens vier Wörtern, Titel als Frage. Grundlage sind die Zitate im Bericht; die Bilder c03–c07 habe ich **nicht** selbst angesehen.
+
+| Bild | Titel | Text | Antworten | Urteil |
+|---|---|---|---|---|
+| c03/c04 Storno in der Stornofrist | Frage | „Der Termin von … am Montag, 9. November 2026, 09:05–09:50, ist danach storniert …“ – Folge zuerst; Hinweis Rezeption: 50 % Ausfallgebühr, belasten kann die Standortleitung; Standortleitung: Verweis auf „Ausfallgebühr belasten …“ | „Stornieren“ / „Abbrechen“ | konform; nur das lange Datum (wie B10, gehört in A6). Standardgrund „Kurzfristig an der Rezeption storniert“ passt. |
+| c05 Krank melden | „Elif Demir krank melden?“ | „Der Dienstplan bekommt für den 09.11. einen Krankenstand. …“ | „Krank melden“ | konform |
+| c06 Pause löschen | „Pause löschen?“ | „Die Zeit 11:30–12:00 ist danach wieder frei.“ | „Löschen“ | konform |
+| c07 Sperrzeit löschen | „Sperrzeit löschen?“ | wie c06 | „Löschen“ | konform |
+
+Weitere Texte aus dem Bericht:
+
+| Stelle | Befund | Urteil |
+|---|---|---|
+| c08 Sperrzeit ohne Grund | „Bitte einen Grund angeben.“ als rote InfoBar | **BESTÄTIGT**: „Bitte“ gegen T8; gehört als Feldfehler an „Grund“ (meldungen.md Feldfehler, Muster wie B5) |
+| Server-409 „Bitte heute oder einen späteren Tag wählen.“ | „Bitte“ | **BESTÄTIGT** (T8), z. B. „Nur heute oder ein späterer Tag ist möglich.“ |
+| c09 DisabledHint „Verfügbar für heute oder einen späteren Tag.“ | ok | konform |
+| c10 Grund nur als Tooltip | wie B18 | GEWOLLT |
+| c11 Einchecken-und-kassieren-Rückfrage | wie B14 aus Runde 1 | siehe Runde 1 |
+
+#### Ergänzte Aufgabenliste (je ein Commit)
+
+| Nr. | Aufgabe | Befund | Aufwand | Prüfkriterium |
+|---|---|---|---|---|
+| A8 | Kassa offline: Fortschritt während des Aufrufs, lesbarer Fehler ohne Systemtext (Abbildung in `HttpApiClient.cs:271/325` oder Übersetzung in der App), „Erneut versuchen“, Schließen-Kreuz; `IsOffline`-Prüfung als Zusatz. **Ersetzt A7.** | B2 | S–M | Test: gescheiterter Aufruf liefert Text ohne `ex.Message`; Live-Probe offline |
+| A9 | Kassa-InfoBars: höchstens zwei, offline keine Signaturwarnung, Fehlerleiste schließbar (M2) | B15 | M | Ansichtstest offline: zwei Leisten |
+| A10 | Segment „Einlage“ ausblenden, wenn nur eine Option | B19 | S | Ansichtstest Rezeption |
+| A11 | Geistervorschau umbrechen statt abschneiden | B20 | S | Bild bei 60-min-Vorschau |
+| A12 | Sperrzeit-Grund als Feldfehler, Text ohne „Bitte“; Server-409-Texte ohne „Bitte“ | c08, Server | S | Test auf Text und Feldfehler |
+| A13 | Offline-Bannertext schärfen und Hinweis in leerer Suche offline | B17 | S | Ansichtstest offline |
+| A14 | (optional, nur mit Ja des Auftraggebers) sichtbarer Grund im Panel, wenn Einchecken an einem anderen Tag fehlt | B18 | S | Ansichtstest |
+| A15 | (nur nach der Probe) Klickschutz gegen Tooltip-Popup zentral in `ToolTipBehavior` | B8 | S–M | Mauslauf 20× ohne Verlust |
+
+**Reihenfolge relativ zu A1–A7:**
+
+1. A1 (Tagesabschluss)
+2. **T-Probe B8** früh, weil die Schwere bei „App“ auf hoch steigt; bei Bestätigung sofort A15
+3. A2–A6 (A6 nimmt das lange Datum aus c03/c04 mit)
+4. A8 (statt A7), danach A9
+5. A12, A10, A11, A13
+6. A14 nur nach Entscheidung
+7. T (Tester) parallel, unabhängig
+
+#### Was weiter nur ein Handtest klären kann (aktualisiert)
+
+| Nr. | Frage | Warum kein Automat |
+|---|---|---|
+| H1 | Gehen Klicks auf „Einchecken“, „Mehr“ und Karten auch **per Hand** verloren (10× zügig)? | synthetisches `SendInput` ahmt Zeigerweg und Timing nicht nach |
+| H2 | Wie lange dauert offline die Fehlermeldung in der Kassa wirklich, und versteht die Rezeption sie? | Windows-Netzverhalten und Lesbarkeit |
+| H3 | Offline buchen mit einer vorher geladenen Kundin, ohne Abmelden dazwischen: Suche findet sie, Buchung wird nachgereicht | Zusatzläufe haben den Cache durch Kontowechsel geleert |
+| H4 | Ist der Tooltip-/Fußleisten-Grund für fehlendes „Einchecken“ für die Rezeption auffindbar (B18)? | Wahrnehmung |
+| H5 | Liest sich das lange Datum in Storno-Dialogen (c03/c04) störend? | Geschmack/Lesefluss |
+| H6 | Weiter offen aus Runde 1 | siehe `bewertung.md` |
+
+#### Nicht geprüft
+
+- Bilder c01–c13, c15, c16, c18, c19 nicht selbst angesehen; nur die Zitate in `extras-ergebnis.md` genutzt (angesehen: c14, c17, c20, c21).
+- Windows-TCP-Wiederholungen als Ursache der 2–5 s nicht gemessen.
+- Avalonia-Verhalten Tooltip-Popup ↔ PointerPressed/Released nicht nachgelesen und nicht nachgestellt; ob `ToolTip.ServiceEnabled` in der genutzten Avalonia-Fassung existiert, nicht geprüft.
+- Live-Echo-Neubau als B8-Ursache nicht ausgeschlossen.
+- Ob das sichtbare Gutschein-Code-Feld ohne Rechnung gewollt ist, nicht geprüft.
+- Texte von texte.md/meldungen.md für c03–c07 nur gegen die Regeln aus Runde 1 geprüft, nicht Zeile für Zeile neu gelesen.
 
