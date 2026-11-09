@@ -5,7 +5,7 @@ bereich: Kalender
 oberflaeche: windows-app
 rollen: rezeption, leitung, inhaber, manager
 seite: kalender
-stichwoerter: Termin buchen, Termin anlegen, Termin eintragen, neuer Termin, buchen, reservieren, Termin vergeben, Walk-in, Laufkundschaft, neue Kundin, neuer Kunde, Kunde anlegen, Folgetermin, nächster Termin, Wiederholungstermin, Anamnese prüfen, Gesundheitsfragebogen, Kontraindikation, book, new appointment, booking, follow-up
+stichwoerter: Termin buchen, Termin anlegen, Termin eintragen, neuer Termin, buchen, reservieren, Termin vergeben, Walk-in, Laufkundschaft, neue Kundin, neuer Kunde, Kunde anlegen, Folgetermin, nächster Termin, Wiederholungstermin, Anamnese prüfen, Gesundheitsfragebogen, Kontraindikation, Kalenderdatei, iCal, ics, Outlook, Terminliste exportieren, Termine als Excel, book, new appointment, booking, follow-up, calendar file
 ---
 # Termin buchen
 
@@ -146,6 +146,8 @@ Die Konfliktmeldung ist eine rote Meldung mit dem Titel „Zeitraum ist belegt.�
 
 ## Hinweise {#hinweise}
 
+- Im Termin-Panel speichert **Mehr** › **Kalenderdatei …** den Termin als Datei für Outlook, Apple oder Google, mit Erinnerung einen Tag vorher und ohne Namen der Therapeut:in; bei einem Spa-Tag stehen alle Teile des Gastes darin.
+- Am Knopf **Termin** speichert der Pfeil › **Terminliste exportieren …** die Termine eines Zeitraums als Excel oder CSV; die Spalte „Notiz“ sehen nur Leitung und Inhaber. Jeder Export steht im Verlauf.
 - Buchen dürfen Rezeption, Standortleitung und Inhaber. Therapeut:innen sehen den Kalender, buchen aber nicht.
 - Ohne Verbindung wird der Termin vorgemerkt und erst beim Abgleich geprüft, siehe [Arbeiten ohne Verbindung](hilfe:kalender-offline).
 - Mehrere Gäste oder mehrere Behandlungen hintereinander: [Paar oder Spa-Tag](hilfe:kalender-paar-und-spa-tag).

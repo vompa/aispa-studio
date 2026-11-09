@@ -238,7 +238,7 @@
             </Button.IsVisible>
           </Button>
           <ui:AccordionHeader x:Name="MoreToggle" Classes="more" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
-                              IsVisible="{Binding HasMore}" ToolTip.Tip="Weitere Status und die Zeiten des Termins ändern">
+                              IsVisible="{Binding HasMore}" ToolTip.Tip="Weitere Status, Zeiten des Termins und Kalenderdatei">
             <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
               <TextBlock Text="Mehr" />
               <ui:Icon Classes="chevron" Data="{x:Static ui:Icons.ChevronRight}" Width="14" Height="14" Foreground="{DynamicResource Fg3Brush}" VerticalAlignment="Center" />
@@ -270,6 +270,15 @@
             <Button Content="Zeiten dieses Termins ändern …" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
                     Command="{Binding BeginEditTimesCommand}" IsVisible="{Binding CanChangeTimes}"
                     ToolTip.Tip="Vor- und Nachbereitung nur dieses Termins ändern" />
+            <!-- Kalenderdatei für den Gast (Export/Import, Aufgabe C): iCal mit Erinnerung 24 Stunden vorher, ohne Namen der Person -->
+            <Button x:Name="CalendarFileButton" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                    Command="{Binding CalendarFile.ExportCommand}" CommandParameter="{Binding CalendarFileOption}" IsVisible="{Binding CanSaveCalendarFile}"
+                    ToolTip.Tip="Den Termin als Datei für Outlook, Apple oder Google speichern, z. B. zum Mitschicken an den Gast">
+              <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+                <ui:Icon Data="{x:Static ui:Icons.Download}" Width="16" Height="16" />
+                <TextBlock Text="Kalenderdatei …" />
+              </StackPanel>
+            </Button>
           </StackPanel>
         </StackPanel>
 
@@ -2158,6 +2167,9 @@
                         </Grid>
                       </MenuItem.Header>
                     </MenuItem>
+                    <Separator />
+                    <!-- Terminliste als Excel oder CSV (Export/Import, Aufgabe C): fragt Zeitraum und Format -->
+                    <MenuItem x:Name="ExportAppointmentsItem" Header="Terminliste exportieren …" Command="{Binding ExportAppointmentListCommand}" />
                   </MenuFlyout>
                 </SplitButton.Flyout>
                 <StackPanel Orientation="Horizontal" Spacing="6">

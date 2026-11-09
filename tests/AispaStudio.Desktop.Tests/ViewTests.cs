@@ -141,6 +141,9 @@ public sealed partial class ViewTests
 
         Assert.True(Visible("Erledigt"));
         Assert.True(Visible("Nicht erschienen"));
+
+        // Kalenderdatei für den Gast (Export/Import, Aufgabe C).
+        Assert.True(window.GetVisualDescendants().OfType<Button>().Single(b => b.Name == "CalendarFileButton").IsEffectivelyVisible);
         return calendar;
     });
 

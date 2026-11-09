@@ -673,3 +673,22 @@ Expected: Erste Zeile `First name,Last name,Email,Mobile,Date of birth,Notes,Mar
 Expected: Excel, CSV, Portal-CSV und vCard stehen da, die Newsletter-Liste nicht; im Excel fehlt die Spalte „Vermerk“.
 Closes: Export/Import Aufgabe A und B (arbeitsanweisung-export-import.md)
 Result: ☐
+
+### Export/Import C – Terminliste und Kalenderdateien
+Start: `dotnet run --project src/AispaStudio.AppHost`, im Aspire-Dashboard die Ressource `windows-app` starten, als Inhaberin anmelden, **Kalender** in der Wochenansicht öffnen
+1. Am Knopf **Termin** den Pfeil klicken und **Terminliste exportieren …** wählen.
+Expected: Der Dialog „Terminliste exportieren?“ zeigt Von und Bis mit Montag und Sonntag der gezeigten Woche, Excel ist gewählt, der Fokus liegt auf **Exportieren**.
+2. Bis auf einen Tag vor Von setzen und **Exportieren** klicken.
+Expected: Der Dialog bleibt offen, unter „Bis“ steht „Bis liegt vor Von.“.
+3. Bis wieder auf Sonntag setzen, **Exportieren** klicken und die Datei speichern.
+Expected: Der Speicherdialog schlägt `Termine_<Montag>.xlsx` vor; unten steht kurz „Gespeichert: …“. In Excel: Tag als Datum, Beginn und Ende als Uhrzeit, Preis als Betrag, Status deutsch (Gebucht, Erledigt …), dazu die Spalte „Notiz“.
+4. Einen Termin öffnen, im Panel **Mehr** aufklappen und **Kalenderdatei …** wählen; die Datei speichern und in Outlook (oder Apple Kalender, Google Kalender) öffnen.
+Expected: Ein Termin mit Behandlung als Titel und dem Standort als Ort, zur richtigen Ortszeit, mit Erinnerung einen Tag vorher; kein Name der Person. Bei einer Buchung für einen Spa-Tag stehen alle Teile des Gastes als einzelne Termine darin.
+5. Dieselbe Datei ein zweites Mal öffnen.
+Expected: Der Kalender ersetzt den Termin, statt ihn doppelt einzutragen.
+6. **Team** öffnen, eine Person wählen, Reiter **Dienstplan** und unten **Kalenderdatei …** speichern; die Datei in einem Kalender öffnen.
+Expected: Neben dem Knopf steht „Gespeichert: Kalender_<Name>.ics“. Im Kalender stehen die Dienste der nächsten 90 Tage als „Dienst <Standort>“ und die Termine als „<Behandlung> (<Raum>)“, ohne Namen der Gäste und ohne Erinnerung.
+7. Abmelden, als Rezeption anmelden, **Team** › eine andere Person › **Dienstplan** öffnen.
+Expected: Der Knopf **Kalenderdatei …** fehlt; im Kalender exportiert die Terminliste ohne Spalte „Notiz“.
+Closes: Export/Import Aufgabe C (arbeitsanweisung-export-import.md)
+Result: ☐

@@ -4,7 +4,7 @@ bereich: Dienstplan
 oberflaeche: verwaltung
 rollen: inhaber, manager, leitung
 seite: verwaltung
-stichwoerter: Schicht planen, Dienst ändern, Schicht ändern, Dienst tauschen, Einsatz, Arbeitszeit für einen Tag, geteilte Schicht, anderer Standort, Wochenarbeitszeit zurücksetzen, shift, change shift, schedule a day
+stichwoerter: Schicht planen, Dienst ändern, Schicht ändern, Dienst tauschen, Einsatz, Arbeitszeit für einen Tag, geteilte Schicht, anderer Standort, Wochenarbeitszeit zurücksetzen, Kalenderdatei, iCal, Dienste im eigenen Kalender, shift, change shift, schedule a day, calendar file
 ---
 # Dienst für einen Tag planen oder ändern
 
@@ -44,5 +44,6 @@ Ist ein Tag abweichend geplant, steht im Feld **Wie Wochenarbeitszeit**. Ein Kli
 - Planen darf nur, wer Standorte verwaltet. Alle anderen sehen den Plan, die Zellen lassen sich nicht anklicken.
 - Wer an einem Tag ungespeicherte Änderungen hat und einen anderen Tag, die Woche oder die Ansicht wählt, wird gefragt: „Änderungen speichern?“
 - Die regelmäßige Arbeitszeit selbst wird im Team gepflegt: [Person im Team ändern](hilfe:stammdaten-person-anlegen#aendern).
+- In der Personenkarte speichert **Kalenderdatei …** unter dem Dienstplan die Dienste und Termine der nächsten 90 Tage für den eigenen Kalender, ohne Namen der Gäste. Den Knopf sehen die Leitung und die Person selbst.
 
 Verwandt: [Urlaub oder Krankenstand eintragen](hilfe:dienstplan-abwesenheit-eintragen).

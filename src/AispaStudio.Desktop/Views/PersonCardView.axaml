@@ -58,6 +58,18 @@
           <ui:HelpButton Topic="dienstplan-tag-planen" Grid.Column="1" />
         </Grid>
         <ContentControl x:Name="RosterHost" Content="{Binding Roster}" />
+        <!-- Dienste und Termine als Kalenderdatei für den privaten Kalender (Export/Import, Aufgabe C): nur Leitung und die Person selbst, ohne Namen der Gäste -->
+        <StackPanel Orientation="Horizontal" Spacing="12" IsVisible="{Binding HasCalendarFile}">
+          <Button x:Name="CalendarFileButton" Command="{Binding CalendarFile.ExportCommand}" CommandParameter="{Binding CalendarFileOption}"
+                  ToolTip.Tip="Dienste und Termine der nächsten 90 Tage als Datei für den eigenen Kalender, ohne Namen der Gäste">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <ui:Icon Data="{x:Static ui:Icons.Download}" Width="16" Height="16" />
+              <TextBlock Text="Kalenderdatei …" />
+            </StackPanel>
+          </Button>
+          <TextBlock x:Name="CalendarFileSavedText" Text="{Binding CalendarFileSaved}" Classes="muted small" VerticalAlignment="Center"
+                     IsVisible="{Binding CalendarFileSaved, Converter={x:Static ObjectConverters.IsNotNull}}" AutomationProperties.LiveSetting="Polite" />
+        </StackPanel>
       </StackPanel>
 
       <!-- Zeiten (Slice 99): die Zeiterfassung der Person, ein Tag lässt sich ansehen, nachtragen und ändern -->
