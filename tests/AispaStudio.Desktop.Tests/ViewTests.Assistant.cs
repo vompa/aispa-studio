@@ -281,19 +281,17 @@ public sealed partial class ViewTests
         Assert.Equal("16:00", booking.StartText);
         Assert.Equal(CalendarViewModel.AssistantBookingNote, booking.AssistantNote);
 
-        // Der Hinweis steht unten über „Termin buchen“; fürs Bild beide in den sichtbaren Bereich der Leiste holen.
+        // Der Hinweis steht am Ende des scrollenden Inhalts, „Termin buchen“ fest im Fuß darunter (A4); fürs Bild den Hinweis in den sichtbaren Bereich holen.
         var note = window.GetVisualDescendants().OfType<InfoBar>().Single(b => b.Message == CalendarViewModel.AssistantBookingNote);
         Assert.True(note.IsEffectivelyVisible);
         var book = window.GetVisualDescendants().OfType<Button>().First(b => b.IsEffectivelyVisible && Equals(b.Content, "Termin buchen"));
-        book.BringIntoView();
+        Assert.DoesNotContain(book.GetVisualAncestors(), a => a is ScrollViewer);
+        note.BringIntoView();
         await Pump(Settling);
         var viewer = note.GetVisualAncestors().OfType<ScrollViewer>().First();
-        foreach (var (control, what) in new (Control, string)[] { (note, "Hinweis"), (book, "Termin buchen") })
-        {
-            var top = control.TranslatePoint(new Point(0, 0), viewer)!.Value.Y;
-            Assert.True(top >= 0 && top + control.Bounds.Height <= viewer.Viewport.Height,
-                $"{what} liegt bei {top}..{top + control.Bounds.Height}, sichtbar sind 0..{viewer.Viewport.Height}");
-        }
+        var noteTop = note.TranslatePoint(new Point(0, 0), viewer)!.Value.Y;
+        Assert.True(noteTop >= 0 && noteTop + note.Bounds.Height <= viewer.Viewport.Height,
+            $"Hinweis liegt bei {noteTop}..{noteTop + note.Bounds.Height}, sichtbar sind 0..{viewer.Viewport.Height}");
 
         return calendar;
     }, Api().On("POST /api/assistant", new AssistantAnswer(AssistantAudience.Reception,

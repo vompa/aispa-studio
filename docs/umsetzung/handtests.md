@@ -542,3 +542,14 @@ Expected: „Wieder gebucht: Elif Demir, 14:35“ in einer Zeile.
 Expected: „Verschoben auf Do 14:35“, danach „Zurück auf 14:35“ (am heutigen Tag nur die Uhrzeit).
 Closes: B3, B4 (live-sichtpruefung-2026-11-09.md)
 Result: ☐
+
+### Kalender A4 – „Neuer Termin“ mit festem Fuß
+Start: `dotnet run --project src/AispaStudio.AppHost`, als Rezeption anmelden, Fenster nicht höher als Full HD, **Kalender**
+1. Eine freie Stelle anklicken (Panel **Neuer Termin**), einen Gast und eine Behandlung wählen, als Beginn eine belegte Zeit eintragen, **Termin buchen** klicken.
+Expected: „Zeitraum ist belegt.“ steht ganz sichtbar direkt über **Termin buchen**; beide bleiben am unteren Rand des Panels, auch wenn die Eingaben darüber scrollen.
+2. Einen Gast mit früherer Behandlung wählen.
+Expected: In der Karte **Vorschläge** stehen **Übernehmen** bzw. **Freie Zeit suchen** unter dem Text, der Text bricht nicht auf fünf Zeilen.
+3. Strg+S drücken.
+Expected: Bucht wie ein Klick auf **Termin buchen**.
+Closes: B7, B13 (live-sichtpruefung-2026-11-09.md)
+Result: ☐
