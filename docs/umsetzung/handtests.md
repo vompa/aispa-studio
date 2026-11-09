@@ -531,3 +531,16 @@ Expected: Beispiel und Platzhalter haben die Form `K7M3-Q9XA-B2CD`.
 Expected: Kein Knopf **Bearbeiten** neben dem Kopf; der Weg geht über **…** › **Bearbeiten (Name, Anrede, Kontakt, Notiz)** oder den Stift **Notiz ändern**, wie beschrieben.
 Closes: L15 (live-tests-rezeption-onboarding.md, Abschnitt 3)
 Result: ☐
+
+### Befunde Kunden A3 – E-Mail-Fehler am Feld, Liste ohne hängendes Komma
+Start: `dotnet run --project src/AispaStudio.AppHost`, als Rezeption anmelden, **Kunden** › **Neue Kundin / neuer Kunde**
+1. Im Nachnamen „Probe“ eintragen, im E-Mail-Feld „keine-adresse“ tippen und mit Tab verlassen.
+Expected: Unter dem E-Mail-Feld steht rot „Keine gültige E-Mail-Adresse. Mit @ angeben, z. B. name@beispiel.at.“; die Leiste über der Kundenliste bleibt leer.
+2. Auf **Anlegen** klicken.
+Expected: Der Cursor steht im E-Mail-Feld, die Fehlermeldung bleibt unter dem Feld, es wird keine Kundin angelegt, links erscheint keine rote Leiste.
+3. Die Adresse in „probe@beispiel.at“ ändern und auf **Anlegen** klicken.
+Expected: Der Fehler verschwindet beim Tippen, die Kundin wird angelegt.
+4. Eine Kundin nur mit Nachname anlegen (kein Vorname) und in der Liste links ansehen.
+Expected: Die Zeile heißt „Probe“ ohne Komma am Ende.
+Closes: B5, B12 (live-sichtpruefung-2026-11-09.md)
+Result: ☐

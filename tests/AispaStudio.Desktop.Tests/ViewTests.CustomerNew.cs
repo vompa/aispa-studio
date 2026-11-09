@@ -58,6 +58,29 @@ public sealed partial class ViewTests
     });
 
     [Fact]
+    public Task Neue_Kundin_mit_falscher_E_Mail_zeigt_den_Fehler_am_Feld_und_setzt_den_Fokus_dorthin() => Render("hell", "kunden-neu-email-fehler", async (window, main) =>
+    {
+        var calendar = await SignedInCalendar(main);
+        var shell = (ShellViewModel)main.Content!;
+        await shell.ShowCustomerAsync(SpaSample.Customers[0].Id);
+        await Pump();
+        shell.Customers.StartNewCommand.Execute(null);
+        await Pump();
+        shell.Customers.NewLastName = "Gruber";
+        shell.Customers.NewEmail = "keine-adresse";
+
+        await shell.Customers.CreateCommand.ExecuteAsync(null);
+        await Pump(Settling);
+
+        var mask = NewCustomerMask(window);
+        var email = mask.GetVisualDescendants().OfType<TextBox>().First(b => b.Name == CustomersViewModel.NewEmailField);
+        Assert.Contains(mask.GetVisualDescendants().OfType<TextBlock>(), t => t.IsEffectivelyVisible && t.Text == shell.Customers.NewEmailError);
+        Assert.Same(email, TopLevel.GetTopLevel(window)!.FocusManager!.GetFocusedElement());
+        Assert.Null(shell.Customers.Error);
+        return calendar;
+    });
+
+    [Fact]
     public Task Neue_Kundin_Esc_bricht_ab() => Render("hell", "kunden-neu-esc", async (window, main) =>
     {
         var calendar = await SignedInCalendar(main);
