@@ -212,6 +212,20 @@ public sealed class NewEntryCarryTests
     }
 
     [Fact]
+    public async Task Die_Rueckfrage_beim_Schliessen_nennt_die_Folge_ohne_Anrede()
+    {
+        var vm = await OpenAsync(Api());
+        vm.StartBooking(vm.Columns[0], Y(vm, "14:00"));
+        vm.Booking!.Note = Wish;
+        var dialogs = new FakeDialogs();
+        vm.Dialogs = dialogs;
+
+        await vm.RequestClosePanelAsync();
+
+        Assert.Equal("Die Eingaben gehen beim Schließen verloren.", Assert.Single(dialogs.Asked).Message);
+    }
+
+    [Fact]
     public async Task Klick_in_eine_andere_Spalte_verlegt_den_gemerkten_Termin_statt_ihn_zu_verwerfen()
     {
         var (vm, booking) = await StartedAsync();

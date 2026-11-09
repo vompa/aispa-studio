@@ -465,7 +465,7 @@ public partial class CalendarViewModel
         // Im Eingabefenster zählen auch die gemerkten Arten, die gerade nicht angezeigt werden (Ä153).
         if (ActivePanel is { HasUnsavedChanges: true } || (NewEntry is { HasUnsavedChanges: true } entry && ReferenceEquals(ActivePanel, entry.Content)))
         {
-            var answer = await AskAsync(new ConfirmRequest("Änderungen verwerfen?", "Was Sie hier eingetragen haben, geht beim Schließen verloren.",
+            var answer = await AskAsync(new ConfirmRequest("Änderungen verwerfen?", "Die Eingaben gehen beim Schließen verloren.",
                 "Verwerfen", CancelText: "Weiter bearbeiten")).ConfigureAwait(true);
             if (!answer.IsConfirmed)
             {

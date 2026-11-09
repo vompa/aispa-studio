@@ -298,7 +298,7 @@ public sealed class CalendarTests
     }
 
     [Fact]
-    public async Task Buchen_aus_dem_Panel_meldet_Gebucht_mit_Gast_Tag_und_Uhrzeit()
+    public async Task Buchen_aus_dem_Panel_meldet_Gebucht_mit_Gast_und_Uhrzeit()
     {
         var api = Api();
         var vm = await OpenAsync(api);
@@ -313,7 +313,7 @@ public sealed class CalendarTests
         await booking.BookCommand.ExecuteAsync(null);
 
         Assert.Null(vm.Booking);
-        Assert.Equal("Gebucht: Eva Muster, Montag, 1. März 2027 09:30", vm.Toast);
+        Assert.Equal("Gebucht: Eva Muster, 09:30", vm.Toast);
     }
 
     [Fact]
@@ -434,7 +434,7 @@ public sealed class CalendarTests
         Assert.Equal(appointment.Id, Assert.Single(vm.Columns[1].Items).Id);
         Assert.Null(vm.Ghost);
         Assert.True(vm.CanUndo);
-        Assert.Contains("14:30–15:20 (Ben, Raum Zeder)", vm.Toast, StringComparison.Ordinal);
+        Assert.Equal("Verschoben auf 14:30", vm.Toast);
 
         api.On($"POST /api/appointments/{appointment.Id}/move", appointment with { UpdatedAt = TestData.At(9, 30) });
         await vm.UndoMoveCommand.ExecuteAsync(null);
@@ -682,7 +682,7 @@ public sealed class CalendarTests
         Assert.Equal(appointment.Id, Assert.Single(vm.Columns[0].Items).Id);
         Assert.Equal(appointment.Id, vm.MarkedId);
         Assert.True(vm.CanUndo);
-        Assert.Contains("14:00–14:50", vm.Toast, StringComparison.Ordinal);
+        Assert.Equal("Verschoben auf Mi 14:00", vm.Toast);
 
         panel.MoveDateText = "32.03.2027";
         await panel.MoveToDayCommand.ExecuteAsync(null);

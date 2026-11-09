@@ -576,4 +576,45 @@ Expected: Überschrift „Einlage“, darunter gleich die Felder **Betrag** und 
 2. Abmelden, als Standortleitung anmelden, dieselbe Stelle öffnen.
 Expected: Überschrift „Einlage oder Entnahme“ mit den Reitern **Einlage** und **Entnahme**.
 Closes: B19 (live-sichtpruefung-2026-11-09.md)
+
+### Kalender A2 – Toasts mit kurzem Zeitpunkt
+Start: `dotnet run --project src/AispaStudio.AppHost`, als Rezeption anmelden, **Kalender**
+1. Einen Termin für einen Gast mit langem Namen (z. B. Elif Demir, Behandlung im Hand- und Fußpflegeplatz) für heute buchen.
+Expected: Meldung „Gebucht: Elif Demir, 14:35“ ohne „…“ am Ende.
+2. Den Termin stornieren und in der Meldung **Rückgängig** klicken.
+Expected: „Wieder gebucht: Elif Demir, 14:35“ in einer Zeile.
+3. Einen Termin auf einen anderen Tag ziehen (7-Tage-Ansicht), dann **Rückgängig**.
+Expected: „Verschoben auf Do 14:35“, danach „Zurück auf 14:35“ (am heutigen Tag nur die Uhrzeit).
+Closes: B3, B4 (live-sichtpruefung-2026-11-09.md)
+Result: ☐
+
+### Kalender A4 – „Neuer Termin“ mit festem Fuß
+Start: `dotnet run --project src/AispaStudio.AppHost`, als Rezeption anmelden, Fenster nicht höher als Full HD, **Kalender**
+1. Eine freie Stelle anklicken (Panel **Neuer Termin**), einen Gast und eine Behandlung wählen, als Beginn eine belegte Zeit eintragen, **Termin buchen** klicken.
+Expected: „Zeitraum ist belegt.“ steht ganz sichtbar direkt über **Termin buchen**; beide bleiben am unteren Rand des Panels, auch wenn die Eingaben darüber scrollen.
+2. Einen Gast mit früherer Behandlung wählen.
+Expected: In der Karte **Vorschläge** stehen **Übernehmen** bzw. **Freie Zeit suchen** unter dem Text, der Text bricht nicht auf fünf Zeilen.
+3. Strg+S drücken.
+Expected: Bucht wie ein Klick auf **Termin buchen**.
+Closes: B7, B13 (live-sichtpruefung-2026-11-09.md)
+Result: ☐
+
+### Kalender A6 – Texte der Rückfragen
+Start: `dotnet run --project src/AispaStudio.AppHost`, als Rezeption anmelden, **Kalender**
+1. **Neuer Termin** öffnen, eine Notiz tippen, mit dem Kreuz schließen.
+Expected: „Änderungen verwerfen?“ mit dem Text „Die Eingaben gehen beim Schließen verloren.“, Antworten **Verwerfen** und **Weiter bearbeiten**.
+2. Einen Termin an einem anderen Tag anklicken, **Stornieren** wählen.
+Expected: „Termin stornieren?“ mit „Der Termin von … am Do. 12.11., 14:35–15:20, ist danach storniert …“ (kurzes Datum).
+Closes: B9, B10 (live-sichtpruefung-2026-11-09.md)
+Result: ☐
+
+### Kalender – kleine Textbefunde B20, B23, B24
+Start: `dotnet run --project src/AispaStudio.AppHost`, als Rezeption anmelden, **Kalender**
+1. **Neuer Termin** öffnen, die Behandlung „Anti-Aging-Gesichtsbehandlung mit Gesichtsmassage“ wählen.
+Expected: Die Vorschau im Kalender bricht den Namen um, statt mit „…“ zu enden.
+2. Rechtsklick auf eine freie Stelle › **Sperrzeit hier**, den Grund leer lassen, **Sperren** klicken.
+Expected: Unter dem Feld **Grund** steht „Der Grund fehlt.“; keine rote Leiste.
+3. Einen Termin für gestern buchen bzw. auf gestern verschieben (Tag per Hand eintippen).
+Expected: Meldung „Termine lassen sich nicht in der Vergangenheit buchen. Möglich ist heute oder ein späterer Tag.“ (beim Verschieben „… verschieben …“).
+Closes: B20, B23, B24 (live-sichtpruefung-2026-11-09.md)
 Result: ☐
