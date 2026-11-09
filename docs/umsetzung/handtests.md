@@ -652,3 +652,20 @@ Expected: Der Knopf löst aus. Die Hover-Karte reagiert nicht auf die Maus (Text
 Expected: Beide erscheinen wie bisher und sind lesbar.
 Closes: B8 (live-sichtpruefung-2026-11-09.md)
 Result: ☐
+
+### Verlauf A – Endpunkt je Standort
+Start: `dotnet run --project src/AispaStudio.AppHost`, Beispieldaten geladen, als Inhaberin angemeldet, Standort-Id aus `GET /api/v1/locations`; Aufrufe über die Scalar-Seite der API oder `curl` mit dem Sitzungs-Cookie
+1. `GET /api/v1/locations/{id}/history?take=20` aufrufen.
+Expected: 20 Einträge, neueste zuerst, `nextBefore` gesetzt; Buchungen, Verschiebungen und Stornos tragen Gast, Behandlung und Person.
+2. Dieselbe Adresse mit `&before=<nextBefore>` wiederholen.
+Expected: Die nächsten 20 Einträge ohne Doppelte und ohne Lücke.
+3. `?kinds=Paid&kinds=Deposit&kinds=ReceiptVoided` aufrufen.
+Expected: Nur Zahlungen zum Termin („Bezahlt bar: … (Beleg … Nr. …)“, „Anzahlung …“, „Beleg … storniert …“), `seq` negativ.
+4. `?search=<Nachname eines Gastes>` und `?search=<Storno-Grund>` aufrufen.
+Expected: Nur Einträge zu diesem Gast bzw. der Storno mit diesem Grund; Groß- und Kleinschreibung egal.
+5. Als Rezeption anmelden und `?kinds=RosterChanged` aufrufen, danach ohne `kinds`.
+Expected: 403 mit „… nur Inhaber und Manager.“; ohne `kinds` eine Seite ohne Dienstplan, Zugänge und Firmendaten.
+6. Einen kassierten Termin im Kalender öffnen, Abschnitt „Verlauf“ aufklappen.
+Expected: „Bezahlt … (Beleg … Nr. …)“ steht zwischen den übrigen Einträgen an der richtigen Stelle.
+Closes: –
+Result: ☐

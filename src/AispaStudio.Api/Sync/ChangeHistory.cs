@@ -111,6 +111,10 @@ public static class ChangeHistory
             END IF;
             IF TG_TABLE_SCHEMA = 'aispa' THEN
                 CASE TG_TABLE_NAME
+                    WHEN 'Appointments' THEN
+                        -- Für den Verlauf je Standort (Seite „Verlauf“): Standort, Behandlung, Gast, Person, Beginn und Quelle zur Zeit der Änderung.
+                        ctx := jsonb_build_object('LocationId', r -> 'LocationId', 'TreatmentId', r -> 'TreatmentId', 'CustomerId', r -> 'CustomerId',
+                                                  'EmployeeId', r -> 'EmployeeId', 'Start', r -> 'Start', 'Source', r -> 'Source');
                     WHEN 'Treatments' THEN
                         subject := r ->> 'Id';
                     WHEN 'TreatmentLocationPrices' THEN
