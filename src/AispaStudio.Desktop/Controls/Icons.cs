@@ -70,6 +70,9 @@ public static class Icons
     public const string Male = "M10 9a5 5 0 1 1 0 10a5 5 0 0 1 0-10zM13.5 10.5L20 4M15 4h5v5";
 
     /// <summary>Icon zur Anrede aus dem Textzeichen ♀/♂; null ohne Anrede.</summary>
+    /// <summary>„PDF speichern“ im Knopfblock der Dokumente (ADR 0091).</summary>
+    public const string Download = "M12 4v11M7 10l5 5 5-5M4 19h16";
+
     public static string? Salutation(string? symbol) => symbol switch
     {
         "♀" => Female,

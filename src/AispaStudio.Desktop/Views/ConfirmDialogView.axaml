@@ -185,6 +185,33 @@
           </Border>
         </Panel>
       </DataTemplate>
+      <!-- Dokument per Mail senden (ADR 0091): derselbe Dialog, 600 breit; Adresse, Betreff und Text vorbelegt von der API; Enter in einem Feld sendet, Esc schließt -->
+      <DataTemplate DataType="vm:SendDocumentDialogViewModel" x:DataType="vm:SendDocumentDialogViewModel">
+        <Panel>
+          <Border x:Name="Scrim" Background="{DynamicResource ScrimBrush}" />
+          <Border x:Name="DialogCard" Classes="confirmdialog wide" AutomationProperties.Name="{Binding Title}" KeyboardNavigation.TabNavigation="Cycle">
+            <StackPanel Spacing="8">
+              <TextBlock x:Name="DialogTitle" Classes="h2" Text="{Binding Title}" TextWrapping="Wrap" />
+              <TextBlock x:Name="DialogMessage" Text="{Binding Message}" TextWrapping="Wrap" />
+              <StackPanel Spacing="12" Margin="0,8,0,0">
+                <ui:FormField Label="An" Error="{Binding ToError}" IsRequired="True">
+                  <TextBox x:Name="SendTo" Text="{Binding To}" MaxLength="254" AutomationProperties.Name="An" />
+                </ui:FormField>
+                <ui:FormField Label="Betreff" IsRequired="True">
+                  <TextBox x:Name="SendSubject" Text="{Binding Subject}" MaxLength="200" AutomationProperties.Name="Betreff" />
+                </ui:FormField>
+                <ui:FormField Label="Text">
+                  <TextBox x:Name="SendText" Text="{Binding Text}" AcceptsReturn="True" TextWrapping="Wrap" MaxLength="2000" Height="140" AutomationProperties.Name="Text" />
+                </ui:FormField>
+              </StackPanel>
+              <StackPanel x:Name="DialogButtons" Classes="confirmbuttons">
+                <Button x:Name="ConfirmButton" Classes="primary" Content="{Binding ConfirmText}" Command="{Binding SendCommand}" />
+                <Button x:Name="CancelButton" Classes="ghost" Content="{Binding CancelText}" Command="{Binding CancelCommand}" />
+              </StackPanel>
+            </StackPanel>
+          </Border>
+        </Panel>
+      </DataTemplate>
       <DataTemplate DataType="vm:ConfirmDialogViewModel" x:DataType="vm:ConfirmDialogViewModel">
         <Panel>
           <Border x:Name="Scrim" Background="{DynamicResource ScrimBrush}" />

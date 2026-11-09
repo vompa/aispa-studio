@@ -57,6 +57,9 @@ public interface IAispaApi
     /// <summary>Rohdaten, z. B. ESC/POS-Befehle für den Bondrucker.</summary>
     Task<ApiResult<byte[]>> GetBytesAsync(string path, CancellationToken ct = default);
 
+    /// <summary>Eine Datei mit Namen, z. B. ein PDF der Dokumente (ADR 0091); der Dateiname kommt aus <c>Content-Disposition</c>.</summary>
+    Task<ApiResult<ApiFile>> GetFileAsync(string path, CancellationToken ct = default);
+
     /// <summary>Liefert die Adresse eine HTML-Seite (z. B. <c>/anmelden/</c> im Einzelplatz)? Ohne Verbindung oder bei einer anderen Antwort <c>false</c>.</summary>
     Task<bool> IsPageAsync(Uri address, CancellationToken ct = default);
 }

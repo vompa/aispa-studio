@@ -652,3 +652,15 @@ Expected: Der Knopf löst aus. Die Hover-Karte reagiert nicht auf die Maus (Text
 Expected: Beide erscheinen wie bisher und sind lesbar.
 Closes: B8 (live-sichtpruefung-2026-11-09.md)
 Result: ☐
+
+### PDF-Ausgaben A – Grundlage: Personalakte über den Dokument-Dienst
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Inhaberin anmelden, **Verwaltung › Personen**, eine Person mit Einträgen in der Personalakte öffnen, Reiter **Personalakte**
+1. **Als PDF exportieren** klicken, im Speicherdialog den vorgeschlagenen Namen ansehen, speichern und die Datei öffnen.
+Expected: Der vorgeschlagene Name ist `Personalakte-<Name>.pdf`. Oben links steht der Spa-Name groß, darunter nichts (kein Standort), rechts klein in Grau die Firmendaten (Firmenwortlaut, Anschrift, UID), darunter eine Linie; dann „Personalakte: <Name>“, der Satz „Auskunft nach Art. 15 DSGVO, erstellt am …“ in Grau und die Einträge wie bisher (Überschrift je Eintrag, Vereinbarungen mit `[x]`/`[ ]`).
+2. Den Fuß der Seite ansehen.
+Expected: Links „Erstellt am <Datum> <Uhrzeit> von <Vorname der angemeldeten Person>“, rechts „Seite 1 von 1“; Umlaute, „€“ und „–“ in den Texten sind richtig gesetzt; nur Schwarz und Grau, keine Farben.
+3. In den Firmendaten (Verwaltung › Firmendaten) die UID ändern und den Export wiederholen.
+Expected: Die neue UID steht rechts oben im Kopf.
+Closes: Arbeitsanweisung PDF-Ausgaben, Aufgabe A (der Knopfblock „Drucken · PDF speichern · Per Mail senden“ erscheint erst mit Aufgabe B in der Kassa)
+Result: ☐
+

@@ -17,6 +17,8 @@
   <ItemGroup Label="Backend">
     <PackageVersion Include="AspNet.Security.OAuth.Apple" Version="10.0.0" />
     <PackageVersion Include="MailKit" Version="4.18.1" />
+    <!-- PDF-Dokumente (ADR 0091). 6.2.4 ist die letzte Fassung unter MIT; ab 6.5.0 steht PDFsharp unter AGPL-3.0 → nicht anheben (Ausnahme in .github/dependabot.yml). -->
+    <PackageVersion Include="PDFsharp" Version="6.2.4" />
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.Google" Version="$(AspNetCoreVersion)" />
     <PackageVersion Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" Version="$(AspNetCoreVersion)" />
     <PackageVersion Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="$(AspNetCoreVersion)" />

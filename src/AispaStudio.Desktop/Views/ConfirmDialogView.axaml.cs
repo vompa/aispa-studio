@@ -88,6 +88,13 @@ public partial class ConfirmDialogView : UserControl
     /// </summary>
     private void FocusInitial(ConfirmDialogViewModel dialog)
     {
+        // „Per Mail senden“ ohne vorbelegte Adresse: der Fokus liegt im Feld „An“; mit Adresse auf „Senden“ (ADR 0091).
+        if (dialog is SendDocumentDialogViewModel { HasAddress: false })
+        {
+            this.GetVisualDescendants().OfType<TextBox>().FirstOrDefault(b => b.Name == "SendTo")?.Focus(NavigationMethod.Tab);
+            return;
+        }
+
         if (dialog.HasInput)
         {
             this.GetVisualDescendants().OfType<TextBox>().FirstOrDefault(b => b.Name == "DialogInput")?.Focus(NavigationMethod.Tab);
@@ -119,6 +126,12 @@ public partial class ConfirmDialogView : UserControl
         }
         else if (e.Key == Key.Enter && e.Source is TextBox { AcceptsReturn: false })
         {
+            // Im Dialog „Per Mail senden“ sendet Enter aus einem einzeiligen Feld (Adresse, Betreff); sonst löst Enter im Feld nichts aus.
+            if (dialog is SendDocumentDialogViewModel send && send.SendCommand.CanExecute(null))
+            {
+                send.SendCommand.Execute(null);
+            }
+
             e.Handled = true;
         }
     }

@@ -279,6 +279,29 @@ public class HttpApiClient : IAispaApi
         }
     }
 
+    /// <summary>Eine Datei mit Namen, z. B. ein PDF der Dokumente (ADR 0091): der Name steht im <c>Content-Disposition</c> der API; fehlt er, heißt die Datei „dokument“.</summary>
+    public async Task<ApiResult<ApiFile>> GetFileAsync(string path, CancellationToken ct = default)
+    {
+        try
+        {
+            using var response = await _http.GetAsync(Versioned(path), ct).ConfigureAwait(false);
+            if (!response.IsSuccessStatusCode)
+            {
+                return new(null, await ErrorAsync(response, ct).ConfigureAwait(false), response.StatusCode);
+            }
+
+            var disposition = response.Content.Headers.ContentDisposition;
+            var name = (disposition?.FileNameStar ?? disposition?.FileName)?.Trim('"');
+            var type = response.Content.Headers.ContentType?.MediaType ?? "application/octet-stream";
+            return new(new ApiFile(string.IsNullOrWhiteSpace(name) ? "dokument" : name, type, await response.Content.ReadAsByteArrayAsync(ct).ConfigureAwait(false)), null, response.StatusCode);
+        }
+        catch (HttpRequestException ex)
+        {
+            ReportTransportFailure(ex);
+            return new(null, Unreachable, 0);
+        }
+    }
+
     public Task<ApiResult<T>> PutAsync<T>(string path, object? body, CancellationToken ct = default) => SendAsync<T>(HttpMethod.Put, path, body, ct);
 
     public Task<ApiResult<T>> PatchAsync<T>(string path, object? body, CancellationToken ct = default) => SendAsync<T>(HttpMethod.Patch, path, body, ct);
