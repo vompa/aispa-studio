@@ -42,6 +42,7 @@ internal sealed class DocumentBuilder(DocumentFormat format, DocumentHeader head
         Bold,
         Muted,
         Small,
+        Display,
     }
 
     private interface IBlock
@@ -66,6 +67,15 @@ internal sealed class DocumentBuilder(DocumentFormat format, DocumentHeader head
     {
         _title ??= text;
         return Add(new TextBlock(text, Style.Title, DocumentAlign.Left));
+    }
+
+    /// <summary>
+    /// Große Zeile in der Mitte, z. B. der Spa-Name auf dem Geschenkgutschein; <paramref name="documentTitle"/> wird, wenn noch kein Titel steht, der Titel der PDF-Datei.
+    /// </summary>
+    public DocumentBuilder Display(string text, string? documentTitle = null)
+    {
+        _title ??= documentTitle;
+        return Add(new TextBlock(text, Style.Display, DocumentAlign.Center));
     }
 
     public DocumentBuilder Heading(string text) => Add(new TextBlock(text, Style.Heading, DocumentAlign.Left));
@@ -385,6 +395,7 @@ internal sealed class DocumentBuilder(DocumentFormat format, DocumentHeader head
             {
                 Style.Title => (sizes.Title, true, Ink, 0d, sizes.Gap, true),
                 Style.Heading => (sizes.Heading, true, Ink, sizes.Gap * 1.5, sizes.Gap / 2, true),
+                Style.Display => (sizes.Title * 2, true, Ink, 0d, sizes.Gap, false),
                 Style.Bold => (sizes.Body, true, Ink, 0d, sizes.Gap / 2, false),
                 Style.Muted => (sizes.Body, false, (XBrush)Grey, 0d, sizes.Gap / 2, false),
                 Style.Small => (sizes.Small, false, Grey, 0d, sizes.Gap / 2, false),
@@ -471,6 +482,19 @@ internal sealed class DocumentBuilder(DocumentFormat format, DocumentHeader head
                 {
                     gfx.DrawRectangle(Shade, x, y, layouter.Width, height);
                 }
+                else if (row.MutedCells is { Count: > 0 })
+                {
+                    var shadeX = x;
+                    for (var i = 0; i < widths.Length; i++)
+                    {
+                        if (row.MutedCells.Contains(i))
+                        {
+                            gfx.DrawRectangle(Shade, shadeX, y, widths[i], height);
+                        }
+
+                        shadeX += widths[i];
+                    }
+                }
 
                 if (above is not null)
                 {
@@ -480,9 +504,10 @@ internal sealed class DocumentBuilder(DocumentFormat format, DocumentHeader head
                 var cellX = x;
                 for (var i = 0; i < widths.Length; i++)
                 {
+                    var cellBrush = row.MutedCells?.Contains(i) == true ? Grey : brush;
                     for (var line = 0; line < cells[i].Count; line++)
                     {
-                        Write(gfx, cells[i][line], font, brush, cellX + CellPadding, y + CellPadding + (line * lineHeight), widths[i] - (2 * CellPadding), columns[i].Align);
+                        Write(gfx, cells[i][line], font, cellBrush, cellX + CellPadding, y + CellPadding + (line * lineHeight), widths[i] - (2 * CellPadding), columns[i].Align);
                     }
 
                     cellX += widths[i];

@@ -711,3 +711,24 @@ Expected: Das PDF geht an den Standarddrucker von Windows (nicht an den Bondruck
 Expected: Die Knöpfe „Drucken“ und „PDF speichern“ sind gesperrt, der Hinweis nennt das Recht „Berichte mit Beträgen“; die API antwortet auf `…/day-closings/<id>/pdf` mit 403.
 Closes: Arbeitsanweisung PDF-Ausgaben, Aufgabe D
 Result: ☐
+
+### PDF-Ausgaben E – Tagesplan, Gutschein, Stammblatt und Warteliste als PDF
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Rezeption anmelden; im Kalender sind für heute Termine bei mindestens zwei Personen und eine Pause eingetragen, auf der Warteliste stehen zwei Wünsche (einer mit Telefonnummer), eine Kundin hat Adresse, Wünsche und ein paar erledigte Besuche
+1. Im Kalender **+ Termin ▾** öffnen und **Tagesplan drucken …** wählen.
+Expected: Unter dem Knopf erscheint die Karte „Tagesplan drucken“ mit dem Tag, der Wahl „Team“ und „Räume“ (die Ansicht des Kalenders ist vorgewählt) und den Knöpfen „Drucken“ und „PDF speichern“ (ohne „Per Mail senden“). Ein zweiter Klick auf den Menüpunkt oder das Kreuz schließt sie; ein Wechsel des Tages schließt sie ebenfalls.
+2. **PDF speichern** (Team), die Datei öffnen; danach „Räume“ wählen und noch einmal speichern.
+Expected: Vorschlag `Tagesplan-<Standort>-<JJJJ-MM-TT>.pdf`; A4 quer, Titel „Tagesplan <Wochentag>, <Datum>“, „Nach Team · n Termine“; je Person eine Spalte, Zeilen nach Beginn, in der Zelle Zeit, Gast, Behandlung und Status; Pausen und Sperrzeiten grau hinterlegt; stornierte Termine fehlen; unten „n Personen auf der Warteliste“ („1 Person“, „Niemand“). Die Raumansicht hat eine Spalte je Raum und nennt die Person hinter der Behandlung. Toast „Gespeichert: …“.
+3. **Warteliste ansehen** öffnen.
+Expected: Oben in der Leiste steht „Druckt die offenen Wünsche, die am <Tag> gelten.“ mit „Drucken“ und „PDF speichern“. Gespeichert: `Warteliste-<Standort>-<JJJJ-MM-TT>.pdf` mit Gast, Telefon, Wunsch, Zeitraum (darunter die Tageszeit) und Stand („Wartet“ oder „n× freien Termin gemeldet“); nur Wünsche, deren Zeitraum den Tag einschließt; ohne solche „Keine offenen Wünsche an diesem Tag.“.
+4. **Kunden** › Kundin öffnen › **…** › **Stammblatt als PDF**.
+Expected: Die Karte „Stammblatt“ mit „Drucken“ und „PDF speichern“ erscheint (ohne Senden); ein Wechsel der Kundin schließt sie. PDF `Stammblatt-<Name>.pdf`: Kontakt mit Anschrift, Wünsche und Vermerke, „Nächste Termine“ (höchstens 5, nicht stornierte), „Letzte Besuche“ (die letzten 5 erledigten); keine Anamnese-Antworten, bei vorhandenem Bogen nur „Gesundheitsangaben: vorhanden, Auskunft durch die Leitung“.
+5. In der **Kassa** einen Gutschein verkaufen (Wert 50,00 € bar), nach dem Bezahlen unter dem Beleg **Gutschein <Code> als Geschenk** ansehen und **PDF speichern**.
+Expected: Unter dem Beleg ein eigener Knopfblock je Gutschein mit „Drucken“, „PDF speichern“, „Per Mail senden“. PDF `Gutschein-<Code>.pdf`: A4, Spa-Name groß, „Geschenkgutschein“, „50,00 €“, der Code mit QR-Code, „Gültig bis: ohne Befristung“, „Einlösbar in <Standorte>“, „Ausgestellt am“. Ein Behandlungsgutschein zeigt statt des Betrags die Behandlung.
+6. **Per Mail senden** beim Gutschein: die Adresse der Käuferin ist vorbelegt (leer, wenn der Beleg keinen Gast hat); eine eigene Adresse eintippen und bestätigen.
+Expected: Rückfrage mit Adresse, Betreff „Ihr Gutschein von <Spa>“ und Text; nach dem Senden Toast „Gesendet an …“, die Mail kommt mit dem PDF im Anhang an; eine ungültige Adresse wird abgelehnt.
+7. Den verkauften Beleg stornieren und den Gutschein noch einmal als PDF speichern.
+Expected: Auf dem PDF steht „Dieser Gutschein ist storniert und nicht mehr einlösbar.“.
+8. Als Backoffice (ohne Kalender) die Adresse `…/api/locations/<id>/day-plan/pdf?date=<Tag>` aufrufen, als Therapeut `…/api/pos/vouchers/<id>/pdf`.
+Expected: Beide antworten mit 403; ein Therapeut darf Tagesplan, Stammblatt und Warteliste drucken, das Backoffice nur Gutschein und Beleg.
+Closes: Arbeitsanweisung PDF-Ausgaben, Aufgabe E
+Result: ☐

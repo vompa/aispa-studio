@@ -1395,7 +1395,13 @@ public partial class PosViewModel : ViewModelBase
     internal ReceiptViewModel ReceiptFor(ReceiptDto receipt, bool copy) => new(receipt, Zone, Register?.Country ?? FiscalCountry.AT, OwnerLevel)
     {
         Document = new DocumentActionsViewModel(ReceiptDocumentSource(receipt, copy), _api, Dialogs) { ShowToast = ShowToast },
+        VoucherDocuments = [.. receipt.IssuedVouchers.Select(v => new VoucherDocumentItem(
+            $"Gutschein {v.Code} als Geschenk", new DocumentActionsViewModel(VoucherDocumentSource(v), _api, Dialogs) { ShowToast = ShowToast }))],
     };
+
+    /// <summary>Pfade des Geschenk-PDFs eines Gutscheins (PDF-Ausgaben E): Drucken, Speichern und Senden an den Käufer oder eine eingetippte Adresse.</summary>
+    internal static DocumentSource VoucherDocumentSource(VoucherDto voucher) =>
+        new($"Gutschein {voucher.Code}", $"api/pos/vouchers/{voucher.Id}/pdf", $"api/pos/vouchers/{voucher.Id}/send");
 
     /// <summary>Pfade des Beleg-PDFs: A4 als Standard („A4 drucken“, weil „Drucken“ der Bondrucker ist), Bon-Format im Menü, Versand an den Gast.</summary>
     internal static DocumentSource ReceiptDocumentSource(ReceiptDto receipt, bool copy)
@@ -1489,6 +1495,9 @@ public partial class PosViewModel : ViewModelBase
 /// <summary>Zeile auf dem Beleg: Text links, Betrag rechts.</summary>
 public sealed record ReceiptRow(string Label, string Value);
 
+/// <summary>Ein Gutschein des Belegs mit seinem Knopfblock; <paramref name="Label"/> nennt den Code.</summary>
+public sealed record VoucherDocumentItem(string Label, DocumentActionsViewModel Document);
+
 /// <summary>
 /// Signierter Beleg zum Anzeigen nach dem Bezahlen. <paramref name="ownerLevel"/>: Inhaber und Manager; nur sie stornieren einen Anzahlungsbeleg (ADR 0073, Ä51).
 /// </summary>
@@ -1498,6 +1507,9 @@ public sealed class ReceiptViewModel(ReceiptDto receipt, TimeZoneInfo zone, Fisc
 
     /// <summary>Knopfblock „Drucken · PDF speichern · Per Mail senden“ (ADR 0091); null in Masken ohne Knopfblock.</summary>
     public DocumentActionsViewModel? Document { get; init; }
+
+    /// <summary>Je mit diesem Beleg verkauftem Gutschein ein Knopfblock für das Geschenk-PDF (PDF-Ausgaben E, ADR 0091).</summary>
+    public IReadOnlyList<VoucherDocumentItem> VoucherDocuments { get; init; } = [];
 
     /// <summary>Vermerke „Per Mail gesendet an … am … von …“, damit die Rezeption Doppelsendungen sieht.</summary>
     public IReadOnlyList<string> SentMailLines => Receipt.SentMails is { } sent

@@ -254,6 +254,7 @@
                     <MenuItem Header="Weitere E-Mail-Adresse" Command="{Binding StartAddEmailCommand}" />
                     <MenuItem Header="Rechnungsempfänger" Command="{Binding EditBillingCommand}" />
                     <MenuItem Header="Stammrabatt" Command="{Binding EditDiscountCommand}" />
+                    <MenuItem x:Name="MasterSheetMenuItem" Header="Stammblatt als PDF" Command="{Binding ToggleMasterSheetCommand}" />
                     <MenuItem x:Name="DataAccessMenuItem" Header="Auskunft als PDF" Command="{Binding ToggleDataAccessCommand}" />
                     <Separator IsVisible="{Binding MayManage}" />
                     <MenuItem Classes="manage" Header="Leitung informieren …" Command="{Binding AddManagementFlagCommand}"
@@ -275,6 +276,17 @@
               <ui:DocumentActions DataContext="{Binding DataAccessDocument}" />
               <TextBlock Text="{Binding DataAccessMessage}" Classes="secondary small" AutomationProperties.LiveSetting="Polite"
                          IsVisible="{Binding DataAccessMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+            </StackPanel>
+          </Border>
+
+          <!-- Stammblatt (PDF-Ausgaben E): „…“ › „Stammblatt als PDF“ öffnet den Knopfblock ohne Senden; Kontakt, Wünsche, nächste Termine, letzte Besuche, keine Gesundheitsdaten -->
+          <Border x:Name="MasterSheetCard" Classes="section" IsVisible="{Binding IsMasterSheetOpen}" HorizontalAlignment="Left">
+            <StackPanel Spacing="8">
+              <TextBlock Text="Stammblatt" FontWeight="Medium" />
+              <TextBlock Text="Kontakt, Wünsche, nächste Termine und die letzten fünf Besuche als PDF, ohne Gesundheitsangaben: Speichern oder Drucken." Classes="muted small" TextWrapping="Wrap" MaxWidth="480" />
+              <ui:DocumentActions DataContext="{Binding MasterSheetDocument}" />
+              <TextBlock Text="{Binding MasterSheetMessage}" Classes="secondary small" AutomationProperties.LiveSetting="Polite"
+                         IsVisible="{Binding MasterSheetMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
             </StackPanel>
           </Border>
 

@@ -331,6 +331,8 @@ static void MapApplicationEndpoints(WebApplication app)
     app.MapCalendarEndpoints();
     app.MapAppointmentConfirmationEndpoints();
     app.MapCustomerDisclosureEndpoints();
+    app.MapCustomerCardEndpoints();
+    app.MapDayPlanDocumentEndpoints();
     app.MapAbsenceEndpoints();
     app.MapStaffEndpoints();
     app.MapHistoryEndpoints();
@@ -339,6 +341,7 @@ static void MapApplicationEndpoints(WebApplication app)
     app.MapAccessChannelEndpoints();
     app.MapQuickSwitch();
     app.MapPosEndpoints();
+    app.MapVoucherDocumentEndpoints();
     app.MapPromotionEndpoints();
     app.MapCalendarSubscriptionEndpoints();
     app.MapBusinessContactEndpoints();

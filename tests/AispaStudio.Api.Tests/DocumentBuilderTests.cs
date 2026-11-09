@@ -94,6 +94,29 @@ public sealed class DocumentBuilderTests
     }
 
     [Fact]
+    public void Eine_Anzeigezeile_steht_gross_in_der_Mitte_des_Dokuments()
+    {
+        var pdf = PdfText.Keep(new DocumentBuilder(DocumentFormat.A4Portrait, Header).Display("Alles Gute", documentTitle: "Geschenkgutschein").Paragraph("Für Eva").Build(), "builder-anzeige");
+
+        var text = PdfText.Text(pdf);
+        Assert.Contains("Alles Gute", text, StringComparison.Ordinal);
+        Assert.Contains("Für Eva", text, StringComparison.Ordinal);
+        using var document = PdfText.Open(pdf);
+        Assert.Equal("Geschenkgutschein", document.Info.Title);
+    }
+
+    [Fact]
+    public void Gesperrte_Zellen_einer_Zeile_werden_grau_hinterlegt_die_anderen_nicht()
+    {
+        DocumentColumn[] columns = [new("Zeit", 1), new("Anna", 2), new("Ben", 2)];
+        var plain = new DocumentBuilder(DocumentFormat.A4Landscape, Header).Table(columns, [DocumentRow.Of("12:00", "Pause", "Eva")]).Build();
+        var shaded = PdfText.Keep(new DocumentBuilder(DocumentFormat.A4Landscape, Header).Table(columns, [new DocumentRow(["12:00", "Pause", "Eva"], MutedCells: [1])]).Build(), "builder-zellen-grau");
+
+        Assert.Equal(PdfText.CountOperators(plain, "re") + 1, PdfText.CountOperators(shaded, "re"));
+        Assert.Contains("Pause", PdfText.Text(shaded), StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void Dateinamen_tragen_keine_verbotenen_Zeichen()
     {
         Assert.Equal("Rechnung-K1-142.pdf", DocumentFiles.PdfName("Rechnung", "K1-142"));

@@ -5200,6 +5200,102 @@
         }
       }
     },
+    "/api/v1/customers/{customerId}/card/pdf": {
+      "get": {
+        "tags": [
+          "Kunden"
+        ],
+        "summary": "Stammblatt einer Kundin oder eines Kunden als PDF: Kontakt, Wünsche und Vermerke, die nächsten Termine und die letzten fünf Besuche; keine Gesundheitsdaten.",
+        "operationId": "CustomerCardPdf",
+        "parameters": [
+          {
+            "name": "customerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/v1/locations/{locationId}/day-plan/pdf": {
+      "get": {
+        "tags": [
+          "Kalender"
+        ],
+        "summary": "Tagesplan eines Standorts als PDF (A4 quer): eine Spalte je Person (by=team, Standard) oder je Raum (by=rooms), Termine mit Zeit, Gast, Behandlung und Status, Pausen und Sperrzeiten grau, Fußnote mit der Zahl der Wartenden. Stornierte Termine fehlen.",
+        "operationId": "DayPlanPdf",
+        "parameters": [
+          {
+            "name": "locationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "date",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "by",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/locations/{locationId}/absence/proposal": {
       "post": {
         "tags": [
@@ -9103,6 +9199,142 @@
                   "items": {
                     "$ref": "#/components/schemas/VoucherDto"
                   }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/pos/vouchers/{voucherId}/pdf": {
+      "get": {
+        "tags": [
+          "Kassa"
+        ],
+        "summary": "Gutschein als PDF zum Verschenken (A4): Spa-Name, Wert oder Behandlung, Code, QR-Code mit dem Code, „Gültig bis“ und „Einlösbar in“.",
+        "operationId": "VoucherPdf",
+        "parameters": [
+          {
+            "name": "voucherId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/v1/pos/vouchers/{voucherId}/send": {
+      "get": {
+        "tags": [
+          "Kassa"
+        ],
+        "summary": "Vorbelegung für „Per Mail senden“: Adresse des Käufers aus der Kundenkarte (leer, wenn er unbekannt ist), Betreff und Text.",
+        "operationId": "VoucherMailDraft",
+        "parameters": [
+          {
+            "name": "voucherId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentMailDraft"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Kassa"
+        ],
+        "summary": "Gutschein als PDF per Mail an den Käufer oder eine eingetippte Adresse (über die Queue), mit Vermerk; ohne Betreff und Text gilt die Vorbelegung.",
+        "operationId": "SendVoucher",
+        "parameters": [
+          {
+            "name": "voucherId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendDocumentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "Accepted"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
                 }
               }
             }
@@ -14451,6 +14683,49 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/v1/locations/{locationId}/waitlist/pdf": {
+      "get": {
+        "tags": [
+          "Kalender"
+        ],
+        "summary": "Warteliste eines Tages als PDF (A4): die offenen Wünsche, die am Tag (date, Standard heute) gelten, mit Gast, Telefon, Wunsch, Zeitraum und Stand.",
+        "operationId": "WaitlistPdf",
+        "parameters": [
+          {
+            "name": "locationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "date",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }

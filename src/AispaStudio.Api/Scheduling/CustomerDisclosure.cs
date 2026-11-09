@@ -47,9 +47,9 @@ internal static class CustomerDisclosure
         pdf.Heading("Stammdaten");
         pdf.KeyValues(Master(customer, zone));
         pdf.Heading("Kontakt");
-        pdf.KeyValues(Contact(data));
+        pdf.KeyValues(Contact(data.Customer, data.OtherEmails));
         pdf.Heading("Wünsche und Vermerke");
-        if (Wishes(data) is { Count: > 0 } wishes)
+        if (Wishes(data.Customer, data.Preferences, data.Flags) is { Count: > 0 } wishes)
         {
             pdf.KeyValues(wishes);
         }
@@ -98,11 +98,11 @@ internal static class CustomerDisclosure
         return rows;
     }
 
-    private static List<(string, string)> Contact(Data data)
+    internal static List<(string, string)> Contact(Customer customer, IReadOnlyList<string> otherEmails)
     {
         var rows = new List<(string, string)>();
-        Add(rows, "E-Mail", Join('\n', [data.Customer.Email, .. data.OtherEmails]));
-        Add(rows, "Telefon", data.Customer.Phone);
+        Add(rows, "E-Mail", Join('\n', [customer.Email, .. otherEmails]));
+        Add(rows, "Telefon", customer.Phone);
         if (rows.Count == 0)
         {
             rows.Add(("Kontakt", "Keine Kontaktdaten gespeichert."));
@@ -111,12 +111,12 @@ internal static class CustomerDisclosure
         return rows;
     }
 
-    private static List<(string, string)> Wishes(Data data)
+    internal static List<(string, string)> Wishes(Customer customer, CustomerPreference? preferences, IReadOnlyList<string> flags)
     {
         var rows = new List<(string, string)>();
-        Add(rows, "Notiz", data.Customer.Note);
-        Add(rows, "Vermerk der Rezeption", data.Customer.ReceptionNote);
-        if (data.Preferences is { } p)
+        Add(rows, "Notiz", customer.Note);
+        Add(rows, "Vermerk der Rezeption", customer.ReceptionNote);
+        if (preferences is { } p)
         {
             Add(rows, "Druck", p.Pressure);
             Add(rows, "Öl oder Duft", p.Scent);
@@ -128,7 +128,7 @@ internal static class CustomerDisclosure
             Add(rows, "Sonstiges", p.Other);
         }
 
-        Add(rows, "Kennzeichen", Join('\n', [.. data.Flags]));
+        Add(rows, "Kennzeichen", Join('\n', [.. flags]));
         return rows;
     }
 
@@ -228,7 +228,7 @@ internal static class CustomerDisclosure
         _ => "Ungültig",
     };
 
-    private static void Add(List<(string, string)> rows, string key, string? value)
+    internal static void Add(List<(string, string)> rows, string key, string? value)
     {
         if (!string.IsNullOrWhiteSpace(value))
         {
@@ -236,6 +236,6 @@ internal static class CustomerDisclosure
         }
     }
 
-    private static string? Join(char separator, params string?[] parts) =>
+    internal static string? Join(char separator, params string?[] parts) =>
         string.Join(separator, parts.Where(p => !string.IsNullOrWhiteSpace(p)).Select(p => p!.Trim())) is { Length: > 0 } text ? text : null;
 }

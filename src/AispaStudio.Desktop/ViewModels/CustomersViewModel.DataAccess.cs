@@ -3,7 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace AispaStudio.Desktop.ViewModels;
 
-// ---------- „Auskunft als PDF“ in der Kundenkarte (PDF-Ausgaben C, ADR 0091) ----------
+// ---------- „Auskunft als PDF“ und „Stammblatt als PDF“ in der Kundenkarte (PDF-Ausgaben C und E, ADR 0091) ----------
 public partial class CustomersViewModel
 {
     /// <summary>
@@ -28,6 +28,28 @@ public partial class CustomersViewModel
             ? new DocumentActionsViewModel(DataAccessSource(customer), api, Dialogs) { ShowToast = text => DataAccessMessage = text }
             : null;
     }
+
+    /// <summary>Knopfblock des Stammblatts (Kontakt, Wünsche, nächste Termine, letzte Besuche; keine Gesundheitsdaten) der ausgewählten Person; ohne Senden, es ist für das Team.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsMasterSheetOpen))]
+    public partial DocumentActionsViewModel? MasterSheetDocument { get; private set; }
+
+    [ObservableProperty]
+    public partial string? MasterSheetMessage { get; private set; }
+
+    public bool IsMasterSheetOpen => MasterSheetDocument is not null;
+
+    [RelayCommand]
+    private void ToggleMasterSheet()
+    {
+        MasterSheetMessage = null;
+        MasterSheetDocument = MasterSheetDocument is null && Selected is { } customer
+            ? new DocumentActionsViewModel(MasterSheetSource(customer), api, Dialogs) { ShowToast = text => MasterSheetMessage = text }
+            : null;
+    }
+
+    internal static DocumentSource MasterSheetSource(AispaStudio.Contracts.CustomerDto customer) =>
+        new($"Stammblatt {customer.InHouseName}", $"api/customers/{customer.Id}/card/pdf");
 
     internal static DocumentSource DataAccessSource(AispaStudio.Contracts.CustomerDto customer) =>
         new($"Auskunft {customer.InHouseName}", $"api/customers/{customer.Id}/history/pdf");

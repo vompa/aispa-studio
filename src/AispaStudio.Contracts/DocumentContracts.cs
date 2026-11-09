@@ -16,5 +16,12 @@ public enum DocumentPageFormat
     Receipt,
 }
 
+/// <summary>Ansicht des Tagesplans als PDF: eine Spalte je Person (Team, Standard) oder je Raum.</summary>
+public enum DayPlanColumns
+{
+    Team,
+    Rooms,
+}
+
 /// <summary>Vermerk am Beleg oder an der Bestellung: wohin, wann und von wem (Vorname) das Dokument per Mail ging, damit die Rezeption Doppelsendungen sieht.</summary>
 public sealed record SentDocumentDto(string To, DateTimeOffset SentAt, string? SentBy);

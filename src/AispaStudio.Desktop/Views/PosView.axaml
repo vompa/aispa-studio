@@ -313,6 +313,17 @@
                 </DataTemplate>
               </ItemsControl.ItemTemplate>
             </ItemsControl>
+            <!-- Gutscheine dieses Belegs als Geschenk-PDF (PDF-Ausgaben E, ADR 0091): je Gutschein Drucken, PDF speichern und Per Mail senden an den Käufer oder eine eingetippte Adresse -->
+            <ItemsControl ItemsSource="{Binding VoucherDocuments}" IsVisible="{Binding HasVouchers}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:VoucherDocumentItem">
+                  <StackPanel x:Name="VoucherDocument" Spacing="6" Margin="0,8,0,0">
+                    <TextBlock Text="{Binding Label}" FontWeight="Medium" />
+                    <ui:DocumentActions DataContext="{Binding Document}" />
+                  </StackPanel>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
           </StackPanel>
         </Panel>
       </Border>
@@ -746,6 +757,17 @@
             <ItemsControl.ItemTemplate>
               <DataTemplate x:DataType="x:String">
                 <TextBlock Text="{Binding}" Classes="muted small" />
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+          <!-- Gutscheine dieses Belegs als Geschenk-PDF (PDF-Ausgaben E, ADR 0091): je Gutschein Drucken, PDF speichern und Per Mail senden an den Käufer oder eine eingetippte Adresse -->
+          <ItemsControl ItemsSource="{Binding VoucherDocuments}" IsVisible="{Binding HasVouchers}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:VoucherDocumentItem">
+                <StackPanel x:Name="VoucherDocument" Spacing="6" Margin="0,8,0,0">
+                  <TextBlock Text="{Binding Label}" FontWeight="Medium" />
+                  <ui:DocumentActions DataContext="{Binding Document}" />
+                </StackPanel>
               </DataTemplate>
             </ItemsControl.ItemTemplate>
           </ItemsControl>
