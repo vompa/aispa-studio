@@ -41,7 +41,7 @@ Vier Bereiche nebeneinander:
 
 ## Belege {#belege}
 
-Links „Belege heute“ dieser Kasse, neueste zuerst (mit den Pfeilen daneben zeigt die Liste den Tag davor oder danach), mit Uhrzeit, Nummer, Zahlungsarten und Betrag. Stornobelege tragen „Storno“, stornierte Belege „storniert“. Rechts der gewählte Beleg mit **Drucken**, „Rechnung mit Empfänger“ und „Beleg stornieren“. Bei einem online bezahlten Beleg steht darüber eine Karte mit dem Weg des Geldes und dem Stand der Erstattung, siehe [Beleg stornieren](hilfe:kassa-beleg-stornieren#online).
+Links „Belege heute“ dieser Kasse, neueste zuerst (mit den Pfeilen daneben zeigt die Liste den Tag davor oder danach), mit Uhrzeit, Nummer, Zahlungsarten und Betrag. Stornobelege tragen „Storno“, stornierte Belege „storniert“. Rechts der gewählte Beleg mit **Drucken**, dem Knopfblock **A4 drucken**, **PDF speichern** und **Per Mail senden** ([Belege als PDF](hilfe:kassa-beleg-drucken#pdf)), „Rechnung mit Empfänger“ und „Beleg stornieren“. Bei einem online bezahlten Beleg steht darüber eine Karte mit dem Weg des Geldes und dem Stand der Erstattung, siehe [Beleg stornieren](hilfe:kassa-beleg-stornieren#online).
 
 ## Kassenlade und Abschluss {#abschluss}
 
@@ -73,6 +73,8 @@ Links der „Zwischenbericht seit dem letzten Abschluss“: Umsatz, Zahlungsarte
 - [Rechnung parken](hilfe:kassa-rechnung-parken)
 - [Rechnung mit Empfänger (Firmenrechnung)](hilfe:kassa-rechnung-mit-empfaenger)
 - [Belege ansehen und drucken](hilfe:kassa-beleg-drucken)
+- [Dokumente drucken, als PDF speichern und per Mail senden](hilfe:dokumente-drucken-speichern-senden)
+- [Gutscheinliste drucken](hilfe:kassa-gutschein-verkaufen#gutscheinliste)
 - [Beleg stornieren](hilfe:kassa-beleg-stornieren)
 - [Einlage oder Entnahme buchen](hilfe:kassa-einlage-entnahme)
 - [Tagesabschluss](hilfe:kassa-tagesabschluss)

@@ -766,3 +766,20 @@ Expected: Toasts „Gesendet an …“, „Gedruckt“ und „Gutschein … als 
 Expected: Die Karte lässt sich öffnen, „Drucken“ und „PDF speichern“ sind gesperrt mit dem Hinweis auf Kassenaufsicht oder „Berichte mit Beträgen“; der Aufruf antwortet mit 403. Mit Standortleitung oder Backoffice geht es.
 Closes: Zusatz zur Arbeitsanweisung PDF-Ausgaben (Gutscheinliste)
 Result: ☐
+
+### PDF-Ausgaben G – Hilfe
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Inhaberin anmelden; die Hilfe über das Fragezeichen oder **Hilfe** in der Seitenleiste öffnen, Suche „PDF“
+1. In der Suche **PDF** eintippen, danach **Rechnung schicken**, **drucken** und **per Mail** (jeweils einzeln).
+Expected: Der Ablauf „Dokumente drucken, als PDF speichern und per Mail senden“ steht jedes Mal unter den Treffern, bei „Rechnung schicken“ auch „Belege ansehen und drucken“ und „Rechnung mit Empfänger“.
+2. Den Ablauf „Dokumente drucken, als PDF speichern und per Mail senden“ öffnen und lesen.
+Expected: Es gibt „Der Knopfblock“ (mit dem Bild der Kassa), „Drucken“, „PDF speichern“, „Per Mail senden“ (mit dem Bild der Rückfrage), „Wenn ein Knopf grau ist“ und „Gut zu wissen“; die Knopfnamen und Hinweistexte stimmen wörtlich mit der App überein; alle Verweise unter „Der Knopfblock“ öffnen das richtige Thema und den richtigen Abschnitt. Unter „Auf dieser Seite“ stehen die sechs Abschnitte, unter „Verwandte Themen“ die verlinkten Seiten.
+3. Die Themen „Belege ansehen und drucken“ (Abschnitt „Als PDF speichern oder per Mail senden“), „Rechnung mit Empfänger“ (Abschnitt „Rechnung als PDF“, mit dem Bild der Rechnung) und „Tagesabschluss“ (Abschnitt „Tagesabschluss als PDF“) lesen und mit der Kassa vergleichen.
+Expected: Die Knöpfe „Drucken“ (Bondrucker), „A4 drucken“, „PDF speichern“ (Pfeil: „PDF im Bon-Format speichern“) und „Per Mail senden“, die Dateinamen und die Vermerke „Per Mail gesendet an …“ stimmen mit der Kassa überein; das Bild der Rechnung zeigt Beispieldaten (Day-Spa Wien, Muster GmbH), keine echten Namen.
+4. Die Themen „Terminbestätigung als PDF drucken oder per Mail senden“, „Tagesplan drucken oder als PDF speichern“, „Warteliste ansehen“ (Abschnitt „Tagesliste drucken“) und „Kundenkarte ansehen“ (Abschnitt „Auskunft und Stammblatt als PDF“) lesen und im Kalender und in der Kundenkarte nachvollziehen.
+Expected: Die Wege (Panel › **Mehr** › **Bestätigung …**, Menü neben **Termin** › **Tagesplan drucken …**, Menü **…** an der Kundenkarte) führen zu den beschriebenen Karten; die Hilfe nennt für die Auskunft die Gesundheitsangaben nur mit dem Recht für die Anamnese, sonst den Satz „Gesundheitsangaben: vorhanden, Auskunft durch die Leitung“.
+5. Die Themen „Gutschein verkaufen“ (Abschnitte „Gutschein als PDF übergeben“ und „Gutscheinliste drucken“, mit dem Bild der Karte), „Dienstplan veröffentlichen“ (Abschnitt „Aushang drucken“), „Arbeitszeit korrigieren“ (Abschnitt „Stundenliste drucken“), „Inventur buchen“, „Bestellen und Lieferung buchen“ und „Bald ablaufende Chargen abarbeiten“ (je mit dem Abschnitt zum PDF) lesen und mit der Verwaltung vergleichen.
+Expected: Knopfnamen („Gutscheinliste …“, „Aushang als PDF“, „Stundenliste als PDF“, „Zählliste drucken …“, „Inventurliste drucken …“, „Ablaufliste als PDF“), Filter, Dateinamen und die Hinweise bei fehlendem Recht stimmen mit den Masken überein.
+6. In der Kassa am Fragezeichen neben einer Maske die Seitenerklärung „Kassa“ öffnen; im Kalender und bei den Kunden ebenso.
+Expected: Die Listen der Abläufe nennen „Dokumente drucken, als PDF speichern und per Mail senden“, „Gutscheinliste drucken“ (Kassa), „Terminbestätigung als PDF drucken oder senden“ und „Tagesplan drucken“ (Kalender) und „Auskunft und Stammblatt als PDF“ (Kunden).
+Closes: Arbeitsanweisung PDF-Ausgaben, Aufgabe G
+Result: ☐
