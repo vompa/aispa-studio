@@ -557,3 +557,14 @@ Expected: Höchstens zwei (Offline-Banner und diese Meldung); die Signatur-Warnu
 Expected: Das Banner verschwindet, die Warnung der Kasse steht wieder da (falls sie bestand); der Termin lässt sich einchecken und kassieren; im Protokoll `protokolle\app.log` steht die technische Ursache einmal.
 Closes: B2, B14, B15 (live-sichtpruefung-2026-11-09.md)
 Result: ☐
+
+### Befunde Kassa A5 – Artikel in einer Spalte
+Start: `dotnet run --project src/AispaStudio.AppHost`, als Rezeption anmelden, **Kassa** › **Kassieren**, in der Leiste „Artikel und Gutscheine“ aufklappen
+1. Unter „Artikel“ alle Kacheln ansehen.
+Expected: Eine Spalte, jeder Artikelname ganz und in einer Zeile (z. B. „Gesichtscreme Hydro 50 ml“), der Preis darunter; kein Wort ist mitten abgebrochen.
+2. Unter „Gutschein verkaufen“ den Knopf ansehen.
+Expected: „Wertgutschein verkaufen“ steht ganz da (bei Platzmangel in zwei Zeilen), ohne „…“.
+3. Einen Artikel anklicken.
+Expected: Er steht auf der Rechnung.
+Closes: B6 (live-sichtpruefung-2026-11-09.md)
+Result: ☐
