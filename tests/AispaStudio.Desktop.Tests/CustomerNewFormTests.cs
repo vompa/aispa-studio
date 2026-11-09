@@ -66,6 +66,19 @@ public sealed class CustomerNewFormTests
     }
 
     [Fact]
+    public async Task Given_ein_Treffer_nur_mit_Nachnamen_When_Schon_vorhanden_erscheint_Then_steht_der_Name_ohne_haengendes_Komma()
+    {
+        var customers = new CustomersViewModel(Api(Huber with { FirstName = "" }).Client(), TimeProvider.System);
+        await customers.InitializeAsync();
+        customers.Matches.Delay = TimeSpan.Zero;
+        customers.StartNewCommand.Execute(null);
+
+        await customers.Matches.CheckAsync("Huber", "");
+
+        Assert.Equal("Huber", customers.Matches.Options.Single().Name);
+    }
+
+    [Fact]
     public async Task Given_ein_Treffer_When_Diese_Kundin_nehmen_Then_oeffnet_die_vorhandene_Karte_statt_neu_anzulegen()
     {
         var customers = new CustomersViewModel(Api(Huber).Client(), TimeProvider.System);
