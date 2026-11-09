@@ -56,9 +56,9 @@ public sealed class EntityHistory(AispaDbContext db)
 
     private static readonly string[] DutyTables = ["StaffDuties", "StaffCertificates", "StaffCertificateScans"];
 
-    /// <summary>Export-Protokoll des Spas (Export/Import, Aufgabe A): wer wann welche Liste in welchem Format herausgeholt hat.</summary>
+    /// <summary>Export-Protokoll des Spas (Export/Import, Aufgaben A und E): wer wann welche Liste in welchem Format herausgeholt und welche Datei importiert hat.</summary>
     public Task<List<HistoryEntry>> ForExportsAsync(Guid tenantId, CancellationToken ct) => ReadAsync(
-        "tenant_id = {0} AND table_schema = 'aispa' AND table_name = 'Exports'", [tenantId], ct);
+        "tenant_id = {0} AND table_schema = 'aispa' AND table_name IN ('Exports', 'Imports')", [tenantId], ct);
 
     /// <summary>
     /// Wer die Einwilligung des Gastes zuletzt in den Zustand <paramref name="state"/> gebracht hat (Name der Person, Export/Import B): der Nachweis „am Empfang erfasst von …“
@@ -327,6 +327,7 @@ public sealed class EntityHistory(AispaDbContext db)
                 "TreatmentPriceRules" => PriceRule(row.Operation, by, changes, context),
                 "CustomerEmails" => Email(row.Operation, by, changes, context),
                 "Exports" => Export(by, context),
+                "Imports" => Import(by, context),
                 "MarketingConsents" => Consent(row.Operation, by, changes, context),
                 _ => row.Operation switch
                 {
@@ -357,6 +358,17 @@ public sealed class EntityHistory(AispaDbContext db)
             var rows = context.TryGetValue("Rows", out var r) && r.ValueKind == JsonValueKind.Number ? r.GetInt32() : 0;
             var filter = context.TryGetValue("Filter", out var fi) && Text(fi) is { Length: > 0 } text ? $", {text}" : "";
             return $"Export {kind} ({format}, {rows} {(rows == 1 ? "Zeile" : "Zeilen")}{filter}) {by}";
+        }
+
+        /// <summary>„Import Kunden: 240 neu, 12 ergänzt, 3 übersprungen, 1 fehlerhaft (kunden.xlsx, 256 Zeilen) von Lena“; Fehler nur, wenn es welche gab.</summary>
+        private static string Import(string by, Dictionary<string, JsonElement> context)
+        {
+            int Count(string key) => context.TryGetValue(key, out var value) && value.ValueKind == JsonValueKind.Number ? value.GetInt32() : 0;
+            var kind = context.TryGetValue("Kind", out var k) ? Text(k) ?? "Daten" : "Daten";
+            var file = context.TryGetValue("File", out var f) && Text(f) is { Length: > 0 } name ? $"{name}, " : "";
+            var failed = Count("Failed") > 0 ? $", {Count("Failed")} fehlerhaft" : "";
+            var rows = Count("Rows");
+            return $"Import {kind}: {Count("Created")} neu, {Count("Merged")} ergänzt, {Count("Skipped")} übersprungen{failed} ({file}{rows} {(rows == 1 ? "Zeile" : "Zeilen")}) {by}";
         }
 
         /// <summary>„Werbe-Einwilligung: ja von Lena“ beim ersten Eintrag; Änderungen als „Werbe-Einwilligung ja → nein“.</summary>

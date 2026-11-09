@@ -60,6 +60,9 @@ public interface IAispaApi
     /// <summary>Eine Datei zum Speichern (Export): Inhalt und der Dateiname, den der Server im <c>Content-Disposition</c> vorgibt.</summary>
     Task<ApiResult<ApiFile>> GetFileAsync(string path, CancellationToken ct = default);
 
+    /// <summary>Wie <see cref="GetFileAsync"/>, aber als POST mit Rumpf (z. B. <c>multipart/form-data</c> mit der Importdatei); die Antwort ist eine Datei.</summary>
+    Task<ApiResult<ApiFile>> PostFileAsync(string path, HttpContent body, CancellationToken ct = default);
+
     /// <summary>Liefert die Adresse eine HTML-Seite (z. B. <c>/anmelden/</c> im Einzelplatz)? Ohne Verbindung oder bei einer anderen Antwort <c>false</c>.</summary>
     Task<bool> IsPageAsync(Uri address, CancellationToken ct = default);
 }

@@ -17,6 +17,14 @@
       <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
         <!-- Export der gefilterten Liste (Excel, CSV, Portal-CSV, vCard, Leitung: Newsletter-Liste), ADR 0091 -->
         <ui:ExportButton x:Name="ExportButton" DataContext="{Binding Export}" />
+        <!-- „…“ › „Kunden importieren …“ nur für die Leitung (Export/Import, Aufgabe E) -->
+        <Button x:Name="ImportMoreButton" Classes="ghost icon" Content="…" ToolTip.Tip="Weitere Aktionen" AutomationProperties.Name="Weitere Aktionen zur Kundenliste" IsVisible="{Binding CanImport}">
+          <Button.Flyout>
+            <MenuFlyout Placement="BottomEdgeAlignedRight">
+              <MenuItem x:Name="ImportItem" Header="Kunden importieren …" Command="{Binding ImportCustomersCommand}" />
+            </MenuFlyout>
+          </Button.Flyout>
+        </Button>
         <Button x:Name="NewButton" Classes.primary="{Binding IsNewPrimary}" Command="{Binding StartNewCommand}" VerticalAlignment="Center">
           <StackPanel Orientation="Horizontal" Spacing="6">
             <ui:Icon Data="{x:Static ui:Icons.Plus}" Width="16" Height="16" />

@@ -3580,6 +3580,228 @@
         }
       }
     },
+    "/api/v1/customers/import/preview": {
+      "post": {
+        "tags": [
+          "Kunden"
+        ],
+        "summary": "Liest eine Excel- oder CSV-Datei (bis 10 MB, 20 000 Zeilen, erste Zeile Spaltenköpfe) und zeigt Spalten mit Beispielen, die Zuordnung (ohne Angabe nach den Spaltenköpfen vorgeschlagen), Zähler neu, Dubletten und fehlerhaft, die ersten 20 Zeilen sowie alle Dubletten und Fehler. Ändert nichts.",
+        "operationId": "PreviewCustomerImport",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "required": [
+                  "file"
+                ],
+                "type": "object",
+                "allOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "file": {
+                        "$ref": "#/components/schemas/IFormFile"
+                      }
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "mapping": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerImportPreview"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/customers/import": {
+      "post": {
+        "tags": [
+          "Kunden"
+        ],
+        "summary": "Importiert die Gäste der Datei mit derselben Zuordnung wie die Vorschau, in Blöcken zu 200 und mit dem Kanal „Import“. Dubletten werden übersprungen, außer die Entscheidung je Zeile sagt „Merge“ (leere Felder ergänzen, nie überschreiben). Mit dryRun=true nur zählen (Probelauf). Jeder Import steht im Verlauf.",
+        "operationId": "ImportCustomers",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "required": [
+                  "file"
+                ],
+                "type": "object",
+                "allOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "file": {
+                        "$ref": "#/components/schemas/IFormFile"
+                      }
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "mapping": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "decisions": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "dryRun": {
+                        "type": "boolean"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerImportResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/customers/import/errors": {
+      "post": {
+        "tags": [
+          "Kunden"
+        ],
+        "summary": "Die fehlerhaften Zeilen der Datei als Excel: Zeile, Grund und die Spalten der Datei, zum Berichtigen und erneuten Importieren.",
+        "operationId": "GetCustomerImportErrors",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "required": [
+                  "file"
+                ],
+                "type": "object",
+                "allOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "file": {
+                        "$ref": "#/components/schemas/IFormFile"
+                      }
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "mapping": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/locations/{locationId}/calendar": {
       "get": {
         "tags": [
@@ -34034,6 +34256,138 @@
           "DoNotBook"
         ]
       },
+      "CustomerImportField": {
+        "enum": [
+          "FirstName",
+          "LastName",
+          "Email",
+          "Phone",
+          "BirthDate",
+          "Salutation",
+          "Street",
+          "PostalCode",
+          "City",
+          "Country",
+          "MarketingConsent",
+          null
+        ]
+      },
+      "CustomerImportMapping": {
+        "required": [
+          "columns"
+        ],
+        "type": "object",
+        "properties": {
+          "columns": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ImportColumnMapping"
+            }
+          },
+          "dateFormat": {
+            "$ref": "#/components/schemas/ImportDateFormat"
+          }
+        }
+      },
+      "CustomerImportPreview": {
+        "required": [
+          "fileName",
+          "rowCount",
+          "columns",
+          "mapping",
+          "new",
+          "duplicates",
+          "invalid",
+          "rows",
+          "duplicateRows",
+          "invalidRows"
+        ],
+        "type": "object",
+        "properties": {
+          "fileName": {
+            "type": "string"
+          },
+          "rowCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "columns": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ImportColumn"
+            }
+          },
+          "mapping": {
+            "$ref": "#/components/schemas/CustomerImportMapping"
+          },
+          "new": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "duplicates": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "invalid": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ImportRowPreview"
+            }
+          },
+          "duplicateRows": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ImportRowPreview"
+            }
+          },
+          "invalidRows": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ImportRowPreview"
+            }
+          }
+        }
+      },
+      "CustomerImportResult": {
+        "required": [
+          "dryRun",
+          "rows",
+          "created",
+          "merged",
+          "skipped",
+          "failed"
+        ],
+        "type": "object",
+        "properties": {
+          "dryRun": {
+            "type": "boolean"
+          },
+          "rows": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "created": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "merged": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "skipped": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "failed": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "CustomerInput": {
         "required": [
           "firstName",
@@ -37014,6 +37368,121 @@
       "IFormFile": {
         "type": "string",
         "format": "binary"
+      },
+      "ImportColumn": {
+        "required": [
+          "index",
+          "header",
+          "samples",
+          "suggested"
+        ],
+        "type": "object",
+        "properties": {
+          "index": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "header": {
+            "type": "string"
+          },
+          "samples": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "suggested": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CustomerImportField"
+              }
+            ]
+          }
+        }
+      },
+      "ImportColumnMapping": {
+        "required": [
+          "column",
+          "field"
+        ],
+        "type": "object",
+        "properties": {
+          "column": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "field": {
+            "$ref": "#/components/schemas/CustomerImportField"
+          }
+        }
+      },
+      "ImportDateFormat": {
+        "enum": [
+          "Auto",
+          "DayMonthYear",
+          "YearMonthDay",
+          "MonthDayYear"
+        ],
+        "default": "Auto"
+      },
+      "ImportRowPreview": {
+        "required": [
+          "row",
+          "status",
+          "name",
+          "email",
+          "phone",
+          "reason",
+          "existingCustomerId"
+        ],
+        "type": "object",
+        "properties": {
+          "row": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ImportRowStatus"
+          },
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "phone": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "existingCustomerId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          }
+        }
+      },
+      "ImportRowStatus": {
+        "enum": [
+          "New",
+          "Duplicate",
+          "Invalid"
+        ]
       },
       "InboundMailDto": {
         "required": [

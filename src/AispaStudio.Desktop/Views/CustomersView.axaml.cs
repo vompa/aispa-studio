@@ -33,6 +33,7 @@ public partial class CustomersView : UserControl
         {
             _customers.PropertyChanged += OnCustomersChanged;
             _customers.ContactActions ??= new CalendarView.WindowContactActions(this);
+            _customers.FilePicker ??= new StorageFilePicker(this);
         }
     }
 

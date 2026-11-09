@@ -1,0 +1,8 @@
+﻿Vorname;Nachname;E-Mail;Telefon;Geburtstag;Straße;PLZ;Ort;Newsletter
+Lena;Beispiel;lena.beispiel@example.at;0664 1230001;14.03.1985;Musterweg 1;1010;Wien;ja
+Paul;Probe;paul.probe@example.at;0660 1230002;02.11.1979;Testgasse 5;8010;Graz;nein
+Sophie;Muster;;+43 676 1230003;;;;;
+Jonas;Erfunden;jonas@example.at;;1990-07-04;Probeplatz 3;5020;Salzburg;ja
+Mia;Demo;mia.demo@example.at;0699 1230005;31.02.1992;;;;
+Lena;Beispiel;lena.beispiel@example.at;;;;;Wien;
+Ella;;ella@example.at;;;;;;

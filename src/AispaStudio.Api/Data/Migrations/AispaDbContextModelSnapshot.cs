@@ -1281,6 +1281,51 @@ namespace AispaStudio.Api.Data.Migrations
                     b.ToTable("HrEntries", "hr");
                 });
 
+            modelBuilder.Entity("AispaStudio.Api.Importing.ImportEntry", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Created")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Failed")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)");
+
+                    b.Property<int>("Merged")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("RowCount")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Skipped")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("TenantId");
+
+                    b.ToTable("Imports", "aispa");
+                });
+
             modelBuilder.Entity("AispaStudio.Api.MailIntake.CalendarFeed", b =>
                 {
                     b.Property<Guid>("Id")
@@ -6733,6 +6778,15 @@ namespace AispaStudio.Api.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Employee");
+                });
+
+            modelBuilder.Entity("AispaStudio.Api.Importing.ImportEntry", b =>
+                {
+                    b.HasOne("AispaStudio.Api.Tenancy.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("AispaStudio.Api.MailIntake.CalendarFeed", b =>

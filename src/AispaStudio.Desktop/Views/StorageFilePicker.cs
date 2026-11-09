@@ -40,7 +40,10 @@ public sealed class StorageFilePicker(Visual host) : IFilePicker
         return new PickedFile(file.Name, Math.Max(size, stream.CanSeek ? stream.Length : 0), content);
     }
 
-    public async Task<byte[]?> PickBytesAsync(string title, string typeName, IReadOnlyList<string> patterns, long maxBytes)
+    public async Task<byte[]?> PickBytesAsync(string title, string typeName, IReadOnlyList<string> patterns, long maxBytes) =>
+        (await PickFileAsync(title, typeName, patterns, maxBytes).ConfigureAwait(true))?.Content;
+
+    public async Task<PickedBytes?> PickFileAsync(string title, string typeName, IReadOnlyList<string> patterns, long maxBytes)
     {
         if (TopLevel.GetTopLevel(host)?.StorageProvider is not { CanOpen: true } storage)
         {
@@ -59,14 +62,15 @@ public sealed class StorageFilePicker(Visual host) : IFilePicker
         }
 
         var properties = await file.GetBasicPropertiesAsync().ConfigureAwait(true);
-        if (((long?)properties.Size ?? 0) > maxBytes)
+        var size = (long?)properties.Size ?? 0;
+        if (size > maxBytes)
         {
-            return [];
+            return new PickedBytes(file.Name, size, []);
         }
 
         await using var stream = await file.OpenReadAsync().ConfigureAwait(true);
         using var buffer = new MemoryStream();
         await stream.CopyToAsync(buffer).ConfigureAwait(true);
-        return buffer.ToArray();
+        return new PickedBytes(file.Name, Math.Max(size, buffer.Length), buffer.ToArray());
     }
 }

@@ -13,6 +13,7 @@ using AispaStudio.Api.Data;
 using AispaStudio.Api.Demo;
 using AispaStudio.Api.Exports;
 using AispaStudio.Api.HrFile;
+using AispaStudio.Api.Importing;
 using AispaStudio.Api.Live;
 using AispaStudio.Api.LocalAi;
 using AispaStudio.Api.Mail;
@@ -203,6 +204,7 @@ else
 }
 builder.Services.AddScoped<AccountingExport>();
 builder.Services.AddScoped<ExportLog>();
+builder.Services.AddScoped<CustomerImport>();
 builder.Services.AddScoped<CostAnalysis>();
 builder.Services.AddScoped<StockService>();
 builder.Services.AddScoped<StockDemandService>();
@@ -334,6 +336,7 @@ static void MapApplicationEndpoints(WebApplication app)
     app.MapStockExportEndpoints();
     app.MapStaffExportEndpoints();
     app.MapReportExportEndpoints();
+    app.MapCustomerImportEndpoints();
     app.MapCalendarEndpoints();
     app.MapAbsenceEndpoints();
     app.MapStaffEndpoints();

@@ -46,14 +46,7 @@ internal static class CustomerEndpoints
         group.MapPost("/", async Task<Results<Created<CustomerDto>, ValidationProblem>> (
                 CustomerInput input, AispaDbContext db, TenantContext tenants, TimeProvider time, CancellationToken ct) =>
             {
-                // Pflicht ist nur ein Name, damit die Rezeption auch „Frau Huber“ am Telefon sofort anlegen kann.
-                var firstName = input.FirstName?.Trim() ?? "";
-                var lastName = input.LastName?.Trim() ?? "";
-                var errors = new Errors();
-                errors.Check(firstName.Length > 0 || lastName.Length > 0, nameof(input.LastName), "Vor- oder Nachname angeben.");
-                errors.Check(Blank(input.Email) is not { } email || email.Contains('@', StringComparison.Ordinal), nameof(input.Email), "Keine gültige E-Mail-Adresse.");
-                errors.Check(KnownLanguage(input.Language), nameof(input.Language), "Unbekannte Sprache.");
-                CheckNameDetails(errors, input);
+                var errors = CheckNew(input);
                 if (errors.Any)
                 {
                     return errors.Problem();
@@ -74,19 +67,7 @@ internal static class CustomerEndpoints
                     }
                 }
 
-                var customer = new Customer
-                {
-                    Id = input.ClientId ?? Guid.CreateVersion7(),
-                    FirstName = firstName,
-                    LastName = lastName,
-                    Email = Blank(input.Email),
-                    Phone = await StoredPhoneAsync(input.Phone, db, tenants, ct),
-                    BirthDate = input.BirthDate,
-                    Note = Blank(input.Note),
-                    Language = GuestLanguages.Normalize(input.Language),
-                    CreatedAt = time.GetUtcNow(),
-                };
-                ApplyNameDetails(customer, input);
+                var customer = NewCustomer(input, await StoredPhoneAsync(input.Phone, db, tenants, ct), time.GetUtcNow());
                 db.Customers.Add(customer);
                 await db.SaveChangesAsync(ct);
                 return TypedResults.Created($"/api/customers/{customer.Id}", ToDto(customer));
@@ -346,6 +327,37 @@ internal static class CustomerEndpoints
         return query;
     }
 
+    /// <summary>Prüfungen beim Anlegen eines Gastes, gemeinsam für <c>POST /api/customers</c> und den Kunden-Import.</summary>
+    internal static Errors CheckNew(CustomerInput input)
+    {
+        // Pflicht ist nur ein Name, damit die Rezeption auch „Frau Huber“ am Telefon sofort anlegen kann.
+        var errors = new Errors();
+        errors.Check((input.FirstName?.Trim() ?? "").Length > 0 || (input.LastName?.Trim() ?? "").Length > 0, nameof(input.LastName), "Vor- oder Nachname angeben.");
+        errors.Check(Blank(input.Email) is not { } email || email.Contains('@', StringComparison.Ordinal), nameof(input.Email), "Keine gültige E-Mail-Adresse.");
+        errors.Check(KnownLanguage(input.Language), nameof(input.Language), "Unbekannte Sprache.");
+        CheckNameDetails(errors, input);
+        return errors;
+    }
+
+    /// <summary>Der neue Gast aus geprüften Angaben; <paramref name="phone"/> ist schon im gespeicherten Format (<see cref="StoredPhone"/>).</summary>
+    internal static Customer NewCustomer(CustomerInput input, string? phone, DateTimeOffset now)
+    {
+        var customer = new Customer
+        {
+            Id = input.ClientId ?? Guid.CreateVersion7(),
+            FirstName = input.FirstName?.Trim() ?? "",
+            LastName = input.LastName?.Trim() ?? "",
+            Email = Blank(input.Email),
+            Phone = phone,
+            BirthDate = input.BirthDate,
+            Note = Blank(input.Note),
+            Language = GuestLanguages.Normalize(input.Language),
+            CreatedAt = now,
+        };
+        ApplyNameDetails(customer, input);
+        return customer;
+    }
+
     private static string? Blank(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 
     /// <summary>Die Nummer im Format „+43 664 1234567“ (Vorwahl des Landes des Spas); was sich nicht als Nummer lesen lässt, bleibt wie getippt.</summary>
@@ -357,8 +369,12 @@ internal static class CustomerEndpoints
         }
 
         var country = await db.Tenants.AsNoTracking().Where(t => t.Id == tenants.TenantId).Select(t => t.Country).FirstOrDefaultAsync(ct);
-        return PhoneNumbers.Format(phone, country) is { Length: > 0 } formatted ? formatted : phone;
+        return StoredPhone(phone, country);
     }
+
+    /// <summary>Wie <see cref="StoredPhoneAsync"/>, mit dem Land des Spas schon zur Hand (Import vieler Gäste).</summary>
+    internal static string? StoredPhone(string? typed, string? country) =>
+        Blank(typed) is not { } phone ? null : PhoneNumbers.Format(phone, country) is { Length: > 0 } formatted ? formatted : phone;
 
     private static void CheckNameDetails(Errors errors, CustomerInput input)
     {

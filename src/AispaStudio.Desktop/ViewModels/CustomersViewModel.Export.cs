@@ -42,7 +42,7 @@ public partial class CustomersViewModel
             ExportOption.For(ExportFormat.Portal, () => ExportPath("portal")),
             ExportOption.For(ExportFormat.Vcf, () => ExportPath("vcf")),
         };
-        if (User?.Access?.Role is StaffRole.Owner or StaffRole.GeneralManager)
+        if (IsLeadership)
         {
             options.Add(ExportOption.For(ExportFormat.Csv, () => $"{ExportPath("csv")}&list=newsletter", "Newsletter-Liste"));
         }

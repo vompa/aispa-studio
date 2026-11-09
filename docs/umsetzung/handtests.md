@@ -713,3 +713,24 @@ Expected: Kennzahl, Wert, Vorperiode und Einheit mit denselben Zahlen wie auf de
 Expected: Der Knopf **Exportieren** fehlt dort; im Bericht „Management“ ist er da.
 Closes: Export/Import Aufgabe D (arbeitsanweisung-export-import.md)
 Result: ☐
+
+### Export/Import E – Kunden importieren
+Start: `dotnet run --project src/AispaStudio.AppHost`, im Aspire-Dashboard die Ressource `windows-app` starten, als Inhaberin anmelden, **Kunden** öffnen; die Beispieldatei `docs/beispiele/kunden-import-beispiel.xlsx` bereithalten
+1. In der Kopfzeile **…** › **Kunden importieren …** wählen und die Beispieldatei öffnen.
+Expected: Schritt 2 „Spalten zuordnen“: links die neun Spalten der Datei mit Beispielwerten, rechts vorgeschlagen Vorname, Nachname, E-Mail, Telefon, Geburtstag, Straße, PLZ, Ort, Werbe-Einwilligung; Datumsformat TT.MM.JJJJ.
+2. Bei „Nachname“ „nicht importieren“ wählen und **Weiter** klicken.
+Expected: **Weiter** ist gesperrt; am Feld „Zuordnung“ steht „Nachname fehlt. Bitte die Spalte mit dem Nachnamen zuordnen.“ Wieder „Nachname“ wählen.
+3. **Weiter** klicken.
+Expected: Schritt 3 zeigt „4 neu, 1 Dublette, 2 fehlerhaft“; die Dublette „Lena Beispiel“ mit „doppelt in der Datei (Zeile 2)“ und der Wahl **Überspringen** oder **Ergänzen**; fehlerhaft „Mia Demo“ (Geburtstag kein Datum) und Zeile 8 (Nachname fehlt).
+4. **Fehlerzeilen als Excel …** speichern und öffnen.
+Expected: Spalten Zeile, Grund und die Spalten der Datei, zwei Zeilen.
+5. Bei der Dublette **Ergänzen** wählen, **Weiter** und **Nur prüfen** klicken.
+Expected: Im Dialog „Probelauf: 4 neu, 1 ergänzt, 0 übersprungen, 2 fehlerhaft. Es wurde nichts gespeichert.“; in der Kundenliste ist noch niemand neu.
+6. **Importieren** klicken.
+Expected: Der Dialog schließt, Hinweis „Importiert: 4 neu, 1 ergänzt, 0 übersprungen, 2 fehlerhaft“; die Kundenliste zeigt Lena Beispiel, Paul Probe, Sophie Muster und Jonas Erfunden. In der Karte von Lena Beispiel steht im Verlauf „Angelegt beim Import von …“ und unter „Werbung per Mail“ eine Einwilligung aus dem Import; bei Paul Probe keine.
+7. Dieselbe Datei noch einmal importieren bis Schritt 3.
+Expected: Die vier Gäste sind jetzt Dubletten im Bestand („gleicher Nachname und gleiche Telefonnummer wie …“ bzw. „… E-Mail-Adresse wie …“).
+8. Abbrechen, abmelden, als Manager anmelden, **Kunden** öffnen.
+Expected: Unter **…** fehlt „Kunden importieren …“.
+Closes: Export/Import Aufgabe E (arbeitsanweisung-export-import.md)
+Result: ☐

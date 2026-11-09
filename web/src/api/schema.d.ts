@@ -1073,6 +1073,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/customers/import/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Liest eine Excel- oder CSV-Datei (bis 10 MB, 20 000 Zeilen, erste Zeile Spaltenköpfe) und zeigt Spalten mit Beispielen, die Zuordnung (ohne Angabe nach den Spaltenköpfen vorgeschlagen), Zähler neu, Dubletten und fehlerhaft, die ersten 20 Zeilen sowie alle Dubletten und Fehler. Ändert nichts. */
+        post: operations["PreviewCustomerImport"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customers/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Importiert die Gäste der Datei mit derselben Zuordnung wie die Vorschau, in Blöcken zu 200 und mit dem Kanal „Import“. Dubletten werden übersprungen, außer die Entscheidung je Zeile sagt „Merge“ (leere Felder ergänzen, nie überschreiben). Mit dryRun=true nur zählen (Probelauf). Jeder Import steht im Verlauf. */
+        post: operations["ImportCustomers"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customers/import/errors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Die fehlerhaften Zeilen der Datei als Excel: Zeile, Grund und die Spalten der Datei, zum Berichtigen und erneuten Importieren. */
+        post: operations["GetCustomerImportErrors"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/locations/{locationId}/calendar": {
         parameters: {
             query?: never;
@@ -9271,6 +9322,41 @@ export interface components {
         };
         /** @enum {unknown} */
         CustomerFlagKind: "MoreTime" | "InformManagement" | "NotWithMe" | "DoNotBook";
+        /** @enum {unknown} */
+        CustomerImportField: "FirstName" | "LastName" | "Email" | "Phone" | "BirthDate" | "Salutation" | "Street" | "PostalCode" | "City" | "Country" | "MarketingConsent" | null;
+        CustomerImportMapping: {
+            columns: components["schemas"]["ImportColumnMapping"][];
+            dateFormat?: components["schemas"]["ImportDateFormat"];
+        };
+        CustomerImportPreview: {
+            fileName: string;
+            /** Format: int32 */
+            rowCount: number;
+            columns: components["schemas"]["ImportColumn"][];
+            mapping: components["schemas"]["CustomerImportMapping"];
+            /** Format: int32 */
+            new: number;
+            /** Format: int32 */
+            duplicates: number;
+            /** Format: int32 */
+            invalid: number;
+            rows: components["schemas"]["ImportRowPreview"][];
+            duplicateRows: components["schemas"]["ImportRowPreview"][];
+            invalidRows: components["schemas"]["ImportRowPreview"][];
+        };
+        CustomerImportResult: {
+            dryRun: boolean;
+            /** Format: int32 */
+            rows: number;
+            /** Format: int32 */
+            created: number;
+            /** Format: int32 */
+            merged: number;
+            /** Format: int32 */
+            skipped: number;
+            /** Format: int32 */
+            failed: number;
+        };
         CustomerInput: {
             firstName: string;
             lastName: string;
@@ -10054,6 +10140,36 @@ export interface components {
         };
         /** Format: binary */
         IFormFile: string;
+        ImportColumn: {
+            /** Format: int32 */
+            index: number;
+            header: string;
+            samples: string[];
+            suggested: null | components["schemas"]["CustomerImportField"];
+        };
+        ImportColumnMapping: {
+            /** Format: int32 */
+            column: number;
+            field: components["schemas"]["CustomerImportField"];
+        };
+        /**
+         * @default Auto
+         * @enum {unknown}
+         */
+        ImportDateFormat: "Auto" | "DayMonthYear" | "YearMonthDay" | "MonthDayYear";
+        ImportRowPreview: {
+            /** Format: int32 */
+            row: number;
+            status: components["schemas"]["ImportRowStatus"];
+            name: string;
+            email: null | string;
+            phone: null | string;
+            reason: null | string;
+            /** Format: uuid */
+            existingCustomerId: null | string;
+        };
+        /** @enum {unknown} */
+        ImportRowStatus: "New" | "Duplicate" | "Invalid";
         InboundMailDto: {
             /** Format: uuid */
             id: string;
@@ -16102,6 +16218,139 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    PreviewCustomerImport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    file: components["schemas"]["IFormFile"];
+                } & {
+                    mapping?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomerImportPreview"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    ImportCustomers: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    file: components["schemas"]["IFormFile"];
+                } & {
+                    mapping?: string;
+                } & {
+                    decisions?: string;
+                } & {
+                    dryRun?: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomerImportResult"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    GetCustomerImportErrors: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    file: components["schemas"]["IFormFile"];
+                } & {
+                    mapping?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
         };
     };

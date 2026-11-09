@@ -36,6 +36,7 @@ Gleiche Dateien aus allen Listen, ein Protokoll für den Datenschutz und ein Kno
 - Paket ClosedXML in `Directory.Packages.props`; es zieht `DocumentFormat.OpenXml` (MIT) und `SixLabors.Fonts` (Six Labors Split License, für Open Source Apache 2.0) mit; Lizenzhinweise erzeugt `scripts/third-party-notices.py`.
 - Migration `ExportLog` (Tabelle `aispa.Exports`), `ChangeHistory.Tables` um `aispa.Exports` erweitert.
 - Die Listen (Kunden, Termine, Kassa, Lager, Personal, Verlauf, Berichte) kommen in den Aufgaben B bis D der Arbeitsanweisung dazu; der Kunden-Import (Aufgabe E) nutzt ClosedXML zum Lesen und läuft über die Kunden-Dienste der API.
+- Stand 09.11.2026: Der Kunden-Import ist gebaut (`src/AispaStudio.Api/Imports/`, Namespace `AispaStudio.Api.Importing`). Er liest Excel mit ClosedXML und CSV mit einem eigenen kleinen Leser, prüft jede Zeile mit denselben Methoden wie `POST /api/customers`, speichert in Blöcken zu 200 mit dem Kanal `Import` und protokolliert jeden Lauf in `aispa.Imports`; das Export-Protokoll zeigt Exporte und Importe gemeinsam.
 - Offen: automatische Übertragung an Portale oder Newsletter-Dienste über deren Schnittstellen; Import von Terminen, Gutscheinen und Lagerdaten.
 
 ## Quellen
