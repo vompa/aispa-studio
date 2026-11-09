@@ -1309,9 +1309,9 @@
   <Style Selector="TextBlock.absent">
     <Setter Property="Foreground" Value="{DynamicResource CritBrush}" />
   </Style>
-  <!-- Einwirkzeit im Termin der Person: schraffiertes, halbtransparentes Band mit Linien oben und unten; der Text steht klein am unteren Rand -->
+  <!-- Einwirkzeit im Termin der Person: flaches Band im Ton der Vor- und Nachbereitungsstreifen mit Linien oben und unten (ohne Hover-Stil, nicht anklickbar); der Text steht klein am unteren Rand -->
   <Style Selector="Border.processing">
-    <Setter Property="Background" Value="{DynamicResource ProcessingHatchBrush}" />
+    <Setter Property="Background" Value="{DynamicResource Surface3Brush}" />
     <Setter Property="BorderBrush" Value="{DynamicResource LineStrongBrush}" />
     <Setter Property="BorderThickness" Value="0,1,0,1" />
     <Setter Property="VerticalAlignment" Value="Top" />

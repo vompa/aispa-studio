@@ -629,4 +629,14 @@ Expected: Der Fehler verschwindet beim Tippen, die Kundin wird angelegt.
 4. Eine Kundin nur mit Nachname anlegen (kein Vorname) und in der Liste links ansehen.
 Expected: Die Zeile heißt „Probe“ ohne Komma am Ende.
 Closes: B5, B12 (live-sichtpruefung-2026-11-09.md)
+
+### Einwirkzeit-Band im Kalender (flach)
+Start: `dotnet run --project src/AispaStudio.AppHost`, im Aspire-Dashboard die Ressource `windows-app` starten, als Rezeption anmelden, im Kalender einen Tag mit einer Packung oder Maske öffnen (Beispieldaten: „Reismilch-Körperpackung“, „Gesichtsbehandlung Klassik“), bei Bedarf mit dem Zoom hineingehen
+1. Das Band „Einwirkzeit … Min. · frei“ im Termin der Person ansehen, zuerst hell, dann im dunklen Aussehen (Einstellungen).
+Expected: Das Band ist eine flache Fläche im selben Ton wie die Streifen „Vorb.“ und „Nachb.“, ohne Schraffur, mit feinen Linien oben und unten; der Text steht klein am unteren Rand und ist gut lesbar.
+2. Mit der Maus über das Band und über den Termin fahren.
+Expected: Das Band ändert sich nicht; die Hover-Karte des Termins erscheint wie bisher und nennt den Ablauf.
+3. Einen zweiten Termin derselben Person in die Einwirkzeit legen.
+Expected: Die Spalte teilt sich in zwei Bahnen; das Band bleibt im ersten Termin flach und lesbar.
+Closes: –
 Result: ☐

@@ -118,7 +118,7 @@ Zeit, in der der Gast allein im Raum liegt und die Person frei ist, z. B. 20 Min
 
 - Die Person ist in dieser Zeit frei und kann einen anderen Gast behandeln, am Ende der Einwirkzeit aber wieder da sein. Der Planer bucht und findet Zeiten in der Einwirkzeit einer Person ebenso wie sonst freie Zeit.
 - Der **Raum** bleibt die ganze Zeit belegt; ein nötiges Gerät ist wie bisher für die Dauer belegt.
-- Im Kalender der Windows-App liegt in der Spalte der Person ein schraffiertes Band „Einwirkzeit 20 Min. · frei“. Liegt dort ein zweiter Termin, teilt sich die Spalte in zwei Bahnen. In der Raumansicht gibt es kein Band, weil der Raum belegt ist.
+- Im Kalender der Windows-App liegt in der Spalte der Person ein flaches Band „Einwirkzeit 20 Min. · frei“ mit feinen Linien oben und unten. Liegt dort ein zweiter Termin, teilt sich die Spalte in zwei Bahnen. In der Raumansicht gibt es kein Band, weil der Raum belegt ist.
 - Die Vollkosten rechnen die Personalzeit ohne Einwirkzeit, die Raumzeit mit ihr.
 - Die Pausenprüfung und die Lückenvorschläge rechnen vorerst vorsichtig mit der ganzen Bindung der Person, ohne die Einwirkzeit als frei zu zählen.
 
