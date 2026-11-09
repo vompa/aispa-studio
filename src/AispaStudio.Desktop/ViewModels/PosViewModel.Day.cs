@@ -337,7 +337,10 @@ public partial class PosViewModel
 
     private bool CanCloseDay() => !IsClosed && Report is not null && Money.Parse(CountedCash) is not null && CountedCash.Trim().Length > 0;
 
-    /// <summary>Z-Bericht mit gezähltem Bestand; der Server speichert ihn unveränderlich.</summary>
+    /// <summary>
+    /// Z-Bericht mit gezähltem Bestand; der Server speichert ihn unveränderlich. Vorher lädt die App den Bericht neu (der Server rechnet beim Abschluss neu,
+    /// ein Beleg seit dem Öffnen des Reiters ändert die Differenz) und fragt mit der frischen Differenz nach (Design-Brief 5.27).
+    /// </summary>
     [RelayCommand(CanExecute = nameof(CanCloseDay))]
     private async Task CloseDayAsync()
     {
@@ -347,6 +350,18 @@ public partial class PosViewModel
         }
 
         Error = null;
+        await LoadReportAsync().ConfigureAwait(true);
+        if (Error is not null || Report is not { } fresh)
+        {
+            return;
+        }
+
+        var answer = await AskAsync(new ConfirmRequest("Tagesabschluss durchführen?", ClosingConsequence(fresh), "Abschließen")).ConfigureAwait(true);
+        if (!answer.IsConfirmed)
+        {
+            return;
+        }
+
         var note = ClosingNote.Trim();
         var result = await _api.PostAsync<DayClosingDto>($"api/pos/registers/{register.Id}/day-closings",
             new DayClosingInput(Money.Parse(CountedCash)!.Value, note.Length == 0 ? null : note)).ConfigureAwait(true);
@@ -360,6 +375,13 @@ public partial class PosViewModel
         IsClosed = true;
         CountedCash = ClosingNote = "";
         CloseDayCommand.NotifyCanExecuteChanged();
+    }
+
+    private string ClosingConsequence(DayClosingDto fresh)
+    {
+        var difference = Money.Parse(CountedCash)!.Value - fresh.ExpectedCash;
+        var state = difference == 0 ? "Der gezählte Bestand stimmt mit dem Soll überein." : $"Differenz zum Soll: {Signed(difference)}.";
+        return $"Der Abschluss wird unveränderlich gespeichert. {state}";
     }
 
     partial void OnSelectedReceiptItemChanged(ReceiptListItem? value)

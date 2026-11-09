@@ -531,3 +531,16 @@ Expected: Beispiel und Platzhalter haben die Form `K7M3-Q9XA-B2CD`.
 Expected: Kein Knopf **Bearbeiten** neben dem Kopf; der Weg geht über **…** › **Bearbeiten (Name, Anrede, Kontakt, Notiz)** oder den Stift **Notiz ändern**, wie beschrieben.
 Closes: L15 (live-tests-rezeption-onboarding.md, Abschnitt 3)
 Result: ☐
+
+### Befunde Kassa A1 – Rückfrage vor dem Tagesabschluss
+Start: `dotnet run --project src/AispaStudio.AppHost`, als Rezeption anmelden, **Kassa** › **Kassenlade & Abschluss**
+1. Bei „Gezählter Bestand“ einen Betrag eintragen, der vom Soll abweicht (z. B. 800,00), auf **Tagesabschluss durchführen** klicken.
+Expected: Rückfrage „Tagesabschluss durchführen?“, Text „Der Abschluss wird unveränderlich gespeichert. Differenz zum Soll: …“, Fokus auf **Abbrechen**.
+2. **Abbrechen** (oder Esc).
+Expected: Nichts gespeichert, der Bericht links heißt weiter „Zwischenbericht seit dem letzten Abschluss“, der Zählbestand steht noch im Feld.
+3. In einem zweiten Fenster einen Beleg bar kassieren, dann im ersten erneut **Tagesabschluss durchführen**.
+Expected: Die Differenz in der Rückfrage rechnet den neuen Beleg schon ein.
+4. **Abschließen**.
+Expected: „Tagesabschluss gespeichert“ mit der Differenz aus der Rückfrage.
+Closes: B1 (live-sichtpruefung-2026-11-09.md)
+Result: ☐
