@@ -94,6 +94,32 @@ public sealed class ActivityFeedTests(ApiFixture fixture)
     }
 
     [Fact]
+    public async Task Verkauf_ohne_Termin_steht_mit_der_Ware_im_Verlauf_und_die_Suche_findet_ihn()
+    {
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        var register = await CreateRegisterAsync(spa);
+        var bill = await spa.PostAsync<BillDto>("/api/pos/bills", new BillInput(register.Id, null, []), Ct);
+        await spa.PostAsync<BillDto>($"/api/pos/bills/{bill.Id}/lines",
+            new BillLineInput(BillLineKind.Custom, null, null, 1, 24m, 0, "Tee", TaxCategory.Normal, null, null, null), Ct);
+        var receipt = await CheckoutAsync(spa, bill.Id, new PaymentInput(PaymentMethod.Cash, 24m, null, null));
+        var voided = await spa.PostAsync<ReceiptDto>($"/api/pos/receipts/{receipt.Id}/void", new VoidRequest("Doppelt gebucht"), Ct);
+
+        var page = await spa.GetAsync<ActivityPage>(Path(spa, "?kinds=Paid&kinds=ReceiptVoided"), Ct);
+
+        Assert.Equal(
+        [
+            (ActivityKind.ReceiptVoided, $"Beleg {register.Code} Nr. {receipt.Number} storniert von Test Person: Doppelt gebucht"),
+            (ActivityKind.Paid, $"Bezahlt bar: 24,00 € von Test Person für Tee (Beleg {register.Code} Nr. {receipt.Number})"),
+        ], page.Items.Select(i => (i.Kind, i.Text)));
+        Assert.All(page.Items, i => Assert.Null(i.AppointmentId));
+        Assert.Equal((voided.Id, receipt.Id), (page.Items[0].ReceiptId, page.Items[1].ReceiptId));
+
+        // Die Suche kennt auch die Ware auf dem Beleg.
+        var found = await spa.GetAsync<ActivityPage>(Path(spa, "?search=tee"), Ct);
+        Assert.Equal([voided.Id, receipt.Id], found.Items.Select(i => i.ReceiptId));
+    }
+
+    [Fact]
     public async Task Online_bezahlte_Anzahlung_steht_als_Anzahlung_ohne_Person_mit_Kanal_Online()
     {
         var spa = await TestSpa.CreateAsync(fixture, Ct);

@@ -735,3 +735,14 @@ Expected: „Seite „Verlauf““ bzw. „Im Verlauf suchen“ steht oben in d
 Expected: Beide führen zum richtigen Abschnitt.
 Closes: –
 Result: ☐
+
+### Verlauf F – Verkäufe ohne Termin
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Inhaberin anmelden
+1. In der **Kassa** einen Gutschein oder Artikel ohne Termin bar verkaufen.
+Expected: Im **Verlauf** unter **Heute**, **Zahlungen** steht „Bezahlt bar: … für <Ware> (Beleg …)“ ohne Sprung „Termin öffnen“.
+2. Im Verlauf nach dem Namen der Ware suchen.
+Expected: Der Verkauf (und ein Storno dazu) steht in den Treffern.
+3. Als Rezeption ohne Recht „Termine buchen“ anmelden.
+Expected: Der Chip **Zahlungen** und die Verkäufe fehlen.
+Closes: –
+Result: ☐

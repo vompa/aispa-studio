@@ -13,7 +13,7 @@ using NpgsqlTypes;
 namespace AispaStudio.Api.Sync;
 
 /// <summary>
-/// Verlauf eines Standorts für die Seite „Verlauf“ (Arbeitsanweisung Verlauf, Aufgabe A): die Zeilen aus <c>sync.history</c> (ADR 0082) und die Zahlungen zum Termin
+/// Verlauf eines Standorts für die Seite „Verlauf“ (Arbeitsanweisung Verlauf, Aufgabe A): die Zeilen aus <c>sync.history</c> (ADR 0082) und die Zahlungen aus der Kassa
 /// aus der Kassa in einer Reihenfolge, neueste zuerst, gefiltert und seitenweise. Filtern, Suchen und Seiten rechnet die Datenbank: eine Abfrage mit festen
 /// Bedingungstexten und allen Werten als Parameter liefert die Schlüssel der Seite (Zeit, Nummer, Art); danach werden nur diese Zeilen gelesen und mit den
 /// vorhandenen Satzbildnern (<see cref="EntityHistory"/>, <see cref="AppointmentHistory"/>, <see cref="PaymentHistory"/>) beschrieben, damit Termin-Panel,
@@ -295,8 +295,6 @@ internal sealed class ActivityFeed(
               CROSS JOIN LATERAL (SELECT {{ReceiptKindSql}} AS kind) k
              WHERE g."LocationId" = {2}
                AND r."Kind" IN ('Sale', 'Void')
-               AND (EXISTS (SELECT 1 FROM aispa."ReceiptLine" l WHERE l."ReceiptId" = COALESCE(o."Id", r."Id") AND l."AppointmentId" IS NOT NULL)
-                    OR EXISTS (SELECT 1 FROM aispa."AppointmentDeposits" d WHERE d."ReceiptId" = COALESCE(o."Id", r."Id")))
                AND k.kind = ANY ({1})
                AND ({4}::timestamptz IS NULL OR r."IssuedAt" >= {4})
                AND ({5}::timestamptz IS NULL OR r."IssuedAt" < {5})
@@ -305,7 +303,8 @@ internal sealed class ActivityFeed(
                AND ({8}::uuid IS NULL OR r."CustomerId" = {8})
                AND ({9}::text IS NULL
                     OR (c."FirstName" || ' ' || c."LastName") ILIKE {9} OR c."PreferredName" ILIKE {9} OR u."DisplayName" ILIKE {9}
-                    OR (g."Code" || ' Nr. ' || COALESCE(o."Number", r."Number")::text) ILIKE {9})
+                    OR (g."Code" || ' Nr. ' || COALESCE(o."Number", r."Number")::text) ILIKE {9}
+                    OR EXISTS (SELECT 1 FROM aispa."ReceiptLine" l WHERE l."ReceiptId" = COALESCE(o."Id", r."Id") AND l."Description" ILIKE {9}))
         )
         """;
 

@@ -61,7 +61,7 @@ internal static class ActivityEndpoints
             })
             .WithTags("Verlauf")
             .WithName("GetLocationHistory")
-            .WithSummary("Verlauf eines Standorts, neueste zuerst: Buchungen, Verschiebungen, Stornos, Status, Zahlungen zum Termin, Kunden, Behandlungen, Dienstplan und Zugänge "
+            .WithSummary("Verlauf eines Standorts, neueste zuerst: Buchungen, Verschiebungen, Stornos, Status, Zahlungen (auch Verkäufe ohne Termin), Kunden, Behandlungen, Dienstplan und Zugänge "
                 + "mit Filtern nach Zeitraum (Ortszeit), Arten, Person, Kanal, Gast und Suchtext; seitenweise über before und take (höchstens 200). "
                 + "Arten außerhalb der Rechte fehlen; 403 nur, wenn ausschließlich verbotene Arten angefragt sind.")
             .Produces<ActivityPage>().ProducesProblem(StatusCodes.Status404NotFound).ProducesProblem(StatusCodes.Status403Forbidden)

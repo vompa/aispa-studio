@@ -21,6 +21,7 @@ Mit der Seite [Verlauf](hilfe:seite-verlauf) finden Sie heraus, wer was wann get
 Beispiele:
 
 - „Wer hat den Termin von Frau Müller abgesagt?“ **30 Tage**, **Stornos**, „Müller“ suchen. Die Zeile nennt Person und Grund.
+- „Wer hat heute den Gutschein verkauft?“ **Heute**, **Zahlungen**, „Gutschein“ suchen. Ein Verkauf ohne Termin nennt die Ware („Bezahlt Karte: 50,00 € von Lena für Gutschein 50 € (Beleg …)“); die Suche findet auch die weiteren Zeilen des Belegs.
 - „Was wurde heute bar bezahlt?“ **Heute**, **Zahlungen**, „bar“ suchen. Jede Zeile nennt Betrag und Beleg („Bezahlt bar: 85,00 € von Lena (Beleg …)“).
 - „Welche Absagen kamen online?“ **Stornos**, Kanal **Online**. Kurzfristige Absagen tragen die Pille **Kurzfristig**.
 

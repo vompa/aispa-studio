@@ -5739,3 +5739,13 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Nicht geprüft:** Im Bild `verlauf-panel-storno` verdeckt der Tooltip des primären Knopfs den Knopf „Termin öffnen“ (der Bildtest setzt den Fokus auf den primären Knopf); Darstellung der Seiten in der Hilfe der laufenden App.
 - **Bewusst offen (Abschnitt 1 der Anweisung und Entscheidungen des Auftraggebers):** Anfragen (Mail-Eingang, Treatwell), Lagerbewegungen, Kassen-Einlagen und -Entnahmen ohne Terminbezug, Abgleich-Vorgänge, Export (CSV, Druck), Anonymisieren im Verlauf, Verlauf im Web; die Personalakte (`hr`) bleibt draußen (Entscheidung des Auftraggebers: nur Art und Person, kein Nutzen in der Tagesliste).
 - **Text-Prüfung:** `textRules.test.ts` grün; von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Verlauf F: Verkäufe ohne Termin im Verlauf (Nachtrag zu „Bewusst offen“, 10.11.2026)
+
+- **Auftrag:** Vorschlag aus „Bewusst offen“ (Verlauf D), vom Auftraggeber freigegeben: Gutscheine, Artikel und freie Zeilen ohne Termin stehen unter „Zahlungen“ im Verlauf.
+- **Was:** `ActivityFeed` nimmt alle Verkaufs- und Storno-Belege des Standorts (die Einschränkung auf Termin- oder Anzahlungsbelege entfällt); die Suche findet zusätzlich die Zeilentexte des Belegs. `PaymentHistory` nennt bei einem Verkauf ohne Termin die Ware: „Bezahlt bar: 24,00 € von Lena für Tee (Beleg WIEN-1 Nr. 3)“, bei mehreren Zeilen „… für Gutschein 50 € und 2 weitere …“. Hilfe `seite-verlauf.md` (Rechte-Absatz) und `verlauf-suchen.md` (Beispiel Gutschein); Endpunkt-Beschreibung samt `aispa-api.json`/`schema.d.ts`.
+- **Test zuerst:** `ActivityFeedTests.Verkauf_ohne_Termin_steht_mit_der_Ware_im_Verlauf_und_die_Suche_findet_ihn` war rot (leere Liste), danach grün; Klasse 12 von 12 grün.
+- **Detailentscheidungen:** (1) Die Ware steht nur ohne Termin und ohne Anzahlung im Satz, Terminzahlungen bleiben unverändert. (2) Erste Zeile nach Position plus Anzahl der übrigen, damit der Satz kurz bleibt; die Suche deckt alle Zeilen ab.
+- **Geprüft:** API-Testklasse `ActivityFeedTests` 12/12, Web-Hilfetests 61/61.
+- **Nicht geprüft:** Gesamtlauf (folgt am Ende), Darstellung in der laufenden App.
+- **Datenschutz (Prüfung „gelöschter Gast“):** Es gibt heute weder einen Löschpfad für Gäste noch eine Löschmarke; Belege halten den Gast per `Restrict`. Der Auftraggeber hat festgelegt: nur Anonymisieren plus weiches Löschen, Aufbewahrungsfristen (BAO, RKSV) mitdenken und den Spielraum zum Aufbewahren voll nutzen. Das ist eine eigene Aufgabe außerhalb dieses Branches; Zahlungssätze lesen den Gastnamen beim Lesen und zeigen nach einem Anonymisieren von selbst den Platzhalter.

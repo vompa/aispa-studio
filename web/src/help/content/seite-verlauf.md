@@ -39,7 +39,7 @@ Je nach Eintrag stehen dort **Stornierung zurücknehmen**, **Beleg anzeigen**, *
 ## Was die Rezeption sieht {#rechte}
 
 - Buchungen, Verschiebungen, Stornos, Status, Kunden und Behandlungen sieht, wer den Kalender sieht.
-- **Zahlungen** sieht, wer die Kassa sieht (Recht „Termine buchen“).
+- **Zahlungen** (zum Termin, Anzahlungen und Verkäufe ohne Termin wie Gutscheine oder Artikel) sieht, wer die Kassa sieht (Recht „Termine buchen“).
 - **Dienstplan**, **Zugänge** und Firmendaten sehen nur Inhaber und Manager.
 - Inhalte von Gesundheitsdaten und der Personalakte stehen nie im Verlauf.
 

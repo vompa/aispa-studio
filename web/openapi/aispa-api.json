@@ -5774,7 +5774,7 @@
         "tags": [
           "Verlauf"
         ],
-        "summary": "Verlauf eines Standorts, neueste zuerst: Buchungen, Verschiebungen, Stornos, Status, Zahlungen zum Termin, Kunden, Behandlungen, Dienstplan und Zugänge mit Filtern nach Zeitraum (Ortszeit), Arten, Person, Kanal, Gast und Suchtext; seitenweise über before und take (höchstens 200). Arten außerhalb der Rechte fehlen; 403 nur, wenn ausschließlich verbotene Arten angefragt sind.",
+        "summary": "Verlauf eines Standorts, neueste zuerst: Buchungen, Verschiebungen, Stornos, Status, Zahlungen (auch Verkäufe ohne Termin), Kunden, Behandlungen, Dienstplan und Zugänge mit Filtern nach Zeitraum (Ortszeit), Arten, Person, Kanal, Gast und Suchtext; seitenweise über before und take (höchstens 200). Arten außerhalb der Rechte fehlen; 403 nur, wenn ausschließlich verbotene Arten angefragt sind.",
         "operationId": "GetLocationHistory",
         "parameters": [
           {
