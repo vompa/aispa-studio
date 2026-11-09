@@ -553,3 +553,12 @@ Expected: In der Karte **Vorschläge** stehen **Übernehmen** bzw. **Freie Zeit 
 Expected: Bucht wie ein Klick auf **Termin buchen**.
 Closes: B7, B13 (live-sichtpruefung-2026-11-09.md)
 Result: ☐
+
+### Kalender A6 – Texte der Rückfragen
+Start: `dotnet run --project src/AispaStudio.AppHost`, als Rezeption anmelden, **Kalender**
+1. **Neuer Termin** öffnen, eine Notiz tippen, mit dem Kreuz schließen.
+Expected: „Änderungen verwerfen?“ mit dem Text „Die Eingaben gehen beim Schließen verloren.“, Antworten **Verwerfen** und **Weiter bearbeiten**.
+2. Einen Termin an einem anderen Tag anklicken, **Stornieren** wählen.
+Expected: „Termin stornieren?“ mit „Der Termin von … am Do. 12.11., 14:35–15:20, ist danach storniert …“ (kurzes Datum).
+Closes: B9, B10 (live-sichtpruefung-2026-11-09.md)
+Result: ☐

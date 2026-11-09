@@ -5602,3 +5602,12 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Nicht geprüft:** Das Panel in der laufenden App auf einem echten Bildschirm; der Fall „Vorschläge“ mit echtem Gast im Bild (nur die Anordnung der Spalten-Zeile ist per Test belegt); andere Fensterhöhen als 700 und 900.
 - **Handbuchbilder:** `termin-buchen-1` bis `-4` zeigen nur Ausschnitte; `termin-buchen-4` (Knopf markiert) zeigt den Fuß zwar mit Trennlinie, aber der Ausschnitt um den Knopf bleibt inhaltlich gleich; die Bilder sind **nicht** neu erzeugt (nicht geprüft, ob der Rand des Ausschnitts die Linie zeigt).
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Kalender: Texte der Rückfragen (Befunde B9, B10 nur Datum; Aufgabe A6, 09.11.2026)
+
+- **Auftrag:** Befundliste der Live-Sichtprüfung vom 09.11.2026: B9 („Was Sie hier eingetragen haben …“ redet an) und B10 (Storno-Rückfrage mit langem Datum). Der Satzbau von B10 bleibt (gewollt, design.md 5.27); B14 gehört der Kassa-Sitzung, B11 ist nicht freigegeben.
+- **Was:** „Änderungen verwerfen?“ sagt „Die Eingaben gehen beim Schließen verloren.“ (`CalendarViewModel.PanelTabs.cs`). „Termin stornieren?“ nennt das kurze Datum („Der Termin von Eva Muster am Mo. 1.3., 10:00–10:50, ist danach storniert …“); dasselbe kurze Datum steht in der Rückfrage zum Zurücknehmen der Stornierung („… ist danach wieder gebucht …“), damit beide gleich lauten (`AppointmentViewModel.ShortDateText`).
+- **Detailentscheidungen:** (1) Die Rückfrage zum Zurücknehmen habe ich mitgezogen, obwohl der Auftrag nur Stornieren nennt; ein Test dafür fehlt. (2) Kurzform ist `DayLayout.ShortDay` („Mo. 1.3.“), wie sonst im Kalender, nicht der Wochentag ohne Punkt der Toasts.
+- **Geprüft:** Neue Asserts auf `ConfirmRequest.Message` über `FakeDialogs` (`NewEntryCarryTests.Die_Rueckfrage_beim_Schliessen_nennt_die_Folge_ohne_Anrede`, `UndoCancelCheckInTests.Die_Rueckfrage_Termin_stornieren_nennt_den_Termin_mit_kurzem_Datum`); Klassen `NewEntryCarryTests` 19, `UndoCancelCheckInTests` 11, `CalendarNoticeTests` 16, `TermsAndTooltipTests` 5 grün; Format und Release-Build sauber. Die Tests habe ich zusammen mit der Änderung geschrieben und nicht einzeln rot gesehen.
+- **Nicht geprüft:** Die Rückfragen in der laufenden App; die Rückfrage zum Zurücknehmen hat keinen eigenen Test.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md) und meldungen.md.
