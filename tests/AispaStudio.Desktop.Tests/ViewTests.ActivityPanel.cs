@@ -63,6 +63,10 @@ public sealed partial class ViewTests
         Assert.Equal("Stornierung zurücknehmen", Label(Assert.Single(VisiblePrimaries(panel))));
         Assert.True(Named<Button>(panel, "RestoreButton").IsEnabled);
         Assert.Equal(["Stornierung zurücknehmen", "Termin öffnen", "Kundenkarte öffnen"], panel.GetVisualDescendants().OfType<Button>().Where(b => b.IsEffectivelyVisible && b.Name is not null).Select(Label));
+        // Für das Handbuchbild: der Tooltip des fokussierten Primärknopfs verdeckt sonst „Termin öffnen“.
+        var restore = Named<Button>(panel, "RestoreButton");
+        ToolTip.SetIsOpen(restore, false);
+        Assert.False(ToolTip.GetIsOpen(restore));
         return shell.Calendar;
     }, PanelApi());
 

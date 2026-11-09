@@ -5749,3 +5749,8 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Geprüft:** API-Testklasse `ActivityFeedTests` 12/12, Web-Hilfetests 61/61.
 - **Nicht geprüft:** Gesamtlauf (folgt am Ende), Darstellung in der laufenden App.
 - **Datenschutz (Prüfung „gelöschter Gast“):** Es gibt heute weder einen Löschpfad für Gäste noch eine Löschmarke; Belege halten den Gast per `Restrict`. Der Auftraggeber hat festgelegt: nur Anonymisieren plus weiches Löschen, Aufbewahrungsfristen (BAO, RKSV) mitdenken und den Spielraum zum Aufbewahren voll nutzen. Das ist eine eigene Aufgabe außerhalb dieses Branches; Zahlungssätze lesen den Gastnamen beim Lesen und zeigen nach einem Anonymisieren von selbst den Platzhalter.
+
+## Verlauf G: Handbuchbild „verlauf-panel-storno“ ohne Tooltip (10.11.2026)
+
+- **Was:** Der Bildtest `Verlauf_Panel_Storno_zeigt…` schließt den Tooltip des fokussierten Primärknopfs (`ToolTip.SetIsOpen(false)`, mit Assert), das Bild ist neu erzeugt und verkleinert (116 kB → 44 kB). Damit ist der Punkt aus „Nicht geprüft“ von Verlauf D erledigt: „Termin öffnen“ ist im Bild zu sehen.
+- **Geprüft:** Test grün (2 von 2, hell und dunkel), Bild angesehen.
