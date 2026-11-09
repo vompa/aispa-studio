@@ -18,6 +18,9 @@ internal static partial class ReceptionJourney
         new("appointment-closed", "Termin buchen: außerhalb der Öffnungszeit", "Beginn 20:30 bietet „Trotzdem buchen“ an; es wird nicht gebucht", Closed,
             Leaves: "Legt nichts an."),
         new("checkin", "Einchecken und zurücknehmen", "Termin einchecken, mit „Rückgängig“ zurücknehmen", CheckIn, TermNeeds),
+        new("probe-checkin-loop", "Probe: „Einchecken“ wiederholt anklicken", "Zählt, wie oft der Klick auf „Einchecken“ nicht ankommt (Mausprobe B8, mit AISPA_LIVE_MOUSE=1)", ProbeCheckInLoop, TermNeeds),
+        new("probe-cancel-loop", "Probe: „Termin stornieren …“ wiederholt anklicken", "Zählt, wie oft der Klick auf „Termin stornieren …“ nicht ankommt (Mausprobe B8)", ProbeCancelLoop, TermNeeds,
+            Leaves: "Legt nichts an."),
         new("checkin-late", "Gast kommt später", "Rechtsklick „Kommt 10 Min. später“, dann „Doch pünktlich“", Late, TermNeeds),
         new("checkin-undo-late", "Einchecken später zurücknehmen", "Einchecken, Meldung abwarten, dann im Panel „Einchecken zurücknehmen“", UndoLate, TermNeeds),
         new("checkin-noshow", "Nicht erschienen nach dem Einchecken", "Bei einem eingecheckten Termin ist „Nicht erschienen“ gesperrt", NoShowAfterCheckIn, TermNeeds),
@@ -32,6 +35,9 @@ internal static partial class ReceptionJourney
         new("cancel-no-fee", "Keine Ausfallgebühr für die Rezeption", "" + Unchecked + "„Ausfallgebühr belasten …“ fehlt im Panel (Lücke L3)", CancelNoFee, TermNeeds,
             Leaves: "Legt nichts an."),
     ];
+
+    /// <summary>Anzahl der Durchläufe der Probe-Themen (<c>AISPA_LIVE_LOOP_N</c>, Standard 10).</summary>
+    private static int LoopCount => int.TryParse(Environment.GetEnvironmentVariable("AISPA_LIVE_LOOP_N"), out var n) && n > 0 ? n : 10;
 
     private static string GuestOf(LiveRunContext context) => context.CustomerName ?? DemoCustomer;
 
@@ -404,6 +410,88 @@ internal static partial class ReceptionJourney
             s.Click(Class("Button", NameContains("Rückgängig")), "Knopf „Rückgängig“");
             s.Expect(Card(booked, "Gebucht"), "Karte mit Status „Gebucht“");
         });
+    }
+
+    /// <summary>
+    /// Probe B8: Karte anklicken, „Einchecken“ anklicken, ohne Wiederholung zählen, ob die Karte „Eingecheckt“ zeigt; zurückgenommen wird per „Invoke“,
+    /// damit nur der Klick auf „Einchecken“ gemessen wird. Das Ergebnis steht im Bericht („verloren x von n“); das Thema bleibt grün.
+    /// </summary>
+    private static void ProbeCheckInLoop(LiveSession s, LiveRunContext context)
+    {
+        var booked = context.Appointment!;
+        RequireToday(booked);
+        OpenCalendar(s);
+        var runs = LoopCount;
+        var lost = 0;
+        s.Step($"„Einchecken“ {runs}-mal anklicken und zählen", () =>
+        {
+            for (var run = 1; run <= runs; run++)
+            {
+                SelectCard(s, booked, "Gebucht");
+                s.Expect(Button("Einchecken"), "Knopf „Einchecken“ im Panel");
+                s.Click(Button("Einchecken"), "Knopf „Einchecken“");
+                if (s.TryFind(Card(booked, "Eingecheckt"), TimeSpan.FromSeconds(3)) is null)
+                {
+                    lost++;
+                    s.Report.AddEvent($"Lauf {run} von {runs}: Klick auf „Einchecken“ kam NICHT an.");
+                }
+                else
+                {
+                    s.Report.AddEvent($"Lauf {run} von {runs}: eingecheckt.");
+                    InvokeQuietly(s.Find(Button("Einchecken zurücknehmen"), "Knopf „Einchecken zurücknehmen“"));
+                    s.Expect(Card(booked, "Gebucht"), "Karte mit Status „Gebucht“");
+                }
+
+                ClosePanelWithEscape(s);
+            }
+
+            s.Report.AddEvent($"ERGEBNIS Einchecken: verloren {lost} von {runs}.");
+        });
+    }
+
+    /// <summary>Probe B8: wie <see cref="ProbeCheckInLoop"/> für „Termin stornieren …“; geprüft wird nur, ob der Dialog aufgeht, bestätigt wird nie.</summary>
+    private static void ProbeCancelLoop(LiveSession s, LiveRunContext context)
+    {
+        var booked = context.Appointment!;
+        OpenCalendar(s);
+        var runs = LoopCount;
+        var lost = 0;
+        s.Step($"„Termin stornieren …“ {runs}-mal anklicken und zählen", () =>
+        {
+            for (var run = 1; run <= runs; run++)
+            {
+                SelectCard(s, booked, "Gebucht");
+                s.Expect(Button("Termin stornieren …"), "Knopf „Termin stornieren …“");
+                s.Click(Button("Termin stornieren …"), "Knopf „Termin stornieren …“");
+                if (s.TryFind("ConfirmButton", TimeSpan.FromSeconds(3)) is null)
+                {
+                    lost++;
+                    s.Report.AddEvent($"Lauf {run} von {runs}: Klick auf „Termin stornieren …“ kam NICHT an.");
+                }
+                else
+                {
+                    s.Report.AddEvent($"Lauf {run} von {runs}: Dialog offen.");
+                    LiveSession.Press(VirtualKeyShort.ESCAPE);
+                    s.ExpectMissing("ConfirmButton");
+                }
+
+                ClosePanelWithEscape(s);
+            }
+
+            s.Report.AddEvent($"ERGEBNIS Stornieren: verloren {lost} von {runs}.");
+        });
+    }
+
+    private static void InvokeQuietly(AutomationElement button)
+    {
+        try
+        {
+            button.Patterns.Invoke.Pattern.Invoke();
+        }
+        catch (System.Runtime.InteropServices.COMException)
+        {
+            // Der Knopf verschwindet beim Auslösen; die Aktion ist geschehen.
+        }
     }
 
     private static void Late(LiveSession s, LiveRunContext context)

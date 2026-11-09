@@ -260,6 +260,15 @@ internal sealed class LiveSession : IDisposable
             // Gegenprobe B8 (AISPA_LIVE_MOUSE=1): echter Mausklick mit Pause davor, kein Invoke.
             Thread.Sleep(pauseMs);
             Report.AddEvent($"Mausklick auf „{element.Properties.Name.ValueOrDefault}“ nach {pauseMs} ms Pause.");
+            if (int.TryParse(Environment.GetEnvironmentVariable("AISPA_LIVE_MOUSE_HOVER_MS"), out var hoverMs) && hoverMs > 0)
+            {
+                // Probe B8: Zeiger zuerst auf den Knopf, Hover abwarten (Tooltip kann öffnen), dann erst klicken (statt Sprung und Sofortklick).
+                FlaUI.Core.Input.Mouse.MoveTo(element.GetClickablePoint());
+                Thread.Sleep(hoverMs);
+                FlaUI.Core.Input.Mouse.Click(FlaUI.Core.Input.MouseButton.Left);
+                return;
+            }
+
             element.Click(moveMouse: true);
             return;
         }

@@ -1,6 +1,8 @@
+using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.Automation;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -167,6 +169,9 @@ public static class ToolTipBehavior
                 ToolTip.SetIsOpen(control, false);
             }
         });
+        // Ein Tooltip ist ein eigenes Fenster und fängt Mausklicks ab, wenn es über einem Knopf liegt (die Hover-Karte des Termins rechts der Karte über dem Seitenpanel):
+        // der Klick schloss nur die Karte, „Einchecken“ blieb unberührt (Befund B8). Das Fenster lässt Klicks deshalb durch.
+        Control.LoadedEvent.AddClassHandler<ToolTip>((tip, _) => ClickThrough(TopLevel.GetTopLevel(tip)));
         InputElement.GotFocusEvent.AddClassHandler<TopLevel>(OnGotFocus, RoutingStrategies.Bubble, handledEventsToo: true);
         InputElement.LostFocusEvent.AddClassHandler<TopLevel>(OnLostFocus, RoutingStrategies.Bubble, handledEventsToo: true);
     }
@@ -238,4 +243,38 @@ public static class ToolTipBehavior
             ToolTip.SetIsOpen(control, false);
         }
     }
+
+    private const int ExStyleIndex = -20;
+    private const nint ClickThroughExStyle = 0x20 | 0x80000; // WS_EX_TRANSPARENT | WS_EX_LAYERED: erst beides zusammen lässt Mausklicks hindurch
+    private const uint AlphaFlag = 2; // LWA_ALPHA
+
+    /// <summary>Tooltips in einem eigenen Fenster (Windows) lassen Mausklicks durch; in der Ebene des Hauptfensters (IsHitTestVisible ist dort aus) ist nichts zu tun.</summary>
+    private static void ClickThrough(TopLevel? root)
+    {
+        if (OperatingSystem.IsWindows() && root is PopupRoot popup && popup.TryGetPlatformHandle() is { Handle: not 0 } handle)
+        {
+            MakeClickThrough(handle.Handle);
+        }
+    }
+
+    /// <summary>Das Fenster nimmt keine Mausklicks an: sie gehen an das Fenster darunter. Ohne WS_EX_LAYERED wirkt WS_EX_TRANSPARENT allein nicht auf die Treffersuche.</summary>
+    internal static void MakeClickThrough(nint window)
+    {
+        SetWindowLongPtr(window, ExStyleIndex, GetWindowLongPtr(window, ExStyleIndex) | ClickThroughExStyle);
+        // Ein Fenster mit WS_EX_LAYERED bleibt unsichtbar, bis seine Deckkraft gesetzt ist.
+        SetLayeredWindowAttributes(window, 0, 255, AlphaFlag);
+    }
+
+    // DllImport statt LibraryImport: das bräuchte unsicheren Code im ganzen Projekt, für zwei Aufrufe.
+#pragma warning disable SYSLIB1054
+    [DllImport("user32.dll", EntryPoint = "GetWindowLongPtrW")]
+    private static extern nint GetWindowLongPtr(nint window, int index);
+
+    [DllImport("user32.dll", EntryPoint = "SetWindowLongPtrW")]
+    private static extern nint SetWindowLongPtr(nint window, int index, nint value);
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool SetLayeredWindowAttributes(nint window, uint colorKey, byte alpha, uint flags);
+#pragma warning restore SYSLIB1054
 }

@@ -274,7 +274,7 @@ Pfade relativ zu `src/AispaStudio.Desktop/`, sofern nicht anders angegeben.
 
 | Punkt | Urteil | Schwere | Aufwand | Kurzbegründung |
 |---|---|---|---|---|
-| B8 neu (verlorene Mausklicks) | **UNENTSCHIEDEN**, Richtung App | hoch, falls App | Probe S, Fix S–M | Verluste fallen genau auf Ziele mit Tooltip/Hover-Karte; Ziele ohne Tooltip und Invoke verlieren nichts |
+| B8 neu (verlorene Mausklicks) | **BESTÄTIGT (App)**, Ursache Hover-Karte als Fenster über dem Panel, behoben (siehe „Ergebnis der Probe“) | hoch | Probe S, Fix S | Verluste fallen genau auf Ziele mit Tooltip/Hover-Karte; Ziele ohne Tooltip und Invoke verlieren nichts |
 | B2 (Kassa offline) | **BESTÄTIGT** | mittel | S–M | Systemtext im Fehler, kein Fortschritt während 2–5 s; A7 greift beim ersten Fehler nicht |
 | B15 (drei InfoBars, Systemtext) | **BESTÄTIGT** | mittel | M | M2-Grenze überschritten, kein Schließen-Kreuz an Fehler/Warnung |
 | B17 (offline buchen/suchen) | **WIDERLEGT** als App-Fehler, **UNENTSCHIEDEN** für den Lauf; Bannertext **BESTÄTIGT** schwach | niedrig | S | Suche offline bewusst nur über schon geladene Kundinnen; Cache wird bei Abmelden geleert |
@@ -332,6 +332,26 @@ Pfade relativ zu `src/AispaStudio.Desktop/`, sofern nicht anders angegeben.
 Probe 3 beantwortet zugleich die Live-Echo-Frage (`Selected`-Wechsel zwischen Pressed und Released).
 
 **Möglicher Weg, falls bestätigt:** Tooltip beim PointerPressed schließen und bis zum Verlassen unterdrücken (analog `CalendarView.axaml.cs:689-693`, zentral in `ToolTipBehavior`), oder BetweenShowDelay nach dem Karten-Hover nicht greifen lassen. Aufwand S–M plus Test.
+
+##### Ergebnis der Probe (09.11.2026, eigener Stack `aispa-b8`, Release-App, `AISPA_LIVE_MOUSE=1`, 300 ms Pause)
+
+**Urteil nach BEFUND GATE: BESTÄTIGT (App).** Die Ursache ist aber nicht der Tooltip des Knopfes, sondern die **Hover-Karte des Termins**: Sie ist ein eigenes Fenster (`PopupRoot`), steht rechts der Karte (`RightEdgeAlignedTop`) und deckt dort den Knopf „Einchecken“ im Seitenpanel. Der Mausklick trifft das Fenster der Karte, schließt sie und erreicht den Knopf nie. Ein Mensch, der den Zeiger von der Karte zum Panel führt und dabei kurz über einer Karte stehen bleibt, erlebt dasselbe.
+
+| Probe | Aufbau | Einchecken verloren | Befund |
+|---|---|---|---|
+| 0 Grundlinie | Maus, 300 ms Pause, alle Tooltips an | **7 von 10** (weitere Läufe 4 von 6, 6 von 10) | Verlust reproduziert |
+| 1 Tooltips aus | alle Tooltips ohne Inhalt, Protokoll: 0 Tooltips geöffnet | **0 von 10** (erster Versuch ungültig: Schalter wirkte nicht, 74 Tooltips öffneten) | App/Tooltip |
+| 1b nur Hover-Karten aus | Knopf-Tooltips an | **0 von 10** | die Karte ist schuld |
+| 1c nur Knopf-Tooltips aus | Hover-Karten an | **9 von 10** | nicht der Knopf-Tooltip |
+| 2 Hover 600 ms | Zeiger gleitet auf den Knopf, 600 ms warten, dann klicken | **4 von 10** | nicht der Öffnungsmoment allein |
+| „Termin stornieren …“ | Maus, Tooltips an / aus | **0 von 10** / 0 von 10 | trifft hier nicht |
+| 3 Protokoll | `Pressed`/`Released`/`CaptureLost`/`Click`/`ToolTip.IsOpen`/`Selected`/`Moved` mit Zeitstempel | siehe unten | |
+
+Probe 3 (Protokoll): In jedem verlorenen Lauf (7 von 7 in Probe 0, 4 von 4 in Probe 2) steht vor dem Tooltip des Knopfes ein `Released` ohne Taste, ausgelöst vom Schließen der Hover-Karte; in keinem gelungenen Lauf (0 von 8). Im verlorenen Lauf kommt **kein einziges** `Pressed` im Fenster an (Beispiel: 800 ms ohne `Moved`, dann das Schließen der Karte, dann ein Tooltip am Knopf, der drei Sekunden offen bleibt). Das schließt „Selected-Wechsel zwischen Drücken und Loslassen“ (Live-Echo) aus. Darum hilft auch der Vorschlag der Liste („Tooltip bei `PointerPressed` schließen“) nicht: Das Drücken kommt in der App nie an.
+
+**Fix:** `ToolTipBehavior` macht jedes Tooltip-Fenster mausdurchlässig (`WS_EX_LAYERED | WS_EX_TRANSPARENT`, Deckkraft 255). Nur `WS_EX_TRANSPARENT` reichte nicht (6 von 10 verloren). Mit dem Fix: **0 von 10** verloren, Hover-Karte und Tooltips bleiben sichtbar. Test `ToolTipClickThroughTests` ist ohne den Fix rot (Stile fehlen) und mit ihm grün.
+
+**Nicht geprüft:** Handtest mit echter Hand (Block „B8“ in `handtests.md`); „Mehr“ (`AccordionHeader`) und Kartenklick einzeln; Tooltips in anderen Masken, die über einem Knopf liegen könnten; der Lauf mit `-Speed slow`. Die Zahlen sind Läufe des Testers mit `SendInput`, keine Hand.
 
 ##### Council
 
