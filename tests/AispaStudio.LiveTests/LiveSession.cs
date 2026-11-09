@@ -188,6 +188,13 @@ internal sealed class LiveSession : IDisposable
             return;
         }
 
+        // Sichtprüfung 09.11.2026: Mausklicks auf Knöpfe im Seitenpanel kamen gelegentlich nicht an (nur Hover); Knöpfe lösen deshalb über „Invoke“ aus.
+        if (element.Properties.ClassName.ValueOrDefault == "Button" && element.Patterns.Invoke.IsSupported && element.Properties.Name.ValueOrDefault?.StartsWith("Wertgutschein", StringComparison.Ordinal) != true)
+        {
+            element.Patterns.Invoke.Pattern.Invoke();
+            return;
+        }
+
         element.Click(moveMouse: true);
     }
 
@@ -395,6 +402,8 @@ internal sealed class LiveSession : IDisposable
     {
         var element = Find(field);
         Highlight(element);
+        // Sichtprüfung 09.11.2026: Tasten gehören nur in das App-Fenster; ein fremdes Fenster im Vordergrund (Explorer) bekam sonst Strg+A.
+        Window.SetForeground();
         element.Click(moveMouse: true);
         Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_A);
         Keyboard.Type(text);

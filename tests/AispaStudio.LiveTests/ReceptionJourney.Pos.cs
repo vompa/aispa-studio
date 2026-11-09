@@ -38,6 +38,8 @@ internal static partial class ReceptionJourney
         s.Step("Termin einchecken und „Kassieren“", () =>
         {
             SelectCard(s, booked, "Gebucht");
+            s.Expect(Button("Einchecken"), "Knopf „Einchecken“ im Panel");
+            Thread.Sleep(700); // Sichtprüfung 09.11.2026: ein zu früher Klick geht ins Leere
             s.Click(Button("Einchecken"), "Knopf „Einchecken“");
             s.Expect(Card(booked, "Eingecheckt"), "Karte mit Status „Eingecheckt“");
             s.Click(Button("Kassieren"), "Knopf „Kassieren“");
@@ -59,18 +61,29 @@ internal static partial class ReceptionJourney
         });
     }
 
+    /// <summary>Die App merkt sich, ob „Artikel und Gutscheine“ offen ist; nur aufklappen, wenn „Wert (EUR)“ fehlt.</summary>
+    private static void OpenSales(LiveSession s)
+    {
+        if (s.TryFind("Wert (EUR)", TimeSpan.FromMilliseconds(800)) is null)
+        {
+            s.Click("SalesColumnHeader");
+        }
+    }
+
     private static void SellVoucher(LiveSession s, LiveRunContext context)
     {
         OpenPos(s);
         s.Step("„Artikel und Gutscheine“ aufklappen, „Gutschein verkaufen“", () =>
         {
-            s.Click("SalesColumnHeader");
-            s.Type("Wert", "50,00");
+            OpenSales(s);
+            s.Type("Wert (EUR)", "50,00");
             s.Click(Button("Wertgutschein verkaufen"), "Knopf „Wertgutschein verkaufen“");
         });
         s.Step("Bar bezahlen: Beleg mit „Gutschein XXXX-XXXX-XXXX“, Code lesen", () =>
         {
+            Thread.Sleep(1200); // Sichtprüfung 09.11.2026: nach „Wertgutschein verkaufen“ baut die Kassa neu auf
             s.Type("Bar gegeben", "50,00");
+            LiveSession.Press(VirtualKeyShort.TAB);
             s.Click(EnabledButton("Bezahlen und Beleg erstellen"), "Freigegebener Knopf „Bezahlen und Beleg erstellen“");
             var line = s.Read(NameStarts("Gutschein "), "Belegzeile „Gutschein …“");
             var code = System.Text.RegularExpressions.Regex.Match(line, "[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}");
@@ -83,7 +96,7 @@ internal static partial class ReceptionJourney
         OpenPos(s);
         s.Step("Ungültigen Code eintragen: „Diesen Gutschein-Code gibt es nicht.“", () =>
         {
-            s.Click("SalesColumnHeader");
+            OpenSales(s);
             s.Type("Gutschein-Code", "ABCD-EFGH-2345");
             LiveSession.Press(VirtualKeyShort.TAB);
             s.Expect(NameContains("Diesen Gutschein-Code gibt es nicht"), "Meldung „Diesen Gutschein-Code gibt es nicht.“");
@@ -106,12 +119,14 @@ internal static partial class ReceptionJourney
         s.Step("Reiter „Kassenlade & Abschluss“: Einlage von 100,00 € buchen", () =>
         {
             s.Click(Class("TabButton", NameIs("Kassenlade & Abschluss")), "Reiter „Kassenlade & Abschluss“");
-            s.Type("Betrag", "100,00");
+            s.Type("Betrag (EUR)", "100,00");
             s.Type("Grund", "Wechselgeld");
             s.Click(Button("Buchen"), "Knopf „Buchen“");
         });
         s.Step("Tagesabschluss durchführen", () =>
         {
+            s.Type("Gezählter Bestand (EUR)", "800,00"); // Pflichtfeld seit der Sichtprüfung 09.11.2026; bewusst nicht der Soll-Bestand, um die Differenz zu sehen
+            LiveSession.Press(VirtualKeyShort.TAB);
             s.Click(Button("Tagesabschluss durchführen"), "Knopf „Tagesabschluss durchführen“");
             s.Expect(NameContains("Tagesabschluss gespeichert"), "Meldung „Tagesabschluss gespeichert“");
         });
