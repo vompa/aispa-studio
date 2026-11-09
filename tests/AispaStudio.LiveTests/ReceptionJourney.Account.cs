@@ -1,4 +1,3 @@
-using FlaUI.Core.Input;
 using FlaUI.Core.WindowsAPI;
 
 namespace AispaStudio.LiveTests;
@@ -83,8 +82,8 @@ internal static partial class ReceptionJourney
         s.Step("Suche mit Strg+F: Treffer oder „Keine Treffer“", () =>
         {
             LiveSession.FocusCalendar();
-            Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_F);
-            Keyboard.Type("Moser");
+            LiveSession.Chord(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_F);
+            LiveSession.TypeText("Moser");
             s.Expect(e => e.Properties.Name.ValueOrDefault is { } name
                           && (name.Contains("Moser", StringComparison.Ordinal) || name == "Keine Treffer"),
                 "Trefferliste der Suche oder „Keine Treffer“");

@@ -5584,6 +5584,16 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Nach den Rezeptions-Lücken angepasst (ohne Lauf):** `appointment` bucht heute statt morgen; Einchecken-Themen und `checkout` verlangen einen Termin von heute (`RequireToday`); `reschedule-past` erwartet „−1 Tag“ gesperrt; die Meldung wird über Name „Meldung“ und Hilfetext (ToolTip) gefunden. Geprüft: Desktop-Test zeigt, dass Avalonia den ToolTip als Hilfetext liefert (Probe, danach entfernt); Tester, Starter-App und `AispaStudio.slnx` bauen im Release ohne Warnung. Nicht geprüft: alle Themen nach dem Merge in einem Lauf.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
 
+## Live-Tests Rezeption: Termin des Laufs sicher heute (09.11.2026)
+
+- **Auftrag:** Der Lauf auf dev (`badbb0ec`) scheiterte in Schritt 11 von `appointment`: gebucht am 12.11. statt heute, Meldung „Gebucht: …“ nicht gefunden; damit konnten `checkin`, `checkout` und `cancel*` nicht laufen.
+- **Was:** `appointment` probiert in der Freie-Zeit-Suche mehrere Behandlungen und bucht den ersten Treffer von heute, sonst klare Meldung „Heute ist für keine der Behandlungen … mehr Zeit frei“; Beleg ist die Karte zur gewählten Uhrzeit. `Toast()` prüft Name oder Hilfetext. `LiveSession.Choose` blättert virtualisierte Auswahllisten über das `ScrollPattern`; die Fehlerliste nennt zusätzlich den Hilfetext.
+- **Detailentscheidungen:** (1) Keine feste Uhrzeit, die Freie-Zeit-Suche bleibt der Weg wie im Betrieb. (2) Reihenfolge der Behandlungen wie in der Auswahlliste. (3) Die Meldung ist kein Pflichtbeleg mehr, sie steht nur gut eine Sekunde im Baum. (4) Kein App-Code geändert.
+- **Gemessen:** Der Meldungstext heißt im echten Automationsbaum nach seinem Wortlaut, nicht „Meldung“ (`AutomationProperties.Name` setzt sich am `TextBlock` nicht durch); Treffer am gesuchten Tag haben kein Datum vorne; UI Automation meldet die Markierung in der Trefferliste nicht; Mausrad und Pfeiltasten erreichten die offene Auswahl nicht verlässlich.
+- **Geprüft:** Lauf `appointment,checkin,cancel,cancel-restore,checkout` gegen den Server mit dev-Stand: alle 29 Schritte bestanden. Danach Gegenprobe (Klick „Für Anna Bauer buchen“ ausgelassen) mit dem endgültigen Blättern: scheitert wie gewollt, aber schon an „heute nichts mehr frei“, weil die Läufe den Tag gefüllt hatten. Tester und Starter-App bauen im Release ohne Warnung, `dotnet format --verify-no-changes` beider Projekte.
+- **Nicht geprüft:** Der letzte Stand (Blättern über `ScrollPattern`, Reihenfolge der Behandlungen) in einem grünen Lauf bis zum Buchen; die Gegenprobe am Buchen-Klick. Beides braucht frisch geladene Demo-Daten.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
 ## Kassa: Rückfrage vor dem Tagesabschluss (Befunde Kassa, A1, 09.11.2026)
 
 - **Auftrag:** [Live-Sichtprüfung 09.11.2026](live-sichtpruefung-2026-11-09.md) (Branch `claude/live-sichtpruefung-fe3810`), Befund **B1** (hoch), Aufgabe A1; die Notizpflicht bei Differenz ist nicht freigegeben und nicht umgesetzt.
