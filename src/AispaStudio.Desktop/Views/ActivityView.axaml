@@ -4,105 +4,201 @@
              xmlns:ui="using:AispaStudio.Desktop.Controls"
              x:Class="AispaStudio.Desktop.Views.ActivityView"
              x:DataType="vm:ActivityViewModel">
-  <Grid RowDefinitions="Auto,Auto,Auto,*" Margin="16">
-    <!-- Kopfzeile -->
-    <StackPanel Margin="0,0,0,12">
-      <TextBlock Text="Verlauf" Classes="h1" />
-      <TextBlock Text="Was im Betrieb passiert ist: Buchungen, Stornos, Zahlungen und mehr" Classes="muted" />
-    </StackPanel>
-
-    <!-- Suche und Zeitraum -->
-    <WrapPanel Grid.Row="1" ItemSpacing="8" LineSpacing="8" Margin="0,0,0,8">
-      <ui:SearchField x:Name="SearchBox" Width="360" Text="{Binding Query}" PlaceholderText="Gast, Behandlung, Person oder Grund"
-                      AutomationProperties.Name="Verlauf durchsuchen" ToolTip.Tip="Der Server sucht in Gast, Behandlung, Person und Grund (Strg+F)." />
-      <ui:TabButton x:Name="PeriodToday" Classes="headchip" Content="Heute" Command="{Binding SetPeriodCommand}" CommandParameter="{x:Static vm:ActivityPeriod.Today}"
-              IsSelected="{Binding Period, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static vm:ActivityPeriod.Today}, Mode=OneWay}"
-              AutomationProperties.Name="Zeitraum Heute" />
-      <ui:TabButton x:Name="PeriodYesterday" Classes="headchip" Content="Gestern" Command="{Binding SetPeriodCommand}" CommandParameter="{x:Static vm:ActivityPeriod.Yesterday}"
-              IsSelected="{Binding Period, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static vm:ActivityPeriod.Yesterday}, Mode=OneWay}"
-              AutomationProperties.Name="Zeitraum Gestern" />
-      <ui:TabButton x:Name="PeriodWeek" Classes="headchip" Content="7 Tage" Command="{Binding SetPeriodCommand}" CommandParameter="{x:Static vm:ActivityPeriod.Week}"
-              IsSelected="{Binding Period, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static vm:ActivityPeriod.Week}, Mode=OneWay}"
-              AutomationProperties.Name="Zeitraum 7 Tage" />
-      <ui:TabButton x:Name="PeriodMonth" Classes="headchip" Content="30 Tage" Command="{Binding SetPeriodCommand}" CommandParameter="{x:Static vm:ActivityPeriod.Month}"
-              IsSelected="{Binding Period, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static vm:ActivityPeriod.Month}, Mode=OneWay}"
-              AutomationProperties.Name="Zeitraum 30 Tage" />
-      <ui:TabButton x:Name="PeriodCustom" Classes="headchip" Content="Zeitraum" Command="{Binding SetPeriodCommand}" CommandParameter="{x:Static vm:ActivityPeriod.Custom}"
-              IsSelected="{Binding IsCustomPeriod, Mode=OneWay}" AutomationProperties.Name="Zeitraum frei wählen" />
-      <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding IsCustomPeriod}">
-        <ui:DateField x:Name="FromField" Value="{Binding CustomFrom}" AutomationProperties.Name="Von" />
-        <TextBlock Text="bis" Classes="muted" VerticalAlignment="Center" />
-        <ui:DateField x:Name="UntilField" Value="{Binding CustomUntil}" AutomationProperties.Name="Bis" />
+  <Grid ColumnDefinitions="*,Auto">
+    <Grid x:Name="PageBody" RowDefinitions="Auto,Auto,Auto,*" Margin="16">
+      <!-- Kopfzeile -->
+      <StackPanel Margin="0,0,0,12">
+        <TextBlock Text="Verlauf" Classes="h1" />
+        <TextBlock Text="Was im Betrieb passiert ist: Buchungen, Stornos, Zahlungen und mehr" Classes="muted" />
       </StackPanel>
-    </WrapPanel>
 
-    <!-- Arten, Person, Kanal -->
-    <WrapPanel Grid.Row="2" ItemSpacing="8" LineSpacing="8" Margin="0,0,0,12">
-      <ItemsControl ItemsSource="{Binding KindChips}">
-        <ItemsControl.ItemsPanel>
-          <ItemsPanelTemplate>
-            <WrapPanel ItemSpacing="8" LineSpacing="8" />
-          </ItemsPanelTemplate>
-        </ItemsControl.ItemsPanel>
-        <ItemsControl.ItemTemplate>
-          <DataTemplate x:DataType="vm:ActivityKindChip">
-            <Button x:Name="KindChip" Classes="headchip" Classes.on="{Binding IsOn}" Content="{Binding Label}" Command="{Binding ToggleCommand}"
-                    ToolTip.Tip="{Binding Tip}" AutomationProperties.Name="{Binding Label}" />
-          </DataTemplate>
-        </ItemsControl.ItemTemplate>
-      </ItemsControl>
-      <ComboBox x:Name="PersonBox" ItemsSource="{Binding People}" SelectedItem="{Binding Person}" MinWidth="180" IsVisible="{Binding HasPersonChoice}"
-                AutomationProperties.Name="Person" ToolTip.Tip="Zeigt nur, was diese Person gemacht hat." />
-      <ComboBox x:Name="ChannelBox" ItemsSource="{Binding Channels}" SelectedItem="{Binding Channel}" MinWidth="160"
-                AutomationProperties.Name="Kanal" ToolTip.Tip="Zeigt nur Einträge, die über diesen Weg entstanden sind." />
-      <Button x:Name="ResetChip" Classes="headchip on" Content="Zurücksetzen" Command="{Binding ResetCommand}" IsVisible="{Binding IsModified}"
-              AutomationProperties.Name="Filter zurücksetzen" ToolTip.Tip="Setzt alle Filter und den Zeitraum zurück." />
-    </WrapPanel>
-
-    <!-- Liste nach Tagen -->
-    <Border Grid.Row="3" Classes="card" Padding="12">
-      <Grid RowDefinitions="Auto,Auto,*,Auto">
-        <ui:InfoBar Severity="Error" Margin="0,0,0,8" Message="{Binding Error}" IsVisible="{Binding Error, Converter={x:Static ObjectConverters.IsNotNull}}" />
-        <TextBlock Grid.Row="1" Text="Wird geladen …" Classes="muted" IsVisible="{Binding ShowLoading}" />
-        <StackPanel Grid.Row="2" Spacing="8" HorizontalAlignment="Left" IsVisible="{Binding ShowEmpty}">
-          <TextBlock x:Name="EmptyText" Text="{Binding EmptyText}" Classes="muted" />
-          <Button x:Name="EmptyResetButton" Content="Filter zurücksetzen" Command="{Binding ResetCommand}" HorizontalAlignment="Left" IsVisible="{Binding HasFilter}" />
+      <!-- Suche und Zeitraum -->
+      <WrapPanel Grid.Row="1" ItemSpacing="8" LineSpacing="8" Margin="0,0,0,8">
+        <ui:SearchField x:Name="SearchBox" Width="360" Text="{Binding Query}" PlaceholderText="Gast, Behandlung, Person oder Grund"
+                        AutomationProperties.Name="Verlauf durchsuchen" ToolTip.Tip="Der Server sucht in Gast, Behandlung, Person und Grund (Strg+F)." />
+        <ui:TabButton x:Name="PeriodToday" Classes="headchip" Content="Heute" Command="{Binding SetPeriodCommand}" CommandParameter="{x:Static vm:ActivityPeriod.Today}"
+                IsSelected="{Binding Period, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static vm:ActivityPeriod.Today}, Mode=OneWay}"
+                AutomationProperties.Name="Zeitraum Heute" />
+        <ui:TabButton x:Name="PeriodYesterday" Classes="headchip" Content="Gestern" Command="{Binding SetPeriodCommand}" CommandParameter="{x:Static vm:ActivityPeriod.Yesterday}"
+                IsSelected="{Binding Period, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static vm:ActivityPeriod.Yesterday}, Mode=OneWay}"
+                AutomationProperties.Name="Zeitraum Gestern" />
+        <ui:TabButton x:Name="PeriodWeek" Classes="headchip" Content="7 Tage" Command="{Binding SetPeriodCommand}" CommandParameter="{x:Static vm:ActivityPeriod.Week}"
+                IsSelected="{Binding Period, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static vm:ActivityPeriod.Week}, Mode=OneWay}"
+                AutomationProperties.Name="Zeitraum 7 Tage" />
+        <ui:TabButton x:Name="PeriodMonth" Classes="headchip" Content="30 Tage" Command="{Binding SetPeriodCommand}" CommandParameter="{x:Static vm:ActivityPeriod.Month}"
+                IsSelected="{Binding Period, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static vm:ActivityPeriod.Month}, Mode=OneWay}"
+                AutomationProperties.Name="Zeitraum 30 Tage" />
+        <ui:TabButton x:Name="PeriodCustom" Classes="headchip" Content="Zeitraum" Command="{Binding SetPeriodCommand}" CommandParameter="{x:Static vm:ActivityPeriod.Custom}"
+                IsSelected="{Binding IsCustomPeriod, Mode=OneWay}" AutomationProperties.Name="Zeitraum frei wählen" />
+        <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding IsCustomPeriod}">
+          <ui:DateField x:Name="FromField" Value="{Binding CustomFrom}" AutomationProperties.Name="Von" />
+          <TextBlock Text="bis" Classes="muted" VerticalAlignment="Center" />
+          <ui:DateField x:Name="UntilField" Value="{Binding CustomUntil}" AutomationProperties.Name="Bis" />
         </StackPanel>
-        <ListBox x:Name="List" Grid.Row="2" Classes="plain" ItemsSource="{Binding Rows}" SelectedItem="{Binding SelectedItem}" AutomationProperties.Name="Verlauf">
-          <ListBox.Styles>
-            <!-- Der Name der Zeile ist ihr Satz; ein Tageskopf ist weder wählbar noch ein Ziel der Pfeiltasten -->
-            <Style Selector="ListBoxItem" x:DataType="vm:ActivityListItem">
-              <Setter Property="AutomationProperties.Name" Value="{Binding AccessibleName}" />
-              <Setter Property="Focusable" Value="{Binding CanSelect}" />
-              <Setter Property="IsHitTestVisible" Value="{Binding CanSelect}" />
-            </Style>
-          </ListBox.Styles>
-          <ListBox.DataTemplates>
-            <DataTemplate DataType="vm:ActivityDayHeader">
-              <TextBlock Text="{Binding Title}" Classes="h3" Margin="0,12,0,4" />
+      </WrapPanel>
+
+      <!-- Arten, Person, Kanal -->
+      <WrapPanel Grid.Row="2" ItemSpacing="8" LineSpacing="8" Margin="0,0,0,12">
+        <ItemsControl ItemsSource="{Binding KindChips}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <WrapPanel ItemSpacing="8" LineSpacing="8" />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:ActivityKindChip">
+              <Button x:Name="KindChip" Classes="headchip" Classes.on="{Binding IsOn}" Content="{Binding Label}" Command="{Binding ToggleCommand}"
+                      ToolTip.Tip="{Binding Tip}" AutomationProperties.Name="{Binding Label}" />
             </DataTemplate>
-            <DataTemplate DataType="vm:ActivityRow">
-              <Grid ColumnDefinitions="52,24,*,Auto" MinHeight="34" ColumnSpacing="8">
-                <TextBlock Text="{Binding Time}" Classes="num" Foreground="{DynamicResource Fg2Brush}" VerticalAlignment="Center" />
-                <ui:Icon Grid.Column="1" Classes="kind" Data="{Binding Icon}" Width="16" Height="16" VerticalAlignment="Center"
-                         Classes.warn="{Binding IsWarn}" Classes.ok="{Binding IsOk}" Classes.accent="{Binding IsAccent}" />
-                <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="0,4">
-                  <TextBlock Text="{Binding Text}" TextWrapping="Wrap" />
-                  <TextBlock Text="{Binding Detail}" Classes="small" Foreground="{DynamicResource Fg2Brush}" IsVisible="{Binding HasDetail}" TextTrimming="CharacterEllipsis" />
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        <ComboBox x:Name="PersonBox" ItemsSource="{Binding People}" SelectedItem="{Binding Person}" MinWidth="180" IsVisible="{Binding HasPersonChoice}"
+                  AutomationProperties.Name="Person" ToolTip.Tip="Zeigt nur, was diese Person gemacht hat." />
+        <ComboBox x:Name="ChannelBox" ItemsSource="{Binding Channels}" SelectedItem="{Binding Channel}" MinWidth="160"
+                  AutomationProperties.Name="Kanal" ToolTip.Tip="Zeigt nur Einträge, die über diesen Weg entstanden sind." />
+        <Button x:Name="ResetChip" Classes="headchip on" Content="Zurücksetzen" Command="{Binding ResetCommand}" IsVisible="{Binding IsModified}"
+                AutomationProperties.Name="Filter zurücksetzen" ToolTip.Tip="Setzt alle Filter und den Zeitraum zurück." />
+      </WrapPanel>
+
+      <!-- Liste nach Tagen -->
+      <Border Grid.Row="3" Classes="card" Padding="12">
+        <Grid RowDefinitions="Auto,Auto,*,Auto">
+          <ui:InfoBar Severity="Error" Margin="0,0,0,8" Message="{Binding Error}" IsVisible="{Binding Error, Converter={x:Static ObjectConverters.IsNotNull}}" />
+          <TextBlock Grid.Row="1" Text="Wird geladen …" Classes="muted" IsVisible="{Binding ShowLoading}" />
+          <StackPanel Grid.Row="2" Spacing="8" HorizontalAlignment="Left" IsVisible="{Binding ShowEmpty}">
+            <TextBlock x:Name="EmptyText" Text="{Binding EmptyText}" Classes="muted" />
+            <Button x:Name="EmptyResetButton" Content="Filter zurücksetzen" Command="{Binding ResetCommand}" HorizontalAlignment="Left" IsVisible="{Binding HasFilter}" />
+          </StackPanel>
+          <ListBox x:Name="List" Grid.Row="2" Classes="plain" ItemsSource="{Binding Rows}" SelectedItem="{Binding SelectedItem}" AutomationProperties.Name="Verlauf">
+            <ListBox.Styles>
+              <!-- Der Name der Zeile ist ihr Satz; ein Tageskopf ist weder wählbar noch ein Ziel der Pfeiltasten -->
+              <Style Selector="ListBoxItem" x:DataType="vm:ActivityListItem">
+                <Setter Property="AutomationProperties.Name" Value="{Binding AccessibleName}" />
+                <Setter Property="Focusable" Value="{Binding CanSelect}" />
+                <Setter Property="IsHitTestVisible" Value="{Binding CanSelect}" />
+              </Style>
+            </ListBox.Styles>
+            <ListBox.DataTemplates>
+              <DataTemplate DataType="vm:ActivityDayHeader">
+                <TextBlock Text="{Binding Title}" Classes="h3" Margin="0,12,0,4" />
+              </DataTemplate>
+              <DataTemplate DataType="vm:ActivityRow">
+                <Grid ColumnDefinitions="52,24,*,Auto" MinHeight="34" ColumnSpacing="8">
+                  <TextBlock Text="{Binding Time}" Classes="num" Foreground="{DynamicResource Fg2Brush}" VerticalAlignment="Center" />
+                  <ui:Icon Grid.Column="1" Classes="kind" Data="{Binding Icon}" Width="16" Height="16" VerticalAlignment="Center"
+                           Classes.warn="{Binding IsWarn}" Classes.ok="{Binding IsOk}" Classes.accent="{Binding IsAccent}" />
+                  <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="0,4">
+                    <TextBlock Text="{Binding Text}" TextWrapping="Wrap" />
+                    <TextBlock Text="{Binding Detail}" Classes="small" Foreground="{DynamicResource Fg2Brush}" IsVisible="{Binding HasDetail}" TextTrimming="CharacterEllipsis" />
+                  </StackPanel>
+                  <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                    <Border Classes="pill warn" IsVisible="{Binding IsLate}"><TextBlock Text="Kurzfristig" /></Border>
+                    <Border Classes="pill accent" IsVisible="{Binding IsOnline}"><TextBlock Text="Online" /></Border>
+                    <Border Classes="pill" IsVisible="{Binding IsAssistant}"><TextBlock Text="Terminannahme" /></Border>
+                    <Border Classes="pill" IsVisible="{Binding IsBackground}"><TextBlock Text="Hintergrund" /></Border>
+                  </StackPanel>
+                </Grid>
+              </DataTemplate>
+            </ListBox.DataTemplates>
+          </ListBox>
+          <Button x:Name="MoreButton" Grid.Row="3" Content="Weitere laden" Command="{Binding LoadMoreCommand}" HorizontalAlignment="Center" Margin="0,8,0,0"
+                  IsVisible="{Binding ShowMore}" />
+        </Grid>
+      </Border>
+    </Grid>
+
+    <!-- Seitenpanel (Design-Brief 5.12, Vorbild Warteliste): Kopf mit Art und Zeitpunkt, Hauptkarte, Werte, Aktionen; Esc schließt und gibt den Fokus an die Liste -->
+    <Border Grid.Column="1" x:Name="SidePanel" Width="360" Padding="0" Classes="sidepanel" Classes.open="{Binding HasPanel}" IsVisible="{Binding HasPanel}"
+            AutomationProperties.Name="{Binding PanelTitle, FallbackValue=Seitenleiste}">
+      <Grid RowDefinitions="Auto,Auto,*">
+        <ui:SidePanelHeader x:Name="PanelHeader" Margin="20,16,12,12" Title="{Binding PanelTitle}" Subtitle="{Binding PanelSubtitle}" CloseTip="Schließen (Esc)"
+                            CloseCommand="{Binding ClosePanelCommand}" />
+        <Border Grid.Row="1" Classes="divider" />
+        <ScrollViewer Grid.Row="2" Classes="panelbody" Padding="16,12,16,32">
+          <StackPanel Spacing="12">
+            <ui:InfoBar x:Name="PanelErrorBar" Severity="Error" Message="{Binding PanelError}" IsVisible="{Binding HasPanelError}" />
+            <!-- Hauptkarte: der Satz, darunter Gast, Telefon, Person, Kanal, Grund und der Hinweis zur Stornofrist -->
+            <Border Classes="panelcard">
+              <StackPanel Spacing="8">
+                <TextBlock x:Name="PanelText" Text="{Binding PanelText}" FontWeight="Medium" TextWrapping="Wrap" />
+                <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding HasPanelGuest}">
+                  <ui:Icon Data="{x:Static ui:Icons.User}" Width="16" Height="16" Foreground="{DynamicResource Fg2Brush}" />
+                  <TextBlock x:Name="PanelGuest" Text="{Binding PanelGuest}" TextWrapping="Wrap" />
                 </StackPanel>
-                <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
-                  <Border Classes="pill warn" IsVisible="{Binding IsLate}"><TextBlock Text="Kurzfristig" /></Border>
-                  <Border Classes="pill accent" IsVisible="{Binding IsOnline}"><TextBlock Text="Online" /></Border>
-                  <Border Classes="pill" IsVisible="{Binding IsAssistant}"><TextBlock Text="Terminannahme" /></Border>
-                  <Border Classes="pill" IsVisible="{Binding IsBackground}"><TextBlock Text="Hintergrund" /></Border>
+                <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding HasPanelPhone}">
+                  <ui:Icon Data="{x:Static ui:Icons.Phone}" Width="16" Height="16" Foreground="{DynamicResource Fg2Brush}" />
+                  <SelectableTextBlock x:Name="PanelPhoneText" Text="{Binding PanelPhone}" Classes="num" AutomationProperties.Name="Telefon des Gastes" />
                 </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding HasPanelActor}">
+                  <ui:Icon Data="{x:Static ui:Icons.Pencil}" Width="16" Height="16" Foreground="{DynamicResource Fg2Brush}" />
+                  <TextBlock x:Name="PanelActorText" Text="{Binding PanelActor, StringFormat='von {0}'}" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <ui:Icon Data="{x:Static ui:Icons.Globe}" Width="16" Height="16" Foreground="{DynamicResource Fg2Brush}" />
+                  <TextBlock x:Name="PanelChannelText" Text="{Binding PanelChannel}" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding HasPanelReason}">
+                  <ui:Icon Data="{x:Static ui:Icons.Note}" Width="16" Height="16" Foreground="{DynamicResource Fg2Brush}" />
+                  <TextBlock x:Name="PanelReasonText" Text="{Binding PanelReason, StringFormat='Grund: {0}'}" TextWrapping="Wrap" />
+                </StackPanel>
+              </StackPanel>
+            </Border>
+            <Border x:Name="LateHint" Classes="hint warn" IsVisible="{Binding HasLateNotice}">
+              <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                <ui:Icon Data="{x:Static ui:Icons.Warning}" Foreground="{DynamicResource WarnBrush}" VerticalAlignment="Top" />
+                <TextBlock x:Name="LateHintText" Grid.Column="1" Text="{Binding LateNotice}" TextWrapping="Wrap" Foreground="{DynamicResource WarnBrush}" />
               </Grid>
-            </DataTemplate>
-          </ListBox.DataTemplates>
-        </ListBox>
-        <Button x:Name="MoreButton" Grid.Row="3" Content="Weitere laden" Command="{Binding LoadMoreCommand}" HorizontalAlignment="Center" Margin="0,8,0,0"
-                IsVisible="{Binding ShowMore}" />
+            </Border>
+            <!-- Werte: Feld, vorher, nachher (5.7: Kopf fg-2, leer als „–“) -->
+            <Border x:Name="ValuesCard" Classes="panelcard" IsVisible="{Binding HasPanelValues}">
+              <StackPanel Spacing="4">
+                <TextBlock Text="Werte" FontWeight="Medium" />
+                <Grid ColumnDefinitions="*,*,*" ColumnSpacing="8">
+                  <TextBlock Text="Feld" Classes="label" />
+                  <TextBlock Grid.Column="1" Text="Vorher" Classes="label" />
+                  <TextBlock Grid.Column="2" Text="Nachher" Classes="label" />
+                </Grid>
+                <ItemsControl x:Name="ValuesList" ItemsSource="{Binding PanelValues}" AutomationProperties.Name="Werte">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:ActivityValueRow">
+                      <Border BorderBrush="{DynamicResource LineBrush}" BorderThickness="0,1,0,0" Padding="0,6" MinHeight="36">
+                        <Grid ColumnDefinitions="*,*,*" ColumnSpacing="8">
+                          <TextBlock Text="{Binding Label}" TextWrapping="Wrap" />
+                          <TextBlock Grid.Column="1" Text="{Binding Old}" Foreground="{DynamicResource Fg2Brush}" TextWrapping="Wrap" />
+                          <TextBlock Grid.Column="2" Text="{Binding New}" TextWrapping="Wrap" />
+                        </Grid>
+                      </Border>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+            </Border>
+            <!-- Aktionen (5.12 Punkt 6): genau ein primärer Knopf in voller Breite, darunter die übrigen -->
+            <StackPanel Spacing="8" Margin="0,4,0,0">
+              <Button x:Name="RestoreButton" Content="Stornierung zurücknehmen" Command="{Binding RestoreCommand}" IsVisible="{Binding ShowRestore}"
+                      Classes.primary="{Binding IsRestorePrimary}" IsEnabled="{Binding CanRestore}" ui:DisabledHint.Text="{Binding RestoreHint}"
+                      HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" ToolTip.Tip="Bucht den Termin wieder, wenn Zeit, Person und Raum noch frei sind." />
+              <Button x:Name="ReceiptButton" Content="Beleg anzeigen" Command="{Binding ShowReceiptCommand}" IsVisible="{Binding ShowReceipt}"
+                      Classes.primary="{Binding IsReceiptPrimary}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" ToolTip.Tip="Zeigt den Beleg an der Kassa." />
+              <Button x:Name="AppointmentButton" Content="Termin öffnen" Command="{Binding OpenAppointmentCommand}" IsVisible="{Binding ShowAppointment}"
+                      Classes.primary="{Binding IsAppointmentPrimary}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" ToolTip.Tip="{Binding AppointmentTip}" />
+              <Button x:Name="CustomerButton" Content="Kundenkarte öffnen" Command="{Binding OpenCustomerCommand}" IsVisible="{Binding ShowCustomer}"
+                      Classes.primary="{Binding IsCustomerPrimary}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" ToolTip.Tip="Öffnet die Kundenkarte des Gastes." />
+            </StackPanel>
+          </StackPanel>
+        </ScrollViewer>
       </Grid>
+    </Border>
+
+    <!-- Rückmeldung unten (meldungen.md M1): eine Zeile, nach 5 Sekunden weg -->
+    <Border x:Name="ToastBar" Grid.ColumnSpan="2" Classes="toast" Classes.shown="{Binding HasToast}" IsVisible="{Binding HasToast}" HorizontalAlignment="Center" VerticalAlignment="Bottom"
+            Margin="16,0,16,20" CornerRadius="8" Padding="16,10,6,10" BoxShadow="{DynamicResource RaisedShadow}" MaxWidth="760" AutomationProperties.LiveSetting="Polite">
+      <StackPanel Orientation="Horizontal" Spacing="8">
+        <TextBlock Classes="msg" Text="{Binding Toast}" Foreground="{DynamicResource ToastFgBrush}" VerticalAlignment="Center" MaxWidth="540" AutomationProperties.Name="Meldung" />
+        <Button Classes="ghost icon" Command="{Binding CloseToastCommand}" Foreground="{DynamicResource ToastFgBrush}" ToolTip.Tip="Schließen" AutomationProperties.Name="Meldung schließen">
+          <ui:Icon Data="{x:Static ui:Icons.Close}" Width="16" Height="16" />
+        </Button>
+      </StackPanel>
     </Border>
   </Grid>
 

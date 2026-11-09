@@ -206,7 +206,7 @@ public sealed partial class ActivityViewModel : ViewModelBase
     [NotifyPropertyChangedFor(nameof(ShowMore))]
     public partial bool HasMore { get; private set; }
 
-    /// <summary>Wird einmal ausgelöst, wenn ein Eintrag mit Enter oder Doppelklick geöffnet wird; das Seitenpanel hängt sich hier an.</summary>
+    /// <summary>Wird einmal ausgelöst, wenn ein Eintrag mit Enter oder Doppelklick geöffnet wird; die Ansicht setzt hier den Fokus ins Seitenpanel.</summary>
     public event Action<ActivityEntry>? EntryOpened;
 
     public bool IsCustomPeriod => Period == ActivityPeriod.Custom;
@@ -250,7 +250,15 @@ public sealed partial class ActivityViewModel : ViewModelBase
 
     partial void OnChannelChanged(ActivityChannelOption value) => FilterChanged();
 
-    partial void OnSelectedChanged(ActivityRow? value) => OnPropertyChanged(nameof(SelectedItem));
+    partial void OnSelectedChanged(ActivityRow? value)
+    {
+        OnPropertyChanged(nameof(SelectedItem));
+        // Ist das Panel schon offen, folgt es der Auswahl (Pfeiltasten, Klick); geöffnet wird es erst mit Enter oder Doppelklick.
+        if (value is not null && HasPanel)
+        {
+            ShowPanel(value.Entry);
+        }
+    }
 
     /// <summary>Die Auswahl der Liste; Tagesköpfe lassen sich nicht wählen.</summary>
     public ActivityListItem? SelectedItem
@@ -372,6 +380,7 @@ public sealed partial class ActivityViewModel : ViewModelBase
     {
         if (Selected is { } row)
         {
+            ShowPanel(row.Entry);
             EntryOpened?.Invoke(row.Entry);
         }
     }

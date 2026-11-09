@@ -8,7 +8,7 @@ namespace AispaStudio.Desktop.Tests;
 /// <summary>Fluent 2 F18: Zeile 2 der Kalender-Kopfzeile hat ein Überlauf-Menü „⋯“ statt waagrechten Scrollens (Design-Brief 7, 5.21).</summary>
 public sealed partial class ViewTests
 {
-    private static readonly string[] RowTwoChipNames = ["HeadTeam", "HeadRooms", "OverviewChip", "HeadSauna", "HeadWaitlist", "HeadStaffFilter"];
+    private static readonly string[] RowTwoChipNames = ["HeadTeam", "HeadRooms", "OverviewChip", "HeadSauna", "HeadWaitlist", "HeadCancelled", "HeadStaffFilter"];
 
     private static OverflowStrip RowTwo(Window window) => Named<OverflowStrip>(window, "HeaderRow2");
 

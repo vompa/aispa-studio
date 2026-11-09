@@ -2397,6 +2397,15 @@
               </StackPanel>
             </Button>
           </Border>
+          <!-- Stornierte Termine des Tages: Chip nach 5.8, „warn“ nur mit Stornos; der Klick öffnet sie im Verlauf -->
+          <Border ui:OverflowStrip.Header="{Binding CancelledCount, StringFormat='Storniert {0}'}" ui:OverflowStrip.Icon="{x:Static ui:Icons.History}">
+            <Button x:Name="HeadCancelled" Classes="headchip warn" Command="{Binding OpenCancelledCommand}" IsVisible="{Binding HasCancelled}" ToolTip.Tip="Stornierte Termine dieses Tags im Verlauf ansehen.">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <ui:Icon Data="{x:Static ui:Icons.History}" Width="16" Height="16" />
+                <TextBlock Text="{Binding CancelledLabel}" />
+              </StackPanel>
+            </Button>
+          </Border>
           <!-- Schließzeit des Tages (ADR 0073): Kopfzeilen-Chip nach 5.8, Betriebsurlaub „on“, Sonderschließung „warn“, Ausfall „crit“; ein Klick öffnet die Schließzeiten in der Verwaltung -->
           <Border ui:OverflowStrip.Header="{Binding ClosureChip?.Text, TargetNullValue=''}" ui:OverflowStrip.Icon="{x:Static ui:Icons.Lock}">
             <Button x:Name="HeadClosure" Classes="headchip" Classes.on="{Binding ClosureChip?.IsVacation, TargetNullValue=False}" Classes.warn="{Binding ClosureChip?.IsSpecial, TargetNullValue=False}"

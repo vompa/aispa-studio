@@ -326,7 +326,7 @@ public partial class AppointmentViewModel(
         }
 
         var sent = restoration.Notice == CancellationNoticeState.Sent;
-        var answer = await AskAsync(new ConfirmRequest("Stornierung zurücknehmen?", RestoreText(restoration), sent ? "Mit Korrektur zurücknehmen" : "Zurücknehmen",
+        var answer = await AskAsync(new ConfirmRequest("Stornierung zurücknehmen?", RestoreText(restoration, Title, ShortDateText, TimeText), sent ? "Mit Korrektur zurücknehmen" : "Zurücknehmen",
             IsDestructive: false, AlternativeText: sent ? "Ohne Korrektur" : null)).ConfigureAwait(true);
         if (answer.Choice != ConfirmChoice.Cancelled)
         {
@@ -338,9 +338,10 @@ public partial class AppointmentViewModel(
     /// <summary>Die Wahl aus der Rückfrage gilt auch, wenn das Team danach zu einer anderen Zeit zurücknimmt.</summary>
     private bool _restoreCorrection;
 
-    private string RestoreText(AppointmentRestoration restoration)
+    /// <summary>Der Text der Rückfrage „Stornierung zurücknehmen?“; auch die Seite „Verlauf“ nutzt ihn, damit beide Orte dasselbe fragen.</summary>
+    internal static string RestoreText(AppointmentRestoration restoration, string guest, string shortDate, string time)
     {
-        var text = $"Der Termin von {Title} am {ShortDateText}, {TimeText}, ist danach wieder gebucht. Das Programm prüft zuerst, ob Zeit, Person und Raum noch frei sind.";
+        var text = $"Der Termin von {guest} am {shortDate}, {time}, ist danach wieder gebucht. Das Programm prüft zuerst, ob Zeit, Person und Raum noch frei sind.";
         text += restoration.Notice switch
         {
             CancellationNoticeState.Waiting => " Die Absage an den Gast ist noch nicht raus und wird nicht mehr gesendet.",

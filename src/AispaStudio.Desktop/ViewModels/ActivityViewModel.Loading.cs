@@ -35,6 +35,33 @@ public sealed partial class ActivityViewModel
         OnPropertyChanged(nameof(HasPersonChoice));
     }
 
+    /// <summary>
+    /// „Storniert n“ im Kalender: der Verlauf zeigt genau diesen Tag und nur die Art <paramref name="kind"/>; alle anderen Filter sind aus.
+    /// Die Filter stehen sofort, auch bevor die Antwort da ist.
+    /// </summary>
+    public async Task ShowDayAsync(DateOnly day, ActivityKind kind)
+    {
+        _searchVersion++;
+        _suspended = true;
+        Query = "";
+        Person = People[0];
+        Channel = Channels[0];
+        foreach (var chip in KindChips)
+        {
+            chip.IsOn = chip.Kinds.Contains(kind);
+        }
+
+        CustomFrom = CustomUntil = day;
+        Period = ActivityPeriod.Custom;
+        _suspended = false;
+        OnPropertyChanged(nameof(HasFilter));
+        OnPropertyChanged(nameof(IsModified));
+        OnPropertyChanged(nameof(EmptyText));
+        _initialization ??= LoadPeopleAsync();
+        await _initialization.ConfigureAwait(true);
+        await ReloadAsync().ConfigureAwait(true);
+    }
+
     /// <summary>Lädt die erste Seite mit den gesetzten Filtern; eine ältere, langsamere Antwort überschreibt keine neuere.</summary>
     public async Task ReloadAsync()
     {
@@ -61,6 +88,7 @@ public sealed partial class ActivityViewModel
         }
 
         IsLoading = false;
+        DropPanel();
         Rows.Clear();
         Selected = null;
         if (result.Value is not { } page)

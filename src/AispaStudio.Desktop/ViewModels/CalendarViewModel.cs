@@ -478,7 +478,7 @@ public partial class CalendarViewModel : ViewModelBase
         if (wasCompact != IsCompactHeader)
         {
             // Die Chips der Kopfzeile zeigen kompakt Symbol und Zahl, voll Symbol und Text.
-            foreach (var name in new[] { nameof(IsCompactHeader), nameof(SearchWidth), nameof(OverviewLabel), nameof(OverviewTip), nameof(AreaLabel), nameof(AreaTip), nameof(WaitlistLabel), nameof(WaitlistTip), nameof(AllStaffLabel), nameof(AllStaffTip), nameof(RoomFilterLabel), nameof(RoomFilterTip), nameof(MessagesLabel), nameof(MessagesTip), nameof(SubscriptionsTip), nameof(ClosureChipLabel) })
+            foreach (var name in new[] { nameof(IsCompactHeader), nameof(SearchWidth), nameof(OverviewLabel), nameof(OverviewTip), nameof(AreaLabel), nameof(AreaTip), nameof(WaitlistLabel), nameof(WaitlistTip), nameof(CancelledLabel), nameof(AllStaffLabel), nameof(AllStaffTip), nameof(RoomFilterLabel), nameof(RoomFilterTip), nameof(MessagesLabel), nameof(MessagesTip), nameof(SubscriptionsTip), nameof(ClosureChipLabel) })
             {
                 OnPropertyChanged(name);
             }
@@ -987,6 +987,7 @@ public partial class CalendarViewModel : ViewModelBase
 
     private void Rebuild()
     {
+        NotifyCancelled();
         if (_day is null || _resources is null)
         {
             return;

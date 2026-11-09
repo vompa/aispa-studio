@@ -688,3 +688,20 @@ Expected: Keine Chips „Dienstplan“ und „Zugänge“, kein Feld „Person�
 Expected: Chips, Pillen und Symbole lesbar, keine hellen Flächen.
 Closes: –
 Result: ☐
+
+### Verlauf C – Seitenpanel und Zähler „Storniert n“
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Inhaberin anmelden, heute mindestens einen Termin stornieren und einen kassieren
+1. Navigation **Verlauf**, den Storno wählen, Enter drücken.
+Expected: Rechts öffnet das Panel „Storno“ mit Satz, Gast, Person, Kanal, Grund und Werten; der Fokus steht auf „Stornierung zurücknehmen“.
+2. Mit den Pfeiltasten auf die Zahlung wechseln.
+Expected: Das Panel zeigt „Zahlung“ mit „Beleg anzeigen“ als primärem Knopf; Klick öffnet die Kassa, Reiter Belege, am Tag des Belegs.
+3. Zurück zum Storno, „Stornierung zurücknehmen“, Rückfrage bestätigen.
+Expected: Toast „Termin wiederhergestellt: <Gast>, <Zeit>“; die Liste lädt neu und zeigt oben „Wiederhergestellt von …“.
+4. Esc drücken.
+Expected: Das Panel schließt, der Fokus steht wieder in der Liste.
+5. Kalender öffnen, einen weiteren Termin heute stornieren.
+Expected: In der Kopfzeile nach „Warteliste“ steht „Storniert 1“; Klick öffnet den Verlauf für heute mit dem Chip „Stornos“.
+6. Als Rezeption ohne Buchungsrecht anmelden und einen Storno öffnen.
+Expected: „Stornierung zurücknehmen“ ist gesperrt mit Hinweis auf das fehlende Recht.
+Closes: –
+Result: ☐

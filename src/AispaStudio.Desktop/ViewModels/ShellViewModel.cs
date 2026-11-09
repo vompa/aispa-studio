@@ -99,6 +99,7 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
             Customers.CheckoutRequested = CheckoutAsync;
             Calendar.CheckoutWithArticleRequested = CheckoutAsync;
             Calendar.CheckoutVisitRequested = CheckoutVisitAsync;
+            Activity.ReceiptRequested = ShowReceiptAsync;
         }
 
         if (local is not null)
@@ -231,6 +232,9 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
         };
 
         Calendar.CustomerRequested = ShowCustomerAsync;
+        Calendar.CancelledRequested = day => _ = ShowCancelledAsync(day);
+        Activity.CustomerRequested = ShowCustomerAsync;
+        Activity.AppointmentRequested = ShowAppointment;
         Calendar.AdminRequested = ShowAdmin;
         Calendar.InboxRequested = ShowInboxMailAsync;
         Calendar.HrFileRequested = ShowHrFile;
@@ -823,6 +827,28 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
         var date = start is { } s ? DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(s, zone).DateTime) : Calendar.Date;
         SelectedPage = Pages.First(p => p.Page == Calendar);
         Calendar.OpenSearchHit(new CalendarSearchHit("", "", date, id));
+    }
+
+    /// <summary>„Storniert n“ in der Kopfzeile des Kalenders: der Verlauf zeigt die Stornos dieses Tages.</summary>
+    internal async Task ShowCancelledAsync(DateOnly day)
+    {
+        // Die Filter setzt ShowDayAsync gleich beim Aufruf; der Wechsel der Seite lädt danach mit denselben Filtern.
+        var shown = Activity.ShowDayAsync(day, ActivityKind.Cancelled);
+        SelectedPage = Pages.First(p => p.Page == Activity);
+        await shown.ConfigureAwait(true);
+    }
+
+    /// <summary>„Beleg anzeigen“ im Verlauf: Kassa, Reiter Belege, Tag des Belegs, Beleg gewählt.</summary>
+    internal async Task ShowReceiptAsync(Guid receiptId, DateTimeOffset issuedAt)
+    {
+        var zone = Calendar.Location is { } location ? TimeZoneInfo.FindSystemTimeZoneById(location.TimeZone) : TimeZoneInfo.Local;
+        var day = DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(issuedAt, zone).DateTime);
+        var today = DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(_time.GetUtcNow(), zone).DateTime);
+        SelectedPage = Pages.First(p => p.Page == Pos);
+        Pos.Mode = PosMode.Receipts;
+        Pos.ReceiptDaysBack = Math.Max(0, today.DayNumber - day.DayNumber);
+        await Pos.InitializeAsync(Calendar.Location?.Id).ConfigureAwait(true);
+        await Pos.LoadReceiptsAsync(receiptId).ConfigureAwait(true);
     }
 
     /// <summary>„Alle Termine von Steffi Huber“: der Kalender zeigt sie über sieben Tage.</summary>
