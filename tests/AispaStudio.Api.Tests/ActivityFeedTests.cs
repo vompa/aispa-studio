@@ -183,6 +183,11 @@ public sealed class ActivityFeedTests(ApiFixture fixture)
         var lenas = await spa.GetAsync<ActivityPage>(Path(spa, $"?actor={lenaId}"), Ct);
         Assert.Equal([ActivityKind.Booked], lenas.Items.Select(i => i.Kind));
         Assert.All(lenas.Items, i => Assert.Equal("Lena", i.Actor));
+        // Die Personen für den Filter kommen mit, unabhängig vom gewählten Filter „Person“; auch die Rezeption bekommt sie.
+        Assert.Equal(["Lena", "Test Person"], lenas.Actors!.Select(a => a.Name));
+        Assert.Equal(lenaId, lenas.Actors![0].Id);
+        var asReception = (await lena.GetFromJsonAsync<ActivityPage>(Path(spa), TestSpa.Json, Ct))!;
+        Assert.Equal(["Lena", "Test Person"], asReception.Actors!.Select(a => a.Name));
 
         var online = await spa.GetAsync<ActivityPage>(Path(spa, "?channel=Online"), Ct);
         Assert.Equal(["Vom Gast bestätigt (online)"], online.Items.Select(i => i.Text));

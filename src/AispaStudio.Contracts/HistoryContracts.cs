@@ -72,5 +72,11 @@ public sealed record ActivityEntry(
     bool? LateCancellation,
     Guid? ReceiptId = null);
 
-/// <summary>Eine Seite des Verlaufs, neueste zuerst; <c>NextBefore</c> ist der Zeiger für die nächste Seite, <c>null</c> am Ende.</summary>
-public sealed record ActivityPage(IReadOnlyList<ActivityEntry> Items, long? NextBefore);
+/// <summary>Eine Person, die im Zeitraum etwas getan hat (Benutzer-Id und Anzeigename zur Zeit des Lesens), für den Filter „Person“ der Seite.</summary>
+public sealed record ActivityActor(string Id, string Name);
+
+/// <summary>
+/// Eine Seite des Verlaufs, neueste zuerst; <c>NextBefore</c> ist der Zeiger für die nächste Seite, <c>null</c> am Ende. <c>Actors</c> nennt die Personen, die im Zeitraum
+/// und unter den übrigen Filtern vorkommen (unabhängig vom Filter „Person“), nach Namen sortiert.
+/// </summary>
+public sealed record ActivityPage(IReadOnlyList<ActivityEntry> Items, long? NextBefore, IReadOnlyList<ActivityActor>? Actors = null);

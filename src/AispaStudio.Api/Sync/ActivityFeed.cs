@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json;
 using AispaStudio.Api.Data;
 using AispaStudio.Api.Online;
@@ -38,7 +39,9 @@ internal sealed class ActivityFeed(
         }
 
         var zone = LocalTime.Zone(location.TimeZone);
-        var keys = await KeysAsync(query, tenantId, zone, ct);
+        var staff = await db.Employees.AsNoTracking().Where(e => e.WorkingHours.Any(w => w.LocationId == query.LocationId)).Select(e => e.Id.ToString()).ToArrayAsync(ct);
+        var keys = await KeysAsync(query, tenantId, zone, staff, ct);
+        var actors = await ActorsAsync(query, tenantId, zone, staff, ct);
         var more = keys.Count > query.Take;
         var page = keys.Take(query.Take).ToList();
 
@@ -99,7 +102,7 @@ internal sealed class ActivityFeed(
                 text.Values, late));
         }
 
-        return new ActivityPage(items, more && page.Count > 0 ? page[^1].Seq : null);
+        return new ActivityPage(items, more && page.Count > 0 ? page[^1].Seq : null, actors);
     }
 
     /// <summary>Rezeption (Team, Mitarbeiter-App), online vom Gast, Terminannahme über einen Kanal oder die KI, sonst Hintergrund (Job, Abgleich). Gegenstück zum SQL in <see cref="KeysAsync"/>.</summary>
@@ -176,20 +179,37 @@ internal sealed class ActivityFeed(
     /// Dienstplan über Standort in <c>context</c> oder die Personen des Standorts; Kunden, Behandlungen, Zugänge und Firmendaten mandantenweit) und Belege der
     /// Kassen des Standorts mit Terminbezug; die Art wird in SQL so bestimmt wie in den Satzbildnern.
     /// </summary>
-    private async Task<List<FeedKey>> KeysAsync(Query query, Guid tenantId, TimeZoneInfo zone, CancellationToken ct)
+    private async Task<List<FeedKey>> KeysAsync(Query query, Guid tenantId, TimeZoneInfo zone, string[] staff, CancellationToken ct)
     {
-        var staff = await db.Employees.AsNoTracking().Where(e => e.WorkingHours.Any(w => w.LocationId == query.LocationId)).Select(e => e.Id.ToString()).ToArrayAsync(ct);
+        // Fester Abfragetext; alle Werte sind Parameter ({0} … {13} sind die Parameter in dieser Reihenfolge).
+#pragma warning disable EF1002
+        return await db.Database.SqlQueryRaw<FeedKey>(KeysSql, Parameters(query, tenantId, zone, staff, query.Actor)).ToListAsync(ct);
+#pragma warning restore EF1002
+    }
+
+    /// <summary>Die Personen, die im Zeitraum unter den übrigen Filtern vorkommen, ohne den Filter „Person“ selbst; der Pseudo-Benutzer der Online-Anzahlung bleibt weg.</summary>
+    private async Task<List<ActivityActor>> ActorsAsync(Query query, Guid tenantId, TimeZoneInfo zone, string[] staff, CancellationToken ct)
+    {
+#pragma warning disable EF1002
+        var ids = await db.Database.SqlQueryRaw<string>(ActorsSql, Parameters(query, tenantId, zone, staff, actor: null)).ToListAsync(ct);
+#pragma warning restore EF1002
+        var people = await db.Users.AsNoTracking().Where(u => ids.Contains(u.Id)).Select(u => new ActivityActor(u.Id, u.DisplayName)).ToListAsync(ct);
+        return [.. people.OrderBy(p => p.Name, StringComparer.Create(CultureInfo.GetCultureInfo("de-AT"), ignoreCase: true))];
+    }
+
+    private static object[] Parameters(Query query, Guid tenantId, TimeZoneInfo zone, string[] staff, string? actor)
+    {
         var from = query.From is { } f ? LocalTime.Day(f, zone).From : (DateTimeOffset?)null;
         var until = query.Until is { } u ? LocalTime.Day(u, zone).Until : (DateTimeOffset?)null;
-        var parameters = new object[]
-        {
+        return
+        [
             new NpgsqlParameter("tenant", NpgsqlDbType.Uuid) { Value = tenantId },
             new NpgsqlParameter("kinds", NpgsqlDbType.Array | NpgsqlDbType.Text) { Value = query.Kinds.Select(k => k.ToString()).ToArray() },
             new NpgsqlParameter("location", NpgsqlDbType.Uuid) { Value = query.LocationId },
             new NpgsqlParameter("staff", NpgsqlDbType.Array | NpgsqlDbType.Text) { Value = staff },
             new NpgsqlParameter("from", NpgsqlDbType.TimestampTz) { Value = (object?)from ?? DBNull.Value },
             new NpgsqlParameter("until", NpgsqlDbType.TimestampTz) { Value = (object?)until ?? DBNull.Value },
-            new NpgsqlParameter("actor", NpgsqlDbType.Text) { Value = (object?)query.Actor ?? DBNull.Value },
+            new NpgsqlParameter("actor", NpgsqlDbType.Text) { Value = (object?)actor ?? DBNull.Value },
             new NpgsqlParameter("channel", NpgsqlDbType.Text) { Value = (object?)query.Channel?.ToString() ?? DBNull.Value },
             new NpgsqlParameter("customer", NpgsqlDbType.Uuid) { Value = (object?)query.CustomerId ?? DBNull.Value },
             new NpgsqlParameter("search", NpgsqlDbType.Text) { Value = query.Search is { } s ? $"%{Escape(s)}%" : DBNull.Value },
@@ -197,12 +217,7 @@ internal sealed class ActivityFeed(
             new NpgsqlParameter("before", NpgsqlDbType.Bigint) { Value = (object?)query.Before ?? DBNull.Value },
             new NpgsqlParameter("take", NpgsqlDbType.Integer) { Value = query.Take + 1 },
             new NpgsqlParameter("onlineUser", NpgsqlDbType.Text) { Value = ReceiptOnlineDepositHandler.OnlineUser },
-        };
-
-        // Fester Abfragetext; alle Werte sind Parameter ({0} … {13} sind die Parameter oben in dieser Reihenfolge).
-#pragma warning disable EF1002
-        return await db.Database.SqlQueryRaw<FeedKey>(KeysSql, parameters).ToListAsync(ct);
-#pragma warning restore EF1002
+        ];
     }
 
     private static string Escape(string search) =>
@@ -239,9 +254,10 @@ internal sealed class ActivityFeed(
              ELSE 'Paid' END
         """;
 
-    private static readonly string KeysSql = $$"""
+    /// <summary>Die Zeilen des Verlaufs und die Belege des Standorts in einer Reihe (mit allen Filtern außer dem Seitenzeiger); Basis für <see cref="KeysSql"/> und <see cref="ActorsSql"/>.</summary>
+    private static readonly string FeedCte = $$"""
         WITH feed AS (
-            SELECT h.seq AS seq, h.changed_at AS at, k.kind AS kind, NULL::uuid AS receipt
+            SELECT h.seq AS seq, h.changed_at AS at, k.kind AS kind, NULL::uuid AS receipt, h.user_id AS actor
               FROM sync.history h
               LEFT JOIN aispa."Appointments" a ON h.table_name = 'Appointments' AND a."Id" = (h.row_key ->> 'Id')::uuid
               LEFT JOIN aispa."Customers" c ON c."Id" = h.customer_id
@@ -269,7 +285,8 @@ internal sealed class ActivityFeed(
                         AND EXISTS (SELECT 1 FROM sync.history x WHERE x.table_name = 'RosterDayEntries' AND x.subject = h.subject AND x.changed_at = h.changed_at))
                AND NOT (h.table_name = 'Tenants' AND h.operation = 'U' AND NOT (h.changes ?| {10}))
             UNION ALL
-            SELECT {{PaymentHistory.PseudoSeqSql}} AS seq, r."IssuedAt" AS at, k.kind AS kind, r."Id" AS receipt
+            SELECT {{PaymentHistory.PseudoSeqSql}} AS seq, r."IssuedAt" AS at, k.kind AS kind, r."Id" AS receipt,
+                   CASE WHEN r."CreatedByUserId" <> {13} THEN r."CreatedByUserId" END AS actor
               FROM aispa."Receipts" r
               JOIN aispa."CashRegisters" g ON g."Id" = r."RegisterId"
               LEFT JOIN aispa."Receipts" o ON o."Id" = r."VoidsReceiptId"
@@ -290,10 +307,19 @@ internal sealed class ActivityFeed(
                     OR (c."FirstName" || ' ' || c."LastName") ILIKE {9} OR c."PreferredName" ILIKE {9} OR u."DisplayName" ILIKE {9}
                     OR (g."Code" || ' Nr. ' || COALESCE(o."Number", r."Number")::text) ILIKE {9})
         )
+        """;
+
+    private static readonly string KeysSql = FeedCte + """
         SELECT f.seq AS "Seq", f.at AS "At", f.kind AS "Kind", f.receipt AS "Receipt"
           FROM feed f
          WHERE ({11}::bigint IS NULL OR (f.at, f.seq) < (SELECT p.at, p.seq FROM feed p WHERE p.seq = {11}))
          ORDER BY f.at DESC, f.seq DESC
          LIMIT {12}
+        """;
+
+    private static readonly string ActorsSql = FeedCte + """
+        SELECT DISTINCT f.actor AS "Value"
+          FROM feed f
+         WHERE f.actor IS NOT NULL AND {11}::bigint IS NULL AND {12}::integer > 0
         """;
 }
