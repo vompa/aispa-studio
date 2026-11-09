@@ -1,4 +1,5 @@
 using AispaStudio.Api.Data;
+using AispaStudio.Api.Documents;
 using AispaStudio.Api.Mail;
 using AispaStudio.Api.MailIntake;
 using AispaStudio.Api.Pos;
@@ -110,8 +111,19 @@ public static partial class IssueOnlineVoucherHandler
         var link = services.GetRequiredService<OnlinePortal>().Url("");
         var receiptDto = await pos.GetReceiptAsync(receiptId, ct);
         var receiptText = receiptDto is null ? receiptId.ToString() : $"{receiptDto.RegisterCode} Nr. {receiptDto.Number}, {receiptDto.IssuedAt:dd.MM.yyyy}";
-        await services.GetRequiredService<IMessageBus>().PublishGuestMailAsync(services.GetRequiredService<TenantContext>(),
-            OnlineMails.VoucherIssued(order.BuyerEmail, guest, dto, receiptText, link, order.Language));
+        var mail = OnlineMails.VoucherIssued(order.BuyerEmail, guest, dto, receiptText, link, order.Language);
+        await services.GetRequiredService<IMessageBus>().PublishGuestMailAsync(services.GetRequiredService<TenantContext>(), mail);
+
+        // Vermerk für die Gutscheinliste (ADR 0091): die Mail ging an den Käufer, ohne dass jemand vom Team sie ausgelöst hat.
+        db.SentDocuments.Add(new SentDocument
+        {
+            Kind = SentDocument.VoucherKind,
+            TargetId = voucher.Id,
+            To = order.BuyerEmail,
+            Subject = mail.Subject,
+            SentAt = services.GetRequiredService<TimeProvider>().GetUtcNow(),
+        });
+        await db.SaveChangesAsync(ct);
     }
 
     private static async Task FailAsync(OnlineDbContext online, VoucherOrder order, string error, ILogger logger, CancellationToken ct)

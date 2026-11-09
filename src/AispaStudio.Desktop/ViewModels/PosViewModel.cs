@@ -1396,12 +1396,30 @@ public partial class PosViewModel : ViewModelBase
     {
         Document = new DocumentActionsViewModel(ReceiptDocumentSource(receipt, copy), _api, Dialogs) { ShowToast = ShowToast },
         VoucherDocuments = [.. receipt.IssuedVouchers.Select(v => new VoucherDocumentItem(
-            $"Gutschein {v.Code} als Geschenk", new DocumentActionsViewModel(VoucherDocumentSource(v), _api, Dialogs) { ShowToast = ShowToast }))],
+            $"Gutschein {v.Code} als Geschenk", new DocumentActionsViewModel(VoucherDocumentSource(v), _api, Dialogs) { ShowToast = ShowToast },
+            new AsyncRelayCommand(() => HandOverVoucherAsync(v))))],
     };
 
-    /// <summary>Pfade des Geschenk-PDFs eines Gutscheins (PDF-Ausgaben E): Drucken, Speichern und Senden an den Käufer oder eine eingetippte Adresse.</summary>
+    /// <summary>
+    /// Pfade des Geschenk-PDFs eines Gutscheins (PDF-Ausgaben E): Drucken, Speichern und Senden an den Käufer oder eine eingetippte Adresse. Ein erfolgreicher Druck wird vermerkt (<c>…/printed</c>),
+    /// damit die Gutscheinliste „Gedruckt am …“ zeigt.
+    /// </summary>
     internal static DocumentSource VoucherDocumentSource(VoucherDto voucher) =>
-        new($"Gutschein {voucher.Code}", $"api/pos/vouchers/{voucher.Id}/pdf", $"api/pos/vouchers/{voucher.Id}/send");
+        new($"Gutschein {voucher.Code}", $"api/pos/vouchers/{voucher.Id}/pdf", $"api/pos/vouchers/{voucher.Id}/send", PrintedPath: $"api/pos/vouchers/{voucher.Id}/printed");
+
+    /// <summary>„Übergeben“: vermerkt, dass der Gutschein persönlich ausgehändigt wurde (<c>…/handed-over</c>); die Gutscheinliste zeigt „Übergeben am …“.</summary>
+    private async Task HandOverVoucherAsync(VoucherDto voucher)
+    {
+        var result = await _api.PostAsync<object>($"api/pos/vouchers/{voucher.Id}/handed-over", null).ConfigureAwait(true);
+        if (result.Ok)
+        {
+            ShowToast($"Gutschein {voucher.Code} als übergeben vermerkt");
+        }
+        else
+        {
+            Error = result.Error;
+        }
+    }
 
     /// <summary>Pfade des Beleg-PDFs: A4 als Standard („A4 drucken“, weil „Drucken“ der Bondrucker ist), Bon-Format im Menü, Versand an den Gast.</summary>
     internal static DocumentSource ReceiptDocumentSource(ReceiptDto receipt, bool copy)
@@ -1495,8 +1513,8 @@ public partial class PosViewModel : ViewModelBase
 /// <summary>Zeile auf dem Beleg: Text links, Betrag rechts.</summary>
 public sealed record ReceiptRow(string Label, string Value);
 
-/// <summary>Ein Gutschein des Belegs mit seinem Knopfblock; <paramref name="Label"/> nennt den Code.</summary>
-public sealed record VoucherDocumentItem(string Label, DocumentActionsViewModel Document);
+/// <summary>Ein Gutschein des Belegs mit seinem Knopfblock und dem Knopf „Übergeben“ (Vermerk für die Gutscheinliste); <paramref name="Label"/> nennt den Code.</summary>
+public sealed record VoucherDocumentItem(string Label, DocumentActionsViewModel Document, IAsyncRelayCommand HandOverCommand);
 
 /// <summary>
 /// Signierter Beleg zum Anzeigen nach dem Bezahlen. <paramref name="ownerLevel"/>: Inhaber und Manager; nur sie stornieren einen Anzahlungsbeleg (ADR 0073, Ä51).

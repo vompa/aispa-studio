@@ -1208,6 +1208,13 @@ namespace AispaStudio.Api.Data.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid");
 
+                    b.Property<string>("Channel")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasDefaultValue("mail");
+
                     b.Property<string>("Kind")
                         .IsRequired()
                         .HasMaxLength(40)

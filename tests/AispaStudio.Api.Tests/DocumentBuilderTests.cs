@@ -117,6 +117,34 @@ public sealed class DocumentBuilderTests
     }
 
     [Fact]
+    public void Eine_schmale_Tabelle_setzt_die_Zeilen_klein_und_bricht_dadurch_seltener_um()
+    {
+        DocumentColumn[] columns = [new("Name", 1), new("Rest", 21)];
+        DocumentRow[] rows = [DocumentRow.Of("Muster", "")];
+        var normal = new DocumentBuilder(DocumentFormat.A4Landscape, Header).Table(columns, rows).Build();
+        var compact = PdfText.Keep(new DocumentBuilder(DocumentFormat.A4Landscape, Header).Table(columns, rows, compact: true).Build(), "builder-tabelle-klein");
+
+        Assert.DoesNotContain("Muster", PdfText.Text(normal).Split('\n'));
+        Assert.Contains("Muster", PdfText.Text(compact).Split('\n'));
+    }
+
+    [Fact]
+    public void Ein_Schluessel_Wert_Block_mit_keepWithNext_steht_an_jeder_Umbruchstelle_mit_dem_folgenden_Satz_auf_einer_Seite()
+    {
+        for (var count = 30; count <= 60; count++)
+        {
+            var pdf = new DocumentBuilder(DocumentFormat.A4Portrait, Header)
+                .Table([new("Zeile", 1)], Enumerable.Range(1, count).Select(i => DocumentRow.Of($"Zeile {i}")))
+                .KeyValues([("Summe offen", "EUR 1,00")], keepWithNext: true)
+                .Small("Erklärsatz zur Summe")
+                .Build();
+
+            var page = PdfText.Pages(pdf).Single(p => p.Contains("Erklärsatz zur Summe", StringComparison.Ordinal));
+            Assert.Contains("Summe offen", page, StringComparison.Ordinal);
+        }
+    }
+
+    [Fact]
     public void Dateinamen_tragen_keine_verbotenen_Zeichen()
     {
         Assert.Equal("Rechnung-K1-142.pdf", DocumentFiles.PdfName("Rechnung", "K1-142"));

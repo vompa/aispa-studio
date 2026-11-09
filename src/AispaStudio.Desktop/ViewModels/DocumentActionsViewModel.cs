@@ -8,10 +8,11 @@ namespace AispaStudio.Desktop.ViewModels;
 /// <summary>
 /// Ein Dokument der API für den Knopfblock (ADR 0091): Titel für die Rückfrage („Rechnung K1-142“), Pfad des PDF, Pfad des Versands (ohne: kein Knopf „Per Mail senden“),
 /// das Recht und der Hinweis, wenn es fehlt (<c>ui:DisabledHint</c>). <paramref name="AlternativePdfPath"/>: ein zweites Format zum Speichern, z. B. der Beleg im Bon-Format (im Menü an „PDF speichern“);
-/// <paramref name="PrintLabel"/>: Beschriftung des Druckknopfs, wo ein zweiter „Drucken“ steht (Kassa: Bondrucker).
+/// <paramref name="PrintLabel"/>: Beschriftung des Druckknopfs, wo ein zweiter „Drucken“ steht (Kassa: Bondrucker);
+/// <paramref name="PrintedPath"/>: Pfad, an den die App nach einem erfolgreichen Druck ein POST schickt, damit der Druck als Vermerk dokumentiert ist (Gutschein, Gutscheinliste).
 /// </summary>
 public sealed record DocumentSource(string Title, string PdfPath, string? SendPath = null, bool IsAllowed = true, string? DisabledHint = null,
-    string? AlternativePdfPath = null, string AlternativeLabel = "PDF im Bon-Format speichern", string PrintLabel = "Drucken");
+    string? AlternativePdfPath = null, string AlternativeLabel = "PDF im Bon-Format speichern", string PrintLabel = "Drucken", string? PrintedPath = null);
 
 /// <summary>
 /// Der Knopfblock „Drucken · PDF speichern · Per Mail senden“ (ADR 0091): lädt das PDF von der API, speichert es über den Dialog des Fensters mit dem Dateinamen
@@ -67,6 +68,11 @@ public sealed partial class DocumentActionsViewModel(DocumentSource source, IAis
 
         var problem = await _printer.PrintAsync(file.FileName, file.Content, CancellationToken.None).ConfigureAwait(true);
         ShowToast?.Invoke(problem ?? "Gedruckt");
+        if (problem is null && source.PrintedPath is { } printedPath)
+        {
+            var noted = await api.PostAsync<object>(printedPath, null).ConfigureAwait(true);
+            Error = noted.Ok ? null : $"Der Druck wurde nicht vermerkt: {noted.Error}";
+        }
     }
 
     [RelayCommand(CanExecute = nameof(CanWork))]

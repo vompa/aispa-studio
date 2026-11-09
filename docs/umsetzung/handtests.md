@@ -753,3 +753,16 @@ Expected: Unter „Ablaufliste“ erscheint die Wahl „Zeitraum“ (7, 14, 30, 
 Expected: Die ersten beiden antworten mit 403; das Backoffice darf die Stundenliste drucken (wie die Zeiten lesen), nicht den Aushang, die Inventur-, Bestell- und Ablaufliste.
 Closes: Arbeitsanweisung PDF-Ausgaben, Aufgabe F
 Result: ☐
+
+### PDF-Ausgaben Zusatz – Gutscheinliste
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Inhaberin anmelden; an der Kassa sind mehrere Gutscheine verkauft (ein Wertgutschein, ein Behandlungsgutschein, ein Paket), einer davon ist eingelöst, einer storniert, einer hat ein Ablaufdatum in 10 Tagen und einer ein Ablaufdatum in der Vergangenheit; ein Gutschein wurde online gekauft (mit Empfänger).
+1. **Kassa**, in der Kopfzeile **Gutscheinliste …** klicken, ohne Filter **PDF speichern**, die Datei öffnen.
+Expected: Die Karte „Gutscheinliste“ mit „Ausgestellt von“ und „bis“, „Status“ (Alle, aktiv, aufgebraucht, abgelaufen, storniert), „läuft in 30 Tagen ab“, „noch nicht versendet“ und „Drucken“ und „PDF speichern“ (ohne „Per Mail senden“); ein zweiter Klick auf den Knopf oder das Kreuz schließt sie. `Gutscheinliste-<Standort>-<Datum>.pdf`, A4 quer: eine Zeile je Gutschein mit Code, Art, Ausgestellt, Ausgangswert, Restwert, Gültig bis („–“ ohne Ablaufdatum), Status, Käufer, Empfänger („–“ bei Kassa-Verkäufen, beim Online-Gutschein der Name), Kanal (Kassa oder Online) und Versand; unten „Offene Restwerte (Verbindlichkeit)“ mit Betrag und Zahl der aktiven Gutscheine, „Abgelaufen, noch nicht ausgebucht“ mit dem Rest des abgelaufenen, und ein Satz zur Berechnung. Bei vielen Gutscheinen läuft die Tabelle über mehrere Seiten mit wiederholtem Kopf.
+2. Den Zeitraum auf heute und gestern stellen, den Status auf „aktiv“ stellen, speichern; dann „läuft in 30 Tagen ab“ ankreuzen, speichern.
+Expected: Der Pfad der Karte ändert sich mit jeder Wahl; die Kopfzeile des PDFs nennt die Auswahl („Ausgestellt 08.11.2026 bis 09.11.2026 · Status: aktiv“, „läuft in 30 Tagen ab“); mit „läuft in 30 Tagen ab“ steht nur der Gutschein mit dem Ablaufdatum in 10 Tagen darauf. Ein Ende vor dem Beginn sperrt „Drucken“ und „PDF speichern“ mit dem Hinweis „Das Ende darf nicht vor dem Beginn liegen.“.
+3. Einen frisch verkauften Gutschein unter dem Beleg **Per Mail senden**, einen zweiten **Drucken** (Drucker oder PDF-Drucker), einen dritten **Übergeben** klicken; danach die Liste mit „noch nicht versendet“ drucken.
+Expected: Toasts „Gesendet an …“, „Gedruckt“ und „Gutschein … als übergeben vermerkt“; mit „noch nicht versendet“ fehlen diese drei, der Rest steht darauf. In der Liste ohne Filter steht beim ersten „Mail am <Datum>“ mit „an <Adresse>“, beim zweiten „Gedruckt am <Datum>“, beim dritten „Übergeben am <Datum>“; beim online gekauften Gutschein „Mail am …“ an die Adresse des Käufers. Ein Druck, der am Drucker scheitert, hinterlässt keinen Vermerk.
+4. Als Rezeption ohne das Recht „Berichte mit Beträgen“ die Kassa öffnen und die Karte öffnen; als Rezeption die Adresse `…/api/pos/locations/<id>/vouchers/pdf` aufrufen.
+Expected: Die Karte lässt sich öffnen, „Drucken“ und „PDF speichern“ sind gesperrt mit dem Hinweis auf Kassenaufsicht oder „Berichte mit Beträgen“; der Aufruf antwortet mit 403. Mit Standortleitung oder Backoffice geht es.
+Closes: Zusatz zur Arbeitsanweisung PDF-Ausgaben (Gutscheinliste)
+Result: ☐

@@ -342,6 +342,7 @@ static void MapApplicationEndpoints(WebApplication app)
     app.MapQuickSwitch();
     app.MapPosEndpoints();
     app.MapVoucherDocumentEndpoints();
+    app.MapVoucherListEndpoints();
     app.MapPromotionEndpoints();
     app.MapCalendarSubscriptionEndpoints();
     app.MapBusinessContactEndpoints();

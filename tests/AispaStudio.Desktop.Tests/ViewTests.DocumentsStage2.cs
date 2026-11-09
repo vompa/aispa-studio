@@ -88,6 +88,7 @@ public sealed partial class ViewTests
         var voucherBlocks = page.GetVisualDescendants().OfType<StackPanel>().Where(s => s.IsEffectivelyVisible && s.Name == "VoucherDocument").ToList();
         Assert.Single(voucherBlocks);
         Assert.Equal(["PrintButton", "SaveButton", "SendButton"], VisibleButtonNames(voucherBlocks[0]));
+        Assert.Single(voucherBlocks[0].GetVisualDescendants().OfType<Button>(), b => b.IsEffectivelyVisible && b.Name == "VoucherHandOverButton");
         Assert.Contains(voucherBlocks[0].GetVisualDescendants().OfType<TextBlock>(), t => t.Text == "Gutschein K7QM-2XPA-9RDT als Geschenk");
         return shell.Pos;
     }, Api().On($"POST /api/pos/bills/{SpaSample.BillId}/checkout",

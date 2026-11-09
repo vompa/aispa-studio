@@ -89,11 +89,13 @@ internal sealed class DocumentBuilder(DocumentFormat format, DocumentHeader head
     public DocumentBuilder Small(string text, DocumentAlign align = DocumentAlign.Left) => Add(new TextBlock(text, Style.Small, align));
 
     /// <summary>Beschriftung links in Grau, Wert rechts; leere Werte stehen als „–“.</summary>
-    public DocumentBuilder KeyValues(IEnumerable<(string Key, string Value)> rows) => Add(new KeyValueBlock([.. rows]));
+    /// <param name="keepWithNext">Hält den Block mit dem folgenden Baustein auf einer Seite, z. B. eine Summe mit ihrem Erklärsatz.</param>
+    public DocumentBuilder KeyValues(IEnumerable<(string Key, string Value)> rows, bool keepWithNext = false) => Add(new KeyValueBlock([.. rows], keepWithNext));
 
     /// <summary>Tabelle mit Kopfzeile, die nach einem Seitenumbruch wiederholt wird; <paramref name="total"/> ist die fette Summenzeile mit Linie darüber.</summary>
-    public DocumentBuilder Table(IReadOnlyList<DocumentColumn> columns, IEnumerable<DocumentRow> rows, DocumentRow? total = null) =>
-        Add(new TableBlock(columns, [.. rows], total));
+    /// <param name="compact">Setzt die Zeilen in der kleinen Schrift, für Listen mit vielen Spalten (Gutscheinliste, A4 quer).</param>
+    public DocumentBuilder Table(IReadOnlyList<DocumentColumn> columns, IEnumerable<DocumentRow> rows, DocumentRow? total = null, bool compact = false) =>
+        Add(new TableBlock(columns, [.. rows], total, compact));
 
     public DocumentBuilder QrCode(string text, double sizeMm = 30, DocumentAlign align = DocumentAlign.Center) => Add(new QrBlock(text, sizeMm, align));
 
@@ -420,7 +422,7 @@ internal sealed class DocumentBuilder(DocumentFormat format, DocumentHeader head
         }
     }
 
-    private sealed class KeyValueBlock(IReadOnlyList<(string Key, string Value)> rows) : IBlock
+    private sealed class KeyValueBlock(IReadOnlyList<(string Key, string Value)> rows, bool keepWithNext) : IBlock
     {
         public IEnumerable<Item> Layout(Layouter layouter)
         {
@@ -443,32 +445,34 @@ internal sealed class DocumentBuilder(DocumentFormat format, DocumentHeader head
                     {
                         Write(gfx, lines[i], font, Ink, x + keyWidth, y + (i * lineHeight), valueWidth, DocumentAlign.Left);
                     }
-                });
+                })
+                { KeepWithNext = keepWithNext };
             }
 
-            yield return new Item(layouter.Sizes.Gap);
+            yield return new Item(layouter.Sizes.Gap) { KeepWithNext = keepWithNext };
         }
     }
 
-    private sealed class TableBlock(IReadOnlyList<DocumentColumn> columns, IReadOnlyList<DocumentRow> rows, DocumentRow? total) : IBlock
+    private sealed class TableBlock(IReadOnlyList<DocumentColumn> columns, IReadOnlyList<DocumentRow> rows, DocumentRow? total, bool compact) : IBlock
     {
         public IEnumerable<Item> Layout(Layouter layouter)
         {
             var weights = columns.Sum(c => c.Weight);
             var widths = columns.Select(c => layouter.Width * c.Weight / weights).ToArray();
             var headFont = layouter.Font(layouter.Sizes.Small, true);
-            var font = layouter.Font(layouter.Sizes.Body);
-            var boldFont = layouter.Font(layouter.Sizes.Body, true);
+            var size = compact ? layouter.Sizes.Small : layouter.Sizes.Body;
+            var font = layouter.Font(size);
+            var boldFont = layouter.Font(size, true);
             var headerItem = Row(layouter, new DocumentRow([.. columns.Select(c => c.Title)]), widths, headFont, LineHeight(layouter.Sizes.Small), BlackLine, null);
             yield return headerItem;
             foreach (var row in rows)
             {
-                yield return Row(layouter, row, widths, row.Bold ? boldFont : font, LineHeight(layouter.Sizes.Body), GreyLine, headerItem);
+                yield return Row(layouter, row, widths, row.Bold ? boldFont : font, LineHeight(size), GreyLine, headerItem);
             }
 
             if (total is not null)
             {
-                yield return Row(layouter, total with { Bold = true }, widths, boldFont, LineHeight(layouter.Sizes.Body), null, headerItem, BlackLine);
+                yield return Row(layouter, total with { Bold = true }, widths, boldFont, LineHeight(size), null, headerItem, BlackLine);
             }
 
             yield return new Item(layouter.Sizes.Gap);

@@ -1,6 +1,6 @@
 # Dokumente: Gestaltung der PDF-Ausgaben
 
-Verbindlich für alles, was die API als PDF erzeugt (ADR 0091): Rechnung und Beleg, Terminbestätigung, Datenschutz-Auskunft, Tagesabschluss, Tagesplan, Gutschein, Kundenkarte, Warteliste, Dienstplan-Aushang, Stundenliste, Inventurliste, Bestellung, Ablaufliste, Personalakte. Umgesetzt im `DocumentBuilder` (`src/AispaStudio.Api/Documents/`); wer ein Dokument baut, setzt es aus seinen Bausteinen zusammen und zeichnet nichts selbst. Texte nach [texte.md](texte.md).
+Verbindlich für alles, was die API als PDF erzeugt (ADR 0091): Rechnung und Beleg, Terminbestätigung, Datenschutz-Auskunft, Tagesabschluss, Tagesplan, Gutschein, Kundenkarte, Warteliste, Dienstplan-Aushang, Stundenliste, Inventurliste, Bestellung, Ablaufliste, Gutscheinliste, Personalakte. Umgesetzt im `DocumentBuilder` (`src/AispaStudio.Api/Documents/`); wer ein Dokument baut, setzt es aus seinen Bausteinen zusammen und zeichnet nichts selbst. Texte nach [texte.md](texte.md).
 
 ## 1. Grundsätze
 
@@ -15,7 +15,7 @@ Verbindlich für alles, was die API als PDF erzeugt (ADR 0091): Rechnung und Bel
 | Format | Seite | Rand | Schrift (Titel / Überschrift / Text / Klein) | Wofür |
 | --- | --- | --- | --- | --- |
 | A4 hoch | 210 × 297 mm | 17 mm (48 pt) | 16 / 12 / 10 / 8 pt | Rechnung, Bestätigung, Auskunft, Tagesabschluss, Gutschein, Kundenkarte, Warteliste, Stundenliste, Inventur, Bestellung, Ablaufliste, Personalakte |
-| A4 quer | 297 × 210 mm | 17 mm | wie A4 hoch | Tagesplan, Dienstplan-Aushang |
+| A4 quer | 297 × 210 mm | 17 mm | wie A4 hoch | Tagesplan, Dienstplan-Aushang, Gutscheinliste |
 | Bon 80 mm | 80 mm breit, Höhe wächst mit dem Inhalt, eine Seite | 3,5 mm (10 pt) | 11 / 9 / 8 / 7 pt | Beleg im Bon-Format (Nachdruck, PDF) |
 
 Zeilenhöhe ist das 1,3-Fache der Schriftgröße. Mehrseitige Dokumente gibt es nur in A4.
@@ -38,15 +38,16 @@ Zeilenhöhe ist das 1,3-Fache der Schriftgröße. Mehrseitige Dokumente gibt es 
 | Überschrift | 12 pt fett, Abstand davor | Abschnitte: „Positionen“, „Zahlungen“, „Stammdaten“. Bleibt bei ihrem Inhalt (kein Umbruch dazwischen). |
 | Absatz | 10 pt, Umbruch an der Breite | Fließtext; Hinweise in Grau; Wichtiges fett (z. B. „Kopie“, „Storno“). |
 | Schlüssel-Wert | Beschriftung grau links (höchstens 45 % der Breite), Wert rechts | Stammdaten, Kontakt, Kassendaten; leere Werte als „–“. |
-| Tabelle | Kopfzeile klein fett mit schwarzer Linie, Zeilen mit grauer Linie, Summe fett mit Linie darüber | Spalten mit Gewicht und Ausrichtung; Beträge rechts; die Kopfzeile wiederholt sich auf jeder Folgeseite; graue Zeilen für Pausen und Sperrzeiten; im Tagesplan (eine Spalte je Person oder Raum) nur die grauen Zellen (`MutedCells`). |
+| Tabelle | Kopfzeile klein fett mit schwarzer Linie, Zeilen mit grauer Linie, Summe fett mit Linie darüber | Spalten mit Gewicht und Ausrichtung; Beträge rechts; die Kopfzeile wiederholt sich auf jeder Folgeseite; graue Zeilen für Pausen und Sperrzeiten; im Tagesplan (eine Spalte je Person oder Raum) nur die grauen Zellen (`MutedCells`); Listen mit so vielen Spalten, dass 10 pt nicht passen (Gutscheinliste), setzen die Zeilen in 8 pt (`compact`). |
 | QR-Code | schwarze Module, 30 mm, zentriert (A4) | Belegcode der RKSV (wie der Bondrucker), Gutscheincode. |
 | Unterschriftenzeilen | Linie, darunter Beschriftung klein in Grau | Tagesabschluss („Gezählt von“, „Geprüft von“), Stundenliste („Mitarbeiter:in“, „Leitung“). |
 | Linie, Abstand, Seitenumbruch | – | Zum Gliedern; sparsam. |
 
 ## 5. Dateinamen und Mail
 
-- Dateiname aus Art und Nummer oder Name: `Rechnung-K1-142.pdf`, `Beleg-K1-143.pdf`, `Terminbestätigung-01-03-2027.pdf`, `Auskunft-Eva-Muster.pdf`, `Tagesabschluss-K1-2026-11-09.pdf`, `Tagesplan-Wien-2027-03-01.pdf`, `Gutschein-K7QM-2XPA-9RDT.pdf`, `Stammblatt-Eva-Muster.pdf`, `Warteliste-Wien-2027-03-03.pdf`, `Dienstplan-Wien-2027-03-01.pdf` (Montag der Woche), `Stundenliste-Anna-2026-06.pdf`, `Inventurliste-Raumschrank-2-2027-03-01.pdf`, `Zählliste-Raumschrank-2-2027-03-01.pdf`, `Bestellung-7-Haslauer.pdf`, `Ablaufliste-Wien-2027-03-01.pdf`. Buchstaben und Ziffern bleiben (auch Umlaute), alles andere wird ein Bindestrich (`DocumentFiles.PdfName`).
+- Dateiname aus Art und Nummer oder Name: `Rechnung-K1-142.pdf`, `Beleg-K1-143.pdf`, `Terminbestätigung-01-03-2027.pdf`, `Auskunft-Eva-Muster.pdf`, `Tagesabschluss-K1-2026-11-09.pdf`, `Tagesplan-Wien-2027-03-01.pdf`, `Gutschein-K7QM-2XPA-9RDT.pdf`, `Stammblatt-Eva-Muster.pdf`, `Warteliste-Wien-2027-03-03.pdf`, `Dienstplan-Wien-2027-03-01.pdf` (Montag der Woche), `Stundenliste-Anna-2026-06.pdf`, `Inventurliste-Raumschrank-2-2027-03-01.pdf`, `Zählliste-Raumschrank-2-2027-03-01.pdf`, `Bestellung-7-Haslauer.pdf`, `Ablaufliste-Wien-2027-03-01.pdf`, `Gutscheinliste-Wien-2026-11-09.pdf`. Buchstaben und Ziffern bleiben (auch Umlaute), alles andere wird ein Bindestrich (`DocumentFiles.PdfName`).
 - Mail: Betreff nennt das Dokument und das Spa („Ihre Rechnung Nr. K1-142 von Day-Spa Wien“); Text in zwei bis drei Sätzen, unpersönlich oder mit „Sie“ (texte.md T1), mit Gruß und Spa-Name; das PDF hängt an; Absender ist der Name des Spas, Antwortadresse das Postfach des Spas. Jede gesendete Mail steht danach als Vermerk am Beleg oder im Verlauf des Termins („Per Mail gesendet an eva@example.at am 09.11.2026 10:12 von Lena“; an der Bestellung „Gesendet am 09.11.2026 10:12 an bestellung@haslauer.example.at von Lena“; das Senden ändert den Stand der Bestellung nicht).
+- Versandweg: `SentDocument.Channel` unterscheidet Mail (`mail`, auch alle Vermerke vor dem Zusatz), Druck (`print`, die App meldet ihn nach einem erfolgreichen Druck des Gutscheins) und Übergabe (`handover`, Knopf „Übergeben“ am Gutschein). Unter „Per Mail gesendet an …“ stehen nur Mails; Druck und Übergabe haben keine Adresse und erscheinen nur als „Gedruckt am …“ und „Übergeben am …“ in der Gutscheinliste. Die Mail eines online gekauften Gutscheins vermerkt der Online-Shop selbst (ohne Person).
 - Knopfblock: „Drucken · PDF speichern · Per Mail senden“; ein zweites Format (Beleg im Bon-Format) steht im Menü an „PDF speichern“. Wo daneben ein anderer „Drucken“-Knopf steht (Kassa: Bondrucker), heißt der Druck des PDFs „A4 drucken“.
 
 ## 6. Datenschutz

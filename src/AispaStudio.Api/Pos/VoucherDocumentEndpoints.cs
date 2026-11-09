@@ -66,8 +66,27 @@ internal static class VoucherDocumentEndpoints
             .AlsoAllow(AccessRight.ViewReceipts, insteadOf: AccessRight.Book)
             .WithSummary("Gutschein als PDF per Mail an den Käufer oder eine eingetippte Adresse (über die Queue), mit Vermerk; ohne Betreff und Text gilt die Vorbelegung.");
 
+        // Vermerke für die Gutscheinliste: ausgedruckt (die App meldet es nach dem erfolgreichen Druck) und persönlich übergeben.
+        MapDispatch(group, "/printed", "VoucherPrinted", SentDocument.PrintChannel, "Vermerkt, dass der Gutschein ausgedruckt wurde (die App meldet es nach dem Drucken); die Gutscheinliste zeigt „Gedruckt am …“.");
+        MapDispatch(group, "/handed-over", "VoucherHandedOver", SentDocument.HandoverChannel, "Vermerkt, dass der Gutschein persönlich übergeben wurde; die Gutscheinliste zeigt „Übergeben am …“.");
+
         return routes;
     }
+
+    private static void MapDispatch(RouteGroupBuilder group, string path, string name, string channel, string summary) =>
+        group.MapPost(path, async Task<Results<NoContent, NotFound>> (Guid voucherId, ClaimsPrincipal user, AispaDbContext db, SentDocuments sent, CancellationToken ct) =>
+            {
+                if (!await db.Vouchers.AnyAsync(v => v.Id == voucherId, ct))
+                {
+                    return TypedResults.NotFound();
+                }
+
+                await sent.RecordAsync(SentDocument.VoucherKind, voucherId, "", "", user, ct, channel);
+                return TypedResults.NoContent();
+            })
+            .WithName(name)
+            .AlsoAllow(AccessRight.ViewReceipts, insteadOf: AccessRight.Book)
+            .WithSummary(summary);
 
     private static async Task<PreparedVoucher?> PrepareAsync(Guid voucherId, ClaimsPrincipal user, AispaDbContext db, DocumentHeaders headers, CancellationToken ct)
     {
