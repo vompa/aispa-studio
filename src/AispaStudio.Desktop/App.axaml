@@ -45,6 +45,9 @@
     <DataTemplate DataType="vm:HistorySectionViewModel">
       <views:HistorySectionView />
     </DataTemplate>
+    <DataTemplate DataType="vm:ActivityViewModel">
+      <views:ActivityView />
+    </DataTemplate>
     <DataTemplate DataType="vm:CustomersViewModel">
       <views:CustomersView />
     </DataTemplate>

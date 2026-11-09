@@ -49,6 +49,8 @@ public static class Icons
 
     public const string Clock = "M12 3a9 9 0 1 1 0 18a9 9 0 0 1 0-18zM12 7v5l3 2";
 
+    public const string History = "M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5M12 7v5l3 2";
+
     public const string Check = "M20 6L9 17l-5-5";
 
     public const string Door = "M3 21h18M6 21V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v17M14 12h.01";

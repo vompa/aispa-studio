@@ -669,3 +669,22 @@ Expected: 403 mit „… nur Inhaber und Manager.“; ohne `kinds` eine Seite oh
 Expected: „Bezahlt … (Beleg … Nr. …)“ steht zwischen den übrigen Einträgen an der richtigen Stelle.
 Closes: –
 Result: ☐
+
+### Verlauf B – Seite „Verlauf“
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Inhaberin anmelden, Navigation **Verlauf** (nach „Kunden“)
+1. Die Seite öffnen.
+Expected: Suchfeld, Zeitraum „Heute“ gewählt, Art-Chips „Buchungen … Zugänge“, Auswahl „Alle Kanäle“; die Liste zeigt den heutigen Tag mit Uhrzeit, Symbol, Satz und Gast/Person je Zeile.
+2. „30 Tage“ wählen und bis ans Ende scrollen.
+Expected: Weitere Tagesgruppen laden nach, ohne doppelte Einträge; am Fuß steht „Weitere laden“, solange es mehr gibt.
+3. Chip „Stornos“ und danach „Zahlungen“ anklicken.
+Expected: Nur Stornos bzw. Stornos und Zahlungen; der Chip „Zurücksetzen“ erscheint; Stornos innerhalb der Stornofrist tragen die Pille „Kurzfristig“.
+4. Strg+F drücken, einen Gastnamen tippen, eine Sekunde warten.
+Expected: Der Fokus steht im Suchfeld; nach etwa 300 ms lädt die Liste nur Einträge zu diesem Gast; Esc leert die Suche.
+5. Einen Suchtext ohne Treffer eingeben.
+Expected: „Nichts gefunden. Filter zurücksetzen?“ mit Knopf, der alles zurücksetzt.
+6. Als Rezeption anmelden und die Seite öffnen.
+Expected: Keine Chips „Dienstplan“ und „Zugänge“, kein Feld „Person“; Zahlungen sind sichtbar.
+7. Dunkles Farbschema wählen.
+Expected: Chips, Pillen und Symbole lesbar, keine hellen Flächen.
+Closes: –
+Result: ☐

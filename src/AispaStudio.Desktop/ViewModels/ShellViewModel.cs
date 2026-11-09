@@ -59,6 +59,7 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
         Connection = connection;
         Calendar = new CalendarViewModel(api, user, live, time, theme.Store) { CanAskAssistant = modules?.Assistant != false };
         Customers = new CustomersViewModel(api, time) { User = user, BookRequested = BookForCustomer };
+        Activity = new ActivityViewModel(api, user, time) { LocationSource = () => Calendar.Location };
         Pos = new PosViewModel(api, time, theme.Store) { OwnerLevel = user.Access?.Role is StaffRole.Owner or StaffRole.GeneralManager, MaySuperviseCash = user.Rights.Contains(AccessRight.SuperviseCash) };
         HasPin = user.HasPin;
         Devices = new DevicesViewModel(api, theme.Store)
@@ -74,9 +75,9 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
             },
         };
         Inbox = new InboxViewModel(api, live, time);
-        Calendar.Dialogs = Customers.Dialogs = Pos.Dialogs = Devices.Dialogs = Inbox.Dialogs = dialogs;
+        Calendar.Dialogs = Customers.Dialogs = Activity.Dialogs = Pos.Dialogs = Devices.Dialogs = Inbox.Dialogs = dialogs;
         // Das Backoffice (ADR 0070) hat weder Kalender noch Kunden; es arbeitet in der Verwaltung.
-        List<NavItem> pages = HasCalendar ? [new("Kalender", Icons.Calendar, Calendar), new("Kunden", Icons.Users, Customers)] : [];
+        List<NavItem> pages = HasCalendar ? [new("Kalender", Icons.Calendar, Calendar), new("Kunden", Icons.Users, Customers), new("Verlauf", Icons.History, Activity)] : [];
         if (user.Rights.Contains(AccessRight.Book))
         {
             if (HasInbox)
@@ -316,6 +317,9 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
     public CalendarViewModel Calendar { get; }
 
     public CustomersViewModel Customers { get; }
+
+    /// <summary>Die Seite „Verlauf“: was im Betrieb passiert ist (nur für Zugänge mit Kalender).</summary>
+    public ActivityViewModel Activity { get; }
 
     public PosViewModel Pos { get; }
 
@@ -761,6 +765,10 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
         else if (value.Page == Customers)
         {
             _ = Customers.InitializeAsync();
+        }
+        else if (value.Page == Activity)
+        {
+            _ = Activity.RefreshAsync();
         }
         else if (value.Page == Pos)
         {
