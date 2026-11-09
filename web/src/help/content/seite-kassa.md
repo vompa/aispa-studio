@@ -56,7 +56,7 @@ Links der „Zwischenbericht seit dem letzten Abschluss“: Umsatz, Zahlungsarte
 
 ## Rechte und Eingaben {#rechte}
 
-- **Entnahme** sehen nur Standortleitung und Inhaber; für die Rezeption heißt der Kasten „Einlage“ und hat nur diesen Tab.
+- **Entnahme** sehen nur Standortleitung und Inhaber; für die Rezeption heißt der Kasten „Einlage“ und zeigt keine Reiter, es gibt nur die Einlage.
 - Stornieren dürfen Standortleitung und Inhaber jeden Beleg; die Rezeption nur eigene Belege bis 15 Minuten nach dem Kassieren.
 - Beträge mit Komma oder Punkt eingeben, z. B. „12,50“ oder „12.50“. Ein Betrag, der sich nicht lesen lässt oder mehr als zwei Nachkommastellen hat, bekommt beim Verlassen des Feldes einen Hinweis. Ein lesbarer Betrag gilt schon beim Tippen: Ein Knopf wie **Wertgutschein verkaufen** lässt sich gleich drücken, ohne das Feld zu verlassen. Solange ein Betrag nicht lesbar ist, sind **Bezahlen und Beleg erstellen** und die anderen Knöpfe zum Bezahlen, Buchen und Abschließen gesperrt.
 - Ist noch keine Kasse eingerichtet, führt die Einrichtung über **Verwaltung** › **Kassa & Geld** › **Kassa**.

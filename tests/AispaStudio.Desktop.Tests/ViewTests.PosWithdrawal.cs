@@ -30,7 +30,8 @@ public sealed partial class ViewTests
         await Pump();
 
         Assert.False(Tab("Entnahme").IsEffectivelyVisible);
-        Assert.True(Tab("Einlage").IsEffectivelyVisible);
+        // Befund B19: Bei nur einer Option steht kein Reiter „Einlage“ unter der Überschrift „Einlage“.
+        Assert.False(Tab("Einlage").IsEffectivelyVisible);
         Assert.False(pos.MovementIsWithdrawal);
         Assert.Equal("Einlage", pos.MovementTitle);
         Assert.Contains(window.GetVisualDescendants().OfType<TextBlock>(), t => t.Text == "Einlage" && t.Classes.Contains("h2") && t.IsEffectivelyVisible);

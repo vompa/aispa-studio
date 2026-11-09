@@ -513,7 +513,7 @@ Result: ☐
 ### Rezeptions-Lücken G – Tab „Entnahme“ nur mit Kassenaufsicht
 Start: `dotnet run --project src/AispaStudio.AppHost`, als Rezeption anmelden, **Kassa** › oben **Kassenlade** (Tagesabschluss)
 1. Den Kasten rechts ansehen.
-Expected: Überschrift „Einlage“, nur der Tab **Einlage**, darunter „Kein Umsatz. Entnehmen darf nur, wer die Kassenaufsicht hat.“
+Expected: Überschrift „Einlage“, kein Reiter (es gibt nur die Einlage), darunter „Kein Umsatz. Entnehmen darf nur, wer die Kassenaufsicht hat.“
 2. Abmelden, als Standortleitung anmelden, dieselbe Stelle öffnen.
 Expected: Überschrift „Einlage oder Entnahme“, Tabs **Einlage** und **Entnahme**.
 Closes: L6 (live-tests-rezeption-onboarding.md, Abschnitt 3)
@@ -567,4 +567,13 @@ Expected: „Wertgutschein verkaufen“ steht ganz da (bei Platzmangel in zwei Z
 3. Einen Artikel anklicken.
 Expected: Er steht auf der Rechnung.
 Closes: B6 (live-sichtpruefung-2026-11-09.md)
+Result: ☐
+
+### Befunde Kassa B19 – Kassenlade ohne einzelnen Reiter
+Start: `dotnet run --project src/AispaStudio.AppHost`, als Rezeption anmelden, **Kassa** › **Kassenlade & Abschluss**
+1. Den Kasten rechts unter „Tagesabschluss“ ansehen.
+Expected: Überschrift „Einlage“, darunter gleich die Felder **Betrag** und **Grund**; kein Reiter „Einlage“.
+2. Abmelden, als Standortleitung anmelden, dieselbe Stelle öffnen.
+Expected: Überschrift „Einlage oder Entnahme“ mit den Reitern **Einlage** und **Entnahme**.
+Closes: B19 (live-sichtpruefung-2026-11-09.md)
 Result: ☐
