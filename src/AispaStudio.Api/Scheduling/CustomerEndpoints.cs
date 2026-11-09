@@ -19,25 +19,8 @@ internal static class CustomerEndpoints
         var group = routes.MapGroup("/api/customers").WithTags("Kunden").RequirePermission(AccessRight.ViewCalendar);
 
         group.MapGet("/", async (string? search, AispaDbContext db, CancellationToken ct) =>
-            {
-                var query = db.Customers.AsNoTracking();
-                // Jedes Suchwort muss in Vorname, Rufname, Nachname, E-Mail oder Telefon vorkommen: „anna muster“, „0664“ usw.
-                // Titel („Dr.“, „MSc“) sind keine Suchwörter, damit „Dr. Huber“ die Kundin trotzdem findet.
-                foreach (var term in PersonNames.WithoutTitles(search).Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
-                {
-                    var pattern = $"%{term.Replace("\\", "\\\\", StringComparison.Ordinal).Replace("%", "\\%", StringComparison.Ordinal).Replace("_", "\\_", StringComparison.Ordinal)}%";
-                    query = query.Where(c =>
-                        EF.Functions.ILike(c.FirstName, pattern) ||
-                        (c.PreferredName != null && EF.Functions.ILike(c.PreferredName, pattern)) ||
-                        EF.Functions.ILike(c.LastName, pattern) ||
-                        (c.Email != null && EF.Functions.ILike(c.Email, pattern)) ||
-                        db.CustomerEmails.Any(e => e.CustomerId == c.Id && EF.Functions.ILike(e.Address, pattern)) ||
-                        (c.Phone != null && EF.Functions.ILike(c.Phone, pattern)));
-                }
-
-                return (await query.OrderBy(c => c.LastName).ThenBy(c => c.FirstName).Take(25).ToListAsync(ct))
-                    .Select(ToDto).ToList();
-            })
+                (await Search(db.Customers.AsNoTracking(), db, search).OrderBy(c => c.LastName).ThenBy(c => c.FirstName).Take(25).ToListAsync(ct))
+                    .Select(ToDto).ToList())
             .WithName("SearchCustomers")
             .WithSummary("Sucht im gemeinsamen Kundenstamm (höchstens 25 Treffer).");
 
@@ -340,6 +323,27 @@ internal static class CustomerEndpoints
             .WithSummary("Termine eines Kunden an allen Standorten mit Zugang, neueste zuerst. Der Kundenstamm selbst ist standortübergreifend.");
 
         return routes;
+    }
+
+    /// <summary>
+    /// Die Suche der Kundenliste, auch für den Export: Jedes Suchwort muss in Vorname, Rufname, Nachname, E-Mail oder Telefon vorkommen („anna muster“, „0664“ usw.).
+    /// Titel („Dr.“, „MSc“) sind keine Suchwörter, damit „Dr. Huber“ die Kundin trotzdem findet.
+    /// </summary>
+    public static IQueryable<Customer> Search(IQueryable<Customer> query, AispaDbContext db, string? search)
+    {
+        foreach (var term in PersonNames.WithoutTitles(search).Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            var pattern = $"%{term.Replace("\\", "\\\\", StringComparison.Ordinal).Replace("%", "\\%", StringComparison.Ordinal).Replace("_", "\\_", StringComparison.Ordinal)}%";
+            query = query.Where(c =>
+                EF.Functions.ILike(c.FirstName, pattern) ||
+                (c.PreferredName != null && EF.Functions.ILike(c.PreferredName, pattern)) ||
+                EF.Functions.ILike(c.LastName, pattern) ||
+                (c.Email != null && EF.Functions.ILike(c.Email, pattern)) ||
+                db.CustomerEmails.Any(e => e.CustomerId == c.Id && EF.Functions.ILike(e.Address, pattern)) ||
+                (c.Phone != null && EF.Functions.ILike(c.Phone, pattern)));
+        }
+
+        return query;
     }
 
     private static string? Blank(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();

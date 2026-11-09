@@ -23,7 +23,7 @@ public static class ChangeHistory
     public static readonly string[] Tables =
     [
         "aispa.Appointments",
-        "aispa.Customers", "aispa.CustomerEmails",
+        "aispa.Customers", "aispa.CustomerEmails", "aispa.MarketingConsents",
         "aispa.Treatments", "aispa.TreatmentLocationPrices", "aispa.TreatmentPriceRules",
         "aispa.RosterDays", "aispa.RosterDayEntries",
         "aispa.StaffAccess",
@@ -138,6 +138,8 @@ public static class ChangeHistory
                         ctx := jsonb_build_object('Role', r -> 'Role');
                     WHEN 'CustomerEmails' THEN
                         ctx := jsonb_build_object('Address', r -> 'Address');
+                    WHEN 'MarketingConsents' THEN
+                        ctx := jsonb_build_object('State', r -> 'State');
                     WHEN 'Exports' THEN
                         -- Export-Protokoll: der Satz „Export Kundenliste (Excel, 312 Zeilen) von Lena“ entsteht aus diesem Kontext.
                         ctx := jsonb_build_object('Kind', r -> 'Kind', 'Format', r -> 'Format', 'Rows', r -> 'RowCount', 'Filter', r -> 'Filter');

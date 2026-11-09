@@ -16,13 +16,13 @@ public partial class CustomersViewModel
     private static readonly HashSet<string> SectionStates =
     [
         nameof(Selected), nameof(Insights), nameof(Wishes), nameof(IsAddingFlag), nameof(IsEditingWishes), nameof(IsEditingReceptionNote),
-        nameof(IsEditingBooking), nameof(IsEditingBilling), nameof(IsEditingDiscount), nameof(IsAddingEmail), nameof(IsEditingAny),
+        nameof(IsEditingBooking), nameof(IsEditingBilling), nameof(IsEditingDiscount), nameof(IsAddingEmail), nameof(IsEditingAny), nameof(IsEditingConsent), nameof(Consent),
     ];
 
     private static readonly string[] SectionProperties =
     [
         nameof(WishesSectionVisible), nameof(FlagsSectionVisible), nameof(ReceptionNoteSectionVisible), nameof(BookingSectionVisible),
-        nameof(BillingSectionVisible), nameof(DiscountSectionVisible), nameof(NoteSectionVisible), nameof(EmailsSectionVisible),
+        nameof(BillingSectionVisible), nameof(DiscountSectionVisible), nameof(NoteSectionVisible), nameof(EmailsSectionVisible), nameof(ConsentSectionVisible),
         nameof(MissingWishes), nameof(MissingFlags), nameof(MissingReceptionNote), nameof(MissingBooking), nameof(HasMissing),
         nameof(HasPackages), nameof(HasVouchers), nameof(HasPurchases), nameof(HasNameChanges), nameof(IsNewPrimary), nameof(IsBookPrimary),
     ];

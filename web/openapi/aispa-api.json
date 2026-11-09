@@ -2981,6 +2981,95 @@
         }
       }
     },
+    "/api/v1/customers/export": {
+      "get": {
+        "tags": [
+          "Kunden"
+        ],
+        "summary": "Exportiert die gefilterte Kundenliste als Excel, CSV, Portal-CSV (englische Spalten, Komma) oder vCard; mit list=newsletter nur Gäste mit bestätigter Werbe-Einwilligung (nur Inhaber und Manager). Nie Gesundheitsdaten, Wünsche, Rabatt oder Rechnungsdaten; der Vermerk nur für die Leitung. Höchstens 50 000 Zeilen.",
+        "operationId": "ExportCustomers",
+        "parameters": [
+          {
+            "name": "format",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "list",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/customers/{customerId}/vcard": {
+      "get": {
+        "tags": [
+          "Kunden"
+        ],
+        "summary": "Ein Gast als vCard 4.0 für Outlook, Apple und Google; der Vermerk der Rezeption steht nur für Inhaber und Manager in NOTE.",
+        "operationId": "ExportCustomerVCard",
+        "parameters": [
+          {
+            "name": "customerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
     "/api/v1/locations/{locationId}/calendar": {
       "get": {
         "tags": [
@@ -26408,6 +26497,69 @@
           }
         }
       },
+      "put": {
+        "tags": [
+          "Wiederbuchungs-Hinweis"
+        ],
+        "summary": "Trägt ein, was der Gast am Empfang gesagt hat: Ja (Werbung per Mail, Quelle „Rezeption“), Nein oder nicht gefragt. Eine per Mail bestätigte Einwilligung bleibt bei Ja bestehen.",
+        "operationId": "DecideMarketingConsent",
+        "parameters": [
+          {
+            "name": "customerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MarketingConsentDecision"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MarketingConsentDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
       "delete": {
         "tags": [
           "Wiederbuchungs-Hinweis"
@@ -37535,6 +37687,17 @@
           }
         }
       },
+      "MarketingConsentDecision": {
+        "required": [
+          "state"
+        ],
+        "type": "object",
+        "properties": {
+          "state": {
+            "$ref": "#/components/schemas/MarketingConsentState"
+          }
+        }
+      },
       "MarketingConsentDto": {
         "required": [
           "state",
@@ -37588,6 +37751,12 @@
               "null",
               "string"
             ]
+          },
+          "recordedBy": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -37610,7 +37779,8 @@
           "None",
           "Pending",
           "Confirmed",
-          "Withdrawn"
+          "Withdrawn",
+          "Refused"
         ]
       },
       "MaterialLine": {

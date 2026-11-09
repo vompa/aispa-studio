@@ -920,6 +920,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/customers/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Exportiert die gefilterte Kundenliste als Excel, CSV, Portal-CSV (englische Spalten, Komma) oder vCard; mit list=newsletter nur Gäste mit bestätigter Werbe-Einwilligung (nur Inhaber und Manager). Nie Gesundheitsdaten, Wünsche, Rabatt oder Rechnungsdaten; der Vermerk nur für die Leitung. Höchstens 50 000 Zeilen. */
+        get: operations["ExportCustomers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customers/{customerId}/vcard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Ein Gast als vCard 4.0 für Outlook, Apple und Google; der Vermerk der Rezeption steht nur für Inhaber und Manager in NOTE. */
+        get: operations["ExportCustomerVCard"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/locations/{locationId}/calendar": {
         parameters: {
             query?: never;
@@ -7262,7 +7296,8 @@ export interface paths {
         };
         /** Einwilligung des Gastes in Wiederbuchungs-Hinweise. */
         get: operations["GetMarketingConsent"];
-        put?: never;
+        /** Trägt ein, was der Gast am Empfang gesagt hat: Ja (Werbung per Mail, Quelle „Rezeption“), Nein oder nicht gefragt. Eine per Mail bestätigte Einwilligung bleibt bei Ja bestehen. */
+        put: operations["DecideMarketingConsent"];
         /** Fragt den Gast per Mail um Einwilligung (Double-Opt-in). Erst nach seiner Bestätigung gehen Wiederbuchungs-Hinweise. */
         post: operations["RequestMarketingConsent"];
         /** Widerruf, z. B. wenn der Gast es am Empfang sagt. */
@@ -10212,6 +10247,9 @@ export interface components {
              */
             cancellations: number;
         };
+        MarketingConsentDecision: {
+            state: components["schemas"]["MarketingConsentState"];
+        };
         MarketingConsentDto: {
             state: components["schemas"]["MarketingConsentState"];
             email: null | string;
@@ -10223,12 +10261,13 @@ export interface components {
             /** Format: date-time */
             withdrawnAt: null | string;
             source: null | string;
+            recordedBy?: null | string;
         };
         MarketingConsentRequest: {
             language: null | string;
         };
         /** @enum {unknown} */
-        MarketingConsentState: "None" | "Pending" | "Confirmed" | "Withdrawn";
+        MarketingConsentState: "None" | "Pending" | "Confirmed" | "Withdrawn" | "Refused";
         MaterialLine: {
             name: string;
             /** Format: double */
@@ -15592,6 +15631,68 @@ export interface operations {
                 content: {
                     "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
+            };
+        };
+    };
+    ExportCustomers: {
+        parameters: {
+            query?: {
+                format?: string;
+                search?: string;
+                list?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    ExportCustomerVCard: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                customerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -33855,6 +33956,57 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MarketingConsentDto"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    DecideMarketingConsent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                customerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MarketingConsentDecision"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MarketingConsentDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
                 };
             };
             /** @description Forbidden */

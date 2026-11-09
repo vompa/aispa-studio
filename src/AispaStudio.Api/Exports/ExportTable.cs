@@ -27,6 +27,12 @@ internal sealed record ExportTable(string Name, IReadOnlyList<ExportColumn> Colu
 /// <summary>Dateinamen, Inhaltstypen und Bezeichnungen der Formate, gemeinsam für alle Exporte.</summary>
 internal static class ExportFiles
 {
+    public const string UnknownFormatMessage = "Format unbekannt. Möglich sind xlsx, csv, portal, vcf und ics.";
+
+    /// <summary>Liest „xlsx“, „csv“, „portal“, „vcf“ oder „ics“ aus der Abfrage, ohne auf Groß- und Kleinschreibung zu achten; Zahlen und Unbekanntes ergeben null.</summary>
+    public static ExportFormat? Parse(string? text) =>
+        Enum.GetValues<ExportFormat>().Cast<ExportFormat?>().FirstOrDefault(f => string.Equals(f.ToString(), text?.Trim(), StringComparison.OrdinalIgnoreCase));
+
     public static string Label(ExportFormat format) => format switch
     {
         ExportFormat.Xlsx => "Excel",

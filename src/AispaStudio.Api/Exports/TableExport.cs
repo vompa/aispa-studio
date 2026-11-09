@@ -53,13 +53,14 @@ internal static class TableExport
         return stream.ToArray();
     }
 
-    public static byte[] ToCsv(ExportTable table)
+    /// <summary>Strichpunkt für Excel in Österreich und Deutschland; Komma nur für die Portal-CSV mit englischen Spalten.</summary>
+    public static byte[] ToCsv(ExportTable table, char separator = ';')
     {
         var builder = new StringBuilder();
-        builder.Append(string.Join(';', table.Columns.Select(c => Quote(c.Name)))).Append("\r\n");
+        builder.Append(string.Join(separator, table.Columns.Select(c => Quote(c.Name, separator)))).Append("\r\n");
         foreach (var row in table.Rows)
         {
-            builder.Append(string.Join(';', table.Columns.Select((c, i) => Quote(CsvText(c.Kind, row[i]))))).Append("\r\n");
+            builder.Append(string.Join(separator, table.Columns.Select((c, i) => Quote(CsvText(c.Kind, row[i]), separator)))).Append("\r\n");
         }
 
         return [.. Utf8WithBom.GetPreamble(), .. Encoding.UTF8.GetBytes(builder.ToString())];
@@ -115,8 +116,8 @@ internal static class TableExport
         _ => value.ToString() ?? "",
     };
 
-    private static string Quote(string text) =>
-        text.AsSpan().IndexOfAny(";\"\r\n") >= 0 ? $"\"{text.Replace("\"", "\"\"", StringComparison.Ordinal)}\"" : text;
+    private static string Quote(string text, char separator) =>
+        text.AsSpan().IndexOfAny("\"\r\n") >= 0 || text.Contains(separator, StringComparison.Ordinal) ? $"\"{text.Replace("\"", "\"\"", StringComparison.Ordinal)}\"" : text;
 
     /// <summary>Excel erlaubt 31 Zeichen und keines von <c>[]:*?/\</c> im Blattnamen.</summary>
     private static string SheetName(string name)
