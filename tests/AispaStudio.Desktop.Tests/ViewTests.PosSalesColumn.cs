@@ -168,6 +168,30 @@ public sealed partial class ViewTests
         return shell.Pos;
     });
 
+    /// <summary>Befund B6: Artikelkacheln brachen mitten im Wort („Gesichtscr eme“), „Wertgutschein ver…“ war gekürzt.</summary>
+    [Fact]
+    public Task Given_Panel_offen_When_Artikel_stehen_Then_je_Name_eine_Zeile_in_einer_Spalte_und_kein_Text_gekuerzt() => Render("hell", "kassa-artikel-zeilen", async (window, main) =>
+    {
+        var (page, shell) = await OpenCheckoutAt1280(window, main, salesOpen: true);
+        var sales = Named<Control>(page, "SalesColumn");
+
+        var tiles = sales.GetVisualDescendants().OfType<Button>().Where(b => b.IsEffectivelyVisible && b.DataContext is ArticleDto).ToList();
+        Assert.Equal(SpaSample.Articles.Count, tiles.Count);
+        Assert.Single(tiles.Select(t => Math.Round(Left(window, t))).Distinct());
+        foreach (var tile in tiles)
+        {
+            var article = (ArticleDto)tile.DataContext!;
+            var name = tile.GetVisualDescendants().OfType<TextBlock>().Single(t => t.Text == article.Name);
+            Assert.True(name.TextLayout.TextLines.Count == 1, $"„{article.Name}“ steht in {name.TextLayout.TextLines.Count} Zeilen");
+        }
+
+        // Kein sichtbarer Text der Spalte ist mit „…“ gekürzt, auch nicht der Knopf „Wertgutschein verkaufen“.
+        var texts = sales.GetVisualDescendants().OfType<TextBlock>().Where(t => t.IsEffectivelyVisible && !string.IsNullOrWhiteSpace(t.Text)).ToList();
+        Assert.Contains(texts, t => t.Text == "Wertgutschein verkaufen");
+        Assert.All(texts, t => Assert.DoesNotContain(t.TextLayout.TextLines, line => line.HasCollapsed));
+        return shell.Pos;
+    });
+
     [Fact]
     public Task Artikel_und_Gutscheine_ist_beim_ersten_Start_zugeklappt() => Render("hell", "kassa-spalte-start", async (window, main) =>
     {

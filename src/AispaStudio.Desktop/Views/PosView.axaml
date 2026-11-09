@@ -101,8 +101,9 @@
     </Grid>
 
     <StackPanel Grid.Row="1" Grid.ColumnSpan="4" Spacing="8">
+      <ProgressBar IsIndeterminate="True" Margin="0,0,0,12" IsVisible="{Binding IsWorking}" AutomationProperties.Name="Der Termin wird eingecheckt" />
       <ui:InfoBar Severity="Error" Margin="0,0,0,12" Message="{Binding Error}" IsVisible="{Binding Error, Converter={x:Static ObjectConverters.IsNotNull}}" />
-      <ui:InfoBar Severity="Warning" Margin="0,0,0,12" Message="{Binding Warning}" IsVisible="{Binding Warning, Converter={x:Static ObjectConverters.IsNotNull}}" />
+      <ui:InfoBar Severity="Warning" Margin="0,0,0,12" Message="{Binding Warning}" IsVisible="{Binding ShowWarning}" />
     </StackPanel>
 
     <!-- Links: was heute abzurechnen ist, die Hauptliste der Kassa (Slice 137, Ä344); die Gruppen teilt der Server ein -->
@@ -502,17 +503,19 @@
               <StackPanel Spacing="8">
                 <TextBlock Text="Artikel" Classes="group" />
                 <ItemsControl ItemsSource="{Binding Articles}">
+                  <!-- Eine Spalte, der Name ganz in einer Zeile, der Preis darunter: zwei Kacheln nebeneinander brachen die Namen mitten im Wort (Befund B6);
+                       neben dem Preis ließe die 232 px schmale Spalte dem Namen zu wenig Platz. -->
                   <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
-                      <UniformGrid Columns="2" ColumnSpacing="6" RowSpacing="6" />
+                      <StackPanel Spacing="6" />
                     </ItemsPanelTemplate>
                   </ItemsControl.ItemsPanel>
                   <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="c:ArticleDto">
-                      <Button Classes="tile" Height="62" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" VerticalContentAlignment="Top"
+                      <Button Classes="tile" MinHeight="34" Padding="10,6" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" VerticalContentAlignment="Center"
                               Command="{Binding #Root.((vm:PosViewModel)DataContext)?.AddArticleCommand}" CommandParameter="{Binding}">
                         <StackPanel>
-                          <TextBlock Text="{Binding Name}" TextWrapping="Wrap" MaxLines="2" FontSize="12" />
+                          <TextBlock Text="{Binding Name}" TextWrapping="Wrap" FontSize="12" />
                           <TextBlock Classes="num muted small">
                             <TextBlock.Text>
                               <MultiBinding Converter="{x:Static vm:Converters.MoneyText}">
@@ -542,7 +545,7 @@
                           ui:DisabledHint.Text="Verfügbar, sobald ein Betrag über 0 eingetragen ist.">
                     <Grid ColumnDefinitions="Auto,*" ColumnSpacing="6">
                       <ui:Icon Data="{x:Static ui:Icons.Gift}" Width="16" Height="16" />
-                      <TextBlock Grid.Column="1" Text="Wertgutschein verkaufen" TextTrimming="CharacterEllipsis" />
+                      <TextBlock Grid.Column="1" Text="Wertgutschein verkaufen" TextWrapping="Wrap" VerticalAlignment="Center" />
                     </Grid>
                   </Button>
                 </StackPanel>
@@ -879,11 +882,12 @@
         <Border Classes="card">
           <StackPanel Spacing="10">
             <TextBlock Text="{Binding MovementTitle}" Classes="h2" />
-            <Border Classes="segmented" HorizontalAlignment="Left">
+            <!-- L6: Entnehmen darf nur die Kassenaufsicht; der Tab fehlt sonst, statt erst beim Buchen zu scheitern.
+                 B19: Bleibt nur „Einlage“, entfällt die ganze Auswahl; die Überschrift „Einlage“ genügt. -->
+            <Border Classes="segmented" HorizontalAlignment="Left" IsVisible="{Binding MaySuperviseCash}">
               <StackPanel Orientation="Horizontal">
                 <ui:TabButton Content="Einlage" IsSelected="{Binding !MovementIsWithdrawal}" Click="OnDeposit" />
-                <!-- L6: Entnehmen darf nur die Kassenaufsicht; der Tab fehlt sonst, statt erst beim Buchen zu scheitern -->
-                <ui:TabButton Content="Entnahme" IsSelected="{Binding MovementIsWithdrawal}" Click="OnWithdrawal" IsVisible="{Binding MaySuperviseCash}" />
+                <ui:TabButton Content="Entnahme" IsSelected="{Binding MovementIsWithdrawal}" Click="OnWithdrawal" />
               </StackPanel>
             </Border>
             <ui:FormField Label="{Binding Currency, StringFormat='Betrag ({0})'}" IsRequired="True">

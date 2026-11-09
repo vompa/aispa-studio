@@ -40,7 +40,7 @@ Im Panel **Neuer Termin** unter **Behandlung** die Behandlung wählen. Die Liste
 
 ### 4. Termin buchen
 
-Auf **Termin buchen** klicken.
+Auf **Termin buchen** klicken. Der Knopf steht fest am unteren Rand des Panels, auch wenn die Eingaben darüber gescrollt werden müssen; eine Meldung dazu (z. B. „Zeitraum ist belegt.“) erscheint direkt über dem Knopf.
 
 ![Panel Neuer Termin mit markiertem Knopf Termin buchen](images/app/termin-buchen-4.png)
 

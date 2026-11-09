@@ -59,6 +59,9 @@ public partial class AppointmentViewModel(
 
     public string DateText => DayLayout.DateText(DateOnly.FromDateTime(DayLayout.Local(Appointment.Start, zone)));
 
+    /// <summary>Kurzes Datum für Rückfragen („Do. 12.11.“, design.md 5.27).</summary>
+    private string ShortDateText => DayLayout.ShortDay(DateOnly.FromDateTime(DayLayout.Local(Appointment.Start, zone)));
+
     public string Duration => $"{(Appointment.End - Appointment.Start).TotalMinutes:0} Min.";
 
     /// <summary>Die Behandlung im Katalog: weichen Vor- oder Nachbereitung des Termins davon ab, steht „(geändert)“ dahinter.</summary>
@@ -266,7 +269,7 @@ public partial class AppointmentViewModel(
         var notice = LateCancelNotice;
         var reason = notice is not null && CancelReason == DefaultCancelReason ? LateCancelReason : CancelReason;
         var answer = await AskAsync(new ConfirmRequest("Termin stornieren?",
-            $"Der Termin von {Title} am {DateText}, {TimeText}, ist danach storniert und blockiert keine Zeit mehr.{(fee is null ? "" : $" {fee}")}", CancelOneText,
+            $"Der Termin von {Title} am {ShortDateText}, {TimeText}, ist danach storniert und blockiert keine Zeit mehr.{(fee is null ? "" : $" {fee}")}", CancelOneText,
             AlternativeText: CanCancelFollowing ? "Diesen und alle folgenden" : null, InputLabel: "Grund", InputText: reason, Notice: notice)).ConfigureAwait(true);
         if (answer.Choice == ConfirmChoice.Cancelled)
         {
@@ -337,7 +340,7 @@ public partial class AppointmentViewModel(
 
     private string RestoreText(AppointmentRestoration restoration)
     {
-        var text = $"Der Termin von {Title} am {DateText}, {TimeText}, ist danach wieder gebucht. Das Programm prüft zuerst, ob Zeit, Person und Raum noch frei sind.";
+        var text = $"Der Termin von {Title} am {ShortDateText}, {TimeText}, ist danach wieder gebucht. Das Programm prüft zuerst, ob Zeit, Person und Raum noch frei sind.";
         text += restoration.Notice switch
         {
             CancellationNoticeState.Waiting => " Die Absage an den Gast ist noch nicht raus und wird nicht mehr gesendet.",
