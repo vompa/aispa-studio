@@ -35,6 +35,9 @@ internal sealed class LiveRunContext
 
     /// <summary>Gutschein-Code, den „Gutschein“ verkauft hat (Format XXXX-XXXX-XXXX); null vor diesem Thema.</summary>
     public string? VoucherCode { get; set; }
+
+    /// <summary>Die Online-Regeln des Standorts vor dem Thema, das sie ändert (Antwort des Servers); null, wenn nichts zu sichern ist.</summary>
+    public System.Text.Json.Nodes.JsonNode? SavedRules { get; set; }
 }
 
 /// <summary>
@@ -49,7 +52,12 @@ internal sealed record BookedAppointment(string Customer, string Treatment, stri
 }
 
 /// <summary>Ablauf einer Rolle: ein fester Vorlauf (Anmeldung) und die wählbaren Themen in fester Reihenfolge.</summary>
-internal sealed record LiveJourney(string Role, string SetupName, Action<LiveSession> Setup, IReadOnlyList<LiveTopic> Topics)
+internal sealed record LiveJourney(
+    string Role,
+    string SetupName,
+    Action<LiveSession> Setup,
+    IReadOnlyList<LiveTopic> Topics,
+    Action<LiveSession, LiveRunContext>? Baseline = null)
 {
     /// <summary>Die Themen zu den Schlüsseln, in der Reihenfolge des Ablaufs; leer heißt alle.</summary>
     public IReadOnlyList<LiveTopic> Select(IReadOnlyCollection<string> keys)
@@ -82,16 +90,51 @@ internal sealed record LiveJourney(string Role, string SetupName, Action<LiveSes
         }
     }
 
-    /// <summary>Führt Vorlauf und Themen aus und liefert den Exitcode von <see cref="LiveSession.Run"/>.</summary>
+    /// <summary>
+    /// Führt Vorlauf und Themen aus und liefert den Exitcode von <see cref="LiveSession.Run"/>. Ein roter Schritt macht sein Thema rot, der
+    /// Lauf geht mit dem nächsten Thema weiter (Sichtprüfung 09.11.2026, T8); <see cref="Baseline"/> bringt die App vorher in den Grundzustand.
+    /// Themen, die ein rotes oder übersprungenes Thema brauchen, werden übersprungen und im Bericht genannt. Nur ein fremdes Fenster im
+    /// Vordergrund oder ein Stopp beendet den ganzen Lauf.
+    /// </summary>
     public int Run(LiveSession session, IReadOnlyList<LiveTopic> topics) => session.Run(() =>
     {
         var context = new LiveRunContext();
         Setup(session);
+        var unavailable = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var topic in topics)
         {
+            var blockedBy = (topic.Needs ?? []).Where(unavailable.Contains).ToList();
+            if (blockedBy.Count > 0)
+            {
+                unavailable.Add(topic.Key);
+                session.MarkTopicSkipped(topic.Key, blockedBy);
+                continue;
+            }
+
             session.Report.AddEvent($"Thema „{topic.Name}“ ({topic.Key}). Vermerk: {topic.Leaves}");
-            topic.Run(session, context);
-            context.Done.Add(topic.Key);
+            try
+            {
+                topic.Run(session, context);
+                context.Done.Add(topic.Key);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                unavailable.Add(topic.Key);
+                session.MarkTopicRed(topic.Key, ex.Message);
+                ResetBaseline(session, context);
+            }
         }
     });
+
+    private void ResetBaseline(LiveSession session, LiveRunContext context)
+    {
+        try
+        {
+            Baseline?.Invoke(session, context);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            session.Report.AddEvent($"Grundzustand nicht ganz erreicht: {ex.Message}");
+        }
+    }
 }

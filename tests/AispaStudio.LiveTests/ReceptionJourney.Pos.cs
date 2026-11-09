@@ -70,6 +70,24 @@ internal static partial class ReceptionJourney
         }
     }
 
+    /// <summary>
+    /// Bei offenem „Artikel und Gutscheine“ liegt die Spalte „Bezahlen“ rechts außerhalb des Fensters; ein Klick dorthin traf die KI-Taste
+    /// (Sichtprüfung 09.11.2026). Die Verkaufsspalte wird zugeklappt und ein offenes Seitenfenster „KI und Hilfe“ geschlossen.
+    /// </summary>
+    private static void CloseSalesForPayment(LiveSession s)
+    {
+        if (s.TryFind(Class("TextBlock", NameIs("KI und Hilfe")), TimeSpan.FromMilliseconds(500)) is not null)
+        {
+            s.Click(Button("Schließen"), "Knopf „Schließen“ des Seitenfensters „KI und Hilfe“");
+        }
+
+        if (s.TryFind("Wert (EUR)", TimeSpan.FromMilliseconds(500)) is not null)
+        {
+            s.Click("SalesColumnHeader");
+            s.ExpectMissing("Wert (EUR)");
+        }
+    }
+
     private static void SellVoucher(LiveSession s, LiveRunContext context)
     {
         OpenPos(s);
@@ -82,6 +100,7 @@ internal static partial class ReceptionJourney
         s.Step("Bar bezahlen: Beleg mit „Gutschein XXXX-XXXX-XXXX“, Code lesen", () =>
         {
             Thread.Sleep(1200); // Sichtprüfung 09.11.2026: nach „Wertgutschein verkaufen“ baut die Kassa neu auf
+            CloseSalesForPayment(s);
             s.Type("Bar gegeben", "50,00");
             LiveSession.Press(VirtualKeyShort.TAB);
             s.Click(EnabledButton("Bezahlen und Beleg erstellen"), "Freigegebener Knopf „Bezahlen und Beleg erstellen“");
@@ -94,12 +113,28 @@ internal static partial class ReceptionJourney
     private static void InvalidVoucher(LiveSession s, LiveRunContext context)
     {
         OpenPos(s);
-        s.Step("Ungültigen Code eintragen: „Diesen Gutschein-Code gibt es nicht.“", () =>
+        // Sichtprüfung 09.11.2026 (T5): Das Feld „Gutschein-Code“ und die Meldung gibt es nur bei einer offenen Rechnung; ein Wertgutschein im Warenkorb legt sie an.
+        s.Step("Offene Rechnung anlegen: Wertgutschein über 10,00 € in den Warenkorb", () =>
         {
             OpenSales(s);
+            s.Type("Wert (EUR)", "10,00");
+            s.Click(Button("Wertgutschein verkaufen"), "Knopf „Wertgutschein verkaufen“");
+            s.Expect(NameStarts("Noch offen:"), "Hinweis „Noch offen: …“ der offenen Rechnung");
+            Thread.Sleep(1200);
+            CloseSalesForPayment(s);
+        });
+        s.Step("Ungültigen Code eintragen: „Diesen Gutschein-Code gibt es nicht.“", () =>
+        {
             s.Type("Gutschein-Code", "ABCD-EFGH-2345");
             LiveSession.Press(VirtualKeyShort.TAB);
-            s.Expect(NameContains("Diesen Gutschein-Code gibt es nicht"), "Meldung „Diesen Gutschein-Code gibt es nicht.“");
+            // Die Meldung am Feld liest UI Automation als Hilfetext des Feldes (FormField), nicht als eigenen Text.
+            s.Expect(NameOrHelpContains("Diesen Gutschein-Code gibt es nicht"), "Meldung „Diesen Gutschein-Code gibt es nicht.“");
+        });
+        s.Step("Rechnung verwerfen (nichts bleibt zurück)", () =>
+        {
+            s.Click(Button("Verwerfen"), "Knopf „Verwerfen“ der Rechnung");
+            s.Click("ConfirmButton");
+            s.Expect("NoBillHint");
         });
     }
 

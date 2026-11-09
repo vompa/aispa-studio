@@ -158,11 +158,22 @@ internal static partial class ReceptionJourney
                 s.Report.AddEvent("BEFUND: Toast „Gebucht: …“ nach dem Buchen nicht gefunden.");
             }
             // Die Kalenderkarte heißt „<Zeit> <Kundin>, <Behandlung>, Gebucht“; der Name allein stünde auch im Kundenfeld.
-            var card = s.Find(Class("AppointmentCard", e => e.Properties.Name.ValueOrDefault is { } name
-                                                          && name.Contains($" {customer}, {Treatment}, Gebucht", StringComparison.Ordinal)),
-                $"Kalenderkarte „{customer}, {Treatment}“");
+            // Der Name der Karte ist beim Neuaufbau des Kalenders kurz leer (Sichtprüfung 09.11.2026, Gegenprobe B8): nochmal lesen.
+            string cardName = "";
+            for (var attempt = 0; attempt < 10 && cardName.Length < 5; attempt++)
+            {
+                var card = s.Find(Class("AppointmentCard", e => e.Properties.Name.ValueOrDefault is { } name
+                                                              && name.Contains($" {customer}, {Treatment}, Gebucht", StringComparison.Ordinal)),
+                    $"Kalenderkarte „{customer}, {Treatment}“");
+                cardName = card.Properties.Name.ValueOrDefault ?? "";
+                if (cardName.Length < 5)
+                {
+                    Thread.Sleep(300);
+                }
+            }
+
             var shown = ShownDate(s);
-            context.Appointment = new BookedAppointment(customer, Treatment, card.Properties.Name.ValueOrDefault![..5], shown,
+            context.Appointment = new BookedAppointment(customer, Treatment, cardName[..5], shown,
                 (int)(ParseShownDate(shown) - today).TotalDays);
         });
         s.Report.AddEvent($"Termin des Laufs: {context.Appointment!.CardPrefix}.");
@@ -229,16 +240,29 @@ internal static partial class ReceptionJourney
     private static void PastBooking(LiveSession s, LiveRunContext context)
     {
         OpenCalendar(s);
-        s.Step("Auf gestern gehen: „Heute“, dann „Vortag“", () =>
+        // Sichtprüfung 09.11.2026 (T4): Am Montag war gestern ein Sonntag ohne Dienst; der Lauf geht bis zu sieben Tage zurück, bis ein Tag Karten hat.
+        s.Step("Auf den letzten Tag davor mit Terminen gehen: „Heute“, dann „Vortag“ (bis zu 7 Tage)", () =>
         {
             s.Click(Button("Heute"), "Knopf „Heute“");
-            s.Click("Vortag");
+            for (var back = 1; back <= 7; back++)
+            {
+                s.Click("Vortag");
+                Thread.Sleep(900); // die Karten des Vortags laden nach dem Klick
+                if (s.TryFind(Class("AppointmentCard", _ => true), TimeSpan.FromMilliseconds(1500)) is not null)
+                {
+                    s.Report.AddEvent($"Vortag mit Terminen: {ShownDate(s)} ({back} {(back == 1 ? "Tag" : "Tage")} zurück).");
+                    return;
+                }
+            }
+
+            throw new InvalidOperationException("In den letzten sieben Tagen gab es keinen Tag mit Terminen.");
         });
         s.Step("Freie Stelle anklicken: kein Termin in der Vergangenheit", () =>
         {
-            var anyCard = s.Find(Class("AppointmentCard", _ => true), "Eine Karte von gestern").BoundingRectangle;
-            var spot = FreePointInColumn(s, anyCard, betweenCards: true);
-            LiveSession.ClickAt(spot);
+            var spot = FreeSpotOnPastDay(s);
+            // Ein Linksklick neben einer Karte in belegter Zeit bucht nie (StartBookingAt); „Termin hier“ im Rechtsklick-Menü ist die bewusste Wahl und trifft die Prüfung auf die Vergangenheit.
+            LiveSession.RightClickAt(spot);
+            s.ChooseMenuItem("Termin hier");
             ExpectToast(s, "Termine lassen sich nicht in der Vergangenheit eintragen", "Meldung „Termine lassen sich nicht in der Vergangenheit eintragen“");
             s.ExpectMissing(Class("TextBox", NameIs("Kundin oder Kunde suchen")), "Buchungspanel");
         });
@@ -253,6 +277,25 @@ internal static partial class ReceptionJourney
             s.Click(Button("Heute"), "Knopf „Heute“");
             s.Click("Nächster Tag");
         });
+    }
+
+    /// <summary>Eine freie Stelle am Ende einer Spalte des gezeigten Tages; eine Spalte ohne freie Stelle wird übergangen.</summary>
+    private static Point FreeSpotOnPastDay(LiveSession s)
+    {
+        foreach (var card in s.VisibleRects(e => e.Properties.ClassName.ValueOrDefault == "AppointmentCard"))
+        {
+            try
+            {
+                // Weit unten in der Spalte (Abend, nach der letzten Karte): dort liegt keine Karte samt Vor- und Nachbereitung.
+                return FreePointInColumn(s, card, s.Find("BodyScroll").BoundingRectangle.Bottom - 120);
+            }
+            catch (InvalidOperationException)
+            {
+                // diese Spalte ist unten belegt; die nächste Karte probieren
+            }
+        }
+
+        throw new InvalidOperationException("Am Vortag mit Terminen gibt es keine freie Stelle am Ende einer Spalte.");
     }
 
     private static void Closed(LiveSession s, LiveRunContext context)
@@ -276,8 +319,23 @@ internal static partial class ReceptionJourney
         });
     }
 
-    private static void SelectCard(LiveSession s, BookedAppointment booked, string status) =>
-        s.Click(Card(booked, status), $"Karte „{booked.CardPrefix}“ mit Status {status}");
+    /// <summary>
+    /// Klickt die Karte an und wartet auf das Panel („Mehr“). Ein Mausklick auf die Karte kam in der Gegenprobe B8 gelegentlich nicht an (nur die Hover-Vorschau
+    /// erschien); der Tester klickt dann bis zu dreimal und schreibt jeden Wiederholungsversuch in den Bericht.
+    /// </summary>
+    private static void SelectCard(LiveSession s, BookedAppointment booked, string status)
+    {
+        for (var attempt = 1; attempt <= 3; attempt++)
+        {
+            s.Click(Card(booked, status), $"Karte „{booked.CardPrefix}“ mit Status {status}");
+            if (s.TryFind("MoreToggle", TimeSpan.FromSeconds(2)) is not null)
+            {
+                return;
+            }
+
+            s.Report.AddEvent($"Klick auf die Karte „{booked.CardPrefix}“ kam nicht an (kein Panel nach 2 s), Versuch {attempt} von 3.");
+        }
+    }
 
     private static void CheckIn(LiveSession s, LiveRunContext context)
     {
@@ -343,6 +401,21 @@ internal static partial class ReceptionJourney
         });
     }
 
+    /// <summary>Klappt „Mehr“ im Panel auf; ein verlorener Mausklick auf die Kopfzeile (Gegenprobe B8) wird bis zu dreimal wiederholt und im Bericht vermerkt.</summary>
+    private static void OpenMore(LiveSession s, Func<AutomationElement, bool> expected)
+    {
+        for (var attempt = 1; attempt <= 3; attempt++)
+        {
+            s.Click("MoreToggle");
+            if (s.TryFind(expected, TimeSpan.FromSeconds(2.5)) is not null)
+            {
+                return;
+            }
+
+            s.Report.AddEvent($"Klick auf „Mehr“ kam nicht an (nichts aufgeklappt nach 2,5 s), Versuch {attempt} von 3.");
+        }
+    }
+
     private static void NoShowAfterCheckIn(LiveSession s, LiveRunContext context)
     {
         var booked = context.Appointment!;
@@ -358,7 +431,7 @@ internal static partial class ReceptionJourney
         });
         s.Step("Mehr aufklappen: „Nicht erschienen“ ist gesperrt", () =>
         {
-            s.Click("MoreToggle");
+            OpenMore(s, Button("Nicht erschienen"));
             s.Expect(Button("Nicht erschienen"), "Knopf „Nicht erschienen“");
             s.ExpectMissing(Class("Button", e => e.Properties.Name.ValueOrDefault == "Nicht erschienen" && e.Properties.IsEnabled.ValueOrDefault),
                 "Freigegebener Knopf „Nicht erschienen“");
