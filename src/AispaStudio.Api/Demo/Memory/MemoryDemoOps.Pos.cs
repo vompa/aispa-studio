@@ -127,6 +127,7 @@ internal sealed partial class MemoryDemoOps
         Guid account;
         Guid? appointmentId = null, treatmentId = null, articleId = null;
         VoucherKind? voucherKind = null;
+        DateOnly? validUntil = null;
 
         switch (input.Kind)
         {
@@ -183,6 +184,8 @@ internal sealed partial class MemoryDemoOps
                 {
                     quantity = 1;
                     voucherKind = input.VoucherKind ?? VoucherKind.MultiPurpose;
+                    validUntil = PosService.VoucherValidUntil(register.Country, input,
+                        LocalTime.LocalDate(_clock.GetUtcNow(), Zone(_snapshot.Locations[register.LocationId])));
                     if (input.Units is not null)
                     {
                         throw new NotSupportedException("Der Verlauf im Speicher verkauft keine Pakete.");
@@ -214,7 +217,7 @@ internal sealed partial class MemoryDemoOps
         }
 
         var line = PosService.NewBillLine(register, bill, input,
-            new PosService.LineBasis(description, unitPrice, quantity, category, account, appointmentId, treatmentId, articleId, null, voucherKind, null));
+            new PosService.LineBasis(description, unitPrice, quantity, category, account, appointmentId, treatmentId, articleId, null, voucherKind, null, validUntil));
         undo.Add(() => bill.Lines.Remove(line));
         if (!_snapshot.Accounts.ContainsKey(account))
         {

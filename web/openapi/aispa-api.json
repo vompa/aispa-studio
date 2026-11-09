@@ -6791,6 +6791,58 @@
         }
       }
     },
+    "/api/v1/pos/registers/{registerId}/voucher-expiry": {
+      "get": {
+        "tags": [
+          "Kassa"
+        ],
+        "operationId": "GetVoucherExpiry",
+        "parameters": [
+          {
+            "name": "registerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "until",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VoucherExpiryDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
     "/api/v1/pos/registers/{registerId}/null-receipt": {
       "post": {
         "tags": [
@@ -29542,6 +29594,10 @@
               "string"
             ],
             "format": "date"
+          },
+          "withoutExpiry": {
+            "type": "boolean",
+            "default": false
           }
         }
       },
@@ -47495,6 +47551,32 @@
               "string"
             ],
             "format": "uuid"
+          }
+        }
+      },
+      "VoucherExpiryDto": {
+        "required": [
+          "default",
+          "rule",
+          "warning"
+        ],
+        "type": "object",
+        "properties": {
+          "default": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "rule": {
+            "type": "string"
+          },
+          "warning": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },

@@ -102,6 +102,10 @@ internal static class ReceiptPrinter
             Line();
             Center($"Gutschein {v.Code}");
             Center($"Wert {currency} {Money(v.InitialValue)}");
+            if (v.ValidUntil is { } until)
+            {
+                Center($"Einzulösen bis {until.ToString("dd.MM.yyyy", German)}");
+            }
         }
 
         if (receipt.SignatureDeviceFailed)

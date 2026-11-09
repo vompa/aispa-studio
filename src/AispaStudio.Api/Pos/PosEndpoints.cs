@@ -141,6 +141,11 @@ internal static class PosEndpoints
             .WithName("GetCashRegister")
             .AlsoAllow(AccessRight.ViewReceipts, insteadOf: AccessRight.Book);
 
+        group.MapGet("/registers/{registerId:guid}/voucher-expiry", async Task<Results<Ok<VoucherExpiryDto>, NotFound>> (
+                Guid registerId, DateOnly? until, PosService pos, CancellationToken ct) =>
+                await pos.VoucherExpiryAsync(registerId, until, ct) is { } expiry ? TypedResults.Ok(expiry) : TypedResults.NotFound())
+            .WithName("GetVoucherExpiry");
+
         group.MapPost("/registers", async Task<Results<Created<CashRegisterDto>, ValidationProblem, ProblemHttpResult>> (
                 CashRegisterInput input, PosService pos, CancellationToken ct) =>
             {

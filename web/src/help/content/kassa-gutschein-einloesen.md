@@ -32,7 +32,7 @@ Ein Gutschein für eine bestimmte Behandlung gilt nur, wenn genau diese Behandlu
 
 - „Diesen Gutschein-Code gibt es nicht.“: den Code prüfen.
 - „… · nicht mehr gültig“ unter dem Feld oder „Gutschein … ist nicht mehr gültig (Restwert …)“ beim Bezahlen: der Gutschein ist aufgebraucht oder storniert.
-- „Gutschein … ist am … abgelaufen.“
+- „Gutschein … ist am … abgelaufen.“: das Datum „Einzulösen bis“ auf Beleg und Gutschein ist vorbei. Woher das Datum kommt: [Ablaufdatum](hilfe:kassa-gutschein-verkaufen#ablaufdatum).
 - „Gutschein …: höchstens … einlösbar.“: der eingetragene Betrag ist höher als der Restwert. Den Restwert eintragen und den Rest anders bezahlen.
 - „Gutschein … gilt nur für eine bestimmte Behandlung, die nicht auf diesem Beleg steht.“
 

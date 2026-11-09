@@ -93,15 +93,78 @@ public sealed class PosTests
         pos.VoucherTreatment = pos.Treatments.First(t => t.Id == SpaSample.Paying.TreatmentId);
         pos.PackageUnits = "10";
         pos.PackagePrice = "699";
-        pos.PackageValidUntil = "30.6.2027";
+        pos.VoucherValidUntil = "30.6.2027";
         Assert.True(pos.SellPackageCommand.CanExecute(null));
         await pos.SellPackageCommand.ExecuteAsync(null);
-        var line = System.Text.Json.JsonSerializer.Deserialize<BillLineInput>(stub.Calls.Last(c => c.Route == $"POST /api/pos/bills/{SpaSample.BillId}/lines").Body!, ApiClient.Json)!;
+        var line = LastLine(stub);
         Assert.Equal((BillLineKind.Voucher, VoucherKind.SinglePurpose, 10, 699m, new DateOnly(2027, 6, 30)),
             (line.Kind, line.VoucherKind, line.Units, line.UnitPrice, line.ValidUntil));
         pos.PackageUnits = "1";
         Assert.False(pos.SellPackageCommand.CanExecute(null));
     }
+
+    [Fact]
+    public async Task Gutschein_hat_die_Frist_des_Landes_vorbelegt_ein_kuerzeres_Datum_gibt_einen_Hinweis_und_leer_heisst_unbefristet()
+    {
+        var expiry = $"GET /api/pos/registers/{SpaSample.Register.Id}/voucher-expiry";
+        const string Rule = "Vorgabe in Deutschland: bis 31.12. des dritten Jahres nach dem Kauf. Leer: unbefristet.";
+        var safe = new DateOnly(2029, 12, 31);
+        var stub = Api()
+            .On(expiry, new VoucherExpiryDto(safe, Rule, null))
+            .On($"{expiry}?until=2027-06-30", new VoucherExpiryDto(safe, Rule, "Kürzer als die übliche Frist bis 31.12.2029; eine kürzere Frist kann unwirksam sein."))
+            .On($"POST /api/pos/bills/{SpaSample.BillId}/lines", SpaSample.Bill());
+        var pos = new PosViewModel(stub.Client(), new SampleTime());
+        await pos.InitializeAsync(SpaSample.LocationId);
+
+        Assert.Equal(("31.12.2029", Rule, null), (pos.VoucherValidUntil, pos.VoucherExpiryRule, pos.VoucherExpiryWarning));
+        pos.VoucherValue = "50";
+        await pos.SellVoucherCommand.ExecuteAsync(null);
+
+        // Unveränderte Vorbelegung: kein Datum mitschicken, der Server rechnet am Verkaufstag (über den Jahreswechsel richtig).
+        Assert.Equal(((DateOnly?)null, false), (LastLine(stub).ValidUntil, LastLine(stub).WithoutExpiry));
+
+        // Kürzer als die Frist: Hinweis, verkaufen geht trotzdem.
+        pos.VoucherValidUntil = "30.6.2027";
+        Assert.StartsWith("Kürzer als die übliche Frist", pos.VoucherExpiryWarning, StringComparison.Ordinal);
+        pos.VoucherValue = "50";
+        await pos.SellVoucherCommand.ExecuteAsync(null);
+        Assert.Equal((new DateOnly(2027, 6, 30), false), (LastLine(stub).ValidUntil, LastLine(stub).WithoutExpiry));
+
+        // Bewusst geleert: unbefristet, auch für den Behandlungsgutschein.
+        pos.VoucherValidUntil = "";
+        Assert.Null(pos.VoucherExpiryWarning);
+        pos.VoucherTreatment = SpaSample.Treatments[0];
+        await pos.SellTreatmentVoucherCommand.ExecuteAsync(null);
+        Assert.Equal(((DateOnly?)null, true), (LastLine(stub).ValidUntil, LastLine(stub).WithoutExpiry));
+    }
+
+    [Fact]
+    public async Task Ohne_Vorbelegung_vom_Server_schickt_die_Kassa_kein_Datum_und_der_Server_setzt_die_Frist()
+    {
+        var stub = Api().On($"POST /api/pos/bills/{SpaSample.BillId}/lines", SpaSample.Bill());
+        var pos = new PosViewModel(stub.Client(), new SampleTime());
+        await pos.InitializeAsync(SpaSample.LocationId);
+
+        pos.VoucherValue = "50";
+        await pos.SellVoucherCommand.ExecuteAsync(null);
+
+        Assert.Equal("", pos.VoucherValidUntil);
+        Assert.Equal(((DateOnly?)null, false), (LastLine(stub).ValidUntil, LastLine(stub).WithoutExpiry));
+    }
+
+    [Fact]
+    public void Beleg_zeigt_unter_dem_ausgestellten_Gutschein_bis_wann_er_einzuloesen_ist()
+    {
+        var voucher = new VoucherDto(Guid.NewGuid(), "K7M3-Q9XA-B2CD", VoucherKind.MultiPurpose, 50m, 50m, null, VoucherStatus.Active, new DateOnly(2029, 12, 31));
+        var receipt = SpaSample.Receipt() with { IssuedVouchers = [voucher, voucher with { Code = "P2RT-7KMX-QA9D", ValidUntil = null }] };
+
+        var rows = new ReceiptViewModel(receipt, TimeZoneInfo.Utc, FiscalCountry.DE).Vouchers.Select(r => r.Label).ToList();
+
+        Assert.Equal(["Gutschein K7M3-Q9XA-B2CD", "   Einzulösen bis 31.12.2029", "Gutschein P2RT-7KMX-QA9D"], rows);
+    }
+
+    private static BillLineInput LastLine(StubApi stub) => System.Text.Json.JsonSerializer.Deserialize<BillLineInput>(
+        stub.Calls.Last(c => c.Route == $"POST /api/pos/bills/{SpaSample.BillId}/lines").Body!, ApiClient.Json)!;
 
     [Fact]
     public async Task Gutschein_und_Rest_bar_mit_Rueckgeld()

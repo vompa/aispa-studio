@@ -535,6 +535,10 @@
             <Border Classes="card" Padding="16,12">
               <StackPanel Spacing="8">
                 <TextBlock Text="Gutschein verkaufen" Classes="group" />
+                <!-- Gilt für Wert-, Behandlungsgutschein und Paket; Vorbelegung und Hinweis kommen vom Server (Frist im Land der Kasse). -->
+                <ui:FormField Label="Einzulösen bis" Help="{Binding VoucherExpiryRule}" Warning="{Binding VoucherExpiryWarning}">
+                  <ui:DateField CommittedText="{Binding VoucherValidUntil}" ToolTip.Tip="Steht auf Beleg und Gutschein; leer heißt unbefristet" />
+                </ui:FormField>
                 <!-- Knöpfe unter dem Feld: neben „… verkaufen“ bliebe dem Feld in der schmalen Spalte zu wenig Platz. -->
                 <StackPanel Spacing="8">
                   <ui:FormField Label="{Binding Currency, StringFormat='Wert ({0})'}">
@@ -569,9 +573,6 @@
                   </ui:FormField>
                   <ui:FormField Label="{Binding Currency, StringFormat='Paketpreis ({0})'}">
                     <ui:MoneyField CommittedText="{Binding PackagePrice}" ToolTip.Tip="Leer: Einzelpreis mal Anzahl" />
-                  </ui:FormField>
-                  <ui:FormField Label="Gültig bis">
-                    <ui:DateField CommittedText="{Binding PackageValidUntil}" ToolTip.Tip="Freiwillig; leer heißt unbefristet" />
                   </ui:FormField>
                   <Button Content="Paket verkaufen" Command="{Binding SellPackageCommand}" VerticalAlignment="Bottom"
                           ToolTip.Tip="Paket auf die Rechnung setzen; es wird beim Verkauf versteuert und je Termin abgezogen" ui:DisabledHint.Text="Verfügbar, sobald eine Behandlung und eine Anzahl gewählt sind." />

@@ -1,3 +1,4 @@
+using System.Globalization;
 using AispaStudio.Api.Mail;
 using AispaStudio.Api.Scheduling;
 using AispaStudio.Contracts;
@@ -811,6 +812,15 @@ internal static class OnlineMails
             ? lang switch { "en" => $"For: {name}\n", "fr" => $"Pour : {name}\n", "it" => $"Per: {name}\n", _ => $"Für: {name}\n" }
             : "";
         var message = order.Message is { } text ? $"\n{text}\n" : "";
+        var expiry = order.ValidUntil is { } until
+            ? lang switch
+            {
+                "en" => $"Redeemable until: {until.ToString("dd.MM.yyyy", CultureInfo.InvariantCulture)}\n",
+                "fr" => $"Valable jusqu’au : {until.ToString("dd.MM.yyyy", CultureInfo.InvariantCulture)}\n",
+                "it" => $"Da utilizzare entro il: {until.ToString("dd.MM.yyyy", CultureInfo.InvariantCulture)}\n",
+                _ => $"Einzulösen bis {until.ToString("dd.MM.yyyy", CultureInfo.InvariantCulture)}\n",
+            }
+            : "";
         return lang switch
         {
             "en" => new(to, $"Your gift voucher for {order.LocationName}",
@@ -820,7 +830,7 @@ internal static class OnlineMails
                  thank you for your purchase. Here is your gift voucher {what} ({amount} {order.Currency} paid):
 
                  Voucher code: {order.Code}
-                 {recipient}{message}
+                 {expiry}{recipient}{message}
                  Redeemable at {order.LocationName}, when booking at reception or on site.
                  Book an appointment: {bookUrl}
 
@@ -833,7 +843,7 @@ internal static class OnlineMails
                  Merci pour votre achat. Voici votre bon cadeau {what} ({amount} {order.Currency} payés) :
 
                  Code du bon : {order.Code}
-                 {recipient}{message}
+                 {expiry}{recipient}{message}
                  Valable à {order.LocationName}, à présenter lors du paiement à la réception.
                  Réserver un rendez-vous : {bookUrl}
 
@@ -846,7 +856,7 @@ internal static class OnlineMails
                  grazie per il suo acquisto. Ecco il suo buono regalo {what} ({amount} {order.Currency} pagati):
 
                  Codice del buono: {order.Code}
-                 {recipient}{message}
+                 {expiry}{recipient}{message}
                  Valido presso {order.LocationName}, da presentare al momento del pagamento alla reception.
                  Prenotare un appuntamento: {bookUrl}
 
@@ -859,7 +869,7 @@ internal static class OnlineMails
                  vielen Dank für Ihren Einkauf. Hier ist Ihr Gutschein {what} ({amount} {order.Currency} bezahlt):
 
                  Gutscheincode: {order.Code}
-                 {recipient}{message}
+                 {expiry}{recipient}{message}
                  Einlösbar in {order.LocationName}, beim Bezahlen an der Rezeption.
                  Termin buchen: {bookUrl}
 

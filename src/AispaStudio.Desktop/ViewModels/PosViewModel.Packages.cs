@@ -1,7 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Globalization;
 using AispaStudio.Contracts;
-using AispaStudio.Desktop.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
@@ -21,10 +20,6 @@ public partial class PosViewModel
     /// <summary>Paketpreis; leer heißt Einzelpreis mal Anzahl.</summary>
     [ObservableProperty]
     public partial string PackagePrice { get; set; } = "";
-
-    /// <summary>Freiwilliges Ablaufdatum, leer heißt unbefristet.</summary>
-    [ObservableProperty]
-    public partial string PackageValidUntil { get; set; } = "";
 
     public ObservableCollection<PackageHint> PackageHints { get; } = [];
 
@@ -51,23 +46,17 @@ public partial class PosViewModel
             price = p;
         }
 
-        DateOnly? until = null;
-        var validUntil = DateInputParser.Parse(PackageValidUntil, Today);
-        if (validUntil.Error is { } validUntilError)
+        if (WithVoucherExpiry(new BillLineInput(BillLineKind.Voucher, null, null, 1, price, 0, null, null, null, VoucherKind.SinglePurpose, treatment.Id,
+            Units: units)) is not { } line)
         {
-            Error = validUntilError;
             return;
         }
 
-        until = validUntil.Value;
-
-        await AddLineAsync(new BillLineInput(BillLineKind.Voucher, null, null, 1, price, 0, null, null, null, VoucherKind.SinglePurpose, treatment.Id,
-            Units: units, ValidUntil: until)).ConfigureAwait(true);
+        await AddLineAsync(line).ConfigureAwait(true);
         if (Error is null)
         {
             VoucherTreatment = null;
             PackagePrice = "";
-            PackageValidUntil = "";
         }
     }
 

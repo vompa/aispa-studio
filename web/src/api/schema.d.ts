@@ -1991,6 +1991,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/pos/registers/{registerId}/voucher-expiry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetVoucherExpiry"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/pos/registers/{registerId}/null-receipt": {
         parameters: {
             query?: never;
@@ -8147,6 +8163,8 @@ export interface components {
             units?: null | number;
             /** Format: date */
             validUntil?: null | string;
+            /** @default false */
+            withoutExpiry: boolean;
         };
         /** @enum {unknown} */
         BillLineKind: "Appointment" | "Article" | "Voucher" | "Custom" | "AreaVisit" | "Deposit";
@@ -12964,6 +12982,12 @@ export interface components {
             unitsLeft?: null | number;
             /** Format: uuid */
             customerId?: null | string;
+        };
+        VoucherExpiryDto: {
+            /** Format: date */
+            default: null | string;
+            rule: string;
+            warning: null | string;
         };
         /** @enum {unknown} */
         VoucherKind: "MultiPurpose" | "SinglePurpose";
@@ -18533,6 +18557,46 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CashRegisterDto"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetVoucherExpiry: {
+        parameters: {
+            query?: {
+                until?: string;
+            };
+            header?: never;
+            path: {
+                registerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VoucherExpiryDto"];
                 };
             };
             /** @description Forbidden */
