@@ -15,7 +15,7 @@ public sealed class EntityHistory(AispaDbContext db)
 {
     private static readonly CultureInfo German = CultureInfo.GetCultureInfo("de-AT");
 
-    private static readonly string[] CustomerTables = ["Customers", "CustomerEmails"];
+    private static readonly string[] CustomerTables = ["Customers", "CustomerEmails", "MarketingConsents"];
     private static readonly string[] TreatmentTables = ["Treatments", "TreatmentLocationPrices", "TreatmentPriceRules"];
     private static readonly string[] RosterTables = ["RosterDays", "RosterDayEntries"];
     private static readonly string[] StaffTables = ["StaffAccess"];
@@ -55,6 +55,29 @@ public sealed class EntityHistory(AispaDbContext db)
         "subject = {0} AND table_schema = 'hr' AND table_name = ANY ({1})", [employeeId.ToString(), DutyTables], ct);
 
     private static readonly string[] DutyTables = ["StaffDuties", "StaffCertificates", "StaffCertificateScans"];
+
+    /// <summary>Export-Protokoll des Spas (Export/Import, Aufgaben A und E): wer wann welche Liste in welchem Format herausgeholt und welche Datei importiert hat.</summary>
+    public Task<List<HistoryEntry>> ForExportsAsync(Guid tenantId, CancellationToken ct) => ReadAsync(
+        "tenant_id = {0} AND table_schema = 'aispa' AND table_name IN ('Exports', 'Imports')", [tenantId], ct);
+
+    /// <summary>
+    /// Wer die Einwilligung des Gastes zuletzt in den Zustand <paramref name="state"/> gebracht hat (Name der Person, Export/Import B): der Nachweis „am Empfang erfasst von …“
+    /// kommt aus dem Verlauf, nicht aus einer eigenen Spalte. Ohne Person (Gast, Import, Job) oder ohne Eintrag null.
+    /// </summary>
+    public async Task<string?> ConsentRecorderAsync(Guid customerId, MarketingConsentState state, CancellationToken ct)
+    {
+        var userId = await db.Database.SqlQueryRaw<string?>("""
+            SELECT user_id AS "Value"
+              FROM sync.history
+             WHERE customer_id = {0} AND table_name = 'MarketingConsents' AND context ->> 'State' = {1}
+               AND (operation = 'I' OR changes -> 'State' IS NOT NULL)
+             ORDER BY changed_at DESC, seq DESC
+             LIMIT 1
+            """, customerId, state.ToString()).ToListAsync(ct);
+        return userId.FirstOrDefault() is { } id
+            ? await db.Users.AsNoTracking().Where(u => u.Id == id).Select(u => u.DisplayName).FirstOrDefaultAsync(ct) ?? HistoryActor.DeletedPerson
+            : null;
+    }
 
     private async Task<List<HistoryEntry>> ReadAsync(string where, object[] args, CancellationToken ct)
     {
@@ -132,7 +155,17 @@ public sealed class EntityHistory(AispaDbContext db)
         public string? Context { get; init; }
     }
 
-    private enum Kind { Text, Money, Bool, Date, Time, Minutes, Percent, Employee, Location, Role, Locations, Flag }
+    private enum Kind { Text, Money, Bool, Date, Time, Minutes, Percent, Employee, Location, Role, Locations, Flag, Consent }
+
+    /// <summary>Zustand der Werbe-Einwilligung in Worten des Empfangs.</summary>
+    private static readonly Dictionary<string, string> ConsentWords = new(StringComparer.Ordinal)
+    {
+        [nameof(MarketingConsentState.None)] = "nicht gefragt",
+        [nameof(MarketingConsentState.Pending)] = "angefragt",
+        [nameof(MarketingConsentState.Confirmed)] = "ja",
+        [nameof(MarketingConsentState.Withdrawn)] = "widerrufen",
+        [nameof(MarketingConsentState.Refused)] = "nein",
+    };
 
     /// <summary>Spalten, die im Verlauf stehen: Bezeichnung und Art der Anzeige. Andere Spalten (Schlüssel, Zeitstempel, Interna) bleiben weg; <c>Flag</c> nennt nur, dass sich etwas geändert hat.</summary>
     private static readonly Dictionary<string, Dictionary<string, (string Label, Kind Kind)>> Columns = new(StringComparer.Ordinal)
@@ -170,6 +203,7 @@ public sealed class EntityHistory(AispaDbContext db)
             ["Language"] = ("Sprache", Kind.Text),
         },
         ["CustomerEmails"] = new(StringComparer.Ordinal) { ["Address"] = ("E-Mail-Adresse", Kind.Text) },
+        ["MarketingConsents"] = new(StringComparer.Ordinal) { ["State"] = ("Werbe-Einwilligung", Kind.Consent), ["Email"] = ("Adresse der Einwilligung", Kind.Text) },
         ["Treatments"] = new(StringComparer.Ordinal)
         {
             ["Name"] = ("Name", Kind.Text),
@@ -292,6 +326,9 @@ public sealed class EntityHistory(AispaDbContext db)
                 "TreatmentLocationPrices" => PriceAtLocation(row.Operation, by, changes, context),
                 "TreatmentPriceRules" => PriceRule(row.Operation, by, changes, context),
                 "CustomerEmails" => Email(row.Operation, by, changes, context),
+                "Exports" => Export(by, context),
+                "Imports" => Import(by, context),
+                "MarketingConsents" => Consent(row.Operation, by, changes, context),
                 _ => row.Operation switch
                 {
                     "I" => row.Table == "StaffAccess" ? $"Zugang angelegt {by}{RoleSuffix(context)}" : $"Angelegt {by}",
@@ -311,6 +348,35 @@ public sealed class EntityHistory(AispaDbContext db)
             "I" => $"E-Mail-Adresse {Address(context)} hinzugefügt {by}",
             "D" => $"E-Mail-Adresse {Address(context)} entfernt {by}",
             _ => $"E-Mail-Adresse geändert {by}{ChangeList("CustomerEmails", changes)}",
+        };
+
+        /// <summary>„Export Kundenliste (Excel, 312 Zeilen, Suche „Huber“) von Lena“; Exporte werden nur angelegt, nie geändert.</summary>
+        private static string Export(string by, Dictionary<string, JsonElement> context)
+        {
+            var kind = context.TryGetValue("Kind", out var k) ? Text(k) ?? "Liste" : "Liste";
+            var format = context.TryGetValue("Format", out var f) && Text(f) is { } code && Enum.TryParse<ExportFormat>(code, out var parsed) ? Exports.ExportFiles.Label(parsed) : "Datei";
+            var rows = context.TryGetValue("Rows", out var r) && r.ValueKind == JsonValueKind.Number ? r.GetInt32() : 0;
+            var filter = context.TryGetValue("Filter", out var fi) && Text(fi) is { Length: > 0 } text ? $", {text}" : "";
+            return $"Export {kind} ({format}, {rows} {(rows == 1 ? "Zeile" : "Zeilen")}{filter}) {by}";
+        }
+
+        /// <summary>„Import Kunden: 240 neu, 12 ergänzt, 3 übersprungen, 1 fehlerhaft (kunden.xlsx, 256 Zeilen) von Lena“; Fehler nur, wenn es welche gab.</summary>
+        private static string Import(string by, Dictionary<string, JsonElement> context)
+        {
+            int Count(string key) => context.TryGetValue(key, out var value) && value.ValueKind == JsonValueKind.Number ? value.GetInt32() : 0;
+            var kind = context.TryGetValue("Kind", out var k) ? Text(k) ?? "Daten" : "Daten";
+            var file = context.TryGetValue("File", out var f) && Text(f) is { Length: > 0 } name ? $"{name}, " : "";
+            var failed = Count("Failed") > 0 ? $", {Count("Failed")} fehlerhaft" : "";
+            var rows = Count("Rows");
+            return $"Import {kind}: {Count("Created")} neu, {Count("Merged")} ergänzt, {Count("Skipped")} übersprungen{failed} ({file}{rows} {(rows == 1 ? "Zeile" : "Zeilen")}) {by}";
+        }
+
+        /// <summary>„Werbe-Einwilligung: ja von Lena“ beim ersten Eintrag; Änderungen als „Werbe-Einwilligung ja → nein“.</summary>
+        private string Consent(string operation, string by, Dictionary<string, (JsonElement Old, JsonElement New)> changes, Dictionary<string, JsonElement> context) => operation switch
+        {
+            "I" => $"Werbe-Einwilligung: {(context.TryGetValue("State", out var s) ? Value(Kind.Consent, s) : "–")} {by}",
+            "D" => $"Werbe-Einwilligung entfernt {by}",
+            _ => $"Werbe-Einwilligung geändert {by}{ChangeList("MarketingConsents", changes)}",
         };
 
         private static string Address(Dictionary<string, JsonElement> context) => context.TryGetValue("Address", out var address) ? Text(address) ?? "–" : "–";
@@ -400,6 +466,8 @@ public sealed class EntityHistory(AispaDbContext db)
                     return time[..5];
                 case Kind.Role:
                     return Text(value) is { } role && Roles.TryGetValue(role, out var roleName) ? roleName : Text(value) ?? "–";
+                case Kind.Consent:
+                    return Text(value) is { } state && ConsentWords.TryGetValue(state, out var word) ? word : Text(value) ?? "–";
                 case Kind.Employee or Kind.Location:
                     return GuidOf(value) is { } id && names.TryGetValue(id, out var name) ? name : "–";
                 case Kind.Locations:

@@ -31,6 +31,7 @@ public sealed partial class ViewTests
         MarketingConsentState.Confirmed => new(state, "brigitte@example.test", "de", SpaSample.At(9), SpaSample.At(10), null, "Team"),
         MarketingConsentState.Pending => new(state, "brigitte@example.test", "de", SpaSample.At(9), null, null, "Team"),
         MarketingConsentState.Withdrawn => new(state, "brigitte@example.test", "de", SpaSample.At(9), SpaSample.At(10), SpaSample.At(11), "Team"),
+        MarketingConsentState.Refused => new(state, "brigitte@example.test", "de", null, null, SpaSample.At(11), "Rezeption"),
         _ => new(state, null, null, null, null, null, null),
     };
 
@@ -204,6 +205,20 @@ public sealed partial class ViewTests
             Assert.Contains("Angefragt am 19.10.2026, wartet auf Bestätigung durch den Gast (brigitte@example.test)", texts);
             Assert.Equal("Mail zum Bestätigen ist unterwegs", calendar.Toast);
             Assert.True(IsShown(window, "WithdrawConsentButton"));
+            return calendar;
+        }, stub);
+    }
+
+    [Fact]
+    public Task Gast_hat_am_Empfang_abgelehnt_Panel_zeigt_die_Ablehnung_und_Anfragen()
+    {
+        var stub = Api().On($"GET {ConsentRoute}", Consent(MarketingConsentState.Refused));
+        return Render("hell", "termin-einwilligung-abgelehnt", async (window, main) =>
+        {
+            var calendar = await OpenSelected(main);
+            Assert.Contains("Abgelehnt am 19.10.2026", PanelTexts(window, "ConsentCard"));
+            Assert.True(IsShown(window, "RequestConsentButton"));
+            Assert.False(IsShown(window, "WithdrawConsentButton"));
             return calendar;
         }, stub);
     }

@@ -44,6 +44,9 @@
       <Button x:Name="TimesThisWeekButton" Content="Diese Woche" Command="{Binding ThisWeekCommand}" />
       <Button x:Name="TimesNextWeekButton" Content="›" Command="{Binding NextWeekCommand}" Classes="icon" AutomationProperties.Name="Nächste Woche" ToolTip.Tip="Nächste Woche" />
       <TextBlock x:Name="TimesWeekTitleText" Text="{Binding WeekTitle}" Classes="h3" VerticalAlignment="Center" />
+      <!-- Export der Stundenliste und der Abwesenheiten, nur für Inhaberin und Geschäftsführung (Export/Import, Aufgabe D) -->
+      <ui:ExportButton x:Name="TimesExportButton" DataContext="{Binding Export}" VerticalAlignment="Center" />
+      <TextBlock x:Name="TimesExportSaved" Text="{Binding ExportSaved}" Classes="muted small" IsVisible="{Binding HasExportSaved}" VerticalAlignment="Center" AutomationProperties.LiveSetting="Polite" />
       <ui:HelpButton Topic="seite-time" VerticalAlignment="Center" />
     </WrapPanel>
 

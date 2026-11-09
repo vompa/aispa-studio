@@ -21,6 +21,8 @@ internal static class HistoryActor
         ChangeChannel.Treatwell => "über Treatwell",
         ChangeChannel.Ai => "von der KI",
         ChangeChannel.Sync => "beim Abgleich",
+        ChangeChannel.Import when userId is not null => $"beim Import von {Person(userId, people)}",
+        ChangeChannel.Import => "beim Import",
         _ => "automatisch",
     };
 

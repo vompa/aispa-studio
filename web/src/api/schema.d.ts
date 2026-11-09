@@ -852,6 +852,278 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/exports/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Listet, wer wann welche Liste in welchem Format exportiert hat (nur Inhaber und Manager), neueste oben. */
+        get: operations["GetExportHistory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pos/locations/{locationId}/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Listen der Kassa als Excel oder CSV, nur für die Leitung: list=receipts (Belegliste), revenue-days, revenue-payments, revenue-treatments (Umsatz je Tag, Zahlart, Behandlung und Person), day-closings (Tagesabschlüsse) für den Zeitraum from bis until; vouchers (Gutscheinbestand) ohne Zeitraum. */
+        get: operations["ExportPosList"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stock/locations/{locationId}/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Listen des Lagers als Excel oder CSV, nur für die Leitung: list=levels (Bestand je Lagerort), count (Inventur mit Differenzen: sessionId oder die zuletzt eingereichte Zählung), movements (Bewegungen von from bis until), orders (Bestellungen), expiry (Ablaufliste der Chargen). */
+        get: operations["ExportStockList"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/locations/{locationId}/staff/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Listen des Personals als Excel oder CSV, nur für die Leitung: list=hours (Stundenliste je Person und Tag für month=JJJJ-MM), absences (Abwesenheiten von from bis until), roster (Dienstplan der Woche ab from, Personen als Zeilen, Tage als Spalten); wahlweise nur employeeId. */
+        get: operations["ExportStaffList"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/locations/{locationId}/management/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Kennzahlen des Management-Berichts für from bis until (höchstens ein Jahr) als Excel oder CSV: Kennzahl, Wert, Vorperiode, Einheit; ohne das Recht „Berichte mit Beträgen“ ohne Geldbeträge. */
+        get: operations["ExportManagementKpis"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/channel/staff-app": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Schränkt die laufende Anmeldung auf die Mitarbeiter-App ein: nur freigegebene Endpunkte und nur eigene Daten. */
+        post: operations["UseStaffAppChannel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/employee-notes/symbols": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Hinweise als Symbol im Dienstplan und im Kopf der Kalenderspalte; Hinweise „nur Leitung“ nur für Inhaber und Manager. */
+        get: operations["ListStaffNoteSymbols"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/staff-duties/reminders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Erinnerungen der angemeldeten Person: eigene Zertifikate vor dem Ablauf, bei Inhaber und Manager die aller aktiven Personen; mit locationId die Lageraufgaben, wenn sie an diese Person gehen. In der Mitarbeiter-App nur die eigenen Zertifikate. */
+        get: operations["ListDutyReminders"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customers/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Exportiert die gefilterte Kundenliste als Excel, CSV, Portal-CSV (englische Spalten, Komma) oder vCard; mit list=newsletter nur Gäste mit bestätigter Werbe-Einwilligung (nur Inhaber und Manager). Nie Gesundheitsdaten, Wünsche, Rabatt oder Rechnungsdaten; der Vermerk nur für die Leitung. Höchstens 50 000 Zeilen. */
+        get: operations["ExportCustomers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customers/{customerId}/vcard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Ein Gast als vCard 4.0 für Outlook, Apple und Google; der Vermerk der Rezeption steht nur für Inhaber und Manager in NOTE. */
+        get: operations["ExportCustomerVCard"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/locations/{locationId}/appointments/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Terminliste eines Standorts als Excel oder CSV für einen Zeitraum (höchstens ein Jahr), wahlweise nur einer Person, eines Raums oder eines Status. Die Notiz zum Termin nur für die Leitung. */
+        get: operations["ExportAppointments"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/appointments/{appointmentId}/ics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Ein Termin als Kalenderdatei (iCal) für den Gast: Behandlung und Standort, Erinnerung 24 Stunden vorher, ohne Namen der Person; bei einer Buchung mit mehreren Teilen alle Teile desselben Gastes. */
+        get: operations["ExportAppointmentIcs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/employees/{employeeId}/ics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Dienste und Termine einer Person als Kalenderdatei für den privaten Kalender, ohne Namen der Gäste und ohne Erinnerung; nur die Leitung oder die Person selbst. include=appointments,shifts wählt den Inhalt (Standard beides), höchstens ein Jahr. */
+        get: operations["ExportEmployeeIcs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customers/import/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Liest eine Excel- oder CSV-Datei (bis 10 MB, 20 000 Zeilen, erste Zeile Spaltenköpfe) und zeigt Spalten mit Beispielen, die Zuordnung (ohne Angabe nach den Spaltenköpfen vorgeschlagen), Zähler neu, Dubletten und fehlerhaft, die ersten 20 Zeilen sowie alle Dubletten und Fehler. Ändert nichts. */
+        post: operations["PreviewCustomerImport"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customers/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Importiert die Gäste der Datei mit derselben Zuordnung wie die Vorschau, in Blöcken zu 200 und mit dem Kanal „Import“. Dubletten werden übersprungen, außer die Entscheidung je Zeile sagt „Merge“ (leere Felder ergänzen, nie überschreiben). Mit dryRun=true nur zählen (Probelauf). Jeder Import steht im Verlauf. */
+        post: operations["ImportCustomers"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customers/import/errors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Die fehlerhaften Zeilen der Datei als Excel: Zeile, Grund und die Spalten der Datei, zum Berichtigen und erneuten Importieren. */
+        post: operations["GetCustomerImportErrors"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/locations/{locationId}/calendar": {
         parameters: {
             query?: never;
@@ -1781,57 +2053,6 @@ export interface paths {
         post?: never;
         /** Widerruft eine Anzeige; sie meldet sich bei der nächsten Anfrage ab. */
         delete: operations["RevokeDisplay"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/auth/channel/staff-app": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Schränkt die laufende Anmeldung auf die Mitarbeiter-App ein: nur freigegebene Endpunkte und nur eigene Daten. */
-        post: operations["UseStaffAppChannel"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/employee-notes/symbols": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Hinweise als Symbol im Dienstplan und im Kopf der Kalenderspalte; Hinweise „nur Leitung“ nur für Inhaber und Manager. */
-        get: operations["ListStaffNoteSymbols"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/staff-duties/reminders": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Erinnerungen der angemeldeten Person: eigene Zertifikate vor dem Ablauf, bei Inhaber und Manager die aller aktiven Personen; mit locationId die Lageraufgaben, wenn sie an diese Person gehen. In der Mitarbeiter-App nur die eigenen Zertifikate. */
-        get: operations["ListDutyReminders"];
-        put?: never;
-        post?: never;
-        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -7245,7 +7466,8 @@ export interface paths {
         };
         /** Einwilligung des Gastes in Wiederbuchungs-Hinweise. */
         get: operations["GetMarketingConsent"];
-        put?: never;
+        /** Trägt ein, was der Gast am Empfang gesagt hat: Ja (Werbung per Mail, Quelle „Rezeption“), Nein oder nicht gefragt. Eine per Mail bestätigte Einwilligung bleibt bei Ja bestehen. */
+        put: operations["DecideMarketingConsent"];
         /** Fragt den Gast per Mail um Einwilligung (Double-Opt-in). Erst nach seiner Bestätigung gehen Wiederbuchungs-Hinweise. */
         post: operations["RequestMarketingConsent"];
         /** Widerruf, z. B. wenn der Gast es am Empfang sagt. */
@@ -9100,6 +9322,41 @@ export interface components {
         };
         /** @enum {unknown} */
         CustomerFlagKind: "MoreTime" | "InformManagement" | "NotWithMe" | "DoNotBook";
+        /** @enum {unknown} */
+        CustomerImportField: "FirstName" | "LastName" | "Email" | "Phone" | "BirthDate" | "Salutation" | "Street" | "PostalCode" | "City" | "Country" | "MarketingConsent" | null;
+        CustomerImportMapping: {
+            columns: components["schemas"]["ImportColumnMapping"][];
+            dateFormat?: components["schemas"]["ImportDateFormat"];
+        };
+        CustomerImportPreview: {
+            fileName: string;
+            /** Format: int32 */
+            rowCount: number;
+            columns: components["schemas"]["ImportColumn"][];
+            mapping: components["schemas"]["CustomerImportMapping"];
+            /** Format: int32 */
+            new: number;
+            /** Format: int32 */
+            duplicates: number;
+            /** Format: int32 */
+            invalid: number;
+            rows: components["schemas"]["ImportRowPreview"][];
+            duplicateRows: components["schemas"]["ImportRowPreview"][];
+            invalidRows: components["schemas"]["ImportRowPreview"][];
+        };
+        CustomerImportResult: {
+            dryRun: boolean;
+            /** Format: int32 */
+            rows: number;
+            /** Format: int32 */
+            created: number;
+            /** Format: int32 */
+            merged: number;
+            /** Format: int32 */
+            skipped: number;
+            /** Format: int32 */
+            failed: number;
+        };
         CustomerInput: {
             firstName: string;
             lastName: string;
@@ -9883,6 +10140,36 @@ export interface components {
         };
         /** Format: binary */
         IFormFile: string;
+        ImportColumn: {
+            /** Format: int32 */
+            index: number;
+            header: string;
+            samples: string[];
+            suggested: null | components["schemas"]["CustomerImportField"];
+        };
+        ImportColumnMapping: {
+            /** Format: int32 */
+            column: number;
+            field: components["schemas"]["CustomerImportField"];
+        };
+        /**
+         * @default Auto
+         * @enum {unknown}
+         */
+        ImportDateFormat: "Auto" | "DayMonthYear" | "YearMonthDay" | "MonthDayYear";
+        ImportRowPreview: {
+            /** Format: int32 */
+            row: number;
+            status: components["schemas"]["ImportRowStatus"];
+            name: string;
+            email: null | string;
+            phone: null | string;
+            reason: null | string;
+            /** Format: uuid */
+            existingCustomerId: null | string;
+        };
+        /** @enum {unknown} */
+        ImportRowStatus: "New" | "Duplicate" | "Invalid";
         InboundMailDto: {
             /** Format: uuid */
             id: string;
@@ -10195,6 +10482,9 @@ export interface components {
              */
             cancellations: number;
         };
+        MarketingConsentDecision: {
+            state: components["schemas"]["MarketingConsentState"];
+        };
         MarketingConsentDto: {
             state: components["schemas"]["MarketingConsentState"];
             email: null | string;
@@ -10206,12 +10496,13 @@ export interface components {
             /** Format: date-time */
             withdrawnAt: null | string;
             source: null | string;
+            recordedBy?: null | string;
         };
         MarketingConsentRequest: {
             language: null | string;
         };
         /** @enum {unknown} */
-        MarketingConsentState: "None" | "Pending" | "Confirmed" | "Withdrawn";
+        MarketingConsentState: "None" | "Pending" | "Confirmed" | "Withdrawn" | "Refused";
         MaterialLine: {
             name: string;
             /** Format: double */
@@ -15467,6 +15758,602 @@ export interface operations {
             };
         };
     };
+    GetExportHistory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HistoryEntry"][];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    ExportPosList: {
+        parameters: {
+            query?: {
+                list?: string;
+                from?: string;
+                until?: string;
+                format?: string;
+            };
+            header?: never;
+            path: {
+                locationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ExportStockList: {
+        parameters: {
+            query?: {
+                list?: string;
+                from?: string;
+                until?: string;
+                sessionId?: string;
+                format?: string;
+            };
+            header?: never;
+            path: {
+                locationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ExportStaffList: {
+        parameters: {
+            query?: {
+                list?: string;
+                month?: string;
+                from?: string;
+                until?: string;
+                employeeId?: string;
+                format?: string;
+            };
+            header?: never;
+            path: {
+                locationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ExportManagementKpis: {
+        parameters: {
+            query?: {
+                from?: string;
+                until?: string;
+                format?: string;
+            };
+            header?: never;
+            path: {
+                locationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    UseStaffAppChannel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CurrentUser"];
+                };
+            };
+        };
+    };
+    ListStaffNoteSymbols: {
+        parameters: {
+            query: {
+                on: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StaffNoteSymbolDto"][];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    ListDutyReminders: {
+        parameters: {
+            query?: {
+                locationId?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DutyReminderDto"][];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    ExportCustomers: {
+        parameters: {
+            query?: {
+                format?: string;
+                search?: string;
+                list?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    ExportCustomerVCard: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                customerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ExportAppointments: {
+        parameters: {
+            query?: {
+                from?: string;
+                until?: string;
+                employeeId?: string;
+                roomId?: string;
+                status?: string;
+                format?: string;
+            };
+            header?: never;
+            path: {
+                locationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ExportAppointmentIcs: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                appointmentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ExportEmployeeIcs: {
+        parameters: {
+            query?: {
+                from?: string;
+                until?: string;
+                include?: string;
+            };
+            header?: never;
+            path: {
+                employeeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PreviewCustomerImport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    file: components["schemas"]["IFormFile"];
+                } & {
+                    mapping?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomerImportPreview"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    ImportCustomers: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    file: components["schemas"]["IFormFile"];
+                } & {
+                    mapping?: string;
+                } & {
+                    decisions?: string;
+                } & {
+                    dryRun?: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomerImportResult"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    GetCustomerImportErrors: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    file: components["schemas"]["IFormFile"];
+                } & {
+                    mapping?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     GetCalendarDay: {
         parameters: {
             query: {
@@ -17926,88 +18813,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
-            };
-        };
-    };
-    UseStaffAppChannel: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CurrentUser"];
-                };
-            };
-        };
-    };
-    ListStaffNoteSymbols: {
-        parameters: {
-            query: {
-                on: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StaffNoteSymbolDto"][];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/problem+json": components["schemas"]["ProblemDetails"];
-                };
-            };
-        };
-    };
-    ListDutyReminders: {
-        parameters: {
-            query?: {
-                locationId?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DutyReminderDto"][];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/problem+json": components["schemas"]["ProblemDetails"];
-                };
             };
         };
     };
@@ -33809,6 +34614,57 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MarketingConsentDto"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    DecideMarketingConsent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                customerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MarketingConsentDecision"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MarketingConsentDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
                 };
             };
             /** @description Forbidden */

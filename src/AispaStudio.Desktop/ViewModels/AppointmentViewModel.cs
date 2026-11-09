@@ -141,8 +141,29 @@ public partial class AppointmentViewModel(
     /// <summary>Erledigt oder Nicht erschienen stehen hinter „Mehr“, an künftigen Tagen gesperrt mit Grund.</summary>
     private bool HasStatusActions => CanChangeStatus && Appointment.Status is AppointmentStatus.Booked or AppointmentStatus.CheckedIn;
 
-    /// <summary>Hinter „Mehr“ steht etwas: Erledigt, Nicht erschienen, Wiederholen oder Zeiten ändern. Stornieren und Einchecken zurücknehmen stehen im Aktionsblock (Ä81).</summary>
-    public bool HasMore => HasStatusActions || CanRepeat || CanChangeTimes;
+    /// <summary>
+    /// Hinter „Mehr“ steht etwas: Erledigt, Nicht erschienen, Wiederholen, Zeiten ändern oder die Kalenderdatei. Stornieren und Einchecken zurücknehmen stehen im
+    /// Aktionsblock (Ä81).
+    /// </summary>
+    public bool HasMore => HasStatusActions || CanRepeat || CanChangeTimes || CanSaveCalendarFile;
+
+    /// <summary>„Mehr“ › „Kalenderdatei …“ (Export/Import, Aufgabe C): der Termin als iCal für den Gast, bei einer Buchung mit mehreren Teilen alle Teile; nicht bei Stornierten.</summary>
+    public bool CanSaveCalendarFile => Appointment.Status != AppointmentStatus.Cancelled;
+
+    public ExportOption CalendarFileOption => ExportOption.For(ExportFormat.Ics, () => $"api/appointments/{Appointment.Id}/ics", "Kalenderdatei …");
+
+    /// <summary>Holt die Kalenderdatei und speichert sie über den Dialog des Fensters (<see cref="FileSaver"/>); danach „Gespeichert: …“ unten.</summary>
+    public ExportViewModel CalendarFile => _calendarFile ??= new ExportViewModel(api, [CalendarFileOption])
+    {
+        Files = FileSaver,
+        Saved = text => ShowToast?.Invoke(text),
+        Failed = text => ReportProblem?.Invoke("Kalenderdatei nicht gespeichert", text),
+    };
+
+    /// <summary>Der Speicherdialog des Fensters; der Kalender reicht ihn beim Öffnen des Panels weiter.</summary>
+    public IFileSaver? FileSaver { get; init; }
+
+    private ExportViewModel? _calendarFile;
 
     public string Price => Money.Format(Appointment.Price, currency);
 

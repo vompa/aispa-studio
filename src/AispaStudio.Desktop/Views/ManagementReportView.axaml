@@ -14,7 +14,11 @@
         <ui:DateField x:Name="ManagementUntilField" Value="{Binding Until}" />
       </ui:FormField>
       <CheckBox x:Name="ManagementCompareField" Content="Mit anderen Spas vergleichen" IsChecked="{Binding Compare}" VerticalAlignment="Bottom" />
+      <!-- Export der Kennzahlen des Zeitraums (Export/Import, Aufgabe D) -->
+      <ui:ExportButton x:Name="ManagementExportButton" DataContext="{Binding Export}" VerticalAlignment="Bottom" />
+      <TextBlock x:Name="ManagementExportSaved" Text="{Binding ExportSaved}" Classes="muted small" IsVisible="{Binding HasExportSaved}" VerticalAlignment="Bottom" AutomationProperties.LiveSetting="Polite" />
     </StackPanel>
+    <ui:InfoBar Severity="Error" Message="{Binding Error}" IsVisible="{Binding HasError}" CloseCommand="{Binding CloseErrorCommand}" />
     <ui:InfoBar Severity="Error" Title="Bericht nicht geladen" Message="{Binding LoadError}" IsVisible="{Binding HasLoadError}"
                 ActionText="Erneut laden" ActionCommand="{Binding RetryCommand}" />
     <ui:InfoBar Severity="Info" Message="{x:Static vm:ManagementReportViewModel.AmountsHint}" IsVisible="{Binding AmountsHidden}" />

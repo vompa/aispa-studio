@@ -94,6 +94,9 @@
             </DataTemplate>
           </ComboBox.ItemTemplate>
         </ComboBox>
+        <!-- Export der Kassa-Listen, nur für Inhaberin und Geschäftsführung (Export/Import, Aufgabe D) -->
+        <TextBlock x:Name="PosExportSaved" Text="{Binding ExportSaved}" Classes="muted small" IsVisible="{Binding HasExportSaved}" VerticalAlignment="Center" AutomationProperties.LiveSetting="Polite" />
+        <ui:ExportButton x:Name="PosExportButton" DataContext="{Binding Export}" />
         <Button Classes="icon" Command="{Binding LoadDayCommand}" ToolTip.Tip="Aktualisieren">
           <ui:Icon Data="{x:Static ui:Icons.Refresh}" />
         </Button>

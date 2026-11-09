@@ -2,6 +2,7 @@ using AispaStudio.Api.Access;
 using AispaStudio.Api.Data;
 using AispaStudio.Api.Online;
 using AispaStudio.Api.Scheduling;
+using AispaStudio.Api.Sync;
 using AispaStudio.Api.System;
 using AispaStudio.Contracts;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -107,8 +108,8 @@ internal static class RetentionEndpoints
             .WithSummary("Die letzten 100 Wiederbuchungs-Hinweise: an wen, mit welchem Text, mit welchem Ergebnis.");
 
         group.MapGet("/customers/{customerId:guid}/marketing-consent", async Task<Results<Ok<MarketingConsentDto>, NotFound>> (
-                Guid customerId, MarketingConsents consents, CancellationToken ct) =>
-                await consents.ForCustomerAsync(customerId, ct) is { } dto ? TypedResults.Ok(dto) : TypedResults.NotFound())
+                Guid customerId, MarketingConsents consents, EntityHistory history, CancellationToken ct) =>
+                await consents.ForCustomerAsync(customerId, ct) is { } dto ? TypedResults.Ok(await WithRecorderAsync(dto, customerId, history, ct)) : TypedResults.NotFound())
             .WithName("GetMarketingConsent")
             .RequirePermission(AccessRight.ViewCalendar)
             .WithSummary("Einwilligung des Gastes in Wiederbuchungs-Hinweise.");
@@ -124,6 +125,18 @@ internal static class RetentionEndpoints
             .WithName("RequestMarketingConsent")
             .RequirePermission(AccessRight.Book)
             .WithSummary("Fragt den Gast per Mail um Einwilligung (Double-Opt-in). Erst nach seiner Bestätigung gehen Wiederbuchungs-Hinweise.");
+
+        group.MapPut("/customers/{customerId:guid}/marketing-consent", async Task<Results<Ok<MarketingConsentDto>, NotFound, ValidationProblem>> (
+                Guid customerId, MarketingConsentDecision input, MarketingConsents consents, EntityHistory history, CancellationToken ct) =>
+                await consents.DecideAsync(customerId, input.State, ct) switch
+                {
+                    MarketingConsents.Outcome.Done d => TypedResults.Ok(await WithRecorderAsync(d.Consent, customerId, history, ct)),
+                    MarketingConsents.Outcome.Refused r => TypedResults.ValidationProblem(new Dictionary<string, string[]> { [r.Field] = [r.Message] }),
+                    _ => TypedResults.NotFound(),
+                })
+            .WithName("DecideMarketingConsent")
+            .RequirePermission(AccessRight.Book)
+            .WithSummary("Trägt ein, was der Gast am Empfang gesagt hat: Ja (Werbung per Mail, Quelle „Rezeption“), Nein oder nicht gefragt. Eine per Mail bestätigte Einwilligung bleibt bei Ja bestehen.");
 
         group.MapDelete("/customers/{customerId:guid}/marketing-consent", async Task<Results<Ok<MarketingConsentDto>, NotFound>> (
                 Guid customerId, MarketingConsents consents, CancellationToken ct) =>
@@ -154,6 +167,12 @@ internal static class RetentionEndpoints
 
         return routes;
     }
+
+    /// <summary>Am Empfang erfasst: die Person aus dem Verlauf dazu („Am Empfang erfasst am 9.11.2026 von Lena“); per Mail bestätigt oder aus dem Import ohne Person.</summary>
+    private static async Task<MarketingConsentDto> WithRecorderAsync(MarketingConsentDto consent, Guid customerId, EntityHistory history, CancellationToken ct) =>
+        consent is { Source: MarketingConsents.SourceReception, State: MarketingConsentState.Confirmed or MarketingConsentState.Refused }
+            ? consent with { RecordedBy = await history.ConsentRecorderAsync(customerId, consent.State, ct) }
+            : consent;
 
     private static async Task<RebookSettingsDto> LoadAsync(AispaDbContext db, CancellationToken ct)
     {
