@@ -106,7 +106,7 @@ public sealed partial class ViewTests
         await dialog.ContinueCommand.ExecuteAsync(null);
         await Pump(Settling);
         Assert.True(ImportShown(window, "ImportReviewStep"));
-        Assert.Equal("2 neu, 1 Dubletten, 1 fehlerhaft", card.GetVisualDescendants().OfType<TextBlock>().Single(t => t.Name == "ImportSummary").Text);
+        Assert.Equal("2 neu, 1 Dublette, 1 fehlerhaft", card.GetVisualDescendants().OfType<TextBlock>().Single(t => t.Name == "ImportSummary").Text);
         Assert.True(ImportShown(window, "ImportDuplicates"));
         Assert.True(ImportShown(window, "ImportInvalid"));
         Assert.Equal(2, card.GetVisualDescendants().OfType<RadioButton>().Count(r => r.IsEffectivelyVisible));

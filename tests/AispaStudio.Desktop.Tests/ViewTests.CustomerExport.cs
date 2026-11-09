@@ -15,7 +15,7 @@ public sealed partial class ViewTests
     [Theory]
     [InlineData("Rezeption", 4)]
     [InlineData("Inhaberin", 5)]
-    public Task Kundenliste_Export_Menue_zeigt_die_Newsletter_Liste_nur_der_Leitung(string role, int entries) => Render("hell", $"kunden-export-menue-{role}", async (window, main) =>
+    public Task Kundenliste_Export_Menue_zeigt_die_Newsletter_Liste_nur_der_Leitung(string role, int entries) => Render("hell", role == "Inhaberin" ? "kunden-export-menue-inhaberin" : "kunden-export-menue-rezeption", async (window, main) =>
     {
         var calendar = await SignedInCalendar(main);
         var shell = (ShellViewModel)main.Content!;

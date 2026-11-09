@@ -18,6 +18,10 @@ Beim Umstieg von einem anderen Programm übernimmt der Import die Gäste aus ein
 
 Danach schließt der Dialog, die Kundenliste lädt neu und kurz steht z. B. „Importiert: 240 neu, 0 ergänzt, 12 übersprungen“.
 
+![Dialog Kunden importieren, Schritt 2: Spalten der Datei mit Beispielwerten und dem zugeordneten Feld](images/app/kunden-import-2-zuordnung.png)
+
+![Dialog Kunden importieren, Schritt 3: Zähler, Dubletten mit Überspringen oder Ergänzen und fehlerhafte Zeilen](images/app/kunden-import-3-vorschau.png)
+
 ## Beispieldateien {#beispiele}
 
 Zum Ausprobieren liegen im Repository unter `docs/beispiele/` die Dateien `kunden-import-beispiel.xlsx` und `kunden-import-beispiel.csv`. Sie haben sieben Zeilen: vier neue Gäste, eine Dublette in der Datei und zwei fehlerhafte Zeilen.

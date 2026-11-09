@@ -421,7 +421,7 @@ public sealed partial class CustomerImportViewModel : ConfirmDialogViewModel
             InvalidRows.Add(ImportPreviewRow.From(row));
         }
 
-        Summary = string.Create(CultureInfo.InvariantCulture, $"{preview.New} neu, {preview.Duplicates} Dubletten, {preview.Invalid} fehlerhaft");
+        Summary = string.Create(CultureInfo.InvariantCulture, $"{preview.New} neu, {preview.Duplicates} {(preview.Duplicates == 1 ? "Dublette" : "Dubletten")}, {preview.Invalid} fehlerhaft");
         OnPropertyChanged(nameof(HasDuplicates));
         OnPropertyChanged(nameof(HasInvalid));
         SavedText = null;

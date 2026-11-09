@@ -127,7 +127,7 @@ public sealed class CustomerImportFlowTests
         var mapping = MappingOf(BodyOf(api, PreviewRoute, 1));
         Assert.Equal([(0, CustomerImportField.LastName), (1, CustomerImportField.FirstName), (2, CustomerImportField.BirthDate)], mapping.Columns.Select(c => (c.Column, c.Field)));
         Assert.Equal(ImportDateFormat.DayMonthYear, mapping.DateFormat);
-        Assert.Equal("2 neu, 1 Dubletten, 1 fehlerhaft", dialog.Summary);
+        Assert.Equal("2 neu, 1 Dublette, 1 fehlerhaft", dialog.Summary);
         Assert.Equal(2, dialog.SampleRows.Count);
         Assert.Equal("Zeile 3: Anna Huber", Assert.Single(dialog.DuplicateRows).Title);
         Assert.Equal("Geburtstag kein Datum", Assert.Single(dialog.InvalidRows).Reason);

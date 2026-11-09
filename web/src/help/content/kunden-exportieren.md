@@ -18,11 +18,15 @@ In **Kunden** speichert **Exportieren** die Liste, wie sie gerade gefiltert ist,
    - **Newsletter-Liste** (nur Leitung): nur Gäste mit „Ja“ bei der Werbe-Einwilligung.
 3. Die Datei speichern.
 
+![Kundenliste mit dem Knopf Exportieren in der Kopfzeile](images/app/kunden-export-menue-inhaberin.png)
+
 Einen einzelnen Gast speichert die Kundenkarte: **…** › **Kontakt als vCard**.
 
 ## Werbe-Einwilligung {#einwilligung}
 
 In der Kundenkarte zeigt **Werbung per Mail**, ob der Gast Werbung zugestimmt hat und wie: am Empfang erfasst, per Mail bestätigt oder aus einem Import übernommen. Am Empfang wählt man mit dem Stift **Ja**, **Nein** oder **Nicht gefragt**; vor dem „Ja“ fragt die App „Hat der Gast zugestimmt?“. Mehr dazu: [Kundenkarte](hilfe:kunden-kundenkarte).
+
+![Kundenkarte mit dem Abschnitt Werbung per Mail und dem Stand der Einwilligung](images/app/kunden-einwilligung.png)
 
 ## Gut zu wissen {#hinweise}
 
