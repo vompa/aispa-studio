@@ -101,8 +101,9 @@
     </Grid>
 
     <StackPanel Grid.Row="1" Grid.ColumnSpan="4" Spacing="8">
+      <ProgressBar IsIndeterminate="True" Margin="0,0,0,12" IsVisible="{Binding IsWorking}" AutomationProperties.Name="Der Termin wird eingecheckt" />
       <ui:InfoBar Severity="Error" Margin="0,0,0,12" Message="{Binding Error}" IsVisible="{Binding Error, Converter={x:Static ObjectConverters.IsNotNull}}" />
-      <ui:InfoBar Severity="Warning" Margin="0,0,0,12" Message="{Binding Warning}" IsVisible="{Binding Warning, Converter={x:Static ObjectConverters.IsNotNull}}" />
+      <ui:InfoBar Severity="Warning" Margin="0,0,0,12" Message="{Binding Warning}" IsVisible="{Binding ShowWarning}" />
     </StackPanel>
 
     <!-- Links: was heute abzurechnen ist, die Hauptliste der Kassa (Slice 137, Ä344); die Gruppen teilt der Server ein -->

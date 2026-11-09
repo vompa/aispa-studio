@@ -544,3 +544,16 @@ Expected: Die Differenz in der Rückfrage rechnet den neuen Beleg schon ein.
 Expected: „Tagesabschluss gespeichert“ mit der Differenz aus der Rückfrage.
 Closes: B1 (live-sichtpruefung-2026-11-09.md)
 Result: ☐
+
+### Befunde Kassa A8 – Kassa ohne Verbindung
+Start: `dotnet run --project src/AispaStudio.AppHost`, als Rezeption anmelden, **Kassa** öffnen, in „Später heute“ einen noch nicht eingecheckten Termin suchen
+1. Den API-Dienst anhalten (Verbindung kappen), den Termin anklicken und **Einchecken und kassieren** wählen.
+Expected: Rückfrage „Der Termin wird eingecheckt und auf die Rechnung gelegt.“; während des Wartens läuft ein Fortschrittsbalken; danach „Server nicht erreichbar. Verbindung prüfen und erneut versuchen.“ ohne „Zielcomputer“, Host oder Port.
+2. Den Termin noch einmal anklicken.
+Expected: Keine Rückfrage, stattdessen „Kassieren braucht eine Verbindung. Verbindung prüfen und erneut versuchen.“
+3. Die Leisten oben ansehen.
+Expected: Höchstens zwei (Offline-Banner und diese Meldung); die Signatur-Warnung der Kasse fehlt.
+4. API-Dienst wieder starten, kurz warten.
+Expected: Das Banner verschwindet, die Warnung der Kasse steht wieder da (falls sie bestand); der Termin lässt sich einchecken und kassieren; im Protokoll `protokolle\app.log` steht die technische Ursache einmal.
+Closes: B2, B14, B15 (live-sichtpruefung-2026-11-09.md)
+Result: ☐
