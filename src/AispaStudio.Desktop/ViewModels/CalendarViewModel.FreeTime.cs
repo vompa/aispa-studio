@@ -197,11 +197,10 @@ public partial class CalendarViewModel
         return false;
     }
 
-    /// <summary>Erfolgsmeldung nach dem Buchen (meldungen.md M1), gleich für die Freie-Zeit-Suche und den Buchungsbereich (L11): „Gebucht: Gast, Tag HH:mm“.</summary>
+    /// <summary>Erfolgsmeldung nach dem Buchen (meldungen.md M1), gleich für die Freie-Zeit-Suche und den Buchungsbereich (L11): „Gebucht: Gast, Do 09:05“ (am heutigen Tag nur die Uhrzeit).</summary>
     private void ShowBookedToast(string guest, DateTimeOffset start)
     {
-        var local = DayLayout.Local(start, _zone);
-        ShowToast($"Gebucht: {guest}, {DayLayout.DateText(DateOnly.FromDateTime(local))} {local:HH:mm}");
+        ShowToast($"Gebucht: {guest}, {WhenOf(start)}");
     }
 }
 

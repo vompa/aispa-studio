@@ -531,3 +531,14 @@ Expected: Beispiel und Platzhalter haben die Form `K7M3-Q9XA-B2CD`.
 Expected: Kein Knopf **Bearbeiten** neben dem Kopf; der Weg geht über **…** › **Bearbeiten (Name, Anrede, Kontakt, Notiz)** oder den Stift **Notiz ändern**, wie beschrieben.
 Closes: L15 (live-tests-rezeption-onboarding.md, Abschnitt 3)
 Result: ☐
+
+### Kalender A2 – Toasts mit kurzem Zeitpunkt
+Start: `dotnet run --project src/AispaStudio.AppHost`, als Rezeption anmelden, **Kalender**
+1. Einen Termin für einen Gast mit langem Namen (z. B. Elif Demir, Behandlung im Hand- und Fußpflegeplatz) für heute buchen.
+Expected: Meldung „Gebucht: Elif Demir, 14:35“ ohne „…“ am Ende.
+2. Den Termin stornieren und in der Meldung **Rückgängig** klicken.
+Expected: „Wieder gebucht: Elif Demir, 14:35“ in einer Zeile.
+3. Einen Termin auf einen anderen Tag ziehen (7-Tage-Ansicht), dann **Rückgängig**.
+Expected: „Verschoben auf Do 14:35“, danach „Zurück auf 14:35“ (am heutigen Tag nur die Uhrzeit).
+Closes: B3, B4 (live-sichtpruefung-2026-11-09.md)
+Result: ☐

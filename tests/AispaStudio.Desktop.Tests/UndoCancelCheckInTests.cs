@@ -95,7 +95,7 @@ public sealed class UndoCancelCheckInTests
         await vm.UndoMoveCommand.ExecuteAsync(null);
 
         Assert.Single(vm.Columns[0].Items);
-        Assert.StartsWith("Termin wieder gebucht", vm.Toast, StringComparison.Ordinal);
+        Assert.StartsWith("Wieder gebucht", vm.Toast, StringComparison.Ordinal);
     }
 
     [Fact]
