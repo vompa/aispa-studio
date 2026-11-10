@@ -9125,6 +9125,8 @@ export interface components {
             titleInGreeting?: null | boolean;
             address?: null | components["schemas"]["CustomerAddress"];
             pronouns?: null | string;
+            /** Format: date-time */
+            deletedAt?: null | string;
         };
         CustomerEmailDto: {
             /** Format: uuid */

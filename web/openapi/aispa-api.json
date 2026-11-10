@@ -33532,6 +33532,13 @@
               "null",
               "string"
             ]
+          },
+          "deletedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
           }
         }
       },

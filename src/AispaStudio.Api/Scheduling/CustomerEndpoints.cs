@@ -390,7 +390,7 @@ internal static class CustomerEndpoints
         BookingPreferences(c), c.Language, c.CreatedFromChannel?.ToString(), c.AssignmentOpen,
         c.Salutation, c.PreferredName, c.TitlesBefore, c.TitlesAfter, c.TitleInGreeting,
         c is { Street: null, PostalCode: null, City: null, Country: null } ? null : new CustomerAddress(c.Street, c.PostalCode, c.City, c.Country),
-        c.Pronouns);
+        c.Pronouns, c.DeletedAt);
 
     /// <summary>Leer, Deutsch oder eine der Sprachen aus <see cref="GuestLanguages"/>.</summary>
     public static bool KnownLanguage(string? code) =>
