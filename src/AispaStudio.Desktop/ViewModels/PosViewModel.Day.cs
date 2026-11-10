@@ -77,9 +77,8 @@ public partial class PosViewModel
     [NotifyPropertyChangedFor(nameof(SelectedReceipt), nameof(VoidDisabledHint))]
     public partial ReceiptListItem? SelectedReceiptItem { get; set; }
 
-    public ReceiptViewModel? SelectedReceipt => SelectedReceiptItem is { } item
-        ? new ReceiptViewModel(item.Receipt, Zone, Register?.Country ?? FiscalCountry.AT, OwnerLevel)
-        : null;
+    /// <summary>Der gewählte Beleg der Liste; sein PDF ist ein Nachdruck und trägt „Kopie“.</summary>
+    public ReceiptViewModel? SelectedReceipt => SelectedReceiptItem is { } item ? ReceiptFor(item.Receipt, copy: true) : null;
 
     /// <summary>Warum „Stornieren“ gesperrt ist: wegen der Rolle bei einem Anzahlungsbeleg, sonst fehlt der Grund.</summary>
     public string VoidDisabledHint => SelectedReceipt?.VoidBlockedByRole == true
@@ -120,6 +119,13 @@ public partial class PosViewModel
 
     [ObservableProperty]
     public partial bool MovementIsWithdrawal { get; set; }
+
+    /// <summary>Knopfblock „Drucken · PDF speichern“ (ADR 0092) für den eben gespeicherten Tagesabschluss; null beim Zwischenbericht. Ohne Senden: der Abschluss wird abgeheftet.</summary>
+    [ObservableProperty]
+    public partial DocumentActionsViewModel? ClosingDocument { get; private set; }
+
+    /// <summary>Das Recht „Berichte mit Beträgen“: ohne es liest der Server den Abschluss nicht, die Knöpfe sind gesperrt. Die Shell setzt es aus den Rechten.</summary>
+    public bool MaySeeAmountReports { get; set; }
 
     public bool HasReport => Report is not null;
 
@@ -210,6 +216,7 @@ public partial class PosViewModel
     {
         Mode = PosMode.Closing;
         IsClosed = false;
+        ClosingDocument = null;
         return LoadReportAsync();
     }
 
@@ -218,6 +225,7 @@ public partial class PosViewModel
         Receipts.Clear();
         Report = null;
         IsClosed = false;
+        ClosingDocument = null;
         if (Mode == PosMode.Receipts)
         {
             _ = LoadReceiptsAsync();
@@ -385,9 +393,15 @@ public partial class PosViewModel
 
         Report = result.Value;
         IsClosed = true;
+        ClosingDocument = new DocumentActionsViewModel(ClosingDocumentSource(result.Value, MaySeeAmountReports), _api, Dialogs) { ShowToast = ShowToast };
         CountedCash = ClosingNote = "";
         CloseDayCommand.NotifyCanExecuteChanged();
     }
+
+    /// <summary>Pfad des PDFs des gespeicherten Abschlusses; Speichern und Drucken, kein Versand.</summary>
+    internal static DocumentSource ClosingDocumentSource(DayClosingDto closing, bool mayReadAmounts) =>
+        new("Tagesabschluss", $"api/pos/registers/{closing.RegisterId}/day-closings/{closing.Id}/pdf", IsAllowed: mayReadAmounts,
+            DisabledHint: "Dafür braucht es das Recht „Berichte mit Beträgen“.");
 
     private string ClosingConsequence(DayClosingDto fresh)
     {

@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using AispaStudio.Desktop.Services;
 
@@ -53,23 +54,23 @@ internal sealed class StubApi : HttpMessageHandler
         return this;
     }
 
-    /// <summary>Rohdaten, z. B. ESC/POS für den Bondrucker.</summary>
-    public StubApi OnBytes(string route, byte[] body)
-    {
-        _routes[route] = _ => new HttpResponseMessage(HttpStatusCode.OK) { Content = new ByteArrayContent(body) };
-        return this;
-    }
-
-    /// <summary>Eine Datei zum Speichern (Export) mit dem Dateinamen im Content-Disposition, wie die Export-Endpunkte sie liefern.</summary>
-    public StubApi OnFile(string route, byte[] body, string fileName, string contentType = "application/octet-stream")
+    /// <summary>Eine Datei mit Namen, z. B. ein PDF der Dokumente (ADR 0092) oder ein Export (ADR 0091): <c>Content-Disposition: attachment; filename*=…</c> wie bei <c>TypedResults.File</c>.</summary>
+    public StubApi OnFile(string route, byte[] body, string fileName, string contentType = "application/pdf")
     {
         _routes[route] = _ =>
         {
             var content = new ByteArrayContent(body);
-            content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(contentType);
-            content.Headers.ContentDisposition = new System.Net.Http.Headers.ContentDispositionHeaderValue("attachment") { FileNameStar = fileName };
+            content.Headers.ContentType = new MediaTypeHeaderValue(contentType);
+            content.Headers.ContentDisposition = new ContentDispositionHeaderValue("attachment") { FileNameStar = fileName };
             return new HttpResponseMessage(HttpStatusCode.OK) { Content = content };
         };
+        return this;
+    }
+
+    /// <summary>Rohdaten, z. B. ESC/POS für den Bondrucker.</summary>
+    public StubApi OnBytes(string route, byte[] body)
+    {
+        _routes[route] = _ => new HttpResponseMessage(HttpStatusCode.OK) { Content = new ByteArrayContent(body) };
         return this;
     }
 

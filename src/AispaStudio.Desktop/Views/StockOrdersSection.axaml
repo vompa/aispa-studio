@@ -102,6 +102,17 @@
                 <Button Classes="danger" Margin="16,0,0,0" Content="Entwurf verwerfen" Command="{Binding DiscardCommand}" IsVisible="{Binding IsDraft}" AutomationProperties.Name="{Binding DiscardName}" />
                 <Button Classes="danger" Margin="16,0,0,0" Content="{Binding CloseText}" Command="{Binding CloseCommand}" IsVisible="{Binding IsReceiving}" AutomationProperties.Name="{Binding CloseName}" />
               </WrapPanel>
+              <!-- Bestellung als PDF (PDF-Ausgaben F): Drucken, Speichern und Per Mail senden an den Lieferanten; darunter die Vermerke „Gesendet am … an …“ -->
+              <StackPanel x:Name="OrderDocument" Spacing="6">
+                <ui:DocumentActions DataContext="{Binding Document}" />
+                <ItemsControl ItemsSource="{Binding SentMailLines}" IsVisible="{Binding HasSentMails}" AutomationProperties.Name="Gesendet">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="x:String">
+                      <TextBlock Text="{Binding}" Classes="muted small" TextWrapping="Wrap" />
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
               <StackPanel Spacing="8" IsVisible="{Binding HasOrderText}">
                 <TextBox Text="{Binding OrderText, Mode=OneWay}" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="160" MaxHeight="320" AutomationProperties.Name="{Binding OrderTextName}" />
                 <StackPanel Orientation="Horizontal" Spacing="8">

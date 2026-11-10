@@ -264,6 +264,13 @@ public sealed partial class StockViewModel : ViewModelBase, INativeArea
 
     public Task EnsureLoadedAsync() => IsLoaded ? Task.CompletedTask : LoadAsync();
 
+    /// <summary>Eine Rückmeldung der Maske, z. B. nach dem Speichern oder Senden eines PDFs (PDF-Ausgaben F).</summary>
+    internal void ShowMessage(string message)
+    {
+        Message = message;
+        Error = null;
+    }
+
     /// <summary>
     /// Lädt Material und Bestand des Standorts neu (nach jeder Buchung); <paramref name="message"/> erscheint danach als Rückmeldung. Eingaben in der Zählliste und in
     /// den Formularen bleiben stehen.

@@ -42,6 +42,7 @@ Die Seite sehen alle Angemeldeten. Anlegen, Kundendaten, den Rechnungsempfänger
 - [Kundin oder Kunden suchen](hilfe:kunden-suchen)
 - [Neue Kundin oder neuen Kunden anlegen](hilfe:kunden-anlegen)
 - [Kundenkarte ansehen](hilfe:kunden-kundenkarte)
+- [Auskunft und Stammblatt als PDF](hilfe:kunden-kundenkarte#pdf)
 - [Kennzahlen, Sterne und Vermerke](hilfe:kunden-kennzahlen)
 - [Kennzeichen setzen und aufheben](hilfe:kunden-kennzeichen)
 - [Kundendaten und Rechnungsempfänger ändern](hilfe:kunden-bearbeiten)

@@ -178,6 +178,8 @@ Unten stehen die wichtigsten Tasten für die aktuelle Lage, z. B. mit markiertem
 - [Freie Zeit suchen](hilfe:kalender-freie-zeit-suchen)
 - [Wunsch eintippen (KI-Anfrage)](hilfe:kalender-ki-anfrage)
 - [Warteliste ansehen](hilfe:kalender-warteliste)
+- [Terminbestätigung als PDF drucken oder senden](hilfe:kalender-terminbestaetigung)
+- [Tagesplan drucken](hilfe:kalender-tagesplan-drucken)
 - [Lücken schließen](hilfe:kalender-luecken-schliessen)
 - [Pausen, Sperrzeiten und Notizen](hilfe:kalender-pausen-und-notizen)
 - [Krank melden und Ausfall-Assistent](hilfe:kalender-krankmeldung)

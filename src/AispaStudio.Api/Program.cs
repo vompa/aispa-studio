@@ -11,6 +11,7 @@ using AispaStudio.Api.Closures;
 using AispaStudio.Api.Costs;
 using AispaStudio.Api.Data;
 using AispaStudio.Api.Demo;
+using AispaStudio.Api.Documents;
 using AispaStudio.Api.Exports;
 using AispaStudio.Api.HrFile;
 using AispaStudio.Api.Importing;
@@ -165,6 +166,8 @@ builder.Services.AddPasskeyIdentity(builder.Configuration, modules);
 builder.Services.AddScoped<BookingService>();
 builder.Services.AddScoped<AppointmentHistory>();
 builder.Services.AddScoped<EntityHistory>();
+builder.Services.AddScoped<DocumentHeaders>();
+builder.Services.AddScoped<SentDocuments>();
 builder.Services.AddSingleton<HrFileCleanup>();
 builder.Services.AddBackgroundService<HrFileCleanup>(modules);
 builder.Services.AddMemoryCache();
@@ -338,6 +341,10 @@ static void MapApplicationEndpoints(WebApplication app)
     app.MapReportExportEndpoints();
     app.MapCustomerImportEndpoints();
     app.MapCalendarEndpoints();
+    app.MapAppointmentConfirmationEndpoints();
+    app.MapCustomerDisclosureEndpoints();
+    app.MapCustomerCardEndpoints();
+    app.MapDayPlanDocumentEndpoints();
     app.MapAbsenceEndpoints();
     app.MapStaffEndpoints();
     app.MapHistoryEndpoints();
@@ -346,6 +353,8 @@ static void MapApplicationEndpoints(WebApplication app)
     app.MapAccessChannelEndpoints();
     app.MapQuickSwitch();
     app.MapPosEndpoints();
+    app.MapVoucherDocumentEndpoints();
+    app.MapVoucherListEndpoints();
     app.MapPromotionEndpoints();
     app.MapCalendarSubscriptionEndpoints();
     app.MapBusinessContactEndpoints();
@@ -355,6 +364,8 @@ static void MapApplicationEndpoints(WebApplication app)
     app.MapRosterEndpoints();
     app.MapAbsenceRequestEndpoints();
     app.MapTimeTrackingEndpoints();
+    app.MapTimesheetDocumentEndpoints();
+    app.MapRosterDocumentEndpoints();
     app.ForModule(AppModule.OnlineBooking).MapOnlineEndpoints();
     // Anamnese am Tablet und auf Papier gehört zum Kern, auch ohne Kundenbereich.
     app.MapAnamnesisEndpoints();
@@ -365,6 +376,9 @@ static void MapApplicationEndpoints(WebApplication app)
     app.MapAccountingEndpoints();
     app.MapCostEndpoints();
     app.MapStockEndpoints();
+    app.MapStockCountDocumentEndpoints();
+    app.MapPurchaseOrderDocumentEndpoints();
+    app.MapExpiringStockDocumentEndpoints();
     app.MapProductRecommendationEndpoints();
     app.MapReportEndpoints();
     app.MapOperationsEndpoints();

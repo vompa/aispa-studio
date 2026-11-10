@@ -279,7 +279,7 @@ public class HttpApiClient : IAispaApi
         }
     }
 
-    /// <summary>Eine Datei zum Speichern (Export); der Dateiname kommt aus <c>Content-Disposition</c> (<c>filename*</c> vor <c>filename</c>).</summary>
+    /// <summary>Eine Datei zum Speichern (Export) oder ein PDF der Dokumente (ADR 0092); der Dateiname kommt aus <c>Content-Disposition</c> (<c>filename*</c> vor <c>filename</c>).</summary>
     public async Task<ApiResult<ApiFile>> GetFileAsync(string path, CancellationToken ct = default)
     {
         try

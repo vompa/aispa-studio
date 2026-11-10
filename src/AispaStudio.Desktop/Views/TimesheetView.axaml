@@ -48,7 +48,20 @@
       <ui:ExportButton x:Name="TimesExportButton" DataContext="{Binding Export}" VerticalAlignment="Center" />
       <TextBlock x:Name="TimesExportSaved" Text="{Binding ExportSaved}" Classes="muted small" IsVisible="{Binding HasExportSaved}" VerticalAlignment="Center" AutomationProperties.LiveSetting="Polite" />
       <ui:HelpButton Topic="seite-time" VerticalAlignment="Center" />
+      <Button x:Name="TimesDocumentButton" Content="Stundenliste als PDF" Command="{Binding ToggleDocumentCommand}" IsVisible="{Binding CanOfferDocument}"
+              ToolTip.Tip="Druckt oder speichert die Stundenliste dieser Person für den gezeigten Monat." />
     </WrapPanel>
+
+    <!-- Stundenliste (PDF-Ausgaben F): „Stundenliste als PDF“ auf der Karte einer Person öffnet den Knopfblock ohne Senden -->
+    <Border x:Name="TimesDocumentCard" Classes="section" IsVisible="{Binding IsDocumentOpen}" HorizontalAlignment="Left">
+      <StackPanel Spacing="8">
+        <TextBlock Text="Stundenliste" FontWeight="Medium" />
+        <TextBlock Text="{Binding DocumentHint}" Classes="muted small" TextWrapping="Wrap" MaxWidth="480" />
+        <ui:DocumentActions DataContext="{Binding Document}" />
+        <TextBlock Text="{Binding DocumentMessage}" Classes="secondary small" AutomationProperties.LiveSetting="Polite"
+                   IsVisible="{Binding DocumentMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+      </StackPanel>
+    </Border>
 
     <TextBlock Text="{Binding Legend}" Classes="muted small" TextWrapping="Wrap" />
 

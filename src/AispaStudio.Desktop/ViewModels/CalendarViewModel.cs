@@ -336,6 +336,7 @@ public partial class CalendarViewModel : ViewModelBase
         Waitlist = [];
         WaitlistPanel = null;
         GapsPanel = null;
+        DayPlanPrint = null;
         _ = LoadAsync();
         if (value is not null && _live is not null)
         {
@@ -353,6 +354,7 @@ public partial class CalendarViewModel : ViewModelBase
 
         ResetMessages();
         GapsPanel?.Reset();
+        DayPlanPrint = null;
         if (!_changingDay)
         {
             _ = LoadAsync();
@@ -700,7 +702,7 @@ public partial class CalendarViewModel : ViewModelBase
     private void OpenWaitlist()
     {
         ClosePanels();
-        WaitlistPanel = new WaitlistViewModel(LocationName, Waitlist, () => WaitlistPanel = null);
+        WaitlistPanel = NewWaitlistPanel();
         Rebuild();
         _ = LoadWaitlistFreeAsync(Waitlist);
     }
@@ -716,7 +718,7 @@ public partial class CalendarViewModel : ViewModelBase
         Waitlist = [.. result.Value.Where(e => e.Status == WaitlistStatus.Waiting).Select(WaitlistRowOf)];
         if (WaitlistPanel is not null)
         {
-            WaitlistPanel = new WaitlistViewModel(LocationName, Waitlist, () => WaitlistPanel = null);
+            WaitlistPanel = NewWaitlistPanel();
             _ = LoadWaitlistFreeAsync(Waitlist);
         }
     }

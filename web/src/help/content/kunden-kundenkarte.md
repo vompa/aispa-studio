@@ -4,7 +4,7 @@ bereich: Kunden
 oberflaeche: windows-app
 rollen: rezeption, leitung, inhaber, manager, therapeut
 seite: kunden
-stichwoerter: Geburtstag, Alter, nächster Geburtstag, Kundenkarte, Sterne, Stammgast, Kennzahlen, Gut zu wissen, Noch nicht erfasst, Termin buchen, Kassieren, kopieren, Kundenkartei, Historie, Verlauf, Änderungen, frühere Termine, letzter Besuch, nächster Termin, wie oft da, nicht erschienen, No-Show, Besuche, customer history, client profile, visit history
+stichwoerter: Geburtstag, Alter, nächster Geburtstag, Kundenkarte, Sterne, Stammgast, Kennzahlen, Gut zu wissen, Noch nicht erfasst, Termin buchen, Kassieren, kopieren, Kundenkartei, Historie, Verlauf, Änderungen, frühere Termine, letzter Besuch, nächster Termin, wie oft da, nicht erschienen, No-Show, Besuche, customer history, client profile, visit history, Auskunft, Datenschutzauskunft, Auskunft als PDF, Art. 15 DSGVO, Stammblatt, Stammblatt drucken, Kundenblatt, PDF, data access request, customer sheet
 ---
 # Kundenkarte ansehen
 
@@ -18,6 +18,23 @@ Die Kundenkarte zeigt auf einen Blick, wer der Gast ist, was man über ihn wisse
 6. Rechts steht der Verlauf: **Demnächst** (die nächsten drei Termine mit Behandlung und Person), **Zuletzt** (die letzten fünf; nicht erschienene und stornierte sind markiert), offene Pakete, **Offene Gutscheine** (Wertgutscheine mit Restwert und den letzten vier Zeichen des Codes, der ganze Code steht in der Kassa) und **Letzte Käufe** (die letzten fünf Positionen ohne Termin, etwa Artikel oder Gutscheine, ohne stornierte Belege) sowie Namensänderungen. Gutscheine und Käufe sieht nur, wer buchen darf, wie an der Kassa. **Alle Termine** klappt die Liste mit Datum, Uhrzeit, Behandlung, Status („Gebucht“, „Eingecheckt“, „Erledigt“, „Nicht erschienen“, „Storniert“) und Preis auf.
 
 ![Kundenkarte](images/app/kunden.png)
+
+## Auskunft und Stammblatt als PDF {#pdf}
+
+Zwei Dokumente zur Kundenkarte gibt es als PDF. Beide stehen im Menü **…** im Kopf der Karte. Sie erscheinen als Karte unter dem Kopf mit **Drucken** und **PDF speichern**; **Per Mail senden** gibt es bei beiden nicht. Das Menü **…** sieht, wer buchen darf. Wählt man einen anderen Gast, schließt die Karte.
+
+![Kundenkarte mit geöffnetem Menü und der Karte Auskunft über gespeicherte Daten mit Drucken und PDF speichern](images/app/kunde-auskunft-pdf.png)
+
+**Auskunft als PDF** ist die Auskunft nach Art. 15 DSGVO. Die Karte „Auskunft über gespeicherte Daten“ hält alle gespeicherten Daten dieser Person fest, zum Speichern oder Drucken und persönlichen Übergeben. Das PDF `Auskunft-<Name>.pdf` zeigt:
+
+- Stammdaten, Kontakt, Wünsche und Vermerke,
+- Termine mit Status, Zahlungen, Gutscheine auf den Namen und das Online-Konto,
+- Gesundheitsangaben, und zwar die Antworten des Bogens nur mit dem Recht für die Anamnese. Ohne das Recht steht nur der Satz „Gesundheitsangaben: vorhanden, Auskunft durch die Leitung“. Gibt es keinen Bogen, steht „Keine Gesundheitsangaben gespeichert.“
+- den Verlauf der Änderungen.
+
+**Stammblatt als PDF** ist die kurze Karteikarte für den Tresen: Kontakt mit Anschrift, Wünsche und Vermerke, die nächsten Termine (höchstens 5, nicht storniert) und die letzten 5 Besuche. Die Datei heißt `Stammblatt-<Name>.pdf`. Antworten aus der Anamnese stehen nie darauf; bei vorhandenem Bogen steht nur „Gesundheitsangaben: vorhanden, Auskunft durch die Leitung“.
+
+Termine und Besuche erscheinen nur an Standorten, die man sehen darf. Wie die Knöpfe arbeiten: [Dokumente drucken, speichern und senden](hilfe:dokumente-drucken-speichern-senden).
 
 ## Gut zu wissen {#hinweise}
 

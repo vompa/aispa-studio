@@ -142,10 +142,10 @@ public partial class AppointmentViewModel(
     private bool HasStatusActions => CanChangeStatus && Appointment.Status is AppointmentStatus.Booked or AppointmentStatus.CheckedIn;
 
     /// <summary>
-    /// Hinter „Mehr“ steht etwas: Erledigt, Nicht erschienen, Wiederholen, Zeiten ändern oder die Kalenderdatei. Stornieren und Einchecken zurücknehmen stehen im
+    /// Hinter „Mehr“ steht etwas: Erledigt, Nicht erschienen, Wiederholen, Zeiten ändern, die Bestätigung oder die Kalenderdatei. Stornieren und Einchecken zurücknehmen stehen im
     /// Aktionsblock (Ä81).
     /// </summary>
-    public bool HasMore => HasStatusActions || CanRepeat || CanChangeTimes || CanSaveCalendarFile;
+    public bool HasMore => HasStatusActions || CanRepeat || CanChangeTimes || CanConfirm || CanSaveCalendarFile;
 
     /// <summary>„Mehr“ › „Kalenderdatei …“ (Export/Import, Aufgabe C): der Termin als iCal für den Gast, bei einer Buchung mit mehreren Teilen alle Teile; nicht bei Stornierten.</summary>
     public bool CanSaveCalendarFile => Appointment.Status != AppointmentStatus.Cancelled;
