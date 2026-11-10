@@ -46,7 +46,7 @@ internal static class CustomerExports
                     return Problem("format", "Die Kundenliste gibt es als Excel, CSV, Portal-CSV oder vCard.");
                 }
 
-                var query = CustomerEndpoints.Search(db.Customers.AsNoTracking(), db, search);
+                var query = CustomerEndpoints.Search(db.Customers.AsNoTracking().Where(c => c.DeletedAt == null), db, search);
                 if (newsletter)
                 {
                     query = query.Where(c => db.MarketingConsents.Any(m => m.CustomerId == c.Id && m.State == MarketingConsentState.Confirmed));
@@ -94,7 +94,7 @@ internal static class CustomerExports
         group.MapGet("/{customerId:guid}/vcard", async Task<Results<FileContentHttpResult, NotFound>> (
                 Guid customerId, AispaDbContext db, AccessService accessService, ExportLog log, TimeProvider time, CancellationToken ct) =>
             {
-                if (await db.Customers.AsNoTracking().FirstOrDefaultAsync(c => c.Id == customerId, ct) is not { } customer)
+                if (await db.Customers.AsNoTracking().FirstOrDefaultAsync(c => c.Id == customerId && c.DeletedAt == null, ct) is not { } customer)
                 {
                     return TypedResults.NotFound();
                 }

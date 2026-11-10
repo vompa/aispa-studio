@@ -25,6 +25,11 @@ internal sealed partial class BookingService
             return new BookingOutcome.NotFound("Kunde");
         }
 
+        if (customer.DeletedAt is not null)
+        {
+            return new BookingOutcome.Invalid(nameof(AssignGuestRequest.CustomerId), CustomerAnonymizer.NotSelectableMessage);
+        }
+
         var parts = await db.Appointments.Include(a => a.Customer).Include(a => a.Treatment)
             .Where(a => a.GroupId == groupId && a.PlaceholderGuest == guest && a.CustomerId == appointment.CustomerId
                 && a.Status != AppointmentStatus.Cancelled)

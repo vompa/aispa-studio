@@ -4626,6 +4626,9 @@ namespace AispaStudio.Api.Data.Migrations
                         .HasMaxLength(16)
                         .HasColumnType("character varying(16)");
 
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("DiscountApprovedByUserId")
                         .HasMaxLength(450)
                         .HasColumnType("character varying(450)");

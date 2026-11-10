@@ -305,6 +305,12 @@ public sealed class Customer
 
     public DateTimeOffset CreatedAt { get; init; }
 
+    /// <summary>
+    /// Gesetzt, wenn der Gast anonymisiert wurde (weich gelöscht): Name, Kontakt, Notizen, Anamnese und Online-Zugang sind weg, Termine und Belege bleiben
+    /// als „Gelöschter Gast“. Such- und Auswahlstellen schließen solche Gäste aus; Termine, Belege, Berichte und der Verlauf lesen sie weiter.
+    /// </summary>
+    public DateTimeOffset? DeletedAt { get; set; }
+
     /// <summary>Name im Haus (Rufname statt Vorname); nicht für Belege und Nachrichten an den Gast.</summary>
     public string InHouseName => PersonNames.InHouse(FirstName, LastName, PreferredName);
 

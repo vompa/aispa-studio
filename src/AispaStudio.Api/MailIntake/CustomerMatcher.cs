@@ -61,8 +61,9 @@ internal sealed class CustomerMatcher(AispaDbContext db, TenantContext tenants, 
         if (email is { Length: > 0 })
         {
             var pattern = email.Replace("\\", "\\\\", StringComparison.Ordinal).Replace("%", "\\%", StringComparison.Ordinal).Replace("_", "\\_", StringComparison.Ordinal);
-            var ids = await db.Customers.AsNoTracking().Where(c => c.Email != null && EF.Functions.ILike(c.Email, pattern)).Select(c => c.Id)
-                .Union(db.CustomerEmails.AsNoTracking().Where(e => e.NormalizedAddress == email).Select(e => e.CustomerId))
+            var ids = await db.Customers.AsNoTracking().Where(c => c.DeletedAt == null && c.Email != null && EF.Functions.ILike(c.Email, pattern)).Select(c => c.Id)
+                .Union(db.CustomerEmails.AsNoTracking()
+                    .Where(e => e.NormalizedAddress == email && db.Customers.Any(c => c.Id == e.CustomerId && c.DeletedAt == null)).Select(e => e.CustomerId))
                 .ToListAsync(ct);
             foreach (var id in ids)
             {
@@ -72,7 +73,7 @@ internal sealed class CustomerMatcher(AispaDbContext db, TenantContext tenants, 
 
         // Der Stamm wird einmal schlank geladen und im Speicher verglichen: Schreibweisen von Nummern und Namen lassen sich in SQL nicht
         // zuverlässig vereinheitlichen. Für Spas mit höchstens 50 Mitarbeitenden bleibt das klein.
-        var everyone = await db.Customers.AsNoTracking()
+        var everyone = await db.Customers.AsNoTracking().Where(c => c.DeletedAt == null)
             .Select(c => new Person(c.Id, c.FirstName, c.LastName, c.Phone, c.BirthDate, c.PreferredName)).ToListAsync(ct);
         var extractedMatches = new HashSet<Guid>();
         foreach (var person in everyone.Where(p => !string.IsNullOrWhiteSpace(p.Phone)))

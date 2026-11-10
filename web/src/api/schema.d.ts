@@ -765,6 +765,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/customers/{customerId}/anonymize": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Anonymisiert einen Gast und löscht ihn weich: Name, Kontaktdaten, Notizen, Anamnese und Online-Zugang sind weg, Termine und Belege bleiben als „Gelöschter Gast“, der Verlauf behält seine Zeilen ohne Werte. Nur Inhaber und Geschäftsführung. 409 mit der Liste des Offenen (künftige Termine, offene Rechnungen) oder wenn der Gast schon anonymisiert ist. */
+        post: operations["AnonymizeCustomer"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/customers/{customerId}/appointments": {
         parameters: {
             query?: never;
@@ -9661,6 +9678,10 @@ export interface components {
             city: null | string;
             country: null | string;
         };
+        CustomerAnonymizeRejected: {
+            message: string;
+            open: string[];
+        };
         CustomerBilling: {
             name: string;
             address: string;
@@ -9726,6 +9747,8 @@ export interface components {
             titleInGreeting?: null | boolean;
             address?: null | components["schemas"]["CustomerAddress"];
             pronouns?: null | string;
+            /** Format: date-time */
+            deletedAt?: null | string;
         };
         CustomerEmailDto: {
             /** Format: uuid */
@@ -15944,6 +15967,51 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    AnonymizeCustomer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                customerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomerAnonymizeRejected"];
+                };
             };
         };
     };

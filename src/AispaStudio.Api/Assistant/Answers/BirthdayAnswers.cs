@@ -49,7 +49,7 @@ internal sealed class BirthdayAnswers(AispaDbContext db) : IAnswerGiver
 
         var appointments = await query.Select(a => new { a.CustomerId, a.Start }).ToListAsync(ct);
         var ids = appointments.Select(a => a.CustomerId).Distinct().ToList();
-        var guests = await db.Customers.AsNoTracking().Where(c => ids.Contains(c.Id) && c.BirthDate != null).ToListAsync(ct);
+        var guests = await db.Customers.AsNoTracking().Where(c => ids.Contains(c.Id) && c.DeletedAt == null && c.BirthDate != null).ToListAsync(ct);
 
         var rows = new List<(string Name, DateOnly Birthday, DateTimeOffset At, bool SameDay)>();
         foreach (var guest in guests)

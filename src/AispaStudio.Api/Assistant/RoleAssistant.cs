@@ -169,7 +169,7 @@ internal sealed class RoleAssistant(
 
         foreach (var id in new[] { reference?.CustomerId, reference?.LastGuestId })
         {
-            if (id is { } guest && await db.Customers.AsNoTracking().AnyAsync(c => c.Id == guest, ct))
+            if (id is { } guest && await db.Customers.AsNoTracking().AnyAsync(c => c.Id == guest && c.DeletedAt == null, ct))
             {
                 return guest;
             }
@@ -419,15 +419,15 @@ internal sealed class RoleAssistant(
         IQueryable<Customer> customers;
         if (q.Contains('@', StringComparison.Ordinal))
         {
-            customers = db.Customers.Where(c => c.Email != null && EF.Functions.ILike(c.Email, emailPattern));
+            customers = db.Customers.Where(c => c.DeletedAt == null && c.Email != null && EF.Functions.ILike(c.Email, emailPattern));
         }
         else if (digits.Length >= 6 && q.Count(char.IsDigit) >= 6)
         {
-            customers = db.Customers.Where(c => c.Phone != null && Regex.Replace(c.Phone, "[^0-9]", "").EndsWith(digits));
+            customers = db.Customers.Where(c => c.DeletedAt == null && c.Phone != null && Regex.Replace(c.Phone, "[^0-9]", "").EndsWith(digits));
         }
         else
         {
-            customers = db.Customers.AsQueryable();
+            customers = db.Customers.Where(c => c.DeletedAt == null);
             foreach (var token in tokens)
             {
                 customers = customers.Where(c => EF.Functions.ILike(c.FirstName, token) || EF.Functions.ILike(c.LastName, token));

@@ -75,7 +75,7 @@ internal static class OnlineTenant
 
         if (customerId is { } id)
         {
-            return await TenantModel.TenantOfAsync(db.Customers.Where(c => c.Id == id), ct);
+            return await TenantModel.TenantOfAsync(db.Customers.Where(c => c.Id == id && c.DeletedAt == null), ct);
         }
 
         var single = await db.Tenants.Select(t => t.Id).Take(2).ToListAsync(ct);
