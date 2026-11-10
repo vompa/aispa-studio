@@ -13,9 +13,9 @@ public sealed class VoucherShopTests(ApiFixture fixture)
 
     private static string NewEmail() => $"gutschein-{Guid.NewGuid():N}@example.at";
 
-    private static async Task<CashRegisterDto> CreateRegisterAsync(TestSpa spa) =>
+    private static async Task<CashRegisterDto> CreateRegisterAsync(TestSpa spa, FiscalCountry country = FiscalCountry.AT) =>
         await spa.PostAsync<CashRegisterDto>("/api/pos/registers", new CashRegisterInput(
-            spa.Location.Id, $"G-{Guid.NewGuid():N}"[..14], FiscalCountry.AT, "Test-Spa GmbH\nTeststraße 1, 1010 Wien\nATU12345678",
+            spa.Location.Id, $"G-{Guid.NewGuid():N}"[..14], country, "Test-Spa GmbH\nTeststraße 1, 1010 Wien\nATU12345678",
             "Test-Spa GmbH", "AT61 1904 3002 3457 3201", null), Ct);
 
     private static VoucherOrderRequest Request(TestSpa spa, string email, VoucherKind kind = VoucherKind.MultiPurpose, decimal? amount = 50m,
@@ -93,6 +93,8 @@ public sealed class VoucherShopTests(ApiFixture fixture)
         Assert.Contains($"Gutscheincode: {issued.Code}", mail.Text, StringComparison.Ordinal);
         Assert.Contains("im Wert von 50,00 EUR", mail.Text, StringComparison.Ordinal);
         Assert.Contains("Alles Gute zum Geburtstag!", mail.Text, StringComparison.Ordinal);
+        Assert.Null(issued.ValidUntil);
+        Assert.DoesNotContain("Einzulösen bis", mail.Text, StringComparison.Ordinal);
 
         var voucher = await spa.GetAsync<VoucherDto>($"/api/pos/vouchers/{issued.Code}", Ct);
         Assert.Equal(50m, voucher.Balance);
@@ -107,6 +109,24 @@ public sealed class VoucherShopTests(ApiFixture fixture)
         var listed = Assert.Single(staff);
         Assert.Equal(VoucherOrderStatus.Issued, listed.Status);
         Assert.Equal(sale.Id, listed.ReceiptId);
+    }
+
+    [Fact]
+    public async Task Online_Gutschein_an_einer_deutschen_Kasse_gilt_bis_Jahresende_plus_drei_Jahre_und_die_Mail_nennt_das_Datum()
+    {
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        await CreateRegisterAsync(spa, FiscalCountry.DE);
+        var email = NewEmail();
+        using var client = spa.OnlineClient();
+
+        var started = await OrderAsync(client, Request(spa, email));
+        await client.PostAsJsonAsync($"/api/online/vouchers/orders/{started.Token}/test-payment", new TestPaymentResult(true), TestSpa.Json, Ct);
+
+        var issued = await WaitForAsync(client, started.Token, VoucherOrderStatus.Issued);
+        var expected = new DateOnly(ViennaToday.Year + 3, 12, 31);
+        Assert.Equal(expected, issued.ValidUntil);
+        var mail = await fixture.Mailbox.WaitForAsync(email, m => m.Subject.StartsWith("Ihr Gutschein", StringComparison.Ordinal), Ct);
+        Assert.Contains($"Einzulösen bis {expected:dd.MM.yyyy}", mail.Text, StringComparison.Ordinal);
     }
 
     [Fact]

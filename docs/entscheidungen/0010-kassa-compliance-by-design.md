@@ -28,3 +28,21 @@ Ohne erfüllte Kassenpflichten dürfen Kunden in DE und AT nicht verkaufen. Eine
 ## Folgen und Stand
 
 Kassenrecht hinter `IFiscalization` je Land (PR #5, #7). Österreich vollständig mit Test-Signatureinrichtung (`AT0`), Echtbetrieb ersetzt nur `IRksvSignatureDevice`. Deutschland über `ITseClient` vorbereitet; ohne TSE keine deutsche Kasse. Offen: zertifizierte Signatureinrichtung/TSE, Kartenterminal, Belegdruck, CH-Rundung.
+
+Nachtrag (09.11.2026, Gutschein-Fristen): Beim Verkauf von Gutscheinen (Kassa und Online-Shop) belegt die API ein Ablaufdatum nach dem Land der Kasse vor (`VoucherExpiry`, Kaufdatum = Ortsdatum des Standorts). Der Auftraggeber hat die Regel am 09.11.2026 freigegeben:
+
+- **Deutschland:** Wertgutschein, Behandlungsgutschein und Paket bis 31.12. des dritten Jahres nach dem Kaufjahr (Kauf 09.11.2026 → 31.12.2029). Laut Verbraucherzentrale und IHK gelten drei Jahre ab Jahresende; eine Frist von einem Jahr hat das OLG München (29 U 3193/07) gekippt.
+- **Schweiz:** fünf Jahre ab dem Kaufdatum (Art. 127/128 OR laut law.ch).
+- **Österreich:** kein Ablaufdatum. Laut WKO und AK Oberösterreich gelten 30 Jahre (OGH 7 Ob 22/12d); fünf Jahre nur mit Auszahlungsmöglichkeit.
+
+Das Datum ist am Verkauf änderbar und darf leer bleiben (unbefristet). Ein Datum vor der Frist des Landes verbietet die Kassa nicht, sie zeigt einen Hinweis; in Österreich bei jedem Datum „In Österreich sind Fristen unter 5 Jahren ohne Auszahlungsmöglichkeit unwirksam.“ Beleg, Gutschein und Mail nennen „Einzulösen bis TT.MM.JJJJ“; das Einlösen prüft das Datum. Schon verkaufte Gutscheine bleiben unverändert.
+
+Quellen (abgerufen am 09.11.2026; die genannten Urteile wurden nicht im Volltext geprüft):
+
+- Verbraucherzentrale, „Gutscheine als Geschenk: Gerichte verlangen lange Fristen“: <https://www.verbraucherzentrale.de/wissen/vertraege-reklamation/kundenrechte/gutscheine-als-geschenk-gerichte-verlangen-lange-fristen-13861>
+- IHK Kassel-Marburg, „Rechtsgrundlage bei Gutscheinen“ (drei Jahre ab Jahresende, ein Jahr von OLG München 29 U 3193/07 gekippt): <https://www.ihk.de/kassel-marburg/beratung-service/recht/wirtschaftsrecht/allgemeines-vertragsrecht/rechtsgrundlage-bei-gutscheinen-4057952>
+- WKO, „Gutscheine – Befristung“: <https://www.wko.at/vertragsrecht/gutscheine-befristung>
+- Arbeiterkammer Oberösterreich, „Gutscheine“ (30 Jahre, OGH 7 Ob 22/12d, fünf Jahre nur mit Auszahlung): <https://ooe.arbeiterkammer.at/beratung/konsumentenschutz/konsumentenrecht/konsumentenrecht/Gutscheine.html>
+- law.ch, „Geschenkgutscheine: Geltendmachung und Gültigkeitsdauer“ (Art. 127/128 OR, fünf Jahre): <https://law.ch/lawnews/2024/01/geschenkgutscheine-geltendmachung-gueltigkeitsdauer/>
+
+Die Regel soll vor dem Einsatz anwaltlich geprüft werden.

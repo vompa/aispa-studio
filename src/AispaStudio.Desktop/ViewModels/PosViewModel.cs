@@ -595,6 +595,7 @@ public partial class PosViewModel : ViewModelBase
 
         _ = LoadDayAsync();
         _ = LoadTerminalsAsync(value);
+        _ = LoadVoucherExpiryAsync(value);
         OnRegisterChangedForModes();
     }
 
@@ -917,7 +918,12 @@ public partial class PosViewModel : ViewModelBase
     private async Task SellVoucherAsync()
     {
         var value = Money.Parse(VoucherValue) ?? 0;
-        await AddLineAsync(new BillLineInput(BillLineKind.Voucher, null, null, 1, value, 0, null, null, null, VoucherKind.MultiPurpose, null)).ConfigureAwait(true);
+        if (WithVoucherExpiry(new BillLineInput(BillLineKind.Voucher, null, null, 1, value, 0, null, null, null, VoucherKind.MultiPurpose, null)) is not { } line)
+        {
+            return;
+        }
+
+        await AddLineAsync(line).ConfigureAwait(true);
         if (Error is null)
         {
             VoucherValue = "";
@@ -930,12 +936,13 @@ public partial class PosViewModel : ViewModelBase
     [RelayCommand(CanExecute = nameof(CanSellTreatmentVoucher))]
     private async Task SellTreatmentVoucherAsync()
     {
-        if (VoucherTreatment is not { } treatment)
+        if (VoucherTreatment is not { } treatment
+            || WithVoucherExpiry(new BillLineInput(BillLineKind.Voucher, null, null, 1, null, 0, null, null, null, VoucherKind.SinglePurpose, treatment.Id)) is not { } line)
         {
             return;
         }
 
-        await AddLineAsync(new BillLineInput(BillLineKind.Voucher, null, null, 1, null, 0, null, null, null, VoucherKind.SinglePurpose, treatment.Id)).ConfigureAwait(true);
+        await AddLineAsync(line).ConfigureAwait(true);
         if (Error is null)
         {
             VoucherTreatment = null;
@@ -1614,9 +1621,13 @@ public sealed class ReceiptViewModel(ReceiptDto receipt, TimeZoneInfo zone, Fisc
         .Select(p => new ReceiptRow(p.VoucherCode is { } code ? $"Gutschein {code}" : Money.MethodText(p.Method), Format(p.Amount)))
         .ToList();
 
-    /// <summary>Mit diesem Beleg ausgestellte Gutscheine: Code zum Mitgeben an den Gast.</summary>
+    /// <summary>Mit diesem Beleg ausgestellte Gutscheine: Code zum Mitgeben an den Gast, darunter das Ablaufdatum, falls gesetzt.</summary>
     public IReadOnlyList<ReceiptRow> Vouchers => Receipt.IssuedVouchers
-        .Select(v => new ReceiptRow(v.Kind == VoucherKind.SinglePurpose ? $"Gutschein {v.Code} (Behandlung)" : $"Gutschein {v.Code}", Format(v.InitialValue)))
+        .SelectMany(v =>
+        {
+            var row = new ReceiptRow(v.Kind == VoucherKind.SinglePurpose ? $"Gutschein {v.Code} (Behandlung)" : $"Gutschein {v.Code}", Format(v.InitialValue));
+            return v.ValidUntil is { } until ? new[] { row, new ReceiptRow($"   Einzulösen bis {DateInputParser.Format(until)}", "") } : [row];
+        })
         .ToList();
 
     public bool HasVouchers => Receipt.IssuedVouchers.Count > 0;

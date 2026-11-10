@@ -862,4 +862,20 @@ Expected: Knopfnamen („Gutscheinliste …“, „Aushang als PDF“, „Stunde
 6. In der Kassa am Fragezeichen neben einer Maske die Seitenerklärung „Kassa“ öffnen; im Kalender und bei den Kunden ebenso.
 Expected: Die Listen der Abläufe nennen „Dokumente drucken, als PDF speichern und per Mail senden“, „Gutscheinliste drucken“ (Kassa), „Terminbestätigung als PDF drucken oder senden“ und „Tagesplan drucken“ (Kalender) und „Auskunft und Stammblatt als PDF“ (Kunden).
 Closes: Arbeitsanweisung PDF-Ausgaben, Aufgabe G
+
+### Gutschein-Ablaufdatum je Land
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Rezeption anmelden, **Kassa**, Bereich „Kassieren“, Panel „Artikel und Gutscheine“ aufklappen
+1. Unter „Gutschein verkaufen“ das Feld **Einzulösen bis** ansehen (Kasse in Österreich).
+Expected: Das Feld ist leer; darunter steht „In Österreich ohne Ablaufdatum; leer lassen.“
+2. Ein Datum eintragen, z. B. `31.12.2028`, und das Feld verlassen.
+Expected: Unter dem Feld steht der Hinweis „In Österreich sind Fristen unter 5 Jahren ohne Auszahlungsmöglichkeit unwirksam.“; **Wertgutschein verkaufen** bleibt möglich.
+3. Wert `50` eintragen, **Wertgutschein verkaufen**, bar bezahlen.
+Expected: Der Beleg zeigt unter „Gutschein …“ die Zeile „Einzulösen bis 31.12.2028“; der gedruckte Beleg ebenso.
+4. Feld leeren, einen Behandlungsgutschein verkaufen und bezahlen.
+Expected: Auf dem Beleg steht keine Zeile „Einzulösen bis“ (unbefristet).
+5. Wenn eine Kasse in Deutschland eingerichtet ist (Test-TSE): Kassa dieses Standorts öffnen.
+Expected: Das Feld ist mit dem 31.12. des dritten Jahres nach heute vorbelegt (heute 09.11.2026 → 31.12.2029); ein früheres Datum zeigt „Kürzer als die übliche Frist bis …“.
+6. Einen Gutschein mit abgelaufenem Datum einlösen (z. B. ein Testgutschein mit Datum von gestern).
+Expected: Beim Bezahlen erscheint „Gutschein … ist am … abgelaufen.“
+Closes: –
 Result: ☐

@@ -149,7 +149,7 @@ public sealed partial class ViewTests
         shell.Pos.VoucherTreatment = shell.Pos.Treatments.First(t => t.Id == SpaSample.Paying.TreatmentId);
         shell.Pos.PackageUnits = "10";
         shell.Pos.PackagePrice = "699";
-        shell.Pos.PackageValidUntil = "31.12.2027";
+        shell.Pos.VoucherValidUntil = "31.12.2027";
         await Pump();
 
         var page = window.GetVisualDescendants().OfType<Views.PosView>().First();
@@ -165,7 +165,7 @@ public sealed partial class ViewTests
         var labels = page.GetVisualDescendants().OfType<FormField>().Where(f => f.IsEffectivelyVisible).Select(f => f.Label).ToList();
         Assert.Contains("Paketpreis (EUR)", labels);
         Assert.Contains("Anzahl", labels);
-        Assert.Contains("Gültig bis", labels);
+        Assert.Contains("Einzulösen bis", labels);
 
         // Zahlungsbeträge sind Betragsfelder; ein getippter Betrag erscheint im Anzeigeformat und im ViewModel.
         var payments = page.GetVisualDescendants().OfType<MoneyField>().Where(f => f.IsEffectivelyVisible && f.IsEnabled).ToList();

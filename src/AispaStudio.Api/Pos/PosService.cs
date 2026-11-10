@@ -393,6 +393,7 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
         Guid? appointmentId = null, treatmentId = null, articleId = null, areaVisitId = null;
         VoucherKind? voucherKind = null;
         int? units = null;
+        DateOnly? validUntil = null;
 
         switch (input.Kind)
         {
@@ -530,6 +531,7 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
                 {
                     quantity = 1;
                     voucherKind = input.VoucherKind ?? VoucherKind.MultiPurpose;
+                    validUntil = VoucherValidUntil(register.Country, input, LocalTime.LocalDate(time.GetUtcNow(), await ZoneAsync(register, ct)));
                     if (voucherKind == VoucherKind.SinglePurpose)
                     {
                         var treatment = await db.Treatments.AsNoTracking().Include(t => t.LocationPrices)
@@ -549,11 +551,6 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
                             if (bill.CustomerId is null)
                             {
                                 throw PosFailure.Invalid(nameof(input.Units), "Ein Paket gehört einem Gast: zuerst einen Termin oder Eintritt des Gastes auf die Rechnung setzen.");
-                            }
-
-                            if (input.ValidUntil is { } until && until <= DateOnly.FromDateTime(time.GetUtcNow().UtcDateTime))
-                            {
-                                throw PosFailure.Invalid(nameof(input.ValidUntil), "Das Ablaufdatum muss in der Zukunft liegen.");
                             }
 
                             units = count;
@@ -588,7 +585,7 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
         }
 
         var line = NewBillLine(register, bill, input,
-            new LineBasis(description, unitPrice, quantity, category, account, appointmentId, treatmentId, articleId, areaVisitId, voucherKind, units));
+            new LineBasis(description, unitPrice, quantity, category, account, appointmentId, treatmentId, articleId, areaVisitId, voucherKind, units, validUntil));
         if (!await db.RevenueAccounts.AnyAsync(a => a.Id == account, ct))
         {
             throw PosFailure.NotFound("Erlöskonto");
@@ -604,7 +601,41 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
     /// <summary>Was die Art einer Position festlegt: Text, Preis, Steuer, Erlöskonto und Bezug (aus Termin, Artikel, Behandlung …).</summary>
     internal sealed record LineBasis(
         string Description, decimal UnitPrice, int Quantity, TaxCategory Category, Guid Account, Guid? AppointmentId, Guid? TreatmentId,
-        Guid? ArticleId, Guid? AreaVisitId, VoucherKind? VoucherKind, int? Units);
+        Guid? ArticleId, Guid? AreaVisitId, VoucherKind? VoucherKind, int? Units, DateOnly? VoucherValidUntil);
+
+    /// <summary>
+    /// Ablaufdatum eines verkauften Gutscheins: ausdrücklich unbefristet, das eingetragene Datum (nach heute) oder ohne Angabe die Frist des
+    /// Landes der Kasse (<see cref="VoucherExpiry"/>). <paramref name="today"/> ist das Ortsdatum des Standorts.
+    /// </summary>
+    internal static DateOnly? VoucherValidUntil(FiscalCountry country, BillLineInput input, DateOnly today)
+    {
+        if (input.WithoutExpiry)
+        {
+            return input.ValidUntil is null
+                ? null
+                : throw PosFailure.Invalid(nameof(input.ValidUntil), "Entweder ein Ablaufdatum oder unbefristet, nicht beides.");
+        }
+
+        if (input.ValidUntil is { } until)
+        {
+            return until > today ? until : throw PosFailure.Invalid(nameof(input.ValidUntil), "Das Ablaufdatum muss in der Zukunft liegen.");
+        }
+
+        return VoucherExpiry.Default(country, today);
+    }
+
+    /// <summary>Vorbelegung, Regel und Hinweis zum Ablaufdatum eines Gutscheins an dieser Kasse, gerechnet ab dem heutigen Ortsdatum.</summary>
+    public async Task<VoucherExpiryDto?> VoucherExpiryAsync(Guid registerId, DateOnly? until, CancellationToken ct)
+    {
+        var register = await db.CashRegisters.AsNoTracking().FirstOrDefaultAsync(r => r.Id == registerId, ct);
+        if (register is null)
+        {
+            return null;
+        }
+
+        var today = LocalTime.LocalDate(time.GetUtcNow(), await ZoneAsync(register, ct));
+        return new(VoucherExpiry.Default(register.Country, today), VoucherExpiry.Rule(register.Country), VoucherExpiry.Warning(register.Country, today, until));
+    }
 
     /// <summary>Prüft Preis, Rabatt und Steuersatz und hängt die neue Position an die Rechnung (ohne Datenbank).</summary>
     internal static BillLine NewBillLine(CashRegister register, Bill bill, BillLineInput input, LineBasis basis)
@@ -653,7 +684,7 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
             ArticleId = basis.ArticleId,
             VoucherKind = basis.VoucherKind,
             VoucherUnits = basis.Units,
-            VoucherValidUntil = basis.Units is null ? null : input.ValidUntil,
+            VoucherValidUntil = basis.VoucherValidUntil,
             AreaVisitId = basis.AreaVisitId,
         };
         bill.Lines.Add(line);

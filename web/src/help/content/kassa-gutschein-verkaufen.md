@@ -38,7 +38,7 @@ Die Zahlung eintragen und auf **Bezahlen und Beleg erstellen** klicken, siehe [B
 
 ## Was danach {#was-danach}
 
-Auf dem Beleg steht unter „Ausgestellte Gutscheine“ der Code, z. B. „Gutschein K7M3-Q9XA-B2CD“ (drei Blöcke zu vier Zeichen, ohne 0, O, 1, I und L). Den Beleg drucken, den Gutschein als Geschenk-PDF drucken oder senden ([Gutschein als PDF](hilfe:kassa-gutschein-verkaufen#pdf)) oder den Code dem Gast mitgeben. Einlösen: [Gutschein einlösen](hilfe:kassa-gutschein-einloesen).
+Auf dem Beleg steht unter „Ausgestellte Gutscheine“ der Code, z. B. „Gutschein K7M3-Q9XA-B2CD“ (drei Blöcke zu vier Zeichen, ohne 0, O, 1, I und L), darunter bei einem Ablaufdatum „Einzulösen bis …“, siehe [Ablaufdatum](hilfe:kassa-gutschein-verkaufen#ablaufdatum). Den Beleg drucken, den Gutschein als Geschenk-PDF drucken oder senden ([Gutschein als PDF](hilfe:kassa-gutschein-verkaufen#pdf)) oder den Code dem Gast mitgeben. Einlösen: [Gutschein einlösen](hilfe:kassa-gutschein-einloesen).
 
 ## Wenn etwas schiefgeht {#wenn-etwas-schiefgeht}
 
@@ -54,6 +54,18 @@ Auf dem Beleg steht unter „Ausgestellte Gutscheine“ der Code, z. B. „Gutsc
 3. [Bezahlen](hilfe:kassa-bezahlen). Auf dem Beleg steht unter „Ausgestellte Gutscheine“ „Gutschein … (Behandlung)“.
 
 ![Beleg nach dem Bezahlen](images/app/kassa-beleg.png)
+
+## Ablaufdatum {#ablaufdatum}
+
+Oben unter „Gutschein verkaufen“ steht das Feld **Einzulösen bis**. Es gilt für Wertgutschein, Behandlungsgutschein und [Paket](hilfe:kassa-paket). Die Kassa belegt es nach dem Land der Kasse vor:
+
+- Deutschland: 31.12. des dritten Jahres nach dem Kauf, z. B. Kauf am 09.11.2026 → 31.12.2029.
+- Schweiz: fünf Jahre ab dem Kauf, z. B. 09.11.2026 → 09.11.2031.
+- Österreich: leer, also unbefristet.
+
+Das Datum lässt sich ändern; ein leeres Feld heißt unbefristet. Liegt das Datum vor dieser Frist, steht unter dem Feld ein Hinweis, z. B. „Kürzer als die übliche Frist bis 31.12.2029; eine kürzere Frist kann unwirksam sein.“ In Österreich steht bei jedem Datum „In Österreich sind Fristen unter 5 Jahren ohne Auszahlungsmöglichkeit unwirksam.“ Verkaufen geht in beiden Fällen.
+
+Das Datum steht auf Beleg und Gutschein als „Einzulösen bis 31.12.2029“ und gilt beim [Einlösen](hilfe:kassa-gutschein-einloesen#fehler). Es zählt ab dem Tag, an dem der Gutschein auf die Rechnung kommt. Online gekaufte Gutscheine bekommen dieselbe Frist; die Mail mit dem Code nennt das Datum.
 
 ## Gutschein als PDF übergeben {#pdf}
 
