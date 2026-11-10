@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text;
 using AispaStudio.Api.Data;
+using AispaStudio.Api.Documents;
 using AispaStudio.Api.Mail;
 using AispaStudio.Api.Scheduling;
 using AispaStudio.Contracts;
@@ -369,6 +370,7 @@ internal sealed class PurchaseOrders(AispaDbContext db, StockService stock, Time
         var ids = orders.SelectMany(o => o.Lines).Select(l => l.ItemId).Distinct().ToList();
         var items = await db.StockItems.AsNoTracking().Where(i => ids.Contains(i.Id)).ToDictionaryAsync(i => i.Id, ct);
         var suppliers = await db.StockSuppliers.AsNoTracking().ToListAsync(ct);
+        var sentMails = await SentDocuments.ListAsync(db, SentDocument.PurchaseOrderKind, [.. orders.Select(o => o.Id)], ct);
         return [.. orders.Select(o =>
         {
             var total = decimal.Round(o.Lines.Sum(l => l.Quantity * l.UnitCost), 2);
@@ -376,12 +378,12 @@ internal sealed class PurchaseOrders(AispaDbContext db, StockService stock, Time
             return new PurchaseOrderDto(o.Id, o.Number, o.LocationId, o.Supplier, o.Status, o.Note, o.CreatedAt, o.OrderedAt, o.ClosedAt, total,
                 [.. o.Lines.OrderBy(l => items[l.ItemId].Name, StringComparer.CurrentCulture).Select(l => new PurchaseOrderLineDto(l.Id, l.ItemId,
                     items[l.ItemId].Name, items[l.ItemId].Unit, items[l.ItemId].SupplierArticleNumber, l.Quantity, l.UnitCost, l.Received, StockPackaging.PackageText(items[l.ItemId], l.Quantity)))],
-                supplier?.MinimumOrderValue, Math.Max(0, (supplier?.MinimumOrderValue ?? 0) - total), supplier?.Email);
+                supplier?.MinimumOrderValue, Math.Max(0, (supplier?.MinimumOrderValue ?? 0) - total), supplier?.Email, sentMails.GetValueOrDefault(o.Id) ?? []);
         })];
     }
 
     /// <summary>Die Bestellung hält den Namen des Lieferanten als Text; der Stamm wird über den Namen gefunden, Groß- und Kleinschreibung zählen nicht.</summary>
-    private async Task<StockSupplier?> SupplierOfAsync(string name, CancellationToken ct) =>
+    public async Task<StockSupplier?> SupplierOfAsync(string name, CancellationToken ct) =>
         (await db.StockSuppliers.AsNoTracking().ToListAsync(ct)).FirstOrDefault(s => string.Equals(s.Name, name, StringComparison.OrdinalIgnoreCase));
 
     private static string? Blank(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();

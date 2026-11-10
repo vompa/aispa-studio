@@ -9,6 +9,7 @@ namespace AispaStudio.Api.Mail;
 /// <param name="InReplyTo">Message-ID der beantworteten Mail, damit Antworten im selben Verlauf landen (KI-Terminannahme).</param>
 /// <param name="ReplyTo">Adresse für Antworten des Empfängers, z. B. das Postfach des Spas, wenn über den gemeinsamen Versand gesendet wird.</param>
 /// <param name="FromName">Anzeigename des Absenders, z. B. der Name des Spas; ohne Angabe der aus <see cref="MailOptions"/>.</param>
+/// <param name="Attachments">Anhänge, z. B. ein Beleg als PDF (ADR 0092); zusammen höchstens <see cref="MaxAttachmentBytes"/>.</param>
 public sealed record OutgoingMail(
     string To,
     string Subject,
@@ -16,7 +17,19 @@ public sealed record OutgoingMail(
     string? Html = null,
     string? InReplyTo = null,
     string? ReplyTo = null,
-    string? FromName = null);
+    string? FromName = null,
+    IReadOnlyList<MailAttachment>? Attachments = null)
+{
+    /// <summary>5 MB je Mail: mehr nehmen viele Postfächer nicht an, und die Queue trägt den Anhang mit.</summary>
+    public const int MaxAttachmentBytes = 5 * 1024 * 1024;
+
+    public int AttachmentBytes => Attachments?.Sum(a => a.Content.Length) ?? 0;
+
+    public bool AttachmentsTooLarge => AttachmentBytes > MaxAttachmentBytes;
+}
+
+/// <summary>Ein Anhang einer Mail: Dateiname, Inhaltstyp (z. B. <c>application/pdf</c>) und die Bytes.</summary>
+public sealed record MailAttachment(string FileName, string ContentType, byte[] Content);
 
 /// <summary>Nachricht in der Queue: diese Mail versenden. Schlägt der Versand fehl, wiederholt die Queue ihn.</summary>
 public sealed record SendMail(OutgoingMail Mail);
@@ -81,7 +94,18 @@ internal static class MailMessages
             message.References.Add(inReplyTo);
         }
 
-        message.Body = new BodyBuilder { TextBody = mail.Text, HtmlBody = mail.Html }.ToMessageBody();
+        if (mail.AttachmentsTooLarge)
+        {
+            throw new InvalidOperationException($"Anhänge dürfen zusammen höchstens 5 MB groß sein, hier {mail.AttachmentBytes / 1024} KB.");
+        }
+
+        var body = new BodyBuilder { TextBody = mail.Text, HtmlBody = mail.Html };
+        foreach (var attachment in mail.Attachments ?? [])
+        {
+            body.Attachments.Add(attachment.FileName, attachment.Content, ContentType.Parse(attachment.ContentType));
+        }
+
+        message.Body = body.ToMessageBody();
         return message;
     }
 }
@@ -134,6 +158,11 @@ internal sealed partial class LoggingMailSender(ILogger<LoggingMailSender> logge
         if (env.IsDevelopment())
         {
             Log(logger, mail.To, mail.Subject, mail.Text);
+            if (mail.Attachments is { Count: > 0 } attachments)
+            {
+                var names = string.Join(", ", attachments.Select(a => $"{a.FileName} ({a.Content.Length / 1024} KB)"));
+                LogAttachments(logger, names);
+            }
         }
         else
         {
@@ -145,6 +174,9 @@ internal sealed partial class LoggingMailSender(ILogger<LoggingMailSender> logge
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Mail an {To}: {Subject}\n{Text}")]
     private static partial void Log(ILogger logger, string to, string subject, string text);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Anhänge: {Attachments}")]
+    private static partial void LogAttachments(ILogger logger, string attachments);
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "Mail „{Subject}“ nicht versendet: kein SMTP-Zugang eingerichtet (Mail:Smtp:Host).")]
     private static partial void NotSent(ILogger logger, string subject);

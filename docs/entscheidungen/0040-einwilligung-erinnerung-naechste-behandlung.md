@@ -51,6 +51,15 @@ die KI keine Zahlen erfindet, und verhindert Zusagen, die das Spa nicht gemacht 
 
 - Code: `src/AispaStudio.Api/Retention/` (Einwilligung, Planer, Versand), Seite `web/src/booking/ConsentPage.tsx`, Einstellungen
   unter „Stammdaten“ › „Erinnerungen“, Einwilligung im Termin.
+- Erfassung am Empfang (Export/Import, Aufgabe B, 09.11.2026): Die Kundenkarte zeigt den Abschnitt „Werbung per Mail“ mit
+  „Ja“, „Nein“ und „Nicht gefragt“ (`PUT /api/customers/{id}/marketing-consent`). „Ja“ setzt `Confirmed` ohne Mail zum
+  Bestätigen; vorher fragt die App, ob der Gast mündlich oder schriftlich zugestimmt hat. Die Quelle heißt dann „Rezeption“,
+  damit der Nachweis nach Art. 7 Abs. 1 DSGVO erkennbar bleibt: „Team“ steht weiter für die Anfrage per Mail mit
+  Double-Opt-in. Die Kundenkarte zeigt die Quelle getrennt („Ja, am Empfang erfasst am … von Lena“ gegen „Ja, per Mail
+  bestätigt am …“); die Person liest die API aus dem Verlauf (`RecordedBy`). „Nein“ ist der neue Zustand `Refused` (ohne frühere Einwilligung, anders als `Withdrawn`). Eine schon per Mail
+  bestätigte Einwilligung bleibt bei „Ja“ unverändert. Der Kunden-Export zeigt „Ja“, „Nein“ oder „offen“ mit Datum, die
+  Newsletter-Liste enthält nur `Confirmed`. Der Kunden-Import (Aufgabe E) setzt `Confirmed` mit Quelle „Import“ nur, wenn eine
+  zugeordnete Spalte die Zustimmung ausdrücklich mit Ja belegt, sonst bleibt `None`.
 - Offen: Einwilligung beim Online-Buchen anbieten (eigenes Häkchen, nicht vorausgewählt), `List-Unsubscribe`-Kopfzeile für
   Abmelden mit einem Klick im Mailprogramm, SMS und WhatsApp, Schweiz (Art. 3 Abs. 1 lit. o UWG) prüfen, Texte rechtlich
   gegenlesen lassen.

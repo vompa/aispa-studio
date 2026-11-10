@@ -4,7 +4,7 @@ bereich: Zeiten
 oberflaeche: verwaltung
 rollen: inhaber, manager, leitung
 seite: verwaltung
-stichwoerter: Zeiten, Zeiterfassung, Arbeitszeit, Stundenliste, Soll Ist, Stempelzeiten, Überstunden, Pausen, Arbeitszeitaufzeichnung, timesheet, time tracking, hours worked, clock in
+stichwoerter: Zeiten, Zeiterfassung, Arbeitszeit, Stundenliste, Soll Ist, Stempelzeiten, Überstunden, Pausen, Arbeitszeitaufzeichnung, Export, Excel, CSV, Stundenliste exportieren, timesheet, time tracking, hours worked, clock in
 ---
 # Seite „Zeiten“
 
@@ -25,6 +25,7 @@ Die Leiste über der Fläche zeigt **Zeiten** nur mit dem Recht, Standorte zu ve
 - Eine Warnung in der Zelle weist auf Arbeitszeitgrenzen hin, z. B. zu kurze Pause, zu kurze Ruhezeit oder „Seit über 12 Stunden eingestempelt: Gehen vergessen?“.
 - Ein Klick auf eine Zelle öffnet unter der Tabelle die Zeiten des Tages: Soll, Ist, Pause, die einzelnen Abschnitte und **Zeit nachtragen**.
 - Ein Klick auf den Namen einer Person wechselt zu **Personen** und öffnet ihre Karte im Reiter **Zeiten**.
+- **Exportieren** speichert die Stundenliste (Soll, Ist, Pause und Differenz je Person und Tag) und die Abwesenheiten des Monats, in dem die angezeigte Woche beginnt, als Excel oder CSV; auf der Karte einer Person nur ihre. Den Knopf sehen nur Inhaberin und Geschäftsführung.
 
 ![Zeiten einer Woche in der Windows-App](images/app/verwaltung-team-zeiten.png)
 

@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using AispaStudio.Api.Data;
+using AispaStudio.Api.Documents;
 using AispaStudio.Api.Pos.Fiscal;
 using AispaStudio.Api.Pos.Terminals;
 using AispaStudio.Api.Pos.VatIds;
@@ -1598,6 +1599,7 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
         var locations = await db.Locations.AsNoTracking().Where(l => locationIds.Contains(l.Id)).ToDictionaryAsync(l => l.Id, ct);
         var tenant = await db.Tenants.AsNoTracking().FirstOrDefaultAsync(t => t.Id == db.CurrentTenantId, ct);
         var deposits = (await db.AppointmentDeposits.Where(d => ids.Contains(d.ReceiptId)).Select(d => d.ReceiptId).Distinct().ToListAsync(ct)).ToHashSet();
+        var sentMails = await SentDocuments.ListAsync(db, SentDocument.ReceiptKind, ids, ct);
 
         return [.. receiptIds.Where(receipts.ContainsKey).Select(id => Build(receipts[id]))];
 
@@ -1634,7 +1636,8 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
                 recipients.GetValueOrDefault(receipt.Id),
                 CompanyProfiles.CompanyFor(locations[register.LocationId], tenant),
                 SmallInvoiceLimit(register.Country),
-                deposits.Contains(receipt.Id));
+                deposits.Contains(receipt.Id),
+                sentMails.GetValueOrDefault(receipt.Id));
         }
 
         static IEnumerable<Guid> VoucherIdsOf(Receipt receipt) =>

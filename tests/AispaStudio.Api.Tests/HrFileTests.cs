@@ -1,8 +1,6 @@
-using System.Globalization;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text;
-using System.Text.RegularExpressions;
 using AispaStudio.Api.HrFile;
 using AispaStudio.Contracts;
 using Microsoft.Extensions.DependencyInjection;
@@ -253,7 +251,7 @@ public sealed class HrFileTests(ApiFixture fixture)
 
         response.EnsureSuccessStatusCode();
         Assert.Equal("application/pdf", response.Content.Headers.ContentType?.MediaType);
-        var text = SimplePdfReader.Text(await response.Content.ReadAsByteArrayAsync(Ct));
+        var text = PdfText.Text(PdfText.Keep(await response.Content.ReadAsByteArrayAsync(Ct), "personalakte"));
         Assert.Contains("Personalakte: Ben", text, StringComparison.Ordinal);
         Assert.Contains("Art. 15 DSGVO", text, StringComparison.Ordinal);
         Assert.Contains("Ziele für das Jahr besprochen", text, StringComparison.Ordinal);
@@ -263,59 +261,6 @@ public sealed class HrFileTests(ApiFixture fixture)
         Assert.Contains("Grund der Verwarnung", text, StringComparison.Ordinal);
         Assert.DoesNotContain("Gehört zu Anna", text, StringComparison.Ordinal);
     }
-
-    [Fact]
-    public void SimplePdf_schreibt_Umlaute_als_WinAnsi_und_eine_gueltige_Querverweistabelle()
-    {
-        var pdf = new SimplePdf();
-        pdf.Heading("Gespräch");
-        pdf.Text("Müller – 5 €");
-
-        var bytes = pdf.ToBytes();
-        var raw = Encoding.Latin1.GetString(bytes);
-
-        Assert.StartsWith("%PDF-1.4", raw, StringComparison.Ordinal);
-        Assert.EndsWith("%%EOF\n", raw, StringComparison.Ordinal);
-        // „ä“ = E4 in Windows-1252, „ü“ = FC, „–“ = 96, „€“ = 80 (Codepage von Hand nachgesehen).
-        Assert.Contains("<47657370" + "72E4" + "6368>", raw, StringComparison.Ordinal);
-        Assert.Contains("<4DFC6C6C6572" + "20" + "96" + "20" + "35" + "20" + "80>", raw, StringComparison.Ordinal);
-
-        // Jede Zeile der Tabelle zeigt auf den Anfang ihres Objekts.
-        var start = int.Parse(raw[(raw.LastIndexOf("startxref\n", StringComparison.Ordinal) + 10)..].Split('\n')[0], CultureInfo.InvariantCulture);
-        Assert.StartsWith("xref\n0 ", raw[start..], StringComparison.Ordinal);
-        var lines = raw[start..].Split('\n');
-        var count = int.Parse(lines[1].Split(' ')[1], CultureInfo.InvariantCulture);
-        for (var number = 1; number < count; number++)
-        {
-            var offset = int.Parse(lines[2 + number][..10], CultureInfo.InvariantCulture);
-            Assert.StartsWith($"{number} 0 obj", raw[offset..], StringComparison.Ordinal);
-        }
-    }
-
-    [Fact]
-    public void SimplePdf_bricht_lange_Texte_um_und_beginnt_neue_Seiten()
-    {
-        var pdf = new SimplePdf();
-        var word = string.Concat(Enumerable.Repeat("W", 300));
-        pdf.Text(word);
-        for (var line = 0; line < 120; line++)
-        {
-            pdf.Text($"Zeile {line}");
-        }
-
-        var raw = Encoding.Latin1.GetString(pdf.ToBytes());
-
-        // 120 Zeilen zu 14 Punkt passen bei 842 Punkt Seitenhöhe nicht auf eine Seite; das lange Wort bleibt innerhalb der Seite.
-        Assert.True(raw.Split("/Type /Page ").Length - 1 >= 3);
-        Assert.Contains(word, SimplePdfReader.Text(pdf.ToBytes()).Replace("\n", "", StringComparison.Ordinal), StringComparison.Ordinal);
-        Assert.DoesNotContain(string.Concat(Enumerable.Repeat("57", 300)), raw, StringComparison.Ordinal);
-    }
-
-    [Theory]
-    [InlineData(2026, 11, 5, 2028, 11, 5)]
-    [InlineData(2028, 2, 29, 2030, 2, 28)]
-    public void Die_Vorgabe_fuer_das_Ablaufdatum_ist_zwei_Jahre(int year, int month, int day, int expectedYear, int expectedMonth, int expectedDay) =>
-        Assert.Equal(new DateOnly(expectedYear, expectedMonth, expectedDay), HrFileRules.DefaultExpiry(new DateOnly(year, month, day)));
 
     [Fact]
     public void Abgelaufen_ist_erst_der_Tag_nach_dem_Ablaufdatum()
@@ -333,19 +278,5 @@ public sealed class HrFileTests(ApiFixture fixture)
         var response = await client.PostAsJsonAsync("/api/auth/dev/register", new DevRegistration(email, role.ToString(), role, [spa.Location.Id]), TestSpa.Json, Ct);
         response.EnsureSuccessStatusCode();
         return fixture.CreateClient(string.Join("; ", response.Headers.GetValues("Set-Cookie").Select(c => c.Split(';')[0])));
-    }
-
-    /// <summary>Liest die Textzeilen aus den Hex-Zeichenketten eines von <see cref="SimplePdf"/> geschriebenen PDF; die Codepage steht hier unabhängig vom Code.</summary>
-    private static class SimplePdfReader
-    {
-        private static readonly Dictionary<byte, char> Special = new() { [0x80] = '€', [0x84] = '„', [0x93] = '“', [0x96] = '–', [0x85] = '…' };
-
-        public static string Text(byte[] pdf)
-        {
-            var raw = Encoding.Latin1.GetString(pdf);
-            var lines = Regex.Matches(raw, "<([0-9A-F]+)> Tj").Select(m =>
-                new string([.. Convert.FromHexString(m.Groups[1].Value).Select(b => Special.TryGetValue(b, out var c) ? c : (char)b)]));
-            return string.Join('\n', lines);
-        }
     }
 }

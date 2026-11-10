@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.Json;
 using AispaStudio.Api.Access;
 using AispaStudio.Api.Data;
+using AispaStudio.Api.Documents;
 using AispaStudio.Api.Pos.Fiscal;
 using AispaStudio.Api.Pos.VatIds;
 using AispaStudio.Api.Scheduling;
@@ -296,6 +297,32 @@ internal static class PosEndpoints
             .AlsoAllow(AccessRight.ViewAmountReports, insteadOf: AccessRight.Book)
             .WithSummary("Die letzten 60 Tagesabschlüsse einer Kasse mit allen Zahlen; nur mit dem Recht „Berichte mit Beträgen“.");
 
+        // PDF-Ausgaben (ADR 0092): der gespeicherte Tagesabschluss als PDF zum Abheften; Recht wie das Lesen der Abschlüsse, kein Versand.
+        group.MapGet("/registers/{registerId:guid}/day-closings/{closingId:guid}/pdf", async Task<Results<FileContentHttpResult, NotFound>> (
+                Guid registerId, Guid closingId, ClaimsPrincipal user, AispaDbContext db, DocumentHeaders headers, CancellationToken ct) =>
+            {
+                var stored = await db.DayClosings.AsNoTracking().Where(c => c.Id == closingId && c.RegisterId == registerId).Select(c => c.Report).FirstOrDefaultAsync(ct);
+                if (stored is null)
+                {
+                    return TypedResults.NotFound();
+                }
+
+                var closing = JsonSerializer.Deserialize<DayClosingDto>(stored, PosJson.Options)!;
+                var code = await db.CashRegisters.Where(r => r.Id == registerId).Select(r => r.Code).FirstAsync(ct);
+                var location = await RegisterLocationAsync(db, registerId, ct);
+                var zone = LocalTime.Zone(location.TimeZone);
+                var numbers = await db.Receipts.AsNoTracking()
+                    .Where(r => r.RegisterId == registerId && r.IssuedAt >= closing.From && r.IssuedAt < closing.Until && (r.Kind == ReceiptKind.Sale || r.Kind == ReceiptKind.Void))
+                    .GroupBy(r => 1).Select(g => new DayClosingDocument.ReceiptRange(g.Min(r => r.Number), g.Max(r => r.Number))).FirstOrDefaultAsync(ct);
+                var movements = await db.CashMovements.AsNoTracking().Where(m => m.RegisterId == registerId && m.At >= closing.From && m.At < closing.Until).ToListAsync(ct);
+                var pdf = DayClosingDocument.Build(closing, code, numbers, movements, await headers.ForAsync(location.Id, user, ct), zone, location.Currency);
+                return DocumentFiles.Pdf(pdf, DayClosingDocument.FileName(code, closing, zone));
+            })
+            .WithName("DayClosingPdf")
+            .RequirePermission(AccessRight.ViewAmountReports)
+            .AlsoAllow(AccessRight.ViewAmountReports, insteadOf: AccessRight.Book)
+            .WithSummary("Ein gespeicherter Tagesabschluss als PDF (A4) mit Summen, Differenz, Einlagen und Entnahmen und Unterschriftenzeilen; nur mit dem Recht „Berichte mit Beträgen“.");
+
         // ---------- Termine abrechnen ----------
 
         group.MapGet("/locations/{locationId:guid}/unbilled-appointments", async (
@@ -517,6 +544,55 @@ internal static class PosEndpoints
             .AlsoAllow(AccessRight.ViewReceipts, insteadOf: AccessRight.Book)
             .WithSummary("Beleg für den Bondrucker: als Text in fester Breite oder als ESC/POS-Befehle mit QR-Code und Schnitt (z. B. für die Windows-App).");
 
+        // PDF-Ausgaben (ADR 0092): Beleg oder Rechnung als PDF, Vorbelegung und Versand per Mail mit Vermerk am Beleg.
+        group.MapGet("/receipts/{receiptId:guid}/pdf", async Task<Results<FileContentHttpResult, NotFound>> (
+                Guid receiptId, DocumentPageFormat? format, bool? copy, ClaimsPrincipal user, PosService pos, AispaDbContext db, DocumentHeaders headers, CancellationToken ct) =>
+            {
+                if (await pos.GetReceiptAsync(receiptId, ct) is not { } receipt)
+                {
+                    return TypedResults.NotFound();
+                }
+
+                var location = await RegisterLocationAsync(db, receipt.RegisterId, ct);
+                var header = ReceiptDocument.Header(await headers.ForAsync(location.Id, user, ct), receipt);
+                var pdf = ReceiptDocument.Build(receipt, header, LocalTime.Zone(location.TimeZone), location.Currency, format ?? DocumentPageFormat.A4, copy == true);
+                return DocumentFiles.Pdf(pdf, ReceiptDocument.FileName(receipt));
+            })
+            .WithName("ReceiptPdf")
+            .AlsoAllow(AccessRight.ViewReceipts, insteadOf: AccessRight.Book)
+            .WithSummary("Beleg oder Rechnung als PDF: A4 (Standard) oder Bon-Format 80 mm (format=Receipt); copy=true kennzeichnet den Nachdruck als Kopie.");
+
+        group.MapGet("/receipts/{receiptId:guid}/send", async Task<Results<Ok<DocumentMailDraft>, NotFound>> (
+                Guid receiptId, ClaimsPrincipal user, PosService pos, AispaDbContext db, DocumentHeaders headers, CancellationToken ct) =>
+                await PrepareReceiptMailAsync(receiptId, user, pos, db, headers, ct) is { } prepared ? TypedResults.Ok(prepared.Draft) : TypedResults.NotFound())
+            .WithName("ReceiptMailDraft")
+            .AlsoAllow(AccessRight.ViewReceipts, insteadOf: AccessRight.Book)
+            .WithSummary("Vorbelegung für „Per Mail senden“: Adresse des Gastes aus der Kundenkarte, Betreff und Text.");
+
+        group.MapPost("/receipts/{receiptId:guid}/send", async Task<Results<Accepted, NotFound, ValidationProblem>> (
+                Guid receiptId, SendDocumentRequest request, ClaimsPrincipal user, PosService pos, AispaDbContext db, DocumentHeaders headers, SentDocuments sent,
+                TenantContext tenants, IMessageBus bus, CancellationToken ct) =>
+            {
+                if (DocumentMails.Validate(request) is { } errors)
+                {
+                    return TypedResults.ValidationProblem(errors);
+                }
+
+                if (await PrepareReceiptMailAsync(receiptId, user, pos, db, headers, ct) is not { } prepared)
+                {
+                    return TypedResults.NotFound();
+                }
+
+                var (subject, text) = DocumentMails.Resolve(prepared.Draft, request);
+                var pdf = ReceiptDocument.Build(prepared.Receipt, ReceiptDocument.Header(prepared.Header, prepared.Receipt), prepared.Zone, prepared.Currency, DocumentPageFormat.A4, false);
+                await bus.PublishAsync(DocumentMails.Message(tenants.TenantId!.Value, request.To, subject, text, ReceiptDocument.FileName(prepared.Receipt), pdf));
+                await sent.RecordAsync(SentDocument.ReceiptKind, receiptId, request.To, subject, user, ct);
+                return TypedResults.Accepted($"/api/pos/receipts/{receiptId}");
+            })
+            .WithName("SendReceipt")
+            .AlsoAllow(AccessRight.ViewReceipts, insteadOf: AccessRight.Book)
+            .WithSummary("Beleg oder Rechnung als PDF per Mail an den Gast (über die Queue), mit Vermerk am Beleg; ohne Betreff und Text gilt die Vorbelegung.");
+
         group.MapPost("/receipts/{receiptId:guid}/recipient", async Task<Results<Ok<ReceiptDto>, ValidationProblem, ProblemHttpResult>> (
                 Guid receiptId, InvoiceRecipient input, ClaimsPrincipal user, PosService pos, CancellationToken ct) =>
                 Respond(await pos.AddRecipientAsync(receiptId, input, UserId(user), ct)))
@@ -598,6 +674,31 @@ internal static class PosEndpoints
         (await access.CurrentAsync(ct))?.Has(AccessRight.SuperviseCash) == true;
 
     private static string? UserId(ClaimsPrincipal user) => user.FindFirstValue(ClaimTypes.NameIdentifier);
+
+    /// <summary>Standort der Kasse eines Belegs: Zeitzone und Währung für Bon und PDF.</summary>
+    private static Task<RegisterLocation> RegisterLocationAsync(AispaDbContext db, Guid registerId, CancellationToken ct) =>
+        db.CashRegisters.Where(r => r.Id == registerId)
+            .Join(db.Locations, r => r.LocationId, l => l.Id, (_, l) => new RegisterLocation(l.Id, l.TimeZone, l.Currency))
+            .FirstAsync(ct);
+
+    /// <summary>Beleg, Kopf, Zeitzone, Währung und die Vorbelegung der Mail (Adresse des Gastes aus der Kundenkarte); null, wenn es den Beleg nicht gibt.</summary>
+    private static async Task<PreparedReceiptMail?> PrepareReceiptMailAsync(Guid receiptId, ClaimsPrincipal user, PosService pos, AispaDbContext db, DocumentHeaders headers, CancellationToken ct)
+    {
+        if (await pos.GetReceiptAsync(receiptId, ct) is not { } receipt)
+        {
+            return null;
+        }
+
+        var location = await RegisterLocationAsync(db, receipt.RegisterId, ct);
+        var header = await headers.ForAsync(location.Id, user, ct);
+        var zone = LocalTime.Zone(location.TimeZone);
+        var email = receipt.CustomerId is { } customerId ? await db.Customers.Where(c => c.Id == customerId).Select(c => c.Email).FirstOrDefaultAsync(ct) : null;
+        return new PreparedReceiptMail(receipt, header, zone, location.Currency, ReceiptDocument.Draft(receipt, header.SpaName, string.IsNullOrWhiteSpace(email) ? null : email, zone));
+    }
+
+    private sealed record RegisterLocation(Guid Id, string TimeZone, string Currency);
+
+    private sealed record PreparedReceiptMail(ReceiptDto Receipt, DocumentHeader Header, TimeZoneInfo Zone, string Currency, DocumentMailDraft Draft);
 
     private static string? Blank(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 

@@ -591,6 +591,15 @@
     <Setter Property="VerticalAlignment" Value="Center" />
   </Style>
 
+  <!-- Geteilte Schaltfläche ohne Akzent (Knopfblock „PDF speichern ▾“, ADR 0092): Ruhezustand wie ein normaler Knopf statt der grauen Fluent-Fläche -->
+  <Style Selector="SplitButton.document">
+    <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource LineStrongBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="FontWeight" Value="Medium" />
+  </Style>
+
   <!-- Geteilte Schaltfläche „+ Termin ▾“ in der Akzentfarbe -->
   <Style Selector="SplitButton.primary /template/ Button">
     <Setter Property="Background" Value="{DynamicResource AccentGradientBrush}" />

@@ -317,4 +317,44 @@ public sealed class CustomerCardTests
         Assert.True(flags.Single(f => f.Symbol == "STOP").IsNote);
         Assert.False(flags.Single(f => f.Symbol == "+10").IsNote);
     }
+
+    private sealed class RecordingFileSaver : IFileSaver
+    {
+        public string? SavedName { get; private set; }
+
+        public Task<bool> SaveAsync(string suggestedName, string typeName, IReadOnlyList<string> patterns, byte[] content)
+        {
+            SavedName = suggestedName;
+            return Task.FromResult(true);
+        }
+    }
+
+    [Fact]
+    public async Task Auskunft_als_PDF_oeffnet_den_Knopfblock_ohne_Senden_speichert_mit_dem_Namen_der_API_und_schliesst_beim_Wechsel_der_Kundin()
+    {
+        var customer = SpaSample.Customers[0];
+        var stub = new StubApi()
+            .On("GET /api/customers?search=", SpaSample.Customers.ToList())
+            .On($"GET /api/customers/{customer.Id}/appointments", new List<AppointmentDto>())
+            .OnFile($"GET /api/customers/{customer.Id}/history/pdf", [0x25, 0x50, 0x44, 0x46], "Auskunft-Eva-Muster.pdf");
+        var customers = new CustomersViewModel(stub.Client(), TimeProvider.System);
+        await customers.InitializeAsync();
+        customers.Selected = customers.Results[0];
+        Assert.False(customers.IsDataAccessOpen);
+
+        customers.ToggleDataAccessCommand.Execute(null);
+        var saver = new RecordingFileSaver();
+        customers.DataAccessDocument!.Files = saver;
+        await customers.DataAccessDocument.SaveCommand.ExecuteAsync(null);
+
+        Assert.True(customers.IsDataAccessOpen);
+        Assert.False(customers.DataAccessDocument.HasSend);
+        Assert.Equal($"api/customers/{customer.Id}/history/pdf", customers.DataAccessDocument.Source.PdfPath);
+        Assert.Equal("Auskunft-Eva-Muster.pdf", saver.SavedName);
+        Assert.Equal("Gespeichert: Auskunft-Eva-Muster.pdf", customers.DataAccessMessage);
+
+        customers.Selected = customers.Results[1];
+        Assert.False(customers.IsDataAccessOpen);
+        Assert.Null(customers.DataAccessMessage);
+    }
 }

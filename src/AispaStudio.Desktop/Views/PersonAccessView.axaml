@@ -62,7 +62,7 @@
       <ui:FormField Label="Berichte mit Beträgen" IsVisible="{Binding ShowsAmountReports}" Help="Umsätze, Kosten, Buchhaltungsexport">
         <StackPanel Spacing="4">
           <CheckBox x:Name="AmountReportsField" Content="Erlaubt" IsChecked="{Binding AmountReports}" IsEnabled="{Binding CanGrant}" />
-          <TextBlock Classes="muted small" Text="Vergeben können das nur Inhaber und Manager." IsVisible="{Binding ShowsAmountHint}" />
+          <TextBlock Classes="muted small" Text="Vergeben können das nur Inhaberin und Geschäftsführung." IsVisible="{Binding ShowsAmountHint}" />
         </StackPanel>
       </ui:FormField>
       <ui:FormField Label="Befristet bis einschließlich" IsVisible="{Binding ShowsUntil}"

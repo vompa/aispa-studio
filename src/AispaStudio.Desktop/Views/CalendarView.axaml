@@ -238,7 +238,7 @@
             </Button.IsVisible>
           </Button>
           <ui:AccordionHeader x:Name="MoreToggle" Classes="more" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
-                              IsVisible="{Binding HasMore}" ToolTip.Tip="Weitere Status und die Zeiten des Termins ändern">
+                              IsVisible="{Binding HasMore}" ToolTip.Tip="Weitere Status, Zeiten des Termins und Kalenderdatei">
             <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
               <TextBlock Text="Mehr" />
               <ui:Icon Classes="chevron" Data="{x:Static ui:Icons.ChevronRight}" Width="14" Height="14" Foreground="{DynamicResource Fg3Brush}" VerticalAlignment="Center" />
@@ -270,6 +270,26 @@
             <Button Content="Zeiten dieses Termins ändern …" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
                     Command="{Binding BeginEditTimesCommand}" IsVisible="{Binding CanChangeTimes}"
                     ToolTip.Tip="Vor- und Nachbereitung nur dieses Termins ändern" />
+            <!-- Terminbestätigung (PDF-Ausgaben C): öffnet unter „Mehr“ den Knopfblock; Inhalt, Dateiname und Mailtext kommen von der API -->
+            <Button x:Name="ConfirmationButton" Content="Bestätigung …" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                    Command="{Binding ToggleConfirmationCommand}" IsVisible="{Binding CanConfirm}"
+                    ToolTip.Tip="Terminbestätigung als PDF drucken, speichern oder dem Gast per Mail schicken" />
+            <Border x:Name="ConfirmationCard" Classes="panelcard" IsVisible="{Binding IsConfirmationOpen}">
+              <StackPanel Spacing="8">
+                <TextBlock Text="Terminbestätigung" FontWeight="Medium" />
+                <TextBlock Text="Für den Gast: Termin mit Zeit, Ort, Preis und Stornofrist." Classes="muted small" TextWrapping="Wrap" MaxWidth="280" />
+                <ui:DocumentActions DataContext="{Binding ConfirmationDocument}" />
+              </StackPanel>
+            </Border>
+            <!-- Kalenderdatei für den Gast (Export/Import, Aufgabe C): iCal mit Erinnerung 24 Stunden vorher, ohne Namen der Person -->
+            <Button x:Name="CalendarFileButton" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                    Command="{Binding CalendarFile.ExportCommand}" CommandParameter="{Binding CalendarFileOption}" IsVisible="{Binding CanSaveCalendarFile}"
+                    ToolTip.Tip="Den Termin als Datei für Outlook, Apple oder Google speichern, z. B. zum Mitschicken an den Gast">
+              <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+                <ui:Icon Data="{x:Static ui:Icons.Download}" Width="16" Height="16" />
+                <TextBlock Text="Kalenderdatei …" />
+              </StackPanel>
+            </Button>
           </StackPanel>
         </StackPanel>
 
@@ -283,7 +303,7 @@
           <TextBlock Text="{Binding PaymentText}" TextWrapping="Wrap" MaxWidth="280" Foreground="{DynamicResource OkBrush}" />
         </Border>
 
-        <!-- Stand der Anzahlung für alle (Ä285). Retournieren (Ä47): nur Inhaber und Manager, solange es eine offene Anzahlung gibt; der Knopf fragt nach und stellt erst dann den Storno-Beleg aus -->
+        <!-- Stand der Anzahlung für alle (Ä285). Retournieren (Ä47): nur Inhaberin und Geschäftsführung, solange es eine offene Anzahlung gibt; der Knopf fragt nach und stellt erst dann den Storno-Beleg aus -->
         <Border x:Name="DepositCard" Classes="panelcard" IsVisible="{Binding HasDepositCard}">
           <StackPanel Spacing="6">
             <TextBlock Text="{Binding DepositTitle}" FontWeight="Medium" />
@@ -1716,6 +1736,11 @@
       <StackPanel Spacing="12">
         <TextBlock Text="Wird etwas frei, schreibt der Server den Wartenden selbst. Hier lassen sich freie Zeiten zeigen, für den Gast buchen und Anfragen abschließen."
                    Classes="muted" TextWrapping="Wrap" />
+        <!-- Tagesliste zum Nachtelefonieren (PDF-Ausgaben E, ADR 0092): Drucken und PDF speichern, ohne Senden -->
+        <StackPanel Spacing="6" IsVisible="{Binding Document, Converter={x:Static ObjectConverters.IsNotNull}}">
+          <TextBlock Text="{Binding PrintHint}" Classes="muted small" TextWrapping="Wrap" />
+          <ui:DocumentActions DataContext="{Binding Document}" />
+        </StackPanel>
         <TextBlock Text="Niemand wartet auf einen Termin." Classes="muted" IsVisible="{Binding IsEmpty}" />
         <ItemsControl ItemsSource="{Binding Rows}">
           <ItemsControl.ItemTemplate>
@@ -2104,7 +2129,7 @@
             </Button>
             <!-- Termin-Gruppe (Auftraggeber, 29.10.2026): „+ Termin“ mit Menü, daneben als zweite Schaltfläche „Freie Zeit suchen“ (Kalender mit Lupe) -->
             <StackPanel x:Name="AppointmentGroup" Orientation="Horizontal" Spacing="4" IsVisible="{Binding CanBook}">
-              <SplitButton Command="{Binding NewAppointmentCommand}" ToolTip.Tip="Neuer Termin (N)" AutomationProperties.Name="Termin">
+              <SplitButton x:Name="AppointmentSplit" Command="{Binding NewAppointmentCommand}" ToolTip.Tip="Neuer Termin (N)" AutomationProperties.Name="Termin">
                 <SplitButton.Flyout>
                   <MenuFlyout Placement="BottomEdgeAlignedRight">
                     <MenuItem Command="{Binding NewAppointmentCommand}" AutomationProperties.Name="Termin" AutomationProperties.AcceleratorKey="N">
@@ -2149,6 +2174,7 @@
                       </MenuItem.Header>
                     </MenuItem>
                     <MenuItem Header="Warteliste ansehen" Command="{Binding OpenWaitlistCommand}" />
+                    <MenuItem Header="Tagesplan drucken …" Command="{Binding OpenDayPlanPrintCommand}" />
                     <MenuItem Header="Lücken schließen" Command="{Binding OpenGapsCommand}" IsVisible="{Binding CanBook}" />
                     <MenuItem Command="{Binding OpenDayNoteCommand}" AutomationProperties.Name="Tagesnotiz" AutomationProperties.AcceleratorKey=".">
                       <MenuItem.Header>
@@ -2158,6 +2184,9 @@
                         </Grid>
                       </MenuItem.Header>
                     </MenuItem>
+                    <Separator />
+                    <!-- Terminliste als Excel oder CSV (Export/Import, Aufgabe C): fragt Zeitraum und Format -->
+                    <MenuItem x:Name="ExportAppointmentsItem" Header="Terminliste exportieren …" Command="{Binding ExportAppointmentListCommand}" />
                   </MenuFlyout>
                 </SplitButton.Flyout>
                 <StackPanel Orientation="Horizontal" Spacing="6">
@@ -2169,6 +2198,30 @@
                       AutomationProperties.Name="Freie Zeit suchen" AutomationProperties.AcceleratorKey="Strg+N">
                 <ui:Icon Data="{x:Static ui:Icons.CalendarSearch}" />
               </Button>
+              <!-- Tagesplan drucken (PDF-Ausgaben E, ADR 0092): Team oder Räume, dann Drucken oder PDF speichern; der Plan kommt von der API -->
+              <Popup PlacementTarget="{Binding #AppointmentGroup}" Placement="BottomEdgeAlignedRight" IsOpen="{Binding DayPlanPrint, Converter={x:Static ObjectConverters.IsNotNull}}"
+                     IsLightDismissEnabled="False">
+                <Border x:Name="DayPlanPrintCard" Classes="card" Padding="16" Width="360" BoxShadow="{DynamicResource CardShadow}"
+                        DataContext="{Binding DayPlanPrint}" x:DataType="vm:DayPlanPrintViewModel">
+                  <StackPanel Spacing="10">
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                      <StackPanel>
+                        <TextBlock Text="Tagesplan drucken" Classes="h2" />
+                        <TextBlock Text="{Binding Title}" Classes="muted small" />
+                      </StackPanel>
+                      <Button Grid.Column="1" Classes="ghost icon" Command="{Binding CloseCommand}" VerticalAlignment="Top" ToolTip.Tip="Schließen" AutomationProperties.Name="Tagesplan schließen">
+                        <ui:Icon Data="{x:Static ui:Icons.Close}" Width="16" Height="16" />
+                      </Button>
+                    </Grid>
+                    <StackPanel Orientation="Horizontal" Spacing="16">
+                      <RadioButton x:Name="PlanByTeam" GroupName="PlanBy" Content="Team" IsChecked="{Binding IsTeam, Mode=OneWay}" />
+                      <RadioButton x:Name="PlanByRooms" GroupName="PlanBy" Content="Räume" IsChecked="{Binding ByRooms}" />
+                    </StackPanel>
+                    <TextBlock Text="A4 quer: eine Spalte je Person oder je Raum, mit Zeit, Gast, Behandlung und Status." Classes="muted small" TextWrapping="Wrap" />
+                    <ui:DocumentActions DataContext="{Binding Document}" />
+                  </StackPanel>
+                </Border>
+              </Popup>
             </StackPanel>
           </StackPanel>
         </Grid>

@@ -57,3 +57,4 @@ Die Notiz erscheint beim nächsten Besuch des Gastes auf der Karte. Höchstens 2
 - Den Status eines Termins (Einchecken, Abschließen) setzt man nicht hier, sondern im Kalender.
 - Welche Schritte vorzubereiten sind, legt die Leitung fest: [Vorbereitung je Behandlung festlegen](hilfe:berichte-vorbereitung-festlegen).
 - Dasselbe fürs Handy: [Eigenen Tag am Handy ansehen](hilfe:mein-tag-eigenen-tag-ansehen).
+- Den Kalender eines Tages für das ganze Team oder alle Räume gibt es auf Papier: [Tagesplan drucken](hilfe:kalender-tagesplan-drucken).

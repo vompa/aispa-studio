@@ -4,7 +4,7 @@ bereich: Zeiten
 oberflaeche: verwaltung
 rollen: inhaber, manager, leitung
 seite: verwaltung
-stichwoerter: Zeit korrigieren, Stempelzeit ändern, Gehen vergessen, falsch gestempelt, Abschnitt löschen, Zeit entfernen, Verlauf, Änderungsprotokoll, edit time, correct timesheet, audit log
+stichwoerter: Zeit korrigieren, Stempelzeit ändern, Gehen vergessen, falsch gestempelt, Abschnitt löschen, Zeit entfernen, Verlauf, Änderungsprotokoll, edit time, correct timesheet, audit log, Stundenliste, Stundenzettel, Monatsliste, Stundenliste drucken, Stundenliste als PDF, Unterschrift, timesheet PDF, print timesheet
 ---
 # Arbeitszeit korrigieren oder entfernen
 
@@ -33,6 +33,18 @@ Die Rückfrage nennt die Zeitspanne und den Grund. Danach steht „Abschnitt ent
 ## Verlauf ansehen {#verlauf}
 
 Bei nachgetragenen oder korrigierten Abschnitten steht **Verlauf**. Ein Klick zeigt jede Änderung mit Zeitpunkt, Person, vorherigen Zeiten und Grund; ein zweiter Klick blendet sie wieder aus. Auch das Backoffice sieht den Verlauf.
+
+## Stundenliste drucken {#stundenliste}
+
+Die Stundenliste einer Person für einen Monat gibt es als PDF zum Unterschreiben.
+
+1. In der Windows-App **Verwaltung** › **Team** › **Personen** öffnen, die Person wählen und den Reiter **Zeiten** öffnen. In der Übersicht aller Zeiten gibt es den Knopf nicht.
+2. Auf **Stundenliste als PDF** klicken. Es erscheint die Karte „Stundenliste“ mit dem Satz „Druckt die Stundenliste für <Monat> <Jahr>.“. Der Monat ist der der gezeigten Woche.
+3. Auf **Drucken** oder **PDF speichern** klicken. **Per Mail senden** gibt es hier nicht.
+
+Das PDF `Stundenliste-<Name>-<JJJJ-MM>.pdf` ist A4 hoch. Es zeigt je Tag mit Dienst oder Zeiten Kommen, Gehen, Pause, Ist, Soll und Saldo, unten die Monatssumme und zwei Unterschriftenzeilen („Unterschrift <Name>“, „Unterschrift Leitung“). Tage ohne Dienst und ohne Zeiten sind nicht aufgeführt. Die Zahlen sind dieselben wie in der Zeitenmaske.
+
+Drucken darf die Stundenliste, wer die Zeiten lesen darf, auch das Backoffice; sonst nennt der Hinweis am Knopf den Grund. Wie die Knöpfe arbeiten: [Dokumente drucken, speichern und senden](hilfe:dokumente-drucken-speichern-senden).
 
 ## Gut zu wissen {#hinweise}
 

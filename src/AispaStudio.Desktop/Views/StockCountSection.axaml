@@ -45,6 +45,8 @@
         <ui:InfoBar Severity="Error" Title="Zählung nicht gestartet" Message="{Binding Error}" IsVisible="{Binding HasError}" />
         <StackPanel Orientation="Horizontal">
           <Button x:Name="StartCountButton" Classes="primary" Content="Zählung starten" Command="{Binding StartCommand}" />
+          <Button x:Name="CountDocumentButton" Content="{Binding DocumentButtonText}" Command="{Binding ToggleDocumentCommand}" Margin="8,0,0,0"
+                  ToolTip.Tip="Druckt oder speichert die Zählliste des Lagerorts als PDF." />
         </StackPanel>
       </StackPanel>
 
@@ -57,6 +59,8 @@
           <Button Grid.Column="3" x:Name="LeaveAdoptedButton" Content="Zurück" Command="{Binding LeaveAdoptedCommand}" IsVisible="{Binding IsAdopted}" />
           <Button Grid.Column="4" x:Name="BookCountButton" Classes="primary" Content="Inventur buchen" Command="{Binding BookCommand}" />
         </Grid>
+        <Button x:Name="CountingDocumentButton" Content="{Binding DocumentButtonText}" Command="{Binding ToggleDocumentCommand}" HorizontalAlignment="Left"
+                ToolTip.Tip="Druckt oder speichert die Liste dieser Zählung als PDF." />
         <ui:InfoBar Severity="Error" Title="Nicht gebucht" Message="{Binding Error}" IsVisible="{Binding HasError}" />
         <TextBlock Text="Der gezählte Bestand darf nicht negativ sein." Classes="warn" IsVisible="{Binding HasInvalid}" />
         <TextBlock Text="Noch kein Material angelegt." Classes="muted" IsVisible="{Binding ShowEmpty}" />
@@ -104,6 +108,17 @@
           <TextBlock Grid.Column="1" Text="{Binding WorthSumText}" Classes="num" />
         </Grid>
       </StackPanel>
+
+      <!-- Zählliste und Inventurliste als PDF (PDF-Ausgaben F, ADR 0092): Knopfblock ohne Senden -->
+      <Border x:Name="CountDocumentCard" Classes="section" IsVisible="{Binding IsDocumentOpen}" HorizontalAlignment="Left">
+        <StackPanel Spacing="8">
+          <TextBlock Text="{Binding DocumentButtonText}" FontWeight="Medium" />
+          <TextBlock Text="{Binding DocumentHint}" Classes="muted small" TextWrapping="Wrap" MaxWidth="480" />
+          <ui:DocumentActions DataContext="{Binding Document}" />
+          <TextBlock Text="{Binding DocumentMessage}" Classes="secondary small" AutomationProperties.LiveSetting="Polite"
+                     IsVisible="{Binding DocumentMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+        </StackPanel>
+      </Border>
     </StackPanel>
   </Border>
 </UserControl>
