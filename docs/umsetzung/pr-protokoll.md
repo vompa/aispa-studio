@@ -5764,3 +5764,27 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Datenschutz:** Anfragen tragen keine Inhalte in den Verlauf; ihr Verlauf hängt per `customer_id` am Gast und fällt mit `sync.forget_customer_history`.
 - **Nicht geprüft:** Gesamtlauf (folgt), Darstellung in der laufenden App; Anfragen aus der Zeit vor diesem Stand haben keinen Verlauf.
 - **Läufe nach F–H (10.11.2026):** API gesamt 2046/2047 grün, 1 übersprungen (24 min 42 s). App-Gesamtlauf nach 31 min abgebrochen (Bildtests, Prozess bei 10,9 GB Speicher, noch rechnend; Auftraggeber: „dauert etwas lange“); stattdessen gezielt `ActivityTests` + `ActivityPanelTests` 53/53, `ViewTests` „Verlauf“ 37/37, Shell- und Anfrage-Klassen 19/19, Hilfe 61/61, `dotnet format --verify-no-changes` sauber. Der App-Gesamtlauf vor F–H war grün (Verlauf D).
+
+## Gast anonymisieren und weich löschen (10.11.2026)
+
+- **Auftrag:** Vorgabe des Auftraggebers: „nur soweit Anonymisierung und softdelete“, die Aufbewahrungsfristen gelten. Befragung mit sieben Entscheidungen, siehe [ADR 0091](../entscheidungen/0091-gast-anonymisieren.md).
+- **Was:**
+  - Löschmarke `Customer.DeletedAt` (Migration `CustomerDeletedAt`), `CustomerDto.DeletedAt`.
+  - `CustomerAnonymizer` in einer Transaktion, `POST /api/customers/{id}/anonymize`. Er antwortet 204, 404, 409 mit dem Offenen und 403 unter Inhaber-Ebene.
+  - Verlauf: verzögerter Trigger `aispa_history_anonymize` ruft `sync.scrub_customer_history`.
+  - Filter `DeletedAt == null` an 20 Such- und Auswahlstellen; Änderungen an einem anonymisierten Gast liefern 404.
+  - Windows-App: Menüeintrag „Gast anonymisieren …“ für Inhaber und Management, destruktive Rückfrage, Karte mit „Anonymisiert am …“ ohne Bearbeiten, Buchen und Kassieren.
+  - Hilfe `kunden-anonymisieren`, Verweis aus `kunden-kundenkarte`; ADR 0061, 0082 und Stand angepasst.
+- **Test zuerst:** `CustomerAnonymizeTests` (API) war 10/10 rot, danach grün. Die gezielten Läufe der betroffenen API-Klassen ergaben 355/355 grün. Später kam die Sperre für Online-Erstattungen dazu, Klasse 12/12 grün.
+- **Vollständigkeitsprobe:** Der Gast mit eindeutigem Nachnamen und eindeutiger Nummer stand vorher in 23 Tabellen, danach nur in `aispa.ReceiptRecipients` (Belegkopie, BAO). Die Probe fand zusätzlich Anmeldecodes, die Kennung beim Anbieter in `sync.changes`, Schließ-Hinweise, Erstattungen und den Gast als Kandidat in fremden Anfragen; diese Stellen werden jetzt mitgeleert.
+- **Detailentscheidungen:**
+  1. Künftige Besuche in Bereichen sperren wie Termine.
+  2. Laufende oder fehlgeschlagene Online-Erstattungen sperren, weil ihre Bestätigung an die Adresse geht.
+  3. Nachfasser werden gelöscht statt geleert (Notiz ist Pflicht).
+  4. Pflichtfelder von Anfragen und Bestellungen werden zu leerem Text.
+  5. Die App erkennt die Inhaber-Ebene an der Rolle (Owner, GeneralManager), nicht am Recht `ManageLocation`.
+- **Nicht geprüft:**
+  - App-Tests (`AispaStudio.Desktop.Tests.CustomerAnonymizeTests`, 7 Tests) und der Bildtest `Kundenkarte_Gast_anonymisieren_steht_im_Menue_der_Inhaberin` sind geschrieben und gebaut, aber nicht gelaufen; die Läufe startet der Auftraggeber. Das Handbuchbild `kunden-anonymisieren.png` fehlt deshalb noch; die Hilfe zeigt bis dahin „Bild folgt“.
+  - Ein API-Gesamtlauf fehlt.
+  - Die Darstellung in der laufenden App ist nicht angesehen.
+  - Die Offline-Kopie behält ältere Suchlisten mit Klarnamen bis zu 14 Tage (offen, siehe ADR 0091).

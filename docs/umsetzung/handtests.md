@@ -757,3 +757,16 @@ Expected: Die Seite **Anfragen** zeigt die Anfrage.
 Expected: Kein Chip **Anfragen**, keine Anfrage-Zeilen.
 Closes: –
 Result: ☐
+
+### Gast anonymisieren
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Inhaberin anmelden
+1. Einen Testgast mit Termin in der Vergangenheit, Notiz und Mailadresse anlegen. Kundenkarte öffnen, Menü **…**, **Gast anonymisieren …**, **Abbrechen**.
+Expected: Nichts passiert, der Gast bleibt.
+2. Dem Gast einen Termin morgen buchen, dann erneut **Gast anonymisieren …** und **Endgültig anonymisieren**.
+Expected: Meldung „Der Gast lässt sich noch nicht anonymisieren. Offen: 1 künftiger Termin …“.
+3. Den Termin stornieren und erneut anonymisieren.
+Expected: Die Karte schließt; die Suche nach dem Namen findet nichts. Im Kalender und im Verlauf steht der alte Termin mit „Gelöschter Gast“, ohne Notiz und Stornogrund; „Kundenkarte öffnen“ zeigt „Anonymisiert am …“ ohne Bearbeiten, Buchen und Kassieren.
+4. Als Rezeption anmelden.
+Expected: Im Menü der Kundenkarte gibt es keinen Eintrag **Gast anonymisieren …**.
+Closes: –
+Result: ☐
