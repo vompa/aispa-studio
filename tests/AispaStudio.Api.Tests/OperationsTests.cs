@@ -114,7 +114,7 @@ public sealed class OperationsTests(ApiFixture fixture)
 
         await spa.Client.PutAsJsonAsync($"/api/reports/appointments/{appointment.Id}/preparation/{steps[0].Id}", new PreparationCheck(true), TestSpa.Json, Ct);
         var afterPreparation = await Quantity(spa, oil.Id);
-        await spa.PostAsync<AppointmentDto>($"/api/appointments/{appointment.Id}/status", new AppointmentStatusChange(AppointmentStatus.Completed), Ct);
+        await spa.SetStatusAsync(appointment.Id, AppointmentStatus.Completed, Ct);
         var used = await WaitAsync(spa, oil.Id, q => q != 1000m);
         var overview = await spa.GetAsync<StockOverviewDto>($"/api/stock/locations/{spa.Location.Id}", Ct);
 

@@ -512,6 +512,7 @@ public sealed partial class RosterPlanViewModel : ViewModelBase, IEditableArea
 
     partial void OnSelectedLocationChanged(Choice? oldValue, Choice? newValue)
     {
+        UpdateDocument();
         if (_reverting)
         {
             return;

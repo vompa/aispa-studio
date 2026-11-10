@@ -176,6 +176,73 @@ public sealed class CalendarNoticeTests
         Assert.False(vm.Toast.EndsWith('.'));
     }
 
+    // ---------- A2 (B3, B4): Zeitpunkt in Toasts kurz, ohne Kürzung ----------
+
+    [Theory]
+    [InlineData(10, 14, 35, "14:35")] // heute (Montag 1.3.2027, 11:00 Ortszeit): nur die Uhrzeit
+    [InlineData(10, 9, 5, "09:05")]
+    public void Der_Zeitpunkt_im_Toast_nennt_am_heutigen_Tag_nur_die_Uhrzeit(int nowHour, int hour, int minute, string expected)
+    {
+        var today = DateOnly.FromDateTime(DayLayout.Local(TestData.At(nowHour), Vienna));
+
+        Assert.Equal(expected, DayLayout.WhenText(TestData.At(hour, minute), Vienna, today));
+    }
+
+    [Fact]
+    public void Der_Zeitpunkt_im_Toast_nennt_an_einem_anderen_Tag_den_kurzen_Wochentag_und_die_Uhrzeit()
+    {
+        var today = DateOnly.FromDateTime(DayLayout.Local(TestData.At(10), Vienna));
+
+        Assert.Equal("Do 14:35", DayLayout.WhenText(TestData.At(14, 35).AddDays(3), Vienna, today));
+    }
+
+    [Fact]
+    public async Task Die_Toasts_nach_Stornierung_zuruecknehmen_und_Verschieben_enden_mit_Demo_Namen_nicht_auf_Auslassungspunkte()
+    {
+        var appointment = TestData.Appointment(10, TestData.Anna) with { CustomerName = "Elif Demir", RoomId = TestData.Room.Id };
+        var api = Api(TestData.Day(appointment)).On($"POST /api/appointments/{appointment.Id}/cancel", appointment with { Status = AppointmentStatus.Cancelled, UpdatedAt = TestData.At(9, 1) });
+        api.On($"POST /api/appointments/{appointment.Id}/restore", appointment with { Status = AppointmentStatus.Booked, UpdatedAt = TestData.At(9, 2) });
+        var vm = await OpenAsync(api);
+        vm.Dialogs = new FakeDialogs().Answer(ConfirmChoice.Confirmed, "Versehen");
+        vm.Mark(vm.Columns[0].Items[0]);
+        vm.HandleKey(Avalonia.Input.Key.Delete, Avalonia.Input.KeyModifiers.None);
+        await Until(() => vm.Toast == "Termin storniert");
+
+        await vm.UndoMoveCommand.ExecuteAsync(null);
+
+        Assert.Equal("Wieder gebucht: Elif Demir, 10:00", vm.Toast);
+    }
+
+    [Fact]
+    public async Task Verschieben_auf_einen_anderen_Tag_meldet_Wochentag_und_Uhrzeit_in_hoechstens_60_Zeichen()
+    {
+        var appointment = TestData.Appointment(10, TestData.Anna) with { CustomerName = "Elif Demir", RoomId = TestData.Room.Id };
+        var moved = appointment with { Start = TestData.At(14, 35).AddDays(3), End = TestData.At(15, 20).AddDays(3), UpdatedAt = TestData.At(9) };
+        var api = Api(TestData.Day(appointment)).On($"POST /api/appointments/{appointment.Id}/move", moved);
+        var vm = await OpenAsync(api);
+        vm.BeginDrag(vm.Columns[0].Items[0], grabOffset: 0);
+        vm.DragTo(10, vm.Columns[0].Items[0].Top + 270 * DayLayout.PixelsPerMinute);
+        await vm.DropAsync();
+        Assert.StartsWith("Verschoben auf", vm.Toast, StringComparison.Ordinal);
+        Assert.EndsWith("14:35", vm.Toast, StringComparison.Ordinal);
+        Assert.Equal("Verschoben auf Do 14:35", vm.Toast);
+    }
+
+    [Fact]
+    public async Task Eine_Sperrzeit_ohne_Grund_meldet_den_Fehler_am_Feld_Grund_ohne_Bitte()
+    {
+        var vm = await OpenAsync(Api(TestData.Day()));
+        vm.OpenNoteAt(10, 100);
+        Assert.True(vm.SelectNewEntry(4));
+        var entry = vm.Entry!;
+        entry.Text = "";
+
+        await entry.SaveAsync();
+
+        Assert.Equal("Der Grund fehlt.", entry.TextError);
+        Assert.Null(entry.Error);
+    }
+
     [Fact]
     public async Task Ein_gescheiterter_Aufruf_ist_ein_Fehler_als_InfoBar_mit_Erneut_versuchen_und_kein_Toast()
     {

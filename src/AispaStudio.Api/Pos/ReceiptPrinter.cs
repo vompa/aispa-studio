@@ -59,7 +59,7 @@ internal static class ReceiptPrinter
         }
         else
         {
-            Columns($"{Kind(receipt.Kind)} Nr. {receipt.Number}", $"Kasse {receipt.RegisterCode}");
+            Columns($"{KindLabel(receipt.Kind)} Nr. {receipt.Number}", $"Kasse {receipt.RegisterCode}");
         }
 
         Line(issued.ToString("dd.MM.yyyy HH:mm:ss", German));
@@ -102,6 +102,10 @@ internal static class ReceiptPrinter
             Line();
             Center($"Gutschein {v.Code}");
             Center($"Wert {currency} {Money(v.InitialValue)}");
+            if (v.ValidUntil is { } until)
+            {
+                Center($"Einzulösen bis {until.ToString("dd.MM.yyyy", German)}");
+            }
         }
 
         if (receipt.SignatureDeviceFailed)
@@ -156,7 +160,8 @@ internal static class ReceiptPrinter
         }
     }
 
-    private static string Kind(ReceiptKind kind) => kind switch
+    /// <summary>Bezeichnung der Belegart, wie sie auf Bon und PDF steht.</summary>
+    internal static string KindLabel(ReceiptKind kind) => kind switch
     {
         ReceiptKind.Sale => "Beleg",
         ReceiptKind.Void => "Stornobeleg",

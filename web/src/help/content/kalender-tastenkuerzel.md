@@ -46,6 +46,7 @@ Fast alles im Kalender geht ohne Maus. Ein Klick markiert einen Termin; die Tast
 - **F**: [Folgetermin](hilfe:kalender-termin-buchen#folgetermin) in vier Wochen.
 - **Alt+↑ ↓**: um eine Viertelstunde [verschieben](hilfe:kalender-termin-verschieben#tastatur).
 - **Alt+← →**: zur Nachbarspalte verschieben.
+- **V**: Terminfenster mit der Verschieben-Karte öffnen, für einen [anderen Tag oder Beginn](hilfe:kalender-termin-verschieben#anderer-tag); bei eingecheckten Terminen und gemeinsamen Buchungen nur der Hinweis zum Ziehen.
 - **Entf**: [Stornieren](hilfe:kalender-termin-stornieren), mit Rückfrage und Grund.
 - **Strg+Z**: letzte Verschiebung, Stornierung oder letztes Einchecken zurücknehmen, solange die Meldung unten steht. Dann steht auch „Strg+Z Rückgängig“ in der Tastenleiste.
 

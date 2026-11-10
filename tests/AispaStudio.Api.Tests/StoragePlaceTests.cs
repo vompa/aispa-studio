@@ -62,7 +62,7 @@ public sealed class StoragePlaceTests(ApiFixture fixture)
     /// <summary>Schließt den Termin ab und wartet, bis die Queue den Verbrauch gebucht hat.</summary>
     private static async Task<List<StockMovementDto>> CompleteAsync(TestSpa spa, AppointmentDto appointment)
     {
-        await spa.PostAsync<AppointmentDto>($"/api/appointments/{appointment.Id}/status", new AppointmentStatusChange(AppointmentStatus.Completed), Ct);
+        await spa.SetStatusAsync(appointment.Id, AppointmentStatus.Completed, Ct);
         for (var i = 0; ; i++)
         {
             var movements = (await RecentMovementsAsync(spa)).Where(m => m.AppointmentId == appointment.Id).ToList();

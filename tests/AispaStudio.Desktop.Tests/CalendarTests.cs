@@ -298,6 +298,25 @@ public sealed class CalendarTests
     }
 
     [Fact]
+    public async Task Buchen_aus_dem_Panel_meldet_Gebucht_mit_Gast_und_Uhrzeit()
+    {
+        var api = Api();
+        var vm = await OpenAsync(api);
+        var eva = new CustomerDto(Guid.NewGuid(), "Eva", "Muster", null, null, null, null);
+        var booked = TestData.Appointment(9, TestData.Anna) with { CustomerId = eva.Id, Start = TestData.At(9, 30), End = TestData.At(10, 20) };
+        api.On("POST /api/appointments", booked).On("GET /api/customers?search=eva", new List<CustomerDto> { eva });
+
+        vm.StartBooking(vm.Columns[0], 30 * DayLayout.PixelsPerMinute);
+        var booking = vm.Booking!;
+        await booking.SearchAsync("eva");
+        booking.Customer = booking.Customers[0];
+        await booking.BookCommand.ExecuteAsync(null);
+
+        Assert.Null(vm.Booking);
+        Assert.Equal("Gebucht: Eva Muster, 09:30", vm.Toast);
+    }
+
+    [Fact]
     public async Task Buchen_von_freier_Stelle_waehlt_passende_Behandlung_und_zeigt_Ablehnung()
     {
         var api = Api();
@@ -415,7 +434,7 @@ public sealed class CalendarTests
         Assert.Equal(appointment.Id, Assert.Single(vm.Columns[1].Items).Id);
         Assert.Null(vm.Ghost);
         Assert.True(vm.CanUndo);
-        Assert.Contains("14:30–15:20 (Ben, Raum Zeder)", vm.Toast, StringComparison.Ordinal);
+        Assert.Equal("Verschoben auf 14:30", vm.Toast);
 
         api.On($"POST /api/appointments/{appointment.Id}/move", appointment with { UpdatedAt = TestData.At(9, 30) });
         await vm.UndoMoveCommand.ExecuteAsync(null);
@@ -590,6 +609,51 @@ public sealed class CalendarTests
     }
 
     [Fact]
+    public async Task Gast_ohne_Telefon_und_Mail_bekommt_beim_Buchen_die_Pille_Keine_Kontaktmoeglichkeit()
+    {
+        var silent = new CustomerDto(Guid.NewGuid(), "Ohne", "Kontakt", null, null, null, null);
+        var reachable = new CustomerDto(Guid.NewGuid(), "Mit", "Telefon", null, "+43 664 1", null, null);
+        var api = Api()
+            .On("GET /api/customers?search=ohne", new List<CustomerDto> { silent })
+            .On("GET /api/customers?search=mit", new List<CustomerDto> { reachable });
+        var vm = await OpenAsync(api);
+        vm.StartBooking(vm.Columns[0], 30 * DayLayout.PixelsPerMinute);
+        var booking = vm.Booking!;
+
+        Assert.False(booking.HasNoContact);
+        booking.Customer = silent;
+        Assert.True(booking.HasNoContact);
+        booking.Customer = reachable;
+        Assert.False(booking.HasNoContact);
+    }
+
+    [Fact]
+    public async Task Verschieben_Karte_sperrt_Tage_vor_heute_und_nennt_den_Grund_im_Tooltip()
+    {
+        var appointment = TestData.Appointment(10, TestData.Anna);
+        var vm = await OpenAsync(Api(appointment));
+        vm.Open(vm.Columns[0].Items[0]);
+        var panel = vm.Selected!;
+        panel.AskMoveToDayCommand.Execute(null);
+
+        Assert.Equal(TestData.Monday, panel.Today);
+        Assert.True(panel.MoveToDayCommand.CanExecute(null));
+        Assert.False(panel.MoveDaysCommand.CanExecute("-1"));
+        Assert.True(panel.MoveDaysCommand.CanExecute("1"));
+
+        panel.MoveDateText = "28.02.2027";
+        Assert.False(panel.MoveToDayCommand.CanExecute(null));
+
+        panel.MoveDateText = "02.03.2027";
+        Assert.True(panel.MoveToDayCommand.CanExecute(null));
+        Assert.True(panel.MoveDaysCommand.CanExecute("-1"));
+
+        // Ein unlesbarer Tag bleibt erlaubt: „Verschieben“ meldet ihn im Feld statt still zu sperren.
+        panel.MoveDateText = "32.03.2027";
+        Assert.True(panel.MoveToDayCommand.CanExecute(null));
+    }
+
+    [Fact]
     public async Task Einzeltermin_aus_dem_Terminfenster_auf_einen_anderen_Tag_verschieben()
     {
         var appointment = TestData.Appointment(10, TestData.Anna);
@@ -618,7 +682,7 @@ public sealed class CalendarTests
         Assert.Equal(appointment.Id, Assert.Single(vm.Columns[0].Items).Id);
         Assert.Equal(appointment.Id, vm.MarkedId);
         Assert.True(vm.CanUndo);
-        Assert.Contains("14:00–14:50", vm.Toast, StringComparison.Ordinal);
+        Assert.Equal("Verschoben auf Mi 14:00", vm.Toast);
 
         panel.MoveDateText = "32.03.2027";
         await panel.MoveToDayCommand.ExecuteAsync(null);

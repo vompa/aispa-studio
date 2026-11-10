@@ -141,6 +141,9 @@ public sealed partial class ViewTests
 
         Assert.True(Visible("Erledigt"));
         Assert.True(Visible("Nicht erschienen"));
+
+        // Kalenderdatei für den Gast (Export/Import, Aufgabe C).
+        Assert.True(window.GetVisualDescendants().OfType<Button>().Single(b => b.Name == "CalendarFileButton").IsEffectivelyVisible);
         return calendar;
     });
 
@@ -1613,7 +1616,7 @@ public sealed partial class ViewTests
         Assert.True(shell.Pos.CanPay);
         shell.Pos.VoucherTreatment = shell.Pos.Treatments.First(t => t.Id == SpaSample.Paying.TreatmentId);
         shell.Pos.PackagePrice = "699";
-        shell.Pos.PackageValidUntil = "31.12.2027";
+        shell.Pos.VoucherValidUntil = "31.12.2027";
         return shell.Pos;
     });
 

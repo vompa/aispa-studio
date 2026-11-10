@@ -100,8 +100,11 @@ public partial class FreeTimeViewModel : ViewModelBase
         }
 
         _suspended--;
-        _ = LoadAsync();
+        Loading = LoadAsync();
     }
+
+    /// <summary>Die erste Suche, die der Aufbau gestartet hat; wer die Vorschläge gleich braucht (Stornierung zu neuer Zeit zurücknehmen), wartet darauf.</summary>
+    public Task Loading { get; }
 
     public IReadOnlyList<TreatmentDto> Treatments { get; }
 

@@ -15,7 +15,9 @@ AISPA_SCREENSHOTS="$shots" dotnet test --project "$root/tests/AispaStudio.Deskto
 mkdir -p "$help/images/app"
 missing=0
 for name in $(grep -ho '](images/app/[a-z0-9-]*\.png)' "$help"/content/*.md | sed 's/](images\/app\/\(.*\)\.png)/\1/' | sort -u); do
-  if [[ -f "$shots/$name.png" ]]; then
+  if [[ "$name" == "rechnung-als-pdf" ]]; then
+    continue # Beispiel-PDF der Rechnung, kein Bildtest (Muster aus ReceiptPdfTests mit AISPA_PDF_SAMPLES, mit pymupdf gerendert)
+  elif [[ -f "$shots/$name.png" ]]; then
     cp "$shots/$name.png" "$help/images/app/$name.png"
   else
     echo "Kein Bildtest erzeugt $name.png (Render(\"hell\", \"$name\", …) in ViewTests.cs fehlt)" >&2

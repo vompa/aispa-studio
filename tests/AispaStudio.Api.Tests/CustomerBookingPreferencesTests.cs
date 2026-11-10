@@ -46,7 +46,7 @@ public sealed class CustomerBookingPreferencesTests(ApiFixture fixture)
         foreach (var (weeksAgo, employee) in new[] { (1, spa.Anna), (2, spa.Anna), (3, spa.Ben), (4, spa.Anna) })
         {
             var past = await spa.BookOkAsync(TestSpa.At(14, date: TestSpa.Monday.AddDays(-7 * weeksAgo)), Ct, employee.Id);
-            await spa.PostAsync<AppointmentDto>($"/api/appointments/{past.Id}/status", new AppointmentStatusChange(AppointmentStatus.Completed), Ct);
+            await spa.SetStatusAsync(past.Id, AppointmentStatus.Completed, Ct);
         }
 
         var suggestion = await spa.GetAsync<CustomerPreferenceSuggestion>(suggestionPath, Ct);

@@ -591,6 +591,15 @@
     <Setter Property="VerticalAlignment" Value="Center" />
   </Style>
 
+  <!-- Geteilte Schaltfläche ohne Akzent (Knopfblock „PDF speichern ▾“, ADR 0092): Ruhezustand wie ein normaler Knopf statt der grauen Fluent-Fläche -->
+  <Style Selector="SplitButton.document">
+    <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource LineStrongBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="FontWeight" Value="Medium" />
+  </Style>
+
   <!-- Geteilte Schaltfläche „+ Termin ▾“ in der Akzentfarbe -->
   <Style Selector="SplitButton.primary /template/ Button">
     <Setter Property="Background" Value="{DynamicResource AccentGradientBrush}" />
@@ -1309,9 +1318,9 @@
   <Style Selector="TextBlock.absent">
     <Setter Property="Foreground" Value="{DynamicResource CritBrush}" />
   </Style>
-  <!-- Einwirkzeit im Termin der Person: schraffiertes, halbtransparentes Band mit Linien oben und unten; der Text steht klein am unteren Rand -->
+  <!-- Einwirkzeit im Termin der Person: flaches Band im Ton der Vor- und Nachbereitungsstreifen mit Linien oben und unten (ohne Hover-Stil, nicht anklickbar); der Text steht klein am unteren Rand -->
   <Style Selector="Border.processing">
-    <Setter Property="Background" Value="{DynamicResource ProcessingHatchBrush}" />
+    <Setter Property="Background" Value="{DynamicResource Surface3Brush}" />
     <Setter Property="BorderBrush" Value="{DynamicResource LineStrongBrush}" />
     <Setter Property="BorderThickness" Value="0,1,0,1" />
     <Setter Property="VerticalAlignment" Value="Top" />

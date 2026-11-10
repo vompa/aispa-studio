@@ -852,6 +852,295 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/exports/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Listet, wer wann welche Liste in welchem Format exportiert hat (nur Inhaber und Manager), neueste oben. */
+        get: operations["GetExportHistory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pos/locations/{locationId}/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Listen der Kassa als Excel oder CSV, nur für die Leitung: list=receipts (Belegliste), revenue-days, revenue-payments, revenue-treatments (Umsatz je Tag, Zahlart, Behandlung und Person), day-closings (Tagesabschlüsse) für den Zeitraum from bis until; vouchers (Gutscheinbestand) ohne Zeitraum. */
+        get: operations["ExportPosList"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stock/locations/{locationId}/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Listen des Lagers als Excel oder CSV, nur für die Leitung: list=levels (Bestand je Lagerort), count (Inventur mit Differenzen: sessionId oder die zuletzt eingereichte Zählung), movements (Bewegungen von from bis until), orders (Bestellungen), expiry (Ablaufliste der Chargen). */
+        get: operations["ExportStockList"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/locations/{locationId}/staff/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Listen des Personals als Excel oder CSV, nur für die Leitung: list=hours (Stundenliste je Person und Tag für month=JJJJ-MM), absences (Abwesenheiten von from bis until), roster (Dienstplan der Woche ab from, Personen als Zeilen, Tage als Spalten); wahlweise nur employeeId. */
+        get: operations["ExportStaffList"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/locations/{locationId}/management/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Kennzahlen des Management-Berichts für from bis until (höchstens ein Jahr) als Excel oder CSV: Kennzahl, Wert, Vorperiode, Einheit; ohne das Recht „Berichte mit Beträgen“ ohne Geldbeträge. */
+        get: operations["ExportManagementKpis"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/locations/{locationId}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Verlauf eines Standorts, neueste zuerst: Buchungen, Verschiebungen, Stornos, Status, Zahlungen (auch Verkäufe ohne Termin), Anfragen, Kunden, Behandlungen, Dienstplan und Zugänge mit Filtern nach Zeitraum (Ortszeit), Arten, Person, Kanal, Gast und Suchtext; seitenweise über before und take (höchstens 200). Arten außerhalb der Rechte fehlen; 403 nur, wenn ausschließlich verbotene Arten angefragt sind. */
+        get: operations["GetLocationHistory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/channel/staff-app": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Schränkt die laufende Anmeldung auf die Mitarbeiter-App ein: nur freigegebene Endpunkte und nur eigene Daten. */
+        post: operations["UseStaffAppChannel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/employee-notes/symbols": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Hinweise als Symbol im Dienstplan und im Kopf der Kalenderspalte; Hinweise „nur Leitung“ nur für Inhaber und Manager. */
+        get: operations["ListStaffNoteSymbols"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/staff-duties/reminders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Erinnerungen der angemeldeten Person: eigene Zertifikate vor dem Ablauf, bei Inhaber und Manager die aller aktiven Personen; mit locationId die Lageraufgaben, wenn sie an diese Person gehen. In der Mitarbeiter-App nur die eigenen Zertifikate. */
+        get: operations["ListDutyReminders"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customers/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Exportiert die gefilterte Kundenliste als Excel, CSV, Portal-CSV (englische Spalten, Komma) oder vCard; mit list=newsletter nur Gäste mit bestätigter Werbe-Einwilligung (nur Inhaber und Manager). Nie Gesundheitsdaten, Wünsche, Rabatt oder Rechnungsdaten; der Vermerk nur für die Leitung. Höchstens 50 000 Zeilen. */
+        get: operations["ExportCustomers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customers/{customerId}/vcard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Ein Gast als vCard 4.0 für Outlook, Apple und Google; der Vermerk der Rezeption steht nur für Inhaber und Manager in NOTE. */
+        get: operations["ExportCustomerVCard"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/locations/{locationId}/appointments/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Terminliste eines Standorts als Excel oder CSV für einen Zeitraum (höchstens ein Jahr), wahlweise nur einer Person, eines Raums oder eines Status. Die Notiz zum Termin nur für die Leitung. */
+        get: operations["ExportAppointments"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/appointments/{appointmentId}/ics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Ein Termin als Kalenderdatei (iCal) für den Gast: Behandlung und Standort, Erinnerung 24 Stunden vorher, ohne Namen der Person; bei einer Buchung mit mehreren Teilen alle Teile desselben Gastes. */
+        get: operations["ExportAppointmentIcs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/employees/{employeeId}/ics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Dienste und Termine einer Person als Kalenderdatei für den privaten Kalender, ohne Namen der Gäste und ohne Erinnerung; nur die Leitung oder die Person selbst. include=appointments,shifts wählt den Inhalt (Standard beides), höchstens ein Jahr. */
+        get: operations["ExportEmployeeIcs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customers/import/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Liest eine Excel- oder CSV-Datei (bis 10 MB, 20 000 Zeilen, erste Zeile Spaltenköpfe) und zeigt Spalten mit Beispielen, die Zuordnung (ohne Angabe nach den Spaltenköpfen vorgeschlagen), Zähler neu, Dubletten und fehlerhaft, die ersten 20 Zeilen sowie alle Dubletten und Fehler. Ändert nichts. */
+        post: operations["PreviewCustomerImport"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customers/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Importiert die Gäste der Datei mit derselben Zuordnung wie die Vorschau, in Blöcken zu 200 und mit dem Kanal „Import“. Dubletten werden übersprungen, außer die Entscheidung je Zeile sagt „Merge“ (leere Felder ergänzen, nie überschreiben). Mit dryRun=true nur zählen (Probelauf). Jeder Import steht im Verlauf. */
+        post: operations["ImportCustomers"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customers/import/errors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Die fehlerhaften Zeilen der Datei als Excel: Zeile, Grund und die Spalten der Datei, zum Berichtigen und erneuten Importieren. */
+        post: operations["GetCustomerImportErrors"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/locations/{locationId}/calendar": {
         parameters: {
             query?: never;
@@ -962,7 +1251,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Verschiebt einen Termin; ohne Angabe bleiben Person, Raum und Gerät, wenn sie zur neuen Zeit frei sind. Mit expectedVersion (Version des Stands, von dem aus geändert wird) antwortet der Server mit 409 und dem aktuellen Termin in current, wenn der Termin inzwischen geändert wurde; das gilt ebenso für Zeiten, Notiz, Storno, Status und Zurücknehmen. */
+        /** Verschiebt einen Termin auf heute oder später (ein früherer Tag ergibt 409); ohne Angabe bleiben Person, Raum und Gerät, wenn sie zur neuen Zeit frei sind. Mit expectedVersion (Version des Stands, von dem aus geändert wird) antwortet der Server mit 409 und dem aktuellen Termin in current, wenn der Termin inzwischen geändert wurde; das gilt ebenso für Zeiten, Notiz, Storno, Status und Zurücknehmen. */
         post: operations["MoveAppointment"];
         delete?: never;
         options?: never;
@@ -1062,7 +1351,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Was beim Zurücknehmen der Stornierung zu beachten ist: wartet die Absage-Nachricht noch, ist sie schon raus, und ging eine Anzahlung mit der Absage zurück. */
+        /** Was beim Zurücknehmen der Stornierung zu beachten ist: wartet die Absage-Nachricht noch, ist sie schon raus, ging eine Anzahlung mit der Absage zurück, liegt der Termin in der Vergangenheit (inPast) oder sind Zeit, Person oder Raum inzwischen belegt (conflict); dann braucht das Zurücknehmen eine neue Zeit. */
         get: operations["GetAppointmentRestoration"];
         put?: never;
         post?: never;
@@ -1081,7 +1370,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Nimmt eine Stornierung zurück: der Termin ist wieder gebucht, wenn Zeit, Person und Raum frei sind (409 mit den Belegungen, sonst). Mit „start“ zu einem neuen Beginn. Eine noch wartende Absage-Nachricht geht nie raus; mit „sendCorrection“ bekommt der Gast, der die Absage schon hat, eine Korrektur. */
+        /** Nimmt eine Stornierung zurück: der Termin ist wieder gebucht, wenn Zeit, Person und Raum frei sind (409 mit den Belegungen, sonst) und der Tag nicht vorbei ist (409 mit der Meldung, sonst). Mit „start“ zu einem neuen Beginn, heute oder später. Eine noch wartende Absage-Nachricht geht nie raus; mit „sendCorrection“ bekommt der Gast, der die Absage schon hat, eine Korrektur. */
         post: operations["RestoreAppointment"];
         delete?: never;
         options?: never;
@@ -1115,7 +1404,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Eingecheckt, abgeschlossen oder nicht erschienen. Beim Einchecken stehen in Warnings Hinweise zu Raumpflege und Tagesstart des Raums; eingecheckt wird trotzdem. „Gebucht“ nimmt das Einchecken zurück, solange der Termin eingecheckt und noch nicht kassiert ist (sonst 400). */
+        /** Eingecheckt, abgeschlossen oder nicht erschienen. Einchecken geht nur am Tag des Termins, Erledigt und Nicht erschienen erst ab dem Tag des Termins (sonst 400). Beim Einchecken stehen in Warnings Hinweise zu Raumpflege und Tagesstart des Raums; eingecheckt wird trotzdem. „Gebucht“ nimmt das Einchecken zurück, solange der Termin eingecheckt und noch nicht kassiert ist (sonst 400). */
         post: operations["ChangeAppointmentStatus"];
         delete?: never;
         options?: never;
@@ -1268,7 +1557,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Verschiebt eine ganze gemeinsame Buchung (Paar, Spa-Tag) auf einen neuen Beginn: alle Termine oder keiner. */
+        /** Verschiebt eine ganze gemeinsame Buchung (Paar, Spa-Tag) auf einen neuen Beginn an heute oder später (ein früherer Tag ergibt 409): alle Termine oder keiner. */
         post: operations["MoveAppointmentGroup"];
         delete?: never;
         options?: never;
@@ -1393,6 +1682,92 @@ export interface paths {
         head?: never;
         /** Notiz ändern oder abhaken. */
         patch: operations["ChangeCalendarNote"];
+        trace?: never;
+    };
+    "/api/v1/appointments/{appointmentId}/confirmation/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Terminbestätigung als PDF: Gast, alle Teile der Buchung, Tag, Uhrzeit, Dauer, Person (Vorname), Standort mit Adresse, Preis, Stornofrist und „Was mitbringen“. */
+        get: operations["AppointmentConfirmationPdf"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/appointments/{appointmentId}/confirmation/send": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Vorbelegung für „Per Mail senden“: Adresse des Gastes aus der Kundenkarte, Betreff und Text. */
+        get: operations["AppointmentConfirmationMailDraft"];
+        put?: never;
+        /** Terminbestätigung als PDF per Mail an den Gast (über die Queue), mit Vermerk im Verlauf des Termins; ohne Betreff und Text gilt die Vorbelegung. */
+        post: operations["SendAppointmentConfirmation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customers/{customerId}/history/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Datenschutz-Auskunft nach Art. 15 DSGVO als PDF: Stammdaten, Kontakt, Wünsche, Termine, Zahlungen, Gutscheine, Online-Konto, Verlauf der Änderungen; die Anamnese nur mit dem Recht „Anamnese lesen“, sonst ein fester Satz. */
+        get: operations["CustomerDisclosurePdf"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customers/{customerId}/card/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Stammblatt einer Kundin oder eines Kunden als PDF: Kontakt, Wünsche und Vermerke, die nächsten Termine und die letzten fünf Besuche; keine Gesundheitsdaten. */
+        get: operations["CustomerCardPdf"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/locations/{locationId}/day-plan/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Tagesplan eines Standorts als PDF (A4 quer): eine Spalte je Person (by=team, Standard) oder je Raum (by=rooms), Termine mit Zeit, Gast, Behandlung und Status, Pausen und Sperrzeiten grau, Fußnote mit der Zahl der Wartenden. Stornierte Termine fehlen. */
+        get: operations["DayPlanPdf"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/v1/locations/{locationId}/absence/proposal": {
@@ -1786,57 +2161,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/auth/channel/staff-app": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Schränkt die laufende Anmeldung auf die Mitarbeiter-App ein: nur freigegebene Endpunkte und nur eigene Daten. */
-        post: operations["UseStaffAppChannel"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/employee-notes/symbols": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Hinweise als Symbol im Dienstplan und im Kopf der Kalenderspalte; Hinweise „nur Leitung“ nur für Inhaber und Manager. */
-        get: operations["ListStaffNoteSymbols"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/staff-duties/reminders": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Erinnerungen der angemeldeten Person: eigene Zertifikate vor dem Ablauf, bei Inhaber und Manager die aller aktiven Personen; mit locationId die Lageraufgaben, wenn sie an diese Person gehen. In der Mitarbeiter-App nur die eigenen Zertifikate. */
-        get: operations["ListDutyReminders"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/auth/pin": {
         parameters: {
             query?: never;
@@ -1983,6 +2307,22 @@ export interface paths {
             cookie?: never;
         };
         get: operations["GetCashRegister"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pos/registers/{registerId}/voucher-expiry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetVoucherExpiry"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2172,6 +2512,23 @@ export interface paths {
         put?: never;
         /** Tagesabschluss (Z-Bericht) mit gezähltem Kassenbestand; wird unveränderlich gespeichert. */
         post: operations["CloseDay"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pos/registers/{registerId}/day-closings/{closingId}/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Ein gespeicherter Tagesabschluss als PDF (A4) mit Summen, Differenz, Einlagen und Entnahmen und Unterschriftenzeilen; nur mit dem Recht „Berichte mit Beträgen“. */
+        get: operations["DayClosingPdf"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -2447,6 +2804,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/pos/receipts/{receiptId}/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Beleg oder Rechnung als PDF: A4 (Standard) oder Bon-Format 80 mm (format=Receipt); copy=true kennzeichnet den Nachdruck als Kopie. */
+        get: operations["ReceiptPdf"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pos/receipts/{receiptId}/send": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Vorbelegung für „Per Mail senden“: Adresse des Gastes aus der Kundenkarte, Betreff und Text. */
+        get: operations["ReceiptMailDraft"];
+        put?: never;
+        /** Beleg oder Rechnung als PDF per Mail an den Gast (über die Queue), mit Vermerk am Beleg; ohne Betreff und Text gilt die Vorbelegung. */
+        post: operations["SendReceipt"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/pos/receipts/{receiptId}/recipient": {
         parameters: {
             query?: never;
@@ -2541,6 +2933,92 @@ export interface paths {
         };
         /** Gekaufte Pakete eines Gastes mit offenen Behandlungen, z. B. um an der Kassa eines abzuziehen. */
         get: operations["GetCustomerPackages"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pos/vouchers/{voucherId}/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Gutschein als PDF zum Verschenken (A4): Spa-Name, Wert oder Behandlung, Code, QR-Code mit dem Code, „Gültig bis“ und „Einlösbar in“. */
+        get: operations["VoucherPdf"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pos/vouchers/{voucherId}/send": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Vorbelegung für „Per Mail senden“: Adresse des Käufers aus der Kundenkarte (leer, wenn er unbekannt ist), Betreff und Text. */
+        get: operations["VoucherMailDraft"];
+        put?: never;
+        /** Gutschein als PDF per Mail an den Käufer oder eine eingetippte Adresse (über die Queue), mit Vermerk; ohne Betreff und Text gilt die Vorbelegung. */
+        post: operations["SendVoucher"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pos/vouchers/{voucherId}/printed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Vermerkt, dass der Gutschein ausgedruckt wurde (die App meldet es nach dem Drucken); die Gutscheinliste zeigt „Gedruckt am …“. */
+        post: operations["VoucherPrinted"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pos/vouchers/{voucherId}/handed-over": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Vermerkt, dass der Gutschein persönlich übergeben wurde; die Gutscheinliste zeigt „Übergeben am …“. */
+        post: operations["VoucherHandedOver"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pos/locations/{locationId}/vouchers/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Gutscheinliste als PDF (A4 quer): alle Gutscheine des Standorts mit Code, Art, Werten, Status, Käufer, Empfänger, Kanal und Versandvermerk und der Summe der offenen Restwerte. Filter: from und until (Ausstellung, jjjj-mm-tt), status (active, redeemed, expired, voided), expiring und notSent (true oder false). */
+        get: operations["VoucherListPdf"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3475,6 +3953,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/employees/{employeeId}/timesheet/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Stundenliste einer Person für einen Monat (month=2026-06) als PDF: je Tag Kommen, Gehen, Pausen, Ist, Soll und Saldo, Monatssumme und Unterschriftenzeilen. */
+        get: operations["TimesheetPdf"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/locations/{locationId}/roster/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Dienstplan-Aushang als PDF (A4 quer) für die Woche, in der week liegt: eine Zeile je Person, eine Spalte je Tag mit Diensten, Abwesenheiten und Notizen; nur der veröffentlichte Stand. */
+        get: operations["RosterPdf"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/online/locations": {
         parameters: {
             query?: never;
@@ -4114,6 +4626,23 @@ export interface paths {
         put?: never;
         /** Retourniert die offene Anzahlung eines Termins: Storno-Beleg über die Kassa mit dem Grund (Pflicht), das Geld geht auf dem Zahlungsweg der Einzahlung zurück. Nur Inhaber und Manager (403 sonst). Ohne offene Anzahlung 404. */
         post: operations["ReturnDeposit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/locations/{locationId}/waitlist/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Warteliste eines Tages als PDF (A4): die offenen Wünsche, die am Tag (date, Standard heute) gelten, mit Gast, Telefon, Wunsch, Zeitraum und Stand. */
+        get: operations["WaitlistPdf"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -6086,6 +6615,92 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/locations/{locationId}/stock-counts/{countId}/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Inventurliste einer Zählung vom Handy als PDF (A4): Material, Einheit, Soll, Gezählt, Differenz, Wert und die Summe der Differenzen; mit blank=true die Zählliste mit leerer Spalte „Gezählt“. */
+        get: operations["StockCountPdf"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/locations/{locationId}/storage-places/{placeId}/count-sheet/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Zählliste eines Lagerorts als PDF vor dem Zählen (A4): alle aktiven Materialien mit dem Soll und einer leeren Spalte „Gezählt“. */
+        get: operations["StockCountSheetPdf"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/purchase-orders/{purchaseOrderId}/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Bestellung als PDF (A4): Lieferant, Lieferadresse, Positionen mit Menge, Einheit, Einzelpreis und Summe, Gesamtsumme netto, erwartete Lieferung (aus der Lieferzeit des Lieferanten) und Hinweis. */
+        get: operations["PurchaseOrderPdf"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/purchase-orders/{purchaseOrderId}/send": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Vorbelegung für „Per Mail senden“: Adresse des Lieferanten (leer, wenn keine eingetragen ist), Betreff „Bestellung … vom …“ und Text. */
+        get: operations["PurchaseOrderMailDraft"];
+        put?: never;
+        /** Bestellung als PDF per Mail an den Lieferanten oder eine eingetippte Adresse (über die Queue), mit Vermerk an der Bestellung; der Stand der Bestellung bleibt, wie er ist. */
+        post: operations["SendPurchaseOrderPdf"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/locations/{locationId}/stock/expiring/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Ablaufliste als PDF (A4): Chargen, die in den nächsten days Tagen (1 bis 365, Standard 30) ablaufen, mit Material, Charge, Lagerort, Ablaufdatum, Frist und Menge. */
+        get: operations["ExpiringStockPdf"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/treatments/{treatmentId}/recommended-articles": {
         parameters: {
             query?: never;
@@ -7245,7 +7860,8 @@ export interface paths {
         };
         /** Einwilligung des Gastes in Wiederbuchungs-Hinweise. */
         get: operations["GetMarketingConsent"];
-        put?: never;
+        /** Trägt ein, was der Gast am Empfang gesagt hat: Ja (Werbung per Mail, Quelle „Rezeption“), Nein oder nicht gefragt. Eine per Mail bestätigte Einwilligung bleibt bei Ja bestehen. */
+        put: operations["DecideMarketingConsent"];
         /** Fragt den Gast per Mail um Einwilligung (Double-Opt-in). Erst nach seiner Bestätigung gehen Wiederbuchungs-Hinweise. */
         post: operations["RequestMarketingConsent"];
         /** Widerruf, z. B. wenn der Gast es am Empfang sagt. */
@@ -7485,6 +8101,50 @@ export interface components {
             discountText: string;
             scope: components["schemas"]["PromotionScope"];
             treatments: components["schemas"]["PromotionTreatmentDto"][];
+        };
+        ActivityActor: {
+            id: string;
+            name: string;
+        };
+        /** @enum {unknown} */
+        ActivityChannel: "Reception" | "Online" | "Assistant" | "Background";
+        ActivityEntry: {
+            /** Format: int64 */
+            seq: number;
+            /** Format: date-time */
+            at: string;
+            kind: components["schemas"]["ActivityKind"];
+            text: string;
+            actor: null | string;
+            channel: components["schemas"]["ActivityChannel"];
+            /** Format: uuid */
+            customerId: null | string;
+            customerName: null | string;
+            /** Format: uuid */
+            appointmentId: null | string;
+            /** Format: uuid */
+            treatmentId: null | string;
+            /** Format: uuid */
+            employeeId: null | string;
+            values: components["schemas"]["ActivityValue"][];
+            lateCancellation: null | boolean;
+            /** Format: uuid */
+            receiptId?: null | string;
+            /** Format: uuid */
+            requestId?: null | string;
+        };
+        /** @enum {unknown} */
+        ActivityKind: "Booked" | "Moved" | "Cancelled" | "Restored" | "StatusChanged" | "AppointmentChanged" | "Paid" | "Deposit" | "ReceiptVoided" | "CustomerCreated" | "CustomerChanged" | "TreatmentChanged" | "RosterChanged" | "AccessChanged" | "CompanyChanged" | "Request";
+        ActivityPage: {
+            items: components["schemas"]["ActivityEntry"][];
+            /** Format: int64 */
+            nextBefore: null | number;
+            actors?: null | components["schemas"]["ActivityActor"][];
+        };
+        ActivityValue: {
+            label: string;
+            old: null | string;
+            new: null | string;
         };
         AiStatus: {
             claude: boolean;
@@ -7760,6 +8420,9 @@ export interface components {
         AppointmentRestoration: {
             notice: components["schemas"]["CancellationNoticeState"];
             depositReturned: boolean;
+            /** @default false */
+            inPast: boolean;
+            conflict?: null | components["schemas"]["BookingRejected"];
         };
         /**
          * @default Reception
@@ -8147,6 +8810,8 @@ export interface components {
             units?: null | number;
             /** Format: date */
             validUntil?: null | string;
+            /** @default false */
+            withoutExpiry: boolean;
         };
         /** @enum {unknown} */
         BillLineKind: "Appointment" | "Article" | "Voucher" | "Custom" | "AreaVisit" | "Deposit";
@@ -8620,6 +9285,8 @@ export interface components {
             cardRemovedAt?: null | string;
             /** Format: date-time */
             releaseAt?: null | string;
+            /** Format: date-time */
+            cancellationDeadlineAt?: null | string;
         };
         /** @enum {unknown} */
         CardGuaranteeStatus: "Pending" | "Saved" | "Failed" | "Charging" | "Charged" | "ChargeFailed" | "Refunded" | "AwaitingConsent" | "Released";
@@ -8662,6 +9329,8 @@ export interface components {
             /** Format: int32 */
             feePercent: number;
             reason: null | string;
+            /** Format: date-time */
+            cancellationDeadlineAt?: null | string;
         };
         CardTerminalResult: {
             approved: boolean;
@@ -9096,6 +9765,41 @@ export interface components {
         };
         /** @enum {unknown} */
         CustomerFlagKind: "MoreTime" | "InformManagement" | "NotWithMe" | "DoNotBook";
+        /** @enum {unknown} */
+        CustomerImportField: "FirstName" | "LastName" | "Email" | "Phone" | "BirthDate" | "Salutation" | "Street" | "PostalCode" | "City" | "Country" | "MarketingConsent" | null;
+        CustomerImportMapping: {
+            columns: components["schemas"]["ImportColumnMapping"][];
+            dateFormat?: components["schemas"]["ImportDateFormat"];
+        };
+        CustomerImportPreview: {
+            fileName: string;
+            /** Format: int32 */
+            rowCount: number;
+            columns: components["schemas"]["ImportColumn"][];
+            mapping: components["schemas"]["CustomerImportMapping"];
+            /** Format: int32 */
+            new: number;
+            /** Format: int32 */
+            duplicates: number;
+            /** Format: int32 */
+            invalid: number;
+            rows: components["schemas"]["ImportRowPreview"][];
+            duplicateRows: components["schemas"]["ImportRowPreview"][];
+            invalidRows: components["schemas"]["ImportRowPreview"][];
+        };
+        CustomerImportResult: {
+            dryRun: boolean;
+            /** Format: int32 */
+            rows: number;
+            /** Format: int32 */
+            created: number;
+            /** Format: int32 */
+            merged: number;
+            /** Format: int32 */
+            skipped: number;
+            /** Format: int32 */
+            failed: number;
+        };
         CustomerInput: {
             firstName: string;
             lastName: string;
@@ -9424,6 +10128,13 @@ export interface components {
             /** Format: date-time */
             end: string;
         };
+        DocumentMailDraft: {
+            to: null | string;
+            subject: string;
+            text: string;
+        };
+        /** @enum {unknown} */
+        DocumentPageFormat: "A4" | "Receipt" | null;
         DuplicateCheckInput: {
             firstName: null | string;
             lastName: null | string;
@@ -9879,6 +10590,36 @@ export interface components {
         };
         /** Format: binary */
         IFormFile: string;
+        ImportColumn: {
+            /** Format: int32 */
+            index: number;
+            header: string;
+            samples: string[];
+            suggested: null | components["schemas"]["CustomerImportField"];
+        };
+        ImportColumnMapping: {
+            /** Format: int32 */
+            column: number;
+            field: components["schemas"]["CustomerImportField"];
+        };
+        /**
+         * @default Auto
+         * @enum {unknown}
+         */
+        ImportDateFormat: "Auto" | "DayMonthYear" | "YearMonthDay" | "MonthDayYear";
+        ImportRowPreview: {
+            /** Format: int32 */
+            row: number;
+            status: components["schemas"]["ImportRowStatus"];
+            name: string;
+            email: null | string;
+            phone: null | string;
+            reason: null | string;
+            /** Format: uuid */
+            existingCustomerId: null | string;
+        };
+        /** @enum {unknown} */
+        ImportRowStatus: "New" | "Duplicate" | "Invalid";
         InboundMailDto: {
             /** Format: uuid */
             id: string;
@@ -10191,6 +10932,9 @@ export interface components {
              */
             cancellations: number;
         };
+        MarketingConsentDecision: {
+            state: components["schemas"]["MarketingConsentState"];
+        };
         MarketingConsentDto: {
             state: components["schemas"]["MarketingConsentState"];
             email: null | string;
@@ -10202,12 +10946,13 @@ export interface components {
             /** Format: date-time */
             withdrawnAt: null | string;
             source: null | string;
+            recordedBy?: null | string;
         };
         MarketingConsentRequest: {
             language: null | string;
         };
         /** @enum {unknown} */
-        MarketingConsentState: "None" | "Pending" | "Confirmed" | "Withdrawn";
+        MarketingConsentState: "None" | "Pending" | "Confirmed" | "Withdrawn" | "Refused";
         MaterialLine: {
             name: string;
             /** Format: double */
@@ -10942,6 +11687,7 @@ export interface components {
              */
             missingToMinimum: number;
             supplierEmail?: null | string;
+            sentMails?: null | components["schemas"]["SentDocumentDto"][];
         };
         PurchaseOrderInput: {
             supplier: string;
@@ -11061,6 +11807,7 @@ export interface components {
             smallInvoiceLimit?: null | number;
             /** @default false */
             isDepositReceipt: boolean;
+            sentMails?: null | components["schemas"]["SentDocumentDto"][];
         };
         /** @enum {unknown} */
         ReceiptKind: "Sale" | "Void" | "Start" | "Monthly" | "Yearly" | "Null" | "Closing";
@@ -11524,6 +12271,11 @@ export interface components {
             /** Format: date-time */
             lastPublishedAt?: null | string;
         };
+        SendDocumentRequest: {
+            to: string;
+            subject?: null | string;
+            text?: null | string;
+        };
         /** @enum {unknown} */
         SenderHandling: "Automatic" | "Suggest" | "Ignore";
         /** @enum {unknown} */
@@ -11544,6 +12296,12 @@ export interface components {
             /** @default true */
             active: boolean;
             note?: null | string;
+        };
+        SentDocumentDto: {
+            to: string;
+            /** Format: date-time */
+            sentAt: string;
+            sentBy: null | string;
         };
         SeriesCreate: {
             rule: components["schemas"]["SeriesInput"];
@@ -12960,6 +13718,12 @@ export interface components {
             unitsLeft?: null | number;
             /** Format: uuid */
             customerId?: null | string;
+        };
+        VoucherExpiryDto: {
+            /** Format: date */
+            default: null | string;
+            rule: string;
+            warning: null | string;
         };
         /** @enum {unknown} */
         VoucherKind: "MultiPurpose" | "SinglePurpose";
@@ -15463,6 +16227,652 @@ export interface operations {
             };
         };
     };
+    GetExportHistory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HistoryEntry"][];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    ExportPosList: {
+        parameters: {
+            query?: {
+                list?: string;
+                from?: string;
+                until?: string;
+                format?: string;
+            };
+            header?: never;
+            path: {
+                locationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ExportStockList: {
+        parameters: {
+            query?: {
+                list?: string;
+                from?: string;
+                until?: string;
+                sessionId?: string;
+                format?: string;
+            };
+            header?: never;
+            path: {
+                locationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ExportStaffList: {
+        parameters: {
+            query?: {
+                list?: string;
+                month?: string;
+                from?: string;
+                until?: string;
+                employeeId?: string;
+                format?: string;
+            };
+            header?: never;
+            path: {
+                locationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ExportManagementKpis: {
+        parameters: {
+            query?: {
+                from?: string;
+                until?: string;
+                format?: string;
+            };
+            header?: never;
+            path: {
+                locationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetLocationHistory: {
+        parameters: {
+            query?: {
+                from?: string;
+                until?: string;
+                kinds?: components["schemas"]["ActivityKind"][];
+                actor?: string;
+                channel?: components["schemas"]["ActivityChannel"];
+                customerId?: string;
+                search?: string;
+                before?: number;
+                take?: number;
+            };
+            header?: never;
+            path: {
+                locationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActivityPage"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    UseStaffAppChannel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CurrentUser"];
+                };
+            };
+        };
+    };
+    ListStaffNoteSymbols: {
+        parameters: {
+            query: {
+                on: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StaffNoteSymbolDto"][];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    ListDutyReminders: {
+        parameters: {
+            query?: {
+                locationId?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DutyReminderDto"][];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    ExportCustomers: {
+        parameters: {
+            query?: {
+                format?: string;
+                search?: string;
+                list?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    ExportCustomerVCard: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                customerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ExportAppointments: {
+        parameters: {
+            query?: {
+                from?: string;
+                until?: string;
+                employeeId?: string;
+                roomId?: string;
+                status?: string;
+                format?: string;
+            };
+            header?: never;
+            path: {
+                locationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ExportAppointmentIcs: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                appointmentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ExportEmployeeIcs: {
+        parameters: {
+            query?: {
+                from?: string;
+                until?: string;
+                include?: string;
+            };
+            header?: never;
+            path: {
+                employeeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PreviewCustomerImport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    file: components["schemas"]["IFormFile"];
+                } & {
+                    mapping?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomerImportPreview"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    ImportCustomers: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    file: components["schemas"]["IFormFile"];
+                } & {
+                    mapping?: string;
+                } & {
+                    decisions?: string;
+                } & {
+                    dryRun?: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomerImportResult"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    GetCustomerImportErrors: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    file: components["schemas"]["IFormFile"];
+                } & {
+                    mapping?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     GetCalendarDay: {
         parameters: {
             query: {
@@ -17081,6 +18491,221 @@ export interface operations {
             };
         };
     };
+    AppointmentConfirmationPdf: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                appointmentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AppointmentConfirmationMailDraft: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                appointmentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentMailDraft"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    SendAppointmentConfirmation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                appointmentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SendDocumentRequest"];
+            };
+        };
+        responses: {
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    CustomerDisclosurePdf: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                customerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    CustomerCardPdf: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                customerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    DayPlanPdf: {
+        parameters: {
+            query: {
+                date: string;
+                by?: string;
+            };
+            header?: never;
+            path: {
+                locationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     ProposeAbsenceCover: {
         parameters: {
             query?: never;
@@ -17925,88 +19550,6 @@ export interface operations {
             };
         };
     };
-    UseStaffAppChannel: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CurrentUser"];
-                };
-            };
-        };
-    };
-    ListStaffNoteSymbols: {
-        parameters: {
-            query: {
-                on: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StaffNoteSymbolDto"][];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/problem+json": components["schemas"]["ProblemDetails"];
-                };
-            };
-        };
-    };
-    ListDutyReminders: {
-        parameters: {
-            query?: {
-                locationId?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DutyReminderDto"][];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/problem+json": components["schemas"]["ProblemDetails"];
-                };
-            };
-        };
-    };
     SetQuickSwitchPin: {
         parameters: {
             query?: never;
@@ -18549,6 +20092,46 @@ export interface operations {
             };
         };
     };
+    GetVoucherExpiry: {
+        parameters: {
+            query?: {
+                until?: string;
+            };
+            header?: never;
+            path: {
+                registerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VoucherExpiryDto"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     CreateNullReceipt: {
         parameters: {
             query?: never;
@@ -19030,6 +20613,36 @@ export interface operations {
                 content: {
                     "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
+            };
+        };
+    };
+    DayClosingPdf: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                registerId: string;
+                closingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -19731,6 +21344,125 @@ export interface operations {
             };
         };
     };
+    ReceiptPdf: {
+        parameters: {
+            query?: {
+                format?: components["schemas"]["DocumentPageFormat"];
+                copy?: boolean;
+            };
+            header?: never;
+            path: {
+                receiptId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ReceiptMailDraft: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                receiptId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentMailDraft"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    SendReceipt: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                receiptId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SendDocumentRequest"];
+            };
+        };
+        responses: {
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     AddReceiptRecipient: {
         parameters: {
             query?: never;
@@ -19996,6 +21728,238 @@ export interface operations {
                 content: {
                     "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
+            };
+        };
+    };
+    VoucherPdf: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                voucherId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    VoucherMailDraft: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                voucherId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentMailDraft"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    SendVoucher: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                voucherId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SendDocumentRequest"];
+            };
+        };
+        responses: {
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    VoucherPrinted: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                voucherId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    VoucherHandedOver: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                voucherId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    VoucherListPdf: {
+        parameters: {
+            query?: {
+                from?: string;
+                until?: string;
+                status?: string;
+                expiring?: string;
+                notSent?: string;
+            };
+            header?: never;
+            path: {
+                locationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -22976,6 +24940,86 @@ export interface operations {
             };
         };
     };
+    TimesheetPdf: {
+        parameters: {
+            query?: {
+                month?: string;
+            };
+            header?: never;
+            path: {
+                employeeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    RosterPdf: {
+        parameters: {
+            query?: {
+                week?: string;
+            };
+            header?: never;
+            path: {
+                locationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     ListOnlineLocations: {
         parameters: {
             query?: never;
@@ -24221,6 +26265,37 @@ export interface operations {
                     "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
                 };
             };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    WaitlistPdf: {
+        parameters: {
+            query?: {
+                date?: string;
+            };
+            header?: never;
+            path: {
+                locationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
             /** @description Forbidden */
             403: {
                 headers: {
@@ -29843,6 +31918,233 @@ export interface operations {
             };
         };
     };
+    StockCountPdf: {
+        parameters: {
+            query?: {
+                blank?: string;
+            };
+            header?: never;
+            path: {
+                locationId: string;
+                countId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    StockCountSheetPdf: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                locationId: string;
+                placeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PurchaseOrderPdf: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                purchaseOrderId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PurchaseOrderMailDraft: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                purchaseOrderId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentMailDraft"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    SendPurchaseOrderPdf: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                purchaseOrderId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SendDocumentRequest"];
+            };
+        };
+        responses: {
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ExpiringStockPdf: {
+        parameters: {
+            query?: {
+                days?: number;
+            };
+            header?: never;
+            path: {
+                locationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     ListTreatmentRecommendedArticles: {
         parameters: {
             query?: never;
@@ -33805,6 +36107,57 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MarketingConsentDto"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    DecideMarketingConsent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                customerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MarketingConsentDecision"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MarketingConsentDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
                 };
             };
             /** @description Forbidden */

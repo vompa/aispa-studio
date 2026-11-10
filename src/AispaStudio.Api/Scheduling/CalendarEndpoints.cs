@@ -208,11 +208,18 @@ internal static class CalendarEndpoints
                 + "Außerhalb der Öffnungszeit oder des Dienstes trägt die 409 OutsideHours; mit OutsideHoursConfirmed („Trotzdem buchen“) bucht die Rezeption trotzdem, Warnings trägt dann „Außerhalb der Öffnungszeit oder des Dienstes gebucht.“.");
 
         group.MapPost("/appointments/{appointmentId:guid}/move", async Task<Results<Ok<AppointmentDto>, ValidationProblem, ProblemHttpResult, Conflict<BookingRejected>>> (
-                Guid appointmentId, MoveAppointmentRequest request, BookingService booking, CancellationToken ct) =>
-                Respond(await booking.MoveAsync(appointmentId, request, ct, house: true)))
+                Guid appointmentId, MoveAppointmentRequest request, BookingService booking, AispaDbContext db, TimeProvider time, CancellationToken ct) =>
+            {
+                if (await PastBookings.CheckMoveAsync(db, time, appointmentId, request.Start, ct) is { } past)
+                {
+                    return TypedResults.Conflict(past);
+                }
+
+                return Respond(await booking.MoveAsync(appointmentId, request, ct, house: true));
+            })
             .WithName("MoveAppointment")
             .RequirePermission(AccessRight.Book)
-            .WithSummary("Verschiebt einen Termin; ohne Angabe bleiben Person, Raum und Gerät, wenn sie zur neuen Zeit frei sind. "
+            .WithSummary("Verschiebt einen Termin auf heute oder später (ein früherer Tag ergibt 409); ohne Angabe bleiben Person, Raum und Gerät, wenn sie zur neuen Zeit frei sind. "
                 + "Mit expectedVersion (Version des Stands, von dem aus geändert wird) antwortet der Server mit 409 und dem aktuellen Termin in current, "
                 + "wenn der Termin inzwischen geändert wurde; das gilt ebenso für Zeiten, Notiz, Storno, Status und Zurücknehmen.");
 
@@ -259,15 +266,42 @@ internal static class CalendarEndpoints
             .WithSummary("Storniert einen Termin und gibt Person, Raum und Gerät sofort wieder frei. Mit expectedVersion 409 und dem aktuellen Termin in current, wenn der Termin inzwischen geändert wurde.");
 
         group.MapGet("/appointments/{appointmentId:guid}/restoration", async Task<Ok<AppointmentRestoration>> (
-                Guid appointmentId, ClosureCancellations notices, CancellationToken ct) =>
-                TypedResults.Ok(await notices.RestorationAsync(appointmentId, ct)))
+                Guid appointmentId, ClosureCancellations notices, BookingService booking, AispaDbContext db, TimeProvider time, CancellationToken ct) =>
+            {
+                var info = await notices.RestorationAsync(appointmentId, ct);
+                var appointment = await db.Appointments.AsNoTracking().Where(a => a.Id == appointmentId && a.Status == AppointmentStatus.Cancelled)
+                    .Select(a => new { a.LocationId, a.Start }).FirstOrDefaultAsync(ct);
+                if (appointment is null)
+                {
+                    return TypedResults.Ok(info);
+                }
+
+                var inPast = await PastBookings.CheckAsync(db, time, appointment.LocationId, appointment.Start, ct, PastBookings.RestoreMessage) is not null;
+                return TypedResults.Ok(info with { InPast = inPast, Conflict = await booking.RestoreConflictAsync(appointmentId, ct) });
+            })
             .WithName("GetAppointmentRestoration")
             .RequirePermission(AccessRight.Book)
-            .WithSummary("Was beim Zurücknehmen der Stornierung zu beachten ist: wartet die Absage-Nachricht noch, ist sie schon raus, und ging eine Anzahlung mit der Absage zurück.");
+            .WithSummary("Was beim Zurücknehmen der Stornierung zu beachten ist: wartet die Absage-Nachricht noch, ist sie schon raus, ging eine Anzahlung mit der Absage zurück, "
+                + "liegt der Termin in der Vergangenheit (inPast) oder sind Zeit, Person oder Raum inzwischen belegt (conflict); dann braucht das Zurücknehmen eine neue Zeit.");
 
         group.MapPost("/appointments/{appointmentId:guid}/restore", async Task<Results<Ok<AppointmentDto>, ValidationProblem, ProblemHttpResult, Conflict<BookingRejected>>> (
-                Guid appointmentId, RestoreAppointmentRequest request, BookingService booking, ClosureCancellations notices, CancellationToken ct) =>
+                Guid appointmentId, RestoreAppointmentRequest request, BookingService booking, ClosureCancellations notices, AispaDbContext db, TimeProvider time,
+                CancellationToken ct) =>
             {
+                // Die Vergangenheit prüft der Endpunkt wie beim Buchen und Verschieben (PastBookings): zur alten Zeit nur, wenn der Tag nicht vorbei ist.
+                if (request.Start is { } newStart)
+                {
+                    if (await PastBookings.CheckMoveAsync(db, time, appointmentId, newStart, ct) is { } pastMove)
+                    {
+                        return TypedResults.Conflict(pastMove);
+                    }
+                }
+                else if (await db.Appointments.AsNoTracking().Where(a => a.Id == appointmentId).Select(a => new { a.LocationId, a.Start }).FirstOrDefaultAsync(ct) is { } current
+                    && await PastBookings.CheckAsync(db, time, current.LocationId, current.Start, ct, PastBookings.RestoreMessage) is { } past)
+                {
+                    return TypedResults.Conflict(past);
+                }
+
                 var before = await notices.RestorationAsync(appointmentId, ct);
                 var outcome = await booking.RestoreAsync(appointmentId, request.Start, ct, request.ExpectedVersion);
                 if (outcome is BookingOutcome.Success { Appointment: var restored })
@@ -279,7 +313,8 @@ internal static class CalendarEndpoints
             })
             .WithName("RestoreAppointment")
             .RequirePermission(AccessRight.Book)
-            .WithSummary("Nimmt eine Stornierung zurück: der Termin ist wieder gebucht, wenn Zeit, Person und Raum frei sind (409 mit den Belegungen, sonst). Mit „start“ zu einem neuen Beginn. "
+            .WithSummary("Nimmt eine Stornierung zurück: der Termin ist wieder gebucht, wenn Zeit, Person und Raum frei sind (409 mit den Belegungen, sonst) und der Tag nicht vorbei ist "
+                + "(409 mit der Meldung, sonst). Mit „start“ zu einem neuen Beginn, heute oder später. "
                 + "Eine noch wartende Absage-Nachricht geht nie raus; mit „sendCorrection“ bekommt der Gast, der die Absage schon hat, eine Korrektur.");
 
         group.MapPost("/appointments/{appointmentId:guid}/platform-accepted", async Task<Results<Ok<AppointmentDto>, ValidationProblem, ProblemHttpResult, Conflict<BookingRejected>>> (
@@ -290,8 +325,14 @@ internal static class CalendarEndpoints
             .WithSummary("Die Rezeption hat die Treatwell-Buchung in Treatwell angenommen; der Hinweis „In Treatwell noch annehmen“ am Termin verschwindet.");
 
         group.MapPost("/appointments/{appointmentId:guid}/status", async Task<Results<Ok<AppointmentDto>, ValidationProblem, ProblemHttpResult, Conflict<BookingRejected>>> (
-                Guid appointmentId, AppointmentStatusChange change, BookingService booking, RoomCareService roomCare, CancellationToken ct) =>
+                Guid appointmentId, AppointmentStatusChange change, BookingService booking, RoomCareService roomCare, AispaDbContext db, TimeProvider time,
+                CancellationToken ct) =>
             {
+                if (await StatusDays.CheckAsync(db, time, appointmentId, change.Status, ct) is { } blocked)
+                {
+                    return Invalid(blocked);
+                }
+
                 var outcome = await booking.ChangeStatusAsync(appointmentId, change.Status, ct, change.ExpectedVersion);
                 if (outcome is BookingOutcome.Success { Appointment: var appointment } && change.Status == AppointmentStatus.CheckedIn)
                 {
@@ -308,7 +349,8 @@ internal static class CalendarEndpoints
             .WithName("ChangeAppointmentStatus")
             .RequirePermission(AccessRight.ChangeStatus)
             .AllowChannel(AccessChannel.StaffApp)
-            .WithSummary("Eingecheckt, abgeschlossen oder nicht erschienen. Beim Einchecken stehen in Warnings Hinweise zu Raumpflege und Tagesstart des Raums; eingecheckt wird trotzdem. "
+            .WithSummary("Eingecheckt, abgeschlossen oder nicht erschienen. Einchecken geht nur am Tag des Termins, Erledigt und Nicht erschienen erst ab dem Tag des Termins (sonst 400). "
+                + "Beim Einchecken stehen in Warnings Hinweise zu Raumpflege und Tagesstart des Raums; eingecheckt wird trotzdem. "
                 + "„Gebucht“ nimmt das Einchecken zurück, solange der Termin eingecheckt und noch nicht kassiert ist (sonst 400).");
 
         group.MapPost("/appointments/{appointmentId:guid}/begin", async Task<Results<Ok<AppointmentDto>, ValidationProblem, ProblemHttpResult, Conflict<BookingRejected>>> (
@@ -399,18 +441,25 @@ internal static class CalendarEndpoints
             .WithSummary("Storniert alle offenen Termine einer gemeinsamen Buchung.");
 
         group.MapPost("/locations/{locationId:guid}/appointment-groups/{groupId:guid}/move", async Task<Results<Ok<GroupBookingResult>, ValidationProblem, ProblemHttpResult, Conflict<BookingRejected>>> (
-                Guid locationId, Guid groupId, MoveGroupRequest request, BookingService booking, CancellationToken ct) =>
-                await booking.MoveGroupAsync(locationId, groupId, request.Start, ct) switch
+                Guid locationId, Guid groupId, MoveGroupRequest request, BookingService booking, AispaDbContext db, TimeProvider time, CancellationToken ct) =>
+            {
+                if (await PastBookings.CheckAsync(db, time, locationId, request.Start, ct, PastBookings.MoveMessage) is { } past)
+                {
+                    return TypedResults.Conflict(past);
+                }
+
+                return await booking.MoveGroupAsync(locationId, groupId, request.Start, ct) switch
                 {
                     BookingOutcome.GroupBooked g => TypedResults.Ok(g.Result),
                     BookingOutcome.NotFound n => NotFound(n),
                     BookingOutcome.Invalid i => Invalid(i),
                     BookingOutcome.Rejected r => TypedResults.Conflict(r.Reason),
                     var other => throw Unexpected(other),
-                })
+                };
+            })
             .WithName("MoveAppointmentGroup")
             .RequirePermission(AccessRight.Book)
-            .WithSummary("Verschiebt eine ganze gemeinsame Buchung (Paar, Spa-Tag) auf einen neuen Beginn: alle Termine oder keiner.");
+            .WithSummary("Verschiebt eine ganze gemeinsame Buchung (Paar, Spa-Tag) auf einen neuen Beginn an heute oder später (ein früherer Tag ergibt 409): alle Termine oder keiner.");
 
         group.MapGet("/locations/{locationId:guid}/areas", async Task<Results<Ok<IReadOnlyList<AreaDay>>, NotFound>> (
                 Guid locationId, DateOnly date, AreaVisitService areas, CancellationToken ct) =>

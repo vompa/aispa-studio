@@ -101,8 +101,8 @@ public sealed partial class ViewTests
         return calendar;
     }, WithTimes());
 
-    /// <summary>Zustandschips der Kalender-Kopfzeile, die keine Reiter sind (Schließzeit, alle Mitarbeitenden zeigen).</summary>
-    private static readonly string[] ChipsWithoutTabState = ["HeadClosure", "HeadStaffFilter", "HeadRoomFilter"];
+    /// <summary>Zustandschips der Kalender-Kopfzeile, die keine Reiter sind (Schließzeit, alle Mitarbeitenden zeigen, Art-Chips des Verlaufs: mehrere zugleich an).</summary>
+    private static readonly string[] ChipsWithoutTabState = ["HeadClosure", "HeadStaffFilter", "HeadRoomFilter", "KindChip"];
 
     [Fact]
     public void Kein_Aufklappknopf_more_und_kein_Reiter_mit_Klasse_on_ist_ein_einfacher_Knopf()

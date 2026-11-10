@@ -270,7 +270,7 @@ public sealed partial class OnlineBookingTests(ApiFixture fixture)
         // Zwei davon nicht erschienen: ohne Gebühr oder Anzahlung am Standort geht es nur noch telefonisch.
         foreach (var missed in booked.Take(2))
         {
-            await spa.PostAsync<AppointmentDto>($"/api/appointments/{missed}/status", new AppointmentStatusChange(AppointmentStatus.NoShow), Ct);
+            await spa.SetStatusAsync(missed, AppointmentStatus.NoShow, Ct);
         }
 
         var phoneOnly = await client.PostAsJsonAsync("/api/online/bookings", Request(spa, TestSpa.At(15), email), TestSpa.Json, Ct);

@@ -93,15 +93,78 @@ public sealed class PosTests
         pos.VoucherTreatment = pos.Treatments.First(t => t.Id == SpaSample.Paying.TreatmentId);
         pos.PackageUnits = "10";
         pos.PackagePrice = "699";
-        pos.PackageValidUntil = "30.6.2027";
+        pos.VoucherValidUntil = "30.6.2027";
         Assert.True(pos.SellPackageCommand.CanExecute(null));
         await pos.SellPackageCommand.ExecuteAsync(null);
-        var line = System.Text.Json.JsonSerializer.Deserialize<BillLineInput>(stub.Calls.Last(c => c.Route == $"POST /api/pos/bills/{SpaSample.BillId}/lines").Body!, ApiClient.Json)!;
+        var line = LastLine(stub);
         Assert.Equal((BillLineKind.Voucher, VoucherKind.SinglePurpose, 10, 699m, new DateOnly(2027, 6, 30)),
             (line.Kind, line.VoucherKind, line.Units, line.UnitPrice, line.ValidUntil));
         pos.PackageUnits = "1";
         Assert.False(pos.SellPackageCommand.CanExecute(null));
     }
+
+    [Fact]
+    public async Task Gutschein_hat_die_Frist_des_Landes_vorbelegt_ein_kuerzeres_Datum_gibt_einen_Hinweis_und_leer_heisst_unbefristet()
+    {
+        var expiry = $"GET /api/pos/registers/{SpaSample.Register.Id}/voucher-expiry";
+        const string Rule = "Vorgabe in Deutschland: bis 31.12. des dritten Jahres nach dem Kauf. Leer: unbefristet.";
+        var safe = new DateOnly(2029, 12, 31);
+        var stub = Api()
+            .On(expiry, new VoucherExpiryDto(safe, Rule, null))
+            .On($"{expiry}?until=2027-06-30", new VoucherExpiryDto(safe, Rule, "Kürzer als die übliche Frist bis 31.12.2029; eine kürzere Frist kann unwirksam sein."))
+            .On($"POST /api/pos/bills/{SpaSample.BillId}/lines", SpaSample.Bill());
+        var pos = new PosViewModel(stub.Client(), new SampleTime());
+        await pos.InitializeAsync(SpaSample.LocationId);
+
+        Assert.Equal(("31.12.2029", Rule, null), (pos.VoucherValidUntil, pos.VoucherExpiryRule, pos.VoucherExpiryWarning));
+        pos.VoucherValue = "50";
+        await pos.SellVoucherCommand.ExecuteAsync(null);
+
+        // Unveränderte Vorbelegung: kein Datum mitschicken, der Server rechnet am Verkaufstag (über den Jahreswechsel richtig).
+        Assert.Equal(((DateOnly?)null, false), (LastLine(stub).ValidUntil, LastLine(stub).WithoutExpiry));
+
+        // Kürzer als die Frist: Hinweis, verkaufen geht trotzdem.
+        pos.VoucherValidUntil = "30.6.2027";
+        Assert.StartsWith("Kürzer als die übliche Frist", pos.VoucherExpiryWarning, StringComparison.Ordinal);
+        pos.VoucherValue = "50";
+        await pos.SellVoucherCommand.ExecuteAsync(null);
+        Assert.Equal((new DateOnly(2027, 6, 30), false), (LastLine(stub).ValidUntil, LastLine(stub).WithoutExpiry));
+
+        // Bewusst geleert: unbefristet, auch für den Behandlungsgutschein.
+        pos.VoucherValidUntil = "";
+        Assert.Null(pos.VoucherExpiryWarning);
+        pos.VoucherTreatment = SpaSample.Treatments[0];
+        await pos.SellTreatmentVoucherCommand.ExecuteAsync(null);
+        Assert.Equal(((DateOnly?)null, true), (LastLine(stub).ValidUntil, LastLine(stub).WithoutExpiry));
+    }
+
+    [Fact]
+    public async Task Ohne_Vorbelegung_vom_Server_schickt_die_Kassa_kein_Datum_und_der_Server_setzt_die_Frist()
+    {
+        var stub = Api().On($"POST /api/pos/bills/{SpaSample.BillId}/lines", SpaSample.Bill());
+        var pos = new PosViewModel(stub.Client(), new SampleTime());
+        await pos.InitializeAsync(SpaSample.LocationId);
+
+        pos.VoucherValue = "50";
+        await pos.SellVoucherCommand.ExecuteAsync(null);
+
+        Assert.Equal("", pos.VoucherValidUntil);
+        Assert.Equal(((DateOnly?)null, false), (LastLine(stub).ValidUntil, LastLine(stub).WithoutExpiry));
+    }
+
+    [Fact]
+    public void Beleg_zeigt_unter_dem_ausgestellten_Gutschein_bis_wann_er_einzuloesen_ist()
+    {
+        var voucher = new VoucherDto(Guid.NewGuid(), "K7M3-Q9XA-B2CD", VoucherKind.MultiPurpose, 50m, 50m, null, VoucherStatus.Active, new DateOnly(2029, 12, 31));
+        var receipt = SpaSample.Receipt() with { IssuedVouchers = [voucher, voucher with { Code = "P2RT-7KMX-QA9D", ValidUntil = null }] };
+
+        var rows = new ReceiptViewModel(receipt, TimeZoneInfo.Utc, FiscalCountry.DE).Vouchers.Select(r => r.Label).ToList();
+
+        Assert.Equal(["Gutschein K7M3-Q9XA-B2CD", "   Einzulösen bis 31.12.2029", "Gutschein P2RT-7KMX-QA9D"], rows);
+    }
+
+    private static BillLineInput LastLine(StubApi stub) => System.Text.Json.JsonSerializer.Deserialize<BillLineInput>(
+        stub.Calls.Last(c => c.Route == $"POST /api/pos/bills/{SpaSample.BillId}/lines").Body!, ApiClient.Json)!;
 
     [Fact]
     public async Task Gutschein_und_Rest_bar_mit_Rueckgeld()
@@ -777,11 +840,83 @@ public sealed class PosTests
         Assert.False(pos.CloseDayCommand.CanExecute(null));
         pos.CountedCash = "460,30";
         Assert.Equal("Differenz −2,00 €", pos.DifferenceText);
+        pos.Dialogs = new FakeDialogs().Answer(ConfirmChoice.Confirmed);
         await pos.CloseDayCommand.ExecuteAsync(null);
         Assert.True(pos.IsClosed);
         Assert.Equal("Tagesabschluss gespeichert", pos.ReportTitle);
         Assert.Equal("Differenz −2,00 €", pos.DifferenceText);
         Assert.False(pos.CloseDayCommand.CanExecute(null));
+    }
+
+    private static string DayClosingRoute => $"POST /api/pos/registers/{SpaSample.Register.Id}/day-closings";
+
+    [Fact]
+    public async Task Given_Zaehlbestand_When_Tagesabschluss_Then_fragt_vorher_und_Abbrechen_speichert_nichts()
+    {
+        var stub = Api()
+            .On($"GET /api/pos/registers/{SpaSample.Register.Id}/day-report", Report())
+            .On(DayClosingRoute, Report(460.30m, -2m) with { Id = Guid.NewGuid() });
+        var pos = new PosViewModel(stub.Client(), new SampleTime());
+        await pos.InitializeAsync(SpaSample.LocationId);
+        await pos.LoadReportAsync();
+        pos.CountedCash = "460,30";
+        var dialogs = new FakeDialogs().Answer(ConfirmChoice.Cancelled).Answer(ConfirmChoice.Confirmed);
+        pos.Dialogs = dialogs;
+
+        await pos.CloseDayCommand.ExecuteAsync(null);
+        Assert.DoesNotContain(stub.Calls, c => c.Route == DayClosingRoute);
+        Assert.False(pos.IsClosed);
+        Assert.Equal("460,30", pos.CountedCash);
+
+        await pos.CloseDayCommand.ExecuteAsync(null);
+        Assert.Single(stub.Calls, c => c.Route == DayClosingRoute);
+        Assert.True(pos.IsClosed);
+
+        Assert.Equal(2, dialogs.Asked.Count);
+        Assert.Equal("Tagesabschluss durchführen?", dialogs.Asked[0].Title);
+        Assert.Equal("Abschließen", dialogs.Asked[0].ConfirmText);
+        Assert.True(dialogs.Asked[0].IsDestructive);
+        Assert.StartsWith("Der Abschluss wird unveränderlich gespeichert.", dialogs.Asked[0].Message, StringComparison.Ordinal);
+        dialogs.AssertRules();
+    }
+
+    [Fact]
+    public async Task Given_neuer_Beleg_nach_dem_Oeffnen_When_Tagesabschluss_Then_nennt_die_Rueckfrage_die_frische_Differenz()
+    {
+        var stub = Api()
+            .On($"GET /api/pos/registers/{SpaSample.Register.Id}/day-report", Report())
+            .On(DayClosingRoute, Report(460.30m, -12m) with { Id = Guid.NewGuid() });
+        var pos = new PosViewModel(stub.Client(), new SampleTime());
+        await pos.InitializeAsync(SpaSample.LocationId);
+        await pos.LoadReportAsync();
+        pos.CountedCash = "460,30";
+        Assert.Equal("Differenz −2,00 €", pos.DifferenceText);
+        // Zwischen Öffnen des Reiters und Abschluss kommt eine Barzahlung dazu: Soll-Bestand 472,30 €.
+        stub.On($"GET /api/pos/registers/{SpaSample.Register.Id}/day-report", Report() with { ExpectedCash = 472.30m });
+        var dialogs = new FakeDialogs().Answer(ConfirmChoice.Cancelled);
+        pos.Dialogs = dialogs;
+
+        await pos.CloseDayCommand.ExecuteAsync(null);
+
+        Assert.Contains("Differenz zum Soll: −12,00 €.", dialogs.Asked.Single().Message, StringComparison.Ordinal);
+        Assert.Equal("Differenz −12,00 €", pos.DifferenceText);
+    }
+
+    [Fact]
+    public async Task Given_Zaehlbestand_gleich_Soll_When_Tagesabschluss_Then_Rueckfrage_ohne_Differenz()
+    {
+        var stub = Api().On($"GET /api/pos/registers/{SpaSample.Register.Id}/day-report", Report());
+        var pos = new PosViewModel(stub.Client(), new SampleTime());
+        await pos.InitializeAsync(SpaSample.LocationId);
+        await pos.LoadReportAsync();
+        pos.CountedCash = "462,30";
+        var dialogs = new FakeDialogs().Answer(ConfirmChoice.Cancelled);
+        pos.Dialogs = dialogs;
+
+        await pos.CloseDayCommand.ExecuteAsync(null);
+
+        Assert.DoesNotContain("Differenz", dialogs.Asked.Single().Message, StringComparison.Ordinal);
+        Assert.Contains("stimmt mit dem Soll überein", dialogs.Asked.Single().Message, StringComparison.Ordinal);
     }
 
     private static async Task<PosViewModel> PayingBillAsync(StubApi? stub = null)

@@ -10,10 +10,17 @@ public enum MarketingConsentState
     Pending,
     Confirmed,
     Withdrawn,
+
+    /// <summary>Der Gast hat am Empfang abgelehnt („Nein, keine Werbung“); anders als <see cref="Withdrawn"/> gab es vorher keine Einwilligung.</summary>
+    Refused,
 }
 
+/// <summary>Was der Gast am Empfang gesagt hat: <see cref="MarketingConsentState.Confirmed"/> (Ja), <see cref="MarketingConsentState.Refused"/> (Nein) oder <see cref="MarketingConsentState.None"/> (nicht gefragt).</summary>
+public sealed record MarketingConsentDecision(MarketingConsentState State);
+
 /// <param name="Email">Adresse, an die angefragt wurde; Erinnerungen gehen nur an genau diese.</param>
-/// <param name="Source">Wer die Einwilligung angefragt hat: „Team“ oder „Online“.</param>
+/// <param name="Source">Woher die Einwilligung kommt: „Team“ (Anfrage per Mail mit Double-Opt-in), „Online“, „Rezeption“ (am Empfang erfasst) oder „Import“.</param>
+/// <param name="RecordedBy">Bei „Rezeption“: wer „Ja“ oder „Nein“ am Empfang erfasst hat, aus dem Verlauf; sonst leer.</param>
 public sealed record MarketingConsentDto(
     MarketingConsentState State,
     string? Email,
@@ -21,7 +28,8 @@ public sealed record MarketingConsentDto(
     DateTimeOffset? RequestedAt,
     DateTimeOffset? ConfirmedAt,
     DateTimeOffset? WithdrawnAt,
-    string? Source);
+    string? Source,
+    string? RecordedBy = null);
 
 /// <param name="Language">Sprache der Mails an den Gast (de, en, fr, it); ohne Angabe Deutsch.</param>
 public sealed record MarketingConsentRequest(string? Language);

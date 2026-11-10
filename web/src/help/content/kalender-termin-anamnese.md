@@ -35,7 +35,7 @@ Der QR-Code auf dem Bogen führt zum selben Bogen im Kundenbereich, wenn der Gas
 
 ## Foto hochladen und prüfen {#foto}
 
-1. Auf **Foto hochladen** klicken und das Foto des ausgefüllten Bogens wählen. Der Dialog **Papierbogen prüfen** öffnet sich. An der Rezeption öffnet sich kein Dialog: Das Foto wartet in der Karte, bis jemand mit Leserecht es prüft.
+1. Auf **Foto hochladen** klicken und das Foto des ausgefüllten Bogens wählen. Der Dialog **Papierbogen prüfen** öffnet sich, auch an der Rezeption. Ohne das Recht, Gesundheitsdaten zu lesen, öffnet sich kein Dialog: Das Foto wartet in der Karte, bis jemand mit Leserecht es prüft.
 2. Warten, bis die KI den Bogen gelesen hat. Links steht das Foto, rechts der Vorschlag.
 3. Jede Antwort mit dem Foto vergleichen. Gelbe Felder sind unsicher; sie werden normal, sobald Sie sie ändern oder eine Antwort wählen.
 4. **Der Bogen ist unterschrieben** und **Einwilligung ist auf dem Papier angekreuzt** ankreuzen und den Namen wie auf dem Bogen eintragen.
@@ -45,6 +45,6 @@ Erst **Übernehmen** speichert den Bogen. **Schließen** speichert nichts, das F
 
 ## Gut zu wissen {#gut-zu-wissen}
 
-- Den Stand sieht, wer den Kalender sieht. **Ansehen** und **Prüfen** sehen nur Inhaber, Manager, Standortleitung und Therapeut:innen, auch ohne Recht zum Buchen. Tablet, Papierbogen und **Foto hochladen** sieht, wer buchen darf, also auch die Rezeption.
+- Den Stand sieht, wer den Kalender sieht. **Ansehen** und **Prüfen** sieht, wer Gesundheitsdaten lesen darf: Inhaber, Manager, Standortleitung, Therapeut:innen und die Rezeption, auch ohne Recht zum Buchen. Tablet, Papierbogen und **Foto hochladen** sieht, wer buchen darf.
 - Die Druckdatei enthält Name, Termin und Link, nie Antworten. Die App löscht sie nach fünf Minuten; wird sie vorher beendet, beim nächsten Druck.
 - Fotos verkleinert die App vor dem Hochladen. Die Dateiauswahl zeigt die passenden Formate.

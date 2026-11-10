@@ -151,7 +151,7 @@ public sealed class StockUsageReportTests(ApiFixture fixture)
     }
 
     private static Task<AppointmentDto> Complete(TestSpa spa, AppointmentDto appointment) =>
-        spa.PostAsync<AppointmentDto>($"/api/appointments/{appointment.Id}/status", new AppointmentStatusChange(AppointmentStatus.Completed), Ct);
+        spa.SetStatusAsync(appointment.Id, AppointmentStatus.Completed, Ct);
 
     private static async Task Receive(TestSpa spa, StockItemDto item, decimal quantity) =>
         await spa.PostAsync<List<StockMovementDto>>($"/api/stock/locations/{spa.Location.Id}/movements",

@@ -7,6 +7,7 @@
     <TargetFramework>net10.0-windows</TargetFramework>
     <IsPackable>false</IsPackable>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks> <!-- LibraryImport für das Vordergrundfenster (NativeWindow) -->
   </PropertyGroup>
 
   <ItemGroup>

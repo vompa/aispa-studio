@@ -15,6 +15,9 @@ public sealed partial class ChannelTests(ApiFixture fixture)
 {
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
 
+    /// <summary>Uhrzeit am heutigen Tag in Wien: Die Tagesregel am Status-Endpunkt rechnet mit der echten Uhr.</summary>
+    private static DateTimeOffset TodayAt(int hour) => TestSpa.At(hour, 0, DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Europe/Vienna")).DateTime));
+
     [Fact]
     public async Task Gegeben_eine_gekoppelte_Anzeige_Wenn_sie_einen_Termin_verschieben_will_Dann_antwortet_die_API_403()
     {
@@ -133,8 +136,9 @@ public sealed partial class ChannelTests(ApiFixture fixture)
     {
         var spa = await TestSpa.CreateAsync(fixture, Ct);
         var lena = await spa.CreateEmployeeAsync("Lena", [spa.Massage.Id], spa.Location.Id, Ct);
-        var own = await spa.BookOkAsync(TestSpa.At(10), Ct, lena.Id);
-        var others = await spa.BookOkAsync(TestSpa.At(10), Ct, spa.Anna.Id);
+        // Der Test prüft Kanal, Rechte und Verlauf am Status-Endpunkt; die Tagesregel verlangt dafür Termine am heutigen Tag.
+        var own = await spa.BookOkAsync(TodayAt(10), Ct, lena.Id);
+        var others = await spa.BookOkAsync(TodayAt(10), Ct, spa.Anna.Id);
         using var app = await StaffAppAsync(spa, StaffRole.Reception, lena.Id, Ct);
 
         var started = await app.PostAsJsonAsync($"/api/appointments/{own.Id}/status", new AppointmentStatusChange(AppointmentStatus.CheckedIn), TestSpa.Json, Ct);

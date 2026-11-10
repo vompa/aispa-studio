@@ -24,4 +24,12 @@ internal sealed class FakeFilePicker : IFilePicker
         Asked.Add((title, typeName, patterns, maxBytes));
         return BytesFailure is { } failure ? Task.FromException<byte[]?>(failure) : Task.FromResult(Bytes);
     }
+
+    public PickedBytes? Picked { get; set; }
+
+    public Task<PickedBytes?> PickFileAsync(string title, string typeName, IReadOnlyList<string> patterns, long maxBytes)
+    {
+        Asked.Add((title, typeName, patterns, maxBytes));
+        return Task.FromResult(Picked);
+    }
 }

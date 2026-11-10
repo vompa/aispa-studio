@@ -81,8 +81,8 @@ public sealed class BusinessTeamDayTests(ApiFixture fixture)
     {
         var spa = await TestSpa.CreateAsync(fixture, Ct);
         var done = await spa.BookOkAsync(TestSpa.At(10), Ct, spa.Ben.Id);
-        await spa.PostAsync<AppointmentDto>($"/api/appointments/{done.Id}/status", new AppointmentStatusChange(AppointmentStatus.CheckedIn), Ct);
-        await spa.PostAsync<AppointmentDto>($"/api/appointments/{done.Id}/status", new AppointmentStatusChange(AppointmentStatus.Completed), Ct);
+        await spa.SetStatusAsync(done.Id, AppointmentStatus.CheckedIn, Ct);
+        await spa.SetStatusAsync(done.Id, AppointmentStatus.Completed, Ct);
         await spa.BookOkAsync(TestSpa.At(11), Ct, spa.Anna.Id);
         await spa.BookOkAsync(TestSpa.At(14), Ct, spa.Ben.Id);
         var cancelled = await spa.BookOkAsync(TestSpa.At(15, 30), Ct, spa.Anna.Id);

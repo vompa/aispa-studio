@@ -23,11 +23,16 @@ public sealed record UnbilledItem(string Time, string Customer, string Treatment
 
     public bool HasFinishedText => FinishedText is not null;
 
-    /// <summary>Zweite Zeile: Behandlung, Person und Raum („Hot-Stone-Massage · Lena · Lotus“).</summary>
-    public string SecondLine => HasDetails ? $"{Treatment} · {Details}" : Treatment;
+    /// <summary>Noch gebucht, nicht eingecheckt: Die Zeile sagt es, und ein Klick fragt „Einchecken und kassieren?“ (L1).</summary>
+    public bool NeedsCheckIn => Appointment is { Status: AppointmentStatus.Booked };
+
+    private string? StatusText => NeedsCheckIn ? "noch nicht eingecheckt" : null;
+
+    /// <summary>Zweite Zeile: Behandlung, Person und Raum („Hot-Stone-Massage · Lena · Lotus“), bei gebuchten Terminen mit „noch nicht eingecheckt“.</summary>
+    public string SecondLine => string.Join(" · ", new[] { Treatment, Details, StatusText }.Where(t => !string.IsNullOrEmpty(t)));
 
     /// <summary>Name für den Screenreader wie angezeigt: „10:30 Brigitte Müller, Hot-Stone-Massage, € 95,00, Lena · Lotus, fertig seit 10:55“.</summary>
-    public string AccessibleName => AccessibleNames.Join($"{Time} {Customer}", Treatment, Price, Details, FinishedText);
+    public string AccessibleName => AccessibleNames.Join($"{Time} {Customer}", Treatment, Price, Details, StatusText, FinishedText);
 
     /// <summary>Passt zur Suche: Gast, Behandlung, Person oder Raum enthalten den Text (Groß- und Kleinschreibung egal).</summary>
     public bool Matches(string search) =>
@@ -192,6 +197,18 @@ public partial class PosViewModel : ViewModelBase
         IsSalesColumnOpen = _settings.Load().PosSalesPanelOpen;
         _printer = printer ?? (address => new NetworkReceiptPrinter(address));
         _cardPoll = cardPoll ?? TimeSpan.FromSeconds(1.5);
+        var ui = SynchronizationContext.Current;
+        api.ConnectivityChanged += () =>
+        {
+            if (ui is null || SynchronizationContext.Current == ui)
+            {
+                OnPropertyChanged(nameof(ShowWarning));
+            }
+            else
+            {
+                ui.Post(_ => OnPropertyChanged(nameof(ShowWarning)), null);
+            }
+        };
     }
 
     /// <summary>Angebundene Kartenterminals am Standort der Kasse.</summary>
@@ -200,6 +217,34 @@ public partial class PosViewModel : ViewModelBase
     /// <summary>Meldung vom Bondrucker, z. B. „Gedruckt“ oder warum nicht.</summary>
     [ObservableProperty]
     public partial string? PrintText { get; private set; }
+
+    private static readonly TimeSpan ToastDuration = TimeSpan.FromSeconds(5);
+    private int _toastClock;
+
+    /// <summary>Meldung unten (design.md 5.10): eine Zeile ohne Schlusspunkt, z. B. „Gespeichert: Beleg-K1-142.pdf“; verschwindet nach 5 s.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasToast))]
+    public partial string? Toast { get; private set; }
+
+    public bool HasToast => Toast is not null;
+
+    public void ShowToast(string text)
+    {
+        Toast = text;
+        _ = ExpireToastAsync(++_toastClock);
+    }
+
+    [RelayCommand]
+    private void CloseToast() => Toast = null;
+
+    private async Task ExpireToastAsync(int clock)
+    {
+        await Task.Delay(ToastDuration, _time).ConfigureAwait(true);
+        if (clock == _toastClock)
+        {
+            Toast = null;
+        }
+    }
 
     /// <summary>Panel „Artikel und Gutscheine“ neben der Rechnung aufgeklappt; Standard zugeklappt, der Zustand gilt je Arbeitsplatz und bleibt über den Neustart.</summary>
     [ObservableProperty]
@@ -404,7 +449,7 @@ public partial class PosViewModel : ViewModelBase
     public ObservableCollection<PaymentEntry> Payments { get; } = [];
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(Currency))]
+    [NotifyPropertyChangedFor(nameof(Currency), nameof(Export))]
     public partial CashRegisterDto? Register { get; set; }
 
     [ObservableProperty]
@@ -431,7 +476,20 @@ public partial class PosViewModel : ViewModelBase
     public partial string? Error { get; set; }
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowWarning))]
     public partial string? Warning { get; private set; }
+
+    /// <summary>
+    /// Die Warnung der Kasse (z. B. Signatur) steht nicht, solange das Offline-Banner der Shell schon die Ursache nennt: höchstens zwei Leisten (meldungen.md M2).
+    /// Sie kommt mit der Verbindung zurück.
+    /// </summary>
+    public bool ShowWarning => Warning is not null && !_api.IsOffline;
+
+    /// <summary>Ein Aufruf läuft, der die Kassa warten lässt (Einchecken vor dem Kassieren): die Ansicht zeigt einen Fortschrittsbalken.</summary>
+    [ObservableProperty]
+    public partial bool IsWorking { get; private set; }
+
+    private const string NeedsConnection = "Kassieren braucht eine Verbindung. Verbindung prüfen und erneut versuchen.";
 
     [ObservableProperty]
     public partial string CoverText { get; private set; } = "";
@@ -537,6 +595,7 @@ public partial class PosViewModel : ViewModelBase
 
         _ = LoadDayAsync();
         _ = LoadTerminalsAsync(value);
+        _ = LoadVoucherExpiryAsync(value);
         OnRegisterChangedForModes();
     }
 
@@ -760,9 +819,58 @@ public partial class PosViewModel : ViewModelBase
         await ShowBillAsync(result).ConfigureAwait(true);
     }
 
+    /// <summary>Zeile der Tagesliste auf die Rechnung; ein noch nicht eingecheckter Termin wird nach Rückfrage zuerst eingecheckt (L1), sonst lehnt der Server ab.</summary>
     [RelayCommand]
-    private Task AddUnbilledAsync(UnbilledItem item) =>
-        item.Visit is { } visit ? AddVisitAsync(visit) : AddAppointmentAsync(item.Appointment!);
+    private async Task AddUnbilledAsync(UnbilledItem item)
+    {
+        if (item.Visit is { } visit)
+        {
+            await AddVisitAsync(visit).ConfigureAwait(true);
+            return;
+        }
+
+        var appointment = item.Appointment!;
+        if (item.NeedsCheckIn)
+        {
+            // Wer nicht einchecken kann, wird nicht erst gefragt: Kassieren braucht die Verbindung zum Server.
+            if (_api.IsOffline)
+            {
+                Error = NeedsConnection;
+                return;
+            }
+
+            // Die Antwort „Einchecken und kassieren“ hat drei Wörter (Ausnahme zu 5.27): sie nennt genau, was geschieht; „Einchecken“ allein verschwiege die Rechnung.
+            var answer = await AskAsync(new ConfirmRequest("Einchecken und kassieren?",
+                "Der Termin wird eingecheckt und auf die Rechnung gelegt.", "Einchecken und kassieren", IsDestructive: false)).ConfigureAwait(true);
+            if (!answer.IsConfirmed)
+            {
+                return;
+            }
+
+            Error = null;
+            IsWorking = true;
+            ApiResult<AppointmentDto> checkedIn;
+            try
+            {
+                checkedIn = await _api.PostAsync<AppointmentDto>($"api/appointments/{appointment.Id}/status",
+                    new AppointmentStatusChange(AppointmentStatus.CheckedIn, appointment.Version)).ConfigureAwait(true);
+            }
+            finally
+            {
+                IsWorking = false;
+            }
+
+            if (checkedIn.Value is null)
+            {
+                Error = checkedIn.Error;
+                return;
+            }
+
+            appointment = checkedIn.Value;
+        }
+
+        await AddAppointmentAsync(appointment).ConfigureAwait(true);
+    }
 
     [RelayCommand]
     private Task AddArticleAsync(ArticleDto article) =>
@@ -810,7 +918,12 @@ public partial class PosViewModel : ViewModelBase
     private async Task SellVoucherAsync()
     {
         var value = Money.Parse(VoucherValue) ?? 0;
-        await AddLineAsync(new BillLineInput(BillLineKind.Voucher, null, null, 1, value, 0, null, null, null, VoucherKind.MultiPurpose, null)).ConfigureAwait(true);
+        if (WithVoucherExpiry(new BillLineInput(BillLineKind.Voucher, null, null, 1, value, 0, null, null, null, VoucherKind.MultiPurpose, null)) is not { } line)
+        {
+            return;
+        }
+
+        await AddLineAsync(line).ConfigureAwait(true);
         if (Error is null)
         {
             VoucherValue = "";
@@ -823,12 +936,13 @@ public partial class PosViewModel : ViewModelBase
     [RelayCommand(CanExecute = nameof(CanSellTreatmentVoucher))]
     private async Task SellTreatmentVoucherAsync()
     {
-        if (VoucherTreatment is not { } treatment)
+        if (VoucherTreatment is not { } treatment
+            || WithVoucherExpiry(new BillLineInput(BillLineKind.Voucher, null, null, 1, null, 0, null, null, null, VoucherKind.SinglePurpose, treatment.Id)) is not { } line)
         {
             return;
         }
 
-        await AddLineAsync(new BillLineInput(BillLineKind.Voucher, null, null, 1, null, 0, null, null, null, VoucherKind.SinglePurpose, treatment.Id)).ConfigureAwait(true);
+        await AddLineAsync(line).ConfigureAwait(true);
         if (Error is null)
         {
             VoucherTreatment = null;
@@ -1013,7 +1127,7 @@ public partial class PosViewModel : ViewModelBase
         }
 
         InvoiceCustomer = null;
-        var updated = new ReceiptViewModel(result.Value, Zone, Register?.Country ?? FiscalCountry.AT, OwnerLevel);
+        var updated = ReceiptFor(result.Value, copy: false);
         if (Receipt?.Receipt.Id == result.Value.Id)
         {
             Receipt = updated;
@@ -1247,7 +1361,7 @@ public partial class PosViewModel : ViewModelBase
         }
 
         SetBill(null);
-        Receipt = new ReceiptViewModel(result.Value, Zone, Register?.Country ?? FiscalCountry.AT, OwnerLevel);
+        Receipt = ReceiptFor(result.Value, copy: false);
         await LoadDayAsync().ConfigureAwait(true);
         if (_settings.Load().PrintAutomatically)
         {
@@ -1283,6 +1397,47 @@ public partial class PosViewModel : ViewModelBase
 
     [RelayCommand]
     private void CloseReceipt() => Receipt = null;
+
+    /// <summary>Beleg mit Knopfblock „Drucken · PDF speichern · Per Mail senden“ (ADR 0092); der Nachdruck aus der Belegliste trägt „Kopie“.</summary>
+    internal ReceiptViewModel ReceiptFor(ReceiptDto receipt, bool copy) => new(receipt, Zone, Register?.Country ?? FiscalCountry.AT, OwnerLevel)
+    {
+        Document = new DocumentActionsViewModel(ReceiptDocumentSource(receipt, copy), _api, Dialogs) { ShowToast = ShowToast },
+        VoucherDocuments = [.. receipt.IssuedVouchers.Select(v => new VoucherDocumentItem(
+            $"Gutschein {v.Code} als Geschenk", new DocumentActionsViewModel(VoucherDocumentSource(v), _api, Dialogs) { ShowToast = ShowToast },
+            new AsyncRelayCommand(() => HandOverVoucherAsync(v))))],
+    };
+
+    /// <summary>
+    /// Pfade des Geschenk-PDFs eines Gutscheins (PDF-Ausgaben E): Drucken, Speichern und Senden an den Käufer oder eine eingetippte Adresse. Ein erfolgreicher Druck wird vermerkt (<c>…/printed</c>),
+    /// damit die Gutscheinliste „Gedruckt am …“ zeigt.
+    /// </summary>
+    internal static DocumentSource VoucherDocumentSource(VoucherDto voucher) =>
+        new($"Gutschein {voucher.Code}", $"api/pos/vouchers/{voucher.Id}/pdf", $"api/pos/vouchers/{voucher.Id}/send", PrintedPath: $"api/pos/vouchers/{voucher.Id}/printed");
+
+    /// <summary>„Übergeben“: vermerkt, dass der Gutschein persönlich ausgehändigt wurde (<c>…/handed-over</c>); die Gutscheinliste zeigt „Übergeben am …“.</summary>
+    private async Task HandOverVoucherAsync(VoucherDto voucher)
+    {
+        var result = await _api.PostAsync<object>($"api/pos/vouchers/{voucher.Id}/handed-over", null).ConfigureAwait(true);
+        if (result.Ok)
+        {
+            ShowToast($"Gutschein {voucher.Code} als übergeben vermerkt");
+        }
+        else
+        {
+            Error = result.Error;
+        }
+    }
+
+    /// <summary>Pfade des Beleg-PDFs: A4 als Standard („A4 drucken“, weil „Drucken“ der Bondrucker ist), Bon-Format im Menü, Versand an den Gast.</summary>
+    internal static DocumentSource ReceiptDocumentSource(ReceiptDto receipt, bool copy)
+    {
+        var copyQuery = copy ? "copy=true" : null;
+        return new DocumentSource(ReceiptViewModel.TitleOf(receipt), WithQuery($"api/pos/receipts/{receipt.Id}/pdf", copyQuery), $"api/pos/receipts/{receipt.Id}/send",
+            AlternativePdfPath: WithQuery($"api/pos/receipts/{receipt.Id}/pdf", "format=Receipt", copyQuery), PrintLabel: "A4 drucken");
+
+        static string WithQuery(string path, params string?[] query) =>
+            string.Join('&', query.Where(q => q is not null)) is { Length: > 0 } joined ? $"{path}?{joined}" : path;
+    }
 
     private bool CanPayNow() => CanPay && !Busy;
 
@@ -1365,6 +1520,9 @@ public partial class PosViewModel : ViewModelBase
 /// <summary>Zeile auf dem Beleg: Text links, Betrag rechts.</summary>
 public sealed record ReceiptRow(string Label, string Value);
 
+/// <summary>Ein Gutschein des Belegs mit seinem Knopfblock und dem Knopf „Übergeben“ (Vermerk für die Gutscheinliste); <paramref name="Label"/> nennt den Code.</summary>
+public sealed record VoucherDocumentItem(string Label, DocumentActionsViewModel Document, IAsyncRelayCommand HandOverCommand);
+
 /// <summary>
 /// Signierter Beleg zum Anzeigen nach dem Bezahlen. <paramref name="ownerLevel"/>: Inhaber und Manager; nur sie stornieren einen Anzahlungsbeleg (ADR 0073, Ä51).
 /// </summary>
@@ -1372,14 +1530,29 @@ public sealed class ReceiptViewModel(ReceiptDto receipt, TimeZoneInfo zone, Fisc
 {
     public ReceiptDto Receipt { get; } = receipt;
 
+    /// <summary>Knopfblock „Drucken · PDF speichern · Per Mail senden“ (ADR 0092); null in Masken ohne Knopfblock.</summary>
+    public DocumentActionsViewModel? Document { get; init; }
+
+    /// <summary>Je mit diesem Beleg verkauftem Gutschein ein Knopfblock für das Geschenk-PDF (PDF-Ausgaben E, ADR 0092).</summary>
+    public IReadOnlyList<VoucherDocumentItem> VoucherDocuments { get; init; } = [];
+
+    /// <summary>Vermerke „Per Mail gesendet an … am … von …“, damit die Rezeption Doppelsendungen sieht.</summary>
+    public IReadOnlyList<string> SentMailLines => Receipt.SentMails is { } sent
+        ? [.. sent.Select(m => $"Per Mail gesendet an {m.To} am {DayLayout.Local(m.SentAt, zone):dd.MM.yyyy HH:mm}{(m.SentBy is null ? "" : $" von {m.SentBy}")}")]
+        : [];
+
+    public bool HasSentMails => SentMailLines.Count > 0;
+
     private string Format(decimal amount) => Money.Format(amount, Money.CurrencyOf(country));
 
-    public string Title => Receipt.Kind switch
+    public string Title => TitleOf(Receipt);
+
+    public static string TitleOf(ReceiptDto receipt) => receipt.Kind switch
     {
-        ReceiptKind.Void => $"Stornobeleg Nr. {Receipt.Number}",
-        ReceiptKind.Sale when HasRecipient => $"Rechnung Nr. {Receipt.RegisterCode}-{Receipt.Number}",
-        ReceiptKind.Sale => $"Beleg Nr. {Receipt.Number}",
-        _ => $"Sonderbeleg Nr. {Receipt.Number}",
+        ReceiptKind.Void => $"Stornobeleg Nr. {receipt.Number}",
+        ReceiptKind.Sale when receipt.Recipient is not null => $"Rechnung Nr. {receipt.RegisterCode}-{receipt.Number}",
+        ReceiptKind.Sale => $"Beleg Nr. {receipt.Number}",
+        _ => $"Sonderbeleg Nr. {receipt.Number}",
     };
 
     /// <summary>Rechnungsempfänger (Firmenkunden): einmal je Beleg, danach druckt der Beleg als Rechnung.</summary>
@@ -1448,9 +1621,13 @@ public sealed class ReceiptViewModel(ReceiptDto receipt, TimeZoneInfo zone, Fisc
         .Select(p => new ReceiptRow(p.VoucherCode is { } code ? $"Gutschein {code}" : Money.MethodText(p.Method), Format(p.Amount)))
         .ToList();
 
-    /// <summary>Mit diesem Beleg ausgestellte Gutscheine: Code zum Mitgeben an den Gast.</summary>
+    /// <summary>Mit diesem Beleg ausgestellte Gutscheine: Code zum Mitgeben an den Gast, darunter das Ablaufdatum, falls gesetzt.</summary>
     public IReadOnlyList<ReceiptRow> Vouchers => Receipt.IssuedVouchers
-        .Select(v => new ReceiptRow(v.Kind == VoucherKind.SinglePurpose ? $"Gutschein {v.Code} (Behandlung)" : $"Gutschein {v.Code}", Format(v.InitialValue)))
+        .SelectMany(v =>
+        {
+            var row = new ReceiptRow(v.Kind == VoucherKind.SinglePurpose ? $"Gutschein {v.Code} (Behandlung)" : $"Gutschein {v.Code}", Format(v.InitialValue));
+            return v.ValidUntil is { } until ? new[] { row, new ReceiptRow($"   Einzulösen bis {DateInputParser.Format(until)}", "") } : [row];
+        })
         .ToList();
 
     public bool HasVouchers => Receipt.IssuedVouchers.Count > 0;

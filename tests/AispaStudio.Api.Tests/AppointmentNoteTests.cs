@@ -58,7 +58,7 @@ public sealed class AppointmentNoteTests(ApiFixture fixture)
     {
         var spa = await TestSpa.CreateAsync(fixture, Ct);
         var done = await spa.BookOkAsync(TestSpa.At(10), Ct, spa.Anna.Id);
-        await spa.PostAsync<AppointmentDto>($"/api/appointments/{done.Id}/status", new AppointmentStatusChange(AppointmentStatus.Completed), Ct);
+        await spa.SetStatusAsync(done.Id, AppointmentStatus.Completed, Ct);
         var cancelled = await spa.BookOkAsync(TestSpa.At(13), Ct, spa.Anna.Id);
         await spa.PostAsync<AppointmentDto>($"/api/appointments/{cancelled.Id}/cancel", new CancelAppointmentRequest(null), Ct);
 

@@ -1,0 +1,47 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             x:Class="AispaStudio.Desktop.Controls.DocumentActions"
+             x:DataType="vm:DocumentActionsViewModel">
+  <!-- Knopfblock „Drucken · PDF speichern · Per Mail senden“ (ADR 0092): überall gleich; Knöpfe ohne Recht mit Hinweis, Fehler darunter als InfoBar, Erfolge als Toast der Maske -->
+  <StackPanel Spacing="8">
+    <WrapPanel ItemSpacing="8" LineSpacing="8">
+      <Button x:Name="PrintButton" Command="{Binding PrintCommand}" ToolTip.Tip="Druckt das PDF auf dem Standarddrucker von Windows."
+              ui:DisabledHint.Text="{Binding DisabledHint}" AutomationProperties.Name="{Binding PrintLabel}">
+        <StackPanel Orientation="Horizontal" Spacing="6">
+          <ui:Icon Data="{x:Static ui:Icons.Printer}" Width="16" Height="16" />
+          <TextBlock Text="{Binding PrintLabel}" />
+        </StackPanel>
+      </Button>
+      <Button x:Name="SaveButton" Command="{Binding SaveCommand}" IsVisible="{Binding !HasAlternative}" ToolTip.Tip="Speichert das PDF über den Speicherdialog von Windows."
+              ui:DisabledHint.Text="{Binding DisabledHint}" AutomationProperties.Name="PDF speichern">
+        <StackPanel Orientation="Horizontal" Spacing="6">
+          <ui:Icon Data="{x:Static ui:Icons.SavePdf}" Width="16" Height="16" />
+          <TextBlock Text="PDF speichern" />
+        </StackPanel>
+      </Button>
+      <!-- Zweites Format (z. B. Beleg schmal wie ein Bon): Standard bleibt der Knopf, das andere Format steht im Menü -->
+      <SplitButton x:Name="SaveSplitButton" Classes="document" Command="{Binding SaveCommand}" IsVisible="{Binding HasAlternative}" ToolTip.Tip="Speichert das PDF über den Speicherdialog von Windows."
+                   ui:DisabledHint.Text="{Binding DisabledHint}" AutomationProperties.Name="PDF speichern">
+        <StackPanel Orientation="Horizontal" Spacing="6">
+          <ui:Icon Data="{x:Static ui:Icons.SavePdf}" Width="16" Height="16" />
+          <TextBlock Text="PDF speichern" />
+        </StackPanel>
+        <SplitButton.Flyout>
+          <MenuFlyout Placement="BottomEdgeAlignedLeft">
+            <MenuItem x:Name="SaveAlternativeItem" Header="{Binding AlternativeLabel}" Command="{Binding SaveAlternativeCommand}" AutomationProperties.Name="{Binding AlternativeLabel}" />
+          </MenuFlyout>
+        </SplitButton.Flyout>
+      </SplitButton>
+      <Button x:Name="SendButton" Command="{Binding SendCommand}" IsVisible="{Binding HasSend}" ToolTip.Tip="Schickt das PDF nach einer Rückfrage per Mail."
+              ui:DisabledHint.Text="{Binding DisabledHint}" AutomationProperties.Name="Per Mail senden">
+        <StackPanel Orientation="Horizontal" Spacing="6">
+          <ui:Icon Data="{x:Static ui:Icons.Mail}" Width="16" Height="16" />
+          <TextBlock Text="Per Mail senden" />
+        </StackPanel>
+      </Button>
+    </WrapPanel>
+    <ui:InfoBar x:Name="DocumentError" Severity="Error" Message="{Binding Error}" IsVisible="{Binding HasError}" CloseCommand="{Binding CloseErrorCommand}" />
+  </StackPanel>
+</UserControl>

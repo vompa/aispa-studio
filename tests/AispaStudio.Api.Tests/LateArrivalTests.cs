@@ -46,7 +46,7 @@ public sealed class LateArrivalTests(ApiFixture fixture)
         var tooMuch = await spa.Client.PutAsJsonAsync(path, new ReportLateRequest(121), TestSpa.Json, Ct);
         Assert.Equal(HttpStatusCode.BadRequest, tooMuch.StatusCode);
 
-        await spa.PostAsync<AppointmentDto>($"/api/appointments/{appointment.Id}/status", new AppointmentStatusChange(AppointmentStatus.CheckedIn), Ct);
+        await spa.SetStatusAsync(appointment.Id, AppointmentStatus.CheckedIn, Ct);
         var checkedIn = await spa.Client.PutAsJsonAsync(path, new ReportLateRequest(5), TestSpa.Json, Ct);
         Assert.Equal(HttpStatusCode.BadRequest, checkedIn.StatusCode);
     }

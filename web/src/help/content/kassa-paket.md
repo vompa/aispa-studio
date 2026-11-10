@@ -14,7 +14,7 @@ Ein Paket ist ein Gutschein für mehrere gleiche Behandlungen, z. B. ein 10er-Bl
 
 1. Einen Termin oder Eintritt des Gastes auf die Rechnung setzen, damit die Rechnung einen Gast hat, z. B. [Termin kassieren](hilfe:kassa-termin-kassieren).
 2. Im Panel „Artikel und Gutscheine“ neben der Rechnung (aufklappen, falls nur die schmale Leiste zu sehen ist) unter **Gutschein verkaufen** bei **Behandlung** die Behandlung wählen.
-3. Darunter die Anzahl eintragen (2 bis 50, vorbelegt mit 10), wenn gewünscht einen **Paketpreis** (leer heißt Einzelpreis mal Anzahl) und ein Ablaufdatum unter **gültig bis** (leer heißt unbefristet).
+3. Darunter die Anzahl eintragen (2 bis 50, vorbelegt mit 10), wenn gewünscht einen **Paketpreis** (leer heißt Einzelpreis mal Anzahl). Das Ablaufdatum steht oben unter **Einzulösen bis**, vorbelegt nach dem Land der Kasse, siehe [Ablaufdatum](hilfe:kassa-gutschein-verkaufen#ablaufdatum).
 4. Auf **Paket verkaufen** klicken. Auf der Rechnung steht „Paket 10× …“.
 5. Wie gewohnt bezahlen. Der Code des Pakets steht auf dem Beleg.
 
@@ -38,5 +38,5 @@ Stehen mehrere Termine mit derselben Behandlung auf der Rechnung, zieht die Kass
 
 - Steuerlich ist ein Paket ein Einzweckgutschein: Die Umsatzsteuer fällt beim Kauf an, das Abziehen ist kein neuer Umsatz.
 - Wird der Beleg mit dem Abzug storniert, bekommt das Paket die Behandlungen zurück. Den Kauf eines Pakets kann man nur stornieren, solange noch nichts davon abgezogen ist.
-- Ein Ablaufdatum ist freiwillig. Eine kurze Befristung von Gutscheinen ist in Österreich rechtlich heikel; im Zweifel unbefristet lassen.
+- Das Ablaufdatum belegt die Kassa je Land vor (Österreich: unbefristet); ein leeres Feld heißt unbefristet, siehe [Ablaufdatum](hilfe:kassa-gutschein-verkaufen#ablaufdatum).
 - Siehe auch [Gutschein verkaufen](hilfe:kassa-gutschein-verkaufen) und [Gutschein einlösen](hilfe:kassa-gutschein-einloesen).

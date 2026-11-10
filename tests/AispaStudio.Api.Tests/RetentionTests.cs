@@ -191,7 +191,7 @@ public sealed partial class RetentionTests(ApiFixture fixture)
     private static async Task<AppointmentDto> CompletedAsync(TestSpa spa, CustomerDto guest, int hour = 10)
     {
         var appointment = await TestSpa.ReadAsync<AppointmentDto>(await spa.BookAsync(TestSpa.At(hour), Ct, customer: guest.Id), Ct);
-        return await spa.PostAsync<AppointmentDto>($"/api/appointments/{appointment.Id}/status", new AppointmentStatusChange(AppointmentStatus.Completed), Ct);
+        return await spa.SetStatusAsync(appointment.Id, AppointmentStatus.Completed, Ct);
     }
 
     private async Task ConfirmAsync(TestSpa spa, CustomerDto guest)

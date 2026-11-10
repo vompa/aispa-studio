@@ -33,7 +33,7 @@ An die neue Uhrzeit bzw. in die Spalte einer anderen Person ziehen. Eine Vorscha
 
 ### 3. Loslassen
 
-Die Maustaste loslassen. Unten erscheint z. B. „Verschoben auf 10:00–11:20 (Lena Huber, Raum Zeder)“ mit **Rückgängig**. Die Meldung verschwindet nach 8 Sekunden, solange die Maus nicht darüber steht.
+Die Maustaste loslassen. Unten erscheint z. B. „Verschoben auf 10:00“ (an einem anderen Tag mit Wochentag, z. B. „Verschoben auf Do 10:00“) mit **Rückgängig**. Person und Raum stehen nicht in der Meldung, sie sind im Kalender zu sehen. Die Meldung verschwindet nach 8 Sekunden, solange die Maus nicht darüber steht.
 
 ![Meldung unten im Kalender mit dem Knopf Rückgängig](images/app/termin-verschieben-3.png)
 
@@ -45,9 +45,10 @@ Die alte Zeit gilt als frei; der Server schreibt passenden Gästen auf der [Wart
 
 - Lehnt der Server ab (z. B. Person, Raum oder Gerät belegt), springt der Termin zurück und unten steht „Nicht verschoben: …“ mit der Begründung; belegte Zeiträume stehen darin in Ortszeit des Standorts („Zeitraum ist belegt. Termin · 11:00–11:50 · Clara Fischer“).
 - Erledigte, nicht erschienene und stornierte Termine lassen sich nicht verschieben, eingecheckte schon.
+- Auf einen vergangenen Tag lässt sich kein Termin verschieben, auch keine ganze Buchung: Das Feld „Tag“ nimmt nur heute oder einen späteren Tag an, **−1 Tag** und **Verschieben** sind dann gesperrt („Verfügbar für heute oder einen späteren Tag.“). Ziehen und Alt + Pfeiltasten bleiben ohnehin im angezeigten Tag.
 - Hat jemand den Termin inzwischen an einem anderen Arbeitsplatz geändert, verschiebt der Server nicht. Oben steht „Nicht verschoben“ mit „Der Termin wurde inzwischen an einem anderen Arbeitsplatz geändert. Bitte den aktuellen Stand prüfen.“, und der Kalender zeigt den Termin so, wie ihn der andere Arbeitsplatz gespeichert hat. Dasselbe gilt im Terminfenster für Zeiten, Notiz, Stornieren, Status und Zurücknehmen; die Meldung steht dann oben im Terminfenster. Die eigene Änderung bei Bedarf neu eingeben.
 - Fehlermeldungen bleiben stehen, bis man sie mit dem Kreuz schließt.
-- **V** auf einem markierten Termin erinnert nur, wie das Verschieben geht.
+- **V** auf einem markierten, gebuchten Termin öffnet die Verschieben-Karte im Terminfenster ([anderer Tag](hilfe:kalender-termin-verschieben#anderer-tag)); bei eingecheckten Terminen und gemeinsamen Buchungen erinnert die Taste nur, wie das Verschieben geht.
 - Ohne Verbindung wird die Verschiebung vorgemerkt; siehe [Arbeiten ohne Verbindung](hilfe:kalender-offline).
 
 
@@ -74,7 +75,7 @@ Innerhalb der 8 Sekunden, die die Meldung unten steht (ohne **Rückgängig** sin
 Ziehen und Alt + Pfeile bleiben im angezeigten Tag. Für einen anderen Tag:
 
 1. Den Termin anklicken; rechts öffnet sich das Terminfenster.
-2. Auf **Verschieben …** klicken (der Knopf über die volle Breite unter dem Hauptknopf).
+2. Auf **Verschieben …** klicken (der Knopf über die volle Breite unter dem Hauptknopf), oder bei markiertem Termin **V** drücken.
 3. Bei „Tag“ das Datum eintippen (`21.10.2026`, kurz auch `21102026` oder `21.10.`) oder mit **+1 Tag**, **+1 Woche** bzw. **−1 Tag** weiterzählen, im Feld auch mit **↑ ↓**. Bei „Beginn“ die Uhrzeit, z. B. `14:00` oder `1400`. Ungültiges meldet das Feld, siehe [Felder ausfüllen](hilfe:kalender-tastenkuerzel#felder).
 4. Auf **Verschieben** klicken. Der Kalender springt auf den neuen Tag und markiert den Termin; unten steht die Meldung mit **Rückgängig**.
 
@@ -88,7 +89,7 @@ Ziehen und Alt + Pfeile bleiben im angezeigten Tag. Für einen anderen Tag:
 Einzelne Teile einer gemeinsamen Buchung lassen sich wie jeder Termin ziehen. Die ganze Buchung auf einmal verschieben:
 
 1. Einen Termin der Buchung anklicken.
-2. Im Kasten **GEMEINSAM GEBUCHT** den neuen Beginn eintippen (z. B. `15:00`).
+2. Im Kasten der Buchung (Überschrift **Paar**, **Spa-Tag** oder **Gruppe · n Gäste**) den neuen Beginn eintippen (z. B. `15:00`).
 3. Auf **Ganze Buchung verschieben** klicken. Der ganze Ablauf rückt mit, am selben Tag.
 
 - Das geht nur, solange noch niemand der Gruppe eingecheckt ist.

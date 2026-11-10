@@ -33,8 +33,13 @@ public partial class CustomersView : UserControl
         {
             _customers.PropertyChanged += OnCustomersChanged;
             _customers.ContactActions ??= new CalendarView.WindowContactActions(this);
+            _customers.FilePicker ??= new StorageFilePicker(this);
         }
     }
+
+    private void OnToastEntered(object? sender, PointerEventArgs e) => _customers?.HoldToast(true);
+
+    private void OnToastExited(object? sender, PointerEventArgs e) => _customers?.HoldToast(false);
 
     /// <summary>Beim Öffnen der Kundendaten-Maske liegt der Fokus im ersten Feld (masken.md, R13), damit man gleich tippen kann; ebenso bei den Karten.</summary>
     private void OnCustomersChanged(object? sender, PropertyChangedEventArgs e)
@@ -47,6 +52,12 @@ public partial class CustomersView : UserControl
         {
             // „Neue Kundin“ öffnet mit dem Fokus im Vornamen: sofort tippen (masken.md, R13).
             Dispatcher.UIThread.Post(() => NewFirstNameBox.Focus(), DispatcherPriority.Background);
+        }
+        else if (e.PropertyName == nameof(CustomersViewModel.FocusTarget) && _customers is { FocusTarget: { } field } model)
+        {
+            // Fehler beim Anlegen: das erste ungültige Feld bekommt den Fokus (masken.md R8, meldungen.md M2).
+            model.FocusTarget = null;
+            Dispatcher.UIThread.Post(() => this.FindControl<Control>(field)?.Focus(), DispatcherPriority.Loaded);
         }
         else if (_customers is { } customers && CardFocus(customers, e.PropertyName) is { } card)
         {
@@ -62,6 +73,9 @@ public partial class CustomersView : UserControl
             await customers.FormatNewPhoneAsync();
         }
     }
+
+    /// <summary>Beim Verlassen des E-Mail-Felds der Maske „Neue Kundin“ steht ein Fehler gleich am Feld, nicht erst beim Anlegen (Befund B5).</summary>
+    private void OnNewEmailLostFocus(object? sender, RoutedEventArgs e) => (DataContext as CustomersViewModel)?.ValidateNewEmail();
 
     /// <summary>Esc schließt die offene Karte ohne zu speichern (masken.md R13), aber erst, wenn kein Feld und keine Auswahl die Taste gebraucht hat.</summary>
     private void OnKeyDown(object? sender, KeyEventArgs e)

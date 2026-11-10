@@ -59,7 +59,8 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
         Connection = connection;
         Calendar = new CalendarViewModel(api, user, live, time, theme.Store) { CanAskAssistant = modules?.Assistant != false };
         Customers = new CustomersViewModel(api, time) { User = user, BookRequested = BookForCustomer };
-        Pos = new PosViewModel(api, time, theme.Store) { OwnerLevel = user.Access?.Role is StaffRole.Owner or StaffRole.GeneralManager, MaySuperviseCash = user.Rights.Contains(AccessRight.SuperviseCash) };
+        Activity = new ActivityViewModel(api, user, time) { LocationSource = () => Calendar.Location };
+        Pos = new PosViewModel(api, time, theme.Store) { OwnerLevel = user.Access?.Role is StaffRole.Owner or StaffRole.GeneralManager, MaySuperviseCash = user.Rights.Contains(AccessRight.SuperviseCash), MaySeeAmountReports = user.Rights.Contains(AccessRight.ViewAmountReports) };
         HasPin = user.HasPin;
         Devices = new DevicesViewModel(api, theme.Store)
         {
@@ -74,9 +75,9 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
             },
         };
         Inbox = new InboxViewModel(api, live, time);
-        Calendar.Dialogs = Customers.Dialogs = Pos.Dialogs = Devices.Dialogs = Inbox.Dialogs = dialogs;
+        Calendar.Dialogs = Customers.Dialogs = Activity.Dialogs = Pos.Dialogs = Devices.Dialogs = Inbox.Dialogs = dialogs;
         // Das Backoffice (ADR 0070) hat weder Kalender noch Kunden; es arbeitet in der Verwaltung.
-        List<NavItem> pages = HasCalendar ? [new("Kalender", Icons.Calendar, Calendar), new("Kunden", Icons.Users, Customers)] : [];
+        List<NavItem> pages = HasCalendar ? [new("Kalender", Icons.Calendar, Calendar), new("Kunden", Icons.Users, Customers), new("Verlauf", Icons.History, Activity)] : [];
         if (user.Rights.Contains(AccessRight.Book))
         {
             if (HasInbox)
@@ -98,6 +99,7 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
             Customers.CheckoutRequested = CheckoutAsync;
             Calendar.CheckoutWithArticleRequested = CheckoutAsync;
             Calendar.CheckoutVisitRequested = CheckoutVisitAsync;
+            Activity.ReceiptRequested = ShowReceiptAsync;
         }
 
         if (local is not null)
@@ -230,11 +232,24 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
         };
 
         Calendar.CustomerRequested = ShowCustomerAsync;
+        Calendar.CancelledRequested = day => _ = ShowCancelledAsync(day);
+        Activity.CustomerRequested = ShowCustomerAsync;
+        Activity.AppointmentRequested = ShowAppointment;
+        Activity.CancelledAppointmentRequested = ShowCancelledAppointment;
+        Activity.NewTimeRequested = ShowRestoreAtNewTimeAsync;
+        Activity.TreatmentRequested = ShowTreatment;
+        Activity.RosterRequested = ShowRosterWeek;
+        Activity.AccessRequested = ShowAccess;
         Calendar.AdminRequested = ShowAdmin;
         Calendar.InboxRequested = ShowInboxMailAsync;
         Calendar.HrFileRequested = ShowHrFile;
         Calendar.PersonDutiesRequested = ShowPersonDuties;
         Inbox.CustomerRequested = ShowCustomerAsync;
+        if (HasInbox)
+        {
+            Activity.RequestRequested = ShowInboxMailAsync;
+        }
+
         Inbox.CustomerEditRequested = EditCustomerAsync;
         Calendar.CheckoutGroupRequested = CheckoutGroupAsync;
         Pages = pages;
@@ -316,6 +331,9 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
     public CalendarViewModel Calendar { get; }
 
     public CustomersViewModel Customers { get; }
+
+    /// <summary>Die Seite „Verlauf“: was im Betrieb passiert ist (nur für Zugänge mit Kalender).</summary>
+    public ActivityViewModel Activity { get; }
 
     public PosViewModel Pos { get; }
 
@@ -762,6 +780,10 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
         {
             _ = Customers.InitializeAsync();
         }
+        else if (value.Page == Activity)
+        {
+            _ = Activity.RefreshAsync();
+        }
         else if (value.Page == Pos)
         {
             Pos.DevicesChanged();
@@ -815,6 +837,51 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
         var date = start is { } s ? DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(s, zone).DateTime) : Calendar.Date;
         SelectedPage = Pages.First(p => p.Page == Calendar);
         Calendar.OpenSearchHit(new CalendarSearchHit("", "", date, id));
+    }
+
+    /// <summary>„Termin öffnen“ bei einem Storno im Verlauf: der Kalender springt auf den Tag und zeigt das Panel des stornierten Termins (wie über die Kundenkarte).</summary>
+    internal void ShowCancelledAppointment(Guid id, DateTimeOffset start)
+    {
+        SelectedPage = Pages.First(p => p.Page == Calendar);
+        Calendar.OpenAppointmentOn(id, start);
+    }
+
+    /// <summary>„Neue Zeit wählen“ im Verlauf: der Kalender zeigt den nächsten freien Tag und den stornierten Termin mit der Verschieben-Karte und den Freie-Zeit-Vorschlägen.</summary>
+    internal async Task ShowRestoreAtNewTimeAsync(NewTimeRequest request)
+    {
+        SelectedPage = Pages.First(p => p.Page == Calendar);
+        await Calendar.ShowRestoreAtNewTimeAsync(request).ConfigureAwait(true);
+    }
+
+    /// <summary>„Behandlung öffnen“ im Verlauf: die Behandlung in den Stammdaten der Verwaltung.</summary>
+    internal void ShowTreatment(Guid treatmentId) => OpenAdmin(AdminPage.Show("masterData", "treatments", treatmentId));
+
+    /// <summary>„Dienstplan öffnen“ im Verlauf: der Wochenplan im Bereich Team, die Woche des Tages am gewählten Standort.</summary>
+    internal void ShowRosterWeek(DateOnly day, Guid? employeeId) => OpenAdmin(AdminPage.Show("roster", id: employeeId, location: Calendar.Location?.Id, from: day));
+
+    /// <summary>„Zugang öffnen“ im Verlauf: der Zugang der Person auf ihrer Karte im Bereich Team.</summary>
+    internal void ShowAccess(Guid? employeeId) => OpenAdmin(AdminPage.Show("staff", id: employeeId));
+
+    /// <summary>„Storniert n“ in der Kopfzeile des Kalenders: der Verlauf zeigt die Stornos dieses Tages.</summary>
+    internal async Task ShowCancelledAsync(DateOnly day)
+    {
+        // Die Filter setzt ShowDayAsync gleich beim Aufruf; der Wechsel der Seite lädt danach mit denselben Filtern.
+        var shown = Activity.ShowDayAsync(day, ActivityKind.Cancelled);
+        SelectedPage = Pages.First(p => p.Page == Activity);
+        await shown.ConfigureAwait(true);
+    }
+
+    /// <summary>„Beleg anzeigen“ im Verlauf: Kassa, Reiter Belege, Tag des Belegs, Beleg gewählt.</summary>
+    internal async Task ShowReceiptAsync(Guid receiptId, DateTimeOffset issuedAt)
+    {
+        var zone = Calendar.Location is { } location ? TimeZoneInfo.FindSystemTimeZoneById(location.TimeZone) : TimeZoneInfo.Local;
+        var day = DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(issuedAt, zone).DateTime);
+        var today = DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(_time.GetUtcNow(), zone).DateTime);
+        SelectedPage = Pages.First(p => p.Page == Pos);
+        Pos.Mode = PosMode.Receipts;
+        Pos.ReceiptDaysBack = Math.Max(0, today.DayNumber - day.DayNumber);
+        await Pos.InitializeAsync(Calendar.Location?.Id).ConfigureAwait(true);
+        await Pos.LoadReceiptsAsync(receiptId).ConfigureAwait(true);
     }
 
     /// <summary>„Alle Termine von Steffi Huber“: der Kalender zeigt sie über sieben Tage.</summary>

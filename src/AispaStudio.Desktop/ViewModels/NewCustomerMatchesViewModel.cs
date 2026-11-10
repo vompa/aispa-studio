@@ -9,7 +9,7 @@ namespace AispaStudio.Desktop.ViewModels;
 public sealed partial class CustomerMatchOption(CustomerDto customer, Func<CustomerDto, Task> take)
 {
     /// <summary>Wie in der Trefferliste links: „Huber, Anna“ (Rufname statt Vorname).</summary>
-    public string Name => $"{customer.LastName}, {customer.InHouseFirstName}";
+    public string Name => Converters.ListName(customer);
 
     public string? Phone => customer.Phone;
 

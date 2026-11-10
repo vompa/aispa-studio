@@ -29,8 +29,13 @@ gebunden und lassen sich durch eigene Fassungen ersetzen; ihr Quelltext steht un
 - Avalonia.Win32 12.1.4 (NuGet): Copyright 2013-2026 © The AvaloniaUI Project; https://avaloniaui.net/?utm_source=nuget&utm_medium=referral&utm_content=project_homepage_link
 - Avalonia.X11 12.1.4 (NuGet): Copyright 2013-2026 © The AvaloniaUI Project; https://avaloniaui.net/?utm_source=nuget&utm_medium=referral&utm_content=project_homepage_link
 - BouncyCastle.Cryptography 2.7.0 (NuGet): Copyright © Legion of the Bouncy Castle Inc. 2000-2026; https://www.bouncycastle.org/stable/nuget/csharp/website
+- ClosedXML 0.105.1 (NuGet): Jan Havlíček, Francois Botha, Aleksei Pankratev, Manuel de Leon, Amir Ghezelbash; https://github.com/ClosedXML/ClosedXML
+- ClosedXML.Parser 2.0.0 (NuGet): Jan Havlíček; https://github.com/ClosedXML/ClosedXML.Parser
 - CommunityToolkit.Mvvm 8.4.2 (NuGet): (c) .NET Foundation and Contributors. All rights reserved.; https://github.com/CommunityToolkit/dotnet
 - Cronos 0.11.0 (NuGet): Copyright © 2016–2025 Hangfire OÜ.; https://github.com/HangfireIO/Cronos
+- DocumentFormat.OpenXml 3.1.1 (NuGet): © Microsoft Corporation. All rights reserved.; https://github.com/dotnet/Open-XML-SDK
+- DocumentFormat.OpenXml.Framework 3.1.1 (NuGet): © Microsoft Corporation. All rights reserved.; https://github.com/dotnet/Open-XML-SDK
+- ExcelNumberFormat 1.1.0 (NuGet): ExcelNumberFormat developers; https://github.com/andersnm/ExcelNumberFormat
 - FastExpressionCompiler 5.4.1 (NuGet): Copyright © 2016-2026 Maksim Volkau; https://github.com/dadhi/FastExpressionCompiler
 - HarfBuzzSharp 8.3.1.3 (NuGet): © Microsoft Corporation. All rights reserved.; https://go.microsoft.com/fwlink/?linkid=868515
 - HarfBuzzSharp.NativeAssets.Linux 8.3.1.3 (NuGet): © Microsoft Corporation. All rights reserved.; https://go.microsoft.com/fwlink/?linkid=868515
@@ -120,9 +125,11 @@ gebunden und lassen sich durch eigene Fassungen ersetzen; ihr Quelltext steht un
 - Newtonsoft.Json 13.0.4 (NuGet): Copyright © James Newton-King 2008; https://www.newtonsoft.com/json
 - Patched.DistributedLock.Core 1.0.11 (NuGet): Copyright © 2020 Michael Adelson; https://github.com/madelson/DistributedLock
 - Patched.DistributedLock.Postgres 1.3.3 (NuGet): Copyright © 2020 Michael Adelson; https://github.com/madelson/DistributedLock
+- PDFsharp 6.2.4 (NuGet): © 2026 empira; https://docs.pdfsharp.net/
 - Pipelines.Sockets.Unofficial 2.2.8 (NuGet): Marc Gravell 2018; https://github.com/mgravell/Pipelines.Sockets.Unofficial
 - punycode 2.3.1 (npm): Mathias Bynens; https://mths.be/punycode
 - QRCoder 1.8.0 (NuGet): Copyright © 2013-2025 Raffael Herrmann. Copyright © 2024-2025 Shane Krueger. All rights reserved.; https://licenses.nuget.org/MIT
+- RBush.Signed 4.0.0 (NuGet): Copyright © 2017-2024 Turning Code, LLC (and others); https://licenses.nuget.org/MIT
 - SkiaSharp 3.119.4 (NuGet): © Microsoft Corporation. All rights reserved.; https://go.microsoft.com/fwlink/?linkid=868515
 - SkiaSharp.NativeAssets.Linux 3.119.4 (NuGet): © Microsoft Corporation. All rights reserved.; https://go.microsoft.com/fwlink/?linkid=868515
 - SkiaSharp.NativeAssets.macOS 3.119.4 (NuGet): © Microsoft Corporation. All rights reserved.; https://go.microsoft.com/fwlink/?linkid=868515
@@ -140,6 +147,7 @@ gebunden und lassen sich durch eigene Fassungen ersetzen; ihr Quelltext steht un
 - System.Composition.TypedParts 9.0.0 (NuGet): © Microsoft Corporation. All rights reserved.; https://dot.net/
 - System.Drawing.Common 6.0.0 (NuGet): © Microsoft Corporation. All rights reserved.; https://dot.net/
 - System.IdentityModel.Tokens.Jwt 8.14.0 (NuGet): © Microsoft Corporation. All rights reserved.; https://github.com/AzureAD/azure-activedirectory-identitymodel-extensions-for-dotnet
+- System.IO.Packaging 8.0.1 (NuGet): © Microsoft Corporation. All rights reserved.; https://dot.net/
 - System.Security.Cryptography.Pkcs 10.0.13 (NuGet): © Microsoft Corporation. All rights reserved.; https://dot.net/
 - System.Security.Cryptography.ProtectedData 10.0.13 (NuGet): © Microsoft Corporation. All rights reserved.; https://dot.net/
 - Tmds.DBus.Protocol 0.94.1 (NuGet): Tom Deseyn; https://licenses.nuget.org/MIT
@@ -185,6 +193,7 @@ USE OR OTHER DEALINGS IN THE SOFTWARE.
 - OpenTelemetry.Instrumentation.AspNetCore 1.20.1 (NuGet): Copyright The OpenTelemetry Authors; https://opentelemetry.io/
 - OpenTelemetry.Instrumentation.Http 1.20.1 (NuGet): Copyright The OpenTelemetry Authors; https://opentelemetry.io/
 - OpenTelemetry.Instrumentation.Runtime 1.20.1 (NuGet): Copyright The OpenTelemetry Authors; https://opentelemetry.io/
+- SixLabors.Fonts 1.0.0 (NuGet): Copyright © Six Labors; https://github.com/SixLabors/Fonts
 - System.Linq.Dynamic.Core 1.7.4 (NuGet): Copyright © ZZZ Projects; https://dynamic-linq.net/
 
 ```text
@@ -933,6 +942,103 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+```
+
+## OFL-1.1
+
+- Liberation Sans 2.1.5 (Schrift (API, eingebettet)): Digitized data copyright (c) 2010 Google Corporation with Reserved Font Arimo, Tinos and Cousine; Copyright (c) 2012 Red Hat, Inc. with Reserved Font Name Liberation; https://github.com/liberationfonts/liberation-fonts
+
+```text
+SIL OPEN FONT LICENSE Version 1.1 - 26 February 2007
+
+PREAMBLE The goals of the Open Font License (OFL) are to stimulate
+worldwide development of collaborative font projects, to support the font
+creation efforts of academic and linguistic communities, and to provide
+a free and open framework in which fonts may be shared and improved in
+partnership with others.
+
+The OFL allows the licensed fonts to be used, studied, modified and
+redistributed freely as long as they are not sold by themselves.
+The fonts, including any derivative works, can be bundled, embedded,
+redistributed and/or sold with any software provided that any reserved
+names are not used by derivative works.  The fonts and derivatives,
+however, cannot be released under any other type of license.  The
+requirement for fonts to remain under this license does not apply to
+any document created using the fonts or their derivatives.
+
+ 
+
+DEFINITIONS
+"Font Software" refers to the set of files released by the Copyright
+Holder(s) under this license and clearly marked as such.
+This may include source files, build scripts and documentation.
+
+"Reserved Font Name" refers to any names specified as such after the
+copyright statement(s).
+
+"Original Version" refers to the collection of Font Software components
+as distributed by the Copyright Holder(s).
+
+"Modified Version" refers to any derivative made by adding to, deleting,
+or substituting ? in part or in whole ?
+any of the components of the Original Version, by changing formats or
+by porting the Font Software to a new environment.
+
+"Author" refers to any designer, engineer, programmer, technical writer
+or other person who contributed to the Font Software.
+
+
+PERMISSION & CONDITIONS
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of the Font Software, to use, study, copy, merge, embed, modify,
+redistribute, and sell modified and unmodified copies of the Font
+Software, subject to the following conditions:
+
+1) Neither the Font Software nor any of its individual components,in
+   Original or Modified Versions, may be sold by itself.
+
+2) Original or Modified Versions of the Font Software may be bundled,
+   redistributed and/or sold with any software, provided that each copy
+   contains the above copyright notice and this license. These can be
+   included either as stand-alone text files, human-readable headers or
+   in the appropriate machine-readable metadata fields within text or
+   binary files as long as those fields can be easily viewed by the user.
+
+3) No Modified Version of the Font Software may use the Reserved Font
+   Name(s) unless explicit written permission is granted by the
+   corresponding Copyright Holder. This restriction only applies to the
+   primary font name as presented to the users.
+
+4) The name(s) of the Copyright Holder(s) or the Author(s) of the Font
+   Software shall not be used to promote, endorse or advertise any
+   Modified Version, except to acknowledge the contribution(s) of the
+   Copyright Holder(s) and the Author(s) or with their explicit written
+   permission.
+
+5) The Font Software, modified or unmodified, in part or in whole, must
+   be distributed entirely under this license, and must not be distributed
+   under any other license. The requirement for fonts to remain under
+   this license does not apply to any document created using the Font
+   Software.
+
+
+ 
+TERMINATION
+This license becomes null and void if any of the above conditions are not met.
+
+ 
+
+DISCLAIMER
+THE FONT SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT
+OF COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT.  IN NO EVENT SHALL THE
+COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+INCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL
+DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM OTHER
+DEALINGS IN THE FONT SOFTWARE.
 ```
 
 ## Unlicense

@@ -336,6 +336,7 @@ public partial class CalendarViewModel : ViewModelBase
         Waitlist = [];
         WaitlistPanel = null;
         GapsPanel = null;
+        DayPlanPrint = null;
         _ = LoadAsync();
         if (value is not null && _live is not null)
         {
@@ -353,6 +354,7 @@ public partial class CalendarViewModel : ViewModelBase
 
         ResetMessages();
         GapsPanel?.Reset();
+        DayPlanPrint = null;
         if (!_changingDay)
         {
             _ = LoadAsync();
@@ -478,7 +480,7 @@ public partial class CalendarViewModel : ViewModelBase
         if (wasCompact != IsCompactHeader)
         {
             // Die Chips der Kopfzeile zeigen kompakt Symbol und Zahl, voll Symbol und Text.
-            foreach (var name in new[] { nameof(IsCompactHeader), nameof(SearchWidth), nameof(OverviewLabel), nameof(OverviewTip), nameof(AreaLabel), nameof(AreaTip), nameof(WaitlistLabel), nameof(WaitlistTip), nameof(AllStaffLabel), nameof(AllStaffTip), nameof(RoomFilterLabel), nameof(RoomFilterTip), nameof(MessagesLabel), nameof(MessagesTip), nameof(SubscriptionsTip), nameof(ClosureChipLabel) })
+            foreach (var name in new[] { nameof(IsCompactHeader), nameof(SearchWidth), nameof(OverviewLabel), nameof(OverviewTip), nameof(AreaLabel), nameof(AreaTip), nameof(WaitlistLabel), nameof(WaitlistTip), nameof(CancelledLabel), nameof(AllStaffLabel), nameof(AllStaffTip), nameof(RoomFilterLabel), nameof(RoomFilterTip), nameof(MessagesLabel), nameof(MessagesTip), nameof(SubscriptionsTip), nameof(ClosureChipLabel) })
             {
                 OnPropertyChanged(name);
             }
@@ -700,7 +702,7 @@ public partial class CalendarViewModel : ViewModelBase
     private void OpenWaitlist()
     {
         ClosePanels();
-        WaitlistPanel = new WaitlistViewModel(LocationName, Waitlist, () => WaitlistPanel = null);
+        WaitlistPanel = NewWaitlistPanel();
         Rebuild();
         _ = LoadWaitlistFreeAsync(Waitlist);
     }
@@ -716,7 +718,7 @@ public partial class CalendarViewModel : ViewModelBase
         Waitlist = [.. result.Value.Where(e => e.Status == WaitlistStatus.Waiting).Select(WaitlistRowOf)];
         if (WaitlistPanel is not null)
         {
-            WaitlistPanel = new WaitlistViewModel(LocationName, Waitlist, () => WaitlistPanel = null);
+            WaitlistPanel = NewWaitlistPanel();
             _ = LoadWaitlistFreeAsync(Waitlist);
         }
     }
@@ -847,6 +849,7 @@ public partial class CalendarViewModel : ViewModelBase
             ShowToast = text => ShowToast(text),
             ContactActions = () => ContactActions,
             Files = Files,
+            FileSaver = FileSaver,
             Dialogs = Dialogs,
             MayReturnDeposit = _user.Access?.Role is StaffRole.Owner or StaffRole.GeneralManager,
             MayChargeFee = _user.Rights.Contains(AccessRight.SuperviseCash),
@@ -887,6 +890,9 @@ public partial class CalendarViewModel : ViewModelBase
 
     /// <summary>Der Dateidialog für das Foto eines Anamnesebogens; das Fenster setzt ihn beim Anzeigen.</summary>
     public IFilePicker? Files { get; set; }
+
+    /// <summary>Der Speicherdialog für Kalenderdatei und Terminliste (Export/Import, Aufgabe C); das Fenster setzt ihn beim Anzeigen.</summary>
+    public IFileSaver? FileSaver { get; set; }
 
     /// <summary>„Alle kassieren“ bei einer gemeinsamen Buchung.</summary>
     public Func<IReadOnlyList<AppointmentDto>, Task>? CheckoutGroupRequested { get; set; }
@@ -987,6 +993,7 @@ public partial class CalendarViewModel : ViewModelBase
 
     private void Rebuild()
     {
+        NotifyCancelled();
         if (_day is null || _resources is null)
         {
             return;
@@ -1316,7 +1323,7 @@ public partial class CalendarViewModel : ViewModelBase
             ? _resources?.Employees.FirstOrDefault(e => e.Id == id)?.InHouseName() ?? "eine andere Person"
             : null;
         var undo = new MoveUndo(before, After: result.Value.Version);
-        ShowToast($"Verschoben auf {DescribeMoved(before, result.Value)}", undo);
+        ShowToast($"Verschoben auf {WhenOf(result.Value)}", undo);
         if (fixedTo is not null)
         {
             ShowProblem("Feste Therapeut:in", $"Die feste Therapeut:in des Gastes ist {fixedTo}; der Termin liegt jetzt bei einer anderen Person.",
@@ -1367,7 +1374,7 @@ public partial class CalendarViewModel : ViewModelBase
         }
         else
         {
-            ShowToast($"Verschoben auf {DescribeDay(moved)}", new MoveUndo(before, After: moved.Version));
+            ShowToast($"Verschoben auf {WhenOf(moved)}", new MoveUndo(before, After: moved.Version));
         }
 
         if (target != Date)
@@ -1382,6 +1389,12 @@ public partial class CalendarViewModel : ViewModelBase
     /// <summary>Mit dem Tag, wenn der Termin auf einen anderen Tag gerückt ist (7-Tage-Ansicht).</summary>
     private string DescribeMoved(AppointmentDto before, AppointmentDto moved) =>
         LocalDateOf(before.Start) == LocalDateOf(moved.Start) ? Describe(moved) : DescribeDay(moved);
+
+    /// <summary>Kurzer Zeitpunkt für Toasts: heute nur die Uhrzeit, sonst Wochentag und Uhrzeit.</summary>
+    internal string WhenOf(AppointmentDto appointment) => WhenOf(appointment.Start);
+
+    internal string WhenOf(DateTimeOffset start) =>
+        DayLayout.WhenText(start, _zone, DateOnly.FromDateTime(DayLayout.Local(_time.GetUtcNow(), _zone)));
 
     private string DescribeDay(AppointmentDto appointment) =>
         $"{DayLayout.DateText(DateOnly.FromDateTime(DayLayout.Local(appointment.Start, _zone)))}, {Describe(appointment)}";
@@ -1427,9 +1440,9 @@ public partial class CalendarViewModel : ViewModelBase
         Problem = null;
         ShowToast(undo.Kind switch
         {
-            UndoKind.Cancel => $"Termin wieder gebucht: {Describe(result.Value)}",
+            UndoKind.Cancel => $"Wieder gebucht: {result.Value.CustomerName}, {WhenOf(result.Value)}",
             UndoKind.CheckIn => $"Einchecken zurückgenommen: {result.Value.CustomerName}",
-            _ => $"Zurück auf {Describe(result.Value)}",
+            _ => $"Zurück auf {WhenOf(result.Value)}",
         });
     }
 

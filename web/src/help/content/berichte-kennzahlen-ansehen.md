@@ -4,7 +4,7 @@ bereich: Berichte
 oberflaeche: verwaltung
 rollen: leitung, inhaber, manager
 seite: verwaltung
-stichwoerter: Management, Cockpit, Kennzahlen, KPI, Umsatz, Auslastung, No-Show, Storno-Quote, Durchschnittsbon, Stammgäste, neue Gäste, Folgetermin, Marge, Vollkosten, Erlöskonto, Kostenstelle, Personal, Alarme, Vorperiode, wie läuft das Geschäft, revenue, utilization, dashboard, figures
+stichwoerter: Management, Cockpit, Kennzahlen, KPI, Umsatz, Auslastung, No-Show, Storno-Quote, Durchschnittsbon, Stammgäste, neue Gäste, Folgetermin, Marge, Vollkosten, Erlöskonto, Kostenstelle, Personal, Alarme, Vorperiode, Export, Excel, CSV, Kennzahlen exportieren, wie läuft das Geschäft, revenue, utilization, dashboard, figures
 ---
 # Kennzahlen im Management ansehen
 
@@ -15,6 +15,7 @@ Der Reiter „Management“ zeigt die Kennzahlen eines Standorts für einen Zeit
 1. In der Windows-App unter „Verwaltung“ **Zahlen** öffnen, den Reiter **Berichte** und darin **Management** wählen.
 2. **Standort** wählen.
 3. **Von** und **Bis** setzen. Vorbelegt sind der Monatserste und heute. Der Zeitraum darf höchstens ein Jahr lang sein.
+4. Wer die Zahlen weitergeben will: **Exportieren** daneben speichert die Kennzahlen des Zeitraums mit Wert, Vorperiode und Einheit als Excel oder CSV. Beträge stehen nur darin, wenn man sie auf der Seite auch sieht.
 
 ![Management mit Kennzahlen](images/app/verwaltung-berichte-management.png)
 

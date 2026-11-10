@@ -14,6 +14,9 @@ public sealed class ChangeHistoryTests(ApiFixture fixture)
 {
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
 
+    /// <summary>Uhrzeit am heutigen Tag in Wien: Die Tagesregel am Status-Endpunkt rechnet mit der echten Uhr.</summary>
+    private static DateTimeOffset TodayAt(int hour) => TestSpa.At(hour, 0, DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Europe/Vienna")).DateTime));
+
     private static string HistoryPath(Guid appointmentId) => $"/api/appointments/{appointmentId}/history";
 
     [Fact]
@@ -56,7 +59,8 @@ public sealed class ChangeHistoryTests(ApiFixture fixture)
     public async Task Notiz_und_Nicht_erschienen_stehen_mit_Person_im_Verlauf_und_ein_fremder_Termin_ist_nicht_gefunden()
     {
         var spa = await TestSpa.CreateAsync(fixture, Ct);
-        var appointment = await spa.BookOkAsync(TestSpa.At(10), Ct, spa.Anna.Id);
+        // Die Person im Verlauf stammt aus der Anfrage am Endpunkt; die Tagesregel verlangt dafür einen Termin am heutigen Tag.
+        var appointment = await spa.BookOkAsync(TodayAt(10), Ct, spa.Anna.Id);
         _ = await spa.PutAsync<AppointmentDto>($"/api/appointments/{appointment.Id}/note", new AppointmentNoteRequest("Lavendelöl"), Ct);
         _ = await spa.PostAsync<AppointmentDto>($"/api/appointments/{appointment.Id}/status", new AppointmentStatusChange(AppointmentStatus.NoShow), Ct);
 

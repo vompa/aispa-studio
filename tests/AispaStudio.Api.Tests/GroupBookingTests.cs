@@ -282,8 +282,7 @@ public sealed class GroupBookingTests(ApiFixture fixture)
         var massage = spa.MassageTreatment.Id;
         var couple = await BookGroupOkAsync(spa, TestSpa.At(10), 0,
             new GroupBookingItem(massage, spa.Customer.Id, 0), new GroupBookingItem(massage, partner.Id, 0));
-        await spa.PostAsync<AppointmentDto>($"/api/appointments/{couple.Appointments[0].Id}/status",
-            new AppointmentStatusChange(AppointmentStatus.CheckedIn), Ct);
+        await spa.SetStatusAsync(couple.Appointments[0].Id, AppointmentStatus.CheckedIn, Ct);
 
         var response = await MoveGroupAsync(spa, couple.GroupId, TestSpa.At(14));
 

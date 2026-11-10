@@ -4,7 +4,7 @@ bereich: Kassa
 oberflaeche: windows-app
 rollen: rezeption, leitung, inhaber, manager
 seite: kassa
-stichwoerter: Kassa, Kasse, Kassieren, Rechnung, Beleg, Bon, abrechnen, bezahlen, Zahlung, Registrierkasse, RKSV, TSE, Tagesabschluss, Z-Bericht, Kassenlade, POS, checkout, cash register, till, receipt
+stichwoerter: Kassa, Kasse, Kassieren, Rechnung, Beleg, Bon, abrechnen, bezahlen, Zahlung, Registrierkasse, RKSV, TSE, Tagesabschluss, Z-Bericht, Kassenlade, POS, Export, Excel, CSV, Belegliste exportieren, Umsatz exportieren, Gutscheinbestand, checkout, cash register, till, receipt
 ---
 # Seite „Kassa“ in der Windows-App
 
@@ -19,6 +19,7 @@ Die Seite sehen alle, die Termine buchen dürfen (Inhaber, Standortleitung, Reze
 - Drei Bereiche zum Umschalten: **Kassieren**, **Belege** und **Kassenlade & Abschluss**.
 - Die Auswahl der Kasse („Kasse WIEN-1“ usw.). Kommt man aus dem Kalender, ist die Kasse des Standorts des Termins gewählt.
 - Der Knopf mit den Pfeilen (**Aktualisieren**) lädt die offenen Termine und Rechnungen neu.
+- **Exportieren** speichert Listen der gewählten Kasse als Excel oder CSV: Belegliste, Umsatz je Tag, je Zahlart und je Behandlung und Person sowie die Tagesabschlüsse, jeweils für den Belegtag im Bereich **Belege**, dazu den Gutscheinbestand. Den Knopf sehen nur Inhaberin und Geschäftsführung; jeder Export steht im Verlauf.
 - Rote Hinweise nennen Fehler, gelbe Hinweise Warnungen der Kasse, z. B. „Signatureinrichtung ausgefallen …“ oder „Kasse außer Betrieb (Schlussbeleg erstellt).“
 
 ## Kassieren {#kassieren}
@@ -41,7 +42,7 @@ Vier Bereiche nebeneinander:
 
 ## Belege {#belege}
 
-Links „Belege heute“ dieser Kasse, neueste zuerst (mit den Pfeilen daneben zeigt die Liste den Tag davor oder danach), mit Uhrzeit, Nummer, Zahlungsarten und Betrag. Stornobelege tragen „Storno“, stornierte Belege „storniert“. Rechts der gewählte Beleg mit **Drucken**, „Rechnung mit Empfänger“ und „Beleg stornieren“. Bei einem online bezahlten Beleg steht darüber eine Karte mit dem Weg des Geldes und dem Stand der Erstattung, siehe [Beleg stornieren](hilfe:kassa-beleg-stornieren#online).
+Links „Belege heute“ dieser Kasse, neueste zuerst (mit den Pfeilen daneben zeigt die Liste den Tag davor oder danach), mit Uhrzeit, Nummer, Zahlungsarten und Betrag. Stornobelege tragen „Storno“, stornierte Belege „storniert“. Rechts der gewählte Beleg mit **Drucken**, dem Knopfblock **A4 drucken**, **PDF speichern** und **Per Mail senden** ([Belege als PDF](hilfe:kassa-beleg-drucken#pdf)), „Rechnung mit Empfänger“ und „Beleg stornieren“. Bei einem online bezahlten Beleg steht darüber eine Karte mit dem Weg des Geldes und dem Stand der Erstattung, siehe [Beleg stornieren](hilfe:kassa-beleg-stornieren#online).
 
 ## Kassenlade und Abschluss {#abschluss}
 
@@ -56,7 +57,7 @@ Links der „Zwischenbericht seit dem letzten Abschluss“: Umsatz, Zahlungsarte
 
 ## Rechte und Eingaben {#rechte}
 
-- **Entnahme** sehen nur Standortleitung und Inhaber.
+- **Entnahme** sehen nur Standortleitung und Inhaber; für die Rezeption heißt der Kasten „Einlage“ und zeigt keine Reiter, es gibt nur die Einlage.
 - Stornieren dürfen Standortleitung und Inhaber jeden Beleg; die Rezeption nur eigene Belege bis 15 Minuten nach dem Kassieren.
 - Beträge mit Komma oder Punkt eingeben, z. B. „12,50“ oder „12.50“. Ein Betrag, der sich nicht lesen lässt oder mehr als zwei Nachkommastellen hat, bekommt beim Verlassen des Feldes einen Hinweis. Ein lesbarer Betrag gilt schon beim Tippen: Ein Knopf wie **Wertgutschein verkaufen** lässt sich gleich drücken, ohne das Feld zu verlassen. Solange ein Betrag nicht lesbar ist, sind **Bezahlen und Beleg erstellen** und die anderen Knöpfe zum Bezahlen, Buchen und Abschließen gesperrt.
 - Ist noch keine Kasse eingerichtet, führt die Einrichtung über **Verwaltung** › **Kassa & Geld** › **Kassa**.
@@ -73,6 +74,8 @@ Links der „Zwischenbericht seit dem letzten Abschluss“: Umsatz, Zahlungsarte
 - [Rechnung parken](hilfe:kassa-rechnung-parken)
 - [Rechnung mit Empfänger (Firmenrechnung)](hilfe:kassa-rechnung-mit-empfaenger)
 - [Belege ansehen und drucken](hilfe:kassa-beleg-drucken)
+- [Dokumente drucken, als PDF speichern und per Mail senden](hilfe:dokumente-drucken-speichern-senden)
+- [Gutscheinliste drucken](hilfe:kassa-gutschein-verkaufen#gutscheinliste)
 - [Beleg stornieren](hilfe:kassa-beleg-stornieren)
 - [Einlage oder Entnahme buchen](hilfe:kassa-einlage-entnahme)
 - [Tagesabschluss](hilfe:kassa-tagesabschluss)

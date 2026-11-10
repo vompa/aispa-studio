@@ -79,7 +79,7 @@ public sealed class AssistantTests(ApiFixture fixture)
         var spa = await TestSpa.CreateAsync(fixture, Ct);
         await spa.BookOkAsync(TestSpa.At(10), Ct, spa.Anna.Id);
         var noShow = await spa.BookOkAsync(TestSpa.At(12), Ct, spa.Ben.Id);
-        await spa.PostAsync<AppointmentDto>($"/api/appointments/{noShow.Id}/status", new AppointmentStatusChange(AppointmentStatus.NoShow), Ct);
+        await spa.SetStatusAsync(noShow.Id, AppointmentStatus.NoShow, Ct);
 
         var answer = await AskAsync(spa.Client, "Auswertung für den 01.03.2027: Umsatz und Auslastung?", spa.Location.Id);
         Assert.Equal(AssistantAudience.Management, answer.Audience);

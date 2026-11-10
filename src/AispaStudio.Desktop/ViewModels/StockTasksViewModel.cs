@@ -61,6 +61,7 @@ public sealed partial class StockTasksViewModel : ViewModelBase
         {
             OnPropertyChanged(name);
         }
+        UpdateDocument();
     }
 
     private void Fill(ObservableCollection<StockTaskRow> rows, IReadOnlyList<StockExpiryTaskDto>? tasks, bool writeOff)

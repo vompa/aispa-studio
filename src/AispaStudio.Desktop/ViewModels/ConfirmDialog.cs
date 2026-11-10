@@ -28,8 +28,9 @@ public enum ConfirmChoice
 /// <param name="AlternativeText">Eine zweite Aktion, z. B. „Diesen und alle folgenden“; ohne Text gibt es nur zwei Knöpfe.</param>
 /// <param name="InputLabel">Beschriftung eines Textfelds über den Knöpfen (z. B. „Grund“); ohne Text gibt es kein Feld.</param>
 /// <param name="InputText">Vorbelegung des Felds.</param>
+/// <param name="Notice">Hinweis zum Objekt (meldungen.md M3) mit Symbol zwischen Text und Feld, z. B. die Stornofrist; ohne Text keine Zeile.</param>
 public sealed record ConfirmRequest(string Title, string Message, string ConfirmText, bool IsDestructive = true, string CancelText = "Abbrechen",
-    string? AlternativeText = null, string? InputLabel = null, string? InputText = null);
+    string? AlternativeText = null, string? InputLabel = null, string? InputText = null, string? Notice = null);
 
 /// <summary>Die Antwort: welcher Knopf und, wenn die Rückfrage ein Feld hatte, dessen Text.</summary>
 public sealed record ConfirmResult(ConfirmChoice Choice, string? Input = null)
@@ -82,6 +83,10 @@ public partial class ConfirmDialogViewModel : ObservableObject
     public bool HasInput => Request.InputLabel is not null;
 
     public string? InputLabel => Request.InputLabel;
+
+    public bool HasNotice => Request.Notice is not null;
+
+    public string? Notice => Request.Notice;
 
     [ObservableProperty]
     public partial string Input { get; set; }

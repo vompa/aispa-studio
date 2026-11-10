@@ -114,43 +114,12 @@ internal static class TimeTrackingEndpoints
                 var access = (await accessService.CurrentAsync(ct))!;
 
                 var count = Math.Clamp(days ?? 7, 1, 31);
-                var until = from.AddDays(count - 1);
                 var stamped = db.TimeRecords.Where(r => r.LocationId == locationId && !r.IsDeleted).Select(r => r.EmployeeId);
                 var employees = await db.Employees.AsNoTracking().Include(e => e.WorkingHours)
                     .Where(e => employeeId == null ? roster.EmployeesAt(locationId, from).Any(x => x.Id == e.Id) || stamped.Contains(e.Id) : e.IsActive && e.Id == employeeId)
                     .OrderBy(e => e.DisplayName)
                     .ToListAsync(ct);
-                var ids = employees.Select(e => e.Id).ToList();
-                var plans = await roster.PlansAsync(employees, from, until, ct);
-                var actual = await times.DaysAsync(ids, from.AddDays(-1), until, ct);
-                var rules = await roster.RulesAsync(ct);
-                var dates = Enumerable.Range(0, count).Select(from.AddDays).ToList();
-
-                var rows = employees.Select(e =>
-                    {
-                        var cells = dates.Select(d =>
-                            {
-                                // Wie beim Dienstplan: nur sichtbare Standorte; die Hinweise zum Arbeitszeitrecht rechnen über alle Abschnitte der Person.
-                                var whole = actual.GetValueOrDefault((e.Id, d)) ?? [];
-                                var spans = whole.Where(s => access.CanSee(s.Record.LocationId)).ToList();
-                                var previous = actual.GetValueOrDefault((e.Id, d.AddDays(-1)));
-                                var warnings = spans.Count == 0 ? [] : WorkingTime.DayWarnings([.. whole.Select(s => (s.Start, s.End))], previous?.Max(s => s.End), rules, checkBreaks: true);
-                                if (spans.Any(s => s.Running && s.End - s.Start > ForgottenAfter))
-                                {
-                                    warnings.Insert(0, "Seit über 12 Stunden eingestempelt: Gehen vergessen?");
-                                }
-
-                                return new TimesheetDay(d, Math.Round(plans[(e.Id, d)].VisibleTo(access.CanSee, absences: false).Hours, 2), Math.Round(TimeTrackingService.Hours(spans), 2),
-                                    TimeTrackingService.BreakMinutes(spans), [.. spans.Select(s => TimeTrackingService.ToDto(s.Record))], warnings);
-                            })
-                            .ToList();
-                        var worked = dates.Select(d => actual.GetValueOrDefault((e.Id, d)) ?? []).ToList();
-                        var weekHours = worked.Sum(TimeTrackingService.Hours);
-                        var weekWarnings = WorkingTime.WeekWarnings(count >= 7 ? weekHours / count * 7 : 0, [.. worked.Select(w => w.Count > 0)], rules);
-                        return new TimesheetRow(e.Id, e.DisplayName, e.Color, cells, Math.Round(cells.Sum(c => c.PlannedHours), 2),
-                            Math.Round(cells.Sum(c => c.ActualHours), 2), weekWarnings);
-                    })
-                    .ToList();
+                var (rules, dates, rows) = await RowsAsync(employees, from, count, access, roster, times, ct);
 
                 return TypedResults.Ok(new Timesheet(locationId, rules.Country, from, dates, rows));
             })
@@ -263,6 +232,48 @@ internal static class TimeTrackingEndpoints
             .WithSummary("Änderungsprotokoll eines Abschnitts.");
 
         return routes;
+    }
+
+    /// <summary>
+    /// Soll und Ist der Personen für <paramref name="count"/> Tage ab <paramref name="from"/>, wie sie die Zeiten-Maske und die Stundenliste (PDF) zeigen: nur die Abschnitte an Standorten,
+    /// die die angemeldete Person sehen darf, mit den Hinweisen zum Arbeitszeitrecht des Landes.
+    /// </summary>
+    internal static async Task<(WorkingTimeRules Rules, List<DateOnly> Dates, List<TimesheetRow> Rows)> RowsAsync(
+        IReadOnlyList<Employee> employees, DateOnly from, int count, UserAccess access, RosterService roster, TimeTrackingService times, CancellationToken ct)
+    {
+        var until = from.AddDays(count - 1);
+        var ids = employees.Select(e => e.Id).ToList();
+        var plans = await roster.PlansAsync(employees, from, until, ct);
+        var actual = await times.DaysAsync(ids, from.AddDays(-1), until, ct);
+        var rules = await roster.RulesAsync(ct);
+        var dates = Enumerable.Range(0, count).Select(from.AddDays).ToList();
+
+        var rows = employees.Select(e =>
+            {
+                var cells = dates.Select(d =>
+                    {
+                        // Wie beim Dienstplan: nur sichtbare Standorte; die Hinweise zum Arbeitszeitrecht rechnen über alle Abschnitte der Person.
+                        var whole = actual.GetValueOrDefault((e.Id, d)) ?? [];
+                        var spans = whole.Where(s => access.CanSee(s.Record.LocationId)).ToList();
+                        var previous = actual.GetValueOrDefault((e.Id, d.AddDays(-1)));
+                        var warnings = spans.Count == 0 ? [] : WorkingTime.DayWarnings([.. whole.Select(s => (s.Start, s.End))], previous?.Max(s => s.End), rules, checkBreaks: true);
+                        if (spans.Any(s => s.Running && s.End - s.Start > ForgottenAfter))
+                        {
+                            warnings.Insert(0, "Seit über 12 Stunden eingestempelt: Gehen vergessen?");
+                        }
+
+                        return new TimesheetDay(d, Math.Round(plans[(e.Id, d)].VisibleTo(access.CanSee, absences: false).Hours, 2), Math.Round(TimeTrackingService.Hours(spans), 2),
+                            TimeTrackingService.BreakMinutes(spans), [.. spans.Select(s => TimeTrackingService.ToDto(s.Record))], warnings);
+                    })
+                    .ToList();
+                var worked = dates.Select(d => actual.GetValueOrDefault((e.Id, d)) ?? []).ToList();
+                var weekHours = worked.Sum(TimeTrackingService.Hours);
+                var weekWarnings = WorkingTime.WeekWarnings(count >= 7 ? weekHours / count * 7 : 0, [.. worked.Select(w => w.Count > 0)], rules);
+                return new TimesheetRow(e.Id, e.DisplayName, e.Color, cells, Math.Round(cells.Sum(c => c.PlannedHours), 2),
+                    Math.Round(cells.Sum(c => c.ActualHours), 2), weekWarnings);
+            })
+            .ToList();
+        return (rules, dates, rows);
     }
 
     private static async Task<MyTimeStatus> StatusAsync(UserAccess access, AispaDbContext db, TimeTrackingService times, TimeProvider time, CancellationToken ct)

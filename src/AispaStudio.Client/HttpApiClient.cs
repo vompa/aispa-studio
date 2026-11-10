@@ -68,6 +68,12 @@ public class HttpApiClient : IAispaApi
     /// <summary>Verbindung verloren oder wieder da.</summary>
     public event Action? ConnectivityChanged;
 
+    /// <summary>Ein Aufruf erreichte den Server nicht (technische Ursache für das Protokoll; die Oberfläche zeigt nur <see cref="Unreachable"/>).</summary>
+    public event Action<Exception>? TransportFailed;
+
+    /// <summary>Lesbarer Fehler mit Weg, ohne Systemtext (meldungen.md M5).</summary>
+    public const string Unreachable = "Server nicht erreichbar. Verbindung prüfen und erneut versuchen.";
+
     /// <summary>Aktuelles Anmelde-Cookie für SignalR (das eine eigene Verbindung aufbaut).</summary>
     public string? SessionCookie => _cookies.GetCookies(BaseAddress)[CookieName]?.Value ?? _store.Load();
 
@@ -268,8 +274,51 @@ public class HttpApiClient : IAispaApi
         }
         catch (HttpRequestException ex)
         {
-            return new(null, $"Server nicht erreichbar: {ex.Message}", 0);
+            ReportTransportFailure(ex);
+            return new(null, Unreachable, 0);
         }
+    }
+
+    /// <summary>Eine Datei zum Speichern (Export) oder ein PDF der Dokumente (ADR 0092); der Dateiname kommt aus <c>Content-Disposition</c> (<c>filename*</c> vor <c>filename</c>).</summary>
+    public async Task<ApiResult<ApiFile>> GetFileAsync(string path, CancellationToken ct = default)
+    {
+        try
+        {
+            using var response = await _http.GetAsync(Versioned(path), ct).ConfigureAwait(false);
+            return await ReadFileAsync(response, ct).ConfigureAwait(false);
+        }
+        catch (HttpRequestException ex)
+        {
+            ReportTransportFailure(ex);
+            return new(null, Unreachable, 0);
+        }
+    }
+
+    /// <summary>Wie <see cref="GetFileAsync"/>, aber mit einem Rumpf (z. B. eine hochgeladene Datei als <c>multipart/form-data</c>), dessen Antwort eine Datei ist.</summary>
+    public async Task<ApiResult<ApiFile>> PostFileAsync(string path, HttpContent body, CancellationToken ct = default)
+    {
+        try
+        {
+            using var response = await _http.PostAsync(Versioned(path), body, ct).ConfigureAwait(false);
+            return await ReadFileAsync(response, ct).ConfigureAwait(false);
+        }
+        catch (HttpRequestException ex)
+        {
+            ReportTransportFailure(ex);
+            return new(null, Unreachable, 0);
+        }
+    }
+
+    private static async Task<ApiResult<ApiFile>> ReadFileAsync(HttpResponseMessage response, CancellationToken ct)
+    {
+        if (!response.IsSuccessStatusCode)
+        {
+            return new(null, await ErrorAsync(response, ct).ConfigureAwait(false), response.StatusCode);
+        }
+
+        var disposition = response.Content.Headers.ContentDisposition;
+        var name = (disposition?.FileNameStar ?? disposition?.FileName)?.Trim('"');
+        return new(new ApiFile(await response.Content.ReadAsByteArrayAsync(ct).ConfigureAwait(false), string.IsNullOrWhiteSpace(name) ? null : name), null, response.StatusCode);
     }
 
     public Task<ApiResult<T>> PutAsync<T>(string path, object? body, CancellationToken ct = default) => SendAsync<T>(HttpMethod.Put, path, body, ct);
@@ -321,8 +370,9 @@ public class HttpApiClient : IAispaApi
         }
         catch (HttpRequestException ex)
         {
+            ReportTransportFailure(ex);
             SetOffline(true);
-            return new(default, $"Server nicht erreichbar: {ex.Message}", 0);
+            return new(default, Unreachable, 0);
         }
         catch (TaskCanceledException) when (!ct.IsCancellationRequested)
         {
@@ -339,6 +389,15 @@ public class HttpApiClient : IAispaApi
         path.StartsWith(ApiPrefix, StringComparison.Ordinal) && !SkipPrefixes.Any(p => path.StartsWith(p, StringComparison.Ordinal))
             ? VersionPrefix + path[ApiPrefix.Length..]
             : path;
+
+    /// <summary>Die technische Ursache (Systemtext mit Host und Port) gehört ins Protokoll der App, nicht in die Oberfläche; einmal je Übergang zu „ohne Verbindung“.</summary>
+    private void ReportTransportFailure(HttpRequestException error)
+    {
+        if (!IsOffline)
+        {
+            TransportFailed?.Invoke(error);
+        }
+    }
 
     private void SetOffline(bool offline)
     {

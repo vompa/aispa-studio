@@ -30,6 +30,20 @@ public sealed partial class ViewTests
     });
 
     [Fact]
+    public Task Termin_Vorschau_bricht_einen_langen_Namen_um_statt_ihn_abzuschneiden() => Render("hell", "termin-vorschau-umbruch", async (window, main) =>
+    {
+        var calendar = await SignedInCalendar(main);
+        await Pump();
+        calendar.StartBookingAt(10, calendar.Hours.Single(h => h.Label == "12:00").Top + 1);
+        await Pump(Settling);
+
+        var preview = PreviewText(window, calendar.Ghost!.Text, "AccentBrush");
+        Assert.NotNull(preview);
+        Assert.Equal(Avalonia.Media.TextWrapping.Wrap, preview.TextWrapping);
+        return calendar;
+    });
+
+    [Fact]
     public Task Termin_Vorschau_steht_in_Warnfarbe_wenn_die_Zeit_belegt_ist() => Render("hell", "termin-vorschau-belegt", async (window, main) =>
     {
         var calendar = await SignedInCalendar(main);

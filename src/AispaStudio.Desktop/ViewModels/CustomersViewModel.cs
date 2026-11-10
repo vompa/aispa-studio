@@ -95,6 +95,10 @@ public partial class CustomersViewModel(IWorkstationApi api, TimeProvider time) 
         }
 
         Suggestion = null;
+        DataAccessDocument = null;
+        DataAccessMessage = null;
+        MasterSheetDocument = null;
+        MasterSheetMessage = null;
         ResetCard();
         HistorySection = value is null
             ? null
@@ -102,6 +106,7 @@ public partial class CustomersViewModel(IWorkstationApi api, TimeProvider time) 
                 "Änderungen", "Die Änderungen wurden nicht geladen.");
         _ = LoadVisitsAsync(value);
         _ = LoadEmailsAsync(value);
+        _ = LoadConsentAsync(value);
     }
 
     /// <summary>„Schon vorhanden?“ beim Anlegen einer neuen Kundin: Treffer der Kundensuche zu Nachname, Telefon und Mailadresse.</summary>
@@ -113,7 +118,11 @@ public partial class CustomersViewModel(IWorkstationApi api, TimeProvider time) 
 
     partial void OnNewPhoneChanged(string value) => CheckMatches();
 
-    partial void OnNewEmailChanged(string value) => CheckMatches();
+    partial void OnNewEmailChanged(string value)
+    {
+        NewEmailError = null;
+        CheckMatches();
+    }
 
     private void CheckMatches() => _ = Matches.CheckAsync(NewLastName, NewPhone, NewEmail);
 
@@ -181,7 +190,7 @@ public partial class CustomersViewModel(IWorkstationApi api, TimeProvider time) 
 
     /// <summary>Etwas ist im Bearbeiten-Zustand (Stammdaten, eine Karte oder „Neue Kundin“); dann ist „Neue Kundin“ oben kein Primärknopf.</summary>
     public bool IsEditingAny => ShowNew || IsEditingContact || IsAddingFlag || IsEditingWishes || IsEditingReceptionNote
-        || IsEditingBooking || IsEditingBilling || IsEditingDiscount || IsAddingEmail;
+        || IsEditingBooking || IsEditingBilling || IsEditingDiscount || IsAddingEmail || IsEditingConsent;
 
     /// <summary>Zählt jedes Schließen mit; ein Öffner, der auf den Server wartet, öffnet danach nur, wenn inzwischen nichts anderes geöffnet wurde.</summary>
     private int _editorGeneration;
@@ -198,6 +207,7 @@ public partial class CustomersViewModel(IWorkstationApi api, TimeProvider time) 
         IsEditingBilling = false;
         IsEditingDiscount = false;
         IsAddingEmail = false;
+        IsEditingConsent = false;
     }
 
     /// <summary>Esc in einer Karte oder in „Neue Kundin“: schließt sie wie ihr „Abbrechen“; false, wenn keine offen war (Stammdaten zählen nicht).</summary>
@@ -209,7 +219,7 @@ public partial class CustomersViewModel(IWorkstationApi api, TimeProvider time) 
             return true;
         }
 
-        if (!(IsAddingFlag || IsEditingWishes || IsEditingReceptionNote || IsEditingBooking || IsEditingBilling || IsEditingDiscount || IsAddingEmail))
+        if (!(IsAddingFlag || IsEditingWishes || IsEditingReceptionNote || IsEditingBooking || IsEditingBilling || IsEditingDiscount || IsAddingEmail || IsEditingConsent))
         {
             return false;
         }
@@ -221,6 +231,7 @@ public partial class CustomersViewModel(IWorkstationApi api, TimeProvider time) 
         IsEditingBilling = false;
         IsEditingDiscount = false;
         IsAddingEmail = false;
+        IsEditingConsent = false;
         return true;
     }
 
@@ -590,6 +601,11 @@ public partial class CustomersViewModel(IWorkstationApi api, TimeProvider time) 
     private async Task CreateCustomerAsync(bool thenBook)
     {
         Error = null;
+        if (!ValidateNewEmail(focusOnError: true))
+        {
+            return;
+        }
+
         static string? Blank(string value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
         var result = await api.CreateCustomerAsync(new CustomerInput(NewFirstName.Trim(), NewLastName.Trim(),
             Blank(NewEmail), Blank(NewPhone), null, Blank(NewNote), Salutation: NewSalutation.Value, PreferredName: Blank(NewPreferredName),

@@ -12,12 +12,15 @@
     <PackageReference Include="Anthropic" />
     <PackageReference Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL" />
     <PackageReference Include="AspNet.Security.OAuth.Apple" />
+    <PackageReference Include="ClosedXML" />
     <PackageReference Include="MailKit" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" />
     <PackageReference Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.StackExchangeRedis" />
+    <PackageReference Include="PDFsharp" />
+    <PackageReference Include="QRCoder" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -39,6 +42,11 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="AispaStudio.Api.Tests" />
+  </ItemGroup>
+
+  <!-- Eingebettete Schrift der PDF-Dokumente (Liberation Sans, SIL OFL 1.1; ADR 0092), gelesen von Documents/DocumentFonts.cs. -->
+  <ItemGroup>
+    <EmbeddedResource Include="Documents\Fonts\*.ttf" LogicalName="Fonts/%(Filename)%(Extension)" />
   </ItemGroup>
 
   <!-- GenerateDocumentationFile dient nur der Prüfung IDE0005; XML-Kommentare enthalten interne Hinweise und gehören nicht ins OpenAPI-Dokument. -->

@@ -14,7 +14,7 @@ Beim Rundenabschluss wird geprüft, dass jede Aufgabe der Runde einen vollständ
 
 ## Blöcke
 
-Ohne Block, weil die Aufgabe nichts Sichtbares ändert: T-013 (Entscheidung, nur Doku), T-014 (Entscheidung, keine Änderung), T-016 (Sichtung der zurückgestellten Kleinigkeiten), T-030 (CI-Zeitlimits), T-033 (Beispieldaten und Test), T-034 (Werkzeug knip, unbenutztes Paket entfernt), T-035 (Skill und Doku), T-040 (ADR und Konzept, nur Doku).
+Ohne Block, weil die Aufgabe nichts Sichtbares ändert: T-013 (Entscheidung, nur Doku), T-014 (Entscheidung, keine Änderung), T-016 (Sichtung der zurückgestellten Kleinigkeiten), T-030 (CI-Zeitlimits), T-033 (Beispieldaten und Test), T-034 (Werkzeug knip, unbenutztes Paket entfernt), T-035 (Skill und Doku), T-040 (ADR und Konzept, nur Doku), Export/Import Aufgabe A (Export-Dienst, Knopf ohne Seite; der Knopf ist im Block „Export/Import B“ geprüft).
 
 ### T-015 – Keine Stempeluhr in „Mein Tag“, Zeiten trägt die Leitung ein
 Start: Browser in Handybreite (z. B. 390 px), die Adresse des Spas mit `/mein-tag/` öffnen, als Mitarbeiterin (Therapeutin) anmelden
@@ -428,4 +428,557 @@ Expected: Die Daten sind da; die Datenbank wurde geordnet gestoppt (kein Wiederh
 4. Im Task-Manager den Prozess der lokalen API (`AispaStudio.Api`) beenden, die App danach schließen.
 Expected: Die App endet trotzdem, spätestens nach etwa 20 Sekunden, ohne eingefrorenes Fenster.
 Closes: – (T-053, Linter AV-APP-07)
+Result: ☐
+
+### Rezeptions-Lücken A – Verschieben nicht in die Vergangenheit
+Start: `dotnet run --project src/AispaStudio.AppHost`, im Aspire-Dashboard die Ressource `windows-app` starten, als Rezeption anmelden, im Kalender einen gebuchten Termin von morgen anklicken
+1. Im Terminfenster **Verschieben …** klicken.
+Expected: Das Feld „Tag“ zeigt den Termintag; **−1 Tag** ist bedienbar.
+2. Bei „Tag“ das Datum von gestern eintippen und das Feld verlassen.
+Expected: Das Feld meldet das Datum als zu früh, **Verschieben** ist gesperrt; beim Zeigen darauf steht „Verfügbar für heute oder einen späteren Tag.“
+3. Das Datum auf heute setzen.
+Expected: **Verschieben** ist wieder bedienbar, **−1 Tag** ist gesperrt.
+4. Mit einem zweiten Werkzeug (z. B. `curl`) `POST /api/appointments/{id}/move` mit einem Beginn von gestern senden.
+Expected: Antwort 409 mit „Termine lassen sich nicht in die Vergangenheit verschieben. Bitte heute oder einen späteren Tag wählen.“; der Termin bleibt an seinem Platz.
+Closes: L2 (live-tests-rezeption-onboarding.md, Abschnitt 3)
+Result: ☐
+
+### Rezeptions-Lücken B – Einchecken nur am Tag des Termins, Rechnung nur eingecheckt oder erledigt
+Start: `dotnet run --project src/AispaStudio.AppHost`, im Aspire-Dashboard die Ressource `windows-app` starten, als Rezeption anmelden, im Kalender auf morgen blättern und einen gebuchten Termin anklicken
+1. Das Terminfenster ansehen und den Termin markieren.
+Expected: Kein Knopf **Einchecken**; die Tastenleiste zeigt **E** gesperrt mit „Einchecken: nur am Tag des Termins“; Rechtsklick auf den Termin bietet kein **Einchecken**.
+2. Im Terminfenster **Mehr** aufklappen.
+Expected: **Erledigt** und **Nicht erschienen** sind gesperrt; beim Zeigen darauf steht „Verfügbar ab dem Tag des Termins.“
+3. Zurück auf heute, einen gebuchten Termin von heute anklicken.
+Expected: **Einchecken** ist da, **E** in der Tastenleiste bedienbar.
+4. **Kassa** öffnen und in „Heute abzurechnen“ unter „Später heute“ die Zeile eines noch nicht eingecheckten Termins ansehen und anklicken.
+Expected: Die Zeile trägt „noch nicht eingecheckt“; es erscheint „Einchecken und kassieren?“ mit **Einchecken und kassieren** und **Abbrechen**.
+5. **Abbrechen** wählen, dann erneut klicken und **Einchecken und kassieren** wählen.
+Expected: Nach Abbrechen ändert sich nichts; nach Bestätigen steht der Termin auf der Rechnung, im Kalender ist er eingecheckt, die Zeile hat den Zusatz nicht mehr.
+6. Mit einem zweiten Werkzeug (z. B. `curl`) `POST /api/pos/bills` mit der Id eines nur gebuchten Termins senden.
+Expected: Antwort 409 „Der Gast ist noch nicht eingecheckt. Zuerst im Kalender einchecken.“
+Closes: L1 (live-tests-rezeption-onboarding.md, Abschnitt 3)
+Result: ☐
+
+### Rezeptions-Lücken C – Storno-Dialog mit Frist und Ausfallgebühr
+Start: `dotnet run --project src/AispaStudio.AppHost`, als Inhaber unter **Verwaltung** › **Standorte** für Wien Stornofrist 24 Stunden und Ausfallgebühr 50 % einstellen; dann als Rezeption im Kalender einen gebuchten Termin von heute Nachmittag anklicken
+1. **Termin stornieren …** klicken.
+Expected: Über dem Feld „Grund“ steht mit Warnsymbol „Absage innerhalb der Stornofrist (bis <gestern> HH:mm). Laut Regel fallen 50 % Ausfallgebühr an; belasten kann die Standortleitung.“; „Grund“ ist mit „Kurzfristig an der Rezeption storniert“ vorbelegt.
+2. **Abbrechen**, dann als Inhaber anmelden und denselben Termin stornieren wollen.
+Expected: Der Hinweis endet mit „Belasten unter „Ausfallgebühr belasten …“ nach dem Stornieren.“
+3. Einen gebuchten Termin in zwei Wochen anklicken und **Termin stornieren …** klicken.
+Expected: Keine Hinweiszeile, „Grund“ ist mit „An der Rezeption storniert“ vorbelegt.
+4. Die Ausfallgebühr des Standorts auf 0 % stellen und einen Termin von heute Nachmittag stornieren wollen.
+Expected: Nur „Absage innerhalb der Stornofrist (bis <gestern> HH:mm).“
+Closes: L3 (live-tests-rezeption-onboarding.md, Abschnitt 3)
+Result: ☐
+
+### Rezeptions-Lücken D – Rückfrage vor „krank melden“
+Start: `dotnet run --project src/AispaStudio.AppHost`, im Aspire-Dashboard die Ressource `windows-app` starten, als Standortleitung anmelden, Kalender mit Team-Spalten
+1. Rechtsklick auf den Spaltenkopf einer Person mit offenen Terminen, **… krank melden** wählen.
+Expected: Rückfrage „<Name> krank melden?“ mit dem Datum des Tages, Knopf **Krank melden** rot, Fokus auf **Abbrechen**.
+2. **Abbrechen** wählen.
+Expected: Der Spaltenkopf ist unverändert, kein Krankenstand, kein Assistent.
+3. Erneut wählen und **Krank melden** bestätigen.
+Expected: Spaltenkopf „krank gemeldet“, Meldung unten, der Ausfall-Assistent öffnet sich.
+4. Rechtsklick auf eine Pause und auf eine Sperrzeit, jeweils **… löschen** wählen.
+Expected: Rückfrage „Pause löschen?“ bzw. „Sperrzeit löschen?“ mit der Zeit; erst **Löschen** entfernt den Eintrag.
+Closes: L10 (live-tests-rezeption-onboarding.md, Abschnitt 3)
+Result: ☐
+
+### Rezeptions-Lücken E – Hinweis „Keine Kontaktmöglichkeit“ beim Buchen
+Start: `dotnet run --project src/AispaStudio.AppHost`, als Rezeption anmelden, unter **Kunden** eine Kundin nur mit Namen anlegen (ohne Telefon und E-Mail), dann im Kalender **Termin** wählen
+1. Im Buchungsbereich die neue Kundin suchen und wählen.
+Expected: Unter dem Gast steht die Pille **Keine Kontaktmöglichkeit**; beim Zeigen darauf „Ohne Telefon oder E-Mail gehen keine Erinnerung und keine Zusage hinaus, bis der Kontakt in der Kundenkarte ergänzt ist“; **Buchen** bleibt möglich.
+2. **Ändern** und eine Kundin mit Telefon wählen.
+Expected: Keine Pille.
+Closes: L5 (live-tests-rezeption-onboarding.md, Abschnitt 3)
+Result: ☐
+
+### Rezeptions-Lücken F – Toast beim Buchen, Taste V, Automation-Namen
+Start: `dotnet run --project src/AispaStudio.AppHost`, als Rezeption anmelden, Kalender
+1. **Termin** klicken, Gast und Behandlung wählen, **Buchen**.
+Expected: Unten erscheint „Gebucht: <Gast>, <Tag> <HH:mm>“ wie nach der Freie-Zeit-Suche.
+2. Einen gebuchten Termin anklicken (markieren) und **V** drücken.
+Expected: Das Terminfenster öffnet sich mit der Verschieben-Karte (Tag, Beginn).
+3. Einen eingecheckten Termin markieren und **V** drücken.
+Expected: Nur der Hinweis „Verschieben: ziehen oder Alt + Pfeiltasten, zurück mit Strg+Z“.
+4. **F1** drücken.
+Expected: In der Gruppe „Markierter Termin“ steht **V** „Verschieben-Karte: anderer Tag oder Beginn“.
+5. Mit einem UI-Automation-Werkzeug (z. B. Accessibility Insights) den Knopf **Termin** und den Text der Meldung unten ansehen.
+Expected: Name „Termin“ bzw. „Meldung“.
+Closes: L11, L16 (live-tests-rezeption-onboarding.md, Abschnitt 3)
+Result: ☐
+
+### Rezeptions-Lücken G – Tab „Entnahme“ nur mit Kassenaufsicht
+Start: `dotnet run --project src/AispaStudio.AppHost`, als Rezeption anmelden, **Kassa** › oben **Kassenlade** (Tagesabschluss)
+1. Den Kasten rechts ansehen.
+Expected: Überschrift „Einlage“, kein Reiter (es gibt nur die Einlage), darunter „Kein Umsatz. Entnehmen darf nur, wer die Kassenaufsicht hat.“
+2. Abmelden, als Standortleitung anmelden, dieselbe Stelle öffnen.
+Expected: Überschrift „Einlage oder Entnahme“, Tabs **Einlage** und **Entnahme**.
+Closes: L6 (live-tests-rezeption-onboarding.md, Abschnitt 3)
+Result: ☐
+
+### Rezeptions-Lücken H – Handbuch an die App angleichen
+Start: `dotnet run --project src/AispaStudio.AppHost`, als Rezeption anmelden, Leiste **KI und Hilfe** öffnen
+1. „Termin buchen“ aufschlagen und den Kalenderkopf daneben vergleichen.
+Expected: Das Handbuch nennt den Knopf **Termin**, so steht er im Kopf.
+2. „Paar und Spa-Tag“ und „Termin stornieren“ aufschlagen, einen Teil einer Paarbuchung anklicken.
+Expected: Der Kasten im Terminfenster heißt **Paar**; **Ganze Buchung stornieren** fragt nach, wie beschrieben.
+3. „Gutschein einlösen“ aufschlagen und in der Kassa das Feld **Gutschein-Code** ansehen.
+Expected: Beispiel und Platzhalter haben die Form `K7M3-Q9XA-B2CD`.
+4. „Kunden“ aufschlagen und eine Kundenkarte öffnen.
+Expected: Kein Knopf **Bearbeiten** neben dem Kopf; der Weg geht über **…** › **Bearbeiten (Name, Anrede, Kontakt, Notiz)** oder den Stift **Notiz ändern**, wie beschrieben.
+Closes: L15 (live-tests-rezeption-onboarding.md, Abschnitt 3)
+Result: ☐
+
+### Befunde Kassa A1 – Rückfrage vor dem Tagesabschluss
+Start: `dotnet run --project src/AispaStudio.AppHost`, als Rezeption anmelden, **Kassa** › **Kassenlade & Abschluss**
+1. Bei „Gezählter Bestand“ einen Betrag eintragen, der vom Soll abweicht (z. B. 800,00), auf **Tagesabschluss durchführen** klicken.
+Expected: Rückfrage „Tagesabschluss durchführen?“, Text „Der Abschluss wird unveränderlich gespeichert. Differenz zum Soll: …“, Fokus auf **Abbrechen**.
+2. **Abbrechen** (oder Esc).
+Expected: Nichts gespeichert, der Bericht links heißt weiter „Zwischenbericht seit dem letzten Abschluss“, der Zählbestand steht noch im Feld.
+3. In einem zweiten Fenster einen Beleg bar kassieren, dann im ersten erneut **Tagesabschluss durchführen**.
+Expected: Die Differenz in der Rückfrage rechnet den neuen Beleg schon ein.
+4. **Abschließen**.
+Expected: „Tagesabschluss gespeichert“ mit der Differenz aus der Rückfrage.
+Closes: B1 (live-sichtpruefung-2026-11-09.md)
+Result: ☐
+
+### Befunde Kassa A8 – Kassa ohne Verbindung
+Start: `dotnet run --project src/AispaStudio.AppHost`, als Rezeption anmelden, **Kassa** öffnen, in „Später heute“ einen noch nicht eingecheckten Termin suchen
+1. Den API-Dienst anhalten (Verbindung kappen), den Termin anklicken und **Einchecken und kassieren** wählen.
+Expected: Rückfrage „Der Termin wird eingecheckt und auf die Rechnung gelegt.“; während des Wartens läuft ein Fortschrittsbalken; danach „Server nicht erreichbar. Verbindung prüfen und erneut versuchen.“ ohne „Zielcomputer“, Host oder Port.
+2. Den Termin noch einmal anklicken.
+Expected: Keine Rückfrage, stattdessen „Kassieren braucht eine Verbindung. Verbindung prüfen und erneut versuchen.“
+3. Die Leisten oben ansehen.
+Expected: Höchstens zwei (Offline-Banner und diese Meldung); die Signatur-Warnung der Kasse fehlt.
+4. API-Dienst wieder starten, kurz warten.
+Expected: Das Banner verschwindet, die Warnung der Kasse steht wieder da (falls sie bestand); der Termin lässt sich einchecken und kassieren; im Protokoll `protokolle\app.log` steht die technische Ursache einmal.
+Closes: B2, B14, B15 (live-sichtpruefung-2026-11-09.md)
+Result: ☐
+
+### Befunde Kassa A5 – Artikel in einer Spalte
+Start: `dotnet run --project src/AispaStudio.AppHost`, als Rezeption anmelden, **Kassa** › **Kassieren**, in der Leiste „Artikel und Gutscheine“ aufklappen
+1. Unter „Artikel“ alle Kacheln ansehen.
+Expected: Eine Spalte, jeder Artikelname ganz und in einer Zeile (z. B. „Gesichtscreme Hydro 50 ml“), der Preis darunter; kein Wort ist mitten abgebrochen.
+2. Unter „Gutschein verkaufen“ den Knopf ansehen.
+Expected: „Wertgutschein verkaufen“ steht ganz da (bei Platzmangel in zwei Zeilen), ohne „…“.
+3. Einen Artikel anklicken.
+Expected: Er steht auf der Rechnung.
+Closes: B6 (live-sichtpruefung-2026-11-09.md)
+Result: ☐
+
+### Befunde Kassa B19 – Kassenlade ohne einzelnen Reiter
+Start: `dotnet run --project src/AispaStudio.AppHost`, als Rezeption anmelden, **Kassa** › **Kassenlade & Abschluss**
+1. Den Kasten rechts unter „Tagesabschluss“ ansehen.
+Expected: Überschrift „Einlage“, darunter gleich die Felder **Betrag** und **Grund**; kein Reiter „Einlage“.
+2. Abmelden, als Standortleitung anmelden, dieselbe Stelle öffnen.
+Expected: Überschrift „Einlage oder Entnahme“ mit den Reitern **Einlage** und **Entnahme**.
+Closes: B19 (live-sichtpruefung-2026-11-09.md)
+
+### Kalender A2 – Toasts mit kurzem Zeitpunkt
+Start: `dotnet run --project src/AispaStudio.AppHost`, als Rezeption anmelden, **Kalender**
+1. Einen Termin für einen Gast mit langem Namen (z. B. Elif Demir, Behandlung im Hand- und Fußpflegeplatz) für heute buchen.
+Expected: Meldung „Gebucht: Elif Demir, 14:35“ ohne „…“ am Ende.
+2. Den Termin stornieren und in der Meldung **Rückgängig** klicken.
+Expected: „Wieder gebucht: Elif Demir, 14:35“ in einer Zeile.
+3. Einen Termin auf einen anderen Tag ziehen (7-Tage-Ansicht), dann **Rückgängig**.
+Expected: „Verschoben auf Do 14:35“, danach „Zurück auf 14:35“ (am heutigen Tag nur die Uhrzeit).
+Closes: B3, B4 (live-sichtpruefung-2026-11-09.md)
+Result: ☐
+
+### Kalender A4 – „Neuer Termin“ mit festem Fuß
+Start: `dotnet run --project src/AispaStudio.AppHost`, als Rezeption anmelden, Fenster nicht höher als Full HD, **Kalender**
+1. Eine freie Stelle anklicken (Panel **Neuer Termin**), einen Gast und eine Behandlung wählen, als Beginn eine belegte Zeit eintragen, **Termin buchen** klicken.
+Expected: „Zeitraum ist belegt.“ steht ganz sichtbar direkt über **Termin buchen**; beide bleiben am unteren Rand des Panels, auch wenn die Eingaben darüber scrollen.
+2. Einen Gast mit früherer Behandlung wählen.
+Expected: In der Karte **Vorschläge** stehen **Übernehmen** bzw. **Freie Zeit suchen** unter dem Text, der Text bricht nicht auf fünf Zeilen.
+3. Strg+S drücken.
+Expected: Bucht wie ein Klick auf **Termin buchen**.
+Closes: B7, B13 (live-sichtpruefung-2026-11-09.md)
+Result: ☐
+
+### Kalender A6 – Texte der Rückfragen
+Start: `dotnet run --project src/AispaStudio.AppHost`, als Rezeption anmelden, **Kalender**
+1. **Neuer Termin** öffnen, eine Notiz tippen, mit dem Kreuz schließen.
+Expected: „Änderungen verwerfen?“ mit dem Text „Die Eingaben gehen beim Schließen verloren.“, Antworten **Verwerfen** und **Weiter bearbeiten**.
+2. Einen Termin an einem anderen Tag anklicken, **Stornieren** wählen.
+Expected: „Termin stornieren?“ mit „Der Termin von … am Do. 12.11., 14:35–15:20, ist danach storniert …“ (kurzes Datum).
+Closes: B9, B10 (live-sichtpruefung-2026-11-09.md)
+Result: ☐
+
+### Kalender – kleine Textbefunde B20, B23, B24
+Start: `dotnet run --project src/AispaStudio.AppHost`, als Rezeption anmelden, **Kalender**
+1. **Neuer Termin** öffnen, die Behandlung „Anti-Aging-Gesichtsbehandlung mit Gesichtsmassage“ wählen.
+Expected: Die Vorschau im Kalender bricht den Namen um, statt mit „…“ zu enden.
+2. Rechtsklick auf eine freie Stelle › **Sperrzeit hier**, den Grund leer lassen, **Sperren** klicken.
+Expected: Unter dem Feld **Grund** steht „Der Grund fehlt.“; keine rote Leiste.
+3. Einen Termin für gestern buchen bzw. auf gestern verschieben (Tag per Hand eintippen).
+Expected: Meldung „Termine lassen sich nicht in der Vergangenheit buchen. Möglich ist heute oder ein späterer Tag.“ (beim Verschieben „… verschieben …“).
+Closes: B20, B23, B24 (live-sichtpruefung-2026-11-09.md)
+
+### Befunde Kunden A3 – E-Mail-Fehler am Feld, Liste ohne hängendes Komma
+Start: `dotnet run --project src/AispaStudio.AppHost`, als Rezeption anmelden, **Kunden** › **Neue Kundin / neuer Kunde**
+1. Im Nachnamen „Probe“ eintragen, im E-Mail-Feld „keine-adresse“ tippen und mit Tab verlassen.
+Expected: Unter dem E-Mail-Feld steht rot „Keine gültige E-Mail-Adresse. Mit @ angeben, z. B. name@beispiel.at.“; die Leiste über der Kundenliste bleibt leer.
+2. Auf **Anlegen** klicken.
+Expected: Der Cursor steht im E-Mail-Feld, die Fehlermeldung bleibt unter dem Feld, es wird keine Kundin angelegt, links erscheint keine rote Leiste.
+3. Die Adresse in „probe@beispiel.at“ ändern und auf **Anlegen** klicken.
+Expected: Der Fehler verschwindet beim Tippen, die Kundin wird angelegt.
+4. Eine Kundin nur mit Nachname anlegen (kein Vorname) und in der Liste links ansehen.
+Expected: Die Zeile heißt „Probe“ ohne Komma am Ende.
+Closes: B5, B12 (live-sichtpruefung-2026-11-09.md)
+
+### Einwirkzeit-Band im Kalender (flach)
+Start: `dotnet run --project src/AispaStudio.AppHost`, im Aspire-Dashboard die Ressource `windows-app` starten, als Rezeption anmelden, im Kalender einen Tag mit einer Packung oder Maske öffnen (Beispieldaten: „Reismilch-Körperpackung“, „Gesichtsbehandlung Klassik“), bei Bedarf mit dem Zoom hineingehen
+1. Das Band „Einwirkzeit … Min. · frei“ im Termin der Person ansehen, zuerst hell, dann im dunklen Aussehen (Einstellungen).
+Expected: Das Band ist eine flache Fläche im selben Ton wie die Streifen „Vorb.“ und „Nachb.“, ohne Schraffur, mit feinen Linien oben und unten; der Text steht klein am unteren Rand und ist gut lesbar.
+2. Mit der Maus über das Band und über den Termin fahren.
+Expected: Das Band ändert sich nicht; die Hover-Karte des Termins erscheint wie bisher und nennt den Ablauf.
+3. Einen zweiten Termin derselben Person in die Einwirkzeit legen.
+Expected: Die Spalte teilt sich in zwei Bahnen; das Band bleibt im ersten Termin flach und lesbar.
+Closes: –
+
+### B8 – Klicks gehen nicht mehr an der Hover-Karte verloren
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Rezeption anmelden, **Kalender**, Tag „Heute“ mit einem Termin im Status „Gebucht“
+1. Den Zeiger auf eine Termin-Karte setzen und warten, bis die Hover-Karte erscheint; dann den Zeiger langsam nach rechts zum Seitenpanel führen und dabei über einer anderen Karte eine Sekunde stehen bleiben, bis deren Hover-Karte aufgeht.
+Expected: Die Hover-Karte ist sichtbar und lesbar, auch dort, wo sie das Panel überdeckt.
+2. Den Termin anklicken (Panel öffnet), den Zeiger in einem Zug auf **Einchecken** führen und klicken. Zehnmal wiederholen (jedes Mal **Einchecken zurücknehmen**).
+Expected: Jedes Mal wird der Termin eingecheckt; kein Klick verpufft.
+3. Den Zeiger bei geöffneter Hover-Karte auf einen Knopf im Panel führen, der unter der Karte liegt, und klicken.
+Expected: Der Knopf löst aus. Die Hover-Karte reagiert nicht auf die Maus (Text darin lässt sich nicht anklicken).
+4. Tooltips der Knöpfe (z. B. „Einchecken (E)“) und die Meldung unten mit **Rückgängig** ansehen.
+Expected: Beide erscheinen wie bisher und sind lesbar.
+Closes: B8 (live-sichtpruefung-2026-11-09.md)
+Result: ☐
+
+### Verlauf A – Endpunkt je Standort
+Start: `dotnet run --project src/AispaStudio.AppHost`, Beispieldaten geladen, als Inhaberin angemeldet, Standort-Id aus `GET /api/v1/locations`; Aufrufe über die Scalar-Seite der API oder `curl` mit dem Sitzungs-Cookie
+1. `GET /api/v1/locations/{id}/history?take=20` aufrufen.
+Expected: 20 Einträge, neueste zuerst, `nextBefore` gesetzt; Buchungen, Verschiebungen und Stornos tragen Gast, Behandlung und Person.
+2. Dieselbe Adresse mit `&before=<nextBefore>` wiederholen.
+Expected: Die nächsten 20 Einträge ohne Doppelte und ohne Lücke.
+3. `?kinds=Paid&kinds=Deposit&kinds=ReceiptVoided` aufrufen.
+Expected: Nur Zahlungen zum Termin („Bezahlt bar: … (Beleg … Nr. …)“, „Anzahlung …“, „Beleg … storniert …“), `seq` negativ.
+4. `?search=<Nachname eines Gastes>` und `?search=<Storno-Grund>` aufrufen.
+Expected: Nur Einträge zu diesem Gast bzw. der Storno mit diesem Grund; Groß- und Kleinschreibung egal.
+5. Als Rezeption anmelden und `?kinds=RosterChanged` aufrufen, danach ohne `kinds`.
+Expected: 403 mit „… nur Inhaber und Manager.“; ohne `kinds` eine Seite ohne Dienstplan, Zugänge und Firmendaten.
+6. Einen kassierten Termin im Kalender öffnen, Abschnitt „Verlauf“ aufklappen.
+Expected: „Bezahlt … (Beleg … Nr. …)“ steht zwischen den übrigen Einträgen an der richtigen Stelle.
+Closes: –
+Result: ☐
+
+### Verlauf B – Seite „Verlauf“
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Inhaberin anmelden, Navigation **Verlauf** (nach „Kunden“)
+1. Die Seite öffnen.
+Expected: Suchfeld, Zeitraum „Heute“ gewählt, Art-Chips „Buchungen … Zugänge“, Auswahl „Alle Kanäle“; die Liste zeigt den heutigen Tag mit Uhrzeit, Symbol, Satz und Gast/Person je Zeile.
+2. „30 Tage“ wählen und bis ans Ende scrollen.
+Expected: Weitere Tagesgruppen laden nach, ohne doppelte Einträge; am Fuß steht „Weitere laden“, solange es mehr gibt.
+3. Chip „Stornos“ und danach „Zahlungen“ anklicken.
+Expected: Nur Stornos bzw. Stornos und Zahlungen; der Chip „Zurücksetzen“ erscheint; Stornos innerhalb der Stornofrist tragen die Pille „Kurzfristig“.
+4. Strg+F drücken, einen Gastnamen tippen, eine Sekunde warten.
+Expected: Der Fokus steht im Suchfeld; nach etwa 300 ms lädt die Liste nur Einträge zu diesem Gast; Esc leert die Suche.
+5. Einen Suchtext ohne Treffer eingeben.
+Expected: „Nichts gefunden. Filter zurücksetzen?“ mit Knopf, der alles zurücksetzt.
+6. Als Rezeption anmelden und die Seite öffnen.
+Expected: Keine Chips „Dienstplan“ und „Zugänge“, kein Feld „Person“; Zahlungen sind sichtbar.
+7. Dunkles Farbschema wählen.
+Expected: Chips, Pillen und Symbole lesbar, keine hellen Flächen.
+Closes: –
+Result: ☐
+
+### Verlauf C – Seitenpanel und Zähler „Storniert n“
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Inhaberin anmelden, heute mindestens einen Termin stornieren und einen kassieren
+1. Navigation **Verlauf**, den Storno wählen, Enter drücken.
+Expected: Rechts öffnet das Panel „Storno“ mit Satz, Gast, Person, Kanal, Grund und Werten; der Fokus steht auf „Stornierung zurücknehmen“.
+2. Mit den Pfeiltasten auf die Zahlung wechseln.
+Expected: Das Panel zeigt „Zahlung“ mit „Beleg anzeigen“ als primärem Knopf; Klick öffnet die Kassa, Reiter Belege, am Tag des Belegs.
+3. Zurück zum Storno, „Stornierung zurücknehmen“, Rückfrage bestätigen.
+Expected: Toast „Termin wiederhergestellt: <Gast>, <Zeit>“; die Liste lädt neu und zeigt oben „Wiederhergestellt von …“.
+4. Esc drücken.
+Expected: Das Panel schließt, der Fokus steht wieder in der Liste.
+5. Kalender öffnen, einen weiteren Termin heute stornieren.
+Expected: In der Kopfzeile nach „Warteliste“ steht „Storniert 1“; Klick öffnet den Verlauf für heute mit dem Chip „Stornos“.
+6. Als Rezeption ohne Buchungsrecht anmelden und einen Storno öffnen.
+Expected: „Stornierung zurücknehmen“ ist gesperrt mit Hinweis auf das fehlende Recht.
+Closes: –
+Result: ☐
+
+### Verlauf E – Zurücknehmen aus dem Verlauf, auch zu neuer Zeit
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Inhaberin anmelden; heute einen Termin stornieren, einen zweiten stornieren und seine Zeit danach mit einem anderen Termin derselben Person belegen
+1. **Verlauf**, Chip **Stornos**, den ersten Storno öffnen, **Stornierung zurücknehmen**.
+Expected: Rückfrage „Stornierung zurücknehmen?“; nach **Zurücknehmen** Toast „Termin wiederhergestellt: <Gast>, <Zeit>“, der Verlauf lädt neu.
+2. Den zweiten Storno öffnen, **Stornierung zurücknehmen**.
+Expected: Rückfrage „Zu neuer Zeit zurücknehmen?“ mit „Die Zeit ist inzwischen belegt: …“ und **Neue Zeit wählen**.
+3. **Neue Zeit wählen**.
+Expected: Der Kalender springt auf den Tag des ersten freien Vorschlags; rechts das Panel des stornierten Termins mit offener Verschieben-Karte, darunter „Freie Zeiten“ für Gast, Behandlung und Person.
+4. Einen Vorschlag anklicken, **Verschieben**.
+Expected: Der Termin steht zur neuen Zeit wieder gebucht im Kalender.
+5. Einen Storno von gestern (Zeitraum **Gestern**) zurücknehmen und bei **Neue Zeit wählen** abbrechen.
+Expected: Grund „Der Termin liegt in der Vergangenheit.“; nach Abbrechen bleibt der Termin storniert und steht weiter im Verlauf.
+6. Bei einem Storno **Termin öffnen**, bei einer Zahlung **Beleg anzeigen**, bei einer Behandlungsänderung **Behandlung öffnen**.
+Expected: Kalender mit dem Panel des stornierten Termins; Kassa, Reiter Belege, Beleg gewählt; Verwaltung mit der Behandlung.
+7. Als Rezeption anmelden, **Verlauf** öffnen.
+Expected: Das Feld „Person“ nennt die Personen, die im Zeitraum etwas getan haben; „Dienstplan öffnen“ und „Zugang öffnen“ gibt es nicht.
+Closes: –
+Result: ☐
+
+### Verlauf D – Hilfe zur Seite „Verlauf“
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Inhaberin anmelden
+1. Navigation **Hilfe** öffnen und „Verlauf“ suchen.
+Expected: Die Hilfe zeigt „Seite „Verlauf“ in der Windows-App“ mit Bild, Aufbau, Pillen, Seitenpanel und Rechten.
+2. In der Hilfe nach „Stornos heute“, „bezahlt bar“ und „Storno zurücknehmen“ suchen.
+Expected: „Seite „Verlauf““ bzw. „Im Verlauf suchen“ steht oben in den Treffern.
+3. In „Im Verlauf suchen“ den Link „Stornierung zurücknehmen“ und in „Termin stornieren“ den Link „Aus dem Verlauf zurücknehmen“ anklicken.
+Expected: Beide führen zum richtigen Abschnitt.
+Closes: –
+Result: ☐
+
+### Verlauf F – Verkäufe ohne Termin
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Inhaberin anmelden
+1. In der **Kassa** einen Gutschein oder Artikel ohne Termin bar verkaufen.
+Expected: Im **Verlauf** unter **Heute**, **Zahlungen** steht „Bezahlt bar: … für <Ware> (Beleg …)“ ohne Sprung „Termin öffnen“.
+2. Im Verlauf nach dem Namen der Ware suchen.
+Expected: Der Verkauf (und ein Storno dazu) steht in den Treffern.
+3. Als Rezeption ohne Recht „Termine buchen“ anmelden.
+Expected: Der Chip **Zahlungen** und die Verkäufe fehlen.
+Closes: –
+Result: ☐
+
+### Verlauf H – Anfragen im Verlauf
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Inhaberin anmelden
+1. Eine Test-Anfrage einspielen (Beispieldaten oder `/api/dev/mails`), dann in **Anfragen** eine Anfrage als erledigt markieren.
+Expected: Im **Verlauf**, Chip **Anfragen**, stehen „… eingegangen (Mail)“ und „Anfrage als erledigt markiert von <Person>“, ohne Text der Mail.
+2. Die Zeile öffnen (Enter) und **Anfrage öffnen** wählen.
+Expected: Die Seite **Anfragen** zeigt die Anfrage.
+3. Als Therapeutin ohne Recht „Termine buchen“ anmelden.
+Expected: Kein Chip **Anfragen**, keine Anfrage-Zeilen.
+Closes: –
+### Export/Import B – Kunden exportieren und Werbe-Einwilligung am Gast
+Start: `dotnet run --project src/AispaStudio.AppHost`, im Aspire-Dashboard die Ressource `windows-app` starten, als Inhaberin anmelden und **Kunden** öffnen
+1. Im Suchfeld „hu“ eingeben, im Kopf **Exportieren** › **Excel** wählen und speichern.
+Expected: Der Speicherdialog schlägt `Kunden_<Datum>.xlsx` vor; unten steht kurz „Gespeichert: Kunden_<Datum>.xlsx“. In Excel stehen nur die Treffer der Suche, Kopfzeile fett mit Filter, Geburtstag als Datum; es gibt die Spalte „Vermerk“, aber keine Wünsche, Gesundheit, Rabatt oder Rechnung.
+2. **Exportieren** › **CSV** speichern und die Datei in Excel per Doppelklick öffnen.
+Expected: Umlaute sind richtig, die Spalten sind getrennt (Strichpunkt), das Datum steht als TT.MM.JJJJ.
+3. **Exportieren** › **vCard** speichern und die Datei in Outlook (oder Kontakte) importieren.
+Expected: Je Gast ein Kontakt mit Name, Telefon, E-Mail, Geburtstag und Anschrift.
+4. Einen Gast wählen, im Menü **…** › **Kontakt als vCard** wählen und die Datei öffnen.
+Expected: Outlook zeigt den einen Kontakt; der Dateiname ist `Kontakt_<Nachname>.vcf`.
+5. In der Karte im Abschnitt **Werbung per Mail** den Stift klicken, **Ja** wählen, **Speichern** klicken und in der Rückfrage „Hat der Gast zugestimmt?“ **Erfassen** wählen.
+Expected: Die Rückfrage nennt die Newsletter-Liste und „mündlich oder schriftlich zugestimmt“; danach zeigt der Abschnitt „Ja, am Empfang erfasst am <heute> von <Name>“, unten steht kurz „Werbe-Einwilligung gespeichert“; unter **Änderungen** steht „Werbe-Einwilligung: ja von <Name>“.
+6. Die Suche leeren und **Exportieren** › **Newsletter-Liste** speichern.
+Expected: Die Datei enthält nur Gäste mit „Ja“, Spalten E-Mail, Vorname, Nachname, Sprache, Anrede.
+7. **Exportieren** › **Portal-CSV** speichern und im Editor öffnen.
+Expected: Erste Zeile `First name,Last name,Email,Mobile,Date of birth,Notes,Marketing consent`, getrennt mit Komma, Geburtstag als JJJJ-MM-TT.
+8. Abmelden, als Rezeption anmelden, **Kunden** › **Exportieren** öffnen.
+Expected: Excel, CSV, Portal-CSV und vCard stehen da, die Newsletter-Liste nicht; im Excel fehlt die Spalte „Vermerk“.
+Closes: Export/Import Aufgabe A und B (arbeitsanweisung-export-import.md)
+Result: ☐
+
+### Export/Import C – Terminliste und Kalenderdateien
+Start: `dotnet run --project src/AispaStudio.AppHost`, im Aspire-Dashboard die Ressource `windows-app` starten, als Inhaberin anmelden, **Kalender** in der Wochenansicht öffnen
+1. Am Knopf **Termin** den Pfeil klicken und **Terminliste exportieren …** wählen.
+Expected: Der Dialog „Terminliste exportieren?“ zeigt Von und Bis mit Montag und Sonntag der gezeigten Woche, Excel ist gewählt, der Fokus liegt auf **Exportieren**.
+2. Bis auf einen Tag vor Von setzen und **Exportieren** klicken.
+Expected: Der Dialog bleibt offen, unter „Bis“ steht „Bis liegt vor Von.“.
+3. Bis wieder auf Sonntag setzen, **Exportieren** klicken und die Datei speichern.
+Expected: Der Speicherdialog schlägt `Termine_<Montag>.xlsx` vor; unten steht kurz „Gespeichert: …“. In Excel: Tag als Datum, Beginn und Ende als Uhrzeit, Preis als Betrag, Status deutsch (Gebucht, Erledigt …), dazu die Spalte „Notiz“.
+4. Einen Termin öffnen, im Panel **Mehr** aufklappen und **Kalenderdatei …** wählen; die Datei speichern und in Outlook (oder Apple Kalender, Google Kalender) öffnen.
+Expected: Ein Termin mit Behandlung als Titel und dem Standort als Ort, zur richtigen Ortszeit, mit Erinnerung einen Tag vorher; kein Name der Person. Bei einer Buchung für einen Spa-Tag stehen alle Teile des Gastes als einzelne Termine darin.
+5. Dieselbe Datei ein zweites Mal öffnen.
+Expected: Der Kalender ersetzt den Termin, statt ihn doppelt einzutragen.
+6. **Team** öffnen, eine Person wählen, Reiter **Dienstplan** und unten **Kalenderdatei …** speichern; die Datei in einem Kalender öffnen.
+Expected: Neben dem Knopf steht „Gespeichert: Kalender_<Name>.ics“. Im Kalender stehen die Dienste der nächsten 90 Tage als „Dienst <Standort>“ und die Termine als „<Behandlung> (<Raum>)“, ohne Namen der Gäste und ohne Erinnerung.
+7. Abmelden, als Rezeption anmelden, **Team** › eine andere Person › **Dienstplan** öffnen.
+Expected: Der Knopf **Kalenderdatei …** fehlt; im Kalender exportiert die Terminliste ohne Spalte „Notiz“.
+Closes: Export/Import Aufgabe C (arbeitsanweisung-export-import.md)
+Result: ☐
+
+### Export/Import D – Listen von Kassa, Lager, Personal und Berichten
+Start: `dotnet run --project src/AispaStudio.AppHost`, im Aspire-Dashboard die Ressource `windows-app` starten, als Inhaberin anmelden, **Kassa** öffnen und eine Kasse wählen
+1. Im Bereich **Belege** einen Tag mit Belegen wählen, in der Kopfzeile **Exportieren** › **Belegliste (Excel)** wählen und speichern.
+Expected: Der Speicherdialog schlägt `Belege_<Tag>.xlsx` vor; daneben steht „Gespeichert: …“. In Excel: Kasse, Nummer, Tag als Datum, Zeit als Uhrzeit, Zahlarten, Betrag als Betrag, Storno („storniert“ bzw. „Storno zu Nr. …“), Gast; Autofilter in der Kopfzeile.
+2. **Exportieren** › **Umsatz je Tag (CSV)** speichern und in Excel öffnen.
+Expected: Umlaute richtig, Spalten durch Strichpunkt getrennt, Beträge mit Komma.
+3. **Exportieren** › **Gutscheinbestand (Excel)** und **Tagesabschlüsse (Excel)** speichern.
+Expected: Gutscheine mit Code, Art, Wert, Rest, Gültig bis, Status und Käufer; Tagesabschlüsse mit Soll, Gezählt und Differenz.
+4. **Verwaltung** › **Lager** öffnen, **Exportieren** › **Bestand je Lagerort (Excel)** und **Lagerbewegungen (Excel)** speichern.
+Expected: Bestand je Material und Lagerort; Bewegungen der letzten 30 Tage bis heute.
+5. **Team** › **Zeiten** öffnen, **Exportieren** › **Stundenliste (Excel)** speichern.
+Expected: `Stundenliste_<Monatserster>.xlsx` mit Person, Tag, Soll, Ist, Pause und Differenz für den Monat, in dem die gezeigte Woche beginnt.
+6. **Team** › **Wochenplan** öffnen, **Exportieren** › **Dienstplan der Woche (Excel)** speichern.
+Expected: Personen als Zeilen, Montag bis Sonntag als Spalten („Mo 1.3.“), Dienste als „9:00–17:00“, Abwesenheiten als „Urlaub“ usw., ganz rechts die Stunden.
+7. **Zahlen** › **Berichte** › **Management** öffnen, **Exportieren** › **Kennzahlen (Excel)** speichern.
+Expected: Kennzahl, Wert, Vorperiode und Einheit mit denselben Zahlen wie auf der Seite.
+8. Abmelden, als Manager eines Standorts anmelden, Kassa, Lager, Zeiten und Wochenplan öffnen.
+Expected: Der Knopf **Exportieren** fehlt dort; im Bericht „Management“ ist er da.
+Closes: Export/Import Aufgabe D (arbeitsanweisung-export-import.md)
+Result: ☐
+
+### Export/Import E – Kunden importieren
+Start: `dotnet run --project src/AispaStudio.AppHost`, im Aspire-Dashboard die Ressource `windows-app` starten, als Inhaberin anmelden, **Kunden** öffnen; die Beispieldatei `docs/beispiele/kunden-import-beispiel.xlsx` bereithalten
+1. In der Kopfzeile **…** › **Kunden importieren …** wählen und die Beispieldatei öffnen.
+Expected: Schritt 2 „Spalten zuordnen“: links die neun Spalten der Datei mit Beispielwerten, rechts vorgeschlagen Vorname, Nachname, E-Mail, Telefon, Geburtstag, Straße, PLZ, Ort, Werbe-Einwilligung; Datumsformat TT.MM.JJJJ.
+2. Bei „Nachname“ „nicht importieren“ wählen und **Weiter** klicken.
+Expected: **Weiter** ist gesperrt; am Feld „Zuordnung“ steht „Nachname fehlt. Bitte die Spalte mit dem Nachnamen zuordnen.“ Wieder „Nachname“ wählen.
+3. **Weiter** klicken.
+Expected: Schritt 3 zeigt „4 neu, 1 Dublette, 2 fehlerhaft“; die Dublette „Lena Beispiel“ mit „doppelt in der Datei (Zeile 2)“ und der Wahl **Überspringen** oder **Ergänzen**; fehlerhaft „Mia Demo“ (Geburtstag kein Datum) und Zeile 8 (Nachname fehlt).
+4. **Fehlerzeilen als Excel …** speichern und öffnen.
+Expected: Spalten Zeile, Grund und die Spalten der Datei, zwei Zeilen.
+5. Bei der Dublette **Ergänzen** wählen, **Weiter** und **Nur prüfen** klicken.
+Expected: Im Dialog „Probelauf: 4 neu, 1 ergänzt, 0 übersprungen, 2 fehlerhaft. Es wurde nichts gespeichert.“; in der Kundenliste ist noch niemand neu.
+6. **Importieren** klicken.
+Expected: Der Dialog schließt, Hinweis „Importiert: 4 neu, 1 ergänzt, 0 übersprungen, 2 fehlerhaft“; die Kundenliste zeigt Lena Beispiel, Paul Probe, Sophie Muster und Jonas Erfunden. In der Karte von Lena Beispiel steht im Verlauf „Angelegt beim Import von …“ und unter „Werbung per Mail“ eine Einwilligung aus dem Import; bei Paul Probe keine.
+7. Dieselbe Datei noch einmal importieren bis Schritt 3.
+Expected: Die vier Gäste sind jetzt Dubletten im Bestand („gleicher Nachname und gleiche Telefonnummer wie …“ bzw. „… E-Mail-Adresse wie …“).
+8. Abbrechen, abmelden, als Manager anmelden, **Kunden** öffnen.
+Expected: Unter **…** fehlt „Kunden importieren …“.
+Closes: Export/Import Aufgabe E (arbeitsanweisung-export-import.md)
+### PDF-Ausgaben A – Grundlage: Personalakte über den Dokument-Dienst
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Inhaberin anmelden, **Verwaltung › Personen**, eine Person mit Einträgen in der Personalakte öffnen, Reiter **Personalakte**
+1. **Als PDF exportieren** klicken, im Speicherdialog den vorgeschlagenen Namen ansehen, speichern und die Datei öffnen.
+Expected: Der vorgeschlagene Name ist `Personalakte-<Name>.pdf`. Oben links steht der Spa-Name groß, darunter nichts (kein Standort), rechts klein in Grau die Firmendaten (Firmenwortlaut, Anschrift, UID), darunter eine Linie; dann „Personalakte: <Name>“, der Satz „Auskunft nach Art. 15 DSGVO, erstellt am …“ in Grau und die Einträge wie bisher (Überschrift je Eintrag, Vereinbarungen mit `[x]`/`[ ]`).
+2. Den Fuß der Seite ansehen.
+Expected: Links „Erstellt am <Datum> <Uhrzeit> von <Vorname der angemeldeten Person>“, rechts „Seite 1 von 1“; Umlaute, „€“ und „–“ in den Texten sind richtig gesetzt; nur Schwarz und Grau, keine Farben.
+3. In den Firmendaten (Verwaltung › Firmendaten) die UID ändern und den Export wiederholen.
+Expected: Die neue UID steht rechts oben im Kopf.
+Closes: Arbeitsanweisung PDF-Ausgaben, Aufgabe A (der Knopfblock „Drucken · PDF speichern · Per Mail senden“ erscheint erst mit Aufgabe B in der Kassa)
+Result: ☐
+
+
+### PDF-Ausgaben B – Beleg und Rechnung als PDF, per Mail senden
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Inhaberin anmelden, **Kassa**, einen Gast mit Mailadresse in der Kundenkarte abrechnen und bar bezahlen
+1. Unter dem Beleg in der Mitte die Knöpfe ansehen.
+Expected: Zuerst „Drucken“ (Bondrucker, ohne Bondrucker gesperrt mit Hinweis auf „Geräte“), darunter „A4 drucken“, „PDF speichern“ mit Pfeil und „Per Mail senden“; alle Knöpfe weiß mit Rahmen.
+2. **PDF speichern** klicken, speichern und die Datei öffnen; dann am Pfeil **PDF im Bon-Format speichern** wählen und auch diese Datei öffnen.
+Expected: Vorschlag `Beleg-<Kasse>-<Nr>.pdf`; A4 mit Belegkopf, Positionen, Summe, Steuerzeile, Zahlung mit Rückgeld und QR-Code „Signierter Belegcode (RKSV)“; das Bon-Format ist 80 mm schmal mit demselben Inhalt. Unten erscheint kurz „Gespeichert: Beleg-….pdf“.
+3. **Per Mail senden** klicken, Adresse und Betreff ansehen, **Senden**.
+Expected: Die Adresse aus der Kundenkarte ist vorbelegt, Betreff „Ihr Beleg Nr. … von <Spa>“; danach Toast „Gesendet an …“ und unter dem Beleg „Per Mail gesendet an … am <Datum Uhrzeit> von <Vorname>“. Im Postfach (Mailpit) liegt die Mail mit dem PDF im Anhang.
+4. Reiter **Belege**, denselben Beleg wählen, **Empfänger erfassen** (Firma, Anschrift, UID), dann **PDF speichern**.
+Expected: Vorschlag `Rechnung-<Kasse>-<Nr>.pdf`; Titel „Rechnung Nr. <Kasse>-<Nr>“, „Rechnung an“ mit Firma, Anschrift und UID, „Rechnungs- und Leistungsdatum“, darunter „Kopie“; der Vermerk der Mail aus Schritt 3 steht auch hier.
+5. Einen Beleg stornieren und den Stornobeleg als PDF speichern.
+Expected: „Stornobeleg Nr. …“ mit dem Grund und negativen Beträgen.
+6. Als Therapeutin (ohne „Kassieren“ und „Belege ansehen“) anmelden und die Kassa suchen.
+Expected: Belege und ihre PDFs sind nicht zu sehen; die API antwortet auf `…/pdf` und `…/send` mit 403.
+Closes: Arbeitsanweisung PDF-Ausgaben, Aufgabe B
+Result: ☐
+
+### PDF-Ausgaben C – Terminbestätigung und Datenschutz-Auskunft
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Rezeption anmelden; im Standort Anschrift, Stornofrist und Hinweistext eingetragen, bei einer Behandlung einen Gästehinweis („Bitte Badekleidung mitbringen.“), ein Gast mit Mailadresse und einem Termin
+1. Den Termin im Kalender anklicken, im Seitenpanel **Mehr** aufklappen und **Bestätigung …** klicken.
+Expected: Unter „Mehr“ erscheint die Karte „Terminbestätigung“ mit „Drucken“, „PDF speichern“ und „Per Mail senden“; ein zweiter Klick auf „Bestätigung …“ schließt sie. Bei einem stornierten Termin fehlt der Knopf.
+2. **PDF speichern** klicken, speichern und die Datei öffnen.
+Expected: Vorschlag `Terminbestätigung-<TT-MM-JJJJ>.pdf`; Titel „Terminbestätigung“, Gast, Tag mit Wochentag, Tabelle mit Zeit, Behandlung, Dauer, nur dem Vornamen der Person und Preis, „Wo“ mit Standort und Anschrift, „Absagen“ mit Datum und Uhrzeit der Stornofrist und dem Hinweistext, „Was mitbringen“ mit dem Gästehinweis; unten „Erstellt am … von <Vorname>“.
+3. **Per Mail senden** klicken, Adresse und Betreff ansehen, **Senden**; danach im Panel **Verlauf** aufklappen.
+Expected: Die Adresse aus der Kundenkarte ist vorbelegt, Betreff „Ihre Terminbestätigung: <Behandlung> am <TT.MM.JJJJ>“; Toast „Gesendet an …“; im Verlauf steht oben „Bestätigung per Mail an … gesendet von <Vorname>“ (ein schon geöffneter Verlauf lädt von selbst neu). Im Postfach (Mailpit) liegt die Mail mit dem PDF im Anhang.
+4. Ein Paar oder einen Spa-Tag mit zwei Teilen buchen und die Bestätigung eines Teils speichern.
+Expected: Beide Teile stehen in der Tabelle, mit Spalte „Gast“ und einer Zeile „Summe“.
+5. **Kunden** öffnen, einen Gast mit Terminen, Zahlungen und (wenn vorhanden) Anamnese wählen, im Menü **…** **Auskunft als PDF** klicken, **PDF speichern**.
+Expected: Unter dem Kopf der Karte erscheint „Auskunft über gespeicherte Daten“ mit „Drucken“ und „PDF speichern“ (ohne „Per Mail senden“), darunter nach dem Speichern „Gespeichert: Auskunft-….pdf“. Das PDF zeigt Stammdaten, Kontakt, Wünsche und Vermerke, Termine mit Status, Zahlungen, Gutscheine auf den Namen, Online-Konto, Gesundheitsangaben (mit Recht die Antworten des Bogens) und den Verlauf der Änderungen; Seitenumbruch mit wiederholter Kopfzeile, „Seite n von m“. Wählt man einen anderen Gast, schließt die Karte.
+6. Als Therapeutin anmelden und die Kundenkarte öffnen.
+Expected: Das Menü „…“ fehlt (kein Recht „Buchen“); die API lässt das Lesen der Bestätigung und der Auskunft wie das Lesen des Termins bzw. der Kundenkarte zu.
+Closes: Arbeitsanweisung PDF-Ausgaben, Aufgabe C
+Result: ☐
+
+### PDF-Ausgaben D – Tagesabschluss als PDF
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Inhaberin anmelden; in der Kassa einige Verkäufe (bar und Karte) und je eine Einlage und Entnahme mit Grund gebucht
+1. **Kassa** öffnen, Reiter **Kassenlade & Abschluss**, bei „Gezählter Bestand“ einen Betrag eintragen, der um einige Euro vom Soll abweicht, eine Notiz eintragen und **Tagesabschluss durchführen** bestätigen.
+Expected: Die Karte „Tagesabschluss gespeichert“ erscheint, rechts oben die Karte „Tagesabschluss als PDF“ mit „Drucken“ und „PDF speichern“ (ohne „Per Mail senden“). Vor dem Abschluss (Zwischenbericht) fehlt die Karte.
+2. **PDF speichern** klicken, speichern und die Datei öffnen.
+Expected: Vorschlag `Tagesabschluss-<Kasse>-<JJJJ-MM-TT>.pdf`; Titel „Tagesabschluss <Kasse>“, Zeitraum, Belege von–bis mit Anzahl Verkäufe und Stornos, Summen je Zahlart mit „Umsatz gesamt“, Steuern, Kassenlade mit Soll-Bestand, gezähltem Bestand und Differenz, die Notiz, die Einlage und die Entnahme mit Grund, unten „Gezählt von“ und „Geprüft von“ als Unterschriftenzeilen; Fuß „Erstellt am … von <Vorname>“. Toast: „Gespeichert: Tagesabschluss-….pdf“.
+3. **Drucken** klicken.
+Expected: Das PDF geht an den Standarddrucker von Windows (nicht an den Bondrucker); Toast „Gedruckt“.
+4. Als Rezeption ohne das Recht „Berichte mit Beträgen“ einen Abschluss durchführen.
+Expected: Die Knöpfe „Drucken“ und „PDF speichern“ sind gesperrt, der Hinweis nennt das Recht „Berichte mit Beträgen“; die API antwortet auf `…/day-closings/<id>/pdf` mit 403.
+Closes: Arbeitsanweisung PDF-Ausgaben, Aufgabe D
+Result: ☐
+
+### PDF-Ausgaben E – Tagesplan, Gutschein, Stammblatt und Warteliste als PDF
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Rezeption anmelden; im Kalender sind für heute Termine bei mindestens zwei Personen und eine Pause eingetragen, auf der Warteliste stehen zwei Wünsche (einer mit Telefonnummer), eine Kundin hat Adresse, Wünsche und ein paar erledigte Besuche
+1. Im Kalender **+ Termin ▾** öffnen und **Tagesplan drucken …** wählen.
+Expected: Unter dem Knopf erscheint die Karte „Tagesplan drucken“ mit dem Tag, der Wahl „Team“ und „Räume“ (die Ansicht des Kalenders ist vorgewählt) und den Knöpfen „Drucken“ und „PDF speichern“ (ohne „Per Mail senden“). Ein zweiter Klick auf den Menüpunkt oder das Kreuz schließt sie; ein Wechsel des Tages schließt sie ebenfalls.
+2. **PDF speichern** (Team), die Datei öffnen; danach „Räume“ wählen und noch einmal speichern.
+Expected: Vorschlag `Tagesplan-<Standort>-<JJJJ-MM-TT>.pdf`; A4 quer, Titel „Tagesplan <Wochentag>, <Datum>“, „Nach Team · n Termine“; je Person eine Spalte, Zeilen nach Beginn, in der Zelle Zeit, Gast, Behandlung und Status; Pausen und Sperrzeiten grau hinterlegt; stornierte Termine fehlen; unten „n Personen auf der Warteliste“ („1 Person“, „Niemand“). Die Raumansicht hat eine Spalte je Raum und nennt die Person hinter der Behandlung. Toast „Gespeichert: …“.
+3. **Warteliste ansehen** öffnen.
+Expected: Oben in der Leiste steht „Druckt die offenen Wünsche, die am <Tag> gelten.“ mit „Drucken“ und „PDF speichern“. Gespeichert: `Warteliste-<Standort>-<JJJJ-MM-TT>.pdf` mit Gast, Telefon, Wunsch, Zeitraum (darunter die Tageszeit) und Stand („Wartet“ oder „n× freien Termin gemeldet“); nur Wünsche, deren Zeitraum den Tag einschließt; ohne solche „Keine offenen Wünsche an diesem Tag.“.
+4. **Kunden** › Kundin öffnen › **…** › **Stammblatt als PDF**.
+Expected: Die Karte „Stammblatt“ mit „Drucken“ und „PDF speichern“ erscheint (ohne Senden); ein Wechsel der Kundin schließt sie. PDF `Stammblatt-<Name>.pdf`: Kontakt mit Anschrift, Wünsche und Vermerke, „Nächste Termine“ (höchstens 5, nicht stornierte), „Letzte Besuche“ (die letzten 5 erledigten); keine Anamnese-Antworten, bei vorhandenem Bogen nur „Gesundheitsangaben: vorhanden, Auskunft durch die Leitung“.
+5. In der **Kassa** einen Gutschein verkaufen (Wert 50,00 € bar), nach dem Bezahlen unter dem Beleg **Gutschein <Code> als Geschenk** ansehen und **PDF speichern**.
+Expected: Unter dem Beleg ein eigener Knopfblock je Gutschein mit „Drucken“, „PDF speichern“, „Per Mail senden“. PDF `Gutschein-<Code>.pdf`: A4, Spa-Name groß, „Geschenkgutschein“, „50,00 €“, der Code mit QR-Code, „Gültig bis: ohne Befristung“, „Einlösbar in <Standorte>“, „Ausgestellt am“. Ein Behandlungsgutschein zeigt statt des Betrags die Behandlung.
+6. **Per Mail senden** beim Gutschein: die Adresse der Käuferin ist vorbelegt (leer, wenn der Beleg keinen Gast hat); eine eigene Adresse eintippen und bestätigen.
+Expected: Rückfrage mit Adresse, Betreff „Ihr Gutschein von <Spa>“ und Text; nach dem Senden Toast „Gesendet an …“, die Mail kommt mit dem PDF im Anhang an; eine ungültige Adresse wird abgelehnt.
+7. Den verkauften Beleg stornieren und den Gutschein noch einmal als PDF speichern.
+Expected: Auf dem PDF steht „Dieser Gutschein ist storniert und nicht mehr einlösbar.“.
+8. Als Backoffice (ohne Kalender) die Adresse `…/api/locations/<id>/day-plan/pdf?date=<Tag>` aufrufen, als Therapeut `…/api/pos/vouchers/<id>/pdf`.
+Expected: Beide antworten mit 403; ein Therapeut darf Tagesplan, Stammblatt und Warteliste drucken, das Backoffice nur Gutschein und Beleg.
+Closes: Arbeitsanweisung PDF-Ausgaben, Aufgabe E
+Result: ☐
+
+### PDF-Ausgaben F – Dienstplan-Aushang, Stundenliste, Inventurliste, Bestellung und Ablaufliste als PDF
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Inhaberin anmelden; im Wochenplan sind für die aktuelle Woche Dienste, ein Urlaub, eine Schulung und eine Notiz eingetragen (dazu ein unveröffentlichter Entwurf), eine Person hat Zeiten gestempelt oder nachgetragen, im Lager gibt es Material mit Lieferant (Mailadresse und Lieferzeit eingetragen), eine Bestellung als Entwurf und Chargen mit Ablaufdatum in den nächsten Wochen
+1. **Verwaltung › Team › Wochenplan** öffnen, neben der Wochenwahl **Aushang als PDF** klicken, **PDF speichern**, die Datei öffnen.
+Expected: Unter der Wochenwahl erscheint die Karte „Dienstplan-Aushang“ mit „Drucken“ und „PDF speichern“ (ohne „Per Mail senden“) und dem Satz „Druckt den veröffentlichten Dienstplan der Woche …, ohne Entwürfe.“; ein zweiter Klick auf den Knopf schließt sie, ein Wechsel der Woche oder des Standorts passt den Pfad an. Vorschlag `Dienstplan-<Standort>-<Montag>.pdf`; A4 quer, Titel „Dienstplan 01.03. – 07.03.2027“, darunter Standort und „Veröffentlicht am …“; eine Zeile je Person, eine Spalte je Tag, in den Zellen die Zeit (Dienste an einem anderen Standort mit dessen Namen), Urlaub, Krank, Frei und Schulung grau hinterlegt, die Notiz des Tages darunter, rechts die Stunden der Woche. Der Entwurf steht nicht darauf, erst nach dem Veröffentlichen. Als Rezeption (ohne das Recht zu planen) sind beide Knöpfe gesperrt mit Hinweis „Den Aushang druckt nur die Standortleitung.“.
+2. **Verwaltung › Team › Personen** › eine Person › Reiter **Zeiten**, **Stundenliste als PDF**, speichern und öffnen. Danach in der Übersicht **Zeiten** nachsehen.
+Expected: Auf der Karte der Person erscheint die Karte „Stundenliste“ mit „Drucken“ und „PDF speichern“ und dem Satz „Druckt die Stundenliste für <Monat> <Jahr>.“ (der Monat der gezeigten Woche; ein Wechsel der Woche über den Monatswechsel ändert ihn). `Stundenliste-<Name>-<JJJJ-MM>.pdf`, A4 hoch: je Tag mit Dienst oder Zeiten Kommen, Gehen, Pause, Ist, Soll und Saldo, unten „Monatssumme“, der Satz „Tage ohne Dienst und ohne Zeiten sind nicht aufgeführt.“ und zwei Unterschriftenzeilen („Unterschrift <Name>“, „Unterschrift Leitung“). Die Zahlen stimmen mit der Zeiten-Maske überein. In der Übersicht aller Zeiten gibt es den Knopf nicht.
+3. **Verwaltung › Lager › Inventur**: **Zählliste drucken …** klicken (vor der Zählung), speichern und öffnen; dann **Zählung starten** und den Knopf noch einmal prüfen.
+Expected: Die Karte „Zählliste drucken …“ mit „Drucken“ und „PDF speichern“; `Zählliste-<Lagerort>-<Datum>.pdf`: alle aktiven Materialien mit Einheit und Soll, eine leere Spalte „Gezählt“ (zwei Zeilen hoch zum Hinschreiben) und Unterschriftenzeilen „Gezählt von“ und „Geprüft von“; ein Wechsel des Lagerorts passt den Pfad an.
+4. Eine **Zählung vom Handy** übernehmen („Übernehmen“ bei den wartenden Zählungen), den Knopf **Inventurliste drucken …** klicken und speichern.
+Expected: `Inventurliste-<Lagerort>-<Datum>.pdf` mit Material, Einheit, Soll, Gezählt, Differenz (mit Vorzeichen), Wert und „Summe der Differenzen (n Positionen)“; nur gezähltes Material, Kopfzeile nennt „gezählt von <Name>“.
+5. **Verwaltung › Lager › Bestellen**: unter einer Bestellung die Knöpfe ansehen, **PDF speichern**, dann **Per Mail senden**.
+Expected: Unter den Knöpfen der Bestellung steht der Block „Drucken · PDF speichern · Per Mail senden“. `Bestellung-<Nr>-<Lieferant>.pdf`: Lieferant, Ansprechperson, Bestelldatum, „Lieferung an“ (der Standort), „Erwartete Lieferung“ (nur mit Lieferzeit beim Lieferanten), Positionen mit Menge, Einheit, Artikelnr., Bezeichnung, Einzelpreis und Summe, „Gesamtsumme netto“ und der Hinweis. Die Rückfrage zeigt die Mailadresse des Lieferanten (leer, wenn keine eingetragen ist), den Betreff „Bestellung <Nr> vom <Datum>“ und einen Text mit Gruß; nach „Senden“ Toast „Gesendet an …“, die Mail kommt mit dem PDF im Anhang an, der Stand der Bestellung bleibt (Entwurf), und unter den Knöpfen steht „Gesendet am <Datum> <Uhrzeit> an <Adresse> von <Vorname>“; ein zweites Senden fügt eine zweite Zeile hinzu. Eine ungültige Adresse wird abgelehnt.
+6. Mit einer Standortleitung, deren Vollmacht „Bestellungen auslösen“ abgelaufen ist (Team › Regelungen und Vollmachten), das Senden der Bestellung versuchen.
+Expected: Die App meldet den Grund wie bei „Bestellen und senden“ („Bestellungen auslösen“); es geht keine Mail hinaus, es entsteht kein Vermerk.
+7. **Verwaltung › Lager › Chargen**, oben bei „Ablaufliste“ **Ablaufliste als PDF** klicken, den Zeitraum auf 60 Tage stellen, speichern.
+Expected: Unter „Ablaufliste“ erscheint die Wahl „Zeitraum“ (7, 14, 30, 60, 90 Tage; 30 vorgewählt) mit „Drucken“ und „PDF speichern“. `Ablaufliste-<Standort>-<Datum>.pdf`: „Ablaufliste: nächste 60 Tage“, Material, Charge, Lagerort, Ablaufdatum, Frist („heute“, „noch 5 Tage“) und Menge, zuerst ablaufend zuerst; Abgelaufenes steht nicht darauf; ohne Charge im Zeitraum „In diesem Zeitraum läuft keine Charge ab.“.
+8. Als Rezeption die Adressen `…/api/locations/<id>/roster/pdf?week=<Tag>` und `…/api/purchase-orders/<id>/pdf` aufrufen; als Backoffice `…/api/employees/<id>/timesheet/pdf?month=2026-06`.
+Expected: Die ersten beiden antworten mit 403; das Backoffice darf die Stundenliste drucken (wie die Zeiten lesen), nicht den Aushang, die Inventur-, Bestell- und Ablaufliste.
+Closes: Arbeitsanweisung PDF-Ausgaben, Aufgabe F
+Result: ☐
+
+### PDF-Ausgaben Zusatz – Gutscheinliste
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Inhaberin anmelden; an der Kassa sind mehrere Gutscheine verkauft (ein Wertgutschein, ein Behandlungsgutschein, ein Paket), einer davon ist eingelöst, einer storniert, einer hat ein Ablaufdatum in 10 Tagen und einer ein Ablaufdatum in der Vergangenheit; ein Gutschein wurde online gekauft (mit Empfänger).
+1. **Kassa**, in der Kopfzeile **Gutscheinliste …** klicken, ohne Filter **PDF speichern**, die Datei öffnen.
+Expected: Die Karte „Gutscheinliste“ mit „Ausgestellt von“ und „bis“, „Status“ (Alle, aktiv, aufgebraucht, abgelaufen, storniert), „läuft in 30 Tagen ab“, „noch nicht versendet“ und „Drucken“ und „PDF speichern“ (ohne „Per Mail senden“); ein zweiter Klick auf den Knopf oder das Kreuz schließt sie. `Gutscheinliste-<Standort>-<Datum>.pdf`, A4 quer: eine Zeile je Gutschein mit Code, Art, Ausgestellt, Ausgangswert, Restwert, Gültig bis („–“ ohne Ablaufdatum), Status, Käufer, Empfänger („–“ bei Kassa-Verkäufen, beim Online-Gutschein der Name), Kanal (Kassa oder Online) und Versand; unten „Offene Restwerte (Verbindlichkeit)“ mit Betrag und Zahl der aktiven Gutscheine, „Abgelaufen, noch nicht ausgebucht“ mit dem Rest des abgelaufenen, und ein Satz zur Berechnung. Bei vielen Gutscheinen läuft die Tabelle über mehrere Seiten mit wiederholtem Kopf.
+2. Den Zeitraum auf heute und gestern stellen, den Status auf „aktiv“ stellen, speichern; dann „läuft in 30 Tagen ab“ ankreuzen, speichern.
+Expected: Der Pfad der Karte ändert sich mit jeder Wahl; die Kopfzeile des PDFs nennt die Auswahl („Ausgestellt 08.11.2026 bis 09.11.2026 · Status: aktiv“, „läuft in 30 Tagen ab“); mit „läuft in 30 Tagen ab“ steht nur der Gutschein mit dem Ablaufdatum in 10 Tagen darauf. Ein Ende vor dem Beginn sperrt „Drucken“ und „PDF speichern“ mit dem Hinweis „Das Ende darf nicht vor dem Beginn liegen.“.
+3. Einen frisch verkauften Gutschein unter dem Beleg **Per Mail senden**, einen zweiten **Drucken** (Drucker oder PDF-Drucker), einen dritten **Übergeben** klicken; danach die Liste mit „noch nicht versendet“ drucken.
+Expected: Toasts „Gesendet an …“, „Gedruckt“ und „Gutschein … als übergeben vermerkt“; mit „noch nicht versendet“ fehlen diese drei, der Rest steht darauf. In der Liste ohne Filter steht beim ersten „Mail am <Datum>“ mit „an <Adresse>“, beim zweiten „Gedruckt am <Datum>“, beim dritten „Übergeben am <Datum>“; beim online gekauften Gutschein „Mail am …“ an die Adresse des Käufers. Ein Druck, der am Drucker scheitert, hinterlässt keinen Vermerk.
+4. Als Rezeption ohne das Recht „Berichte mit Beträgen“ die Kassa öffnen und die Karte öffnen; als Rezeption die Adresse `…/api/pos/locations/<id>/vouchers/pdf` aufrufen.
+Expected: Die Karte lässt sich öffnen, „Drucken“ und „PDF speichern“ sind gesperrt mit dem Hinweis auf Kassenaufsicht oder „Berichte mit Beträgen“; der Aufruf antwortet mit 403. Mit Standortleitung oder Backoffice geht es.
+Closes: Zusatz zur Arbeitsanweisung PDF-Ausgaben (Gutscheinliste)
+Result: ☐
+
+### PDF-Ausgaben G – Hilfe
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Inhaberin anmelden; die Hilfe über das Fragezeichen oder **Hilfe** in der Seitenleiste öffnen, Suche „PDF“
+1. In der Suche **PDF** eintippen, danach **Rechnung schicken**, **drucken** und **per Mail** (jeweils einzeln).
+Expected: Der Ablauf „Dokumente drucken, als PDF speichern und per Mail senden“ steht jedes Mal unter den Treffern, bei „Rechnung schicken“ auch „Belege ansehen und drucken“ und „Rechnung mit Empfänger“.
+2. Den Ablauf „Dokumente drucken, als PDF speichern und per Mail senden“ öffnen und lesen.
+Expected: Es gibt „Der Knopfblock“ (mit dem Bild der Kassa), „Drucken“, „PDF speichern“, „Per Mail senden“ (mit dem Bild der Rückfrage), „Wenn ein Knopf grau ist“ und „Gut zu wissen“; die Knopfnamen und Hinweistexte stimmen wörtlich mit der App überein; alle Verweise unter „Der Knopfblock“ öffnen das richtige Thema und den richtigen Abschnitt. Unter „Auf dieser Seite“ stehen die sechs Abschnitte, unter „Verwandte Themen“ die verlinkten Seiten.
+3. Die Themen „Belege ansehen und drucken“ (Abschnitt „Als PDF speichern oder per Mail senden“), „Rechnung mit Empfänger“ (Abschnitt „Rechnung als PDF“, mit dem Bild der Rechnung) und „Tagesabschluss“ (Abschnitt „Tagesabschluss als PDF“) lesen und mit der Kassa vergleichen.
+Expected: Die Knöpfe „Drucken“ (Bondrucker), „A4 drucken“, „PDF speichern“ (Pfeil: „PDF im Bon-Format speichern“) und „Per Mail senden“, die Dateinamen und die Vermerke „Per Mail gesendet an …“ stimmen mit der Kassa überein; das Bild der Rechnung zeigt Beispieldaten (Day-Spa Wien, Muster GmbH), keine echten Namen.
+4. Die Themen „Terminbestätigung als PDF drucken oder per Mail senden“, „Tagesplan drucken oder als PDF speichern“, „Warteliste ansehen“ (Abschnitt „Tagesliste drucken“) und „Kundenkarte ansehen“ (Abschnitt „Auskunft und Stammblatt als PDF“) lesen und im Kalender und in der Kundenkarte nachvollziehen.
+Expected: Die Wege (Panel › **Mehr** › **Bestätigung …**, Menü neben **Termin** › **Tagesplan drucken …**, Menü **…** an der Kundenkarte) führen zu den beschriebenen Karten; die Hilfe nennt für die Auskunft die Gesundheitsangaben nur mit dem Recht für die Anamnese, sonst den Satz „Gesundheitsangaben: vorhanden, Auskunft durch die Leitung“.
+5. Die Themen „Gutschein verkaufen“ (Abschnitte „Gutschein als PDF übergeben“ und „Gutscheinliste drucken“, mit dem Bild der Karte), „Dienstplan veröffentlichen“ (Abschnitt „Aushang drucken“), „Arbeitszeit korrigieren“ (Abschnitt „Stundenliste drucken“), „Inventur buchen“, „Bestellen und Lieferung buchen“ und „Bald ablaufende Chargen abarbeiten“ (je mit dem Abschnitt zum PDF) lesen und mit der Verwaltung vergleichen.
+Expected: Knopfnamen („Gutscheinliste …“, „Aushang als PDF“, „Stundenliste als PDF“, „Zählliste drucken …“, „Inventurliste drucken …“, „Ablaufliste als PDF“), Filter, Dateinamen und die Hinweise bei fehlendem Recht stimmen mit den Masken überein.
+6. In der Kassa am Fragezeichen neben einer Maske die Seitenerklärung „Kassa“ öffnen; im Kalender und bei den Kunden ebenso.
+Expected: Die Listen der Abläufe nennen „Dokumente drucken, als PDF speichern und per Mail senden“, „Gutscheinliste drucken“ (Kassa), „Terminbestätigung als PDF drucken oder senden“ und „Tagesplan drucken“ (Kalender) und „Auskunft und Stammblatt als PDF“ (Kunden).
+Closes: Arbeitsanweisung PDF-Ausgaben, Aufgabe G
+
+### Gutschein-Ablaufdatum je Land
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Rezeption anmelden, **Kassa**, Bereich „Kassieren“, Panel „Artikel und Gutscheine“ aufklappen
+1. Unter „Gutschein verkaufen“ das Feld **Einzulösen bis** ansehen (Kasse in Österreich).
+Expected: Das Feld ist leer; darunter steht „In Österreich ohne Ablaufdatum; leer lassen.“
+2. Ein Datum eintragen, z. B. `31.12.2028`, und das Feld verlassen.
+Expected: Unter dem Feld steht der Hinweis „In Österreich sind Fristen unter 5 Jahren ohne Auszahlungsmöglichkeit unwirksam.“; **Wertgutschein verkaufen** bleibt möglich.
+3. Wert `50` eintragen, **Wertgutschein verkaufen**, bar bezahlen.
+Expected: Der Beleg zeigt unter „Gutschein …“ die Zeile „Einzulösen bis 31.12.2028“; der gedruckte Beleg ebenso.
+4. Feld leeren, einen Behandlungsgutschein verkaufen und bezahlen.
+Expected: Auf dem Beleg steht keine Zeile „Einzulösen bis“ (unbefristet).
+5. Wenn eine Kasse in Deutschland eingerichtet ist (Test-TSE): Kassa dieses Standorts öffnen.
+Expected: Das Feld ist mit dem 31.12. des dritten Jahres nach heute vorbelegt (heute 09.11.2026 → 31.12.2029); ein früheres Datum zeigt „Kürzer als die übliche Frist bis …“.
+6. Einen Gutschein mit abgelaufenem Datum einlösen (z. B. ein Testgutschein mit Datum von gestern).
+Expected: Beim Bezahlen erscheint „Gutschein … ist am … abgelaufen.“
+Closes: –
 Result: ☐

@@ -287,7 +287,7 @@ public sealed class StripePaymentTests(ApiFixture fixture)
         Assert.Equal(CardGuaranteeStatus.Saved, saved!.CardGuarantee!.Status);
         Assert.Null(saved.CardGuarantee.SetupUrl);
 
-        await spa.PostAsync<AppointmentDto>($"/api/appointments/{booked.Appointment.Id}/status", new AppointmentStatusChange(AppointmentStatus.NoShow), Ct);
+        await spa.SetStatusAsync(booked.Appointment.Id, AppointmentStatus.NoShow, Ct);
         Assert.Equal(HttpStatusCode.OK, (await staff.PostAsync($"/api/appointments/{booked.Appointment.Id}/card-guarantee/charge", null, Ct)).StatusCode);
         using (var timeout = CancellationTokenSource.CreateLinkedTokenSource(Ct))
         {
