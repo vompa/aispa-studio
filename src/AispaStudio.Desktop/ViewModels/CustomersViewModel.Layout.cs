@@ -75,7 +75,7 @@ public partial class CustomersViewModel
 
     public bool MissingBooking => IsCardLoaded && Selected is not null && !BookingSectionVisible;
 
-    public bool HasMissing => MissingWishes || MissingFlags || MissingReceptionNote || MissingBooking;
+    public bool HasMissing => !IsAnonymized && (MissingWishes || MissingFlags || MissingReceptionNote || MissingBooking);
 
     // ---------- Ein Hauptknopf je Ansicht: ohne Karte „Neue Kundin“, mit Karte „Termin buchen“, beim Bearbeiten der Speichern-Knopf ----------
 
@@ -85,8 +85,8 @@ public partial class CustomersViewModel
 
     // ---------- Kopf: „Termin buchen“ (Hauptknopf), „Kassieren“, wenn heute etwas offen ist, und das Menü „…“ ----------
 
-    /// <summary>Buchen, Kassieren und die Stammdaten verlangen das Recht „Termine buchen“; ohne Recht fehlen die Knöpfe, die API prüft trotzdem.</summary>
-    public bool CanBook => User?.Rights.Contains(AccessRight.Book) == true;
+    /// <summary>Buchen, Kassieren und die Stammdaten verlangen das Recht „Termine buchen“; ohne Recht fehlen die Knöpfe, die API prüft trotzdem. Bei einem anonymisierten Gast fehlen sie immer.</summary>
+    public bool CanBook => User?.Rights.Contains(AccessRight.Book) == true && !IsAnonymized;
 
     /// <summary>Verwaltungsaktionen der Karte (Kennzeichen „Leitung informieren“ und „Nicht mehr buchen“) nur für die Leitung.</summary>
     public bool MayManage => User?.Rights.Contains(AccessRight.ManageLocation) == true;

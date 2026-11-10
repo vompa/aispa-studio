@@ -163,8 +163,15 @@
     <!-- Kundenkarte (R07 Slice 141, Ä349): eine ruhige Fläche; oben Gast, Kontakt und „Termin buchen“, darunter links „Gut zu wissen“, rechts der Verlauf.
          Unten 72 px Innenabstand: mit dem Seitenrand 16 endet die letzte Zeile über dem Knopf „KI und Hilfe“ (48 hoch, Rand 20) -->
     <ScrollViewer Grid.Row="1" Grid.Column="1" Padding="0,0,0,72" IsVisible="{Binding HasSelection}">
-      <Border x:Name="CustomerCard" Classes="card" Padding="24,20">
+      <Border x:Name="CustomerCard" Classes="card" Classes.anonymized="{Binding IsAnonymized}" Padding="24,20">
+        <Border.Styles>
+          <!-- Anonymisierter Gast: die Stifte in den Abschnitten sind gesperrt (die API lehnt Änderungen mit 404 ab) -->
+          <Style Selector="Border#CustomerCard.anonymized Button.edit">
+            <Setter Property="IsEnabled" Value="False" />
+          </Style>
+        </Border.Styles>
         <StackPanel Spacing="16">
+          <ui:InfoBar x:Name="AnonymizedNotice" Severity="Info" Message="{Binding AnonymizedNotice}" IsVisible="{Binding IsAnonymized}" />
           <!-- Kopf: Avatar, Name, Stammgast; Telefon und E-Mail als schlichte Zeile (Klick kopiert); rechts „Kassieren“, „Termin buchen“, „…“ und ein Fragezeichen -->
           <Grid x:Name="CardHead" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="16">
             <Border Classes="avatar" Width="56" Height="56" CornerRadius="28" Background="{DynamicResource AccentGradientBrush}" VerticalAlignment="Top">
@@ -259,6 +266,9 @@
                               CommandParameter="{x:Static c:CustomerFlagKind.InformManagement}" IsVisible="{Binding MayManage}" />
                     <MenuItem Classes="manage" Header="Nicht mehr buchen …" Command="{Binding AddManagementFlagCommand}"
                               CommandParameter="{x:Static c:CustomerFlagKind.DoNotBook}" IsVisible="{Binding MayManage}" />
+                    <Separator IsVisible="{Binding MayAnonymize}" />
+                    <MenuItem x:Name="AnonymizeItem" Classes="manage" Header="Gast anonymisieren …" Command="{Binding AskAnonymizeCommand}" IsVisible="{Binding MayAnonymize}"
+                              AutomationProperties.Name="Gast anonymisieren" />
                   </MenuFlyout>
                 </Button.Flyout>
               </Button>

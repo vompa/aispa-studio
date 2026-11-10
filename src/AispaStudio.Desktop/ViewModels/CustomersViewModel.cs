@@ -35,6 +35,7 @@ public partial class CustomersViewModel(IWorkstationApi api, TimeProvider time) 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSelection), nameof(SelectedName), nameof(SelectedInitials), nameof(SelectedBirthday), nameof(SelectedLanguage), nameof(BillingText), nameof(DiscountText), nameof(BookingText), nameof(CreatedFromText))]
     [NotifyPropertyChangedFor(nameof(SelectedSymbol), nameof(SelectedSymbolIcon), nameof(SelectedPronouns), nameof(SelectedAddressLine), nameof(SelectedPostalAddress), nameof(SelectedGreeting))]
+    [NotifyPropertyChangedFor(nameof(IsAnonymized), nameof(AnonymizedNotice), nameof(CanBook), nameof(CanCheckout), nameof(MayAnonymize))]
     public partial CustomerDto? Selected { get; set; }
 
     [ObservableProperty]
