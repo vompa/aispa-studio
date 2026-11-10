@@ -170,12 +170,9 @@ public partial class CustomersViewModel
 
     public bool HasNameChanges => NameChangeLines.Count > 0;
 
-    /// <summary>„Do. 6.11. 10:30 · Hot-Stone-Massage bei Lena Huber“ bzw. „keiner“; leer, solange die Termine laden.</summary>
+    /// <summary>Der Gast war schon da, hat aber keinen Termin vor sich: der Verlauf sagt unter „Demnächst“ „Kein Termin geplant.“ (statt einer eigenen Zeile „Nächster Termin“).</summary>
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(NextLine))]
-    public partial string NextAppointmentText { get; private set; } = "";
-
-    public string NextLine => NextAppointmentText.Length == 0 ? "" : $"Nächster Termin: {NextAppointmentText}";
+    public partial bool NoUpcomingPlanned { get; private set; }
 
     /// <summary>Alle Termine (höchstens die letzten 100) unter dem Verlauf, aufgeklappt mit „Alle Termine“.</summary>
     [ObservableProperty]
@@ -195,7 +192,7 @@ public partial class CustomersViewModel
     private static string? PastStatus(AppointmentDto a) =>
         a.Status is AppointmentStatus.NoShow or AppointmentStatus.Cancelled or AppointmentStatus.CheckedIn ? StatusText(a.Status) : null;
 
-    private void ShowTimeline(IReadOnlyList<AppointmentDto> appointments, DateTimeOffset now, TimeZoneInfo zone)
+    private void ShowTimeline(List<AppointmentDto> appointments, DateTimeOffset now, TimeZoneInfo zone)
     {
         UpcomingEntries.Clear();
         RecentEntries.Clear();
@@ -210,7 +207,7 @@ public partial class CustomersViewModel
             RecentEntries.Add(new TimelineEntry(When(a, zone), VisitText(a), PastStatus(a), a.Status is AppointmentStatus.NoShow or AppointmentStatus.Cancelled));
         }
 
-        NextAppointmentText = upcoming.FirstOrDefault() is { } next ? $"{When(next, zone)} · {VisitText(next)}" : "keiner";
+        NoUpcomingPlanned = upcoming.Count == 0 && appointments.Count > 0;
         CheckoutAppointment = DueToday(appointments, now, zone);
     }
 

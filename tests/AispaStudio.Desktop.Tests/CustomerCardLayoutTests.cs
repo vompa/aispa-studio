@@ -32,26 +32,37 @@ public sealed class CustomerCardLayoutTests
     private static CustomerDto Plain() => SpaSample.Customers[0] with { Booking = null, Billing = null, Discount = null, Note = null };
 
     [Fact]
-    public void Nicht_behandeln_steht_als_erster_Warn_Chip_und_kuerzt_den_Klammerzusatz()
+    public void Nicht_behandeln_steht_nicht_bei_den_Wuenschen_und_kuerzt_den_Klammerzusatz()
     {
         var chips = CustomersViewModel.Chips(HelgaWishes).ToList();
 
-        Assert.Equal(new PreferenceChip("Nicht behandeln: Füße", true, "Nicht behandeln: Füße (kitzlig)"), chips[0]);
-        Assert.Equal(new PreferenceChip("Druck: sanft"), chips[1]);
-        Assert.Equal(2, chips.Count);
-        Assert.Equal(new PreferenceChip("Nicht behandeln: Füße", true), CustomersViewModel.Chips(SpaSample.Wishes()).First());
+        Assert.Equal([new PreferenceChip("Druck: sanft")], chips);
+        Assert.Equal(new PreferenceChip("Nicht behandeln: Füße", true, "Nicht behandeln: Füße (kitzlig)"), CustomersViewModel.AvoidChip("Füße (kitzlig)"));
+        Assert.Equal(new PreferenceChip("Nicht behandeln: Füße", true), CustomersViewModel.AvoidChip("Füße"));
     }
 
     [Fact]
-    public async Task Helga_Auer_zeigt_den_Warn_Chip_im_ersten_Abschnitt()
+    public async Task Helga_Auer_zeigt_Nicht_behandeln_im_Warnstreifen_und_nur_einmal()
     {
         var helga = Plain() with { FirstName = "Helga", LastName = "Auer" };
 
         var customers = await OpenAsync(helga, SpaSample.Insights() with { ReceptionNote = null }, HelgaWishes);
 
+        Assert.True(customers.HasAttention);
+        Assert.Equal("Nicht behandeln: Füße", customers.AvoidWarning?.Text);
         Assert.True(customers.WishesSectionVisible);
-        Assert.Equal(("Nicht behandeln: Füße", true), (customers.WishChips[0].Text, customers.WishChips[0].IsWarning));
+        Assert.DoesNotContain(customers.WishChips, c => c.IsWarning);
         Assert.False(customers.MissingWishes);
+    }
+
+    [Fact]
+    public async Task Ohne_Nicht_behandeln_und_ohne_Ausfaelle_gibt_es_keinen_Warnstreifen()
+    {
+        var insights = SpaSample.Insights() with { NoShows = [], LateCancellations = [] };
+
+        var customers = await OpenAsync(Plain(), insights, new CustomerPreferences("sanft", null, null, null, null, null, null, null));
+
+        Assert.Equal((false, null, null), (customers.HasAttention, customers.AvoidWarning, customers.StatsWarning));
     }
 
     [Fact]
@@ -82,11 +93,11 @@ public sealed class CustomerCardLayoutTests
     }
 
     [Fact]
-    public async Task Ohne_naechsten_Termin_steht_keiner_und_Termin_buchen_ist_der_Hauptknopf()
+    public async Task Ohne_naechsten_Termin_ist_Termin_buchen_der_Hauptknopf()
     {
         var customers = await OpenAsync(Plain(), SpaSample.Insights(), null);
 
-        Assert.Equal("Nächster Termin: keiner", customers.NextLine);
+        Assert.False(customers.NoUpcomingPlanned);
         Assert.True(customers.CanBook);
         Assert.True(customers.IsBookPrimary);
         Assert.False(customers.IsNewPrimary);
@@ -104,10 +115,22 @@ public sealed class CustomerCardLayoutTests
 
         var customers = await OpenAsync(Plain(), SpaSample.Insights(), null, appointments: [next]);
 
-        Assert.StartsWith("Nächster Termin: ", customers.NextLine, StringComparison.Ordinal);
-        Assert.Contains($"{next.TreatmentName} bei ", customers.NextLine, StringComparison.Ordinal);
-        Assert.Single(customers.UpcomingEntries);
+        var entry = Assert.Single(customers.UpcomingEntries);
+        Assert.StartsWith($"{next.TreatmentName} bei ", entry.Text, StringComparison.Ordinal);
         Assert.Empty(customers.RecentEntries);
+        Assert.False(customers.NoUpcomingPlanned);
+    }
+
+    [Fact]
+    public async Task Nur_vergangene_Termine_ergeben_Kein_Termin_geplant()
+    {
+        var start = new DateTimeOffset(DateTime.UtcNow.Date.AddDays(-20).AddHours(9), TimeSpan.Zero);
+        var past = SpaSample.Selected with { Id = Guid.NewGuid(), Start = start, End = start.AddMinutes(80), Status = AppointmentStatus.Completed };
+
+        var customers = await OpenAsync(Plain(), SpaSample.Insights(), null, appointments: [past]);
+
+        Assert.True(customers.NoUpcomingPlanned);
+        Assert.Empty(customers.UpcomingEntries);
     }
 
     [Fact]

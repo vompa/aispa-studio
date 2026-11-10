@@ -171,7 +171,7 @@ public sealed partial class ViewTests
     /// Tooltip als Hilfetext liest (W-Muster 12, W40).
     /// </summary>
     [Fact]
-    public Task Fokusreihenfolge_Kundenkarte_Sterne_Adresszeile_und_Anrede() => Render("hell", "fokus-kundenkarte-kopf", async (window, main) =>
+    public Task Fokusreihenfolge_Kundenkarte_Sterne_Adresszeile_und_Kontakt() => Render("hell", "fokus-kundenkarte-kopf", async (window, main) =>
     {
         var calendar = await SignedInCalendar(main);
         var shell = (ShellViewModel)main.Content!;
@@ -191,9 +191,9 @@ public sealed partial class ViewTests
         WriteFocusOrder("kundenkarte-kopf", order);
         Assert.Equal(
         [
-            "Stammgast, 2 Sterne (Text)", $"{customers.SelectedAddressLine} (Text)", $"{customers.SelectedGreeting} (Text)",
+            "Stammgast, 2 Sterne (Text)", $"{customers.SelectedAddressLine} (Text)",
             $"Telefon {customers.Selected!.Phone} kopieren (Button)", $"E-Mail {customers.Selected.Email} kopieren (Button)",
-        ], order.Take(5));
+        ], order.Take(4));
         // Danach die Aktionen des Kopfs in Lesereihenfolge, vor „Gut zu wissen“.
         var book = order.IndexOf("Termin buchen (Button)");
         var more = order.IndexOf("Weitere Aktionen (Button)");
@@ -202,7 +202,8 @@ public sealed partial class ViewTests
         Assert.Equal(customers.Insights!.StarsText, ControlAutomationPeer.CreatePeerForElement(stars).GetHelpText());
         var helps = page.GetVisualDescendants().OfType<TextBlock>().Where(t => t.Focusable).Select(t => ControlAutomationPeer.CreatePeerForElement(t).GetHelpText()).ToList();
         Assert.Contains("Adresszeile mit dem gültigen Namen: so steht es auf Rechnungen und Belegen.", helps);
-        Assert.Contains("So beginnen Mails, Erinnerungen und Antworten der KI an diesen Gast.", helps);
+        // Die Anrede steht nur noch im Tooltip am Namen (ADR 0094), mit Erklärung und Anrede je Land.
+        Assert.Contains($"So beginnen Mails, Erinnerungen und Antworten der KI an diesen Gast:\n{customers.SelectedGreeting}", helps);
         return calendar;
     });
 

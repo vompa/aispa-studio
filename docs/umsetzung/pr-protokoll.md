@@ -5958,3 +5958,29 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
   - Ein API-Gesamtlauf fehlt.
   - Die Darstellung in der laufenden App ist nicht angesehen.
   - Die Offline-Kopie behält ältere Suchlisten mit Klarnamen bis zu 14 Tage (offen, siehe ADR 0093).
+
+## Masken: Drittel und goldener Schnitt, Kundenkarte 3 : 2 (10.11.2026)
+
+- **Auftrag:** Der Auftraggeber fand die Kundenkarte überladen. Goldener Schnitt und Drittelregel sollten für Masken zur Eingabe und zur Anzeige vertieft und auf die Kundenkarte angewendet werden. Freigegeben: Teilung 3 : 2 mit „Gut zu wissen“ breit, Kürzung der Wiederholungen, Regel verbindlich ([ADR 0094](../entscheidungen/0094-proportionen-von-masken-drittel-und-goldener-schnitt.md)).
+- **Was:**
+  - Neue Regel R14 in [masken.md](../gestaltung/masken.md) mit Punkt 16 der Checkliste; design.md 5.5 nennt die Werte der Kundenkarte.
+  - Neues Panel `MainSideColumns` (3 : 2, untereinander unter `StackBelow`).
+  - Kundenkarte: „Gut zu wissen“ und „Verlauf“ 3 : 2, unter 720 untereinander.
+  - Warnstreifen (Hinweis „Warnung“) unter dem Kopf mit „Nicht behandeln: …“ und den Ausfällen; der Warn-Chip bei den Wünschen entfällt.
+  - Die Anrede steht im Tooltip am Namen. Die Zeile „Nächster Termin“ und der Link „buchen“ entfallen, „Demnächst“ sagt „Kein Termin geplant.“.
+  - Hilfe `kunden-kundenkarte` und neun Handbuchbilder der Kundenkarte sind nachgezogen.
+- **Detailentscheidungen:**
+  1. 3 : 2 statt 61,8 : 38,2, damit keine neuen Werte entstehen; Sternanteile sind Verhältnisse, keine Größen.
+  2. Gilt nur „Nicht behandeln“, ohne andere Wünsche, fehlt der Abschnitt „Wünsche“, und „+ Wünsche“ steht unter „Noch nicht erfasst“ (die übrigen Wünsche fehlen ja wirklich).
+  3. Die Status-Pille im Verlauf steht unter der Behandlung statt daneben. In der schmaleren Spalte trennte sie sonst Wörter („Gesichtsbehan-dlung“); gesehen im Bild, nicht geplant.
+  4. Die Anrede steht als Tooltip am Namen, nicht an der Adresszeile, weil die Adresszeile fehlt, wenn sie nichts anderes sagt als der Name.
+- **Geprüft:**
+  - Test zuerst angepasst: `CustomerCardLayoutTests`, `CustomerCardTests`, `CustomerNameCardTests` 26 von 26 grün.
+  - Bildtests `*Kunde*` und `*Bindungsfehler*` 158 von 158 grün, darunter neu `Kundenkarte_teilt_Gut_zu_wissen_und_Verlauf_drei_zu_zwei`, `Kundenkarte_stellt_den_Verlauf_bei_schmalem_Fenster_unter_Gut_zu_wissen` und `Kundenkarte_Nicht_behandeln_steht_im_Warnstreifen_ueber_der_oberen_Drittellinie`. Ein Bindungsfehler (`AvoidWarning.Text` bei leerem Wert) wurde dabei gefunden und behoben.
+  - Hilfe-Tests im Web 61 von 61 grün; `dotnet format --verify-no-changes` sauber.
+  - Bilder bei 1440 und 1100 px angesehen.
+- **Nicht geprüft:**
+  - Die volle Desktop-Suite und die API-Suite (die API ist nicht geändert).
+  - Die laufende App und die Windows-Skalierung 125 und 150 Prozent.
+  - Bei 1440 px bricht der Verlauf in der 2/5-Spalte bei längeren Zeilen auf zwei Zeilen um („Hot-Stone-Massage bei Lena / Huber“). Das ist bewusst so entschieden, aber noch nicht abgenommen.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md) (kein „Bitte“, Hinweis statt Fehler, Satzschreibweise).

@@ -516,7 +516,7 @@ public partial class CustomersViewModel(IWorkstationApi api, TimeProvider time) 
         Visits.Clear();
         UpcomingEntries.Clear();
         RecentEntries.Clear();
-        NextAppointmentText = "";
+        NoUpcomingPlanned = false;
         CheckoutAppointment = null;
         if (customer is null)
         {

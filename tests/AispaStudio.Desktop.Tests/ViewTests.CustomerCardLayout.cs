@@ -30,8 +30,10 @@ public sealed partial class ViewTests
         window.GetVisualDescendants().OfType<StackPanel>().Single(p => p.Name == "GoodToKnow")
             .GetVisualDescendants().OfType<Border>().Where(b => b.Classes.Contains("section") && b.IsEffectivelyVisible).ToList();
 
+    private static Border AttentionHint(Window window) => window.GetVisualDescendants().OfType<Border>().Single(b => b.Name == "AttentionHint");
+
     [Fact]
-    public Task Kundenkarte_Nicht_behandeln_steht_als_Warn_Chip_im_ersten_Block() => Render("hell", "kunden-warn-chip", async (window, main) =>
+    public Task Kundenkarte_Nicht_behandeln_steht_im_Warnstreifen_ueber_der_oberen_Drittellinie() => Render("hell", "kunden-warn-chip", async (window, main) =>
     {
         var calendar = await SignedInCalendar(main);
         var shell = (ShellViewModel)main.Content!;
@@ -40,16 +42,65 @@ public sealed partial class ViewTests
         await shell.ShowCustomerAsync(SpaSample.Customers[0].Id);
         await Pump();
 
-        // Then ist der erste Abschnitt von „Gut zu wissen“ die Wünsche, und ihr erster Chip ist der Warn-Chip mit Dreieck.
-        var first = VisibleSections(window)[0];
-        Assert.Equal("WishesSection", first.Name);
-        var chip = first.GetVisualDescendants().OfType<Border>().First(b => b.Classes.Contains("tag"));
-        Assert.Contains("warn", chip.Classes);
-        Assert.Contains(chip.GetVisualDescendants().OfType<TextBlock>(), t => t.Text == "Nicht behandeln: Füße");
-        Assert.Contains(chip.GetVisualDescendants().OfType<Icon>(), i => i.Data == Icons.Warning && i.IsEffectivelyVisible);
-        Assert.Equal("Nicht behandeln: Füße (kitzlig)", ToolTip.GetTip(chip));
+        // Then steht „Nicht behandeln: Füße“ im Warnstreifen (Hinweis „Warnung“ mit Dreieck), nicht noch einmal bei den Wünschen.
+        var hint = AttentionHint(window);
+        Assert.True(hint.IsEffectivelyVisible);
+        Assert.Contains("warn", hint.Classes);
+        Assert.Contains(hint.GetVisualDescendants().OfType<Icon>(), i => i.Data == Icons.Warning && i.IsEffectivelyVisible);
+        var avoid = hint.GetVisualDescendants().OfType<TextBlock>().Single(t => t.Name == "AvoidWarning");
+        Assert.Equal("Nicht behandeln: Füße", avoid.Text);
+        Assert.Equal("Nicht behandeln: Füße (kitzlig)", ToolTip.GetTip(avoid));
+        var wishes = VisibleSections(window).Single(s => s.Name == "WishesSection");
+        Assert.DoesNotContain(wishes.GetVisualDescendants().OfType<TextBlock>(), t => t.Text == "Nicht behandeln: Füße");
+
+        // Drittelregel (masken.md R14): der Streifen beginnt im oberen Drittel der Karte.
+        var card = CustomerCardBorder(window);
+        var top = hint.TranslatePoint(new Point(0, 0), card)!.Value.Y;
+        Assert.True(top < card.Bounds.Height / 3, $"Warnstreifen bei {top:0} von {card.Bounds.Height:0} px");
         return calendar;
     }, Api().On($"GET /api/reports/customers/{SpaSample.Customers[0].Id}/preferences", new CustomerPreferences("sanft", null, null, null, null, null, "Füße (kitzlig)", null)));
+
+    [Fact]
+    public Task Kundenkarte_teilt_Gut_zu_wissen_und_Verlauf_drei_zu_zwei() => Render("hell", "kunden-drei-zu-zwei", async (window, main) =>
+    {
+        var calendar = await SignedInCalendar(main);
+        var shell = (ShellViewModel)main.Content!;
+
+        // Given das Fenster ist 1440 breit; When die Karte offen ist
+        await shell.ShowCustomerAsync(SpaSample.Customers[0].Id);
+        await Pump();
+
+        // Then ist „Gut zu wissen“ links 1,5-mal so breit wie der Verlauf rechts (±2 px, das Layout rundet auf ganze Pixel), beide auf derselben Höhe.
+        var columns = window.GetVisualDescendants().OfType<MainSideColumns>().Single(c => c.Name == "CardColumns");
+        Assert.False(columns.IsStacked);
+        var good = window.GetVisualDescendants().OfType<StackPanel>().Single(p => p.Name == "GoodToKnow");
+        var timeline = window.GetVisualDescendants().OfType<StackPanel>().Single(p => p.Name == "Timeline");
+        Assert.InRange(timeline.Bounds.Width, (good.Bounds.Width / 1.5) - 2, (good.Bounds.Width / 1.5) + 2);
+        Assert.Equal(good.Bounds.Y, timeline.Bounds.Y);
+        return calendar;
+    });
+
+    [Fact]
+    public Task Kundenkarte_stellt_den_Verlauf_bei_schmalem_Fenster_unter_Gut_zu_wissen() => Render("hell", "kunden-schmal", async (window, main) =>
+    {
+        var calendar = await SignedInCalendar(main);
+        var shell = (ShellViewModel)main.Content!;
+
+        // Given das Fenster hat die Mindestbreite; When die Karte offen ist
+        window.Width = window.MinWidth;
+        await shell.ShowCustomerAsync(SpaSample.Customers[0].Id);
+        await Pump();
+
+        // Then steht der Verlauf in voller Breite unter „Gut zu wissen“ statt in einer schmalen Spalte daneben.
+        var columns = window.GetVisualDescendants().OfType<MainSideColumns>().Single(c => c.Name == "CardColumns");
+        Assert.True(columns.Bounds.Width < columns.StackBelow, $"Spalten {columns.Bounds.Width:0} px breit");
+        Assert.True(columns.IsStacked);
+        var good = window.GetVisualDescendants().OfType<StackPanel>().Single(p => p.Name == "GoodToKnow");
+        var timeline = window.GetVisualDescendants().OfType<StackPanel>().Single(p => p.Name == "Timeline");
+        Assert.Equal(good.Bounds.Width, timeline.Bounds.Width);
+        Assert.True(timeline.Bounds.Y >= good.Bounds.Bottom);
+        return calendar;
+    });
 
     [Fact]
     public Task Kundenkarte_ohne_Angaben_zeigt_keine_Abschnitte_nur_noch_nicht_erfasst() => Render("hell", "kunden-leer", async (window, main) =>
@@ -77,7 +128,7 @@ public sealed partial class ViewTests
     }, EmptyGuestApi());
 
     [Fact]
-    public Task Kundenkarte_ohne_naechsten_Termin_zeigt_keiner_mit_buchen_und_Termin_buchen_als_Hauptknopf() => Render("hell", "kunden-ohne-termin", async (window, main) =>
+    public Task Kundenkarte_ohne_naechsten_Termin_hat_Termin_buchen_als_einzigen_Hauptknopf() => Render("hell", "kunden-ohne-termin", async (window, main) =>
     {
         var calendar = await SignedInCalendar(main);
         var shell = (ShellViewModel)main.Content!;
@@ -86,11 +137,8 @@ public sealed partial class ViewTests
         await shell.ShowCustomerAsync(EmptyGuest.Id);
         await Pump();
 
-        // Then steht oben „Nächster Termin: keiner“ mit „buchen“, und „Termin buchen“ ist der einzige Hauptknopf.
-        var next = window.GetVisualDescendants().OfType<TextBlock>().Single(t => t.Name == "NextLine");
-        Assert.True(next.IsEffectivelyVisible);
-        Assert.Equal("Nächster Termin: keiner", next.Text);
-        Assert.True(window.GetVisualDescendants().OfType<Button>().Single(b => b.Name == "NextBookLink").IsEffectivelyVisible);
+        // Then gibt es keine eigene Zeile „Nächster Termin“ und keinen Link „buchen“ mehr (ADR 0094); „Termin buchen“ ist der einzige Hauptknopf.
+        Assert.DoesNotContain(window.GetVisualDescendants().OfType<Control>(), c => c.Name is "NextLine" or "NextBookLink");
         var view = window.GetVisualDescendants().OfType<CustomersView>().First();
         var primary = Assert.Single(view.GetVisualDescendants().OfType<Button>(), b => b.Classes.Contains("primary") && b.IsEffectivelyVisible);
         Assert.Equal("BookButton", primary.Name);
