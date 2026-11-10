@@ -19,25 +19,8 @@ internal static class CustomerEndpoints
         var group = routes.MapGroup("/api/customers").WithTags("Kunden").RequirePermission(AccessRight.ViewCalendar);
 
         group.MapGet("/", async (string? search, AispaDbContext db, CancellationToken ct) =>
-            {
-                var query = db.Customers.AsNoTracking().Where(c => c.DeletedAt == null);
-                // Jedes Suchwort muss in Vorname, Rufname, Nachname, E-Mail oder Telefon vorkommen: „anna muster“, „0664“ usw.
-                // Titel („Dr.“, „MSc“) sind keine Suchwörter, damit „Dr. Huber“ die Kundin trotzdem findet.
-                foreach (var term in PersonNames.WithoutTitles(search).Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
-                {
-                    var pattern = $"%{term.Replace("\\", "\\\\", StringComparison.Ordinal).Replace("%", "\\%", StringComparison.Ordinal).Replace("_", "\\_", StringComparison.Ordinal)}%";
-                    query = query.Where(c =>
-                        EF.Functions.ILike(c.FirstName, pattern) ||
-                        (c.PreferredName != null && EF.Functions.ILike(c.PreferredName, pattern)) ||
-                        EF.Functions.ILike(c.LastName, pattern) ||
-                        (c.Email != null && EF.Functions.ILike(c.Email, pattern)) ||
-                        db.CustomerEmails.Any(e => e.CustomerId == c.Id && EF.Functions.ILike(e.Address, pattern)) ||
-                        (c.Phone != null && EF.Functions.ILike(c.Phone, pattern)));
-                }
-
-                return (await query.OrderBy(c => c.LastName).ThenBy(c => c.FirstName).Take(25).ToListAsync(ct))
-                    .Select(ToDto).ToList();
-            })
+                (await Search(db.Customers.AsNoTracking().Where(c => c.DeletedAt == null), db, search).OrderBy(c => c.LastName).ThenBy(c => c.FirstName).Take(25).ToListAsync(ct))
+                    .Select(ToDto).ToList())
             .WithName("SearchCustomers")
             .WithSummary("Sucht im gemeinsamen Kundenstamm (höchstens 25 Treffer).");
 
@@ -63,14 +46,7 @@ internal static class CustomerEndpoints
         group.MapPost("/", async Task<Results<Created<CustomerDto>, ValidationProblem>> (
                 CustomerInput input, AispaDbContext db, TenantContext tenants, TimeProvider time, CancellationToken ct) =>
             {
-                // Pflicht ist nur ein Name, damit die Rezeption auch „Frau Huber“ am Telefon sofort anlegen kann.
-                var firstName = input.FirstName?.Trim() ?? "";
-                var lastName = input.LastName?.Trim() ?? "";
-                var errors = new Errors();
-                errors.Check(firstName.Length > 0 || lastName.Length > 0, nameof(input.LastName), "Vor- oder Nachname angeben.");
-                errors.Check(Blank(input.Email) is not { } email || email.Contains('@', StringComparison.Ordinal), nameof(input.Email), "Keine gültige E-Mail-Adresse.");
-                errors.Check(KnownLanguage(input.Language), nameof(input.Language), "Unbekannte Sprache.");
-                CheckNameDetails(errors, input);
+                var errors = CheckNew(input);
                 if (errors.Any)
                 {
                     return errors.Problem();
@@ -91,19 +67,7 @@ internal static class CustomerEndpoints
                     }
                 }
 
-                var customer = new Customer
-                {
-                    Id = input.ClientId ?? Guid.CreateVersion7(),
-                    FirstName = firstName,
-                    LastName = lastName,
-                    Email = Blank(input.Email),
-                    Phone = await StoredPhoneAsync(input.Phone, db, tenants, ct),
-                    BirthDate = input.BirthDate,
-                    Note = Blank(input.Note),
-                    Language = GuestLanguages.Normalize(input.Language),
-                    CreatedAt = time.GetUtcNow(),
-                };
-                ApplyNameDetails(customer, input);
+                var customer = NewCustomer(input, await StoredPhoneAsync(input.Phone, db, tenants, ct), time.GetUtcNow());
                 db.Customers.Add(customer);
                 await db.SaveChangesAsync(ct);
                 return TypedResults.Created($"/api/customers/{customer.Id}", ToDto(customer));
@@ -365,6 +329,58 @@ internal static class CustomerEndpoints
         return routes;
     }
 
+    /// <summary>
+    /// Die Suche der Kundenliste, auch für den Export: Jedes Suchwort muss in Vorname, Rufname, Nachname, E-Mail oder Telefon vorkommen („anna muster“, „0664“ usw.).
+    /// Titel („Dr.“, „MSc“) sind keine Suchwörter, damit „Dr. Huber“ die Kundin trotzdem findet.
+    /// </summary>
+    public static IQueryable<Customer> Search(IQueryable<Customer> query, AispaDbContext db, string? search)
+    {
+        foreach (var term in PersonNames.WithoutTitles(search).Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            var pattern = $"%{term.Replace("\\", "\\\\", StringComparison.Ordinal).Replace("%", "\\%", StringComparison.Ordinal).Replace("_", "\\_", StringComparison.Ordinal)}%";
+            query = query.Where(c =>
+                EF.Functions.ILike(c.FirstName, pattern) ||
+                (c.PreferredName != null && EF.Functions.ILike(c.PreferredName, pattern)) ||
+                EF.Functions.ILike(c.LastName, pattern) ||
+                (c.Email != null && EF.Functions.ILike(c.Email, pattern)) ||
+                db.CustomerEmails.Any(e => e.CustomerId == c.Id && EF.Functions.ILike(e.Address, pattern)) ||
+                (c.Phone != null && EF.Functions.ILike(c.Phone, pattern)));
+        }
+
+        return query;
+    }
+
+    /// <summary>Prüfungen beim Anlegen eines Gastes, gemeinsam für <c>POST /api/customers</c> und den Kunden-Import.</summary>
+    internal static Errors CheckNew(CustomerInput input)
+    {
+        // Pflicht ist nur ein Name, damit die Rezeption auch „Frau Huber“ am Telefon sofort anlegen kann.
+        var errors = new Errors();
+        errors.Check((input.FirstName?.Trim() ?? "").Length > 0 || (input.LastName?.Trim() ?? "").Length > 0, nameof(input.LastName), "Vor- oder Nachname angeben.");
+        errors.Check(Blank(input.Email) is not { } email || email.Contains('@', StringComparison.Ordinal), nameof(input.Email), "Keine gültige E-Mail-Adresse.");
+        errors.Check(KnownLanguage(input.Language), nameof(input.Language), "Unbekannte Sprache.");
+        CheckNameDetails(errors, input);
+        return errors;
+    }
+
+    /// <summary>Der neue Gast aus geprüften Angaben; <paramref name="phone"/> ist schon im gespeicherten Format (<see cref="StoredPhone"/>).</summary>
+    internal static Customer NewCustomer(CustomerInput input, string? phone, DateTimeOffset now)
+    {
+        var customer = new Customer
+        {
+            Id = input.ClientId ?? Guid.CreateVersion7(),
+            FirstName = input.FirstName?.Trim() ?? "",
+            LastName = input.LastName?.Trim() ?? "",
+            Email = Blank(input.Email),
+            Phone = phone,
+            BirthDate = input.BirthDate,
+            Note = Blank(input.Note),
+            Language = GuestLanguages.Normalize(input.Language),
+            CreatedAt = now,
+        };
+        ApplyNameDetails(customer, input);
+        return customer;
+    }
+
     private static string? Blank(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 
     /// <summary>Die Nummer im Format „+43 664 1234567“ (Vorwahl des Landes des Spas); was sich nicht als Nummer lesen lässt, bleibt wie getippt.</summary>
@@ -376,8 +392,12 @@ internal static class CustomerEndpoints
         }
 
         var country = await db.Tenants.AsNoTracking().Where(t => t.Id == tenants.TenantId).Select(t => t.Country).FirstOrDefaultAsync(ct);
-        return PhoneNumbers.Format(phone, country) is { Length: > 0 } formatted ? formatted : phone;
+        return StoredPhone(phone, country);
     }
+
+    /// <summary>Wie <see cref="StoredPhoneAsync"/>, mit dem Land des Spas schon zur Hand (Import vieler Gäste).</summary>
+    internal static string? StoredPhone(string? typed, string? country) =>
+        Blank(typed) is not { } phone ? null : PhoneNumbers.Format(phone, country) is { Length: > 0 } formatted ? formatted : phone;
 
     private static void CheckNameDetails(Errors errors, CustomerInput input)
     {

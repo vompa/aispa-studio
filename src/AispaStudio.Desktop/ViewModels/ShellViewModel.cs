@@ -60,7 +60,7 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
         Calendar = new CalendarViewModel(api, user, live, time, theme.Store) { CanAskAssistant = modules?.Assistant != false };
         Customers = new CustomersViewModel(api, time) { User = user, BookRequested = BookForCustomer };
         Activity = new ActivityViewModel(api, user, time) { LocationSource = () => Calendar.Location };
-        Pos = new PosViewModel(api, time, theme.Store) { OwnerLevel = user.Access?.Role is StaffRole.Owner or StaffRole.GeneralManager, MaySuperviseCash = user.Rights.Contains(AccessRight.SuperviseCash) };
+        Pos = new PosViewModel(api, time, theme.Store) { OwnerLevel = user.Access?.Role is StaffRole.Owner or StaffRole.GeneralManager, MaySuperviseCash = user.Rights.Contains(AccessRight.SuperviseCash), MaySeeAmountReports = user.Rights.Contains(AccessRight.ViewAmountReports) };
         HasPin = user.HasPin;
         Devices = new DevicesViewModel(api, theme.Store)
         {

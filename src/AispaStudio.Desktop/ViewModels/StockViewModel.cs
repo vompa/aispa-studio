@@ -50,6 +50,7 @@ public sealed partial class StockViewModel : ViewModelBase, INativeArea
     private bool _reverting;
     private int _locationVersion;
     private int _levelsVersion;
+    private readonly bool _isLeadership;
 
     public StockViewModel(IWorkstationApi api, CurrentUser user, TimeProvider time, ILiveUpdates? live = null)
     {
@@ -59,6 +60,7 @@ public sealed partial class StockViewModel : ViewModelBase, INativeArea
         CanBook = user.Rights.Contains(AccessRight.Book);
         CanManage = user.Rights.Contains(AccessRight.ManageLocation);
         CanCatalog = user.Rights.Contains(AccessRight.ManageCatalog);
+        _isLeadership = user.Access?.Role is StaffRole.Owner or StaffRole.GeneralManager;
         Todo = new StockTodoViewModel(this);
         Overview = new StockOverviewViewModel(this);
         ItemForm = new StockItemFormViewModel(this, api);
@@ -261,6 +263,13 @@ public sealed partial class StockViewModel : ViewModelBase, INativeArea
     }
 
     public Task EnsureLoadedAsync() => IsLoaded ? Task.CompletedTask : LoadAsync();
+
+    /// <summary>Eine Rückmeldung der Maske, z. B. nach dem Speichern oder Senden eines PDFs (PDF-Ausgaben F).</summary>
+    internal void ShowMessage(string message)
+    {
+        Message = message;
+        Error = null;
+    }
 
     /// <summary>
     /// Lädt Material und Bestand des Standorts neu (nach jeder Buchung); <paramref name="message"/> erscheint danach als Rückmeldung. Eingaben in der Zählliste und in

@@ -96,6 +96,8 @@ Neue Entscheidungen bekommen die nächste freie Nummer und die Vorlage [`vorlage
 | 0088 | [Öffentliches Repository unter MIT-Lizenz, Konzeptstudie zur KI-nativen Entwicklung](0088-oeffentliches-repository-mit-mit-lizenz.md) | 07.11.2026 | Auftraggeber |
 | 0089 | [Valkey statt Redis 8 für die Backplane des Live-Kanals](0089-valkey-statt-redis-8.md) | 08.11.2026 | Claude mit dem Council, vom Auftraggeber delegiert |
 | 0090 | [Live-Tests der Windows-App mit FlaUI](0090-live-tests-mit-flaui.md) | 08.11.2026 | Auftraggeber (Probelauf Rezeption), Umsetzung Claude |
+| 0091 | [Exporte über einen gemeinsamen Dienst (Excel, CSV, vCard, iCal, Protokoll)](0091-exporte-ueber-einen-gemeinsamen-dienst.md) | 09.11.2026 | Auftraggeber (Ziel und Formate), Umsetzung Claude |
+| 0092 | [Dokumente als PDF über PDFsharp mit eingebetteter Schrift](0092-dokumente-als-pdf-ueber-pdfsharp.md) | 09.11.2026 | Auftraggeber (Paket und Aufbau in der Arbeitsanweisung), Umsetzung Claude |
 | 0093 | [Gast anonymisieren und weich löschen](0093-gast-anonymisieren.md) | 10.11.2026 | Auftraggeber, Umsetzung Claude |
 
 Detailentscheidungen einzelner Pull Requests stehen im [PR-Protokoll](../umsetzung/pr-protokoll.md).

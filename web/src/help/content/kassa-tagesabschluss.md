@@ -5,7 +5,7 @@ bereich: Kassa
 oberflaeche: windows-app
 rollen: rezeption, leitung, inhaber, manager
 seite: kassa
-stichwoerter: Tagesabschluss, Kassenabschluss, Z-Bericht, X-Bericht, Zwischenbericht, Kassensturz, Bargeld zählen, Kassa zählen, Differenz, Fehlbetrag, Überschuss, Soll-Bestand, end of day, cash count, Z report, closing
+stichwoerter: Tagesabschluss, Kassenabschluss, Z-Bericht, X-Bericht, Zwischenbericht, Kassensturz, Bargeld zählen, Kassa zählen, Differenz, Fehlbetrag, Überschuss, Soll-Bestand, end of day, cash count, Z report, closing, Tagesabschluss als PDF, Tagesabschluss drucken, Abschluss abheften, Kassenabschluss PDF, closing as PDF
 ---
 # Tagesabschluss
 
@@ -59,6 +59,17 @@ Links steht nun „Tagesabschluss gespeichert“ mit „Keine Differenz“ oder 
 ## Zwischenstand ohne Abschluss {#zwischenstand}
 
 Der Bericht links ist jederzeit ein Zwischenstand (X-Bericht): **Kassenlade & Abschluss** öffnen und ansehen, ohne etwas einzutragen. Ein erneuter Klick auf **Kassenlade & Abschluss** lädt den Stand neu.
+
+## Tagesabschluss als PDF {#pdf}
+
+Sobald der Abschluss gespeichert ist, steht rechts die Karte „Tagesabschluss als PDF“ mit **Drucken** und **PDF speichern**. Das PDF ist zum Abheften gedacht und lässt sich nicht per Mail senden. Vor dem Abschluss, beim Zwischenbericht, fehlt die Karte.
+
+- Die Datei heißt `Tagesabschluss-<Kasse>-<JJJJ-MM-TT>.pdf`. **Drucken** schickt sie an den Standarddrucker von Windows, nicht an den Bondrucker; danach steht „Gedruckt“.
+- Das PDF zeigt den Zeitraum, die Belege von … bis … mit Zahl der Verkäufe und Stornos, die Summen je Zahlart mit dem Umsatz gesamt, die Steuern und die Kassenlade mit Soll-Bestand, gezähltem Bestand und Differenz. Notiz, Einlagen und Entnahmen mit Grund stehen darunter.
+- Zum Schluss stehen zwei Unterschriftenzeilen, „Gezählt von“ und „Geprüft von“.
+- Gesperrt ist der Block ohne das Recht „Berichte mit Beträgen“; der Hinweis am Knopf nennt es. Das Recht haben Inhaber, Manager und Backoffice immer, die Standortleitung und die Rezeption nur, wenn es ihnen gegeben ist: [Berichte mit Beträgen](hilfe:zugaenge#berichte-mit-betraegen).
+
+Wie Drucken und Speichern im Einzelnen arbeiten: [Dokumente drucken, speichern und senden](hilfe:dokumente-drucken-speichern-senden).
 
 ## Gut zu wissen {#hinweise}
 

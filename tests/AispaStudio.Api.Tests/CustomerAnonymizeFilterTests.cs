@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using AispaStudio.Api.Data;
 using AispaStudio.Api.MailIntake;
+using AispaStudio.Api.Scheduling;
 using AispaStudio.Api.Tenancy;
 using AispaStudio.Contracts;
 using Microsoft.AspNetCore.Http;
@@ -29,6 +30,23 @@ public sealed partial class CustomerAnonymizeTests
         Assert.Empty(await spa.GetAsync<List<CustomerDto>>($"/api/customers?search={lastName}", Ct));
         Assert.DoesNotContain(await spa.GetAsync<List<CustomerDto>>("/api/customers?search=Gelöschter", Ct), c => c.Id == spa.Customer.Id);
         Assert.Contains(await spa.GetAsync<List<CustomerDto>>($"/api/customers?search={other.LastName}", Ct), c => c.Id == other.Id);
+    }
+
+    [Fact]
+    public async Task Kundenexport_laesst_den_anonymisierten_Gast_weg_und_seine_vCard_gibt_es_nicht_mehr()
+    {
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        var other = await spa.PostAsync<CustomerDto>("/api/customers", new CustomerInput("Rita", $"Gast{Guid.NewGuid():N}", null, null, null, null), Ct);
+        Assert.Equal(HttpStatusCode.NoContent, (await spa.Client.PostAsync($"/api/customers/{spa.Customer.Id}/anonymize", null, Ct)).StatusCode);
+
+        using var export = await spa.Client.GetAsync("/api/customers/export?format=csv", Ct);
+        Assert.Equal(HttpStatusCode.OK, export.StatusCode);
+        var text = await export.Content.ReadAsStringAsync(Ct);
+        Assert.Contains(other.LastName, text, StringComparison.Ordinal);
+        Assert.DoesNotContain(CustomerAnonymizer.PlaceholderFirstName, text, StringComparison.Ordinal);
+
+        using var vcard = await spa.Client.GetAsync($"/api/customers/{spa.Customer.Id}/vcard", Ct);
+        Assert.Equal(HttpStatusCode.NotFound, vcard.StatusCode);
     }
 
     [Fact]

@@ -149,7 +149,9 @@ public sealed record CashRegisterDto(
 /// Gutschein (<c>VoucherKind</c>, <c>UnitPrice</c> als Wert, bei Einzweckgutschein <c>VoucherTreatmentId</c>) oder frei
 /// (<c>Description</c>, <c>UnitPrice</c>, <c>TaxCategory</c>, <c>RevenueAccountId</c>). <c>Discount</c> ist ein Betrag, der vom Positionspreis abgeht.
 /// Paket (z. B. 10er-Block): Einzweckgutschein mit <c>Units</c> Behandlungen; <c>UnitPrice</c> ist der Paketpreis (ohne Angabe Einheiten × Preis),
-/// <c>ValidUntil</c> ein freiwilliges Ablaufdatum. Ein Paket gehört dem Gast der Rechnung.
+/// Ein Paket gehört dem Gast der Rechnung.
+/// Gutscheine aller Art: <c>ValidUntil</c> ist das Ablaufdatum; ohne Angabe setzt der Server die Frist des Landes der Kasse
+/// (siehe <see cref="VoucherExpiryDto"/>). <c>WithoutExpiry</c>: ausdrücklich unbefristet, dann ohne <c>ValidUntil</c>.
 /// </summary>
 public sealed record BillLineInput(
     BillLineKind Kind,
@@ -165,7 +167,14 @@ public sealed record BillLineInput(
     Guid? VoucherTreatmentId,
     Guid? AreaVisitId = null,
     int? Units = null,
-    DateOnly? ValidUntil = null);
+    DateOnly? ValidUntil = null,
+    bool WithoutExpiry = false);
+
+/// <summary>
+/// Vorbelegung für das Ablaufdatum eines Gutscheins an dieser Kasse: <c>Default</c> ist die Frist des Landes ab heute (leer: ohne Ablaufdatum),
+/// <c>Rule</c> erklärt sie, <c>Warning</c> ist ein Hinweis zum angefragten Datum (kürzer als die Frist; in Österreich bei jedem Datum).
+/// </summary>
+public sealed record VoucherExpiryDto(DateOnly? Default, string Rule, string? Warning);
 
 /// <summary>
 /// Rabatt einer offenen Position: in Prozent (<c>Percent</c>, gerechnet auf Menge × Preis) oder als Betrag in der Währung der Kasse.
@@ -313,7 +322,8 @@ public sealed record ReceiptDto(
     InvoiceRecipient? Recipient = null,
     LocationCompany? Company = null,
     decimal? SmallInvoiceLimit = null,
-    bool IsDepositReceipt = false);
+    bool IsDepositReceipt = false,
+    IReadOnlyList<SentDocumentDto>? SentMails = null);
 
 /// <summary>
 /// Empfänger einer Rechnung zu einem Beleg, z. B. für Firmenkunden: Name und Anschrift, bei Unternehmen die UID-Nummer.

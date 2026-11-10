@@ -1,6 +1,8 @@
+using System.Security.Claims;
 using System.Security.Cryptography;
 using AispaStudio.Api.Access;
 using AispaStudio.Api.Data;
+using AispaStudio.Api.Documents;
 using AispaStudio.Api.Online;
 using AispaStudio.Api.Scheduling;
 using AispaStudio.Api.Sync;
@@ -103,7 +105,7 @@ internal static class HrFileEndpoints
             .Produces(StatusCodes.Status204NoContent).ProducesProblem(StatusCodes.Status404NotFound).ProducesProblem(StatusCodes.Status409Conflict);
 
         group.MapGet("/employees/{employeeId:guid}/hr-file/export", async Task<IResult> (
-                Guid employeeId, AispaDbContext db, HealthDataProtector protector, TimeProvider time, CancellationToken ct) =>
+                Guid employeeId, ClaimsPrincipal user, AispaDbContext db, HealthDataProtector protector, DocumentHeaders headers, TimeProvider time, CancellationToken ct) =>
             {
                 if (await db.Employees.AsNoTracking().FirstOrDefaultAsync(e => e.Id == employeeId, ct) is not { } employee)
                 {
@@ -112,7 +114,7 @@ internal static class HrFileEndpoints
 
                 var today = LocalTime.LocalDate(time.GetUtcNow(), await HrFileRules.ZoneAsync(db, ct));
                 return await ReadAsync(db, employeeId, protector, ct) is { } entries
-                    ? TypedResults.File(HrFilePdf.Build(employee.DisplayName, entries, today), "application/pdf", "personalakte.pdf")
+                    ? DocumentFiles.Pdf(HrFilePdf.Build(await headers.ForAsync(null, user, ct), employee.DisplayName, entries, today), DocumentFiles.PdfName("Personalakte", employee.DisplayName))
                     : Unreadable();
             })
             .WithName("ExportHrFile")

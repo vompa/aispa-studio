@@ -24,12 +24,14 @@ public static class ChangeHistory
     public static readonly string[] Tables =
     [
         "aispa.Appointments",
-        "aispa.Customers", "aispa.CustomerEmails",
+        "aispa.Customers", "aispa.CustomerEmails", "aispa.MarketingConsents",
         "aispa.Treatments", "aispa.TreatmentLocationPrices", "aispa.TreatmentPriceRules",
         "aispa.RosterDays", "aispa.RosterDayEntries",
         "aispa.StaffAccess",
         "aispa.Tenants",
         "aispa.InboundMails",
+        "aispa.Exports",
+        "aispa.Imports",
     ];
 
     private static string TableList => string.Join(", ", Tables.Select(t => $"'{t}'"));
@@ -154,6 +156,15 @@ public static class ChangeHistory
                         ctx := jsonb_build_object('Address', r -> 'Address');
                     WHEN 'InboundMails' THEN
                         ctx := jsonb_build_object('LocationId', r -> 'LocationId', 'Channel', r -> 'Channel', 'Kind', r -> 'Kind', 'AppointmentId', r -> 'AppointmentId');
+                    WHEN 'MarketingConsents' THEN
+                        ctx := jsonb_build_object('State', r -> 'State');
+                    WHEN 'Exports' THEN
+                        -- Export-Protokoll: der Satz „Export Kundenliste (Excel, 312 Zeilen) von Lena“ entsteht aus diesem Kontext.
+                        ctx := jsonb_build_object('Kind', r -> 'Kind', 'Format', r -> 'Format', 'Rows', r -> 'RowCount', 'Filter', r -> 'Filter');
+                    WHEN 'Imports' THEN
+                        -- Import-Protokoll: „Import Kunden: 240 neu, 12 ergänzt, 3 übersprungen (kunden.xlsx, 255 Zeilen) von Lena“.
+                        ctx := jsonb_build_object('Kind', r -> 'Kind', 'File', r -> 'FileName', 'Rows', r -> 'RowCount', 'Created', r -> 'Created',
+                            'Merged', r -> 'Merged', 'Skipped', r -> 'Skipped', 'Failed', r -> 'Failed');
                     ELSE NULL;
                 END CASE;
             END IF;
@@ -183,13 +194,13 @@ public static class ChangeHistory
         END
         $fn$;
 
-        -- Für das Anonymisieren (weich löschen) eines Gastes: die Zeilen bleiben (wer, wann, was), die Werte gehen. Customers und CustomerEmails verlieren die
+        -- Für das Anonymisieren (weich löschen) eines Gastes: die Zeilen bleiben (wer, wann, was), die Werte gehen. Customers, CustomerEmails und MarketingConsents verlieren die
         -- Werte der Änderung und die Mailadresse im Satz; Termine verlieren nur Notiz und Stornogrund, damit „Storniert von Lena“ und „Verschoben 14:00 → 15:30“
         -- bleiben; eine Zeile, die dadurch leer wird (reine Notizänderung), entfällt. Mehrfach ausführbar.
         CREATE OR REPLACE FUNCTION sync.scrub_customer_history(customer uuid) RETURNS void LANGUAGE plpgsql AS $fn$
         BEGIN
             UPDATE sync.history SET changes = NULL
-             WHERE customer_id = customer AND table_schema = 'aispa' AND table_name IN ('Customers', 'CustomerEmails') AND changes IS NOT NULL;
+             WHERE customer_id = customer AND table_schema = 'aispa' AND table_name IN ('Customers', 'CustomerEmails', 'MarketingConsents') AND changes IS NOT NULL;
             UPDATE sync.history SET context = context - 'Address'
              WHERE customer_id = customer AND table_schema = 'aispa' AND table_name = 'CustomerEmails' AND context ? 'Address';
             UPDATE sync.history SET changes = changes - 'Note' - 'CancelReason'

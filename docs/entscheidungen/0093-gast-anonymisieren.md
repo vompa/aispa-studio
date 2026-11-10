@@ -54,6 +54,11 @@ Die rechtlichen Grenzen kommen aus der Recherche vom 10.11.2026:
   - Schließ-Hinweise an den Gast (`ClosureNotices`)
   - Erstattungen
   - der Gast als Kandidat in fremden Anfragen
+- **Nach dem Merge mit `dev` (Exporte #18, PDF-Ausgaben #19):**
+  - Die Kundenliste als Export enthält keine anonymisierten Gäste, und ihre vCard liefert 404.
+  - Gesendete Terminbestätigungen und Belege (`SentDocuments`) verlieren Adresse und Betreff; der Verlauf sagt dann nur „Bestätigung per Mail gesendet“.
+  - Der Verlauf der Werbe-Einwilligungen verliert seine Werte, darunter die Adresse.
+  - Der Abgleich beim Kundenimport vergleicht nur Gäste mit Telefon oder E-Mail und trifft anonymisierte Gäste deshalb nie.
 - Bewusst nicht angefasst: die Firmenprüfung des Beleg-Empfängers (`VatIdChecks`, gehört zur Belegkopie) sowie Freitext des Teams ohne Zuordnung zum Gast (Kassabewegungen, Kartenzahlungen, Erstattungsgrund, Kalendernotizen, Briefings).
 
 - `sync.forget_customer_history` (Löschen mit dem Gast, ADR 0082 Punkt 7) bleibt für das harte Löschen bestehen; das Anonymisieren nutzt stattdessen das Bereinigen.

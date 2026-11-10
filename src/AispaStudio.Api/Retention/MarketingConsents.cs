@@ -32,6 +32,12 @@ internal sealed class MarketingConsents(
 
     public const string SourceTeam = "Team";
 
+    /// <summary>Am Empfang erfasst (mündlich oder Unterschrift), ohne Double-Opt-in.</summary>
+    public const string SourceReception = "Rezeption";
+
+    /// <summary>Aus einer importierten Kundenliste, wenn die Datei die Einwilligung belegt.</summary>
+    public const string SourceImport = "Import";
+
     public abstract record Outcome
     {
         public sealed record Done(MarketingConsentDto Consent) : Outcome;
@@ -98,6 +104,66 @@ internal sealed class MarketingConsents(
 
         var spa = await SpaNameAsync(ct);
         await bus.PublishGuestMailAsync(tenants, ConsentTexts.Request(email, GuestName.Of(customer, null), spa, portal.Url($"einwilligung/{token}"), consent.Language));
+        return new Outcome.Done(ToDto(consent));
+    }
+
+    /// <summary>
+    /// Was der Gast am Empfang gesagt hat (Export/Import, Aufgabe B): „Ja“ wird <see cref="MarketingConsentState.Confirmed"/> mit Quelle <see cref="SourceReception"/> (ohne Double-Opt-in,
+    /// der Nachweis ist das Gespräch oder die Unterschrift), „Nein“ <see cref="MarketingConsentState.Refused"/>, „nicht gefragt“ setzt zurück. Eine schon per Mail bestätigte Einwilligung bleibt bei „Ja“.
+    /// </summary>
+    public async Task<Outcome> DecideAsync(Guid customerId, MarketingConsentState state, CancellationToken ct)
+    {
+        if (state is not (MarketingConsentState.Confirmed or MarketingConsentState.Refused or MarketingConsentState.None))
+        {
+            return new Outcome.Refused("state", "Erlaubt sind Ja, Nein oder nicht gefragt.");
+        }
+
+        var customer = await db.Customers.AsNoTracking().FirstOrDefaultAsync(c => c.Id == customerId, ct);
+        if (customer is null)
+        {
+            return new Outcome.NotFound();
+        }
+
+        var now = time.GetUtcNow();
+        var consent = await db.MarketingConsents.FirstOrDefaultAsync(c => c.CustomerId == customerId, ct);
+        if (consent is null)
+        {
+            if (state == MarketingConsentState.None)
+            {
+                return new Outcome.Done(ToDto(null));
+            }
+
+            consent = new MarketingConsent { CustomerId = customerId, Email = customer.Email?.Trim() ?? "", Source = SourceReception, RequestedAt = now };
+            db.MarketingConsents.Add(consent);
+        }
+
+        switch (state)
+        {
+            case MarketingConsentState.Confirmed when consent.State != MarketingConsentState.Confirmed:
+                consent.State = MarketingConsentState.Confirmed;
+                consent.Source = SourceReception;
+                consent.ConfirmedAt = now;
+                consent.WithdrawnAt = null;
+                if (consent.Email.Length == 0 && customer.Email is { Length: > 0 } email)
+                {
+                    consent.Email = email.Trim();
+                }
+
+                break;
+            case MarketingConsentState.Refused:
+                consent.State = MarketingConsentState.Refused;
+                consent.Source = SourceReception;
+                consent.ConfirmedAt = null;
+                consent.WithdrawnAt = now;
+                break;
+            case MarketingConsentState.None:
+                consent.State = MarketingConsentState.None;
+                consent.ConfirmedAt = null;
+                consent.WithdrawnAt = null;
+                break;
+        }
+
+        await db.SaveChangesAsync(ct);
         return new Outcome.Done(ToDto(consent));
     }
 

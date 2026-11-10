@@ -284,6 +284,14 @@ public sealed partial class CustomerAnonymizeTests(ApiFixture fixture)
         db.AppointmentFollowUps.Add(new AppointmentFollowUp { AppointmentId = paidId, Note = $"Nachsorge {token}", UpdatedAt = now });
         db.CustomerPreferences.Add(new CustomerPreference { CustomerId = guest.Id, Scent = $"Lavendel {token}", Other = $"Musik {token}", UpdatedAt = now });
         db.MarketingConsents.Add(new MarketingConsent { CustomerId = guest.Id, Email = ordinary, Source = "Team", RequestedAt = now });
+        db.SentDocuments.Add(new AispaStudio.Api.Documents.SentDocument
+        {
+            Kind = AispaStudio.Api.Documents.SentDocument.AppointmentConfirmationKind,
+            TargetId = paidId,
+            To = ordinary,
+            Subject = $"Terminbestätigung für {token}",
+            SentAt = now,
+        });
         db.RebookReminders.Add(new RebookReminder
         {
             CustomerId = guest.Id,

@@ -177,6 +177,11 @@ internal sealed class CustomerAnonymizer(AispaDbContext db, TimeProvider time)
     /// <summary>Freitext an Terminen, Serien, Besuchen, Nachsorge, Anfragen und Absage-Nachrichten; die Zeilen selbst bleiben.</summary>
     private async Task ClearFreeTextAsync(Guid customerId, CancellationToken ct)
     {
+        // Gesendete Terminbestätigungen und Belege nennen Adresse und Betreff; dass und wann gesendet wurde, bleibt.
+        _ = await db.SentDocuments
+            .Where(d => db.Appointments.Any(a => a.Id == d.TargetId && a.CustomerId == customerId)
+                || db.Receipts.Any(r => r.Id == d.TargetId && r.CustomerId == customerId))
+            .ExecuteUpdateAsync(u => u.SetProperty(d => d.To, "").SetProperty(d => d.Subject, ""), ct);
         _ = await db.Appointments.Where(a => a.CustomerId == customerId)
             .ExecuteUpdateAsync(s => s.SetProperty(a => a.Note, (string?)null).SetProperty(a => a.CancelReason, (string?)null), ct);
         _ = await db.AppointmentSeries.Where(s => s.CustomerId == customerId).ExecuteUpdateAsync(s => s.SetProperty(a => a.Problem, (string?)null), ct);

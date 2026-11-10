@@ -115,9 +115,15 @@ public sealed record WaitlistReason(WaitlistCloseReason Value, string Label, str
 /// Offene Wünsche der Warteliste am Standort. Freie Termine meldet der Server selbst per Mail, sobald etwas storniert wird;
 /// die Liste hilft der Rezeption, gezielt nachzufragen, Zeiten zu suchen und für den Gast gleich zu buchen.
 /// </summary>
-public sealed partial class WaitlistViewModel(string locationName, IReadOnlyList<WaitlistRow> rows, Action close)
+public sealed partial class WaitlistViewModel(string locationName, IReadOnlyList<WaitlistRow> rows, Action close, DocumentActionsViewModel? document = null, string? printHint = null)
 {
     public string LocationName { get; } = locationName;
+
+    /// <summary>Knopfblock „Drucken · PDF speichern“ für die Wartenden des gezeigten Tages (PDF-Ausgaben E, ADR 0092); null ohne Standort.</summary>
+    public DocumentActionsViewModel? Document { get; } = document;
+
+    /// <summary>Sagt, was gedruckt wird: „Druckt die offenen Wünsche, die am 01.03.2027 gelten.“</summary>
+    public string? PrintHint { get; } = printHint;
 
     public IReadOnlyList<WaitlistRow> Rows { get; } = rows;
 

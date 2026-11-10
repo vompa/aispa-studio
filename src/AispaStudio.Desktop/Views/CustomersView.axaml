@@ -14,13 +14,37 @@
         <TextBlock Text="Kunden" Classes="h1" />
         <TextBlock Text="Gemeinsamer Kundenstamm aller Standorte" Classes="muted" />
       </StackPanel>
-      <Button x:Name="NewButton" Grid.Column="1" Classes.primary="{Binding IsNewPrimary}" Command="{Binding StartNewCommand}" VerticalAlignment="Center">
-        <StackPanel Orientation="Horizontal" Spacing="6">
-          <ui:Icon Data="{x:Static ui:Icons.Plus}" Width="16" Height="16" />
-          <TextBlock Text="Neue Kundin / neuer Kunde" />
-        </StackPanel>
-      </Button>
+      <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+        <!-- Export der gefilterten Liste (Excel, CSV, Portal-CSV, vCard, Leitung: Newsletter-Liste), ADR 0091 -->
+        <ui:ExportButton x:Name="ExportButton" DataContext="{Binding Export}" />
+        <!-- „…“ › „Kunden importieren …“ nur für die Leitung (Export/Import, Aufgabe E) -->
+        <Button x:Name="ImportMoreButton" Classes="ghost icon" Content="…" ToolTip.Tip="Weitere Aktionen" AutomationProperties.Name="Weitere Aktionen zur Kundenliste" IsVisible="{Binding CanImport}">
+          <Button.Flyout>
+            <MenuFlyout Placement="BottomEdgeAlignedRight">
+              <MenuItem x:Name="ImportItem" Header="Kunden importieren …" Command="{Binding ImportCustomersCommand}" />
+            </MenuFlyout>
+          </Button.Flyout>
+        </Button>
+        <Button x:Name="NewButton" Classes.primary="{Binding IsNewPrimary}" Command="{Binding StartNewCommand}" VerticalAlignment="Center">
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <ui:Icon Data="{x:Static ui:Icons.Plus}" Width="16" Height="16" />
+            <TextBlock Text="Neue Kundin / neuer Kunde" />
+          </StackPanel>
+        </Button>
+      </StackPanel>
     </Grid>
+
+    <!-- Rückmeldung unten („Gespeichert: Kunden_2026-11-09.xlsx“), eine Zeile, 5 Sekunden (meldungen.md M1) -->
+    <Border x:Name="CustomersToast" Grid.Row="1" Grid.ColumnSpan="2" Classes="toast" Classes.shown="{Binding HasToast}" IsVisible="{Binding HasToast}" ZIndex="10"
+            HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,16" CornerRadius="8" Padding="16,10,6,10" BoxShadow="{DynamicResource RaisedShadow}" MaxWidth="760"
+            PointerEntered="OnToastEntered" PointerExited="OnToastExited" AutomationProperties.LiveSetting="Polite">
+      <StackPanel Orientation="Horizontal" Spacing="8">
+        <TextBlock Classes="msg" Text="{Binding Toast}" Foreground="{DynamicResource ToastFgBrush}" VerticalAlignment="Center" MaxWidth="540" AutomationProperties.Name="Meldung" />
+        <Button Classes="ghost icon" Command="{Binding CloseToastCommand}" Foreground="{DynamicResource ToastFgBrush}" ToolTip.Tip="Schließen" AutomationProperties.Name="Meldung schließen">
+          <ui:Icon Data="{x:Static ui:Icons.Close}" Width="16" Height="16" />
+        </Button>
+      </StackPanel>
+    </Border>
 
     <!-- Suche und Trefferliste -->
     <Border Grid.Row="1" Classes="card" Padding="12" Margin="0,0,16,0">
@@ -261,6 +285,9 @@
                     <MenuItem Header="Weitere E-Mail-Adresse" Command="{Binding StartAddEmailCommand}" />
                     <MenuItem Header="Rechnungsempfänger" Command="{Binding EditBillingCommand}" />
                     <MenuItem Header="Stammrabatt" Command="{Binding EditDiscountCommand}" />
+                    <MenuItem x:Name="MasterSheetMenuItem" Header="Stammblatt als PDF" Command="{Binding ToggleMasterSheetCommand}" />
+                    <MenuItem x:Name="DataAccessMenuItem" Header="Auskunft als PDF" Command="{Binding ToggleDataAccessCommand}" />
+                    <MenuItem Header="Kontakt als vCard" Command="{Binding Export.ExportCommand}" CommandParameter="{Binding VCardOption}" />
                     <Separator IsVisible="{Binding MayManage}" />
                     <MenuItem Classes="manage" Header="Leitung informieren …" Command="{Binding AddManagementFlagCommand}"
                               CommandParameter="{x:Static c:CustomerFlagKind.InformManagement}" IsVisible="{Binding MayManage}" />
@@ -275,6 +302,28 @@
               <ui:HelpButton Topic="kunden-kundenkarte" VerticalAlignment="Center" />
             </StackPanel>
           </Grid>
+
+          <!-- Datenschutz-Auskunft (PDF-Ausgaben C): „…“ › „Auskunft als PDF“ öffnet den Knopfblock ohne Senden; Gesundheitsangaben nur, wenn die API das Recht sieht -->
+          <Border x:Name="DataAccessCard" Classes="section" IsVisible="{Binding IsDataAccessOpen}" HorizontalAlignment="Left">
+            <StackPanel Spacing="8">
+              <TextBlock Text="Auskunft über gespeicherte Daten" FontWeight="Medium" />
+              <TextBlock Text="Alle gespeicherten Daten dieser Person (Art. 15 DSGVO) als PDF, ohne Versand: Speichern oder Drucken und persönlich übergeben." Classes="muted small" TextWrapping="Wrap" MaxWidth="480" />
+              <ui:DocumentActions DataContext="{Binding DataAccessDocument}" />
+              <TextBlock Text="{Binding DataAccessMessage}" Classes="secondary small" AutomationProperties.LiveSetting="Polite"
+                         IsVisible="{Binding DataAccessMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+            </StackPanel>
+          </Border>
+
+          <!-- Stammblatt (PDF-Ausgaben E): „…“ › „Stammblatt als PDF“ öffnet den Knopfblock ohne Senden; Kontakt, Wünsche, nächste Termine, letzte Besuche, keine Gesundheitsdaten -->
+          <Border x:Name="MasterSheetCard" Classes="section" IsVisible="{Binding IsMasterSheetOpen}" HorizontalAlignment="Left">
+            <StackPanel Spacing="8">
+              <TextBlock Text="Stammblatt" FontWeight="Medium" />
+              <TextBlock Text="Kontakt, Wünsche, nächste Termine und die letzten fünf Besuche als PDF, ohne Gesundheitsangaben: Speichern oder Drucken." Classes="muted small" TextWrapping="Wrap" MaxWidth="480" />
+              <ui:DocumentActions DataContext="{Binding MasterSheetDocument}" />
+              <TextBlock Text="{Binding MasterSheetMessage}" Classes="secondary small" AutomationProperties.LiveSetting="Polite"
+                         IsVisible="{Binding MasterSheetMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+            </StackPanel>
+          </Border>
 
           <!-- Kennzahlen als eine Zeile; Warnungen in warn mit Dreieck (nie die Farbe allein, Brief 5.9); der nächste Termin hervorgehoben mit „buchen“ -->
           <StackPanel Spacing="4">
@@ -527,6 +576,30 @@
                       <Button Classes="primary" Content="Hinzufügen" Command="{Binding AddEmailCommand}" IsDefault="True"
                               ui:DisabledHint.Text="Verfügbar, sobald eine E-Mail-Adresse mit @ eingetragen ist." />
                       <Button x:Name="CancelEmailButton" Classes="ghost" Content="Abbrechen" Command="{Binding CancelAddEmailCommand}" />
+                    </StackPanel>
+                  </StackPanel>
+                </StackPanel>
+              </Border>
+
+              <!-- Werbe-Einwilligung: Stand der bestehenden Einwilligung (ADR 0040); am Empfang als Ja, Nein oder nicht gefragt erfasst (Export/Import, Aufgabe B) -->
+              <Border x:Name="ConsentSection" Classes="section" IsVisible="{Binding ConsentSectionVisible}">
+                <StackPanel Spacing="8">
+                  <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Text="Werbung per Mail" Classes="group" VerticalAlignment="Center" />
+                    <Button x:Name="EditConsentButton" Grid.Column="1" Classes="ghost icon edit" Command="{Binding EditConsentCommand}" IsVisible="{Binding !IsEditingConsent}"
+                            ToolTip.Tip="Einwilligung ändern" AutomationProperties.Name="Einwilligung ändern">
+                      <ui:Icon Data="{x:Static ui:Icons.Pencil}" Width="16" Height="16" />
+                    </Button>
+                  </Grid>
+                  <TextBlock x:Name="ConsentText" Text="{Binding ConsentText}" Classes="value" TextWrapping="Wrap" IsVisible="{Binding !IsEditingConsent}" />
+                  <StackPanel Spacing="6" IsVisible="{Binding IsEditingConsent}" MaxWidth="480" HorizontalAlignment="Left">
+                    <ui:FormField Label="Werbung per Mail">
+                      <ComboBox x:Name="ConsentBox" ItemsSource="{Binding ConsentChoices}" SelectedItem="{Binding ConsentChoice}" HorizontalAlignment="Stretch" AutomationProperties.Name="Werbung per Mail" />
+                    </ui:FormField>
+                    <TextBlock Text="„Ja“ gilt als am Empfang erfasst (mündlich oder Unterschrift). Eine Einwilligung per Mail fragt das Termin-Panel an." Classes="secondary small" TextWrapping="Wrap" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                      <Button Classes="primary" Content="Speichern" Command="{Binding SaveConsentCommand}" IsDefault="True" />
+                      <Button Classes="ghost" Content="Abbrechen" Command="{Binding CancelConsentCommand}" />
                     </StackPanel>
                   </StackPanel>
                 </StackPanel>

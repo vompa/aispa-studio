@@ -162,6 +162,19 @@ def postgresql() -> Component:
     )
 
 
+def document_font() -> Component:
+    """Die in die API eingebettete Schrift der PDF-Dokumente (ADR 0092); Dateien und Lizenztext unter src/AispaStudio.Api/Documents/Fonts."""
+    return Component(
+        name="Liberation Sans",
+        version="2.1.5",
+        source="Schrift (API, eingebettet)",
+        license="OFL-1.1",
+        copyright="Digitized data copyright (c) 2010 Google Corporation with Reserved Font Arimo, Tinos and Cousine; "
+        "Copyright (c) 2012 Red Hat, Inc. with Reserved Font Name Liberation",
+        url="https://github.com/liberationfonts/liberation-fonts",
+    )
+
+
 # Fremdbibliotheken in postgres/bin des EDB-Builds (gemessen am Paket des CI-Laufs 42476799810, 08.11.2026).
 # Der EDB-Build liefert dazu keine Lizenzdateien mit; Name, Lizenz und Copyright stehen deshalb hier.
 # DLL-Präfix → (Name, SPDX-Kennung, Copyright, Adresse)
@@ -261,6 +274,7 @@ def main() -> int:
     components += npm_components()
     components.append(postgresql())
     components += postgres_libraries()
+    components.append(document_font())
     groups = group(components)
     OUTPUT.write_bytes(render(groups).encode("utf-8"))
     print(f"{OUTPUT.name}: {len(components)} Bausteine, {len(groups)} Lizenztexte")

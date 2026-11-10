@@ -4,7 +4,7 @@ bereich: Lager
 oberflaeche: verwaltung
 rollen: inhaber, manager, leitung
 seite: verwaltung
-stichwoerter: bestellen, Bestellung, Bestellvorschlag, nachbestellen, Lieferant, Teillieferung, Lieferung buchen, Bestelltext, Einkauf, purchase order, reorder, supplier, partial delivery
+stichwoerter: bestellen, Bestellung, Bestellvorschlag, nachbestellen, Lieferant, Teillieferung, Lieferung buchen, Bestelltext, Einkauf, purchase order, reorder, supplier, partial delivery, Bestellung als PDF, Bestellung per Mail, Bestellung drucken, Bestellung schicken, PDF an Lieferanten, order PDF, email order
 ---
 # Bestellen und Lieferung buchen
 
@@ -32,6 +32,18 @@ Beispiel: Massageöl mit 30 ml Tagesverbrauch, 5 Tagen Lieferzeit, 100 ml Bestan
 - **Ohne Lieferzeit** beim Lieferanten zählen die Termine der nächsten 14 Tage und kein Tagesverbrauch.
 
 Die Höchstmenge steht beim Lagerort: [Mindestmengen](hilfe:lager-lagerorte#mindestmengen). Das Ziel des Standorts ist die Summe seiner aktiven Lagerorte. Der Versand braucht einen eingerichteten Mailzugang, sonst bleibt die Bestellung Entwurf.
+
+## Bestellung als PDF drucken oder senden {#pdf}
+
+Unter den Knöpfen jeder Bestellung steht der Knopfblock **Drucken**, **PDF speichern** und **Per Mail senden**. Er steht bei jeder Bestellung.
+
+- Das PDF `Bestellung-<Nummer>-<Lieferant>.pdf` zeigt Lieferant, Ansprechperson, Bestelldatum, „Lieferung an“ (den Standort), die „Erwartete Lieferung“ (nur mit Lieferzeit beim Lieferanten), die Positionen mit Menge, Einheit, Artikelnummer, Bezeichnung, Einzelpreis und Summe, die Gesamtsumme netto und den Hinweis.
+- **Per Mail senden** fragt mit der Mailadresse des Lieferanten (leer, wenn keine eingetragen ist), dem Betreff „Bestellung <Nummer> vom <Datum>“ und einem Text mit Gruß. Nach **Senden** steht „Gesendet an …“, die Mail geht mit dem PDF im Anhang hinaus, und unter den Knöpfen steht der Vermerk „Gesendet am … an … von …“. Ein zweites Senden fügt eine zweite Zeile hinzu.
+- Der Stand der Bestellung ändert sich dabei nicht: ein Entwurf bleibt Entwurf. Bestellt ist sie erst mit **Bestellen und senden** oder **Als bestellt markieren**.
+- Es gilt dieselbe Regel für Vollmachten wie bei **Bestellen und senden**: Fehlt die gültige Vollmacht „Bestellungen auslösen“, nennt die App den Grund, und es geht keine Mail hinaus ([Regelungen und Vollmachten](hilfe:regelungen-vollmachten#vollmacht)).
+- Ist beim Lieferanten keine Mailadresse eingetragen, bleibt das Feld **An** leer und wird eingetippt.
+
+Wie die Knöpfe arbeiten: [Dokumente drucken, speichern und senden](hilfe:dokumente-drucken-speichern-senden).
 
 ## Selbst beim Lieferanten bestellen {#anlegen}
 
