@@ -169,6 +169,33 @@ public sealed partial class CustomerAnonymizeTests(ApiFixture fixture)
         Assert.Equal(["1 offene Rechnung"], (await stillOpen.Content.ReadFromJsonAsync<CustomerAnonymizeRejected>(TestSpa.Json, Ct))!.Open);
     }
 
+    [Fact]
+    public async Task Eine_laufende_oder_fehlgeschlagene_Rueckerstattung_sperrt_weil_ihre_Mail_die_Adresse_braucht()
+    {
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        var seed = await SeedGuestAsync(spa);
+        var path = $"/api/customers/{seed.Guest.Id}/anonymize";
+
+        foreach (var status in new[] { OnlineRefundStatus.Pending, OnlineRefundStatus.Failed })
+        {
+            await SetRefundStatusAsync(spa, seed.ReceiptId, status);
+            var blocked = await spa.Client.PostAsync(path, null, Ct);
+            Assert.Equal(HttpStatusCode.Conflict, blocked.StatusCode);
+            Assert.Equal(["1 offene Rückerstattung"], (await blocked.Content.ReadFromJsonAsync<CustomerAnonymizeRejected>(TestSpa.Json, Ct))!.Open);
+        }
+
+        await SetRefundStatusAsync(spa, seed.ReceiptId, OnlineRefundStatus.Refunded);
+        Assert.Equal(HttpStatusCode.NoContent, (await spa.Client.PostAsync(path, null, Ct)).StatusCode);
+    }
+
+    private async Task SetRefundStatusAsync(TestSpa spa, Guid receiptId, OnlineRefundStatus status)
+    {
+        await using var scope = fixture.Factory.Services.CreateAsyncScope();
+        scope.ServiceProvider.GetRequiredService<TenantContext>().Use(spa.TenantId);
+        var online = scope.ServiceProvider.GetRequiredService<OnlineDbContext>();
+        _ = await online.Refunds.Where(r => r.ReceiptId == receiptId).ExecuteUpdateAsync(u => u.SetProperty(r => r.Status, status), Ct);
+    }
+
     // ---------- Aufbau ----------
 
     private sealed record Seed(CustomerDto Guest, string Token, string PhoneTail, Guid PaidId, Guid CancelledId, Guid ReceiptId);
@@ -387,6 +414,8 @@ public sealed partial class CustomerAnonymizeTests(ApiFixture fixture)
             Email = ordinary,
             Language = "de",
             RequestedAt = now,
+            Status = OnlineRefundStatus.Refunded,
+            RefundedAt = now,
         });
         online.AnamnesisRecords.Add(new AnamnesisRecord
         {

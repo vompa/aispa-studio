@@ -37,7 +37,7 @@ internal sealed class CustomerAnonymizer(AispaDbContext db, TimeProvider time)
 
         public sealed record AlreadyDone : Outcome;
 
-        /// <summary>Noch offen: künftige Termine und offene Rechnungen, je mit Zahl („1 künftiger Termin“).</summary>
+        /// <summary>Noch offen: künftige Termine, offene Rechnungen und Online-Erstattungen, je mit Zahl („1 künftiger Termin“).</summary>
         public sealed record Blocked(IReadOnlyList<string> Open) : Outcome;
     }
 
@@ -70,12 +70,14 @@ internal sealed class CustomerAnonymizer(AispaDbContext db, TimeProvider time)
             return new Outcome.Done();
         });
 
-    /// <summary>Künftige, nicht stornierte Termine (auch Besuche in Bereichen) und offene Rechnungen; leer, wenn nichts mehr hängt.</summary>
+    /// <summary>Künftige, nicht stornierte Termine (auch Besuche in Bereichen), offene Rechnungen und nicht abgeschlossene Online-Erstattungen; leer, wenn nichts mehr hängt.</summary>
     private async Task<List<string>> OpenItemsAsync(Guid customerId, DateTimeOffset now, CancellationToken ct)
     {
         var upcoming = await db.Appointments.CountAsync(a => a.CustomerId == customerId && a.Status != AppointmentStatus.Cancelled && a.End > now, ct)
             + await db.AreaVisits.CountAsync(v => v.CustomerId == customerId && !v.IsCancelled && v.Until > now, ct);
         var bills = await db.Bills.CountAsync(b => b.CustomerId == customerId && b.Status == BillStatus.Open, ct);
+        var refunded = OnlineRefundStatus.Refunded.ToString();
+        var refunds = (await GuestRefundsAsync(customerId, ct)).Count(r => r.Status != refunded);
         var open = new List<string>();
         if (upcoming > 0)
         {
@@ -87,8 +89,27 @@ internal sealed class CustomerAnonymizer(AispaDbContext db, TimeProvider time)
             open.Add(bills == 1 ? "1 offene Rechnung" : $"{bills} offene Rechnungen");
         }
 
+        // Laufende oder fehlgeschlagene Online-Erstattungen: Geld ist noch offen, und die Bestätigung (auch nach dem erneuten Versuch) geht an die gespeicherte Adresse.
+        if (refunds > 0)
+        {
+            open.Add(refunds == 1 ? "1 offene Rückerstattung" : $"{refunds} offene Rückerstattungen");
+        }
+
         return open;
     }
+
+    private sealed record GuestRefund(Guid Id, string Status);
+
+    /// <summary>Online-Erstattungen zum Gast: über seine Belege oder über seine Gutscheinbestellungen, Anzahlungen und Kartenhinterlegungen.</summary>
+    private Task<List<GuestRefund>> GuestRefundsAsync(Guid customerId, CancellationToken ct) =>
+        db.Database.SqlQuery<GuestRefund>(
+            $"""
+            SELECT "Id", "Status" FROM online."Refunds"
+             WHERE "ReceiptId" IN (SELECT "Id" FROM aispa."Receipts" WHERE "CustomerId" = {customerId})
+                OR "SourceId" IN (SELECT "Id" FROM online."VoucherOrders" WHERE "CustomerId" = {customerId})
+                OR "SourceId" IN (SELECT "Id" FROM online."Deposits" WHERE "CustomerId" = {customerId})
+                OR "SourceId" IN (SELECT "Id" FROM online."CardGuarantees" WHERE "CustomerId" = {customerId})
+            """).ToListAsync(ct);
 
     /// <summary>Mailadressen des Gastes (Hauptadresse, weitere, Online-Konten), klein geschrieben: Anmeldecodes im Kundenbereich hängen nur an der Adresse.</summary>
     private async Task<string[]> MailAddressesAsync(Customer customer, CancellationToken ct)
@@ -243,13 +264,7 @@ internal sealed class CustomerAnonymizer(AispaDbContext db, TimeProvider time)
             $"""UPDATE online."VoucherOrders" SET "BuyerEmail" = '', "RecipientName" = NULL, "Message" = NULL WHERE "CustomerId" = {customerId}""", ct);
         _ = await db.Database.ExecuteSqlInterpolatedAsync($"""UPDATE online."Deposits" SET "Email" = '' WHERE "CustomerId" = {customerId}""", ct);
         _ = await db.Database.ExecuteSqlInterpolatedAsync($"""UPDATE online."CardGuarantees" SET "Email" = '' WHERE "CustomerId" = {customerId}""", ct);
-        _ = await db.Database.ExecuteSqlInterpolatedAsync(
-            $"""
-            UPDATE online."Refunds" SET "Email" = ''
-             WHERE "ReceiptId" IN (SELECT "Id" FROM aispa."Receipts" WHERE "CustomerId" = {customerId})
-                OR "SourceId" IN (SELECT "Id" FROM online."VoucherOrders" WHERE "CustomerId" = {customerId})
-                OR "SourceId" IN (SELECT "Id" FROM online."Deposits" WHERE "CustomerId" = {customerId})
-                OR "SourceId" IN (SELECT "Id" FROM online."CardGuarantees" WHERE "CustomerId" = {customerId})
-            """, ct);
+        var refundIds = (await GuestRefundsAsync(customerId, ct)).Select(r => r.Id).ToArray();
+        _ = await db.Database.ExecuteSqlInterpolatedAsync($"""UPDATE online."Refunds" SET "Email" = '' WHERE "Id" = ANY({refundIds})""", ct);
     }
 }
