@@ -1,7 +1,9 @@
 using System.Globalization;
 using System.Text.Json;
+using AispaStudio.Api.Access;
 using AispaStudio.Api.Data;
 using AispaStudio.Api.Documents;
+using AispaStudio.Api.Pos;
 using AispaStudio.Api.Sync;
 using AispaStudio.Contracts;
 using Microsoft.EntityFrameworkCore;
@@ -11,9 +13,10 @@ namespace AispaStudio.Api.Scheduling;
 /// <summary>
 /// Verlauf eines Termins für Menschen (ADR 0082): liest <c>sync.history</c> und macht aus jedem Eintrag einen Satz wie „Angelegt per SMS“,
 /// „Verschoben von Lena: 14:00 → 15:30“ oder „Storniert von Lena: Gast krank“; dazu „Bestätigung per Mail an … gesendet von Lena“ (PDF-Ausgaben C). Uhrzeiten in der Zeitzone des Standorts, Personen mit ihrem
-/// Anzeigenamen zur Zeit des Lesens. Den Verlauf sieht, wer den Termin sieht: der Termin kommt über den Mandantenfilter.
+/// Anzeigenamen zur Zeit des Lesens. Den Verlauf sieht, wer den Termin sieht: der Termin kommt über den Mandantenfilter. Zahlungen zum Termin aus der Kassa
+/// (<see cref="PaymentHistory"/>) stehen zeitlich einsortiert dazwischen, für alle, die die Kassa sehen.
 /// </summary>
-public sealed class AppointmentHistory(AispaDbContext db)
+public sealed class AppointmentHistory(AispaDbContext db, PaymentHistory payments, AccessService access)
 {
     private static readonly CultureInfo German = CultureInfo.GetCultureInfo("de-AT");
 
@@ -29,13 +32,31 @@ public sealed class AppointmentHistory(AispaDbContext db)
 
         var zone = LocalTime.Zone(await db.Locations.AsNoTracking().Where(l => l.Id == appointment.LocationId).Select(l => l.TimeZone).SingleAsync(ct));
         var key = JsonSerializer.Serialize(new { Id = appointmentId });
-        var rows = await db.Database.SqlQuery<HistoryRow>($"""
-            SELECT operation::text AS "Operation", changed_at AS "ChangedAt", user_id AS "UserId", channel AS "Channel", changes::text AS "Changes"
-              FROM sync.history
-             WHERE table_schema = 'aispa' AND table_name = 'Appointments' AND row_key = CAST({key} AS jsonb)
-             ORDER BY changed_at DESC, seq DESC
-            """).ToListAsync(ct);
+#pragma warning disable EF1002
+        var rows = await db.Database.SqlQueryRaw<HistoryRow>($$"""
+            SELECT {{HistoryRow.Columns}}
+              FROM sync.history h
+             WHERE h.table_schema = 'aispa' AND h.table_name = 'Appointments' AND h.row_key = CAST({0} AS jsonb)
+             ORDER BY h.changed_at DESC, h.seq DESC
+            """, key).ToListAsync(ct);
+#pragma warning restore EF1002
 
+        var described = await DescribeAsync(rows, _ => appointment.Source, zone, ct);
+        var entries = rows.Select((row, i) => new HistoryEntry(row.ChangedAt, described[i].Text));
+        var sent = (await SentDocuments.ListAsync(db, SentDocument.AppointmentConfirmationKind, [appointmentId], ct)).GetValueOrDefault(appointmentId) ?? [];
+        entries = entries.Concat(sent.Select(d => new HistoryEntry(d.SentAt, $"Bestätigung per Mail an {d.To} gesendet{(d.SentBy is null ? "" : $" von {d.SentBy}")}")));
+        if (await access.CurrentAsync(ct) is { } current && current.Has(AccessRight.Book))
+        {
+            entries = entries.Concat((await payments.ForAppointmentAsync(appointmentId, ct)).Select(p => new HistoryEntry(p.At, p.Text)));
+        }
+
+        return [.. entries.OrderByDescending(e => e.At)];
+    }
+
+    /// <summary>Satz und Werte je Zeile, in der Reihenfolge der Zeilen; <paramref name="sourceOf"/> nennt die Quelle des Termins einer Zeile (für „Angelegt per SMS“).</summary>
+    internal async Task<List<EntityHistory.Described>> DescribeAsync(
+        IReadOnlyList<HistoryRow> rows, Func<HistoryRow, AppointmentSource> sourceOf, TimeZoneInfo zone, CancellationToken ct)
+    {
         var changes = rows.Select(r => Changes(r.Changes)).ToList();
         var userIds = rows.Select(r => r.UserId).OfType<string>().Distinct().ToList();
         var people = await db.Users.AsNoTracking().Where(u => userIds.Contains(u.Id)).ToDictionaryAsync(u => u.Id, u => u.DisplayName, ct);
@@ -47,11 +68,8 @@ public sealed class AppointmentHistory(AispaDbContext db)
             resources[room.Id] = room.Name;
         }
 
-        var describer = new Describer(appointment.Source, zone, people, resources);
-        var sent = (await SentDocuments.ListAsync(db, SentDocument.AppointmentConfirmationKind, [appointmentId], ct)).GetValueOrDefault(appointmentId) ?? [];
-        return [.. rows.Select((row, i) => new HistoryEntry(row.ChangedAt, describer.Describe(row, changes[i])))
-            .Concat(sent.Select(d => new HistoryEntry(d.SentAt, $"Bestätigung per Mail an {d.To} gesendet{(d.SentBy is null ? "" : $" von {d.SentBy}")}")))
-            .OrderByDescending(e => e.At)];
+        var describer = new Describer(zone, people, resources);
+        return [.. rows.Select((row, i) => new EntityHistory.Described(describer.Describe(row, changes[i], sourceOf(row)), describer.Values(changes[i])))];
     }
 
     private static Dictionary<string, (JsonElement Old, JsonElement New)> Changes(string? json)
@@ -68,25 +86,15 @@ public sealed class AppointmentHistory(AispaDbContext db)
     private static Guid? GuidOf(JsonElement value) =>
         value.ValueKind == JsonValueKind.String && Guid.TryParse(value.GetString(), out var id) ? id : null;
 
-    /// <summary>Eine Zeile aus <c>sync.history</c>.</summary>
-    private sealed class HistoryRow
+    private sealed class Describer(TimeZoneInfo zone, Dictionary<string, string> people, Dictionary<Guid, string> resources)
     {
-        public required string Operation { get; init; }
-        public DateTimeOffset ChangedAt { get; init; }
-        public string? UserId { get; init; }
-        public required string Channel { get; init; }
-        public string? Changes { get; init; }
-    }
-
-    private sealed class Describer(AppointmentSource source, TimeZoneInfo zone, Dictionary<string, string> people, Dictionary<Guid, string> resources)
-    {
-        public string Describe(HistoryRow row, Dictionary<string, (JsonElement Old, JsonElement New)> changes)
+        public string Describe(HistoryRow row, Dictionary<string, (JsonElement Old, JsonElement New)> changes, AppointmentSource source)
         {
             var channel = HistoryActor.Channel(row.Channel);
             var by = Actor(channel, row.UserId);
             return row.Operation switch
             {
-                "I" => Created(channel, row.UserId),
+                "I" => Created(source, channel, row.UserId),
                 "D" => $"Gelöscht {by}",
                 _ => Changed(changes, channel, by),
             };
@@ -98,7 +106,7 @@ public sealed class AppointmentHistory(AispaDbContext db)
         private string Person(string userId) => HistoryActor.Person(userId, people);
 
         /// <summary>Anlegen: über die Quelle des Termins, wenn kein Kanal mit Person dabei war (Terminannahme im Hintergrund, alte Termine).</summary>
-        private string Created(ChangeChannel channel, string? userId)
+        private string Created(AppointmentSource source, ChangeChannel channel, string? userId)
         {
             var person = channel == ChangeChannel.Team && userId is not null ? Person(userId) : null;
             if (source == AppointmentSource.Reception)
@@ -190,6 +198,58 @@ public sealed class AppointmentHistory(AispaDbContext db)
                     };
             }
         }
+
+        /// <summary>Geänderte Spalten als Werte für die Verlaufsseite: Beginn (Ortszeit), Person, Raum, Status, Grund und Verspätung; Notiz und Gast nur als Satz.</summary>
+        public List<ActivityValue> Values(Dictionary<string, (JsonElement Old, JsonElement New)> changes)
+        {
+            var values = new List<ActivityValue>();
+            if (changes.TryGetValue("Start", out var start))
+            {
+                values.Add(new ActivityValue("Beginn", Moment(start.Old), Moment(start.New)));
+            }
+
+            if (changes.TryGetValue("EmployeeId", out var employee))
+            {
+                values.Add(new ActivityValue("Person", Resource(employee.Old), Resource(employee.New)));
+            }
+
+            if (changes.TryGetValue("RoomId", out var room))
+            {
+                values.Add(new ActivityValue("Raum", Resource(room.Old), Resource(room.New)));
+            }
+
+            if (changes.TryGetValue("Status", out var status))
+            {
+                values.Add(new ActivityValue("Status", Status(status.Old), Status(status.New)));
+            }
+
+            if (changes.TryGetValue("CancelReason", out var reason) && Text(reason.New) is { Length: > 0 })
+            {
+                values.Add(new ActivityValue("Grund", Text(reason.Old), Text(reason.New)));
+            }
+
+            if (changes.TryGetValue("LateMinutes", out var late))
+            {
+                values.Add(new ActivityValue("Verspätung", Minutes(late.Old), Minutes(late.New)));
+            }
+
+            return values;
+        }
+
+        private string? Moment(JsonElement value) =>
+            value.ValueKind == JsonValueKind.String ? TimeZoneInfo.ConvertTime(value.GetDateTimeOffset(), zone).ToString("d.M.yyyy HH:mm", German) : null;
+
+        private static string? Minutes(JsonElement value) => value.ValueKind == JsonValueKind.Number ? $"{value.GetInt32()} min" : null;
+
+        private static string? Status(JsonElement value) => Text(value) switch
+        {
+            nameof(AppointmentStatus.Booked) => "Gebucht",
+            nameof(AppointmentStatus.CheckedIn) => "Eingecheckt",
+            nameof(AppointmentStatus.Completed) => "Abgeschlossen",
+            nameof(AppointmentStatus.NoShow) => "Nicht erschienen",
+            nameof(AppointmentStatus.Cancelled) => "Storniert",
+            var other => other,
+        };
 
         /// <summary>„14:00 → 15:30“ (an einem anderen Tag mit Datum), „Anna → Ben“, „Raum A → Raum B“.</summary>
         private List<string> Moves(Dictionary<string, (JsonElement Old, JsonElement New)> changes)

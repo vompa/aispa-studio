@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text.Json;
 using AispaStudio.Api.Data;
+using AispaStudio.Api.MailIntake;
 using AispaStudio.Contracts;
 using Microsoft.EntityFrameworkCore;
 
@@ -84,14 +85,36 @@ public sealed class EntityHistory(AispaDbContext db)
         // Nur @where kommt als Text in die Abfrage, und zwar eine feste Bedingung der Methoden oben; alle Werte sind Parameter.
 #pragma warning disable EF1002
         var rows = await db.Database.SqlQueryRaw<HistoryRow>($"""
-            SELECT table_schema AS "Schema", table_name AS "Table", operation::text AS "Operation", changed_at AS "ChangedAt", user_id AS "UserId",
-                   channel AS "Channel", changes::text AS "Changes", context::text AS "Context"
-              FROM sync.history
+            SELECT {HistoryRow.Columns}
+              FROM sync.history h
              WHERE {where}
-             ORDER BY changed_at DESC, seq DESC
+             ORDER BY h.changed_at DESC, h.seq DESC
             """, args).ToListAsync(ct);
 #pragma warning restore EF1002
 
+        var relevant = Relevant(rows).ToList();
+        var described = await DescribeAsync(relevant, ct);
+        return [.. relevant.Select((row, i) => new HistoryEntry(row.ChangedAt, described[i].Text))];
+    }
+
+    /// <summary>
+    /// Zeilen, die im Verlauf stehen: ein Dienstplan-Tag, der mit seinen Einträgen in einem Zug angelegt wurde, steht nur mit den Einträgen da; das Spa hat neben den
+    /// Firmendaten weitere Einstellungen, deren Änderungen nicht in den Verlauf der Firmendaten gehören. <see cref="ActivityFeed"/> wendet dieselben Regeln in SQL an.
+    /// </summary>
+    private static IEnumerable<HistoryRow> Relevant(List<HistoryRow> rows)
+    {
+        var entryMoments = rows.Where(r => r.Table == "RosterDayEntries").Select(r => r.ChangedAt).ToHashSet();
+        return rows
+            .Where(r => !(r.Table == "RosterDays" && r.Operation == "I" && entryMoments.Contains(r.ChangedAt)))
+            .Where(r => !(r.Table == "Tenants" && r.Operation == "U" && !Changes(r.Changes).Keys.Any(Columns["Tenants"].ContainsKey)));
+    }
+
+    /// <summary>Die Spalten der Firmendaten, die im Verlauf stehen; andere Einstellungen in derselben Zeile zählen nicht.</summary>
+    internal static string[] CompanyColumns => [.. Columns["Tenants"].Keys];
+
+    /// <summary>Satz und Werte je Zeile, in der Reihenfolge der Zeilen; Personen, Standorte und Mitarbeitende mit ihrem Namen zur Zeit des Lesens.</summary>
+    internal async Task<List<Described>> DescribeAsync(IReadOnlyList<HistoryRow> rows, CancellationToken ct)
+    {
         var parsed = rows.Select(r => (Row: r, Changes: Changes(r.Changes), Context: Context(r.Context))).ToList();
         var userIds = rows.Select(r => r.UserId).OfType<string>().Distinct().ToList();
         var people = await db.Users.AsNoTracking().Where(u => userIds.Contains(u.Id)).ToDictionaryAsync(u => u.Id, u => u.DisplayName, ct);
@@ -102,15 +125,12 @@ public sealed class EntityHistory(AispaDbContext db)
             names[location.Id] = location.Name;
         }
 
-        // Ein Dienstplan-Tag, der mit seinen Einträgen in einem Zug angelegt wurde, steht nur mit den Einträgen da.
-        var entryMoments = parsed.Where(p => p.Row.Table == "RosterDayEntries").Select(p => p.Row.ChangedAt).ToHashSet();
         var describer = new Describer(people, names);
-        return [.. parsed
-            .Where(p => !(p.Row.Table == "RosterDays" && p.Row.Operation == "I" && entryMoments.Contains(p.Row.ChangedAt)))
-            // Das Spa hat neben den Firmendaten weitere Einstellungen; deren Änderungen gehören nicht in den Verlauf der Firmendaten.
-            .Where(p => !(p.Row.Table == "Tenants" && p.Row.Operation == "U" && !p.Changes.Keys.Any(Columns["Tenants"].ContainsKey)))
-            .Select(p => new HistoryEntry(p.Row.ChangedAt, describer.Describe(p.Row, p.Changes, p.Context)))];
+        return [.. parsed.Select(p => new Described(describer.Describe(p.Row, p.Changes, p.Context), describer.Values(p.Row, p.Changes)))];
     }
+
+    /// <summary>Ein Satz für Menschen und die geänderten Werte alt → neu (ohne Spalten, die nur als „geändert“ erscheinen).</summary>
+    internal sealed record Described(string Text, IReadOnlyList<ActivityValue> Values);
 
     private static Dictionary<string, (JsonElement Old, JsonElement New)> Changes(string? json)
     {
@@ -141,19 +161,6 @@ public sealed class EntityHistory(AispaDbContext db)
     private static IEnumerable<Guid> Guids(JsonElement value) => value.ValueKind == JsonValueKind.Array
         ? value.EnumerateArray().Select(GuidOf).OfType<Guid>()
         : GuidOf(value) is { } id ? [id] : [];
-
-    /// <summary>Eine Zeile aus <c>sync.history</c>.</summary>
-    private sealed class HistoryRow
-    {
-        public required string Schema { get; init; }
-        public required string Table { get; init; }
-        public required string Operation { get; init; }
-        public DateTimeOffset ChangedAt { get; init; }
-        public string? UserId { get; init; }
-        public required string Channel { get; init; }
-        public string? Changes { get; init; }
-        public string? Context { get; init; }
-    }
 
     private enum Kind { Text, Money, Bool, Date, Time, Minutes, Percent, Employee, Location, Role, Locations, Flag, Consent }
 
@@ -283,6 +290,17 @@ public sealed class EntityHistory(AispaDbContext db)
         [nameof(RosterKind.Training)] = "Schulung",
     };
 
+    private static readonly Dictionary<string, string> RequestKinds = new(StringComparer.Ordinal)
+    {
+        [nameof(InboundMailKind.BookingRequest)] = "Buchungsanfrage",
+        [nameof(InboundMailKind.Cancellation)] = "Absage",
+        [nameof(InboundMailKind.Reschedule)] = "Verschiebewunsch",
+        [nameof(InboundMailKind.Question)] = "Frage",
+        [nameof(InboundMailKind.TreatwellBooking)] = "Treatwell-Buchung",
+        [nameof(InboundMailKind.TreatwellCancellation)] = "Treatwell-Storno",
+        [nameof(InboundMailKind.TreatwellChange)] = "Treatwell-Änderung",
+    };
+
     private static readonly Dictionary<string, string> HrKinds = new(StringComparer.Ordinal)
     {
         [nameof(HrEntryKind.Conversation)] = "Gespräch",
@@ -326,6 +344,7 @@ public sealed class EntityHistory(AispaDbContext db)
                 "TreatmentLocationPrices" => PriceAtLocation(row.Operation, by, changes, context),
                 "TreatmentPriceRules" => PriceRule(row.Operation, by, changes, context),
                 "CustomerEmails" => Email(row.Operation, by, changes, context),
+                "InboundMails" => Request(row.Operation, HistoryActor.Channel(row.Channel), by, changes, context),
                 "Exports" => Export(by, context),
                 "Imports" => Import(by, context),
                 "MarketingConsents" => Consent(row.Operation, by, changes, context),
@@ -336,6 +355,31 @@ public sealed class EntityHistory(AispaDbContext db)
                     _ => $"Geändert {by}{ChangeList(row.Table, changes)}",
                 },
             };
+        }
+
+        /// <summary>„Buchungsanfrage eingegangen (Mail)“, „Anfrage als erledigt markiert von Lena“, „Freie Zeiten vorgeschlagen von der KI“: Eingang und Entscheidung, nie Inhalt.</summary>
+        private static string Request(
+            string operation, ChangeChannel channel, string by, Dictionary<string, (JsonElement Old, JsonElement New)> changes, Dictionary<string, JsonElement> context)
+        {
+            if (operation == "I")
+            {
+                var kind = context.TryGetValue("Kind", out var k) && Text(k) is { } key && RequestKinds.TryGetValue(key, out var label) ? label : "Anfrage";
+                var way = context.TryGetValue("Channel", out var c) && Enum.TryParse<BookingChannel>(Text(c), out var booking) ? booking : BookingChannel.Email;
+                return $"{kind} eingegangen ({MailIntakeProcessor.ChannelName(way)})";
+            }
+
+            var status = changes.TryGetValue("Status", out var s) ? Text(s.New) : null;
+            var reply = changes.TryGetValue("ReplyStatus", out var r) ? Text(r.New) : null;
+            var (what, verb) = status switch
+            {
+                nameof(InboundMailStatus.Booked) => ("Anfrage", "gebucht"),
+                nameof(InboundMailStatus.Proposed) => ("Freie Zeiten", "vorgeschlagen"),
+                nameof(InboundMailStatus.Ignored) => ("Anfrage", "als erledigt markiert"),
+                nameof(InboundMailStatus.Cancelled) => ("Termin zur Anfrage", "storniert"),
+                _ when reply == nameof(ReplyStatus.Sending) => ("Antwort", "freigegeben"),
+                _ => ("Anfrage", "geändert"),
+            };
+            return channel == ChangeChannel.Job ? $"{what} automatisch {verb}" : $"{what} {verb} {by}";
         }
 
         private static string Verb(string operation) => operation switch { "I" => "angelegt", "D" => "gelöscht", _ => "geändert" };
@@ -441,6 +485,18 @@ public sealed class EntityHistory(AispaDbContext db)
                 return kind == Kind.Flag ? $"{label} geändert" : $"{label} {Value(kind, c.Value.Old)} → {Value(kind, c.Value.New)}";
             }).ToList();
             return parts.Count == 0 ? "" : $": {string.Join("; ", parts)}";
+        }
+
+        /// <summary>Geänderte Spalten als Werte für die Verlaufsseite; Gesundheitsdaten und Personalakte tragen keine, ebenso Spalten, die nur „geändert“ heißen.</summary>
+        public List<ActivityValue> Values(HistoryRow row, Dictionary<string, (JsonElement Old, JsonElement New)> changes)
+        {
+            if (row.Schema is "health" or "hr" || !Columns.TryGetValue(row.Table, out var known))
+            {
+                return [];
+            }
+
+            return [.. changes.Where(c => known.TryGetValue(c.Key, out var column) && column.Kind != Kind.Flag)
+                .Select(c => new ActivityValue(known[c.Key].Label, Value(known[c.Key].Kind, c.Value.Old), Value(known[c.Key].Kind, c.Value.New)))];
         }
 
         private string Value(Kind kind, JsonElement value)

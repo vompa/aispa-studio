@@ -166,6 +166,8 @@ builder.Services.AddPasskeyIdentity(builder.Configuration, modules);
 builder.Services.AddScoped<BookingService>();
 builder.Services.AddScoped<AppointmentHistory>();
 builder.Services.AddScoped<EntityHistory>();
+builder.Services.AddScoped<PaymentHistory>();
+builder.Services.AddScoped<ActivityFeed>();
 builder.Services.AddScoped<DocumentHeaders>();
 builder.Services.AddScoped<SentDocuments>();
 builder.Services.AddSingleton<HrFileCleanup>();
@@ -348,6 +350,7 @@ static void MapApplicationEndpoints(WebApplication app)
     app.MapAbsenceEndpoints();
     app.MapStaffEndpoints();
     app.MapHistoryEndpoints();
+    app.MapActivityEndpoints();
     app.MapDeviceSignIn();
     app.MapDisplayEndpoints();
     app.MapAccessChannelEndpoints();

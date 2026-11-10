@@ -11,7 +11,7 @@ namespace AispaStudio.Api.Sync;
 /// </summary>
 internal static class HistoryEndpoints
 {
-    private const string LeadershipOnly = "Den Verlauf von Dienstplan, Benutzern und Rechten sehen nur Inhaber und Manager.";
+    internal const string LeadershipOnly = "Den Verlauf von Dienstplan, Benutzern und Rechten sehen nur Inhaber und Manager.";
 
     public static IEndpointRouteBuilder MapHistoryEndpoints(this IEndpointRouteBuilder routes)
     {

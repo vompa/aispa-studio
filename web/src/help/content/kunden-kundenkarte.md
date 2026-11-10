@@ -17,6 +17,8 @@ Die Kundenkarte zeigt auf einen Blick, wer der Gast ist, was man über ihn wisse
 5. Links steht **Gut zu wissen**: Wünsche als Chips („Nicht behandeln: …“ als gelber Chip zuerst), Kennzeichen, Notiz, Rezeptionsvermerk, Termine am liebsten, weitere E-Mail-Adressen, Rechnungsempfänger und Rabatt, jeweils nur, wenn etwas eingetragen ist. Was fehlt, steht in der Zeile **Noch nicht erfasst** mit einem Link je Eintrag, zum Beispiel **+ Kennzeichen**. Zum Ändern auf den Stift klicken; er erscheint, sobald die Maus über dem Abschnitt steht oder der Fokus darin liegt. Mehr dazu unter [Kennzahlen, Sterne und Vermerke](hilfe:kunden-kennzahlen).
 6. Rechts steht der Verlauf: **Demnächst** (die nächsten drei Termine mit Behandlung und Person), **Zuletzt** (die letzten fünf; nicht erschienene und stornierte sind markiert), offene Pakete, **Offene Gutscheine** (Wertgutscheine mit Restwert und den letzten vier Zeichen des Codes, der ganze Code steht in der Kassa) und **Letzte Käufe** (die letzten fünf Positionen ohne Termin, etwa Artikel oder Gutscheine, ohne stornierte Belege) sowie Namensänderungen. Gutscheine und Käufe sieht nur, wer buchen darf, wie an der Kassa. **Alle Termine** klappt die Liste mit Datum, Uhrzeit, Behandlung, Status („Gebucht“, „Eingecheckt“, „Erledigt“, „Nicht erschienen“, „Storniert“) und Preis auf.
 
+Wer wann etwas zum Gast gebucht, storniert oder bezahlt hat, zeigt die Seite [Verlauf](hilfe:seite-verlauf) mit dem Namen im Suchfeld; von dort führt **Kundenkarte öffnen** zurück hierher.
+
 ![Kundenkarte](images/app/kunden.png)
 
 ## Auskunft und Stammblatt als PDF {#pdf}

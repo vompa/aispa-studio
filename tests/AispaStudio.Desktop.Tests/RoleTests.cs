@@ -31,7 +31,7 @@ public sealed class RoleTests
         var shell = Shell(TestData.Reception());
 
         Assert.True(shell.HasCalendar);
-        Assert.Equal(["Kalender", "Kunden", "Kassa", "Geräte", "Verwaltung", "Hilfe"], shell.Pages.Select(p => p.Title).Where(t => t != "Anfragen"));
+        Assert.Equal(["Kalender", "Kunden", "Verlauf", "Kassa", "Geräte", "Verwaltung", "Hilfe"], shell.Pages.Select(p => p.Title).Where(t => t != "Anfragen"));
         shell.Dispose();
     }
 

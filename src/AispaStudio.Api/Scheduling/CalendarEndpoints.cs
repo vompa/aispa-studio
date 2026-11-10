@@ -266,15 +266,42 @@ internal static class CalendarEndpoints
             .WithSummary("Storniert einen Termin und gibt Person, Raum und Gerät sofort wieder frei. Mit expectedVersion 409 und dem aktuellen Termin in current, wenn der Termin inzwischen geändert wurde.");
 
         group.MapGet("/appointments/{appointmentId:guid}/restoration", async Task<Ok<AppointmentRestoration>> (
-                Guid appointmentId, ClosureCancellations notices, CancellationToken ct) =>
-                TypedResults.Ok(await notices.RestorationAsync(appointmentId, ct)))
+                Guid appointmentId, ClosureCancellations notices, BookingService booking, AispaDbContext db, TimeProvider time, CancellationToken ct) =>
+            {
+                var info = await notices.RestorationAsync(appointmentId, ct);
+                var appointment = await db.Appointments.AsNoTracking().Where(a => a.Id == appointmentId && a.Status == AppointmentStatus.Cancelled)
+                    .Select(a => new { a.LocationId, a.Start }).FirstOrDefaultAsync(ct);
+                if (appointment is null)
+                {
+                    return TypedResults.Ok(info);
+                }
+
+                var inPast = await PastBookings.CheckAsync(db, time, appointment.LocationId, appointment.Start, ct, PastBookings.RestoreMessage) is not null;
+                return TypedResults.Ok(info with { InPast = inPast, Conflict = await booking.RestoreConflictAsync(appointmentId, ct) });
+            })
             .WithName("GetAppointmentRestoration")
             .RequirePermission(AccessRight.Book)
-            .WithSummary("Was beim Zurücknehmen der Stornierung zu beachten ist: wartet die Absage-Nachricht noch, ist sie schon raus, und ging eine Anzahlung mit der Absage zurück.");
+            .WithSummary("Was beim Zurücknehmen der Stornierung zu beachten ist: wartet die Absage-Nachricht noch, ist sie schon raus, ging eine Anzahlung mit der Absage zurück, "
+                + "liegt der Termin in der Vergangenheit (inPast) oder sind Zeit, Person oder Raum inzwischen belegt (conflict); dann braucht das Zurücknehmen eine neue Zeit.");
 
         group.MapPost("/appointments/{appointmentId:guid}/restore", async Task<Results<Ok<AppointmentDto>, ValidationProblem, ProblemHttpResult, Conflict<BookingRejected>>> (
-                Guid appointmentId, RestoreAppointmentRequest request, BookingService booking, ClosureCancellations notices, CancellationToken ct) =>
+                Guid appointmentId, RestoreAppointmentRequest request, BookingService booking, ClosureCancellations notices, AispaDbContext db, TimeProvider time,
+                CancellationToken ct) =>
             {
+                // Die Vergangenheit prüft der Endpunkt wie beim Buchen und Verschieben (PastBookings): zur alten Zeit nur, wenn der Tag nicht vorbei ist.
+                if (request.Start is { } newStart)
+                {
+                    if (await PastBookings.CheckMoveAsync(db, time, appointmentId, newStart, ct) is { } pastMove)
+                    {
+                        return TypedResults.Conflict(pastMove);
+                    }
+                }
+                else if (await db.Appointments.AsNoTracking().Where(a => a.Id == appointmentId).Select(a => new { a.LocationId, a.Start }).FirstOrDefaultAsync(ct) is { } current
+                    && await PastBookings.CheckAsync(db, time, current.LocationId, current.Start, ct, PastBookings.RestoreMessage) is { } past)
+                {
+                    return TypedResults.Conflict(past);
+                }
+
                 var before = await notices.RestorationAsync(appointmentId, ct);
                 var outcome = await booking.RestoreAsync(appointmentId, request.Start, ct, request.ExpectedVersion);
                 if (outcome is BookingOutcome.Success { Appointment: var restored })
@@ -286,7 +313,8 @@ internal static class CalendarEndpoints
             })
             .WithName("RestoreAppointment")
             .RequirePermission(AccessRight.Book)
-            .WithSummary("Nimmt eine Stornierung zurück: der Termin ist wieder gebucht, wenn Zeit, Person und Raum frei sind (409 mit den Belegungen, sonst). Mit „start“ zu einem neuen Beginn. "
+            .WithSummary("Nimmt eine Stornierung zurück: der Termin ist wieder gebucht, wenn Zeit, Person und Raum frei sind (409 mit den Belegungen, sonst) und der Tag nicht vorbei ist "
+                + "(409 mit der Meldung, sonst). Mit „start“ zu einem neuen Beginn, heute oder später. "
                 + "Eine noch wartende Absage-Nachricht geht nie raus; mit „sendCorrection“ bekommt der Gast, der die Absage schon hat, eine Korrektur.");
 
         group.MapPost("/appointments/{appointmentId:guid}/platform-accepted", async Task<Results<Ok<AppointmentDto>, ValidationProblem, ProblemHttpResult, Conflict<BookingRejected>>> (

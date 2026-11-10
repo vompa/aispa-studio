@@ -3187,6 +3187,129 @@
         }
       }
     },
+    "/api/v1/locations/{locationId}/history": {
+      "get": {
+        "tags": [
+          "Verlauf"
+        ],
+        "summary": "Verlauf eines Standorts, neueste zuerst: Buchungen, Verschiebungen, Stornos, Status, Zahlungen (auch Verkäufe ohne Termin), Anfragen, Kunden, Behandlungen, Dienstplan und Zugänge mit Filtern nach Zeitraum (Ortszeit), Arten, Person, Kanal, Gast und Suchtext; seitenweise über before und take (höchstens 200). Arten außerhalb der Rechte fehlen; 403 nur, wenn ausschließlich verbotene Arten angefragt sind.",
+        "operationId": "GetLocationHistory",
+        "parameters": [
+          {
+            "name": "locationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "until",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "kinds",
+            "in": "query",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/ActivityKind"
+              }
+            }
+          },
+          {
+            "name": "actor",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "channel",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/ActivityChannel"
+            }
+          },
+          {
+            "name": "customerId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "before",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "take",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActivityPage"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/auth/channel/staff-app": {
       "post": {
         "tags": [
@@ -4625,7 +4748,7 @@
         "tags": [
           "Kalender"
         ],
-        "summary": "Was beim Zurücknehmen der Stornierung zu beachten ist: wartet die Absage-Nachricht noch, ist sie schon raus, und ging eine Anzahlung mit der Absage zurück.",
+        "summary": "Was beim Zurücknehmen der Stornierung zu beachten ist: wartet die Absage-Nachricht noch, ist sie schon raus, ging eine Anzahlung mit der Absage zurück, liegt der Termin in der Vergangenheit (inPast) oder sind Zeit, Person oder Raum inzwischen belegt (conflict); dann braucht das Zurücknehmen eine neue Zeit.",
         "operationId": "GetAppointmentRestoration",
         "parameters": [
           {
@@ -4667,7 +4790,7 @@
         "tags": [
           "Kalender"
         ],
-        "summary": "Nimmt eine Stornierung zurück: der Termin ist wieder gebucht, wenn Zeit, Person und Raum frei sind (409 mit den Belegungen, sonst). Mit „start“ zu einem neuen Beginn. Eine noch wartende Absage-Nachricht geht nie raus; mit „sendCorrection“ bekommt der Gast, der die Absage schon hat, eine Korrektur.",
+        "summary": "Nimmt eine Stornierung zurück: der Termin ist wieder gebucht, wenn Zeit, Person und Raum frei sind (409 mit den Belegungen, sonst) und der Tag nicht vorbei ist (409 mit der Meldung, sonst). Mit „start“ zu einem neuen Beginn, heute oder später. Eine noch wartende Absage-Nachricht geht nie raus; mit „sendCorrection“ bekommt der Gast, der die Absage schon hat, eine Korrektur.",
         "operationId": "RestoreAppointment",
         "parameters": [
           {
@@ -29319,6 +29442,208 @@
           }
         }
       },
+      "ActivityActor": {
+        "required": [
+          "id",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "ActivityChannel": {
+        "enum": [
+          "Reception",
+          "Online",
+          "Assistant",
+          "Background"
+        ]
+      },
+      "ActivityEntry": {
+        "required": [
+          "seq",
+          "at",
+          "kind",
+          "text",
+          "actor",
+          "channel",
+          "customerId",
+          "customerName",
+          "appointmentId",
+          "treatmentId",
+          "employeeId",
+          "values",
+          "lateCancellation"
+        ],
+        "type": "object",
+        "properties": {
+          "seq": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/ActivityKind"
+          },
+          "text": {
+            "type": "string"
+          },
+          "actor": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "channel": {
+            "$ref": "#/components/schemas/ActivityChannel"
+          },
+          "customerId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "customerName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "appointmentId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "treatmentId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "employeeId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "values": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ActivityValue"
+            }
+          },
+          "lateCancellation": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          },
+          "receiptId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "requestId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          }
+        }
+      },
+      "ActivityKind": {
+        "enum": [
+          "Booked",
+          "Moved",
+          "Cancelled",
+          "Restored",
+          "StatusChanged",
+          "AppointmentChanged",
+          "Paid",
+          "Deposit",
+          "ReceiptVoided",
+          "CustomerCreated",
+          "CustomerChanged",
+          "TreatmentChanged",
+          "RosterChanged",
+          "AccessChanged",
+          "CompanyChanged",
+          "Request"
+        ]
+      },
+      "ActivityPage": {
+        "required": [
+          "items",
+          "nextBefore"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ActivityEntry"
+            }
+          },
+          "nextBefore": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int64"
+          },
+          "actors": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/ActivityActor"
+            }
+          }
+        }
+      },
+      "ActivityValue": {
+        "required": [
+          "label",
+          "old",
+          "new"
+        ],
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "old": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "new": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "AiStatus": {
         "required": [
           "claude",
@@ -30267,6 +30592,20 @@
           },
           "depositReturned": {
             "type": "boolean"
+          },
+          "inPast": {
+            "type": "boolean",
+            "default": false
+          },
+          "conflict": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/BookingRejected"
+              }
+            ]
           }
         }
       },

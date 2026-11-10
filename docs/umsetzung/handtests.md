@@ -653,6 +653,109 @@ Expected: Beide erscheinen wie bisher und sind lesbar.
 Closes: B8 (live-sichtpruefung-2026-11-09.md)
 Result: ☐
 
+### Verlauf A – Endpunkt je Standort
+Start: `dotnet run --project src/AispaStudio.AppHost`, Beispieldaten geladen, als Inhaberin angemeldet, Standort-Id aus `GET /api/v1/locations`; Aufrufe über die Scalar-Seite der API oder `curl` mit dem Sitzungs-Cookie
+1. `GET /api/v1/locations/{id}/history?take=20` aufrufen.
+Expected: 20 Einträge, neueste zuerst, `nextBefore` gesetzt; Buchungen, Verschiebungen und Stornos tragen Gast, Behandlung und Person.
+2. Dieselbe Adresse mit `&before=<nextBefore>` wiederholen.
+Expected: Die nächsten 20 Einträge ohne Doppelte und ohne Lücke.
+3. `?kinds=Paid&kinds=Deposit&kinds=ReceiptVoided` aufrufen.
+Expected: Nur Zahlungen zum Termin („Bezahlt bar: … (Beleg … Nr. …)“, „Anzahlung …“, „Beleg … storniert …“), `seq` negativ.
+4. `?search=<Nachname eines Gastes>` und `?search=<Storno-Grund>` aufrufen.
+Expected: Nur Einträge zu diesem Gast bzw. der Storno mit diesem Grund; Groß- und Kleinschreibung egal.
+5. Als Rezeption anmelden und `?kinds=RosterChanged` aufrufen, danach ohne `kinds`.
+Expected: 403 mit „… nur Inhaber und Manager.“; ohne `kinds` eine Seite ohne Dienstplan, Zugänge und Firmendaten.
+6. Einen kassierten Termin im Kalender öffnen, Abschnitt „Verlauf“ aufklappen.
+Expected: „Bezahlt … (Beleg … Nr. …)“ steht zwischen den übrigen Einträgen an der richtigen Stelle.
+Closes: –
+Result: ☐
+
+### Verlauf B – Seite „Verlauf“
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Inhaberin anmelden, Navigation **Verlauf** (nach „Kunden“)
+1. Die Seite öffnen.
+Expected: Suchfeld, Zeitraum „Heute“ gewählt, Art-Chips „Buchungen … Zugänge“, Auswahl „Alle Kanäle“; die Liste zeigt den heutigen Tag mit Uhrzeit, Symbol, Satz und Gast/Person je Zeile.
+2. „30 Tage“ wählen und bis ans Ende scrollen.
+Expected: Weitere Tagesgruppen laden nach, ohne doppelte Einträge; am Fuß steht „Weitere laden“, solange es mehr gibt.
+3. Chip „Stornos“ und danach „Zahlungen“ anklicken.
+Expected: Nur Stornos bzw. Stornos und Zahlungen; der Chip „Zurücksetzen“ erscheint; Stornos innerhalb der Stornofrist tragen die Pille „Kurzfristig“.
+4. Strg+F drücken, einen Gastnamen tippen, eine Sekunde warten.
+Expected: Der Fokus steht im Suchfeld; nach etwa 300 ms lädt die Liste nur Einträge zu diesem Gast; Esc leert die Suche.
+5. Einen Suchtext ohne Treffer eingeben.
+Expected: „Nichts gefunden. Filter zurücksetzen?“ mit Knopf, der alles zurücksetzt.
+6. Als Rezeption anmelden und die Seite öffnen.
+Expected: Keine Chips „Dienstplan“ und „Zugänge“, kein Feld „Person“; Zahlungen sind sichtbar.
+7. Dunkles Farbschema wählen.
+Expected: Chips, Pillen und Symbole lesbar, keine hellen Flächen.
+Closes: –
+Result: ☐
+
+### Verlauf C – Seitenpanel und Zähler „Storniert n“
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Inhaberin anmelden, heute mindestens einen Termin stornieren und einen kassieren
+1. Navigation **Verlauf**, den Storno wählen, Enter drücken.
+Expected: Rechts öffnet das Panel „Storno“ mit Satz, Gast, Person, Kanal, Grund und Werten; der Fokus steht auf „Stornierung zurücknehmen“.
+2. Mit den Pfeiltasten auf die Zahlung wechseln.
+Expected: Das Panel zeigt „Zahlung“ mit „Beleg anzeigen“ als primärem Knopf; Klick öffnet die Kassa, Reiter Belege, am Tag des Belegs.
+3. Zurück zum Storno, „Stornierung zurücknehmen“, Rückfrage bestätigen.
+Expected: Toast „Termin wiederhergestellt: <Gast>, <Zeit>“; die Liste lädt neu und zeigt oben „Wiederhergestellt von …“.
+4. Esc drücken.
+Expected: Das Panel schließt, der Fokus steht wieder in der Liste.
+5. Kalender öffnen, einen weiteren Termin heute stornieren.
+Expected: In der Kopfzeile nach „Warteliste“ steht „Storniert 1“; Klick öffnet den Verlauf für heute mit dem Chip „Stornos“.
+6. Als Rezeption ohne Buchungsrecht anmelden und einen Storno öffnen.
+Expected: „Stornierung zurücknehmen“ ist gesperrt mit Hinweis auf das fehlende Recht.
+Closes: –
+Result: ☐
+
+### Verlauf E – Zurücknehmen aus dem Verlauf, auch zu neuer Zeit
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Inhaberin anmelden; heute einen Termin stornieren, einen zweiten stornieren und seine Zeit danach mit einem anderen Termin derselben Person belegen
+1. **Verlauf**, Chip **Stornos**, den ersten Storno öffnen, **Stornierung zurücknehmen**.
+Expected: Rückfrage „Stornierung zurücknehmen?“; nach **Zurücknehmen** Toast „Termin wiederhergestellt: <Gast>, <Zeit>“, der Verlauf lädt neu.
+2. Den zweiten Storno öffnen, **Stornierung zurücknehmen**.
+Expected: Rückfrage „Zu neuer Zeit zurücknehmen?“ mit „Die Zeit ist inzwischen belegt: …“ und **Neue Zeit wählen**.
+3. **Neue Zeit wählen**.
+Expected: Der Kalender springt auf den Tag des ersten freien Vorschlags; rechts das Panel des stornierten Termins mit offener Verschieben-Karte, darunter „Freie Zeiten“ für Gast, Behandlung und Person.
+4. Einen Vorschlag anklicken, **Verschieben**.
+Expected: Der Termin steht zur neuen Zeit wieder gebucht im Kalender.
+5. Einen Storno von gestern (Zeitraum **Gestern**) zurücknehmen und bei **Neue Zeit wählen** abbrechen.
+Expected: Grund „Der Termin liegt in der Vergangenheit.“; nach Abbrechen bleibt der Termin storniert und steht weiter im Verlauf.
+6. Bei einem Storno **Termin öffnen**, bei einer Zahlung **Beleg anzeigen**, bei einer Behandlungsänderung **Behandlung öffnen**.
+Expected: Kalender mit dem Panel des stornierten Termins; Kassa, Reiter Belege, Beleg gewählt; Verwaltung mit der Behandlung.
+7. Als Rezeption anmelden, **Verlauf** öffnen.
+Expected: Das Feld „Person“ nennt die Personen, die im Zeitraum etwas getan haben; „Dienstplan öffnen“ und „Zugang öffnen“ gibt es nicht.
+Closes: –
+Result: ☐
+
+### Verlauf D – Hilfe zur Seite „Verlauf“
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Inhaberin anmelden
+1. Navigation **Hilfe** öffnen und „Verlauf“ suchen.
+Expected: Die Hilfe zeigt „Seite „Verlauf“ in der Windows-App“ mit Bild, Aufbau, Pillen, Seitenpanel und Rechten.
+2. In der Hilfe nach „Stornos heute“, „bezahlt bar“ und „Storno zurücknehmen“ suchen.
+Expected: „Seite „Verlauf““ bzw. „Im Verlauf suchen“ steht oben in den Treffern.
+3. In „Im Verlauf suchen“ den Link „Stornierung zurücknehmen“ und in „Termin stornieren“ den Link „Aus dem Verlauf zurücknehmen“ anklicken.
+Expected: Beide führen zum richtigen Abschnitt.
+Closes: –
+Result: ☐
+
+### Verlauf F – Verkäufe ohne Termin
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Inhaberin anmelden
+1. In der **Kassa** einen Gutschein oder Artikel ohne Termin bar verkaufen.
+Expected: Im **Verlauf** unter **Heute**, **Zahlungen** steht „Bezahlt bar: … für <Ware> (Beleg …)“ ohne Sprung „Termin öffnen“.
+2. Im Verlauf nach dem Namen der Ware suchen.
+Expected: Der Verkauf (und ein Storno dazu) steht in den Treffern.
+3. Als Rezeption ohne Recht „Termine buchen“ anmelden.
+Expected: Der Chip **Zahlungen** und die Verkäufe fehlen.
+Closes: –
+Result: ☐
+
+### Verlauf H – Anfragen im Verlauf
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Inhaberin anmelden
+1. Eine Test-Anfrage einspielen (Beispieldaten oder `/api/dev/mails`), dann in **Anfragen** eine Anfrage als erledigt markieren.
+Expected: Im **Verlauf**, Chip **Anfragen**, stehen „… eingegangen (Mail)“ und „Anfrage als erledigt markiert von <Person>“, ohne Text der Mail.
+2. Die Zeile öffnen (Enter) und **Anfrage öffnen** wählen.
+Expected: Die Seite **Anfragen** zeigt die Anfrage.
+3. Als Therapeutin ohne Recht „Termine buchen“ anmelden.
+Expected: Kein Chip **Anfragen**, keine Anfrage-Zeilen.
+Closes: –
 ### Export/Import B – Kunden exportieren und Werbe-Einwilligung am Gast
 Start: `dotnet run --project src/AispaStudio.AppHost`, im Aspire-Dashboard die Ressource `windows-app` starten, als Inhaberin anmelden und **Kunden** öffnen
 1. Im Suchfeld „hu“ eingeben, im Kopf **Exportieren** › **Excel** wählen und speichern.

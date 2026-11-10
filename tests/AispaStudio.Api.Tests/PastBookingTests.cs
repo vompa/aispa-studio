@@ -126,6 +126,60 @@ public sealed class PastBookingTests(ApiFixture fixture)
         await AssertRejectedAsync(response, PastBookings.MoveMessage);
     }
 
+    // ---------- Stornierung zurücknehmen (Verlauf, Aufgabe E) ----------
+
+    [Fact]
+    public async Task Ruecknahme_eines_gestrigen_Termins_ohne_neue_Zeit_wird_mit_409_abgelehnt_mit_Zeit_morgen_geht_sie()
+    {
+        var (spa, location, treatment, _) = await OpenAllDayAsync();
+        var appointment = await spa.BookInThePastAsync(LocalToday(10, 0, -1), Ct, treatment: treatment, location: location.Id);
+        _ = await spa.PostAsync<AppointmentDto>($"/api/appointments/{appointment.Id}/cancel", new CancelAppointmentRequest("Krank"), Ct);
+
+        var info = await spa.GetAsync<AppointmentRestoration>($"/api/appointments/{appointment.Id}/restoration", Ct);
+        var samePlace = await spa.Client.PostAsJsonAsync($"/api/appointments/{appointment.Id}/restore", new RestoreAppointmentRequest(), TestSpa.Json, Ct);
+        var tomorrow = await spa.Client.PostAsJsonAsync($"/api/appointments/{appointment.Id}/restore",
+            new RestoreAppointmentRequest(LocalToday(10, 0, 1)), TestSpa.Json, Ct);
+
+        Assert.True(info.InPast);
+        Assert.Null(info.Conflict);
+        await AssertRejectedAsync(samePlace, PastBookings.RestoreMessage);
+        Assert.Equal(HttpStatusCode.OK, tomorrow.StatusCode);
+        var restored = await TestSpa.ReadAsync<AppointmentDto>(tomorrow, Ct);
+        Assert.Equal((AppointmentStatus.Booked, LocalToday(10, 0, 1)), (restored.Status, restored.Start));
+    }
+
+    [Fact]
+    public async Task Ruecknahme_auf_gestern_mit_neuer_Zeit_wird_wie_Verschieben_abgelehnt()
+    {
+        var (spa, location, treatment, _) = await OpenAllDayAsync();
+        var appointment = await TestSpa.ReadAsync<AppointmentDto>(await spa.BookAsync(LocalToday(10, 0, 1), Ct, treatment: treatment, location: location.Id), Ct);
+        _ = await spa.PostAsync<AppointmentDto>($"/api/appointments/{appointment.Id}/cancel", new CancelAppointmentRequest("Krank"), Ct);
+
+        var response = await spa.Client.PostAsJsonAsync($"/api/appointments/{appointment.Id}/restore",
+            new RestoreAppointmentRequest(LocalToday(10, 0, -1)), TestSpa.Json, Ct);
+
+        await AssertRejectedAsync(response, PastBookings.MoveMessage);
+    }
+
+    [Fact]
+    public async Task Restoration_meldet_die_inzwischen_belegte_Zeit_ohne_zu_speichern()
+    {
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        var cancelled = await spa.BookOkAsync(TestSpa.At(10), Ct, spa.Anna.Id, spa.RoomA.Id);
+        _ = await spa.PostAsync<AppointmentDto>($"/api/appointments/{cancelled.Id}/cancel", new CancelAppointmentRequest("Krank"), Ct);
+        var other = await spa.BookOkAsync(TestSpa.At(10), Ct, spa.Anna.Id, spa.RoomA.Id);
+
+        var info = await spa.GetAsync<AppointmentRestoration>($"/api/appointments/{cancelled.Id}/restoration", Ct);
+
+        Assert.False(info.InPast);
+        Assert.NotNull(info.Conflict);
+        Assert.Contains(info.Conflict.Conflicts, c => c.Kind == ResourceKind.Employee && c.AppointmentId == other.Id);
+        Assert.Equal(AppointmentStatus.Cancelled, (await spa.GetAsync<AppointmentDto>($"/api/appointments/{cancelled.Id}", Ct)).Status);
+        var free = await spa.BookOkAsync(TestSpa.At(14), Ct, spa.Ben.Id, spa.RoomB.Id);
+        _ = await spa.PostAsync<AppointmentDto>($"/api/appointments/{free.Id}/cancel", new CancelAppointmentRequest("Krank"), Ct);
+        Assert.Null((await spa.GetAsync<AppointmentRestoration>($"/api/appointments/{free.Id}/restoration", Ct)).Conflict);
+    }
+
     private static async Task AssertNotPastRejectionAsync(HttpResponseMessage response)
     {
         if (response.StatusCode == HttpStatusCode.Conflict)
