@@ -5953,8 +5953,8 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
   3. Nachfasser werden gelöscht statt geleert (Notiz ist Pflicht).
   4. Pflichtfelder von Anfragen und Bestellungen werden zu leerem Text.
   5. Die App erkennt die Inhaber-Ebene an der Rolle (Owner, GeneralManager), nicht am Recht `ManageLocation`.
+- **Geprüft:** API-Tests der Bereiche Kunden, Verlauf, Aktivität und Änderungen (168 von 168 grün), App-Tests `CustomerAnonymizeTests` (7 von 7) und der Bildtest `Kundenkarte_Gast_anonymisieren_steht_im_Menue_der_Inhaberin`; das Handbuchbild `kunden-anonymisieren.png` ist erzeugt und angesehen. Hilfetests (Textregeln, Aufbau, Verweise und Bilder: 27 von 27).
 - **Nicht geprüft:**
-  - App-Tests (`AispaStudio.Desktop.Tests.CustomerAnonymizeTests`, 7 Tests) und der Bildtest `Kundenkarte_Gast_anonymisieren_steht_im_Menue_der_Inhaberin` sind geschrieben und gebaut, aber nicht gelaufen; die Läufe startet der Auftraggeber. Das Handbuchbild `kunden-anonymisieren.png` fehlt deshalb noch; die Hilfe zeigt bis dahin „Bild folgt“.
   - Ein API-Gesamtlauf fehlt.
   - Die Darstellung in der laufenden App ist nicht angesehen.
   - Die Offline-Kopie behält ältere Suchlisten mit Klarnamen bis zu 14 Tage (offen, siehe ADR 0093).
