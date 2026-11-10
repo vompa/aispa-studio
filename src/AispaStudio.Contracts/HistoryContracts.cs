@@ -37,6 +37,9 @@ public enum ActivityKind
     RosterChanged,
     AccessChanged,
     CompanyChanged,
+
+    /// <summary>Anfrage über Mail, SMS, WhatsApp, Anruf oder Treatwell: eingegangen, gebucht, vorgeschlagen, erledigt, storniert oder Antwort freigegeben.</summary>
+    Request,
 }
 
 /// <summary>Über welchen Weg ein Eintrag entstand, für den Filter der Seite: Rezeption (Team, Mitarbeiter-App), online vom Gast, Terminannahme über einen Kanal, Hintergrund (Job, Abgleich).</summary>
@@ -54,7 +57,7 @@ public sealed record ActivityValue(string Label, string? Old, string? New);
 /// <summary>
 /// Ein Eintrag im Verlauf eines Standorts. <c>Seq</c> ist der Seitenzeiger (Verlaufszeile oder negative Pseudo-Nummer eines Belegs), <c>Text</c> der Satz wie im Verlauf
 /// des Datensatzes, <c>Actor</c> die Person zur Zeit des Lesens; <c>LateCancellation</c> nur bei Stornos: innerhalb der Stornofrist des Standorts abgesagt;
-/// <c>ReceiptId</c> nur bei Zahlungen: der Beleg für den Sprung in die Kassa.
+/// <c>ReceiptId</c> nur bei Zahlungen: der Beleg für den Sprung in die Kassa; <c>RequestId</c> nur bei Anfragen: die Anfrage für den Sprung in die Anfragen.
 /// </summary>
 public sealed record ActivityEntry(
     long Seq,
@@ -70,7 +73,8 @@ public sealed record ActivityEntry(
     Guid? EmployeeId,
     IReadOnlyList<ActivityValue> Values,
     bool? LateCancellation,
-    Guid? ReceiptId = null);
+    Guid? ReceiptId = null,
+    Guid? RequestId = null);
 
 /// <summary>Eine Person, die im Zeitraum etwas getan hat (Benutzer-Id und Anzeigename zur Zeit des Lesens), für den Filter „Person“ der Seite.</summary>
 public sealed record ActivityActor(string Id, string Name);

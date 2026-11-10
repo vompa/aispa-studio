@@ -180,6 +180,8 @@
                       HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" ToolTip.Tip="Bucht den Termin wieder, wenn Zeit, Person und Raum noch frei sind." />
               <Button x:Name="ReceiptButton" Content="Beleg anzeigen" Command="{Binding ShowReceiptCommand}" IsVisible="{Binding ShowReceipt}"
                       Classes.primary="{Binding IsReceiptPrimary}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" ToolTip.Tip="Zeigt den Beleg an der Kassa." />
+              <Button x:Name="RequestButton" Content="Anfrage öffnen" Command="{Binding OpenRequestCommand}" IsVisible="{Binding ShowRequest}"
+                      Classes.primary="{Binding IsRequestPrimary}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" ToolTip.Tip="Zeigt die Anfrage mit Text und Antwort." />
               <Button x:Name="AppointmentButton" Content="Termin öffnen" Command="{Binding OpenAppointmentCommand}" IsVisible="{Binding ShowAppointment}"
                       Classes.primary="{Binding IsAppointmentPrimary}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" ToolTip.Tip="{Binding AppointmentTip}" />
               <Button x:Name="CustomerButton" Content="Kundenkarte öffnen" Command="{Binding OpenCustomerCommand}" IsVisible="{Binding ShowCustomer}"

@@ -6,12 +6,14 @@ namespace AispaStudio.Api.Sync;
 /// <summary>
 /// Verlauf je Standort für die Seite „Verlauf“ (Arbeitsanweisung Verlauf, Aufgabe A): alles, was im Betrieb passiert ist, seitenweise, neueste zuerst. Die Rechte
 /// folgen den Verlauf-Endpunkten je Datensatz (<see cref="HistoryEndpoints"/>, ADR 0082 Punkt 5): Termine, Kunden und Behandlungen mit dem Kalenderrecht, Zahlungen
-/// mit dem Recht der Kassa, Dienstplan, Zugänge und Firmendaten nur für Inhaber und Manager. Arten außerhalb der Rechte fehlen still; 403 nur, wenn ausschließlich
+/// und Anfragen mit dem Recht der Kassa und der Anfragen (Termine buchen), Dienstplan, Zugänge und Firmendaten nur für Inhaber und Manager. Arten außerhalb der Rechte fehlen still; 403 nur, wenn ausschließlich
 /// verbotene Arten angefragt sind.
 /// </summary>
 internal static class ActivityEndpoints
 {
     private const string PaymentsOnly = "Zahlungen im Verlauf sieht, wer die Kassa sieht.";
+
+    private const string RequestsOnly = "Anfragen im Verlauf sieht, wer die Anfragen sieht.";
 
     private static readonly ActivityKind[] CalendarKinds =
     [
@@ -20,6 +22,8 @@ internal static class ActivityEndpoints
     ];
 
     private static readonly ActivityKind[] PaymentKinds = [ActivityKind.Paid, ActivityKind.Deposit, ActivityKind.ReceiptVoided];
+
+    private static readonly ActivityKind[] RequestKinds = [ActivityKind.Request];
 
     private static readonly ActivityKind[] LeadershipKinds = [ActivityKind.RosterChanged, ActivityKind.AccessChanged, ActivityKind.CompanyChanged];
 
@@ -30,6 +34,7 @@ internal static class ActivityEndpoints
         if (access.Has(AccessRight.Book))
         {
             allowed.UnionWith(PaymentKinds);
+            allowed.UnionWith(RequestKinds);
         }
 
         if (access.IsOwnerLevel)
@@ -51,7 +56,8 @@ internal static class ActivityEndpoints
                 var requested = kinds is { Length: > 0 } ? kinds.ToHashSet() : null;
                 if (requested is not null && !requested.Overlaps(allowed))
                 {
-                    return PermissionExtensions.Forbidden(requested.IsSubsetOf(PaymentKinds) ? PaymentsOnly : HistoryEndpoints.LeadershipOnly);
+                    return PermissionExtensions.Forbidden(
+                        requested.IsSubsetOf(PaymentKinds) ? PaymentsOnly : requested.IsSubsetOf(RequestKinds) ? RequestsOnly : HistoryEndpoints.LeadershipOnly);
                 }
 
                 var effective = requested is null ? allowed : requested.Intersect(allowed).ToHashSet();
@@ -61,7 +67,7 @@ internal static class ActivityEndpoints
             })
             .WithTags("Verlauf")
             .WithName("GetLocationHistory")
-            .WithSummary("Verlauf eines Standorts, neueste zuerst: Buchungen, Verschiebungen, Stornos, Status, Zahlungen (auch Verkäufe ohne Termin), Kunden, Behandlungen, Dienstplan und Zugänge "
+            .WithSummary("Verlauf eines Standorts, neueste zuerst: Buchungen, Verschiebungen, Stornos, Status, Zahlungen (auch Verkäufe ohne Termin), Anfragen, Kunden, Behandlungen, Dienstplan und Zugänge "
                 + "mit Filtern nach Zeitraum (Ortszeit), Arten, Person, Kanal, Gast und Suchtext; seitenweise über before und take (höchstens 200). "
                 + "Arten außerhalb der Rechte fehlen; 403 nur, wenn ausschließlich verbotene Arten angefragt sind.")
             .Produces<ActivityPage>().ProducesProblem(StatusCodes.Status404NotFound).ProducesProblem(StatusCodes.Status403Forbidden)

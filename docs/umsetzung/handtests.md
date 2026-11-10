@@ -746,3 +746,14 @@ Expected: Der Verkauf (und ein Storno dazu) steht in den Treffern.
 Expected: Der Chip **Zahlungen** und die Verkäufe fehlen.
 Closes: –
 Result: ☐
+
+### Verlauf H – Anfragen im Verlauf
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Inhaberin anmelden
+1. Eine Test-Anfrage einspielen (Beispieldaten oder `/api/dev/mails`), dann in **Anfragen** eine Anfrage als erledigt markieren.
+Expected: Im **Verlauf**, Chip **Anfragen**, stehen „… eingegangen (Mail)“ und „Anfrage als erledigt markiert von <Person>“, ohne Text der Mail.
+2. Die Zeile öffnen (Enter) und **Anfrage öffnen** wählen.
+Expected: Die Seite **Anfragen** zeigt die Anfrage.
+3. Als Therapeutin ohne Recht „Termine buchen“ anmelden.
+Expected: Kein Chip **Anfragen**, keine Anfrage-Zeilen.
+Closes: –
+Result: ☐

@@ -12,7 +12,7 @@ public sealed partial class ViewTests
 {
     private static readonly string ActivityToday = $"GET /api/locations/{SpaSample.LocationId}/history?from=2026-10-19&until=2026-10-19";
 
-    private static readonly string[] AllKindChips = ["Buchungen", "Verschoben", "Stornos", "Status", "Zahlungen", "Neue Kunden", "Kundendaten", "Behandlungen", "Dienstplan", "Zugänge"];
+    private static readonly string[] AllKindChips = ["Buchungen", "Verschoben", "Stornos", "Status", "Zahlungen", "Anfragen", "Neue Kunden", "Kundendaten", "Behandlungen", "Dienstplan", "Zugänge"];
 
     private static ActivityEntry Activity(long seq, DateTimeOffset at, ActivityKind kind, string text, string? customer = "Brigitte Müller", string? actor = "Lena",
         ActivityChannel channel = ActivityChannel.Reception, bool? late = null) =>

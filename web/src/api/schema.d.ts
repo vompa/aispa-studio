@@ -1640,7 +1640,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Verlauf eines Standorts, neueste zuerst: Buchungen, Verschiebungen, Stornos, Status, Zahlungen (auch Verkäufe ohne Termin), Kunden, Behandlungen, Dienstplan und Zugänge mit Filtern nach Zeitraum (Ortszeit), Arten, Person, Kanal, Gast und Suchtext; seitenweise über before und take (höchstens 200). Arten außerhalb der Rechte fehlen; 403 nur, wenn ausschließlich verbotene Arten angefragt sind. */
+        /** Verlauf eines Standorts, neueste zuerst: Buchungen, Verschiebungen, Stornos, Status, Zahlungen (auch Verkäufe ohne Termin), Anfragen, Kunden, Behandlungen, Dienstplan und Zugänge mit Filtern nach Zeitraum (Ortszeit), Arten, Person, Kanal, Gast und Suchtext; seitenweise über before und take (höchstens 200). Arten außerhalb der Rechte fehlen; 403 nur, wenn ausschließlich verbotene Arten angefragt sind. */
         get: operations["GetLocationHistory"];
         put?: never;
         post?: never;
@@ -7531,9 +7531,11 @@ export interface components {
             lateCancellation: null | boolean;
             /** Format: uuid */
             receiptId?: null | string;
+            /** Format: uuid */
+            requestId?: null | string;
         };
         /** @enum {unknown} */
-        ActivityKind: "Booked" | "Moved" | "Cancelled" | "Restored" | "StatusChanged" | "AppointmentChanged" | "Paid" | "Deposit" | "ReceiptVoided" | "CustomerCreated" | "CustomerChanged" | "TreatmentChanged" | "RosterChanged" | "AccessChanged" | "CompanyChanged";
+        ActivityKind: "Booked" | "Moved" | "Cancelled" | "Restored" | "StatusChanged" | "AppointmentChanged" | "Paid" | "Deposit" | "ReceiptVoided" | "CustomerCreated" | "CustomerChanged" | "TreatmentChanged" | "RosterChanged" | "AccessChanged" | "CompanyChanged" | "Request";
         ActivityPage: {
             items: components["schemas"]["ActivityEntry"][];
             /** Format: int64 */

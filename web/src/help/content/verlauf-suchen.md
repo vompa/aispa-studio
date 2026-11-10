@@ -23,6 +23,7 @@ Beispiele:
 - „Wer hat den Termin von Frau Müller abgesagt?“ **30 Tage**, **Stornos**, „Müller“ suchen. Die Zeile nennt Person und Grund.
 - „Wer hat heute den Gutschein verkauft?“ **Heute**, **Zahlungen**, „Gutschein“ suchen. Ein Verkauf ohne Termin nennt die Ware („Bezahlt Karte: 50,00 € von Lena für Gutschein 50 € (Beleg …)“); die Suche findet auch die weiteren Zeilen des Belegs.
 - „Was wurde heute bar bezahlt?“ **Heute**, **Zahlungen**, „bar“ suchen. Jede Zeile nennt Betrag und Beleg („Bezahlt bar: 85,00 € von Lena (Beleg …)“).
+- „Wer hat die Anfrage von Frau Huber erledigt?“ **Anfragen**, „Huber“ suchen. Die Suche findet Gast, Absender und Betreff der Anfrage; die Zeile nennt, wer sie gebucht, als erledigt markiert oder die Antwort freigegeben hat.
 - „Welche Absagen kamen online?“ **Stornos**, Kanal **Online**. Kurzfristige Absagen tragen die Pille **Kurzfristig**.
 
 Findet die Suche nichts, steht „Nichts gefunden. Filter zurücksetzen?“ da, mit einem Knopf, der alle Filter zurücksetzt.
@@ -34,6 +35,7 @@ Findet die Suche nichts, steht „Nichts gefunden. Filter zurücksetzen?“ da, 
    - **Kundenkarte öffnen** wechselt zu **Kunden** und wählt den Gast.
    - **Termin öffnen** wechselt in den Kalender auf den Tag des Termins und wählt ihn. Bei einem stornierten Termin öffnet sich das Panel des stornierten Termins.
    - **Beleg anzeigen** wechselt in die **Kassa**, Reiter **Belege**, auf den Tag des Belegs und wählt ihn.
+   - **Anfrage öffnen** wechselt zu **Anfragen** und zeigt die Nachricht mit Antwort.
    - **Behandlung öffnen**, **Dienstplan öffnen** (auf der Woche) und **Zugang öffnen** führen in die Verwaltung.
 
 Ein gesperrter Knopf nennt im Hinweis das fehlende Recht. Einträge zu Kunden ohne Termin haben nur **Kundenkarte öffnen**.

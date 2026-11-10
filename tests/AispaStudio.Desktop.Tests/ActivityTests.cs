@@ -196,10 +196,12 @@ public sealed class ActivityTests
         var manager = Open(Api($"from={Today}&until={Today}"), TestData.Owner(StaffRole.GeneralManager));
         var calendarOnly = Open(Api($"from={Today}&until={Today}"), new CurrentUser("u9", "k@aispa.test", "Kim", 1, TestData.Reception().Access, null, [AccessRight.ViewCalendar]));
 
-        Assert.Equal(["Buchungen", "Verschoben", "Stornos", "Status", "Zahlungen", "Neue Kunden", "Kundendaten", "Behandlungen"], reception.KindChips.Select(c => c.Label));
-        Assert.Equal(["Buchungen", "Verschoben", "Stornos", "Status", "Zahlungen", "Neue Kunden", "Kundendaten", "Behandlungen", "Dienstplan", "Zugänge"], owner.KindChips.Select(c => c.Label));
+        Assert.Equal(["Buchungen", "Verschoben", "Stornos", "Status", "Zahlungen", "Anfragen", "Neue Kunden", "Kundendaten", "Behandlungen"], reception.KindChips.Select(c => c.Label));
+        Assert.Equal(["Buchungen", "Verschoben", "Stornos", "Status", "Zahlungen", "Anfragen", "Neue Kunden", "Kundendaten", "Behandlungen", "Dienstplan", "Zugänge"],
+            owner.KindChips.Select(c => c.Label));
         Assert.Equal(owner.KindChips.Select(c => c.Label), manager.KindChips.Select(c => c.Label));
-        Assert.DoesNotContain(calendarOnly.KindChips, c => c.Label == "Zahlungen");
+        Assert.DoesNotContain(calendarOnly.KindChips, c => c.Label is "Zahlungen" or "Anfragen");
+        Assert.Equal([ActivityKind.Request], reception.KindChips.Single(c => c.Label == "Anfragen").Kinds);
     }
 
     [Fact]

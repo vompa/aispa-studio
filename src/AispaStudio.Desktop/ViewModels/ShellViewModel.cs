@@ -245,6 +245,11 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
         Calendar.HrFileRequested = ShowHrFile;
         Calendar.PersonDutiesRequested = ShowPersonDuties;
         Inbox.CustomerRequested = ShowCustomerAsync;
+        if (HasInbox)
+        {
+            Activity.RequestRequested = ShowInboxMailAsync;
+        }
+
         Inbox.CustomerEditRequested = EditCustomerAsync;
         Calendar.CheckoutGroupRequested = CheckoutGroupAsync;
         Pages = pages;

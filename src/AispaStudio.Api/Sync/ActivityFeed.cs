@@ -95,11 +95,13 @@ internal sealed class ActivityFeed(
             var treatmentId = fact?.TreatmentId ?? (row.Table is "Treatments" or "TreatmentLocationPrices" or "TreatmentPriceRules" ? GuidOf(row.Subject) : null);
             var employeeId = fact?.EmployeeId ?? (RosterTables.Contains(row.Table) ? GuidOf(row.Subject) : null);
             var customerId = row.CustomerId ?? fact?.CustomerId;
+            var requestId = row.Table == "InboundMails" ? IdOf(row.RowKey) : null;
+            var appointmentId = fact?.Id ?? (requestId is null ? null : GuidInContext(row.Context, "AppointmentId"));
             bool? late = kind == ActivityKind.Cancelled && fact?.Start is { } start
                 ? deadline > TimeSpan.Zero && row.ChangedAt <= start && start - row.ChangedAt < deadline
                 : null;
-            items.Add(new ActivityEntry(row.Seq, row.ChangedAt, kind, text.Text, actor, channel, customerId, Name(customers, customerId), fact?.Id, treatmentId, employeeId,
-                text.Values, late));
+            items.Add(new ActivityEntry(row.Seq, row.ChangedAt, kind, text.Text, actor, channel, customerId, Name(customers, customerId), appointmentId, treatmentId, employeeId,
+                text.Values, late, RequestId: requestId));
         }
 
         return new ActivityPage(items, more && page.Count > 0 ? page[^1].Seq : null, actors);
@@ -160,6 +162,17 @@ internal sealed class ActivityFeed(
         return GuidIn(key.RootElement, "Id");
     }
 
+    private static Guid? GuidInContext(string? context, string name)
+    {
+        if (context is null)
+        {
+            return null;
+        }
+
+        using var document = JsonDocument.Parse(context);
+        return GuidIn(document.RootElement, name);
+    }
+
     private static Guid? GuidIn(JsonElement element, string name) =>
         element.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.String && Guid.TryParse(value.GetString(), out var id) ? id : null;
 
@@ -177,7 +190,8 @@ internal sealed class ActivityFeed(
     /// <summary>
     /// Die Schlüssel der Seite plus einen (für <c>NextBefore</c>). Verlaufszeilen des Mandanten, am Standort (Termine über Standort in <c>context</c> oder am Termin;
     /// Dienstplan über Standort in <c>context</c> oder die Personen des Standorts; Kunden, Behandlungen, Zugänge und Firmendaten mandantenweit) und Belege der
-    /// Kassen des Standorts mit Terminbezug; die Art wird in SQL so bestimmt wie in den Satzbildnern.
+    /// Kassen des Standorts; Anfragen des Standorts und ohne Standort (Eingang, Buchung, Vorschlag, Erledigt, Storno, Antwort freigegeben); die Art wird in SQL so
+    /// bestimmt wie in den Satzbildnern.
     /// </summary>
     private async Task<List<FeedKey>> KeysAsync(Query query, Guid tenantId, TimeZoneInfo zone, string[] staff, CancellationToken ct)
     {
@@ -241,6 +255,10 @@ internal sealed class ActivityFeed(
             WHEN h.table_name IN ('RosterDays', 'RosterDayEntries') THEN 'RosterChanged'
             WHEN h.table_name = 'StaffAccess' THEN 'AccessChanged'
             WHEN h.table_name = 'Tenants' THEN 'CompanyChanged'
+            WHEN h.table_name = 'InboundMails' THEN CASE
+                WHEN h.operation = 'I' THEN 'Request'
+                WHEN h.changes -> 'Status' ->> 1 IN ('Booked', 'Proposed', 'Ignored', 'Cancelled') THEN 'Request'
+                WHEN h.changes -> 'ReplyStatus' ->> 1 = 'Sending' THEN 'Request' END
         END
         """;
 
@@ -266,13 +284,15 @@ internal sealed class ActivityFeed(
                   WHEN h.table_name IN ('Treatments', 'TreatmentLocationPrices', 'TreatmentPriceRules') THEN h.subject::uuid END
               LEFT JOIN aispa."AspNetUsers" u ON u."Id" = h.user_id
               LEFT JOIN aispa."Employees" e ON e."Id" = CASE WHEN h.table_name IN ('RosterDays', 'RosterDayEntries') THEN h.subject::uuid END
+              LEFT JOIN aispa."InboundMails" m ON h.table_name = 'InboundMails' AND m."Id" = (h.row_key ->> 'Id')::uuid
               CROSS JOIN LATERAL (SELECT {{HistoryKindSql}} AS kind) k
              WHERE h.tenant_id = {0}
                AND k.kind = ANY ({1})
                AND (
                     (h.table_name = 'Appointments' AND COALESCE((h.context ->> 'LocationId')::uuid, a."LocationId") = {2})
                  OR (h.table_name IN ('RosterDays', 'RosterDayEntries') AND ((h.context ->> 'LocationId')::uuid = {2} OR h.subject = ANY ({3})))
-                 OR h.table_name NOT IN ('Appointments', 'RosterDays', 'RosterDayEntries'))
+                 OR (h.table_name = 'InboundMails' AND COALESCE(m."LocationId", (h.context ->> 'LocationId')::uuid, {2}) = {2})
+                 OR h.table_name NOT IN ('Appointments', 'RosterDays', 'RosterDayEntries', 'InboundMails'))
                AND ({4}::timestamptz IS NULL OR h.changed_at >= {4})
                AND ({5}::timestamptz IS NULL OR h.changed_at < {5})
                AND ({6}::text IS NULL OR h.user_id = {6})
@@ -280,7 +300,7 @@ internal sealed class ActivityFeed(
                AND ({8}::uuid IS NULL OR h.customer_id = {8})
                AND ({9}::text IS NULL
                     OR (c."FirstName" || ' ' || c."LastName") ILIKE {9} OR c."PreferredName" ILIKE {9} OR t."Name" ILIKE {9} OR u."DisplayName" ILIKE {9} OR e."DisplayName" ILIKE {9}
-                    OR (h.changes -> 'CancelReason' ->> 1) ILIKE {9})
+                    OR (h.changes -> 'CancelReason' ->> 1) ILIKE {9} OR m."Subject" ILIKE {9} OR m."FromName" ILIKE {9} OR m."From" ILIKE {9})
                AND NOT (h.table_name = 'RosterDays' AND h.operation = 'I'
                         AND EXISTS (SELECT 1 FROM sync.history x WHERE x.table_name = 'RosterDayEntries' AND x.subject = h.subject AND x.changed_at = h.changed_at))
                AND NOT (h.table_name = 'Tenants' AND h.operation = 'U' AND NOT (h.changes ?| {10}))

@@ -76,6 +76,7 @@ public sealed class ActivityRow(ActivityEntry entry, string time, string? detail
         ActivityKind.TreatmentChanged => Icons.Sliders,
         ActivityKind.RosterChanged => Icons.Calendar,
         ActivityKind.AccessChanged => Icons.Lock,
+        ActivityKind.Request => Icons.Mail,
         _ => Icons.Info,
     };
 }
@@ -305,6 +306,8 @@ public sealed partial class ActivityViewModel : ViewModelBase
         if (_user.Rights.Contains(AccessRight.Book))
         {
             chips.Add(new("Zahlungen", "Bezahlte Termine, Anzahlungen und stornierte Belege.", [ActivityKind.Paid, ActivityKind.Deposit, ActivityKind.ReceiptVoided], OnKindChipChanged));
+            chips.Add(new("Anfragen", "Eingegangene Anfragen und was daraus wurde: gebucht, Zeiten vorgeschlagen, erledigt, Antwort freigegeben.", [ActivityKind.Request],
+                OnKindChipChanged));
         }
 
         chips.Add(new("Neue Kunden", "Gäste, die neu angelegt wurden.", [ActivityKind.CustomerCreated], OnKindChipChanged));

@@ -29,7 +29,7 @@ public sealed partial class ActivityViewModel
         nameof(PanelChannel), nameof(PanelReason), nameof(HasPanelReason), nameof(PanelValues), nameof(HasPanelValues), nameof(ShowRestore), nameof(ShowReceipt), nameof(ShowAppointment),
         nameof(ShowCustomer), nameof(IsRestorePrimary), nameof(IsReceiptPrimary), nameof(IsAppointmentPrimary), nameof(IsCustomerPrimary), nameof(AppointmentTip),
         nameof(HasPanelPhone), nameof(HasLateNotice), nameof(ShowTreatment), nameof(ShowRoster), nameof(ShowAccess), nameof(IsTreatmentPrimary), nameof(IsRosterPrimary),
-        nameof(IsAccessPrimary),
+        nameof(IsAccessPrimary), nameof(ShowRequest), nameof(IsRequestPrimary),
     ];
 
     private int _panelVersion;
@@ -55,6 +55,9 @@ public sealed partial class ActivityViewModel
 
     /// <summary>„Beleg anzeigen“: die Shell öffnet die Kassa auf dem Reiter Belege, am Tag des Belegs (Ausstellung), mit dem Beleg gewählt.</summary>
     public Func<Guid, DateTimeOffset, Task>? ReceiptRequested { get; set; }
+
+    /// <summary>„Anfrage öffnen“: die Shell wechselt zu den Anfragen und wählt die Anfrage.</summary>
+    public Func<Guid, Task>? RequestRequested { get; set; }
 
     /// <summary>Wird ausgelöst, wenn die Person das Panel schließt (Esc, Schließen-Knopf); die Ansicht gibt den Fokus an die Liste zurück.</summary>
     public event Action? PanelClosed;
@@ -144,6 +147,8 @@ public sealed partial class ActivityViewModel
 
     public bool ShowReceipt => PanelEntry is { Kind: ActivityKind.Paid or ActivityKind.Deposit or ActivityKind.ReceiptVoided, ReceiptId: not null };
 
+    public bool ShowRequest => PanelEntry is { Kind: ActivityKind.Request, RequestId: not null } && RequestRequested is not null;
+
     public bool ShowAppointment => PanelEntry is { AppointmentId: not null };
 
     public bool ShowCustomer => PanelEntry is { CustomerId: not null };
@@ -154,14 +159,16 @@ public sealed partial class ActivityViewModel
 
     public bool ShowAccess => PanelEntry is { Kind: ActivityKind.AccessChanged };
 
-    /// <summary>Genau ein Knopf ist primär (5.12 Punkt 6): Zurücknehmen, sonst Beleg, Termin, Kundenkarte, Behandlung, Dienstplan, Zugang.</summary>
+    /// <summary>Genau ein Knopf ist primär (5.12 Punkt 6): Zurücknehmen, sonst Beleg, Anfrage, Termin, Kundenkarte, Behandlung, Dienstplan, Zugang.</summary>
     public bool IsRestorePrimary => ShowRestore;
 
     public bool IsReceiptPrimary => !ShowRestore && ShowReceipt;
 
-    public bool IsAppointmentPrimary => !ShowRestore && !ShowReceipt && ShowAppointment;
+    public bool IsRequestPrimary => !ShowRestore && !ShowReceipt && ShowRequest;
 
-    public bool IsCustomerPrimary => !ShowRestore && !ShowReceipt && !ShowAppointment && ShowCustomer;
+    public bool IsAppointmentPrimary => !ShowRestore && !ShowReceipt && !ShowRequest && ShowAppointment;
+
+    public bool IsCustomerPrimary => !ShowRestore && !ShowReceipt && !ShowRequest && !ShowAppointment && ShowCustomer;
 
     public bool IsTreatmentPrimary => !ShowRestore && !ShowReceipt && !ShowAppointment && !ShowCustomer && ShowTreatment;
 
@@ -283,6 +290,7 @@ public sealed partial class ActivityViewModel
         ActivityKind.TreatmentChanged => "Behandlung",
         ActivityKind.RosterChanged => "Dienstplan",
         ActivityKind.AccessChanged => "Zugang",
+        ActivityKind.Request => "Anfrage",
         _ => "Firmendaten",
     };
 
@@ -347,6 +355,15 @@ public sealed partial class ActivityViewModel
         if (PanelEntry is { } entry && CanOpenTeam)
         {
             AccessRequested?.Invoke(entry.EmployeeId);
+        }
+    }
+
+    [RelayCommand]
+    private async Task OpenRequestAsync()
+    {
+        if (PanelEntry is { RequestId: { } id } && RequestRequested is { } open)
+        {
+            await open(id).ConfigureAwait(true);
         }
     }
 

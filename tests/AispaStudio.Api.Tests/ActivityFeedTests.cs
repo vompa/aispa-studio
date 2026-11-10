@@ -1,6 +1,9 @@
 using System.Net;
 using System.Net.Http.Json;
+using AispaStudio.Api.Data;
+using AispaStudio.Api.MailIntake;
 using AispaStudio.Api.Sync;
+using AispaStudio.Api.Tenancy;
 using AispaStudio.Contracts;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
@@ -373,6 +376,71 @@ public sealed class ActivityFeedTests(ApiFixture fixture)
         Assert.Equal(true, page.Items.Single(i => i.AppointmentId == late.Id).LateCancellation);
         Assert.Equal(false, page.Items.Single(i => i.AppointmentId == early.Id).LateCancellation);
         Assert.Null((await spa.GetAsync<ActivityPage>(Path(spa, "?kinds=Booked"), Ct)).Items[0].LateCancellation);
+    }
+
+    [Fact]
+    public async Task Anfragen_stehen_mit_Eingang_und_Entscheidung_im_Verlauf_ohne_Inhalte_der_Mail()
+    {
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        var graz = await spa.CreateLocationAsync("Graz", [DayOfWeek.Monday], Ct);
+        var here = await AddMailAsync(spa, spa.Location.Id, BookingChannel.Email, InboundMailKind.BookingRequest, "Massage am Freitag", spa.Customer.Id);
+        var open = await AddMailAsync(spa, null, BookingChannel.Sms, InboundMailKind.Question, "Parkplatz?", null);
+        _ = await AddMailAsync(spa, graz.Id, BookingChannel.Email, InboundMailKind.BookingRequest, "Graz bitte", null);
+        _ = await spa.PostAsync<InboundMailDto>($"/api/inbox/{here}/dismiss", new { }, Ct);
+
+        var page = await spa.GetAsync<ActivityPage>(Path(spa, "?kinds=Request"), Ct);
+
+        Assert.Equal([
+            (ActivityKind.Request, "Anfrage als erledigt markiert von Test Person", here),
+            (ActivityKind.Request, "Frage eingegangen (SMS)", open),
+            (ActivityKind.Request, "Buchungsanfrage eingegangen (Mail)", here),
+        ], page.Items.Select(i => (i.Kind, i.Text, i.RequestId!.Value)));
+        Assert.Equal(spa.Customer.Id, page.Items[0].CustomerId);
+        Assert.All(page.Items, i => Assert.Empty(i.Values));
+        Assert.Equal([here, here], (await spa.GetAsync<ActivityPage>(Path(spa, "?kinds=Request&search=freitag"), Ct)).Items.Select(i => i.RequestId!.Value));
+
+        await using (var db = await OpenAsync())
+        await using (var command = new NpgsqlCommand("""
+            SELECT count(*) FROM sync.history WHERE table_name = 'InboundMails' AND changes IS NOT NULL AND changes - 'Status' - 'ReplyStatus' - 'AppointmentId' - 'CustomerId' <> '{}'::jsonb
+            """, db))
+        {
+            // Notiz, Antworttext und Gastdaten der Mail stehen nie als Vorher/Nachher im Verlauf.
+            Assert.Equal(0L, (long)(await command.ExecuteScalarAsync(Ct))!);
+        }
+
+        var (tom, _) = await StaffAsync(spa, "Tom", StaffRole.Therapist);
+        using var therapist = tom;
+        var forbidden = await tom.GetAsync(Path(spa, "?kinds=Request"), Ct);
+        Assert.Equal(HttpStatusCode.Forbidden, forbidden.StatusCode);
+        Assert.Contains("Anfragen im Verlauf", await forbidden.Content.ReadAsStringAsync(Ct), StringComparison.Ordinal);
+    }
+
+    private static async Task<Guid> AddMailAsync(TestSpa spa, Guid? locationId, BookingChannel channel, InboundMailKind kind, string subject, Guid? customerId)
+    {
+        await using var scope = spa.Fixture.Factory.Services.CreateAsyncScope();
+        scope.ServiceProvider.GetRequiredService<TenantContext>().Use(spa.TenantId);
+        var db = scope.ServiceProvider.GetRequiredService<AispaDbContext>();
+        var mail = new InboundMail
+        {
+            MessageId = $"m-{Guid.NewGuid():N}",
+            Channel = channel,
+            From = "gast@example.at",
+            To = "spa@example.at",
+            Subject = subject,
+            Body = "Bitte melden",
+            ReceivedAt = DateTimeOffset.UtcNow,
+            Kind = kind,
+            LocationId = locationId,
+            CustomerId = customerId,
+        };
+        db.InboundMails.Add(mail);
+        await db.SaveChangesAsync(Ct);
+        mail.Status = InboundMailStatus.NeedsReview;
+        mail.Note = "Bitte prüfen";
+        mail.ReplyStatus = ReplyStatus.Draft;
+        mail.ReplyBody = "Gerne!";
+        await db.SaveChangesAsync(Ct);
+        return mail.Id;
     }
 
     private static string CancelledAt(Guid appointmentId, DateTimeOffset at) =>

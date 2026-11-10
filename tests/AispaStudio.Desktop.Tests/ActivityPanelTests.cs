@@ -229,6 +229,31 @@ public sealed class ActivityPanelTests
     }
 
     [Fact]
+    public async Task Anfrage_oeffnen_meldet_die_Anfrage_und_ist_primaer_vor_dem_Termin()
+    {
+        var mail = Guid.NewGuid();
+        var entry = Entry(ActivityKind.Request, "Anfrage gebucht von Rita", Guid.NewGuid()) with { RequestId = mail };
+        var activity = await OpenAsync(Api(entry));
+        Guid? requested = null;
+        activity.RequestRequested = id =>
+        {
+            requested = id;
+            return Task.CompletedTask;
+        };
+        Open(activity);
+        Assert.Equal("Anfrage", activity.PanelTitle);
+        Assert.True(activity.ShowRequest);
+        Assert.True(activity.IsRequestPrimary);
+        Assert.True(activity.ShowAppointment);
+        Assert.False(activity.IsAppointmentPrimary);
+        Assert.False(activity.IsCustomerPrimary);
+
+        await activity.OpenRequestCommand.ExecuteAsync(null);
+
+        Assert.Equal(mail, requested);
+    }
+
+    [Fact]
     public async Task Ohne_Beleg_gibt_es_keinen_Knopf_Beleg_anzeigen()
     {
         var activity = await OpenAsync(Api(Entry(ActivityKind.Paid, "Bezahlt bar: 85,00 €", Guid.NewGuid())));

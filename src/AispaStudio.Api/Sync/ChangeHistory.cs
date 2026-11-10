@@ -18,7 +18,8 @@ public static class ChangeHistory
 
     /// <summary>
     /// Tabellen mit Verlauf (<c>schema.Tabelle</c>); dazu kommt jede Tabelle in den Schemas <c>health</c> und <c>hr</c>. Termine (Slice 90), Kundendaten, Behandlungen mit Preisen,
-    /// Dienstplan mit Abwesenheiten sowie Zugänge und Rollen (Slice 91); Firmendaten des Spas (R05 Slice 93).
+    /// Dienstplan mit Abwesenheiten sowie Zugänge und Rollen (Slice 91); Firmendaten des Spas (R05 Slice 93); Anfragen nur mit Status, Antwortstatus, Termin und Gast
+    /// (Verlauf, Anfragen), nie mit Inhalt, Notiz, Antworttext oder Gastdaten der Mail.
     /// </summary>
     public static readonly string[] Tables =
     [
@@ -28,6 +29,7 @@ public static class ChangeHistory
         "aispa.RosterDays", "aispa.RosterDayEntries",
         "aispa.StaffAccess",
         "aispa.Tenants",
+        "aispa.InboundMails",
     ];
 
     private static string TableList => string.Join(", ", Tables.Select(t => $"'{t}'"));
@@ -74,6 +76,10 @@ public static class ChangeHistory
             IF TG_OP = 'DELETE' AND TG_TABLE_SCHEMA = 'aispa' AND TG_TABLE_NAME = 'Customers' THEN
                 RETURN NULL;
             END IF;
+            -- Eine Anfrage, die mit der Aufbewahrung fällt, hinterlässt keine Spur.
+            IF TG_OP = 'DELETE' AND TG_TABLE_SCHEMA = 'aispa' AND TG_TABLE_NAME = 'InboundMails' THEN
+                RETURN NULL;
+            END IF;
             IF TG_OP = 'DELETE' THEN r := to_jsonb(OLD); ELSE r := to_jsonb(NEW); END IF;
             FOREACH c IN ARRAY TG_ARGV LOOP
                 k := k || jsonb_build_object(c, r -> c);
@@ -85,6 +91,11 @@ public static class ChangeHistory
                 SELECT jsonb_object_agg(n.key, jsonb_build_array(o -> n.key, n.value)) INTO diff
                   FROM jsonb_each(r) n
                  WHERE n.key <> 'UpdatedAt' AND n.value IS DISTINCT FROM o -> n.key;
+                -- Anfragen: nur Status, Antwortstatus, Termin und Gast; Text, Notiz, Antwort und Gastdaten der Mail bleiben draußen.
+                IF TG_TABLE_SCHEMA = 'aispa' AND TG_TABLE_NAME = 'InboundMails' THEN
+                    SELECT jsonb_object_agg(d.key, d.value) INTO diff FROM jsonb_each(diff) d
+                     WHERE d.key IN ('Status', 'ReplyStatus', 'AppointmentId', 'CustomerId');
+                END IF;
                 IF diff IS NULL THEN
                     RETURN NULL;
                 END IF;
@@ -141,6 +152,8 @@ public static class ChangeHistory
                         ctx := jsonb_build_object('Role', r -> 'Role');
                     WHEN 'CustomerEmails' THEN
                         ctx := jsonb_build_object('Address', r -> 'Address');
+                    WHEN 'InboundMails' THEN
+                        ctx := jsonb_build_object('LocationId', r -> 'LocationId', 'Channel', r -> 'Channel', 'Kind', r -> 'Kind', 'AppointmentId', r -> 'AppointmentId');
                     ELSE NULL;
                 END CASE;
             END IF;

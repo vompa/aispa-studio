@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text.Json;
 using AispaStudio.Api.Data;
+using AispaStudio.Api.MailIntake;
 using AispaStudio.Contracts;
 using Microsoft.EntityFrameworkCore;
 
@@ -255,6 +256,17 @@ public sealed class EntityHistory(AispaDbContext db)
         [nameof(RosterKind.Training)] = "Schulung",
     };
 
+    private static readonly Dictionary<string, string> RequestKinds = new(StringComparer.Ordinal)
+    {
+        [nameof(InboundMailKind.BookingRequest)] = "Buchungsanfrage",
+        [nameof(InboundMailKind.Cancellation)] = "Absage",
+        [nameof(InboundMailKind.Reschedule)] = "Verschiebewunsch",
+        [nameof(InboundMailKind.Question)] = "Frage",
+        [nameof(InboundMailKind.TreatwellBooking)] = "Treatwell-Buchung",
+        [nameof(InboundMailKind.TreatwellCancellation)] = "Treatwell-Storno",
+        [nameof(InboundMailKind.TreatwellChange)] = "Treatwell-Änderung",
+    };
+
     private static readonly Dictionary<string, string> HrKinds = new(StringComparer.Ordinal)
     {
         [nameof(HrEntryKind.Conversation)] = "Gespräch",
@@ -298,6 +310,7 @@ public sealed class EntityHistory(AispaDbContext db)
                 "TreatmentLocationPrices" => PriceAtLocation(row.Operation, by, changes, context),
                 "TreatmentPriceRules" => PriceRule(row.Operation, by, changes, context),
                 "CustomerEmails" => Email(row.Operation, by, changes, context),
+                "InboundMails" => Request(row.Operation, HistoryActor.Channel(row.Channel), by, changes, context),
                 _ => row.Operation switch
                 {
                     "I" => row.Table == "StaffAccess" ? $"Zugang angelegt {by}{RoleSuffix(context)}" : $"Angelegt {by}",
@@ -305,6 +318,31 @@ public sealed class EntityHistory(AispaDbContext db)
                     _ => $"Geändert {by}{ChangeList(row.Table, changes)}",
                 },
             };
+        }
+
+        /// <summary>„Buchungsanfrage eingegangen (Mail)“, „Anfrage als erledigt markiert von Lena“, „Freie Zeiten vorgeschlagen von der KI“: Eingang und Entscheidung, nie Inhalt.</summary>
+        private static string Request(
+            string operation, ChangeChannel channel, string by, Dictionary<string, (JsonElement Old, JsonElement New)> changes, Dictionary<string, JsonElement> context)
+        {
+            if (operation == "I")
+            {
+                var kind = context.TryGetValue("Kind", out var k) && Text(k) is { } key && RequestKinds.TryGetValue(key, out var label) ? label : "Anfrage";
+                var way = context.TryGetValue("Channel", out var c) && Enum.TryParse<BookingChannel>(Text(c), out var booking) ? booking : BookingChannel.Email;
+                return $"{kind} eingegangen ({MailIntakeProcessor.ChannelName(way)})";
+            }
+
+            var status = changes.TryGetValue("Status", out var s) ? Text(s.New) : null;
+            var reply = changes.TryGetValue("ReplyStatus", out var r) ? Text(r.New) : null;
+            var (what, verb) = status switch
+            {
+                nameof(InboundMailStatus.Booked) => ("Anfrage", "gebucht"),
+                nameof(InboundMailStatus.Proposed) => ("Freie Zeiten", "vorgeschlagen"),
+                nameof(InboundMailStatus.Ignored) => ("Anfrage", "als erledigt markiert"),
+                nameof(InboundMailStatus.Cancelled) => ("Termin zur Anfrage", "storniert"),
+                _ when reply == nameof(ReplyStatus.Sending) => ("Antwort", "freigegeben"),
+                _ => ("Anfrage", "geändert"),
+            };
+            return channel == ChangeChannel.Job ? $"{what} automatisch {verb}" : $"{what} {verb} {by}";
         }
 
         private static string Verb(string operation) => operation switch { "I" => "angelegt", "D" => "gelöscht", _ => "geändert" };

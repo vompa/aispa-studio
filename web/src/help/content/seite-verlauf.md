@@ -18,7 +18,7 @@ Die Seite steht in der Navigation nach **Kunden** und ist für alle da, die den 
 
 - **Suchfeld** „Gast, Behandlung, Person oder Grund“: sucht im ganzen gewählten Zeitraum, auch in Storno-Gründen und Belegnummern. **Strg+F** setzt den Fokus hinein, **Esc** leert es.
 - **Zeitraum**: **Heute**, **Gestern**, **7 Tage**, **30 Tage** oder **Zeitraum** mit Von und Bis. „Heute“ ist der Tag in der Ortszeit des Standorts.
-- **Art-Chips**, mehrfach wählbar: **Buchungen**, **Verschoben**, **Stornos** (mit Rücknahmen), **Status**, **Zahlungen**, **Neue Kunden**, **Kundendaten**, **Behandlungen**, **Dienstplan**, **Zugänge**. Ohne gewählten Chip stehen alle Arten da.
+- **Art-Chips**, mehrfach wählbar: **Buchungen**, **Verschoben**, **Stornos** (mit Rücknahmen), **Status**, **Zahlungen**, **Anfragen**, **Neue Kunden**, **Kundendaten**, **Behandlungen**, **Dienstplan**, **Zugänge**. Ohne gewählten Chip stehen alle Arten da.
 - **Person** und **Kanal** („Alle Kanäle“, Rezeption, Online, Terminannahme, Hintergrund). Die Auswahl „Person“ nennt nur Personen, die im gewählten Zeitraum etwas getan haben.
 - **Zurücksetzen** erscheint, sobald ein Filter gesetzt ist, und stellt den Anfang wieder her.
 - Die **Liste** gruppiert nach Tagen („Heute, Montag, 9. November“). Jede Zeile zeigt Uhrzeit, Symbol der Art, den Satz („Storniert von Lena: Grund „Krank““) und darunter Gast und Person. Am Ende lädt die Liste beim Scrollen nach, oder über **Weitere laden**.
@@ -34,12 +34,13 @@ Die Seite steht in der Navigation nach **Kunden** und ist für alle da, die den 
 
 **Enter** oder ein Doppelklick auf eine Zeile öffnet rechts das Panel des Eintrags: Satz, Gast mit Telefon, Person, Kanal, bei Stornos der Grund und darunter die Werte vorher und nachher. Ist das Panel offen, folgt es der Auswahl in der Liste. **Esc** oder das Kreuz schließen es.
 
-Je nach Eintrag stehen dort **Stornierung zurücknehmen**, **Beleg anzeigen**, **Termin öffnen**, **Kundenkarte öffnen**, **Behandlung öffnen**, **Dienstplan öffnen** oder **Zugang öffnen**. Wie das geht, steht unter [Im Verlauf suchen](hilfe:verlauf-suchen).
+Je nach Eintrag stehen dort **Stornierung zurücknehmen**, **Beleg anzeigen**, **Anfrage öffnen**, **Termin öffnen**, **Kundenkarte öffnen**, **Behandlung öffnen**, **Dienstplan öffnen** oder **Zugang öffnen**. Wie das geht, steht unter [Im Verlauf suchen](hilfe:verlauf-suchen).
 
 ## Was die Rezeption sieht {#rechte}
 
 - Buchungen, Verschiebungen, Stornos, Status, Kunden und Behandlungen sieht, wer den Kalender sieht.
 - **Zahlungen** (zum Termin, Anzahlungen und Verkäufe ohne Termin wie Gutscheine oder Artikel) sieht, wer die Kassa sieht (Recht „Termine buchen“).
+- **Anfragen** (Eingang über Mail, SMS, WhatsApp, Anruf oder Treatwell; gebucht, Zeiten vorgeschlagen, als erledigt markiert, Termin storniert, Antwort freigegeben) sieht, wer die Seite **Anfragen** sieht (Recht „Termine buchen“). Text, Notiz und Antwort der Nachricht stehen nicht im Verlauf, nur in der Anfrage selbst.
 - **Dienstplan**, **Zugänge** und Firmendaten sehen nur Inhaber und Manager.
 - Inhalte von Gesundheitsdaten und der Personalakte stehen nie im Verlauf.
 
