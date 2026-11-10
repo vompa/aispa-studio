@@ -6,6 +6,8 @@ namespace AispaStudio.Desktop.Tests;
 /// <summary>Aufbau der Kundenkarte (R07 Slice 141, Ä349): „Gut zu wissen“ als Chips, Leeres nur in „Noch nicht erfasst“, Kennzahlen als Zeile, ein Hauptknopf.</summary>
 public sealed class CustomerCardLayoutTests
 {
+    private static readonly int[] RelativeSamples = [0, 1, 3, 13, 14, 37];
+
     private static readonly CustomerPreferences HelgaWishes = new("sanft", null, null, null, null, null, "Füße (kitzlig)", null);
 
     private static async Task<CustomersViewModel> OpenAsync(
@@ -107,18 +109,92 @@ public sealed class CustomerCardLayoutTests
         Assert.False(customers.IsBookPrimary);
     }
 
-    [Fact]
-    public async Task Naechster_Termin_nennt_Tag_Zeit_Behandlung_und_Person()
+    private static AppointmentDto Visit(int days, EmployeeDto person, AppointmentStatus status, string? treatment = null)
     {
-        var start = new DateTimeOffset(DateTime.UtcNow.Date.AddDays(3).AddHours(9), TimeSpan.Zero);
-        var next = SpaSample.Selected with { Id = Guid.NewGuid(), Start = start, End = start.AddMinutes(80), Status = AppointmentStatus.Booked };
+        var start = new DateTimeOffset(DateTime.UtcNow.Date.AddDays(days).AddHours(9), TimeSpan.Zero);
+        return SpaSample.Selected with
+        {
+            Id = Guid.NewGuid(),
+            Start = start,
+            End = start.AddMinutes(80),
+            Status = status,
+            EmployeeId = person.Id,
+            TreatmentName = treatment ?? SpaSample.Selected.TreatmentName,
+        };
+    }
 
-        var customers = await OpenAsync(Plain(), SpaSample.Insights(), null, appointments: [next]);
+    [Fact]
+    public async Task Naechster_Termin_steht_als_Kachel_mit_Abstand_und_Person_weitere_darunter()
+    {
+        // Given drei kommende Termine, der nächste in drei Tagen bei Lena Huber
+        List<AppointmentDto> upcoming =
+        [
+            Visit(20, SpaSample.Lena, AppointmentStatus.Booked), Visit(3, SpaSample.Lena, AppointmentStatus.Booked, "Hot-Stone-Massage"),
+            Visit(10, SpaSample.Marco, AppointmentStatus.Booked, "Aromaöl-Massage"),
+        ];
 
-        var entry = Assert.Single(customers.UpcomingEntries);
-        Assert.StartsWith($"{next.TreatmentName} bei ", entry.Text, StringComparison.Ordinal);
+        var customers = await OpenAsync(Plain(), SpaSample.Insights(), null, appointments: upcoming);
+
+        // Then nennt die Kachel Abstand, Behandlung und Person; die beiden späteren stehen kurz darunter.
+        Assert.Equal(("in 3 Tagen", "Hot-Stone-Massage bei Lena Huber"), (customers.NextVisit?.Relative, customers.NextVisit?.Text));
+        Assert.Equal(["Aromaöl-Massage", SpaSample.Selected.TreatmentName], customers.LaterEntries.Select(e => e.Text));
         Assert.Empty(customers.RecentEntries);
         Assert.False(customers.NoUpcomingPlanned);
+    }
+
+    [Fact]
+    public async Task Zuletzt_nennt_die_Stammperson_einmal_und_andere_Personen_in_der_Zeile()
+    {
+        // Given Lena Huber hat 9 von 14 Besuchen, der mittlere der letzten drei Termine war bei Marco Berger
+        List<AppointmentDto> past =
+        [
+            Visit(-7, SpaSample.Lena, AppointmentStatus.Completed, "Gesichtsbehandlung"), Visit(-14, SpaSample.Marco, AppointmentStatus.Completed, "Rückenmassage"),
+            Visit(-21, SpaSample.Lena, AppointmentStatus.NoShow, "Hot-Stone-Massage"),
+        ];
+
+        var customers = await OpenAsync(Plain(), SpaSample.Insights(), null, appointments: past);
+
+        // Then steht „meist bei Lena Huber“ einmal oben, ihre Zeilen ohne Namen.
+        Assert.Equal("meist bei Lena Huber", customers.MainPersonText);
+        Assert.Equal(["Gesichtsbehandlung", "Rückenmassage bei Marco Berger", "Hot-Stone-Massage"], customers.RecentEntries.Select(e => e.Text));
+        Assert.Equal("Nicht erschienen", customers.RecentEntries[2].Status);
+    }
+
+    [Fact]
+    public async Task Ohne_Mehrheit_einer_Person_steht_die_Person_in_jeder_Zeile()
+    {
+        var insights = SpaSample.Insights() with { Employees = [new(SpaSample.Lena.Id, "Lena Huber", 5, null, null), new(SpaSample.Marco.Id, "Marco Berger", 5, null, null)] };
+
+        var customers = await OpenAsync(Plain(), insights, null, appointments: [Visit(-7, SpaSample.Lena, AppointmentStatus.Completed, "Gesichtsbehandlung")]);
+
+        Assert.Null(customers.MainPersonText);
+        Assert.Equal("Gesichtsbehandlung bei Lena Huber", Assert.Single(customers.RecentEntries).Text);
+    }
+
+    [Fact]
+    public void Datum_und_Abstand_kurz_und_mit_Jahr_nur_wenn_noetig()
+    {
+        var today = new DateOnly(2026, 11, 10);
+
+        Assert.Equal(["19.10.", "21.9.2025"], [CustomersViewModel.ShortDate(new DateOnly(2026, 10, 19), today), CustomersViewModel.ShortDate(new DateOnly(2025, 9, 21), today)]);
+        Assert.Equal(["heute", "morgen", "in 3 Tagen", "in 13 Tagen", "in 2 Wochen", "in 5 Wochen"], RelativeSamples.Select(CustomersViewModel.RelativeDays));
+    }
+
+    [Fact]
+    public async Task Zuletzt_zeigt_die_drei_juengsten_Termine()
+    {
+        // Given fünf vergangene Termine im Abstand von je einer Woche
+        var past = Enumerable.Range(1, 5).Select(weeks =>
+        {
+            var start = new DateTimeOffset(DateTime.UtcNow.Date.AddDays(-7 * weeks).AddHours(9), TimeSpan.Zero);
+            return SpaSample.Selected with { Id = Guid.NewGuid(), Start = start, End = start.AddMinutes(80), Status = AppointmentStatus.Completed };
+        }).ToList();
+
+        var customers = await OpenAsync(Plain(), SpaSample.Insights(), null, appointments: past);
+
+        // Then stehen unter „Zuletzt“ nur drei; alle fünf bleiben unter „Alle Termine“.
+        Assert.Equal(3, customers.RecentEntries.Count);
+        Assert.Equal(5, customers.Visits.Count);
     }
 
     [Fact]
@@ -130,7 +206,7 @@ public sealed class CustomerCardLayoutTests
         var customers = await OpenAsync(Plain(), SpaSample.Insights(), null, appointments: [past]);
 
         Assert.True(customers.NoUpcomingPlanned);
-        Assert.Empty(customers.UpcomingEntries);
+        Assert.Null(customers.NextVisit);
     }
 
     [Fact]

@@ -13,6 +13,9 @@ public sealed record PreferenceChip(string Text, bool IsWarning = false, string?
 /// <summary>Zeile im Verlauf der Kundenkarte, z. B. „Do. 6.11. 10:30“ und „Hot-Stone-Massage bei Lena Huber“; <c>Status</c> nur bei Abweichungen.</summary>
 public sealed record TimelineEntry(string When, string Text, string? Status = null, bool IsProblem = false);
 
+/// <summary>Der nächste Termin in der Kachel oben im Verlauf, z. B. „Fr. 13.11. · 10:30“, „in 3 Tagen“, „Hot-Stone-Massage bei Lena Huber“.</summary>
+public sealed record NextVisitEntry(string When, string Relative, string Text);
+
 /// <summary>Erkennt Wörter, die nach Gesundheitsdaten klingen; die gehören verschlüsselt in die Anamnese, nicht in Vermerke.</summary>
 public static class HealthWords
 {

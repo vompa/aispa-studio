@@ -61,6 +61,30 @@ public sealed partial class ViewTests
     }, Api().On($"GET /api/reports/customers/{SpaSample.Customers[0].Id}/preferences", new CustomerPreferences("sanft", null, null, null, null, null, "Füße (kitzlig)", null)));
 
     [Fact]
+    public Task Kundenkarte_Verlauf_mit_Kachel_Stammperson_und_ohne_Umbruch() => Render("hell", "kunden-verlauf", async (window, main) =>
+    {
+        var calendar = await SignedInCalendar(main);
+        var shell = (ShellViewModel)main.Content!;
+
+        // Given der Beispielverlauf von Brigitte Müller (meist bei Lena Huber); When die Karte bei 1440 px offen ist
+        await shell.ShowCustomerAsync(SpaSample.Customers[0].Id);
+        await Pump();
+
+        // Then steht der nächste Termin als Kachel oben im Verlauf, „meist bei Lena Huber“ einmal bei „Zuletzt“.
+        var timeline = window.GetVisualDescendants().OfType<StackPanel>().Single(p => p.Name == "Timeline");
+        var tile = timeline.GetVisualDescendants().OfType<Border>().Single(b => b.Name == "NextVisitTile");
+        Assert.True(tile.IsEffectivelyVisible);
+        Assert.Contains(timeline.GetVisualDescendants().OfType<TextBlock>(), t => t.Text == "meist bei Lena Huber" && t.IsEffectivelyVisible);
+
+        // Keine Zeile unter „Zuletzt“ und in der Kachel bricht um.
+        var lines = timeline.GetVisualDescendants().OfType<ItemsControl>().Single(c => c.Name == "RecentList").GetVisualDescendants().OfType<TextBlock>()
+            .Concat(tile.GetVisualDescendants().OfType<TextBlock>()).Where(t => t.IsEffectivelyVisible && !string.IsNullOrEmpty(t.Text)).ToList();
+        Assert.NotEmpty(lines);
+        Assert.All(lines, t => Assert.True(t.TextLayout.TextLines.Count == 1, $"„{t.Text}“ bricht um"));
+        return calendar;
+    }, Api().On($"GET /api/customers/{SpaSample.Customers[0].Id}/appointments", SpaSample.CustomerHistory()));
+
+    [Fact]
     public Task Kundenkarte_teilt_Gut_zu_wissen_und_Verlauf_drei_zu_zwei() => Render("hell", "kunden-drei-zu-zwei", async (window, main) =>
     {
         var calendar = await SignedInCalendar(main);
@@ -228,21 +252,20 @@ public sealed partial class ViewTests
     {
         var calendar = await SignedInCalendar(main);
         var shell = (ShellViewModel)main.Content!;
-        List<string?> Lines(string list) => window.GetVisualDescendants().OfType<ItemsControl>().Single(c => c.Name == list && c.IsEffectivelyVisible)
-            .GetVisualDescendants().OfType<TextBlock>().Select(t => t.Text).ToList();
+        List<string?> Chips() => [.. window.GetVisualDescendants().OfType<ItemsControl>().Single(c => c.Name == "SideChipList")
+            .GetVisualDescendants().OfType<TextBlock>().Where(t => t.IsEffectivelyVisible).Select(t => t.Text)];
 
-        // Given ein Wertgutschein mit Restwert und zwei Käufe ohne Termin; When die Karte offen ist
+        // Given ein Paket, ein Wertgutschein mit Restwert und zwei Käufe ohne Termin; When die Karte offen ist
         await shell.ShowCustomerAsync(SpaSample.Customers[0].Id);
         await Pump();
 
-        // Then stehen sie im Verlauf unter „Offene Gutscheine“ und „Letzte Käufe“.
-        Assert.Equal(["Wertgutschein …4F2K: 35,00 € offen, gültig bis 31.12.2026"], Lines("VoucherList"));
-        Assert.Equal(["3.11.2026 · Massageöl 2× · 24,00 €", "20.10.2026 · Kerze · 5,00 €"], Lines("PurchaseList"));
+        // Then stehen sie im Verlauf als Chips, die Käufe als ein Chip mit dem letzten Kauf.
+        Assert.Equal(["Hot-Stone-Massage: 7 von 10 offen", "Gutschein 35,00 €", "Letzter Kauf: Massageöl 2× · 24,00 €"], Chips());
 
-        // Ohne Gutscheine und Käufe gibt es beide Abschnitte nicht.
+        // Ohne Gutscheine und Käufe bleibt nur das Paket.
         await shell.ShowCustomerAsync(EmptyGuest.Id);
         await Pump();
-        Assert.DoesNotContain(window.GetVisualDescendants().OfType<ItemsControl>(), c => c.Name is "VoucherList" or "PurchaseList" && c.IsEffectivelyVisible);
+        Assert.Equal(["Hot-Stone-Massage: 7 von 10 offen"], Chips());
         return calendar;
     }, EmptyGuestApi().On($"GET /api/customers/{SpaSample.Customers[0].Id}/insights", SpaSample.Insights() with
     {

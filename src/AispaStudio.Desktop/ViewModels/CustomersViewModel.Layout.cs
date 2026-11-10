@@ -24,7 +24,7 @@ public partial class CustomersViewModel
         nameof(WishesSectionVisible), nameof(FlagsSectionVisible), nameof(ReceptionNoteSectionVisible), nameof(BookingSectionVisible),
         nameof(BillingSectionVisible), nameof(DiscountSectionVisible), nameof(NoteSectionVisible), nameof(EmailsSectionVisible), nameof(ConsentSectionVisible),
         nameof(MissingWishes), nameof(MissingFlags), nameof(MissingReceptionNote), nameof(MissingBooking), nameof(HasMissing),
-        nameof(HasPackages), nameof(HasVouchers), nameof(HasPurchases), nameof(HasNameChanges), nameof(IsNewPrimary), nameof(IsBookPrimary),
+        nameof(HasSideChips), nameof(IsNewPrimary), nameof(IsBookPrimary),
     ];
 
     protected override void OnPropertyChanged(PropertyChangedEventArgs e)
@@ -146,31 +146,28 @@ public partial class CustomersViewModel
     [RelayCommand]
     private void CancelAddEmail() => IsAddingEmail = false;
 
-    // ---------- Verlauf rechts: nächste und letzte Termine mit Behandlung und Person, offene Pakete, Namensänderungen ----------
+    // ---------- Verlauf rechts (Variante C, Auftraggeber, 10.11.2026): nächster Termin als Kachel, „Zuletzt“ kurz mit der Stammperson einmal, Pakete, Gutscheine und Käufe als Chips ----------
 
-    public ObservableCollection<TimelineEntry> UpcomingEntries { get; } = [];
+    /// <summary>Der nächste Termin in der Kachel oben im Verlauf, sonst null.</summary>
+    [ObservableProperty]
+    public partial NextVisitEntry? NextVisit { get; private set; }
 
+    /// <summary>Die zwei Termine nach dem nächsten, kurz unter der Kachel („Fr. 20.11. · 10:30“, „Aromaöl-Massage“).</summary>
+    public ObservableCollection<TimelineEntry> LaterEntries { get; } = [];
+
+    /// <summary>Die letzten drei Termine: Datum und Behandlung, die Person nur, wenn es nicht die Stammperson war.</summary>
     public ObservableCollection<TimelineEntry> RecentEntries { get; } = [];
 
-    public ObservableCollection<string> PackageLines { get; } = [];
+    /// <summary>„meist bei Lena Huber“, wenn eine Person mehr als die Hälfte aller Besuche hatte, sonst null.</summary>
+    [ObservableProperty]
+    public partial string? MainPersonText { get; private set; }
 
-    public ObservableCollection<string> NameChangeLines { get; } = [];
+    /// <summary>Offene Pakete, Gutscheine und der letzte Kauf als Chips; den vollen Wortlaut trägt der Tooltip. Gutscheine und Käufe nur mit dem Recht zu buchen (T-020).</summary>
+    public ObservableCollection<PreferenceChip> SideChips { get; } = [];
 
-    public bool HasPackages => PackageLines.Count > 0;
+    public bool HasSideChips => SideChips.Count > 0;
 
-    /// <summary>Offene Wertgutscheine, z. B. „Wertgutschein …4F2K: 35,00 € offen, gültig bis 31.12.2026“ (nur mit dem Recht zu buchen, T-020).</summary>
-    public ObservableCollection<string> VoucherLines { get; } = [];
-
-    /// <summary>Letzte Käufe ohne Termin, z. B. „3.11.2026 · Massageöl 2× · 24,00 €“ (nur mit dem Recht zu buchen, T-020).</summary>
-    public ObservableCollection<string> PurchaseLines { get; } = [];
-
-    public bool HasVouchers => VoucherLines.Count > 0;
-
-    public bool HasPurchases => PurchaseLines.Count > 0;
-
-    public bool HasNameChanges => NameChangeLines.Count > 0;
-
-    /// <summary>Der Gast war schon da, hat aber keinen Termin vor sich: der Verlauf sagt unter „Demnächst“ „Kein Termin geplant.“ (statt einer eigenen Zeile „Nächster Termin“).</summary>
+    /// <summary>Der Gast war schon da, hat aber keinen Termin vor sich: der Verlauf sagt „Kein Termin geplant.“ statt der Kachel.</summary>
     [ObservableProperty]
     public partial bool NoUpcomingPlanned { get; private set; }
 
@@ -186,7 +183,27 @@ public partial class CustomersViewModel
 
     private string VisitText(AppointmentDto a) => EmployeeName(a.EmployeeId) is { } person ? $"{a.TreatmentName} bei {person}" : a.TreatmentName;
 
-    private static string When(AppointmentDto a, TimeZoneInfo zone) => DayLayout.Local(a.Start, zone).ToString("ddd d.M. HH:mm", GermanDates);
+    private string RecentText(AppointmentDto a, Guid? mainPerson) => a.EmployeeId == mainPerson ? a.TreatmentName : VisitText(a);
+
+    private static string When(AppointmentDto a, TimeZoneInfo zone) => DayLayout.Local(a.Start, zone).ToString("ddd d.M. · HH:mm", GermanDates);
+
+    private static DateOnly LocalDate(DateTimeOffset at, TimeZoneInfo zone) => DateOnly.FromDateTime(DayLayout.Local(at, zone));
+
+    /// <summary>„19.10.“ im laufenden Jahr, sonst „21.9.2025“ (wie die Kennzahlenzeile).</summary>
+    public static string ShortDate(DateOnly date, DateOnly today) => date.ToString(date.Year == today.Year ? "d.M." : "d.M.yyyy", CultureInfo.InvariantCulture);
+
+    /// <summary>„heute“, „morgen“, „in 3 Tagen“, ab zwei Wochen „in 5 Wochen“.</summary>
+    public static string RelativeDays(int days) => days switch
+    {
+        <= 0 => "heute",
+        1 => "morgen",
+        < 14 => $"in {days} Tagen",
+        _ => $"in {days / 7} Wochen",
+    };
+
+    /// <summary>Die Person mit mehr als der Hälfte aller Besuche (der Server zählt sie in <see cref="CustomerInsights.Employees"/>), sonst null.</summary>
+    private static CustomerEmployeeVisits? MainPerson(CustomerInsights? insights) =>
+        insights?.Employees.MaxBy(e => e.Visits) is { } top && top.Visits * 2 > insights.Employees.Sum(e => e.Visits) ? top : null;
 
     /// <summary>Vergangene Termine tragen nur abweichende Zustände (nicht erschienen, storniert, noch eingecheckt) als Pille.</summary>
     private static string? PastStatus(AppointmentDto a) =>
@@ -194,17 +211,25 @@ public partial class CustomersViewModel
 
     private void ShowTimeline(List<AppointmentDto> appointments, DateTimeOffset now, TimeZoneInfo zone)
     {
-        UpcomingEntries.Clear();
+        LaterEntries.Clear();
         RecentEntries.Clear();
+        var today = LocalDate(now, zone);
         var upcoming = appointments.Where(a => a.Start > now && a.Status is AppointmentStatus.Booked or AppointmentStatus.CheckedIn).OrderBy(a => a.Start).ToList();
-        foreach (var a in upcoming.Take(3))
+        NextVisit = upcoming.FirstOrDefault() is { } next
+            ? new NextVisitEntry(When(next, zone), RelativeDays(LocalDate(next.Start, zone).DayNumber - today.DayNumber), VisitText(next))
+            : null;
+        foreach (var a in upcoming.Skip(1).Take(2))
         {
-            UpcomingEntries.Add(new TimelineEntry(When(a, zone), VisitText(a)));
+            LaterEntries.Add(new TimelineEntry(When(a, zone), a.TreatmentName));
         }
 
-        foreach (var a in appointments.Where(a => a.Start <= now).OrderByDescending(a => a.Start).Take(5))
+        // „Zuletzt“ zeigt drei Termine (Auftraggeber, 10.11.2026); ältere stehen unter „Alle Termine“ und auf der Seite „Verlauf“.
+        var main = MainPerson(Insights);
+        MainPersonText = main is null ? null : $"meist bei {main.Name}";
+        foreach (var a in appointments.Where(a => a.Start <= now).OrderByDescending(a => a.Start).Take(3))
         {
-            RecentEntries.Add(new TimelineEntry(When(a, zone), VisitText(a), PastStatus(a), a.Status is AppointmentStatus.NoShow or AppointmentStatus.Cancelled));
+            RecentEntries.Add(new TimelineEntry(
+                ShortDate(LocalDate(a.Start, zone), today), RecentText(a, main?.EmployeeId), PastStatus(a), a.Status is AppointmentStatus.NoShow or AppointmentStatus.Cancelled));
         }
 
         NoUpcomingPlanned = upcoming.Count == 0 && appointments.Count > 0;
@@ -213,35 +238,34 @@ public partial class CustomersViewModel
 
     private void ShowPackages(CustomerInsights? insights)
     {
-        PackageLines.Clear();
-        NameChangeLines.Clear();
+        SideChips.Clear();
         foreach (var package in insights?.Packages ?? [])
         {
-            PackageLines.Add($"{package.TreatmentName}: {package.UnitsLeft} von {package.Units} offen"
-                + (package.ValidUntil is { } until ? $", gültig bis {until.ToString("dd.MM.yyyy", CultureInfo.InvariantCulture)}" : ""));
+            var text = $"{package.TreatmentName}: {package.UnitsLeft} von {package.Units} offen";
+            SideChips.Add(new PreferenceChip(text, Tip: text + ValidUntil(package.ValidUntil)));
         }
 
-        VoucherLines.Clear();
         foreach (var voucher in insights?.Vouchers ?? [])
         {
-            VoucherLines.Add($"{voucher.TreatmentName ?? "Wertgutschein"} …{voucher.CodeEnd}: {Money.Format(voucher.Balance, voucher.Currency)} offen"
-                + (voucher.ValidUntil is { } until ? $", gültig bis {until.ToString("dd.MM.yyyy", CultureInfo.InvariantCulture)}" : ""));
+            var balance = Money.Format(voucher.Balance, voucher.Currency);
+            SideChips.Add(new PreferenceChip(
+                voucher.TreatmentName is { } treatment ? $"Gutschein {treatment} {balance}" : $"Gutschein {balance}",
+                Tip: $"{voucher.TreatmentName ?? "Wertgutschein"} …{voucher.CodeEnd}: {balance} offen{ValidUntil(voucher.ValidUntil)}"));
         }
 
-        PurchaseLines.Clear();
-        foreach (var purchase in insights?.Purchases ?? [])
+        if (insights?.Purchases is [var last, ..] purchases)
         {
-            PurchaseLines.Add($"{purchase.Date.ToString("d.M.yyyy", CultureInfo.InvariantCulture)} · {purchase.Description}"
-                + (purchase.Quantity == 1 ? "" : $" {purchase.Quantity}×") + $" · {Money.Format(purchase.Amount, purchase.Currency)}");
-        }
-
-        // Der gültige Name steht auf Belegen: jede Änderung bleibt nachvollziehbar.
-        foreach (var change in insights?.NameChanges ?? [])
-        {
-            NameChangeLines.Add($"{change.At.ToLocalTime().ToString("d.M.yyyy", CultureInfo.InvariantCulture)}: {change.OldName} → {change.NewName}"
-                + (change.ChangedBy is { } by ? $" ({by})" : ""));
+            SideChips.Add(new PreferenceChip(
+                $"Letzter Kauf: {PurchaseText(last)}",
+                Tip: string.Join("\n", purchases.Select(p => $"{p.Date.ToString("d.M.yyyy", CultureInfo.InvariantCulture)} · {PurchaseText(p)}"))));
         }
 
         RaiseSections();
     }
+
+    private static string ValidUntil(DateOnly? until) => until is { } date ? $", gültig bis {date.ToString("dd.MM.yyyy", CultureInfo.InvariantCulture)}" : "";
+
+    /// <summary>„Massageöl 2× · 24,00 €“.</summary>
+    private static string PurchaseText(GuestPurchase purchase) =>
+        purchase.Description + (purchase.Quantity == 1 ? "" : $" {purchase.Quantity}×") + $" · {Money.Format(purchase.Amount, purchase.Currency)}";
 }

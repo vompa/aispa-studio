@@ -697,7 +697,7 @@
               </WrapPanel>
             </StackPanel>
 
-            <!-- Rechts der Verlauf: nächste und letzte Termine mit Behandlung und Person, offene Pakete, Namensänderungen, darunter alle Termine und die Änderungen -->
+            <!-- Rechts der Verlauf (Variante C): nächster Termin als Kachel, „Zuletzt“ kurz mit der Stammperson einmal, Pakete, Gutscheine und Käufe als Chips, darunter alle Termine und die Änderungen -->
             <StackPanel x:Name="Timeline" Spacing="12">
               <TextBlock Text="Verlauf" Classes="h2" />
               <TextBlock Text="Noch keine Termine." Classes="secondary" IsVisible="{Binding !Visits.Count}" />
@@ -705,79 +705,66 @@
                 <TextBlock Text="Demnächst" Classes="group" />
                 <TextBlock x:Name="NoUpcomingLine" Text="Kein Termin geplant." Classes="secondary" />
               </StackPanel>
-              <StackPanel Spacing="6" IsVisible="{Binding UpcomingEntries.Count}">
-                <TextBlock Text="Demnächst" Classes="group" />
-                <ItemsControl ItemsSource="{Binding UpcomingEntries}">
+              <!-- Kachel wie eine verschachtelte Karte (Brief 1: surface-2, Radius 8, Innenabstand 12/16); weitere Termine kurz darunter -->
+              <StackPanel Spacing="8" IsVisible="{Binding NextVisit, Converter={x:Static ObjectConverters.IsNotNull}}">
+                <Border x:Name="NextVisitTile" Background="{DynamicResource Surface2Brush}" CornerRadius="8" Padding="16,12">
+                  <StackPanel Spacing="2">
+                    <TextBlock Text="{Binding NextVisit?.Relative, StringFormat='Nächster Termin · {0}', FallbackValue='', TargetNullValue=''}" Classes="secondary" />
+                    <TextBlock Text="{Binding NextVisit?.When, FallbackValue='', TargetNullValue=''}" Classes="value num" FontSize="16" FontWeight="SemiBold" />
+                    <TextBlock Text="{Binding NextVisit?.Text, FallbackValue='', TargetNullValue=''}" Classes="value" TextTrimming="CharacterEllipsis"
+                               ToolTip.Tip="{Binding NextVisit?.Text, FallbackValue='', TargetNullValue=''}" />
+                  </StackPanel>
+                </Border>
+                <ItemsControl x:Name="LaterList" ItemsSource="{Binding LaterEntries}" IsVisible="{Binding LaterEntries.Count}">
                   <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="vm:TimelineEntry">
-                      <Grid ColumnDefinitions="120,*" Margin="0,2">
-                        <TextBlock Text="{Binding When}" Classes="value num" FontWeight="Medium" />
-                        <TextBlock Grid.Column="1" Text="{Binding Text}" Classes="value" TextWrapping="Wrap" />
+                      <Grid ColumnDefinitions="Auto,*" Margin="0,2">
+                        <TextBlock Text="{Binding When}" Classes="secondary num" Margin="0,0,8,0" />
+                        <TextBlock Grid.Column="1" Text="{Binding Text}" Classes="value" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Text}" />
                       </Grid>
                     </DataTemplate>
                   </ItemsControl.ItemTemplate>
                 </ItemsControl>
               </StackPanel>
               <StackPanel Spacing="6" IsVisible="{Binding RecentEntries.Count}">
-                <TextBlock Text="Zuletzt" Classes="group" />
-                <ItemsControl ItemsSource="{Binding RecentEntries}">
+                <Grid ColumnDefinitions="*,Auto">
+                  <TextBlock Text="Zuletzt" Classes="group" />
+                  <TextBlock x:Name="MainPersonLine" Grid.Column="1" Text="{Binding MainPersonText}" Classes="secondary"
+                             IsVisible="{Binding MainPersonText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                </Grid>
+                <ItemsControl x:Name="RecentList" ItemsSource="{Binding RecentEntries}">
                   <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="vm:TimelineEntry">
-                      <!-- Die Pille steht unter der Behandlung statt daneben: in der schmaleren Spalte (3 : 2, ADR 0094) trennte sie sonst Wörter („Gesichtsbehan-dlung“) -->
-                      <Grid ColumnDefinitions="120,*" Margin="0,2">
-                        <TextBlock Text="{Binding When}" Classes="value num" />
-                        <StackPanel Grid.Column="1" Spacing="4">
-                          <TextBlock Text="{Binding Text}" Classes="value" TextWrapping="Wrap" />
-                          <Border Classes="pill" Classes.crit="{Binding IsProblem}" HorizontalAlignment="Left"
+                      <!-- Nur Datum und Behandlung: die schmale Spalte (3 : 2, ADR 0094) bricht so nicht um; die Pille steht dahinter und rutscht bei Bedarf als Ganzes in die nächste Zeile -->
+                      <Grid ColumnDefinitions="64,*" Margin="0,2">
+                        <TextBlock Text="{Binding When}" Classes="secondary num" VerticalAlignment="Center" />
+                        <WrapPanel Grid.Column="1">
+                          <TextBlock Text="{Binding Text}" Classes="value" Margin="0,0,8,0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Text}" />
+                          <Border Classes="pill" Classes.crit="{Binding IsProblem}" VerticalAlignment="Center"
                                   IsVisible="{Binding Status, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
                             <TextBlock Text="{Binding Status}" />
                           </Border>
-                        </StackPanel>
+                        </WrapPanel>
                       </Grid>
                     </DataTemplate>
                   </ItemsControl.ItemTemplate>
                 </ItemsControl>
               </StackPanel>
-              <StackPanel Spacing="6" IsVisible="{Binding HasPackages}">
-                <TextBlock Text="Offene Pakete" Classes="group" />
-                <ItemsControl ItemsSource="{Binding PackageLines}">
-                  <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="x:String">
-                      <TextBlock Text="{Binding}" Classes="value" TextWrapping="Wrap" Margin="0,2" />
-                    </DataTemplate>
-                  </ItemsControl.ItemTemplate>
-                </ItemsControl>
-              </StackPanel>
-              <StackPanel Spacing="6" IsVisible="{Binding HasVouchers}">
-                <TextBlock Text="Offene Gutscheine" Classes="group" />
-                <ItemsControl Name="VoucherList" ItemsSource="{Binding VoucherLines}">
-                  <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="x:String">
-                      <TextBlock Text="{Binding}" Classes="value" TextWrapping="Wrap" Margin="0,2" />
-                    </DataTemplate>
-                  </ItemsControl.ItemTemplate>
-                </ItemsControl>
-              </StackPanel>
-              <StackPanel Spacing="6" IsVisible="{Binding HasPurchases}">
-                <TextBlock Text="Letzte Käufe" Classes="group" />
-                <ItemsControl Name="PurchaseList" ItemsSource="{Binding PurchaseLines}">
-                  <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="x:String">
-                      <TextBlock Text="{Binding}" Classes="value" TextWrapping="Wrap" Margin="0,2" />
-                    </DataTemplate>
-                  </ItemsControl.ItemTemplate>
-                </ItemsControl>
-              </StackPanel>
-              <StackPanel Spacing="6" IsVisible="{Binding HasNameChanges}">
-                <TextBlock Text="Name geändert" Classes="group" />
-                <ItemsControl ItemsSource="{Binding NameChangeLines}">
-                  <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="x:String">
-                      <TextBlock Text="{Binding}" Classes="value" TextWrapping="Wrap" Margin="0,2" />
-                    </DataTemplate>
-                  </ItemsControl.ItemTemplate>
-                </ItemsControl>
-              </StackPanel>
+              <ItemsControl x:Name="SideChipList" ItemsSource="{Binding SideChips}" IsVisible="{Binding HasSideChips}">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate>
+                    <WrapPanel />
+                  </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:PreferenceChip">
+                    <Border Classes="tag" ToolTip.Tip="{Binding Tip}" AutomationProperties.Name="{Binding Text}" AutomationProperties.HelpText="{Binding Tip}"
+                            AutomationProperties.ControlTypeOverride="Text" AutomationProperties.AccessibilityView="Content">
+                      <TextBlock Text="{Binding Text}" AutomationProperties.AccessibilityView="Raw" />
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
               <!-- Alle Termine (höchstens die letzten 100) mit Status und Preis, aufgeklappt mit „Alle Termine“ -->
               <Button x:Name="AllVisitsToggle" Classes="link" Command="{Binding ToggleAllVisitsCommand}" IsVisible="{Binding Visits.Count}" HorizontalAlignment="Left">
                 <TextBlock Text="{Binding Visits.Count, StringFormat='Alle Termine ({0})'}" />

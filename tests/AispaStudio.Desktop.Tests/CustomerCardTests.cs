@@ -152,6 +152,8 @@ public sealed class CustomerCardTests
         Assert.True(customers.CreateCommand.CanExecute(null));
     }
 
+    private static readonly PreferenceChip PackageChip = new("Hot-Stone-Massage: 7 von 10 offen", Tip: "Hot-Stone-Massage: 7 von 10 offen, gültig bis 30.06.2027");
+
     [Fact]
     public async Task Offene_Gutscheine_und_letzte_Kaeufe_im_Verlauf()
     {
@@ -170,15 +172,20 @@ public sealed class CustomerCardTests
         customers.Selected = customers.Results[0];
         await customers.LoadVisitsAsync(customers.Selected);
 
-        Assert.Equal(["Wertgutschein …4F2K: 35,00 € offen, gültig bis 31.12.2026", "Massage …AB12: 21,00 € offen"], customers.VoucherLines);
-        Assert.Equal(["3.11.2026 · Massageöl 2× · 24,00 €", "20.10.2026 · Kerze · 5,00 €"], customers.PurchaseLines);
-        Assert.True(customers.HasVouchers && customers.HasPurchases);
+        // Pakete, Gutscheine und Käufe stehen als Chips; den vollen Wortlaut trägt der Tooltip.
+        Assert.Equal(
+            [
+                PackageChip,
+                new PreferenceChip("Gutschein 35,00 €", Tip: "Wertgutschein …4F2K: 35,00 € offen, gültig bis 31.12.2026"),
+                new PreferenceChip("Gutschein Massage 21,00 €", Tip: "Massage …AB12: 21,00 € offen"),
+                new PreferenceChip("Letzter Kauf: Massageöl 2× · 24,00 €", Tip: "3.11.2026 · Massageöl 2× · 24,00 €\n20.10.2026 · Kerze · 5,00 €"),
+            ],
+            customers.SideChips);
 
-        // Ohne das Recht zu buchen liefert die API nichts: beide Abschnitte fehlen.
+        // Ohne das Recht zu buchen liefert die API nichts: nur das Paket bleibt.
         stub.On($"GET /api/customers/{customer.Id}/insights", SpaSample.Insights());
         await customers.LoadVisitsAsync(customers.Selected);
-        Assert.Empty(customers.VoucherLines);
-        Assert.False(customers.HasVouchers || customers.HasPurchases);
+        Assert.Equal([PackageChip], customers.SideChips);
     }
 
     [Fact]
@@ -202,7 +209,7 @@ public sealed class CustomerCardTests
         Assert.Contains("845,00 € Umsatz in 12 Monaten (1.602,00 € gesamt)", customers.StatsLine, StringComparison.Ordinal);
         Assert.Equal("1× nicht erschienen · 1 späte Absage", customers.StatsWarning);
         Assert.Equal("Nicht erschienen: 10.7.2026\nSpäte Absagen: 2.3.2026", customers.StatsWarningTip);
-        Assert.Equal(["Hot-Stone-Massage: 7 von 10 offen, gültig bis 30.06.2027"], customers.PackageLines);
+        Assert.Equal([PackageChip], customers.SideChips);
         // „Je Person“ geht im Verlauf auf: jeder Termin nennt die Person.
         Assert.Empty(customers.WishChips);
         Assert.True(customers.MissingWishes);
