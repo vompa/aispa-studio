@@ -5767,7 +5767,7 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 
 ## Gast anonymisieren und weich löschen (10.11.2026)
 
-- **Auftrag:** Vorgabe des Auftraggebers: „nur soweit Anonymisierung und softdelete“, die Aufbewahrungsfristen gelten. Befragung mit sieben Entscheidungen, siehe [ADR 0091](../entscheidungen/0091-gast-anonymisieren.md).
+- **Auftrag:** Vorgabe des Auftraggebers: „nur soweit Anonymisierung und softdelete“, die Aufbewahrungsfristen gelten. Befragung mit sieben Entscheidungen, siehe [ADR 0093](../entscheidungen/0093-gast-anonymisieren.md).
 - **Was:**
   - Löschmarke `Customer.DeletedAt` (Migration `CustomerDeletedAt`), `CustomerDto.DeletedAt`.
   - `CustomerAnonymizer` in einer Transaktion, `POST /api/customers/{id}/anonymize`. Er antwortet 204, 404, 409 mit dem Offenen und 403 unter Inhaber-Ebene.
@@ -5787,4 +5787,4 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
   - App-Tests (`AispaStudio.Desktop.Tests.CustomerAnonymizeTests`, 7 Tests) und der Bildtest `Kundenkarte_Gast_anonymisieren_steht_im_Menue_der_Inhaberin` sind geschrieben und gebaut, aber nicht gelaufen; die Läufe startet der Auftraggeber. Das Handbuchbild `kunden-anonymisieren.png` fehlt deshalb noch; die Hilfe zeigt bis dahin „Bild folgt“.
   - Ein API-Gesamtlauf fehlt.
   - Die Darstellung in der laufenden App ist nicht angesehen.
-  - Die Offline-Kopie behält ältere Suchlisten mit Klarnamen bis zu 14 Tage (offen, siehe ADR 0091).
+  - Die Offline-Kopie behält ältere Suchlisten mit Klarnamen bis zu 14 Tage (offen, siehe ADR 0093).

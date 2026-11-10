@@ -1,4 +1,4 @@
-# 0091. Gast anonymisieren und weich löschen
+# 0093. Gast anonymisieren und weich löschen
 
 - **Status:** angenommen
 - **Datum:** 10.11.2026
