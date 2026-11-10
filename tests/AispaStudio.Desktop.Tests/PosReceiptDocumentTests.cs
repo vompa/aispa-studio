@@ -4,7 +4,7 @@ using AispaStudio.Desktop.ViewModels;
 namespace AispaStudio.Desktop.Tests;
 
 /// <summary>
-/// PDF-Ausgaben B (ADR 0091): Der Beleg in der Kassa trägt den Knopfblock „Drucken · PDF speichern · Per Mail senden“. A4 ist der Standard, das Bon-Format die zweite Wahl,
+/// PDF-Ausgaben B (ADR 0092): Der Beleg in der Kassa trägt den Knopfblock „Drucken · PDF speichern · Per Mail senden“. A4 ist der Standard, das Bon-Format die zweite Wahl,
 /// der Nachdruck aus dem Reiter „Belege“ trägt „Kopie“, und gesendete Mails stehen als Vermerk unter dem Beleg. Inhalt des PDFs prüft die API (<c>ReceiptPdfTests</c>).
 /// </summary>
 public sealed class PosReceiptDocumentTests

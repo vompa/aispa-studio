@@ -17,7 +17,7 @@
   <ItemGroup Label="Backend">
     <PackageVersion Include="AspNet.Security.OAuth.Apple" Version="10.0.0" />
     <PackageVersion Include="MailKit" Version="4.18.1" />
-    <!-- PDF-Dokumente (ADR 0091). 6.2.4 ist die letzte Fassung unter MIT; ab 6.5.0 steht PDFsharp unter AGPL-3.0 → nicht anheben (Ausnahme in .github/dependabot.yml). -->
+    <!-- PDF-Dokumente (ADR 0092). 6.2.4 ist die letzte Fassung unter MIT; ab 6.5.0 steht PDFsharp unter AGPL-3.0 → nicht anheben (Ausnahme in .github/dependabot.yml). -->
     <PackageVersion Include="PDFsharp" Version="6.2.4" />
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.Google" Version="$(AspNetCoreVersion)" />
     <PackageVersion Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" Version="$(AspNetCoreVersion)" />
@@ -28,6 +28,8 @@
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.13" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
     <PackageVersion Include="Anthropic" Version="12.58.0" />
+    <!-- Excel-Export und Kunden-Import (ADR 0091), MIT; zieht DocumentFormat.OpenXml und SixLabors.Fonts (Six Labors Split License, für Open Source Apache 2.0) mit. -->
+    <PackageVersion Include="ClosedXML" Version="0.105.1" />
     <PackageVersion Include="WolverineFx" Version="$(WolverineVersion)" />
     <PackageVersion Include="WolverineFx.Postgresql" Version="$(WolverineVersion)" />
     <PackageVersion Include="WolverineFx.RuntimeCompilation" Version="$(WolverineVersion)" />

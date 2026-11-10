@@ -279,27 +279,46 @@ public class HttpApiClient : IAispaApi
         }
     }
 
-    /// <summary>Eine Datei mit Namen, z. B. ein PDF der Dokumente (ADR 0091): der Name steht im <c>Content-Disposition</c> der API; fehlt er, heißt die Datei „dokument“.</summary>
+    /// <summary>Eine Datei zum Speichern (Export) oder ein PDF der Dokumente (ADR 0092); der Dateiname kommt aus <c>Content-Disposition</c> (<c>filename*</c> vor <c>filename</c>).</summary>
     public async Task<ApiResult<ApiFile>> GetFileAsync(string path, CancellationToken ct = default)
     {
         try
         {
             using var response = await _http.GetAsync(Versioned(path), ct).ConfigureAwait(false);
-            if (!response.IsSuccessStatusCode)
-            {
-                return new(null, await ErrorAsync(response, ct).ConfigureAwait(false), response.StatusCode);
-            }
-
-            var disposition = response.Content.Headers.ContentDisposition;
-            var name = (disposition?.FileNameStar ?? disposition?.FileName)?.Trim('"');
-            var type = response.Content.Headers.ContentType?.MediaType ?? "application/octet-stream";
-            return new(new ApiFile(string.IsNullOrWhiteSpace(name) ? "dokument" : name, type, await response.Content.ReadAsByteArrayAsync(ct).ConfigureAwait(false)), null, response.StatusCode);
+            return await ReadFileAsync(response, ct).ConfigureAwait(false);
         }
         catch (HttpRequestException ex)
         {
             ReportTransportFailure(ex);
             return new(null, Unreachable, 0);
         }
+    }
+
+    /// <summary>Wie <see cref="GetFileAsync"/>, aber mit einem Rumpf (z. B. eine hochgeladene Datei als <c>multipart/form-data</c>), dessen Antwort eine Datei ist.</summary>
+    public async Task<ApiResult<ApiFile>> PostFileAsync(string path, HttpContent body, CancellationToken ct = default)
+    {
+        try
+        {
+            using var response = await _http.PostAsync(Versioned(path), body, ct).ConfigureAwait(false);
+            return await ReadFileAsync(response, ct).ConfigureAwait(false);
+        }
+        catch (HttpRequestException ex)
+        {
+            ReportTransportFailure(ex);
+            return new(null, Unreachable, 0);
+        }
+    }
+
+    private static async Task<ApiResult<ApiFile>> ReadFileAsync(HttpResponseMessage response, CancellationToken ct)
+    {
+        if (!response.IsSuccessStatusCode)
+        {
+            return new(null, await ErrorAsync(response, ct).ConfigureAwait(false), response.StatusCode);
+        }
+
+        var disposition = response.Content.Headers.ContentDisposition;
+        var name = (disposition?.FileNameStar ?? disposition?.FileName)?.Trim('"');
+        return new(new ApiFile(await response.Content.ReadAsByteArrayAsync(ct).ConfigureAwait(false), string.IsNullOrWhiteSpace(name) ? null : name), null, response.StatusCode);
     }
 
     public Task<ApiResult<T>> PutAsync<T>(string path, object? body, CancellationToken ct = default) => SendAsync<T>(HttpMethod.Put, path, body, ct);

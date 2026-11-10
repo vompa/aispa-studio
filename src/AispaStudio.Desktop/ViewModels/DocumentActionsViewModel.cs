@@ -6,7 +6,7 @@ using CommunityToolkit.Mvvm.Input;
 namespace AispaStudio.Desktop.ViewModels;
 
 /// <summary>
-/// Ein Dokument der API für den Knopfblock (ADR 0091): Titel für die Rückfrage („Rechnung K1-142“), Pfad des PDF, Pfad des Versands (ohne: kein Knopf „Per Mail senden“),
+/// Ein Dokument der API für den Knopfblock (ADR 0092): Titel für die Rückfrage („Rechnung K1-142“), Pfad des PDF, Pfad des Versands (ohne: kein Knopf „Per Mail senden“),
 /// das Recht und der Hinweis, wenn es fehlt (<c>ui:DisabledHint</c>). <paramref name="AlternativePdfPath"/>: ein zweites Format zum Speichern, z. B. der Beleg im Bon-Format (im Menü an „PDF speichern“);
 /// <paramref name="PrintLabel"/>: Beschriftung des Druckknopfs, wo ein zweiter „Drucken“ steht (Kassa: Bondrucker);
 /// <paramref name="PrintedPath"/>: Pfad, an den die App nach einem erfolgreichen Druck ein POST schickt, damit der Druck als Vermerk dokumentiert ist (Gutschein, Gutscheinliste).
@@ -15,7 +15,7 @@ public sealed record DocumentSource(string Title, string PdfPath, string? SendPa
     string? AlternativePdfPath = null, string AlternativeLabel = "PDF im Bon-Format speichern", string PrintLabel = "Drucken", string? PrintedPath = null);
 
 /// <summary>
-/// Der Knopfblock „Drucken · PDF speichern · Per Mail senden“ (ADR 0091): lädt das PDF von der API, speichert es über den Dialog des Fensters mit dem Dateinamen
+/// Der Knopfblock „Drucken · PDF speichern · Per Mail senden“ (ADR 0092): lädt das PDF von der API, speichert es über den Dialog des Fensters mit dem Dateinamen
 /// der API, druckt es über den Standarddrucker von Windows oder sendet es nach einer Rückfrage mit Adresse, Betreff und Text (<see cref="SendDocumentDialogViewModel"/>).
 /// Erfolge sagt die Maske als Toast, Fehler stehen unter den Knöpfen. Der Server rechnet, die App zeigt: Inhalt, Dateiname und Mailtext kommen von der API.
 /// </summary>
@@ -66,7 +66,7 @@ public sealed partial class DocumentActionsViewModel(DocumentSource source, IAis
             return;
         }
 
-        var problem = await _printer.PrintAsync(file.FileName, file.Content, CancellationToken.None).ConfigureAwait(true);
+        var problem = await _printer.PrintAsync(NameOf(file), file.Content, CancellationToken.None).ConfigureAwait(true);
         ShowToast?.Invoke(problem ?? "Gedruckt");
         if (problem is null && source.PrintedPath is { } printedPath)
         {
@@ -91,9 +91,9 @@ public sealed partial class DocumentActionsViewModel(DocumentSource source, IAis
 
         try
         {
-            if (await Files.SaveAsync(file.FileName, FileTypeName, ["*.pdf"], file.Content).ConfigureAwait(true))
+            if (await Files.SaveAsync(NameOf(file), FileTypeName, ["*.pdf"], file.Content).ConfigureAwait(true))
             {
-                ShowToast?.Invoke($"Gespeichert: {file.FileName}");
+                ShowToast?.Invoke($"Gespeichert: {NameOf(file)}");
             }
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
@@ -154,6 +154,9 @@ public sealed partial class DocumentActionsViewModel(DocumentSource source, IAis
     private bool CanSaveAlternative() => CanWork() && HasAlternative;
 
     private bool CanSend() => source.IsAllowed && HasSend && !IsBusy;
+
+    /// <summary>Der Dateiname aus der API; fehlt er, heißt die Datei „Dokument.pdf“.</summary>
+    private static string NameOf(ApiFile file) => file.FileName ?? "Dokument.pdf";
 
     private async Task<ApiFile?> LoadAsync(string path)
     {

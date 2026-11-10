@@ -7,7 +7,7 @@ using AispaStudio.Desktop.ViewModels;
 namespace AispaStudio.Desktop.Tests;
 
 /// <summary>
-/// Knopfblock „Drucken · PDF speichern · Per Mail senden“ (ADR 0091): Speichern mit dem Dateinamen der API, Senden erst nach der Rückfrage mit vorbelegter Adresse,
+/// Knopfblock „Drucken · PDF speichern · Per Mail senden“ (ADR 0092): Speichern mit dem Dateinamen der API, Senden erst nach der Rückfrage mit vorbelegter Adresse,
 /// gesperrte Knöpfe ohne Recht mit Hinweis, Meldungen als Toast ohne Punkt. Inhalt und Texte der Dokumente prüft die API (<c>DocumentBuilderTests</c> und je Dokument).
 /// </summary>
 public sealed class DocumentActionsTests

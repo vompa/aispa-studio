@@ -4,7 +4,7 @@ using AispaStudio.Desktop.ViewModels;
 namespace AispaStudio.Desktop.Tests;
 
 /// <summary>
-/// PDF-Ausgaben E (ADR 0091): Der Beleg in der Kassa trägt zu jedem mit ihm verkauften Gutschein einen Knopfblock „Drucken · PDF speichern · Per Mail senden“ für das
+/// PDF-Ausgaben E (ADR 0092): Der Beleg in der Kassa trägt zu jedem mit ihm verkauften Gutschein einen Knopfblock „Drucken · PDF speichern · Per Mail senden“ für das
 /// Geschenk-PDF. Den Inhalt des Gutscheins prüft die API (<c>VoucherPdfTests</c>).
 /// </summary>
 public sealed class PosVoucherDocumentTests

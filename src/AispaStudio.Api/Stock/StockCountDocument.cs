@@ -4,7 +4,7 @@ using AispaStudio.Api.Documents;
 namespace AispaStudio.Api.Stock;
 
 /// <summary>
-/// Inventurliste und Zählliste als PDF (PDF-Ausgaben F, ADR 0091). Die Inventurliste zeigt je gezähltem Material Einheit, Soll, Gezählt, Differenz und deren Wert (Differenz mal Einstandspreis) und die
+/// Inventurliste und Zählliste als PDF (PDF-Ausgaben F, ADR 0092). Die Inventurliste zeigt je gezähltem Material Einheit, Soll, Gezählt, Differenz und deren Wert (Differenz mal Einstandspreis) und die
 /// Summe der Differenzen, wie die Inventur der App. Die Zählliste (<see cref="Data.Blank"/>) ist für vor dem Zählen: alle aktiven Materialien mit dem Soll und einer leeren Spalte „Gezählt“, dazu Zeilen für
 /// die Unterschriften.
 /// </summary>
@@ -25,7 +25,7 @@ internal static class StockCountDocument
 
     public static byte[] Build(Data data, DocumentHeader header)
     {
-        var pdf = new DocumentBuilder(DocumentFormat.A4Portrait, header);
+        var pdf = new DocumentBuilder(PaperFormat.A4Portrait, header);
         pdf.Title($"{Name(data)} {data.PlaceName}");
         pdf.Paragraph(data.CountedBy is { } by
             ? $"Lagerort {data.PlaceName} · gezählt von {by} · Stand {DocumentBuilder.DateTime(data.At, header.Zone)}"

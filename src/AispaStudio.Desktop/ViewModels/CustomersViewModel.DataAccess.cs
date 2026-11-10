@@ -3,7 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace AispaStudio.Desktop.ViewModels;
 
-// ---------- „Auskunft als PDF“ und „Stammblatt als PDF“ in der Kundenkarte (PDF-Ausgaben C und E, ADR 0091) ----------
+// ---------- „Auskunft als PDF“ und „Stammblatt als PDF“ in der Kundenkarte (PDF-Ausgaben C und E, ADR 0092) ----------
 public partial class CustomersViewModel
 {
     /// <summary>

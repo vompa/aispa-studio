@@ -4,7 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace AispaStudio.Desktop.ViewModels;
 
-// ---------- Stundenliste als PDF (PDF-Ausgaben F, ADR 0091) ----------
+// ---------- Stundenliste als PDF (PDF-Ausgaben F, ADR 0092) ----------
 public sealed partial class TimesheetViewModel
 {
     private static readonly CultureInfo German = CultureInfo.GetCultureInfo("de-AT");

@@ -1,4 +1,4 @@
 namespace AispaStudio.Client;
 
-/// <summary>Eine Datei der API, z. B. ein PDF: Dateiname aus <c>Content-Disposition</c>, Inhaltstyp und die Bytes (ADR 0091).</summary>
-public sealed record ApiFile(string FileName, string ContentType, byte[] Content);
+/// <summary>Eine Datei vom Server (Export): die Bytes und der Dateiname aus <c>Content-Disposition</c>, wenn er mitkam.</summary>
+public sealed record ApiFile(byte[] Content, string? FileName);

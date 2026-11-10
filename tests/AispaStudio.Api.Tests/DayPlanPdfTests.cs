@@ -5,7 +5,7 @@ using AispaStudio.Contracts;
 namespace AispaStudio.Api.Tests;
 
 /// <summary>
-/// Tagesplan als PDF (PDF-Ausgaben E, ADR 0091): A4 quer, eine Spalte je Person oder je Raum, die Termine mit Zeit, Gast, Behandlung und Status in Zeitzeilen, Pausen und
+/// Tagesplan als PDF (PDF-Ausgaben E, ADR 0092): A4 quer, eine Spalte je Person oder je Raum, die Termine mit Zeit, Gast, Behandlung und Status in Zeitzeilen, Pausen und
 /// Sperrzeiten grau, Fußnote mit der Zahl auf der Warteliste. Recht wie der Kalender (<c>ViewCalendar</c>), fremder Mandant 404. Erwartete Texte stehen von Hand in den Tests.
 /// </summary>
 public sealed class DayPlanPdfTests(ApiFixture fixture)

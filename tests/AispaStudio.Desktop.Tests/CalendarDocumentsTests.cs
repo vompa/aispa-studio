@@ -4,7 +4,7 @@ using AispaStudio.Desktop.ViewModels;
 namespace AispaStudio.Desktop.Tests;
 
 /// <summary>
-/// PDF-Ausgaben E (ADR 0091): Im Kalender-Menü „+ Termin“ steht „Tagesplan drucken …“ und öffnet den Knopfblock „Drucken · PDF speichern“ mit der Wahl Team oder Räume;
+/// PDF-Ausgaben E (ADR 0092): Im Kalender-Menü „+ Termin“ steht „Tagesplan drucken …“ und öffnet den Knopfblock „Drucken · PDF speichern“ mit der Wahl Team oder Räume;
 /// die Wartelisten-Leiste trägt denselben Knopfblock für den gezeigten Tag. Den Inhalt der PDFs prüft die API (<c>DayPlanPdfTests</c>, <c>WaitlistPdfTests</c>).
 /// </summary>
 public sealed class CalendarDocumentsTests

@@ -3,7 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace AispaStudio.Desktop.ViewModels;
 
-// ---------- Terminbestätigung hinter „Mehr“ (PDF-Ausgaben C, ADR 0091) ----------
+// ---------- Terminbestätigung hinter „Mehr“ (PDF-Ausgaben C, ADR 0092) ----------
 public partial class AppointmentViewModel
 {
     /// <summary>Die Bestätigung gibt es für jeden Termin, der nicht storniert ist; den Inhalt rechnet die API, das Recht ist das des Termins (Kalender sehen).</summary>

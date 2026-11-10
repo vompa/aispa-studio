@@ -4,12 +4,12 @@ using AispaStudio.Contracts;
 
 namespace AispaStudio.Api.HrFile;
 
-/// <summary>Die Einträge einer Person als PDF für die Auskunft nach Art. 15 DSGVO (R05 Slice 110); seit ADR 0091 über den Dokument-Dienst, Inhalt unverändert.</summary>
+/// <summary>Die Einträge einer Person als PDF für die Auskunft nach Art. 15 DSGVO (R05 Slice 110); seit ADR 0092 über den Dokument-Dienst, Inhalt unverändert.</summary>
 internal static class HrFilePdf
 {
     public static byte[] Build(DocumentHeader header, string personName, IEnumerable<HrEntryDto> entries, DateOnly createdOn)
     {
-        var pdf = new DocumentBuilder(DocumentFormat.A4Portrait, header);
+        var pdf = new DocumentBuilder(PaperFormat.A4Portrait, header);
         pdf.Title($"Personalakte: {personName}");
         pdf.Paragraph($"Auskunft nach Art. 15 DSGVO, erstellt am {Day(createdOn)}", muted: true);
         var any = false;

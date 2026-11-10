@@ -5,7 +5,7 @@ using AispaStudio.Contracts;
 namespace AispaStudio.Api.Tests;
 
 /// <summary>
-/// Stammblatt einer Kundin oder eines Kunden als PDF (PDF-Ausgaben E, ADR 0091): Kontakt, Wünsche und Vermerke, die nächsten Termine und die letzten fünf Besuche;
+/// Stammblatt einer Kundin oder eines Kunden als PDF (PDF-Ausgaben E, ADR 0092): Kontakt, Wünsche und Vermerke, die nächsten Termine und die letzten fünf Besuche;
 /// keine Gesundheitsdaten (nur der feste Satz, dass es welche gibt). Recht wie die Kundenkarte (<c>ViewCalendar</c>), fremder Mandant 404.
 /// </summary>
 public sealed class CustomerCardPdfTests(ApiFixture fixture)

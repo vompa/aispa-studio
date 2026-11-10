@@ -849,6 +849,7 @@ public partial class CalendarViewModel : ViewModelBase
             ShowToast = text => ShowToast(text),
             ContactActions = () => ContactActions,
             Files = Files,
+            FileSaver = FileSaver,
             Dialogs = Dialogs,
             MayReturnDeposit = _user.Access?.Role is StaffRole.Owner or StaffRole.GeneralManager,
             MayChargeFee = _user.Rights.Contains(AccessRight.SuperviseCash),
@@ -889,6 +890,9 @@ public partial class CalendarViewModel : ViewModelBase
 
     /// <summary>Der Dateidialog für das Foto eines Anamnesebogens; das Fenster setzt ihn beim Anzeigen.</summary>
     public IFilePicker? Files { get; set; }
+
+    /// <summary>Der Speicherdialog für Kalenderdatei und Terminliste (Export/Import, Aufgabe C); das Fenster setzt ihn beim Anzeigen.</summary>
+    public IFileSaver? FileSaver { get; set; }
 
     /// <summary>„Alle kassieren“ bei einer gemeinsamen Buchung.</summary>
     public Func<IReadOnlyList<AppointmentDto>, Task>? CheckoutGroupRequested { get; set; }

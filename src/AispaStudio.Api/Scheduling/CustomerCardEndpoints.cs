@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 namespace AispaStudio.Api.Scheduling;
 
 /// <summary>
-/// Stammblatt einer Kundin oder eines Kunden als PDF (PDF-Ausgaben E, ADR 0091). Recht wie die Kundenkarte; Termine nur an Standorten, die die Person sehen darf.
+/// Stammblatt einer Kundin oder eines Kunden als PDF (PDF-Ausgaben E, ADR 0092). Recht wie die Kundenkarte; Termine nur an Standorten, die die Person sehen darf.
 /// Kein Versand: das Stammblatt ist für das Team.
 /// </summary>
 internal static class CustomerCardEndpoints

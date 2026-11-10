@@ -5,7 +5,7 @@ using AispaStudio.Contracts;
 namespace AispaStudio.Api.Tests;
 
 /// <summary>
-/// Beleg per Mail (PDF-Ausgaben B, ADR 0091): Vorbelegung mit der Adresse des Gastes, Betreff und Text; der Versand legt die Mail mit dem PDF in die Queue,
+/// Beleg per Mail (PDF-Ausgaben B, ADR 0092): Vorbelegung mit der Adresse des Gastes, Betreff und Text; der Versand legt die Mail mit dem PDF in die Queue,
 /// vermerkt es am Beleg („Per Mail gesendet an …“), und eine ungültige Adresse ist 400.
 /// </summary>
 public sealed class ReceiptSendTests(ApiFixture fixture)

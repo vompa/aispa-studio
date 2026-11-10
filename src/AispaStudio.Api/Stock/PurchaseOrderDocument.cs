@@ -6,7 +6,7 @@ using AispaStudio.Contracts;
 namespace AispaStudio.Api.Stock;
 
 /// <summary>
-/// Bestellung an den Lieferanten als PDF (PDF-Ausgaben F, ADR 0091): A4 mit Lieferant, Bestelldatum, Lieferadresse (der Standort), Positionen mit Menge, Einheit, Artikelnummer, Bezeichnung,
+/// Bestellung an den Lieferanten als PDF (PDF-Ausgaben F, ADR 0092): A4 mit Lieferant, Bestelldatum, Lieferadresse (der Standort), Positionen mit Menge, Einheit, Artikelnummer, Bezeichnung,
 /// Einzelpreis und Summe, Gesamtsumme netto und dem Hinweis der Bestellung. „Erwartete Lieferung“ steht nur, wenn der Lieferant eine Lieferzeit hat: Bestelldatum plus Lieferzeit. Die Bestellung hat
 /// keinen eigenen Liefertermin; wer einen verlangt, schreibt ihn in den Hinweis.
 /// </summary>
@@ -30,7 +30,7 @@ internal static class PurchaseOrderDocument
     {
         var order = data.Order;
         var currency = data.Location.Currency;
-        var pdf = new DocumentBuilder(DocumentFormat.A4Portrait, header);
+        var pdf = new DocumentBuilder(PaperFormat.A4Portrait, header);
         pdf.Title($"Bestellung {order.Number}");
         pdf.KeyValues(Facts(data, header));
         pdf.Space();

@@ -9,7 +9,7 @@ namespace AispaStudio.Api.Mail;
 /// <param name="InReplyTo">Message-ID der beantworteten Mail, damit Antworten im selben Verlauf landen (KI-Terminannahme).</param>
 /// <param name="ReplyTo">Adresse für Antworten des Empfängers, z. B. das Postfach des Spas, wenn über den gemeinsamen Versand gesendet wird.</param>
 /// <param name="FromName">Anzeigename des Absenders, z. B. der Name des Spas; ohne Angabe der aus <see cref="MailOptions"/>.</param>
-/// <param name="Attachments">Anhänge, z. B. ein Beleg als PDF (ADR 0091); zusammen höchstens <see cref="MaxAttachmentBytes"/>.</param>
+/// <param name="Attachments">Anhänge, z. B. ein Beleg als PDF (ADR 0092); zusammen höchstens <see cref="MaxAttachmentBytes"/>.</param>
 public sealed record OutgoingMail(
     string To,
     string Subject,

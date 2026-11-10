@@ -5,7 +5,7 @@ using AispaStudio.Contracts;
 namespace AispaStudio.Api.Tests;
 
 /// <summary>
-/// Inventurliste als PDF (PDF-Ausgaben F, ADR 0091): Material, Einheit, Soll, Gezählt, Differenz, Wert und die Summe der Differenzen für eine Zählung vom Handy; vor dem Zählen als
+/// Inventurliste als PDF (PDF-Ausgaben F, ADR 0092): Material, Einheit, Soll, Gezählt, Differenz, Wert und die Summe der Differenzen für eine Zählung vom Handy; vor dem Zählen als
 /// Zählliste mit leerer Spalte „Gezählt“ (<c>blank=true</c>, auch ohne Zählung für einen Lagerort). Recht wie die Inventur (<c>ManageLocation</c>), fremder Mandant und fremder Standort 404.
 /// </summary>
 public sealed class StockCountPdfTests(ApiFixture fixture)

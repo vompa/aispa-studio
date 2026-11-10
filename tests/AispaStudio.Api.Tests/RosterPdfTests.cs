@@ -4,7 +4,7 @@ using AispaStudio.Contracts;
 namespace AispaStudio.Api.Tests;
 
 /// <summary>
-/// Dienstplan-Aushang als PDF (PDF-Ausgaben F, ADR 0091): A4 quer, Personen als Zeilen, die sieben Tage der Woche als Spalten mit Diensten, Abwesenheiten und Notizen. Es gilt nur der
+/// Dienstplan-Aushang als PDF (PDF-Ausgaben F, ADR 0092): A4 quer, Personen als Zeilen, die sieben Tage der Woche als Spalten mit Diensten, Abwesenheiten und Notizen. Es gilt nur der
 /// veröffentlichte Stand; Entwürfe stehen nicht auf dem Aushang. Recht Leitung (<c>ManageLocation</c>), fremder Mandant 404. Erwartete Texte stehen von Hand in den Tests.
 /// </summary>
 public sealed class RosterPdfTests(ApiFixture fixture)

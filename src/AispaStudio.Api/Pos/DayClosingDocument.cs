@@ -5,7 +5,7 @@ using AispaStudio.Contracts;
 namespace AispaStudio.Api.Pos;
 
 /// <summary>
-/// Tagesabschluss als PDF (PDF-Ausgaben D, ADR 0091): A4 zum Abheften. Kasse, Zeitraum, Belege von–bis, Summen je Zahlart, Steuern, Kassenlade mit Soll, gezähltem Bestand und
+/// Tagesabschluss als PDF (PDF-Ausgaben D, ADR 0092): A4 zum Abheften. Kasse, Zeitraum, Belege von–bis, Summen je Zahlart, Steuern, Kassenlade mit Soll, gezähltem Bestand und
 /// Differenz (mit Notiz), Einlagen und Entnahmen des Zeitraums, Unterschriftenzeilen „Gezählt von“ und „Geprüft von“ (dokumente.md). Der Abschluss ist unveränderlich gespeichert; das PDF zeigt genau diese Zahlen.
 /// </summary>
 internal static class DayClosingDocument
@@ -18,7 +18,7 @@ internal static class DayClosingDocument
 
     public static byte[] Build(DayClosingDto closing, string registerCode, ReceiptRange? range, IReadOnlyList<CashMovement> movements, DocumentHeader header, TimeZoneInfo zone, string currency)
     {
-        var pdf = new DocumentBuilder(DocumentFormat.A4Portrait, header);
+        var pdf = new DocumentBuilder(PaperFormat.A4Portrait, header);
         pdf.Title($"Tagesabschluss {registerCode}");
         pdf.KeyValues(
         [

@@ -4,7 +4,7 @@ using AispaStudio.Desktop.ViewModels;
 namespace AispaStudio.Desktop.Tests;
 
 /// <summary>
-/// PDF-Ausgaben E (ADR 0091): In der Kundenkarte steht im Menü „…“ der Eintrag „Stammblatt als PDF“; er öffnet den Knopfblock „Drucken · PDF speichern“ ohne Senden
+/// PDF-Ausgaben E (ADR 0092): In der Kundenkarte steht im Menü „…“ der Eintrag „Stammblatt als PDF“; er öffnet den Knopfblock „Drucken · PDF speichern“ ohne Senden
 /// und schließt beim Wechsel der Kundin. Den Inhalt des Stammblatts prüft die API (<c>CustomerCardPdfTests</c>).
 /// </summary>
 public sealed class CustomerMasterSheetTests

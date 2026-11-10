@@ -109,7 +109,7 @@
         </Grid>
       </StackPanel>
 
-      <!-- Zählliste und Inventurliste als PDF (PDF-Ausgaben F, ADR 0091): Knopfblock ohne Senden -->
+      <!-- Zählliste und Inventurliste als PDF (PDF-Ausgaben F, ADR 0092): Knopfblock ohne Senden -->
       <Border x:Name="CountDocumentCard" Classes="section" IsVisible="{Binding IsDocumentOpen}" HorizontalAlignment="Left">
         <StackPanel Spacing="8">
           <TextBlock Text="{Binding DocumentButtonText}" FontWeight="Medium" />

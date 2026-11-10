@@ -5,7 +5,7 @@ using AispaStudio.Contracts;
 namespace AispaStudio.Api.Tests;
 
 /// <summary>
-/// Stundenliste einer Person als PDF (PDF-Ausgaben F, ADR 0091): je Tag Kommen, Gehen, Pausen, Ist, Soll und Saldo, dazu die Monatssumme und Unterschriftenzeilen. Die Zeiten kommen aus
+/// Stundenliste einer Person als PDF (PDF-Ausgaben F, ADR 0092): je Tag Kommen, Gehen, Pausen, Ist, Soll und Saldo, dazu die Monatssumme und Unterschriftenzeilen. Die Zeiten kommen aus
 /// derselben Rechnung wie die Zeiten-Maske (<c>TimesheetDay</c>). Recht Leitung (<c>ManageLocation</c>, wie die Zeiten), fremder Mandant 404. Erwartete Texte stehen von Hand in den Tests.
 /// </summary>
 public sealed class TimesheetPdfTests(ApiFixture fixture)

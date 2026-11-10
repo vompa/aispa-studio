@@ -8,7 +8,7 @@ namespace AispaStudio.Desktop.ViewModels;
 public sealed record VoucherStatusChoice(string Label, string? Query);
 
 /// <summary>
-/// „Gutscheinliste …“ (PDF-Ausgaben, Zusatz; ADR 0091): wählt Zeitraum der Ausstellung, Status und die Schalter „läuft in 30 Tagen ab“ und „noch nicht versendet“ und trägt den Knopfblock
+/// „Gutscheinliste …“ (PDF-Ausgaben, Zusatz; ADR 0092): wählt Zeitraum der Ausstellung, Status und die Schalter „läuft in 30 Tagen ab“ und „noch nicht versendet“ und trägt den Knopfblock
 /// „Drucken · PDF speichern“ für diese Wahl. Die Liste rechnet die API (<c>GET /api/pos/locations/{id}/vouchers/pdf</c>); die App kennt nur den Pfad. Ohne Senden: die Liste geht zur Buchhaltung.
 /// </summary>
 public sealed partial class VoucherListPrintViewModel : ObservableObject

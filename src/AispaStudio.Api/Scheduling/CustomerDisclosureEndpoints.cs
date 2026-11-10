@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore;
 namespace AispaStudio.Api.Scheduling;
 
 /// <summary>
-/// Datenschutz-Auskunft zu einem Gast als PDF (PDF-Ausgaben C, ADR 0091). Recht wie die Kundenkarte; die Anamnese steht nur drin, wenn die Person sie in der App sehen darf.
+/// Datenschutz-Auskunft zu einem Gast als PDF (PDF-Ausgaben C, ADR 0092). Recht wie die Kundenkarte; die Anamnese steht nur drin, wenn die Person sie in der App sehen darf.
 /// Kein Versand: die Leitung übergibt die Auskunft persönlich oder schickt sie selbst.
 /// </summary>
 internal static class CustomerDisclosureEndpoints

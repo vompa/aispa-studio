@@ -95,10 +95,13 @@
             </DataTemplate>
           </ComboBox.ItemTemplate>
         </ComboBox>
+        <!-- Export der Kassa-Listen, nur für Inhaberin und Geschäftsführung (Export/Import, Aufgabe D) -->
+        <TextBlock x:Name="PosExportSaved" Text="{Binding ExportSaved}" Classes="muted small" IsVisible="{Binding HasExportSaved}" VerticalAlignment="Center" AutomationProperties.LiveSetting="Polite" />
+        <ui:ExportButton x:Name="PosExportButton" DataContext="{Binding Export}" />
         <Button Classes="icon" Command="{Binding LoadDayCommand}" ToolTip.Tip="Aktualisieren">
           <ui:Icon Data="{x:Static ui:Icons.Refresh}" />
         </Button>
-        <!-- Gutscheinliste (PDF-Ausgaben, Zusatz; ADR 0091): Zeitraum, Status und zwei Schalter wählen, dann Drucken oder PDF speichern; die Liste kommt von der API -->
+        <!-- Gutscheinliste (PDF-Ausgaben, Zusatz; ADR 0092): Zeitraum, Status und zwei Schalter wählen, dann Drucken oder PDF speichern; die Liste kommt von der API -->
         <Button x:Name="VoucherListButton" Command="{Binding ToggleVoucherListCommand}" ToolTip.Tip="Alle Gutscheine des Standorts als Liste drucken" AutomationProperties.Name="Gutscheinliste">
           <StackPanel Orientation="Horizontal" Spacing="6">
             <ui:Icon Data="{x:Static ui:Icons.Printer}" Width="16" Height="16" />
@@ -349,7 +352,7 @@
               <TextBlock Text="{x:Static vm:PosViewModel.NoPrinterHint}" Classes="muted small" VerticalAlignment="Center"
                          IsVisible="{Binding !#Root.((vm:PosViewModel)DataContext)?.HasPrinter, TargetNullValue=False}" />
             </StackPanel>
-            <!-- PDF-Ausgaben (ADR 0091): Drucken auf dem Standarddrucker, PDF speichern, per Mail an den Gast; darunter die Vermerke der gesendeten Mails -->
+            <!-- PDF-Ausgaben (ADR 0092): Drucken auf dem Standarddrucker, PDF speichern, per Mail an den Gast; darunter die Vermerke der gesendeten Mails -->
             <ui:DocumentActions DataContext="{Binding Document}" />
             <ItemsControl ItemsSource="{Binding SentMailLines}" IsVisible="{Binding HasSentMails}">
               <ItemsControl.ItemTemplate>
@@ -358,7 +361,7 @@
                 </DataTemplate>
               </ItemsControl.ItemTemplate>
             </ItemsControl>
-            <!-- Gutscheine dieses Belegs als Geschenk-PDF (PDF-Ausgaben E, ADR 0091): je Gutschein Drucken, PDF speichern und Per Mail senden an den Käufer oder eine eingetippte Adresse -->
+            <!-- Gutscheine dieses Belegs als Geschenk-PDF (PDF-Ausgaben E, ADR 0092): je Gutschein Drucken, PDF speichern und Per Mail senden an den Käufer oder eine eingetippte Adresse -->
             <ItemsControl ItemsSource="{Binding VoucherDocuments}" IsVisible="{Binding HasVouchers}">
               <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="vm:VoucherDocumentItem">
@@ -798,7 +801,7 @@
             <TextBlock Text="{x:Static vm:PosViewModel.NoPrinterHint}" Classes="muted small" VerticalAlignment="Center"
                        IsVisible="{Binding !#Root.((vm:PosViewModel)DataContext)?.HasPrinter, TargetNullValue=False}" />
           </StackPanel>
-          <!-- Nachdruck (ADR 0091): das PDF trägt „Kopie“; der Bondrucker bleibt der erste Knopf -->
+          <!-- Nachdruck (ADR 0092): das PDF trägt „Kopie“; der Bondrucker bleibt der erste Knopf -->
           <ui:DocumentActions DataContext="{Binding Document}" />
           <ItemsControl ItemsSource="{Binding SentMailLines}" IsVisible="{Binding HasSentMails}">
             <ItemsControl.ItemTemplate>
@@ -807,7 +810,7 @@
               </DataTemplate>
             </ItemsControl.ItemTemplate>
           </ItemsControl>
-          <!-- Gutscheine dieses Belegs als Geschenk-PDF (PDF-Ausgaben E, ADR 0091): je Gutschein Drucken, PDF speichern und Per Mail senden an den Käufer oder eine eingetippte Adresse -->
+          <!-- Gutscheine dieses Belegs als Geschenk-PDF (PDF-Ausgaben E, ADR 0092): je Gutschein Drucken, PDF speichern und Per Mail senden an den Käufer oder eine eingetippte Adresse -->
           <ItemsControl ItemsSource="{Binding VoucherDocuments}" IsVisible="{Binding HasVouchers}">
             <ItemsControl.ItemTemplate>
               <DataTemplate x:DataType="vm:VoucherDocumentItem">
@@ -952,7 +955,7 @@
       </ScrollViewer>
 
       <StackPanel Grid.Column="1" Spacing="16">
-        <!-- PDF-Ausgaben (ADR 0091): der gespeicherte Abschluss zum Abheften, Drucken und PDF speichern -->
+        <!-- PDF-Ausgaben (ADR 0092): der gespeicherte Abschluss zum Abheften, Drucken und PDF speichern -->
         <Border Classes="card" IsVisible="{Binding IsClosed}">
           <StackPanel Spacing="10">
             <TextBlock Text="Tagesabschluss als PDF" Classes="h2" />
@@ -1001,7 +1004,7 @@
     </Grid>
   </Grid>
   </ScrollViewer>
-  <!-- Meldung unten (design.md 5.10, ADR 0091): „Gespeichert: …“, „Gesendet an …“, „Gedruckt“; eine Zeile, verschwindet nach 5 s -->
+  <!-- Meldung unten (design.md 5.10, ADR 0092): „Gespeichert: …“, „Gesendet an …“, „Gedruckt“; eine Zeile, verschwindet nach 5 s -->
   <Border x:Name="PosToast" Classes="toast" Classes.shown="{Binding HasToast}" IsVisible="{Binding HasToast}" HorizontalAlignment="Center" VerticalAlignment="Bottom"
           Margin="16,0,16,20" CornerRadius="8" Padding="16,10,6,10" BoxShadow="{DynamicResource RaisedShadow}" MaxWidth="760" AutomationProperties.LiveSetting="Polite">
     <StackPanel Orientation="Horizontal" Spacing="8">

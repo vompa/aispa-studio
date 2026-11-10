@@ -1,7 +1,7 @@
 namespace AispaStudio.Api.Documents;
 
 /// <summary>Seitenformat eines Dokuments: A4 hoch, A4 quer oder Bon mit 80 mm Breite, dessen Höhe mit dem Inhalt wächst (eine Seite).</summary>
-public enum DocumentFormat
+public enum PaperFormat
 {
     A4Portrait,
     A4Landscape,

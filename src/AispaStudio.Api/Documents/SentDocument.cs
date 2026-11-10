@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 namespace AispaStudio.Api.Documents;
 
 /// <summary>
-/// Ein gesendetes Dokument (ADR 0091): Art und Ziel (Beleg, Termin, Gutschein, Bestellung), Weg (<see cref="Channel"/>: Mail, Druck, Übergabe), Empfänger, Betreff, Zeitpunkt und wer es
+/// Ein gesendetes Dokument (ADR 0092): Art und Ziel (Beleg, Termin, Gutschein, Bestellung), Weg (<see cref="Channel"/>: Mail, Druck, Übergabe), Empfänger, Betreff, Zeitpunkt und wer es
 /// ausgelöst hat (Vorname), damit die Rezeption Doppelsendungen sieht. Mandantenspalte und Filter kommen vom <c>TenantModel</c>.
 /// </summary>
 public sealed class SentDocument

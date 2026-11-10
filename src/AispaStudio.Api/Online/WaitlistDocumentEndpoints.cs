@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 namespace AispaStudio.Api.Online;
 
 /// <summary>
-/// Warteliste eines Tages als PDF (PDF-Ausgaben E, ADR 0091). Recht wie die Liste im Kalender; den Standort prüft der Mandantenfilter, ein fremder ist „nicht gefunden“. Kein Versand.
+/// Warteliste eines Tages als PDF (PDF-Ausgaben E, ADR 0092). Recht wie die Liste im Kalender; den Standort prüft der Mandantenfilter, ein fremder ist „nicht gefunden“. Kein Versand.
 /// </summary>
 internal static class WaitlistDocumentEndpoints
 {

@@ -5,7 +5,7 @@ using Avalonia.VisualTree;
 
 namespace AispaStudio.Desktop.Tests;
 
-/// <summary>PDF-Ausgaben D (ADR 0091): In der Abschlussmaske der Kassa steht nach dem Tagesabschluss der Knopfblock „Drucken · PDF speichern“, ohne „Per Mail senden“.</summary>
+/// <summary>PDF-Ausgaben D (ADR 0092): In der Abschlussmaske der Kassa steht nach dem Tagesabschluss der Knopfblock „Drucken · PDF speichern“, ohne „Per Mail senden“.</summary>
 public sealed partial class ViewTests
 {
     [Fact]

@@ -4,7 +4,7 @@ using AispaStudio.Contracts;
 namespace AispaStudio.Api.Pos;
 
 /// <summary>
-/// Gutschein als PDF zum Verschenken (PDF-Ausgaben E, ADR 0091): A4 mit dem Spa-Namen groß, Wert oder Behandlung, Code und QR-Code mit dem Code, „Gültig bis“ und „Einlösbar in …“.
+/// Gutschein als PDF zum Verschenken (PDF-Ausgaben E, ADR 0092): A4 mit dem Spa-Namen groß, Wert oder Behandlung, Code und QR-Code mit dem Code, „Gültig bis“ und „Einlösbar in …“.
 /// Ein stornierter oder schon eingelöster Gutschein trägt einen Hinweis, damit ein Nachdruck niemanden täuscht. Ein Gutschein gilt am Standort, an dem er verkauft wurde, und an
 /// allen anderen Standorten des Spas; „Einlösbar in“ nennt deshalb alle Standorte.
 /// </summary>
@@ -46,7 +46,7 @@ internal static class VoucherDocument
     public static byte[] Build(Data data, DocumentHeader header)
     {
         var voucher = data.Voucher;
-        var pdf = new DocumentBuilder(DocumentFormat.A4Portrait, header);
+        var pdf = new DocumentBuilder(PaperFormat.A4Portrait, header);
         pdf.Space(24);
         pdf.Display(header.SpaName, documentTitle: "Geschenkgutschein");
         pdf.Paragraph("Geschenkgutschein", bold: true, align: DocumentAlign.Center);

@@ -10,7 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace AispaStudio.Api.Tests;
 
 /// <summary>
-/// Gutschein als PDF und per Mail (PDF-Ausgaben E, ADR 0091): A4 als Geschenk mit Spa-Name, Wert oder Behandlung, Code, QR-Code mit dem Code, „Gültig bis“ und „Einlösbar in …“;
+/// Gutschein als PDF und per Mail (PDF-Ausgaben E, ADR 0092): A4 als Geschenk mit Spa-Name, Wert oder Behandlung, Code, QR-Code mit dem Code, „Gültig bis“ und „Einlösbar in …“;
 /// Senden an den Käufer oder eine eingetippte Adresse mit Vermerk (<see cref="SentDocument"/>). Recht wie der Beleg (<c>ViewReceipts</c>), fremder Mandant 404.
 /// </summary>
 public sealed class VoucherPdfTests(ApiFixture fixture)

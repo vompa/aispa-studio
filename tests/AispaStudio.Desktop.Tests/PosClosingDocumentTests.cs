@@ -4,7 +4,7 @@ using AispaStudio.Desktop.ViewModels;
 namespace AispaStudio.Desktop.Tests;
 
 /// <summary>
-/// PDF-Ausgaben D (ADR 0091): Nach dem Tagesabschluss trägt die Abschlussmaske der Kassa den Knopfblock „Drucken · PDF speichern“ (ohne „Per Mail senden“); das PDF ist der
+/// PDF-Ausgaben D (ADR 0092): Nach dem Tagesabschluss trägt die Abschlussmaske der Kassa den Knopfblock „Drucken · PDF speichern“ (ohne „Per Mail senden“); das PDF ist der
 /// gespeicherte Abschluss, der Zwischenbericht hat keinen. Das Recht „Berichte mit Beträgen“ entscheidet, ob die Knöpfe gehen. Den Inhalt prüft die API (<c>DayClosingPdfTests</c>).
 /// </summary>
 public sealed class PosClosingDocumentTests

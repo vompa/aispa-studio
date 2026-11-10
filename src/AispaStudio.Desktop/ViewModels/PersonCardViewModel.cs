@@ -1,3 +1,4 @@
+using System.Globalization;
 using AispaStudio.Contracts;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -70,6 +71,12 @@ public sealed partial class PersonCardViewModel : ViewModelBase, IEditableArea
                 }
             };
             Roster.WeekPlanRequested += () => WeekPlanRequested?.Invoke();
+        }
+
+        if (entry.Kind == TeamEntryKind.Person && employee is not null
+            && (context.User.Rights.Contains(AccessRight.ManageLocation) || context.User.EmployeeId == employee.Id))
+        {
+            CalendarFile = CalendarFileFor(context, employee.Id);
         }
 
         if (entry.Kind == TeamEntryKind.Person && employee is not null && context.CanViewTimes)
@@ -210,6 +217,35 @@ public sealed partial class PersonCardViewModel : ViewModelBase, IEditableArea
 
     /// <summary>Dienstplan und Abwesenheit der Person (R05 Slice 99); nur für eine gespeicherte Person im Team, mit dem Recht auf den Dienstplan.</summary>
     public RosterPlanViewModel? Roster { get; }
+
+    /// <summary>Tage, die die Kalenderdatei einer Person ab heute umfasst.</summary>
+    public const int CalendarFileDays = 90;
+
+    /// <summary>
+    /// „Kalenderdatei …“ im Dienstplan (Export/Import, Aufgabe C): Dienste und Termine der nächsten 90 Tage für den privaten Kalender, ohne Namen der Gäste; nur für die Leitung
+    /// und die Person selbst. Die Ansicht reicht den Speicherdialog des Fensters herein.
+    /// </summary>
+    public ExportViewModel? CalendarFile { get; }
+
+    public bool HasCalendarFile => CalendarFile is not null;
+
+    /// <summary>„Gespeichert: Kalender_Ben.ics“ unter dem Knopf, bis zum nächsten Speichern.</summary>
+    [ObservableProperty]
+    public partial string? CalendarFileSaved { get; private set; }
+
+    public ExportOption? CalendarFileOption => CalendarFile?.Options[0];
+
+    private ExportViewModel CalendarFileFor(TeamContext context, Guid employeeId)
+    {
+        var today = DateOnly.FromDateTime(context.Time.GetLocalNow().DateTime);
+        var path = string.Create(CultureInfo.InvariantCulture,
+            $"api/employees/{employeeId}/ics?from={today:yyyy-MM-dd}&until={today.AddDays(CalendarFileDays):yyyy-MM-dd}");
+        return new ExportViewModel(context.Api, [ExportOption.For(ExportFormat.Ics, () => path, "Kalenderdatei …")])
+        {
+            Saved = text => CalendarFileSaved = text,
+            Failed = text => Error = text,
+        };
+    }
 
     /// <summary>Die Zeiten der Person (R05 Slice 99); nur für eine gespeicherte Person im Team, mit dem Recht auf die Zeiten.</summary>
     public TimesheetViewModel? Times { get; }

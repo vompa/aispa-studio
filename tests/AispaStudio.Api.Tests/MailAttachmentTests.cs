@@ -3,7 +3,7 @@ using MimeKit;
 
 namespace AispaStudio.Api.Tests;
 
-/// <summary>Mail-Anhänge (ADR 0091): das PDF hängt an der MIME-Nachricht, der Text bleibt; mehr als 5 MB je Mail lehnt die Nachricht ab.</summary>
+/// <summary>Mail-Anhänge (ADR 0092): das PDF hängt an der MIME-Nachricht, der Text bleibt; mehr als 5 MB je Mail lehnt die Nachricht ab.</summary>
 public sealed class MailAttachmentTests
 {
     private static readonly MailboxAddress From = new("Day-Spa Wien", "noreply@aispa.local");

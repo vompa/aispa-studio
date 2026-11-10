@@ -5,7 +5,7 @@ using AispaStudio.Contracts;
 namespace AispaStudio.Api.Scheduling;
 
 /// <summary>
-/// Stammblatt einer Kundin oder eines Kunden als PDF (PDF-Ausgaben E, ADR 0091): Kontakt und Anschrift, Wünsche und Vermerke, die nächsten Termine und die letzten fünf Besuche.
+/// Stammblatt einer Kundin oder eines Kunden als PDF (PDF-Ausgaben E, ADR 0092): Kontakt und Anschrift, Wünsche und Vermerke, die nächsten Termine und die letzten fünf Besuche.
 /// Gesundheitsdaten stehen nie darin; gibt es einen Anamnesebogen, steht nur der feste Satz <see cref="CustomerDisclosure.HealthWithheld"/>.
 /// </summary>
 internal static class CustomerCard
@@ -29,7 +29,7 @@ internal static class CustomerCard
     public static byte[] Build(Data data, DocumentHeader header)
     {
         var customer = data.Customer;
-        var pdf = new DocumentBuilder(DocumentFormat.A4Portrait, header);
+        var pdf = new DocumentBuilder(PaperFormat.A4Portrait, header);
         pdf.Title($"Stammblatt {customer.LegalName}");
         pdf.Heading("Kontakt");
         var contact = CustomerDisclosure.Contact(customer, data.OtherEmails);

@@ -54,7 +54,7 @@ internal sealed class StubApi : HttpMessageHandler
         return this;
     }
 
-    /// <summary>Eine Datei mit Namen, z. B. ein PDF der Dokumente (ADR 0091): <c>Content-Disposition: attachment; filename*=…</c> wie bei <c>TypedResults.File</c>.</summary>
+    /// <summary>Eine Datei mit Namen, z. B. ein PDF der Dokumente (ADR 0092) oder ein Export (ADR 0091): <c>Content-Disposition: attachment; filename*=…</c> wie bei <c>TypedResults.File</c>.</summary>
     public StubApi OnFile(string route, byte[] body, string fileName, string contentType = "application/pdf")
     {
         _routes[route] = _ =>

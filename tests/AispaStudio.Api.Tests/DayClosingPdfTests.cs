@@ -4,7 +4,7 @@ using AispaStudio.Contracts;
 namespace AispaStudio.Api.Tests;
 
 /// <summary>
-/// Tagesabschluss als PDF (PDF-Ausgaben D, ADR 0091): Kasse, Zeitraum, Belege von–bis, Summen je Zahlart, Steuern, Soll, gezählter Bestand, Differenz mit Notiz,
+/// Tagesabschluss als PDF (PDF-Ausgaben D, ADR 0092): Kasse, Zeitraum, Belege von–bis, Summen je Zahlart, Steuern, Soll, gezählter Bestand, Differenz mit Notiz,
 /// Einlagen und Entnahmen, Unterschriftenzeilen. Recht wie das Lesen der Abschlüsse (<c>ViewAmountReports</c>), fremder Mandant 404. Erwartete Texte stehen von Hand in den Tests.
 /// </summary>
 public sealed class DayClosingPdfTests(ApiFixture fixture)

@@ -292,7 +292,7 @@ internal static class PosEndpoints
             .AlsoAllow(AccessRight.ViewAmountReports, insteadOf: AccessRight.Book)
             .WithSummary("Die letzten 60 Tagesabschlüsse einer Kasse mit allen Zahlen; nur mit dem Recht „Berichte mit Beträgen“.");
 
-        // PDF-Ausgaben (ADR 0091): der gespeicherte Tagesabschluss als PDF zum Abheften; Recht wie das Lesen der Abschlüsse, kein Versand.
+        // PDF-Ausgaben (ADR 0092): der gespeicherte Tagesabschluss als PDF zum Abheften; Recht wie das Lesen der Abschlüsse, kein Versand.
         group.MapGet("/registers/{registerId:guid}/day-closings/{closingId:guid}/pdf", async Task<Results<FileContentHttpResult, NotFound>> (
                 Guid registerId, Guid closingId, ClaimsPrincipal user, AispaDbContext db, DocumentHeaders headers, CancellationToken ct) =>
             {
@@ -539,7 +539,7 @@ internal static class PosEndpoints
             .AlsoAllow(AccessRight.ViewReceipts, insteadOf: AccessRight.Book)
             .WithSummary("Beleg für den Bondrucker: als Text in fester Breite oder als ESC/POS-Befehle mit QR-Code und Schnitt (z. B. für die Windows-App).");
 
-        // PDF-Ausgaben (ADR 0091): Beleg oder Rechnung als PDF, Vorbelegung und Versand per Mail mit Vermerk am Beleg.
+        // PDF-Ausgaben (ADR 0092): Beleg oder Rechnung als PDF, Vorbelegung und Versand per Mail mit Vermerk am Beleg.
         group.MapGet("/receipts/{receiptId:guid}/pdf", async Task<Results<FileContentHttpResult, NotFound>> (
                 Guid receiptId, DocumentPageFormat? format, bool? copy, ClaimsPrincipal user, PosService pos, AispaDbContext db, DocumentHeaders headers, CancellationToken ct) =>
             {

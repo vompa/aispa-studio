@@ -7,7 +7,7 @@ using Avalonia.VisualTree;
 
 namespace AispaStudio.Desktop.Tests;
 
-/// <summary>PDF-Ausgaben, Zusatz (ADR 0091): „Gutscheinliste …“ in der Kopfzeile der Kassa öffnet eine Karte mit Zeitraum, Status, zwei Schaltern und dem Knopfblock „Drucken · PDF speichern“.</summary>
+/// <summary>PDF-Ausgaben, Zusatz (ADR 0092): „Gutscheinliste …“ in der Kopfzeile der Kassa öffnet eine Karte mit Zeitraum, Status, zwei Schaltern und dem Knopfblock „Drucken · PDF speichern“.</summary>
 public sealed partial class ViewTests
 {
     [Fact]

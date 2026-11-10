@@ -7,12 +7,12 @@ using QRCoder;
 namespace AispaStudio.Api.Documents;
 
 /// <summary>
-/// Baut ein PDF aus Bausteinen (ADR 0091): Kopf mit Spa-Name, Firmendaten und Standort auf jeder Seite, Titel, Überschriften, Absätze, Schlüssel-Wert-Listen,
+/// Baut ein PDF aus Bausteinen (ADR 0092): Kopf mit Spa-Name, Firmendaten und Standort auf jeder Seite, Titel, Überschriften, Absätze, Schlüssel-Wert-Listen,
 /// Tabellen mit Spaltenausrichtung und wiederholter Kopfzeile nach einem Seitenumbruch, QR-Code, Unterschriftenzeilen; Fußzeile mit „Seite n von m“ und
 /// „Erstellt am … von …“. Gestaltung nach docs/gestaltung/dokumente.md: nur Schwarz und Grau, Linien nur waagrecht, Beträge rechts, Summen fett.
 /// Schrift ist die eingebettete Liberation Sans (<see cref="DocumentFonts"/>) in WinAnsi, Zahlen und Daten im Format de-AT wie <c>ReceiptPrinter</c>.
 /// </summary>
-internal sealed class DocumentBuilder(DocumentFormat format, DocumentHeader header)
+internal sealed class DocumentBuilder(PaperFormat format, DocumentHeader header)
 {
     private const double A4Short = 595.28;
     private const double A4Long = 841.89;
@@ -30,7 +30,7 @@ internal sealed class DocumentBuilder(DocumentFormat format, DocumentHeader head
     private static readonly XPen BlackLine = new(XColors.Black, 0.75);
     private static readonly XPen GreyLine = new(XColor.FromGrayScale(0.7), 0.25);
 
-    private readonly Sizes _sizes = format == DocumentFormat.Receipt80 ? Sizes.Receipt : Sizes.A4;
+    private readonly Sizes _sizes = format == PaperFormat.Receipt80 ? Sizes.Receipt : Sizes.A4;
     private readonly List<IBlock> _blocks = [];
     private string? _title;
 
@@ -111,14 +111,14 @@ internal sealed class DocumentBuilder(DocumentFormat format, DocumentHeader head
     public byte[] Build()
     {
         DocumentFonts.Ensure();
-        var isReceipt = format == DocumentFormat.Receipt80;
+        var isReceipt = format == PaperFormat.Receipt80;
         var pageWidth = format switch
         {
-            DocumentFormat.A4Portrait => A4Short,
-            DocumentFormat.A4Landscape => A4Long,
+            PaperFormat.A4Portrait => A4Short,
+            PaperFormat.A4Landscape => A4Long,
             _ => XUnit.FromMillimeter(ReceiptWidthMm).Point,
         };
-        var pageHeight = format == DocumentFormat.A4Landscape ? A4Short : A4Long;
+        var pageHeight = format == PaperFormat.A4Landscape ? A4Short : A4Long;
         var margin = _sizes.Margin;
         var width = pageWidth - (2 * margin);
         using var measure = XGraphics.CreateMeasureContext(new XSize(pageWidth, A4Long), XGraphicsUnit.Point, XPageDirection.Downwards);

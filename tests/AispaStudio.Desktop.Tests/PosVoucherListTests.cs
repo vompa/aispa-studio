@@ -5,7 +5,7 @@ using AispaStudio.Desktop.ViewModels;
 namespace AispaStudio.Desktop.Tests;
 
 /// <summary>
-/// PDF-Ausgaben, Zusatz (ADR 0091): Die Karte „Gutscheinliste …“ der Kassa baut den Pfad der API aus Zeitraum, Status und den zwei Schaltern, sperrt den Knopfblock ohne das Recht und bei
+/// PDF-Ausgaben, Zusatz (ADR 0092): Die Karte „Gutscheinliste …“ der Kassa baut den Pfad der API aus Zeitraum, Status und den zwei Schaltern, sperrt den Knopfblock ohne das Recht und bei
 /// verkehrtem Zeitraum, und der Gutschein meldet Druck und Übergabe an die API, damit die Liste den Versandvermerk zeigt. Den Inhalt der Liste prüft die API (<c>VoucherListPdfTests</c>).
 /// </summary>
 public sealed class PosVoucherListTests

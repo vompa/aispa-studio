@@ -3,7 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace AispaStudio.Desktop.ViewModels;
 
-// ---------- Inventurliste und Zählliste als PDF (PDF-Ausgaben F, ADR 0091) ----------
+// ---------- Inventurliste und Zählliste als PDF (PDF-Ausgaben F, ADR 0092) ----------
 public sealed partial class StockCountViewModel
 {
     private bool _documentOpen;

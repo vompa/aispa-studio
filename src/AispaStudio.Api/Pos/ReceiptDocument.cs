@@ -4,7 +4,7 @@ using AispaStudio.Contracts;
 namespace AispaStudio.Api.Pos;
 
 /// <summary>
-/// Beleg oder Rechnung als PDF (PDF-Ausgaben B, ADR 0091): A4 für Ablage und Versand, Bon-Format als Abbild des Bondrucks. Inhalt wie <see cref="ReceiptPrinter"/>
+/// Beleg oder Rechnung als PDF (PDF-Ausgaben B, ADR 0092): A4 für Ablage und Versand, Bon-Format als Abbild des Bondrucks. Inhalt wie <see cref="ReceiptPrinter"/>
 /// (Positionen mit Rabatt, Summe, Steuern, Zahlungen, Gutscheine, RKSV-Code als QR), mit Rechnungsempfänger wird der Beleg zur Rechnung; der Nachdruck trägt „Kopie“.
 /// </summary>
 internal static class ReceiptDocument
@@ -48,7 +48,7 @@ internal static class ReceiptDocument
     public static byte[] Build(ReceiptDto receipt, DocumentHeader header, TimeZoneInfo zone, string currency, DocumentPageFormat format, bool copy)
     {
         var narrow = format == DocumentPageFormat.Receipt;
-        var pdf = new DocumentBuilder(narrow ? DocumentFormat.Receipt80 : DocumentFormat.A4Portrait, header);
+        var pdf = new DocumentBuilder(narrow ? PaperFormat.Receipt80 : PaperFormat.A4Portrait, header);
         pdf.Title(Title(receipt));
         if (copy)
         {

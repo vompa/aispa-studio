@@ -1,6 +1,6 @@
 # Dokumente: Gestaltung der PDF-Ausgaben
 
-Verbindlich für alles, was die API als PDF erzeugt (ADR 0091): Rechnung und Beleg, Terminbestätigung, Datenschutz-Auskunft, Tagesabschluss, Tagesplan, Gutschein, Kundenkarte, Warteliste, Dienstplan-Aushang, Stundenliste, Inventurliste, Bestellung, Ablaufliste, Gutscheinliste, Personalakte. Umgesetzt im `DocumentBuilder` (`src/AispaStudio.Api/Documents/`); wer ein Dokument baut, setzt es aus seinen Bausteinen zusammen und zeichnet nichts selbst. Texte nach [texte.md](texte.md).
+Verbindlich für alles, was die API als PDF erzeugt (ADR 0092): Rechnung und Beleg, Terminbestätigung, Datenschutz-Auskunft, Tagesabschluss, Tagesplan, Gutschein, Kundenkarte, Warteliste, Dienstplan-Aushang, Stundenliste, Inventurliste, Bestellung, Ablaufliste, Gutscheinliste, Personalakte. Umgesetzt im `DocumentBuilder` (`src/AispaStudio.Api/Documents/`); wer ein Dokument baut, setzt es aus seinen Bausteinen zusammen und zeichnet nichts selbst. Texte nach [texte.md](texte.md).
 
 ## 1. Grundsätze
 

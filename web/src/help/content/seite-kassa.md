@@ -4,7 +4,7 @@ bereich: Kassa
 oberflaeche: windows-app
 rollen: rezeption, leitung, inhaber, manager
 seite: kassa
-stichwoerter: Kassa, Kasse, Kassieren, Rechnung, Beleg, Bon, abrechnen, bezahlen, Zahlung, Registrierkasse, RKSV, TSE, Tagesabschluss, Z-Bericht, Kassenlade, POS, checkout, cash register, till, receipt
+stichwoerter: Kassa, Kasse, Kassieren, Rechnung, Beleg, Bon, abrechnen, bezahlen, Zahlung, Registrierkasse, RKSV, TSE, Tagesabschluss, Z-Bericht, Kassenlade, POS, Export, Excel, CSV, Belegliste exportieren, Umsatz exportieren, Gutscheinbestand, checkout, cash register, till, receipt
 ---
 # Seite „Kassa“ in der Windows-App
 
@@ -19,6 +19,7 @@ Die Seite sehen alle, die Termine buchen dürfen (Inhaber, Standortleitung, Reze
 - Drei Bereiche zum Umschalten: **Kassieren**, **Belege** und **Kassenlade & Abschluss**.
 - Die Auswahl der Kasse („Kasse WIEN-1“ usw.). Kommt man aus dem Kalender, ist die Kasse des Standorts des Termins gewählt.
 - Der Knopf mit den Pfeilen (**Aktualisieren**) lädt die offenen Termine und Rechnungen neu.
+- **Exportieren** speichert Listen der gewählten Kasse als Excel oder CSV: Belegliste, Umsatz je Tag, je Zahlart und je Behandlung und Person sowie die Tagesabschlüsse, jeweils für den Belegtag im Bereich **Belege**, dazu den Gutscheinbestand. Den Knopf sehen nur Inhaberin und Geschäftsführung; jeder Export steht im Verlauf.
 - Rote Hinweise nennen Fehler, gelbe Hinweise Warnungen der Kasse, z. B. „Signatureinrichtung ausgefallen …“ oder „Kasse außer Betrieb (Schlussbeleg erstellt).“
 
 ## Kassieren {#kassieren}

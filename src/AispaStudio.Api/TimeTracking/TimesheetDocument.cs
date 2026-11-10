@@ -5,7 +5,7 @@ using AispaStudio.Contracts;
 namespace AispaStudio.Api.TimeTracking;
 
 /// <summary>
-/// Stundenliste einer Person für einen Monat als PDF (PDF-Ausgaben F, ADR 0091): je Tag mit Dienst oder Zeiten Kommen (erster Beginn), Gehen (letztes Ende), Pausen (Lücken zwischen den Abschnitten),
+/// Stundenliste einer Person für einen Monat als PDF (PDF-Ausgaben F, ADR 0092): je Tag mit Dienst oder Zeiten Kommen (erster Beginn), Gehen (letztes Ende), Pausen (Lücken zwischen den Abschnitten),
 /// Ist, Soll und Saldo, unten die Monatssumme und Unterschriftenzeilen für die Person und die Leitung. Die Zahlen sind die der Zeiten-Maske (<see cref="TimesheetDay"/>), Stunden stehen dezimal.
 /// </summary>
 internal static class TimesheetDocument
@@ -18,7 +18,7 @@ internal static class TimesheetDocument
 
     public static byte[] Build(Data data, DocumentHeader header)
     {
-        var pdf = new DocumentBuilder(DocumentFormat.A4Portrait, header);
+        var pdf = new DocumentBuilder(PaperFormat.A4Portrait, header);
         pdf.Title($"Stundenliste {data.Month.ToString("MMMM yyyy", German)}");
         pdf.Paragraph(data.PersonName, bold: true);
         var days = data.Row.Days.Where(d => d.PlannedHours > 0 || d.Records.Count > 0).ToList();

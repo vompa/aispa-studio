@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 namespace AispaStudio.Api.Stock;
 
 /// <summary>
-/// Ablaufliste eines Standorts als PDF (PDF-Ausgaben F, ADR 0091). Recht wie die „Ablauf-Aufgaben“ (<c>ManageLocation</c>); den Standort prüft der Mandantenfilter, ein fremder ist „nicht gefunden“.
+/// Ablaufliste eines Standorts als PDF (PDF-Ausgaben F, ADR 0092). Recht wie die „Ablauf-Aufgaben“ (<c>ManageLocation</c>); den Standort prüft der Mandantenfilter, ein fremder ist „nicht gefunden“.
 /// Der Zeitraum <c>days</c> reicht von 1 bis 365 Tage und ist ohne Angabe 30.
 /// </summary>
 internal static class ExpiringStockDocumentEndpoints

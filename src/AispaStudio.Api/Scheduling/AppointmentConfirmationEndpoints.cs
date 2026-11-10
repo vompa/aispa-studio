@@ -12,7 +12,7 @@ using Wolverine;
 namespace AispaStudio.Api.Scheduling;
 
 /// <summary>
-/// Terminbestätigung als PDF und per Mail (PDF-Ausgaben C, ADR 0091). Rechte wie das Lesen des Termins; den Termin prüft der Mandantenfilter, ein fremder ist „nicht gefunden“.
+/// Terminbestätigung als PDF und per Mail (PDF-Ausgaben C, ADR 0092). Rechte wie das Lesen des Termins; den Termin prüft der Mandantenfilter, ein fremder ist „nicht gefunden“.
 /// Nach dem Versand steht „Bestätigung per Mail an … gesendet von …“ im Verlauf des Termins (<see cref="AppointmentHistory"/>).
 /// </summary>
 internal static class AppointmentConfirmationEndpoints

@@ -5,7 +5,7 @@ using AispaStudio.Contracts;
 namespace AispaStudio.Api.Tests;
 
 /// <summary>
-/// Ablaufliste als PDF (PDF-Ausgaben F, ADR 0091): Chargen, die in den nächsten n Tagen ablaufen, mit Material, Charge, Lagerort, Ablaufdatum und Menge. Recht wie die „Ablauf-Aufgaben“
+/// Ablaufliste als PDF (PDF-Ausgaben F, ADR 0092): Chargen, die in den nächsten n Tagen ablaufen, mit Material, Charge, Lagerort, Ablaufdatum und Menge. Recht wie die „Ablauf-Aufgaben“
 /// (<c>ManageLocation</c>), fremder Mandant 404, Zeitraum 1 bis 365 Tage (Standard 30).
 /// </summary>
 public sealed class ExpiringStockPdfTests(ApiFixture fixture)

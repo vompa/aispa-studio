@@ -119,7 +119,7 @@ public sealed partial class WaitlistViewModel(string locationName, IReadOnlyList
 {
     public string LocationName { get; } = locationName;
 
-    /// <summary>Knopfblock „Drucken · PDF speichern“ für die Wartenden des gezeigten Tages (PDF-Ausgaben E, ADR 0091); null ohne Standort.</summary>
+    /// <summary>Knopfblock „Drucken · PDF speichern“ für die Wartenden des gezeigten Tages (PDF-Ausgaben E, ADR 0092); null ohne Standort.</summary>
     public DocumentActionsViewModel? Document { get; } = document;
 
     /// <summary>Sagt, was gedruckt wird: „Druckt die offenen Wünsche, die am 01.03.2027 gelten.“</summary>

@@ -114,7 +114,7 @@ public static partial class IssueOnlineVoucherHandler
         var mail = OnlineMails.VoucherIssued(order.BuyerEmail, guest, dto, receiptText, link, order.Language);
         await services.GetRequiredService<IMessageBus>().PublishGuestMailAsync(services.GetRequiredService<TenantContext>(), mail);
 
-        // Vermerk für die Gutscheinliste (ADR 0091): die Mail ging an den Käufer, ohne dass jemand vom Team sie ausgelöst hat.
+        // Vermerk für die Gutscheinliste (ADR 0092): die Mail ging an den Käufer, ohne dass jemand vom Team sie ausgelöst hat.
         db.SentDocuments.Add(new SentDocument
         {
             Kind = SentDocument.VoucherKind,

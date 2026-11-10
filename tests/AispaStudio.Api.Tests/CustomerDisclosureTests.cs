@@ -11,7 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace AispaStudio.Api.Tests;
 
 /// <summary>
-/// Datenschutz-Auskunft nach Art. 15 DSGVO als PDF (PDF-Ausgaben C, ADR 0091): Stammdaten, Termine mit Status, Zahlungen, Gutscheine, Online-Konto und Verlauf der Änderungen;
+/// Datenschutz-Auskunft nach Art. 15 DSGVO als PDF (PDF-Ausgaben C, ADR 0092): Stammdaten, Termine mit Status, Zahlungen, Gutscheine, Online-Konto und Verlauf der Änderungen;
 /// die Anamnese nur mit dem Recht, sie zu lesen, sonst ein fester Satz; Recht wie die Kundenkarte, fremder Mandant 404.
 /// </summary>
 public sealed class CustomerDisclosureTests(ApiFixture fixture)

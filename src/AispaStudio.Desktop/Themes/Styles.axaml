@@ -591,7 +591,7 @@
     <Setter Property="VerticalAlignment" Value="Center" />
   </Style>
 
-  <!-- Geteilte Schaltfläche ohne Akzent (Knopfblock „PDF speichern ▾“, ADR 0091): Ruhezustand wie ein normaler Knopf statt der grauen Fluent-Fläche -->
+  <!-- Geteilte Schaltfläche ohne Akzent (Knopfblock „PDF speichern ▾“, ADR 0092): Ruhezustand wie ein normaler Knopf statt der grauen Fluent-Fläche -->
   <Style Selector="SplitButton.document">
     <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
     <Setter Property="BorderBrush" Value="{DynamicResource LineStrongBrush}" />

@@ -5,7 +5,7 @@ using AispaStudio.Contracts;
 namespace AispaStudio.Api.Online;
 
 /// <summary>
-/// Warteliste eines Tages als PDF (PDF-Ausgaben E, ADR 0091): die offenen Wünsche, die an dem Tag gelten, mit Gast, Telefon, Wunsch (Behandlung), Zeitraum und Stand
+/// Warteliste eines Tages als PDF (PDF-Ausgaben E, ADR 0092): die offenen Wünsche, die an dem Tag gelten, mit Gast, Telefon, Wunsch (Behandlung), Zeitraum und Stand
 /// („Wartet“ oder „2× freien Termin gemeldet“), zum Nachtelefonieren am Empfang.
 /// </summary>
 internal static class WaitlistDocument
@@ -21,7 +21,7 @@ internal static class WaitlistDocument
 
     public static byte[] Build(IReadOnlyList<WaitlistStaffEntry> entries, DateOnly date, DocumentHeader header)
     {
-        var pdf = new DocumentBuilder(DocumentFormat.A4Portrait, header);
+        var pdf = new DocumentBuilder(PaperFormat.A4Portrait, header);
         pdf.Title($"Warteliste {date.ToString("dddd, dd.MM.yyyy", German)}");
         pdf.Paragraph($"Offene Wünsche, die am {DocumentBuilder.Date(date)} gelten · {Count(entries.Count)}", muted: true);
         if (entries.Count == 0)

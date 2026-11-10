@@ -5,7 +5,7 @@ using AispaStudio.Contracts;
 namespace AispaStudio.Api.Stock;
 
 /// <summary>
-/// Ablaufliste als PDF (PDF-Ausgaben F, ADR 0091): die Chargen, die in den nächsten <see cref="Data.Days"/> Tagen ablaufen, zuerst ablaufend zuerst, mit Material, Charge, Lagerort, Ablaufdatum, Frist
+/// Ablaufliste als PDF (PDF-Ausgaben F, ADR 0092): die Chargen, die in den nächsten <see cref="Data.Days"/> Tagen ablaufen, zuerst ablaufend zuerst, mit Material, Charge, Lagerort, Ablaufdatum, Frist
 /// und Menge. Schon Abgelaufenes steht nicht darauf; das ist die Aufgabe „Abgelaufen“ der Lagerseite.
 /// </summary>
 internal static class ExpiringStockDocument
@@ -24,7 +24,7 @@ internal static class ExpiringStockDocument
 
     public static byte[] Build(Data data, DocumentHeader header)
     {
-        var pdf = new DocumentBuilder(DocumentFormat.A4Portrait, header);
+        var pdf = new DocumentBuilder(PaperFormat.A4Portrait, header);
         pdf.Title(data.Days == 1 ? "Ablaufliste: nächster Tag" : $"Ablaufliste: nächste {data.Days} Tage");
         pdf.Paragraph($"{data.LocationName} · Stand {DocumentBuilder.Date(data.Today)}", muted: true);
         if (data.Batches.Count == 0)

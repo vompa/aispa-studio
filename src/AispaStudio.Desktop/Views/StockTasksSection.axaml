@@ -10,7 +10,7 @@
   <StackPanel Spacing="16">
     <ui:InfoBar Severity="Error" Title="Aufgaben nicht geladen" Message="{Binding LoadError}" IsVisible="{Binding HasLoadError}" />
 
-    <!-- Ablaufliste als PDF (PDF-Ausgaben F, ADR 0091): „Ablaufliste als PDF“ öffnet die Wahl des Zeitraums und den Knopfblock ohne Senden -->
+    <!-- Ablaufliste als PDF (PDF-Ausgaben F, ADR 0092): „Ablaufliste als PDF“ öffnet die Wahl des Zeitraums und den Knopfblock ohne Senden -->
     <Border Classes="card">
       <StackPanel Spacing="12">
         <Grid ColumnDefinitions="*,Auto">

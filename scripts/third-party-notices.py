@@ -163,7 +163,7 @@ def postgresql() -> Component:
 
 
 def document_font() -> Component:
-    """Die in die API eingebettete Schrift der PDF-Dokumente (ADR 0091); Dateien und Lizenztext unter src/AispaStudio.Api/Documents/Fonts."""
+    """Die in die API eingebettete Schrift der PDF-Dokumente (ADR 0092); Dateien und Lizenztext unter src/AispaStudio.Api/Documents/Fonts."""
     return Component(
         name="Liberation Sans",
         version="2.1.5",

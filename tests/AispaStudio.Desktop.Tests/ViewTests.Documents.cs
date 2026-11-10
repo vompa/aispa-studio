@@ -13,7 +13,7 @@ using Avalonia.VisualTree;
 
 namespace AispaStudio.Desktop.Tests;
 
-/// <summary>Knopfblock der Dokumente und Dialog „Per Mail senden“ (ADR 0091) in Hell und Dunkel; das Bild dient dem Handbuch.</summary>
+/// <summary>Knopfblock der Dokumente und Dialog „Per Mail senden“ (ADR 0092) in Hell und Dunkel; das Bild dient dem Handbuch.</summary>
 public sealed partial class ViewTests
 {
     [Theory]

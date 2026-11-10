@@ -126,7 +126,7 @@ public sealed partial class PurchaseOrderCard : ObservableObject
 
     public IReadOnlyList<PurchaseOrderLineRow> Lines { get; }
 
-    /// <summary>Knopfblock „Drucken · PDF speichern · Per Mail senden“ für die Bestellung als PDF (PDF-Ausgaben F, ADR 0091); die Adresse des Lieferanten ist vorbelegt.</summary>
+    /// <summary>Knopfblock „Drucken · PDF speichern · Per Mail senden“ für die Bestellung als PDF (PDF-Ausgaben F, ADR 0092); die Adresse des Lieferanten ist vorbelegt.</summary>
     public DocumentActionsViewModel Document { get; }
 
     /// <summary>Vermerke „Gesendet am … an …“, damit Doppelsendungen auffallen.</summary>

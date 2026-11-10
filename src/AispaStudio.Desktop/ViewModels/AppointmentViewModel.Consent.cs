@@ -39,6 +39,7 @@ public partial class AppointmentViewModel
         { State: MarketingConsentState.Confirmed } c => $"Eingewilligt am {Day(c.ConfirmedAt)} ({c.Email})",
         { State: MarketingConsentState.Pending } c => $"Angefragt am {Day(c.RequestedAt)}, wartet auf Bestätigung durch den Gast ({c.Email})",
         { State: MarketingConsentState.Withdrawn } c => $"Widerrufen am {Day(c.WithdrawnAt)}",
+        { State: MarketingConsentState.Refused } c => $"Abgelehnt am {Day(c.WithdrawnAt)}",
         _ => "Nicht angefragt",
     };
 

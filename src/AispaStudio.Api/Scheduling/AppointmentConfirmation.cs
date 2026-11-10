@@ -5,7 +5,7 @@ using AispaStudio.Contracts;
 namespace AispaStudio.Api.Scheduling;
 
 /// <summary>
-/// Terminbestätigung als PDF (PDF-Ausgaben C, ADR 0091): der Gast, alle Teile der Buchung (Paar, Spa-Tag) mit Uhrzeit, Dauer, Person (nur Vorname) und Preis,
+/// Terminbestätigung als PDF (PDF-Ausgaben C, ADR 0092): der Gast, alle Teile der Buchung (Paar, Spa-Tag) mit Uhrzeit, Dauer, Person (nur Vorname) und Preis,
 /// der Standort mit Adresse, die Stornofrist des Standorts und der Absatz „Was mitbringen“ aus den Behandlungen.
 /// </summary>
 internal static class AppointmentConfirmation
@@ -39,7 +39,7 @@ internal static class AppointmentConfirmation
         var main = RequestedPart(booking, appointmentId);
         var parts = booking.Parts.OrderBy(p => p.Appointment.Start).ToList();
         var currency = booking.Location.Currency;
-        var pdf = new DocumentBuilder(DocumentFormat.A4Portrait, header);
+        var pdf = new DocumentBuilder(PaperFormat.A4Portrait, header);
         pdf.Title("Terminbestätigung");
         pdf.KeyValues([("Gast", main.Guest), ("Tag", Day(parts[0].Appointment.Start, booking.Zone))]);
         pdf.Heading(parts.Count > 1 ? "Ihre Termine" : "Ihr Termin");

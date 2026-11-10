@@ -4,7 +4,7 @@ namespace AispaStudio.Api.Documents;
 
 /// <summary>
 /// Die eingebettete Schrift der Dokumente: Liberation Sans 2.1.5 (SIL Open Font License 1.1, <c>Fonts/LICENSE-LiberationSans.txt</c>), Regular und Bold,
-/// mit Umlauten, Euro und Gedankenstrich. Keine Systemschrift: die API läuft in Linux-Containern ohne Schriften (ADR 0091).
+/// mit Umlauten, Euro und Gedankenstrich. Keine Systemschrift: die API läuft in Linux-Containern ohne Schriften (ADR 0092).
 /// </summary>
 internal sealed class DocumentFonts : IFontResolver
 {

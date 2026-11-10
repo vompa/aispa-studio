@@ -185,7 +185,7 @@
           </Border>
         </Panel>
       </DataTemplate>
-      <!-- Dokument per Mail senden (ADR 0091): derselbe Dialog, 600 breit; Adresse, Betreff und Text vorbelegt von der API; Enter in einem Feld sendet, Esc schließt -->
+      <!-- Dokument per Mail senden (ADR 0092): derselbe Dialog, 600 breit; Adresse, Betreff und Text vorbelegt von der API; Enter in einem Feld sendet, Esc schließt -->
       <DataTemplate DataType="vm:SendDocumentDialogViewModel" x:DataType="vm:SendDocumentDialogViewModel">
         <Panel>
           <Border x:Name="Scrim" Background="{DynamicResource ScrimBrush}" />
@@ -206,6 +206,174 @@
               </StackPanel>
               <StackPanel x:Name="DialogButtons" Classes="confirmbuttons">
                 <Button x:Name="ConfirmButton" Classes="primary" Content="{Binding ConfirmText}" Command="{Binding SendCommand}" />
+                <Button x:Name="CancelButton" Classes="ghost" Content="{Binding CancelText}" Command="{Binding CancelCommand}" />
+              </StackPanel>
+            </StackPanel>
+          </Border>
+        </Panel>
+      </DataTemplate>
+      <!-- Kunden importieren (Export/Import, Aufgabe E): vier Schritte in einem Dialog, 600 breit; die Knöpfe stehen fest unten, der Inhalt scrollt. „Weiter“ trägt den Fokus. -->
+      <DataTemplate DataType="vm:CustomerImportViewModel" x:DataType="vm:CustomerImportViewModel">
+        <Panel>
+          <Border x:Name="Scrim" Background="{DynamicResource ScrimBrush}" />
+          <Border x:Name="DialogCard" Classes="confirmdialog wide" AutomationProperties.Name="{Binding Title}" KeyboardNavigation.TabNavigation="Cycle">
+            <Grid RowDefinitions="Auto,*,Auto" RowSpacing="8">
+              <StackPanel Spacing="4">
+                <TextBlock x:Name="DialogTitle" Classes="h2" Text="{Binding Title}" TextWrapping="Wrap" />
+                <TextBlock x:Name="DialogMessage" Text="{Binding Message}" TextWrapping="Wrap" />
+                <TextBlock x:Name="ImportStepText" Classes="group" Text="{Binding StepText}" Margin="0,8,0,0" />
+              </StackPanel>
+              <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="-4,0" Padding="4,0">
+                <StackPanel Spacing="12" Margin="0,8">
+                  <ui:InfoBar x:Name="ImportError" Severity="Error" Message="{Binding Error}" IsVisible="{Binding HasError}" />
+
+                  <!-- 1. Datei wählen -->
+                  <StackPanel x:Name="ImportFileStep" Spacing="8" IsVisible="{Binding IsFileStep}">
+                    <ui:FormField Label="Datei" Error="{Binding FileError}" Help="Excel (.xlsx) oder CSV, bis 10 MB.">
+                      <TextBlock x:Name="ImportFileName" Text="{Binding FileName, FallbackValue=Noch keine Datei gewählt}" TextWrapping="Wrap" />
+                    </ui:FormField>
+                    <TextBlock Text="Erste Zeile: Spaltenköpfe. Gesundheitsdaten, Wünsche und Vermerke werden nicht importiert." Classes="muted small" TextWrapping="Wrap" />
+                  </StackPanel>
+
+                  <!-- 2. Spalten zuordnen -->
+                  <StackPanel x:Name="ImportMappingStep" Spacing="12" IsVisible="{Binding IsMappingStep}">
+                    <TextBlock Text="{Binding FileName, StringFormat=Datei: {0}}" Classes="muted" TextWrapping="Wrap" />
+                    <ui:FormField Label="Zuordnung" Error="{Binding MappingError}" Help="Links die Spalte der Datei, rechts das Feld in AISPA.">
+                      <Border Classes="closurelist">
+                        <ScrollViewer MaxHeight="230" VerticalScrollBarVisibility="Auto">
+                          <ItemsControl x:Name="ImportColumns" ItemsSource="{Binding Columns}" Margin="12,4">
+                            <ItemsControl.ItemTemplate>
+                              <DataTemplate x:DataType="vm:ImportColumnRow">
+                                <Grid ColumnDefinitions="*,200" ColumnSpacing="12" Margin="0,4">
+                                  <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding Header}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                                    <TextBlock Text="{Binding SamplesText}" Classes="muted small" TextTrimming="CharacterEllipsis" />
+                                  </StackPanel>
+                                  <ComboBox Grid.Column="1" ItemsSource="{Binding Choices}" SelectedItem="{Binding Choice}" HorizontalAlignment="Stretch"
+                                            AutomationProperties.Name="{Binding Header, StringFormat=Feld für Spalte {0}}" />
+                                </Grid>
+                              </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                          </ItemsControl>
+                        </ScrollViewer>
+                      </Border>
+                    </ui:FormField>
+                    <ui:FormField Label="Datumsformat" MaxWidth="240" HorizontalAlignment="Left">
+                      <ComboBox x:Name="ImportDateFormat" ItemsSource="{Binding DateFormats}" SelectedItem="{Binding SelectedDateFormat}" HorizontalAlignment="Stretch"
+                                AutomationProperties.Name="Datumsformat" />
+                    </ui:FormField>
+                  </StackPanel>
+
+                  <!-- 3. Vorschau und Prüfung -->
+                  <StackPanel x:Name="ImportReviewStep" Spacing="12" IsVisible="{Binding IsReviewStep}">
+                    <TextBlock x:Name="ImportSummary" Text="{Binding Summary}" FontWeight="SemiBold" />
+                    <StackPanel Spacing="6">
+                      <TextBlock Text="Die ersten Zeilen" Classes="group" />
+                      <Border Classes="closurelist">
+                        <ScrollViewer MaxHeight="150" VerticalScrollBarVisibility="Auto">
+                          <ItemsControl x:Name="ImportSampleRows" ItemsSource="{Binding SampleRows}" Margin="12,4">
+                            <ItemsControl.ItemTemplate>
+                              <DataTemplate x:DataType="vm:ImportPreviewRow">
+                                <Grid ColumnDefinitions="80,*" ColumnSpacing="8" Margin="0,2">
+                                  <TextBlock Text="{Binding Status}" Classes="muted" VerticalAlignment="Top" />
+                                  <StackPanel Grid.Column="1">
+                                    <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
+                                    <TextBlock Text="{Binding Contact}" Classes="muted small" TextTrimming="CharacterEllipsis" />
+                                  </StackPanel>
+                                </Grid>
+                              </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                          </ItemsControl>
+                        </ScrollViewer>
+                      </Border>
+                    </StackPanel>
+                    <StackPanel x:Name="ImportDuplicates" Spacing="6" IsVisible="{Binding HasDuplicates}">
+                      <TextBlock Text="Dubletten" Classes="group" />
+                      <TextBlock Text="Überspringen lässt den Gast im Bestand unverändert. Ergänzen füllt nur leere Felder, nichts wird überschrieben." Classes="muted small" TextWrapping="Wrap" />
+                      <Border Classes="closurelist">
+                        <ScrollViewer MaxHeight="170" VerticalScrollBarVisibility="Auto">
+                          <ItemsControl x:Name="ImportDuplicateRows" ItemsSource="{Binding DuplicateRows}" Margin="12,4">
+                            <ItemsControl.ItemTemplate>
+                              <DataTemplate x:DataType="vm:ImportDuplicateRow">
+                                <StackPanel Margin="0,4">
+                                  <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                                  <TextBlock Text="{Binding Reason}" Classes="muted small" TextWrapping="Wrap" />
+                                  <StackPanel Orientation="Horizontal" Spacing="16">
+                                    <RadioButton Content="Überspringen" IsChecked="{Binding IsSkip}" AutomationProperties.Name="{Binding Title, StringFormat={}{0}: überspringen}" />
+                                    <RadioButton Content="Ergänzen" IsChecked="{Binding IsMerge}" AutomationProperties.Name="{Binding Title, StringFormat={}{0}: ergänzen}" />
+                                  </StackPanel>
+                                </StackPanel>
+                              </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                          </ItemsControl>
+                        </ScrollViewer>
+                      </Border>
+                    </StackPanel>
+                    <StackPanel x:Name="ImportInvalid" Spacing="6" IsVisible="{Binding HasInvalid}">
+                      <TextBlock Text="Fehlerhafte Zeilen" Classes="group" />
+                      <TextBlock Text="Diese Zeilen werden nicht importiert." Classes="muted small" TextWrapping="Wrap" />
+                      <Border Classes="closurelist">
+                        <ScrollViewer MaxHeight="130" VerticalScrollBarVisibility="Auto">
+                          <ItemsControl x:Name="ImportInvalidRows" ItemsSource="{Binding InvalidRows}" Margin="12,4">
+                            <ItemsControl.ItemTemplate>
+                              <DataTemplate x:DataType="vm:ImportPreviewRow">
+                                <StackPanel Margin="0,2">
+                                  <TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis" />
+                                  <TextBlock Text="{Binding Reason}" Classes="muted small" TextWrapping="Wrap" />
+                                </StackPanel>
+                              </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                          </ItemsControl>
+                        </ScrollViewer>
+                      </Border>
+                      <StackPanel Orientation="Horizontal" Spacing="12">
+                        <Button x:Name="ImportErrorsButton" Content="Fehlerzeilen als Excel …" Command="{Binding SaveErrorsCommand}" />
+                        <TextBlock x:Name="ImportSaved" Text="{Binding SavedText}" IsVisible="{Binding HasSaved}" Classes="muted" VerticalAlignment="Center" TextWrapping="Wrap" />
+                      </StackPanel>
+                    </StackPanel>
+                  </StackPanel>
+
+                  <!-- 4. Probelauf und Import -->
+                  <StackPanel x:Name="ImportRunStep" Spacing="12" IsVisible="{Binding IsRunStep}">
+                    <TextBlock Text="{Binding Summary}" FontWeight="SemiBold" />
+                    <TextBlock Text="„Nur prüfen“ zählt, was der Import täte, und speichert nichts. „Importieren“ legt die Gäste an und trägt den Import im Verlauf ein." Classes="muted" TextWrapping="Wrap" />
+                    <TextBlock x:Name="ImportDryRun" Text="{Binding DryRunText}" IsVisible="{Binding HasDryRun}" TextWrapping="Wrap" />
+                    <ProgressBar x:Name="ImportProgress" IsIndeterminate="True" IsVisible="{Binding IsBusy}" AutomationProperties.Name="Der Import läuft" />
+                  </StackPanel>
+                </StackPanel>
+              </ScrollViewer>
+              <StackPanel x:Name="DialogButtons" Grid.Row="2" Classes="confirmbuttons">
+                <Button x:Name="ConfirmButton" Classes="primary" Content="{Binding ContinueText}" Command="{Binding ContinueCommand}" />
+                <Button x:Name="CheckButton" Content="Nur prüfen" Command="{Binding CheckCommand}" IsVisible="{Binding IsRunStep}" />
+                <Button x:Name="BackButton" Classes="ghost" Content="Zurück" Command="{Binding BackCommand}" IsVisible="{Binding CanGoBack}" />
+                <Button x:Name="CancelButton" Classes="ghost" Content="{Binding CancelText}" Command="{Binding CancelCommand}" />
+              </StackPanel>
+            </Grid>
+          </Border>
+        </Panel>
+      </DataTemplate>
+      <!-- Terminliste exportieren (Export/Import, Aufgabe C): derselbe Dialog mit Zeitraum und Format; „Exportieren“ prüft den Zeitraum und bleibt bei einem Fehler offen -->
+      <DataTemplate DataType="vm:AppointmentListDialogViewModel" x:DataType="vm:AppointmentListDialogViewModel">
+        <Panel>
+          <Border x:Name="Scrim" Background="{DynamicResource ScrimBrush}" />
+          <Border x:Name="DialogCard" Classes="confirmdialog" AutomationProperties.Name="{Binding Title}" KeyboardNavigation.TabNavigation="Cycle">
+            <StackPanel Spacing="8">
+              <TextBlock x:Name="DialogTitle" Classes="h2" Text="{Binding Title}" TextWrapping="Wrap" />
+              <TextBlock x:Name="DialogMessage" Text="{Binding Message}" TextWrapping="Wrap" />
+              <Grid ColumnDefinitions="*,*" ColumnSpacing="12" Margin="0,8,0,0">
+                <ui:FormField Label="Von">
+                  <ui:DateField x:Name="ListFromField" Value="{Binding From}" />
+                </ui:FormField>
+                <ui:FormField Grid.Column="1" Label="Bis" Error="{Binding Error}">
+                  <ui:DateField x:Name="ListUntilField" Value="{Binding Until}" />
+                </ui:FormField>
+              </Grid>
+              <StackPanel Orientation="Horizontal" Spacing="16" Margin="0,4,0,0">
+                <RadioButton x:Name="ListExcel" GroupName="AppointmentListFormat" Content="Excel" IsChecked="{Binding IsExcel}" />
+                <RadioButton x:Name="ListCsv" GroupName="AppointmentListFormat" Content="CSV" IsChecked="{Binding IsCsv}" />
+              </StackPanel>
+              <StackPanel x:Name="DialogButtons" Classes="confirmbuttons">
+                <Button x:Name="ConfirmButton" Classes="primary" Content="{Binding ConfirmText}" Command="{Binding ExportCommand}" />
                 <Button x:Name="CancelButton" Classes="ghost" Content="{Binding CancelText}" Command="{Binding CancelCommand}" />
               </StackPanel>
             </StackPanel>

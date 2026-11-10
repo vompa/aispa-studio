@@ -57,8 +57,11 @@ public interface IAispaApi
     /// <summary>Rohdaten, z. B. ESC/POS-Befehle für den Bondrucker.</summary>
     Task<ApiResult<byte[]>> GetBytesAsync(string path, CancellationToken ct = default);
 
-    /// <summary>Eine Datei mit Namen, z. B. ein PDF der Dokumente (ADR 0091); der Dateiname kommt aus <c>Content-Disposition</c>.</summary>
+    /// <summary>Eine Datei zum Speichern (Export): Inhalt und der Dateiname, den der Server im <c>Content-Disposition</c> vorgibt.</summary>
     Task<ApiResult<ApiFile>> GetFileAsync(string path, CancellationToken ct = default);
+
+    /// <summary>Wie <see cref="GetFileAsync"/>, aber als POST mit Rumpf (z. B. <c>multipart/form-data</c> mit der Importdatei); die Antwort ist eine Datei.</summary>
+    Task<ApiResult<ApiFile>> PostFileAsync(string path, HttpContent body, CancellationToken ct = default);
 
     /// <summary>Liefert die Adresse eine HTML-Seite (z. B. <c>/anmelden/</c> im Einzelplatz)? Ohne Verbindung oder bei einer anderen Antwort <c>false</c>.</summary>
     Task<bool> IsPageAsync(Uri address, CancellationToken ct = default);

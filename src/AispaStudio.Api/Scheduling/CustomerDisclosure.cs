@@ -6,7 +6,7 @@ using AispaStudio.Contracts;
 namespace AispaStudio.Api.Scheduling;
 
 /// <summary>
-/// Datenschutz-Auskunft nach Art. 15 DSGVO als PDF (PDF-Ausgaben C, ADR 0091): Stammdaten, Kontakt, Wünsche und Vermerke, alle Termine mit Status, Zahlungen, Gutscheine
+/// Datenschutz-Auskunft nach Art. 15 DSGVO als PDF (PDF-Ausgaben C, ADR 0092): Stammdaten, Kontakt, Wünsche und Vermerke, alle Termine mit Status, Zahlungen, Gutscheine
 /// auf den Namen, Online-Konto, die Gesundheitsangaben und der Verlauf der Änderungen. Die Anamnese steht nur drin, wenn die aufrufende Person sie in der App sehen darf
 /// (<see cref="AccessRight.ViewHealthData"/>); sonst steht ein fester Satz, dass sie vorhanden ist und die Leitung Auskunft gibt.
 /// </summary>
@@ -41,7 +41,7 @@ internal static class CustomerDisclosure
     {
         var customer = data.Customer;
         var zone = header.Zone;
-        var pdf = new DocumentBuilder(DocumentFormat.A4Portrait, header);
+        var pdf = new DocumentBuilder(PaperFormat.A4Portrait, header);
         pdf.Title("Auskunft über gespeicherte Daten");
         pdf.Paragraph($"Auskunft nach Art. 15 DSGVO für {customer.LegalName}. Sie zeigt alle Daten, die {header.SpaName} zu dieser Person gespeichert hat.", muted: true);
         pdf.Heading("Stammdaten");

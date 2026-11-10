@@ -59,7 +59,19 @@ public partial class PosViewModel
     public bool IsClosing => Mode == PosMode.Closing;
 
     /// <summary>Inhaber und Manager: nur sie stornieren einen Anzahlungsbeleg (ADR 0073, Ä51). Die Shell setzt es aus der Rolle; der Server prüft es ebenso.</summary>
-    public bool OwnerLevel { get; set; }
+    public bool OwnerLevel
+    {
+        get => _ownerLevel;
+        set
+        {
+            if (SetProperty(ref _ownerLevel, value))
+            {
+                OnPropertyChanged(nameof(Export));
+            }
+        }
+    }
+
+    private bool _ownerLevel;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(SelectedReceipt), nameof(VoidDisabledHint))]
@@ -108,7 +120,7 @@ public partial class PosViewModel
     [ObservableProperty]
     public partial bool MovementIsWithdrawal { get; set; }
 
-    /// <summary>Knopfblock „Drucken · PDF speichern“ (ADR 0091) für den eben gespeicherten Tagesabschluss; null beim Zwischenbericht. Ohne Senden: der Abschluss wird abgeheftet.</summary>
+    /// <summary>Knopfblock „Drucken · PDF speichern“ (ADR 0092) für den eben gespeicherten Tagesabschluss; null beim Zwischenbericht. Ohne Senden: der Abschluss wird abgeheftet.</summary>
     [ObservableProperty]
     public partial DocumentActionsViewModel? ClosingDocument { get; private set; }
 

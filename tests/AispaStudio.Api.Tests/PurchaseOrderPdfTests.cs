@@ -4,7 +4,7 @@ using AispaStudio.Contracts;
 namespace AispaStudio.Api.Tests;
 
 /// <summary>
-/// Bestellung an den Lieferanten als PDF (PDF-Ausgaben F, ADR 0091): Lieferant, Lieferadresse, Positionen mit Menge, Einheit, Einzelpreis und Summe, Gesamtsumme netto, erwartete Lieferung
+/// Bestellung an den Lieferanten als PDF (PDF-Ausgaben F, ADR 0092): Lieferant, Lieferadresse, Positionen mit Menge, Einheit, Einzelpreis und Summe, Gesamtsumme netto, erwartete Lieferung
 /// (aus der Lieferzeit des Lieferanten) und Hinweis. Recht wie die Bestellungen (<c>ManageLocation</c>), fremder Mandant 404. Das Senden prüft <see cref="PurchaseOrderSendTests"/>.
 /// </summary>
 public sealed class PurchaseOrderPdfTests(ApiFixture fixture)

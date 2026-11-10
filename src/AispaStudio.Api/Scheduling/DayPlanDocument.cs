@@ -5,7 +5,7 @@ using AispaStudio.Contracts;
 namespace AispaStudio.Api.Scheduling;
 
 /// <summary>
-/// Tagesplan eines Standorts als PDF (PDF-Ausgaben E, ADR 0091): A4 quer, eine Spalte je Person oder je Raum. Die Tabelle hat eine Zeile je Beginn; in der Zelle steht der Termin mit
+/// Tagesplan eines Standorts als PDF (PDF-Ausgaben E, ADR 0092): A4 quer, eine Spalte je Person oder je Raum. Die Tabelle hat eine Zeile je Beginn; in der Zelle steht der Termin mit
 /// Zeit, Gast, Behandlung und Status, Pausen und Sperrzeiten stehen grau hinterlegt. Stornierte Termine fehlen. Die Fußnote nennt, wie viele Personen auf der Warteliste stehen.
 /// </summary>
 internal static class DayPlanDocument
@@ -24,7 +24,7 @@ internal static class DayPlanDocument
     public static byte[] Build(Data data, DocumentHeader header)
     {
         var zone = header.Zone;
-        var pdf = new DocumentBuilder(DocumentFormat.A4Landscape, header);
+        var pdf = new DocumentBuilder(PaperFormat.A4Landscape, header);
         pdf.Title($"Tagesplan {data.Date.ToString("dddd, dd.MM.yyyy", German)}");
         var appointments = data.Entries.Count(e => !e.IsBlock);
         pdf.Paragraph($"{(data.View == DayPlanColumns.Rooms ? "Nach Räumen" : "Nach Team")} · {appointments} {(appointments == 1 ? "Termin" : "Termine")}", muted: true);

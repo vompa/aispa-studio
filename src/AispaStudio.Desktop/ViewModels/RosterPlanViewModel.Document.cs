@@ -4,7 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace AispaStudio.Desktop.ViewModels;
 
-// ---------- Dienstplan-Aushang als PDF (PDF-Ausgaben F, ADR 0091) ----------
+// ---------- Dienstplan-Aushang als PDF (PDF-Ausgaben F, ADR 0092) ----------
 public sealed partial class RosterPlanViewModel
 {
     private bool _documentOpen;

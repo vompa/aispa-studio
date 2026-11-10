@@ -8,7 +8,7 @@ using Avalonia.VisualTree;
 namespace AispaStudio.Desktop.Tests;
 
 /// <summary>
-/// PDF-Ausgaben E (ADR 0091): „Tagesplan drucken …“ im Menü „+ Termin“ des Kalenders (mit der Wahl Team oder Räume), der Knopfblock in der Wartelisten-Leiste, „Stammblatt als PDF“
+/// PDF-Ausgaben E (ADR 0092): „Tagesplan drucken …“ im Menü „+ Termin“ des Kalenders (mit der Wahl Team oder Räume), der Knopfblock in der Wartelisten-Leiste, „Stammblatt als PDF“
 /// im Menü der Kundenkarte und die Knopfblöcke zu den Gutscheinen unter dem Beleg in der Kassa.
 /// </summary>
 public sealed partial class ViewTests

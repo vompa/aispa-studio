@@ -449,7 +449,7 @@ public partial class PosViewModel : ViewModelBase
     public ObservableCollection<PaymentEntry> Payments { get; } = [];
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(Currency))]
+    [NotifyPropertyChangedFor(nameof(Currency), nameof(Export))]
     public partial CashRegisterDto? Register { get; set; }
 
     [ObservableProperty]
@@ -1391,7 +1391,7 @@ public partial class PosViewModel : ViewModelBase
     [RelayCommand]
     private void CloseReceipt() => Receipt = null;
 
-    /// <summary>Beleg mit Knopfblock „Drucken · PDF speichern · Per Mail senden“ (ADR 0091); der Nachdruck aus der Belegliste trägt „Kopie“.</summary>
+    /// <summary>Beleg mit Knopfblock „Drucken · PDF speichern · Per Mail senden“ (ADR 0092); der Nachdruck aus der Belegliste trägt „Kopie“.</summary>
     internal ReceiptViewModel ReceiptFor(ReceiptDto receipt, bool copy) => new(receipt, Zone, Register?.Country ?? FiscalCountry.AT, OwnerLevel)
     {
         Document = new DocumentActionsViewModel(ReceiptDocumentSource(receipt, copy), _api, Dialogs) { ShowToast = ShowToast },
@@ -1523,10 +1523,10 @@ public sealed class ReceiptViewModel(ReceiptDto receipt, TimeZoneInfo zone, Fisc
 {
     public ReceiptDto Receipt { get; } = receipt;
 
-    /// <summary>Knopfblock „Drucken · PDF speichern · Per Mail senden“ (ADR 0091); null in Masken ohne Knopfblock.</summary>
+    /// <summary>Knopfblock „Drucken · PDF speichern · Per Mail senden“ (ADR 0092); null in Masken ohne Knopfblock.</summary>
     public DocumentActionsViewModel? Document { get; init; }
 
-    /// <summary>Je mit diesem Beleg verkauftem Gutschein ein Knopfblock für das Geschenk-PDF (PDF-Ausgaben E, ADR 0091).</summary>
+    /// <summary>Je mit diesem Beleg verkauftem Gutschein ein Knopfblock für das Geschenk-PDF (PDF-Ausgaben E, ADR 0092).</summary>
     public IReadOnlyList<VoucherDocumentItem> VoucherDocuments { get; init; } = [];
 
     /// <summary>Vermerke „Per Mail gesendet an … am … von …“, damit die Rezeption Doppelsendungen sieht.</summary>

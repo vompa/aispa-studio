@@ -4,7 +4,7 @@ using AispaStudio.Contracts;
 namespace AispaStudio.Api.Tests;
 
 /// <summary>
-/// Warteliste eines Tages als PDF (PDF-Ausgaben E, ADR 0091): Gast, Telefon, Wunsch, Zeitraum und Stand der offenen Wünsche, die an dem Tag gelten. Recht wie die Liste im
+/// Warteliste eines Tages als PDF (PDF-Ausgaben E, ADR 0092): Gast, Telefon, Wunsch, Zeitraum und Stand der offenen Wünsche, die an dem Tag gelten. Recht wie die Liste im
 /// Kalender (<c>ViewCalendar</c>), fremder Mandant 404. Erwartete Texte stehen von Hand in den Tests.
 /// </summary>
 public sealed class WaitlistPdfTests(ApiFixture fixture)

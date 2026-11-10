@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore;
 namespace AispaStudio.Api.TimeTracking;
 
 /// <summary>
-/// Stundenliste einer Person als PDF (PDF-Ausgaben F, ADR 0091). Recht wie die Zeiten (<c>ManageLocation</c> oder Personalunterlagen); die Standorte der Person prüft der Filter über die Route,
+/// Stundenliste einer Person als PDF (PDF-Ausgaben F, ADR 0092). Recht wie die Zeiten (<c>ManageLocation</c> oder Personalunterlagen); die Standorte der Person prüft der Filter über die Route,
 /// eine fremde Person ist „nicht gefunden“. Die Zahlen rechnet <see cref="TimeTrackingEndpoints.RowsAsync"/>, dieselbe Rechnung wie die Zeiten-Maske, mit denselben Standorten, die die
 /// angemeldete Person sehen darf. Kein Versand: die Liste wird unterschrieben und abgeheftet.
 /// </summary>

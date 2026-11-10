@@ -12,7 +12,7 @@ using Wolverine;
 namespace AispaStudio.Api.Stock;
 
 /// <summary>
-/// Bestellung als PDF und per Mail an den Lieferanten (PDF-Ausgaben F, ADR 0091). Recht wie die Bestellungen (<c>ManageLocation</c>); den Standort der Bestellung prüft der Filter über die Route,
+/// Bestellung als PDF und per Mail an den Lieferanten (PDF-Ausgaben F, ADR 0092). Recht wie die Bestellungen (<c>ManageLocation</c>); den Standort der Bestellung prüft der Filter über die Route,
 /// eine fremde Bestellung ist „nicht gefunden“. Das Senden braucht wie „Bestellen und senden“ die Vollmacht „Bestellungen auslösen“ (<see cref="StaffPowerCheck"/>) und ändert den Stand der
 /// Bestellung nicht („bestellt“ bleibt ein eigener Schritt); nach dem Versand steht der Vermerk in
 /// <see cref="SentDocuments"/> (Art purchase-order) und an der Bestellung (<see cref="PurchaseOrderDto.SentMails"/>).

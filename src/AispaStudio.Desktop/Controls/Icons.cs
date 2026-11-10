@@ -69,10 +69,10 @@ public static class Icons
     /// <summary>Anrede Herr (♂).</summary>
     public const string Male = "M10 9a5 5 0 1 1 0 10a5 5 0 0 1 0-10zM13.5 10.5L20 4M15 4h5v5";
 
-    /// <summary>Icon zur Anrede aus dem Textzeichen ♀/♂; null ohne Anrede.</summary>
-    /// <summary>„PDF speichern“ im Knopfblock der Dokumente (ADR 0091).</summary>
-    public const string Download = "M12 4v11M7 10l5 5 5-5M4 19h16";
+    /// <summary>„PDF speichern“ im Knopfblock der Dokumente (ADR 0092).</summary>
+    public const string SavePdf = "M12 4v11M7 10l5 5 5-5M4 19h16";
 
+    /// <summary>Icon zur Anrede aus dem Textzeichen ♀/♂; null ohne Anrede.</summary>
     public static string? Salutation(string? symbol) => symbol switch
     {
         "♀" => Female,
@@ -150,6 +150,9 @@ public static class Icons
 
     /// <summary>Kalender mit Lupe: „Freie Zeit suchen“ neben „+ Termin“ im Kalenderkopf.</summary>
     public const string CalendarSearch = "M8 2v4M16 2v4M3 10h18M21 11.75V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h7.25M18 15a3 3 0 1 1 0 6a3 3 0 0 1 0-6zM22 22l-1.9-1.9";
+
+    /// <summary>Pfeil in die Ablage: Knopf „Exportieren“.</summary>
+    public const string Download = "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3";
 
     /// <summary>Schraubenschlüssel: Gerät in der Konfliktmeldung.</summary>
     public const string Wrench = "M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z";

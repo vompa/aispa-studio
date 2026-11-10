@@ -11,7 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace AispaStudio.Api.Tests;
 
 /// <summary>
-/// Bestellung per Mail an den Lieferanten (PDF-Ausgaben F, ADR 0091): Vorbelegung mit der Mailadresse des Lieferanten und dem Betreff „Bestellung … vom …“, Senden über die Queue mit
+/// Bestellung per Mail an den Lieferanten (PDF-Ausgaben F, ADR 0092): Vorbelegung mit der Mailadresse des Lieferanten und dem Betreff „Bestellung … vom …“, Senden über die Queue mit
 /// dem PDF als Anhang, ungültige Adresse 400. Das Senden ändert den Stand der Bestellung nicht: „bestellt“ bleibt ein eigener Schritt in der Maske.
 /// </summary>
 public sealed class PurchaseOrderSendTests(ApiFixture fixture)

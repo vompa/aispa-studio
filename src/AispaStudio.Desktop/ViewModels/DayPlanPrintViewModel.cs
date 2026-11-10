@@ -5,7 +5,7 @@ using CommunityToolkit.Mvvm.Input;
 namespace AispaStudio.Desktop.ViewModels;
 
 /// <summary>
-/// „Tagesplan drucken …“ (PDF-Ausgaben E, ADR 0091): wählt, ob der Plan je Person (Team) oder je Raum gedruckt wird, und trägt den Knopfblock „Drucken · PDF speichern“ für diese Wahl.
+/// „Tagesplan drucken …“ (PDF-Ausgaben E, ADR 0092): wählt, ob der Plan je Person (Team) oder je Raum gedruckt wird, und trägt den Knopfblock „Drucken · PDF speichern“ für diese Wahl.
 /// Den Plan rechnet die API (<c>GET /api/locations/{id}/day-plan/pdf</c>); die App kennt nur den Pfad. Ohne Senden: der Plan hängt aus oder liegt am Empfang.
 /// </summary>
 public sealed partial class DayPlanPrintViewModel : ObservableObject

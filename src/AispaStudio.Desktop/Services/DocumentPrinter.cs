@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 
 namespace AispaStudio.Desktop.Services;
 
-/// <summary>Druckt ein PDF auf dem Standarddrucker von Windows; die Windows-App geht über die Shell, Tests antworten selbst (ADR 0091).</summary>
+/// <summary>Druckt ein PDF auf dem Standarddrucker von Windows; die Windows-App geht über die Shell, Tests antworten selbst (ADR 0092).</summary>
 public interface IDocumentPrinter
 {
     /// <summary>Gibt das PDF an den Standarddrucker; null, wenn es unterwegs ist, sonst die Meldung für den Toast („Kein Drucker eingerichtet“).</summary>

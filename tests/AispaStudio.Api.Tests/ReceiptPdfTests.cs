@@ -4,7 +4,7 @@ using AispaStudio.Contracts;
 namespace AispaStudio.Api.Tests;
 
 /// <summary>
-/// Beleg und Rechnung als PDF (PDF-Ausgaben B, ADR 0091): A4 mit Positionen, Summe, Zahlart und RKSV-QR, Bon-Format 80 mm, Rechnung mit Empfängerzeile,
+/// Beleg und Rechnung als PDF (PDF-Ausgaben B, ADR 0092): A4 mit Positionen, Summe, Zahlart und RKSV-QR, Bon-Format 80 mm, Rechnung mit Empfängerzeile,
 /// Nachdruck als Kopie, Stornobeleg gekennzeichnet; Recht <c>ViewReceipts</c>, fremder Mandant 404. Erwartete Texte stehen von Hand in den Tests.
 /// </summary>
 public sealed class ReceiptPdfTests(ApiFixture fixture)

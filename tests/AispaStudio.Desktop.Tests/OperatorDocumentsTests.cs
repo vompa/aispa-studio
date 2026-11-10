@@ -6,7 +6,7 @@ using static AispaStudio.Desktop.Tests.StockSample;
 namespace AispaStudio.Desktop.Tests;
 
 /// <summary>
-/// PDF-Ausgaben F (ADR 0091): Die Masken des Betreibers tragen den Knopfblock für ihr Dokument: Dienstplan („Aushang als PDF“), Zeiten einer Person („Stundenliste als PDF“), Inventur
+/// PDF-Ausgaben F (ADR 0092): Die Masken des Betreibers tragen den Knopfblock für ihr Dokument: Dienstplan („Aushang als PDF“), Zeiten einer Person („Stundenliste als PDF“), Inventur
 /// („Zählliste“ und „Inventurliste“), Bestellungen (mit Senden an den Lieferanten und dem Vermerk „Gesendet am … an …“) und die Ablauf-Aufgaben („Ablaufliste als PDF“). Den Inhalt der PDFs
 /// prüft die API (<c>RosterPdfTests</c>, <c>TimesheetPdfTests</c>, <c>StockCountPdfTests</c>, <c>PurchaseOrderPdfTests</c>, <c>PurchaseOrderSendTests</c>, <c>ExpiringStockPdfTests</c>).
 /// </summary>

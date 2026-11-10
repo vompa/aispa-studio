@@ -5,7 +5,7 @@ using AispaStudio.Contracts;
 namespace AispaStudio.Api.Roster;
 
 /// <summary>
-/// Dienstplan-Aushang als PDF (PDF-Ausgaben F, ADR 0091): A4 quer, eine Zeile je Person und eine Spalte je Tag der Woche mit Diensten (Zeit, bei einem anderen Standort mit dessen Namen), Abwesenheiten
+/// Dienstplan-Aushang als PDF (PDF-Ausgaben F, ADR 0092): A4 quer, eine Zeile je Person und eine Spalte je Tag der Woche mit Diensten (Zeit, bei einem anderen Standort mit dessen Namen), Abwesenheiten
 /// (grau hinterlegt) und der Notiz des Tages, dazu die Wochenstunden. Es gilt der veröffentlichte Stand; Entwürfe stehen nicht darauf. Die Kopfzeile nennt, wann der Plan zuletzt veröffentlicht wurde.
 /// </summary>
 internal static class RosterDocument
@@ -27,7 +27,7 @@ internal static class RosterDocument
     public static byte[] Build(Data data, DocumentHeader header)
     {
         var until = data.From.AddDays(6);
-        var pdf = new DocumentBuilder(DocumentFormat.A4Landscape, header);
+        var pdf = new DocumentBuilder(PaperFormat.A4Landscape, header);
         pdf.Title($"Dienstplan {data.From.ToString("dd.MM.", German)} – {DocumentBuilder.Date(until)}");
         pdf.Paragraph(data.PublishedAt is { } at ? $"{data.LocationName} · Veröffentlicht am {DocumentBuilder.DateTime(at, header.Zone)}" : data.LocationName, muted: true);
         if (data.Rows.Count == 0)

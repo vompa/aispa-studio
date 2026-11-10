@@ -12,6 +12,7 @@
     <PackageReference Include="Anthropic" />
     <PackageReference Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL" />
     <PackageReference Include="AspNet.Security.OAuth.Apple" />
+    <PackageReference Include="ClosedXML" />
     <PackageReference Include="MailKit" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" />
     <PackageReference Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" />
@@ -43,7 +44,7 @@
     <InternalsVisibleTo Include="AispaStudio.Api.Tests" />
   </ItemGroup>
 
-  <!-- Eingebettete Schrift der PDF-Dokumente (Liberation Sans, SIL OFL 1.1; ADR 0091), gelesen von Documents/DocumentFonts.cs. -->
+  <!-- Eingebettete Schrift der PDF-Dokumente (Liberation Sans, SIL OFL 1.1; ADR 0092), gelesen von Documents/DocumentFonts.cs. -->
   <ItemGroup>
     <EmbeddedResource Include="Documents\Fonts\*.ttf" LogicalName="Fonts/%(Filename)%(Extension)" />
   </ItemGroup>

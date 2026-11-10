@@ -7,7 +7,7 @@ using static AispaStudio.Desktop.Tests.StockSample;
 namespace AispaStudio.Desktop.Tests;
 
 /// <summary>
-/// PDF-Ausgaben F (ADR 0091): „Aushang als PDF“ im Wochenplan, „Stundenliste als PDF“ auf der Karte einer Person, „Zählliste drucken …“ in der Inventur, der Knopfblock mit Vermerk
+/// PDF-Ausgaben F (ADR 0092): „Aushang als PDF“ im Wochenplan, „Stundenliste als PDF“ auf der Karte einer Person, „Zählliste drucken …“ in der Inventur, der Knopfblock mit Vermerk
 /// „Gesendet am … an …“ in der Bestellung und „Ablaufliste als PDF“ in den Ablauf-Aufgaben, als Inhaberin im Fenster (hell; der Wochenplan auch dunkel). Den Inhalt der PDFs prüft die API.
 /// </summary>
 public sealed partial class ViewTests

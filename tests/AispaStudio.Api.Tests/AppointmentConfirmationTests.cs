@@ -5,7 +5,7 @@ using AispaStudio.Contracts;
 namespace AispaStudio.Api.Tests;
 
 /// <summary>
-/// Terminbestätigung als PDF und per Mail (PDF-Ausgaben C, ADR 0091): Gast, Tag, Uhrzeit, Dauer, Person nur mit Vorname, Standort mit Adresse, Preis, Stornofrist und
+/// Terminbestätigung als PDF und per Mail (PDF-Ausgaben C, ADR 0092): Gast, Tag, Uhrzeit, Dauer, Person nur mit Vorname, Standort mit Adresse, Preis, Stornofrist und
 /// „Was mitbringen“; bei einer Gruppenbuchung alle Teile; der Versand legt die Mail mit dem PDF in die Queue und steht danach im Verlauf des Termins; fremder Mandant 404.
 /// </summary>
 public sealed class AppointmentConfirmationTests(ApiFixture fixture)

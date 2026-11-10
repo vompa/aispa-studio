@@ -29,8 +29,13 @@ gebunden und lassen sich durch eigene Fassungen ersetzen; ihr Quelltext steht un
 - Avalonia.Win32 12.1.4 (NuGet): Copyright 2013-2026 © The AvaloniaUI Project; https://avaloniaui.net/?utm_source=nuget&utm_medium=referral&utm_content=project_homepage_link
 - Avalonia.X11 12.1.4 (NuGet): Copyright 2013-2026 © The AvaloniaUI Project; https://avaloniaui.net/?utm_source=nuget&utm_medium=referral&utm_content=project_homepage_link
 - BouncyCastle.Cryptography 2.7.0 (NuGet): Copyright © Legion of the Bouncy Castle Inc. 2000-2026; https://www.bouncycastle.org/stable/nuget/csharp/website
+- ClosedXML 0.105.1 (NuGet): Jan Havlíček, Francois Botha, Aleksei Pankratev, Manuel de Leon, Amir Ghezelbash; https://github.com/ClosedXML/ClosedXML
+- ClosedXML.Parser 2.0.0 (NuGet): Jan Havlíček; https://github.com/ClosedXML/ClosedXML.Parser
 - CommunityToolkit.Mvvm 8.4.2 (NuGet): (c) .NET Foundation and Contributors. All rights reserved.; https://github.com/CommunityToolkit/dotnet
 - Cronos 0.11.0 (NuGet): Copyright © 2016–2025 Hangfire OÜ.; https://github.com/HangfireIO/Cronos
+- DocumentFormat.OpenXml 3.1.1 (NuGet): © Microsoft Corporation. All rights reserved.; https://github.com/dotnet/Open-XML-SDK
+- DocumentFormat.OpenXml.Framework 3.1.1 (NuGet): © Microsoft Corporation. All rights reserved.; https://github.com/dotnet/Open-XML-SDK
+- ExcelNumberFormat 1.1.0 (NuGet): ExcelNumberFormat developers; https://github.com/andersnm/ExcelNumberFormat
 - FastExpressionCompiler 5.4.1 (NuGet): Copyright © 2016-2026 Maksim Volkau; https://github.com/dadhi/FastExpressionCompiler
 - HarfBuzzSharp 8.3.1.3 (NuGet): © Microsoft Corporation. All rights reserved.; https://go.microsoft.com/fwlink/?linkid=868515
 - HarfBuzzSharp.NativeAssets.Linux 8.3.1.3 (NuGet): © Microsoft Corporation. All rights reserved.; https://go.microsoft.com/fwlink/?linkid=868515
@@ -124,6 +129,7 @@ gebunden und lassen sich durch eigene Fassungen ersetzen; ihr Quelltext steht un
 - Pipelines.Sockets.Unofficial 2.2.8 (NuGet): Marc Gravell 2018; https://github.com/mgravell/Pipelines.Sockets.Unofficial
 - punycode 2.3.1 (npm): Mathias Bynens; https://mths.be/punycode
 - QRCoder 1.8.0 (NuGet): Copyright © 2013-2025 Raffael Herrmann. Copyright © 2024-2025 Shane Krueger. All rights reserved.; https://licenses.nuget.org/MIT
+- RBush.Signed 4.0.0 (NuGet): Copyright © 2017-2024 Turning Code, LLC (and others); https://licenses.nuget.org/MIT
 - SkiaSharp 3.119.4 (NuGet): © Microsoft Corporation. All rights reserved.; https://go.microsoft.com/fwlink/?linkid=868515
 - SkiaSharp.NativeAssets.Linux 3.119.4 (NuGet): © Microsoft Corporation. All rights reserved.; https://go.microsoft.com/fwlink/?linkid=868515
 - SkiaSharp.NativeAssets.macOS 3.119.4 (NuGet): © Microsoft Corporation. All rights reserved.; https://go.microsoft.com/fwlink/?linkid=868515
@@ -141,6 +147,7 @@ gebunden und lassen sich durch eigene Fassungen ersetzen; ihr Quelltext steht un
 - System.Composition.TypedParts 9.0.0 (NuGet): © Microsoft Corporation. All rights reserved.; https://dot.net/
 - System.Drawing.Common 6.0.0 (NuGet): © Microsoft Corporation. All rights reserved.; https://dot.net/
 - System.IdentityModel.Tokens.Jwt 8.14.0 (NuGet): © Microsoft Corporation. All rights reserved.; https://github.com/AzureAD/azure-activedirectory-identitymodel-extensions-for-dotnet
+- System.IO.Packaging 8.0.1 (NuGet): © Microsoft Corporation. All rights reserved.; https://dot.net/
 - System.Security.Cryptography.Pkcs 10.0.13 (NuGet): © Microsoft Corporation. All rights reserved.; https://dot.net/
 - System.Security.Cryptography.ProtectedData 10.0.13 (NuGet): © Microsoft Corporation. All rights reserved.; https://dot.net/
 - Tmds.DBus.Protocol 0.94.1 (NuGet): Tom Deseyn; https://licenses.nuget.org/MIT
@@ -186,6 +193,7 @@ USE OR OTHER DEALINGS IN THE SOFTWARE.
 - OpenTelemetry.Instrumentation.AspNetCore 1.20.1 (NuGet): Copyright The OpenTelemetry Authors; https://opentelemetry.io/
 - OpenTelemetry.Instrumentation.Http 1.20.1 (NuGet): Copyright The OpenTelemetry Authors; https://opentelemetry.io/
 - OpenTelemetry.Instrumentation.Runtime 1.20.1 (NuGet): Copyright The OpenTelemetry Authors; https://opentelemetry.io/
+- SixLabors.Fonts 1.0.0 (NuGet): Copyright © Six Labors; https://github.com/SixLabors/Fonts
 - System.Linq.Dynamic.Core 1.7.4 (NuGet): Copyright © ZZZ Projects; https://dynamic-linq.net/
 
 ```text

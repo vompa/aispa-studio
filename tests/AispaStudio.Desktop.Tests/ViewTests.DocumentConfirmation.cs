@@ -7,7 +7,7 @@ using Avalonia.VisualTree;
 namespace AispaStudio.Desktop.Tests;
 
 /// <summary>
-/// PDF-Ausgaben C (ADR 0091): Im Termin-Panel steht hinter „Mehr“ der Eintrag „Bestätigung …“, der den Knopfblock mit Drucken, Speichern und Senden öffnet; in der Kundenkarte
+/// PDF-Ausgaben C (ADR 0092): Im Termin-Panel steht hinter „Mehr“ der Eintrag „Bestätigung …“, der den Knopfblock mit Drucken, Speichern und Senden öffnet; in der Kundenkarte
 /// steht im Menü „…“ der Eintrag „Auskunft als PDF“, der den Knopfblock ohne Senden öffnet.
 /// </summary>
 public sealed partial class ViewTests

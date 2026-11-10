@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 namespace AispaStudio.Api.Roster;
 
 /// <summary>
-/// Dienstplan-Aushang eines Standorts als PDF (PDF-Ausgaben F, ADR 0091). Recht Leitung (<c>ManageLocation</c>); den Standort prüft der Mandantenfilter, ein fremder ist „nicht gefunden“. Der Aushang
+/// Dienstplan-Aushang eines Standorts als PDF (PDF-Ausgaben F, ADR 0092). Recht Leitung (<c>ManageLocation</c>); den Standort prüft der Mandantenfilter, ein fremder ist „nicht gefunden“. Der Aushang
 /// zeigt nur den veröffentlichten Stand und nur Einträge an Standorten, die die angemeldete Person sehen darf (wie die Wochenansicht). Kein Versand: der Plan hängt aus.
 /// </summary>
 internal static class RosterDocumentEndpoints

@@ -14,7 +14,7 @@ Beim Rundenabschluss wird geprüft, dass jede Aufgabe der Runde einen vollständ
 
 ## Blöcke
 
-Ohne Block, weil die Aufgabe nichts Sichtbares ändert: T-013 (Entscheidung, nur Doku), T-014 (Entscheidung, keine Änderung), T-016 (Sichtung der zurückgestellten Kleinigkeiten), T-030 (CI-Zeitlimits), T-033 (Beispieldaten und Test), T-034 (Werkzeug knip, unbenutztes Paket entfernt), T-035 (Skill und Doku), T-040 (ADR und Konzept, nur Doku).
+Ohne Block, weil die Aufgabe nichts Sichtbares ändert: T-013 (Entscheidung, nur Doku), T-014 (Entscheidung, keine Änderung), T-016 (Sichtung der zurückgestellten Kleinigkeiten), T-030 (CI-Zeitlimits), T-033 (Beispieldaten und Test), T-034 (Werkzeug knip, unbenutztes Paket entfernt), T-035 (Skill und Doku), T-040 (ADR und Konzept, nur Doku), Export/Import Aufgabe A (Export-Dienst, Knopf ohne Seite; der Knopf ist im Block „Export/Import B“ geprüft).
 
 ### T-015 – Keine Stempeluhr in „Mein Tag“, Zeiten trägt die Leitung ein
 Start: Browser in Handybreite (z. B. 390 px), die Adresse des Spas mit `/mein-tag/` öffnen, als Mitarbeiterin (Therapeutin) anmelden
@@ -653,6 +653,86 @@ Expected: Beide erscheinen wie bisher und sind lesbar.
 Closes: B8 (live-sichtpruefung-2026-11-09.md)
 Result: ☐
 
+### Export/Import B – Kunden exportieren und Werbe-Einwilligung am Gast
+Start: `dotnet run --project src/AispaStudio.AppHost`, im Aspire-Dashboard die Ressource `windows-app` starten, als Inhaberin anmelden und **Kunden** öffnen
+1. Im Suchfeld „hu“ eingeben, im Kopf **Exportieren** › **Excel** wählen und speichern.
+Expected: Der Speicherdialog schlägt `Kunden_<Datum>.xlsx` vor; unten steht kurz „Gespeichert: Kunden_<Datum>.xlsx“. In Excel stehen nur die Treffer der Suche, Kopfzeile fett mit Filter, Geburtstag als Datum; es gibt die Spalte „Vermerk“, aber keine Wünsche, Gesundheit, Rabatt oder Rechnung.
+2. **Exportieren** › **CSV** speichern und die Datei in Excel per Doppelklick öffnen.
+Expected: Umlaute sind richtig, die Spalten sind getrennt (Strichpunkt), das Datum steht als TT.MM.JJJJ.
+3. **Exportieren** › **vCard** speichern und die Datei in Outlook (oder Kontakte) importieren.
+Expected: Je Gast ein Kontakt mit Name, Telefon, E-Mail, Geburtstag und Anschrift.
+4. Einen Gast wählen, im Menü **…** › **Kontakt als vCard** wählen und die Datei öffnen.
+Expected: Outlook zeigt den einen Kontakt; der Dateiname ist `Kontakt_<Nachname>.vcf`.
+5. In der Karte im Abschnitt **Werbung per Mail** den Stift klicken, **Ja** wählen, **Speichern** klicken und in der Rückfrage „Hat der Gast zugestimmt?“ **Erfassen** wählen.
+Expected: Die Rückfrage nennt die Newsletter-Liste und „mündlich oder schriftlich zugestimmt“; danach zeigt der Abschnitt „Ja, am Empfang erfasst am <heute> von <Name>“, unten steht kurz „Werbe-Einwilligung gespeichert“; unter **Änderungen** steht „Werbe-Einwilligung: ja von <Name>“.
+6. Die Suche leeren und **Exportieren** › **Newsletter-Liste** speichern.
+Expected: Die Datei enthält nur Gäste mit „Ja“, Spalten E-Mail, Vorname, Nachname, Sprache, Anrede.
+7. **Exportieren** › **Portal-CSV** speichern und im Editor öffnen.
+Expected: Erste Zeile `First name,Last name,Email,Mobile,Date of birth,Notes,Marketing consent`, getrennt mit Komma, Geburtstag als JJJJ-MM-TT.
+8. Abmelden, als Rezeption anmelden, **Kunden** › **Exportieren** öffnen.
+Expected: Excel, CSV, Portal-CSV und vCard stehen da, die Newsletter-Liste nicht; im Excel fehlt die Spalte „Vermerk“.
+Closes: Export/Import Aufgabe A und B (arbeitsanweisung-export-import.md)
+Result: ☐
+
+### Export/Import C – Terminliste und Kalenderdateien
+Start: `dotnet run --project src/AispaStudio.AppHost`, im Aspire-Dashboard die Ressource `windows-app` starten, als Inhaberin anmelden, **Kalender** in der Wochenansicht öffnen
+1. Am Knopf **Termin** den Pfeil klicken und **Terminliste exportieren …** wählen.
+Expected: Der Dialog „Terminliste exportieren?“ zeigt Von und Bis mit Montag und Sonntag der gezeigten Woche, Excel ist gewählt, der Fokus liegt auf **Exportieren**.
+2. Bis auf einen Tag vor Von setzen und **Exportieren** klicken.
+Expected: Der Dialog bleibt offen, unter „Bis“ steht „Bis liegt vor Von.“.
+3. Bis wieder auf Sonntag setzen, **Exportieren** klicken und die Datei speichern.
+Expected: Der Speicherdialog schlägt `Termine_<Montag>.xlsx` vor; unten steht kurz „Gespeichert: …“. In Excel: Tag als Datum, Beginn und Ende als Uhrzeit, Preis als Betrag, Status deutsch (Gebucht, Erledigt …), dazu die Spalte „Notiz“.
+4. Einen Termin öffnen, im Panel **Mehr** aufklappen und **Kalenderdatei …** wählen; die Datei speichern und in Outlook (oder Apple Kalender, Google Kalender) öffnen.
+Expected: Ein Termin mit Behandlung als Titel und dem Standort als Ort, zur richtigen Ortszeit, mit Erinnerung einen Tag vorher; kein Name der Person. Bei einer Buchung für einen Spa-Tag stehen alle Teile des Gastes als einzelne Termine darin.
+5. Dieselbe Datei ein zweites Mal öffnen.
+Expected: Der Kalender ersetzt den Termin, statt ihn doppelt einzutragen.
+6. **Team** öffnen, eine Person wählen, Reiter **Dienstplan** und unten **Kalenderdatei …** speichern; die Datei in einem Kalender öffnen.
+Expected: Neben dem Knopf steht „Gespeichert: Kalender_<Name>.ics“. Im Kalender stehen die Dienste der nächsten 90 Tage als „Dienst <Standort>“ und die Termine als „<Behandlung> (<Raum>)“, ohne Namen der Gäste und ohne Erinnerung.
+7. Abmelden, als Rezeption anmelden, **Team** › eine andere Person › **Dienstplan** öffnen.
+Expected: Der Knopf **Kalenderdatei …** fehlt; im Kalender exportiert die Terminliste ohne Spalte „Notiz“.
+Closes: Export/Import Aufgabe C (arbeitsanweisung-export-import.md)
+Result: ☐
+
+### Export/Import D – Listen von Kassa, Lager, Personal und Berichten
+Start: `dotnet run --project src/AispaStudio.AppHost`, im Aspire-Dashboard die Ressource `windows-app` starten, als Inhaberin anmelden, **Kassa** öffnen und eine Kasse wählen
+1. Im Bereich **Belege** einen Tag mit Belegen wählen, in der Kopfzeile **Exportieren** › **Belegliste (Excel)** wählen und speichern.
+Expected: Der Speicherdialog schlägt `Belege_<Tag>.xlsx` vor; daneben steht „Gespeichert: …“. In Excel: Kasse, Nummer, Tag als Datum, Zeit als Uhrzeit, Zahlarten, Betrag als Betrag, Storno („storniert“ bzw. „Storno zu Nr. …“), Gast; Autofilter in der Kopfzeile.
+2. **Exportieren** › **Umsatz je Tag (CSV)** speichern und in Excel öffnen.
+Expected: Umlaute richtig, Spalten durch Strichpunkt getrennt, Beträge mit Komma.
+3. **Exportieren** › **Gutscheinbestand (Excel)** und **Tagesabschlüsse (Excel)** speichern.
+Expected: Gutscheine mit Code, Art, Wert, Rest, Gültig bis, Status und Käufer; Tagesabschlüsse mit Soll, Gezählt und Differenz.
+4. **Verwaltung** › **Lager** öffnen, **Exportieren** › **Bestand je Lagerort (Excel)** und **Lagerbewegungen (Excel)** speichern.
+Expected: Bestand je Material und Lagerort; Bewegungen der letzten 30 Tage bis heute.
+5. **Team** › **Zeiten** öffnen, **Exportieren** › **Stundenliste (Excel)** speichern.
+Expected: `Stundenliste_<Monatserster>.xlsx` mit Person, Tag, Soll, Ist, Pause und Differenz für den Monat, in dem die gezeigte Woche beginnt.
+6. **Team** › **Wochenplan** öffnen, **Exportieren** › **Dienstplan der Woche (Excel)** speichern.
+Expected: Personen als Zeilen, Montag bis Sonntag als Spalten („Mo 1.3.“), Dienste als „9:00–17:00“, Abwesenheiten als „Urlaub“ usw., ganz rechts die Stunden.
+7. **Zahlen** › **Berichte** › **Management** öffnen, **Exportieren** › **Kennzahlen (Excel)** speichern.
+Expected: Kennzahl, Wert, Vorperiode und Einheit mit denselben Zahlen wie auf der Seite.
+8. Abmelden, als Manager eines Standorts anmelden, Kassa, Lager, Zeiten und Wochenplan öffnen.
+Expected: Der Knopf **Exportieren** fehlt dort; im Bericht „Management“ ist er da.
+Closes: Export/Import Aufgabe D (arbeitsanweisung-export-import.md)
+Result: ☐
+
+### Export/Import E – Kunden importieren
+Start: `dotnet run --project src/AispaStudio.AppHost`, im Aspire-Dashboard die Ressource `windows-app` starten, als Inhaberin anmelden, **Kunden** öffnen; die Beispieldatei `docs/beispiele/kunden-import-beispiel.xlsx` bereithalten
+1. In der Kopfzeile **…** › **Kunden importieren …** wählen und die Beispieldatei öffnen.
+Expected: Schritt 2 „Spalten zuordnen“: links die neun Spalten der Datei mit Beispielwerten, rechts vorgeschlagen Vorname, Nachname, E-Mail, Telefon, Geburtstag, Straße, PLZ, Ort, Werbe-Einwilligung; Datumsformat TT.MM.JJJJ.
+2. Bei „Nachname“ „nicht importieren“ wählen und **Weiter** klicken.
+Expected: **Weiter** ist gesperrt; am Feld „Zuordnung“ steht „Nachname fehlt. Bitte die Spalte mit dem Nachnamen zuordnen.“ Wieder „Nachname“ wählen.
+3. **Weiter** klicken.
+Expected: Schritt 3 zeigt „4 neu, 1 Dublette, 2 fehlerhaft“; die Dublette „Lena Beispiel“ mit „doppelt in der Datei (Zeile 2)“ und der Wahl **Überspringen** oder **Ergänzen**; fehlerhaft „Mia Demo“ (Geburtstag kein Datum) und Zeile 8 (Nachname fehlt).
+4. **Fehlerzeilen als Excel …** speichern und öffnen.
+Expected: Spalten Zeile, Grund und die Spalten der Datei, zwei Zeilen.
+5. Bei der Dublette **Ergänzen** wählen, **Weiter** und **Nur prüfen** klicken.
+Expected: Im Dialog „Probelauf: 4 neu, 1 ergänzt, 0 übersprungen, 2 fehlerhaft. Es wurde nichts gespeichert.“; in der Kundenliste ist noch niemand neu.
+6. **Importieren** klicken.
+Expected: Der Dialog schließt, Hinweis „Importiert: 4 neu, 1 ergänzt, 0 übersprungen, 2 fehlerhaft“; die Kundenliste zeigt Lena Beispiel, Paul Probe, Sophie Muster und Jonas Erfunden. In der Karte von Lena Beispiel steht im Verlauf „Angelegt beim Import von …“ und unter „Werbung per Mail“ eine Einwilligung aus dem Import; bei Paul Probe keine.
+7. Dieselbe Datei noch einmal importieren bis Schritt 3.
+Expected: Die vier Gäste sind jetzt Dubletten im Bestand („gleicher Nachname und gleiche Telefonnummer wie …“ bzw. „… E-Mail-Adresse wie …“).
+8. Abbrechen, abmelden, als Manager anmelden, **Kunden** öffnen.
+Expected: Unter **…** fehlt „Kunden importieren …“.
+Closes: Export/Import Aufgabe E (arbeitsanweisung-export-import.md)
 ### PDF-Ausgaben A – Grundlage: Personalakte über den Dokument-Dienst
 Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Inhaberin anmelden, **Verwaltung › Personen**, eine Person mit Einträgen in der Personalakte öffnen, Reiter **Personalakte**
 1. **Als PDF exportieren** klicken, im Speicherdialog den vorgeschlagenen Namen ansehen, speichern und die Datei öffnen.

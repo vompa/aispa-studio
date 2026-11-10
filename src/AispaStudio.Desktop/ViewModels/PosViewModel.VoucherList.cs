@@ -5,7 +5,7 @@ namespace AispaStudio.Desktop.ViewModels;
 
 public partial class PosViewModel
 {
-    /// <summary>Die Karte „Gutscheinliste“ (PDF-Ausgaben, Zusatz; ADR 0091), solange sie offen ist; sonst null.</summary>
+    /// <summary>Die Karte „Gutscheinliste“ (PDF-Ausgaben, Zusatz; ADR 0092), solange sie offen ist; sonst null.</summary>
     [ObservableProperty]
     public partial VoucherListPrintViewModel? VoucherList { get; private set; }
 

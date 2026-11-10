@@ -4,7 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace AispaStudio.Desktop.ViewModels;
 
-// ---------- Tagesplan und Warteliste als PDF (PDF-Ausgaben E, ADR 0091) ----------
+// ---------- Tagesplan und Warteliste als PDF (PDF-Ausgaben E, ADR 0092) ----------
 public partial class CalendarViewModel
 {
     /// <summary>

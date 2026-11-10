@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore;
 namespace AispaStudio.Api.Pos;
 
 /// <summary>
-/// Gutscheinliste eines Standorts als PDF (PDF-Ausgaben, Zusatz; ADR 0091). Die Summe der offenen Restwerte ist die Verbindlichkeit für die Buchhaltung: Recht ist deshalb die Kassenaufsicht oder
+/// Gutscheinliste eines Standorts als PDF (PDF-Ausgaben, Zusatz; ADR 0092). Die Summe der offenen Restwerte ist die Verbindlichkeit für die Buchhaltung: Recht ist deshalb die Kassenaufsicht oder
 /// „Berichte mit Beträgen“ (dort stehen die Gutscheinsummen), nicht die Rezeption. Den Standort prüft der Mandantenfilter, ein fremder ist „nicht gefunden“. Ein Gutschein gehört zum Standort der
 /// Kasse, an der er verkauft wurde (auch online gekaufte Gutscheine laufen über die Kasse des Standorts).
 /// </summary>

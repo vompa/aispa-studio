@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore;
 namespace AispaStudio.Api.Scheduling;
 
 /// <summary>
-/// Tagesplan eines Standorts als PDF (PDF-Ausgaben E, ADR 0091). Recht wie der Kalender; den Standort prüft der Mandantenfilter, ein fremder ist „nicht gefunden“.
+/// Tagesplan eines Standorts als PDF (PDF-Ausgaben E, ADR 0092). Recht wie der Kalender; den Standort prüft der Mandantenfilter, ein fremder ist „nicht gefunden“.
 /// Kein Versand: der Plan hängt aus oder liegt am Empfang.
 /// </summary>
 internal static class DayPlanDocumentEndpoints

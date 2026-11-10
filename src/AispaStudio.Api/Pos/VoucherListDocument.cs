@@ -6,7 +6,7 @@ using AispaStudio.Contracts;
 namespace AispaStudio.Api.Pos;
 
 /// <summary>
-/// Gutscheinliste eines Standorts als PDF (PDF-Ausgaben, Zusatz; ADR 0091): A4 quer, eine Zeile je Gutschein mit Code, Art, Ausstellung, Ausgangs- und Restwert, Gültigkeit, Status, Käufer, Empfänger,
+/// Gutscheinliste eines Standorts als PDF (PDF-Ausgaben, Zusatz; ADR 0092): A4 quer, eine Zeile je Gutschein mit Code, Art, Ausstellung, Ausgangs- und Restwert, Gültigkeit, Status, Käufer, Empfänger,
 /// Verkaufskanal und Versandvermerk; darunter die Summe der offenen Restwerte, die Verbindlichkeit für die Buchhaltung. Offen ist, was aktiv und nicht abgelaufen ist; ein abgelaufener Gutschein mit Rest
 /// steht gesondert, bis jemand ihn ausbucht. Felder, die es in den Daten nicht gibt (Empfänger bei Kassa-Verkäufen, Ablaufdatum bei Wertgutscheinen), zeigt die Liste als „–“.
 /// </summary>
@@ -96,7 +96,7 @@ internal static class VoucherListDocument
     public static byte[] Build(Data data, DocumentHeader header)
     {
         var today = LocalTime.LocalDate(header.CreatedAt, header.Zone);
-        var pdf = new DocumentBuilder(DocumentFormat.A4Landscape, header);
+        var pdf = new DocumentBuilder(PaperFormat.A4Landscape, header);
         pdf.Title("Gutscheinliste");
         pdf.Paragraph($"{data.LocationName} · Stand {DocumentBuilder.DateTime(header.CreatedAt, header.Zone)} · {Describe(data.Filter)}", muted: true);
         if (data.Entries.Count == 0)

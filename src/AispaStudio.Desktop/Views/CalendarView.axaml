@@ -238,7 +238,7 @@
             </Button.IsVisible>
           </Button>
           <ui:AccordionHeader x:Name="MoreToggle" Classes="more" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
-                              IsVisible="{Binding HasMore}" ToolTip.Tip="Weitere Status und die Zeiten des Termins ändern">
+                              IsVisible="{Binding HasMore}" ToolTip.Tip="Weitere Status, Zeiten des Termins und Kalenderdatei">
             <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
               <TextBlock Text="Mehr" />
               <ui:Icon Classes="chevron" Data="{x:Static ui:Icons.ChevronRight}" Width="14" Height="14" Foreground="{DynamicResource Fg3Brush}" VerticalAlignment="Center" />
@@ -281,6 +281,15 @@
                 <ui:DocumentActions DataContext="{Binding ConfirmationDocument}" />
               </StackPanel>
             </Border>
+            <!-- Kalenderdatei für den Gast (Export/Import, Aufgabe C): iCal mit Erinnerung 24 Stunden vorher, ohne Namen der Person -->
+            <Button x:Name="CalendarFileButton" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                    Command="{Binding CalendarFile.ExportCommand}" CommandParameter="{Binding CalendarFileOption}" IsVisible="{Binding CanSaveCalendarFile}"
+                    ToolTip.Tip="Den Termin als Datei für Outlook, Apple oder Google speichern, z. B. zum Mitschicken an den Gast">
+              <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+                <ui:Icon Data="{x:Static ui:Icons.Download}" Width="16" Height="16" />
+                <TextBlock Text="Kalenderdatei …" />
+              </StackPanel>
+            </Button>
           </StackPanel>
         </StackPanel>
 
@@ -294,7 +303,7 @@
           <TextBlock Text="{Binding PaymentText}" TextWrapping="Wrap" MaxWidth="280" Foreground="{DynamicResource OkBrush}" />
         </Border>
 
-        <!-- Stand der Anzahlung für alle (Ä285). Retournieren (Ä47): nur Inhaber und Manager, solange es eine offene Anzahlung gibt; der Knopf fragt nach und stellt erst dann den Storno-Beleg aus -->
+        <!-- Stand der Anzahlung für alle (Ä285). Retournieren (Ä47): nur Inhaberin und Geschäftsführung, solange es eine offene Anzahlung gibt; der Knopf fragt nach und stellt erst dann den Storno-Beleg aus -->
         <Border x:Name="DepositCard" Classes="panelcard" IsVisible="{Binding HasDepositCard}">
           <StackPanel Spacing="6">
             <TextBlock Text="{Binding DepositTitle}" FontWeight="Medium" />
@@ -1727,7 +1736,7 @@
       <StackPanel Spacing="12">
         <TextBlock Text="Wird etwas frei, schreibt der Server den Wartenden selbst. Hier lassen sich freie Zeiten zeigen, für den Gast buchen und Anfragen abschließen."
                    Classes="muted" TextWrapping="Wrap" />
-        <!-- Tagesliste zum Nachtelefonieren (PDF-Ausgaben E, ADR 0091): Drucken und PDF speichern, ohne Senden -->
+        <!-- Tagesliste zum Nachtelefonieren (PDF-Ausgaben E, ADR 0092): Drucken und PDF speichern, ohne Senden -->
         <StackPanel Spacing="6" IsVisible="{Binding Document, Converter={x:Static ObjectConverters.IsNotNull}}">
           <TextBlock Text="{Binding PrintHint}" Classes="muted small" TextWrapping="Wrap" />
           <ui:DocumentActions DataContext="{Binding Document}" />
@@ -2175,6 +2184,9 @@
                         </Grid>
                       </MenuItem.Header>
                     </MenuItem>
+                    <Separator />
+                    <!-- Terminliste als Excel oder CSV (Export/Import, Aufgabe C): fragt Zeitraum und Format -->
+                    <MenuItem x:Name="ExportAppointmentsItem" Header="Terminliste exportieren …" Command="{Binding ExportAppointmentListCommand}" />
                   </MenuFlyout>
                 </SplitButton.Flyout>
                 <StackPanel Orientation="Horizontal" Spacing="6">
@@ -2186,7 +2198,7 @@
                       AutomationProperties.Name="Freie Zeit suchen" AutomationProperties.AcceleratorKey="Strg+N">
                 <ui:Icon Data="{x:Static ui:Icons.CalendarSearch}" />
               </Button>
-              <!-- Tagesplan drucken (PDF-Ausgaben E, ADR 0091): Team oder Räume, dann Drucken oder PDF speichern; der Plan kommt von der API -->
+              <!-- Tagesplan drucken (PDF-Ausgaben E, ADR 0092): Team oder Räume, dann Drucken oder PDF speichern; der Plan kommt von der API -->
               <Popup PlacementTarget="{Binding #AppointmentGroup}" Placement="BottomEdgeAlignedRight" IsOpen="{Binding DayPlanPrint, Converter={x:Static ObjectConverters.IsNotNull}}"
                      IsLightDismissEnabled="False">
                 <Border x:Name="DayPlanPrintCard" Classes="card" Padding="16" Width="360" BoxShadow="{DynamicResource CardShadow}"

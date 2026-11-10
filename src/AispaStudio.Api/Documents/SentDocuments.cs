@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 namespace AispaStudio.Api.Documents;
 
 /// <summary>
-/// Vermerke gesendeter Dokumente (ADR 0091): schreibt, wohin, auf welchem Weg und von wem ein PDF ging, und liest sie je Ziel für die Anzeige „Per Mail gesendet an …“.
+/// Vermerke gesendeter Dokumente (ADR 0092): schreibt, wohin, auf welchem Weg und von wem ein PDF ging, und liest sie je Ziel für die Anzeige „Per Mail gesendet an …“.
 /// Druck und Übergabe (<see cref="SentDocument.Channel"/>) haben keine Adresse und stehen nur in der Gutscheinliste, nie unter „Per Mail gesendet“.
 /// </summary>
 internal sealed class SentDocuments(AispaDbContext db, DocumentHeaders headers, TimeProvider time)

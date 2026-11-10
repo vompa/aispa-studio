@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 namespace AispaStudio.Api.Stock;
 
 /// <summary>
-/// Inventurliste und Zählliste als PDF (PDF-Ausgaben F, ADR 0091). Recht wie die Inventur (<c>ManageLocation</c>); Standort und Zählung prüft der Mandantenfilter, eine Zählung eines anderen
+/// Inventurliste und Zählliste als PDF (PDF-Ausgaben F, ADR 0092). Recht wie die Inventur (<c>ManageLocation</c>); Standort und Zählung prüft der Mandantenfilter, eine Zählung eines anderen
 /// Standorts oder Mandanten ist „nicht gefunden“. Die Inventur der Windows-App zählt, ohne dass eine Zählung gespeichert wird; ihre Zählliste kommt deshalb auch je Lagerort, ohne Zählung.
 /// </summary>
 internal static class StockCountDocumentEndpoints

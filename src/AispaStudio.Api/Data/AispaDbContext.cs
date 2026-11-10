@@ -6,6 +6,8 @@ using AispaStudio.Api.BusinessInfo;
 using AispaStudio.Api.CalendarSubscriptions;
 using AispaStudio.Api.Closures;
 using AispaStudio.Api.Costs;
+using AispaStudio.Api.Exports;
+using AispaStudio.Api.Importing;
 using AispaStudio.Api.MailIntake;
 using AispaStudio.Api.Online;
 using AispaStudio.Api.Operations;
@@ -140,6 +142,8 @@ public sealed class AispaDbContext(DbContextOptions<AispaDbContext> options, Ten
     public DbSet<ClosureNotice> ClosureNotices => Set<ClosureNotice>();
     public DbSet<RoomClosure> RoomClosures => Set<RoomClosure>();
     public DbSet<Documents.SentDocument> SentDocuments => Set<Documents.SentDocument>();
+    public DbSet<ExportEntry> Exports => Set<ExportEntry>();
+    public DbSet<ImportEntry> Imports => Set<ImportEntry>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -171,6 +175,8 @@ public sealed class AispaDbContext(DbContextOptions<AispaDbContext> options, Ten
         BusinessContactModel.Configure(builder);
         ClosureModel.Configure(builder);
         RoomClosureModel.Configure(builder);
+        ExportModel.Configure(builder);
+        ImportModel.Configure(builder);
         HrFile.HrFileModel.Configure(builder);
         Staff.StaffRegulationModel.Configure(builder);
         Staff.StaffDutyModel.Configure(builder);

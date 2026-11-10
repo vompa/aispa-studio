@@ -6,7 +6,7 @@ using CommunityToolkit.Mvvm.Input;
 namespace AispaStudio.Desktop.ViewModels;
 
 /// <summary>
-/// Rückfrage „… per Mail senden?“ (ADR 0091, Design-Brief 5.27): Adresse vorbelegt aus der Kundenkarte bzw. den Lieferantendaten, Betreff und Text vorbelegt von der API;
+/// Rückfrage „… per Mail senden?“ (ADR 0092, Design-Brief 5.27): Adresse vorbelegt aus der Kundenkarte bzw. den Lieferantendaten, Betreff und Text vorbelegt von der API;
 /// „Senden“ geht erst mit gültiger Adresse und Betreff. Enter in einem einzeiligen Feld sendet, Esc schließt.
 /// </summary>
 public sealed partial class SendDocumentDialogViewModel : ConfirmDialogViewModel

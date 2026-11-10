@@ -88,7 +88,7 @@ public partial class ConfirmDialogView : UserControl
     /// </summary>
     private void FocusInitial(ConfirmDialogViewModel dialog)
     {
-        // „Per Mail senden“ ohne vorbelegte Adresse: der Fokus liegt im Feld „An“; mit Adresse auf „Senden“ (ADR 0091).
+        // „Per Mail senden“ ohne vorbelegte Adresse: der Fokus liegt im Feld „An“; mit Adresse auf „Senden“ (ADR 0092).
         if (dialog is SendDocumentDialogViewModel { HasAddress: false })
         {
             this.GetVisualDescendants().OfType<TextBox>().FirstOrDefault(b => b.Name == "SendTo")?.Focus(NavigationMethod.Tab);

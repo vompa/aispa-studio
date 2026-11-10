@@ -6,7 +6,7 @@ using Avalonia.VisualTree;
 namespace AispaStudio.Desktop.Tests;
 
 /// <summary>
-/// PDF-Ausgaben B (ADR 0091): Unter dem Beleg steht der Knopfblock „A4 drucken · PDF speichern (Bon-Format im Menü) · Per Mail senden“, nach dem Bezahlen und im Reiter „Belege“;
+/// PDF-Ausgaben B (ADR 0092): Unter dem Beleg steht der Knopfblock „A4 drucken · PDF speichern (Bon-Format im Menü) · Per Mail senden“, nach dem Bezahlen und im Reiter „Belege“;
 /// der Bondrucker-Knopf „Drucken“ bleibt der erste Knopf.
 /// </summary>
 public sealed partial class ViewTests

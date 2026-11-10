@@ -6,7 +6,7 @@ using AispaStudio.Contracts;
 namespace AispaStudio.Api.Documents;
 
 /// <summary>
-/// Ein Dokument per Mail (ADR 0091): Adresse prüfen, Betreff und Text aus der Anfrage oder der Vorbelegung nehmen und die Mail mit dem PDF als
+/// Ein Dokument per Mail (ADR 0092): Adresse prüfen, Betreff und Text aus der Anfrage oder der Vorbelegung nehmen und die Mail mit dem PDF als
 /// <see cref="SendSpaMail"/> in die Queue legen (Name des Spas als Absender, Postfach des Spas als Antwortadresse, wie bei den Absage-Nachrichten).
 /// </summary>
 internal static class DocumentMails

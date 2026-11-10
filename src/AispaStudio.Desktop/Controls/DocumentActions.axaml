@@ -4,7 +4,7 @@
              xmlns:ui="using:AispaStudio.Desktop.Controls"
              x:Class="AispaStudio.Desktop.Controls.DocumentActions"
              x:DataType="vm:DocumentActionsViewModel">
-  <!-- Knopfblock „Drucken · PDF speichern · Per Mail senden“ (ADR 0091): überall gleich; Knöpfe ohne Recht mit Hinweis, Fehler darunter als InfoBar, Erfolge als Toast der Maske -->
+  <!-- Knopfblock „Drucken · PDF speichern · Per Mail senden“ (ADR 0092): überall gleich; Knöpfe ohne Recht mit Hinweis, Fehler darunter als InfoBar, Erfolge als Toast der Maske -->
   <StackPanel Spacing="8">
     <WrapPanel ItemSpacing="8" LineSpacing="8">
       <Button x:Name="PrintButton" Command="{Binding PrintCommand}" ToolTip.Tip="Druckt das PDF auf dem Standarddrucker von Windows."
@@ -17,7 +17,7 @@
       <Button x:Name="SaveButton" Command="{Binding SaveCommand}" IsVisible="{Binding !HasAlternative}" ToolTip.Tip="Speichert das PDF über den Speicherdialog von Windows."
               ui:DisabledHint.Text="{Binding DisabledHint}" AutomationProperties.Name="PDF speichern">
         <StackPanel Orientation="Horizontal" Spacing="6">
-          <ui:Icon Data="{x:Static ui:Icons.Download}" Width="16" Height="16" />
+          <ui:Icon Data="{x:Static ui:Icons.SavePdf}" Width="16" Height="16" />
           <TextBlock Text="PDF speichern" />
         </StackPanel>
       </Button>
@@ -25,7 +25,7 @@
       <SplitButton x:Name="SaveSplitButton" Classes="document" Command="{Binding SaveCommand}" IsVisible="{Binding HasAlternative}" ToolTip.Tip="Speichert das PDF über den Speicherdialog von Windows."
                    ui:DisabledHint.Text="{Binding DisabledHint}" AutomationProperties.Name="PDF speichern">
         <StackPanel Orientation="Horizontal" Spacing="6">
-          <ui:Icon Data="{x:Static ui:Icons.Download}" Width="16" Height="16" />
+          <ui:Icon Data="{x:Static ui:Icons.SavePdf}" Width="16" Height="16" />
           <TextBlock Text="PDF speichern" />
         </StackPanel>
         <SplitButton.Flyout>

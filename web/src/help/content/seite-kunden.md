@@ -4,7 +4,7 @@ bereich: Kunden
 oberflaeche: windows-app
 rollen: rezeption, leitung, inhaber, manager, therapeut
 seite: kunden
-stichwoerter: Kunden, Kundin, Gäste, Kundenkartei, Kundenkarte, Kundenstamm, Kundendaten, Stammgast, Kontakt, Telefonnummer, customers, clients, guest list, CRM
+stichwoerter: Kunden, Kundin, Gäste, Kundenkartei, Kundenkarte, Kundenstamm, Kundendaten, Stammgast, Kontakt, Telefonnummer, exportieren, Excel, CSV, vCard, Newsletter, Werbe-Einwilligung, customers, clients, guest list, CRM
 ---
 # Seite „Kunden“ in der Windows-App
 
@@ -16,7 +16,7 @@ Die Seite sehen alle Angemeldeten. Anlegen, Kundendaten, den Rechnungsempfänger
 
 ## Aufbau {#aufbau}
 
-- **Kopfzeile**: „Kunden“ und rechts der Knopf **Neue Kundin / neuer Kunde**.
+- **Kopfzeile**: „Kunden“ und rechts **Exportieren** und der Knopf **Neue Kundin / neuer Kunde**. **Exportieren** speichert die Liste mit dem aktuellen Suchbegriff als Excel, CSV, Portal-CSV (Spalten für den Import in einem Buchungsportal, dort beim Import zuordnen) oder vCard (Kontakte für Outlook und Handy); Inhaber und Standortleitung finden dort auch die **Newsletter-Liste** mit den Gästen, die Werbung per Mail zugestimmt haben. Wünsche, Gesundheitsdaten, Rabatt und Rechnungsdaten stehen nie in einer Datei; jeder Export steht im Verlauf.
 - **Links**: das Suchfeld „Name, Telefon oder E-Mail“ und die Treffer mit Nachname, Vorname und Telefon. Ohne Suchbegriff stehen die ersten Einträge nach Nachname da.
 - **Rechts** die Kundenkarte: oben Name, Telefon, E-Mail, Geburtstag, Sprache und die Notiz (gelb hinterlegt); geändert wird über **…** (Weitere Aktionen) › **Bearbeiten (Name, Anrede, Kontakt, Notiz)** oder den Stift **Notiz ändern** an der Notiz. Die Sprache bestimmt das Kürzel im Kalender, siehe [Sprachen und Quelle](hilfe:sprachen-und-quelle).
 - Unter den Kontaktdaten „Weitere E-Mail-Adressen“ mit **Hinzufügen**; ein Hinweis „Aus Mail angelegt“ zeigt Kunden, die die Terminannahme aus einer Nachricht angelegt hat.
@@ -29,6 +29,7 @@ Die Seite sehen alle Angemeldeten. Anlegen, Kundendaten, den Rechnungsempfänger
 - „Termine am liebsten“ mit **Ändern**: feste oder bevorzugte Therapeut:in, Wunschtage und -zeiten.
 - „Rechnungsempfänger“ mit **Ändern**: Firma, Anschrift und UID für Rechnungen an der Kassa.
 - „Rabatt“ mit **Ändern**: dauerhafter Rabatt, den die Kassa selbst abzieht.
+- „Werbung per Mail“ mit **Ändern**: ob der Gast Werbung per Mail möchte (Ja, Nein, nicht gefragt) und seit wann.
 - „Termine“: die Termine mit Datum, Uhrzeit, Behandlung, Status und Preis, neueste zuerst; künftige sind farbig hinterlegt.
 
 ## Was hier nicht geht {#grenzen}

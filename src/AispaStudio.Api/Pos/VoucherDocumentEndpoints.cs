@@ -11,7 +11,7 @@ using Wolverine;
 namespace AispaStudio.Api.Pos;
 
 /// <summary>
-/// Gutschein als PDF und per Mail (PDF-Ausgaben E, ADR 0091). Rechte wie die Kassa und der Beleg (buchen dürfen oder Belege ansehen); den Gutschein prüft der Mandantenfilter,
+/// Gutschein als PDF und per Mail (PDF-Ausgaben E, ADR 0092). Rechte wie die Kassa und der Beleg (buchen dürfen oder Belege ansehen); den Gutschein prüft der Mandantenfilter,
 /// ein fremder ist „nicht gefunden“. Der Käufer ist der Gast auf dem Verkaufsbeleg; nach dem Versand steht der Vermerk in <see cref="SentDocuments"/> (Art voucher).
 /// </summary>
 internal static class VoucherDocumentEndpoints

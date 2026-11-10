@@ -3,7 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace AispaStudio.Desktop.ViewModels;
 
-// ---------- Ablaufliste als PDF (PDF-Ausgaben F, ADR 0091) ----------
+// ---------- Ablaufliste als PDF (PDF-Ausgaben F, ADR 0092) ----------
 public sealed partial class StockTasksViewModel
 {
     private bool _documentOpen;
