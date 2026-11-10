@@ -164,7 +164,7 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
         BillTransactionAsync(input.RegisterId, async register =>
         {
             EnsureActive(register);
-            if (input.CustomerId is { } customerId && !await db.Customers.AnyAsync(c => c.Id == customerId, ct))
+            if (input.CustomerId is { } customerId && !await db.Customers.AnyAsync(c => c.Id == customerId && c.DeletedAt == null, ct))
             {
                 throw PosFailure.NotFound("Kunde");
             }

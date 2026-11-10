@@ -138,7 +138,7 @@ internal sealed partial class MailIntakeProcessor(
     public async Task ApplyCustomerAsync(InboundMail mail, CancellationToken ct)
     {
         var customer = mail is { CustomerConfirmed: true, CustomerId: { } id }
-            ? await db.Customers.AsNoTracking().FirstOrDefaultAsync(c => c.Id == id, ct)
+            ? await db.Customers.AsNoTracking().FirstOrDefaultAsync(c => c.Id == id && c.DeletedAt == null, ct)
             : null;
         if (customer is not null)
         {
@@ -1034,7 +1034,7 @@ internal sealed partial class MailIntakeProcessor(
     private async Task<TreatwellGuest> ResolveTreatwellGuestAsync(InboundMail mail, CancellationToken ct)
     {
         if (mail is { CustomerConfirmed: true, CustomerId: { } confirmed }
-            && await db.Customers.AsNoTracking().FirstOrDefaultAsync(c => c.Id == confirmed, ct) is { } chosen)
+            && await db.Customers.AsNoTracking().FirstOrDefaultAsync(c => c.Id == confirmed && c.DeletedAt == null, ct) is { } chosen)
         {
             return new TreatwellGuest(chosen, false, false);
         }
@@ -1226,7 +1226,7 @@ internal sealed partial class MailIntakeProcessor(
         var known = mail is { CustomerConfirmed: true, CustomerId: { } own } ? own
             : !fromReception && previous is { CustomerConfirmed: true, CustomerId: { } inherited } ? inherited
             : (Guid?)null;
-        if (known is { } id && await db.Customers.AsNoTracking().FirstOrDefaultAsync(c => c.Id == id, ct) is { } existing)
+        if (known is { } id && await db.Customers.AsNoTracking().FirstOrDefaultAsync(c => c.Id == id && c.DeletedAt == null, ct) is { } existing)
         {
             mail.CustomerId = existing.Id;
             mail.CustomerConfirmed = true;

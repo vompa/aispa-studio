@@ -114,7 +114,7 @@ public static partial class CheckWaitlistHandler
         }
 
         var customerIds = entries.Select(e => e.CustomerId).Distinct().ToList();
-        var customers = await db.Customers.AsNoTracking().Where(c => customerIds.Contains(c.Id) && c.Email != null)
+        var customers = await db.Customers.AsNoTracking().Where(c => customerIds.Contains(c.Id) && c.DeletedAt == null && c.Email != null)
             .ToDictionaryAsync(c => c.Id, ct);
         var tenantId = await TenantModel.TenantOfAsync(db.Locations.Where(l => l.Id == location.Id), ct);
         var bus = services.GetRequiredService<IMessageBus>();

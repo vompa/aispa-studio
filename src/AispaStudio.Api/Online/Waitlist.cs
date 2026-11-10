@@ -158,7 +158,7 @@ internal sealed class Waitlist(
             .Take(200)
             .ToListAsync(ct);
         var customerIds = entries.Select(e => e.CustomerId).Distinct().ToList();
-        var customers = (await db.Customers.AsNoTracking().Where(c => customerIds.Contains(c.Id)).ToListAsync(ct)).ToDictionary(c => c.Id);
+        var customers = (await db.Customers.AsNoTracking().Where(c => customerIds.Contains(c.Id) && c.DeletedAt == null).ToListAsync(ct)).ToDictionary(c => c.Id);
         var treatments = await TreatmentNamesAsync(entries, ct);
         return [.. entries.Where(e => customers.ContainsKey(e.CustomerId)).Select(e => new WaitlistStaffEntry(
             e.Id, e.CustomerId, customers[e.CustomerId].InHouseName, e.TreatmentId, treatments.GetValueOrDefault(e.TreatmentId, ""),

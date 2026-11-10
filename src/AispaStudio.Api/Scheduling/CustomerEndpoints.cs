@@ -20,7 +20,7 @@ internal static class CustomerEndpoints
 
         group.MapGet("/", async (string? search, AispaDbContext db, CancellationToken ct) =>
             {
-                var query = db.Customers.AsNoTracking();
+                var query = db.Customers.AsNoTracking().Where(c => c.DeletedAt == null);
                 // Jedes Suchwort muss in Vorname, Rufname, Nachname, E-Mail oder Telefon vorkommen: „anna muster“, „0664“ usw.
                 // Titel („Dr.“, „MSc“) sind keine Suchwörter, damit „Dr. Huber“ die Kundin trotzdem findet.
                 foreach (var term in PersonNames.WithoutTitles(search).Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
@@ -114,7 +114,7 @@ internal static class CustomerEndpoints
         group.MapPut("/{customerId:guid}", async Task<Results<Ok<CustomerDto>, NotFound, ValidationProblem>> (
                 Guid customerId, CustomerInput input, AispaDbContext db, TenantContext tenants, AccessService accessService, TimeProvider time, CancellationToken ct) =>
             {
-                if (await db.Customers.FirstOrDefaultAsync(c => c.Id == customerId, ct) is not { } customer)
+                if (await db.Customers.FirstOrDefaultAsync(c => c.Id == customerId && c.DeletedAt == null, ct) is not { } customer)
                 {
                     return TypedResults.NotFound();
                 }
@@ -165,7 +165,7 @@ internal static class CustomerEndpoints
         group.MapPut("/{customerId:guid}/billing", async Task<Results<Ok<CustomerDto>, NotFound, ValidationProblem>> (
                 Guid customerId, CustomerBilling? input, AispaDbContext db, CancellationToken ct) =>
             {
-                if (await db.Customers.FirstOrDefaultAsync(c => c.Id == customerId, ct) is not { } customer)
+                if (await db.Customers.FirstOrDefaultAsync(c => c.Id == customerId && c.DeletedAt == null, ct) is not { } customer)
                 {
                     return TypedResults.NotFound();
                 }
@@ -201,7 +201,7 @@ internal static class CustomerEndpoints
                 Guid customerId, CustomerDiscountInput input, AispaDbContext db, TenantContext tenants, AccessService access,
                 UserManager<AispaUser> users, TimeProvider time, CancellationToken ct) =>
             {
-                if (await db.Customers.FirstOrDefaultAsync(c => c.Id == customerId, ct) is not { } customer)
+                if (await db.Customers.FirstOrDefaultAsync(c => c.Id == customerId && c.DeletedAt == null, ct) is not { } customer)
                 {
                     return TypedResults.NotFound();
                 }
@@ -247,7 +247,7 @@ internal static class CustomerEndpoints
         group.MapPut("/{customerId:guid}/booking-preferences", async Task<Results<Ok<CustomerDto>, NotFound, ValidationProblem>> (
                 Guid customerId, CustomerBookingPreferences input, AispaDbContext db, CancellationToken ct) =>
             {
-                if (await db.Customers.FirstOrDefaultAsync(c => c.Id == customerId, ct) is not { } customer)
+                if (await db.Customers.FirstOrDefaultAsync(c => c.Id == customerId && c.DeletedAt == null, ct) is not { } customer)
                 {
                     return TypedResults.NotFound();
                 }
@@ -312,7 +312,7 @@ internal static class CustomerEndpoints
                     return errors.Problem();
                 }
 
-                if (await db.Customers.FirstOrDefaultAsync(c => c.Id == customerId, ct) is not { } customer)
+                if (await db.Customers.FirstOrDefaultAsync(c => c.Id == customerId && c.DeletedAt == null, ct) is not { } customer)
                 {
                     return TypedResults.NotFound();
                 }

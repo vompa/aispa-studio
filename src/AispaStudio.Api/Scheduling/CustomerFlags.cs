@@ -87,7 +87,7 @@ internal static class CustomerFlagEndpoints
                 Guid customerId, CustomerFlagInput input, AispaDbContext db, AccessService accessService, TimeProvider time, CancellationToken ct) =>
             {
                 var access = (await accessService.CurrentAsync(ct))!;
-                if (!await db.Customers.AnyAsync(c => c.Id == customerId, ct))
+                if (!await db.Customers.AnyAsync(c => c.Id == customerId && c.DeletedAt == null, ct))
                 {
                     return TypedResults.NotFound();
                 }

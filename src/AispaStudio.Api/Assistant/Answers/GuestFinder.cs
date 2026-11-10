@@ -99,7 +99,7 @@ internal sealed class GuestFinder(AispaDbContext db)
     public static DateOnly Local(DateTimeOffset at, AnswerContext context) => DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(at, context.Zone).DateTime);
 
     private async Task<List<Guest>> ByIdAsync(Guid id, CancellationToken ct) =>
-        await Project(db.Customers.AsNoTracking().Where(c => c.Id == id)).ToListAsync(ct);
+        await Project(db.Customers.AsNoTracking().Where(c => c.Id == id && c.DeletedAt == null)).ToListAsync(ct);
 
     /// <summary>
     /// Gäste zum Namen: Kandidaten mit den Wörtern in Vor-, Nach- oder Rufname aus der Datenbank, davon nur die ganzen Namen (<see cref="NameMatch.Fit"/>, „lena“ ist
@@ -139,7 +139,7 @@ internal sealed class GuestFinder(AispaDbContext db)
     {
         var lengths = words.Select(w => NameMatch.Key(w).Length).ToList();
         var (shortest, longest) = (lengths.Min() - 2, lengths.Max() + 2);
-        var similar = await Project(db.Customers.AsNoTracking()
+        var similar = await Project(db.Customers.AsNoTracking().Where(c => c.DeletedAt == null)
                 .Where(c => (c.LastName.Length >= shortest && c.LastName.Length <= longest)
                     || (c.FirstName.Length >= shortest && c.FirstName.Length <= longest)
                     || (c.PreferredName != null && c.PreferredName.Length >= shortest && c.PreferredName.Length <= longest))
@@ -153,7 +153,7 @@ internal sealed class GuestFinder(AispaDbContext db)
 
     private IQueryable<Customer> Matching(List<string> likes)
     {
-        var query = db.Customers.AsNoTracking().AsQueryable();
+        var query = db.Customers.AsNoTracking().Where(c => c.DeletedAt == null);
         foreach (var like in likes)
         {
             query = query.Where(c => EF.Functions.ILike(c.FirstName, like) || EF.Functions.ILike(c.LastName, like)

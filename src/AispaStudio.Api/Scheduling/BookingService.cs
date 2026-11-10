@@ -143,6 +143,11 @@ internal sealed partial class BookingService(AispaDbContext db, RosterService ro
             return new BookingOutcome.NotFound("Kunde");
         }
 
+        if (customer.DeletedAt is not null)
+        {
+            return new BookingOutcome.Invalid(nameof(request.CustomerId), CustomerAnonymizer.NotSelectableMessage);
+        }
+
         var start = request.Start.ToUniversalTime();
         var zoneId = await db.Locations.Where(l => l.Id == request.LocationId).Select(l => l.TimeZone).FirstOrDefaultAsync(ct);
         if (zoneId is null)

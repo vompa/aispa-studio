@@ -69,7 +69,7 @@ internal sealed class CustomerAccounts(
     {
         var pattern = Escape(email.Trim());
         return await db.Customers.AsNoTracking()
-            .Where(c => c.Email != null && EF.Functions.ILike(c.Email, pattern))
+            .Where(c => c.DeletedAt == null && c.Email != null && EF.Functions.ILike(c.Email, pattern))
             .OrderBy(c => c.CreatedAt)
             .Select(c => (Guid?)c.Id)
             .FirstOrDefaultAsync(ct);
@@ -125,7 +125,7 @@ internal sealed class CustomerAccounts(
         }
 
         var customer = account.CustomerId is { } id
-            ? await db.Customers.AsNoTracking().FirstOrDefaultAsync(c => c.Id == id, ct)
+            ? await db.Customers.AsNoTracking().FirstOrDefaultAsync(c => c.Id == id && c.DeletedAt == null, ct)
             : null;
         var passkeys = await online.UserPasskeys.CountAsync(p => p.UserId == accountId, ct);
         return new CustomerSession(account.Email ?? "", customer?.FirstName, customer?.LastName, customer?.Phone, customer is not null, passkeys);

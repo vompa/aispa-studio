@@ -43,7 +43,7 @@ internal static class CustomerEmailEndpoints
         group.MapPost("/", async Task<Results<Ok<List<CustomerEmailDto>>, NotFound, ValidationProblem>> (
                 Guid customerId, CustomerEmailInput input, AispaDbContext db, CancellationToken ct) =>
             {
-                if (await db.Customers.AsNoTracking().FirstOrDefaultAsync(c => c.Id == customerId, ct) is not { } customer)
+                if (await db.Customers.AsNoTracking().FirstOrDefaultAsync(c => c.Id == customerId && c.DeletedAt == null, ct) is not { } customer)
                 {
                     return TypedResults.NotFound();
                 }

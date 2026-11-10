@@ -69,6 +69,11 @@ internal sealed partial class BookingService
             return new BookingOutcome.NotFound("Kunde");
         }
 
+        if (customers.Values.Any(c => c.DeletedAt is not null))
+        {
+            return new BookingOutcome.Invalid("items", CustomerAnonymizer.NotSelectableMessage);
+        }
+
         var zoneId = await db.Locations.Where(l => l.Id == request.LocationId).Select(l => l.TimeZone).FirstOrDefaultAsync(ct);
         if (zoneId is null)
         {

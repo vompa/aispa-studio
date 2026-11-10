@@ -233,39 +233,85 @@ public sealed partial class CustomerAnonymizeTests(ApiFixture fixture)
 
         db.AppointmentSeries.Add(new AppointmentSeries
         {
-            LocationId = spa.Location.Id, CustomerId = guest.Id, TreatmentId = spa.MassageTreatment.Id, IntervalWeeks = 2, StartTime = new TimeOnly(10, 0),
-            EmployeeId = spa.Anna.Id, Problem = $"Serie {token}", CreatedAt = now,
+            LocationId = spa.Location.Id,
+            CustomerId = guest.Id,
+            TreatmentId = spa.MassageTreatment.Id,
+            IntervalWeeks = 2,
+            StartTime = new TimeOnly(10, 0),
+            EmployeeId = spa.Anna.Id,
+            Problem = $"Serie {token}",
+            CreatedAt = now,
         });
         db.AreaVisits.Add(new AreaVisit
         {
-            LocationId = spa.Location.Id, RoomId = spa.RoomA.Id, CustomerId = guest.Id, Persons = 1, From = TestSpa.At(12, 0, Past), Until = TestSpa.At(13, 0, Past),
-            Note = $"Sauna {token}", CreatedAt = now, UpdatedAt = now,
+            LocationId = spa.Location.Id,
+            RoomId = spa.RoomA.Id,
+            CustomerId = guest.Id,
+            Persons = 1,
+            From = TestSpa.At(12, 0, Past),
+            Until = TestSpa.At(13, 0, Past),
+            Note = $"Sauna {token}",
+            CreatedAt = now,
+            UpdatedAt = now,
         });
         db.AppointmentFollowUps.Add(new AppointmentFollowUp { AppointmentId = paidId, Note = $"Nachsorge {token}", UpdatedAt = now });
         db.CustomerPreferences.Add(new CustomerPreference { CustomerId = guest.Id, Scent = $"Lavendel {token}", Other = $"Musik {token}", UpdatedAt = now });
         db.MarketingConsents.Add(new MarketingConsent { CustomerId = guest.Id, Email = ordinary, Source = "Team", RequestedAt = now });
         db.RebookReminders.Add(new RebookReminder
         {
-            CustomerId = guest.Id, TreatmentId = spa.MassageTreatment.Id, AfterAppointmentId = paidId, Text = $"Liebe Eva {token}, wollen Sie wieder kommen?", CreatedAt = now,
+            CustomerId = guest.Id,
+            TreatmentId = spa.MassageTreatment.Id,
+            AfterAppointmentId = paidId,
+            Text = $"Liebe Eva {token}, wollen Sie wieder kommen?",
+            CreatedAt = now,
         });
         var closure = new Closure { LocationId = spa.Location.Id, FromDate = Past, UntilDate = Past, CreatedAt = now };
         db.Closures.Add(closure);
         db.ClosureNotices.Add(new ClosureNotice
         {
-            ClosureId = closure.Id, AppointmentId = cancelledId, Subject = $"Absage {token}", Text = $"Liebe Eva {token}, wir müssen absagen.", CreatedAt = now,
+            ClosureId = closure.Id,
+            AppointmentId = cancelledId,
+            Subject = $"Absage {token}",
+            Text = $"Liebe Eva {token}, wir müssen absagen.",
+            CreatedAt = now,
         });
         // Die Anfrage des Gastes selbst, und die Anfrage eines anderen Absenders, die den Gast nur als Kandidaten nennt.
         db.InboundMails.Add(new InboundMail
         {
-            MessageId = $"m-{Guid.NewGuid():N}", From = ordinary, FromName = token, To = "spa@example.at", Subject = $"Termin {token}", Body = $"Hier ist {token}, Telefon {phone}",
-            ReceivedAt = now, Summary = $"Anfrage von {token}", Note = $"Rückruf {token}", CustomerId = guest.Id, CustomerConfirmed = true, GuestFirstName = "Eva",
-            GuestLastName = token, GuestPhone = phone, GuestEmail = ordinary, SuggestedTitlesBefore = "Mag.", ReplyTo = ordinary, ReplySubject = $"Re: {token}",
-            ReplyBody = $"Liebe Frau {token}", TranslatedSubject = $"Date {token}", TranslatedBody = $"Hello {token}", ReplyTranslation = $"Dear {token}",
-            ReplyHistory = [$"Entwurf für {token}"], WishNote = $"lieber morgens {token}", CustomerCandidates = [new CustomerCandidateDto(guest.Id, $"Eva {token}", 1, "gleiche Mailadresse")],
+            MessageId = $"m-{Guid.NewGuid():N}",
+            From = ordinary,
+            FromName = token,
+            To = "spa@example.at",
+            Subject = $"Termin {token}",
+            Body = $"Hier ist {token}, Telefon {phone}",
+            ReceivedAt = now,
+            Summary = $"Anfrage von {token}",
+            Note = $"Rückruf {token}",
+            CustomerId = guest.Id,
+            CustomerConfirmed = true,
+            GuestFirstName = "Eva",
+            GuestLastName = token,
+            GuestPhone = phone,
+            GuestEmail = ordinary,
+            SuggestedTitlesBefore = "Mag.",
+            ReplyTo = ordinary,
+            ReplySubject = $"Re: {token}",
+            ReplyBody = $"Liebe Frau {token}",
+            TranslatedSubject = $"Date {token}",
+            TranslatedBody = $"Hello {token}",
+            ReplyTranslation = $"Dear {token}",
+            ReplyHistory = [$"Entwurf für {token}"],
+            WishNote = $"lieber morgens {token}",
+            CustomerCandidates = [new CustomerCandidateDto(guest.Id, $"Eva {token}", 1, "gleiche Mailadresse")],
         });
         db.InboundMails.Add(new InboundMail
         {
-            MessageId = $"m-{Guid.NewGuid():N}", From = "andere@example.at", To = "spa@example.at", Subject = "Frage", Body = "Wer ist das?", ReceivedAt = now,
+            MessageId = $"m-{Guid.NewGuid():N}",
+            From = "andere@example.at",
+            To = "spa@example.at",
+            Subject = "Frage",
+            Body = "Wer ist das?",
+            ReceivedAt = now,
             CustomerCandidates = [new CustomerCandidateDto(guest.Id, $"Eva {token}", 3, "ähnlicher Name"), new CustomerCandidateDto(Guid.NewGuid(), "Rita Beispiel", 4, "ähnlicher Name")],
         });
         await db.SaveChangesAsync(Ct);
@@ -274,38 +320,93 @@ public sealed partial class CustomerAnonymizeTests(ApiFixture fixture)
         online.UserLogins.Add(new IdentityUserLogin<Guid> { LoginProvider = "Google", ProviderKey = $"g-{token}", ProviderDisplayName = "Google", UserId = account.Id });
         online.AccessLinks.Add(new AccessLink
         {
-            TokenHash = RandomNumberGenerator.GetBytes(32), Purpose = AccessLinkPurpose.Anamnesis, CustomerId = guest.Id, AppointmentId = paidId, CreatedAt = now, ExpiresAt = now.AddDays(1),
+            TokenHash = RandomNumberGenerator.GetBytes(32),
+            Purpose = AccessLinkPurpose.Anamnesis,
+            CustomerId = guest.Id,
+            AppointmentId = paidId,
+            CreatedAt = now,
+            ExpiresAt = now.AddDays(1),
         });
         online.WaitlistEntries.Add(new WaitlistEntry
         {
-            CustomerId = guest.Id, LocationId = spa.Location.Id, TreatmentId = spa.MassageTreatment.Id, From = Past, Until = Past.AddDays(7), Language = "de",
-            CreatedAt = now, PrivacyAcceptedAt = now, PrivacyNoticeVersion = "1",
+            CustomerId = guest.Id,
+            LocationId = spa.Location.Id,
+            TreatmentId = spa.MassageTreatment.Id,
+            From = Past,
+            Until = Past.AddDays(7),
+            Language = "de",
+            CreatedAt = now,
+            PrivacyAcceptedAt = now,
+            PrivacyNoticeVersion = "1",
         });
         online.VoucherOrders.Add(new VoucherOrder
         {
-            TokenHash = RandomNumberGenerator.GetBytes(32), LocationId = spa.Location.Id, CustomerId = guest.Id, Amount = 50m, Currency = "EUR", BuyerEmail = ordinary,
-            RecipientName = token, Message = $"Alles Gute {token}", Language = "de", CreatedAt = now, PrivacyAcceptedAt = now, PrivacyNoticeVersion = "1", Provider = "Test",
+            TokenHash = RandomNumberGenerator.GetBytes(32),
+            LocationId = spa.Location.Id,
+            CustomerId = guest.Id,
+            Amount = 50m,
+            Currency = "EUR",
+            BuyerEmail = ordinary,
+            RecipientName = token,
+            Message = $"Alles Gute {token}",
+            Language = "de",
+            CreatedAt = now,
+            PrivacyAcceptedAt = now,
+            PrivacyNoticeVersion = "1",
+            Provider = "Test",
         });
         online.Deposits.Add(new DepositOrder
         {
-            AppointmentId = paidId, LocationId = spa.Location.Id, CustomerId = guest.Id, Email = ordinary, Language = "de", Currency = "EUR", Provider = "Test", AcceptedAt = now,
+            AppointmentId = paidId,
+            LocationId = spa.Location.Id,
+            CustomerId = guest.Id,
+            Email = ordinary,
+            Language = "de",
+            Currency = "EUR",
+            Provider = "Test",
+            AcceptedAt = now,
         });
         online.CardGuarantees.Add(new CardGuarantee
         {
-            AppointmentId = cancelledId, LocationId = spa.Location.Id, CustomerId = guest.Id, Email = ordinary, Language = "de", Currency = "EUR", Provider = "Test",
+            AppointmentId = cancelledId,
+            LocationId = spa.Location.Id,
+            CustomerId = guest.Id,
+            Email = ordinary,
+            Language = "de",
+            Currency = "EUR",
+            Provider = "Test",
         });
         online.Refunds.Add(new OnlineRefund
         {
-            ReceiptId = receiptId, SourceId = Guid.NewGuid(), LocationId = spa.Location.Id, Provider = "Test", PaymentReference = "pay-1", Currency = "EUR", Email = ordinary,
-            Language = "de", RequestedAt = now,
+            ReceiptId = receiptId,
+            SourceId = Guid.NewGuid(),
+            LocationId = spa.Location.Id,
+            Provider = "Test",
+            PaymentReference = "pay-1",
+            Currency = "EUR",
+            Email = ordinary,
+            Language = "de",
+            RequestedAt = now,
         });
         online.AnamnesisRecords.Add(new AnamnesisRecord
         {
-            CustomerId = guest.Id, AppointmentId = paidId, FormVersion = "1", Channel = "Link", SubmittedAt = now, ConsentGivenAt = now, Payload = RandomNumberGenerator.GetBytes(64),
+            CustomerId = guest.Id,
+            AppointmentId = paidId,
+            FormVersion = "1",
+            Channel = "Link",
+            SubmittedAt = now,
+            ConsentGivenAt = now,
+            Payload = RandomNumberGenerator.GetBytes(64),
         });
         online.AnamnesisScans.Add(new AnamnesisScan
         {
-            CustomerId = guest.Id, AppointmentId = paidId, UploadedAt = now, UploadedBy = "tester", ContentType = "image/jpeg", Language = "de", Image = RandomNumberGenerator.GetBytes(64),
+            CustomerId = guest.Id,
+            AppointmentId = paidId,
+            UploadedAt = now,
+            UploadedBy = "tester",
+            ContentType = "image/jpeg",
+            Language = "de",
+            Image = RandomNumberGenerator.GetBytes(64),
         });
         await online.SaveChangesAsync(Ct);
     }
@@ -317,9 +418,11 @@ public sealed partial class CustomerAnonymizeTests(ApiFixture fixture)
     private async Task<HttpClient> SignInAsync(TestSpa spa, string email)
     {
         using var anonymous = spa.OnlineClient();
+        // Bei einer zweiten Anmeldung mit derselben Adresse liegt der alte Code schon im Postfach: nur eine neue Mail zählt.
+        var earlier = fixture.Mailbox.To(email);
         var request = await anonymous.PostAsJsonAsync("/api/online/auth/code", new SignInCodeRequest(email, "de"), TestSpa.Json, Ct);
         Assert.Equal(HttpStatusCode.Accepted, request.StatusCode);
-        var mail = await fixture.Mailbox.WaitForAsync(email, m => m.Subject.StartsWith("Ihr Anmeldecode", StringComparison.Ordinal), Ct);
+        var mail = await fixture.Mailbox.WaitForAsync(email, m => m.Subject.StartsWith("Ihr Anmeldecode", StringComparison.Ordinal) && !earlier.Contains(m), Ct);
         var verify = await anonymous.PostAsJsonAsync("/api/online/auth/code/verify",
             new SignInCodeVerification(email, SixDigits().Match(mail.Subject).Value), TestSpa.Json, Ct);
         Assert.Equal(HttpStatusCode.OK, verify.StatusCode);
