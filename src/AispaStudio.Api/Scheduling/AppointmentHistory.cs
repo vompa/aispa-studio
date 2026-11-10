@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text.Json;
 using AispaStudio.Api.Access;
 using AispaStudio.Api.Data;
+using AispaStudio.Api.Documents;
 using AispaStudio.Api.Pos;
 using AispaStudio.Api.Sync;
 using AispaStudio.Contracts;
@@ -11,7 +12,7 @@ namespace AispaStudio.Api.Scheduling;
 
 /// <summary>
 /// Verlauf eines Termins für Menschen (ADR 0082): liest <c>sync.history</c> und macht aus jedem Eintrag einen Satz wie „Angelegt per SMS“,
-/// „Verschoben von Lena: 14:00 → 15:30“ oder „Storniert von Lena: Gast krank“. Uhrzeiten in der Zeitzone des Standorts, Personen mit ihrem
+/// „Verschoben von Lena: 14:00 → 15:30“ oder „Storniert von Lena: Gast krank“; dazu „Bestätigung per Mail an … gesendet von Lena“ (PDF-Ausgaben C). Uhrzeiten in der Zeitzone des Standorts, Personen mit ihrem
 /// Anzeigenamen zur Zeit des Lesens. Den Verlauf sieht, wer den Termin sieht: der Termin kommt über den Mandantenfilter. Zahlungen zum Termin aus der Kassa
 /// (<see cref="PaymentHistory"/>) stehen zeitlich einsortiert dazwischen, für alle, die die Kassa sehen.
 /// </summary>
@@ -42,6 +43,8 @@ public sealed class AppointmentHistory(AispaDbContext db, PaymentHistory payment
 
         var described = await DescribeAsync(rows, _ => appointment.Source, zone, ct);
         var entries = rows.Select((row, i) => new HistoryEntry(row.ChangedAt, described[i].Text));
+        var sent = (await SentDocuments.ListAsync(db, SentDocument.AppointmentConfirmationKind, [appointmentId], ct)).GetValueOrDefault(appointmentId) ?? [];
+        entries = entries.Concat(sent.Select(d => new HistoryEntry(d.SentAt, $"Bestätigung per Mail an {d.To} gesendet{(d.SentBy is null ? "" : $" von {d.SentBy}")}")));
         if (await access.CurrentAsync(ct) is { } current && current.Has(AccessRight.Book))
         {
             entries = entries.Concat((await payments.ForAppointmentAsync(appointmentId, ct)).Select(p => new HistoryEntry(p.At, p.Text)));

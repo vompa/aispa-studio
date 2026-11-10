@@ -4,7 +4,7 @@ bereich: Lager
 oberflaeche: verwaltung
 rollen: inhaber, manager, leitung, rezeption
 seite: verwaltung
-stichwoerter: Lager, Bestand, Lagerbestand, Lagerort, Hauptlager, Material, Verbrauchsmaterial, Produkte, Warenwirtschaft, Bestellung, Mindestbestand, Ablaufdatum, Charge, nachfüllen, Schrank, inventory, stock, warehouse, supplies
+stichwoerter: Lager, Bestand, Lagerbestand, Lagerort, Hauptlager, Material, Verbrauchsmaterial, Produkte, Warenwirtschaft, Bestellung, Mindestbestand, Ablaufdatum, Charge, nachfüllen, Schrank, Export, Excel, CSV, Bestand exportieren, Inventurliste, inventory, stock, warehouse, supplies
 ---
 # Seite „Lager“
 
@@ -30,6 +30,8 @@ Oben stehen die Reiter für den Alltag, **Übersicht**, **Bestand**, **Bestellen
 - **Bestellen**: **Bedarfsprüfung**, Bestellvorschlag mit **Bestellung anlegen**, Entwürfe ändern und nach Bestätigung per Mail senden; Lieferungen kommen ins Hauptlager.
 - **Inventur**: einen Lagerort zählen.
 - **Lagerorte**: Lagerorte anlegen und pflegen, mit Mindestmengen.
+
+In der Kopfzeile speichert **Exportieren** Listen des gewählten Standorts als Excel oder CSV: Bestand je Lagerort, die letzte eingereichte Inventur, die Lagerbewegungen der letzten 30 Tage, die Bestellungen und die Ablaufliste. Den Knopf sehen nur Inhaberin und Geschäftsführung; jeder Export steht im Verlauf.
 
 Der geplante Verbrauch kommt aus der Rezeptur der Behandlungen (Seite „Kosten“) für die gebuchten Termine der nächsten 14 Tage.
 

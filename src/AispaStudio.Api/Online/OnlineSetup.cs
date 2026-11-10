@@ -88,6 +88,7 @@ internal static class OnlineSetup
         routes.MapCustomerAuthEndpoints();
         routes.MapCustomerPortalEndpoints();
         routes.MapWaitlistEndpoints();
+        routes.MapWaitlistDocumentEndpoints();
         routes.MapVoucherShopEndpoints();
         routes.MapCardGuaranteeEndpoints();
         routes.MapDepositEndpoints();

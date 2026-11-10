@@ -67,7 +67,7 @@ public partial class CalendarViewModel
         Waitlist = [.. Waitlist.Where(r => r.Entry.Id != row.Entry.Id)];
         if (WaitlistPanel is not null)
         {
-            WaitlistPanel = new WaitlistViewModel(LocationName, Waitlist, () => WaitlistPanel = null);
+            WaitlistPanel = NewWaitlistPanel();
         }
     }
 

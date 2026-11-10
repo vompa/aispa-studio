@@ -14,6 +14,9 @@ public enum ChangeChannel
     Job,
     Sync,
     StaffApp,
+
+    /// <summary>Kunden-Import aus einer Datei (Export/Import, Aufgabe E), mit der Person, die importiert.</summary>
+    Import,
 }
 
 /// <summary>Ein Eintrag im Verlauf eines Datensatzes: Zeitpunkt und ein Satz für Menschen („Verschoben von Lena: 14:00 → 15:30“).</summary>

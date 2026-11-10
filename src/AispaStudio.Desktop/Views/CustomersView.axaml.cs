@@ -33,8 +33,13 @@ public partial class CustomersView : UserControl
         {
             _customers.PropertyChanged += OnCustomersChanged;
             _customers.ContactActions ??= new CalendarView.WindowContactActions(this);
+            _customers.FilePicker ??= new StorageFilePicker(this);
         }
     }
+
+    private void OnToastEntered(object? sender, PointerEventArgs e) => _customers?.HoldToast(true);
+
+    private void OnToastExited(object? sender, PointerEventArgs e) => _customers?.HoldToast(false);
 
     /// <summary>Beim Öffnen der Kundendaten-Maske liegt der Fokus im ersten Feld (masken.md, R13), damit man gleich tippen kann; ebenso bei den Karten.</summary>
     private void OnCustomersChanged(object? sender, PropertyChangedEventArgs e)

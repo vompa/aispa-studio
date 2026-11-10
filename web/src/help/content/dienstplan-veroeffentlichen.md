@@ -4,7 +4,7 @@ bereich: Dienstplan
 oberflaeche: verwaltung
 rollen: inhaber, manager, leitung
 seite: verwaltung
-stichwoerter: Dienstplan veröffentlichen, freigeben, Entwurf, Entwürfe verwerfen, Plan gilt ab, Ankündigungsfrist, zwei Wochen vorher, kurzfristig, publish roster, discard draft
+stichwoerter: Dienstplan veröffentlichen, freigeben, Entwurf, Entwürfe verwerfen, Plan gilt ab, Ankündigungsfrist, zwei Wochen vorher, kurzfristig, publish roster, discard draft, Aushang, Dienstplan drucken, Dienstplan als PDF, Plan aushängen, roster PDF, print roster
 ---
 # Dienstplan veröffentlichen oder Entwürfe verwerfen
 
@@ -25,6 +25,18 @@ Die Meldung sagt, wie viele Tage veröffentlicht wurden, und warnt:
 ## Verwerfen {#verwerfen}
 
 **Verwerfen** löscht nach der Rückfrage **Entwürfe verwerfen?** alle Entwürfe des Standorts in der angezeigten Woche. Es bleibt der veröffentlichte Stand.
+
+## Aushang drucken {#aushang}
+
+Der veröffentlichte Dienstplan lässt sich als Aushang drucken oder als PDF speichern, ohne Entwürfe.
+
+1. Im **Wochenplan** Standort und Woche wählen.
+2. Neben der Wochenwahl auf **Aushang als PDF** klicken. Es erscheint die Karte „Dienstplan-Aushang“ mit dem Satz „Druckt den veröffentlichten Dienstplan der Woche …, ohne Entwürfe.“.
+3. Auf **Drucken** oder **PDF speichern** klicken. **Per Mail senden** gibt es hier nicht. Ein zweiter Klick auf **Aushang als PDF** schließt die Karte; ein Wechsel der Woche oder des Standorts passt den Pfad an.
+
+Das PDF `Dienstplan-<Standort>-<Montag>.pdf` ist A4 quer: eine Zeile je Person, eine Spalte je Tag, in den Zellen die Zeit (Dienste an einem anderen Standort mit dessen Namen). Urlaub, Krank, Frei und Schulung sind grau hinterlegt, die Notiz des Tages steht darunter, rechts die Stunden der Woche. Unter dem Titel stehen Standort und „Veröffentlicht am …“.
+
+Entwürfe stehen nicht darauf. Wer Tage geplant hat, muss sie zuerst veröffentlichen. Den Aushang druckt nur die Standortleitung; ohne dieses Recht sind die Knöpfe grau mit dem Hinweis „Den Aushang druckt nur die Standortleitung.“. Wie die Knöpfe arbeiten: [Dokumente drucken, speichern und senden](hilfe:dokumente-drucken-speichern-senden).
 
 ## Gut zu wissen {#hinweise}
 

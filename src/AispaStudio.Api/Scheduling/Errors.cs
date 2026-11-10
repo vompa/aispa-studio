@@ -9,6 +9,9 @@ internal sealed class Errors
 
     public bool Any => _errors.Count > 0;
 
+    /// <summary>Die erste Meldung, z. B. als Grund einer fehlerhaften Importzeile.</summary>
+    public string? First => _errors.Values.Select(list => list[0]).FirstOrDefault();
+
     public void Add(string field, string message)
     {
         var key = char.ToLowerInvariant(field[0]) + field[1..];

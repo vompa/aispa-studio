@@ -4,7 +4,7 @@ bereich: Kalender
 oberflaeche: windows-app
 rollen: rezeption, therapeut, leitung, inhaber, manager
 seite: kalender
-stichwoerter: Warteliste, warten, Wartende, ausgebucht, voll, Nachrücken, wenn etwas frei wird, Absage nutzen, Interessenten, waitlist, waiting list
+stichwoerter: Warteliste, warten, Wartende, ausgebucht, voll, Nachrücken, wenn etwas frei wird, Absage nutzen, Interessenten, waitlist, waiting list, Warteliste drucken, Tagesliste, nachtelefonieren, Warteliste als PDF, print waitlist
 ---
 # Warteliste ansehen
 
@@ -21,6 +21,17 @@ Gäste, die online keinen passenden Termin gefunden haben, können sich auf die 
 7. Dieselben Schritte stehen im Rechtsklick-Menü des Eintrags.
 
 ![Warteliste im Kalender](images/app/kalender-warteliste.png)
+
+## Tagesliste drucken {#pdf}
+
+Oben im Panel steht ein Knopfblock mit **Drucken** und **PDF speichern**, ohne **Per Mail senden**. Der Hinweis darüber lautet „Druckt die offenen Wünsche, die am <Tag> gelten.“. Die Liste ist zum Nachtelefonieren gedacht.
+
+- Die Datei heißt `Warteliste-<Standort>-<JJJJ-MM-TT>.pdf`.
+- Je Wunsch stehen Gast, Telefon, Wunsch, Zeitraum (darunter die Tageszeit) und Stand („Wartet“ oder „n× freien Termin gemeldet“).
+- Es stehen nur die Wünsche darauf, deren Zeitraum den Tag einschließt. Gibt es keine, steht „Keine offenen Wünsche an diesem Tag.“.
+- Die Warteliste drucken darf, wer den Kalender sehen darf, auch die Therapeutin.
+
+Wie die Knöpfe arbeiten: [Dokumente drucken, speichern und senden](hilfe:dokumente-drucken-speichern-senden).
 
 ## Hinweise {#hinweise}
 

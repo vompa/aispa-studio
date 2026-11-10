@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using AispaStudio.Desktop.Services;
 
@@ -49,6 +50,19 @@ internal sealed class StubApi : HttpMessageHandler
         {
             Content = new StringContent(html, System.Text.Encoding.UTF8, "text/html"),
             RequestMessage = redirectedTo is null ? null : new HttpRequestMessage(HttpMethod.Get, redirectedTo),
+        };
+        return this;
+    }
+
+    /// <summary>Eine Datei mit Namen, z. B. ein PDF der Dokumente (ADR 0092) oder ein Export (ADR 0091): <c>Content-Disposition: attachment; filename*=…</c> wie bei <c>TypedResults.File</c>.</summary>
+    public StubApi OnFile(string route, byte[] body, string fileName, string contentType = "application/pdf")
+    {
+        _routes[route] = _ =>
+        {
+            var content = new ByteArrayContent(body);
+            content.Headers.ContentType = new MediaTypeHeaderValue(contentType);
+            content.Headers.ContentDisposition = new ContentDispositionHeaderValue("attachment") { FileNameStar = fileName };
+            return new HttpResponseMessage(HttpStatusCode.OK) { Content = content };
         };
         return this;
     }

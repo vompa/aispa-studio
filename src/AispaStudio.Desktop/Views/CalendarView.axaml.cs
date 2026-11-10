@@ -160,6 +160,7 @@ public partial class CalendarView : UserControl
             vm.PanelFocusRequested += FocusInPanel;
             vm.ContactActions ??= new WindowContactActions(this);
             vm.Files ??= new StorageFilePicker(this);
+            vm.FileSaver ??= new StorageFileSaver(this);
             vm.ColumnRevealRequested += RevealColumn;
             vm.MarkMovedByKey += FocusCard;
             vm.PropertyChanged += OnViewModelChanged;
