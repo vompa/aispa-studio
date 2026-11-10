@@ -171,7 +171,7 @@ public static class ChangeHistory
         END
         $fn$;
 
-        -- Für das Löschen und, sobald es sie gibt, das Anonymisieren eines Gastes: der Verlauf seiner Zeilen fällt mit.
+        -- Für das (harte) Löschen eines Gastes: der Verlauf seiner Zeilen fällt mit. Beim Anonymisieren bleiben die Zeilen, siehe sync.scrub_customer_history.
         CREATE OR REPLACE FUNCTION sync.forget_customer_history(customer uuid) RETURNS void LANGUAGE sql AS $fn$
             DELETE FROM sync.history WHERE customer_id = customer;
         $fn$;
@@ -179,6 +179,29 @@ public static class ChangeHistory
         CREATE OR REPLACE FUNCTION sync.forget_deleted_customer() RETURNS trigger LANGUAGE plpgsql AS $fn$
         BEGIN
             PERFORM sync.forget_customer_history(OLD."Id");
+            RETURN NULL;
+        END
+        $fn$;
+
+        -- Für das Anonymisieren (weich löschen) eines Gastes: die Zeilen bleiben (wer, wann, was), die Werte gehen. Customers und CustomerEmails verlieren die
+        -- Werte der Änderung und die Mailadresse im Satz; Termine verlieren nur Notiz und Stornogrund, damit „Storniert von Lena“ und „Verschoben 14:00 → 15:30“
+        -- bleiben; eine Zeile, die dadurch leer wird (reine Notizänderung), entfällt. Mehrfach ausführbar.
+        CREATE OR REPLACE FUNCTION sync.scrub_customer_history(customer uuid) RETURNS void LANGUAGE plpgsql AS $fn$
+        BEGIN
+            UPDATE sync.history SET changes = NULL
+             WHERE customer_id = customer AND table_schema = 'aispa' AND table_name IN ('Customers', 'CustomerEmails') AND changes IS NOT NULL;
+            UPDATE sync.history SET context = context - 'Address'
+             WHERE customer_id = customer AND table_schema = 'aispa' AND table_name = 'CustomerEmails' AND context ? 'Address';
+            UPDATE sync.history SET changes = changes - 'Note' - 'CancelReason'
+             WHERE customer_id = customer AND table_schema = 'aispa' AND table_name = 'Appointments' AND changes ?| ARRAY['Note', 'CancelReason'];
+            DELETE FROM sync.history
+             WHERE customer_id = customer AND table_schema = 'aispa' AND table_name = 'Appointments' AND operation = 'U' AND changes = jsonb_build_object();
+        END
+        $fn$;
+
+        CREATE OR REPLACE FUNCTION sync.scrub_anonymized_customer() RETURNS trigger LANGUAGE plpgsql AS $fn$
+        BEGIN
+            PERFORM sync.scrub_customer_history(NEW."Id");
             RETURN NULL;
         END
         $fn$;
@@ -215,6 +238,19 @@ public static class ChangeHistory
                                 WHERE tr.tgrelid = 'aispa."Customers"'::regclass AND tr.tgname = 'aispa_history_forget') THEN
                 CREATE OR REPLACE TRIGGER aispa_history_forget AFTER DELETE ON aispa."Customers"
                     FOR EACH ROW EXECUTE FUNCTION sync.forget_deleted_customer();
+            END IF;
+
+            -- Verzögert bis zum Commit: läuft erst nach allen Leer-Updates derselben Transaktion (Anonymisierer, Abgleich einer Seite). Nur beim Wechsel von
+            -- DeletedAt von leer auf gesetzt. Die Spalte gibt es erst nach der Migration; CREATE OR REPLACE geht bei einem Constraint-Trigger nicht, daher die Prüfung.
+            IF to_regclass('aispa."Customers"') IS NOT NULL
+               AND EXISTS (SELECT 1 FROM information_schema.columns
+                            WHERE table_schema = 'aispa' AND table_name = 'Customers' AND column_name = 'DeletedAt')
+               AND NOT EXISTS (SELECT 1 FROM pg_trigger tr
+                                WHERE tr.tgrelid = 'aispa."Customers"'::regclass AND tr.tgname = 'aispa_history_anonymize') THEN
+                CREATE CONSTRAINT TRIGGER aispa_history_anonymize AFTER UPDATE ON aispa."Customers"
+                    DEFERRABLE INITIALLY DEFERRED FOR EACH ROW
+                    WHEN (OLD."DeletedAt" IS NULL AND NEW."DeletedAt" IS NOT NULL)
+                    EXECUTE FUNCTION sync.scrub_anonymized_customer();
             END IF;
             RETURN n;
         END

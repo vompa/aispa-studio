@@ -2453,6 +2453,54 @@
         }
       }
     },
+    "/api/v1/customers/{customerId}/anonymize": {
+      "post": {
+        "tags": [
+          "Kunden"
+        ],
+        "summary": "Anonymisiert einen Gast und löscht ihn weich: Name, Kontaktdaten, Notizen, Anamnese und Online-Zugang sind weg, Termine und Belege bleiben als „Gelöschter Gast“, der Verlauf behält seine Zeilen ohne Werte. Nur Inhaber und Geschäftsführung. 409 mit der Liste des Offenen (künftige Termine, offene Rechnungen) oder wenn der Gast schon anonymisiert ist.",
+        "operationId": "AnonymizeCustomer",
+        "parameters": [
+          {
+            "name": "customerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerAnonymizeRejected"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/customers/{customerId}/appointments": {
       "get": {
         "tags": [
@@ -33251,6 +33299,24 @@
               "null",
               "string"
             ]
+          }
+        }
+      },
+      "CustomerAnonymizeRejected": {
+        "required": [
+          "message",
+          "open"
+        ],
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "open": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },

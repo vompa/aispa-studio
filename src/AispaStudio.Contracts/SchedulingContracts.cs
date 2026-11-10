@@ -399,6 +399,12 @@ public enum CustomerDiscountScope
 /// </summary>
 public sealed record CustomerDiscount(decimal Percent, CustomerDiscountScope Scope = CustomerDiscountScope.All);
 
+/// <summary>
+/// Antwort mit 409, wenn ein Gast noch nicht anonymisiert werden darf: <c>Open</c> nennt, was offen ist („1 künftiger Termin“, „2 offene Rechnungen“),
+/// <c>Message</c> den Satz für die Oberfläche.
+/// </summary>
+public sealed record CustomerAnonymizeRejected(string Message, IReadOnlyList<string> Open);
+
 /// <summary>Kundenrabatt festlegen; über der Rabattgrenze des Spas mit Freigabe per PIN durch Inhaber oder Standortleitung.</summary>
 public sealed record CustomerDiscountInput(decimal Percent, CustomerDiscountScope Scope = CustomerDiscountScope.All, SupervisorApproval? Approval = null);
 

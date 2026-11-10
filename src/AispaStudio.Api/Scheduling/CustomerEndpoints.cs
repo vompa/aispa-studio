@@ -325,6 +325,29 @@ internal static class CustomerEndpoints
             .WithSummary("Rezeptionsvermerk: Organisatorisches wie „zahlt mit Firmenkarte“, nur für Rezeption und Leitung. Keine Gesundheitsdaten.")
             .RequirePermission(AccessRight.Book);
 
+        group.MapPost("/{customerId:guid}/anonymize", async Task<Results<NoContent, NotFound, Conflict<CustomerAnonymizeRejected>, ProblemHttpResult>> (
+                Guid customerId, CustomerAnonymizer anonymizer, AccessService access, CancellationToken ct) =>
+            {
+                if ((await access.CurrentAsync(ct))?.IsOwnerLevel != true)
+                {
+                    return TypedResults.Problem(statusCode: StatusCodes.Status403Forbidden, title: "Keine Berechtigung.",
+                        detail: "Einen Gast anonymisieren nur Inhaber und Geschäftsführung.");
+                }
+
+                return await anonymizer.AnonymizeAsync(customerId, ct) switch
+                {
+                    CustomerAnonymizer.Outcome.Done => TypedResults.NoContent(),
+                    CustomerAnonymizer.Outcome.AlreadyDone => TypedResults.Conflict(new CustomerAnonymizeRejected(CustomerAnonymizer.AlreadyAnonymizedMessage, [])),
+                    CustomerAnonymizer.Outcome.Blocked blocked => TypedResults.Conflict(new CustomerAnonymizeRejected(
+                        $"Der Gast lässt sich noch nicht anonymisieren. Offen: {string.Join(" und ", blocked.Open)}. Bitte zuerst stornieren oder abschließen.", blocked.Open)),
+                    _ => TypedResults.NotFound(),
+                };
+            })
+            .WithName("AnonymizeCustomer")
+            .WithSummary("Anonymisiert einen Gast und löscht ihn weich: Name, Kontaktdaten, Notizen, Anamnese und Online-Zugang sind weg, Termine und Belege bleiben als "
+                + "„Gelöschter Gast“, der Verlauf behält seine Zeilen ohne Werte. Nur Inhaber und Geschäftsführung. 409 mit der Liste des Offenen (künftige Termine, "
+                + "offene Rechnungen) oder wenn der Gast schon anonymisiert ist.");
+
         group.MapGet("/{customerId:guid}/appointments", async (Guid customerId, AispaDbContext db, AccessService accessService, CancellationToken ct) =>
             {
                 var access = (await accessService.CurrentAsync(ct))!;
