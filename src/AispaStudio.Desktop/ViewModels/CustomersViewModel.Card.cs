@@ -13,6 +13,9 @@ public sealed record PreferenceChip(string Text, bool IsWarning = false, string?
 /// <summary>Zeile im Verlauf der Kundenkarte, z. B. „Do. 6.11. 10:30“ und „Hot-Stone-Massage bei Lena Huber“; <c>Status</c> nur bei Abweichungen.</summary>
 public sealed record TimelineEntry(string When, string Text, string? Status = null, bool IsProblem = false);
 
+/// <summary>Der nächste Termin in der Kachel oben im Verlauf, z. B. „Fr. 13.11. · 10:30“, „in 3 Tagen“, „Hot-Stone-Massage bei Lena Huber“.</summary>
+public sealed record NextVisitEntry(string When, string Relative, string Text);
+
 /// <summary>Erkennt Wörter, die nach Gesundheitsdaten klingen; die gehören verschlüsselt in die Anamnese, nicht in Vermerke.</summary>
 public static class HealthWords
 {
@@ -51,7 +54,7 @@ public partial class CustomersViewModel
 {
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(StarsGlyph), nameof(StarsChipText), nameof(StarsName), nameof(HasStars), nameof(MaySeeReceptionNote), nameof(ReceptionNoteText), nameof(BirthdayInfo))]
-    [NotifyPropertyChangedFor(nameof(StatsLine), nameof(StatsWarning), nameof(StatsWarningTip))]
+    [NotifyPropertyChangedFor(nameof(StatsLine), nameof(StatsWarning), nameof(StatsWarningTip), nameof(HasAttention))]
     public partial CustomerInsights? Insights { get; private set; }
 
     /// <summary>„★★“; berechnet aus Besuchen und Umsatz, keine Bewertung durch das Team.</summary>
@@ -196,8 +199,16 @@ public partial class CustomersViewModel
     [ObservableProperty]
     public partial CustomerPreferences? Wishes { get; private set; }
 
-    /// <summary>Die Wünsche als Chips; „Nicht behandeln: …“ steht als Warn-Chip vorn.</summary>
+    /// <summary>Die Wünsche als Chips; „Nicht behandeln: …“ steht nicht hier, sondern im Warnstreifen unter dem Kopf (<see cref="AvoidWarning"/>).</summary>
     public ObservableCollection<PreferenceChip> WishChips { get; } = [];
+
+    /// <summary>„Nicht behandeln: Füße“ im Warnstreifen über der oberen Drittellinie der Karte (masken.md R14); der Grund in Klammern steht im Tooltip.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasAttention))]
+    public partial PreferenceChip? AvoidWarning { get; private set; }
+
+    /// <summary>Ob der Warnstreifen erscheint: etwas, das nicht behandelt werden darf, oder Ausfälle (nicht erschienen, späte Absagen).</summary>
+    public bool HasAttention => AvoidWarning is not null || StatsWarning is not null;
 
     partial void OnWishesChanged(CustomerPreferences? value)
     {
@@ -206,11 +217,12 @@ public partial class CustomersViewModel
         {
             WishChips.Add(chip);
         }
+
+        AvoidWarning = value?.AvoidAreas is { } avoid ? AvoidChip(avoid) : null;
     }
 
     public static IEnumerable<PreferenceChip> Chips(CustomerPreferences p) => new[]
     {
-        p.AvoidAreas is { } avoid ? AvoidChip(avoid) : null,
         p.Pressure is { } pressure ? new PreferenceChip($"Druck: {pressure}") : null,
         p.Scent is { } scent ? new PreferenceChip($"Duft: {scent}") : null,
         p.RoomTemperature is { } temperature ? new PreferenceChip($"Raum: {temperature}") : null,
@@ -221,7 +233,7 @@ public partial class CustomersViewModel
     }.OfType<PreferenceChip>();
 
     /// <summary>„Füße (kitzlig)“ wird zum Chip „Nicht behandeln: Füße“; der Grund in Klammern steht im Tooltip.</summary>
-    private static PreferenceChip AvoidChip(string avoid)
+    public static PreferenceChip AvoidChip(string avoid)
     {
         var full = $"Nicht behandeln: {avoid}";
         var cut = avoid.IndexOf(" (", StringComparison.Ordinal);

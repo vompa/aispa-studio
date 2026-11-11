@@ -46,6 +46,9 @@ Begründung: Der Weg zur Hauptaktion ist immer gleich und immer sichtbar, auch b
 **R5a. Eine Maske je Bereich, Tiefe nach Rolle.** Ein Bereich (Kassa, Kundenkarte, Dienstplan, Lager) hat eine Maske für alle Rollen. Oben und zuerst steht, was die Rezeption täglich braucht; was nur Inhaberin und Leitung verwalten, steht dahinter in derselben Maske (eingeklappt, in einem Unterreiter oder in einem Panel) und ist für andere Rollen ausgeblendet. Eine eigene Maske gibt es nur, wenn die Aufgabe eine andere ist (z. B. Einstellungen einer Kasse statt Kassieren). Die Rechte prüft immer die API; die Maske blendet nur aus.
 Begründung: Wer verwaltet, arbeitet auch im Alltag mit derselben Maske und muss nicht zwischen zwei Fassungen suchen; die Rezeption sieht nur, was sie braucht. Quelle: Auftraggeber, 03.11.2026 (Ä353, Runde R07); Vorbild ist die Kassa mit „Heute abzurechnen“ vorn und dem zugeklappten Panel „Artikel und Gutscheine“ (Slice 137).
 
+**R14. Proportionen: 3 : 2 für Haupt- und Nebeninhalt, Wichtiges über der oberen Drittellinie.** Stehen ein Hauptinhalt und ein Nebeninhalt nebeneinander (Anzeige wie die Kundenkarte: „Gut zu wissen“ und „Verlauf“; Eingabe mit begleitender Vorschau oder Hilfe), teilen sie die Breite **3 : 2**, der Hauptinhalt links. Gleich breite Spalten nur bei gleichrangigen Inhalten (zwei Zeiträume, zwei Standorte). Ist die Spalte des Nebeninhalts zu schmal für seine längste typische Zeile, stehen beide in voller Breite untereinander (Windows-App: `MainSideColumns` mit `StackBelow`). Warnungen und alles, was vor der Handlung gelesen werden muss, beginnen im oberen Drittel der Maske, als ein Hinweis „Warnung“ (design.md 5.9) und nicht verstreut zwischen anderen Angaben. Innerhalb eines Formulars gelten weiter R3 und R4; die Regel ändert keine Werte, alle Abstände und Größen bleiben aus design.md 4.1.
+Begründung: 1,5 : 1 liegt nahe am goldenen Schnitt (1,618 : 1) und lässt dem Nebeninhalt genug Breite; die Abstandsreihe 8, 12, 20, 32 folgt schon etwa dieser Steigung. Die Drittelregel aus der Fotografie heißt auf Oberflächen: der Blick landet zuerst links oben. Belege, dass der goldene Schnitt Bedienfehler senkt, gibt es nicht; die Regel sorgt für ruhige Proportionen und eine feste Reihenfolge. Quelle: Auftraggeber, 10.11.2026 ([ADR 0094](../entscheidungen/0094-proportionen-von-masken-drittel-und-goldener-schnitt.md)).
+
 ### 2.2 Felder
 
 **R6. Beschriftung über dem Feld, Hilfetext darunter.** Beschriftung `TextBlock.label` (Stufe „Beschriftung“, design.md Abschnitt 3), linksbündig, **Substantiv** („Vorname“, nicht „Bitte Vornamen eingeben“), ohne Doppelpunkt, ohne Klammerzusatz außer für Einheiten („Vorname“ statt „Vorname (gültiger Name)“, aber „Dauer (min)“; die Erklärung steht im Hilfetext). Hilfetext: `TextBlock.small` (Stufe „Klein“, `Fg2`) **unter** dem Feld, höchstens eine Zeile; erscheint nur, wo er wirklich hilft. Kein Platzhalter als Beschriftung; der Platzhalter darf nur ein Beispiel zeigen („z. B. 1010“).
@@ -118,6 +121,7 @@ Feldhöhe ist 34 px (design.md 4.4). Die Gruppenabstände bleiben größer als d
 13. Passendes Steuerelement und Eingabetyp, Längen begrenzt (R12).
 14. Tab-Reihenfolge, Startfokus, Enter, Esc, Beschriftung am Feld (R13).
 15. Abstände und Maße nur aus design.md 4.1 und 4.4; Web mit `fieldset`, `details`, `dialog`, `datalist`.
+16. Haupt- und Nebeninhalt 3 : 2, untereinander bei zu schmaler Nebenspalte; Warnungen im oberen Drittel als ein Hinweis (R14).
 
 ## 7. Umbauvorschlag Kundendaten-Maske
 
