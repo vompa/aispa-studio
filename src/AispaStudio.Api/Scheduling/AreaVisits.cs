@@ -122,6 +122,11 @@ internal sealed class AreaVisitService(AispaDbContext db, TimeProvider time)
             return new BookingOutcome.NotFound("Kunde");
         }
 
+        if (customer.DeletedAt is not null)
+        {
+            return new BookingOutcome.Invalid(nameof(request.CustomerId), CustomerAnonymizer.NotSelectableMessage);
+        }
+
         var zone = LocalTime.Zone(location.TimeZone);
         // Die Rezeption trägt an einem Schließtag trotzdem ein (ADR 0073, Nachtrag R03): ohne Öffnungsfenster am Tag gibt es nur den Hinweis.
         var closedDay = await IsClosedDayAsync(location, from, zone, ct);

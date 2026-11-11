@@ -164,6 +164,7 @@ var forwardedHeaders = builder.Services.AddForwardedHeaders(builder.Configuratio
 builder.Services.AddSingleton<TenantLocks>();
 builder.Services.AddPasskeyIdentity(builder.Configuration, modules);
 builder.Services.AddScoped<BookingService>();
+builder.Services.AddScoped<CustomerAnonymizer>();
 builder.Services.AddScoped<AppointmentHistory>();
 builder.Services.AddScoped<EntityHistory>();
 builder.Services.AddScoped<PaymentHistory>();

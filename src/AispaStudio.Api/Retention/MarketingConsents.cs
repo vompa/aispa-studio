@@ -49,7 +49,7 @@ internal sealed class MarketingConsents(
 
     public async Task<MarketingConsentDto?> ForCustomerAsync(Guid customerId, CancellationToken ct)
     {
-        if (!await db.Customers.AnyAsync(c => c.Id == customerId, ct))
+        if (!await db.Customers.AnyAsync(c => c.Id == customerId && c.DeletedAt == null, ct))
         {
             return null;
         }
@@ -60,7 +60,7 @@ internal sealed class MarketingConsents(
     /// <summary>Schickt dem Gast die Mail zum Bestätigen. Ist schon für dieselbe Adresse bestätigt, bleibt es dabei.</summary>
     public async Task<Outcome> RequestAsync(Guid customerId, string? language, string source, CancellationToken ct)
     {
-        var customer = await db.Customers.AsNoTracking().FirstOrDefaultAsync(c => c.Id == customerId, ct);
+        var customer = await db.Customers.AsNoTracking().FirstOrDefaultAsync(c => c.Id == customerId && c.DeletedAt == null, ct);
         if (customer is null)
         {
             return new Outcome.NotFound();
@@ -170,7 +170,7 @@ internal sealed class MarketingConsents(
     /// <summary>Widerruf durch das Team, z. B. wenn der Gast es am Empfang sagt.</summary>
     public async Task<MarketingConsentDto?> WithdrawAsync(Guid customerId, CancellationToken ct)
     {
-        if (!await db.Customers.AnyAsync(c => c.Id == customerId, ct))
+        if (!await db.Customers.AnyAsync(c => c.Id == customerId && c.DeletedAt == null, ct))
         {
             return null;
         }

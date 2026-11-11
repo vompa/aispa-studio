@@ -28,6 +28,11 @@ internal sealed partial class BookingService
             return new BookingOutcome.NotFound("Kunde");
         }
 
+        if (customer.DeletedAt is not null)
+        {
+            return new BookingOutcome.Invalid("customerId", CustomerAnonymizer.NotSelectableMessage);
+        }
+
         if (appointment.CustomerId == customer.Id)
         {
             return new BookingOutcome.Success(ToDto(appointment, appointment.Treatment.Name));

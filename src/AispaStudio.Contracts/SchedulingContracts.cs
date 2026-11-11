@@ -223,6 +223,7 @@ public sealed record CustomerInput(string FirstName, string LastName, string? Em
     Guid? ClientId = null, string? Language = null, CustomerSalutation Salutation = CustomerSalutation.None, string? PreferredName = null,
     string? TitlesBefore = null, string? TitlesAfter = null, bool? TitleInGreeting = null, CustomerAddress? Address = null, string? Pronouns = null);
 
+/// <param name="DeletedAt">Gesetzt, wenn der Gast anonymisiert wurde: Name, Kontakt und Notizen sind gelöscht, Termine und Belege bleiben als „Gelöschter Gast“.</param>
 public sealed record CustomerDto(
     Guid Id,
     string FirstName,
@@ -243,7 +244,8 @@ public sealed record CustomerDto(
     string? TitlesAfter = null,
     bool? TitleInGreeting = null,
     CustomerAddress? Address = null,
-    string? Pronouns = null)
+    string? Pronouns = null,
+    DateTimeOffset? DeletedAt = null)
 {
     /// <summary>Name im Haus (Rufname statt Vorname): Kalender, Suche, Kundenkarte, Kassa-Oberfläche.</summary>
     [System.Text.Json.Serialization.JsonIgnore]
@@ -396,6 +398,12 @@ public enum CustomerDiscountScope
 /// neuen Position der Kundin ab und weist ihn auf dem Beleg aus; ein Prozentsatz von 0 nimmt ihn zurück.
 /// </summary>
 public sealed record CustomerDiscount(decimal Percent, CustomerDiscountScope Scope = CustomerDiscountScope.All);
+
+/// <summary>
+/// Antwort mit 409, wenn ein Gast noch nicht anonymisiert werden darf: <c>Open</c> nennt, was offen ist („1 künftiger Termin“, „2 offene Rechnungen“),
+/// <c>Message</c> den Satz für die Oberfläche.
+/// </summary>
+public sealed record CustomerAnonymizeRejected(string Message, IReadOnlyList<string> Open);
 
 /// <summary>Kundenrabatt festlegen; über der Rabattgrenze des Spas mit Freigabe per PIN durch Inhaber oder Standortleitung.</summary>
 public sealed record CustomerDiscountInput(decimal Percent, CustomerDiscountScope Scope = CustomerDiscountScope.All, SupervisorApproval? Approval = null);

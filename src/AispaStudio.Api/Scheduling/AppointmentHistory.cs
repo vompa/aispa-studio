@@ -44,7 +44,7 @@ public sealed class AppointmentHistory(AispaDbContext db, PaymentHistory payment
         var described = await DescribeAsync(rows, _ => appointment.Source, zone, ct);
         var entries = rows.Select((row, i) => new HistoryEntry(row.ChangedAt, described[i].Text));
         var sent = (await SentDocuments.ListAsync(db, SentDocument.AppointmentConfirmationKind, [appointmentId], ct)).GetValueOrDefault(appointmentId) ?? [];
-        entries = entries.Concat(sent.Select(d => new HistoryEntry(d.SentAt, $"Bestätigung per Mail an {d.To} gesendet{(d.SentBy is null ? "" : $" von {d.SentBy}")}")));
+        entries = entries.Concat(sent.Select(d => new HistoryEntry(d.SentAt, $"Bestätigung per Mail{(d.To.Length == 0 ? "" : $" an {d.To}")} gesendet{(d.SentBy is null ? "" : $" von {d.SentBy}")}")));
         if (await access.CurrentAsync(ct) is { } current && current.Has(AccessRight.Book))
         {
             entries = entries.Concat((await payments.ForAppointmentAsync(appointmentId, ct)).Select(p => new HistoryEntry(p.At, p.Text)));

@@ -27,7 +27,7 @@ internal static class InboxCustomerEndpoints
 
                 var errors = new Errors();
                 errors.Check(CanDecide(mail), "status", Settled);
-                var customer = await db.Customers.FirstOrDefaultAsync(c => c.Id == input.CustomerId, ct);
+                var customer = await db.Customers.FirstOrDefaultAsync(c => c.Id == input.CustomerId && c.DeletedAt == null, ct);
                 errors.Check(customer is not null, nameof(input.CustomerId), "Diesen Kunden gibt es nicht.");
                 if (errors.Any || customer is null)
                 {

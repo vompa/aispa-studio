@@ -19,7 +19,7 @@ internal static class CustomerEndpoints
         var group = routes.MapGroup("/api/customers").WithTags("Kunden").RequirePermission(AccessRight.ViewCalendar);
 
         group.MapGet("/", async (string? search, AispaDbContext db, CancellationToken ct) =>
-                (await Search(db.Customers.AsNoTracking(), db, search).OrderBy(c => c.LastName).ThenBy(c => c.FirstName).Take(25).ToListAsync(ct))
+                (await Search(db.Customers.AsNoTracking().Where(c => c.DeletedAt == null), db, search).OrderBy(c => c.LastName).ThenBy(c => c.FirstName).Take(25).ToListAsync(ct))
                     .Select(ToDto).ToList())
             .WithName("SearchCustomers")
             .WithSummary("Sucht im gemeinsamen Kundenstamm (höchstens 25 Treffer).");
@@ -78,7 +78,7 @@ internal static class CustomerEndpoints
         group.MapPut("/{customerId:guid}", async Task<Results<Ok<CustomerDto>, NotFound, ValidationProblem>> (
                 Guid customerId, CustomerInput input, AispaDbContext db, TenantContext tenants, AccessService accessService, TimeProvider time, CancellationToken ct) =>
             {
-                if (await db.Customers.FirstOrDefaultAsync(c => c.Id == customerId, ct) is not { } customer)
+                if (await db.Customers.FirstOrDefaultAsync(c => c.Id == customerId && c.DeletedAt == null, ct) is not { } customer)
                 {
                     return TypedResults.NotFound();
                 }
@@ -129,7 +129,7 @@ internal static class CustomerEndpoints
         group.MapPut("/{customerId:guid}/billing", async Task<Results<Ok<CustomerDto>, NotFound, ValidationProblem>> (
                 Guid customerId, CustomerBilling? input, AispaDbContext db, CancellationToken ct) =>
             {
-                if (await db.Customers.FirstOrDefaultAsync(c => c.Id == customerId, ct) is not { } customer)
+                if (await db.Customers.FirstOrDefaultAsync(c => c.Id == customerId && c.DeletedAt == null, ct) is not { } customer)
                 {
                     return TypedResults.NotFound();
                 }
@@ -165,7 +165,7 @@ internal static class CustomerEndpoints
                 Guid customerId, CustomerDiscountInput input, AispaDbContext db, TenantContext tenants, AccessService access,
                 UserManager<AispaUser> users, TimeProvider time, CancellationToken ct) =>
             {
-                if (await db.Customers.FirstOrDefaultAsync(c => c.Id == customerId, ct) is not { } customer)
+                if (await db.Customers.FirstOrDefaultAsync(c => c.Id == customerId && c.DeletedAt == null, ct) is not { } customer)
                 {
                     return TypedResults.NotFound();
                 }
@@ -211,7 +211,7 @@ internal static class CustomerEndpoints
         group.MapPut("/{customerId:guid}/booking-preferences", async Task<Results<Ok<CustomerDto>, NotFound, ValidationProblem>> (
                 Guid customerId, CustomerBookingPreferences input, AispaDbContext db, CancellationToken ct) =>
             {
-                if (await db.Customers.FirstOrDefaultAsync(c => c.Id == customerId, ct) is not { } customer)
+                if (await db.Customers.FirstOrDefaultAsync(c => c.Id == customerId && c.DeletedAt == null, ct) is not { } customer)
                 {
                     return TypedResults.NotFound();
                 }
@@ -276,7 +276,7 @@ internal static class CustomerEndpoints
                     return errors.Problem();
                 }
 
-                if (await db.Customers.FirstOrDefaultAsync(c => c.Id == customerId, ct) is not { } customer)
+                if (await db.Customers.FirstOrDefaultAsync(c => c.Id == customerId && c.DeletedAt == null, ct) is not { } customer)
                 {
                     return TypedResults.NotFound();
                 }
@@ -288,6 +288,29 @@ internal static class CustomerEndpoints
             .WithName("SetCustomerReceptionNote")
             .WithSummary("Rezeptionsvermerk: Organisatorisches wie „zahlt mit Firmenkarte“, nur für Rezeption und Leitung. Keine Gesundheitsdaten.")
             .RequirePermission(AccessRight.Book);
+
+        group.MapPost("/{customerId:guid}/anonymize", async Task<Results<NoContent, NotFound, Conflict<CustomerAnonymizeRejected>, ProblemHttpResult>> (
+                Guid customerId, CustomerAnonymizer anonymizer, AccessService access, CancellationToken ct) =>
+            {
+                if ((await access.CurrentAsync(ct))?.IsOwnerLevel != true)
+                {
+                    return TypedResults.Problem(statusCode: StatusCodes.Status403Forbidden, title: "Keine Berechtigung.",
+                        detail: "Einen Gast anonymisieren nur Inhaber und Geschäftsführung.");
+                }
+
+                return await anonymizer.AnonymizeAsync(customerId, ct) switch
+                {
+                    CustomerAnonymizer.Outcome.Done => TypedResults.NoContent(),
+                    CustomerAnonymizer.Outcome.AlreadyDone => TypedResults.Conflict(new CustomerAnonymizeRejected(CustomerAnonymizer.AlreadyAnonymizedMessage, [])),
+                    CustomerAnonymizer.Outcome.Blocked blocked => TypedResults.Conflict(new CustomerAnonymizeRejected(
+                        $"Der Gast lässt sich noch nicht anonymisieren. Offen: {string.Join(" und ", blocked.Open)}. Bitte zuerst stornieren oder abschließen.", blocked.Open)),
+                    _ => TypedResults.NotFound(),
+                };
+            })
+            .WithName("AnonymizeCustomer")
+            .WithSummary("Anonymisiert einen Gast und löscht ihn weich: Name, Kontaktdaten, Notizen, Anamnese und Online-Zugang sind weg, Termine und Belege bleiben als "
+                + "„Gelöschter Gast“, der Verlauf behält seine Zeilen ohne Werte. Nur Inhaber und Geschäftsführung. 409 mit der Liste des Offenen (künftige Termine, "
+                + "offene Rechnungen) oder wenn der Gast schon anonymisiert ist.");
 
         group.MapGet("/{customerId:guid}/appointments", async (Guid customerId, AispaDbContext db, AccessService accessService, CancellationToken ct) =>
             {
@@ -410,7 +433,7 @@ internal static class CustomerEndpoints
         BookingPreferences(c), c.Language, c.CreatedFromChannel?.ToString(), c.AssignmentOpen,
         c.Salutation, c.PreferredName, c.TitlesBefore, c.TitlesAfter, c.TitleInGreeting,
         c is { Street: null, PostalCode: null, City: null, Country: null } ? null : new CustomerAddress(c.Street, c.PostalCode, c.City, c.Country),
-        c.Pronouns);
+        c.Pronouns, c.DeletedAt);
 
     /// <summary>Leer, Deutsch oder eine der Sprachen aus <see cref="GuestLanguages"/>.</summary>
     public static bool KnownLanguage(string? code) =>

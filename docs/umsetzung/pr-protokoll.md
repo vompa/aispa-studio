@@ -5929,3 +5929,32 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Geprüft:** Test zuerst: `VoucherExpiryTests` (Fristen je Land mit Jahresende und 29.02., Hinweise, gemeinsame Hilfe, Verkauf an DE/CH/AT-Kasse mit Bondruck, eigenes Datum, unbefristet, Datum heute → 400, Einlösen nach Ablauf → „… ist am … abgelaufen“, Endpunkt) 21/21 grün; `VoucherShopTests` mit DE-Kasse (Datum und Mail) und AT-Kasse (kein Datum); Desktop `PosTests` 45/45 grün (Vorbelegung, Hinweis, Verkauf mit Datum, leeres Feld → `WithoutExpiry`, Vorbelegung nicht geladen → nichts gesendet, Belegzeile); Kassa-`ViewTests` (12 Methoden einzeln), `TermsAndTooltipTests`, `DesignTokenTests`, `HelpTests`, `HelpPageCheckTests` grün; Web: `npm run gen:api`, `tsc --noEmit` sauber, Hilfe-Tests 61/61 grün; `dotnet format --verify-no-changes` sauber. Volle Suiten: API 2022 von 2053 im ersten Lauf, die 30 Fehlschläge waren Zeitüberschreitungen unter Last (Start-, Host-, Migrations- und Anzeigetests, je 2 bis 14 Minuten, parallel zur Desktop-Suite) und liefen einzeln grün (184/184 mit Wiederholung); Desktop ohne `ViewTests` 2099 von 2100 (1 übersprungen), danach `PosTests` mit der Nachbesserung aus dem Kalt-Review 45/45. Handbuchbilder `gutschein-verkaufen-1` bis `-3` neu erzeugt und angesehen.
 - **Nicht geprüft:** die laufende App (Handtest-Block „Gutschein-Ablaufdatum je Land“ in [handtests.md](handtests.md)); die übrigen `ViewTests` und die Live-Tests; die rechtliche Bewertung (die Regel soll vor dem Einsatz anwaltlich geprüft werden).
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md) (Hinweis statt Fehler, kein „Bitte“).
+
+## Gast anonymisieren und weich löschen (10.11.2026)
+
+- **Auftrag:** Vorgabe des Auftraggebers: „nur soweit Anonymisierung und softdelete“, die Aufbewahrungsfristen gelten. Befragung mit sieben Entscheidungen, siehe [ADR 0093](../entscheidungen/0093-gast-anonymisieren.md).
+- **Was:**
+  - Löschmarke `Customer.DeletedAt` (Migration `CustomerDeletedAt`), `CustomerDto.DeletedAt`.
+  - `CustomerAnonymizer` in einer Transaktion, `POST /api/customers/{id}/anonymize`. Er antwortet 204, 404, 409 mit dem Offenen und 403 unter Inhaber-Ebene.
+  - Verlauf: verzögerter Trigger `aispa_history_anonymize` ruft `sync.scrub_customer_history`.
+  - Filter `DeletedAt == null` an 20 Such- und Auswahlstellen; Änderungen an einem anonymisierten Gast liefern 404.
+  - Windows-App: Menüeintrag „Gast anonymisieren …“ für Inhaber und Management, destruktive Rückfrage, Karte mit „Anonymisiert am …“ ohne Bearbeiten, Buchen und Kassieren.
+  - Hilfe `kunden-anonymisieren`, Verweis aus `kunden-kundenkarte`; ADR 0061, 0082 und Stand angepasst.
+- **Test zuerst:** `CustomerAnonymizeTests` (API) war 10/10 rot, danach grün. Die gezielten Läufe der betroffenen API-Klassen ergaben 355/355 grün. Später kam die Sperre für Online-Erstattungen dazu, Klasse 12/12 grün.
+- **Vollständigkeitsprobe:** Der Gast mit eindeutigem Nachnamen und eindeutiger Nummer stand vorher in 23 Tabellen, danach nur in `aispa.ReceiptRecipients` (Belegkopie, BAO). Die Probe fand zusätzlich Anmeldecodes, die Kennung beim Anbieter in `sync.changes`, Schließ-Hinweise, Erstattungen und den Gast als Kandidat in fremden Anfragen; diese Stellen werden jetzt mitgeleert.
+- **Nach dem Merge mit `dev` (Exporte #18, PDF-Ausgaben #19):**
+  - Die Kundenliste als Export enthält keine anonymisierten Gäste, und ihre vCard liefert 404.
+  - Gesendete Terminbestätigungen und Belege (`SentDocuments`) verlieren Adresse und Betreff; der Verlauf sagt dann nur „Bestätigung per Mail gesendet“.
+  - Der Verlauf der Werbe-Einwilligungen verliert seine Werte, darunter die Adresse.
+  - Der Abgleich beim Kundenimport vergleicht nur Gäste mit Telefon oder E-Mail und trifft anonymisierte Gäste deshalb nie.
+- **Detailentscheidungen:**
+  1. Künftige Besuche in Bereichen sperren wie Termine.
+  2. Laufende oder fehlgeschlagene Online-Erstattungen sperren, weil ihre Bestätigung an die Adresse geht.
+  3. Nachfasser werden gelöscht statt geleert (Notiz ist Pflicht).
+  4. Pflichtfelder von Anfragen und Bestellungen werden zu leerem Text.
+  5. Die App erkennt die Inhaber-Ebene an der Rolle (Owner, GeneralManager), nicht am Recht `ManageLocation`.
+- **Geprüft:** API-Tests der Bereiche Kunden, Verlauf, Aktivität und Änderungen (168 von 168 grün), App-Tests `CustomerAnonymizeTests` (7 von 7) und der Bildtest `Kundenkarte_Gast_anonymisieren_steht_im_Menue_der_Inhaberin`; das Handbuchbild `kunden-anonymisieren.png` ist erzeugt und angesehen. Hilfetests (Textregeln, Aufbau, Verweise und Bilder: 27 von 27).
+- **Nicht geprüft:**
+  - Ein API-Gesamtlauf fehlt.
+  - Die Darstellung in der laufenden App ist nicht angesehen.
+  - Die Offline-Kopie behält ältere Suchlisten mit Klarnamen bis zu 14 Tage (offen, siehe ADR 0093).
