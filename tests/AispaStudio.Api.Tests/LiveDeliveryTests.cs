@@ -1,5 +1,8 @@
 using AispaStudio.Api.Live;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.AspNetCore.SignalR.StackExchangeRedis;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using StackExchange.Redis;
 
 namespace AispaStudio.Api.Tests;
@@ -34,6 +37,34 @@ public sealed class LiveDeliveryTests
         });
 
         Assert.Single(log.Lines, l => l.Level == LogLevel.Warning && l.Message.Contains("nicht zugestellt", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task Fehler_aus_der_SignalR_Backplane_wird_nur_gewarnt()
+    {
+        // Hängt Redis, schließt der Client die offene Veröffentlichung als abgebrochen ab; die TaskCanceledException trägt dann
+        // nur Rahmen aus RedisHubLifetimeManager.PublishAsync, keinen aus StackExchange.Redis (CI-Lauf 43938072835, T-067).
+        // Nachgestellt mit einem Fehler, der in der Backplane-Assembly selbst entsteht.
+        var log = new LogCapture();
+
+        await Logger(log).SendAsync("Test", () =>
+        {
+            _ = new RedisHubLifetimeManager<Hub>(
+                (ILogger<RedisHubLifetimeManager<Hub>>)null!, (IOptions<RedisOptions>)null!, (IHubProtocolResolver)null!);
+            return Task.CompletedTask;
+        });
+
+        Assert.Single(log.Lines, l => l.Level == LogLevel.Warning && l.Message.Contains("nicht zugestellt", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task Eigener_Abbruch_geht_weiter()
+    {
+        var log = new LogCapture();
+
+        await Assert.ThrowsAsync<TaskCanceledException>(() => Logger(log).SendAsync("Test", () => throw new TaskCanceledException()));
+
+        Assert.Empty(log.Lines);
     }
 
     [Fact]
