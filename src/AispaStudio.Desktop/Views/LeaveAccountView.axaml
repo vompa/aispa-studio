@@ -1,0 +1,53 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             x:Class="AispaStudio.Desktop.Views.LeaveAccountView"
+             x:DataType="vm:LeaveAccountViewModel">
+  <!--
+    Urlaubskonto auf der Personenkarte (ADR 0097), im Reiter „Dienstplan und Abwesenheit“ unter der Woche: Jahr wählen, Anspruch und Übertrag eintragen,
+    genommen, geplant und Rest lesen. Die Zahlen zählt der Server aus dem veröffentlichten Dienstplan. Farben nur über Ressourcen.
+  -->
+  <StackPanel x:Name="LeaveAccountSection" Spacing="8">
+    <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto" ColumnSpacing="8">
+      <TextBlock x:Name="LeaveHeading" Text="{Binding Heading}" Classes="h3" VerticalAlignment="Center" />
+      <Button x:Name="LeavePreviousYearButton" Grid.Column="1" Content="‹" Command="{Binding PreviousYearCommand}" Classes="icon" AutomationProperties.Name="Vorheriges Jahr" ToolTip.Tip="Vorheriges Jahr" />
+      <Button x:Name="LeaveNextYearButton" Grid.Column="2" Content="›" Command="{Binding NextYearCommand}" Classes="icon" AutomationProperties.Name="Nächstes Jahr" ToolTip.Tip="Nächstes Jahr" />
+      <ui:HelpButton Topic="urlaubskonto" Grid.Column="4" />
+    </Grid>
+
+    <ui:InfoBar Severity="Error" Title="Urlaubskonto" Message="{Binding Error}" IsVisible="{Binding HasError}" />
+    <TextBlock Text="Lade Urlaubskonto …" Classes="muted" IsVisible="{Binding !IsLoaded}" />
+
+    <StackPanel Spacing="8" IsVisible="{Binding IsLoaded}">
+      <StackPanel Orientation="Horizontal" Spacing="24">
+        <ui:FormField Label="Anspruch (Tage)" IsEnabled="{Binding IsEditable}">
+          <TextBox x:Name="LeaveEntitlementField" Text="{Binding EntitlementText}" MaxLength="6" Width="120" HorizontalAlignment="Left" Watermark="nicht eingetragen" />
+        </ui:FormField>
+        <ui:FormField Label="Übertrag aus dem Vorjahr" IsEnabled="{Binding IsEditable}">
+          <TextBox x:Name="LeaveCarriedOverField" Text="{Binding CarriedOverText}" MaxLength="6" Width="120" HorizontalAlignment="Left" Watermark="0" />
+        </ui:FormField>
+        <StackPanel Spacing="4" VerticalAlignment="Top">
+          <TextBlock Text="Genommen" Classes="small muted" />
+          <TextBlock x:Name="LeaveTakenText" Text="{Binding TakenText}" Classes="num" />
+        </StackPanel>
+        <StackPanel Spacing="4" VerticalAlignment="Top">
+          <TextBlock Text="Geplant" Classes="small muted" />
+          <TextBlock x:Name="LeavePlannedText" Text="{Binding PlannedText}" Classes="num" />
+        </StackPanel>
+        <StackPanel Spacing="4" VerticalAlignment="Top">
+          <TextBlock Text="Rest" Classes="small muted" />
+          <TextBlock x:Name="LeaveRemainingText" Text="{Binding RemainingText}" Classes="num" FontWeight="SemiBold" IsVisible="{Binding !IsOverdrawn}" />
+          <TextBlock x:Name="LeaveOverdrawnText" Text="{Binding RemainingText}" Classes="num" FontWeight="SemiBold" Foreground="{DynamicResource WarnBrush}" IsVisible="{Binding IsOverdrawn}" />
+        </StackPanel>
+      </StackPanel>
+      <StackPanel Orientation="Horizontal" Spacing="12" IsVisible="{Binding IsEditable}">
+        <Button x:Name="LeaveSaveButton" Content="Urlaubskonto speichern" Command="{Binding SaveCommand}" />
+        <TextBlock x:Name="LeaveStatusText" Text="{Binding StatusText}" Classes="muted small" VerticalAlignment="Center" AutomationProperties.LiveSetting="Polite"
+                   IsVisible="{Binding StatusText, Converter={x:Static ObjectConverters.IsNotNull}}" />
+      </StackPanel>
+      <TextBlock x:Name="LeaveHint" Text="{Binding Hint}" Classes="muted small" TextWrapping="Wrap" MaxWidth="720" HorizontalAlignment="Left" />
+      <TextBlock Classes="muted small" TextWrapping="Wrap" Text="Nur lesen: Anspruch und Übertrag ändern Inhaberin und Manager." IsVisible="{Binding IsReadOnly}" />
+    </StackPanel>
+  </StackPanel>
+</UserControl>

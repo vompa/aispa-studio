@@ -1117,3 +1117,20 @@ Expected: Unter „Zahlungsarten“ steht „davon Trinkgeld (kein Umsatz) 7,00 
 Expected: Das PDF nennt dieselben beiden Zeilen.
 Closes: –
 Result: ☐
+
+### Team – Urlaubskonto auf der Karte der Person
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Inhaberin anmelden, **Verwaltung** › **Team** öffnen
+1. Eine Person wählen und den Reiter **Dienstplan und Abwesenheit** öffnen.
+Expected: Unter der Woche steht „Urlaubskonto“ mit dem laufenden Jahr; ohne Anspruch steht bei „Rest“ ein Strich, und die Zeile darunter sagt, dass kein Anspruch eingetragen ist.
+2. Bei **Anspruch (Tage)** 25 und bei **Übertrag aus dem Vorjahr** 2,5 eintragen, **Urlaubskonto speichern** klicken.
+Expected: „Gespeichert.“ erscheint, bei „Rest“ steht 27,5 Tage abzüglich der schon eingetragenen Urlaubstage.
+3. In der Woche darüber einen künftigen Arbeitstag der Person anklicken, **Urlaub** wählen, **Sofort gültig, ohne Veröffentlichen** anhaken und speichern.
+Expected: „Geplant“ steigt um 1 Tag, „Rest“ sinkt um 1 Tag.
+4. Dasselbe an einem Wochentag, an dem die Person laut Stammdaten nicht arbeitet.
+Expected: „Geplant“ und „Rest“ bleiben; die Zeile darunter nennt „1 Urlaubseintrag an einem anderen Wochentag zählt nicht.“
+5. Mit dem Pfeil **Vorheriges Jahr** blättern.
+Expected: Das Konto zeigt das Vorjahr mit leerem Anspruch; zurückgeblättert stehen 25 und 2,5 wieder da.
+6. Als Rezeption anmelden und die Karte derselben Person öffnen.
+Expected: Den Reiter „Dienstplan und Abwesenheit“ gibt es für die Rezeption nicht.
+Closes: –
+Result: ☐
