@@ -1222,3 +1222,16 @@ Expected: „Genommen …, geplant …. Ein Anspruch ist für dieses Jahr noch n
 Closes: –
 Result: ☐
 
+### Kundenbereich – „Ich komme später“ durch den Gast
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App mit offenem Kalender; ein online gebuchter Termin, der in etwa einer Stunde beginnt; die Bestätigungsmail des Gastes
+1. Den Link „Termin ansehen“ aus der Mail öffnen.
+Expected: Unter dem Termin steht „Ich komme später“ mit 5, 10, 15, 20 und 30 Minuten.
+2. Auf **15 Minuten** tippen.
+Expected: „Sie haben gemeldet, dass Sie 15 Minuten später kommen.“ Im Kalender der Windows-App steht am Termin ohne Neuladen „kommt …“ mit der späteren Zeit.
+3. Auf **Doch pünktlich** tippen.
+Expected: Der Hinweis verschwindet auf der Seite und im Kalender.
+4. Den Link eines Termins öffnen, der erst in einigen Tagen ist.
+Expected: „Ich komme später“ wird nicht angeboten.
+Closes: –
+Result: ☐
+

@@ -169,6 +169,19 @@ internal static class OnlineBookingEndpoints
             .WithName("ConfirmOnlineBooking")
             .WithSummary("Der Gast sagt über den Link aus Bestätigung oder Erinnerung zu, dass er kommt; nur für bevorstehende Termine.");
 
+        group.MapPost("/bookings/{token}/late", async Task<Results<Ok<OnlineAppointment>, NotFound, ProblemHttpResult>> (
+                string token, OnlineLateRequest request, AccessLinks links, OnlinePortal portal, CancellationToken ct) =>
+            {
+                var link = await links.FindAsync(token, AccessLinkPurpose.ManageAppointment, ct);
+                return link?.AppointmentId is { } id
+                    ? Respond(await portal.ReportLateAsync(id, link.CustomerId, request.Minutes, ct))
+                    : TypedResults.NotFound();
+            })
+            .RequireRateLimiting(OnlineSetup.SensitiveRateLimit)
+            .WithName("ReportLateOnlineBooking")
+            .WithSummary("Der Gast meldet über seinen Termin-Link, dass er 5, 10, 15, 20 oder 30 Minuten später kommt (0 nimmt es zurück); "
+                + "ab drei Stunden vor dem Termin bis 15 Minuten nach Beginn. Der Termin bleibt an seiner Zeit.");
+
         return routes;
     }
 

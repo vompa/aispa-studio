@@ -15145,6 +15145,50 @@
         }
       }
     },
+    "/api/online/bookings/{token}/late": {
+      "post": {
+        "tags": [
+          "Kundenbereich"
+        ],
+        "summary": "Der Gast meldet über seinen Termin-Link, dass er 5, 10, 15, 20 oder 30 Minuten später kommt (0 nimmt es zurück); ab drei Stunden vor dem Termin bis 15 Minuten nach Beginn. Der Termin bleibt an seiner Zeit.",
+        "operationId": "ReportLateOnlineBooking",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OnlineLateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OnlineAppointment"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
     "/api/v1/locations/{locationId}/online-rules": {
       "get": {
         "tags": [
@@ -15767,6 +15811,51 @@
             }
           }
         ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OnlineAppointment"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/online/me/appointments/{appointmentId}/late": {
+      "post": {
+        "tags": [
+          "Kundenbereich: Mein Konto"
+        ],
+        "summary": "Meldet für einen eigenen Termin, dass man später kommt; Regeln wie bei „ReportLateOnlineBooking“.",
+        "operationId": "ReportLateMyAppointment",
+        "parameters": [
+          {
+            "name": "appointmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OnlineLateRequest"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "200": {
             "description": "OK",
@@ -41315,6 +41404,17 @@
           "canCancelLate": {
             "type": "boolean",
             "default": false
+          },
+          "lateMinutes": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "canReportLate": {
+            "type": "boolean",
+            "default": false
           }
         }
       },
@@ -41825,6 +41925,18 @@
           },
           "complete": {
             "type": "boolean"
+          }
+        }
+      },
+      "OnlineLateRequest": {
+        "required": [
+          "minutes"
+        ],
+        "type": "object",
+        "properties": {
+          "minutes": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },

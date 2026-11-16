@@ -808,6 +808,40 @@ describe('Termin per Link', () => {
     await expectAccessible()
   })
 
+  it('meldet kurz vor dem Termin per Knopf, dass der Gast später kommt, und nimmt es zurück', async () => {
+    const soon = { ...appointment, canReportLate: true, lateMinutes: null }
+    routes['GET /api/online/bookings/tok'] = () => ({ status: 200, body: soon })
+    // Der Stub hält die Anfrage fest, bevor die Route antwortet: die zuletzt gesendeten Minuten kommen zurück.
+    routes['POST /api/online/bookings/tok/late'] = () => {
+      const sent = (requests.filter((r) => r.path === '/api/online/bookings/tok/late').at(-1)?.body as { minutes: number } | undefined)?.minutes ?? 0
+      return { status: 200, body: { ...soon, lateMinutes: sent || null } }
+    }
+    window.location.hash = '#/termin/tok'
+    render(<BookingApp />)
+
+    const group = await screen.findByRole('group', { name: 'Ich komme später' })
+    expect(within(group).getAllByRole('button').map((b) => b.textContent)).toEqual(['5 Minuten', '10 Minuten', '15 Minuten', '20 Minuten', '30 Minuten'])
+    fireEvent.click(within(group).getByRole('button', { name: '15 Minuten' }))
+
+    expect(await screen.findByText('Sie haben gemeldet, dass Sie 15 Minuten später kommen.')).toBeTruthy()
+    expect(requests.find((r) => r.path === '/api/online/bookings/tok/late')?.body).toEqual({ minutes: 15 })
+    expect(screen.getByRole('button', { name: '15 Minuten' }).getAttribute('aria-pressed')).toBe('true')
+    await expectAccessible()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Doch pünktlich' }))
+    await waitFor(() => expect(screen.queryByText(/Sie haben gemeldet/)).toBeNull())
+    expect(screen.getAllByRole('status').map((s) => s.textContent).join(' ')).toContain('zurückgenommen')
+  })
+
+  it('bietet die Verspätung nicht an, solange die API es nicht erlaubt', async () => {
+    routes['GET /api/online/bookings/tok'] = () => ({ status: 200, body: appointment })
+    window.location.hash = '#/termin/tok'
+    render(<BookingApp />)
+
+    await screen.findByRole('button', { name: 'Ich komme' })
+    expect(screen.queryByRole('group', { name: 'Ich komme später' })).toBeNull()
+  })
+
   it('plant die Route zum Standort ohne Standortabfrage und zeigt den Anreise-Text darunter', async () => {
     const geolocation = vi.fn()
     Object.defineProperty(navigator, 'geolocation', { value: { getCurrentPosition: geolocation, watchPosition: geolocation }, configurable: true })

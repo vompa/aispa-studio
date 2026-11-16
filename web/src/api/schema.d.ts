@@ -4226,6 +4226,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/online/bookings/{token}/late": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Der Gast meldet über seinen Termin-Link, dass er 5, 10, 15, 20 oder 30 Minuten später kommt (0 nimmt es zurück); ab drei Stunden vor dem Termin bis 15 Minuten nach Beginn. Der Termin bleibt an seiner Zeit. */
+        post: operations["ReportLateOnlineBooking"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/locations/{locationId}/online-rules": {
         parameters: {
             query?: never;
@@ -4524,6 +4541,23 @@ export interface paths {
         put?: never;
         /** Sagt für einen eigenen bevorstehenden Termin zu, dass man kommt. */
         post: operations["ConfirmMyAppointment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/online/me/appointments/{appointmentId}/late": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Meldet für einen eigenen Termin, dass man später kommt; Regeln wie bei „ReportLateOnlineBooking“. */
+        post: operations["ReportLateMyAppointment"];
         delete?: never;
         options?: never;
         head?: never;
@@ -11201,6 +11235,10 @@ export interface components {
             lateCancelFee?: null | number;
             /** @default false */
             canCancelLate: boolean;
+            /** Format: int32 */
+            lateMinutes?: null | number;
+            /** @default false */
+            canReportLate: boolean;
         };
         /** @enum {unknown} */
         OnlineAppointmentState: "Booked" | "Cancelled" | "Past";
@@ -11327,6 +11365,10 @@ export interface components {
             supervisoryAuthority: null | string;
             chamberAndRules: null | string;
             complete: boolean;
+        };
+        OnlineLateRequest: {
+            /** Format: int32 */
+            minutes: number;
         };
         OnlineLocation: {
             /** Format: uuid */
@@ -25747,6 +25789,39 @@ export interface operations {
             };
         };
     };
+    ReportLateOnlineBooking: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OnlineLateRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OnlineAppointment"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     GetLocationOnlineRules: {
         parameters: {
             query?: never;
@@ -26276,6 +26351,39 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OnlineAppointment"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ReportLateMyAppointment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                appointmentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OnlineLateRequest"];
+            };
+        };
         responses: {
             /** @description OK */
             200: {

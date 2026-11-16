@@ -46,6 +46,11 @@ export function ManagePage({ token, navigatedHere }: { token: string; navigatedH
               setAppointment(a)
               setMessage(t.attendDone)
             }}
+            late={(minutes) => api.POST('/api/online/bookings/{token}/late', { params: { path: { token } }, body: { minutes } })}
+            onLate={(a, minutes) => {
+              setAppointment(a)
+              setMessage(minutes === 0 ? t.lateWithdrawn : t.lateDone)
+            }}
             move={(start) => api.POST('/api/online/bookings/{token}/move', { params: { path: { token } }, body: { start } })}
             onMoved={(a) => {
               setAppointment(a)

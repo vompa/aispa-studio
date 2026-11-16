@@ -6431,3 +6431,20 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Nicht geprüft:** die Seite am Handy.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
 
+## Kundenbereich: „Ich komme später“ durch den Gast (16.11.2026)
+
+- **Auftrag:** Offener Punkt aus den Rezeptions-Schritten („Meldung durch den Gast über den Termin-Link“, `docs/produkt/kalender-rezeption.md`); vom Auftraggeber am 16.11.2026 mit der Liste der nächsten Punkte freigegeben.
+- **Was:**
+  - `OnlinePortal.ReportLateAsync`, `POST /api/online/bookings/{token}/late` und `POST /api/online/me/appointments/{id}/late`; `OnlineAppointment.LateMinutes` und `CanReportLate`.
+  - Kundenbereich: Auf der Terminseite (Link aus der Mail) und unter „Meine Termine“ steht kurz vor dem Termin „Ich komme später“ mit 5, 10, 15, 20 und 30 Minuten; „Doch pünktlich“ nimmt es zurück. Texte in vier Sprachen.
+  - Der Kalender der Windows-App zeigt die Verspätung live, wie wenn die Rezeption sie einträgt. Der Termin bleibt an seiner Zeit.
+- **Detailentscheidungen:**
+  1. Von drei Stunden vor dem Termin bis 15 Minuten nach Beginn. Früher wäre es eine Verschiebung, später ruft der Gast besser an.
+  2. Höchstens 30 Minuten zur Auswahl; die Rezeption kann wie bisher bis 120 eintragen.
+  3. Nur gebuchte Termine; nach dem Einchecken, einer Absage oder einem Nichterscheinen nimmt die Seite nichts mehr an.
+  4. Keine Nachricht an die Rezeption zusätzlich zum Kalender: Die Markierung am Termin und die Live-Änderung sind der Hinweis.
+- **Bewusst offen / später:** Hinweis auf die Meldung in „Mein Tag“ der Therapeutin; Link dazu in der zweiten Erinnerung ausdrücklich nennen.
+- **Geprüft:** Tests zuerst geplant: API `OnlineBookingTests` (neu: melden, zurücknehmen, falsche Auswahl, falscher Link, zu früh, zu spät, abgesagt) 2 Tests grün; Web `booking` 68 grün (neu: Knöpfe und Rücknahme mit Prüfung der Barrierefreiheit, kein Angebot ohne Erlaubnis der API); Typprüfung und Lint sauber.
+- **Nicht geprüft:** die Seite am Handy; die Anzeige im laufenden Kalender. Die Übersetzungen sind nicht von Muttersprachlern gelesen.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
