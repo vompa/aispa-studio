@@ -48,6 +48,10 @@ public sealed class ChannelScanTests(ApiFixture fixture)
         "POST /api/stock/locations/{locationId:guid}/storage-places/{placeId:guid}/count-sessions",
         "PUT /api/stock/locations/{locationId:guid}/count-sessions/{sessionId:guid}/lines/{itemId:guid}",
         "POST /api/stock/locations/{locationId:guid}/count-sessions/{sessionId:guid}/submit",
+        // Lieferung zu einer Bestellung am Handy (Lieferschein-Foto, 16.11.2026): nur mit dem Recht, Standorte zu verwalten.
+        "GET /api/stock/locations/{locationId:guid}/orders",
+        "POST /api/stock/orders/{purchaseOrderId:guid}/deliveries",
+        "POST /api/stock/orders/{purchaseOrderId:guid}/delivery-note-scan",
         "GET /api/staff-duties/reminders",
     ];
 

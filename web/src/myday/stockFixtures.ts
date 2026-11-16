@@ -14,6 +14,7 @@ export const therapist = {
   employeeId: 'emp-1',
   rights: ['ViewCalendar', 'ChangeStatus'],
 }
+export const manager = { ...therapist, id: 'u-3', displayName: 'Mara Leitung', access: { ...therapist.access, role: 'Manager' }, rights: ['ViewCalendar', 'ChangeStatus', 'Book', 'ManageLocation'] }
 export const reception = { ...therapist, id: 'u-2', displayName: 'Rita Rezeption', access: { ...therapist.access, role: 'Reception' }, rights: ['ViewCalendar', 'ChangeStatus', 'Book'] }
 
 export const oil = { id: 'm-1', name: 'Massageöl neutral', unit: 'ml', unitCost: 0.02, minimumQuantity: 500, isActive: true, barcode: '9001234567890' }
@@ -82,7 +83,9 @@ export function stubApi(user: typeof therapist, extra: Record<string, Handler> =
       const request = typeof input === 'string' ? new Request(new URL(input, 'http://localhost'), init) : input
       const url = new URL(request.url)
       const text = request.method === 'GET' ? '' : await request.clone().text()
-      requests.push({ method: request.method, path: url.pathname, query: url.search, body: text ? JSON.parse(text) : undefined })
+      // Ein Foto kommt als multipart/form-data und ist kein JSON: Dann zählt nur, dass es gesendet wurde.
+      const isJson = (request.headers.get('Content-Type') ?? '').includes('json')
+      requests.push({ method: request.method, path: url.pathname, query: url.search, body: text && isJson ? JSON.parse(text) : text ? 'multipart' : undefined })
       const handler = routes[`${request.method} ${url.pathname}`]
       const reply = handler ? await handler(request) : { status: 404 }
       return new Response(reply.body === undefined ? null : JSON.stringify(reply.body), {
