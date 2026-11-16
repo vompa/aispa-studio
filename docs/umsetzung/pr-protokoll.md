@@ -5958,3 +5958,56 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
   - Ein API-Gesamtlauf fehlt.
   - Die Darstellung in der laufenden App ist nicht angesehen.
   - Die Offline-Kopie behält ältere Suchlisten mit Klarnamen bis zu 14 Tage (offen, siehe ADR 0093).
+
+## Masken: Drittel und goldener Schnitt, Kundenkarte 3 : 2 (10.11.2026)
+
+- **Auftrag:** Der Auftraggeber fand die Kundenkarte überladen. Goldener Schnitt und Drittelregel sollten für Masken zur Eingabe und zur Anzeige vertieft und auf die Kundenkarte angewendet werden. Freigegeben: Teilung 3 : 2 mit „Gut zu wissen“ breit, Kürzung der Wiederholungen, Regel verbindlich ([ADR 0094](../entscheidungen/0094-proportionen-von-masken-drittel-und-goldener-schnitt.md)).
+- **Was:**
+  - Neue Regel R14 in [masken.md](../gestaltung/masken.md) mit Punkt 16 der Checkliste; design.md 5.5 nennt die Werte der Kundenkarte.
+  - Neues Panel `MainSideColumns` (3 : 2, untereinander unter `StackBelow`).
+  - Kundenkarte: „Gut zu wissen“ und „Verlauf“ 3 : 2, unter 720 untereinander.
+  - Warnstreifen (Hinweis „Warnung“) unter dem Kopf mit „Nicht behandeln: …“ und den Ausfällen; der Warn-Chip bei den Wünschen entfällt.
+  - Die Anrede steht im Tooltip am Namen. Die Zeile „Nächster Termin“ und der Link „buchen“ entfallen.
+  - Verlauf nach Variante C (vom Auftraggeber aus drei Entwürfen gewählt): der nächste Termin als Kachel mit „in 3 Tagen“, zwei weitere kurz darunter; „Zuletzt“ zeigt drei Termine mit Datum und Behandlung, die Stammperson einmal als „meist bei …“; Pakete, Gutscheine und der letzte Kauf als Chips mit Tooltip. Der Abschnitt „Name geändert“ entfällt, denn „Änderungen“ zeigt Vor- und Nachname schon mit altem und neuem Wert.
+  - Hilfe `kunden-kundenkarte` und neun Handbuchbilder der Kundenkarte sind nachgezogen.
+- **Detailentscheidungen:**
+  1. 3 : 2 statt 61,8 : 38,2, damit keine neuen Werte entstehen; Sternanteile sind Verhältnisse, keine Größen.
+  2. Gilt nur „Nicht behandeln“, ohne andere Wünsche, fehlt der Abschnitt „Wünsche“, und „+ Wünsche“ steht unter „Noch nicht erfasst“ (die übrigen Wünsche fehlen ja wirklich).
+  3. „meist bei …“ erst ab mehr als der Hälfte aller Besuche (Auftraggeber); gezählt wird auf dem Server (`CustomerInsights.Employees`), die API ändert sich nicht.
+  4. Die Käufe stehen als ein Chip mit dem letzten Kauf, alle fünf im Tooltip (Auftraggeber). Die Chips nennen beim Paket die Behandlung („Hot-Stone-Massage: 7 von 10 offen“) statt „Paket: …“, damit zwei Pakete unterscheidbar bleiben.
+  5. Lange Behandlungen kürzt die Zeile mit „…“, der volle Text steht im Tooltip; die Pille rutscht als Ganzes in die nächste Zeile, statt Wörter zu trennen.
+  6. Die Anrede steht als Tooltip am Namen, nicht an der Adresszeile, weil die Adresszeile fehlt, wenn sie nichts anderes sagt als der Name.
+- **Geprüft:**
+  - Test zuerst angepasst: `CustomerCardLayoutTests`, `CustomerCardTests`, `CustomerNameCardTests` 26 von 26 grün.
+  - Bildtests `*Kunde*` und `*Bindungsfehler*` 158 von 158 grün, darunter neu `Kundenkarte_teilt_Gut_zu_wissen_und_Verlauf_drei_zu_zwei`, `Kundenkarte_stellt_den_Verlauf_bei_schmalem_Fenster_unter_Gut_zu_wissen` und `Kundenkarte_Nicht_behandeln_steht_im_Warnstreifen_ueber_der_oberen_Drittellinie`. Ein Bindungsfehler (`AvoidWarning.Text` bei leerem Wert) wurde dabei gefunden und behoben.
+  - Hilfe-Tests im Web 61 von 61 grün; `dotnet format --verify-no-changes` sauber.
+  - Bilder bei 1440 und 1100 px angesehen.
+  - Nachtrag Variante C (11.11.2026): Tests zuerst geschrieben; `CustomerCardLayoutTests` und `CustomerCardTests` 25 von 25 grün. Bildtests `*Kunde*` und `*Bindungsfehler*` 157 von 159, die zwei roten meldeten leere Bindungen der Kachel (`NextVisit.…`), behoben mit `?.`; der Nachlauf (Bindungsfehler, neuer Bildtest `Kundenkarte_Verlauf_mit_Kachel_Stammperson_und_ohne_Umbruch`, Gutscheine und Käufe) 25 von 25 grün. Hilfe-Tests 61 von 61, `dotnet format` sauber, Bild `kunden.png` bei 1440 px angesehen: keine Zeile bricht um.
+- **Nicht geprüft:**
+  - Die volle Desktop-Suite und die API-Suite (die API ist nicht geändert).
+  - Die laufende App und die Windows-Skalierung 125 und 150 Prozent.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md) (kein „Bitte“, Hinweis statt Fehler, Satzschreibweise).
+
+## Pakete nachziehen: Sicherheitsmeldungen behoben, Dependabot-Regeln (16.11.2026)
+
+- **Auftrag:** Der Auftraggeber gab die offene Arbeit zum autonomen Abarbeiten frei; zuerst die offenen Pull Requests. Alle sechs Dependabot-PRs waren rot, weil `main` selbst nicht mehr baute: Für `Microsoft.AspNetCore.SignalR.StackExchangeRedis` 10.0.13 (GHSA-wr8v-9x5q-ggcm) und `Aspire.Hosting.AppHost` 13.6.4 (GHSA-f7vh-h5g3-7jrh) gibt es Sicherheitsmeldungen, und Warnungen sind Fehler.
+- **Was:**
+  - NuGet: ASP.NET Core und EF-Werkzeuge 10.0.15, Aspire 13.6.5 (auch das SDK im AppHost-Projekt), Avalonia 12.1.6, OpenTelemetry 1.21.0, Wolverine 6.64.0, MailKit 4.18.2, Anthropic 12.60.0, `AspNet.Security.OAuth.Apple` 10.1.0, `Avalonia.Controls.WebView` 12.1.2, QRCoder 1.8.1, xunit.v3 4.0.3, `dotnet-ef` 10.0.15.
+  - Die Festlegung für `System.Security.Cryptography.Pkcs` steigt auf 10.0.15, sonst meldet die Wiederherstellung eine Herabstufung (NU1109). Daran scheiterte der Dependabot-PR der Gruppe.
+  - Web: Vite 8.3.8, `@vitejs/plugin-react` 6.3.0, oxlint 1.93.0, knip 6.45.1.
+  - Dependabot überspringt die Hauptversion bei `Microsoft.AspNetCore.*`, `Microsoft.Extensions.*`, `Microsoft.EntityFrameworkCore.*` und `@microsoft/signalr`.
+  - Handtestblock für die Kundenkarte 3 : 2 nachgetragen (fehlte im PR zu ADR 0094); Übergabe und Stand nennen die offenen PRs und die nächste freie ADR-Nummer wieder richtig.
+- **Detailentscheidungen:**
+  1. Die Pakete der Laufzeit bleiben auf Hauptversion 10, weil sie dem SDK in `global.json` folgen. Version 11 kommt mit dem Umstieg auf .NET 11 als eigener Schritt.
+  2. `@microsoft/signalr` bleibt auf 10, damit Client und Server dieselbe Hauptversion haben.
+  3. MailKit 5 und Anthropic 13 sind nicht enthalten. Beide brechen den Build (zusammen zwölf Fehler in `Mail.cs`, `ImapSentCopy.cs`, `ClaudeJson.cs`, `ClaudeAnamnesisReader.cs`) und berühren Versand und KI, die nur gegen Nachbauten getestet sind. Jede Umstellung bekommt einen eigenen PR.
+  4. Der Analyzer CA1859 ist in `CompanionHistoryTests` an einer Stelle abgeschaltet: Der Test prüft bewusst über die Schnittstelle `ISidePanel`. Das SDK 10.0.115 meldet die Stelle, das SDK der CI bisher nicht.
+- **Geprüft:**
+  - `dotnet format --verify-no-changes` sauber, Release-Build ohne Warnungen (SDK 10.0.115 unter Linux).
+  - API-Tests: 2242 von 2274 grün, 1 übersprungen. Die 31 roten brauchen Docker (Testcontainers: `LiveBackplaneTests` 30, `DatabaseBackupTests` 1), das es im Cloud-Container nicht gibt; die CI prüft sie.
+  - Desktop-Tests ohne Ansichtstests: 2290 von 2292 grün, 2 übersprungen.
+  - Web: `gen:api` ohne Änderung, Lint, Typecheck, Tests, Build und Bundle-Grenze (86,6 kB von 100 kB) grün.
+- **Nicht geprüft:**
+  - Die Ansichtstests der Windows-App (laufen unter Windows in der CI).
+  - Die laufende App und der Start über Aspire 13.6.5.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
