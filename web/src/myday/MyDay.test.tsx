@@ -156,6 +156,20 @@ describe('Mein Tag', () => {
     await expectAccessible()
   })
 
+  it('zeigt die Einwirkzeit einer Behandlung als freie Zeit, sonst nichts dazu', async () => {
+    routes['GET /api/v1/reports/locations/loc-1/day-plan'] = () => ({
+      status: 200,
+      // Die Massage um 10:00 (im Plan absichtlich an zweiter Stelle) bekommt 20 Minuten am Gast und 20 Minuten Einwirkzeit.
+      body: { ...plan, cards: [plan.cards[0], { ...plan.cards[1], handsOnMinutes: 20, processingMinutes: 20 }] },
+    })
+    render(<MyDayApp />)
+
+    const cards = within(await screen.findByRole('list', { name: 'Termine' })).getAllByRole('article')
+    expect(within(cards[0]).getByText('Einwirkzeit 10:20–10:40 (20 Min.): In dieser Zeit sind Sie frei.')).toBeTruthy()
+    expect(within(cards[1]).queryByText(/Einwirkzeit/)).toBeNull()
+    await expectAccessible()
+  })
+
   it('hakt einen Vorbereitungsschritt ab und nimmt ihn bei einem Fehler zurück', async () => {
     routes['PUT /api/v1/reports/appointments/ap-1/preparation/st-1'] = () => ({ status: 204 })
     routes['PUT /api/v1/reports/appointments/ap-1/preparation/st-2'] = () => ({ status: 500 })

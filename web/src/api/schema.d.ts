@@ -13624,6 +13624,16 @@ export interface components {
             startedAt?: null | string;
             /** @default false */
             allergyFlag: boolean;
+            /**
+             * Format: int32
+             * @default 0
+             */
+            handsOnMinutes: number;
+            /**
+             * Format: int32
+             * @default 0
+             */
+            processingMinutes: number;
         };
         TreatmentCostDto: {
             /** Format: uuid */

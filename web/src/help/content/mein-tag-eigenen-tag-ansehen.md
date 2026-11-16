@@ -43,6 +43,7 @@ Wer an mehreren Standorten arbeitet, wählt oben bei **Standort** den Standort. 
 ## Hinweise {#hinweise}
 
 - Es erscheinen nur die eigenen Termine; den Plan anderer sieht man hier nicht.
+- Hat eine Behandlung eine Einwirkzeit (Packung, Maske), steht auf der Karte „Einwirkzeit 10:20–10:40 (20 Min.): In dieser Zeit sind Sie frei.“ Der Gast bleibt im Raum.
 - Auf dem Handy werden keine Gesundheitsdaten gespeichert. **Abmelden** löscht die gespeicherten Tage.
 - Vorbereitung und Notiz: [Vorbereitung abhaken und Notiz schreiben](hilfe:mein-tag-vorbereitung-abhaken).
 - Als App auf den Startbildschirm: [„Mein Tag“ aufs Handy holen](hilfe:mein-tag-aufs-handy-holen).

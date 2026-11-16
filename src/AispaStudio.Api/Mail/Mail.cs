@@ -7,6 +7,7 @@ namespace AispaStudio.Api.Mail;
 
 /// <summary>Ausgehende Mail. Versand immer über die Queue (<see cref="SendMail"/>), nie im HTTP-Aufruf.</summary>
 /// <param name="InReplyTo">Message-ID der beantworteten Mail, damit Antworten im selben Verlauf landen (KI-Terminannahme).</param>
+/// <param name="ListUnsubscribe">Adresse zum Abmelden (https) für die Kopfzeile <c>List-Unsubscribe</c>; nur bei Mails nach Einwilligung (ADR 0040), damit das Mailprogramm „Abmelden“ anbietet.</param>
 /// <param name="ReplyTo">Adresse für Antworten des Empfängers, z. B. das Postfach des Spas, wenn über den gemeinsamen Versand gesendet wird.</param>
 /// <param name="FromName">Anzeigename des Absenders, z. B. der Name des Spas; ohne Angabe der aus <see cref="MailOptions"/>.</param>
 /// <param name="Attachments">Anhänge, z. B. ein Beleg als PDF (ADR 0092); zusammen höchstens <see cref="MaxAttachmentBytes"/>.</param>
@@ -18,7 +19,8 @@ public sealed record OutgoingMail(
     string? InReplyTo = null,
     string? ReplyTo = null,
     string? FromName = null,
-    IReadOnlyList<MailAttachment>? Attachments = null)
+    IReadOnlyList<MailAttachment>? Attachments = null,
+    string? ListUnsubscribe = null)
 {
     /// <summary>5 MB je Mail: mehr nehmen viele Postfächer nicht an, und die Queue trägt den Anhang mit.</summary>
     public const int MaxAttachmentBytes = 5 * 1024 * 1024;
@@ -88,6 +90,11 @@ internal static class MailMessages
         }
 
         message.Subject = mail.Subject;
+        if (mail.ListUnsubscribe is { } unsubscribe)
+        {
+            message.Headers.Add(HeaderId.ListUnsubscribe, $"<{unsubscribe}>");
+        }
+
         if (mail.InReplyTo is { } inReplyTo)
         {
             message.InReplyTo = inReplyTo;

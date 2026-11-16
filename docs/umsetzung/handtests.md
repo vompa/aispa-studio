@@ -14,7 +14,7 @@ Beim Rundenabschluss wird geprüft, dass jede Aufgabe der Runde einen vollständ
 
 ## Blöcke
 
-Ohne Block, weil die Aufgabe nichts Sichtbares ändert: Lückenvorschläge mit Treatwell-Hinweis und Einwirkzeit (ein Treatwell-Termin lässt sich ohne echtes Postfach nicht von Hand erzeugen; durch Ansichtstest gedeckt), Erinnerung nach 48 Stunden mit Verbindung (derselbe Satz wie im Block „Hinweis nach 48 Stunden“, nur unter „Beim Abgleich nicht übernommen“), Kassa ohne Verbindung Schritt 1 (nur Schnittstelle; der Block kommt mit Schritt 2), T-013 (Entscheidung, nur Doku), T-014 (Entscheidung, keine Änderung), T-016 (Sichtung der zurückgestellten Kleinigkeiten), T-030 (CI-Zeitlimits), T-033 (Beispieldaten und Test), T-034 (Werkzeug knip, unbenutztes Paket entfernt), T-035 (Skill und Doku), T-040 (ADR und Konzept, nur Doku), Export/Import Aufgabe A (Export-Dienst, Knopf ohne Seite; der Knopf ist im Block „Export/Import B“ geprüft).
+Ohne Block, weil die Aufgabe nichts Sichtbares ändert: Kopfzeile `List-Unsubscribe` in der Erinnerung an die nächste Behandlung, Lückenvorschläge mit Treatwell-Hinweis und Einwirkzeit (ein Treatwell-Termin lässt sich ohne echtes Postfach nicht von Hand erzeugen; durch Ansichtstest gedeckt), Erinnerung nach 48 Stunden mit Verbindung (derselbe Satz wie im Block „Hinweis nach 48 Stunden“, nur unter „Beim Abgleich nicht übernommen“), Kassa ohne Verbindung Schritt 1 (nur Schnittstelle; der Block kommt mit Schritt 2), T-013 (Entscheidung, nur Doku), T-014 (Entscheidung, keine Änderung), T-016 (Sichtung der zurückgestellten Kleinigkeiten), T-030 (CI-Zeitlimits), T-033 (Beispieldaten und Test), T-034 (Werkzeug knip, unbenutztes Paket entfernt), T-035 (Skill und Doku), T-040 (ADR und Konzept, nur Doku), Export/Import Aufgabe A (Export-Dienst, Knopf ohne Seite; der Knopf ist im Block „Export/Import B“ geprüft).
 
 ### T-015 – Keine Stempeluhr in „Mein Tag“, Zeiten trägt die Leitung ein
 Start: Browser in Handybreite (z. B. 390 px), die Adresse des Spas mit `/mein-tag/` öffnen, als Mitarbeiterin (Therapeutin) anmelden
@@ -1162,6 +1162,15 @@ Expected: Oben steht „7 Tage ab …, nur <Name>“. Beide Vorschläge stehen i
 Expected: Der Termin springt am richtigen Tag auf die neue Zeit; der Vorschlag verschwindet, der andere bleibt.
 5. **Filter aufheben** klicken und **Lücken schließen** erneut öffnen.
 Expected: Die Zeile „7 Tage ab …“ fehlt; die Liste gilt nur für den angezeigten Tag.
+Closes: –
+Result: ☐
+
+### „Mein Tag“ – Einwirkzeit als freie Zeit
+Start: `dotnet run --project src/AispaStudio.AppHost`, „Mein Tag“ im Browser als Therapeut:in mit einem Termin „Körperpackung“ heute
+1. Den Tagesplan öffnen.
+Expected: Auf der Karte der Körperpackung steht unter Zeit und Raum „Einwirkzeit HH:MM–HH:MM (20 Min.): In dieser Zeit sind Sie frei.“ Die Zeiten passen zum Band im Kalender der Windows-App.
+2. Eine Karte ohne Einwirkzeit ansehen, z. B. eine Massage.
+Expected: Dort steht keine Zeile „Einwirkzeit“.
 Closes: –
 Result: ☐
 

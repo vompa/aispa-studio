@@ -61,8 +61,8 @@ die KI keine Zahlen erfindet, und verhindert Zusagen, die das Spa nicht gemacht 
   Newsletter-Liste enthält nur `Confirmed`. Der Kunden-Import (Aufgabe E) setzt `Confirmed` mit Quelle „Import“ nur, wenn eine
   zugeordnete Spalte die Zustimmung ausdrücklich mit Ja belegt, sonst bleibt `None`.
 - Gebaut (16.11.2026): Einwilligung beim Online-Buchen. Ein eigenes, nicht vorausgewähltes Häkchen erscheint nur, wenn das Spa die Erinnerungen eingeschaltet hat (`OnlineLocation.RebookReminders`); nach der Buchung geht die Mail zum Bestätigen hinaus (`OnlineBookingRequest.AcceptMarketing`, Herkunft „Online“). Ohne Bestätigung gilt nichts.
-- Offen: `List-Unsubscribe`-Kopfzeile für
-  Abmelden mit einem Klick im Mailprogramm, SMS und WhatsApp, Schweiz (Art. 3 Abs. 1 lit. o UWG) prüfen, Texte rechtlich
+- Gebaut (16.11.2026): Die Erinnerung trägt die Kopfzeile `List-Unsubscribe` mit derselben Adresse wie der Link „Abmelden“ im Text (`OutgoingMail.ListUnsubscribe`).
+- Offen: Abmelden mit einem Klick ohne Seite (`List-Unsubscribe-Post`, RFC 8058; braucht einen Endpunkt, der ohne Rückfrage abmeldet), SMS und WhatsApp, Schweiz (Art. 3 Abs. 1 lit. o UWG) prüfen, Texte rechtlich
   gegenlesen lassen.
 
 ## Quellen

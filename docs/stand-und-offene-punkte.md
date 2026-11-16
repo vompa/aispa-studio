@@ -397,7 +397,7 @@ Die Nummern sind die Reihenfolge, die der jeweilige Thread gewählt hätte ([Üb
 **KI-Terminannahme, Kanäle, Assistent**
 1. KI-Vorschläge für Absagen und Verschiebungen im Posteingang (Termin finden, Storno oder Ersatzzeiten vorschlagen, Rezeption bestätigt).
 2. Wissensbasis des Spas (Parken, Anreise, Gutscheine, Hausregeln) als Quelle für Antwortvorschläge.
-3. `List-Unsubscribe` in den Mails zur nächsten Behandlung (die Einwilligung beim Online-Buchen ist seit 16.11.2026 gebaut).
+3. Abmelden mit einem Klick im Mailprogramm (`List-Unsubscribe-Post`); die Kopfzeile `List-Unsubscribe` und die Einwilligung beim Online-Buchen sind seit 16.11.2026 gebaut.
 4. Ansage am Telefon je Spa und in weiteren Sprachen; Rückruf statt SMS für Festnetz-Anrufer.
 5. KI-Vorschläge im Dienstplan, nur als Vorschlag, abgestimmt mit dem Kalender.
 6. Lokale KI: Schalter in der Windows-App für Ollama beim Einzelplatz, `gemma3:4b` mit echten Mails prüfen und mit `qwen3:4b` vergleichen ([ADR 0057](entscheidungen/0057-lokale-ki-optional-mit-ollama.md)).
