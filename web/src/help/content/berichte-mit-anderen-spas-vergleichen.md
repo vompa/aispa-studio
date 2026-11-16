@@ -12,7 +12,7 @@ Ein Klick im Management stellt die eigenen Kennzahlen neben die vergleichbarer D
 
 ## Vergleich öffnen {#oeffnen}
 
-1. In der Windows-App unter „Verwaltung“ **Zahlen** öffnen, den Reiter **Berichte** und darin **Management** wählen.
+1. In der Windows-App unter „Verwaltung“ **Zahlen** öffnen und den Reiter **Berichte** wählen. Der Abschnitt **Management** steht oben.
 2. **Standort** wählen.
 3. **Mit anderen Spas vergleichen** anklicken. Der Vergleich erscheint über den Kennzahlen; ein zweiter Klick blendet ihn wieder aus.
 4. Den Zeitraum wählen: **30 Tage**, **90 Tage** oder **12 Monate**. Gerechnet wird bis gestern; „Von“ und „Bis“ des Managements gelten hier nicht.

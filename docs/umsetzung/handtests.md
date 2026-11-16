@@ -1134,3 +1134,22 @@ Expected: Das Konto zeigt das Vorjahr mit leerem Anspruch; zurückgeblättert st
 Expected: Den Reiter „Dienstplan und Abwesenheit“ gibt es für die Rezeption nicht.
 Closes: –
 Result: ☐
+
+### T-063 – Zahlen: Berichte als Abschnitte
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Inhaberin anmelden, **Verwaltung** › **Zahlen** öffnen
+1. Den Reiter **Berichte** wählen.
+Expected: Unter den fünf Reitern steht keine zweite Schiene. Oben steht „Management“ mit **Von**, **Bis**, **Mit anderen Spas vergleichen** und **Exportieren**; im Kopf der Maske steht nur **Standort**.
+2. Nach unten rollen.
+Expected: Unter einer Linie steht „Pflichtberichte“ mit dem Feld **Datum** rechts, darunter die Kassen, die Gutscheine und die Arbeitszeitaufzeichnung.
+3. Bei den Pflichtberichten ein anderes **Datum** wählen.
+Expected: Die Pflichtberichte laden neu; die Kennzahlen im Management bleiben stehen.
+4. Den **Standort** im Kopf wechseln.
+Expected: Beide Abschnitte zeigen den neuen Standort.
+5. In „KI und Hilfe“ „Wie war der Umsatz im Oktober?“ fragen und **Im Bericht öffnen** klicken.
+Expected: „Berichte“ ist offen, das Management steht oben mit dem Zeitraum der Antwort.
+6. Das Fenster auf die kleinste Größe ziehen und „KI und Hilfe“ öffnen.
+Expected: Die fünf Reiter stehen in einer Zeile; der Standort rutscht rechtsbündig darunter.
+7. Als Rezeption anmelden und **Zahlen** öffnen.
+Expected: Den Reiter „Berichte“ gibt es nicht.
+Closes: –
+Result: ☐

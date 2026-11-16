@@ -94,4 +94,4 @@ Ziel nach [ADR 0098](../entscheidungen/0098-verwaltungsmasken-eine-schiene-ueber
 | Lager | 9 Reiter | 4 Reiter, dazu „Einrichtung“ | |
 | Kassa & Geld | 4 Masken | 4 Masken | |
 | Kontakt | 3 Masken | 3 Masken | |
-| Zahlen | 5 Reiter, „Berichte“ mit 2 Unterreitern | 5 Reiter, „Berichte“ mit 2 Abschnitten | |
+| Zahlen | 5 Reiter, „Berichte“ mit 2 Unterreitern | 5 Reiter, „Berichte“ mit 2 Abschnitten | T-063, 16.11.2026 (PR offen) |

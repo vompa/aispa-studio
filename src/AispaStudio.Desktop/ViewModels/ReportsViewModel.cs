@@ -7,20 +7,22 @@ namespace AispaStudio.Desktop.ViewModels;
 
 /// <summary>
 /// „Zahlen“ (R05 Slice 102, R07 Slice 144): Berichte je Rolle nach web/src/reports/ReportsPage.tsx und die Betriebsinfo unter einer einzigen Reiterebene: Tagesstart · Mein Tag · Hygiene ·
-/// Berichte · Betriebsinfo, je nach Recht. „Berichte“ enthält Management und Pflichtberichte als Unterreiter. Der Standort gilt für alle Reiter der Berichte gemeinsam; der Tag für alle außer
-/// „Management“, das einen eigenen Zeitraum hat. Alle Kennzahlen rechnet die API; die Maske zeigt nur an.
+/// Berichte · Betriebsinfo, je nach Recht. „Berichte“ zeigt Management und Pflichtberichte als Abschnitte untereinander (ADR 0098); ihre Ids bleiben Sprungziele und rollen zum
+/// Abschnitt. Der Standort gilt für alle Reiter der Berichte gemeinsam; der Tag für alle außer „Management“, das einen eigenen Zeitraum hat. Alle Kennzahlen rechnet die API; die Maske
+/// zeigt nur an.
 /// </summary>
-public sealed partial class ReportsViewModel : ViewModelBase, ITargetedArea, ISavesFiles
+public sealed partial class ReportsViewModel : ViewModelBase, ITargetedArea, ISavesFiles, IFocusTarget
 {
     public const string DayTab = "day";
     public const string BriefingTab = "briefing";
     public const string HygieneTab = "hygiene";
+
+    /// <summary>Der Reiter „Berichte“ und zugleich sein erster Abschnitt „Management“.</summary>
     public const string ManagementTab = "management";
+
+    /// <summary>Der Abschnitt „Pflichtberichte“ im Reiter „Berichte“; bis ADR 0098 ein Unterreiter, als Sprungziel weiter gültig.</summary>
     public const string ComplianceTab = "compliance";
     public const string BusinessInfoTab = "businessInfo";
-
-    /// <summary>Befehlsparameter des Reiters „Berichte“: bleibt in den Berichten, wenn dort schon ein Unterreiter offen ist.</summary>
-    public const string ReportsTab = "reports";
 
     /// <summary>Die Reiterleiste in ihrer Reihenfolge: Alltag zuerst, Verwaltung dahinter (Ä353).</summary>
     private static readonly (string Id, string Title)[] Strip =
@@ -116,7 +118,7 @@ public sealed partial class ReportsViewModel : ViewModelBase, ITargetedArea, ISa
     public bool CanSeeBusinessInfo => _user.Rights.Contains(AccessRight.ViewFinance) || _user.Rights.Contains(AccessRight.Book);
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsDayTab), nameof(IsBriefingTab), nameof(IsHygieneTab), nameof(IsManagementTab), nameof(IsComplianceTab), nameof(IsReportsTab), nameof(IsBusinessInfoTab), nameof(ShowFilters),
+    [NotifyPropertyChangedFor(nameof(IsDayTab), nameof(IsBriefingTab), nameof(IsHygieneTab), nameof(IsManagementTab), nameof(IsBusinessInfoTab), nameof(ShowFilters),
         nameof(ShowDate), nameof(CurrentTab), nameof(HasUnsavedChanges))]
     public partial string Tab { get; private set; }
 
@@ -126,27 +128,31 @@ public sealed partial class ReportsViewModel : ViewModelBase, ITargetedArea, ISa
 
     public bool IsHygieneTab => Tab == HygieneTab;
 
+    /// <summary>Der Reiter „Berichte“ ist offen: Management und, mit dem Recht, die Pflichtberichte darunter.</summary>
     public bool IsManagementTab => Tab == ManagementTab;
-
-    public bool IsComplianceTab => Tab == ComplianceTab;
 
     public bool IsBusinessInfoTab => Tab == BusinessInfoTab;
 
-    /// <summary>Der Reiter „Berichte“ ist offen: Management oder Pflichtberichte.</summary>
-    public bool IsReportsTab => IsManagementTab || IsComplianceTab;
+    /// <summary>Der zuletzt verlangte Abschnitt von „Berichte“ (<see cref="ManagementTab"/> oder <see cref="ComplianceTab"/>); die Ansicht rollt über <see cref="FocusTarget"/> dorthin.</summary>
+    public string? FocusedSection { get; private set; }
+
+    /// <summary>Der Name des Abschnitts, zu dem die Ansicht rollt; gesetzt, sobald beide Abschnitte geladen sind, damit der Inhalt darüber die Stelle nicht mehr verschiebt.</summary>
+    [ObservableProperty]
+    public partial string? FocusTarget { get; set; }
 
     /// <summary>Standort und Datum rechts im Kopf; die Betriebsinfo hat weder noch.</summary>
     public bool ShowFilters => !IsBusinessInfoTab;
 
+    /// <summary>Das Datum im Kopf; in „Berichte“ steht es im Kopf des Abschnitts „Pflichtberichte“, weil Management einen eigenen Zeitraum hat.</summary>
     public bool ShowDate => ShowFilters && !IsManagementTab;
 
-    public ReportTabViewModel CurrentTab => Tab switch
+    /// <summary>Der Inhalt eines Reiters mit einer Ansicht; „Berichte“ zeigt stattdessen seine beiden Abschnitte.</summary>
+    public ReportTabViewModel? CurrentTab => Tab switch
     {
         DayTab => DayPlan,
         BriefingTab => Briefing,
         HygieneTab => Hygiene,
-        ComplianceTab => Compliance,
-        _ => Management,
+        _ => null,
     };
 
     [ObservableProperty]
@@ -185,7 +191,8 @@ public sealed partial class ReportsViewModel : ViewModelBase, ITargetedArea, ISa
         _isReady = false;
         if (target.Section is { } section && IsAllowed(section))
         {
-            ChangeTab(section);
+            ChangeTab(TabOf(section));
+            FocusedSection = SectionOf(section);
             if (section == BusinessInfoTab)
             {
                 BusinessInfo!.Open(target.Id, null, target.Field);
@@ -224,15 +231,20 @@ public sealed partial class ReportsViewModel : ViewModelBase, ITargetedArea, ISa
     [RelayCommand]
     private void SelectTab(string tab)
     {
-        if (tab == ReportsTab)
+        if (!IsAllowed(tab))
         {
-            tab = IsReportsTab ? Tab : ManagementTab;
+            return;
         }
 
-        if (tab != Tab && IsAllowed(tab))
+        FocusedSection = SectionOf(tab);
+        if (TabOf(tab) != Tab)
         {
-            ChangeTab(tab);
+            ChangeTab(TabOf(tab));
             _ = ShowCurrentAsync();
+        }
+        else
+        {
+            ScrollToSection();
         }
     }
 
@@ -265,7 +277,18 @@ public sealed partial class ReportsViewModel : ViewModelBase, ITargetedArea, ISa
 
     partial void OnSelectedLocationChanged(LocationDto? value) => ShowIfReady();
 
-    partial void OnDateChanged(DateOnly? value) => ShowIfReady();
+    partial void OnDateChanged(DateOnly? value)
+    {
+        // In „Berichte“ gehört das Datum nur zu den Pflichtberichten; Management behält seinen Zeitraum und lädt nicht neu.
+        if (_isReady && IsManagementTab)
+        {
+            _ = ShowComplianceAsync();
+        }
+        else
+        {
+            ShowIfReady();
+        }
+    }
 
     private void ShowIfReady()
     {
@@ -275,25 +298,61 @@ public sealed partial class ReportsViewModel : ViewModelBase, ITargetedArea, ISa
         }
     }
 
-    private Task ShowCurrentAsync()
+    private async Task ShowCurrentAsync()
     {
         if (IsBusinessInfoTab)
         {
-            return BusinessInfo!.EnsureLoadedAsync();
+            await BusinessInfo!.EnsureLoadedAsync().ConfigureAwait(true);
+            return;
         }
 
-        return SelectedLocation is { } location && Date is { } date ? CurrentTab.ShowAsync(location, date) : Task.CompletedTask;
+        if (SelectedLocation is not { } location || Date is not { } date)
+        {
+            return;
+        }
+
+        if (CurrentTab is { } tab)
+        {
+            await tab.ShowAsync(location, date).ConfigureAwait(true);
+            return;
+        }
+
+        await Task.WhenAll(Management.ShowAsync(location, date), ShowComplianceAsync()).ConfigureAwait(true);
+        ScrollToSection();
+    }
+
+    private Task ShowComplianceAsync() =>
+        CanSeeCompliance && SelectedLocation is { } location && Date is { } date ? Compliance.ShowAsync(location, date) : Task.CompletedTask;
+
+    /// <summary>Meldet der Ansicht den verlangten Abschnitt von „Berichte“; ohne offenes „Berichte“ geschieht nichts.</summary>
+    private void ScrollToSection()
+    {
+        if (IsManagementTab && _isReady)
+        {
+            FocusTarget = FocusedSection == ComplianceTab ? "ReportComplianceSection" : "ReportManagementSection";
+        }
     }
 
     private void ChangeTab(string tab)
     {
-        if (!IsBusinessInfoTab)
+        if (CurrentTab is { } current)
         {
-            CurrentTab.Leave();
+            current.Leave();
+        }
+        else if (IsManagementTab)
+        {
+            Management.Leave();
+            Compliance.Leave();
         }
 
         Tab = tab;
     }
+
+    /// <summary>Der Reiter zu einer Id: Die Pflichtberichte liegen im Reiter „Berichte“.</summary>
+    private static string TabOf(string id) => id == ComplianceTab ? ManagementTab : id;
+
+    /// <summary>Der Abschnitt zu einer Id, nur in „Berichte“.</summary>
+    private static string? SectionOf(string id) => id is ManagementTab or ComplianceTab ? id : null;
 
     private string FirstAllowedTab() => Strip.Select(t => t.Id).FirstOrDefault(IsAllowed) ?? DayTab;
 

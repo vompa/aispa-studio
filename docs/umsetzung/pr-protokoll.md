@@ -6302,3 +6302,25 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
   - design.md Abschnitt 6 sagt für die Reiterzeile der Verwaltung „Menü Mehr“ und für „Zahlen“ „es gibt kein Überlaufmenü für Reiter“.
   - `Border.pill.warn > StackPanel > TextBlock` und ein zweites `Border.pill.warn > TextBlock` in `Styles.axaml` beschreiben denselben Baustein mit verschiedenem Aufbau.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Verwaltungsmasken modernisieren, Schritt Zahlen: Berichte als Abschnitte (Aufgabe T-063, 16.11.2026)
+
+- **Auftrag:** [ADR 0098](../entscheidungen/0098-verwaltungsmasken-eine-schiene-uebersicht-seitenleiste.md), Regel 1: je Seite höchstens eine Schiene. „Zahlen“ war die einzige Seite mit zwei Schienen (fünf Reiter und die Unterreiter Management und Pflichtberichte).
+- **Was:**
+  - Der Reiter „Berichte“ zeigt Management und Pflichtberichte als Abschnitte untereinander, Management oben. Die Unterreiter entfallen.
+  - Jeder Abschnitt hat seinen Kopf: Management den Zeitraum mit Vergleich und Export, die Pflichtberichte das Datum. Im Kopf der Maske steht bei „Berichte“ nur der Standort.
+  - Die Ids `management` und `compliance` bleiben Sprungziele. Beide öffnen „Berichte“ und rollen an den Anfang ihres Abschnitts (`ReportsViewModel.FocusedSection`); „Im Bericht öffnen“ des Assistenten führt wie bisher zum Management.
+  - Handbuch: `seite-reports`, `berichte-kennzahlen-ansehen`, `berichte-mit-anderen-spas-vergleichen` und `berichte-pflichtberichte-abrufen` nennen Abschnitte statt Unterreitern; die Bilder `verwaltung-berichte-management` und `verwaltung-berichte-pflichtberichte` sind neu erzeugt.
+- **Detailentscheidungen:**
+  1. Die Köpfe der Abschnitte stehen in der Stufe „Titel“ (22/600). Die Berichtsansichten darunter gliedern schon mit der Stufe „Überschrift“ („Kassen“, „Umsatz nach Erlöskonto“); eine gleiche Stufe hätte die Abschnitte nicht von ihren Gruppen getrennt.
+  2. Zwischen den Abschnitten steht eine Linie mit je 20 px, wie bei den Abschnitten auf einer Fläche (design.md 5.5), keine Karte.
+  3. Beim Öffnen von „Berichte“ laden beide Abschnitte. Ein neues Datum lädt nur die Pflichtberichte neu, weil das Management seinen eigenen Zeitraum hat.
+  4. Die Ansicht rollt selbst an den Anfang des Abschnitts. `BringIntoView` rollt nur so weit wie nötig und richtet einen Abschnitt, der höher ist als der sichtbare Bereich, am unteren Rand aus; der Sprung zurück auf `management` blieb im Test 264 px über dem Rand stehen.
+  5. Gerollt wird erst, wenn beide Abschnitte geladen sind. Sonst schöbe das Management, das später ankommt, die Pflichtberichte wieder aus dem Bild.
+  6. Ein Klick auf den schon gewählten Reiter „Berichte“ rollt an den Anfang.
+  7. Die Pflichtberichte bleiben am Recht `ViewFinance`; das ist dasselbe Recht wie für den Reiter.
+- **Bewusst offen / später:** Der Tastaturfokus bleibt bei einem Sprung, wo er war; die Abschnitte sind keine Tab-Stopps. Die Liste der Betriebsinfo ist 300 px breit (design.md 5.6 nennt 260); sie gehört zu „Zahlen“, war aber nicht Teil des Auftrags.
+- **Geprüft:** Tests zuerst angepasst und geschrieben. `AdminReportsTests` 40 von 40 (neu: beide Abschnitte laden, Sprung auf `compliance`, das Datum lädt nur die Pflichtberichte), `CompanionBlockTests` 17 von 17. Ansichtstests `Zahlen_*` 31 von 31 (darin: eine einzige Schiene mit fünf Einträgen, Abschnitte untereinander, Datum im Abschnitt, die Köpfe bei 1100 und 1024 px), `Verwaltung_Berichte_*` 10 von 10, der Wächter `Die_fuenf_Reiter_passen_bei_Mindestbreite_mit_Seitenleiste_in_eine_Zeile`, der neue Test `Ein_Sprung_auf_die_Pflichtberichte_rollt_bei_Mindestfenster_zum_Abschnitt` bei 1100 × 680, der Namens-Scan und der Sprung des Assistenten. Beide Bilder in hell angesehen, die Pflichtberichte auch in dunkel.
+- **Nicht geprüft:** die laufende App mit echten Daten; Screenreader; die volle Suite läuft in der CI.
+- **Beim Schreiben festgestellt:** Der Kommentar an `ReportsViewModel.Strip` nennt noch „Alltag zuerst, Verwaltung dahinter (Ä353)“; die Reihenfolge der fünf Reiter ist unverändert.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).

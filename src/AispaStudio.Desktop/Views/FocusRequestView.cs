@@ -67,9 +67,15 @@ public class FocusRequestView : UserControl
         {
             if (this.FindControl<Control>(field) is { } control)
             {
-                control.BringIntoView();
-                control.Focus();
+                Reveal(control);
             }
         }, DispatcherPriority.Loaded);
+    }
+
+    /// <summary>Zeigt das verlangte Element und gibt ihm den Fokus; eine Ansicht mit Abschnitten rollt stattdessen an deren Anfang.</summary>
+    protected virtual void Reveal(Control control)
+    {
+        control.BringIntoView();
+        control.Focus();
     }
 }
