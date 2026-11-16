@@ -543,6 +543,66 @@ public sealed class PosTests
     }
 
     [Fact]
+    public async Task Trinkgeld_Given_Karte_150_bei_138_80_When_Ueberschuss_als_Trinkgeld_Then_geht_11_20_als_Trinkgeld_an_den_Server()
+    {
+        // Given eine Rechnung über 138,80 und 150,00 mit Karte: zu viel, der Knopf für den Überschuss erscheint
+        var stub = Api();
+        var pos = new PosViewModel(stub.Client(), new SampleTime());
+        await pos.InitializeAsync(SpaSample.LocationId);
+        await pos.AddAppointmentAsync(SpaSample.Paying);
+        var card = pos.Payments.First(p => p.Method == PaymentMethod.Card);
+        card.Amount = "150";
+        Assert.False(pos.CanPay);
+        Assert.True(pos.HasNonCashSurplus);
+        Assert.Equal("Zu viel: 11,20 € über dem offenen Betrag", pos.CoverText);
+
+        // When der Überschuss als Trinkgeld eingetragen wird
+        pos.TipFromSurplusCommand.Execute(null);
+
+        // Then steht das Trinkgeld im Feld, alles ist gedeckt, und der Server bekommt es eigens
+        Assert.Equal("11,20", pos.TipText);
+        Assert.False(pos.HasNonCashSurplus);
+        Assert.Equal("Alles gedeckt, davon 11,20 € Trinkgeld", pos.CoverText);
+        Assert.Equal("", pos.ChangeText);
+        Assert.True(pos.CanPay);
+        await pos.PayCommand.ExecuteAsync(null);
+        var body = stub.Calls.Single(c => c.Route.EndsWith("/checkout", StringComparison.Ordinal)).Body!;
+        Assert.Contains("\"tip\":11.20", body, StringComparison.Ordinal);
+        Assert.Equal("", pos.TipText);
+    }
+
+    [Fact]
+    public async Task Trinkgeld_Given_5_00_eingetragen_When_Rest_und_bar_Then_rechnen_Rest_und_Rueckgeld_mit_dem_Trinkgeld()
+    {
+        var stub = Api();
+        var pos = new PosViewModel(stub.Client(), new SampleTime());
+        await pos.InitializeAsync(SpaSample.LocationId);
+        await pos.AddAppointmentAsync(SpaSample.Paying);
+
+        pos.TipText = "5";
+        var cash = pos.Payments.First(p => p.Method == PaymentMethod.Cash);
+        pos.FillRestCommand.Execute(cash);
+        Assert.Equal("143,80", cash.Amount);
+        cash.Amount = "150";
+        Assert.Equal("Rückgeld: 6,20 €", pos.ChangeText);
+        Assert.True(pos.CanPay);
+
+        pos.TipText = "abc";
+        Assert.Equal("Betrag nicht lesbar", pos.CoverText);
+        Assert.False(pos.CanPay);
+    }
+
+    [Fact]
+    public void Trinkgeld_steht_auf_dem_Beleg_vor_den_Zahlungen_und_im_Tagesbericht_nach_den_Zahlarten()
+    {
+        var receipt = new ReceiptViewModel(SpaSample.Receipt() with { Tip = 8m }, TimeZoneInfo.Utc, FiscalCountry.AT);
+
+        Assert.Equal(new ReceiptRow("Trinkgeld (kein Umsatz)", "8,00 €"), receipt.Payments[0]);
+        Assert.Equal(3, receipt.Payments.Count);
+        Assert.Equal(2, new ReceiptViewModel(SpaSample.Receipt(), TimeZoneInfo.Utc, FiscalCountry.AT).Payments.Count);
+    }
+
+    [Fact]
     public async Task Karte_ueber_dem_offenen_Betrag_geht_nicht()
     {
         var pos = new PosViewModel(Api().Client(), new SampleTime());

@@ -494,6 +494,30 @@ public partial class PosViewModel : ViewModelBase
     [ObservableProperty]
     public partial string CoverText { get; private set; } = "";
 
+    /// <summary>Trinkgeld für das Team als Eingabe (ADR 0095): kommt zum offenen Betrag dazu und ist kein Umsatz.</summary>
+    [ObservableProperty]
+    public partial string TipText { get; set; } = "";
+
+    partial void OnTipTextChanged(string value) => UpdateCover();
+
+    /// <summary>Unbar ist mehr eingetragen als offen: der Knopf „Überschuss als Trinkgeld“ trägt die Differenz ein.</summary>
+    [ObservableProperty]
+    public partial bool HasNonCashSurplus { get; private set; }
+
+    private decimal Tip => Money.Parse(TipText) ?? 0;
+
+    /// <summary>„100, stimmt so“ mit Karte: was unbar über dem offenen Betrag liegt, wird Trinkgeld.</summary>
+    [RelayCommand]
+    private void TipFromSurplus()
+    {
+        var other = Payments.Where(p => p.Method != PaymentMethod.Cash).Sum(p => Money.Parse(p.Amount) ?? 0);
+        var surplus = other - (Bill?.Open ?? 0);
+        if (surplus > 0)
+        {
+            TipText = Money.Input(surplus, Currency);
+        }
+    }
+
     [ObservableProperty]
     public partial string ChangeText { get; private set; } = "";
 
@@ -1333,7 +1357,7 @@ public partial class PosViewModel : ViewModelBase
     {
         var others = Payments.Where(p => p != entry).Sum(p => Money.Parse(p.Amount) ?? 0);
         var cashOnly = entry.Method == PaymentMethod.Cash && others == 0;
-        return Math.Max(0, (Bill?.Open ?? 0) - (cashOnly ? Bill?.CashDiscount ?? 0 : 0) - others);
+        return Math.Max(0, (Bill?.Open ?? 0) + Math.Max(0, Tip) - (cashOnly ? Bill?.CashDiscount ?? 0 : 0) - others);
     }
 
     [RelayCommand(CanExecute = nameof(CanPayNow))]
@@ -1352,7 +1376,7 @@ public partial class PosViewModel : ViewModelBase
             .ToList();
         Busy = true;
         Error = null;
-        var result = await _api.PostAsync<ReceiptDto>($"api/pos/bills/{bill.Id}/checkout", new CheckoutRequest(null, payments)).ConfigureAwait(true);
+        var result = await _api.PostAsync<ReceiptDto>($"api/pos/bills/{bill.Id}/checkout", new CheckoutRequest(null, payments, Math.Max(0, Tip))).ConfigureAwait(true);
         Busy = false;
         if (result.Value is null)
         {
@@ -1456,6 +1480,11 @@ public partial class PosViewModel : ViewModelBase
 
     private void SetBill(BillDto? bill)
     {
+        if (bill?.Id != Bill?.Id)
+        {
+            TipText = "";
+        }
+
         Bill = bill;
         DiscountLine = null;
         Lines.Clear();
@@ -1491,10 +1520,12 @@ public partial class PosViewModel : ViewModelBase
     {
         var open = Bill?.Open ?? 0;
         var amounts = Payments.Select(p => (p.Method, Amount: Money.Parse(p.Amount))).ToList();
-        if (amounts.Any(a => a.Amount is null))
+        var tip = string.IsNullOrWhiteSpace(TipText) ? 0 : Money.Parse(TipText);
+        if (amounts.Any(a => a.Amount is null) || tip is null or < 0)
         {
             CoverText = "Betrag nicht lesbar";
             ChangeText = "";
+            HasNonCashSurplus = false;
             CanPay = false;
             return;
         }
@@ -1507,13 +1538,20 @@ public partial class PosViewModel : ViewModelBase
             open -= bill.CashDiscount;
         }
 
+        // Trinkgeld kommt zum offenen Betrag dazu; unbar darf genau um das Trinkgeld höher sein, bar gibt es darüber Rückgeld.
+        HasNonCashSurplus = open > 0 && other > open + tip.Value;
+        var due = open;
+        open += tip.Value;
         var rest = open - other - cash;
         var change = cash > 0 ? cash - Math.Max(0, open - other) : 0;
-        CoverText = rest > 0 ? $"Noch offen: {Format(rest)}" : "Alles gedeckt";
+        CoverText = rest > 0 ? $"Noch offen: {Format(rest)}"
+            : tip.Value > 0 ? $"Alles gedeckt, davon {Format(tip.Value)} Trinkgeld"
+            : HasNonCashSurplus ? $"Zu viel: {Format(other - open)} über dem offenen Betrag"
+            : "Alles gedeckt";
         ChangeText = change > 0 ? $"Rückgeld: {Format(change)}" : "";
         var vouchersComplete = Payments.Where(p => p.IsVoucher && (Money.Parse(p.Amount) ?? 0) > 0).All(p => p.VoucherCode.Trim().Length > 0);
         var cardWaiting = Payments.Any(p => p.IsWaiting);
-        CanPay = open > 0 && rest <= 0 && other <= open && vouchersComplete && !cardWaiting;
+        CanPay = due > 0 && rest <= 0 && other <= open && vouchersComplete && !cardWaiting;
     }
 }
 
@@ -1617,8 +1655,9 @@ public sealed class ReceiptViewModel(ReceiptDto receipt, TimeZoneInfo zone, Fisc
         .Select(t => new ReceiptRow($"{t.Percent:0.#} % USt von {Format(t.Net)}", Format(t.Tax)))
         .ToList();
 
-    public IReadOnlyList<ReceiptRow> Payments => Receipt.Payments
-        .Select(p => new ReceiptRow(p.VoucherCode is { } code ? $"Gutschein {code}" : Money.MethodText(p.Method), Format(p.Amount)))
+    /// <summary>Zahlungen des Belegs; Trinkgeld steht davor als eigene Zeile, weil es in den Zahlungen enthalten, aber kein Umsatz ist (ADR 0095).</summary>
+    public IReadOnlyList<ReceiptRow> Payments => (Receipt.Tip != 0 ? new[] { new ReceiptRow("Trinkgeld (kein Umsatz)", Format(Receipt.Tip)) } : [])
+        .Concat(Receipt.Payments.Select(p => new ReceiptRow(p.VoucherCode is { } code ? $"Gutschein {code}" : Money.MethodText(p.Method), Format(p.Amount))))
         .ToList();
 
     /// <summary>Mit diesem Beleg ausgestellte Gutscheine: Code zum Mitgeben an den Gast, darunter das Ablaufdatum, falls gesetzt.</summary>

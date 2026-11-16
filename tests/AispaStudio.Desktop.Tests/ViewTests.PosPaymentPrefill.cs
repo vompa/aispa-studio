@@ -1,3 +1,4 @@
+using AispaStudio.Contracts;
 using AispaStudio.Desktop.Controls;
 using AispaStudio.Desktop.ViewModels;
 using AispaStudio.Desktop.Views;
@@ -32,6 +33,30 @@ public sealed partial class ViewTests
             await act(window, field, shell.Pos);
             return shell.Pos;
         }, Api());
+
+    [Fact]
+    public Task Kassa_Given_Karte_100_bei_89_00_When_Ueberschuss_als_Trinkgeld_Then_steht_11_00_im_Feld_Trinkgeld_und_alles_ist_gedeckt() =>
+        PosCash("kassa-trinkgeld", async (window, _, pos) =>
+        {
+            // Given 100,00 mit Karte bei 89,00: der Verweis für den Überschuss erscheint
+            pos.Payments.First(p => p.Method == PaymentMethod.Card).Amount = "100";
+            await Pump();
+            var surplus = window.GetVisualDescendants().OfType<Button>().Single(b => b.Name == "TipFromSurplusButton");
+            Assert.True(surplus.IsEffectivelyVisible);
+
+            // When der Überschuss als Trinkgeld eingetragen wird
+            pos.TipFromSurplusCommand.Execute(null);
+            await Pump();
+
+            // Then steht er im Feld „Trinkgeld“, der Verweis ist weg und bezahlt werden kann
+            var tip = window.GetVisualDescendants().OfType<MoneyField>().Single(f => f.Name == "TipBox");
+            Assert.Equal("11,00", tip.CommittedText);
+            Assert.False(surplus.IsEffectivelyVisible);
+            Assert.Equal("Alles gedeckt, davon 11,00 € Trinkgeld", pos.CoverText);
+            Assert.True(pos.CanPay);
+            tip.BringIntoView();
+            await Pump();
+        });
 
     [Fact]
     public Task Kassa_Given_Rechnung_ohne_Zahlung_When_in_Bar_gegeben_geklickt_Then_steht_dort_89_00_ganz_markiert() =>
