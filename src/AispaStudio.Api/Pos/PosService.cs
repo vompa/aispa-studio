@@ -827,6 +827,96 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
             });
         }, ct);
 
+    /// <summary>
+    /// Nacherfassung eines Ersatzbelegs (ADR 0096): Rechnung und Beleg entstehen in einem Schritt aus dem, was auf dem Ersatzbeleg steht.
+    /// Dieselbe Id liefert denselben Beleg. Stimmen Positionen oder Summe nicht mit dem Stand am Server überein, wird nichts gebucht.
+    /// </summary>
+    public async Task<PosResult<ReceiptDto>> ReenterSubstituteAsync(Guid registerId, SubstituteReceiptInput input, string? userId, CancellationToken ct)
+    {
+        if (await db.Receipts.AsNoTracking().Where(r => r.SubstituteId == input.Id).Select(r => (Guid?)r.Id).FirstOrDefaultAsync(ct) is { } done)
+        {
+            return new PosResult<ReceiptDto>(await GetReceiptAsync(done, ct), null);
+        }
+
+        return await ReceiptTransactionAsync(registerId, async register =>
+        {
+            EnsureActive(register);
+            var number = input.Number?.Trim() ?? "";
+            if (input.Id == Guid.Empty || number.Length is 0 or > 60)
+            {
+                throw PosFailure.Invalid(nameof(input.Number), "Nummer des Ersatzbelegs angeben (höchstens 60 Zeichen).");
+            }
+
+            var now = time.GetUtcNow();
+            if (input.IssuedAt > now.AddMinutes(5))
+            {
+                throw PosFailure.Invalid(nameof(input.IssuedAt), "Der Ersatzbeleg liegt in der Zukunft. Uhrzeit des Geräts prüfen.");
+            }
+
+            if ((input.AppointmentIds?.Count ?? 0) + (input.Articles?.Count ?? 0) == 0)
+            {
+                throw PosFailure.Invalid(nameof(input.AppointmentIds), "Der Ersatzbeleg hat keine Positionen.");
+            }
+
+            if (input.CustomerId is { } customerId && !await db.Customers.AnyAsync(c => c.Id == customerId && c.DeletedAt == null, ct))
+            {
+                throw PosFailure.NotFound("Kunde");
+            }
+
+            var bill = new Bill { RegisterId = register.Id, CustomerId = input.CustomerId, CreatedAt = now };
+            db.Bills.Add(bill);
+            foreach (var appointmentId in input.AppointmentIds ?? [])
+            {
+                await AddLineAsync(register, bill, new BillLineInput(BillLineKind.Appointment, appointmentId, null, 1, null, 0, null, null, null, null, null), ct);
+            }
+
+            foreach (var article in input.Articles ?? [])
+            {
+                await AddLineAsync(register, bill, new BillLineInput(BillLineKind.Article, null, article.ArticleId, article.Quantity, null, 0, null, null, null, null, null), ct);
+            }
+
+            // Das Geld ist schon kassiert: gebucht wird nur, was genau dem Ersatzbeleg entspricht; alles andere klärt ein Mensch.
+            PosFailure Mismatch(decimal atRegister) => PosFailure.Conflict(
+                $"Der Ersatzbeleg {number} nennt {Money(input.Total)}, an der Kasse ergeben die Positionen {Money(atRegister)}. "
+                + "Den Ersatzbeleg von Hand an der Kassa nacherfassen.");
+            if (bill.Lines.Sum(l => l.Amount) != input.Total)
+            {
+                throw Mismatch(bill.Lines.Sum(l => l.Amount));
+            }
+
+            var today = LocalTime.LocalDate(now, await ZoneAsync(register, ct));
+            var draft = await BuildCheckoutAsync(register, bill, new CheckoutRequest(null, input.Payments, input.Tip), now, today,
+                PaymentMethods.Available(register.Country, paymentOptions.Value), new DbCheckoutLookups(this, db), ct);
+            // Anzahlung, Barzahlungsrabatt oder Rundung haben die Summe verändert, oder es bliebe Rückgeld.
+            if (draft.Total != input.Total || draft.Change != 0)
+            {
+                throw Mismatch(draft.Total);
+            }
+
+            db.Vouchers.AddRange(draft.NewVouchers);
+            db.AppointmentDeposits.AddRange(draft.NewDeposits);
+            return await IssueAsync(register, ReceiptKind.Sale, ct, (receiptNumber, at) => new Receipt
+            {
+                Id = draft.ReceiptId,
+                RegisterId = register.Id,
+                Number = receiptNumber,
+                Kind = ReceiptKind.Sale,
+                IssuedAt = at,
+                BillId = bill.Id,
+                CustomerId = bill.CustomerId,
+                Total = draft.Total,
+                Change = draft.Change,
+                Tip = draft.Tip,
+                SubstituteId = input.Id,
+                SubstituteNumber = number,
+                SubstituteIssuedAt = input.IssuedAt,
+                CreatedByUserId = userId,
+                Lines = draft.Lines,
+                Payments = draft.Payments,
+            });
+        }, ct);
+    }
+
     /// <summary>Die Abfragen des Kassierens gegen die Datenbank.</summary>
     private sealed class DbCheckoutLookups(PosService owner, AispaDbContext db) : ICheckoutLookups
     {
@@ -1655,7 +1745,9 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
                 SmallInvoiceLimit(register.Country),
                 deposits.Contains(receipt.Id),
                 sentMails.GetValueOrDefault(receipt.Id),
-                receipt.Tip);
+                receipt.Tip,
+                receipt.SubstituteNumber,
+                receipt.SubstituteIssuedAt);
         }
 
         static IEnumerable<Guid> VoucherIdsOf(Receipt receipt) =>

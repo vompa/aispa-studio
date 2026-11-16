@@ -328,6 +328,31 @@ public sealed record ReceiptDto(
     decimal? SmallInvoiceLimit = null,
     bool IsDepositReceipt = false,
     IReadOnlyList<SentDocumentDto>? SentMails = null,
+    decimal Tip = 0,
+    string? SubstituteNumber = null,
+    DateTimeOffset? SubstituteIssuedAt = null);
+
+/// <summary>Artikel auf einem Ersatzbeleg.</summary>
+public sealed record SubstituteArticle(Guid ArticleId, int Quantity);
+
+/// <summary>
+/// Nacherfassung eines Ersatzbelegs (ADR 0096): Die Windows-App hat ohne Verbindung kassiert und einen Ersatzbeleg ausgegeben; sobald
+/// die Kasse wieder erreichbar ist, entsteht daraus ein gewöhnlicher signierter Beleg, der Nummer und Zeitpunkt des Ersatzbelegs nennt.
+/// </summary>
+/// <param name="Id">Von der App vergebene Id des Ersatzbelegs: dieselbe Id noch einmal gesendet liefert denselben Beleg.</param>
+/// <param name="Number">Nummer auf dem Ersatzbeleg, z. B. „E-EMPFANG1-20261116-003“.</param>
+/// <param name="IssuedAt">Wann der Ersatzbeleg ausgegeben wurde.</param>
+/// <param name="Payments">Was der Gast bezahlt hat, bar ohne Rückgeld; zusammen <c>Total + Tip</c>.</param>
+/// <param name="Total">Summe auf dem Ersatzbeleg ohne Trinkgeld. Weicht sie von den Preisen am Server ab, wird nichts gebucht.</param>
+public sealed record SubstituteReceiptInput(
+    Guid Id,
+    string Number,
+    DateTimeOffset IssuedAt,
+    Guid? CustomerId,
+    IReadOnlyList<Guid>? AppointmentIds,
+    IReadOnlyList<SubstituteArticle>? Articles,
+    IReadOnlyList<PaymentInput> Payments,
+    decimal Total,
     decimal Tip = 0);
 
 /// <summary>

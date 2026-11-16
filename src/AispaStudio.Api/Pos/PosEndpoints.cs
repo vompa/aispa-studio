@@ -472,6 +472,12 @@ internal static class PosEndpoints
             .WithSummary("Rabattgrenze des Spas in Prozent: bis dahin darf jede Person Rabatt geben, darüber nur die Kassenaufsicht.")
             .RequirePermission(AccessRight.ManageOrganization);
 
+        group.MapPost("/registers/{registerId:guid}/substitute-receipts", async Task<Results<Ok<ReceiptDto>, ValidationProblem, ProblemHttpResult>> (
+                Guid registerId, SubstituteReceiptInput input, ClaimsPrincipal user, PosService pos, IMessageBus bus, CancellationToken ct) =>
+                Respond(await StockAsync(bus, await pos.ReenterSubstituteAsync(registerId, input, UserId(user), ct))))
+            .WithName("ReenterSubstituteReceipt")
+            .WithSummary("Ersatzbeleg nacherfassen: aus einem ohne Verbindung ausgegebenen Ersatzbeleg entsteht ein signierter Beleg. Dieselbe Id liefert denselben Beleg.");
+
         group.MapPost("/bills/{billId:guid}/checkout", async Task<Results<Ok<ReceiptDto>, ValidationProblem, ProblemHttpResult>> (
                 Guid billId, CheckoutRequest request, ClaimsPrincipal user, PosService pos, IMessageBus bus, CancellationToken ct) =>
                 Respond(await StockAsync(bus, await pos.CheckoutAsync(billId, request, UserId(user), ct))))

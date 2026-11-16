@@ -6075,3 +6075,24 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
   - `HelpTests` 17, `HelpPageCheckTests` 4, Hilfe-Tests im Web 61 von 61; `dotnet format` sauber, Release-Build ohne Warnungen.
 - **Nicht geprüft:** die laufende App unter Windows, die Skalierung 125 und 150 Prozent, ein Lauf mit angebundenem Kartenterminal; die volle Desktop-Suite läuft in der CI.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Kassa ohne Verbindung: Nacherfassung von Ersatzbelegen, Schritt 1 Server (16.11.2026)
+
+- **Auftrag:** „Mach weiter mit Netzausfall und Ersatzbelegen“ (Auftraggeber, 16.11.2026); offener Punkt aus ADR 0005.
+- **Was:**
+  - `POST /api/pos/registers/{id}/substitute-receipts` nimmt einen Ersatzbeleg (Id, Nummer, Zeitpunkt, Termine, Artikel, Zahlungen, Summe, Trinkgeld) und erstellt daraus in einer Transaktion Rechnung und signierten Beleg.
+  - `Receipt.SubstituteId`, `SubstituteNumber`, `SubstituteIssuedAt` (Migration `ReceiptSubstitute`, eindeutiger Index auf der Id); `ReceiptDto` nennt Nummer und Zeitpunkt.
+  - PDF und Bon drucken „Nacherfassung zu Ersatzbeleg … vom …“.
+  - [ADR 0096](../entscheidungen/0096-kassieren-ohne-verbindung-ersatzbeleg-und-nacherfassung.md).
+- **Detailentscheidungen:**
+  1. Belegdatum und Signatur sind die der Nacherfassung; der Zeitpunkt des Ersatzbelegs steht daneben.
+  2. Die Summe wird zweimal verglichen: vor dem Kassieren gegen die Positionen, danach gegen den Beleg (Anzahlung, Barzahlungsrabatt, Rundung). Bei Abweichung 409 mit beiden Beträgen.
+  3. Ein Termin muss eingecheckt sein wie beim gewöhnlichen Kassieren; die App sendet das Einchecken vor dem Ersatzbeleg.
+  4. Ein Ersatzbeleg, der mehr als fünf Minuten in der Zukunft liegt, wird abgelehnt (falsche Uhr am Gerät).
+  5. Keine freien Positionen und keine Gutscheine in der Nacherfassung.
+- **Bewusst offen / später:** Ersatzbeleg in der Windows-App (Schritt 2); Hinweis auf die Meldung nach 48 Stunden; Steuerberatung.
+- **Geprüft:**
+  - Tests zuerst geplant: `SubstituteReceiptTests` 4 von 4 grün (Nacherfassung mit Termin, Artikel, Karte, bar und Trinkgeld; erneutes Senden; abweichende Summe; schon abgerechneter Termin und ungültige Angaben).
+  - `TipTests` 7, `PosTests` 39, `ReceiptPdfTests` 5, `KassenSichVTests` 4 grün; `dotnet format` sauber, Release-Build ohne Warnungen, `npm run gen:api`.
+- **Nicht geprüft:** die volle API-Suite (läuft in der CI); echte Signatureinrichtung und TSE.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).

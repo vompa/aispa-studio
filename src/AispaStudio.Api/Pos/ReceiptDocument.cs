@@ -1,3 +1,4 @@
+using System.Globalization;
 using AispaStudio.Api.Documents;
 using AispaStudio.Contracts;
 
@@ -11,6 +12,12 @@ internal static class ReceiptDocument
 {
     /// <summary>Zeile für Trinkgeld auf Beleg und Bon: kurz genug für 42 Zeichen Bonbreite, sagt, dass es kein Umsatz ist (ADR 0095).</summary>
     public const string TipLabel = "Trinkgeld (kein Umsatz)";
+
+    /// <summary>„Nacherfassung zu Ersatzbeleg E-… vom 16.11.2026 10:42“ (ADR 0096), sonst null.</summary>
+    public static string? SubstituteNote(ReceiptDto receipt, TimeZoneInfo zone) =>
+        receipt is { SubstituteNumber: { } number, SubstituteIssuedAt: { } at }
+            ? $"Nacherfassung zu Ersatzbeleg {number} vom {TimeZoneInfo.ConvertTime(at, zone).ToString("dd.MM.yyyy HH:mm", CultureInfo.GetCultureInfo("de-AT"))}"
+            : null;
 
     public static bool IsInvoice(ReceiptDto receipt) => receipt.Recipient is not null;
 
@@ -59,6 +66,11 @@ internal static class ReceiptDocument
         }
 
         pdf.KeyValues(Facts(receipt, zone));
+        if (SubstituteNote(receipt, zone) is { } substitute)
+        {
+            pdf.Paragraph(substitute);
+        }
+
         pdf.Heading("Positionen");
         pdf.Table([new("Position", 4), new($"Betrag {currency}", 1, DocumentAlign.Right)], Lines(receipt), DocumentRow.Of("Summe", DocumentBuilder.Money(receipt.Total)));
         if (receipt.Taxes.Count > 0)
