@@ -353,7 +353,7 @@ Die Nummern sind die Reihenfolge, die der jeweilige Thread gewählt hätte ([Üb
 - Später: Haupt-PC im Netz automatisch finden; Passkeys zusätzlich nach dem Umstieg auf einen Server; gemeinsamer Formatierer im Web-Projekt.
 
 **Kalender, Dienstplan, Zugänge**
-1. Ausfall-Assistent: Gäste ohne Ersatz per SMS oder WhatsApp informieren (Kanäle aus `Reminders/`).
+1. Ausfall-Assistent: Gäste ohne Ersatz per WhatsApp informieren (per Mail und SMS seit 16.11.2026; WhatsApp braucht eine eigene freigegebene Vorlage).
 2. Ausfall-Assistent: Ersatz an anderen Tagen; Paar- und Spa-Tag-Buchungen an einen anderen Standort verlegen.
 3. Leerlaufzeit eines angemeldeten Empfangsgeräts ändern; Liste aller Empfangsgeräte des Spas.
 4. Lücken durch Verschieben mehrerer Termine hintereinander schließen (Ketten).

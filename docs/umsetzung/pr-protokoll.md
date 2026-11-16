@@ -6516,3 +6516,22 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Nicht geprüft:** die Seite im Browser von Hand; die Übersetzungen sind nicht von Muttersprachlern gelesen.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
 
+## Kalender: Gäste ohne Ersatz im Ausfall-Assistenten benachrichtigen (16.11.2026)
+
+- **Auftrag:** Offener Punkt im Kalender („Ausfall-Assistent: Gäste ohne Ersatz per SMS oder WhatsApp informieren“); vom Auftraggeber am 16.11.2026 mit der Liste der nächsten Punkte freigegeben.
+- **Befund:** Für Termine ohne Ersatz sagte der Assistent nur „Bitte den Gast kontaktieren“. Mails gab es nur für verschobene Termine.
+- **Was:**
+  - `AbsenceAssistant.NotifyAsync`, `POST /api/locations/{id}/absence/notify`: je Termin eine Mail, ohne Mailadresse eine SMS (wenn ein Anbieter eingerichtet ist). Der Termin bleibt stehen.
+  - Windows-App: Knopf „Ohne Ersatz: informieren“ im Ausfall-Assistenten, mit Rückfrage; an der Zeile steht danach „Gast benachrichtigt“ oder der Grund.
+  - Hilfe `dienstplan-ersatz-vorschlagen`.
+- **Detailentscheidungen:**
+  1. Nur informieren, nicht stornieren: Assistenten schlagen vor, und der Gast bekommt vielleicht doch noch einen anderen Tag.
+  2. Mail zuerst, SMS nur ohne Mailadresse. WhatsApp bleibt offen: Außerhalb von 24 Stunden lässt WhatsApp nur freigegebene Vorlagen zu, und die einzige Vorlage ist die der Terminerinnerung.
+  3. Rückfrage vor dem Senden, weil Nachrichten hinausgehen. Ein zweites Mal wird derselbe Gast im selben Fenster nicht angeschrieben.
+  4. Nicht bei der Umbuchung aus einer Raumsperre: Der Text spricht vom Ausfall der Person.
+  5. Der Text ist fest und auf Deutsch, wie die Mail zum verschobenen Termin.
+- **Bewusst offen / später:** WhatsApp; Ersatz an anderen Tagen; Paar und Spa-Tag an einen anderen Standort verlegen; ein Vermerk am Termin, dass der Gast benachrichtigt wurde (öffnet man den Assistenten neu, bietet er den Knopf wieder an).
+- **Geprüft:** Tests zuerst geplant: API `AbsenceTests` 7 von 7 (neu: Mail an den Gast, Termin bleibt gebucht, ohne Kontakt und abgesagt mit Grund, fremder Standort); Windows-App `AbsenceNotifyTests` 3 von 3 (Rückfrage, Aufruf, Ergebnis an der Zeile, kein Angebot ohne offene Fälle).
+- **Nicht geprüft:** eine SMS mit einem echten Anbieter (der Test prüft nur, dass der Fall ohne Mailadresse gezählt wird); die laufende App.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+

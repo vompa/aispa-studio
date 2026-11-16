@@ -134,4 +134,47 @@ public sealed class AbsenceTests(ApiFixture fixture)
 
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
+
+    [Fact]
+    public async Task Gaeste_ohne_Ersatz_bekommen_eine_Nachricht_und_der_Termin_bleibt_stehen()
+    {
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        var suffix = Guid.NewGuid().ToString("N");
+        var phoneOnly = await spa.PostAsync<CustomerDto>("/api/customers",
+            new CustomerInput("Paul", $"Telefon{suffix}", null, $"+43 660 {Random.Shared.Next(1_000_000, 9_999_999)}", null, null), Ct);
+        var silent = await spa.PostAsync<CustomerDto>("/api/customers", new CustomerInput("Ina", $"Ohne{suffix}", null, null, null, null), Ct);
+        var withMail = await spa.BookOkAsync(TestSpa.At(10), Ct, employee: spa.Anna.Id);
+        var withPhone = await spa.BookOkAsync(TestSpa.At(12), Ct, employee: spa.Anna.Id, customer: phoneOnly.Id);
+        var withNothing = await spa.BookOkAsync(TestSpa.At(14), Ct, employee: spa.Anna.Id, customer: silent.Id);
+        var cancelled = await spa.BookOkAsync(TestSpa.At(15, 30), Ct, employee: spa.Anna.Id);
+        (await spa.Client.PostAsJsonAsync($"/api/appointments/{cancelled.Id}/cancel", new { }, TestSpa.Json, Ct)).EnsureSuccessStatusCode();
+
+        var result = await spa.PostAsync<AbsenceNotifyResult>($"/api/locations/{spa.Location.Id}/absence/notify",
+            new AbsenceNotifyRequest([withMail.Id, withPhone.Id, withNothing.Id, cancelled.Id, Guid.NewGuid()]), Ct);
+
+        Assert.Contains(withMail.Id, result.Notified);
+        var mail = await fixture.Mailbox.WaitForAsync(spa.Customer.Email!, m => m.Subject.StartsWith("Ihr Termin am 01.03.2027", StringComparison.Ordinal), Ct);
+        Assert.Contains("kann Ihr Termin „Massage“ am 01.03.2027 um 10:00 Uhr nicht wie geplant stattfinden", mail.Text, StringComparison.Ordinal);
+        Assert.Contains("Wir melden uns bei Ihnen", mail.Text, StringComparison.Ordinal);
+        // Ohne Mailadresse und ohne Nummer bleibt nur der Anruf; abgesagte und fremde Termine werden nicht angeschrieben.
+        Assert.Contains(result.Failed, f => f.AppointmentId == withNothing.Id && f.Message.Contains("anrufen", StringComparison.Ordinal));
+        Assert.Contains(result.Failed, f => f.AppointmentId == cancelled.Id);
+        Assert.Equal(5, result.Notified.Count + result.Failed.Count);
+        // Nichts wird storniert oder verschoben.
+        var after = await spa.GetAsync<AppointmentDto>($"/api/appointments/{withMail.Id}", Ct);
+        Assert.Equal((AppointmentStatus.Booked, withMail.Start), (after.Status, after.Start));
+    }
+
+    [Fact]
+    public async Task Rezeption_eines_anderen_Standorts_benachrichtigt_hier_niemanden()
+    {
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        var appointment = await spa.BookOkAsync(TestSpa.At(10), Ct, employee: spa.Anna.Id);
+        var other = await spa.CreateLocationAsync($"Anderswo {Guid.NewGuid():N}", [DayOfWeek.Monday], Ct);
+        using var reception = await TestUsers.ClientAsync(fixture, Ct, StaffRole.Reception, [other.Id]);
+
+        var response = await reception.PostAsJsonAsync($"/api/locations/{spa.Location.Id}/absence/notify", new AbsenceNotifyRequest([appointment.Id]), TestSpa.Json, Ct);
+
+        Assert.True(response.StatusCode is HttpStatusCode.Forbidden or HttpStatusCode.NotFound);
+    }
 }
