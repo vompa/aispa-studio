@@ -36,6 +36,7 @@ internal sealed partial class UnsecuredBookingRelease(
         {
             try
             {
+                await RemindOnceAsync(time.GetUtcNow(), null, stoppingToken);
                 await RunOnceAsync(time.GetUtcNow(), null, stoppingToken);
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
@@ -75,8 +76,129 @@ internal sealed partial class UnsecuredBookingRelease(
         return due.Count + unpaid.Count;
     }
 
+    /// <summary>Unter dieser Frist lohnt keine Erinnerung: Die Bestätigung mit der Frist ist gerade erst angekommen.</summary>
+    public static readonly TimeSpan ShortestRemindedHold = TimeSpan.FromHours(2);
+
+    /// <summary>
+    /// Erinnert wird einmal, wenn drei Viertel der Frist um sind (bei 24 Stunden also sechs Stunden vor der Freigabe).
+    /// <paramref name="from"/> ist der Zeitpunkt der Buchung; ohne ihn oder bei einer Frist unter zwei Stunden gibt es keine Erinnerung.
+    /// </summary>
+    internal static bool ReminderDue(DateTimeOffset? from, DateTimeOffset releaseAt, DateTimeOffset now) =>
+        // Eine Minute Spielraum: Zustimmung und Frist werden beim Buchen nacheinander gestempelt, die Frist ist darum um Millisekunden kürzer.
+        from is { } start && releaseAt - start >= ShortestRemindedHold - TimeSpan.FromMinutes(1) && now < releaseAt && now >= releaseAt - ((releaseAt - start) / 4);
+
+    /// <summary>
+    /// Stellt für jeden Termin, dessen Frist für Karte oder Anzahlung bald abläuft, einmal eine Erinnerung an den Gast in die Queue
+    /// und gibt deren Zahl zurück; mit <paramref name="locationId"/> nur diesen Standort.
+    /// </summary>
+    public async Task<int> RemindOnceAsync(DateTimeOffset now, Guid? locationId, CancellationToken ct)
+    {
+        await using var scope = scopes.CreateAsyncScope();
+        var online = scope.ServiceProvider.GetRequiredService<OnlineDbContext>();
+        var cards = (await online.CardGuarantees.AsNoTracking()
+                .Where(g => g.ReleaseAt != null && g.ReleaseAt > now && g.ReminderSentAt == null
+                    && (g.Status == CardGuaranteeStatus.Pending || g.Status == CardGuaranteeStatus.Failed)
+                    && (locationId == null || g.LocationId == locationId))
+                .Select(g => new { g.Id, g.AcceptedAt, g.ReleaseAt })
+                .ToListAsync(ct))
+            .Where(g => ReminderDue(g.AcceptedAt, g.ReleaseAt!.Value, now)).Select(g => g.Id).ToList();
+        var deposits = (await online.Deposits.AsNoTracking()
+                .Where(d => d.ReleaseAt != null && d.ReleaseAt > now && d.ReminderSentAt == null
+                    && (d.Status == OnlineDepositStatus.Pending || d.Status == OnlineDepositStatus.Failed)
+                    && (locationId == null || d.LocationId == locationId))
+                .Select(d => new { d.Id, d.AcceptedAt, d.ReleaseAt })
+                .ToListAsync(ct))
+            .Where(d => ReminderDue(d.AcceptedAt, d.ReleaseAt!.Value, now)).Select(d => d.Id).ToList();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+        var queued = 0;
+        foreach (var id in cards)
+        {
+            // Erst vermerken, dann senden: Ein zweiter Lauf erinnert nicht noch einmal.
+            if (await online.CardGuarantees.Where(g => g.Id == id && g.ReminderSentAt == null)
+                    .ExecuteUpdateAsync(u => u.SetProperty(g => g.ReminderSentAt, now), ct) == 1)
+            {
+                await bus.PublishAsync(new RemindUnsecuredBooking(id, Deposit: false, now));
+                queued++;
+            }
+        }
+
+        foreach (var id in deposits)
+        {
+            if (await online.Deposits.Where(d => d.Id == id && d.ReminderSentAt == null)
+                    .ExecuteUpdateAsync(u => u.SetProperty(d => d.ReminderSentAt, now), ct) == 1)
+            {
+                await bus.PublishAsync(new RemindUnsecuredBooking(id, Deposit: true, now));
+                queued++;
+            }
+        }
+
+        return queued;
+    }
+
     [LoggerMessage(Level = LogLevel.Warning, Message = "Online-Termine ohne Karte konnten nicht zur Freigabe eingeplant werden.")]
     private static partial void Failed(ILogger logger, Exception ex);
+}
+
+/// <summary>Queue: den Gast erinnern, dass für seinen Termin noch die Karte (oder mit <c>Deposit</c> die Anzahlung) fehlt und die Frist bald abläuft.</summary>
+public sealed record RemindUnsecuredBooking(Guid Id, bool Deposit, DateTimeOffset At);
+
+/// <summary>
+/// Schickt die Erinnerung mit Frist und Link zum Termin. Ist inzwischen hinterlegt, bezahlt, storniert oder die Frist vorbei, geht nichts hinaus.
+/// </summary>
+public static class RemindUnsecuredBookingHandler
+{
+    public static async Task Handle(RemindUnsecuredBooking message, IServiceScopeFactory scopes, CancellationToken ct)
+    {
+        await using var scope = scopes.CreateAsyncScope();
+        var services = scope.ServiceProvider;
+        var online = services.GetRequiredService<OnlineDbContext>();
+        var db = services.GetRequiredService<AispaDbContext>();
+        Guid appointmentId, locationId;
+        string email, language;
+        DateTimeOffset releaseAt;
+        if (message.Deposit)
+        {
+            var deposit = await online.Deposits.AsNoTracking().FirstOrDefaultAsync(d => d.Id == message.Id, ct);
+            if (deposit is not { ReleaseAt: { } until, Status: OnlineDepositStatus.Pending or OnlineDepositStatus.Failed })
+            {
+                return;
+            }
+
+            (appointmentId, locationId, email, language, releaseAt) = (deposit.AppointmentId, deposit.LocationId, deposit.Email, deposit.Language, until);
+        }
+        else
+        {
+            var guarantee = await online.CardGuarantees.AsNoTracking().FirstOrDefaultAsync(g => g.Id == message.Id, ct);
+            if (guarantee is not { ReleaseAt: { } until, Status: CardGuaranteeStatus.Pending or CardGuaranteeStatus.Failed })
+            {
+                return;
+            }
+
+            (appointmentId, locationId, email, language, releaseAt) = (guarantee.AppointmentId, guarantee.LocationId, guarantee.Email, guarantee.Language, until);
+        }
+
+        if (releaseAt <= message.At || await TenantModel.TenantOfAsync(db.Locations.Where(l => l.Id == locationId), ct) is not { } tenantId)
+        {
+            return;
+        }
+
+        var tenants = services.GetRequiredService<TenantContext>();
+        tenants.Use(tenantId);
+        var portal = services.GetRequiredService<OnlinePortal>();
+        var appointment = await portal.LoadAppointmentAsync(appointmentId, ct);
+        if (appointment is null || appointment.Status != AppointmentStatus.Booked || appointment.Start <= message.At)
+        {
+            return;
+        }
+
+        var shown = await portal.ToOnlineAsync(appointment, ct);
+        var record = await online.OnlineBookings.AsNoTracking().FirstOrDefaultAsync(b => b.AppointmentId == appointmentId, ct);
+        var token = services.GetRequiredService<AccessLinks>().Create(AccessLinkPurpose.ManageAppointment, appointment.CustomerId, appointmentId, appointment.End.AddDays(30));
+        await online.SaveChangesAsync(ct);
+        await services.GetRequiredService<IMessageBus>().PublishGuestMailAsync(tenants, OnlineMails.HoldReminder(
+            email, GuestName.Of(appointment.Customer, shown.TimeZone), shown, releaseAt, portal.Url($"termin/{token}", tenantId),
+            record?.Language ?? language, message.Deposit));
+    }
 }
 
 /// <summary>

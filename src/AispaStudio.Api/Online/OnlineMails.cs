@@ -492,6 +492,60 @@ internal static class OnlineMails
     }
 
     /// <summary>Der online gebuchte Termin wurde freigegeben, weil in der Frist keine Karte hinterlegt wurde.</summary>
+    /// <summary>
+    /// Erinnerung kurz vor Ablauf der Frist: Für den Termin fehlt noch die Karte für die Ausfallgebühr (oder mit <paramref name="deposit"/> die Anzahlung).
+    /// Servicemail zur Buchung, keine Werbung.
+    /// </summary>
+    public static OutgoingMail HoldReminder(string to, GuestName guest, OnlineAppointment appointment, DateTimeOffset until, string manageUrl, string? language, bool deposit)
+    {
+        var lang = GuestLanguage.Normalize(language);
+        var when = Format(appointment.Start, appointment.TimeZone, lang);
+        var deadline = Format(until, appointment.TimeZone, lang);
+        return lang switch
+        {
+            "en" => new(to, $"Please complete your booking: {appointment.TreatmentName} on {when}",
+                $"""
+                 Hello {guest.FirstName},
+
+                 {(deposit ? "the deposit" : "the card for the no-show fee")} for your appointment "{appointment.TreatmentName}" on {when} at {appointment.LocationName} is still missing.
+
+                 Please {(deposit ? "pay the deposit" : "save your card")} by {deadline}. Otherwise we will release the appointment; nothing will be charged.
+
+                 {manageUrl}
+                 """),
+            "fr" => new(to, $"Merci de finaliser votre réservation : {appointment.TreatmentName} le {when}",
+                $"""
+                 Bonjour {guest.FirstName},
+
+                 {(deposit ? "L’acompte" : "La carte pour les frais d’absence")} pour votre rendez-vous « {appointment.TreatmentName} » le {when} ({appointment.LocationName}) manque encore.
+
+                 Merci {(deposit ? "de régler l’acompte" : "d’enregistrer votre carte")} avant le {deadline}. Sinon, nous libérerons le rendez-vous ; rien ne sera débité.
+
+                 {manageUrl}
+                 """),
+            "it" => new(to, $"La preghiamo di completare la prenotazione: {appointment.TreatmentName}, {when}",
+                $"""
+                 Buongiorno {guest.FirstName},
+
+                 per il suo appuntamento "{appointment.TreatmentName}" di {when} presso {appointment.LocationName} manca ancora {(deposit ? "l’acconto" : "la carta per la penale di mancata presentazione")}.
+
+                 La preghiamo di {(deposit ? "versare l’acconto" : "registrare la carta")} entro {deadline}. In caso contrario libereremo l’appuntamento; non verrà addebitato nulla.
+
+                 {manageUrl}
+                 """),
+            _ => new(to, $"Bitte Buchung abschließen: {appointment.TreatmentName} am {when}",
+                $"""
+                 Guten Tag {guest.GreetingName},
+
+                 für Ihren Termin „{appointment.TreatmentName}“ am {when} in {appointment.LocationName} fehlt noch {(deposit ? "die Anzahlung" : "die Karte für die Ausfallgebühr")}.
+
+                 Bitte {(deposit ? "bezahlen Sie die Anzahlung" : "hinterlegen Sie die Karte")} bis {deadline}. Sonst geben wir den Termin frei; es wird nichts abgebucht.
+
+                 {manageUrl}
+                 """),
+        };
+    }
+
     public static OutgoingMail Released(string to, GuestName guest, OnlineAppointment appointment, string bookUrl, string? language, bool deposit = false)
     {
         var lang = GuestLanguage.Normalize(language);

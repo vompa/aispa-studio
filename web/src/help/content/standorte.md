@@ -157,6 +157,7 @@ Hinterlegt ein Gast nach dem Online-Buchen keine Karte oder bezahlt die Anzahlun
 
 - Gilt nur für Termine mit Ausfallgebühr oder Anzahlung.
 - Liegt der Zeitpunkt erst nach Terminbeginn, wird nicht freigegeben.
+- Vor der Freigabe bekommt der Gast einmal eine Erinnerung per Mail mit der Frist und dem Link zu seinem Termin: wenn drei Viertel der Frist um sind, bei 24 Stunden also sechs Stunden vorher. Bei einer Frist unter zwei Stunden gibt es keine Erinnerung.
 - Die Prüfung läuft regelmäßig im Hintergrund, standardmäßig alle 5 Minuten; die Freigabe kann daher einige Minuten nach Fristablauf erfolgen.
 
 ### Startzeiten im Raster {#startzeiten-raster}

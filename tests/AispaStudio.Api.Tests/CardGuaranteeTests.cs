@@ -253,6 +253,49 @@ public sealed class CardGuaranteeTests(ApiFixture fixture)
     }
 
     [Fact]
+    public async Task Vor_Ablauf_der_Frist_bekommt_der_Gast_einmal_eine_Erinnerung_wer_die_Karte_hinterlegt_hat_keine()
+    {
+        // Frist zwei Stunden: Erinnert wird, wenn drei Viertel um sind, also eine halbe Stunde vor der Freigabe.
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        await spa.PutAsync<LocationOnlineRules>($"/api/locations/{spa.Location.Id}/online-rules",
+            new LocationOnlineRules(true, 60, 365, 24, 15, null, false, 50, 2), Ct);
+        var email = NewEmail();
+        var securedEmail = NewEmail();
+        var open = await BookAsync(spa, TestSpa.At(10), email);
+        var secured = await BookAsync(spa, TestSpa.At(14), securedEmail);
+        using var client = spa.OnlineClient();
+        await client.PostAsJsonAsync($"/api/online/bookings/{secured.ManageToken}/card/test", new TestCardResult(true), TestSpa.Json, Ct);
+        var holdUntil = open.Appointment.CardGuarantee!.HoldUntil!.Value;
+        var release = fixture.Factory.Services.GetRequiredService<UnsecuredBookingRelease>();
+
+        var tooEarly = await release.RemindOnceAsync(holdUntil.AddMinutes(-45), spa.Location.Id, Ct);
+        var due = await release.RemindOnceAsync(holdUntil.AddMinutes(-25), spa.Location.Id, Ct);
+        var again = await release.RemindOnceAsync(holdUntil.AddMinutes(-20), spa.Location.Id, Ct);
+        Assert.Equal((0, 1, 0), (tooEarly, due, again));
+        var mail = await fixture.Mailbox.WaitForAsync(email, m => m.Subject.StartsWith("Bitte Buchung abschließen", StringComparison.Ordinal), Ct);
+
+        Assert.Contains("fehlt noch die Karte für die Ausfallgebühr", mail.Text, StringComparison.Ordinal);
+        Assert.Contains("Sonst geben wir den Termin frei; es wird nichts abgebucht.", mail.Text, StringComparison.Ordinal);
+        Assert.Contains("#/termin/", mail.Text, StringComparison.Ordinal);
+        Assert.DoesNotContain(fixture.Mailbox.To(securedEmail), m => m.Subject.StartsWith("Bitte Buchung abschließen", StringComparison.Ordinal));
+        // Die Erinnerung gibt nichts frei: Der Termin ist weiter gebucht.
+        Assert.Equal(AppointmentStatus.Booked, (await spa.GetAsync<AppointmentDto>($"/api/appointments/{open.Appointment.Id}", Ct)).Status);
+    }
+
+    [Theory]
+    [InlineData(120, 89, false)]
+    [InlineData(120, 91, true)]
+    [InlineData(60, 59, false)]
+    [InlineData(1440, 1081, true)]
+    [InlineData(120, 121, false)]
+    public void Erinnert_wird_ab_drei_Vierteln_der_Frist_und_nur_bei_mindestens_zwei_Stunden(int holdMinutes, int afterMinutes, bool expected)
+    {
+        var booked = new DateTimeOffset(2027, 3, 1, 8, 0, 0, TimeSpan.Zero);
+
+        Assert.Equal(expected, UnsecuredBookingRelease.ReminderDue(booked, booked.AddMinutes(holdMinutes), booked.AddMinutes(afterMinutes)));
+    }
+
+    [Fact]
     public async Task Online_Termin_ohne_Karte_wird_nach_der_Frist_freigegeben()
     {
         var spa = await TestSpa.CreateAsync(fixture, Ct);

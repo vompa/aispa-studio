@@ -382,7 +382,7 @@ Die Nummern sind die Reihenfolge, die der jeweilige Thread gewählt hätte ([Üb
 - Später: ZVT und OPI an einem echten Gerät prüfen; Anzahlung anzeigen; Personenwechsel ohne Server nach dem ersten Praxistest bewerten.
 
 **Online-Buchung und Kundenbereich**
-1. Gast vor Ablauf der Frist für Karte oder Anzahlung erinnern.
+1. Gast vor Ablauf der Frist für Karte oder Anzahlung erinnern: seit 16.11.2026 gebaut (einmal, wenn drei Viertel der Frist um sind).
 2. Anzahlung für Termine der Rezeption per Link.
 3. Zahlungs- und Kartenlink auch per SMS.
 4. Stripe-Kunden aus abgebrochenen Hinterlegungen löschen.

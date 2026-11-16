@@ -6448,3 +6448,22 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Nicht geprüft:** die Seite am Handy; die Anzeige im laufenden Kalender. Die Übersetzungen sind nicht von Muttersprachlern gelesen.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
 
+## Kundenbereich: Erinnerung vor Ablauf der Frist für Karte oder Anzahlung (16.11.2026)
+
+- **Auftrag:** Offener Punkt im Kundenbereich („Gast vor Ablauf der Frist für Karte oder Anzahlung erinnern“, ADR 0047); vom Auftraggeber am 16.11.2026 mit der Liste der nächsten Punkte freigegeben.
+- **Befund:** Wer online buchte und Karte oder Anzahlung nicht gleich erledigte, hörte bis zur Freigabe des Termins nichts mehr.
+- **Was:**
+  - `UnsecuredBookingRelease.RemindOnceAsync` läuft mit der Freigabe-Suche mit und stellt je Termin einmal `RemindUnsecuredBooking` in die Queue; `CardGuarantee.ReminderSentAt` und `DepositOrder.ReminderSentAt` (Migration `FristErinnerung`).
+  - Mail `OnlineMails.HoldReminder` in vier Sprachen mit Frist und Link zum Termin.
+- **Detailentscheidungen:**
+  1. Einmal, wenn drei Viertel der Frist um sind: bei 24 Stunden sechs Stunden vorher, bei 2 Stunden eine halbe Stunde vorher.
+  2. Keine Erinnerung bei Fristen unter zwei Stunden: Die Bestätigung mit der Frist ist dann gerade erst angekommen.
+  3. Erst vermerken, dann senden; ein zweiter Lauf erinnert nicht noch einmal. Fällt der Versand aus, bleibt es bei der Bestätigung.
+  4. Vor dem Senden prüft der Handler noch einmal: Ist inzwischen hinterlegt, bezahlt oder storniert, geht nichts hinaus.
+  5. Servicemail zur Buchung, keine Werbung; sie braucht keine Einwilligung.
+  6. Links der Rezeption („Karte per Link anfordern“) haben keine Frist und bekommen keine Erinnerung.
+- **Bewusst offen / später:** Erinnerung per SMS; Einstellung des Zeitpunkts.
+- **Geprüft:** Tests zuerst geplant: `CardGuaranteeTests` und `DepositTests` zusammen 37 grün (neu: zu früh, fällig, kein zweites Mal, keine Mail bei hinterlegter Karte, Anzahlung; Regel für drei Viertel und die Zwei-Stunden-Grenze).
+- **Nicht geprüft:** die Mail in einem echten Postfach; die Übersetzungen sind nicht von Muttersprachlern gelesen.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
