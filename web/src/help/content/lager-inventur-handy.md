@@ -4,7 +4,7 @@ bereich: Lager
 oberflaeche: handy, verwaltung
 rollen: therapeut, rezeption, leitung, inhaber, manager
 seite: myday
-stichwoerter: Inventur am Handy, Zählung vom Handy, Lager zählen, Handy zählen, Barcode scannen, Kamera, Wareneingang scannen, Zählung abschließen, Zählung übernehmen, count on phone, scan barcode
+stichwoerter: Lieferschein, Lieferschein fotografieren, Lieferung buchen, Lieferschein-Foto, delivery note, Inventur am Handy, Zählung vom Handy, Lager zählen, Handy zählen, Barcode scannen, Kamera, Wareneingang scannen, Zählung abschließen, Zählung übernehmen, count on phone, scan barcode
 ---
 # Inventur am Handy zählen
 
@@ -40,6 +40,22 @@ Kann das Handy keine Codes lesen, oder ist die Kamera nicht freigegeben, bleibt 
 ## Wareneingang am Handy {#wareneingang}
 
 Rezeption und Leitung buchen im Reiter **Wareneingang** gelieferte Ware: Code scannen oder eintippen, auf **Suchen** tippen, die Menge eintragen, bei Bedarf **Charge (optional)** und das Ablaufdatum, dann auf **Wareneingang buchen** tippen. Therapeut:innen sehen diesen Reiter nicht.
+
+## Lieferung zu einer Bestellung, mit Lieferschein-Foto {#lieferung}
+
+Die Leitung bucht im Reiter **Lieferung** eine Lieferung zu einer offenen Bestellung. Den Reiter sieht nur, wer Standorte verwalten darf.
+
+1. Bei **Bestellung** die Bestellung wählen. Zur Wahl stehen bestellte und teilweise gelieferte Bestellungen des Standorts.
+2. Auf **Lieferschein fotografieren (optional)** tippen und den Lieferschein aufnehmen. Die KI liest ihn und trägt je Position Menge, Charge und Ablaufdatum ein, dazu die Lieferscheinnummer.
+3. Alle Mengen mit dem Lieferschein vergleichen. Steht bei einer Position „Bitte prüfen: …“, war die KI unsicher oder es ist mehr geliefert als noch offen war.
+4. Auf **Lieferung buchen** tippen. Erst dann ändert sich der Bestand.
+
+- Die KI schlägt nur vor. Ohne den Knopf wird nichts gebucht.
+- Das Foto wird nur gelesen und nicht gespeichert. Es geht dazu an den KI-Dienst (Anthropic).
+- Was auf dem Lieferschein steht, aber nicht zur Bestellung gehört, listet die Maske unter „Auf dem Lieferschein, aber nicht in dieser Bestellung“. Solche Ware bucht man im Reiter **Wareneingang**.
+- Ohne Foto geht es genauso: Mengen von Hand eintragen und buchen. Ist die KI nicht eingerichtet oder das Foto unlesbar, sagt die Maske es.
+- Eine Position ohne Menge gilt als nicht geliefert; die Bestellung bleibt dafür offen.
+- In der Windows-App bucht man Lieferungen wie bisher unter **Verwaltung** › **Lager** bei der Bestellung, dort ohne Foto.
 
 ## Zählung in der Windows-App abschließen {#abschliessen}
 

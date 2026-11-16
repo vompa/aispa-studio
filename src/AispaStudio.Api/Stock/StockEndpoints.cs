@@ -470,7 +470,8 @@ internal static class StockEndpoints
                 await orders.ListAsync(locationId, ct))
             .WithName("ListPurchaseOrders")
             .WithSummary("Offene Bestellungen des Standorts und die letzten 30 abgeschlossenen, neueste zuerst.")
-            .RequirePermission(AccessRight.ManageLocation);
+            .RequirePermission(AccessRight.ManageLocation)
+            .AllowChannel(AccessChannel.StaffApp);
 
         group.MapPost("/locations/{locationId:guid}/orders", async Task<Results<Created<PurchaseOrderDto>, NotFound, ValidationProblem>> (
                 Guid locationId, PurchaseOrderInput input, ClaimsPrincipal user, AispaDbContext db, PurchaseOrders orders, CancellationToken ct) =>
@@ -615,7 +616,59 @@ internal static class StockEndpoints
             })
             .WithName("DeliverPurchaseOrder")
             .WithSummary("Lieferung buchen (auch in Teilen): je Position ein Wareneingang zum Bestell- oder Lieferscheinpreis.")
-            .RequirePermission(AccessRight.ManageLocation);
+            .RequirePermission(AccessRight.ManageLocation)
+            .AllowChannel(AccessChannel.StaffApp);
+
+        group.MapPost("/orders/{purchaseOrderId:guid}/delivery-note-scan", async Task<Results<Ok<DeliveryNoteSuggestion>, NotFound, ValidationProblem>> (
+                Guid purchaseOrderId, IFormFile file, PurchaseOrders orders, IDeliveryNoteReader reader, ILoggerFactory logs, CancellationToken ct) =>
+            {
+                if (await orders.GetAsync(purchaseOrderId, ct) is not { } order)
+                {
+                    return TypedResults.NotFound();
+                }
+
+                var errors = new Errors();
+                errors.Check(order.Status is PurchaseOrderStatus.Ordered or PurchaseOrderStatus.PartiallyReceived, "status",
+                    order.Status == PurchaseOrderStatus.Draft ? "Erst als bestellt markieren." : "Die Bestellung ist schon abgeschlossen.");
+                errors.Check(file.Length is > 0 and <= Online.AnamnesisStaffEndpoints.MaxImageBytes, "File", "Bitte ein Foto bis 5 MB hochladen.");
+                if (errors.Any)
+                {
+                    return errors.Problem();
+                }
+
+                using var buffer = new MemoryStream((int)file.Length);
+                await file.CopyToAsync(buffer, ct);
+                var data = buffer.ToArray();
+                var contentType = Online.AnamnesisStaffEndpoints.ImageType(data);
+                errors.Check(contentType is not null, "File", "Bitte ein Foto als JPEG, PNG oder WebP hochladen.");
+                if (errors.Any)
+                {
+                    return errors.Problem();
+                }
+
+                if (!reader.Enabled)
+                {
+                    return TypedResults.Ok(new DeliveryNoteSuggestion(false, null, [], [], DeliveryNoteSuggestions.NoAi));
+                }
+
+                try
+                {
+                    // Das Foto geht nur an den Leser und wird nirgends abgelegt.
+                    var reading = await reader.ReadAsync(new DeliveryNoteImage(data, contentType!), DeliveryNoteSuggestions.Lines(order), ct);
+                    return TypedResults.Ok(DeliveryNoteSuggestions.From(order, reading));
+                }
+                catch (Exception ex) when (ex is HttpRequestException or InvalidOperationException or global::System.Text.Json.JsonException or global::Anthropic.Exceptions.AnthropicException)
+                {
+                    logs.CreateLogger("DeliveryNoteScan").LogWarning(ex, "Lieferschein der Bestellung {PurchaseOrderId} nicht gelesen", purchaseOrderId);
+                    return TypedResults.Ok(new DeliveryNoteSuggestion(false, null, [], [], DeliveryNoteSuggestions.Failed));
+                }
+            })
+            .WithName("ScanDeliveryNote")
+            .WithSummary("Liest ein Foto des Lieferscheins (JPEG, PNG oder WebP bis 5 MB) und schlägt je offener Position Menge, Charge und Ablaufdatum vor. "
+                + "Bucht nichts und speichert das Foto nicht; gebucht wird über „DeliverPurchaseOrder“. Ohne eingerichtete KI kommt ein leerer Vorschlag mit Hinweis.")
+            .DisableAntiforgery()
+            .RequirePermission(AccessRight.ManageLocation)
+            .AllowChannel(AccessChannel.StaffApp);
 
         group.MapGet("/orders/{purchaseOrderId:guid}/text", async Task<Results<ContentHttpResult, NotFound>> (
                 Guid purchaseOrderId, AispaDbContext db, PurchaseOrders orders, CancellationToken ct) =>

@@ -23065,6 +23065,79 @@
         }
       }
     },
+    "/api/v1/stock/orders/{purchaseOrderId}/delivery-note-scan": {
+      "post": {
+        "tags": [
+          "Lager"
+        ],
+        "summary": "Liest ein Foto des Lieferscheins (JPEG, PNG oder WebP bis 5 MB) und schlägt je offener Position Menge, Charge und Ablaufdatum vor. Bucht nichts und speichert das Foto nicht; gebucht wird über „DeliverPurchaseOrder“. Ohne eingerichtete KI kommt ein leerer Vorschlag mit Hinweis.",
+        "operationId": "ScanDeliveryNote",
+        "parameters": [
+          {
+            "name": "purchaseOrderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "required": [
+                  "file"
+                ],
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "$ref": "#/components/schemas/IFormFile"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeliveryNoteSuggestion"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/stock/orders/{purchaseOrderId}/text": {
       "get": {
         "tags": [
@@ -37122,6 +37195,88 @@
             "items": {
               "type": "string"
             }
+          }
+        }
+      },
+      "DeliveryNoteLineSuggestion": {
+        "required": [
+          "lineId",
+          "quantity",
+          "batch",
+          "expiresOn",
+          "uncertain",
+          "reason"
+        ],
+        "type": "object",
+        "properties": {
+          "lineId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "batch": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "expiresOn": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "uncertain": {
+            "type": "boolean"
+          },
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "DeliveryNoteSuggestion": {
+        "required": [
+          "read",
+          "deliveryNote",
+          "lines",
+          "unmatched",
+          "note"
+        ],
+        "type": "object",
+        "properties": {
+          "read": {
+            "type": "boolean"
+          },
+          "deliveryNote": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DeliveryNoteLineSuggestion"
+            }
+          },
+          "unmatched": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "note": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
