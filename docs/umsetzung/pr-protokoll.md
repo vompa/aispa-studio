@@ -6498,3 +6498,21 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Nicht geprüft:** die Seite am Handy.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
 
+## Kundenbereich: Wunsch „Therapeutin“ oder „Therapeut“ bei der Online-Buchung (16.11.2026)
+
+- **Auftrag:** Offener Punkt aus den Rezeptions-Schritten („Auswahl durch den Gast bei der Online-Buchung, Wunsch je Termin statt je Gast“); vom Auftraggeber am 16.11.2026 mit der Liste der nächsten Punkte freigegeben.
+- **Was:**
+  - `GET /api/online/locations/{id}/availability` nimmt `wish`; `OnlineBookingRequest.TherapistWish`; `OnlineLocation.TherapistWish` sagt, ob die Auswahl Sinn hat.
+  - Kundenbereich: Im Schritt „Zeit“ steht „Behandlung durch (freiwillig)“ mit Egal, Therapeutin, Therapeut; die freien Zeiten richten sich danach. Vier Sprachen.
+  - Beim Buchen legt der Wunsch die Person fest und steht in der Notiz des Termins („Wunsch bei der Online-Buchung: Therapeutin.“).
+- **Detailentscheidungen:**
+  1. Der Wunsch gilt für diesen Termin und wird nicht in die Kundendaten geschrieben; dort trägt ihn weiter die Rezeption ein.
+  2. Die Auswahl erscheint nur, wenn im Team bei mindestens einer aktiven Person die Angabe hinterlegt ist.
+  3. Personen ohne Angabe passen zu jedem Wunsch, wie bei der Rezeption (`CustomerRules.Apply`).
+  4. Der Wunsch aus der Buchung geht einem Wunsch aus den Kundendaten vor.
+  5. Ist zur gewählten Zeit keine passende Person frei, lehnt die Buchung mit einem eigenen Satz ab, statt eine andere Person zu nehmen.
+- **Bewusst offen / später:** Wunsch beim Verschieben durch den Gast; eine bestimmte Person online wählen.
+- **Geprüft:** Tests zuerst geplant: API `OnlineBookingTests` 41 mit `ChannelScanTests` grün (neu: passende Person und Notiz, Zeiten und Ablehnung je Wunsch, kein Angebot ohne Angabe im Team); Web `booking` 70 grün (neu: Auswahl lädt Zeiten neu und wird gesendet, keine Auswahl ohne Angabe).
+- **Nicht geprüft:** die Seite im Browser von Hand; die Übersetzungen sind nicht von Muttersprachlern gelesen.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+

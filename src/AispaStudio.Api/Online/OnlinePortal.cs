@@ -60,7 +60,7 @@ internal sealed class OnlinePortal(
     /// und welcher Raum, entscheidet die Buchung. <c>null</c>, wenn Standort oder Behandlung nicht passen.
     /// </summary>
     public async Task<IReadOnlyList<DateTimeOffset>?> FreeTimesAsync(
-        Guid locationId, Guid treatmentId, DateOnly date, DateTimeOffset earliest, CancellationToken ct)
+        Guid locationId, Guid treatmentId, DateOnly date, DateTimeOffset earliest, CancellationToken ct, TherapistGender? wish = null)
     {
         var context = await booking.LoadContextAsync(locationId, treatmentId, date, null, ct);
         if (context is null)
@@ -68,10 +68,17 @@ internal sealed class OnlinePortal(
             return null;
         }
 
+        // Wunsch „Therapeutin“ oder „Therapeut“ für diese Buchung: nur Zeiten, zu denen eine passende Person frei ist (ohne Angabe passt sie).
+        context = TherapistWish(wish).Apply(context);
+
         var step = TimeSpan.FromMinutes((await rules.ForAsync(locationId, ct)).SlotStepMinutes);
         return new ResourcePlanner(context).FreeSlots(date, step, null)
             .Select(s => s.Start).Where(s => s >= earliest).Distinct().Order().ToList();
     }
+
+    /// <summary>Der Wunsch des Gastes für eine Online-Buchung als Planungsregel; ohne Wunsch ändert sie nichts.</summary>
+    public static CustomerRules TherapistWish(TherapistGender? wish) =>
+        wish is null ? CustomerRules.None : new CustomerRules(0, new HashSet<Guid>(), false, wish);
 
     public async Task<IReadOnlyList<OnlineAppointment>> ToOnlineAsync(IReadOnlyList<Appointment> appointments, CancellationToken ct)
     {

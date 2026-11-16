@@ -14894,6 +14894,13 @@
               "type": "integer",
               "format": "int32"
             }
+          },
+          {
+            "name": "wish",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/TherapistGender"
+            }
           }
         ],
         "responses": {
@@ -41670,6 +41677,16 @@
           "acceptMarketing": {
             "type": "boolean",
             "default": false
+          },
+          "therapistWish": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/TherapistGender"
+              }
+            ]
           }
         }
       },
@@ -42102,6 +42119,10 @@
             }
           },
           "rebookReminders": {
+            "type": "boolean",
+            "default": false
+          },
+          "therapistWish": {
             "type": "boolean",
             "default": false
           }

@@ -1255,3 +1255,14 @@ Expected: Kein Hinweis „Anamnese prüfen“.
 Closes: –
 Result: ☐
 
+### Online-Buchung – Wunsch „Therapeutin“ oder „Therapeut“
+Start: Im Team ist bei einer Person „Therapeutin“ und bei einer anderen „Therapeut“ eingetragen, beide mit derselben Behandlung und denselben Arbeitszeiten; der Kundenbereich im Browser
+1. Behandlung wählen und zum Schritt „Zeit“ gehen.
+Expected: Über den Tagen steht „Behandlung durch (freiwillig)“ mit Egal, Therapeutin, Therapeut.
+2. Die Therapeutin im Kalender der Windows-App für eine freie Zeit buchen, dann im Kundenbereich „Therapeutin“ wählen.
+Expected: Diese Zeit fehlt in der Liste; mit „Therapeut“ oder „Egal“ ist sie da.
+3. „Therapeut“ wählen, eine Zeit nehmen und buchen.
+Expected: Im Kalender steht der Termin beim Therapeuten; in der Notiz steht „Wunsch bei der Online-Buchung: Therapeut.“
+Closes: –
+Result: ☐
+

@@ -390,7 +390,7 @@ Die Nummern sind die Reihenfolge, die der jeweilige Thread gewählt hätte ([Üb
 6. Teilerstattung; Meldungen des Anbieters zu fehlgeschlagenen Erstattungen.
 7. Online-Bestellungen und Erstattungen als Liste in der Kassa.
 8. Anzahlung in der Windows-App anzeigen.
-9. Aus den Buchungsproblemen offen: Bestätigung der E-Mail vor einer Gastbuchung, Gutschein mit Anzahlung verrechnen, Absage eines späteren als des nächsten Termins per Klick, Wunsch ♀/♂ bei der Online-Buchung.
+9. Aus den Buchungsproblemen offen (seit 16.11.2026 gebaut: Absage eines späteren Termins im Posteingang, Wunsch Therapeutin oder Therapeut bei der Online-Buchung): Bestätigung der E-Mail vor einer Gastbuchung, Gutschein mit Anzahlung verrechnen, Absage eines späteren als des nächsten Termins per Klick, Wunsch ♀/♂ bei der Online-Buchung.
 10. CSP des Kundenbereichs durchsetzen ([ADR 0080](entscheidungen/0080-csp-fuer-den-kundenbereich.md)): nach einem Stand ohne CSP-Meldungen in Chrome, Edge, Firefox und Safari den Header-Namen umstellen und dabei den Header für `frame-ancestors` (Einbetten, Slice 58) mit der Richtlinie für Inhalte zusammenführen.
 - Später: Spa-Tag, Paar und Eintritte im Kundenbereich; Regeln für Ausfallgebühr und Anzahlung je Kundengruppe, Tageszeit oder No-Show-Risiko; Wissensbasis des Spas für Fragen im Kundenbereich; Reserve with Google und Gutscheinportale (erst nach der Freigabe des Auftraggebers, [ADR 0014](entscheidungen/0014-buchungsplattformen-ohne-partnervertrag.md)).
 
