@@ -6336,3 +6336,10 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Nicht geprüft:** die Seite am Handy.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
 
+## Kalender-Lücken: Mindestlücke bleibt die kürzeste Behandlung (16.11.2026)
+
+- **Auftrag:** Antwort des Auftraggebers vom 16.11.2026 auf die Frage, ob die Mindestlücke ein fester Wert je Standort werden soll: „kürzeste Behandlung“.
+- **Was:** Nur Doku. Eine Lücke gilt weiter als unbrauchbar, wenn sie kürzer ist als die kürzeste aktive Behandlung des Standorts mit Vor- und Nachbereitung (`BookingService.ShortestBindingAsync`). Ein einstellbares Feld in Verwaltung › Standorte wird nicht gebaut.
+- **Stand des Blocks „Kalender-Lücken“:** Einwirkzeit, Wochenansicht und Treatwell-Hinweis sind gebaut, die Mindestlücke ist entschieden. Offen bleibt nur der Zähler „Lücken n“ in der Kopfzeile (Ä298, „falls gewünscht“).
+- **Geprüft:** entfällt, keine Änderung am Code.
+
