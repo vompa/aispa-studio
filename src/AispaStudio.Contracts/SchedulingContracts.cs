@@ -512,6 +512,7 @@ public enum AppointmentSource
 /// <summary>
 /// Vorschlag, einen gebuchten Termin um wenige Minuten zu verschieben, damit bei der Person keine unbrauchbare Lücke bleibt
 /// (kürzer als die kürzeste Behandlung des Standorts). Gleiche Person; Raum und Gerät bleiben, wenn sie frei sind.
+/// <c>Source</c> nennt die Herkunft des Termins: Ein Termin von Treatwell muss nach dem Verschieben auch dort umgebucht werden.
 /// </summary>
 public sealed record GapSuggestion(
     Guid AppointmentId,
@@ -522,7 +523,8 @@ public sealed record GapSuggestion(
     DateTimeOffset CurrentStart,
     DateTimeOffset SuggestedStart,
     int GapMinutes,
-    string Reason);
+    string Reason,
+    AppointmentSource Source = AppointmentSource.Reception);
 
 /// <param name="ExpectedVersion">
 /// <see cref="AppointmentDto.Version"/> des Stands, von dem aus geändert wird (Ä281). Weicht der Termin inzwischen ab, antwortet der Server mit 409 und

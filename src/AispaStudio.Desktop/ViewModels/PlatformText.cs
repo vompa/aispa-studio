@@ -17,5 +17,7 @@ public static class PlatformText
 
     public const string AcceptInPlatformHint = "Die Buchung steht im Kalender, gilt bei Treatwell aber erst, wenn Sie sie dort annehmen.";
 
+    public const string MoveInPlatform = "Buchung über Treatwell: nach dem Verschieben auch dort umbuchen.";
+
     public const string AssignmentOpen = "Zuordnung offen: Der Gast ist vorläufig angelegt. Unter „Anfragen“ klären, wer das ist.";
 }

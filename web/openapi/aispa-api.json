@@ -38314,6 +38314,9 @@
           },
           "reason": {
             "type": "string"
+          },
+          "source": {
+            "$ref": "#/components/schemas/AppointmentSource"
           }
         }
       },

@@ -6259,3 +6259,24 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Geprüft:** Tests zuerst geplant: API `LeaveAccountTests` 12 von 12 grün (ohne Anspruch, mit Anspruch und Übertrag, halber Tag, leeren, fünf ungültige Werte, unbekannte Person und Jahr, Rezeption, fremdes Spa); Windows-App `LeaveAccountTests` 7 von 7 grün; Ansichtstest mit echter Eingabe und Bild; Knopfbeschriftungen.
 - **Nicht geprüft:** die laufende App unter Windows; die volle Suite läuft in der CI.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Kalender-Lücken: Treatwell-Hinweis und Einwirkzeit bei den Vorschlägen (16.11.2026)
+
+- **Auftrag:** Block „Kalender-Lücken (Einwirkzeit, Wochenansicht, Mindestlücke, Treatwell-Hinweis)“ aus der Reihenfolge vom 20.10.2026; autonom nach dem Auftrag des Auftraggebers vom 16.11.2026.
+- **Befund:** Die vier Begriffe stehen nur in der Reihenfolge, kein Dokument beschreibt sie. Gebaut ist, was sich aus Code und Konzept eindeutig ergibt.
+- **Was:**
+  - `GapSuggestion.Source`: Der Vorschlag nennt die Herkunft des Termins. Bei einem Termin von Treatwell steht im Panel „Lücken schließen“ der Satz „Buchung über Treatwell: nach dem Verschieben auch dort umbuchen.“ (`PlatformText.MoveInPlatform`).
+  - Die Pause zwischen den beiden Belegungen eines Termins mit Einwirkzeit gilt ausdrücklich nicht als Lücke.
+  - Die kürzeste Bindung des Standorts wird an einer Stelle berechnet (`BookingService.ShortestBindingAsync`).
+  - Hilfe `kalender-luecken-schliessen`.
+- **Detailentscheidungen:**
+  1. Treatwell-Termine bleiben in den Vorschlägen und bekommen einen Hinweis. Ausschließen würde gerade dort Lücken stehen lassen, und die Rezeption bucht bei Treatwell ohnehin von Hand um (ADR 0062).
+  2. Die Regel zur Einwirkzeit ist eine Absicherung: Der neue Test war auch ohne sie grün, weil der Planer das Verschieben in diesen Fällen schon ablehnt.
+- **Bewusst offen / später:**
+  - **Mindestlücke** als einstellbarer Wert je Standort: braucht eine Entscheidung des Auftraggebers und ein Feld in Verwaltung › Standorte, die gerade ein anderer Agent überarbeitet. Bis dahin gilt die kürzeste Behandlung.
+  - **Wochenansicht** der Lücken (Vorschläge über mehrere Tage, Zähler in der Kopfzeile): als nächster Schritt.
+  - Die Lückenbewertung freier Zeiten (`ResourcePlanner.Fit`) rechnet weiter mit der ganzen Bindung, wie in `kalender-rezeption.md` Schritt 13 beschrieben.
+- **Geprüft:** Tests zuerst geplant: `GapSuggestionTests` 4 von 4 (neu: Einwirkzeit, Herkunft Treatwell), `ProcessingTimeTests` und `SlotTests` grün; Ansichtstests zum Panel 5 von 5 (neu: Hinweis bei Treatwell, kein Hinweis sonst).
+- **Nicht geprüft:** die laufende App; ein echter Treatwell-Termin. Die volle Suite läuft in der CI.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+

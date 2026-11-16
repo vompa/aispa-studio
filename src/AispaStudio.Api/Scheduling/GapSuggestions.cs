@@ -38,10 +38,7 @@ internal sealed partial class BookingService
             .ToDictionaryAsync(a => a.Id, ct);
         var names = await db.Employees.AsNoTracking().Where(e => employeeIds.Contains(e.Id))
             .ToDictionaryAsync(e => e.Id, e => e.DisplayName, ct);
-        var useful = await db.Treatments.AsNoTracking()
-            .Where(t => t.IsActive && t.Rooms.Any(r => r.LocationId == locationId && r.IsActive))
-            .Select(t => (int?)(t.DurationMinutes + t.PreparationMinutes + t.FollowUpMinutes))
-            .MinAsync(ct) ?? 30;
+        var useful = await ShortestBindingAsync(locationId, ct) ?? 30;
 
         var suggestions = new List<GapSuggestion>();
         var suggested = new HashSet<Guid>();
@@ -57,6 +54,12 @@ internal sealed partial class BookingService
                 var gapUntil = next is null ? shift.End : next.From < shift.End ? next.From : shift.End;
                 var gap = (int)(gapUntil - gapFrom).TotalMinutes;
                 if (gap <= 0 || gap >= useful)
+                {
+                    continue;
+                }
+
+                // Einwirkzeit: Die Pause zwischen den beiden Belegungen desselben Termins ist gewollt und keine Lücke.
+                if (previous?.AppointmentId is { } sameAppointment && next?.AppointmentId == sameAppointment)
                 {
                     continue;
                 }
@@ -80,7 +83,8 @@ internal sealed partial class BookingService
                     suggestions.Add(new GapSuggestion(appointment.Id, shift.EmployeeId, name,
                         appointment.Customer.InHouseName, appointment.Treatment.Name,
                         appointment.Start, start, gap,
-                        $"Bei {name} bleiben sonst {gap} Minuten frei, in die keine Behandlung passt (kürzeste {useful} Minuten). {reason}"));
+                        $"Bei {name} bleiben sonst {gap} Minuten frei, in die keine Behandlung passt (kürzeste {useful} Minuten). {reason}",
+                        appointment.Source));
                     suggested.Add(id);
                     break;
                 }
@@ -89,6 +93,13 @@ internal sealed partial class BookingService
 
         return [.. suggestions.OrderBy(s => s.CurrentStart)];
     }
+
+    /// <summary>Kürzeste Behandlung des Standorts mit Vor- und Nachbereitung, in Minuten: Lücken darunter bleiben ungenutzt.</summary>
+    private Task<int?> ShortestBindingAsync(Guid locationId, CancellationToken ct) =>
+        db.Treatments.AsNoTracking()
+            .Where(t => t.IsActive && t.Rooms.Any(r => r.LocationId == locationId && r.IsActive))
+            .Select(t => (int?)(t.DurationMinutes + t.PreparationMinutes + t.FollowUpMinutes))
+            .MinAsync(ct);
 
     /// <summary>Ob der Termin zur neuen Zeit bei derselben Person geplant werden kann, ohne eine neue unbrauchbare Lücke; dann die Bewertung.</summary>
     private async Task<string?> PlanSameEmployeeAsync(Appointment appointment, DateTimeOffset start, DateOnly date, CancellationToken ct)

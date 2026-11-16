@@ -91,10 +91,7 @@ internal sealed partial class BookingService(AispaDbContext db, RosterService ro
             .ToListAsync(ct);
 
         // Kürzeste Behandlung des Standorts (mit Vor- und Nachbereitung): Lücken darunter bleiben ungenutzt.
-        var shortest = await db.Treatments.AsNoTracking()
-            .Where(t => t.IsActive && t.Rooms.Any(r => r.LocationId == locationId && r.IsActive))
-            .Select(t => (int?)(t.DurationMinutes + t.PreparationMinutes + t.FollowUpMinutes))
-            .MinAsync(ct);
+        var shortest = await ShortestBindingAsync(locationId, ct);
 
         // Schließzeiten des Standorts (ADR 0073): in ihnen ist nicht geöffnet.
         var closed = await ClosureService.SpansAsync(db, locationId, from, until, zone, ct);

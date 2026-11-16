@@ -19,6 +19,9 @@ public sealed partial class GapRow(GapSuggestion suggestion, TimeZoneInfo zone, 
 
     public string Reason => Suggestion.Reason;
 
+    /// <summary>Der Termin kommt von Treatwell: Die App bucht dort nicht um (ADR 0062).</summary>
+    public string? PlatformHint => Suggestion.Source == AppointmentSource.Treatwell ? PlatformText.MoveInPlatform : null;
+
     public string MoveText => $"Auf {Time(Suggestion.SuggestedStart)} verschieben";
 
     public string NewTime => Time(Suggestion.SuggestedStart);
