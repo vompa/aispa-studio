@@ -1,4 +1,8 @@
+using AispaStudio.Api.Data;
+using AispaStudio.Api.Tenancy;
 using AispaStudio.Contracts;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace AispaStudio.Api.Tests;
 
@@ -39,5 +43,35 @@ public sealed class GapSuggestionTests(ApiFixture fixture)
         await spa.BookOkAsync(TestSpa.At(11, 35), Ct, employee: spa.Anna.Id);
 
         Assert.Empty(await SuggestionsAsync(spa));
+    }
+
+    [Fact]
+    public async Task Die_Einwirkzeit_eines_Termins_ist_keine_Luecke()
+    {
+        // Packung ab 9:05: Anna ist 9:00–9:25 am Gast, 20 Minuten Einwirkzeit, dann wieder bis zur Nachbereitung. Die Pause dazwischen gehört zum Termin.
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        var pack = await spa.PostAsync<TreatmentDto>("/api/treatments",
+            new TreatmentInput("Packung", 60, 5, 10, 85m, [spa.Massage.Id], [spa.RoomA.Id, spa.RoomB.Id], [], HandsOnMinutes: 20, ProcessingMinutes: 20), Ct);
+        (await spa.BookAsync(TestSpa.At(9, 5), Ct, spa.Anna.Id, spa.RoomB.Id, pack)).EnsureSuccessStatusCode();
+
+        Assert.Empty(await SuggestionsAsync(spa));
+    }
+
+    [Fact]
+    public async Task Ein_Vorschlag_nennt_die_Herkunft_Treatwell()
+    {
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        await spa.BookOkAsync(TestSpa.At(9, 5), Ct, employee: spa.Anna.Id);
+        var later = await spa.BookOkAsync(TestSpa.At(10, 30), Ct, employee: spa.Anna.Id);
+        await using (var scope = fixture.Factory.Services.CreateAsyncScope())
+        {
+            scope.ServiceProvider.GetRequiredService<TenantContext>().Use(spa.TenantId);
+            await scope.ServiceProvider.GetRequiredService<AispaDbContext>().Appointments.Where(a => a.Id == later.Id)
+                .ExecuteUpdateAsync(a => a.SetProperty(x => x.Source, AppointmentSource.Treatwell), Ct);
+        }
+
+        var suggestion = Assert.Single(await SuggestionsAsync(spa));
+
+        Assert.Equal(AppointmentSource.Treatwell, suggestion.Source);
     }
 }

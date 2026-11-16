@@ -23,3 +23,5 @@ Manchmal bleibt im Tag einer Person eine Lücke, in die keine Behandlung passt. 
 - Gibt es nichts zu schließen, steht dort „Keine Lücke, die sich mit wenigen Minuten Verschieben schließen lässt.“
 - Den Menüeintrag sieht nur, wer buchen darf. Lehnt der Server das Verschieben ab, steht der Grund unter der Liste.
 - Rechnen tut der Server; die App verschiebt nur auf Ihren Klick.
+- Kommt der Termin von Treatwell, steht am Vorschlag „Buchung über Treatwell: nach dem Verschieben auch dort umbuchen.“ Die App ändert bei Treatwell nichts.
+- Die Einwirkzeit einer Behandlung gilt nicht als Lücke.

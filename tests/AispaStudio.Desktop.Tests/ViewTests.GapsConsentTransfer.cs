@@ -134,6 +134,15 @@ public sealed partial class ViewTests
     }
 
     [Fact]
+    public Task Ein_Lueckenvorschlag_zu_einem_Treatwell_Termin_sagt_dass_dort_auch_umzubuchen_ist() => Render("hell", "kalender-lueckenvorschlag-treatwell", async (window, main) =>
+    {
+        var calendar = await OpenGaps(main);
+
+        Assert.Contains(PlatformText.MoveInPlatform, PanelTexts(window, "GapsList"));
+        return calendar;
+    }, Api().On($"GET {GapsRoute}", new List<GapSuggestion> { SampleGap() with { Source = AppointmentSource.Treatwell } }));
+
+    [Fact]
     public Task Lueckenvorschlaege_stehen_im_Panel_mit_Gast_Zeiten_und_Grund_der_API() => Render("hell", "kalender-lueckenvorschlaege", async (window, main) =>
     {
         var calendar = await OpenGaps(main);
@@ -142,6 +151,7 @@ public sealed partial class ViewTests
         Assert.Contains("Brigitte Müller, Aromaöl-Massage", texts);
         Assert.Contains("bei Lena Huber von 10:30 auf 10:10", texts);
         Assert.Contains("Schließt eine Lücke von 20 Minuten bei Lena Huber.", texts);
+        Assert.DoesNotContain(PlatformText.MoveInPlatform, texts);
         Assert.Equal("Auf 10:10 verschieben", VisibleNamed<Button>(window, "MoveGapButton").Content);
         return calendar;
     }, Api().On($"GET {GapsRoute}", new List<GapSuggestion> { SampleGap() }));

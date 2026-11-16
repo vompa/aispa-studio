@@ -1747,6 +1747,8 @@
                       <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextWrapping="Wrap" MaxWidth="280" />
                       <TextBlock Text="{Binding Detail}" TextWrapping="Wrap" MaxWidth="280" />
                       <TextBlock Text="{Binding Reason}" Classes="muted small" TextWrapping="Wrap" MaxWidth="280" />
+                      <TextBlock x:Name="GapPlatformHint" Text="{Binding PlatformHint}" Classes="small" Foreground="{DynamicResource WarnBrush}" FontWeight="Medium" TextWrapping="Wrap" MaxWidth="280"
+                                 IsVisible="{Binding PlatformHint, Converter={x:Static ObjectConverters.IsNotNull}}" />
                       <Button x:Name="MoveGapButton" Content="{Binding MoveText}" HorizontalAlignment="Left" Command="{Binding MoveCommand}" />
                     </StackPanel>
                   </Border>

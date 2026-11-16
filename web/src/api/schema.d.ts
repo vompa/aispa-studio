@@ -10387,6 +10387,7 @@ export interface components {
             /** Format: int32 */
             gapMinutes: number;
             reason: string;
+            source?: components["schemas"]["AppointmentSource"];
         };
         GroupAreaItem: {
             /** Format: uuid */
