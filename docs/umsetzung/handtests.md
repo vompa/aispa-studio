@@ -1213,3 +1213,12 @@ Expected: Den Reiter **Lieferung** gibt es nicht.
 Closes: –
 Result: ☐
 
+### „Mein Tag“ – das eigene Urlaubskonto
+Start: In der Windows-App bei einer Person Anspruch 25 und Übertrag 2,5 für das laufende Jahr eingetragen und einen Urlaubstag an einem ihrer Arbeitstage veröffentlicht; „Mein Tag“ als diese Person
+1. Den Reiter **Abwesenheit** öffnen.
+Expected: Über dem Formular steht „Urlaubskonto <Jahr>“ mit „Rest 26,5 Tage von 27,5 Tage (genommen … , geplant …)“; die Zahlen stimmen mit der Karte der Person in der Windows-App überein.
+2. Als Person ohne eingetragenen Anspruch öffnen.
+Expected: „Genommen …, geplant …. Ein Anspruch ist für dieses Jahr noch nicht eingetragen.“
+Closes: –
+Result: ☐
+

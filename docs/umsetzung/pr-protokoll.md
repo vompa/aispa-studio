@@ -6417,3 +6417,17 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Nicht geprüft:** ein echter Lieferschein mit echtem Schlüssel. `ClaudeDeliveryNoteReader` ist nur gegen den Nachbau der Tests gelaufen; wie gut die KI Lieferscheine liest, zeigt erst der Probelauf. Die Kamera am Handy.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
 
+## „Mein Tag“: das eigene Urlaubskonto (16.11.2026)
+
+- **Auftrag:** Folgepunkt aus [ADR 0097](../entscheidungen/0097-urlaubskonto-in-arbeitstagen-je-kalenderjahr.md) („Konto in der Mitarbeiter-App“); vom Auftraggeber am 16.11.2026 mit der Liste der nächsten Punkte freigegeben.
+- **Was:** `GET /api/absence-requests/mine/leave-account/{jahr}` für die angemeldete Person, auch für die Handy-App. Der Reiter „Abwesenheit“ zeigt über dem Formular „Urlaubskonto <Jahr>“ mit Rest, Anspruch samt Übertrag, genommen und geplant. Hilfe `mein-tag-abwesenheit-beantragen`, `urlaubskonto`.
+- **Detailentscheidungen:**
+  1. Ein eigener Weg statt einer Ausnahme am Konto einer bestimmten Person: So kann die Handy-App nie nach einer fremden Person fragen.
+  2. Nur das laufende Jahr und nur lesen.
+  3. Ohne eingetragenen Anspruch stehen genommen und geplant da; ohne verknüpfte Person oder ohne Verbindung zeigt der Reiter nichts dazu.
+  4. Der Text sagt, dass offene Anträge noch nicht zählen: Gezählt wird der veröffentlichte Dienstplan.
+- **Bewusst offen / später:** Rest beim Entscheiden eines Antrags in der Windows-App (Team-Maske der Verwaltung, wird gerade überarbeitet); Jahr wechseln am Handy.
+- **Geprüft:** Tests zuerst geplant: API `LeaveAccountTests` 13 und `ChannelScanTests` (neu: nur das eigene Konto, fremdes bleibt verboten, ohne Person 404); Web `myday` 55 grün (neu: Konto mit Rest, ohne Anspruch, ohne Konto).
+- **Nicht geprüft:** die Seite am Handy.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+

@@ -41,6 +41,7 @@ public sealed class ChannelScanTests(ApiFixture fixture)
         "POST /api/auth/passkey",
         "POST /api/absence-requests/",
         "GET /api/absence-requests/mine",
+        "GET /api/absence-requests/mine/leave-account/{year:int}",
         "GET /api/stock/items",
         "GET /api/stock/items/by-barcode",
         "GET /api/stock/locations/{locationId:guid}/storage-places",
