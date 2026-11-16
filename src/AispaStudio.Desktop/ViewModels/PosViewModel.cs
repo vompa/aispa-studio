@@ -815,10 +815,23 @@ public partial class PosViewModel : ViewModelBase
         }
 
         Receipt = null;
+        // Ohne Verbindung (ADR 0096): die Rechnung entsteht am Gerät und wird ein Ersatzbeleg.
+        if (IsSubstitute)
+        {
+            AddSubstituteAppointment(appointment);
+            return;
+        }
+
         var result = Bill is null
             ? await _api.PostAsync<BillDto>("api/pos/bills", new BillInput(Register.Id, appointment.CustomerId, [appointment.Id])).ConfigureAwait(true)
             : await _api.PostAsync<BillDto>($"api/pos/bills/{Bill.Id}/lines",
                 new BillLineInput(BillLineKind.Appointment, appointment.Id, null, 1, null, 0, null, null, null, null, null)).ConfigureAwait(true);
+        if (result.Status == 0 && Bill is null && MaySubstitute)
+        {
+            AddSubstituteAppointment(appointment);
+            return;
+        }
+
         await ShowBillAsync(result).ConfigureAwait(true);
     }
 
@@ -856,10 +869,16 @@ public partial class PosViewModel : ViewModelBase
         var appointment = item.Appointment!;
         if (item.NeedsCheckIn)
         {
-            // Wer nicht einchecken kann, wird nicht erst gefragt: Kassieren braucht die Verbindung zum Server.
+            // Ohne Verbindung wird das Einchecken vorgemerkt und vor dem Ersatzbeleg gesendet (ADR 0096); ohne lokalen Stand geht nichts.
             if (_api.IsOffline)
             {
-                Error = NeedsConnection;
+                if (!MaySubstitute)
+                {
+                    Error = NeedsConnection;
+                    return;
+                }
+
+                await CheckInForSubstituteAsync(appointment).ConfigureAwait(true);
                 return;
             }
 
@@ -984,9 +1003,21 @@ public partial class PosViewModel : ViewModelBase
         }
 
         Receipt = null;
+        if (IsSubstitute)
+        {
+            AddSubstituteLine(line);
+            return;
+        }
+
         if (Bill is null)
         {
             var created = await _api.PostAsync<BillDto>("api/pos/bills", new BillInput(Register.Id, null, [])).ConfigureAwait(true);
+            if (created.Status == 0 && MaySubstitute)
+            {
+                AddSubstituteLine(line);
+                return;
+            }
+
             if (created.Value is null)
             {
                 Error = created.Error;
@@ -1240,6 +1271,12 @@ public partial class PosViewModel : ViewModelBase
             return;
         }
 
+        if (IsSubstitute)
+        {
+            SetSubstituteBill([.. Bill.Lines.Where(l => l.Id != line.Line.Id)], Bill.CustomerId, Bill.CustomerName);
+            return;
+        }
+
         var result = await _api.DeleteAsync<BillDto>($"api/pos/bills/{Bill.Id}/lines/{line.Line.Id}").ConfigureAwait(true);
         await ShowBillAsync(result).ConfigureAwait(true);
     }
@@ -1286,6 +1323,12 @@ public partial class PosViewModel : ViewModelBase
             return;
         }
 
+        if (IsSubstitute)
+        {
+            SetBill(null);
+            return;
+        }
+
         var result = await _api.DeleteAsync<object>($"api/pos/bills/{Bill.Id}").ConfigureAwait(true);
         if (!result.Ok)
         {
@@ -1303,6 +1346,13 @@ public partial class PosViewModel : ViewModelBase
     {
         if (CardBlocks())
         {
+            return;
+        }
+
+        // Eine Rechnung ohne Verbindung gibt es nur an diesem Gerät: geparkt wäre sie weg.
+        if (IsSubstitute)
+        {
+            Error = "Ohne Verbindung lässt sich die Rechnung nicht parken. Bezahlen oder verwerfen.";
             return;
         }
 
@@ -1368,6 +1418,12 @@ public partial class PosViewModel : ViewModelBase
             return;
         }
 
+        if (IsSubstitute)
+        {
+            await IssueSubstituteAsync(bill).ConfigureAwait(true);
+            return;
+        }
+
         var payments = Payments
             .Select(p => (Entry: p, Amount: Money.Parse(p.Amount) ?? 0))
             .Where(p => p.Amount > 0)
@@ -1394,7 +1450,8 @@ public partial class PosViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private Task PrintReceiptAsync(ReceiptViewModel? receipt) => receipt is null ? Task.CompletedTask : PrintAsync(receipt.Receipt.Id);
+    private Task PrintReceiptAsync(ReceiptViewModel? receipt) =>
+        receipt is null ? Task.CompletedTask : receipt.IsSubstitute ? PrintSubstituteAsync(receipt.Receipt) : PrintAsync(receipt.Receipt.Id);
 
     /// <summary>Beleg als ESC/POS vom Server holen und an den Bondrucker schicken; ohne Drucker passiert nichts.</summary>
     public async Task PrintAsync(Guid receiptId)
@@ -1485,13 +1542,21 @@ public partial class PosViewModel : ViewModelBase
             TipText = "";
         }
 
+        if (bill is null)
+        {
+            IsSubstitute = false;
+            _substituteArticles.Clear();
+        }
+
         Bill = bill;
         DiscountLine = null;
         Lines.Clear();
         foreach (var line in bill?.Lines ?? [])
         {
             var quantity = line.Quantity > 1 ? $"{line.Quantity} ×" : "";
-            var tax = line.Discount > 0 ? $"{line.TaxPercent:0.#} % USt · {line.DiscountNote ?? "Rabatt"} −{Format(line.Discount)}" : $"{line.TaxPercent:0.#} % USt";
+            // Ohne Verbindung kennt das Gerät den Steuersatz nicht; ihn setzt die Kasse bei der Nacherfassung.
+            var tax = IsSubstitute ? "inkl. USt"
+                : line.Discount > 0 ? $"{line.TaxPercent:0.#} % USt · {line.DiscountNote ?? "Rabatt"} −{Format(line.Discount)}" : $"{line.TaxPercent:0.#} % USt";
             Lines.Add(new BillLineItem(line.Description, quantity, Format(line.Amount), tax, line));
         }
 
@@ -1585,8 +1650,17 @@ public sealed class ReceiptViewModel(ReceiptDto receipt, TimeZoneInfo zone, Fisc
 
     public string Title => TitleOf(Receipt);
 
+    /// <summary>Ersatzbeleg (ADR 0096): ohne Verbindung am Gerät ausgegeben, noch ohne Nummer der Kasse und ohne Signatur.</summary>
+    public bool IsSubstitute => Receipt is { Number: 0, SubstituteNumber: not null };
+
+    /// <summary>„Nacherfassung zu Ersatzbeleg E-… vom 16.11.2026 10:42“ auf dem nacherfassten Beleg, sonst null.</summary>
+    public string? SubstituteNote => Receipt is { Number: > 0, SubstituteNumber: { } number, SubstituteIssuedAt: { } at }
+        ? $"Nacherfassung zu Ersatzbeleg {number} vom {DayLayout.Local(at, zone):dd.MM.yyyy HH:mm}"
+        : null;
+
     public static string TitleOf(ReceiptDto receipt) => receipt.Kind switch
     {
+        ReceiptKind.Sale when receipt is { Number: 0, SubstituteNumber: { } substitute } => $"Ersatzbeleg {substitute}",
         ReceiptKind.Void => $"Stornobeleg Nr. {receipt.Number}",
         ReceiptKind.Sale when receipt.Recipient is not null => $"Rechnung Nr. {receipt.RegisterCode}-{receipt.Number}",
         ReceiptKind.Sale => $"Beleg Nr. {receipt.Number}",
@@ -1602,7 +1676,7 @@ public sealed class ReceiptViewModel(ReceiptDto receipt, TimeZoneInfo zone, Fisc
         : [];
 
     /// <summary>Empfänger lässt sich nur zu einem nicht stornierten Verkaufsbeleg ergänzen, und nur einmal.</summary>
-    public bool CanAddRecipient => Receipt.Kind == ReceiptKind.Sale && !IsVoided && !HasRecipient;
+    public bool CanAddRecipient => Receipt.Kind == ReceiptKind.Sale && !IsVoided && !HasRecipient && !IsSubstitute;
 
     /// <summary>Über der Kleinbetragsgrenze braucht eine Rechnung an ein Unternehmen den Empfänger (AT 400 €, DE 250 €, CH 400 CHF).</summary>
     public string? InvoiceHint => CanAddRecipient && Receipt.SmallInvoiceLimit is { } limit && Receipt.Total > limit
@@ -1678,7 +1752,8 @@ public sealed class ReceiptViewModel(ReceiptDto receipt, TimeZoneInfo zone, Fisc
     public bool HasChange => Receipt.Change > 0;
 
     /// <summary>Ohne funktionierende Signatureinrichtung muss der Beleg den Hinweis tragen (RKSV, KassenSichV).</summary>
-    public string SignatureText => Receipt.SignatureDeviceFailed
+    public string SignatureText => IsSubstitute ? "Ersatzbeleg, der signierte Beleg folgt"
+        : Receipt.SignatureDeviceFailed
         ? "Sicherheitseinrichtung ausgefallen"
         : Receipt.FiscalCode is null ? "Ohne Signaturpflicht"
         : country == FiscalCountry.DE ? "Signiert (TSE)" : "Signiert nach RKSV";

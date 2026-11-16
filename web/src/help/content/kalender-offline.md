@@ -32,12 +32,12 @@ Solche Termine tragen im Kalender „vorgemerkt“. Eine Paar- oder Spa-Tag-Buch
 
 ## Was nicht geht {#geht-nicht}
 
-- Kassieren.
+- Kassieren mit signiertem Beleg; die Kassa gibt stattdessen einen [Ersatzbeleg](hilfe:kassa-ersatzbeleg) aus.
 - Freie Zeit suchen und Wunsch eintippen (KI).
 - Pausen, Sperrzeiten, Notizen und Tagesnotizen.
 - Krank melden und Ausfall-Assistent.
 - Ganze gemeinsame Buchung verschieben oder stornieren, **Rückgängig** nach dem Verschieben.
-- Eintritte stornieren oder kassieren.
+- Eintritte stornieren oder kassieren, Gutscheine, Pakete und Rabatte.
 
 ## Abgleich {#abgleich}
 

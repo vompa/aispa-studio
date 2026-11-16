@@ -31,7 +31,7 @@ Rechtlicher Rahmen, Stand der Recherche vom 16.11.2026:
 4. **Bezug:** Der Beleg speichert Id, Nummer und Zeitpunkt des Ersatzbelegs (`Receipt.SubstituteId`, `SubstituteNumber`, `SubstituteIssuedAt`) und druckt „Nacherfassung zu Ersatzbeleg … vom …“. Belegdatum und Signatur sind die der Nacherfassung.
 5. **Nur einmal:** Dieselbe Id liefert denselben Beleg (eindeutiger Index). Erneutes Senden nach einem Abbruch bucht nichts doppelt.
 6. **Der Server entscheidet:** Preise, Steuer und Erlöskonten kommen vom Server. Stimmt die Summe nicht mit dem Ersatzbeleg überein, ist ein Termin schon abgerechnet oder bliebe Rückgeld, wird nichts gebucht (409). Den Fall klärt ein Mensch an der Kassa; die App zeigt ihn mit Grund, bis er erledigt ist.
-7. **Umfang ohne Verbindung:** Termine und Artikel, bar und Karte am eigenständigen Gerät, Trinkgeld. Nicht ohne Verbindung: Gutscheine, Pakete, Rabatte, Anzahlungen, das angebundene Kartenterminal, Sofortüberweisung, Storno, Tagesabschluss.
+7. **Umfang ohne Verbindung:** Termine und Artikel, bar und Karte am eigenständigen Gerät, Trinkgeld. Nicht ohne Verbindung: Gutscheine, Pakete, Rabatte, Barzahlungsrabatt, Anzahlungen, das angebundene Kartenterminal, Sofortüberweisung, Parken, Storno, Tagesabschluss.
 8. **Einzelplatz:** Dort liegt die Kasse auf demselben PC; es gibt keinen Ersatzbeleg. Fällt nur die Signatureinrichtung aus, gilt weiter der Ablauf „Sicherheitseinrichtung ausgefallen“.
 
 ## Begründung
@@ -43,8 +43,9 @@ Rechtlicher Rahmen, Stand der Recherche vom 16.11.2026:
 ## Folgen und Stand
 
 - Gebaut (Server, Schritt 1): `PosService.ReenterSubstituteAsync`, Migration `ReceiptSubstitute`, `ReceiptDto.SubstituteNumber` und `SubstituteIssuedAt`, Hinweis auf PDF und Bon; Tests in `SubstituteReceiptTests`.
-- Offen, Schritt 2: Ersatzbeleg in der Windows-App (Kassieren ohne Verbindung, Nummernkreis je Gerät, Druck, Liste der offenen Ersatzbelege, Nacherfassung beim Wiederverbinden), Hilfe und Handbuchbilder.
-- Offen, später: Hinweis auf die Meldung über FinanzOnline nach 48 Stunden ohne Verbindung; Auswertung der Ausfälle; Personenwechsel ohne Server.
+- Gebaut (Windows-App, Schritt 2): `PosViewModel.Substitute.cs`. Ohne Verbindung entsteht die Rechnung am Gerät (Termine und Artikel aus dem lokalen Stand), bezahlt wird bar oder mit Karte am eigenständigen Gerät, die Kassa zeigt und druckt den Ersatzbeleg. Nummer: `E-<Kasse>-<JJJJMMTT>-<HHMMSS>-<zwei Zeichen der Id>`. Die Zweitschrift liegt in der Warteschlange des lokalen Stands (`PendingChange.Substitute`, DPAPI) und geht beim Abgleich nach dem vorgemerkten Einchecken an die Kasse. Ein abgelehnter Ersatzbeleg lässt sich nicht abhaken, nur erneut senden. Hilfe `kassa-ersatzbeleg`.
+- Der Barzahlungsrabatt gilt ohne Verbindung nicht; die Nacherfassung rechnet ihn nicht (`SubstituteLookups`).
+- Offen, später: Hinweis in der App auf die Meldung über FinanzOnline nach 48 Stunden ohne Verbindung (bisher nur in der Hilfe); Liste der offenen Ersatzbelege in der Kassa mit Nachdruck; Eintritte ohne Verbindung; Auswertung der Ausfälle; Personenwechsel ohne Server (der Ersatzbeleg trägt bei der Nacherfassung die Person, die dann angemeldet ist).
 - **Steuerberatung:** Genügt der Ersatzbeleg aus der App als händischer Beleg mit Zweitschrift nach § 17 RKSV? Pflichtangaben des Ersatzbelegs in Deutschland; Umgang mit der Schweiz.
 
 ## Quellen

@@ -427,7 +427,7 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
 
     public string? OfflineBanner => IsOffline
         ? "Keine Verbindung zum Server. Kalender und Kunden zeigen den zuletzt geladenen Stand; Buchungen, Verschieben und Status werden " +
-          "vorgemerkt und beim nächsten Kontakt gesendet. Kassieren geht erst wieder mit Verbindung. " +
+          "vorgemerkt und beim nächsten Kontakt gesendet. Die Kassa gibt Ersatzbelege aus. " +
           $"Die App prüft alle {_checkInterval.TotalSeconds:0} Sekunden von selbst und lädt neu, sobald der Server wieder antwortet." +
           (PendingCount > 0 ? $" Vorgemerkt: {PendingCount}." : "")
         : null;
@@ -682,6 +682,14 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
 
     [RelayCommand]
     private void DismissFailed(FailedChange failed) => _api.Offline?.DismissFailed(failed.Id);
+
+    /// <summary>Abgelehnten Ersatzbeleg erneut nacherfassen (ADR 0096).</summary>
+    [RelayCommand]
+    private async Task RetryFailedAsync(FailedChange failed)
+    {
+        _api.Offline?.Retry(failed.Id);
+        await CheckInAsync().ConfigureAwait(true);
+    }
 
     /// <summary>Aktion „Verbindung prüfen“ am Offline-Banner: denselben Durchgang wie im Hintergrund sofort laufen lassen.</summary>
     [RelayCommand]

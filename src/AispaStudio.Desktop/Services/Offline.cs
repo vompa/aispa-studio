@@ -14,11 +14,25 @@ public sealed record CachedResponse(string Json, DateTimeOffset SavedAt);
 /// <c>Preview</c> zeigt den Termin bis dahin so im Kalender, wie er nach der Änderung aussähe; <c>Visit</c> ebenso einen Eintritt
 /// unter „Sauna und Ruheraum“. <c>TenantId</c> ist das Spa, in dem sie vorgemerkt wurde: gesendet wird sie nur dorthin.
 /// </summary>
+/// <param name="Substitute">
+/// Ersatzbeleg, den die Kassa ohne Verbindung ausgegeben hat (ADR 0096): die Zweitschrift bleibt hier, bis der Server ihn nacherfasst hat.
+/// </param>
 public sealed record PendingChange(Guid Id, string Path, string Body, string Description, DateTimeOffset CreatedAt, AppointmentDto? Preview,
-    AreaVisitDto? Visit = null, Guid? TenantId = null);
+    AreaVisitDto? Visit = null, Guid? TenantId = null, ReceiptDto? Substitute = null);
 
 /// <summary>Vorgemerkte Änderung, die der Server beim Abgleich abgelehnt hat (z. B. Raum inzwischen belegt).</summary>
-public sealed record FailedChange(Guid Id, string Description, string Reason, DateTimeOffset At, Guid? TenantId = null);
+/// <param name="Substitute">
+/// Abgelehnter Ersatzbeleg (ADR 0096): Das Geld ist kassiert, deshalb lässt er sich nicht verwerfen, nur erneut senden
+/// (<c>Path</c> und <c>Body</c> der Nacherfassung bleiben dafür erhalten).
+/// </param>
+public sealed record FailedChange(Guid Id, string Description, string Reason, DateTimeOffset At, Guid? TenantId = null,
+    ReceiptDto? Substitute = null, string? Path = null, string? Body = null)
+{
+    /// <summary>Nur was kein Geld betrifft, lässt sich als erledigt abhaken.</summary>
+    public bool CanDismiss => Substitute is null;
+
+    public bool CanRetry => Substitute is not null && Path is not null && Body is not null;
+}
 
 public sealed record OfflineState(
     Dictionary<string, CachedResponse> Responses,
@@ -102,6 +116,8 @@ public sealed class OfflineCache(IOfflineStore store, TimeProvider? time = null)
     private static readonly string[] Cacheable =
     [
         "api/auth/me", "api/system/modules", "api/locations", "api/customers", "api/pos/registers", "api/pos/articles",
+        // Für den Ersatzbeleg ohne Verbindung (ADR 0096): Tagesliste der Kassa.
+        "api/pos/locations",
     ];
 
     private readonly TimeProvider _time = time ?? TimeProvider.System;
@@ -267,11 +283,30 @@ public sealed class OfflineCache(IOfflineStore store, TimeProvider? time = null)
         Changed?.Invoke();
     }
 
+    /// <summary>Abgelehnte Vormerkung als erledigt abhaken; ein abgelehnter Ersatzbeleg bleibt (ADR 0096).</summary>
     public void DismissFailed(Guid id)
     {
         lock (_lock)
         {
-            State.Failed.RemoveAll(f => f.Id == id);
+            State.Failed.RemoveAll(f => f.Id == id && f.CanDismiss);
+            Persist();
+        }
+
+        Changed?.Invoke();
+    }
+
+    /// <summary>Abgelehnten Ersatzbeleg wieder vormerken, z. B. nachdem der Grund an der Kassa geklärt ist; gesendet wird beim nächsten Abgleich.</summary>
+    public void Retry(Guid id)
+    {
+        lock (_lock)
+        {
+            if (State.Failed.FirstOrDefault(f => f.Id == id) is not { CanRetry: true } failed)
+            {
+                return;
+            }
+
+            State.Failed.Remove(failed);
+            State.Pending.Add(new PendingChange(failed.Id, failed.Path!, failed.Body!, failed.Description, failed.At, null, null, failed.TenantId, failed.Substitute));
             Persist();
         }
 

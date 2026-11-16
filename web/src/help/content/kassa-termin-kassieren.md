@@ -52,7 +52,7 @@ Der Beleg wird am Server signiert und im Kassenjournal gespeichert. Der Termin b
 - Ein Termin kann nur auf einer Rechnung stehen. Sonst kommt „Dieser Termin steht schon auf einer Rechnung.“
 - Eine falsche Position entfernt das × rechts daneben. **Verwerfen** löscht die ganze Rechnung, solange nichts darauf bezahlt ist; die Termine stehen danach wieder unter „Heute abzurechnen“.
 - Ein bezahlter Beleg mit Fehler lässt sich [stornieren](hilfe:kassa-beleg-stornieren).
-- **Ohne Verbindung zum Server** geht Kassieren nicht. Ist die Verbindung schon als verloren bekannt, fragt die Kassa bei einem nicht eingecheckten Termin gar nicht erst und zeigt „Kassieren braucht eine Verbindung. Verbindung prüfen und erneut versuchen.“ Reißt sie erst beim Einchecken ab, steht nach kurzem Warten „Server nicht erreichbar. Verbindung prüfen und erneut versuchen.“ Dann das Netzwerk prüfen und den Termin noch einmal anklicken; nichts wurde eingecheckt. Die Warnung der Kasse (z. B. zur Signatur) bleibt so lange ausgeblendet, bis die Verbindung wieder da ist; das Banner oben nennt die Ursache.
+- **Ohne Verbindung zum Server** gibt die Kassa einen [Ersatzbeleg](hilfe:kassa-ersatzbeleg) aus; der signierte Beleg entsteht, sobald die Verbindung wieder da ist. Im Einzelplatz und ohne lokalen Stand steht stattdessen „Kassieren braucht eine Verbindung. Verbindung prüfen und erneut versuchen.“
 
 
 
