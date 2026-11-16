@@ -35,6 +35,9 @@ internal sealed class MarketingConsents(
     /// <summary>Am Empfang erfasst (mündlich oder Unterschrift), ohne Double-Opt-in.</summary>
     public const string SourceReception = "Rezeption";
 
+    /// <summary>Häkchen beim Online-Buchen; gilt erst nach der Bestätigung per Mail (Double-Opt-in).</summary>
+    public const string SourceOnline = "Online";
+
     /// <summary>Aus einer importierten Kundenliste, wenn die Datei die Einwilligung belegt.</summary>
     public const string SourceImport = "Import";
 

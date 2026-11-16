@@ -57,6 +57,7 @@ public sealed class AispaDbContext(DbContextOptions<AispaDbContext> options, Ten
     public DbSet<Invitation> Invitations => Set<Invitation>();
     public DbSet<RosterDay> RosterDays => Set<RosterDay>();
     public DbSet<AbsenceRequest> AbsenceRequests => Set<AbsenceRequest>();
+    public DbSet<EmployeeLeaveEntitlement> EmployeeLeaveEntitlements => Set<EmployeeLeaveEntitlement>();
     public DbSet<RosterDraft> RosterDrafts => Set<RosterDraft>();
     public DbSet<RosterPublication> RosterPublications => Set<RosterPublication>();
     public DbSet<TimeRecord> TimeRecords => Set<TimeRecord>();
@@ -155,6 +156,7 @@ public sealed class AispaDbContext(DbContextOptions<AispaDbContext> options, Ten
         TerminalModel.Configure(builder);
         VatIdModel.Configure(builder);
         RosterModel.Configure(builder);
+        LeaveAccount.Configure(builder);
         TimeTrackingModel.Configure(builder);
         MailIntakeModel.Configure(builder);
         SenderRuleModel.Configure(builder);

@@ -6237,3 +6237,102 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Geprüft:** Tests zuerst geplant: `TipTests` 9 von 9 grün (neu: je Person und Team mit Storno, genannte und unbekannte Person); `PosTests` 39, `DayClosingPdfTests` 4, `SubstituteReceiptTests` 8, Desktop `PosTests` 48 grün; `npm run gen:api`, `dotnet format` sauber, Release-Build ohne Warnungen.
 - **Nicht geprüft:** das PDF des Tagesabschlusses von Hand angesehen; die laufende App; die volle Suite läuft in der CI.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Team: Urlaubskonto (16.11.2026)
+
+- **Auftrag:** „Mach weiter mit dem Block Team“ (Auftraggeber, 16.11.2026); Block „Team (Zeiterfassung am Empfangsgerät, Urlaubskonto)“ aus der Reihenfolge vom 20.10.2026.
+- **Was:**
+  - Server: `Roster/LeaveAccount.cs` mit `EmployeeLeaveEntitlement` (Migration gleichen Namens), `GET` und `PUT /api/employees/{id}/leave-account/{jahr}`, `LeaveAccountDto` und `LeaveEntitlementInput`.
+  - Windows-App: `LeaveAccountViewModel` und `LeaveAccountView` auf der Karte der Person im Reiter „Dienstplan und Abwesenheit“, unter der Woche. Nach einer Änderung im Dienstplan der Karte lädt das Konto neu.
+  - Hilfe `urlaubskonto` mit Bild; [ADR 0097](../entscheidungen/0097-urlaubskonto-in-arbeitstagen-je-kalenderjahr.md).
+- **Detailentscheidungen:**
+  1. Kein angenommener Anspruch: Ohne Eintrag steht kein Rest da. Der gesetzliche Anspruch hängt von Vertrag und Dienstalter ab, die das Programm nicht kennt.
+  2. Gezählt wird nur an den Arbeitstagen laut Wochenarbeitszeit, weil genehmigte Anträge jeden Kalendertag des Zeitraums eintragen.
+  3. Kein eigener Reiter: Die Reiterleiste der Karte ist voll, und das Konto gehört zur Abwesenheit.
+  4. Eigener Knopf „Urlaubskonto speichern“; die Karte fragt bei ungespeichertem Anspruch wie bei einem offenen Tag nach.
+  5. Ein negativer Rest wird hervorgehoben, aber nichts wird gesperrt.
+- **Bewusst offen / später:**
+  - **Zeiterfassung am Empfangsgerät** wird nicht gebaut (Auftraggeber, 16.11.2026: „Zeiterfassung bauen wir nicht“). Es bleibt bei T-015 und dem Nachtrag zu ADR 0031: keine Stempeluhr, Arbeitszeiten trägt nur die Leitung ein.
+  - Rest beim Entscheiden eines Antrags; Konto in der Mitarbeiter-App; Übersicht über alle Personen; Änderungen am Anspruch im Verlauf der Karte.
+  - Der Lohn-Export zählt Urlaub weiter je eingetragenem Tag, auch am Wochenende.
+  - Arbeitsrecht (Kalenderjahr als Urlaubsjahr, Feiertage, Krankheit im Urlaub) steht als offen im ADR.
+- **Geprüft:** Tests zuerst geplant: API `LeaveAccountTests` 12 von 12 grün (ohne Anspruch, mit Anspruch und Übertrag, halber Tag, leeren, fünf ungültige Werte, unbekannte Person und Jahr, Rezeption, fremdes Spa); Windows-App `LeaveAccountTests` 7 von 7 grün; Ansichtstest mit echter Eingabe und Bild; Knopfbeschriftungen.
+- **Nicht geprüft:** die laufende App unter Windows; die volle Suite läuft in der CI.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Kalender-Lücken: Treatwell-Hinweis und Einwirkzeit bei den Vorschlägen (16.11.2026)
+
+- **Auftrag:** Block „Kalender-Lücken (Einwirkzeit, Wochenansicht, Mindestlücke, Treatwell-Hinweis)“ aus der Reihenfolge vom 20.10.2026; autonom nach dem Auftrag des Auftraggebers vom 16.11.2026.
+- **Befund:** Die vier Begriffe stehen nur in der Reihenfolge, kein Dokument beschreibt sie. Gebaut ist, was sich aus Code und Konzept eindeutig ergibt.
+- **Was:**
+  - `GapSuggestion.Source`: Der Vorschlag nennt die Herkunft des Termins. Bei einem Termin von Treatwell steht im Panel „Lücken schließen“ der Satz „Buchung über Treatwell: nach dem Verschieben auch dort umbuchen.“ (`PlatformText.MoveInPlatform`).
+  - Die Pause zwischen den beiden Belegungen eines Termins mit Einwirkzeit gilt ausdrücklich nicht als Lücke.
+  - Die kürzeste Bindung des Standorts wird an einer Stelle berechnet (`BookingService.ShortestBindingAsync`).
+  - Hilfe `kalender-luecken-schliessen`.
+- **Detailentscheidungen:**
+  1. Treatwell-Termine bleiben in den Vorschlägen und bekommen einen Hinweis. Ausschließen würde gerade dort Lücken stehen lassen, und die Rezeption bucht bei Treatwell ohnehin von Hand um (ADR 0062).
+  2. Die Regel zur Einwirkzeit ist eine Absicherung: Der neue Test war auch ohne sie grün, weil der Planer das Verschieben in diesen Fällen schon ablehnt.
+- **Bewusst offen / später:**
+  - **Mindestlücke** als einstellbarer Wert je Standort: braucht eine Entscheidung des Auftraggebers und ein Feld in Verwaltung › Standorte, die gerade ein anderer Agent überarbeitet. Bis dahin gilt die kürzeste Behandlung.
+  - **Wochenansicht** der Lücken (Vorschläge über mehrere Tage, Zähler in der Kopfzeile): als nächster Schritt.
+  - Die Lückenbewertung freier Zeiten (`ResourcePlanner.Fit`) rechnet weiter mit der ganzen Bindung, wie in `kalender-rezeption.md` Schritt 13 beschrieben.
+- **Geprüft:** Tests zuerst geplant: `GapSuggestionTests` 4 von 4 (neu: Einwirkzeit, Herkunft Treatwell), `ProcessingTimeTests` und `SlotTests` grün; Ansichtstests zum Panel 5 von 5 (neu: Hinweis bei Treatwell, kein Hinweis sonst).
+- **Nicht geprüft:** die laufende App; ein echter Treatwell-Termin. Die volle Suite läuft in der CI.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Kommunikation: Einwilligung beim Online-Buchen (16.11.2026)
+
+- **Auftrag:** Block „Kommunikation (Einwilligung beim Online-Buchen, Erinnerungs-Obergrenze, dann Marketing)“ aus der Reihenfolge vom 20.10.2026; offener Punkt aus [ADR 0040](../entscheidungen/0040-einwilligung-erinnerung-naechste-behandlung.md).
+- **Was:**
+  - `OnlineBookingRequest.AcceptMarketing` und `OnlineLocation.RebookReminders`. Nach einer Buchung mit Häkchen fragt der Server die Einwilligung an (`MarketingConsents.RequestAsync`, Herkunft `SourceOnline`); der Gast bestätigt per Mail.
+  - Kundenbereich: Häkchen „Ich möchte per E-Mail an meine nächste Behandlung erinnert werden (freiwillig) …“ in Deutsch, Englisch, Französisch und Italienisch.
+  - Hilfe `erinnerungen`.
+- **Detailentscheidungen:**
+  1. Das Häkchen erscheint nur, wenn das Spa die Erinnerungen eingeschaltet hat. Sonst würde der Gast in etwas einwilligen, das es nicht gibt.
+  2. Der Server prüft das noch einmal und fragt bei ausgeschalteten Erinnerungen nichts an, auch wenn das Feld gesetzt ist.
+  3. Kann die Anfrage nicht hinaus (Mail schon unterwegs, keine Adresse), bleibt die Buchung gültig; die Einwilligung ist freiwillig und kein Teil der Buchung.
+  4. Das Häkchen steht getrennt vom Datenschutzhinweis und ist nie vorausgewählt.
+- **Bewusst offen / später:**
+  - `List-Unsubscribe` in den Mails zur nächsten Behandlung.
+  - **Erinnerungs-Obergrenze:** In den Unterlagen nicht beschrieben. Für die Wiederbuchungs-Hinweise gilt schon „höchstens eine in 30 Tagen“ (ADR 0040). Ob für Terminerinnerungen eine Grenze je Gast und Tag gemeint ist (Paar, Spa-Tag), entscheidet der Auftraggeber.
+  - Wortlaut der Einwilligung vor dem Echtbetrieb rechtlich gegenlesen lassen; Schweiz prüfen.
+- **Geprüft:** Tests zuerst geplant: API `OnlineBookingTests` (neu: mit Häkchen wartend mit Herkunft „Online“, ohne Häkchen nichts, Erinnerungen aus) 3 von 3; Web `booking` 66 grün (neu: Häkchen nur bei eingeschalteten Erinnerungen, nicht vorausgewählt, wird gesendet, barrierefrei); `npm run gen:api`, Typprüfung und Lint sauber.
+- **Nicht geprüft:** die Mail in einem echten Postfach; die Seite im Browser von Hand. Die volle Suite läuft in der CI.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md); die Übersetzungen sind nicht von Muttersprachlern gelesen.
+
+## Kalender-Lücken: Vorschläge in der 7-Tage-Ansicht (16.11.2026)
+
+- **Auftrag:** Punkt „Wochenansicht“ aus dem Block „Kalender-Lücken“ der Reihenfolge vom 20.10.2026; offen seit PR #75 („Vorschläge über mehrere Tage“).
+- **Was:**
+  - `GET /api/locations/{id}/gap-suggestions` nimmt `days` (1 bis 7) und `employeeId`.
+  - Windows-App: In der 7-Tage-Ansicht lädt „Lücken schließen“ die Vorschläge aller sieben Tage; zeigt die Ansicht eine Person, nur für sie. Das Panel nennt den Umfang („7 Tage ab Mo. 19.10., nur Lena Huber“), jeder Vorschlag seinen Tag.
+  - Hilfe `kalender-luecken-schliessen`.
+- **Detailentscheidungen:**
+  1. „Wochenansicht“ ist als die vorhandene 7-Tage-Ansicht gedeutet; eine eigene Wochenübersicht aller Personen gibt es nicht.
+  2. Bei einem Filter auf Raum oder Gast kommen die Vorschläge aller Personen der sieben Tage, weil eine Lücke immer zum Tag einer Person gehört.
+  3. Höchstens sieben Tage je Abfrage; mehr rechnet der Server nicht.
+- **Bewusst offen / später:** Zähler „Lücken n“ in der Kopfzeile (Ä298, dort „falls gewünscht“); einstellbare Mindestlücke (Entscheidung des Auftraggebers, Feld in Verwaltung › Standorte).
+- **Geprüft:** Tests zuerst geplant: `GapSuggestionTests` 5 von 5 (neu: mehrere Tage, Grenze sieben, nur eine Person); `CalendarWeekTests` 22 von 22 (neu: Abfrage und Umfang in der 7-Tage-Ansicht, Tageskalender unverändert).
+- **Nicht geprüft:** die laufende App. Die volle Suite läuft in der CI.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Kommunikation: Kopfzeile zum Abmelden in der Erinnerung an die nächste Behandlung (16.11.2026)
+
+- **Auftrag:** Offener Punkt aus [ADR 0040](../entscheidungen/0040-einwilligung-erinnerung-naechste-behandlung.md).
+- **Was:** `OutgoingMail.ListUnsubscribe`; die Erinnerung an die nächste Behandlung setzt die Kopfzeile `List-Unsubscribe` auf die Adresse des Links „Abmelden“. Andere Mails bleiben ohne die Kopfzeile.
+- **Detailentscheidungen:** Nur die Adresse, kein `List-Unsubscribe-Post`: Die Seite hinter dem Link fragt vor dem Abmelden nach; ein Abmelden ohne Rückfrage bräuchte einen eigenen Endpunkt.
+- **Bewusst offen / später:** Abmelden mit einem Klick (RFC 8058). Große Postfach-Anbieter verlangen es erst bei hohen Versandmengen.
+- **Geprüft:** Tests zuerst geplant: `MailboxAdapterTests` (neu: Kopfzeile gesetzt und nicht gesetzt), `RetentionTests` (Adresse in Kopfzeile und Text gleich), zusammen 17 grün.
+- **Nicht geprüft:** die Anzeige „Abmelden“ in einem echten Mailprogramm.
+- **Text-Prüfung:** keine neuen Texte für Benutzer.
+
+## „Mein Tag“: Einwirkzeit als freie Zeit (16.11.2026)
+
+- **Auftrag:** Offener Punkt aus `docs/produkt/kalender-rezeption.md`, Schritt 13; Punkt „Einwirkzeit“ im Block „Kalender-Lücken“.
+- **Was:** `TreatmentCard.HandsOnMinutes` und `ProcessingMinutes`; die Behandlungskarte in „Mein Tag“ zeigt bei Behandlungen mit Einwirkzeit eine Zeile mit Beginn, Ende und Dauer.
+- **Detailentscheidungen:** Ohne Einwirkzeit liefert der Server für beide Felder 0, und die Karte zeigt nichts dazu. Die Zeile steht bei den Zeiten der Karte, nicht als eigene Karte: Die Person bleibt für den Gast zuständig.
+- **Bewusst offen / später:** Die Pausenprüfung zählt die Einwirkzeit nicht als Pause; ob sie arbeitsrechtlich eine wäre, ist nicht geklärt.
+- **Geprüft:** Tests zuerst geplant: `ProcessingTimeTests` 8 von 8 (neu: Karte mit und ohne Einwirkzeit); Web `myday` 46 grün (neu: Zeile mit Zeiten, barrierefrei); Typprüfung und Lint sauber.
+- **Nicht geprüft:** die Seite am Handy.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+

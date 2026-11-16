@@ -40,6 +40,7 @@ Abschnitte lassen sich mit zwei Knöpfen bedienen, ergeben Pausen ohne Zusatzein
   - Zeiterfassung in der Windows-App.
 - Mustervorlage für die Betriebsvereinbarung: siehe [Ergänzende Themen](../konzepte/ergaenzende-themen.md). Zeiterfassung ist eine Kontrolleinrichtung nach § 96 ArbVG bzw. § 87 BetrVG.
 - **Nachtrag (05.11.2026, T-015):** Keine Zeiterfassung per Handy (E6, Auftraggeber). Die Stempeluhr in „Mein Tag“ ist entfernt, und die Mitarbeiter-App erreicht `/api/time/me` nicht mehr. Die Endpunkte bleiben für den Arbeitsplatz-Kanal bestehen, ohne Oberfläche; Arbeitszeiten trägt die Leitung in „Zeiten“ ein. Stempeln in der Windows-App (M2 im Vergleich Team, Berichte, Lager) wird nicht gebaut.
+- **Nachtrag (16.11.2026):** Auch die Zeiterfassung am Empfangsgerät (Punkt „Team“ der Reihenfolge vom 20.10.2026) wird nicht gebaut (Auftraggeber: „Zeiterfassung bauen wir nicht“). Arbeitszeiten trägt weiter nur die Leitung ein.
 
 ## Quellen
 

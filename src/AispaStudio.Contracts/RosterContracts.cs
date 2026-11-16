@@ -89,3 +89,23 @@ public sealed record AbsenceRequestDto(
     string? Note,
     DateTimeOffset RequestedAt,
     int AffectedAppointments);
+
+/// <summary>
+/// Urlaubskonto einer Person für ein Kalenderjahr (ADR 0097), in Arbeitstagen. <c>Entitlement</c> fehlt, solange die Leitung keinen Anspruch eingetragen hat;
+/// dann fehlt auch <c>Remaining</c>. <c>Taken</c> und <c>Planned</c> zählen Urlaub aus dem veröffentlichten Dienstplan an den <c>Workdays</c> der Person
+/// (<c>WorkdaysAssumed</c>: keine Arbeitszeiten hinterlegt, gezählt wird Montag bis Freitag); <c>UncountedDays</c> sind Urlaubseinträge an anderen Wochentagen.
+/// </summary>
+public sealed record LeaveAccountDto(
+    Guid EmployeeId,
+    int Year,
+    decimal? Entitlement,
+    decimal CarriedOver,
+    decimal Taken,
+    decimal Planned,
+    decimal? Remaining,
+    int UncountedDays,
+    IReadOnlyList<DayOfWeek> Workdays,
+    bool WorkdaysAssumed);
+
+/// <summary>Anspruch und Übertrag eines Jahres in Arbeitstagen (ganze oder halbe); ohne <c>Entitlement</c> ist kein Anspruch hinterlegt.</summary>
+public sealed record LeaveEntitlementInput(decimal? Entitlement, decimal CarriedOver);

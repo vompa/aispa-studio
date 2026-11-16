@@ -1734,6 +1734,7 @@
     <DataTemplate DataType="vm:GapsViewModel">
       <StackPanel Spacing="12">
         <TextBlock Text="{Binding Hint}" Classes="muted" TextWrapping="Wrap" />
+        <TextBlock x:Name="GapsScope" Text="{Binding Scope}" Classes="small" FontWeight="Medium" TextWrapping="Wrap" IsVisible="{Binding Scope, Converter={x:Static ObjectConverters.IsNotNull}}" />
         <TextBlock Text="Suche Lücken …" Classes="muted" IsVisible="{Binding !IsLoaded}" />
         <ui:InfoBar Severity="Error" Message="Vorschläge konnten nicht geladen werden." IsVisible="{Binding LoadFailed}" />
         <Border x:Name="GapsList" IsVisible="{Binding IsLoaded}">
@@ -1747,6 +1748,8 @@
                       <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextWrapping="Wrap" MaxWidth="280" />
                       <TextBlock Text="{Binding Detail}" TextWrapping="Wrap" MaxWidth="280" />
                       <TextBlock Text="{Binding Reason}" Classes="muted small" TextWrapping="Wrap" MaxWidth="280" />
+                      <TextBlock x:Name="GapPlatformHint" Text="{Binding PlatformHint}" Classes="small" Foreground="{DynamicResource WarnBrush}" FontWeight="Medium" TextWrapping="Wrap" MaxWidth="280"
+                                 IsVisible="{Binding PlatformHint, Converter={x:Static ObjectConverters.IsNotNull}}" />
                       <Button x:Name="MoveGapButton" Content="{Binding MoveText}" HorizontalAlignment="Left" Command="{Binding MoveCommand}" />
                     </StackPanel>
                   </Border>

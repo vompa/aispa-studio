@@ -20,6 +20,9 @@ Manchmal bleibt im Tag einer Person eine Lücke, in die keine Behandlung passt. 
 ## Hinweise {#hinweise}
 
 - Die Seite gilt für den angezeigten Tag und den gewählten Standort; sie lädt neu, wenn Sie den Tag wechseln.
+- In der 7-Tage-Ansicht gilt die Seite für alle sieben Tage. Oben steht dann z. B. „7 Tage ab Mo. 19.10., nur Lena Huber“, und jeder Vorschlag nennt seinen Tag. Zeigt die Ansicht eine Person, kommen nur Vorschläge für sie: [7-Tage-Ansicht](hilfe:kalender-sieben-tage).
 - Gibt es nichts zu schließen, steht dort „Keine Lücke, die sich mit wenigen Minuten Verschieben schließen lässt.“
 - Den Menüeintrag sieht nur, wer buchen darf. Lehnt der Server das Verschieben ab, steht der Grund unter der Liste.
 - Rechnen tut der Server; die App verschiebt nur auf Ihren Klick.
+- Kommt der Termin von Treatwell, steht am Vorschlag „Buchung über Treatwell: nach dem Verschieben auch dort umbuchen.“ Die App ändert bei Treatwell nichts.
+- Die Einwirkzeit einer Behandlung gilt nicht als Lücke.

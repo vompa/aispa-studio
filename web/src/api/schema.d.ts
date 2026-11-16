@@ -1199,7 +1199,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Vorschläge, gebuchte Termine um wenige Minuten zu verschieben, damit bei einer Person keine Lücke bleibt, in die keine Behandlung passt. Verschoben wird nur über „MoveAppointment“, nach Absprache mit dem Gast. */
+        /** Vorschläge, gebuchte Termine um wenige Minuten zu verschieben, damit bei einer Person keine Lücke bleibt, in die keine Behandlung passt. Verschoben wird nur über „MoveAppointment“, nach Absprache mit dem Gast. Mit days (1 bis 7) für mehrere Tage ab date, mit employeeId nur für diese Person. */
         get: operations["GetGapSuggestions"];
         put?: never;
         post?: never;
@@ -3861,6 +3861,24 @@ export interface paths {
         put?: never;
         /** Lehnt den Antrag ab; der Dienstplan bleibt unverändert. */
         post: operations["RejectAbsenceRequest"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/employees/{employeeId}/leave-account/{year}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Urlaubskonto einer Person für ein Kalenderjahr: Anspruch, Übertrag, genommene und geplante Urlaubstage aus dem veröffentlichten Dienstplan, Rest. */
+        get: operations["GetLeaveAccount"];
+        /** Setzt Urlaubsanspruch und Übertrag einer Person für ein Kalenderjahr (Arbeitstage, ganze oder halbe); ohne Anspruch bleibt der Rest leer. */
+        put: operations["SetLeaveEntitlement"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -10369,6 +10387,7 @@ export interface components {
             /** Format: int32 */
             gapMinutes: number;
             reason: string;
+            source?: components["schemas"]["AppointmentSource"];
         };
         GroupAreaItem: {
             /** Format: uuid */
@@ -10857,6 +10876,32 @@ export interface components {
             previous: null | number;
             unit: string;
         };
+        LeaveAccountDto: {
+            /** Format: uuid */
+            employeeId: string;
+            /** Format: int32 */
+            year: number;
+            /** Format: double */
+            entitlement: null | number;
+            /** Format: double */
+            carriedOver: number;
+            /** Format: double */
+            taken: number;
+            /** Format: double */
+            planned: number;
+            /** Format: double */
+            remaining: null | number;
+            /** Format: int32 */
+            uncountedDays: number;
+            workdays: components["schemas"]["DayOfWeek"][];
+            workdaysAssumed: boolean;
+        };
+        LeaveEntitlementInput: {
+            /** Format: double */
+            entitlement: null | number;
+            /** Format: double */
+            carriedOver: number;
+        };
         LineAllocation: {
             /** Format: uuid */
             lineId: string;
@@ -11147,6 +11192,8 @@ export interface components {
             /** @default false */
             acceptNoShowFee: boolean;
             voucherCode?: null | string;
+            /** @default false */
+            acceptMarketing: boolean;
         };
         OnlineCardGuarantee: {
             /** Format: double */
@@ -11254,6 +11301,8 @@ export interface components {
              */
             depositPercent: number;
             closures?: null | components["schemas"]["OnlineClosure"][];
+            /** @default false */
+            rebookReminders: boolean;
         };
         OnlineMoveRequest: {
             /** Format: date-time */
@@ -13575,6 +13624,16 @@ export interface components {
             startedAt?: null | string;
             /** @default false */
             allergyFlag: boolean;
+            /**
+             * Format: int32
+             * @default 0
+             */
+            handsOnMinutes: number;
+            /**
+             * Format: int32
+             * @default 0
+             */
+            processingMinutes: number;
         };
         TreatmentCostDto: {
             /** Format: uuid */
@@ -17106,6 +17165,8 @@ export interface operations {
         parameters: {
             query: {
                 date: string;
+                days?: number;
+                employeeId?: string;
             };
             header?: never;
             path: {
@@ -24765,6 +24826,97 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetLeaveAccount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                employeeId: string;
+                year: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LeaveAccountDto"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    SetLeaveEntitlement: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                employeeId: string;
+                year: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LeaveEntitlementInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LeaveAccountDto"];
+                };
             };
             /** @description Bad Request */
             400: {

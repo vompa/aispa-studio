@@ -74,6 +74,7 @@ Nach einer abgeschlossenen Behandlung bekommt der Gast einen Wiederbuchungs-Hinw
 
 - Einen Hinweis bekommen nur Gäste, die ihre Einwilligung per Mail bestätigt haben (Double-Opt-in). Die Anfrage schickt das Team im Kalender beim Termin des Gastes auf der Karte „Wiederbuchungs-Hinweis“ mit „Einwilligung anfragen“; dort wählt es auch die Sprache der Mail. Der Gast bestätigt über den Link in dieser Mail. Erst danach gehen Hinweise.
 - Jeder Hinweis enthält einen Link zum Abmelden. Sagt der Gast am Empfang, dass er keine Hinweise mehr möchte, klickt das Team an derselben Stelle beim Termin auf „Widerrufen“.
+- Beim Online-Buchen kann der Gast die Erinnerung selbst ankreuzen. Das Häkchen ist freiwillig, nicht vorausgewählt und erscheint nur, wenn die Wiederbuchungs-Hinweise eingeschaltet sind. Auch dann gilt die Einwilligung erst, wenn der Gast den Link in der Mail bestätigt hat.
 - Ändert sich die Mailadresse des Gastes, gilt die alte Einwilligung nicht mehr für die neue Adresse.
 - Wiederbuchungs-Hinweise gehören zur Abo-Stufe „Spa“ und höher.
 

@@ -14,7 +14,7 @@ Beim Rundenabschluss wird geprüft, dass jede Aufgabe der Runde einen vollständ
 
 ## Blöcke
 
-Ohne Block, weil die Aufgabe nichts Sichtbares ändert: Erinnerung nach 48 Stunden mit Verbindung (derselbe Satz wie im Block „Hinweis nach 48 Stunden“, nur unter „Beim Abgleich nicht übernommen“), Kassa ohne Verbindung Schritt 1 (nur Schnittstelle; der Block kommt mit Schritt 2), T-013 (Entscheidung, nur Doku), T-014 (Entscheidung, keine Änderung), T-016 (Sichtung der zurückgestellten Kleinigkeiten), T-030 (CI-Zeitlimits), T-033 (Beispieldaten und Test), T-034 (Werkzeug knip, unbenutztes Paket entfernt), T-035 (Skill und Doku), T-040 (ADR und Konzept, nur Doku), Export/Import Aufgabe A (Export-Dienst, Knopf ohne Seite; der Knopf ist im Block „Export/Import B“ geprüft).
+Ohne Block, weil die Aufgabe nichts Sichtbares ändert: Kopfzeile `List-Unsubscribe` in der Erinnerung an die nächste Behandlung, Lückenvorschläge mit Treatwell-Hinweis und Einwirkzeit (ein Treatwell-Termin lässt sich ohne echtes Postfach nicht von Hand erzeugen; durch Ansichtstest gedeckt), Erinnerung nach 48 Stunden mit Verbindung (derselbe Satz wie im Block „Hinweis nach 48 Stunden“, nur unter „Beim Abgleich nicht übernommen“), Kassa ohne Verbindung Schritt 1 (nur Schnittstelle; der Block kommt mit Schritt 2), T-013 (Entscheidung, nur Doku), T-014 (Entscheidung, keine Änderung), T-016 (Sichtung der zurückgestellten Kleinigkeiten), T-030 (CI-Zeitlimits), T-033 (Beispieldaten und Test), T-034 (Werkzeug knip, unbenutztes Paket entfernt), T-035 (Skill und Doku), T-040 (ADR und Konzept, nur Doku), Export/Import Aufgabe A (Export-Dienst, Knopf ohne Seite; der Knopf ist im Block „Export/Import B“ geprüft).
 
 ### T-015 – Keine Stempeluhr in „Mein Tag“, Zeiten trägt die Leitung ein
 Start: Browser in Handybreite (z. B. 390 px), die Adresse des Spas mit `/mein-tag/` öffnen, als Mitarbeiterin (Therapeutin) anmelden
@@ -1117,3 +1117,60 @@ Expected: Unter „Zahlungsarten“ steht „davon Trinkgeld (kein Umsatz) 7,00 
 Expected: Das PDF nennt dieselben beiden Zeilen.
 Closes: –
 Result: ☐
+
+### Team – Urlaubskonto auf der Karte der Person
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Inhaberin anmelden, **Verwaltung** › **Team** öffnen
+1. Eine Person wählen und den Reiter **Dienstplan und Abwesenheit** öffnen.
+Expected: Unter der Woche steht „Urlaubskonto“ mit dem laufenden Jahr; ohne Anspruch steht bei „Rest“ ein Strich, und die Zeile darunter sagt, dass kein Anspruch eingetragen ist.
+2. Bei **Anspruch (Tage)** 25 und bei **Übertrag aus dem Vorjahr** 2,5 eintragen, **Urlaubskonto speichern** klicken.
+Expected: „Gespeichert.“ erscheint, bei „Rest“ steht 27,5 Tage abzüglich der schon eingetragenen Urlaubstage.
+3. In der Woche darüber einen künftigen Arbeitstag der Person anklicken, **Urlaub** wählen, **Sofort gültig, ohne Veröffentlichen** anhaken und speichern.
+Expected: „Geplant“ steigt um 1 Tag, „Rest“ sinkt um 1 Tag.
+4. Dasselbe an einem Wochentag, an dem die Person laut Stammdaten nicht arbeitet.
+Expected: „Geplant“ und „Rest“ bleiben; die Zeile darunter nennt „1 Urlaubseintrag an einem anderen Wochentag zählt nicht.“
+5. Mit dem Pfeil **Vorheriges Jahr** blättern.
+Expected: Das Konto zeigt das Vorjahr mit leerem Anspruch; zurückgeblättert stehen 25 und 2,5 wieder da.
+6. Als Rezeption anmelden und die Karte derselben Person öffnen.
+Expected: Den Reiter „Dienstplan und Abwesenheit“ gibt es für die Rezeption nicht.
+Closes: –
+Result: ☐
+
+### Online-Buchung – Einwilligung in die Erinnerung an die nächste Behandlung
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App als Inhaberin, dazu der Kundenbereich im Browser
+1. In der Windows-App unter **Verwaltung** › **Kontakt** › **Erinnerungen** die Wiederbuchungs-Hinweise einschalten und für eine Behandlung einen Abstand eintragen.
+Expected: Die Einstellung ist gespeichert.
+2. Im Kundenbereich eine Behandlung und eine Zeit wählen.
+Expected: Unter dem Datenschutzhinweis steht das Häkchen „Ich möchte per E-Mail an meine nächste Behandlung erinnert werden (freiwillig) …“; es ist nicht gesetzt.
+3. Das Häkchen setzen und buchen.
+Expected: Die Buchung wird bestätigt. Im Postfach des Gastes liegt zusätzlich eine Mail zum Bestätigen der Erinnerungen.
+4. In der Windows-App den Termin im Kalender öffnen.
+Expected: Auf der Karte „Wiederbuchungs-Hinweis“ steht die Einwilligung als angefragt.
+5. Die Wiederbuchungs-Hinweise ausschalten und im Kundenbereich erneut bis zu den Angaben gehen.
+Expected: Das Häkchen fehlt.
+Closes: –
+Result: ☐
+
+### Kalender – Lücken schließen in der 7-Tage-Ansicht
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App als Rezeption, **Kalender** öffnen
+1. Bei einer Person an zwei Tagen der Woche je zwei Termine so buchen, dass dazwischen 20 Minuten frei bleiben.
+Expected: Die Termine stehen im Kalender.
+2. Auf den Namen der Person in der Kopfzeile klicken.
+Expected: Die 7-Tage-Ansicht der Person erscheint.
+3. Im Menü neben **Termin** **Lücken schließen** wählen.
+Expected: Oben steht „7 Tage ab …, nur <Name>“. Beide Vorschläge stehen in der Liste, jeder mit seinem Tag vor „bei <Name> von … auf …“.
+4. Bei einem Vorschlag **Auf … verschieben** klicken.
+Expected: Der Termin springt am richtigen Tag auf die neue Zeit; der Vorschlag verschwindet, der andere bleibt.
+5. **Filter aufheben** klicken und **Lücken schließen** erneut öffnen.
+Expected: Die Zeile „7 Tage ab …“ fehlt; die Liste gilt nur für den angezeigten Tag.
+Closes: –
+Result: ☐
+
+### „Mein Tag“ – Einwirkzeit als freie Zeit
+Start: `dotnet run --project src/AispaStudio.AppHost`, „Mein Tag“ im Browser als Therapeut:in mit einem Termin „Körperpackung“ heute
+1. Den Tagesplan öffnen.
+Expected: Auf der Karte der Körperpackung steht unter Zeit und Raum „Einwirkzeit HH:MM–HH:MM (20 Min.): In dieser Zeit sind Sie frei.“ Die Zeiten passen zum Band im Kalender der Windows-App.
+2. Eine Karte ohne Einwirkzeit ansehen, z. B. eine Massage.
+Expected: Dort steht keine Zeile „Einwirkzeit“.
+Closes: –
+Result: ☐
+

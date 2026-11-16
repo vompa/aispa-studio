@@ -58,6 +58,8 @@
           <ui:HelpButton Topic="dienstplan-tag-planen" Grid.Column="1" />
         </Grid>
         <ContentControl x:Name="RosterHost" Content="{Binding Roster}" />
+        <!-- Urlaubskonto (ADR 0097): Anspruch, genommen, geplant und Rest des Jahres -->
+        <ContentControl x:Name="LeaveHost" Content="{Binding Leave}" IsVisible="{Binding HasLeave}" />
         <!-- Dienste und Termine als Kalenderdatei für den privaten Kalender (Export/Import, Aufgabe C): nur Leitung und die Person selbst, ohne Namen der Gäste -->
         <StackPanel Orientation="Horizontal" Spacing="12" IsVisible="{Binding HasCalendarFile}">
           <Button x:Name="CalendarFileButton" DataContext="{Binding CalendarFile}" x:DataType="vm:ExportViewModel" Command="{Binding ExportCommand}" CommandParameter="{Binding Options[0]}"

@@ -367,6 +367,7 @@ static void MapApplicationEndpoints(WebApplication app)
     app.MapTerminalEndpoints();
     app.MapRosterEndpoints();
     app.MapAbsenceRequestEndpoints();
+    app.MapLeaveAccountEndpoints();
     app.MapTimeTrackingEndpoints();
     app.MapTimesheetDocumentEndpoints();
     app.MapRosterDocumentEndpoints();

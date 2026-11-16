@@ -39,5 +39,6 @@ Mitarbeitende können Urlaub künftig in der Handy-App beantragen. Die offenen A
 - Termine der Person werden nicht von selbst verschoben.
 - Eine Abwesenheit entfernen: Zelle anklicken und **Wie Wochenarbeitszeit** klicken, oder **Dienst** wählen, mit **Dienst hinzufügen** die Zeiten eintragen und speichern.
 - Die Tage erscheinen im Monat als Urlaubs-, Krankenstands- und Schulungstage für die Lohnverrechnung: [Lohn](hilfe:lohn#monatswerte).
+- Wie viel Urlaub eine Person noch hat, zeigt ihr [Urlaubskonto](hilfe:urlaubskonto).
 
 Verwandt: [Dienst für einen Tag planen](hilfe:dienstplan-tag-planen). Wer eine Abwesenheit eingetragen hat, zeigt der [Verlauf des Dienstplans](hilfe:dienstplan-verlauf).

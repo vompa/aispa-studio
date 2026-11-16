@@ -399,6 +399,6 @@ internal static class RebookTexts
             --
             {(aiWritten ? aiNotice + "\n" : "")}{why}
             {unsubscribeLabel}: {unsubscribe}
-            """);
+            """, ListUnsubscribe: unsubscribe);
     }
 }

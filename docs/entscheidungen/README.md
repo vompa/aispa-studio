@@ -102,5 +102,6 @@ Neue Entscheidungen bekommen die nächste freie Nummer und die Vorlage [`vorlage
 | 0094 | [Proportionen von Masken: Drittel und goldener Schnitt](0094-proportionen-von-masken-drittel-und-goldener-schnitt.md) | 10.11.2026 | Auftraggeber, Umsetzung Claude |
 | 0095 | [Trinkgeld an der Kassa: durchlaufender Posten für das Team](0095-trinkgeld-an-der-kassa.md) | 16.11.2026 | Claude, autonom nach ADR 0019 (Steuerberatung offen) |
 | 0096 | [Kassieren ohne Verbindung: Ersatzbeleg und Nacherfassung](0096-kassieren-ohne-verbindung-ersatzbeleg-und-nacherfassung.md) | 16.11.2026 | Claude, autonom nach ADR 0019 (Steuerberatung offen) |
+| 0097 | [Urlaubskonto: Arbeitstage je Kalenderjahr, Anspruch von der Leitung](0097-urlaubskonto-in-arbeitstagen-je-kalenderjahr.md) | 16.11.2026 | Claude, autonom nach ADR 0019 (Arbeitsrecht offen) |
 
 Detailentscheidungen einzelner Pull Requests stehen im [PR-Protokoll](../umsetzung/pr-protokoll.md).

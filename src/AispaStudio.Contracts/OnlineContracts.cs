@@ -10,7 +10,8 @@ namespace AispaStudio.Contracts;
 /// <c>NoShowFeePercent</c>: größer 0, wenn beim Buchen eine Karte hinterlegt wird; so viel Prozent des Preises kostet ein
 /// Nichterscheinen oder eine Absage nach der Stornofrist. <c>DepositPercent</c>: größer 0, wenn beim Buchen so viel Prozent des
 /// Preises angezahlt werden (100 = Vorauszahlung); dann wird keine Karte hinterlegt. <c>Closures</c>: laufende und kommende Schließzeiten
-/// mit dem Text für Gäste (ADR 0073); in ihnen gibt es keine freien Zeiten.
+/// mit dem Text für Gäste (ADR 0073); in ihnen gibt es keine freien Zeiten. <c>RebookReminders</c>: Das Spa erinnert an die nächste
+/// Behandlung; nur dann bietet die Buchung das Häkchen für die Einwilligung an (ADR 0040).
 /// </summary>
 public sealed record OnlineLocation(
     Guid Id,
@@ -25,7 +26,8 @@ public sealed record OnlineLocation(
     int NoShowFeePercent = 0,
     bool NoShowFeeNewCustomersOnly = false,
     int DepositPercent = 0,
-    IReadOnlyList<OnlineClosure>? Closures = null);
+    IReadOnlyList<OnlineClosure>? Closures = null,
+    bool RebookReminders = false);
 
 /// <summary>
 /// Online buchbare Behandlung an einem Standort. <c>Category</c> gruppiert das Angebot, z. B. „Massagen“. <c>NoShowFeePercent</c>:
@@ -62,6 +64,9 @@ public sealed record OnlineContact(string FirstName, string LastName, string Ema
 /// <c>Language</c> („de“, „en“, „fr“ oder „it“; andere Sprachen bekommen Englisch) bestimmt die Sprache der Bestätigung.
 /// <c>AcceptNoShowFee</c> ist Pflicht, wenn der Standort eine Ausfallgebühr verlangt (<see cref="OnlineLocation.NoShowFeePercent"/>)
 /// oder eine Anzahlung (<see cref="OnlineTreatment.DepositPercent"/>): die Zustimmung gilt dann den Bedingungen der Anzahlung.
+/// <c>AcceptMarketing</c> (freiwillig, nie vorausgewählt): Der Gast möchte an die nächste Behandlung erinnert werden; er bekommt nach der
+/// Buchung die Mail zum Bestätigen (Double-Opt-in, ADR 0040). Wirkt nur, wenn das Spa solche Erinnerungen eingeschaltet hat
+/// (<see cref="OnlineLocation.RebookReminders"/>).
 /// </summary>
 public sealed record OnlineBookingRequest(
     Guid LocationId,
@@ -72,7 +77,8 @@ public sealed record OnlineBookingRequest(
     bool AcceptPrivacy,
     string? Language,
     bool AcceptNoShowFee = false,
-    string? VoucherCode = null);
+    string? VoucherCode = null,
+    bool AcceptMarketing = false);
 
 public enum OnlineAppointmentState
 {

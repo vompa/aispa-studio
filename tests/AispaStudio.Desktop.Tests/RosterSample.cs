@@ -69,6 +69,16 @@ internal sealed class RosterSample
             }
         }
 
+        foreach (var person in people)
+        {
+            for (var year = week.Year - 1; year <= week.Year + 1; year++)
+            {
+                var y = year;
+                api.OnJson($"GET /api/employees/{person.Id}/leave-account/{y}", _ => LeaveOf(person, y, week))
+                    .OnJson($"PUT /api/employees/{person.Id}/leave-account/{y}", body => PutLeave(person, y, week, body!));
+            }
+        }
+
         api.OnJson($"POST /api/locations/{location.Id}/time-records", body => PostRecord(body!));
         api.OnJson($"POST /api/locations/{location.Id}/roster/publish", _ => Publish())
             .OnJson($"POST /api/locations/{location.Id}/roster/discard", _ => Discard());
@@ -121,6 +131,32 @@ internal sealed class RosterSample
         {
             Plan(person, day, false, new RosterEntry(RosterKind.Vacation, null, null, null));
         }
+    }
+
+    /// <summary>Anspruch und Übertrag, wie sie die Leitung eingetragen hat (Urlaubskonto, ADR 0097).</summary>
+    public Dictionary<(Guid Employee, int Year), LeaveEntitlementInput> Leave { get; } = [];
+
+    /// <summary>Urlaubskonto wie die API: Urlaub aus dem veröffentlichten Plan an den Arbeitstagen der Person, bis zum Dienstag der Woche genommen, danach geplant.</summary>
+    private LeaveAccountDto LeaveOf(EmployeeDto person, int year, DateOnly week)
+    {
+        var regular = person.WorkingHours.Select(h => h.Day).Distinct().ToArray();
+        DayOfWeek[] workdays = regular.Length > 0 ? regular : [DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday, DayOfWeek.Thursday, DayOfWeek.Friday];
+        var vacation = _plan.Where(c => c.Key.Employee == person.Id && c.Key.Date.Year == year && !c.Value.Draft && c.Value.Entries.Any(e => e.Kind == RosterKind.Vacation)).ToList();
+        var counted = vacation.Where(c => workdays.Contains(c.Key.Date.DayOfWeek)).ToList();
+        var today = week.AddDays(1);
+        decimal Value(RosterCell cell) => cell.Entries.Any(e => e.Kind == RosterKind.Work) ? 0.5m : 1m;
+        var taken = counted.Where(c => c.Key.Date <= today).Sum(c => Value(c.Value));
+        var planned = counted.Where(c => c.Key.Date > today).Sum(c => Value(c.Value));
+        var input = Leave.GetValueOrDefault((person.Id, year));
+        var carried = input?.CarriedOver ?? 0;
+        return new LeaveAccountDto(person.Id, year, input?.Entitlement, carried, taken, planned,
+            input?.Entitlement is { } granted ? granted + carried - taken - planned : null, vacation.Count - counted.Count, workdays, regular.Length == 0);
+    }
+
+    private LeaveAccountDto PutLeave(EmployeeDto person, int year, DateOnly week, string body)
+    {
+        Leave[(person.Id, year)] = JsonSerializer.Deserialize<LeaveEntitlementInput>(body, ApiClient.Json)!;
+        return LeaveOf(person, year, week);
     }
 
     private RosterCell CellOf(EmployeeDto person, DateOnly date) =>

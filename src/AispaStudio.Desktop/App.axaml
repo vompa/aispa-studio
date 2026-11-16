@@ -180,6 +180,9 @@
     <DataTemplate DataType="vm:RosterDayEditorViewModel">
       <views:RosterDayEditorView />
     </DataTemplate>
+    <DataTemplate DataType="vm:LeaveAccountViewModel">
+      <views:LeaveAccountView />
+    </DataTemplate>
     <DataTemplate DataType="vm:TimesheetViewModel">
       <views:TimesheetView />
     </DataTemplate>

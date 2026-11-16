@@ -56,6 +56,9 @@ public sealed partial class RetentionTests(ApiFixture fixture)
         Assert.Contains(RebookTexts.AiNoticeDe, mail.Text, StringComparison.Ordinal);
         Assert.Contains($"#/?standort={spa.Location.Id}&behandlung={spa.MassageTreatment.Id}", mail.Text, StringComparison.Ordinal);
         Assert.Contains("Abmelden: ", mail.Text, StringComparison.Ordinal);
+        // Dieselbe Adresse steht in der Kopfzeile, damit das Mailprogramm „Abmelden“ anbietet.
+        Assert.NotNull(mail.ListUnsubscribe);
+        Assert.Contains($"Abmelden: {mail.ListUnsubscribe}", mail.Text, StringComparison.Ordinal);
 
         var sent = Assert.Single(await WaitForSentAsync(spa, 1));
         Assert.Equal("Sent", sent.State);

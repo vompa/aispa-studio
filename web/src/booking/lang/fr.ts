@@ -70,6 +70,7 @@ const fr: Texts = {
   required: 'Champ obligatoire',
   invalidEmail: 'Veuillez saisir une adresse e-mail valide.',
   privacyRequired: 'Veuillez confirmer la déclaration de protection des données.',
+  marketing: 'Je souhaite recevoir par e-mail un rappel pour mon prochain soin (facultatif). Je confirme ce choix par un lien reçu par e-mail et je peux me désinscrire à tout moment.',
   formErrors: (n: number) => (n === 1 ? 'Veuillez vérifier 1 champ.' : `Veuillez vérifier ${n} champs.`),
   signedInAs: (email: string) => `Session ouverte : ${email}`,
   guestOrSignIn: 'Vous pouvez réserver sans compte. En vous connectant, vous retrouverez ensuite tous vos rendez-vous.',

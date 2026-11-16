@@ -9,15 +9,19 @@ namespace AispaStudio.Desktop.ViewModels;
 /// Ein Vorschlag des Servers: der Termin rückt um wenige Minuten, damit bei der Person keine unbrauchbare Lücke bleibt. Zeiten, Person und Grund
 /// stammen vom Server; verschoben wird erst mit dem Knopf, nachdem die Rezeption mit dem Gast gesprochen hat.
 /// </summary>
-public sealed partial class GapRow(GapSuggestion suggestion, TimeZoneInfo zone, Func<GapRow, Task> move) : ViewModelBase
+public sealed partial class GapRow(GapSuggestion suggestion, TimeZoneInfo zone, Func<GapRow, Task> move, bool showDay = false) : ViewModelBase
 {
     public GapSuggestion Suggestion { get; } = suggestion;
 
     public string Title => $"{Suggestion.CustomerName}, {Suggestion.TreatmentName}";
 
-    public string Detail => $"bei {Suggestion.EmployeeName} von {Time(Suggestion.CurrentStart)} auf {Time(Suggestion.SuggestedStart)}";
+    /// <summary>In der 7-Tage-Ansicht steht der Tag davor: „Di. 20.10., bei Lena Huber von 10:30 auf 10:10“.</summary>
+    public string Detail => $"{(showDay ? $"{DayLayout.ShortDay(DateOnly.FromDateTime(DayLayout.Local(Suggestion.CurrentStart, zone)))}, " : "")}bei {Suggestion.EmployeeName} von {Time(Suggestion.CurrentStart)} auf {Time(Suggestion.SuggestedStart)}";
 
     public string Reason => Suggestion.Reason;
+
+    /// <summary>Der Termin kommt von Treatwell: Die App bucht dort nicht um (ADR 0062).</summary>
+    public string? PlatformHint => Suggestion.Source == AppointmentSource.Treatwell ? PlatformText.MoveInPlatform : null;
 
     public string MoveText => $"Auf {Time(Suggestion.SuggestedStart)} verschieben";
 
@@ -50,6 +54,10 @@ public sealed partial class GapsViewModel(string locationName, Action close) : V
     private void CloseGaps() => close();
 
     public string Hint { get; } = "Vorher mit dem Gast absprechen; verschoben wird erst mit dem Knopf.";
+
+    /// <summary>In der 7-Tage-Ansicht: für welche Tage und welche Person die Vorschläge gelten; sonst leer (der angezeigte Tag).</summary>
+    [ObservableProperty]
+    public partial string? Scope { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsEmpty), nameof(ShowRows))]

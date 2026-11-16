@@ -4154,7 +4154,7 @@
         "tags": [
           "Kalender"
         ],
-        "summary": "Vorschläge, gebuchte Termine um wenige Minuten zu verschieben, damit bei einer Person keine Lücke bleibt, in die keine Behandlung passt. Verschoben wird nur über „MoveAppointment“, nach Absprache mit dem Gast.",
+        "summary": "Vorschläge, gebuchte Termine um wenige Minuten zu verschieben, damit bei einer Person keine Lücke bleibt, in die keine Behandlung passt. Verschoben wird nur über „MoveAppointment“, nach Absprache mit dem Gast. Mit days (1 bis 7) für mehrere Tage ab date, mit employeeId nur für diese Person.",
         "operationId": "GetGapSuggestions",
         "parameters": [
           {
@@ -4173,6 +4173,22 @@
             "schema": {
               "type": "string",
               "format": "date"
+            }
+          },
+          {
+            "name": "days",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "employeeId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
             }
           }
         ],
@@ -14031,6 +14047,132 @@
               "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/employees/{employeeId}/leave-account/{year}": {
+      "get": {
+        "tags": [
+          "Dienstplan"
+        ],
+        "summary": "Urlaubskonto einer Person für ein Kalenderjahr: Anspruch, Übertrag, genommene und geplante Urlaubstage aus dem veröffentlichten Dienstplan, Rest.",
+        "operationId": "GetLeaveAccount",
+        "parameters": [
+          {
+            "name": "employeeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "year",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeaveAccountDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Dienstplan"
+        ],
+        "summary": "Setzt Urlaubsanspruch und Übertrag einer Person für ein Kalenderjahr (Arbeitstage, ganze oder halbe); ohne Anspruch bleibt der Rest leer.",
+        "operationId": "SetLeaveEntitlement",
+        "parameters": [
+          {
+            "name": "employeeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "year",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LeaveEntitlementInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeaveAccountDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
                 }
               }
             }
@@ -38188,6 +38330,9 @@
           },
           "reason": {
             "type": "string"
+          },
+          "source": {
+            "$ref": "#/components/schemas/AppointmentSource"
           }
         }
       },
@@ -39967,6 +40112,90 @@
           }
         }
       },
+      "LeaveAccountDto": {
+        "required": [
+          "employeeId",
+          "year",
+          "entitlement",
+          "carriedOver",
+          "taken",
+          "planned",
+          "remaining",
+          "uncountedDays",
+          "workdays",
+          "workdaysAssumed"
+        ],
+        "type": "object",
+        "properties": {
+          "employeeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "year": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "entitlement": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "carriedOver": {
+            "type": "number",
+            "format": "double"
+          },
+          "taken": {
+            "type": "number",
+            "format": "double"
+          },
+          "planned": {
+            "type": "number",
+            "format": "double"
+          },
+          "remaining": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "uncountedDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "workdays": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DayOfWeek"
+            }
+          },
+          "workdaysAssumed": {
+            "type": "boolean"
+          }
+        }
+      },
+      "LeaveEntitlementInput": {
+        "required": [
+          "entitlement",
+          "carriedOver"
+        ],
+        "type": "object",
+        "properties": {
+          "entitlement": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "carriedOver": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
       "LineAllocation": {
         "required": [
           "lineId",
@@ -41048,6 +41277,10 @@
               "null",
               "string"
             ]
+          },
+          "acceptMarketing": {
+            "type": "boolean",
+            "default": false
           }
         }
       },
@@ -41466,6 +41699,10 @@
             "items": {
               "$ref": "#/components/schemas/OnlineClosure"
             }
+          },
+          "rebookReminders": {
+            "type": "boolean",
+            "default": false
           }
         }
       },
@@ -49878,6 +50115,16 @@
           "allergyFlag": {
             "type": "boolean",
             "default": false
+          },
+          "handsOnMinutes": {
+            "type": "integer",
+            "format": "int32",
+            "default": 0
+          },
+          "processingMinutes": {
+            "type": "integer",
+            "format": "int32",
+            "default": 0
           }
         }
       },
