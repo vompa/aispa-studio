@@ -226,6 +226,17 @@ builder.Services.AddScoped<ClosureCancellations>();
 builder.Services.AddScoped<ClosureNoticeSender>();
 builder.Services.AddScoped<DepositReturns>();
 builder.Services.AddScoped<PurchaseOrders>();
+// Lieferscheine lesen: Claude, sobald ein API-Schlüssel eingerichtet ist (Ai:Claude:ApiKey), sonst von Hand; Ai:Provider=RuleBased schaltet die KI ganz ab.
+builder.Services.Configure<DeliveryNoteReaderOptions>(builder.Configuration.GetSection("Ai:Claude"));
+if (string.IsNullOrWhiteSpace(builder.Configuration["Ai:Claude:ApiKey"])
+    || string.Equals(builder.Configuration["Ai:Provider"], "RuleBased", StringComparison.OrdinalIgnoreCase))
+{
+    builder.Services.AddSingleton<IDeliveryNoteReader, ManualDeliveryNoteReader>();
+}
+else
+{
+    builder.Services.AddSingleton<IDeliveryNoteReader, ClaudeDeliveryNoteReader>();
+}
 builder.Services.AddScoped<TreatmentCards>();
 builder.Services.AddScoped<DailyReports>();
 builder.Services.AddScoped<ServingService>();

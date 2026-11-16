@@ -11,7 +11,27 @@ internal sealed partial class BookingService
     /// verschoben wird nur, wenn der Planer die neue Zeit mit derselben Person zulässt und dort keine neue unbrauchbare Lücke entsteht.
     /// Es sind Vorschläge: verschoben wird erst, wenn die Rezeption es mit dem Gast abgesprochen hat.
     /// </summary>
-    public async Task<List<GapSuggestion>?> GapSuggestionsAsync(Guid locationId, DateOnly date, CancellationToken ct)
+    public Task<List<GapSuggestion>?> GapSuggestionsAsync(Guid locationId, DateOnly date, CancellationToken ct) =>
+        GapSuggestionsAsync(locationId, date, null, ct);
+
+    /// <summary>Wie <see cref="GapSuggestionsAsync(Guid, DateOnly, CancellationToken)"/> für mehrere Tage in Folge (7-Tage-Ansicht), auf Wunsch nur für eine Person.</summary>
+    public async Task<List<GapSuggestion>?> GapSuggestionsAsync(Guid locationId, DateOnly from, int days, Guid? employeeId, CancellationToken ct)
+    {
+        var all = new List<GapSuggestion>();
+        for (var i = 0; i < days; i++)
+        {
+            if (await GapSuggestionsAsync(locationId, from.AddDays(i), employeeId, ct) is not { } day)
+            {
+                return null;
+            }
+
+            all.AddRange(day);
+        }
+
+        return all;
+    }
+
+    private async Task<List<GapSuggestion>?> GapSuggestionsAsync(Guid locationId, DateOnly date, Guid? employeeId, CancellationToken ct)
     {
         var location = await db.Locations.AsNoTracking().FirstOrDefaultAsync(l => l.Id == locationId, ct);
         if (location is null)
@@ -23,6 +43,11 @@ internal sealed partial class BookingService
         var (dayFrom, dayUntil) = LocalTime.Day(date, zone);
         var now = time.GetUtcNow();
         var shifts = await roster.ShiftsAsync(locationId, date, zone, ct);
+        if (employeeId is { } only)
+        {
+            shifts = [.. shifts.Where(s => s.EmployeeId == only)];
+        }
+
         if (shifts.Count == 0)
         {
             return [];

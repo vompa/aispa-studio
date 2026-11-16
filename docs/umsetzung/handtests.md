@@ -14,7 +14,7 @@ Beim Rundenabschluss wird geprüft, dass jede Aufgabe der Runde einen vollständ
 
 ## Blöcke
 
-Ohne Block, weil die Aufgabe nichts Sichtbares ändert: Lückenvorschläge mit Treatwell-Hinweis und Einwirkzeit (ein Treatwell-Termin lässt sich ohne echtes Postfach nicht von Hand erzeugen; durch Ansichtstest gedeckt), Erinnerung nach 48 Stunden mit Verbindung (derselbe Satz wie im Block „Hinweis nach 48 Stunden“, nur unter „Beim Abgleich nicht übernommen“), Kassa ohne Verbindung Schritt 1 (nur Schnittstelle; der Block kommt mit Schritt 2), T-013 (Entscheidung, nur Doku), T-014 (Entscheidung, keine Änderung), T-016 (Sichtung der zurückgestellten Kleinigkeiten), T-030 (CI-Zeitlimits), T-033 (Beispieldaten und Test), T-034 (Werkzeug knip, unbenutztes Paket entfernt), T-035 (Skill und Doku), T-040 (ADR und Konzept, nur Doku), Export/Import Aufgabe A (Export-Dienst, Knopf ohne Seite; der Knopf ist im Block „Export/Import B“ geprüft), Verwaltungsmasken Schritt 1 (T-060: Regeln und zwei Bausteine, noch in keiner Maske verwendet).
+Ohne Block, weil die Aufgabe nichts Sichtbares ändert: Obergrenze von 2 Erinnerungen je Gast und Tag (greift nur bei nachgebuchten Terminen; durch Test gedeckt), Entscheidung zur Mindestlücke (nur Doku), Kopfzeile `List-Unsubscribe` in der Erinnerung an die nächste Behandlung, Lückenvorschläge mit Treatwell-Hinweis und Einwirkzeit (ein Treatwell-Termin lässt sich ohne echtes Postfach nicht von Hand erzeugen; durch Ansichtstest gedeckt), Erinnerung nach 48 Stunden mit Verbindung (derselbe Satz wie im Block „Hinweis nach 48 Stunden“, nur unter „Beim Abgleich nicht übernommen“), Kassa ohne Verbindung Schritt 1 (nur Schnittstelle; der Block kommt mit Schritt 2), T-013 (Entscheidung, nur Doku), T-014 (Entscheidung, keine Änderung), T-016 (Sichtung der zurückgestellten Kleinigkeiten), T-030 (CI-Zeitlimits), T-033 (Beispieldaten und Test), T-034 (Werkzeug knip, unbenutztes Paket entfernt), T-035 (Skill und Doku), T-040 (ADR und Konzept, nur Doku), Export/Import Aufgabe A (Export-Dienst, Knopf ohne Seite; der Knopf ist im Block „Export/Import B“ geprüft), Verwaltungsmasken Schritt 1 (T-060: Regeln und zwei Bausteine, noch in keiner Maske verwendet).
 
 ### T-015 – Keine Stempeluhr in „Mein Tag“, Zeiten trägt die Leitung ein
 Start: Browser in Handybreite (z. B. 390 px), die Adresse des Spas mit `/mein-tag/` öffnen, als Mitarbeiterin (Therapeutin) anmelden
@@ -1262,3 +1262,82 @@ Expected: Über der Tabelle steht ein Hinweis, wie vielen Behandlungen Angaben f
 Expected: „Letzter Versand fehlgeschlagen: …“ steht oben beim Stand des letzten Abrufs.
 Closes: –
 Result: ☐
+
+### Online-Buchung – Einwilligung in die Erinnerung an die nächste Behandlung
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App als Inhaberin, dazu der Kundenbereich im Browser
+1. In der Windows-App unter **Verwaltung** › **Kontakt** › **Erinnerungen** die Wiederbuchungs-Hinweise einschalten und für eine Behandlung einen Abstand eintragen.
+Expected: Die Einstellung ist gespeichert.
+2. Im Kundenbereich eine Behandlung und eine Zeit wählen.
+Expected: Unter dem Datenschutzhinweis steht das Häkchen „Ich möchte per E-Mail an meine nächste Behandlung erinnert werden (freiwillig) …“; es ist nicht gesetzt.
+3. Das Häkchen setzen und buchen.
+Expected: Die Buchung wird bestätigt. Im Postfach des Gastes liegt zusätzlich eine Mail zum Bestätigen der Erinnerungen.
+4. In der Windows-App den Termin im Kalender öffnen.
+Expected: Auf der Karte „Wiederbuchungs-Hinweis“ steht die Einwilligung als angefragt.
+5. Die Wiederbuchungs-Hinweise ausschalten und im Kundenbereich erneut bis zu den Angaben gehen.
+Expected: Das Häkchen fehlt.
+Closes: –
+Result: ☐
+
+### Kalender – Lücken schließen in der 7-Tage-Ansicht
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App als Rezeption, **Kalender** öffnen
+1. Bei einer Person an zwei Tagen der Woche je zwei Termine so buchen, dass dazwischen 20 Minuten frei bleiben.
+Expected: Die Termine stehen im Kalender.
+2. Auf den Namen der Person in der Kopfzeile klicken.
+Expected: Die 7-Tage-Ansicht der Person erscheint.
+3. Im Menü neben **Termin** **Lücken schließen** wählen.
+Expected: Oben steht „7 Tage ab …, nur <Name>“. Beide Vorschläge stehen in der Liste, jeder mit seinem Tag vor „bei <Name> von … auf …“.
+4. Bei einem Vorschlag **Auf … verschieben** klicken.
+Expected: Der Termin springt am richtigen Tag auf die neue Zeit; der Vorschlag verschwindet, der andere bleibt.
+5. **Filter aufheben** klicken und **Lücken schließen** erneut öffnen.
+Expected: Die Zeile „7 Tage ab …“ fehlt; die Liste gilt nur für den angezeigten Tag.
+Closes: –
+Result: ☐
+
+### „Mein Tag“ – Einwirkzeit als freie Zeit
+Start: `dotnet run --project src/AispaStudio.AppHost`, „Mein Tag“ im Browser als Therapeut:in mit einem Termin „Körperpackung“ heute
+1. Den Tagesplan öffnen.
+Expected: Auf der Karte der Körperpackung steht unter Zeit und Raum „Einwirkzeit HH:MM–HH:MM (20 Min.): In dieser Zeit sind Sie frei.“ Die Zeiten passen zum Band im Kalender der Windows-App.
+2. Eine Karte ohne Einwirkzeit ansehen, z. B. eine Massage.
+Expected: Dort steht keine Zeile „Einwirkzeit“.
+Closes: –
+Result: ☐
+
+### Terminerinnerung – mehrere Termine eines Gastes am selben Tag
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App als Rezeption; ein Gast mit Mailadresse
+1. Für den Gast am selben Tag zwei Termine buchen, z. B. 10:00 und 13:00 Uhr, so dass die erste Erinnerung bald fällig ist (Verwaltung › Kontakt › Erinnerungen: Stunden passend einstellen).
+Expected: Beide Termine stehen im Kalender.
+2. Etwa fünf Minuten warten und das Postfach des Gastes ansehen.
+Expected: Eine Mail „Erinnerung: Ihre 2 Termine am …“ mit beiden Uhrzeiten; unter jedem Termin steht ein eigener Link „Bestätigen oder absagen“.
+3. Den zweiten Termin im Kalender öffnen und die Erinnerungen ansehen.
+Expected: Dort steht „Zusammen mit dem Termin um 10:00 Uhr erinnert.“; eine eigene Mail zum zweiten Termin kommt nicht.
+Closes: –
+Result: ☐
+
+### Inventur am Handy – Funkloch beim Zählen
+Start: „Mein Tag“ am Handy als Therapeut:in, Reiter **Inventur**, eine Zählung an einem Lagerort gestartet
+1. Am Handy den Flugmodus einschalten und bei zwei Materialien eine Menge eintragen.
+Expected: Unter der Liste steht „2 Mengen warten auf Verbindung.“; **Abschicken** ist gesperrt; es erscheint kein „Nicht gespeichert“.
+2. Den Flugmodus ausschalten.
+Expected: Nach wenigen Sekunden steht „Gespeichert“, der Hinweis verschwindet, **Abschicken** geht wieder.
+3. Erneut Flugmodus, eine Menge ändern, die Seite schließen, den Flugmodus ausschalten, „Mein Tag“ öffnen und die Zählung am selben Lagerort fortsetzen.
+Expected: Die geänderte Menge steht im Feld und wird gleich gespeichert.
+4. In der Windows-App unter **Verwaltung** › **Lager** › **Inventur** die Zählung übernehmen.
+Expected: Die Mengen vom Handy stehen in der Zählliste.
+Closes: –
+Result: ☐
+
+### Lager – Lieferung am Handy mit Lieferschein-Foto
+Start: API mit eingerichtetem Schlüssel (`Ai:Claude:ApiKey`), „Mein Tag“ am Handy als Standortleitung; in der Windows-App eine Bestellung mit zwei Positionen als bestellt markiert; ein Lieferschein dazu auf Papier
+1. In „Mein Tag“ den Reiter **Lieferung** öffnen.
+Expected: Die Bestellung steht zur Wahl, darunter je offener Position die Felder Geliefert, Charge und Ablaufdatum.
+2. Auf **Lieferschein fotografieren (optional)** tippen und den Lieferschein aufnehmen.
+Expected: Nach einigen Sekunden steht „Von der KI gelesen.“; Mengen, Chargen, Ablaufdaten und die Lieferscheinnummer sind eingetragen und stimmen mit dem Papier überein. Unsichere Positionen tragen „Bitte prüfen: …“.
+3. Eine Menge ändern und auf **Lieferung buchen** tippen.
+Expected: „Lieferung zu Bestellung … gebucht“. In der Windows-App zeigt die Bestellung die gelieferten Mengen, der Bestand ist gestiegen.
+4. Dasselbe ohne Schlüssel (oder mit `Ai:Provider=RuleBased`): Foto wählen.
+Expected: Der Hinweis „Das Lesen von Lieferscheinen ist nicht eingerichtet. Bitte die Mengen von Hand eintragen.“; von Hand eintragen und buchen geht.
+5. Als Rezeption „Mein Tag“ öffnen.
+Expected: Den Reiter **Lieferung** gibt es nicht.
+Closes: –
+Result: ☐
+

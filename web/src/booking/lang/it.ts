@@ -70,6 +70,7 @@ const it: Texts = {
   required: 'Campo obbligatorio',
   invalidEmail: 'Inserisca un indirizzo e-mail valido.',
   privacyRequired: 'La preghiamo di confermare l’informativa sulla privacy.',
+  marketing: 'Desidero ricevere via e-mail un promemoria per il mio prossimo trattamento (facoltativo). Confermo tramite un link ricevuto via e-mail e posso annullare l’iscrizione in qualsiasi momento.',
   formErrors: (n: number) => (n === 1 ? 'Verifichi 1 campo.' : `Verifichi ${n} campi.`),
   signedInAs: (email: string) => `Accesso effettuato come ${email}`,
   guestOrSignIn: 'Può prenotare senza account. Se accede, potrà vedere in seguito tutti i Suoi appuntamenti.',

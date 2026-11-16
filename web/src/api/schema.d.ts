@@ -1219,7 +1219,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Vorschläge, gebuchte Termine um wenige Minuten zu verschieben, damit bei einer Person keine Lücke bleibt, in die keine Behandlung passt. Verschoben wird nur über „MoveAppointment“, nach Absprache mit dem Gast. */
+        /** Vorschläge, gebuchte Termine um wenige Minuten zu verschieben, damit bei einer Person keine Lücke bleibt, in die keine Behandlung passt. Verschoben wird nur über „MoveAppointment“, nach Absprache mit dem Gast. Mit days (1 bis 7) für mehrere Tage ab date, mit employeeId nur für diese Person. */
         get: operations["GetGapSuggestions"];
         put?: never;
         post?: never;
@@ -6635,6 +6635,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/stock/orders/{purchaseOrderId}/delivery-note-scan": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Liest ein Foto des Lieferscheins (JPEG, PNG oder WebP bis 5 MB) und schlägt je offener Position Menge, Charge und Ablaufdatum vor. Bucht nichts und speichert das Foto nicht; gebucht wird über „DeliverPurchaseOrder“. Ohne eingerichtete KI kommt ein leerer Vorschlag mit Hinweis. */
+        post: operations["ScanDeliveryNote"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/stock/orders/{purchaseOrderId}/text": {
         parameters: {
             query?: never;
@@ -10089,6 +10106,24 @@ export interface components {
             cards: components["schemas"]["TreatmentCard"][];
             hints: string[];
         };
+        DeliveryNoteLineSuggestion: {
+            /** Format: uuid */
+            lineId: string;
+            /** Format: double */
+            quantity: number;
+            batch: null | string;
+            /** Format: date */
+            expiresOn: null | string;
+            uncertain: boolean;
+            reason: null | string;
+        };
+        DeliveryNoteSuggestion: {
+            read: boolean;
+            deliveryNote: null | string;
+            lines: components["schemas"]["DeliveryNoteLineSuggestion"][];
+            unmatched: string[];
+            note: null | string;
+        };
         DepExport: {
             "Belege-Gruppe": components["schemas"]["DepGroup"][];
         };
@@ -11249,6 +11284,8 @@ export interface components {
             /** @default false */
             acceptNoShowFee: boolean;
             voucherCode?: null | string;
+            /** @default false */
+            acceptMarketing: boolean;
         };
         OnlineCardGuarantee: {
             /** Format: double */
@@ -11356,6 +11393,8 @@ export interface components {
              */
             depositPercent: number;
             closures?: null | components["schemas"]["OnlineClosure"][];
+            /** @default false */
+            rebookReminders: boolean;
         };
         OnlineMoveRequest: {
             /** Format: date-time */
@@ -13677,6 +13716,16 @@ export interface components {
             startedAt?: null | string;
             /** @default false */
             allergyFlag: boolean;
+            /**
+             * Format: int32
+             * @default 0
+             */
+            handsOnMinutes: number;
+            /**
+             * Format: int32
+             * @default 0
+             */
+            processingMinutes: number;
         };
         TreatmentCostDto: {
             /** Format: uuid */
@@ -17246,6 +17295,8 @@ export interface operations {
         parameters: {
             query: {
                 date: string;
+                days?: number;
+                employeeId?: string;
             };
             header?: never;
             path: {
@@ -32145,6 +32196,59 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PurchaseOrderDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ScanDeliveryNote: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                purchaseOrderId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    file: components["schemas"]["IFormFile"];
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeliveryNoteSuggestion"];
                 };
             };
             /** @description Bad Request */

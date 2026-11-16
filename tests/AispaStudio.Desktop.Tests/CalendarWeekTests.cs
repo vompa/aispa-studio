@@ -80,6 +80,38 @@ public sealed class CalendarWeekTests
     }
 
     [Fact]
+    public async Task Given_7_Tage_einer_Person_When_Luecken_schliessen_geoeffnet_wird_Then_kommen_die_Vorschlaege_der_Woche_nur_fuer_sie_mit_Tag()
+    {
+        var route = $"GET /api/locations/{TestData.LocationId}/gap-suggestions?date={TestData.Monday:yyyy-MM-dd}&days=7&employeeId={TestData.Anna.Id}";
+        var gap = new GapSuggestion(Guid.NewGuid(), TestData.Anna.Id, TestData.Anna.DisplayName, "Brigitte Müller", "Massage",
+            TestData.At(10, 30).AddDays(1), TestData.At(10, 10).AddDays(1), 20, "Schließt eine Lücke.");
+        var api = Api().On(route, new List<GapSuggestion> { gap });
+        var vm = await FilteredAsync(api);
+
+        vm.OpenGapsCommand.Execute(null);
+        await WaitAsync(vm, v => v.GapsPanel is { IsLoaded: true });
+
+        Assert.Contains(api.Calls, c => c.Route == route);
+        var panel = vm.GapsPanel!;
+        Assert.Equal($"7 Tage ab {DayLayout.ShortDay(TestData.Monday)}, nur {TestData.Anna.DisplayName}", panel.Scope);
+        Assert.StartsWith($"{DayLayout.ShortDay(TestData.Monday.AddDays(1))}, bei ", Assert.Single(panel.Rows).Detail, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Given_Tageskalender_When_Luecken_schliessen_geoeffnet_wird_Then_gilt_nur_der_Tag_ohne_Zusatz()
+    {
+        var route = $"GET /api/locations/{TestData.LocationId}/gap-suggestions?date={TestData.Monday:yyyy-MM-dd}";
+        var api = Api().On(route, new List<GapSuggestion>());
+        var vm = await OpenAsync(api);
+
+        vm.OpenGapsCommand.Execute(null);
+        await WaitAsync(vm, v => v.GapsPanel is { IsLoaded: true });
+
+        Assert.Contains(api.Calls, c => c.Route == route);
+        Assert.Null(vm.GapsPanel!.Scope);
+    }
+
+    [Fact]
     public async Task Filter_aufheben_und_sofort_neu_zeichnen_stuerzt_nicht_ab()
     {
         // Ohne Verbindung (oder solange die Antwort noch unterwegs ist) bleiben die sieben zusammengefassten Tage geladen.

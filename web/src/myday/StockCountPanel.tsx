@@ -2,14 +2,15 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { api, type StockCountSessionDto, type StockItemDto, type StoragePlaceDto } from '../api/client'
 import { ConfirmDialog } from '../components/ConfirmDialog'
 import { BarcodeScan } from './BarcodeScan'
+import { clearCountQueue, countSaved, keepCount, pendingCounts } from './countQueue'
 import { problemText } from './format'
 import { findItemByCode } from './stockLookup'
 
 /** Pause nach der letzten Eingabe, dann geht die Zeile als Zwischenstand an die API. */
 const SAVE_DELAY_MS = 600
 
-/** `busy`: getippt oder wird gerade gespeichert; `failed`: das Speichern ist gescheitert. */
-type LineState = { text: string; busy: boolean; failed: boolean; invalid: boolean }
+/** `busy`: getippt oder wird gerade gespeichert; `failed`: der Server hat abgelehnt; `waiting`: ohne Verbindung am Gerät gemerkt, geht später hinaus. */
+type LineState = { text: string; busy: boolean; failed: boolean; invalid: boolean; waiting?: boolean }
 type Setup = { kind: 'loading' } | { kind: 'ready'; places: StoragePlaceDto[]; items: Map<string, StockItemDto> } | { kind: 'problem'; text: string }
 
 /** Text im Zählfeld als Menge: leer heißt „nicht gezählt“ (`null`), Komma oder Punkt, höchstens drei Nachkommastellen. */
@@ -24,7 +25,8 @@ const asText = (counted: number) => String(counted).replace('.', ',')
 
 /**
  * Inventur am Handy: Lagerort wählen, Zählung starten oder fortsetzen, blind zählen (das Soll steht nur in der Windows-App),
- * Zwischenstand je Zeile speichern, abschicken. Buchen tut nur die Leitung. Geht nur mit Verbindung; nichts wird still auf dem Gerät gespeichert.
+ * Zwischenstand je Zeile speichern, abschicken. Buchen tut nur die Leitung. Starten und Abschicken brauchen Verbindung; fällt sie beim Zählen aus,
+ * merkt sich das Gerät die Mengen (countQueue.ts) und sendet sie, sobald es wieder Netz hat.
  */
 export function StockCountPanel({ locationId, onSignedOut }: { locationId: string; onSignedOut: () => void }) {
   const [setup, setSetup] = useState<Setup>({ kind: 'loading' })
@@ -37,6 +39,7 @@ export function StockCountPanel({ locationId, onSignedOut }: { locationId: strin
   const [confirming, setConfirming] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [focusRequest, setFocusRequest] = useState<{ id: string; n: number } | null>(null)
+  const [resend, setResend] = useState(0)
   const timers = useRef(new Map<string, number>())
   const inputs = useRef(new Map<string, HTMLInputElement>())
   const sessionRef = useRef(session)
@@ -81,11 +84,18 @@ export function StockCountPanel({ locationId, onSignedOut }: { locationId: strin
       })
       if (response.status === 401) return onSignedOut()
       if (!data) return setProblem(problemText(error, 'Die Zählung konnte nicht gestartet werden.'))
-      setLines(Object.fromEntries(data.lines.map((l) => [l.itemId, { text: asText(l.counted), busy: false, failed: false, invalid: false }])))
+      // Mengen, die beim letzten Mal ohne Verbindung liegen geblieben sind, gelten vor dem Stand des Servers und gehen gleich hinaus.
+      clearCountQueue(data.id)
+      const waiting = data.status === 'Open' ? pendingCounts(data.id) : {}
+      setLines({
+        ...Object.fromEntries(data.lines.map((l) => [l.itemId, { text: asText(l.counted), busy: false, failed: false, invalid: false }])),
+        ...Object.fromEntries(Object.entries(waiting).map(([itemId, text]) => [itemId, { text, busy: false, failed: false, invalid: false, waiting: true }])),
+      })
       setExtraItems([])
       setSession(data)
+      setResend((n) => n + (Object.keys(waiting).length > 0 ? 1 : 0))
     } catch {
-      setProblem('Zählen geht nur mit Verbindung. Es wird nichts auf diesem Gerät gespeichert.')
+      setProblem('Keine Verbindung. Eine Zählung starten geht nur mit Netz.')
     }
   }
 
@@ -97,6 +107,7 @@ export function StockCountPanel({ locationId, onSignedOut }: { locationId: strin
       const counted = parseCount(state.text)
       if (counted === 'invalid') return
       let ok = false
+      let offline = false
       try {
         const { data, response } = await api.PUT('/api/v1/stock/locations/{locationId}/count-sessions/{sessionId}/lines/{itemId}', {
           params: { path: { locationId, sessionId: current.id, itemId } },
@@ -105,10 +116,14 @@ export function StockCountPanel({ locationId, onSignedOut }: { locationId: strin
         if (response.status === 401) return onSignedOut()
         ok = data !== undefined
       } catch {
-        ok = false
+        // Kein Netz: Die Menge bleibt am Gerät gemerkt und geht hinaus, sobald die Verbindung wieder da ist.
+        offline = true
       }
+      if (ok) countSaved(current.id, itemId, state.text)
       // Wurde währenddessen weitergetippt, bleibt die Zeile busy, bis der Timer sie erneut speichert.
-      setLines((all) => (all[itemId].text === state.text ? { ...all, [itemId]: { ...all[itemId], busy: false, failed: !ok } } : all))
+      setLines((all) =>
+        all[itemId].text === state.text ? { ...all, [itemId]: { ...all[itemId], busy: false, failed: !ok && !offline, waiting: offline } } : all,
+      )
       if (ok) setEverSaved(true)
     },
     [locationId, onSignedOut],
@@ -124,11 +139,23 @@ export function StockCountPanel({ locationId, onSignedOut }: { locationId: strin
       })
   }, [save])
 
+  // Wartende Zeilen senden: gleich nach dem Fortsetzen einer Zählung und sobald das Handy wieder Netz hat.
+  useEffect(() => {
+    const send = () =>
+      Object.entries(linesRef.current)
+        .filter(([, l]) => l.waiting)
+        .forEach(([id]) => void save(id))
+    if (resend > 0) send()
+    window.addEventListener('online', send)
+    return () => window.removeEventListener('online', send)
+  }, [resend, save])
+
   function change(itemId: string, text: string) {
     const invalid = parseCount(text) === 'invalid'
     setLines((all) => ({ ...all, [itemId]: { text, busy: !invalid, failed: false, invalid } }))
     window.clearTimeout(timers.current.get(itemId))
     if (invalid) return
+    if (session) keepCount(session.id, itemId, text)
     timers.current.set(
       itemId,
       window.setTimeout(() => {
@@ -177,8 +204,9 @@ export function StockCountPanel({ locationId, onSignedOut }: { locationId: strin
   const saving = states.some((l) => l.busy)
   const failed = states.some((l) => l.failed)
   const invalid = states.some((l) => l.invalid)
+  const waitingCount = states.filter((l) => l.waiting && !l.busy).length
   const hasValue = states.some((l) => parseCount(l.text) !== null && parseCount(l.text) !== 'invalid')
-  const canSubmit = !saving && !failed && !invalid && hasValue
+  const canSubmit = !saving && !failed && !invalid && waitingCount === 0 && hasValue
   const submitted = session?.status === 'Submitted'
   const known = new Map([...setup.items, ...extraItems.map((i): [string, StockItemDto] => [i.id, i])])
   const rowIds = session
@@ -190,7 +218,10 @@ export function StockCountPanel({ locationId, onSignedOut }: { locationId: strin
   return (
     <section aria-labelledby="count-heading">
       <h2 id="count-heading">Inventur</h2>
-      <p className="muted">Zählen geht nur mit Verbindung. Die Menge steht erst, wenn „Gespeichert“ erscheint. Den Bestand sehen Sie hier nicht, die Leitung bucht die Zählung.</p>
+      <p className="muted">
+        Die Menge steht erst, wenn „Gespeichert“ erscheint. Ohne Verbindung merkt sich das Handy die Mengen und sendet sie, sobald es wieder Netz hat. Den Bestand
+        sehen Sie hier nicht, die Leitung bucht die Zählung.
+      </p>
 
       {!session && (
         <div className="panel">
@@ -264,8 +295,21 @@ export function StockCountPanel({ locationId, onSignedOut }: { locationId: strin
           {!submitted && (
             <>
               <p role="status" className="message">
-                {saving ? 'Speichert …' : everSaved && !failed ? 'Gespeichert' : ''}
+                {saving ? 'Speichert …' : waitingCount > 0 ? '' : everSaved && !failed ? 'Gespeichert' : ''}
               </p>
+              {waitingCount > 0 && (
+                <div className="notice">
+                  <p role="status">
+                    {waitingCount === 1 ? '1 Menge wartet auf Verbindung.' : `${waitingCount} Mengen warten auf Verbindung.`} Sie bleiben auf diesem Handy gemerkt und
+                    werden gesendet, sobald es wieder Netz hat.
+                  </p>
+                  <div className="actions">
+                    <button type="button" className="secondary" onClick={() => setResend((n) => n + 1)}>
+                      Jetzt senden
+                    </button>
+                  </div>
+                </div>
+              )}
               {failed && (
                 <div className="notice">
                   <p role="alert">Nicht gespeichert. Bitte die Verbindung prüfen und noch einmal versuchen.</p>

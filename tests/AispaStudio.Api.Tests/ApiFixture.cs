@@ -39,6 +39,9 @@ public sealed class ApiFixture : IAsyncLifetime
     /// <summary>Alle Mails, die die API verschickt hätte (Anmeldecodes, Bestätigungen).</summary>
     public TestMailbox Mailbox { get; } = new();
 
+    /// <summary>Liest „Fotos“ von Lieferscheinen, siehe <see cref="FakeDeliveryNoteReader"/>.</summary>
+    internal FakeDeliveryNoteReader DeliveryNotes { get; } = new();
+
     /// <summary>Alle SMS und WhatsApp-Nachrichten, die die API verschickt hätte.</summary>
     public TestTextSender Texts { get; } = new();
 
@@ -124,6 +127,7 @@ public sealed class ApiFixture : IAsyncLifetime
                 services.AddSingleton<ITextMessageSender>(Texts);
                 services.AddSingleton<ISpaMailboxFactory>(SpaMailboxes);
                 services.AddSingleton<IAnamnesisReader, FakeAnamnesisReader>();
+                services.AddSingleton<Stock.IDeliveryNoteReader>(DeliveryNotes);
                 services.AddSingleton<IBriefingSummarizer, FakeBriefingSummarizer>();
                 services.AddSingleton<IRebookWriter, FakeRebookWriter>();
                 services.AddSingleton<IQuestionAnswerer, FakeQuestionAnswerer>();

@@ -5,6 +5,7 @@ import { AbsencePanel } from './AbsencePanel'
 import { addDays, dateIn, dayLabel, problemText, standLabel, timeIn } from './format'
 import { CACHED_AT_HEADER, OFFLINE_HEADER, bindOfflineDataTo, clearOfflineData } from './offline'
 import { PlanCard, type Highlight } from './PlanCard'
+import { DeliveryPanel } from './DeliveryPanel'
 import { ReceivePanel } from './ReceivePanel'
 import { Reminders } from './Reminders'
 import { SignIn } from './SignIn'
@@ -24,7 +25,7 @@ type Session =
 
 type Plan = { data: DayPlanDto; cachedAt: string | null; offline: boolean }
 
-type View = 'day' | 'week' | 'absence' | 'count' | 'receive' | 'today'
+type View = 'day' | 'week' | 'absence' | 'count' | 'receive' | 'delivery' | 'today'
 
 const VIEWS: { key: View; label: string }[] = [
   { key: 'day', label: 'Tag' },
@@ -35,6 +36,9 @@ const VIEWS: { key: View; label: string }[] = [
 
 // Wareneingang bucht: nur mit dem Recht „Buchen“ (Rezeption, Leitung); die API prüft dasselbe Recht noch einmal.
 const RECEIVE_VIEW: { key: View; label: string } = { key: 'receive', label: 'Wareneingang' }
+
+// Lieferung zu einer Bestellung mit Lieferschein-Foto: nur mit dem Recht, Standorte zu verwalten; die API prüft dasselbe Recht noch einmal.
+const DELIVERY_VIEW: { key: View; label: string } = { key: 'delivery', label: 'Lieferung' }
 
 // Nur für die Leitung (Recht „Berichte der Leitung“); die API prüft dasselbe Recht noch einmal.
 const TODAY_VIEW: { key: View; label: string } = { key: 'today', label: 'Heute im Spa' }
@@ -298,7 +302,9 @@ export function MyDayApp() {
     >
       {passkeyMessage && <p role="status">{passkeyMessage}</p>}
       <nav className="views" aria-label="Ansicht">
-        {[...VIEWS, ...(session.user?.rights.includes('Book') ? [RECEIVE_VIEW] : []), ...(session.user?.rights.includes('ViewFinance') ? [TODAY_VIEW] : [])].map((v) => (
+        {[...VIEWS, ...(session.user?.rights.includes('Book') ? [RECEIVE_VIEW] : []),
+          ...(session.user?.rights.includes('ManageLocation') ? [DELIVERY_VIEW] : []),
+          ...(session.user?.rights.includes('ViewFinance') ? [TODAY_VIEW] : [])].map((v) => (
           <button key={v.key} type="button" className="secondary" aria-current={view === v.key ? 'page' : undefined} onClick={() => setView(v.key)}>
             {v.label}
           </button>
@@ -320,6 +326,7 @@ export function MyDayApp() {
       {view === 'absence' && today && <AbsencePanel today={today} onSignedOut={signedOut} />}
       {view === 'count' && place && session.user && <StockCountPanel key={place.id} locationId={place.id} onSignedOut={signedOut} />}
       {view === 'receive' && place && session.user && <ReceivePanel key={place.id} locationId={place.id} onSignedOut={signedOut} />}
+      {view === 'delivery' && place && session.user && <DeliveryPanel key={place.id} locationId={place.id} onSignedOut={signedOut} />}
       {view === 'today' && place && today && <Today key={place.id} locationId={place.id} today={today} onSignedOut={signedOut} />}
 
       {view === 'day' && shown && (

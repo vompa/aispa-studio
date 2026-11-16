@@ -34,6 +34,21 @@ public sealed class ProcessingTimeTests(ApiFixture fixture)
     }
 
     [Fact]
+    public async Task Die_Behandlungskarte_nennt_die_Einwirkzeit_nur_bei_Behandlungen_die_eine_haben()
+    {
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        var pack = await CreatePackAsync(spa);
+        var withPause = await TestSpa.ReadAsync<AppointmentDto>(await spa.BookAsync(TestSpa.At(10), Ct, spa.Anna.Id, spa.RoomB.Id, pack), Ct);
+        var plain = await spa.BookOkAsync(TestSpa.At(14), Ct, employee: spa.Anna.Id);
+
+        var packCard = await spa.GetAsync<TreatmentCard>($"/api/reports/appointments/{withPause.Id}/card", Ct);
+        var plainCard = await spa.GetAsync<TreatmentCard>($"/api/reports/appointments/{plain.Id}/card", Ct);
+
+        Assert.Equal((20, 20), (packCard.HandsOnMinutes, packCard.ProcessingMinutes));
+        Assert.Equal((0, 0), (plainCard.HandsOnMinutes, plainCard.ProcessingMinutes));
+    }
+
+    [Fact]
     public async Task Die_Person_bekommt_zwei_Belegungen_der_Raum_eine()
     {
         var spa = await TestSpa.CreateAsync(fixture, Ct);

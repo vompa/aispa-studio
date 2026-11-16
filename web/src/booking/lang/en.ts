@@ -70,6 +70,7 @@ const en: Texts = {
   required: 'Required',
   invalidEmail: 'Please enter a valid email address.',
   privacyRequired: 'Please confirm the privacy notice.',
+  marketing: 'I would like to be reminded of my next treatment by email (optional). I confirm this via a link in an email and can unsubscribe at any time.',
   formErrors: (n) => (n === 1 ? 'Please check 1 field.' : `Please check ${n} fields.`),
   signedInAs: (email) => `Signed in as ${email}`,
   guestOrSignIn: 'You can book without an account. If you sign in, you can see all your appointments later.',

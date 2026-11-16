@@ -74,4 +74,31 @@ public sealed class GapSuggestionTests(ApiFixture fixture)
 
         Assert.Equal(AppointmentSource.Treatwell, suggestion.Source);
     }
+
+    [Fact]
+    public async Task Mit_days_kommen_die_Vorschlaege_mehrerer_Tage_und_mit_employeeId_nur_die_einer_Person()
+    {
+        // Dieselbe Lücke bei Anna am Montag und bei Ben am Montag darauf (beide arbeiten nur montags).
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        var next = TestSpa.Monday.AddDays(7);
+        await spa.BookOkAsync(TestSpa.At(9, 5), Ct, employee: spa.Anna.Id);
+        var annas = await spa.BookOkAsync(TestSpa.At(10, 30), Ct, employee: spa.Anna.Id);
+        await spa.BookOkAsync(TestSpa.At(9, 5, next), Ct, employee: spa.Ben.Id);
+        var bens = await spa.BookOkAsync(TestSpa.At(10, 30, next), Ct, employee: spa.Ben.Id);
+        var path = $"/api/locations/{spa.Location.Id}/gap-suggestions?date={TestSpa.Monday:yyyy-MM-dd}";
+
+        var day = await spa.GetAsync<List<GapSuggestion>>(path, Ct);
+        var week = await spa.GetAsync<List<GapSuggestion>>($"{path}&days=7", Ct);
+        var twoWeeks = await spa.GetAsync<List<GapSuggestion>>($"{path}&days=14", Ct);
+        var eight = await spa.GetAsync<List<GapSuggestion>>($"{path}&days=7&employeeId={spa.Ben.Id}", Ct);
+
+        Assert.Equal([annas.Id], day.Select(s => s.AppointmentId));
+        Assert.Equal([annas.Id], week.Select(s => s.AppointmentId));
+        // Höchstens sieben Tage: der Montag darauf ist der achte.
+        Assert.Equal([annas.Id], twoWeeks.Select(s => s.AppointmentId));
+        Assert.Empty(eight);
+        var bensWeek = await spa.GetAsync<List<GapSuggestion>>(
+            $"/api/locations/{spa.Location.Id}/gap-suggestions?date={TestSpa.Monday.AddDays(1):yyyy-MM-dd}&days=7&employeeId={spa.Ben.Id}", Ct);
+        Assert.Equal([bens.Id], bensWeek.Select(s => s.AppointmentId));
+    }
 }

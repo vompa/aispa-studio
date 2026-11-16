@@ -126,7 +126,9 @@ internal sealed class TreatmentCards(AispaDbContext db, OnlineDbContext online, 
                 earlier.Count + 1, earlier.FirstOrDefault()?.Start, occasion, a.Note, anamnesisStatus, prefs, history, todo,
                 followUps.GetValueOrDefault(a.Id),
                 restock.GetValueOrDefault(a.Id),
-                a.StartedAt));
+                a.StartedAt,
+                HandsOnMinutes: a.ProcessingMinutes > 0 ? a.HandsOnMinutes : 0,
+                ProcessingMinutes: a.ProcessingMinutes));
         }
 
         return cards;

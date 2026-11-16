@@ -59,6 +59,16 @@ export function PlanCard({
   const restock = card.status === 'Completed' ? (card.restock ?? []) : []
   const openLines = restock.filter((l) => l.state === 'Open').length
   const running = card.status === 'CheckedIn' && Boolean(card.startedAt)
+  // Einwirkzeit (Packung, Maske): Der Gast bleibt im Raum, die Person ist in der Zeit frei.
+  const processingMinutes = card.processingMinutes ?? 0
+  const processingStart = new Date(card.start).getTime() + (card.handsOnMinutes ?? 0) * 60_000
+  const processing =
+    processingMinutes > 0
+      ? {
+          from: timeIn(new Date(processingStart).toISOString(), timeZone),
+          until: timeIn(new Date(processingStart + processingMinutes * 60_000).toISOString(), timeZone),
+        }
+      : null
   const canReport = isToday && (card.status === 'Booked' || card.status === 'CheckedIn')
 
   /** Die API prüft Person, Tag und Reihenfolge; danach lädt die App den Plan neu, damit Status und Raumcheck vom Server kommen. */
@@ -177,6 +187,11 @@ export function PlanCard({
         <strong>{guestName(card.customerName)}</strong> · {card.visitNumber === 1 ? 'Erstbesuch' : `${card.visitNumber}. Besuch`}
         {card.occasion && ` · ${card.occasion}`}
       </p>
+      {processing && (
+        <p className="card-meta">
+          Einwirkzeit {processing.from}–{processing.until} ({card.processingMinutes} Min.): In dieser Zeit sind Sie frei.
+        </p>
+      )}
       {running ? <p className="muted">Läuft seit {timeIn(card.startedAt!, timeZone)}</p> : STATUS_LABEL[card.status] && <p className="muted">{STATUS_LABEL[card.status]}</p>}
       {canReport && (
         <div className="actions">

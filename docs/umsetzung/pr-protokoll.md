@@ -6448,3 +6448,141 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
   - Ein Sprung aus einer anderen Seite setzt das Ziel, bevor es die Ansicht gibt. `FocusRequestView` beachtet das nur für Ansichten, die es beim Einhängen abfragen (`FocusRequested`); die Abschnitte des Lagers tun das nicht.
   - Die Liste der Betriebsinfo (Zahlen), der Aktionen (Angebot) und zwei Listen im Lager sind noch 300 breit.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Kommunikation: Einwilligung beim Online-Buchen (16.11.2026)
+
+- **Auftrag:** Block „Kommunikation (Einwilligung beim Online-Buchen, Erinnerungs-Obergrenze, dann Marketing)“ aus der Reihenfolge vom 20.10.2026; offener Punkt aus [ADR 0040](../entscheidungen/0040-einwilligung-erinnerung-naechste-behandlung.md).
+- **Was:**
+  - `OnlineBookingRequest.AcceptMarketing` und `OnlineLocation.RebookReminders`. Nach einer Buchung mit Häkchen fragt der Server die Einwilligung an (`MarketingConsents.RequestAsync`, Herkunft `SourceOnline`); der Gast bestätigt per Mail.
+  - Kundenbereich: Häkchen „Ich möchte per E-Mail an meine nächste Behandlung erinnert werden (freiwillig) …“ in Deutsch, Englisch, Französisch und Italienisch.
+  - Hilfe `erinnerungen`.
+- **Detailentscheidungen:**
+  1. Das Häkchen erscheint nur, wenn das Spa die Erinnerungen eingeschaltet hat. Sonst würde der Gast in etwas einwilligen, das es nicht gibt.
+  2. Der Server prüft das noch einmal und fragt bei ausgeschalteten Erinnerungen nichts an, auch wenn das Feld gesetzt ist.
+  3. Kann die Anfrage nicht hinaus (Mail schon unterwegs, keine Adresse), bleibt die Buchung gültig; die Einwilligung ist freiwillig und kein Teil der Buchung.
+  4. Das Häkchen steht getrennt vom Datenschutzhinweis und ist nie vorausgewählt.
+- **Bewusst offen / später:**
+  - `List-Unsubscribe` in den Mails zur nächsten Behandlung.
+  - **Erinnerungs-Obergrenze:** In den Unterlagen nicht beschrieben. Für die Wiederbuchungs-Hinweise gilt schon „höchstens eine in 30 Tagen“ (ADR 0040). Ob für Terminerinnerungen eine Grenze je Gast und Tag gemeint ist (Paar, Spa-Tag), entscheidet der Auftraggeber.
+  - Wortlaut der Einwilligung vor dem Echtbetrieb rechtlich gegenlesen lassen; Schweiz prüfen.
+- **Geprüft:** Tests zuerst geplant: API `OnlineBookingTests` (neu: mit Häkchen wartend mit Herkunft „Online“, ohne Häkchen nichts, Erinnerungen aus) 3 von 3; Web `booking` 66 grün (neu: Häkchen nur bei eingeschalteten Erinnerungen, nicht vorausgewählt, wird gesendet, barrierefrei); `npm run gen:api`, Typprüfung und Lint sauber.
+- **Nicht geprüft:** die Mail in einem echten Postfach; die Seite im Browser von Hand. Die volle Suite läuft in der CI.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md); die Übersetzungen sind nicht von Muttersprachlern gelesen.
+
+## Kalender-Lücken: Vorschläge in der 7-Tage-Ansicht (16.11.2026)
+
+- **Auftrag:** Punkt „Wochenansicht“ aus dem Block „Kalender-Lücken“ der Reihenfolge vom 20.10.2026; offen seit PR #75 („Vorschläge über mehrere Tage“).
+- **Was:**
+  - `GET /api/locations/{id}/gap-suggestions` nimmt `days` (1 bis 7) und `employeeId`.
+  - Windows-App: In der 7-Tage-Ansicht lädt „Lücken schließen“ die Vorschläge aller sieben Tage; zeigt die Ansicht eine Person, nur für sie. Das Panel nennt den Umfang („7 Tage ab Mo. 19.10., nur Lena Huber“), jeder Vorschlag seinen Tag.
+  - Hilfe `kalender-luecken-schliessen`.
+- **Detailentscheidungen:**
+  1. „Wochenansicht“ ist als die vorhandene 7-Tage-Ansicht gedeutet; eine eigene Wochenübersicht aller Personen gibt es nicht.
+  2. Bei einem Filter auf Raum oder Gast kommen die Vorschläge aller Personen der sieben Tage, weil eine Lücke immer zum Tag einer Person gehört.
+  3. Höchstens sieben Tage je Abfrage; mehr rechnet der Server nicht.
+- **Bewusst offen / später:** Zähler „Lücken n“ in der Kopfzeile (Ä298, dort „falls gewünscht“); einstellbare Mindestlücke (Entscheidung des Auftraggebers, Feld in Verwaltung › Standorte).
+- **Geprüft:** Tests zuerst geplant: `GapSuggestionTests` 5 von 5 (neu: mehrere Tage, Grenze sieben, nur eine Person); `CalendarWeekTests` 22 von 22 (neu: Abfrage und Umfang in der 7-Tage-Ansicht, Tageskalender unverändert).
+- **Nicht geprüft:** die laufende App. Die volle Suite läuft in der CI.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Kommunikation: Kopfzeile zum Abmelden in der Erinnerung an die nächste Behandlung (16.11.2026)
+
+- **Auftrag:** Offener Punkt aus [ADR 0040](../entscheidungen/0040-einwilligung-erinnerung-naechste-behandlung.md).
+- **Was:** `OutgoingMail.ListUnsubscribe`; die Erinnerung an die nächste Behandlung setzt die Kopfzeile `List-Unsubscribe` auf die Adresse des Links „Abmelden“. Andere Mails bleiben ohne die Kopfzeile.
+- **Detailentscheidungen:** Nur die Adresse, kein `List-Unsubscribe-Post`: Die Seite hinter dem Link fragt vor dem Abmelden nach; ein Abmelden ohne Rückfrage bräuchte einen eigenen Endpunkt.
+- **Bewusst offen / später:** Abmelden mit einem Klick (RFC 8058). Große Postfach-Anbieter verlangen es erst bei hohen Versandmengen.
+- **Geprüft:** Tests zuerst geplant: `MailboxAdapterTests` (neu: Kopfzeile gesetzt und nicht gesetzt), `RetentionTests` (Adresse in Kopfzeile und Text gleich), zusammen 17 grün.
+- **Nicht geprüft:** die Anzeige „Abmelden“ in einem echten Mailprogramm.
+- **Text-Prüfung:** keine neuen Texte für Benutzer.
+
+## „Mein Tag“: Einwirkzeit als freie Zeit (16.11.2026)
+
+- **Auftrag:** Offener Punkt aus `docs/produkt/kalender-rezeption.md`, Schritt 13; Punkt „Einwirkzeit“ im Block „Kalender-Lücken“.
+- **Was:** `TreatmentCard.HandsOnMinutes` und `ProcessingMinutes`; die Behandlungskarte in „Mein Tag“ zeigt bei Behandlungen mit Einwirkzeit eine Zeile mit Beginn, Ende und Dauer.
+- **Detailentscheidungen:** Ohne Einwirkzeit liefert der Server für beide Felder 0, und die Karte zeigt nichts dazu. Die Zeile steht bei den Zeiten der Karte, nicht als eigene Karte: Die Person bleibt für den Gast zuständig.
+- **Bewusst offen / später:** Die Pausenprüfung zählt die Einwirkzeit nicht als Pause; ob sie arbeitsrechtlich eine wäre, ist nicht geklärt.
+- **Geprüft:** Tests zuerst geplant: `ProcessingTimeTests` 8 von 8 (neu: Karte mit und ohne Einwirkzeit); Web `myday` 46 grün (neu: Zeile mit Zeiten, barrierefrei); Typprüfung und Lint sauber.
+- **Nicht geprüft:** die Seite am Handy.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Kalender-Lücken: Mindestlücke bleibt die kürzeste Behandlung (16.11.2026)
+
+- **Auftrag:** Antwort des Auftraggebers vom 16.11.2026 auf die Frage, ob die Mindestlücke ein fester Wert je Standort werden soll: „kürzeste Behandlung“.
+- **Was:** Nur Doku. Eine Lücke gilt weiter als unbrauchbar, wenn sie kürzer ist als die kürzeste aktive Behandlung des Standorts mit Vor- und Nachbereitung (`BookingService.ShortestBindingAsync`). Ein einstellbares Feld in Verwaltung › Standorte wird nicht gebaut.
+- **Stand des Blocks „Kalender-Lücken“:** Einwirkzeit, Wochenansicht und Treatwell-Hinweis sind gebaut, die Mindestlücke ist entschieden. Offen bleibt nur der Zähler „Lücken n“ in der Kopfzeile (Ä298, „falls gewünscht“).
+- **Geprüft:** entfällt, keine Änderung am Code.
+
+## Kommunikation: eine Terminerinnerung je Gast und Tag (16.11.2026)
+
+- **Auftrag:** Punkt „Erinnerungs-Obergrenze“ aus dem Block „Kommunikation“ der Reihenfolge vom 20.10.2026. Der Auftraggeber hat am 16.11.2026 dem Vorschlag zugestimmt, mehrere Termine eines Gastes am selben Tag in einer Nachricht je Stufe zusammenzufassen.
+- **Befund:** Terminerinnerungen liefen je Termin und Stufe. Ein Gast mit drei Terminen an einem Tag bekam bis zu sechs Nachrichten.
+- **Was:**
+  - `ReminderPlanner.BundleAsync`: Wird der erste Termin eines Gastes fällig, bekommen seine späteren gebuchten Termine desselben Tages und Standorts für diese Stufe einen Eintrag, der auf die Erinnerung des ersten verweist (`AppointmentReminder.BundledWithId`, Migration `ReminderBundle`), und werden selbst nicht mehr erinnert.
+  - `ReminderSender`: Die Nachricht nennt alle noch gültigen Termine mit Uhrzeit; in der Mail hat jeder seinen Link. Feste Texte in vier Sprachen (`ReminderTexts`).
+  - Hilfe `erinnerungen`.
+- **Detailentscheidungen:**
+  1. Kein Feld in der Verwaltung: Die Regel gilt immer. Eine einstellbare Höchstzahl wurde nicht verlangt.
+  2. Gebündelt wird nur am selben Standort und Kalendertag. Verschiedene Standorte haben verschiedene Adressen und Zeitzonen.
+  3. Die späteren Termine stehen mit Stand „entfallen“ und dem Grund „Zusammen mit dem Termin um … Uhr erinnert.“ in der Liste; ein neuer Stand hätte Liste und Auswertungen in der Verwaltung geändert.
+  4. Wird der erste Termin vor dem Versand storniert, geht die Nachricht für die übrigen trotzdem hinaus.
+  5. SMS und WhatsApp tragen nur den Link zum ersten Termin, damit sie kurz bleiben. Die WhatsApp-Vorlage bekommt die Behandlungen mit Komma getrennt und die Zeit des ersten Termins.
+  6. Wer zum zweiten Termin erst bucht, nachdem die gemeinsame Erinnerung hinaus ist, bekommt für diesen Termin die übliche eigene Erinnerung.
+- **Bewusst offen / später:** Paar und Spa-Tag mit mehreren Gästen bleiben je Gast getrennt. Ein Termin, der nach dem Versand storniert wird, bleibt in der schon gesendeten Nachricht stehen.
+- **Geprüft:** Tests zuerst geplant: `ReminderTests` 18 von 18 (neu: zwei Termine am selben Tag bekommen je Stufe eine Nachricht mit beiden Zeiten und zwei Links; andere Tage und andere Gäste werden nicht gebündelt).
+- **Nicht geprüft:** SMS und WhatsApp mit einem echten Anbieter; die Texte in Englisch, Französisch und Italienisch sind nicht von Muttersprachlern gelesen. Die volle Suite läuft in der CI.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Lager: Inventur am Handy übersteht ein Funkloch (16.11.2026)
+
+- **Auftrag:** Block „KI-gestützte Lagerwirtschaft“, Punkt „Inventur am Gerät“; vom Auftraggeber am 16.11.2026 freigegeben („auch 3“). Offen seit Slice 116 („Offline-Zählung“).
+- **Was:**
+  - `web/src/myday/countQueue.ts`: Getippte Mengen einer laufenden Zählung bleiben im Speicher des Browsers, bis der Server sie bestätigt hat.
+  - `StockCountPanel.tsx`: Ohne Verbindung steht „N Mengen warten auf Verbindung.“ statt einer Fehlermeldung. Gesendet wird von selbst, sobald das Handy wieder Netz hat, beim Fortsetzen der Zählung und mit „Jetzt senden“. Abschicken ist gesperrt, solange etwas wartet.
+  - `offline.ts`: Abmelden und ein Wechsel der Person löschen die gemerkten Mengen.
+  - Hilfe `lager-inventur-handy`.
+- **Detailentscheidungen:**
+  1. Das ändert die bisherige Regel „nichts wird still auf dem Gerät gespeichert“. Gemerkt werden nur Material-Id und Menge der laufenden Zählung, keine Daten von Gästen, und die Maske sagt es.
+  2. Nur eine schon gestartete Zählung läuft ohne Netz weiter. Starten ohne Netz bräuchte eine Zählung, die am Gerät entsteht; der Server erlaubt aber nur eine offene Zählung je Lagerort.
+  3. Eine Ablehnung des Servers (z. B. die Leitung hat die Zählung inzwischen verworfen) bleibt die Meldung „Nicht gespeichert“; nur ein fehlendes Netz gilt als „wartet“.
+  4. Die Menge ist ein absoluter Wert; noch einmal senden ändert nichts.
+  5. Gemerkte Mengen älterer Zählungen werden beim Start einer Zählung gelöscht.
+- **Bewusst offen / später:** Zählung ohne Netz starten; Material und Lagerorte ohne Netz laden; Scan eines neuen Materials ohne Netz.
+- **Zum Block Lager insgesamt:**
+  - **Begründung des Bestellvorschlags:** steht schon in der Windows-App als Rechenweg („30 ml am Tag × 5 Tage, Termine 90 ml, bestellt …“). Ein Text der KI käme dazu, dürfte aber nicht rechnen (Slice 113: „nie in der KI“) und müsste in die Lager-Maske der Verwaltung, die gerade überarbeitet wird. Nicht gebaut.
+  - **Wareneingang per Lieferschein-Foto:** nicht gebaut, siehe offene Fragen an den Auftraggeber (Foto an den KI-Dienst senden, Aufbewahrung des Fotos, Zugriff der Handy-App auf Bestellungen).
+- **Geprüft:** Tests zuerst geplant: Web `myday` 49 grün (neu: Funkloch und Nachsenden, Fortsetzen mit gemerkter Menge, andere Person am selben Handy); Typprüfung und Lint sauber.
+- **Nicht geprüft:** ein echtes Handy im Funkloch; das Verhalten, wenn der Browser den Speicher sperrt (privater Modus).
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Kommunikation: höchstens 2 Erinnerungen je Gast und Tag (16.11.2026)
+
+- **Auftrag:** Auftraggeber am 16.11.2026: „Max 2 Erinnerungen default, später dann über Verwaltung einstellen“; die Bündelung bleibt, ein Feld in der Verwaltung kommt jetzt nicht.
+- **Was:** `ReminderPlanner.MaxPerGuestAndDay = 2`. Vor jeder neuen Erinnerung zählt der Planer, wie viele der Gast zu Terminen desselben Kalendertags schon bekommen hat oder gleich bekommt (versendet oder in der Warteschlange), über alle Stufen und Standorte. Ab der dritten entsteht ein Eintrag mit Stand „entfallen“ und dem Grund „Höchstens 2 Erinnerungen je Gast und Tag.“ Hilfe `erinnerungen`.
+- **Detailentscheidungen:**
+  1. Gezählt wird je Tag der Termine, nicht je Tag des Versands: Die erste Stufe geht zwei Tage vorher hinaus, die zweite am Tag selbst, und beide gehören zum selben Besuch.
+  2. Mit der Bündelung sind es im Normalfall genau zwei, eine je Stufe. Die Grenze greift bei nachgebuchten Terminen und bei Terminen an zwei Standorten.
+  3. Fehlgeschlagene und entfallene Erinnerungen zählen nicht mit.
+- **Bewusst offen / später:** Einstellung in Verwaltung › Kontakt › Erinnerungen, sobald die Masken der Verwaltung überarbeitet sind.
+- **Geprüft:** Tests zuerst geplant: `ReminderTests` 19 von 19 (neu: die dritte Erinnerung eines Tages entfällt, der nächste Tag zählt neu).
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Lager: Lieferung am Handy mit Lieferschein-Foto (16.11.2026)
+
+- **Auftrag:** Block „KI-gestützte Lagerwirtschaft“, Punkt „Foto-Wareneingang“; offen seit [ADR 0037](../entscheidungen/0037-lager-aus-bewegungen.md). Auftraggeber am 16.11.2026: „auch 3“ und „Ja das Foto darf an die KI gehen“.
+- **Was:**
+  - Server: `IDeliveryNoteReader` mit `ClaudeDeliveryNoteReader` und `ManualDeliveryNoteReader` (`Stock/DeliveryNoteReader.cs`), `POST /api/stock/orders/{id}/delivery-note-scan` liefert `DeliveryNoteSuggestion`. Der Endpunkt bucht nichts und speichert das Foto nicht.
+  - „Mein Tag“: Reiter „Lieferung“ (`DeliveryPanel.tsx`) für Personen mit dem Recht, Standorte zu verwalten: Bestellung wählen, Lieferschein fotografieren, Mengen prüfen, „Lieferung buchen“.
+  - Die Handy-App erreicht dafür drei Wege mehr: Bestellungen des Standorts lesen, Lieferung buchen, Lieferschein lesen lassen (`ChannelScanTests`). Die Rechte bleiben wie in der Windows-App.
+  - Hilfe `lager-inventur-handy#lieferung`, Nachtrag in ADR 0037.
+- **Detailentscheidungen:**
+  1. Das Foto wird nur gelesen und nicht gespeichert. Dazu kam keine Antwort des Auftraggebers; gewählt ist die sparsamere Lösung.
+  2. Am Handy statt in der Windows-App: Dort liegt die Kamera, und die Lager-Maske der Verwaltung wird gerade von einem anderen Agenten überarbeitet.
+  3. Die KI bekommt die offenen Positionen mit kurzen Schlüsseln (`p1`, `p2` …), nicht mit Ids der Datenbank. Der Server verwirft unbekannte Schlüssel, doppelte Zeilen und unbrauchbare Mengen.
+  4. Die KI rechnet keine Packungen um. Unsicher gelesene Positionen und Mengen über dem Offenen sind mit „Bitte prüfen“ markiert; die Markierung verschwindet, sobald jemand die Menge ändert.
+  5. Synchron, ohne Queue: Die Person steht mit dem Lieferschein am Regal und wartet auf den Vorschlag.
+  6. Ohne Schlüssel, mit `Ai:Provider=RuleBased` oder bei einem Fehler der KI kommt ein leerer Vorschlag mit Hinweis; von Hand geht es immer.
+- **Bewusst offen / später:** Foto-Auswahl in der Windows-App; Ware ohne Bestellung vom Foto buchen; Lagerort beim Buchen am Handy wählen; mehrere Seiten eines Lieferscheins.
+- **Geprüft:** Tests zuerst geplant: API `DeliveryNoteScanTests` 6 von 6 (Vorschlag je Position und nichts gebucht, Aussortieren und Markieren, unlesbares Foto, kein Bild/Entwurf/fremde Bestellung, Rezeption), `ChannelScanTests`, `StockTests`, zusammen 26 grün; Web `myday` 53 grün (neu: Vorschlag prüfen und buchen, ohne KI von Hand, Reiter nur für die Leitung, keine offene Bestellung).
+- **Nicht geprüft:** ein echter Lieferschein mit echtem Schlüssel. `ClaudeDeliveryNoteReader` ist nur gegen den Nachbau der Tests gelaufen; wie gut die KI Lieferscheine liest, zeigt erst der Probelauf. Die Kamera am Handy.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
