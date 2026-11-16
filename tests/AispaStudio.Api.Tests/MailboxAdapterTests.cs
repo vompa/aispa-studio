@@ -95,6 +95,17 @@ public sealed class MailboxAdapterTests
     }
 
     [Fact]
+    public void Eine_Mail_mit_Abmeldeadresse_traegt_die_Kopfzeile_List_Unsubscribe_andere_nicht()
+    {
+        var from = new MailboxAddress("Spa am See", "termine@spa.at");
+        var reminder = MailMessages.Build(new OutgoingMail("gast@example.at", "Zeit für Ihren nächsten Termin?", "Text", ListUnsubscribe: "https://spa.example/einwilligung/abc"), from);
+        var plain = MailMessages.Build(new OutgoingMail("gast@example.at", "Ihr Termin", "Text"), from);
+
+        Assert.Equal("<https://spa.example/einwilligung/abc>", reminder.Headers[HeaderId.ListUnsubscribe]);
+        Assert.Null(plain.Headers[HeaderId.ListUnsubscribe]);
+    }
+
+    [Fact]
     public async Task Graph_sendet_aus_dem_Postfach_als_MIME_im_selben_Verlauf()
     {
         var handler = new FakeGraph();

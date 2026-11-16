@@ -6316,3 +6316,13 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Nicht geprüft:** die laufende App. Die volle Suite läuft in der CI.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
 
+## Kommunikation: Kopfzeile zum Abmelden in der Erinnerung an die nächste Behandlung (16.11.2026)
+
+- **Auftrag:** Offener Punkt aus [ADR 0040](../entscheidungen/0040-einwilligung-erinnerung-naechste-behandlung.md).
+- **Was:** `OutgoingMail.ListUnsubscribe`; die Erinnerung an die nächste Behandlung setzt die Kopfzeile `List-Unsubscribe` auf die Adresse des Links „Abmelden“. Andere Mails bleiben ohne die Kopfzeile.
+- **Detailentscheidungen:** Nur die Adresse, kein `List-Unsubscribe-Post`: Die Seite hinter dem Link fragt vor dem Abmelden nach; ein Abmelden ohne Rückfrage bräuchte einen eigenen Endpunkt.
+- **Bewusst offen / später:** Abmelden mit einem Klick (RFC 8058). Große Postfach-Anbieter verlangen es erst bei hohen Versandmengen.
+- **Geprüft:** Tests zuerst geplant: `MailboxAdapterTests` (neu: Kopfzeile gesetzt und nicht gesetzt), `RetentionTests` (Adresse in Kopfzeile und Text gleich), zusammen 17 grün.
+- **Nicht geprüft:** die Anzeige „Abmelden“ in einem echten Mailprogramm.
+- **Text-Prüfung:** keine neuen Texte für Benutzer.
+
