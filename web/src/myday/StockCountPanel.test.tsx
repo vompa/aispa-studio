@@ -77,6 +77,64 @@ describe('Inventur am Handy', () => {
     expect(calls('POST', '/api/v1/stock/locations/loc-1/count-sessions/cs-1/submit')).toHaveLength(0)
   })
 
+  it('Given_kein_Netz_beim_Zaehlen_When_es_wieder_da_ist_Then_wird_die_gemerkte_Menge_gesendet_und_Abschicken_geht', async () => {
+    let offline = true
+    stubApi(therapist, {
+      [START]: () => ({ status: 200, body: countSession('Open') }),
+      [LINE(oil.id)]: () => {
+        if (offline) throw new TypeError('Failed to fetch')
+        return { status: 200, body: countSession('Open', [countLine(oil, 120)]) }
+      },
+    })
+    await openCount()
+
+    fireEvent.change(screen.getByLabelText(/Massageöl neutral/), { target: { value: '120' } })
+
+    expect(await screen.findByText(/1 Menge wartet auf Verbindung\./, {}, SAVE_WAIT)).toBeTruthy()
+    expect(screen.queryByText(/Nicht gespeichert/)).toBeNull()
+    expect(screen.getByRole('button', { name: 'Abschicken' }).getAttribute('aria-disabled')).toBe('true')
+    expect(JSON.parse(localStorage.getItem('aispa-mein-tag-count:cs-1')!)).toEqual({ 'm-1': '120' })
+
+    offline = false
+    window.dispatchEvent(new Event('online'))
+
+    expect(await screen.findByText('Gespeichert')).toBeTruthy()
+    expect(screen.queryByText(/wartet auf Verbindung/)).toBeNull()
+    expect(localStorage.getItem('aispa-mein-tag-count:cs-1')).toBeNull()
+    expect(screen.getByRole('button', { name: 'Abschicken' }).getAttribute('aria-disabled')).toBeNull()
+  })
+
+  it('Given_eine_gemerkte_Menge_When_die_Zaehlung_fortgesetzt_wird_Then_steht_sie_im_Feld_und_geht_gleich_an_die_API', async () => {
+    // Dasselbe Handy, dieselbe Person: Nur dann bleiben gemerkte Mengen über die Anmeldung hinweg stehen.
+    localStorage.setItem('aispa-mein-tag-owner', therapist.id)
+    localStorage.setItem('aispa-mein-tag-count:cs-1', JSON.stringify({ 'm-1': '95,5' }))
+    localStorage.setItem('aispa-mein-tag-count:cs-alt', JSON.stringify({ 'm-2': '3' }))
+    stubApi(therapist, {
+      [START]: () => ({ status: 200, body: countSession('Open', [countLine(oil, 120)]) }),
+      [LINE(oil.id)]: () => ({ status: 200, body: countSession('Open', [countLine(oil, 95.5)]) }),
+    })
+
+    await openCount()
+
+    expect((screen.getByLabelText(/Massageöl neutral/) as HTMLInputElement).value).toBe('95,5')
+    await waitFor(() => expect(calls('PUT', `${LINES}/m-1`).map((r) => r.body)).toEqual([{ counted: 95.5 }]), SAVE_WAIT)
+    await waitFor(() => expect(localStorage.getItem('aispa-mein-tag-count:cs-1')).toBeNull())
+    // Die gemerkten Mengen einer älteren Zählung sind weg: Sie ist abgeschlossen oder verworfen.
+    expect(localStorage.getItem('aispa-mein-tag-count:cs-alt')).toBeNull()
+  })
+
+  it('Given_gemerkte_Mengen_einer_anderen_Person_When_Lena_sich_anmeldet_Then_sind_sie_geloescht', async () => {
+    localStorage.setItem('aispa-mein-tag-owner', 'u-andere')
+    localStorage.setItem('aispa-mein-tag-count:cs-1', JSON.stringify({ 'm-1': '95,5' }))
+    stubApi(therapist, { [START]: () => ({ status: 200, body: countSession('Open', [countLine(oil, 120)]) }) })
+
+    await openCount()
+
+    expect((screen.getByLabelText(/Massageöl neutral/) as HTMLInputElement).value).toBe('120')
+    expect(localStorage.getItem('aispa-mein-tag-count:cs-1')).toBeNull()
+    expect(calls('PUT', `${LINES}/m-1`)).toHaveLength(0)
+  })
+
   it('Given_eine_abgeschickte_Zaehlung_When_Lena_sie_oeffnet_Then_steht_sie_nur_lesend_da', async () => {
     stubApi(therapist, { [START]: () => ({ status: 200, body: countSession('Submitted', [countLine(oil, 120)]) }) })
     render(<MyDayApp />)

@@ -3664,6 +3664,9 @@ namespace AispaStudio.Api.Data.Migrations
                     b.Property<DateTimeOffset>("AppointmentStart")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<Guid?>("BundledWithId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("Channel")
                         .IsRequired()
                         .HasMaxLength(16)
@@ -3691,6 +3694,8 @@ namespace AispaStudio.Api.Data.Migrations
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("BundledWithId");
 
                     b.HasIndex("TenantId");
 

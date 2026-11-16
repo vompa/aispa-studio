@@ -14,7 +14,7 @@ Beim Rundenabschluss wird geprüft, dass jede Aufgabe der Runde einen vollständ
 
 ## Blöcke
 
-Ohne Block, weil die Aufgabe nichts Sichtbares ändert: Entscheidung zur Mindestlücke (nur Doku), Kopfzeile `List-Unsubscribe` in der Erinnerung an die nächste Behandlung, Lückenvorschläge mit Treatwell-Hinweis und Einwirkzeit (ein Treatwell-Termin lässt sich ohne echtes Postfach nicht von Hand erzeugen; durch Ansichtstest gedeckt), Erinnerung nach 48 Stunden mit Verbindung (derselbe Satz wie im Block „Hinweis nach 48 Stunden“, nur unter „Beim Abgleich nicht übernommen“), Kassa ohne Verbindung Schritt 1 (nur Schnittstelle; der Block kommt mit Schritt 2), T-013 (Entscheidung, nur Doku), T-014 (Entscheidung, keine Änderung), T-016 (Sichtung der zurückgestellten Kleinigkeiten), T-030 (CI-Zeitlimits), T-033 (Beispieldaten und Test), T-034 (Werkzeug knip, unbenutztes Paket entfernt), T-035 (Skill und Doku), T-040 (ADR und Konzept, nur Doku), Export/Import Aufgabe A (Export-Dienst, Knopf ohne Seite; der Knopf ist im Block „Export/Import B“ geprüft).
+Ohne Block, weil die Aufgabe nichts Sichtbares ändert: Obergrenze von 2 Erinnerungen je Gast und Tag (greift nur bei nachgebuchten Terminen; durch Test gedeckt), Entscheidung zur Mindestlücke (nur Doku), Kopfzeile `List-Unsubscribe` in der Erinnerung an die nächste Behandlung, Lückenvorschläge mit Treatwell-Hinweis und Einwirkzeit (ein Treatwell-Termin lässt sich ohne echtes Postfach nicht von Hand erzeugen; durch Ansichtstest gedeckt), Erinnerung nach 48 Stunden mit Verbindung (derselbe Satz wie im Block „Hinweis nach 48 Stunden“, nur unter „Beim Abgleich nicht übernommen“), Kassa ohne Verbindung Schritt 1 (nur Schnittstelle; der Block kommt mit Schritt 2), T-013 (Entscheidung, nur Doku), T-014 (Entscheidung, keine Änderung), T-016 (Sichtung der zurückgestellten Kleinigkeiten), T-030 (CI-Zeitlimits), T-033 (Beispieldaten und Test), T-034 (Werkzeug knip, unbenutztes Paket entfernt), T-035 (Skill und Doku), T-040 (ADR und Konzept, nur Doku), Export/Import Aufgabe A (Export-Dienst, Knopf ohne Seite; der Knopf ist im Block „Export/Import B“ geprüft).
 
 ### T-015 – Keine Stempeluhr in „Mein Tag“, Zeiten trägt die Leitung ein
 Start: Browser in Handybreite (z. B. 390 px), die Adresse des Spas mit `/mein-tag/` öffnen, als Mitarbeiterin (Therapeutin) anmelden
@@ -1171,6 +1171,30 @@ Start: `dotnet run --project src/AispaStudio.AppHost`, „Mein Tag“ im Browser
 Expected: Auf der Karte der Körperpackung steht unter Zeit und Raum „Einwirkzeit HH:MM–HH:MM (20 Min.): In dieser Zeit sind Sie frei.“ Die Zeiten passen zum Band im Kalender der Windows-App.
 2. Eine Karte ohne Einwirkzeit ansehen, z. B. eine Massage.
 Expected: Dort steht keine Zeile „Einwirkzeit“.
+Closes: –
+Result: ☐
+
+### Terminerinnerung – mehrere Termine eines Gastes am selben Tag
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App als Rezeption; ein Gast mit Mailadresse
+1. Für den Gast am selben Tag zwei Termine buchen, z. B. 10:00 und 13:00 Uhr, so dass die erste Erinnerung bald fällig ist (Verwaltung › Kontakt › Erinnerungen: Stunden passend einstellen).
+Expected: Beide Termine stehen im Kalender.
+2. Etwa fünf Minuten warten und das Postfach des Gastes ansehen.
+Expected: Eine Mail „Erinnerung: Ihre 2 Termine am …“ mit beiden Uhrzeiten; unter jedem Termin steht ein eigener Link „Bestätigen oder absagen“.
+3. Den zweiten Termin im Kalender öffnen und die Erinnerungen ansehen.
+Expected: Dort steht „Zusammen mit dem Termin um 10:00 Uhr erinnert.“; eine eigene Mail zum zweiten Termin kommt nicht.
+Closes: –
+Result: ☐
+
+### Inventur am Handy – Funkloch beim Zählen
+Start: „Mein Tag“ am Handy als Therapeut:in, Reiter **Inventur**, eine Zählung an einem Lagerort gestartet
+1. Am Handy den Flugmodus einschalten und bei zwei Materialien eine Menge eintragen.
+Expected: Unter der Liste steht „2 Mengen warten auf Verbindung.“; **Abschicken** ist gesperrt; es erscheint kein „Nicht gespeichert“.
+2. Den Flugmodus ausschalten.
+Expected: Nach wenigen Sekunden steht „Gespeichert“, der Hinweis verschwindet, **Abschicken** geht wieder.
+3. Erneut Flugmodus, eine Menge ändern, die Seite schließen, den Flugmodus ausschalten, „Mein Tag“ öffnen und die Zählung am selben Lagerort fortsetzen.
+Expected: Die geänderte Menge steht im Feld und wird gleich gespeichert.
+4. In der Windows-App unter **Verwaltung** › **Lager** › **Inventur** die Zählung übernehmen.
+Expected: Die Mengen vom Handy stehen in der Zählliste.
 Closes: –
 Result: ☐
 

@@ -6343,3 +6343,57 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Stand des Blocks „Kalender-Lücken“:** Einwirkzeit, Wochenansicht und Treatwell-Hinweis sind gebaut, die Mindestlücke ist entschieden. Offen bleibt nur der Zähler „Lücken n“ in der Kopfzeile (Ä298, „falls gewünscht“).
 - **Geprüft:** entfällt, keine Änderung am Code.
 
+## Kommunikation: eine Terminerinnerung je Gast und Tag (16.11.2026)
+
+- **Auftrag:** Punkt „Erinnerungs-Obergrenze“ aus dem Block „Kommunikation“ der Reihenfolge vom 20.10.2026. Der Auftraggeber hat am 16.11.2026 dem Vorschlag zugestimmt, mehrere Termine eines Gastes am selben Tag in einer Nachricht je Stufe zusammenzufassen.
+- **Befund:** Terminerinnerungen liefen je Termin und Stufe. Ein Gast mit drei Terminen an einem Tag bekam bis zu sechs Nachrichten.
+- **Was:**
+  - `ReminderPlanner.BundleAsync`: Wird der erste Termin eines Gastes fällig, bekommen seine späteren gebuchten Termine desselben Tages und Standorts für diese Stufe einen Eintrag, der auf die Erinnerung des ersten verweist (`AppointmentReminder.BundledWithId`, Migration `ReminderBundle`), und werden selbst nicht mehr erinnert.
+  - `ReminderSender`: Die Nachricht nennt alle noch gültigen Termine mit Uhrzeit; in der Mail hat jeder seinen Link. Feste Texte in vier Sprachen (`ReminderTexts`).
+  - Hilfe `erinnerungen`.
+- **Detailentscheidungen:**
+  1. Kein Feld in der Verwaltung: Die Regel gilt immer. Eine einstellbare Höchstzahl wurde nicht verlangt.
+  2. Gebündelt wird nur am selben Standort und Kalendertag. Verschiedene Standorte haben verschiedene Adressen und Zeitzonen.
+  3. Die späteren Termine stehen mit Stand „entfallen“ und dem Grund „Zusammen mit dem Termin um … Uhr erinnert.“ in der Liste; ein neuer Stand hätte Liste und Auswertungen in der Verwaltung geändert.
+  4. Wird der erste Termin vor dem Versand storniert, geht die Nachricht für die übrigen trotzdem hinaus.
+  5. SMS und WhatsApp tragen nur den Link zum ersten Termin, damit sie kurz bleiben. Die WhatsApp-Vorlage bekommt die Behandlungen mit Komma getrennt und die Zeit des ersten Termins.
+  6. Wer zum zweiten Termin erst bucht, nachdem die gemeinsame Erinnerung hinaus ist, bekommt für diesen Termin die übliche eigene Erinnerung.
+- **Bewusst offen / später:** Paar und Spa-Tag mit mehreren Gästen bleiben je Gast getrennt. Ein Termin, der nach dem Versand storniert wird, bleibt in der schon gesendeten Nachricht stehen.
+- **Geprüft:** Tests zuerst geplant: `ReminderTests` 18 von 18 (neu: zwei Termine am selben Tag bekommen je Stufe eine Nachricht mit beiden Zeiten und zwei Links; andere Tage und andere Gäste werden nicht gebündelt).
+- **Nicht geprüft:** SMS und WhatsApp mit einem echten Anbieter; die Texte in Englisch, Französisch und Italienisch sind nicht von Muttersprachlern gelesen. Die volle Suite läuft in der CI.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Lager: Inventur am Handy übersteht ein Funkloch (16.11.2026)
+
+- **Auftrag:** Block „KI-gestützte Lagerwirtschaft“, Punkt „Inventur am Gerät“; vom Auftraggeber am 16.11.2026 freigegeben („auch 3“). Offen seit Slice 116 („Offline-Zählung“).
+- **Was:**
+  - `web/src/myday/countQueue.ts`: Getippte Mengen einer laufenden Zählung bleiben im Speicher des Browsers, bis der Server sie bestätigt hat.
+  - `StockCountPanel.tsx`: Ohne Verbindung steht „N Mengen warten auf Verbindung.“ statt einer Fehlermeldung. Gesendet wird von selbst, sobald das Handy wieder Netz hat, beim Fortsetzen der Zählung und mit „Jetzt senden“. Abschicken ist gesperrt, solange etwas wartet.
+  - `offline.ts`: Abmelden und ein Wechsel der Person löschen die gemerkten Mengen.
+  - Hilfe `lager-inventur-handy`.
+- **Detailentscheidungen:**
+  1. Das ändert die bisherige Regel „nichts wird still auf dem Gerät gespeichert“. Gemerkt werden nur Material-Id und Menge der laufenden Zählung, keine Daten von Gästen, und die Maske sagt es.
+  2. Nur eine schon gestartete Zählung läuft ohne Netz weiter. Starten ohne Netz bräuchte eine Zählung, die am Gerät entsteht; der Server erlaubt aber nur eine offene Zählung je Lagerort.
+  3. Eine Ablehnung des Servers (z. B. die Leitung hat die Zählung inzwischen verworfen) bleibt die Meldung „Nicht gespeichert“; nur ein fehlendes Netz gilt als „wartet“.
+  4. Die Menge ist ein absoluter Wert; noch einmal senden ändert nichts.
+  5. Gemerkte Mengen älterer Zählungen werden beim Start einer Zählung gelöscht.
+- **Bewusst offen / später:** Zählung ohne Netz starten; Material und Lagerorte ohne Netz laden; Scan eines neuen Materials ohne Netz.
+- **Zum Block Lager insgesamt:**
+  - **Begründung des Bestellvorschlags:** steht schon in der Windows-App als Rechenweg („30 ml am Tag × 5 Tage, Termine 90 ml, bestellt …“). Ein Text der KI käme dazu, dürfte aber nicht rechnen (Slice 113: „nie in der KI“) und müsste in die Lager-Maske der Verwaltung, die gerade überarbeitet wird. Nicht gebaut.
+  - **Wareneingang per Lieferschein-Foto:** nicht gebaut, siehe offene Fragen an den Auftraggeber (Foto an den KI-Dienst senden, Aufbewahrung des Fotos, Zugriff der Handy-App auf Bestellungen).
+- **Geprüft:** Tests zuerst geplant: Web `myday` 49 grün (neu: Funkloch und Nachsenden, Fortsetzen mit gemerkter Menge, andere Person am selben Handy); Typprüfung und Lint sauber.
+- **Nicht geprüft:** ein echtes Handy im Funkloch; das Verhalten, wenn der Browser den Speicher sperrt (privater Modus).
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Kommunikation: höchstens 2 Erinnerungen je Gast und Tag (16.11.2026)
+
+- **Auftrag:** Auftraggeber am 16.11.2026: „Max 2 Erinnerungen default, später dann über Verwaltung einstellen“; die Bündelung bleibt, ein Feld in der Verwaltung kommt jetzt nicht.
+- **Was:** `ReminderPlanner.MaxPerGuestAndDay = 2`. Vor jeder neuen Erinnerung zählt der Planer, wie viele der Gast zu Terminen desselben Kalendertags schon bekommen hat oder gleich bekommt (versendet oder in der Warteschlange), über alle Stufen und Standorte. Ab der dritten entsteht ein Eintrag mit Stand „entfallen“ und dem Grund „Höchstens 2 Erinnerungen je Gast und Tag.“ Hilfe `erinnerungen`.
+- **Detailentscheidungen:**
+  1. Gezählt wird je Tag der Termine, nicht je Tag des Versands: Die erste Stufe geht zwei Tage vorher hinaus, die zweite am Tag selbst, und beide gehören zum selben Besuch.
+  2. Mit der Bündelung sind es im Normalfall genau zwei, eine je Stufe. Die Grenze greift bei nachgebuchten Terminen und bei Terminen an zwei Standorten.
+  3. Fehlgeschlagene und entfallene Erinnerungen zählen nicht mit.
+- **Bewusst offen / später:** Einstellung in Verwaltung › Kontakt › Erinnerungen, sobald die Masken der Verwaltung überarbeitet sind.
+- **Geprüft:** Tests zuerst geplant: `ReminderTests` 19 von 19 (neu: die dritte Erinnerung eines Tages entfällt, der nächste Tag zählt neu).
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+

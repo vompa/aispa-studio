@@ -18,7 +18,14 @@ Im Spa zählt man das Material mit dem Handy am Regal, die Leitung schließt die
 4. Warten, bis neben dem Feld „Gespeichert“ steht. Jede Eingabe ist ein Zwischenstand; ein zweites Handy sieht ihn, und die Zählung geht beim Neuladen der Seite nicht verloren.
 5. Auf **Abschicken** tippen und mit **Jetzt abschicken** bestätigen. Danach steht „Die Leitung schließt die Zählung ab.“ und die Felder sind gesperrt.
 
-Das Zählen braucht eine Verbindung. Ohne Netz zeigt die Maske einen Hinweis und speichert nichts.
+### Ohne Netz im Lagerraum {#ohne-netz}
+
+Fällt die Verbindung beim Zählen aus, zählen Sie weiter. Das Handy merkt sich die Mengen und zeigt „N Mengen warten auf Verbindung.“ Sobald es wieder Netz hat, sendet es sie von selbst; mit **Jetzt senden** geht es sofort.
+
+- **Zählung starten** und **Abschicken** brauchen eine Verbindung. Abschicken geht erst, wenn keine Menge mehr wartet.
+- Die gemerkten Mengen bleiben auch nach dem Schließen der Seite stehen. Wer die Zählung am selben Handy wieder öffnet, sieht sie im Feld; sie gehen dann gleich hinaus.
+- **Abmelden** löscht gemerkte Mengen. Meldet sich eine andere Person an diesem Handy an, sind sie ebenfalls weg. Darum vor dem Abmelden warten, bis „Gespeichert“ dasteht.
+- Neues Material per Scan hinzufügen geht nur mit Verbindung.
 
 ## Mit der Kamera scannen {#scan}
 
