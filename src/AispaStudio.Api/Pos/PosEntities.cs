@@ -50,6 +50,14 @@ public sealed class CashRegister
     public long LastReceiptNumber { get; set; }
     public DateTimeOffset? LastReceiptAt { get; set; }
 
+    /// <summary>
+    /// Ausfall von mehr als 48 Stunden (ADR 0096): Zeitpunkt des ältesten Ersatzbelegs, der so spät nacherfasst wurde. Die Kasse erinnert
+    /// danach eine Woche lang an die Meldung; <see cref="LongOutageReenteredAt"/> ist das Ende des Ausfalls.
+    /// </summary>
+    public DateTimeOffset? LongOutageSince { get; set; }
+
+    public DateTimeOffset? LongOutageReenteredAt { get; set; }
+
     /// <summary>Summe aller Belege in Cent (AT: Umsatzzähler, verschlüsselt auf jedem Beleg).</summary>
     public long TurnoverCounter { get; set; }
 

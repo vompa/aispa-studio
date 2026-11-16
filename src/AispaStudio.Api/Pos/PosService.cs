@@ -103,9 +103,22 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
         }
     }
 
+    /// <summary>Ab dieser Dauer ist ein Ausfall der Registrierkasse in Österreich zu melden.</summary>
+    internal static readonly TimeSpan LongOutage = TimeSpan.FromHours(48);
+
+    /// <summary>So lange erinnert die Kasse nach der Nacherfassung an die Meldung.</summary>
+    internal static readonly TimeSpan LongOutageReminder = TimeSpan.FromDays(7);
+
     public CashRegisterDto ToDto(CashRegister r)
     {
         var warnings = new List<string>();
+        if (r is { LongOutageSince: { } outageFrom, LongOutageReenteredAt: { } outageUntil } && time.GetUtcNow() - outageUntil <= LongOutageReminder)
+        {
+            warnings.Add($"Die Kasse war länger als 48 Stunden nicht erreichbar: Ersatzbeleg vom {outageFrom.ToUniversalTime():yyyy-MM-dd HH:mm} UTC, " +
+                $"nacherfasst am {outageUntil.ToUniversalTime():yyyy-MM-dd HH:mm} UTC." +
+                (r.Country == FiscalCountry.AT ? " Beginn und Ende des Ausfalls über FinanzOnline melden." : " Den Ausfall dokumentieren."));
+        }
+
         if (r.SignatureDeviceFailedSince is { } since)
         {
             warnings.Add($"Signatureinrichtung ausgefallen seit {since.ToUniversalTime():yyyy-MM-dd HH:mm} UTC. " +
@@ -891,6 +904,14 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
             if (draft.Total != input.Total || draft.Change != 0)
             {
                 throw Mismatch(draft.Total);
+            }
+
+            // Mehr als 48 Stunden zwischen Ersatzbeleg und Nacherfassung: die Kasse erinnert an die Meldung des Ausfalls (§ 17 RKSV).
+            if (now - input.IssuedAt > LongOutage)
+            {
+                var fresh = register.LongOutageReenteredAt is not { } last || now - last > LongOutageReminder;
+                register.LongOutageSince = fresh || register.LongOutageSince is not { } since || input.IssuedAt < since ? input.IssuedAt : register.LongOutageSince;
+                register.LongOutageReenteredAt = now;
             }
 
             db.Vouchers.AddRange(draft.NewVouchers);

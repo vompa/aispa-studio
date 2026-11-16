@@ -198,6 +198,23 @@ public partial class PosViewModel : ViewModelBase
         _printer = printer ?? (address => new NetworkReceiptPrinter(address));
         _cardPoll = cardPoll ?? TimeSpan.FromSeconds(1.5);
         var ui = SynchronizationContext.Current;
+        if (api.Offline is { } offline)
+        {
+            // Ersatzbelege (ADR 0096): die Liste unter „Belege“ folgt der Warteschlange, auch wenn der Abgleich im Hintergrund läuft.
+            offline.Changed += () =>
+            {
+                if (ui is null || SynchronizationContext.Current == ui)
+                {
+                    RefreshSubstitutes();
+                }
+                else
+                {
+                    ui.Post(_ => RefreshSubstitutes(), null);
+                }
+            };
+            RefreshSubstitutes();
+        }
+
         api.ConnectivityChanged += () =>
         {
             if (ui is null || SynchronizationContext.Current == ui)
@@ -1700,7 +1717,7 @@ public sealed class ReceiptViewModel(ReceiptDto receipt, TimeZoneInfo zone, Fisc
     /// <summary>Dieser Beleg wurde storniert (es gibt einen Stornobeleg dazu).</summary>
     public bool IsVoided => Receipt.VoidedByReceiptId is not null;
 
-    public bool CanVoid => Receipt.Kind == ReceiptKind.Sale && !IsVoided;
+    public bool CanVoid => Receipt.Kind == ReceiptKind.Sale && !IsVoided && !IsSubstitute;
 
     /// <summary>Ein Anzahlungsbeleg lässt sich nur als Inhaber oder Manager stornieren; der Server lehnt es sonst mit 403 ab.</summary>
     public bool VoidBlockedByRole => Receipt.IsDepositReceipt && !ownerLevel;

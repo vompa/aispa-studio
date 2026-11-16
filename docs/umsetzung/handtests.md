@@ -1053,3 +1053,25 @@ Expected: Unten steht wieder „Online“. Unter **Belege** steht ein neuer sign
 Expected: Oben steht „Beim Abgleich nicht übernommen“ mit dem Ersatzbeleg, dem Grund „Dieser Termin steht schon auf einer Rechnung.“ und **Erneut senden**, ohne **Erledigt**.
 Closes: –
 Result: ☐
+
+### Kassa ohne Verbindung – Hinweis nach 48 Stunden
+Start: wie „Kassa ohne Verbindung – Ersatzbeleg und Nacherfassung“; Server angehalten, ein Ersatzbeleg ist ausgegeben
+1. Die Uhr des PCs um drei Tage vorstellen und in der App **Verbindung prüfen** wählen.
+Expected: Der Hinweis „Keine Verbindung zum Server“ endet mit „Der älteste Ersatzbeleg ist vom … und seit mehr als 48 Stunden nicht nacherfasst: In Österreich den Ausfall der Kasse über FinanzOnline melden.“
+2. Die Uhr des PCs vorgestellt lassen, die Uhr des Servers ebenfalls um drei Tage vorstellen und den Server starten (`docker compose start api`).
+Expected: Nach der Nacherfassung zeigt die Kassa oben „Die Kasse war länger als 48 Stunden nicht erreichbar: Ersatzbeleg vom …, nacherfasst am …. Beginn und Ende des Ausfalls über FinanzOnline melden.“
+Closes: –
+Result: ☐
+
+### Kassa ohne Verbindung – Liste der offenen Ersatzbelege
+Start: wie „Kassa ohne Verbindung – Ersatzbeleg und Nacherfassung“; Server angehalten, zwei Ersatzbelege sind ausgegeben
+1. In der Kassa **Belege** wählen.
+Expected: Über „Belege heute“ steht „Ersatzbelege, noch nicht nacherfasst (2)“ mit Nummer, Zeit, Betrag und „wartet auf Nacherfassung“.
+2. Einen Ersatzbeleg anklicken und **Drucken** wählen.
+Expected: Rechts steht der Ersatzbeleg mit „Ersatzbeleg, der signierte Beleg folgt“, ohne „Beleg stornieren“; mit Bondrucker kommt der Bon noch einmal.
+3. Den Server starten und bis zu 15 Sekunden warten.
+Expected: Die Liste „Ersatzbelege“ verschwindet; die signierten Belege stehen unter „Belege heute“.
+4. Gegenprobe mit einem abgelehnten Ersatzbeleg (Termin am Server schon abgerechnet).
+Expected: Die Zeile zeigt „nicht übernommen: Dieser Termin steht schon auf einer Rechnung.“ und **Erneut senden**.
+Closes: –
+Result: ☐

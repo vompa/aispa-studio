@@ -36,6 +36,20 @@ Die Kassa zeigt den Ersatzbeleg mit eigener Nummer, z. B. „Ersatzbeleg E-WIEN-
 - Rechnung parken, Beleg stornieren, Rechnung mit Empfänger, Tagesabschluss.
 - Der Barzahlungsrabatt gilt ohne Verbindung nicht.
 
+## Offene Ersatzbelege ansehen und noch einmal drucken {#liste}
+
+Unter **Belege** steht über den Belegen des Tages die Liste „Ersatzbelege, noch nicht nacherfasst“ mit Nummer, Zeit, Betrag und Stand.
+
+1. In der Kassa **Belege** wählen.
+2. Einen Ersatzbeleg in der Liste anklicken. Er steht rechts.
+3. Auf **Drucken** klicken, um ihn noch einmal zu drucken.
+
+![Liste der offenen Ersatzbelege unter „Belege“](images/app/kassa-ersatzbelege.png)
+
+- Der Stand ist „wartet auf Nacherfassung“ oder „nicht übernommen: …“ mit dem Grund der Kasse.
+- Die Liste zeigt die Ersatzbelege dieses Geräts. Ist sie leer, ist alles nacherfasst.
+- Ein nacherfasster Ersatzbeleg verschwindet aus der Liste; der signierte Beleg steht dann bei den Belegen seines Tages.
+
 ## Nacherfassung {#nacherfassung}
 
 Die App prüft die Verbindung von selbst. Ist der Server wieder erreichbar, sendet sie jeden Ersatzbeleg einzeln an die Kasse. Dort entsteht ein gewöhnlicher signierter Beleg mit dem Vermerk „Nacherfassung zu Ersatzbeleg … vom …“. Sie finden ihn unter **Belege**.
@@ -50,7 +64,7 @@ Stimmt etwas nicht überein, bucht die Kasse nichts und die App zeigt oben „Be
 
 1. Den Grund lesen, z. B. „Dieser Termin steht schon auf einer Rechnung.“ oder „Der Ersatzbeleg … nennt 89,00 €, an der Kasse ergeben die Positionen 79,00 €“.
 2. Die Ursache an der Kassa klären, z. B. eine doppelt angelegte Rechnung verwerfen.
-3. Auf **Erneut senden** klicken.
+3. Auf **Erneut senden** klicken, oben im Hinweis oder in der Liste unter **Belege**.
 
 - Häufige Gründe: Der Termin wurde an einem anderen Gerät schon kassiert, der Preis wurde inzwischen geändert, oder auf dem Termin liegt eine Anzahlung.
 - Lässt sich der Grund nicht beheben, den Umsatz an der Kassa von Hand nacherfassen und den Ersatzbeleg aufbewahren. Fragen Sie dazu Ihre Steuerberatung.
@@ -58,5 +72,7 @@ Stimmt etwas nicht überein, bucht die Kasse nichts und die App zeigt oben „Be
 ## Länger ohne Verbindung {#laenger}
 
 - In Österreich ist ein Ausfall der Registrierkasse von mehr als 48 Stunden über FinanzOnline zu melden.
+- Die App erinnert daran: Ist der älteste Ersatzbeleg seit mehr als 48 Stunden nicht nacherfasst, steht im Hinweis „Keine Verbindung zum Server“ zusätzlich „Der älteste Ersatzbeleg ist vom … und seit mehr als 48 Stunden nicht nacherfasst“.
+- Nach der Nacherfassung zeigt die Kassa eine Woche lang „Die Kasse war länger als 48 Stunden nicht erreichbar“ mit Beginn und Ende des Ausfalls. Diese beiden Zeitpunkte brauchen Sie für die Meldung.
 - Bewahren Sie die gedruckten Ersatzbelege auf, bis die Nacherfassung durch ist.
 - Siehe auch [Arbeiten ohne Verbindung](hilfe:kalender-offline) und [Bezahlen](hilfe:kassa-bezahlen).

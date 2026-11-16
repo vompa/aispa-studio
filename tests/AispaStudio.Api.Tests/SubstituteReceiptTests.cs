@@ -104,6 +104,36 @@ public sealed class SubstituteReceiptTests(ApiFixture fixture)
         Assert.Equal(HttpStatusCode.BadRequest, empty.StatusCode);
     }
 
+    [Theory]
+    [InlineData(FiscalCountry.AT, 50, "FinanzOnline")]
+    [InlineData(FiscalCountry.DE, 50, "dokumentieren")]
+    [InlineData(FiscalCountry.AT, 2, null)]
+    public async Task Nach_mehr_als_48_Stunden_nacherfasst_erinnert_die_Kasse_an_die_Meldung_des_Ausfalls(FiscalCountry country, int hours, string? expected)
+    {
+        // Given ein Ersatzbeleg, ausgegeben vor n Stunden
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        var register = await spa.PostAsync<CashRegisterDto>("/api/pos/registers",
+            new CashRegisterInput(spa.Location.Id, $"T-{Guid.NewGuid():N}"[..14], country, "Test-Spa GmbH\nTeststraße 1", "Test-Spa GmbH", null, null), Ct);
+        var article = await ArticleAsync(spa);
+        var input = new SubstituteReceiptInput(Guid.CreateVersion7(), "E-9", DateTimeOffset.UtcNow.AddHours(-hours), null, null,
+            [new SubstituteArticle(article.Id, 1)], [new PaymentInput(PaymentMethod.Cash, 12.50m, null, null)], 12.50m);
+
+        // When er nacherfasst wird
+        await ReenterAsync(spa, register, input);
+
+        // Then warnt die Kasse nur nach mehr als 48 Stunden, in Österreich mit dem Weg über FinanzOnline
+        var after = (await spa.GetAsync<List<CashRegisterDto>>($"/api/pos/registers?locationId={spa.Location.Id}", Ct)).Single(r => r.Id == register.Id);
+        var warning = after.Warnings.FirstOrDefault(w => w.Contains("länger als 48 Stunden nicht erreichbar", StringComparison.Ordinal));
+        if (expected is null)
+        {
+            Assert.Null(warning);
+        }
+        else
+        {
+            Assert.Contains(expected, warning, StringComparison.Ordinal);
+        }
+    }
+
     private static async Task<CashRegisterDto> CreateRegisterAsync(TestSpa spa) =>
         await spa.PostAsync<CashRegisterDto>("/api/pos/registers",
             new CashRegisterInput(spa.Location.Id, $"T-{Guid.NewGuid():N}"[..14], FiscalCountry.AT, "Test-Spa GmbH\nTeststraße 1, 1010 Wien\nATU12345678",
