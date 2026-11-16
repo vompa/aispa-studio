@@ -6075,3 +6075,165 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
   - `HelpTests` 17, `HelpPageCheckTests` 4, Hilfe-Tests im Web 61 von 61; `dotnet format` sauber, Release-Build ohne Warnungen.
 - **Nicht geprüft:** die laufende App unter Windows, die Skalierung 125 und 150 Prozent, ein Lauf mit angebundenem Kartenterminal; die volle Desktop-Suite läuft in der CI.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Kassa ohne Verbindung: Nacherfassung von Ersatzbelegen, Schritt 1 Server (16.11.2026)
+
+- **Auftrag:** „Mach weiter mit Netzausfall und Ersatzbelegen“ (Auftraggeber, 16.11.2026); offener Punkt aus ADR 0005.
+- **Was:**
+  - `POST /api/pos/registers/{id}/substitute-receipts` nimmt einen Ersatzbeleg (Id, Nummer, Zeitpunkt, Termine, Artikel, Zahlungen, Summe, Trinkgeld) und erstellt daraus in einer Transaktion Rechnung und signierten Beleg.
+  - `Receipt.SubstituteId`, `SubstituteNumber`, `SubstituteIssuedAt` (Migration `ReceiptSubstitute`, eindeutiger Index auf der Id); `ReceiptDto` nennt Nummer und Zeitpunkt.
+  - PDF und Bon drucken „Nacherfassung zu Ersatzbeleg … vom …“.
+  - [ADR 0096](../entscheidungen/0096-kassieren-ohne-verbindung-ersatzbeleg-und-nacherfassung.md).
+- **Detailentscheidungen:**
+  1. Belegdatum und Signatur sind die der Nacherfassung; der Zeitpunkt des Ersatzbelegs steht daneben.
+  2. Die Summe wird zweimal verglichen: vor dem Kassieren gegen die Positionen, danach gegen den Beleg (Anzahlung, Barzahlungsrabatt, Rundung). Bei Abweichung 409 mit beiden Beträgen.
+  3. Ein Termin muss eingecheckt sein wie beim gewöhnlichen Kassieren; die App sendet das Einchecken vor dem Ersatzbeleg.
+  4. Ein Ersatzbeleg, der mehr als fünf Minuten in der Zukunft liegt, wird abgelehnt (falsche Uhr am Gerät).
+  5. Keine freien Positionen und keine Gutscheine in der Nacherfassung.
+- **Bewusst offen / später:** Ersatzbeleg in der Windows-App (Schritt 2); Hinweis auf die Meldung nach 48 Stunden; Steuerberatung.
+- **Geprüft:**
+  - Tests zuerst geplant: `SubstituteReceiptTests` 4 von 4 grün (Nacherfassung mit Termin, Artikel, Karte, bar und Trinkgeld; erneutes Senden; abweichende Summe; schon abgerechneter Termin und ungültige Angaben).
+  - `TipTests` 7, `PosTests` 39, `ReceiptPdfTests` 5, `KassenSichVTests` 4 grün; `dotnet format` sauber, Release-Build ohne Warnungen, `npm run gen:api`.
+- **Nicht geprüft:** die volle API-Suite (läuft in der CI); echte Signatureinrichtung und TSE.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Kassa ohne Verbindung: Ersatzbeleg in der Windows-App, Schritt 2 (16.11.2026)
+
+- **Auftrag:** Zweiter Schritt zu [ADR 0096](../entscheidungen/0096-kassieren-ohne-verbindung-ersatzbeleg-und-nacherfassung.md): ohne Verbindung an der Kassa kassieren.
+- **Was:**
+  - Erreicht die Kassa den Server nicht, entsteht die Rechnung am Gerät: Termine aus dem Kalender oder der Tagesliste, Artikel aus dem lokalen Stand. Unter „Bezahlen“ steht der Hinweis „Ersatzbeleg“.
+  - **Bezahlen und Beleg erstellen** gibt einen Ersatzbeleg aus: eigene Nummer, kein Steuersatz, Vermerk „Ersatzbeleg, der signierte Beleg folgt“. **Drucken** erzeugt den Bon am Gerät.
+  - Der Ersatzbeleg ist zur Nacherfassung vorgemerkt und geht beim Abgleich nach dem vorgemerkten Einchecken an die Kasse.
+  - Lehnt die Kasse ab, steht er unter „Beim Abgleich nicht übernommen“ mit **Erneut senden** statt **Erledigt**.
+  - Die Tagesliste der Kassa liegt jetzt im lokalen Stand. Der nacherfasste Beleg zeigt „Nacherfassung zu Ersatzbeleg … vom …“.
+  - Server: Die Nacherfassung rechnet keinen Barzahlungsrabatt.
+  - Hilfe `kassa-ersatzbeleg` mit zwei Bildern; `kalender-offline` und `kassa-termin-kassieren` angepasst.
+- **Detailentscheidungen:**
+  1. Der Ersatzbeleg nutzt die vorhandene Warteschlange des lokalen Stands. So bleibt die Reihenfolge mit dem vorgemerkten Einchecken erhalten, und er übersteht Abmelden und Neustart.
+  2. Nur bar und Karte am eigenständigen Gerät. Andere Zahlungsarten lehnt die Kassa mit „Ohne Verbindung nur bar oder mit Karte am eigenständigen Gerät.“ ab.
+  3. Eine Rechnung ohne Verbindung lässt sich nicht parken, weil es sie nur an diesem Gerät gibt.
+  4. Derselbe Termin bekommt an einem Gerät nur einen Ersatzbeleg. Zwei Geräte können denselben Termin kassieren; dann lehnt die Kasse den zweiten bei der Nacherfassung ab.
+  5. Im Einzelplatz und ohne lokalen Stand bleibt es bei „Kassieren braucht eine Verbindung.“
+  6. Die Nummer enthält Kasse, Datum, Uhrzeit und zwei Zeichen der Id statt eines Zählers, damit zwei Geräte nie dieselbe Nummer vergeben.
+- **Bewusst offen / später:** Hinweis in der App nach 48 Stunden ohne Verbindung; Liste der offenen Ersatzbelege mit Nachdruck; Eintritte; Personenwechsel ohne Server; Steuerberatung.
+- **Geprüft:**
+  - Tests zuerst geplant: `PosSubstituteTests` 6 von 6 grün (Ersatzbeleg mit Termin, Artikel und Trinkgeld; Nacherfassung beim Abgleich; Ablehnung mit erneutem Senden; Gutschein und Parken abgelehnt; Einzelplatz; Text des Bons).
+  - `PosTests` 48, `PosDayListTests` 7, `OfflineTests` 8, `MessageBarTests` 50, `HelpTests` 17, `HelpPageCheckTests` 4 grün.
+  - Bildtests `Kassa_Given_keine_Verbindung_…` 2 von 2 grün; beide Bilder bei 1440 px angesehen. Hilfe-Tests im Web 61 von 61.
+  - API: `SubstituteReceiptTests` 4, `PosTests` 39 grün; `dotnet format` sauber, Release-Build ohne Warnungen.
+- **Nicht geprüft:** ein echter Netzausfall an einem Windows-PC mit Server, der Druck am Bondrucker, zwei Geräte zugleich; die volle Desktop- und API-Suite läuft in der CI.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Kassa ohne Verbindung: Hinweis nach 48 Stunden, Schritt 3 (16.11.2026)
+
+- **Auftrag:** „Mach weiter mit dem 48-Stunden-Hinweis“ (Auftraggeber, 16.11.2026); offener Punkt aus [ADR 0096](../entscheidungen/0096-kassieren-ohne-verbindung-ersatzbeleg-und-nacherfassung.md).
+- **Was:**
+  - App: Ist der älteste nicht nacherfasste Ersatzbeleg älter als 48 Stunden, ergänzt der Hinweis „Keine Verbindung zum Server“ den Satz „Der älteste Ersatzbeleg ist vom … und seit mehr als 48 Stunden nicht nacherfasst: In Österreich den Ausfall der Kasse über FinanzOnline melden.“
+  - Server: Wird ein Ersatzbeleg mehr als 48 Stunden nach seiner Ausgabe nacherfasst, speichert die Kasse Beginn und Ende des Ausfalls (Migration `RegisterLongOutage`) und warnt eine Woche lang, in Österreich mit „Beginn und Ende des Ausfalls über FinanzOnline melden.“, sonst mit „Den Ausfall dokumentieren.“
+  - Hilfe `kassa-ersatzbeleg#laenger`.
+- **Detailentscheidungen:**
+  1. Maß ist der älteste nicht nacherfasste Ersatzbeleg, nicht die Zeit ohne Verbindung: Ohne kassierten Umsatz gibt es nichts zu melden, und die App weiß nach einem Neustart nicht, seit wann der Server fehlt.
+  2. Der Hinweis der App zählt auch abgelehnte Ersatzbelege.
+  3. Die Warnung der Kasse bleibt eine Woche stehen; so lange läuft die Frist für die Meldung. Ein späterer langer Ausfall beginnt neu.
+  4. Der Hinweis der App nennt Österreich im Text, weil die App ohne Verbindung das Land der Kasse nicht sicher kennt.
+- **Bewusst offen / später:** Hinweis in der App, wenn sie verbunden ist und ein abgelehnter Ersatzbeleg älter als 48 Stunden wartet; Abhaken der Warnung nach erfolgter Meldung.
+- **Geprüft:**
+  - Tests zuerst geplant: `SubstituteReceiptTests` 7 von 7 grün (neu: Österreich nach 50 Stunden, Deutschland nach 50 Stunden, Österreich nach 2 Stunden); `OfflineTests` 10 von 10 grün (neu: 49 und 47 Stunden).
+  - `PosSubstituteTests` 6, `MessageBarTests` 50, Hilfe-Tests im Web 61 grün; `dotnet format` sauber, Release-Build ohne Warnungen.
+- **Nicht geprüft:** die laufende App über 48 Stunden; die volle Suite läuft in der CI.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Kassa ohne Verbindung: Liste der offenen Ersatzbelege, Schritt 4 (16.11.2026)
+
+- **Auftrag:** „Mach weiter mit der Liste der offenen Ersatzbelege“ (Auftraggeber, 16.11.2026); offener Punkt aus [ADR 0096](../entscheidungen/0096-kassieren-ohne-verbindung-ersatzbeleg-und-nacherfassung.md).
+- **Was:**
+  - Unter **Belege** steht über den Belegen des Tages die Liste „Ersatzbelege, noch nicht nacherfasst (n)“ mit Nummer, Zeit, Betrag und Stand („wartet auf Nacherfassung“ oder „nicht übernommen: …“).
+  - Ein gewählter Ersatzbeleg steht rechts wie ein Beleg, mit **Drucken** für den Nachdruck; Storno und Rechnung mit Empfänger gibt es für ihn nicht.
+  - Ein abgelehnter Ersatzbeleg hat in der Zeile **Erneut senden**.
+  - Die Liste folgt der Warteschlange des lokalen Stands: Nach der Nacherfassung verschwindet der Eintrag von selbst.
+  - Hilfe `kassa-ersatzbeleg#liste` mit Bild `kassa-ersatzbelege.png`.
+- **Detailentscheidungen:**
+  1. Die Liste steht unter „Belege“, weil die Rezeption dort auch sonst einen Beleg sucht und nachdruckt.
+  2. Sie zeigt alle Ersatzbelege dieses Geräts, nicht nur die der gewählten Kasse; die Nummer nennt die Kasse.
+  3. Der Block erscheint nur, wenn es offene Ersatzbelege gibt.
+  4. Der Leertext der Belegliste verschwindet, solange rechts ein Ersatzbeleg steht.
+- **Bewusst offen / später:** Ersatzbelege anderer Geräte sind an diesem Gerät nicht zu sehen; Eintritte ohne Verbindung.
+- **Geprüft:**
+  - Tests zuerst geplant: `PosSubstituteTests` 7 von 7 grün (neu: Liste, Auswahl, Ablehnung mit Grund, erneutes Senden).
+  - `PosTests` 48, `OfflineTests` 10, `PosDayListTests` 7 grün; Bildtest `Kassa_Given_Ersatzbeleg_ausgegeben_When_Belege_geoeffnet_…` grün, Bild bei 1440 px angesehen.
+- **Nicht geprüft:** die laufende App unter Windows und der Nachdruck am Bondrucker; die volle Suite läuft in der CI.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Kassa ohne Verbindung: Eintritte auf dem Ersatzbeleg, Schritt 5 (16.11.2026)
+
+- **Auftrag:** „Mach weiter mit den Eintritten ohne Verbindung“ (Auftraggeber, 16.11.2026); offener Punkt aus [ADR 0096](../entscheidungen/0096-kassieren-ohne-verbindung-ersatzbeleg-und-nacherfassung.md).
+- **Was:**
+  - Server: `SubstituteReceiptInput.AreaVisitIds`. Die Nacherfassung legt den Eintritt wie beim gewöhnlichen Kassieren auf die Rechnung: Menge ist die Personenzahl, Preis und Steuer kommen vom Artikel des Bereichs.
+  - App: Ein Eintritt aus „Heute abzurechnen“ oder aus dem Kalender kommt ohne Verbindung mit Personenzahl und dem Preis der zuletzt geladenen Tagesliste auf die Rechnung.
+  - Hilfe `kassa-ersatzbeleg` und `kalender-offline` angepasst.
+- **Detailentscheidungen:**
+  1. Der Preis kommt aus der Tagesliste, weil das Gerät den Artikel des Bereichs ohne Verbindung nicht kennt.
+  2. Ohne bekannten Preis (Bereich ohne Artikel, Eintritt erst ohne Verbindung gebucht, Liste nie geladen) lehnt die Kassa mit „Der Preis dieses Eintritts ist ohne Verbindung nicht bekannt.“ ab, statt einen Betrag zu raten.
+  3. Derselbe Eintritt bekommt an einem Gerät nur einen Ersatzbeleg; die Kasse lehnt einen zweiten mit „Dieser Eintritt steht schon auf einer Rechnung.“ ab.
+- **Bewusst offen / später:** Eintritte, die erst ohne Verbindung gebucht wurden, auf dem Ersatzbeleg.
+- **Geprüft:**
+  - Tests zuerst geplant: API `SubstituteReceiptTests` 8 von 8 grün (neu: Eintritt für zwei Personen, zweiter Ersatzbeleg abgelehnt); Desktop `PosSubstituteTests` 8 von 8 grün (neu: Eintritt mit Preis der Tagesliste, ohne Preis abgelehnt, kein zweiter Ersatzbeleg).
+  - `PosTests` 48, `PosDayListTests` 7, `OfflineTests` 10 grün; `npm run gen:api`, `dotnet format` sauber, Release-Build ohne Warnungen; Hilfe-Tests im Web.
+- **Nicht geprüft:** die laufende App unter Windows; die volle Suite läuft in der CI.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Kassa ohne Verbindung: Erinnerung nach 48 Stunden auch mit Verbindung (16.11.2026)
+
+- **Auftrag:** Offener Punkt aus Schritt 3: Mit Verbindung erinnerte die App nicht, wenn ein abgelehnter Ersatzbeleg länger als 48 Stunden wartete.
+- **Was:** Der Hinweis „Beim Abgleich nicht übernommen“ ergänzt dann den Satz „Der älteste Ersatzbeleg ist vom … und seit mehr als 48 Stunden nicht nacherfasst: In Österreich den Ausfall der Kasse über FinanzOnline melden.“ (`ShellViewModel.FailedMessage`). Hilfe `kassa-ersatzbeleg#laenger` nennt beide Stellen.
+- **Detailentscheidungen:** Derselbe Satz an beiden Stellen, damit die Rezeption ihn wiedererkennt; kein eigener Banner, weil höchstens zwei Banner zugleich sichtbar sind (Design-Brief 5.15).
+- **Geprüft:** `OfflineTests` 11 von 11 grün (neu: verbunden mit abgelehntem Ersatzbeleg seit 50 Stunden), `MessageBarTests` 50, Bildtests `*Banner*` 10 grün; Release-Build ohne Warnungen.
+- **Nicht geprüft:** die laufende App; die volle Suite läuft in der CI.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Kundenmaske: „Schon vorhanden?“ mit Grund (16.11.2026)
+
+- **Auftrag:** Erster Teil von Befund L13 ([Live-Tests Rezeption](live-tests-rezeption-onboarding.md)): Die Kalender-Neuanlage nannte den Grund eines Dublettenverdachts, die Kundenmaske nur Namen. Das Zusammenführen selbst wartet auf die Entscheidung des Auftraggebers.
+- **Was:** „Schon vorhanden?“ in der Maske „Neue Kundin“ fragt zusätzlich die Erkennung des Servers (`POST /api/customers/duplicates`, dieselbe wie im Kalender und im Posteingang). Erkannte Karten stehen vorn und nennen den Grund, z. B. „gleiche Telefonnummer“. Der Vorname löst die Prüfung jetzt ebenfalls aus. Hilfe `kunden-anlegen`.
+- **Detailentscheidungen:**
+  1. Die Treffer der Kundensuche bleiben, damit ein getippter Nachname weiter sofort Karten zeigt; die Erkennung ergänzt Grund und Reihenfolge.
+  2. Höchstens drei Treffer wie bisher; Karten mit Grund zuerst, nach Stärke der Erkennung.
+  3. Ohne Verbindung oder ohne Antwort der Erkennung bleibt der Hinweis wie bisher ohne Grund.
+- **Bewusst offen / später:** Dubletten zusammenführen (Entscheidung des Auftraggebers).
+- **Geprüft:** `CustomerNewFormTests` 27 von 27 grün (neu: Grund und Reihenfolge); Bildtests der Kundenmaske; Hilfe-Tests im Web; Release-Build ohne Warnungen.
+- **Nicht geprüft:** die laufende App; die volle Suite läuft in der CI.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Datenschutz-Auskunft: Eintritte, Warteliste, Werbe-Einwilligung und Nachrichten (16.11.2026)
+
+- **Auftrag:** Block „Daten“ der Reihenfolge vom 20.10.2026 („DSGVO-Auskunft“); Prüfung, was der vorhandenen Auskunft (PDF-Ausgaben C) fehlt.
+- **Befund:** Die Auskunft nannte Stammdaten, Kontakt, Wünsche, Termine, Zahlungen, Gutscheine, Online-Konto, Gesundheitsangaben und Verlauf. Es fehlten vier Datenarten, die zum Gast gespeichert sind: Eintritte, Wartelisteneinträge, die Werbe-Einwilligung und zugeordnete Nachrichten.
+- **Was:** `CustomerDisclosure` hat die Abschnitte „Eintritte“, „Warteliste“, „Einwilligung in Werbung“ und „Nachrichten“; ohne Daten steht jeweils ein fester Satz. Hilfe `kunden-kundenkarte`.
+- **Detailentscheidungen:**
+  1. Nachrichten stehen mit Zeitpunkt, Kanal, Absender und Betreff, ohne Wortlaut: Der Wortlaut kann Angaben Dritter und Gesundheitsangaben enthalten und wird auf Wunsch eigens aus dem Posteingang herausgegeben.
+  2. Die Einwilligung nennt Stand, Adresse, Herkunft und die drei Zeitpunkte, weil sie der Nachweis sind.
+  3. Eintritte und Warteliste folgen wie die Termine den Standorten, die die aufrufende Person sehen darf.
+- **Bewusst offen / später:**
+  - Der Informationsteil nach Art. 15 Abs. 1 lit. a bis h (Zwecke, Empfänger, Speicherdauer, Rechte, Herkunft, Beschwerderecht) fehlt weiter. Sein Wortlaut ist eine Rechtsfrage und braucht den Auftraggeber oder die Datenschutzberatung.
+  - Kartenhinterlegungen und Anzahlungen aus der Online-Buchung stehen nur über ihre Belege in „Zahlungen“.
+- **Geprüft:** Tests zuerst geplant: `CustomerDisclosureTests` 8 von 8 grün (neu: alle vier Abschnitte mit Daten, alle vier ohne Daten); Hilfe-Tests im Web; `dotnet format` sauber, Release-Build ohne Warnungen.
+- **Nicht geprüft:** das PDF von Hand angesehen; die volle Suite läuft in der CI.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Kassa: Trinkgeld je Person, Schritt 3 (16.11.2026)
+
+- **Auftrag:** Offener Punkt aus [ADR 0095](../entscheidungen/0095-trinkgeld-an-der-kassa.md): Trinkgeld einer Person zuordnen.
+- **Was:**
+  - `Receipt.TipEmployeeId` (Migration `ReceiptTipEmployee`). Ohne Angabe ordnet die Kasse das Trinkgeld der Person zu, die alle Termine des Belegs behandelt hat; sonst gilt es dem Team. `CheckoutRequest.TipEmployeeId` nennt die Person ausdrücklich. Das gilt auch für nacherfasste Ersatzbelege.
+  - Tagesabschluss: `DayClosingDto.TipsByEmployee`; PDF und App zeigen je Person „Trinkgeld <Name>“ und zuletzt „Trinkgeld Team“.
+  - Hilfe `kassa-bezahlen#trinkgeld`.
+- **Detailentscheidungen:**
+  1. Automatik statt Auswahl: Die Rezeption muss nichts wählen, und der häufigste Fall (ein Termin, eine Person) stimmt von selbst.
+  2. Bei Terminen mehrerer Personen wird nicht geteilt; das Trinkgeld gilt dem Team, weil jede Aufteilung geraten wäre.
+  3. Ein Storno zieht das Trinkgeld bei derselben Person ab; wer danach bei 0 steht, fällt aus der Liste.
+  4. Eine genannte Person, die es nicht gibt, lehnt die Kasse ab.
+  5. Alte Tagesabschlüsse ohne die Liste zeigen weiter nur die Summe.
+- **Bewusst offen / später:** Person beim Bezahlen in der App wählen; Auswertung über einen Zeitraum; Auszahlung über die Lohnabrechnung.
+- **Geprüft:** Tests zuerst geplant: `TipTests` 9 von 9 grün (neu: je Person und Team mit Storno, genannte und unbekannte Person); `PosTests` 39, `DayClosingPdfTests` 4, `SubstituteReceiptTests` 8, Desktop `PosTests` 48 grün; `npm run gen:api`, `dotnet format` sauber, Release-Build ohne Warnungen.
+- **Nicht geprüft:** das PDF des Tagesabschlusses von Hand angesehen; die laufende App; die volle Suite läuft in der CI.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).

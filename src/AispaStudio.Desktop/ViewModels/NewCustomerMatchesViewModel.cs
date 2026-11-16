@@ -6,8 +6,13 @@ using CommunityToolkit.Mvvm.Input;
 namespace AispaStudio.Desktop.ViewModels;
 
 /// <summary>Treffer unter „Schon vorhanden?“ in der Maske „Neue Kundin“; „Diese Kundin nehmen“ öffnet die vorhandene Karte.</summary>
-public sealed partial class CustomerMatchOption(CustomerDto customer, Func<CustomerDto, Task> take)
+/// <param name="reason">Warum der Server die Karte für dieselbe Person hält, z. B. „gleiche Telefonnummer“ (ADR 0061); null, wenn sie nur zur Suche passt.</param>
+public sealed partial class CustomerMatchOption(CustomerDto customer, Func<CustomerDto, Task> take, string? reason = null)
 {
+    public string? Reason => reason;
+
+    public bool HasReason => !string.IsNullOrWhiteSpace(reason);
+
     /// <summary>Wie in der Trefferliste links: „Huber, Anna“ (Rufname statt Vorname).</summary>
     public string Name => Converters.ListName(customer);
 
@@ -37,7 +42,7 @@ public sealed partial class NewCustomerMatchesViewModel(IWorkstationApi api, Fun
     /// <summary>Wartezeit nach dem letzten Tastendruck, damit nicht jeder Buchstabe eine Anfrage auslöst.</summary>
     public TimeSpan Delay { get; set; } = TimeSpan.FromMilliseconds(400);
 
-    public async Task CheckAsync(string lastName, string phone, string email = "")
+    public async Task CheckAsync(string lastName, string phone, string email = "", string firstName = "")
     {
         var version = ++_version;
         var terms = SearchTerms(lastName, phone, email);
@@ -68,10 +73,34 @@ public sealed partial class NewCustomerMatchesViewModel(IWorkstationApi api, Fun
             found.AddRange((result.Value ?? []).Where(c => found.All(f => f.Id != c.Id)).ToList());
         }
 
-        Options.Clear();
-        foreach (var customer in found.Take(MaxOptions))
+        // Der Grund kommt von der Erkennung des Servers (dieselbe wie im Kalender und im Posteingang): Karten mit Grund stehen vorn (L13).
+        static string? Blank(string value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+        var candidates = (await api.PostAsync<List<CustomerCandidateDto>>("api/customers/duplicates",
+            new DuplicateCheckInput(Blank(firstName), Blank(lastName), Blank(email), Blank(phone))).ConfigureAwait(true)).Value ?? [];
+        if (version != _version)
         {
-            Options.Add(new CustomerMatchOption(customer, take));
+            return;
+        }
+
+        foreach (var candidate in candidates.Where(c => found.All(f => f.Id != c.CustomerId)))
+        {
+            var card = await api.GetAsync<CustomerDto>($"api/customers/{candidate.CustomerId}").ConfigureAwait(true);
+            if (version != _version)
+            {
+                return;
+            }
+
+            if (card.Value is { } customer)
+            {
+                found.Add(customer);
+            }
+        }
+
+        var reasons = candidates.GroupBy(c => c.CustomerId).ToDictionary(g => g.Key, g => g.OrderBy(c => c.Stage).First());
+        Options.Clear();
+        foreach (var customer in found.OrderBy(c => reasons.TryGetValue(c.Id, out var known) ? known.Stage : int.MaxValue).Take(MaxOptions))
+        {
+            Options.Add(new CustomerMatchOption(customer, take, reasons.GetValueOrDefault(customer.Id)?.Reason));
         }
 
         OnPropertyChanged(nameof(HasOptions));

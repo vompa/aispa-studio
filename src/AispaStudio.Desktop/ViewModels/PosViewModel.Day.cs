@@ -74,11 +74,16 @@ public partial class PosViewModel
     private bool _ownerLevel;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(SelectedReceipt), nameof(VoidDisabledHint))]
+    [NotifyPropertyChangedFor(nameof(SelectedReceipt), nameof(VoidDisabledHint), nameof(HasShownReceipt))]
     public partial ReceiptListItem? SelectedReceiptItem { get; set; }
 
-    /// <summary>Der gewählte Beleg der Liste; sein PDF ist ein Nachdruck und trägt „Kopie“.</summary>
-    public ReceiptViewModel? SelectedReceipt => SelectedReceiptItem is { } item ? ReceiptFor(item.Receipt, copy: true) : null;
+    /// <summary>Der gewählte Beleg der Liste; sein PDF ist ein Nachdruck und trägt „Kopie“. Ein gewählter Ersatzbeleg (ADR 0096) steht an seiner Stelle.</summary>
+    public ReceiptViewModel? SelectedReceipt => SelectedReceiptItem is { } item ? ReceiptFor(item.Receipt, copy: true)
+        : SelectedSubstitute is { } substitute ? new ReceiptViewModel(substitute.Receipt, Zone, Register?.Country ?? FiscalCountry.AT, OwnerLevel)
+        : null;
+
+    /// <summary>Rechts steht ein Beleg der Liste oder ein Ersatzbeleg.</summary>
+    public bool HasShownReceipt => SelectedReceiptItem is not null || SelectedSubstitute is not null;
 
     /// <summary>Warum „Stornieren“ gesperrt ist: wegen der Rolle bei einem Anzahlungsbeleg, sonst fehlt der Grund.</summary>
     public string VoidDisabledHint => SelectedReceipt?.VoidBlockedByRole == true
@@ -140,7 +145,8 @@ public partial class PosViewModel
     /// <summary>Zahlarten des Berichts; enthaltenes Trinkgeld steht als letzte Zeile, weil es kein Umsatz ist (ADR 0095).</summary>
     public IReadOnlyList<ReceiptRow> ReportPayments => Report is { } r
         ? [.. r.Payments.Select(p => new ReceiptRow(Money.MethodText(p.Method), Format(p.Amount))),
-            .. r.Tips != 0 ? new[] { new ReceiptRow("davon Trinkgeld (kein Umsatz)", Format(r.Tips)) } : []]
+            .. r.Tips != 0 ? new[] { new ReceiptRow("davon Trinkgeld (kein Umsatz)", Format(r.Tips)) } : [],
+            .. (r.TipsByEmployee ?? []).Select(t => new ReceiptRow($"   Trinkgeld {t.Name}", Format(t.Amount)))]
         : [];
 
     public IReadOnlyList<ReceiptRow> ReportTaxes => Report?.Taxes
@@ -423,6 +429,7 @@ public partial class PosViewModel
         IsPollingOnlineRefund = false;
         if (value is not null)
         {
+            SelectedSubstitute = null;
             _ = LoadOnlineRefundAsync(value.Receipt);
         }
     }

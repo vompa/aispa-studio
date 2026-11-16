@@ -40,6 +40,58 @@ public sealed class OfflineTests
 
     private static CalendarItem Item(CalendarViewModel calendar, Guid id) => calendar.Columns.SelectMany(c => c.Items).Single(i => i.Id == id);
 
+    [Theory]
+    [InlineData(49, true)]
+    [InlineData(47, false)]
+    public async Task Given_aeltester_Ersatzbeleg_vor_n_Stunden_When_ohne_Verbindung_Then_erinnert_der_Banner_nach_48_Stunden_an_die_Meldung(int hours, bool hint)
+    {
+        // Given ohne Verbindung ein vorgemerkter Ersatzbeleg, ausgegeben vor n Stunden
+        var stub = Api();
+        var cache = new OfflineCache(new MemoryOfflineStore(), new SampleTime());
+        var shell = await StartAsync(stub, cache);
+        stub.Down = true;
+        await shell.Calendar.LoadAsync();
+        var issued = SpaSample.At(11, 40).AddHours(-hours);
+        var substitute = SpaSample.Receipt() with { Number = 0, SubstituteNumber = "E-WIEN-1-1", SubstituteIssuedAt = issued };
+        cache.Enqueue(new PendingChange(Guid.NewGuid(), "api/pos/registers/x/substitute-receipts", "{}", "Ersatzbeleg E-WIEN-1-1: 138,80 €", issued, null,
+            Substitute: substitute));
+
+        // When die App den Stand prüft
+        await shell.CheckInAsync(Ct);
+
+        // Then nennt der Banner ab 48 Stunden den ältesten Ersatzbeleg und die Meldung über FinanzOnline
+        Assert.True(shell.IsOffline);
+        Assert.Equal(hint, shell.LongOutageHint is not null);
+        Assert.Equal(hint, shell.OfflineBanner!.Contains("seit mehr als 48 Stunden nicht nacherfasst", StringComparison.Ordinal));
+        Assert.Equal(hint, shell.OfflineBanner!.Contains("FinanzOnline", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task Given_verbunden_und_abgelehnter_Ersatzbeleg_seit_50_Stunden_Then_steht_die_Erinnerung_unter_nicht_uebernommen()
+    {
+        // Given die App ist verbunden, die Kasse hat einen 50 Stunden alten Ersatzbeleg abgelehnt
+        var stub = Api();
+        var cache = new OfflineCache(new MemoryOfflineStore(), new SampleTime());
+        var shell = await StartAsync(stub, cache);
+        Assert.Equal("Bitte neu klären.", shell.FailedMessage);
+        var issued = SpaSample.At(11, 40).AddHours(-50);
+        var substitute = SpaSample.Receipt() with { Number = 0, SubstituteNumber = "E-WIEN-1-1", SubstituteIssuedAt = issued };
+        var id = Guid.NewGuid();
+        cache.Enqueue(new PendingChange(id, "api/pos/registers/x/substitute-receipts", "{}", "Ersatzbeleg E-WIEN-1-1: 138,80 €", issued, null, Substitute: substitute));
+        cache.Complete(id, new FailedChange(id, "Ersatzbeleg E-WIEN-1-1: 138,80 €", "Dieser Termin steht schon auf einer Rechnung.", SpaSample.At(11, 40),
+            Substitute: substitute, Path: "api/pos/registers/x/substitute-receipts", Body: "{}"));
+
+        // When die App den Stand prüft
+        await shell.CheckInAsync(Ct);
+
+        // Then ist sie verbunden, und die Erinnerung an die Meldung steht beim abgelehnten Ersatzbeleg
+        Assert.False(shell.IsOffline);
+        Assert.Null(shell.OfflineBanner);
+        Assert.True(shell.HasFailed);
+        Assert.StartsWith("Bitte neu klären. Der älteste Ersatzbeleg ist vom", shell.FailedMessage, StringComparison.Ordinal);
+        Assert.Contains("FinanzOnline", shell.FailedMessage, StringComparison.Ordinal);
+    }
+
     [Fact]
     public async Task Ohne_Verbindung_letzter_Stand_und_vorgemerkter_Status_auch_nach_Neustart()
     {
@@ -54,7 +106,7 @@ public sealed class OfflineTests
         Assert.True(shell.IsOffline);
         Assert.Equal("Ohne Verbindung · Stand 19.10. 11:40", shell.Calendar.OfflineNote);
         Assert.Equal("Offline", shell.ConnectionText);
-        Assert.Contains("Kassieren geht erst wieder mit Verbindung", shell.OfflineBanner, StringComparison.Ordinal);
+        Assert.Contains("Die Kassa gibt Ersatzbelege aus", shell.OfflineBanner, StringComparison.Ordinal);
 
         shell.Calendar.OpenAppointment(SpaSample.Selected);
         await shell.Calendar.Selected!.CheckInCommand.ExecuteAsync(null);

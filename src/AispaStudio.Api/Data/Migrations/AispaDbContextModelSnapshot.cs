@@ -2708,6 +2708,12 @@ namespace AispaStudio.Api.Data.Migrations
                     b.Property<Guid>("LocationId")
                         .HasColumnType("uuid");
 
+                    b.Property<DateTimeOffset?>("LongOutageReenteredAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("LongOutageSince")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("PayeeName")
                         .HasMaxLength(70)
                         .HasColumnType("character varying(70)");
@@ -2967,12 +2973,25 @@ namespace AispaStudio.Api.Data.Migrations
                     b.Property<bool>("SignatureDeviceFailed")
                         .HasColumnType("boolean");
 
+                    b.Property<Guid?>("SubstituteId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("SubstituteIssuedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("SubstituteNumber")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)");
+
                     b.Property<Guid>("TenantId")
                         .HasColumnType("uuid");
 
                     b.Property<decimal>("Tip")
                         .HasPrecision(10, 2)
                         .HasColumnType("numeric(10,2)");
+
+                    b.Property<Guid?>("TipEmployeeId")
+                        .HasColumnType("uuid");
 
                     b.Property<decimal>("Total")
                         .HasPrecision(12, 2)
@@ -2989,7 +3008,14 @@ namespace AispaStudio.Api.Data.Migrations
 
                     b.HasIndex("BillId");
 
+                    b.HasIndex("SubstituteId")
+                        .IsUnique()
+                        .HasFilter("\"SubstituteId\" IS NOT NULL");
+
                     b.HasIndex("TenantId");
+
+                    b.HasIndex("TipEmployeeId")
+                        .HasFilter("\"TipEmployeeId\" IS NOT NULL");
 
                     b.HasIndex("VoidsReceiptId")
                         .IsUnique()

@@ -122,7 +122,7 @@
                   ActionCommand="{Binding CheckConnectionCommand}" IsVisible="{Binding Banners.Offline}" />
       <!-- Beim Abgleich abgelehnt: die Rezeption muss das neu klären -->
       <StackPanel Grid.Row="0" Margin="16,12,16,0" Spacing="6" IsVisible="{Binding Banners.Failed}">
-        <ui:InfoBar Severity="Error" Title="Beim Abgleich nicht übernommen" Message="Bitte neu klären." />
+        <ui:InfoBar Severity="Error" Title="Beim Abgleich nicht übernommen" Message="{Binding FailedMessage}" />
         <StackPanel Margin="12,0">
           <ItemsControl ItemsSource="{Binding Failed}">
             <ItemsControl.ItemTemplate>
@@ -134,7 +134,12 @@
                     <Run Text="{Binding Reason}" />
                   </TextBlock>
                   <Button Grid.Column="1" Classes="ghost" Content="Erledigt" Margin="8,0,0,0" AutomationProperties.Name="{Binding Description, StringFormat='Erledigt: {0}'}"
+                          IsVisible="{Binding CanDismiss}"
                           Command="{Binding #Root.((vm:ShellViewModel)DataContext).DismissFailedCommand}" CommandParameter="{Binding}" />
+                  <!-- Ein abgelehnter Ersatzbeleg lässt sich nicht abhaken (ADR 0096): erst an der Kassa klären, dann erneut senden -->
+                  <Button Grid.Column="1" Classes="ghost" Content="Erneut senden" Margin="8,0,0,0" AutomationProperties.Name="{Binding Description, StringFormat='Erneut senden: {0}'}"
+                          IsVisible="{Binding CanRetry}"
+                          Command="{Binding #Root.((vm:ShellViewModel)DataContext).RetryFailedCommand}" CommandParameter="{Binding}" />
                 </Grid>
               </DataTemplate>
             </ItemsControl.ItemTemplate>

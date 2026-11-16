@@ -96,6 +96,88 @@ public sealed class CustomerDisclosureTests(ApiFixture fixture)
     }
 
     [Fact]
+    public async Task Die_Auskunft_nennt_auch_Eintritte_Warteliste_Werbe_Einwilligung_und_zugeordnete_Nachrichten()
+    {
+        // Given ein Gast mit Eintritt in die Sauna, Wunsch auf der Warteliste, widerrufener Werbe-Einwilligung und einer zugeordneten Mail
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        var sauna = await spa.PostAsync<RoomDto>($"/api/locations/{spa.Location.Id}/rooms", new RoomInput("Finnische Sauna", 0, 10, IsArea: true), Ct);
+        await spa.PostAsync<AreaVisitDto>("/api/area-visits",
+            new AreaVisitRequest(spa.Location.Id, sauna.Id, spa.Customer.Id, TestSpa.At(10), TestSpa.At(13), 2), Ct);
+        await using (var scope = spa.Fixture.Factory.Services.CreateAsyncScope())
+        {
+            scope.ServiceProvider.GetRequiredService<TenantContext>().Use(spa.TenantId);
+            var db = scope.ServiceProvider.GetRequiredService<AispaDbContext>();
+            db.MarketingConsents.Add(new AispaStudio.Api.Retention.MarketingConsent
+            {
+                CustomerId = spa.Customer.Id,
+                Email = "eva@example.at",
+                State = MarketingConsentState.Withdrawn,
+                Source = "Empfang",
+                RequestedAt = new DateTimeOffset(2026, 3, 1, 9, 0, 0, TimeSpan.Zero),
+                ConfirmedAt = new DateTimeOffset(2026, 3, 1, 9, 5, 0, TimeSpan.Zero),
+                WithdrawnAt = new DateTimeOffset(2026, 9, 14, 8, 0, 0, TimeSpan.Zero),
+            });
+            db.InboundMails.Add(new AispaStudio.Api.MailIntake.InboundMail
+            {
+                MessageId = $"<{Guid.NewGuid():N}@example.at>",
+                From = "eva@example.at",
+                To = "spa@example.at",
+                Subject = "Termin nächste Woche?",
+                Body = "Haben Sie am Dienstag etwas frei?",
+                ReceivedAt = new DateTimeOffset(2026, 10, 2, 7, 30, 0, TimeSpan.Zero),
+                CustomerId = spa.Customer.Id,
+            });
+            await db.SaveChangesAsync(Ct);
+            var online = scope.ServiceProvider.GetRequiredService<AispaStudio.Api.Online.OnlineDbContext>();
+            online.WaitlistEntries.Add(new AispaStudio.Api.Online.WaitlistEntry
+            {
+                CustomerId = spa.Customer.Id,
+                LocationId = spa.Location.Id,
+                TreatmentId = spa.MassageTreatment.Id,
+                From = new DateOnly(2026, 11, 2),
+                Until = new DateOnly(2026, 11, 6),
+                Language = "de",
+                CreatedAt = new DateTimeOffset(2026, 10, 20, 10, 0, 0, TimeSpan.Zero),
+                PrivacyAcceptedAt = new DateTimeOffset(2026, 10, 20, 10, 0, 0, TimeSpan.Zero),
+                PrivacyNoticeVersion = "2026-10",
+                Status = WaitlistStatus.Waiting,
+            });
+            await online.SaveChangesAsync(Ct);
+        }
+
+        // When die Auskunft erzeugt wird
+        var pdf = await DisclosureAsync(spa.Client, spa.Customer.Id);
+
+        // Then stehen die vier Bereiche mit ihren Angaben im Dokument
+        PdfText.Keep(pdf, "auskunft-vollstaendig");
+        var text = PdfText.Text(pdf);
+        Assert.Contains("Eintritte", text, StringComparison.Ordinal);
+        Assert.Contains("Finnische Sauna", text, StringComparison.Ordinal);
+        Assert.Contains("Warteliste", text, StringComparison.Ordinal);
+        Assert.Contains("02.11.2026 bis 06.11.2026", text, StringComparison.Ordinal);
+        Assert.Contains("Wartet", text, StringComparison.Ordinal);
+        Assert.Contains("Einwilligung in Werbung", text, StringComparison.Ordinal);
+        Assert.Contains("Widerrufen", text, StringComparison.Ordinal);
+        Assert.Contains("14.09.2026", text, StringComparison.Ordinal);
+        Assert.Contains("Nachrichten", text, StringComparison.Ordinal);
+        Assert.Contains("Termin nächste Woche?", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("Haben Sie am Dienstag etwas frei?", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Ohne_Eintritte_Warteliste_Einwilligung_und_Nachrichten_nennt_die_Auskunft_das_ausdruecklich()
+    {
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+
+        var text = PdfText.Text(await DisclosureAsync(spa.Client, spa.Customer.Id));
+
+        Assert.Contains("Keine Eintritte.", text, StringComparison.Ordinal);
+        Assert.Contains("Keine Einträge auf der Warteliste.", text, StringComparison.Ordinal);
+        Assert.Contains("Keine Einwilligung gespeichert.", text, StringComparison.Ordinal);
+        Assert.Contains("Keine Nachrichten zugeordnet.", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task Mit_dem_Recht_Anamnese_zu_lesen_stehen_die_Antworten_im_Dokument()
     {
         var spa = await TestSpa.CreateAsync(fixture, Ct);

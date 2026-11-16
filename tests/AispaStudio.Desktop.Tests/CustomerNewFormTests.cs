@@ -79,6 +79,30 @@ public sealed class CustomerNewFormTests
     }
 
     [Fact]
+    public async Task Given_der_Server_erkennt_dieselbe_Telefonnummer_When_Schon_vorhanden_erscheint_Then_nennt_die_Maske_den_Grund_und_stellt_die_Karte_nach_vorn()
+    {
+        // Given die Suche findet Huber, der Server erkennt außerdem eine zweite Karte an der Telefonnummer
+        var other = Huber with { Id = Guid.NewGuid(), FirstName = "Anni", LastName = "Hubert", Phone = "+43 664 1234567" };
+        var stub = Api(Huber)
+            .On("POST /api/customers/duplicates", new List<CustomerCandidateDto> { new(other.Id, "Hubert, Anni", 1, "gleiche Telefonnummer") })
+            .On($"GET /api/customers/{other.Id}", other);
+        var customers = new CustomersViewModel(stub.Client(), TimeProvider.System);
+        await customers.InitializeAsync();
+        customers.Matches.Delay = TimeSpan.Zero;
+        customers.StartNewCommand.Execute(null);
+
+        // When Nachname und Telefon getippt sind
+        await customers.Matches.CheckAsync("Huber", "0664 1234567", "", "Anna");
+
+        // Then steht die erkannte Karte mit ihrem Grund vorn, die Karte aus der Suche ohne Grund dahinter
+        Assert.Equal(2, customers.Matches.Options.Count);
+        Assert.Equal(("Hubert, Anni", "gleiche Telefonnummer", true), (customers.Matches.Options[0].Name, customers.Matches.Options[0].Reason, customers.Matches.Options[0].HasReason));
+        Assert.False(customers.Matches.Options[1].HasReason);
+        var body = stub.Calls.Last(c => c.Route == "POST /api/customers/duplicates").Body!;
+        Assert.Contains("\"firstName\":\"Anna\"", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task Given_ein_Treffer_When_Diese_Kundin_nehmen_Then_oeffnet_die_vorhandene_Karte_statt_neu_anzulegen()
     {
         var customers = new CustomersViewModel(Api(Huber).Client(), TimeProvider.System);

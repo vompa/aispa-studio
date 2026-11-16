@@ -50,6 +50,14 @@ public sealed class CashRegister
     public long LastReceiptNumber { get; set; }
     public DateTimeOffset? LastReceiptAt { get; set; }
 
+    /// <summary>
+    /// Ausfall von mehr als 48 Stunden (ADR 0096): Zeitpunkt des ältesten Ersatzbelegs, der so spät nacherfasst wurde. Die Kasse erinnert
+    /// danach eine Woche lang an die Meldung; <see cref="LongOutageReenteredAt"/> ist das Ende des Ausfalls.
+    /// </summary>
+    public DateTimeOffset? LongOutageSince { get; set; }
+
+    public DateTimeOffset? LongOutageReenteredAt { get; set; }
+
     /// <summary>Summe aller Belege in Cent (AT: Umsatzzähler, verschlüsselt auf jedem Beleg).</summary>
     public long TurnoverCounter { get; set; }
 
@@ -141,6 +149,18 @@ public sealed class Receipt
     /// Die Zahlungen des Belegs ergeben <c>Total + Tip</c>; im Storno negativ.
     /// </summary>
     public decimal Tip { get; init; }
+
+    /// <summary>Wem das Trinkgeld gilt (ADR 0095): die Person, die behandelt hat; leer heißt Team.</summary>
+    public Guid? TipEmployeeId { get; init; }
+
+    /// <summary>Nacherfassung (ADR 0096): Id, die die App dem Ersatzbeleg gegeben hat; macht das erneute Senden gefahrlos.</summary>
+    public Guid? SubstituteId { get; init; }
+
+    /// <summary>Nummer des Ersatzbelegs, den der Gast ohne Verbindung bekommen hat.</summary>
+    public string? SubstituteNumber { get; init; }
+
+    /// <summary>Wann der Ersatzbeleg ausgegeben wurde; <see cref="IssuedAt"/> ist der Zeitpunkt der Nacherfassung und der Signatur.</summary>
+    public DateTimeOffset? SubstituteIssuedAt { get; init; }
     public Guid? VoidsReceiptId { get; init; }
     public string? VoidReason { get; init; }
 

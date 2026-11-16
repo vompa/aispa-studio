@@ -103,9 +103,22 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
         }
     }
 
+    /// <summary>Ab dieser Dauer ist ein Ausfall der Registrierkasse in Österreich zu melden.</summary>
+    internal static readonly TimeSpan LongOutage = TimeSpan.FromHours(48);
+
+    /// <summary>So lange erinnert die Kasse nach der Nacherfassung an die Meldung.</summary>
+    internal static readonly TimeSpan LongOutageReminder = TimeSpan.FromDays(7);
+
     public CashRegisterDto ToDto(CashRegister r)
     {
         var warnings = new List<string>();
+        if (r is { LongOutageSince: { } outageFrom, LongOutageReenteredAt: { } outageUntil } && time.GetUtcNow() - outageUntil <= LongOutageReminder)
+        {
+            warnings.Add($"Die Kasse war länger als 48 Stunden nicht erreichbar: Ersatzbeleg vom {outageFrom.ToUniversalTime():yyyy-MM-dd HH:mm} UTC, " +
+                $"nacherfasst am {outageUntil.ToUniversalTime():yyyy-MM-dd HH:mm} UTC." +
+                (r.Country == FiscalCountry.AT ? " Beginn und Ende des Ausfalls über FinanzOnline melden." : " Den Ausfall dokumentieren."));
+        }
+
         if (r.SignatureDeviceFailedSince is { } since)
         {
             warnings.Add($"Signatureinrichtung ausgefallen seit {since.ToUniversalTime():yyyy-MM-dd HH:mm} UTC. " +
@@ -809,6 +822,7 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
                 new DbCheckoutLookups(this, db), ct);
             db.Vouchers.AddRange(draft.NewVouchers);
             db.AppointmentDeposits.AddRange(draft.NewDeposits);
+            var tipEmployee = await TipEmployeeAsync(draft, request.TipEmployeeId, ct);
             return await IssueAsync(register, ReceiptKind.Sale, ct, (number, at) => new Receipt
             {
                 Id = draft.ReceiptId,
@@ -821,11 +835,168 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
                 Total = draft.Total,
                 Change = draft.Change,
                 Tip = draft.Tip,
+                TipEmployeeId = tipEmployee,
                 CreatedByUserId = userId,
                 Lines = draft.Lines,
                 Payments = draft.Payments,
             });
         }, ct);
+
+    /// <summary>
+    /// Nacherfassung eines Ersatzbelegs (ADR 0096): Rechnung und Beleg entstehen in einem Schritt aus dem, was auf dem Ersatzbeleg steht.
+    /// Dieselbe Id liefert denselben Beleg. Stimmen Positionen oder Summe nicht mit dem Stand am Server überein, wird nichts gebucht.
+    /// </summary>
+    public async Task<PosResult<ReceiptDto>> ReenterSubstituteAsync(Guid registerId, SubstituteReceiptInput input, string? userId, CancellationToken ct)
+    {
+        if (await db.Receipts.AsNoTracking().Where(r => r.SubstituteId == input.Id).Select(r => (Guid?)r.Id).FirstOrDefaultAsync(ct) is { } done)
+        {
+            return new PosResult<ReceiptDto>(await GetReceiptAsync(done, ct), null);
+        }
+
+        return await ReceiptTransactionAsync(registerId, async register =>
+        {
+            EnsureActive(register);
+            var number = input.Number?.Trim() ?? "";
+            if (input.Id == Guid.Empty || number.Length is 0 or > 60)
+            {
+                throw PosFailure.Invalid(nameof(input.Number), "Nummer des Ersatzbelegs angeben (höchstens 60 Zeichen).");
+            }
+
+            var now = time.GetUtcNow();
+            if (input.IssuedAt > now.AddMinutes(5))
+            {
+                throw PosFailure.Invalid(nameof(input.IssuedAt), "Der Ersatzbeleg liegt in der Zukunft. Uhrzeit des Geräts prüfen.");
+            }
+
+            if ((input.AppointmentIds?.Count ?? 0) + (input.Articles?.Count ?? 0) + (input.AreaVisitIds?.Count ?? 0) == 0)
+            {
+                throw PosFailure.Invalid(nameof(input.AppointmentIds), "Der Ersatzbeleg hat keine Positionen.");
+            }
+
+            if (input.CustomerId is { } customerId && !await db.Customers.AnyAsync(c => c.Id == customerId && c.DeletedAt == null, ct))
+            {
+                throw PosFailure.NotFound("Kunde");
+            }
+
+            var bill = new Bill { RegisterId = register.Id, CustomerId = input.CustomerId, CreatedAt = now };
+            db.Bills.Add(bill);
+            foreach (var appointmentId in input.AppointmentIds ?? [])
+            {
+                await AddLineAsync(register, bill, new BillLineInput(BillLineKind.Appointment, appointmentId, null, 1, null, 0, null, null, null, null, null), ct);
+            }
+
+            foreach (var visitId in input.AreaVisitIds ?? [])
+            {
+                await AddLineAsync(register, bill, new BillLineInput(BillLineKind.AreaVisit, null, null, 1, null, 0, null, null, null, null, null, visitId), ct);
+            }
+
+            foreach (var article in input.Articles ?? [])
+            {
+                await AddLineAsync(register, bill, new BillLineInput(BillLineKind.Article, null, article.ArticleId, article.Quantity, null, 0, null, null, null, null, null), ct);
+            }
+
+            // Das Geld ist schon kassiert: gebucht wird nur, was genau dem Ersatzbeleg entspricht; alles andere klärt ein Mensch.
+            PosFailure Mismatch(decimal atRegister) => PosFailure.Conflict(
+                $"Der Ersatzbeleg {number} nennt {Money(input.Total)}, an der Kasse ergeben die Positionen {Money(atRegister)}. "
+                + "Den Ersatzbeleg von Hand an der Kassa nacherfassen.");
+            if (bill.Lines.Sum(l => l.Amount) != input.Total)
+            {
+                throw Mismatch(bill.Lines.Sum(l => l.Amount));
+            }
+
+            var today = LocalTime.LocalDate(now, await ZoneAsync(register, ct));
+            var draft = await BuildCheckoutAsync(register, bill, new CheckoutRequest(null, input.Payments, input.Tip), now, today,
+                PaymentMethods.Available(register.Country, paymentOptions.Value), new SubstituteLookups(new DbCheckoutLookups(this, db)), ct);
+            // Eine Anzahlung oder die Rundung haben die Summe verändert, oder es bliebe Rückgeld.
+            if (draft.Total != input.Total || draft.Change != 0)
+            {
+                throw Mismatch(draft.Total);
+            }
+
+            // Mehr als 48 Stunden zwischen Ersatzbeleg und Nacherfassung: die Kasse erinnert an die Meldung des Ausfalls (§ 17 RKSV).
+            if (now - input.IssuedAt > LongOutage)
+            {
+                var fresh = register.LongOutageReenteredAt is not { } last || now - last > LongOutageReminder;
+                register.LongOutageSince = fresh || register.LongOutageSince is not { } since || input.IssuedAt < since ? input.IssuedAt : register.LongOutageSince;
+                register.LongOutageReenteredAt = now;
+            }
+
+            db.Vouchers.AddRange(draft.NewVouchers);
+            db.AppointmentDeposits.AddRange(draft.NewDeposits);
+            var tipEmployee = await TipEmployeeAsync(draft, null, ct);
+            return await IssueAsync(register, ReceiptKind.Sale, ct, (receiptNumber, at) => new Receipt
+            {
+                Id = draft.ReceiptId,
+                RegisterId = register.Id,
+                Number = receiptNumber,
+                Kind = ReceiptKind.Sale,
+                IssuedAt = at,
+                BillId = bill.Id,
+                CustomerId = bill.CustomerId,
+                Total = draft.Total,
+                Change = draft.Change,
+                Tip = draft.Tip,
+                TipEmployeeId = tipEmployee,
+                SubstituteId = input.Id,
+                SubstituteNumber = number,
+                SubstituteIssuedAt = input.IssuedAt,
+                CreatedByUserId = userId,
+                Lines = draft.Lines,
+                Payments = draft.Payments,
+            });
+        }, ct);
+    }
+
+    /// <summary>
+    /// Nacherfassung: wie das Kassieren, aber ohne Barzahlungsrabatt. Ohne Verbindung hat die App ihn nicht gewährt, und gebucht wird,
+    /// was auf dem Ersatzbeleg steht.
+    /// </summary>
+    private sealed class SubstituteLookups(ICheckoutLookups inner) : ICheckoutLookups
+    {
+        public Task<string> NewVoucherCodeAsync(CancellationToken ct) => inner.NewVoucherCodeAsync(ct);
+
+        public Task<Voucher?> FindVoucherAsync(string code, CancellationToken ct) => inner.FindVoucherAsync(code, ct);
+
+        public Task<List<AppointmentDeposit>> OpenDepositsAsync(Guid appointmentId, CancellationToken ct) => inner.OpenDepositsAsync(appointmentId, ct);
+
+        public Task<(long Number, string RegisterCode)> DepositReceiptAsync(Guid receiptId, CashRegister current, CancellationToken ct) =>
+            inner.DepositReceiptAsync(receiptId, current, ct);
+
+        public Task<decimal> CashDiscountPercentAsync(Guid registerId, CancellationToken ct) => Task.FromResult(0m);
+
+        public Task<(decimal Amount, string? Reference)> PlatformPrepaidAsync(IEnumerable<(BillLineKind Kind, Guid? AppointmentId, decimal Open)> lines,
+            CancellationToken ct) => inner.PlatformPrepaidAsync(lines, ct);
+
+        public Task<CardPayment?> FindCardPaymentAsync(Guid id, Guid billId, CancellationToken ct) => inner.FindCardPaymentAsync(id, billId, ct);
+    }
+
+    /// <summary>
+    /// Wem das Trinkgeld eines Belegs gilt (ADR 0095): die genannte Person, sonst die eine Person, die alle Termine des Belegs behandelt hat;
+    /// bei mehreren Personen oder ohne Termin gilt es dem Team (null). Ohne Trinkgeld immer null.
+    /// </summary>
+    private async Task<Guid?> TipEmployeeAsync(CheckoutDraft draft, Guid? requested, CancellationToken ct)
+    {
+        if (draft.Tip <= 0)
+        {
+            return null;
+        }
+
+        if (requested is { } chosen)
+        {
+            return await db.Employees.AnyAsync(e => e.Id == chosen, ct)
+                ? chosen
+                : throw PosFailure.Invalid("tipEmployeeId", "Die Person für das Trinkgeld gibt es nicht.");
+        }
+
+        var appointments = draft.Lines.Where(l => l.AppointmentId is not null && l.Amount > 0).Select(l => l.AppointmentId!.Value).Distinct().ToList();
+        if (appointments.Count == 0)
+        {
+            return null;
+        }
+
+        var employees = await db.Appointments.AsNoTracking().Where(a => appointments.Contains(a.Id)).Select(a => a.EmployeeId).Distinct().ToListAsync(ct);
+        return employees.Count == 1 ? employees[0] : null;
+    }
 
     /// <summary>Die Abfragen des Kassierens gegen die Datenbank.</summary>
     private sealed class DbCheckoutLookups(PosService owner, AispaDbContext db) : ICheckoutLookups
@@ -1391,6 +1562,7 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
             CustomerId = original.CustomerId,
             Total = -original.Total,
             Tip = -original.Tip,
+            TipEmployeeId = original.TipEmployeeId,
             VoidsReceiptId = original.Id,
             VoidReason = reason.Trim(),
             CreatedByUserId = userId,
@@ -1493,7 +1665,9 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
                     .Where(m => m.RegisterId == registerId && m.At >= from && m.At < until).ToListAsync(ct);
                 var accounts = await db.RevenueAccounts.AsNoTracking().ToDictionaryAsync(a => a.Id, ct);
 
-                var report = BuildDayReport(registerId, from, until, opening, receipts, movements, accounts, close);
+                var tipped = receipts.Where(r => r.TipEmployeeId is not null).Select(r => r.TipEmployeeId!.Value).Distinct().ToList();
+                var tipNames = (await db.Employees.AsNoTracking().Where(e => tipped.Contains(e.Id)).ToListAsync(ct)).ToDictionary(e => e.Id, e => e.InHouseName);
+                var report = BuildDayReport(registerId, from, until, opening, receipts, movements, accounts, close, tipNames);
 
                 if (close is not null)
                 {
@@ -1532,8 +1706,13 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
     /// <paramref name="close"/> trägt er den gezählten Bestand (Z-Bericht). Reine Rechnung ohne Datenbank.
     /// </summary>
     internal static DayClosingDto BuildDayReport(Guid registerId, DateTimeOffset from, DateTimeOffset until, decimal opening,
-        IReadOnlyList<Receipt> receipts, IReadOnlyList<CashMovement> movements, IReadOnlyDictionary<Guid, RevenueAccount> accounts, DayClosingInput? close)
+        IReadOnlyList<Receipt> receipts, IReadOnlyList<CashMovement> movements, IReadOnlyDictionary<Guid, RevenueAccount> accounts, DayClosingInput? close,
+        IReadOnlyDictionary<Guid, string>? employeeNames = null)
     {
+        // Trinkgeld je Person (ADR 0095): Stornos ziehen ab; wer nach dem Storno bei 0 steht, fällt weg; das Team steht zuletzt.
+        var tips = receipts.Where(r => r.Tip != 0).GroupBy(r => r.TipEmployeeId)
+            .Select(g => new TipTotal(g.Key, g.Key is { } id ? employeeNames?.GetValueOrDefault(id) ?? "Person" : "Team", g.Sum(r => r.Tip)))
+            .Where(t => t.Amount != 0).OrderBy(t => t.EmployeeId is null).ThenBy(t => t.Name, StringComparer.CurrentCulture).ToList();
         var lines = receipts.SelectMany(r => r.Lines).ToList();
         var payments = receipts.SelectMany(r => r.Payments).GroupBy(p => p.Method).OrderBy(g => g.Key)
             .Select(g => new PaymentTotal(g.Key, g.Sum(p => p.Amount))).ToList();
@@ -1564,7 +1743,8 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
             counted,
             counted - expected,
             Blank(close?.Note),
-            receipts.Sum(r => r.Tip));
+            receipts.Sum(r => r.Tip),
+            tips);
 
         return report;
     }
@@ -1655,7 +1835,9 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
                 SmallInvoiceLimit(register.Country),
                 deposits.Contains(receipt.Id),
                 sentMails.GetValueOrDefault(receipt.Id),
-                receipt.Tip);
+                receipt.Tip,
+                receipt.SubstituteNumber,
+                receipt.SubstituteIssuedAt);
         }
 
         static IEnumerable<Guid> VoucherIdsOf(Receipt receipt) =>

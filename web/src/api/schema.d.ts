@@ -1743,7 +1743,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Datenschutz-Auskunft nach Art. 15 DSGVO als PDF: Stammdaten, Kontakt, Wünsche, Termine, Zahlungen, Gutscheine, Online-Konto, Verlauf der Änderungen; die Anamnese nur mit dem Recht „Anamnese lesen“, sonst ein fester Satz. */
+        /** Datenschutz-Auskunft nach Art. 15 DSGVO als PDF: Stammdaten, Kontakt, Wünsche, Termine, Eintritte, Warteliste, Zahlungen, Gutscheine, Einwilligung in Werbung, Nachrichten, Online-Konto, Verlauf der Änderungen; die Anamnese nur mit dem Recht „Anamnese lesen“, sonst ein fester Satz. */
         get: operations["CustomerDisclosurePdf"];
         put?: never;
         post?: never;
@@ -2748,6 +2748,23 @@ export interface paths {
         /** Rabattgrenze des Spas in Prozent: bis dahin darf jede Person Rabatt geben, darüber nur die Kassenaufsicht. */
         put: operations["SetPosSettings"];
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pos/registers/{registerId}/substitute-receipts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Ersatzbeleg nacherfassen: aus einem ohne Verbindung ausgegebenen Ersatzbeleg entsteht ein signierter Beleg. Dieselbe Id liefert denselben Beleg. */
+        post: operations["ReenterSubstituteReceipt"];
         delete?: never;
         options?: never;
         head?: never;
@@ -9431,6 +9448,8 @@ export interface components {
              * @default 0
              */
             tip: number;
+            /** Format: uuid */
+            tipEmployeeId?: null | string;
         };
         ClockInput: {
             /** Format: uuid */
@@ -10011,6 +10030,7 @@ export interface components {
              * @default 0
              */
             tips: number;
+            tipsByEmployee?: null | components["schemas"]["TipTotal"][];
         };
         DayClosingInput: {
             /** Format: double */
@@ -11848,6 +11868,9 @@ export interface components {
              * @default 0
              */
             tip: number;
+            substituteNumber?: null | string;
+            /** Format: date-time */
+            substituteIssuedAt?: null | string;
         };
         /** @enum {unknown} */
         ReceiptKind: "Sale" | "Void" | "Start" | "Monthly" | "Yearly" | "Null" | "Closing";
@@ -13301,6 +13324,32 @@ export interface components {
             /** Format: date */
             checkedOn: string;
         };
+        SubstituteArticle: {
+            /** Format: uuid */
+            articleId: string;
+            /** Format: int32 */
+            quantity: number;
+        };
+        SubstituteReceiptInput: {
+            /** Format: uuid */
+            id: string;
+            number: string;
+            /** Format: date-time */
+            issuedAt: string;
+            /** Format: uuid */
+            customerId: null | string;
+            appointmentIds: null | string[];
+            articles: null | components["schemas"]["SubstituteArticle"][];
+            payments: components["schemas"]["PaymentInput"][];
+            /** Format: double */
+            total: number;
+            /**
+             * Format: double
+             * @default 0
+             */
+            tip: number;
+            areaVisitIds?: null | string[];
+        };
         SupervisorApproval: {
             userId: string;
             pin: string;
@@ -13476,6 +13525,13 @@ export interface components {
             /** Format: double */
             actualHours: number;
             warnings: string[];
+        };
+        TipTotal: {
+            /** Format: uuid */
+            employeeId: null | string;
+            name: string;
+            /** Format: double */
+            amount: number;
         };
         TodoItem: {
             /** Format: uuid */
@@ -21263,6 +21319,50 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    ReenterSubstituteReceipt: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                registerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SubstituteReceiptInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReceiptDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
         };
     };

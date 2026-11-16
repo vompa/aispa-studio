@@ -6306,7 +6306,7 @@
         "tags": [
           "Kunden"
         ],
-        "summary": "Datenschutz-Auskunft nach Art. 15 DSGVO als PDF: Stammdaten, Kontakt, Wünsche, Termine, Zahlungen, Gutscheine, Online-Konto, Verlauf der Änderungen; die Anamnese nur mit dem Recht „Anamnese lesen“, sonst ein fester Satz.",
+        "summary": "Datenschutz-Auskunft nach Art. 15 DSGVO als PDF: Stammdaten, Kontakt, Wünsche, Termine, Eintritte, Warteliste, Zahlungen, Gutscheine, Einwilligung in Werbung, Nachrichten, Online-Konto, Verlauf der Änderungen; die Anamnese nur mit dem Recht „Anamnese lesen“, sonst ein fester Satz.",
         "operationId": "CustomerDisclosurePdf",
         "parameters": [
           {
@@ -9561,6 +9561,68 @@
           },
           "404": {
             "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/v1/pos/registers/{registerId}/substitute-receipts": {
+      "post": {
+        "tags": [
+          "Kassa"
+        ],
+        "summary": "Ersatzbeleg nacherfassen: aus einem ohne Verbindung ausgegebenen Ersatzbeleg entsteht ein signierter Beleg. Dieselbe Id liefert denselben Beleg.",
+        "operationId": "ReenterSubstituteReceipt",
+        "parameters": [
+          {
+            "name": "registerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubstituteReceiptInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReceiptDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
           }
         }
       }
@@ -34554,6 +34616,13 @@
             "type": "number",
             "format": "double",
             "default": 0
+          },
+          "tipEmployeeId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
           }
         }
       },
@@ -36822,6 +36891,15 @@
             "type": "number",
             "format": "double",
             "default": 0
+          },
+          "tipsByEmployee": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/TipTotal"
+            }
           }
         }
       },
@@ -43717,6 +43795,19 @@
             "type": "number",
             "format": "double",
             "default": 0
+          },
+          "substituteNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "substituteIssuedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
           }
         }
       },
@@ -48862,6 +48953,100 @@
           }
         }
       },
+      "SubstituteArticle": {
+        "required": [
+          "articleId",
+          "quantity"
+        ],
+        "type": "object",
+        "properties": {
+          "articleId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "quantity": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "SubstituteReceiptInput": {
+        "required": [
+          "id",
+          "number",
+          "issuedAt",
+          "customerId",
+          "appointmentIds",
+          "articles",
+          "payments",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "issuedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "customerId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "appointmentIds": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "articles": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/SubstituteArticle"
+            }
+          },
+          "payments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PaymentInput"
+            }
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "tip": {
+            "type": "number",
+            "format": "double",
+            "default": 0
+          },
+          "areaVisitIds": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        }
+      },
       "SupervisorApproval": {
         "required": [
           "userId",
@@ -49499,6 +49684,30 @@
             "items": {
               "type": "string"
             }
+          }
+        }
+      },
+      "TipTotal": {
+        "required": [
+          "employeeId",
+          "name",
+          "amount"
+        ],
+        "type": "object",
+        "properties": {
+          "employeeId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
           }
         }
       },

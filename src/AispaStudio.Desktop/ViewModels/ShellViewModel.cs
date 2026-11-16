@@ -427,10 +427,37 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
 
     public string? OfflineBanner => IsOffline
         ? "Keine Verbindung zum Server. Kalender und Kunden zeigen den zuletzt geladenen Stand; Buchungen, Verschieben und Status werden " +
-          "vorgemerkt und beim nächsten Kontakt gesendet. Kassieren geht erst wieder mit Verbindung. " +
+          "vorgemerkt und beim nächsten Kontakt gesendet. Die Kassa gibt Ersatzbelege aus. " +
           $"Die App prüft alle {_checkInterval.TotalSeconds:0} Sekunden von selbst und lädt neu, sobald der Server wieder antwortet." +
-          (PendingCount > 0 ? $" Vorgemerkt: {PendingCount}." : "")
+          (PendingCount > 0 ? $" Vorgemerkt: {PendingCount}." : "") +
+          (LongOutageHint is { } outage ? $" {outage}" : "")
         : null;
+
+    /// <summary>
+    /// Text unter „Beim Abgleich nicht übernommen“: wartet ein abgelehnter Ersatzbeleg seit mehr als 48 Stunden, steht die Erinnerung an die
+    /// Meldung auch hier, denn mit Verbindung gibt es den Hinweis „Keine Verbindung“ nicht.
+    /// </summary>
+    public string FailedMessage => LongOutageHint is { } outage ? $"Bitte neu klären. {outage}" : "Bitte neu klären.";
+
+    /// <summary>Ab dieser Dauer ohne Nacherfassung erinnert die App an die Meldung des Ausfalls (§ 17 RKSV, ADR 0096).</summary>
+    public static readonly TimeSpan LongOutage = TimeSpan.FromHours(48);
+
+    /// <summary>
+    /// Liegt der älteste noch nicht nacherfasste Ersatzbeleg mehr als 48 Stunden zurück, nennt der Hinweis ihn und die Meldung über
+    /// FinanzOnline; sonst null. Zählt vorgemerkte und abgelehnte Ersatzbelege.
+    /// </summary>
+    public string? LongOutageHint
+    {
+        get
+        {
+            var issued = (_api.Offline?.Pending.Select(p => p.Substitute) ?? []).Concat(_api.Offline?.Failed.Select(f => f.Substitute) ?? [])
+                .Select(s => s?.SubstituteIssuedAt).OfType<DateTimeOffset>().ToList();
+            return issued.Count > 0 && issued.Min() is var oldest && _time.GetUtcNow() - oldest > LongOutage
+                ? $"Der älteste Ersatzbeleg ist vom {DayLayout.Local(oldest, _time.LocalTimeZone):dd.MM.yyyy HH:mm} und seit mehr als 48 Stunden nicht nacherfasst: " +
+                  "In Österreich den Ausfall der Kasse über FinanzOnline melden."
+                : null;
+        }
+    }
 
     public string Initials => DayLayout.Initials(User.DisplayName);
 
@@ -683,6 +710,14 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
     [RelayCommand]
     private void DismissFailed(FailedChange failed) => _api.Offline?.DismissFailed(failed.Id);
 
+    /// <summary>Abgelehnten Ersatzbeleg erneut nacherfassen (ADR 0096).</summary>
+    [RelayCommand]
+    private async Task RetryFailedAsync(FailedChange failed)
+    {
+        _api.Offline?.Retry(failed.Id);
+        await CheckInAsync().ConfigureAwait(true);
+    }
+
     /// <summary>Aktion „Verbindung prüfen“ am Offline-Banner: denselben Durchgang wie im Hintergrund sofort laufen lassen.</summary>
     [RelayCommand]
     private Task CheckConnectionAsync() => CheckInAsync();
@@ -698,6 +733,10 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
         }
 
         HasFailed = Failed.Count > 0;
+        // Der Hinweis nach 48 Stunden hängt an der Uhr, nicht an einer Änderung: bei jedem Abgleich neu lesen.
+        OnPropertyChanged(nameof(OfflineBanner));
+        OnPropertyChanged(nameof(LongOutageHint));
+        OnPropertyChanged(nameof(FailedMessage));
         Calendar.ShowPending();
     }
 

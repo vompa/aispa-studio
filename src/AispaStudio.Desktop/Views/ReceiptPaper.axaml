@@ -83,7 +83,9 @@
             </DataTemplate>
           </ItemsControl.ItemTemplate>
         </ItemsControl>
-        <Border Classes="pill ok" Classes.crit="{Binding SignatureFailed}" Margin="0,8,0,0" HorizontalAlignment="Center">
+        <TextBlock x:Name="SubstituteNote" Text="{Binding SubstituteNote}" Classes="muted small" TextWrapping="Wrap" Margin="0,6,0,0"
+                   IsVisible="{Binding SubstituteNote, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+        <Border Classes="pill ok" Classes.warn="{Binding IsSubstitute}" Classes.crit="{Binding SignatureFailed}" Margin="0,8,0,0" HorizontalAlignment="Center">
           <TextBlock Text="{Binding SignatureText}" />
         </Border>
       </StackPanel>

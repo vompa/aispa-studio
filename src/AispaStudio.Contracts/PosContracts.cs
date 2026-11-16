@@ -260,7 +260,13 @@ public sealed record PaymentInput(PaymentMethod Method, decimal Amount, string? 
 /// Trinkgeld für das Team: Der Gast zahlt es zusätzlich zum Rechnungsbetrag. Es ist kein Umsatz des Betriebs (durchlaufender Posten),
 /// steht eigens auf dem Beleg und im Tagesabschluss und zählt nicht in den Umsatzzähler (ADR 0095).
 /// </param>
-public sealed record CheckoutRequest(IReadOnlyList<LineAllocation>? Lines, IReadOnlyList<PaymentInput> Payments, decimal Tip = 0);
+/// <param name="TipEmployeeId">
+/// Wem das Trinkgeld gilt. Ohne Angabe ordnet die Kasse es der Person zu, die alle Termine des Belegs behandelt hat; sonst gilt es dem Team.
+/// </param>
+public sealed record CheckoutRequest(IReadOnlyList<LineAllocation>? Lines, IReadOnlyList<PaymentInput> Payments, decimal Tip = 0, Guid? TipEmployeeId = null);
+
+/// <summary>Trinkgeld im Tagesabschluss je Person; ohne <c>EmployeeId</c> gilt es dem Team.</summary>
+public sealed record TipTotal(Guid? EmployeeId, string Name, decimal Amount);
 
 /// <param name="Amount">Bezahlter Betrag der Position nach Rabatt.</param>
 /// <param name="Discount">Rabatt auf die Position; der Beleg zeigt den Preis davor und den Rabatt als eigene Zeile.</param>
@@ -328,7 +334,34 @@ public sealed record ReceiptDto(
     decimal? SmallInvoiceLimit = null,
     bool IsDepositReceipt = false,
     IReadOnlyList<SentDocumentDto>? SentMails = null,
-    decimal Tip = 0);
+    decimal Tip = 0,
+    string? SubstituteNumber = null,
+    DateTimeOffset? SubstituteIssuedAt = null);
+
+/// <summary>Artikel auf einem Ersatzbeleg.</summary>
+public sealed record SubstituteArticle(Guid ArticleId, int Quantity);
+
+/// <summary>
+/// Nacherfassung eines Ersatzbelegs (ADR 0096): Die Windows-App hat ohne Verbindung kassiert und einen Ersatzbeleg ausgegeben; sobald
+/// die Kasse wieder erreichbar ist, entsteht daraus ein gewöhnlicher signierter Beleg, der Nummer und Zeitpunkt des Ersatzbelegs nennt.
+/// </summary>
+/// <param name="Id">Von der App vergebene Id des Ersatzbelegs: dieselbe Id noch einmal gesendet liefert denselben Beleg.</param>
+/// <param name="Number">Nummer auf dem Ersatzbeleg, z. B. „E-EMPFANG1-20261116-003“.</param>
+/// <param name="IssuedAt">Wann der Ersatzbeleg ausgegeben wurde.</param>
+/// <param name="Payments">Was der Gast bezahlt hat, bar ohne Rückgeld; zusammen <c>Total + Tip</c>.</param>
+/// <param name="Total">Summe auf dem Ersatzbeleg ohne Trinkgeld. Weicht sie von den Preisen am Server ab, wird nichts gebucht.</param>
+/// <param name="AreaVisitIds">Eintritte in Bereiche (Sauna, Ruheraum); Menge und Preis bestimmt die Kasse aus Personenzahl und Artikel des Bereichs.</param>
+public sealed record SubstituteReceiptInput(
+    Guid Id,
+    string Number,
+    DateTimeOffset IssuedAt,
+    Guid? CustomerId,
+    IReadOnlyList<Guid>? AppointmentIds,
+    IReadOnlyList<SubstituteArticle>? Articles,
+    IReadOnlyList<PaymentInput> Payments,
+    decimal Total,
+    decimal Tip = 0,
+    IReadOnlyList<Guid>? AreaVisitIds = null);
 
 /// <summary>
 /// Empfänger einer Rechnung zu einem Beleg, z. B. für Firmenkunden: Name und Anschrift, bei Unternehmen die UID-Nummer.
@@ -416,7 +449,8 @@ public sealed record DayClosingDto(
     decimal CountedCash,
     decimal Difference,
     string? Note,
-    decimal Tips = 0);
+    decimal Tips = 0,
+    IReadOnlyList<TipTotal>? TipsByEmployee = null);
 
 /// <summary>Inhalt für einen EPC-QR-Code („GiroCode“): Kunde scannt mit der Banking-App und überweist sofort.</summary>
 public sealed record InstantTransferQr(string Payload, decimal Amount, string Iban, string PayeeName);

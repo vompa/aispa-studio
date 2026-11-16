@@ -14,7 +14,7 @@ Beim Rundenabschluss wird geprüft, dass jede Aufgabe der Runde einen vollständ
 
 ## Blöcke
 
-Ohne Block, weil die Aufgabe nichts Sichtbares ändert: T-013 (Entscheidung, nur Doku), T-014 (Entscheidung, keine Änderung), T-016 (Sichtung der zurückgestellten Kleinigkeiten), T-030 (CI-Zeitlimits), T-033 (Beispieldaten und Test), T-034 (Werkzeug knip, unbenutztes Paket entfernt), T-035 (Skill und Doku), T-040 (ADR und Konzept, nur Doku), Export/Import Aufgabe A (Export-Dienst, Knopf ohne Seite; der Knopf ist im Block „Export/Import B“ geprüft).
+Ohne Block, weil die Aufgabe nichts Sichtbares ändert: Erinnerung nach 48 Stunden mit Verbindung (derselbe Satz wie im Block „Hinweis nach 48 Stunden“, nur unter „Beim Abgleich nicht übernommen“), Kassa ohne Verbindung Schritt 1 (nur Schnittstelle; der Block kommt mit Schritt 2), T-013 (Entscheidung, nur Doku), T-014 (Entscheidung, keine Änderung), T-016 (Sichtung der zurückgestellten Kleinigkeiten), T-030 (CI-Zeitlimits), T-033 (Beispieldaten und Test), T-034 (Werkzeug knip, unbenutztes Paket entfernt), T-035 (Skill und Doku), T-040 (ADR und Konzept, nur Doku), Export/Import Aufgabe A (Export-Dienst, Knopf ohne Seite; der Knopf ist im Block „Export/Import B“ geprüft).
 
 ### T-015 – Keine Stempeluhr in „Mein Tag“, Zeiten trägt die Leitung ein
 Start: Browser in Handybreite (z. B. 390 px), die Adresse des Spas mit `/mein-tag/` öffnen, als Mitarbeiterin (Therapeutin) anmelden
@@ -1034,5 +1034,86 @@ Expected: **Rest** trägt den offenen Betrag plus 5,00 ein; das Rückgeld rechne
 Expected: Unter „Zahlungsarten“ steht als letzte Zeile „davon Trinkgeld (kein Umsatz) 16,00 €“; der Umsatz enthält das Trinkgeld nicht.
 6. Den ersten Beleg unter **Belege** stornieren und den Bericht neu ansehen.
 Expected: Das Trinkgeld im Bericht sinkt um 11,00 €.
+Closes: –
+Result: ☐
+
+### Kassa ohne Verbindung – Ersatzbeleg und Nacherfassung
+Start: Server mit `docker compose up -d --build`, Windows-App mit diesem Server verbunden (nicht Einzelplatz), als Rezeption anmelden, **Kassa** einmal öffnen, dann den Server anhalten (`docker compose stop api`) und warten, bis unten „Offline“ steht
+1. Im Kalender einen eingecheckten Termin von heute öffnen und **Kassieren** wählen.
+Expected: Die Kassa zeigt die Rechnung mit „inkl. USt“ an der Position; unter „Bezahlen“ steht der Hinweis „Ersatzbeleg“.
+2. Bei **Bar gegeben** einen glatten höheren Betrag eintragen und **Bezahlen und Beleg erstellen** wählen.
+Expected: „Bezahlt“ mit „Ersatzbeleg E-<Kasse>-<Datum>-<Uhrzeit>-…“, Summe, „Bar“, „Rückgeld“ und dem Vermerk „Ersatzbeleg, der signierte Beleg folgt“; keine Knöpfe für PDF und Mail. Mit eingerichtetem Bondrucker druckt **Drucken** den Bon mit „ERSATZBELEG“.
+3. Denselben Termin noch einmal kassieren wollen.
+Expected: „Für diesen Termin gibt es schon einen Ersatzbeleg.“
+4. Einen Artikel auf eine neue Rechnung legen, bei **Gutschein** einen Betrag und Code eintragen und bezahlen wollen; danach **Parken**.
+Expected: „Ohne Verbindung nur bar oder mit Karte am eigenständigen Gerät.“ und „Ohne Verbindung lässt sich die Rechnung nicht parken. Bezahlen oder verwerfen.“
+5. Die App beenden und neu starten, dann den Server wieder starten (`docker compose start api`) und bis zu 15 Sekunden warten.
+Expected: Unten steht wieder „Online“. Unter **Belege** steht ein neuer signierter Beleg mit „Nacherfassung zu Ersatzbeleg … vom …“; der Termin steht nicht mehr unter „Heute abzurechnen“.
+6. Gegenprobe: ohne Verbindung einen Termin kassieren, den Termin am Server an einem zweiten Gerät ebenfalls kassieren, dann die Verbindung herstellen.
+Expected: Oben steht „Beim Abgleich nicht übernommen“ mit dem Ersatzbeleg, dem Grund „Dieser Termin steht schon auf einer Rechnung.“ und **Erneut senden**, ohne **Erledigt**.
+Closes: –
+Result: ☐
+
+### Kassa ohne Verbindung – Hinweis nach 48 Stunden
+Start: wie „Kassa ohne Verbindung – Ersatzbeleg und Nacherfassung“; Server angehalten, ein Ersatzbeleg ist ausgegeben
+1. Die Uhr des PCs um drei Tage vorstellen und in der App **Verbindung prüfen** wählen.
+Expected: Der Hinweis „Keine Verbindung zum Server“ endet mit „Der älteste Ersatzbeleg ist vom … und seit mehr als 48 Stunden nicht nacherfasst: In Österreich den Ausfall der Kasse über FinanzOnline melden.“
+2. Die Uhr des PCs vorgestellt lassen, die Uhr des Servers ebenfalls um drei Tage vorstellen und den Server starten (`docker compose start api`).
+Expected: Nach der Nacherfassung zeigt die Kassa oben „Die Kasse war länger als 48 Stunden nicht erreichbar: Ersatzbeleg vom …, nacherfasst am …. Beginn und Ende des Ausfalls über FinanzOnline melden.“
+Closes: –
+Result: ☐
+
+### Kassa ohne Verbindung – Liste der offenen Ersatzbelege
+Start: wie „Kassa ohne Verbindung – Ersatzbeleg und Nacherfassung“; Server angehalten, zwei Ersatzbelege sind ausgegeben
+1. In der Kassa **Belege** wählen.
+Expected: Über „Belege heute“ steht „Ersatzbelege, noch nicht nacherfasst (2)“ mit Nummer, Zeit, Betrag und „wartet auf Nacherfassung“.
+2. Einen Ersatzbeleg anklicken und **Drucken** wählen.
+Expected: Rechts steht der Ersatzbeleg mit „Ersatzbeleg, der signierte Beleg folgt“, ohne „Beleg stornieren“; mit Bondrucker kommt der Bon noch einmal.
+3. Den Server starten und bis zu 15 Sekunden warten.
+Expected: Die Liste „Ersatzbelege“ verschwindet; die signierten Belege stehen unter „Belege heute“.
+4. Gegenprobe mit einem abgelehnten Ersatzbeleg (Termin am Server schon abgerechnet).
+Expected: Die Zeile zeigt „nicht übernommen: Dieser Termin steht schon auf einer Rechnung.“ und **Erneut senden**.
+Closes: –
+Result: ☐
+
+### Kassa ohne Verbindung – Eintritt auf dem Ersatzbeleg
+Start: wie „Kassa ohne Verbindung – Ersatzbeleg und Nacherfassung“; vor dem Anhalten des Servers steht unter „Heute abzurechnen“ ein Eintritt in die Sauna mit Preis
+1. Ohne Verbindung den Eintritt unter „Heute abzurechnen“ anklicken.
+Expected: Die Rechnung zeigt den Eintritt mit Personenzahl und dem Preis der Liste; unter „Bezahlen“ steht der Hinweis „Ersatzbeleg“.
+2. Mit Karte bezahlen.
+Expected: Der Ersatzbeleg nennt den Eintritt und die Summe.
+3. Im Kalender unter „Sauna und Ruheraum“ einen neuen Eintritt buchen und kassieren wollen.
+Expected: „Der Preis dieses Eintritts ist ohne Verbindung nicht bekannt. Den Betrag notieren und mit Verbindung kassieren.“
+4. Den Server starten und bis zu 15 Sekunden warten.
+Expected: Unter **Belege** steht der signierte Beleg mit dem Eintritt und „Nacherfassung zu Ersatzbeleg …“.
+Closes: –
+Result: ☐
+
+### Kundenmaske – „Schon vorhanden?“ mit Grund
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Rezeption anmelden, **Kunden** › **Neue Kundin**
+1. Die Telefonnummer einer vorhandenen Kundin in anderer Schreibweise eintragen (z. B. `0664 …` statt `+43 664 …`) und einen anderen Nachnamen.
+Expected: Unter „Schon vorhanden?“ steht die vorhandene Karte zuerst, mit dem Grund „gleiche Telefonnummer“ unter Name und Nummer.
+2. Nur einen häufigen Nachnamen eintragen.
+Expected: Karten aus der Suche erscheinen ohne Grund; erkennt die App einen ähnlichen Namen, steht dieser Grund dabei.
+Closes: L13 (erster Teil)
+Result: ☐
+
+### Datenschutz-Auskunft – Eintritte, Warteliste, Einwilligung und Nachrichten
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Inhaberin anmelden, **Kunden** öffnen, eine Kundin mit Eintritt, Wartelisteneintrag, Werbe-Einwilligung und zugeordneter Mail wählen
+1. Im Menü **…** der Kundenkarte **Auskunft als PDF** wählen und das PDF speichern.
+Expected: Nach „Termine“ stehen „Eintritte“ und „Warteliste“, nach „Gutscheine auf den Namen“ stehen „Einwilligung in Werbung“ (Stand, Adresse, Zeitpunkte) und „Nachrichten“ (Zeitpunkt, Kanal, Absender, Betreff, kein Wortlaut). Keine Tabelle läuft über den Rand.
+2. Dasselbe für eine Kundin ohne diese Daten.
+Expected: „Keine Eintritte.“, „Keine Einträge auf der Warteliste.“, „Keine Einwilligung gespeichert.“, „Keine Nachrichten zugeordnet.“
+Closes: –
+Result: ☐
+
+### Trinkgeld, Schritt 3 – je Person im Tagesabschluss
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Rezeption anmelden, **Kassa** öffnen
+1. Einen Termin mit 5,00 Trinkgeld kassieren, danach nur einen Artikel mit 2,00 Trinkgeld.
+Expected: Beide Belege zeigen „Trinkgeld (kein Umsatz)“.
+2. **Kassenlade & Abschluss** öffnen.
+Expected: Unter „Zahlungsarten“ steht „davon Trinkgeld (kein Umsatz) 7,00 €“, darunter „Trinkgeld <Name der behandelnden Person> 5,00 €“ und „Trinkgeld Team 2,00 €“.
+3. Den Tagesabschluss als PDF speichern.
+Expected: Das PDF nennt dieselben beiden Zeilen.
 Closes: –
 Result: ☐
