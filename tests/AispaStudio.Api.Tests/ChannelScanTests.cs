@@ -73,6 +73,7 @@ public sealed class ChannelScanTests(ApiFixture fixture)
         "POST /api/online/me/appointments/{appointmentId:guid}/card/retry",
         "POST /api/online/me/appointments/{appointmentId:guid}/card/test",
         "POST /api/online/me/appointments/{appointmentId:guid}/confirm",
+        "POST /api/online/me/appointments/{appointmentId:guid}/late",
         "POST /api/online/me/appointments/{appointmentId:guid}/deposit/retry",
         "POST /api/online/me/appointments/{appointmentId:guid}/deposit/test",
         "POST /api/online/me/appointments/{appointmentId:guid}/move",
