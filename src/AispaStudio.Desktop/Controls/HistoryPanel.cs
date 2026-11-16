@@ -60,6 +60,9 @@ public sealed class HistoryPanel : Border
         Child = new Grid { RowDefinitions = new RowDefinitions("Auto,Auto,*"), Children = { _header, divider, body } };
     }
 
+    /// <summary>Die Stile der Seitenleisten (<c>Border.sidepanel</c>: Fläche, Linie links, Bewegung) gelten auch für diese Ableitung.</summary>
+    protected override Type StyleKeyOverride => typeof(Border);
+
     public IEnumerable<HistorySectionViewModel>? Sections
     {
         get => GetValue(SectionsProperty);

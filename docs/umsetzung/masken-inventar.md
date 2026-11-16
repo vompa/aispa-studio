@@ -52,7 +52,7 @@ Diese Stellen führten früher in die eingebettete Verwaltung an einer bestimmte
 
 | Von | Ziel heute | Nativ in |
 |---|---|---|
-| Kalender, Termin „Behandlungszeiten bearbeiten …“ | `masterData/treatments`, Bereich Ablauf | Slice 94 |
+| Kalender, Termin „Behandlungszeiten bearbeiten …“ | `masterData/treatments`, Bereich Durchführung bei der Gruppe Ablauf (Adresse „ablauf“, ADR 0098) | Slice 94 |
 | Kalender, Schließtag | `masterData/closures` | Slice 95 |
 | Kalender, Raum bearbeiten | `masterData/locations` | Slice 95 |
 | Kalender, „Raum sperren …“ | `masterData/roomClosures` | Slice 95 |
@@ -89,7 +89,7 @@ Ziel nach [ADR 0098](../entscheidungen/0098-verwaltungsmasken-eine-schiene-ueber
 | Gruppe | Schiene heute | Schiene neu | Umgestellt |
 | --- | --- | --- | --- |
 | Betrieb | 6 Masken | 5 Masken (Schließzeiten und Raumsperren auf einer Seite) | |
-| Angebot | 2 Masken; Behandlung mit 7 Abschnittsreitern | 2 Masken; Behandlung mit 4 Bereichen | |
+| Angebot | 2 Masken; Behandlung mit 7 Abschnittsreitern | 2 Masken; Behandlung mit 4 Bereichen | Schritt 3 (Behandlung, 16.11.2026) |
 | Team | 7 Ansichten; Personenkarte mit 10 Reitern | 5 Ansichten; Personenkarte mit 4 Bereichen, Verlauf als Seitenleiste | |
 | Lager | 9 Reiter | 4 Reiter, dazu „Einrichtung“ | |
 | Kassa & Geld | 4 Masken | 4 Masken | |

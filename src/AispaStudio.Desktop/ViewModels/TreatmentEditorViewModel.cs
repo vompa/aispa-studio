@@ -21,7 +21,7 @@ public sealed record TreatmentCatalog(
     IReadOnlyList<StockItemDto> StockItems,
     bool ShowsMaterial = true);
 
-/// <summary>Abschnitt der Behandlung in der Reiterleiste (wie die Bereiche in <c>TreatmentsTab.tsx</c>).</summary>
+/// <summary>Bereich der Behandlung in der Reiterschiene; höchstens vier (masken.md R15).</summary>
 public sealed partial class TreatmentSection(string id, string label, Action<string> select) : ObservableObject
 {
     public string Id => id;
@@ -36,8 +36,9 @@ public sealed partial class TreatmentSection(string id, string label, Action<str
 }
 
 /// <summary>
-/// Eine Behandlung in der nativen Verwaltung (R05 Slice 94): dieselben Felder, Grenzen und Texte wie <c>web/src/admin/TreatmentsTab.tsx</c> mit den Abschnitten
-/// Grunddaten, Ablauf (mit Vorbereitungsschritten), Material, Zum Termin bereitstellen, Qualifikationen/Räume/Geräte und Preise (je Standort und nach Zeit).
+/// Eine Behandlung in der nativen Verwaltung (R05 Slice 94): dieselben Felder, Grenzen und Texte wie <c>web/src/admin/TreatmentsTab.tsx</c>, seit ADR 0098 in
+/// vier Bereichen: Grunddaten, Durchführung (Ablauf mit Vorbereitungsschritten, Material, Zum Termin bereitstellen), Preise und Verkauf (je Standort, nach
+/// Zeit, „Passt dazu“) und Qualifikationen/Räume/Geräte. Der Verlauf steht in einer Seitenleiste.
 /// Anders als im Web speichert ein „Speichern“ alles gemeinsam: die Behandlung und danach jede geänderte Teil-Liste. Prüfen und Rechnen macht die API; hier
 /// stehen nur die Pflichtfelder vorab am Feld und der Hinweis auf eine fehlende Qualifikation.
 /// </summary>
@@ -48,11 +49,16 @@ public sealed partial class TreatmentEditorViewModel : ViewModelBase, IEditableA
     public const string DurationField = "treatment.duration";
     public const string QualificationsField = "qualifications";
 
+    // Die vier Bereiche der Schiene (masken.md R15, ADR 0098).
     public const string Basics = "grunddaten";
+    public const string Execution = "durchfuehrung";
+    public const string Offer = "preise-und-verkauf";
+    public const string Resources = "ressourcen";
+
+    // Gruppen in „Durchführung“ und „Preise und Verkauf“. Bis ADR 0098 waren es eigene Reiter; die Namen bleiben als Sprungziel gültig.
     public const string Process = "ablauf";
     public const string Material = "material";
     public const string Provide = "bereitstellen";
-    public const string Resources = "ressourcen";
     public const string Prices = "preise";
     public const string Sales = "verkauf";
 
@@ -61,8 +67,7 @@ public sealed partial class TreatmentEditorViewModel : ViewModelBase, IEditableA
 
     private static readonly (string Id, string Label)[] AllSections =
     [
-        (Basics, "Grunddaten"), (Process, "Ablauf"), (Material, "Material"), (Provide, "Bereitstellen"), (Sales, "Verkauf"),
-        (Resources, "Qualifikationen & Räume"), (Prices, "Preise"),
+        (Basics, "Grunddaten"), (Execution, "Durchführung"), (Offer, "Preise und Verkauf"), (Resources, "Qualifikationen und Räume"),
     ];
 
     private static readonly string[] Inputs =
@@ -104,6 +109,7 @@ public sealed partial class TreatmentEditorViewModel : ViewModelBase, IEditableA
         Apply(treatment);
         ApplyLists([], [], [], []);
         ApplyRecommended([]);
+        MoreOpen = NoShowFeePercent is not null || DepositPercent is not null;
 
         // Eine neue Behandlung hat keine Teil-Listen; eine gespeicherte lädt sie (LoadAsync).
         IsLoaded = treatment is null;
@@ -124,23 +130,30 @@ public sealed partial class TreatmentEditorViewModel : ViewModelBase, IEditableA
     public partial IReadOnlyList<TreatmentSection> Sections { get; private set; } = [];
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(ShowsBasics), nameof(ShowsProcess), nameof(ShowsMaterial), nameof(ShowsProvide), nameof(ShowsSales), nameof(ShowsResources),
-        nameof(ShowsPrices))]
+    [NotifyPropertyChangedFor(nameof(ShowsBasics), nameof(ShowsExecution), nameof(ShowsOffer), nameof(ShowsResources))]
     public partial string SelectedSection { get; private set; } = Basics;
 
     public bool ShowsBasics => SelectedSection == Basics;
 
-    public bool ShowsProcess => SelectedSection == Process;
+    public bool ShowsExecution => SelectedSection == Execution;
 
-    public bool ShowsMaterial => SelectedSection == Material;
-
-    public bool ShowsProvide => SelectedSection == Provide;
-
-    public bool ShowsSales => SelectedSection == Sales;
+    public bool ShowsOffer => SelectedSection == Offer;
 
     public bool ShowsResources => SelectedSection == Resources;
 
-    public bool ShowsPrices => SelectedSection == Prices;
+    /// <summary>Gruppe „Material je Termin“: nur mit dem Recht auf Berichte mit Beträgen und erst für eine gespeicherte Behandlung.</summary>
+    public bool HasMaterial => _catalog.ShowsMaterial && !IsNew;
+
+    /// <summary>
+    /// Die Gruppe im gewählten Bereich, zu der ein Sprung oder ein Fehler führt (<see cref="Process"/>, <see cref="Material"/>, <see cref="Provide"/>,
+    /// <see cref="Prices"/>, <see cref="Sales"/>); die Ansicht rollt dorthin, setzt den Fokus in ihr erstes Feld und leert die Angabe.
+    /// </summary>
+    [ObservableProperty]
+    public partial string? GroupTarget { get; set; }
+
+    /// <summary>„Weitere Angaben“ in den Grunddaten (eigene Ausfallgebühr und Anzahlung): zu, solange beide leer sind (masken.md R2).</summary>
+    [ObservableProperty]
+    public partial bool MoreOpen { get; set; }
 
     /// <summary>Die Teil-Listen (Preisregeln, Vorbereitung, Material, Bereitstellen) sind geladen; eine neue Behandlung hat keine.</summary>
     [ObservableProperty]
@@ -249,12 +262,41 @@ public sealed partial class TreatmentEditorViewModel : ViewModelBase, IEditableA
 
     public bool HasNobody => WhoCanDo.Count == 0;
 
-    /// <summary>Abschnitt „Verlauf“ (ADR 0082); erst für eine gespeicherte Behandlung.</summary>
+    /// <summary>„Verlauf“ (ADR 0082) in der Seitenleiste (ADR 0098); erst für eine gespeicherte Behandlung.</summary>
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasHistory))]
+    [NotifyPropertyChangedFor(nameof(HasHistory), nameof(HistorySections))]
+    [NotifyCanExecuteChangedFor(nameof(ToggleHistoryCommand))]
     public partial HistorySectionViewModel? History { get; private set; }
 
     public bool HasHistory => History is not null;
+
+    /// <summary>Was die Seitenleiste „Verlauf“ zeigt: den einen Verlauf der Behandlung.</summary>
+    public IReadOnlyList<HistorySectionViewModel> HistorySections => History is { } history ? [history] : [];
+
+    /// <summary>Die Seitenleiste „Verlauf“ ist offen; die Schaltfläche im Kopf der Karte schaltet um, Esc und das Kreuz schließen.</summary>
+    [ObservableProperty]
+    public partial bool IsHistoryOpen { get; set; }
+
+    [RelayCommand(CanExecute = nameof(HasHistory))]
+    private void ToggleHistory() => IsHistoryOpen = !IsHistoryOpen;
+
+    /// <summary>In der Leiste ist der Verlauf aufgeklappt und bei jedem Öffnen frisch geladen.</summary>
+    partial void OnIsHistoryOpenChanged(bool value)
+    {
+        if (!value || History is not { } history)
+        {
+            return;
+        }
+
+        if (history.IsOpen)
+        {
+            _ = history.LoadAsync();
+        }
+        else
+        {
+            history.IsOpen = true;
+        }
+    }
 
     [ObservableProperty]
     public partial string? NameError { get; private set; }
@@ -332,15 +374,36 @@ public sealed partial class TreatmentEditorViewModel : ViewModelBase, IEditableA
         ApplyRecommended(HasSalesLoadError ? [] : recommended.Value!);
     }
 
-    /// <summary>Wählt einen Abschnitt; einen, den es für eine neue Behandlung nicht gibt, ersetzt „Grunddaten“.</summary>
+    /// <summary>
+    /// Wählt einen Bereich oder eine Gruppe darin (die Abschnittsnamen von vor ADR 0098 bleiben gültig): „material“ öffnet „Durchführung“ bei der Gruppe
+    /// Material. Einen Bereich, den es für eine neue Behandlung nicht gibt, ersetzt „Grunddaten“; eine Gruppe, die es nicht gibt, der Anfang ihres Bereichs.
+    /// </summary>
     public void SelectSection(string? section)
     {
-        SelectedSection = Sections.FirstOrDefault(s => s.Id == section)?.Id ?? Basics;
+        var area = AreaOf(section);
+        SelectedSection = Sections.FirstOrDefault(s => s.Id == area)?.Id ?? Basics;
         foreach (var s in Sections)
         {
             s.IsOn = s.Id == SelectedSection;
         }
+
+        GroupTarget = SelectedSection == area && area != section && HasGroup(section) ? section : null;
     }
+
+    private static string? AreaOf(string? section) => section switch
+    {
+        Process or Material or Provide => Execution,
+        Prices or Sales => Offer,
+        _ => section,
+    };
+
+    private bool HasGroup(string? group) => group switch
+    {
+        Process or Prices => true,
+        Material => HasMaterial,
+        Provide or Sales => !IsNew,
+        _ => false,
+    };
 
     /// <summary>Sprung an ein Feld: wählt dessen Abschnitt und setzt den Fokus, sobald die Maske steht.</summary>
     public void FocusField(string? field)
@@ -391,7 +454,7 @@ public sealed partial class TreatmentEditorViewModel : ViewModelBase, IEditableA
             }
 
             StatusText = "Gespeichert. Gilt für neue Buchungen.";
-            if (History?.IsOpen == true)
+            if (IsHistoryOpen && History is not null)
             {
                 await History.LoadAsync().ConfigureAwait(true);
             }
@@ -667,14 +730,15 @@ public sealed partial class TreatmentEditorViewModel : ViewModelBase, IEditableA
         _qualificationNoticed = false;
         if (treatment is not null && History is null)
         {
-            History = new HistorySectionViewModel(_api, $"api/treatments/{treatment.Id}/history", _zone, "Wer die Behandlung und ihre Preise wann geändert hat");
+            // Wie auf der Kundenkarte heißt der Abschnitt „Änderungen“: die Leiste darüber heißt schon „Verlauf“.
+            History = new HistorySectionViewModel(_api, $"api/treatments/{treatment.Id}/history", _zone, "Wer die Behandlung und ihre Preise wann geändert hat",
+                "Änderungen", "Die Änderungen wurden nicht geladen.");
         }
 
         if (sectionsChange)
         {
-            // Neu angelegt gibt es nur, was ohne gespeicherte Behandlung geht (wie im Web).
-            Sections = [.. AllSections.Where(s => s.Id != Material || _catalog.ShowsMaterial)
-                .Where(s => !IsNew || s.Id is Basics or Process or Resources || (s.Id == Prices && HasSeveralLocations))
+            // Neu angelegt gibt es nur, was ohne gespeicherte Behandlung geht (wie im Web): von „Preise und Verkauf“ allein den Preis je Standort.
+            Sections = [.. AllSections.Where(s => !IsNew || s.Id != Offer || HasSeveralLocations)
                 .Select(s => new TreatmentSection(s.Id, s.Label, SelectSection))];
             SelectSection(SelectedSection);
         }
@@ -683,6 +747,7 @@ public sealed partial class TreatmentEditorViewModel : ViewModelBase, IEditableA
         _applying = false;
         OnPropertyChanged(nameof(Id));
         OnPropertyChanged(nameof(IsNew));
+        OnPropertyChanged(nameof(HasMaterial));
         OnPropertyChanged(nameof(Title));
         OnPropertyChanged(nameof(HasUnsavedChanges));
     }

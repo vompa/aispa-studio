@@ -6302,3 +6302,37 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
   - design.md Abschnitt 6 sagt für die Reiterzeile der Verwaltung „Menü Mehr“ und für „Zahlen“ „es gibt kein Überlaufmenü für Reiter“.
   - `Border.pill.warn > StackPanel > TextBlock` und ein zweites `Border.pill.warn > TextBlock` in `Styles.axaml` beschreiben denselben Baustein mit verschiedenem Aufbau.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Verwaltungsmasken modernisieren, Schritt 3: Behandlung mit vier Bereichen (Aufgabe T-062, 16.11.2026)
+
+- **Auftrag:** Der Auftraggeber hat am 16.11.2026 beauftragt, alle Verwaltungsmasken nach [ADR 0098](../entscheidungen/0098-verwaltungsmasken-eine-schiene-uebersicht-seitenleiste.md) zu modernisieren. Dieser Schritt stellt die Karte der Behandlung um (Verwaltung › Angebot › Behandlungen).
+- **Was:**
+  - Die Schiene hat vier Bereiche statt sieben Abschnittsreitern: Grunddaten · Durchführung · Preise und Verkauf · Qualifikationen und Räume (`TreatmentEditorViewModel`, `TreatmentEditorView.axaml`).
+  - „Durchführung“ zeigt Vor- und Nachbereitung, Vorbereitungsschritte, Material je Termin und „Zum Termin bereitstellen“ als Gruppen untereinander. „Preise und Verkauf“ zeigt Preis je Standort, Preise nach Wochentag und Uhrzeit und „Passt dazu“.
+  - „Verlauf“ ist eine Schaltfläche im Kopf der Karte und öffnet die Seitenleiste `HistoryPanel`. Das Akkordeon unter den Feldern entfällt.
+  - Die Abschnittsnamen von vor ADR 0098 (`ablauf`, `material`, `bereitstellen`, `preise`, `verkauf`) bleiben Sprungziele: Sie öffnen den Bereich, rollen zur Gruppe und setzen den Fokus in ihr erstes Feld. Das gilt für den Sprung aus dem Kalender, von „Kosten“ und für Fehler beim Speichern einer Teil-Liste.
+  - In „Grunddaten“ ist „Weitere Angaben“ (Ausfallgebühr, Anzahlung) eingeklappt und von selbst offen, wenn die Behandlung einen eigenen Wert hat (masken.md R2).
+  - In „Qualifikationen und Räume“ stehen „Nötige Qualifikationen“ und „Wer kann das?“ 3 : 2 nebeneinander (`MainSideColumns`, masken.md R14).
+  - `HistoryPanel` übernimmt den Stilschlüssel von `Border`. Ohne ihn griffen die Stile `Border.sidepanel` nicht: Die Leiste hatte keine Fläche und war durchsichtig.
+  - Handbuch: `behandlungen`, `behandlungen-verlauf`, `behandlungen-bereitstellen-einrichten`, `stammdaten-behandlung-anlegen`, `berichte-vorbereitung-festlegen`, `kalender-tastenkuerzel`, `kosten-material-erfassen`, `kosten`, `lager-material-anlegen`; Bilder `verwaltung-behandlungen`, `-verkauf` neu, `-durchfuehrung` und `-verlauf` dazu.
+  - design.md Abschnitt 6 beschreibt die Karte der Behandlung; im [Masken-Inventar](masken-inventar.md) ist die Zeile „Angebot“ umgestellt; Handtest in [handtests.md](handtests.md).
+- **Detailentscheidungen:**
+  1. Der erste Bereich bleibt „Grunddaten“ ohne Kennzahl-Kacheln. ADR 0098 nennt für die Behandlung diese vier Bereiche; Dauer und Preis stehen dort als erste Felder, Kacheln darüber würden sie nur wiederholen.
+  2. Die neuen Bereiche heißen im Code `durchfuehrung` und `preise-und-verkauf`. Die alten Namen sind Gruppen darin und keine Reiter mehr; `grunddaten` und `ressourcen` bleiben.
+  3. Ein Sprung zu einer Gruppe, die es für die Person oder die Behandlung nicht gibt (Material ohne das Recht auf Berichte mit Beträgen, „Passt dazu“ vor dem Anlegen), landet am Anfang des Bereichs. Gibt es den ganzen Bereich nicht, bleibt es bei „Grunddaten“ wie bisher.
+  4. Eine neue Behandlung zeigt, was bisher schon erlaubt war: Grunddaten, Durchführung nur mit Vor- und Nachbereitung, Qualifikationen und Räume und, bei mehreren Standorten, „Preise und Verkauf“ nur mit dem Preis je Standort.
+  5. Die Seitenleiste liegt rechts über der Karte. Bleiben daneben mindestens 560 px, rückt die Karte neben die Leiste; im Mindestfenster 1100 liegt die Leiste über dem rechten Teil der Karte (ADR 0098, „Folgen und Stand“).
+  6. Der Abschnitt in der Leiste heißt „Änderungen“ wie auf der Kundenkarte, weil der Kopf der Leiste schon „Verlauf“ heißt. Er ist beim Öffnen aufgeklappt und lädt bei jedem Öffnen neu.
+  7. Eingeklappt sind nur Ausfallgebühr und Anzahlung. Die Einwirkzeit bleibt sichtbar: Die Lückenvorschläge des Kalenders rechnen seit heute mit ihr.
+  8. Die Karte ist in jedem Bereich gleich breit (Höchstbreite 760). Vorher war sie so breit wie ihr Inhalt, und der Kopf sprang beim Wechsel des Bereichs.
+  9. Der Weg „Stammdaten › Behandlungen › Grunddaten“, den der Assistent für Preis und Dauer nennt (`FieldMasks.cs`), stimmt weiter: Beide Felder stehen in „Grunddaten“. Die API ist nicht geändert.
+  10. Kopf und Schiene stehen fest über dem rollenden Teil der Karte. Vorher rollten sie mit; nach einem Sprung zu einer unteren Gruppe wären die Bereiche und „Verlauf“ sonst aus dem Bild.
+  11. Die Rechte sind unverändert; es entfällt keine Funktion.
+- **Bewusst offen / später:**
+  - Mit offener Seitenleiste „KI und Hilfe“ bleiben der Karte im Mindestfenster rund 330 px. Das war mit sieben Reitern schon so; die Messung für Liste, Karte und beide Leisten steht laut ADR 0098 beim Schritt Personenkarte.
+- **Geprüft:** Tests zuerst angepasst und geschrieben. `TreatmentsTests` mit `HelpTests`, `DesignTokenTests`, `TermsAndTooltipTests` und `ClientArchitectureTests` 184 von 184 (neu: vier Bereiche in fester Reihenfolge, jede alte Abschnittsadresse landet im richtigen Bereich bei der richtigen Gruppe, Materialfehler öffnet „Durchführung“, Verlauf lädt bei jedem Öffnen, „Weitere Angaben“ offen oder zu). Ansichtstests zur Behandlung, zu den Bausteinen und zu den Sprungzielen 67 von 67 (neu: Schiene einzeilig bei 1100 × 680 und fest über dem rollenden Teil, Sprung mit Fokus in der Gruppe für fünf Adressen, Materialfehler mit Fokus, Verlauf als Seitenleiste in hell und dunkel, Esc schließt und gibt den Fokus zurück, neue Behandlung ohne „Verlauf“). API `FieldMaskInventoryTests` und `BusinessIncompleteTests` 14 von 14; Hilfe-Tests im Web (`vitest run src/help`) 61 von 61. `dotnet build AispaStudio.slnx -c Release` und `dotnet format AispaStudio.slnx --verify-no-changes` mit Exitcode 0. Bilder als Inhaberin angesehen: Grunddaten, Durchführung und Verlauf in hell und dunkel, „Preise und Verkauf“, „Qualifikationen und Räume“, neue Behandlung und das Mindestfenster in hell.
+- **Nicht geprüft:** die laufende App mit Maus und Tastatur; hoher Kontrast und Screenreader; 125 und 150 Prozent Skalierung; die volle Suite läuft in der CI.
+- **Beim Schreiben festgestellt:**
+  - `FieldMasks.cs` nennt als Weg „Stammdaten › Behandlungen“; in der Windows-App heißt die Gruppe seit Ä293 „Angebot“.
+  - `behandlungen.md` enthält zwei fast gleiche Sätze zu Vorbereitung, Dauer und Nachbereitung (der zweite ergänzt die Einwirkzeit).
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).

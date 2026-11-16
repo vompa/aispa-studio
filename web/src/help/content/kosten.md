@@ -15,7 +15,7 @@ Oben wählt man **Standort** und **Monat**. Die Tabelle zeigt jede aktive Behand
 
 Die Vollkosten je Termin sind die Summe aus fünf Teilen, jeder auf Cent gerundet:
 
-1. **Material**: Menge mal Preis je Einheit aller Zeilen im Bereich „Material“ der Behandlung (Stammdaten).
+1. **Material**: Menge mal Preis je Einheit aller Zeilen im Bereich „Material“ der Behandlung (Stammdaten; in der Windows-App die Gruppe „Material je Termin“ im Bereich „Durchführung“).
 2. **Personal**: Vorbereitung, Dauer und Nachbereitung der Behandlung (in Minuten, aus den Stammdaten unter „Behandlungen“) zum Stundensatz, geteilt durch die „Produktive Arbeitszeit (%)“. Eine Einwirkzeit der Behandlung (Person frei, Raum belegt) zählt nicht als Personalzeit.
 3. **Raum**: die Raumminuten zum Mietanteil je Minute. Raumminuten sind Vorbereitung, Dauer, Nachbereitung und die Raumpflege des Raums; eine Einwirkzeit zählt voll mit, weil der Raum belegt bleibt.
 4. **Raumpflege**: die Minuten für die Raumpflege zum Satz „Raumpflege pro Stunde“ plus das „Pflegematerial je Reinigung“ des Raums.
@@ -104,4 +104,4 @@ Eine Zeile je aktiver Person mit Arbeitszeiten an diesem Standort. Eingetragen w
 
 ## Material je Behandlung {#material}
 
-Das Material je Termin einer Behandlung wird nicht hier, sondern bei der Behandlung gepflegt: **Verwaltung** › **Angebot** › **Behandlungen**, Bereich **Material** (in der Tabelle öffnet **Material pflegen** diese Stelle). Die Vollkosten rechnen mit dieser Liste. Alle Angaben dazu stehen unter [Behandlungen, Material](hilfe:behandlungen#material).
+Das Material je Termin einer Behandlung wird nicht hier, sondern bei der Behandlung gepflegt: **Verwaltung** › **Angebot** › **Behandlungen**, Bereich **Material** (in der Windows-App Bereich **Durchführung**, Gruppe **Material je Termin**; in der Tabelle öffnet **Material pflegen** diese Stelle). Die Vollkosten rechnen mit dieser Liste. Alle Angaben dazu stehen unter [Behandlungen, Material](hilfe:behandlungen#material).
