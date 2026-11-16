@@ -64,7 +64,7 @@ public sealed partial class ViewTests
         var color = ((ISolidColorBrush)text.Foreground!).Color;
         Assert.Equal(Resolve(text, "WarnBrush"), color);
         Assert.NotEqual(Resolve(text, "CritBrush"), color);
-        Assert.Contains(warning.GetVisualDescendants().OfType<Icon>(), i => i.Data == Icons.Warning && i.IsEffectivelyVisible);
+        Assert.Contains(AttentionHint(window).GetVisualDescendants().OfType<Icon>(), i => i.Data == Icons.Warning && i.IsEffectivelyVisible);
         Assert.Equal(shell.Customers.StatsWarningTip, ToolTip.GetTip(warning));
 
         // Die Kennzahlen selbst bleiben ohne Symbol in der Hauptfarbe.

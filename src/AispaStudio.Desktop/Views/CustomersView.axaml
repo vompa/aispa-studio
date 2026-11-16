@@ -203,7 +203,8 @@
             </Border>
             <StackPanel Grid.Column="1" Spacing="6" IsVisible="{Binding !IsEditingContact}">
               <WrapPanel>
-                <TextBlock Text="{Binding SelectedName}" Classes="h1 value" Margin="0,0,8,0" VerticalAlignment="Center" />
+                <TextBlock x:Name="CardName" Text="{Binding SelectedName}" Classes="h1 value" Margin="0,0,8,0" VerticalAlignment="Center" ui:ToolTipBehavior.Reachable="True"
+                           ToolTip.Tip="{Binding SelectedGreeting, StringFormat='So beginnen Mails, Erinnerungen und Antworten der KI an diesen Gast:&#10;{0}'}" />
                 <ui:Icon Data="{Binding SelectedSymbolIcon}" Width="18" Height="18" Foreground="{DynamicResource Fg2Brush}" VerticalAlignment="Center" Margin="0,0,8,0"
                          IsVisible="{Binding SelectedSymbolIcon, Converter={x:Static ObjectConverters.IsNotNull}}" />
                 <TextBlock Text="{Binding SelectedPronouns}" Classes="secondary" VerticalAlignment="Center" Margin="0,0,8,0"
@@ -215,11 +216,9 @@
                   <TextBlock Text="{Binding StarsChipText}" AutomationProperties.AccessibilityView="Raw" />
                 </Border>
               </WrapPanel>
-              <!-- Gültiger Name mit Titeln (Belege, Nachrichten) und die Anrede in Nachrichten; Tab-Stopps, damit ihr Tooltip auch per Tastatur erscheint (W-Muster 12) -->
+              <!-- Gültiger Name mit Titeln (Belege, Nachrichten); Tab-Stopp, damit der Tooltip auch per Tastatur erscheint (W-Muster 12). Die Anrede steht im Tooltip am Namen (ADR 0094: der Name nicht dreimal) -->
               <TextBlock Text="{Binding SelectedAddressLine}" Classes="secondary" ToolTip.Tip="Adresszeile mit dem gültigen Namen: so steht es auf Rechnungen und Belegen."
                          IsVisible="{Binding SelectedAddressLine, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" ui:ToolTipBehavior.Reachable="True" />
-              <TextBlock Text="{Binding SelectedGreeting}" Classes="secondary small" TextWrapping="Wrap"
-                         ToolTip.Tip="So beginnen Mails, Erinnerungen und Antworten der KI an diesen Gast." ui:ToolTipBehavior.Reachable="True" />
               <WrapPanel x:Name="ContactLine">
                 <Button Classes="copy" Command="{Binding CopyPhoneCommand}" ToolTip.Tip="Klicken kopiert die Nummer."
                         AutomationProperties.Name="{Binding Selected?.Phone, StringFormat='Telefon {0} kopieren', TargetNullValue=''}"
@@ -325,25 +324,27 @@
             </StackPanel>
           </Border>
 
-          <!-- Kennzahlen als eine Zeile; Warnungen in warn mit Dreieck (nie die Farbe allein, Brief 5.9); der nächste Termin hervorgehoben mit „buchen“ -->
-          <StackPanel Spacing="4">
-            <WrapPanel>
-              <TextBlock x:Name="StatsLine" Text="{Binding StatsLine}" Classes="value" TextWrapping="Wrap" Margin="0,0,12,0" VerticalAlignment="Center" />
-              <StackPanel x:Name="StatsWarning" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center" ToolTip.Tip="{Binding StatsWarningTip}"
-                          ui:ToolTipBehavior.Reachable="True" AutomationProperties.Name="{Binding StatsWarning}"
-                          IsVisible="{Binding StatsWarning, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-                <ui:Icon Data="{x:Static ui:Icons.Warning}" Width="16" Height="16" Foreground="{DynamicResource WarnBrush}" />
-                <TextBlock Text="{Binding StatsWarning}" Classes="warn" />
+          <!-- Warnstreifen über der oberen Drittellinie der Karte (masken.md R14, ADR 0094): was vor der Behandlung gelesen werden muss, als ein Hinweis „Warnung“ (Brief 5.9) mit einem Dreieck -->
+          <Border x:Name="AttentionHint" Classes="hint warn" IsVisible="{Binding HasAttention}">
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+              <ui:Icon Data="{x:Static ui:Icons.Warning}" Width="16" Height="16" Foreground="{DynamicResource WarnBrush}" VerticalAlignment="Top" Margin="0,2,0,0" />
+              <StackPanel Grid.Column="1" Spacing="4">
+                <TextBlock x:Name="AvoidWarning" Text="{Binding AvoidWarning?.Text, TargetNullValue=''}" Foreground="{DynamicResource WarnBrush}" FontWeight="SemiBold" TextWrapping="Wrap"
+                           ToolTip.Tip="{Binding AvoidWarning?.Tip}" ui:ToolTipBehavior.Reachable="True"
+                           IsVisible="{Binding AvoidWarning, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                <StackPanel x:Name="StatsWarning" ToolTip.Tip="{Binding StatsWarningTip}" ui:ToolTipBehavior.Reachable="True" AutomationProperties.Name="{Binding StatsWarning}"
+                            IsVisible="{Binding StatsWarning, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                  <TextBlock Text="{Binding StatsWarning}" Classes="warn" TextWrapping="Wrap" />
+                </StackPanel>
               </StackPanel>
-            </WrapPanel>
-            <StackPanel Orientation="Horizontal" Spacing="12" IsVisible="{Binding NextLine, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-              <TextBlock x:Name="NextLine" Text="{Binding NextLine}" Classes="value" FontWeight="SemiBold" VerticalAlignment="Center" TextWrapping="Wrap" />
-              <Button x:Name="NextBookLink" Classes="link" Content="buchen" Command="{Binding BookCommand}" IsVisible="{Binding CanBook}" VerticalAlignment="Center"
-                      AutomationProperties.Name="Termin buchen" />
-            </StackPanel>
-          </StackPanel>
+            </Grid>
+          </Border>
 
-          <Grid ColumnDefinitions="*,*" ColumnSpacing="32">
+          <!-- Kennzahlen als eine Zeile; der nächste Termin steht im Verlauf unter „Demnächst“, gebucht wird mit „Termin buchen“ im Kopf -->
+          <TextBlock x:Name="StatsLine" Text="{Binding StatsLine}" Classes="value" TextWrapping="Wrap" />
+
+          <!-- „Gut zu wissen“ und „Verlauf“ im Verhältnis 3 : 2 (masken.md R14); unter 720 untereinander, damit der Verlauf nicht in einer schmalen Spalte umbricht -->
+          <ui:MainSideColumns x:Name="CardColumns" Spacing="32" LineSpacing="32" StackBelow="720">
             <!-- Links „Gut zu wissen“: ein Abschnitt nur, wenn etwas gesetzt ist oder gerade bearbeitet wird; der Stift erscheint beim Überfahren und bei Fokus -->
             <StackPanel x:Name="GoodToKnow">
               <TextBlock Text="Gut zu wissen" Classes="h2" Margin="0,0,0,8" />
@@ -696,80 +697,74 @@
               </WrapPanel>
             </StackPanel>
 
-            <!-- Rechts der Verlauf: nächste und letzte Termine mit Behandlung und Person, offene Pakete, Namensänderungen, darunter alle Termine und die Änderungen -->
-            <StackPanel x:Name="Timeline" Grid.Column="1" Spacing="12">
+            <!-- Rechts der Verlauf (Variante C): nächster Termin als Kachel, „Zuletzt“ kurz mit der Stammperson einmal, Pakete, Gutscheine und Käufe als Chips, darunter alle Termine und die Änderungen -->
+            <StackPanel x:Name="Timeline" Spacing="12">
               <TextBlock Text="Verlauf" Classes="h2" />
               <TextBlock Text="Noch keine Termine." Classes="secondary" IsVisible="{Binding !Visits.Count}" />
-              <StackPanel Spacing="6" IsVisible="{Binding UpcomingEntries.Count}">
+              <StackPanel Spacing="6" IsVisible="{Binding NoUpcomingPlanned}">
                 <TextBlock Text="Demnächst" Classes="group" />
-                <ItemsControl ItemsSource="{Binding UpcomingEntries}">
+                <TextBlock x:Name="NoUpcomingLine" Text="Kein Termin geplant." Classes="secondary" />
+              </StackPanel>
+              <!-- Kachel wie eine verschachtelte Karte (Brief 1: surface-2, Radius 8, Innenabstand 12/16); weitere Termine kurz darunter -->
+              <StackPanel Spacing="8" IsVisible="{Binding NextVisit, Converter={x:Static ObjectConverters.IsNotNull}}">
+                <Border x:Name="NextVisitTile" Background="{DynamicResource Surface2Brush}" CornerRadius="8" Padding="16,12">
+                  <StackPanel Spacing="2">
+                    <TextBlock Text="{Binding NextVisit?.Relative, StringFormat='Nächster Termin · {0}', FallbackValue='', TargetNullValue=''}" Classes="secondary" />
+                    <TextBlock Text="{Binding NextVisit?.When, FallbackValue='', TargetNullValue=''}" Classes="value num" FontSize="16" FontWeight="SemiBold" />
+                    <TextBlock Text="{Binding NextVisit?.Text, FallbackValue='', TargetNullValue=''}" Classes="value" TextTrimming="CharacterEllipsis"
+                               ToolTip.Tip="{Binding NextVisit?.Text, FallbackValue='', TargetNullValue=''}" />
+                  </StackPanel>
+                </Border>
+                <ItemsControl x:Name="LaterList" ItemsSource="{Binding LaterEntries}" IsVisible="{Binding LaterEntries.Count}">
                   <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="vm:TimelineEntry">
-                      <Grid ColumnDefinitions="120,*" Margin="0,2">
-                        <TextBlock Text="{Binding When}" Classes="value num" FontWeight="Medium" />
-                        <TextBlock Grid.Column="1" Text="{Binding Text}" Classes="value" TextWrapping="Wrap" />
+                      <Grid ColumnDefinitions="Auto,*" Margin="0,2">
+                        <TextBlock Text="{Binding When}" Classes="secondary num" Margin="0,0,8,0" />
+                        <TextBlock Grid.Column="1" Text="{Binding Text}" Classes="value" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Text}" />
                       </Grid>
                     </DataTemplate>
                   </ItemsControl.ItemTemplate>
                 </ItemsControl>
               </StackPanel>
               <StackPanel Spacing="6" IsVisible="{Binding RecentEntries.Count}">
-                <TextBlock Text="Zuletzt" Classes="group" />
-                <ItemsControl ItemsSource="{Binding RecentEntries}">
+                <Grid ColumnDefinitions="*,Auto">
+                  <TextBlock Text="Zuletzt" Classes="group" />
+                  <TextBlock x:Name="MainPersonLine" Grid.Column="1" Text="{Binding MainPersonText}" Classes="secondary"
+                             IsVisible="{Binding MainPersonText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                </Grid>
+                <ItemsControl x:Name="RecentList" ItemsSource="{Binding RecentEntries}">
                   <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="vm:TimelineEntry">
-                      <Grid ColumnDefinitions="120,*,Auto" Margin="0,2">
-                        <TextBlock Text="{Binding When}" Classes="value num" />
-                        <TextBlock Grid.Column="1" Text="{Binding Text}" Classes="value" TextWrapping="Wrap" />
-                        <Border Grid.Column="2" Classes="pill" Classes.crit="{Binding IsProblem}" Margin="8,0,0,0"
-                                IsVisible="{Binding Status, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-                          <TextBlock Text="{Binding Status}" />
-                        </Border>
+                      <!-- Nur Datum und Behandlung: die schmale Spalte (3 : 2, ADR 0094) bricht so nicht um; die Pille steht dahinter und rutscht bei Bedarf als Ganzes in die nächste Zeile -->
+                      <Grid ColumnDefinitions="64,*" Margin="0,2">
+                        <TextBlock Text="{Binding When}" Classes="secondary num" VerticalAlignment="Center" />
+                        <WrapPanel Grid.Column="1">
+                          <TextBlock Text="{Binding Text}" Classes="value" Margin="0,0,8,0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Text}" />
+                          <Border Classes="pill" Classes.crit="{Binding IsProblem}" VerticalAlignment="Center"
+                                  IsVisible="{Binding Status, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                            <TextBlock Text="{Binding Status}" />
+                          </Border>
+                        </WrapPanel>
                       </Grid>
                     </DataTemplate>
                   </ItemsControl.ItemTemplate>
                 </ItemsControl>
               </StackPanel>
-              <StackPanel Spacing="6" IsVisible="{Binding HasPackages}">
-                <TextBlock Text="Offene Pakete" Classes="group" />
-                <ItemsControl ItemsSource="{Binding PackageLines}">
-                  <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="x:String">
-                      <TextBlock Text="{Binding}" Classes="value" TextWrapping="Wrap" Margin="0,2" />
-                    </DataTemplate>
-                  </ItemsControl.ItemTemplate>
-                </ItemsControl>
-              </StackPanel>
-              <StackPanel Spacing="6" IsVisible="{Binding HasVouchers}">
-                <TextBlock Text="Offene Gutscheine" Classes="group" />
-                <ItemsControl Name="VoucherList" ItemsSource="{Binding VoucherLines}">
-                  <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="x:String">
-                      <TextBlock Text="{Binding}" Classes="value" TextWrapping="Wrap" Margin="0,2" />
-                    </DataTemplate>
-                  </ItemsControl.ItemTemplate>
-                </ItemsControl>
-              </StackPanel>
-              <StackPanel Spacing="6" IsVisible="{Binding HasPurchases}">
-                <TextBlock Text="Letzte Käufe" Classes="group" />
-                <ItemsControl Name="PurchaseList" ItemsSource="{Binding PurchaseLines}">
-                  <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="x:String">
-                      <TextBlock Text="{Binding}" Classes="value" TextWrapping="Wrap" Margin="0,2" />
-                    </DataTemplate>
-                  </ItemsControl.ItemTemplate>
-                </ItemsControl>
-              </StackPanel>
-              <StackPanel Spacing="6" IsVisible="{Binding HasNameChanges}">
-                <TextBlock Text="Name geändert" Classes="group" />
-                <ItemsControl ItemsSource="{Binding NameChangeLines}">
-                  <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="x:String">
-                      <TextBlock Text="{Binding}" Classes="value" TextWrapping="Wrap" Margin="0,2" />
-                    </DataTemplate>
-                  </ItemsControl.ItemTemplate>
-                </ItemsControl>
-              </StackPanel>
+              <ItemsControl x:Name="SideChipList" ItemsSource="{Binding SideChips}" IsVisible="{Binding HasSideChips}">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate>
+                    <WrapPanel />
+                  </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:PreferenceChip">
+                    <Border Classes="tag" ToolTip.Tip="{Binding Tip}" AutomationProperties.Name="{Binding Text}" AutomationProperties.HelpText="{Binding Tip}"
+                            AutomationProperties.ControlTypeOverride="Text" AutomationProperties.AccessibilityView="Content">
+                      <TextBlock Text="{Binding Text}" AutomationProperties.AccessibilityView="Raw" />
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
               <!-- Alle Termine (höchstens die letzten 100) mit Status und Preis, aufgeklappt mit „Alle Termine“ -->
               <Button x:Name="AllVisitsToggle" Classes="link" Command="{Binding ToggleAllVisitsCommand}" IsVisible="{Binding Visits.Count}" HorizontalAlignment="Left">
                 <TextBlock Text="{Binding Visits.Count, StringFormat='Alle Termine ({0})'}" />
@@ -791,7 +786,7 @@
               </ItemsControl>
               <ContentControl Content="{Binding HistorySection}" IsVisible="{Binding HasSelection}" />
             </StackPanel>
-          </Grid>
+          </ui:MainSideColumns>
         </StackPanel>
       </Border>
     </ScrollViewer>
