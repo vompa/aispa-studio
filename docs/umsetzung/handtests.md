@@ -1150,3 +1150,18 @@ Expected: Das Häkchen fehlt.
 Closes: –
 Result: ☐
 
+### Kalender – Lücken schließen in der 7-Tage-Ansicht
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App als Rezeption, **Kalender** öffnen
+1. Bei einer Person an zwei Tagen der Woche je zwei Termine so buchen, dass dazwischen 20 Minuten frei bleiben.
+Expected: Die Termine stehen im Kalender.
+2. Auf den Namen der Person in der Kopfzeile klicken.
+Expected: Die 7-Tage-Ansicht der Person erscheint.
+3. Im Menü neben **Termin** **Lücken schließen** wählen.
+Expected: Oben steht „7 Tage ab …, nur <Name>“. Beide Vorschläge stehen in der Liste, jeder mit seinem Tag vor „bei <Name> von … auf …“.
+4. Bei einem Vorschlag **Auf … verschieben** klicken.
+Expected: Der Termin springt am richtigen Tag auf die neue Zeit; der Vorschlag verschwindet, der andere bleibt.
+5. **Filter aufheben** klicken und **Lücken schließen** erneut öffnen.
+Expected: Die Zeile „7 Tage ab …“ fehlt; die Liste gilt nur für den angezeigten Tag.
+Closes: –
+Result: ☐
+

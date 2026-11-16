@@ -1199,7 +1199,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Vorschläge, gebuchte Termine um wenige Minuten zu verschieben, damit bei einer Person keine Lücke bleibt, in die keine Behandlung passt. Verschoben wird nur über „MoveAppointment“, nach Absprache mit dem Gast. */
+        /** Vorschläge, gebuchte Termine um wenige Minuten zu verschieben, damit bei einer Person keine Lücke bleibt, in die keine Behandlung passt. Verschoben wird nur über „MoveAppointment“, nach Absprache mit dem Gast. Mit days (1 bis 7) für mehrere Tage ab date, mit employeeId nur für diese Person. */
         get: operations["GetGapSuggestions"];
         put?: never;
         post?: never;
@@ -17155,6 +17155,8 @@ export interface operations {
         parameters: {
             query: {
                 date: string;
+                days?: number;
+                employeeId?: string;
             };
             header?: never;
             path: {

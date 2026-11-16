@@ -6300,3 +6300,19 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Nicht geprüft:** die Mail in einem echten Postfach; die Seite im Browser von Hand. Die volle Suite läuft in der CI.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md); die Übersetzungen sind nicht von Muttersprachlern gelesen.
 
+## Kalender-Lücken: Vorschläge in der 7-Tage-Ansicht (16.11.2026)
+
+- **Auftrag:** Punkt „Wochenansicht“ aus dem Block „Kalender-Lücken“ der Reihenfolge vom 20.10.2026; offen seit PR #75 („Vorschläge über mehrere Tage“).
+- **Was:**
+  - `GET /api/locations/{id}/gap-suggestions` nimmt `days` (1 bis 7) und `employeeId`.
+  - Windows-App: In der 7-Tage-Ansicht lädt „Lücken schließen“ die Vorschläge aller sieben Tage; zeigt die Ansicht eine Person, nur für sie. Das Panel nennt den Umfang („7 Tage ab Mo. 19.10., nur Lena Huber“), jeder Vorschlag seinen Tag.
+  - Hilfe `kalender-luecken-schliessen`.
+- **Detailentscheidungen:**
+  1. „Wochenansicht“ ist als die vorhandene 7-Tage-Ansicht gedeutet; eine eigene Wochenübersicht aller Personen gibt es nicht.
+  2. Bei einem Filter auf Raum oder Gast kommen die Vorschläge aller Personen der sieben Tage, weil eine Lücke immer zum Tag einer Person gehört.
+  3. Höchstens sieben Tage je Abfrage; mehr rechnet der Server nicht.
+- **Bewusst offen / später:** Zähler „Lücken n“ in der Kopfzeile (Ä298, dort „falls gewünscht“); einstellbare Mindestlücke (Entscheidung des Auftraggebers, Feld in Verwaltung › Standorte).
+- **Geprüft:** Tests zuerst geplant: `GapSuggestionTests` 5 von 5 (neu: mehrere Tage, Grenze sieben, nur eine Person); `CalendarWeekTests` 22 von 22 (neu: Abfrage und Umfang in der 7-Tage-Ansicht, Tageskalender unverändert).
+- **Nicht geprüft:** die laufende App. Die volle Suite läuft in der CI.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+

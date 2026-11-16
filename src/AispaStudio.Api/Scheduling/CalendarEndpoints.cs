@@ -160,12 +160,15 @@ internal static class CalendarEndpoints
                 + "ein Tag wird immer ganz geliefert.");
 
         group.MapGet("/locations/{locationId:guid}/gap-suggestions", async Task<Results<Ok<List<GapSuggestion>>, NotFound>> (
-                Guid locationId, DateOnly date, BookingService booking, CancellationToken ct) =>
-                await booking.GapSuggestionsAsync(locationId, date, ct) is { } suggestions ? TypedResults.Ok(suggestions) : TypedResults.NotFound())
+                Guid locationId, DateOnly date, int? days, Guid? employeeId, BookingService booking, CancellationToken ct) =>
+                await booking.GapSuggestionsAsync(locationId, date, Math.Clamp(days ?? 1, 1, 7), employeeId, ct) is { } suggestions
+                    ? TypedResults.Ok(suggestions)
+                    : TypedResults.NotFound())
             .WithName("GetGapSuggestions")
             .RequirePermission(AccessRight.Book)
             .WithSummary("Vorschläge, gebuchte Termine um wenige Minuten zu verschieben, damit bei einer Person keine Lücke bleibt, "
-                + "in die keine Behandlung passt. Verschoben wird nur über „MoveAppointment“, nach Absprache mit dem Gast.");
+                + "in die keine Behandlung passt. Verschoben wird nur über „MoveAppointment“, nach Absprache mit dem Gast. "
+                + "Mit days (1 bis 7) für mehrere Tage ab date, mit employeeId nur für diese Person.");
 
         group.MapGet("/appointments/{appointmentId:guid}", async Task<Results<Ok<AppointmentDto>, NotFound>> (
                 Guid appointmentId, AispaDbContext db, CancellationToken ct) =>
