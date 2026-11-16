@@ -9,7 +9,7 @@ seite: verwaltung
 
 Einstellungen in der Windows-App unter „Verwaltung“ › „Team“: die Personen, die Behandlungen geben, mit Kalenderfarbe, Qualifikationen und regelmäßiger Wochenarbeitszeit.
 
-In der Windows-App steht die Liste der Personen neben der Personenkarte. Die Karte hat die Reiter **Stammdaten**, **Zugang und Rolle**, **Qualifikationen**, **Dienstplan und Abwesenheit**, **Zeiten** und **Verlauf**. Anmeldung und Rolle einer Person (Zugang zur Software) sowie ihre Qualifikationen sind dort Reiter derselben Karte; „Zugänge“ und „Qualifikationen“ gibt es in der App nicht mehr als eigene Einträge.
+In der Windows-App steht die Liste der Personen neben der Personenkarte. Die Karte hat bis zu vier Bereiche in einer Leiste: **Übersicht**, **Profil**, **Arbeitszeit** sowie **Lohn und Akte**. Welche zu sehen sind, hängt von den Rechten ab. Anmeldung und Rolle einer Person (Zugang zur Software) sowie ihre Qualifikationen sind Abschnitte im Bereich **Profil**; „Zugänge“ und „Qualifikationen“ gibt es in der App nicht mehr als eigene Einträge.
 
 ![Team in der Windows-App](images/app/verwaltung-team.png)
 
@@ -17,7 +17,7 @@ In der Windows-App steht die Liste der Personen neben der Personenkarte. Die Kar
 
 Gespeichert wird mit „Speichern“ bzw. „Person anlegen“. Änderungen gelten für neue Buchungen; gebuchte Termine bleiben unverändert.
 
-In der Windows-App gilt ein **Speichern** unten für die ganze Karte, aus allen Reitern:
+In der Windows-App gilt ein **Speichern** unten für die ganze Karte, aus allen Bereichen:
 
 - **Strg+S** speichert wie der Knopf. Es erscheint „Gespeichert.“
 - **Verwerfen** holt den gespeicherten Stand zurück.
@@ -32,16 +32,16 @@ In der Windows-App gilt ein **Speichern** unten für die ganze Karte, aus allen 
 - **Wochenplan**: der Dienstplan aller Mitarbeitenden einer Woche, für alle, die den Kalender sehen oder Personalunterlagen lesen. Siehe [Seite „Dienstplan“](hilfe:seite-roster).
 - **Zeiten**: Soll und Ist aller Mitarbeitenden einer Woche, für alle, die Standorte verwalten, und lesend für das Backoffice. Siehe [Seite „Zeiten“](hilfe:seite-time).
 - **Anträge**: die offenen Abwesenheitsanträge aus der Handy-App, für alle, die Standorte verwalten. Siehe [Abwesenheitsantrag genehmigen oder ablehnen](hilfe:dienstplan-antrag-entscheiden).
-- **Lohn**: die Monatswerte aller Mitarbeitenden, der Export für die Lohnverrechnung und deren Einstellungen, für alle, die die Organisation verwalten, und lesend für das Backoffice. Die Personalnummer steht auf der Karte der Person im Reiter **Lohn**. Siehe [Lohnexport für den Monat erstellen](hilfe:lohn-export-erstellen).
-- **Personalakte**: Reiter auf der Karte einer Person mit Mitarbeitergesprächen, Anmerkungen und Verwarnungen, nur für Inhaber und Manager. Siehe [Personalakte](hilfe:personalakte).
-- **Regelungen und Vollmachten**: Reiter auf der Karte einer Person mit Hinweisen, Sonderregelungen und Vollmachten, nur für Inhaber und Manager. **Wer darf was?** zeigt alle Vollmachten auf einen Blick. Siehe [Regelungen und Vollmachten](hilfe:regelungen-vollmachten).
-- **Zuständigkeiten**: Reiter auf der Karte einer Person mit Zuständigkeiten wie Ersthelfer oder Lager und den Zertifikaten mit Ablauf und Scan, nur für Inhaber und Manager. Die gleichnamige Ansicht zeigt, wer wofür zuständig ist, was bald abläuft, und die Liste der Zuständigkeiten. Siehe [Zuständigkeiten und Zertifikate](hilfe:zustaendigkeiten-zertifikate).
+- **Lohn**: die Monatswerte aller Mitarbeitenden, der Export für die Lohnverrechnung und deren Einstellungen, für alle, die die Organisation verwalten, und lesend für das Backoffice. Die Personalnummer steht auf der Karte der Person im Bereich **Lohn und Akte**. Siehe [Lohnexport für den Monat erstellen](hilfe:lohn-export-erstellen).
+- **Personalakte**: Abschnitt im Bereich **Lohn und Akte** auf der Karte einer Person mit Mitarbeitergesprächen, Anmerkungen und Verwarnungen, nur für Inhaber und Manager. Siehe [Personalakte](hilfe:personalakte).
+- **Regelungen und Vollmachten**: Abschnitt im Bereich **Lohn und Akte** auf der Karte einer Person mit Hinweisen, Sonderregelungen und Vollmachten, nur für Inhaber und Manager. **Wer darf was?** zeigt alle Vollmachten auf einen Blick. Siehe [Regelungen und Vollmachten](hilfe:regelungen-vollmachten).
+- **Zuständigkeiten**: Abschnitt im Bereich **Profil** auf der Karte einer Person mit Zuständigkeiten wie Ersthelfer oder Lager und den Zertifikaten mit Ablauf und Scan, nur für Inhaber und Manager. Die gleichnamige Ansicht zeigt, wer wofür zuständig ist, was bald abläuft, und die Liste der Zuständigkeiten. Siehe [Zuständigkeiten und Zertifikate](hilfe:zustaendigkeiten-zertifikate).
 
 Die Rezeption und Therapeutinnen sehen nur den **Wochenplan**, ohne Personenliste und ohne Karten. Gibt es nur eine Ansicht, fehlt die Leiste.
 
-Ein Klick auf einen Namen im **Wochenplan** öffnet die Karte der Person im Reiter **Dienstplan und Abwesenheit**, in den **Zeiten** im Reiter **Zeiten**. Der Dienstplan und die Zeiten einer Person stehen dort nur für diese Person. Zum Planen eines Tages: [Dienst für einen Tag planen](hilfe:dienstplan-tag-planen); zum Nachtragen einer Zeit: [Arbeitszeit nachtragen](hilfe:zeiten-nachtragen).
+Ein Klick auf einen Namen im **Wochenplan** öffnet die Karte der Person im Bereich **Arbeitszeit** beim Dienstplan, in den **Zeiten** im Bereich **Arbeitszeit** bei den Zeiten. Der Dienstplan und die Zeiten einer Person stehen dort nur für diese Person. Zum Planen eines Tages: [Dienst für einen Tag planen](hilfe:dienstplan-tag-planen); zum Nachtragen einer Zeit: [Arbeitszeit nachtragen](hilfe:zeiten-nachtragen).
 
-Ein geöffneter Tag im Dienstplan oder in den Zeiten hat seine eigene Leiste **Speichern** / **Verwerfen**. Die Fußleiste der Karte erscheint in diesen Reitern erst, wenn auch Stammdaten, Qualifikationen oder der Zugang geändert sind. **Strg+S** und die Rückfrage „Änderungen speichern?“ gelten für beides.
+Ein geöffneter Tag im Dienstplan oder in den Zeiten hat seine eigene Leiste **Speichern** / **Verwerfen**. Die Fußleiste der Karte erscheint im Bereich **Arbeitszeit** erst, wenn auch Stammdaten, Qualifikationen oder der Zugang geändert sind. **Strg+S** und die Rückfrage „Änderungen speichern?“ gelten für beides.
 
 ## Suche {#suche}
 
@@ -56,6 +56,15 @@ Ungespeicherte Änderungen fragen beim Wechsel der Zeile nach, auch ein angefang
 Scheitert nur der Zugang, bleiben Stammdaten und Qualifikationen gespeichert. Die Meldung nennt beides.
 
 ## Person {#person}
+
+Die Karte einer Person hat bis zu vier Bereiche:
+
+- **Übersicht**: fünf Kacheln mit dem nächsten Dienst, den Stunden dieser Woche, dem Resturlaub, den offenen Anträgen und den Zertifikaten. Ein Klick auf eine Kachel springt in den passenden Bereich; **Offene Anträge** öffnet die Ansicht **Anträge**.
+- **Profil**: **Stammdaten**, **Zugang und Rolle**, **Qualifikationen** und **Zuständigkeiten** untereinander.
+- **Arbeitszeit**: **Dienstplan und Abwesenheit** mit Urlaubskonto und Kalenderdatei, darunter die **Zeiten**.
+- **Lohn und Akte**: **Lohn**, **Personalakte** sowie **Regelungen und Vollmachten**.
+
+Rechts im Kopf der Karte steht die Schaltfläche **Verlauf**: Sie öffnet eine Seitenleiste mit den Änderungen an der Person, siehe [Verlauf](hilfe:team#verlauf).
 
 ### Vollständiger Name {#name}
 
@@ -76,7 +85,7 @@ Farbe der Person im Kalender. Standard für eine neue Person ist ein dunkles Gr�
 
 ## Qualifikationen {#qualifikationen}
 
-Häkchen bei allem, was die Person ausführen darf. In der Windows-App ist das der Reiter **Qualifikationen** der Karte. Dort legt **Qualifikationen verwalten** neue Qualifikationen an und benennt sie um, siehe [Qualifikationen](hilfe:qualifikationen).
+Häkchen bei allem, was die Person ausführen darf. In der Windows-App ist das der Abschnitt **Qualifikationen** im Bereich **Profil** der Karte. Dort legt **Qualifikationen verwalten** neue Qualifikationen an und benennt sie um, siehe [Qualifikationen](hilfe:qualifikationen).
 
 - Eine Behandlung wird nur mit einer Person geplant, die alle nötigen Qualifikationen der Behandlung hat. Das gilt für Kalender, Online-Buchung und KI-Terminannahme.
 - Die Online-Buchung bietet eine Behandlung an einem Standort nur an, wenn dort mindestens eine Person mit Wochenarbeitszeit an diesem Standort alle nötigen Qualifikationen hat.
@@ -119,4 +128,4 @@ Nimmt die Person aus der Planung, z. B. bei einem Austritt. Das geht nur, wenn s
 
 ## Verlauf {#verlauf}
 
-Der Reiter **Verlauf** der Windows-App zeigt, wer Zugang, Rolle, Standorte, Sperre oder Befristung einer Person wann geändert hat, und, wer ihren Dienstplan und ihre Abwesenheiten geändert hat ([Verlauf des Dienstplans](hilfe:dienstplan-verlauf)). Ihn sehen nur Inhaber und Manager; für alle anderen fehlt der Reiter. Hat die Karte nur einen Reiter, zeigt sie keine Reiterleiste. Mehr dazu: [Verlauf eines Zugangs](hilfe:zugaenge-verlauf).
+Die Schaltfläche **Verlauf** im Kopf der Karte öffnet in der Windows-App eine Seitenleiste. Sie zeigt, wer Zugang, Rolle, Standorte, Sperre oder Befristung einer Person wann geändert hat, und, wer ihren Dienstplan und ihre Abwesenheiten geändert hat ([Verlauf des Dienstplans](hilfe:dienstplan-verlauf)). Sie sehen nur Inhaber und Manager; für alle anderen fehlt die Schaltfläche. Esc oder das Kreuz schließt die Seitenleiste. Hat die Karte nur einen Bereich, zeigt sie keine Leiste. Mehr dazu: [Verlauf eines Zugangs](hilfe:zugaenge-verlauf).

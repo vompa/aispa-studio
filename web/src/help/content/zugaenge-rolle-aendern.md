@@ -13,7 +13,7 @@ stichwoerter: Rolle ändern, Rechte ändern, befördern, Standortleitung machen,
 ## Schritte {#schritte}
 
 1. In der Windows-App **Verwaltung** › **Team** öffnen.
-2. Die Person anklicken und in der Windows-App den Reiter **Zugang und Rolle** öffnen.
+2. Die Person anklicken und in der Windows-App den Bereich **Profil** öffnen; dort steht **Zugang und Rolle**.
 3. **Rolle** wählen. Unter dem Feld steht kurz, was die Rolle darf.
 4. Bei Bedarf **Person im Team** ändern.
 5. Unter **Standorte** Standorte an- oder abhaken.

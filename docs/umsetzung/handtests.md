@@ -1120,7 +1120,7 @@ Result: ☐
 
 ### Team – Urlaubskonto auf der Karte der Person
 Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Inhaberin anmelden, **Verwaltung** › **Team** öffnen
-1. Eine Person wählen und den Reiter **Dienstplan und Abwesenheit** öffnen.
+1. Eine Person wählen und den Bereich **Arbeitszeit** öffnen.
 Expected: Unter der Woche steht „Urlaubskonto“ mit dem laufenden Jahr; ohne Anspruch steht bei „Rest“ ein Strich, und die Zeile darunter sagt, dass kein Anspruch eingetragen ist.
 2. Bei **Anspruch (Tage)** 25 und bei **Übertrag aus dem Vorjahr** 2,5 eintragen, **Urlaubskonto speichern** klicken.
 Expected: „Gespeichert.“ erscheint, bei „Rest“ steht 27,5 Tage abzüglich der schon eingetragenen Urlaubstage.
@@ -1131,6 +1131,31 @@ Expected: „Geplant“ und „Rest“ bleiben; die Zeile darunter nennt „1 Ur
 5. Mit dem Pfeil **Vorheriges Jahr** blättern.
 Expected: Das Konto zeigt das Vorjahr mit leerem Anspruch; zurückgeblättert stehen 25 und 2,5 wieder da.
 6. Als Rezeption anmelden und die Karte derselben Person öffnen.
-Expected: Den Reiter „Dienstplan und Abwesenheit“ gibt es für die Rezeption nicht.
+Expected: Den Bereich „Arbeitszeit“ gibt es für die Rezeption nicht.
+Closes: –
+Result: ☐
+
+### T-065 – Personenkarte: vier Bereiche, Übersicht und Verlauf als Seitenleiste
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Inhaberin anmelden, **Verwaltung** › **Team** › **Personen** öffnen
+1. Eine Person mit Zugang wählen (z. B. Lena Huber).
+Expected: Die Karte beginnt mit der **Übersicht** und zeigt fünf Kacheln: Nächster Dienst, Diese Woche, Resturlaub, Offene Anträge, Zertifikate. Darüber stehen vier Bereiche: Übersicht, Profil, Arbeitszeit, Lohn und Akte. Rechts im Kopf steht **Verlauf**.
+2. Nacheinander **Profil**, **Arbeitszeit** und **Lohn und Akte** anklicken.
+Expected: **Profil** zeigt Stammdaten, Zugang und Rolle, Qualifikationen und Zuständigkeiten untereinander. **Arbeitszeit** zeigt Dienstplan und Abwesenheit mit Urlaubskonto und Kalenderdatei, darunter die Zeiten. **Lohn und Akte** zeigt Lohn, Personalakte, Regelungen und Vollmachten. Mit den Pfeiltasten lässt sich zwischen den Bereichen wechseln.
+3. Zurück zur **Übersicht** und die Kachel **Resturlaub** anklicken.
+Expected: Die Karte wechselt zu **Arbeitszeit** und zeigt das Urlaubskonto.
+4. In der Übersicht die Kachel **Zertifikate** anklicken.
+Expected: Die Karte wechselt zu **Profil** und rollt zu den Zuständigkeiten.
+5. In der Übersicht die Kachel **Offene Anträge** anklicken.
+Expected: Die Team-Ansicht **Anträge** öffnet sich.
+6. Zur Person zurückkehren und **Verlauf** im Kopf der Karte klicken.
+Expected: Rechts öffnet sich eine Seitenleiste über der Karte mit den Verläufen von Zugang, Dienstplan, Personalakte, Regelungen und Zuständigkeiten. **Esc** drücken: Die Leiste schließt, der Fokus kehrt zur Schaltfläche **Verlauf** zurück. Ein zweites Mal öffnen und mit dem Kreuz schließen.
+7. Aus einer anderen Stelle der App (z. B. aus der Kassa oder der Shell) einen Sprung in die Personalakte einer Person auslösen, wo es einen solchen Sprung gibt.
+Expected: Die Karte öffnet im Bereich **Lohn und Akte** und rollt zum Abschnitt **Personalakte**.
+8. Im Bereich **Profil** bei **Vollständiger Name** einen Buchstaben anhängen und unten **Speichern** klicken oder Strg+S drücken.
+Expected: „Gespeichert.“ erscheint, der Name steht in der Liste. Wechselt man ohne Speichern zu einer anderen Person, fragt die App „Änderungen speichern?“.
+9. Im Bereich **Lohn und Akte** einen Eintrag der Personalakte ändern.
+Expected: Die Speichern-Leiste unten ist aktiv und gilt für Lohn und Akte zusammen.
+10. Als Rezeption anmelden und **Team** öffnen.
+Expected: Die Rezeption sieht nur den Wochenplan, keine Personenkarte. Inhaber und Manager sehen alle vier Bereiche, die Standortleitung nur die Bereiche, für die sie das Recht hat.
 Closes: –
 Result: ☐

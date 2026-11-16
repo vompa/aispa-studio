@@ -12,7 +12,7 @@ Der Verlauf zeigt, wer Zugang, Rolle und Standorte einer Person wann geändert h
 
 ## Verlauf ansehen {#ansehen}
 
-1. In der Windows-App **Verwaltung** › **Team** öffnen, die Person wählen und den Reiter **Verlauf** öffnen.
+1. In der Windows-App **Verwaltung** › **Team** öffnen, die Person wählen und im Kopf der Karte auf **Verlauf** klicken.
 2. Der Verlauf lädt den Stand; die neueste Änderung steht an erster Stelle.
 
 Jeder Eintrag sagt, was geschah, darunter stehen Datum und Uhrzeit in der Ortszeit dieses PCs. Beispiel: „Geändert von Max: Rolle Rezeption → Standortleitung“. Ebenso stehen dort Änderungen an den Standorten, an der Sperre und an der Befristung.

@@ -13,8 +13,8 @@ Jede Slice hat ihren Bereich vollständig ersetzt, mit denselben Feldern, Regeln
 | Seite | Reiter | Name in der Oberfläche | Ziel | Anmerkung |
 |---|---|---|---|---|
 | `calendar` | – | Kalender | entfällt | Kalender ist nativ (ADR 0053) |
-| `roster` | – | Dienstplan | Slice 99 | Reiter „Dienstplan und Abwesenheit“ der Personenkarte und Ansicht „Wochenplan“ im Bereich Team (dort auch „Anträge“); native Maske seit Slice 99 |
-| `time` | – | Zeiten | Slice 99 | Reiter „Zeiten“ der Personenkarte und Ansicht „Zeiten“ im Bereich Team; native Maske seit Slice 99 |
+| `roster` | – | Dienstplan | Slice 99 | Bereich „Arbeitszeit“ der Personenkarte (Abschnitt „Dienstplan und Abwesenheit“) und Ansicht „Wochenplan“ im Bereich Team (dort auch „Anträge“); native Maske seit Slice 99 |
+| `time` | – | Zeiten | Slice 99 | Bereich „Arbeitszeit“ der Personenkarte (Abschnitt „Zeiten“) und Ansicht „Zeiten“ im Bereich Team; native Maske seit Slice 99 |
 | `inbox` | – | Posteingang | entfällt | Posteingang ist nativ |
 | `pos` | – | Kassa | entfällt | Kassa ist nativ; Kassa-Einstellungen siehe Reiter `kassa` |
 | `stock` | – | Lager | Slice 101 | nativ: Bestand, Bewegungen, Inventur, Lagerorte (Slice 101), Aufgaben, Lieferanten (Slice 112), Bestellvorschlag, Entwürfe und Senden (Slice 113), Lieferung buchen, Als bestellt markieren, Bestelltext, Bedarf und Chargen-Rückverfolgung (Slice 123); Lager-Verbesserungen danach in den Slices 112–116 |
@@ -22,10 +22,10 @@ Jede Slice hat ihren Bereich vollständig ersetzt, mit denselben Feldern, Regeln
 | `reports` | – | Zahlen | Slice 102, R07 Slice 144 | nativ (Slice 102): Mein Tag, Tagesstart, Hygiene, Management mit Vergleich, Pflichtberichte; Balken im Vergleich offen (Ä226). Seit R07 Slice 144 (Ä352) eine Reiterebene: Tagesstart · Mein Tag · Hygiene · Berichte (Management, Pflichtberichte als Unterreiter) · Betriebsinfo |
 | `costs` | – | Kosten | Slice 102 | nativ (Slice 102) |
 | `accounting` | – | Buchhaltung | Slice 102 | nativ (Slice 102); Exporte speichert die App unverändert |
-| `payroll` | – | Lohn | Slice 100 | Reiter „Lohn“ der Personenkarte und Export im Bereich Team (umgesetzt in Slice 100) |
+| `payroll` | – | Lohn | Slice 100 | Bereich „Lohn und Akte“ der Personenkarte (Abschnitt „Lohn“) und Export im Bereich Team (umgesetzt in Slice 100) |
 | `businessInfo` | – | Reiter „Betriebsinfo“ in Zahlen | Slice 102, R07 Slice 144 | nativ (Slice 102); seit R07 Slice 144 ein Reiter der Maske „Zahlen“, mit dem Recht auf Berichte mit Zahlen (`ViewFinance`) oder zu buchen (`Book`, seit T-025) |
 | `masterData` | – | Stammdaten | Slice 93 | Verwaltungsgerüst; die Reiter verteilen sich wie unten |
-| `staff` | – | Zugänge | Slice 98 | Reiter „Zugang und Rolle“ der Personenkarte; native Maske seit Slice 98 |
+| `staff` | – | Zugänge | Slice 98 | Bereich „Profil“ der Personenkarte (Abschnitt „Zugang und Rolle“); native Maske seit Slice 98, Bereiche seit T-065 |
 
 ## Reiter der Stammdaten
 
@@ -35,9 +35,9 @@ Jede Slice hat ihren Bereich vollständig ersetzt, mit denselben Feldern, Regeln
 | `masterData` | `closures` | Schließzeiten | Slice 95 | |
 | `masterData` | `roomClosures` | Raumsperren | Slice 95 | |
 | `masterData` | `subscriptions` | Kalender-Abos | Slice 95 | Feiertage und Ferien (ADR 0075), keine Kunden-Abos |
-| `masterData` | `team` | Team | Slice 98 | Personenkarte, Reiter Stammdaten; native Maske seit Slice 98 |
+| `masterData` | `team` | Team | Slice 98 | Personenkarte, Bereich Profil (Abschnitt Stammdaten); native Maske seit Slice 98, Bereiche seit T-065 |
 | `masterData` | `treatments` | Behandlungen | Slice 94 | „Wer kann das?“ nur lesend mit Sprung ins Team |
-| `masterData` | `qualifications` | Qualifikationen | Slice 98 | Reiter „Qualifikationen“ der Personenkarte; native Maske seit Slice 98 |
+| `masterData` | `qualifications` | Qualifikationen | Slice 98 | Bereich „Profil“ der Personenkarte (Abschnitt „Qualifikationen“); native Maske seit Slice 98, Bereiche seit T-065 |
 | `masterData` | `handbook` | Handbuch | Slice 97 | nativ als Rezeptionshandbuch mit Liste und Formular (Slice 97), daneben das Fragezeichen zur Hilfe (E1) |
 | `masterData` | `reminders` | Erinnerungen | Slice 96 | |
 | `masterData` | `intake` | Postfach & Nummern | Slice 97 | mit Absenderregeln |
@@ -90,7 +90,7 @@ Ziel nach [ADR 0098](../entscheidungen/0098-verwaltungsmasken-eine-schiene-ueber
 | --- | --- | --- | --- |
 | Betrieb | 6 Masken | 5 Masken (Schließzeiten und Raumsperren auf einer Seite) | |
 | Angebot | 2 Masken; Behandlung mit 7 Abschnittsreitern | 2 Masken; Behandlung mit 4 Bereichen | |
-| Team | 7 Ansichten; Personenkarte mit 10 Reitern | 5 Ansichten; Personenkarte mit 4 Bereichen, Verlauf als Seitenleiste | |
+| Team | 7 Ansichten; Personenkarte mit 10 Reitern | 5 Ansichten; Personenkarte mit 4 Bereichen, Verlauf als Seitenleiste | Personenkarte umgesetzt (T-065, 16.11.2026); Ansichten offen |
 | Lager | 9 Reiter | 4 Reiter, dazu „Einrichtung“ | |
 | Kassa & Geld | 4 Masken | 4 Masken | |
 | Kontakt | 3 Masken | 3 Masken | |

@@ -26,10 +26,10 @@ Der Balken zeigt nur, was die eigene Rolle darf; eine Gruppe ohne erlaubte Maske
 
 - **Betrieb**: Firmendaten nur Inhaber; Standorte & Räume, Schließzeiten, Raumsperren, Kalender-Abos und Handbuch auch die Standortleitung. Siehe [Einrichtung des Spas](hilfe:seite-masterdata).
 - **Angebot**: Behandlungen und Aktionen für Inhaber und Standortleitung.
-- **Team**: alle Rollen mit einer der Ansichten; Personen, Wochenplan, Zeiten und Anträge schaltet eine Leiste über der Fläche um. Die Personenkarte hat die Reiter Stammdaten, Zugang und Rolle, Qualifikationen, Dienstplan und Abwesenheit, Zeiten und Verlauf. „Zugänge“, „Qualifikationen“, „Dienstplan“ und „Zeiten“ gibt es in der App nicht mehr als eigene Bereiche. Siehe [Team](hilfe:team), [Zugänge](hilfe:zugaenge), [Seite „Dienstplan“](hilfe:seite-roster) und [Seite „Zeiten“](hilfe:seite-time).
+- **Team**: alle Rollen mit einer der Ansichten; Personen, Wochenplan, Zeiten und Anträge schaltet eine Leiste über der Fläche um. Die Personenkarte hat die Bereiche Übersicht, Profil, Arbeitszeit sowie Lohn und Akte; der Verlauf öffnet über eine Schaltfläche im Kopf der Karte als Seitenleiste. „Zugänge“, „Qualifikationen“, „Dienstplan“ und „Zeiten“ gibt es in der App nicht mehr als eigene Bereiche. Siehe [Team](hilfe:team), [Zugänge](hilfe:zugaenge), [Seite „Dienstplan“](hilfe:seite-roster) und [Seite „Zeiten“](hilfe:seite-time).
   - **Wochenplan**: alle Rollen; planen dürfen nur Inhaber und Standortleitung.
   - **Zeiten**: Inhaber und Standortleitung ändern, das Backoffice liest.
-  - **Lohn**: nur Inhaber, als Reiter der Personenkarte. Siehe [Lohn](hilfe:lohn).
+  - **Lohn**: nur Inhaber, als Abschnitt im Bereich **Lohn und Akte** der Personenkarte. Siehe [Lohn](hilfe:lohn).
 - **Lager**: Inhaber, Standortleitung und Rezeption; die Rezeption sieht den Bestand nur an. Siehe [Seite „Lager“](hilfe:seite-stock).
 - **Kassa & Geld**: Kassa und Zahlungen nur Inhaber. Kosten und Buchhaltung für Inhaber und Backoffice, für andere Rollen mit dem einzeln vergebenen Recht „Berichte mit Beträgen“. Siehe [Seite „Kosten“](hilfe:seite-costs) und [Buchhaltung](hilfe:buchhaltung).
 - **Kontakt**: Erinnerungen, Postfach & Nummern und KI nur Inhaber.
@@ -41,7 +41,7 @@ Eine Standortleitung sieht in jedem Bereich nur ihre eigenen Standorte. Was eine
 
 - „Diese Maske lässt sich mit der eigenen Rolle nicht öffnen. Das Recht vergibt die Leitung im Bereich „Team“.“: Man ist über einen Link, etwa aus einer Antwort des Assistenten, zu einer Maske gesprungen, die die eigene Rolle nicht sieht. Die App zeigt stattdessen die erste Maske, die die Rolle öffnen darf, mit diesem Hinweis über der Maske. Der Hinweis lässt sich schließen und verschwindet mit dem nächsten Wechsel.
 - „Diese Stelle gibt es in der Windows-App nicht. Die passende Maske oben im Balken der Verwaltung wählen.“: Das Ziel des Links gibt es nicht. Auch dann öffnet die erste erlaubte Maske.
-- Hat der Zugang gar keine Maske, bleibt die App auf der aktuellen Seite und zeigt unten die Meldung „Diese Maske braucht ein Recht, das die Leitung vergibt“ oder „Diese Stelle gibt es in der Windows-App nicht“. Die Rolle prüft die Person mit Verwaltungsrecht unter **Verwaltung** › **Team**, Reiter **Zugang und Rolle**, siehe [Rollen und was sie dürfen](hilfe:zugaenge#rollen).
+- Hat der Zugang gar keine Maske, bleibt die App auf der aktuellen Seite und zeigt unten die Meldung „Diese Maske braucht ein Recht, das die Leitung vergibt“ oder „Diese Stelle gibt es in der Windows-App nicht“. Die Rolle prüft die Person mit Verwaltungsrecht unter **Verwaltung** › **Team**, Bereich **Profil**, Abschnitt **Zugang und Rolle**, siehe [Rollen und was sie dürfen](hilfe:zugaenge#rollen).
 - Ohne Verbindung zum Server lassen sich die Masken nicht speichern. Kalender, Kunden und Vormerken gehen weiter.
 
 Links auf fremde Seiten, z. B. die Einrichtung bei Stripe, öffnen sich im normalen Browser, nicht in der App. Kalender, Anfragen, Geräte und Anmeldung haben eigene Einträge in der linken Leiste. Wer Code für die Windows-App oder einen Passkey braucht, findet die Seite „Anmelden“ im Browser: [Seite „Anmelden“ im Browser](hilfe:anmelden-web).

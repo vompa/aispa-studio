@@ -20,7 +20,7 @@ Darin steht die Behandlung als Titel und der Standort als Ort, zur Ortszeit des 
 
 ## Dienste und Termine einer Person {#person}
 
-1. **Team** öffnen, die Person wählen und den Reiter **Dienstplan** öffnen.
+1. **Team** öffnen, die Person wählen und den Bereich **Arbeitszeit** öffnen.
 2. Unten **Kalenderdatei …** klicken und speichern.
 
 Die Datei enthält die nächsten 90 Tage: Dienste als „Dienst Wien“ und Termine als „Massage (Raum A)“, ohne Namen der Gäste und ohne Erinnerung. Den Knopf sehen die Leitung und die Person selbst.

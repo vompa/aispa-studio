@@ -7,7 +7,7 @@ seite: verwaltung
 ---
 # Personalakte
 
-In der Windows-App liegt die Personalakte im Bereich **Verwaltung** › **Team** auf der Karte einer Person, im Reiter **Personalakte**. Dort stehen Mitarbeitergespräche, Anmerkungen der Leitung und Verwarnungen. Nur Inhaber und Manager sehen und ändern die Akte, und die Inhalte liegen verschlüsselt in der Datenbank. Ist der Schlüssel für vertrauliche Daten nicht eingerichtet, lässt sich nichts speichern, und die App sagt das.
+In der Windows-App liegt die Personalakte im Bereich **Verwaltung** › **Team** auf der Karte einer Person, im Bereich **Lohn und Akte**, Abschnitt **Personalakte**. Dort stehen Mitarbeitergespräche, Anmerkungen der Leitung und Verwarnungen. Nur Inhaber und Manager sehen und ändern die Akte, und die Inhalte liegen verschlüsselt in der Datenbank. Ist der Schlüssel für vertrauliche Daten nicht eingerichtet, lässt sich nichts speichern, und die App sagt das.
 
 Bei einer ausgeschiedenen Person bleibt die Akte lesbar und lässt sich als PDF speichern. Neue Einträge gibt es dann nicht mehr, und ihre Folgetermine erinnern nicht.
 
@@ -37,4 +37,4 @@ Die Person selbst sieht ihre Akte nicht in der App. Fragt sie danach (Art. 15 DS
 
 ## Verlauf {#verlauf}
 
-Der Reiter **Verlauf** nennt unter **Personalakte**, wer wann einen Eintrag angelegt, geändert oder gelöscht hat, aber nie den Inhalt.
+Die Seitenleiste **Verlauf** (Schaltfläche im Kopf der Karte) nennt unter **Personalakte**, wer wann einen Eintrag angelegt, geändert oder gelöscht hat, aber nie den Inhalt.

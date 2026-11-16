@@ -6302,3 +6302,25 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
   - design.md Abschnitt 6 sagt für die Reiterzeile der Verwaltung „Menü Mehr“ und für „Zahlen“ „es gibt kein Überlaufmenü für Reiter“.
   - `Border.pill.warn > StackPanel > TextBlock` und ein zweites `Border.pill.warn > TextBlock` in `Styles.axaml` beschreiben denselben Baustein mit verschiedenem Aufbau.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Verwaltungsmasken modernisieren, Schritt Personenkarte: vier Bereiche, Übersicht, Verlauf als Seitenleiste (Aufgabe T-065, 16.11.2026)
+
+- **Auftrag:** Zweiter Schritt aus [ADR 0098](../entscheidungen/0098-verwaltungsmasken-eine-schiene-uebersicht-seitenleiste.md): Die Personenkarte hat statt zehn Reitern vier Bereiche in einer Schiene, beginnt mit einer Übersicht, und der Verlauf wird eine Seitenleiste. Die Team-Ansichten oben (Personen, Wochenplan, Zeiten, Anträge, Lohn, Wer darf was?, Zuständigkeiten) bleiben unverändert.
+- **Was:**
+  - Endpunkt `GET /api/employees/{id}/overview` liefert die Kennzahlen der fünf Kacheln; jeder Teil (Dienst, Woche, Urlaub, Anträge, Zertifikate) erscheint nur mit dem Recht, das der Bereich dahinter verlangt. 15 Api-Tests.
+  - Die Karte hat die Bereiche **Übersicht**, **Profil** (Stammdaten, Zugang und Rolle, Qualifikationen, Zuständigkeiten), **Arbeitszeit** (Dienstplan und Abwesenheit mit Urlaubskonto und Kalenderdatei, Zeiten) und **Lohn und Akte** (Lohn, Personalakte, Regelungen und Vollmachten), je nach Recht. Die Übersicht zeigt fünf Kennzahl-Kacheln (`StatTile`); ein Klick springt in den passenden Bereich, „Offene Anträge“ in die Team-Ansicht „Anträge“.
+  - **Verlauf** ist eine Schaltfläche rechts im Kopf der Karte und öffnet das `HistoryPanel` als Seitenleiste über der Karte; Esc oder das Kreuz schließt.
+  - Handbuch: Alle Stellen, die einen alten Kartenreiter als Reiter nannten, beschreiben den neuen Weg („Bereich Profil, Abschnitt Zugang und Rolle“, „Schaltfläche Verlauf im Kopf der Karte“); das Thema `team` beschreibt die vier Bereiche. Fünf Bilder der Karte neu erzeugt (`verwaltung-team`, `-einladen`, `-karte-dienstplan`, `-karte-urlaubskonto`, `-person-zustaendigkeiten`).
+- **Detailentscheidungen:**
+  1. Die alten Reiter-Ids (`stammdaten`, `zugang`, `qualifikationen`, `dienstplan`, `zeiten`, `lohn`, `personalakte`, `regelungen`, `zustaendigkeiten`) bleiben Sprungziele: Ein Sprung öffnet den Bereich, der den Abschnitt enthält, und rollt zum Abschnitt. Kassa, Shell und Wochenplan müssen nicht angepasst werden.
+  2. Der Verlauf ist eine Überlagerung und keine dritte Spalte: Beim Mindestfenster von 1100 × 680 blieben neben Liste und Leiste nur 360 px für die Karte, die Stammdaten brauchen 694.
+  3. `HistoryPanel` bekam `StyleKeyOverride`. Ohne greift der Stil der Seitenleiste nicht, und die Leiste war durchsichtig (Fehler aus Schritt 1, im Bildtest aufgefallen).
+  4. Die Personalakte hat jetzt die Speichern-Leiste der Karte, weil Lohn im selben Bereich steht und beides zusammen gespeichert wird.
+  5. Hilfe-Anker (`{#…}`) bleiben, damit bestehende Links und Fragezeichen gelten.
+- **Bewusst offen / später:** die Ansichten des Teams (sieben auf fünf, letzter Schritt aus ADR 0098); die Ausblend-Bewegung der Seitenleiste (siehe unten).
+- **Geprüft:** `dotnet build -c Release` 0 Fehler und `dotnet format --verify-no-changes` 0. Testklassen grün: `PersonCardTests` 31, `TeamTests` 39, `RosterTests` 66, `TimesheetTests` 31, `PayrollTests` 24, `HrFileTests` 16, `DutiesTests` 17, `RegulationsTests` 13, `LeaveAccountTests` 7, `AdminPageTests` 31, `DesignTokenTests` 107, `ClientArchitectureTests` 21, `HelpTests` 17. Bildtests in hell und dunkel angesehen.
+- **Nicht geprüft:** Screenreader, hoher Kontrast, die volle Tab-Reihenfolge, die ganze Klasse `ViewTests` in einem Lauf (läuft in der CI).
+- **Beim Schreiben festgestellt:**
+  - Avalonia meldet AVLN5001: `TextBox.Watermark` ist veraltet (`LeaveAccountView.axaml` Zeile 25 und 28, `PlaceholderText` nehmen).
+  - `HistoryPanel` setzt beim Schließen sofort `IsVisible=false`; die Ausblend-Bewegung läuft nie.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md); die Hilfetexte prüft `textRules.test.ts`.

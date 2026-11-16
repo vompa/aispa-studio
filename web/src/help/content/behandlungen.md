@@ -198,7 +198,7 @@ Nach dem Abschließen des Termins schlagen Termin-Panel und Kassa diese Artikel 
 
 ## Nötige Qualifikationen {#noetige-qualifikationen}
 
-Häkchen bei allen Qualifikationen, die eine Person für diese Behandlung braucht. Gebucht wird nur eine Person, die alle gewählten hat. Ohne Häkchen kann jede Person im Dienst die Behandlung geben. Die Qualifikationen selbst werden unter „Verwaltung“ › „Team“, Reiter „Qualifikationen“ angelegt und unter „Team“ den Personen gegeben.
+Häkchen bei allen Qualifikationen, die eine Person für diese Behandlung braucht. Gebucht wird nur eine Person, die alle gewählten hat. Ohne Häkchen kann jede Person im Dienst die Behandlung geben. Die Qualifikationen selbst werden unter „Verwaltung“ › „Team“, Bereich „Profil“, Abschnitt „Qualifikationen“ angelegt und unter „Team“ den Personen gegeben.
 
 In der Windows-App fragt das erste „Speichern“ ohne Häkchen nach: Am Feld steht „Keine Qualifikation gewählt: Jede Person im Team kann diese Behandlung übernehmen.“ Ein zweites „Speichern“ speichert ohne Qualifikation, z. B. für ein Fußbad, das alle geben dürfen.
 

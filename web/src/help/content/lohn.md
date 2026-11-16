@@ -7,7 +7,7 @@ seite: verwaltung
 ---
 # Lohn
 
-In der Windows-App liegt der Lohn im Bereich **Verwaltung** › **Team**: die Ansicht **Lohn** übergibt die Monatswerte jeder Person an die Lohnverrechnung (Stunden, davon Sonntags-, Feiertags- und Nachtstunden, dazu Urlaubs-, Krankenstands- und Schulungstage), die Personalnummer jeder Person steht auf ihrer Karte im Reiter **Lohn**. Die Ansicht und alle Einstellungen darin gelten für das ganze Unternehmen, deshalb ändern sie nur Inhaber und Manager. Das Backoffice sieht die Ansicht und exportiert, ändert aber nichts.
+In der Windows-App liegt der Lohn im Bereich **Verwaltung** › **Team**: die Ansicht **Lohn** übergibt die Monatswerte jeder Person an die Lohnverrechnung (Stunden, davon Sonntags-, Feiertags- und Nachtstunden, dazu Urlaubs-, Krankenstands- und Schulungstage), die Personalnummer jeder Person steht auf ihrer Karte im Bereich **Lohn und Akte**, Abschnitt **Lohn**. Die Ansicht und alle Einstellungen darin gelten für das ganze Unternehmen, deshalb ändern sie nur Inhaber und Manager. Das Backoffice sieht die Ansicht und exportiert, ändert aber nichts.
 
 Übergeben werden nur Mengen. Löhne, Zuschläge und Abgaben rechnet die Lohnverrechnung selbst, über die Lohnart.
 
@@ -40,7 +40,7 @@ In die Dateien kommen nur Personen mit Personalnummer und nur Positionen mit Loh
 
 ## Personalnummern {#personalnummern}
 
-Die Nummer jeder Person bei der Lohnverrechnung. Sie steht auf der Karte der Person im Reiter **Lohn** und wird mit **Speichern** der Karte (Strg+S) gesichert, zusammen mit den übrigen Änderungen der Karte.
+Die Nummer jeder Person bei der Lohnverrechnung. Sie steht auf der Karte der Person im Bereich **Lohn und Akte** und wird mit **Speichern** der Karte (Strg+S) gesichert, zusammen mit den übrigen Änderungen der Karte.
 
 - Höchstens 20 Zeichen. Jede Nummer darf nur einmal vergeben sein.
 - Ein leeres Feld entfernt die Nummer. Ohne Nummer wird für die Person nichts übergeben.

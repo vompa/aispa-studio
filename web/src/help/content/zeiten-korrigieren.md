@@ -19,7 +19,7 @@ Falsche oder fehlende Zeiten korrigiert die Leitung in den Zeiten. Jede Änderun
 5. Bei **Grund (wird protokolliert)** den Grund eintragen. Das Feld ist Pflicht; ohne Grund erscheint „Grund angeben.“ und nichts wird gespeichert.
 6. Auf **Speichern** klicken oder Strg+S drücken.
 
-Der Abschnitt trägt danach den Zusatz „korrigiert“. Auf der Personenkarte (Reiter **Zeiten**) geht es genauso.
+Der Abschnitt trägt danach den Zusatz „korrigiert“. Auf der Personenkarte (Bereich **Arbeitszeit**, Abschnitt **Zeiten**) geht es genauso.
 
 ## Abschnitt entfernen {#entfernen}
 
@@ -38,7 +38,7 @@ Bei nachgetragenen oder korrigierten Abschnitten steht **Verlauf**. Ein Klick ze
 
 Die Stundenliste einer Person für einen Monat gibt es als PDF zum Unterschreiben.
 
-1. In der Windows-App **Verwaltung** › **Team** › **Personen** öffnen, die Person wählen und den Reiter **Zeiten** öffnen. In der Übersicht aller Zeiten gibt es den Knopf nicht.
+1. In der Windows-App **Verwaltung** › **Team** › **Personen** öffnen, die Person wählen und den Bereich **Arbeitszeit** öffnen; die Zeiten stehen unter dem Dienstplan. In der Übersicht aller Zeiten gibt es den Knopf nicht.
 2. Auf **Stundenliste als PDF** klicken. Es erscheint die Karte „Stundenliste“ mit dem Satz „Druckt die Stundenliste für <Monat> <Jahr>.“. Der Monat ist der der gezeigten Woche.
 3. Auf **Drucken** oder **PDF speichern** klicken. **Per Mail senden** gibt es hier nicht.
 

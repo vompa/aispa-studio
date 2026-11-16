@@ -19,9 +19,9 @@ Abwesenheiten werden je Tag im Dienstplan eingetragen. An diesem Tag ist die Per
 5. Bei Urlaub, Frei oder Schulung entscheiden, ob es gleich gelten soll (**Sofort gültig, ohne Veröffentlichen**) oder als Entwurf mit dem Wochenplan veröffentlicht wird.
 6. Auf **Speichern** klicken oder Strg+S drücken.
 
-![Tag einer Person im Reiter Dienstplan und Abwesenheit](images/app/verwaltung-team-karte-dienstplan.png)
+![Tag einer Person im Bereich Arbeitszeit der Personenkarte](images/app/verwaltung-team-karte-dienstplan.png)
 
-Für eine einzelne Person geht es auch auf ihrer Karte: Im Team die Person wählen und den Reiter **Dienstplan und Abwesenheit** öffnen.
+Für eine einzelne Person geht es auch auf ihrer Karte: Im Team die Person wählen und den Bereich **Arbeitszeit** öffnen; dort steht **Dienstplan und Abwesenheit**.
 
 Für mehrere Tage, z. B. eine Urlaubswoche, die Schritte für jeden Tag wiederholen.
 

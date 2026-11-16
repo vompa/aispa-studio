@@ -7,7 +7,7 @@ seite: verwaltung
 ---
 # Zugänge
 
-Der Zugang legt fest, wer sich anmelden darf, mit welcher Rolle und für welche Standorte. In der Windows-App ist er der Reiter **Zugang und Rolle** der Personenkarte unter „Verwaltung“ › „Team“; einen eigenen Eintrag „Zugänge“ gibt es dort nicht mehr. Sehen dürfen ihn Inhaber, Manager und Standortleitung.
+Der Zugang legt fest, wer sich anmelden darf, mit welcher Rolle und für welche Standorte. In der Windows-App ist er der Abschnitt **Zugang und Rolle** im Bereich **Profil** der Personenkarte unter „Verwaltung“ › „Team“; einen eigenen Eintrag „Zugänge“ gibt es dort nicht mehr. Sehen dürfen ihn Inhaber, Manager und Standortleitung.
 
 ![Einladen in der Windows-App](images/app/verwaltung-team-einladen.png)
 
@@ -178,7 +178,7 @@ Nur im Einzelplatz-Betrieb, z. B. wenn jemand sein Passwort vergessen hat. Ein n
 
 ## Verlauf {#verlauf}
 
-Inhaber und Manager sehen am Ende des Zugangs den Abschnitt **Verlauf**, in der Windows-App den Reiter **Verlauf** der Karte: wer Rolle, Standorte, Sperre oder Befristung wann geändert hat. Siehe [Verlauf eines Zugangs](hilfe:zugaenge-verlauf).
+Inhaber und Manager sehen am Ende des Zugangs den Abschnitt **Verlauf**, in der Windows-App die Seitenleiste **Verlauf** (Schaltfläche im Kopf der Karte): wer Rolle, Standorte, Sperre oder Befristung wann geändert hat. Siehe [Verlauf eines Zugangs](hilfe:zugaenge-verlauf).
 
 ## Offene Einladungen {#offene-einladungen}
 

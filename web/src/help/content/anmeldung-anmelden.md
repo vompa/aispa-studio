@@ -23,7 +23,7 @@ Wie man sich in der Windows-App anmeldet, hängt vom Betrieb ab: mit Server übe
 
 ## Einzelplatz: Benutzername und Passwort {#passwort}
 
-1. „Benutzername“ und „Passwort“ eintragen. Benutzername und Startpasswort vergibt die Leitung unter **Verwaltung** › **Team**, Reiter **Zugang und Rolle**.
+1. „Benutzername“ und „Passwort“ eintragen. Benutzername und Startpasswort vergibt die Leitung unter **Verwaltung** › **Team**, Bereich **Profil**, Abschnitt **Zugang und Rolle**.
 2. Auf **Anmelden** klicken (oder Enter).
 3. Beim ersten Mal mit Startpasswort erscheint „Eigenes Passwort wählen“: zweimal ein neues Passwort mit mindestens 8 Zeichen eintragen und **Passwort ändern und anmelden** klicken.
 
