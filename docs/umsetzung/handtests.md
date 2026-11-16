@@ -1097,3 +1097,12 @@ Expected: Unter „Schon vorhanden?“ steht die vorhandene Karte zuerst, mit de
 Expected: Karten aus der Suche erscheinen ohne Grund; erkennt die App einen ähnlichen Namen, steht dieser Grund dabei.
 Closes: L13 (erster Teil)
 Result: ☐
+
+### Datenschutz-Auskunft – Eintritte, Warteliste, Einwilligung und Nachrichten
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Inhaberin anmelden, **Kunden** öffnen, eine Kundin mit Eintritt, Wartelisteneintrag, Werbe-Einwilligung und zugeordneter Mail wählen
+1. Im Menü **…** der Kundenkarte **Auskunft als PDF** wählen und das PDF speichern.
+Expected: Nach „Termine“ stehen „Eintritte“ und „Warteliste“, nach „Gutscheine auf den Namen“ stehen „Einwilligung in Werbung“ (Stand, Adresse, Zeitpunkte) und „Nachrichten“ (Zeitpunkt, Kanal, Absender, Betreff, kein Wortlaut). Keine Tabelle läuft über den Rand.
+2. Dasselbe für eine Kundin ohne diese Daten.
+Expected: „Keine Eintritte.“, „Keine Einträge auf der Warteliste.“, „Keine Einwilligung gespeichert.“, „Keine Nachrichten zugeordnet.“
+Closes: –
+Result: ☐

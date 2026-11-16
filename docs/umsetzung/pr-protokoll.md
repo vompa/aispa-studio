@@ -6203,3 +6203,19 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Geprüft:** `CustomerNewFormTests` 27 von 27 grün (neu: Grund und Reihenfolge); Bildtests der Kundenmaske; Hilfe-Tests im Web; Release-Build ohne Warnungen.
 - **Nicht geprüft:** die laufende App; die volle Suite läuft in der CI.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Datenschutz-Auskunft: Eintritte, Warteliste, Werbe-Einwilligung und Nachrichten (16.11.2026)
+
+- **Auftrag:** Block „Daten“ der Reihenfolge vom 20.10.2026 („DSGVO-Auskunft“); Prüfung, was der vorhandenen Auskunft (PDF-Ausgaben C) fehlt.
+- **Befund:** Die Auskunft nannte Stammdaten, Kontakt, Wünsche, Termine, Zahlungen, Gutscheine, Online-Konto, Gesundheitsangaben und Verlauf. Es fehlten vier Datenarten, die zum Gast gespeichert sind: Eintritte, Wartelisteneinträge, die Werbe-Einwilligung und zugeordnete Nachrichten.
+- **Was:** `CustomerDisclosure` hat die Abschnitte „Eintritte“, „Warteliste“, „Einwilligung in Werbung“ und „Nachrichten“; ohne Daten steht jeweils ein fester Satz. Hilfe `kunden-kundenkarte`.
+- **Detailentscheidungen:**
+  1. Nachrichten stehen mit Zeitpunkt, Kanal, Absender und Betreff, ohne Wortlaut: Der Wortlaut kann Angaben Dritter und Gesundheitsangaben enthalten und wird auf Wunsch eigens aus dem Posteingang herausgegeben.
+  2. Die Einwilligung nennt Stand, Adresse, Herkunft und die drei Zeitpunkte, weil sie der Nachweis sind.
+  3. Eintritte und Warteliste folgen wie die Termine den Standorten, die die aufrufende Person sehen darf.
+- **Bewusst offen / später:**
+  - Der Informationsteil nach Art. 15 Abs. 1 lit. a bis h (Zwecke, Empfänger, Speicherdauer, Rechte, Herkunft, Beschwerderecht) fehlt weiter. Sein Wortlaut ist eine Rechtsfrage und braucht den Auftraggeber oder die Datenschutzberatung.
+  - Kartenhinterlegungen und Anzahlungen aus der Online-Buchung stehen nur über ihre Belege in „Zahlungen“.
+- **Geprüft:** Tests zuerst geplant: `CustomerDisclosureTests` 8 von 8 grün (neu: alle vier Abschnitte mit Daten, alle vier ohne Daten); Hilfe-Tests im Web; `dotnet format` sauber, Release-Build ohne Warnungen.
+- **Nicht geprüft:** das PDF von Hand angesehen; die volle Suite läuft in der CI.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).

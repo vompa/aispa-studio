@@ -1,3 +1,4 @@
+using System.Globalization;
 using AispaStudio.Api.Documents;
 using AispaStudio.Api.Online;
 using AispaStudio.Api.Reporting;
@@ -23,6 +24,18 @@ internal static class CustomerDisclosure
     /// <summary>Gesundheitsangaben: ob ein Bogen vorliegt, und der entschlüsselte Bogen nur für Personen mit dem Recht (sonst null).</summary>
     public sealed record Health(bool Present, AnamnesisRecordDto? Record);
 
+    /// <summary>Eintritt in einen Bereich (Sauna, Ruheraum).</summary>
+    public sealed record AreaEntry(DateTimeOffset From, DateTimeOffset Until, string Area, string Location, int Persons, bool Cancelled);
+
+    /// <summary>Einwilligung in Werbung per Mail: Adresse, Stand, Herkunft und die Zeitpunkte als Nachweis.</summary>
+    public sealed record Consent(string Email, MarketingConsentState State, string Source, DateTimeOffset RequestedAt, DateTimeOffset? ConfirmedAt, DateTimeOffset? WithdrawnAt);
+
+    /// <summary>Eingegangene Nachricht, die dem Gast zugeordnet ist (Mail, SMS, WhatsApp, Anruf, Treatwell).</summary>
+    public sealed record Message(DateTimeOffset ReceivedAt, string Channel, string From, string Subject);
+
+    /// <summary>Wunsch auf der Warteliste.</summary>
+    public sealed record WaitWish(DateTimeOffset CreatedAt, DateOnly From, DateOnly Until, string Treatment, string Location, WaitlistStatus Status);
+
     public sealed record Data(
         Customer Customer,
         IReadOnlyList<string> OtherEmails,
@@ -33,7 +46,11 @@ internal static class CustomerDisclosure
         IReadOnlyList<VoucherLine> Vouchers,
         bool HasAccount,
         Health Health,
-        IReadOnlyList<HistoryEntry> History);
+        IReadOnlyList<HistoryEntry> History,
+        IReadOnlyList<AreaEntry>? AreaEntries = null,
+        Consent? Marketing = null,
+        IReadOnlyList<Message>? Messages = null,
+        IReadOnlyList<WaitWish>? WaitWishes = null);
 
     public static string FileName(Customer customer) => DocumentFiles.PdfName("Auskunft", customer.LegalName);
 
@@ -59,8 +76,12 @@ internal static class CustomerDisclosure
         }
 
         Visits(pdf, data.Visits, zone);
+        AreaEntries(pdf, data.AreaEntries ?? [], zone);
+        WaitWishes(pdf, data.WaitWishes ?? [], zone);
         Payments(pdf, data.Payments, zone);
         Vouchers(pdf, data.Vouchers);
+        Marketing(pdf, data.Marketing, zone);
+        Messages(pdf, data.Messages ?? [], zone);
         pdf.Heading("Online-Konto");
         pdf.Paragraph(data.HasAccount ? "Ja, es gibt ein Online-Konto zu dieser Person." : "Nein, es gibt kein Online-Konto zu dieser Person.");
         HealthSection(pdf, data.Health, zone);
@@ -145,6 +166,92 @@ internal static class CustomerDisclosure
             [new("Wann", 2), new("Behandlung", 3), new("Standort", 2), new("Status", 2), new("Preis", 1.5, DocumentAlign.Right)],
             visits.OrderByDescending(v => v.Start).Select(v => DocumentRow.Of(
                 DocumentBuilder.DateTime(v.Start, zone), v.Treatment, v.Location, StatusLabel(v.Status), $"{DocumentBuilder.Money(v.Price)} {v.Currency}")));
+    }
+
+    private static void AreaEntries(DocumentBuilder pdf, IReadOnlyList<AreaEntry> entries, TimeZoneInfo zone)
+    {
+        pdf.Heading("Eintritte");
+        if (entries.Count == 0)
+        {
+            pdf.Paragraph("Keine Eintritte.");
+            return;
+        }
+
+        pdf.Table(
+            [new("Wann", 2), new("Bereich", 3), new("Standort", 2), new("Personen", 1, DocumentAlign.Right), new("Status", 2)],
+            entries.OrderByDescending(e => e.From).Select(e => DocumentRow.Of(
+                DocumentBuilder.DateTime(e.From, zone), e.Area, e.Location, e.Persons.ToString(CultureInfo.InvariantCulture), e.Cancelled ? "Storniert" : "Gebucht")));
+    }
+
+    private static void WaitWishes(DocumentBuilder pdf, IReadOnlyList<WaitWish> wishes, TimeZoneInfo zone)
+    {
+        pdf.Heading("Warteliste");
+        if (wishes.Count == 0)
+        {
+            pdf.Paragraph("Keine Einträge auf der Warteliste.");
+            return;
+        }
+
+        pdf.Table(
+            [new("Eingetragen", 2), new("Zeitraum", 3), new("Behandlung", 3), new("Standort", 2), new("Stand", 2)],
+            wishes.OrderByDescending(w => w.CreatedAt).Select(w => DocumentRow.Of(
+                DocumentBuilder.Date(w.CreatedAt, zone), $"{DocumentBuilder.Date(w.From)} bis {DocumentBuilder.Date(w.Until)}", w.Treatment, w.Location, WaitLabel(w.Status))));
+    }
+
+    public static string WaitLabel(WaitlistStatus status) => status switch
+    {
+        WaitlistStatus.Waiting => "Wartet",
+        WaitlistStatus.Booked => "Gebucht",
+        _ => "Beendet",
+    };
+
+    /// <summary>Werbe-Einwilligung mit den Zeitpunkten, die als Nachweis gespeichert sind; ohne Zeile der feste Satz, dass keine vorliegt.</summary>
+    private static void Marketing(DocumentBuilder pdf, Consent? consent, TimeZoneInfo zone)
+    {
+        pdf.Heading("Einwilligung in Werbung");
+        if (consent is null)
+        {
+            pdf.Paragraph("Keine Einwilligung gespeichert.");
+            return;
+        }
+
+        var rows = new List<(string, string)> { ("Stand", ConsentLabel(consent.State)), ("Mailadresse", consent.Email), ("Erfasst über", consent.Source) };
+        rows.Add(("Angefragt am", DocumentBuilder.DateTime(consent.RequestedAt, zone)));
+        if (consent.ConfirmedAt is { } confirmed)
+        {
+            rows.Add(("Bestätigt am", DocumentBuilder.DateTime(confirmed, zone)));
+        }
+
+        if (consent.WithdrawnAt is { } withdrawn)
+        {
+            rows.Add(("Widerrufen am", DocumentBuilder.DateTime(withdrawn, zone)));
+        }
+
+        pdf.KeyValues(rows);
+    }
+
+    public static string ConsentLabel(MarketingConsentState state) => state switch
+    {
+        MarketingConsentState.Pending => "Angefragt, noch nicht bestätigt",
+        MarketingConsentState.Confirmed => "Erteilt",
+        MarketingConsentState.Withdrawn => "Widerrufen",
+        MarketingConsentState.Refused => "Abgelehnt",
+        _ => "Keine",
+    };
+
+    /// <summary>Zugeordnete Nachrichten mit Zeitpunkt, Kanal, Absender und Betreff; der Wortlaut steht im Posteingang und wird auf Wunsch eigens herausgegeben.</summary>
+    private static void Messages(DocumentBuilder pdf, IReadOnlyList<Message> messages, TimeZoneInfo zone)
+    {
+        pdf.Heading("Nachrichten");
+        if (messages.Count == 0)
+        {
+            pdf.Paragraph("Keine Nachrichten zugeordnet.");
+            return;
+        }
+
+        pdf.Table(
+            [new("Wann", 2), new("Kanal", 1.5), new("Absender", 3), new("Betreff", 4)],
+            messages.OrderByDescending(m => m.ReceivedAt).Select(m => DocumentRow.Of(DocumentBuilder.DateTime(m.ReceivedAt, zone), m.Channel, m.From, m.Subject)));
     }
 
     private static void Payments(DocumentBuilder pdf, IReadOnlyList<Payment> payments, TimeZoneInfo zone)

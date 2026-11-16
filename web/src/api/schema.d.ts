@@ -1743,7 +1743,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Datenschutz-Auskunft nach Art. 15 DSGVO als PDF: Stammdaten, Kontakt, Wünsche, Termine, Zahlungen, Gutscheine, Online-Konto, Verlauf der Änderungen; die Anamnese nur mit dem Recht „Anamnese lesen“, sonst ein fester Satz. */
+        /** Datenschutz-Auskunft nach Art. 15 DSGVO als PDF: Stammdaten, Kontakt, Wünsche, Termine, Eintritte, Warteliste, Zahlungen, Gutscheine, Einwilligung in Werbung, Nachrichten, Online-Konto, Verlauf der Änderungen; die Anamnese nur mit dem Recht „Anamnese lesen“, sonst ein fester Satz. */
         get: operations["CustomerDisclosurePdf"];
         put?: never;
         post?: never;
