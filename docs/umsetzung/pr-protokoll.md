@@ -6022,5 +6022,8 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Detailentscheidungen:**
   1. Beide Umstellungen stehen in einem PR, weil jede nur zwei Stellen berührt und dieselben Tests sie abdecken.
   2. Am Verhalten ändert sich nichts: gleiche Anfrage an Claude (Modell, Betas, Fallback, Schema), gleiche Suche nach dem Ordner „Gesendet“.
+- **Geprüft:**
+  - `dotnet format --verify-no-changes` sauber, Release-Build ohne Warnungen.
+  - API-Tests: 2242 von 2274 grün, 1 übersprungen; die 31 roten brauchen Docker (`LiveBackplaneTests` 30, `DatabaseBackupTests` 1) und laufen in der CI. Darunter die Mail-Tests (`Mail*`, `ImapSentCopyTests`: 167 von 167).
 - **Bewusst offen / später:** Versand über SMTP, Kopie über IMAP und ein Aufruf von Claude mit echtem Schlüssel sind nicht gegen echte Dienste geprüft (Falle in der [Übergabe](../uebergabe.md#6-bekannte-fehler-und-fallen)).
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
