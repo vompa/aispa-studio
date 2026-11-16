@@ -157,5 +157,18 @@ public sealed class StaffMobileTests(ApiFixture fixture)
         Assert.True((await TestSpa.ReadAsync<DayPlanDto>(own, Ct)).Cards[0].AllergyFlag);
         Assert.DoesNotContain("Lavendel", text, StringComparison.Ordinal);
         Assert.False(reception.Cards[0].AllergyFlag);
+        // Die Massage verlangt „Anamnese prüfen“ noch nicht: kein Hinweis, obwohl der Bogen Angaben enthält.
+        Assert.False(reception.Cards[0].CheckAnamnesis);
+
+        var t = spa.MassageTreatment;
+        await spa.PutAsync<TreatmentDto>($"/api/treatments/{t.Id}", new TreatmentInput(t.Name, t.DurationMinutes, t.PreparationMinutes,
+            t.FollowUpMinutes, t.Price, t.RequiredQualificationIds, t.RoomIds, t.EquipmentIds, CheckAnamnesis: true), Ct);
+        var checkedOwn = await TestSpa.ReadAsync<DayPlanDto>(await app.GetAsync(path, Ct), Ct);
+        var checkedReception = await spa.GetAsync<DayPlanDto>($"{path}&employeeId={lena.Id}", Ct);
+
+        // Mit der Regel an der Behandlung steht der Hinweis auf der Karte, für die Therapeutin und für die Rezeption; mehr als ja oder nein nicht.
+        Assert.True(checkedOwn.Cards[0].CheckAnamnesis);
+        Assert.True(checkedReception.Cards[0].CheckAnamnesis);
+        Assert.False(checkedReception.Cards[0].AllergyFlag);
     }
 }

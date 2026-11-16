@@ -37,6 +37,7 @@ public sealed record PastTreatment(DateTimeOffset Start, string TreatmentName, s
 /// <c>VisitNumber</c> zählt bisherige Termine des Gastes (ohne Absagen); 1 heißt Erstbesuch.
 /// <c>Anamnesis</c>: Stand des Gesundheitsfragebogens, nie dessen Inhalt (dafür der eigene, protokollierte Abruf).
 /// <c>HandsOnMinutes</c> und <c>ProcessingMinutes</c>: Einwirkzeit (Schritt 13). Nach so vielen Minuten am Gast ist die Person für die Einwirkzeit frei; 0 heißt keine.
+/// <c>CheckAnamnesis</c>: Die Behandlung verlangt „Anamnese prüfen“, und der letzte Bogen des Gastes enthält Angaben; nur ja oder nein.
 /// <c>Restock</c>: Raumcheck nach der Behandlung (ADR 0068), nur bei abgeschlossenem Termin mit Material unter der Mindestmenge des Raumschranks.
 /// </summary>
 public sealed record TreatmentCard(
@@ -64,7 +65,8 @@ public sealed record TreatmentCard(
     DateTimeOffset? StartedAt = null,
     bool AllergyFlag = false,
     int HandsOnMinutes = 0,
-    int ProcessingMinutes = 0);
+    int ProcessingMinutes = 0,
+    bool CheckAnamnesis = false);
 
 public sealed record PreparationCheck(bool Done);
 

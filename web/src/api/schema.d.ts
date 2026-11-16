@@ -13755,6 +13755,8 @@ export interface components {
              * @default 0
              */
             processingMinutes: number;
+            /** @default false */
+            checkAnamnesis: boolean;
         };
         TreatmentCostDto: {
             /** Format: uuid */

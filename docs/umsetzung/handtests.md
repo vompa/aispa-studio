@@ -1246,3 +1246,12 @@ Expected: „Termin storniert. Die Antwort wird neu entworfen.“ Im Kalender is
 Closes: –
 Result: ☐
 
+### „Mein Tag“ – Hinweis „Anamnese prüfen“
+Start: Eine Behandlung mit dem Häkchen „Anamnese prüfen“ (Verwaltung › Behandlungen); ein Gast mit ausgefülltem Fragebogen, in dem mindestens ein „Ja“ steht; ein Termin dieses Gastes heute bei einer Therapeutin; „Mein Tag“ als diese Therapeutin
+1. Den Tagesplan öffnen.
+Expected: Auf der Karte des Termins steht „Anamnese prüfen: Der Fragebogen enthält Angaben, die für diese Behandlung wichtig sein können.“ (oder „Allergie angegeben …“, wenn das Ja bei den Allergien steht). Der Inhalt des Bogens steht nicht da.
+2. Einen Termin desselben Gastes mit einer Behandlung ohne das Häkchen ansehen.
+Expected: Kein Hinweis „Anamnese prüfen“.
+Closes: –
+Result: ☐
+
