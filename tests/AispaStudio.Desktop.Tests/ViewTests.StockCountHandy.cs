@@ -155,7 +155,7 @@ public sealed partial class ViewTests
     }
 
     [Fact]
-    public Task Given_der_Reiter_Verbrauch_When_der_Zeitraum_gewaehlt_wird_Then_zeigt_die_Tabelle_Soll_Ist_und_Mehrverbrauch()
+    public Task Given_der_Abschnitt_Verbrauch_der_Uebersicht_When_der_Zeitraum_gewaehlt_wird_Then_zeigt_die_Tabelle_Soll_Ist_und_Mehrverbrauch()
     {
         var report = new StockUsageReportDto(StockSample.Vienna.Id, new DateOnly(2026, 7, 21), new DateOnly(2026, 10, 19),
             [new StockUsageLineDto(OilId, "Massageöl", "Flasche", 10m, 12m, 2m, 25m,
@@ -166,9 +166,12 @@ public sealed partial class ViewTests
             .On($"GET /api/reports/locations/{StockSample.Vienna.Id}/stock-usage?from=2026-07-22&until=2026-10-19", report);
         return Render("hell", "verwaltung-lager-verbrauch", async (window, main) =>
         {
-            var (shell, _) = await OpenStock(window, main);
-            await ClickScrolled(window, "UsageTabButton");
+            // Die Übersicht lädt den Verbrauch mit; das alte Sprungziel „Verbrauch“ holt den Abschnitt ins Bild und lädt nicht noch einmal.
+            var (shell, stock) = await OpenStockOverview(window, main);
+            stock.SetTab(StockTab.Usage);
+            await Pump(Settling);
 
+            Assert.True(stock.IsOverviewTab);
             Assert.Equal(1, CallsTo(api, $"GET /api/reports/locations/{StockSample.Vienna.Id}/stock-usage?from=2026-09-20&until=2026-10-19"));
             var period = Named<ComboBox>(window, "UsagePeriodField");
             period.SelectedItem = Choice(period, "Letzte 90 Tage");

@@ -22,7 +22,7 @@ Eine Korrektur ändert den Bestand um eine Menge mit Vorzeichen und braucht imme
 
 ## Abgelaufene Charge ausbuchen {#abgelaufen}
 
-1. Im Reiter **Chargen** unter **Abgelaufen** die Zeile suchen. Die Zeile nennt den Lagerort der Charge.
+1. Im Reiter **Bestand** die Ansicht **Chargen** wählen und dort unter **Abgelaufen** die Zeile suchen. Die Zeile nennt den Lagerort der Charge.
 2. Auf **Ausbuchen** klicken. Das gibt es für die Standortleitung.
 
 Der Rest der Charge wird als Korrektur am Lagerort der Charge mit dem Grund „Abgelaufen, Charge …“ ausgebucht.

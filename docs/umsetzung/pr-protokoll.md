@@ -6302,3 +6302,35 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
   - design.md Abschnitt 6 sagt für die Reiterzeile der Verwaltung „Menü Mehr“ und für „Zahlen“ „es gibt kein Überlaufmenü für Reiter“.
   - `Border.pill.warn > StackPanel > TextBlock` und ein zweites `Border.pill.warn > TextBlock` in `Styles.axaml` beschreiben denselben Baustein mit verschiedenem Aufbau.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Verwaltungsmasken modernisieren, Schritt Lager: vier Reiter, Ansichten und Einrichtung (Aufgabe T-061, 16.11.2026)
+
+- **Auftrag:** Nach [ADR 0098](../entscheidungen/0098-verwaltungsmasken-eine-schiene-uebersicht-seitenleiste.md) die Lager-Maske der Windows-App umbauen: eine Schiene mit vier Einträgen, Verbrauch in die Übersicht, Chargen und Bewegungen als Sichten im Bestand, Lagerorte und Lieferanten hinter „Einrichtung“, die Werkzeuge wieder neben der Schiene. Nichts entfällt, Rechte und Sprungziele bleiben.
+- **Was:**
+  - `StockView.axaml`: Schiene Übersicht · Bestand · Bestellen · Inventur in einer `ReflowRow`; rechts „Material suchen oder scannen“, Standort, „Exportieren“, „Einrichtung“, das Fragezeichen und „Bewegung buchen“. Der Trenner und die eigene Werkzeugzeile unter neun Reitern sind weg.
+  - Übersicht: Kennzahl-Kacheln (`StatTile`) für Lagerwert, Nachbestellen, Unter Minimum, Chargen laufen ab und Mehrverbrauch, darunter „Was ist zu tun“ und der Abschnitt „Verbrauch“ (nur mit `ViewFinance`). Die Zeile „Lagerwert … am Standort“ unter der Liste ist zur Kachel geworden.
+  - Bestand: eine Zeile mit „Ansicht“ (Optionsfelder Material, Chargen mit Zähler, Bewegungen) und dem Lagerort.
+  - Einrichtung: eigene Seite mit „Zurück“, Lagerorte (`ManageLocation`) und Lieferanten (Katalogrecht).
+  - `StockViewModel`: `StockTab` behält alle neun Werte als Sprungadressen. `SetTab` führt mit jedem an den neuen Ort; „Verbrauch“ zeigt die Übersicht und holt den Abschnitt ins Bild.
+  - Handbuch: acht Themen (`lager.md`, `seite-stock.md`, sechs Abläufe), fünf Bilder neu, davon zwei zusätzlich (Einrichtung, Ansicht Chargen).
+  - design.md 5.4 und Abschnitt 6 („Kopf des Lagers“), Masken-Inventar, Stand, Handtestblock T-061.
+- **Detailentscheidungen:**
+  1. „Einrichtung“ ist eine eigene Seite mit „Zurück“, keine Seitenleiste. Lagerorte und Lieferanten sind je eine Liste (300 px) mit einem Formular bis 720 px samt Tabelle der Mindestmengen; die Seitenleiste nach design.md 5.12 ist 360 px breit.
+  2. In der Einrichtung ersetzt eine Schiene Lagerorte · Lieferanten die Schiene des Lagers. Damit steht je Seite weiter höchstens eine Schiene da. Mit nur einem der beiden Rechte fehlt sie, und der eine Inhalt steht allein.
+  3. Der Umschalter im Bestand sind Optionsfelder mit der Beschriftung „Ansicht“ (design.md 5.3: zwei bis vier Werte). Eine zweite segmentierte Schiene hätte R15 verletzt; eine Aufklappliste hätte den Zähler offener Chargen verborgen, solange eine andere Ansicht gewählt ist.
+  4. Ansicht und Lagerort stehen in einer eigenen Zeile des Bestands, nicht im Kopf. Gemessen brauchen Schiene (390 px) und Werkzeuge (866 px mit Standort) 1268 px; mit Ansicht und Lagerort wären es über 1700 px, also auch in Zeile 2 mehr als die 964 px des Mindestfensters. Der Lagerort gilt nur für Material und Bewegungen und steht so bei dem, was er filtert.
+  5. Beim Mindestfenster 1100 × 680 stehen die Werkzeuge rechtsbündig in Zeile 2, ab etwa 1404 px Fensterbreite neben der Schiene. Das Suchfeld ist dafür 200 statt 260 px breit, der Standort 180 statt 200.
+  6. `StockTab` bleibt als Liste der Orte bestehen, `Tab` nennt den gezeigten Ort. `Usage` steht dort nie, weil der Verbrauch kein eigener Ort mehr ist. So blieben die vorhandenen Tests zu den Rechten unverändert gültig.
+  7. Der Verbrauch lädt mit der Übersicht (ein Abruf beim Öffnen und bei jedem Wechsel in die Übersicht), nicht mehr erst beim Klick auf einen Reiter. Ohne `ViewFinance` gibt es keinen Abruf.
+  8. Die Kachel heißt „Unter Minimum“ wie das Kontrollkästchen „Nur unter Minimum“; „Unter Mindestbestand“ brach in der Kachel um. Eine Zahl über 0 trägt das Warnzeichen, eine 0 kein Zeichen (design.md 5.8: kein „ok“-Zeichen ohne Anlass).
+  9. Die Kachel „Mehrverbrauch“ erscheint nur, wenn die API den Betrag liefert (Recht „Berichte mit Beträgen“). Ein Klick holt den Abschnitt „Verbrauch“ ins Bild.
+  10. In der Einrichtung fehlen Suchfeld und „Bewegung buchen“; der Standort bleibt, weil Lagerorte je Standort gelten.
+  11. „Bewegung buchen“ steht wie bisher nur in der Übersicht und in der Ansicht „Material“. Das Buchungspanel mit seinen vier Arten ist unverändert.
+- **Bewusst offen / später:** Chargen und Bewegungen als Abschnitte im Seitenpanel einer Bestandszeile (im Gesamtplan genannt, nicht im Auftrag dieses Schritts); der Gesamttest über alle Verwaltungsseiten kommt mit dem letzten Schritt.
+- **Geprüft:** Tests zuerst angepasst und neu geschrieben. `StockLayoutTests` 21 (jedes alte Sprungziel, Rechte, Kacheln, Einrichtung), `StockSubtabsTests` 18, `AdminStockTests` 79, `StockBarcodeTests` 8, `OperatorDocumentsTests` 13, `RoomRestockTests` 10, `AdminPageTests` 31, `HelpTests` 17, `TermsAndTooltipTests` 5 und `DesignTokenTests` 107 grün. 69 Ansichtstests zum Lager grün, darunter neu: Schiene mit höchstens fünf Einträgen ohne Umbruch bei 1100 × 680 an jedem Ort, Werkzeuge neben der Schiene bei 1440 Breite, jedes alte Sprungziel zeigt seinen Inhalt im sichtbaren Teil, Einrichtung mit „Zurück“, Ansichten des Bestands, Rezeption ohne Chargen und Einrichtung. `dotnet format --verify-no-changes` und `dotnet build -c Release` mit Exitcode 0. Hilfe im Web: `src/help` 61 von 61. Bilder als Inhaberin in hell und dunkel angesehen: Übersicht, Bestand, Ansicht Chargen, Einrichtung; dazu Mindestfenster und Verbrauch in hell.
+- **Nicht geprüft:** die volle Desktop-Suite und die übrigen Ansichtstests (laufen in der CI); die App im echten Fenster mit Daten, hoher Kontrast und Screenreader; 125 und 150 Prozent Skalierung; der Kopf mit offener Seitenleiste „KI und Hilfe“ beim Mindestfenster (604 px): Rechnerisch sind die Werkzeuge mit Standort (866 px) dort breiter als der Kopf, wie schon die alte Werkzeugzeile mit ihren drei Feldern (684 px). Gemessen ist das nicht; es braucht einen eigenen Schritt, weil `ReflowRow` den rechten Teil nicht weiter umbricht.
+- **Beim Schreiben festgestellt:**
+  - Ein `StatTile` mit gebundenem, aber leerem Befehl ist deaktiviert und wirkt ausgegraut. Die Übersicht bindet deshalb für Anzeige-Kacheln keinen Befehl (zwei Fassungen in der Vorlage).
+  - Die Schiene des Lagers ist rechts neben „Inventur“ etwa 30 px breiter als ihre Reiter (schon vor dem Umbau so).
+  - „Bewegung buchen“ fehlt in der Ansicht „Bewegungen“, obwohl man dort die Buchungen sieht; so war es auch im Reiter „Bewegungen“.
+- **Text-Prüfung:** Hilfetexte mit `web/src/help/textRules.test.ts` (zwei Richtungswörter „oben rechts“ entfernt), der Rest von Hand nach [texte.md](../gestaltung/texte.md).

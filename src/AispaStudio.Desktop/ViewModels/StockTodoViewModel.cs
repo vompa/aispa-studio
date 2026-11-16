@@ -1,7 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Windows.Input;
 using AispaStudio.Contracts;
-using CommunityToolkit.Mvvm.ComponentModel;
+using AispaStudio.Desktop.Controls;
 using CommunityToolkit.Mvvm.Input;
 
 namespace AispaStudio.Desktop.ViewModels;
@@ -19,10 +19,16 @@ public sealed record StockTodoItem(string Title, string Detail, string? LinkText
     public override string ToString() => Summary;
 }
 
+/// <summary>Eine Kennzahl-Kachel der Übersicht (Design-Brief 5.5); mit Befehl führt sie an den Ort, an dem man die Zahl bearbeitet.</summary>
+public sealed record StockStat(string Label, string Value, string? Hint, StatTileState State, ICommand? Command)
+{
+    public bool HasCommand => Command is not null;
+}
+
 /// <summary>
-/// Reiter „Übersicht“ des Lagers (R07 Slice 143, Ä351): „Was ist zu tun“ aus dem Stand, den die Maske ohnehin geladen hat: nachbestellen (Zahl der Positionen im Bestellvorschlag),
-/// Material unter dem Mindestbestand oder nur noch für wenige Behandlungen, ablaufende Chargen; darunter klein der Lagerwert. Nichts wird hier gerechnet, was die API nicht schon liefert.
-/// Was ein Recht verlangt, erscheint ohne das Recht nicht: der Bestellvorschlag nur mit ManageLocation, der Link zu den Chargen ebenso.
+/// Reiter „Übersicht“ des Lagers (R07 Slice 143, Ä351; Kacheln seit ADR 0098): oben die Kennzahlen als Kacheln (Lagerwert, nachbestellen, unter dem Mindestbestand, ablaufende Chargen, mit ViewFinance der
+/// Mehrverbrauch), darunter „Was ist zu tun“ mit den Einzelheiten, alles aus dem Stand, den die Maske ohnehin geladen hat. Nichts wird hier gerechnet, was die API nicht schon liefert.
+/// Was ein Recht verlangt, erscheint ohne das Recht nicht: der Bestellvorschlag nur mit ManageLocation, der Sprung zu den Chargen ebenso.
 /// </summary>
 public sealed partial class StockTodoViewModel : ViewModelBase
 {
@@ -34,35 +40,76 @@ public sealed partial class StockTodoViewModel : ViewModelBase
 
     public ObservableCollection<StockTodoItem> Items { get; } = [];
 
+    /// <summary>Die Kennzahl-Kacheln über „Was ist zu tun“; der Lagerwert gilt für den ganzen Standort, unabhängig vom Lagerort-Filter des Bestands.</summary>
+    public ObservableCollection<StockStat> Stats { get; } = [];
+
     /// <summary>Nichts zu tun, und alles ist geladen; ohne Chargen oder Bestellvorschlag stünde „Nichts zu tun“ zu Unrecht da.</summary>
     public bool IsEmpty => Items.Count == 0 && !HasGaps;
 
     /// <summary>Die Chargen oder der Bestellvorschlag sind nicht geladen; die Übersicht sagt es, statt Ordnung zu melden.</summary>
     public bool HasGaps => _owner.BatchData is null || (_owner.CanManage && _owner.Orders.HasLoadError);
 
-    /// <summary>„Lagerwert 987,50 € am Standort“; der Wert des ganzen Standorts, unabhängig vom Lagerort-Filter des Bestands.</summary>
-    [ObservableProperty]
-    public partial string ValueText { get; private set; } = "";
-
-    /// <summary>Baut die Punkte aus dem Stand des Besitzers neu auf (nach jedem Laden).</summary>
+    /// <summary>Baut Kacheln und Punkte aus dem Stand des Besitzers neu auf (nach jedem Laden).</summary>
     internal void Refresh()
     {
         Items.Clear();
         var overview = _owner.OverviewData;
-        ValueText = overview is null ? "" : $"Lagerwert {Money.Format(overview.TotalValue)} am Standort";
         AddReorder();
         AddBelowMinimum(overview);
         AddFewTreatments(overview);
         AddExpiring();
+        RefreshStats();
         OnPropertyChanged(nameof(IsEmpty));
         OnPropertyChanged(nameof(HasGaps));
     }
+
+    /// <summary>Baut nur die Kacheln neu auf; der Verbrauch lädt nach dem Bestand und meldet sich hier.</summary>
+    internal void RefreshStats()
+    {
+        Stats.Clear();
+        var overview = _owner.OverviewData;
+        if (overview is not null)
+        {
+            Stats.Add(new StockStat("Lagerwert", Money.Format(overview.TotalValue), "am Standort", StatTileState.None, null));
+        }
+
+        if (_owner.CanManage && !_owner.Orders.HasLoadError)
+        {
+            Stats.Add(Count("Nachbestellen", _owner.Orders.Suggestions.Count, "im Bestellvorschlag", new RelayCommand(() => _owner.SetTab(StockTab.Orders))));
+        }
+
+        if (overview is not null)
+        {
+            Stats.Add(Count("Unter Minimum", overview.Items.Count(i => i.BelowMinimum), null, new RelayCommand(ShowBelowMinimum)));
+        }
+
+        if (_owner.BatchData is { } batches)
+        {
+            Stats.Add(Count("Chargen laufen ab", batches.Batches.Count(b => b.ExpiresSoon), null, _owner.CanManage ? new RelayCommand(() => _owner.SetTab(StockTab.Tasks)) : null));
+        }
+
+        if (_owner.CanViewUsage && _owner.Usage.ExcessValueText is { } excess)
+        {
+            Stats.Add(new StockStat("Mehrverbrauch", excess, _owner.Usage.SelectedPeriod.Label, StatTileState.None, new RelayCommand(() => _owner.SetTab(StockTab.Usage))));
+        }
+    }
+
+    /// <summary>Eine Zahl, die etwas zu tun bedeutet: ab 1 mit dem Warnzeichen, bei 0 ohne Zeichen (kein „ok“-Zeichen ohne Anlass, Design-Brief 5.8).</summary>
+    private static StockStat Count(string label, int count, string? hint, ICommand? command) =>
+        new(label, count.ToString(System.Globalization.CultureInfo.CurrentCulture), hint, count > 0 ? StatTileState.Warn : StatTileState.None, command);
 
     /// <summary>Die Punkte zählen den ganzen Standort; ein vorher gewählter Lagerort und eine Suche im Bestand würden den Link ins Leere führen.</summary>
     private void ShowWholeSite()
     {
         _owner.ScanText = "";
         _owner.SelectedPlace = _owner.PlaceFilter[0];
+    }
+
+    private void ShowBelowMinimum()
+    {
+        ShowWholeSite();
+        _owner.SetTab(StockTab.Stock);
+        _owner.Overview.OnlyBelow = true;
     }
 
     private void AddReorder()
@@ -86,12 +133,7 @@ public sealed partial class StockTodoViewModel : ViewModelBase
         }
 
         var title = below.Count == 1 ? "1 Material unter dem Mindestbestand" : $"{below.Count} Materialien unter dem Mindestbestand";
-        Items.Add(new StockTodoItem(title, Names(below), "Im Bestand ansehen", new RelayCommand(() =>
-        {
-            ShowWholeSite();
-            _owner.SetTab(StockTab.Stock);
-            _owner.Overview.OnlyBelow = true;
-        })));
+        Items.Add(new StockTodoItem(title, Names(below), "Im Bestand ansehen", new RelayCommand(ShowBelowMinimum)));
     }
 
     private void AddFewTreatments(StockOverviewDto? overview)

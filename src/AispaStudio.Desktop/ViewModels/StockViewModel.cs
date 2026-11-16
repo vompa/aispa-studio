@@ -7,8 +7,9 @@ using CommunityToolkit.Mvvm.Input;
 namespace AispaStudio.Desktop.ViewModels;
 
 /// <summary>
-/// Reiter des Lagers (R07 Slice 143): Übersicht, Bestand, Bestellen (<see cref="Orders"/>, mit der Bedarfsprüfung), Chargen (<see cref="Tasks"/>) und Bewegungen für den Alltag; Inventur, Lagerorte,
-/// Lieferanten und Verbrauch dahinter als Verwaltung.
+/// Orte des Lagers (ADR 0098, T-061). Die Schiene hat vier Reiter: <see cref="Overview"/>, <see cref="Stock"/>, <see cref="Orders"/> (mit der Bedarfsprüfung) und <see cref="Count"/>.
+/// <see cref="Tasks"/> (Chargen) und <see cref="Movements"/> sind Sichten im Bestand, <see cref="Places"/> und <see cref="Suppliers"/> die Seite „Einrichtung“, <see cref="Usage"/> ist ein
+/// Abschnitt der Übersicht. Alle Werte bleiben Sprungadressen: <see cref="StockViewModel.SetTab"/> führt mit jedem an den heutigen Ort.
 /// </summary>
 public enum StockTab
 {
@@ -36,10 +37,11 @@ public sealed record PlaceChoice(Guid? Id, string Name)
 }
 
 /// <summary>
-/// Lager (R05 Slice 101, ADR 0084), native Maske nach <c>web/src/stock/StockPage.tsx</c>: Reiter Bestand (mit „Material anlegen“), Bewegungen (mit der Leiste „Bewegung buchen“), Aufgaben, Inventur,
-/// Lagerorte, Lieferanten und Bestellungen, darüber Standort und Lagerort. Verbrauch und Verkauf bucht das System selbst; von Hand kommen Wareneingang, Nachfüllen, Umbuchen, Korrektur und die Inventur. Die Maske zeigt nur an
-/// und sendet; gerechnet wird in der API. Aufgaben, Inventur, Lagerorte und Bestellungen gibt es nur mit ManageLocation, Material und Lieferanten nur mit ManageCatalog; die API prüft ohnehin.
-/// Die Bedarfsprüfung steht im Reiter Bestand (mit Book), die Chargen-Rückverfolgung im Reiter Bewegungen (mit ManageLocation), die Lieferung in den Bestellungen.
+/// Lager (R05 Slice 101, ADR 0084; Aufbau seit ADR 0098), native Maske: die Reiter Übersicht (Kennzahlen, „Was ist zu tun“, Verbrauch), Bestand (Sichten Material mit „Material anlegen“, Chargen und
+/// Bewegungen), Bestellen und Inventur; Lagerorte und Lieferanten stehen auf der Seite „Einrichtung“. Verbrauch und Verkauf bucht das System selbst; von Hand kommen Wareneingang, Nachfüllen, Umbuchen,
+/// Korrektur und die Inventur. Die Maske zeigt nur an und sendet; gerechnet wird in der API. Chargen, Inventur, Lagerorte und Bestellungen gibt es nur mit ManageLocation, Material und Lieferanten
+/// nur mit ManageCatalog, den Verbrauch nur mit ViewFinance; die API prüft ohnehin.
+/// Die Bedarfsprüfung steht im Reiter Bestellen (mit Book), die Chargen-Rückverfolgung in der Sicht Bewegungen (mit ManageLocation), die Lieferung in den Bestellungen.
 /// </summary>
 public sealed partial class StockViewModel : ViewModelBase, INativeArea
 {
@@ -51,6 +53,8 @@ public sealed partial class StockViewModel : ViewModelBase, INativeArea
     private int _locationVersion;
     private int _levelsVersion;
     private readonly bool _isLeadership;
+    private StockTab _tabBeforeSetup = StockTab.Overview;
+    private bool _usageRequested;
 
     public StockViewModel(IWorkstationApi api, CurrentUser user, TimeProvider time, ILiveUpdates? live = null)
     {
@@ -86,7 +90,7 @@ public sealed partial class StockViewModel : ViewModelBase, INativeArea
 
     internal TimeProvider Time { get; }
 
-    /// <summary>Der Reiter „Verbrauch“ (Soll und Ist) zeigt Kennzahlen der Leitung (ViewFinance).</summary>
+    /// <summary>Der Abschnitt „Verbrauch“ der Übersicht (Soll und Ist) zeigt Kennzahlen der Leitung (ViewFinance).</summary>
     public bool CanViewUsage { get; }
 
     public bool CanBook { get; }
@@ -102,7 +106,7 @@ public sealed partial class StockViewModel : ViewModelBase, INativeArea
 
     public StockTodoViewModel Todo { get; }
 
-    /// <summary>Der Reiter „Bestand“ mit der Liste, ihrer Suche und dem Seitenpanel einer Zeile.</summary>
+    /// <summary>Die Sicht „Material“ im Bestand mit der Liste, ihrer Suche und dem Seitenpanel einer Zeile.</summary>
     public StockOverviewViewModel Overview { get; }
 
     public StockItemFormViewModel ItemForm { get; }
@@ -155,37 +159,50 @@ public sealed partial class StockViewModel : ViewModelBase, INativeArea
     [ObservableProperty]
     public partial PlaceChoice? SelectedPlace { get; set; }
 
+    /// <summary>Der gezeigte Ort; <see cref="StockTab.Usage"/> steht hier nie, der Verbrauch ist ein Abschnitt der Übersicht.</summary>
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsOverviewTab), nameof(IsStockTab), nameof(IsMovementsTab), nameof(IsCountTab), nameof(IsPlacesTab), nameof(IsTasksTab), nameof(IsSuppliersTab), nameof(IsOrdersTab), nameof(IsUsageTab),
-        nameof(ShowPlaceFilter), nameof(ShowBookButton), nameof(ShowSearch))]
+    [NotifyPropertyChangedFor(nameof(IsOverviewTab), nameof(IsStockTab), nameof(IsOrdersTab), nameof(IsCountTab), nameof(IsItemsView), nameof(IsBatchesView), nameof(IsMovementsView),
+        nameof(IsSetup), nameof(IsPlacesSetup), nameof(IsSuppliersSetup), nameof(ShowSetupButton), nameof(ShowPlaceFilter), nameof(ShowBookButton), nameof(ShowSearch))]
     public partial StockTab Tab { get; private set; } = StockTab.Overview;
 
     public bool IsOverviewTab => Tab == StockTab.Overview;
 
-    /// <summary>Die Verwaltung (Inventur, Lagerorte, Lieferanten, Verbrauch) steht hinter einem Trenner und fehlt ganz ohne die Rechte dafür.</summary>
-    public bool HasAdminTabs => CanManage || CanCatalog || CanViewUsage;
-
-    /// <summary>Das Feld „Material suchen oder scannen“ steht, wo man scannen darf, sonst nur dort, wo es etwas zu suchen gibt.</summary>
-    public bool ShowSearch => CanScan || Tab is StockTab.Overview or StockTab.Stock;
-
-    public bool IsStockTab => Tab == StockTab.Stock;
-
-    public bool IsMovementsTab => Tab == StockTab.Movements;
-
-    public bool IsCountTab => Tab == StockTab.Count;
-
-    public bool IsPlacesTab => Tab == StockTab.Places;
-
-    public bool IsTasksTab => Tab == StockTab.Tasks;
-
-    public bool IsSuppliersTab => Tab == StockTab.Suppliers;
+    /// <summary>Der Reiter „Bestand“ mit seinen drei Sichten.</summary>
+    public bool IsStockTab => Tab is StockTab.Stock or StockTab.Tasks or StockTab.Movements;
 
     public bool IsOrdersTab => Tab == StockTab.Orders;
 
-    public bool IsUsageTab => Tab == StockTab.Usage;
+    public bool IsCountTab => Tab == StockTab.Count;
 
-    /// <summary>Der Reiter „Chargen“ nennt, wie viele Chargen zu erledigen sind.</summary>
-    public string BatchesTabLabel => Tasks.OpenCount > 0 ? $"Chargen ({Tasks.OpenCount})" : "Chargen";
+    /// <summary>Sicht „Material“ im Bestand: die Liste mit „Material anlegen“.</summary>
+    public bool IsItemsView => Tab == StockTab.Stock;
+
+    /// <summary>Sicht „Chargen“ im Bestand (ManageLocation).</summary>
+    public bool IsBatchesView => Tab == StockTab.Tasks;
+
+    /// <summary>Sicht „Bewegungen“ im Bestand, mit der Chargen-Rückverfolgung.</summary>
+    public bool IsMovementsView => Tab == StockTab.Movements;
+
+    /// <summary>Die Seite „Einrichtung“ (Lagerorte, Lieferanten) ersetzt die Schiene, bis „Zurück“ sie schließt.</summary>
+    public bool IsSetup => Tab is StockTab.Places or StockTab.Suppliers;
+
+    public bool IsPlacesSetup => Tab == StockTab.Places;
+
+    public bool IsSuppliersSetup => Tab == StockTab.Suppliers;
+
+    /// <summary>„Einrichtung“ gibt es mit dem Recht für den Standort (Lagerorte) oder für den Katalog (Lieferanten).</summary>
+    public bool CanSetup => CanManage || CanCatalog;
+
+    /// <summary>Mit beiden Rechten wechselt in der Einrichtung eine Schiene zwischen Lagerorten und Lieferanten; mit einem steht nur dessen Inhalt da.</summary>
+    public bool HasSetupChoice => CanManage && CanCatalog;
+
+    public bool ShowSetupButton => CanSetup && !IsSetup;
+
+    /// <summary>Das Feld „Material suchen oder scannen“ steht, wo man scannen darf, sonst nur dort, wo es etwas zu suchen gibt; in der Einrichtung fehlt es.</summary>
+    public bool ShowSearch => !IsSetup && (CanScan || Tab is StockTab.Overview or StockTab.Stock);
+
+    /// <summary>Die Sicht „Chargen“ nennt, wie viele Chargen zu erledigen sind; die Zahl steht auch, während eine andere Sicht gewählt ist.</summary>
+    public string BatchesViewLabel => Tasks.OpenCount > 0 ? $"Chargen ({Tasks.OpenCount})" : "Chargen";
 
     public bool HasSeveralLocations => Locations.Count > 1;
 
@@ -391,7 +408,7 @@ public sealed partial class StockViewModel : ViewModelBase, INativeArea
         {
             PlacesAdmin.Rebuild();
             Tasks.Apply(tasks?.Value);
-            OnPropertyChanged(nameof(BatchesTabLabel));
+            OnPropertyChanged(nameof(BatchesViewLabel));
             Orders.Apply(orders?.Value, reorder?.Value);
         }
 
@@ -412,8 +429,9 @@ public sealed partial class StockViewModel : ViewModelBase, INativeArea
             await Count.LoadHandySessionsAsync().ConfigureAwait(true);
         }
 
-        if (Tab == StockTab.Usage)
+        if (CanViewUsage && Tab == StockTab.Overview)
         {
+            // Der Verbrauch steht nur in der Übersicht; an einem anderen Ort lädt er beim nächsten Wechsel dorthin.
             await Usage.LoadAsync().ConfigureAwait(true);
         }
 
@@ -473,8 +491,34 @@ public sealed partial class StockViewModel : ViewModelBase, INativeArea
     [RelayCommand]
     private void ShowUsage() => SetTab(StockTab.Usage);
 
+    /// <summary>„Einrichtung“ öffnet die Lagerorte, ohne das Recht für den Standort die Lieferanten.</summary>
+    [RelayCommand]
+    private void OpenSetup() => SetTab(CanManage ? StockTab.Places : StockTab.Suppliers);
+
+    /// <summary>„Zurück“ in der Einrichtung führt an den Ort, von dem man kam.</summary>
+    [RelayCommand]
+    private void CloseSetup()
+    {
+        if (IsSetup)
+        {
+            SetTab(_tabBeforeSetup);
+        }
+    }
+
+    /// <summary>Die Ansicht soll den Abschnitt „Verbrauch“ ins Bild holen (Sprungziel <see cref="StockTab.Usage"/>).</summary>
+    public event Action? UsageRequested;
+
+    /// <summary>Nimmt den offenen Wunsch, den Verbrauch zu zeigen; eine Ansicht, die erst nach dem Sprung entsteht, fragt hier nach.</summary>
+    internal bool TakeUsageRequest()
+    {
+        var requested = _usageRequested;
+        _usageRequested = false;
+        return requested;
+    }
+
     /// <summary>
-    /// Wechselt den Reiter. Aufgaben, Inventur und Lagerorte gibt es nur mit ManageLocation, Lieferanten nur mit ManageCatalog.
+    /// Führt an einen Ort des Lagers; jeder Wert von <see cref="StockTab"/> bleibt gültig (ADR 0098): Chargen und Bewegungen öffnen ihre Sicht im Bestand, Lagerorte und Lieferanten die Einrichtung,
+    /// Verbrauch die Übersicht mit ihrem Abschnitt. Chargen, Inventur und Lagerorte gibt es nur mit ManageLocation, Lieferanten nur mit ManageCatalog, den Verbrauch nur mit ViewFinance.
     /// „Bestellen“ öffnet schon, wer buchen darf (Bedarfsprüfung, T-025); Bestellvorschlag und Bestellungen darin bleiben bei ManageLocation.
     /// </summary>
     public void SetTab(StockTab tab)
@@ -491,15 +535,33 @@ public sealed partial class StockViewModel : ViewModelBase, INativeArea
             _barcodeToAssign = null;
         }
 
+        var showUsage = tab == StockTab.Usage;
+        if (showUsage)
+        {
+            tab = StockTab.Overview;
+        }
+
+        if (tab is StockTab.Places or StockTab.Suppliers && !IsSetup)
+        {
+            _tabBeforeSetup = Tab;
+        }
+
+        var entersOverview = tab == StockTab.Overview && Tab != StockTab.Overview;
         Tab = tab;
         if (tab == StockTab.Movements && Location is not null)
         {
             _ = Movements.LoadAsync();
         }
 
-        if (tab == StockTab.Usage && Location is not null)
+        if (CanViewUsage && Location is not null && (entersOverview || (showUsage && !Usage.IsLoaded)))
         {
             _ = Usage.LoadAsync();
+        }
+
+        if (showUsage)
+        {
+            _usageRequested = true;
+            UsageRequested?.Invoke();
         }
     }
 
