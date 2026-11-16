@@ -54,7 +54,7 @@ public sealed class OfflineTests
         Assert.True(shell.IsOffline);
         Assert.Equal("Ohne Verbindung · Stand 19.10. 11:40", shell.Calendar.OfflineNote);
         Assert.Equal("Offline", shell.ConnectionText);
-        Assert.Contains("Kassieren geht erst wieder mit Verbindung", shell.OfflineBanner, StringComparison.Ordinal);
+        Assert.Contains("Die Kassa gibt Ersatzbelege aus", shell.OfflineBanner, StringComparison.Ordinal);
 
         shell.Calendar.OpenAppointment(SpaSample.Selected);
         await shell.Calendar.Selected!.CheckInCommand.ExecuteAsync(null);

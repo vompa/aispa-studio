@@ -1036,3 +1036,20 @@ Expected: Unter „Zahlungsarten“ steht als letzte Zeile „davon Trinkgeld (k
 Expected: Das Trinkgeld im Bericht sinkt um 11,00 €.
 Closes: –
 Result: ☐
+
+### Kassa ohne Verbindung – Ersatzbeleg und Nacherfassung
+Start: Server mit `docker compose up -d --build`, Windows-App mit diesem Server verbunden (nicht Einzelplatz), als Rezeption anmelden, **Kassa** einmal öffnen, dann den Server anhalten (`docker compose stop api`) und warten, bis unten „Offline“ steht
+1. Im Kalender einen eingecheckten Termin von heute öffnen und **Kassieren** wählen.
+Expected: Die Kassa zeigt die Rechnung mit „inkl. USt“ an der Position; unter „Bezahlen“ steht der Hinweis „Ersatzbeleg“.
+2. Bei **Bar gegeben** einen glatten höheren Betrag eintragen und **Bezahlen und Beleg erstellen** wählen.
+Expected: „Bezahlt“ mit „Ersatzbeleg E-<Kasse>-<Datum>-<Uhrzeit>-…“, Summe, „Bar“, „Rückgeld“ und dem Vermerk „Ersatzbeleg, der signierte Beleg folgt“; keine Knöpfe für PDF und Mail. Mit eingerichtetem Bondrucker druckt **Drucken** den Bon mit „ERSATZBELEG“.
+3. Denselben Termin noch einmal kassieren wollen.
+Expected: „Für diesen Termin gibt es schon einen Ersatzbeleg.“
+4. Einen Artikel auf eine neue Rechnung legen, bei **Gutschein** einen Betrag und Code eintragen und bezahlen wollen; danach **Parken**.
+Expected: „Ohne Verbindung nur bar oder mit Karte am eigenständigen Gerät.“ und „Ohne Verbindung lässt sich die Rechnung nicht parken. Bezahlen oder verwerfen.“
+5. Die App beenden und neu starten, dann den Server wieder starten (`docker compose start api`) und bis zu 15 Sekunden warten.
+Expected: Unten steht wieder „Online“. Unter **Belege** steht ein neuer signierter Beleg mit „Nacherfassung zu Ersatzbeleg … vom …“; der Termin steht nicht mehr unter „Heute abzurechnen“.
+6. Gegenprobe: ohne Verbindung einen Termin kassieren, den Termin am Server an einem zweiten Gerät ebenfalls kassieren, dann die Verbindung herstellen.
+Expected: Oben steht „Beim Abgleich nicht übernommen“ mit dem Ersatzbeleg, dem Grund „Dieser Termin steht schon auf einer Rechnung.“ und **Erneut senden**, ohne **Erledigt**.
+Closes: –
+Result: ☐

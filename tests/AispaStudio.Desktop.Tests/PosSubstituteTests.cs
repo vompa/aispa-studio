@@ -1,0 +1,203 @@
+using System.Net;
+using AispaStudio.Contracts;
+using AispaStudio.Desktop.Services;
+using AispaStudio.Desktop.ViewModels;
+
+namespace AispaStudio.Desktop.Tests;
+
+/// <summary>Kassieren ohne Verbindung: Ersatzbeleg am Gerät und Nacherfassung beim Abgleich (ADR 0096).</summary>
+public sealed class PosSubstituteTests
+{
+    private sealed class SampleTime : TimeProvider
+    {
+        public override DateTimeOffset GetUtcNow() => SpaSample.At(11, 40);
+
+        public override TimeZoneInfo LocalTimeZone => TimeZoneInfo.FindSystemTimeZoneById("Europe/Vienna");
+    }
+
+    private static CancellationToken Ct => TestContext.Current.CancellationToken;
+
+    private static string ReenterRoute => $"POST /api/pos/registers/{SpaSample.Register.Id}/substitute-receipts";
+
+    /// <summary>Kassa mit lokalem Stand, geladen mit Verbindung; danach ist der Server weg.</summary>
+    private static async Task<(PosViewModel Pos, StubApi Stub, ApiClient Api, OfflineCache Cache)> OfflinePosAsync()
+    {
+        var stub = new StubApi()
+            .On("GET /api/locations", new List<LocationDto> { SpaSample.Vienna })
+            .On("GET /api/pos/registers", new List<CashRegisterDto> { SpaSample.Register })
+            .On("GET /api/pos/articles", SpaSample.Articles)
+            .On($"GET /api/pos/locations/{SpaSample.LocationId}/day-list?date=2026-10-19", SpaSample.DayList())
+            .On($"GET /api/pos/registers/{SpaSample.Register.Id}/bills", new List<BillDto>());
+        var cache = new OfflineCache(new MemoryOfflineStore(), new SampleTime());
+        var api = stub.Client(cache);
+        var pos = new PosViewModel(api, new SampleTime());
+        await pos.InitializeAsync(SpaSample.LocationId);
+        stub.Down = true;
+        await api.GetAsync<List<LocationDto>>("api/locations", Ct);
+        Assert.True(api.IsOffline);
+        return (pos, stub, api, cache);
+    }
+
+    [Fact]
+    public async Task Given_keine_Verbindung_When_Termin_und_Artikel_bar_bezahlt_Then_entsteht_ein_Ersatzbeleg_und_er_ist_zur_Nacherfassung_vorgemerkt()
+    {
+        // Given die Kassa ohne Verbindung, ein abgeschlossener Termin über 89,00 und ein Artikel
+        var (pos, _, _, cache) = await OfflinePosAsync();
+
+        // When der Termin und ein Artikel auf die Rechnung kommen
+        await pos.AddAppointmentAsync(SpaSample.Paying);
+        await pos.AddArticleCommand.ExecuteAsync(SpaSample.Articles[0]);
+
+        // Then gibt es die Rechnung nur an diesem Gerät, mit dem Hinweis auf den Ersatzbeleg
+        Assert.True(pos.IsSubstitute);
+        Assert.Null(pos.Error);
+        var expected = SpaSample.Paying.Price + SpaSample.Articles[0].Price;
+        Assert.Equal(expected, pos.Bill!.Open);
+        Assert.Equal(2, pos.Lines.Count);
+        Assert.All(pos.Lines, l => Assert.Equal("inkl. USt", l.Tax));
+
+        // When bar mit 5,00 Trinkgeld bezahlt wird
+        pos.TipText = "5";
+        var cash = pos.Payments.First(p => p.Method == PaymentMethod.Cash);
+        cash.Amount = "200";
+        Assert.True(pos.CanPay);
+        await pos.PayCommand.ExecuteAsync(null);
+
+        // Then zeigt die Kassa den Ersatzbeleg mit eigener Nummer, ohne Belegnummer der Kasse und ohne Signatur
+        var receipt = pos.Receipt!;
+        Assert.True(receipt.IsSubstitute);
+        Assert.StartsWith("Ersatzbeleg E-WIEN-1-20261019-114000-", receipt.Title, StringComparison.Ordinal);
+        Assert.Equal("Ersatzbeleg, der signierte Beleg folgt", receipt.SignatureText);
+        Assert.False(receipt.CanAddRecipient);
+        Assert.Equal(expected, receipt.Receipt.Total);
+        Assert.Equal(200m - expected - 5m, receipt.Receipt.Change);
+        Assert.Null(pos.Bill);
+        Assert.False(pos.IsSubstitute);
+
+        // And er ist mit Termin, Artikel, Summe und Trinkgeld zur Nacherfassung vorgemerkt
+        var pending = Assert.Single(cache.Pending);
+        Assert.Equal($"api/pos/registers/{SpaSample.Register.Id}/substitute-receipts", pending.Path);
+        Assert.Equal(receipt.Receipt.SubstituteNumber, pending.Substitute!.SubstituteNumber);
+        Assert.Contains(SpaSample.Paying.Id.ToString(), pending.Body, StringComparison.Ordinal);
+        Assert.Contains(SpaSample.Articles[0].Id.ToString(), pending.Body, StringComparison.Ordinal);
+        Assert.Contains("\"tip\":5", pending.Body, StringComparison.Ordinal);
+
+        // And derselbe Termin lässt sich nicht noch einmal kassieren
+        await pos.AddAppointmentAsync(SpaSample.Paying);
+        Assert.Equal("Für diesen Termin gibt es schon einen Ersatzbeleg.", pos.Error);
+        Assert.Null(pos.Bill);
+    }
+
+    [Fact]
+    public async Task Given_Ersatzbeleg_vorgemerkt_When_die_Verbindung_zurueck_ist_Then_wird_er_nacherfasst_und_die_Vormerkung_ist_weg()
+    {
+        var (pos, stub, api, cache) = await OfflinePosAsync();
+        await pos.AddAppointmentAsync(SpaSample.Paying);
+        pos.FillRestCommand.Execute(pos.Payments.First(p => p.Method == PaymentMethod.Card));
+        await pos.PayCommand.ExecuteAsync(null);
+        Assert.Single(cache.Pending);
+
+        stub.Down = false;
+        stub.On(ReenterRoute, SpaSample.Receipt());
+        var sent = await api.SyncAsync(Ct);
+
+        Assert.Equal(1, sent);
+        Assert.Empty(cache.Pending);
+        Assert.Empty(cache.Failed);
+        var body = stub.Calls.Single(c => c.Route == ReenterRoute).Body!;
+        Assert.Contains("\"method\":\"Card\"", body, StringComparison.Ordinal);
+        Assert.Contains("\"number\":\"E-WIEN-1-", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Given_die_Kasse_lehnt_die_Nacherfassung_ab_Then_bleibt_der_Ersatzbeleg_stehen_und_laesst_sich_nur_erneut_senden()
+    {
+        var (pos, stub, api, cache) = await OfflinePosAsync();
+        await pos.AddAppointmentAsync(SpaSample.Paying);
+        pos.FillRestCommand.Execute(pos.Payments.First(p => p.Method == PaymentMethod.Cash));
+        await pos.PayCommand.ExecuteAsync(null);
+
+        // When die Kasse ablehnt, weil der Termin inzwischen an einem anderen Gerät abgerechnet wurde
+        stub.Down = false;
+        stub.On(ReenterRoute, new { title = "Dieser Termin steht schon auf einer Rechnung." }, HttpStatusCode.Conflict);
+        await api.SyncAsync(Ct);
+
+        // Then steht er unter „nicht übernommen“ und lässt sich nicht abhaken: das Geld ist kassiert
+        var failed = Assert.Single(cache.Failed);
+        Assert.False(failed.CanDismiss);
+        Assert.True(failed.CanRetry);
+        Assert.NotNull(failed.Substitute);
+        cache.DismissFailed(failed.Id);
+        Assert.Single(cache.Failed);
+
+        // When der Grund geklärt ist und erneut gesendet wird
+        stub.On(ReenterRoute, SpaSample.Receipt());
+        cache.Retry(failed.Id);
+        Assert.Single(cache.Pending);
+        await api.SyncAsync(Ct);
+
+        // Then ist der Ersatzbeleg nacherfasst
+        Assert.Empty(cache.Pending);
+        Assert.Empty(cache.Failed);
+    }
+
+    [Fact]
+    public async Task Given_keine_Verbindung_When_mit_Gutschein_bezahlt_werden_soll_Then_lehnt_die_Kassa_ab_und_parken_geht_nicht()
+    {
+        var (pos, _, _, cache) = await OfflinePosAsync();
+        await pos.AddAppointmentAsync(SpaSample.Paying);
+
+        var voucher = pos.Payments.First(p => p.IsVoucher);
+        voucher.Amount = "89";
+        voucher.VoucherCode = "K7M3-Q9XA-B2CD";
+        await pos.PayCommand.ExecuteAsync(null);
+
+        Assert.Equal(PosViewModel.SubstitutePaymentsOnly, pos.Error);
+        Assert.Empty(cache.Pending);
+        Assert.NotNull(pos.Bill);
+
+        await pos.ParkBillCommand.ExecuteAsync(null);
+        Assert.Equal("Ohne Verbindung lässt sich die Rechnung nicht parken. Bezahlen oder verwerfen.", pos.Error);
+        Assert.NotNull(pos.Bill);
+
+        await pos.DiscardBillCommand.ExecuteAsync(null);
+        Assert.Null(pos.Bill);
+        Assert.False(pos.IsSubstitute);
+    }
+
+    [Fact]
+    public async Task Given_keine_Verbindung_und_kein_lokaler_Stand_Then_bleibt_es_beim_Hinweis_auf_die_Verbindung()
+    {
+        // Einzelplatz: kein lokaler Stand, also auch kein Ersatzbeleg
+        var stub = new StubApi()
+            .On("GET /api/locations", new List<LocationDto> { SpaSample.Vienna })
+            .On("GET /api/pos/registers", new List<CashRegisterDto> { SpaSample.Register })
+            .On("GET /api/pos/articles", SpaSample.Articles);
+        var pos = new PosViewModel(stub.Client(), new SampleTime());
+        await pos.InitializeAsync(SpaSample.LocationId);
+        stub.Down = true;
+
+        await pos.AddAppointmentAsync(SpaSample.Paying);
+
+        Assert.False(pos.IsSubstitute);
+        Assert.Null(pos.Bill);
+        Assert.NotNull(pos.Error);
+    }
+
+    [Fact]
+    public void Der_Bon_des_Ersatzbelegs_nennt_Nummer_Summe_Zahlung_und_dass_der_signierte_Beleg_folgt()
+    {
+        var receipt = SpaSample.Receipt() with { Number = 0, Tip = 5m, SubstituteNumber = "E-WIEN-1-20261019-114000-7F", SubstituteIssuedAt = SpaSample.At(11, 40) };
+
+        var text = PosViewModel.SubstituteText(receipt, TimeZoneInfo.FindSystemTimeZoneById("Europe/Vienna"), "EUR", 42);
+
+        Assert.Contains("ERSATZBELEG", text, StringComparison.Ordinal);
+        Assert.Contains("E-WIEN-1-20261019-114000-7F", text, StringComparison.Ordinal);
+        Assert.Contains("Summe inkl. USt", text, StringComparison.Ordinal);
+        Assert.Contains("138,80", text, StringComparison.Ordinal);
+        Assert.Contains("Trinkgeld (kein Umsatz)", text, StringComparison.Ordinal);
+        Assert.Contains("Rückgeld", text, StringComparison.Ordinal);
+        Assert.Contains("Der signierte Beleg wird nacherfasst", text, StringComparison.Ordinal);
+        Assert.All(text.Split('\n'), line => Assert.True(line.Length <= 42, line));
+    }
+}

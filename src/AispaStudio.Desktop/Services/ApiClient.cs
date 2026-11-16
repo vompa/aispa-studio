@@ -193,7 +193,10 @@ public sealed class ApiClient : HttpApiClient, IWorkstationApi
                 }
 
                 sent++;
-                Offline.Complete(change.Id, error is null ? null : new FailedChange(change.Id, change.Description, error, DateTimeOffset.UtcNow));
+                Offline.Complete(change.Id, error is null
+                    ? null
+                    : new FailedChange(change.Id, change.Description, error, DateTimeOffset.UtcNow, Substitute: change.Substitute,
+                        Path: change.Substitute is null ? null : change.Path, Body: change.Substitute is null ? null : change.Body));
                 if (appointment is not null)
                 {
                     if (expected is { } used)

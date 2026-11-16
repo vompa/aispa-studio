@@ -6096,3 +6096,30 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
   - `TipTests` 7, `PosTests` 39, `ReceiptPdfTests` 5, `KassenSichVTests` 4 grün; `dotnet format` sauber, Release-Build ohne Warnungen, `npm run gen:api`.
 - **Nicht geprüft:** die volle API-Suite (läuft in der CI); echte Signatureinrichtung und TSE.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Kassa ohne Verbindung: Ersatzbeleg in der Windows-App, Schritt 2 (16.11.2026)
+
+- **Auftrag:** Zweiter Schritt zu [ADR 0096](../entscheidungen/0096-kassieren-ohne-verbindung-ersatzbeleg-und-nacherfassung.md): ohne Verbindung an der Kassa kassieren.
+- **Was:**
+  - Erreicht die Kassa den Server nicht, entsteht die Rechnung am Gerät: Termine aus dem Kalender oder der Tagesliste, Artikel aus dem lokalen Stand. Unter „Bezahlen“ steht der Hinweis „Ersatzbeleg“.
+  - **Bezahlen und Beleg erstellen** gibt einen Ersatzbeleg aus: eigene Nummer, kein Steuersatz, Vermerk „Ersatzbeleg, der signierte Beleg folgt“. **Drucken** erzeugt den Bon am Gerät.
+  - Der Ersatzbeleg ist zur Nacherfassung vorgemerkt und geht beim Abgleich nach dem vorgemerkten Einchecken an die Kasse.
+  - Lehnt die Kasse ab, steht er unter „Beim Abgleich nicht übernommen“ mit **Erneut senden** statt **Erledigt**.
+  - Die Tagesliste der Kassa liegt jetzt im lokalen Stand. Der nacherfasste Beleg zeigt „Nacherfassung zu Ersatzbeleg … vom …“.
+  - Server: Die Nacherfassung rechnet keinen Barzahlungsrabatt.
+  - Hilfe `kassa-ersatzbeleg` mit zwei Bildern; `kalender-offline` und `kassa-termin-kassieren` angepasst.
+- **Detailentscheidungen:**
+  1. Der Ersatzbeleg nutzt die vorhandene Warteschlange des lokalen Stands. So bleibt die Reihenfolge mit dem vorgemerkten Einchecken erhalten, und er übersteht Abmelden und Neustart.
+  2. Nur bar und Karte am eigenständigen Gerät. Andere Zahlungsarten lehnt die Kassa mit „Ohne Verbindung nur bar oder mit Karte am eigenständigen Gerät.“ ab.
+  3. Eine Rechnung ohne Verbindung lässt sich nicht parken, weil es sie nur an diesem Gerät gibt.
+  4. Derselbe Termin bekommt an einem Gerät nur einen Ersatzbeleg. Zwei Geräte können denselben Termin kassieren; dann lehnt die Kasse den zweiten bei der Nacherfassung ab.
+  5. Im Einzelplatz und ohne lokalen Stand bleibt es bei „Kassieren braucht eine Verbindung.“
+  6. Die Nummer enthält Kasse, Datum, Uhrzeit und zwei Zeichen der Id statt eines Zählers, damit zwei Geräte nie dieselbe Nummer vergeben.
+- **Bewusst offen / später:** Hinweis in der App nach 48 Stunden ohne Verbindung; Liste der offenen Ersatzbelege mit Nachdruck; Eintritte; Personenwechsel ohne Server; Steuerberatung.
+- **Geprüft:**
+  - Tests zuerst geplant: `PosSubstituteTests` 6 von 6 grün (Ersatzbeleg mit Termin, Artikel und Trinkgeld; Nacherfassung beim Abgleich; Ablehnung mit erneutem Senden; Gutschein und Parken abgelehnt; Einzelplatz; Text des Bons).
+  - `PosTests` 48, `PosDayListTests` 7, `OfflineTests` 8, `MessageBarTests` 50, `HelpTests` 17, `HelpPageCheckTests` 4 grün.
+  - Bildtests `Kassa_Given_keine_Verbindung_…` 2 von 2 grün; beide Bilder bei 1440 px angesehen. Hilfe-Tests im Web 61 von 61.
+  - API: `SubstituteReceiptTests` 4, `PosTests` 39 grün; `dotnet format` sauber, Release-Build ohne Warnungen.
+- **Nicht geprüft:** ein echter Netzausfall an einem Windows-PC mit Server, der Druck am Bondrucker, zwei Geräte zugleich; die volle Desktop- und API-Suite läuft in der CI.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).

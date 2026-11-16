@@ -27,7 +27,7 @@ Ein Spa mit vollem Kalender verliert bei einem Ausfall sofort Umsatz und Vertrau
 
 - PR #20 lieferte die Windows-App mit Anmeldung per Einmal-Code, Tageskalender, Buchen und Live-Updates; #32 und #59 Ziehen zum Verschieben und die Kassa.
 - Seit PR #63 läuft die App ohne Verbindung weiter: Kalender, Stammdaten und Kundenkarten aus dem zuletzt geladenen, verschlüsselten Stand (`src/AispaStudio.Desktop/Services/Offline.cs`), Terminänderungen werden vorgemerkt und danach abgeglichen. Über die Belegung entscheidet auch dann nur der Server; Buchungen tragen dafür eine eigene Id, damit eine Wiederholung nicht doppelt bucht.
-- Offen: Kassieren ohne Verbindung. Belege, Signatur und Kassenjournal entstehen bisher nur am Server; offline braucht es lokale Belegnummern mit Nachsignatur bzw. Ersatzbelege nach RKSV.
+- Offen: Kassieren ohne Verbindung. Belege, Signatur und Kassenjournal entstehen bisher nur am Server; offline braucht es lokale Belegnummern mit Nachsignatur bzw. Ersatzbelege nach RKSV. Nachtrag 16.11.2026: gelöst mit Ersatzbeleg und Nacherfassung, [ADR 0096](0096-kassieren-ohne-verbindung-ersatzbeleg-und-nacherfassung.md).
 
 ## Quellen
 

@@ -353,7 +353,10 @@
                          IsVisible="{Binding !#Root.((vm:PosViewModel)DataContext)?.HasPrinter, TargetNullValue=False}" />
             </StackPanel>
             <!-- PDF-Ausgaben (ADR 0092): Drucken auf dem Standarddrucker, PDF speichern, per Mail an den Gast; darunter die Vermerke der gesendeten Mails -->
-            <ui:DocumentActions DataContext="{Binding Document}" />
+            <!-- Ein Ersatzbeleg (ADR 0096) hat kein PDF am Server: ohne Dokument keine Knöpfe -->
+            <Panel IsVisible="{Binding Document, Converter={x:Static ObjectConverters.IsNotNull}}">
+              <ui:DocumentActions DataContext="{Binding Document}" />
+            </Panel>
             <ItemsControl ItemsSource="{Binding SentMailLines}" IsVisible="{Binding HasSentMails}">
               <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="x:String">
@@ -659,6 +662,8 @@
             IsVisible="{Binding IsCheckout}">
       <StackPanel Spacing="12">
         <TextBlock Text="Bezahlen" Classes="h2" />
+        <!-- Ohne Verbindung (ADR 0096): die Rechnung gibt es nur an diesem Gerät, bezahlt wird mit einem Ersatzbeleg -->
+        <ui:InfoBar x:Name="SubstituteInfo" Severity="Warning" Title="Ersatzbeleg" Message="{x:Static vm:PosViewModel.SubstituteHint}" IsVisible="{Binding IsSubstitute}" />
         <ItemsControl ItemsSource="{Binding PackageHints}" IsVisible="{Binding HasPackageHints}">
           <ItemsControl.ItemTemplate>
             <DataTemplate x:DataType="vm:PackageHint">
@@ -809,7 +814,10 @@
                        IsVisible="{Binding !#Root.((vm:PosViewModel)DataContext)?.HasPrinter, TargetNullValue=False}" />
           </StackPanel>
           <!-- Nachdruck (ADR 0092): das PDF trägt „Kopie“; der Bondrucker bleibt der erste Knopf -->
-          <ui:DocumentActions DataContext="{Binding Document}" />
+          <!-- Ein Ersatzbeleg (ADR 0096) hat kein PDF am Server: ohne Dokument keine Knöpfe -->
+          <Panel IsVisible="{Binding Document, Converter={x:Static ObjectConverters.IsNotNull}}">
+            <ui:DocumentActions DataContext="{Binding Document}" />
+          </Panel>
           <ItemsControl ItemsSource="{Binding SentMailLines}" IsVisible="{Binding HasSentMails}">
             <ItemsControl.ItemTemplate>
               <DataTemplate x:DataType="x:String">

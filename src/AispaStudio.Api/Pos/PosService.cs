@@ -886,8 +886,8 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
 
             var today = LocalTime.LocalDate(now, await ZoneAsync(register, ct));
             var draft = await BuildCheckoutAsync(register, bill, new CheckoutRequest(null, input.Payments, input.Tip), now, today,
-                PaymentMethods.Available(register.Country, paymentOptions.Value), new DbCheckoutLookups(this, db), ct);
-            // Anzahlung, Barzahlungsrabatt oder Rundung haben die Summe verändert, oder es bliebe Rückgeld.
+                PaymentMethods.Available(register.Country, paymentOptions.Value), new SubstituteLookups(new DbCheckoutLookups(this, db)), ct);
+            // Eine Anzahlung oder die Rundung haben die Summe verändert, oder es bliebe Rückgeld.
             if (draft.Total != input.Total || draft.Change != 0)
             {
                 throw Mismatch(draft.Total);
@@ -915,6 +915,29 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
                 Payments = draft.Payments,
             });
         }, ct);
+    }
+
+    /// <summary>
+    /// Nacherfassung: wie das Kassieren, aber ohne Barzahlungsrabatt. Ohne Verbindung hat die App ihn nicht gewährt, und gebucht wird,
+    /// was auf dem Ersatzbeleg steht.
+    /// </summary>
+    private sealed class SubstituteLookups(ICheckoutLookups inner) : ICheckoutLookups
+    {
+        public Task<string> NewVoucherCodeAsync(CancellationToken ct) => inner.NewVoucherCodeAsync(ct);
+
+        public Task<Voucher?> FindVoucherAsync(string code, CancellationToken ct) => inner.FindVoucherAsync(code, ct);
+
+        public Task<List<AppointmentDeposit>> OpenDepositsAsync(Guid appointmentId, CancellationToken ct) => inner.OpenDepositsAsync(appointmentId, ct);
+
+        public Task<(long Number, string RegisterCode)> DepositReceiptAsync(Guid receiptId, CashRegister current, CancellationToken ct) =>
+            inner.DepositReceiptAsync(receiptId, current, ct);
+
+        public Task<decimal> CashDiscountPercentAsync(Guid registerId, CancellationToken ct) => Task.FromResult(0m);
+
+        public Task<(decimal Amount, string? Reference)> PlatformPrepaidAsync(IEnumerable<(BillLineKind Kind, Guid? AppointmentId, decimal Open)> lines,
+            CancellationToken ct) => inner.PlatformPrepaidAsync(lines, ct);
+
+        public Task<CardPayment?> FindCardPaymentAsync(Guid id, Guid billId, CancellationToken ct) => inner.FindCardPaymentAsync(id, billId, ct);
     }
 
     /// <summary>Die Abfragen des Kassierens gegen die Datenbank.</summary>
