@@ -21,7 +21,7 @@ stichwoerter: Kosten, Vollkosten, Kalkulation, Deckungsbeitrag, Marge, was koste
 
 ![Vollkosten pro Behandlung](images/app/verwaltung-kosten.png)
 
-Fehlt eine Angabe, steht unter dem Namen der Behandlung ein Hinweis, z. B. „Kein Material erfasst.“. Die Rechnung ist eine Auswertung; sie ändert keine Preise, Belege oder Buchhaltung.
+Fehlt eine Angabe, steht unter dem Namen der Behandlung ein Hinweis, z. B. „Kein Material erfasst.“, und über der Tabelle, wie vielen Behandlungen Angaben fehlen. Die Rechnung ist eine Auswertung; sie ändert keine Preise, Belege oder Buchhaltung.
 
 Die Rechnung im Einzelnen: [Kosten](hilfe:kosten).
 

@@ -80,6 +80,9 @@ public sealed partial class LeaveAccountViewModel : ViewModelBase, IEditableArea
     public bool HasUnsavedChanges => IsEditable && _account is { } account
         && (EntitlementText.Trim() != Format(account.Entitlement) || CarriedOverText.Trim() != FormatCarried(account.CarriedOver));
 
+    /// <summary>Anspruch oder Übertrag ist gespeichert; die Übersicht der Karte lädt neu.</summary>
+    public event Action? Saved;
+
     public Task EnsureLoadedAsync() => _loaded ? Task.CompletedTask : LoadAsync();
 
     /// <summary>Nach einer Änderung im Dienstplan: Zahlen neu holen, eine angefangene Eingabe bleibt stehen.</summary>
@@ -170,6 +173,7 @@ public sealed partial class LeaveAccountViewModel : ViewModelBase, IEditableArea
         Error = null;
         Show(result.Value, keepInput: false);
         StatusText = "Gespeichert.";
+        Saved?.Invoke();
         return true;
     }
 
@@ -219,7 +223,8 @@ public sealed partial class LeaveAccountViewModel : ViewModelBase, IEditableArea
         return $"{counted} Ein Urlaubstag mit Dienst zählt halb. Es zählt der veröffentlichte Dienstplan.{uncounted}{none}";
     }
 
-    private static string Days(decimal value) => value == 1 ? "1 Tag" : $"{value.ToString("0.#", German)} Tage";
+    /// <summary>„1 Tag“, „24,5 Tage“; auch für die Übersicht der Personenkarte.</summary>
+    internal static string Days(decimal value) => value == 1 ? "1 Tag" : $"{value.ToString("0.#", German)} Tage";
 
     private static string Format(decimal? value) => value?.ToString("0.#", German) ?? "";
 

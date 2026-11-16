@@ -713,6 +713,35 @@
     <Setter Property="Padding" Value="6,4" />
   </Style>
 
+  <!-- Kennzahl-Kachel (Design-Brief 5.5, Controls/StatTile): surface, Rahmen 1 px line, Radius 12, Innenabstand 12/16, kein Schatten, Mindestbreite 160; mit Befehl ein Knopf mit den
+       Zuständen der Knöpfe (Hover, Drücken, Fokus nach 4.5), ohne Befehl (static) reine Anzeige ohne Hover und Drücken -->
+  <Style Selector="Button.stattile">
+    <Setter Property="MinWidth" Value="160" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    <Setter Property="VerticalContentAlignment" Value="Top" />
+    <Setter Property="Padding" Value="16,12" />
+    <Setter Property="CornerRadius" Value="12" />
+    <Setter Property="FontWeight" Value="Normal" />
+    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+  </Style>
+  <Style Selector="Button.stattile.static:pointerover /template/ ContentPresenter#PART_ContentPresenter, Button.stattile.static:pressed /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+  </Style>
+  <Style Selector="Button.stattile.static:pressed">
+    <Setter Property="RenderTransform" Value="none" />
+  </Style>
+  <Style Selector="Button.stattile c|Icon">
+    <Setter Property="Foreground" Value="{DynamicResource Fg2Brush}" />
+  </Style>
+  <Style Selector="Button.stattile.ok c|Icon">
+    <Setter Property="Foreground" Value="{DynamicResource OkBrush}" />
+  </Style>
+  <Style Selector="Button.stattile.warn c|Icon">
+    <Setter Property="Foreground" Value="{DynamicResource WarnBrush}" />
+  </Style>
+
   <!-- Umschalter mit zwei Teilen (Team / Räume) -->
   <Style Selector="Border.segmented">
     <Setter Property="Background" Value="{DynamicResource Surface3Brush}" />

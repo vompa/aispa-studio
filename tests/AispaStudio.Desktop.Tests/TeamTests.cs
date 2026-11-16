@@ -81,7 +81,9 @@ public sealed class TeamTests
         Assert.Equal("Therapeut:in · eingeladen", elif.Subtitle);
         Assert.Equal(TeamEntryKind.Invitation, elif.Kind);
         var card = await Choose(team, "Elif Demir");
-        Assert.Equal([PersonCardViewModel.AccessTab], card.Tabs.Select(t => t.Id));
+        Assert.Equal([PersonCardViewModel.ProfileArea], card.Tabs.Select(t => t.Id));
+        Assert.Equal([PersonCardViewModel.AccessTab], card.Sections);
+        Assert.False(card.ShowsTabs);
         Assert.Equal("elif@spa.test · Therapeut:in · gültig bis 22.10.2026", card.Access?.InvitationText);
     }
 
@@ -120,8 +122,14 @@ public sealed class TeamTests
         var api = Api();
         var team = await Loaded(api);
         var card = await Choose(team, "Lena Huber");
-        Assert.Equal([PersonCardViewModel.DetailsTab, PersonCardViewModel.AccessTab, PersonCardViewModel.QualificationsTab, PersonCardViewModel.RosterTab,
-            PersonCardViewModel.TimesTab, PersonCardViewModel.PayrollTab, PersonCardViewModel.HrFileTab, PersonCardViewModel.RegulationsTab, PersonCardViewModel.DutiesTab, PersonCardViewModel.HistoryTab], card.Tabs.Select(t => t.Id));
+        Assert.Equal([PersonCardViewModel.OverviewArea, PersonCardViewModel.ProfileArea, PersonCardViewModel.WorkTimeArea, PersonCardViewModel.PayAndFileArea],
+            card.Tabs.Select(t => t.Id));
+        Assert.Equal(["Übersicht", "Profil", "Arbeitszeit", "Lohn und Akte"], card.Tabs.Select(t => t.Label));
+        Assert.Equal([PersonCardViewModel.DetailsTab, PersonCardViewModel.AccessTab, PersonCardViewModel.QualificationsTab, PersonCardViewModel.DutiesTab,
+            PersonCardViewModel.RosterTab, PersonCardViewModel.TimesTab, PersonCardViewModel.PayrollTab, PersonCardViewModel.HrFileTab, PersonCardViewModel.RegulationsTab], card.Sections);
+        Assert.Equal(["Zugang und Rolle", "Dienstplan und Abwesenheiten", "Personalakte", "Regelungen und Vollmachten", "Zuständigkeiten und Zertifikate"],
+            card.HistorySections.Select(h => h.Title));
+        Assert.Equal(PersonCardViewModel.OverviewArea, card.SelectedTab);
 
         card.Details!.Name = "Lena Maria Huber";
         Assert.True(team.HasUnsavedChanges);
@@ -193,7 +201,9 @@ public sealed class TeamTests
             HttpStatusCode.BadRequest);
         var team = await Loaded(api, TestData.Owner(StaffRole.GeneralManager));
         var card = await Choose(team, "Rita Wagner");
-        Assert.Equal([PersonCardViewModel.AccessTab, PersonCardViewModel.HistoryTab], card.Tabs.Select(t => t.Id));
+        Assert.Equal([PersonCardViewModel.ProfileArea], card.Tabs.Select(t => t.Id));
+        Assert.Equal([PersonCardViewModel.AccessTab], card.Sections);
+        Assert.Equal(["Zugang und Rolle"], card.HistorySections.Select(h => h.Title));
 
         card.Access!.Role = RoleChoice.All.Single(r => r.Role == StaffRole.Owner);
         Assert.True(team.HasUnsavedChanges);
@@ -244,8 +254,10 @@ public sealed class TeamTests
         var team = await Loaded(api, LocationManager());
         var card = await Choose(team, "Lena Huber");
 
+        Assert.Equal([PersonCardViewModel.OverviewArea, PersonCardViewModel.ProfileArea, PersonCardViewModel.WorkTimeArea], card.Tabs.Select(t => t.Id));
         Assert.Equal([PersonCardViewModel.DetailsTab, PersonCardViewModel.AccessTab, PersonCardViewModel.QualificationsTab, PersonCardViewModel.RosterTab, PersonCardViewModel.TimesTab],
-            card.Tabs.Select(t => t.Id));
+            card.Sections);
+        Assert.False(card.HasHistory);
         Assert.Null(card.AccessHistory);
         Assert.Null(card.RosterHistory);
         Assert.False(card.Access?.CanGrant);
@@ -294,7 +306,7 @@ public sealed class TeamTests
         Assert.DoesNotContain(api.Calls, c => c.Route == "GET /api/employees/former");
         Assert.DoesNotContain(team.Entries, e => e.Title == "Person anlegen");
         var card = await Choose(team, "Lena Huber");
-        Assert.DoesNotContain(card.Tabs, t => t.Id == PersonCardViewModel.DetailsTab);
+        Assert.False(card.HasSection(PersonCardViewModel.DetailsTab));
         Assert.False(card.CanRemove);
     }
 

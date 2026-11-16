@@ -13,10 +13,10 @@ Der Dienstplan zeigt für einen Standort und eine Woche, wer wann arbeitet. Grun
 In der Windows-App gibt es keinen eigenen Bereich „Dienstplan“ mehr. Er steht in **Verwaltung** › **Team**:
 
 - Die Ansicht **Wochenplan** zeigt alle Mitarbeitenden einer Woche.
-- Die Personenkarte hat den Reiter **Dienstplan und Abwesenheit** mit der Woche einer Person.
-- Die Ansicht **Anträge** listet die offenen Abwesenheitsanträge.
+- Die Personenkarte zeigt im Bereich **Arbeitszeit** unter **Dienstplan und Abwesenheit** die Woche einer Person.
+- Die Schaltfläche **Anträge** im Wochenplan öffnet die offenen Abwesenheitsanträge als Seitenleiste.
 
-Über der Fläche schaltet eine Leiste zwischen **Personen**, **Wochenplan**, **Zeiten** und **Anträge** um. Sie zeigt nur, was die eigene Rolle darf. Die Rezeption und Therapeutinnen sehen nur den **Wochenplan**, ohne Personenliste.
+Über der Fläche schaltet eine Leiste zwischen **Personen**, **Wochenplan**, **Zeiten**, **Lohn** und **Rechte und Zuständigkeiten** um. Sie zeigt nur, was die eigene Rolle darf. Die Rezeption und Therapeutinnen sehen nur den **Wochenplan**, ohne Personenliste.
 
 Sehen dürfen den Plan alle Rollen, auch das Backoffice. Planen, Veröffentlichen, Verwerfen und Anträge entscheiden dürfen nur Inhaber, Manager und Standortleitung (die Standortleitung an ihren eigenen Standorten). Wer nur sehen darf, kann keine Zelle anklicken.
 
@@ -32,7 +32,7 @@ Sehen dürfen den Plan alle Rollen, auch das Backoffice. Planen, Veröffentliche
 - Unter der Tabelle zählt die Zeile **Besetzung**, wie viele Personen pro Tag am Standort im Dienst sind. Auf der Karte einer Person fehlt sie.
 - Eine Warnung in einer Zelle oder bei den Stunden weist auf Arbeitszeitgrenzen hin, z. B. zu kurze Ruhezeit, zu kurze Pause oder zu viele Stunden. Die Grenzen richten sich nach dem Land des Spas.
 - Ein Klick auf eine Zelle öffnet direkt an der Zelle das Feld zum Planen dieses Tages. Für eine Person weiter unten zuerst **Schließen**.
-- Ein Klick auf den Namen einer Person wechselt zu **Personen** und öffnet ihre Karte im Reiter **Dienstplan und Abwesenheit**. Das geht nur mit dem Recht, Personen zu sehen.
+- Ein Klick auf den Namen einer Person wechselt zu **Personen** und öffnet ihre Karte im Bereich **Arbeitszeit**, beim Dienstplan. Das geht nur mit dem Recht, Personen zu sehen.
 - **Exportieren** speichert den Dienstplan der angezeigten Woche (Personen als Zeilen, Tage als Spalten, mit Entwürfen) und die Abwesenheiten dieser Woche als Excel oder CSV. Den Knopf sehen nur Inhaberin und Geschäftsführung.
 
 ![Wochenplan in der Windows-App](images/app/verwaltung-team-wochenplan.png)

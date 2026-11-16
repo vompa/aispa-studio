@@ -8,11 +8,11 @@ stichwoerter: Management, Cockpit, Kennzahlen, KPI, Umsatz, Auslastung, No-Show,
 ---
 # Kennzahlen im Management ansehen
 
-Der Reiter „Management“ zeigt die Kennzahlen eines Standorts für einen Zeitraum, jeweils neben dem gleich langen Zeitraum davor.
+Der Abschnitt „Management“ im Reiter „Berichte“ zeigt die Kennzahlen eines Standorts für einen Zeitraum, jeweils neben dem gleich langen Zeitraum davor.
 
 ## Zeitraum wählen {#zeitraum}
 
-1. In der Windows-App unter „Verwaltung“ **Zahlen** öffnen, den Reiter **Berichte** und darin **Management** wählen.
+1. In der Windows-App unter „Verwaltung“ **Zahlen** öffnen und den Reiter **Berichte** wählen. Der Abschnitt **Management** steht oben.
 2. **Standort** wählen.
 3. **Von** und **Bis** setzen. Vorbelegt sind der Monatserste und heute. Der Zeitraum darf höchstens ein Jahr lang sein.
 4. Wer die Zahlen weitergeben will: **Exportieren** daneben speichert die Kennzahlen des Zeitraums mit Wert, Vorperiode und Einheit als Excel oder CSV. Beträge stehen nur darin, wenn man sie auf der Seite auch sieht.

@@ -17,7 +17,7 @@ Eine Schließzeit sperrt den Standort für Buchungen, zum Beispiel für den Betr
 3. Bei **Zeitraum** **Von** und **Bis** wählen. Für einen halben Tag **Nur ein Teil der Tage (mit Uhrzeit)** ankreuzen und **Ab Uhrzeit** oder **Bis Uhrzeit** eintragen.
 4. Bei **Art** **Betriebsurlaub**, **Feiertag oder Sonderschließung** oder **Ausfall** wählen.
 5. Bei **Texte** den **Grund für das Team** und den **Text für Gäste** eintragen; der Text für Gäste darf leer bleiben.
-6. Auf **Speichern** klicken oder **Strg+S** drücken. Es erscheint „Gespeichert“; die Schließzeit steht unter **Aktuell**.
+6. Auf **Speichern** klicken oder **Strg+S** drücken. Es erscheint „Gespeichert“; die Schließzeit steht links in der Liste.
 
 Fehlt etwas oder passt etwas nicht, steht der Hinweis am Feld, und der Cursor springt ins erste Feld mit einem Fehler. Wer die Maske mit ungespeicherten Änderungen verlässt, wird gefragt: „Änderungen speichern?“.
 

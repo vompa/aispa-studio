@@ -7,9 +7,9 @@ seite: team
 ---
 # Regelungen und Vollmachten
 
-In der Windows-App liegen Hinweise, Sonderregelungen und Vollmachten im Bereich **Verwaltung** › **Team** auf der Karte einer Person, im Reiter **Regelungen und Vollmachten**. Nur Inhaber und Manager sehen und ändern sie. Was heute gilt, steht als Kennzeichen oben auf der Karte und in der Teamliste. Abgelaufene Einträge stehen im Reiter ausgegraut und zählen nicht mehr.
+In der Windows-App liegen Hinweise, Sonderregelungen und Vollmachten im Bereich **Verwaltung** › **Team** auf der Karte einer Person, im Bereich **Lohn und Akte**, Abschnitt **Regelungen und Vollmachten**. Nur Inhaber und Manager sehen und ändern sie. Was heute gilt, steht als Kennzeichen oben auf der Karte und in der Teamliste. Abgelaufene Einträge stehen im Abschnitt ausgegraut und zählen nicht mehr.
 
-Bei einer ausgeschiedenen Person lässt sich der Reiter nur lesen.
+Bei einer ausgeschiedenen Person lässt sich der Abschnitt nur lesen.
 
 ## Hinweis {#hinweis}
 
@@ -28,7 +28,7 @@ Die Regelung warnt, sie sperrt nie. Beim Speichern im Tageseditor des Dienstplan
 
 ### Grund {#grund}
 
-Den **Grund** sehen nur Inhaber und Manager im Reiter. Die Warnungen beim Planen und Buchen nennen ihn nicht, auch nicht für die Leitung.
+Den **Grund** sehen nur Inhaber und Manager im Abschnitt. Die Warnungen beim Planen und Buchen nennen ihn nicht, auch nicht für die Leitung.
 
 ## Vollmacht {#vollmacht}
 
@@ -43,8 +43,8 @@ Die übrigen Vollmachten zeigen nur, wer zuständig ist: Kassa-Abschluss, Tresor
 
 ## Wer darf was? {#wer-darf-was}
 
-**Verwaltung** › **Team** › **Wer darf was?** zeigt je Vollmacht, wer sie hat, bis wann und wer sie erteilt hat. Abgelaufene Vollmachten stehen ausgegraut dabei. Ändern lassen sie sich auf der Karte der Person.
+**Verwaltung** › **Team** › **Rechte und Zuständigkeiten**, Abschnitt **Wer darf was?**, zeigt je Vollmacht, wer sie hat, bis wann und wer sie erteilt hat. Abgelaufene Vollmachten stehen ausgegraut dabei. Ändern lassen sie sich auf der Karte der Person.
 
 ## Verlauf {#verlauf}
 
-Der Reiter **Verlauf** nennt unter **Regelungen und Vollmachten**, wer wann einen Eintrag angelegt, geändert oder gelöscht hat, aber nie den Inhalt.
+Die Seitenleiste **Verlauf** (Schaltfläche im Kopf der Karte) nennt unter **Regelungen und Vollmachten**, wer wann einen Eintrag angelegt, geändert oder gelöscht hat, aber nie den Inhalt.

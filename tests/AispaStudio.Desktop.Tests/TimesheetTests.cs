@@ -491,7 +491,8 @@ public sealed class TimesheetTests
 
         var card = await CardOf(team, "Lena Huber");
 
-        Assert.Equal("Zeiten", card.Tabs.Single(t => t.Id == PersonCardViewModel.TimesTab).Label);
+        Assert.Equal("Arbeitszeit", card.Tabs.Single(t => t.Id == PersonCardViewModel.WorkTimeArea).Label);
+        Assert.Equal(PersonCardViewModel.TimesTab, card.FocusedSection);
         Assert.True(card.ShowsTimes);
         var times = card.Times!;
         Assert.True(times.IsCard);
@@ -566,7 +567,9 @@ public sealed class TimesheetTests
 
         Assert.False(await team.SaveChangesAsync());
 
-        Assert.Equal(PersonCardViewModel.TimesTab, card.SelectedTab);
+        Assert.Equal(PersonCardViewModel.WorkTimeArea, card.SelectedTab);
+        Assert.Equal(PersonCardViewModel.TimesTab, card.FocusedSection);
+        Assert.True(card.ShowsTimes);
         Assert.Equal("Grund angeben.", times.Day.ReasonError);
         Assert.False(WroteRecords(api));
     }
@@ -584,7 +587,8 @@ public sealed class TimesheetTests
         times.Rows[0].OpenPersonCommand.Execute(null);
         await RosterTests.Until(() => team.ShowsPeople && team.Card?.Title == "Lena Huber");
 
-        Assert.Equal(PersonCardViewModel.TimesTab, team.Card!.SelectedTab);
+        Assert.Equal(PersonCardViewModel.WorkTimeArea, team.Card!.SelectedTab);
+        Assert.Equal(PersonCardViewModel.TimesTab, team.Card.FocusedSection);
     }
 
     [Fact]

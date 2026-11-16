@@ -31,6 +31,7 @@
           </ui:FormField>
         </StackPanel>
         <TextBlock Classes="muted" TextWrapping="Wrap" Text="{Binding CapacityText}" />
+        <ui:InfoBar x:Name="MissingNoticeBar" Severity="Warning" Message="{Binding MissingNotice}" IsVisible="{Binding HasMissingNotice}" />
         <TextBlock Classes="muted" Text="Keine Behandlungen mit Räumen an diesem Standort." IsVisible="{Binding ShowEmpty}" />
         <Border Classes="card" Padding="12" IsVisible="{Binding ShowTable}">
           <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">

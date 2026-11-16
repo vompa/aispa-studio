@@ -17,7 +17,7 @@ public sealed partial class ViewTests
     /// <summary>Die Bildtests laufen am 19.10.2026; „die letzten 30 Tage“ der Bewegungen beginnen am 19.9.</summary>
     private static StubApi StockApi() => StockSample.Api(Api(), period: "from=2026-09-19&until=2026-10-19", locationList: false);
 
-    /// <summary>Öffnet das Lager im Reiter „Bestand“ (der Start steht seit Slice 143 in der Übersicht; <see cref="OpenStockOverview"/> lässt sie stehen).</summary>
+    /// <summary>Öffnet das Lager im Reiter „Bestand“, Ansicht „Material“ (der Start steht seit Slice 143 in der Übersicht; <see cref="OpenStockOverview"/> lässt sie stehen).</summary>
     private static async Task<(ShellViewModel Shell, StockViewModel Stock)> OpenStock(Window window, MainViewModel main)
     {
         var (shell, stock) = await OpenStockOverview(window, main);
@@ -162,7 +162,7 @@ public sealed partial class ViewTests
         return Render("hell", "verwaltung-lager-lagerorte", async (window, main) =>
         {
             var (shell, stock) = await OpenStock(window, main);
-            await ClickScrolled(window, "PlacesTabButton");
+            await ClickScrolled(window, "SetupButton");
             stock.PlacesAdmin.SelectedRow = stock.PlacesAdmin.Rows.Single(r => r.Id == ShopId);
             await Pump(Settling);
             Assert.Equal("Verkaufsregal", Named<TextBox>(window, "PlaceNameField").Text);
@@ -625,7 +625,7 @@ public sealed partial class ViewTests
         return Render("hell", "verwaltung-lager-rueckverfolgung", async (window, main) =>
         {
             var (shell, _) = await OpenStock(window, main);
-            await ClickScrolled(window, "MovementsTabButton");
+            await ClickScrolled(window, "MovementsViewButton");
             await Pump(Settling);
 
             Assert.False(Named<Button>(window, "TraceBatchButton").IsEffectivelyEnabled);
@@ -652,7 +652,7 @@ public sealed partial class ViewTests
         return Render("hell", "verwaltung-lager-rueckverfolgung-leer", async (window, main) =>
         {
             var (shell, _) = await OpenStock(window, main);
-            await ClickScrolled(window, "MovementsTabButton");
+            await ClickScrolled(window, "MovementsViewButton");
             await Pump(Settling);
 
             var item = Named<ComboBox>(window, "TraceItemField");
@@ -673,7 +673,7 @@ public sealed partial class ViewTests
         return Render("hell", "verwaltung-lager-hoechstmenge", async (window, main) =>
         {
             var (shell, stock) = await OpenStock(window, main);
-            await ClickScrolled(window, "PlacesTabButton");
+            await ClickScrolled(window, "SetupButton");
             await Pump(Settling);
             stock.PlacesAdmin.SelectedRow = stock.PlacesAdmin.Rows.Single(r => r.Name == "Verkaufsregal");
             await Pump(Settling);
@@ -702,6 +702,7 @@ public sealed partial class ViewTests
         {
             var (shell, _) = await OpenStock(window, main);
 
+            await ClickScrolled(window, "SetupButton");
             await ClickScrolled(window, "SuppliersTabButton");
             await TypeInto(window, "SupplierNameField", "Haslauer");
             await TypeInto(window, "SupplierContactField", "Eva Muster");
@@ -785,7 +786,7 @@ public sealed partial class ViewTests
     {
         var (shell, _) = await OpenStock(window, main);
 
-        await ClickScrolled(window, "TasksTabButton");
+        await ClickScrolled(window, "BatchesViewButton");
         await Pump(Settling);
 
         Assert.True(Shows(window, "Bald ablaufend"));

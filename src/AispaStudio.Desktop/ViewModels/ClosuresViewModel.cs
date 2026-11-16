@@ -153,8 +153,6 @@ public sealed partial class ClosuresViewModel : PeriodAreaViewModel
 
     protected override string EmptyCurrentText => "Es ist keine Schließzeit eingetragen.";
 
-    protected override string EmptyEndedText => "Keine beendete Schließzeit.";
-
     protected override string SaveFailedText => "Die Schließzeit konnte nicht gespeichert werden. Bitte die markierten Felder prüfen.";
 
     /// <summary>Absagen brauchen zusätzlich das Recht zu buchen.</summary>
@@ -298,13 +296,13 @@ public sealed partial class ClosuresViewModel : PeriodAreaViewModel
         return InternalReasonError is not null ? "InternalReasonField" : GuestTextError is not null ? "GuestTextField" : null;
     }
 
-    protected override async Task<(Guid? Id, PeriodTab Tab, string? Error)> SendAsync(Guid locationId, Guid? id, PeriodValue period)
+    protected override async Task<(Guid? Id, string? Error)> SendAsync(Guid locationId, Guid? id, PeriodValue period)
     {
         var body = new ClosureInput(period.From, period.FromTime, period.Until, period.UntilTime, Kind, Trimmed(InternalReason), Trimmed(GuestText));
         var result = id is { } existing
             ? await Api.PutAsync<ClosureDto>($"api/locations/{locationId}/closures/{existing}", body).ConfigureAwait(true)
             : await Api.PostAsync<ClosureDto>($"api/locations/{locationId}/closures", body).ConfigureAwait(true);
-        return result.Value is { } saved ? (saved.Id, TabOf(saved.Phase), null) : (null, PeriodTab.Current, result.Error);
+        return result.Value is { } saved ? (saved.Id, null) : (null, result.Error);
     }
 
     protected override async Task<string?> DeleteItemAsync(Guid locationId, Guid id)

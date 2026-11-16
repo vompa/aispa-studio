@@ -36,8 +36,7 @@ public sealed partial class AdminPageViewModel : ViewModelBase
     [
         (new("Firmendaten", "masterData", "company"), [AccessRight.ManageOrganization]),
         (new("Standorte & Räume", "masterData", "locations"), [AccessRight.ManageLocation]),
-        (new("Schließzeiten", "masterData", "closures"), [AccessRight.ManageLocation]),
-        (new("Raumsperren", "masterData", "roomClosures"), [AccessRight.ManageLocation]),
+        (new("Schließzeiten", "masterData", ClosuresPageViewModel.ClosuresSection), [AccessRight.ManageLocation]),
         (new("Kalender-Abos", "masterData", "subscriptions"), [AccessRight.ManageLocation]),
         (new("Handbuch", "masterData", "handbook"), [AccessRight.ManageLocation]),
         (new("Behandlungen", "masterData", "treatments"), [AccessRight.ManageCatalog]),
@@ -55,10 +54,13 @@ public sealed partial class AdminPageViewModel : ViewModelBase
         (new("Buchhaltung", "accounting", null), [AccessRight.ViewAmountReports]),
     ];
 
-    /// <summary>Die Gruppen des Balkens mit ihren Masken (Auftraggeber, 31.10.2026, Ä293).</summary>
+    /// <summary>
+    /// Die Gruppen des Balkens mit ihren Masken (Auftraggeber, 31.10.2026, Ä293). Keine Gruppe hat mehr als fünf Masken (ADR 0098): Schließzeiten und Raumsperren stehen auf einer
+    /// Seite.
+    /// </summary>
     private static readonly (string Title, string Icon, string[] Areas)[] GroupLayout =
     [
-        ("Betrieb", Icons.Location, ["Firmendaten", "Standorte & Räume", "Schließzeiten", "Raumsperren", "Kalender-Abos", "Handbuch"]),
+        ("Betrieb", Icons.Location, ["Firmendaten", "Standorte & Räume", "Schließzeiten", "Kalender-Abos", "Handbuch"]),
         ("Angebot", Icons.Steam, ["Behandlungen", "Aktionen"]),
         ("Team", Icons.Users, ["Team"]),
         ("Lager", Icons.Archive, ["Lager"]),
@@ -104,8 +106,7 @@ public sealed partial class AdminPageViewModel : ViewModelBase
 
         Company = _native.Values.OfType<CompanyViewModel>().SingleOrDefault();
         Locations = _native.Values.OfType<LocationsViewModel>().SingleOrDefault();
-        Closures = _native.Values.OfType<ClosuresViewModel>().SingleOrDefault();
-        RoomClosures = _native.Values.OfType<RoomClosuresViewModel>().SingleOrDefault();
+        ClosuresPage = _native.Values.OfType<ClosuresPageViewModel>().SingleOrDefault();
         Subscriptions = _native.Values.OfType<SubscriptionsViewModel>().SingleOrDefault();
         Treatments = _native.Values.OfType<TreatmentsViewModel>().SingleOrDefault();
         Reminders = _native.Values.OfType<RemindersViewModel>().SingleOrDefault();
@@ -153,11 +154,14 @@ public sealed partial class AdminPageViewModel : ViewModelBase
     /// <summary>Standorte &amp; Räume; nur, wer Standorte verwalten darf (ManageLocation).</summary>
     public LocationsViewModel? Locations { get; }
 
-    /// <summary>Schließzeiten; nur, wer Standorte verwalten darf (ManageLocation).</summary>
-    public ClosuresViewModel? Closures { get; }
+    /// <summary>Seite „Schließzeiten“ mit den Abschnitten Schließzeiten und Raumsperren (ADR 0098); nur, wer Standorte verwalten darf (ManageLocation).</summary>
+    public ClosuresPageViewModel? ClosuresPage { get; }
 
-    /// <summary>Raumsperren; nur, wer Standorte verwalten darf (ManageLocation).</summary>
-    public RoomClosuresViewModel? RoomClosures { get; }
+    /// <summary>Abschnitt „Schließzeiten“ der Seite.</summary>
+    public ClosuresViewModel? Closures => ClosuresPage?.Closures;
+
+    /// <summary>Abschnitt „Raumsperren“ der Seite.</summary>
+    public RoomClosuresViewModel? RoomClosures => ClosuresPage?.RoomClosures;
 
     /// <summary>Kalender-Abos; nur, wer Standorte verwalten darf (ManageLocation).</summary>
     public SubscriptionsViewModel? Subscriptions { get; }
@@ -242,14 +246,13 @@ public sealed partial class AdminPageViewModel : ViewModelBase
 
     /// <summary>
     /// Die Maske eines Bereichs. Erweiterungsstelle: ein Bereich bekommt seine Maske, indem er in <see cref="All"/> steht und
-    /// hier eine Zeile steht (<c>"closures" =&gt; new ClosuresViewModel(api, user, time)</c>), die <see cref="INativeArea"/> umsetzt; mehr braucht die Seite nicht.
+    /// hier eine Zeile steht (<c>"subscriptions" =&gt; new SubscriptionsViewModel(api, time)</c>), die <see cref="INativeArea"/> umsetzt; mehr braucht die Seite nicht.
     /// </summary>
     private static ViewModelBase CreateNative(AdminArea area, IWorkstationApi api, CurrentUser user, TimeProvider time, ILiveUpdates? live) => area.Tab switch
     {
         "company" => new CompanyViewModel(api, time.LocalTimeZone),
         "locations" => new LocationsViewModel(api, user),
-        "closures" => new ClosuresViewModel(api, user, time),
-        "roomClosures" => new RoomClosuresViewModel(api, user, time),
+        ClosuresPageViewModel.ClosuresSection => new ClosuresPageViewModel(api, user, time),
         "subscriptions" => new SubscriptionsViewModel(api, time),
         "treatments" => new TreatmentsViewModel(api, time.LocalTimeZone, user.Rights.Contains(AccessRight.ViewAmountReports)),
         "reminders" => new RemindersViewModel(api, time.LocalTimeZone),
@@ -309,6 +312,8 @@ public sealed partial class AdminPageViewModel : ViewModelBase
             ("time", _) => ("masterData", "team", area ?? TeamViewModel.TimesMode),
             // R07 Slice 144: die Betriebsinfo ist ein Reiter in „Zahlen“.
             ("businessInfo", _) => ("reports", ReportsViewModel.BusinessInfoTab, area),
+            // ADR 0098: die Raumsperren sind ein Abschnitt der Seite „Schließzeiten“.
+            ("masterData", ClosuresPageViewModel.RoomClosuresSection) => ("masterData", ClosuresPageViewModel.ClosuresSection, ClosuresPageViewModel.RoomClosuresSection),
             _ => (page, tab, area),
         };
         var target = Find(Areas, page, tab);

@@ -7,58 +7,67 @@
              x:DataType="vm:StockViewModel"
              ui:SaveShortcut.IsScope="True">
   <!--
-    Lager (R05 Slice 101, ADR 0084; R07 Slice 143, Ä351): oben die Reiter für den Alltag, Übersicht, Bestand, Bestellen und Chargen (beide nur mit dem Recht für den Standort) und Bewegungen, dahinter nach einem Trenner
-    die Verwaltung: Inventur und Lagerorte (Recht für den Standort), Lieferanten (Recht auf den Katalog) und Verbrauch (nur mit ViewFinance). Darunter das eine Feld „Material suchen oder scannen“, Standort und Lagerort,
-    „Bewegung buchen“ und das Fragezeichen; dann der gewählte Reiter, rechts daneben die Leiste „Bewegung buchen“. Die Bedarfsprüfung steht im Reiter Bestellen, die Chargen-Rückverfolgung im Reiter Bewegungen.
+    Lager (R05 Slice 101, ADR 0084; Aufbau nach ADR 0098, masken.md R15): eine Schiene mit vier Reitern, Übersicht, Bestand, Bestellen (mit dem Recht zu buchen oder für den Standort) und
+    Inventur (Recht für den Standort). Rechts daneben die Werkzeuge: „Material suchen oder scannen“, Standort, Export, „Einrichtung“, das Fragezeichen und „Bewegung buchen“; reicht die Breite
+    nicht, stehen sie rechtsbündig in einer zweiten Zeile (ReflowRow), die Schiene bricht nie um. Der Bestand hat darunter seine eigene Zeile mit der Ansicht (Material, Chargen, Bewegungen) und
+    dem Lagerort. „Einrichtung“ ist eine eigene Seite mit „Zurück“: Lagerorte (Recht für den Standort) und Lieferanten (Recht auf den Katalog). Der Verbrauch (nur mit ViewFinance) ist ein
+    Abschnitt der Übersicht. Rechts neben dem Inhalt die Leiste „Bewegung buchen“.
   -->
   <ScrollViewer x:Name="StockScroll" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
     <StackPanel Spacing="16" Margin="0,0,16,16">
-      <Grid ColumnDefinitions="Auto,*,Auto,Auto" RowDefinitions="Auto,Auto" ColumnSpacing="12" IsVisible="{Binding ShowContent}">
-        <Border Classes="segmented" x:Name="Tabs" VerticalAlignment="Center">
-          <StackPanel Orientation="Horizontal">
-            <ui:TabButton x:Name="OverviewTabButton" Content="Übersicht" IsSelected="{Binding IsOverviewTab}" Command="{Binding ShowOverviewCommand}" Padding="12,3" AutomationProperties.Name="Übersicht" />
-            <ui:TabButton x:Name="StockTabButton" Content="Bestand" IsSelected="{Binding IsStockTab}" Command="{Binding ShowStockCommand}" Padding="12,3" AutomationProperties.Name="Bestand" />
-            <ui:TabButton x:Name="OrdersTabButton" Content="Bestellen" IsSelected="{Binding IsOrdersTab}" Command="{Binding ShowOrdersCommand}" Padding="12,3" IsVisible="{Binding CanSeeOrdersTab}" AutomationProperties.Name="Bestellen" />
-            <ui:TabButton x:Name="TasksTabButton" Content="{Binding BatchesTabLabel}" IsSelected="{Binding IsTasksTab}" Command="{Binding ShowTasksCommand}" Padding="12,3" IsVisible="{Binding CanManage}" AutomationProperties.Name="{Binding BatchesTabLabel}" />
-            <ui:TabButton x:Name="MovementsTabButton" Content="Bewegungen" IsSelected="{Binding IsMovementsTab}" Command="{Binding ShowMovementsCommand}" Padding="12,3" AutomationProperties.Name="Bewegungen" />
-            <!-- Die Verwaltung steht hinter einem Trenner (Ä353: Alltag oben, Verwaltung dahinter) -->
-            <Border x:Name="AdminDivider" Classes="divider" Width="1" Height="16" Margin="6,0" IsVisible="{Binding HasAdminTabs}" AutomationProperties.AccessibilityView="Raw" />
-            <ui:TabButton x:Name="CountTabButton" Content="Inventur" IsSelected="{Binding IsCountTab}" Command="{Binding ShowCountCommand}" Padding="12,3" IsVisible="{Binding CanManage}" AutomationProperties.Name="Inventur" />
-            <ui:TabButton x:Name="PlacesTabButton" Content="Lagerorte" IsSelected="{Binding IsPlacesTab}" Command="{Binding ShowPlacesCommand}" Padding="12,3" IsVisible="{Binding CanManage}" AutomationProperties.Name="Lagerorte" />
-            <ui:TabButton x:Name="SuppliersTabButton" Content="Lieferanten" IsSelected="{Binding IsSuppliersTab}" Command="{Binding ShowSuppliersCommand}" Padding="12,3" IsVisible="{Binding CanCatalog}" AutomationProperties.Name="Lieferanten" />
-            <ui:TabButton x:Name="UsageTabButton" Content="Verbrauch" IsSelected="{Binding IsUsageTab}" Command="{Binding ShowUsageCommand}" Padding="12,3" IsVisible="{Binding CanViewUsage}" AutomationProperties.Name="Verbrauch" />
+      <ui:ReflowRow x:Name="StockHeader" Spacing="12" LineSpacing="12" IsVisible="{Binding ShowContent}">
+        <Panel VerticalAlignment="Bottom">
+          <Border Classes="segmented" x:Name="Tabs" HorizontalAlignment="Left" IsVisible="{Binding !IsSetup}" AutomationProperties.Name="Reiter des Lagers">
+            <StackPanel Orientation="Horizontal">
+              <ui:TabButton x:Name="OverviewTabButton" Content="Übersicht" IsSelected="{Binding IsOverviewTab}" Command="{Binding ShowOverviewCommand}" Padding="12,3" AutomationProperties.Name="Übersicht" />
+              <ui:TabButton x:Name="StockTabButton" Content="Bestand" IsSelected="{Binding IsStockTab}" Command="{Binding ShowStockCommand}" Padding="12,3" AutomationProperties.Name="Bestand" />
+              <ui:TabButton x:Name="OrdersTabButton" Content="Bestellen" IsSelected="{Binding IsOrdersTab}" Command="{Binding ShowOrdersCommand}" Padding="12,3" IsVisible="{Binding CanSeeOrdersTab}" AutomationProperties.Name="Bestellen" />
+              <ui:TabButton x:Name="CountTabButton" Content="Inventur" IsSelected="{Binding IsCountTab}" Command="{Binding ShowCountCommand}" Padding="12,3" IsVisible="{Binding CanManage}" AutomationProperties.Name="Inventur" />
+            </StackPanel>
+          </Border>
+          <!-- Einrichtung: eigene Seite, „Zurück“ führt an den Ort davor; die Schiene wechselt nur mit beiden Rechten zwischen Lagerorten und Lieferanten -->
+          <StackPanel x:Name="SetupHead" Orientation="Horizontal" Spacing="12" IsVisible="{Binding IsSetup}">
+            <Button x:Name="SetupBackButton" Command="{Binding CloseSetupCommand}" VerticalAlignment="Center" AutomationProperties.Name="Zurück zum Lager">
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <ui:Icon Data="{x:Static ui:Icons.ChevronLeft}" Width="16" Height="16" />
+                <TextBlock Text="Zurück" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+            <TextBlock x:Name="SetupTitle" Text="Einrichtung" Classes="h2" VerticalAlignment="Center" />
+            <Border Classes="segmented" x:Name="SetupTabs" VerticalAlignment="Center" IsVisible="{Binding HasSetupChoice}" AutomationProperties.Name="Reiter der Einrichtung">
+              <StackPanel Orientation="Horizontal">
+                <ui:TabButton x:Name="PlacesTabButton" Content="Lagerorte" IsSelected="{Binding IsPlacesSetup}" Command="{Binding ShowPlacesCommand}" Padding="12,3" AutomationProperties.Name="Lagerorte" />
+                <ui:TabButton x:Name="SuppliersTabButton" Content="Lieferanten" IsSelected="{Binding IsSuppliersSetup}" Command="{Binding ShowSuppliersCommand}" Padding="12,3" AutomationProperties.Name="Lieferanten" />
+              </StackPanel>
+            </Border>
           </StackPanel>
-        </Border>
-        <!-- Eigene Zeile: neben neun Reitern fehlt der Platz; die Ränder gelten nur für sichtbare Felder -->
-        <StackPanel Grid.Row="1" Grid.ColumnSpan="4" Orientation="Horizontal">
-          <ui:FormField Label="Material suchen oder scannen" Margin="0,12,12,0" IsVisible="{Binding ShowSearch}">
-            <TextBox x:Name="ScanField" Text="{Binding ScanText}" MinWidth="260" PlaceholderText="Name oder Code" AutomationProperties.Name="Material suchen oder scannen">
+        </Panel>
+        <StackPanel x:Name="StockTools" Orientation="Horizontal" Spacing="12" VerticalAlignment="Bottom">
+          <ui:FormField Label="Material suchen oder scannen" IsVisible="{Binding ShowSearch}">
+            <TextBox x:Name="ScanField" Text="{Binding ScanText}" Width="200" PlaceholderText="Name oder Code" AutomationProperties.Name="Material suchen oder scannen">
               <TextBox.KeyBindings>
                 <KeyBinding Gesture="Enter" Command="{Binding ScanCommand}" />
               </TextBox.KeyBindings>
             </TextBox>
           </ui:FormField>
-          <ui:FormField Label="Standort" Margin="0,12,12,0" IsVisible="{Binding HasSeveralLocations}">
-            <ComboBox x:Name="LocationField" ItemsSource="{Binding Locations}" SelectedItem="{Binding SelectedLocation}" MinWidth="200" />
+          <ui:FormField Label="Standort" IsVisible="{Binding HasSeveralLocations}">
+            <ComboBox x:Name="LocationField" ItemsSource="{Binding Locations}" SelectedItem="{Binding SelectedLocation}" Width="180" />
           </ui:FormField>
-          <ui:FormField Label="Lagerort" Margin="0,12,0,0" IsVisible="{Binding ShowPlaceFilter}">
-            <ComboBox x:Name="PlaceFilterField" ItemsSource="{Binding PlaceFilter}" SelectedItem="{Binding SelectedPlace}" MinWidth="200" />
-          </ui:FormField>
+          <!-- Export der Lager-Listen, nur für Inhaberin und Geschäftsführung (Export/Import, Aufgabe D) -->
+          <TextBlock x:Name="StockExportSaved" Text="{Binding ExportSaved}" Classes="muted small" IsVisible="{Binding HasExportSaved}" VerticalAlignment="Bottom" Margin="0,0,0,8" AutomationProperties.LiveSetting="Polite" />
+          <ui:ExportButton x:Name="StockExportButton" DataContext="{Binding Export}" VerticalAlignment="Bottom" />
+          <Button x:Name="SetupButton" Content="Einrichtung" Command="{Binding OpenSetupCommand}" IsVisible="{Binding ShowSetupButton}" VerticalAlignment="Bottom"
+                  ToolTip.Tip="Lagerorte und Lieferanten einrichten" />
+          <ui:HelpButton Topic="lager" VerticalAlignment="Bottom" Margin="0,0,0,6" />
+          <Button x:Name="BookMovementButton" Classes="primary" Command="{Binding OpenBookingPanelCommand}" IsVisible="{Binding ShowBookButton}" VerticalAlignment="Bottom"
+                  AutomationProperties.Name="Bewegung buchen">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <ui:Icon Data="{x:Static ui:Icons.Plus}" Width="16" Height="16" />
+              <TextBlock Text="Bewegung buchen" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
         </StackPanel>
-        <!-- Export der Lager-Listen, nur für Inhaberin und Geschäftsführung (Export/Import, Aufgabe D) -->
-        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-          <TextBlock x:Name="StockExportSaved" Text="{Binding ExportSaved}" Classes="muted small" IsVisible="{Binding HasExportSaved}" VerticalAlignment="Center" AutomationProperties.LiveSetting="Polite" />
-          <ui:ExportButton x:Name="StockExportButton" DataContext="{Binding Export}" />
-          <ui:HelpButton Topic="lager" VerticalAlignment="Center" />
-        </StackPanel>
-        <Button Grid.Column="3" x:Name="BookMovementButton" Classes="primary" Command="{Binding OpenBookingPanelCommand}" IsVisible="{Binding ShowBookButton}" VerticalAlignment="Center"
-                AutomationProperties.Name="Bewegung buchen">
-          <StackPanel Orientation="Horizontal" Spacing="8">
-            <ui:Icon Data="{x:Static ui:Icons.Plus}" Width="16" Height="16" />
-            <TextBlock Text="Bewegung buchen" VerticalAlignment="Center" />
-          </StackPanel>
-        </Button>
-      </Grid>
+      </ui:ReflowRow>
 
       <ui:InfoBar Severity="Error" Title="Lager nicht geladen" Message="{Binding LoadError}" IsVisible="{Binding HasLoadError}" ActionText="Erneut laden" ActionCommand="{Binding LoadCommand}" />
       <ui:InfoBar Severity="Success" Message="{Binding Message}" IsVisible="{Binding HasMessage}" CloseCommand="{Binding CloseMessageCommand}" />
@@ -68,32 +77,43 @@
 
       <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding ShowContent}">
         <StackPanel Spacing="16">
-          <StackPanel IsVisible="{Binding IsOverviewTab}">
+          <StackPanel Spacing="16" IsVisible="{Binding IsOverviewTab}">
             <views:StockTodoSection DataContext="{Binding Todo}" />
+            <StackPanel x:Name="UsageArea" IsVisible="{Binding CanViewUsage}">
+              <views:StockUsageSection DataContext="{Binding Usage}" />
+            </StackPanel>
           </StackPanel>
           <StackPanel Spacing="16" IsVisible="{Binding IsStockTab}">
-            <views:StockOverviewSection DataContext="{Binding Overview}" />
-            <StackPanel IsVisible="{Binding CanCatalog}">
-              <views:StockItemFormSection DataContext="{Binding ItemForm}" />
+            <!-- Werkzeugzeile des Bestands: die Ansicht als Optionsfelder (design.md 5.3; die Zahl offener Chargen bleibt in jeder Ansicht sichtbar), rechts der Lagerort für Material und Bewegungen -->
+            <Grid x:Name="StockViewRow" ColumnDefinitions="*,Auto" ColumnSpacing="12">
+              <StackPanel Spacing="4" VerticalAlignment="Bottom">
+                <TextBlock x:Name="StockViewLabel" Text="Ansicht" Classes="label" />
+                <StackPanel x:Name="StockViews" Orientation="Horizontal" Spacing="16" MinHeight="34" AutomationProperties.Name="Ansicht des Bestands">
+                  <RadioButton x:Name="ItemsViewButton" GroupName="StockView" Content="Material" IsChecked="{Binding IsItemsView, Mode=OneWay}" Command="{Binding ShowStockCommand}" VerticalAlignment="Center" />
+                  <RadioButton x:Name="BatchesViewButton" GroupName="StockView" Content="{Binding BatchesViewLabel}" IsChecked="{Binding IsBatchesView, Mode=OneWay}" Command="{Binding ShowTasksCommand}"
+                               IsVisible="{Binding CanManage}" VerticalAlignment="Center" />
+                  <RadioButton x:Name="MovementsViewButton" GroupName="StockView" Content="Bewegungen" IsChecked="{Binding IsMovementsView, Mode=OneWay}" Command="{Binding ShowMovementsCommand}" VerticalAlignment="Center" />
+                </StackPanel>
+              </StackPanel>
+              <ui:FormField Grid.Column="1" Label="Lagerort" IsVisible="{Binding ShowPlaceFilter}" VerticalAlignment="Bottom">
+                <ComboBox x:Name="PlaceFilterField" ItemsSource="{Binding PlaceFilter}" SelectedItem="{Binding SelectedPlace}" Width="200" />
+              </ui:FormField>
+            </Grid>
+            <StackPanel Spacing="16" IsVisible="{Binding IsItemsView}">
+              <views:StockOverviewSection DataContext="{Binding Overview}" />
+              <StackPanel IsVisible="{Binding CanCatalog}">
+                <views:StockItemFormSection DataContext="{Binding ItemForm}" />
+              </StackPanel>
             </StackPanel>
-          </StackPanel>
-          <StackPanel Spacing="16" IsVisible="{Binding IsMovementsTab}">
-            <views:StockMovementsSection DataContext="{Binding Movements}" />
-            <StackPanel IsVisible="{Binding CanManage}">
-              <views:StockBatchTraceSection DataContext="{Binding BatchTrace}" />
+            <StackPanel IsVisible="{Binding IsBatchesView}">
+              <views:StockTasksSection DataContext="{Binding Tasks}" />
             </StackPanel>
-          </StackPanel>
-          <StackPanel IsVisible="{Binding IsCountTab}">
-            <views:StockCountSection DataContext="{Binding Count}" />
-          </StackPanel>
-          <StackPanel IsVisible="{Binding IsPlacesTab}">
-            <views:StoragePlacesSection DataContext="{Binding PlacesAdmin}" />
-          </StackPanel>
-          <StackPanel IsVisible="{Binding IsTasksTab}">
-            <views:StockTasksSection DataContext="{Binding Tasks}" />
-          </StackPanel>
-          <StackPanel IsVisible="{Binding IsSuppliersTab}">
-            <views:StockSuppliersSection DataContext="{Binding SuppliersAdmin}" />
+            <StackPanel Spacing="16" IsVisible="{Binding IsMovementsView}">
+              <views:StockMovementsSection DataContext="{Binding Movements}" />
+              <StackPanel IsVisible="{Binding CanManage}">
+                <views:StockBatchTraceSection DataContext="{Binding BatchTrace}" />
+              </StackPanel>
+            </StackPanel>
           </StackPanel>
           <StackPanel Spacing="16" IsVisible="{Binding IsOrdersTab}">
             <StackPanel IsVisible="{Binding CanBook}">
@@ -103,8 +123,14 @@
               <views:StockOrdersSection DataContext="{Binding Orders}" />
             </StackPanel>
           </StackPanel>
-          <StackPanel IsVisible="{Binding IsUsageTab}">
-            <views:StockUsageSection DataContext="{Binding Usage}" />
+          <StackPanel IsVisible="{Binding IsCountTab}">
+            <views:StockCountSection DataContext="{Binding Count}" />
+          </StackPanel>
+          <StackPanel IsVisible="{Binding IsPlacesSetup}">
+            <views:StoragePlacesSection DataContext="{Binding PlacesAdmin}" />
+          </StackPanel>
+          <StackPanel IsVisible="{Binding IsSuppliersSetup}">
+            <views:StockSuppliersSection DataContext="{Binding SuppliersAdmin}" />
           </StackPanel>
         </StackPanel>
         <views:MovementBookingPanel Grid.Column="1" DataContext="{Binding Booking}" IsVisible="{Binding IsOpen}" Width="340" Margin="16,0,0,0" VerticalAlignment="Top" />

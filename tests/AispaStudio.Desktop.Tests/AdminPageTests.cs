@@ -33,7 +33,7 @@ public sealed class AdminPageTests
         var shell = Shell(TestData.Owner());
 
         Assert.Equal(
-            ["Firmendaten", "Standorte & Räume", "Schließzeiten", "Raumsperren", "Kalender-Abos", "Handbuch", "Behandlungen", "Team",
+            ["Firmendaten", "Standorte & Räume", "Schließzeiten", "Kalender-Abos", "Handbuch", "Behandlungen", "Team",
                 "Erinnerungen", "Postfach & Nummern", "Zahlungen", "Kassa", "KI", "Lager", "Aktionen", "Zahlen",
                 "Kosten", "Buchhaltung"],
             shell.AdminPage.Areas.Select(a => a.Title));
@@ -43,6 +43,7 @@ public sealed class AdminPageTests
     }
 
     // R05 Slice 125 (Ä293): Gruppen und Reihenfolge sind die Festlegung des Auftraggebers vom 31.10.2026, hier wörtlich aus der Slice-Datei.
+    // ADR 0098 (16.11.2026): Schließzeiten und Raumsperren stehen auf einer Seite, „Betrieb“ hat damit fünf Masken.
     [Fact]
     public void Given_Inhaberin_When_sie_die_Verwaltung_oeffnet_Then_sieben_Gruppen_mit_ihren_Masken()
     {
@@ -50,7 +51,7 @@ public sealed class AdminPageTests
 
         Assert.Equal(
             [
-                "Betrieb: Firmendaten, Standorte & Räume, Schließzeiten, Raumsperren, Kalender-Abos, Handbuch",
+                "Betrieb: Firmendaten, Standorte & Räume, Schließzeiten, Kalender-Abos, Handbuch",
                 "Angebot: Behandlungen, Aktionen",
                 "Team: Team",
                 "Lager: Lager",
@@ -60,6 +61,15 @@ public sealed class AdminPageTests
             ],
             page.Groups.Select(g => $"{g.Title}: {string.Join(", ", g.Areas.Select(a => a.Title))}"));
         Assert.Equal("Betrieb", page.SelectedGroup?.Title);
+    }
+
+    [Fact]
+    public void Keine_Gruppe_der_Verwaltung_hat_mehr_als_fuenf_Masken()
+    {
+        // ADR 0098, Regel 1: je Seite höchstens eine Schiene mit höchstens fünf Einträgen.
+        var page = Shell(TestData.Owner()).AdminPage;
+
+        Assert.All(page.Groups, g => Assert.True(g.Areas.Count <= 5, $"{g.Title} hat {g.Areas.Count} Masken"));
     }
 
     [Fact]
@@ -74,7 +84,7 @@ public sealed class AdminPageTests
 
         page.SelectGroupCommand.Execute(Group(page, "Betrieb"));
         Assert.Equal("Schließzeiten", page.SelectedArea?.Title);
-        Assert.Same(page.Closures, page.Content);
+        Assert.Same(page.ClosuresPage, page.Content);
     }
 
     [Fact]
@@ -88,6 +98,7 @@ public sealed class AdminPageTests
 
     [Theory]
     [InlineData("masterData", "closures", "Betrieb", "Schließzeiten")]
+    [InlineData("masterData", "roomClosures", "Betrieb", "Schließzeiten")]
     [InlineData("masterData", "treatments", "Angebot", "Behandlungen")]
     [InlineData("roster", null, "Team", "Team")]
     [InlineData("masterData", "qualifications", "Team", "Team")]
@@ -317,7 +328,8 @@ public sealed class AdminPageTests
         Assert.Equal("Team", shell.AdminPage.SelectedArea?.Title);
         Assert.Same(shell.AdminPage.Team, shell.AdminPage.Content);
         Assert.Equal("Lena Huber", shell.AdminPage.Team!.Card?.Title);
-        Assert.Equal(section, shell.AdminPage.Team.Card?.SelectedTab);
+        Assert.Equal(PersonCardViewModel.ProfileArea, shell.AdminPage.Team.Card?.SelectedTab);
+        Assert.Equal(section, shell.AdminPage.Team.Card?.FocusedSection);
         Assert.DoesNotContain(shell.AdminPage.Areas, a => a.Title is "Qualifikationen" or "Zugänge");
     }
 

@@ -14,7 +14,7 @@ Beim Rundenabschluss wird geprüft, dass jede Aufgabe der Runde einen vollständ
 
 ## Blöcke
 
-Ohne Block, weil die Aufgabe nichts Sichtbares ändert: Erinnerung vor Ablauf der Frist für Karte oder Anzahlung (Mail an den Gast nach Stunden Wartezeit; durch Tests gedeckt), Obergrenze von 2 Erinnerungen je Gast und Tag (greift nur bei nachgebuchten Terminen; durch Test gedeckt), Entscheidung zur Mindestlücke (nur Doku), Kopfzeile `List-Unsubscribe` in der Erinnerung an die nächste Behandlung, Lückenvorschläge mit Treatwell-Hinweis und Einwirkzeit (ein Treatwell-Termin lässt sich ohne echtes Postfach nicht von Hand erzeugen; durch Ansichtstest gedeckt), Erinnerung nach 48 Stunden mit Verbindung (derselbe Satz wie im Block „Hinweis nach 48 Stunden“, nur unter „Beim Abgleich nicht übernommen“), Kassa ohne Verbindung Schritt 1 (nur Schnittstelle; der Block kommt mit Schritt 2), T-013 (Entscheidung, nur Doku), T-014 (Entscheidung, keine Änderung), T-016 (Sichtung der zurückgestellten Kleinigkeiten), T-030 (CI-Zeitlimits), T-033 (Beispieldaten und Test), T-034 (Werkzeug knip, unbenutztes Paket entfernt), T-035 (Skill und Doku), T-040 (ADR und Konzept, nur Doku), Export/Import Aufgabe A (Export-Dienst, Knopf ohne Seite; der Knopf ist im Block „Export/Import B“ geprüft).
+Ohne Block, weil die Aufgabe nichts Sichtbares ändert: Erinnerung vor Ablauf der Frist für Karte oder Anzahlung (Mail an den Gast nach Stunden Wartezeit; durch Tests gedeckt), Obergrenze von 2 Erinnerungen je Gast und Tag (greift nur bei nachgebuchten Terminen; durch Test gedeckt), Entscheidung zur Mindestlücke (nur Doku), Kopfzeile `List-Unsubscribe` in der Erinnerung an die nächste Behandlung, Lückenvorschläge mit Treatwell-Hinweis und Einwirkzeit (ein Treatwell-Termin lässt sich ohne echtes Postfach nicht von Hand erzeugen; durch Ansichtstest gedeckt), Erinnerung nach 48 Stunden mit Verbindung (derselbe Satz wie im Block „Hinweis nach 48 Stunden“, nur unter „Beim Abgleich nicht übernommen“), Kassa ohne Verbindung Schritt 1 (nur Schnittstelle; der Block kommt mit Schritt 2), T-013 (Entscheidung, nur Doku), T-014 (Entscheidung, keine Änderung), T-016 (Sichtung der zurückgestellten Kleinigkeiten), T-030 (CI-Zeitlimits), T-033 (Beispieldaten und Test), T-034 (Werkzeug knip, unbenutztes Paket entfernt), T-035 (Skill und Doku), T-040 (ADR und Konzept, nur Doku), Export/Import Aufgabe A (Export-Dienst, Knopf ohne Seite; der Knopf ist im Block „Export/Import B“ geprüft), Verwaltungsmasken Schritt 1 (T-060: Regeln und zwei Bausteine, noch in keiner Maske verwendet).
 
 ### T-015 – Keine Stempeluhr in „Mein Tag“, Zeiten trägt die Leitung ein
 Start: Browser in Handybreite (z. B. 390 px), die Adresse des Spas mit `/mein-tag/` öffnen, als Mitarbeiterin (Therapeutin) anmelden
@@ -1120,7 +1120,7 @@ Result: ☐
 
 ### Team – Urlaubskonto auf der Karte der Person
 Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Inhaberin anmelden, **Verwaltung** › **Team** öffnen
-1. Eine Person wählen und den Reiter **Dienstplan und Abwesenheit** öffnen.
+1. Eine Person wählen und den Bereich **Arbeitszeit** öffnen.
 Expected: Unter der Woche steht „Urlaubskonto“ mit dem laufenden Jahr; ohne Anspruch steht bei „Rest“ ein Strich, und die Zeile darunter sagt, dass kein Anspruch eingetragen ist.
 2. Bei **Anspruch (Tage)** 25 und bei **Übertrag aus dem Vorjahr** 2,5 eintragen, **Urlaubskonto speichern** klicken.
 Expected: „Gespeichert.“ erscheint, bei „Rest“ steht 27,5 Tage abzüglich der schon eingetragenen Urlaubstage.
@@ -1131,7 +1131,135 @@ Expected: „Geplant“ und „Rest“ bleiben; die Zeile darunter nennt „1 Ur
 5. Mit dem Pfeil **Vorheriges Jahr** blättern.
 Expected: Das Konto zeigt das Vorjahr mit leerem Anspruch; zurückgeblättert stehen 25 und 2,5 wieder da.
 6. Als Rezeption anmelden und die Karte derselben Person öffnen.
-Expected: Den Reiter „Dienstplan und Abwesenheit“ gibt es für die Rezeption nicht.
+Expected: Den Bereich „Arbeitszeit“ gibt es für die Rezeption nicht.
+Closes: –
+Result: ☐
+
+### T-065 – Personenkarte: vier Bereiche, Übersicht und Verlauf als Seitenleiste
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Inhaberin anmelden, **Verwaltung** › **Team** › **Personen** öffnen
+1. Eine Person mit Zugang wählen (z. B. Lena Huber).
+Expected: Die Karte beginnt mit der **Übersicht** und zeigt fünf Kacheln: Nächster Dienst, Diese Woche, Resturlaub, Offene Anträge, Zertifikate. Darüber stehen vier Bereiche: Übersicht, Profil, Arbeitszeit, Lohn und Akte. Rechts im Kopf steht **Verlauf**.
+2. Nacheinander **Profil**, **Arbeitszeit** und **Lohn und Akte** anklicken.
+Expected: **Profil** zeigt Stammdaten, Zugang und Rolle, Qualifikationen und Zuständigkeiten untereinander. **Arbeitszeit** zeigt Dienstplan und Abwesenheit mit Urlaubskonto und Kalenderdatei, darunter die Zeiten. **Lohn und Akte** zeigt Lohn, Personalakte, Regelungen und Vollmachten. Mit den Pfeiltasten lässt sich zwischen den Bereichen wechseln.
+3. Zurück zur **Übersicht** und die Kachel **Resturlaub** anklicken.
+Expected: Die Karte wechselt zu **Arbeitszeit** und zeigt das Urlaubskonto.
+4. In der Übersicht die Kachel **Zertifikate** anklicken.
+Expected: Die Karte wechselt zu **Profil** und rollt zu den Zuständigkeiten.
+5. In der Übersicht die Kachel **Offene Anträge** anklicken.
+Expected: Die Team-Ansicht **Anträge** öffnet sich.
+6. Zur Person zurückkehren und **Verlauf** im Kopf der Karte klicken.
+Expected: Rechts öffnet sich eine Seitenleiste über der Karte mit den Verläufen von Zugang, Dienstplan, Personalakte, Regelungen und Zuständigkeiten. **Esc** drücken: Die Leiste schließt, der Fokus kehrt zur Schaltfläche **Verlauf** zurück. Ein zweites Mal öffnen und mit dem Kreuz schließen.
+7. Aus einer anderen Stelle der App (z. B. aus der Kassa oder der Shell) einen Sprung in die Personalakte einer Person auslösen, wo es einen solchen Sprung gibt.
+Expected: Die Karte öffnet im Bereich **Lohn und Akte** und rollt zum Abschnitt **Personalakte**.
+8. Im Bereich **Profil** bei **Vollständiger Name** einen Buchstaben anhängen und unten **Speichern** klicken oder Strg+S drücken.
+Expected: „Gespeichert.“ erscheint, der Name steht in der Liste. Wechselt man ohne Speichern zu einer anderen Person, fragt die App „Änderungen speichern?“.
+9. Im Bereich **Lohn und Akte** einen Eintrag der Personalakte ändern.
+Expected: Die Speichern-Leiste unten ist aktiv und gilt für Lohn und Akte zusammen.
+10. Als Rezeption anmelden und **Team** öffnen.
+Expected: Die Rezeption sieht nur den Wochenplan, keine Personenkarte. Inhaber und Manager sehen alle vier Bereiche, die Standortleitung nur die Bereiche, für die sie das Recht hat.
+Closes: –
+Result: ☐
+
+### T-061 – Lager: vier Reiter, Ansichten im Bestand und Einrichtung
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Inhaberin anmelden, **Verwaltung** › **Lager** öffnen
+1. Die Übersicht ansehen.
+Expected: Die Schiene zeigt nur „Übersicht“, „Bestand“, „Bestellen“ und „Inventur“. Darunter stehen die Kacheln „Lagerwert“, „Nachbestellen“, „Unter Minimum“, „Chargen laufen ab“ und „Mehrverbrauch“, dann „Was ist zu tun“ und der Abschnitt „Verbrauch“.
+2. Auf die Kachel **Unter Minimum** klicken.
+Expected: Der Reiter „Bestand“ ist gewählt, bei „Ansicht“ steht „Material“, „Nur unter Minimum“ ist angehakt.
+3. Bei **Ansicht** erst **Chargen**, dann **Bewegungen** wählen.
+Expected: Der Reiter „Bestand“ bleibt gewählt. Bei „Chargen“ stehen die Ablauflisten und das Feld „Lagerort“ fehlt; bei „Bewegungen“ steht die Liste mit „Charge zurückverfolgen“ darunter. Die Zahl an „Chargen“ bleibt in jeder Ansicht sichtbar.
+4. Oben rechts auf **Einrichtung** klicken.
+Expected: Statt der Schiene stehen „Zurück“, „Einrichtung“ und die Wahl „Lagerorte“ und „Lieferanten“. Die Lagerorte sind offen; Suchfeld und „Bewegung buchen“ fehlen.
+5. **Lieferanten** wählen, danach auf **Zurück** klicken.
+Expected: Erst steht die Liste der Lieferanten da, nach „Zurück“ wieder der Bestand in der Ansicht „Bewegungen“.
+6. Zur Übersicht wechseln und auf die Kachel **Mehrverbrauch** klicken.
+Expected: Die Seite rollt zum Abschnitt „Verbrauch“.
+7. Das Fenster so schmal wie möglich ziehen und danach maximieren.
+Expected: Schmal steht die Schiene in einer Zeile, die Werkzeuge stehen rechtsbündig in der Zeile darunter, nichts ist abgeschnitten. Maximiert stehen die Werkzeuge rechts neben der Schiene.
+8. Als Rezeption anmelden und das Lager öffnen.
+Expected: Die Schiene zeigt „Übersicht“, „Bestand“ und „Bestellen“; im Bestand gibt es die Ansichten „Material“ und „Bewegungen“. „Einrichtung“, die Kachel „Nachbestellen“ und der Abschnitt „Verbrauch“ fehlen.
+Closes: –
+Result: ☐
+
+### Verwaltung modernisieren – Behandlung mit vier Bereichen und Verlauf als Seitenleiste
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Inhaberin anmelden, **Verwaltung** › **Angebot** › **Behandlungen** öffnen
+1. Eine gespeicherte Behandlung wählen und das Fenster auf die kleinste Größe ziehen (1100 × 680).
+Expected: Unter dem Namen steht eine Schiene mit genau vier Bereichen auf einer Zeile: Grunddaten, Durchführung, Preise und Verkauf, Qualifikationen und Räume.
+2. **Durchführung** wählen.
+Expected: „Vor- und Nachbereitung“, „Vorbereitungsschritte“, „Material je Termin“ und „Zum Termin bereitstellen“ stehen als Gruppen untereinander.
+3. **Preise und Verkauf** wählen.
+Expected: „Preise nach Wochentag und Uhrzeit“ und „Passt dazu“ stehen untereinander, bei mehreren Standorten darüber „Preis je Standort“.
+4. **Grunddaten** wählen und **Weitere Angaben** aufklappen, bei **Ausfallgebühr** 50 eintragen, speichern, eine andere Behandlung und dann wieder diese wählen.
+Expected: „Weitere Angaben“ ist bei dieser Behandlung von selbst offen und zeigt 50; bei einer Behandlung ohne eigene Regel ist die Gruppe zu.
+5. Im Kopf der Karte **Verlauf** wählen.
+Expected: Rechts öffnet die Seitenleiste „Verlauf“ mit den Änderungen, die neueste oben; der Fokus steht in der Leiste. Unter der Maske gibt es keinen Abschnitt „Verlauf“ mehr.
+6. **Esc** drücken.
+Expected: Die Leiste schließt, der Fokus steht wieder auf **Verlauf**; die Verwaltung bleibt offen.
+7. Im Kalender einen Termin mit der rechten Maustaste anklicken und **Behandlungszeiten bearbeiten …** wählen.
+Expected: Die Behandlung öffnet im Bereich „Durchführung“, der Fokus steht im Feld „Vorbereitung (min)“.
+8. **Verwaltung** › **Kassa & Geld** › **Kosten** öffnen und von einer Behandlung zu ihrem Material springen.
+Expected: Die Behandlung öffnet im Bereich „Durchführung“ bei der Gruppe „Material je Termin“.
+9. **Behandlung anlegen** wählen.
+Expected: Die Schiene zeigt Grunddaten, Durchführung und Qualifikationen und Räume, bei mehreren Standorten auch Preise und Verkauf; die Schaltfläche „Verlauf“ fehlt.
+10. Als Standortleitung ohne das Recht auf Berichte mit Beträgen anmelden und eine Behandlung unter **Durchführung** öffnen.
+Expected: Die Gruppe „Material je Termin“ fehlt, alles andere steht da.
+Closes: –
+Result: ☐
+
+### T-063 – Zahlen: Berichte als Abschnitte
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Inhaberin anmelden, **Verwaltung** › **Zahlen** öffnen
+1. Den Reiter **Berichte** wählen.
+Expected: Unter den fünf Reitern steht keine zweite Schiene. Oben steht „Management“ mit **Von**, **Bis**, **Mit anderen Spas vergleichen** und **Exportieren**; im Kopf der Maske steht nur **Standort**.
+2. Nach unten rollen.
+Expected: Unter einer Linie steht „Pflichtberichte“ mit dem Feld **Datum** rechts, darunter die Kassen, die Gutscheine und die Arbeitszeitaufzeichnung.
+3. Bei den Pflichtberichten ein anderes **Datum** wählen.
+Expected: Die Pflichtberichte laden neu; die Kennzahlen im Management bleiben stehen.
+4. Den **Standort** im Kopf wechseln.
+Expected: Beide Abschnitte zeigen den neuen Standort.
+5. In „KI und Hilfe“ „Wie war der Umsatz im Oktober?“ fragen und **Im Bericht öffnen** klicken.
+Expected: „Berichte“ ist offen, das Management steht oben mit dem Zeitraum der Antwort.
+6. Das Fenster auf die kleinste Größe ziehen und „KI und Hilfe“ öffnen.
+Expected: Die fünf Reiter stehen in einer Zeile; der Standort rutscht rechtsbündig darunter.
+7. Als Rezeption anmelden und **Zahlen** öffnen.
+Expected: Den Reiter „Berichte“ gibt es nicht.
+Closes: –
+Result: ☐
+
+### T-064 – Betrieb: Schließzeiten und Raumsperren auf einer Seite, „Beendete zeigen“
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Inhaberin anmelden, **Verwaltung** › **Betrieb** öffnen
+1. Die Reiter unter dem Balken ansehen.
+Expected: Fünf Reiter in einer Zeile: Firmendaten, Standorte & Räume, Schließzeiten, Kalender-Abos, Handbuch. „Raumsperren“ gibt es nicht mehr als Reiter.
+2. **Schließzeiten** wählen und nach unten rollen.
+Expected: Oben steht der Abschnitt „Schließzeiten“ mit Liste und Formular, darunter nach einer Linie der Abschnitt „Raumsperren“ mit eigener Liste, eigenem Formular und **Neue Raumsperre**.
+3. Über der Liste der Schließzeiten **Beendete zeigen** anhaken.
+Expected: Die beendeten Schließzeiten stehen unter den aktuellen, rechts mit dem Wort „Beendet“; die gewählte Schließzeit bleibt gewählt. Die Zahl am Kontrollkästchen nennt die beendeten.
+4. Eine beendete Schließzeit wählen, den **Grund für das Team** ändern und den Haken bei **Beendete zeigen** entfernen.
+Expected: Die Rückfrage „Änderungen speichern?“ erscheint. Nach **Abbrechen** bleibt der Haken, der Eintrag und die Änderung.
+5. Die Änderung verwerfen und den Haken entfernen.
+Expected: Die Liste zeigt nur die aktuellen Schließzeiten, die erste ist gewählt.
+6. In den **Kalender** wechseln, in der Raumansicht mit der rechten Maustaste auf den Kopf eines Raums klicken und **Raum sperren …** wählen.
+Expected: Die Seite „Schließzeiten“ ist offen und zum Abschnitt „Raumsperren“ gerollt; ein neues Formular mit dem Raum steht da, der Cursor im ersten Feld.
+7. Zeitraum eintragen und **Strg+S** drücken.
+Expected: „Gespeichert.“ erscheint im Abschnitt „Raumsperren“; die Schließzeiten darüber bleiben unverändert.
+Closes: –
+Result: ☐
+
+### T-064 – Firmendaten: Verlauf als Seitenleiste; Listen, Erinnerungen und Warnungen
+Start: Windows-App, als Inhaberin anmelden, **Verwaltung** › **Betrieb** › **Firmendaten** öffnen
+1. Oben rechts neben „Firmendaten“ auf **Verlauf** klicken.
+Expected: Rechts öffnet die Seitenleiste „Verlauf“ mit dem Untertitel „Firmendaten“ und den Änderungen, die neueste oben. Am Ende des Formulars steht kein Abschnitt „Verlauf“ mehr.
+2. **Esc** drücken.
+Expected: Die Seitenleiste schließt, der Fokus steht wieder auf **Verlauf**.
+3. Nacheinander **Standorte & Räume**, **Schließzeiten**, **Kalender-Abos** und **Handbuch** öffnen.
+Expected: Die Liste links ist in allen vier Masken gleich breit.
+4. **Kontakt** › **Erinnerungen** im breiten Fenster öffnen, danach das Fenster schmal ziehen.
+Expected: „Zuletzt verschickt“ steht rechts neben den Einstellungen, im schmalen Fenster darunter.
+5. **Kassa & Geld** › **Zahlungen** mit hinterlegtem Testschlüssel (`sk_test_…`) öffnen.
+Expected: Die Warnung „Testschlüssel hinterlegt“ steht oben unter dem Stand des Kontos, vor der Wahl der Zahlungsart.
+6. **Kassa & Geld** › **Kosten** öffnen, wenn bei einer Behandlung das Material fehlt.
+Expected: Über der Tabelle steht ein Hinweis, wie vielen Behandlungen Angaben fehlen; die Zeile der Behandlung nennt weiter, was fehlt.
+7. **Kontakt** › **Postfach & Nummern** öffnen, nachdem ein Versand aus dem Postfach fehlgeschlagen ist.
+Expected: „Letzter Versand fehlgeschlagen: …“ steht oben beim Stand des letzten Abrufs.
 Closes: –
 Result: ☐
 
@@ -1210,6 +1338,29 @@ Expected: „Lieferung zu Bestellung … gebucht“. In der Windows-App zeigt di
 Expected: Der Hinweis „Das Lesen von Lieferscheinen ist nicht eingerichtet. Bitte die Mengen von Hand eintragen.“; von Hand eintragen und buchen geht.
 5. Als Rezeption „Mein Tag“ öffnen.
 Expected: Den Reiter **Lieferung** gibt es nicht.
+Closes: –
+Result: ☐
+
+### T-066 – Team: fünf Ansichten, Anträge als Seitenleiste im Wochenplan
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Inhaberin anmelden, **Verwaltung** › **Team** öffnen
+1. Die Leiste über der Fläche ansehen.
+Expected: Sie zeigt fünf Ansichten in einer Zeile: Personen, Wochenplan, Zeiten, Lohn, Rechte und Zuständigkeiten. „Anträge“, „Wer darf was?“ und „Zuständigkeiten“ stehen dort nicht mehr.
+2. **Wochenplan** wählen.
+Expected: Oben in der Werkzeugleiste steht **Anträge**; liegen offene Anträge vor, steht ihre Zahl daneben. Ohne offene Anträge fehlt die Zahl.
+3. **Anträge** klicken.
+Expected: Rechts öffnet sich eine Seitenleiste „Anträge“ über dem Wochenraster, mit Fragezeichen und Kreuz im Kopf. Jeder Antrag zeigt Person, Art, Zeitraum, Anmerkung und darunter **Ablehnen** und **Genehmigen**. Der Fokus steht in der Leiste; F6 erreicht sie als eigenen Bereich.
+4. **Esc** drücken.
+Expected: Die Leiste schließt, der Fokus steht wieder auf **Anträge**. Ein zweites Mal öffnen und mit dem Kreuz schließen.
+5. Die Leiste öffnen und einen Antrag mit **Genehmigen** bestätigen.
+Expected: Die Meldung nennt die genehmigte Abwesenheit, der Antrag verschwindet, die Zahl am Knopf sinkt um eins, und der Wochenplan zeigt die Abwesenheit.
+6. Das Fenster auf die Mindestgröße 1100 × 680 verkleinern und die Leiste öffnen.
+Expected: Die Leiste liegt rechts über dem Raster, das Raster behält seine Breite und lässt sich unter der geschlossenen Leiste weiter bedienen. Beide Knöpfe jedes Antrags stehen vollständig in der Leiste.
+7. **Personen** wählen, eine Person mit offenem Antrag öffnen und in der Übersicht die Kachel **Offene Anträge** klicken.
+Expected: Der Wochenplan öffnet sich mit der Seitenleiste **Anträge**.
+8. **Rechte und Zuständigkeiten** wählen.
+Expected: Die Seite zeigt untereinander die Abschnitte **Wer darf was?** und **Zuständigkeiten**, jeder mit Zwischentitel und Fragezeichen. Die Liste der Personen fehlt.
+9. Als Rezeption anmelden und **Team** öffnen.
+Expected: Die Rezeption sieht nur den Wochenplan, ohne Schaltfläche **Anträge** und ohne **Rechte und Zuständigkeiten**. Als Standortleitung sieht man Wochenplan und Zeiten mit der Schaltfläche **Anträge**, aber nicht **Rechte und Zuständigkeiten**.
 Closes: –
 Result: ☐
 

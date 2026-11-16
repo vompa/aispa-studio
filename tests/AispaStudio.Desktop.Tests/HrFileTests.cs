@@ -56,8 +56,9 @@ public sealed class HrFileTests
         team.Open(Lena.Id, PersonCardViewModel.HrFileTab, null);
 
         Assert.Null(team.Card!.HrFile);
-        Assert.DoesNotContain(team.Card.Tabs, t => t.Id == PersonCardViewModel.HrFileTab);
-        Assert.Equal(PersonCardViewModel.DetailsTab, team.Card.SelectedTab);
+        Assert.False(team.Card.HasSection(PersonCardViewModel.HrFileTab));
+        Assert.Equal(PersonCardViewModel.OverviewArea, team.Card.SelectedTab);
+        Assert.Null(team.Card.FocusedSection);
     }
 
     [Fact]
@@ -283,7 +284,8 @@ public sealed class HrFileTests
         card.HrFile!.AddNoteCommand.Execute(null);
         card.HrFile.Text = "Hat gut vertreten";
         Assert.True(card.HasUnsavedChanges);
-        Assert.False(card.HasSaveBar);
+        // Die Personalakte steht im Bereich „Lohn und Akte“ neben dem Lohn, der mit der Karte gespeichert wird; deshalb steht die Leiste (ADR 0098).
+        Assert.True(card.HasSaveBar);
 
         card.Discard();
 
@@ -299,7 +301,8 @@ public sealed class HrFileTests
         var team = await RosterTests.Loaded(api);
         team.Open(Lena.Id, PersonCardViewModel.HistoryTab, null);
 
-        Assert.True(team.Card!.HasHrHistory);
+        Assert.True(team.Card!.IsHistoryOpen);
+        Assert.Contains(team.Card.HrHistory, team.Card.HistorySections);
         await team.Card.HrHistory!.LoadAsync();
 
         Assert.Contains(api.Calls, c => c.Route == route);

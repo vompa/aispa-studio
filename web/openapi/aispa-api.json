@@ -3379,6 +3379,52 @@
         }
       }
     },
+    "/api/v1/employees/{employeeId}/overview": {
+      "get": {
+        "tags": [
+          "Dienstplan"
+        ],
+        "summary": "Übersicht der Personenkarte: nächster Dienst, Stunden der laufenden Woche, Urlaubskonto, offene Abwesenheitsanträge und fällige Zertifikate; Teile ohne das nötige Recht fehlen.",
+        "description": "Jeder Teil gilt mit dem Recht des Einzel-Endpunkts (Dienst, Stunden und Urlaub: Standortleitung oder Personalunterlagen; Anträge: Standortleitung; Zertifikate: Personalakte) und ist sonst leer. Wer keines dieser Rechte hat, bekommt 403.",
+        "operationId": "GetEmployeeOverview",
+        "parameters": [
+          {
+            "name": "employeeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmployeeOverviewDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/employee-notes/symbols": {
       "get": {
         "tags": [
@@ -38590,6 +38636,141 @@
           }
         }
       },
+      "EmployeeLeaveSummaryDto": {
+        "required": [
+          "year",
+          "remaining",
+          "planned",
+          "taken"
+        ],
+        "type": "object",
+        "properties": {
+          "year": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "remaining": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "planned": {
+            "type": "number",
+            "format": "double"
+          },
+          "taken": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "EmployeeNextShiftDto": {
+        "required": [
+          "date",
+          "start",
+          "end",
+          "locationId",
+          "locationName"
+        ],
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "start": {
+            "type": "string",
+            "format": "time"
+          },
+          "end": {
+            "type": "string",
+            "format": "time"
+          },
+          "locationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "locationName": {
+            "type": "string"
+          }
+        }
+      },
+      "EmployeeOverviewDto": {
+        "required": [
+          "employeeId",
+          "nextShift",
+          "weekPlannedHours",
+          "weekActualHours",
+          "leave",
+          "openAbsenceRequests",
+          "dueCertificates",
+          "expiredCertificates"
+        ],
+        "type": "object",
+        "properties": {
+          "employeeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "nextShift": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/EmployeeNextShiftDto"
+              }
+            ]
+          },
+          "weekPlannedHours": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "weekActualHours": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "leave": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/EmployeeLeaveSummaryDto"
+              }
+            ]
+          },
+          "openAbsenceRequests": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "dueCertificates": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "expiredCertificates": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          }
+        }
+      },
       "EmployeeShift": {
         "required": [
           "employeeId",
@@ -52043,6 +52224,9 @@
       "name": "Berichte"
     },
     {
+      "name": "Dienstplan"
+    },
+    {
       "name": "Regelungen und Vollmachten"
     },
     {
@@ -52077,9 +52261,6 @@
     },
     {
       "name": "Kartenterminals"
-    },
-    {
-      "name": "Dienstplan"
     },
     {
       "name": "Kundenbereich"

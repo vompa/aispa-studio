@@ -190,20 +190,76 @@ public sealed class AdminClosuresTests
     }
 
     [Fact]
-    public async Task Given_die_Liste_When_geladen_Then_Reiter_Aktuell_und_Beendet_zaehlen_und_waehlen_die_Zeilen()
+    public async Task Given_die_Liste_When_geladen_Then_zeigt_sie_die_aktuellen_und_mit_Beendete_zeigen_auch_die_beendeten()
     {
+        // ADR 0098: „Beendete zeigen“ ist ein Kontrollkästchen wie „Ausgeschiedene zeigen“ im Team, keine Reiter „Aktuell“ und „Beendet“.
         var closures = await Open(Api(Christmas, Past));
 
-        Assert.Equal(("Aktuell (1)", "Beendet (1)"), (closures.CurrentTabLabel, closures.EndedTabLabel));
+        Assert.False(closures.ShowEnded);
+        Assert.Equal("Beendete zeigen (1)", closures.ShowEndedLabel);
+        Assert.Equal("Schließzeiten: aktuelle", closures.ListLabel);
         Assert.Equal(["Betriebsurlaub"], closures.Rows.Select(r => r.Title));
         Assert.Equal("Betriebsurlaub, 24.12.2027 bis 26.12.2027", closures.HeadingText);
         Assert.Equal("Geplant", closures.PhaseText);
 
-        await closures.ShowEndedCommand.ExecuteAsync(null);
+        closures.ShowEnded = true;
+        await Task.Yield();
 
-        Assert.Equal(["Ausfall"], closures.Rows.Select(r => r.Title));
+        // Die beendeten stehen nach den aktuellen; der offene Eintrag bleibt gewählt.
+        Assert.Equal(["Betriebsurlaub", "Ausfall"], closures.Rows.Select(r => r.Title));
+        Assert.Equal([false, true], closures.Rows.Select(r => r.IsEnded));
+        Assert.Equal("Schließzeiten: aktuelle und beendete", closures.ListLabel);
+        Assert.Equal("Betriebsurlaub", closures.SelectedRow?.Title);
+        Assert.Equal("Geplant", closures.PhaseText);
+
+        closures.SelectedRow = closures.Rows[1];
+        await Task.Yield();
         Assert.Equal("Beendet", closures.PhaseText);
         Assert.Equal(("Ausfall", "Wasserschaden"), (closures.SelectedRow?.Title, closures.SelectedRow?.Detail));
+        Assert.Contains("beendet", closures.SelectedRow!.Name, StringComparison.Ordinal);
+
+        // Ohne den Haken verschwindet der beendete Eintrag, und der erste aktuelle ist gewählt.
+        closures.ShowEnded = false;
+        await Task.Yield();
+        Assert.Equal(["Betriebsurlaub"], closures.Rows.Select(r => r.Title));
+        Assert.Equal("Betriebsurlaub", closures.SelectedRow?.Title);
+        Assert.Equal("Geplant", closures.PhaseText);
+    }
+
+    [Fact]
+    public async Task Given_ein_beendeter_Eintrag_mit_Aenderungen_When_Beendete_zeigen_abgewaehlt_wird_Then_fragt_die_Maske_und_bleibt_bei_Abbrechen()
+    {
+        var dialogs = new FakeDialogs().Answer(ConfirmChoice.Cancelled);
+        var closures = await Open(Api(Christmas, Past), dialogs: dialogs);
+        closures.ShowEnded = true;
+        await Task.Yield();
+        closures.SelectedRow = closures.Rows[1];
+        await Task.Yield();
+        closures.InternalReason = "Wasserschaden im Keller";
+        Assert.True(closures.HasUnsavedChanges);
+
+        closures.ShowEnded = false;
+        await Task.Yield();
+
+        Assert.Single(dialogs.Asked);
+        Assert.True(closures.ShowEnded);
+        Assert.Equal(["Betriebsurlaub", "Ausfall"], closures.Rows.Select(r => r.Title));
+        Assert.Equal("Wasserschaden im Keller", closures.InternalReason);
+    }
+
+    [Fact]
+    public async Task Given_ein_neues_Formular_When_Beendete_zeigen_umgeschaltet_wird_Then_bleiben_die_Eingaben()
+    {
+        var closures = await Open(Api(Christmas, Past));
+        await closures.NewCommand.ExecuteAsync(null);
+        closures.InternalReason = "Inventur";
+
+        closures.ShowEnded = true;
+        await Task.Yield();
+
+        Assert.True(closures.IsCreating);
+        Assert.Equal("Inventur", closures.InternalReason);
+        Assert.Equal(2, closures.Rows.Count);
     }
 
     [Fact]
@@ -475,7 +531,9 @@ public sealed class AdminClosuresTests
         shell.AdminPage.Show("masterData", "closures");
 
         Assert.Equal("Schließzeiten", shell.AdminPage.SelectedArea?.Title);
-        Assert.Same(shell.AdminPage.Closures, shell.AdminPage.Content);
+        Assert.Same(shell.AdminPage.ClosuresPage, shell.AdminPage.Content);
+        Assert.Same(shell.AdminPage.Closures, shell.AdminPage.ClosuresPage!.Closures);
+        Assert.Equal(ClosuresPageViewModel.ClosuresSection, shell.AdminPage.ClosuresPage.FocusedSection);
     }
 
     private static ClosureNoticeDto Notice(ClosureNoticeState state) =>

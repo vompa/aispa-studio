@@ -15,7 +15,7 @@ namespace AispaStudio.Desktop.Tests;
 /// <summary>R05 Slice 98 (Ä191, Ä250, ADR 0084): Bereich „Team“ mit Personenkarte, mit echter Eingabe (Klick, Tippen, Strg+S) als Inhaberin.</summary>
 public sealed partial class ViewTests
 {
-    private static readonly string[] CardTabs = ["Stammdaten", "Zugang und Rolle", "Qualifikationen", "Dienstplan und Abwesenheit", "Zeiten", "Lohn", "Personalakte", "Regelungen und Vollmachten", "Zuständigkeiten", "Verlauf"];
+    private static readonly string[] CardAreas = ["Übersicht", "Profil", "Arbeitszeit", "Lohn und Akte"];
 
     /// <summary>Lena arbeitet dienstags 9–17 Uhr in Wien; ihre Woche und die von Marco liefert der Dienstplan-Stub (Slice 99).</summary>
     private static readonly EmployeeDto RosterLena = SpaSample.Lena with { WorkingHours = [new WorkingHours(SpaSample.LocationId, DayOfWeek.Tuesday, new(9, 0), new(17, 0))] };
@@ -61,33 +61,34 @@ public sealed partial class ViewTests
     [Theory]
     [InlineData("hell")]
     [InlineData("dunkel")]
-    public Task Verwaltung_Team_Inhaberin_klickt_Lena_und_findet_alle_vier_Reiter_auf_derselben_Karte(string theme) => Render(theme, "verwaltung-team", async (window, main) =>
+    public Task Verwaltung_Team_Inhaberin_klickt_Lena_und_findet_alle_vier_Bereiche_auf_derselben_Karte(string theme) => Render(theme, "verwaltung-team", async (window, main) =>
     {
         var team = await OpenTeam(window, main);
         await ClickRow(window, "Lena Huber");
         var card = team.Card!;
         Assert.Equal("Lena Huber", card.Title);
-        Assert.Equal(CardTabs, Named<Border>(window, "CardTabs").GetVisualDescendants().OfType<TabButton>().Where(t => t.IsEffectivelyVisible).Select(t => t.Content as string));
+        Assert.Equal(CardAreas, Named<Border>(window, "CardTabs").GetVisualDescendants().OfType<TabButton>().Where(t => t.IsEffectivelyVisible).Select(t => t.Content as string));
 
-        var sections = new Dictionary<string, string>
+        // Je Bereich die Blöcke seiner Abschnitte, untereinander auf einer Fläche (ADR 0098).
+        var areas = new Dictionary<string, string[]>
         {
-            ["Zugang und Rolle"] = "AccessSection",
-            ["Qualifikationen"] = "QualificationsSection",
-            ["Dienstplan und Abwesenheit"] = "RosterSection",
-            ["Zeiten"] = "TimesSection",
-            ["Regelungen und Vollmachten"] = "RegulationsHost",
-            ["Zuständigkeiten"] = "DutiesHost",
-            ["Verlauf"] = "HistorySectionPanel",
-            ["Stammdaten"] = "DetailsSection",
+            ["Profil"] = ["DetailsSection", "AccessSection", "QualificationsSection", "DutiesHost"],
+            ["Arbeitszeit"] = ["RosterSection", "TimesSection"],
+            ["Lohn und Akte"] = ["PayrollSection", "HrFileHost", "RegulationsHost"],
+            ["Übersicht"] = ["OverviewTiles"],
         };
-        foreach (var (label, section) in sections)
+        foreach (var (label, blocks) in areas)
         {
-            await ClickCardTab(window, label);
+            await ClickCardArea(window, label);
             Assert.Same(card, team.Card);
-            Assert.True(Named<Control>(window, section).IsEffectivelyVisible, label);
-            Assert.All(sections.Values.Where(s => s != section), other => Assert.False(window.GetVisualDescendants().OfType<Control>().Any(c => c.Name == other && c.IsEffectivelyVisible), other));
+            Assert.All(blocks, block => Assert.True(Named<Control>(window, block).IsEffectivelyVisible, $"{label}: {block}"));
+            Assert.All(areas.Where(a => a.Key != label).SelectMany(a => a.Value),
+                other => Assert.False(window.GetVisualDescendants().OfType<Control>().Any(c => c.Name == other && c.IsEffectivelyVisible), other));
         }
 
+        // Das Handbuchbild zeigt die Übersicht mit den Kacheln.
+        Assert.Equal(["Nächster Dienst", "Diese Woche", "Resturlaub 2026", "Offene Anträge", "Zertifikate"],
+            Named<Control>(window, "OverviewTiles").GetVisualDescendants().OfType<StatTile>().Where(t => t.IsEffectivelyVisible).Select(t => t.Label));
         Assert.Equal("Lena Huber", Named<TextBox>(window, "PersonNameField").Text);
         Assert.True(Shows(window, "Therapeut:in · aktiv"));
         return team;
@@ -138,6 +139,7 @@ public sealed partial class ViewTests
         {
             var team = await OpenTeam(window, main);
             await ClickRow(window, "Lena Huber");
+            await ClickCardArea(window, "Profil");
 
             await TypeInto(window, "PersonNameField", "Lena Maria Huber");
             PressSave(window);
@@ -157,7 +159,7 @@ public sealed partial class ViewTests
         Render("hell", "verwaltung-team-wer", async (window, main) =>
         {
             var treatments = await OpenTreatments(window, main);
-            await ClickSection(window, "Qualifikationen & Räume");
+            await ClickSection(window, "Qualifikationen und Räume");
             var chip = window.GetVisualDescendants().OfType<Button>().First(b => b.Classes.Contains("chip") && b.Content as string == "Lena Huber");
             chip.BringIntoView();
             await Pump(Settling);
@@ -175,25 +177,35 @@ public sealed partial class ViewTests
     private static async Task VisitTeam(Window window, TeamViewModel team, Func<string, Task> visit)
     {
         await ClickRow(window, "Lena Huber");
-        foreach (var tab in CardTabs)
+        foreach (var area in CardAreas)
         {
-            await ClickCardTab(window, tab);
-            await visit($"Lena, {tab}");
+            await ClickCardArea(window, area);
+            await visit($"Lena, {area}");
         }
 
-        // Slice 99: der Tag im Reiter der Karte, dann Wochenplan (mit offenem Tag) und Anträge.
+        await ClickCardTab(window, "Verlauf");
+        await visit("Lena, Verlauf offen");
+        window.KeyPressQwerty(PhysicalKey.Escape, RawInputModifiers.None);
+        await Pump(Settling);
+
+        // Slice 99: der Tag im Reiter der Karte, dann Wochenplan (mit Leiste „Anträge“ und offenem Tag), Zeiten und Rechte und Zuständigkeiten (ADR 0098).
         await ClickCardTab(window, "Dienstplan und Abwesenheit");
         await ClickCell(window, "Lena Huber", "Di.");
         await visit("Lena, Dienstplan mit offenem Tag");
         await ClickCardTab(window, "Zeiten");
         await ClickTimesCell(window, "Lena Huber", "Di.");
         await visit("Lena, Zeiten mit offenem Tag");
-        foreach (var mode in new[] { "Wochenplan", "Zeiten", "Anträge" })
+        foreach (var mode in new[] { "Wochenplan", "Zeiten", "Rechte und Zuständigkeiten" })
         {
             await ClickSection(window, mode);
             await visit(mode);
             if (mode == "Wochenplan")
             {
+                // Die Woche auf der Karte hat denselben Knopf, ausgeblendet (dort keine Anträge).
+                await ClickButton(window, window.GetVisualDescendants().OfType<Button>().Single(b => b.Name == "RequestsButton" && b.IsEffectivelyVisible));
+                await visit("Wochenplan, Anträge offen");
+                window.KeyPressQwerty(PhysicalKey.Escape, RawInputModifiers.None);
+                await Pump(Settling);
                 await ClickCell(window, "Lena Huber", "Di.");
                 await visit("Wochenplan, Tag offen");
             }
@@ -274,7 +286,7 @@ public sealed partial class ViewTests
         {
             var team = await OpenTeam(window, main);
             await ClickRow(window, "Marco Berger");
-            await ClickSection(window, "Zugang und Rolle");
+            await ClickCardTab(window, "Zugang und Rolle");
             var role = Named<ComboBox>(window, "RoleField");
             var field = role.GetVisualAncestors().OfType<FormField>().First();
             role.BringIntoView();
@@ -325,6 +337,7 @@ public sealed partial class ViewTests
         {
             var team = await OpenTeam(window, main);
             await ClickRow(window, "Lena Huber");
+            await ClickCardArea(window, "Profil");
             await TypeInto(window, "PersonNameField", "Lena Maria Huber");
             await TypeInto(window, "TeamSearch", "marco");
             await Pump(Settling);

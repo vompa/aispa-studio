@@ -13,7 +13,7 @@ namespace AispaStudio.Desktop.Tests;
 /// <summary>R05 Slice 99 (Ä191, Ä250, ADR 0084): Wochenplan, Tageseditor, Reiter der Personenkarte und Anträge im Bereich „Team“, mit echter Eingabe (Klick, Tippen, Strg+S) als Inhaberin.</summary>
 public sealed partial class ViewTests
 {
-    private static readonly string[] OwnerModes = ["Personen", "Wochenplan", "Zeiten", "Anträge"];
+    private static readonly string[] OwnerModes = ["Personen", "Wochenplan", "Zeiten", "Lohn", "Rechte und Zuständigkeiten"];
 
     private static readonly DateOnly RosterTuesday = SpaSample.Day.AddDays(1);
 
@@ -32,6 +32,16 @@ public sealed partial class ViewTests
         Assert.True(team.ShowsRoster);
         await Pump(Settling);
         Assert.True(team.Plan!.IsLoaded);
+        return team;
+    }
+
+    /// <summary>Team öffnen, „Wochenplan“ anklicken und in der Werkzeugzeile „Anträge“ (ADR 0098: die Anträge sind eine Seitenleiste des Wochenplans).</summary>
+    private static async Task<TeamViewModel> OpenRequests(Window window, MainViewModel main)
+    {
+        var team = await OpenWeekPlan(window, main);
+        await ClickButton(window, Named<Button>(window, "RequestsButton"));
+        Assert.True(team.Plan!.IsRequestsOpen);
+        Assert.True(Named<SidePanel>(window, "RequestsPanel").IsEffectivelyVisible);
         return team;
     }
 
@@ -137,7 +147,7 @@ public sealed partial class ViewTests
         {
             var team = await OpenTeam(window, main);
             await ClickRow(window, "Lena Huber");
-            await ClickSection(window, "Dienstplan und Abwesenheit");
+            await ClickCardTab(window, "Dienstplan und Abwesenheit");
             await Pump(Settling);
             var card = team.Card!;
             Assert.True(card.Roster!.IsLoaded);
@@ -163,7 +173,7 @@ public sealed partial class ViewTests
         {
             var team = await OpenTeam(window, main);
             await ClickRow(window, "Lena Huber");
-            await ClickSection(window, "Dienstplan und Abwesenheit");
+            await ClickCardTab(window, "Dienstplan und Abwesenheit");
             await Pump(Settling);
             var leave = team.Card!.Leave!;
             Assert.True(leave.IsLoaded);
@@ -199,7 +209,7 @@ public sealed partial class ViewTests
 
             Assert.True(team.ShowsPeople);
             Assert.Equal("Lena Huber", team.Card?.Title);
-            Assert.Equal(PersonCardViewModel.RosterTab, team.Card?.SelectedTab);
+            Assert.Equal((PersonCardViewModel.WorkTimeArea, PersonCardViewModel.RosterTab), (team.Card?.SelectedTab, team.Card?.FocusedSection));
             Assert.True(Named<Control>(window, "RosterSection").IsEffectivelyVisible);
             return team;
         }, api);
@@ -233,8 +243,7 @@ public sealed partial class ViewTests
         api.On("GET /api/absence-requests", new List<AbsenceRequestDto> { request }).On($"POST /api/absence-requests/{request.Id}/approve", null);
         return Render("hell", "verwaltung-team-antraege", async (window, main) =>
         {
-            var team = await OpenTeam(window, main);
-            await ClickSection(window, "Anträge");
+            var team = await OpenRequests(window, main);
             Assert.True(Shows(window, "Urlaub, 8.3.2027 bis 12.3.2027"));
             Assert.True(Shows(window, "In dieser Zeit liegen 3 Termine."));
 
@@ -258,8 +267,7 @@ public sealed partial class ViewTests
         var (api, _) = RosterApi();
         return Render("hell", "verwaltung-team-antraege-leer", async (window, main) =>
         {
-            var team = await OpenTeam(window, main);
-            await ClickSection(window, "Anträge");
+            var team = await OpenRequests(window, main);
 
             Assert.True(Shows(window, "Es gibt keine offenen Anträge."));
             Assert.False(team.Requests!.HasLoadError);

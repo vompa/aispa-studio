@@ -64,7 +64,8 @@ internal static class TeamSample
                     team.RemoveAll(e => e.Id == employee.Id);
                     return new { };
                 })
-                .On($"GET /api/employees/{employee.Id}/roster-history", new List<HistoryEntry>());
+                .On($"GET /api/employees/{employee.Id}/roster-history", new List<HistoryEntry>())
+                .On($"GET /api/employees/{employee.Id}/overview", Overview(employee.Id));
         }
 
         foreach (var member in members)
@@ -101,6 +102,14 @@ internal static class TeamSample
 
         return api;
     }
+
+    /// <summary>
+    /// Übersicht der Personenkarte mit allen Teilen (wie für die Inhaberin): nächster Dienst Di. 20.10. 9–17 Uhr in Wien, 32 h geplant und 28,5 h erfasst, 24,5 Tage Rest,
+    /// ein offener Antrag, zwei fällige Zertifikate, davon eines abgelaufen.
+    /// </summary>
+    public static EmployeeOverviewDto Overview(Guid employeeId) => new(employeeId,
+        new EmployeeNextShiftDto(SpaSample.Day.AddDays(1), new(9, 0), new(17, 0), SpaSample.LocationId, SpaSample.Vienna.Name),
+        32m, 28.5m, new EmployeeLeaveSummaryDto(SpaSample.Day.Year, 24.5m, 2m, 3m), 1, 2, 1);
 
     public static EmployeeDto Employee(Guid id, string? body)
     {

@@ -8,12 +8,12 @@ stichwoerter: Lohn, Lohnverrechnung, Lohnabrechnung, Gehalt, Personalverrechnung
 ---
 # Seite „Lohn“
 
-Die Seite „Lohn“ übergibt die Monatswerte jeder Person an die Lohnverrechnung. Sie hat drei Bereiche. In der Windows-App liegt sie im Bereich **Verwaltung** › **Team** (Ansicht **Lohn**, die Personalnummer auf der Karte der Person im Reiter **Lohn**).
+Die Seite „Lohn“ übergibt die Monatswerte jeder Person an die Lohnverrechnung. Sie hat drei Bereiche. In der Windows-App liegt sie im Bereich **Verwaltung** › **Team** (Ansicht **Lohn**, die Personalnummer auf der Karte der Person im Bereich **Lohn und Akte**).
 
 ## Bereiche {#bereiche}
 
 - **Export für die Lohnverrechnung**: **Monat**, **Monatswerte anzeigen** und die Dateien **BMD Lohn**, **DATEV LODAS** und **DATEV Lohn und Gehalt**. Die Vorschau zeigt je Person Position, Menge und Lohnart, darüber Hinweise.
-- **Personalnummern**: ein Feld für die Nummer bei der Lohnverrechnung auf der Karte jeder Person, im Reiter **Lohn**.
+- **Personalnummern**: ein Feld für die Nummer bei der Lohnverrechnung auf der Karte jeder Person, im Bereich **Lohn und Akte**.
 - **Einstellungen**: **Feiertage**, **Nacht ab**, **Nacht bis**, DATEV-Berater- und Mandantennummer und die Lohnarten; gespeichert mit **Einstellungen speichern**.
 
 Die Fragezeichen öffnen die Erklärung der Felder unter [Lohn](hilfe:lohn).

@@ -20,7 +20,7 @@
       <local:ChecklistSection />
     </DataTemplate>
   </UserControl.DataTemplates>
-  <Grid ColumnDefinitions="220,*">
+  <Grid ColumnDefinitions="260,*">
     <Border Classes="card" Padding="8" Margin="0,0,16,0" VerticalAlignment="Top">
       <ListBox x:Name="LocationList" Classes="plain" ItemsSource="{Binding Choices}" SelectedItem="{Binding SelectedChoice}" AutomationProperties.Name="Standorte">
         <ListBox.Styles>

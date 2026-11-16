@@ -2,20 +2,28 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:AispaStudio.Desktop.ViewModels"
              xmlns:ui="using:AispaStudio.Desktop.Controls"
-             xmlns:local="using:AispaStudio.Desktop.Views"
              x:Class="AispaStudio.Desktop.Views.PersonCardView"
              x:DataType="vm:PersonCardViewModel">
   <!--
-    Personenkarte (R05 Slice 98): Kopf mit Name und „Rolle · Status“, segmentierte Reiterleiste (Brief 5.12) mit Stammdaten, Zugang und Rolle, Qualifikationen,
-    Dienstplan und Abwesenheit sowie Zeiten (Slice 99) und Verlauf, je nach Recht. Gespeichert wird alles mit der Leiste im Fuß der Seite (TeamView).
+    Personenkarte (R05 Slice 98, ADR 0098): Kopf mit Name, „Rolle · Status“, Kennzeichen und „Verlauf“ (Seitenleiste in TeamView), darunter eine Schiene (Brief 5.4) mit höchstens
+    vier Bereichen: Übersicht · Profil (Stammdaten, Zugang und Rolle, Qualifikationen, Zuständigkeiten) · Arbeitszeit (Dienstplan und Abwesenheit, Zeiten) · Lohn und Akte (Lohn,
+    Personalakte, Regelungen und Vollmachten), je nach Recht. Die Abschnitte eines Bereichs stehen untereinander mit 20 px Abstand (Brief 4.1); Formulare höchstens 760 breit,
+    Übersicht, Wochenplan und Zeiten in voller Breite. Gespeichert wird mit der Leiste im Fuß der Seite (TeamView).
   -->
   <ScrollViewer x:Name="CardScroll" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
-    <StackPanel Spacing="20" MaxWidth="760" HorizontalAlignment="Left" Margin="0,0,16,16">
+    <StackPanel Spacing="20" Margin="0,0,16,16">
 
       <StackPanel Spacing="4" IsVisible="{Binding ShowsHeader}">
-        <Grid ColumnDefinitions="*,Auto">
+        <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
           <TextBlock x:Name="CardTitle" Text="{Binding Title}" Classes="h2" VerticalAlignment="Center" TextWrapping="Wrap" />
           <ui:HelpButton Topic="team" Section="person" Grid.Column="1" />
+          <Button Grid.Column="2" x:Name="HistoryButton" Classes="ghost" Command="{Binding ToggleHistoryCommand}" IsVisible="{Binding HasHistory}"
+                  ToolTip.Tip="Wer was wann geändert hat" AutomationProperties.Name="Verlauf">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <ui:Icon Data="{x:Static ui:Icons.History}" Width="16" Height="16" />
+              <TextBlock Text="Verlauf" />
+            </StackPanel>
+          </Button>
         </Grid>
         <TextBlock Text="{Binding StatusLine}" Classes="muted" IsVisible="{Binding HasStatusLine}" />
         <TextBlock Text="Ausgeschieden: Die Angaben sind nur lesbar." Classes="muted" IsVisible="{Binding IsReadOnly}" />
@@ -31,11 +39,12 @@
         </ItemsControl>
       </StackPanel>
 
-      <Border Classes="segmented" x:Name="CardTabs" HorizontalAlignment="Left" IsVisible="{Binding ShowsTabs}" AutomationProperties.Name="Reiter der Personenkarte">
+      <!-- Schiene in einer Zeile (Brief 5.4, ADR 0098 Regel 1): ein Tab-Stopp, Pfeiltasten über TabStripBehavior -->
+      <Border Classes="segmented" x:Name="CardTabs" HorizontalAlignment="Left" IsVisible="{Binding ShowsTabs}" AutomationProperties.Name="Bereiche der Personenkarte">
         <ItemsControl ItemsSource="{Binding Tabs}">
           <ItemsControl.ItemsPanel>
             <ItemsPanelTemplate>
-              <WrapPanel Orientation="Horizontal" />
+              <StackPanel Orientation="Horizontal" />
             </ItemsPanelTemplate>
           </ItemsControl.ItemsPanel>
           <ItemsControl.ItemTemplate>
@@ -47,11 +56,22 @@
         </ItemsControl>
       </Border>
 
-      <ContentControl x:Name="DetailsHost" Content="{Binding Details}" IsVisible="{Binding ShowsDetails}" />
-      <ContentControl x:Name="AccessHost" Content="{Binding Access}" IsVisible="{Binding ShowsAccess}" />
-      <ContentControl x:Name="QualificationsHost" Content="{Binding Qualifications}" IsVisible="{Binding ShowsQualifications}" />
+      <!-- Übersicht: Kennzahl-Kacheln in voller Breite -->
+      <ContentControl x:Name="OverviewHost" Content="{Binding Overview}" IsVisible="{Binding ShowsOverview}" />
 
-      <!-- Dienstplan und Abwesenheit (Slice 99): die Woche der Person, ein Tag lässt sich planen -->
+      <!-- Profil -->
+      <StackPanel x:Name="DetailsBlock" Spacing="8" MaxWidth="760" HorizontalAlignment="Left" IsVisible="{Binding ShowsDetails}">
+        <Grid ColumnDefinitions="*,Auto">
+          <TextBlock Text="Stammdaten" Classes="h3" VerticalAlignment="Center" />
+          <ui:HelpButton Topic="team" Section="person" Grid.Column="1" />
+        </Grid>
+        <ContentControl x:Name="DetailsHost" Content="{Binding Details}" />
+      </StackPanel>
+      <ContentControl x:Name="AccessHost" Content="{Binding Access}" MaxWidth="760" HorizontalAlignment="Left" IsVisible="{Binding ShowsAccess}" />
+      <ContentControl x:Name="QualificationsHost" Content="{Binding Qualifications}" MaxWidth="760" HorizontalAlignment="Left" IsVisible="{Binding ShowsQualifications}" />
+      <ContentControl x:Name="DutiesHost" Content="{Binding Duties}" MaxWidth="760" HorizontalAlignment="Left" IsVisible="{Binding ShowsDuties}" />
+
+      <!-- Arbeitszeit: Dienstplan und Abwesenheit (Slice 99) mit Urlaubskonto und Kalenderdatei, darunter die Zeiten; Wochenraster in voller Breite -->
       <StackPanel x:Name="RosterSection" Spacing="12" IsVisible="{Binding ShowsRoster}">
         <Grid ColumnDefinitions="*,Auto">
           <TextBlock Text="Dienstplan und Abwesenheit" Classes="h3" VerticalAlignment="Center" />
@@ -59,7 +79,7 @@
         </Grid>
         <ContentControl x:Name="RosterHost" Content="{Binding Roster}" />
         <!-- Urlaubskonto (ADR 0097): Anspruch, genommen, geplant und Rest des Jahres -->
-        <ContentControl x:Name="LeaveHost" Content="{Binding Leave}" IsVisible="{Binding HasLeave}" />
+        <ContentControl x:Name="LeaveHost" Content="{Binding Leave}" IsVisible="{Binding HasLeave}" MaxWidth="760" HorizontalAlignment="Left" />
         <!-- Dienste und Termine als Kalenderdatei für den privaten Kalender (Export/Import, Aufgabe C): nur Leitung und die Person selbst, ohne Namen der Gäste -->
         <StackPanel Orientation="Horizontal" Spacing="12" IsVisible="{Binding HasCalendarFile}">
           <Button x:Name="CalendarFileButton" DataContext="{Binding CalendarFile}" x:DataType="vm:ExportViewModel" Command="{Binding ExportCommand}" CommandParameter="{Binding Options[0]}"
@@ -83,54 +103,16 @@
         <ContentControl x:Name="TimesHost" Content="{Binding Times}" />
       </StackPanel>
 
-      <!-- Lohn (Slice 100): Personalnummer der Lohnverrechnung und die Monatswerte der Person -->
-      <StackPanel x:Name="PayrollSection" Spacing="12" IsVisible="{Binding ShowsPayroll}">
+      <!-- Lohn und Akte: Lohn (Slice 100) mit Personalnummer und Monatswerten, Personalakte (Slice 110), Regelungen und Vollmachten (Slice 111) -->
+      <StackPanel x:Name="PayrollSection" Spacing="8" MaxWidth="760" HorizontalAlignment="Left" IsVisible="{Binding ShowsPayroll}">
+        <Grid ColumnDefinitions="*,Auto">
+          <TextBlock Text="Lohn" Classes="h3" VerticalAlignment="Center" />
+          <ui:HelpButton Topic="lohn" Grid.Column="1" />
+        </Grid>
         <ContentControl x:Name="PayrollHost" Content="{Binding Payroll}" />
       </StackPanel>
-
-      <!-- Personalakte (Slice 110): Gespräche, Anmerkungen und Verwarnungen, nur Inhaberin und Geschäftsführung -->
-      <ContentControl x:Name="HrFileHost" Content="{Binding HrFile}" IsVisible="{Binding ShowsHrFile}" />
-      <ContentControl x:Name="RegulationsHost" Content="{Binding Regulations}" IsVisible="{Binding ShowsRegulations}" />
-      <ContentControl x:Name="DutiesHost" Content="{Binding Duties}" IsVisible="{Binding ShowsDuties}" />
-
-      <!-- Verlauf: Zugang und Rolle, Dienstplan und Abwesenheiten (Slice 91), Personalakte ohne Inhalt (Slice 110), nur Inhaberin und Geschäftsführung -->
-      <StackPanel x:Name="HistorySectionPanel" Spacing="20" IsVisible="{Binding ShowsHistory}">
-        <StackPanel Spacing="8" IsVisible="{Binding HasAccessHistory}">
-          <Grid ColumnDefinitions="*,Auto">
-            <TextBlock Text="Zugang und Rolle" Classes="h3" VerticalAlignment="Center" />
-            <ui:HelpButton Topic="zugaenge" Section="verlauf" Grid.Column="1" />
-          </Grid>
-          <local:HistorySectionView DataContext="{Binding AccessHistory}" />
-        </StackPanel>
-        <StackPanel Spacing="8" IsVisible="{Binding HasRosterHistory}">
-          <Grid ColumnDefinitions="*,Auto">
-            <TextBlock Text="Dienstplan und Abwesenheiten" Classes="h3" VerticalAlignment="Center" />
-            <ui:HelpButton Topic="dienstplan-verlauf" Grid.Column="1" />
-          </Grid>
-          <local:HistorySectionView DataContext="{Binding RosterHistory}" />
-        </StackPanel>
-        <StackPanel Spacing="8" IsVisible="{Binding HasHrHistory}">
-          <Grid ColumnDefinitions="*,Auto">
-            <TextBlock Text="Personalakte" Classes="h3" VerticalAlignment="Center" />
-            <ui:HelpButton Topic="personalakte" Section="verlauf" Grid.Column="1" />
-          </Grid>
-          <local:HistorySectionView x:Name="HrHistorySection" DataContext="{Binding HrHistory}" />
-        </StackPanel>
-        <StackPanel Spacing="8" IsVisible="{Binding HasHrHistory}">
-          <Grid ColumnDefinitions="*,Auto">
-            <TextBlock Text="Regelungen und Vollmachten" Classes="h3" VerticalAlignment="Center" />
-            <ui:HelpButton Topic="regelungen-vollmachten" Section="verlauf" Grid.Column="1" />
-          </Grid>
-          <local:HistorySectionView x:Name="RegulationsHistorySection" DataContext="{Binding RegulationsHistory}" />
-        </StackPanel>
-        <StackPanel Spacing="8" IsVisible="{Binding HasHrHistory}">
-          <Grid ColumnDefinitions="*,Auto">
-            <TextBlock Text="Zuständigkeiten und Zertifikate" Classes="h3" VerticalAlignment="Center" />
-            <ui:HelpButton Topic="zustaendigkeiten-zertifikate" Section="verlauf" Grid.Column="1" />
-          </Grid>
-          <local:HistorySectionView x:Name="DutiesHistorySection" DataContext="{Binding DutiesHistory}" />
-        </StackPanel>
-      </StackPanel>
+      <ContentControl x:Name="HrFileHost" Content="{Binding HrFile}" MaxWidth="760" HorizontalAlignment="Left" IsVisible="{Binding ShowsHrFile}" />
+      <ContentControl x:Name="RegulationsHost" Content="{Binding Regulations}" MaxWidth="760" HorizontalAlignment="Left" IsVisible="{Binding ShowsRegulations}" />
     </StackPanel>
   </ScrollViewer>
 </UserControl>

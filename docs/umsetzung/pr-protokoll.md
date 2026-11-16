@@ -6280,6 +6280,175 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Nicht geprüft:** die laufende App; ein echter Treatwell-Termin. Die volle Suite läuft in der CI.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
 
+## Verwaltungsmasken modernisieren, Schritt 1: Regeln und Bausteine (Aufgabe T-060, 16.11.2026)
+
+- **Auftrag:** Der Auftraggeber fand die Personenkarte mit ihren zehn Reitern nicht mehr zeitgemäß, hat den Vorschlag „Übersicht, vier Bereiche, Verlauf als Seitenleiste“ gutgeheißen und am 16.11.2026 beauftragt, alle Verwaltungsmasken in Optik und Bedienung so zu modernisieren; frühere Festlegungen zu Reitern gelten dafür nicht mehr.
+- **Was:**
+  - [ADR 0098](../entscheidungen/0098-verwaltungsmasken-eine-schiene-uebersicht-seitenleiste.md) mit acht Regeln und der neuen Aufteilung je Bereich; Regel R15 und Punkt 17 der Checkliste in [masken.md](../gestaltung/masken.md); Hinweis in design.md 5.4; Tabelle „Schienen und Bereiche der Verwaltung“ im [Masken-Inventar](masken-inventar.md).
+  - `StatTile` (`Controls/StatTile.cs`, Stil `Button.stattile`): Kennzahl-Kachel nach design.md 5.5 mit Beschriftung, Wert, Hinweis und Zustand. Mit Befehl ist sie ein Knopf, ohne Befehl reine Anzeige ohne Tab-Stopp.
+  - `HistoryPanel` (`Controls/HistoryPanel.cs`): Seitenleiste „Verlauf“ nach design.md 5.12 mit den vorhandenen Verlaufsabschnitten; Esc und das Kreuz schließen, der Fokus geht zurück.
+- **Detailentscheidungen:**
+  1. Die Werte des Briefs bleiben (Auftraggeber, 16.11.2026). Neu sind Aufbau und Bedienung.
+  2. Der Balken mit den sieben Gruppen bleibt; überladen sind die Schienen darunter.
+  3. Jede bisherige Sprungadresse bleibt als Alias gültig. Sprünge hängen an Seite und Reiter der Maske, nicht an der Gruppe.
+  4. Die neue Tabelle im Inventar steht am Dateiende. Zwei Tests lesen die Tabelle der Sprungziele bis zur nächsten Überschrift.
+  5. Der Zustand „Warnung“ der Kachel steht als Symbol in der Kachel und als Wort im Namen für Screenreader, nicht nur als Farbe.
+  6. Die Schiene der Personenkarte wird erst mit der Personenkarte einzeilig. Mit zehn Reitern wäre sie bis dahin abgeschnitten.
+- **Bewusst offen / später:** die sechs weiteren Schritte (Lager, Behandlung, Zahlen, Betrieb mit Kassa & Geld und Kontakt, Personenkarte, Ansichten des Teams); ein Raster für die Kacheln baut die Seite, die sie zeigt.
+- **Geprüft:** Tests zuerst geschrieben: `Kennzahl_Kachel` 7 von 7 und `Verlauf_Leiste` 5 von 5 grün, dazu `DesignTokenTests` 107, `TermsAndTooltipTests` 5, `ClientArchitectureTests` 21 und `HelpTests` 17; `dotnet build -c Release` und `dotnet format --verify-no-changes` mit Exitcode 0. Bilder beider Bausteine in hell und dunkel angesehen.
+- **Nicht geprüft:** Hover, Drücken und Fokusrahmen der Kachel im Bild; hoher Kontrast und Screenreader; die Leiste in einer echten Maske mit Daten; die volle Suite läuft in der CI.
+- **Beim Schreiben festgestellt:**
+  - design.md Abschnitt 3 nennt für den großen Wert `TextBlock.kpi`; in `Styles.axaml` heißt die Klasse `TextBlock.bigvalue`.
+  - design.md Abschnitt 6 sagt für die Reiterzeile der Verwaltung „Menü Mehr“ und für „Zahlen“ „es gibt kein Überlaufmenü für Reiter“.
+  - `Border.pill.warn > StackPanel > TextBlock` und ein zweites `Border.pill.warn > TextBlock` in `Styles.axaml` beschreiben denselben Baustein mit verschiedenem Aufbau.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Verwaltungsmasken modernisieren, Schritt Personenkarte: vier Bereiche, Übersicht, Verlauf als Seitenleiste (Aufgabe T-065, 16.11.2026)
+
+- **Auftrag:** Zweiter Schritt aus [ADR 0098](../entscheidungen/0098-verwaltungsmasken-eine-schiene-uebersicht-seitenleiste.md): Die Personenkarte hat statt zehn Reitern vier Bereiche in einer Schiene, beginnt mit einer Übersicht, und der Verlauf wird eine Seitenleiste. Die Team-Ansichten oben (Personen, Wochenplan, Zeiten, Anträge, Lohn, Wer darf was?, Zuständigkeiten) bleiben unverändert.
+- **Was:**
+  - Endpunkt `GET /api/employees/{id}/overview` liefert die Kennzahlen der fünf Kacheln; jeder Teil (Dienst, Woche, Urlaub, Anträge, Zertifikate) erscheint nur mit dem Recht, das der Bereich dahinter verlangt. 15 Api-Tests.
+  - Die Karte hat die Bereiche **Übersicht**, **Profil** (Stammdaten, Zugang und Rolle, Qualifikationen, Zuständigkeiten), **Arbeitszeit** (Dienstplan und Abwesenheit mit Urlaubskonto und Kalenderdatei, Zeiten) und **Lohn und Akte** (Lohn, Personalakte, Regelungen und Vollmachten), je nach Recht. Die Übersicht zeigt fünf Kennzahl-Kacheln (`StatTile`); ein Klick springt in den passenden Bereich, „Offene Anträge“ in die Team-Ansicht „Anträge“.
+  - **Verlauf** ist eine Schaltfläche rechts im Kopf der Karte und öffnet das `HistoryPanel` als Seitenleiste über der Karte; Esc oder das Kreuz schließt.
+  - Handbuch: Alle Stellen, die einen alten Kartenreiter als Reiter nannten, beschreiben den neuen Weg („Bereich Profil, Abschnitt Zugang und Rolle“, „Schaltfläche Verlauf im Kopf der Karte“); das Thema `team` beschreibt die vier Bereiche. Fünf Bilder der Karte neu erzeugt (`verwaltung-team`, `-einladen`, `-karte-dienstplan`, `-karte-urlaubskonto`, `-person-zustaendigkeiten`).
+- **Detailentscheidungen:**
+  1. Die alten Reiter-Ids (`stammdaten`, `zugang`, `qualifikationen`, `dienstplan`, `zeiten`, `lohn`, `personalakte`, `regelungen`, `zustaendigkeiten`) bleiben Sprungziele: Ein Sprung öffnet den Bereich, der den Abschnitt enthält, und rollt zum Abschnitt. Kassa, Shell und Wochenplan müssen nicht angepasst werden.
+  2. Der Verlauf ist eine Überlagerung und keine dritte Spalte: Beim Mindestfenster von 1100 × 680 blieben neben Liste und Leiste nur 360 px für die Karte, die Stammdaten brauchen 694.
+  3. `HistoryPanel` bekam `StyleKeyOverride`. Ohne greift der Stil der Seitenleiste nicht, und die Leiste war durchsichtig (Fehler aus Schritt 1, im Bildtest aufgefallen).
+  4. Die Personalakte hat jetzt die Speichern-Leiste der Karte, weil Lohn im selben Bereich steht und beides zusammen gespeichert wird.
+  5. Hilfe-Anker (`{#…}`) bleiben, damit bestehende Links und Fragezeichen gelten.
+- **Bewusst offen / später:** die Ansichten des Teams (sieben auf fünf, letzter Schritt aus ADR 0098); die Ausblend-Bewegung der Seitenleiste (siehe unten).
+- **Geprüft:** `dotnet build -c Release` 0 Fehler und `dotnet format --verify-no-changes` 0. Testklassen grün: `PersonCardTests` 31, `TeamTests` 39, `RosterTests` 66, `TimesheetTests` 31, `PayrollTests` 24, `HrFileTests` 16, `DutiesTests` 17, `RegulationsTests` 13, `LeaveAccountTests` 7, `AdminPageTests` 31, `DesignTokenTests` 107, `ClientArchitectureTests` 21, `HelpTests` 17. Bildtests in hell und dunkel angesehen.
+- **Nicht geprüft:** Screenreader, hoher Kontrast, die volle Tab-Reihenfolge, die ganze Klasse `ViewTests` in einem Lauf (läuft in der CI).
+- **Beim Schreiben festgestellt:**
+  - Avalonia meldet AVLN5001: `TextBox.Watermark` ist veraltet (`LeaveAccountView.axaml` Zeile 25 und 28, `PlaceholderText` nehmen).
+  - `HistoryPanel` setzt beim Schließen sofort `IsVisible=false`; die Ausblend-Bewegung läuft nie.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md); die Hilfetexte prüft `textRules.test.ts`.
+
+## Verwaltungsmasken modernisieren, Schritt Lager: vier Reiter, Ansichten und Einrichtung (Aufgabe T-061, 16.11.2026)
+
+- **Auftrag:** Nach [ADR 0098](../entscheidungen/0098-verwaltungsmasken-eine-schiene-uebersicht-seitenleiste.md) die Lager-Maske der Windows-App umbauen: eine Schiene mit vier Einträgen, Verbrauch in die Übersicht, Chargen und Bewegungen als Sichten im Bestand, Lagerorte und Lieferanten hinter „Einrichtung“, die Werkzeuge wieder neben der Schiene. Nichts entfällt, Rechte und Sprungziele bleiben.
+- **Was:**
+  - `StockView.axaml`: Schiene Übersicht · Bestand · Bestellen · Inventur in einer `ReflowRow`; rechts „Material suchen oder scannen“, Standort, „Exportieren“, „Einrichtung“, das Fragezeichen und „Bewegung buchen“. Der Trenner und die eigene Werkzeugzeile unter neun Reitern sind weg.
+  - Übersicht: Kennzahl-Kacheln (`StatTile`) für Lagerwert, Nachbestellen, Unter Minimum, Chargen laufen ab und Mehrverbrauch, darunter „Was ist zu tun“ und der Abschnitt „Verbrauch“ (nur mit `ViewFinance`). Die Zeile „Lagerwert … am Standort“ unter der Liste ist zur Kachel geworden.
+  - Bestand: eine Zeile mit „Ansicht“ (Optionsfelder Material, Chargen mit Zähler, Bewegungen) und dem Lagerort.
+  - Einrichtung: eigene Seite mit „Zurück“, Lagerorte (`ManageLocation`) und Lieferanten (Katalogrecht).
+  - `StockViewModel`: `StockTab` behält alle neun Werte als Sprungadressen. `SetTab` führt mit jedem an den neuen Ort; „Verbrauch“ zeigt die Übersicht und holt den Abschnitt ins Bild.
+  - Handbuch: acht Themen (`lager.md`, `seite-stock.md`, sechs Abläufe), fünf Bilder neu, davon zwei zusätzlich (Einrichtung, Ansicht Chargen).
+  - design.md 5.4 und Abschnitt 6 („Kopf des Lagers“), Masken-Inventar, Stand, Handtestblock T-061.
+- **Detailentscheidungen:**
+  1. „Einrichtung“ ist eine eigene Seite mit „Zurück“, keine Seitenleiste. Lagerorte und Lieferanten sind je eine Liste (300 px) mit einem Formular bis 720 px samt Tabelle der Mindestmengen; die Seitenleiste nach design.md 5.12 ist 360 px breit.
+  2. In der Einrichtung ersetzt eine Schiene Lagerorte · Lieferanten die Schiene des Lagers. Damit steht je Seite weiter höchstens eine Schiene da. Mit nur einem der beiden Rechte fehlt sie, und der eine Inhalt steht allein.
+  3. Der Umschalter im Bestand sind Optionsfelder mit der Beschriftung „Ansicht“ (design.md 5.3: zwei bis vier Werte). Eine zweite segmentierte Schiene hätte R15 verletzt; eine Aufklappliste hätte den Zähler offener Chargen verborgen, solange eine andere Ansicht gewählt ist.
+  4. Ansicht und Lagerort stehen in einer eigenen Zeile des Bestands, nicht im Kopf. Gemessen brauchen Schiene (390 px) und Werkzeuge (866 px mit Standort) 1268 px; mit Ansicht und Lagerort wären es über 1700 px, also auch in Zeile 2 mehr als die 964 px des Mindestfensters. Der Lagerort gilt nur für Material und Bewegungen und steht so bei dem, was er filtert.
+  5. Beim Mindestfenster 1100 × 680 stehen die Werkzeuge rechtsbündig in Zeile 2, ab etwa 1404 px Fensterbreite neben der Schiene. Das Suchfeld ist dafür 200 statt 260 px breit, der Standort 180 statt 200.
+  6. `StockTab` bleibt als Liste der Orte bestehen, `Tab` nennt den gezeigten Ort. `Usage` steht dort nie, weil der Verbrauch kein eigener Ort mehr ist. So blieben die vorhandenen Tests zu den Rechten unverändert gültig.
+  7. Der Verbrauch lädt mit der Übersicht (ein Abruf beim Öffnen und bei jedem Wechsel in die Übersicht), nicht mehr erst beim Klick auf einen Reiter. Ohne `ViewFinance` gibt es keinen Abruf.
+  8. Die Kachel heißt „Unter Minimum“ wie das Kontrollkästchen „Nur unter Minimum“; „Unter Mindestbestand“ brach in der Kachel um. Eine Zahl über 0 trägt das Warnzeichen, eine 0 kein Zeichen (design.md 5.8: kein „ok“-Zeichen ohne Anlass).
+  9. Die Kachel „Mehrverbrauch“ erscheint nur, wenn die API den Betrag liefert (Recht „Berichte mit Beträgen“). Ein Klick holt den Abschnitt „Verbrauch“ ins Bild.
+  10. In der Einrichtung fehlen Suchfeld und „Bewegung buchen“; der Standort bleibt, weil Lagerorte je Standort gelten.
+  11. „Bewegung buchen“ steht wie bisher nur in der Übersicht und in der Ansicht „Material“. Das Buchungspanel mit seinen vier Arten ist unverändert.
+- **Bewusst offen / später:** Chargen und Bewegungen als Abschnitte im Seitenpanel einer Bestandszeile (im Gesamtplan genannt, nicht im Auftrag dieses Schritts); der Gesamttest über alle Verwaltungsseiten kommt mit dem letzten Schritt.
+- **Geprüft:** Tests zuerst angepasst und neu geschrieben. `StockLayoutTests` 21 (jedes alte Sprungziel, Rechte, Kacheln, Einrichtung), `StockSubtabsTests` 18, `AdminStockTests` 79, `StockBarcodeTests` 8, `OperatorDocumentsTests` 13, `RoomRestockTests` 10, `AdminPageTests` 31, `HelpTests` 17, `TermsAndTooltipTests` 5 und `DesignTokenTests` 107 grün. 69 Ansichtstests zum Lager grün, darunter neu: Schiene mit höchstens fünf Einträgen ohne Umbruch bei 1100 × 680 an jedem Ort, Werkzeuge neben der Schiene bei 1440 Breite, jedes alte Sprungziel zeigt seinen Inhalt im sichtbaren Teil, Einrichtung mit „Zurück“, Ansichten des Bestands, Rezeption ohne Chargen und Einrichtung. `dotnet format --verify-no-changes` und `dotnet build -c Release` mit Exitcode 0. Hilfe im Web: `src/help` 61 von 61. Bilder als Inhaberin in hell und dunkel angesehen: Übersicht, Bestand, Ansicht Chargen, Einrichtung; dazu Mindestfenster und Verbrauch in hell.
+- **Nicht geprüft:** die volle Desktop-Suite und die übrigen Ansichtstests (laufen in der CI); die App im echten Fenster mit Daten, hoher Kontrast und Screenreader; 125 und 150 Prozent Skalierung; der Kopf mit offener Seitenleiste „KI und Hilfe“ beim Mindestfenster (604 px): Rechnerisch sind die Werkzeuge mit Standort (866 px) dort breiter als der Kopf, wie schon die alte Werkzeugzeile mit ihren drei Feldern (684 px). Gemessen ist das nicht; es braucht einen eigenen Schritt, weil `ReflowRow` den rechten Teil nicht weiter umbricht.
+- **Beim Schreiben festgestellt:**
+  - Ein `StatTile` mit gebundenem, aber leerem Befehl ist deaktiviert und wirkt ausgegraut. Die Übersicht bindet deshalb für Anzeige-Kacheln keinen Befehl (zwei Fassungen in der Vorlage).
+  - Die Schiene des Lagers ist rechts neben „Inventur“ etwa 30 px breiter als ihre Reiter (schon vor dem Umbau so).
+  - „Bewegung buchen“ fehlt in der Ansicht „Bewegungen“, obwohl man dort die Buchungen sieht; so war es auch im Reiter „Bewegungen“.
+- **Text-Prüfung:** Hilfetexte mit `web/src/help/textRules.test.ts` (zwei Richtungswörter „oben rechts“ entfernt), der Rest von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Verwaltungsmasken modernisieren, Schritt 3: Behandlung mit vier Bereichen (Aufgabe T-062, 16.11.2026)
+
+- **Auftrag:** Der Auftraggeber hat am 16.11.2026 beauftragt, alle Verwaltungsmasken nach [ADR 0098](../entscheidungen/0098-verwaltungsmasken-eine-schiene-uebersicht-seitenleiste.md) zu modernisieren. Dieser Schritt stellt die Karte der Behandlung um (Verwaltung › Angebot › Behandlungen).
+- **Was:**
+  - Die Schiene hat vier Bereiche statt sieben Abschnittsreitern: Grunddaten · Durchführung · Preise und Verkauf · Qualifikationen und Räume (`TreatmentEditorViewModel`, `TreatmentEditorView.axaml`).
+  - „Durchführung“ zeigt Vor- und Nachbereitung, Vorbereitungsschritte, Material je Termin und „Zum Termin bereitstellen“ als Gruppen untereinander. „Preise und Verkauf“ zeigt Preis je Standort, Preise nach Wochentag und Uhrzeit und „Passt dazu“.
+  - „Verlauf“ ist eine Schaltfläche im Kopf der Karte und öffnet die Seitenleiste `HistoryPanel`. Das Akkordeon unter den Feldern entfällt.
+  - Die Abschnittsnamen von vor ADR 0098 (`ablauf`, `material`, `bereitstellen`, `preise`, `verkauf`) bleiben Sprungziele: Sie öffnen den Bereich, rollen zur Gruppe und setzen den Fokus in ihr erstes Feld. Das gilt für den Sprung aus dem Kalender, von „Kosten“ und für Fehler beim Speichern einer Teil-Liste.
+  - In „Grunddaten“ ist „Weitere Angaben“ (Ausfallgebühr, Anzahlung) eingeklappt und von selbst offen, wenn die Behandlung einen eigenen Wert hat (masken.md R2).
+  - In „Qualifikationen und Räume“ stehen „Nötige Qualifikationen“ und „Wer kann das?“ 3 : 2 nebeneinander (`MainSideColumns`, masken.md R14).
+  - `HistoryPanel` übernimmt den Stilschlüssel von `Border`. Ohne ihn griffen die Stile `Border.sidepanel` nicht: Die Leiste hatte keine Fläche und war durchsichtig.
+  - Handbuch: `behandlungen`, `behandlungen-verlauf`, `behandlungen-bereitstellen-einrichten`, `stammdaten-behandlung-anlegen`, `berichte-vorbereitung-festlegen`, `kalender-tastenkuerzel`, `kosten-material-erfassen`, `kosten`, `lager-material-anlegen`; Bilder `verwaltung-behandlungen`, `-verkauf` neu, `-durchfuehrung` und `-verlauf` dazu.
+  - design.md Abschnitt 6 beschreibt die Karte der Behandlung; im [Masken-Inventar](masken-inventar.md) ist die Zeile „Angebot“ umgestellt; Handtest in [handtests.md](handtests.md).
+- **Detailentscheidungen:**
+  1. Der erste Bereich bleibt „Grunddaten“ ohne Kennzahl-Kacheln. ADR 0098 nennt für die Behandlung diese vier Bereiche; Dauer und Preis stehen dort als erste Felder, Kacheln darüber würden sie nur wiederholen.
+  2. Die neuen Bereiche heißen im Code `durchfuehrung` und `preise-und-verkauf`. Die alten Namen sind Gruppen darin und keine Reiter mehr; `grunddaten` und `ressourcen` bleiben.
+  3. Ein Sprung zu einer Gruppe, die es für die Person oder die Behandlung nicht gibt (Material ohne das Recht auf Berichte mit Beträgen, „Passt dazu“ vor dem Anlegen), landet am Anfang des Bereichs. Gibt es den ganzen Bereich nicht, bleibt es bei „Grunddaten“ wie bisher.
+  4. Eine neue Behandlung zeigt, was bisher schon erlaubt war: Grunddaten, Durchführung nur mit Vor- und Nachbereitung, Qualifikationen und Räume und, bei mehreren Standorten, „Preise und Verkauf“ nur mit dem Preis je Standort.
+  5. Die Seitenleiste liegt rechts über der Karte. Bleiben daneben mindestens 560 px, rückt die Karte neben die Leiste; im Mindestfenster 1100 liegt die Leiste über dem rechten Teil der Karte (ADR 0098, „Folgen und Stand“).
+  6. Der Abschnitt in der Leiste heißt „Änderungen“ wie auf der Kundenkarte, weil der Kopf der Leiste schon „Verlauf“ heißt. Er ist beim Öffnen aufgeklappt und lädt bei jedem Öffnen neu.
+  7. Eingeklappt sind nur Ausfallgebühr und Anzahlung. Die Einwirkzeit bleibt sichtbar: Die Lückenvorschläge des Kalenders rechnen seit heute mit ihr.
+  8. Die Karte ist in jedem Bereich gleich breit (Höchstbreite 760). Vorher war sie so breit wie ihr Inhalt, und der Kopf sprang beim Wechsel des Bereichs.
+  9. Der Weg „Stammdaten › Behandlungen › Grunddaten“, den der Assistent für Preis und Dauer nennt (`FieldMasks.cs`), stimmt weiter: Beide Felder stehen in „Grunddaten“. Die API ist nicht geändert.
+  10. Kopf und Schiene stehen fest über dem rollenden Teil der Karte. Vorher rollten sie mit; nach einem Sprung zu einer unteren Gruppe wären die Bereiche und „Verlauf“ sonst aus dem Bild.
+  11. Die Rechte sind unverändert; es entfällt keine Funktion.
+- **Bewusst offen / später:**
+  - Mit offener Seitenleiste „KI und Hilfe“ bleiben der Karte im Mindestfenster rund 330 px. Das war mit sieben Reitern schon so; die Messung für Liste, Karte und beide Leisten steht laut ADR 0098 beim Schritt Personenkarte.
+- **Geprüft:** Tests zuerst angepasst und geschrieben. `TreatmentsTests` mit `HelpTests`, `DesignTokenTests`, `TermsAndTooltipTests` und `ClientArchitectureTests` 184 von 184 (neu: vier Bereiche in fester Reihenfolge, jede alte Abschnittsadresse landet im richtigen Bereich bei der richtigen Gruppe, Materialfehler öffnet „Durchführung“, Verlauf lädt bei jedem Öffnen, „Weitere Angaben“ offen oder zu). Ansichtstests zur Behandlung, zu den Bausteinen und zu den Sprungzielen 67 von 67 (neu: Schiene einzeilig bei 1100 × 680 und fest über dem rollenden Teil, Sprung mit Fokus in der Gruppe für fünf Adressen, Materialfehler mit Fokus, Verlauf als Seitenleiste in hell und dunkel, Esc schließt und gibt den Fokus zurück, neue Behandlung ohne „Verlauf“). API `FieldMaskInventoryTests` und `BusinessIncompleteTests` 14 von 14; Hilfe-Tests im Web (`vitest run src/help`) 61 von 61. `dotnet build AispaStudio.slnx -c Release` und `dotnet format AispaStudio.slnx --verify-no-changes` mit Exitcode 0. Bilder als Inhaberin angesehen: Grunddaten, Durchführung und Verlauf in hell und dunkel, „Preise und Verkauf“, „Qualifikationen und Räume“, neue Behandlung und das Mindestfenster in hell.
+- **Nicht geprüft:** die laufende App mit Maus und Tastatur; hoher Kontrast und Screenreader; 125 und 150 Prozent Skalierung; die volle Suite läuft in der CI.
+- **Beim Schreiben festgestellt:**
+  - `FieldMasks.cs` nennt als Weg „Stammdaten › Behandlungen“; in der Windows-App heißt die Gruppe seit Ä293 „Angebot“.
+  - `behandlungen.md` enthält zwei fast gleiche Sätze zu Vorbereitung, Dauer und Nachbereitung (der zweite ergänzt die Einwirkzeit).
+
+## Verwaltungsmasken modernisieren, Schritt Zahlen: Berichte als Abschnitte (Aufgabe T-063, 16.11.2026)
+
+- **Auftrag:** [ADR 0098](../entscheidungen/0098-verwaltungsmasken-eine-schiene-uebersicht-seitenleiste.md), Regel 1: je Seite höchstens eine Schiene. „Zahlen“ war die einzige Seite mit zwei Schienen (fünf Reiter und die Unterreiter Management und Pflichtberichte).
+- **Was:**
+  - Der Reiter „Berichte“ zeigt Management und Pflichtberichte als Abschnitte untereinander, Management oben. Die Unterreiter entfallen.
+  - Jeder Abschnitt hat seinen Kopf: Management den Zeitraum mit Vergleich und Export, die Pflichtberichte das Datum. Im Kopf der Maske steht bei „Berichte“ nur der Standort.
+  - Die Ids `management` und `compliance` bleiben Sprungziele. Beide öffnen „Berichte“ und rollen an den Anfang ihres Abschnitts (`ReportsViewModel.FocusedSection`); „Im Bericht öffnen“ des Assistenten führt wie bisher zum Management.
+  - Handbuch: `seite-reports`, `berichte-kennzahlen-ansehen`, `berichte-mit-anderen-spas-vergleichen` und `berichte-pflichtberichte-abrufen` nennen Abschnitte statt Unterreitern; die Bilder `verwaltung-berichte-management` und `verwaltung-berichte-pflichtberichte` sind neu erzeugt.
+- **Detailentscheidungen:**
+  1. Die Köpfe der Abschnitte stehen in der Stufe „Titel“ (22/600). Die Berichtsansichten darunter gliedern schon mit der Stufe „Überschrift“ („Kassen“, „Umsatz nach Erlöskonto“); eine gleiche Stufe hätte die Abschnitte nicht von ihren Gruppen getrennt.
+  2. Zwischen den Abschnitten steht eine Linie mit je 20 px, wie bei den Abschnitten auf einer Fläche (design.md 5.5), keine Karte.
+  3. Beim Öffnen von „Berichte“ laden beide Abschnitte. Ein neues Datum lädt nur die Pflichtberichte neu, weil das Management seinen eigenen Zeitraum hat.
+  4. Die Ansicht rollt selbst an den Anfang des Abschnitts. `BringIntoView` rollt nur so weit wie nötig und richtet einen Abschnitt, der höher ist als der sichtbare Bereich, am unteren Rand aus; der Sprung zurück auf `management` blieb im Test 264 px über dem Rand stehen.
+  5. Gerollt wird erst, wenn beide Abschnitte geladen sind. Sonst schöbe das Management, das später ankommt, die Pflichtberichte wieder aus dem Bild.
+  6. Ein Klick auf den schon gewählten Reiter „Berichte“ rollt an den Anfang.
+  7. Die Pflichtberichte bleiben am Recht `ViewFinance`; das ist dasselbe Recht wie für den Reiter.
+- **Bewusst offen / später:** Der Tastaturfokus bleibt bei einem Sprung, wo er war; die Abschnitte sind keine Tab-Stopps. Die Liste der Betriebsinfo ist 300 px breit (design.md 5.6 nennt 260); sie gehört zu „Zahlen“, war aber nicht Teil des Auftrags.
+- **Geprüft:** Tests zuerst angepasst und geschrieben. `AdminReportsTests` 40 von 40 (neu: beide Abschnitte laden, Sprung auf `compliance`, das Datum lädt nur die Pflichtberichte), `CompanionBlockTests` 17 von 17. Ansichtstests `Zahlen_*` 31 von 31 (darin: eine einzige Schiene mit fünf Einträgen, Abschnitte untereinander, Datum im Abschnitt, die Köpfe bei 1100 und 1024 px), `Verwaltung_Berichte_*` 10 von 10, der Wächter `Die_fuenf_Reiter_passen_bei_Mindestbreite_mit_Seitenleiste_in_eine_Zeile`, der neue Test `Ein_Sprung_auf_die_Pflichtberichte_rollt_bei_Mindestfenster_zum_Abschnitt` bei 1100 × 680, der Namens-Scan und der Sprung des Assistenten. Beide Bilder in hell angesehen, die Pflichtberichte auch in dunkel.
+- **Nicht geprüft:** die laufende App mit echten Daten; Screenreader; die volle Suite läuft in der CI.
+- **Beim Schreiben festgestellt:** Der Kommentar an `ReportsViewModel.Strip` nennt noch „Alltag zuerst, Verwaltung dahinter (Ä353)“; die Reihenfolge der fünf Reiter ist unverändert.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Verwaltungsmasken modernisieren, Schritt Betrieb, Kassa & Geld und Kontakt (Aufgabe T-064, 16.11.2026)
+
+- **Auftrag:** [ADR 0098](../entscheidungen/0098-verwaltungsmasken-eine-schiene-uebersicht-seitenleiste.md): „Betrieb“ von sechs auf fünf Masken, „Beendete zeigen“ statt der Reiter „Aktuell“ und „Beendet“, der Verlauf der Firmendaten als Seitenleiste, dazu alle Masken der drei Gruppen gegen die Kurz-Checkliste in [masken.md](../gestaltung/masken.md).
+- **Was:**
+  - **Betrieb hat fünf Masken.** Die Seite „Schließzeiten“ (`ClosuresPageViewModel`, `ClosuresPageView`) zeigt die Schließzeiten und darunter die Raumsperren als zwei Abschnitte. Der Bereich „Raumsperren“ entfällt aus Balken und Reitern.
+  - **Sprungziel bleibt.** `masterData/roomClosures` öffnet die Seite „Schließzeiten“ und rollt zum Abschnitt „Raumsperren“; „Raum sperren …“ im Kalender legt dort wie bisher ein neues Formular mit dem Raum an.
+  - **„Beendete zeigen“** ist ein Kontrollkästchen über der Liste, in beiden Abschnitten. Beendete Einträge stehen nach den aktuellen und tragen das Wort „Beendet“.
+  - **Verlauf der Firmendaten:** Knopf „Verlauf“ im Kopf, Inhalt in der Seitenleiste `HistoryPanel`.
+  - **Listenbreite 260** (design.md 5.6) in Standorte & Räume (vorher 220), Schließzeiten, Raumsperren, Kalender-Abos und Handbuch (vorher 300).
+  - **Erinnerungen:** Einstellungen und „Zuletzt verschickt“ stehen 3 : 2 nebeneinander (`MainSideColumns`), unter 720 Breite untereinander.
+  - **Warnungen oben:** „Testschlüssel hinterlegt“ in Zahlungen, der Stand des letzten Versands in Postfach & Nummern, ein neuer Hinweis über der Tabelle in Kosten, wie vielen Behandlungen Angaben fehlen.
+  - Handbuch: `schliesszeiten`, `schliesszeiten-anlegen`, `raumsperren`, `raumsperren-termine-umbuchen`, `firmendaten`, `seite-masterdata`, `seite-verwaltung`, `erinnerungen`, `postfach`, `kosten`, `seite-costs`; die Bilder `verwaltung`, `verwaltung-erinnerungen`, `verwaltung-kosten` und `verwaltung-zahlungen` sind neu erzeugt und verkleinert.
+- **Detailentscheidungen:**
+  1. **Zwei Abschnitte statt einer gemeinsamen Liste.** Jeder Abschnitt ist die bisherige Maske mit eigener Liste, eigenem Formular, eigenem „Neu“ und eigenem Speichern; an der Bedienung ändert sich nur der Ort. Eine gemeinsame Liste hätte zwei verschiedene Dinge gemischt (der ganze Standort gegen einen Raum), „Neu“ hätte eine Wahl der Art gebraucht, und beim Wechsel zwischen den beiden Formularen wäre die Rückfrage zu ungespeicherten Änderungen neu zu bauen gewesen.
+  2. Der Abschnitt „Raumsperren“ steht unten, weil das Sprungziel aus dem Kalender ohnehin dorthin rollt und die Schließzeiten die Seite benennen.
+  3. Jeder Abschnitt hat einen Kopf in der Stufe „Titel“ mit dem Hilfe-Knopf daneben, der Erklärsatz steht darunter (design.md 5.9); vorher stand er neben den Reitern.
+  4. Das Kontrollkästchen steht über der Liste wie „Ausgeschiedene zeigen“ im Team, nicht im Kopf. Es nennt die Zahl der beendeten Einträge („Beendete zeigen (2)“), damit sichtbar bleibt, ob etwas ausgeblendet ist; die Zahl der aktuellen zeigt die Liste selbst.
+  5. Mit dem Haken stehen aktuelle und beendete Einträge in einer Liste (wie im Team). Der offene Eintrag und ein neues Formular bleiben beim Umschalten samt Eingaben stehen. Nur wer den Haken entfernt, während ein beendeter Eintrag mit ungespeicherten Änderungen offen ist, wird gefragt.
+  6. Nach dem Speichern eines beendeten Eintrags setzt die Maske den Haken selbst, damit der Eintrag in der Liste bleibt (vorher wechselte sie auf den Reiter „Beendet“).
+  7. Jeder Abschnitt behält seine eigene Wahl des Standorts. Eine gemeinsame Wahl hätte die Rückfrage beider Abschnitte verknüpft.
+  8. Die Rückfrage beim Verlassen der Seite nennt den Abschnitt mit den Änderungen („Raumsperren“), bei beiden beide.
+  9. Die Seite rollt als Ganzes; die inneren Rollbereiche der beiden Masken bleiben, haben aber nichts mehr zu rollen.
+  10. Der Knopf „Verlauf“ ist ein Ghost-Knopf mit Symbol und Text links vom Hilfe-Knopf. Beim Öffnen klappt der Abschnitt in der Leiste auf und lädt; steht er noch offen, lädt er neu.
+  11. Erinnerungen: Die Einstellungen bleiben höchstens 720 breit, die ganze Zeile damit höchstens 1232 (720 : 480 plus 32 Abstand).
+  12. Kosten: Der Hinweis oben zählt nur; was fehlt, steht weiter in der Zeile der Behandlung, weil es dorthin gehört.
+  13. „Wechsel des Kontos“ in Zahlungen bleibt direkt unter der Wahl der Zahlungsart. Die Warnung gehört zu dieser Wahl und steht schon im oberen Drittel.
+- **Checkliste, ohne Änderung:** Kassa (zwei Gruppen mit Zwischentitel, eine Spalte, Fuß fest), Buchhaltung (Gruppen mit Zwischentitel, Meldungen an der Gruppe), KI (zwei gleichrangige Gruppen), Handbuch und Kalender-Abos (bis auf die Listenbreite), Standorte & Räume (bis auf die Listenbreite). Diese Masken haben keinen Nebeninhalt neben dem Hauptinhalt und keine Warnung außerhalb des oberen Drittels.
+- **Bewusst offen / später:** Die Wahl des Standorts gibt es auf der Seite „Schließzeiten“ zweimal. Der fehlende Hinweis in der Zeile der Kosten ist roter Text (`small error`); design.md 5.9 sagt, Warnungen sind nie rot. „Zustand“ und „Widersprüche“ der Kalender-Abos stehen unter dem Formular und nicht 3 : 2 daneben.
+- **Geprüft:** Tests zuerst angepasst und geschrieben. `dotnet format --verify-no-changes` und `dotnet build -c Release` ohne Fehler. Desktop-Suite ohne Ansichtstests 2319 von 2320 im vollen Lauf; rot war nur `HelpTests.Jedes_Fragezeichen_…`, dessen Muster den gebundenen Hilfe-Knopf im neuen `PeriodHeader` als festes Thema las (vorher stand `Grid.Column` davor, und das Muster griff zufällig nicht). Das Muster lässt Bindungen jetzt aus, danach `HelpTests` 17 von 17. Ansichtstests in vier Prozessen 1316 von 1316, Hilfetexte im Web 61 von 61. Neu: `AdminClosuresTests` (Beendete zeigen, Rückfrage beim Abwählen, Speichern eines beendeten Eintrags), `AdminPageTests` (fünf Masken in Betrieb, keine Gruppe über fünf), `ViewTests.AdminChecklist` (Reiterzeile höchstens fünf und ohne Umbruch bei 1100 × 680 für Betrieb, Kassa & Geld und Kontakt, Erinnerungen 3 : 2 und gestapelt, Warnungen oben, Listenbreite), Sprungziel `roomClosures` rollt zum Abschnitt, Verlauf der Firmendaten öffnet die Leiste, Esc schließt sie und gibt den Fokus zurück. Bilder als Inhaberin angesehen: Schließzeiten hell und dunkel, Raumsperren dunkel, Firmendaten-Verlauf hell und dunkel, Erinnerungen hell und dunkel, Kosten hell und dunkel, Zahlungen hell.
+- **Nicht geprüft:** die laufende App mit echten Daten; Screenreader und hoher Kontrast; die volle Suite läuft in der CI.
+- **Beim Schreiben festgestellt:**
+  - `BringIntoView` richtet einen Abschnitt, der höher ist als der sichtbare Bereich, am unteren Rand aus. Seiten mit Abschnitten rollen deshalb selbst (`FocusRequestView.ScrollToStartAsync`); sie wiederholt das Rollen kurz, bis das Layout steht.
+  - `ListBox` holt die gewählte Zeile mit `AutoScrollToSelectedItem` ins Bild und rollt dabei den äußeren `ScrollViewer` der Seite mit (gemessen 521 px); in `PeriodList` ist das ausgeschaltet.
+  - Ein Sprung aus einer anderen Seite setzt das Ziel, bevor es die Ansicht gibt. `FocusRequestView` beachtet das nur für Ansichten, die es beim Einhängen abfragen (`FocusRequested`); die Abschnitte des Lagers tun das nicht.
+  - Die Liste der Betriebsinfo (Zahlen), der Aktionen (Angebot) und zwei Listen im Lager sind noch 300 breit.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
 ## Kommunikation: Einwilligung beim Online-Buchen (16.11.2026)
 
 - **Auftrag:** Block „Kommunikation (Einwilligung beim Online-Buchen, Erinnerungs-Obergrenze, dann Marketing)“ aus der Reihenfolge vom 20.10.2026; offener Punkt aus [ADR 0040](../entscheidungen/0040-einwilligung-erinnerung-naechste-behandlung.md).
@@ -6416,6 +6585,31 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Geprüft:** Tests zuerst geplant: API `DeliveryNoteScanTests` 6 von 6 (Vorschlag je Position und nichts gebucht, Aussortieren und Markieren, unlesbares Foto, kein Bild/Entwurf/fremde Bestellung, Rezeption), `ChannelScanTests`, `StockTests`, zusammen 26 grün; Web `myday` 53 grün (neu: Vorschlag prüfen und buchen, ohne KI von Hand, Reiter nur für die Leitung, keine offene Bestellung).
 - **Nicht geprüft:** ein echter Lieferschein mit echtem Schlüssel. `ClaudeDeliveryNoteReader` ist nur gegen den Nachbau der Tests gelaufen; wie gut die KI Lieferscheine liest, zeigt erst der Probelauf. Die Kamera am Handy.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Verwaltungsmasken modernisieren, Schritt Team-Ansichten: fünf Ansichten, Anträge als Seitenleiste (Aufgabe T-066, 16.11.2026)
+
+- **Auftrag:** Dritter Schritt aus [ADR 0098](../entscheidungen/0098-verwaltungsmasken-eine-schiene-uebersicht-seitenleiste.md): Die Schiene des Teams hat statt sieben Ansichten höchstens fünf (Personen · Wochenplan · Zeiten · Lohn · Rechte und Zuständigkeiten). „Anträge“ wird eine Seitenleiste im Wochenplan, „Wer darf was?“ und „Zuständigkeiten“ werden zwei Abschnitte einer Seite. Rechte und Werte des Briefs bleiben unverändert.
+- **Was:**
+  - Neuer Baustein `SidePanel` (Seitenleiste nach Brief 5.12 mit `SidePanelHeader`, Breite 360, F6-Bereich, Esc schließt, der Fokus kehrt zum Auslöser zurück); `HistoryPanel` baut jetzt darauf auf.
+  - Wochenplan: Schaltfläche **Anträge** am Ende der Werkzeugleiste mit der Zahl der offenen Anträge (Pille `warn`, fehlt bei null; Name für den Screenreader „Anträge, 2 offene Anträge“). Sie öffnet die bisherige Antragsliste als Seitenleiste; die Karten der Anträge sind für 360 px umgebaut (Text untereinander, darunter **Ablehnen** und **Genehmigen** nebeneinander). Nur wer Standorte verwaltet, sieht die Schaltfläche.
+  - **Rechte und Zuständigkeiten:** zwei Abschnitte „Wer darf was?“ und „Zuständigkeiten“, je mit Zwischentitel (`h3`) und Fragezeichen, 20 px Abstand; jeder Abschnitt nur mit seinem bisherigen Recht, ohne beide fehlt die Ansicht. Die Gruppen der Zuständigkeiten haben jetzt Gruppentitel statt `h2`, die Namen der Einträge 14/600 statt 18, damit die Gliederung unter dem Zwischentitel stimmt.
+  - Die Kachel **Offene Anträge** der Personenkarte öffnet den Wochenplan mit der Seitenleiste.
+  - Handbuch: `team`, `seite-roster`, `seite-verwaltung`, `dienstplan-antrag-entscheiden`, `dienstplan-abwesenheit-eintragen`, `regelungen-vollmachten`, `zustaendigkeiten-zertifikate` beschreiben den neuen Weg; neues Bild `verwaltung-team-wochenplan-antraege`; neu erzeugt, weil sie die Schiene zeigen: `verwaltung-team`, `-wochenplan`, `-zeiten`, `-zustaendigkeiten`, `-einladen`, `-person-zustaendigkeiten`, `-karte-dienstplan`, `-karte-urlaubskonto` (mit `help-images-shrink.py` verkleinert).
+- **Detailentscheidungen:**
+  1. Die Seitenleiste liegt über dem Wochenraster und ist keine eigene Spalte. Gemessen beim Mindestfenster 1100 × 680: Das Raster braucht 904 px (Namensspalte 176 und Tage 728), die Fläche des Wochenplans ist 980 px breit (am Bild gemessen), neben der Leiste blieben 620. Der Bildtest gibt die Werte aus und prüft, dass das Raster seine Breite behält.
+  2. Die alten Ansichts-Ids bleiben Sprungziele: `antraege` öffnet den Wochenplan mit offener Leiste, `wer-darf-was` und `zustaendigkeiten` öffnen „Rechte und Zuständigkeiten“ und rollen zum Abschnitt; ein Sprung vor dem Laden gilt nach dem Laden. `zustaendigkeiten` mit einer Person führt wie bisher auf die Karte (Abschnitt im Bereich Profil), ohne Person zum Abschnitt der Seite.
+  3. Die neue Id der Ansicht ist `rechte-und-zustaendigkeiten`. Fehlt das Recht für den angesprungenen Abschnitt, wechselt der Sprung nicht.
+  4. Beim Öffnen steht der Fokus auf dem ersten Bedienelement des Inhalts (bei „Anträge“ **Ablehnen** des ersten Antrags), nicht auf dem Fragezeichen im Kopf; ohne Bedienelement wie bisher auf dem Ziel des Bereichs (gilt auch für den Verlauf).
+  5. Die Anträge werden mit dem Wochenplan geladen, damit die Zahl am Knopf ohne Öffnen stimmt. Nach einem Genehmigen lädt der Wochenplan neu.
+  6. Das Rollen zum Abschnitt setzt den Versatz direkt; `BringIntoView` richtete einen hohen Abschnitt am unteren Rand aus.
+  7. Hilfe-Anker (`{#…}`) bleiben, auch `team#ansichten`.
+- **Bewusst offen / später:** Die Leiste verdeckt beim Öffnen den rechten Teil der Werkzeugleiste mit der Schaltfläche **Anträge** (wie der Verlauf der Personenkarte seinen Knopf); geschlossen wird mit Esc oder dem Kreuz. Im Abschnitt „Zuständigkeiten“ stehen zwei Fragezeichen untereinander (Abschnitt und Gruppe „Wer ist wofür zuständig?“). Ein Recht „Standorte verwalten“ ohne Recht auf den Dienstplan hätte keinen Weg zu den Anträgen; keine Rolle hat diese Kombination.
+- **Geprüft:** `dotnet build AispaStudio.slnx -c Release` 0 Fehler, 0 Warnungen; `dotnet format --verify-no-changes` 0. Testklassen grün: `TeamTests` 39, `PersonCardTests` 31, `RosterTests` 87, `DutiesTests` 17, `RegulationsTests` 13, `AdminPageTests` 31, `HelpTests` 17, `DesignTokenTests` 107, `ClientArchitectureTests` 21, `TermsAndTooltipTests` 5. Die ganze Klasse `ViewTests` in einem Lauf: 1319 grün, 2 rot (Team-Durchlauf fand den ausgeblendeten Knopf der Karte, behoben); danach die Bildtests des Teams, der Karte, des Verlaufs und der Zeiten (337) grün. Web: `lint`, `typecheck`, `npm test -- src/help` (61) grün. Bilder hell und dunkel angesehen, auch beim Mindestfenster.
+- **Nicht geprüft:** Screenreader, hoher Kontrast, die volle Tab-Reihenfolge von Hand, die Api-Tests (nichts an der Api geändert).
+- **Beim Schreiben festgestellt:**
+  - `ViewTests.PersonCard.cs` Zeile 52 hatte zwei Anweisungen in einer Zeile; `dotnet format --verify-no-changes` schlug schon im Basisstand fehl. Zeilenumbruch ergänzt.
+  - Avalonia meldet weiter AVLN5001 (`TextBox.Watermark` in `LeaveAccountView.axaml`).
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md); die Hilfetexte prüft `textRules.test.ts`.
 
 ## „Mein Tag“: das eigene Urlaubskonto (16.11.2026)
 

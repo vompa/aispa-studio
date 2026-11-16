@@ -101,7 +101,7 @@ Gespeichert wird mit „Speichern“ (auch Strg+S) für die ganze Maske.
 
 ### Zuletzt verschickt {#zuletzt-verschickt}
 
-Die Liste zeigt die letzten 100 Wiederbuchungs-Hinweise, die neuesten zuerst: Gast, Behandlung, Stand und Zeitpunkt. Fährt man mit der Maus über einen Eintrag, erscheint der verschickte Text.
+Die Liste steht in der Windows-App rechts neben den Einstellungen, im schmalen Fenster darunter. Sie zeigt die letzten 100 Wiederbuchungs-Hinweise, die neuesten zuerst: Gast, Behandlung, Stand und Zeitpunkt. Fährt man mit der Maus über einen Eintrag, erscheint der verschickte Text.
 
 - **wird geschrieben**: Der Hinweis ist angelegt und wird gerade geschrieben und versendet.
 - **gesendet**: Die Mail ist hinausgegangen. „(Text von der KI)“ heißt, der persönliche Teil stammt von der KI.

@@ -6,7 +6,7 @@ using static AispaStudio.Desktop.Tests.StockSample;
 namespace AispaStudio.Desktop.Tests;
 
 /// <summary>
-/// R07 Slice 143 (Ä351): Das Lager teilt sich in Übersicht, Bestand, Bestellen, Chargen und Bewegungen. Die Übersicht sagt, was zu tun ist; der Bestand hat vier Spalten, die übrigen Werte
+/// R07 Slice 143 (Ä351), Aufbau seit ADR 0098: Das Lager teilt sich in Übersicht, Bestand (mit den Sichten Chargen und Bewegungen), Bestellen und Inventur. Die Übersicht sagt, was zu tun ist; der Bestand hat vier Spalten, die übrigen Werte
 /// stehen im Seitenpanel der Zeile. Das ViewModel prüft Inhalt, Links, Rechte und die Suche; das Aussehen steht in <c>ViewTests.StockSubtabs</c>.
 /// </summary>
 public sealed class StockSubtabsTests
@@ -61,10 +61,12 @@ public sealed class StockSubtabsTests
         stock.SetTab(StockTab.Overview);
         expiring.LinkCommand!.Execute(null);
         Assert.Equal(StockTab.Tasks, stock.Tab);
+        Assert.True(stock.IsStockTab);
+        Assert.True(stock.IsBatchesView);
     }
 
     [Fact]
-    public async Task Given_nichts_zu_tun_When_das_Lager_oeffnet_Then_sagt_die_Uebersicht_es_und_der_Lagerwert_steht_klein_darunter()
+    public async Task Given_nichts_zu_tun_When_das_Lager_oeffnet_Then_sagt_die_Uebersicht_es_und_der_Lagerwert_steht_als_Kachel_darueber()
     {
         var api = Api()
             .On($"GET {Route("/reorder")}", new List<ReorderSuggestionDto>())
@@ -74,7 +76,7 @@ public sealed class StockSubtabsTests
 
         Assert.Empty(stock.Todo.Items);
         Assert.True(stock.Todo.IsEmpty);
-        Assert.Contains("987,50", stock.Todo.ValueText, StringComparison.Ordinal);
+        Assert.Contains("987,50", stock.Todo.Stats.Single(s => s.Label == "Lagerwert").Value, StringComparison.Ordinal);
     }
 
     [Fact]

@@ -7,17 +7,16 @@ seite: verwaltung
 ---
 # Behandlungen
 
-Einstellungen in der Windows-App unter „Verwaltung“ › „Angebot“ › „Behandlungen“: was das Spa anbietet, wie lange es dauert, was es kostet und was dafür gebraucht wird. Die Liste links ist nach Kategorie gruppiert. Alles zu einer Behandlung steht an dieser einen Stelle, gegliedert in sieben Bereiche:
+Einstellungen in der Windows-App unter „Verwaltung“ › „Angebot“ › „Behandlungen“: was das Spa anbietet, wie lange es dauert, was es kostet und was dafür gebraucht wird. Die Liste links ist nach Kategorie gruppiert. Alles zu einer Behandlung steht an dieser einen Stelle, gegliedert in vier Bereiche:
 
-- **Grunddaten**: Name, Dauer, Preis, Kategorie, Gebühren, Hinweis für Gäste.
-- **Ablauf**: Vorbereitung und Nachbereitung in Minuten und die Vorbereitungsschritte.
-- **Material**: der Verbrauch je Termin.
-- **Zum Termin bereitstellen** (in der Windows-App „Bereitstellen“): Getränke, Früchteteller und Extras.
-- **Verkauf**: Produkte, die zur Behandlung passen und die Kassa vorschlägt.
-- **Qualifikationen, Räume und Geräte** (in der Windows-App „Qualifikationen & Räume“): was für die Behandlung gebraucht wird.
-- **Preise**: Preis je Standort und Preise nach Wochentag und Uhrzeit.
+- **Grunddaten**: Name, Dauer, Preis, Kategorie, Hinweis für Gäste und „Anamnese prüfen“. Eingeklappt darunter steht die Gruppe **Weitere Angaben** (Ausfallgebühr und Anzahlung); sie ist von selbst offen, wenn die Behandlung eine eigene Ausfallgebühr oder Anzahlung hat.
+- **Durchführung**: was um den Termin herum geschieht, in Gruppen untereinander: „Vor- und Nachbereitung“ (Minuten und Einwirkzeit), „Vorbereitungsschritte“, „Material je Termin“ (nur mit dem Recht auf Berichte mit Beträgen) und „Zum Termin bereitstellen“.
+- **Preise und Verkauf**: „Preis je Standort“ (nur bei mehreren Standorten), „Preise nach Wochentag und Uhrzeit“ und „Passt dazu“ (Produkte, die zur Behandlung passen und die Kassa vorschlägt).
+- **Qualifikationen und Räume**: „Nötige Qualifikationen“ mit „Wer kann das?“ daneben, darunter die Räume und Geräte je Standort.
 
-Eine neue Behandlung hat zuerst nur Grunddaten, Ablauf (Minuten), Qualifikationen, Räume und Geräte sowie, bei mehreren Standorten, Preise; Material, Bereitstellung, Verkauf, Vorbereitungsschritte und Preisregeln kommen nach dem Anlegen dazu.
+Eine neue Behandlung zeigt zuerst Grunddaten, Durchführung (nur „Vor- und Nachbereitung“), Qualifikationen und Räume sowie, bei mehreren Standorten, Preise und Verkauf (nur „Preis je Standort“); Material, Bereitstellung, „Passt dazu“, Vorbereitungsschritte und Preisregeln kommen nach dem Anlegen dazu.
+
+Im Kopf der Karte steht rechts neben dem Namen die Schaltfläche **Verlauf**: [Verlauf einer Behandlung](hilfe:behandlungen-verlauf).
 
 Ändern dürfen Inhaber und Standortleitung. Eine Standortleitung ändert Räume, Geräte, Preise und Preisregeln nur an ihren eigenen Standorten; Einträge an anderen Standorten bleiben beim Speichern unverändert.
 
@@ -29,7 +28,7 @@ In der Windows-App speichert ein **Speichern** unten alles zur offenen Behandlun
 - **Verwerfen** holt den gespeicherten Stand zurück.
 - Wer mit ungespeicherten Änderungen eine andere Behandlung wählt oder die Seite verlässt, wird gefragt: „Änderungen speichern?“ mit „Speichern“, „Verwerfen“ und „Abbrechen“. „Abbrechen“ bleibt bei der Behandlung.
 - Fehlt der Name oder der Preis, steht der Fehler am Feld und es wird nichts gespeichert.
-- Aus dem Kalender führt „Behandlungszeiten bearbeiten …“ am Termin direkt in den Bereich Ablauf der Behandlung.
+- Aus dem Kalender führt „Behandlungszeiten bearbeiten …“ am Termin direkt in den Bereich „Durchführung“ der Behandlung, zur Gruppe „Vor- und Nachbereitung“.
 
 Änderungen gelten für neue Buchungen; gebuchte Termine behalten Zeiten und Preis.
 
@@ -90,7 +89,9 @@ Für Behandlungen, bei denen Angaben aus dem Anamnesebogen wichtig sind, z. B. H
 
 ## Ablauf {#ablauf}
 
-Alles, was um den Termin herum geschieht: die Zeiten davor und danach und die Schritte, die vor jedem Termin zu tun sind. Die Zeiten speichert „Speichern“ unten, die Schritte haben einen eigenen Knopf.
+Alles, was um den Termin herum geschieht: die Zeiten davor und danach und die Schritte, die vor jedem Termin zu tun sind. Die Zeiten speichert „Speichern“ unten, die Schritte haben einen eigenen Knopf. In der Windows-App steht das im Bereich „Durchführung“: die Zeiten in der Gruppe „Vor- und Nachbereitung“, die Schritte in der Gruppe „Vorbereitungsschritte“.
+
+![Bereich Durchführung einer Behandlung](images/app/verwaltung-behandlungen-durchfuehrung.png)
 
 ### Vorbereitung (min) {#vorbereitung}
 
@@ -124,7 +125,7 @@ Zeit, in der der Gast allein im Raum liegt und die Person frei ist, z. B. 20 Min
 
 ### Vorbereitungsschritte {#vorbereitungsschritte}
 
-Das Behandlungsrezept: was vor jeder Behandlung dieser Art vorzubereiten ist. Aus diesen Schritten entsteht die Vorbereitungsliste auf jeder Behandlungskarte, zum Beispiel unter „Mein Tag“. Ändern dürfen Inhaber und Standortleitung; sehen und abhaken kann die Schritte auf den Karten das ganze Team. Der Bereich erscheint bei einer gespeicherten Behandlung.
+Das Behandlungsrezept: was vor jeder Behandlung dieser Art vorzubereiten ist. Aus diesen Schritten entsteht die Vorbereitungsliste auf jeder Behandlungskarte, zum Beispiel unter „Mein Tag“. Ändern dürfen Inhaber und Standortleitung; sehen und abhaken kann die Schritte auf den Karten das ganze Team. Die Gruppe erscheint bei einer gespeicherten Behandlung.
 
 „Schritt hinzufügen“ legt eine Zeile an, „Entfernen“ löscht sie, „Vorbereitung speichern“ speichert die ganze Liste dieser Behandlung in der angezeigten Reihenfolge. Die Schritte gelten an allen Standorten.
 
@@ -148,7 +149,7 @@ Bleibt ein Schritt beim Speichern gleich (gleicher Text, gleiche Minuten und gle
 
 ## Material {#material}
 
-Welches Material ein Termin dieser Behandlung verbraucht (die Rezeptur). Der Bereich erscheint bei einer gespeicherten Behandlung und hat einen eigenen Knopf; die Vollkosten auf der Seite „Kosten“ rechnen damit. „Material hinzufügen“ legt eine Zeile an, „Entfernen“ löscht sie, „Material speichern“ ersetzt die ganze bisherige Liste. Höchstens 50 Zeilen.
+Welches Material ein Termin dieser Behandlung verbraucht (die Rezeptur). In der Windows-App ist das die Gruppe „Material je Termin“ im Bereich „Durchführung“; sie erscheint nur mit dem Recht auf Berichte mit Beträgen. Die Gruppe erscheint bei einer gespeicherten Behandlung und hat einen eigenen Knopf; die Vollkosten auf der Seite „Kosten“ rechnen damit. „Material hinzufügen“ legt eine Zeile an, „Entfernen“ löscht sie, „Material speichern“ ersetzt die ganze bisherige Liste. Höchstens 50 Zeilen.
 
 ### Aus dem Lager {#aus-dem-lager}
 
@@ -172,7 +173,7 @@ Frei erfasstes Material zählt nur für die Vollkosten. Es bucht nichts im Lager
 
 ## Zum Termin bereitstellen {#zum-termin-bereitstellen}
 
-Getränke, Früchteteller und Extras, die zu jedem Termin dieser Behandlung gehören. Der Bereich erscheint bei einer gespeicherten Behandlung und gilt an allen Standorten. Je Termin entsteht daraus ein Eintrag mit Uhrzeit, den das Team abhakt, und der Tagesstart zählt die Summen des Tages (z. B. „6 × Früchteteller“). Mit „Bereitstellen speichern“ wird immer die ganze Liste gespeichert; höchstens 20 Einträge.
+Getränke, Früchteteller und Extras, die zu jedem Termin dieser Behandlung gehören. In der Windows-App ist das die Gruppe „Zum Termin bereitstellen“ im Bereich „Durchführung“. Sie erscheint bei einer gespeicherten Behandlung und gilt an allen Standorten. Je Termin entsteht daraus ein Eintrag mit Uhrzeit, den das Team abhakt, und der Tagesstart zählt die Summen des Tages (z. B. „6 × Früchteteller“). Mit „Bereitstellen speichern“ wird immer die ganze Liste gespeichert; höchstens 20 Einträge.
 
 ### Bezeichnung {#extra-bezeichnung}
 
@@ -188,17 +189,17 @@ Optional. Mit einem Lagerartikel und einer Menge je Termin bucht jede abgeschlos
 
 ## Passt dazu {#passt-dazu}
 
-Produkte aus der Kassa, die zu dieser Behandlung passen, z. B. das Massageöl zur Hot-Stone-Massage. Der Bereich heißt in der Windows-App „Verkauf“ und erscheint bei einer gespeicherten Behandlung. Wählen Sie einen Artikel aus und klicken Sie **Artikel hinzufügen**; höchstens 5 Artikel, jeder einmal. Die Reihenfolge der Liste ist die Reihenfolge der Vorschläge. Gespeichert wird mit der Behandlung.
+Produkte aus der Kassa, die zu dieser Behandlung passen, z. B. das Massageöl zur Hot-Stone-Massage. In der Windows-App steht die Gruppe „Passt dazu“ im Bereich „Preise und Verkauf“ und erscheint bei einer gespeicherten Behandlung. Wählen Sie einen Artikel aus und klicken Sie **Artikel hinzufügen**; höchstens 5 Artikel, jeder einmal. Die Reihenfolge der Liste ist die Reihenfolge der Vorschläge. Gespeichert wird mit der Behandlung.
 
 Nach dem Abschließen des Termins schlagen Termin-Panel und Kassa diese Artikel vor, aber nur, wenn sie am Verkaufsregal des Standorts liegen. Gibt es kein Verkaufsregal, zählt das Hauptlager, wie beim Abbuchen an der Kassa. Ein Artikel ohne Material im Lager wird nie vorgeschlagen, weil sein Bestand unbekannt ist. Eine Provision auf den Verkauf gibt es nicht.
 
 Ändern dürfen Inhaber und Standortleitung.
 
-![Bereich Verkauf einer Behandlung](images/app/verwaltung-behandlungen-verkauf.png)
+![Passt dazu im Bereich Preise und Verkauf einer Behandlung](images/app/verwaltung-behandlungen-verkauf.png)
 
 ## Nötige Qualifikationen {#noetige-qualifikationen}
 
-Häkchen bei allen Qualifikationen, die eine Person für diese Behandlung braucht. Gebucht wird nur eine Person, die alle gewählten hat. Ohne Häkchen kann jede Person im Dienst die Behandlung geben. Die Qualifikationen selbst werden unter „Verwaltung“ › „Team“, Reiter „Qualifikationen“ angelegt und unter „Team“ den Personen gegeben.
+Häkchen bei allen Qualifikationen, die eine Person für diese Behandlung braucht. Gebucht wird nur eine Person, die alle gewählten hat. Ohne Häkchen kann jede Person im Dienst die Behandlung geben. Die Qualifikationen selbst werden unter „Verwaltung“ › „Team“, Bereich „Profil“, Abschnitt „Qualifikationen“ angelegt und unter „Team“ den Personen gegeben.
 
 In der Windows-App fragt das erste „Speichern“ ohne Häkchen nach: Am Feld steht „Keine Qualifikation gewählt: Jede Person im Team kann diese Behandlung übernehmen.“ Ein zweites „Speichern“ speichert ohne Qualifikation, z. B. für ein Fußbad, das alle geben dürfen.
 
@@ -217,14 +218,14 @@ Angeboten wird die Behandlung an allen Standorten, an denen ein geeigneter Raum 
 
 ## Preis je Standort {#preis-je-standort}
 
-Erscheint im Bereich Preise, nur bei mehr als einem Standort. Je Standort kann ein abweichender Preis stehen, z. B. höher in der Innenstadt. Ab 0, höchstens zwei Nachkommastellen.
+Erscheint im Bereich „Preise und Verkauf“, nur bei mehr als einem Standort. Je Standort kann ein abweichender Preis stehen, z. B. höher in der Innenstadt. Ab 0, höchstens zwei Nachkommastellen.
 
 - Leer gilt der Grundpreis. Ein Preis gleich dem Grundpreis wird nicht als Abweichung gespeichert.
 - Gebuchte Termine behalten ihren Preis.
 
 ## Preise nach Wochentag und Uhrzeit {#preise-nach-zeit}
 
-Erscheint im Bereich Preise, sobald die Behandlung angelegt ist. Hier lassen sich Preise für bestimmte Zeiten festlegen, z. B. günstiger am Vormittag oder teurer am Wochenende. Höchstens 20 Regeln je Behandlung.
+Erscheint im Bereich „Preise und Verkauf“, sobald die Behandlung angelegt ist. Hier lassen sich Preise für bestimmte Zeiten festlegen, z. B. günstiger am Vormittag oder teurer am Wochenende. Höchstens 20 Regeln je Behandlung.
 
 Wichtig: Preisregeln haben einen eigenen Knopf „Preisregeln speichern“. Der Knopf „Speichern“ der Behandlung speichert sie nicht mit.
 
@@ -264,4 +265,4 @@ Nimmt die Behandlung aus dem Angebot: Sie lässt sich nicht mehr neu buchen und 
 
 ## Verlauf {#verlauf}
 
-Der Abschnitt **Verlauf** am Ende einer bestehenden Behandlung zeigt, wer sie und ihre Preise wann geändert hat: [Verlauf einer Behandlung](hilfe:behandlungen-verlauf).
+Die Schaltfläche **Verlauf** im Kopf einer bestehenden Behandlung öffnet rechts eine Seitenleiste, die zeigt, wer sie und ihre Preise wann geändert hat: [Verlauf einer Behandlung](hilfe:behandlungen-verlauf).

@@ -39,6 +39,6 @@ Gebuchte Termine behalten Zeiten und Preis.
 - Preise je Standort und Preise nach Wochentag und Uhrzeit: [Preise festlegen](hilfe:stammdaten-preise-festlegen). Preisregeln gibt es erst, wenn die Behandlung angelegt ist.
 - Eine Standortleitung ändert Räume, Geräte und Preise nur an ihren eigenen Standorten.
 - Online buchbar ist die Behandlung an einem Standort nur, wenn dort mindestens eine Person mit Wochenarbeitszeit alle nötigen Qualifikationen hat.
-- Was eine Behandlung an Material verbraucht, wird bei der Behandlung im Bereich „Material“ erfasst, ebenso die Vorbereitungsschritte im Bereich „Ablauf“: [Material einer Behandlung erfassen](hilfe:kosten-material-erfassen).
+- Was eine Behandlung an Material verbraucht, wird bei der Behandlung im Bereich „Material“ erfasst, ebenso die Vorbereitungsschritte im Bereich „Ablauf“ (in der Windows-App beides im Bereich „Durchführung“, Gruppen „Material je Termin“ und „Vorbereitungsschritte“): [Material einer Behandlung erfassen](hilfe:kosten-material-erfassen).
 
 Felder im Einzelnen: [Behandlungen](hilfe:behandlungen).

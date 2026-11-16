@@ -76,8 +76,55 @@ public sealed partial class ViewTests
         await Pump();
     }
 
-    /// <summary>Ein Reiter der Personenkarte; „Zeiten“ gibt es auch als Ansicht des Teams, deshalb nur in der Leiste der Karte suchen.</summary>
+    /// <summary>Der Bereich der Personenkarte, in dem ein Abschnitt steht (ADR 0098); die Namen sind die der früheren Reiter.</summary>
+    private static readonly Dictionary<string, string> CardAreaOf = new()
+    {
+        ["Stammdaten"] = "Profil",
+        ["Zugang und Rolle"] = "Profil",
+        ["Qualifikationen"] = "Profil",
+        ["Zuständigkeiten"] = "Profil",
+        ["Dienstplan und Abwesenheit"] = "Arbeitszeit",
+        ["Zeiten"] = "Arbeitszeit",
+        ["Lohn"] = "Lohn und Akte",
+        ["Personalakte"] = "Lohn und Akte",
+        ["Regelungen und Vollmachten"] = "Lohn und Akte",
+    };
+
+    /// <summary>Der Block eines Abschnitts in der Personenkarte (wie in <c>PersonCardView</c>).</summary>
+    private static readonly Dictionary<string, string> CardSectionBlocks = new()
+    {
+        ["Stammdaten"] = "DetailsBlock",
+        ["Zugang und Rolle"] = "AccessHost",
+        ["Qualifikationen"] = "QualificationsHost",
+        ["Zuständigkeiten"] = "DutiesHost",
+        ["Dienstplan und Abwesenheit"] = "RosterSection",
+        ["Zeiten"] = "TimesSection",
+        ["Lohn"] = "PayrollSection",
+        ["Personalakte"] = "HrFileHost",
+        ["Regelungen und Vollmachten"] = "RegulationsHost",
+    };
+
+    /// <summary>
+    /// Ein früherer Reiter der Personenkarte: klickt den Bereich, der den Abschnitt enthält, und rollt den Abschnitt ins Bild (der Fokus bleibt auf der Schiene);
+    /// „Verlauf“ klickt die Schaltfläche im Kopf. Nur in der Schiene der Karte suchen, denn „Zeiten“ gibt es auch als Ansicht des Teams.
+    /// </summary>
     private static async Task ClickCardTab(Window window, string label)
+    {
+        if (label == "Verlauf")
+        {
+            ClickCenter(window, Named<Button>(window, "HistoryButton"));
+            await Pump(Settling);
+            return;
+        }
+
+        await ClickCardArea(window, CardAreaOf[label]);
+        var block = Named<Control>(window, CardSectionBlocks[label]);
+        block.BringIntoView(new Avalonia.Rect(0, 0, block.Bounds.Width, Math.Min(block.Bounds.Height, 40)));
+        await Pump(Settling);
+    }
+
+    /// <summary>Ein Bereich der Personenkarte (Übersicht, Profil, Arbeitszeit, Lohn und Akte) mit echtem Klick in der Schiene.</summary>
+    private static async Task ClickCardArea(Window window, string label)
     {
         var tab = Named<Border>(window, "CardTabs").GetVisualDescendants().OfType<TabButton>().First(t => t.Content as string == label);
         ClickCenter(window, tab);
@@ -269,7 +316,7 @@ public sealed partial class ViewTests
 
             Assert.True(team.ShowsPeople);
             Assert.Equal("Lena Huber", team.Card?.Title);
-            Assert.Equal(PersonCardViewModel.TimesTab, team.Card?.SelectedTab);
+            Assert.Equal((PersonCardViewModel.WorkTimeArea, PersonCardViewModel.TimesTab), (team.Card?.SelectedTab, team.Card?.FocusedSection));
             Assert.True(Named<Control>(window, "TimesSection").IsEffectivelyVisible);
             return team;
         }, api);

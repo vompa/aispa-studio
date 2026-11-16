@@ -6,7 +6,7 @@ namespace AispaStudio.Desktop.ViewModels;
 
 /// <summary>
 /// Handscanner im Lager (R05 Slice 114, E13): Der Scanner tippt den Code wie eine Tastatur und schließt mit Enter ab. Der Code findet das Material über die API; der Reiter bestimmt die Wirkung:
-/// in der Inventur springt der Fokus ins Feld „Gezählt“ seiner Zeile, sonst wählt der Bestand die Zeile des Materials und, mit dem Recht zu buchen, öffnet sich die Leiste „Bewegung buchen“ (Wareneingang). Ein unbekannter Code fragt, ob ein Material
+/// in der Inventur springt der Fokus ins Feld „Gezählt“ seiner Zeile, sonst wählt die Sicht „Material“ im Bestand die Zeile des Materials und, mit dem Recht zu buchen, öffnet sich die Leiste „Bewegung buchen“ (Wareneingang). Ein unbekannter Code fragt, ob ein Material
 /// angelegt oder einem vorhandenen zugeordnet wird.
 /// </summary>
 public sealed partial class StockViewModel

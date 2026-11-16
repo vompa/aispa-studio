@@ -8,17 +8,17 @@ stichwoerter: Zuständigkeit, Ersthelfer, Ersthelferin, Erste Hilfe, Sicherheits
 ---
 # Zuständigkeiten und Zertifikate
 
-Wer ist Ersthelferin, wer kümmert sich um das Lager, wessen Erste-Hilfe-Kurs läuft bald ab? In der Windows-App liegt das im Bereich **Verwaltung** › **Team**: auf der Karte einer Person im Reiter **Zuständigkeiten** und für alle zusammen in der Ansicht **Zuständigkeiten**. Nur Inhaber und Manager sehen und ändern beides.
+Wer ist Ersthelferin, wer kümmert sich um das Lager, wessen Erste-Hilfe-Kurs läuft bald ab? In der Windows-App liegt das im Bereich **Verwaltung** › **Team**: auf der Karte einer Person im Bereich **Profil**, Abschnitt **Zuständigkeiten**, und für alle zusammen in der Ansicht **Rechte und Zuständigkeiten**, Abschnitt **Zuständigkeiten**. Nur Inhaber und Manager sehen und ändern beides.
 
 > Hinweis: Das Programm prüft keine Rechtsvorschrift. Wie viele Ersthelferinnen, Brandschutzbeauftragte oder Sicherheitsvertrauenspersonen ein Spa braucht, legt die Leitung selbst fest. Die App erinnert und warnt nur nach den Angaben in der Liste.
 
-Eine Zuständigkeit gibt keine Rechte. Wer das Lager öffnen oder die Kassa abschließen darf, entscheidet weiter die Rolle im Reiter **Zugang und Rolle** und die Vollmachten (siehe [Regelungen und Vollmachten](hilfe:regelungen-vollmachten)).
+Eine Zuständigkeit gibt keine Rechte. Wer das Lager öffnen oder die Kassa abschließen darf, entscheidet weiter die Rolle im Abschnitt **Zugang und Rolle** und die Vollmachten (siehe [Regelungen und Vollmachten](hilfe:regelungen-vollmachten)).
 
-![Reiter Zuständigkeiten auf der Karte von Lena Huber mit abgelaufenem Erste-Hilfe-Kurs](images/app/verwaltung-team-person-zustaendigkeiten.png)
+![Abschnitt Zuständigkeiten im Bereich Profil auf der Karte von Lena Huber mit abgelaufenem Erste-Hilfe-Kurs](images/app/verwaltung-team-person-zustaendigkeiten.png)
 
 ## Auf der Karte einer Person {#person}
 
-Der Reiter **Zuständigkeiten** zeigt zwei Listen. Bei einer ausgeschiedenen Person lässt er sich nur lesen.
+Der Abschnitt **Zuständigkeiten** zeigt zwei Listen. Bei einer ausgeschiedenen Person lässt er sich nur lesen.
 
 ### Zuständigkeit {#zustaendigkeit}
 
@@ -53,11 +53,11 @@ Ein Zertifikat in der Erinnerungsfrist zeigt „Läuft am … ab“, ein abgelau
 
 ## Wer ist wofür zuständig? {#uebersicht}
 
-Die Ansicht **Zuständigkeiten** zeigt je Eintrag der Liste, wer zuständig ist, mit Vertretung und Gültigkeit. Steht niemand dabei, heißt es „Niemand eingetragen“. Abgelaufene Zuständigkeiten stehen ausgegraut. Ändern lassen sie sich auf der Karte der Person.
+Der Abschnitt **Zuständigkeiten** in der Ansicht **Rechte und Zuständigkeiten** zeigt je Eintrag der Liste, wer zuständig ist, mit Vertretung und Gültigkeit. Steht niemand dabei, heißt es „Niemand eingetragen“. Abgelaufene Zuständigkeiten stehen ausgegraut. Ändern lassen sie sich auf der Karte der Person.
 
 Darunter nennt **Was läuft bald ab?** alle Zertifikate aktiver Personen in der Erinnerungsfrist und die abgelaufenen, die noch nicht erneuert sind, nach Datum.
 
-![Ansicht Zuständigkeiten mit Ersthelfer, Hygiene und einem abgelaufenen Kurs](images/app/verwaltung-team-zustaendigkeiten.png)
+![Abschnitt Zuständigkeiten der Ansicht Rechte und Zuständigkeiten mit Ersthelfer, Hygiene und einem abgelaufenen Kurs](images/app/verwaltung-team-zustaendigkeiten.png)
 
 ## Liste der Zuständigkeiten {#liste}
 
@@ -77,7 +77,7 @@ Die **Mindestzahl im Dienst** gibt es nur beim Ersthelfer; vorbelegt ist 1, 0 sc
 
 ## Erinnerung {#erinnerung}
 
-Ab „Gültig bis“ minus Erinnerungsfrist erinnert der Kalender mit einer Meldung, etwa „Erste-Hilfe-Kurs läuft am 31.12. ab“. Nach dem Ablauf heißt sie „ist am … abgelaufen“ und bleibt, bis ein neueres Zertifikat gleicher Bezeichnung da ist oder die Person ausgeschieden ist. Die Person selbst sieht ihre eigenen Erinnerungen im Kalender und in der Handy-App auf **Heute** unter **Erinnerungen**. Inhaber und Manager sehen die aller aktiven Personen mit Namen; **Zur Personenkarte** führt zum Reiter **Zuständigkeiten**. Eine Mail oder Push-Nachricht gibt es nicht.
+Ab „Gültig bis“ minus Erinnerungsfrist erinnert der Kalender mit einer Meldung, etwa „Erste-Hilfe-Kurs läuft am 31.12. ab“. Nach dem Ablauf heißt sie „ist am … abgelaufen“ und bleibt, bis ein neueres Zertifikat gleicher Bezeichnung da ist oder die Person ausgeschieden ist. Die Person selbst sieht ihre eigenen Erinnerungen im Kalender und in der Handy-App auf **Heute** unter **Erinnerungen**. Inhaber und Manager sehen die aller aktiven Personen mit Namen; **Zur Personenkarte** führt zum Abschnitt **Zuständigkeiten** im Bereich **Profil**. Eine Mail oder Push-Nachricht gibt es nicht.
 
 ## Lager {#lager}
 
@@ -85,4 +85,4 @@ Bestellvorschläge und bald ablaufende Chargen eines Standorts gehen als je eine
 
 ## Verlauf {#verlauf}
 
-Der Reiter **Verlauf** nennt unter **Zuständigkeiten und Zertifikate**, wer wann eine Zuständigkeit, ein Zertifikat oder einen Scan angelegt, geändert oder gelöscht hat, aber nie den Inhalt.
+Die Seitenleiste **Verlauf** (Schaltfläche im Kopf der Karte) nennt unter **Zuständigkeiten und Zertifikate**, wer wann eine Zuständigkeit, ein Zertifikat oder einen Scan angelegt, geändert oder gelöscht hat, aber nie den Inhalt.

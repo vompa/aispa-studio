@@ -6,15 +6,30 @@ using CommunityToolkit.Mvvm.Input;
 namespace AispaStudio.Desktop.ViewModels;
 
 /// <summary>
-/// Personenkarte im Bereich „Team“ (R05 Slice 98, Ä250): Kopf mit Name und Status, Reiter „Stammdaten“, „Zugang und Rolle“, „Qualifikationen“ und „Verlauf“, je
-/// nach Recht und Art der Zeile. Ein „Speichern“ für die Karte: geänderte Stammdaten und Qualifikationen gehen zusammen an <c>api/employees</c>, danach ein
-/// geänderter Zugang an <c>api/staff/{userId}</c>; der erste Fehler hält an, die Meldung der API steht über der Leiste und nennt, was schon gespeichert ist. Der Reiter „Dienstplan und
-/// Abwesenheit“ (R05 Slice 99) zeigt die Woche der Person (<see cref="RosterPlanViewModel"/>), der Reiter „Zeiten“ ihre Zeiterfassung (<see cref="TimesheetViewModel"/>); ein offener Tag
-/// zählt zu den ungespeicherten Änderungen der Karte, hat aber seine eigene Leiste. Der Reiter „Lohn“ (R05 Slice 100, <see cref="PersonPayrollViewModel"/>) hat die Personalnummer,
-/// die mit der Leiste der Karte gespeichert wird, und die Monatswerte der Person. Der Reiter „Personalakte“ (R05 Slice 110, <see cref="PersonHrFileViewModel"/>) hat wie der Dienstplan seine eigene Leiste.
+/// Personenkarte im Bereich „Team“ (R05 Slice 98, Ä250, ADR 0098): Kopf mit Name und Status, darunter höchstens vier Bereiche: „Übersicht“ (Kennzahl-Kacheln,
+/// <see cref="PersonOverviewViewModel"/>), „Profil“ (Stammdaten, Zugang und Rolle, Qualifikationen, Zuständigkeiten), „Arbeitszeit“ (Dienstplan und Abwesenheit mit Urlaubskonto,
+/// Zeiten) und „Lohn und Akte“ (Lohn, Personalakte, Regelungen und Vollmachten). Ein Abschnitt steht nur da, wenn Recht und Art der Zeile ihn erlauben; ein Bereich ohne Abschnitt fehlt.
+/// Der Verlauf ist eine Seitenleiste (<see cref="IsHistoryOpen"/>). Die bisherigen Reiter-Ids gelten als Abschnitts-Ids weiter (<see cref="SelectTab"/>).
+/// Ein „Speichern“ für die Karte: geänderte Stammdaten und Qualifikationen gehen zusammen an <c>api/employees</c>, danach ein geänderter Zugang an <c>api/staff/{userId}</c>;
+/// der erste Fehler hält an, die Meldung der API steht über der Leiste und nennt, was schon gespeichert ist. Dienstplan, Zeiten, Personalakte, Regelungen und Zuständigkeiten haben
+/// ihre eigene Leiste; ihre offenen Änderungen zählen zu den ungespeicherten der Karte. Der Lohn (<see cref="PersonPayrollViewModel"/>) hat die Personalnummer, die mit der Leiste
+/// der Karte gespeichert wird, und die Monatswerte der Person.
 /// </summary>
 public sealed partial class PersonCardViewModel : ViewModelBase, IEditableArea
 {
+    /// <summary>Bereich „Übersicht“: Kennzahlen der Person, nur für eine gespeicherte Person im Team.</summary>
+    public const string OverviewArea = "uebersicht";
+
+    /// <summary>Bereich „Profil“: Stammdaten, Zugang und Rolle, Qualifikationen, Zuständigkeiten.</summary>
+    public const string ProfileArea = "profil";
+
+    /// <summary>Bereich „Arbeitszeit“: Dienstplan und Abwesenheit, Zeiten.</summary>
+    public const string WorkTimeArea = "arbeitszeit";
+
+    /// <summary>Bereich „Lohn und Akte“: Lohn, Personalakte, Regelungen und Vollmachten.</summary>
+    public const string PayAndFileArea = "lohnakte";
+
+    // Abschnitts-Ids (die früheren Reiter); Sprungziele von außen nennen sie und müssen die Bereiche nicht kennen.
     public const string DetailsTab = "stammdaten";
     public const string AccessTab = "zugang";
     public const string QualificationsTab = "qualifikationen";
@@ -24,7 +39,19 @@ public sealed partial class PersonCardViewModel : ViewModelBase, IEditableArea
     public const string HrFileTab = "personalakte";
     public const string RegulationsTab = "regelungen";
     public const string DutiesTab = "zustaendigkeiten";
+    /// <summary>Kein Abschnitt, sondern die Seitenleiste „Verlauf“.</summary>
     public const string HistoryTab = "verlauf";
+
+    /// <summary>Die Abschnitte in der Reihenfolge der Karte und der Bereich, in dem jeder steht.</summary>
+    private static readonly (string Section, string Area)[] Layout =
+    [
+        (DetailsTab, ProfileArea), (AccessTab, ProfileArea), (QualificationsTab, ProfileArea), (DutiesTab, ProfileArea),
+        (RosterTab, WorkTimeArea), (TimesTab, WorkTimeArea),
+        (PayrollTab, PayAndFileArea), (HrFileTab, PayAndFileArea), (RegulationsTab, PayAndFileArea),
+    ];
+
+    private static readonly (string Id, string Label)[] Areas =
+        [(OverviewArea, "Übersicht"), (ProfileArea, "Profil"), (WorkTimeArea, "Arbeitszeit"), (PayAndFileArea, "Lohn und Akte")];
 
     private const string EmployeePartSaved = "Stammdaten und Qualifikationen sind gespeichert.";
 
@@ -40,6 +67,11 @@ public sealed partial class PersonCardViewModel : ViewModelBase, IEditableArea
         Entry = entry;
         Member = member;
         var person = entry.Kind is TeamEntryKind.Person or TeamEntryKind.Former or TeamEntryKind.NewPerson;
+        if (entry.Kind == TeamEntryKind.Person && employee is not null && (context.CanViewPersonRoster || context.CanHrFile))
+        {
+            Overview = new PersonOverviewViewModel(context, employee.Id, OverviewJump);
+        }
+
         if (person && context.CanCatalog)
         {
             Details = new PersonDetailsViewModel(employee, context.Data.Locations, Changed, IsReadOnly);
@@ -79,7 +111,12 @@ public sealed partial class PersonCardViewModel : ViewModelBase, IEditableArea
                     OnPropertyChanged(nameof(HasUnsavedChanges));
                 }
             };
-            Roster.Changed += () => _ = Leave.RefreshAsync();
+            Roster.Changed += () =>
+            {
+                _ = Leave.RefreshAsync();
+                _ = Overview?.RefreshAsync();
+            };
+            Leave.Saved += () => _ = Overview?.RefreshAsync();
         }
 
         if (entry.Kind == TeamEntryKind.Person && employee is not null
@@ -99,6 +136,7 @@ public sealed partial class PersonCardViewModel : ViewModelBase, IEditableArea
                     OnPropertyChanged(nameof(HasSaveBar));
                 }
             };
+            Times.Changed += () => _ = Overview?.RefreshAsync();
         }
 
         if (entry.Kind == TeamEntryKind.Person && employee is not null && context.CanViewPayroll)
@@ -127,8 +165,10 @@ public sealed partial class PersonCardViewModel : ViewModelBase, IEditableArea
                 }
             };
             Regulations.Changed += () => DataChanged?.Invoke(this, true) ?? Task.CompletedTask;
-            RegulationsHistory = new HistorySectionViewModel(context.Api, $"api/employees/{employee.Id}/regulations/history", context.Zone, "Wer Hinweise, Sonderregelungen und Vollmachten wann geändert hat, ohne Inhalte.");
-            HrHistory = new HistorySectionViewModel(context.Api, $"api/employees/{employee.Id}/hr-file/history", context.Zone, "Wer die Personalakte wann geändert hat, ohne Inhalt");
+            RegulationsHistory = new HistorySectionViewModel(context.Api, $"api/employees/{employee.Id}/regulations/history", context.Zone,
+                "Wer Hinweise, Sonderregelungen und Vollmachten wann geändert hat, ohne Inhalte.", "Regelungen und Vollmachten");
+            HrHistory = new HistorySectionViewModel(context.Api, $"api/employees/{employee.Id}/hr-file/history", context.Zone, "Wer die Personalakte wann geändert hat, ohne Inhalt",
+                "Personalakte");
             Duties = new PersonDutiesViewModel(context, employee.Id, IsReadOnly);
             Duties.PropertyChanged += (_, e) =>
             {
@@ -139,19 +179,23 @@ public sealed partial class PersonCardViewModel : ViewModelBase, IEditableArea
                 }
             };
             Duties.Changed += () => DataChanged?.Invoke(this, true) ?? Task.CompletedTask;
-            DutiesHistory = new HistorySectionViewModel(context.Api, $"api/employees/{employee.Id}/duties/history", context.Zone, "Wer Zuständigkeiten, Zertifikate und Scans wann geändert hat, ohne Inhalte.");
+            DutiesHistory = new HistorySectionViewModel(context.Api, $"api/employees/{employee.Id}/duties/history", context.Zone,
+                "Wer Zuständigkeiten, Zertifikate und Scans wann geändert hat, ohne Inhalte.", "Zuständigkeiten und Zertifikate");
         }
 
         if (context.IsOwnerLevel)
         {
             AccessHistory = member is null ? null
-                : new HistorySectionViewModel(context.Api, $"api/staff/{member.UserId}/history", context.Zone, "Wer Zugang, Rolle und Standorte wann geändert hat");
+                : new HistorySectionViewModel(context.Api, $"api/staff/{member.UserId}/history", context.Zone, "Wer Zugang, Rolle und Standorte wann geändert hat", "Zugang und Rolle");
             RosterHistory = employee is null || !person ? null
                 : new HistorySectionViewModel(context.Api, $"api/employees/{employee.Id}/roster-history", context.Zone,
-                    "Wer Dienstplan und Abwesenheiten wann geändert hat");
+                    "Wer Dienstplan und Abwesenheiten wann geändert hat", "Dienstplan und Abwesenheiten");
         }
 
-        Tabs = [.. TabsOf()];
+        HistorySections = [.. new[] { AccessHistory, RosterHistory, HrHistory, RegulationsHistory, DutiesHistory }.OfType<HistorySectionViewModel>()];
+        Sections = [.. Layout.Where(l => SectionExists(l.Section)).Select(l => l.Section)];
+        Tabs = [.. Areas.Where(a => a.Id == OverviewArea ? Overview is not null : Layout.Any(l => l.Area == a.Id && HasSection(l.Section)))
+            .Select(a => new CardTab(a.Id, a.Label, SelectTab))];
         SelectTab(null);
     }
 
@@ -181,39 +225,69 @@ public sealed partial class PersonCardViewModel : ViewModelBase, IEditableArea
     /// <summary>„Person einladen“ trägt seine Überschrift mit Hilfe im Reiter; die Karte wiederholt sie nicht.</summary>
     public bool ShowsHeader => Entry.Kind != TeamEntryKind.NewAccess;
 
-    /// <summary>Ein einzelner Reiter braucht keine Leiste.</summary>
+    /// <summary>Ein einzelner Bereich braucht keine Schiene.</summary>
     public bool ShowsTabs => Tabs.Count > 1;
 
     /// <summary>Ausgeschiedene Personen sind nur lesbar.</summary>
     public bool IsReadOnly => Entry.Kind == TeamEntryKind.Former;
 
+    /// <summary>Die Bereiche der Schiene (Übersicht, Profil, Arbeitszeit, Lohn und Akte), soweit die Karte Abschnitte dafür hat.</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowsTabs))]
     public partial IReadOnlyList<CardTab> Tabs { get; private set; } = [];
 
+    /// <summary>Die Abschnitts-Ids der Karte in ihrer Reihenfolge (die früheren Reiter, ohne „verlauf“).</summary>
+    public IReadOnlyList<string> Sections { get; }
+
+    public bool HasSection(string id) => Sections.Contains(id);
+
+    /// <summary>Der gewählte Bereich.</summary>
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(ShowsDetails), nameof(ShowsAccess), nameof(ShowsQualifications), nameof(ShowsRoster), nameof(ShowsTimes), nameof(ShowsPayroll), nameof(ShowsHrFile), nameof(ShowsRegulations), nameof(ShowsDuties), nameof(ShowsHistory), nameof(HasSaveBar))]
-    public partial string SelectedTab { get; private set; } = DetailsTab;
+    [NotifyPropertyChangedFor(nameof(ShowsOverview), nameof(ShowsDetails), nameof(ShowsAccess), nameof(ShowsQualifications), nameof(ShowsRoster), nameof(ShowsTimes), nameof(ShowsPayroll),
+        nameof(ShowsHrFile), nameof(ShowsRegulations), nameof(ShowsDuties), nameof(HasSaveBar))]
+    public partial string SelectedTab { get; private set; } = ProfileArea;
 
-    public bool ShowsDetails => SelectedTab == DetailsTab;
+    /// <summary>Der zuletzt angesprungene Abschnitt; die Ansicht rollt ihn ins Bild. Leer, sobald ein Bereich ohne Abschnitt gewählt wird.</summary>
+    [ObservableProperty]
+    public partial string? FocusedSection { get; private set; }
 
-    public bool ShowsAccess => SelectedTab == AccessTab;
+    /// <summary>Ein Abschnitt wurde angesprungen (auch derselbe ein zweites Mal); die Ansicht rollt ihn ins Bild und setzt den Fokus hinein.</summary>
+    public event Action<string>? SectionRequested;
 
-    public bool ShowsQualifications => SelectedTab == QualificationsTab;
+    public bool ShowsOverview => Overview is not null && SelectedTab == OverviewArea;
 
-    public bool ShowsRoster => SelectedTab == RosterTab;
+    public bool ShowsDetails => Shows(DetailsTab);
 
-    public bool ShowsTimes => SelectedTab == TimesTab;
+    public bool ShowsAccess => Shows(AccessTab);
 
-    public bool ShowsPayroll => SelectedTab == PayrollTab;
+    public bool ShowsQualifications => Shows(QualificationsTab);
 
-    public bool ShowsHrFile => SelectedTab == HrFileTab;
+    public bool ShowsRoster => Shows(RosterTab);
 
-    public bool ShowsRegulations => SelectedTab == RegulationsTab;
+    public bool ShowsTimes => Shows(TimesTab);
 
-    public bool ShowsDuties => SelectedTab == DutiesTab;
+    public bool ShowsPayroll => Shows(PayrollTab);
 
-    public bool ShowsHistory => SelectedTab == HistoryTab;
+    public bool ShowsHrFile => Shows(HrFileTab);
+
+    public bool ShowsRegulations => Shows(RegulationsTab);
+
+    public bool ShowsDuties => Shows(DutiesTab);
+
+    /// <summary>Kennzahlen der Person (ADR 0098); nur für eine gespeicherte Person im Team mit einem Recht auf Dienstplan, Zeiten oder Personalakte.</summary>
+    public PersonOverviewViewModel? Overview { get; }
+
+    /// <summary>Die Verläufe der Karte in fester Reihenfolge, für die Seitenleiste „Verlauf“.</summary>
+    public IReadOnlyList<HistorySectionViewModel> HistorySections { get; }
+
+    public bool HasHistory => HistorySections.Count > 0;
+
+    /// <summary>Die Seitenleiste „Verlauf“ ist offen.</summary>
+    [ObservableProperty]
+    public partial bool IsHistoryOpen { get; set; }
+
+    [RelayCommand]
+    private void ToggleHistory() => IsHistoryOpen = !IsHistoryOpen;
 
     [ObservableProperty]
     public partial PersonDetailsViewModel? Details { get; private set; }
@@ -273,8 +347,6 @@ public sealed partial class PersonCardViewModel : ViewModelBase, IEditableArea
     /// <summary>Verlauf der Personalakte ohne Inhalt (nur, wer die Akte sieht).</summary>
     public HistorySectionViewModel? HrHistory { get; }
 
-    public bool HasHrHistory => HrHistory is not null;
-
     /// <summary>Reiter „Regelungen und Vollmachten“ (R05 Slice 111); nur für Inhaberin und Manager.</summary>
     public PersonRegulationsViewModel? Regulations { get; }
 
@@ -307,12 +379,8 @@ public sealed partial class PersonCardViewModel : ViewModelBase, IEditableArea
     /// <summary>Verlauf von Zugang, Rolle und Standorten (nur Inhaber und Manager, nur mit Zugang).</summary>
     public HistorySectionViewModel? AccessHistory { get; }
 
-    public bool HasAccessHistory => AccessHistory is not null;
-
     /// <summary>Verlauf von Dienstplan und Abwesenheiten (nur Inhaber und Manager, nur für eine Person im Team).</summary>
     public HistorySectionViewModel? RosterHistory { get; }
-
-    public bool HasRosterHistory => RosterHistory is not null;
 
     /// <summary>Fehler der API beim Speichern, über der Leiste.</summary>
     [ObservableProperty]
@@ -325,9 +393,12 @@ public sealed partial class PersonCardViewModel : ViewModelBase, IEditableArea
     [ObservableProperty]
     public partial string? StatusText { get; set; }
 
-    /// <summary>Die Karte hat etwas zu speichern (Stammdaten, Qualifikationen oder ein Zugang zum Bearbeiten).</summary>
+    /// <summary>
+    /// Die Leiste der Karte steht, wenn der gewählte Bereich einen Abschnitt zeigt, der mit ihr gespeichert wird (Stammdaten, Qualifikationen, Zugang eines Mitglieds, Lohn zum
+    /// Bearbeiten), oder wenn es in solchen Abschnitten ungespeicherte Änderungen gibt. Dienstplan, Zeiten, Personalakte, Regelungen und Zuständigkeiten haben ihre eigene Leiste.
+    /// </summary>
     public bool HasSaveBar => !IsReadOnly && (Details is not null || Qualifications is not null || Access is { IsMember: true } || Payroll is { IsEditable: true })
-        && !((ShowsRoster || ShowsTimes || ShowsHrFile || ShowsRegulations || ShowsDuties) && !OtherChanges);
+        && (ShowsDetails || ShowsQualifications || (ShowsAccess && Access is { IsMember: true }) || (ShowsPayroll && Payroll is { IsEditable: true }) || OtherChanges);
 
     /// <summary>„Aus dem Team nehmen“ für eine gespeicherte Person im Team.</summary>
     public bool CanRemove => Entry.Kind == TeamEntryKind.Person && _context.CanCatalog;
@@ -346,46 +417,90 @@ public sealed partial class PersonCardViewModel : ViewModelBase, IEditableArea
     /// <summary>Ein Tag wurde als Entwurf gespeichert und die Person will den Wochenplan zum Veröffentlichen sehen.</summary>
     public event Action? WeekPlanRequested;
 
-    /// <summary>Wählt einen Reiter; einen, den die Karte nicht hat, ersetzt der erste.</summary>
-    public void SelectTab(string? tab)
+    /// <summary>Die Kachel „Offene Anträge“ der Übersicht will die Ansicht „Anträge“ des Teams.</summary>
+    public event Action? AbsenceRequestsRequested;
+
+    /// <summary>
+    /// Wählt einen Bereich (<see cref="OverviewArea"/> …) oder springt zu einem Abschnitt (<see cref="DetailsTab"/> …): der Bereich mit dem Abschnitt öffnet, <see cref="FocusedSection"/>
+    /// nennt den Abschnitt. <see cref="HistoryTab"/> öffnet die Seitenleiste „Verlauf“ und lässt den Bereich, wie er ist. Was die Karte nicht hat, ersetzt der Startbereich
+    /// (Übersicht, sonst der erste).
+    /// </summary>
+    public void SelectTab(string? id)
     {
-        var id = Tabs.FirstOrDefault(t => t.Id == tab)?.Id ?? (Tabs.Count > 0 ? Tabs[0].Id : DetailsTab);
+        if (id == HistoryTab && HasHistory)
+        {
+            IsHistoryOpen = true;
+            return;
+        }
+
+        var section = id is not null && HasSection(id) ? id : null;
+        var area = section is not null ? AreaOf(section)
+            : Tabs.FirstOrDefault(t => t.Id == id)?.Id ?? (Tabs.Count > 0 ? Tabs[0].Id : ProfileArea);
         foreach (var each in Tabs)
         {
-            each.IsOn = each.Id == id;
+            each.IsOn = each.Id == area;
         }
 
-        SelectedTab = id;
-        if (id == RosterTab && Roster is not null)
+        SelectedTab = area;
+        LoadArea(area);
+        FocusedSection = section;
+        if (section is not null)
         {
-            _ = Roster.EnsureLoadedAsync();
-            _ = Leave?.EnsureLoadedAsync();
+            SectionRequested?.Invoke(section);
+        }
+    }
+
+    private static string AreaOf(string section) => Layout.First(l => l.Section == section).Area;
+
+    private bool Shows(string section) => HasSection(section) && SelectedTab == AreaOf(section);
+
+    private bool SectionExists(string section) => section switch
+    {
+        DetailsTab => Details is not null,
+        AccessTab => Access is not null,
+        QualificationsTab => Qualifications is not null,
+        DutiesTab => Duties is not null,
+        RosterTab => Roster is not null,
+        TimesTab => Times is not null,
+        PayrollTab => Payroll is not null,
+        HrFileTab => HrFile is not null,
+        _ => Regulations is not null,
+    };
+
+    /// <summary>Lädt, was der Bereich zeigt und noch nicht geladen ist.</summary>
+    private void LoadArea(string area)
+    {
+        switch (area)
+        {
+            case OverviewArea:
+                _ = Overview?.EnsureLoadedAsync();
+                break;
+            case ProfileArea:
+                _ = Duties?.EnsureLoadedAsync();
+                break;
+            case WorkTimeArea:
+                _ = Roster?.EnsureLoadedAsync();
+                _ = Leave?.EnsureLoadedAsync();
+                _ = Times?.EnsureLoadedAsync();
+                break;
+            case PayAndFileArea:
+                _ = Payroll?.EnsureLoadedAsync();
+                _ = HrFile?.EnsureLoadedAsync();
+                _ = Regulations?.EnsureLoadedAsync();
+                break;
+        }
+    }
+
+    /// <summary>Klick auf eine Kachel der Übersicht: zum Abschnitt, bei „Offene Anträge“ zur Ansicht „Anträge“ des Teams.</summary>
+    private void OverviewJump(string target)
+    {
+        if (target == PersonOverviewViewModel.RequestsTarget)
+        {
+            AbsenceRequestsRequested?.Invoke();
+            return;
         }
 
-        if (id == TimesTab && Times is not null)
-        {
-            _ = Times.EnsureLoadedAsync();
-        }
-
-        if (id == PayrollTab && Payroll is not null)
-        {
-            _ = Payroll.EnsureLoadedAsync();
-        }
-
-        if (id == HrFileTab && HrFile is not null)
-        {
-            _ = HrFile.EnsureLoadedAsync();
-        }
-
-        if (id == RegulationsTab && Regulations is not null)
-        {
-            _ = Regulations.EnsureLoadedAsync();
-        }
-
-        if (id == DutiesTab && Duties is not null)
-        {
-            _ = Duties.EnsureLoadedAsync();
-        }
+        SelectTab(target);
     }
 
     /// <summary>Die Liste ist neu geladen und die Karte bleibt: Kopfzeile aus der neuen Zeile; eine eben gesendete Einladung zeigt der Reiter als offene Einladung.</summary>
@@ -519,6 +634,7 @@ public sealed partial class PersonCardViewModel : ViewModelBase, IEditableArea
 
             StatusText = accessSaved ? "Gespeichert. Gilt ab sofort." : "Gespeichert.";
             OnPropertyChanged(nameof(HasUnsavedChanges));
+            OnPropertyChanged(nameof(HasSaveBar));
             await ReportSavedAsync(employeeSaved || accessSaved || payrollSaved, !created).ConfigureAwait(true);
             return true;
         }
@@ -580,6 +696,7 @@ public sealed partial class PersonCardViewModel : ViewModelBase, IEditableArea
         Error = null;
         StatusText = null;
         OnPropertyChanged(nameof(HasUnsavedChanges));
+        OnPropertyChanged(nameof(HasSaveBar));
     }
 
     [RelayCommand]
@@ -620,62 +737,10 @@ public sealed partial class PersonCardViewModel : ViewModelBase, IEditableArea
     {
         StatusText = null;
         OnPropertyChanged(nameof(HasUnsavedChanges));
+        OnPropertyChanged(nameof(HasSaveBar));
     }
 
-    private IEnumerable<CardTab> TabsOf()
-    {
-        if (Details is not null)
-        {
-            yield return new CardTab(DetailsTab, "Stammdaten", SelectTab);
-        }
-
-        if (Access is not null)
-        {
-            yield return new CardTab(AccessTab, "Zugang und Rolle", SelectTab);
-        }
-
-        if (Qualifications is not null)
-        {
-            yield return new CardTab(QualificationsTab, "Qualifikationen", SelectTab);
-        }
-
-        if (Roster is not null)
-        {
-            yield return new CardTab(RosterTab, "Dienstplan und Abwesenheit", SelectTab);
-        }
-
-        if (Times is not null)
-        {
-            yield return new CardTab(TimesTab, "Zeiten", SelectTab);
-        }
-
-        if (Payroll is not null)
-        {
-            yield return new CardTab(PayrollTab, "Lohn", SelectTab);
-        }
-
-        if (HrFile is not null)
-        {
-            yield return new CardTab(HrFileTab, "Personalakte", SelectTab);
-        }
-
-        if (Regulations is not null)
-        {
-            yield return new CardTab(RegulationsTab, "Regelungen und Vollmachten", SelectTab);
-        }
-
-        if (Duties is not null)
-        {
-            yield return new CardTab(DutiesTab, "Zuständigkeiten", SelectTab);
-        }
-
-        if (AccessHistory is not null || RosterHistory is not null || HrHistory is not null)
-        {
-            yield return new CardTab(HistoryTab, "Verlauf", SelectTab);
-        }
-    }
-
-    /// <summary>Was der Reiter „Zugang und Rolle“ zeigt: den Zugang (der eigene nur lesbar), die offene Einladung oder „Einladen“ bzw. im Einzelplatz „Zugang anlegen“.</summary>
+    /// <summary>Was der Abschnitt „Zugang und Rolle“ zeigt: den Zugang (der eigene nur lesbar), die offene Einladung oder „Einladen“ bzw. im Einzelplatz „Zugang anlegen“.</summary>
     private AccessMode? AccessModeOf(TeamEntryKind kind, StaffMemberDto? member, InvitationDto? invitation)
     {
         var create = _context.Standalone ? AccessMode.Account : AccessMode.Invite;
