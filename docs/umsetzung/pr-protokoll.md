@@ -6027,3 +6027,29 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
   - API-Tests: 2242 von 2274 grün, 1 übersprungen; die 31 roten brauchen Docker (`LiveBackplaneTests` 30, `DatabaseBackupTests` 1) und laufen in der CI. Darunter die Mail-Tests (`Mail*`, `ImapSentCopyTests`: 167 von 167).
 - **Bewusst offen / später:** Versand über SMTP, Kopie über IMAP und ein Aufruf von Claude mit echtem Schlüssel sind nicht gegen echte Dienste geprüft (Falle in der [Übergabe](../uebergabe.md#6-bekannte-fehler-und-fallen)).
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Kassa: Trinkgeld für das Team, Schritt 1 Server (16.11.2026)
+
+- **Auftrag:** Erster Punkt aus „Startfähigkeit der Kassa“ (Reihenfolge des Auftraggebers vom 20.10.2026). Bisher ließ sich „100, stimmt so“ mit Karte nicht buchen.
+- **Was:**
+  - `CheckoutRequest.Tip`: Trinkgeld zusätzlich zum Rechnungsbetrag. Unbar darf genau um das Trinkgeld höher sein, bar gibt es darüber Rückgeld.
+  - `Receipt.Tip` (Migration `ReceiptTip`), im Storno negativ; `ReceiptDto.Tip`.
+  - Österreich: nicht in den fünf Beträgen des Codes und nicht im Umsatzzähler. Deutschland: in den Vorgangsdaten im Feld für 0 %, in der DSFinV-K als `TrinkgeldAN` mit Steuerschlüssel 5.
+  - Tagesabschluss: `DayClosingDto.Tips` neben dem Umsatz, im PDF als eigene Zeile.
+  - Beleg (PDF und Bon): „Trinkgeld (kein Umsatz)“ bei den Zahlungen.
+  - Buchhaltung: Buchung Geldtransit an „Trinkgeld für das Team“ (`TipsAccount`, Vorgabe 3790), Zeile in der Zuordnung der Konten und Hilfe `buchhaltung#trinkgeld`.
+  - [ADR 0095](../entscheidungen/0095-trinkgeld-an-der-kassa.md).
+- **Detailentscheidungen:**
+  1. Das Trinkgeld ist ein Betrag am Beleg, keine Zeile: Umsatz, Steuer und Erlöskonten bleiben ohne Herausrechnen richtig.
+  2. Die Kassa rät nie, dass ein Überschuss Trinkgeld ist. Ohne eingetragenes Trinkgeld bleibt „Zu viel bezahlt“; die Meldung nennt jetzt den Weg.
+  3. Trinkgeld ohne zu zahlenden Betrag (Beleg über 0,00) wird abgelehnt.
+  4. Bares Trinkgeld zählt zum Soll-Bestand der Lade, bis es als Entnahme ausbezahlt wird.
+  5. Die Schweizer Rundung auf 5 Rappen rechnet mit dem Barbetrag einschließlich Trinkgeld.
+  6. Keine Zuordnung zu einer Person in diesem Schritt.
+- **Bewusst offen / später:** Feld „Trinkgeld“ in der Windows-App mit Belegvorschau, Tagesabschluss, Hilfe `kassa-bezahlen` und Handbuchbildern (Schritt 2); Zuordnung je Person; Steuerberatung zu Lohnverrechnung und Konto.
+- **Geprüft:**
+  - Tests zuerst geplant, dann geschrieben: `TipTests` 7 von 7 grün (Karte, bar mit und ohne Rückgeld, Ablehnungen, Tagesabschluss mit Storno, deutsche Kasse mit DSFinV-K, Buchhaltung).
+  - `PosTests` 39, `KassenSichVTests` 4, `AccountingTests` 8, `DepositTests` 4, `ReceiptPdfTests` 5, `DayClosingPdfTests` 4, `PosExportTests` 4, `DemoReceiptsTests` 1: alle grün.
+  - `dotnet format --verify-no-changes` sauber, Release-Build ohne Warnungen, `npm run gen:api` und `npm run typecheck`.
+- **Nicht geprüft:** die volle API-Suite und die Ansichtstests (laufen in der CI); echte Signatureinrichtung, echte TSE und das Prüfprogramm der Finanzverwaltung.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).

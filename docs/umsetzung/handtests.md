@@ -1010,3 +1010,12 @@ Expected: „Verlauf“ rutscht in voller Breite unter „Gut zu wissen“.
 Expected: Die Teilung bleibt 3 : 2, kein Text ist abgeschnitten, die Kachel und die Chips bleiben lesbar.
 Closes: –
 Result: ☐
+
+### Trinkgeld, Schritt 1 – Konto in der Buchhaltung
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Inhaberin anmelden, **Verwaltung** › **Buchhaltung** öffnen
+1. Die Zuordnung der Konten ansehen.
+Expected: Unter „Kassenüberschuss (Tagesabschluss)“ steht „Trinkgeld für das Team (Verbindlichkeit)“ mit 3790.
+2. Den Wert auf 3795 ändern und speichern, die Seite neu öffnen.
+Expected: 3795 bleibt stehen. Das Feld „Trinkgeld“ beim Bezahlen kommt mit Schritt 2.
+Closes: –
+Result: ☐

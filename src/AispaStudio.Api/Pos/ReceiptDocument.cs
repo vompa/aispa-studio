@@ -9,6 +9,9 @@ namespace AispaStudio.Api.Pos;
 /// </summary>
 internal static class ReceiptDocument
 {
+    /// <summary>Zeile für Trinkgeld auf Beleg und Bon: kurz genug für 42 Zeichen Bonbreite, sagt, dass es kein Umsatz ist (ADR 0095).</summary>
+    public const string TipLabel = "Trinkgeld (kein Umsatz)";
+
     public static bool IsInvoice(ReceiptDto receipt) => receipt.Recipient is not null;
 
     public static string Label(ReceiptDto receipt) => IsInvoice(receipt) ? "Rechnung" : ReceiptPrinter.KindLabel(receipt.Kind);
@@ -69,6 +72,11 @@ internal static class ReceiptDocument
         var payments = receipt.Payments
             .Select(p => (PaymentMethods.Label(p.Method) + (p.VoucherCode is { } code ? $" {code}" : ""), DocumentBuilder.Money(p.Amount)))
             .ToList();
+        if (receipt.Tip != 0)
+        {
+            payments.Insert(0, (TipLabel, DocumentBuilder.Money(receipt.Tip)));
+        }
+
         if (receipt.Change > 0)
         {
             payments.Add(("Rückgeld", DocumentBuilder.Money(receipt.Change)));

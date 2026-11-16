@@ -110,6 +110,10 @@ Aufwandskonto, wenn beim Tagesabschluss weniger Bargeld gezählt wird als laut K
 
 Ertragskonto, wenn beim Tagesabschluss mehr Bargeld gezählt wird als laut Kassa da sein sollte. Vorgabe 2700.
 
+### Trinkgeld für das Team (Verbindlichkeit) {#trinkgeld}
+
+Konto für Trinkgeld, das Gäste über die Kassa geben, zum Beispiel mit der Karte. Es gehört dem Team und ist kein Umsatz des Spas: Die Kassa bucht es ohne Steuer vom Geldtransit auf dieses Konto, bis es ausbezahlt ist. Vorgabe 3790. Welches Konto in Ihrem Kontenrahmen passt, klären Sie mit der Steuerberatung.
+
 ### DATEV-Beraternummer {#datev-beraternummer}
 
 Nummer der Steuerberatung bei DATEV, bis zu 7 Ziffern; leer ist erlaubt. Steht in der Kopfzeile des DATEV-Buchungsstapels.

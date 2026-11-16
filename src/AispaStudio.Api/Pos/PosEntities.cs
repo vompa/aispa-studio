@@ -135,6 +135,12 @@ public sealed class Receipt
     public Guid? CustomerId { get; init; }
     public decimal Total { get; init; }
     public decimal Change { get; init; }
+
+    /// <summary>
+    /// Trinkgeld für das Team, zusätzlich zu <see cref="Total"/> bezahlt (ADR 0095): durchlaufender Posten, kein Umsatz, keine Zeile.
+    /// Die Zahlungen des Belegs ergeben <c>Total + Tip</c>; im Storno negativ.
+    /// </summary>
+    public decimal Tip { get; init; }
     public Guid? VoidsReceiptId { get; init; }
     public string? VoidReason { get; init; }
 
