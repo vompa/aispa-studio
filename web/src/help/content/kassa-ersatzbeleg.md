@@ -73,7 +73,7 @@ Stimmt etwas nicht überein, bucht die Kasse nichts und die App zeigt oben „Be
 ## Länger ohne Verbindung {#laenger}
 
 - In Österreich ist ein Ausfall der Registrierkasse von mehr als 48 Stunden über FinanzOnline zu melden.
-- Die App erinnert daran: Ist der älteste Ersatzbeleg seit mehr als 48 Stunden nicht nacherfasst, steht im Hinweis „Keine Verbindung zum Server“ zusätzlich „Der älteste Ersatzbeleg ist vom … und seit mehr als 48 Stunden nicht nacherfasst“.
+- Die App erinnert daran: Ist der älteste Ersatzbeleg seit mehr als 48 Stunden nicht nacherfasst, steht im Hinweis „Keine Verbindung zum Server“ zusätzlich „Der älteste Ersatzbeleg ist vom … und seit mehr als 48 Stunden nicht nacherfasst“. Mit Verbindung steht derselbe Satz unter „Beim Abgleich nicht übernommen“, solange ein abgelehnter Ersatzbeleg so lange wartet.
 - Nach der Nacherfassung zeigt die Kassa eine Woche lang „Die Kasse war länger als 48 Stunden nicht erreichbar“ mit Beginn und Ende des Ausfalls. Diese beiden Zeitpunkte brauchen Sie für die Meldung.
 - Bewahren Sie die gedruckten Ersatzbelege auf, bis die Nacherfassung durch ist.
 - Siehe auch [Arbeiten ohne Verbindung](hilfe:kalender-offline) und [Bezahlen](hilfe:kassa-bezahlen).

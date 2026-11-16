@@ -6181,3 +6181,12 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
   - `PosTests` 48, `PosDayListTests` 7, `OfflineTests` 10 grün; `npm run gen:api`, `dotnet format` sauber, Release-Build ohne Warnungen; Hilfe-Tests im Web.
 - **Nicht geprüft:** die laufende App unter Windows; die volle Suite läuft in der CI.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Kassa ohne Verbindung: Erinnerung nach 48 Stunden auch mit Verbindung (16.11.2026)
+
+- **Auftrag:** Offener Punkt aus Schritt 3: Mit Verbindung erinnerte die App nicht, wenn ein abgelehnter Ersatzbeleg länger als 48 Stunden wartete.
+- **Was:** Der Hinweis „Beim Abgleich nicht übernommen“ ergänzt dann den Satz „Der älteste Ersatzbeleg ist vom … und seit mehr als 48 Stunden nicht nacherfasst: In Österreich den Ausfall der Kasse über FinanzOnline melden.“ (`ShellViewModel.FailedMessage`). Hilfe `kassa-ersatzbeleg#laenger` nennt beide Stellen.
+- **Detailentscheidungen:** Derselbe Satz an beiden Stellen, damit die Rezeption ihn wiedererkennt; kein eigener Banner, weil höchstens zwei Banner zugleich sichtbar sind (Design-Brief 5.15).
+- **Geprüft:** `OfflineTests` 11 von 11 grün (neu: verbunden mit abgelehntem Ersatzbeleg seit 50 Stunden), `MessageBarTests` 50, Bildtests `*Banner*` 10 grün; Release-Build ohne Warnungen.
+- **Nicht geprüft:** die laufende App; die volle Suite läuft in der CI.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
