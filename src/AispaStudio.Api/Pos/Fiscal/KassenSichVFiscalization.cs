@@ -93,13 +93,14 @@ internal sealed class KassenSichVFiscalization(IEnumerable<ITseClient> clients) 
 
     /// <summary>
     /// Vorgangsdaten nach DSFinV-K: Vorgangstyp, Brutto je Steuersatz (19 %, 7 %, 10,7 %, 5,5 %, 0 %) und Zahlungen als „Betrag:Bar“ bzw.
-    /// „Betrag:Unbar“. Ein Storno ist ein eigener Beleg mit negativen Beträgen.
+    /// „Betrag:Unbar“. Ein Storno ist ein eigener Beleg mit negativen Beträgen. Der Umsatzzähler der Kasse zählt Trinkgeld nicht mit.
     /// </summary>
     public static string ProcessData(FiscalInput input)
     {
         string Money(decimal value) => value.ToString("0.00", CultureInfo.InvariantCulture);
+        // Trinkgeld an Arbeitnehmer (GV_TYP TrinkgeldAN) ist nicht steuerbar und steht im Feld für 0 %, damit Beträge und Zahlungen aufgehen.
         var amounts = string.Join('_', new[] { TaxCategory.Normal, TaxCategory.Reduced1, TaxCategory.Special, TaxCategory.Reduced2, TaxCategory.Zero }
-            .Select(c => Money(input.Amounts.Where(a => a.Category == c).Sum(a => a.Gross))));
+            .Select(c => Money(input.Amounts.Where(a => a.Category == c).Sum(a => a.Gross) + (c == TaxCategory.Zero ? input.Tip : 0))));
         var payments = string.Join('_', input.Payments
             .GroupBy(p => p.Method == PaymentMethod.Cash ? "Bar" : "Unbar")
             .OrderBy(g => g.Key == "Bar" ? 0 : 1)

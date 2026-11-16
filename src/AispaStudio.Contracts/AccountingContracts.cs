@@ -42,7 +42,8 @@ public sealed record AccountingSettingsDto(
     string RevenueAccountCodes = "",
     FiscalCountry? Country = null,
     bool Inherited = false,
-    string TreatwellAccount = "1400");
+    string TreatwellAccount = "1400",
+    string TipsAccount = "3790");
 
 /// <summary>
 /// Eine Buchung des Exports, so wie sie in DATEV, BMD bzw. Abacus/bexio landet; für Vorschau und Prüfung. Währung und Land der Kasse.

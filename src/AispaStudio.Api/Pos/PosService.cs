@@ -820,6 +820,7 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
                 CustomerId = bill.CustomerId,
                 Total = draft.Total,
                 Change = draft.Change,
+                Tip = draft.Tip,
                 CreatedByUserId = userId,
                 Lines = draft.Lines,
                 Payments = draft.Payments,
@@ -859,7 +860,7 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
 
     /// <summary>Was ein Kassiervorgang ergibt, bevor der Beleg nummeriert und signiert wird.</summary>
     internal sealed record CheckoutDraft(Guid ReceiptId, List<ReceiptLine> Lines, List<ReceiptPayment> Payments, decimal Total, decimal Change,
-        List<Voucher> NewVouchers, List<AppointmentDeposit> NewDeposits);
+        List<Voucher> NewVouchers, List<AppointmentDeposit> NewDeposits, decimal Tip = 0);
 
     /// <summary>Was das Kassieren aus der Datenbank (oder dem Speicher beim Einspielen der Beispieldaten) braucht.</summary>
     internal interface ICheckoutLookups
@@ -1161,14 +1162,28 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
             });
         }
 
-        var nonCash = payments.Sum(p => p.Amount);
-        if (nonCash > total)
+        // Trinkgeld (ADR 0095): kommt zum Rechnungsbetrag dazu, ist keine Zeile und kein Umsatz.
+        var tip = request.Tip;
+        if (tip < 0 || decimal.Round(tip, 2) != tip)
         {
-            throw PosFailure.Invalid("payments", $"Zu viel bezahlt: offen sind {Money(total)}, bezahlt {Money(nonCash)}. Rückgeld gibt es nur bar.");
+            throw PosFailure.Invalid("tip", "Trinkgeld als Betrag ab 0 mit höchstens zwei Nachkommastellen.");
+        }
+
+        if (tip > 0 && total <= 0)
+        {
+            throw PosFailure.Invalid("tip", "Trinkgeld gibt es nur zusammen mit einem Betrag, der bezahlt wird.");
+        }
+
+        var nonCash = payments.Sum(p => p.Amount);
+        if (nonCash > total + tip)
+        {
+            throw PosFailure.Invalid("payments", tip > 0
+                ? $"Zu viel bezahlt: offen sind {Money(total)} und {Money(tip)} Trinkgeld, bezahlt {Money(nonCash)}. Rückgeld gibt es nur bar."
+                : $"Zu viel bezahlt: offen sind {Money(total)}, bezahlt {Money(nonCash)}. Rückgeld gibt es nur bar. Soll der Rest Trinkgeld sein, das Trinkgeld eintragen.");
         }
 
         // Schweiz: Barzahlungen werden auf 5 Rappen gerundet; die Differenz steht als eigene, steuerfreie Zeile auf dem Beleg.
-        if (register.Country == FiscalCountry.CH && CashRounding(total - nonCash) is var rounding and not 0)
+        if (register.Country == FiscalCountry.CH && CashRounding(total + tip - nonCash) is var rounding and not 0)
         {
             lines.Add(new ReceiptLine
             {
@@ -1185,7 +1200,7 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
         }
 
         var cashGiven = (request.Payments ?? []).Where(p => p.Method == PaymentMethod.Cash).Sum(p => p.Amount);
-        var cashDue = total - nonCash;
+        var cashDue = total + tip - nonCash;
         if (cashGiven < 0 || cashGiven < cashDue)
         {
             throw PosFailure.Invalid("payments", $"Es fehlen {Money(cashDue - cashGiven)}.");
@@ -1201,7 +1216,7 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
             bill.Status = BillStatus.Settled;
         }
 
-        return new CheckoutDraft(receiptId, lines, payments, total, cashGiven - cashDue, newVouchers, newDeposits);
+        return new CheckoutDraft(receiptId, lines, payments, total, cashGiven - cashDue, newVouchers, newDeposits, tip);
     }
 
 
@@ -1375,6 +1390,7 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
             BillId = original.BillId,
             CustomerId = original.CustomerId,
             Total = -original.Total,
+            Tip = -original.Tip,
             VoidsReceiptId = original.Id,
             VoidReason = reason.Trim(),
             CreatedByUserId = userId,
@@ -1547,7 +1563,8 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
             expected,
             counted,
             counted - expected,
-            Blank(close?.Note));
+            Blank(close?.Note),
+            receipts.Sum(r => r.Tip));
 
         return report;
     }
@@ -1637,7 +1654,8 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
                 CompanyProfiles.CompanyFor(locations[register.LocationId], tenant),
                 SmallInvoiceLimit(register.Country),
                 deposits.Contains(receipt.Id),
-                sentMails.GetValueOrDefault(receipt.Id));
+                sentMails.GetValueOrDefault(receipt.Id),
+                receipt.Tip);
         }
 
         static IEnumerable<Guid> VoucherIdsOf(Receipt receipt) =>
@@ -1823,7 +1841,7 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
         var result = build?.Invoke(number, now) ?? new Receipt { RegisterId = register.Id, Number = number, Kind = kind, IssuedAt = now };
 
         var signed = await fiscalization.SignAsync(register, new FiscalInput(
-            kind, number, now, zone, [.. result.Lines.Select(l => (l.TaxCategory, l.Amount))], [.. result.Payments.Select(p => (p.Method, p.Amount))]), ct);
+            kind, number, now, zone, [.. result.Lines.Select(l => (l.TaxCategory, l.Amount))], [.. result.Payments.Select(p => (p.Method, p.Amount))], result.Tip), ct);
         result.FiscalCode = signed.Code;
         result.FiscalSignature = signed.Signature;
         result.SignatureDeviceFailed = signed.DeviceFailed;

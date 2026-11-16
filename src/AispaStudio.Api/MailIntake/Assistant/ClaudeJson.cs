@@ -37,7 +37,7 @@ internal sealed class ClaudeJson(IOptions<ClaudeOptions> options) : IAiJson, IDi
                 Effort = options.Value.Effort,
                 Format = new BetaJsonOutputFormat { Schema = schema },
             },
-            Messages = [new() { Role = Role.User, Content = prompt }],
+            Messages = [new BetaUserMessageParam { Content = prompt }],
         }, ct);
 
         if (response.StopReason == BetaStopReason.Refusal)

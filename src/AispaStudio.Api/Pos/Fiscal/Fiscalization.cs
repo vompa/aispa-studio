@@ -2,14 +2,18 @@ using AispaStudio.Contracts;
 
 namespace AispaStudio.Api.Pos.Fiscal;
 
-/// <summary>Was die Signatur eines Belegs braucht: Art, Nummer, Zeitpunkt, Bruttobeträge je Steuersatz und Zahlungen (bar ohne Rückgeld).</summary>
+/// <summary>
+/// Was die Signatur eines Belegs braucht: Art, Nummer, Zeitpunkt, Bruttobeträge je Steuersatz und Zahlungen (bar ohne Rückgeld).
+/// <c>Tip</c> ist Trinkgeld für das Team (ADR 0095): in den Zahlungen enthalten, in den Bruttobeträgen nicht.
+/// </summary>
 internal sealed record FiscalInput(
     ReceiptKind Kind,
     long Number,
     DateTimeOffset IssuedAt,
     TimeZoneInfo Zone,
     IReadOnlyList<(TaxCategory Category, decimal Gross)> Amounts,
-    IReadOnlyList<(PaymentMethod Method, decimal Amount)> Payments);
+    IReadOnlyList<(PaymentMethod Method, decimal Amount)> Payments,
+    decimal Tip = 0);
 
 /// <summary>Ergebnis der Signatur: Inhalt des QR-Codes, Signatur für das Protokoll und ob die Signatureinrichtung ausgefallen war.</summary>
 internal sealed record FiscalResult(string? Code, string? Signature, bool DeviceFailed);

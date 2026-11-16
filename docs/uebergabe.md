@@ -91,7 +91,7 @@ cd web && npm run gen:api && npm run lint && npm run typecheck && npm test && np
 
 Stand 08.11.2026: Seit diesem Tag ist dieses öffentliche Repository das einzige. Das frühere, nicht öffentliche Repository mit der ganzen Historie ist gelöscht. Alle PR-Nummern vor dem 08.11.2026 (in dieser Datei, im [PR-Protokoll](umsetzung/pr-protokoll.md) und in den ADRs) beziehen sich auf dieses frühere Repository. Ihr Inhalt steht im PR-Protokoll, die Historie hat der Auftraggeber lokal gesichert.
 
-Offen sind nur Dependabot-PRs dieses Repositorys (Stand 16.11.2026: MailKit 5 und Anthropic 13, beide brauchen eine eigene Umstellung; Tabelle im [Stand](stand-und-offene-punkte.md#nicht-auf-main-offene-pull-requests-und-fertige-branch-stände)). Halbfertige Stände außerhalb von `main` gibt es nicht.
+Offen sind nur Dependabot-PRs dieses Repositorys (Stand 16.11.2026: nur die zurückgestellte Hauptversion 11 der ASP.NET-Core-Pakete; Tabelle im [Stand](stand-und-offene-punkte.md#nicht-auf-main-offene-pull-requests-und-fertige-branch-stände)). Halbfertige Stände außerhalb von `main` gibt es nicht.
 
 ## 5. Offene Arbeit, in vorgeschlagener Reihenfolge
 
@@ -113,6 +113,7 @@ Je Modul ausführlich in [stand-und-offene-punkte.md](stand-und-offene-punkte.md
 ## 6. Bekannte Fehler und Fallen
 
 - `CardGuaranteeTests.Online_Termin_ohne_Karte_wird_nach_der_Frist_freigegeben` schlug einmal im Gesamtlauf fehl und lief dann grün. Am 08.11.2026 nicht reproduziert: 15 Läufe der Klasse und 3 Läufe parallel mit `OnlineBookingTests` und `DepositTests`, alle grün; der Test nutzt feste Daten (2027), eine Abhängigkeit von der Uhrzeit ist im Code nicht zu sehen. Ohne Fehlerprotokoll bleibt er unverändert; schlägt er wieder fehl, die Meldung aus dem CI-Log festhalten.
+- MailKit 5 und das Anthropic-SDK 13 (seit 16.11.2026) sind nur gegen die Nachbauten der Tests geprüft: den Versand über SMTP, die Kopie in „Gesendet“ über IMAP und einen Aufruf von Claude mit echtem Schlüssel beim ersten Probelauf ansehen.
 - Das Treatwell-Mailformat ist angenommen, nicht mit echten Mails geprüft. ZVT und OPI nur gegen nachgebaute Terminals. Lokale KI nur gegen einen echten Ollama-Container ohne geladenes Modell geprüft.
 - Ohne Verbindung bucht die Leiste „KI und Hilfe“ bewusst nicht; vorgemerkte Änderungen, die nach dem Abmelden gesendet werden, tragen im Änderungsprotokoll die Person, die beim Senden angemeldet ist.
 - Parallel entstandene PRs kollidieren fast immer in `docs/umsetzung/pr-protokoll.md` und `docs/stand-und-offene-punkte.md`: beim Einmischen beide Seiten behalten. ADR-Nummern vor dem Merge prüfen (0042 und 0056 wurden doppelt angesetzt). Migrationen nach dem Einmischen auf dem Snapshot von `main` neu erzeugen.
@@ -143,7 +144,7 @@ Aus dem Projektchat, verbindlich für jede Weiterarbeit (Quellen in den ADRs):
 
 - **Sprache:** Alles, was der Auftraggeber liest, auf Deutsch (Oberfläche, Fehlermeldungen, PR-Titel und -Texte, Commits, Doku); Bezeichner im Code englisch.
 - **Branch und Pull Request auf `main`, Merge erst nach grüner CI** ([ADR 0019](entscheidungen/0019-autonomes-arbeiten-bis-zum-prototyp.md)). GitHub Actions ist für dieses öffentliche Repository kostenlos; ein Lauf dauert etwa 10 bis 15 Minuten. Nur wenn die Jobs wirklich nicht starten, nach voller lokaler Prüfkette mergen und „CI ausgefallen, lokal geprüft“ vermerken ([ADR 0044](entscheidungen/0044-pull-requests-bleiben-merge-auch-bei-ci-ausfall.md)).
-- **Detailentscheidungen** trifft Claude selbst nach den bisherigen Festlegungen und hält sie im PR-Text fest; danach Abschnitt im [PR-Protokoll](umsetzung/pr-protokoll.md) und [Stand](stand-und-offene-punkte.md) nachziehen. Grundsatzentscheidungen als neuer ADR nach der [Vorlage](entscheidungen/vorlage.md); nächste freie Nummer: 0095, vor dem Merge im [Index](entscheidungen/README.md) prüfen (0063 ist für die offene Schnittstelle für Personal und Kunden reserviert).
+- **Detailentscheidungen** trifft Claude selbst nach den bisherigen Festlegungen und hält sie im PR-Text fest; danach Abschnitt im [PR-Protokoll](umsetzung/pr-protokoll.md) und [Stand](stand-und-offene-punkte.md) nachziehen. Grundsatzentscheidungen als neuer ADR nach der [Vorlage](entscheidungen/vorlage.md); nächste freie Nummer: 0096, vor dem Merge im [Index](entscheidungen/README.md) prüfen (0063 ist für die offene Schnittstelle für Personal und Kunden reserviert).
 - **Hilfe und Handbuch im selben PR:** neue Einstellungen mit Hilfetext und Fragezeichen ([ADR 0055](entscheidungen/0055-hilfe-zu-jeder-einstellung-im-repository.md)), neue oder geänderte Abläufe mit Handbuch und neu erzeugten Bildern ([ADR 0056](entscheidungen/0056-handbuch-mit-ablaeufen-und-bildern-als-grundlage-der-ki-hilfe.md)).
 - **Nicht ohne den Auftraggeber:** Produktion, Löschen, Nachrichten an Dritte (Partneranfragen an Treatwell und Google ruhen, [ADR 0014](entscheidungen/0014-buchungsplattformen-ohne-partnervertrag.md)).
 - **Nie bauen:** Funktionen, die Umsätze an Kasse oder Buchhaltung vorbeiführen. Getrennte Bereiche nur über eigene, versteuerte Erlöskonten ([ADR 0010](entscheidungen/0010-kassa-compliance-by-design.md)).

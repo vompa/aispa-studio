@@ -87,6 +87,11 @@ internal static class ReceiptPrinter
         }
 
         Line();
+        if (receipt.Tip != 0)
+        {
+            Columns(ReceiptDocument.TipLabel, Money(receipt.Tip));
+        }
+
         foreach (var p in receipt.Payments)
         {
             Columns(PaymentMethods.Label(p.Method) + (p.VoucherCode is { } code ? $" {code}" : ""), Money(p.Amount));

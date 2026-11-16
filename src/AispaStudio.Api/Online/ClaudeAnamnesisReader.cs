@@ -63,9 +63,8 @@ internal sealed class ClaudeAnamnesisReader(IOptions<AnamnesisReaderOptions> opt
             },
             Messages =
             [
-                new()
+                new BetaUserMessageParam
                 {
-                    Role = Role.User,
                     Content = new List<BetaContentBlockParam>
                     {
                         new BetaImageBlockParam

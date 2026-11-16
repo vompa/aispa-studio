@@ -42,7 +42,7 @@ internal static class ImapSentCopy
             return await client.GetFolderAsync(folderName.Trim(), ct);
         }
 
-        if ((client.Capabilities & (ImapCapabilities.SpecialUse | ImapCapabilities.XList)) != 0 && client.GetFolder(SpecialFolder.Sent) is { } sent)
+        if ((client.Capabilities.Contains(ImapCapability.SpecialUse) || client.Capabilities.Contains(ImapCapability.XList)) && client.GetFolder(SpecialFolder.Sent) is { } sent)
         {
             return sent;
         }

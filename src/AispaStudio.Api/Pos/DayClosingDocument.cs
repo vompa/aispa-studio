@@ -32,6 +32,10 @@ internal static class DayClosingDocument
             [new("Zahlart", 3), new($"Betrag {currency}", 1, DocumentAlign.Right)],
             closing.Payments.Select(p => DocumentRow.Of(PaymentMethods.Label(p.Method), DocumentBuilder.Money(p.Amount))),
             DocumentRow.Of("Umsatz gesamt", DocumentBuilder.Money(closing.Revenue)));
+        if (closing.Tips != 0)
+        {
+            pdf.KeyValues([("In den Zahlarten enthaltenes Trinkgeld für das Team (kein Umsatz)", DocumentBuilder.Money(closing.Tips))]);
+        }
         if (closing.Taxes.Count > 0)
         {
             pdf.Space();

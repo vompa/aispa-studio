@@ -41,6 +41,9 @@ public sealed class AccountingSettings
     /// <summary>Kassenüberschuss laut Tagesabschluss (Ertrag).</summary>
     public string CashSurplusAccount { get; set; } = "2700";
 
+    /// <summary>Trinkgeld für das Team, das über die Kasse lief, bis es ausbezahlt ist (Verbindlichkeit, kein Erlös; ADR 0095).</summary>
+    public string TipsAccount { get; set; } = "3790";
+
     public string DatevTaxKeys { get; set; } = "19=3;7=2";
 
     /// <summary>MWST-Codes für Schweizer Kassen je Satz, z. B. „8.1=UN81“; ohne Angabe bleibt der Code leer und der Satz steht in der Datei.</summary>
@@ -80,6 +83,7 @@ internal static class AccountingModel
             e.Property(s => s.TreatwellAccount).HasMaxLength(20);
             e.Property(s => s.CashShortageAccount).HasMaxLength(20);
             e.Property(s => s.CashSurplusAccount).HasMaxLength(20);
+            e.Property(s => s.TipsAccount).HasMaxLength(20);
             e.Property(s => s.DatevTaxKeys).HasMaxLength(200);
             e.Property(s => s.SwissTaxCodes).HasMaxLength(200);
             e.Property(s => s.RevenueAccountCodes).HasMaxLength(1000);

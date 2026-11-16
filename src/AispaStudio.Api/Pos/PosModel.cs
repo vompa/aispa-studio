@@ -121,6 +121,7 @@ internal static class PosModel
             e.Property(r => r.Kind).HasConversion<string>().HasMaxLength(16);
             e.Property(r => r.Total).HasPrecision(12, 2);
             e.Property(r => r.Change).HasPrecision(10, 2);
+            e.Property(r => r.Tip).HasPrecision(10, 2);
             e.Property(r => r.VoidReason).HasMaxLength(500);
             e.Property(r => r.FiscalCode).HasMaxLength(2000);
             e.Property(r => r.FiscalSignature).HasMaxLength(4000);

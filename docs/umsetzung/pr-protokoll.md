@@ -6011,3 +6011,67 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
   - Die Ansichtstests der Windows-App (laufen unter Windows in der CI).
   - Die laufende App und der Start über Aspire 13.6.5.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Pakete: MailKit 5 und Anthropic 13 (16.11.2026)
+
+- **Auftrag:** Folge-PR zu „Pakete nachziehen“: die beiden Hauptversionen, die den Build brachen (Dependabot-PRs #29 und #30).
+- **Was:**
+  - MailKit 5.0.0: `SmtpTransport.SendAsync` sendet über `SmtpSendRequest`; `ImapSentCopy` fragt die Fähigkeiten `SpecialUse` und `XList` über `Capabilities.Contains` ab. MimeKit ist kein eigenes Paket mehr.
+  - Anthropic 13.8.0: `ClaudeJson` und `ClaudeAnamnesisReader` erzeugen die Nachricht als `BetaUserMessageParam`.
+  - `THIRD-PARTY-NOTICES.md` ist neu erzeugt (202 Bausteine), auch für die Stände aus „Pakete nachziehen“.
+- **Detailentscheidungen:**
+  1. Beide Umstellungen stehen in einem PR, weil jede nur zwei Stellen berührt und dieselben Tests sie abdecken.
+  2. Am Verhalten ändert sich nichts: gleiche Anfrage an Claude (Modell, Betas, Fallback, Schema), gleiche Suche nach dem Ordner „Gesendet“.
+- **Geprüft:**
+  - `dotnet format --verify-no-changes` sauber, Release-Build ohne Warnungen.
+  - API-Tests: 2242 von 2274 grün, 1 übersprungen; die 31 roten brauchen Docker (`LiveBackplaneTests` 30, `DatabaseBackupTests` 1) und laufen in der CI. Darunter die Mail-Tests (`Mail*`, `ImapSentCopyTests`: 167 von 167).
+- **Bewusst offen / später:** Versand über SMTP, Kopie über IMAP und ein Aufruf von Claude mit echtem Schlüssel sind nicht gegen echte Dienste geprüft (Falle in der [Übergabe](../uebergabe.md#6-bekannte-fehler-und-fallen)).
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Kassa: Trinkgeld für das Team, Schritt 1 Server (16.11.2026)
+
+- **Auftrag:** Erster Punkt aus „Startfähigkeit der Kassa“ (Reihenfolge des Auftraggebers vom 20.10.2026). Bisher ließ sich „100, stimmt so“ mit Karte nicht buchen.
+- **Was:**
+  - `CheckoutRequest.Tip`: Trinkgeld zusätzlich zum Rechnungsbetrag. Unbar darf genau um das Trinkgeld höher sein, bar gibt es darüber Rückgeld.
+  - `Receipt.Tip` (Migration `ReceiptTip`), im Storno negativ; `ReceiptDto.Tip`.
+  - Österreich: nicht in den fünf Beträgen des Codes und nicht im Umsatzzähler. Deutschland: in den Vorgangsdaten im Feld für 0 %, in der DSFinV-K als `TrinkgeldAN` mit Steuerschlüssel 5.
+  - Tagesabschluss: `DayClosingDto.Tips` neben dem Umsatz, im PDF als eigene Zeile.
+  - Beleg (PDF und Bon): „Trinkgeld (kein Umsatz)“ bei den Zahlungen.
+  - Buchhaltung: Buchung Geldtransit an „Trinkgeld für das Team“ (`TipsAccount`, Vorgabe 3790), Zeile in der Zuordnung der Konten und Hilfe `buchhaltung#trinkgeld`.
+  - [ADR 0095](../entscheidungen/0095-trinkgeld-an-der-kassa.md).
+- **Detailentscheidungen:**
+  1. Das Trinkgeld ist ein Betrag am Beleg, keine Zeile: Umsatz, Steuer und Erlöskonten bleiben ohne Herausrechnen richtig.
+  2. Die Kassa rät nie, dass ein Überschuss Trinkgeld ist. Ohne eingetragenes Trinkgeld bleibt „Zu viel bezahlt“; die Meldung nennt jetzt den Weg.
+  3. Trinkgeld ohne zu zahlenden Betrag (Beleg über 0,00) wird abgelehnt.
+  4. Bares Trinkgeld zählt zum Soll-Bestand der Lade, bis es als Entnahme ausbezahlt wird.
+  5. Die Schweizer Rundung auf 5 Rappen rechnet mit dem Barbetrag einschließlich Trinkgeld.
+  6. Keine Zuordnung zu einer Person in diesem Schritt.
+- **Bewusst offen / später:** Feld „Trinkgeld“ in der Windows-App mit Belegvorschau, Tagesabschluss, Hilfe `kassa-bezahlen` und Handbuchbildern (Schritt 2); Zuordnung je Person; Steuerberatung zu Lohnverrechnung und Konto.
+- **Geprüft:**
+  - Tests zuerst geplant, dann geschrieben: `TipTests` 7 von 7 grün (Karte, bar mit und ohne Rückgeld, Ablehnungen, Tagesabschluss mit Storno, deutsche Kasse mit DSFinV-K, Buchhaltung).
+  - `PosTests` 39, `KassenSichVTests` 4, `AccountingTests` 8, `DepositTests` 4, `ReceiptPdfTests` 5, `DayClosingPdfTests` 4, `PosExportTests` 4, `DemoReceiptsTests` 1: alle grün.
+  - `dotnet format --verify-no-changes` sauber, Release-Build ohne Warnungen, `npm run gen:api` und `npm run typecheck`.
+- **Nicht geprüft:** die volle API-Suite und die Ansichtstests (laufen in der CI); echte Signatureinrichtung, echte TSE und das Prüfprogramm der Finanzverwaltung.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Kassa: Trinkgeld für das Team, Schritt 2 Windows-App (16.11.2026)
+
+- **Auftrag:** Zweiter Schritt zu [ADR 0095](../entscheidungen/0095-trinkgeld-an-der-kassa.md): Trinkgeld an der Kassa der Windows-App eintragen.
+- **Was:**
+  - Feld **Trinkgeld** unter den Zahlungsarten, mit dem Hinweis „Für das Team, kein Umsatz.“
+  - Ist unbar mehr als offen eingetragen, steht „Zu viel: … über dem offenen Betrag“ und der Verweis **Als Trinkgeld eintragen**.
+  - **Rest**, „Noch offen“, „Rückgeld“ und der Betrag fürs Kartenterminal rechnen mit dem Trinkgeld. Gedeckt heißt es „Alles gedeckt, davon … Trinkgeld“.
+  - Belegvorschau: „Trinkgeld (kein Umsatz)“ vor den Zahlungen. Tagesbericht: „davon Trinkgeld (kein Umsatz)“ nach den Zahlungsarten.
+  - Hilfe `kassa-bezahlen#trinkgeld` mit dem neuen Bild `kassa-trinkgeld.png`; zwölf Handbuchbilder mit dem Bezahlen-Bereich neu erzeugt.
+- **Detailentscheidungen:**
+  1. Ein Feld statt einer Rückfrage: Die Kassa schlägt Trinkgeld nicht von sich aus vor, der Verweis erscheint erst bei einem Überschuss.
+  2. Der Verweis rechnet nur unbare Überschüsse um. Bar bleibt der Überschuss Rückgeld, bis jemand Trinkgeld einträgt.
+  3. Das Trinkgeld wird geleert, sobald eine andere Rechnung offen ist oder bezahlt wurde.
+  4. Die Beschriftung nennt keine Währung, wie die Felder der Zahlungsarten.
+- **Bewusst offen / später:** Zuordnung je Person; Vorschläge in Prozent (10 %, 15 %); Trinkgeld direkt am Kartenterminal eingeben lassen.
+- **Geprüft:**
+  - Tests zuerst: `PosTests` (Desktop) 48 von 48 grün, darunter drei neue zum Trinkgeld.
+  - Bildtests `*Kassa*`, `*Pos*`, `*Gutschein*`, `*Kassier*`, `*Bezahl*`, `*Bindungsfehler*`: 286 von 286 grün, neu `Kassa_Given_Karte_100_bei_89_00_When_Ueberschuss_als_Trinkgeld_…`. Bild `kassa-trinkgeld.png` bei 1440 px angesehen.
+  - `HelpTests` 17, `HelpPageCheckTests` 4, Hilfe-Tests im Web 61 von 61; `dotnet format` sauber, Release-Build ohne Warnungen.
+- **Nicht geprüft:** die laufende App unter Windows, die Skalierung 125 und 150 Prozent, ein Lauf mit angebundenem Kartenterminal; die volle Desktop-Suite läuft in der CI.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
