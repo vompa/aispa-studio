@@ -5589,6 +5589,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/inbox/{mailId}/cancellable-appointments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Die bevorstehenden gebuchten Termine des Gastes an den eigenen Standorten, der früheste zuerst: Sagt der Gast einen späteren als den nächsten Termin ab, wählt die Rezeption ihn hier. Leer, wenn zur Nachricht nichts zu stornieren ist. */
+        get: operations["ListInboundMailCancellableAppointments"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/inbox/{mailId}/cancel-appointment": {
         parameters: {
             query?: never;
@@ -5598,7 +5615,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Storniert den Termin, den der Gast in seiner Nachricht absagt; die Antwort an den Gast wird neu entworfen. */
+        /** Storniert den Termin, den der Gast in seiner Nachricht absagt; die Antwort an den Gast wird neu entworfen. Mit appointmentId ein anderer bevorstehender Termin desselben Gastes (siehe „ListInboundMailCancellableAppointments“). */
         post: operations["CancelInboundMailAppointment"];
         delete?: never;
         options?: never;
@@ -10875,6 +10892,16 @@ export interface components {
             summary: null | string;
             /** Format: uuid */
             appointmentId: null | string;
+        };
+        InboxAppointmentOption: {
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            start: string;
+            treatmentName: string;
+            locationName: string;
+            timeZone: string;
+            found: boolean;
         };
         InstantTransferQr: {
             payload: string;
@@ -29007,9 +29034,49 @@ export interface operations {
             };
         };
     };
-    CancelInboundMailAppointment: {
+    ListInboundMailCancellableAppointments: {
         parameters: {
             query?: never;
+            header?: never;
+            path: {
+                mailId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InboxAppointmentOption"][];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    CancelInboundMailAppointment: {
+        parameters: {
+            query?: {
+                appointmentId?: string;
+            };
             header?: never;
             path: {
                 mailId: string;

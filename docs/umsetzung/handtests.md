@@ -1235,3 +1235,14 @@ Expected: „Ich komme später“ wird nicht angeboten.
 Closes: –
 Result: ☐
 
+### Anfragen – einen späteren als den nächsten Termin absagen
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App als Rezeption; ein Gast mit Mailadresse und zwei gebuchten Terminen an verschiedenen Tagen; eine Mail des Gastes „den zweiten Termin muss ich absagen“ über das Test-Postfach
+1. **Anfragen** öffnen und die Nachricht anklicken.
+Expected: Über „Termin stornieren“ steht **Welcher Termin?** mit beiden Terminen; gewählt ist der frühere mit „(nächster Termin)“.
+2. Den späteren Termin wählen und **Termin stornieren** klicken.
+Expected: Die Rückfrage nennt Tag, Uhrzeit und Behandlung des späteren Termins.
+3. Bestätigen.
+Expected: „Termin storniert. Die Antwort wird neu entworfen.“ Im Kalender ist der spätere Termin storniert, der frühere steht noch; der Antwortentwurf nennt den späteren Termin.
+Closes: –
+Result: ☐
+

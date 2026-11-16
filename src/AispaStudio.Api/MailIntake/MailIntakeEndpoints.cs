@@ -365,9 +365,25 @@ internal static class MailIntakeEndpoints
             .WithName("DismissInboundMail")
             .WithSummary("Als erledigt markieren, ohne Termin und ohne Antwort.");
 
+        group.MapGet("/{mailId:guid}/cancellable-appointments", async Task<Results<Ok<List<InboxAppointmentOption>>, NotFound>> (
+                Guid mailId, AispaDbContext db, AccessService accessService, TimeProvider time, CancellationToken ct) =>
+            {
+                var mail = await db.InboundMails.AsNoTracking().FirstOrDefaultAsync(m => m.Id == mailId, ct);
+                if (mail is null)
+                {
+                    return TypedResults.NotFound();
+                }
+
+                var access = (await accessService.CurrentAsync(ct))!;
+                return TypedResults.Ok(CanCancelAppointment(mail) ? await CancellableAsync(db, mail, access, time.GetUtcNow(), ct) : []);
+            })
+            .WithName("ListInboundMailCancellableAppointments")
+            .WithSummary("Die bevorstehenden gebuchten Termine des Gastes an den eigenen Standorten, der früheste zuerst: Sagt der Gast einen späteren "
+                + "als den nächsten Termin ab, wählt die Rezeption ihn hier. Leer, wenn zur Nachricht nichts zu stornieren ist.");
+
         group.MapPost("/{mailId:guid}/cancel-appointment", async Task<Results<Ok<InboundMailDto>, NotFound, ValidationProblem, Conflict<BookingRejected>>> (
-                Guid mailId, AispaDbContext db, AccessService accessService, BookingService booking, IMessageBus bus, IReplyReviser reviser,
-                CancellationToken ct) =>
+                Guid mailId, Guid? appointmentId, AispaDbContext db, AccessService accessService, BookingService booking, IMessageBus bus, IReplyReviser reviser,
+                TimeProvider time, CancellationToken ct) =>
             {
                 var mail = await db.InboundMails.FirstOrDefaultAsync(m => m.Id == mailId, ct);
                 if (mail is null)
@@ -382,14 +398,30 @@ internal static class MailIntakeEndpoints
 
                 // Der Termin kann an einem anderen Standort liegen als die Mail; storniert wird nur an eigenen Standorten.
                 var access = (await accessService.CurrentAsync(ct))!;
-                var appointmentId = mail.AppointmentId!.Value;
-                var location = await db.Appointments.Where(a => a.Id == appointmentId).Select(a => (Guid?)a.LocationId).FirstOrDefaultAsync(ct);
+                if (appointmentId is { } chosen && chosen != mail.AppointmentId)
+                {
+                    // Ein anderer als der gefundene Termin: nur ein bevorstehender gebuchter Termin desselben Gastes an einem eigenen Standort.
+                    if ((await CancellableAsync(db, mail, access, time.GetUtcNow(), ct)).All(o => o.Id != chosen))
+                    {
+                        return TypedResults.ValidationProblem(new Dictionary<string, string[]>
+                        {
+                            ["appointmentId"] = ["Dieser Termin gehört nicht zu den bevorstehenden Terminen des Gastes."],
+                        });
+                    }
+
+                    // Die Nachricht zeigt ab jetzt auf den gewählten Termin, damit die Antwort an den Gast den richtigen nennt.
+                    mail.AppointmentId = chosen;
+                    await db.SaveChangesAsync(ct);
+                }
+
+                var cancelId = mail.AppointmentId!.Value;
+                var location = await db.Appointments.Where(a => a.Id == cancelId).Select(a => (Guid?)a.LocationId).FirstOrDefaultAsync(ct);
                 if (location is null || !(access.AllLocations || access.LocationIds.Contains(location.Value)))
                 {
                     return TypedResults.NotFound();
                 }
 
-                var outcome = await booking.CancelAsync(appointmentId, $"Abgesagt per {MailIntakeProcessor.ChannelName(mail.Channel)} (KI-Terminannahme)", ct);
+                var outcome = await booking.CancelAsync(cancelId, $"Abgesagt per {MailIntakeProcessor.ChannelName(mail.Channel)} (KI-Terminannahme)", ct);
                 switch (outcome)
                 {
                     case BookingOutcome.Success:
@@ -406,7 +438,8 @@ internal static class MailIntakeEndpoints
                 }
             })
             .WithName("CancelInboundMailAppointment")
-            .WithSummary("Storniert den Termin, den der Gast in seiner Nachricht absagt; die Antwort an den Gast wird neu entworfen.");
+            .WithSummary("Storniert den Termin, den der Gast in seiner Nachricht absagt; die Antwort an den Gast wird neu entworfen. "
+                + "Mit appointmentId ein anderer bevorstehender Termin desselben Gastes (siehe „ListInboundMailCancellableAppointments“).");
 
         group.MapPost("/{mailId:guid}/retry", async Task<Results<Accepted<InboundMailDto>, NotFound, ValidationProblem>> (
                 Guid mailId, AispaDbContext db, IMessageBus bus, IReplyReviser reviser, CancellationToken ct) =>
@@ -574,6 +607,28 @@ internal static class MailIntakeEndpoints
         && m.AppointmentId is null && m.ReplyStatus != ReplyStatus.Sending && !m.Reproposing && !m.ReplyRevising;
 
     /// <summary>Absage, zu der die Terminannahme den nächsten Termin des Gasts gefunden hat; noch nicht storniert.</summary>
+    /// <summary>
+    /// Was die Rezeption zu dieser Absage stornieren kann: die nächsten gebuchten Termine des Gastes, dem der gefundene Termin gehört,
+    /// an den Standorten der aufrufenden Person; höchstens zehn.
+    /// </summary>
+    private static async Task<List<InboxAppointmentOption>> CancellableAsync(AispaDbContext db, InboundMail mail, UserAccess access, DateTimeOffset now, CancellationToken ct)
+    {
+        var customerId = await db.Appointments.AsNoTracking().Where(a => a.Id == mail.AppointmentId).Select(a => (Guid?)a.CustomerId).FirstOrDefaultAsync(ct);
+        if (customerId is null)
+        {
+            return [];
+        }
+
+        var rows = await db.Appointments.AsNoTracking()
+            .Where(a => a.CustomerId == customerId && a.Status == AppointmentStatus.Booked && a.Start > now
+                && (access.AllLocations || access.LocationIds.Contains(a.LocationId)))
+            .OrderBy(a => a.Start).Take(10)
+            .Select(a => new { a.Id, a.Start, Treatment = a.Treatment.Name, a.LocationId })
+            .ToListAsync(ct);
+        var locations = await db.Locations.AsNoTracking().ToDictionaryAsync(l => l.Id, l => new { l.Name, l.TimeZone }, ct);
+        return [.. rows.Select(r => new InboxAppointmentOption(r.Id, r.Start, r.Treatment, locations[r.LocationId].Name, locations[r.LocationId].TimeZone, r.Id == mail.AppointmentId))];
+    }
+
     private static bool CanCancelAppointment(InboundMail m) =>
         m.Kind == InboundMailKind.Cancellation && m.Status == InboundMailStatus.NeedsReview && m.AppointmentId is not null && m.CustomerConfirmed
         && m.ReplyStatus != ReplyStatus.Sending && !m.ReplyRevising;

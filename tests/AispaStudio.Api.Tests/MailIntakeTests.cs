@@ -142,6 +142,36 @@ public sealed partial class MailIntakeTests(ApiFixture fixture)
     }
 
     [Fact]
+    public async Task Sagt_der_Gast_einen_spaeteren_Termin_ab_waehlt_die_Rezeption_ihn_und_der_naechste_bleibt()
+    {
+        var spa = await MailSpa.CreateAsync(fixture, Ct);
+        var customer = await spa.Spa.PostAsync<CustomerDto>("/api/customers",
+            new CustomerInput("Lena", $"Gruber{Guid.NewGuid():N}", spa.Guest, null, null, null), Ct);
+        var next = await TestSpa.ReadAsync<AppointmentDto>(
+            await spa.Spa.BookAsync(TestSpa.At(10), Ct, treatment: spa.Treatment, location: spa.Location.Id, customer: customer.Id), Ct);
+        var later = await TestSpa.ReadAsync<AppointmentDto>(
+            await spa.Spa.BookAsync(TestSpa.At(10, 0, TestSpa.Monday.AddDays(7)), Ct, treatment: spa.Treatment, location: spa.Location.Id, customer: customer.Id), Ct);
+        var stranger = await spa.Spa.BookOkAsync(TestSpa.At(14), Ct);
+        var mail = await spa.ReceiveAsync(spa.Guest, "Termin am 8. März", "Hallo, den Termin am 8. März muss ich leider absagen. Danke, Lena", Ct);
+
+        var options = await spa.Spa.GetAsync<List<InboxAppointmentOption>>($"/api/inbox/{mail.Id}/cancellable-appointments", Ct);
+        var foreign = await spa.Spa.Client.PostAsync($"/api/inbox/{mail.Id}/cancel-appointment?appointmentId={stranger.Id}", null, Ct);
+        var cancelled = await spa.Spa.PostAsync<InboundMailDto>($"/api/inbox/{mail.Id}/cancel-appointment?appointmentId={later.Id}", new { }, Ct);
+
+        // Zur Wahl stehen nur die bevorstehenden Termine dieses Gastes, der gefundene (nächste) zuerst.
+        Assert.Equal([(next.Id, true), (later.Id, false)], options.Select(o => (o.Id, o.Found)));
+        Assert.Equal(HttpStatusCode.BadRequest, foreign.StatusCode);
+        Assert.Equal((InboundMailStatus.Cancelled, later.Id), (cancelled.Status, cancelled.AppointmentId!.Value));
+        Assert.Equal(AppointmentStatus.Booked, (await spa.Spa.GetAsync<AppointmentDto>($"/api/appointments/{next.Id}", Ct)).Status);
+        Assert.Equal(AppointmentStatus.Cancelled, (await spa.Spa.GetAsync<AppointmentDto>($"/api/appointments/{later.Id}", Ct)).Status);
+        Assert.Equal(AppointmentStatus.Booked, (await spa.Spa.GetAsync<AppointmentDto>($"/api/appointments/{stranger.Id}", Ct)).Status);
+        // Die Antwort an den Gast nennt den gewählten Termin.
+        var redrafted = await spa.WaitAsync(mail.Id, m => m.ReplyBody!.Contains("storniert", StringComparison.Ordinal), Ct);
+        Assert.Contains("8. März 2027, 10:00 Uhr storniert", redrafted.ReplyBody, StringComparison.Ordinal);
+        Assert.Empty(await spa.Spa.GetAsync<List<InboxAppointmentOption>>($"/api/inbox/{mail.Id}/cancellable-appointments", Ct));
+    }
+
+    [Fact]
     public async Task Absage_findet_den_naechsten_Termin_und_die_Rezeption_storniert_ihn_mit_einem_Klick()
     {
         var spa = await MailSpa.CreateAsync(fixture, Ct);

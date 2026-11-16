@@ -6467,3 +6467,21 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Nicht geprüft:** die Mail in einem echten Postfach; die Übersetzungen sind nicht von Muttersprachlern gelesen.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
 
+## Anfragen: einen späteren als den nächsten Termin absagen (16.11.2026)
+
+- **Auftrag:** Offener Punkt aus PR #167 („Absage eines späteren als des nächsten Termins per Klick“); vom Auftraggeber am 16.11.2026 mit der Liste der nächsten Punkte freigegeben.
+- **Befund:** Die Terminannahme ordnet einer Absage den nächsten Termin des Gastes zu. Meinte der Gast einen späteren, musste die Rezeption in den Kalender wechseln und die Nachricht von Hand abschließen; die Antwort an den Gast nannte dann keinen Termin.
+- **Was:**
+  - `GET /api/inbox/{id}/cancellable-appointments` liefert die bevorstehenden gebuchten Termine des Gastes an den eigenen Standorten; `POST /api/inbox/{id}/cancel-appointment` nimmt `appointmentId`.
+  - Windows-App: Im Posteingang steht bei mehreren Terminen die Auswahl „Welcher Termin?“ über „Termin stornieren“; die Rückfrage nennt den gewählten Termin.
+  - Hilfe `anfragen-absage-stornieren`.
+- **Detailentscheidungen:**
+  1. Die Auswahl erscheint nur, wenn der Gast mehr als einen bevorstehenden Termin hat; vorgewählt bleibt der gefundene.
+  2. Der Server prüft die Wahl: derselbe Gast, gebucht, in der Zukunft, eigener Standort. Etwas anderes lehnt er ab.
+  3. Die Nachricht zeigt nach dem Storno auf den gewählten Termin, damit der Antwortentwurf den richtigen nennt.
+  4. Storniert wird weiter nie von selbst.
+- **Bewusst offen / später:** Die KI erkennt aus dem Text nicht, welcher Termin gemeint ist; mehrere Termine in einem Schritt absagen.
+- **Geprüft:** Tests zuerst geplant: API `MailIntakeTests` (neu: Auswahl, fremder Termin abgelehnt, nächster bleibt gebucht, Antwort nennt den gewählten); Windows-App `InboxReproposeTests` (neu: Vorwahl, Wahl des späteren, Rückfrage, Aufruf mit `appointmentId`).
+- **Nicht geprüft:** die laufende App.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
