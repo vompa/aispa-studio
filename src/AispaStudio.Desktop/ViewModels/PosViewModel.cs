@@ -766,6 +766,11 @@ public partial class PosViewModel : ViewModelBase
         }
 
         var list = day.Value ?? new PosDayListDto([], [], []);
+        if (day.Value is not null)
+        {
+            _dayVisits = list.Waiting.Concat(list.Later).Where(e => e is { Visit: not null, Price: not null })
+                .GroupBy(e => e.Visit!.Id).ToDictionary(g => g.Key, g => (g.First().What, g.First().Price!.Value));
+        }
         _dayRows = [.. list.Waiting.Select(e => Row(e, waiting: true)), .. list.Later.Select(e => Row(e, waiting: false))];
         Done.Clear();
         foreach (var entry in list.Done)
@@ -866,10 +871,23 @@ public partial class PosViewModel : ViewModelBase
         }
 
         Receipt = null;
+        // Ohne Verbindung (ADR 0096): der Eintritt kommt mit dem Preis der zuletzt geladenen Tagesliste auf den Ersatzbeleg.
+        if (IsSubstitute)
+        {
+            AddSubstituteVisit(visit);
+            return;
+        }
+
         var result = Bill is null
             ? await _api.PostAsync<BillDto>("api/pos/bills", new BillInput(Register.Id, visit.CustomerId, [], [visit.Id])).ConfigureAwait(true)
             : await _api.PostAsync<BillDto>($"api/pos/bills/{Bill.Id}/lines",
                 new BillLineInput(BillLineKind.AreaVisit, null, null, 1, null, 0, null, null, null, null, null, visit.Id)).ConfigureAwait(true);
+        if (result.Status == 0 && Bill is null && MaySubstitute)
+        {
+            AddSubstituteVisit(visit);
+            return;
+        }
+
         await ShowBillAsync(result).ConfigureAwait(true);
     }
 

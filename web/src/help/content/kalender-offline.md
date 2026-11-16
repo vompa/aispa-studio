@@ -37,7 +37,7 @@ Solche Termine tragen im Kalender „vorgemerkt“. Eine Paar- oder Spa-Tag-Buch
 - Pausen, Sperrzeiten, Notizen und Tagesnotizen.
 - Krank melden und Ausfall-Assistent.
 - Ganze gemeinsame Buchung verschieben oder stornieren, **Rückgängig** nach dem Verschieben.
-- Eintritte stornieren oder kassieren, Gutscheine, Pakete und Rabatte.
+- Eintritte stornieren, Gutscheine, Pakete und Rabatte.
 
 ## Abgleich {#abgleich}
 

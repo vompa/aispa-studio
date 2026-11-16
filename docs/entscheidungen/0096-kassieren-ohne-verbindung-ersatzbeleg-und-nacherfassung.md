@@ -31,7 +31,7 @@ Rechtlicher Rahmen, Stand der Recherche vom 16.11.2026:
 4. **Bezug:** Der Beleg speichert Id, Nummer und Zeitpunkt des Ersatzbelegs (`Receipt.SubstituteId`, `SubstituteNumber`, `SubstituteIssuedAt`) und druckt „Nacherfassung zu Ersatzbeleg … vom …“. Belegdatum und Signatur sind die der Nacherfassung.
 5. **Nur einmal:** Dieselbe Id liefert denselben Beleg (eindeutiger Index). Erneutes Senden nach einem Abbruch bucht nichts doppelt.
 6. **Der Server entscheidet:** Preise, Steuer und Erlöskonten kommen vom Server. Stimmt die Summe nicht mit dem Ersatzbeleg überein, ist ein Termin schon abgerechnet oder bliebe Rückgeld, wird nichts gebucht (409). Den Fall klärt ein Mensch an der Kassa; die App zeigt ihn mit Grund, bis er erledigt ist.
-7. **Umfang ohne Verbindung:** Termine und Artikel, bar und Karte am eigenständigen Gerät, Trinkgeld. Nicht ohne Verbindung: Gutscheine, Pakete, Rabatte, Barzahlungsrabatt, Anzahlungen, das angebundene Kartenterminal, Sofortüberweisung, Parken, Storno, Tagesabschluss.
+7. **Umfang ohne Verbindung:** Termine, Eintritte (seit Schritt 5) und Artikel, bar und Karte am eigenständigen Gerät, Trinkgeld. Nicht ohne Verbindung: Gutscheine, Pakete, Rabatte, Barzahlungsrabatt, Anzahlungen, das angebundene Kartenterminal, Sofortüberweisung, Parken, Storno, Tagesabschluss.
 8. **Einzelplatz:** Dort liegt die Kasse auf demselben PC; es gibt keinen Ersatzbeleg. Fällt nur die Signatureinrichtung aus, gilt weiter der Ablauf „Sicherheitseinrichtung ausgefallen“.
 
 ## Begründung
@@ -47,7 +47,8 @@ Rechtlicher Rahmen, Stand der Recherche vom 16.11.2026:
 - Der Barzahlungsrabatt gilt ohne Verbindung nicht; die Nacherfassung rechnet ihn nicht (`SubstituteLookups`).
 - Gebaut (Schritt 3, Hinweis nach 48 Stunden): Ohne Verbindung nennt der Hinweis der App den ältesten nicht nacherfassten Ersatzbeleg, sobald er älter als 48 Stunden ist (`ShellViewModel.LongOutageHint`). Wird ein Ersatzbeleg mehr als 48 Stunden nach seiner Ausgabe nacherfasst, merkt sich die Kasse Beginn und Ende (`CashRegister.LongOutageSince`, `LongOutageReenteredAt`, Migration `RegisterLongOutage`) und warnt eine Woche lang; in Österreich mit dem Weg über FinanzOnline.
 - Gebaut (Schritt 4, Liste): Unter „Belege“ steht die Liste „Ersatzbelege, noch nicht nacherfasst“ mit Stand und Grund; ein gewählter Ersatzbeleg steht rechts und lässt sich noch einmal drucken, ein abgelehnter erneut senden (`PosViewModel.Substitutes`).
-- Offen, später: Eintritte ohne Verbindung; Auswertung der Ausfälle; Personenwechsel ohne Server (der Ersatzbeleg trägt bei der Nacherfassung die Person, die dann angemeldet ist).
+- Gebaut (Schritt 5, Eintritte): `SubstituteReceiptInput.AreaVisitIds`; die App nimmt Text und Preis des Eintritts aus der zuletzt geladenen Tagesliste, die Kasse rechnet bei der Nacherfassung mit Personenzahl und Artikel des Bereichs.
+- Offen, später: Auswertung der Ausfälle; Personenwechsel ohne Server (der Ersatzbeleg trägt bei der Nacherfassung die Person, die dann angemeldet ist).
 - **Steuerberatung:** Genügt der Ersatzbeleg aus der App als händischer Beleg mit Zweitschrift nach § 17 RKSV? Pflichtangaben des Ersatzbelegs in Deutschland; Umgang mit der Schweiz.
 
 ## Quellen

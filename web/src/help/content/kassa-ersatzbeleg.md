@@ -14,7 +14,7 @@ Das gilt für den Betrieb mit Server oder Haupt-PC. Im Einzelplatz liegt die Kas
 
 ## Kassieren {#kassieren}
 
-1. In der Kassa den Termin unter „Heute abzurechnen“ wählen oder im Kalender am Termin **Kassieren** wählen. Artikel kommen wie gewohnt dazu.
+1. In der Kassa den Termin oder den Eintritt unter „Heute abzurechnen“ wählen oder im Kalender am Termin **Kassieren** wählen. Artikel kommen wie gewohnt dazu.
 2. Unter „Bezahlen“ steht der Hinweis „Ersatzbeleg“.
 3. Den Betrag bei **Bar gegeben** oder **Karte** eintragen. Mit Karte kassieren Sie am eigenständigen Kartengerät.
 4. Auf **Bezahlen und Beleg erstellen** klicken.
@@ -27,6 +27,7 @@ Die Kassa zeigt den Ersatzbeleg mit eigener Nummer, z. B. „Ersatzbeleg E-WIEN-
 
 - Ein noch nicht eingecheckter Termin wird nach der Rückfrage „Einchecken und kassieren?“ eingecheckt; das Einchecken wird vorgemerkt.
 - Trinkgeld tragen Sie wie sonst bei **Trinkgeld** ein.
+- Ein Eintritt (Sauna, Ruheraum) kommt mit Personenzahl und dem Preis der zuletzt geladenen Liste „Heute abzurechnen“ auf den Ersatzbeleg. Kennt die Kassa den Preis nicht, etwa bei einem erst ohne Verbindung gebuchten Eintritt, steht „Der Preis dieses Eintritts ist ohne Verbindung nicht bekannt.“; dann den Betrag notieren und mit Verbindung kassieren.
 - Der Ersatzbeleg nennt Beträge inklusive Umsatzsteuer. Steuersatz, Belegnummer und Signatur stehen erst auf dem signierten Beleg.
 
 ## Was ohne Verbindung nicht geht {#geht-nicht}
