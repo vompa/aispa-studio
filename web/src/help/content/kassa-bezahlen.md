@@ -4,7 +4,7 @@ bereich: Kassa
 oberflaeche: windows-app
 rollen: rezeption, leitung, inhaber, manager
 seite: kassa
-stichwoerter: bezahlen, Zahlung, bar, Bargeld, Karte, Bankomat, EC-Karte, Kreditkarte, Kartenterminal, Terminal, Überweisung, Sofortüberweisung, geteilt zahlen, Split, aufteilen, Rückgeld, Wechselgeld, pay, cash, card payment, split payment, change
+stichwoerter: bezahlen, Zahlung, bar, Bargeld, Karte, Bankomat, EC-Karte, Kreditkarte, Kartenterminal, Terminal, Überweisung, Sofortüberweisung, geteilt zahlen, Split, aufteilen, Rückgeld, Wechselgeld, Trinkgeld, stimmt so, aufrunden, tip, pay, cash, card payment, split payment, change
 ---
 # Bezahlen
 
@@ -73,8 +73,24 @@ Ein Beleg kann mit mehreren Zahlungsarten bezahlt werden, z. B. ein Teil mit Gut
 3. Unter den Feldern steht „Noch offen: …“, bis alles gedeckt ist, dann „Alles gedeckt“.
 4. Auf **Bezahlen und Beleg erstellen** klicken.
 
-- Rückgeld gibt es nur bar. Mit Karte, Sofortüberweisung oder Gutschein zusammen nicht mehr als den offenen Betrag eintragen, sonst kommt „Zu viel bezahlt: …“.
+- Rückgeld gibt es nur bar. Mit Karte, Sofortüberweisung oder Gutschein zusammen nicht mehr als den offenen Betrag eintragen, außer der Rest ist [Trinkgeld](#trinkgeld).
 - Eine Rechnung auf einzelne Positionen oder Personen aufteilen (Teilbeträge) gibt es nicht. Für getrennte Zahlungen die Positionen auf getrennte Rechnungen setzen.
+
+## Trinkgeld {#trinkgeld}
+
+Gibt der Gast Trinkgeld über die Kassa, zum Beispiel „100, stimmt so“ mit der Karte bei 89,00 €, tragen Sie es bei **Trinkgeld** ein. Es gehört dem Team und ist kein Umsatz des Spas.
+
+1. Bei **Karte** den ganzen Betrag eintragen, den der Gast zahlt, z. B. `100`.
+2. Unter den Feldern steht „Zu viel: 11,00 € über dem offenen Betrag“. Auf **Überschuss als Trinkgeld eintragen** klicken. Bei **Trinkgeld** steht dann `11,00`.
+3. Auf **Bezahlen und Beleg erstellen** klicken.
+
+![Kassa mit 100,00 € auf der Karte und 11,00 € Trinkgeld](images/app/kassa-trinkgeld.png)
+
+- Sie können das Trinkgeld auch zuerst bei **Trinkgeld** eintragen. **Rest** rechnet es dann mit.
+- Bar: Bei **Bar gegeben** steht, was der Gast hinlegt. Das Rückgeld rechnet die Kassa nach Abzug des Trinkgelds.
+- Der Beleg nennt „Trinkgeld (kein Umsatz)“ bei den Zahlungen. Summe, Steuer und Erlöskonten bleiben ohne Trinkgeld.
+- Im Tagesabschluss steht unter den Zahlungsarten „davon Trinkgeld (kein Umsatz)“. Bares Trinkgeld liegt in der Lade, bis Sie es als Entnahme auszahlen ([Kassenlade](hilfe:kassa-tagesabschluss)).
+- Die Buchhaltung führt das Trinkgeld auf einem eigenen Konto ([Trinkgeld für das Team](hilfe:buchhaltung#trinkgeld)).
 
 ## Nach dem Bezahlen {#nach-dem-bezahlen}
 

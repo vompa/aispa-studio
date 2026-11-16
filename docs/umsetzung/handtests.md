@@ -1019,3 +1019,20 @@ Expected: Unter „Kassenüberschuss (Tagesabschluss)“ steht „Trinkgeld für
 Expected: 3795 bleibt stehen. Das Feld „Trinkgeld“ beim Bezahlen kommt mit Schritt 2.
 Closes: –
 Result: ☐
+
+### Trinkgeld, Schritt 2 – Trinkgeld an der Kassa eintragen
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Rezeption anmelden, **Kassa** öffnen, einen Termin unter „Heute abzurechnen“ wählen (z. B. 89,00 €)
+1. Bei **Karte** `100` eintragen.
+Expected: Unter den Feldern steht „Zu viel: 11,00 € über dem offenen Betrag“ und der Verweis **Überschuss als Trinkgeld eintragen**; **Bezahlen und Beleg erstellen** ist gesperrt.
+2. Auf **Überschuss als Trinkgeld eintragen** klicken.
+Expected: Bei **Trinkgeld** steht `11,00`, darunter „Alles gedeckt, davon 11,00 € Trinkgeld“; der Verweis ist weg.
+3. **Bezahlen und Beleg erstellen**.
+Expected: Der Beleg zeigt Summe 89,00 €, darunter „Trinkgeld (kein Umsatz) 11,00 €“ und „Karte 100,00 €“. Das Feld **Trinkgeld** ist wieder leer.
+4. Einen zweiten Termin wählen, bei **Trinkgeld** `5` eintragen, bei **Bar gegeben** auf **Rest** klicken, dann einen glatten höheren Betrag eintragen.
+Expected: **Rest** trägt den offenen Betrag plus 5,00 ein; das Rückgeld rechnet das Trinkgeld ab.
+5. **Kassenlade & Abschluss** öffnen.
+Expected: Unter „Zahlungsarten“ steht als letzte Zeile „davon Trinkgeld (kein Umsatz) 16,00 €“; der Umsatz enthält das Trinkgeld nicht.
+6. Den ersten Beleg unter **Belege** stornieren und den Bericht neu ansehen.
+Expected: Das Trinkgeld im Bericht sinkt um 11,00 €.
+Closes: –
+Result: ☐

@@ -43,7 +43,7 @@ Rechtlicher Rahmen, Stand der Recherche vom 16.11.2026:
 ## Folgen und Stand
 
 - Gebaut (Server): `PosService.BuildCheckoutAsync`, `Receipt.Tip` (Migration `ReceiptTip`), `KassenSichVFiscalization.ProcessData`, `Dsfinvk`, `BuildDayReport`, `AccountingExport`, `ReceiptDocument`, `ReceiptPrinter`, `DayClosingDocument`; Tests in `TipTests`.
-- Offen, eigener Schritt: Feld „Trinkgeld“ beim Bezahlen in der Windows-App, Trinkgeld in der Belegvorschau und im Tagesabschluss der App, Hilfe `kassa-bezahlen` und Handbuchbilder. Bis dahin lässt sich Trinkgeld nur über die Schnittstelle buchen.
+- Gebaut (Windows-App, Schritt 2): Feld „Trinkgeld“ unter den Zahlungsarten (`PosViewModel.TipText`), Verweis „Überschuss als Trinkgeld eintragen“, sobald unbar mehr als offen eingetragen ist, Zeile „Trinkgeld (kein Umsatz)“ in der Belegvorschau und „davon Trinkgeld (kein Umsatz)“ im Tagesbericht; Hilfe `kassa-bezahlen#trinkgeld` mit Bild `kassa-trinkgeld.png`.
 - Offen, später: Trinkgeld einer Person zuordnen und je Person auswerten; Auszahlung über die Lohnabrechnung statt aus der Lade.
 - **Steuerberatung:** Behandlung in der Lohnverrechnung (AT: Trinkgeldpauschale der ÖGK; DE: § 3 Nr. 51 EStG), Kontonummer 3790 je Kontenrahmen, Schweiz (Trinkgeld als Lohnbestandteil). Prüfen, ob der österreichische Beleg einen eigenen Hinweis braucht.
 - DSFinV-K ist gegen die Fassung 2.3 gebaut; die Prüfung mit dem Prüfprogramm der Finanzverwaltung steht weiter aus ([ADR 0035](0035-test-tse-und-dsfinvk.md)).

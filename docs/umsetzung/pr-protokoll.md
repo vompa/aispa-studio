@@ -6053,3 +6053,25 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
   - `dotnet format --verify-no-changes` sauber, Release-Build ohne Warnungen, `npm run gen:api` und `npm run typecheck`.
 - **Nicht geprüft:** die volle API-Suite und die Ansichtstests (laufen in der CI); echte Signatureinrichtung, echte TSE und das Prüfprogramm der Finanzverwaltung.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Kassa: Trinkgeld für das Team, Schritt 2 Windows-App (16.11.2026)
+
+- **Auftrag:** Zweiter Schritt zu [ADR 0095](../entscheidungen/0095-trinkgeld-an-der-kassa.md): Trinkgeld an der Kassa der Windows-App eintragen.
+- **Was:**
+  - Feld **Trinkgeld** unter den Zahlungsarten, mit dem Hinweis „Für das Team, kein Umsatz.“
+  - Ist unbar mehr als offen eingetragen, steht „Zu viel: … über dem offenen Betrag“ und der Verweis **Überschuss als Trinkgeld eintragen**.
+  - **Rest**, „Noch offen“, „Rückgeld“ und der Betrag fürs Kartenterminal rechnen mit dem Trinkgeld. Gedeckt heißt es „Alles gedeckt, davon … Trinkgeld“.
+  - Belegvorschau: „Trinkgeld (kein Umsatz)“ vor den Zahlungen. Tagesbericht: „davon Trinkgeld (kein Umsatz)“ nach den Zahlungsarten.
+  - Hilfe `kassa-bezahlen#trinkgeld` mit dem neuen Bild `kassa-trinkgeld.png`; zwölf Handbuchbilder mit dem Bezahlen-Bereich neu erzeugt.
+- **Detailentscheidungen:**
+  1. Ein Feld statt einer Rückfrage: Die Kassa schlägt Trinkgeld nicht von sich aus vor, der Verweis erscheint erst bei einem Überschuss.
+  2. Der Verweis rechnet nur unbare Überschüsse um. Bar bleibt der Überschuss Rückgeld, bis jemand Trinkgeld einträgt.
+  3. Das Trinkgeld wird geleert, sobald eine andere Rechnung offen ist oder bezahlt wurde.
+  4. Die Beschriftung nennt keine Währung, wie die Felder der Zahlungsarten.
+- **Bewusst offen / später:** Zuordnung je Person; Vorschläge in Prozent (10 %, 15 %); Trinkgeld direkt am Kartenterminal eingeben lassen.
+- **Geprüft:**
+  - Tests zuerst: `PosTests` (Desktop) 48 von 48 grün, darunter drei neue zum Trinkgeld.
+  - Bildtests `*Kassa*`, `*Pos*`, `*Gutschein*`, `*Kassier*`, `*Bezahl*`, `*Bindungsfehler*`: 286 von 286 grün, neu `Kassa_Given_Karte_100_bei_89_00_When_Ueberschuss_als_Trinkgeld_…`. Bild `kassa-trinkgeld.png` bei 1440 px angesehen.
+  - `HelpTests` 17, `HelpPageCheckTests` 4, Hilfe-Tests im Web 61 von 61; `dotnet format` sauber, Release-Build ohne Warnungen.
+- **Nicht geprüft:** die laufende App unter Windows, die Skalierung 125 und 150 Prozent, ein Lauf mit angebundenem Kartenterminal; die volle Desktop-Suite läuft in der CI.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).

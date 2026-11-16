@@ -727,6 +727,12 @@
             </DataTemplate>
           </ItemsControl.ItemTemplate>
         </ItemsControl>
+        <!-- Trinkgeld für das Team (ADR 0095): kommt zum offenen Betrag dazu, ist kein Umsatz; „Überschuss als Trinkgeld“ für „100, stimmt so“ mit Karte -->
+        <ui:FormField x:Name="TipField" Label="Trinkgeld" Help="Für das Team, kein Umsatz.">
+          <ui:MoneyField x:Name="TipBox" CommittedText="{Binding TipText}" PlaceholderText="0,00" />
+        </ui:FormField>
+        <Button x:Name="TipFromSurplusButton" Classes="link" Content="Überschuss als Trinkgeld eintragen" HorizontalAlignment="Left"
+                Command="{Binding TipFromSurplusCommand}" IsVisible="{Binding HasNonCashSurplus}" />
         <Border Classes="divider" />
         <TextBlock Text="{Binding CoverText}" Classes="secondary" />
         <TextBlock Text="{Binding ChangeText}" AutomationProperties.LiveSetting="Polite" FontSize="22" FontWeight="SemiBold" Foreground="{DynamicResource OkBrush}"
