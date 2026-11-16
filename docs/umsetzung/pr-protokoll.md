@@ -6397,3 +6397,23 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Geprüft:** Tests zuerst geplant: `ReminderTests` 19 von 19 (neu: die dritte Erinnerung eines Tages entfällt, der nächste Tag zählt neu).
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
 
+## Lager: Lieferung am Handy mit Lieferschein-Foto (16.11.2026)
+
+- **Auftrag:** Block „KI-gestützte Lagerwirtschaft“, Punkt „Foto-Wareneingang“; offen seit [ADR 0037](../entscheidungen/0037-lager-aus-bewegungen.md). Auftraggeber am 16.11.2026: „auch 3“ und „Ja das Foto darf an die KI gehen“.
+- **Was:**
+  - Server: `IDeliveryNoteReader` mit `ClaudeDeliveryNoteReader` und `ManualDeliveryNoteReader` (`Stock/DeliveryNoteReader.cs`), `POST /api/stock/orders/{id}/delivery-note-scan` liefert `DeliveryNoteSuggestion`. Der Endpunkt bucht nichts und speichert das Foto nicht.
+  - „Mein Tag“: Reiter „Lieferung“ (`DeliveryPanel.tsx`) für Personen mit dem Recht, Standorte zu verwalten: Bestellung wählen, Lieferschein fotografieren, Mengen prüfen, „Lieferung buchen“.
+  - Die Handy-App erreicht dafür drei Wege mehr: Bestellungen des Standorts lesen, Lieferung buchen, Lieferschein lesen lassen (`ChannelScanTests`). Die Rechte bleiben wie in der Windows-App.
+  - Hilfe `lager-inventur-handy#lieferung`, Nachtrag in ADR 0037.
+- **Detailentscheidungen:**
+  1. Das Foto wird nur gelesen und nicht gespeichert. Dazu kam keine Antwort des Auftraggebers; gewählt ist die sparsamere Lösung.
+  2. Am Handy statt in der Windows-App: Dort liegt die Kamera, und die Lager-Maske der Verwaltung wird gerade von einem anderen Agenten überarbeitet.
+  3. Die KI bekommt die offenen Positionen mit kurzen Schlüsseln (`p1`, `p2` …), nicht mit Ids der Datenbank. Der Server verwirft unbekannte Schlüssel, doppelte Zeilen und unbrauchbare Mengen.
+  4. Die KI rechnet keine Packungen um. Unsicher gelesene Positionen und Mengen über dem Offenen sind mit „Bitte prüfen“ markiert; die Markierung verschwindet, sobald jemand die Menge ändert.
+  5. Synchron, ohne Queue: Die Person steht mit dem Lieferschein am Regal und wartet auf den Vorschlag.
+  6. Ohne Schlüssel, mit `Ai:Provider=RuleBased` oder bei einem Fehler der KI kommt ein leerer Vorschlag mit Hinweis; von Hand geht es immer.
+- **Bewusst offen / später:** Foto-Auswahl in der Windows-App; Ware ohne Bestellung vom Foto buchen; Lagerort beim Buchen am Handy wählen; mehrere Seiten eines Lieferscheins.
+- **Geprüft:** Tests zuerst geplant: API `DeliveryNoteScanTests` 6 von 6 (Vorschlag je Position und nichts gebucht, Aussortieren und Markieren, unlesbares Foto, kein Bild/Entwurf/fremde Bestellung, Rezeption), `ChannelScanTests`, `StockTests`, zusammen 26 grün; Web `myday` 53 grün (neu: Vorschlag prüfen und buchen, ohne KI von Hand, Reiter nur für die Leitung, keine offene Bestellung).
+- **Nicht geprüft:** ein echter Lieferschein mit echtem Schlüssel. `ClaudeDeliveryNoteReader` ist nur gegen den Nachbau der Tests gelaufen; wie gut die KI Lieferscheine liest, zeigt erst der Probelauf. Die Kamera am Handy.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+

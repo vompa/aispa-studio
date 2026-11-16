@@ -1198,3 +1198,18 @@ Expected: Die Mengen vom Handy stehen in der Zählliste.
 Closes: –
 Result: ☐
 
+### Lager – Lieferung am Handy mit Lieferschein-Foto
+Start: API mit eingerichtetem Schlüssel (`Ai:Claude:ApiKey`), „Mein Tag“ am Handy als Standortleitung; in der Windows-App eine Bestellung mit zwei Positionen als bestellt markiert; ein Lieferschein dazu auf Papier
+1. In „Mein Tag“ den Reiter **Lieferung** öffnen.
+Expected: Die Bestellung steht zur Wahl, darunter je offener Position die Felder Geliefert, Charge und Ablaufdatum.
+2. Auf **Lieferschein fotografieren (optional)** tippen und den Lieferschein aufnehmen.
+Expected: Nach einigen Sekunden steht „Von der KI gelesen.“; Mengen, Chargen, Ablaufdaten und die Lieferscheinnummer sind eingetragen und stimmen mit dem Papier überein. Unsichere Positionen tragen „Bitte prüfen: …“.
+3. Eine Menge ändern und auf **Lieferung buchen** tippen.
+Expected: „Lieferung zu Bestellung … gebucht“. In der Windows-App zeigt die Bestellung die gelieferten Mengen, der Bestand ist gestiegen.
+4. Dasselbe ohne Schlüssel (oder mit `Ai:Provider=RuleBased`): Foto wählen.
+Expected: Der Hinweis „Das Lesen von Lieferscheinen ist nicht eingerichtet. Bitte die Mengen von Hand eintragen.“; von Hand eintragen und buchen geht.
+5. Als Rezeption „Mein Tag“ öffnen.
+Expected: Den Reiter **Lieferung** gibt es nicht.
+Closes: –
+Result: ☐
+
