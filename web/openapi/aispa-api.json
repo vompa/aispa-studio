@@ -13958,6 +13958,51 @@
         }
       }
     },
+    "/api/v1/absence-requests/mine/leave-account/{year}": {
+      "get": {
+        "tags": [
+          "Dienstplan"
+        ],
+        "summary": "Das eigene Urlaubskonto eines Kalenderjahres (ADR 0097): Anspruch, Übertrag, genommen, geplant, Rest. Nur lesen; ohne verknüpfte Person 404.",
+        "operationId": "GetMyLeaveAccount",
+        "parameters": [
+          {
+            "name": "year",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeaveAccountDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/absence-requests/{id}/approve": {
       "post": {
         "tags": [

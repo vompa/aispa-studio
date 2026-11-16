@@ -40,5 +40,6 @@ Die Zeile unter dem Konto nennt die gezählten Wochentage. Sie sagt auch, wie vi
 - Ändern sich die Arbeitstage einer Person im Jahr, zählt das Konto das ganze Jahr nach den aktuellen Arbeitstagen.
 - Der Lohn-Export zählt Urlaub je eingetragenem Tag, auch am Wochenende: [Lohn](hilfe:lohn#monatswerte). Das Urlaubskonto zählt nur Arbeitstage; die Zahlen können sich deshalb unterscheiden.
 - Wer Personalunterlagen nur lesen darf, sieht das Konto, ändert es aber nicht.
+- Jede Person sieht ihr eigenes Konto in „Mein Tag“ im Reiter **Abwesenheit**: [Abwesenheit beantragen](hilfe:mein-tag-abwesenheit-beantragen). Das Konto anderer sieht sie nicht.
 
 Verwandt: [Urlaub, Krankenstand oder freien Tag eintragen](hilfe:dienstplan-abwesenheit-eintragen), [Abwesenheitsantrag genehmigen oder ablehnen](hilfe:dienstplan-antrag-entscheiden).
