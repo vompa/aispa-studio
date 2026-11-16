@@ -46,6 +46,7 @@ public sealed partial class CompanyViewModel : ViewModelBase, INativeArea
     {
         _api = api;
         History = new HistorySectionViewModel(api, "api/tenant/history", zone, "Wer die Firmendaten wann geändert hat");
+        HistorySections = [History];
     }
 
     public string Title => "Firmendaten";
@@ -55,6 +56,13 @@ public sealed partial class CompanyViewModel : ViewModelBase, INativeArea
 
     /// <summary>Abschnitt „Verlauf“ (ADR 0082): wer die Firmendaten wann geändert hat.</summary>
     public HistorySectionViewModel History { get; }
+
+    /// <summary>Was die Seitenleiste „Verlauf“ zeigt (ADR 0098: Der Verlauf ist eine Seitenleiste, kein Abschnitt am Ende des Formulars).</summary>
+    public IReadOnlyList<HistorySectionViewModel> HistorySections { get; }
+
+    /// <summary>Die Seitenleiste „Verlauf“ ist offen; beim Öffnen klappt der Abschnitt auf und lädt.</summary>
+    [ObservableProperty]
+    public partial bool IsHistoryOpen { get; set; }
 
     /// <summary>Die Firmendaten wurden gespeichert; die Leiste „KI und Hilfe“ bietet dann an, eine Frage zu wiederholen.</summary>
     public event Action? Saved;
@@ -243,7 +251,7 @@ public sealed partial class CompanyViewModel : ViewModelBase, INativeArea
 
         StatusText = "Gespeichert.";
         Saved?.Invoke();
-        if (History.IsOpen)
+        if (IsHistoryOpen && History.IsOpen)
         {
             await History.LoadAsync().ConfigureAwait(true);
         }
@@ -270,6 +278,28 @@ public sealed partial class CompanyViewModel : ViewModelBase, INativeArea
 
     [RelayCommand]
     private void CloseError() => Error = null;
+
+    /// <summary>Schaltfläche „Verlauf“ im Kopf: öffnet oder schließt die Seitenleiste.</summary>
+    [RelayCommand]
+    private void ToggleHistory() => IsHistoryOpen = !IsHistoryOpen;
+
+    partial void OnIsHistoryOpenChanged(bool value)
+    {
+        if (!value)
+        {
+            return;
+        }
+
+        // Der Abschnitt lädt beim Aufklappen; steht er von vorhin noch offen, lädt er hier neu, damit eigene Änderungen gleich dastehen.
+        if (History.IsOpen)
+        {
+            _ = History.LoadAsync();
+        }
+        else
+        {
+            History.IsOpen = true;
+        }
+    }
 
     /// <summary>„Jetzt ergänzen“ des Assistenten: das Feld bekommt den Fokus, sobald die Maske steht.</summary>
     public void FocusField(string? field) => FocusTarget = field;

@@ -2,23 +2,31 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:AispaStudio.Desktop.ViewModels"
              xmlns:ui="using:AispaStudio.Desktop.Controls"
-             xmlns:local="using:AispaStudio.Desktop.Views"
              x:Class="AispaStudio.Desktop.Views.CompanyView"
              x:DataType="vm:CompanyViewModel"
              ui:SaveShortcut.IsScope="True">
   <!--
     Firmendaten (ADR 0052), erste native Maske der Verwaltung (R05 Slice 93): dieselben Felder, Platzhalter, Hinweise und Hilfe wie web/src/admin/CompanyTab.tsx.
     Aufbau nach docs/gestaltung/masken.md: Gruppen mit Überschrift und Fragezeichen am Titel (Brief 5.11), Feld zu Feld 12, Gruppe zu Gruppe 20,
-    Überschrift zu erstem Feld 8; Leiste „Speichern / Verwerfen“ fest im Fuß, Strg+S speichert (SaveShortcut).
+    Überschrift zu erstem Feld 8; Leiste „Speichern / Verwerfen“ fest im Fuß, Strg+S speichert (SaveShortcut). Der Verlauf öffnet über „Verlauf“ im Kopf als Seitenleiste
+    rechts (ADR 0098, masken.md R15, Brief 5.12).
   -->
-  <Grid RowDefinitions="*,Auto">
+  <Grid ColumnDefinitions="*,Auto">
+   <Grid RowDefinitions="*,Auto">
     <ScrollViewer x:Name="FieldsScroll" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
       <StackPanel Spacing="20" MaxWidth="720" HorizontalAlignment="Left" Margin="0,0,16,16">
 
         <StackPanel Spacing="8">
-          <Grid ColumnDefinitions="*,Auto">
+          <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
             <TextBlock Text="Firmendaten" Classes="h2" VerticalAlignment="Center" />
-            <ui:HelpButton Grid.Column="1" Topic="firmendaten" Section="firmendaten" />
+            <Button Grid.Column="1" x:Name="HistoryButton" Classes="ghost" Command="{Binding ToggleHistoryCommand}" IsVisible="{Binding IsLoaded}"
+                    ToolTip.Tip="Wer die Firmendaten wann geändert hat" AutomationProperties.Name="Verlauf">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <ui:Icon Data="{x:Static ui:Icons.History}" Width="16" Height="16" />
+                <TextBlock Text="Verlauf" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+            <ui:HelpButton Grid.Column="2" Topic="firmendaten" Section="firmendaten" />
           </Grid>
           <TextBlock Classes="muted" TextWrapping="Wrap"
                      Text="Gelten für alle Standorte, die keine eigene Gesellschaft eingetragen haben: auf Rechnungen, für die Sofortüberweisung und im Impressum der Online-Buchung." />
@@ -150,8 +158,6 @@
             <TextBlock Classes="muted" TextWrapping="Wrap" IsVisible="{Binding HasEmbedCode}"
                        Text="Der Code zeigt die Online-Buchung dieses Spas. Den Code in die Seite der Website einfügen; die Website muss oben eingetragen sein." />
           </StackPanel>
-
-          <local:HistorySectionView DataContext="{Binding History}" />
         </StackPanel>
       </StackPanel>
     </ScrollViewer>
@@ -161,5 +167,8 @@
                   ActionText="Erneut versuchen" ActionCommand="{Binding SaveCommand}" CloseCommand="{Binding CloseErrorCommand}" />
       <ui:SaveBar SaveCommand="{Binding SaveCommand}" DiscardCommand="{Binding DiscardCommand}" CanDiscard="{Binding HasUnsavedChanges}" Status="{Binding StatusText}" />
     </StackPanel>
+   </Grid>
+
+    <ui:HistoryPanel Grid.Column="1" x:Name="CompanyHistoryPanel" Subtitle="Firmendaten" Sections="{Binding HistorySections}" IsOpen="{Binding IsHistoryOpen}" />
   </Grid>
 </UserControl>

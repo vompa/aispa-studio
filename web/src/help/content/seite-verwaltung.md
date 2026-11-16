@@ -24,7 +24,7 @@ Ein Tastenkürzel für die Verwaltung gibt es nicht. Der Balken ist mit der Tabu
 
 Der Balken zeigt nur, was die eigene Rolle darf; eine Gruppe ohne erlaubte Maske fehlt. Die Reihenfolge ist immer dieselbe:
 
-- **Betrieb**: Firmendaten nur Inhaber; Standorte & Räume, Schließzeiten, Raumsperren, Kalender-Abos und Handbuch auch die Standortleitung. Siehe [Einrichtung des Spas](hilfe:seite-masterdata).
+- **Betrieb**: Firmendaten nur Inhaber; Standorte & Räume, Schließzeiten mit den Raumsperren, Kalender-Abos und Handbuch auch die Standortleitung. Siehe [Einrichtung des Spas](hilfe:seite-masterdata).
 - **Angebot**: Behandlungen und Aktionen für Inhaber und Standortleitung.
 - **Team**: alle Rollen mit einer der Ansichten; Personen, Wochenplan, Zeiten und Anträge schaltet eine Leiste über der Fläche um. Die Personenkarte hat die Bereiche Übersicht, Profil, Arbeitszeit sowie Lohn und Akte; der Verlauf öffnet über eine Schaltfläche im Kopf der Karte als Seitenleiste. „Zugänge“, „Qualifikationen“, „Dienstplan“ und „Zeiten“ gibt es in der App nicht mehr als eigene Bereiche. Siehe [Team](hilfe:team), [Zugänge](hilfe:zugaenge), [Seite „Dienstplan“](hilfe:seite-roster) und [Seite „Zeiten“](hilfe:seite-time).
   - **Wochenplan**: alle Rollen; planen dürfen nur Inhaber und Standortleitung.

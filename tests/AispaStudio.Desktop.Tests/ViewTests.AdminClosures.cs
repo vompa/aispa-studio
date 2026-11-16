@@ -53,15 +53,22 @@ public sealed partial class ViewTests
         shell.AdminPage.SelectedArea = shell.AdminPage.Areas.Single(a => a.Title == "Schließzeiten");
         await Pump(Settling);
         await Pump(Settling);
-        Assert.Same(shell.AdminPage.Closures, shell.AdminPage.Content);
+        Assert.Same(shell.AdminPage.ClosuresPage, shell.AdminPage.Content);
         Assert.True(shell.AdminPage.Closures!.IsLoaded);
         return shell;
     }
 
+    /// <summary>Der Abschnitt „Schließzeiten“ der Seite (ADR 0098). Kopf, Liste und Zeitraum heißen im Abschnitt „Raumsperren“ gleich; Tests suchen deshalb im Abschnitt.</summary>
+    private static ClosuresView ClosuresPart(Window window) => window.GetVisualDescendants().OfType<ClosuresView>().Single();
+
+    /// <summary>Der Abschnitt „Raumsperren“ der Seite.</summary>
+    private static RoomClosuresView RoomClosuresPart(Window window) => window.GetVisualDescendants().OfType<RoomClosuresView>().Single();
+
     /// <summary>Holt das Steuerelement in den sichtbaren Teil der Maske und klickt es an.</summary>
-    private static async Task ClickScrolled(Window window, string name)
+    private static Task ClickScrolled(Window window, string name) => ClickScrolled(window, Named<Control>(window, name));
+
+    private static async Task ClickScrolled(Window window, Control control)
     {
-        var control = Named<Control>(window, name);
         control.BringIntoView();
         await Pump(Settling);
         ClickCenter(window, control);
@@ -76,11 +83,26 @@ public sealed partial class ViewTests
         var shell = await OpenClosures(window, main);
         var closures = shell.AdminPage.Closures!;
         Assert.Equal(["Betriebsurlaub"], closures.Rows.Select(r => r.Title));
-        Assert.Equal("Aktuell (1)", closures.CurrentTabLabel);
         Assert.True(Shows(window, "2 Termine liegen in der Schließzeit"));
+
+        // ADR 0098: keine Reiter „Aktuell“ und „Beendet“ mehr, sondern das Kontrollkästchen über der Liste; es nennt, wie viele Einträge ausgeblendet sind.
+        var part = ClosuresPart(window);
+        Assert.Empty(part.GetVisualDescendants().OfType<TabButton>());
+        var box = Named<CheckBox>(part, "ShowEndedBox");
+        Assert.Equal(("Beendete zeigen (1)", false), (box.Content as string, box.IsChecked));
+        Assert.True(TopOf(window, box) < TopOf(window, Named<ListBox>(part, "PeriodListBox")));
+
+        // Beide Abschnitte stehen auf einer Seite, die Raumsperren unter den Schließzeiten; die Liste ist 260 breit (Brief 5.6, mit 16 Abstand zum Formular).
+        Assert.Equal(["Schließzeiten", "Raumsperren"], window.GetVisualDescendants().OfType<TextBlock>().Where(t => t.Name == "SectionTitle" && t.IsEffectivelyVisible).Select(t => t.Text));
+        Assert.True(TopOf(window, RoomClosuresPart(window)) >= BottomOf(window, part));
+
+        // Beim Öffnen steht die Seite oben: Die gewählte Raumsperre weiter unten zieht die Seite nicht zu sich.
+        Assert.Equal(0, Named<ScrollViewer>(window, "PageScroll").Offset.Y);
+        Assert.Equal(TopOf(window, Named<ScrollViewer>(window, "PageScroll")), TopOf(window, part), 1);
+        Assert.Equal(244, Named<ListBox>(part, "PeriodListBox").GetVisualAncestors().OfType<Border>().First(b => b.Classes.Contains("card")).Bounds.Width, 0.5);
         Assert.Equal("Inventur", Named<TextBox>(window, "InternalReasonField").Text);
         return shell.AdminPage;
-    }, ClosuresApi());
+    }, RoomClosuresApi(ClosuresApi()));
 
     [Fact]
     public Task Schliesszeit_anlegen_ueber_Klick_und_Speichern()
@@ -91,15 +113,16 @@ public sealed partial class ViewTests
             var shell = await OpenClosures(window, main);
             var closures = shell.AdminPage.Closures!;
 
-            ClickCenter(window, Named<Button>(window, "NewButton"));
+            var part = ClosuresPart(window);
+            ClickCenter(window, Named<Button>(part, "NewButton"));
             await Pump(Settling);
             Assert.True(closures.IsCreating);
             Assert.True(Shows(window, "Neue Schließzeit"));
 
-            await TypeInto(window, "FromDateField", "24.12.2026");
-            await TypeInto(window, "UntilDateField", "26.12.2026");
+            await TypeInto(window, Named<TextBox>(part, "FromDateField"), "24.12.2026");
+            await TypeInto(window, Named<TextBox>(part, "UntilDateField"), "26.12.2026");
             await TypeInto(window, "GuestTextField", "Frohe Weihnachten");
-            await ClickScrolled(window, "SaveButton");
+            await ClickScrolled(window, Named<Control>(part, "SaveButton"));
 
             var post = Assert.Single(api.Calls, c => c.Route == $"POST {ClosureRoute()}");
             Assert.Equal(new ClosureInput(new(2026, 12, 24), null, new(2026, 12, 26), null, ClosureKind.Vacation, null, "Frohe Weihnachten"), JsonSerializer.Deserialize<ClosureInput>(post.Body!, ApiClient.Json));
@@ -117,17 +140,18 @@ public sealed partial class ViewTests
         return Render("hell", "verwaltung-schliesszeiten-fehler", async (window, main) =>
         {
             var shell = await OpenClosures(window, main);
-            ClickCenter(window, Named<Button>(window, "NewButton"));
+            var part = ClosuresPart(window);
+            ClickCenter(window, Named<Button>(part, "NewButton"));
             await Pump(Settling);
 
-            await TypeInto(window, "FromDateField", "26.12.2026");
-            await TypeInto(window, "UntilDateField", "24.12.2026");
+            await TypeInto(window, Named<TextBox>(part, "FromDateField"), "26.12.2026");
+            await TypeInto(window, Named<TextBox>(part, "UntilDateField"), "24.12.2026");
             PressSave(window);
             await Pump(Settling);
 
             Assert.Equal(0, CallsTo(api, $"POST {ClosureRoute()}"));
             Assert.True(Shows(window, "Das Ende darf nicht vor dem Beginn liegen."));
-            Assert.Same(Named<TextBox>(window, "UntilDateField"), Focused(window));
+            Assert.Same(Named<TextBox>(part, "UntilDateField"), Focused(window));
             return shell.AdminPage;
         }, api);
     }
@@ -147,7 +171,7 @@ public sealed partial class ViewTests
             Press(window, Avalonia.Input.PhysicalKey.Escape, Avalonia.Input.RawInputModifiers.None);
             await Pump(Settling);
 
-            await ClickScrolled(window, "DeleteButton");
+            await ClickScrolled(window, Named<Control>(ClosuresPart(window), "DeleteButton"));
             Assert.Equal("Schließzeit löschen?", Assert.IsType<ConfirmDialogViewModel>(main.DialogHost.Current).Title);
             ClickCenter(window, DialogButton(window, "ConfirmButton"));
             await Pump(Settling);
@@ -157,15 +181,25 @@ public sealed partial class ViewTests
     }
 
     [Fact]
-    public Task Der_Reiter_Beendet_zeigt_das_Protokoll_der_Absagen_ohne_Loeschen() => Render("hell", "verwaltung-schliesszeiten-protokoll", async (window, main) =>
+    public Task Beendete_zeigen_blendet_die_beendeten_ein_und_zeigt_das_Protokoll_der_Absagen_ohne_Loeschen() => Render("hell", "verwaltung-schliesszeiten-protokoll", async (window, main) =>
     {
         var shell = await OpenClosures(window, main);
         var closures = shell.AdminPage.Closures!;
+        var part = ClosuresPart(window);
 
-        ClickCenter(window, Named<Button>(window, "EndedTab"));
+        // When „Beendete zeigen“ angehakt wird, Then stehen die beendeten nach den aktuellen in der Liste, mit dem Wort „Beendet“, und die Auswahl bleibt.
+        ClickCenter(window, Named<CheckBox>(part, "ShowEndedBox"));
         await Pump(Settling);
-        Assert.Equal(["Ausfall"], closures.Rows.Select(r => r.Title));
-        Assert.DoesNotContain(window.GetVisualDescendants().OfType<Button>(), b => b.Name == "DeleteButton" && b.IsEffectivelyVisible);
+        Assert.True(closures.ShowEnded);
+        Assert.Equal(["Betriebsurlaub", "Ausfall"], closures.Rows.Select(r => r.Title));
+        Assert.Equal("Betriebsurlaub", closures.SelectedRow?.Title);
+        Assert.Single(part.GetVisualDescendants().OfType<TextBlock>(), t => t.IsEffectivelyVisible && t.Text == "Beendet" && t.GetVisualAncestors().OfType<ListBoxItem>().Any());
+
+        // When die beendete Schließzeit gewählt wird, Then gibt es kein Löschen.
+        closures.SelectedRow = closures.Rows[1];
+        await Pump(Settling);
+        Assert.Equal("Beendet", closures.PhaseText);
+        Assert.DoesNotContain(part.GetVisualDescendants().OfType<Button>(), b => b.Name == "DeleteButton" && b.IsEffectivelyVisible);
 
         var help = Assert.Single(window.GetVisualDescendants().OfType<HelpButton>(), b => b.Topic == "schliesszeiten" && b.Section == "protokoll");
         Assert.DoesNotContain(help.GetVisualAncestors(), a => a is Avalonia.Controls.Primitives.ToggleButton);
@@ -173,6 +207,16 @@ public sealed partial class ViewTests
 
         await ClickScrolled(window, "ProtocolHeader");
         Assert.True(Shows(window, "Eva Müller"));
+
+        // When der Haken wieder entfernt wird, Then filtert die Liste auf die aktuellen und wählt die erste.
+        var box = Named<CheckBox>(part, "ShowEndedBox");
+        box.BringIntoView();
+        await Pump(Settling);
+        ClickCenter(window, box);
+        await Pump(Settling);
+        Assert.False(closures.ShowEnded);
+        Assert.Equal(["Betriebsurlaub"], closures.Rows.Select(r => r.Title));
+        Assert.Equal("Betriebsurlaub", closures.SelectedRow?.Title);
         return shell.AdminPage;
     }, ClosuresApi());
 
@@ -215,7 +259,7 @@ public sealed partial class ViewTests
             await AssertNoBindingErrors(log, "Neue Schließzeit", async () => await closures.NewCommand.ExecuteAsync(null));
             await AssertNoBindingErrors(log, "Eingabe", () => { closures.Period.IsPartial = true; closures.Period.FromTime = "13:00"; closures.GuestText = "x"; return Task.CompletedTask; });
             await AssertNoBindingErrors(log, "Verworfen", () => { closures.Discard(); return Task.CompletedTask; });
-            await AssertNoBindingErrors(log, "Reiter Beendet", async () => await closures.ShowEndedCommand.ExecuteAsync(null));
+            await AssertNoBindingErrors(log, "Beendete zeigen", () => { closures.ShowEnded = true; return Task.CompletedTask; });
             await AssertNoBindingErrors(log, "Anderer Standort", () => { closures.SelectedLocation = closures.Locations[1]; return Task.CompletedTask; });
             await AssertNoBindingErrors(log, "Anderer Bereich", () =>
             {
@@ -255,7 +299,7 @@ public sealed partial class ViewTests
         await closures.NewCommand.ExecuteAsync(null);
         await Pump(Settling);
         Scan("Neue Schließzeit");
-        await closures.ShowEndedCommand.ExecuteAsync(null);
+        closures.ShowEnded = true;
         await Pump(Settling);
         Scan("Beendet");
 

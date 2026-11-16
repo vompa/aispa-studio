@@ -36,7 +36,7 @@ Die übrigen Spalten:
 - **Termine**: Termine dieser Behandlung im gewählten Monat, ohne stornierte und nicht erschienene. Auch noch kommende Termine des Monats zählen mit.
 - **Deckungsbeitrag**: für jeden dieser Termine der tatsächlich gebuchte Nettopreis minus Vollkosten, zusammengezählt.
 
-Fehlt eine Angabe, steht unter dem Namen der Behandlung ein Hinweis, zum Beispiel „Kein Material erfasst.“, „Kein Stundensatz für das Personal.“, „Keine Öffnungszeiten im Monat.“, „Mietanteil fehlt für: …“ oder „Kein Stundensatz für die Raumpflege.“. Der betreffende Teil wird dann mit 0 gerechnet.
+Fehlt eine Angabe, steht unter dem Namen der Behandlung ein Hinweis, zum Beispiel „Kein Material erfasst.“, „Kein Stundensatz für das Personal.“, „Keine Öffnungszeiten im Monat.“, „Mietanteil fehlt für: …“ oder „Kein Stundensatz für die Raumpflege.“. Der betreffende Teil wird dann mit 0 gerechnet. Über der Tabelle steht dann ein Hinweis, wie vielen Behandlungen Angaben fehlen.
 
 Die Vollkostenrechnung ist eine Auswertung für die Leitung. Sie ändert keine Preise, keine Belege und keine Buchhaltung.
 

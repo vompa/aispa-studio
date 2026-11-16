@@ -99,7 +99,7 @@ Eingeschaltet gehen die Mails direkt aus dem Postfach des Spas, mit dessen Adres
 
 - Bei IMAP wird über den SMTP-Server des Mailanbieters gesendet, mit demselben Benutzernamen und Passwort wie beim Abruf.
 - Bei Microsoft 365 braucht die App zusätzlich die Berechtigung `Mail.Send`. Gesendete Mails liegen dann im Postfach unter „Gesendete Elemente“.
-- Klappt der Versand nicht, steht der Fehler hier als „Letzter Versand fehlgeschlagen: …“. Das Programm versucht es erneut.
+- Klappt der Versand nicht, steht der Fehler oben in der Maske als „Letzter Versand fehlgeschlagen: …“, beim Stand des letzten Abrufs. Das Programm versucht es erneut.
 
 ### SMTP-Server {#smtp-server}
 

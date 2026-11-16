@@ -92,11 +92,22 @@ public sealed partial class ViewTests
             var area = shell.AdminPage.SelectedArea!;
 
             // R07 Slice 144: Die Betriebsinfo ist ein Reiter in „Zahlen“; das Ziel öffnet diese Maske beim Reiter „Betriebsinfo“.
-            var (page, tab) = target.Page == "businessInfo" ? ("reports", null) : (target.Page, target.Tab);
+            // ADR 0098: Die Raumsperren sind ein Abschnitt der Seite „Schließzeiten“; das Ziel öffnet diese Seite beim Abschnitt „Raumsperren“.
+            var (page, tab) = (target.Page, target.Tab) switch
+            {
+                ("businessInfo", _) => ("reports", null),
+                ("masterData", "roomClosures") => ("masterData", "closures"),
+                _ => (target.Page, target.Tab),
+            };
             Assert.True(area.Page == page && (area.Tab == tab || area.Tab is null), $"{where}: offen ist {area.Title}");
             if (target.Page == "businessInfo")
             {
                 Assert.True(shell.AdminPage.Reports!.IsBusinessInfoTab, $"{where}: der Reiter Betriebsinfo ist nicht offen");
+            }
+
+            if (target.Tab is "closures" or "roomClosures")
+            {
+                Assert.True(shell.AdminPage.ClosuresPage!.FocusedSection == target.Tab, $"{where}: verlangt ist der Abschnitt {shell.AdminPage.ClosuresPage.FocusedSection}");
             }
 
             Assert.False(ShowsNotice(window, NoRightNotice) || ShowsNotice(window, UnknownNotice), $"{where}: Hinweis statt Maske");

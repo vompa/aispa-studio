@@ -27,6 +27,9 @@
             <TextBlock x:Name="AccountStatusText" Text="{Binding AccountStatus}" TextWrapping="Wrap" IsVisible="{Binding !HasAccountError}"
                        AutomationProperties.LiveSetting="Polite" />
             <ui:InfoBar Severity="Error" Title="Zahlungskonto" Message="{Binding AccountStatus}" IsVisible="{Binding HasAccountError}" />
+            <!-- Oben, nicht bei den Schlüsseln (masken.md R14): Wer die Maske öffnet, soll zuerst sehen, dass kein echtes Geld fließt -->
+            <ui:InfoBar x:Name="TestKeyWarning" Severity="Warning" Title="Testschlüssel hinterlegt" IsVisible="{Binding ShowTestKeyWarning}"
+                        Message="Zahlungen sind nur Probe, es fließt kein echtes Geld." />
           </StackPanel>
 
           <StackPanel Spacing="20" IsVisible="{Binding IsStripe}">
@@ -97,8 +100,6 @@
                   <TextBox x:Name="WebhookSecretField" Text="{Binding WebhookSecret}" PasswordChar="•" PlaceholderText="{Binding WebhookSecretPlaceholder}" />
                 </ui:FormField>
               </Grid>
-              <ui:InfoBar Severity="Warning" Title="Testschlüssel hinterlegt" IsVisible="{Binding ShowTestKeyWarning}"
-                          Message="Zahlungen sind nur Probe, es fließt kein echtes Geld." />
               <StackPanel Spacing="4" IsVisible="{Binding HasWebhookUrl}">
                 <TextBlock Classes="muted" Text="Als Webhook im Stripe-Dashboard eintragen, mit den Ereignissen unten:" TextWrapping="Wrap" />
                 <SelectableTextBlock x:Name="WebhookUrlText" Text="{Binding WebhookUrl}" TextWrapping="Wrap" />

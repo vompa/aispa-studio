@@ -216,8 +216,11 @@ public sealed class AdminRoomClosuresTests
         var closures = shell.AdminPage.RoomClosures!;
         await closures.EnsureLoadedAsync();
 
-        Assert.Equal("Raumsperren", shell.AdminPage.SelectedArea?.Title);
-        Assert.Same(closures, shell.AdminPage.Content);
+        // ADR 0098: Das alte Ziel öffnet die Seite „Schließzeiten“ und verlangt den Abschnitt „Raumsperren“.
+        Assert.Equal("Schließzeiten", shell.AdminPage.SelectedArea?.Title);
+        Assert.Same(shell.AdminPage.ClosuresPage, shell.AdminPage.Content);
+        Assert.Equal(ClosuresPageViewModel.RoomClosuresSection, shell.AdminPage.ClosuresPage!.FocusedSection);
+        Assert.Equal("RoomClosuresSection", shell.AdminPage.ClosuresPage.FocusTarget);
         Assert.True(closures.IsCreating);
         Assert.Equal(SecondId, closures.SelectedLocation?.Id);
         Assert.Equal(SaltRoom.Id, closures.SelectedRoom?.Id);

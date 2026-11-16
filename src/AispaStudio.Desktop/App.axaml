@@ -93,11 +93,8 @@
     <DataTemplate DataType="vm:LocationsViewModel">
       <views:LocationsView />
     </DataTemplate>
-    <DataTemplate DataType="vm:ClosuresViewModel">
-      <views:ClosuresView />
-    </DataTemplate>
-    <DataTemplate DataType="vm:RoomClosuresViewModel">
-      <views:RoomClosuresView />
+    <DataTemplate DataType="vm:ClosuresPageViewModel">
+      <views:ClosuresPageView />
     </DataTemplate>
     <DataTemplate DataType="vm:SubscriptionsViewModel">
       <views:SubscriptionsView />

@@ -93,19 +93,65 @@ public sealed partial class AdminReportsTests
     }
 
     [Fact]
-    public async Task Berichte_sind_ein_Reiter_mit_Management_und_Pflichtberichten_als_Unterreiter()
+    public async Task Berichte_sind_ein_Reiter_mit_Management_und_Pflichtberichten_als_Abschnitte()
     {
-        var reports = Reports(AddReports(new StubApi()));
+        // ADR 0098: keine Unterreiter mehr. „Berichte“ lädt beide Abschnitte, die alten Ids bleiben Sprungziele und rollen zum Abschnitt.
+        var api = AddReports(new StubApi());
+        var reports = Reports(api);
         await reports.EnsureLoadedAsync();
 
         reports.SelectTabCommand.Execute(ReportsViewModel.ComplianceTab);
-        Assert.True(reports.IsReportsTab);
-        Assert.True(reports.IsComplianceTab);
+        await Task.Yield();
+        Assert.True(reports.IsManagementTab);
+        Assert.False(reports.IsBriefingTab);
+        Assert.Equal(ReportsViewModel.ComplianceTab, reports.FocusedSection);
+        Assert.Equal("ReportComplianceSection", reports.FocusTarget);
+        Assert.Contains(api.Calls, c => c.Route == ManagementRoute(new DateOnly(2026, 10, 1), Today));
+        Assert.Contains(api.Calls, c => c.Route == ComplianceRoute);
+        Assert.NotEmpty(reports.Management.Kpis);
+        Assert.NotEmpty(reports.Compliance.Registers);
 
         reports.SelectTabCommand.Execute(ReportsViewModel.ManagementTab);
-        Assert.True(reports.IsReportsTab);
-        Assert.False(reports.IsComplianceTab);
-        Assert.False(reports.IsBriefingTab);
+        await Task.Yield();
+        Assert.True(reports.IsManagementTab);
+        Assert.Equal(ReportsViewModel.ManagementTab, reports.FocusedSection);
+        Assert.Equal("ReportManagementSection", reports.FocusTarget);
+    }
+
+    [Fact]
+    public async Task Ein_Sprung_auf_die_Pflichtberichte_oeffnet_Berichte_und_rollt_zum_Abschnitt()
+    {
+        var api = AddReports(new StubApi());
+        var reports = Reports(api);
+        await reports.EnsureLoadedAsync();
+        Assert.True(reports.IsBriefingTab);
+
+        reports.Open(new AdminTarget(Section: ReportsViewModel.ComplianceTab));
+        await Task.Yield();
+
+        Assert.True(reports.IsManagementTab);
+        Assert.Equal(ReportsViewModel.ComplianceTab, reports.FocusedSection);
+        Assert.Equal("ReportComplianceSection", reports.FocusTarget);
+        Assert.Contains(api.Calls, c => c.Route == ComplianceRoute);
+    }
+
+    [Fact]
+    public async Task Das_Datum_der_Pflichtberichte_laedt_nur_die_Pflichtberichte_neu()
+    {
+        var api = AddReports(new StubApi());
+        var reports = Reports(api);
+        await reports.EnsureLoadedAsync();
+        reports.SelectTabCommand.Execute(ReportsViewModel.ManagementTab);
+        await Task.Yield();
+        Assert.False(reports.ShowDate);
+        var management = api.Calls.Count(c => c.Route.Contains("/management", StringComparison.Ordinal));
+        var compliance = api.Calls.Count(c => c.Route.Contains("/compliance", StringComparison.Ordinal));
+
+        reports.Date = Today.AddDays(-1);
+        await Task.Yield();
+
+        Assert.Equal(management, api.Calls.Count(c => c.Route.Contains("/management", StringComparison.Ordinal)));
+        Assert.Equal(compliance + 1, api.Calls.Count(c => c.Route.Contains("/compliance", StringComparison.Ordinal)));
     }
 
     [Fact]
