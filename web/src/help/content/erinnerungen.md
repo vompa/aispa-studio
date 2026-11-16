@@ -17,6 +17,7 @@ Gäste bekommen vor einem gebuchten Termin eine Nachricht mit Behandlung, Datum 
 
 - Der Text ist fest vorgegeben und wird nicht von der KI geschrieben. Er kommt auf Deutsch, Englisch, Französisch oder Italienisch: in der Sprache, in der der Gast online gebucht hat, sonst in der Sprache aus den Kundendaten; ist keine davon bekannt, auf Deutsch (so wie bei allen Nachrichten an Gäste, auch im Kundenbereich).
 - Erinnert wird nur an Termine mit dem Status „gebucht“. Wird ein Termin storniert, geht keine Erinnerung mehr. Wird er verschoben, gilt die Erinnerung für den neuen Beginn.
+- Hat ein Gast am selben Tag mehrere Termine am selben Standort, bekommt er je Stufe eine gemeinsame Nachricht statt einer je Termin. Sie kommt, wenn der erste Termin fällig ist, und nennt alle Termine mit Uhrzeit. In der Mail hat jeder Termin seinen eigenen Link; die SMS führt zum ersten Termin. Bei den späteren Terminen steht im Kalender „Zusammen mit dem Termin um … Uhr erinnert.“
 - Das Programm sucht etwa alle fünf Minuten nach fälligen Erinnerungen. Eine Erinnerung kommt also nicht auf die Minute genau.
 - Ob, wann und über welchen Kanal ein Termin erinnert wurde, steht beim Termin im Kalender.
 - Die Zusage des Gastes steht am Termin im Kalender („✓ zugesagt“, in der Hover-Karte mit Datum und Uhrzeit), und der Tagesüberblick zählt, wer noch nicht zugesagt hat (siehe [Termin finden](hilfe:kalender-termin-finden#unbestaetigt)). Wird der Termin auf eine andere Zeit verschoben, gilt sie nicht mehr; die nächste Erinnerung fragt wieder.

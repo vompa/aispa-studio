@@ -1174,3 +1174,14 @@ Expected: Dort steht keine Zeile „Einwirkzeit“.
 Closes: –
 Result: ☐
 
+### Terminerinnerung – mehrere Termine eines Gastes am selben Tag
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App als Rezeption; ein Gast mit Mailadresse
+1. Für den Gast am selben Tag zwei Termine buchen, z. B. 10:00 und 13:00 Uhr, so dass die erste Erinnerung bald fällig ist (Verwaltung › Kontakt › Erinnerungen: Stunden passend einstellen).
+Expected: Beide Termine stehen im Kalender.
+2. Etwa fünf Minuten warten und das Postfach des Gastes ansehen.
+Expected: Eine Mail „Erinnerung: Ihre 2 Termine am …“ mit beiden Uhrzeiten; unter jedem Termin steht ein eigener Link „Bestätigen oder absagen“.
+3. Den zweiten Termin im Kalender öffnen und die Erinnerungen ansehen.
+Expected: Dort steht „Zusammen mit dem Termin um 10:00 Uhr erinnert.“; eine eigene Mail zum zweiten Termin kommt nicht.
+Closes: –
+Result: ☐
+

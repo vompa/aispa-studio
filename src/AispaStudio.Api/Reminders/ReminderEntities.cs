@@ -40,6 +40,12 @@ public sealed class AppointmentReminder
     public string? Error { get; set; }
     public DateTimeOffset CreatedAt { get; init; }
     public DateTimeOffset? SentAt { get; set; }
+
+    /// <summary>
+    /// Mehrere Termine eines Gastes am selben Tag bekommen je Stufe eine gemeinsame Nachricht: Die Erinnerung des ersten Termins
+    /// nennt alle, die übrigen verweisen hierher auf sie und werden selbst nicht versendet.
+    /// </summary>
+    public Guid? BundledWithId { get; init; }
 }
 
 public enum ReminderState
@@ -68,6 +74,7 @@ internal static class ReminderModel
             e.Property(r => r.State).HasConversion<string>().HasMaxLength(16);
             e.Property(r => r.Error).HasMaxLength(500);
             e.HasIndex(r => new { r.AppointmentId, r.Stage, r.AppointmentStart }).IsUnique();
+            e.HasIndex(r => r.BundledWithId);
         });
     }
 }

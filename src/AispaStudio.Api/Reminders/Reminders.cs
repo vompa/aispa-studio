@@ -162,14 +162,61 @@ internal sealed class ReminderPlanner(AispaDbContext db, IMessageBus bus, IOptio
                 continue;
             }
 
+            done.Add((appointment.Id, stage.Number, appointment.Start));
             if (reminder.State == ReminderState.Queued)
             {
+                await BundleAsync(appointment, reminder, done, now, ct);
                 await bus.PublishAsync(new SendReminder(reminder.Id));
                 queued++;
             }
         }
 
         return queued;
+    }
+
+    /// <summary>
+    /// Weitere gebuchte Termine desselben Gastes am selben Tag und Standort laufen in der Nachricht des ersten mit: Sie bekommen für
+    /// diese Stufe einen Eintrag, der auf <paramref name="lead"/> verweist, und werden selbst nicht mehr erinnert.
+    /// </summary>
+    private async Task BundleAsync(Appointment first, AppointmentReminder lead, HashSet<(Guid, int, DateTimeOffset)> done, DateTimeOffset now, CancellationToken ct)
+    {
+        var timeZone = await db.Locations.AsNoTracking().Where(l => l.Id == first.LocationId).Select(l => l.TimeZone).FirstAsync(ct);
+        var zone = LocalTime.Zone(timeZone);
+        var (_, dayUntil) = LocalTime.Day(LocalTime.LocalDate(first.Start, zone), zone);
+        var later = await db.Appointments.AsNoTracking()
+            .Where(a => a.CustomerId == first.CustomerId && a.LocationId == first.LocationId && a.Id != first.Id
+                && a.Status == AppointmentStatus.Booked && a.HeldSince == null && a.Start > first.Start && a.Start < dayUntil)
+            .OrderBy(a => a.Start).ToListAsync(ct);
+        var local = TimeZoneInfo.ConvertTime(first.Start, zone);
+        foreach (var appointment in later)
+        {
+            if (done.Contains((appointment.Id, lead.Stage, appointment.Start))
+                || await db.AppointmentReminders.AnyAsync(r => r.AppointmentId == appointment.Id && r.Stage == lead.Stage && r.AppointmentStart == appointment.Start, ct))
+            {
+                continue;
+            }
+
+            db.Add(new AppointmentReminder
+            {
+                AppointmentId = appointment.Id,
+                Stage = lead.Stage,
+                AppointmentStart = appointment.Start,
+                Channel = lead.Channel,
+                State = ReminderState.Skipped,
+                Error = $"Zusammen mit dem Termin um {local:HH:mm} Uhr erinnert.",
+                CreatedAt = now,
+                BundledWithId = lead.Id,
+            });
+            try
+            {
+                await db.SaveChangesAsync(ct);
+                done.Add((appointment.Id, lead.Stage, appointment.Start));
+            }
+            catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: UniqueViolation })
+            {
+                db.ChangeTracker.Clear();
+            }
+        }
     }
 
     private sealed record ReminderStage(int Number, int Hours);
@@ -213,9 +260,15 @@ internal sealed class ReminderSender(
             return;
         }
 
-        var appointment = await db.Appointments.AsNoTracking().Include(a => a.Customer).Include(a => a.Treatment)
-            .FirstOrDefaultAsync(a => a.Id == reminder.AppointmentId, ct);
-        if (appointment is null || appointment.Status != AppointmentStatus.Booked || appointment.Start != reminder.AppointmentStart)
+        // Der Termin der Erinnerung und die Termine, die mit ihr gebündelt sind; storniert oder verschoben fällt heraus.
+        var bundled = await db.AppointmentReminders.AsNoTracking().Where(r => r.BundledWithId == reminder.Id).ToListAsync(ct);
+        var starts = bundled.Append(reminder).ToDictionary(r => r.AppointmentId, r => r.AppointmentStart);
+        var ids = starts.Keys.ToList();
+        var appointments = (await db.Appointments.AsNoTracking().Include(a => a.Customer).Include(a => a.Treatment)
+                .Where(a => ids.Contains(a.Id)).ToListAsync(ct))
+            .Where(a => a.Status == AppointmentStatus.Booked && a.Start == starts[a.Id])
+            .OrderBy(a => a.Start).ToList();
+        if (appointments.Count == 0)
         {
             // Inzwischen storniert oder verschoben (für den neuen Beginn gibt es eine eigene Erinnerung).
             reminder.State = ReminderState.Skipped;
@@ -224,22 +277,32 @@ internal sealed class ReminderSender(
             return;
         }
 
+        var appointment = appointments[0];
         var location = await db.Locations.AsNoTracking().FirstAsync(l => l.Id == appointment.LocationId, ct);
+        var zone = LocalTime.Zone(location.TimeZone);
         var settings = await ReminderSettingsStore.LoadAsync(db, ct);
         // Die Sprache der Online-Buchung, sonst die des Gastes aus den Kundendaten.
         var language = await online.OnlineBookings.AsNoTracking().Where(b => b.AppointmentId == appointment.Id).Select(b => b.Language).FirstOrDefaultAsync(ct) is { } booked
             ? GuestLanguage.Normalize(booked)
             : GuestLanguage.Resolve(appointment.Customer);
-        var token = links.Create(AccessLinkPurpose.ManageAppointment, appointment.CustomerId, appointment.Id, appointment.End.AddDays(30));
+        var lines = new List<ReminderTexts.Line>();
+        foreach (var each in appointments)
+        {
+            var token = links.Create(AccessLinkPurpose.ManageAppointment, each.CustomerId, each.Id, each.End.AddDays(30));
+            lines.Add(new(ReminderTexts.Time(each.Start, zone, language), each.Treatment.Name, portal.Url($"termin/{token}"), each.Treatment.GuestHint));
+        }
+
         await online.SaveChangesAsync(ct);
         var text = new ReminderTexts.Facts(
             GuestName.Of(appointment.Customer, location.TimeZone),
-            appointment.Treatment.Name,
-            ReminderTexts.When(appointment.Start, LocalTime.Zone(location.TimeZone), language),
+            string.Join(", ", appointments.Select(a => a.Treatment.Name)),
+            ReminderTexts.When(appointment.Start, zone, language),
             location.Name,
-            portal.Url($"termin/{token}"),
+            lines[0].Link,
             language,
-            appointment.Treatment.GuestHint);
+            appointment.Treatment.GuestHint,
+            lines.Count > 1 ? ReminderTexts.Day(appointment.Start, zone, language) : null,
+            lines.Count > 1 ? lines : null);
 
         try
         {
@@ -289,7 +352,21 @@ internal static class ReminderSettingsStore
 internal static class ReminderTexts
 {
     /// <summary><c>Hint</c>: Hinweis der Behandlung an Gäste (nur in der Mail, SMS bleiben kurz).</summary>
-    public sealed record Facts(GuestName Guest, string Treatment, string When, string Location, string Link, string Language, string? Hint = null);
+    /// <summary>
+    /// <c>Day</c> und <c>Lines</c>: mehrere Termine am selben Tag in einer Nachricht; dann nennt <c>Treatment</c> alle Behandlungen,
+    /// <c>When</c> und <c>Link</c> gehören zum ersten Termin.
+    /// </summary>
+    public sealed record Facts(GuestName Guest, string Treatment, string When, string Location, string Link, string Language, string? Hint = null,
+        string? Day = null, IReadOnlyList<Line>? Lines = null);
+
+    /// <summary>Ein Termin in einer gemeinsamen Erinnerung: Uhrzeit, Behandlung, eigener Link, Hinweis an Gäste.</summary>
+    public sealed record Line(string Time, string Treatment, string Link, string? Hint = null);
+
+    public static string Time(DateTimeOffset start, TimeZoneInfo zone, string language) =>
+        TimeZoneInfo.ConvertTime(start, zone).ToString(language == "de" ? "HH:mm 'Uhr'" : "HH:mm", OnlineLanguage.Culture(language));
+
+    public static string Day(DateTimeOffset start, TimeZoneInfo zone, string language) =>
+        TimeZoneInfo.ConvertTime(start, zone).ToString(language == "de" ? "dddd, d. MMMM" : language == "en" ? "dddd, d MMMM" : "dddd d MMMM", OnlineLanguage.Culture(language));
 
     public static string When(DateTimeOffset start, TimeZoneInfo zone, string language)
     {
@@ -304,7 +381,13 @@ internal static class ReminderTexts
         return local.ToString(pattern, OnlineLanguage.Culture(language));
     }
 
-    public static string Subject(Facts f) => f.Language switch
+    public static string Subject(Facts f) => f.Lines is { } lines ? f.Language switch
+    {
+        "en" => $"Reminder: your {lines.Count} appointments on {f.Day}",
+        "fr" => $"Rappel : vos {lines.Count} rendez-vous du {f.Day}",
+        "it" => $"Promemoria: i suoi {lines.Count} appuntamenti di {f.Day}",
+        _ => $"Erinnerung: Ihre {lines.Count} Termine am {f.Day}",
+    } : f.Language switch
     {
         "en" => $"Reminder: {f.Treatment} on {f.When}",
         "fr" => $"Rappel : {f.Treatment} le {f.When}",
@@ -312,7 +395,55 @@ internal static class ReminderTexts
         _ => $"Erinnerung: {f.Treatment} am {f.When}",
     };
 
-    public static string Mail(Facts f) => f.Language switch
+    public static string Mail(Facts f) => f.Lines is null ? Single(f) : f.Language switch
+    {
+        "en" => $"""
+           Hello {f.Guest.FirstName},
+
+           this is a reminder of your appointments on {f.Day} at {f.Location}:
+
+           {Listed(f, "Confirm or cancel")}
+
+           We look forward to seeing you.
+           {f.Location}
+           """,
+        "fr" => $"""
+           Bonjour {f.Guest.FirstName},
+
+           Nous vous rappelons vos rendez-vous du {f.Day} ({f.Location}) :
+
+           {Listed(f, "Confirmer ou annuler")}
+
+           Nous nous réjouissons de vous accueillir.
+           {f.Location}
+           """,
+        "it" => $"""
+           Buongiorno {f.Guest.FirstName},
+
+           le ricordiamo i suoi appuntamenti di {f.Day} presso {f.Location}:
+
+           {Listed(f, "Confermare o annullare")}
+
+           Saremo lieti di accoglierla.
+           {f.Location}
+           """,
+        _ => $"""
+           Guten Tag {f.Guest.GreetingName},
+
+           wir erinnern Sie an Ihre Termine am {f.Day} in {f.Location}:
+
+           {Listed(f, "Bestätigen oder absagen")}
+
+           Wir freuen uns auf Sie.
+           {f.Location}
+           """,
+    };
+
+    /// <summary>Je Termin ein Absatz: Uhrzeit und Behandlung, Hinweis der Behandlung, eigener Link.</summary>
+    private static string Listed(Facts f, string action) =>
+        string.Join("\n\n", f.Lines!.Select(l => $"{l.Time}: {l.Treatment}\n{(l.Hint is { } hint ? $"{hint}\n" : "")}{action}: {l.Link}"));
+
+    private static string Single(Facts f) => f.Language switch
     {
         "en" => $"""
            Hello {f.Guest.FirstName},
@@ -372,13 +503,21 @@ internal static class ReminderTexts
            """,
     };
 
-    public static string Short(Facts f) => f.Language switch
+    public static string Short(Facts f) => f.Lines is { } lines ? f.Language switch
+    {
+        "en" => $"Reminder: your appointments on {f.Day} at {f.Location}: {Brief(lines)}. Confirm or cancel the first one: {f.Link}",
+        "fr" => $"Rappel : vos rendez-vous du {f.Day} ({f.Location}) : {Brief(lines)}. Confirmer ou annuler le premier : {f.Link}",
+        "it" => $"Promemoria: i suoi appuntamenti di {f.Day} presso {f.Location}: {Brief(lines)}. Confermare o annullare il primo: {f.Link}",
+        _ => $"Erinnerung: Ihre Termine am {f.Day} in {f.Location}: {Brief(lines)}. Ersten Termin bestätigen oder absagen: {f.Link}",
+    } : f.Language switch
     {
         "en" => $"Reminder: {f.Treatment} on {f.When} at {f.Location}. Confirm or cancel: {f.Link}",
         "fr" => $"Rappel : {f.Treatment} le {f.When} ({f.Location}). Confirmer ou annuler : {f.Link}",
         "it" => $"Promemoria: {f.Treatment}, {f.When}, presso {f.Location}. Confermare o annullare: {f.Link}",
         _ => $"Erinnerung: {f.Treatment} am {f.When} in {f.Location}. Bestätigen oder absagen: {f.Link}",
     };
+
+    private static string Brief(IReadOnlyList<Line> lines) => string.Join(", ", lines.Select(l => $"{l.Time} {l.Treatment}"));
 
     private static string HintLine(Facts f) => f.Hint is { } hint ? $"{hint}\n\n" : "";
 }

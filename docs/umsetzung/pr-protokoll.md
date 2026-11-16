@@ -6343,3 +6343,23 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Stand des Blocks „Kalender-Lücken“:** Einwirkzeit, Wochenansicht und Treatwell-Hinweis sind gebaut, die Mindestlücke ist entschieden. Offen bleibt nur der Zähler „Lücken n“ in der Kopfzeile (Ä298, „falls gewünscht“).
 - **Geprüft:** entfällt, keine Änderung am Code.
 
+## Kommunikation: eine Terminerinnerung je Gast und Tag (16.11.2026)
+
+- **Auftrag:** Punkt „Erinnerungs-Obergrenze“ aus dem Block „Kommunikation“ der Reihenfolge vom 20.10.2026. Der Auftraggeber hat am 16.11.2026 dem Vorschlag zugestimmt, mehrere Termine eines Gastes am selben Tag in einer Nachricht je Stufe zusammenzufassen.
+- **Befund:** Terminerinnerungen liefen je Termin und Stufe. Ein Gast mit drei Terminen an einem Tag bekam bis zu sechs Nachrichten.
+- **Was:**
+  - `ReminderPlanner.BundleAsync`: Wird der erste Termin eines Gastes fällig, bekommen seine späteren gebuchten Termine desselben Tages und Standorts für diese Stufe einen Eintrag, der auf die Erinnerung des ersten verweist (`AppointmentReminder.BundledWithId`, Migration `ReminderBundle`), und werden selbst nicht mehr erinnert.
+  - `ReminderSender`: Die Nachricht nennt alle noch gültigen Termine mit Uhrzeit; in der Mail hat jeder seinen Link. Feste Texte in vier Sprachen (`ReminderTexts`).
+  - Hilfe `erinnerungen`.
+- **Detailentscheidungen:**
+  1. Kein Feld in der Verwaltung: Die Regel gilt immer. Eine einstellbare Höchstzahl wurde nicht verlangt.
+  2. Gebündelt wird nur am selben Standort und Kalendertag. Verschiedene Standorte haben verschiedene Adressen und Zeitzonen.
+  3. Die späteren Termine stehen mit Stand „entfallen“ und dem Grund „Zusammen mit dem Termin um … Uhr erinnert.“ in der Liste; ein neuer Stand hätte Liste und Auswertungen in der Verwaltung geändert.
+  4. Wird der erste Termin vor dem Versand storniert, geht die Nachricht für die übrigen trotzdem hinaus.
+  5. SMS und WhatsApp tragen nur den Link zum ersten Termin, damit sie kurz bleiben. Die WhatsApp-Vorlage bekommt die Behandlungen mit Komma getrennt und die Zeit des ersten Termins.
+  6. Wer zum zweiten Termin erst bucht, nachdem die gemeinsame Erinnerung hinaus ist, bekommt für diesen Termin die übliche eigene Erinnerung.
+- **Bewusst offen / später:** Paar und Spa-Tag mit mehreren Gästen bleiben je Gast getrennt. Ein Termin, der nach dem Versand storniert wird, bleibt in der schon gesendeten Nachricht stehen.
+- **Geprüft:** Tests zuerst geplant: `ReminderTests` 18 von 18 (neu: zwei Termine am selben Tag bekommen je Stufe eine Nachricht mit beiden Zeiten und zwei Links; andere Tage und andere Gäste werden nicht gebündelt).
+- **Nicht geprüft:** SMS und WhatsApp mit einem echten Anbieter; die Texte in Englisch, Französisch und Italienisch sind nicht von Muttersprachlern gelesen. Die volle Suite läuft in der CI.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
