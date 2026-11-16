@@ -433,6 +433,12 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
           (LongOutageHint is { } outage ? $" {outage}" : "")
         : null;
 
+    /// <summary>
+    /// Text unter „Beim Abgleich nicht übernommen“: wartet ein abgelehnter Ersatzbeleg seit mehr als 48 Stunden, steht die Erinnerung an die
+    /// Meldung auch hier, denn mit Verbindung gibt es den Hinweis „Keine Verbindung“ nicht.
+    /// </summary>
+    public string FailedMessage => LongOutageHint is { } outage ? $"Bitte neu klären. {outage}" : "Bitte neu klären.";
+
     /// <summary>Ab dieser Dauer ohne Nacherfassung erinnert die App an die Meldung des Ausfalls (§ 17 RKSV, ADR 0096).</summary>
     public static readonly TimeSpan LongOutage = TimeSpan.FromHours(48);
 
@@ -730,6 +736,7 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
         // Der Hinweis nach 48 Stunden hängt an der Uhr, nicht an einer Änderung: bei jedem Abgleich neu lesen.
         OnPropertyChanged(nameof(OfflineBanner));
         OnPropertyChanged(nameof(LongOutageHint));
+        OnPropertyChanged(nameof(FailedMessage));
         Calendar.ShowPending();
     }
 
