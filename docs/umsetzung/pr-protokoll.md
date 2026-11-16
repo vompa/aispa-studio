@@ -6059,7 +6059,7 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Auftrag:** Zweiter Schritt zu [ADR 0095](../entscheidungen/0095-trinkgeld-an-der-kassa.md): Trinkgeld an der Kassa der Windows-App eintragen.
 - **Was:**
   - Feld **Trinkgeld** unter den Zahlungsarten, mit dem Hinweis „Für das Team, kein Umsatz.“
-  - Ist unbar mehr als offen eingetragen, steht „Zu viel: … über dem offenen Betrag“ und der Verweis **Überschuss als Trinkgeld eintragen**.
+  - Ist unbar mehr als offen eingetragen, steht „Zu viel: … über dem offenen Betrag“ und der Verweis **Als Trinkgeld eintragen**.
   - **Rest**, „Noch offen“, „Rückgeld“ und der Betrag fürs Kartenterminal rechnen mit dem Trinkgeld. Gedeckt heißt es „Alles gedeckt, davon … Trinkgeld“.
   - Belegvorschau: „Trinkgeld (kein Umsatz)“ vor den Zahlungen. Tagesbericht: „davon Trinkgeld (kein Umsatz)“ nach den Zahlungsarten.
   - Hilfe `kassa-bezahlen#trinkgeld` mit dem neuen Bild `kassa-trinkgeld.png`; zwölf Handbuchbilder mit dem Bezahlen-Bereich neu erzeugt.

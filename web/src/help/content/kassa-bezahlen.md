@@ -81,7 +81,7 @@ Ein Beleg kann mit mehreren Zahlungsarten bezahlt werden, z. B. ein Teil mit Gut
 Gibt der Gast Trinkgeld über die Kassa, zum Beispiel „100, stimmt so“ mit der Karte bei 89,00 €, tragen Sie es bei **Trinkgeld** ein. Es gehört dem Team und ist kein Umsatz des Spas.
 
 1. Bei **Karte** den ganzen Betrag eintragen, den der Gast zahlt, z. B. `100`.
-2. Unter den Feldern steht „Zu viel: 11,00 € über dem offenen Betrag“. Auf **Überschuss als Trinkgeld eintragen** klicken. Bei **Trinkgeld** steht dann `11,00`.
+2. Unter den Feldern steht „Zu viel: 11,00 € über dem offenen Betrag“. Auf **Als Trinkgeld eintragen** klicken. Bei **Trinkgeld** steht dann `11,00`.
 3. Auf **Bezahlen und Beleg erstellen** klicken.
 
 ![Kassa mit 100,00 € auf der Karte und 11,00 € Trinkgeld](images/app/kassa-trinkgeld.png)

@@ -731,7 +731,7 @@
         <ui:FormField x:Name="TipField" Label="Trinkgeld" Help="Für das Team, kein Umsatz.">
           <ui:MoneyField x:Name="TipBox" CommittedText="{Binding TipText}" PlaceholderText="0,00" />
         </ui:FormField>
-        <Button x:Name="TipFromSurplusButton" Classes="link" Content="Überschuss als Trinkgeld eintragen" HorizontalAlignment="Left"
+        <Button x:Name="TipFromSurplusButton" Classes="link" Content="Als Trinkgeld eintragen" HorizontalAlignment="Left"
                 Command="{Binding TipFromSurplusCommand}" IsVisible="{Binding HasNonCashSurplus}" />
         <Border Classes="divider" />
         <TextBlock Text="{Binding CoverText}" Classes="secondary" />
