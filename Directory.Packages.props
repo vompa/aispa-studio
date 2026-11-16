@@ -6,7 +6,7 @@
     <AspNetCoreVersion>10.0.15</AspNetCoreVersion>
     <AvaloniaVersion>12.1.6</AvaloniaVersion>
     <OpenTelemetryVersion>1.21.0</OpenTelemetryVersion>
-    <WolverineVersion>6.64.0</WolverineVersion>
+    <WolverineVersion>6.64.1</WolverineVersion>
   </PropertyGroup>
   <ItemGroup Label="Aspire">
     <PackageVersion Include="Aspire.Hosting.JavaScript" Version="$(AspireVersion)" />
