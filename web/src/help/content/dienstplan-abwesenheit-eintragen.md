@@ -31,7 +31,7 @@ Für mehrere Tage, z. B. eine Urlaubswoche, die Schritte für jeden Tag wiederho
 
 ## Anträge aus der Handy-App {#antraege}
 
-Mitarbeitende können Urlaub künftig in der Handy-App beantragen. Die offenen Anträge stehen in **Verwaltung** › **Team** in der Ansicht **Anträge**; dort wird genehmigt oder abgelehnt: [Abwesenheitsantrag genehmigen oder ablehnen](hilfe:dienstplan-antrag-entscheiden). Bis die Handy-App Anträge sendet, ist die Liste leer.
+Mitarbeitende können Urlaub künftig in der Handy-App beantragen. Die offenen Anträge öffnet in **Verwaltung** › **Team** im **Wochenplan** die Schaltfläche **Anträge** als Seitenleiste; dort wird genehmigt oder abgelehnt: [Abwesenheitsantrag genehmigen oder ablehnen](hilfe:dienstplan-antrag-entscheiden). Bis die Handy-App Anträge sendet, ist die Liste leer.
 
 ## Gut zu wissen {#hinweise}
 

@@ -1159,3 +1159,26 @@ Expected: Die Speichern-Leiste unten ist aktiv und gilt für Lohn und Akte zusam
 Expected: Die Rezeption sieht nur den Wochenplan, keine Personenkarte. Inhaber und Manager sehen alle vier Bereiche, die Standortleitung nur die Bereiche, für die sie das Recht hat.
 Closes: –
 Result: ☐
+
+### T-066 – Team: fünf Ansichten, Anträge als Seitenleiste im Wochenplan
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Inhaberin anmelden, **Verwaltung** › **Team** öffnen
+1. Die Leiste über der Fläche ansehen.
+Expected: Sie zeigt fünf Ansichten in einer Zeile: Personen, Wochenplan, Zeiten, Lohn, Rechte und Zuständigkeiten. „Anträge“, „Wer darf was?“ und „Zuständigkeiten“ stehen dort nicht mehr.
+2. **Wochenplan** wählen.
+Expected: Oben in der Werkzeugleiste steht **Anträge**; liegen offene Anträge vor, steht ihre Zahl daneben. Ohne offene Anträge fehlt die Zahl.
+3. **Anträge** klicken.
+Expected: Rechts öffnet sich eine Seitenleiste „Anträge“ über dem Wochenraster, mit Fragezeichen und Kreuz im Kopf. Jeder Antrag zeigt Person, Art, Zeitraum, Anmerkung und darunter **Ablehnen** und **Genehmigen**. Der Fokus steht in der Leiste; F6 erreicht sie als eigenen Bereich.
+4. **Esc** drücken.
+Expected: Die Leiste schließt, der Fokus steht wieder auf **Anträge**. Ein zweites Mal öffnen und mit dem Kreuz schließen.
+5. Die Leiste öffnen und einen Antrag mit **Genehmigen** bestätigen.
+Expected: Die Meldung nennt die genehmigte Abwesenheit, der Antrag verschwindet, die Zahl am Knopf sinkt um eins, und der Wochenplan zeigt die Abwesenheit.
+6. Das Fenster auf die Mindestgröße 1100 × 680 verkleinern und die Leiste öffnen.
+Expected: Die Leiste liegt rechts über dem Raster, das Raster behält seine Breite und lässt sich unter der geschlossenen Leiste weiter bedienen. Beide Knöpfe jedes Antrags stehen vollständig in der Leiste.
+7. **Personen** wählen, eine Person mit offenem Antrag öffnen und in der Übersicht die Kachel **Offene Anträge** klicken.
+Expected: Der Wochenplan öffnet sich mit der Seitenleiste **Anträge**.
+8. **Rechte und Zuständigkeiten** wählen.
+Expected: Die Seite zeigt untereinander die Abschnitte **Wer darf was?** und **Zuständigkeiten**, jeder mit Zwischentitel und Fragezeichen. Die Liste der Personen fehlt.
+9. Als Rezeption anmelden und **Team** öffnen.
+Expected: Die Rezeption sieht nur den Wochenplan, ohne Schaltfläche **Anträge** und ohne **Rechte und Zuständigkeiten**. Als Standortleitung sieht man Wochenplan und Zeiten mit der Schaltfläche **Anträge**, aber nicht **Rechte und Zuständigkeiten**.
+Closes: –
+Result: ☐

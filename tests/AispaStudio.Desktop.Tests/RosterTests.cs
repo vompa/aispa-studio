@@ -13,7 +13,7 @@ namespace AispaStudio.Desktop.Tests;
 public sealed class RosterTests
 {
     private static readonly DateOnly Tuesday = RosterSample.Monday.AddDays(1);
-    private static readonly bool[] PeopleOnly = [true, false, false, false, false, false, false];
+    private static readonly bool[] PeopleOnly = [true, false, false, false, false];
 
     internal sealed class RosterClock : TimeProvider
     {
@@ -665,13 +665,14 @@ public sealed class RosterTests
     }
 
     [Fact]
-    public async Task Given_Standortleitung_mit_ManageLocation_ohne_Stammdaten_When_Team_geoeffnet_wird_Then_Wochenplan_Zeiten_und_Antraege_aber_keine_Personenliste()
+    public async Task Given_Standortleitung_mit_ManageLocation_ohne_Stammdaten_When_Team_geoeffnet_wird_Then_Wochenplan_mit_Antraegen_und_Zeiten_aber_keine_Personenliste()
     {
         var (api, _) = Setup();
 
         var team = await Loaded(api, WithRights(StaffRole.Manager, AccessRight.ViewCalendar, AccessRight.ManageLocation));
 
-        Assert.Equal(["Wochenplan", "Zeiten", "Anträge"], team.Modes.Select(m => m.Label));
+        Assert.Equal(["Wochenplan", "Zeiten"], team.Modes.Select(m => m.Label));
+        Assert.True(team.Plan!.HasRequests);
         Assert.True(team.ShowsModes);
         Assert.Equal(TeamViewModel.RosterMode, team.Mode);
         Assert.DoesNotContain(api.Calls, c => c.Route.StartsWith("GET /api/employees", StringComparison.Ordinal));
@@ -681,13 +682,13 @@ public sealed class RosterTests
     }
 
     [Fact]
-    public async Task Given_Inhaberin_When_Team_geoeffnet_wird_Then_Personen_Wochenplan_Zeiten_und_Antraege_in_dieser_Reihenfolge()
+    public async Task Given_Inhaberin_When_Team_geoeffnet_wird_Then_Personen_Wochenplan_Zeiten_Lohn_und_Rechte_in_dieser_Reihenfolge()
     {
         var (api, _) = Setup();
 
         var team = await Loaded(api);
 
-        Assert.Equal(["Personen", "Wochenplan", "Zeiten", "Anträge", "Lohn", "Wer darf was?", "Zuständigkeiten"], team.Modes.Select(m => m.Label));
+        Assert.Equal(["Personen", "Wochenplan", "Zeiten", "Lohn", "Rechte und Zuständigkeiten"], team.Modes.Select(m => m.Label));
         Assert.Equal(TeamViewModel.PeopleMode, team.Mode);
         Assert.Equal(PeopleOnly, team.Modes.Select(m => m.IsOn));
     }
@@ -747,6 +748,8 @@ public sealed class RosterTests
     private static async Task<AbsenceRequestsViewModel> Requests(TeamViewModel team)
     {
         Assert.True(await team.SwitchToAsync(TeamViewModel.RequestsMode));
+        Assert.Equal(TeamViewModel.RosterMode, team.Mode);
+        Assert.True(team.Plan!.IsRequestsOpen);
         var requests = team.Requests!;
         await Until(() => requests.IsLoaded);
         return requests;
@@ -923,6 +926,185 @@ public sealed class RosterTests
         await requests.Rows[0].RejectCommand.ExecuteAsync(null);
 
         Assert.Equal("Urlaub 8.3.2027 bis 12.3.2027 von Lena Huber wird nicht genehmigt. Im Dienstplan ändert sich nichts.", dialogs.Asked[0].Message);
+    }
+
+    // ---------- Fünf Ansichten (ADR 0098, T-066) ----------
+
+    /// <summary>Rechte der Rollen wie in <c>Roles.RightsOf</c> der API: Inhaberin, Standortleitung, Rezeption, Backoffice.</summary>
+    public static TheoryData<string, AccessRight[], string[]> RoleModes => new()
+    {
+        { "Inhaberin", Enum.GetValues<AccessRight>(), ["Personen", "Wochenplan", "Zeiten", "Lohn", "Rechte und Zuständigkeiten"] },
+        {
+            "Standortleitung",
+            [AccessRight.ViewCalendar, AccessRight.Book, AccessRight.ChangeStatus, AccessRight.ManageLocation, AccessRight.ManageCatalog, AccessRight.ManageStaff,
+                AccessRight.ViewFinance, AccessRight.SuperviseCash, AccessRight.ViewHealthData],
+            ["Personen", "Wochenplan", "Zeiten"]
+        },
+        { "Rezeption", [AccessRight.ViewCalendar, AccessRight.Book, AccessRight.ChangeStatus, AccessRight.ViewHealthData], ["Wochenplan"] },
+        { "Backoffice", [AccessRight.ViewFinance, AccessRight.ViewAmountReports, AccessRight.ViewReceipts, AccessRight.ViewStaffRecords], ["Wochenplan", "Zeiten", "Lohn"] },
+    };
+
+    [Theory]
+    [MemberData(nameof(RoleModes))]
+    public async Task Die_Schiene_des_Teams_hat_je_Rolle_hoechstens_fuenf_Ansichten(string role, AccessRight[] rights, string[] expected)
+    {
+        var (api, _) = Setup();
+
+        var team = await Loaded(api, WithRights(StaffRole.Owner, rights));
+
+        Assert.Equal(expected, team.Modes.Select(m => m.Label));
+        Assert.True(team.Modes.Count <= 5, $"{role}: {team.Modes.Count} Ansichten");
+    }
+
+    [Fact]
+    public async Task Nur_wer_Antraege_entscheiden_darf_hat_den_Knopf_Antraege_im_Wochenplan()
+    {
+        var (api, _) = Setup();
+
+        var reception = await Loaded(api, TestData.Reception());
+        var owner = await Loaded(api);
+
+        Assert.False(reception.Plan!.HasRequests);
+        Assert.False(await reception.SwitchToAsync(TeamViewModel.RequestsMode));
+        Assert.False(reception.Plan.IsRequestsOpen);
+        Assert.True(owner.Plan!.HasRequests);
+    }
+
+    [Fact]
+    public async Task Der_Knopf_Antraege_zaehlt_die_offenen_Antraege_und_nennt_die_Zahl_im_Namen()
+    {
+        var (api, _) = Setup();
+        var request = RosterSample.Request(RosterSample.Marco, RosterKind.Training, 4, 4);
+        api.On("GET /api/absence-requests", new List<AbsenceRequestDto> { request, RosterSample.Request(RosterSample.Lena, RosterKind.Vacation, 8, 12) })
+            .On($"POST /api/absence-requests/{request.Id}/approve", null);
+        var team = await Loaded(api, dialogs: new FakeDialogs());
+
+        // Der Wochenplan lädt die Anträge mit, damit die Zahl schon vor dem Öffnen der Leiste steht.
+        Assert.True(await team.SwitchToAsync(TeamViewModel.RosterMode));
+        var plan = team.Plan!;
+        await Until(() => team.Requests!.IsLoaded);
+        Assert.False(plan.IsRequestsOpen);
+        Assert.Equal(2, plan.OpenRequests);
+        Assert.True(plan.HasOpenRequests);
+        Assert.Equal("Anträge, 2 offene Anträge", plan.RequestsButtonName);
+
+        await team.Requests!.Rows.Single(r => r.Name == "Marco Berger").ApproveCommand.ExecuteAsync(null);
+        Assert.Equal(1, plan.OpenRequests);
+        Assert.Equal("Anträge, 1 offener Antrag", plan.RequestsButtonName);
+    }
+
+    [Fact]
+    public async Task Ohne_offene_Antraege_steht_keine_Zahl_am_Knopf()
+    {
+        var (api, _) = Setup();
+        var team = await Loaded(api);
+
+        Assert.True(await team.SwitchToAsync(TeamViewModel.RosterMode));
+        await Until(() => team.Requests!.IsLoaded);
+
+        Assert.False(team.Plan!.HasOpenRequests);
+        Assert.Equal("Anträge", team.Plan.RequestsButtonName);
+    }
+
+    [Fact]
+    public async Task Der_Knopf_Antraege_oeffnet_und_schliesst_die_Leiste_und_ein_Wechsel_der_Ansicht_schliesst_sie()
+    {
+        var (api, _) = Setup();
+        var team = await Loaded(api);
+        Assert.True(await team.SwitchToAsync(TeamViewModel.RosterMode));
+        var plan = team.Plan!;
+
+        plan.ToggleRequestsCommand.Execute(null);
+        Assert.True(plan.IsRequestsOpen);
+        plan.ToggleRequestsCommand.Execute(null);
+        Assert.False(plan.IsRequestsOpen);
+
+        plan.ToggleRequestsCommand.Execute(null);
+        Assert.True(await team.SwitchToAsync(TeamViewModel.TimesMode));
+        Assert.False(plan.IsRequestsOpen);
+    }
+
+    [Theory]
+    [InlineData(TeamViewModel.RosterMode, TeamViewModel.RosterMode, false, null)]
+    [InlineData(TeamViewModel.TimesMode, TeamViewModel.TimesMode, false, null)]
+    [InlineData(TeamViewModel.PayrollMode, TeamViewModel.PayrollMode, false, null)]
+    [InlineData(TeamViewModel.RequestsMode, TeamViewModel.RosterMode, true, null)]
+    [InlineData(TeamViewModel.PowersMode, TeamViewModel.RightsMode, false, TeamViewModel.PowersMode)]
+    [InlineData(TeamViewModel.DutiesMode, TeamViewModel.RightsMode, false, TeamViewModel.DutiesMode)]
+    [InlineData(TeamViewModel.RightsMode, TeamViewModel.RightsMode, false, null)]
+    public async Task Jede_fruehere_Ansicht_des_Teams_fuehrt_an_ihren_neuen_Ort(string old, string mode, bool requestsOpen, string? section)
+    {
+        var (api, _) = Setup();
+        var team = await Loaded(api);
+        var requested = new List<string>();
+        team.SectionRequested += requested.Add;
+
+        Assert.True(await team.SwitchToAsync(old));
+
+        Assert.Equal(mode, team.Mode);
+        Assert.Equal(requestsOpen, team.Plan!.IsRequestsOpen);
+        Assert.Equal(section, team.FocusedSection);
+        Assert.Equal(section is null ? Array.Empty<string>() : [section], requested);
+    }
+
+    [Theory]
+    [InlineData(TeamViewModel.RequestsMode, TeamViewModel.RosterMode)]
+    [InlineData(TeamViewModel.PowersMode, TeamViewModel.RightsMode)]
+    [InlineData(TeamViewModel.RightsMode, TeamViewModel.RightsMode)]
+    public async Task Ein_Sprung_mit_einer_frueheren_Ansicht_vor_dem_Laden_gilt_nach_dem_Laden(string old, string mode)
+    {
+        var (api, _) = Setup();
+        var team = new TeamViewModel(api.Client(), TestData.Owner(), new RosterClock());
+
+        team.Open(new AdminTarget(null, null, null, null, null, old));
+        await team.LoadAsync();
+
+        Assert.Equal(mode, team.Mode);
+        Assert.Equal(old == TeamViewModel.RequestsMode, team.Plan!.IsRequestsOpen);
+    }
+
+    [Fact]
+    public async Task Zustaendigkeiten_ohne_Person_fuehrt_zum_Abschnitt_und_mit_Person_auf_die_Karte()
+    {
+        var (api, _) = Setup();
+        var team = await Loaded(api);
+
+        team.Open(null, TeamViewModel.DutiesMode, null);
+        await Until(() => team.ShowsRights);
+        Assert.Equal(TeamViewModel.DutiesMode, team.FocusedSection);
+
+        team.Open(RosterSample.Lena.Id, TeamViewModel.DutiesMode, null);
+        await Until(() => team.ShowsPeople && team.Card?.Title == "Lena Huber");
+        Assert.Equal(PersonCardViewModel.DutiesTab, team.Card!.FocusedSection);
+        Assert.Null(team.FocusedSection);
+    }
+
+    [Fact]
+    public async Task Rechte_und_Zustaendigkeiten_laedt_beide_Abschnitte()
+    {
+        var (api, _) = Setup();
+        var team = await Loaded(api);
+
+        Assert.True(await team.SwitchToAsync(TeamViewModel.RightsMode));
+
+        Assert.True(team.ShowsRightsView);
+        Assert.True(team.ShowsPowersSection);
+        Assert.True(team.ShowsDutiesSection);
+        Assert.Contains(api.Calls, c => c.Route == "GET /api/staff-regulations/powers");
+        Assert.Contains(api.Calls, c => c.Route.StartsWith("GET /api/staff-duties", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task Ohne_Recht_auf_die_Personalakte_fehlen_beide_Abschnitte_und_die_Ansicht()
+    {
+        var (api, _) = Setup();
+        var team = await Loaded(api, WithRights(StaffRole.Manager, AccessRight.ViewCalendar, AccessRight.ManageLocation, AccessRight.ManageCatalog));
+
+        Assert.DoesNotContain(team.Modes, m => m.Id == TeamViewModel.RightsMode);
+        Assert.False(team.ShowsPowersSection);
+        Assert.False(team.ShowsDutiesSection);
+        Assert.False(await team.SwitchToAsync(TeamViewModel.RightsMode));
+        Assert.False(await team.SwitchToAsync(TeamViewModel.DutiesMode));
     }
 
     // ---------- Rechte an der Karte ----------

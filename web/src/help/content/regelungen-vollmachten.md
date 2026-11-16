@@ -43,7 +43,7 @@ Die übrigen Vollmachten zeigen nur, wer zuständig ist: Kassa-Abschluss, Tresor
 
 ## Wer darf was? {#wer-darf-was}
 
-**Verwaltung** › **Team** › **Wer darf was?** zeigt je Vollmacht, wer sie hat, bis wann und wer sie erteilt hat. Abgelaufene Vollmachten stehen ausgegraut dabei. Ändern lassen sie sich auf der Karte der Person.
+**Verwaltung** › **Team** › **Rechte und Zuständigkeiten**, Abschnitt **Wer darf was?**, zeigt je Vollmacht, wer sie hat, bis wann und wer sie erteilt hat. Abgelaufene Vollmachten stehen ausgegraut dabei. Ändern lassen sie sich auf der Karte der Person.
 
 ## Verlauf {#verlauf}
 

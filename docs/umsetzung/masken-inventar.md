@@ -13,7 +13,7 @@ Jede Slice hat ihren Bereich vollständig ersetzt, mit denselben Feldern, Regeln
 | Seite | Reiter | Name in der Oberfläche | Ziel | Anmerkung |
 |---|---|---|---|---|
 | `calendar` | – | Kalender | entfällt | Kalender ist nativ (ADR 0053) |
-| `roster` | – | Dienstplan | Slice 99 | Bereich „Arbeitszeit“ der Personenkarte (Abschnitt „Dienstplan und Abwesenheit“) und Ansicht „Wochenplan“ im Bereich Team (dort auch „Anträge“); native Maske seit Slice 99 |
+| `roster` | – | Dienstplan | Slice 99 | Bereich „Arbeitszeit“ der Personenkarte (Abschnitt „Dienstplan und Abwesenheit“) und Ansicht „Wochenplan“ im Bereich Team (dort „Anträge“ als Seitenleiste, seit T-066); native Maske seit Slice 99 |
 | `time` | – | Zeiten | Slice 99 | Bereich „Arbeitszeit“ der Personenkarte (Abschnitt „Zeiten“) und Ansicht „Zeiten“ im Bereich Team; native Maske seit Slice 99 |
 | `inbox` | – | Posteingang | entfällt | Posteingang ist nativ |
 | `pos` | – | Kassa | entfällt | Kassa ist nativ; Kassa-Einstellungen siehe Reiter `kassa` |
@@ -90,7 +90,7 @@ Ziel nach [ADR 0098](../entscheidungen/0098-verwaltungsmasken-eine-schiene-ueber
 | --- | --- | --- | --- |
 | Betrieb | 6 Masken | 5 Masken (Schließzeiten und Raumsperren auf einer Seite) | |
 | Angebot | 2 Masken; Behandlung mit 7 Abschnittsreitern | 2 Masken; Behandlung mit 4 Bereichen | |
-| Team | 7 Ansichten; Personenkarte mit 10 Reitern | 5 Ansichten; Personenkarte mit 4 Bereichen, Verlauf als Seitenleiste | Personenkarte umgesetzt (T-065, 16.11.2026); Ansichten offen |
+| Team | 7 Ansichten; Personenkarte mit 10 Reitern | 5 Ansichten; Personenkarte mit 4 Bereichen, Verlauf als Seitenleiste | Personenkarte umgesetzt (T-065, 16.11.2026); Ansichten umgesetzt (T-066, 16.11.2026): Personen · Wochenplan · Zeiten · Lohn · Rechte und Zuständigkeiten, „Anträge“ als Seitenleiste im Wochenplan |
 | Lager | 9 Reiter | 4 Reiter, dazu „Einrichtung“ | |
 | Kassa & Geld | 4 Masken | 4 Masken | |
 | Kontakt | 3 Masken | 3 Masken | |
