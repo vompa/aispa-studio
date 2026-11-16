@@ -995,3 +995,18 @@ Expected: Die Karte schließt; die Suche nach dem Namen findet nichts. Im Kalend
 Expected: Im Menü der Kundenkarte gibt es keinen Eintrag **Gast anonymisieren …**.
 Closes: –
 Result: ☐
+
+### Kundenkarte 3 : 2 mit Warnstreifen und Verlauf
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Rezeption anmelden, **Kunden** öffnen, „Brigitte Müller“ wählen
+1. Das Fenster auf mindestens 1440 px Breite ziehen und die Kundenkarte ansehen.
+Expected: „Gut zu wissen“ steht links und ist breiter als „Verlauf“ rechts (3 : 2). Im Verlauf steht der nächste Termin als Kachel mit „Nächster Termin · in … Tagen“, unter „Zuletzt“ stehen drei Termine und rechts „meist bei Lena Huber“. Keine Zeile bricht um.
+2. Mit der Maus auf den Namen im Kopf zeigen, dann auf einen Chip unter „Zuletzt“ (Paket, Gutschein oder „Letzter Kauf“).
+Expected: Am Namen erscheint die Anrede für Nachrichten; am Chip der volle Wortlaut mit „gültig bis“ oder den letzten Käufen.
+3. Einen Gast mit „Nicht behandeln“ oder mit Ausfällen öffnen.
+Expected: Unter dem Kopf steht ein Hinweis „Warnung“ mit „Nicht behandeln: …“ und den Ausfällen; bei den Wünschen steht kein Warn-Chip mehr.
+4. Das Fenster schmaler ziehen, bis die Karte unter 720 px breit ist.
+Expected: „Verlauf“ rutscht in voller Breite unter „Gut zu wissen“.
+5. In Windows unter **Einstellungen** › **Anzeige** die Skalierung auf 125 %, danach auf 150 % stellen und die Schritte 1 und 4 wiederholen.
+Expected: Die Teilung bleibt 3 : 2, kein Text ist abgeschnitten, die Kachel und die Chips bleiben lesbar.
+Closes: –
+Result: ☐

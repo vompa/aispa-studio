@@ -138,7 +138,10 @@ public sealed class CompanionHistoryTests
     public void Neu_beginnen_ist_die_Aktion_im_Kopf_der_Leiste_und_folgt_CanReset()
     {
         var companion = Companion(new StubApi().On(Route, Answer("Heute 5 Termine.")));
+        // Der Test prüft bewusst über die Schnittstelle, über die die Leiste die Aktion liest.
+#pragma warning disable CA1859
         ISidePanel panel = companion;
+#pragma warning restore CA1859
         var changed = new List<string?>();
         companion.PropertyChanged += (_, e) => changed.Add(e.PropertyName);
         Assert.False(panel.HasPanelAction);
