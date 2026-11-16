@@ -89,7 +89,8 @@ Gibt der Gast Trinkgeld über die Kassa, zum Beispiel „100, stimmt so“ mit d
 - Sie können das Trinkgeld auch zuerst bei **Trinkgeld** eintragen. **Rest** rechnet es dann mit.
 - Bar: Bei **Bar gegeben** steht, was der Gast hinlegt. Das Rückgeld rechnet die Kassa nach Abzug des Trinkgelds.
 - Der Beleg nennt „Trinkgeld (kein Umsatz)“ bei den Zahlungen. Summe, Steuer und Erlöskonten bleiben ohne Trinkgeld.
-- Im Tagesabschluss steht unter den Zahlungsarten „davon Trinkgeld (kein Umsatz)“. Bares Trinkgeld liegt in der Lade, bis Sie es als Entnahme auszahlen ([Kassenlade](hilfe:kassa-tagesabschluss)).
+- Das Trinkgeld gilt der Person, die die Termine des Belegs behandelt hat. Stehen Termine mehrerer Personen oder nur Artikel auf dem Beleg, gilt es dem Team.
+- Im Tagesabschluss steht unter den Zahlungsarten „davon Trinkgeld (kein Umsatz)“, darunter je Person „Trinkgeld <Name>“ und „Trinkgeld Team“. So wissen Sie, wem Sie wie viel auszahlen. Bares Trinkgeld liegt in der Lade, bis Sie es als Entnahme auszahlen ([Kassenlade](hilfe:kassa-tagesabschluss)).
 - Die Buchhaltung führt das Trinkgeld auf einem eigenen Konto ([Trinkgeld für das Team](hilfe:buchhaltung#trinkgeld)).
 
 ## Nach dem Bezahlen {#nach-dem-bezahlen}

@@ -158,6 +158,53 @@ public sealed class TipTests(ApiFixture fixture)
         Assert.Equal("3790", (await spa.GetAsync<AccountingSettingsDto>("/api/accounting/settings", Ct)).TipsAccount);
     }
 
+    [Fact]
+    public async Task Trinkgeld_gilt_der_Person_die_behandelt_hat_sonst_dem_Team_und_steht_so_im_Tagesabschluss()
+    {
+        // Given ein Termin bei Anna mit 8,00 Trinkgeld und ein Artikelverkauf mit 2,00 Trinkgeld
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        var register = await CreateRegisterAsync(spa, FiscalCountry.AT);
+        var appointment = await spa.BookOkAsync(TestSpa.At(10), Ct, spa.Anna.Id);
+        await spa.SetStatusAsync(appointment.Id, AppointmentStatus.CheckedIn, Ct);
+        var treatmentBill = await spa.PostAsync<BillDto>("/api/pos/bills", new BillInput(register.Id, null, [appointment.Id]), Ct);
+        var treatment = await CheckoutAsync(spa, treatmentBill.Id, 8m, new PaymentInput(PaymentMethod.Card, treatmentBill.Open + 8m, null, null));
+        await CheckoutAsync(spa, (await BillAsync(spa, register, 20m)).Id, 2m, new PaymentInput(PaymentMethod.Cash, 22m, null, null));
+
+        // When der Tagesbericht gelesen wird
+        var report = await spa.GetAsync<DayClosingDto>($"/api/pos/registers/{register.Id}/day-report", Ct);
+
+        // Then steht das Trinkgeld je Person, das ohne Termin beim Team, das Team zuletzt
+        Assert.Equal(10m, report.Tips);
+        Assert.Equal(2, report.TipsByEmployee!.Count);
+        Assert.Equal((spa.Anna.Id, 8m), (report.TipsByEmployee[0].EmployeeId, report.TipsByEmployee[0].Amount));
+        Assert.False(string.IsNullOrWhiteSpace(report.TipsByEmployee[0].Name));
+        Assert.Equal(new TipTotal(null, "Team", 2m), report.TipsByEmployee[1]);
+
+        // And nach dem Storno des Terminbelegs bleibt nur das Trinkgeld des Teams
+        await spa.PostAsync<ReceiptDto>($"/api/pos/receipts/{treatment.Id}/void", new VoidRequest("Falscher Betrag"), Ct);
+        var after = await spa.GetAsync<DayClosingDto>($"/api/pos/registers/{register.Id}/day-report", Ct);
+        Assert.Equal(new TipTotal(null, "Team", 2m), Assert.Single(after.TipsByEmployee!));
+    }
+
+    [Fact]
+    public async Task Eine_genannte_Person_bekommt_das_Trinkgeld_und_eine_unbekannte_wird_abgelehnt()
+    {
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        var register = await CreateRegisterAsync(spa, FiscalCountry.AT);
+        var first = await BillAsync(spa, register, 20m);
+        var second = await BillAsync(spa, register, 20m);
+
+        var named = await spa.Client.PostAsJsonAsync($"/api/pos/bills/{first.Id}/checkout",
+            new CheckoutRequest(null, [new PaymentInput(PaymentMethod.Cash, 23m, null, null)], 3m, spa.Anna.Id), TestSpa.Json, Ct);
+        var unknown = await spa.Client.PostAsJsonAsync($"/api/pos/bills/{second.Id}/checkout",
+            new CheckoutRequest(null, [new PaymentInput(PaymentMethod.Cash, 23m, null, null)], 3m, Guid.NewGuid()), TestSpa.Json, Ct);
+
+        Assert.True(named.IsSuccessStatusCode, await named.Content.ReadAsStringAsync(Ct));
+        Assert.Equal(HttpStatusCode.BadRequest, unknown.StatusCode);
+        var report = await spa.GetAsync<DayClosingDto>($"/api/pos/registers/{register.Id}/day-report", Ct);
+        Assert.Equal((spa.Anna.Id, 3m), (Assert.Single(report.TipsByEmployee!).EmployeeId, report.TipsByEmployee![0].Amount));
+    }
+
     private static async Task<CashRegisterDto> CreateRegisterAsync(TestSpa spa, FiscalCountry country) =>
         await spa.PostAsync<CashRegisterDto>("/api/pos/registers",
             new CashRegisterInput(spa.Location.Id, $"T-{Guid.NewGuid():N}"[..14], country, "Test-Spa GmbH\nTeststraße 1, 1010 Wien\nATU12345678",

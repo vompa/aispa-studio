@@ -36,6 +36,12 @@ internal static class DayClosingDocument
         {
             pdf.KeyValues([("In den Zahlarten enthaltenes Trinkgeld für das Team (kein Umsatz)", DocumentBuilder.Money(closing.Tips))]);
         }
+
+        // Je Person, damit die Leitung das Trinkgeld auszahlen kann; alte Abschlüsse ohne die Liste zeigen nur die Summe.
+        if (closing.TipsByEmployee is { Count: > 0 } byEmployee)
+        {
+            pdf.KeyValues([.. byEmployee.Select(t => ($"Trinkgeld {t.Name}", DocumentBuilder.Money(t.Amount)))]);
+        }
         if (closing.Taxes.Count > 0)
         {
             pdf.Space();

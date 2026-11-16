@@ -150,6 +150,9 @@ public sealed class Receipt
     /// </summary>
     public decimal Tip { get; init; }
 
+    /// <summary>Wem das Trinkgeld gilt (ADR 0095): die Person, die behandelt hat; leer heißt Team.</summary>
+    public Guid? TipEmployeeId { get; init; }
+
     /// <summary>Nacherfassung (ADR 0096): Id, die die App dem Ersatzbeleg gegeben hat; macht das erneute Senden gefahrlos.</summary>
     public Guid? SubstituteId { get; init; }
 

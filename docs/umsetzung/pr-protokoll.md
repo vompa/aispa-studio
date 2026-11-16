@@ -6219,3 +6219,21 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Geprüft:** Tests zuerst geplant: `CustomerDisclosureTests` 8 von 8 grün (neu: alle vier Abschnitte mit Daten, alle vier ohne Daten); Hilfe-Tests im Web; `dotnet format` sauber, Release-Build ohne Warnungen.
 - **Nicht geprüft:** das PDF von Hand angesehen; die volle Suite läuft in der CI.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Kassa: Trinkgeld je Person, Schritt 3 (16.11.2026)
+
+- **Auftrag:** Offener Punkt aus [ADR 0095](../entscheidungen/0095-trinkgeld-an-der-kassa.md): Trinkgeld einer Person zuordnen.
+- **Was:**
+  - `Receipt.TipEmployeeId` (Migration `ReceiptTipEmployee`). Ohne Angabe ordnet die Kasse das Trinkgeld der Person zu, die alle Termine des Belegs behandelt hat; sonst gilt es dem Team. `CheckoutRequest.TipEmployeeId` nennt die Person ausdrücklich. Das gilt auch für nacherfasste Ersatzbelege.
+  - Tagesabschluss: `DayClosingDto.TipsByEmployee`; PDF und App zeigen je Person „Trinkgeld <Name>“ und zuletzt „Trinkgeld Team“.
+  - Hilfe `kassa-bezahlen#trinkgeld`.
+- **Detailentscheidungen:**
+  1. Automatik statt Auswahl: Die Rezeption muss nichts wählen, und der häufigste Fall (ein Termin, eine Person) stimmt von selbst.
+  2. Bei Terminen mehrerer Personen wird nicht geteilt; das Trinkgeld gilt dem Team, weil jede Aufteilung geraten wäre.
+  3. Ein Storno zieht das Trinkgeld bei derselben Person ab; wer danach bei 0 steht, fällt aus der Liste.
+  4. Eine genannte Person, die es nicht gibt, lehnt die Kasse ab.
+  5. Alte Tagesabschlüsse ohne die Liste zeigen weiter nur die Summe.
+- **Bewusst offen / später:** Person beim Bezahlen in der App wählen; Auswertung über einen Zeitraum; Auszahlung über die Lohnabrechnung.
+- **Geprüft:** Tests zuerst geplant: `TipTests` 9 von 9 grün (neu: je Person und Team mit Storno, genannte und unbekannte Person); `PosTests` 39, `DayClosingPdfTests` 4, `SubstituteReceiptTests` 8, Desktop `PosTests` 48 grün; `npm run gen:api`, `dotnet format` sauber, Release-Build ohne Warnungen.
+- **Nicht geprüft:** das PDF des Tagesabschlusses von Hand angesehen; die laufende App; die volle Suite läuft in der CI.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
