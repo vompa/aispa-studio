@@ -6615,6 +6615,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/stock/orders/{purchaseOrderId}/delivery-note-scan": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Liest ein Foto des Lieferscheins (JPEG, PNG oder WebP bis 5 MB) und schlägt je offener Position Menge, Charge und Ablaufdatum vor. Bucht nichts und speichert das Foto nicht; gebucht wird über „DeliverPurchaseOrder“. Ohne eingerichtete KI kommt ein leerer Vorschlag mit Hinweis. */
+        post: operations["ScanDeliveryNote"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/stock/orders/{purchaseOrderId}/text": {
         parameters: {
             query?: never;
@@ -10068,6 +10085,24 @@ export interface components {
             shifts: components["schemas"]["ShiftDto"][];
             cards: components["schemas"]["TreatmentCard"][];
             hints: string[];
+        };
+        DeliveryNoteLineSuggestion: {
+            /** Format: uuid */
+            lineId: string;
+            /** Format: double */
+            quantity: number;
+            batch: null | string;
+            /** Format: date */
+            expiresOn: null | string;
+            uncertain: boolean;
+            reason: null | string;
+        };
+        DeliveryNoteSuggestion: {
+            read: boolean;
+            deliveryNote: null | string;
+            lines: components["schemas"]["DeliveryNoteLineSuggestion"][];
+            unmatched: string[];
+            note: null | string;
         };
         DepExport: {
             "Belege-Gruppe": components["schemas"]["DepGroup"][];
@@ -32066,6 +32101,59 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PurchaseOrderDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ScanDeliveryNote: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                purchaseOrderId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    file: components["schemas"]["IFormFile"];
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeliveryNoteSuggestion"];
                 };
             };
             /** @description Bad Request */

@@ -75,3 +75,16 @@ public sealed record PurchaseOrderDeliveryLineInput(Guid LineId, decimal Quantit
 
 /// <summary>Lieferung zu einer Bestellung; <c>DeliveryNote</c> ist die Nummer des Lieferscheins und steht als Grund an den Bewegungen.</summary>
 public sealed record PurchaseOrderDeliveryInput(IReadOnlyList<PurchaseOrderDeliveryLineInput> Lines, string? DeliveryNote = null);
+
+/// <summary>
+/// Eine vom Lieferschein-Foto gelesene Position als Vorschlag für <see cref="PurchaseOrderDeliveryLineInput"/>. <c>Uncertain</c>: bitte prüfen
+/// (unsicher gelesen oder mehr als noch offen), <c>Reason</c> sagt warum.
+/// </summary>
+public sealed record DeliveryNoteLineSuggestion(Guid LineId, decimal Quantity, string? Batch, DateOnly? ExpiresOn, bool Uncertain, string? Reason);
+
+/// <summary>
+/// Vorschlag aus einem fotografierten Lieferschein zu einer Bestellung. Er bucht nichts: Die Maske füllt damit die Felder von „Lieferung buchen“ vor,
+/// ein Mensch prüft und bestätigt. <c>Read</c> ist <c>false</c>, wenn nichts gelesen wurde (keine KI eingerichtet oder Foto unlesbar); <c>Note</c> sagt dann warum.
+/// <c>Unmatched</c>: Zeilen des Lieferscheins, die zu keiner offenen Position passen. Das Foto wird nicht gespeichert.
+/// </summary>
+public sealed record DeliveryNoteSuggestion(bool Read, string? DeliveryNote, IReadOnlyList<DeliveryNoteLineSuggestion> Lines, IReadOnlyList<string> Unmatched, string? Note);
