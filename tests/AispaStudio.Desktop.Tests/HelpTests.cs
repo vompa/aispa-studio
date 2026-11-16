@@ -306,6 +306,7 @@ public sealed partial class HelpTests
         public int GetHashCode(HelpMeta obj) => obj.Kind.GetHashCode();
     }
 
-    [GeneratedRegex("<ui:HelpButton\\s+Topic=\"([^\"]+)\"(?:\\s+Section=\"([^\"]+)\")?")]
+    // Nur feste Themen: ein gebundenes Thema ({Binding HelpTopic}) steht im ViewModel und lässt sich aus der AXAML-Datei nicht auflösen
+    [GeneratedRegex("<ui:HelpButton\\s+Topic=\"([^\"{][^\"]*)\"(?:\\s+Section=\"([^\"]+)\")?")]
     private static partial Regex HelpLink();
 }

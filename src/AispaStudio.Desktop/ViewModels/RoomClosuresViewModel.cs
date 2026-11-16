@@ -57,8 +57,6 @@ public sealed partial class RoomClosuresViewModel : PeriodAreaViewModel
 
     protected override string EmptyCurrentText => "Es ist kein Raum gesperrt.";
 
-    protected override string EmptyEndedText => "Keine beendete Raumsperre.";
-
     protected override string SaveFailedText => "Die Raumsperre konnte nicht gespeichert werden. Bitte die markierten Felder prüfen.";
 
     protected override string FirstField => RoomField;
@@ -173,13 +171,13 @@ public sealed partial class RoomClosuresViewModel : PeriodAreaViewModel
         return RoomError is not null ? RoomField : ReasonError is not null ? ReasonField : null;
     }
 
-    protected override async Task<(Guid? Id, PeriodTab Tab, string? Error)> SendAsync(Guid locationId, Guid? id, PeriodValue period)
+    protected override async Task<(Guid? Id, string? Error)> SendAsync(Guid locationId, Guid? id, PeriodValue period)
     {
         var body = new RoomClosureInput(SelectedRoom!.Id, period.From, period.FromTime, period.Until, period.UntilTime, Kind, Trimmed(Reason));
         var result = id is { } existing
             ? await Api.PutAsync<RoomClosureDto>($"api/locations/{locationId}/room-closures/{existing}", body).ConfigureAwait(true)
             : await Api.PostAsync<RoomClosureDto>($"api/locations/{locationId}/room-closures", body).ConfigureAwait(true);
-        return result.Value is { } saved ? (saved.Id, TabOf(saved.Phase), null) : (null, PeriodTab.Current, result.Error);
+        return result.Value is { } saved ? (saved.Id, null) : (null, result.Error);
     }
 
     protected override async Task<string?> DeleteItemAsync(Guid locationId, Guid id)

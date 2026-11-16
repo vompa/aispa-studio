@@ -42,9 +42,10 @@ public sealed partial class ViewTests
         return shell;
     }
 
-    private static async Task TypeInto(Window window, string field, string text)
+    private static Task TypeInto(Window window, string field, string text) => TypeInto(window, Named<TextBox>(window, field), text);
+
+    private static async Task TypeInto(Window window, TextBox box, string text)
     {
-        var box = Named<TextBox>(window, field);
         box.BringIntoView();
         await Pump(Settling);
         ClickCenter(window, box);
@@ -68,6 +69,26 @@ public sealed partial class ViewTests
         return shell.AdminPage;
     });
 
+    [Theory]
+    [InlineData("hell")]
+    [InlineData("dunkel")]
+    public Task Verwaltung_Firmendaten_Verlauf(string theme) => Render(theme, "verwaltung-firmendaten-verlauf", async (window, main) =>
+    {
+        // ADR 0098: „Verlauf“ im Kopf öffnet die Seitenleiste rechts neben dem Formular; der Abschnitt darin ist aufgeklappt und geladen.
+        var shell = await OpenAdminPage(window, main);
+        ClickCenter(window, Named<Button>(window, "HistoryButton"));
+        await Pump(Settling);
+        await Pump(Settling);
+
+        var panel = Named<HistoryPanel>(window, "CompanyHistoryPanel");
+        Assert.True(panel.IsEffectivelyVisible);
+        Assert.Equal("Firmendaten", panel.Subtitle);
+        Assert.True(shell.AdminPage.Company!.History.IsOpen);
+        Assert.Contains(panel.GetVisualDescendants().OfType<TextBlock>(), t => t.IsEffectivelyVisible && t.Text == "Geändert von Katrin Aigner: Name Day-Spa Wien → Day-Spa am Ring");
+        Assert.True(Named<TextBox>(window, "NameField").IsEffectivelyVisible);
+        return shell.AdminPage;
+    });
+
     [Fact]
     public Task Given_Inhaberin_aendert_den_Firmennamen_When_Strg_S_Then_gespeichert_und_der_Verlauf_zeigt_die_Aenderung()
     {
@@ -87,12 +108,27 @@ public sealed partial class ViewTests
             Assert.False(company.HasUnsavedChanges);
             Assert.True(Shows(window, "Gespeichert."));
 
-            var history = Named<Control>(window, "HistoryHeader");
-            history.BringIntoView();
+            // ADR 0098: Der Verlauf ist eine Seitenleiste, die „Verlauf“ im Kopf öffnet; im Formular steht kein Abschnitt „Verlauf“ mehr.
+            var panel = Named<HistoryPanel>(window, "CompanyHistoryPanel");
+            Assert.False(panel.IsEffectivelyVisible);
+            Assert.Empty(Named<ScrollViewer>(window, "FieldsScroll").GetVisualDescendants().OfType<AccordionHeader>());
+            var button = Named<Button>(window, "HistoryButton");
+            button.BringIntoView();
             await Pump(Settling);
-            ClickCenter(window, history);
+            ClickCenter(window, button);
             await Pump(Settling);
-            Assert.True(Shows(window, "Name Day-Spa Wien → Day-Spa am Ring"));
+            Assert.True(company.IsHistoryOpen);
+            Assert.True(panel.IsEffectivelyVisible);
+            Assert.Equal(360, panel.Bounds.Width, 0.5);
+            Assert.True(LeftOf(window, panel) >= LeftOf(window, Named<TextBox>(window, "NameField")) + Named<TextBox>(window, "NameField").Bounds.Width);
+            Assert.Contains(panel.GetVisualDescendants().OfType<TextBlock>(), t => t.IsEffectivelyVisible && t.Text?.Contains("Name Day-Spa Wien → Day-Spa am Ring", StringComparison.Ordinal) == true);
+
+            // Esc schließt die Leiste, und der Fokus steht wieder auf „Verlauf“.
+            Press(window, PhysicalKey.Escape, RawInputModifiers.None);
+            await Pump(Settling);
+            Assert.False(company.IsHistoryOpen);
+            Assert.False(panel.IsEffectivelyVisible);
+            Assert.Same(button, Focused(window));
             return shell.AdminPage;
         }, api);
     }

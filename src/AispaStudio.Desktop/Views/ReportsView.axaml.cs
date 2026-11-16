@@ -18,16 +18,19 @@ public partial class ReportsView : FocusRequestView
         };
     }
 
-    /// <summary>
-    /// Ein Sprung auf einen Abschnitt von „Berichte“ (ADR 0098) rollt an dessen Anfang. <c>BringIntoView</c> rollt nur so weit wie nötig und ließe bei einem Abschnitt, der höher
-    /// ist als der sichtbare Bereich, den Kopf über dem Rand stehen.
-    /// </summary>
+    /// <summary>Ein Sprung auf „Berichte“ aus einer anderen Seite verlangt den Abschnitt, bevor es die Ansicht gibt; er gilt beim Einhängen.</summary>
+    protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        base.OnAttachedToVisualTree(e);
+        FocusRequested();
+    }
+
+    /// <summary>Ein Sprung auf einen Abschnitt von „Berichte“ (ADR 0098) rollt an dessen Anfang.</summary>
     protected override void Reveal(Control control)
     {
-        if ((control == ReportManagementSection || control == ReportComplianceSection) && FormScroll.Content is Visual content
-            && control.TranslatePoint(default, content) is { } top)
+        if (control == ReportManagementSection || control == ReportComplianceSection)
         {
-            FormScroll.Offset = new Vector(FormScroll.Offset.X, top.Y);
+            _ = ScrollToStartAsync(FormScroll, control);
             return;
         }
 

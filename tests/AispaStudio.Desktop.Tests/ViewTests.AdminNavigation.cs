@@ -62,7 +62,7 @@ public sealed partial class ViewTests
             var tabs = Named<OverflowStrip>(window, "AreaStrip");
             ClickCenter(window, StripEntry(tabs, "Schließzeiten"));
             await Pump(Settling);
-            Assert.Same(shell.AdminPage.Closures, shell.AdminPage.Content);
+            Assert.Same(shell.AdminPage.ClosuresPage, shell.AdminPage.Content);
 
             ClickCenter(window, StripEntry(GroupStrip(window), "Lager"));
             await Pump(Settling);
@@ -71,7 +71,7 @@ public sealed partial class ViewTests
 
             ClickCenter(window, StripEntry(GroupStrip(window), "Betrieb"));
             await Pump(Settling);
-            Assert.Same(shell.AdminPage.Closures, shell.AdminPage.Content);
+            Assert.Same(shell.AdminPage.ClosuresPage, shell.AdminPage.Content);
             Assert.True(tabs.IsEffectivelyVisible);
             Assert.True(StripEntry(tabs, "Schließzeiten").IsSelected);
             return shell.AdminPage;

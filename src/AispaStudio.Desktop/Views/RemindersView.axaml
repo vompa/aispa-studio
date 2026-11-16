@@ -11,12 +11,14 @@
   -->
   <Grid RowDefinitions="*,Auto">
     <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
-      <StackPanel Spacing="20" MaxWidth="720" HorizontalAlignment="Left" Margin="0,0,16,16">
+      <StackPanel Spacing="20" Margin="0,0,16,16">
         <ui:InfoBar Severity="Error" Title="Erinnerungen nicht geladen" Message="{Binding LoadError}" IsVisible="{Binding HasLoadError}"
-                    ActionText="Erneut laden" ActionCommand="{Binding LoadCommand}" />
+                    ActionText="Erneut laden" ActionCommand="{Binding LoadCommand}" MaxWidth="720" HorizontalAlignment="Left" />
         <TextBlock Text="Lade Einstellungen …" Classes="muted" IsVisible="{Binding !IsLoaded}" />
 
-        <StackPanel Spacing="20" IsVisible="{Binding IsLoaded}">
+        <!-- Einstellungen links (höchstens 720), „Zuletzt verschickt“ als Nebeninhalt rechts im Verhältnis 3 : 2; unter 720 Breite untereinander (masken.md R14) -->
+        <ui:MainSideColumns x:Name="ReminderColumns" Spacing="32" LineSpacing="20" StackBelow="720" MaxWidth="1232" HorizontalAlignment="Left" IsVisible="{Binding IsLoaded}">
+         <StackPanel Spacing="20" MaxWidth="720" HorizontalAlignment="Left">
           <!-- Terminerinnerungen -->
           <StackPanel Spacing="8">
             <Grid ColumnDefinitions="*,Auto">
@@ -82,8 +84,10 @@
             </ItemsControl>
           </StackPanel>
 
+         </StackPanel>
+
           <!-- Zuletzt verschickt -->
-          <StackPanel Spacing="8" IsVisible="{Binding HasRecent}">
+          <StackPanel x:Name="RecentSection" Spacing="8" IsVisible="{Binding HasRecent}">
             <Grid ColumnDefinitions="*,Auto">
               <TextBlock Text="Zuletzt verschickt" Classes="h2" VerticalAlignment="Center" />
               <ui:HelpButton Grid.Column="1" Topic="erinnerungen" Section="zuletzt-verschickt" />
@@ -99,7 +103,7 @@
               </ItemsControl.ItemTemplate>
             </ItemsControl>
           </StackPanel>
-        </StackPanel>
+        </ui:MainSideColumns>
       </StackPanel>
     </ScrollViewer>
 

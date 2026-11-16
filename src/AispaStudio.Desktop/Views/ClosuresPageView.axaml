@@ -1,0 +1,20 @@
+<views:FocusRequestView xmlns="https://github.com/avaloniaui"
+                        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                        xmlns:views="using:AispaStudio.Desktop.Views"
+                        xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+                        x:Class="AispaStudio.Desktop.Views.ClosuresPageView"
+                        x:DataType="vm:ClosuresPageViewModel">
+  <!--
+    Seite „Schließzeiten“ (ADR 0098, masken.md R15): die Schließzeiten des Standorts und darunter die Raumsperren als zwei Abschnitte auf einer Seite, getrennt durch eine Linie
+    mit je 20 px. Jeder Abschnitt ist die bisherige Maske mit Kopf, Liste und Formular; die Seite rollt als Ganzes. Ein Sprung auf „Raumsperren“ rollt an den Anfang des Abschnitts.
+  -->
+  <ScrollViewer x:Name="PageScroll" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+    <!-- 16 rechts: Kopf und Linie enden vor dem Rollbalken der Seite -->
+    <StackPanel Spacing="20" Margin="0,0,16,0">
+      <views:ClosuresView x:Name="ClosuresSection" DataContext="{Binding Closures}" />
+      <Border x:Name="RoomClosuresSection" Classes="section" Padding="0,20,0,0">
+        <views:RoomClosuresView DataContext="{Binding RoomClosures}" />
+      </Border>
+    </StackPanel>
+  </ScrollViewer>
+</views:FocusRequestView>

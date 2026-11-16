@@ -7,7 +7,7 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace AispaStudio.Desktop.ViewModels;
 
-/// <summary>Reiter der Liste: aktuelle (aktiv und geplant) und beendete Einträge.</summary>
+/// <summary>Stand eines Eintrags der Liste: aktuell (aktiv oder geplant) oder beendet. Beendete zeigt die Liste nur mit „Beendete zeigen“.</summary>
 public enum PeriodTab
 {
     Current,
@@ -17,8 +17,11 @@ public enum PeriodTab
 /// <summary>Eine Zeile der Liste: Art (bei Raumsperren mit Raum), Zeitraum und eine Nebenzeile (offene Termine, Grund oder Text).</summary>
 public sealed record PeriodRow(Guid Id, PeriodTab Tab, string Title, string Period, string Detail)
 {
+    /// <summary>Beendete Einträge tragen in der Liste das Wort „Beendet“, weil sie neben den aktuellen stehen.</summary>
+    public bool IsEnded => Tab == PeriodTab.Ended;
+
     /// <summary>Alles in einer Zeile für Screenreader; sonst läse die Liste den Typnamen.</summary>
-    public string Name => $"{Title}, {Period}, {Detail}";
+    public string Name => IsEnded ? $"{Title}, beendet, {Period}, {Detail}" : $"{Title}, {Period}, {Detail}";
 }
 
 /// <summary>Eine Art in der Auswahl (Optionsfelder): ein Wert des Aufzählungstyps der Maske, seine Beschriftung und ob er gerade gewählt ist.</summary>
@@ -45,9 +48,10 @@ public sealed class KindOption(object value, string label, Func<object> current,
 }
 
 /// <summary>
-/// Gemeinsame Grundlage der Masken „Schließzeiten“ und „Raumsperren“ (R05 Slice 95, <c>ClosuresPage.tsx</c> und <c>RoomClosuresPage.tsx</c>): Standort wählen, Liste mit den Reitern
-/// „Aktuell“ und „Beendet“, daneben das Formular des gewählten Eintrags oder eines neuen (Zeitraum in <see cref="Period"/>, Art und Texte in der Maske), Speichern mit Strg+S, Verwerfen und
-/// Löschen mit Rückfrage. Wer mit ungespeicherten Änderungen die Zeile, den Standort, den Reiter oder die Seite wechselt, wird gefragt (<see cref="UnsavedChanges"/>). Prüfen und Speichern
+/// Gemeinsame Grundlage der Masken „Schließzeiten“ und „Raumsperren“ (R05 Slice 95, <c>ClosuresPage.tsx</c> und <c>RoomClosuresPage.tsx</c>): Standort wählen, Liste der aktuellen
+/// Einträge, mit „Beendete zeigen“ auch der beendeten (ADR 0098: ein Kontrollkästchen statt der Reiter „Aktuell“ und „Beendet“), daneben das Formular des gewählten Eintrags oder eines
+/// neuen (Zeitraum in <see cref="Period"/>, Art und Texte in der Maske), Speichern mit Strg+S, Verwerfen und Löschen mit Rückfrage. Wer mit ungespeicherten Änderungen die Zeile, den
+/// Standort oder die Seite wechselt oder den offenen beendeten Eintrag ausblendet, wird gefragt (<see cref="UnsavedChanges"/>). Prüfen und Speichern
 /// macht die API; vorab prüft die Maske die Regeln des Servers, damit der Fehler am Feld steht. Sprungziele aus Kalender und Assistent (<see cref="Open(AdminTarget)"/>) wählen Standort und legen bei
 /// einem Zeitraum oder Raum ein neues Formular an.
 /// </summary>
@@ -83,7 +87,7 @@ public abstract partial class PeriodAreaViewModel : ViewModelBase, IEditableArea
     /// <summary>Die Standorte; die Auswahl erscheint nur bei mehreren.</summary>
     public ObservableCollection<LocationChoice> Locations { get; } = [];
 
-    /// <summary>Die Einträge des Reiters.</summary>
+    /// <summary>Die Einträge der Liste: die aktuellen, mit <see cref="ShowEnded"/> danach die beendeten.</summary>
     public ObservableCollection<PeriodRow> Rows { get; } = [];
 
     /// <summary>Die Maske wurde gespeichert, gelöscht oder hat Termine abgesagt; die Leiste „KI und Hilfe“ bietet dann an, eine Frage zu wiederholen.</summary>
@@ -93,18 +97,13 @@ public abstract partial class PeriodAreaViewModel : ViewModelBase, IEditableArea
 
     public bool HasNoLocation => IsLoaded && Locations.Count == 0;
 
-    public bool IsCurrentTab => Tab == PeriodTab.Current;
+    /// <summary>Beschriftung des Kontrollkästchens; sie nennt die Zahl der beendeten Einträge, damit man sieht, ob etwas ausgeblendet ist: „Beendete zeigen (2)“.</summary>
+    public string ShowEndedLabel => EndedCount > 0 ? $"Beendete zeigen ({EndedCount})" : "Beendete zeigen";
 
-    public bool IsEndedTab => Tab == PeriodTab.Ended;
+    /// <summary>Name der Liste für Screenreader: „Schließzeiten: aktuelle“ bzw. „Schließzeiten: aktuelle und beendete“.</summary>
+    public string ListLabel => $"{Title}: {(ShowEnded ? "aktuelle und beendete" : "aktuelle")}";
 
-    public string CurrentTabLabel => Label("Aktuell", PeriodTab.Current);
-
-    public string EndedTabLabel => Label("Beendet", PeriodTab.Ended);
-
-    /// <summary>Name der Liste für Screenreader: „Schließzeiten: Aktuell“.</summary>
-    public string ListLabel => $"{Title}: {(IsEndedTab ? "Beendet" : "Aktuell")}";
-
-    public string EmptyText => IsEndedTab ? EmptyEndedText : EmptyCurrentText;
+    public string EmptyText => EmptyCurrentText;
 
     public bool ShowEmpty => IsLoaded && Rows.Count == 0;
 
@@ -134,7 +133,7 @@ public abstract partial class PeriodAreaViewModel : ViewModelBase, IEditableArea
     /// <summary>„Neue Schließzeit“: Beschriftung des Knopfes und Überschrift des neuen Formulars.</summary>
     public abstract string NewText { get; }
 
-    /// <summary>Satz neben den Reitern, was die Sperre bewirkt.</summary>
+    /// <summary>Satz im Kopf, was die Sperre bewirkt.</summary>
     public abstract string HintText { get; }
 
     public abstract string HelpTopic { get; }
@@ -149,8 +148,6 @@ public abstract partial class PeriodAreaViewModel : ViewModelBase, IEditableArea
     public abstract string NoLocationText { get; }
 
     protected abstract string EmptyCurrentText { get; }
-
-    protected abstract string EmptyEndedText { get; }
 
     protected abstract string SaveFailedText { get; }
 
@@ -167,9 +164,10 @@ public abstract partial class PeriodAreaViewModel : ViewModelBase, IEditableArea
     [NotifyPropertyChangedFor(nameof(HasLoadError))]
     public partial string? LoadError { get; private set; }
 
+    /// <summary>„Beendete zeigen“ (ADR 0098, masken.md R15): Die Liste zeigt zusätzlich die beendeten Einträge, wie „Ausgeschiedene zeigen“ im Team.</summary>
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsCurrentTab), nameof(IsEndedTab), nameof(EmptyText), nameof(ListLabel))]
-    public partial PeriodTab Tab { get; private set; }
+    [NotifyPropertyChangedFor(nameof(ListLabel))]
+    public partial bool ShowEnded { get; set; }
 
     [ObservableProperty]
     public partial PeriodRow? SelectedRow { get; set; }
@@ -261,7 +259,7 @@ public abstract partial class PeriodAreaViewModel : ViewModelBase, IEditableArea
     /// <summary>Prüft die übrigen Felder; liefert die Kennung des ersten fehlerhaften Felds oder nichts.</summary>
     protected abstract string? ValidateFields();
 
-    protected abstract Task<(Guid? Id, PeriodTab Tab, string? Error)> SendAsync(Guid locationId, Guid? id, PeriodValue period);
+    protected abstract Task<(Guid? Id, string? Error)> SendAsync(Guid locationId, Guid? id, PeriodValue period);
 
     protected abstract Task<string?> DeleteItemAsync(Guid locationId, Guid id);
 
@@ -325,14 +323,14 @@ public abstract partial class PeriodAreaViewModel : ViewModelBase, IEditableArea
         OnPropertyChanged(nameof(HasUnsavedChanges));
     }
 
-    /// <summary>Lädt die Liste des Standorts neu und behält danach den Eintrag mit der Kennung (oder den ersten des Reiters).</summary>
+    /// <summary>Lädt die Liste des Standorts neu und behält danach den Eintrag mit der Kennung (oder den ersten der Liste); ist er beendet, zeigt die Liste die beendeten.</summary>
     protected async Task ReloadAsync(Guid? keep = null)
     {
         await LoadItemsAsync().ConfigureAwait(true);
         var row = keep is { } id ? _all.FirstOrDefault(r => r.Id == id) : null;
-        if (row is not null)
+        if (row is { IsEnded: true })
         {
-            Tab = row.Tab;
+            SetShowEnded(true);
         }
 
         RefreshRows();
@@ -481,7 +479,7 @@ public abstract partial class PeriodAreaViewModel : ViewModelBase, IEditableArea
         try
         {
             Rows.Clear();
-            foreach (var row in _all.Where(r => r.Tab == Tab))
+            foreach (var row in _all.Where(r => ShowEnded || !r.IsEnded).OrderBy(r => r.IsEnded))
             {
                 Rows.Add(row);
             }
@@ -491,12 +489,80 @@ public abstract partial class PeriodAreaViewModel : ViewModelBase, IEditableArea
             _switching = false;
         }
 
-        OnPropertyChanged(nameof(CurrentTabLabel));
-        OnPropertyChanged(nameof(EndedTabLabel));
+        OnPropertyChanged(nameof(ShowEndedLabel));
         OnPropertyChanged(nameof(ShowEmpty));
     }
 
-    private string Label(string name, PeriodTab tab) => IsLoaded ? $"{name} ({_all.Count(r => r.Tab == tab)})" : name;
+    private int EndedCount => _all.Count(r => r.IsEnded);
+
+    /// <summary>Setzt „Beendete zeigen“, ohne dass es als Klick der Person gilt (kein Neuaufbau, keine Rückfrage).</summary>
+    private void SetShowEnded(bool value)
+    {
+        _switching = true;
+        try
+        {
+            ShowEnded = value;
+        }
+        finally
+        {
+            _switching = false;
+        }
+    }
+
+    partial void OnShowEndedChanged(bool value)
+    {
+        if (_reverting || _switching)
+        {
+            return;
+        }
+
+        if (!value && HasUnsavedChanges && _all.Any(r => r.Id == CurrentId && r.IsEnded))
+        {
+            // Der offene Eintrag verschwände mit seinen Änderungen aus der Liste: erst fragen, das Kästchen bleibt bis zur Antwort an.
+            Revert(() => ShowEnded = true);
+            _ = LeaveEndedAsync();
+            return;
+        }
+
+        _ = ApplyShowEndedAsync();
+    }
+
+    private async Task LeaveEndedAsync()
+    {
+        if (await ConfirmLeaveAsync().ConfigureAwait(true))
+        {
+            SetShowEnded(false);
+            await ApplyShowEndedAsync().ConfigureAwait(true);
+        }
+    }
+
+    /// <summary>Baut die Liste neu auf. Der offene Eintrag und ein neues Formular bleiben samt Eingaben stehen; nur wenn der Eintrag nicht mehr in der Liste steht, folgt der erste.</summary>
+    private async Task ApplyShowEndedAsync()
+    {
+        Message = null;
+        RefreshRows();
+        if (IsCreating)
+        {
+            return;
+        }
+
+        if (Rows.FirstOrDefault(r => r.Id == CurrentId) is { } shown)
+        {
+            _switching = true;
+            try
+            {
+                SelectedRow = shown;
+            }
+            finally
+            {
+                _switching = false;
+            }
+        }
+        else
+        {
+            await SelectFirstOrNoneAsync().ConfigureAwait(true);
+        }
+    }
 
     // ---------- Auswahl ----------
 
@@ -721,25 +787,6 @@ public abstract partial class PeriodAreaViewModel : ViewModelBase, IEditableArea
         }
     }
 
-    [RelayCommand]
-    private Task ShowCurrentAsync() => ShowTabAsync(PeriodTab.Current);
-
-    [RelayCommand]
-    private Task ShowEndedAsync() => ShowTabAsync(PeriodTab.Ended);
-
-    private async Task ShowTabAsync(PeriodTab tab)
-    {
-        if (Tab == tab || !await ConfirmLeaveAsync().ConfigureAwait(true))
-        {
-            return;
-        }
-
-        Tab = tab;
-        Message = null;
-        RefreshRows();
-        await SelectFirstOrNoneAsync().ConfigureAwait(true);
-    }
-
     private bool CanSave => !IsSaving && IsLoaded && HasForm;
 
     [RelayCommand(CanExecute = nameof(CanSave))]
@@ -763,7 +810,7 @@ public abstract partial class PeriodAreaViewModel : ViewModelBase, IEditableArea
         }
 
         IsSaving = true;
-        var (id, tab, error) = await SendAsync(locationId, CurrentId, period).ConfigureAwait(true);
+        var (id, error) = await SendAsync(locationId, CurrentId, period).ConfigureAwait(true);
         IsSaving = false;
         if (id is not { } savedId)
         {
@@ -771,7 +818,6 @@ public abstract partial class PeriodAreaViewModel : ViewModelBase, IEditableArea
             return false;
         }
 
-        Tab = tab;
         await ReloadAsync(savedId).ConfigureAwait(true);
         StatusText = "Gespeichert.";
         Saved?.Invoke();

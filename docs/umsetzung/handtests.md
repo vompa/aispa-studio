@@ -1153,3 +1153,41 @@ Expected: Die fünf Reiter stehen in einer Zeile; der Standort rutscht rechtsbü
 Expected: Den Reiter „Berichte“ gibt es nicht.
 Closes: –
 Result: ☐
+
+### T-064 – Betrieb: Schließzeiten und Raumsperren auf einer Seite, „Beendete zeigen“
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Inhaberin anmelden, **Verwaltung** › **Betrieb** öffnen
+1. Die Reiter unter dem Balken ansehen.
+Expected: Fünf Reiter in einer Zeile: Firmendaten, Standorte & Räume, Schließzeiten, Kalender-Abos, Handbuch. „Raumsperren“ gibt es nicht mehr als Reiter.
+2. **Schließzeiten** wählen und nach unten rollen.
+Expected: Oben steht der Abschnitt „Schließzeiten“ mit Liste und Formular, darunter nach einer Linie der Abschnitt „Raumsperren“ mit eigener Liste, eigenem Formular und **Neue Raumsperre**.
+3. Über der Liste der Schließzeiten **Beendete zeigen** anhaken.
+Expected: Die beendeten Schließzeiten stehen unter den aktuellen, rechts mit dem Wort „Beendet“; die gewählte Schließzeit bleibt gewählt. Die Zahl am Kontrollkästchen nennt die beendeten.
+4. Eine beendete Schließzeit wählen, den **Grund für das Team** ändern und den Haken bei **Beendete zeigen** entfernen.
+Expected: Die Rückfrage „Änderungen speichern?“ erscheint. Nach **Abbrechen** bleibt der Haken, der Eintrag und die Änderung.
+5. Die Änderung verwerfen und den Haken entfernen.
+Expected: Die Liste zeigt nur die aktuellen Schließzeiten, die erste ist gewählt.
+6. In den **Kalender** wechseln, in der Raumansicht mit der rechten Maustaste auf den Kopf eines Raums klicken und **Raum sperren …** wählen.
+Expected: Die Seite „Schließzeiten“ ist offen und zum Abschnitt „Raumsperren“ gerollt; ein neues Formular mit dem Raum steht da, der Cursor im ersten Feld.
+7. Zeitraum eintragen und **Strg+S** drücken.
+Expected: „Gespeichert.“ erscheint im Abschnitt „Raumsperren“; die Schließzeiten darüber bleiben unverändert.
+Closes: –
+Result: ☐
+
+### T-064 – Firmendaten: Verlauf als Seitenleiste; Listen, Erinnerungen und Warnungen
+Start: Windows-App, als Inhaberin anmelden, **Verwaltung** › **Betrieb** › **Firmendaten** öffnen
+1. Oben rechts neben „Firmendaten“ auf **Verlauf** klicken.
+Expected: Rechts öffnet die Seitenleiste „Verlauf“ mit dem Untertitel „Firmendaten“ und den Änderungen, die neueste oben. Am Ende des Formulars steht kein Abschnitt „Verlauf“ mehr.
+2. **Esc** drücken.
+Expected: Die Seitenleiste schließt, der Fokus steht wieder auf **Verlauf**.
+3. Nacheinander **Standorte & Räume**, **Schließzeiten**, **Kalender-Abos** und **Handbuch** öffnen.
+Expected: Die Liste links ist in allen vier Masken gleich breit.
+4. **Kontakt** › **Erinnerungen** im breiten Fenster öffnen, danach das Fenster schmal ziehen.
+Expected: „Zuletzt verschickt“ steht rechts neben den Einstellungen, im schmalen Fenster darunter.
+5. **Kassa & Geld** › **Zahlungen** mit hinterlegtem Testschlüssel (`sk_test_…`) öffnen.
+Expected: Die Warnung „Testschlüssel hinterlegt“ steht oben unter dem Stand des Kontos, vor der Wahl der Zahlungsart.
+6. **Kassa & Geld** › **Kosten** öffnen, wenn bei einer Behandlung das Material fehlt.
+Expected: Über der Tabelle steht ein Hinweis, wie vielen Behandlungen Angaben fehlen; die Zeile der Behandlung nennt weiter, was fehlt.
+7. **Kontakt** › **Postfach & Nummern** öffnen, nachdem ein Versand aus dem Postfach fehlgeschlagen ist.
+Expected: „Letzter Versand fehlgeschlagen: …“ steht oben beim Stand des letzten Abrufs.
+Closes: –
+Result: ☐

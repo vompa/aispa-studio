@@ -26,7 +26,7 @@ Verwalten dürfen Inhaber, Manager und Standortleitung (Recht „Standorte verwa
 ## Schließzeiten verwalten {#schliesszeiten}
 
 1. In der Windows-App **Verwaltung** › **Betrieb** › **Schließzeiten** öffnen. Gibt es mehrere Standorte, oben den **Standort** wählen. Aus dem Kalender führt der Chip **Geschlossen · Betriebsurlaub** in der Kopfzeile gleich hierher.
-2. Oben den Reiter **Aktuell** (aktiv und geplant) oder **Beendet** wählen. Die Zahl nennt, wie viele Schließzeiten dort stehen.
+2. Die Liste links zeigt die aktuellen Schließzeiten (aktiv und geplant). **Beendete zeigen** über der Liste blendet die beendeten dazu ein; die Zahl daneben nennt, wie viele es sind. Auf derselben Seite stehen darunter die [Raumsperren](hilfe:raumsperren).
 3. Links eine Schließzeit wählen oder auf **Neue Schließzeit** klicken, rechts die Maske ausfüllen und auf **Speichern** klicken (in der Windows-App auch **Strg+S**). Es erscheint „Gespeichert“.
 
 In der Windows-App gilt zusätzlich:

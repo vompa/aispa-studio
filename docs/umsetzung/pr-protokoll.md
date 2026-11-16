@@ -6324,3 +6324,40 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Nicht geprüft:** die laufende App mit echten Daten; Screenreader; die volle Suite läuft in der CI.
 - **Beim Schreiben festgestellt:** Der Kommentar an `ReportsViewModel.Strip` nennt noch „Alltag zuerst, Verwaltung dahinter (Ä353)“; die Reihenfolge der fünf Reiter ist unverändert.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Verwaltungsmasken modernisieren, Schritt Betrieb, Kassa & Geld und Kontakt (Aufgabe T-064, 16.11.2026)
+
+- **Auftrag:** [ADR 0098](../entscheidungen/0098-verwaltungsmasken-eine-schiene-uebersicht-seitenleiste.md): „Betrieb“ von sechs auf fünf Masken, „Beendete zeigen“ statt der Reiter „Aktuell“ und „Beendet“, der Verlauf der Firmendaten als Seitenleiste, dazu alle Masken der drei Gruppen gegen die Kurz-Checkliste in [masken.md](../gestaltung/masken.md).
+- **Was:**
+  - **Betrieb hat fünf Masken.** Die Seite „Schließzeiten“ (`ClosuresPageViewModel`, `ClosuresPageView`) zeigt die Schließzeiten und darunter die Raumsperren als zwei Abschnitte. Der Bereich „Raumsperren“ entfällt aus Balken und Reitern.
+  - **Sprungziel bleibt.** `masterData/roomClosures` öffnet die Seite „Schließzeiten“ und rollt zum Abschnitt „Raumsperren“; „Raum sperren …“ im Kalender legt dort wie bisher ein neues Formular mit dem Raum an.
+  - **„Beendete zeigen“** ist ein Kontrollkästchen über der Liste, in beiden Abschnitten. Beendete Einträge stehen nach den aktuellen und tragen das Wort „Beendet“.
+  - **Verlauf der Firmendaten:** Knopf „Verlauf“ im Kopf, Inhalt in der Seitenleiste `HistoryPanel`.
+  - **Listenbreite 260** (design.md 5.6) in Standorte & Räume (vorher 220), Schließzeiten, Raumsperren, Kalender-Abos und Handbuch (vorher 300).
+  - **Erinnerungen:** Einstellungen und „Zuletzt verschickt“ stehen 3 : 2 nebeneinander (`MainSideColumns`), unter 720 Breite untereinander.
+  - **Warnungen oben:** „Testschlüssel hinterlegt“ in Zahlungen, der Stand des letzten Versands in Postfach & Nummern, ein neuer Hinweis über der Tabelle in Kosten, wie vielen Behandlungen Angaben fehlen.
+  - Handbuch: `schliesszeiten`, `schliesszeiten-anlegen`, `raumsperren`, `raumsperren-termine-umbuchen`, `firmendaten`, `seite-masterdata`, `seite-verwaltung`, `erinnerungen`, `postfach`, `kosten`, `seite-costs`; die Bilder `verwaltung`, `verwaltung-erinnerungen`, `verwaltung-kosten` und `verwaltung-zahlungen` sind neu erzeugt und verkleinert.
+- **Detailentscheidungen:**
+  1. **Zwei Abschnitte statt einer gemeinsamen Liste.** Jeder Abschnitt ist die bisherige Maske mit eigener Liste, eigenem Formular, eigenem „Neu“ und eigenem Speichern; an der Bedienung ändert sich nur der Ort. Eine gemeinsame Liste hätte zwei verschiedene Dinge gemischt (der ganze Standort gegen einen Raum), „Neu“ hätte eine Wahl der Art gebraucht, und beim Wechsel zwischen den beiden Formularen wäre die Rückfrage zu ungespeicherten Änderungen neu zu bauen gewesen.
+  2. Der Abschnitt „Raumsperren“ steht unten, weil das Sprungziel aus dem Kalender ohnehin dorthin rollt und die Schließzeiten die Seite benennen.
+  3. Jeder Abschnitt hat einen Kopf in der Stufe „Titel“ mit dem Hilfe-Knopf daneben, der Erklärsatz steht darunter (design.md 5.9); vorher stand er neben den Reitern.
+  4. Das Kontrollkästchen steht über der Liste wie „Ausgeschiedene zeigen“ im Team, nicht im Kopf. Es nennt die Zahl der beendeten Einträge („Beendete zeigen (2)“), damit sichtbar bleibt, ob etwas ausgeblendet ist; die Zahl der aktuellen zeigt die Liste selbst.
+  5. Mit dem Haken stehen aktuelle und beendete Einträge in einer Liste (wie im Team). Der offene Eintrag und ein neues Formular bleiben beim Umschalten samt Eingaben stehen. Nur wer den Haken entfernt, während ein beendeter Eintrag mit ungespeicherten Änderungen offen ist, wird gefragt.
+  6. Nach dem Speichern eines beendeten Eintrags setzt die Maske den Haken selbst, damit der Eintrag in der Liste bleibt (vorher wechselte sie auf den Reiter „Beendet“).
+  7. Jeder Abschnitt behält seine eigene Wahl des Standorts. Eine gemeinsame Wahl hätte die Rückfrage beider Abschnitte verknüpft.
+  8. Die Rückfrage beim Verlassen der Seite nennt den Abschnitt mit den Änderungen („Raumsperren“), bei beiden beide.
+  9. Die Seite rollt als Ganzes; die inneren Rollbereiche der beiden Masken bleiben, haben aber nichts mehr zu rollen.
+  10. Der Knopf „Verlauf“ ist ein Ghost-Knopf mit Symbol und Text links vom Hilfe-Knopf. Beim Öffnen klappt der Abschnitt in der Leiste auf und lädt; steht er noch offen, lädt er neu.
+  11. Erinnerungen: Die Einstellungen bleiben höchstens 720 breit, die ganze Zeile damit höchstens 1232 (720 : 480 plus 32 Abstand).
+  12. Kosten: Der Hinweis oben zählt nur; was fehlt, steht weiter in der Zeile der Behandlung, weil es dorthin gehört.
+  13. „Wechsel des Kontos“ in Zahlungen bleibt direkt unter der Wahl der Zahlungsart. Die Warnung gehört zu dieser Wahl und steht schon im oberen Drittel.
+- **Checkliste, ohne Änderung:** Kassa (zwei Gruppen mit Zwischentitel, eine Spalte, Fuß fest), Buchhaltung (Gruppen mit Zwischentitel, Meldungen an der Gruppe), KI (zwei gleichrangige Gruppen), Handbuch und Kalender-Abos (bis auf die Listenbreite), Standorte & Räume (bis auf die Listenbreite). Diese Masken haben keinen Nebeninhalt neben dem Hauptinhalt und keine Warnung außerhalb des oberen Drittels.
+- **Bewusst offen / später:** Die Wahl des Standorts gibt es auf der Seite „Schließzeiten“ zweimal. Der fehlende Hinweis in der Zeile der Kosten ist roter Text (`small error`); design.md 5.9 sagt, Warnungen sind nie rot. „Zustand“ und „Widersprüche“ der Kalender-Abos stehen unter dem Formular und nicht 3 : 2 daneben.
+- **Geprüft:** Tests zuerst angepasst und geschrieben. `dotnet format --verify-no-changes` und `dotnet build -c Release` ohne Fehler. Desktop-Suite ohne Ansichtstests 2319 von 2320 im vollen Lauf; rot war nur `HelpTests.Jedes_Fragezeichen_…`, dessen Muster den gebundenen Hilfe-Knopf im neuen `PeriodHeader` als festes Thema las (vorher stand `Grid.Column` davor, und das Muster griff zufällig nicht). Das Muster lässt Bindungen jetzt aus, danach `HelpTests` 17 von 17. Ansichtstests in vier Prozessen 1316 von 1316, Hilfetexte im Web 61 von 61. Neu: `AdminClosuresTests` (Beendete zeigen, Rückfrage beim Abwählen, Speichern eines beendeten Eintrags), `AdminPageTests` (fünf Masken in Betrieb, keine Gruppe über fünf), `ViewTests.AdminChecklist` (Reiterzeile höchstens fünf und ohne Umbruch bei 1100 × 680 für Betrieb, Kassa & Geld und Kontakt, Erinnerungen 3 : 2 und gestapelt, Warnungen oben, Listenbreite), Sprungziel `roomClosures` rollt zum Abschnitt, Verlauf der Firmendaten öffnet die Leiste, Esc schließt sie und gibt den Fokus zurück. Bilder als Inhaberin angesehen: Schließzeiten hell und dunkel, Raumsperren dunkel, Firmendaten-Verlauf hell und dunkel, Erinnerungen hell und dunkel, Kosten hell und dunkel, Zahlungen hell.
+- **Nicht geprüft:** die laufende App mit echten Daten; Screenreader und hoher Kontrast; die volle Suite läuft in der CI.
+- **Beim Schreiben festgestellt:**
+  - `BringIntoView` richtet einen Abschnitt, der höher ist als der sichtbare Bereich, am unteren Rand aus. Seiten mit Abschnitten rollen deshalb selbst (`FocusRequestView.ScrollToStartAsync`); sie wiederholt das Rollen kurz, bis das Layout steht.
+  - `ListBox` holt die gewählte Zeile mit `AutoScrollToSelectedItem` ins Bild und rollt dabei den äußeren `ScrollViewer` der Seite mit (gemessen 521 px); in `PeriodList` ist das ausgeschaltet.
+  - Ein Sprung aus einer anderen Seite setzt das Ziel, bevor es die Ansicht gibt. `FocusRequestView` beachtet das nur für Ansichten, die es beim Einhängen abfragen (`FocusRequested`); die Abschnitte des Lagers tun das nicht.
+  - Die Liste der Betriebsinfo (Zahlen), der Aktionen (Angebot) und zwei Listen im Lager sind noch 300 breit.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
