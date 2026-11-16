@@ -6142,3 +6142,24 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
   - `PosSubstituteTests` 6, `MessageBarTests` 50, Hilfe-Tests im Web 61 grün; `dotnet format` sauber, Release-Build ohne Warnungen.
 - **Nicht geprüft:** die laufende App über 48 Stunden; die volle Suite läuft in der CI.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Kassa ohne Verbindung: Liste der offenen Ersatzbelege, Schritt 4 (16.11.2026)
+
+- **Auftrag:** „Mach weiter mit der Liste der offenen Ersatzbelege“ (Auftraggeber, 16.11.2026); offener Punkt aus [ADR 0096](../entscheidungen/0096-kassieren-ohne-verbindung-ersatzbeleg-und-nacherfassung.md).
+- **Was:**
+  - Unter **Belege** steht über den Belegen des Tages die Liste „Ersatzbelege, noch nicht nacherfasst (n)“ mit Nummer, Zeit, Betrag und Stand („wartet auf Nacherfassung“ oder „nicht übernommen: …“).
+  - Ein gewählter Ersatzbeleg steht rechts wie ein Beleg, mit **Drucken** für den Nachdruck; Storno und Rechnung mit Empfänger gibt es für ihn nicht.
+  - Ein abgelehnter Ersatzbeleg hat in der Zeile **Erneut senden**.
+  - Die Liste folgt der Warteschlange des lokalen Stands: Nach der Nacherfassung verschwindet der Eintrag von selbst.
+  - Hilfe `kassa-ersatzbeleg#liste` mit Bild `kassa-ersatzbelege.png`.
+- **Detailentscheidungen:**
+  1. Die Liste steht unter „Belege“, weil die Rezeption dort auch sonst einen Beleg sucht und nachdruckt.
+  2. Sie zeigt alle Ersatzbelege dieses Geräts, nicht nur die der gewählten Kasse; die Nummer nennt die Kasse.
+  3. Der Block erscheint nur, wenn es offene Ersatzbelege gibt.
+  4. Der Leertext der Belegliste verschwindet, solange rechts ein Ersatzbeleg steht.
+- **Bewusst offen / später:** Ersatzbelege anderer Geräte sind an diesem Gerät nicht zu sehen; Eintritte ohne Verbindung.
+- **Geprüft:**
+  - Tests zuerst geplant: `PosSubstituteTests` 7 von 7 grün (neu: Liste, Auswahl, Ablehnung mit Grund, erneutes Senden).
+  - `PosTests` 48, `OfflineTests` 10, `PosDayListTests` 7 grün; Bildtest `Kassa_Given_Ersatzbeleg_ausgegeben_When_Belege_geoeffnet_…` grün, Bild bei 1440 px angesehen.
+- **Nicht geprüft:** die laufende App unter Windows und der Nachdruck am Bondrucker; die volle Suite läuft in der CI.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).

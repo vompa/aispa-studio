@@ -142,6 +142,55 @@ public sealed class PosSubstituteTests
     }
 
     [Fact]
+    public async Task Given_Ersatzbelege_ausgegeben_Then_stehen_sie_unter_Belege_lassen_sich_zeigen_und_verschwinden_nach_der_Nacherfassung()
+    {
+        // Given zwei Ersatzbelege ohne Verbindung
+        var (pos, stub, api, cache) = await OfflinePosAsync();
+        Assert.False(pos.HasSubstitutes);
+        await pos.AddAppointmentAsync(SpaSample.Paying);
+        pos.FillRestCommand.Execute(pos.Payments.First(p => p.Method == PaymentMethod.Cash));
+        await pos.PayCommand.ExecuteAsync(null);
+        await pos.AddArticleCommand.ExecuteAsync(SpaSample.Articles[0]);
+        pos.FillRestCommand.Execute(pos.Payments.First(p => p.Method == PaymentMethod.Card));
+        await pos.PayCommand.ExecuteAsync(null);
+
+        // Then stehen beide in der Liste, der älteste zuerst, mit Nummer, Betrag und Stand
+        Assert.True(pos.HasSubstitutes);
+        Assert.Equal("Ersatzbelege, noch nicht nacherfasst (2)", pos.SubstitutesTitle);
+        Assert.All(pos.Substitutes, s => Assert.Equal(PosViewModel.SubstituteWaiting, s.State));
+        Assert.All(pos.Substitutes, s => Assert.StartsWith("E-WIEN-1-", s.Number, StringComparison.Ordinal));
+        Assert.Equal("89,00 €", pos.Substitutes[0].Total);
+
+        // When einer gewählt wird, Then steht er rechts als Ersatzbeleg, ohne Storno und ohne Empfänger
+        pos.SelectedSubstitute = pos.Substitutes[0];
+        Assert.True(pos.HasShownReceipt);
+        Assert.True(pos.SelectedReceipt!.IsSubstitute);
+        Assert.False(pos.SelectedReceipt.CanVoid);
+        Assert.False(pos.SelectedReceipt.CanAddRecipient);
+        Assert.Null(pos.SelectedReceiptItem);
+
+        // When die Kasse den zweiten nacherfasst hat und den ersten ablehnt
+        stub.Down = false;
+        stub.On(ReenterRoute, new { title = "Dieser Termin steht schon auf einer Rechnung." }, HttpStatusCode.Conflict);
+        cache.Complete(cache.Pending[1].Id);
+        await api.SyncAsync(Ct);
+
+        // Then bleibt nur der abgelehnte stehen, mit dem Grund
+        var rejected = Assert.Single(pos.Substitutes);
+        Assert.True(rejected.IsRejected);
+        Assert.Equal("nicht übernommen: Dieser Termin steht schon auf einer Rechnung.", rejected.State);
+        Assert.Equal("Ersatzbelege, noch nicht nacherfasst (1)", pos.SubstitutesTitle);
+
+        // When der Grund geklärt ist und erneut gesendet wird, Then ist die Liste leer und rechts steht nichts mehr
+        stub.On(ReenterRoute, SpaSample.Receipt());
+        stub.On($"GET /api/pos/registers/{SpaSample.Register.Id}/receipts?date=2026-10-19", new List<ReceiptDto>());
+        await pos.RetrySubstituteCommand.ExecuteAsync(rejected);
+        Assert.False(pos.HasSubstitutes);
+        Assert.Null(pos.SelectedSubstitute);
+        Assert.False(pos.HasShownReceipt);
+    }
+
+    [Fact]
     public async Task Given_keine_Verbindung_When_mit_Gutschein_bezahlt_werden_soll_Then_lehnt_die_Kassa_ab_und_parken_geht_nicht()
     {
         var (pos, _, _, cache) = await OfflinePosAsync();

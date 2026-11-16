@@ -1,10 +1,23 @@
+using System.Collections.ObjectModel;
 using System.Text;
 using System.Text.Json;
 using AispaStudio.Contracts;
+using AispaStudio.Desktop.Controls;
 using AispaStudio.Desktop.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 
 namespace AispaStudio.Desktop.ViewModels;
+
+/// <summary>
+/// Zeile der Liste „Ersatzbelege“ unter „Belege“ (ADR 0096): ausgegeben, aber noch nicht nacherfasst. <c>State</c> ist „wartet auf Nacherfassung“
+/// oder der Grund, aus dem die Kasse ihn nicht übernommen hat.
+/// </summary>
+public sealed record SubstituteItem(Guid Id, string Number, string Time, string Total, string State, bool IsRejected, ReceiptDto Receipt)
+{
+    /// <summary>Name für Screenreader wie angezeigt: Zeit, Nummer, Stand, Betrag.</summary>
+    public string AccessibleName => AccessibleNames.Join(Time, Number, State, Total);
+}
 
 /// <summary>
 /// Kassieren ohne Verbindung (ADR 0096): Die Rechnung entsteht am Gerät, der Gast bekommt einen Ersatzbeleg mit eigener Nummer, und die
@@ -19,6 +32,69 @@ public partial class PosViewModel
 
     /// <summary>Artikel der Positionen einer Rechnung ohne Verbindung: die Nacherfassung braucht Artikel und Menge, die Zeile kennt nur den Text.</summary>
     private readonly Dictionary<Guid, SubstituteArticle> _substituteArticles = [];
+
+    public const string SubstituteWaiting = "wartet auf Nacherfassung";
+
+    /// <summary>Ersatzbelege dieses Geräts, die die Kasse noch nicht nacherfasst hat: vorgemerkte und abgelehnte, die ältesten zuerst.</summary>
+    public ObservableCollection<SubstituteItem> Substitutes { get; } = [];
+
+    public bool HasSubstitutes => Substitutes.Count > 0;
+
+    public string SubstitutesTitle => $"Ersatzbelege, noch nicht nacherfasst ({Substitutes.Count})";
+
+    /// <summary>Der rechts gezeigte Ersatzbeleg: ansehen und noch einmal drucken.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(SelectedReceipt), nameof(HasShownReceipt), nameof(VoidDisabledHint))]
+    public partial SubstituteItem? SelectedSubstitute { get; set; }
+
+    partial void OnSelectedSubstituteChanged(SubstituteItem? value)
+    {
+        if (value is not null)
+        {
+            SelectedReceiptItem = null;
+        }
+    }
+
+    /// <summary>Liste aus der Warteschlange des lokalen Stands neu lesen.</summary>
+    private void RefreshSubstitutes()
+    {
+        if (_api.Offline is not { } offline)
+        {
+            return;
+        }
+
+        var shown = SelectedSubstitute?.Id;
+        var rows = offline.Pending.Where(p => p.Substitute is not null).Select(p => Row(p.Id, p.Substitute!, SubstituteWaiting, rejected: false))
+            .Concat(offline.Failed.Where(f => f.Substitute is not null).Select(f => Row(f.Id, f.Substitute!, $"nicht übernommen: {f.Reason}", rejected: true)))
+            .OrderBy(r => r.Receipt.IssuedAt).ToList();
+        Substitutes.Clear();
+        foreach (var row in rows)
+        {
+            Substitutes.Add(row);
+        }
+
+        // Ist der gezeigte Ersatzbeleg inzwischen nacherfasst, verschwindet er; der signierte Beleg steht in der Liste darunter.
+        SelectedSubstitute = shown is null ? null : Substitutes.FirstOrDefault(s => s.Id == shown);
+        OnPropertyChanged(nameof(HasSubstitutes));
+        OnPropertyChanged(nameof(SubstitutesTitle));
+
+        SubstituteItem Row(Guid id, ReceiptDto receipt, string state, bool rejected) => new(id, receipt.SubstituteNumber ?? "",
+            $"{DayLayout.Local(receipt.IssuedAt, Zone):dd.MM. HH:mm}", Money.Format(receipt.Total, Currency), state, rejected, receipt);
+    }
+
+    /// <summary>Abgelehnten Ersatzbeleg erneut zur Nacherfassung senden, z. B. nachdem der Grund an der Kassa geklärt ist.</summary>
+    [RelayCommand]
+    private async Task RetrySubstituteAsync(SubstituteItem item)
+    {
+        if (_api.Offline is not { } offline)
+        {
+            return;
+        }
+
+        offline.Retry(item.Id);
+        await _api.SyncAsync().ConfigureAwait(true);
+        await LoadReceiptsAsync().ConfigureAwait(true);
+    }
 
     /// <summary>Die offene Rechnung gibt es nur an diesem Gerät; bezahlt wird sie mit einem Ersatzbeleg.</summary>
     [ObservableProperty]
