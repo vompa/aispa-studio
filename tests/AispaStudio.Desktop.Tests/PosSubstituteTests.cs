@@ -26,7 +26,7 @@ public sealed class PosSubstituteTests
             .On("GET /api/locations", new List<LocationDto> { SpaSample.Vienna })
             .On("GET /api/pos/registers", new List<CashRegisterDto> { SpaSample.Register })
             .On("GET /api/pos/articles", SpaSample.Articles)
-            .On($"GET /api/pos/locations/{SpaSample.LocationId}/day-list?date=2026-10-19", SpaSample.DayList())
+            .On($"GET /api/pos/locations/{SpaSample.LocationId}/day-list?date=2026-10-19", SpaSample.DayList(SpaSample.UnbilledVisits()))
             .On($"GET /api/pos/registers/{SpaSample.Register.Id}/bills", new List<BillDto>());
         var cache = new OfflineCache(new MemoryOfflineStore(), new SampleTime());
         var api = stub.Client(cache);
@@ -188,6 +188,43 @@ public sealed class PosSubstituteTests
         Assert.False(pos.HasSubstitutes);
         Assert.Null(pos.SelectedSubstitute);
         Assert.False(pos.HasShownReceipt);
+    }
+
+    [Fact]
+    public async Task Given_keine_Verbindung_When_Eintritt_kassiert_wird_Then_steht_er_mit_dem_Preis_der_Tagesliste_auf_dem_Ersatzbeleg()
+    {
+        // Given die Tagesliste mit einem Eintritt für zwei Personen in die Sauna (58,00) und einem ohne Artikel am Bereich
+        var (pos, _, _, cache) = await OfflinePosAsync();
+        await pos.LoadDayAsync();
+        var visits = SpaSample.UnbilledVisits();
+        var sauna = visits[0];
+        var relax = visits[1];
+
+        // When der Eintritt in die Sauna auf die Rechnung kommt
+        await pos.AddVisitAsync(sauna);
+
+        // Then steht er mit Personenzahl und dem Preis der Tagesliste auf der Rechnung ohne Verbindung
+        Assert.True(pos.IsSubstitute);
+        Assert.Null(pos.Error);
+        var line = Assert.Single(pos.Bill!.Lines);
+        Assert.Equal((BillLineKind.AreaVisit, 2, sauna.Id), (line.Kind, line.Quantity, line.AreaVisitId));
+        var price = SpaSample.DayEntry(sauna).Price!.Value;
+        Assert.Equal(price, pos.Bill.Open);
+        Assert.Equal(sauna.CustomerName, pos.Bill.CustomerName);
+
+        // And ein Eintritt ohne bekannten Preis lässt sich ohne Verbindung nicht kassieren
+        await pos.AddVisitAsync(relax);
+        Assert.Equal("Der Preis dieses Eintritts ist ohne Verbindung nicht bekannt. Den Betrag notieren und mit Verbindung kassieren.", pos.Error);
+        Assert.Single(pos.Bill.Lines);
+
+        // When bezahlt wird, Then nennt die Vormerkung den Eintritt, und er lässt sich nicht noch einmal kassieren
+        pos.FillRestCommand.Execute(pos.Payments.First(p => p.Method == PaymentMethod.Card));
+        await pos.PayCommand.ExecuteAsync(null);
+        var pending = Assert.Single(cache.Pending);
+        Assert.Contains($"\"areaVisitIds\":[\"{sauna.Id}\"]", pending.Body, StringComparison.Ordinal);
+        Assert.Equal(price, pending.Substitute!.Total);
+        await pos.AddVisitAsync(sauna);
+        Assert.Equal("Für diesen Eintritt gibt es schon einen Ersatzbeleg.", pos.Error);
     }
 
     [Fact]

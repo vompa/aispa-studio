@@ -49018,6 +49018,16 @@
             "type": "number",
             "format": "double",
             "default": 0
+          },
+          "areaVisitIds": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
           }
         }
       },

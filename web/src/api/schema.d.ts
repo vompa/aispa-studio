@@ -13345,6 +13345,7 @@ export interface components {
              * @default 0
              */
             tip: number;
+            areaVisitIds?: null | string[];
         };
         SupervisorApproval: {
             userId: string;

@@ -6163,3 +6163,21 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
   - `PosTests` 48, `OfflineTests` 10, `PosDayListTests` 7 grün; Bildtest `Kassa_Given_Ersatzbeleg_ausgegeben_When_Belege_geoeffnet_…` grün, Bild bei 1440 px angesehen.
 - **Nicht geprüft:** die laufende App unter Windows und der Nachdruck am Bondrucker; die volle Suite läuft in der CI.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Kassa ohne Verbindung: Eintritte auf dem Ersatzbeleg, Schritt 5 (16.11.2026)
+
+- **Auftrag:** „Mach weiter mit den Eintritten ohne Verbindung“ (Auftraggeber, 16.11.2026); offener Punkt aus [ADR 0096](../entscheidungen/0096-kassieren-ohne-verbindung-ersatzbeleg-und-nacherfassung.md).
+- **Was:**
+  - Server: `SubstituteReceiptInput.AreaVisitIds`. Die Nacherfassung legt den Eintritt wie beim gewöhnlichen Kassieren auf die Rechnung: Menge ist die Personenzahl, Preis und Steuer kommen vom Artikel des Bereichs.
+  - App: Ein Eintritt aus „Heute abzurechnen“ oder aus dem Kalender kommt ohne Verbindung mit Personenzahl und dem Preis der zuletzt geladenen Tagesliste auf die Rechnung.
+  - Hilfe `kassa-ersatzbeleg` und `kalender-offline` angepasst.
+- **Detailentscheidungen:**
+  1. Der Preis kommt aus der Tagesliste, weil das Gerät den Artikel des Bereichs ohne Verbindung nicht kennt.
+  2. Ohne bekannten Preis (Bereich ohne Artikel, Eintritt erst ohne Verbindung gebucht, Liste nie geladen) lehnt die Kassa mit „Der Preis dieses Eintritts ist ohne Verbindung nicht bekannt.“ ab, statt einen Betrag zu raten.
+  3. Derselbe Eintritt bekommt an einem Gerät nur einen Ersatzbeleg; die Kasse lehnt einen zweiten mit „Dieser Eintritt steht schon auf einer Rechnung.“ ab.
+- **Bewusst offen / später:** Eintritte, die erst ohne Verbindung gebucht wurden, auf dem Ersatzbeleg.
+- **Geprüft:**
+  - Tests zuerst geplant: API `SubstituteReceiptTests` 8 von 8 grün (neu: Eintritt für zwei Personen, zweiter Ersatzbeleg abgelehnt); Desktop `PosSubstituteTests` 8 von 8 grün (neu: Eintritt mit Preis der Tagesliste, ohne Preis abgelehnt, kein zweiter Ersatzbeleg).
+  - `PosTests` 48, `PosDayListTests` 7, `OfflineTests` 10 grün; `npm run gen:api`, `dotnet format` sauber, Release-Build ohne Warnungen; Hilfe-Tests im Web.
+- **Nicht geprüft:** die laufende App unter Windows; die volle Suite läuft in der CI.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).

@@ -130,11 +130,47 @@ public partial class PosViewModel
         SetSubstituteBill([.. Bill?.Lines ?? [], line], Bill?.CustomerId ?? appointment.CustomerId, Bill?.CustomerName ?? appointment.CustomerName);
     }
 
+    /// <summary>Eintritte der zuletzt geladenen Tagesliste mit Text und Preis: ohne Verbindung kennt das Gerät den Artikel des Bereichs nicht.</summary>
+    private Dictionary<Guid, (string What, decimal Price)> _dayVisits = [];
+
+    private void AddSubstituteVisit(AreaVisitDto visit)
+    {
+        if (visit.IsCancelled)
+        {
+            Error = "Der Eintritt ist storniert.";
+            return;
+        }
+
+        if (!_dayVisits.TryGetValue(visit.Id, out var known))
+        {
+            Error = "Der Preis dieses Eintritts ist ohne Verbindung nicht bekannt. Den Betrag notieren und mit Verbindung kassieren.";
+            return;
+        }
+
+        if (Bill?.Lines.Any(l => l.AreaVisitId == visit.Id) == true)
+        {
+            Error = "Der Eintritt steht schon auf der Rechnung.";
+            return;
+        }
+
+        if (_api.Offline!.Pending.Any(p => p.Substitute is not null && p.Body.Contains(visit.Id.ToString(), StringComparison.OrdinalIgnoreCase)))
+        {
+            Error = "Für diesen Eintritt gibt es schon einen Ersatzbeleg.";
+            return;
+        }
+
+        var persons = Math.Max(1, visit.Persons);
+        var local = DayLayout.Local(visit.From, Zone);
+        var line = new BillLineDto(Guid.CreateVersion7(), BillLineKind.AreaVisit, $"{known.What} {local:dd.MM.yyyy HH:mm}", persons,
+            Math.Round(known.Price / persons, 2), 0, known.Price, 0, TaxCategory.Normal, 0, Guid.Empty, null, AreaVisitId: visit.Id);
+        SetSubstituteBill([.. Bill?.Lines ?? [], line], Bill?.CustomerId ?? visit.CustomerId, Bill?.CustomerName ?? visit.CustomerName);
+    }
+
     private void AddSubstituteLine(BillLineInput input)
     {
         if (input.Kind != BillLineKind.Article || Articles.FirstOrDefault(a => a.Id == input.ArticleId) is not { } article)
         {
-            Error = "Ohne Verbindung nur Termine und Artikel.";
+            Error = "Ohne Verbindung nur Termine, Eintritte und Artikel.";
             return;
         }
 
@@ -244,7 +280,8 @@ public partial class PosViewModel
 
         var input = new SubstituteReceiptInput(id, number, now, bill.CustomerId,
             [.. bill.Lines.Where(l => l.AppointmentId is not null).Select(l => l.AppointmentId!.Value)],
-            [.. bill.Lines.Where(l => _substituteArticles.ContainsKey(l.Id)).Select(l => _substituteArticles[l.Id])], payments, total, tip);
+            [.. bill.Lines.Where(l => _substituteArticles.ContainsKey(l.Id)).Select(l => _substituteArticles[l.Id])], payments, total, tip,
+            [.. bill.Lines.Where(l => l.AreaVisitId is not null).Select(l => l.AreaVisitId!.Value)]);
         var receipt = new ReceiptDto(id, register.Id, register.Code, 0, ReceiptKind.Sale, now, register.ReceiptHeader, null, bill.CustomerId, lines, [],
             [.. payments.Select(p => new PaymentDto(p.Method, p.Amount, null, null))], total, cashGiven - cashDue, null, null, null, null, false, [],
             Tip: tip, SubstituteNumber: number, SubstituteIssuedAt: now);

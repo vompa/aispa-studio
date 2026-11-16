@@ -344,6 +344,7 @@ public sealed record SubstituteArticle(Guid ArticleId, int Quantity);
 /// <param name="IssuedAt">Wann der Ersatzbeleg ausgegeben wurde.</param>
 /// <param name="Payments">Was der Gast bezahlt hat, bar ohne Rückgeld; zusammen <c>Total + Tip</c>.</param>
 /// <param name="Total">Summe auf dem Ersatzbeleg ohne Trinkgeld. Weicht sie von den Preisen am Server ab, wird nichts gebucht.</param>
+/// <param name="AreaVisitIds">Eintritte in Bereiche (Sauna, Ruheraum); Menge und Preis bestimmt die Kasse aus Personenzahl und Artikel des Bereichs.</param>
 public sealed record SubstituteReceiptInput(
     Guid Id,
     string Number,
@@ -353,7 +354,8 @@ public sealed record SubstituteReceiptInput(
     IReadOnlyList<SubstituteArticle>? Articles,
     IReadOnlyList<PaymentInput> Payments,
     decimal Total,
-    decimal Tip = 0);
+    decimal Tip = 0,
+    IReadOnlyList<Guid>? AreaVisitIds = null);
 
 /// <summary>
 /// Empfänger einer Rechnung zu einem Beleg, z. B. für Firmenkunden: Name und Anschrift, bei Unternehmen die UID-Nummer.

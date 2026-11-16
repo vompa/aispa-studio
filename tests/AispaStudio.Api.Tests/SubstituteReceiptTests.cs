@@ -134,6 +134,35 @@ public sealed class SubstituteReceiptTests(ApiFixture fixture)
         }
     }
 
+    [Fact]
+    public async Task Eintritt_wird_mit_dem_Artikel_des_Bereichs_je_Person_nacherfasst_und_nur_einmal()
+    {
+        // Given ein Eintritt für zwei Personen in die Sauna zu 32,00 je Person, ohne Verbindung kassiert
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        var register = await CreateRegisterAsync(spa);
+        var accounts = await spa.GetAsync<List<RevenueAccountDto>>("/api/pos/revenue-accounts", Ct);
+        var dayPass = await spa.PostAsync<ArticleDto>("/api/pos/articles",
+            new ArticleInput("Tageseintritt Sauna", 32m, TaxCategory.Reduced2, accounts.First(a => a.Code == "4100").Id), Ct);
+        var sauna = await spa.PostAsync<RoomDto>($"/api/locations/{spa.Location.Id}/rooms",
+            new RoomInput("Sauna", 0, 10, IsArea: true, AdmissionArticleId: dayPass.Id), Ct);
+        var visit = await spa.PostAsync<AreaVisitDto>("/api/area-visits",
+            new AreaVisitRequest(spa.Location.Id, sauna.Id, spa.Customer.Id, TestSpa.At(10), TestSpa.At(13), 2), Ct);
+        SubstituteReceiptInput Input(string number) => new(Guid.CreateVersion7(), number, DateTimeOffset.UtcNow.AddMinutes(-20), null, null, null,
+            [new PaymentInput(PaymentMethod.Card, 64m, null, null)], 64m, AreaVisitIds: [visit.Id]);
+
+        // When er nacherfasst wird
+        var receipt = await ReenterAsync(spa, register, Input("E-V1"));
+
+        // Then steht der Eintritt mit zwei Personen auf dem signierten Beleg, und ein zweiter Ersatzbeleg dafür wird abgelehnt
+        var line = Assert.Single(receipt.Lines);
+        Assert.Equal((2, 64m), (line.Quantity, line.Amount));
+        Assert.Equal(spa.Customer.Id, receipt.CustomerId);
+        Assert.NotNull(receipt.FiscalCode);
+        var again = await PostAsync(spa, register, Input("E-V2"));
+        Assert.Equal(HttpStatusCode.Conflict, again.StatusCode);
+        Assert.Contains("Dieser Eintritt steht schon auf einer Rechnung.", await again.Content.ReadAsStringAsync(Ct), StringComparison.Ordinal);
+    }
+
     private static async Task<CashRegisterDto> CreateRegisterAsync(TestSpa spa) =>
         await spa.PostAsync<CashRegisterDto>("/api/pos/registers",
             new CashRegisterInput(spa.Location.Id, $"T-{Guid.NewGuid():N}"[..14], FiscalCountry.AT, "Test-Spa GmbH\nTeststraße 1, 1010 Wien\nATU12345678",

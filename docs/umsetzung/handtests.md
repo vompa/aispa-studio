@@ -1075,3 +1075,16 @@ Expected: Die Liste „Ersatzbelege“ verschwindet; die signierten Belege stehe
 Expected: Die Zeile zeigt „nicht übernommen: Dieser Termin steht schon auf einer Rechnung.“ und **Erneut senden**.
 Closes: –
 Result: ☐
+
+### Kassa ohne Verbindung – Eintritt auf dem Ersatzbeleg
+Start: wie „Kassa ohne Verbindung – Ersatzbeleg und Nacherfassung“; vor dem Anhalten des Servers steht unter „Heute abzurechnen“ ein Eintritt in die Sauna mit Preis
+1. Ohne Verbindung den Eintritt unter „Heute abzurechnen“ anklicken.
+Expected: Die Rechnung zeigt den Eintritt mit Personenzahl und dem Preis der Liste; unter „Bezahlen“ steht der Hinweis „Ersatzbeleg“.
+2. Mit Karte bezahlen.
+Expected: Der Ersatzbeleg nennt den Eintritt und die Summe.
+3. Im Kalender unter „Sauna und Ruheraum“ einen neuen Eintritt buchen und kassieren wollen.
+Expected: „Der Preis dieses Eintritts ist ohne Verbindung nicht bekannt. Den Betrag notieren und mit Verbindung kassieren.“
+4. Den Server starten und bis zu 15 Sekunden warten.
+Expected: Unter **Belege** steht der signierte Beleg mit dem Eintritt und „Nacherfassung zu Ersatzbeleg …“.
+Closes: –
+Result: ☐

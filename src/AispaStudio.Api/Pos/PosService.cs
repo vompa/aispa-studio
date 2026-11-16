@@ -866,7 +866,7 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
                 throw PosFailure.Invalid(nameof(input.IssuedAt), "Der Ersatzbeleg liegt in der Zukunft. Uhrzeit des Geräts prüfen.");
             }
 
-            if ((input.AppointmentIds?.Count ?? 0) + (input.Articles?.Count ?? 0) == 0)
+            if ((input.AppointmentIds?.Count ?? 0) + (input.Articles?.Count ?? 0) + (input.AreaVisitIds?.Count ?? 0) == 0)
             {
                 throw PosFailure.Invalid(nameof(input.AppointmentIds), "Der Ersatzbeleg hat keine Positionen.");
             }
@@ -881,6 +881,11 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
             foreach (var appointmentId in input.AppointmentIds ?? [])
             {
                 await AddLineAsync(register, bill, new BillLineInput(BillLineKind.Appointment, appointmentId, null, 1, null, 0, null, null, null, null, null), ct);
+            }
+
+            foreach (var visitId in input.AreaVisitIds ?? [])
+            {
+                await AddLineAsync(register, bill, new BillLineInput(BillLineKind.AreaVisit, null, null, 1, null, 0, null, null, null, null, null, visitId), ct);
             }
 
             foreach (var article in input.Articles ?? [])
