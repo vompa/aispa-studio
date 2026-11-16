@@ -1185,3 +1185,16 @@ Expected: Dort steht „Zusammen mit dem Termin um 10:00 Uhr erinnert.“; eine 
 Closes: –
 Result: ☐
 
+### Inventur am Handy – Funkloch beim Zählen
+Start: „Mein Tag“ am Handy als Therapeut:in, Reiter **Inventur**, eine Zählung an einem Lagerort gestartet
+1. Am Handy den Flugmodus einschalten und bei zwei Materialien eine Menge eintragen.
+Expected: Unter der Liste steht „2 Mengen warten auf Verbindung.“; **Abschicken** ist gesperrt; es erscheint kein „Nicht gespeichert“.
+2. Den Flugmodus ausschalten.
+Expected: Nach wenigen Sekunden steht „Gespeichert“, der Hinweis verschwindet, **Abschicken** geht wieder.
+3. Erneut Flugmodus, eine Menge ändern, die Seite schließen, den Flugmodus ausschalten, „Mein Tag“ öffnen und die Zählung am selben Lagerort fortsetzen.
+Expected: Die geänderte Menge steht im Feld und wird gleich gespeichert.
+4. In der Windows-App unter **Verwaltung** › **Lager** › **Inventur** die Zählung übernehmen.
+Expected: Die Mengen vom Handy stehen in der Zählliste.
+Closes: –
+Result: ☐
+

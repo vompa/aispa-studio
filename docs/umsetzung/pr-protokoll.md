@@ -6363,3 +6363,25 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Nicht geprüft:** SMS und WhatsApp mit einem echten Anbieter; die Texte in Englisch, Französisch und Italienisch sind nicht von Muttersprachlern gelesen. Die volle Suite läuft in der CI.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
 
+## Lager: Inventur am Handy übersteht ein Funkloch (16.11.2026)
+
+- **Auftrag:** Block „KI-gestützte Lagerwirtschaft“, Punkt „Inventur am Gerät“; vom Auftraggeber am 16.11.2026 freigegeben („auch 3“). Offen seit Slice 116 („Offline-Zählung“).
+- **Was:**
+  - `web/src/myday/countQueue.ts`: Getippte Mengen einer laufenden Zählung bleiben im Speicher des Browsers, bis der Server sie bestätigt hat.
+  - `StockCountPanel.tsx`: Ohne Verbindung steht „N Mengen warten auf Verbindung.“ statt einer Fehlermeldung. Gesendet wird von selbst, sobald das Handy wieder Netz hat, beim Fortsetzen der Zählung und mit „Jetzt senden“. Abschicken ist gesperrt, solange etwas wartet.
+  - `offline.ts`: Abmelden und ein Wechsel der Person löschen die gemerkten Mengen.
+  - Hilfe `lager-inventur-handy`.
+- **Detailentscheidungen:**
+  1. Das ändert die bisherige Regel „nichts wird still auf dem Gerät gespeichert“. Gemerkt werden nur Material-Id und Menge der laufenden Zählung, keine Daten von Gästen, und die Maske sagt es.
+  2. Nur eine schon gestartete Zählung läuft ohne Netz weiter. Starten ohne Netz bräuchte eine Zählung, die am Gerät entsteht; der Server erlaubt aber nur eine offene Zählung je Lagerort.
+  3. Eine Ablehnung des Servers (z. B. die Leitung hat die Zählung inzwischen verworfen) bleibt die Meldung „Nicht gespeichert“; nur ein fehlendes Netz gilt als „wartet“.
+  4. Die Menge ist ein absoluter Wert; noch einmal senden ändert nichts.
+  5. Gemerkte Mengen älterer Zählungen werden beim Start einer Zählung gelöscht.
+- **Bewusst offen / später:** Zählung ohne Netz starten; Material und Lagerorte ohne Netz laden; Scan eines neuen Materials ohne Netz.
+- **Zum Block Lager insgesamt:**
+  - **Begründung des Bestellvorschlags:** steht schon in der Windows-App als Rechenweg („30 ml am Tag × 5 Tage, Termine 90 ml, bestellt …“). Ein Text der KI käme dazu, dürfte aber nicht rechnen (Slice 113: „nie in der KI“) und müsste in die Lager-Maske der Verwaltung, die gerade überarbeitet wird. Nicht gebaut.
+  - **Wareneingang per Lieferschein-Foto:** nicht gebaut, siehe offene Fragen an den Auftraggeber (Foto an den KI-Dienst senden, Aufbewahrung des Fotos, Zugriff der Handy-App auf Bestellungen).
+- **Geprüft:** Tests zuerst geplant: Web `myday` 49 grün (neu: Funkloch und Nachsenden, Fortsetzen mit gemerkter Menge, andere Person am selben Handy); Typprüfung und Lint sauber.
+- **Nicht geprüft:** ein echtes Handy im Funkloch; das Verhalten, wenn der Browser den Speicher sperrt (privater Modus).
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
