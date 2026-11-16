@@ -221,6 +221,32 @@ public sealed class ReminderTests(ApiFixture fixture)
     }
 
     [Fact]
+    public async Task Ein_Gast_bekommt_zu_den_Terminen_eines_Tages_hoechstens_zwei_Erinnerungen()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var (spa, customer) = await SpaWithGuestAsync(ct);
+        var first = await BookAsync(spa, customer, ct, 10);
+
+        // Beide Stufen des ersten Termins gehen hinaus: Damit sind die zwei Erinnerungen des Tages verbraucht.
+        Assert.Equal(1, await PlanAsync(spa, first.Start.AddHours(-47), ct));
+        Assert.Equal(1, await PlanAsync(spa, first.Start.AddMinutes(-90), ct));
+        await WaitForStatesAsync(spa, first.Id, 2, ct);
+
+        // Ein Termin, der erst danach für denselben Tag gebucht wird, bekäme die dritte.
+        var late = await BookAsync(spa, customer, ct, 15);
+        await SetCreatedAtAsync(spa, late.Id, first.Start.AddHours(-1), ct);
+        Assert.Equal(0, await PlanAsync(spa, late.Start.AddMinutes(-90), ct));
+
+        var skipped = Assert.Single(await WaitForStatesAsync(spa, late.Id, 1, ct));
+        Assert.Equal("Skipped", skipped.State);
+        Assert.Equal(2, fixture.Mailbox.To(customer.Email!).Count(m => m.Subject.StartsWith("Erinnerung:", StringComparison.Ordinal)));
+
+        // Der nächste Tag zählt neu.
+        var nextWeek = await TestSpa.ReadAsync<AppointmentDto>(await spa.BookAsync(TestSpa.At(10, 0, TestSpa.Monday.AddDays(7)), ct, customer: customer.Id), ct);
+        Assert.Equal(1, await PlanAsync(spa, nextWeek.Start.AddHours(-47), ct));
+    }
+
+    [Fact]
     public async Task Termine_an_verschiedenen_Tagen_und_verschiedener_Gaeste_werden_nicht_gebuendelt()
     {
         var ct = TestContext.Current.CancellationToken;

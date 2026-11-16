@@ -102,6 +102,12 @@ internal sealed class ReminderPlanner(AispaDbContext db, IMessageBus bus, IOptio
 {
     private const string UniqueViolation = "23505";
 
+    /// <summary>
+    /// So viele Erinnerungen bekommt ein Gast höchstens zu den Terminen eines Kalendertags, über alle Stufen und Standorte.
+    /// Fester Wert (Auftraggeber, 16.11.2026); eine Einstellung in der Verwaltung ist für später vorgesehen.
+    /// </summary>
+    public const int MaxPerGuestAndDay = 2;
+
     public async Task<int> PlanAsync(DateTimeOffset now, CancellationToken ct)
     {
         var settings = await ReminderSettingsStore.LoadAsync(db, ct);
@@ -140,14 +146,16 @@ internal sealed class ReminderPlanner(AispaDbContext db, IMessageBus bus, IOptio
             }
 
             var channel = ChannelFor(settings, appointment.Customer);
+            var capped = channel is not null && await SentForDayAsync(appointment, ct) >= MaxPerGuestAndDay;
             var reminder = new AppointmentReminder
             {
                 AppointmentId = appointment.Id,
                 Stage = stage.Number,
                 AppointmentStart = appointment.Start,
                 Channel = channel ?? settings.Channel,
-                State = channel is null ? ReminderState.Skipped : ReminderState.Queued,
-                Error = channel is null ? "Keine Mailadresse und keine Telefonnummer." : null,
+                State = channel is null || capped ? ReminderState.Skipped : ReminderState.Queued,
+                Error = channel is null ? "Keine Mailadresse und keine Telefonnummer."
+                    : capped ? $"Höchstens {MaxPerGuestAndDay} Erinnerungen je Gast und Tag." : null,
                 CreatedAt = now,
             };
             db.Add(reminder);
@@ -172,6 +180,18 @@ internal sealed class ReminderPlanner(AispaDbContext db, IMessageBus bus, IOptio
         }
 
         return queued;
+    }
+
+    /// <summary>Wie viele Erinnerungen der Gast zu Terminen am Tag dieses Termins schon bekommen hat oder gleich bekommt (versendet oder in der Warteschlange).</summary>
+    private async Task<int> SentForDayAsync(Appointment appointment, CancellationToken ct)
+    {
+        var timeZone = await db.Locations.AsNoTracking().Where(l => l.Id == appointment.LocationId).Select(l => l.TimeZone).FirstAsync(ct);
+        var zone = LocalTime.Zone(timeZone);
+        var (dayFrom, dayUntil) = LocalTime.Day(LocalTime.LocalDate(appointment.Start, zone), zone);
+        return await db.AppointmentReminders.AsNoTracking()
+            .Where(r => (r.State == ReminderState.Sent || r.State == ReminderState.Queued) && r.AppointmentStart >= dayFrom && r.AppointmentStart < dayUntil
+                && db.Appointments.Any(a => a.Id == r.AppointmentId && a.CustomerId == appointment.CustomerId))
+            .CountAsync(ct);
     }
 
     /// <summary>

@@ -6385,3 +6385,15 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Nicht geprüft:** ein echtes Handy im Funkloch; das Verhalten, wenn der Browser den Speicher sperrt (privater Modus).
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
 
+## Kommunikation: höchstens 2 Erinnerungen je Gast und Tag (16.11.2026)
+
+- **Auftrag:** Auftraggeber am 16.11.2026: „Max 2 Erinnerungen default, später dann über Verwaltung einstellen“; die Bündelung bleibt, ein Feld in der Verwaltung kommt jetzt nicht.
+- **Was:** `ReminderPlanner.MaxPerGuestAndDay = 2`. Vor jeder neuen Erinnerung zählt der Planer, wie viele der Gast zu Terminen desselben Kalendertags schon bekommen hat oder gleich bekommt (versendet oder in der Warteschlange), über alle Stufen und Standorte. Ab der dritten entsteht ein Eintrag mit Stand „entfallen“ und dem Grund „Höchstens 2 Erinnerungen je Gast und Tag.“ Hilfe `erinnerungen`.
+- **Detailentscheidungen:**
+  1. Gezählt wird je Tag der Termine, nicht je Tag des Versands: Die erste Stufe geht zwei Tage vorher hinaus, die zweite am Tag selbst, und beide gehören zum selben Besuch.
+  2. Mit der Bündelung sind es im Normalfall genau zwei, eine je Stufe. Die Grenze greift bei nachgebuchten Terminen und bei Terminen an zwei Standorten.
+  3. Fehlgeschlagene und entfallene Erinnerungen zählen nicht mit.
+- **Bewusst offen / später:** Einstellung in Verwaltung › Kontakt › Erinnerungen, sobald die Masken der Verwaltung überarbeitet sind.
+- **Geprüft:** Tests zuerst geplant: `ReminderTests` 19 von 19 (neu: die dritte Erinnerung eines Tages entfällt, der nächste Tag zählt neu).
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
