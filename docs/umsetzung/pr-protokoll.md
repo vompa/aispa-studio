@@ -6729,3 +6729,12 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Nicht geprüft:** eine SMS mit einem echten Anbieter (der Test prüft nur, dass der Fall ohne Mailadresse gezählt wird); die laufende App.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
 
+## Live-Meldungen: abgebrochene Veröffentlichung bei hängendem Redis nur warnen (Aufgabe T-067, 16.11.2026)
+
+- **Auftrag:** Der Test `LiveBackplaneTests.Haengt_Redis_statt_abzulehnen_wird_nur_gewarnt_ohne_Wiederholung_und_Fehlerablage` war nach dem Merge von PR #65 auf `main` rot (Lauf 43938072835, Backend Gruppe 1); nach einem Neustart des Jobs grün.
+- **Ursache:** Ein Rest von T-057 im Produkt. Hängt Redis, schließt der Client die offene Veröffentlichung als abgebrochen ab; die Meldung „Betrieb“ (`OperationsChangedMessage`) scheiterte mit einer `TaskCanceledException`, deren Stapel nur Rahmen aus `RedisHubLifetimeManager.PublishAsync` (Assembly `Microsoft.AspNetCore.SignalR.StackExchangeRedis`) trägt, keinen aus StackExchange.Redis. `LiveDelivery.IsRedisFailure` erkannte sie nicht, Wolverine plante die Nachricht neu ein, entgegen ADR 0087.
+- **Was:** `IsRedisFailure` zählt Fehler aus beiden Assemblys als Ausfall von Redis: dem Redis-Client und der SignalR-Backplane. `LiveHub.JoinAsync` nutzt dieselbe Prüfung.
+- **Detailentscheidungen:** Erkennung weiter über die Herkunft im Stapel statt über den Typ `TaskCanceledException`: Ein Abbruch aus eigenem Code soll nicht still verschluckt werden (wie T-057, Detailentscheidung 1). Kein Aufrufer gibt `SendAsync` ein Abbruch-Token mit; ein Abbruch aus der Backplane kommt deshalb nicht vom eigenen Herunterfahren.
+- **Geprüft:** `LiveDeliveryTests`: neuer Fall „Fehler aus der SignalR-Backplane wird nur gewarnt“ vor der Änderung rot (NullReferenceException aus dem Konstruktor von `RedisHubLifetimeManager` nicht erkannt), danach grün; neuer Fall „Eigener Abbruch geht weiter“ sichert die Grenze. `LiveBackplaneTests` fünfmal hintereinander mit echtem Redis; `dotnet format --verify-no-changes`, `dotnet build -c Release`.
+- **Nicht geprüft:** Der genaue Abbruch lässt sich nicht gezielt nachstellen; der Test stellt ihn mit einem anderen Fehler aus derselben Assembly nach, die Läufe mit echtem Redis treffen ihn nur zufällig.
+
