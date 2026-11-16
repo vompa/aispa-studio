@@ -27,3 +27,4 @@ Unter **Meine Anträge** steht **Genehmigt** oder **Abgelehnt**, sobald die Leit
 - Anträge gehen nur mit Verbindung.
 - Ein Antrag umfasst höchstens 60 Tage und beginnt nicht in der Vergangenheit.
 - Für denselben Tag gibt es höchstens einen Antrag, außer ein früherer wurde abgelehnt.
+- Über dem Formular steht das eigene **Urlaubskonto** des Jahres: Rest, Anspruch mit Übertrag, genommen und geplant. Gezählt wird genehmigter Urlaub aus dem Dienstplan an den eigenen Arbeitstagen; offene Anträge zählen noch nicht. Den Anspruch trägt die Leitung ein.

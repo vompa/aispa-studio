@@ -60,7 +60,7 @@ internal sealed class OnlinePortal(
     /// und welcher Raum, entscheidet die Buchung. <c>null</c>, wenn Standort oder Behandlung nicht passen.
     /// </summary>
     public async Task<IReadOnlyList<DateTimeOffset>?> FreeTimesAsync(
-        Guid locationId, Guid treatmentId, DateOnly date, DateTimeOffset earliest, CancellationToken ct)
+        Guid locationId, Guid treatmentId, DateOnly date, DateTimeOffset earliest, CancellationToken ct, TherapistGender? wish = null)
     {
         var context = await booking.LoadContextAsync(locationId, treatmentId, date, null, ct);
         if (context is null)
@@ -68,10 +68,17 @@ internal sealed class OnlinePortal(
             return null;
         }
 
+        // Wunsch „Therapeutin“ oder „Therapeut“ für diese Buchung: nur Zeiten, zu denen eine passende Person frei ist (ohne Angabe passt sie).
+        context = TherapistWish(wish).Apply(context);
+
         var step = TimeSpan.FromMinutes((await rules.ForAsync(locationId, ct)).SlotStepMinutes);
         return new ResourcePlanner(context).FreeSlots(date, step, null)
             .Select(s => s.Start).Where(s => s >= earliest).Distinct().Order().ToList();
     }
+
+    /// <summary>Der Wunsch des Gastes für eine Online-Buchung als Planungsregel; ohne Wunsch ändert sie nichts.</summary>
+    public static CustomerRules TherapistWish(TherapistGender? wish) =>
+        wish is null ? CustomerRules.None : new CustomerRules(0, new HashSet<Guid>(), false, wish);
 
     public async Task<IReadOnlyList<OnlineAppointment>> ToOnlineAsync(IReadOnlyList<Appointment> appointments, CancellationToken ct)
     {
@@ -122,7 +129,8 @@ internal sealed class OnlinePortal(
             a.Id, a.LocationId, location.Name, location.TimeZone, a.Treatment.Name, a.Start, a.End, a.Price, location.Currency,
             state, cancellableUntil, canCancel, anamnesis,
             MasterDataEndpoints.ContactOf(location), card, deposit, a.ConfirmedAt, a.Treatment.GuestHint, a.TreatmentId,
-            canCancel && a.GroupId is null && a.GuestMoves < Options.MaxGuestMoves, lateFee, canCancelLate);
+            canCancel && a.GroupId is null && a.GuestMoves < Options.MaxGuestMoves, lateFee, canCancelLate,
+            a.LateMinutes, CanReportLate(a, now));
     }
 
     public Task<Appointment?> LoadAppointmentAsync(Guid appointmentId, CancellationToken ct) =>
@@ -245,6 +253,54 @@ internal sealed class OnlinePortal(
         {
             // Auf Mikrosekunden wie in PostgreSQL, damit die Antwort denselben Zeitpunkt nennt wie jeder spätere Abruf.
             appointment.ConfirmedAt = now.AddTicks(-(now.Ticks % 10));
+            appointment.UpdatedAt = now;
+            await db.SaveChangesAsync(ct);
+            await bus.PublishAsync(new AppointmentChangedMessage(BookingService.ToDto(appointment, appointment.Treatment.Name)));
+        }
+
+        return new PortalOutcome.Done(await ToOnlineAsync(appointment, ct));
+    }
+
+    /// <summary>So lange vor dem Termin kann der Gast frühestens melden, dass er später kommt.</summary>
+    public static readonly TimeSpan LateFrom = TimeSpan.FromHours(3);
+
+    /// <summary>So lange nach Beginn nimmt die Seite die Meldung noch an; danach ruft der Gast an.</summary>
+    public static readonly TimeSpan LateUntil = TimeSpan.FromMinutes(15);
+
+    /// <summary>Was der Gast zur Wahl hat; die Rezeption kann bis <see cref="BookingService.MaxLateMinutes"/> eintragen.</summary>
+    public static readonly int[] LateChoices = [5, 10, 15, 20, 30];
+
+    private static bool CanReportLate(Appointment a, DateTimeOffset now) =>
+        a.Status == AppointmentStatus.Booked && now >= a.Start - LateFrom && now <= a.Start + LateUntil;
+
+    /// <summary>
+    /// Der Gast meldet über seinen Termin-Link oder sein Konto, dass er später kommt. Der Termin bleibt an seiner Zeit; der Kalender
+    /// zeigt die Verspätung live, wie wenn die Rezeption sie einträgt. 0 Minuten nimmt die Meldung zurück.
+    /// </summary>
+    public async Task<PortalOutcome> ReportLateAsync(Guid appointmentId, Guid customerId, int minutes, CancellationToken ct)
+    {
+        var appointment = await db.Appointments.Include(a => a.Treatment).Include(a => a.Customer)
+            .FirstOrDefaultAsync(a => a.Id == appointmentId, ct);
+        if (appointment is null || appointment.CustomerId != customerId)
+        {
+            return new PortalOutcome.NotFound();
+        }
+
+        var now = time.GetUtcNow();
+        if (!CanReportLate(appointment, now))
+        {
+            return new PortalOutcome.Refused("Eine Verspätung lässt sich hier nur kurz vor dem Termin melden. Bitte rufen Sie uns an.");
+        }
+
+        if (minutes != 0 && !LateChoices.Contains(minutes))
+        {
+            return new PortalOutcome.Refused("Bitte eine der angebotenen Zeiten wählen. Wenn Sie später kommen, rufen Sie uns bitte an.");
+        }
+
+        var late = minutes == 0 ? (int?)null : minutes;
+        if (appointment.LateMinutes != late)
+        {
+            appointment.LateMinutes = late;
             appointment.UpdatedAt = now;
             await db.SaveChangesAsync(ct);
             await bus.PublishAsync(new AppointmentChangedMessage(BookingService.ToDto(appointment, appointment.Treatment.Name)));

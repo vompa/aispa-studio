@@ -88,6 +88,11 @@ export function MyAppointmentsPage({ navigatedHere }: { navigatedHere: boolean }
           setMessage(t.attendDone)
           setAppointments((all) => all?.map((x) => (x.id === changed.id ? changed : x)) ?? null)
         }}
+        late={(minutes) => api.POST('/api/online/me/appointments/{appointmentId}/late', { params: { path: { appointmentId: a.id } }, body: { minutes } })}
+        onLate={(changed, minutes) => {
+          setMessage(minutes === 0 ? t.lateWithdrawn : t.lateDone)
+          setAppointments((all) => all?.map((x) => (x.id === changed.id ? changed : x)) ?? null)
+        }}
       />
       <CardGuaranteeBox
         appointment={a}
@@ -197,16 +202,22 @@ export function MyAppointmentsPage({ navigatedHere }: { navigatedHere: boolean }
 }
 
 type AttendCall = () => Promise<{ data?: OnlineAppointment; response: Response }>
+/** Was der Gast zur Wahl hat; die API nimmt nur diese Werte an. */
+const LATE_CHOICES = [5, 10, 15, 20, 30]
+
 type CancelCall = (acceptFee: boolean) => Promise<{ data?: OnlineAppointment; response: Response }>
 
 /** Termin mit Storno in zwei Schritten (versehentliches Stornieren vermeiden, WCAG 3.3.4). */
-export function AppointmentCard({ appointment, cancel, onCancelled, attend, onAttended, move, onMoved, calendarUrl, linkAnamnesis }: {
+export function AppointmentCard({ appointment, cancel, onCancelled, attend, onAttended, late, onLate, move, onMoved, calendarUrl, linkAnamnesis }: {
   appointment: OnlineAppointment
   cancel?: CancelCall
   onCancelled?: (a: OnlineAppointment) => void | Promise<void>
   /** Zusage „Ich komme“ (Link aus Bestätigung oder Erinnerung). */
   attend?: AttendCall
   onAttended?: (a: OnlineAppointment) => void | Promise<void>
+  /** „Ich komme später“: 5 bis 30 Minuten, 0 nimmt es zurück. Die API sagt mit `canReportLate`, wann das geht. */
+  late?: (minutes: number) => Promise<{ data?: OnlineAppointment; response: Response }>
+  onLate?: (a: OnlineAppointment, minutes: number) => void | Promise<void>
   /** Selbst verschieben auf eine freie Zeit (innerhalb der Stornofrist, höchstens zweimal). */
   move?: (start: string) => Promise<{ data?: OnlineAppointment; response: Response }>
   onMoved?: (a: OnlineAppointment) => void | Promise<void>
@@ -236,6 +247,21 @@ export function AppointmentCard({ appointment, cancel, onCancelled, attend, onAt
   const lateFee = !appointment.canCancel && appointment.canCancelLate && appointment.lateCancelFee != null
     ? formatPrice(appointment.lateCancelFee, appointment.currency, lang)
     : null
+
+  async function doLate(minutes: number) {
+    if (!late || busy) return
+    setBusy(true)
+    setError(null)
+    try {
+      const { data } = await late(minutes)
+      if (data) await onLate?.(data, minutes)
+      else setError(t.errorGeneric)
+    } catch {
+      setError(t.errorOffline)
+    } finally {
+      setBusy(false)
+    }
+  }
 
   async function doAttend() {
     if (!attend || busy) return
@@ -300,6 +326,33 @@ export function AppointmentCard({ appointment, cancel, onCancelled, attend, onAt
           <button type="button" onClick={doAttend} aria-disabled={busy}>
             {t.attend}
           </button>
+        </div>
+      )}
+      {appointment.state === 'Booked' && appointment.canReportLate && late && !confirming && (
+        <div role="group" aria-labelledby={`${questionId}-late`}>
+          <p id={`${questionId}-late`}>
+            <strong>{t.lateTitle}</strong>
+          </p>
+          {appointment.lateMinutes ? <p>{t.lateReported(appointment.lateMinutes)}</p> : <p className="hint">{t.lateHint}</p>}
+          <div className="actions">
+            {LATE_CHOICES.map((minutes) => (
+              <button
+                key={minutes}
+                type="button"
+                className="secondary"
+                aria-pressed={appointment.lateMinutes === minutes}
+                aria-disabled={busy}
+                onClick={() => void doLate(minutes)}
+              >
+                {t.lateChoice(minutes)}
+              </button>
+            ))}
+            {appointment.lateMinutes != null && (
+              <button type="button" className="secondary" aria-disabled={busy} onClick={() => void doLate(0)}>
+                {t.lateWithdraw}
+              </button>
+            )}
+          </div>
         </div>
       )}
       {appointment.state === 'Booked' && calendarUrl && !confirming && (

@@ -250,6 +250,9 @@ public sealed class CardGuarantee
     /// </summary>
     public DateTimeOffset? ReleaseAt { get; init; }
 
+    /// <summary>Der Gast wurde kurz vor <see cref="ReleaseAt"/> einmal erinnert; leer, solange nicht.</summary>
+    public DateTimeOffset? ReminderSentAt { get; set; }
+
     /// <summary>Name des Zahlungsanbieters, z. B. „Stripe“.</summary>
     public required string Provider { get; init; }
 
@@ -317,6 +320,9 @@ public sealed class DepositOrder
 
     /// <summary>Ohne Zahlung wird der Termin zu diesem Zeitpunkt freigegeben (Regel des Standorts beim Buchen); leer, wenn nie.</summary>
     public DateTimeOffset? ReleaseAt { get; init; }
+
+    /// <summary>Der Gast wurde kurz vor <see cref="ReleaseAt"/> einmal erinnert; leer, solange nicht.</summary>
+    public DateTimeOffset? ReminderSentAt { get; set; }
 
     /// <summary>Name des Zahlungsanbieters, z. B. „Stripe“.</summary>
     public required string Provider { get; init; }

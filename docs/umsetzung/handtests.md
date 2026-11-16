@@ -14,7 +14,7 @@ Beim Rundenabschluss wird geprüft, dass jede Aufgabe der Runde einen vollständ
 
 ## Blöcke
 
-Ohne Block, weil die Aufgabe nichts Sichtbares ändert: Obergrenze von 2 Erinnerungen je Gast und Tag (greift nur bei nachgebuchten Terminen; durch Test gedeckt), Entscheidung zur Mindestlücke (nur Doku), Kopfzeile `List-Unsubscribe` in der Erinnerung an die nächste Behandlung, Lückenvorschläge mit Treatwell-Hinweis und Einwirkzeit (ein Treatwell-Termin lässt sich ohne echtes Postfach nicht von Hand erzeugen; durch Ansichtstest gedeckt), Erinnerung nach 48 Stunden mit Verbindung (derselbe Satz wie im Block „Hinweis nach 48 Stunden“, nur unter „Beim Abgleich nicht übernommen“), Kassa ohne Verbindung Schritt 1 (nur Schnittstelle; der Block kommt mit Schritt 2), T-013 (Entscheidung, nur Doku), T-014 (Entscheidung, keine Änderung), T-016 (Sichtung der zurückgestellten Kleinigkeiten), T-030 (CI-Zeitlimits), T-033 (Beispieldaten und Test), T-034 (Werkzeug knip, unbenutztes Paket entfernt), T-035 (Skill und Doku), T-040 (ADR und Konzept, nur Doku), Export/Import Aufgabe A (Export-Dienst, Knopf ohne Seite; der Knopf ist im Block „Export/Import B“ geprüft).
+Ohne Block, weil die Aufgabe nichts Sichtbares ändert: Erinnerung vor Ablauf der Frist für Karte oder Anzahlung (Mail an den Gast nach Stunden Wartezeit; durch Tests gedeckt), Obergrenze von 2 Erinnerungen je Gast und Tag (greift nur bei nachgebuchten Terminen; durch Test gedeckt), Entscheidung zur Mindestlücke (nur Doku), Kopfzeile `List-Unsubscribe` in der Erinnerung an die nächste Behandlung, Lückenvorschläge mit Treatwell-Hinweis und Einwirkzeit (ein Treatwell-Termin lässt sich ohne echtes Postfach nicht von Hand erzeugen; durch Ansichtstest gedeckt), Erinnerung nach 48 Stunden mit Verbindung (derselbe Satz wie im Block „Hinweis nach 48 Stunden“, nur unter „Beim Abgleich nicht übernommen“), Kassa ohne Verbindung Schritt 1 (nur Schnittstelle; der Block kommt mit Schritt 2), T-013 (Entscheidung, nur Doku), T-014 (Entscheidung, keine Änderung), T-016 (Sichtung der zurückgestellten Kleinigkeiten), T-030 (CI-Zeitlimits), T-033 (Beispieldaten und Test), T-034 (Werkzeug knip, unbenutztes Paket entfernt), T-035 (Skill und Doku), T-040 (ADR und Konzept, nur Doku), Export/Import Aufgabe A (Export-Dienst, Knopf ohne Seite; der Knopf ist im Block „Export/Import B“ geprüft).
 
 ### T-015 – Keine Stempeluhr in „Mein Tag“, Zeiten trägt die Leitung ein
 Start: Browser in Handybreite (z. B. 390 px), die Adresse des Spas mit `/mein-tag/` öffnen, als Mitarbeiterin (Therapeutin) anmelden
@@ -1210,6 +1210,70 @@ Expected: „Lieferung zu Bestellung … gebucht“. In der Windows-App zeigt di
 Expected: Der Hinweis „Das Lesen von Lieferscheinen ist nicht eingerichtet. Bitte die Mengen von Hand eintragen.“; von Hand eintragen und buchen geht.
 5. Als Rezeption „Mein Tag“ öffnen.
 Expected: Den Reiter **Lieferung** gibt es nicht.
+Closes: –
+Result: ☐
+
+### „Mein Tag“ – das eigene Urlaubskonto
+Start: In der Windows-App bei einer Person Anspruch 25 und Übertrag 2,5 für das laufende Jahr eingetragen und einen Urlaubstag an einem ihrer Arbeitstage veröffentlicht; „Mein Tag“ als diese Person
+1. Den Reiter **Abwesenheit** öffnen.
+Expected: Über dem Formular steht „Urlaubskonto <Jahr>“ mit „Rest 26,5 Tage von 27,5 Tage (genommen … , geplant …)“; die Zahlen stimmen mit der Karte der Person in der Windows-App überein.
+2. Als Person ohne eingetragenen Anspruch öffnen.
+Expected: „Genommen …, geplant …. Ein Anspruch ist für dieses Jahr noch nicht eingetragen.“
+Closes: –
+Result: ☐
+
+### Kundenbereich – „Ich komme später“ durch den Gast
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App mit offenem Kalender; ein online gebuchter Termin, der in etwa einer Stunde beginnt; die Bestätigungsmail des Gastes
+1. Den Link „Termin ansehen“ aus der Mail öffnen.
+Expected: Unter dem Termin steht „Ich komme später“ mit 5, 10, 15, 20 und 30 Minuten.
+2. Auf **15 Minuten** tippen.
+Expected: „Sie haben gemeldet, dass Sie 15 Minuten später kommen.“ Im Kalender der Windows-App steht am Termin ohne Neuladen „kommt …“ mit der späteren Zeit.
+3. Auf **Doch pünktlich** tippen.
+Expected: Der Hinweis verschwindet auf der Seite und im Kalender.
+4. Den Link eines Termins öffnen, der erst in einigen Tagen ist.
+Expected: „Ich komme später“ wird nicht angeboten.
+Closes: –
+Result: ☐
+
+### Anfragen – einen späteren als den nächsten Termin absagen
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App als Rezeption; ein Gast mit Mailadresse und zwei gebuchten Terminen an verschiedenen Tagen; eine Mail des Gastes „den zweiten Termin muss ich absagen“ über das Test-Postfach
+1. **Anfragen** öffnen und die Nachricht anklicken.
+Expected: Über „Termin stornieren“ steht **Welcher Termin?** mit beiden Terminen; gewählt ist der frühere mit „(nächster Termin)“.
+2. Den späteren Termin wählen und **Termin stornieren** klicken.
+Expected: Die Rückfrage nennt Tag, Uhrzeit und Behandlung des späteren Termins.
+3. Bestätigen.
+Expected: „Termin storniert. Die Antwort wird neu entworfen.“ Im Kalender ist der spätere Termin storniert, der frühere steht noch; der Antwortentwurf nennt den späteren Termin.
+Closes: –
+Result: ☐
+
+### „Mein Tag“ – Hinweis „Anamnese prüfen“
+Start: Eine Behandlung mit dem Häkchen „Anamnese prüfen“ (Verwaltung › Behandlungen); ein Gast mit ausgefülltem Fragebogen, in dem mindestens ein „Ja“ steht; ein Termin dieses Gastes heute bei einer Therapeutin; „Mein Tag“ als diese Therapeutin
+1. Den Tagesplan öffnen.
+Expected: Auf der Karte des Termins steht „Anamnese prüfen: Der Fragebogen enthält Angaben, die für diese Behandlung wichtig sein können.“ (oder „Allergie angegeben …“, wenn das Ja bei den Allergien steht). Der Inhalt des Bogens steht nicht da.
+2. Einen Termin desselben Gastes mit einer Behandlung ohne das Häkchen ansehen.
+Expected: Kein Hinweis „Anamnese prüfen“.
+Closes: –
+Result: ☐
+
+### Online-Buchung – Wunsch „Therapeutin“ oder „Therapeut“
+Start: Im Team ist bei einer Person „Therapeutin“ und bei einer anderen „Therapeut“ eingetragen, beide mit derselben Behandlung und denselben Arbeitszeiten; der Kundenbereich im Browser
+1. Behandlung wählen und zum Schritt „Zeit“ gehen.
+Expected: Über den Tagen steht „Behandlung durch (freiwillig)“ mit Egal, Therapeutin, Therapeut.
+2. Die Therapeutin im Kalender der Windows-App für eine freie Zeit buchen, dann im Kundenbereich „Therapeutin“ wählen.
+Expected: Diese Zeit fehlt in der Liste; mit „Therapeut“ oder „Egal“ ist sie da.
+3. „Therapeut“ wählen, eine Zeit nehmen und buchen.
+Expected: Im Kalender steht der Termin beim Therapeuten; in der Notiz steht „Wunsch bei der Online-Buchung: Therapeut.“
+Closes: –
+Result: ☐
+
+### Ausfall-Assistent – Gäste ohne Ersatz benachrichtigen
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App als Rezeption; eine Person mit einem Termin heute, für den niemand sonst die Qualifikation hat; der Gast hat eine Mailadresse
+1. Im Kalender die Person als ausgefallen markieren und den Ausfall-Assistenten öffnen.
+Expected: Beim Termin steht „kein Ersatz an diesem Tag“; unter „Gewählte übernehmen“ steht **Ohne Ersatz: informieren**.
+2. Auf **Ohne Ersatz: informieren** klicken.
+Expected: Die Rückfrage „1 Gast benachrichtigen?“ erklärt, dass der Termin stehen bleibt.
+3. Bestätigen.
+Expected: An der Zeile steht „Gast benachrichtigt“, darunter „1 Gast benachrichtigt.“ Im Postfach des Gastes liegt die Mail „Ihr Termin am …“; der Termin steht weiter im Kalender. Der Knopf ist verschwunden.
 Closes: –
 Result: ☐
 

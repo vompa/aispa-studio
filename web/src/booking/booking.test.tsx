@@ -48,7 +48,7 @@ const appointment = {
 const withContact = <T extends object>(l: T) => ({ ...l, contact: { street: null, postalCode: null, city: null, phone: null, email: null, directions: null } })
 
 let routes: Record<string, Handler>
-const requests: { method: string; path: string; body: unknown }[] = []
+const requests: { method: string; path: string; query?: string; body: unknown }[] = []
 
 function stubFetch() {
   vi.stubGlobal(
@@ -57,7 +57,7 @@ function stubFetch() {
       const request = typeof input === 'string' ? new Request(new URL(input, 'http://localhost'), init) : input
       const url = new URL(request.url)
       const text = request.method === 'GET' ? '' : await request.clone().text()
-      requests.push({ method: request.method, path: url.pathname, body: text ? JSON.parse(text) : undefined })
+      requests.push({ method: request.method, path: url.pathname, query: url.search, body: text ? JSON.parse(text) : undefined })
       const handler = routes[`${request.method} ${url.pathname}`]
       const reply = handler ? await handler(request) : { status: 404 }
       return new Response(reply.body === undefined ? null : JSON.stringify(reply.body), {
@@ -164,6 +164,37 @@ describe('Online-Buchung', () => {
 
     await waitFor(() => expect(requests.find((r) => r.path === '/api/online/bookings')?.body).toMatchObject({ acceptMarketing: true }))
     await expectAccessible()
+  })
+
+  it('bietet den Wunsch Therapeutin oder Therapeut an, lädt die Zeiten dafür neu und sendet ihn mit', async () => {
+    routes['GET /api/online/locations'] = () => ({ status: 200, body: [{ ...location, therapistWish: true }] })
+    routes['POST /api/online/bookings'] = () => ({ status: 400, body: { errors: {} } })
+    render(<BookingApp />)
+    fireEvent.click(await screen.findByRole('radio', { name: /Klassische Massage/ }))
+    fireEvent.click(screen.getByRole('button', { name: 'Weiter' }))
+
+    fireEvent.change(await screen.findByLabelText('Behandlung durch (freiwillig)'), { target: { value: 'Female' } })
+    await waitFor(() => expect(requests.some((r) => r.path.endsWith('/availability') && r.query?.includes('wish=Female'))).toBe(true))
+    const times = await screen.findByRole('group', { name: /Uhrzeit/ })
+    fireEvent.click(within(times).getByRole('radio', { name: '10:15' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Weiter' }))
+    await screen.findByRole('heading', { name: 'Ihre Angaben' })
+    fireEvent.change(screen.getByLabelText(/^Vorname/), { target: { value: 'Lena' } })
+    fireEvent.change(screen.getByLabelText(/^Nachname/), { target: { value: 'Gast' } })
+    fireEvent.change(screen.getByLabelText(/^E-Mail-Adresse/), { target: { value: 'lena@example.at' } })
+    fireEvent.click(screen.getByRole('checkbox', { name: /Datenschutzhinweis/ }))
+    fireEvent.click(screen.getByRole('button', { name: 'Verbindlich buchen' }))
+
+    await waitFor(() => expect(requests.find((r) => r.path === '/api/online/bookings')?.body).toMatchObject({ therapistWish: 'Female' }))
+  })
+
+  it('zeigt die Auswahl nicht, wenn im Team keine Angabe hinterlegt ist', async () => {
+    render(<BookingApp />)
+    fireEvent.click(await screen.findByRole('radio', { name: /Klassische Massage/ }))
+    fireEvent.click(screen.getByRole('button', { name: 'Weiter' }))
+    await screen.findByRole('group', { name: /Uhrzeit/ })
+
+    expect(screen.queryByLabelText('Behandlung durch (freiwillig)')).toBeNull()
   })
 
   it('zeigt ohne eingeschaltete Erinnerungen kein Häkchen dafür', async () => {
@@ -806,6 +837,40 @@ describe('Termin per Link', () => {
     expect(screen.queryByRole('button', { name: 'Ich komme' })).toBeNull()
     expect(screen.getAllByRole('status').map((s) => s.textContent).join(' ')).toContain('bestätigt')
     await expectAccessible()
+  })
+
+  it('meldet kurz vor dem Termin per Knopf, dass der Gast später kommt, und nimmt es zurück', async () => {
+    const soon = { ...appointment, canReportLate: true, lateMinutes: null }
+    routes['GET /api/online/bookings/tok'] = () => ({ status: 200, body: soon })
+    // Der Stub hält die Anfrage fest, bevor die Route antwortet: die zuletzt gesendeten Minuten kommen zurück.
+    routes['POST /api/online/bookings/tok/late'] = () => {
+      const sent = (requests.filter((r) => r.path === '/api/online/bookings/tok/late').at(-1)?.body as { minutes: number } | undefined)?.minutes ?? 0
+      return { status: 200, body: { ...soon, lateMinutes: sent || null } }
+    }
+    window.location.hash = '#/termin/tok'
+    render(<BookingApp />)
+
+    const group = await screen.findByRole('group', { name: 'Ich komme später' })
+    expect(within(group).getAllByRole('button').map((b) => b.textContent)).toEqual(['5 Minuten', '10 Minuten', '15 Minuten', '20 Minuten', '30 Minuten'])
+    fireEvent.click(within(group).getByRole('button', { name: '15 Minuten' }))
+
+    expect(await screen.findByText('Sie haben gemeldet, dass Sie 15 Minuten später kommen.')).toBeTruthy()
+    expect(requests.find((r) => r.path === '/api/online/bookings/tok/late')?.body).toEqual({ minutes: 15 })
+    expect(screen.getByRole('button', { name: '15 Minuten' }).getAttribute('aria-pressed')).toBe('true')
+    await expectAccessible()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Doch pünktlich' }))
+    await waitFor(() => expect(screen.queryByText(/Sie haben gemeldet/)).toBeNull())
+    expect(screen.getAllByRole('status').map((s) => s.textContent).join(' ')).toContain('zurückgenommen')
+  })
+
+  it('bietet die Verspätung nicht an, solange die API es nicht erlaubt', async () => {
+    routes['GET /api/online/bookings/tok'] = () => ({ status: 200, body: appointment })
+    window.location.hash = '#/termin/tok'
+    render(<BookingApp />)
+
+    await screen.findByRole('button', { name: 'Ich komme' })
+    expect(screen.queryByRole('group', { name: 'Ich komme später' })).toBeNull()
   })
 
   it('plant die Route zum Standort ohne Standortabfrage und zeigt den Anreise-Text darunter', async () => {

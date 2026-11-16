@@ -26,6 +26,8 @@ internal static class OnlineBookingEndpoints
                 var byLocation = await rules.ForAsync([.. locations.Select(l => l.Id)], ct);
                 var cards = await guarantees.AvailableAsync(ct);
                 var reminders = await db.RebookSettings.AsNoTracking().AnyAsync(r => r.Enabled, ct);
+                // Der Wunsch „Therapeutin“ oder „Therapeut“ wirkt nur, wenn bei Personen im Team die Angabe hinterlegt ist.
+                var wish = await db.Employees.AsNoTracking().AnyAsync(e => e.IsActive && e.Gender != null, ct);
                 var result = new List<OnlineLocation>();
                 foreach (var l in locations)
                 {
@@ -34,7 +36,7 @@ internal static class OnlineBookingEndpoints
                         byLocation[l.Id].BookingEnabled, byLocation[l.Id].GuestNote, byLocation[l.Id].CancellationDeadlineHours,
                         MasterDataEndpoints.ContactOf(l), CardGuarantees.EffectivePercent(cards, byLocation[l.Id]), byLocation[l.Id].NoShowFeeNewCustomersOnly,
                         await deposits.AvailableAsync(l.Id, ct) ? Deposits.EffectivePercent(byLocation[l.Id]) : 0,
-                        await closures.OnlineAsync(l.Id, ct), reminders));
+                        await closures.OnlineAsync(l.Id, ct), reminders, wish));
                 }
 
                 return result;
@@ -76,7 +78,7 @@ internal static class OnlineBookingEndpoints
             .WithSummary("Behandlungen, die an diesem Standort online buchbar sind (geeigneter Raum und qualifiziertes Team vorhanden).");
 
         group.MapGet("/locations/{locationId:guid}/availability", async Task<Results<Ok<OnlineAvailability>, NotFound>> (
-                Guid locationId, Guid treatmentId, DateOnly? from, int? days,
+                Guid locationId, Guid treatmentId, DateOnly? from, int? days, TherapistGender? wish,
                 AispaDbContext db, OnlinePortal portal, CancellationToken ct) =>
             {
                 var location = await db.Locations.AsNoTracking().FirstOrDefaultAsync(l => l.Id == locationId, ct);
@@ -92,7 +94,7 @@ internal static class OnlineBookingEndpoints
                 var result = new List<OnlineDay>();
                 for (var date = start; date < start.AddDays(Math.Clamp(days ?? 7, 1, 14)) && date <= last; date = date.AddDays(1))
                 {
-                    if (await portal.FreeTimesAsync(locationId, treatmentId, date, earliest, ct) is not { } times)
+                    if (await portal.FreeTimesAsync(locationId, treatmentId, date, earliest, ct, wish) is not { } times)
                     {
                         return TypedResults.NotFound();
                     }
@@ -168,6 +170,19 @@ internal static class OnlineBookingEndpoints
             .RequireRateLimiting(OnlineSetup.SensitiveRateLimit)
             .WithName("ConfirmOnlineBooking")
             .WithSummary("Der Gast sagt über den Link aus Bestätigung oder Erinnerung zu, dass er kommt; nur für bevorstehende Termine.");
+
+        group.MapPost("/bookings/{token}/late", async Task<Results<Ok<OnlineAppointment>, NotFound, ProblemHttpResult>> (
+                string token, OnlineLateRequest request, AccessLinks links, OnlinePortal portal, CancellationToken ct) =>
+            {
+                var link = await links.FindAsync(token, AccessLinkPurpose.ManageAppointment, ct);
+                return link?.AppointmentId is { } id
+                    ? Respond(await portal.ReportLateAsync(id, link.CustomerId, request.Minutes, ct))
+                    : TypedResults.NotFound();
+            })
+            .RequireRateLimiting(OnlineSetup.SensitiveRateLimit)
+            .WithName("ReportLateOnlineBooking")
+            .WithSummary("Der Gast meldet über seinen Termin-Link, dass er 5, 10, 15, 20 oder 30 Minuten später kommt (0 nimmt es zurück); "
+                + "ab drei Stunden vor dem Termin bis 15 Minuten nach Beginn. Der Termin bleibt an seiner Zeit.");
 
         return routes;
     }
@@ -256,16 +271,27 @@ internal static class OnlineBookingEndpoints
             }
         }
 
-        if (new ResourcePlanner(customerRules.Apply(context)).Plan(start) is { Plan: null } rejected)
+        // Wunsch „Therapeutin“ oder „Therapeut“ für diese Buchung: Er geht dem Wunsch aus den Kundendaten vor und legt die Person fest.
+        var wished = request.TherapistWish is { } wish ? customerRules with { Gender = wish } : customerRules;
+        var planned = new ResourcePlanner(wished.Apply(context)).Plan(start);
+        if (planned.Plan is null)
         {
-            return TypedResults.Conflict(Public(rejected.Message!));
+            return TypedResults.Conflict(Public(request.TherapistWish is null
+                ? planned.Message!
+                : "Zu dieser Zeit ist die gewünschte Person nicht frei. Bitte wählen Sie eine andere Zeit."));
         }
 
         var (customerId, email) = await accounts.ResolveCustomerAsync(account, request.Contact, ct);
 
+        var note = voucher is null ? Blank(request.Note) : $"{Blank(request.Note)}\nGutschein {voucher} angegeben, an der Kassa einlösen.".TrimStart();
+        if (request.TherapistWish is { } stated)
+        {
+            note = $"{note}\nWunsch bei der Online-Buchung: {(stated == TherapistGender.Female ? "Therapeutin" : "Therapeut")}.".TrimStart();
+        }
+
+        // Mit Wunsch bucht die geplante Person, sonst wählt die Buchung wie bisher selbst.
         var outcome = await booking.BookAsync(new AppointmentRequest(
-            request.LocationId, request.TreatmentId, customerId, start, null, null, null,
-            voucher is null ? Blank(request.Note) : $"{Blank(request.Note)}\nGutschein {voucher} angegeben, an der Kassa einlösen.".TrimStart()), ct,
+            request.LocationId, request.TreatmentId, customerId, start, request.TherapistWish is null ? null : planned.Plan.Employee.Id, null, null, note), ct,
             source: AppointmentSource.Online);
         switch (outcome)
         {

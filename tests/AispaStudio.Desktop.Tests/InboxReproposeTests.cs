@@ -16,12 +16,13 @@ public sealed class InboxReproposeTests
         public override TimeZoneInfo LocalTimeZone => Vienna;
     }
 
-    private static async Task<(InboxDetailViewModel Detail, StubApi Api)> OpenAsync(InboundMailDto mail)
+    private static async Task<(InboxDetailViewModel Detail, StubApi Api)> OpenAsync(InboundMailDto mail, Action<StubApi>? prepare = null)
     {
         var api = new StubApi()
             .On("GET /api/locations", new List<LocationDto> { SpaSample.Vienna })
             .On("GET /api/inbox", new List<InboundMailSummary> { SpaSample.Inbox()[0] })
             .On(MailRoute, mail);
+        prepare?.Invoke(api);
         var vm = new InboxViewModel(api.Client(), null, new FixedTime(), poll: TimeSpan.Zero);
         await vm.InitializeAsync();
         vm.SelectedRow = vm.Mails[0];
@@ -31,6 +32,48 @@ public sealed class InboxReproposeTests
         }
 
         return (vm.Detail!, api);
+    }
+
+    [Fact]
+    public async Task Hat_der_Gast_mehrere_Termine_waehlt_die_Rezeption_den_spaeteren_und_die_Rueckfrage_nennt_ihn()
+    {
+        var found = Guid.NewGuid();
+        var later = Guid.NewGuid();
+        var mail = SpaSample.InboxMail() with
+        {
+            Status = InboundMailStatus.NeedsReview,
+            Kind = InboundMailKind.Cancellation,
+            Proposals = [],
+            AppointmentId = found,
+            CanRepropose = false,
+            CanCancelAppointment = true,
+        };
+        var (detail, api) = await OpenAsync(mail, stub => stub.On($"GET /api/inbox/{SpaSample.InboxMailId}/cancellable-appointments", new List<InboxAppointmentOption>
+        {
+            new(found, SpaSample.At(17), "Hot-Stone-Massage", "Wien", "Europe/Vienna", true),
+            new(later, SpaSample.At(10).AddDays(7), "Aromaöl-Massage", "Wien", "Europe/Vienna", false),
+        }));
+        for (var i = 0; i < 100 && detail.CancelOptions.Count == 0; i++)
+        {
+            await Task.Delay(10, TestContext.Current.CancellationToken);
+        }
+
+        var route = $"POST /api/inbox/{SpaSample.InboxMailId}/cancel-appointment?appointmentId={later}";
+        api.On(route, mail with { Status = InboundMailStatus.Cancelled, CanCancelAppointment = false, AppointmentId = later });
+
+        // Vorgewählt ist der gefundene, nächste Termin.
+        Assert.True(detail.HasCancelChoice);
+        Assert.Equal(found, detail.SelectedCancelOption!.Option.Id);
+        Assert.EndsWith("(nächster Termin)", detail.SelectedCancelOption.Text, StringComparison.Ordinal);
+        detail.SelectedCancelOption = detail.CancelOptions[1];
+        var dialogs = new FakeDialogs().Answer(ConfirmChoice.Confirmed);
+        detail.Dialogs = dialogs;
+        await detail.AskCancelAppointmentCommand.ExecuteAsync(null);
+
+        Assert.Contains("Aromaöl-Massage", dialogs.Asked[0].Message, StringComparison.Ordinal);
+        Assert.Single(api.Calls, c => c.Route == route);
+        // Nach dem Storno gibt es nichts mehr zu wählen.
+        Assert.False(detail.HasCancelChoice);
     }
 
     [Fact]

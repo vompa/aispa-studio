@@ -260,6 +260,11 @@
                     </Border>
 
                     <StackPanel Spacing="6" IsVisible="{Binding CanCancelAppointment}">
+                      <!-- Hat der Gast mehrere bevorstehende Termine, wählt die Rezeption, welchen er meint; vorgewählt ist der nächste. -->
+                      <ui:FormField Label="Welcher Termin?" IsVisible="{Binding HasCancelChoice}">
+                        <ComboBox x:Name="CancelOptionBox" ItemsSource="{Binding CancelOptions}" SelectedItem="{Binding SelectedCancelOption}" MinWidth="320" HorizontalAlignment="Left"
+                                  AutomationProperties.Name="Welcher Termin?" />
+                      </ui:FormField>
                       <Button Content="Termin stornieren" Command="{Binding AskCancelAppointmentCommand}" />
                       <TextBlock Text="Storniert den Termin aus dem Hinweis, wie im Kalender." Classes="muted small" />
                     </StackPanel>

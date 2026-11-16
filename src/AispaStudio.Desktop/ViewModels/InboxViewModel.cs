@@ -8,6 +8,15 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace AispaStudio.Desktop.ViewModels;
 
+/// <summary>Ein Termin des Gastes in der Auswahl „Termin stornieren“ des Posteingangs, mit Tag, Uhrzeit, Behandlung und Standort.</summary>
+public sealed record CancelOption(InboxAppointmentOption Option)
+{
+    public string Text =>
+        $"{DayLayout.ShortDayTime(Option.Start, TimeZoneInfo.FindSystemTimeZoneById(Option.TimeZone))} · {Option.TreatmentName} · {Option.LocationName}{(Option.Found ? " (nächster Termin)" : "")}";
+
+    public override string ToString() => Text;
+}
+
 /// <summary>Eine Zeile im Posteingang.</summary>
 public sealed record InboxRow(InboundMailSummary Mail, string TimeText)
 {
@@ -328,6 +337,7 @@ public partial class InboxDetailViewModel : ViewModelBase
         ReplySubject = mail.ReplySubject ?? "";
         ReplyBody = mail.ReplyBody ?? "";
         _ = LoadAssignedNameAsync();
+        _ = LoadCancelOptionsAsync();
         SyncFreeTime();
     }
 
@@ -669,6 +679,7 @@ public partial class InboxDetailViewModel : ViewModelBase
         }
 
         _ = LoadAssignedNameAsync();
+        _ = LoadCancelOptionsAsync();
         SyncFreeTime();
     }
 
@@ -849,12 +860,58 @@ public partial class InboxDetailViewModel : ViewModelBase
     /// <summary>Absage mit gefundenem Termin: die Rezeption storniert ihn mit einem Klick.</summary>
     public bool CanCancelAppointment => Mail.CanCancelAppointment;
 
+    /// <summary>
+    /// Die bevorstehenden Termine des Gastes: Sagt er einen späteren als den nächsten ab, wählt die Rezeption ihn hier.
+    /// Leer, solange nichts zu stornieren ist oder der Gast nur den gefundenen Termin hat.
+    /// </summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasCancelChoice))]
+    public partial IReadOnlyList<CancelOption> CancelOptions { get; private set; } = [];
+
+    [ObservableProperty]
+    public partial CancelOption? SelectedCancelOption { get; set; }
+
+    /// <summary>Die Auswahl erscheint nur, wenn es mehr als den gefundenen Termin gibt.</summary>
+    public bool HasCancelChoice => CancelOptions.Count > 1;
+
+    private Guid? _cancelOptionsFor;
+
+    private async Task LoadCancelOptionsAsync()
+    {
+        if (!Mail.CanCancelAppointment)
+        {
+            _cancelOptionsFor = null;
+            CancelOptions = [];
+            SelectedCancelOption = null;
+            return;
+        }
+
+        if (_cancelOptionsFor == Mail.AppointmentId)
+        {
+            return;
+        }
+
+        var forAppointment = Mail.AppointmentId;
+        _cancelOptionsFor = forAppointment;
+        var result = await _api.GetAsync<List<InboxAppointmentOption>>($"api/inbox/{Id}/cancellable-appointments").ConfigureAwait(true);
+        if (_cancelOptionsFor != forAppointment)
+        {
+            return;
+        }
+
+        var options = (result.Value ?? []).Select(o => new CancelOption(o)).ToList();
+        CancelOptions = options;
+        SelectedCancelOption = options.FirstOrDefault(o => o.Option.Found) ?? options.FirstOrDefault();
+    }
+
     /// <summary>„Termin stornieren“ fragt nach (Rückfragedialog, Design-Brief 5.27).</summary>
     [RelayCommand(CanExecute = nameof(CanAct))]
     private async Task AskCancelAppointmentAsync()
     {
-        var answer = await AskAsync(new ConfirmRequest("Termin stornieren?",
-            "Der gefundene Termin ist danach storniert; die Antwort an den Gast wird neu entworfen.", "Stornieren")).ConfigureAwait(true);
+        var text = SelectedCancelOption is { } chosen && HasCancelChoice
+            ? $"{chosen.Text} ist danach storniert; die Antwort an den Gast wird neu entworfen."
+            : "Der gefundene Termin ist danach storniert; die Antwort an den Gast wird neu entworfen.";
+        var answer = await AskAsync(new ConfirmRequest("Termin stornieren?", text, "Stornieren")).ConfigureAwait(true);
         if (answer.IsConfirmed)
         {
             await CancelAppointmentAsync().ConfigureAwait(true);
@@ -863,7 +920,9 @@ public partial class InboxDetailViewModel : ViewModelBase
 
     [RelayCommand(CanExecute = nameof(CanAct))]
     private Task CancelAppointmentAsync() => ActAsync(
-        () => _api.PostAsync<InboundMailDto>($"api/inbox/{Id}/cancel-appointment", null), "Termin storniert. Die Antwort wird neu entworfen.");
+        () => _api.PostAsync<InboundMailDto>(
+            SelectedCancelOption is { Option.Found: false } later ? $"api/inbox/{Id}/cancel-appointment?appointmentId={later.Option.Id}" : $"api/inbox/{Id}/cancel-appointment", null),
+        "Termin storniert. Die Antwort wird neu entworfen.");
 
     [RelayCommand(CanExecute = nameof(CanAct))]
     private Task DismissAsync() => ActAsync(() => _api.PostAsync<InboundMailDto>($"api/inbox/{Id}/dismiss", null), "Als erledigt markiert.");

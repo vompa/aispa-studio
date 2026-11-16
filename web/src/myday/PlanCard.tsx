@@ -201,6 +201,7 @@ export function PlanCard({
         </div>
       )}
       {card.allergyFlag && <p className="allergy">Allergie angegeben: bitte den Fragebogen beachten.</p>}
+      {card.checkAnamnesis && !card.allergyFlag && <p className="allergy">Anamnese prüfen: Der Fragebogen enthält Angaben, die für diese Behandlung wichtig sein können.</p>}
       <p className="muted">{card.anamnesisStatus}</p>
       {card.bookingNote && <p>Hinweis zur Buchung: {card.bookingNote}</p>}
 

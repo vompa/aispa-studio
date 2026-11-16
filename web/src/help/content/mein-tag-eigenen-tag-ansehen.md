@@ -43,6 +43,7 @@ Wer an mehreren Standorten arbeitet, wählt oben bei **Standort** den Standort. 
 ## Hinweise {#hinweise}
 
 - Es erscheinen nur die eigenen Termine; den Plan anderer sieht man hier nicht.
+- Steht auf einer Karte „Anamnese prüfen“, verlangt die Behandlung einen Blick in den Fragebogen, und der Gast hat dort Angaben gemacht. Den Bogen selbst öffnet man in der Windows-App.
 - Hat eine Behandlung eine Einwirkzeit (Packung, Maske), steht auf der Karte „Einwirkzeit 10:20–10:40 (20 Min.): In dieser Zeit sind Sie frei.“ Der Gast bleibt im Raum.
 - Auf dem Handy werden keine Gesundheitsdaten gespeichert. **Abmelden** löscht die gespeicherten Tage.
 - Vorbereitung und Notiz: [Vorbereitung abhaken und Notiz schreiben](hilfe:mein-tag-vorbereitung-abhaken).

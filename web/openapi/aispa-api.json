@@ -6565,6 +6565,71 @@
         }
       }
     },
+    "/api/v1/locations/{locationId}/absence/notify": {
+      "post": {
+        "tags": [
+          "Kalender"
+        ],
+        "summary": "Gäste benachrichtigen, für deren Termin es keinen Ersatz gibt: per Mail, ohne Mailadresse per SMS. Der Termin bleibt stehen; storniert oder verschoben wird nichts.",
+        "operationId": "NotifyAbsenceWithoutCover",
+        "parameters": [
+          {
+            "name": "locationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AbsenceNotifyRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AbsenceNotifyResult"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/staff": {
       "get": {
         "tags": [
@@ -13958,6 +14023,51 @@
         }
       }
     },
+    "/api/v1/absence-requests/mine/leave-account/{year}": {
+      "get": {
+        "tags": [
+          "Dienstplan"
+        ],
+        "summary": "Das eigene Urlaubskonto eines Kalenderjahres (ADR 0097): Anspruch, Übertrag, genommen, geplant, Rest. Nur lesen; ohne verknüpfte Person 404.",
+        "operationId": "GetMyLeaveAccount",
+        "parameters": [
+          {
+            "name": "year",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeaveAccountDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/absence-requests/{id}/approve": {
       "post": {
         "tags": [
@@ -14849,6 +14959,13 @@
               "type": "integer",
               "format": "int32"
             }
+          },
+          {
+            "name": "wish",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/TherapistGender"
+            }
           }
         ],
         "responses": {
@@ -15083,6 +15200,50 @@
             }
           }
         ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OnlineAppointment"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/online/bookings/{token}/late": {
+      "post": {
+        "tags": [
+          "Kundenbereich"
+        ],
+        "summary": "Der Gast meldet über seinen Termin-Link, dass er 5, 10, 15, 20 oder 30 Minuten später kommt (0 nimmt es zurück); ab drei Stunden vor dem Termin bis 15 Minuten nach Beginn. Der Termin bleibt an seiner Zeit.",
+        "operationId": "ReportLateOnlineBooking",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OnlineLateRequest"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "200": {
             "description": "OK",
@@ -15722,6 +15883,51 @@
             }
           }
         ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OnlineAppointment"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/online/me/appointments/{appointmentId}/late": {
+      "post": {
+        "tags": [
+          "Kundenbereich: Mein Konto"
+        ],
+        "summary": "Meldet für einen eigenen Termin, dass man später kommt; Regeln wie bei „ReportLateOnlineBooking“.",
+        "operationId": "ReportLateMyAppointment",
+        "parameters": [
+          {
+            "name": "appointmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OnlineLateRequest"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "200": {
             "description": "OK",
@@ -18875,18 +19081,74 @@
         }
       }
     },
+    "/api/v1/inbox/{mailId}/cancellable-appointments": {
+      "get": {
+        "tags": [
+          "Terminannahme"
+        ],
+        "summary": "Die bevorstehenden gebuchten Termine des Gastes an den eigenen Standorten, der früheste zuerst: Sagt der Gast einen späteren als den nächsten Termin ab, wählt die Rezeption ihn hier. Leer, wenn zur Nachricht nichts zu stornieren ist.",
+        "operationId": "ListInboundMailCancellableAppointments",
+        "parameters": [
+          {
+            "name": "mailId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/InboxAppointmentOption"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
     "/api/v1/inbox/{mailId}/cancel-appointment": {
       "post": {
         "tags": [
           "Terminannahme"
         ],
-        "summary": "Storniert den Termin, den der Gast in seiner Nachricht absagt; die Antwort an den Gast wird neu entworfen.",
+        "summary": "Storniert den Termin, den der Gast in seiner Nachricht absagt; die Antwort an den Gast wird neu entworfen. Mit appointmentId ein anderer bevorstehender Termin desselben Gastes (siehe „ListInboundMailCancellableAppointments“).",
         "operationId": "CancelInboundMailAppointment",
         "parameters": [
           {
             "name": "mailId",
             "in": "path",
             "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "appointmentId",
+            "in": "query",
             "schema": {
               "type": "string",
               "format": "uuid"
@@ -29227,6 +29489,43 @@
           },
           "message": {
             "type": "string"
+          }
+        }
+      },
+      "AbsenceNotifyRequest": {
+        "required": [
+          "appointmentIds"
+        ],
+        "type": "object",
+        "properties": {
+          "appointmentIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        }
+      },
+      "AbsenceNotifyResult": {
+        "required": [
+          "notified",
+          "failed"
+        ],
+        "type": "object",
+        "properties": {
+          "notified": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "failed": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AbsenceMoveFailure"
+            }
           }
         }
       },
@@ -39956,6 +40255,39 @@
           }
         }
       },
+      "InboxAppointmentOption": {
+        "required": [
+          "id",
+          "start",
+          "treatmentName",
+          "locationName",
+          "timeZone",
+          "found"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "start": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "treatmentName": {
+            "type": "string"
+          },
+          "locationName": {
+            "type": "string"
+          },
+          "timeZone": {
+            "type": "string"
+          },
+          "found": {
+            "type": "boolean"
+          }
+        }
+      },
       "InstantTransferQr": {
         "required": [
           "payload",
@@ -41270,6 +41602,17 @@
           "canCancelLate": {
             "type": "boolean",
             "default": false
+          },
+          "lateMinutes": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "canReportLate": {
+            "type": "boolean",
+            "default": false
           }
         }
       },
@@ -41436,6 +41779,16 @@
           "acceptMarketing": {
             "type": "boolean",
             "default": false
+          },
+          "therapistWish": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/TherapistGender"
+              }
+            ]
           }
         }
       },
@@ -41783,6 +42136,18 @@
           }
         }
       },
+      "OnlineLateRequest": {
+        "required": [
+          "minutes"
+        ],
+        "type": "object",
+        "properties": {
+          "minutes": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "OnlineLocation": {
         "required": [
           "id",
@@ -41856,6 +42221,10 @@
             }
           },
           "rebookReminders": {
+            "type": "boolean",
+            "default": false
+          },
+          "therapistWish": {
             "type": "boolean",
             "default": false
           }
@@ -50280,6 +50649,10 @@
             "type": "integer",
             "format": "int32",
             "default": 0
+          },
+          "checkAnamnesis": {
+            "type": "boolean",
+            "default": false
           }
         }
       },

@@ -773,6 +773,12 @@ public sealed record AbsenceMoveFailure(Guid AppointmentId, string Message);
 
 public sealed record AbsenceApplyResult(IReadOnlyList<AppointmentDto> Moved, IReadOnlyList<AbsenceMoveFailure> Failed, int Notified);
 
+/// <summary>Termine ohne Ersatz, deren Gäste erfahren sollen, dass der Termin nicht wie geplant stattfinden kann.</summary>
+public sealed record AbsenceNotifyRequest(IReadOnlyList<Guid> AppointmentIds);
+
+/// <summary><c>Notified</c>: Termine, deren Gast eine Mail oder SMS bekommen hat; <c>Failed</c>: ohne Kontakt oder nicht mehr gebucht, mit Grund.</summary>
+public sealed record AbsenceNotifyResult(IReadOnlyList<Guid> Notified, IReadOnlyList<AbsenceMoveFailure> Failed);
+
 /// <summary>
 /// Eine Behandlung in einer gemeinsamen Buchung. Behandlungen mit gleichem <c>Step</c> beginnen gleichzeitig (Paar), der nächste Schritt
 /// beginnt, wenn alle Behandlungen des vorigen zu Ende sind (Spa-Tag). Ohne Person oder Raum wählt der Server.
