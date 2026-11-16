@@ -2990,6 +2990,9 @@ namespace AispaStudio.Api.Data.Migrations
                         .HasPrecision(10, 2)
                         .HasColumnType("numeric(10,2)");
 
+                    b.Property<Guid?>("TipEmployeeId")
+                        .HasColumnType("uuid");
+
                     b.Property<decimal>("Total")
                         .HasPrecision(12, 2)
                         .HasColumnType("numeric(12,2)");
@@ -3010,6 +3013,9 @@ namespace AispaStudio.Api.Data.Migrations
                         .HasFilter("\"SubstituteId\" IS NOT NULL");
 
                     b.HasIndex("TenantId");
+
+                    b.HasIndex("TipEmployeeId")
+                        .HasFilter("\"TipEmployeeId\" IS NOT NULL");
 
                     b.HasIndex("VoidsReceiptId")
                         .IsUnique()

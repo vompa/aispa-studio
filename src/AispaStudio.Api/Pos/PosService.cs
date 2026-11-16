@@ -822,6 +822,7 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
                 new DbCheckoutLookups(this, db), ct);
             db.Vouchers.AddRange(draft.NewVouchers);
             db.AppointmentDeposits.AddRange(draft.NewDeposits);
+            var tipEmployee = await TipEmployeeAsync(draft, request.TipEmployeeId, ct);
             return await IssueAsync(register, ReceiptKind.Sale, ct, (number, at) => new Receipt
             {
                 Id = draft.ReceiptId,
@@ -834,6 +835,7 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
                 Total = draft.Total,
                 Change = draft.Change,
                 Tip = draft.Tip,
+                TipEmployeeId = tipEmployee,
                 CreatedByUserId = userId,
                 Lines = draft.Lines,
                 Payments = draft.Payments,
@@ -921,6 +923,7 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
 
             db.Vouchers.AddRange(draft.NewVouchers);
             db.AppointmentDeposits.AddRange(draft.NewDeposits);
+            var tipEmployee = await TipEmployeeAsync(draft, null, ct);
             return await IssueAsync(register, ReceiptKind.Sale, ct, (receiptNumber, at) => new Receipt
             {
                 Id = draft.ReceiptId,
@@ -933,6 +936,7 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
                 Total = draft.Total,
                 Change = draft.Change,
                 Tip = draft.Tip,
+                TipEmployeeId = tipEmployee,
                 SubstituteId = input.Id,
                 SubstituteNumber = number,
                 SubstituteIssuedAt = input.IssuedAt,
@@ -964,6 +968,34 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
             CancellationToken ct) => inner.PlatformPrepaidAsync(lines, ct);
 
         public Task<CardPayment?> FindCardPaymentAsync(Guid id, Guid billId, CancellationToken ct) => inner.FindCardPaymentAsync(id, billId, ct);
+    }
+
+    /// <summary>
+    /// Wem das Trinkgeld eines Belegs gilt (ADR 0095): die genannte Person, sonst die eine Person, die alle Termine des Belegs behandelt hat;
+    /// bei mehreren Personen oder ohne Termin gilt es dem Team (null). Ohne Trinkgeld immer null.
+    /// </summary>
+    private async Task<Guid?> TipEmployeeAsync(CheckoutDraft draft, Guid? requested, CancellationToken ct)
+    {
+        if (draft.Tip <= 0)
+        {
+            return null;
+        }
+
+        if (requested is { } chosen)
+        {
+            return await db.Employees.AnyAsync(e => e.Id == chosen, ct)
+                ? chosen
+                : throw PosFailure.Invalid("tipEmployeeId", "Die Person für das Trinkgeld gibt es nicht.");
+        }
+
+        var appointments = draft.Lines.Where(l => l.AppointmentId is not null && l.Amount > 0).Select(l => l.AppointmentId!.Value).Distinct().ToList();
+        if (appointments.Count == 0)
+        {
+            return null;
+        }
+
+        var employees = await db.Appointments.AsNoTracking().Where(a => appointments.Contains(a.Id)).Select(a => a.EmployeeId).Distinct().ToListAsync(ct);
+        return employees.Count == 1 ? employees[0] : null;
     }
 
     /// <summary>Die Abfragen des Kassierens gegen die Datenbank.</summary>
@@ -1530,6 +1562,7 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
             CustomerId = original.CustomerId,
             Total = -original.Total,
             Tip = -original.Tip,
+            TipEmployeeId = original.TipEmployeeId,
             VoidsReceiptId = original.Id,
             VoidReason = reason.Trim(),
             CreatedByUserId = userId,
@@ -1632,7 +1665,9 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
                     .Where(m => m.RegisterId == registerId && m.At >= from && m.At < until).ToListAsync(ct);
                 var accounts = await db.RevenueAccounts.AsNoTracking().ToDictionaryAsync(a => a.Id, ct);
 
-                var report = BuildDayReport(registerId, from, until, opening, receipts, movements, accounts, close);
+                var tipped = receipts.Where(r => r.TipEmployeeId is not null).Select(r => r.TipEmployeeId!.Value).Distinct().ToList();
+                var tipNames = (await db.Employees.AsNoTracking().Where(e => tipped.Contains(e.Id)).ToListAsync(ct)).ToDictionary(e => e.Id, e => e.InHouseName);
+                var report = BuildDayReport(registerId, from, until, opening, receipts, movements, accounts, close, tipNames);
 
                 if (close is not null)
                 {
@@ -1671,8 +1706,13 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
     /// <paramref name="close"/> trägt er den gezählten Bestand (Z-Bericht). Reine Rechnung ohne Datenbank.
     /// </summary>
     internal static DayClosingDto BuildDayReport(Guid registerId, DateTimeOffset from, DateTimeOffset until, decimal opening,
-        IReadOnlyList<Receipt> receipts, IReadOnlyList<CashMovement> movements, IReadOnlyDictionary<Guid, RevenueAccount> accounts, DayClosingInput? close)
+        IReadOnlyList<Receipt> receipts, IReadOnlyList<CashMovement> movements, IReadOnlyDictionary<Guid, RevenueAccount> accounts, DayClosingInput? close,
+        IReadOnlyDictionary<Guid, string>? employeeNames = null)
     {
+        // Trinkgeld je Person (ADR 0095): Stornos ziehen ab; wer nach dem Storno bei 0 steht, fällt weg; das Team steht zuletzt.
+        var tips = receipts.Where(r => r.Tip != 0).GroupBy(r => r.TipEmployeeId)
+            .Select(g => new TipTotal(g.Key, g.Key is { } id ? employeeNames?.GetValueOrDefault(id) ?? "Person" : "Team", g.Sum(r => r.Tip)))
+            .Where(t => t.Amount != 0).OrderBy(t => t.EmployeeId is null).ThenBy(t => t.Name, StringComparer.CurrentCulture).ToList();
         var lines = receipts.SelectMany(r => r.Lines).ToList();
         var payments = receipts.SelectMany(r => r.Payments).GroupBy(p => p.Method).OrderBy(g => g.Key)
             .Select(g => new PaymentTotal(g.Key, g.Sum(p => p.Amount))).ToList();
@@ -1703,7 +1743,8 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
             counted,
             counted - expected,
             Blank(close?.Note),
-            receipts.Sum(r => r.Tip));
+            receipts.Sum(r => r.Tip),
+            tips);
 
         return report;
     }

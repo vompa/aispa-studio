@@ -260,7 +260,13 @@ public sealed record PaymentInput(PaymentMethod Method, decimal Amount, string? 
 /// Trinkgeld für das Team: Der Gast zahlt es zusätzlich zum Rechnungsbetrag. Es ist kein Umsatz des Betriebs (durchlaufender Posten),
 /// steht eigens auf dem Beleg und im Tagesabschluss und zählt nicht in den Umsatzzähler (ADR 0095).
 /// </param>
-public sealed record CheckoutRequest(IReadOnlyList<LineAllocation>? Lines, IReadOnlyList<PaymentInput> Payments, decimal Tip = 0);
+/// <param name="TipEmployeeId">
+/// Wem das Trinkgeld gilt. Ohne Angabe ordnet die Kasse es der Person zu, die alle Termine des Belegs behandelt hat; sonst gilt es dem Team.
+/// </param>
+public sealed record CheckoutRequest(IReadOnlyList<LineAllocation>? Lines, IReadOnlyList<PaymentInput> Payments, decimal Tip = 0, Guid? TipEmployeeId = null);
+
+/// <summary>Trinkgeld im Tagesabschluss je Person; ohne <c>EmployeeId</c> gilt es dem Team.</summary>
+public sealed record TipTotal(Guid? EmployeeId, string Name, decimal Amount);
 
 /// <param name="Amount">Bezahlter Betrag der Position nach Rabatt.</param>
 /// <param name="Discount">Rabatt auf die Position; der Beleg zeigt den Preis davor und den Rabatt als eigene Zeile.</param>
@@ -443,7 +449,8 @@ public sealed record DayClosingDto(
     decimal CountedCash,
     decimal Difference,
     string? Note,
-    decimal Tips = 0);
+    decimal Tips = 0,
+    IReadOnlyList<TipTotal>? TipsByEmployee = null);
 
 /// <summary>Inhalt für einen EPC-QR-Code („GiroCode“): Kunde scannt mit der Banking-App und überweist sofort.</summary>
 public sealed record InstantTransferQr(string Payload, decimal Amount, string Iban, string PayeeName);

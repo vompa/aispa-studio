@@ -145,7 +145,8 @@ public partial class PosViewModel
     /// <summary>Zahlarten des Berichts; enthaltenes Trinkgeld steht als letzte Zeile, weil es kein Umsatz ist (ADR 0095).</summary>
     public IReadOnlyList<ReceiptRow> ReportPayments => Report is { } r
         ? [.. r.Payments.Select(p => new ReceiptRow(Money.MethodText(p.Method), Format(p.Amount))),
-            .. r.Tips != 0 ? new[] { new ReceiptRow("davon Trinkgeld (kein Umsatz)", Format(r.Tips)) } : []]
+            .. r.Tips != 0 ? new[] { new ReceiptRow("davon Trinkgeld (kein Umsatz)", Format(r.Tips)) } : [],
+            .. (r.TipsByEmployee ?? []).Select(t => new ReceiptRow($"   Trinkgeld {t.Name}", Format(t.Amount)))]
         : [];
 
     public IReadOnlyList<ReceiptRow> ReportTaxes => Report?.Taxes

@@ -1106,3 +1106,14 @@ Expected: Nach „Termine“ stehen „Eintritte“ und „Warteliste“, nach �
 Expected: „Keine Eintritte.“, „Keine Einträge auf der Warteliste.“, „Keine Einwilligung gespeichert.“, „Keine Nachrichten zugeordnet.“
 Closes: –
 Result: ☐
+
+### Trinkgeld, Schritt 3 – je Person im Tagesabschluss
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Rezeption anmelden, **Kassa** öffnen
+1. Einen Termin mit 5,00 Trinkgeld kassieren, danach nur einen Artikel mit 2,00 Trinkgeld.
+Expected: Beide Belege zeigen „Trinkgeld (kein Umsatz)“.
+2. **Kassenlade & Abschluss** öffnen.
+Expected: Unter „Zahlungsarten“ steht „davon Trinkgeld (kein Umsatz) 7,00 €“, darunter „Trinkgeld <Name der behandelnden Person> 5,00 €“ und „Trinkgeld Team 2,00 €“.
+3. Den Tagesabschluss als PDF speichern.
+Expected: Das PDF nennt dieselben beiden Zeilen.
+Closes: –
+Result: ☐

@@ -9448,6 +9448,8 @@ export interface components {
              * @default 0
              */
             tip: number;
+            /** Format: uuid */
+            tipEmployeeId?: null | string;
         };
         ClockInput: {
             /** Format: uuid */
@@ -10028,6 +10030,7 @@ export interface components {
              * @default 0
              */
             tips: number;
+            tipsByEmployee?: null | components["schemas"]["TipTotal"][];
         };
         DayClosingInput: {
             /** Format: double */
@@ -13522,6 +13525,13 @@ export interface components {
             /** Format: double */
             actualHours: number;
             warnings: string[];
+        };
+        TipTotal: {
+            /** Format: uuid */
+            employeeId: null | string;
+            name: string;
+            /** Format: double */
+            amount: number;
         };
         TodoItem: {
             /** Format: uuid */

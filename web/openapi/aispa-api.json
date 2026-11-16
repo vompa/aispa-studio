@@ -34616,6 +34616,13 @@
             "type": "number",
             "format": "double",
             "default": 0
+          },
+          "tipEmployeeId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
           }
         }
       },
@@ -36884,6 +36891,15 @@
             "type": "number",
             "format": "double",
             "default": 0
+          },
+          "tipsByEmployee": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/TipTotal"
+            }
           }
         }
       },
@@ -49668,6 +49684,30 @@
             "items": {
               "type": "string"
             }
+          }
+        }
+      },
+      "TipTotal": {
+        "required": [
+          "employeeId",
+          "name",
+          "amount"
+        ],
+        "type": "object",
+        "properties": {
+          "employeeId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
           }
         }
       },
