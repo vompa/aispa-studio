@@ -12,7 +12,6 @@ gebunden und lassen sich durch eigene Fassungen ersetzen; ihr Quelltext steht un
 ## MIT
 
 - @microsoft/signalr 10.0.11 (npm): Microsoft; https://github.com/dotnet/aspnetcore/tree/main/src/SignalR#readme
-- Anthropic 12.60.0 (NuGet): Copyright 2026 Anthropic; https://docs.anthropic.com/claude/reference/
 - Aspire.Npgsql.EntityFrameworkCore.PostgreSQL 13.6.5 (NuGet): © Microsoft Corporation. All rights reserved.; https://github.com/microsoft/aspire
 - Avalonia 12.1.6 (NuGet): Copyright 2013-2026 © The AvaloniaUI Project; https://avaloniaui.net/?utm_source=nuget&utm_medium=referral&utm_content=project_homepage_link
 - Avalonia.BuildServices 11.3.2 (NuGet): Copyright 2023-2025 © The AvaloniaUI Project; https://avaloniaui.net/
@@ -182,6 +181,7 @@ USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ## Apache-2.0
 
+- Anthropic 13.8.0 (NuGet): Copyright 2023 Anthropic, PBC.; https://docs.anthropic.com/claude/reference/
 - AspNet.Security.OAuth.Apple 10.1.0 (NuGet): © AspNet.Security.OAuth.Providers contributors. All rights reserved.; https://github.com/aspnet-contrib/AspNet.Security.OAuth.Providers
 - NewId 4.0.1 (NuGet): Copyright 2007-2019 Chris Patterson; https://licenses.nuget.org/Apache-2.0
 - OpenSSL 3 EDB-Build (PostgreSQL-Paket): Copyright (c) 1998-2025 The OpenSSL Project Authors; https://www.openssl.org/

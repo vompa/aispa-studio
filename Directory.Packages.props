@@ -27,7 +27,7 @@
     <PackageVersion Include="Microsoft.Extensions.ApiDescription.Server" Version="$(AspNetCoreVersion)" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.15" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
-    <PackageVersion Include="Anthropic" Version="12.60.0" />
+    <PackageVersion Include="Anthropic" Version="13.8.0" />
     <!-- Excel-Export und Kunden-Import (ADR 0091), MIT; zieht DocumentFormat.OpenXml und SixLabors.Fonts (Six Labors Split License, für Open Source Apache 2.0) mit. -->
     <PackageVersion Include="ClosedXML" Version="0.105.1" />
     <PackageVersion Include="WolverineFx" Version="$(WolverineVersion)" />
