@@ -6,7 +6,7 @@ using static AispaStudio.Desktop.Tests.StockSample;
 
 namespace AispaStudio.Desktop.Tests;
 
-/// <summary>R07 Slice 143 (Ä351): Das Lager im Fenster, Reiter, „Was ist zu tun“, der Bestand mit vier Spalten und sein Seitenpanel.</summary>
+/// <summary>R07 Slice 143 (Ä351), Aufbau seit ADR 0098: Das Lager im Fenster, Reiter, Kacheln und „Was ist zu tun“, der Bestand mit vier Spalten und sein Seitenpanel.</summary>
 public sealed partial class ViewTests
 {
     private static Button LinkButton(Window window, string text) =>
@@ -22,11 +22,19 @@ public sealed partial class ViewTests
         Assert.True(Shows(window, "Was ist zu tun"));
         Assert.True(Shows(window, "1 Position nachbestellen"));
         Assert.True(Shows(window, "1 Material unter dem Mindestbestand"));
-        Assert.True(Shows(window, "Lagerwert"));
         Assert.Equal("Übersicht", Named<TabButton>(window, "OverviewTabButton").Content);
-        Assert.Equal(["Übersicht", "Bestand", "Bestellen", "Chargen (2)", "Bewegungen", "Inventur", "Lagerorte", "Lieferanten", "Verbrauch"],
-            Named<Border>(window, "Tabs").GetVisualDescendants().OfType<TabButton>().Where(t => t.IsEffectivelyVisible).Select(t => (string)t.Content!));
-        Assert.True(Named<Border>(window, "AdminDivider").IsEffectivelyVisible);
+        Assert.Equal(["Übersicht", "Bestand", "Bestellen", "Inventur"], StockRailTabs(window).Select(t => (string)t.Content!));
+        // Kennzahlen als Kacheln (ADR 0098): der Lagerwert ohne Sprung, die Zahlen mit Sprung an ihren Ort
+        var tiles = window.GetVisualDescendants().OfType<StatTile>().Where(t => t.IsEffectivelyVisible).ToList();
+        Assert.Equal(["Lagerwert", "Nachbestellen", "Unter Minimum", "Chargen laufen ab", "Mehrverbrauch"], tiles.Select(t => t.Label));
+        Assert.Null(tiles[0].Command);
+        Assert.Equal(StatTileState.Warn, tiles[1].State);
+        Assert.All(tiles, t => Assert.Equal(TopOf(window, tiles[0]), TopOf(window, t), 0.5));
+        Assert.All(tiles, t => Assert.Equal(tiles[0].Bounds.Height, t.Bounds.Height, 0.5));
+        Assert.All(tiles, t => Assert.True(t.IsEffectivelyEnabled, t.Label));
+        // Der Verbrauch ist ein Abschnitt der Übersicht (nur mit ViewFinance)
+        Assert.True(Named<StackPanel>(window, "UsageArea").IsEffectivelyVisible);
+        Assert.True(Named<Button>(window, "SetupButton").IsEffectivelyVisible);
         return shell.AdminPage;
     }, StockApi());
 
@@ -90,8 +98,9 @@ public sealed partial class ViewTests
     {
         var (shell, _) = await OpenStockOverview(window, main);
 
-        Assert.Equal(["Übersicht", "Bestand", "Bestellen", "Bewegungen"],
-            Named<Border>(window, "Tabs").GetVisualDescendants().OfType<TabButton>().Where(t => t.IsEffectivelyVisible).Select(t => (string)t.Content!));
+        Assert.Equal(["Übersicht", "Bestand", "Bestellen"], StockRailTabs(window).Select(t => (string)t.Content!));
+        Assert.False(Named<Button>(window, "SetupButton").IsEffectivelyVisible);
+        Assert.False(Named<StackPanel>(window, "UsageArea").IsEffectivelyVisible);
         await ClickScrolled(window, "OrdersTabButton");
         await Pump(Settling);
 

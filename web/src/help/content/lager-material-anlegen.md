@@ -12,7 +12,7 @@ Neues Material gilt für alle Standorte; den Bestand führt das Lager je Standor
 
 ## Schritte {#schritte}
 
-1. In der Windows-App unter „Verwaltung“ **Lager** öffnen und im Reiter **Bestand** zum Abschnitt **Material anlegen** gehen.
+1. In der Windows-App unter „Verwaltung“ **Lager** öffnen und im Reiter **Bestand** bei der Ansicht **Material** zum Abschnitt **Material anlegen** gehen.
 2. **Bezeichnung** und **Einheit** eintragen, z. B. „Massageöl Lavendel“ und „ml“. Vorbelegt ist „Stück“.
 3. **Einstandspreis je Einheit (netto)** und **Mindestbestand je Standort** eintragen.
 4. Wird das Material an der Kassa verkauft, bei **Verkaufsprodukt der Kassa** den Artikel wählen.

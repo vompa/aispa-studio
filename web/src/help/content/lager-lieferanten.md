@@ -12,7 +12,7 @@ Lieferanten stehen in einem eigenen Stamm mit Kontakt, Lieferzeit, Mindestbestel
 
 ## Schritte {#schritte}
 
-1. In der Windows-App unter „Verwaltung“ **Lager** öffnen und den Reiter **Lieferanten** wählen.
+1. In der Windows-App unter „Verwaltung“ **Lager** öffnen, auf **Einrichtung** klicken und **Lieferanten** wählen.
 2. In der Liste **Neuer Lieferant** oder einen vorhandenen Lieferanten wählen.
 3. **Name** eintragen. Das ist das einzige Pflichtfeld.
 4. Optional **Ansprechperson**, **Telefon**, **Mail für Bestellungen**, **Lieferzeit in Tagen** und **Mindestbestellwert netto** eintragen.

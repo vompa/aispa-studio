@@ -1159,3 +1159,24 @@ Expected: Die Speichern-Leiste unten ist aktiv und gilt für Lohn und Akte zusam
 Expected: Die Rezeption sieht nur den Wochenplan, keine Personenkarte. Inhaber und Manager sehen alle vier Bereiche, die Standortleitung nur die Bereiche, für die sie das Recht hat.
 Closes: –
 Result: ☐
+
+### T-061 – Lager: vier Reiter, Ansichten im Bestand und Einrichtung
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Inhaberin anmelden, **Verwaltung** › **Lager** öffnen
+1. Die Übersicht ansehen.
+Expected: Die Schiene zeigt nur „Übersicht“, „Bestand“, „Bestellen“ und „Inventur“. Darunter stehen die Kacheln „Lagerwert“, „Nachbestellen“, „Unter Minimum“, „Chargen laufen ab“ und „Mehrverbrauch“, dann „Was ist zu tun“ und der Abschnitt „Verbrauch“.
+2. Auf die Kachel **Unter Minimum** klicken.
+Expected: Der Reiter „Bestand“ ist gewählt, bei „Ansicht“ steht „Material“, „Nur unter Minimum“ ist angehakt.
+3. Bei **Ansicht** erst **Chargen**, dann **Bewegungen** wählen.
+Expected: Der Reiter „Bestand“ bleibt gewählt. Bei „Chargen“ stehen die Ablauflisten und das Feld „Lagerort“ fehlt; bei „Bewegungen“ steht die Liste mit „Charge zurückverfolgen“ darunter. Die Zahl an „Chargen“ bleibt in jeder Ansicht sichtbar.
+4. Oben rechts auf **Einrichtung** klicken.
+Expected: Statt der Schiene stehen „Zurück“, „Einrichtung“ und die Wahl „Lagerorte“ und „Lieferanten“. Die Lagerorte sind offen; Suchfeld und „Bewegung buchen“ fehlen.
+5. **Lieferanten** wählen, danach auf **Zurück** klicken.
+Expected: Erst steht die Liste der Lieferanten da, nach „Zurück“ wieder der Bestand in der Ansicht „Bewegungen“.
+6. Zur Übersicht wechseln und auf die Kachel **Mehrverbrauch** klicken.
+Expected: Die Seite rollt zum Abschnitt „Verbrauch“.
+7. Das Fenster so schmal wie möglich ziehen und danach maximieren.
+Expected: Schmal steht die Schiene in einer Zeile, die Werkzeuge stehen rechtsbündig in der Zeile darunter, nichts ist abgeschnitten. Maximiert stehen die Werkzeuge rechts neben der Schiene.
+8. Als Rezeption anmelden und das Lager öffnen.
+Expected: Die Schiene zeigt „Übersicht“, „Bestand“ und „Bestellen“; im Bestand gibt es die Ansichten „Material“ und „Bewegungen“. „Einrichtung“, die Kachel „Nachbestellen“ und der Abschnitt „Verbrauch“ fehlen.
+Closes: –
+Result: ☐

@@ -59,6 +59,14 @@ internal static class StockSample
 
     public static readonly ReorderSuggestionDto OilSuggestion = new(OilId, "Massageöl", "Flasche", "Lavendelhof", 10m, 3m, 5, 9m, 0m, 20m, 25m, null, 312.5m);
 
+    /// <summary>Verbrauch im Zeitraum: 10 Flaschen Soll, 12 Ist, also 2 Flaschen Mehrverbrauch zu 25 €.</summary>
+    public static readonly StockUsageReportDto Usage = new(Vienna.Id, new DateOnly(2027, 1, 31), new DateOnly(2027, 3, 1),
+        [new StockUsageLineDto(OilId, "Massageöl", "Flasche", 10m, 12m, 2m, 25m, [new StockUsageTreatmentDto(Guid.Parse("00000000-0000-0000-0000-0000000c1191"), "Aromaöl-Massage", 10m, 5)])], 25m, false);
+
+    /// <summary>Der Verbrauchsbericht der letzten <paramref name="days"/> Tage bis <paramref name="today"/>, wie ihn die Übersicht des Lagers abruft.</summary>
+    public static string UsageRoute(DateOnly today, int days) =>
+        string.Create(CultureInfo.InvariantCulture, $"/api/reports/locations/{Vienna.Id}/stock-usage?from={today.AddDays(1 - days):yyyy-MM-dd}&until={today:yyyy-MM-dd}");
+
     /// <summary>Die Aufgaben am 1. März 2027: eine Charge läuft in 20 Tagen ab und ist verkäuflich, eine ist abgelaufen.</summary>
     public static readonly StockExpiryTasksDto ExpiryTasks = ExpiryTaskSample();
 
@@ -120,6 +128,12 @@ internal static class StockSample
             foreach (var days in new[] { 1, 7, 14 })
             {
                 api.On($"GET {Route(string.Create(CultureInfo.InvariantCulture, $"/demand?from={today:yyyy-MM-dd}&until={today.AddDays(days - 1):yyyy-MM-dd}"))}", Demand);
+            }
+
+            // Die Übersicht lädt mit ViewFinance den Verbrauch (ADR 0098), je Zeitraum der Auswahl.
+            foreach (var days in new[] { 7, 30, 90 })
+            {
+                api.On($"GET {UsageRoute(today, days)}", Usage);
             }
         }
 
