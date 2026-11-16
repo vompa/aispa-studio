@@ -81,3 +81,17 @@ Hilfethemen nennen ihre Seite (`seite:` im Kopf, z. B. `seite-time.md`); das ist
 - **Mein Tag** (`web/src/myday/`): wird die Handy-App für Mitarbeitende (Slice 106) mit der Seite für die Leitung (Slice 109).
 - **Dashboard für den Pausenraum:** neu (Slice 105).
 - **Betreiberseite** (`web/src/operator/`): unverändert; sie dient dem Betrieb der Plattform und gehört nicht zur Verwaltung eines Spas.
+
+## Schienen und Bereiche der Verwaltung
+
+Ziel nach [ADR 0098](../entscheidungen/0098-verwaltungsmasken-eine-schiene-uebersicht-seitenleiste.md) (masken.md R15): je Seite höchstens eine Schiene mit höchstens fünf Einträgen. „Umgestellt“ nennt den Pull Request; leer heißt, die Maske zeigt noch den alten Stand.
+
+| Gruppe | Schiene heute | Schiene neu | Umgestellt |
+| --- | --- | --- | --- |
+| Betrieb | 6 Masken | 5 Masken (Schließzeiten und Raumsperren auf einer Seite) | |
+| Angebot | 2 Masken; Behandlung mit 7 Abschnittsreitern | 2 Masken; Behandlung mit 4 Bereichen | |
+| Team | 7 Ansichten; Personenkarte mit 10 Reitern | 5 Ansichten; Personenkarte mit 4 Bereichen, Verlauf als Seitenleiste | |
+| Lager | 9 Reiter | 4 Reiter, dazu „Einrichtung“ | |
+| Kassa & Geld | 4 Masken | 4 Masken | |
+| Kontakt | 3 Masken | 3 Masken | |
+| Zahlen | 5 Reiter, „Berichte“ mit 2 Unterreitern | 5 Reiter, „Berichte“ mit 2 Abschnitten | |

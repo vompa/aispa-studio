@@ -6280,3 +6280,25 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Nicht geprüft:** die laufende App; ein echter Treatwell-Termin. Die volle Suite läuft in der CI.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
 
+## Verwaltungsmasken modernisieren, Schritt 1: Regeln und Bausteine (Aufgabe T-060, 16.11.2026)
+
+- **Auftrag:** Der Auftraggeber fand die Personenkarte mit ihren zehn Reitern nicht mehr zeitgemäß, hat den Vorschlag „Übersicht, vier Bereiche, Verlauf als Seitenleiste“ gutgeheißen und am 16.11.2026 beauftragt, alle Verwaltungsmasken in Optik und Bedienung so zu modernisieren; frühere Festlegungen zu Reitern gelten dafür nicht mehr.
+- **Was:**
+  - [ADR 0098](../entscheidungen/0098-verwaltungsmasken-eine-schiene-uebersicht-seitenleiste.md) mit acht Regeln und der neuen Aufteilung je Bereich; Regel R15 und Punkt 17 der Checkliste in [masken.md](../gestaltung/masken.md); Hinweis in design.md 5.4; Tabelle „Schienen und Bereiche der Verwaltung“ im [Masken-Inventar](masken-inventar.md).
+  - `StatTile` (`Controls/StatTile.cs`, Stil `Button.stattile`): Kennzahl-Kachel nach design.md 5.5 mit Beschriftung, Wert, Hinweis und Zustand. Mit Befehl ist sie ein Knopf, ohne Befehl reine Anzeige ohne Tab-Stopp.
+  - `HistoryPanel` (`Controls/HistoryPanel.cs`): Seitenleiste „Verlauf“ nach design.md 5.12 mit den vorhandenen Verlaufsabschnitten; Esc und das Kreuz schließen, der Fokus geht zurück.
+- **Detailentscheidungen:**
+  1. Die Werte des Briefs bleiben (Auftraggeber, 16.11.2026). Neu sind Aufbau und Bedienung.
+  2. Der Balken mit den sieben Gruppen bleibt; überladen sind die Schienen darunter.
+  3. Jede bisherige Sprungadresse bleibt als Alias gültig. Sprünge hängen an Seite und Reiter der Maske, nicht an der Gruppe.
+  4. Die neue Tabelle im Inventar steht am Dateiende. Zwei Tests lesen die Tabelle der Sprungziele bis zur nächsten Überschrift.
+  5. Der Zustand „Warnung“ der Kachel steht als Symbol in der Kachel und als Wort im Namen für Screenreader, nicht nur als Farbe.
+  6. Die Schiene der Personenkarte wird erst mit der Personenkarte einzeilig. Mit zehn Reitern wäre sie bis dahin abgeschnitten.
+- **Bewusst offen / später:** die sechs weiteren Schritte (Lager, Behandlung, Zahlen, Betrieb mit Kassa & Geld und Kontakt, Personenkarte, Ansichten des Teams); ein Raster für die Kacheln baut die Seite, die sie zeigt.
+- **Geprüft:** Tests zuerst geschrieben: `Kennzahl_Kachel` 7 von 7 und `Verlauf_Leiste` 5 von 5 grün, dazu `DesignTokenTests` 107, `TermsAndTooltipTests` 5, `ClientArchitectureTests` 21 und `HelpTests` 17; `dotnet build -c Release` und `dotnet format --verify-no-changes` mit Exitcode 0. Bilder beider Bausteine in hell und dunkel angesehen.
+- **Nicht geprüft:** Hover, Drücken und Fokusrahmen der Kachel im Bild; hoher Kontrast und Screenreader; die Leiste in einer echten Maske mit Daten; die volle Suite läuft in der CI.
+- **Beim Schreiben festgestellt:**
+  - design.md Abschnitt 3 nennt für den großen Wert `TextBlock.kpi`; in `Styles.axaml` heißt die Klasse `TextBlock.bigvalue`.
+  - design.md Abschnitt 6 sagt für die Reiterzeile der Verwaltung „Menü Mehr“ und für „Zahlen“ „es gibt kein Überlaufmenü für Reiter“.
+  - `Border.pill.warn > StackPanel > TextBlock` und ein zweites `Border.pill.warn > TextBlock` in `Styles.axaml` beschreiben denselben Baustein mit verschiedenem Aufbau.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
