@@ -141,6 +141,15 @@ public sealed class Receipt
     /// Die Zahlungen des Belegs ergeben <c>Total + Tip</c>; im Storno negativ.
     /// </summary>
     public decimal Tip { get; init; }
+
+    /// <summary>Nacherfassung (ADR 0096): Id, die die App dem Ersatzbeleg gegeben hat; macht das erneute Senden gefahrlos.</summary>
+    public Guid? SubstituteId { get; init; }
+
+    /// <summary>Nummer des Ersatzbelegs, den der Gast ohne Verbindung bekommen hat.</summary>
+    public string? SubstituteNumber { get; init; }
+
+    /// <summary>Wann der Ersatzbeleg ausgegeben wurde; <see cref="IssuedAt"/> ist der Zeitpunkt der Nacherfassung und der Signatur.</summary>
+    public DateTimeOffset? SubstituteIssuedAt { get; init; }
     public Guid? VoidsReceiptId { get; init; }
     public string? VoidReason { get; init; }
 

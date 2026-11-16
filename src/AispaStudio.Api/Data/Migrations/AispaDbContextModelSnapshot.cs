@@ -2967,6 +2967,16 @@ namespace AispaStudio.Api.Data.Migrations
                     b.Property<bool>("SignatureDeviceFailed")
                         .HasColumnType("boolean");
 
+                    b.Property<Guid?>("SubstituteId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("SubstituteIssuedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("SubstituteNumber")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)");
+
                     b.Property<Guid>("TenantId")
                         .HasColumnType("uuid");
 
@@ -2988,6 +2998,10 @@ namespace AispaStudio.Api.Data.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("BillId");
+
+                    b.HasIndex("SubstituteId")
+                        .IsUnique()
+                        .HasFilter("\"SubstituteId\" IS NOT NULL");
 
                     b.HasIndex("TenantId");
 

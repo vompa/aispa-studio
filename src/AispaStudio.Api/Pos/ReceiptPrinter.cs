@@ -63,6 +63,13 @@ internal static class ReceiptPrinter
         }
 
         Line(issued.ToString("dd.MM.yyyy HH:mm:ss", German));
+        if (receipt is { SubstituteNumber: { } substitute, SubstituteIssuedAt: { } substituteAt })
+        {
+            Line("Nacherfassung zu Ersatzbeleg");
+            Line(substitute);
+            Line($"vom {TimeZoneInfo.ConvertTime(substituteAt, zone).ToString("dd.MM.yyyy HH:mm", German)}");
+        }
+
         if (receipt.VoidReason is { } reason)
         {
             Line($"Storno: {reason}");

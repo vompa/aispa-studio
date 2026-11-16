@@ -9565,6 +9565,68 @@
         }
       }
     },
+    "/api/v1/pos/registers/{registerId}/substitute-receipts": {
+      "post": {
+        "tags": [
+          "Kassa"
+        ],
+        "summary": "Ersatzbeleg nacherfassen: aus einem ohne Verbindung ausgegebenen Ersatzbeleg entsteht ein signierter Beleg. Dieselbe Id liefert denselben Beleg.",
+        "operationId": "ReenterSubstituteReceipt",
+        "parameters": [
+          {
+            "name": "registerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubstituteReceiptInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReceiptDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/pos/bills/{billId}/checkout": {
       "post": {
         "tags": [
@@ -43717,6 +43779,19 @@
             "type": "number",
             "format": "double",
             "default": 0
+          },
+          "substituteNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "substituteIssuedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
           }
         }
       },
@@ -48859,6 +48934,90 @@
           "checkedOn": {
             "type": "string",
             "format": "date"
+          }
+        }
+      },
+      "SubstituteArticle": {
+        "required": [
+          "articleId",
+          "quantity"
+        ],
+        "type": "object",
+        "properties": {
+          "articleId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "quantity": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "SubstituteReceiptInput": {
+        "required": [
+          "id",
+          "number",
+          "issuedAt",
+          "customerId",
+          "appointmentIds",
+          "articles",
+          "payments",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "issuedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "customerId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "appointmentIds": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "articles": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/SubstituteArticle"
+            }
+          },
+          "payments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PaymentInput"
+            }
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "tip": {
+            "type": "number",
+            "format": "double",
+            "default": 0
           }
         }
       },
