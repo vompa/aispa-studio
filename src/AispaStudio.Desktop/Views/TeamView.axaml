@@ -16,7 +16,7 @@
       <TextBlock Text="Lade Team …" Classes="muted" IsVisible="{Binding !IsLoaded}" />
     </StackPanel>
 
-    <!-- Ansichten (Slice 99): Personen, Wochenplan, Zeiten, Anträge; die Leiste steht nur, wenn es mehr als eine gibt -->
+    <!-- Ansichten (Slice 99, ADR 0098): Personen, Wochenplan, Zeiten, Lohn, Rechte und Zuständigkeiten; die Leiste steht nur, wenn es mehr als eine gibt -->
     <Border Grid.Row="1" x:Name="TeamModes" Classes="segmented" HorizontalAlignment="Left" Margin="0,0,0,12" IsVisible="{Binding ShowsModesBar}"
             AutomationProperties.Name="Ansicht des Teams">
       <ItemsControl ItemsSource="{Binding Modes}">
@@ -42,20 +42,44 @@
       <ContentControl x:Name="TimesPlanHost" Content="{Binding Times}" Margin="0,0,16,16" />
     </ScrollViewer>
 
-    <ScrollViewer Grid.Row="2" x:Name="RequestsScroll" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" IsVisible="{Binding ShowsRequestsView}">
-      <ContentControl x:Name="RequestsHost" Content="{Binding Requests}" Margin="0,0,16,16" />
-    </ScrollViewer>
+    <!--
+      Seitenleiste „Anträge“ des Wochenplans (ADR 0098, Brief 5.12): liegt rechts über dem Wochenraster, denn das Raster braucht mit der Namensspalte 904 px und beim
+      Mindestfenster stehen 964 zur Verfügung; daneben blieben 604.
+    -->
+    <ui:SidePanel Grid.Row="2" x:Name="RequestsPanel" Title="Anträge" HorizontalAlignment="Right"
+                  DataContext="{Binding Plan}" x:DataType="vm:RosterPlanViewModel" IsOpen="{Binding IsRequestsOpen, Mode=TwoWay}">
+      <ui:SidePanel.HeaderAction>
+        <ui:HelpButton Topic="dienstplan-antrag-entscheiden" Margin="0,0,4,0" />
+      </ui:SidePanel.HeaderAction>
+      <ui:SidePanel.Body>
+        <ScrollViewer Classes="panelbody" Padding="16,12,16,32" HorizontalScrollBarVisibility="Disabled">
+          <ContentControl x:Name="RequestsHost" Content="{Binding Requests}" />
+        </ScrollViewer>
+      </ui:SidePanel.Body>
+    </ui:SidePanel>
 
     <ScrollViewer Grid.Row="2" x:Name="PayrollScroll" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" IsVisible="{Binding ShowsPayrollView}">
       <ContentControl x:Name="PayrollViewHost" Content="{Binding Payroll}" Margin="0,0,16,16" />
     </ScrollViewer>
 
-    <ScrollViewer Grid.Row="2" x:Name="PowersScroll" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" IsVisible="{Binding ShowsPowersView}">
-      <ContentControl x:Name="PowersHost" Content="{Binding Powers}" Margin="0,0,16,16" />
-    </ScrollViewer>
-
-    <ScrollViewer Grid.Row="2" x:Name="DutiesScroll" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" IsVisible="{Binding ShowsDutiesView}">
-      <ContentControl x:Name="DutiesOverviewHost" Content="{Binding Duties}" Margin="0,0,16,16" />
+    <!-- Rechte und Zuständigkeiten (ADR 0098): „Wer darf was?“ und „Zuständigkeiten“ als Abschnitte untereinander, jeder nur mit seinem Recht -->
+    <ScrollViewer Grid.Row="2" x:Name="RightsScroll" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" IsVisible="{Binding ShowsRightsView}">
+      <StackPanel Spacing="20" Margin="0,0,16,16" MaxWidth="760" HorizontalAlignment="Left">
+        <StackPanel x:Name="PowersSection" Spacing="8" IsVisible="{Binding ShowsPowersSection}">
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Text="Wer darf was?" Classes="h3" VerticalAlignment="Center" />
+            <ui:HelpButton Topic="regelungen-vollmachten" Section="wer-darf-was" Grid.Column="1" />
+          </Grid>
+          <ContentControl x:Name="PowersHost" Content="{Binding Powers}" />
+        </StackPanel>
+        <StackPanel x:Name="DutiesSection" Spacing="8" IsVisible="{Binding ShowsDutiesSection}">
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Text="Zuständigkeiten" Classes="h3" VerticalAlignment="Center" />
+            <ui:HelpButton Topic="zustaendigkeiten-zertifikate" Grid.Column="1" />
+          </Grid>
+          <ContentControl x:Name="DutiesOverviewHost" Content="{Binding Duties}" />
+        </StackPanel>
+      </StackPanel>
     </ScrollViewer>
 
     <Grid Grid.Row="2" ColumnDefinitions="260,*" IsVisible="{Binding ShowsPeopleView}">

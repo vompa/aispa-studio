@@ -26,16 +26,16 @@ In der Windows-App gilt ein **Speichern** unten für die ganze Karte, aus allen 
 
 ## Wochenplan, Zeiten und Anträge {#ansichten}
 
-Über der Liste schaltet eine Leiste zwischen den Ansichten des Bereichs um. Sie zeigt nur, was die eigene Rolle darf:
+Über der Liste schaltet eine Leiste zwischen höchstens fünf Ansichten des Bereichs um. Sie zeigt nur, was die eigene Rolle darf:
 
 - **Personen**: die Liste mit den Personenkarten, für alle, die Stammdaten oder Zugänge verwalten.
 - **Wochenplan**: der Dienstplan aller Mitarbeitenden einer Woche, für alle, die den Kalender sehen oder Personalunterlagen lesen. Siehe [Seite „Dienstplan“](hilfe:seite-roster).
 - **Zeiten**: Soll und Ist aller Mitarbeitenden einer Woche, für alle, die Standorte verwalten, und lesend für das Backoffice. Siehe [Seite „Zeiten“](hilfe:seite-time).
-- **Anträge**: die offenen Abwesenheitsanträge aus der Handy-App, für alle, die Standorte verwalten. Siehe [Abwesenheitsantrag genehmigen oder ablehnen](hilfe:dienstplan-antrag-entscheiden).
+- **Anträge**: Schaltfläche im **Wochenplan** mit der Zahl der offenen Abwesenheitsanträge aus der Handy-App. Sie öffnet die Anträge als Seitenleiste rechts, für alle, die Standorte verwalten. Siehe [Abwesenheitsantrag genehmigen oder ablehnen](hilfe:dienstplan-antrag-entscheiden).
 - **Lohn**: die Monatswerte aller Mitarbeitenden, der Export für die Lohnverrechnung und deren Einstellungen, für alle, die die Organisation verwalten, und lesend für das Backoffice. Die Personalnummer steht auf der Karte der Person im Bereich **Lohn und Akte**. Siehe [Lohnexport für den Monat erstellen](hilfe:lohn-export-erstellen).
 - **Personalakte**: Abschnitt im Bereich **Lohn und Akte** auf der Karte einer Person mit Mitarbeitergesprächen, Anmerkungen und Verwarnungen, nur für Inhaber und Manager. Siehe [Personalakte](hilfe:personalakte).
-- **Regelungen und Vollmachten**: Abschnitt im Bereich **Lohn und Akte** auf der Karte einer Person mit Hinweisen, Sonderregelungen und Vollmachten, nur für Inhaber und Manager. **Wer darf was?** zeigt alle Vollmachten auf einen Blick. Siehe [Regelungen und Vollmachten](hilfe:regelungen-vollmachten).
-- **Zuständigkeiten**: Abschnitt im Bereich **Profil** auf der Karte einer Person mit Zuständigkeiten wie Ersthelfer oder Lager und den Zertifikaten mit Ablauf und Scan, nur für Inhaber und Manager. Die gleichnamige Ansicht zeigt, wer wofür zuständig ist, was bald abläuft, und die Liste der Zuständigkeiten. Siehe [Zuständigkeiten und Zertifikate](hilfe:zustaendigkeiten-zertifikate).
+- **Regelungen und Vollmachten**: Abschnitt im Bereich **Lohn und Akte** auf der Karte einer Person mit Hinweisen, Sonderregelungen und Vollmachten, nur für Inhaber und Manager. Die Ansicht **Rechte und Zuständigkeiten** zeigt im Abschnitt **Wer darf was?** alle Vollmachten auf einen Blick. Siehe [Regelungen und Vollmachten](hilfe:regelungen-vollmachten).
+- **Zuständigkeiten**: Abschnitt im Bereich **Profil** auf der Karte einer Person mit Zuständigkeiten wie Ersthelfer oder Lager und den Zertifikaten mit Ablauf und Scan, nur für Inhaber und Manager. Der gleichnamige Abschnitt der Ansicht **Rechte und Zuständigkeiten** zeigt, wer wofür zuständig ist, was bald abläuft, und die Liste der Zuständigkeiten. Siehe [Zuständigkeiten und Zertifikate](hilfe:zustaendigkeiten-zertifikate).
 
 Die Rezeption und Therapeutinnen sehen nur den **Wochenplan**, ohne Personenliste und ohne Karten. Gibt es nur eine Ansicht, fehlt die Leiste.
 
@@ -59,7 +59,7 @@ Scheitert nur der Zugang, bleiben Stammdaten und Qualifikationen gespeichert. Di
 
 Die Karte einer Person hat bis zu vier Bereiche:
 
-- **Übersicht**: fünf Kacheln mit dem nächsten Dienst, den Stunden dieser Woche, dem Resturlaub, den offenen Anträgen und den Zertifikaten. Ein Klick auf eine Kachel springt in den passenden Bereich; **Offene Anträge** öffnet die Ansicht **Anträge**.
+- **Übersicht**: fünf Kacheln mit dem nächsten Dienst, den Stunden dieser Woche, dem Resturlaub, den offenen Anträgen und den Zertifikaten. Ein Klick auf eine Kachel springt in den passenden Bereich; **Offene Anträge** öffnet den **Wochenplan** mit der Seitenleiste **Anträge**.
 - **Profil**: **Stammdaten**, **Zugang und Rolle**, **Qualifikationen** und **Zuständigkeiten** untereinander.
 - **Arbeitszeit**: **Dienstplan und Abwesenheit** mit Urlaubskonto und Kalenderdatei, darunter die **Zeiten**.
 - **Lohn und Akte**: **Lohn**, **Personalakte** sowie **Regelungen und Vollmachten**.

@@ -188,19 +188,24 @@ public sealed partial class ViewTests
         window.KeyPressQwerty(PhysicalKey.Escape, RawInputModifiers.None);
         await Pump(Settling);
 
-        // Slice 99: der Tag im Reiter der Karte, dann Wochenplan (mit offenem Tag) und Anträge.
+        // Slice 99: der Tag im Reiter der Karte, dann Wochenplan (mit Leiste „Anträge“ und offenem Tag), Zeiten und Rechte und Zuständigkeiten (ADR 0098).
         await ClickCardTab(window, "Dienstplan und Abwesenheit");
         await ClickCell(window, "Lena Huber", "Di.");
         await visit("Lena, Dienstplan mit offenem Tag");
         await ClickCardTab(window, "Zeiten");
         await ClickTimesCell(window, "Lena Huber", "Di.");
         await visit("Lena, Zeiten mit offenem Tag");
-        foreach (var mode in new[] { "Wochenplan", "Zeiten", "Anträge" })
+        foreach (var mode in new[] { "Wochenplan", "Zeiten", "Rechte und Zuständigkeiten" })
         {
             await ClickSection(window, mode);
             await visit(mode);
             if (mode == "Wochenplan")
             {
+                // Die Woche auf der Karte hat denselben Knopf, ausgeblendet (dort keine Anträge).
+                await ClickButton(window, window.GetVisualDescendants().OfType<Button>().Single(b => b.Name == "RequestsButton" && b.IsEffectivelyVisible));
+                await visit("Wochenplan, Anträge offen");
+                window.KeyPressQwerty(PhysicalKey.Escape, RawInputModifiers.None);
+                await Pump(Settling);
                 await ClickCell(window, "Lena Huber", "Di.");
                 await visit("Wochenplan, Tag offen");
             }

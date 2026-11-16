@@ -49,7 +49,8 @@ public sealed partial class ViewTests
             Assert.True(panel.IsEffectivelyVisible);
             Assert.Equal(cardWidth, host.Bounds.Width);
             Assert.Equal(360, panel.Bounds.Width);
-            Assert.Equal(LeftOf(window, host) + host.Bounds.Width, LeftOf(window, panel) + panel.Bounds.Width, 1);            return team;
+            Assert.Equal(LeftOf(window, host) + host.Bounds.Width, LeftOf(window, panel) + panel.Bounds.Width, 1);
+            return team;
         }, TeamApi());
 
     [Theory]

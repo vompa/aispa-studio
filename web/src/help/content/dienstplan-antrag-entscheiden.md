@@ -12,11 +12,13 @@ Mitarbeitende beantragen Urlaub und andere Abwesenheiten in der Handy-App. Die L
 
 ## Schritte {#schritte}
 
-1. In der Windows-App **Verwaltung** › **Team** öffnen und in der Leiste über der Fläche **Anträge** wählen.
+1. In der Windows-App **Verwaltung** › **Team** öffnen, in der Leiste über der Fläche **Wochenplan** wählen und oben auf **Anträge** klicken. Die Zahl an der Schaltfläche nennt die offenen Anträge. Die Anträge öffnen als Seitenleiste rechts; **Esc** schließt sie wieder.
 2. Den Antrag lesen: Person, Art, Zeitraum, Anmerkung und, wenn Termine in der Zeit liegen, deren Zahl.
 3. Auf **Genehmigen** oder **Ablehnen** klicken.
 4. Liegen Termine der Person in der Zeit, fragt **Abwesenheit genehmigen?** zurück. Mit **Genehmigen** bestätigen.
 5. Bei **Ablehnen** in der Rückfrage **Antrag ablehnen?** mit **Ablehnen** bestätigen.
+
+![Wochenplan mit der Seitenleiste Anträge und zwei offenen Anträgen](images/app/verwaltung-team-wochenplan-antraege.png)
 
 Danach steht eine Meldung wie „Urlaub von Lena Huber, 8.3.2027 bis 12.3.2027 ist genehmigt.“, und der Antrag verschwindet aus der Liste.
 
@@ -24,7 +26,7 @@ Danach steht eine Meldung wie „Urlaub von Lena Huber, 8.3.2027 bis 12.3.2027 i
 
 - Genehmigen trägt die Abwesenheit im Dienstplan ein. Termine der Person verschiebt das Programm nicht von selbst. Sie müssen danach umgebucht werden, z. B. mit [Ersatz vorschlagen](hilfe:dienstplan-ersatz-vorschlagen).
 - Ablehnen ändert den Dienstplan nicht. Der Antrag verschwindet aus der Liste.
-- Entscheiden darf nur, wer Standorte verwaltet. Die Ansicht **Anträge** gibt es für alle anderen nicht.
+- Entscheiden darf nur, wer Standorte verwaltet. Die Schaltfläche **Anträge** gibt es für alle anderen nicht.
 - Scheitert die Entscheidung, bleibt der Antrag in der Liste und die Meldung nennt den Grund.
 - Die Anträge stehen nach Eingang geordnet, der älteste zuerst.
 

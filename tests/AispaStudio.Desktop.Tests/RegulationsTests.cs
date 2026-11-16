@@ -62,7 +62,8 @@ public sealed class RegulationsTests
         Assert.Null(team.Card!.Regulations);
         Assert.False(team.Card.HasSection(PersonCardViewModel.RegulationsTab));
         Assert.False(team.Card.HasFlags);
-        Assert.DoesNotContain(team.Modes, m => m.Id == TeamViewModel.PowersMode);
+        Assert.DoesNotContain(team.Modes, m => m.Id == TeamViewModel.RightsMode);
+        Assert.False(await team.SwitchToAsync(TeamViewModel.PowersMode));
         Assert.DoesNotContain(api.Calls, c => c.Route.Contains("staff-regulations", StringComparison.Ordinal));
     }
 

@@ -178,7 +178,7 @@ public sealed class PersonCardTests
     }
 
     [Fact]
-    public async Task Klick_auf_Offene_Antraege_oeffnet_die_Ansicht_Antraege()
+    public async Task Klick_auf_Offene_Antraege_oeffnet_den_Wochenplan_mit_der_Leiste_Antraege()
     {
         var team = await Loaded(Api().On("GET /api/absence-requests", new List<AbsenceRequestDto>()));
         var card = await Choose(team, "Lena Huber");
@@ -186,7 +186,7 @@ public sealed class PersonCardTests
 
         card.Overview!.Tiles.Single(t => t.Label == "Offene Anträge").Command.Execute(null);
 
-        await Until(() => team.Mode == TeamViewModel.RequestsMode);
+        await Until(() => team.Mode == TeamViewModel.RosterMode && team.Plan!.IsRequestsOpen);
     }
 
     [Theory]

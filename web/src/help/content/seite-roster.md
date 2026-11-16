@@ -14,9 +14,9 @@ In der Windows-App gibt es keinen eigenen Bereich „Dienstplan“ mehr. Er steh
 
 - Die Ansicht **Wochenplan** zeigt alle Mitarbeitenden einer Woche.
 - Die Personenkarte zeigt im Bereich **Arbeitszeit** unter **Dienstplan und Abwesenheit** die Woche einer Person.
-- Die Ansicht **Anträge** listet die offenen Abwesenheitsanträge.
+- Die Schaltfläche **Anträge** im Wochenplan öffnet die offenen Abwesenheitsanträge als Seitenleiste.
 
-Über der Fläche schaltet eine Leiste zwischen **Personen**, **Wochenplan**, **Zeiten** und **Anträge** um. Sie zeigt nur, was die eigene Rolle darf. Die Rezeption und Therapeutinnen sehen nur den **Wochenplan**, ohne Personenliste.
+Über der Fläche schaltet eine Leiste zwischen **Personen**, **Wochenplan**, **Zeiten**, **Lohn** und **Rechte und Zuständigkeiten** um. Sie zeigt nur, was die eigene Rolle darf. Die Rezeption und Therapeutinnen sehen nur den **Wochenplan**, ohne Personenliste.
 
 Sehen dürfen den Plan alle Rollen, auch das Backoffice. Planen, Veröffentlichen, Verwerfen und Anträge entscheiden dürfen nur Inhaber, Manager und Standortleitung (die Standortleitung an ihren eigenen Standorten). Wer nur sehen darf, kann keine Zelle anklicken.
 
