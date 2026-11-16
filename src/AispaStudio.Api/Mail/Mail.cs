@@ -115,7 +115,7 @@ internal static class SmtpTransport
     public static async Task SendAsync(MimeMessage message, SmtpOptions smtp, CancellationToken ct)
     {
         using var client = await ConnectAsync(smtp, ct);
-        await client.SendAsync(message, ct);
+        await client.SendAsync(new SmtpSendRequest(message), ct);
         await client.DisconnectAsync(true, ct);
     }
 
