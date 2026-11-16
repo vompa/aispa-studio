@@ -102,6 +102,7 @@ public sealed partial class AccountingViewModel(IWorkstationApi api, CurrentUser
         new("Treatwell (Forderung, vorab bezahlt)", s => s.TreatwellAccount, (s, v) => s with { TreatwellAccount = v }),
         new("Kassenfehlbetrag (Tagesabschluss)", s => s.CashShortageAccount, (s, v) => s with { CashShortageAccount = v }),
         new("Kassenüberschuss (Tagesabschluss)", s => s.CashSurplusAccount, (s, v) => s with { CashSurplusAccount = v }),
+        new("Trinkgeld für das Team (Verbindlichkeit)", s => s.TipsAccount, (s, v) => s with { TipsAccount = v }),
     ];
 
     [ObservableProperty]

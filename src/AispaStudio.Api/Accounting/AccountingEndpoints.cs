@@ -44,6 +44,7 @@ internal static partial class AccountingEndpoints
                     (nameof(input.VoucherAccount), input.VoucherAccount), (nameof(input.CashTransferAccount), input.CashTransferAccount),
                     (nameof(input.DigitalEuroAccount), input.DigitalEuroAccount), (nameof(input.TreatwellAccount), input.TreatwellAccount),
                     (nameof(input.CashShortageAccount), input.CashShortageAccount), (nameof(input.CashSurplusAccount), input.CashSurplusAccount),
+                    (nameof(input.TipsAccount), input.TipsAccount),
                 })
                 {
                     errors.Check(value is not null && Digits().IsMatch(value) && value.Length <= 20, field, "Kontonummer aus Ziffern.");
@@ -74,6 +75,7 @@ internal static partial class AccountingEndpoints
                 settings.TreatwellAccount = input.TreatwellAccount;
                 settings.CashShortageAccount = input.CashShortageAccount;
                 settings.CashSurplusAccount = input.CashSurplusAccount;
+                settings.TipsAccount = input.TipsAccount;
                 settings.DatevTaxKeys = input.DatevTaxKeys ?? "";
                 settings.SwissTaxCodes = input.SwissTaxCodes?.Trim() ?? "";
                 settings.RevenueAccountCodes = input.RevenueAccountCodes?.Trim() ?? "";
@@ -132,7 +134,7 @@ internal static partial class AccountingEndpoints
     private static AccountingSettingsDto ToDto(AccountingSettings s, FiscalCountry? country) => new(s.DatevConsultantNumber, s.DatevClientNumber, s.AccountLength,
         s.FiscalYearStartMonth, s.TransitAccount, s.CashAccount, s.CardAccount, s.InstantTransferAccount, s.VoucherAccount,
         s.CashTransferAccount, s.DigitalEuroAccount, s.CashShortageAccount, s.CashSurplusAccount, s.DatevTaxKeys, s.SwissTaxCodes,
-        s.RevenueAccountCodes, country, Inherited: s.Country != country, TreatwellAccount: s.TreatwellAccount);
+        s.RevenueAccountCodes, country, Inherited: s.Country != country, TreatwellAccount: s.TreatwellAccount, TipsAccount: s.TipsAccount);
 
     private static bool ParseableAccountMap(string? text) =>
         string.IsNullOrWhiteSpace(text) || text.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)

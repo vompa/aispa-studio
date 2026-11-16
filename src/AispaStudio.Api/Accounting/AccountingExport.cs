@@ -78,6 +78,13 @@ internal sealed class AccountingExport(AispaDbContext db)
                     }
                 }
 
+                if (receipt.Tip != 0)
+                {
+                    // Trinkgeld gehört dem Team: vom Geldtransit auf die Verbindlichkeit, ohne Steuer und ohne Erlös (ADR 0095).
+                    registerPostings.Add((receipt.IssuedAt, new(date, document, settings.TransitAccount, settings.TipsAccount, receipt.Tip, 0,
+                        receipt.Kind == ReceiptKind.Void ? $"Storno Trinkgeld {document}" : $"Trinkgeld {document}", null, currency)));
+                }
+
                 foreach (var payment in receipt.Payments.GroupBy(p => p.Method).OrderBy(g => g.Key))
                 {
                     var amount = payment.Sum(p => p.Amount);

@@ -103,6 +103,12 @@ internal sealed class DsfinvkExport(AispaDbContext db)
                 Row(t, "transactions_vat.csv", [.. Key(), r.Number, g.Key, gross, net, gross - net]);
             }
 
+            if (r.Tip != 0)
+            {
+                // Trinkgeld an Arbeitnehmer: nicht steuerbar (Schlüssel 5), als eigene Zeile neben den Umsätzen des Belegs.
+                Row(t, "transactions_vat.csv", [.. Key(), r.Number, TipVatKey, r.Tip, r.Tip, 0m]);
+            }
+
             foreach (var p in r.Payments.GroupBy(p => (Type: PaymentType(p.Method), Name: PaymentMethods.Label(p.Method))))
             {
                 Row(t, "datapayment.csv", [.. Key(), r.Number, p.Key.Type, p.Key.Name, "EUR", p.Sum(x => x.Amount), p.Sum(x => x.Amount)]);
@@ -129,6 +135,19 @@ internal sealed class DsfinvkExport(AispaDbContext db)
             Row(t, "lines_vat.csv", [.. Key(), r.Number, l.Position, VatKey(l.TaxPercent), l.Amount, net, l.Amount - net]);
         }
 
+        foreach (var r in receipts.Where(r => r.Tip != 0))
+        {
+            var position = r.Lines.Count == 0 ? 1 : r.Lines.Max(l => l.Position) + 1;
+            Row(t, "lines.csv", [.. Key(), r.Number, position, "", "Trinkgeld", register.Code, TipCase, "", 0, r.Kind == ReceiptKind.Void ? 1 : 0,
+                "", "", "", "", "", 1, 1, "Stück", r.Tip]);
+            Row(t, "lines_vat.csv", [.. Key(), r.Number, position, TipVatKey, r.Tip, r.Tip, 0m]);
+        }
+
+        if (receipts.Sum(r => r.Tip) is var tips and not 0)
+        {
+            Row(t, "businesscases.csv", [.. Key(), TipCase, "", 0, TipVatKey, tips, tips, 0m]);
+        }
+
         foreach (var g in lines.GroupBy(x => (Type: x.Line.RevenueAccountId == PosModel.MultiPurposeVouchers.Id ? "MehrzweckgutscheinKauf" : "Umsatz",
                      Key: VatKey(x.Line.TaxPercent))))
         {
@@ -151,6 +170,11 @@ internal sealed class DsfinvkExport(AispaDbContext db)
         (1, 19m, "Regelsteuersatz"), (2, 7m, "Ermäßigter Steuersatz"), (3, 10.7m, "Durchschnittsatz (§ 24 Abs. 1 Nr. 3 UStG)"),
         (4, 5.5m, "Durchschnittsatz (§ 24 Abs. 1 Nr. 1 UStG)"), (5, 0m, "Nicht Steuerbar"),
     ];
+
+    /// <summary>Geschäftsvorfall für Trinkgeld, das dem Team gehört (ADR 0095); Trinkgeld an den Betrieb („TrinkgeldAG“) bucht die Kasse nicht.</summary>
+    private const string TipCase = "TrinkgeldAN";
+
+    private const int TipVatKey = 5;
 
     private static int VatKey(decimal percent) => Vat.FirstOrDefault(v => v.Percent == percent) is { Key: > 0 } v ? v.Key : 5;
 

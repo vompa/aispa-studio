@@ -8090,6 +8090,8 @@ export interface components {
             inherited: boolean;
             /** @default 1400 */
             treatwellAccount: string;
+            /** @default 3790 */
+            tipsAccount: string;
         };
         AccountTotal: {
             /** Format: uuid */
@@ -9424,6 +9426,11 @@ export interface components {
         CheckoutRequest: {
             lines: null | components["schemas"]["LineAllocation"][];
             payments: components["schemas"]["PaymentInput"][];
+            /**
+             * Format: double
+             * @default 0
+             */
+            tip: number;
         };
         ClockInput: {
             /** Format: uuid */
@@ -9999,6 +10006,11 @@ export interface components {
             /** Format: double */
             difference: number;
             note: null | string;
+            /**
+             * Format: double
+             * @default 0
+             */
+            tips: number;
         };
         DayClosingInput: {
             /** Format: double */
@@ -11831,6 +11843,11 @@ export interface components {
             /** @default false */
             isDepositReceipt: boolean;
             sentMails?: null | components["schemas"]["SentDocumentDto"][];
+            /**
+             * Format: double
+             * @default 0
+             */
+            tip: number;
         };
         /** @enum {unknown} */
         ReceiptKind: "Sale" | "Void" | "Start" | "Monthly" | "Yearly" | "Null" | "Closing";

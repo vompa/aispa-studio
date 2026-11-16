@@ -29389,6 +29389,10 @@
           "treatwellAccount": {
             "type": "string",
             "default": "1400"
+          },
+          "tipsAccount": {
+            "type": "string",
+            "default": "3790"
           }
         }
       },
@@ -34545,6 +34549,11 @@
             "items": {
               "$ref": "#/components/schemas/PaymentInput"
             }
+          },
+          "tip": {
+            "type": "number",
+            "format": "double",
+            "default": 0
           }
         }
       },
@@ -36808,6 +36817,11 @@
               "null",
               "string"
             ]
+          },
+          "tips": {
+            "type": "number",
+            "format": "double",
+            "default": 0
           }
         }
       },
@@ -43698,6 +43712,11 @@
             "items": {
               "$ref": "#/components/schemas/SentDocumentDto"
             }
+          },
+          "tip": {
+            "type": "number",
+            "format": "double",
+            "default": 0
           }
         }
       },

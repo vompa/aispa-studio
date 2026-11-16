@@ -256,7 +256,11 @@ public sealed record LineAllocation(Guid LineId, decimal Amount);
 public sealed record PaymentInput(PaymentMethod Method, decimal Amount, string? VoucherCode, string? Reference, Guid? CardPaymentId = null);
 
 /// <summary>Bezahlen. Ohne <c>Lines</c> wird alles noch Offene bezahlt, sonst nur die genannten Beträge.</summary>
-public sealed record CheckoutRequest(IReadOnlyList<LineAllocation>? Lines, IReadOnlyList<PaymentInput> Payments);
+/// <param name="Tip">
+/// Trinkgeld für das Team: Der Gast zahlt es zusätzlich zum Rechnungsbetrag. Es ist kein Umsatz des Betriebs (durchlaufender Posten),
+/// steht eigens auf dem Beleg und im Tagesabschluss und zählt nicht in den Umsatzzähler (ADR 0095).
+/// </param>
+public sealed record CheckoutRequest(IReadOnlyList<LineAllocation>? Lines, IReadOnlyList<PaymentInput> Payments, decimal Tip = 0);
 
 /// <param name="Amount">Bezahlter Betrag der Position nach Rabatt.</param>
 /// <param name="Discount">Rabatt auf die Position; der Beleg zeigt den Preis davor und den Rabatt als eigene Zeile.</param>
@@ -323,7 +327,8 @@ public sealed record ReceiptDto(
     LocationCompany? Company = null,
     decimal? SmallInvoiceLimit = null,
     bool IsDepositReceipt = false,
-    IReadOnlyList<SentDocumentDto>? SentMails = null);
+    IReadOnlyList<SentDocumentDto>? SentMails = null,
+    decimal Tip = 0);
 
 /// <summary>
 /// Empfänger einer Rechnung zu einem Beleg, z. B. für Firmenkunden: Name und Anschrift, bei Unternehmen die UID-Nummer.
@@ -410,7 +415,8 @@ public sealed record DayClosingDto(
     decimal ExpectedCash,
     decimal CountedCash,
     decimal Difference,
-    string? Note);
+    string? Note,
+    decimal Tips = 0);
 
 /// <summary>Inhalt für einen EPC-QR-Code („GiroCode“): Kunde scannt mit der Banking-App und überweist sofort.</summary>
 public sealed record InstantTransferQr(string Payload, decimal Amount, string Iban, string PayeeName);
