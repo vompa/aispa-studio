@@ -1266,3 +1266,14 @@ Expected: Im Kalender steht der Termin beim Therapeuten; in der Notiz steht „W
 Closes: –
 Result: ☐
 
+### Ausfall-Assistent – Gäste ohne Ersatz benachrichtigen
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App als Rezeption; eine Person mit einem Termin heute, für den niemand sonst die Qualifikation hat; der Gast hat eine Mailadresse
+1. Im Kalender die Person als ausgefallen markieren und den Ausfall-Assistenten öffnen.
+Expected: Beim Termin steht „kein Ersatz an diesem Tag“; unter „Gewählte übernehmen“ steht **Ohne Ersatz: informieren**.
+2. Auf **Ohne Ersatz: informieren** klicken.
+Expected: Die Rückfrage „1 Gast benachrichtigen?“ erklärt, dass der Termin stehen bleibt.
+3. Bestätigen.
+Expected: An der Zeile steht „Gast benachrichtigt“, darunter „1 Gast benachrichtigt.“ Im Postfach des Gastes liegt die Mail „Ihr Termin am …“; der Termin steht weiter im Kalender. Der Knopf ist verschwunden.
+Closes: –
+Result: ☐
+

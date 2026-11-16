@@ -5,10 +5,12 @@ using AispaStudio.Api.Closures;
 using AispaStudio.Api.Data;
 using AispaStudio.Api.Mail;
 using AispaStudio.Api.MailIntake;
+using AispaStudio.Api.MailIntake.Channels;
 using AispaStudio.Api.Tenancy;
 using AispaStudio.Contracts;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Wolverine;
 
 namespace AispaStudio.Api.Scheduling;
@@ -21,7 +23,8 @@ namespace AispaStudio.Api.Scheduling;
 /// weil der Gast zustimmen muss. Der Vorschlag ändert nichts; erst „Übernehmen“ verschiebt, über denselben Weg wie das Verschieben
 /// im Kalender (Prüfung am Server, Doppelbuchungsschutz).
 /// </summary>
-internal sealed class AbsenceAssistant(AispaDbContext db, BookingService booking, IMessageBus bus, TenantContext tenants, TimeProvider time)
+internal sealed class AbsenceAssistant(AispaDbContext db, BookingService booking, IMessageBus bus, TenantContext tenants, TimeProvider time,
+    ITextMessageSender texts, IOptions<TextChannelOptions> textChannels)
 {
     private static readonly AppointmentStatus[] Open = [AppointmentStatus.Booked, AppointmentStatus.CheckedIn];
     private static readonly TimeSpan Step = TimeSpan.FromMinutes(15);
@@ -278,6 +281,84 @@ internal sealed class AbsenceAssistant(AispaDbContext db, BookingService booking
         return new AbsenceApplyResult(moved, failed, notified);
     }
 
+    /// <summary>
+    /// Gäste ohne Ersatz benachrichtigen: Der Termin kann nicht wie geplant stattfinden, das Team meldet sich oder der Gast ruft an.
+    /// Per Mail, ohne Mailadresse per SMS (wenn ein Anbieter eingerichtet ist). Der Termin bleibt stehen; storniert oder verschoben wird nichts.
+    /// </summary>
+    public async Task<AbsenceNotifyResult> NotifyAsync(Guid locationId, AbsenceNotifyRequest request, CancellationToken ct)
+    {
+        var location = await db.Locations.AsNoTracking().FirstAsync(l => l.Id == locationId, ct);
+        var zone = LocalTime.Zone(location.TimeZone);
+        var now = time.GetUtcNow();
+        var sms = !string.IsNullOrWhiteSpace(textChannels.Value.SmsProvider);
+        var notified = new List<Guid>();
+        var failed = new List<AbsenceMoveFailure>();
+        foreach (var id in request.AppointmentIds.Distinct())
+        {
+            var appointment = await db.Appointments.AsNoTracking().Include(a => a.Customer).Include(a => a.Treatment)
+                .FirstOrDefaultAsync(a => a.Id == id && a.LocationId == locationId, ct);
+            if (appointment is null)
+            {
+                failed.Add(new(id, "Termin nicht gefunden."));
+                continue;
+            }
+
+            if (appointment.Status != AppointmentStatus.Booked || appointment.Start <= now)
+            {
+                failed.Add(new(id, "Nur gebuchte Termine, die noch bevorstehen."));
+                continue;
+            }
+
+            var when = Date(appointment.Start, zone);
+            var phone = PhoneNumbers.Normalize(appointment.Customer.Phone ?? "");
+            if (appointment.Customer.Email is { Length: > 0 } email)
+            {
+                await bus.PublishGuestMailAsync(tenants, NoCoverMail(email, GuestName.Of(appointment.Customer, location.TimeZone), appointment.Treatment.Name, when,
+                    location.Name, location.Phone));
+                notified.Add(id);
+            }
+            else if (sms && !string.IsNullOrEmpty(phone))
+            {
+                try
+                {
+                    // Von der eigenen Nummer des Spas, damit eine Antwort des Gastes wieder beim richtigen Spa landet.
+                    var own = await IntakeRoutes.OwnAsync(db, BookingChannel.Sms, ct);
+                    await texts.SendAsync(new OutgoingText(BookingChannel.Sms, phone, NoCoverText(appointment.Treatment.Name, when, location.Name, location.Phone),
+                        From: own?.Address, SenderId: own?.SenderId), ct);
+                    notified.Add(id);
+                }
+                catch (Exception ex) when (ex is HttpRequestException or InvalidOperationException)
+                {
+                    failed.Add(new(id, "Die SMS ließ sich nicht senden. Bitte den Gast anrufen."));
+                }
+            }
+            else
+            {
+                failed.Add(new(id, "Keine Mailadresse und keine Nummer für eine SMS. Bitte den Gast anrufen."));
+            }
+        }
+
+        return new AbsenceNotifyResult(notified, failed);
+    }
+
+    internal static OutgoingMail NoCoverMail(string to, GuestName guest, string treatment, string when, string location, string? phone) =>
+        new(to, $"Ihr Termin am {when}", $"""
+            Guten Tag {guest.GreetingName},
+
+            leider kann Ihr Termin „{treatment}“ am {when} nicht wie geplant stattfinden: Ihre Therapeutin bzw. Ihr Therapeut ist ausgefallen, und für diese Zeit haben wir keinen Ersatz.
+
+            Wir melden uns bei Ihnen, um einen neuen Termin zu finden. Sie erreichen uns auch, indem Sie auf diese Mail antworten{(string.IsNullOrWhiteSpace(phone) ? "" : $" oder uns unter {phone} anrufen")}.
+
+            Wir bitten um Ihr Verständnis.
+
+            Herzliche Grüße
+            Ihr Team in {location}
+            """);
+
+    internal static string NoCoverText(string treatment, string when, string location, string? phone) =>
+        $"{location}: Ihr Termin „{treatment}“ am {when} kann leider nicht wie geplant stattfinden. Wir melden uns für einen neuen Termin"
+        + (string.IsNullOrWhiteSpace(phone) ? "." : $"; Sie erreichen uns unter {phone}.");
+
     /// <param name="previousLocation">Bisheriger Standort, wenn der Termin dorthin verlegt wurde (wie mit dem Gast besprochen).</param>
     internal static OutgoingMail ChangedMail(
         string to, GuestName guest, AppointmentDto appointment, DateTimeOffset previousStart, string employee, string location, TimeZoneInfo zone,
@@ -340,6 +421,22 @@ internal static class AbsenceEndpoints
             })
             .WithName("ApplyAbsenceCover")
             .WithSummary("Übernommene Vorschläge verschieben; auf Wunsch erfahren die Gäste per Mail von der Änderung.");
+
+        group.MapPost("/notify", async Task<Results<Ok<AbsenceNotifyResult>, NotFound, ValidationProblem>> (
+                Guid locationId, AbsenceNotifyRequest request, AispaDbContext db, AbsenceAssistant assistant, CancellationToken ct) =>
+            {
+                if (!await db.Locations.AnyAsync(l => l.Id == locationId, ct))
+                {
+                    return TypedResults.NotFound();
+                }
+
+                var errors = new Errors();
+                errors.Check(request.AppointmentIds is { Count: > 0 and <= 50 }, nameof(request.AppointmentIds), "Zwischen 1 und 50 Termine wählen.");
+                return errors.Any ? errors.Problem() : TypedResults.Ok(await assistant.NotifyAsync(locationId, request, ct));
+            })
+            .WithName("NotifyAbsenceWithoutCover")
+            .WithSummary("Gäste benachrichtigen, für deren Termin es keinen Ersatz gibt: per Mail, ohne Mailadresse per SMS. "
+                + "Der Termin bleibt stehen; storniert oder verschoben wird nichts.");
 
         return routes;
     }

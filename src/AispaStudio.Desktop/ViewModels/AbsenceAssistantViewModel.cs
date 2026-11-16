@@ -108,7 +108,7 @@ public partial class AbsenceAssistantViewModel : ViewModelBase
 
     /// <summary>Vorschläge am eigenen Standort (und die Termine ohne Ersatz).</summary>
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasRows), nameof(IsEmpty))]
+    [NotifyPropertyChangedFor(nameof(HasRows), nameof(IsEmpty), nameof(CanNotifyWithoutCover))]
     public partial IReadOnlyList<AbsenceRow> Rows { get; private set; } = [];
 
     /// <summary>Vorschläge von anderen Standorten: eigener Abschnitt, nicht vorausgewählt.</summary>
@@ -204,6 +204,62 @@ public partial class AbsenceAssistantViewModel : ViewModelBase
                 + (applied.Failed.Count > 0 ? $", {applied.Failed.Count} nicht" : "")
                 + (applied.Notified > 0 ? $", {Count(applied.Notified, "Gast", "Gäste")} per Mail informiert." : ".");
             await _moved(applied.Moved).ConfigureAwait(true);
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    /// <summary>Termine ohne Ersatz, deren Gast noch nicht benachrichtigt ist. Bei einer Raumsperre gibt es das Angebot nicht: Der Text spricht vom Ausfall der Person.</summary>
+    private List<AbsenceRow> WithoutCover => IsRoomClosure ? [] : [.. Rows.Where(r => r.NeedsCall && r.Outcome is null)];
+
+    public bool CanNotifyWithoutCover => WithoutCover.Count > 0;
+
+    /// <summary>
+    /// Gäste ohne Ersatz benachrichtigen (Mail, sonst SMS): Der Termin kann nicht wie geplant stattfinden, das Team meldet sich.
+    /// Fragt vorher nach, weil Nachrichten hinausgehen; storniert oder verschoben wird nichts.
+    /// </summary>
+    [RelayCommand]
+    public async Task NotifyWithoutCoverAsync()
+    {
+        var rows = WithoutCover;
+        if (rows.Count == 0)
+        {
+            return;
+        }
+
+        var answer = await AskAsync(new ConfirmRequest(
+            rows.Count == 1 ? "1 Gast benachrichtigen?" : $"{rows.Count} Gäste benachrichtigen?",
+            "Die Gäste erfahren per Mail oder SMS, dass ihr Termin nicht wie geplant stattfinden kann und dass sich das Team meldet. Der Termin bleibt im Kalender stehen.",
+            "Benachrichtigen", IsDestructive: false)).ConfigureAwait(true);
+        if (!answer.IsConfirmed)
+        {
+            return;
+        }
+
+        IsBusy = true;
+        Error = null;
+        try
+        {
+            var result = await _api.PostAsync<AbsenceNotifyResult>($"api/locations/{_locationId}/absence/notify",
+                new AbsenceNotifyRequest([.. rows.Select(r => r.Item.Appointment.Id)])).ConfigureAwait(true);
+            if (result.Value is not { } sent)
+            {
+                Error = result.Error ?? "Die Gäste ließen sich nicht benachrichtigen.";
+                return;
+            }
+
+            foreach (var row in rows)
+            {
+                row.Outcome = sent.Failed.FirstOrDefault(f => f.AppointmentId == row.Item.Appointment.Id)?.Message is { } message
+                    ? $"Nicht benachrichtigt: {message}"
+                    : "Gast benachrichtigt";
+            }
+
+            Summary = $"{Count(sent.Notified.Count, "Gast", "Gäste")} benachrichtigt"
+                + (sent.Failed.Count > 0 ? $", {sent.Failed.Count} nicht: bitte anrufen." : ".");
+            OnPropertyChanged(nameof(CanNotifyWithoutCover));
         }
         finally
         {
