@@ -1180,3 +1180,28 @@ Expected: Schmal steht die Schiene in einer Zeile, die Werkzeuge stehen rechtsb�
 Expected: Die Schiene zeigt „Übersicht“, „Bestand“ und „Bestellen“; im Bestand gibt es die Ansichten „Material“ und „Bewegungen“. „Einrichtung“, die Kachel „Nachbestellen“ und der Abschnitt „Verbrauch“ fehlen.
 Closes: –
 Result: ☐
+
+### Verwaltung modernisieren – Behandlung mit vier Bereichen und Verlauf als Seitenleiste
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Inhaberin anmelden, **Verwaltung** › **Angebot** › **Behandlungen** öffnen
+1. Eine gespeicherte Behandlung wählen und das Fenster auf die kleinste Größe ziehen (1100 × 680).
+Expected: Unter dem Namen steht eine Schiene mit genau vier Bereichen auf einer Zeile: Grunddaten, Durchführung, Preise und Verkauf, Qualifikationen und Räume.
+2. **Durchführung** wählen.
+Expected: „Vor- und Nachbereitung“, „Vorbereitungsschritte“, „Material je Termin“ und „Zum Termin bereitstellen“ stehen als Gruppen untereinander.
+3. **Preise und Verkauf** wählen.
+Expected: „Preise nach Wochentag und Uhrzeit“ und „Passt dazu“ stehen untereinander, bei mehreren Standorten darüber „Preis je Standort“.
+4. **Grunddaten** wählen und **Weitere Angaben** aufklappen, bei **Ausfallgebühr** 50 eintragen, speichern, eine andere Behandlung und dann wieder diese wählen.
+Expected: „Weitere Angaben“ ist bei dieser Behandlung von selbst offen und zeigt 50; bei einer Behandlung ohne eigene Regel ist die Gruppe zu.
+5. Im Kopf der Karte **Verlauf** wählen.
+Expected: Rechts öffnet die Seitenleiste „Verlauf“ mit den Änderungen, die neueste oben; der Fokus steht in der Leiste. Unter der Maske gibt es keinen Abschnitt „Verlauf“ mehr.
+6. **Esc** drücken.
+Expected: Die Leiste schließt, der Fokus steht wieder auf **Verlauf**; die Verwaltung bleibt offen.
+7. Im Kalender einen Termin mit der rechten Maustaste anklicken und **Behandlungszeiten bearbeiten …** wählen.
+Expected: Die Behandlung öffnet im Bereich „Durchführung“, der Fokus steht im Feld „Vorbereitung (min)“.
+8. **Verwaltung** › **Kassa & Geld** › **Kosten** öffnen und von einer Behandlung zu ihrem Material springen.
+Expected: Die Behandlung öffnet im Bereich „Durchführung“ bei der Gruppe „Material je Termin“.
+9. **Behandlung anlegen** wählen.
+Expected: Die Schiene zeigt Grunddaten, Durchführung und Qualifikationen und Räume, bei mehreren Standorten auch Preise und Verkauf; die Schaltfläche „Verlauf“ fehlt.
+10. Als Standortleitung ohne das Recht auf Berichte mit Beträgen anmelden und eine Behandlung unter **Durchführung** öffnen.
+Expected: Die Gruppe „Material je Termin“ fehlt, alles andere steht da.
+Closes: –
+Result: ☐

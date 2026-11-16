@@ -267,7 +267,9 @@ public sealed class TreatmentsTests
         Assert.Equal("Behandlungen", shell.AdminPage.SelectedArea?.Title);
         Assert.Same(shell.AdminPage.Treatments, shell.AdminPage.Content);
         await Until(() => shell.AdminPage.Treatments!.Editor?.Id == HotStone60.Id);
-        Assert.Equal(TreatmentEditorViewModel.Process, shell.AdminPage.Treatments!.Editor!.SelectedSection);
+        // ADR 0098: „ablauf“ ist eine Gruppe im Bereich „Durchführung“; die alte Adresse führt dorthin.
+        Assert.Equal(TreatmentEditorViewModel.Execution, shell.AdminPage.Treatments!.Editor!.SelectedSection);
+        Assert.Equal(TreatmentEditorViewModel.Process, shell.AdminPage.Treatments.Editor.GroupTarget);
         shell.Dispose();
     }
 
@@ -299,8 +301,12 @@ public sealed class TreatmentsTests
         var editor = await Choose(treatments, "Hot Stone 60");
 
         Assert.Null(editor.LoadError);
-        Assert.DoesNotContain(editor.Sections, s => s.Id == TreatmentEditorViewModel.Material);
+        Assert.False(editor.HasMaterial);
         Assert.DoesNotContain(api.Calls, c => c.Route.Contains("/api/costs/", StringComparison.Ordinal));
+        // Der Sprung von „Kosten“ landet trotzdem im Bereich, nur ohne die Gruppe, die es für sie nicht gibt.
+        editor.SelectSection(TreatmentEditorViewModel.Material);
+        Assert.Equal(TreatmentEditorViewModel.Execution, editor.SelectedSection);
+        Assert.Null(editor.GroupTarget);
         editor.Price = 95m;
         Assert.True(treatments.HasUnsavedChanges);
     }
@@ -428,14 +434,119 @@ public sealed class TreatmentsTests
     }
 
     [Fact]
-    public async Task Given_eine_neue_Behandlung_When_die_Maske_offen_ist_Then_fehlt_der_Reiter_Verkauf_und_eine_gespeicherte_hat_ihn()
+    public async Task Given_eine_neue_Behandlung_When_die_Maske_offen_ist_Then_fehlt_der_Bereich_Preise_und_Verkauf_und_eine_gespeicherte_hat_ihn()
     {
         var treatments = await Loaded(SalesApi());
 
         var saved = await Choose(treatments, "Hot Stone 60");
-        Assert.Contains(saved.Sections, s => s.Id == TreatmentEditorViewModel.Sales && s.Label == "Verkauf");
+        Assert.Contains(saved.Sections, s => s.Id == TreatmentEditorViewModel.Offer && s.Label == "Preise und Verkauf");
         var created = await Choose(treatments, "Behandlung anlegen");
 
-        Assert.DoesNotContain(created.Sections, s => s.Id == TreatmentEditorViewModel.Sales);
+        // Ein Standort: ohne gespeicherte Behandlung gibt es weder Preisregeln noch „Passt dazu“, also keinen Bereich.
+        Assert.Equal([TreatmentEditorViewModel.Basics, TreatmentEditorViewModel.Execution, TreatmentEditorViewModel.Resources], created.Sections.Select(s => s.Id));
+        created.SelectSection(TreatmentEditorViewModel.Sales);
+        Assert.Equal(TreatmentEditorViewModel.Basics, created.SelectedSection);
+    }
+
+    [Fact]
+    public async Task Given_eine_gespeicherte_Behandlung_When_die_Maske_offen_ist_Then_hat_die_Schiene_vier_Bereiche_in_fester_Reihenfolge()
+    {
+        var treatments = await Loaded(SalesApi());
+
+        var editor = await Choose(treatments, "Hot Stone 60");
+
+        // masken.md R15 (ADR 0098): eine Karte neben einer Liste hat höchstens vier Bereiche.
+        Assert.Equal(["Grunddaten", "Durchführung", "Preise und Verkauf", "Qualifikationen und Räume"], editor.Sections.Select(s => s.Label));
+        Assert.Equal(TreatmentEditorViewModel.Basics, editor.SelectedSection);
+        Assert.True(editor.HasMaterial);
+    }
+
+    [Theory]
+    [InlineData("grunddaten", TreatmentEditorViewModel.Basics, null)]
+    [InlineData("ablauf", TreatmentEditorViewModel.Execution, "ablauf")]
+    [InlineData("material", TreatmentEditorViewModel.Execution, "material")]
+    [InlineData("bereitstellen", TreatmentEditorViewModel.Execution, "bereitstellen")]
+    [InlineData("preise", TreatmentEditorViewModel.Offer, "preise")]
+    [InlineData("verkauf", TreatmentEditorViewModel.Offer, "verkauf")]
+    [InlineData("ressourcen", TreatmentEditorViewModel.Resources, null)]
+    [InlineData("durchfuehrung", TreatmentEditorViewModel.Execution, null)]
+    [InlineData("gibt-es-nicht", TreatmentEditorViewModel.Basics, null)]
+    public async Task Given_eine_alte_Abschnittsadresse_When_die_Verwaltung_dorthin_springt_Then_oeffnet_der_richtige_Bereich_bei_der_richtigen_Gruppe(
+        string address, string area, string? group)
+    {
+        var treatments = await Loaded(SalesApi());
+        await Choose(treatments, "Hot Stone 60");
+
+        treatments.Open(HotStone60.Id, address, null);
+
+        Assert.Equal(area, treatments.Editor!.SelectedSection);
+        Assert.Equal(group, treatments.Editor.GroupTarget);
+        Assert.Single(treatments.Editor.Sections, s => s.IsOn);
+    }
+
+    [Fact]
+    public async Task Given_das_Material_laesst_sich_nicht_speichern_When_gespeichert_wird_Then_oeffnet_der_Bereich_Durchfuehrung_bei_der_Gruppe_Material()
+    {
+        var api = Api().On($"PUT /api/costs/treatments/{HotStone60.Id}/materials", new { detail = "Die Menge fehlt." }, HttpStatusCode.BadRequest);
+        var treatments = await Loaded(api);
+        var editor = await Choose(treatments, "Hot Stone 60");
+        editor.AddMaterialCommand.Execute(null);
+        editor.SelectSection(TreatmentEditorViewModel.Resources);
+
+        Assert.False(await treatments.SaveChangesAsync());
+
+        Assert.True(treatments.HasError);
+        Assert.Equal(TreatmentEditorViewModel.Execution, editor.SelectedSection);
+        Assert.Equal(TreatmentEditorViewModel.Material, editor.GroupTarget);
+        Assert.True(treatments.HasUnsavedChanges);
+    }
+
+    [Fact]
+    public async Task Given_eine_gespeicherte_Behandlung_When_die_Inhaberin_Verlauf_waehlt_Then_oeffnet_die_Seitenleiste_und_laedt_bei_jedem_Oeffnen_neu()
+    {
+        var api = Api();
+        var treatments = await Loaded(api);
+        var editor = await Choose(treatments, "Hot Stone 60");
+        Assert.False(editor.IsHistoryOpen);
+        Assert.DoesNotContain(api.Calls, c => c.Route == $"GET /api/treatments/{HotStone60.Id}/history");
+
+        editor.ToggleHistoryCommand.Execute(null);
+        await Until(() => api.Calls.Count(c => c.Route == $"GET /api/treatments/{HotStone60.Id}/history") == 1);
+        Assert.True(editor.IsHistoryOpen);
+        Assert.Same(editor.History, Assert.Single(editor.HistorySections));
+
+        editor.ToggleHistoryCommand.Execute(null);
+        Assert.False(editor.IsHistoryOpen);
+        editor.ToggleHistoryCommand.Execute(null);
+        await Until(() => api.Calls.Count(c => c.Route == $"GET /api/treatments/{HotStone60.Id}/history") == 2);
+    }
+
+    [Fact]
+    public async Task Given_eine_neue_Behandlung_When_die_Maske_offen_ist_Then_gibt_es_keinen_Verlauf()
+    {
+        var treatments = await Loaded(Api());
+
+        var created = await Choose(treatments, "Behandlung anlegen");
+
+        Assert.False(created.HasHistory);
+        Assert.Empty(created.HistorySections);
+        Assert.False(created.ToggleHistoryCommand.CanExecute(null));
+    }
+
+    [Fact]
+    public async Task Given_eine_Behandlung_mit_eigener_Ausfallgebuehr_When_die_Maske_oeffnet_Then_sind_die_weiteren_Angaben_offen_sonst_zu()
+    {
+        var own = HotStone60 with { Id = Guid.NewGuid(), Name = "Hot Stone 90", NoShowFeePercent = 50 };
+        var api = Api();
+        api.OnJson("GET /api/treatments", _ => new List<TreatmentDto> { HotStone60, own })
+            .On($"GET /api/treatments/{own.Id}/price-rules", new List<TreatmentPriceRuleDto>())
+            .On($"GET /api/reports/treatments/{own.Id}/preparation", new List<PreparationStepDto>())
+            .On($"GET /api/costs/treatments/{own.Id}/materials", new List<MaterialLine>())
+            .On($"GET /api/treatments/{own.Id}/extras", new List<TreatmentExtraDto>());
+        var treatments = await Loaded(api);
+
+        // masken.md R2: Seltenes ist eingeklappt; ist ein Feld darin befüllt, ist die Gruppe offen.
+        Assert.False((await Choose(treatments, "Hot Stone 60")).MoreOpen);
+        Assert.True((await Choose(treatments, "Hot Stone 90")).MoreOpen);
     }
 }

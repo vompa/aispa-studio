@@ -159,7 +159,7 @@ public sealed partial class ViewTests
         Render("hell", "verwaltung-team-wer", async (window, main) =>
         {
             var treatments = await OpenTreatments(window, main);
-            await ClickSection(window, "Qualifikationen & Räume");
+            await ClickSection(window, "Qualifikationen und Räume");
             var chip = window.GetVisualDescendants().OfType<Button>().First(b => b.Classes.Contains("chip") && b.Content as string == "Lena Huber");
             chip.BringIntoView();
             await Pump(Settling);

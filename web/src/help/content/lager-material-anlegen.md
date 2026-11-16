@@ -24,7 +24,7 @@ Neues Material gilt für alle Standorte; den Bestand führt das Lager je Standor
 ## Gut zu wissen {#hinweise}
 
 - Der Anfangsbestand kommt danach per Wareneingang oder Inventur: [Wareneingang buchen](hilfe:lager-wareneingang-buchen), [Inventur buchen](hilfe:lager-inventur).
-- Damit Behandlungen Material verbrauchen, es bei der Behandlung (**Verwaltung** › **Angebot** › **Behandlungen**, Bereich „Material“) aufnehmen: [Material einer Behandlung erfassen](hilfe:kosten-material-erfassen).
+- Damit Behandlungen Material verbrauchen, es bei der Behandlung (**Verwaltung** › **Angebot** › **Behandlungen**, Bereich „Durchführung“, Gruppe „Material je Termin“) aufnehmen: [Material einer Behandlung erfassen](hilfe:kosten-material-erfassen).
 - Ein angelegtes Material lässt sich mit **Ändern** im Seitenpanel seiner Zeile im Bestand bearbeiten. Lieferanten stehen unter [Lieferanten pflegen](hilfe:lager-lieferanten).
 - Ein Kassa-Artikel kann nur mit einem Material verknüpft sein.
 
