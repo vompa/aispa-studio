@@ -119,6 +119,8 @@
                     <StackPanel Spacing="1">
                       <TextBlock Text="{Binding Name}" FontWeight="Medium" />
                       <TextBlock Text="{Binding Phone, FallbackValue=''}" Classes="muted small" />
+                      <!-- Der Grund der Erkennung, wie im Kalender: „gleiche Telefonnummer“ (L13) -->
+                      <TextBlock Text="{Binding Reason}" Classes="small" Foreground="{DynamicResource WarnBrush}" TextWrapping="Wrap" IsVisible="{Binding HasReason}" />
                     </StackPanel>
                     <Button Grid.Column="1" Content="Diese Kundin nehmen" Command="{Binding TakeCommand}" VerticalAlignment="Center" />
                   </Grid>

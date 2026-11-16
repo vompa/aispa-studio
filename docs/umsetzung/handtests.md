@@ -1088,3 +1088,21 @@ Expected: „Der Preis dieses Eintritts ist ohne Verbindung nicht bekannt. Den B
 Expected: Unter **Belege** steht der signierte Beleg mit dem Eintritt und „Nacherfassung zu Ersatzbeleg …“.
 Closes: –
 Result: ☐
+
+### Kundenmaske – „Schon vorhanden?“ mit Grund
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Rezeption anmelden, **Kunden** › **Neue Kundin**
+1. Die Telefonnummer einer vorhandenen Kundin in anderer Schreibweise eintragen (z. B. `0664 …` statt `+43 664 …`) und einen anderen Nachnamen.
+Expected: Unter „Schon vorhanden?“ steht die vorhandene Karte zuerst, mit dem Grund „gleiche Telefonnummer“ unter Name und Nummer.
+2. Nur einen häufigen Nachnamen eintragen.
+Expected: Karten aus der Suche erscheinen ohne Grund; erkennt die App einen ähnlichen Namen, steht dieser Grund dabei.
+Closes: L13 (erster Teil)
+Result: ☐
+
+### Datenschutz-Auskunft – Eintritte, Warteliste, Einwilligung und Nachrichten
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Inhaberin anmelden, **Kunden** öffnen, eine Kundin mit Eintritt, Wartelisteneintrag, Werbe-Einwilligung und zugeordneter Mail wählen
+1. Im Menü **…** der Kundenkarte **Auskunft als PDF** wählen und das PDF speichern.
+Expected: Nach „Termine“ stehen „Eintritte“ und „Warteliste“, nach „Gutscheine auf den Namen“ stehen „Einwilligung in Werbung“ (Stand, Adresse, Zeitpunkte) und „Nachrichten“ (Zeitpunkt, Kanal, Absender, Betreff, kein Wortlaut). Keine Tabelle läuft über den Rand.
+2. Dasselbe für eine Kundin ohne diese Daten.
+Expected: „Keine Eintritte.“, „Keine Einträge auf der Warteliste.“, „Keine Einwilligung gespeichert.“, „Keine Nachrichten zugeordnet.“
+Closes: –
+Result: ☐

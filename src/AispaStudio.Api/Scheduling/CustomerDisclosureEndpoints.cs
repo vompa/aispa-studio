@@ -34,7 +34,7 @@ internal static class CustomerDisclosureEndpoints
                 return DocumentFiles.Pdf(CustomerDisclosure.Build(data, await headers.ForAsync(null, user, ct)), CustomerDisclosure.FileName(customer));
             })
             .WithName("CustomerDisclosurePdf")
-            .WithSummary("Datenschutz-Auskunft nach Art. 15 DSGVO als PDF: Stammdaten, Kontakt, Wünsche, Termine, Zahlungen, Gutscheine, Online-Konto, Verlauf der Änderungen; "
+            .WithSummary("Datenschutz-Auskunft nach Art. 15 DSGVO als PDF: Stammdaten, Kontakt, Wünsche, Termine, Eintritte, Warteliste, Zahlungen, Gutscheine, Einwilligung in Werbung, Nachrichten, Online-Konto, Verlauf der Änderungen; "
                 + "die Anamnese nur mit dem Recht „Anamnese lesen“, sonst ein fester Satz.");
         return routes;
     }
@@ -65,6 +65,21 @@ internal static class CustomerDisclosureEndpoints
         var hasAccount = await online.Users.AsNoTracking().AnyAsync(a => a.CustomerId == id, ct);
         var present = await anamnesis.LatestSubmittedAtAsync(id, ct) is not null;
         var health = new CustomerDisclosure.Health(present, present && rights.Has(AccessRight.ViewHealthData) ? await anamnesis.LatestAsync(id, ct) : null);
-        return new CustomerDisclosure.Data(customer, otherEmails, preferences, flags, visits, payments, vouchers, hasAccount, health, await history.ForCustomerAsync(id, ct));
+        var rooms = await db.Rooms.AsNoTracking().Select(r => new { r.Id, r.Name }).ToDictionaryAsync(r => r.Id, r => r.Name, ct);
+        var areaEntries = (await db.AreaVisits.AsNoTracking()
+                .Where(v => v.CustomerId == id && (rights.AllLocations || visible.Contains(v.LocationId))).ToListAsync(ct))
+            .Select(v => new CustomerDisclosure.AreaEntry(v.From, v.Until, rooms.GetValueOrDefault(v.RoomId) ?? "Bereich", locations[v.LocationId].Name, v.Persons, v.IsCancelled)).ToList();
+        var consent = await db.MarketingConsents.AsNoTracking().Where(c => c.CustomerId == id)
+            .Select(c => new CustomerDisclosure.Consent(c.Email, c.State, c.Source, c.RequestedAt, c.ConfirmedAt, c.WithdrawnAt)).FirstOrDefaultAsync(ct);
+        var messages = (await db.InboundMails.AsNoTracking().Where(m => m.CustomerId == id).OrderByDescending(m => m.ReceivedAt)
+                .Select(m => new { m.ReceivedAt, m.Channel, m.From, m.Subject }).ToListAsync(ct))
+            .Select(m => new CustomerDisclosure.Message(m.ReceivedAt, MailIntake.MailIntakeProcessor.ChannelName(m.Channel), m.From, m.Subject)).ToList();
+        var treatments = await db.Treatments.AsNoTracking().Select(t => new { t.Id, t.Name }).ToDictionaryAsync(t => t.Id, t => t.Name, ct);
+        var waitWishes = (await online.WaitlistEntries.AsNoTracking().Where(w => w.CustomerId == id).ToListAsync(ct))
+            .Where(w => locations.ContainsKey(w.LocationId) && (rights.AllLocations || visible.Contains(w.LocationId)))
+            .Select(w => new CustomerDisclosure.WaitWish(w.CreatedAt, w.From, w.Until, treatments.GetValueOrDefault(w.TreatmentId) ?? "Behandlung", locations[w.LocationId].Name, w.Status))
+            .ToList();
+        return new CustomerDisclosure.Data(customer, otherEmails, preferences, flags, visits, payments, vouchers, hasAccount, health, await history.ForCustomerAsync(id, ct),
+            areaEntries, consent, messages, waitWishes);
     }
 }

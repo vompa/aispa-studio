@@ -117,6 +117,9 @@ public partial class CustomersViewModel(IWorkstationApi api, TimeProvider time) 
 
     partial void OnNewLastNameChanged(string value) => CheckMatches();
 
+    // Der Vorname schärft die Erkennung „gleicher Name“ (L13).
+    partial void OnNewFirstNameChanged(string value) => CheckMatches();
+
     partial void OnNewPhoneChanged(string value) => CheckMatches();
 
     partial void OnNewEmailChanged(string value)
@@ -125,7 +128,7 @@ public partial class CustomersViewModel(IWorkstationApi api, TimeProvider time) 
         CheckMatches();
     }
 
-    private void CheckMatches() => _ = Matches.CheckAsync(NewLastName, NewPhone, NewEmail);
+    private void CheckMatches() => _ = Matches.CheckAsync(NewLastName, NewPhone, NewEmail, NewFirstName);
 
     /// <summary>Land des Spas für die Vorwahl („AT“); erst beim ersten Verlassen des Telefonfelds geladen, gemerkt wird nur ein Erfolg.</summary>
     private string? _phoneCountry;

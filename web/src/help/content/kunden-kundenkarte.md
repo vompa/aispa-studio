@@ -34,7 +34,9 @@ Zwei Dokumente zur Kundenkarte gibt es als PDF. Beide stehen im Menü **…** im
 **Auskunft als PDF** ist die Auskunft nach Art. 15 DSGVO. Die Karte „Auskunft über gespeicherte Daten“ hält alle gespeicherten Daten dieser Person fest, zum Speichern oder Drucken und persönlichen Übergeben. Das PDF `Auskunft-<Name>.pdf` zeigt:
 
 - Stammdaten, Kontakt, Wünsche und Vermerke,
-- Termine mit Status, Zahlungen, Gutscheine auf den Namen und das Online-Konto,
+- Termine mit Status, Eintritte, Einträge auf der Warteliste, Zahlungen, Gutscheine auf den Namen und das Online-Konto,
+- die Einwilligung in Werbung mit Stand und Zeitpunkten,
+- zugeordnete Nachrichten mit Zeitpunkt, Kanal, Absender und Betreff. Den Wortlaut einer Nachricht geben Sie auf Wunsch aus dem Posteingang heraus.
 - Gesundheitsangaben, und zwar die Antworten des Bogens nur mit dem Recht für die Anamnese. Ohne das Recht steht nur der Satz „Gesundheitsangaben: vorhanden, Auskunft durch die Leitung“. Gibt es keinen Bogen, steht „Keine Gesundheitsangaben gespeichert.“
 - den Verlauf der Änderungen.
 

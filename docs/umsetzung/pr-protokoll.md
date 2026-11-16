@@ -6190,3 +6190,32 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Geprüft:** `OfflineTests` 11 von 11 grün (neu: verbunden mit abgelehntem Ersatzbeleg seit 50 Stunden), `MessageBarTests` 50, Bildtests `*Banner*` 10 grün; Release-Build ohne Warnungen.
 - **Nicht geprüft:** die laufende App; die volle Suite läuft in der CI.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Kundenmaske: „Schon vorhanden?“ mit Grund (16.11.2026)
+
+- **Auftrag:** Erster Teil von Befund L13 ([Live-Tests Rezeption](live-tests-rezeption-onboarding.md)): Die Kalender-Neuanlage nannte den Grund eines Dublettenverdachts, die Kundenmaske nur Namen. Das Zusammenführen selbst wartet auf die Entscheidung des Auftraggebers.
+- **Was:** „Schon vorhanden?“ in der Maske „Neue Kundin“ fragt zusätzlich die Erkennung des Servers (`POST /api/customers/duplicates`, dieselbe wie im Kalender und im Posteingang). Erkannte Karten stehen vorn und nennen den Grund, z. B. „gleiche Telefonnummer“. Der Vorname löst die Prüfung jetzt ebenfalls aus. Hilfe `kunden-anlegen`.
+- **Detailentscheidungen:**
+  1. Die Treffer der Kundensuche bleiben, damit ein getippter Nachname weiter sofort Karten zeigt; die Erkennung ergänzt Grund und Reihenfolge.
+  2. Höchstens drei Treffer wie bisher; Karten mit Grund zuerst, nach Stärke der Erkennung.
+  3. Ohne Verbindung oder ohne Antwort der Erkennung bleibt der Hinweis wie bisher ohne Grund.
+- **Bewusst offen / später:** Dubletten zusammenführen (Entscheidung des Auftraggebers).
+- **Geprüft:** `CustomerNewFormTests` 27 von 27 grün (neu: Grund und Reihenfolge); Bildtests der Kundenmaske; Hilfe-Tests im Web; Release-Build ohne Warnungen.
+- **Nicht geprüft:** die laufende App; die volle Suite läuft in der CI.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Datenschutz-Auskunft: Eintritte, Warteliste, Werbe-Einwilligung und Nachrichten (16.11.2026)
+
+- **Auftrag:** Block „Daten“ der Reihenfolge vom 20.10.2026 („DSGVO-Auskunft“); Prüfung, was der vorhandenen Auskunft (PDF-Ausgaben C) fehlt.
+- **Befund:** Die Auskunft nannte Stammdaten, Kontakt, Wünsche, Termine, Zahlungen, Gutscheine, Online-Konto, Gesundheitsangaben und Verlauf. Es fehlten vier Datenarten, die zum Gast gespeichert sind: Eintritte, Wartelisteneinträge, die Werbe-Einwilligung und zugeordnete Nachrichten.
+- **Was:** `CustomerDisclosure` hat die Abschnitte „Eintritte“, „Warteliste“, „Einwilligung in Werbung“ und „Nachrichten“; ohne Daten steht jeweils ein fester Satz. Hilfe `kunden-kundenkarte`.
+- **Detailentscheidungen:**
+  1. Nachrichten stehen mit Zeitpunkt, Kanal, Absender und Betreff, ohne Wortlaut: Der Wortlaut kann Angaben Dritter und Gesundheitsangaben enthalten und wird auf Wunsch eigens aus dem Posteingang herausgegeben.
+  2. Die Einwilligung nennt Stand, Adresse, Herkunft und die drei Zeitpunkte, weil sie der Nachweis sind.
+  3. Eintritte und Warteliste folgen wie die Termine den Standorten, die die aufrufende Person sehen darf.
+- **Bewusst offen / später:**
+  - Der Informationsteil nach Art. 15 Abs. 1 lit. a bis h (Zwecke, Empfänger, Speicherdauer, Rechte, Herkunft, Beschwerderecht) fehlt weiter. Sein Wortlaut ist eine Rechtsfrage und braucht den Auftraggeber oder die Datenschutzberatung.
+  - Kartenhinterlegungen und Anzahlungen aus der Online-Buchung stehen nur über ihre Belege in „Zahlungen“.
+- **Geprüft:** Tests zuerst geplant: `CustomerDisclosureTests` 8 von 8 grün (neu: alle vier Abschnitte mit Daten, alle vier ohne Daten); Hilfe-Tests im Web; `dotnet format` sauber, Release-Build ohne Warnungen.
+- **Nicht geprüft:** das PDF von Hand angesehen; die volle Suite läuft in der CI.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
