@@ -6011,3 +6011,19 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
   - Die Ansichtstests der Windows-App (laufen unter Windows in der CI).
   - Die laufende App und der Start über Aspire 13.6.5.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Pakete: MailKit 5 und Anthropic 13 (16.11.2026)
+
+- **Auftrag:** Folge-PR zu „Pakete nachziehen“: die beiden Hauptversionen, die den Build brachen (Dependabot-PRs #29 und #30).
+- **Was:**
+  - MailKit 5.0.0: `SmtpTransport.SendAsync` sendet über `SmtpSendRequest`; `ImapSentCopy` fragt die Fähigkeiten `SpecialUse` und `XList` über `Capabilities.Contains` ab. MimeKit ist kein eigenes Paket mehr.
+  - Anthropic 13.8.0: `ClaudeJson` und `ClaudeAnamnesisReader` erzeugen die Nachricht als `BetaUserMessageParam`.
+  - `THIRD-PARTY-NOTICES.md` ist neu erzeugt (202 Bausteine), auch für die Stände aus „Pakete nachziehen“.
+- **Detailentscheidungen:**
+  1. Beide Umstellungen stehen in einem PR, weil jede nur zwei Stellen berührt und dieselben Tests sie abdecken.
+  2. Am Verhalten ändert sich nichts: gleiche Anfrage an Claude (Modell, Betas, Fallback, Schema), gleiche Suche nach dem Ordner „Gesendet“.
+- **Geprüft:**
+  - `dotnet format --verify-no-changes` sauber, Release-Build ohne Warnungen.
+  - API-Tests: 2242 von 2274 grün, 1 übersprungen; die 31 roten brauchen Docker (`LiveBackplaneTests` 30, `DatabaseBackupTests` 1) und laufen in der CI. Darunter die Mail-Tests (`Mail*`, `ImapSentCopyTests`: 167 von 167).
+- **Bewusst offen / später:** Versand über SMTP, Kopie über IMAP und ein Aufruf von Claude mit echtem Schlüssel sind nicht gegen echte Dienste geprüft (Falle in der [Übergabe](../uebergabe.md#6-bekannte-fehler-und-fallen)).
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).

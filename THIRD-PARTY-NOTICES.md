@@ -12,23 +12,21 @@ gebunden und lassen sich durch eigene Fassungen ersetzen; ihr Quelltext steht un
 ## MIT
 
 - @microsoft/signalr 10.0.11 (npm): Microsoft; https://github.com/dotnet/aspnetcore/tree/main/src/SignalR#readme
-- Anthropic 12.58.0 (NuGet): Copyright 2026 Anthropic; https://docs.anthropic.com/claude/reference/
-- Aspire.Npgsql.EntityFrameworkCore.PostgreSQL 13.6.4 (NuGet): © Microsoft Corporation. All rights reserved.; https://github.com/microsoft/aspire
-- Avalonia 12.1.4 (NuGet): Copyright 2013-2026 © The AvaloniaUI Project; https://avaloniaui.net/?utm_source=nuget&utm_medium=referral&utm_content=project_homepage_link
+- Aspire.Npgsql.EntityFrameworkCore.PostgreSQL 13.6.5 (NuGet): © Microsoft Corporation. All rights reserved.; https://github.com/microsoft/aspire
+- Avalonia 12.1.6 (NuGet): Copyright 2013-2026 © The AvaloniaUI Project; https://avaloniaui.net/?utm_source=nuget&utm_medium=referral&utm_content=project_homepage_link
 - Avalonia.BuildServices 11.3.2 (NuGet): Copyright 2023-2025 © The AvaloniaUI Project; https://avaloniaui.net/
-- Avalonia.Controls.WebView 12.1.1 (NuGet): Copyright 2019-2026 © AvaloniaUI OÜ; https://avaloniaui.net/
-- Avalonia.Desktop 12.1.4 (NuGet): Copyright 2013-2026 © The AvaloniaUI Project; https://avaloniaui.net/?utm_source=nuget&utm_medium=referral&utm_content=project_homepage_link
-- Avalonia.Fonts.Inter 12.1.4 (NuGet): Copyright 2013-2026 © The AvaloniaUI Project; https://avaloniaui.net/?utm_source=nuget&utm_medium=referral&utm_content=project_homepage_link
-- Avalonia.FreeDesktop 12.1.4 (NuGet): Copyright 2013-2026 © The AvaloniaUI Project; https://avaloniaui.net/?utm_source=nuget&utm_medium=referral&utm_content=project_homepage_link
-- Avalonia.FreeDesktop.AtSpi 12.1.4 (NuGet): Copyright 2013-2026 © The AvaloniaUI Project; https://avaloniaui.net/?utm_source=nuget&utm_medium=referral&utm_content=project_homepage_link
-- Avalonia.HarfBuzz 12.1.4 (NuGet): Copyright 2013-2026 © The AvaloniaUI Project; https://avaloniaui.net/?utm_source=nuget&utm_medium=referral&utm_content=project_homepage_link
-- Avalonia.Native 12.1.4 (NuGet): Copyright 2013-2026 © The AvaloniaUI Project; https://avaloniaui.net/?utm_source=nuget&utm_medium=referral&utm_content=project_homepage_link
-- Avalonia.Remote.Protocol 12.1.4 (NuGet): Copyright 2013-2026 © The AvaloniaUI Project; https://avaloniaui.net/?utm_source=nuget&utm_medium=referral&utm_content=project_homepage_link
-- Avalonia.Skia 12.1.4 (NuGet): Copyright 2013-2026 © The AvaloniaUI Project; https://avaloniaui.net/?utm_source=nuget&utm_medium=referral&utm_content=project_homepage_link
-- Avalonia.Themes.Fluent 12.1.4 (NuGet): Copyright 2013-2026 © The AvaloniaUI Project; https://avaloniaui.net/?utm_source=nuget&utm_medium=referral&utm_content=project_homepage_link
-- Avalonia.Win32 12.1.4 (NuGet): Copyright 2013-2026 © The AvaloniaUI Project; https://avaloniaui.net/?utm_source=nuget&utm_medium=referral&utm_content=project_homepage_link
-- Avalonia.X11 12.1.4 (NuGet): Copyright 2013-2026 © The AvaloniaUI Project; https://avaloniaui.net/?utm_source=nuget&utm_medium=referral&utm_content=project_homepage_link
-- BouncyCastle.Cryptography 2.7.0 (NuGet): Copyright © Legion of the Bouncy Castle Inc. 2000-2026; https://www.bouncycastle.org/stable/nuget/csharp/website
+- Avalonia.Controls.WebView 12.1.2 (NuGet): Copyright 2019-2026 © AvaloniaUI OÜ; https://avaloniaui.net/
+- Avalonia.Desktop 12.1.6 (NuGet): Copyright 2013-2026 © The AvaloniaUI Project; https://avaloniaui.net/?utm_source=nuget&utm_medium=referral&utm_content=project_homepage_link
+- Avalonia.Fonts.Inter 12.1.6 (NuGet): Copyright 2013-2026 © The AvaloniaUI Project; https://avaloniaui.net/?utm_source=nuget&utm_medium=referral&utm_content=project_homepage_link
+- Avalonia.FreeDesktop 12.1.6 (NuGet): Copyright 2013-2026 © The AvaloniaUI Project; https://avaloniaui.net/?utm_source=nuget&utm_medium=referral&utm_content=project_homepage_link
+- Avalonia.FreeDesktop.AtSpi 12.1.6 (NuGet): Copyright 2013-2026 © The AvaloniaUI Project; https://avaloniaui.net/?utm_source=nuget&utm_medium=referral&utm_content=project_homepage_link
+- Avalonia.HarfBuzz 12.1.6 (NuGet): Copyright 2013-2026 © The AvaloniaUI Project; https://avaloniaui.net/?utm_source=nuget&utm_medium=referral&utm_content=project_homepage_link
+- Avalonia.Native 12.1.6 (NuGet): Copyright 2013-2026 © The AvaloniaUI Project; https://avaloniaui.net/?utm_source=nuget&utm_medium=referral&utm_content=project_homepage_link
+- Avalonia.Remote.Protocol 12.1.6 (NuGet): Copyright 2013-2026 © The AvaloniaUI Project; https://avaloniaui.net/?utm_source=nuget&utm_medium=referral&utm_content=project_homepage_link
+- Avalonia.Skia 12.1.6 (NuGet): Copyright 2013-2026 © The AvaloniaUI Project; https://avaloniaui.net/?utm_source=nuget&utm_medium=referral&utm_content=project_homepage_link
+- Avalonia.Themes.Fluent 12.1.6 (NuGet): Copyright 2013-2026 © The AvaloniaUI Project; https://avaloniaui.net/?utm_source=nuget&utm_medium=referral&utm_content=project_homepage_link
+- Avalonia.Win32 12.1.6 (NuGet): Copyright 2013-2026 © The AvaloniaUI Project; https://avaloniaui.net/?utm_source=nuget&utm_medium=referral&utm_content=project_homepage_link
+- Avalonia.X11 12.1.6 (NuGet): Copyright 2013-2026 © The AvaloniaUI Project; https://avaloniaui.net/?utm_source=nuget&utm_medium=referral&utm_content=project_homepage_link
 - ClosedXML 0.105.1 (NuGet): Jan Havlíček, Francois Botha, Aleksei Pankratev, Manuel de Leon, Amir Ghezelbash; https://github.com/ClosedXML/ClosedXML
 - ClosedXML.Parser 2.0.0 (NuGet): Jan Havlíček; https://github.com/ClosedXML/ClosedXML.Parser
 - CommunityToolkit.Mvvm 8.4.2 (NuGet): (c) .NET Foundation and Contributors. All rights reserved.; https://github.com/CommunityToolkit/dotnet
@@ -44,28 +42,28 @@ gebunden und lassen sich durch eigene Fassungen ersetzen; ihr Quelltext steht un
 - HarfBuzzSharp.NativeAssets.Win32 8.3.1.3 (NuGet): © Microsoft Corporation. All rights reserved.; https://go.microsoft.com/fwlink/?linkid=868515
 - Humanizer.Core 2.14.1 (NuGet): Copyright (c) .NET Foundation and Contributors; https://github.com/Humanizr/Humanizer
 - ImTools 4.0.0 (NuGet): Copyright © 2016-2022 Maksim Volkau; https://github.com/dadhi/ImTools
-- JasperFx 2.91.0 (NuGet): Jeremy D. Miller,Jaedyn Tonee; http://github.com/jasperfx/jasperfx
-- JasperFx.Events 2.91.0 (NuGet): Jeremy D. Miller,Jaedyn Tonee; http://github.com/jasperfx/jasperfx
-- JasperFx.RuntimeCompiler 5.0.0 (NuGet): Jeremy D. Miller,Jaedyn Tonee; http://github.com/jasperfx/jasperfx
-- JasperFx.SourceGenerator 2.91.0 (NuGet): Jeremy D. Miller,Jaedyn Tonee; http://github.com/jasperfx/jasperfx
+- JasperFx 2.102.0 (NuGet): Jeremy D. Miller,Jaedyn Tonee; http://github.com/jasperfx/jasperfx
+- JasperFx.Events 2.102.0 (NuGet): Jeremy D. Miller,Jaedyn Tonee; http://github.com/jasperfx/jasperfx
+- JasperFx.RuntimeCompiler 5.1.0 (NuGet): Jeremy D. Miller,Jaedyn Tonee; http://github.com/jasperfx/jasperfx
+- JasperFx.SourceGenerator 2.102.0 (NuGet): Jeremy D. Miller,Jaedyn Tonee; http://github.com/jasperfx/jasperfx
 - libxml2 EDB-Build (PostgreSQL-Paket): Copyright (C) Daniel Veillard; https://gitlab.gnome.org/GNOME/libxml2
 - libxslt EDB-Build (PostgreSQL-Paket): Copyright (C) Daniel Veillard; https://gitlab.gnome.org/GNOME/libxslt
-- MailKit 4.18.1 (NuGet): .NET Foundation and Contributors; http://www.mimekit.net/
+- MailKit 5.0.0 (NuGet): .NET Foundation and Contributors; http://www.mimekit.net/
 - MessagePack 2.5.303 (NuGet): © Yoshifumi Kawai and contributors. All rights reserved.; https://github.com/MessagePack-CSharp/MessagePack-CSharp
 - MessagePack.Annotations 2.5.303 (NuGet): © Yoshifumi Kawai and contributors. All rights reserved.; https://github.com/MessagePack-CSharp/MessagePack-CSharp
 - MicroCom.Runtime 0.11.6 (NuGet): Copyright 2021 © Nikita Tsukanov; https://licenses.nuget.org/MIT
-- Microsoft.AspNetCore.Authentication.Google 10.0.13 (NuGet): © Microsoft Corporation. All rights reserved.; https://asp.net/
-- Microsoft.AspNetCore.Connections.Abstractions 10.0.13 (NuGet): © Microsoft Corporation. All rights reserved.; https://asp.net/
-- Microsoft.AspNetCore.DataProtection.EntityFrameworkCore 10.0.13 (NuGet): © Microsoft Corporation. All rights reserved.; https://asp.net/
-- Microsoft.AspNetCore.Http.Connections.Client 10.0.13 (NuGet): © Microsoft Corporation. All rights reserved.; https://asp.net/
-- Microsoft.AspNetCore.Http.Connections.Common 10.0.13 (NuGet): © Microsoft Corporation. All rights reserved.; https://asp.net/
-- Microsoft.AspNetCore.Identity.EntityFrameworkCore 10.0.13 (NuGet): © Microsoft Corporation. All rights reserved.; https://asp.net/
-- Microsoft.AspNetCore.OpenApi 10.0.13 (NuGet): © Microsoft Corporation. All rights reserved.; https://asp.net/
-- Microsoft.AspNetCore.SignalR.Client 10.0.13 (NuGet): © Microsoft Corporation. All rights reserved.; https://asp.net/
-- Microsoft.AspNetCore.SignalR.Client.Core 10.0.13 (NuGet): © Microsoft Corporation. All rights reserved.; https://asp.net/
-- Microsoft.AspNetCore.SignalR.Common 10.0.13 (NuGet): © Microsoft Corporation. All rights reserved.; https://asp.net/
-- Microsoft.AspNetCore.SignalR.Protocols.Json 10.0.13 (NuGet): © Microsoft Corporation. All rights reserved.; https://asp.net/
-- Microsoft.AspNetCore.SignalR.StackExchangeRedis 10.0.13 (NuGet): © Microsoft Corporation. All rights reserved.; https://asp.net/
+- Microsoft.AspNetCore.Authentication.Google 10.0.15 (NuGet): © Microsoft Corporation. All rights reserved.; https://asp.net/
+- Microsoft.AspNetCore.Connections.Abstractions 10.0.15 (NuGet): © Microsoft Corporation. All rights reserved.; https://asp.net/
+- Microsoft.AspNetCore.DataProtection.EntityFrameworkCore 10.0.15 (NuGet): © Microsoft Corporation. All rights reserved.; https://asp.net/
+- Microsoft.AspNetCore.Http.Connections.Client 10.0.15 (NuGet): © Microsoft Corporation. All rights reserved.; https://asp.net/
+- Microsoft.AspNetCore.Http.Connections.Common 10.0.15 (NuGet): © Microsoft Corporation. All rights reserved.; https://asp.net/
+- Microsoft.AspNetCore.Identity.EntityFrameworkCore 10.0.15 (NuGet): © Microsoft Corporation. All rights reserved.; https://asp.net/
+- Microsoft.AspNetCore.OpenApi 10.0.15 (NuGet): © Microsoft Corporation. All rights reserved.; https://asp.net/
+- Microsoft.AspNetCore.SignalR.Client 10.0.15 (NuGet): © Microsoft Corporation. All rights reserved.; https://asp.net/
+- Microsoft.AspNetCore.SignalR.Client.Core 10.0.15 (NuGet): © Microsoft Corporation. All rights reserved.; https://asp.net/
+- Microsoft.AspNetCore.SignalR.Common 10.0.15 (NuGet): © Microsoft Corporation. All rights reserved.; https://asp.net/
+- Microsoft.AspNetCore.SignalR.Protocols.Json 10.0.15 (NuGet): © Microsoft Corporation. All rights reserved.; https://asp.net/
+- Microsoft.AspNetCore.SignalR.StackExchangeRedis 10.0.15 (NuGet): © Microsoft Corporation. All rights reserved.; https://asp.net/
 - Microsoft.Bcl.AsyncInterfaces 9.0.0 (NuGet): © Microsoft Corporation. All rights reserved.; https://dot.net/
 - Microsoft.Bcl.TimeProvider 10.0.0 (NuGet): © Microsoft Corporation. All rights reserved.; https://dot.net/
 - Microsoft.Build.Framework 18.0.2 (NuGet): © Microsoft Corporation. All rights reserved.; http://go.microsoft.com/fwlink/?LinkId=624683
@@ -81,28 +79,28 @@ gebunden und lassen sich durch eigene Fassungen ersetzen; ihr Quelltext steht un
 - Microsoft.CodeAnalysis.VisualBasic.Workspaces 5.0.0 (NuGet): © Microsoft Corporation. All rights reserved.; https://github.com/dotnet/roslyn
 - Microsoft.CodeAnalysis.Workspaces.Common 5.0.0 (NuGet): © Microsoft Corporation. All rights reserved.; https://github.com/dotnet/roslyn
 - Microsoft.CodeAnalysis.Workspaces.MSBuild 5.0.0 (NuGet): © Microsoft Corporation. All rights reserved.; https://github.com/dotnet/roslyn
-- Microsoft.EntityFrameworkCore 10.0.13 (NuGet): © Microsoft Corporation. All rights reserved.; https://docs.microsoft.com/ef/core/
-- Microsoft.EntityFrameworkCore.Abstractions 10.0.13 (NuGet): © Microsoft Corporation. All rights reserved.; https://docs.microsoft.com/ef/core/
-- Microsoft.EntityFrameworkCore.Analyzers 10.0.13 (NuGet): © Microsoft Corporation. All rights reserved.; https://docs.microsoft.com/ef/core/
-- Microsoft.EntityFrameworkCore.Design 10.0.13 (NuGet): © Microsoft Corporation. All rights reserved.; https://docs.microsoft.com/ef/core/
-- Microsoft.EntityFrameworkCore.Relational 10.0.13 (NuGet): © Microsoft Corporation. All rights reserved.; https://docs.microsoft.com/ef/core/
+- Microsoft.EntityFrameworkCore 10.0.15 (NuGet): © Microsoft Corporation. All rights reserved.; https://docs.microsoft.com/ef/core/
+- Microsoft.EntityFrameworkCore.Abstractions 10.0.15 (NuGet): © Microsoft Corporation. All rights reserved.; https://docs.microsoft.com/ef/core/
+- Microsoft.EntityFrameworkCore.Analyzers 10.0.15 (NuGet): © Microsoft Corporation. All rights reserved.; https://docs.microsoft.com/ef/core/
+- Microsoft.EntityFrameworkCore.Design 10.0.15 (NuGet): © Microsoft Corporation. All rights reserved.; https://docs.microsoft.com/ef/core/
+- Microsoft.EntityFrameworkCore.Relational 10.0.15 (NuGet): © Microsoft Corporation. All rights reserved.; https://docs.microsoft.com/ef/core/
 - Microsoft.Extensions.AI.Abstractions 10.5.1 (NuGet): © Microsoft Corporation. All rights reserved.; https://dot.net/
 - Microsoft.Extensions.AmbientMetadata.Application 10.11.0 (NuGet): © Microsoft Corporation. All rights reserved.; https://dot.net/
-- Microsoft.Extensions.ApiDescription.Server 10.0.13 (NuGet): © Microsoft Corporation. All rights reserved.; https://asp.net/
+- Microsoft.Extensions.ApiDescription.Server 10.0.15 (NuGet): © Microsoft Corporation. All rights reserved.; https://asp.net/
 - Microsoft.Extensions.Compliance.Abstractions 10.11.0 (NuGet): © Microsoft Corporation. All rights reserved.; https://dot.net/
-- Microsoft.Extensions.DependencyInjection 10.0.13 (NuGet): © Microsoft Corporation. All rights reserved.; https://dot.net/
-- Microsoft.Extensions.DependencyInjection.Abstractions 10.0.13 (NuGet): © Microsoft Corporation. All rights reserved.; https://dot.net/
+- Microsoft.Extensions.DependencyInjection 10.0.15 (NuGet): © Microsoft Corporation. All rights reserved.; https://dot.net/
+- Microsoft.Extensions.DependencyInjection.Abstractions 10.0.15 (NuGet): © Microsoft Corporation. All rights reserved.; https://dot.net/
 - Microsoft.Extensions.DependencyInjection.AutoActivation 10.11.0 (NuGet): © Microsoft Corporation. All rights reserved.; https://dot.net/
-- Microsoft.Extensions.DependencyModel 10.0.13 (NuGet): © Microsoft Corporation. All rights reserved.; https://dot.net/
+- Microsoft.Extensions.DependencyModel 10.0.15 (NuGet): © Microsoft Corporation. All rights reserved.; https://dot.net/
 - Microsoft.Extensions.Diagnostics.ExceptionSummarization 10.11.0 (NuGet): © Microsoft Corporation. All rights reserved.; https://dot.net/
-- Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore 10.0.12 (NuGet): © Microsoft Corporation. All rights reserved.; https://asp.net/
-- Microsoft.Extensions.Features 10.0.13 (NuGet): © Microsoft Corporation. All rights reserved.; https://asp.net/
+- Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore 10.0.14 (NuGet): © Microsoft Corporation. All rights reserved.; https://asp.net/
+- Microsoft.Extensions.Features 10.0.15 (NuGet): © Microsoft Corporation. All rights reserved.; https://asp.net/
 - Microsoft.Extensions.Http.Diagnostics 10.11.0 (NuGet): © Microsoft Corporation. All rights reserved.; https://dot.net/
 - Microsoft.Extensions.Http.Resilience 10.11.0 (NuGet): © Microsoft Corporation. All rights reserved.; https://dot.net/
-- Microsoft.Extensions.Logging 10.0.13 (NuGet): © Microsoft Corporation. All rights reserved.; https://dot.net/
-- Microsoft.Extensions.Logging.Abstractions 10.0.13 (NuGet): © Microsoft Corporation. All rights reserved.; https://dot.net/
-- Microsoft.Extensions.Options 10.0.13 (NuGet): © Microsoft Corporation. All rights reserved.; https://dot.net/
-- Microsoft.Extensions.Primitives 10.0.13 (NuGet): © Microsoft Corporation. All rights reserved.; https://dot.net/
+- Microsoft.Extensions.Logging 10.0.15 (NuGet): © Microsoft Corporation. All rights reserved.; https://dot.net/
+- Microsoft.Extensions.Logging.Abstractions 10.0.15 (NuGet): © Microsoft Corporation. All rights reserved.; https://dot.net/
+- Microsoft.Extensions.Options 10.0.15 (NuGet): © Microsoft Corporation. All rights reserved.; https://dot.net/
+- Microsoft.Extensions.Primitives 10.0.15 (NuGet): © Microsoft Corporation. All rights reserved.; https://dot.net/
 - Microsoft.Extensions.Resilience 10.11.0 (NuGet): © Microsoft Corporation. All rights reserved.; https://dot.net/
 - Microsoft.Extensions.ServiceDiscovery 10.11.0 (NuGet): © Microsoft Corporation. All rights reserved.; https://dot.net/
 - Microsoft.Extensions.ServiceDiscovery.Abstractions 10.11.0 (NuGet): © Microsoft Corporation. All rights reserved.; https://dot.net/
@@ -116,10 +114,10 @@ gebunden und lassen sich durch eigene Fassungen ersetzen; ihr Quelltext steht un
 - Microsoft.IdentityModel.Tokens 8.14.0 (NuGet): © Microsoft Corporation. All rights reserved.; https://github.com/AzureAD/azure-activedirectory-identitymodel-extensions-for-dotnet
 - Microsoft.IO.RecyclableMemoryStream 3.0.1 (NuGet): © Microsoft Corporation. All rights reserved.; https://github.com/Microsoft/Microsoft.IO.RecyclableMemoryStream
 - Microsoft.NET.StringTools 17.6.3 (NuGet): © Microsoft Corporation. All rights reserved.; http://go.microsoft.com/fwlink/?LinkId=624683
-- Microsoft.OpenApi 2.12.2 (NuGet): © Microsoft Corporation. All rights reserved.; https://github.com/Microsoft/OpenAPI.NET
+- Microsoft.OpenApi 2.13.0 (NuGet): © Microsoft Corporation. All rights reserved.; https://github.com/Microsoft/OpenAPI.NET
 - Microsoft.VisualStudio.SolutionPersistence 1.0.52 (NuGet): © Microsoft Corporation. All rights reserved.; https://github.com/microsoft/vs-solutionpersistence
 - Microsoft.Win32.SystemEvents 6.0.0 (NuGet): © Microsoft Corporation. All rights reserved.; https://dot.net/
-- MimeKit 4.18.1 (NuGet): .NET Foundation and Contributors; https://www.mimekit.net/
+- MimeKit.Core 5.0.0 (NuGet): .NET Foundation and Contributors; https://www.mimekit.net/
 - mingw-w64 winpthreads EDB-Build (PostgreSQL-Paket): Copyright (c) 2011 mingw-w64 project; https://www.mingw-w64.org/
 - Mono.TextTemplating 3.0.0 (NuGet): Mikayla Hutchinson; https://github.com/mono/t4
 - Newtonsoft.Json 13.0.4 (NuGet): Copyright © James Newton-King 2008; https://www.newtonsoft.com/json
@@ -128,7 +126,7 @@ gebunden und lassen sich durch eigene Fassungen ersetzen; ihr Quelltext steht un
 - PDFsharp 6.2.4 (NuGet): © 2026 empira; https://docs.pdfsharp.net/
 - Pipelines.Sockets.Unofficial 2.2.8 (NuGet): Marc Gravell 2018; https://github.com/mgravell/Pipelines.Sockets.Unofficial
 - punycode 2.3.1 (npm): Mathias Bynens; https://mths.be/punycode
-- QRCoder 1.8.0 (NuGet): Copyright © 2013-2025 Raffael Herrmann. Copyright © 2024-2025 Shane Krueger. All rights reserved.; https://licenses.nuget.org/MIT
+- QRCoder 1.8.1 (NuGet): Copyright © 2013-2025 Raffael Herrmann. Copyright © 2024-2025 Shane Krueger. All rights reserved.; https://licenses.nuget.org/MIT
 - RBush.Signed 4.0.0 (NuGet): Copyright © 2017-2024 Turning Code, LLC (and others); https://licenses.nuget.org/MIT
 - SkiaSharp 3.119.4 (NuGet): © Microsoft Corporation. All rights reserved.; https://go.microsoft.com/fwlink/?linkid=868515
 - SkiaSharp.NativeAssets.Linux 3.119.4 (NuGet): © Microsoft Corporation. All rights reserved.; https://go.microsoft.com/fwlink/?linkid=868515
@@ -145,19 +143,20 @@ gebunden und lassen sich durch eigene Fassungen ersetzen; ihr Quelltext steht un
 - System.Composition.Hosting 9.0.0 (NuGet): © Microsoft Corporation. All rights reserved.; https://dot.net/
 - System.Composition.Runtime 9.0.0 (NuGet): © Microsoft Corporation. All rights reserved.; https://dot.net/
 - System.Composition.TypedParts 9.0.0 (NuGet): © Microsoft Corporation. All rights reserved.; https://dot.net/
+- System.Diagnostics.DiagnosticSource 11.0.0 (NuGet): © Microsoft Corporation. All rights reserved.; https://dot.net/
 - System.Drawing.Common 6.0.0 (NuGet): © Microsoft Corporation. All rights reserved.; https://dot.net/
 - System.IdentityModel.Tokens.Jwt 8.14.0 (NuGet): © Microsoft Corporation. All rights reserved.; https://github.com/AzureAD/azure-activedirectory-identitymodel-extensions-for-dotnet
 - System.IO.Packaging 8.0.1 (NuGet): © Microsoft Corporation. All rights reserved.; https://dot.net/
-- System.Security.Cryptography.Pkcs 10.0.13 (NuGet): © Microsoft Corporation. All rights reserved.; https://dot.net/
-- System.Security.Cryptography.ProtectedData 10.0.13 (NuGet): © Microsoft Corporation. All rights reserved.; https://dot.net/
+- System.Security.Cryptography.Pkcs 10.0.15 (NuGet): © Microsoft Corporation. All rights reserved.; https://dot.net/
+- System.Security.Cryptography.ProtectedData 10.0.15 (NuGet): © Microsoft Corporation. All rights reserved.; https://dot.net/
 - Tmds.DBus.Protocol 0.94.1 (NuGet): Tom Deseyn; https://licenses.nuget.org/MIT
 - tr46 0.0.3 (npm): Sebastian Mayr <npm@smayr.name>; https://github.com/Sebmaster/tr46.js#readme
-- Weasel.Core 9.46.0 (NuGet): Jeremy D. Miller,Babu Annamalai,Oskar Dudycz; https://github.com/JasperFx/weasel
-- Weasel.Postgresql 9.46.0 (NuGet): Jeremy D. Miller,Babu Annamalai,Oskar Dudycz; https://github.com/JasperFx/weasel
-- WolverineFx 6.51.2 (NuGet): Jeremy D. Miller,Babu Annamalai,Jaedyn Tonee; http://github.com/jasperfx/wolverine
-- WolverineFx.Postgresql 6.51.2 (NuGet): Jeremy D. Miller,Babu Annamalai,Jaedyn Tonee; http://github.com/jasperfx/wolverine
-- WolverineFx.RDBMS 6.51.2 (NuGet): Jeremy D. Miller,Babu Annamalai,Jaedyn Tonee; http://github.com/jasperfx/wolverine
-- WolverineFx.RuntimeCompilation 6.51.2 (NuGet): Jeremy D. Miller,Babu Annamalai,Jaedyn Tonee; http://github.com/jasperfx/wolverine
+- Weasel.Core 9.50.0 (NuGet): Jeremy D. Miller,Babu Annamalai,Oskar Dudycz; https://github.com/JasperFx/weasel
+- Weasel.Postgresql 9.50.0 (NuGet): Jeremy D. Miller,Babu Annamalai,Oskar Dudycz; https://github.com/JasperFx/weasel
+- WolverineFx 6.64.0 (NuGet): Jeremy D. Miller,Babu Annamalai,Jaedyn Tonee; http://github.com/jasperfx/wolverine
+- WolverineFx.Postgresql 6.64.0 (NuGet): Jeremy D. Miller,Babu Annamalai,Jaedyn Tonee; http://github.com/jasperfx/wolverine
+- WolverineFx.RDBMS 6.64.0 (NuGet): Jeremy D. Miller,Babu Annamalai,Jaedyn Tonee; http://github.com/jasperfx/wolverine
+- WolverineFx.RuntimeCompilation 6.64.0 (NuGet): Jeremy D. Miller,Babu Annamalai,Jaedyn Tonee; http://github.com/jasperfx/wolverine
 
 ```text
 MIT License
@@ -182,17 +181,18 @@ USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ## Apache-2.0
 
-- AspNet.Security.OAuth.Apple 10.0.0 (NuGet): © AspNet.Security.OAuth.Providers contributors. All rights reserved.; https://github.com/aspnet-contrib/AspNet.Security.OAuth.Providers
+- Anthropic 13.8.0 (NuGet): Copyright 2023 Anthropic, PBC.; https://docs.anthropic.com/claude/reference/
+- AspNet.Security.OAuth.Apple 10.1.0 (NuGet): © AspNet.Security.OAuth.Providers contributors. All rights reserved.; https://github.com/aspnet-contrib/AspNet.Security.OAuth.Providers
 - NewId 4.0.1 (NuGet): Copyright 2007-2019 Chris Patterson; https://licenses.nuget.org/Apache-2.0
 - OpenSSL 3 EDB-Build (PostgreSQL-Paket): Copyright (c) 1998-2025 The OpenSSL Project Authors; https://www.openssl.org/
-- OpenTelemetry 1.20.1 (NuGet): Copyright The OpenTelemetry Authors; https://opentelemetry.io/
-- OpenTelemetry.Api 1.20.1 (NuGet): Copyright The OpenTelemetry Authors; https://opentelemetry.io/
-- OpenTelemetry.Api.ProviderBuilderExtensions 1.20.1 (NuGet): Copyright The OpenTelemetry Authors; https://opentelemetry.io/
-- OpenTelemetry.Exporter.OpenTelemetryProtocol 1.20.1 (NuGet): Copyright The OpenTelemetry Authors; https://opentelemetry.io/
-- OpenTelemetry.Extensions.Hosting 1.20.1 (NuGet): Copyright The OpenTelemetry Authors; https://opentelemetry.io/
-- OpenTelemetry.Instrumentation.AspNetCore 1.20.1 (NuGet): Copyright The OpenTelemetry Authors; https://opentelemetry.io/
-- OpenTelemetry.Instrumentation.Http 1.20.1 (NuGet): Copyright The OpenTelemetry Authors; https://opentelemetry.io/
-- OpenTelemetry.Instrumentation.Runtime 1.20.1 (NuGet): Copyright The OpenTelemetry Authors; https://opentelemetry.io/
+- OpenTelemetry 1.21.0 (NuGet): Copyright The OpenTelemetry Authors; https://opentelemetry.io/
+- OpenTelemetry.Api 1.21.0 (NuGet): Copyright The OpenTelemetry Authors; https://opentelemetry.io/
+- OpenTelemetry.Api.ProviderBuilderExtensions 1.21.0 (NuGet): Copyright The OpenTelemetry Authors; https://opentelemetry.io/
+- OpenTelemetry.Exporter.OpenTelemetryProtocol 1.21.0 (NuGet): Copyright The OpenTelemetry Authors; https://opentelemetry.io/
+- OpenTelemetry.Extensions.Hosting 1.21.0 (NuGet): Copyright The OpenTelemetry Authors; https://opentelemetry.io/
+- OpenTelemetry.Instrumentation.AspNetCore 1.21.0 (NuGet): Copyright The OpenTelemetry Authors; https://opentelemetry.io/
+- OpenTelemetry.Instrumentation.Http 1.21.0 (NuGet): Copyright The OpenTelemetry Authors; https://opentelemetry.io/
+- OpenTelemetry.Instrumentation.Runtime 1.21.0 (NuGet): Copyright The OpenTelemetry Authors; https://opentelemetry.io/
 - SixLabors.Fonts 1.0.0 (NuGet): Copyright © Six Labors; https://github.com/SixLabors/Fonts
 - System.Linq.Dynamic.Core 1.7.4 (NuGet): Copyright © ZZZ Projects; https://dynamic-linq.net/
 
@@ -592,6 +592,25 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
+## 0BSD, Wortlaut von tslib
+
+- tslib 2.9.1 (npm): Copyright (c) Microsoft Corporation.; https://www.typescriptlang.org/
+
+```text
+Copyright (c) Microsoft Corporation.
+
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+PERFORMANCE OF THIS SOFTWARE.
+```
+
 ## Avalonia.Angle.Windows.Natives (eigene Lizenz)
 
 - Avalonia.Angle.Windows.Natives 2.1.27548.20260419 (NuGet): Copyright 2013-2026 © The AvaloniaUI Project; https://avaloniaui.net/
@@ -702,6 +721,34 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 Except as contained in this notice, the name of a copyright holder shall not be used in advertising or otherwise to promote the sale, use or other dealings in this Software without prior written authorization of the copyright holder.
+```
+
+## MIT, Wortlaut von @tybys/wasm-util
+
+- @tybys/wasm-util 0.10.4 (npm): Copyright (c) 2022-present Toyobayashi; https://github.com/toyobayashi/wasm-util.git
+
+```text
+MIT License
+
+Copyright (c) 2022-present Toyobayashi
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 ```
 
 ## MIT, Wortlaut von abort-controller

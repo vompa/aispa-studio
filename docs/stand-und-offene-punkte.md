@@ -321,8 +321,6 @@ Seit dem 08.11.2026 im öffentlichen Repository `vompa/aispa-studio`; PR-Nummern
 
 | Was | Wo | Stand am 16.11.2026 | Nächster Schritt |
 | --- | --- | --- | --- |
-| MailKit 4 → 5 | Dependabot-PR #30 | offen, Build rot | eigene Umstellung: `SmtpClient.SendAsync` hat eine neue Signatur (`Mail/Mail.cs`), `ImapCapabilities.SpecialUse` und `XList` fehlen (`MailIntake/Mailboxes/ImapSentCopy.cs`); danach Versand und Kopie in „Gesendet“ gegen ein echtes Postfach prüfen |
-| Anthropic 12 → 13 | Dependabot-PR #29 | offen, Build rot | eigene Umstellung: `BetaMessageParam` wird anders erzeugt (`MailIntake/Assistant/ClaudeJson.cs`, `Online/ClaudeAnamnesisReader.cs`); danach mit einem echten Schlüssel prüfen |
 | ASP.NET-Core-Pakete 11 (`SignalR.Client`, `ApiDescription.Server`, `@microsoft/signalr`) | Dependabot-PRs #31, #32 | zurückgestellt | kommen mit dem Umstieg auf .NET 11; bis dahin überspringt Dependabot die Hauptversion (`.github/dependabot.yml`) |
 
 `dev` und `main` werden nach jeder grünen Runde per Merge-Commit zusammengeführt ([ADR 0060](entscheidungen/0060-weiterarbeit-auf-einem-branch-dev.md)). Die gemergten `claude/...`-Branches können gelöscht werden; den früheren Branch `feature/dev-sign-in-without-codes` gibt es in diesem Repository nicht mehr.
