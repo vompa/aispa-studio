@@ -6123,3 +6123,22 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
   - API: `SubstituteReceiptTests` 4, `PosTests` 39 grün; `dotnet format` sauber, Release-Build ohne Warnungen.
 - **Nicht geprüft:** ein echter Netzausfall an einem Windows-PC mit Server, der Druck am Bondrucker, zwei Geräte zugleich; die volle Desktop- und API-Suite läuft in der CI.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Kassa ohne Verbindung: Hinweis nach 48 Stunden, Schritt 3 (16.11.2026)
+
+- **Auftrag:** „Mach weiter mit dem 48-Stunden-Hinweis“ (Auftraggeber, 16.11.2026); offener Punkt aus [ADR 0096](../entscheidungen/0096-kassieren-ohne-verbindung-ersatzbeleg-und-nacherfassung.md).
+- **Was:**
+  - App: Ist der älteste nicht nacherfasste Ersatzbeleg älter als 48 Stunden, ergänzt der Hinweis „Keine Verbindung zum Server“ den Satz „Der älteste Ersatzbeleg ist vom … und seit mehr als 48 Stunden nicht nacherfasst: In Österreich den Ausfall der Kasse über FinanzOnline melden.“
+  - Server: Wird ein Ersatzbeleg mehr als 48 Stunden nach seiner Ausgabe nacherfasst, speichert die Kasse Beginn und Ende des Ausfalls (Migration `RegisterLongOutage`) und warnt eine Woche lang, in Österreich mit „Beginn und Ende des Ausfalls über FinanzOnline melden.“, sonst mit „Den Ausfall dokumentieren.“
+  - Hilfe `kassa-ersatzbeleg#laenger`.
+- **Detailentscheidungen:**
+  1. Maß ist der älteste nicht nacherfasste Ersatzbeleg, nicht die Zeit ohne Verbindung: Ohne kassierten Umsatz gibt es nichts zu melden, und die App weiß nach einem Neustart nicht, seit wann der Server fehlt.
+  2. Der Hinweis der App zählt auch abgelehnte Ersatzbelege.
+  3. Die Warnung der Kasse bleibt eine Woche stehen; so lange läuft die Frist für die Meldung. Ein späterer langer Ausfall beginnt neu.
+  4. Der Hinweis der App nennt Österreich im Text, weil die App ohne Verbindung das Land der Kasse nicht sicher kennt.
+- **Bewusst offen / später:** Hinweis in der App, wenn sie verbunden ist und ein abgelehnter Ersatzbeleg älter als 48 Stunden wartet; Abhaken der Warnung nach erfolgter Meldung.
+- **Geprüft:**
+  - Tests zuerst geplant: `SubstituteReceiptTests` 7 von 7 grün (neu: Österreich nach 50 Stunden, Deutschland nach 50 Stunden, Österreich nach 2 Stunden); `OfflineTests` 10 von 10 grün (neu: 49 und 47 Stunden).
+  - `PosSubstituteTests` 6, `MessageBarTests` 50, Hilfe-Tests im Web 61 grün; `dotnet format` sauber, Release-Build ohne Warnungen.
+- **Nicht geprüft:** die laufende App über 48 Stunden; die volle Suite läuft in der CI.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).

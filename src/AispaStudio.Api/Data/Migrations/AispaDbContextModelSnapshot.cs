@@ -2708,6 +2708,12 @@ namespace AispaStudio.Api.Data.Migrations
                     b.Property<Guid>("LocationId")
                         .HasColumnType("uuid");
 
+                    b.Property<DateTimeOffset?>("LongOutageReenteredAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("LongOutageSince")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("PayeeName")
                         .HasMaxLength(70)
                         .HasColumnType("character varying(70)");
