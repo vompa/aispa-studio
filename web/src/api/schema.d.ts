@@ -988,6 +988,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/employees/{employeeId}/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Übersicht der Personenkarte: nächster Dienst, Stunden der laufenden Woche, Urlaubskonto, offene Abwesenheitsanträge und fällige Zertifikate; Teile ohne das nötige Recht fehlen.
+         * @description Jeder Teil gilt mit dem Recht des Einzel-Endpunkts (Dienst, Stunden und Urlaub: Standortleitung oder Personalunterlagen; Anträge: Standortleitung; Zertifikate: Personalakte) und ist sonst leer. Wer keines dieser Rechte hat, bekommt 403.
+         */
+        get: operations["GetEmployeeOverview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/employee-notes/symbols": {
         parameters: {
             query?: never;
@@ -10329,6 +10349,43 @@ export interface components {
              */
             appointments: number;
         };
+        EmployeeLeaveSummaryDto: {
+            /** Format: int32 */
+            year: number;
+            /** Format: double */
+            remaining: null | number;
+            /** Format: double */
+            planned: number;
+            /** Format: double */
+            taken: number;
+        };
+        EmployeeNextShiftDto: {
+            /** Format: date */
+            date: string;
+            /** Format: time */
+            start: string;
+            /** Format: time */
+            end: string;
+            /** Format: uuid */
+            locationId: string;
+            locationName: string;
+        };
+        EmployeeOverviewDto: {
+            /** Format: uuid */
+            employeeId: string;
+            nextShift: null | components["schemas"]["EmployeeNextShiftDto"];
+            /** Format: double */
+            weekPlannedHours: null | number;
+            /** Format: double */
+            weekActualHours: null | number;
+            leave: null | components["schemas"]["EmployeeLeaveSummaryDto"];
+            /** Format: int32 */
+            openAbsenceRequests: null | number;
+            /** Format: int32 */
+            dueCertificates: null | number;
+            /** Format: int32 */
+            expiredCertificates: null | number;
+        };
         EmployeeShift: {
             /** Format: uuid */
             employeeId: string;
@@ -16683,6 +16740,44 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["CurrentUser"];
                 };
+            };
+        };
+    };
+    GetEmployeeOverview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                employeeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmployeeOverviewDto"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
