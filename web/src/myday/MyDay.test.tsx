@@ -156,6 +156,18 @@ describe('Mein Tag', () => {
     await expectAccessible()
   })
 
+  it('zeigt „Anamnese prüfen“ auf der Karte, wenn die API es meldet', async () => {
+    routes['GET /api/v1/reports/locations/loc-1/day-plan'] = () => ({
+      status: 200,
+      body: { ...plan, cards: [plan.cards[0], { ...plan.cards[1], checkAnamnesis: true }] },
+    })
+    render(<MyDayApp />)
+
+    const cards = within(await screen.findByRole('list', { name: 'Termine' })).getAllByRole('article')
+    expect(within(cards[0]).getByText(/^Anamnese prüfen:/)).toBeTruthy()
+    expect(within(cards[1]).queryByText(/^Anamnese prüfen:/)).toBeNull()
+  })
+
   it('zeigt die Einwirkzeit einer Behandlung als freie Zeit, sonst nichts dazu', async () => {
     routes['GET /api/v1/reports/locations/loc-1/day-plan'] = () => ({
       status: 200,
@@ -438,6 +450,38 @@ describe('Mein Tag', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Antrag stellen' }))
     expect(await screen.findByText(/Antrag gestellt/)).toBeTruthy()
     await waitFor(() => expect(screen.queryByText('Anträge gehen nur mit Verbindung.')).toBeNull())
+  })
+
+  it('zeigt im Reiter Abwesenheit das eigene Urlaubskonto des Jahres mit Rest', async () => {
+    routes['GET /api/v1/absence-requests/mine/leave-account/2027'] = () => ({
+      status: 200,
+      body: { employeeId: 'emp-1', year: 2027, entitlement: 25, carriedOver: 2.5, taken: 3, planned: 1, remaining: 23.5, uncountedDays: 0, workdays: ['Monday'], workdaysAssumed: false },
+    })
+    render(<MyDayApp />)
+    fireEvent.click(await screen.findByRole('button', { name: 'Abwesenheit' }))
+
+    expect(await screen.findByRole('heading', { name: 'Urlaubskonto 2027' })).toBeTruthy()
+    expect(screen.getByText('Rest 23,5 Tage')).toBeTruthy()
+    expect(screen.getByText(/von 27,5 Tage \(genommen 3 Tage, geplant 1 Tag\)/)).toBeTruthy()
+    await expectAccessible()
+  })
+
+  it('nennt ohne eingetragenen Anspruch nur genommen und geplant, und ohne Konto nichts', async () => {
+    routes['GET /api/v1/absence-requests/mine/leave-account/2027'] = () => ({
+      status: 200,
+      body: { employeeId: 'emp-1', year: 2027, entitlement: null, carriedOver: 0, taken: 2, planned: 0, remaining: null, uncountedDays: 0, workdays: ['Monday'], workdaysAssumed: false },
+    })
+    const first = render(<MyDayApp />)
+    fireEvent.click(await screen.findByRole('button', { name: 'Abwesenheit' }))
+    expect(await screen.findByText(/Genommen 2 Tage, geplant 0 Tage\. Ein Anspruch ist für dieses Jahr noch nicht eingetragen\./)).toBeTruthy()
+    first.unmount()
+
+    // Ohne verknüpfte Person antwortet die API mit 404: Der Reiter zeigt dann nur die Anträge.
+    delete routes['GET /api/v1/absence-requests/mine/leave-account/2027']
+    render(<MyDayApp />)
+    fireEvent.click(await screen.findByRole('button', { name: 'Abwesenheit' }))
+    await screen.findByRole('heading', { name: 'Meine Anträge' })
+    expect(screen.queryByRole('heading', { name: /Urlaubskonto/ })).toBeNull()
   })
 
   it('nennt in der Woche ohne Netz den Stand', async () => {

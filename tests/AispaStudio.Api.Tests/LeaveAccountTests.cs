@@ -134,4 +134,22 @@ public sealed class LeaveAccountTests(ApiFixture fixture)
 
         Assert.Equal(HttpStatusCode.NotFound, (await other.Client.GetAsync(Path(spa, NextYear), Ct)).StatusCode);
     }
+
+    [Fact]
+    public async Task Die_Mitarbeiter_App_sieht_nur_das_eigene_Urlaubskonto()
+    {
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        await spa.PutAsync<LeaveAccountDto>(Path(spa, NextYear), new LeaveEntitlementInput(25, 1), Ct);
+        await VacationAsync(spa, FirstMonday(NextYear));
+        using var ben = await ChannelTests.StaffAppAsync(spa, StaffRole.Therapist, spa.Ben.Id, Ct);
+        using var unlinked = await TestUsers.ClientAsync(spa.Fixture, Ct, StaffRole.Reception, [spa.Location.Id]);
+
+        var mine = await TestSpa.ReadAsync<LeaveAccountDto>(await ben.GetAsync($"/api/absence-requests/mine/leave-account/{NextYear}", Ct), Ct);
+
+        Assert.Equal((spa.Ben.Id, 25m, 1m, 1m, 25m), (mine.EmployeeId, mine.Entitlement, mine.CarriedOver, mine.Planned, mine.Remaining));
+        // Das Konto einer bestimmten Person bleibt der Leitung vorbehalten, auch wenn es das eigene ist.
+        Assert.Equal(HttpStatusCode.Forbidden, (await ben.GetAsync(Path(spa, NextYear), Ct)).StatusCode);
+        // Ein Zugang ohne verknüpfte Person hat kein Konto.
+        Assert.Equal(HttpStatusCode.NotFound, (await unlinked.GetAsync($"/api/absence-requests/mine/leave-account/{NextYear}", Ct)).StatusCode);
+    }
 }

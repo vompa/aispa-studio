@@ -1,5 +1,5 @@
 import { type FormEvent, useCallback, useEffect, useState } from 'react'
-import { api, type AbsenceRequestInput, type MyAbsenceRequestDto } from '../api/client'
+import { api, type AbsenceRequestInput, type LeaveAccountDto, type MyAbsenceRequestDto } from '../api/client'
 import { addDays, dayLabel, problemText } from './format'
 
 const KINDS: { value: AbsenceRequestInput['kind']; label: string }[] = [
@@ -15,10 +15,13 @@ const STATE_LABEL: Record<MyAbsenceRequestDto['state'], string> = {
   Rejected: 'Abgelehnt',
 }
 
+const days = (value: number) => (value === 1 ? '1 Tag' : `${value.toLocaleString('de-AT', { maximumFractionDigits: 1 })} Tage`)
+
 /** Abwesenheit beantragen und die eigenen Anträge mit Entscheidung sehen. Geht nur mit Verbindung; entschieden wird in der Windows-App. */
 export function AbsencePanel({ today, onSignedOut }: { today: string; onSignedOut: () => void }) {
   const [requests, setRequests] = useState<MyAbsenceRequestDto[] | null>(null)
   const [loadProblem, setLoadProblem] = useState<string | null>(null)
+  const [leave, setLeave] = useState<LeaveAccountDto | null>(null)
   const [kind, setKind] = useState<AbsenceRequestInput['kind']>('Vacation')
   const [from, setFrom] = useState(() => addDays(today, 1))
   const [until, setUntil] = useState(() => addDays(today, 1))
@@ -35,7 +38,12 @@ export function AbsencePanel({ today, onSignedOut }: { today: string; onSignedOu
       },
       () => setLoadProblem('Anträge gehen nur mit Verbindung.'),
     )
-  }, [onSignedOut])
+    // Das eigene Urlaubskonto des laufenden Jahres (ADR 0097); ohne Verbindung oder ohne verknüpfte Person steht einfach nichts da.
+    api.GET('/api/v1/absence-requests/mine/leave-account/{year}', { params: { path: { year: Number(today.slice(0, 4)) } } }).then(
+      ({ data }) => setLeave(data ?? null),
+      () => setLeave(null),
+    )
+  }, [onSignedOut, today])
 
   useEffect(load, [load])
 
@@ -72,6 +80,22 @@ export function AbsencePanel({ today, onSignedOut }: { today: string; onSignedOu
           <p>
             <strong>{loadProblem}</strong>
           </p>
+        </div>
+      )}
+      {leave && (
+        <div className="panel" aria-labelledby="leave-heading">
+          <h3 id="leave-heading">Urlaubskonto {leave.year}</h3>
+          {leave.entitlement == null ? (
+            <p>
+              Genommen {days(leave.taken)}, geplant {days(leave.planned)}. Ein Anspruch ist für dieses Jahr noch nicht eingetragen.
+            </p>
+          ) : (
+            <p>
+              <strong>Rest {days(leave.remaining ?? 0)}</strong> von {days(leave.entitlement + leave.carriedOver)} (genommen {days(leave.taken)}, geplant{' '}
+              {days(leave.planned)}).
+            </p>
+          )}
+          <p className="muted">Gezählt wird genehmigter Urlaub aus dem Dienstplan an Ihren Arbeitstagen. Offene Anträge zählen noch nicht.</p>
         </div>
       )}
       <form className="panel" onSubmit={(e) => void submit(e)} noValidate>

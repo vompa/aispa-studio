@@ -355,12 +355,12 @@ Die Nummern sind die Reihenfolge, die der jeweilige Thread gewählt hätte ([Üb
 - Später: Haupt-PC im Netz automatisch finden; Passkeys zusätzlich nach dem Umstieg auf einen Server; gemeinsamer Formatierer im Web-Projekt.
 
 **Kalender, Dienstplan, Zugänge**
-1. Ausfall-Assistent: Gäste ohne Ersatz per SMS oder WhatsApp informieren (Kanäle aus `Reminders/`).
+1. Ausfall-Assistent: Gäste ohne Ersatz per WhatsApp informieren (per Mail und SMS seit 16.11.2026; WhatsApp braucht eine eigene freigegebene Vorlage).
 2. Ausfall-Assistent: Ersatz an anderen Tagen; Paar- und Spa-Tag-Buchungen an einen anderen Standort verlegen.
 3. Leerlaufzeit eines angemeldeten Empfangsgeräts ändern; Liste aller Empfangsgeräte des Spas.
 4. Lücken durch Verschieben mehrerer Termine hintereinander schließen (Ketten).
 5. Feiertage weiterer Kantone und einzelner Gemeinden.
-6. Aus den Rezeptions-Schritten offen: „Kommt später“ meldet der Gast selbst über den Termin-Link; Sauna und Ausfallgebühr für Gäste ohne Namen; Hinweis „Anamnese prüfen“ auch bei Paar, Spa-Tag und in „Mein Tag“; automatische Vorschläge für Kennzeichen; Schwellen der Kennzahlen einstellbar.
+6. Aus den Rezeptions-Schritten offen („Kommt später“ meldet der Gast seit 16.11.2026 selbst über den Termin-Link): Sauna und Ausfallgebühr für Gäste ohne Namen; Hinweis „Anamnese prüfen“ auch bei Paar und Spa-Tag (in „Mein Tag“ seit 16.11.2026); automatische Vorschläge für Kennzeichen; Schwellen der Kennzahlen einstellbar.
 - Nicht gebaut (Auftraggeber, 16.11.2026): Zeiterfassung am Empfangsgerät per PIN.
 - Später: Chipkarte oder NFC für den Schnellwechsel; Entfernung oder bevorzugter Ausweichstandort; Lückenbewertung in Online-Buchung und KI-Terminannahme; SSO; Korrekturwünsche, Monatsbestätigung, Ist-Zeiten in den Berichten; Benachrichtigung beim Veröffentlichen des Dienstplans; KI-Vorschläge im Dienstplan (Entwurf `RosterDraftTests`).
 
@@ -384,7 +384,7 @@ Die Nummern sind die Reihenfolge, die der jeweilige Thread gewählt hätte ([Üb
 - Später: ZVT und OPI an einem echten Gerät prüfen; Anzahlung anzeigen; Personenwechsel ohne Server nach dem ersten Praxistest bewerten.
 
 **Online-Buchung und Kundenbereich**
-1. Gast vor Ablauf der Frist für Karte oder Anzahlung erinnern.
+1. Gast vor Ablauf der Frist für Karte oder Anzahlung erinnern: seit 16.11.2026 gebaut (einmal, wenn drei Viertel der Frist um sind).
 2. Anzahlung für Termine der Rezeption per Link.
 3. Zahlungs- und Kartenlink auch per SMS.
 4. Stripe-Kunden aus abgebrochenen Hinterlegungen löschen.
@@ -392,7 +392,7 @@ Die Nummern sind die Reihenfolge, die der jeweilige Thread gewählt hätte ([Üb
 6. Teilerstattung; Meldungen des Anbieters zu fehlgeschlagenen Erstattungen.
 7. Online-Bestellungen und Erstattungen als Liste in der Kassa.
 8. Anzahlung in der Windows-App anzeigen.
-9. Aus den Buchungsproblemen offen: Bestätigung der E-Mail vor einer Gastbuchung, Gutschein mit Anzahlung verrechnen, Absage eines späteren als des nächsten Termins per Klick, Wunsch ♀/♂ bei der Online-Buchung.
+9. Aus den Buchungsproblemen offen (seit 16.11.2026 gebaut: Absage eines späteren Termins im Posteingang, Wunsch Therapeutin oder Therapeut bei der Online-Buchung): Bestätigung der E-Mail vor einer Gastbuchung, Gutschein mit Anzahlung verrechnen, Absage eines späteren als des nächsten Termins per Klick, Wunsch ♀/♂ bei der Online-Buchung.
 10. CSP des Kundenbereichs durchsetzen ([ADR 0080](entscheidungen/0080-csp-fuer-den-kundenbereich.md)): nach einem Stand ohne CSP-Meldungen in Chrome, Edge, Firefox und Safari den Header-Namen umstellen und dabei den Header für `frame-ancestors` (Einbetten, Slice 58) mit der Richtlinie für Inhalte zusammenführen.
 - Später: Spa-Tag, Paar und Eintritte im Kundenbereich; Regeln für Ausfallgebühr und Anzahlung je Kundengruppe, Tageszeit oder No-Show-Risiko; Wissensbasis des Spas für Fragen im Kundenbereich; Reserve with Google und Gutscheinportale (erst nach der Freigabe des Auftraggebers, [ADR 0014](entscheidungen/0014-buchungsplattformen-ohne-partnervertrag.md)).
 

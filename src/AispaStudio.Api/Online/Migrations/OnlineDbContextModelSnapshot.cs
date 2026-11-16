@@ -18,7 +18,7 @@ namespace AispaStudio.Api.Online.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("online")
-                .HasAnnotation("ProductVersion", "10.0.13")
+                .HasAnnotation("ProductVersion", "10.0.15")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -244,6 +244,9 @@ namespace AispaStudio.Api.Online.Migrations
                     b.Property<DateTimeOffset?>("ReleaseAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<DateTimeOffset?>("ReminderSentAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<DateTimeOffset?>("SavedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -420,6 +423,9 @@ namespace AispaStudio.Api.Online.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTimeOffset?>("ReleaseAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("ReminderSentAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Status")

@@ -12,6 +12,7 @@ namespace AispaStudio.Contracts;
 /// Preises angezahlt werden (100 = Vorauszahlung); dann wird keine Karte hinterlegt. <c>Closures</c>: laufende und kommende Schließzeiten
 /// mit dem Text für Gäste (ADR 0073); in ihnen gibt es keine freien Zeiten. <c>RebookReminders</c>: Das Spa erinnert an die nächste
 /// Behandlung; nur dann bietet die Buchung das Häkchen für die Einwilligung an (ADR 0040).
+/// <c>TherapistWish</c>: Im Team ist bei Personen „Therapeutin“ oder „Therapeut“ hinterlegt; nur dann bietet die Buchung den Wunsch an.
 /// </summary>
 public sealed record OnlineLocation(
     Guid Id,
@@ -27,7 +28,8 @@ public sealed record OnlineLocation(
     bool NoShowFeeNewCustomersOnly = false,
     int DepositPercent = 0,
     IReadOnlyList<OnlineClosure>? Closures = null,
-    bool RebookReminders = false);
+    bool RebookReminders = false,
+    bool TherapistWish = false);
 
 /// <summary>
 /// Online buchbare Behandlung an einem Standort. <c>Category</c> gruppiert das Angebot, z. B. „Massagen“. <c>NoShowFeePercent</c>:
@@ -66,7 +68,8 @@ public sealed record OnlineContact(string FirstName, string LastName, string Ema
 /// oder eine Anzahlung (<see cref="OnlineTreatment.DepositPercent"/>): die Zustimmung gilt dann den Bedingungen der Anzahlung.
 /// <c>AcceptMarketing</c> (freiwillig, nie vorausgewählt): Der Gast möchte an die nächste Behandlung erinnert werden; er bekommt nach der
 /// Buchung die Mail zum Bestätigen (Double-Opt-in, ADR 0040). Wirkt nur, wenn das Spa solche Erinnerungen eingeschaltet hat
-/// (<see cref="OnlineLocation.RebookReminders"/>).
+/// (<see cref="OnlineLocation.RebookReminders"/>). <c>TherapistWish</c> (freiwillig): Der Gast wünscht für diesen Termin eine Therapeutin oder einen Therapeuten;
+/// gebucht wird dann eine passende Person (Personen ohne Angabe passen), und der Wunsch steht in der Notiz des Termins.
 /// </summary>
 public sealed record OnlineBookingRequest(
     Guid LocationId,
@@ -78,7 +81,8 @@ public sealed record OnlineBookingRequest(
     string? Language,
     bool AcceptNoShowFee = false,
     string? VoucherCode = null,
-    bool AcceptMarketing = false);
+    bool AcceptMarketing = false,
+    TherapistGender? TherapistWish = null);
 
 public enum OnlineAppointmentState
 {
@@ -156,7 +160,8 @@ public sealed record TestCardResult(bool Saved);
 /// <summary>
 /// Termin aus Sicht der Kundin oder des Kunden. <c>CancellableUntil</c>: bis dahin ist Online-Storno kostenlos möglich, danach
 /// telefonisch oder bei <c>CanCancelLate</c> online gegen die Gebühr <c>LateCancelFee</c>. <c>CardGuarantee</c>: hinterlegte Karte,
-/// wenn der Standort eine Ausfallgebühr verlangt.
+/// wenn der Standort eine Ausfallgebühr verlangt. <c>LateMinutes</c>: gemeldete Verspätung; <c>CanReportLate</c>: Der Gast kann jetzt selbst
+/// melden, dass er später kommt (kurz vor dem Termin bis kurz nach Beginn). Der Termin bleibt an seiner Zeit.
 /// </summary>
 public sealed record OnlineAppointment(
     Guid Id,
@@ -180,7 +185,12 @@ public sealed record OnlineAppointment(
     Guid? TreatmentId = null,
     bool CanMove = false,
     decimal? LateCancelFee = null,
-    bool CanCancelLate = false);
+    bool CanCancelLate = false,
+    int? LateMinutes = null,
+    bool CanReportLate = false);
+
+/// <summary>Der Gast meldet, dass er später kommt: 5, 10, 15, 20 oder 30 Minuten; 0 nimmt die Meldung zurück.</summary>
+public sealed record OnlineLateRequest(int Minutes);
 
 /// <summary>
 /// Eigener Gutschein in der Kunden-App. <c>Balance</c>: Restwert; bei einem Paket zählen <c>Units</c> und <c>UnitsLeft</c>.

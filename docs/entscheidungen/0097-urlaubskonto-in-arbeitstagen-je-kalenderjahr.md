@@ -42,7 +42,8 @@ Der gesetzliche Anspruch hängt von Land, Arbeitstagen je Woche, Dienstalter und
 - Wechselt die Wochenarbeitszeit im Jahr, zählt das Konto das ganze Jahr nach dem aktuellen Stand. Eine Wochenarbeitszeit mit Gültigkeitsdatum gibt es nicht.
 - Feiertage zieht das Konto nicht ab: Liegt Urlaub auf einem Feiertag, der ein Arbeitstag der Person wäre, zählt er. Das Programm führt keinen Feiertagskalender.
 - Änderungen an Anspruch und Übertrag speichern Zeitpunkt und Benutzer an der Zeile; im Verlauf der Karte erscheinen sie noch nicht.
-- Offen, später: Rest beim Entscheiden eines Antrags anzeigen; Konto in der Mitarbeiter-App; Übersicht über alle Personen; Urlaubsjahr ab Eintritt.
+- Seit 16.11.2026 sieht jede Person ihr eigenes Konto in „Mein Tag“ im Reiter „Abwesenheit“ (`GET /api/absence-requests/mine/leave-account/{jahr}`, nur lesen). Punkt 6 der Entscheidung ist damit erweitert; ändern kann weiter nur die Leitung.
+- Offen, später: Rest beim Entscheiden eines Antrags anzeigen; Übersicht über alle Personen; Urlaubsjahr ab Eintritt.
 - **Arbeitsrecht, vom Auftraggeber oder der Lohnverrechnung zu bestätigen:** Kalenderjahr als Urlaubsjahr (in Österreich braucht die Umstellung eine Vereinbarung); Umgang mit Feiertagen und mit Krankheit im Urlaub; ob halbe Urlaubstage im Betrieb vorkommen.
 
 ## Quellen

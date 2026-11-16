@@ -167,6 +167,27 @@ public sealed class DepositTests(ApiFixture fixture)
     }
 
     [Fact]
+    public async Task Vor_Ablauf_der_Zahlungsfrist_bekommt_der_Gast_einmal_eine_Erinnerung()
+    {
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        await RequireDepositAsync(spa, holdHours: 2);
+        await CreateRegisterAsync(spa);
+        var email = NewEmail();
+        var open = await BookAsync(spa, TestSpa.At(13), email);
+        var payUntil = open.Appointment.Deposit!.PayUntil!.Value;
+        var release = fixture.Factory.Services.GetRequiredService<UnsecuredBookingRelease>();
+
+        var tooEarly = await release.RemindOnceAsync(payUntil.AddMinutes(-45), spa.Location.Id, Ct);
+        var due = await release.RemindOnceAsync(payUntil.AddMinutes(-25), spa.Location.Id, Ct);
+        var again = await release.RemindOnceAsync(payUntil.AddMinutes(-20), spa.Location.Id, Ct);
+
+        Assert.Equal((0, 1, 0), (tooEarly, due, again));
+        var mail = await fixture.Mailbox.WaitForAsync(email, m => m.Subject.StartsWith("Bitte Buchung abschließen", StringComparison.Ordinal), Ct);
+        Assert.Contains("fehlt noch die Anzahlung", mail.Text, StringComparison.Ordinal);
+        Assert.Contains("Bitte bezahlen Sie die Anzahlung bis", mail.Text, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task Unbezahlte_Anzahlung_gibt_den_Termin_nach_der_Frist_frei()
     {
         var spa = await TestSpa.CreateAsync(fixture, Ct);

@@ -54,6 +54,8 @@ public partial class CalendarViewModel
                 Absence = null;
                 Rebuild();
             });
+        // „Ohne Ersatz: informieren“ fragt nach, bevor Nachrichten hinausgehen.
+        assistant.Dialogs = Dialogs;
         Absence = assistant;
         _ = assistant.LoadAsync();
         Rebuild();

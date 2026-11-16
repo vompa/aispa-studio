@@ -131,6 +131,15 @@ internal static class CustomerPortalEndpoints
             .WithName("ConfirmMyAppointment")
             .WithSummary("Sagt für einen eigenen bevorstehenden Termin zu, dass man kommt.");
 
+        group.MapPost("/appointments/{appointmentId:guid}/late", async Task<Results<Ok<OnlineAppointment>, NotFound, ProblemHttpResult>> (
+                Guid appointmentId, OnlineLateRequest request, ClaimsPrincipal principal, OnlineDbContext online, OnlinePortal portal, CancellationToken ct) =>
+                await FindAccountAsync(principal, online, ct) is { CustomerId: { } customerId }
+                    ? OnlineBookingEndpoints.Respond(await portal.ReportLateAsync(appointmentId, customerId, request.Minutes, ct))
+                    : TypedResults.NotFound())
+            .RequireRateLimiting(OnlineSetup.SensitiveRateLimit)
+            .WithName("ReportLateMyAppointment")
+            .WithSummary("Meldet für einen eigenen Termin, dass man später kommt; Regeln wie bei „ReportLateOnlineBooking“.");
+
         return routes;
     }
 

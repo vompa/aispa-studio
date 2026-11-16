@@ -74,6 +74,20 @@ internal static class AbsenceRequestEndpoints
             .RequirePermission(AccessRight.ViewCalendar)
             .AllowChannel(AccessChannel.StaffApp);
 
+        group.MapGet("/mine/leave-account/{year:int}", async Task<Results<Ok<LeaveAccountDto>, NotFound>> (
+                int year, AispaDbContext db, AccessService accessService, TimeProvider time, CancellationToken ct) =>
+            {
+                var access = (await accessService.CurrentAsync(ct))!;
+                return year is >= LeaveAccount.MinYear and <= LeaveAccount.MaxYear && access.EmployeeId is { } employeeId
+                    && await LeaveAccount.LoadAsync(db, employeeId, year, DateOnly.FromDateTime(time.GetUtcNow().UtcDateTime), ct) is { } account
+                        ? TypedResults.Ok(account)
+                        : TypedResults.NotFound();
+            })
+            .WithName("GetMyLeaveAccount")
+            .WithSummary("Das eigene Urlaubskonto eines Kalenderjahres (ADR 0097): Anspruch, Übertrag, genommen, geplant, Rest. Nur lesen; ohne verknüpfte Person 404.")
+            .RequirePermission(AccessRight.ViewCalendar)
+            .AllowChannel(AccessChannel.StaffApp);
+
         group.MapGet("", async (AispaDbContext db, AccessService accessService, CancellationToken ct) =>
             {
                 var access = (await accessService.CurrentAsync(ct))!;

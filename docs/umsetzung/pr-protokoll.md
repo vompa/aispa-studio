@@ -6610,3 +6610,122 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
   - `ViewTests.PersonCard.cs` Zeile 52 hatte zwei Anweisungen in einer Zeile; `dotnet format --verify-no-changes` schlug schon im Basisstand fehl. Zeilenumbruch ergänzt.
   - Avalonia meldet weiter AVLN5001 (`TextBox.Watermark` in `LeaveAccountView.axaml`).
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md); die Hilfetexte prüft `textRules.test.ts`.
+
+## „Mein Tag“: das eigene Urlaubskonto (16.11.2026)
+
+- **Auftrag:** Folgepunkt aus [ADR 0097](../entscheidungen/0097-urlaubskonto-in-arbeitstagen-je-kalenderjahr.md) („Konto in der Mitarbeiter-App“); vom Auftraggeber am 16.11.2026 mit der Liste der nächsten Punkte freigegeben.
+- **Was:** `GET /api/absence-requests/mine/leave-account/{jahr}` für die angemeldete Person, auch für die Handy-App. Der Reiter „Abwesenheit“ zeigt über dem Formular „Urlaubskonto <Jahr>“ mit Rest, Anspruch samt Übertrag, genommen und geplant. Hilfe `mein-tag-abwesenheit-beantragen`, `urlaubskonto`.
+- **Detailentscheidungen:**
+  1. Ein eigener Weg statt einer Ausnahme am Konto einer bestimmten Person: So kann die Handy-App nie nach einer fremden Person fragen.
+  2. Nur das laufende Jahr und nur lesen.
+  3. Ohne eingetragenen Anspruch stehen genommen und geplant da; ohne verknüpfte Person oder ohne Verbindung zeigt der Reiter nichts dazu.
+  4. Der Text sagt, dass offene Anträge noch nicht zählen: Gezählt wird der veröffentlichte Dienstplan.
+- **Bewusst offen / später:** Rest beim Entscheiden eines Antrags in der Windows-App (Team-Maske der Verwaltung, wird gerade überarbeitet); Jahr wechseln am Handy.
+- **Geprüft:** Tests zuerst geplant: API `LeaveAccountTests` 13 und `ChannelScanTests` (neu: nur das eigene Konto, fremdes bleibt verboten, ohne Person 404); Web `myday` 55 grün (neu: Konto mit Rest, ohne Anspruch, ohne Konto).
+- **Nicht geprüft:** die Seite am Handy.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Kundenbereich: „Ich komme später“ durch den Gast (16.11.2026)
+
+- **Auftrag:** Offener Punkt aus den Rezeptions-Schritten („Meldung durch den Gast über den Termin-Link“, `docs/produkt/kalender-rezeption.md`); vom Auftraggeber am 16.11.2026 mit der Liste der nächsten Punkte freigegeben.
+- **Was:**
+  - `OnlinePortal.ReportLateAsync`, `POST /api/online/bookings/{token}/late` und `POST /api/online/me/appointments/{id}/late`; `OnlineAppointment.LateMinutes` und `CanReportLate`.
+  - Kundenbereich: Auf der Terminseite (Link aus der Mail) und unter „Meine Termine“ steht kurz vor dem Termin „Ich komme später“ mit 5, 10, 15, 20 und 30 Minuten; „Doch pünktlich“ nimmt es zurück. Texte in vier Sprachen.
+  - Der Kalender der Windows-App zeigt die Verspätung live, wie wenn die Rezeption sie einträgt. Der Termin bleibt an seiner Zeit.
+- **Detailentscheidungen:**
+  1. Von drei Stunden vor dem Termin bis 15 Minuten nach Beginn. Früher wäre es eine Verschiebung, später ruft der Gast besser an.
+  2. Höchstens 30 Minuten zur Auswahl; die Rezeption kann wie bisher bis 120 eintragen.
+  3. Nur gebuchte Termine; nach dem Einchecken, einer Absage oder einem Nichterscheinen nimmt die Seite nichts mehr an.
+  4. Keine Nachricht an die Rezeption zusätzlich zum Kalender: Die Markierung am Termin und die Live-Änderung sind der Hinweis.
+- **Bewusst offen / später:** Hinweis auf die Meldung in „Mein Tag“ der Therapeutin; Link dazu in der zweiten Erinnerung ausdrücklich nennen.
+- **Geprüft:** Tests zuerst geplant: API `OnlineBookingTests` (neu: melden, zurücknehmen, falsche Auswahl, falscher Link, zu früh, zu spät, abgesagt) 2 Tests grün; Web `booking` 68 grün (neu: Knöpfe und Rücknahme mit Prüfung der Barrierefreiheit, kein Angebot ohne Erlaubnis der API); Typprüfung und Lint sauber.
+- **Nicht geprüft:** die Seite am Handy; die Anzeige im laufenden Kalender. Die Übersetzungen sind nicht von Muttersprachlern gelesen.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Kundenbereich: Erinnerung vor Ablauf der Frist für Karte oder Anzahlung (16.11.2026)
+
+- **Auftrag:** Offener Punkt im Kundenbereich („Gast vor Ablauf der Frist für Karte oder Anzahlung erinnern“, ADR 0047); vom Auftraggeber am 16.11.2026 mit der Liste der nächsten Punkte freigegeben.
+- **Befund:** Wer online buchte und Karte oder Anzahlung nicht gleich erledigte, hörte bis zur Freigabe des Termins nichts mehr.
+- **Was:**
+  - `UnsecuredBookingRelease.RemindOnceAsync` läuft mit der Freigabe-Suche mit und stellt je Termin einmal `RemindUnsecuredBooking` in die Queue; `CardGuarantee.ReminderSentAt` und `DepositOrder.ReminderSentAt` (Migration `FristErinnerung`).
+  - Mail `OnlineMails.HoldReminder` in vier Sprachen mit Frist und Link zum Termin.
+- **Detailentscheidungen:**
+  1. Einmal, wenn drei Viertel der Frist um sind: bei 24 Stunden sechs Stunden vorher, bei 2 Stunden eine halbe Stunde vorher.
+  2. Keine Erinnerung bei Fristen unter zwei Stunden: Die Bestätigung mit der Frist ist dann gerade erst angekommen.
+  3. Erst vermerken, dann senden; ein zweiter Lauf erinnert nicht noch einmal. Fällt der Versand aus, bleibt es bei der Bestätigung.
+  4. Vor dem Senden prüft der Handler noch einmal: Ist inzwischen hinterlegt, bezahlt oder storniert, geht nichts hinaus.
+  5. Servicemail zur Buchung, keine Werbung; sie braucht keine Einwilligung.
+  6. Links der Rezeption („Karte per Link anfordern“) haben keine Frist und bekommen keine Erinnerung.
+- **Bewusst offen / später:** Erinnerung per SMS; Einstellung des Zeitpunkts.
+- **Geprüft:** Tests zuerst geplant: `CardGuaranteeTests` und `DepositTests` zusammen 37 grün (neu: zu früh, fällig, kein zweites Mal, keine Mail bei hinterlegter Karte, Anzahlung; Regel für drei Viertel und die Zwei-Stunden-Grenze).
+- **Nicht geprüft:** die Mail in einem echten Postfach; die Übersetzungen sind nicht von Muttersprachlern gelesen.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Anfragen: einen späteren als den nächsten Termin absagen (16.11.2026)
+
+- **Auftrag:** Offener Punkt aus PR #167 („Absage eines späteren als des nächsten Termins per Klick“); vom Auftraggeber am 16.11.2026 mit der Liste der nächsten Punkte freigegeben.
+- **Befund:** Die Terminannahme ordnet einer Absage den nächsten Termin des Gastes zu. Meinte der Gast einen späteren, musste die Rezeption in den Kalender wechseln und die Nachricht von Hand abschließen; die Antwort an den Gast nannte dann keinen Termin.
+- **Was:**
+  - `GET /api/inbox/{id}/cancellable-appointments` liefert die bevorstehenden gebuchten Termine des Gastes an den eigenen Standorten; `POST /api/inbox/{id}/cancel-appointment` nimmt `appointmentId`.
+  - Windows-App: Im Posteingang steht bei mehreren Terminen die Auswahl „Welcher Termin?“ über „Termin stornieren“; die Rückfrage nennt den gewählten Termin.
+  - Hilfe `anfragen-absage-stornieren`.
+- **Detailentscheidungen:**
+  1. Die Auswahl erscheint nur, wenn der Gast mehr als einen bevorstehenden Termin hat; vorgewählt bleibt der gefundene.
+  2. Der Server prüft die Wahl: derselbe Gast, gebucht, in der Zukunft, eigener Standort. Etwas anderes lehnt er ab.
+  3. Die Nachricht zeigt nach dem Storno auf den gewählten Termin, damit der Antwortentwurf den richtigen nennt.
+  4. Storniert wird weiter nie von selbst.
+- **Bewusst offen / später:** Die KI erkennt aus dem Text nicht, welcher Termin gemeint ist; mehrere Termine in einem Schritt absagen.
+- **Geprüft:** Tests zuerst geplant: API `MailIntakeTests` (neu: Auswahl, fremder Termin abgelehnt, nächster bleibt gebucht, Antwort nennt den gewählten); Windows-App `InboxReproposeTests` (neu: Vorwahl, Wahl des späteren, Rückfrage, Aufruf mit `appointmentId`).
+- **Nicht geprüft:** die laufende App.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## „Mein Tag“: Hinweis „Anamnese prüfen“ auf der Behandlungskarte (16.11.2026)
+
+- **Auftrag:** Offener Punkt aus den Rezeptions-Schritten („Hinweis bei Paar und Spa-Tag, in ‚Mein Tag‘ der Therapeutin“); vom Auftraggeber am 16.11.2026 mit der Liste der nächsten Punkte freigegeben.
+- **Was:** `TreatmentCard.CheckAnamnesis`: Verlangt die Behandlung „Anamnese prüfen“ und enthält der letzte Bogen des Gastes Angaben, steht auf der Karte in „Mein Tag“ „Anamnese prüfen: …“. Die Regel ist dieselbe wie beim Buchen an der Rezeption (`AnamnesisStaffEndpoints.HasFindings`).
+- **Detailentscheidungen:**
+  1. Der Hinweis steht im Tagesplan für die Therapeutin und für die Rezeption: Beide dürfen dasselbe schon beim Buchen sehen. Das Allergie-Kennzeichen sieht weiter nur, wer die Person selbst behandelt.
+  2. Es bleibt bei ja oder nein; der Inhalt des Bogens verlässt die Prüfung nicht.
+  3. Steht schon „Allergie angegeben“ auf der Karte, kommt der zweite Satz nicht dazu: Beide verweisen auf denselben Fragebogen.
+- **Bewusst offen / später:** der Hinweis je Gast bei Paar und Spa-Tag im Buchungspanel der Windows-App; die Hover-Karte im Kalender.
+- **Geprüft:** Tests zuerst geplant: API `StaffMobileTests` (erweitert: ohne Regel kein Hinweis, mit Regel für Therapeutin und Rezeption, Allergie-Kennzeichen unverändert); Web `myday` 56 grün (neu: Hinweis auf der Karte).
+- **Nicht geprüft:** die Seite am Handy.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Kundenbereich: Wunsch „Therapeutin“ oder „Therapeut“ bei der Online-Buchung (16.11.2026)
+
+- **Auftrag:** Offener Punkt aus den Rezeptions-Schritten („Auswahl durch den Gast bei der Online-Buchung, Wunsch je Termin statt je Gast“); vom Auftraggeber am 16.11.2026 mit der Liste der nächsten Punkte freigegeben.
+- **Was:**
+  - `GET /api/online/locations/{id}/availability` nimmt `wish`; `OnlineBookingRequest.TherapistWish`; `OnlineLocation.TherapistWish` sagt, ob die Auswahl Sinn hat.
+  - Kundenbereich: Im Schritt „Zeit“ steht „Behandlung durch (freiwillig)“ mit Egal, Therapeutin, Therapeut; die freien Zeiten richten sich danach. Vier Sprachen.
+  - Beim Buchen legt der Wunsch die Person fest und steht in der Notiz des Termins („Wunsch bei der Online-Buchung: Therapeutin.“).
+- **Detailentscheidungen:**
+  1. Der Wunsch gilt für diesen Termin und wird nicht in die Kundendaten geschrieben; dort trägt ihn weiter die Rezeption ein.
+  2. Die Auswahl erscheint nur, wenn im Team bei mindestens einer aktiven Person die Angabe hinterlegt ist.
+  3. Personen ohne Angabe passen zu jedem Wunsch, wie bei der Rezeption (`CustomerRules.Apply`).
+  4. Der Wunsch aus der Buchung geht einem Wunsch aus den Kundendaten vor.
+  5. Ist zur gewählten Zeit keine passende Person frei, lehnt die Buchung mit einem eigenen Satz ab, statt eine andere Person zu nehmen.
+- **Bewusst offen / später:** Wunsch beim Verschieben durch den Gast; eine bestimmte Person online wählen.
+- **Geprüft:** Tests zuerst geplant: API `OnlineBookingTests` 41 mit `ChannelScanTests` grün (neu: passende Person und Notiz, Zeiten und Ablehnung je Wunsch, kein Angebot ohne Angabe im Team); Web `booking` 70 grün (neu: Auswahl lädt Zeiten neu und wird gesendet, keine Auswahl ohne Angabe).
+- **Nicht geprüft:** die Seite im Browser von Hand; die Übersetzungen sind nicht von Muttersprachlern gelesen.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Kalender: Gäste ohne Ersatz im Ausfall-Assistenten benachrichtigen (16.11.2026)
+
+- **Auftrag:** Offener Punkt im Kalender („Ausfall-Assistent: Gäste ohne Ersatz per SMS oder WhatsApp informieren“); vom Auftraggeber am 16.11.2026 mit der Liste der nächsten Punkte freigegeben.
+- **Befund:** Für Termine ohne Ersatz sagte der Assistent nur „Bitte den Gast kontaktieren“. Mails gab es nur für verschobene Termine.
+- **Was:**
+  - `AbsenceAssistant.NotifyAsync`, `POST /api/locations/{id}/absence/notify`: je Termin eine Mail, ohne Mailadresse eine SMS (wenn ein Anbieter eingerichtet ist). Der Termin bleibt stehen.
+  - Windows-App: Knopf „Ohne Ersatz: informieren“ im Ausfall-Assistenten, mit Rückfrage; an der Zeile steht danach „Gast benachrichtigt“ oder der Grund.
+  - Hilfe `dienstplan-ersatz-vorschlagen`.
+- **Detailentscheidungen:**
+  1. Nur informieren, nicht stornieren: Assistenten schlagen vor, und der Gast bekommt vielleicht doch noch einen anderen Tag.
+  2. Mail zuerst, SMS nur ohne Mailadresse. WhatsApp bleibt offen: Außerhalb von 24 Stunden lässt WhatsApp nur freigegebene Vorlagen zu, und die einzige Vorlage ist die der Terminerinnerung.
+  3. Rückfrage vor dem Senden, weil Nachrichten hinausgehen. Ein zweites Mal wird derselbe Gast im selben Fenster nicht angeschrieben.
+  4. Nicht bei der Umbuchung aus einer Raumsperre: Der Text spricht vom Ausfall der Person.
+  5. Der Text ist fest und auf Deutsch, wie die Mail zum verschobenen Termin.
+- **Bewusst offen / später:** WhatsApp; Ersatz an anderen Tagen; Paar und Spa-Tag an einen anderen Standort verlegen; ein Vermerk am Termin, dass der Gast benachrichtigt wurde (öffnet man den Assistenten neu, bietet er den Knopf wieder an).
+- **Geprüft:** Tests zuerst geplant: API `AbsenceTests` 7 von 7 (neu: Mail an den Gast, Termin bleibt gebucht, ohne Kontakt und abgesagt mit Grund, fremder Standort); Windows-App `AbsenceNotifyTests` 3 von 3 (Rückfrage, Aufruf, Ergebnis an der Zeile, kein Angebot ohne offene Fälle).
+- **Nicht geprüft:** eine SMS mit einem echten Anbieter (der Test prüft nur, dass der Fall ohne Mailadresse gezählt wird); die laufende App.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+

@@ -19,6 +19,6 @@ Schreibt ein Gast per Mail, SMS oder WhatsApp, dass er absagt (zum Beispiel als 
 
 - Der Gast wird über die Absender-Adresse (auch weitere Adressen der Kundenkarte) oder Telefonnummer erkannt. Ohne Treffer steht „Kein kommender Termin gefunden.“ und es gibt keinen Knopf; dann den Termin im Kalender suchen und dort stornieren.
 - Erkennt die Terminannahme den Absender nicht sicher, steht „Wer ist das? …“ mit Vorschlägen. Erst nach dem **Zuordnen** sucht sie den nächsten Termin und zeigt ihn im Hinweis; vorher nennen weder Hinweis noch Antwortentwurf einen Termin: [Absender einem Kunden zuordnen](hilfe:anfragen-wer-ist-das).
-- Gemeint ist immer der nächste gebuchte Termin. Meint der Gast einen späteren, im Kalender stornieren und die Nachricht mit **Erledigt** abschließen.
+- Die KI findet immer den nächsten gebuchten Termin. Hat der Gast mehrere bevorstehende Termine, steht über dem Knopf die Auswahl **Welcher Termin?** mit Tag, Uhrzeit, Behandlung und Standort; vorgewählt ist der nächste. Meint der Gast einen späteren, diesen wählen und dann **Termin stornieren** klicken. Die Rückfrage nennt den gewählten Termin, und die Antwort an den Gast wird für ihn entworfen.
 - Liegt die Absage nach der Stornofrist des Standorts, gilt sie als späte Absage. Eine Ausfallgebühr wird nicht automatisch belastet, sondern wie sonst im Termin: [Termin stornieren](hilfe:kalender-termin-stornieren).
 - Stornieren darf, wer am Standort des Termins buchen darf.

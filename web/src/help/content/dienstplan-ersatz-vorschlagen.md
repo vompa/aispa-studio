@@ -28,5 +28,6 @@ Danach steht, wie viele Termine umverteilt und wie viele Gäste informiert wurde
 - Geht am eigenen Standort an dem Tag nichts, sucht er an den anderen Standorten, die man selbst sieht. Solche Vorschläge nennen den Standort („in Baden: …“) und sind nicht angehakt: erst mit dem Gast sprechen, dann anhaken. Beim Übernehmen wird der Termin an den anderen Standort verlegt, der Preis bleibt wie gebucht, und die Mail an den Gast nennt den neuen Standort. Das gilt nur für einzeln gebuchte Termine, die noch nicht eingecheckt sind; Paar und Spa-Tag bleiben am Standort.
 - Hat die Person an dem Tag keine offenen Termine, steht „An diesem Tag hat die Person hier keine offenen Termine.“
 - Termine ohne Vorschlag im Kalender von Hand verschieben oder mit dem Gast klären.
+- Für Termine ohne Vorschlag gibt es **Ohne Ersatz: informieren**. Nach einer Rückfrage bekommen diese Gäste eine Mail, ohne Mailadresse eine SMS: Der Termin könne nicht wie geplant stattfinden, das Team melde sich. Der Termin bleibt im Kalender stehen; verschoben oder storniert wird nichts. An der Zeile steht danach „Gast benachrichtigt“ oder der Grund, warum nicht, z. B. „Keine Mailadresse und keine Nummer für eine SMS. Bitte den Gast anrufen.“
 
 Verwandt: [Urlaub oder Krankenstand eintragen](hilfe:dienstplan-abwesenheit-eintragen).

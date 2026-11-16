@@ -256,6 +256,10 @@
         </Border>
         <Button Classes="primary" HorizontalAlignment="Stretch" Command="{Binding ApplyCommand}" IsEnabled="{Binding !IsBusy}"
                 IsVisible="{Binding HasRows}" Content="Gewählte übernehmen" />
+        <!-- Termine ohne Ersatz: die Gäste erfahren, dass der Termin nicht wie geplant stattfindet; der Termin bleibt stehen -->
+        <Button x:Name="NotifyWithoutCoverButton" HorizontalAlignment="Stretch" Command="{Binding NotifyWithoutCoverCommand}" IsEnabled="{Binding !IsBusy}"
+                IsVisible="{Binding CanNotifyWithoutCover}" Content="Ohne Ersatz: informieren"
+                ToolTip.Tip="Gäste ohne Ersatz per Mail oder SMS benachrichtigen; der Termin bleibt stehen" />
       </StackPanel>
     </DataTemplate>
   </Application.DataTemplates>

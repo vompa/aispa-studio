@@ -1841,6 +1841,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/locations/{locationId}/absence/notify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Gäste benachrichtigen, für deren Termin es keinen Ersatz gibt: per Mail, ohne Mailadresse per SMS. Der Termin bleibt stehen; storniert oder verschoben wird nichts. */
+        post: operations["NotifyAbsenceWithoutCover"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/staff": {
         parameters: {
             query?: never;
@@ -3853,6 +3870,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/absence-requests/mine/leave-account/{year}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Das eigene Urlaubskonto eines Kalenderjahres (ADR 0097): Anspruch, Übertrag, genommen, geplant, Rest. Nur lesen; ohne verknüpfte Person 404. */
+        get: operations["GetMyLeaveAccount"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/absence-requests/{id}/approve": {
         parameters: {
             query?: never;
@@ -4229,6 +4263,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/online/bookings/{token}/late": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Der Gast meldet über seinen Termin-Link, dass er 5, 10, 15, 20 oder 30 Minuten später kommt (0 nimmt es zurück); ab drei Stunden vor dem Termin bis 15 Minuten nach Beginn. Der Termin bleibt an seiner Zeit. */
+        post: operations["ReportLateOnlineBooking"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/locations/{locationId}/online-rules": {
         parameters: {
             query?: never;
@@ -4527,6 +4578,23 @@ export interface paths {
         put?: never;
         /** Sagt für einen eigenen bevorstehenden Termin zu, dass man kommt. */
         post: operations["ConfirmMyAppointment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/online/me/appointments/{appointmentId}/late": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Meldet für einen eigenen Termin, dass man später kommt; Regeln wie bei „ReportLateOnlineBooking“. */
+        post: operations["ReportLateMyAppointment"];
         delete?: never;
         options?: never;
         head?: never;
@@ -5558,6 +5626,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/inbox/{mailId}/cancellable-appointments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Die bevorstehenden gebuchten Termine des Gastes an den eigenen Standorten, der früheste zuerst: Sagt der Gast einen späteren als den nächsten Termin ab, wählt die Rezeption ihn hier. Leer, wenn zur Nachricht nichts zu stornieren ist. */
+        get: operations["ListInboundMailCancellableAppointments"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/inbox/{mailId}/cancel-appointment": {
         parameters: {
             query?: never;
@@ -5567,7 +5652,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Storniert den Termin, den der Gast in seiner Nachricht absagt; die Antwort an den Gast wird neu entworfen. */
+        /** Storniert den Termin, den der Gast in seiner Nachricht absagt; die Antwort an den Gast wird neu entworfen. Mit appointmentId ein anderer bevorstehender Termin desselben Gastes (siehe „ListInboundMailCancellableAppointments“). */
         post: operations["CancelInboundMailAppointment"];
         delete?: never;
         options?: never;
@@ -8041,6 +8126,13 @@ export interface components {
             /** Format: uuid */
             appointmentId: string;
             message: string;
+        };
+        AbsenceNotifyRequest: {
+            appointmentIds: string[];
+        };
+        AbsenceNotifyResult: {
+            notified: string[];
+            failed: components["schemas"]["AbsenceMoveFailure"][];
         };
         /** @enum {unknown} */
         AbsenceOption: "SameTime" | "OtherTime" | "None" | "OtherLocation";
@@ -10882,6 +10974,16 @@ export interface components {
             /** Format: uuid */
             appointmentId: null | string;
         };
+        InboxAppointmentOption: {
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            start: string;
+            treatmentName: string;
+            locationName: string;
+            timeZone: string;
+            found: boolean;
+        };
         InstantTransferQr: {
             payload: string;
             /** Format: double */
@@ -11241,6 +11343,10 @@ export interface components {
             lateCancelFee?: null | number;
             /** @default false */
             canCancelLate: boolean;
+            /** Format: int32 */
+            lateMinutes?: null | number;
+            /** @default false */
+            canReportLate: boolean;
         };
         /** @enum {unknown} */
         OnlineAppointmentState: "Booked" | "Cancelled" | "Past";
@@ -11286,6 +11392,7 @@ export interface components {
             voucherCode?: null | string;
             /** @default false */
             acceptMarketing: boolean;
+            therapistWish?: null | components["schemas"]["TherapistGender"];
         };
         OnlineCardGuarantee: {
             /** Format: double */
@@ -11368,6 +11475,10 @@ export interface components {
             chamberAndRules: null | string;
             complete: boolean;
         };
+        OnlineLateRequest: {
+            /** Format: int32 */
+            minutes: number;
+        };
         OnlineLocation: {
             /** Format: uuid */
             id: string;
@@ -11395,6 +11506,8 @@ export interface components {
             closures?: null | components["schemas"]["OnlineClosure"][];
             /** @default false */
             rebookReminders: boolean;
+            /** @default false */
+            therapistWish: boolean;
         };
         OnlineMoveRequest: {
             /** Format: date-time */
@@ -13726,6 +13839,8 @@ export interface components {
              * @default 0
              */
             processingMinutes: number;
+            /** @default false */
+            checkAnamnesis: boolean;
         };
         TreatmentCostDto: {
             /** Format: uuid */
@@ -19121,6 +19236,57 @@ export interface operations {
                 content: {
                     "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
+            };
+        };
+    };
+    NotifyAbsenceWithoutCover: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                locationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AbsenceNotifyRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AbsenceNotifyResult"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -24894,6 +25060,44 @@ export interface operations {
             };
         };
     };
+    GetMyLeaveAccount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                year: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LeaveAccountDto"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     ApproveAbsenceRequest: {
         parameters: {
             query?: never;
@@ -25569,6 +25773,7 @@ export interface operations {
                 treatmentId: string;
                 from?: string;
                 days?: number;
+                wish?: components["schemas"]["TherapistGender"];
             };
             header?: never;
             path: {
@@ -25768,6 +25973,39 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OnlineAppointment"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ReportLateOnlineBooking: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OnlineLateRequest"];
+            };
+        };
         responses: {
             /** @description OK */
             200: {
@@ -26316,6 +26554,39 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OnlineAppointment"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ReportLateMyAppointment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                appointmentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OnlineLateRequest"];
+            };
+        };
         responses: {
             /** @description OK */
             200: {
@@ -28939,9 +29210,49 @@ export interface operations {
             };
         };
     };
-    CancelInboundMailAppointment: {
+    ListInboundMailCancellableAppointments: {
         parameters: {
             query?: never;
+            header?: never;
+            path: {
+                mailId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InboxAppointmentOption"][];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    CancelInboundMailAppointment: {
+        parameters: {
+            query?: {
+                appointmentId?: string;
+            };
             header?: never;
             path: {
                 mailId: string;
