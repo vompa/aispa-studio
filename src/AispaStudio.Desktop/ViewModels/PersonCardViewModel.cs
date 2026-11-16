@@ -71,6 +71,15 @@ public sealed partial class PersonCardViewModel : ViewModelBase, IEditableArea
                 }
             };
             Roster.WeekPlanRequested += () => WeekPlanRequested?.Invoke();
+            Leave = new LeaveAccountViewModel(context, employee.Id);
+            Leave.PropertyChanged += (_, e) =>
+            {
+                if (e.PropertyName == nameof(LeaveAccountViewModel.HasUnsavedChanges))
+                {
+                    OnPropertyChanged(nameof(HasUnsavedChanges));
+                }
+            };
+            Roster.Changed += () => _ = Leave.RefreshAsync();
         }
 
         if (entry.Kind == TeamEntryKind.Person && employee is not null
@@ -218,6 +227,11 @@ public sealed partial class PersonCardViewModel : ViewModelBase, IEditableArea
     /// <summary>Dienstplan und Abwesenheit der Person (R05 Slice 99); nur für eine gespeicherte Person im Team, mit dem Recht auf den Dienstplan.</summary>
     public RosterPlanViewModel? Roster { get; }
 
+    /// <summary>Urlaubskonto der Person (ADR 0097), im selben Reiter unter der Woche.</summary>
+    public LeaveAccountViewModel? Leave { get; }
+
+    public bool HasLeave => Leave is not null;
+
     /// <summary>Tage, die die Kalenderdatei einer Person ab heute umfasst.</summary>
     public const int CalendarFileDays = 90;
 
@@ -323,7 +337,7 @@ public sealed partial class PersonCardViewModel : ViewModelBase, IEditableArea
     /// <summary>Änderungen an Stammdaten, Qualifikationen oder Zugang; der offene Tag des Dienstplans und der Zeiten hat seine eigene Leiste und zählt nicht dazu.</summary>
     private bool OtherChanges => DetailsChanged || Qualifications?.HasUnsavedChanges == true || Access?.HasUnsavedChanges == true || Payroll?.HasUnsavedChanges == true;
 
-    public bool HasUnsavedChanges => OtherChanges || Roster?.HasUnsavedChanges == true || Times?.HasUnsavedChanges == true || HrFile?.HasUnsavedChanges == true || Regulations?.HasUnsavedChanges == true
+    public bool HasUnsavedChanges => OtherChanges || Roster?.HasUnsavedChanges == true || Leave?.HasUnsavedChanges == true || Times?.HasUnsavedChanges == true || HrFile?.HasUnsavedChanges == true || Regulations?.HasUnsavedChanges == true
         || Duties?.HasUnsavedChanges == true;
 
     /// <summary>Die Karte hat auf dem Server etwas geändert; die Liste lädt neu. <c>true</c>: die Karte bleibt offen.</summary>
@@ -345,6 +359,7 @@ public sealed partial class PersonCardViewModel : ViewModelBase, IEditableArea
         if (id == RosterTab && Roster is not null)
         {
             _ = Roster.EnsureLoadedAsync();
+            _ = Leave?.EnsureLoadedAsync();
         }
 
         if (id == TimesTab && Times is not null)
@@ -467,6 +482,13 @@ public sealed partial class PersonCardViewModel : ViewModelBase, IEditableArea
                 return false;
             }
 
+            if (Leave is { HasUnsavedChanges: true } leave && !await leave.SaveChangesAsync().ConfigureAwait(true))
+            {
+                SelectTab(RosterTab);
+                await ReportSavedAsync(employeeSaved || accessSaved, !created).ConfigureAwait(true);
+                return false;
+            }
+
             if (Times is { HasUnsavedChanges: true } times && !await times.SaveChangesAsync().ConfigureAwait(true))
             {
                 SelectTab(TimesTab);
@@ -549,6 +571,7 @@ public sealed partial class PersonCardViewModel : ViewModelBase, IEditableArea
         Qualifications?.Discard();
         Access?.Discard();
         Roster?.Discard();
+        Leave?.Discard();
         Times?.Discard();
         Payroll?.Discard();
         HrFile?.Discard();

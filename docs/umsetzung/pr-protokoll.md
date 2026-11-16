@@ -6237,3 +6237,25 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Geprüft:** Tests zuerst geplant: `TipTests` 9 von 9 grün (neu: je Person und Team mit Storno, genannte und unbekannte Person); `PosTests` 39, `DayClosingPdfTests` 4, `SubstituteReceiptTests` 8, Desktop `PosTests` 48 grün; `npm run gen:api`, `dotnet format` sauber, Release-Build ohne Warnungen.
 - **Nicht geprüft:** das PDF des Tagesabschlusses von Hand angesehen; die laufende App; die volle Suite läuft in der CI.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Team: Urlaubskonto (16.11.2026)
+
+- **Auftrag:** „Mach weiter mit dem Block Team“ (Auftraggeber, 16.11.2026); Block „Team (Zeiterfassung am Empfangsgerät, Urlaubskonto)“ aus der Reihenfolge vom 20.10.2026.
+- **Was:**
+  - Server: `Roster/LeaveAccount.cs` mit `EmployeeLeaveEntitlement` (Migration gleichen Namens), `GET` und `PUT /api/employees/{id}/leave-account/{jahr}`, `LeaveAccountDto` und `LeaveEntitlementInput`.
+  - Windows-App: `LeaveAccountViewModel` und `LeaveAccountView` auf der Karte der Person im Reiter „Dienstplan und Abwesenheit“, unter der Woche. Nach einer Änderung im Dienstplan der Karte lädt das Konto neu.
+  - Hilfe `urlaubskonto` mit Bild; [ADR 0097](../entscheidungen/0097-urlaubskonto-in-arbeitstagen-je-kalenderjahr.md).
+- **Detailentscheidungen:**
+  1. Kein angenommener Anspruch: Ohne Eintrag steht kein Rest da. Der gesetzliche Anspruch hängt von Vertrag und Dienstalter ab, die das Programm nicht kennt.
+  2. Gezählt wird nur an den Arbeitstagen laut Wochenarbeitszeit, weil genehmigte Anträge jeden Kalendertag des Zeitraums eintragen.
+  3. Kein eigener Reiter: Die Reiterleiste der Karte ist voll, und das Konto gehört zur Abwesenheit.
+  4. Eigener Knopf „Urlaubskonto speichern“; die Karte fragt bei ungespeichertem Anspruch wie bei einem offenen Tag nach.
+  5. Ein negativer Rest wird hervorgehoben, aber nichts wird gesperrt.
+- **Bewusst offen / später:**
+  - **Zeiterfassung am Empfangsgerät** ist nicht gebaut: Sie widerspricht der Entscheidung des Auftraggebers vom 05.11.2026 (T-015, Nachtrag zu ADR 0031: keine Stempeluhr, Arbeitszeiten trägt nur die Leitung ein). Braucht seine Antwort.
+  - Rest beim Entscheiden eines Antrags; Konto in der Mitarbeiter-App; Übersicht über alle Personen; Änderungen am Anspruch im Verlauf der Karte.
+  - Der Lohn-Export zählt Urlaub weiter je eingetragenem Tag, auch am Wochenende.
+  - Arbeitsrecht (Kalenderjahr als Urlaubsjahr, Feiertage, Krankheit im Urlaub) steht als offen im ADR.
+- **Geprüft:** Tests zuerst geplant: API `LeaveAccountTests` 12 von 12 grün (ohne Anspruch, mit Anspruch und Übertrag, halber Tag, leeren, fünf ungültige Werte, unbekannte Person und Jahr, Rezeption, fremdes Spa); Windows-App `LeaveAccountTests` 7 von 7 grün; Ansichtstest mit echter Eingabe und Bild; Knopfbeschriftungen.
+- **Nicht geprüft:** die laufende App unter Windows; die volle Suite läuft in der CI.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).

@@ -3867,6 +3867,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/employees/{employeeId}/leave-account/{year}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Urlaubskonto einer Person für ein Kalenderjahr: Anspruch, Übertrag, genommene und geplante Urlaubstage aus dem veröffentlichten Dienstplan, Rest. */
+        get: operations["GetLeaveAccount"];
+        /** Setzt Urlaubsanspruch und Übertrag einer Person für ein Kalenderjahr (Arbeitstage, ganze oder halbe); ohne Anspruch bleibt der Rest leer. */
+        put: operations["SetLeaveEntitlement"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/time/me": {
         parameters: {
             query?: never;
@@ -10856,6 +10874,32 @@ export interface components {
             /** Format: double */
             previous: null | number;
             unit: string;
+        };
+        LeaveAccountDto: {
+            /** Format: uuid */
+            employeeId: string;
+            /** Format: int32 */
+            year: number;
+            /** Format: double */
+            entitlement: null | number;
+            /** Format: double */
+            carriedOver: number;
+            /** Format: double */
+            taken: number;
+            /** Format: double */
+            planned: number;
+            /** Format: double */
+            remaining: null | number;
+            /** Format: int32 */
+            uncountedDays: number;
+            workdays: components["schemas"]["DayOfWeek"][];
+            workdaysAssumed: boolean;
+        };
+        LeaveEntitlementInput: {
+            /** Format: double */
+            entitlement: null | number;
+            /** Format: double */
+            carriedOver: number;
         };
         LineAllocation: {
             /** Format: uuid */
@@ -24765,6 +24809,97 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetLeaveAccount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                employeeId: string;
+                year: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LeaveAccountDto"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    SetLeaveEntitlement: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                employeeId: string;
+                year: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LeaveEntitlementInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LeaveAccountDto"];
+                };
             };
             /** @description Bad Request */
             400: {

@@ -153,6 +153,40 @@ public sealed partial class ViewTests
     }
 
     [Fact]
+    public Task Given_Lenas_Karte_im_Reiter_Dienstplan_When_Anspruch_eingetragen_und_gespeichert_wird_Then_zeigt_das_Urlaubskonto_den_Rest()
+    {
+        var (api, roster) = RosterApi();
+        // Lena arbeitet dienstags: ein Urlaubstag vor „heute“ ist genommen, zwei danach sind geplant.
+        roster.PlanVacation(RosterLena, RosterTuesday.AddDays(-7), RosterTuesday.AddDays(-7));
+        roster.PlanVacation(RosterLena, RosterTuesday.AddDays(7), RosterTuesday.AddDays(14));
+        return Render("hell", "verwaltung-team-karte-urlaubskonto", async (window, main) =>
+        {
+            var team = await OpenTeam(window, main);
+            await ClickRow(window, "Lena Huber");
+            await ClickSection(window, "Dienstplan und Abwesenheit");
+            await Pump(Settling);
+            var leave = team.Card!.Leave!;
+            Assert.True(leave.IsLoaded);
+            Assert.True(Named<Control>(window, "LeaveAccountSection").IsEffectivelyVisible);
+            Assert.Equal("Urlaubskonto 2026", Named<TextBlock>(window, "LeaveHeading").Text);
+            Assert.Equal("–", Named<TextBlock>(window, "LeaveRemainingText").Text);
+
+            await TypeInto(window, "LeaveEntitlementField", "25");
+            await TypeInto(window, "LeaveCarriedOverField", "2,5");
+            Assert.True(team.Card.HasUnsavedChanges);
+            await ClickButton(window, Named<Button>(window, "LeaveSaveButton"));
+            await Pump(Settling);
+
+            Assert.Equal(new LeaveEntitlementInput(25, 2.5m), roster.Leave[(RosterLena.Id, 2026)]);
+            Assert.Equal("1 Tag", Named<TextBlock>(window, "LeaveTakenText").Text);
+            Assert.Equal("2 Tage", Named<TextBlock>(window, "LeavePlannedText").Text);
+            Assert.Equal("24,5 Tage", Named<TextBlock>(window, "LeaveRemainingText").Text);
+            Assert.False(team.Card.HasUnsavedChanges);
+            return team;
+        }, api);
+    }
+
+    [Fact]
     public Task Given_Wochenplan_When_auf_den_Namen_geklickt_wird_Then_oeffnet_die_Karte_im_Reiter_Dienstplan()
     {
         var (api, _) = RosterApi();

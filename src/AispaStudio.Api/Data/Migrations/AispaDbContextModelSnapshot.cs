@@ -4106,6 +4106,45 @@ namespace AispaStudio.Api.Data.Migrations
                     b.ToTable("AbsenceRequests", "aispa");
                 });
 
+            modelBuilder.Entity("AispaStudio.Api.Roster.EmployeeLeaveEntitlement", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("CarriedOver")
+                        .HasPrecision(5, 1)
+                        .HasColumnType("numeric(5,1)");
+
+                    b.Property<decimal?>("Days")
+                        .HasPrecision(5, 1)
+                        .HasColumnType("numeric(5,1)");
+
+                    b.Property<Guid>("EmployeeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.Property<int>("Year")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantId");
+
+                    b.HasIndex("EmployeeId", "Year")
+                        .IsUnique();
+
+                    b.ToTable("EmployeeLeaveEntitlements", "aispa");
+                });
+
             modelBuilder.Entity("AispaStudio.Api.Roster.RosterDay", b =>
                 {
                     b.Property<Guid>("Id")
@@ -7696,6 +7735,21 @@ namespace AispaStudio.Api.Data.Migrations
 
             modelBuilder.Entity("AispaStudio.Api.Roster.AbsenceRequest", b =>
                 {
+                    b.HasOne("AispaStudio.Api.Tenancy.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AispaStudio.Api.Roster.EmployeeLeaveEntitlement", b =>
+                {
+                    b.HasOne("AispaStudio.Api.Scheduling.Employee", null)
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("AispaStudio.Api.Tenancy.Tenant", null)
                         .WithMany()
                         .HasForeignKey("TenantId")
