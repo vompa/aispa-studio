@@ -23,8 +23,8 @@ Verwalten dürfen Inhaber, Manager und Standortleitung (Recht „Standorte verwa
 
 ## Raumsperren verwalten {#raumsperren}
 
-1. In der Windows-App **Verwaltung** › **Betrieb** › **Raumsperren** öffnen. Gibt es mehrere Standorte, oben den **Standort** wählen. Aus dem Kalender kommt man mit einem Rechtsklick auf den Kopf eines Raums und **Raum sperren …** gleich dorthin: ein neues Formular mit dem Raum schon gewählt.
-2. Oben den Reiter **Aktuell** (aktiv und geplant) oder **Beendet** wählen. Die Zahl nennt, wie viele Sperren dort stehen.
+1. In der Windows-App **Verwaltung** › **Betrieb** › **Schließzeiten** öffnen und zum Abschnitt **Raumsperren** rollen; er steht unter den Schließzeiten. Gibt es mehrere Standorte, im Kopf des Abschnitts den **Standort** wählen. Aus dem Kalender kommt man mit einem Rechtsklick auf den Kopf eines Raums und **Raum sperren …** gleich dorthin: ein neues Formular mit dem Raum schon gewählt.
+2. Die Liste links zeigt die aktuellen Sperren (aktiv und geplant). **Beendete zeigen** über der Liste blendet die beendeten dazu ein; die Zahl daneben nennt, wie viele es sind.
 3. Links eine Sperre wählen oder auf **Neue Raumsperre** klicken, rechts die Maske ausfüllen und auf **Speichern** klicken (in der Windows-App auch **Strg+S**). Es erscheint „Gespeichert“.
 
 In der Windows-App gilt zusätzlich:

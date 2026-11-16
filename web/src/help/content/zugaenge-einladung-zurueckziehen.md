@@ -13,7 +13,7 @@ Macht einen noch nicht angenommenen Einladungslink sofort ungültig, z. B. wenn 
 ## Schritte {#schritte}
 
 1. In der Windows-App **Verwaltung** › **Team** öffnen und die eingeladene Person wählen (Zustand „eingeladen“).
-2. In der Windows-App auf dem Reiter **Zugang und Rolle** **Einladung zurückziehen** wählen.
+2. In der Windows-App im Abschnitt **Zugang und Rolle** **Einladung zurückziehen** wählen.
 3. In der Rückfrage **Einladung zurückziehen?** auf **Zurückziehen** klicken. Mit **Abbrechen** bleibt die Einladung unverändert.
 
 Die Einladung verschwindet aus der Liste. Wer den Link danach öffnet, kann sich damit nicht anmelden.

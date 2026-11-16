@@ -24,7 +24,7 @@
 
     <ui:InfoBar Grid.Row="1" Severity="{Binding MessageSeverity}" Message="{Binding Message}" IsVisible="{Binding HasMessage}" CloseCommand="{Binding CloseMessageCommand}" />
 
-    <Grid Grid.Row="2" ColumnDefinitions="300,*">
+    <Grid Grid.Row="2" ColumnDefinitions="260,*">
       <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" Margin="0,0,16,0">
         <Border Classes="card" Padding="8" VerticalAlignment="Top">
           <StackPanel Spacing="8">

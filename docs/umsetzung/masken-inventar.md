@@ -13,19 +13,19 @@ Jede Slice hat ihren Bereich vollständig ersetzt, mit denselben Feldern, Regeln
 | Seite | Reiter | Name in der Oberfläche | Ziel | Anmerkung |
 |---|---|---|---|---|
 | `calendar` | – | Kalender | entfällt | Kalender ist nativ (ADR 0053) |
-| `roster` | – | Dienstplan | Slice 99 | Reiter „Dienstplan und Abwesenheit“ der Personenkarte und Ansicht „Wochenplan“ im Bereich Team (dort auch „Anträge“); native Maske seit Slice 99 |
-| `time` | – | Zeiten | Slice 99 | Reiter „Zeiten“ der Personenkarte und Ansicht „Zeiten“ im Bereich Team; native Maske seit Slice 99 |
+| `roster` | – | Dienstplan | Slice 99 | Bereich „Arbeitszeit“ der Personenkarte (Abschnitt „Dienstplan und Abwesenheit“) und Ansicht „Wochenplan“ im Bereich Team (dort „Anträge“ als Seitenleiste, seit T-066); native Maske seit Slice 99 |
+| `time` | – | Zeiten | Slice 99 | Bereich „Arbeitszeit“ der Personenkarte (Abschnitt „Zeiten“) und Ansicht „Zeiten“ im Bereich Team; native Maske seit Slice 99 |
 | `inbox` | – | Posteingang | entfällt | Posteingang ist nativ |
 | `pos` | – | Kassa | entfällt | Kassa ist nativ; Kassa-Einstellungen siehe Reiter `kassa` |
-| `stock` | – | Lager | Slice 101 | nativ: Bestand, Bewegungen, Inventur, Lagerorte (Slice 101), Aufgaben, Lieferanten (Slice 112), Bestellvorschlag, Entwürfe und Senden (Slice 113), Lieferung buchen, Als bestellt markieren, Bestelltext, Bedarf und Chargen-Rückverfolgung (Slice 123); Lager-Verbesserungen danach in den Slices 112–116 |
+| `stock` | – | Lager | Slice 101 | nativ, Aufbau seit T-061 mit vier Reitern, Ansichten im Bestand und „Einrichtung“ (ADR 0098): Bestand, Bewegungen, Inventur, Lagerorte (Slice 101), Aufgaben, Lieferanten (Slice 112), Bestellvorschlag, Entwürfe und Senden (Slice 113), Lieferung buchen, Als bestellt markieren, Bestelltext, Bedarf und Chargen-Rückverfolgung (Slice 123); Lager-Verbesserungen danach in den Slices 112–116 |
 | `promotions` | – | Aktionen | Slice 101 | nativ (Slice 101) |
 | `reports` | – | Zahlen | Slice 102, R07 Slice 144 | nativ (Slice 102): Mein Tag, Tagesstart, Hygiene, Management mit Vergleich, Pflichtberichte; Balken im Vergleich offen (Ä226). Seit R07 Slice 144 (Ä352) eine Reiterebene: Tagesstart · Mein Tag · Hygiene · Berichte (Management, Pflichtberichte als Unterreiter) · Betriebsinfo |
 | `costs` | – | Kosten | Slice 102 | nativ (Slice 102) |
 | `accounting` | – | Buchhaltung | Slice 102 | nativ (Slice 102); Exporte speichert die App unverändert |
-| `payroll` | – | Lohn | Slice 100 | Reiter „Lohn“ der Personenkarte und Export im Bereich Team (umgesetzt in Slice 100) |
+| `payroll` | – | Lohn | Slice 100 | Bereich „Lohn und Akte“ der Personenkarte (Abschnitt „Lohn“) und Export im Bereich Team (umgesetzt in Slice 100) |
 | `businessInfo` | – | Reiter „Betriebsinfo“ in Zahlen | Slice 102, R07 Slice 144 | nativ (Slice 102); seit R07 Slice 144 ein Reiter der Maske „Zahlen“, mit dem Recht auf Berichte mit Zahlen (`ViewFinance`) oder zu buchen (`Book`, seit T-025) |
 | `masterData` | – | Stammdaten | Slice 93 | Verwaltungsgerüst; die Reiter verteilen sich wie unten |
-| `staff` | – | Zugänge | Slice 98 | Reiter „Zugang und Rolle“ der Personenkarte; native Maske seit Slice 98 |
+| `staff` | – | Zugänge | Slice 98 | Bereich „Profil“ der Personenkarte (Abschnitt „Zugang und Rolle“); native Maske seit Slice 98, Bereiche seit T-065 |
 
 ## Reiter der Stammdaten
 
@@ -33,11 +33,11 @@ Jede Slice hat ihren Bereich vollständig ersetzt, mit denselben Feldern, Regeln
 |---|---|---|---|---|
 | `masterData` | `locations` | Standorte & Räume | Slice 95 | mit Raum-Checkliste |
 | `masterData` | `closures` | Schließzeiten | Slice 95 | |
-| `masterData` | `roomClosures` | Raumsperren | Slice 95 | |
+| `masterData` | `roomClosures` | Raumsperren | Slice 95 | seit T-064 (ADR 0098) der zweite Abschnitt der Seite „Schließzeiten“; das Sprungziel bleibt und rollt zum Abschnitt |
 | `masterData` | `subscriptions` | Kalender-Abos | Slice 95 | Feiertage und Ferien (ADR 0075), keine Kunden-Abos |
-| `masterData` | `team` | Team | Slice 98 | Personenkarte, Reiter Stammdaten; native Maske seit Slice 98 |
+| `masterData` | `team` | Team | Slice 98 | Personenkarte, Bereich Profil (Abschnitt Stammdaten); native Maske seit Slice 98, Bereiche seit T-065 |
 | `masterData` | `treatments` | Behandlungen | Slice 94 | „Wer kann das?“ nur lesend mit Sprung ins Team |
-| `masterData` | `qualifications` | Qualifikationen | Slice 98 | Reiter „Qualifikationen“ der Personenkarte; native Maske seit Slice 98 |
+| `masterData` | `qualifications` | Qualifikationen | Slice 98 | Bereich „Profil“ der Personenkarte (Abschnitt „Qualifikationen“); native Maske seit Slice 98, Bereiche seit T-065 |
 | `masterData` | `handbook` | Handbuch | Slice 97 | nativ als Rezeptionshandbuch mit Liste und Formular (Slice 97), daneben das Fragezeichen zur Hilfe (E1) |
 | `masterData` | `reminders` | Erinnerungen | Slice 96 | |
 | `masterData` | `intake` | Postfach & Nummern | Slice 97 | mit Absenderregeln |
@@ -52,7 +52,7 @@ Diese Stellen führten früher in die eingebettete Verwaltung an einer bestimmte
 
 | Von | Ziel heute | Nativ in |
 |---|---|---|
-| Kalender, Termin „Behandlungszeiten bearbeiten …“ | `masterData/treatments`, Bereich Ablauf | Slice 94 |
+| Kalender, Termin „Behandlungszeiten bearbeiten …“ | `masterData/treatments`, Bereich Durchführung bei der Gruppe Ablauf (Adresse „ablauf“, ADR 0098) | Slice 94 |
 | Kalender, Schließtag | `masterData/closures` | Slice 95 |
 | Kalender, Raum bearbeiten | `masterData/locations` | Slice 95 |
 | Kalender, „Raum sperren …“ | `masterData/roomClosures` | Slice 95 |
@@ -81,3 +81,17 @@ Hilfethemen nennen ihre Seite (`seite:` im Kopf, z. B. `seite-time.md`); das ist
 - **Mein Tag** (`web/src/myday/`): wird die Handy-App für Mitarbeitende (Slice 106) mit der Seite für die Leitung (Slice 109).
 - **Dashboard für den Pausenraum:** neu (Slice 105).
 - **Betreiberseite** (`web/src/operator/`): unverändert; sie dient dem Betrieb der Plattform und gehört nicht zur Verwaltung eines Spas.
+
+## Schienen und Bereiche der Verwaltung
+
+Ziel nach [ADR 0098](../entscheidungen/0098-verwaltungsmasken-eine-schiene-uebersicht-seitenleiste.md) (masken.md R15): je Seite höchstens eine Schiene mit höchstens fünf Einträgen. „Umgestellt“ nennt den Pull Request; leer heißt, die Maske zeigt noch den alten Stand.
+
+| Gruppe | Schiene heute | Schiene neu | Umgestellt |
+| --- | --- | --- | --- |
+| Betrieb | 6 Masken | 5 Masken (Schließzeiten und Raumsperren auf einer Seite) | T-064, 16.11.2026 (PR offen) |
+| Angebot | 2 Masken; Behandlung mit 7 Abschnittsreitern | 2 Masken; Behandlung mit 4 Bereichen | Schritt 3 (Behandlung, 16.11.2026) |
+| Team | 7 Ansichten; Personenkarte mit 10 Reitern | 5 Ansichten; Personenkarte mit 4 Bereichen, Verlauf als Seitenleiste | Personenkarte umgesetzt (T-065, 16.11.2026); Ansichten umgesetzt (T-066, 16.11.2026): Personen · Wochenplan · Zeiten · Lohn · Rechte und Zuständigkeiten, „Anträge“ als Seitenleiste im Wochenplan |
+| Lager | 9 Reiter | 4 Reiter (Übersicht mit Verbrauch, Bestand mit den Ansichten Material, Chargen und Bewegungen, Bestellen, Inventur), dazu die Seite „Einrichtung“ mit Lagerorten und Lieferanten | T-061, Schritt 2 (Pull Request offen) |
+| Kassa & Geld | 4 Masken | 4 Masken | T-064, 16.11.2026 (PR offen): Warnungen oben |
+| Kontakt | 3 Masken | 3 Masken | T-064, 16.11.2026 (PR offen): Erinnerungen 3 : 2, Warnung oben |
+| Zahlen | 5 Reiter, „Berichte“ mit 2 Unterreitern | 5 Reiter, „Berichte“ mit 2 Abschnitten | T-063, 16.11.2026 (PR offen) |

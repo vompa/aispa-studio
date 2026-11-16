@@ -187,6 +187,18 @@ public sealed partial class CostsViewModel(IWorkstationApi api, CurrentUser user
 
     public bool ShowTable => Rows.Count > 0;
 
+    /// <summary>
+    /// Hinweis über der Tabelle (masken.md R14: Warnungen stehen oben als ein Hinweis): wie vielen Behandlungen Angaben für die Vollkosten fehlen. Was fehlt, nennt die Zeile.
+    /// </summary>
+    public string? MissingNotice => Rows.Count(r => r.HasMissing) switch
+    {
+        0 => null,
+        1 => "Bei 1 Behandlung fehlen Angaben für die Vollkosten. Die Zeile nennt, was fehlt.",
+        var count => $"Bei {count} Behandlungen fehlen Angaben für die Vollkosten. Die Zeilen nennen, was fehlt.",
+    };
+
+    public bool HasMissingNotice => MissingNotice is not null;
+
     [ObservableProperty]
     public partial decimal? CleaningHourly { get; set; }
 
@@ -334,6 +346,8 @@ public sealed partial class CostsViewModel(IWorkstationApi api, CurrentUser user
         Employees.Clear();
         OnPropertyChanged(nameof(ShowEmpty));
         OnPropertyChanged(nameof(ShowTable));
+        OnPropertyChanged(nameof(MissingNotice));
+        OnPropertyChanged(nameof(HasMissingNotice));
         OnPropertyChanged(nameof(HasUnsavedChanges));
     }
 
@@ -348,6 +362,8 @@ public sealed partial class CostsViewModel(IWorkstationApi api, CurrentUser user
 
         OnPropertyChanged(nameof(ShowEmpty));
         OnPropertyChanged(nameof(ShowTable));
+        OnPropertyChanged(nameof(MissingNotice));
+        OnPropertyChanged(nameof(HasMissingNotice));
     }
 
     private void ApplyRates(LocationCostSettingsDto rates, List<RoomCostDto> rooms, List<EmployeeCostDto> staff)
@@ -497,6 +513,8 @@ public sealed partial class CostsViewModel(IWorkstationApi api, CurrentUser user
             Rows.Clear();
             OnPropertyChanged(nameof(ShowEmpty));
             OnPropertyChanged(nameof(ShowTable));
+            OnPropertyChanged(nameof(MissingNotice));
+            OnPropertyChanged(nameof(HasMissingNotice));
         }
     }
 

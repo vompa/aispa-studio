@@ -31,7 +31,7 @@ public sealed record UsageRow(string Material, string PlannedText, string Actual
 }
 
 /// <summary>
-/// Verbrauch (R05 Slice 116, Ä271) nach <c>StockUsage.tsx</c>: je Artikel das Soll (gebuchter Verbrauch laut Rezept), das Ist (Soll plus Mehrverbrauch aus den Inventuren) und die Behandlungen,
+/// Verbrauch (R05 Slice 116, Ä271; seit ADR 0098 ein Abschnitt der Übersicht) nach <c>StockUsage.tsx</c>: je Artikel das Soll (gebuchter Verbrauch laut Rezept), das Ist (Soll plus Mehrverbrauch aus den Inventuren) und die Behandlungen,
 /// die den Artikel nutzen. Rechnet in der API (Recht ViewFinance) und bucht nichts; den Wert in Euro liefert sie nur mit dem Recht „Berichte mit Beträgen“.
 /// </summary>
 public sealed partial class StockUsageViewModel : ViewModelBase
@@ -65,6 +65,9 @@ public sealed partial class StockUsageViewModel : ViewModelBase
     public partial string? TotalText { get; private set; }
 
     public bool HasTotal => TotalText is not null;
+
+    /// <summary>Der Mehrverbrauch zum Einstandspreis als Betrag für die Kachel der Übersicht; ohne das Recht „Berichte mit Beträgen“ fehlt er.</summary>
+    internal string? ExcessValueText { get; private set; }
 
     /// <summary>Ohne das Recht „Berichte mit Beträgen“ fehlen die Werte in Euro; die Maske sagt es einmal.</summary>
     [ObservableProperty]
@@ -117,10 +120,12 @@ public sealed partial class StockUsageViewModel : ViewModelBase
         }
 
         AmountsHidden = report?.AmountsHidden == true;
-        TotalText = report?.ExcessValue is { } total ? $"Mehrverbrauch zum Einstandspreis: {Money.Format(total)}" : null;
+        ExcessValueText = report?.ExcessValue is { } total ? Money.Format(total) : null;
+        TotalText = ExcessValueText is null ? null : $"Mehrverbrauch zum Einstandspreis: {ExcessValueText}";
         IsLoaded = report is not null || LoadError is not null;
         OnPropertyChanged(nameof(HasRows));
         OnPropertyChanged(nameof(ShowEmpty));
+        _owner.Todo.RefreshStats();
     }
 
     private static string Amount(decimal value, string unit) => $"{StockFormat.Quantity(value)} {unit}";

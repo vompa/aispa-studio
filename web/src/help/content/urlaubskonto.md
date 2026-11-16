@@ -13,7 +13,7 @@ Das Urlaubskonto zeigt für ein Kalenderjahr, wie viele Urlaubstage eine Person 
 ## Anspruch eintragen {#anspruch}
 
 1. In der Windows-App **Verwaltung** › **Team** öffnen und die Person wählen.
-2. Den Reiter **Dienstplan und Abwesenheit** öffnen. Unter der Woche steht **Urlaubskonto** mit dem Jahr.
+2. Den Bereich **Arbeitszeit** öffnen. Unter der Woche steht **Urlaubskonto** mit dem Jahr.
 3. Bei **Anspruch (Tage)** die Urlaubstage des Jahres eintragen, z. B. 25. Halbe Tage gehen auch, z. B. 12,5.
 4. Bei **Übertrag aus dem Vorjahr** den Resturlaub des Vorjahres eintragen. Ohne Übertrag bleibt das Feld leer.
 5. Auf **Urlaubskonto speichern** klicken.

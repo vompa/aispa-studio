@@ -10,11 +10,13 @@ stichwoerter: Lagerort, Lagerorte, Hauptlager, Standardlager, Schrank, Raumschra
 
 Ein Lagerort ist ein Platz, an dem Material liegt: das Hauptlager, der Schrank eines Behandlungsraums, das Verkaufsregal an der Rezeption oder ein Wagen. Jeder Standort hat sein Hauptlager (das Standardlager) und kann bis zu neun weitere Lagerorte haben, zusammen höchstens 10. Der Bestand eines Standorts ist die Summe seiner Lagerorte; Bedarfsprüfung, Bestellvorschlag und Lagerwert rechnen weiter mit dem ganzen Standort.
 
-Lagerorte pflegen dürfen Inhaber und Standortleitung an ihren Standorten, in der Windows-App unter „Verwaltung“ › „Lager“ im Reiter **Lagerorte**. Links steht die Liste, rechts das Formular; **Neuer Lagerort** legt einen weiteren an.
+Lagerorte pflegen dürfen Inhaber und Standortleitung an ihren Standorten, in der Windows-App unter „Verwaltung“ › „Lager“ › **Einrichtung** › **Lagerorte**. Links steht die Liste, rechts das Formular; **Neuer Lagerort** legt einen weiteren an.
+
+![Die Seite „Einrichtung“ des Lagers mit den Lagerorten](images/app/verwaltung-lager-einrichtung.png)
 
 ## Lagerorte anlegen und ändern {#lagerorte}
 
-1. In der Verwaltung **Lager** öffnen, bei mehreren Standorten den **Standort** wählen und den Reiter **Lagerorte** öffnen.
+1. In der Verwaltung **Lager** öffnen, bei mehreren Standorten den **Standort** wählen, auf **Einrichtung** klicken und **Lagerorte** wählen.
 2. In der Liste einen Lagerort wählen oder auf **Neuer Lagerort** klicken.
 3. **Name**, **Art** und bei Bedarf **Raum**, **Beschreibung** und **Mindestmengen** eintragen.
 4. Auf **Speichern** klicken. Es erscheint „Gespeichert.“

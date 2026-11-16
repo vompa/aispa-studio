@@ -10,8 +10,9 @@ namespace AispaStudio.Desktop.ViewModels;
 /// Bereich „Team“ der Verwaltung (R05 Slice 98, Ä191, Ä250): links alle Personen mit Suche, Rolle und Status (aktiv, gesperrt, abgelaufen, eingeladen,
 /// ausgeschieden) und „Person anlegen“ bzw. „Person einladen“, rechts die Personenkarte (<see cref="PersonCardViewModel"/>). Ersetzt die Web-Masken
 /// <c>TeamTab.tsx</c>, <c>StaffPage.tsx</c> (ohne Empfangsgerät) und <c>QualificationsTab.tsx</c>. Wer mit ungespeicherten Änderungen eine andere Person
-/// wählt, wird gefragt (<see cref="UnsavedChanges"/>). Über der Fläche schaltet eine Leiste um (R05 Slice 99): „Personen“ (die Karten), „Wochenplan“ (der Dienstplan für alle,
-/// <see cref="RosterPlanViewModel"/>), „Zeiten“ (<see cref="TimesheetViewModel"/>) und „Anträge“ (<see cref="AbsenceRequestsViewModel"/>), je nach Recht. Wer nur den Kalender sehen darf,
+/// wählt, wird gefragt (<see cref="UnsavedChanges"/>). Über der Fläche schaltet eine Leiste um (R05 Slice 99, ADR 0098 höchstens fünf): „Personen“ (die Karten), „Wochenplan“
+/// (der Dienstplan für alle, <see cref="RosterPlanViewModel"/>, mit der Seitenleiste „Anträge“, <see cref="AbsenceRequestsViewModel"/>), „Zeiten“ (<see cref="TimesheetViewModel"/>), „Lohn“
+/// und „Rechte und Zuständigkeiten“ (<see cref="PowerOverviewViewModel"/> und <see cref="DutyOverviewViewModel"/> als Abschnitte), je nach Recht. Wer nur den Kalender sehen darf,
 /// bekommt nur den Wochenplan, ohne Personenliste. Ein Klick auf einen Namen im Wochenplan öffnet die Karte der Person im Reiter „Dienstplan und Abwesenheit“, in den Zeiten im Reiter „Zeiten“.
 /// </summary>
 public sealed partial class TeamViewModel : ViewModelBase, ITargetedArea
@@ -19,9 +20,16 @@ public sealed partial class TeamViewModel : ViewModelBase, ITargetedArea
     public const string PeopleMode = "personen";
     public const string RosterMode = "wochenplan";
     public const string TimesMode = "zeitenuebersicht";
-    public const string RequestsMode = "antraege";
     public const string PayrollMode = "lohn-export";
+    public const string RightsMode = "rechte-und-zustaendigkeiten";
+
+    /// <summary>Frühere Ansicht „Anträge“ (bis ADR 0098): führt in den Wochenplan und öffnet dort die Seitenleiste „Anträge“.</summary>
+    public const string RequestsMode = "antraege";
+
+    /// <summary>Frühere Ansicht „Wer darf was?“ (bis ADR 0098): führt zu „Rechte und Zuständigkeiten“, Abschnitt „Wer darf was?“.</summary>
     public const string PowersMode = "wer-darf-was";
+
+    /// <summary>Frühere Ansicht „Zuständigkeiten“ (bis ADR 0098): führt zu „Rechte und Zuständigkeiten“, Abschnitt „Zuständigkeiten“. Als Abschnitt eines Sprungs mit Person ist es der Abschnitt der Karte.</summary>
     public const string DutiesMode = "zustaendigkeiten";
 
     private const string NotInTeam = "Diese Person steht nicht mehr im Team und deshalb nicht in der Liste.";
@@ -56,8 +64,8 @@ public sealed partial class TeamViewModel : ViewModelBase, ITargetedArea
     }
 
     /// <summary>
-    /// Die Ansichten der Leiste nach den Rechten: Personen (Stammdaten oder Zugänge verwalten), Wochenplan (Kalender oder Personalunterlagen sehen), Zeiten (Standorte verwalten
-    /// oder Personalunterlagen lesen) und Anträge (Standorte verwalten).
+    /// Die Ansichten der Leiste nach den Rechten (höchstens fünf, ADR 0098): Personen (Stammdaten oder Zugänge verwalten), Wochenplan (Kalender oder Personalunterlagen sehen),
+    /// Zeiten (Standorte verwalten oder Personalunterlagen lesen), Lohn und Rechte und Zuständigkeiten (sobald einer der beiden Abschnitte erlaubt ist).
     /// </summary>
     private IEnumerable<(string Id, string Label)> ModesOf()
     {
@@ -76,25 +84,28 @@ public sealed partial class TeamViewModel : ViewModelBase, ITargetedArea
             yield return (TimesMode, "Zeiten");
         }
 
-        if (_user.Rights.Contains(AccessRight.ManageLocation))
-        {
-            yield return (RequestsMode, "Anträge");
-        }
-
         if (CanPayroll)
         {
             yield return (PayrollMode, "Lohn");
         }
 
-        if (_user.Rights.Contains(AccessRight.ManageHrFile))
+        if (CanPowers || CanDuties)
         {
-            yield return (PowersMode, "Wer darf was?");
-            yield return (DutiesMode, "Zuständigkeiten");
+            yield return (RightsMode, "Rechte und Zuständigkeiten");
         }
     }
 
     /// <summary>Lohn sehen: die Organisation verwalten oder Personalunterlagen lesen (wie die API an <c>GET api/payroll/…</c>).</summary>
     private bool CanPayroll => _user.Rights.Contains(AccessRight.ManageOrganization) || _user.Rights.Contains(AccessRight.ViewStaffRecords);
+
+    /// <summary>Anträge entscheiden: Standorte verwalten (wie die API an <c>api/absence-requests</c>); die Leiste steht im Wochenplan.</summary>
+    private bool CanRequests => _user.Rights.Contains(AccessRight.ManageLocation);
+
+    /// <summary>Abschnitt „Wer darf was?“: mit dem Recht auf die Personalakte (wie bisher die Ansicht).</summary>
+    private bool CanPowers => _user.Rights.Contains(AccessRight.ManageHrFile);
+
+    /// <summary>Abschnitt „Zuständigkeiten“: mit dem Recht auf die Personalakte (wie bisher die Ansicht).</summary>
+    private bool CanDuties => _user.Rights.Contains(AccessRight.ManageHrFile);
 
     /// <summary>Name der Maske in der Rückfrage: die offene Person, im Wochenplan „Dienstplan“.</summary>
     public string Title => ShowsPeople ? Card?.Title ?? "Team" : ActiveArea?.Title ?? "Team";
@@ -124,17 +135,13 @@ public sealed partial class TeamViewModel : ViewModelBase, ITargetedArea
 
     public bool ShowsTimesView => IsLoaded && ShowsTimes;
 
-    public bool ShowsRequestsView => IsLoaded && ShowsRequests;
-
     public bool ShowsPayrollView => IsLoaded && ShowsPayroll;
 
-    public bool ShowsPowersView => IsLoaded && Mode == PowersMode;
-
-    public bool ShowsDutiesView => IsLoaded && Mode == DutiesMode;
+    public bool ShowsRightsView => IsLoaded && ShowsRights;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(ShowsPeople), nameof(ShowsRoster), nameof(ShowsTimes), nameof(ShowsRequests), nameof(ShowsPayroll), nameof(ShowsPeopleView), nameof(ShowsRosterView),
-        nameof(ShowsTimesView), nameof(ShowsRequestsView), nameof(ShowsPayrollView), nameof(ShowsPowersView), nameof(ShowsDutiesView), nameof(Title), nameof(HasUnsavedChanges), nameof(StatusText), nameof(Error), nameof(HasError), nameof(HasSaveBar), nameof(CanRemove))]
+    [NotifyPropertyChangedFor(nameof(ShowsPeople), nameof(ShowsRoster), nameof(ShowsTimes), nameof(ShowsPayroll), nameof(ShowsRights), nameof(ShowsPeopleView), nameof(ShowsRosterView),
+        nameof(ShowsTimesView), nameof(ShowsPayrollView), nameof(ShowsRightsView), nameof(Title), nameof(HasUnsavedChanges), nameof(StatusText), nameof(Error), nameof(HasError), nameof(HasSaveBar), nameof(CanRemove))]
     public partial string Mode { get; private set; } = PeopleMode;
 
     public bool ShowsPeople => Mode == PeopleMode;
@@ -143,9 +150,21 @@ public sealed partial class TeamViewModel : ViewModelBase, ITargetedArea
 
     public bool ShowsTimes => Mode == TimesMode;
 
-    public bool ShowsRequests => Mode == RequestsMode;
-
     public bool ShowsPayroll => Mode == PayrollMode;
+
+    public bool ShowsRights => Mode == RightsMode;
+
+    /// <summary>Der Abschnitt „Wer darf was?“ steht in „Rechte und Zuständigkeiten“.</summary>
+    public bool ShowsPowersSection => Powers is not null;
+
+    /// <summary>Der Abschnitt „Zuständigkeiten“ steht in „Rechte und Zuständigkeiten“.</summary>
+    public bool ShowsDutiesSection => Duties is not null;
+
+    /// <summary>Angesprungener Abschnitt von „Rechte und Zuständigkeiten“ (<see cref="PowersMode"/> oder <see cref="DutiesMode"/>); die Ansicht rollt ihn ins Bild.</summary>
+    public string? FocusedSection { get; private set; }
+
+    /// <summary>Ein Sprung auf einen Abschnitt von „Rechte und Zuständigkeiten“; die Ansicht rollt ihn ins Bild.</summary>
+    public event Action<string>? SectionRequested;
 
     /// <summary>Der Dienstplan für alle (Wochenplan); nur mit dem Recht auf den Dienstplan, angelegt beim Laden.</summary>
     public RosterPlanViewModel? Plan { get; private set; }
@@ -153,26 +172,29 @@ public sealed partial class TeamViewModel : ViewModelBase, ITargetedArea
     /// <summary>Die Zeiterfassung für alle; nur mit dem Recht auf die Zeiten, angelegt beim Laden.</summary>
     public TimesheetViewModel? Times { get; private set; }
 
-    /// <summary>Offene Abwesenheitsanträge; nur mit dem Recht, Standorte zu verwalten, angelegt beim Laden.</summary>
+    /// <summary>Offene Abwesenheitsanträge, die Seitenleiste „Anträge“ im Wochenplan; nur mit dem Recht, Standorte zu verwalten, angelegt beim Laden.</summary>
     public AbsenceRequestsViewModel? Requests { get; private set; }
 
     /// <summary>Monatswerte, Export und Einstellungen der Lohnverrechnung (R05 Slice 100); nur mit dem Recht auf den Lohn, angelegt beim Laden.</summary>
     public PayrollViewModel? Payroll { get; private set; }
 
-    /// <summary>„Wer darf was?“ (R05 Slice 111); nur mit dem Recht auf die Personalakte, angelegt beim Laden.</summary>
+    /// <summary>„Wer darf was?“ (R05 Slice 111), Abschnitt von „Rechte und Zuständigkeiten“; nur mit dem Recht auf die Personalakte, angelegt beim Laden.</summary>
     public PowerOverviewViewModel? Powers { get; private set; }
 
-    /// <summary>„Zuständigkeiten“ (R05 Slice 117); nur mit dem Recht auf die Personalakte, angelegt beim Laden.</summary>
+    /// <summary>„Zuständigkeiten“ (R05 Slice 117), Abschnitt von „Rechte und Zuständigkeiten“; nur mit dem Recht auf die Personalakte, angelegt beim Laden.</summary>
     public DutyOverviewViewModel? Duties { get; private set; }
 
-    /// <summary>Die Maske der gewählten Ansicht mit Rückfrage bei ungespeicherten Änderungen (Karte, Wochenplan, Zeiten oder Lohn; Anträge ändern nichts offen).</summary>
+    /// <summary>
+    /// Die Maske der gewählten Ansicht mit Rückfrage bei ungespeicherten Änderungen (Karte, Wochenplan, Zeiten, Lohn oder die Liste der Zuständigkeiten; Anträge und „Wer darf was?“
+    /// ändern nichts offen).
+    /// </summary>
     private IEditableArea? ActiveArea => Mode switch
     {
         PeopleMode => Card,
         RosterMode => Plan,
         TimesMode => Times,
         PayrollMode => Payroll,
-        DutiesMode => Duties,
+        RightsMode => Duties,
         _ => null,
     };
 
@@ -195,7 +217,7 @@ public sealed partial class TeamViewModel : ViewModelBase, ITargetedArea
     public partial bool ShowFormer { get; set; }
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(ShowsModesBar), nameof(ShowsPeopleView), nameof(ShowsRosterView), nameof(ShowsTimesView), nameof(ShowsRequestsView), nameof(ShowsPayrollView), nameof(ShowsPowersView), nameof(ShowsDutiesView))]
+    [NotifyPropertyChangedFor(nameof(ShowsModesBar), nameof(ShowsPeopleView), nameof(ShowsRosterView), nameof(ShowsTimesView), nameof(ShowsPayrollView), nameof(ShowsRightsView))]
     public partial bool IsLoaded { get; private set; }
 
     [ObservableProperty]
@@ -258,6 +280,12 @@ public sealed partial class TeamViewModel : ViewModelBase, ITargetedArea
         CreateModes();
         IsLoaded = true;
         await LoadModeAsync().ConfigureAwait(true);
+        if (FocusedSection is { } section)
+        {
+            // Ein Sprung auf einen Abschnitt kam vor dem Laden; jetzt stehen die Abschnitte da.
+            SectionRequested?.Invoke(section);
+        }
+
         if (!CanPeople)
         {
             return;
@@ -319,17 +347,20 @@ public sealed partial class TeamViewModel : ViewModelBase, ITargetedArea
                 }
             };
             Times.PersonRequested += id => _ = OpenPersonAsync(id, PersonCardViewModel.TimesTab, null);
-            Times.Changed += () => Card?.Times?.MarkStale();
+            Times.Changed += () =>
+            {
+                Card?.Times?.MarkStale();
+                Card?.Overview?.MarkStale();
+            };
         }
 
-        if (Modes.Any(m => m.Id == RequestsMode))
+        if (Plan is not null && CanRequests)
         {
             Requests = new AbsenceRequestsViewModel(_context!) { Dialogs = Dialogs };
-            Requests.Approved += () =>
-            {
-                Plan?.MarkStale();
-                OnPlanChanged();
-            };
+            Requests.Approved += OnRequestApproved;
+            Plan.Requests = Requests;
+            Plan.IsRequestsOpen = _openRequests;
+            _openRequests = false;
         }
 
         if (Modes.Any(m => m.Id == PayrollMode))
@@ -344,12 +375,12 @@ public sealed partial class TeamViewModel : ViewModelBase, ITargetedArea
             };
         }
 
-        if (Modes.Any(m => m.Id == PowersMode))
+        if (CanPowers)
         {
             Powers = new PowerOverviewViewModel(_api);
         }
 
-        if (Modes.Any(m => m.Id == DutiesMode))
+        if (CanDuties)
         {
             Duties = new DutyOverviewViewModel(_api);
             Duties.PropertyChanged += (_, e) =>
@@ -367,6 +398,19 @@ public sealed partial class TeamViewModel : ViewModelBase, ITargetedArea
         OnPropertyChanged(nameof(Payroll));
         OnPropertyChanged(nameof(Powers));
         OnPropertyChanged(nameof(Duties));
+        OnPropertyChanged(nameof(ShowsPowersSection));
+        OnPropertyChanged(nameof(ShowsDutiesSection));
+    }
+
+    /// <summary>Eine Genehmigung hat den Dienstplan geändert: der offene Wochenplan neben der Leiste lädt sofort neu, alles andere beim nächsten Öffnen.</summary>
+    private void OnRequestApproved()
+    {
+        Plan?.MarkStale();
+        OnPlanChanged();
+        if (IsLoaded && ShowsRoster && Plan is not null)
+        {
+            _ = Plan.EnsureLoadedAsync();
+        }
     }
 
     /// <summary>Lädt die Daten der offenen Ansicht, wenn das noch nicht geschehen ist (Personen laden mit der Maske).</summary>
@@ -395,17 +439,22 @@ public sealed partial class TeamViewModel : ViewModelBase, ITargetedArea
         return Mode switch
         {
             PayrollMode when Payroll is not null => Payroll.EnsureLoadedAsync(),
-            RosterMode when Plan is not null => Plan.EnsureLoadedAsync(),
+            RosterMode when Plan is not null => LoadRosterAsync(Plan),
             TimesMode when Times is not null => Times.EnsureLoadedAsync(),
-            RequestsMode when Requests is not null => Requests.EnsureLoadedAsync(),
-            PowersMode when Powers is not null => Powers.EnsureLoadedAsync(),
-            DutiesMode when Duties is not null => Duties.EnsureLoadedAsync(),
+            RightsMode => LoadRightsAsync(),
             PeopleMode when Card is { } card => ReloadCardTabAsync(card),
             _ => Task.CompletedTask,
         };
     }
 
-    /// <summary>Zurück auf der Karte: was eine andere Ansicht inzwischen geändert hat, lädt der offene Reiter neu.</summary>
+    /// <summary>Der Wochenplan lädt mit den Anträgen, denn ihr Knopf in der Werkzeugzeile zeigt die Zahl der offenen.</summary>
+    private Task LoadRosterAsync(RosterPlanViewModel plan) =>
+        Requests is null ? plan.EnsureLoadedAsync() : Task.WhenAll(plan.EnsureLoadedAsync(), Requests.EnsureLoadedAsync());
+
+    /// <summary>„Rechte und Zuständigkeiten“ lädt beide Abschnitte, soweit erlaubt.</summary>
+    private Task LoadRightsAsync() => Task.WhenAll(Powers?.EnsureLoadedAsync() ?? Task.CompletedTask, Duties?.EnsureLoadedAsync() ?? Task.CompletedTask);
+
+    /// <summary>Zurück auf der Karte: was eine andere Ansicht inzwischen geändert hat, lädt der offene Bereich neu.</summary>
     private static Task ReloadCardTabAsync(PersonCardViewModel card)
     {
         card.SelectTab(card.SelectedTab);
@@ -414,15 +463,51 @@ public sealed partial class TeamViewModel : ViewModelBase, ITargetedArea
 
     /// <summary>
     /// Wechselt die Ansicht der Leiste. Ein offener Tag im Wochenplan oder eine Karte mit ungespeicherten Änderungen fragt vorher „Änderungen speichern?“; false, wenn der Wechsel
-    /// abgebrochen wurde oder die Ansicht fehlt.
+    /// abgebrochen wurde oder die Ansicht fehlt. Die früheren Ansichten (ADR 0098, Regel 7) führen an ihren neuen Ort: <see cref="RequestsMode"/> in den Wochenplan mit offener
+    /// Seitenleiste „Anträge“, <see cref="PowersMode"/> und <see cref="DutiesMode"/> nach „Rechte und Zuständigkeiten“ zum jeweiligen Abschnitt.
     /// </summary>
     public async Task<bool> SwitchToAsync(string mode)
     {
-        if (mode == Mode)
+        var (target, section) = mode switch
         {
-            return true;
+            RequestsMode => (RosterMode, RequestsMode),
+            PowersMode => (RightsMode, PowersMode),
+            DutiesMode => (RightsMode, DutiesMode),
+            _ => (mode, (string?)null),
+        };
+        if ((mode == RequestsMode && !CanRequests) || (mode == PowersMode && !CanPowers) || (mode == DutiesMode && !CanDuties))
+        {
+            return false;
         }
 
+        if (target != Mode && !await ChangeModeAsync(target).ConfigureAwait(true))
+        {
+            return false;
+        }
+
+        if (section == RequestsMode)
+        {
+            // Die Leiste gibt es erst mit dem geladenen Wochenplan; vorher merkt sich der Bereich den Wunsch.
+            _openRequests = Plan is null;
+            if (Plan is not null)
+            {
+                Plan.IsRequestsOpen = true;
+            }
+        }
+        else if (section is not null)
+        {
+            FocusedSection = section;
+            SectionRequested?.Invoke(section);
+        }
+
+        return true;
+    }
+
+    /// <summary>Der Wunsch, die Leiste „Anträge“ zu öffnen, kam vor dem Laden.</summary>
+    private bool _openRequests;
+
+    private async Task<bool> ChangeModeAsync(string mode)
+    {
         if (Modes.All(m => m.Id != mode))
         {
             return false;
@@ -433,6 +518,13 @@ public sealed partial class TeamViewModel : ViewModelBase, ITargetedArea
             return false;
         }
 
+        // Die Seitenleiste „Anträge“ gehört zum Wochenplan und schließt mit ihm; ein angesprungener Abschnitt gilt nur bis zum nächsten Wechsel.
+        if (Plan is not null)
+        {
+            Plan.IsRequestsOpen = false;
+        }
+
+        FocusedSection = null;
         Mode = mode;
         foreach (var each in Modes)
         {
@@ -446,7 +538,6 @@ public sealed partial class TeamViewModel : ViewModelBase, ITargetedArea
 
         return true;
     }
-
 
 
     public Task EnsureLoadedAsync() => IsLoaded ? Task.CompletedTask : LoadAsync();
@@ -496,10 +587,15 @@ public sealed partial class TeamViewModel : ViewModelBase, ITargetedArea
         }
     }
 
-    /// <summary>Sprung: wählt die Person (<paramref name="id"/>, Person im Team), dann den Reiter (<c>stammdaten</c>, <c>zugang</c>, <c>qualifikationen</c>, <c>dienstplan</c>, <c>zeiten</c>, <c>verlauf</c>).</summary>
+    /// <summary>
+    /// Sprung: wählt die Person (<paramref name="id"/>, Person im Team), dann den Abschnitt der Karte (<c>stammdaten</c>, <c>zugang</c>, <c>qualifikationen</c>, <c>dienstplan</c>,
+    /// <c>zeiten</c> …; die Karte öffnet seinen Bereich) oder mit <c>verlauf</c> die Seitenleiste „Verlauf“. Eine Ansicht der Leiste, auch eine frühere (<see cref="SwitchToAsync"/>),
+    /// wechselt dorthin.
+    /// </summary>
     public void Open(Guid? id, string? section, string? field)
     {
-        if (section is RosterMode or TimesMode or RequestsMode or PayrollMode or PowersMode)
+        // „zustaendigkeiten“ ist zugleich ein Abschnitt der Karte: mit Person führt es dorthin, ohne Person zum Abschnitt der Ansicht „Rechte und Zuständigkeiten“.
+        if (section is RosterMode or TimesMode or RequestsMode or PayrollMode or PowersMode or RightsMode || (section == DutiesMode && id is null && CanDuties))
         {
             _ = SwitchToAsync(section);
             return;
@@ -777,6 +873,7 @@ public sealed partial class TeamViewModel : ViewModelBase, ITargetedArea
             Card.PropertyChanged -= OnCardChanged;
             Card.DataChanged -= OnCardDataChanged;
             Card.WeekPlanRequested -= OnCardWeekPlan;
+            Card.AbsenceRequestsRequested -= OnCardAbsenceRequests;
             if (Card.Roster is { } oldRoster)
             {
                 oldRoster.Changed -= OnCardRosterChanged;
@@ -798,6 +895,7 @@ public sealed partial class TeamViewModel : ViewModelBase, ITargetedArea
         Card.PropertyChanged += OnCardChanged;
         Card.DataChanged += OnCardDataChanged;
         Card.WeekPlanRequested += OnCardWeekPlan;
+        Card.AbsenceRequestsRequested += OnCardAbsenceRequests;
         if (Card.Roster is { } roster)
         {
             roster.Changed += OnCardRosterChanged;
@@ -845,10 +943,14 @@ public sealed partial class TeamViewModel : ViewModelBase, ITargetedArea
         _ = SwitchToAsync(RosterMode);
     }
 
+    /// <summary>Die Kachel „Offene Anträge“ der Übersicht öffnet den Wochenplan mit der Seitenleiste „Anträge“.</summary>
+    private void OnCardAbsenceRequests() => _ = SwitchToAsync(RequestsMode);
+
     private void OnPlanChanged()
     {
         Card?.Roster?.MarkStale();
         Card?.Times?.MarkStale();
+        Card?.Overview?.MarkStale();
         Times?.MarkStale();
         RosterChanged?.Invoke();
     }

@@ -1,6 +1,7 @@
 using System.Text.Json;
 using AispaStudio.Contracts;
 using AispaStudio.Desktop.Services;
+using AispaStudio.Desktop.ViewModels;
 using Avalonia.Controls;
 
 namespace AispaStudio.Desktop.Tests;
@@ -35,6 +36,12 @@ public sealed partial class ViewTests
             .On("GET /api/staff-duties/expiring", new List<ExpiringCertificateDto>
             {
                 new(Guid.NewGuid(), lena, "Lena Huber", "Erste-Hilfe-Kurs", new DateOnly(2026, 10, 3), true),
+            })
+            // ADR 0098: „Wer darf was?“ steht als erster Abschnitt auf derselben Seite wie die Zuständigkeiten.
+            .On("GET /api/staff-regulations/powers", new List<PowerOverviewRowDto>
+            {
+                new(StaffPowerKind.CashVoid, "Kassa-Storno", true, [new(lena, "Lena", new DateOnly(2026, 1, 1), new DateOnly(2026, 12, 31), "Katrin", false)]),
+                new(StaffPowerKind.Keys, "Schlüssel", false, []),
             });
     }
 
@@ -83,7 +90,10 @@ public sealed partial class ViewTests
         Render(theme, "verwaltung-team-zustaendigkeiten", async (window, main) =>
         {
             var team = await OpenTeam(window, main);
-            await ClickSection(window, "Zuständigkeiten");
+            await ClickSection(window, "Rechte und Zuständigkeiten");
+            await Pump(Settling);
+            // Die frühere Ansicht „Zuständigkeiten“ führt zu ihrem Abschnitt (ADR 0098, Regel 7); fürs Handbuchbild steht er oben.
+            Assert.True(await team.SwitchToAsync(TeamViewModel.DutiesMode));
             await Pump(Settling);
 
             Assert.True(Named<Control>(window, "DutyOverview").IsEffectivelyVisible);

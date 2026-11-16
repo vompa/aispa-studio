@@ -15,7 +15,7 @@ In der Windows-App:
 - **Verwerfen** holt den gespeicherten Stand zurück.
 - Wer die Firmendaten mit ungespeicherten Änderungen verlässt, etwa zum Kalender wechselt, wird gefragt: „Änderungen speichern?“ mit „Speichern“, „Verwerfen“ und „Abbrechen“. „Abbrechen“ bleibt in der Maske.
 - Der Abschnitt „Kundenbereich einbetten“ wird mit demselben „Speichern“ gespeichert.
-- Der Abschnitt **Verlauf** zeigt, wer die Firmendaten wann geändert hat (siehe unten).
+- **Verlauf** oben in der Maske öffnet rechts eine Seitenleiste: wer die Firmendaten wann geändert hat (siehe unten).
 
 ## Firmendaten {#firmendaten}
 
@@ -132,7 +132,7 @@ Kammerzugehörigkeit und die geltenden berufsrechtlichen Vorschriften mit Fundst
 
 ## Verlauf {#verlauf}
 
-In der Windows-App steht unter den Firmendaten der Abschnitt „Verlauf“. Aufgeklappt zeigt er jede Änderung an Name, Land und den Firmendaten mit altem und neuem Wert, der Person und dem Zeitpunkt, die neueste oben, z. B. „Geändert von Lena: Name Day-Spa Wien → Day-Spa am Ring“.
+In der Windows-App öffnet der Knopf **Verlauf** oben in den Firmendaten rechts eine Seitenleiste; **Schließen** oder **Esc** schließt sie wieder. Sie zeigt jede Änderung an Name, Land und den Firmendaten mit altem und neuem Wert, der Person und dem Zeitpunkt, die neueste oben, z. B. „Geändert von Lena: Name Day-Spa Wien → Day-Spa am Ring“.
 
 - Andere Einstellungen des Spas (z. B. Kundenbereich einbetten, Kassa) stehen hier nicht.
 - Den Verlauf sieht, wer die Firmendaten ändern darf.

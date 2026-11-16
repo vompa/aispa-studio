@@ -31,6 +31,8 @@
         <StackPanel Spacing="20" IsVisible="{Binding IsLoaded}">
           <StackPanel Spacing="12">
             <ui:InfoBar Severity="Warning" Message="{Binding StatusLine}" IsVisible="{Binding StatusIsWarning}" />
+            <!-- Der Stand des letzten Versands steht mit oben (masken.md R14), nicht mitten in „Antworten und Erinnerungen“ -->
+            <ui:InfoBar x:Name="SendNoticeBar" Severity="Warning" Message="{Binding SendNotice}" IsVisible="{Binding HasSendNotice}" />
             <TextBlock Text="{Binding StatusLine}" Classes="muted" IsVisible="{Binding !StatusIsWarning}" />
             <CheckBox x:Name="EnabledBox" IsChecked="{Binding Enabled}" Content="Postfach abrufen" />
 
@@ -103,7 +105,6 @@
               </ui:FormField>
               <TextBlock Classes="muted" TextWrapping="Wrap" Text="Bei Gmail ausschalten: Gmail legt über SMTP gesendete Mails selbst unter „Gesendet“ ab." />
             </StackPanel>
-            <ui:InfoBar Severity="Warning" Message="{Binding SendNotice}" IsVisible="{Binding HasSendNotice}" />
           </StackPanel>
 
           <!-- Nummern -->

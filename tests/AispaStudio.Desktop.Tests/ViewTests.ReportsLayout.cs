@@ -42,12 +42,25 @@ public sealed partial class ViewTests
         Assert.True(LeftOf(window, Named<ComboBox>(window, "ReportLocationField")) >= LeftOf(window, last) + last.Bounds.Width);
         Assert.True(LeftOf(window, Named<Controls.DateField>(window, "ReportDateField")) > LeftOf(window, Named<ComboBox>(window, "ReportLocationField")));
 
-        // „Berichte“ hat Management und Pflichtberichte als Unterreiter, sonst nirgends.
-        Assert.DoesNotContain(VisibleTabs(window), t => t.Name == "ReportComplianceTab");
-        reports.SelectTabCommand.Execute(ReportsViewModel.ReportsTab);
+        // „Berichte“ hat keine Unterreiter mehr (ADR 0098): Management und Pflichtberichte stehen als Abschnitte untereinander, die Seite hat eine einzige Schiene.
+        reports.SelectTabCommand.Execute(ReportsViewModel.ManagementTab);
         await Pump(Settling);
-        Assert.Equal(["Management", "Pflichtberichte"], VisibleTabs(window).Where(t => t.Name is "ReportManagementSubTab" or "ReportComplianceTab").Select(t => t.Content as string));
+        await Pump(Settling);
         Assert.True(Named<Controls.TabButton>(window, "ReportManagementTab").IsSelected);
+        var view = window.GetVisualDescendants().OfType<ReportsView>().Single();
+        Assert.Single(view.GetVisualDescendants().OfType<Border>(), b => b.Classes.Contains("segmented") && b.IsEffectivelyVisible);
+        Assert.Equal(5, VisibleTabs(window).Count);
+        var management = Named<Control>(window, "ReportManagementSection");
+        var compliance = Named<Control>(window, "ReportComplianceSection");
+        Assert.True(management.IsEffectivelyVisible && compliance.IsEffectivelyVisible);
+        Assert.True(TopOf(window, compliance) >= BottomOf(window, management));
+        Assert.Equal(["Management", "Pflichtberichte"], view.GetVisualDescendants().OfType<TextBlock>().Where(t => t.IsEffectivelyVisible && t.Classes.Contains("h1")).Select(t => t.Text));
+
+        // Jeder Abschnitt hat seinen Kopf: Der Zeitraum steht bei Management, das Datum nur bei den Pflichtberichten, der Standort gilt für beide.
+        Assert.True(Named<ComboBox>(window, "ReportLocationField").IsEffectivelyVisible);
+        Assert.False(Named<Controls.DateField>(window, "ReportDateField").IsEffectivelyVisible);
+        Assert.Contains(management, Named<Controls.DateField>(window, "ManagementFromField").GetVisualAncestors());
+        Assert.Contains(compliance, Named<Controls.DateField>(window, "ReportComplianceDateField").GetVisualAncestors());
 
         // Die Betriebsinfo hat weder Standort noch Datum.
         reports.SelectTabCommand.Execute(ReportsViewModel.BusinessInfoTab);
@@ -55,6 +68,38 @@ public sealed partial class ViewTests
         await Pump(Settling);
         Assert.False(Named<ComboBox>(window, "ReportLocationField").IsEffectivelyVisible);
         Assert.True(Shows(window, "Neuer Eintrag") || Shows(window, "Suchen"));
+        return shell.AdminPage;
+    }, ReportsApi());
+
+    [Fact]
+    public Task Ein_Sprung_auf_die_Pflichtberichte_rollt_bei_Mindestfenster_zum_Abschnitt() => Render("hell", "zahlen-berichte-sprung", async (window, main) =>
+    {
+        // Given das Fenster am Minimum (1100 × 680) und „Berichte“ mit dem Vergleich: die Pflichtberichte liegen unter dem sichtbaren Bereich
+        var (shell, reports) = await OpenReports(window, main, ReportsViewModel.ManagementTab);
+        window.MinWidth = window.MinHeight = 0;
+        (window.Width, window.Height) = (1100, 680);
+        reports.Management.Compare = true;
+        await Pump(Settling);
+        await Pump(Settling);
+        var scroll = Named<ScrollViewer>(window, "FormScroll");
+        var compliance = Named<Control>(window, "ReportComplianceSection");
+        Assert.True(TopOf(window, compliance) >= BottomOf(window, scroll), "Die Pflichtberichte müssen für den Test unter dem Bildrand liegen.");
+
+        // When ein altes Sprungziel „compliance“ kommt (früher der Unterreiter)
+        reports.Open(new AdminTarget(Section: ReportsViewModel.ComplianceTab));
+        await Pump(Settling);
+        await Pump(Settling);
+
+        // Then bleibt „Berichte“ offen, und der Abschnitt beginnt im sichtbaren Bereich; die fünf Reiter stehen weiter in einer Zeile.
+        Assert.True(Named<Controls.TabButton>(window, "ReportManagementTab").IsSelected);
+        Assert.InRange(TopOf(window, compliance), TopOf(window, scroll) - 0.5, BottomOf(window, scroll) - 40);
+        AssertTabsInOneLineWithinHeader(window);
+
+        // Und „management“ rollt wieder nach oben.
+        reports.Open(new AdminTarget(Section: ReportsViewModel.ManagementTab));
+        await Pump(Settling);
+        await Pump(Settling);
+        Assert.InRange(TopOf(window, Named<Control>(window, "ReportManagementSection")), TopOf(window, scroll) - 0.5, BottomOf(window, scroll) - 40);
         return shell.AdminPage;
     }, ReportsApi());
 

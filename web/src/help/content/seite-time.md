@@ -13,7 +13,7 @@ stichwoerter: Zeiten, Zeiterfassung, Arbeitszeit, Stundenliste, Soll Ist, Stempe
 In der Windows-App gibt es keinen eigenen Bereich „Zeiten“ mehr. Die Zeiten stehen in **Verwaltung** › **Team**:
 
 - Die Ansicht **Zeiten** zeigt alle Mitarbeitenden einer Woche.
-- Die Personenkarte hat den Reiter **Zeiten** mit der Woche einer Person.
+- Die Personenkarte zeigt im Bereich **Arbeitszeit** unter **Zeiten** die Woche einer Person.
 
 Die Leiste über der Fläche zeigt **Zeiten** nur mit dem Recht, Standorte zu verwalten, oder mit Zugriff auf Personalunterlagen. Das Backoffice liest: Es sieht die Zeiten, die Abschnitte und ihren Verlauf, aber es gibt kein **Ändern** und kein **Zeit nachtragen**.
 
@@ -24,7 +24,7 @@ Die Leiste über der Fläche zeigt **Zeiten** nur mit dem Recht, Standorte zu ve
 - **Die Tabelle**: eine Zeile je Person, eine Spalte je Tag, ganz rechts die **Woche**. In jeder Zelle steht „Soll / Ist“, z. B. „8 / 7,5“. **▶** heißt: Bei der Person läuft gerade ein Abschnitt ohne Ende.
 - Eine Warnung in der Zelle weist auf Arbeitszeitgrenzen hin, z. B. zu kurze Pause, zu kurze Ruhezeit oder „Seit über 12 Stunden eingestempelt: Gehen vergessen?“.
 - Ein Klick auf eine Zelle öffnet unter der Tabelle die Zeiten des Tages: Soll, Ist, Pause, die einzelnen Abschnitte und **Zeit nachtragen**.
-- Ein Klick auf den Namen einer Person wechselt zu **Personen** und öffnet ihre Karte im Reiter **Zeiten**.
+- Ein Klick auf den Namen einer Person wechselt zu **Personen** und öffnet ihre Karte im Bereich **Arbeitszeit**, bei den Zeiten.
 - **Exportieren** speichert die Stundenliste (Soll, Ist, Pause und Differenz je Person und Tag) und die Abwesenheiten des Monats, in dem die angezeigte Woche beginnt, als Excel oder CSV; auf der Karte einer Person nur ihre. Den Knopf sehen nur Inhaberin und Geschäftsführung.
 
 ![Zeiten einer Woche in der Windows-App](images/app/verwaltung-team-zeiten.png)

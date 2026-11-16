@@ -12,7 +12,7 @@ Hat jemand im Einzelplatz-Betrieb sein Passwort vergessen, setzt eine Person mit
 
 ## Schritte {#schritte}
 
-1. In der Windows-App **Verwaltung** › **Team** öffnen, die Person wählen und den Reiter **Zugang und Rolle** öffnen.
+1. In der Windows-App **Verwaltung** › **Team** öffnen, die Person wählen und den Bereich **Profil** öffnen; dort steht **Zugang und Rolle**.
 2. Unten bei **Neues Startpasswort** ein vorläufiges Passwort mit mindestens 8 Zeichen eintragen.
 3. Auf **Passwort zurücksetzen** klicken. Es erscheint „Startpasswort gesetzt. … ändert es bei der nächsten Anmeldung.“
 4. Der Person das Startpasswort weitergeben.

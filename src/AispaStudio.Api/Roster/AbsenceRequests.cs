@@ -217,7 +217,7 @@ internal static class AbsenceRequestEndpoints
         return candidates.Count(c => LocalTime.LocalDate(c.Start, LocalTime.Zone(c.TimeZone)) is var day && request.From <= day && day <= request.Until);
     }
 
-    private static bool MayDecide(UserAccess access, Employee employee) =>
+    internal static bool MayDecide(UserAccess access, Employee employee) =>
         access.AllLocations || employee.WorkingHours.Any(w => access.CanSee(w.LocationId));
 
     private static MyAbsenceRequestDto ToMine(AbsenceRequest r) => new(r.Id, r.Kind, r.From, r.Until, r.Note, r.RequestedAt, r.State, r.DecidedAt);

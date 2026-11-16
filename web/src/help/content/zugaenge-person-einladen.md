@@ -13,7 +13,7 @@ Neue Personen bekommen ihren Zugang über einen Einladungslink. Sie öffnen ihn,
 ## Schritte {#schritte}
 
 1. In der Windows-App **Verwaltung** › **Team** öffnen.
-2. In der Windows-App in der Teamliste **Person einladen** wählen; die Karte zeigt den Reiter **Zugang und Rolle**.
+2. In der Windows-App in der Teamliste **Person einladen** wählen; die Karte zeigt im Bereich **Profil** den Abschnitt **Zugang und Rolle**.
 3. **Name** und **E-Mail** eintragen.
 4. **Rolle** wählen. Vorbelegt ist „Rezeption“.
 5. Bei **Person im Team** die passende Person wählen. Für Therapeut:innen ist das Pflicht, sonst freiwillig („Keine (z. B. nur Rezeption)“).

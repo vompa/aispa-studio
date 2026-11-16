@@ -7,11 +7,11 @@ seite: verwaltung
 ---
 # Qualifikationen
 
-Einstellungen in der Windows-App im Bereich „Verwaltung“ › „Team“, Reiter **Qualifikationen** der Personenkarte. Qualifikationen verbinden Team und Behandlungen: Sie legen fest, wer welche Behandlung geben darf.
+Einstellungen in der Windows-App unter „Verwaltung“ › „Team“, Bereich **Profil**, Abschnitt **Qualifikationen** der Personenkarte. Qualifikationen verbinden Team und Behandlungen: Sie legen fest, wer welche Behandlung geben darf.
 
 ![Team in der Windows-App](images/app/verwaltung-team.png)
 
-In der Windows-App zeigt der Reiter „Qualifikationen der Person“ als Kästchen. Darunter steht „Qualifikationen verwalten“ mit der Liste aller Qualifikationen des Spas, dem Feld für eine neue Qualifikation (Beispiel „z. B. Hot Stone“) und den Knöpfen **Hinzufügen** und **Umbenennen**. Gespeichert werden die Kästchen mit dem **Speichern** der Karte.
+In der Windows-App zeigt der Abschnitt „Qualifikationen der Person“ im Bereich **Profil** sie als Kästchen. Darunter steht „Qualifikationen verwalten“ mit der Liste aller Qualifikationen des Spas, dem Feld für eine neue Qualifikation (Beispiel „z. B. Hot Stone“) und den Knöpfen **Hinzufügen** und **Umbenennen**. Gespeichert werden die Kästchen mit dem **Speichern** der Karte.
 
 Ändern dürfen Inhaber und Standortleitung. Qualifikationen gelten für alle Standorte des Spas.
 

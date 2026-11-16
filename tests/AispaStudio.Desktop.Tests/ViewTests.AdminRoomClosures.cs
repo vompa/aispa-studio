@@ -34,13 +34,24 @@ public sealed partial class ViewTests
 
     private static async Task<ShellViewModel> OpenRoomClosures(Window window, MainViewModel main)
     {
+        // ADR 0098: Die Raumsperren sind der zweite Abschnitt der Seite „Schließzeiten“; das alte Sprungziel öffnet die Seite und rollt zum Abschnitt.
         var shell = await OpenAdminPage(window, main);
-        shell.AdminPage.SelectedArea = shell.AdminPage.Areas.Single(a => a.Title == "Raumsperren");
+        Assert.DoesNotContain(shell.AdminPage.Areas, a => a.Title == "Raumsperren");
+        shell.AdminPage.Show("masterData", "roomClosures");
         await Pump(Settling);
         await Pump(Settling);
-        Assert.Same(shell.AdminPage.RoomClosures, shell.AdminPage.Content);
+        Assert.Equal("Schließzeiten", shell.AdminPage.SelectedArea?.Title);
+        Assert.Same(shell.AdminPage.ClosuresPage, shell.AdminPage.Content);
         Assert.True(shell.AdminPage.RoomClosures!.IsLoaded);
+        AssertRoomClosuresInView(window);
         return shell;
+    }
+
+    /// <summary>Der Abschnitt „Raumsperren“ beginnt im sichtbaren Bereich der Seite.</summary>
+    private static void AssertRoomClosuresInView(Window window)
+    {
+        var scroll = Named<ScrollViewer>(window, "PageScroll");
+        Assert.InRange(TopOf(window, RoomClosuresPart(window)), TopOf(window, scroll) - 0.5, BottomOf(window, scroll) - 40);
     }
 
     [Theory]
@@ -53,8 +64,15 @@ public sealed partial class ViewTests
         Assert.Equal(["Raum Zeder, Wartung"], closures.Rows.Select(r => r.Title));
         Assert.True(Shows(window, "1 Termin liegt im gesperrten Raum"));
         Assert.Equal("Lüftung wird gewartet", Named<TextBox>(window, "ReasonField").Text);
+
+        // Mit Schließzeiten darüber liegt der Abschnitt unter dem ersten Bildschirm: Das Sprungziel hat an seinen Anfang gerollt.
+        var page = Named<ScrollViewer>(window, "PageScroll");
+        var section = Named<Control>(window, "RoomClosuresSection");
+        Assert.True(page.Offset.Y > 0);
+        Assert.True(Math.Abs(TopOf(window, page) - TopOf(window, section)) <= 1 || page.Offset.Y >= page.Extent.Height - page.Viewport.Height - 1,
+            $"Abschnitt bei {TopOf(window, section):F0}, Seite bei {TopOf(window, page):F0}, gerollt {page.Offset.Y:F0} von {page.Extent.Height - page.Viewport.Height:F0}, Abschnitt hoch {section.Bounds.Height:F0}, sichtbar {page.Viewport.Height:F0}");
         return shell.AdminPage;
-    }, RoomClosuresApi());
+    }, RoomClosuresApi(ClosuresApi()));
 
     [Fact]
     public Task Raumsperre_anlegen_ueber_Klick_und_Speichern()
@@ -65,11 +83,12 @@ public sealed partial class ViewTests
             var shell = await OpenRoomClosures(window, main);
             var closures = shell.AdminPage.RoomClosures!;
 
-            ClickCenter(window, Named<Button>(window, "NewButton"));
+            var part = RoomClosuresPart(window);
+            ClickCenter(window, Named<Button>(part, "NewButton"));
             await Pump(Settling);
             Assert.True(closures.IsCreating);
-            await TypeInto(window, "FromDateField", "07.12.2026");
-            await TypeInto(window, "UntilDateField", "08.12.2026");
+            await TypeInto(window, Named<TextBox>(part, "FromDateField"), "07.12.2026");
+            await TypeInto(window, Named<TextBox>(part, "UntilDateField"), "08.12.2026");
             await TypeInto(window, "ReasonField", "Wasserschaden");
             PressSave(window);
             await Pump(Settling);
@@ -101,11 +120,13 @@ public sealed partial class ViewTests
         await Pump(Settling);
         await Pump(Settling);
 
-        Assert.Equal("Raumsperren", shell.AdminPage.SelectedArea?.Title);
+        Assert.Equal("Schließzeiten", shell.AdminPage.SelectedArea?.Title);
         var closures = shell.AdminPage.RoomClosures!;
         Assert.True(closures.IsCreating);
         Assert.Equal(SpaSample.Cedar.Id, closures.SelectedRoom?.Id);
         Assert.True(Shows(window, "Neue Raumsperre"));
+        Assert.Equal(ClosuresPageViewModel.RoomClosuresSection, shell.AdminPage.ClosuresPage!.FocusedSection);
+        AssertRoomClosuresInView(window);
         return shell.AdminPage;
     }, RoomClosuresApi());
 
@@ -117,7 +138,7 @@ public sealed partial class ViewTests
         {
             var shell = await OpenRoomClosures(window, main);
 
-            await ClickScrolled(window, "DeleteButton");
+            await ClickScrolled(window, Named<Control>(RoomClosuresPart(window), "DeleteButton"));
             Assert.Equal("Raumsperre löschen?", Assert.IsType<ConfirmDialogViewModel>(main.DialogHost.Current).Title);
             Assert.Equal(0, CallsTo(api, $"DELETE {RoomClosureRoute("/" + MaintenanceId)}"));
             ClickCenter(window, DialogButton(window, "ConfirmButton"));
@@ -146,14 +167,14 @@ public sealed partial class ViewTests
             var shell = await OpenAdminPage(window, main);
             await AssertNoBindingErrors(log, "Raumsperren", () =>
             {
-                shell.AdminPage.SelectedArea = shell.AdminPage.Areas.Single(a => a.Title == "Raumsperren");
+                shell.AdminPage.SelectedArea = shell.AdminPage.Areas.Single(a => a.Title == "Schließzeiten");
                 return Task.CompletedTask;
             });
             var closures = shell.AdminPage.RoomClosures!;
             await AssertNoBindingErrors(log, "Neue Raumsperre", async () => await closures.NewCommand.ExecuteAsync(null));
             await AssertNoBindingErrors(log, "Eingabe", () => { closures.Period.IsPartial = true; closures.Period.FromTime = "13:00"; closures.Reason = "x"; closures.Kind = RoomClosureKind.Damage; return Task.CompletedTask; });
             await AssertNoBindingErrors(log, "Verworfen", () => { closures.Discard(); return Task.CompletedTask; });
-            await AssertNoBindingErrors(log, "Reiter Beendet", async () => await closures.ShowEndedCommand.ExecuteAsync(null));
+            await AssertNoBindingErrors(log, "Beendete zeigen", () => { closures.ShowEnded = true; return Task.CompletedTask; });
             await AssertNoBindingErrors(log, "Anderer Standort", () => { closures.SelectedLocation = closures.Locations[1]; return Task.CompletedTask; });
             await AssertNoBindingErrors(log, "Anderer Bereich", () =>
             {
@@ -192,7 +213,7 @@ public sealed partial class ViewTests
         await closures.NewCommand.ExecuteAsync(null);
         await Pump(Settling);
         Scan("Neue Raumsperre");
-        await closures.ShowEndedCommand.ExecuteAsync(null);
+        closures.ShowEnded = true;
         await Pump(Settling);
         Scan("Beendet");
 

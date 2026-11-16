@@ -8,12 +8,12 @@ stichwoerter: Pflichtberichte, DEP, Datenerfassungsprotokoll, DSFinV-K, TSE-Expo
 ---
 # Pflichtberichte abrufen, DEP und DSFinV-K herunterladen
 
-Der Reiter „Pflichtberichte“ zeigt je Standort die Kassen mit ihren Pflichten, die Dateien für eine Prüfung, die offenen Gutscheine und die Arbeitszeitaufzeichnung des Monats.
+Der Abschnitt „Pflichtberichte“ im Reiter „Berichte“ zeigt je Standort die Kassen mit ihren Pflichten, die Dateien für eine Prüfung, die offenen Gutscheine und die Arbeitszeitaufzeichnung des Monats.
 
 ## Pflichtberichte öffnen {#oeffnen}
 
-1. In der Windows-App unter „Verwaltung“ **Zahlen** öffnen, den Reiter **Berichte** und darin **Pflichtberichte** wählen.
-2. **Standort** und **Datum** wählen. Das Datum bestimmt den Monat der Arbeitszeitaufzeichnung und das Ende der Exporte.
+1. In der Windows-App unter „Verwaltung“ **Zahlen** öffnen und den Reiter **Berichte** wählen. Der Abschnitt **Pflichtberichte** steht unter dem Management.
+2. **Standort** im Kopf der Maske und **Datum** im Kopf des Abschnitts wählen. Das Datum bestimmt den Monat der Arbeitszeitaufzeichnung und das Ende der Exporte.
 
 ![Pflichtberichte mit Kassen](images/app/verwaltung-berichte-pflichtberichte.png)
 

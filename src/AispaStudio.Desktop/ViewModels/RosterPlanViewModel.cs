@@ -329,6 +329,54 @@ public sealed partial class RosterPlanViewModel : ViewModelBase, IEditableArea
 
     public bool HasUnsavedChanges => Day?.HasUnsavedChanges == true;
 
+    /// <summary>
+    /// Offene Abwesenheitsanträge als Seitenleiste „Anträge“ (ADR 0098): nur im Wochenplan des Teams und mit dem Recht, Standorte zu verwalten; sonst null, und die Schaltfläche fehlt.
+    /// </summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasRequests), nameof(OpenRequests), nameof(HasOpenRequests), nameof(RequestsButtonName))]
+    public partial AbsenceRequestsViewModel? Requests { get; set; }
+
+    public bool HasRequests => Requests is not null;
+
+    /// <summary>Zahl der offenen Anträge am Knopf; die Zahl steht nur, wenn es welche gibt.</summary>
+    public int OpenRequests => Requests?.Rows.Count ?? 0;
+
+    public bool HasOpenRequests => OpenRequests > 0;
+
+    /// <summary>Name des Knopfs für den Screenreader, mit der Zahl: „Anträge, 2 offene Anträge“.</summary>
+    public string RequestsButtonName => HasOpenRequests ? $"Anträge, {Requests!.CountText}" : "Anträge";
+
+    partial void OnRequestsChanged(AbsenceRequestsViewModel? oldValue, AbsenceRequestsViewModel? newValue)
+    {
+        if (oldValue is not null)
+        {
+            oldValue.PropertyChanged -= OnRequestsPropertyChanged;
+        }
+
+        if (newValue is not null)
+        {
+            newValue.PropertyChanged += OnRequestsPropertyChanged;
+        }
+    }
+
+    private void OnRequestsPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(AbsenceRequestsViewModel.Rows))
+        {
+            OnPropertyChanged(nameof(OpenRequests));
+            OnPropertyChanged(nameof(HasOpenRequests));
+            OnPropertyChanged(nameof(RequestsButtonName));
+        }
+    }
+
+    /// <summary>Die Seitenleiste „Anträge“ ist offen.</summary>
+    [ObservableProperty]
+    public partial bool IsRequestsOpen { get; set; }
+
+    /// <summary>Die Schaltfläche „Anträge“ öffnet die Seitenleiste; ist sie offen, schließt ein zweiter Klick sie.</summary>
+    [RelayCommand]
+    private void ToggleRequests() => IsRequestsOpen = HasRequests && !IsRequestsOpen;
+
     /// <summary>Im Wochenplan: ein Klick auf einen Namen soll die Karte der Person öffnen.</summary>
     public event Action<Guid>? PersonRequested;
 

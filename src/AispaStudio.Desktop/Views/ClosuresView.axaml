@@ -7,7 +7,7 @@
                       x:DataType="vm:ClosuresViewModel"
                       ui:SaveShortcut.IsScope="True">
   <!--
-    Schließzeiten (R05 Slice 95, ADR 0073), native Maske nach web/src/closures/ClosuresPage.tsx: oben Reiter, Standort und „Neue Schließzeit“, darunter die Wartezeit vor der
+    Schließzeiten (R05 Slice 95, ADR 0073; seit ADR 0098 der erste Abschnitt der Seite „Schließzeiten“), nach web/src/closures/ClosuresPage.tsx: oben Titel, Standort und „Neue Schließzeit“, darunter die Wartezeit vor der
     Nachricht an den Gast, links die Liste, rechts das Formular mit Zeitraum, Art und Texten (Gruppen mit Überschrift und Fragezeichen am Titel, Brief 5.11), „Termine absagen …“
     und dem Protokoll der Absagen. „Speichern / Verwerfen“ steht am Ende des Formulars (Strg+S), „Löschen“ daneben.
   -->
@@ -32,7 +32,7 @@
 
     <ui:InfoBar Grid.Row="2" Severity="{Binding MessageSeverity}" Message="{Binding Message}" IsVisible="{Binding HasMessage}" CloseCommand="{Binding CloseMessageCommand}" />
 
-    <Grid Grid.Row="3" ColumnDefinitions="300,*">
+    <Grid Grid.Row="3" ColumnDefinitions="260,*">
       <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" Margin="0,0,16,0">
         <views:PeriodList />
       </ScrollViewer>

@@ -67,11 +67,14 @@ public sealed partial class ViewTests
             new(StaffPowerKind.CashVoid, "Kassa-Storno", true, [new(RosterLena.Id, "Lena", new DateOnly(2026, 1, 1), new DateOnly(2026, 12, 31), "Katrin", false)]),
             new(StaffPowerKind.Safe, "Tresor", false, [new(RosterLena.Id, "Lena", new DateOnly(2026, 1, 1), new DateOnly(2026, 9, 30), "Katrin", true)]),
             new(StaffPowerKind.Keys, "Schlüssel", false, []),
-        });
+        })
+            .On("GET /api/staff-duties/types", new List<DutyTypeDto>())
+            .On("GET /api/staff-duties/overview", new List<DutyOverviewRowDto>())
+            .On("GET /api/staff-duties/expiring", new List<ExpiringCertificateDto>());
         return Render(theme, "verwaltung-team-wer-darf-was", async (window, main) =>
         {
             var team = await OpenTeam(window, main);
-            await ClickSection(window, "Wer darf was?");
+            await ClickSection(window, "Rechte und Zuständigkeiten");
             await Pump(Settling);
 
             Assert.True(Named<Control>(window, "PowerOverview").IsEffectivelyVisible);

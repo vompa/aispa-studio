@@ -12,7 +12,7 @@ Sperrt den Zugang einer Person sofort, auch auf Geräten, auf denen sie gerade a
 
 ## Sperren {#sperren}
 
-1. In der Windows-App **Verwaltung** › **Team** öffnen, die Person wählen und den Reiter **Zugang und Rolle** öffnen.
+1. In der Windows-App **Verwaltung** › **Team** öffnen, die Person wählen und den Bereich **Profil** öffnen; dort steht **Zugang und Rolle**.
 2. Das Häkchen bei **Zugang aktiv (ausschalten sperrt sofort, auch auf angemeldeten Geräten)** entfernen.
 3. Auf **Speichern** klicken.
 

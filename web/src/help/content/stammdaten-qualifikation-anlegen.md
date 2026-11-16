@@ -12,7 +12,7 @@ Qualifikationen legen fest, wer welche Behandlung geben darf. Sie gelten für al
 
 ## Anlegen {#anlegen}
 
-1. In der Windows-App **Verwaltung** › **Team** öffnen, eine Person wählen und den Reiter **Qualifikationen** öffnen.
+1. In der Windows-App **Verwaltung** › **Team** öffnen, eine Person wählen, den Bereich **Profil** öffnen und zum Abschnitt **Qualifikationen** gehen.
 2. Unter „Qualifikationen verwalten“ im Feld (Beispiel „z. B. Hot Stone“) den Namen eintragen.
 3. Auf **Hinzufügen** klicken.
 
@@ -25,7 +25,7 @@ Der neue Name gilt sofort bei allen Personen und Behandlungen.
 
 ## Danach {#danach}
 
-1. Im Bereich **Team** den Personen die Qualifikation geben (Reiter **Qualifikationen** der Karte): [Person im Team ändern](hilfe:stammdaten-person-anlegen#aendern).
+1. Im Bereich **Team** den Personen die Qualifikation geben (Bereich **Profil**, Abschnitt **Qualifikationen** der Karte): [Person im Team ändern](hilfe:stammdaten-person-anlegen#aendern).
 2. Unter **Behandlungen** bei **Nötige Qualifikationen** anhaken: [Behandlung ändern](hilfe:stammdaten-behandlung-anlegen#aendern).
 
 ## Gut zu wissen {#hinweise}

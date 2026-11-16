@@ -22,7 +22,7 @@ Arbeitszeiten trägt die Leitung in den Zeiten ein; am Handy wird nicht gestempe
 
 ![Zeiten eines Tages in der Windows-App](images/app/verwaltung-team-zeiten.png)
 
-Für eine einzelne Person geht es auch auf ihrer Karte: Im Team die Person wählen und den Reiter **Zeiten** öffnen. Dort stehen dieselben Zellen für ihre Woche.
+Für eine einzelne Person geht es auch auf ihrer Karte: Im Team die Person wählen und den Bereich **Arbeitszeit** öffnen; die Zeiten stehen unter dem Dienstplan. Dort stehen dieselben Zellen für ihre Woche.
 
 Danach steht „Gespeichert.“ bei den Zeiten des Tages, und die Zelle zeigt die neuen Stunden. **Verwerfen** schließt die Eingabe, ohne etwas zu speichern.
 
