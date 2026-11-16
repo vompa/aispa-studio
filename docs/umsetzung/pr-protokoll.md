@@ -6431,3 +6431,57 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Nicht geprüft:** die Seite am Handy.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
 
+## Kundenbereich: „Ich komme später“ durch den Gast (16.11.2026)
+
+- **Auftrag:** Offener Punkt aus den Rezeptions-Schritten („Meldung durch den Gast über den Termin-Link“, `docs/produkt/kalender-rezeption.md`); vom Auftraggeber am 16.11.2026 mit der Liste der nächsten Punkte freigegeben.
+- **Was:**
+  - `OnlinePortal.ReportLateAsync`, `POST /api/online/bookings/{token}/late` und `POST /api/online/me/appointments/{id}/late`; `OnlineAppointment.LateMinutes` und `CanReportLate`.
+  - Kundenbereich: Auf der Terminseite (Link aus der Mail) und unter „Meine Termine“ steht kurz vor dem Termin „Ich komme später“ mit 5, 10, 15, 20 und 30 Minuten; „Doch pünktlich“ nimmt es zurück. Texte in vier Sprachen.
+  - Der Kalender der Windows-App zeigt die Verspätung live, wie wenn die Rezeption sie einträgt. Der Termin bleibt an seiner Zeit.
+- **Detailentscheidungen:**
+  1. Von drei Stunden vor dem Termin bis 15 Minuten nach Beginn. Früher wäre es eine Verschiebung, später ruft der Gast besser an.
+  2. Höchstens 30 Minuten zur Auswahl; die Rezeption kann wie bisher bis 120 eintragen.
+  3. Nur gebuchte Termine; nach dem Einchecken, einer Absage oder einem Nichterscheinen nimmt die Seite nichts mehr an.
+  4. Keine Nachricht an die Rezeption zusätzlich zum Kalender: Die Markierung am Termin und die Live-Änderung sind der Hinweis.
+- **Bewusst offen / später:** Hinweis auf die Meldung in „Mein Tag“ der Therapeutin; Link dazu in der zweiten Erinnerung ausdrücklich nennen.
+- **Geprüft:** Tests zuerst geplant: API `OnlineBookingTests` (neu: melden, zurücknehmen, falsche Auswahl, falscher Link, zu früh, zu spät, abgesagt) 2 Tests grün; Web `booking` 68 grün (neu: Knöpfe und Rücknahme mit Prüfung der Barrierefreiheit, kein Angebot ohne Erlaubnis der API); Typprüfung und Lint sauber.
+- **Nicht geprüft:** die Seite am Handy; die Anzeige im laufenden Kalender. Die Übersetzungen sind nicht von Muttersprachlern gelesen.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Kundenbereich: Erinnerung vor Ablauf der Frist für Karte oder Anzahlung (16.11.2026)
+
+- **Auftrag:** Offener Punkt im Kundenbereich („Gast vor Ablauf der Frist für Karte oder Anzahlung erinnern“, ADR 0047); vom Auftraggeber am 16.11.2026 mit der Liste der nächsten Punkte freigegeben.
+- **Befund:** Wer online buchte und Karte oder Anzahlung nicht gleich erledigte, hörte bis zur Freigabe des Termins nichts mehr.
+- **Was:**
+  - `UnsecuredBookingRelease.RemindOnceAsync` läuft mit der Freigabe-Suche mit und stellt je Termin einmal `RemindUnsecuredBooking` in die Queue; `CardGuarantee.ReminderSentAt` und `DepositOrder.ReminderSentAt` (Migration `FristErinnerung`).
+  - Mail `OnlineMails.HoldReminder` in vier Sprachen mit Frist und Link zum Termin.
+- **Detailentscheidungen:**
+  1. Einmal, wenn drei Viertel der Frist um sind: bei 24 Stunden sechs Stunden vorher, bei 2 Stunden eine halbe Stunde vorher.
+  2. Keine Erinnerung bei Fristen unter zwei Stunden: Die Bestätigung mit der Frist ist dann gerade erst angekommen.
+  3. Erst vermerken, dann senden; ein zweiter Lauf erinnert nicht noch einmal. Fällt der Versand aus, bleibt es bei der Bestätigung.
+  4. Vor dem Senden prüft der Handler noch einmal: Ist inzwischen hinterlegt, bezahlt oder storniert, geht nichts hinaus.
+  5. Servicemail zur Buchung, keine Werbung; sie braucht keine Einwilligung.
+  6. Links der Rezeption („Karte per Link anfordern“) haben keine Frist und bekommen keine Erinnerung.
+- **Bewusst offen / später:** Erinnerung per SMS; Einstellung des Zeitpunkts.
+- **Geprüft:** Tests zuerst geplant: `CardGuaranteeTests` und `DepositTests` zusammen 37 grün (neu: zu früh, fällig, kein zweites Mal, keine Mail bei hinterlegter Karte, Anzahlung; Regel für drei Viertel und die Zwei-Stunden-Grenze).
+- **Nicht geprüft:** die Mail in einem echten Postfach; die Übersetzungen sind nicht von Muttersprachlern gelesen.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Anfragen: einen späteren als den nächsten Termin absagen (16.11.2026)
+
+- **Auftrag:** Offener Punkt aus PR #167 („Absage eines späteren als des nächsten Termins per Klick“); vom Auftraggeber am 16.11.2026 mit der Liste der nächsten Punkte freigegeben.
+- **Befund:** Die Terminannahme ordnet einer Absage den nächsten Termin des Gastes zu. Meinte der Gast einen späteren, musste die Rezeption in den Kalender wechseln und die Nachricht von Hand abschließen; die Antwort an den Gast nannte dann keinen Termin.
+- **Was:**
+  - `GET /api/inbox/{id}/cancellable-appointments` liefert die bevorstehenden gebuchten Termine des Gastes an den eigenen Standorten; `POST /api/inbox/{id}/cancel-appointment` nimmt `appointmentId`.
+  - Windows-App: Im Posteingang steht bei mehreren Terminen die Auswahl „Welcher Termin?“ über „Termin stornieren“; die Rückfrage nennt den gewählten Termin.
+  - Hilfe `anfragen-absage-stornieren`.
+- **Detailentscheidungen:**
+  1. Die Auswahl erscheint nur, wenn der Gast mehr als einen bevorstehenden Termin hat; vorgewählt bleibt der gefundene.
+  2. Der Server prüft die Wahl: derselbe Gast, gebucht, in der Zukunft, eigener Standort. Etwas anderes lehnt er ab.
+  3. Die Nachricht zeigt nach dem Storno auf den gewählten Termin, damit der Antwortentwurf den richtigen nennt.
+  4. Storniert wird weiter nie von selbst.
+- **Bewusst offen / später:** Die KI erkennt aus dem Text nicht, welcher Termin gemeint ist; mehrere Termine in einem Schritt absagen.
+- **Geprüft:** Tests zuerst geplant: API `MailIntakeTests` (neu: Auswahl, fremder Termin abgelehnt, nächster bleibt gebucht, Antwort nennt den gewählten); Windows-App `InboxReproposeTests` (neu: Vorwahl, Wahl des späteren, Rückfrage, Aufruf mit `appointmentId`).
+- **Nicht geprüft:** die laufende App.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+

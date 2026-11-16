@@ -105,6 +105,7 @@ Ruft ein Gast an, dass er später kommt:
 
 - Der Termin wird nicht verkürzt und nicht verschoben, der Preis bleibt.
 - **Doch pünktlich** im selben Menü nimmt die Verspätung zurück. Wird der Termin verschoben, ist sie erledigt.
+- Der Gast kann die Verspätung auch selbst melden: Auf seiner Terminseite (Link aus der Bestätigung oder Erinnerung) und im Kundenbereich unter „Meine Termine“ steht ab drei Stunden vor dem Termin bis 15 Minuten nach Beginn **Ich komme später** mit 5, 10, 15, 20 und 30 Minuten. Der Kalender zeigt es sofort wie eine Meldung der Rezeption.
 
 ## Vor-/Nachbereitung je Termin ändern {#zeiten-je-termin}
 

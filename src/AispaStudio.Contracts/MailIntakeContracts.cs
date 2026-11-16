@@ -258,3 +258,9 @@ public sealed record CalendarFeedDto(Guid Id, Guid LocationId, Guid? EmployeeId,
 
 /// <summary>SignalR: im Posteingang ist diese Nachricht neu oder geändert. Den Inhalt lädt die Oberfläche selbst über die API.</summary>
 public sealed record InboxChangedEvent(Guid MailId);
+
+/// <summary>
+/// Ein bevorstehender gebuchter Termin des Gastes, den die Rezeption zu einer Absage stornieren kann. <c>Found</c>: der Termin, den die
+/// Terminannahme der Nachricht zugeordnet hat (der nächste des Gastes); die anderen sind spätere Termine.
+/// </summary>
+public sealed record InboxAppointmentOption(Guid Id, DateTimeOffset Start, string TreatmentName, string LocationName, string TimeZone, bool Found);

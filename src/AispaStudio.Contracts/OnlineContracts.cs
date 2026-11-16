@@ -156,7 +156,8 @@ public sealed record TestCardResult(bool Saved);
 /// <summary>
 /// Termin aus Sicht der Kundin oder des Kunden. <c>CancellableUntil</c>: bis dahin ist Online-Storno kostenlos möglich, danach
 /// telefonisch oder bei <c>CanCancelLate</c> online gegen die Gebühr <c>LateCancelFee</c>. <c>CardGuarantee</c>: hinterlegte Karte,
-/// wenn der Standort eine Ausfallgebühr verlangt.
+/// wenn der Standort eine Ausfallgebühr verlangt. <c>LateMinutes</c>: gemeldete Verspätung; <c>CanReportLate</c>: Der Gast kann jetzt selbst
+/// melden, dass er später kommt (kurz vor dem Termin bis kurz nach Beginn). Der Termin bleibt an seiner Zeit.
 /// </summary>
 public sealed record OnlineAppointment(
     Guid Id,
@@ -180,7 +181,12 @@ public sealed record OnlineAppointment(
     Guid? TreatmentId = null,
     bool CanMove = false,
     decimal? LateCancelFee = null,
-    bool CanCancelLate = false);
+    bool CanCancelLate = false,
+    int? LateMinutes = null,
+    bool CanReportLate = false);
+
+/// <summary>Der Gast meldet, dass er später kommt: 5, 10, 15, 20 oder 30 Minuten; 0 nimmt die Meldung zurück.</summary>
+public sealed record OnlineLateRequest(int Minutes);
 
 /// <summary>
 /// Eigener Gutschein in der Kunden-App. <c>Balance</c>: Restwert; bei einem Paket zählen <c>Units</c> und <c>UnitsLeft</c>.

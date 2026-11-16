@@ -358,7 +358,7 @@ Die Nummern sind die Reihenfolge, die der jeweilige Thread gewählt hätte ([Üb
 3. Leerlaufzeit eines angemeldeten Empfangsgeräts ändern; Liste aller Empfangsgeräte des Spas.
 4. Lücken durch Verschieben mehrerer Termine hintereinander schließen (Ketten).
 5. Feiertage weiterer Kantone und einzelner Gemeinden.
-6. Aus den Rezeptions-Schritten offen: „Kommt später“ meldet der Gast selbst über den Termin-Link; Sauna und Ausfallgebühr für Gäste ohne Namen; Hinweis „Anamnese prüfen“ auch bei Paar, Spa-Tag und in „Mein Tag“; automatische Vorschläge für Kennzeichen; Schwellen der Kennzahlen einstellbar.
+6. Aus den Rezeptions-Schritten offen („Kommt später“ meldet der Gast seit 16.11.2026 selbst über den Termin-Link): Sauna und Ausfallgebühr für Gäste ohne Namen; Hinweis „Anamnese prüfen“ auch bei Paar, Spa-Tag und in „Mein Tag“; automatische Vorschläge für Kennzeichen; Schwellen der Kennzahlen einstellbar.
 - Nicht gebaut (Auftraggeber, 16.11.2026): Zeiterfassung am Empfangsgerät per PIN.
 - Später: Chipkarte oder NFC für den Schnellwechsel; Entfernung oder bevorzugter Ausweichstandort; Lückenbewertung in Online-Buchung und KI-Terminannahme; SSO; Korrekturwünsche, Monatsbestätigung, Ist-Zeiten in den Berichten; Benachrichtigung beim Veröffentlichen des Dienstplans; KI-Vorschläge im Dienstplan (Entwurf `RosterDraftTests`).
 
@@ -382,7 +382,7 @@ Die Nummern sind die Reihenfolge, die der jeweilige Thread gewählt hätte ([Üb
 - Später: ZVT und OPI an einem echten Gerät prüfen; Anzahlung anzeigen; Personenwechsel ohne Server nach dem ersten Praxistest bewerten.
 
 **Online-Buchung und Kundenbereich**
-1. Gast vor Ablauf der Frist für Karte oder Anzahlung erinnern.
+1. Gast vor Ablauf der Frist für Karte oder Anzahlung erinnern: seit 16.11.2026 gebaut (einmal, wenn drei Viertel der Frist um sind).
 2. Anzahlung für Termine der Rezeption per Link.
 3. Zahlungs- und Kartenlink auch per SMS.
 4. Stripe-Kunden aus abgebrochenen Hinterlegungen löschen.
