@@ -359,7 +359,8 @@ Die Nummern sind die Reihenfolge, die der jeweilige Thread gewählt hätte ([Üb
 4. Lücken durch Verschieben mehrerer Termine hintereinander schließen (Ketten).
 5. Feiertage weiterer Kantone und einzelner Gemeinden.
 6. Aus den Rezeptions-Schritten offen: „Kommt später“ meldet der Gast selbst über den Termin-Link; Sauna und Ausfallgebühr für Gäste ohne Namen; Hinweis „Anamnese prüfen“ auch bei Paar, Spa-Tag und in „Mein Tag“; automatische Vorschläge für Kennzeichen; Schwellen der Kennzahlen einstellbar.
-- Später: Chipkarte oder NFC für den Schnellwechsel; Entfernung oder bevorzugter Ausweichstandort; Lückenbewertung in Online-Buchung und KI-Terminannahme; SSO; Zeiterfassung am Empfangstablet per PIN, Korrekturwünsche, Monatsbestätigung, Ist-Zeiten in den Berichten; Benachrichtigung beim Veröffentlichen des Dienstplans; KI-Vorschläge im Dienstplan (Entwurf `RosterDraftTests`).
+- Nicht gebaut (Auftraggeber, 16.11.2026): Zeiterfassung am Empfangsgerät per PIN.
+- Später: Chipkarte oder NFC für den Schnellwechsel; Entfernung oder bevorzugter Ausweichstandort; Lückenbewertung in Online-Buchung und KI-Terminannahme; SSO; Korrekturwünsche, Monatsbestätigung, Ist-Zeiten in den Berichten; Benachrichtigung beim Veröffentlichen des Dienstplans; KI-Vorschläge im Dienstplan (Entwurf `RosterDraftTests`).
 
 **Kassa, Buchhaltung, Lager**
 1. Test `CardGuaranteeTests.Online_Termin_ohne_Karte_wird_nach_der_Frist_freigegeben` beobachten: am 08.11.2026 in 18 Läufen (auch unter Last) nicht reproduziert; erst mit Fehlermeldung aus dem CI-Log ändern.

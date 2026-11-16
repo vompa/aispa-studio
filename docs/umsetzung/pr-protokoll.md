@@ -6252,7 +6252,7 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
   4. Eigener Knopf „Urlaubskonto speichern“; die Karte fragt bei ungespeichertem Anspruch wie bei einem offenen Tag nach.
   5. Ein negativer Rest wird hervorgehoben, aber nichts wird gesperrt.
 - **Bewusst offen / später:**
-  - **Zeiterfassung am Empfangsgerät** ist nicht gebaut: Sie widerspricht der Entscheidung des Auftraggebers vom 05.11.2026 (T-015, Nachtrag zu ADR 0031: keine Stempeluhr, Arbeitszeiten trägt nur die Leitung ein). Braucht seine Antwort.
+  - **Zeiterfassung am Empfangsgerät** wird nicht gebaut (Auftraggeber, 16.11.2026: „Zeiterfassung bauen wir nicht“). Es bleibt bei T-015 und dem Nachtrag zu ADR 0031: keine Stempeluhr, Arbeitszeiten trägt nur die Leitung ein.
   - Rest beim Entscheiden eines Antrags; Konto in der Mitarbeiter-App; Übersicht über alle Personen; Änderungen am Anspruch im Verlauf der Karte.
   - Der Lohn-Export zählt Urlaub weiter je eingetragenem Tag, auch am Wochenende.
   - Arbeitsrecht (Kalenderjahr als Urlaubsjahr, Feiertage, Krankheit im Urlaub) steht als offen im ADR.
