@@ -11192,6 +11192,8 @@ export interface components {
             /** @default false */
             acceptNoShowFee: boolean;
             voucherCode?: null | string;
+            /** @default false */
+            acceptMarketing: boolean;
         };
         OnlineCardGuarantee: {
             /** Format: double */
@@ -11299,6 +11301,8 @@ export interface components {
              */
             depositPercent: number;
             closures?: null | components["schemas"]["OnlineClosure"][];
+            /** @default false */
+            rebookReminders: boolean;
         };
         OnlineMoveRequest: {
             /** Format: date-time */

@@ -1134,3 +1134,19 @@ Expected: Das Konto zeigt das Vorjahr mit leerem Anspruch; zurückgeblättert st
 Expected: Den Reiter „Dienstplan und Abwesenheit“ gibt es für die Rezeption nicht.
 Closes: –
 Result: ☐
+
+### Online-Buchung – Einwilligung in die Erinnerung an die nächste Behandlung
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App als Inhaberin, dazu der Kundenbereich im Browser
+1. In der Windows-App unter **Verwaltung** › **Kontakt** › **Erinnerungen** die Wiederbuchungs-Hinweise einschalten und für eine Behandlung einen Abstand eintragen.
+Expected: Die Einstellung ist gespeichert.
+2. Im Kundenbereich eine Behandlung und eine Zeit wählen.
+Expected: Unter dem Datenschutzhinweis steht das Häkchen „Ich möchte per E-Mail an meine nächste Behandlung erinnert werden (freiwillig) …“; es ist nicht gesetzt.
+3. Das Häkchen setzen und buchen.
+Expected: Die Buchung wird bestätigt. Im Postfach des Gastes liegt zusätzlich eine Mail zum Bestätigen der Erinnerungen.
+4. In der Windows-App den Termin im Kalender öffnen.
+Expected: Auf der Karte „Wiederbuchungs-Hinweis“ steht die Einwilligung als angefragt.
+5. Die Wiederbuchungs-Hinweise ausschalten und im Kundenbereich erneut bis zu den Angaben gehen.
+Expected: Das Häkchen fehlt.
+Closes: –
+Result: ☐
+

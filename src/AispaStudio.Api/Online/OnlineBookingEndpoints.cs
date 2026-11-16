@@ -1,6 +1,7 @@
 using AispaStudio.Api.Closures;
 using AispaStudio.Api.Data;
 using AispaStudio.Api.Pos;
+using AispaStudio.Api.Retention;
 using AispaStudio.Api.Scheduling;
 using AispaStudio.Api.Tenancy;
 using AispaStudio.Contracts;
@@ -24,6 +25,7 @@ internal static class OnlineBookingEndpoints
                 var locations = await db.Locations.AsNoTracking().Include(l => l.OpeningHours).OrderBy(l => l.Name).ToListAsync(ct);
                 var byLocation = await rules.ForAsync([.. locations.Select(l => l.Id)], ct);
                 var cards = await guarantees.AvailableAsync(ct);
+                var reminders = await db.RebookSettings.AsNoTracking().AnyAsync(r => r.Enabled, ct);
                 var result = new List<OnlineLocation>();
                 foreach (var l in locations)
                 {
@@ -32,7 +34,7 @@ internal static class OnlineBookingEndpoints
                         byLocation[l.Id].BookingEnabled, byLocation[l.Id].GuestNote, byLocation[l.Id].CancellationDeadlineHours,
                         MasterDataEndpoints.ContactOf(l), CardGuarantees.EffectivePercent(cards, byLocation[l.Id]), byLocation[l.Id].NoShowFeeNewCustomersOnly,
                         await deposits.AvailableAsync(l.Id, ct) ? Deposits.EffectivePercent(byLocation[l.Id]) : 0,
-                        await closures.OnlineAsync(l.Id, ct)));
+                        await closures.OnlineAsync(l.Id, ct), reminders));
                 }
 
                 return result;
@@ -173,7 +175,7 @@ internal static class OnlineBookingEndpoints
     private static async Task<Results<Created<OnlineBookingConfirmation>, ValidationProblem, NotFound, Conflict<BookingRejected>, ProblemHttpResult>> BookAsync(
         OnlineBookingRequest request, HttpContext http, AispaDbContext db, OnlineDbContext online,
         BookingService booking, OnlinePortal portal, CustomerAccounts accounts, OnlineRules rules, CardGuarantees guarantees, Deposits deposits,
-        TimeProvider time, CancellationToken ct)
+        TimeProvider time, MarketingConsents consents, CancellationToken ct)
     {
         var location = await db.Locations.AsNoTracking().FirstOrDefaultAsync(l => l.Id == request.LocationId, ct);
         var treatment = location is null ? null : (await BookableTreatmentsAsync(db, request.LocationId, ct)).FirstOrDefault(t => t.Id == request.TreatmentId);
@@ -271,6 +273,12 @@ internal static class OnlineBookingEndpoints
                 return TypedResults.Conflict(Public(r.Reason.Message));
             case BookingOutcome.Success s:
                 var confirmation = await portal.ConfirmAsync(s.Appointment.Id, account?.Id, email, GuestLanguage.Normalize(request.Language), ct);
+                // Einwilligung (ADR 0040): nur die Mail zum Bestätigen. Eine Ablehnung (schon unterwegs, keine Adresse) hält die Buchung nicht auf.
+                if (request.AcceptMarketing && await db.RebookSettings.AsNoTracking().AnyAsync(r => r.Enabled, ct))
+                {
+                    _ = await consents.RequestAsync(customerId, request.Language, MarketingConsents.SourceOnline, ct);
+                }
+
                 return TypedResults.Created($"/api/online/me/appointments/{s.Appointment.Id}", confirmation);
             default:
                 return TypedResults.NotFound();

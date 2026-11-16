@@ -6280,3 +6280,23 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Nicht geprüft:** die laufende App; ein echter Treatwell-Termin. Die volle Suite läuft in der CI.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
 
+## Kommunikation: Einwilligung beim Online-Buchen (16.11.2026)
+
+- **Auftrag:** Block „Kommunikation (Einwilligung beim Online-Buchen, Erinnerungs-Obergrenze, dann Marketing)“ aus der Reihenfolge vom 20.10.2026; offener Punkt aus [ADR 0040](../entscheidungen/0040-einwilligung-erinnerung-naechste-behandlung.md).
+- **Was:**
+  - `OnlineBookingRequest.AcceptMarketing` und `OnlineLocation.RebookReminders`. Nach einer Buchung mit Häkchen fragt der Server die Einwilligung an (`MarketingConsents.RequestAsync`, Herkunft `SourceOnline`); der Gast bestätigt per Mail.
+  - Kundenbereich: Häkchen „Ich möchte per E-Mail an meine nächste Behandlung erinnert werden (freiwillig) …“ in Deutsch, Englisch, Französisch und Italienisch.
+  - Hilfe `erinnerungen`.
+- **Detailentscheidungen:**
+  1. Das Häkchen erscheint nur, wenn das Spa die Erinnerungen eingeschaltet hat. Sonst würde der Gast in etwas einwilligen, das es nicht gibt.
+  2. Der Server prüft das noch einmal und fragt bei ausgeschalteten Erinnerungen nichts an, auch wenn das Feld gesetzt ist.
+  3. Kann die Anfrage nicht hinaus (Mail schon unterwegs, keine Adresse), bleibt die Buchung gültig; die Einwilligung ist freiwillig und kein Teil der Buchung.
+  4. Das Häkchen steht getrennt vom Datenschutzhinweis und ist nie vorausgewählt.
+- **Bewusst offen / später:**
+  - `List-Unsubscribe` in den Mails zur nächsten Behandlung.
+  - **Erinnerungs-Obergrenze:** In den Unterlagen nicht beschrieben. Für die Wiederbuchungs-Hinweise gilt schon „höchstens eine in 30 Tagen“ (ADR 0040). Ob für Terminerinnerungen eine Grenze je Gast und Tag gemeint ist (Paar, Spa-Tag), entscheidet der Auftraggeber.
+  - Wortlaut der Einwilligung vor dem Echtbetrieb rechtlich gegenlesen lassen; Schweiz prüfen.
+- **Geprüft:** Tests zuerst geplant: API `OnlineBookingTests` (neu: mit Häkchen wartend mit Herkunft „Online“, ohne Häkchen nichts, Erinnerungen aus) 3 von 3; Web `booking` 66 grün (neu: Häkchen nur bei eingeschalteten Erinnerungen, nicht vorausgewählt, wird gesendet, barrierefrei); `npm run gen:api`, Typprüfung und Lint sauber.
+- **Nicht geprüft:** die Mail in einem echten Postfach; die Seite im Browser von Hand. Die volle Suite läuft in der CI.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md); die Übersetzungen sind nicht von Muttersprachlern gelesen.
+

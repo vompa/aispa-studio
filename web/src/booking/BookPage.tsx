@@ -679,6 +679,7 @@ function DetailsStep({ location, treatment, start, onBack, onBooked, onTaken, fo
   const [refused, setRefused] = useState(false)
   const [privacy, setPrivacy] = useState(false)
   const [feeAccepted, setFeeAccepted] = useState(false)
+  const [marketing, setMarketing] = useState(false)
   // Eine Anzahlung ersetzt die Karte für die Ausfallgebühr; beidem stimmt der Gast mit demselben Häkchen zu.
   const depositPercent = treatment.depositPercent ?? location.depositPercent ?? 0
   const feePercent = depositPercent > 0 ? 0 : (treatment.noShowFeePercent ?? location.noShowFeePercent ?? 0)
@@ -724,6 +725,7 @@ function DetailsStep({ location, treatment, start, onBack, onBooked, onTaken, fo
           language: lang,
           acceptNoShowFee: feeAccepted,
           voucherCode: voucher.trim() || null,
+          acceptMarketing: Boolean(location.rebookReminders) && marketing,
         },
       })
       if (data) {
@@ -831,6 +833,14 @@ function DetailsStep({ location, treatment, start, onBack, onBooked, onTaken, fo
           </span>
         )}
       </div>
+      {location.rebookReminders && (
+        <div className="field">
+          <label className="check">
+            <input id={detailId('marketing')} type="checkbox" checked={marketing} onChange={(e) => setMarketing(e.target.checked)} />
+            <span>{t.marketing}</span>
+          </label>
+        </div>
+      )}
       {fee && (
         <div className="field">
           <p id="fee-terms" className="hint">

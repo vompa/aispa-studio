@@ -41261,6 +41261,10 @@
               "null",
               "string"
             ]
+          },
+          "acceptMarketing": {
+            "type": "boolean",
+            "default": false
           }
         }
       },
@@ -41679,6 +41683,10 @@
             "items": {
               "$ref": "#/components/schemas/OnlineClosure"
             }
+          },
+          "rebookReminders": {
+            "type": "boolean",
+            "default": false
           }
         }
       },

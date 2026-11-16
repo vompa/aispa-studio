@@ -148,6 +148,31 @@ describe('Online-Buchung', () => {
     expect(screen.queryByText(/Das hat leider nicht geklappt/)).toBeNull()
   })
 
+  it('bietet die Erinnerung an die nächste Behandlung nur an, wenn das Spa sie eingeschaltet hat, und sendet das Häkchen mit', async () => {
+    routes['GET /api/online/locations'] = () => ({ status: 200, body: [{ ...location, rebookReminders: true }] })
+    routes['POST /api/online/bookings'] = () => ({ status: 400, body: { errors: {} } })
+    render(<BookingApp />)
+    await chooseTreatmentAndTime()
+    const box = screen.getByRole('checkbox', { name: /an meine nächste Behandlung erinnert/ }) as HTMLInputElement
+    expect(box.checked).toBe(false)
+    fireEvent.change(screen.getByLabelText(/^Vorname/), { target: { value: 'Lena' } })
+    fireEvent.change(screen.getByLabelText(/^Nachname/), { target: { value: 'Gast' } })
+    fireEvent.change(screen.getByLabelText(/^E-Mail-Adresse/), { target: { value: 'lena@example.at' } })
+    fireEvent.click(screen.getByRole('checkbox', { name: /Datenschutzhinweis/ }))
+    fireEvent.click(box)
+    fireEvent.click(screen.getByRole('button', { name: 'Verbindlich buchen' }))
+
+    await waitFor(() => expect(requests.find((r) => r.path === '/api/online/bookings')?.body).toMatchObject({ acceptMarketing: true }))
+    await expectAccessible()
+  })
+
+  it('zeigt ohne eingeschaltete Erinnerungen kein Häkchen dafür', async () => {
+    render(<BookingApp />)
+    await chooseTreatmentAndTime()
+
+    expect(screen.queryByRole('checkbox', { name: /an meine nächste Behandlung erinnert/ })).toBeNull()
+  })
+
   it('nimmt einen Gutscheincode mit und meldet einen ungültigen am Feld, eine Ablehnung oben', async () => {
     let reply: Reply = { status: 400, body: { errors: { voucherCode: ['ungültig'] } } }
     routes['POST /api/online/bookings'] = () => reply
