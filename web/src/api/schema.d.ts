@@ -11311,6 +11311,7 @@ export interface components {
             voucherCode?: null | string;
             /** @default false */
             acceptMarketing: boolean;
+            therapistWish?: null | components["schemas"]["TherapistGender"];
         };
         OnlineCardGuarantee: {
             /** Format: double */
@@ -11424,6 +11425,8 @@ export interface components {
             closures?: null | components["schemas"]["OnlineClosure"][];
             /** @default false */
             rebookReminders: boolean;
+            /** @default false */
+            therapistWish: boolean;
         };
         OnlineMoveRequest: {
             /** Format: date-time */
@@ -25600,6 +25603,7 @@ export interface operations {
                 treatmentId: string;
                 from?: string;
                 days?: number;
+                wish?: components["schemas"]["TherapistGender"];
             };
             header?: never;
             path: {

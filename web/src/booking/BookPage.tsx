@@ -25,6 +25,9 @@ type WaitlistStart = { firstDay: string; firstBookable: string; lastBookable: st
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 /** Reihenfolge der Felder im Formular „Ihre Angaben“; die Fehlerübersicht nennt die Fehler in dieser Reihenfolge. */
+/** Wunsch des Gastes für diese Buchung; `null` heißt egal. */
+type TherapistWish = 'Female' | 'Male' | null
+
 const DETAIL_FIELDS = ['firstName', 'lastName', 'email', 'phone', 'note', 'voucher', 'privacy', 'fee']
 const detailId = (key: string) => `details-${key}`
 
@@ -48,6 +51,7 @@ export function BookPage({ navigatedHere, prefill }: { navigatedHere: boolean; p
   const [treatmentId, setTreatmentId] = useState<string | null>(prefill?.treatmentId ?? null)
   const [confirmation, setConfirmation] = useState<OnlineBookingConfirmation | null>(null)
   const [start, setStart] = useState<string | null>(null)
+  const [wish, setWish] = useState<TherapistWish>(null)
   // Preis der gewählten Zeit, wenn die Behandlung Preise nach Uhrzeit hat.
   const [slotPrice, setSlotPrice] = useState<number | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
@@ -252,6 +256,11 @@ export function BookPage({ navigatedHere, prefill }: { navigatedHere: boolean; p
             value={start}
             initialDay={prefill?.date ?? null}
             focus={moved}
+            wish={wish}
+            onWish={(w) => {
+              setWish(w)
+              setStart(null)
+            }}
             onBack={() => go('treatment')}
             onWaitlist={(w) => {
               setWaitlist(w)
@@ -280,6 +289,7 @@ export function BookPage({ navigatedHere, prefill }: { navigatedHere: boolean; p
         )}
         {step === 'details' && location && treatment && start && session !== undefined && (
           <DetailsStep
+            wish={wish}
             location={location}
             treatment={slotPrice === null ? treatment : { ...treatment, price: slotPrice }}
             start={start}
@@ -471,7 +481,7 @@ function ClosureNotices({ location }: { location: OnlineLocation }) {
   )
 }
 
-export function TimeStep({ location, treatment, value, initialDay, onNext, onBack, onWaitlist, focus, nextLabel }: {
+export function TimeStep({ location, treatment, value, initialDay, onNext, onBack, onWaitlist, focus, nextLabel, wish, onWish }: {
   focus: boolean
   location: OnlineLocation
   treatment: OnlineTreatment
@@ -479,6 +489,9 @@ export function TimeStep({ location, treatment, value, initialDay, onNext, onBac
   initialDay: string | null
   onNext: (start: string, price: number | null) => void
   onBack: () => void
+  /** Wunsch „Therapeutin“ oder „Therapeut“ für diese Buchung; ohne `onWish` wird er nicht angeboten (z. B. beim Verschieben). */
+  wish?: TherapistWish
+  onWish?: (wish: TherapistWish) => void
   /** Ohne: kein Angebot für die Warteliste (z. B. beim Verschieben). */
   onWaitlist?: (start: WaitlistStart) => void
   nextLabel?: string
@@ -495,7 +508,7 @@ export function TimeStep({ location, treatment, value, initialDay, onNext, onBac
     let current = true
     api
       .GET('/api/online/locations/{locationId}/availability', {
-        params: { path: { locationId: location.id }, query: { treatmentId: treatment.id, from: from ?? undefined, days: 7 } },
+        params: { path: { locationId: location.id }, query: { treatmentId: treatment.id, from: from ?? undefined, days: 7, wish: wish ?? undefined } },
       })
       .then(
         ({ data }) => {
@@ -510,7 +523,7 @@ export function TimeStep({ location, treatment, value, initialDay, onNext, onBac
     return () => {
       current = false
     }
-  }, [location.id, treatment.id, from, attempt])
+  }, [location.id, treatment.id, from, attempt, wish])
 
   if (failed) return (
       <RetryAlert
@@ -544,6 +557,24 @@ export function TimeStep({ location, treatment, value, initialDay, onNext, onBac
       </Heading>
       <p className="hint">{t.timeZoneHint(location.timeZone)}</p>
       <ClosureNotices location={location} />
+      {location.therapistWish && onWish && (
+        <div className="field">
+          <label htmlFor="therapist-wish">{t.therapistWish}</label>
+          <select
+            id="therapist-wish"
+            value={wish ?? ''}
+            onChange={(e) => {
+              // Mit dem Wunsch ändern sich die freien Zeiten: die gewählte Zeit gilt nicht mehr.
+              setTime(null)
+              onWish((e.target.value || null) as TherapistWish)
+            }}
+          >
+            <option value="">{t.therapistWishAny}</option>
+            <option value="Female">{t.therapistWishFemale}</option>
+            <option value="Male">{t.therapistWishMale}</option>
+          </select>
+        </div>
+      )}
       {!availability ? (
         <Status>{t.loading}</Status>
       ) : (
@@ -657,11 +688,12 @@ export function TimeStep({ location, treatment, value, initialDay, onNext, onBac
   )
 }
 
-function DetailsStep({ location, treatment, start, onBack, onBooked, onTaken, focus }: {
+function DetailsStep({ location, treatment, start, onBack, onBooked, onTaken, focus, wish }: {
   focus: boolean
   location: OnlineLocation
   treatment: OnlineTreatment
   start: string
+  wish: TherapistWish
   onBack: () => void
   onBooked: (c: OnlineBookingConfirmation, email: string) => void
   onTaken: () => void
@@ -726,6 +758,7 @@ function DetailsStep({ location, treatment, start, onBack, onBooked, onTaken, fo
           acceptNoShowFee: feeAccepted,
           voucherCode: voucher.trim() || null,
           acceptMarketing: Boolean(location.rebookReminders) && marketing,
+          therapistWish: location.therapistWish ? wish : null,
         },
       })
       if (data) {

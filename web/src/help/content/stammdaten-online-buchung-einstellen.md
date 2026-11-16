@@ -37,6 +37,8 @@ Bei einem gebuchten Termin zeigt der Kundenbereich unter dem Standort die Anschr
 
 - Eine [Schließzeit](hilfe:schliesszeiten) des Standorts sperrt die Online-Buchung in ihrer Zeit: der Kundenbereich zeigt keine freien Zeiten und bei der Buchung den Hinweis „Vom … bis … geschlossen“ mit dem Text für Gäste.
 - Ändern dürfen Inhaber und Standortleitung; alle anderen sehen die Regeln nur.
+- Ist im Team bei Personen „Therapeutin“ oder „Therapeut“ eingetragen, kann der Gast beim Buchen unter **Behandlung durch (freiwillig)** einen Wunsch wählen. Die freien Zeiten richten sich danach, gebucht wird eine passende Person, und der Wunsch steht in der Notiz des Termins. Personen ohne Angabe passen zu jedem Wunsch. Der Wunsch gilt nur für diesen Termin.
+- Sind beim Standort die Wiederbuchungs-Hinweise eingeschaltet, kann der Gast beim Buchen ankreuzen, dass er an die nächste Behandlung erinnert werden möchte: [Erinnerungen](hilfe:erinnerungen).
 - Eine Ausfallgebühr wirkt nur mit eingerichtetem Zahlungsanbieter: [Zahlungskonto verbinden](hilfe:stammdaten-zahlungskonto-verbinden).
 - Eine Behandlung kann eigene Prozent für die Ausfallgebühr haben: [Behandlung ändern](hilfe:stammdaten-behandlung-anlegen#aendern).
 - Die Online-Buchung ist ein Webmodul; im Einzelplatz-Betrieb ist sie meist ausgeschaltet: [Einzelplatz](hilfe:einzelplatz).
