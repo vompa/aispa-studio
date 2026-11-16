@@ -4,7 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace AispaStudio.Desktop.ViewModels;
 
-// ---------- Lücken schließen (Ä291): Vorschläge des Servers für den angezeigten Tag ----------
+// ---------- Lücken schließen (Ä291): Vorschläge des Servers für den angezeigten Tag, in der 7-Tage-Ansicht für alle sieben Tage ----------
 public partial class CalendarViewModel
 {
     /// <summary>Lückenvorschläge des Tages in der Seitenleiste; leer, solange die Seite zu ist.</summary>
@@ -35,13 +35,19 @@ public partial class CalendarViewModel
         }
 
         var date = Date;
-        var result = await _api.GetAsync<List<GapSuggestion>>($"api/locations/{location.Id}/gap-suggestions?date={date:yyyy-MM-dd}").ConfigureAwait(true);
-        if (!ReferenceEquals(GapsPanel, panel) || date != Date || Location?.Id != location.Id)
+        var filter = Filter;
+        // 7-Tage-Ansicht: Vorschläge für alle gezeigten Tage; mit dem Filter auf eine Person nur für sie.
+        var week = _week is { Count: > 1 } days ? $"&days={days.Count}" : "";
+        var from = _week is { Count: > 1 } shown ? shown[0].Date : date;
+        var person = week.Length > 0 && filter is { Kind: CalendarFilterKind.Employee } ? $"&employeeId={filter.Id}" : "";
+        var result = await _api.GetAsync<List<GapSuggestion>>($"api/locations/{location.Id}/gap-suggestions?date={from:yyyy-MM-dd}{week}{person}").ConfigureAwait(true);
+        if (!ReferenceEquals(GapsPanel, panel) || date != Date || Location?.Id != location.Id || filter != Filter)
         {
             return;
         }
 
-        panel.Show(result.Value?.Select(s => new GapRow(s, _zone, MoveGapAsync)).ToList());
+        panel.Scope = week.Length > 0 ? $"{CalendarFilter.Days} Tage ab {DayLayout.ShortDay(from)}{(person.Length > 0 ? $", nur {filter!.Title}" : "")}" : null;
+        panel.Show(result.Value?.Select(s => new GapRow(s, _zone, MoveGapAsync, showDay: week.Length > 0)).ToList());
     }
 
     /// <summary>Verschiebt den Termin auf die Zeit des Vorschlags (zu der Person aus dem Vorschlag); der Server prüft wie bei jedem Verschieben.</summary>

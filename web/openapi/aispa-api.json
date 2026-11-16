@@ -4154,7 +4154,7 @@
         "tags": [
           "Kalender"
         ],
-        "summary": "Vorschläge, gebuchte Termine um wenige Minuten zu verschieben, damit bei einer Person keine Lücke bleibt, in die keine Behandlung passt. Verschoben wird nur über „MoveAppointment“, nach Absprache mit dem Gast.",
+        "summary": "Vorschläge, gebuchte Termine um wenige Minuten zu verschieben, damit bei einer Person keine Lücke bleibt, in die keine Behandlung passt. Verschoben wird nur über „MoveAppointment“, nach Absprache mit dem Gast. Mit days (1 bis 7) für mehrere Tage ab date, mit employeeId nur für diese Person.",
         "operationId": "GetGapSuggestions",
         "parameters": [
           {
@@ -4173,6 +4173,22 @@
             "schema": {
               "type": "string",
               "format": "date"
+            }
+          },
+          {
+            "name": "days",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "employeeId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
             }
           }
         ],
@@ -41261,6 +41277,10 @@
               "null",
               "string"
             ]
+          },
+          "acceptMarketing": {
+            "type": "boolean",
+            "default": false
           }
         }
       },
@@ -41679,6 +41699,10 @@
             "items": {
               "$ref": "#/components/schemas/OnlineClosure"
             }
+          },
+          "rebookReminders": {
+            "type": "boolean",
+            "default": false
           }
         }
       },

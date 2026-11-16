@@ -6280,3 +6280,39 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Nicht geprüft:** die laufende App; ein echter Treatwell-Termin. Die volle Suite läuft in der CI.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
 
+## Kommunikation: Einwilligung beim Online-Buchen (16.11.2026)
+
+- **Auftrag:** Block „Kommunikation (Einwilligung beim Online-Buchen, Erinnerungs-Obergrenze, dann Marketing)“ aus der Reihenfolge vom 20.10.2026; offener Punkt aus [ADR 0040](../entscheidungen/0040-einwilligung-erinnerung-naechste-behandlung.md).
+- **Was:**
+  - `OnlineBookingRequest.AcceptMarketing` und `OnlineLocation.RebookReminders`. Nach einer Buchung mit Häkchen fragt der Server die Einwilligung an (`MarketingConsents.RequestAsync`, Herkunft `SourceOnline`); der Gast bestätigt per Mail.
+  - Kundenbereich: Häkchen „Ich möchte per E-Mail an meine nächste Behandlung erinnert werden (freiwillig) …“ in Deutsch, Englisch, Französisch und Italienisch.
+  - Hilfe `erinnerungen`.
+- **Detailentscheidungen:**
+  1. Das Häkchen erscheint nur, wenn das Spa die Erinnerungen eingeschaltet hat. Sonst würde der Gast in etwas einwilligen, das es nicht gibt.
+  2. Der Server prüft das noch einmal und fragt bei ausgeschalteten Erinnerungen nichts an, auch wenn das Feld gesetzt ist.
+  3. Kann die Anfrage nicht hinaus (Mail schon unterwegs, keine Adresse), bleibt die Buchung gültig; die Einwilligung ist freiwillig und kein Teil der Buchung.
+  4. Das Häkchen steht getrennt vom Datenschutzhinweis und ist nie vorausgewählt.
+- **Bewusst offen / später:**
+  - `List-Unsubscribe` in den Mails zur nächsten Behandlung.
+  - **Erinnerungs-Obergrenze:** In den Unterlagen nicht beschrieben. Für die Wiederbuchungs-Hinweise gilt schon „höchstens eine in 30 Tagen“ (ADR 0040). Ob für Terminerinnerungen eine Grenze je Gast und Tag gemeint ist (Paar, Spa-Tag), entscheidet der Auftraggeber.
+  - Wortlaut der Einwilligung vor dem Echtbetrieb rechtlich gegenlesen lassen; Schweiz prüfen.
+- **Geprüft:** Tests zuerst geplant: API `OnlineBookingTests` (neu: mit Häkchen wartend mit Herkunft „Online“, ohne Häkchen nichts, Erinnerungen aus) 3 von 3; Web `booking` 66 grün (neu: Häkchen nur bei eingeschalteten Erinnerungen, nicht vorausgewählt, wird gesendet, barrierefrei); `npm run gen:api`, Typprüfung und Lint sauber.
+- **Nicht geprüft:** die Mail in einem echten Postfach; die Seite im Browser von Hand. Die volle Suite läuft in der CI.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md); die Übersetzungen sind nicht von Muttersprachlern gelesen.
+
+## Kalender-Lücken: Vorschläge in der 7-Tage-Ansicht (16.11.2026)
+
+- **Auftrag:** Punkt „Wochenansicht“ aus dem Block „Kalender-Lücken“ der Reihenfolge vom 20.10.2026; offen seit PR #75 („Vorschläge über mehrere Tage“).
+- **Was:**
+  - `GET /api/locations/{id}/gap-suggestions` nimmt `days` (1 bis 7) und `employeeId`.
+  - Windows-App: In der 7-Tage-Ansicht lädt „Lücken schließen“ die Vorschläge aller sieben Tage; zeigt die Ansicht eine Person, nur für sie. Das Panel nennt den Umfang („7 Tage ab Mo. 19.10., nur Lena Huber“), jeder Vorschlag seinen Tag.
+  - Hilfe `kalender-luecken-schliessen`.
+- **Detailentscheidungen:**
+  1. „Wochenansicht“ ist als die vorhandene 7-Tage-Ansicht gedeutet; eine eigene Wochenübersicht aller Personen gibt es nicht.
+  2. Bei einem Filter auf Raum oder Gast kommen die Vorschläge aller Personen der sieben Tage, weil eine Lücke immer zum Tag einer Person gehört.
+  3. Höchstens sieben Tage je Abfrage; mehr rechnet der Server nicht.
+- **Bewusst offen / später:** Zähler „Lücken n“ in der Kopfzeile (Ä298, dort „falls gewünscht“); einstellbare Mindestlücke (Entscheidung des Auftraggebers, Feld in Verwaltung › Standorte).
+- **Geprüft:** Tests zuerst geplant: `GapSuggestionTests` 5 von 5 (neu: mehrere Tage, Grenze sieben, nur eine Person); `CalendarWeekTests` 22 von 22 (neu: Abfrage und Umfang in der 7-Tage-Ansicht, Tageskalender unverändert).
+- **Nicht geprüft:** die laufende App. Die volle Suite läuft in der CI.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+

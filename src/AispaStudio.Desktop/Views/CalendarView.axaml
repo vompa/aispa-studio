@@ -1734,6 +1734,7 @@
     <DataTemplate DataType="vm:GapsViewModel">
       <StackPanel Spacing="12">
         <TextBlock Text="{Binding Hint}" Classes="muted" TextWrapping="Wrap" />
+        <TextBlock x:Name="GapsScope" Text="{Binding Scope}" Classes="small" FontWeight="Medium" TextWrapping="Wrap" IsVisible="{Binding Scope, Converter={x:Static ObjectConverters.IsNotNull}}" />
         <TextBlock Text="Suche Lücken …" Classes="muted" IsVisible="{Binding !IsLoaded}" />
         <ui:InfoBar Severity="Error" Message="Vorschläge konnten nicht geladen werden." IsVisible="{Binding LoadFailed}" />
         <Border x:Name="GapsList" IsVisible="{Binding IsLoaded}">

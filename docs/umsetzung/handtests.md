@@ -1134,3 +1134,34 @@ Expected: Das Konto zeigt das Vorjahr mit leerem Anspruch; zurückgeblättert st
 Expected: Den Reiter „Dienstplan und Abwesenheit“ gibt es für die Rezeption nicht.
 Closes: –
 Result: ☐
+
+### Online-Buchung – Einwilligung in die Erinnerung an die nächste Behandlung
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App als Inhaberin, dazu der Kundenbereich im Browser
+1. In der Windows-App unter **Verwaltung** › **Kontakt** › **Erinnerungen** die Wiederbuchungs-Hinweise einschalten und für eine Behandlung einen Abstand eintragen.
+Expected: Die Einstellung ist gespeichert.
+2. Im Kundenbereich eine Behandlung und eine Zeit wählen.
+Expected: Unter dem Datenschutzhinweis steht das Häkchen „Ich möchte per E-Mail an meine nächste Behandlung erinnert werden (freiwillig) …“; es ist nicht gesetzt.
+3. Das Häkchen setzen und buchen.
+Expected: Die Buchung wird bestätigt. Im Postfach des Gastes liegt zusätzlich eine Mail zum Bestätigen der Erinnerungen.
+4. In der Windows-App den Termin im Kalender öffnen.
+Expected: Auf der Karte „Wiederbuchungs-Hinweis“ steht die Einwilligung als angefragt.
+5. Die Wiederbuchungs-Hinweise ausschalten und im Kundenbereich erneut bis zu den Angaben gehen.
+Expected: Das Häkchen fehlt.
+Closes: –
+Result: ☐
+
+### Kalender – Lücken schließen in der 7-Tage-Ansicht
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App als Rezeption, **Kalender** öffnen
+1. Bei einer Person an zwei Tagen der Woche je zwei Termine so buchen, dass dazwischen 20 Minuten frei bleiben.
+Expected: Die Termine stehen im Kalender.
+2. Auf den Namen der Person in der Kopfzeile klicken.
+Expected: Die 7-Tage-Ansicht der Person erscheint.
+3. Im Menü neben **Termin** **Lücken schließen** wählen.
+Expected: Oben steht „7 Tage ab …, nur <Name>“. Beide Vorschläge stehen in der Liste, jeder mit seinem Tag vor „bei <Name> von … auf …“.
+4. Bei einem Vorschlag **Auf … verschieben** klicken.
+Expected: Der Termin springt am richtigen Tag auf die neue Zeit; der Vorschlag verschwindet, der andere bleibt.
+5. **Filter aufheben** klicken und **Lücken schließen** erneut öffnen.
+Expected: Die Zeile „7 Tage ab …“ fehlt; die Liste gilt nur für den angezeigten Tag.
+Closes: –
+Result: ☐
+

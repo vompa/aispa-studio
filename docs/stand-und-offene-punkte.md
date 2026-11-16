@@ -136,7 +136,7 @@ Stand: 20.10.2026, nach PR #172; Übergabe an Claude Code ([ADR 0046](entscheidu
 | Kopie gesendeter Mails im IMAP-Ordner „Gesendet“ | fertig | #60 |
 | Betreiber sperrt ein Spa: ansehen und exportieren ja, ändern und neue Online-Buchungen nein ([ADR 0039](entscheidungen/0039-spa-sperren.md)) | fertig | #62 |
 | KI-Antwortvorschlag auf Fragen von Gästen im Posteingang, aus Öffnungszeiten, Behandlungen und Preisen, in der Sprache des Gasts | fertig (nur Angaben aus den Stammdaten, keine eigene Wissensbasis) | #79 |
-| Erinnerung an die nächste Behandlung mit Text von der KI, nur nach bestätigter Einwilligung ([ADR 0040](entscheidungen/0040-einwilligung-erinnerung-naechste-behandlung.md)) | fertig (nur Mail, Einwilligung noch nicht beim Online-Buchen) | #69 |
+| Erinnerung an die nächste Behandlung mit Text von der KI, nur nach bestätigter Einwilligung ([ADR 0040](entscheidungen/0040-einwilligung-erinnerung-naechste-behandlung.md)) | fertig (nur Mail; Einwilligung seit 16.11.2026 auch als Häkchen beim Online-Buchen) | #69 |
 | Spracherkennung für Anrufe in der EU (Azure AI Speech) | fertig, braucht Schlüssel | #40 |
 | Sprachassistent für Anrufe: Twilio nimmt an, Ansage mit Hinweis auf Aufnahme und KI, Aufnahme, Abschrift, Antwort per SMS nach Freigabe | fertig im Prototyp (eine Aufnahme, kein Dialog; braucht Twilio-Nummer und Azure-Schlüssel) | #84 |
 | Lager: Bestand je Standort, Verbrauch laut Rezeptur, Verkauf an der Kassa, Inventur, Umbuchung, Bestellvorschlag, Bestellungen an Lieferanten mit Teillieferung, Chargen und Ablaufdaten, Rückverfolgung je Charge bis zum Kunden | fertig | #52, #67, #77, #91 |
@@ -397,7 +397,7 @@ Die Nummern sind die Reihenfolge, die der jeweilige Thread gewählt hätte ([Üb
 **KI-Terminannahme, Kanäle, Assistent**
 1. KI-Vorschläge für Absagen und Verschiebungen im Posteingang (Termin finden, Storno oder Ersatzzeiten vorschlagen, Rezeption bestätigt).
 2. Wissensbasis des Spas (Parken, Anreise, Gutscheine, Hausregeln) als Quelle für Antwortvorschläge.
-3. Einwilligung zur Erinnerung beim Online-Buchen (eigenes Häkchen, nicht vorausgewählt) und `List-Unsubscribe`.
+3. `List-Unsubscribe` in den Mails zur nächsten Behandlung (die Einwilligung beim Online-Buchen ist seit 16.11.2026 gebaut).
 4. Ansage am Telefon je Spa und in weiteren Sprachen; Rückruf statt SMS für Festnetz-Anrufer.
 5. KI-Vorschläge im Dienstplan, nur als Vorschlag, abgestimmt mit dem Kalender.
 6. Lokale KI: Schalter in der Windows-App für Ollama beim Einzelplatz, `gemma3:4b` mit echten Mails prüfen und mit `qwen3:4b` vergleichen ([ADR 0057](entscheidungen/0057-lokale-ki-optional-mit-ollama.md)).
