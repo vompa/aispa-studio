@@ -1088,3 +1088,12 @@ Expected: „Der Preis dieses Eintritts ist ohne Verbindung nicht bekannt. Den B
 Expected: Unter **Belege** steht der signierte Beleg mit dem Eintritt und „Nacherfassung zu Ersatzbeleg …“.
 Closes: –
 Result: ☐
+
+### Kundenmaske – „Schon vorhanden?“ mit Grund
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Rezeption anmelden, **Kunden** › **Neue Kundin**
+1. Die Telefonnummer einer vorhandenen Kundin in anderer Schreibweise eintragen (z. B. `0664 …` statt `+43 664 …`) und einen anderen Nachnamen.
+Expected: Unter „Schon vorhanden?“ steht die vorhandene Karte zuerst, mit dem Grund „gleiche Telefonnummer“ unter Name und Nummer.
+2. Nur einen häufigen Nachnamen eintragen.
+Expected: Karten aus der Suche erscheinen ohne Grund; erkennt die App einen ähnlichen Namen, steht dieser Grund dabei.
+Closes: L13 (erster Teil)
+Result: ☐
