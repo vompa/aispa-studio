@@ -17,7 +17,8 @@ public sealed partial class ViewTests
     [InlineData("dunkel")]
     public Task Verwaltung_Team_Personalakte_legt_ein_Gespraech_an_und_die_Reiter_passen_in_die_Karte(string theme)
     {
-        var (api, _) = RosterApi();
+        // Lohn und Regelungen stehen im selben Bereich „Lohn und Akte“ (ADR 0098) und laden mit.
+        var api = PayrollApi().On($"GET /api/employees/{RosterLena.Id}/regulations", new StaffRegulationsDto([], [], []));
         var saved = new List<HrEntryDto> { HrSample };
         var path = $"/api/employees/{RosterLena.Id}/hr-file";
         api.OnJson($"GET {path}", _ => saved.ToList());

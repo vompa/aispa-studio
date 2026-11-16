@@ -49,7 +49,7 @@ public sealed partial class ViewTests
         {
             var team = await OpenTeam(window, main);
             await ClickRow(window, "Lena Huber");
-            await ClickSection(window, "Dienstplan und Abwesenheit");
+            await ClickCardTab(window, "Dienstplan und Abwesenheit");
             await Pump(Settling);
 
             await ClickCell(window, "Lena Huber", "So.");

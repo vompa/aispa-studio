@@ -87,6 +87,10 @@
       </Border>
 
       <ContentControl Grid.Column="1" x:Name="CardHost" Content="{Binding Card}" />
+
+      <!-- Verlauf der Person als Seitenleiste (ADR 0098, Brief 5.12): liegt rechts über der Karte, denn beim Mindestfenster bliebe neben Liste und Leiste zu wenig für das Profil -->
+      <ui:HistoryPanel Grid.Column="1" x:Name="CardHistory" HorizontalAlignment="Right" DataContext="{Binding Card}" x:DataType="vm:PersonCardViewModel"
+                       Sections="{Binding HistorySections}" Subtitle="{Binding Title}" IsOpen="{Binding IsHistoryOpen, Mode=TwoWay}" />
     </Grid>
 
     <StackPanel x:Name="Footer" Grid.Row="3" Spacing="12" MaxWidth="760" HorizontalAlignment="Left" Margin="260,12,16,0" IsVisible="{Binding ShowsPeopleView}">

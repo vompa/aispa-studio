@@ -86,7 +86,7 @@ public sealed class DutiesTests
         team.Open(Lena.Id, PersonCardViewModel.DutiesTab, null);
 
         Assert.Null(team.Card!.Duties);
-        Assert.DoesNotContain(team.Card.Tabs, t => t.Id == PersonCardViewModel.DutiesTab);
+        Assert.False(team.Card.HasSection(PersonCardViewModel.DutiesTab));
         Assert.DoesNotContain(team.Modes, m => m.Id == TeamViewModel.DutiesMode);
         Assert.DoesNotContain(api.Calls, c => c.Route.Contains("duties", StringComparison.Ordinal) || c.Route.Contains("certificates", StringComparison.Ordinal));
     }

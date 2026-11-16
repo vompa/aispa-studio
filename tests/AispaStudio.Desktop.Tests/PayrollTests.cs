@@ -296,9 +296,10 @@ public sealed class PayrollTests
         var team = await RosterTests.Loaded(api);
         team.Open(Lena.Id, PersonCardViewModel.PayrollTab, null);
         var card = team.Card!;
-        Assert.Equal(PersonCardViewModel.PayrollTab, card.SelectedTab);
+        Assert.Equal(PersonCardViewModel.PayAndFileArea, card.SelectedTab);
+        Assert.Equal(PersonCardViewModel.PayrollTab, card.FocusedSection);
         Assert.True(card.ShowsPayroll);
-        Assert.Contains(card.Tabs, t => t.Id == PersonCardViewModel.PayrollTab && t.Label == "Lohn");
+        Assert.Contains(card.Tabs, t => t.Id == PersonCardViewModel.PayAndFileArea && t.Label == "Lohn und Akte");
         var payroll = card.Payroll!;
         await RosterTests.Until(() => payroll.IsLoaded);
 
@@ -363,7 +364,9 @@ public sealed class PayrollTests
 
         Assert.False(await card.SaveChangesAsync());
 
-        Assert.Equal(PersonCardViewModel.PayrollTab, card.SelectedTab);
+        Assert.Equal(PersonCardViewModel.PayAndFileArea, card.SelectedTab);
+        Assert.Equal(PersonCardViewModel.PayrollTab, card.FocusedSection);
+        Assert.True(card.ShowsPayroll);
         Assert.Contains("Diese Personalnummer hat schon jemand.", card.Error, StringComparison.Ordinal);
         Assert.True(card.HasUnsavedChanges);
     }
@@ -411,7 +414,7 @@ public sealed class PayrollTests
         team.Open(Lena.Id, PersonCardViewModel.PayrollTab, null);
 
         Assert.Null(team.Card!.Payroll);
-        Assert.DoesNotContain(team.Card.Tabs, t => t.Id == PersonCardViewModel.PayrollTab);
+        Assert.False(team.Card.HasSection(PersonCardViewModel.PayrollTab));
         Assert.DoesNotContain(team.Modes, m => m.Id == TeamViewModel.PayrollMode);
         Assert.Null(team.Payroll);
     }

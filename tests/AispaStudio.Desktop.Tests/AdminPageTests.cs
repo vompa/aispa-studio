@@ -317,7 +317,8 @@ public sealed class AdminPageTests
         Assert.Equal("Team", shell.AdminPage.SelectedArea?.Title);
         Assert.Same(shell.AdminPage.Team, shell.AdminPage.Content);
         Assert.Equal("Lena Huber", shell.AdminPage.Team!.Card?.Title);
-        Assert.Equal(section, shell.AdminPage.Team.Card?.SelectedTab);
+        Assert.Equal(PersonCardViewModel.ProfileArea, shell.AdminPage.Team.Card?.SelectedTab);
+        Assert.Equal(section, shell.AdminPage.Team.Card?.FocusedSection);
         Assert.DoesNotContain(shell.AdminPage.Areas, a => a.Title is "Qualifikationen" or "Zugänge");
     }
 

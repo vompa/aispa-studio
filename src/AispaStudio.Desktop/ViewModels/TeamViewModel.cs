@@ -319,7 +319,11 @@ public sealed partial class TeamViewModel : ViewModelBase, ITargetedArea
                 }
             };
             Times.PersonRequested += id => _ = OpenPersonAsync(id, PersonCardViewModel.TimesTab, null);
-            Times.Changed += () => Card?.Times?.MarkStale();
+            Times.Changed += () =>
+            {
+                Card?.Times?.MarkStale();
+                Card?.Overview?.MarkStale();
+            };
         }
 
         if (Modes.Any(m => m.Id == RequestsMode))
@@ -405,7 +409,7 @@ public sealed partial class TeamViewModel : ViewModelBase, ITargetedArea
         };
     }
 
-    /// <summary>Zurück auf der Karte: was eine andere Ansicht inzwischen geändert hat, lädt der offene Reiter neu.</summary>
+    /// <summary>Zurück auf der Karte: was eine andere Ansicht inzwischen geändert hat, lädt der offene Bereich neu.</summary>
     private static Task ReloadCardTabAsync(PersonCardViewModel card)
     {
         card.SelectTab(card.SelectedTab);
@@ -496,7 +500,10 @@ public sealed partial class TeamViewModel : ViewModelBase, ITargetedArea
         }
     }
 
-    /// <summary>Sprung: wählt die Person (<paramref name="id"/>, Person im Team), dann den Reiter (<c>stammdaten</c>, <c>zugang</c>, <c>qualifikationen</c>, <c>dienstplan</c>, <c>zeiten</c>, <c>verlauf</c>).</summary>
+    /// <summary>
+    /// Sprung: wählt die Person (<paramref name="id"/>, Person im Team), dann den Abschnitt der Karte (<c>stammdaten</c>, <c>zugang</c>, <c>qualifikationen</c>, <c>dienstplan</c>,
+    /// <c>zeiten</c> …; die Karte öffnet seinen Bereich) oder mit <c>verlauf</c> die Seitenleiste „Verlauf“.
+    /// </summary>
     public void Open(Guid? id, string? section, string? field)
     {
         if (section is RosterMode or TimesMode or RequestsMode or PayrollMode or PowersMode)
@@ -777,6 +784,7 @@ public sealed partial class TeamViewModel : ViewModelBase, ITargetedArea
             Card.PropertyChanged -= OnCardChanged;
             Card.DataChanged -= OnCardDataChanged;
             Card.WeekPlanRequested -= OnCardWeekPlan;
+            Card.AbsenceRequestsRequested -= OnCardAbsenceRequests;
             if (Card.Roster is { } oldRoster)
             {
                 oldRoster.Changed -= OnCardRosterChanged;
@@ -798,6 +806,7 @@ public sealed partial class TeamViewModel : ViewModelBase, ITargetedArea
         Card.PropertyChanged += OnCardChanged;
         Card.DataChanged += OnCardDataChanged;
         Card.WeekPlanRequested += OnCardWeekPlan;
+        Card.AbsenceRequestsRequested += OnCardAbsenceRequests;
         if (Card.Roster is { } roster)
         {
             roster.Changed += OnCardRosterChanged;
@@ -845,10 +854,14 @@ public sealed partial class TeamViewModel : ViewModelBase, ITargetedArea
         _ = SwitchToAsync(RosterMode);
     }
 
+    /// <summary>Die Kachel „Offene Anträge“ der Übersicht öffnet die Ansicht „Anträge“.</summary>
+    private void OnCardAbsenceRequests() => _ = SwitchToAsync(RequestsMode);
+
     private void OnPlanChanged()
     {
         Card?.Roster?.MarkStale();
         Card?.Times?.MarkStale();
+        Card?.Overview?.MarkStale();
         Times?.MarkStale();
         RosterChanged?.Invoke();
     }

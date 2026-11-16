@@ -137,7 +137,7 @@ public sealed partial class ViewTests
         {
             var team = await OpenTeam(window, main);
             await ClickRow(window, "Lena Huber");
-            await ClickSection(window, "Dienstplan und Abwesenheit");
+            await ClickCardTab(window, "Dienstplan und Abwesenheit");
             await Pump(Settling);
             var card = team.Card!;
             Assert.True(card.Roster!.IsLoaded);
@@ -163,7 +163,7 @@ public sealed partial class ViewTests
         {
             var team = await OpenTeam(window, main);
             await ClickRow(window, "Lena Huber");
-            await ClickSection(window, "Dienstplan und Abwesenheit");
+            await ClickCardTab(window, "Dienstplan und Abwesenheit");
             await Pump(Settling);
             var leave = team.Card!.Leave!;
             Assert.True(leave.IsLoaded);
@@ -199,7 +199,7 @@ public sealed partial class ViewTests
 
             Assert.True(team.ShowsPeople);
             Assert.Equal("Lena Huber", team.Card?.Title);
-            Assert.Equal(PersonCardViewModel.RosterTab, team.Card?.SelectedTab);
+            Assert.Equal((PersonCardViewModel.WorkTimeArea, PersonCardViewModel.RosterTab), (team.Card?.SelectedTab, team.Card?.FocusedSection));
             Assert.True(Named<Control>(window, "RosterSection").IsEffectivelyVisible);
             return team;
         }, api);

@@ -57,7 +57,7 @@ public sealed record TeamEntry(TeamEntryKind Kind, string Title, string Subtitle
 /// <summary>Ein Kennzeichen oben auf der Personenkarte; eine Warnung steht mit Warnsymbol vorn (R05 Slice 117).</summary>
 public sealed record FlagLine(string Text, bool IsWarning);
 
-/// <summary>Reiter der Personenkarte in der segmentierten Reiterleiste (Brief 5.12).</summary>
+/// <summary>Eintrag einer segmentierten Schiene (Brief 5.4): Bereich der Personenkarte oder Ansicht des Teams.</summary>
 public sealed partial class CardTab(string id, string label, Action<string> select) : ObservableObject
 {
     public string Id => id;

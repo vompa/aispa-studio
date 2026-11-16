@@ -1,0 +1,29 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             x:Class="AispaStudio.Desktop.Views.PersonOverviewView"
+             x:DataType="vm:PersonOverviewViewModel">
+  <!--
+    Bereich „Übersicht“ der Personenkarte (ADR 0098): Kennzahl-Kacheln (Brief 5.5, StatTile) im Raster mit 12 px Abstand; jede Kachel springt in ihren Abschnitt.
+    Laden und Fehler nach Abschnitt 6 Punkt 6.
+  -->
+  <StackPanel x:Name="OverviewSection" Spacing="12">
+    <TextBlock Text="Wird geladen …" Classes="muted" IsVisible="{Binding ShowsLoading}" />
+    <ui:InfoBar Severity="Error" Title="Übersicht nicht geladen" Message="{Binding LoadError}" IsVisible="{Binding HasLoadError}"
+                ActionText="Erneut laden" ActionCommand="{Binding LoadCommand}" />
+    <ItemsControl x:Name="OverviewTiles" ItemsSource="{Binding Tiles}" AutomationProperties.Name="Übersicht">
+      <ItemsControl.ItemsPanel>
+        <ItemsPanelTemplate>
+          <WrapPanel ItemSpacing="12" LineSpacing="12" />
+        </ItemsPanelTemplate>
+      </ItemsControl.ItemsPanel>
+      <ItemsControl.ItemTemplate>
+        <DataTemplate x:DataType="vm:OverviewTile">
+          <ui:StatTile Label="{Binding Label}" Value="{Binding Value}" Hint="{Binding Hint}" State="{Binding State}" Command="{Binding Command}"
+                       VerticalAlignment="Stretch" />
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
+  </StackPanel>
+</UserControl>

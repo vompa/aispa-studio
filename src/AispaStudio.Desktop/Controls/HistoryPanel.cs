@@ -60,6 +60,9 @@ public sealed class HistoryPanel : Border
         Child = new Grid { RowDefinitions = new RowDefinitions("Auto,Auto,*"), Children = { _header, divider, body } };
     }
 
+    /// <summary>Ohne diesen Schlüssel griffe der Stil <c>Border.sidepanel</c> nicht (Fläche, Rahmen, Bewegung), und die Leiste wäre durchsichtig.</summary>
+    protected override Type StyleKeyOverride => typeof(Border);
+
     public IEnumerable<HistorySectionViewModel>? Sections
     {
         get => GetValue(SectionsProperty);

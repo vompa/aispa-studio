@@ -60,7 +60,7 @@ public sealed class RegulationsTests
         team.Open(Lena.Id, PersonCardViewModel.RegulationsTab, null);
 
         Assert.Null(team.Card!.Regulations);
-        Assert.DoesNotContain(team.Card.Tabs, t => t.Id == PersonCardViewModel.RegulationsTab);
+        Assert.False(team.Card.HasSection(PersonCardViewModel.RegulationsTab));
         Assert.False(team.Card.HasFlags);
         Assert.DoesNotContain(team.Modes, m => m.Id == TeamViewModel.PowersMode);
         Assert.DoesNotContain(api.Calls, c => c.Route.Contains("staff-regulations", StringComparison.Ordinal));

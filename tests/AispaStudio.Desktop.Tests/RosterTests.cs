@@ -481,9 +481,12 @@ public sealed class RosterTests
 
         var card = await LenasCard(team);
 
-        Assert.Equal([PersonCardViewModel.DetailsTab, PersonCardViewModel.AccessTab, PersonCardViewModel.QualificationsTab, PersonCardViewModel.RosterTab, PersonCardViewModel.TimesTab, PersonCardViewModel.PayrollTab, PersonCardViewModel.HrFileTab, PersonCardViewModel.RegulationsTab, PersonCardViewModel.DutiesTab, PersonCardViewModel.HistoryTab],
-            card.Tabs.Select(t => t.Id));
-        Assert.Equal("Dienstplan und Abwesenheit", card.Tabs.Single(t => t.Id == PersonCardViewModel.RosterTab).Label);
+        Assert.Equal([PersonCardViewModel.OverviewArea, PersonCardViewModel.ProfileArea, PersonCardViewModel.WorkTimeArea, PersonCardViewModel.PayAndFileArea], card.Tabs.Select(t => t.Id));
+        Assert.Equal([PersonCardViewModel.DetailsTab, PersonCardViewModel.AccessTab, PersonCardViewModel.QualificationsTab, PersonCardViewModel.DutiesTab, PersonCardViewModel.RosterTab,
+            PersonCardViewModel.TimesTab, PersonCardViewModel.PayrollTab, PersonCardViewModel.HrFileTab, PersonCardViewModel.RegulationsTab], card.Sections);
+        Assert.True(card.HasHistory);
+        Assert.Equal("Arbeitszeit", card.Tabs.Single(t => t.Id == PersonCardViewModel.WorkTimeArea).Label);
+        Assert.Equal(PersonCardViewModel.RosterTab, card.FocusedSection);
         Assert.True(card.ShowsRoster);
         var plan = card.Roster!;
         Assert.True(plan.IsCard);
@@ -600,7 +603,7 @@ public sealed class RosterTests
         Assert.True(lena.CanOpenPerson);
 
         lena.OpenPersonCommand.Execute(null);
-        await Until(() => team.ShowsPeople && team.Card?.Title == "Lena Huber" && team.Card.SelectedTab == PersonCardViewModel.RosterTab);
+        await Until(() => team.ShowsPeople && team.Card?.Title == "Lena Huber" && team.Card.SelectedTab == PersonCardViewModel.WorkTimeArea && team.Card.FocusedSection == PersonCardViewModel.RosterTab);
 
         Assert.True(team.Card!.Roster!.IsCard);
         Assert.Equal("Lena Huber", team.SelectedEntry?.Title);
@@ -735,7 +738,8 @@ public sealed class RosterTests
         team.Open(RosterSample.Lena.Id, PersonCardViewModel.DetailsTab, null);
         await Until(() => team.ShowsPeople && team.Card?.Title == "Lena Huber");
 
-        Assert.Equal(PersonCardViewModel.DetailsTab, team.Card!.SelectedTab);
+        Assert.Equal(PersonCardViewModel.ProfileArea, team.Card!.SelectedTab);
+        Assert.Equal(PersonCardViewModel.DetailsTab, team.Card.FocusedSection);
     }
 
     // ---------- Anträge ----------
@@ -933,7 +937,7 @@ public sealed class RosterTests
         await Until(() => team.Card?.Entry.Title == "Lena Huber");
 
         Assert.Null(team.Card!.Roster);
-        Assert.DoesNotContain(team.Card.Tabs, t => t.Id == PersonCardViewModel.RosterTab);
+        Assert.False(team.Card.HasSection(PersonCardViewModel.RosterTab));
         Assert.DoesNotContain(api.Calls, c => c.Route.Contains("/roster?", StringComparison.Ordinal) && c.Route.Contains("employeeId", StringComparison.Ordinal));
     }
 
@@ -1177,7 +1181,7 @@ public sealed class RosterTests
         var team = await Loaded(api);
 
         team.Open(RosterSample.Lena.Id, PersonCardViewModel.TimesTab, null);
-        await Until(() => team.Card?.SelectedTab == PersonCardViewModel.TimesTab);
+        await Until(() => team.Card?.SelectedTab == PersonCardViewModel.WorkTimeArea && team.Card.FocusedSection == PersonCardViewModel.TimesTab);
 
         Assert.True(team.ShowsPeople);
         Assert.Equal("Lena Huber", team.Card!.Title);

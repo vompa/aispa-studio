@@ -123,6 +123,9 @@
     <DataTemplate DataType="vm:PersonCardViewModel">
       <views:PersonCardView />
     </DataTemplate>
+    <DataTemplate DataType="vm:PersonOverviewViewModel">
+      <views:PersonOverviewView />
+    </DataTemplate>
     <DataTemplate DataType="vm:PersonDetailsViewModel">
       <views:PersonDetailsView />
     </DataTemplate>

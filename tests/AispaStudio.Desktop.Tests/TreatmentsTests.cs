@@ -286,7 +286,8 @@ public sealed class TreatmentsTests
         Assert.Equal("Team", shell.AdminPage.SelectedArea?.Title);
         Assert.Same(shell.AdminPage.Team, shell.AdminPage.Content);
         Assert.Equal("Lena Huber", shell.AdminPage.Team!.SelectedEntry?.Title);
-        Assert.Equal(PersonCardViewModel.QualificationsTab, shell.AdminPage.Team.Card!.SelectedTab);
+        Assert.Equal(PersonCardViewModel.ProfileArea, shell.AdminPage.Team.Card!.SelectedTab);
+        Assert.Equal(PersonCardViewModel.QualificationsTab, shell.AdminPage.Team.Card.FocusedSection);
         shell.Dispose();
     }
 
