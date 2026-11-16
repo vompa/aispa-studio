@@ -50115,6 +50115,16 @@
           "allergyFlag": {
             "type": "boolean",
             "default": false
+          },
+          "handsOnMinutes": {
+            "type": "integer",
+            "format": "int32",
+            "default": 0
+          },
+          "processingMinutes": {
+            "type": "integer",
+            "format": "int32",
+            "default": 0
           }
         }
       },

@@ -6326,3 +6326,13 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Nicht geprüft:** die Anzeige „Abmelden“ in einem echten Mailprogramm.
 - **Text-Prüfung:** keine neuen Texte für Benutzer.
 
+## „Mein Tag“: Einwirkzeit als freie Zeit (16.11.2026)
+
+- **Auftrag:** Offener Punkt aus `docs/produkt/kalender-rezeption.md`, Schritt 13; Punkt „Einwirkzeit“ im Block „Kalender-Lücken“.
+- **Was:** `TreatmentCard.HandsOnMinutes` und `ProcessingMinutes`; die Behandlungskarte in „Mein Tag“ zeigt bei Behandlungen mit Einwirkzeit eine Zeile mit Beginn, Ende und Dauer.
+- **Detailentscheidungen:** Ohne Einwirkzeit liefert der Server für beide Felder 0, und die Karte zeigt nichts dazu. Die Zeile steht bei den Zeiten der Karte, nicht als eigene Karte: Die Person bleibt für den Gast zuständig.
+- **Bewusst offen / später:** Die Pausenprüfung zählt die Einwirkzeit nicht als Pause; ob sie arbeitsrechtlich eine wäre, ist nicht geklärt.
+- **Geprüft:** Tests zuerst geplant: `ProcessingTimeTests` 8 von 8 (neu: Karte mit und ohne Einwirkzeit); Web `myday` 46 grün (neu: Zeile mit Zeiten, barrierefrei); Typprüfung und Lint sauber.
+- **Nicht geprüft:** die Seite am Handy.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+

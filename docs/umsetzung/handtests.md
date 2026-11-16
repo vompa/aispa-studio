@@ -1165,3 +1165,12 @@ Expected: Die Zeile „7 Tage ab …“ fehlt; die Liste gilt nur für den angez
 Closes: –
 Result: ☐
 
+### „Mein Tag“ – Einwirkzeit als freie Zeit
+Start: `dotnet run --project src/AispaStudio.AppHost`, „Mein Tag“ im Browser als Therapeut:in mit einem Termin „Körperpackung“ heute
+1. Den Tagesplan öffnen.
+Expected: Auf der Karte der Körperpackung steht unter Zeit und Raum „Einwirkzeit HH:MM–HH:MM (20 Min.): In dieser Zeit sind Sie frei.“ Die Zeiten passen zum Band im Kalender der Windows-App.
+2. Eine Karte ohne Einwirkzeit ansehen, z. B. eine Massage.
+Expected: Dort steht keine Zeile „Einwirkzeit“.
+Closes: –
+Result: ☐
+

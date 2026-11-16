@@ -447,7 +447,7 @@ Aus dem Konkurrenzvergleich oben („übernehmen als dritte Zusatzzeit“): bei 
 
 **Verwaltung › Behandlungen.** Zwei Felder „Am Gast bis Einwirkzeit (min)“ und „Einwirkzeit (min)“ neben Vor- und Nachbereitung, mit Hilfe. Vollkosten: die Personalzeit zählt die Einwirkzeit nicht. Beispieldaten: zwei Behandlungen mit Einwirkzeit (Körperpackung, Gesichtsmaske).
 
-**Wer.** Sehen: alle. Ändern: Katalogpflege (`ManageCatalog`). Offen für später: „Mein Tag“ zeigt die Einwirkzeit als freie Zeit.
+**Wer.** Sehen: alle. Ändern: Katalogpflege (`ManageCatalog`). Seit 16.11.2026 zeigt „Mein Tag“ die Einwirkzeit auf der Behandlungskarte als freie Zeit („Einwirkzeit 10:20–10:40 (20 Min.): In dieser Zeit sind Sie frei.“).
 
 **Gebaut auf `dev`** (Commit siehe PR-Protokoll).
 
