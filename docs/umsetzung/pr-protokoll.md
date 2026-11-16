@@ -6485,3 +6485,16 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Nicht geprüft:** die laufende App.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
 
+## „Mein Tag“: Hinweis „Anamnese prüfen“ auf der Behandlungskarte (16.11.2026)
+
+- **Auftrag:** Offener Punkt aus den Rezeptions-Schritten („Hinweis bei Paar und Spa-Tag, in ‚Mein Tag‘ der Therapeutin“); vom Auftraggeber am 16.11.2026 mit der Liste der nächsten Punkte freigegeben.
+- **Was:** `TreatmentCard.CheckAnamnesis`: Verlangt die Behandlung „Anamnese prüfen“ und enthält der letzte Bogen des Gastes Angaben, steht auf der Karte in „Mein Tag“ „Anamnese prüfen: …“. Die Regel ist dieselbe wie beim Buchen an der Rezeption (`AnamnesisStaffEndpoints.HasFindings`).
+- **Detailentscheidungen:**
+  1. Der Hinweis steht im Tagesplan für die Therapeutin und für die Rezeption: Beide dürfen dasselbe schon beim Buchen sehen. Das Allergie-Kennzeichen sieht weiter nur, wer die Person selbst behandelt.
+  2. Es bleibt bei ja oder nein; der Inhalt des Bogens verlässt die Prüfung nicht.
+  3. Steht schon „Allergie angegeben“ auf der Karte, kommt der zweite Satz nicht dazu: Beide verweisen auf denselben Fragebogen.
+- **Bewusst offen / später:** der Hinweis je Gast bei Paar und Spa-Tag im Buchungspanel der Windows-App; die Hover-Karte im Kalender.
+- **Geprüft:** Tests zuerst geplant: API `StaffMobileTests` (erweitert: ohne Regel kein Hinweis, mit Regel für Therapeutin und Rezeption, Allergie-Kennzeichen unverändert); Web `myday` 56 grün (neu: Hinweis auf der Karte).
+- **Nicht geprüft:** die Seite am Handy.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+

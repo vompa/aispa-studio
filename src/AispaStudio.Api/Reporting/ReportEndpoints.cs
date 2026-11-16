@@ -16,19 +16,43 @@ namespace AispaStudio.Api.Reporting;
 /// </summary>
 internal static class ReportEndpoints
 {
-    /// <summary>Allergie-Kennzeichen je Gast aus dem neuesten Bogen: nur ja oder nein, der Inhalt bleibt verschlüsselt im Schema health.</summary>
-    private static async Task<DayPlanDto> WithAllergyFlagsAsync(DayPlanDto plan, AnamnesisStore anamnesis, CancellationToken ct)
+    /// <summary>
+    /// Hinweise aus dem neuesten Bogen je Gast, nur ja oder nein; der Inhalt bleibt verschlüsselt im Schema health.
+    /// „Anamnese prüfen“ (<see cref="TreatmentCard.CheckAnamnesis"/>) bekommt jede Karte, deren Behandlung es verlangt und deren Gast Angaben gemacht hat,
+    /// so wie die Rezeption es beim Buchen sieht. Das Allergie-Kennzeichen sieht nur, wer die Person selbst behandelt (<paramref name="own"/>).
+    /// </summary>
+    private static async Task<DayPlanDto> WithAnamnesisHintsAsync(DayPlanDto plan, bool own, AnamnesisStore anamnesis, AispaDbContext db, CancellationToken ct)
     {
-        var flagged = new HashSet<Guid>();
-        foreach (var customerId in plan.Cards.Select(c => c.CustomerId).Distinct())
+        var appointmentIds = plan.Cards.Select(c => c.AppointmentId).ToList();
+        var toCheck = (await db.Appointments.AsNoTracking().Where(a => appointmentIds.Contains(a.Id) && a.Treatment.CheckAnamnesis).Select(a => a.Id).ToListAsync(ct)).ToHashSet();
+        var allergies = new HashSet<Guid>();
+        var findings = new HashSet<Guid>();
+        foreach (var customerId in plan.Cards.Where(c => own || toCheck.Contains(c.AppointmentId)).Select(c => c.CustomerId).Distinct())
         {
-            if (await anamnesis.LatestAsync(customerId, ct) is { } record && record.Answers.Any(a => a.Key == "allergies" && a.Yes == true))
+            if (await anamnesis.LatestAsync(customerId, ct) is not { } record)
             {
-                flagged.Add(customerId);
+                continue;
+            }
+
+            if (own && record.Answers.Any(a => a.Key == "allergies" && a.Yes == true))
+            {
+                allergies.Add(customerId);
+            }
+
+            if (AnamnesisStaffEndpoints.HasFindings(record))
+            {
+                findings.Add(customerId);
             }
         }
 
-        return plan with { Cards = [.. plan.Cards.Select(c => c with { AllergyFlag = flagged.Contains(c.CustomerId) })] };
+        return plan with
+        {
+            Cards = [.. plan.Cards.Select(c => c with
+            {
+                AllergyFlag = allergies.Contains(c.CustomerId),
+                CheckAnamnesis = toCheck.Contains(c.AppointmentId) && findings.Contains(c.CustomerId),
+            })],
+        };
     }
 
     public static IEndpointRouteBuilder MapReportEndpoints(this IEndpointRouteBuilder routes)
@@ -36,7 +60,7 @@ internal static class ReportEndpoints
         var group = routes.MapGroup("/api/reports").WithTags("Berichte");
 
         group.MapGet("/locations/{locationId:guid}/day-plan", async Task<Results<Ok<DayPlanDto>, NotFound, ProblemHttpResult>> (
-                Guid locationId, DateOnly date, Guid? employeeId, DailyReports reports, AccessService accessService, AnamnesisStore anamnesis, CancellationToken ct) =>
+                Guid locationId, DateOnly date, Guid? employeeId, DailyReports reports, AccessService accessService, AnamnesisStore anamnesis, AispaDbContext db, CancellationToken ct) =>
             {
                 var access = (await accessService.CurrentAsync(ct))!;
                 var employee = employeeId ?? access.EmployeeId;
@@ -57,7 +81,7 @@ internal static class ReportEndpoints
                 }
 
                 // Nur wer die Person selbst behandelt, sieht das Kennzeichen; die Rezeption sieht weiter nur den Stand des Fragebogens.
-                return TypedResults.Ok(employee == access.EmployeeId ? await WithAllergyFlagsAsync(plan, anamnesis, ct) : plan);
+                return TypedResults.Ok(await WithAnamnesisHintsAsync(plan, employee == access.EmployeeId, anamnesis, db, ct));
             })
             .WithName("GetDayPlan")
             .WithSummary("Tagesplan mit Behandlungskarten; ohne Person der eigene. Im eigenen Plan sagt AllergyFlag nur ja oder nein, ohne Inhalt.")

@@ -156,6 +156,18 @@ describe('Mein Tag', () => {
     await expectAccessible()
   })
 
+  it('zeigt „Anamnese prüfen“ auf der Karte, wenn die API es meldet', async () => {
+    routes['GET /api/v1/reports/locations/loc-1/day-plan'] = () => ({
+      status: 200,
+      body: { ...plan, cards: [plan.cards[0], { ...plan.cards[1], checkAnamnesis: true }] },
+    })
+    render(<MyDayApp />)
+
+    const cards = within(await screen.findByRole('list', { name: 'Termine' })).getAllByRole('article')
+    expect(within(cards[0]).getByText(/^Anamnese prüfen:/)).toBeTruthy()
+    expect(within(cards[1]).queryByText(/^Anamnese prüfen:/)).toBeNull()
+  })
+
   it('zeigt die Einwirkzeit einer Behandlung als freie Zeit, sonst nichts dazu', async () => {
     routes['GET /api/v1/reports/locations/loc-1/day-plan'] = () => ({
       status: 200,

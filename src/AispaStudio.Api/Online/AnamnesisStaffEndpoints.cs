@@ -68,8 +68,7 @@ internal static class AnamnesisStaffEndpoints
                     return TypedResults.NotFound();
                 }
 
-                return TypedResults.Ok(new AnamnesisCheck(check && await anamnesis.LatestAsync(customerId, ct) is { } record
-                    && record.Answers.Any(a => a.Yes == true || (a.Key == "other" && !string.IsNullOrWhiteSpace(a.Details)))));
+                return TypedResults.Ok(new AnamnesisCheck(check && await anamnesis.LatestAsync(customerId, ct) is { } record && HasFindings(record)));
             })
             .WithName("CheckCustomerAnamnesis")
             .WithSummary("Ob vor dieser Behandlung die Anamnese zu prüfen ist (nur ja oder nein, ohne Gesundheitsdaten).");
@@ -305,6 +304,10 @@ internal static class AnamnesisStaffEndpoints
         var scans = tracking ? store.AnamnesisScans : store.AnamnesisScans.AsNoTracking();
         return await scans.FirstOrDefaultAsync(s => s.Id == scanId && s.CustomerId == customerId, ct);
     }
+
+    /// <summary>Der Bogen enthält Angaben: ein „Ja“ oder Text unter „Sonstiges“. Mehr als ja oder nein verlässt diese Prüfung nicht.</summary>
+    internal static bool HasFindings(AnamnesisRecordDto record) =>
+        record.Answers.Any(a => a.Yes == true || (a.Key == "other" && !string.IsNullOrWhiteSpace(a.Details)));
 
     /// <summary>Erkennt das Bildformat am Inhalt, nicht am Dateinamen.</summary>
     internal static string? ImageType(ReadOnlySpan<byte> data) =>
