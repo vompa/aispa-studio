@@ -319,12 +319,13 @@ Stand: 20.10.2026, nach PR #172; Übergabe an Claude Code ([ADR 0046](entscheidu
 
 Seit dem 08.11.2026 im öffentlichen Repository `vompa/aispa-studio`; PR-Nummern davor gehören zum früheren Repository.
 
-| Was | Wo | Stand am 08.11.2026 | Nächster Schritt |
+| Was | Wo | Stand am 16.11.2026 | Nächster Schritt |
 | --- | --- | --- | --- |
-| Sammelstand `dev` → `main` | PR #3 (Entwurf) | offen | volle Prüfkette am Rundenende, dann Merge-Commit ([ADR 0060](entscheidungen/0060-weiterarbeit-auf-einem-branch-dev.md)) |
-| Dependabot: acht npm-Pakete im Web, darunter TypeScript 7 | PR #2 | offen | erledigt sich, sobald die Regel „TypeScript ohne Hauptversion“ in `.github/dependabot.yml` auf `main` liegt; Dependabot schlägt dann ohne TypeScript 7 neu vor |
+| MailKit 4 → 5 | Dependabot-PR #30 | offen, Build rot | eigene Umstellung: `SmtpClient.SendAsync` hat eine neue Signatur (`Mail/Mail.cs`), `ImapCapabilities.SpecialUse` und `XList` fehlen (`MailIntake/Mailboxes/ImapSentCopy.cs`); danach Versand und Kopie in „Gesendet“ gegen ein echtes Postfach prüfen |
+| Anthropic 12 → 13 | Dependabot-PR #29 | offen, Build rot | eigene Umstellung: `BetaMessageParam` wird anders erzeugt (`MailIntake/Assistant/ClaudeJson.cs`, `Online/ClaudeAnamnesisReader.cs`); danach mit einem echten Schlüssel prüfen |
+| ASP.NET-Core-Pakete 11 (`SignalR.Client`, `ApiDescription.Server`, `@microsoft/signalr`) | Dependabot-PRs #31, #32 | zurückgestellt | kommen mit dem Umstieg auf .NET 11; bis dahin überspringt Dependabot die Hauptversion (`.github/dependabot.yml`) |
 
-Dazu der eigene Branch des Auftraggebers `feature/dev-sign-in-without-codes` (drei Commits vom 18.10.2026); Startmeldung ohne Datenbank und Visual-Studio-Dateien sind mit #144 und #141 auf `main`, offen ist nur `DevSignIn:SkipCodes`; ob er das noch braucht, entscheidet der Auftraggeber. Die übrigen `claude/...`-Branches sind gemergte Stände und können gelöscht werden (Liste in der [Übergabe](uebergabe.md#43-branches-und-pull-requests)).
+`dev` und `main` werden nach jeder grünen Runde per Merge-Commit zusammengeführt ([ADR 0060](entscheidungen/0060-weiterarbeit-auf-einem-branch-dev.md)). Die gemergten `claude/...`-Branches können gelöscht werden; den früheren Branch `feature/dev-sign-in-without-codes` gibt es in diesem Repository nicht mehr.
 
 ## Für den Echtbetrieb nötig (echte Dienste und Verträge)
 

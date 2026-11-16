@@ -12,6 +12,13 @@ updates:
       # PDFsharp steht ab 6.5.0 unter AGPL-3.0; 6.2.4 ist die letzte MIT-Fassung (ADR 0092)
       - dependency-name: PDFsharp
         versions: [">= 6.3"]
+      # Pakete der Laufzeit folgen dem SDK in global.json (.NET 10); Hauptversion 11 erst mit dem Umstieg auf .NET 11
+      - dependency-name: "Microsoft.AspNetCore.*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "Microsoft.Extensions.*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "Microsoft.EntityFrameworkCore.*"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: npm
     directory: /web
@@ -23,6 +30,9 @@ updates:
     ignore:
       # openapi-typescript 7 bricht mit TypeScript 7 (gen:api: createKeywordTypeNode undefined); Pin ~6.0 bleibt bis dahin
       - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
+      # Der SignalR-Client im Web folgt dem Server (ASP.NET Core 10)
+      - dependency-name: "@microsoft/signalr"
         update-types: ["version-update:semver-major"]
 
   - package-ecosystem: github-actions

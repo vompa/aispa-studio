@@ -5987,3 +5987,27 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
   - Die volle Desktop-Suite und die API-Suite (die API ist nicht geändert).
   - Die laufende App und die Windows-Skalierung 125 und 150 Prozent.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md) (kein „Bitte“, Hinweis statt Fehler, Satzschreibweise).
+
+## Pakete nachziehen: Sicherheitsmeldungen behoben, Dependabot-Regeln (16.11.2026)
+
+- **Auftrag:** Der Auftraggeber gab die offene Arbeit zum autonomen Abarbeiten frei; zuerst die offenen Pull Requests. Alle sechs Dependabot-PRs waren rot, weil `main` selbst nicht mehr baute: Für `Microsoft.AspNetCore.SignalR.StackExchangeRedis` 10.0.13 (GHSA-wr8v-9x5q-ggcm) und `Aspire.Hosting.AppHost` 13.6.4 (GHSA-f7vh-h5g3-7jrh) gibt es Sicherheitsmeldungen, und Warnungen sind Fehler.
+- **Was:**
+  - NuGet: ASP.NET Core und EF-Werkzeuge 10.0.15, Aspire 13.6.5 (auch das SDK im AppHost-Projekt), Avalonia 12.1.6, OpenTelemetry 1.21.0, Wolverine 6.64.0, MailKit 4.18.2, Anthropic 12.60.0, `AspNet.Security.OAuth.Apple` 10.1.0, `Avalonia.Controls.WebView` 12.1.2, QRCoder 1.8.1, xunit.v3 4.0.3, `dotnet-ef` 10.0.15.
+  - Die Festlegung für `System.Security.Cryptography.Pkcs` steigt auf 10.0.15, sonst meldet die Wiederherstellung eine Herabstufung (NU1109). Daran scheiterte der Dependabot-PR der Gruppe.
+  - Web: Vite 8.3.8, `@vitejs/plugin-react` 6.3.0, oxlint 1.93.0, knip 6.45.1.
+  - Dependabot überspringt die Hauptversion bei `Microsoft.AspNetCore.*`, `Microsoft.Extensions.*`, `Microsoft.EntityFrameworkCore.*` und `@microsoft/signalr`.
+  - Handtestblock für die Kundenkarte 3 : 2 nachgetragen (fehlte im PR zu ADR 0094); Übergabe und Stand nennen die offenen PRs und die nächste freie ADR-Nummer wieder richtig.
+- **Detailentscheidungen:**
+  1. Die Pakete der Laufzeit bleiben auf Hauptversion 10, weil sie dem SDK in `global.json` folgen. Version 11 kommt mit dem Umstieg auf .NET 11 als eigener Schritt.
+  2. `@microsoft/signalr` bleibt auf 10, damit Client und Server dieselbe Hauptversion haben.
+  3. MailKit 5 und Anthropic 13 sind nicht enthalten. Beide brechen den Build (zusammen zwölf Fehler in `Mail.cs`, `ImapSentCopy.cs`, `ClaudeJson.cs`, `ClaudeAnamnesisReader.cs`) und berühren Versand und KI, die nur gegen Nachbauten getestet sind. Jede Umstellung bekommt einen eigenen PR.
+  4. Der Analyzer CA1859 ist in `CompanionHistoryTests` an einer Stelle abgeschaltet: Der Test prüft bewusst über die Schnittstelle `ISidePanel`. Das SDK 10.0.115 meldet die Stelle, das SDK der CI bisher nicht.
+- **Geprüft:**
+  - `dotnet format --verify-no-changes` sauber, Release-Build ohne Warnungen (SDK 10.0.115 unter Linux).
+  - API-Tests: 2242 von 2274 grün, 1 übersprungen. Die 31 roten brauchen Docker (Testcontainers: `LiveBackplaneTests` 30, `DatabaseBackupTests` 1), das es im Cloud-Container nicht gibt; die CI prüft sie.
+  - Desktop-Tests ohne Ansichtstests: 2290 von 2292 grün, 2 übersprungen.
+  - Web: `gen:api` ohne Änderung, Lint, Typecheck, Tests, Build und Bundle-Grenze (86,6 kB von 100 kB) grün.
+- **Nicht geprüft:**
+  - Die Ansichtstests der Windows-App (laufen unter Windows in der CI).
+  - Die laufende App und der Start über Aspire 13.6.5.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
