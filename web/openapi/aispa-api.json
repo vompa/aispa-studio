@@ -29726,6 +29726,209 @@
         }
       }
     },
+    "/api/v1/dispatch-log": {
+      "get": {
+        "tags": [
+          "Versandprotokoll"
+        ],
+        "summary": "Versandprotokoll: Terminerinnerungen und Wiederbuchungs-Hinweise der letzten Tage (Vorgabe 30, höchstens 366), neueste zuerst. Filter: kind (reminder, rebook), channel (email, sms, whatsapp), result (sent, failed, skipped, queued).",
+        "operationId": "ListDispatchLog",
+        "parameters": [
+          {
+            "name": "kind",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "channel",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "result",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "days",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DispatchLogEntryDto"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/dispatch-log/summary": {
+      "get": {
+        "tags": [
+          "Versandprotokoll"
+        ],
+        "summary": "Zahlen des Versandprotokolls der letzten Tage (Vorgabe 30), je Art: verschickt, fehlgeschlagen, entfallen.",
+        "operationId": "GetDispatchSummary",
+        "parameters": [
+          {
+            "name": "days",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DispatchSummaryDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/dispatch-log/export": {
+      "get": {
+        "tags": [
+          "Versandprotokoll"
+        ],
+        "summary": "Das Versandprotokoll als Excel oder CSV mit denselben Filtern wie die Liste (höchstens so viele Zeilen wie jeder Export).",
+        "operationId": "ExportDispatchLog",
+        "parameters": [
+          {
+            "name": "kind",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "channel",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "result",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "days",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/retention/settings": {
       "get": {
         "tags": [
@@ -29760,7 +29963,7 @@
         "tags": [
           "Wiederbuchungs-Hinweis"
         ],
-        "summary": "Wiederbuchungs-Hinweis einstellen. Er geht nur an Gäste mit bestätigter Einwilligung.",
+        "summary": "Wiederbuchungs-Hinweis einstellen: Standardabstand und Ausnahmen je Kategorie oder Behandlung. Er geht nur an Gäste mit bestätigter Einwilligung.",
         "operationId": "UpdateRebookSettings",
         "requestBody": {
           "content": {
@@ -38795,6 +38998,118 @@
           }
         }
       },
+      "DispatchKind": {
+        "enum": [
+          "Reminder",
+          "Rebook"
+        ]
+      },
+      "DispatchKindSummaryDto": {
+        "required": [
+          "sent",
+          "failed",
+          "skipped"
+        ],
+        "type": "object",
+        "properties": {
+          "sent": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "failed": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "skipped": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "DispatchLogEntryDto": {
+        "required": [
+          "id",
+          "kind",
+          "customerId",
+          "recipient",
+          "subject",
+          "channel",
+          "state",
+          "at",
+          "appointmentStart",
+          "text",
+          "error"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/DispatchKind"
+          },
+          "customerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "recipient": {
+            "type": "string"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "channel": {
+            "$ref": "#/components/schemas/ReminderChannel"
+          },
+          "state": {
+            "type": "string"
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "appointmentStart": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "text": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "error": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "DispatchSummaryDto": {
+        "required": [
+          "days",
+          "reminders",
+          "rebook"
+        ],
+        "type": "object",
+        "properties": {
+          "days": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "reminders": {
+            "$ref": "#/components/schemas/DispatchKindSummaryDto"
+          },
+          "rebook": {
+            "$ref": "#/components/schemas/DispatchKindSummaryDto"
+          }
+        }
+      },
       "DisplayBoard": {
         "required": [
           "locationName",
@@ -45624,6 +45939,25 @@
           }
         }
       },
+      "RebookCategoryIntervalDto": {
+        "required": [
+          "category",
+          "days"
+        ],
+        "type": "object",
+        "properties": {
+          "category": {
+            "type": "string"
+          },
+          "days": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          }
+        }
+      },
       "RebookIntervalDto": {
         "required": [
           "treatmentId",
@@ -45715,6 +46049,32 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/RebookIntervalDto"
+            }
+          },
+          "defaultDays": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "categoryIntervals": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/RebookCategoryIntervalDto"
+            }
+          },
+          "silentTreatmentIds": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string",
+              "format": "uuid"
             }
           }
         }
@@ -53526,6 +53886,9 @@
     },
     {
       "name": "Terminerinnerungen"
+    },
+    {
+      "name": "Versandprotokoll"
     },
     {
       "name": "Wiederbuchungs-Hinweis"

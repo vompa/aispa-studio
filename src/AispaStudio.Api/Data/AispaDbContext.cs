@@ -127,6 +127,7 @@ public sealed class AispaDbContext(DbContextOptions<AispaDbContext> options, Ten
     public DbSet<AppointmentReminder> AppointmentReminders => Set<AppointmentReminder>();
     public DbSet<RebookSettings> RebookSettings => Set<RebookSettings>();
     public DbSet<TreatmentRebookInterval> TreatmentRebookIntervals => Set<TreatmentRebookInterval>();
+    public DbSet<CategoryRebookInterval> CategoryRebookIntervals => Set<CategoryRebookInterval>();
     public DbSet<MarketingConsent> MarketingConsents => Set<MarketingConsent>();
     public DbSet<RebookReminder> RebookReminders => Set<RebookReminder>();
     public DbSet<PaymentAccount> PaymentAccounts => Set<PaymentAccount>();
