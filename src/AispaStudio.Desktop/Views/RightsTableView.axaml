@@ -20,7 +20,7 @@
       </ItemsControl.ItemsPanel>
       <ItemsControl.ItemTemplate>
         <DataTemplate x:DataType="vm:RightsFilter">
-          <Button Classes="headchip" Classes.on="{Binding IsOn}" Content="{Binding Label}" Command="{Binding SelectCommand}" AutomationProperties.Name="{Binding Label}" />
+          <ui:TabButton Classes="headchip" IsSelected="{Binding IsOn}" Content="{Binding Label}" Command="{Binding SelectCommand}" AutomationProperties.Name="{Binding Label}" />
         </DataTemplate>
       </ItemsControl.ItemTemplate>
     </ItemsControl>
