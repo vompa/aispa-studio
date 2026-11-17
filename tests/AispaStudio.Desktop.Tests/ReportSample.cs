@@ -88,6 +88,28 @@ internal static class ReportSample
         ],
         ["Raumwechsel um 11:00"]);
 
+    /// <summary>Tagesplan für „Mein Tag“ (P9): Name mit Dauer in der Behandlung, Gerät zum Abhaken, Vorlieben und eine Notiz.</summary>
+    public static DayPlanDto LavaDay(bool equipmentDone = false) => DayPlan() with
+    {
+        Cards =
+        [
+            DayPlan().Cards[0] with
+            {
+                TreatmentName = "Lava-Hot-Stone-Massage (60 Min.)",
+                DurationMinutes = 60,
+                DisplayName = "Lava-Hot-Stone-Massage",
+                EquipmentName = "Steinwärmer",
+                Todo =
+                [
+                    new TodoItem(StepId, "Steine aufheizen", At(9, 30), "Rezept", false),
+                    new TodoItem(null, "Steinwärmer bereitstellen", null, "Termin", equipmentDone) { IsEquipment = true },
+                    new TodoItem(null, "Duft: Lavendel", null, "Vorliebe", false),
+                    new TodoItem(null, "Letzte Notiz (09.10., Lisa): Nacken verspannt", null, "Notiz", false),
+                ],
+            },
+        ],
+    };
+
     public static RoomStartDayDto RoomStart(RoomStartState state = RoomStartState.Partial, bool done = false) => new(LocationId, Today,
         [
             new RoomStartRoomDto(RoomId, "Raum 1", state, [new RoomStartItemStateDto(CheckId, "Liege desinfiziert", done, done ? At(8, 10) : null, done ? "Lisa" : null)], null, null,

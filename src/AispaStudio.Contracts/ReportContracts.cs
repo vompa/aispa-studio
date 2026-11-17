@@ -28,7 +28,11 @@ public sealed record CustomerPreferences(
     string? Other);
 
 /// <summary>Ein Punkt der Vorbereitungs-Todo; <c>DueAt</c> = Behandlungsbeginn minus Vorlauf. <c>Source</c>: Rezept, Vorliebe, Anlass, Notiz.</summary>
-public sealed record TodoItem(Guid? StepId, string Text, DateTimeOffset? DueAt, string Source, bool Done);
+public sealed record TodoItem(Guid? StepId, string Text, DateTimeOffset? DueAt, string Source, bool Done)
+{
+    /// <summary>Wahr beim Schritt „Gerät bereitstellen“: Der Haken läuft über <c>equipment-prepared</c> des Termins statt über einen Rezeptschritt.</summary>
+    public bool? IsEquipment { get; init; }
+}
 
 public sealed record PastTreatment(DateTimeOffset Start, string TreatmentName, string EmployeeName, string? Note);
 
@@ -66,7 +70,11 @@ public sealed record TreatmentCard(
     bool AllergyFlag = false,
     int HandsOnMinutes = 0,
     int ProcessingMinutes = 0,
-    bool CheckAnamnesis = false);
+    bool CheckAnamnesis = false)
+{
+    /// <summary>Name der Behandlung ohne die Dauer am Ende („Lava-Hot-Stone-Massage (60 Min.)“ wird „Lava-Hot-Stone-Massage“); die Dauer steht in <c>DurationMinutes</c>.</summary>
+    public string? DisplayName { get; init; }
+}
 
 public sealed record PreparationCheck(bool Done);
 

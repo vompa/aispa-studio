@@ -7132,6 +7132,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/reports/appointments/{appointmentId}/equipment-prepared": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["CheckEquipmentPrepared"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/reports/appointments/{appointmentId}/preparation/{stepId}": {
         parameters: {
             query?: never;
@@ -14020,6 +14036,7 @@ export interface components {
             dueAt: null | string;
             source: string;
             done: boolean;
+            isEquipment?: null | boolean;
         };
         TreatmentCard: {
             /** Format: uuid */
@@ -14066,6 +14083,7 @@ export interface components {
             processingMinutes: number;
             /** @default false */
             checkAnamnesis: boolean;
+            displayName?: null | string;
         };
         TreatmentCostDto: {
             /** Format: uuid */
@@ -33903,6 +33921,46 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["TreatmentCard"];
                 };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    CheckEquipmentPrepared: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                appointmentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PreparationCheck"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Forbidden */
             403: {

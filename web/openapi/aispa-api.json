@@ -24826,6 +24826,53 @@
         }
       }
     },
+    "/api/v1/reports/appointments/{appointmentId}/equipment-prepared": {
+      "put": {
+        "tags": [
+          "Berichte"
+        ],
+        "operationId": "CheckEquipmentPrepared",
+        "parameters": [
+          {
+            "name": "appointmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PreparationCheck"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/reports/appointments/{appointmentId}/preparation/{stepId}": {
       "put": {
         "tags": [
@@ -51470,6 +51517,12 @@
           },
           "done": {
             "type": "boolean"
+          },
+          "isEquipment": {
+            "type": [
+              "null",
+              "boolean"
+            ]
           }
         }
       },
@@ -51619,6 +51672,12 @@
           "checkAnamnesis": {
             "type": "boolean",
             "default": false
+          },
+          "displayName": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },

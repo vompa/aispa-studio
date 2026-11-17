@@ -22,40 +22,48 @@
       <ItemsControl.ItemTemplate>
         <DataTemplate x:DataType="vm:TreatmentCardRow">
           <Border Classes="section">
-            <StackPanel Spacing="8">
-              <TextBlock Text="{Binding Title}" FontWeight="Medium" TextWrapping="Wrap" />
+            <StackPanel Spacing="12" MaxWidth="760" HorizontalAlignment="Left">
+              <WrapPanel>
+                <TextBlock Text="{Binding Title}" Classes="h2" VerticalAlignment="Center" Margin="0,0,12,6" />
+                <Border Classes="tag" VerticalAlignment="Center"><TextBlock Text="{Binding DurationText}" /></Border>
+                <Border Classes="tag" VerticalAlignment="Center"><TextBlock Text="{Binding RoomName}" /></Border>
+                <Border Classes="tag" Classes.warn="{Binding !IsReady}" VerticalAlignment="Center" AutomationProperties.LiveSetting="Polite"><TextBlock Text="{Binding StatusText}" /></Border>
+              </WrapPanel>
               <TextBlock Text="{Binding Guest}" TextWrapping="Wrap" />
-              <TextBlock Text="{Binding Anamnesis}" Classes="muted" Classes.error="{Binding IsAnamnesisWarning}" TextWrapping="Wrap" />
-              <TextBlock Text="{Binding BookingNote}" TextWrapping="Wrap" IsVisible="{Binding HasBookingNote}" />
-              <TextBlock Text="Vorbereitung" Classes="group" />
-              <ItemsControl ItemsSource="{Binding Todo}">
-                <ItemsControl.ItemTemplate>
-                  <DataTemplate x:DataType="vm:ReportCheckRow">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                      <CheckBox Content="{Binding Text}" IsChecked="{Binding Done}" Command="{Binding ToggleCommand}" />
-                      <TextBlock Text="{Binding Detail}" Classes="muted small" VerticalAlignment="Center" IsVisible="{Binding HasDetail}" />
-                    </StackPanel>
-                  </DataTemplate>
-                </ItemsControl.ItemTemplate>
-              </ItemsControl>
-              <ItemsControl ItemsSource="{Binding TodoNotes}">
-                <ItemsControl.ItemTemplate>
-                  <DataTemplate x:DataType="x:String">
-                    <TextBlock Text="{Binding}" TextWrapping="Wrap" />
-                  </DataTemplate>
-                </ItemsControl.ItemTemplate>
-              </ItemsControl>
-              <StackPanel Spacing="4" IsVisible="{Binding HasHistory}">
-                <TextBlock Text="Letzte Behandlungen" Classes="group" />
-                <ItemsControl ItemsSource="{Binding History}">
+              <StackPanel Spacing="4">
+                <TextBlock Text="Vorbereitung" Classes="group" />
+                <ItemsControl ItemsSource="{Binding Todo}">
                   <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="x:String">
-                      <TextBlock Text="{Binding}" TextWrapping="Wrap" />
+                    <DataTemplate x:DataType="vm:ReportCheckRow">
+                      <StackPanel Orientation="Horizontal" Spacing="8">
+                        <CheckBox Content="{Binding Text}" IsChecked="{Binding Done}" Command="{Binding ToggleCommand}" />
+                        <TextBlock Text="{Binding Detail}" Classes="muted small" VerticalAlignment="Center" IsVisible="{Binding HasDetail}" />
+                      </StackPanel>
                     </DataTemplate>
                   </ItemsControl.ItemTemplate>
                 </ItemsControl>
               </StackPanel>
-              <Button Content="Vorlieben bearbeiten" Classes="ghost" Command="{Binding EditPreferencesCommand}" IsVisible="{Binding IsNotEditing}" />
+              <Border Background="{DynamicResource AccentSoftBrush}" CornerRadius="8" Padding="12,10" IsVisible="{Binding IsNotEditing}">
+                <StackPanel Spacing="8">
+                  <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Text="{Binding WishesHeading}" Classes="group" VerticalAlignment="Center" />
+                    <Button Grid.Column="1" Content="Bearbeiten" Classes="ghost" Command="{Binding EditPreferencesCommand}" AutomationProperties.Name="Vorlieben bearbeiten" />
+                  </Grid>
+                  <ItemsControl ItemsSource="{Binding Wishes}" IsVisible="{Binding HasWishes}">
+                    <ItemsControl.ItemsPanel>
+                      <ItemsPanelTemplate>
+                        <WrapPanel />
+                      </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="x:String">
+                        <Border Classes="tag" BorderBrush="{DynamicResource AccentLineBrush}"><TextBlock Text="{Binding}" /></Border>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                  <TextBlock Text="Noch keine Vorlieben eingetragen." Classes="muted" IsVisible="{Binding HasNoWishes}" />
+                </StackPanel>
+              </Border>
               <StackPanel Spacing="8" IsVisible="{Binding IsEditingPreferences}">
                 <TextBlock Text="Vorlieben" Classes="group" />
                 <WrapPanel ItemSpacing="12" LineSpacing="8">
@@ -72,6 +80,28 @@
                   <Button Content="Vorlieben speichern" Classes="primary" Command="{Binding SavePreferencesCommand}" />
                   <Button Content="Abbrechen" Classes="ghost" Command="{Binding CancelPreferencesCommand}" />
                 </StackPanel>
+              </StackPanel>
+              <StackPanel Spacing="4">
+                <TextBlock Text="Hinweise" Classes="group" />
+                <TextBlock Text="{Binding Anamnesis}" Classes="muted" Classes.error="{Binding IsAnamnesisWarning}" TextWrapping="Wrap" />
+                <TextBlock Text="{Binding BookingNote}" TextWrapping="Wrap" IsVisible="{Binding HasBookingNote}" />
+                <ItemsControl ItemsSource="{Binding TodoNotes}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="x:String">
+                      <TextBlock Text="{Binding}" TextWrapping="Wrap" />
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+              <StackPanel Spacing="4" IsVisible="{Binding HasHistory}">
+                <TextBlock Text="Letzte Behandlungen" Classes="group" />
+                <ItemsControl ItemsSource="{Binding History}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="x:String">
+                      <TextBlock Text="{Binding}" TextWrapping="Wrap" />
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
               </StackPanel>
               <ui:FormField Label="Nachbereitung (für die nächste Behandlung)">
                 <TextBox Text="{Binding Note}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="56" />

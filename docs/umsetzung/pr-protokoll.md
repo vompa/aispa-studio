@@ -6879,6 +6879,25 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Geprüft:** API `StockExportMatrixTests` (Theorie über 10 Kombinationen, Zeilen und Zeit der 30 Tage) und `StockExportTests` 16 von 16; Windows-App `StockExportDialogTests` (je Liste und Format bis zur gespeicherten Datei, Vorauswahl, gesperrte Liste, Format gemerkt, Zeitraum, Abbruch, Fehler, alter Fehler, Ordner öffnen), `ListExportTests`, `ExportButtonTests` und die Ansichtstests zu Lager und Export; Bildschirmfotos hell und dunkel des Dialogs, des Zeitraums, der gesperrten Inventur und des Toasts.
 - **Nicht geprüft:** die laufende App unter Windows (echter Speicherdialog, Explorer mit markierter Datei); Excel selbst beim Öffnen der CSV (nur Bytes: Byte-Order-Mark, Strichpunkt, Kodierung).
 - **Beim Schreiben festgestellt:** Das Beispiel-Spa hat keine eingereichte Inventur, deshalb war „Inventur“ dort nie exportierbar; eine Beispielzählung im Testdatensatz wäre eine eigene Aufgabe. Die Matrixtests reichen für ihre Läufe selbst eine Zählung ein.
+
+## „Mein Tag“: Kopf, Status, Gerät und Vorlieben (17.11.2026)
+
+- **Auftrag:** Masken-Überarbeitung P9 (Entwurf Abschnitt 9, Plan-Entscheidung 12): doppelte Dauer im Titel beheben, Status je Termin, Karte einspaltig mit Abschnitten, Gerät abhakbar, Vorlieben nicht doppelt.
+- **Befund:** Der Titel baute „Uhrzeit Name (Dauer), Raum“; die Demo-Namen tragen die Dauer schon („Lava-Hot-Stone-Massage (60 Min.)“), also stand „(60 Min.) (60 Min.)“. Der Status der Seite zählte nur Hinweise, nicht die offene Vorbereitung. Vorlieben erschienen einmal als Felder und noch einmal als Zeilen der Vorbereitung; das Gerät hatte kein Häkchen.
+- **Was:**
+  - API (nur additiv, ADR 0085 §3): `TreatmentCard.DisplayName` (Name ohne die Dauer am Ende, Regel `TreatmentCards.DisplayNameOf`), `TodoItem.IsEquipment`, `PUT /api/reports/appointments/{id}/equipment-prepared` (Recht „Status ändern“, Tabelle `AppointmentEquipmentChecks`, Migration `AppointmentEquipmentCheck`).
+  - Windows-App: Kopf mit Titel und Kennzeichen (Dauer, Raum, Status), Abschnitte Vorbereitung (inklusive Gerät), „Das wünscht sich <Vorname>“ mit Kennzeichen und „Bearbeiten“, Hinweise, Letzte Behandlungen, Nachbereitung; Inhalt bis 760 breit, links. Der Status der Seite lautet z. B. „2 Vorbereitungen offen, 1 Hinweis zum Tag“.
+  - Handbuch `berichte-tagesplan-ansehen` neu gefasst, Bilder `verwaltung-berichte-tagesplan.png` und `verwaltung-mein-tag-1100.png` neu.
+- **Detailentscheidungen:**
+  1. Die Dauer entfernt die API aus dem Namen und nicht die App, weil dort die Geschäftsregel liegt (alle Oberflächen können `DisplayName` nutzen); die Dauer steht immer als Kennzeichen daneben, auch wenn der Name sie nicht trug. Die Behandlung selbst wird nicht umbenannt (Altbestand nur nach Rücksprache).
+  2. Das Gerät hat keinen Rezeptschritt, deshalb ein eigener Haken am Termin (eigene Tabelle statt eines Schritts mit leerer Id). Wird der Termin gelöscht, verschwindet der Haken mit (Cascade).
+  3. Die Vorlieben-Zeilen (`Source = "Vorliebe"`) bleiben in der API (Web-Ansicht und Handy-App zeigen sie weiter); nur die Windows-App blendet sie aus, weil sie dieselben Werte im Abschnitt „Das wünscht sich …“ zeigt.
+  4. „erste bis 09:30“ nimmt die früheste Frist der offenen Schritte (Beginn minus Vorlauf); die Zeilen darunter nennen sie weiter mit „ab“. Ein einzelner offener Schritt ohne Frist heißt nur „1 Vorbereitung offen“.
+  5. Die Statuszeile der Karte und der Seite rechnen live mit dem Abhaken (die der Seite beim Neuladen).
+  6. Der Ort von „Mein Tag“ unter „Zahlen“ bleibt: Frage an den Auftraggeber (gehört die Seite zu „Team“ oder „Kalender“?).
+- **Bewusst offen / später:** Ort der Seite; Vorname wird aus dem ersten Wort des Namens genommen (Gäste mit Titel davor bekommen den Titel).
+- **Geprüft:** API `MyDayCardTests` 6 von 6 (neu), Windows-App `AdminReportsTests` Mein-Tag-Tests und `ViewTests` Mein Tag (hell und dunkel, 1100 und 1900 breit, Karte höchstens 760), Namensprüfung der Berichte-Seiten grün; `aispa-api.json` nur um Felder und einen Pfad erweitert.
+- **Nicht geprüft:** die laufende App unter Windows; Handy-App und Web-Ansicht „Mein Tag“ (unverändert, zeigen Gerät und Vorlieben weiter als Zeilen ohne Haken).
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
 
 ## Masken: Hilfe als Leiste „KI und Hilfe“ (P1, 17.11.2026)
