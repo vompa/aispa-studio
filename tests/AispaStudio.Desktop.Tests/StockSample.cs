@@ -231,6 +231,19 @@ internal static class StockSample
                 places.RemoveAll(p => p.Id == ShopId);
                 return new { };
             })
+            .On($"GET {Route($"/storage-places/{ShopId}/deletion-check")}", new DeletionCheckDto(true, "Der Lagerort hat keine Bewegungen und lässt sich löschen.", []))
+            .On($"GET {Route($"/storage-places/{CabinetId}/deletion-check")}", new DeletionCheckDto(false, "Der Lagerort hat Bewegungen. Sie bleiben für die Nachvollziehbarkeit erhalten.",
+                [new DependentCount("movements", 2, "2 Lagerbewegungen")], new DeletionAlternative("deactivate", "Nicht mehr verwenden")))
+            .On($"GET {Route($"/storage-places/{MainId}/deletion-check")}", new DeletionCheckDto(false, "Das Hauptlager gehört zum Standort und lässt sich nicht löschen.", []))
+            .OnJson($"PUT {Route($"/storage-places/{CabinetId}")}", body =>
+            {
+                var input = JsonSerializer.Deserialize<StoragePlaceInput>(body!, ApiClient.Json)!;
+                var changed = Cabinet with { IsActive = input.IsActive };
+                places[places.FindIndex(p => p.Id == CabinetId)] = changed;
+                return changed;
+            })
+            .On($"GET /api/stock/suppliers/{SupplierId}/deletion-check", new DeletionCheckDto(false, "Am Lieferanten hängt noch Material.",
+                [new DependentCount("items", 1, "1 Material")], new DeletionAlternative("deactivate", "Nicht mehr verwenden")))
             .OnJson($"POST {Route($"/storage-places/{ShopId}/minimums/copy-from/{CabinetId}")}", _ => Shop with { Minimums = Cabinet.Minimums });
     }
 

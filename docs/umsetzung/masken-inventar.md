@@ -95,3 +95,23 @@ Ziel nach [ADR 0098](../entscheidungen/0098-verwaltungsmasken-eine-schiene-ueber
 | Kassa & Geld | 4 Masken | 4 Masken | T-064, 16.11.2026 (PR offen): Warnungen oben |
 | Kontakt | 3 Masken | 3 Masken | T-064, 16.11.2026 (PR offen): Erinnerungen 3 : 2, Warnung oben |
 | Zahlen | 5 Reiter, „Berichte“ mit 2 Unterreitern | 5 Reiter, „Berichte“ mit 2 Abschnitten | T-063, 16.11.2026 (PR offen) |
+
+## Anlegen und Entfernen (ADR 0099, P10a)
+
+Stand: 17.11.2026. Bestandsaufnahme vor dem Muster aus [ADR 0099](../entscheidungen/0099-anlegen-entfernen-und-leerer-betrieb.md): „Neu“ fest über der Liste, Entfernen im Menü „⋯“ im Kopf der Karte, Löschen nur ohne Abhängiges, sonst „Nicht mehr verwenden“. Die Spalte „Lücke“ nennt, was fehlt; „P10b“ ist der Folge-PR dieses Punkts, „Maske“ der PR der jeweiligen Bahn.
+
+| Objekt | Anlegen (App / API) | Löschen | Nicht mehr verwenden | Ort in der App | Lücke |
+| --- | --- | --- | --- | --- | --- |
+| Standort | „Standort anlegen“ in der Liste / `POST api/locations` (Inhaber) | nein | nein (kein `IsActive`) | Betrieb › Standorte & Räume | Standort schließen ab Datum (neues Feld, Migration): P10b |
+| Raum | Zeile „Neuer Raum“, jetzt über der Liste / `POST api/locations/{id}/rooms` | nie (Verweise von Terminen, Kosten, Sperrzeiten); `GET api/rooms/{id}/deletion-check` zählt (neu) | Menü „⋯“ der Zeile (neu) / `DELETE api/rooms/{id}` setzt `IsActive` aus, abgelehnt bei künftigen Terminen | Betrieb › Standorte & Räume › Räume | Wieder verwenden fehlt (`PUT` nur für aktive Räume): P10b |
+| Gerät | Zeile „Neues Gerät“, jetzt über der Liste / `POST api/locations/{id}/equipment` | nie; `GET api/equipment/{id}/deletion-check` (neu) | Menü „⋯“ der Zeile (neu) / `DELETE api/equipment/{id}`, abgelehnt bei künftigen Terminen | Betrieb › Standorte & Räume › Geräte | Wieder verwenden fehlt: P10b |
+| Person | Anlegen im Team, Einladen getrennt / `POST api/employees`, `POST api/staff/invitations` | nein | „Aus dem Team nehmen“ in der Personenkarte / `DELETE api/employees/{id}` setzt `IsActive` aus, abgelehnt bei künftigen Terminen; ehemalige über `GET api/employees/former` | Team › Personenkarte | Menü „⋯“ und Dialog statt eigenem Knopf: Maske Team (nicht in P10a) |
+| Behandlung | Anlegen in der Maske / `POST api/treatments` | nein | „Nicht mehr anbieten“ / `DELETE api/treatments/{id}` setzt `IsActive` aus; gebuchte Termine bleiben | Angebot › Behandlungen | Reaktivieren fehlt, Menü „⋯“: Maske Behandlungen (nicht in P10a) |
+| Lieferant | „Neu“ über der Liste (vorher letzte Zeile) / `POST api/stock/suppliers` | ja, wenn kein Material daran hängt (neu): `DELETE api/stock/suppliers/{id}`, sonst 409 mit der Liste; `deletion-check` (neu) | Menü „⋯“ (neu) / `PUT` mit `IsActive=false`; Bestellungen behalten den Namen | Lager › Einrichtung › Lieferanten | erledigt in P10a |
+| Lagerort | „Neu“ über der Liste (vorher letzte Zeile) / `POST api/stock/locations/{id}/storage-places` | ja, wenn keine Bewegungen (vorher schon, jetzt mit `deletion-check`); Hauptlager nie | Menü „⋯“ (neu) / `PUT` mit `IsActive=false` (das Hauptlager nie) | Lager › Einrichtung › Lagerorte | erledigt in P10a |
+| Material | Anlegen im Bestand / `POST api/stock/items` | nein | nur in der API (`IsActive` in `StockItemInput`); die App reicht den Wert nur durch (`StockItemFormViewModel.cs:306`) | Lager › Bestand › Material | Schalter in der App, Dialog: P10b |
+| Qualifikation | Zeile in „Qualifikationen verwalten“ der Personenkarte / `POST api/qualifications` | ja, wenn niemand und keine Behandlung sie trägt (neu): `DELETE api/qualifications/{id}`, sonst 409; `deletion-check` (neu) | nein (kein `IsActive`) | Team › Personenkarte › Profil | Menü und Dialog in der App: P10b (Maske Personenkarte) |
+| Aktion | „Neue Aktion“ über der Liste / `POST api/promotions` | nie (ADR 0071) | Archivieren und Zurückholen, umkehrbar / `POST …/archive`, `…/unarchive` | Angebot › Aktionen | bleibt beim Archivieren; Menü „⋯“: Maske Aktionen (nicht in P10a) |
+| Betriebskontakt | Anlegen in der Maske (darunter die Kategorie „Handwerker und Technik“) / `POST api/business-contacts` | nein | Archivieren und Zurückholen / `POST …/archive`, `…/unarchive` (`BusinessInfoViewModel.cs:878-938`) | Zahlen › Betriebsinfo | Handwerker bleiben Kategorie der Betriebsinfo (ADR 0099); Menü „⋯“: Maske Betriebsinfo |
+
+Das Muster in der API ist `GET …/{id}/deletion-check` mit `DeletionCheckDto(CanDelete, Summary, Dependents, Alternative)`; die App zeigt es im gemeinsamen Dialog (`DeletionDialog`) und im Menü `MoreMenuButton`. In P10a ist es bei Lagerorten, Lieferanten, Räumen und Geräten eingebaut; die übrigen Masken folgen mit ihren PRs.

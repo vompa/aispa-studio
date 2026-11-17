@@ -104,5 +104,6 @@ Neue Entscheidungen bekommen die nächste freie Nummer und die Vorlage [`vorlage
 | 0096 | [Kassieren ohne Verbindung: Ersatzbeleg und Nacherfassung](0096-kassieren-ohne-verbindung-ersatzbeleg-und-nacherfassung.md) | 16.11.2026 | Claude, autonom nach ADR 0019 (Steuerberatung offen) |
 | 0097 | [Urlaubskonto: Arbeitstage je Kalenderjahr, Anspruch von der Leitung](0097-urlaubskonto-in-arbeitstagen-je-kalenderjahr.md) | 16.11.2026 | Claude, autonom nach ADR 0019 (Arbeitsrecht offen) |
 | 0098 | [Verwaltungsmasken: eine Schiene, Übersicht zuerst, Verlauf als Seitenleiste](0098-verwaltungsmasken-eine-schiene-uebersicht-seitenleiste.md) | 16.11.2026 | Auftraggeber, Umsetzung Claude |
+| 0099 | [Anlegen, Entfernen und leerer Betrieb](0099-anlegen-entfernen-und-leerer-betrieb.md) | 17.11.2026 | Auftraggeber, Umsetzung Claude |
 
 Detailentscheidungen einzelner Pull Requests stehen im [PR-Protokoll](../umsetzung/pr-protokoll.md).

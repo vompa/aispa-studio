@@ -10,6 +10,9 @@ namespace AispaStudio.Desktop.ViewModels;
 /// <summary>Ein Lieferant in der Liste; ohne Kennung ist es der Eintrag „Neuer Lieferant“.</summary>
 public sealed record StockSupplierRow(Guid? Id, string Name, string Sub)
 {
+    /// <summary>Der Eintrag „Neuer Lieferant“: die Liste zeigt ihn nicht, „Neu“ steht fest über der Liste (ADR 0099).</summary>
+    public bool IsNew => Id is null;
+
     public string Summary => Sub.Length == 0 ? Name : $"{Name}, {Sub}";
 
     public override string ToString() => Summary;
@@ -22,8 +25,8 @@ public sealed record SupplierChannelOption(SupplierOrderChannel Channel, string 
 }
 
 /// <summary>
-/// Lieferanten (R05 Slice 112, Ä251): links die Liste, rechts das Formular mit Kontakt, Lieferzeit, Mindestbestellwert und Bestellweg, nach dem Vorbild der Lagerorte. Löschen gibt es nicht, nur
-/// Deaktivieren. Nur mit ManageCatalog; geprüft wird in der API.
+/// Lieferanten (R05 Slice 112, Ä251): links die Liste, rechts das Formular mit Kontakt, Lieferzeit, Mindestbestellwert und Bestellweg, nach dem Vorbild der Lagerorte. Löschen geht nur, wenn
+/// kein Material mehr am Lieferanten hängt, sonst bleibt „Nicht mehr verwenden“ (ADR 0099; beides im Menü „⋯“). Nur mit ManageCatalog; geprüft wird in der API.
 /// </summary>
 public sealed partial class StockSuppliersViewModel : ViewModelBase, IFocusTarget, IEditableArea
 {
@@ -110,6 +113,11 @@ public sealed partial class StockSuppliersViewModel : ViewModelBase, IFocusTarge
     public partial bool IsSaving { get; private set; }
 
     public string HeadingText => _current?.Name ?? "Neuer Lieferant";
+
+    public bool CanRemove => _current is not null;
+
+    /// <summary>„Nicht mehr verwenden“ gilt dem gespeicherten Stand; mit ungespeicherten Änderungen wäre unklar, was gemeint ist.</summary>
+    public bool CanDeactivate => _current is { IsActive: true } && !HasUnsavedChanges;
 
     public bool HasUnsavedChanges => _savedSignature is not null && Signature() != _savedSignature;
 
@@ -221,6 +229,74 @@ public sealed partial class StockSuppliersViewModel : ViewModelBase, IFocusTarge
     }
 
     [RelayCommand]
+    private async Task NewAsync()
+    {
+        if (await UnsavedChanges.ConfirmLeaveAsync(_owner.Dialogs, this).ConfigureAwait(true))
+        {
+            Select(null);
+        }
+    }
+
+    /// <summary>„Löschen …“ im Menü: die API prüft, was am Lieferanten hängt; frei ist er nach der Bestätigung weg, sonst bleibt „Nicht mehr verwenden“ (ADR 0099).</summary>
+    [RelayCommand(CanExecute = nameof(CanRemove))]
+    private async Task DeleteAsync()
+    {
+        if (_current is not { } supplier)
+        {
+            return;
+        }
+
+        var path = $"api/stock/suppliers/{supplier.Id}";
+        var outcome = await DeletionDialog.AskAsync(_owner.Api, _owner.Dialogs, $"{path}/deletion-check", supplier.Name).ConfigureAwait(true);
+        if (outcome.Error is not null)
+        {
+            Error = outcome.Error;
+            return;
+        }
+
+        switch (outcome.Choice)
+        {
+            case DeletionChoice.Delete:
+                var result = await _owner.Api.DeleteAsync<object>(path).ConfigureAwait(true);
+                if (!result.Ok)
+                {
+                    Error = result.Error ?? "Der Lieferant wurde nicht gelöscht.";
+                    return;
+                }
+
+                Error = null;
+                _current = null;
+                await _owner.ReloadAsync("Lieferant gelöscht.").ConfigureAwait(true);
+                break;
+            case DeletionChoice.Alternative:
+                await DeactivateAsync().ConfigureAwait(true);
+                break;
+        }
+    }
+
+    /// <summary>Material und Bestellungen behalten den Lieferanten; neue Bestellungen und neues Material wählen ihn nicht mehr. Über „Aktiv“ ist er wieder da.</summary>
+    [RelayCommand(CanExecute = nameof(CanDeactivate))]
+    private async Task DeactivateAsync()
+    {
+        if (_current is not { } supplier)
+        {
+            return;
+        }
+
+        var body = new StockSupplierInput(supplier.Name, supplier.ContactPerson, supplier.Email, supplier.Phone, supplier.LeadTimeDays, supplier.MinimumOrderValue, supplier.OrderChannel, false);
+        var result = await _owner.Api.PutAsync<StockSupplierDto>($"api/stock/suppliers/{supplier.Id}", body).ConfigureAwait(true);
+        if (result.Value is null)
+        {
+            Error = result.Error ?? "Der Lieferant wurde nicht aus der Verwendung genommen.";
+            return;
+        }
+
+        Error = null;
+        _selectAfterLoad = supplier.Id;
+        await _owner.ReloadAsync("Lieferant wird nicht mehr verwendet.").ConfigureAwait(true);
+    }
+
+    [RelayCommand]
     private void CloseError() => Error = null;
 
     partial void OnSelectedRowChanged(StockSupplierRow? oldValue, StockSupplierRow? newValue)
@@ -303,6 +379,8 @@ public sealed partial class StockSuppliersViewModel : ViewModelBase, IFocusTarge
     private void NotifyStateChanged()
     {
         OnPropertyChanged(nameof(HeadingText));
+        OnPropertyChanged(nameof(CanRemove));
+        DeleteCommand.NotifyCanExecuteChanged();
         Touch();
     }
 
@@ -310,6 +388,8 @@ public sealed partial class StockSuppliersViewModel : ViewModelBase, IFocusTarge
     {
         OnPropertyChanged(nameof(HasUnsavedChanges));
         OnPropertyChanged(nameof(CanSave));
+        OnPropertyChanged(nameof(CanDeactivate));
+        DeactivateCommand.NotifyCanExecuteChanged();
         SaveCommand.NotifyCanExecuteChanged();
         _owner.NotifyChanged();
     }
