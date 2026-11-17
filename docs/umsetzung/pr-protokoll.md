@@ -7140,3 +7140,22 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Geprüft:** siehe PR-Text.
 - **Beim Schreiben festgestellt:** Die Leerzustände der Behandlungen (leere Seite) und der Tabellen im Management-Bericht (nur Überschriften) fielen erst im Test gegen leere Antworten auf; die Seiten waren mit Beispieldaten nie leer zu sehen. Die Liste der Erlöskonten und die Lagerorte können im Betrieb nicht leer sein, der Test legt deshalb Standardkonten und das Hauptlager an.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Bereiche bei ausgeschaltetem Webmodul ausblenden (17.11.2026, T-081)
+
+- **Basiert auf:** `dev` nach P10c; keine API-Änderung.
+- **Was:** Die Prüfung des leeren Betriebs gegen die echte API zeigte: Im Einzelplatz sind alle Webmodule aus (`Modules:{m} ?? !standalone`), die Verwaltung zeigte aber „Erinnerungen“, „Postfach & Nummern“ und „Zahlungen“, deren API dann 404 „Dieses Modul ist ausgeschaltet.“ liefert; die Masken luden mit Fehler. Derselbe Fehler traf den Server mit der Stufe „Start“: Erinnerungen sind dabei, die Wiederbuchung erst ab „Spa“, und `RemindersViewModel.LoadAsync` brach beim fehlenden `retention/settings` ab.
+  - `AdminPageViewModel` bekommt `SystemModules? modules`; jeder Eintrag in `All` hat eine optionale Bedingung. Erinnerungen: `Reminders || Rebooking`, Postfach & Nummern: `BookingIntake`, Zahlungen: `OnlineBooking`. `null` (keine Antwort der API) heißt alle an, wie in `ShellViewModel` (`modules?.X != false`); `ShellViewModel` reicht `modules` durch.
+  - Ein Sprung (Kalender, Assistent, „Betrieb einrichten“) auf einen ausgeschalteten Bereich zeigt `ModuleOffNotice` (meldungen.md M5: Problem und Ausweg) und die Kurzform `ModuleOffToast` (33 Zeichen, ohne Punkt) statt „Recht fehlt“.
+  - `RemindersViewModel` lädt nur die eingeschalteten Teile (Terminerinnerung und Versandprotokoll = `Reminders`, Wiederbuchung samt Behandlungsliste = `Rebooking`), speichert nur diese, prüft nur die Felder der Terminerinnerung, wenn sie da ist; `RemindersView` blendet die Karte des ausgeschalteten Teils aus.
+  - Hilfe `einzelplatz.md` (neuer Abschnitt „Ausgeschaltete Webmodule“) und `stammdaten-erinnerungen-einstellen.md` ergänzt.
+- **Detailentscheidungen:**
+  1. **Ausblenden statt Fehler oder Einschalt-Knopf** (Auftraggeber, 17.11.2026): Einschalten bleibt Sache des Servers; die App bietet keinen Schalter.
+  2. **Ein Bereich zählt als an, wenn eines seiner Module an ist:** „Erinnerungen“ steht auch, wenn nur die Wiederbuchung an ist (die Maske zeigt dann nur diese Karte).
+  3. **Das Versandprotokoll gehört zum Modul Erinnerungen,** nicht zur Wiederbuchung: seine API (`dispatch-log/*`) hängt am Modul Erinnerungen. Die Filter „Wiederbuchung“ im Protokoll bleiben stehen; ohne Wiederbuchung sind sie nur leer.
+  4. **Gruppe „Kontakt“ bleibt mit „KI“ bestehen,** weil „KI“ im Einzelplatz keinen 404 liefert (lädt `api/system/ai`).
+  5. **Nicht `SystemModules.Plan` auswerten:** die Module gelten laut Vertrag schon für die Stufe; die App liest nur die Schalter.
+- **Bewusst offen / später:** Kein Hinweis in der App, wo man das Modul einschaltet, außer dem Satz im Hinweis; „Postfach“ der Shell (`HasInbox`) war schon vorher an `BookingIntake` gebunden.
+- **Geprüft:** siehe PR-Text.
+- **Beim Schreiben festgestellt:** Die Tests der Maske „Erinnerungen“ liefen bisher immer mit allen Routen; ein fehlendes Modul ließ sich nur im echten Einzelplatz sehen. `HasUnsavedChanges` setzte beide gespeicherten Stände voraus und wäre ohne Wiederbuchung nie wahr geworden, das ist mit angepasst. Die Karten „Zahlungen“ und „Postfach & Nummern“ laden ohne eigenen Schalter; sie sind nur über die Verwaltung erreichbar, die sie jetzt ausblendet.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).

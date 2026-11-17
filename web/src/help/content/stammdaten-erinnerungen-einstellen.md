@@ -30,6 +30,6 @@ Darunter steht, was zuletzt verschickt wurde.
 
 - Fehlt beim Gast die Nummer oder Adresse für den gewählten Kanal, geht die Terminerinnerung über den anderen Kanal.
 - Der Wiederbuchungs-Hinweis ist Werbung: Sie geht nur an Gäste, die ihre Einwilligung per Mail bestätigt haben. Den persönlichen Teil schreibt die KI.
-- Erinnerungen sind ein Webmodul; im Einzelplatz-Betrieb sind sie meist ausgeschaltet: [Einzelplatz](hilfe:einzelplatz).
+- Erinnerungen sind ein Webmodul; im Einzelplatz-Betrieb sind sie meist ausgeschaltet. Dann steht der Bereich **Erinnerungen** nicht in der Verwaltung: [Einzelplatz](hilfe:einzelplatz). Mit der Stufe „Start“ zeigt die Maske nur die Terminerinnerungen; die Wiederbuchungs-Hinweise gibt es ab der Stufe „Spa“.
 
 Felder im Einzelnen: [Erinnerungen](hilfe:erinnerungen).

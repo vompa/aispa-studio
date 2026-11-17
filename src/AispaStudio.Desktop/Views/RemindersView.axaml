@@ -8,7 +8,7 @@
   <!--
     Erinnerungen (R05 Slice 96, P8 17.11.2026): zwei Karten, Terminerinnerungen und Wiederbuchungs-Hinweise. Der Wiederbuchungs-Hinweis hat einen Standardabstand und eine kurze Liste von
     Ausnahmen je Kategorie oder Behandlung (Tage leer = kein Hinweis). Unter jeder Karte steht eine Zeile mit den Zahlen der letzten 30 Tage und dem Knopf „Versandprotokoll“, der die
-    Seitenleiste mit der Liste aller verschickten Nachrichten öffnet (Filter, Zeitraum, Export). Ein gemeinsames „Speichern“ im Fuß, Strg+S speichert.
+    Seitenleiste mit der Liste aller verschickten Nachrichten öffnet (Filter, Zeitraum, Export). Ist ein Webmodul aus (T-081, Stufe „Start“: keine Wiederbuchung), fehlt seine Karte. Ein gemeinsames „Speichern“ im Fuß, Strg+S speichert.
   -->
   <Grid ColumnDefinitions="*,Auto" RowDefinitions="*,Auto">
     <ScrollViewer x:Name="MainScroll" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
@@ -19,7 +19,7 @@
 
         <StackPanel Spacing="20" IsVisible="{Binding IsLoaded}">
           <!-- Terminerinnerungen -->
-          <Border x:Name="ReminderCard" Classes="card" Padding="20">
+          <Border x:Name="ReminderCard" Classes="card" Padding="20" IsVisible="{Binding RemindersOn}">
             <StackPanel Spacing="12">
               <Grid ColumnDefinitions="*,Auto">
                 <TextBlock Text="Terminerinnerungen" Classes="h2" VerticalAlignment="Center" />
@@ -73,7 +73,7 @@
           </Border>
 
           <!-- Wiederbuchungs-Hinweise -->
-          <Border x:Name="RebookCard" Classes="card" Padding="20">
+          <Border x:Name="RebookCard" Classes="card" Padding="20" IsVisible="{Binding RebookingOn}">
             <StackPanel Spacing="12">
               <Grid ColumnDefinitions="Auto,Auto,*,Auto" ColumnSpacing="8">
                 <TextBlock Text="Wiederbuchungs-Hinweise" Classes="h2" VerticalAlignment="Center" />
