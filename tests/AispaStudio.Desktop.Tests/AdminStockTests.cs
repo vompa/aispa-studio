@@ -763,7 +763,7 @@ public sealed class AdminStockTests
     }
 
     [Fact]
-    public async Task Given_Lagerort_When_Loeschen_bestaetigt_Then_DELETE_und_das_Hauptlager_ist_gewaehlt()
+    public async Task Given_Lagerort_ohne_Bewegungen_When_Loeschen_bestaetigt_Then_fragt_die_API_zuerst_dann_DELETE_und_das_Hauptlager_ist_gewaehlt()
     {
         var api = Api();
         var dialogs = new FakeDialogs().Answer(ConfirmChoice.Confirmed);
@@ -773,11 +773,12 @@ public sealed class AdminStockTests
 
         await stock.PlacesAdmin.DeleteCommand.ExecuteAsync(null);
 
-        Assert.Equal(1, api.Calls.Count(c => c.Route == $"DELETE {Route($"/storage-places/{ShopId}")}"));
+        var routes = api.Calls.Select(c => c.Route).ToList();
+        Assert.True(routes.IndexOf($"GET {Route($"/storage-places/{ShopId}/deletion-check")}") < routes.IndexOf($"DELETE {Route($"/storage-places/{ShopId}")}"));
         var asked = dialogs.AssertRules().Asked.Single();
-        Assert.Equal("Lagerort löschen?", asked.Title);
-        Assert.Contains("Verkaufsregal", asked.Message, StringComparison.Ordinal);
-        Assert.DoesNotContain("bitte", asked.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal("„Verkaufsregal“ löschen?", asked.Title);
+        Assert.Equal("Löschen", asked.ConfirmText);
+        Assert.True(asked.IsDestructive);
         Assert.Equal("Lagerort gelöscht.", stock.Message);
         Assert.Equal("Hauptlager", stock.PlacesAdmin.HeadingText);
         Assert.DoesNotContain(stock.PlacesAdmin.Rows, r => r.Id == ShopId);
@@ -794,6 +795,129 @@ public sealed class AdminStockTests
         await stock.PlacesAdmin.DeleteCommand.ExecuteAsync(null);
 
         Assert.DoesNotContain(api.Calls, c => c.Route.StartsWith("DELETE", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task Given_Lagerort_mit_Bewegungen_When_Loeschen_Then_nennt_der_Dialog_was_daran_haengt_und_Nicht_mehr_verwenden_deaktiviert_ihn()
+    {
+        var api = Api();
+        var dialogs = new FakeDialogs().Answer(ConfirmChoice.Confirmed);
+        var stock = await Open(api, dialogs);
+        stock.PlacesAdmin.SelectedRow = stock.PlacesAdmin.Rows.Single(r => r.Id == CabinetId);
+        await Task.Yield();
+
+        await stock.PlacesAdmin.DeleteCommand.ExecuteAsync(null);
+
+        var asked = Assert.Single(dialogs.Asked);
+        Assert.Equal("„Schrank Zeder“ lässt sich nicht löschen", asked.Title);
+        Assert.Contains("• 2 Lagerbewegungen", asked.Message, StringComparison.Ordinal);
+        Assert.Equal("Nicht mehr verwenden", asked.ConfirmText);
+        Assert.False(asked.IsDestructive);
+        Assert.DoesNotContain(api.Calls, c => c.Route.StartsWith("DELETE", StringComparison.Ordinal));
+        var put = JsonSerializer.Deserialize<StoragePlaceInput>(Assert.Single(api.Calls, c => c.Route == $"PUT {Route($"/storage-places/{CabinetId}")}").Body!, ApiClient.Json)!;
+        Assert.False(put.IsActive);
+        Assert.Null(put.Minimums);
+        Assert.Equal("Lagerort wird nicht mehr verwendet.", stock.Message);
+    }
+
+    [Fact]
+    public async Task Given_das_Hauptlager_When_Loeschen_Then_gibt_es_weder_Loeschen_noch_Nicht_mehr_verwenden()
+    {
+        var stock = await Open(Api(), new FakeDialogs());
+
+        Assert.False(stock.PlacesAdmin.CanDelete);
+        Assert.False(stock.PlacesAdmin.DeleteCommand.CanExecute(null));
+        Assert.False(stock.PlacesAdmin.DeactivateCommand.CanExecute(null));
+    }
+
+    // ── Lieferanten: Entfernen (ADR 0099) ──
+
+    [Fact]
+    public async Task Given_Lieferant_mit_Material_When_Loeschen_Then_nennt_der_Dialog_das_Material_und_Nicht_mehr_verwenden_deaktiviert_ihn()
+    {
+        var api = Api();
+        var dialogs = new FakeDialogs().Answer(ConfirmChoice.Confirmed);
+        var stock = await Open(api, dialogs);
+        stock.SuppliersAdmin.SelectedRow = stock.SuppliersAdmin.Rows[0];
+        await Task.Yield();
+
+        await stock.SuppliersAdmin.DeleteCommand.ExecuteAsync(null);
+
+        var asked = Assert.Single(dialogs.Asked);
+        Assert.Equal("„Lavendelhof“ lässt sich nicht löschen", asked.Title);
+        Assert.Contains("• 1 Material", asked.Message, StringComparison.Ordinal);
+        Assert.Equal("Nicht mehr verwenden", asked.ConfirmText);
+        Assert.DoesNotContain(api.Calls, c => c.Route.StartsWith("DELETE", StringComparison.Ordinal));
+        var put = JsonSerializer.Deserialize<StockSupplierInput>(Assert.Single(api.Calls, c => c.Route == $"PUT /api/stock/suppliers/{SupplierId}").Body!, ApiClient.Json)!;
+        Assert.False(put.IsActive);
+        Assert.Equal("Lavendelhof", put.Name);
+        Assert.Equal("Lieferant wird nicht mehr verwendet.", stock.Message);
+    }
+
+    [Fact]
+    public async Task Given_Lieferant_ohne_Material_When_Loeschen_bestaetigt_Then_DELETE_und_er_ist_aus_der_Liste()
+    {
+        var api = Api()
+            .On($"GET /api/stock/suppliers/{SupplierId}/deletion-check", new DeletionCheckDto(true, "Am Lieferanten hängt kein Material.", []))
+            .On($"DELETE /api/stock/suppliers/{SupplierId}", null, HttpStatusCode.NoContent);
+        var dialogs = new FakeDialogs().Answer(ConfirmChoice.Confirmed);
+        var stock = await Open(api, dialogs);
+        stock.SuppliersAdmin.SelectedRow = stock.SuppliersAdmin.Rows[0];
+        await Task.Yield();
+
+        await stock.SuppliersAdmin.DeleteCommand.ExecuteAsync(null);
+
+        Assert.Equal("„Lavendelhof“ löschen?", dialogs.AssertRules().Asked.Single().Title);
+        Assert.Equal(1, api.Calls.Count(c => c.Route == $"DELETE /api/stock/suppliers/{SupplierId}"));
+        Assert.Equal("Lieferant gelöscht.", stock.Message);
+    }
+
+    [Fact]
+    public async Task Given_neuer_Lieferant_When_das_Menue_geoeffnet_wird_Then_gibt_es_nichts_zu_entfernen()
+    {
+        var stock = await Open(Api());
+        stock.SuppliersAdmin.SelectedRow = stock.SuppliersAdmin.Rows.Last();
+        await Task.Yield();
+
+        Assert.False(stock.SuppliersAdmin.CanRemove);
+        Assert.False(stock.SuppliersAdmin.DeleteCommand.CanExecute(null));
+        Assert.False(stock.SuppliersAdmin.DeactivateCommand.CanExecute(null));
+    }
+
+    // ── Der Dialog „Löschen oder nicht“ (ADR 0099) ──
+
+    [Fact]
+    public void Given_frei_When_der_Dialog_gebaut_wird_Then_ist_es_eine_zerstoerende_Rueckfrage()
+    {
+        var request = DeletionDialog.RequestFor("Zeder", new DeletionCheckDto(true, "Es hängt nichts daran.", []));
+
+        FakeDialogs.AssertRules(request);
+        Assert.Equal("„Zeder“ löschen?", request.Title);
+        Assert.Equal(("Löschen", "Abbrechen", true), (request.ConfirmText, request.CancelText, request.IsDestructive));
+    }
+
+    [Fact]
+    public void Given_Abhaengiges_mit_Weg_When_der_Dialog_gebaut_wird_Then_steht_die_Liste_im_Text_und_der_Weg_ist_der_Knopf()
+    {
+        var request = DeletionDialog.RequestFor("Zeder", new DeletionCheckDto(false, "Am Lagerort hängt noch etwas.",
+            [new DependentCount("a", 3, "3 künftige Termine"), new DependentCount("b", 1, "1 Behandlung")], new DeletionAlternative("deactivate", "Nicht mehr verwenden")));
+
+        Assert.Equal("„Zeder“ lässt sich nicht löschen", request.Title);
+        Assert.Equal("Am Lagerort hängt noch etwas.\n• 3 künftige Termine\n• 1 Behandlung", request.Message);
+        Assert.Equal(("Nicht mehr verwenden", false), (request.ConfirmText, request.IsDestructive));
+        Assert.Equal("Abbrechen", request.CancelText);
+    }
+
+    [Fact]
+    public void Given_Abhaengiges_ohne_Weg_When_der_Dialog_gebaut_wird_Then_bleibt_nur_Schliessen()
+    {
+        var request = DeletionDialog.RequestFor("Hauptlager", new DeletionCheckDto(false, "Das Hauptlager lässt sich nicht löschen.", []));
+
+        Assert.Equal("", request.ConfirmText);
+        Assert.Equal("Schließen", request.CancelText);
+        Assert.Equal("Das Hauptlager lässt sich nicht löschen.", request.Message);
+        Assert.False(new ConfirmDialogViewModel(request, _ => { }).HasConfirm);
+        Assert.True(new ConfirmDialogViewModel(DeletionDialog.RequestFor("Zeder", new DeletionCheckDto(true, "", [])), _ => { }).HasConfirm);
     }
 
     [Fact]

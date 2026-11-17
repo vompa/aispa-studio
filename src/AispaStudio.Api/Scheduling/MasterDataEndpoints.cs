@@ -13,7 +13,7 @@ namespace AispaStudio.Api.Scheduling;
 
 /// <summary>
 /// Stammdaten für die Planung: Standorte, Räume, Geräte, Qualifikationen, Team und Behandlungen.
-/// Löschen heißt deaktivieren: bestehende Termine behalten ihre Bezüge, Neues wird nicht mehr darauf gebucht.
+/// Löschen heißt deaktivieren: bestehende Termine behalten ihre Bezüge, Neues wird nicht mehr darauf gebucht; nur eine Qualifikation, an der nichts hängt, lässt sich löschen (ADR 0099).
 /// Lesen darf jede Rolle; Standortdaten pflegt die Standortleitung, Team und Behandlungen ebenso, Standorte anlegen nur Inhaber.
 /// </summary>
 internal static partial class MasterDataEndpoints
@@ -215,6 +215,13 @@ internal static partial class MasterDataEndpoints
             .RequirePermission(AccessRight.ManageLocation)
             .WithSummary("Nimmt einen Raum aus der Planung. Abgelehnt, solange noch künftige Termine darin liegen.");
 
+        group.MapGet("/rooms/{roomId:guid}/deletion-check", async Task<Results<Ok<DeletionCheckDto>, NotFound>> (
+                Guid roomId, AispaDbContext db, TimeProvider time, CancellationToken ct) =>
+                await DeletionChecks.RoomAsync(db, time, roomId, ct) is { } check ? TypedResults.Ok(check) : TypedResults.NotFound())
+            .WithName("CheckRoomDeletion")
+            .RequirePermission(AccessRight.ManageLocation)
+            .WithSummary("Zählt, was an einem Raum hängt. Ein Raum lässt sich nie löschen; die Alternative ist „Nicht mehr verwenden“.");
+
         group.MapPost("/locations/{locationId:guid}/equipment", async Task<Results<Created<EquipmentDto>, ValidationProblem, NotFound>> (
                 Guid locationId, EquipmentInput input, AispaDbContext db, CancellationToken ct) =>
             {
@@ -266,6 +273,13 @@ internal static partial class MasterDataEndpoints
             .WithName("DeactivateEquipment")
             .RequirePermission(AccessRight.ManageLocation)
             .WithSummary("Nimmt ein Gerät aus der Planung. Abgelehnt, solange es noch für künftige Termine gebraucht wird.");
+
+        group.MapGet("/equipment/{equipmentId:guid}/deletion-check", async Task<Results<Ok<DeletionCheckDto>, NotFound>> (
+                Guid equipmentId, AispaDbContext db, TimeProvider time, CancellationToken ct) =>
+                await DeletionChecks.EquipmentAsync(db, time, equipmentId, ct) is { } check ? TypedResults.Ok(check) : TypedResults.NotFound())
+            .WithName("CheckEquipmentDeletion")
+            .RequirePermission(AccessRight.ManageLocation)
+            .WithSummary("Zählt, was an einem Gerät hängt. Ein Gerät lässt sich nie löschen; die Alternative ist „Nicht mehr verwenden“.");
     }
 
     private static void MapQualifications(RouteGroupBuilder group)
@@ -312,6 +326,34 @@ internal static partial class MasterDataEndpoints
             })
             .WithName("RenameQualification")
             .RequirePermission(AccessRight.ManageCatalog);
+
+        group.MapGet("/qualifications/{qualificationId:guid}/deletion-check", async Task<Results<Ok<DeletionCheckDto>, NotFound>> (
+                Guid qualificationId, AispaDbContext db, CancellationToken ct) =>
+                await DeletionChecks.QualificationAsync(db, qualificationId, ct) is { } check ? TypedResults.Ok(check) : TypedResults.NotFound())
+            .WithName("CheckQualificationDeletion")
+            .RequirePermission(AccessRight.ManageCatalog)
+            .WithSummary("Zählt, welche Personen und Behandlungen eine Qualifikation tragen; gelöscht werden darf nur, wenn keine mehr daran hängt.");
+
+        group.MapDelete("/qualifications/{qualificationId:guid}", async Task<Results<NoContent, NotFound, Conflict<DeletionCheckDto>>> (
+                Guid qualificationId, AispaDbContext db, CancellationToken ct) =>
+            {
+                if (await DeletionChecks.QualificationAsync(db, qualificationId, ct) is not { } check)
+                {
+                    return TypedResults.NotFound();
+                }
+
+                if (!check.CanDelete)
+                {
+                    return TypedResults.Conflict(check);
+                }
+
+                db.Qualifications.Remove(await db.Qualifications.FirstAsync(q => q.Id == qualificationId, ct));
+                await db.SaveChangesAsync(ct);
+                return TypedResults.NoContent();
+            })
+            .WithName("DeleteQualification")
+            .RequirePermission(AccessRight.ManageCatalog)
+            .WithSummary("Löscht eine Qualifikation, an der nichts mehr hängt; sonst 409 mit der Liste dessen, was daran hängt.");
     }
 
     private static void MapEmployees(RouteGroupBuilder group)

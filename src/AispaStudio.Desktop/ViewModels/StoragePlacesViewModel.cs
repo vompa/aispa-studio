@@ -10,6 +10,9 @@ namespace AispaStudio.Desktop.ViewModels;
 /// <summary>Ein Lagerort in der Liste; ohne Kennung ist es der Eintrag „Neuer Lagerort“.</summary>
 public sealed record StoragePlaceRow(Guid? Id, string Name, string Sub)
 {
+    /// <summary>Der Eintrag „Neuer Lagerort“: die Liste zeigt ihn nicht, „Neu“ steht fest über der Liste (ADR 0099).</summary>
+    public bool IsNew => Id is null;
+
     public string Summary => Sub.Length == 0 ? Name : $"{Name}, {Sub}";
 
     public override string ToString() => Summary;
@@ -158,6 +161,9 @@ public sealed partial class StoragePlacesViewModel : ViewModelBase, IFocusTarget
     public string HeadingText => _current?.Name ?? "Neuer Lagerort";
 
     public bool CanDelete => _current is not null && !IsMain;
+
+    /// <summary>„Nicht mehr verwenden“ gilt dem gespeicherten Stand; mit ungespeicherten Änderungen wäre unklar, was gemeint ist.</summary>
+    public bool CanDeactivate => CanDelete && _current!.IsActive && !HasUnsavedChanges;
 
     public bool HasCopySources => CopySources.Count > 0;
 
@@ -335,6 +341,7 @@ public sealed partial class StoragePlacesViewModel : ViewModelBase, IFocusTarget
         await _owner.ReloadAsync("Mindestmengen übernommen.").ConfigureAwait(true);
     }
 
+    /// <summary>„Löschen …“ im Menü: die API prüft, was am Lagerort hängt; frei ist er nach der Bestätigung weg, sonst bleibt „Nicht mehr verwenden“ (ADR 0099).</summary>
     [RelayCommand(CanExecute = nameof(CanDelete))]
     private async Task DeleteAsync()
     {
@@ -343,24 +350,55 @@ public sealed partial class StoragePlacesViewModel : ViewModelBase, IFocusTarget
             return;
         }
 
-        var answer = await _owner.Ask(new ConfirmRequest("Lagerort löschen?",
-            $"Der Lagerort „{place.Name}“ wird gelöscht. Das geht nur, solange er keine Bewegungen hat; sonst deaktiviere ihn.", "Löschen")).ConfigureAwait(true);
-        if (!answer.IsConfirmed)
+        var path = $"api/stock/locations/{location.Id}/storage-places/{place.Id}";
+        var outcome = await DeletionDialog.AskAsync(_owner.Api, _owner.Dialogs, $"{path}/deletion-check", place.Name).ConfigureAwait(true);
+        if (outcome.Error is not null)
+        {
+            Error = outcome.Error;
+            return;
+        }
+
+        switch (outcome.Choice)
+        {
+            case DeletionChoice.Delete:
+                var result = await _owner.Api.DeleteAsync<object>(path).ConfigureAwait(true);
+                if (!result.Ok)
+                {
+                    Error = result.Error ?? "Der Lagerort wurde nicht gelöscht.";
+                    return;
+                }
+
+                Error = null;
+                _selectAfterLoad = _owner.MainPlace?.Id;
+                _current = null;
+                await _owner.ReloadAsync("Lagerort gelöscht.").ConfigureAwait(true);
+                break;
+            case DeletionChoice.Alternative:
+                await DeactivateAsync().ConfigureAwait(true);
+                break;
+        }
+    }
+
+    /// <summary>Wer ihn nicht mehr braucht, nimmt ihn aus der Verwendung; Bewegungen und Bestände bleiben, er lässt sich später wieder aktivieren („Aktiv“).</summary>
+    [RelayCommand(CanExecute = nameof(CanDeactivate))]
+    private async Task DeactivateAsync()
+    {
+        if (_owner.Location is not { } location || _current is not { } place || IsMain)
         {
             return;
         }
 
-        var result = await _owner.Api.DeleteAsync<object>($"api/stock/locations/{location.Id}/storage-places/{place.Id}").ConfigureAwait(true);
-        if (!result.Ok)
+        var body = new StoragePlaceInput(place.Name, place.Description, place.Kind, place.RoomId, false);
+        var result = await _owner.Api.PutAsync<StoragePlaceDto>($"api/stock/locations/{location.Id}/storage-places/{place.Id}", body).ConfigureAwait(true);
+        if (result.Value is null)
         {
-            Error = result.Error ?? "Der Lagerort wurde nicht gelöscht.";
+            Error = result.Error ?? "Der Lagerort wurde nicht aus der Verwendung genommen.";
             return;
         }
 
         Error = null;
-        _selectAfterLoad = _owner.MainPlace?.Id;
-        _current = null;
-        await _owner.ReloadAsync("Lagerort gelöscht.").ConfigureAwait(true);
+        _selectAfterLoad = place.Id;
+        await _owner.ReloadAsync("Lagerort wird nicht mehr verwendet.").ConfigureAwait(true);
     }
 
     [RelayCommand]
@@ -462,12 +500,13 @@ public sealed partial class StoragePlacesViewModel : ViewModelBase, IFocusTarget
 
     private void NotifyStateChanged()
     {
-        foreach (var name in new[] { nameof(IsCreating), nameof(IsMain), nameof(CanEditKind), nameof(HeadingText), nameof(CanDelete), nameof(HasCopySources), nameof(HasMinimums), nameof(HasUnsavedChanges), nameof(CanSave), nameof(CanCopy) })
+        foreach (var name in new[] { nameof(IsCreating), nameof(IsMain), nameof(CanEditKind), nameof(HeadingText), nameof(CanDelete), nameof(CanDeactivate), nameof(HasCopySources), nameof(HasMinimums), nameof(HasUnsavedChanges), nameof(CanSave), nameof(CanCopy) })
         {
             OnPropertyChanged(name);
         }
 
         DeleteCommand.NotifyCanExecuteChanged();
+        DeactivateCommand.NotifyCanExecuteChanged();
         SaveCommand.NotifyCanExecuteChanged();
         CopyMinimumsCommand.NotifyCanExecuteChanged();
         _owner.NotifyChanged();
@@ -480,11 +519,12 @@ public sealed partial class StoragePlacesViewModel : ViewModelBase, IFocusTarget
             return;
         }
 
-        foreach (var name in new[] { nameof(HasUnsavedChanges), nameof(CanSave), nameof(CanCopy), nameof(HasMinimums) })
+        foreach (var name in new[] { nameof(HasUnsavedChanges), nameof(CanSave), nameof(CanCopy), nameof(HasMinimums), nameof(CanDeactivate) })
         {
             OnPropertyChanged(name);
         }
 
+        DeactivateCommand.NotifyCanExecuteChanged();
         SaveCommand.NotifyCanExecuteChanged();
         CopyMinimumsCommand.NotifyCanExecuteChanged();
         _owner.NotifyChanged();

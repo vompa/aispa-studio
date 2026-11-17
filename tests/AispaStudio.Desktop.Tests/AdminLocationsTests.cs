@@ -136,6 +136,69 @@ public sealed class AdminLocationsTests
         Assert.DoesNotContain(locations.Rooms, r => r.Id == Sauna.Id);
     }
 
+    private static readonly DeletionCheckDto InUse = new(false, "Der Raum ist in Verwendung. Termine und Belege bleiben immer erhalten.",
+        [new DependentCount("upcomingAppointments", 2, "2 künftige Termine"), new DependentCount("treatments", 1, "1 Behandlung")], new DeletionAlternative("deactivate", "Nicht mehr verwenden"));
+
+    [Fact]
+    public async Task Given_ein_Raum_mit_Terminen_When_Loeschen_gewaehlt_wird_Then_nennt_der_Dialog_die_Termine_und_Nicht_mehr_verwenden_nimmt_ihn_aus_der_Planung()
+    {
+        var api = Api()
+            .On($"GET /api/rooms/{Sauna.Id}/deletion-check", InUse)
+            .On($"DELETE /api/rooms/{Sauna.Id}", null, System.Net.HttpStatusCode.NoContent);
+        var dialogs = new FakeDialogs().Answer(ConfirmChoice.Confirmed);
+        var locations = await Open(api, dialogs: dialogs);
+
+        await locations.Rooms.Single(r => r.Id == Sauna.Id).DeleteCommand.ExecuteAsync(null);
+
+        var asked = Assert.Single(dialogs.Asked);
+        Assert.Equal("„Sauna“ lässt sich nicht löschen", asked.Title);
+        Assert.Contains("• 2 künftige Termine", asked.Message, StringComparison.Ordinal);
+        Assert.Equal("Nicht mehr verwenden", asked.ConfirmText);
+        Assert.Equal(1, api.Calls.Count(c => c.Route == $"DELETE /api/rooms/{Sauna.Id}"));
+        Assert.DoesNotContain(locations.Rooms, r => r.Id == Sauna.Id);
+    }
+
+    [Fact]
+    public async Task Given_ein_Raum_When_der_Dialog_geschlossen_wird_Then_bleibt_er_und_es_gibt_keinen_DELETE()
+    {
+        var api = Api().On($"GET /api/rooms/{Sauna.Id}/deletion-check", InUse);
+        var locations = await Open(api, dialogs: new FakeDialogs().Answer(ConfirmChoice.Cancelled));
+
+        await locations.Rooms.Single(r => r.Id == Sauna.Id).DeleteCommand.ExecuteAsync(null);
+
+        Assert.DoesNotContain(api.Calls, c => c.Route.StartsWith("DELETE", StringComparison.Ordinal));
+        Assert.Contains(locations.Rooms, r => r.Id == Sauna.Id);
+    }
+
+    [Fact]
+    public async Task Given_ein_Geraet_When_Loeschen_gewaehlt_wird_Then_fragt_die_API_und_Nicht_mehr_verwenden_entfernt_es()
+    {
+        var api = Api();
+        var locations = await Open(api, dialogs: new FakeDialogs().Answer(ConfirmChoice.Confirmed));
+        var row = Assert.Single(locations.Equipment);
+        api.On($"GET /api/equipment/{row.Id}/deletion-check", new DeletionCheckDto(false, "Das Gerät ist in Verwendung. Termine und Belege bleiben immer erhalten.",
+            [new DependentCount("pastAppointments", 4, "4 vergangene Termine")], new DeletionAlternative("deactivate", "Nicht mehr verwenden")))
+            .On($"DELETE /api/equipment/{row.Id}", null, System.Net.HttpStatusCode.NoContent);
+
+        await row.DeleteCommand.ExecuteAsync(null);
+
+        Assert.Equal(1, api.Calls.Count(c => c.Route == $"DELETE /api/equipment/{row.Id}"));
+        Assert.Empty(locations.Equipment);
+    }
+
+    [Fact]
+    public async Task Given_die_Pruefung_scheitert_When_Loeschen_gewaehlt_wird_Then_steht_die_Meldung_am_Raum_und_nichts_wird_gefragt()
+    {
+        var api = Api().On($"GET /api/rooms/{Sauna.Id}/deletion-check", new { }, System.Net.HttpStatusCode.InternalServerError);
+        var dialogs = new FakeDialogs();
+        var locations = await Open(api, dialogs: dialogs);
+
+        await locations.Rooms.Single(r => r.Id == Sauna.Id).DeleteCommand.ExecuteAsync(null);
+
+        Assert.Empty(dialogs.Asked);
+        Assert.NotNull(locations.RoomMessage);
+    }
+
     [Fact]
     public async Task Given_die_Checkliste_eines_Raums_When_gespeichert_wird_Then_PUT_mit_einem_Punkt_je_Zeile()
     {

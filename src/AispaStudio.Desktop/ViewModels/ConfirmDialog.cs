@@ -74,6 +74,9 @@ public partial class ConfirmDialogViewModel : ObservableObject
 
     public string CancelText => Request.CancelText;
 
+    /// <summary>Ohne Text für die Aktion ist der Dialog nur eine Auskunft (z. B. „lässt sich nicht löschen“): es bleibt „Schließen“.</summary>
+    public bool HasConfirm => Request.ConfirmText.Length > 0;
+
     public string? AlternativeText => Request.AlternativeText;
 
     public bool HasAlternative => Request.AlternativeText is not null;

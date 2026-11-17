@@ -101,7 +101,7 @@ public partial class ConfirmDialogView : UserControl
             return;
         }
 
-        var name = dialog.IsDestructive ? "CancelButton" : "ConfirmButton";
+        var name = dialog.IsDestructive || !dialog.HasConfirm ? "CancelButton" : "ConfirmButton";
         this.GetVisualDescendants().OfType<Button>().FirstOrDefault(b => b.Name == name)?.Focus(NavigationMethod.Tab);
     }
 

@@ -561,7 +561,7 @@ public sealed partial class LocationsViewModel : ViewModelBase, IEditableArea, I
             }
             else
             {
-                Rooms.Add(new RoomRowViewModel(room, _articles, SaveRoomAsync, DeactivateRoomAsync));
+                Rooms.Add(new RoomRowViewModel(room, _articles, SaveRoomAsync, DeactivateRoomAsync, DeleteRoomAsync));
             }
         }
 
@@ -570,7 +570,7 @@ public sealed partial class LocationsViewModel : ViewModelBase, IEditableArea, I
         Equipment.Clear();
         foreach (var item in resources.Equipment)
         {
-            Equipment.Add(new EquipmentRowViewModel(item, RemoveEquipmentAsync));
+            Equipment.Add(new EquipmentRowViewModel(item, RemoveEquipmentAsync, DeleteEquipmentAsync));
         }
     }
 
@@ -626,6 +626,41 @@ public sealed partial class LocationsViewModel : ViewModelBase, IEditableArea, I
         FillSections(locationId);
     }
 
+    /// <summary>„Löschen …“ am Raum (ADR 0099): Räume bleiben für Termine, Belege und Auswertungen im Stamm; der Dialog nennt, was daran hängt, und bietet „Nicht mehr verwenden“ an.</summary>
+    private async Task DeleteRoomAsync(RoomRowViewModel row)
+    {
+        if (row.Id is not { } id)
+        {
+            return;
+        }
+
+        RoomMessage = null;
+        var outcome = await DeletionDialog.AskAsync(_api, Dialogs, $"api/rooms/{id}/deletion-check", row.Name).ConfigureAwait(true);
+        if (outcome.Error is not null)
+        {
+            RoomMessage = outcome.Error;
+        }
+        else if (outcome.Choice == DeletionChoice.Alternative)
+        {
+            await DeactivateRoomAsync(row).ConfigureAwait(true);
+        }
+    }
+
+    /// <summary>„Löschen …“ am Gerät: wie beim Raum, ein Gerät bleibt für Termine im Stamm.</summary>
+    private async Task DeleteEquipmentAsync(EquipmentRowViewModel row)
+    {
+        EquipmentMessage = null;
+        var outcome = await DeletionDialog.AskAsync(_api, Dialogs, $"api/equipment/{row.Id}/deletion-check", row.Name).ConfigureAwait(true);
+        if (outcome.Error is not null)
+        {
+            EquipmentMessage = outcome.Error;
+        }
+        else if (outcome.Choice == DeletionChoice.Alternative)
+        {
+            await RemoveEquipmentAsync(row).ConfigureAwait(true);
+        }
+    }
+
     private bool CanAddEquipment => NewEquipmentName.Trim().Length > 0;
 
     [RelayCommand(CanExecute = nameof(CanAddEquipment))]
@@ -646,7 +681,7 @@ public sealed partial class LocationsViewModel : ViewModelBase, IEditableArea, I
 
         _resources[locationId] = _resources[locationId] with { Equipment = [.. _resources[locationId].Equipment, saved] };
         NewEquipmentName = "";
-        Equipment.Add(new EquipmentRowViewModel(saved, RemoveEquipmentAsync));
+        Equipment.Add(new EquipmentRowViewModel(saved, RemoveEquipmentAsync, DeleteEquipmentAsync));
     }
 
     private async Task RemoveEquipmentAsync(EquipmentRowViewModel row)
@@ -761,15 +796,18 @@ public sealed partial class LocationsViewModel : ViewModelBase, IEditableArea, I
     private static string? Value(string text) => text.Length == 0 ? null : text;
 }
 
-/// <summary>Ein Gerät des Standorts in der Liste; „Entfernen“ löscht es.</summary>
-public sealed partial class EquipmentRowViewModel(EquipmentDto equipment, Func<EquipmentRowViewModel, Task> remove) : ObservableObject
+/// <summary>Ein Gerät des Standorts in der Liste; „Nicht mehr verwenden“ nimmt es aus der Planung, „Löschen …“ zeigt, was daran hängt (ADR 0099).</summary>
+public sealed partial class EquipmentRowViewModel(EquipmentDto equipment, Func<EquipmentRowViewModel, Task> remove, Func<EquipmentRowViewModel, Task>? delete = null) : ObservableObject
 {
     public Guid Id { get; } = equipment.Id;
 
     public string Name { get; } = equipment.Name;
 
-    public string RemoveName => $"Gerät {Name} entfernen";
+    public string RemoveName => $"Gerät {Name} nicht mehr verwenden";
 
     [RelayCommand]
     private Task RemoveAsync() => remove(this);
+
+    [RelayCommand]
+    private Task DeleteAsync() => delete is null ? Task.CompletedTask : delete(this);
 }
