@@ -32,8 +32,8 @@ Jede Slice hat ihren Bereich vollständig ersetzt, mit denselben Feldern, Regeln
 | Seite | Reiter | Name in der Oberfläche | Ziel | Anmerkung |
 |---|---|---|---|---|
 | `masterData` | `locations` | Standorte & Räume | Slice 95 | mit Raum-Checkliste |
-| `masterData` | `closures` | Schließzeiten | Slice 95 | |
-| `masterData` | `roomClosures` | Raumsperren | Slice 95 | seit T-064 (ADR 0098) der zweite Abschnitt der Seite „Schließzeiten“; das Sprungziel bleibt und rollt zum Abschnitt |
+| `masterData` | `closures` | Schließzeiten | Slice 95 | seit P2 (17.11.2026, Nachtrag zu ADR 0098) eine Liste für Schließzeiten und Raumsperren aus `closure-overview`; Formular als Seitenleiste; Wartezeit hinter „Einrichtung“ |
+| `masterData` | `roomClosures` | Raumsperren | Slice 95 | seit T-064 (ADR 0098) auf der Seite „Schließzeiten“, seit P2 (17.11.2026) in deren gemeinsamer Liste; das Sprungziel bleibt und öffnet ein neues Formular „Einzelner Raum“ |
 | `masterData` | `subscriptions` | Kalender-Abos | Slice 95 | Feiertage und Ferien (ADR 0075), keine Kunden-Abos |
 | `masterData` | `team` | Team | Slice 98 | Personenkarte, Bereich Profil (Abschnitt Stammdaten); native Maske seit Slice 98, Bereiche seit T-065 |
 | `masterData` | `treatments` | Behandlungen | Slice 94 | „Wer kann das?“ nur lesend mit Sprung ins Team; eigene Gruppe „Behandlungen“ im Balken (seit 17.11.2026); Bereiche Übersicht, Grunddaten und Preis, Durchführung, Qualifikationen und Räume; alte Abschnittsadressen bleiben gültig (`preise-und-verkauf` → Grunddaten und Preis) |
@@ -88,7 +88,7 @@ Ziel nach [ADR 0098](../entscheidungen/0098-verwaltungsmasken-eine-schiene-ueber
 
 | Gruppe | Schiene heute | Schiene neu | Umgestellt |
 | --- | --- | --- | --- |
-| Betrieb | 6 Masken | 5 Masken (Schließzeiten und Raumsperren auf einer Seite) | T-064, 16.11.2026 (PR offen) |
+| Betrieb | 6 Masken | 5 Masken (Schließzeiten und Raumsperren auf einer Seite) | T-064, 16.11.2026 (PR offen); P2 (17.11.2026): eine Liste statt zwei Abschnitten, Formular als Seitenleiste, Nachtrag zu ADR 0098 |
 | Angebot (seit 17.11.2026: Behandlungen und Aktionen als zwei Gruppen) | 2 Masken; Behandlung mit 7 Abschnittsreitern | 2 Gruppen mit je einer Maske, keine Reiterzeile; Behandlung mit 4 Bereichen (Übersicht · Grunddaten und Preis · Durchführung · Qualifikationen und Räume) | Schritt 3 (Behandlung, 16.11.2026); P3 (17.11.2026): acht Gruppen, Übersicht, Nachtrag zu ADR 0098 |
 | Team | 7 Ansichten; Personenkarte mit 10 Reitern | 5 Ansichten; Personenkarte mit 4 Bereichen, Verlauf als Seitenleiste | Personenkarte umgesetzt (T-065, 16.11.2026); Ansichten umgesetzt (T-066, 16.11.2026): Personen · Wochenplan · Zeiten · Lohn · Rechte und Zuständigkeiten, „Anträge“ als Seitenleiste im Wochenplan |
 | Lager | 9 Reiter | 4 Reiter (Übersicht mit Verbrauch, Bestand mit den Ansichten Material, Chargen und Bewegungen, Bestellen, Inventur), dazu die Seite „Einrichtung“ mit Lagerorten und Lieferanten | T-061, Schritt 2 (Pull Request offen) |

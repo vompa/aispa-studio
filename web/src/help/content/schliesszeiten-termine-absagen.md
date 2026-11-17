@@ -8,13 +8,13 @@ stichwoerter: Termine absagen, Schließzeit, Betriebsurlaub Termine, Wasserschad
 ---
 # Termine einer Schließzeit absagen
 
-Bestehende Termine bleiben gebucht, wenn eine Schließzeit angelegt wird. Wer sie absagen will, tut das in einer Rückfrage: aus der Meldung im Kalender oder aus der Maske der Schließzeit. Nichts wird ohne Klick abgesagt oder gesendet. Dafür braucht es die Rechte „Standorte verwalten“ und „Buchen“ (Inhaber, Manager, Standortleitung).
+Bestehende Termine bleiben gebucht, wenn eine Schließzeit angelegt wird. Wer sie absagen will, tut das in einer Rückfrage: aus der Meldung im Kalender oder aus dem Formular der Schließzeit. Nichts wird ohne Klick abgesagt oder gesendet. Dafür braucht es die Rechte „Standorte verwalten“ und „Buchen“ (Inhaber, Manager, Standortleitung).
 
 Die Meldung „n Termine in der Schließzeit“ steht in der Seitenleiste **Meldungen**, sobald eine Schließzeit offene Termine oder Einträge der Warteliste hat, egal wie fern sie liegt. Sie ist eine **Warnung**, solange die Schließzeit später als in 14 Tagen beginnt, und ein **Fehler**, wenn sie läuft oder in 14 Tagen beginnt.
 
 ## Absagen {#absagen}
 
-1. Im Kalender in der Seitenleiste **Meldungen** bei „n Termine in der Schließzeit“ auf **Termine absagen …** klicken. Oder in der Windows-App unter **Verwaltung** › **Betrieb** › **Schließzeiten** die Schließzeit wählen und in der Maske auf **Termine absagen …** klicken. Es ist dieselbe Rückfrage wie im Kalender.
+1. Im Kalender in der Seitenleiste **Meldungen** bei „n Termine in der Schließzeit“ auf **Termine absagen …** klicken. Oder in der Windows-App unter **Verwaltung** › **Betrieb** › **Schließzeiten** die Zeile der Schließzeit wählen und im Formular rechts auf **Termine absagen …** klicken. Es ist dieselbe Rückfrage wie im Kalender.
 2. In der Rückfrage stehen alle offenen Termine der Schließzeit mit Gast, Zeit, Behandlung, dem Weg der Nachricht (Mail, SMS oder „kein Kontakt“) und dem **Kürzel der Sprache** (DE, EN, FR, IT). Alle sind gewählt; mit den Häkchen lassen sich einzelne abwählen, **Alle auswählen** schaltet alle um.
 3. Gibt es **Einträge der Warteliste**, deren Wunsch in die Schließzeit fällt, stehen sie darunter im Abschnitt **Warteliste (n)**, ebenfalls mit Häkchen. Es zählt die **Tageszeit des Wunsches**: Ist nur der Vormittag geschlossen, fällt ein Wunsch „nachmittags“ oder „abends“ nicht hinein; ein Wunsch ohne Tageszeit zählt den ganzen Tag (Vormittag bis 12 Uhr, Nachmittag 12 bis 17 Uhr, Abend ab 17 Uhr, in Ortszeit des Standorts). Meldung und Zahl in der Liste rechnen genauso. Sie bekommen eine kurze Nachricht in ihrer Sprache und **bleiben auf der Liste**, sofern sie nicht abspringen. Ohne Termine genügt es, nur Einträge zu wählen; dann gibt es kein Textfeld.
 4. **Betreff** und **Nachricht** prüfen. Die Vorlage passt zur Art der Schließzeit und ist frei bearbeitbar. Der Server ersetzt je Gast die Platzhalter `{Anrede}`, `{Behandlung}` und `{Zeit}`. Der Text ist die **deutsche Vorlage**: Gäste mit einer anderen Sprache bekommen die Standardvorlage ihrer Sprache (siehe unten).
@@ -22,7 +22,7 @@ Die Meldung „n Termine in der Schließzeit“ steht in der Seitenleiste **Meld
 6. Unten steht, wie viele Nachrichten hinausgehen („3 Nachrichten werden gesendet (2 Mail, 1 SMS)“), wie sie sich auf die Sprachen verteilen („Nachrichten nach Sprache: 2 Deutsch, 1 Englisch“), wer ohne Kontakt nicht benachrichtigt wird und welche **Anzahlungen über die Kassa zurückgehen**.
 7. Auf **n Termine absagen** klicken (mit Warteliste: „n Termine absagen, m benachrichtigen“). **Abbrechen** (oder Esc) lässt alles, wie es ist; der Fokus steht anfangs auf **Abbrechen**.
 
-Danach erscheint „n Termine abgesagt, n Nachrichten werden gesendet“ (in der Windows-App über der Liste der Schließzeiten), bei Warteliste und Rückzahlung mit „m Wartelisten-Einträge benachrichtigt, k Anzahlungen retourniert“. Die Termine haben den Status „storniert“ mit dem Grund „Schließzeit (Betriebsurlaub): …“ und sind vom Betrieb abgesagt: dafür gibt es nie eine Ausfallgebühr. Bei Terminen, die bei Treatwell vorab bezahlt wurden, kümmert sich die Rezeption um die Erstattung dort.
+Danach erscheint „n Termine abgesagt, n Nachrichten werden gesendet“ (in der Windows-App kurz unten als Meldung; gab es Probleme, steht eine Warnung oben im Formular), bei Warteliste und Rückzahlung mit „m Wartelisten-Einträge benachrichtigt, k Anzahlungen retourniert“. Die Termine haben den Status „storniert“ mit dem Grund „Schließzeit (Betriebsurlaub): …“ und sind vom Betrieb abgesagt: dafür gibt es nie eine Ausfallgebühr. Bei Terminen, die bei Treatwell vorab bezahlt wurden, kümmert sich die Rezeption um die Erstattung dort.
 
 ![Rückfrage Termine absagen in der Windows-App: Sprache je Gast und der Abschnitt Warteliste](images/app/schliesszeit-absage-dialog.png)
 

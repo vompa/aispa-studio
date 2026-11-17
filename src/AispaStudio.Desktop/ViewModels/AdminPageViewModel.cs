@@ -155,14 +155,8 @@ public sealed partial class AdminPageViewModel : ViewModelBase
     /// <summary>Standorte &amp; Räume; nur, wer Standorte verwalten darf (ManageLocation).</summary>
     public LocationsViewModel? Locations { get; }
 
-    /// <summary>Seite „Schließzeiten“ mit den Abschnitten Schließzeiten und Raumsperren (ADR 0098); nur, wer Standorte verwalten darf (ManageLocation).</summary>
+    /// <summary>Seite „Schließzeiten“ mit Schließzeiten und Raumsperren in einer Liste (ADR 0098); nur, wer Standorte verwalten darf (ManageLocation).</summary>
     public ClosuresPageViewModel? ClosuresPage { get; }
-
-    /// <summary>Abschnitt „Schließzeiten“ der Seite.</summary>
-    public ClosuresViewModel? Closures => ClosuresPage?.Closures;
-
-    /// <summary>Abschnitt „Raumsperren“ der Seite.</summary>
-    public RoomClosuresViewModel? RoomClosures => ClosuresPage?.RoomClosures;
 
     /// <summary>Kalender-Abos; nur, wer Standorte verwalten darf (ManageLocation).</summary>
     public SubscriptionsViewModel? Subscriptions { get; }
@@ -313,7 +307,7 @@ public sealed partial class AdminPageViewModel : ViewModelBase
             ("time", _) => ("masterData", "team", area ?? TeamViewModel.TimesMode),
             // R07 Slice 144: die Betriebsinfo ist ein Reiter in „Zahlen“.
             ("businessInfo", _) => ("reports", ReportsViewModel.BusinessInfoTab, area),
-            // ADR 0098: die Raumsperren sind ein Abschnitt der Seite „Schließzeiten“.
+            // ADR 0098: die Raumsperren stehen in der Liste der Seite „Schließzeiten“.
             ("masterData", ClosuresPageViewModel.RoomClosuresSection) => ("masterData", ClosuresPageViewModel.ClosuresSection, ClosuresPageViewModel.RoomClosuresSection),
             _ => (page, tab, area),
         };

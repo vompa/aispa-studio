@@ -26,14 +26,18 @@ Verwalten dürfen Inhaber, Manager und Standortleitung (Recht „Standorte verwa
 ## Schließzeiten verwalten {#schliesszeiten}
 
 1. In der Windows-App **Verwaltung** › **Betrieb** › **Schließzeiten** öffnen. Gibt es mehrere Standorte, oben den **Standort** wählen. Aus dem Kalender führt der Chip **Geschlossen · Betriebsurlaub** in der Kopfzeile gleich hierher.
-2. Die Liste links zeigt die aktuellen Schließzeiten (aktiv und geplant). **Beendete zeigen** über der Liste blendet die beendeten dazu ein; die Zahl daneben nennt, wie viele es sind. Auf derselben Seite stehen darunter die [Raumsperren](hilfe:raumsperren).
-3. Links eine Schließzeit wählen oder auf **Neue Schließzeit** klicken, rechts die Maske ausfüllen und auf **Speichern** klicken (in der Windows-App auch **Strg+S**). Es erscheint „Gespeichert“.
+2. Die Liste zeigt Schließzeiten und [Raumsperren](hilfe:raumsperren) **zusammen**, die kommenden zuerst, nach Beginn geordnet. Das Kennzeichen vor der Zeile sagt, was es ist: **Standort** für eine Schließzeit des ganzen Standorts, **Raum** für eine Raumsperre. Rechts stehen der Zustand und die Zahl der noch offenen Termine. Der Filter **Standort geschlossen** oder **Raum gesperrt** über der Liste zeigt nur eine Art. **Vergangene** unter der Liste klappt die beendeten auf.
+3. Eine Zeile wählen oder auf **Neue Schließzeit** klicken: Das Formular öffnet sich rechts in einer Seitenleiste. Bei einem neuen Eintrag steht oben **Gilt für**: **Ganzer Standort** (eine Schließzeit) oder **Einzelner Raum** (eine Raumsperre). Das Formular ausfüllen und auf **Speichern** klicken (auch **Strg+S**). Unten erscheint kurz „Schließzeit gespeichert“.
+
+![Schließzeiten und Raumsperren in einer Liste, rechts das Formular der gewählten Schließzeit](images/app/verwaltung-schliesszeiten-formular.png)
 
 In der Windows-App gilt zusätzlich:
 
-- **Verwerfen** neben **Speichern** holt den gespeicherten Stand zurück. Wer mit ungespeicherten Änderungen eine andere Schließzeit, einen anderen Reiter, Standort oder Bereich wählt, wird gefragt: „Änderungen speichern?“ mit **Speichern**, **Verwerfen** und **Abbrechen**.
+- **Verwerfen** neben **Speichern** holt den gespeicherten Stand zurück. Wer mit ungespeicherten Änderungen eine andere Zeile, einen anderen Standort oder Bereich wählt oder die Seitenleiste schließt, wird gefragt: „Änderungen speichern?“ mit **Speichern**, **Verwerfen** und **Abbrechen**.
 - Ein Fehler steht am Feld, und der Cursor springt ins erste Feld mit einem Fehler.
 - Datum und Uhrzeit lassen sich kurz eintippen: „24.12.“, „9“ wird 09:00, „1430“ wird 14:30.
+- **Löschen** steht unten in der Seitenleiste und fragt vorher nach: „Schließzeit löschen?“. Danach erscheint kurz „Schließzeit gelöscht“.
+- Hat der Standort noch keine Schließzeit und keine Raumsperre, zeigt die Seite statt der Liste die ersten Schritte: **Schließzeit anlegen** und **Raum sperren**.
 
 Der Zustand wird gerechnet: **Geplant** beginnt später, **Aktiv** läuft gerade, **Beendet** ist vorbei. Zwei Schließzeiten desselben Standorts dürfen sich nicht überschneiden. **Löschen** gibt es nur, solange wegen der Schließzeit keine Termine abgesagt wurden; danach bleibt sie als Verlauf stehen.
 
@@ -58,11 +62,13 @@ Unter den Feldern steht, wer die Schließzeit wann angelegt hat.
 
 ## Protokoll der Absagen {#protokoll}
 
-Wurden wegen der Schließzeit Termine abgesagt, zeigt die Maske unten das **Protokoll der Absagen** (in der Windows-App eine Zeile zum Aufklappen): je Termin (und je benachrichtigtem Eintrag der Warteliste) der Gast, die Zeit, der Kanal (Mail, SMS oder „kein Kontakt“) mit dem Kürzel der Sprache, eine retournierte Anzahlung, der Zustand (gesendet, wird gesendet, nicht gesendet, zurückgenommen, fehlgeschlagen), wer abgesagt hat und wann. „KI“ steht dabei, wenn der Text mit KI umformuliert wurde. Eine Nachricht, die noch auf ihre Wartezeit wartet, zeigt „Nachricht an den Gast geht um 14:32 raus.“ mit den Knöpfen **Jetzt senden** und **Nicht senden** (siehe unten).
+Wurden wegen der Schließzeit Termine abgesagt, zeigt das Formular unten das **Protokoll der Absagen** (in der Windows-App eine Zeile zum Aufklappen): je Termin (und je benachrichtigtem Eintrag der Warteliste) der Gast, die Zeit, der Kanal (Mail, SMS oder „kein Kontakt“) mit dem Kürzel der Sprache, eine retournierte Anzahlung, der Zustand (gesendet, wird gesendet, nicht gesendet, zurückgenommen, fehlgeschlagen), wer abgesagt hat und wann. „KI“ steht dabei, wenn der Text mit KI umformuliert wurde. Eine Nachricht, die noch auf ihre Wartezeit wartet, zeigt „Nachricht an den Gast geht um 14:32 raus.“ mit den Knöpfen **Jetzt senden** und **Nicht senden** (siehe unten).
 
 ## Wartezeit vor der Nachricht an den Gast {#wartezeit}
 
-Sagt das Team Termine ab, geht die Nachricht an den Gast nicht sofort raus, sondern erst nach einer **Wartezeit**. So lässt sich ein Versehen noch zurücknehmen, bevor der Gast etwas erfährt. Die Wartezeit gilt je Standort und steht oben auf der Seite im Feld **Wartezeit vor der Nachricht an den Gast (Minuten)**: 0 bis 60, vorgegeben sind 10. Mit **Wartezeit speichern** übernehmen Sie den Wert. Bei 0 geht jede Nachricht sofort.
+Sagt das Team Termine ab, geht die Nachricht an den Gast nicht sofort raus, sondern erst nach einer **Wartezeit**. So lässt sich ein Versehen noch zurücknehmen, bevor der Gast etwas erfährt. Die Wartezeit gilt je Standort. Man ändert sie selten, deshalb steht sie hinter dem Knopf **Einrichtung** oben auf der Seite: Er öffnet eine Seitenleiste mit dem Feld **Senden nach (Minuten)**, 0 bis 60, vorgegeben sind 10. Mit **Wartezeit speichern** übernehmen Sie den Wert; unten erscheint kurz „Wartezeit gespeichert“. Bei 0 geht jede Nachricht sofort.
+
+![Seitenleiste Einrichtung mit der Wartezeit vor der Nachricht an den Gast](images/app/verwaltung-schliesszeiten-einrichtung.png)
 
 - **Beginnt der Termin in weniger als 2 Stunden,** geht die Nachricht sofort raus, denn dann hilft dem Gast kein Warten mehr.
 - **Gäste, die selbst absagen oder umbuchen,** bekommen ihre Nachricht immer sofort. Die Wartezeit gilt nur für Absagen, die das Team auslöst.
