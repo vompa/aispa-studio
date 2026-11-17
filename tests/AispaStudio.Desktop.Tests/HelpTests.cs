@@ -140,6 +140,38 @@ public sealed partial class HelpTests
         Assert.All(topics, t => Assert.True(HelpContent.Find(t.Topic) is not null, $"{t.File}: Thema {t.Topic}"));
     }
 
+    /// <summary>
+    /// Fragezeichen ausdünnen (ADR 0079, Nachtrag 17.11.2026; Design-Brief 5.11): je Seitenkopf eines, je Abschnitt nur bei eigenem Abschnitt im Hilfetext.
+    /// Je Ansicht also höchstens ein Fragezeichen ohne Abschnitt und keine zwei mit gleichem Thema und Abschnitt.
+    /// </summary>
+    [Fact]
+    public void Jede_Ansicht_hat_hoechstens_ein_Fragezeichen_ohne_Abschnitt_und_keines_doppelt()
+    {
+        var views = Directory.GetFiles(Path.Combine(RepoRoot(), "src", "AispaStudio.Desktop", "Views"), "*.axaml", SearchOption.AllDirectories);
+        var problems = new List<string>();
+        foreach (var view in views)
+        {
+            var buttons = HelpButtonTag().Matches(File.ReadAllText(view)).Select(m => m.Value).Select(tag =>
+                (Topic: AttributeOf(tag, "Topic"), Section: AttributeOf(tag, "Section"))).ToList();
+            var withoutSection = buttons.Count(b => b.Section is null);
+            if (withoutSection > 1)
+            {
+                problems.Add($"{Path.GetFileName(view)}: {withoutSection} Fragezeichen ohne Abschnitt");
+            }
+
+            problems.AddRange(buttons.GroupBy(b => b).Where(g => g.Count() > 1)
+                .Select(g => $"{Path.GetFileName(view)}: {g.Count()}-mal {g.Key.Topic}#{g.Key.Section}"));
+        }
+
+        Assert.True(problems.Count == 0, string.Join(Environment.NewLine, problems));
+    }
+
+    private static string? AttributeOf(string tag, string name) =>
+        Regex.Match(tag, $"\\s{name}=\"([^\"]*)\"") is { Success: true } match ? match.Groups[1].Value : null;
+
+    [GeneratedRegex("<ui:HelpButton\\b[^>]*>", RegexOptions.Singleline)]
+    private static partial Regex HelpButtonTag();
+
     [GeneratedRegex("(?:HelpTopic|ManualTopic)\\s*=\\s*\"([a-z0-9-]+)\"")]
     private static partial Regex HelpTopicConstant();
 

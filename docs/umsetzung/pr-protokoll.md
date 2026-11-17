@@ -6880,3 +6880,29 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Nicht geprüft:** die laufende App unter Windows (echter Speicherdialog, Explorer mit markierter Datei); Excel selbst beim Öffnen der CSV (nur Bytes: Byte-Order-Mark, Strichpunkt, Kodierung).
 - **Beim Schreiben festgestellt:** Das Beispiel-Spa hat keine eingereichte Inventur, deshalb war „Inventur“ dort nie exportierbar; eine Beispielzählung im Testdatensatz wäre eine eigene Aufgabe. Die Matrixtests reichen für ihre Läufe selbst eine Zählung ein.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Masken: Hilfe als Leiste „KI und Hilfe“ (P1, 17.11.2026)
+
+- **Auftrag:** Plan der Maskenrunde, Entscheidung 1 des Auftraggebers: Das Fragezeichen öffnet die Hilfe nicht mehr als Seite „Hilfe“, sondern in der Leiste „KI und Hilfe“; die Maske bleibt stehen.
+- **Was:**
+  - Windows-App: `HelpButton` meldet sich über das RoutedEvent `Requested`; die Shell zeigt die Hilfe oben in „KI und Hilfe“ (`CompanionViewModel.ShowHelp`, Kopf mit Titel des Abschnitts, Thema als Untertitel, Kreuz, unten „Im Handbuch öffnen“) und markiert das Fragezeichen (Stil `Button.help.active`). Ein weiteres Fragezeichen tauscht den Inhalt.
+  - Der Browser der Hilfe ist jetzt ein eigenes Steuerelement `HelpBrowser`, das die Seite „Hilfe“ und die Leiste gemeinsam nutzen; die Leiste lädt die Web-Hilfe mit `ansicht=leiste`.
+  - Tasten: F1 außerhalb des Kalenders zeigt die Hilfe zum Fokus (`HelpButton.NearestTo`), Esc schließt zuerst die Hilfe; beides wirkt auch, wenn der Fokus im Browser liegt (Web-Nachrichten `f1`, `escape`). Im Kalender bleibt F1 die Tastenhilfe, das Fragezeichen wählt den Reiter „KI und Hilfe“.
+  - `SidePanelLayer`: offene Seitenleisten der Maske (Verlauf u. a.) sind ausgeblendet, solange die Hilfe offen ist; öffnet eine Seitenleiste, schließt die Hilfe.
+  - Web: `HelpPanelView` zeigt bei `ansicht=leiste` nur den Abschnitt (ohne seine Überschrift) oder das ganze Thema, ohne Kopf und Navigation; `appShortcuts` sendet F1 und (nur in der Leiste) Esc an die App.
+  - Fragezeichen ausgedünnt: doppeltes Stammdaten-Fragezeichen der Personenkarte entfernt; Zeiten, Lohn, Inventur am Handy und Zuständigkeiten zeigen jetzt auf ihren Abschnitt.
+  - Nachtrag zu ADR 0079, Handbuch `ki-assistent-fragen#fragezeichen` mit neuem Bild `ki-und-hilfe-fragezeichen`.
+- **Detailentscheidungen:**
+  1. `SidePanelLayer` statt des Arbeitsnamens `SidePanelStack`: die Analyse CA1711 verbietet das Suffix „Stack“. Die Ebene hängt als geerbte Eigenschaft an der Shell, nicht statisch, damit Tests unabhängig bleiben.
+  2. Kopf, Schließen und „Im Handbuch öffnen“ sind nativ über und unter dem Browser; die Web-Hilfe zeichnet in der Leiste nur Text und Bilder. Ein zweiter Markdown-Renderer entfällt.
+  3. Bis der Browser geladen ist, steht der erste Absatz des Abschnitts als Text da (aus denselben Hilfedateien der App).
+  4. F1 sucht vom Fokus aus den kleinsten Bereich mit genau einem Fragezeichen; gibt es keinen, gilt das Fragezeichen der Seite ohne Abschnitt, sonst das Seitenthema.
+  5. Öffnet ein Fragezeichen die Leiste, merkt sich die Seite das nicht; Schließen der Hilfe schließt die Leiste wieder, wenn sie vorher zu war. Ein Seitenwechsel schließt die Hilfe.
+  6. Esc aus der Web-Hilfe wird nur im Modus `ansicht=leiste` gesendet; auf der Seite „Hilfe“ bleibt Esc beim Browser (Suche, Lightbox).
+  7. Generische Abschnittstitel („Schritte“) bekommen das Thema als Untertitel.
+  8. Im Kalender liegt die Leiste nicht mehr in einem ScrollViewer (der Browser ist ein natives Fenster); der Assistent scrollt in der Leiste selbst.
+- **Bewusst offen / später:** Folgt man in der Leiste einem Link zu einem anderen Thema, bleibt der native Titel beim ursprünglichen Abschnitt. Weitere Ausdünnung der Fragezeichen über den Regeltest hinaus.
+- **Geprüft:** Windows-App: `HelpPanelTests` und `HelpTests` 26/26 (neu: Regeltest „höchstens ein Fragezeichen ohne Abschnitt je Ansicht, keines doppelt“, vorher mit drei Verstößen); neue Bildtests (Leiste mit Adresse, Eingabe bleibt, Tauschen und Esc, Verlauf ausgeblendet, F1 zum Fokus, Kalender-Reiter) grün; Klassen Companion*, Personenkarte, Lager, Behandlungen, Personalakte, Kalender-Tasten und -Leisten 248/248; Bildtests `*.KI_*` und Tab-Reihenfolge 42/42 (die Bildtests des Assistenten suchen den Scroller jetzt in der Leiste: `AssistantScroll`). Web: lint, typecheck, vitest `src/help` und `appShortcuts` grün, build, check:bundle (/help/ 94,3 kB von 100 kB).
+- **Nicht geprüft:** die laufende App mit WebView2 (die Tests prüfen die Adresse, nicht das gerenderte Web); volle Suiten (nur betroffene Klassen).
+- **Beim Schreiben festgestellt:** `KI_und_Hilfe_Leiste_steht_auf_Seiten_mit_Browser_neben_dem_Browser("Verwaltung")` war vor dieser Änderung auf `dev` rot; mit diesem Stand ist er grün (Ursache nicht weiter untersucht).
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md); Hilfetext von `textRules.test.ts` geprüft.

@@ -192,7 +192,7 @@ public partial class CalendarViewModel
     private void OpenKeyManual()
     {
         ShowKeyHelp = false;
-        HelpContent.Open(KeyManualTopic);
+        HelpContent.OpenManual(KeyManualTopic);
     }
 
     /// <summary>Die Ansicht soll das Suchfeld bzw. den Datumswähler öffnen.</summary>

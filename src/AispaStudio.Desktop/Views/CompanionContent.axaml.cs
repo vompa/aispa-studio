@@ -9,7 +9,7 @@ using Avalonia.Threading;
 namespace AispaStudio.Desktop.Views;
 
 /// <summary>
-/// Inhalt von „KI und Hilfe“: Erklärung zur offenen Seite und KI-Assistent. Im Kalender ist er ein Reiter der Seitenleiste (Design-Brief 5.28),
+/// Inhalt von „KI und Hilfe“: Hilfe zu einem Fragezeichen, Erklärung zur offenen Seite und KI-Assistent. Im Kalender ist er ein Reiter der Seitenleiste (Design-Brief 5.28),
 /// auf den übrigen Seiten steht er in der Leiste der Shell.
 /// </summary>
 public partial class CompanionContent : UserControl
@@ -38,11 +38,26 @@ public partial class CompanionContent : UserControl
             _model.PropertyChanged += OnModelChanged;
             _model.Restarted += FocusQuestion;
         }
+
+        ArrangeRows();
     }
 
-    /// <summary>Neue Antwort: die Leiste scrollt ihren Kopf ins Bild, damit nach dem Fragen nie „nichts zu sehen“ ist (Ä316).</summary>
+    /// <summary>Mit Hilfe teilen sich Hilfe-Bereich und Assistent die Höhe 3 : 2 (der Browser braucht eine feste Fläche), ohne Hilfe hat der Assistent alles.</summary>
+    private void ArrangeRows()
+    {
+        var help = _model?.ShowsHelp == true;
+        Layout.RowDefinitions[0].Height = help ? new GridLength(3, GridUnitType.Star) : new GridLength(0);
+        Layout.RowDefinitions[2].Height = new GridLength(help ? 2 : 1, GridUnitType.Star);
+    }
+
+    /// <summary>Hilfe da oder weg: Zeilen neu teilen. Neue Antwort: die Leiste scrollt ihren Kopf ins Bild, damit nach dem Fragen nie „nichts zu sehen“ ist (Ä316).</summary>
     private void OnModelChanged(object? sender, PropertyChangedEventArgs e)
     {
+        if (e.PropertyName == nameof(CompanionViewModel.ShowsHelp))
+        {
+            ArrangeRows();
+        }
+
         if (e.PropertyName is nameof(CompanionViewModel.Answer) or nameof(CompanionViewModel.Error))
         {
             Dispatcher.UIThread.Post(() => (_model?.HasError == true ? (Control)ErrorBar : AnswerCard).BringIntoView(), DispatcherPriority.Background);

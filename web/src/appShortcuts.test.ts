@@ -72,3 +72,60 @@ describe('Strg+Leertaste im eingebetteten Browser', () => {
     uninstall()
   })
 })
+
+// Hilfe als Leiste (ADR 0079, Nachtrag 17.11.2026): F1 und Esc erreichen die App im eingebetteten Browser nicht; die Seite meldet sie als Nachricht.
+describe('F1 und Esc im eingebetteten Browser', () => {
+  const bridge = window as unknown as Bridge
+  const press = (init: KeyboardEventInit) => {
+    const event = new KeyboardEvent('keydown', { cancelable: true, ...init })
+    window.dispatchEvent(event)
+    return event
+  }
+
+  afterEach(() => {
+    delete bridge.invokeCSharpAction
+    window.history.replaceState({}, '', '/')
+  })
+
+  it('Given die Hilfe in der Leiste When F1 und Esc gedrückt werden Then gehen „f1“ und „escape“ an die App und die Tasten sind verbraucht', () => {
+    window.history.replaceState({}, '', '/?eingebettet=1&ansicht=leiste')
+    const sent = vi.fn()
+    bridge.invokeCSharpAction = sent
+    const uninstall = installAppShortcuts()
+
+    const f1 = press({ key: 'F1', code: 'F1' })
+    const escape = press({ key: 'Escape', code: 'Escape' })
+
+    expect(sent.mock.calls).toEqual([[{ type: 'f1' }], [{ type: 'escape' }]])
+    expect(f1.defaultPrevented).toBe(true)
+    expect(escape.defaultPrevented).toBe(true)
+    uninstall()
+  })
+
+  it('Given die Seite „Hilfe“ (eingebettet, nicht in der Leiste) When Esc gedrückt wird Then bleibt Esc bei der Seite, F1 geht an die App', () => {
+    window.history.replaceState({}, '', '/?eingebettet=1')
+    const sent = vi.fn()
+    bridge.invokeCSharpAction = sent
+    const uninstall = installAppShortcuts()
+
+    const escape = press({ key: 'Escape', code: 'Escape' })
+    press({ key: 'F1', code: 'F1' })
+
+    expect(escape.defaultPrevented).toBe(false)
+    expect(sent.mock.calls).toEqual([[{ type: 'f1' }]])
+    uninstall()
+  })
+
+  it('Given die Hilfe im Browser (nicht eingebettet) When F1 oder Esc kommt Then schickt das Modul nichts', () => {
+    window.history.replaceState({}, '', '/?ansicht=leiste')
+    const sent = vi.fn()
+    bridge.invokeCSharpAction = sent
+    const uninstall = installAppShortcuts()
+
+    press({ key: 'F1', code: 'F1' })
+    press({ key: 'Escape', code: 'Escape' })
+
+    expect(sent).not.toHaveBeenCalled()
+    uninstall()
+  })
+})

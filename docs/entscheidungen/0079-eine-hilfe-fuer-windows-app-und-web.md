@@ -36,6 +36,17 @@ Eine Darstellung heißt: Suche, Anker, Bilder und Rangfolge ändern sich an eine
 - Die Hilfe folgt dem Farbschema des Betriebssystems, nicht dem Schema aus den Einstellungen der App (wie die Verwaltung im WebView2).
 - Offen: Handbuchbilder neu erzeugen (Skripte laufen weiter, aber nur mit Testdaten bzw. Aspire); Hilfe im Kundenbereich; eine Vorlesehilfe-Prüfung der Hilfe-Seite mit Narrator.
 
+## Nachtrag 17.11.2026: Hilfe als Leiste
+
+Der Auftraggeber hat bei der Durchsicht der Masken entschieden: Das Fragezeichen soll die Maske nicht verlassen. Bisher wechselte es auf die Seite „Hilfe“, die Maske verschwand.
+
+- **Fragezeichen öffnet die Leiste „KI und Hilfe“.** Oben steht ein Hilfe-Bereich mit genau Thema und Abschnitt des Fragezeichens, darunter der Assistent; die Maske bleibt stehen, Eingaben bleiben erhalten. Im Kalender ist es der Reiter „KI und Hilfe“. Ein weiteres Fragezeichen tauscht nur den Inhalt; das aktive ist markiert (gefüllt in accent). Esc und das Kreuz des Hilfe-Bereichs schließen die Hilfe; war die Leiste nur für sie offen, geht sie mit zu, und „offen oder zu je Seite“ ändert sich dadurch nicht. Ein Seitenwechsel schließt die Hilfe.
+- **Dieselbe Web-Hilfe, Modus `ansicht=leiste`.** Der Hilfe-Bereich ist ein zweiter eingebetteter Browser (`HelpBrowser`, derselbe Baustein wie auf der Seite „Hilfe“) mit `help/index.html?thema=…&abschnitt=…&ansicht=leiste`. Die Seite zeigt dann nur den Abschnitt (ohne seine Überschrift) oder das ganze Thema, ohne Navigation, Verzeichnis und Fuß, schmal für 360 px, Bilder auf die Breite skaliert (`HelpPanelView.tsx`). Kopf mit Titel und Schließen sowie der Link „Im Handbuch öffnen“ stehen nativ über und unter dem Browser: Das native Browserfenster liegt über allem, was Avalonia in seiner Fläche zeichnet, deshalb liegt darin nichts von Avalonia, und Hilfe-Bereich wie Assistent rollen je für sich (kein Browser in einem ScrollViewer). Es gibt keinen zweiten Markdown-Renderer: Bis die Seite geladen ist (und in Tests ohne Browser), steht der erste Absatz des Abschnitts da, mit dem schon vorhandenen Absatz-Baustein der Leiste.
+- **„Im Handbuch öffnen“** zeigt die Seite „Hilfe“ an derselben Stelle. Die Seite „Hilfe“ in der linken Leiste bleibt das ganze Handbuch mit Suche und Themen; „Ganze Beschreibung öffnen“, „Alle Hilfethemen“, „Handbuch öffnen“ und „Alle Tasten im Handbuch“ führen weiter dorthin (`HelpContent.OpenManual`).
+- **Tasten.** F1 zeigt außerhalb des Kalenders die Hilfe zum Fokus: das Fragezeichen im kleinsten Bereich um das Feld, wenn dort genau eines steht, sonst das im Kopf der Maske. Im Kalender bleibt F1 die Tastenhilfe. Im eingebetteten Browser meldet die Seite F1 (`{"type":"f1"}`) und in der Leiste Esc (`{"type":"escape"}`) an die App, wie schon Strg+Leertaste.
+- **Immer nur eine Leiste rechts.** Solange die Hilfe steht, blenden sich offene Seitenleisten der Masken (`SidePanel`, z. B. „Verlauf“) aus und bleiben offen; schließt die Hilfe, sind sie wieder da. Öffnet man eine solche Leiste, macht die Hilfe ihr Platz (`SidePanelLayer`).
+- **Weniger Fragezeichen.** Je Seitenkopf eines, je Abschnitt nur dort, wo der Hilfetext einen eigenen Abschnitt hat; ein Regeltest prüft je Ansicht höchstens ein Fragezeichen ohne Abschnitt und keine zwei mit gleichem Thema und Abschnitt.
+
 ## Quellen
 
 - ADR 0053 (Verwaltung im WebView2), ADR 0055 und 0056 (Hilfe im Repository, Handbuch mit Bildern)

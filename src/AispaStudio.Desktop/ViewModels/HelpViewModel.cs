@@ -135,8 +135,13 @@ public sealed partial class HelpViewModel(Func<Uri?>? serverWeb = null, string? 
             }
         }
 
-        // Nur eingebettet meldet die Seite Strg+Leertaste an die App (appShortcuts.ts).
+        // Nur eingebettet meldet die Seite Strg+Leertaste, F1 und in der Leiste Esc an die App (appShortcuts.ts).
         query.Add("eingebettet=1");
+        if (InPanel)
+        {
+            query.Add("ansicht=leiste");
+        }
+
         query.Add($"oberflaeche={HelpContent.Surface}");
         if (HelpContent.RoleKey(Role) is { } role)
         {
@@ -181,12 +186,29 @@ public sealed partial class HelpViewModel(Func<Uri?>? serverWeb = null, string? 
     /// <summary>Strg+Leertaste im eingebetteten Browser (Nachricht <c>{"type":"companion"}</c>, <c>appShortcuts.ts</c>): die Shell schaltet „KI und Hilfe“ wie beim Kurzbefehl.</summary>
     public event Action? CompanionRequested;
 
-    /// <summary>Nachricht der Hilfe-Seite; alles außer „companion“ ignoriert die App.</summary>
+    /// <summary>Esc in der Hilfe der Leiste (Nachricht <c>{"type":"escape"}</c>): die Leiste schließt den Hilfe-Bereich.</summary>
+    public event Action? CloseRequested;
+
+    /// <summary>F1 im eingebetteten Browser (Nachricht <c>{"type":"f1"}</c>): die App zeigt die Hilfe zum Fokus wie bei F1 außerhalb des Browsers.</summary>
+    public event Action? KeyHelpRequested;
+
+    /// <summary>Die Hilfe steht in der Leiste „KI und Hilfe“: die Seite zeigt im Modus <c>ansicht=leiste</c> nur das Thema oder den Abschnitt, ohne Navigation.</summary>
+    public bool InPanel { get; init; }
+
+    /// <summary>Nachricht der Hilfe-Seite; alles außer „companion“, „escape“ und „f1“ ignoriert die App.</summary>
     public void OnWebMessage(string? body)
     {
-        if (WebMessage.TypeOf(body) == "companion")
+        switch (WebMessage.TypeOf(body))
         {
-            CompanionRequested?.Invoke();
+            case "companion":
+                CompanionRequested?.Invoke();
+                break;
+            case "escape":
+                CloseRequested?.Invoke();
+                break;
+            case "f1":
+                KeyHelpRequested?.Invoke();
+                break;
         }
     }
 
