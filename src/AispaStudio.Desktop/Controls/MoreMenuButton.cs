@@ -7,7 +7,7 @@ namespace AispaStudio.Desktop.Controls;
 
 /// <summary>
 /// Das Menü „⋯“ im Kopf einer Karte oder am Ende einer Zeile (ADR 0099): „Nicht mehr verwenden“ und „Löschen …“ stehen nie als eigener Knopf neben „Speichern“, sondern hier.
-/// Ein Eintrag erscheint nur, wenn sein Befehl gesetzt ist; ob der Knopf selbst zu sehen ist, bestimmt die Maske (<c>IsVisible</c>), und ein Eintrag, dessen Befehl nicht ausführbar ist, ist grau. Das Menü bekommt die Tastatur von Avalonia (Enter öffnet, Pfeile wählen, Esc schließt);
+/// Wo der erste Eintrag nicht reicht, kommt ein zweiter neutraler dazwischen (Aktion: „Pausieren“ und „Archivieren“). Ein Eintrag erscheint nur, wenn sein Befehl gesetzt ist; ob der Knopf selbst zu sehen ist, bestimmt die Maske (<c>IsVisible</c>), und ein Eintrag, dessen Befehl nicht ausführbar ist, ist grau. Das Menü bekommt die Tastatur von Avalonia (Enter öffnet, Pfeile wählen, Esc schließt);
 /// „Löschen …“ ist rot und trägt die drei Punkte, weil danach ein Dialog fragt.
 /// </summary>
 public sealed class MoreMenuButton : Button
@@ -26,7 +26,12 @@ public sealed class MoreMenuButton : Button
     /// <summary>Eigener Text für den ersten Eintrag, wo „Nicht mehr verwenden“ nicht trifft (Person: „Zugang sperren“); leer = Standardtext.</summary>
     public static readonly StyledProperty<string?> DeactivateTextProperty = AvaloniaProperty.Register<MoreMenuButton, string?>(nameof(DeactivateText));
 
-    /// <summary>Eigener Text für den zweiten Eintrag, wo „Löschen …“ nicht trifft (Person: „Aus dem Team nehmen …“); er bleibt rot und trägt die drei Punkte, weil danach eine Rückfrage kommt.</summary>
+    public static readonly StyledProperty<ICommand?> SecondaryCommandProperty = AvaloniaProperty.Register<MoreMenuButton, ICommand?>(nameof(SecondaryCommand));
+
+    /// <summary>Text des zweiten neutralen Eintrags zwischen dem ersten und „Löschen …“ (Aktion: „Archivieren“); er steht nur mit gesetztem Befehl und Text, ohne drei Punkte und nicht rot.</summary>
+    public static readonly StyledProperty<string?> SecondaryTextProperty = AvaloniaProperty.Register<MoreMenuButton, string?>(nameof(SecondaryText));
+
+    /// <summary>Eigener Text für den letzten Eintrag, wo „Löschen …“ nicht trifft (Person: „Aus dem Team nehmen …“); er bleibt rot und trägt die drei Punkte, weil danach eine Rückfrage kommt.</summary>
     public static readonly StyledProperty<string?> DeleteTextProperty = AvaloniaProperty.Register<MoreMenuButton, string?>(nameof(DeleteText));
 
     /// <summary>Der Gegenstand für den Screenreader: „Weitere Aktionen zu Hauptlager“.</summary>
@@ -40,6 +45,8 @@ public sealed class MoreMenuButton : Button
         DeleteCommandProperty.Changed.AddClassHandler<MoreMenuButton>((button, _) => button.Rebuild());
         DeactivateTextProperty.Changed.AddClassHandler<MoreMenuButton>((button, _) => button.Rebuild());
         DeleteTextProperty.Changed.AddClassHandler<MoreMenuButton>((button, _) => button.Rebuild());
+        SecondaryCommandProperty.Changed.AddClassHandler<MoreMenuButton>((button, _) => button.Rebuild());
+        SecondaryTextProperty.Changed.AddClassHandler<MoreMenuButton>((button, _) => button.Rebuild());
         SubjectProperty.Changed.AddClassHandler<MoreMenuButton>((button, _) => button.UpdateName());
     }
 
@@ -63,6 +70,18 @@ public sealed class MoreMenuButton : Button
     {
         get => GetValue(DeactivateCommandProperty);
         set => SetValue(DeactivateCommandProperty, value);
+    }
+
+    public ICommand? SecondaryCommand
+    {
+        get => GetValue(SecondaryCommandProperty);
+        set => SetValue(SecondaryCommandProperty, value);
+    }
+
+    public string? SecondaryText
+    {
+        get => GetValue(SecondaryTextProperty);
+        set => SetValue(SecondaryTextProperty, value);
     }
 
     public ICommand? DeleteCommand
@@ -97,6 +116,11 @@ public sealed class MoreMenuButton : Button
         if (DeactivateCommand is { } deactivate)
         {
             _menu.Items.Add(new MenuItem { Header = string.IsNullOrWhiteSpace(DeactivateText) ? DeactivateLabel : DeactivateText, Command = deactivate });
+        }
+
+        if (SecondaryCommand is { } secondary && !string.IsNullOrWhiteSpace(SecondaryText))
+        {
+            _menu.Items.Add(new MenuItem { Header = SecondaryText, Command = secondary });
         }
 
         if (DeleteCommand is { } delete)

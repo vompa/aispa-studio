@@ -72,17 +72,8 @@
             <Button Grid.Column="1" x:Name="UnarchiveButton" Classes="primary" Content="Zurückholen" Command="{Binding UnarchiveCommand}" IsVisible="{Binding CanUnarchive}"
                     ToolTip.Tip="Die Aktion steht wieder in der Liste und lässt sich bearbeiten." VerticalAlignment="Center" />
             <!-- „⋯“ › Pausieren bzw. Fortsetzen und Archivieren: beides umkehrbar, ohne Rückfrage. Gelöscht wird eine Aktion nie (ADR 0071). -->
-            <Button Grid.Column="2" x:Name="MoreButton" Classes="ghost icon" Content="⋯" ToolTip.Tip="Weitere Aktionen" AutomationProperties.Name="Weitere Aktionen zur Aktion"
-                    IsVisible="{Binding CanArchive}" VerticalAlignment="Center">
-              <Button.Flyout>
-                <MenuFlyout Placement="BottomEdgeAlignedRight">
-                  <MenuItem x:Name="PauseItem" Header="{Binding PauseText}" Command="{Binding TogglePauseCommand}"
-                            ToolTip.Tip="Eine pausierte Aktion schlägt die Kassa nicht vor." />
-                  <MenuItem x:Name="ArchiveItem" Header="Archivieren" Command="{Binding ArchiveCommand}"
-                            ToolTip.Tip="Die Aktion läuft nicht mehr und verlässt die Liste; sie bleibt im Verlauf und lässt sich zurückholen." />
-                </MenuFlyout>
-              </Button.Flyout>
-            </Button>
+            <ui:MoreMenuButton Grid.Column="2" x:Name="MoreButton" Subject="{Binding HeadingText}" DeactivateText="{Binding PauseText}" DeactivateCommand="{Binding TogglePauseCommand}"
+                               SecondaryText="Archivieren" SecondaryCommand="{Binding ArchiveCommand}" IsVisible="{Binding CanArchive}" VerticalAlignment="Center" />
             <ui:HelpButton Grid.Column="3" Topic="aktionen" Section="aktionen" VerticalAlignment="Center" />
           </Grid>
           <TextBlock Classes="muted small" TextWrapping="Wrap" Text="Die Kassa schlägt eine passende Aktion vor; den Rabatt setzt sie erst auf Klick." />
