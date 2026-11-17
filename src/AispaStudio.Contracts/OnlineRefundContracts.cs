@@ -40,3 +40,19 @@ public sealed record OnlineRefundDto(
     DateTimeOffset? RefundedAt,
     string? Error,
     bool CanRetry);
+
+/// <summary>
+/// Erstattung eines online bezahlten Belegs für die Liste „Online-Zahlungen“ in der Kassa. <c>Receipt</c>: der erstattete Beleg („K1 Nr. 12, 17.11.2026“);
+/// <c>VoidReceipt</c>: sein Stornobeleg.
+/// </summary>
+public sealed record OnlineRefundStaffEntry(
+    Guid ReceiptId,
+    string? Receipt,
+    string? VoidReceipt,
+    OnlinePaymentSource Source,
+    decimal Amount,
+    string Currency,
+    OnlineRefundStatus Status,
+    DateTimeOffset RequestedAt,
+    DateTimeOffset? RefundedAt,
+    string? Error);

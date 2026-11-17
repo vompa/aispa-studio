@@ -84,7 +84,7 @@ public sealed record VoucherOrderDto(
 /// <summary>Testzahlung: <c>Paid</c> simuliert eine erfolgreiche Zahlung, sonst einen Abbruch. Nur im Testbetrieb.</summary>
 public sealed record TestPaymentResult(bool Paid);
 
-/// <summary>Online-Gutscheinbestellung für das Team. <c>Error</c>: warum die Kasse nicht ausstellen konnte.</summary>
+/// <summary>Online-Gutscheinbestellung für das Team. <c>Error</c>: warum die Kasse nicht ausstellen konnte. <c>Receipt</c>: „K1 Nr. 12, 17.11.2026“.</summary>
 public sealed record VoucherOrderStaffEntry(
     Guid Id,
     DateTimeOffset CreatedAt,
@@ -95,4 +95,5 @@ public sealed record VoucherOrderStaffEntry(
     string BuyerEmail,
     string? RecipientName,
     Guid? ReceiptId,
-    string? Error);
+    string? Error,
+    string? Receipt = null);

@@ -26,6 +26,10 @@ Danach steht, wie viele Termine umverteilt und wie viele Gäste informiert wurde
 - **Ersatz vorschlagen** sehen nur Rollen, die Termine buchen dürfen.
 - Der Assistent berücksichtigt nur Termine am gewählten Standort.
 - Geht am eigenen Standort an dem Tag nichts, sucht er an den anderen Standorten, die man selbst sieht. Solche Vorschläge nennen den Standort („in Baden: …“) und sind nicht angehakt: erst mit dem Gast sprechen, dann anhaken. Beim Übernehmen wird der Termin an den anderen Standort verlegt, der Preis bleibt wie gebucht, und die Mail an den Gast nennt den neuen Standort. Das gilt nur für einzeln gebuchte Termine, die noch nicht eingecheckt sind; Paar und Spa-Tag bleiben am Standort.
+- Geht es an dem Tag auch anderswo nicht, sucht er am eigenen Standort an den nächsten 14 Tagen, möglichst zur gewohnten Uhrzeit. Die ausgefallene Person schlägt er dabei nicht vor, weil er nicht weiß, wann sie wieder da ist. Solche Vorschläge stehen unter **Andere Tage**, nennen den Tag („Mo. 26.10. 15:00 bei …“) und sind nicht angehakt: erst mit dem Gast sprechen, dann anhaken. Die Mail an den Gast beginnt mit „Wie besprochen verschieben wir Ihren Termin …“. Auch das gilt nur für einzeln gebuchte Termine, die noch nicht eingecheckt sind.
+
+![Ausfall-Assistent mit dem Abschnitt Andere Tage](images/app/kalender-ausfall-anderer-tag.png)
+
 - Hat die Person an dem Tag keine offenen Termine, steht „An diesem Tag hat die Person hier keine offenen Termine.“
 - Termine ohne Vorschlag im Kalender von Hand verschieben oder mit dem Gast klären.
 - Für Termine ohne Vorschlag gibt es **Ohne Ersatz: informieren**. Nach einer Rückfrage bekommen diese Gäste eine Mail, ohne Mailadresse eine SMS: Der Termin könne nicht wie geplant stattfinden, das Team melde sich. Der Termin bleibt im Kalender stehen; verschoben oder storniert wird nichts. An der Zeile steht danach „Gast benachrichtigt“ oder der Grund, warum nicht, z. B. „Keine Mailadresse und keine Nummer für eine SMS. Bitte den Gast anrufen.“

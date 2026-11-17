@@ -4754,6 +4754,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/appointments/{appointmentId}/deposit/offer": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Ob sich für einen Termin der Rezeption eine Anzahlung per Link anfordern lässt, und mit welchem Betrag. */
+        get: operations["GetDepositRequestOffer"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/appointments/{appointmentId}/deposit/request": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Dem Gast einen Link schicken, um die Anzahlung für einen Termin der Rezeption zu bezahlen; erneut aufgerufen ein neuer Link. Ohne Zahlung bleibt der Termin stehen. */
+        post: operations["RequestDeposit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/appointments/{appointmentId}/deposit-return": {
         parameters: {
             query?: never;
@@ -4766,6 +4800,23 @@ export interface paths {
         put?: never;
         /** Retourniert die offene Anzahlung eines Termins: Storno-Beleg über die Kassa mit dem Grund (Pflicht), das Geld geht auf dem Zahlungsweg der Einzahlung zurück. Nur Inhaber und Manager (403 sonst). Ohne offene Anzahlung 404. */
         post: operations["ReturnDeposit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/locations/{locationId}/online-refunds": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Erstattungen online bezahlter Belege eines Standorts, neueste zuerst (höchstens 100), mit Beleg, Stornobeleg und Stand. */
+        get: operations["ListOnlineRefunds"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -8135,7 +8186,7 @@ export interface components {
             failed: components["schemas"]["AbsenceMoveFailure"][];
         };
         /** @enum {unknown} */
-        AbsenceOption: "SameTime" | "OtherTime" | "None" | "OtherLocation";
+        AbsenceOption: "SameTime" | "OtherTime" | "None" | "OtherLocation" | "OtherDay";
         AbsenceProposal: {
             /** Format: uuid */
             employeeId: string;
@@ -8663,6 +8714,8 @@ export interface components {
             /** Format: uuid */
             groupId?: null | string;
             warnings?: null | string[];
+            /** Format: int32 */
+            placeholderGuest?: null | number;
         };
         AreaVisitRequest: {
             /** Format: uuid */
@@ -10224,6 +10277,15 @@ export interface components {
             Zertifizierungsstellen: string[];
             "Belege-kompakt": string[];
         };
+        DepositRequestOffer: {
+            possible: boolean;
+            /** Format: double */
+            amount: number;
+            currency: string;
+            /** Format: int32 */
+            percent: number;
+            reason: null | string;
+        };
         DepositReturnInfo: {
             /** Format: uuid */
             receiptId: string;
@@ -10582,6 +10644,8 @@ export interface components {
             step: number;
             /** Format: int32 */
             minutes: number;
+            /** Format: int32 */
+            placeholderGuest?: null | number;
         };
         GroupAvailabilityRequest: {
             /** Format: date */
@@ -11548,8 +11612,24 @@ export interface components {
             error: null | string;
             canRetry: boolean;
         };
+        OnlineRefundStaffEntry: {
+            /** Format: uuid */
+            receiptId: string;
+            receipt: null | string;
+            voidReceipt: null | string;
+            source: components["schemas"]["OnlinePaymentSource"];
+            /** Format: double */
+            amount: number;
+            currency: string;
+            status: components["schemas"]["OnlineRefundStatus"];
+            /** Format: date-time */
+            requestedAt: string;
+            /** Format: date-time */
+            refundedAt: null | string;
+            error: null | string;
+        };
         /** @enum {unknown} */
-        OnlineRefundStatus: "Pending" | "Refunded" | "Failed" | null;
+        OnlineRefundStatus: "Pending" | "Refunded" | "Failed";
         OnlineSuggestedTime: {
             /** Format: uuid */
             treatmentId: string;
@@ -14136,6 +14216,7 @@ export interface components {
             /** Format: uuid */
             receiptId: null | string;
             error: null | string;
+            receipt?: null | string;
         };
         VoucherOrderStarted: {
             /** Format: uuid */
@@ -26925,6 +27006,82 @@ export interface operations {
             };
         };
     };
+    GetDepositRequestOffer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                appointmentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DepositRequestOffer"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    RequestDeposit: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                appointmentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DepositStaffDto"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     GetDepositReturn: {
         parameters: {
             query?: never;
@@ -27001,6 +27158,44 @@ export interface operations {
                 };
                 content: {
                     "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ListOnlineRefunds: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                locationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OnlineRefundStaffEntry"][];
                 };
             };
             /** @description Forbidden */

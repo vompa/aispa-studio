@@ -86,7 +86,7 @@ Stand: 20.10.2026, nach PR #172; Übergabe an Claude Code ([ADR 0046](entscheidu
 | Gästeszenarien: Sprache des Gastes (Kürzel am Termin, Hover-Karte sagt, ob die Person sie spricht), Sprachen der Mitarbeitenden unter „Team“, „Freie Zeit suchen“ nach Sprache, Quelle des Termins (Online, per Mail/SMS/WhatsApp/Anruf, Treatwell) (Schritt 9a des [Rezeptions-Konzepts](produkt/kalender-rezeption.md)) | fertig (Windows-App; Hotelgast bewusst weggelassen, [ADR 0058](entscheidungen/0058-kein-hotelgast-mit-zimmerbuchung.md)) | #159 |
 | Kalender: Verkürzen beim Verschieben („Auf 35 Min. verkürzen“, Hover-Karte „Verkürzt: 35 statt 50 Min.“) | **entfernt am 23.10.2026** (Runde 6 Teil 3, Ä71: in der Praxis ungenutzt; ein Termin bleibt stehen, auch wenn der Beginn in der Vergangenheit liegt) | #160, #173 |
 | Kalender: Gast kommt später: Rechtsklick „Kommt später“ (5, 10 oder 15 Min.), „kommt 10:45“ am Termin, überfällig erst ab der Ankunft, „Doch pünktlich“ nimmt es zurück; der Termin bleibt an seiner Zeit (Vorschläge „Kürzen“, „Nach hinten schieben“ und das Popup „Termin anpassen“ am 23.10.2026 entfernt, Ä71; ebenso „Alle folgenden auch“ nach dem Verschieben eines Serientermins) | fertig (Windows-App; Meldung durch den Gast folgt) | #162, #173 |
-| Kalender: Gruppen und Firmen-Events mit Gästen ohne Namen: „Name folgt“ im Panel „Paar oder Spa-Tag“ (bis zu acht Gäste), „Gast 3 · Name folgt“ im Kalender, Termine laufen bis dahin auf die buchende Person, „Namen nachtragen“ im Termin für alle Termine des Gastes | fertig (Windows-App; Sauna für Gäste ohne Namen und Ausfallgebühr folgen) | #163 |
+| Kalender: Gruppen und Firmen-Events mit Gästen ohne Namen: „Name folgt“ im Panel „Paar oder Spa-Tag“ (bis zu acht Gäste), „Gast 3 · Name folgt“ im Kalender, Termine laufen bis dahin auf die buchende Person, „Namen nachtragen“ im Termin für alle Termine des Gastes | fertig (Windows-App; Sauna und Ruheraum für Gäste ohne Namen seit 17.11.2026; Ausfallgebühr folgt) | #163 |
 | Kalender: Wunsch Therapeutin oder Therapeut: Angabe an der Person (Verwaltung › Team), Wunsch des Gastes in den Vorlieben der Kundenkarte, ♀/♂ am Termin mit Hinweis bei abweichender Person, Vorschläge von Planer, Terminannahme und „Freie Zeit suchen“ nur mit passenden Personen | fertig (Windows-App und Verwaltung; Wunsch bei der Online-Buchung folgt) | #164 |
 | Kalender: „Anamnese prüfen“ als Merkmal der Behandlung (Verwaltung › Behandlungen); beim Buchen eines Gastes, dessen letzter Anamnesebogen Angaben enthält, steht im Panel „Neuer Termin“ der Hinweis, ohne Inhalt und ohne zu sperren | fertig (Windows-App und Verwaltung; Hinweis bei Paar und Spa-Tag und in „Mein Tag“ folgt) | #166 |
 | Kalender: Zusagen über den Link sichtbar: „✓ zugesagt“ am Termin, Datum und Uhrzeit in der Hover-Karte, „6 unbestätigt“ im Tagesüberblick und **Noch nicht zugesagt** zum Hervorheben (z. B. zum Anrufen) | fertig (Windows-App) | #168 |
@@ -356,11 +356,11 @@ Die Nummern sind die Reihenfolge, die der jeweilige Thread gewählt hätte ([Üb
 
 **Kalender, Dienstplan, Zugänge**
 1. Ausfall-Assistent: Gäste ohne Ersatz per WhatsApp informieren (per Mail und SMS seit 16.11.2026; WhatsApp braucht eine eigene freigegebene Vorlage).
-2. Ausfall-Assistent: Ersatz an anderen Tagen; Paar- und Spa-Tag-Buchungen an einen anderen Standort verlegen.
+2. Ausfall-Assistent: Ersatz an anderen Tagen seit 17.11.2026 gebaut (nächste 14 Tage am eigenen Standort, nicht vorausgewählt); offen: Paar- und Spa-Tag-Buchungen an einen anderen Standort oder Tag verlegen.
 3. Leerlaufzeit eines angemeldeten Empfangsgeräts ändern; Liste aller Empfangsgeräte des Spas.
 4. Lücken durch Verschieben mehrerer Termine hintereinander schließen (Ketten).
 5. Feiertage weiterer Kantone und einzelner Gemeinden.
-6. Aus den Rezeptions-Schritten offen („Kommt später“ meldet der Gast seit 16.11.2026 selbst über den Termin-Link): Sauna und Ausfallgebühr für Gäste ohne Namen; Hinweis „Anamnese prüfen“ auch bei Paar und Spa-Tag (in „Mein Tag“ seit 16.11.2026); automatische Vorschläge für Kennzeichen; Schwellen der Kennzahlen einstellbar.
+6. Aus den Rezeptions-Schritten offen („Kommt später“ meldet der Gast seit 16.11.2026 selbst über den Termin-Link): Ausfallgebühr für Gäste ohne Namen (Sauna seit 17.11.2026 gebaut); Hinweis „Anamnese prüfen“ auch bei Paar und Spa-Tag (in „Mein Tag“ seit 16.11.2026); automatische Vorschläge für Kennzeichen; Schwellen der Kennzahlen einstellbar.
 - Nicht gebaut (Auftraggeber, 16.11.2026): Zeiterfassung am Empfangsgerät per PIN.
 - Später: Chipkarte oder NFC für den Schnellwechsel; Entfernung oder bevorzugter Ausweichstandort; Lückenbewertung in Online-Buchung und KI-Terminannahme; SSO; Korrekturwünsche, Monatsbestätigung, Ist-Zeiten in den Berichten; Benachrichtigung beim Veröffentlichen des Dienstplans; KI-Vorschläge im Dienstplan (Entwurf `RosterDraftTests`).
 
@@ -385,13 +385,13 @@ Die Nummern sind die Reihenfolge, die der jeweilige Thread gewählt hätte ([Üb
 
 **Online-Buchung und Kundenbereich**
 1. Gast vor Ablauf der Frist für Karte oder Anzahlung erinnern: seit 16.11.2026 gebaut (einmal, wenn drei Viertel der Frist um sind).
-2. Anzahlung für Termine der Rezeption per Link.
+2. Anzahlung für Termine der Rezeption per Link: seit 17.11.2026 gebaut (Knopf „Anzahlung per Link“ im Termin-Panel; ohne Frist, der Termin bleibt stehen).
 3. Zahlungs- und Kartenlink auch per SMS.
 4. Stripe-Kunden aus abgebrochenen Hinterlegungen löschen.
-5. Bevorzugte Sprache des Gastes im Kundenstamm.
+5. Bevorzugte Sprache des Gastes im Kundenstamm: vorhanden (Feld „Sprache“ in der Kundenkarte, Ä52); am 17.11.2026 als erledigt vermerkt.
 6. Teilerstattung; Meldungen des Anbieters zu fehlgeschlagenen Erstattungen.
-7. Online-Bestellungen und Erstattungen als Liste in der Kassa.
-8. Anzahlung in der Windows-App anzeigen.
+7. Online-Bestellungen und Erstattungen als Liste in der Kassa: seit 17.11.2026 gebaut (Karte „Online-Zahlungen“, nur zum Nachsehen).
+8. Anzahlung in der Windows-App anzeigen: vorhanden (Abschnitt „Anzahlung“ im Termin-Panel, Ä285); am 17.11.2026 als erledigt vermerkt.
 9. Aus den Buchungsproblemen offen (seit 16.11.2026 gebaut: Absage eines späteren Termins im Posteingang, Wunsch Therapeutin oder Therapeut bei der Online-Buchung): Bestätigung der E-Mail vor einer Gastbuchung, Gutschein mit Anzahlung verrechnen, Absage eines späteren als des nächsten Termins per Klick, Wunsch ♀/♂ bei der Online-Buchung.
 10. CSP des Kundenbereichs durchsetzen ([ADR 0080](entscheidungen/0080-csp-fuer-den-kundenbereich.md)): nach einem Stand ohne CSP-Meldungen in Chrome, Edge, Firefox und Safari den Header-Namen umstellen und dabei den Header für `frame-ancestors` (Einbetten, Slice 58) mit der Richtlinie für Inhalte zusammenführen.
 - Später: Spa-Tag, Paar und Eintritte im Kundenbereich; Regeln für Ausfallgebühr und Anzahlung je Kundengruppe, Tageszeit oder No-Show-Risiko; Wissensbasis des Spas für Fragen im Kundenbereich; Reserve with Google und Gutscheinportale (erst nach der Freigabe des Auftraggebers, [ADR 0014](entscheidungen/0014-buchungsplattformen-ohne-partnervertrag.md)).
