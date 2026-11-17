@@ -19,7 +19,16 @@ public sealed class MainSideColumns : Panel
 
     public static readonly StyledProperty<double> StackBelowProperty = AvaloniaProperty.Register<MainSideColumns, double>(nameof(StackBelow));
 
-    static MainSideColumns() => AffectsMeasure<MainSideColumns>(SpacingProperty, LineSpacingProperty, StackBelowProperty);
+    public static readonly StyledProperty<double> ShareProperty = AvaloniaProperty.Register<MainSideColumns, double>(nameof(Share), MainShare);
+
+    static MainSideColumns() => AffectsMeasure<MainSideColumns>(SpacingProperty, LineSpacingProperty, StackBelowProperty, ShareProperty);
+
+    /// <summary>Anteil der linken Spalte, Vorgabe 3 : 2. Zwei gleichrangige Karten (Personenkarte: Stammdaten und Zugang) setzen 0,5 (masken.md R14: gleich breit bei gleichem Rang).</summary>
+    public double Share
+    {
+        get => GetValue(ShareProperty);
+        set => SetValue(ShareProperty, value);
+    }
 
     /// <summary>Abstand zwischen den beiden Spalten.</summary>
     public double Spacing
@@ -98,7 +107,7 @@ public sealed class MainSideColumns : Panel
     private (double Main, double Side) Columns(double width)
     {
         var content = Math.Max(0, width - Spacing);
-        var mainWidth = content * MainShare;
+        var mainWidth = content * Share;
         return (mainWidth, content - mainWidth);
     }
 

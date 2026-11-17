@@ -66,6 +66,10 @@ public sealed partial class PersonAccessViewModel : ViewModelBase
         Apply(member);
     }
 
+    /// <summary>„Weitere Angaben“ (Zuordnung, Befristung) sind aufgeklappt; zu, solange der Zugang nicht befristet ist (masken.md R2).</summary>
+    [ObservableProperty]
+    public partial bool MoreOpen { get; set; }
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsMember), nameof(IsOwn), nameof(IsInvite), nameof(IsAccount), nameof(IsInvitation), nameof(ShowsFields), nameof(Heading),
         nameof(HelpSection), nameof(CanExtend), nameof(CanResetPassword), nameof(InvitationText))]
@@ -446,6 +450,7 @@ public sealed partial class PersonAccessViewModel : ViewModelBase
         People = PeopleFor(Role.Role);
         Person = People.FirstOrDefault(p => p.Id == (member?.EmployeeId ?? _employeeId)) ?? People[0];
         Until = _context.LastDay(member?.ExpiresAt);
+        MoreOpen = Until is not null;
         AmountReports = member?.AmountReports ?? false;
         PlainReports = member?.PlainReports ?? true;
         AllLocations = member?.AllLocations ?? false;

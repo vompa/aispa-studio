@@ -483,7 +483,7 @@ public sealed class RosterTests
 
         Assert.Equal([PersonCardViewModel.OverviewArea, PersonCardViewModel.ProfileArea, PersonCardViewModel.WorkTimeArea, PersonCardViewModel.PayAndFileArea], card.Tabs.Select(t => t.Id));
         Assert.Equal([PersonCardViewModel.DetailsTab, PersonCardViewModel.AccessTab, PersonCardViewModel.QualificationsTab, PersonCardViewModel.DutiesTab, PersonCardViewModel.RosterTab,
-            PersonCardViewModel.TimesTab, PersonCardViewModel.PayrollTab, PersonCardViewModel.HrFileTab, PersonCardViewModel.RegulationsTab], card.Sections);
+            PersonCardViewModel.WorkingHoursTab, PersonCardViewModel.TimesTab, PersonCardViewModel.PayrollTab, PersonCardViewModel.HrFileTab, PersonCardViewModel.RegulationsTab], card.Sections);
         Assert.True(card.HasHistory);
         Assert.Equal("Arbeitszeit", card.Tabs.Single(t => t.Id == PersonCardViewModel.WorkTimeArea).Label);
         Assert.Equal(PersonCardViewModel.RosterTab, card.FocusedSection);

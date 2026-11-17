@@ -5,27 +5,40 @@
              x:Class="AispaStudio.Desktop.Views.PersonCardView"
              x:DataType="vm:PersonCardViewModel">
   <!--
-    Personenkarte (R05 Slice 98, ADR 0098): Kopf mit Name, „Rolle · Status“, Kennzeichen und „Verlauf“ (Seitenleiste in TeamView), darunter eine Schiene (Brief 5.4) mit höchstens
-    vier Bereichen: Übersicht · Profil (Stammdaten, Zugang und Rolle, Qualifikationen, Zuständigkeiten) · Arbeitszeit (Dienstplan und Abwesenheit, Zeiten) · Lohn und Akte (Lohn,
-    Personalakte, Regelungen und Vollmachten), je nach Recht. Die Abschnitte eines Bereichs stehen untereinander mit 20 px Abstand (Brief 4.1); Formulare höchstens 760 breit,
-    Übersicht, Wochenplan und Zeiten in voller Breite. Gespeichert wird mit der Leiste im Fuß der Seite (TeamView).
+    Personenkarte (R05 Slice 98, ADR 0098, Nachtrag P5): Kopf mit Kürzel, Name, „Rolle · Standort“, Kennzeichen („Zugang aktiv“ …), „Verlauf“ (Seitenleiste in TeamView), Menü „⋯“
+    (Zugang sperren, Aus dem Team nehmen) und Hilfe; darunter eine Schiene (Brief 5.4) mit höchstens vier Bereichen: Übersicht · Profil (Stammdaten und Zugang und Rolle als Karten
+    nebeneinander, Qualifikationen als Chips, Zuständigkeiten) · Arbeitszeit (Dienstplan und Abwesenheit, Regelarbeitszeit, Zeiten) · Lohn und Akte, je nach Recht. Kopf und Schiene
+    bleiben beim Scrollen stehen, nur die Bereiche darunter rollen. Jeder Abschnitt ist eine eigene Karte; Karten desselben Rangs stehen gleich breit nebeneinander und bei schmaler
+    Fläche untereinander (masken.md R14). Gespeichert wird mit der Leiste im Fuß der Seite (TeamView).
   -->
-  <ScrollViewer x:Name="CardScroll" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
-    <StackPanel Spacing="20" Margin="0,0,16,16">
-
-      <StackPanel Spacing="4" IsVisible="{Binding ShowsHeader}">
-        <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
-          <TextBlock x:Name="CardTitle" Text="{Binding Title}" Classes="h2" VerticalAlignment="Center" TextWrapping="Wrap" />
-          <ui:HelpButton Topic="team" Section="person" Grid.Column="1" />
-          <Button Grid.Column="2" x:Name="HistoryButton" Classes="ghost" Command="{Binding ToggleHistoryCommand}" IsVisible="{Binding HasHistory}"
+  <Grid RowDefinitions="Auto,*">
+    <StackPanel Spacing="12" Margin="0,0,16,0">
+      <StackPanel Spacing="8" IsVisible="{Binding ShowsHeader}">
+        <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto,Auto" ColumnSpacing="12">
+          <Border x:Name="CardAvatar" Width="44" Height="44" CornerRadius="22" Background="{DynamicResource Surface3Brush}" VerticalAlignment="Center"
+                  IsVisible="{Binding !Entry.IsNew}" AutomationProperties.AccessibilityView="Raw">
+            <TextBlock Text="{Binding Initials}" Classes="heading" HorizontalAlignment="Center" VerticalAlignment="Center" />
+          </Border>
+          <StackPanel Grid.Column="1" VerticalAlignment="Center">
+            <TextBlock x:Name="CardTitle" Text="{Binding Title}" Classes="h2" TextWrapping="Wrap" />
+            <TextBlock x:Name="CardHeadLine" Text="{Binding HeadLine}" Classes="muted" IsVisible="{Binding HasHeadLine}" TextTrimming="CharacterEllipsis" />
+          </StackPanel>
+          <Border x:Name="CardPillOk" Grid.Column="2" Classes="pill ok" IsVisible="{Binding PillIsOk}"><TextBlock Text="{Binding PillText}" /></Border>
+          <Border x:Name="CardPillWarn" Grid.Column="2" Classes="pill warn" IsVisible="{Binding PillIsWarning}"><TextBlock Text="{Binding PillText}" /></Border>
+          <Border x:Name="CardPillCrit" Grid.Column="2" Classes="pill crit" IsVisible="{Binding PillIsCritical}"><TextBlock Text="{Binding PillText}" /></Border>
+          <Border x:Name="CardPillNeutral" Grid.Column="2" Classes="pill" IsVisible="{Binding PillIsNeutral}"><TextBlock Text="{Binding PillText}" /></Border>
+          <Button Grid.Column="3" x:Name="HistoryButton" Classes="ghost" Command="{Binding ToggleHistoryCommand}" IsVisible="{Binding HasHistory}"
                   ToolTip.Tip="Wer was wann geändert hat" AutomationProperties.Name="Verlauf">
             <StackPanel Orientation="Horizontal" Spacing="8">
               <ui:Icon Data="{x:Static ui:Icons.History}" Width="16" Height="16" />
               <TextBlock Text="Verlauf" />
             </StackPanel>
           </Button>
+          <ui:MoreMenuButton Grid.Column="4" x:Name="CardMenu" IsVisible="{Binding HasMoreMenu}" Subject="{Binding Title}"
+                             DeactivateCommand="{Binding ToggleAccessMenu}" DeactivateText="{Binding ToggleAccessLabel}"
+                             DeleteCommand="{Binding RemoveMenu}" DeleteText="Aus dem Team nehmen …" />
+          <ui:HelpButton Topic="team" Section="person" Grid.Column="5" />
         </Grid>
-        <TextBlock Text="{Binding StatusLine}" Classes="muted" IsVisible="{Binding HasStatusLine}" />
         <TextBlock Text="Ausgeschieden: Die Angaben sind nur lesbar." Classes="muted" IsVisible="{Binding IsReadOnly}" />
         <ItemsControl x:Name="CardFlags" ItemsSource="{Binding FlagItems}" IsVisible="{Binding HasFlags}" AutomationProperties.Name="Kennzeichen" Margin="0,4,0,0">
           <ItemsControl.ItemTemplate>
@@ -55,62 +68,139 @@
           </ItemsControl.ItemTemplate>
         </ItemsControl>
       </Border>
-
-      <!-- Übersicht: Kennzahl-Kacheln in voller Breite -->
-      <ContentControl x:Name="OverviewHost" Content="{Binding Overview}" IsVisible="{Binding ShowsOverview}" />
-
-      <!-- Profil -->
-      <StackPanel x:Name="DetailsBlock" Spacing="8" MaxWidth="760" HorizontalAlignment="Left" IsVisible="{Binding ShowsDetails}">
-        <!-- Das Fragezeichen im Kopf der Karte zeigt denselben Abschnitt (team#person); ein zweites hier wäre doppelt -->
-        <TextBlock Text="Stammdaten" Classes="h3" VerticalAlignment="Center" />
-        <ContentControl x:Name="DetailsHost" Content="{Binding Details}" />
-      </StackPanel>
-      <ContentControl x:Name="AccessHost" Content="{Binding Access}" MaxWidth="760" HorizontalAlignment="Left" IsVisible="{Binding ShowsAccess}" />
-      <ContentControl x:Name="QualificationsHost" Content="{Binding Qualifications}" MaxWidth="760" HorizontalAlignment="Left" IsVisible="{Binding ShowsQualifications}" />
-      <ContentControl x:Name="DutiesHost" Content="{Binding Duties}" MaxWidth="760" HorizontalAlignment="Left" IsVisible="{Binding ShowsDuties}" />
-
-      <!-- Arbeitszeit: Dienstplan und Abwesenheit (Slice 99) mit Urlaubskonto und Kalenderdatei, darunter die Zeiten; Wochenraster in voller Breite -->
-      <StackPanel x:Name="RosterSection" Spacing="12" IsVisible="{Binding ShowsRoster}">
-        <Grid ColumnDefinitions="*,Auto">
-          <TextBlock Text="Dienstplan und Abwesenheit" Classes="h3" VerticalAlignment="Center" />
-          <ui:HelpButton Topic="dienstplan-tag-planen" Grid.Column="1" />
-        </Grid>
-        <ContentControl x:Name="RosterHost" Content="{Binding Roster}" />
-        <!-- Urlaubskonto (ADR 0097): Anspruch, genommen, geplant und Rest des Jahres -->
-        <ContentControl x:Name="LeaveHost" Content="{Binding Leave}" IsVisible="{Binding HasLeave}" MaxWidth="760" HorizontalAlignment="Left" />
-        <!-- Dienste und Termine als Kalenderdatei für den privaten Kalender (Export/Import, Aufgabe C): nur Leitung und die Person selbst, ohne Namen der Gäste -->
-        <StackPanel Orientation="Horizontal" Spacing="12" IsVisible="{Binding HasCalendarFile}">
-          <Button x:Name="CalendarFileButton" DataContext="{Binding CalendarFile}" x:DataType="vm:ExportViewModel" Command="{Binding ExportCommand}" CommandParameter="{Binding Options[0]}"
-                  ToolTip.Tip="Dienste und Termine der nächsten 90 Tage als Datei für den eigenen Kalender, ohne Namen der Gäste">
-            <StackPanel Orientation="Horizontal" Spacing="8">
-              <ui:Icon Data="{x:Static ui:Icons.Download}" Width="16" Height="16" />
-              <TextBlock Text="Kalenderdatei …" />
-            </StackPanel>
-          </Button>
-          <TextBlock x:Name="CalendarFileSavedText" Text="{Binding CalendarFileSaved}" Classes="muted small" VerticalAlignment="Center"
-                     IsVisible="{Binding CalendarFileSaved, Converter={x:Static ObjectConverters.IsNotNull}}" AutomationProperties.LiveSetting="Polite" />
-        </StackPanel>
-      </StackPanel>
-
-      <!-- Zeiten (Slice 99): die Zeiterfassung der Person, ein Tag lässt sich ansehen, nachtragen und ändern -->
-      <StackPanel x:Name="TimesSection" Spacing="12" IsVisible="{Binding ShowsTimes}">
-        <Grid ColumnDefinitions="*,Auto">
-          <TextBlock Text="Zeiten" Classes="h3" VerticalAlignment="Center" />
-          <ui:HelpButton Topic="zeiten-nachtragen" Section="schritte" Grid.Column="1" />
-        </Grid>
-        <ContentControl x:Name="TimesHost" Content="{Binding Times}" />
-      </StackPanel>
-
-      <!-- Lohn und Akte: Lohn (Slice 100) mit Personalnummer und Monatswerten, Personalakte (Slice 110), Regelungen und Vollmachten (Slice 111) -->
-      <StackPanel x:Name="PayrollSection" Spacing="8" MaxWidth="760" HorizontalAlignment="Left" IsVisible="{Binding ShowsPayroll}">
-        <Grid ColumnDefinitions="*,Auto">
-          <TextBlock Text="Lohn" Classes="h3" VerticalAlignment="Center" />
-          <ui:HelpButton Topic="lohn" Section="personalnummern" Grid.Column="1" />
-        </Grid>
-        <ContentControl x:Name="PayrollHost" Content="{Binding Payroll}" />
-      </StackPanel>
-      <ContentControl x:Name="HrFileHost" Content="{Binding HrFile}" MaxWidth="760" HorizontalAlignment="Left" IsVisible="{Binding ShowsHrFile}" />
-      <ContentControl x:Name="RegulationsHost" Content="{Binding Regulations}" MaxWidth="760" HorizontalAlignment="Left" IsVisible="{Binding ShowsRegulations}" />
     </StackPanel>
-  </ScrollViewer>
+
+    <ScrollViewer Grid.Row="1" x:Name="CardScroll" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+      <StackPanel Spacing="16" Margin="0,12,16,16">
+
+        <!-- Übersicht: Kennzahl-Kacheln in voller Breite -->
+        <ContentControl x:Name="OverviewHost" Content="{Binding Overview}" IsVisible="{Binding ShowsOverview}" />
+
+        <!-- Profil: Stammdaten und Zugang gleichrangig nebeneinander (untereinander unter 640), darunter Qualifikationen und Zuständigkeiten in voller Breite -->
+        <ui:MainSideColumns x:Name="ProfileColumns" Share="0.5" Spacing="16" LineSpacing="16" StackBelow="860">
+          <Border x:Name="DetailsBlock" Classes="card" IsVisible="{Binding ShowsDetails}">
+            <StackPanel Spacing="12">
+              <!-- Das Fragezeichen im Kopf der Karte zeigt denselben Abschnitt (team#person); ein zweites hier wäre doppelt -->
+              <TextBlock Text="Stammdaten" Classes="h3" VerticalAlignment="Center" />
+              <ContentControl x:Name="DetailsHost" Content="{Binding Details}" />
+            </StackPanel>
+          </Border>
+          <Border x:Name="AccessHost" Classes="card" IsVisible="{Binding ShowsAccess}">
+            <ContentControl x:Name="AccessContent" Content="{Binding Access}" />
+          </Border>
+        </ui:MainSideColumns>
+        <Border x:Name="QualificationsHost" Classes="card" IsVisible="{Binding ShowsQualifications}">
+          <ContentControl x:Name="QualificationsContent" Content="{Binding Qualifications}" />
+        </Border>
+        <Border x:Name="DutiesHost" Classes="card" IsVisible="{Binding ShowsDuties}">
+          <ContentControl x:Name="DutiesContent" Content="{Binding Duties}" />
+        </Border>
+
+        <!-- Arbeitszeit: Dienstplan und Abwesenheit (Slice 99) mit Urlaubskonto und Kalenderdatei, die Regelarbeitszeit als Wochenraster (P5), darunter die Zeiten -->
+        <Border x:Name="RosterSection" Classes="card" IsVisible="{Binding ShowsRoster}">
+          <StackPanel Spacing="12">
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Text="Dienstplan und Abwesenheit" Classes="h3" VerticalAlignment="Center" />
+              <ui:HelpButton Topic="dienstplan-tag-planen" Grid.Column="1" />
+            </Grid>
+            <ContentControl x:Name="RosterHost" Content="{Binding Roster}" />
+            <!-- Urlaubskonto (ADR 0097): Anspruch, genommen, geplant und Rest des Jahres -->
+            <ContentControl x:Name="LeaveHost" Content="{Binding Leave}" IsVisible="{Binding HasLeave}" MaxWidth="760" HorizontalAlignment="Left" />
+            <!-- Dienste und Termine als Kalenderdatei für den privaten Kalender (Export/Import, Aufgabe C): nur Leitung und die Person selbst, ohne Namen der Gäste -->
+            <StackPanel Orientation="Horizontal" Spacing="12" IsVisible="{Binding HasCalendarFile}">
+              <Button x:Name="CalendarFileButton" DataContext="{Binding CalendarFile}" x:DataType="vm:ExportViewModel" Command="{Binding ExportCommand}" CommandParameter="{Binding Options[0]}"
+                      ToolTip.Tip="Dienste und Termine der nächsten 90 Tage als Datei für den eigenen Kalender, ohne Namen der Gäste">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <ui:Icon Data="{x:Static ui:Icons.Download}" Width="16" Height="16" />
+                  <TextBlock Text="Kalenderdatei …" />
+                </StackPanel>
+              </Button>
+              <TextBlock x:Name="CalendarFileSavedText" Text="{Binding CalendarFileSaved}" Classes="muted small" VerticalAlignment="Center"
+                         IsVisible="{Binding CalendarFileSaved, Converter={x:Static ObjectConverters.IsNotNull}}" AutomationProperties.LiveSetting="Polite" />
+            </StackPanel>
+          </StackPanel>
+        </Border>
+
+        <!-- Regelarbeitszeit: eine Zeile je Arbeitszeit (Tag, von, bis, Standort); freie Tage stehen darunter. Gespeichert wird mit der Leiste der Karte, zusammen mit den Stammdaten. -->
+        <Border x:Name="WorkingHoursSection" Classes="card" IsVisible="{Binding ShowsWorkingHours}" MaxWidth="760" HorizontalAlignment="Left">
+          <StackPanel Spacing="12" DataContext="{Binding Details}" x:DataType="vm:PersonDetailsViewModel" IsEnabled="{Binding IsEditable}">
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Text="Regelarbeitszeit" Classes="h3" VerticalAlignment="Center" />
+              <ui:HelpButton Topic="team" Section="wochenarbeitszeiten" Grid.Column="1" />
+            </Grid>
+            <TextBlock Classes="muted" TextWrapping="Wrap" Text="So arbeitet die Person in einer normalen Woche; der Dienstplan geht davon aus." />
+            <StackPanel Grid.IsSharedSizeScope="True" Spacing="0">
+            <Grid ColumnSpacing="8" IsVisible="{Binding HasWorkingHours}" Margin="0,0,0,4">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="150" />
+                <ColumnDefinition Width="Auto" SharedSizeGroup="HoursFrom" />
+                <ColumnDefinition Width="Auto" SharedSizeGroup="HoursUntil" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="32" />
+              </Grid.ColumnDefinitions>
+              <TextBlock Text="Tag" Classes="label" />
+              <TextBlock Grid.Column="1" Text="Von" Classes="label" />
+              <TextBlock Grid.Column="2" Text="Bis" Classes="label" />
+              <TextBlock Grid.Column="3" Text="Standort" Classes="label" />
+            </Grid>
+            <ItemsControl x:Name="WorkingHoursRows" ItemsSource="{Binding WorkingHours}" AutomationProperties.Name="Regelarbeitszeit">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:WorkingHoursRow">
+                  <Grid ColumnSpacing="8" Margin="0,0,0,8">
+                    <Grid.ColumnDefinitions>
+                      <ColumnDefinition Width="150" />
+                      <ColumnDefinition Width="Auto" SharedSizeGroup="HoursFrom" />
+                      <ColumnDefinition Width="Auto" SharedSizeGroup="HoursUntil" />
+                      <ColumnDefinition Width="*" />
+                      <ColumnDefinition Width="32" />
+                    </Grid.ColumnDefinitions>
+                    <ComboBox ItemsSource="{x:Static vm:WorkDayChoice.All}" SelectedItem="{Binding Day}" HorizontalAlignment="Stretch" AutomationProperties.Name="Tag" />
+                    <ui:TimeField Grid.Column="1" Value="{Binding Start}" AutomationProperties.Name="Beginn" />
+                    <ui:TimeField Grid.Column="2" Value="{Binding End}" NotBefore="{Binding Start}" AutomationProperties.Name="Ende" />
+                    <ComboBox Grid.Column="3" ItemsSource="{Binding Locations}" SelectedItem="{Binding Location}" HorizontalAlignment="Stretch" AutomationProperties.Name="Standort" />
+                    <Button Grid.Column="4" Classes="ghost icon" Width="32" Height="32" Command="{Binding RemoveCommand}" ToolTip.Tip="Arbeitszeit entfernen"
+                            AutomationProperties.Name="Arbeitszeit entfernen">
+                      <ui:Icon Data="{x:Static ui:Icons.Trash}" Width="16" Height="16" />
+                    </Button>
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            </StackPanel>
+            <TextBlock x:Name="FreeDaysText" Text="{Binding FreeDaysText}" Classes="muted" TextWrapping="Wrap" IsVisible="{Binding HasWorkingHours}" />
+            <Button x:Name="AddHoursButton" Content="Arbeitszeit hinzufügen" Command="{Binding AddHoursCommand}" IsEnabled="{Binding CanAddHours}"
+                    HorizontalAlignment="Left" ToolTip.Tip="Nächster Tag ohne Eintrag, mit den Zeiten des letzten Eintrags" />
+          </StackPanel>
+        </Border>
+
+        <!-- Zeiten (Slice 99): die Zeiterfassung der Person, ein Tag lässt sich ansehen, nachtragen und ändern -->
+        <Border x:Name="TimesSection" Classes="card" IsVisible="{Binding ShowsTimes}">
+          <StackPanel Spacing="12">
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Text="Zeiten" Classes="h3" VerticalAlignment="Center" />
+              <ui:HelpButton Topic="zeiten-nachtragen" Section="schritte" Grid.Column="1" />
+            </Grid>
+            <ContentControl x:Name="TimesHost" Content="{Binding Times}" />
+          </StackPanel>
+        </Border>
+
+        <!-- Lohn und Akte: Lohn (Slice 100) mit Personalnummer und Monatswerten, Personalakte (Slice 110), Regelungen und Vollmachten (Slice 111) -->
+        <Border x:Name="PayrollSection" Classes="card" IsVisible="{Binding ShowsPayroll}">
+          <StackPanel Spacing="8">
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Text="Lohn" Classes="h3" VerticalAlignment="Center" />
+              <ui:HelpButton Topic="lohn" Section="personalnummern" Grid.Column="1" />
+            </Grid>
+            <ContentControl x:Name="PayrollHost" Content="{Binding Payroll}" />
+          </StackPanel>
+        </Border>
+        <Border x:Name="HrFileHost" Classes="card" IsVisible="{Binding ShowsHrFile}">
+          <ContentControl x:Name="HrFileContent" Content="{Binding HrFile}" />
+        </Border>
+        <Border x:Name="RegulationsHost" Classes="card" IsVisible="{Binding ShowsRegulations}">
+          <ContentControl x:Name="RegulationsContent" Content="{Binding Regulations}" />
+        </Border>
+      </StackPanel>
+    </ScrollViewer>
+  </Grid>
 </UserControl>

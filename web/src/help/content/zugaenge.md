@@ -72,7 +72,7 @@ Sieht den Kalender der eigenen Standorte und setzt den Status der eigenen Termin
 Auswertungen mit Geldbeträgen über den Betrieb sieht nicht jede Person, die Berichte öffnen darf. „Berichte mit Beträgen“ ist ein eigenes Recht:
 
 - **Immer** haben es Inhaber, Manager und Backoffice.
-- **Nur wenn es einzeln vergeben ist** haben es Standortleitung und Rezeption. Das Recht vergeben und entziehen nur Inhaber und Manager, beim Einladen, Anlegen oder Bearbeiten eines Zugangs mit dem Häkchen „Berichte mit Beträgen“. Es gilt sofort.
+- **Nur wenn es einzeln vergeben ist** haben es Standortleitung und Rezeption. Das Recht vergeben und entziehen nur Inhaber und Manager, beim Einladen, Anlegen oder Bearbeiten eines Zugangs mit dem Schalter „Berichte mit Beträgen“. Es gilt sofort.
 - Alle anderen Rollen haben es nie.
 
 Was dazugehört: Umsätze und Umsatz je Behandlung, Person, Konto und Zahlart, Durchschnittsbon, Kosten und Margen (Seite „Kosten“), Gutscheinsummen, Zahlen der Tagesabschlüsse, Top-Kunden nach Ausgaben auf der Kundenkarte, die Buchhaltung samt Export sowie DEP, DSFinV-K und TSE-Export.
@@ -83,9 +83,9 @@ Kosten ändern darf zusätzlich nur, wer Behandlungen und Team pflegen darf (Inh
 
 ## Auswertungen ohne Beträge {#auswertungen-ohne-betraege}
 
-Die Rolle Therapeut:in sieht den Kalender und bekommt deshalb im Assistenten auch die **Auswertungen ohne Beträge**: Top-Behandlungen nach Anzahl, Auslastung in Prozent, Termine je Person, Nicht-erschienen und Top-Gäste nach Besuchen. Beträge sieht sie nie. Wer das für einen einzelnen Zugang nicht möchte, nimmt das Häkchen **Auswertungen ohne Beträge im Assistenten** weg:
+Die Rolle Therapeut:in sieht den Kalender und bekommt deshalb im Assistenten auch die **Auswertungen ohne Beträge**: Top-Behandlungen nach Anzahl, Auslastung in Prozent, Termine je Person, Nicht-erschienen und Top-Gäste nach Besuchen. Beträge sieht sie nie. Wer das für einen einzelnen Zugang nicht möchte, schaltet **Auswertungen ohne Beträge im Assistenten** aus:
 
-- Das Häkchen gibt es **nur bei der Rolle Therapeut:in**, beim Einladen, Anlegen und Bearbeiten eines Zugangs. Es ist standardmäßig **an**; bei allen anderen Rollen ändert sich dadurch nichts (Rezeption, Standortleitung, Manager, Inhaber und Backoffice haben ihre Rechte wie bisher).
+- Der Schalter steht **nur bei der Rolle Therapeut:in**, beim Einladen, Anlegen und Bearbeiten eines Zugangs. Es ist standardmäßig **an**; bei allen anderen Rollen ändert sich dadurch nichts (Rezeption, Standortleitung, Manager, Inhaber und Backoffice haben ihre Rechte wie bisher).
 - Setzen dürfen es **Inhaber, Manager und Standortleitung** (die Standortleitung für Zugänge an ihren Standorten). Anders als bei den Berichten mit Beträgen wird dabei nichts freigegeben, deshalb braucht es keine Inhaber-Rolle.
 - Ist es abgeschaltet, antwortet der Assistent auf solche Fragen mit „Dafür fehlt die Berechtigung.“ Der Server prüft das bei jeder Frage; die Änderung gilt sofort.
 
@@ -132,7 +132,7 @@ Diese Felder gibt es beim Einladen, beim Anlegen und beim Bearbeiten eines Zugan
 
 ### Rolle {#rolle}
 
-Die Rolle bestimmt, was die Person darf (siehe „Rollen und was sie dürfen“). Standard beim Einladen ist „Rezeption“. „Inhaber“ und „Manager“ kann nur der Inhaber auswählen. Bei Standortleitung und Rezeption erscheint das Häkchen „Berichte mit Beträgen“ (siehe [Berichte mit Beträgen](hilfe:zugaenge#berichte-mit-betraegen)). Eine Änderung gilt sofort. Die Windows-App lässt auch eine Rolle wählen, die man nicht vergeben darf; die Server-Prüfung lehnt dann beim Speichern ab, und die Meldung nennt den Grund über der Leiste. Daneben steht der Hinweis „Vergeben kann das nur der Inhaber.“
+Die Rolle bestimmt, was die Person darf (siehe „Rollen und was sie dürfen“). Standard beim Einladen ist „Rezeption“. „Inhaber“ und „Manager“ kann nur der Inhaber auswählen. Bei Standortleitung und Rezeption erscheint der Schalter „Berichte mit Beträgen“ (siehe [Berichte mit Beträgen](hilfe:zugaenge#berichte-mit-betraegen)). Eine Änderung gilt sofort. Die Windows-App lässt auch eine Rolle wählen, die man nicht vergeben darf; die Server-Prüfung lehnt dann beim Speichern ab, und die Meldung nennt den Grund über der Leiste. Daneben steht der Hinweis „Vergeben kann das nur der Inhaber.“
 
 ### Person im Team {#person-im-team}
 
@@ -166,7 +166,7 @@ Rolle, Person im Team, Befristung und Standorte ändert man wie beim Einladen. �
 
 ### Zugang aktiv {#zugang-aktiv}
 
-Ausschalten sperrt den Zugang sofort, auch auf Geräten, auf denen die Person gerade angemeldet ist. Die Person bleibt in der Liste mit „gesperrt“ und kann jederzeit wieder freigeschaltet werden. Danach „Speichern“ klicken.
+Ausschalten sperrt den Zugang sofort, auch auf Geräten, auf denen die Person gerade angemeldet ist. Die Person bleibt in der Liste mit dem Kennzeichen „Gesperrt“ und kann jederzeit wieder freigeschaltet werden. In der Windows-App ist es der Schalter **Zugang aktiv**, dasselbe tut **Zugang sperren** im Menü **⋯** im Kopf der Karte. Danach „Speichern“ klicken.
 
 ### Neues Startpasswort {#neues-startpasswort}
 
