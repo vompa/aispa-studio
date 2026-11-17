@@ -43,7 +43,17 @@ Die übrigen Vollmachten zeigen nur, wer zuständig ist: Kassa-Abschluss, Tresor
 
 ## Wer darf was? {#wer-darf-was}
 
-**Verwaltung** › **Team** › **Rechte und Zuständigkeiten**, Abschnitt **Wer darf was?**, zeigt je Vollmacht, wer sie hat, bis wann und wer sie erteilt hat. Abgelaufene Vollmachten stehen ausgegraut dabei. Ändern lassen sie sich auf der Karte der Person.
+**Verwaltung** › **Team** › **Rechte und Zuständigkeiten** zeigt oben die Tabelle **Wer darf was, wer ist zuständig?**: Vollmachten und Zuständigkeiten stehen zusammen, nach Themen geordnet (Kassa und Geld, Lager, Sicherheit und Vertretung, Weiteres). Jede Zeile hat drei Angaben:
+
+- **Name und Hinweis**: wofür die Aufgabe da ist, bei Zuständigkeiten mit dem verlangten Zertifikat.
+- **Wirkung**: „Schaltet frei“ heißt, die App prüft die Vollmacht zusätzlich zur Rolle (Kassa-Storno, Bestellungen auslösen). „Nur Aushang“ heißt, der Eintrag zeigt nur, wer zuständig ist. Zuständigkeiten, die in der App etwas tun, sagen es dort: „Warnt im Dienstplan“ beim Ersthelfer, „Erinnert an Bestellungen und Ablauf“ beim Lager.
+- **Personen**: die eingetragenen Personen als Kennzeichen. Abgelaufene stehen ausgegraut mit „abgelaufen am …“; wer sie erteilt hat und bis wann, steht im Hinweis am Kennzeichen. Steht niemand in der Zeile, zeigt ein Warnkennzeichen „Niemand eingetragen“.
+
+**+ Person** trägt eine Person ein (ab heute, ohne Ende), das Kreuz am Kennzeichen entfernt sie nach Rückfrage. Dasselbe steht auf der Karte der Person unter **Regelungen und Vollmachten** bzw. **Zuständigkeiten**; geändert wird an beiden Stellen dasselbe. Befristung, Vertretung und Zertifikate pflegt die Karte.
+
+Über der Tabelle zeigen die Filter **Alle**, **Unbesetzt** und **Schaltet etwas frei** jeweils die Zahl der Zeilen. Gibt es mehr als einen Standort, begrenzt die Standortauswahl im Kopf die Tabelle auf die Personen, die dort arbeiten; „Unbesetzt“ gilt dann für diesen Standort.
+
+![Tabelle Wer darf was, wer ist zuständig? mit Themen, Wirkung und Personen](images/app/verwaltung-team-wer-darf-was.png)
 
 ## Verlauf {#verlauf}
 

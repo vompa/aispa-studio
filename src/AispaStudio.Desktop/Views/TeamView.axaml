@@ -64,30 +64,36 @@
 
     <!-- Rechte und Zuständigkeiten (ADR 0098): „Wer darf was?“ und „Zuständigkeiten“ als Abschnitte untereinander, jeder nur mit seinem Recht -->
     <ScrollViewer Grid.Row="2" x:Name="RightsScroll" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" IsVisible="{Binding ShowsRightsView}">
-      <StackPanel Spacing="20" Margin="0,0,16,16" MaxWidth="980" HorizontalAlignment="Left">
-        <StackPanel x:Name="PowersSection" Spacing="8" IsVisible="{Binding ShowsPowersSection}">
-          <Grid ColumnDefinitions="Auto,Auto,*,Auto" ColumnSpacing="4">
-            <TextBlock Text="Wer darf was, wer ist zuständig?" Classes="h3" VerticalAlignment="Center" />
-            <ui:HelpButton Topic="regelungen-vollmachten" Section="wer-darf-was" Grid.Column="1" />
-            <ComboBox Grid.Column="3" x:Name="RightsLocationBox" ItemsSource="{Binding Powers.Locations}" SelectedItem="{Binding Powers.SelectedLocation}" MinWidth="180"
-                      IsVisible="{Binding Powers.ShowsLocations}" AutomationProperties.Name="Standort der Tabelle">
-              <ComboBox.ItemTemplate>
-                <DataTemplate x:DataType="vm:RightsLocation">
-                  <TextBlock Text="{Binding Name}" />
-                </DataTemplate>
-              </ComboBox.ItemTemplate>
-            </ComboBox>
-          </Grid>
-          <ContentControl x:Name="PowersHost" Content="{Binding Powers}" />
+      <Grid Margin="0,0,16,16">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*" MaxWidth="980" />
+          <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <StackPanel Spacing="20">
+          <StackPanel x:Name="PowersSection" Spacing="8" IsVisible="{Binding ShowsPowersSection}">
+            <Grid ColumnDefinitions="Auto,Auto,*,Auto" ColumnSpacing="4">
+              <TextBlock Text="Wer darf was, wer ist zuständig?" Classes="h3" VerticalAlignment="Center" />
+              <ui:HelpButton Topic="regelungen-vollmachten" Section="wer-darf-was" Grid.Column="1" />
+              <ComboBox Grid.Column="3" x:Name="RightsLocationBox" ItemsSource="{Binding Powers.Locations}" SelectedItem="{Binding Powers.SelectedLocation}" MinWidth="180"
+                        IsVisible="{Binding Powers.ShowsLocations}" AutomationProperties.Name="Standort der Tabelle">
+                <ComboBox.ItemTemplate>
+                  <DataTemplate x:DataType="vm:RightsLocation">
+                    <TextBlock Text="{Binding Name}" />
+                  </DataTemplate>
+                </ComboBox.ItemTemplate>
+              </ComboBox>
+            </Grid>
+            <ContentControl x:Name="PowersHost" Content="{Binding Powers}" />
+          </StackPanel>
+          <StackPanel x:Name="DutiesSection" Spacing="8" IsVisible="{Binding ShowsDutiesSection}">
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Text="Zertifikate und Liste der Zuständigkeiten" Classes="h3" VerticalAlignment="Center" />
+              <ui:HelpButton Topic="zustaendigkeiten-zertifikate" Section="uebersicht" Grid.Column="1" />
+            </Grid>
+            <ContentControl x:Name="DutiesOverviewHost" Content="{Binding Duties}" />
+          </StackPanel>
         </StackPanel>
-        <StackPanel x:Name="DutiesSection" Spacing="8" IsVisible="{Binding ShowsDutiesSection}">
-          <Grid ColumnDefinitions="*,Auto">
-            <TextBlock Text="Zertifikate und Liste der Zuständigkeiten" Classes="h3" VerticalAlignment="Center" />
-            <ui:HelpButton Topic="zustaendigkeiten-zertifikate" Section="uebersicht" Grid.Column="1" />
-          </Grid>
-          <ContentControl x:Name="DutiesOverviewHost" Content="{Binding Duties}" />
-        </StackPanel>
-      </StackPanel>
+      </Grid>
     </ScrollViewer>
 
     <Grid Grid.Row="2" ColumnDefinitions="270,*" IsVisible="{Binding ShowsPeopleView}">

@@ -109,4 +109,32 @@ public sealed partial class ViewTests
             Assert.Equal(3, team.Powers!.Groups.Sum(g => g.Rows.Count));
             return team;
         }, RightsApi());
+
+    [Fact]
+    public Task Verwaltung_Team_Wer_darf_was_Plus_Person_oeffnet_die_Auswahl_und_traegt_die_Person_ueber_den_Endpunkt_der_Karte_ein()
+    {
+        var api = RightsApi();
+        return Render("hell", "verwaltung-team-wer-darf-was-plus-person", async (window, main) =>
+        {
+            var team = await OpenRights(window, main);
+            foreach (var id in team.Entries.Select(e => e.EmployeeId).OfType<Guid>())
+            {
+                api.On($"POST /api/employees/{id}/regulations/powers", new StaffPowerDto(Guid.NewGuid(), id, StaffPowerKind.Safe, "Tresor", new DateOnly(2026, 11, 17), null, "Katrin", false));
+            }
+
+            var tresor = team.Powers!.Groups.SelectMany(g => g.Rows).Single(r => r.Name == "Tresor");
+            ClickCenter(window, ButtonByName(window, "Person für Tresor eintragen"));
+            await Pump(Settling);
+
+            var items = window.GetVisualDescendants().OfType<MenuItem>().Where(i => i.IsEffectivelyVisible).ToList();
+            Assert.Equal(tresor.Candidates.Select(c => c.Name), items.Select(i => i.Header));
+            SaveShot(window, "verwaltung-team-wer-darf-was-plus-person", "hell");
+            ClickCenter(window, items[0]);
+            await Pump(Settling);
+
+            Assert.Single(api.Calls, c => c.Route.StartsWith("POST /api/employees/", StringComparison.Ordinal) && c.Route.EndsWith("/regulations/powers", StringComparison.Ordinal));
+            await RosterTests.Until(() => team.Powers.StatusText == "Eingetragen.");
+            return team;
+        }, api);
+    }
 }

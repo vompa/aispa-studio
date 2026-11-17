@@ -8,7 +8,7 @@
     Tabelle „Wer darf was, wer ist zuständig?“ (Masken-Überarbeitung P11, ADR 0098 Nachtrag): Vollmachten und Zuständigkeiten nach Themen, je Zeile die eingetragenen Personen als Kennzeichen
     mit „✕“ und „+ Person“. Überschrift, Fragezeichen und Standortwahl trägt der Abschnitt in TeamView. Pflegt dieselben Einträge wie die Personenkarte.
   -->
-  <StackPanel x:Name="PowerOverview" Spacing="12" MaxWidth="980" HorizontalAlignment="Left">
+  <StackPanel x:Name="PowerOverview" Spacing="12" MaxWidth="980" HorizontalAlignment="Stretch">
     <ui:InfoBar Severity="Error" Title="Nicht geladen" Message="{Binding LoadError}" IsVisible="{Binding HasLoadError}" ActionText="Erneut laden" ActionCommand="{Binding LoadCommand}" />
     <ui:InfoBar Severity="Error" Title="Nicht gespeichert" Message="{Binding Error}" IsVisible="{Binding HasError}" CloseCommand="{Binding CloseErrorCommand}" />
 
@@ -77,7 +77,7 @@
                               <TextBlock Text="Niemand eingetragen" />
                             </StackPanel>
                           </Border>
-                          <Button Classes="ghost link" Content="+ Person" IsVisible="{Binding HasCandidates}" AutomationProperties.Name="{Binding AddName}" VerticalAlignment="Top">
+                          <Button Classes="ghost link" Content="+ Person" IsVisible="{Binding HasCandidates}" AutomationProperties.Name="{Binding AddName}" VerticalAlignment="Top" Margin="0,2,0,0">
                             <Button.Flyout>
                               <MenuFlyout Placement="BottomEdgeAlignedLeft" ItemsSource="{Binding Candidates}">
                                 <MenuFlyout.ItemContainerTheme>

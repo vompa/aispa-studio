@@ -8,7 +8,7 @@ stichwoerter: Zuständigkeit, Ersthelfer, Ersthelferin, Erste Hilfe, Sicherheits
 ---
 # Zuständigkeiten und Zertifikate
 
-Wer ist Ersthelferin, wer kümmert sich um das Lager, wessen Erste-Hilfe-Kurs läuft bald ab? In der Windows-App liegt das im Bereich **Verwaltung** › **Team**: auf der Karte einer Person im Bereich **Profil**, Abschnitt **Zuständigkeiten**, und für alle zusammen in der Ansicht **Rechte und Zuständigkeiten**, Abschnitt **Zuständigkeiten**. Nur Inhaber und Manager sehen und ändern beides.
+Wer ist Ersthelferin, wer kümmert sich um das Lager, wessen Erste-Hilfe-Kurs läuft bald ab? In der Windows-App liegt das im Bereich **Verwaltung** › **Team**: auf der Karte einer Person im Bereich **Profil**, Abschnitt **Zuständigkeiten**, und für alle zusammen in der Ansicht **Rechte und Zuständigkeiten**: die Tabelle **Wer darf was, wer ist zuständig?** zeigt, wer wofür zuständig ist, darunter stehen **Zertifikate und Liste der Zuständigkeiten**. Nur Inhaber und Manager sehen und ändern beides.
 
 > Hinweis: Das Programm prüft keine Rechtsvorschrift. Wie viele Ersthelferinnen, Brandschutzbeauftragte oder Sicherheitsvertrauenspersonen ein Spa braucht, legt die Leitung selbst fest. Die App erinnert und warnt nur nach den Angaben in der Liste.
 
@@ -53,11 +53,11 @@ Ein Zertifikat in der Erinnerungsfrist zeigt „Läuft am … ab“, ein abgelau
 
 ## Wer ist wofür zuständig? {#uebersicht}
 
-Der Abschnitt **Zuständigkeiten** in der Ansicht **Rechte und Zuständigkeiten** zeigt je Eintrag der Liste, wer zuständig ist, mit Vertretung und Gültigkeit. Steht niemand dabei, heißt es „Niemand eingetragen“. Abgelaufene Zuständigkeiten stehen ausgegraut. Ändern lassen sie sich auf der Karte der Person.
+Wer wofür zuständig ist, steht in der Tabelle **Wer darf was, wer ist zuständig?** oben in der Ansicht **Rechte und Zuständigkeiten**, zusammen mit den Vollmachten und nach Themen geordnet. Steht niemand in der Zeile, heißt es „Niemand eingetragen“. **+ Person** trägt jemanden ein, das Kreuz am Kennzeichen entfernt die Person; Vertretung und Gültigkeit pflegt die Karte der Person. Siehe [Regelungen und Vollmachten](hilfe:regelungen-vollmachten#wer-darf-was).
 
-Darunter nennt **Was läuft bald ab?** alle Zertifikate aktiver Personen in der Erinnerungsfrist und die abgelaufenen, die noch nicht erneuert sind, nach Datum.
+Der Abschnitt **Zertifikate und Liste der Zuständigkeiten** darunter nennt unter **Was läuft bald ab?** alle Zertifikate aktiver Personen in der Erinnerungsfrist und die abgelaufenen, die noch nicht erneuert sind, nach Datum.
 
-![Abschnitt Zuständigkeiten der Ansicht Rechte und Zuständigkeiten mit Ersthelfer, Hygiene und einem abgelaufenen Kurs](images/app/verwaltung-team-zustaendigkeiten.png)
+![Abschnitt Zertifikate und Liste der Zuständigkeiten mit einem abgelaufenen Kurs und der Mindestzahl Ersthelfer](images/app/verwaltung-team-zustaendigkeiten.png)
 
 ## Liste der Zuständigkeiten {#liste}
 
