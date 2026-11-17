@@ -262,4 +262,53 @@ public sealed class RemindersTests
         Assert.Null(reminders.RebookSummary);
         Assert.Equal(24m, reminders.FirstHours);
     }
+
+    // T-081: In der Stufe „Start“ sind die Erinnerungen an und die Wiederbuchung aus; die Maske lädt nur, was die API anbietet.
+    [Fact]
+    public async Task Given_Wiederbuchung_aus_When_geladen_Then_ohne_Aufruf_der_Wiederbuchung_und_ohne_Fehler()
+    {
+        var api = Api();
+        var reminders = new RemindersViewModel(api.Client(), TimeZoneInfo.Utc, rebookingOn: false);
+
+        await reminders.LoadAsync();
+
+        Assert.True(reminders.IsLoaded);
+        Assert.False(reminders.HasLoadError);
+        Assert.True(reminders.RemindersOn);
+        Assert.False(reminders.RebookingOn);
+        Assert.Equal(24m, reminders.FirstHours);
+        Assert.DoesNotContain(api.Calls, c => c.Route == "GET /api/retention/settings");
+        Assert.False(reminders.HasUnsavedChanges);
+    }
+
+    [Fact]
+    public async Task Given_Wiederbuchung_aus_When_Erinnerung_geaendert_und_gespeichert_Then_nur_die_Terminerinnerung_geht_raus()
+    {
+        var api = Api();
+        var reminders = new RemindersViewModel(api.Client(), TimeZoneInfo.Utc, rebookingOn: false);
+        await reminders.LoadAsync();
+
+        reminders.FirstHours = 48m;
+        Assert.True(reminders.HasUnsavedChanges);
+        Assert.True(await reminders.SaveChangesAsync());
+
+        Assert.Single(api.Calls, c => c.Route == "PUT /api/reminders/settings");
+        Assert.DoesNotContain(api.Calls, c => c.Route.Contains("retention"));
+    }
+
+    [Fact]
+    public async Task Given_Terminerinnerung_aus_When_geladen_Then_nur_die_Wiederbuchung_ohne_Versandprotokoll()
+    {
+        var api = Api();
+        var reminders = new RemindersViewModel(api.Client(), TimeZoneInfo.Utc, remindersOn: false);
+
+        await reminders.LoadAsync();
+
+        Assert.True(reminders.IsLoaded);
+        Assert.False(reminders.HasLoadError);
+        Assert.False(reminders.RemindersOn);
+        Assert.True(reminders.RebookingOn);
+        Assert.Equal(42m, reminders.RebookDefaultDays);
+        Assert.DoesNotContain(api.Calls, c => c.Route == "GET /api/reminders/settings" || c.Route.StartsWith("GET /api/dispatch-log", StringComparison.Ordinal));
+    }
 }

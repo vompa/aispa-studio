@@ -78,13 +78,23 @@ public sealed partial class RemindersViewModel : ViewModelBase, INativeArea
     private RebookSettingsDto? _savedRebook;
     private bool _applying;
 
-    public RemindersViewModel(IWorkstationApi api, TimeZoneInfo zone, TimeProvider? time = null)
+    /// <param name="remindersOn">Modul „Terminerinnerungen“ (Terminerinnerung und Versandprotokoll); ausgeschaltet antwortet die API mit 404, die Maske lädt den Teil gar nicht (T-081).</param>
+    /// <param name="rebookingOn">Modul „Wiederbuchung“ (in der Stufe „Start“ aus); ausgeschaltet gilt dasselbe.</param>
+    public RemindersViewModel(IWorkstationApi api, TimeZoneInfo zone, TimeProvider? time = null, bool remindersOn = true, bool rebookingOn = true)
     {
         _api = api;
+        RemindersOn = remindersOn;
+        RebookingOn = rebookingOn;
         Log = new DispatchLogViewModel(api, zone, time);
     }
 
     public string Title => "Erinnerungen";
+
+    /// <summary>Der Abschnitt „Terminerinnerungen“ mit Versandprotokoll gehört zur Maske.</summary>
+    public bool RemindersOn { get; }
+
+    /// <summary>Der Abschnitt „Wiederbuchungs-Hinweise“ gehört zur Maske.</summary>
+    public bool RebookingOn { get; }
 
     public static IReadOnlyList<ReminderChannelOption> Channels { get; } =
         [new(ReminderChannel.Email, "Mail"), new(ReminderChannel.Sms, "SMS"), new(ReminderChannel.WhatsApp, "WhatsApp (freigegebene Vorlage)")];
@@ -201,27 +211,38 @@ public sealed partial class RemindersViewModel : ViewModelBase, INativeArea
     public partial string? FocusTarget { get; set; }
 
     public bool HasUnsavedChanges =>
-        _savedReminders is not null && _savedRebook is not null && (ReminderInput() != _savedReminders || !SameRebook(RebookInput(), _savedRebook));
+        IsLoaded
+        && ((RemindersOn && _savedReminders is not null && ReminderInput() != _savedReminders)
+            || (RebookingOn && _savedRebook is not null && !SameRebook(RebookInput(), _savedRebook)));
 
     [RelayCommand]
     public async Task LoadAsync()
     {
         LoadError = null;
-        var reminders = await _api.GetAsync<ReminderSettingsDto>("api/reminders/settings").ConfigureAwait(true);
-        var rebook = await _api.GetAsync<RebookSettingsDto>("api/retention/settings").ConfigureAwait(true);
-        var treatments = await _api.GetAsync<List<TreatmentDto>>("api/treatments").ConfigureAwait(true);
+        // Nur die eingeschalteten Teile fragen (T-081): ein ausgeschaltetes Modul antwortet mit 404 und ließe die ganze Maske mit Fehler laden.
+        var reminders = RemindersOn ? await _api.GetAsync<ReminderSettingsDto>("api/reminders/settings").ConfigureAwait(true) : null;
+        var rebook = RebookingOn ? await _api.GetAsync<RebookSettingsDto>("api/retention/settings").ConfigureAwait(true) : null;
+        var treatments = RebookingOn ? await _api.GetAsync<List<TreatmentDto>>("api/treatments").ConfigureAwait(true) : null;
         // Die Zahlen der letzten 30 Tage sind nur zum Nachsehen; fehlen sie, bleibt die Maske bedienbar.
-        var summary = await _api.GetAsync<DispatchSummaryDto>("api/dispatch-log/summary").ConfigureAwait(true);
-        if (reminders.Value is not { } settings || rebook.Value is not { } rebookSettings || treatments.Value is not { } list)
+        var summary = RemindersOn ? await _api.GetAsync<DispatchSummaryDto>("api/dispatch-log/summary").ConfigureAwait(true) : null;
+        if ((reminders is not null && reminders.Value is null) || (rebook is not null && rebook.Value is null) || (treatments is not null && treatments.Value is null))
         {
-            LoadError = reminders.Error ?? rebook.Error ?? treatments.Error ?? "Die Erinnerungen wurden nicht geladen.";
+            LoadError = reminders?.Error ?? rebook?.Error ?? treatments?.Error ?? "Die Erinnerungen wurden nicht geladen.";
             return;
         }
 
-        _treatments = list;
-        ShowSummary(summary.Value);
-        ApplyReminders(settings);
-        ApplyRebook(rebookSettings);
+        _treatments = treatments?.Value ?? [];
+        ShowSummary(summary?.Value);
+        if (reminders?.Value is { } settings)
+        {
+            ApplyReminders(settings);
+        }
+
+        if (rebook?.Value is { } rebookSettings)
+        {
+            ApplyRebook(rebookSettings);
+        }
+
         IsLoaded = true;
     }
 
@@ -257,7 +278,7 @@ public sealed partial class RemindersViewModel : ViewModelBase, INativeArea
     /// <summary>Schickt nur die geänderten Teile; der erste Fehler hält an.</summary>
     public async Task<bool> SaveChangesAsync()
     {
-        if (IsSaving || _savedReminders is null || _savedRebook is null)
+        if (IsSaving || (RemindersOn && _savedReminders is null) || (RebookingOn && _savedRebook is null))
         {
             return false;
         }
@@ -271,7 +292,7 @@ public sealed partial class RemindersViewModel : ViewModelBase, INativeArea
         IsSaving = true;
         try
         {
-            if (ReminderInput() is var reminders && reminders != _savedReminders)
+            if (RemindersOn && ReminderInput() is var reminders && reminders != _savedReminders)
             {
                 var result = await _api.PutAsync<ReminderSettingsDto>("api/reminders/settings", reminders).ConfigureAwait(true);
                 if (result.Value is not { } settings)
@@ -283,7 +304,7 @@ public sealed partial class RemindersViewModel : ViewModelBase, INativeArea
                 ApplyReminders(settings);
             }
 
-            if (RebookInput() is var rebook && !SameRebook(rebook, _savedRebook))
+            if (RebookingOn && RebookInput() is var rebook && !SameRebook(rebook, _savedRebook!))
             {
                 var result = await _api.PutAsync<RebookSettingsDto>("api/retention/settings", rebook).ConfigureAwait(true);
                 if (result.Value is not { } settings)
@@ -403,6 +424,11 @@ public sealed partial class RemindersViewModel : ViewModelBase, INativeArea
     /// <summary>Die Regeln der API, die sich vorher am Feld zeigen lassen (masken.md, R8); das erste ungültige Feld bekommt den Fokus.</summary>
     private bool Validate()
     {
+        if (!RemindersOn)
+        {
+            return true;
+        }
+
         var first = (int)(FirstHours ?? 0);
         var second = (int)(SecondHours ?? 0);
         SecondHoursError = first == 0 || second == 0 || first > second ? null : "Die zweite Erinnerung muss näher am Termin liegen als die erste.";

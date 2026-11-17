@@ -133,7 +133,7 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
         }
 
         // Verwaltung (ADR 0084): alle Bereiche nativ in der App (seit Slice 103 ohne eingebettete Team-Oberfläche).
-        AdminPage = new AdminPageViewModel(api, user, time, live) { Dialogs = dialogs };
+        AdminPage = new AdminPageViewModel(api, user, time, live, modules) { Dialogs = dialogs };
         pages.Add(new NavItem("Verwaltung", Icons.Sliders, AdminPage));
         _web = new ServerWeb(api);
         Help = new HelpViewModel(() => _web.Address, time: time, prepare: _web.LookUpAsync);
