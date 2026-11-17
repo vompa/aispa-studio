@@ -933,6 +933,30 @@ public sealed partial class ViewTests
         .On($"POST /api/locations/{SpaSample.LocationId}/absence/proposal", SpaSample.AbsenceProposalWithOtherLocation()));
 
     [Fact]
+    public Task Ausfall_Assistent_mit_Ersatz_an_einem_anderen_Tag() => Render("hell", "kalender-ausfall-anderer-tag", async (window, main) =>
+    {
+        var calendar = await SignedInCalendar(main);
+        calendar.OpenAbsence(calendar.Columns.Single(c => c.IsSick));
+        await Pump();
+        var assistant = calendar.Absence!;
+        Assert.Equal(2, assistant.Rows.Count);
+        Assert.Empty(assistant.OtherRows);
+        var later = Assert.Single(assistant.DayRows);
+        // Nicht vorausgewählt: Erst mit dem Gast sprechen. Ohne Ersatz ist er nicht, also kein „informieren“ für ihn.
+        Assert.False(later.IsChosen);
+        Assert.True(later.CanApply);
+        Assert.False(assistant.CanNotifyWithoutCover);
+        Assert.StartsWith("Mo. 26.10. ", later.After, StringComparison.Ordinal);
+        Assert.EndsWith(" bei Malee Chaiyasit, Thai-Raum", later.After, StringComparison.Ordinal);
+        var texts = window.GetVisualDescendants().OfType<TextBlock>().Select(t => t.Text).ToList();
+        Assert.Contains("Andere Tage", texts);
+        return calendar;
+    }, Api()
+        .On($"GET /api/locations/{SpaSample.LocationId}/resources", SpaSample.ResourcesWithAbsent)
+        .On($"GET /api/locations/{SpaSample.LocationId}/calendar?date=2026-10-19", SpaSample.BusyDay())
+        .On($"POST /api/locations/{SpaSample.LocationId}/absence/proposal", SpaSample.AbsenceProposalWithOtherDay()));
+
+    [Fact]
     public Task Kalender_Raumansicht_mit_Vorbereitung_und_Raumpflege() => Render("hell", "kalender-raumpflege", async (window, main) =>
     {
         var calendar = await SignedInCalendar(main);

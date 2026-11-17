@@ -36,19 +36,54 @@ public sealed class AbsenceTests(ApiFixture fixture)
         Assert.StartsWith("Um 11:30 ist niemand frei. Nächste freie Zeit:", second.Explanation, StringComparison.Ordinal);
     }
 
+    private static Task<RosterDayResult> VacationAsync(TestSpa spa, Guid employee, DateOnly date) =>
+        spa.PutAsync<RosterDayResult>($"/api/locations/{spa.Location.Id}/roster/{employee}/{date:yyyy-MM-dd}",
+            new RosterDayInput([new RosterEntry(RosterKind.Vacation, null, null, null)], null), Ct);
+
     [Fact]
-    public async Task Ohne_qualifizierten_Ersatz_bleibt_nur_der_Anruf()
+    public async Task Ohne_Ersatz_am_Tag_schlaegt_er_einen_anderen_Tag_vor_und_verschiebt_erst_nach_Uebernehmen()
+    {
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        var email = $"gast-{Guid.NewGuid():N}@example.at";
+        var guest = await spa.PostAsync<CustomerDto>("/api/customers", new CustomerInput("Maria", "Tag", email, null, null, null), Ct);
+        var appointment = await TestSpa.ReadAsync<AppointmentDto>(await spa.BookAsync(TestSpa.At(10), Ct, employee: spa.Anna.Id, customer: guest.Id), Ct);
+        await VacationAsync(spa, spa.Ben.Id, TestSpa.Monday);
+
+        var item = Assert.Single((await ProposeAsync(spa, spa.Anna.Id)).Items);
+
+        Assert.Equal(AbsenceOption.OtherDay, item.Option);
+        Assert.Equal(spa.Ben.Id, item.EmployeeId);
+        // Ben arbeitet im Test-Spa montags: der nächste Montag, zur gewohnten Uhrzeit.
+        Assert.Equal(TestSpa.At(10).AddDays(7), item.Start);
+        Assert.Equal("An diesem Tag ist niemand mit der Qualifikation frei. Nächster freier Termin: Mo. "
+            + $"{TestSpa.Monday.AddDays(7):dd.MM.} um 10:00 bei Ben in {item.RoomName}; nur nach Rücksprache mit dem Gast übernehmen.", item.Explanation);
+        // Vorschlagen ändert nichts.
+        var unchanged = await spa.GetAsync<CalendarDay>($"/api/locations/{spa.Location.Id}/calendar?date={TestSpa.Monday:yyyy-MM-dd}", Ct);
+        Assert.Contains(unchanged.Appointments, a => a.Id == appointment.Id);
+
+        var result = await spa.PostAsync<AbsenceApplyResult>($"/api/locations/{spa.Location.Id}/absence/apply",
+            new AbsenceApplyRequest([new AbsenceMove(appointment.Id, item.Start!.Value, item.EmployeeId!.Value, item.RoomId!.Value)], NotifyCustomers: true), Ct);
+        var mail = await fixture.Mailbox.WaitForAsync(email, m => m.Subject.StartsWith("Änderung Ihres Termins", StringComparison.Ordinal), Ct);
+
+        Assert.Equal(TestSpa.At(10).AddDays(7), Assert.Single(result.Moved).Start);
+        Assert.Contains("Wie besprochen verschieben wir Ihren Termin", mail.Text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Ohne_qualifizierten_Ersatz_in_den_naechsten_Tagen_bleibt_nur_der_Anruf()
     {
         var spa = await TestSpa.CreateAsync(fixture, Ct);
         await spa.BookOkAsync(TestSpa.At(10), Ct, employee: spa.Anna.Id);
-        await spa.PutAsync<RosterDayResult>($"/api/locations/{spa.Location.Id}/roster/{spa.Ben.Id}/{TestSpa.Monday:yyyy-MM-dd}",
-            new RosterDayInput([new RosterEntry(RosterKind.Vacation, null, null, null)], null), Ct);
+        for (var day = 0; day <= 14; day++)
+        {
+            await VacationAsync(spa, spa.Ben.Id, TestSpa.Monday.AddDays(day));
+        }
 
         var item = Assert.Single((await ProposeAsync(spa, spa.Anna.Id)).Items);
 
         Assert.Equal(AbsenceOption.None, item.Option);
         Assert.Null(item.Start);
-        Assert.Contains("Bitte den Gast kontaktieren", item.Explanation, StringComparison.Ordinal);
+        Assert.Equal("Auch in den nächsten 14 Tagen ist niemand mit der Qualifikation frei. Bitte den Gast kontaktieren.", item.Explanation);
     }
 
     [Fact]
@@ -95,7 +130,9 @@ public sealed class AbsenceTests(ApiFixture fixture)
         using var reception = await TestUsers.ClientAsync(fixture, Ct, StaffRole.Reception, [spa.Location.Id]);
         var onlyHere = await (await reception.PostAsJsonAsync($"/api/locations/{spa.Location.Id}/absence/proposal",
             new AbsenceProposalRequest(spa.Anna.Id, TestSpa.Monday), TestSpa.Json, Ct)).Content.ReadFromJsonAsync<AbsenceProposal>(TestSpa.Json, Ct);
-        Assert.Equal(AbsenceOption.None, Assert.Single(onlyHere!.Items).Option);
+        // Am eigenen Standort bleibt ein anderer Tag.
+        var hereOnly = Assert.Single(onlyHere!.Items);
+        Assert.Equal((AbsenceOption.OtherDay, null), (hereOnly.Option, hereOnly.LocationId));
         var sneaky = await reception.PostAsJsonAsync($"/api/locations/{spa.Location.Id}/absence/apply",
             new AbsenceApplyRequest([new AbsenceMove(appointment.Id, TestSpa.At(10), clara.Id, roomC.Id, baden.Id)], NotifyCustomers: false), TestSpa.Json, Ct);
         Assert.Equal("Für diesen Standort fehlt der Zugang.", Assert.Single((await sneaky.Content.ReadFromJsonAsync<AbsenceApplyResult>(TestSpa.Json, Ct))!.Failed).Message);

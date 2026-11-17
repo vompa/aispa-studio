@@ -29670,7 +29670,8 @@
           "SameTime",
           "OtherTime",
           "None",
-          "OtherLocation"
+          "OtherLocation",
+          "OtherDay"
         ]
       },
       "AbsenceProposal": {

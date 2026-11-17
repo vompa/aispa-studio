@@ -6759,3 +6759,24 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Geprüft:** API `DepositTests`, `CardGuaranteeTests`, `ChannelScanTests` 41 von 41 (neu: anfordern, Mail, Terminseite ohne Frist, Link erneut, bezahlen, Verrechnung beim Kassieren, Ablehnung nach Zahlung; ohne Regel, ohne Mail, unbekannter Termin); Windows-App Ansichtstest „Anzahlung per Link“ und die Prüfungen der Knopflängen grün.
 - **Nicht geprüft:** echte Zahlung beim Anbieter (nur Testbetrieb); die laufende App unter Windows; die Übersetzungen der Mail sind nicht von Muttersprachlern gelesen.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Ausfall-Assistent: Ersatz an einem anderen Tag (17.11.2026)
+
+- **Auftrag:** Offener Punkt im Kalender („Ausfall-Assistent: Ersatz an anderen Tagen“); vom Auftraggeber am 16.11.2026 mit „alle Punkte autonom, wo du mich nicht brauchst“ freigegeben.
+- **Befund:** Gab es am Tag weder am eigenen noch an einem anderen Standort Ersatz, sagte der Assistent nur „Bitte den Gast kontaktieren und einen anderen Tag anbieten“; den Tag musste die Rezeption selbst suchen.
+- **Was:**
+  - `AbsenceAssistant.ProposeAsync`: neue Stufe nach dem anderen Standort, neuer Wert `AbsenceOption.OtherDay`. Gesucht wird an den nächsten 14 Tagen am eigenen Standort, die erste freie Zeit eines Tages möglichst nahe der gewohnten Uhrzeit.
+  - Ohne Treffer: „Auch in den nächsten 14 Tagen ist niemand mit der Qualifikation frei. Bitte den Gast kontaktieren.“
+  - Mail beim Übernehmen: „Wie besprochen verschieben wir Ihren Termin von … auf …“.
+  - Windows-App: Abschnitt „Andere Tage“ im Ausfall-Assistenten, nicht vorausgewählt.
+  - Hilfe `dienstplan-ersatz-vorschlagen` mit Bild `kalender-ausfall-anderer-tag.png`.
+- **Detailentscheidungen:**
+  1. Die ausgefallene Person wird auch an den anderen Tagen nicht vorgeschlagen: Eine Krankmeldung trägt nur einen Tag ein, und ob sie danach wieder da ist, weiß der Assistent nicht.
+  2. Reihenfolge: gleicher Tag hier, anderer Standort am selben Tag, dann anderer Tag hier. Ein anderer Tag am anderen Standort wird nicht gesucht.
+  3. Nicht vorausgewählt und eigener Abschnitt, wie beim anderen Standort: Der Gast muss zustimmen.
+  4. Nur einzeln gebuchte, noch nicht eingecheckte Termine; Paar und Spa-Tag bleiben, wie sie sind.
+  5. 14 Tage als feste Grenze, ohne Einstellung in der Verwaltung.
+- **Bewusst offen / später:** Paar und Spa-Tag verlegen; mehrere Vorschläge je Termin zur Auswahl.
+- **Geprüft:** API `AbsenceTests` und Raumsperre 20 von 20 (neu: anderer Tag zur gewohnten Uhrzeit, Übernehmen mit Mail; nichts in 14 Tagen; Rezeption ohne zweiten Standort bekommt den anderen Tag); Windows-App Ansichtstest „Ersatz an einem anderen Tag“, `AbsenceNotifyTests`, Knopflängen grün.
+- **Nicht geprüft:** die laufende App unter Windows.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).

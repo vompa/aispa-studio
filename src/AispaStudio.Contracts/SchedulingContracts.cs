@@ -744,6 +744,9 @@ public enum AbsenceOption
 
     /// <summary>Hier kein Ersatz, aber an einem anderen Standort desselben Spas; nur nach Rücksprache mit dem Gast übernehmen.</summary>
     OtherLocation,
+
+    /// <summary>An diesem Tag nirgends Ersatz, aber an einem der nächsten Tage am selben Standort; nur nach Rücksprache mit dem Gast übernehmen.</summary>
+    OtherDay,
 }
 
 /// <summary>Ausfall einer Person an einem Tag: für ihre Termine an diesem Standort Ersatz vorschlagen.</summary>
