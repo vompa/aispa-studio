@@ -27,7 +27,7 @@ Mit **Verwerfen** nimmt man ungespeicherte Änderungen zurück. Wie man einen La
 
 Das Menü **⋯** im Kopf der Karte hat zwei Einträge: **Nicht mehr verwenden** und **Löschen …**. Das Hauptlager hat kein Menü, es gehört zum Standort.
 
-1. Den Lagerort in der Liste wählen und oben rechts in der Karte auf **⋯** klicken.
+1. Den Lagerort in der Liste wählen und im Kopf der Karte auf **⋯** (Weitere Aktionen) klicken.
 2. **Löschen …** wählen. Das Programm prüft, ob am Lagerort etwas hängt.
 3. Hat der Lagerort keine Bewegungen, fragt es „„Name“ löschen?“. Mit **Löschen** ist er weg.
 4. Hat er Bewegungen, steht im Dialog „„Name“ lässt sich nicht löschen“ mit der Zahl der Lagerbewegungen. Die Bewegungen bleiben für die Nachvollziehbarkeit erhalten. Mit **Nicht mehr verwenden** erscheint der Lagerort nicht mehr als Ziel beim Nachfüllen und Umbuchen; sein Bestand bleibt sichtbar.
