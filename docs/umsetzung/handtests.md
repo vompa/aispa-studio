@@ -1417,6 +1417,19 @@ Expected: Im Kalender steht der Termin beim Therapeuten; in der Notiz steht „W
 Closes: –
 Result: ☐
 
+### Termin-Panel – Anzahlung per Link anfordern
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App als Rezeption; am Standort ist in den Online-Regeln eine Anzahlung (z. B. 30 %) eingestellt, Zahlungskonto (Testbetrieb genügt) und Kassa sind eingerichtet; ein Gast mit Mailadresse
+1. Für den Gast in der Windows-App einen Termin in den nächsten Tagen buchen und ihn öffnen.
+Expected: Im Abschnitt „Anzahlung“ steht „Der Standort verlangt 30 % (…)“ und der Knopf **Anzahlung per Link**.
+2. Auf **Anzahlung per Link** klicken.
+Expected: Meldung „Link per Mail verschickt“; im Abschnitt steht „Noch nicht bezahlt · … (30 %)“, der Knopf heißt jetzt **Link erneut senden**. Im Postfach des Gastes liegt die Mail „Anzahlung für …“ mit Betrag und Link.
+3. Den Link öffnen und die Anzahlung bezahlen (im Testbetrieb „Zahlung simulieren“).
+Expected: Auf der Terminseite steht keine Frist zum Bezahlen. Nach dem Bezahlen zeigt das Termin-Panel „Bezahlt, Anzahlungsbeleg erstellt“, der Knopf ist verschwunden; an der Kassa ist der Betrag beim Kassieren des Termins abgezogen.
+4. Einen zweiten Termin für einen Gast ohne Mailadresse buchen und öffnen.
+Expected: Kein Knopf **Anzahlung per Link**.
+Closes: –
+Result: ☐
+
 ### Ausfall-Assistent – Gäste ohne Ersatz benachrichtigen
 Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App als Rezeption; eine Person mit einem Termin heute, für den niemand sonst die Qualifikation hat; der Gast hat eine Mailadresse
 1. Im Kalender die Person als ausgefallen markieren und den Ausfall-Assistenten öffnen.

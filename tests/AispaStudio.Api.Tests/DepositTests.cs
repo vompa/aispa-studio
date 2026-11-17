@@ -121,6 +121,73 @@ public sealed class DepositTests(ApiFixture fixture)
     }
 
     [Fact]
+    public async Task Rezeption_fordert_die_Anzahlung_per_Link_an_und_der_Gast_bezahlt()
+    {
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        // Mit Zahlungsfrist: Sie gilt für Online-Buchungen, nicht für die Anforderung der Rezeption.
+        await RequireDepositAsync(spa, holdHours: 2);
+        var register = await CreateRegisterAsync(spa);
+        var email = NewEmail();
+        var customer = await spa.PostAsync<CustomerDto>("/api/customers", new CustomerInput("Lea", "Telefon", email, null, null, null), Ct);
+        var booked = await TestSpa.ReadAsync<AppointmentDto>(await spa.BookAsync(TestSpa.At(14), Ct, customer: customer.Id), Ct);
+
+        var offer = await spa.GetAsync<DepositRequestOffer>($"/api/appointments/{booked.Id}/deposit/offer", Ct);
+        Assert.Equal((true, 23.70m, 30, "EUR"), (offer.Possible, offer.Amount, offer.Percent, offer.Currency));
+        var requested = await spa.PostAsync<DepositStaffDto>($"/api/appointments/{booked.Id}/deposit/request", new { }, Ct);
+        Assert.Equal((OnlineDepositStatus.Pending, 23.70m), (requested.Status, requested.Amount));
+
+        var mail = await fixture.Mailbox.WaitForAsync(email, m => m.Subject.StartsWith("Anzahlung für Massage", StringComparison.Ordinal), Ct);
+        Assert.Contains("Anzahlung von 23,70 EUR (30 % des Preises)", mail.Text, StringComparison.Ordinal);
+        var token = global::System.Text.RegularExpressions.Regex.Match(mail.Text, "#/termin/([A-Za-z0-9_-]+)").Groups[1].Value;
+        using var client = spa.OnlineClient();
+        var page = await client.GetFromJsonAsync<OnlineAppointment>($"/api/online/bookings/{token}", TestSpa.Json, Ct);
+        Assert.Equal((OnlineDepositStatus.Pending, 23.70m), (page!.Deposit!.Status, page.Deposit.Amount));
+        // Keine Frist: Der Termin der Rezeption bleibt auch ohne Zahlung stehen.
+        Assert.Null(page.Deposit.PayUntil);
+
+        // Solange nicht bezahlt ist, schickt ein zweiter Aufruf einen neuen Link.
+        var again = await spa.PostAsync<DepositStaffDto>($"/api/appointments/{booked.Id}/deposit/request", new { }, Ct);
+        Assert.Equal(OnlineDepositStatus.Pending, again.Status);
+
+        var paid = await client.PostAsJsonAsync($"/api/online/bookings/{token}/deposit/test", new TestPaymentResult(true), TestSpa.Json, Ct);
+        Assert.Equal(HttpStatusCode.OK, paid.StatusCode);
+        var receipted = await WaitForAsync(spa, booked.Id, d => d.Status == OnlineDepositStatus.Receipted);
+        var receipt = await spa.GetAsync<ReceiptDto>($"/api/pos/receipts/{receipted.ReceiptId}", Ct);
+        Assert.Equal(23.70m, receipt.Total);
+
+        // Beim Kassieren wird sie verrechnet wie eine Anzahlung aus dem Online-Buchen.
+        await spa.SetStatusAsync(booked.Id, AppointmentStatus.CheckedIn, Ct);
+        var bill = await spa.PostAsync<BillDto>("/api/pos/bills", new BillInput(register.Id, null, [booked.Id]), Ct);
+        Assert.Equal((79m, 23.70m, 55.30m), (bill.Total, bill.DepositCredit, bill.Open));
+
+        var paidAlready = await spa.Client.PostAsJsonAsync($"/api/appointments/{booked.Id}/deposit/request", new { }, TestSpa.Json, Ct);
+        Assert.Equal(HttpStatusCode.Conflict, paidAlready.StatusCode);
+        Assert.Contains("schon eine Anzahlung", await paidAlready.Content.ReadAsStringAsync(Ct), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Ohne_Regel_oder_ohne_Mail_laesst_sich_keine_Anzahlung_anfordern()
+    {
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        var noMail = await spa.PostAsync<CustomerDto>("/api/customers", new CustomerInput("Ohne", "Mail", null, "+43 660 1", null, null), Ct);
+        var booked = await TestSpa.ReadAsync<AppointmentDto>(await spa.BookAsync(TestSpa.At(15), Ct, customer: noMail.Id), Ct);
+
+        var withoutRule = await spa.GetAsync<DepositRequestOffer>($"/api/appointments/{booked.Id}/deposit/offer", Ct);
+        await RequireDepositAsync(spa);
+        await CreateRegisterAsync(spa);
+        var withoutMail = await spa.GetAsync<DepositRequestOffer>($"/api/appointments/{booked.Id}/deposit/offer", Ct);
+        var request = await spa.Client.PostAsJsonAsync($"/api/appointments/{booked.Id}/deposit/request", new { }, TestSpa.Json, Ct);
+        var unknown = await spa.Client.GetAsync($"/api/appointments/{Guid.NewGuid()}/deposit/offer", Ct);
+
+        Assert.False(withoutRule.Possible);
+        Assert.Contains("keine Anzahlung eingestellt", withoutRule.Reason, StringComparison.Ordinal);
+        Assert.False(withoutMail.Possible);
+        Assert.Contains("keine E-Mail-Adresse", withoutMail.Reason, StringComparison.Ordinal);
+        Assert.Equal(HttpStatusCode.Conflict, request.StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, unknown.StatusCode);
+    }
+
+    [Fact]
     public async Task Rechtzeitige_Absage_storniert_den_Anzahlungsbeleg_und_erstattet()
     {
         var spa = await TestSpa.CreateAsync(fixture, Ct);

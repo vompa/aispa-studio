@@ -16371,6 +16371,96 @@
         }
       }
     },
+    "/api/v1/appointments/{appointmentId}/deposit/offer": {
+      "get": {
+        "tags": [
+          "Kalender"
+        ],
+        "summary": "Ob sich für einen Termin der Rezeption eine Anzahlung per Link anfordern lässt, und mit welchem Betrag.",
+        "operationId": "GetDepositRequestOffer",
+        "parameters": [
+          {
+            "name": "appointmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DepositRequestOffer"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/appointments/{appointmentId}/deposit/request": {
+      "post": {
+        "tags": [
+          "Kalender"
+        ],
+        "summary": "Dem Gast einen Link schicken, um die Anzahlung für einen Termin der Rezeption zu bezahlen; erneut aufgerufen ein neuer Link. Ohne Zahlung bleibt der Termin stehen.",
+        "operationId": "RequestDeposit",
+        "parameters": [
+          {
+            "name": "appointmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DepositStaffDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/appointments/{appointmentId}/deposit-return": {
       "get": {
         "tags": [
@@ -37661,6 +37751,38 @@
             "items": {
               "type": "string"
             }
+          }
+        }
+      },
+      "DepositRequestOffer": {
+        "required": [
+          "possible",
+          "amount",
+          "currency",
+          "percent",
+          "reason"
+        ],
+        "type": "object",
+        "properties": {
+          "possible": {
+            "type": "boolean"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "percent": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },

@@ -154,6 +154,9 @@ public sealed record OnlineDeposit(
 /// </summary>
 public sealed record CardRequestOffer(bool Possible, decimal FeeAmount, string Currency, int FeePercent, string? Reason, DateTimeOffset? CancellationDeadlineAt = null);
 
+/// <summary>Was die Rezeption als Anzahlung per Link verlangen kann: Betrag laut Regel von Behandlung oder Standort, oder warum es nicht geht.</summary>
+public sealed record DepositRequestOffer(bool Possible, decimal Amount, string Currency, int Percent, string? Reason);
+
 /// <summary>Nur im Testbetrieb: Hinterlegen der Karte simulieren (<c>Saved</c>) oder abbrechen.</summary>
 public sealed record TestCardResult(bool Saved);
 
