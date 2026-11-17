@@ -21,10 +21,13 @@ public sealed class MoreMenuButton : Button
 
     public static readonly StyledProperty<ICommand?> DeactivateCommandProperty = AvaloniaProperty.Register<MoreMenuButton, ICommand?>(nameof(DeactivateCommand));
 
-    /// <summary>Text des ersten Eintrags, wenn „Nicht mehr verwenden“ in der Maske anders heißt („Nicht mehr anbieten …“, „Schließen ab Datum …“, „Wieder verwenden“).</summary>
+    public static readonly StyledProperty<ICommand?> DeleteCommandProperty = AvaloniaProperty.Register<MoreMenuButton, ICommand?>(nameof(DeleteCommand));
+
+    /// <summary>Eigener Text für den ersten Eintrag, wo „Nicht mehr verwenden“ nicht trifft (Person: „Zugang sperren“); leer = Standardtext.</summary>
     public static readonly StyledProperty<string?> DeactivateTextProperty = AvaloniaProperty.Register<MoreMenuButton, string?>(nameof(DeactivateText));
 
-    public static readonly StyledProperty<ICommand?> DeleteCommandProperty = AvaloniaProperty.Register<MoreMenuButton, ICommand?>(nameof(DeleteCommand));
+    /// <summary>Eigener Text für den zweiten Eintrag, wo „Löschen …“ nicht trifft (Person: „Aus dem Team nehmen …“); er bleibt rot und trägt die drei Punkte, weil danach eine Rückfrage kommt.</summary>
+    public static readonly StyledProperty<string?> DeleteTextProperty = AvaloniaProperty.Register<MoreMenuButton, string?>(nameof(DeleteText));
 
     /// <summary>Der Gegenstand für den Screenreader: „Weitere Aktionen zu Hauptlager“.</summary>
     public static readonly StyledProperty<string?> SubjectProperty = AvaloniaProperty.Register<MoreMenuButton, string?>(nameof(Subject));
@@ -34,8 +37,9 @@ public sealed class MoreMenuButton : Button
     static MoreMenuButton()
     {
         DeactivateCommandProperty.Changed.AddClassHandler<MoreMenuButton>((button, _) => button.Rebuild());
-        DeactivateTextProperty.Changed.AddClassHandler<MoreMenuButton>((button, _) => button.Rebuild());
         DeleteCommandProperty.Changed.AddClassHandler<MoreMenuButton>((button, _) => button.Rebuild());
+        DeactivateTextProperty.Changed.AddClassHandler<MoreMenuButton>((button, _) => button.Rebuild());
+        DeleteTextProperty.Changed.AddClassHandler<MoreMenuButton>((button, _) => button.Rebuild());
         SubjectProperty.Changed.AddClassHandler<MoreMenuButton>((button, _) => button.UpdateName());
     }
 
@@ -61,16 +65,22 @@ public sealed class MoreMenuButton : Button
         set => SetValue(DeactivateCommandProperty, value);
     }
 
+    public ICommand? DeleteCommand
+    {
+        get => GetValue(DeleteCommandProperty);
+        set => SetValue(DeleteCommandProperty, value);
+    }
+
     public string? DeactivateText
     {
         get => GetValue(DeactivateTextProperty);
         set => SetValue(DeactivateTextProperty, value);
     }
 
-    public ICommand? DeleteCommand
+    public string? DeleteText
     {
-        get => GetValue(DeleteCommandProperty);
-        set => SetValue(DeleteCommandProperty, value);
+        get => GetValue(DeleteTextProperty);
+        set => SetValue(DeleteTextProperty, value);
     }
 
     public string? Subject
@@ -86,12 +96,12 @@ public sealed class MoreMenuButton : Button
         _menu.Items.Clear();
         if (DeactivateCommand is { } deactivate)
         {
-            _menu.Items.Add(new MenuItem { Header = DeactivateText ?? DeactivateLabel, Command = deactivate });
+            _menu.Items.Add(new MenuItem { Header = string.IsNullOrWhiteSpace(DeactivateText) ? DeactivateLabel : DeactivateText, Command = deactivate });
         }
 
         if (DeleteCommand is { } delete)
         {
-            var item = new MenuItem { Header = DeleteLabel, Command = delete };
+            var item = new MenuItem { Header = string.IsNullOrWhiteSpace(DeleteText) ? DeleteLabel : DeleteText, Command = delete };
             item.Classes.Add("danger");
             _menu.Items.Add(item);
         }

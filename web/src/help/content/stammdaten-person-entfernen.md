@@ -14,14 +14,14 @@ Nimmt eine Person aus der Planung, z. B. bei einem Austritt. Vergangene Termine 
 
 1. In der Windows-App **Verwaltung** › **Team** öffnen.
 2. Links die Person anklicken.
-3. Auf **Aus dem Team nehmen** klicken.
+3. Im Kopf der Karte das Menü **⋯** öffnen und **Aus dem Team nehmen …** wählen.
 4. In der Windows-App die Rückfrage „Aus dem Team nehmen?“ bestätigen.
 
 Die Person verschwindet aus der Liste und aus Kalender und Dienstplan. In der Windows-App erscheint sie mit dem Kästchen „Ausgeschiedene zeigen“ wieder, nur zum Lesen.
 
 ## Wenn es nicht geht {#kuenftige-termine}
 
-Hat die Person noch künftige Termine, erscheint „Daran hängen noch … künftige Termine. Bitte zuerst verschieben oder stornieren.“ Diese Termine im Kalender einer anderen Person geben, verschieben oder stornieren und dann erneut auf **Aus dem Team nehmen** klicken.
+Hat die Person noch künftige Termine, erscheint „Daran hängen noch … künftige Termine. Bitte zuerst verschieben oder stornieren.“ Diese Termine im Kalender einer anderen Person geben, verschieben oder stornieren und dann erneut **Aus dem Team nehmen …** im Menü **⋯** wählen.
 
 ## Gut zu wissen {#hinweise}
 

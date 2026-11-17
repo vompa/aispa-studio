@@ -62,6 +62,19 @@ public sealed partial class PersonDetailsViewModel : ViewModelBase
 
     public ObservableCollection<WorkingHoursRow> WorkingHours { get; } = [];
 
+    public bool HasWorkingHours => WorkingHours.Count > 0;
+
+    /// <summary>„Frei: Montag, Sonntag“ unter den Zeilen: die Wochentage ohne Arbeitszeit; leer, wenn jeder Tag eine hat.</summary>
+    public string FreeDaysText
+    {
+        get
+        {
+            var worked = WorkingHours.Select(h => h.Day.Day).ToHashSet();
+            var free = WorkDayChoice.All.Where(d => !worked.Contains(d.Day)).Select(d => d.Label).ToList();
+            return free.Count == 0 ? "" : $"Frei: {string.Join(", ", free)}";
+        }
+    }
+
     /// <summary>Ohne Standort lässt sich keine Arbeitszeit erfassen (wie im Web).</summary>
     public bool CanAddHours => IsEditable && _locations.Count > 0;
 
@@ -113,6 +126,8 @@ public sealed partial class PersonDetailsViewModel : ViewModelBase
 
         NameError = null;
         _applying = false;
+        OnPropertyChanged(nameof(HasWorkingHours));
+        OnPropertyChanged(nameof(FreeDaysText));
     }
 
     [RelayCommand]
@@ -152,6 +167,8 @@ public sealed partial class PersonDetailsViewModel : ViewModelBase
 
     private void Changed()
     {
+        OnPropertyChanged(nameof(HasWorkingHours));
+        OnPropertyChanged(nameof(FreeDaysText));
         if (!_applying)
         {
             _changed();

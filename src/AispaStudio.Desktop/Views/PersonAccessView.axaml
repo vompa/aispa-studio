@@ -5,7 +5,7 @@
              x:Class="AispaStudio.Desktop.Views.PersonAccessView"
              x:DataType="vm:PersonAccessViewModel">
   <!--
-    Reiter „Zugang und Rolle“ (R05 Slice 98): Rolle, Rechte, Befristung und Standorte wie AccessForm in web/src/admin/StaffPage.tsx; dazu Einladen (Server),
+    Abschnitt „Zugang und Rolle“ (R05 Slice 98, P5): Rolle, Rechte, Befristung und Standorte wie AccessForm in web/src/admin/StaffPage.tsx; dazu Einladen (Server),
     Zugang anlegen und Startpasswort (Einzelplatz) und die offene Einladung. Rollen- und Rechte-Texte aus web/src/admin/access.ts.
   -->
   <StackPanel x:Name="AccessSection" Spacing="20">
@@ -46,32 +46,14 @@
       </ui:FormField>
     </Grid>
 
-    <!-- Rolle und Rechte. -->
+    <!-- Rolle und Rechte. Schalter statt Häkchen: die Beschriftung steht einmal am Schalter, der Hinweis darunter (P5). -->
     <StackPanel Spacing="12" IsVisible="{Binding ShowsFields}">
-      <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
-        <ui:FormField Label="Rolle" Help="{Binding RoleHint}" Error="{Binding RoleError}">
-          <ComboBox x:Name="RoleField" ItemsSource="{x:Static vm:RoleChoice.All}" SelectedItem="{Binding Role}" HorizontalAlignment="Stretch" />
-        </ui:FormField>
-        <ui:FormField Grid.Column="1" Label="Person im Team">
-          <ComboBox x:Name="PersonField" ItemsSource="{Binding People}" SelectedItem="{Binding Person}" HorizontalAlignment="Stretch" />
-        </ui:FormField>
-      </Grid>
-      <ui:FormField Label="Auswertungen ohne Beträge im Assistenten" IsVisible="{Binding ShowsPlainReports}" Help="Top-Behandlungen, Auslastung, Termine je Person">
-        <CheckBox x:Name="PlainReportsField" Content="Erlaubt" IsChecked="{Binding PlainReports}" />
-      </ui:FormField>
-      <ui:FormField Label="Berichte mit Beträgen" IsVisible="{Binding ShowsAmountReports}" Help="Umsätze, Kosten, Buchhaltungsexport">
-        <StackPanel Spacing="4">
-          <CheckBox x:Name="AmountReportsField" Content="Erlaubt" IsChecked="{Binding AmountReports}" IsEnabled="{Binding CanGrant}" />
-          <TextBlock Classes="muted small" Text="Vergeben können das nur Inhaberin und Geschäftsführung." IsVisible="{Binding ShowsAmountHint}" />
-        </StackPanel>
-      </ui:FormField>
-      <ui:FormField Label="Befristet bis einschließlich" IsVisible="{Binding ShowsUntil}"
-                    Help="Leer heißt unbefristet. Danach wirkt der Zugang wie gesperrt, z. B. für Aushilfen oder Praktika.">
-        <StackPanel Orientation="Horizontal" Spacing="8">
-          <ui:DateField x:Name="UntilField" Value="{Binding Until}" Width="160" PlaceholderText="z. B. 30.04.2027" AutomationProperties.Name="Befristet bis einschließlich" />
-          <Button x:Name="ExtendButton" Content="Um 30 Tage verlängern" Command="{Binding ExtendCommand}" IsVisible="{Binding CanExtend}"
-                  ToolTip.Tip="Danach speichern." />
-        </StackPanel>
+      <StackPanel Spacing="4" IsVisible="{Binding IsMember}">
+        <ToggleSwitch x:Name="ActiveField" Content="Zugang aktiv" IsChecked="{Binding IsActive}" />
+        <TextBlock Classes="muted small" TextWrapping="Wrap" Text="Ausschalten sperrt sofort, auch auf angemeldeten Geräten." />
+      </StackPanel>
+      <ui:FormField Label="Rolle" Help="{Binding RoleHint}" Error="{Binding RoleError}">
+        <ComboBox x:Name="RoleField" ItemsSource="{x:Static vm:RoleChoice.All}" SelectedItem="{Binding Role}" HorizontalAlignment="Stretch" />
       </ui:FormField>
       <StackPanel Spacing="8">
         <Grid ColumnDefinitions="*,Auto">
@@ -80,24 +62,64 @@
         </Grid>
         <TextBlock Classes="muted" Text="Das Backoffice arbeitet für alle Standorte, auch künftige." IsVisible="{Binding IsBackoffice}" TextWrapping="Wrap" />
         <StackPanel Spacing="8" IsVisible="{Binding ShowsLocationChoice}">
-          <CheckBox x:Name="AllLocationsField" Content="Alle Standorte, auch künftige" IsChecked="{Binding AllLocations}" IsVisible="{Binding CanAllLocations}" />
+          <ToggleSwitch x:Name="AllLocationsField" Content="Alle Standorte, auch künftige" IsChecked="{Binding AllLocations}" IsVisible="{Binding CanAllLocations}" />
           <ItemsControl x:Name="LocationsField" ItemsSource="{Binding Locations}" IsVisible="{Binding ShowsLocationList}" AutomationProperties.Name="Standorte">
             <ItemsControl.ItemsPanel>
               <ItemsPanelTemplate>
-                <WrapPanel ItemSpacing="16" />
+                <WrapPanel ItemSpacing="8" LineSpacing="8" />
               </ItemsPanelTemplate>
             </ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplate>
               <DataTemplate x:DataType="vm:CheckOption">
-                <CheckBox Content="{Binding Label}" IsChecked="{Binding IsChecked}" />
+                <ToggleButton Classes="choicechip" Content="{Binding Label}" IsChecked="{Binding IsChecked}" />
               </DataTemplate>
             </ItemsControl.ItemTemplate>
           </ItemsControl>
         </StackPanel>
       </StackPanel>
-      <ui:FormField Label="Zugang aktiv" IsVisible="{Binding IsMember}" Help="Ausschalten sperrt sofort, auch auf angemeldeten Geräten.">
-        <CheckBox x:Name="ActiveField" Content="Aktiv" IsChecked="{Binding IsActive}" />
-      </ui:FormField>
+      <StackPanel Spacing="4" IsVisible="{Binding ShowsPlainReports}">
+        <ToggleSwitch x:Name="PlainReportsField" Content="Auswertungen ohne Beträge im Assistenten" IsChecked="{Binding PlainReports}" />
+        <TextBlock Classes="muted small" TextWrapping="Wrap" Text="Top-Behandlungen, Auslastung, Termine je Person" />
+      </StackPanel>
+      <StackPanel Spacing="4" IsVisible="{Binding ShowsAmountReports}">
+        <ToggleSwitch x:Name="AmountReportsField" Content="Berichte mit Beträgen" IsChecked="{Binding AmountReports}" IsEnabled="{Binding CanGrant}" />
+        <TextBlock Classes="muted small" TextWrapping="Wrap" Text="Umsätze, Kosten, Buchhaltungsexport" />
+        <TextBlock Classes="muted small" TextWrapping="Wrap" Text="Vergeben können das nur Inhaberin und Geschäftsführung." IsVisible="{Binding ShowsAmountHint}" />
+      </StackPanel>
+
+      <!-- Weitere Angaben: eingeklappt, offen, wenn der Zugang befristet ist (masken.md R2) -->
+      <Border Classes="divider" />
+      <StackPanel Spacing="12">
+        <ui:AccordionHeader x:Name="MoreToggle" Classes="more" IsChecked="{Binding MoreOpen, Mode=TwoWay}" HorizontalAlignment="Left" Padding="0,4,10,4"
+                            HorizontalContentAlignment="Left" AutomationProperties.Name="Weitere Angaben">
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <ui:Icon Classes="chevron" Data="{x:Static ui:Icons.ChevronRight}" Width="14" Height="14" Foreground="{DynamicResource Fg3Brush}" VerticalAlignment="Center" />
+            <TextBlock Text="Weitere Angaben" Classes="h3" VerticalAlignment="Center" />
+            <TextBlock Text="Befristung, Zuordnung" Classes="muted small" VerticalAlignment="Center" />
+          </StackPanel>
+          <ui:AccordionHeader.Styles>
+            <Style Selector="ui|Icon.chevron">
+              <Setter Property="RenderTransform" Value="rotate(0deg)" />
+            </Style>
+            <Style Selector="ToggleButton:checked ui|Icon.chevron">
+              <Setter Property="RenderTransform" Value="rotate(90deg)" />
+            </Style>
+          </ui:AccordionHeader.Styles>
+        </ui:AccordionHeader>
+        <StackPanel Spacing="12" IsVisible="{Binding MoreOpen}">
+          <ui:FormField Label="Person im Team">
+            <ComboBox x:Name="PersonField" ItemsSource="{Binding People}" SelectedItem="{Binding Person}" HorizontalAlignment="Stretch" />
+          </ui:FormField>
+          <ui:FormField Label="Befristet bis einschließlich" IsVisible="{Binding ShowsUntil}"
+                        Help="Leer heißt unbefristet. Danach wirkt der Zugang wie gesperrt, z. B. für Aushilfen oder Praktika.">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <ui:DateField x:Name="UntilField" Value="{Binding Until}" Width="160" PlaceholderText="z. B. 30.04.2027" AutomationProperties.Name="Befristet bis einschließlich" />
+              <Button x:Name="ExtendButton" Content="Um 30 Tage verlängern" Command="{Binding ExtendCommand}" IsVisible="{Binding CanExtend}"
+                      ToolTip.Tip="Danach speichern." />
+            </StackPanel>
+          </ui:FormField>
+        </StackPanel>
+      </StackPanel>
     </StackPanel>
 
     <!-- Aktionen für neue Zugänge. -->

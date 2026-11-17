@@ -22,6 +22,7 @@ public partial class PersonCardView : UserControl
         [PersonCardViewModel.QualificationsTab] = "QualificationsHost",
         [PersonCardViewModel.DutiesTab] = "DutiesHost",
         [PersonCardViewModel.RosterTab] = "RosterSection",
+        [PersonCardViewModel.WorkingHoursTab] = "WorkingHoursSection",
         [PersonCardViewModel.TimesTab] = "TimesSection",
         [PersonCardViewModel.PayrollTab] = "PayrollSection",
         [PersonCardViewModel.HrFileTab] = "HrFileHost",

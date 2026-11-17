@@ -26,7 +26,7 @@ public sealed partial class ViewTests
     /// </summary>
     private static StubApi TeamApi()
     {
-        var employees = SpaSample.Resources.Employees.Select(e => e == SpaSample.Lena ? e with { QualificationIds = [HotStoneQualification.Id] } : e).ToList();
+        var employees = SpaSample.Resources.Employees.Select(e => e == SpaSample.Lena ? e with { QualificationIds = [HotStoneQualification.Id], WorkingHours = RosterLena.WorkingHours } : e).ToList();
         var lena = employees.Single(e => e.Id == SpaSample.Lena.Id);
         var api = TreatmentApi();
         _ = new RosterSample(api, SpaSample.Vienna, SpaSample.Day, RosterLena, SpaSample.Marco);
@@ -47,6 +47,15 @@ public sealed partial class ViewTests
         Assert.Same(team, shell.AdminPage.Content);
         Assert.True(team.IsLoaded);
         return team;
+    }
+
+    /// <summary>„Person hinzufügen“ bzw. „Person einladen“: die festen Knöpfe über der Liste (ADR 0099 Regel 1).</summary>
+    private static async Task ClickNew(Window window, string buttonName)
+    {
+        var button = Named<Button>(window, buttonName);
+        Assert.True(button.IsEffectivelyVisible, buttonName);
+        ClickCenter(window, button);
+        await Pump(Settling);
     }
 
     private static async Task ClickRow(Window window, string title)
@@ -73,7 +82,7 @@ public sealed partial class ViewTests
         var areas = new Dictionary<string, string[]>
         {
             ["Profil"] = ["DetailsSection", "AccessSection", "QualificationsSection", "DutiesHost"],
-            ["Arbeitszeit"] = ["RosterSection", "TimesSection"],
+            ["Arbeitszeit"] = ["RosterSection", "WorkingHoursSection", "TimesSection"],
             ["Lohn und Akte"] = ["PayrollSection", "HrFileHost", "RegulationsHost"],
             ["Übersicht"] = ["OverviewTiles"],
         };
@@ -90,7 +99,8 @@ public sealed partial class ViewTests
         Assert.Equal(["Nächster Dienst", "Diese Woche", "Resturlaub 2026", "Offene Anträge", "Zertifikate"],
             Named<Control>(window, "OverviewTiles").GetVisualDescendants().OfType<StatTile>().Where(t => t.IsEffectivelyVisible).Select(t => t.Label));
         Assert.Equal("Lena Huber", Named<TextBox>(window, "PersonNameField").Text);
-        Assert.True(Shows(window, "Therapeut:in · aktiv"));
+        Assert.True(Shows(window, "Zugang aktiv"));
+        Assert.True(Shows(window, "Therapeut:in · Wien Innere Stadt") || Shows(window, "Therapeut:in"));
         return team;
     }, TeamApi());
 
@@ -101,7 +111,7 @@ public sealed partial class ViewTests
         return Render("hell", "verwaltung-team-einladen", async (window, main) =>
         {
             var team = await OpenTeam(window, main);
-            await ClickRow(window, "Person einladen");
+            await ClickNew(window, "NewAccessButton");
             Assert.True(team.Card?.Access?.IsInvite);
             Assert.False(Named<Control>(window, "CardTitle").IsEffectivelyVisible);
             Assert.False(Named<Control>(window, "CardTabs").IsEffectivelyVisible);
@@ -122,7 +132,8 @@ public sealed partial class ViewTests
             Assert.Equal("Einladungslink kopieren", Named<Button>(window, "CopyLinkButton").Content);
             var row = RowIn(window, "TeamList", "Nina Koller");
             // Ohne Wahl gilt die Vorgabe des Web-Formulars: Rezeption.
-            Assert.Contains(row.GetVisualDescendants().OfType<TextBlock>(), t => t.Text == "Rezeption · eingeladen");
+            Assert.Contains(row.GetVisualDescendants().OfType<TextBlock>(), t => t.Text == "Rezeption");
+            Assert.Contains(row.GetVisualDescendants().OfType<TextBlock>(), t => t.Text == "Eingeladen");
 
             // Die Maus vom Knopf nehmen: sein Hinweis läge im Handbuchbild über der Bestätigung.
             window.MouseMove(new Avalonia.Point(1, 1));
@@ -218,11 +229,16 @@ public sealed partial class ViewTests
         }
 
         await ClickSection(window, "Personen");
-        foreach (var title in new[] { "Marco Berger", "Elif Demir", "Person anlegen", "Person einladen" })
+        foreach (var title in new[] { "Marco Berger", "Elif Demir" })
         {
             await ClickRow(window, title);
             await visit(title);
         }
+
+        await ClickNew(window, "AddPersonButton");
+        await visit("Person hinzufügen");
+        await ClickNew(window, "NewAccessButton");
+        await visit("Person einladen");
 
         team.ShowFormer = true;
         await Pump(Settling);
@@ -320,7 +336,7 @@ public sealed partial class ViewTests
         Render("hell", "verwaltung-team-formular", async (window, main) =>
         {
             var team = await OpenTeam(window, main);
-            await ClickRow(window, "Person einladen");
+            await ClickNew(window, "NewAccessButton");
             await TypeInto(window, "InviteEmailField", "nina@spa.test");
 
             await ClickRow(window, "Lena Huber");
