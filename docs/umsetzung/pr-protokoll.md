@@ -7165,3 +7165,21 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Was:** Die Kopfzeile der Tabelle (Material, Bestand, Reicht für, Status) steht nur noch, wenn es Zeilen gibt (`IsVisible="{Binding !ShowEmpty}"` in `StockOverviewSection.axaml`); leer steht nur „Noch kein Material angelegt.“. Nachtrag zu P10c, wo die übrigen Leersätze schon so arbeiten.
 - **Geprüft:** Ansichtstests `Leerer_Betrieb_Lager_Bestand_zeigt_Material_anlegen_ueber_der_Liste` und `Lager_Bestand_hat_vier_Spalten_und_die_uebrigen_Werte_im_Seitenpanel` (hell und dunkel) grün, Bilder angesehen; das Handbuchbild mit Daten ist unverändert.
 - **Text-Prüfung:** kein neuer Text.
+
+## Menü „⋯“ für Aktion und Betriebskontakt (17.11.2026)
+
+- **Basiert auf:** `dev` nach T-081 und „Lager › Bestand: Spaltenköpfe nur mit Zeilen“; keine API-Änderung.
+- **Was:** Nachtrag zu ADR 0099 (Masken-Inventar, Zeilen Aktion und Betriebskontakt). Beide Masken nutzen jetzt das gemeinsame Steuerelement `MoreMenuButton` im Kopf der Karte.
+  - `MoreMenuButton` bekommt `SecondaryCommand` und `SecondaryText`: ein zweiter neutraler Eintrag zwischen dem ersten und „Löschen …“, nur mit gesetztem Befehl und Text. Die übrigen acht Nutzer sind unverändert.
+  - Aktion (`PromotionsView.axaml`): das eigene „⋯“ mit eigenem `MenuFlyout` ist ersetzt; Einträge „Pausieren“ bzw. „Fortsetzen“ (`PauseText`, `TogglePauseCommand`) und „Archivieren“ (`ArchiveCommand`), sichtbar bei `CanArchive`. „Zurückholen“ bleibt ein Knopf.
+  - Betriebskontakt (`BusinessInfoView.axaml`): der Knopf „Archivieren“ ist ersetzt durch das Menü mit dem Eintrag „Archivieren“ (`BusinessMoreMenu`). „Alles kopieren“ und „Zurückholen“ bleiben Knöpfe.
+  - Handbuch `aktionen` (Text stimmte schon) und `betriebsinformationen` (Archivieren im Menü „⋯“); Bilder `verwaltung-aktionen`, `verwaltung-aktionen-schwache-zeiten` und `verwaltung-betriebsinfo` neu.
+- **Detailentscheidungen:**
+  1. **Entscheidung des Auftraggebers vom 17.11.2026: zweiter neutraler Eintrag.** Das gemeinsame Menü bekommt einen zweiten Eintrag, damit die Aktion „Pausieren“ (sofort wirksam) und „Archivieren“ behält, statt eines eigenen Menüs.
+  2. **Der zweite Eintrag ist nicht rot und hat keine drei Punkte:** Archivieren und Pausieren sind umkehrbar und fragen bei der Aktion nicht nach; rot und Punkte bleiben „Löschen …“ vorbehalten.
+  3. **Die Tooltips der beiden Einträge der Aktion entfallen:** das Steuerelement hat keine; die Erklärung steht im Handbuch und im Satz bei archivierten Aktionen.
+  4. **Betriebskontakt fragt weiter nach dem Archivieren,** wie bisher (Dialog „Eintrag archivieren?“); nur der Ort des Befehls ändert sich.
+  5. **„Zurückholen“ und „Alles kopieren“ bleiben Knöpfe,** weil sie keine seltenen Nebenwege sind.
+- **Bewusst offen / später:** Kein Löschen für Aktion und Betriebskontakt (ADR 0071, ADR 0099).
+- **Geprüft:** siehe PR-Text.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).

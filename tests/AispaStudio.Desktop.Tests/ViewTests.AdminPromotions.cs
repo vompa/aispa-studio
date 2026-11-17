@@ -1,4 +1,5 @@
 using AispaStudio.Contracts;
+using AispaStudio.Desktop.Controls;
 using AispaStudio.Desktop.ViewModels;
 using Avalonia.Controls;
 using Avalonia.VisualTree;
@@ -229,13 +230,14 @@ public sealed partial class ViewTests
             promotions.SelectedRow = promotions.Rows.Single(r => r.Id == AutumnId);
             await Pump(Settling);
 
-            var more = Named<Button>(window, "MoreButton");
+            var more = Named<MoreMenuButton>(window, "MoreButton");
             Assert.True(more.IsEffectivelyVisible);
-            Assert.Equal("Weitere Aktionen zur Aktion", Avalonia.Automation.AutomationProperties.GetName(more));
+            Assert.Equal("Weitere Aktionen zu Herbst", Avalonia.Automation.AutomationProperties.GetName(more));
             ClickCenter(window, more);
             await Pump(Settling);
             var items = Assert.IsType<MenuFlyout>(more.Flyout).Items.OfType<MenuItem>().ToList();
             Assert.Equal(["Pausieren", "Archivieren"], items.Select(i => i.Header as string));
+            Assert.All(items, i => Assert.DoesNotContain("danger", i.Classes));
             Assert.DoesNotContain(items, i => (i.Header as string)?.Contains("Löschen", StringComparison.Ordinal) == true);
             items[1].Command!.Execute(null);
             more.Flyout!.Hide();

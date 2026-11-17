@@ -66,7 +66,8 @@
             </Border>
           </StackPanel>
           <Button Grid.Column="1" x:Name="CopyAllButton" Content="Alles kopieren" Command="{Binding CopyAllCommand}" IsVisible="{Binding !IsCreating}" />
-          <Button Grid.Column="2" x:Name="BusinessArchiveButton" Content="Archivieren" Command="{Binding ArchiveCommand}" IsVisible="{Binding CanArchive}" />
+          <ui:MoreMenuButton Grid.Column="2" x:Name="BusinessMoreMenu" Subject="{Binding HeadingText}" DeactivateText="Archivieren" DeactivateCommand="{Binding ArchiveCommand}"
+                             IsVisible="{Binding CanArchive}" VerticalAlignment="Center" />
           <Button Grid.Column="3" x:Name="BusinessUnarchiveButton" Content="Zurückholen" Command="{Binding UnarchiveCommand}" IsVisible="{Binding CanUnarchive}" />
           <ui:HelpButton Grid.Column="4" Topic="betriebsinformationen" Section="verwalten" />
         </Grid>
