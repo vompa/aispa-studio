@@ -3077,6 +3077,51 @@
         }
       }
     },
+    "/api/v1/stock/locations/{locationId}/export/availability": {
+      "get": {
+        "tags": [
+          "Lager"
+        ],
+        "summary": "Welche Listen des Lager-Exports etwas enthalten, nur für die Leitung: je Liste available und bei false der Grund (z. B. noch keine eingereichte Zählung).",
+        "operationId": "StockExportAvailability",
+        "parameters": [
+          {
+            "name": "locationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StockExportAvailabilityDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/locations/{locationId}/staff/export": {
       "get": {
         "tags": [
@@ -48841,6 +48886,41 @@
             "items": {
               "$ref": "#/components/schemas/StockExpiryTaskDto"
             }
+          }
+        }
+      },
+      "StockExportAvailabilityDto": {
+        "required": [
+          "lists"
+        ],
+        "type": "object",
+        "properties": {
+          "lists": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StockExportListAvailabilityDto"
+            }
+          }
+        }
+      },
+      "StockExportListAvailabilityDto": {
+        "required": [
+          "list",
+          "available"
+        ],
+        "type": "object",
+        "properties": {
+          "list": {
+            "type": "string"
+          },
+          "available": {
+            "type": "boolean"
+          },
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },

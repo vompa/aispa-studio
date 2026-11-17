@@ -380,6 +380,55 @@
           </Border>
         </Panel>
       </DataTemplate>
+      <!-- Lager exportieren (P7): derselbe Dialog mit fünf Inhalten als Optionsfelder, Format als Segment und, nur bei den Lagerbewegungen, dem Zeitraum; Gesperrtes nennt den Grund -->
+      <DataTemplate DataType="vm:StockExportDialogViewModel" x:DataType="vm:StockExportDialogViewModel">
+        <Panel>
+          <Border x:Name="Scrim" Background="{DynamicResource ScrimBrush}" />
+          <Border x:Name="DialogCard" Classes="confirmdialog" AutomationProperties.Name="{Binding Title}" KeyboardNavigation.TabNavigation="Cycle">
+            <StackPanel Spacing="8">
+              <TextBlock x:Name="DialogTitle" Classes="h2" Text="{Binding Title}" TextWrapping="Wrap" />
+              <TextBlock x:Name="DialogMessage" Text="{Binding Message}" TextWrapping="Wrap" />
+              <StackPanel Spacing="2" Margin="0,8,0,0" AutomationProperties.Name="Inhalt der Datei">
+                <TextBlock Text="Inhalt" Classes="label" />
+                <ItemsControl x:Name="ExportChoices" ItemsSource="{Binding Choices}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:StockExportChoice">
+                      <RadioButton GroupName="StockExportList" IsChecked="{Binding IsSelected}" IsEnabled="{Binding IsAvailable}" AutomationProperties.Name="{Binding AutomationName}" Margin="0,3">
+                        <StackPanel>
+                          <TextBlock Text="{Binding Title}" FontWeight="SemiBold" />
+                          <TextBlock Text="{Binding Description}" Classes="muted small" TextWrapping="Wrap" IsVisible="{Binding IsAvailable}" />
+                          <TextBlock Text="{Binding Reason}" Classes="muted small" TextWrapping="Wrap" IsVisible="{Binding HasReason}" />
+                        </StackPanel>
+                      </RadioButton>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+              <Grid ColumnDefinitions="*,*" ColumnSpacing="12" Margin="0,4,0,0" IsVisible="{Binding ShowRange}">
+                <ui:FormField Label="Von">
+                  <ui:DateField x:Name="ExportFromField" Value="{Binding From}" />
+                </ui:FormField>
+                <ui:FormField Grid.Column="1" Label="Bis" Error="{Binding Error}">
+                  <ui:DateField x:Name="ExportUntilField" Value="{Binding Until}" />
+                </ui:FormField>
+              </Grid>
+              <StackPanel Spacing="4" Margin="0,4,0,0">
+                <TextBlock Text="Format" Classes="label" />
+                <Border Classes="segmented" x:Name="ExportFormats" HorizontalAlignment="Left" AutomationProperties.Name="Format der Datei">
+                  <StackPanel Orientation="Horizontal">
+                    <ui:TabButton x:Name="ExportExcelButton" Content="Excel" IsSelected="{Binding IsExcel}" Command="{Binding ChooseExcelCommand}" Padding="12,3" AutomationProperties.Name="Excel" />
+                    <ui:TabButton x:Name="ExportCsvButton" Content="CSV" IsSelected="{Binding IsCsv}" Command="{Binding ChooseCsvCommand}" Padding="12,3" AutomationProperties.Name="CSV" />
+                  </StackPanel>
+                </Border>
+              </StackPanel>
+              <StackPanel x:Name="DialogButtons" Classes="confirmbuttons">
+                <Button x:Name="ConfirmButton" Classes="primary" Content="{Binding ConfirmText}" Command="{Binding ExportCommand}" />
+                <Button x:Name="CancelButton" Classes="ghost" Content="{Binding CancelText}" Command="{Binding CancelCommand}" />
+              </StackPanel>
+            </StackPanel>
+          </Border>
+        </Panel>
+      </DataTemplate>
       <DataTemplate DataType="vm:ConfirmDialogViewModel" x:DataType="vm:ConfirmDialogViewModel">
         <Panel>
           <Border x:Name="Scrim" Background="{DynamicResource ScrimBrush}" />

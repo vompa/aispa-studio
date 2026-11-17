@@ -53,11 +53,13 @@ public sealed partial class StockViewModel : ViewModelBase, INativeArea
     private int _locationVersion;
     private int _levelsVersion;
     private readonly bool _isLeadership;
+    private readonly ISettingsStore _settings;
     private StockTab _tabBeforeSetup = StockTab.Overview;
     private bool _usageRequested;
 
-    public StockViewModel(IWorkstationApi api, CurrentUser user, TimeProvider time, ILiveUpdates? live = null)
+    public StockViewModel(IWorkstationApi api, CurrentUser user, TimeProvider time, ILiveUpdates? live = null, ISettingsStore? settings = null)
     {
+        _settings = settings ?? new MemorySettingsStore();
         Api = api;
         Time = time;
         CanViewUsage = user.Rights.Contains(AccessRight.ViewFinance);

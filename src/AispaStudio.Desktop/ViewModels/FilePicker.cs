@@ -26,6 +26,18 @@ public interface IFileSaver
     Task<bool> SaveAsync(string suggestedName, string typeName, IReadOnlyList<string> patterns, byte[] content);
 }
 
+/// <summary>Ein Speicherdialog, der nach dem Speichern den Ort der Datei nennt (für „Ordner öffnen“); null, wenn nichts gespeichert wurde oder der Ort unbekannt ist.</summary>
+public interface IReportsSavedPath
+{
+    string? LastSavedPath { get; }
+}
+
+/// <summary>Zeigt eine gespeicherte Datei im Ordner: die Windows-App öffnet den Explorer mit markierter Datei, Tests merken sich den Pfad.</summary>
+public interface IFolderOpener
+{
+    void Reveal(string path);
+}
+
 /// <summary>Eine Maske, die Dateien speichert; die Ansicht gibt ihr den Dialog des Fensters.</summary>
 public interface ISavesFiles
 {

@@ -262,7 +262,7 @@ public sealed partial class AdminPageViewModel : ViewModelBase
         "handbook" => new HandbookViewModel(api),
         "intake" => new IntakeViewModel(api, time.LocalTimeZone),
         "ai" => new AiViewModel(api),
-        _ when area.Page == "stock" => new StockViewModel(api, user, time, live),
+        _ when area.Page == "stock" => new StockViewModel(api, user, time, live, FileSettingsStore.Default),
         _ when area.Page == "promotions" => new PromotionsViewModel(api, time),
         _ when area.Page == "reports" => new ReportsViewModel(api, user, time),
         _ when area.Page == "accounting" => new AccountingViewModel(api, user, time),
