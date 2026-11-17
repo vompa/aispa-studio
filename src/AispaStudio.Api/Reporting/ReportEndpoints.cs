@@ -105,6 +105,36 @@ internal static class ReportEndpoints
             .RequirePermission(AccessRight.ChangeStatus)
             .AllowChannel(AccessChannel.StaffApp);
 
+        group.MapPut("/appointments/{appointmentId:guid}/equipment-prepared", async Task<Results<NoContent, NotFound>> (
+                Guid appointmentId, PreparationCheck input, AispaDbContext db, AccessService accessService, TimeProvider time, CancellationToken ct) =>
+            {
+                if (!await db.Appointments.AnyAsync(a => a.Id == appointmentId && a.EquipmentId != null, ct))
+                {
+                    return TypedResults.NotFound();
+                }
+
+                var check = await db.AppointmentEquipmentChecks.FirstOrDefaultAsync(c => c.AppointmentId == appointmentId, ct);
+                if (input.Done && check is null)
+                {
+                    db.AppointmentEquipmentChecks.Add(new AppointmentEquipmentCheck
+                    {
+                        AppointmentId = appointmentId,
+                        CheckedAt = time.GetUtcNow(),
+                        UserId = (await accessService.CurrentAsync(ct))?.UserId,
+                    });
+                }
+                else if (!input.Done && check is not null)
+                {
+                    db.AppointmentEquipmentChecks.Remove(check);
+                }
+
+                await db.SaveChangesAsync(ct);
+                return TypedResults.NoContent();
+            })
+            .WithName("CheckEquipmentPrepared")
+            .RequirePermission(AccessRight.ChangeStatus)
+            .AllowChannel(AccessChannel.StaffApp);
+
         group.MapPut("/appointments/{appointmentId:guid}/preparation/{stepId:guid}", async Task<Results<NoContent, NotFound>> (
                 Guid appointmentId, Guid stepId, PreparationCheck input, AispaDbContext db, AccessService accessService, TimeProvider time, CancellationToken ct) =>
             {

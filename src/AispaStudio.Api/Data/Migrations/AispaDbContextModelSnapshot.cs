@@ -3743,6 +3743,28 @@ namespace AispaStudio.Api.Data.Migrations
                     b.ToTable("ReminderSettings", "aispa");
                 });
 
+            modelBuilder.Entity("AispaStudio.Api.Reporting.AppointmentEquipmentCheck", b =>
+                {
+                    b.Property<Guid>("AppointmentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CheckedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("UserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.HasKey("AppointmentId");
+
+                    b.HasIndex("TenantId");
+
+                    b.ToTable("AppointmentEquipmentChecks", "aispa");
+                });
+
             modelBuilder.Entity("AispaStudio.Api.Reporting.AppointmentFollowUp", b =>
                 {
                     b.Property<Guid>("AppointmentId")
@@ -7612,6 +7634,21 @@ namespace AispaStudio.Api.Data.Migrations
 
             modelBuilder.Entity("AispaStudio.Api.Reminders.ReminderSettings", b =>
                 {
+                    b.HasOne("AispaStudio.Api.Tenancy.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AispaStudio.Api.Reporting.AppointmentEquipmentCheck", b =>
+                {
+                    b.HasOne("AispaStudio.Api.Scheduling.Appointment", null)
+                        .WithOne()
+                        .HasForeignKey("AispaStudio.Api.Reporting.AppointmentEquipmentCheck", "AppointmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("AispaStudio.Api.Tenancy.Tenant", null)
                         .WithMany()
                         .HasForeignKey("TenantId")
