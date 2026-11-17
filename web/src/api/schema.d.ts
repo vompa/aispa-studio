@@ -937,6 +937,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/stock/locations/{locationId}/export/availability": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Welche Listen des Lager-Exports etwas enthalten, nur für die Leitung: je Liste available und bei false der Grund (z. B. noch keine eingereichte Zählung). */
+        get: operations["StockExportAvailability"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/locations/{locationId}/staff/export": {
         parameters: {
             query?: never;
@@ -13308,6 +13325,14 @@ export interface components {
             sellOff: components["schemas"]["StockExpiryTaskDto"][];
             expired: components["schemas"]["StockExpiryTaskDto"][];
         };
+        StockExportAvailabilityDto: {
+            lists: components["schemas"]["StockExportListAvailabilityDto"][];
+        };
+        StockExportListAvailabilityDto: {
+            list: string;
+            available: boolean;
+            reason?: null | string;
+        };
         StockItemDto: {
             /** Format: uuid */
             id: string;
@@ -16869,6 +16894,44 @@ export interface operations {
                 };
                 content: {
                     "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    StockExportAvailability: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                locationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StockExportAvailabilityDto"];
                 };
             };
             /** @description Forbidden */
