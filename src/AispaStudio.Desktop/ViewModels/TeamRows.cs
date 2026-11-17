@@ -31,7 +31,7 @@ public enum TeamEntryKind
 /// Einladungen ohne Person stehen für sich.
 /// </summary>
 public sealed record TeamEntry(TeamEntryKind Kind, string Title, string Role, Guid? EmployeeId = null, string? UserId = null, Guid? InvitationId = null,
-    string? Email = null, string? FlagText = null, bool HasFlagWarning = false, string? Badge = null, EntryBadgeKind BadgeKind = EntryBadgeKind.Neutral)
+    string? Email = null, string? FlagText = null, bool HasFlagWarning = false, string? Badge = null, EntryBadgeKind BadgeKind = EntryBadgeKind.Neutral, bool HasNoAccess = false)
 {
     /// <summary>Die Rolle unter dem Namen in der Liste; leer bei einer Person ohne Zugang.</summary>
     public bool HasRole => Role.Length > 0;

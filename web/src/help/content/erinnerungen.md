@@ -91,19 +91,34 @@ Den persönlichen Teil der Mail (zwei bis drei Sätze) schreibt die KI aus Vorna
 
 ### Wiederbuchungs-Hinweise verschicken {#naechste-behandlung-verschicken}
 
-Schaltet diese Hinweise für das ganze Spa ein oder aus. Standard ist ausgeschaltet. Ohne mindestens eine Behandlung mit Abstand geht trotzdem nichts hinaus.
+Schaltet diese Hinweise für das ganze Spa ein oder aus. Standard ist ausgeschaltet. Ohne Standardabstand und ohne eine Ausnahme mit Tagen geht trotzdem nichts hinaus.
 
-### Abstand je Behandlung (Tage, leer = keine) {#abstand}
+### Hinweis nach … Tagen ohne neuen Termin {#abstand-standard}
 
-Für jede Behandlung ein eigenes Feld mit ihrem Namen, z. B. „Hot-Stone-Massage (Tage, leer = keine)“. Die Zahl sagt, wie viele Tage nach dem Ende dieser Behandlung der Hinweis geht. Erlaubt sind 7 bis 730 Tage. Leer heißt: nach dieser Behandlung geht kein Hinweis. Standard ist leer.
+Der Standardabstand: Die Zahl sagt, wie viele Tage nach dem Ende einer Behandlung der Hinweis geht, wenn es für sie keine Ausnahme gibt. Erlaubt sind 7 bis 730 Tage. Leer heißt: Es gibt keinen Standard, dann bekommen nur die Behandlungen und Kategorien einen Hinweis, die unter „Ausnahmen“ Tage haben. Standard ist leer.
+
+### Ausnahmen {#abstand-ausnahmen}
+
+Die Liste für Behandlungen und Kategorien, die einen anderen Abstand brauchen als der Standard, z. B. „Kategorie Gesicht: 35 Tage“. Mit „+ Ausnahme“ wählt man eine Kategorie oder eine einzelne Behandlung aus; die Auswahl zeigt nur, wofür es noch keine Ausnahme gibt. Mit dem Kreuz in der Zeile fällt die Ausnahme weg, und es gilt wieder der Standard.
+
+- Die Tage dürfen von 7 bis 730 reichen. Leer heißt für diese Zeile **kein Hinweis**: Eine neue Ausnahme beginnt so, und die Zeile sagt es neben dem Feld.
+- Eine Ausnahme für eine Behandlung geht vor der Ausnahme ihrer Kategorie, und diese geht vor dem Standard.
+- Das Programm rechnet beim Suchen nach fälligen Hinweisen, welcher Abstand für eine Behandlung gilt. Die Maske zeigt nur, was eingestellt ist.
 
 Gespeichert wird mit „Speichern“ (auch Strg+S) für die ganze Maske.
 
-### Zuletzt verschickt {#zuletzt-verschickt}
+### Versandprotokoll {#versandprotokoll}
 
-Die Liste steht in der Windows-App rechts neben den Einstellungen, im schmalen Fenster darunter. Sie zeigt die letzten 100 Wiederbuchungs-Hinweise, die neuesten zuerst: Gast, Behandlung, Stand und Zeitpunkt. Fährt man mit der Maus über einen Eintrag, erscheint der verschickte Text.
+![Versandprotokoll als Seitenleiste neben den Erinnerungen](images/app/verwaltung-versandprotokoll.png)
 
-- **wird geschrieben**: Der Hinweis ist angelegt und wird gerade geschrieben und versendet.
-- **gesendet**: Die Mail ist hinausgegangen. „(Text von der KI)“ heißt, der persönliche Teil stammt von der KI.
-- **entfallen**: Vor dem Versand hat sich etwas geändert, z. B. ist inzwischen ein Termin gebucht oder die Einwilligung gilt nicht mehr. Der Grund steht in Klammern.
-- **fehlgeschlagen**: Der Versand hat nicht geklappt; der Fehler steht in Klammern. Das Programm versucht es erneut.
+Unter jeder Karte steht eine Zeile mit den Zahlen der letzten 30 Tage („34 verschickt, 0 fehlgeschlagen“). „Versandprotokoll“ daneben öffnet die Seitenleiste mit allen verschickten Nachrichten, Terminerinnerungen und Wiederbuchungs-Hinweisen in einer Liste, die neuesten zuerst: wann, an wen, was und mit welchem Ergebnis. Die Leiste zeigt, was zur Karte gehört, bei der man sie geöffnet hat; „Alle“, „Erinnerung“, „Wiederbuchung“ und „Fehlgeschlagen“ wechseln die Auswahl.
+
+- Der Zeitraum lässt sich auf die letzten 30 oder 90 Tage und das letzte Jahr stellen. Die Liste zeigt höchstens 200 Einträge.
+- Ein Klick auf eine Zeile klappt den Text des Wiederbuchungs-Hinweises auf, wie er verschickt wurde, oder bei einer Nachricht, die nicht ankam oder nicht nötig war, den Grund.
+- „Exportieren“ speichert die Liste mit denselben Filtern als Excel oder CSV.
+- **Gesendet**: Die Nachricht ist hinausgegangen.
+- **Wird geschrieben**: Die Nachricht ist angelegt und wird gerade geschrieben und versendet.
+- **Entfallen**: Vor dem Versand hat sich etwas geändert, z. B. ist der Termin abgesagt, ein neuer Termin gebucht oder die Einwilligung gilt nicht mehr; bei einer Terminerinnerung fehlen Mailadresse und Telefonnummer. Der Grund steht in der aufgeklappten Zeile.
+- **Fehlgeschlagen**: Der Versand hat nicht geklappt; der Fehler steht in der aufgeklappten Zeile. Das Programm versucht es erneut.
+- Mehrere Termine eines Gastes am selben Tag bekommen eine gemeinsame Terminerinnerung; sie steht einmal in der Liste.
+- Die Nachrichten eines einzelnen Gastes zeigt die Kundenkarte noch nicht; das Versandprotokoll ist die Liste für das ganze Spa.

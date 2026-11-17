@@ -85,7 +85,9 @@ public sealed class TeamTests
         Assert.Equal(Lena.Id, lena.EmployeeId);
         Assert.Equal("u-lena", lena.UserId);
         var marco = team.Entries.Single(e => e.Title == "Marco Berger");
-        Assert.Equal(("", "Ohne Zugang"), (marco.Role, marco.Badge));
+        // Ohne Zugang ist kein Kennzeichen in der Liste (Auftraggeber, 17.11.2026), sondern ein Filter darunter.
+        Assert.Equal(("", null, true), (marco.Role, marco.Badge, marco.HasNoAccess));
+        Assert.False(lena.HasNoAccess);
         var rita = team.Entries.Single(e => e.Title == "Rita Wagner");
         Assert.Equal(("Rezeption", null), (rita.Role, rita.Badge));
         // „Person hinzufügen“ und „Person einladen“ stehen fest über der Liste, nicht als letzte Zeilen darin (ADR 0099, Regel 1).
@@ -829,6 +831,19 @@ public sealed class TeamTests
         Assert.DoesNotContain(api.Calls, c => c.Route == "PUT /api/staff/u-lena");
         Assert.True(await team.SaveChangesAsync());
         Assert.False(JsonSerializer.Deserialize<StaffAccessInput>(Assert.Single(api.Calls, c => c.Route == "PUT /api/staff/u-lena").Body!, ApiClient.Json)!.IsActive);
+    }
+
+    [Fact]
+    public async Task Given_Personen_mit_und_ohne_Zugang_When_Nur_ohne_Zugang_gewaehlt_Then_bleibt_nur_Marco()
+    {
+        var team = await Loaded(Api());
+        Assert.True(team.CanFilterWithoutAccess);
+
+        team.OnlyWithoutAccess = true;
+
+        Assert.Equal(["Marco Berger"], team.Entries.Select(e => e.Title));
+        team.OnlyWithoutAccess = false;
+        Assert.Contains(team.Entries, e => e.Title == "Lena Huber");
     }
 
     [Fact]

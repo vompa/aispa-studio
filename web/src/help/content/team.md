@@ -45,7 +45,7 @@ Ein geöffneter Tag im Dienstplan oder in den Zeiten hat seine eigene Leiste **S
 
 ## Suche {#suche}
 
-Das Suchfeld „Name oder E-Mail“ über der Liste filtert die Personen beim Tippen. Bei mehr als einem Standort stehen darunter **Alle** und die Standorte als Auswahl; ein Standort zeigt die Personen, die dort arbeiten oder deren Zugang dort gilt. Jede Zeile nennt unter dem Namen die Rolle, z. B. „Rezeption“. Ein Kennzeichen am Zeilenende steht nur bei einer Abweichung: **Gesperrt**, **Abgelaufen**, **bis 19.12.2026** bei einer Befristung (**Endet bald, bis …** in den letzten sieben Tagen), **Eingeladen**, **Ohne Zugang** oder **Ausgeschieden**. Wer aktiv und unbefristet angemeldet ist, hat kein Kennzeichen.
+Das Suchfeld „Name oder E-Mail“ über der Liste filtert die Personen beim Tippen. Bei mehr als einem Standort stehen darunter **Alle** und die Standorte als Auswahl; ein Standort zeigt die Personen, die dort arbeiten oder deren Zugang dort gilt. Jede Zeile nennt unter dem Namen die Rolle, z. B. „Rezeption“. Ein Kennzeichen am Zeilenende steht nur bei einer Abweichung: **Gesperrt**, **Abgelaufen**, **bis 19.12.2026** bei einer Befristung (**Endet bald, bis …** in den letzten sieben Tagen), **Eingeladen** oder **Ausgeschieden**. Wer aktiv und unbefristet angemeldet ist, hat kein Kennzeichen. Personen ohne Zugang tragen in der Liste kein Kennzeichen; **Nur ohne Zugang** unter der Liste zeigt nur sie, und der Kopf ihrer Karte nennt **Ohne Zugang**.
 
 ## Ausgeschiedene zeigen {#ausgeschiedene-zeigen}
 

@@ -268,6 +268,13 @@ public sealed partial class TeamViewModel : ViewModelBase, ITargetedArea
     [ObservableProperty]
     public partial bool ShowFormer { get; set; }
 
+    /// <summary>Nur Personen ohne Zugang und ohne offene Einladung (statt eines Kennzeichens in jeder Zeile; Auftraggeber, 17.11.2026).</summary>
+    [ObservableProperty]
+    public partial bool OnlyWithoutAccess { get; set; }
+
+    /// <summary>Den Filter „Nur ohne Zugang“ sieht nur, wer Zugänge verwaltet.</summary>
+    public bool CanFilterWithoutAccess => CanStaff;
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowsModesBar), nameof(ShowsPeopleView), nameof(ShowsRosterView), nameof(ShowsTimesView), nameof(ShowsPayrollView), nameof(ShowsRightsView),
         nameof(HasNoEntries))]
@@ -751,6 +758,8 @@ public sealed partial class TeamViewModel : ViewModelBase, ITargetedArea
 
     partial void OnShowFormerChanged(bool value) => Filter();
 
+    partial void OnOnlyWithoutAccessChanged(bool value) => Filter();
+
     partial void OnSelectedEntryChanged(TeamEntry? oldValue, TeamEntry? newValue)
     {
         OnPropertyChanged(nameof(ListSelection));
@@ -855,9 +864,9 @@ public sealed partial class TeamViewModel : ViewModelBase, ITargetedArea
             var invitation = member is null ? data.Invitations.FirstOrDefault(i => i.EmployeeId == employee.Id) : null;
             var (role, badge, kind) = member is not null ? MemberLabels(member, now)
                 : invitation is not null ? (RoleChoice.LabelOf(invitation.Role), "Eingeladen", EntryBadgeKind.Neutral)
-                : ("", CanStaff ? "Ohne Zugang" : null, EntryBadgeKind.Neutral);
+                : ("", null, EntryBadgeKind.Neutral);
             rows.Add((0, new TeamEntry(TeamEntryKind.Person, employee.DisplayName, role, employee.Id, member?.UserId, invitation?.Id,
-                member?.Email ?? invitation?.Email, Badge: badge, BadgeKind: kind)));
+                member?.Email ?? invitation?.Email, Badge: badge, BadgeKind: kind, HasNoAccess: CanStaff && member is null && invitation is null)));
         }
 
         var team = data.Employees.Select(e => e.Id).ToHashSet();
@@ -899,11 +908,11 @@ public sealed partial class TeamViewModel : ViewModelBase, ITargetedArea
         };
     }
 
-    /// <summary>Suche über Name und E-Mail, „Ausgeschiedene zeigen“ und der Standort.</summary>
+    /// <summary>Suche über Name und E-Mail, „Ausgeschiedene zeigen“, „Nur ohne Zugang“ und der Standort.</summary>
     private void Filter()
     {
         var search = Search.Trim();
-        var entries = _all.Where(e => (ShowFormer || e.Kind != TeamEntryKind.Former) && AtLocation(e) && (search.Length == 0
+        var entries = _all.Where(e => (ShowFormer || e.Kind != TeamEntryKind.Former) && (!OnlyWithoutAccess || e.HasNoAccess) && AtLocation(e) && (search.Length == 0
             || e.Title.Contains(search, StringComparison.OrdinalIgnoreCase) || e.Email?.Contains(search, StringComparison.OrdinalIgnoreCase) == true)).ToList();
         var selected = SelectedEntry ?? Card?.Entry;
         _reverting = true;

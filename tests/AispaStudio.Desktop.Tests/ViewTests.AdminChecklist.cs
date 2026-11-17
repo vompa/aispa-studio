@@ -52,31 +52,66 @@ public sealed partial class ViewTests
             return shell.AdminPage;
         }, SettingsApi());
 
+    [Theory]
+    [InlineData("hell", 1440)]
+    [InlineData("dunkel", 1440)]
+    [InlineData("hell", 1100)]
+    public Task Erinnerungen_zeigen_zwei_Karten_mit_Standard_und_Ausnahmen_und_oeffnen_das_Versandprotokoll_als_Seitenleiste(string theme, int width) =>
+        Render(theme, $"verwaltung-erinnerungen-{width}", async (window, main) =>
+        {
+            // Given die Erinnerungen mit Standard 42, zwei Ausnahmen und Zahlen der letzten 30 Tage
+            window.MinWidth = 0;
+            window.Width = width;
+            var reminders = await OpenSettingsArea<RemindersViewModel>(window, main, "Erinnerungen");
+            Assert.Equal("42", Named<TextBox>(window, "DefaultDaysField").Text);
+            Assert.Equal(2, reminders.Exceptions.Count);
+            Assert.Equal("Letzte 30 Tage: 34 verschickt, 0 fehlgeschlagen", Named<TextBlock>(window, "ReminderSummaryText").Text);
+            Assert.True(Named<Border>(window, "ExceptionTable").IsEffectivelyVisible);
+            Assert.False(Named<SidePanel>(window, "LogPanel").IsEffectivelyVisible);
+
+            // When „Versandprotokoll“ unter den Wiederbuchungs-Hinweisen angeklickt wird
+            await ClickScrolled(window, "RebookLogButton");
+
+            // Then steht die Liste der Wiederbuchungs-Hinweise in der Seitenleiste rechts, ohne dass die Karten verschwinden
+            var panel = Named<SidePanel>(window, "LogPanel");
+            Assert.True(panel.IsEffectivelyVisible);
+            Assert.True(reminders.Log.IsOpen);
+            Assert.Equal(DispatchFilter.Rebook, reminders.Log.Current);
+            Assert.Equal(2, Named<ItemsControl>(window, "LogList").GetVisualDescendants().OfType<Button>().Count(b => b.IsEffectivelyVisible && b.Classes.Contains("ghost")));
+            Assert.True(Named<Border>(window, "RebookCard").IsEffectivelyVisible);
+            Assert.True(RightOf(window, Named<Border>(window, "RebookCard")) <= LeftOf(window, panel) + 0.5);
+            Assert.True(RightOf(window, panel) <= window.Bounds.Width + 0.5);
+
+            // Und kein Feld der Leiste ragt unter die Bildlaufleiste: die Auswahl „Zeitraum“ endet vor dem rechten Rand der Leiste mit 20 Innenabstand.
+            Assert.True(RightOf(window, Named<ComboBox>(window, "LogPeriod")) <= RightOf(window, panel) - 20 + 0.5);
+            Assert.True(RightOf(window, Named<ListBox>(window, "LogFilters")) <= RightOf(window, panel) - 20 + 0.5);
+
+            // When die erste Zeile angeklickt wird, Then klappt ihr Text auf
+            var first = Named<ItemsControl>(window, "LogList").GetVisualDescendants().OfType<Button>().First(b => b.IsEffectivelyVisible && b.Classes.Contains("ghost"));
+            ClickCenter(window, first);
+            await Pump(Settling);
+            Assert.True(Shows(window, "„Ihr letzter Besuch bei uns ist schon eine Weile her.“"));
+            return reminders;
+        }, SettingsApi());
+
     [Fact]
-    public Task Erinnerungen_zeigen_Zuletzt_verschickt_rechts_im_Verhaeltnis_3_zu_2_und_schmal_darunter() => Render("hell", "probe-erinnerungen-spalten", async (window, main) =>
+    public Task Erinnerungen_nehmen_eine_Ausnahme_aus_dem_Menue_und_zeigen_Tage_leer_als_kein_Hinweis() => Render("hell", "probe-erinnerungen-ausnahme", async (window, main) =>
     {
-        // Given die Erinnerungen mit einem verschickten Hinweis im breiten Fenster
+        // Given die Erinnerungen mit zwei Ausnahmen
         var reminders = await OpenSettingsArea<RemindersViewModel>(window, main, "Erinnerungen");
-        Assert.True(reminders.HasRecent);
-        var columns = Named<MainSideColumns>(window, "ReminderColumns");
-        var settings = columns.Children[0];
-        var recent = Named<Control>(window, "RecentSection");
+        var before = reminders.Exceptions.Count;
 
-        // Then steht „Zuletzt verschickt“ rechts neben den Einstellungen, Haupt- zu Nebeninhalt 3 : 2 mit 32 Abstand (masken.md R14).
-        Assert.False(columns.IsStacked);
-        Assert.Equal(TopOf(window, settings), TopOf(window, recent), 0.5);
-        Assert.Equal(LeftOf(window, settings) + settings.Bounds.Width + 32, LeftOf(window, recent), 0.5);
-        Assert.Equal(1.5, settings.Bounds.Width / recent.Bounds.Width, 0.01);
-        Assert.True(settings.Bounds.Width <= 720.5);
+        // When eine Behandlung aus „+ Ausnahme“ gewählt wird
+        var field = Named<ComboBox>(window, "AddExceptionField");
+        field.BringIntoView();
+        reminders.NewException = reminders.ExceptionChoices.First(c => c.Kind == RebookExceptionKind.Treatment);
+        await Pump(Settling);
 
-        // When das Fenster am Minimum steht und „KI und Hilfe“ offen ist (604 px), Then stehen beide in voller Breite untereinander.
-        window.MinWidth = 0;
-        window.Width = 1100;
-        ((ShellViewModel)main.Content!).Companion.ToggleCommand.Execute(null);
-        await Pump(Settling);
-        await Pump(Settling);
-        Assert.True(columns.IsStacked);
-        Assert.True(TopOf(window, recent) >= BottomOf(window, settings));
+        // Then steht eine Zeile mit „kein Hinweis“ in der Tabelle, und die Maske hat etwas zu speichern
+        Assert.Equal(before + 1, reminders.Exceptions.Count);
+        Assert.True(Shows(window, "kein Hinweis"));
+        Assert.True(reminders.HasUnsavedChanges);
+        Assert.Null(field.SelectedItem);
         return reminders;
     }, SettingsApi());
 

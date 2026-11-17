@@ -1256,8 +1256,8 @@ Expected: Rechts öffnet die Seitenleiste „Verlauf“ mit dem Untertitel „Fi
 Expected: Die Seitenleiste schließt, der Fokus steht wieder auf **Verlauf**.
 3. Nacheinander **Standorte & Räume**, **Schließzeiten**, **Kalender-Abos** und **Handbuch** öffnen.
 Expected: Die Liste links ist in allen vier Masken gleich breit.
-4. **Kontakt** › **Erinnerungen** im breiten Fenster öffnen, danach das Fenster schmal ziehen.
-Expected: „Zuletzt verschickt“ steht rechts neben den Einstellungen, im schmalen Fenster darunter.
+4. **Kontakt** › **Erinnerungen** öffnen und bei den Wiederbuchungs-Hinweisen auf **Versandprotokoll** klicken.
+Expected: Rechts öffnet die Seitenleiste „Versandprotokoll“ mit den Wiederbuchungs-Hinweisen, die Karten links bleiben sichtbar; „Alle“, „Erinnerung“, „Wiederbuchung“ und „Fehlgeschlagen“ wechseln die Auswahl, ein Klick auf eine Zeile klappt Text oder Grund auf, „Exportieren“ speichert die Liste.
 5. **Kassa & Geld** › **Zahlungen** mit hinterlegtem Testschlüssel (`sk_test_…`) öffnen.
 Expected: Die Warnung „Testschlüssel hinterlegt“ steht oben unter dem Stand des Kontos, vor der Wahl der Zahlungsart.
 6. **Kassa & Geld** › **Kosten** öffnen, wenn bei einer Behandlung das Material fehlt.
