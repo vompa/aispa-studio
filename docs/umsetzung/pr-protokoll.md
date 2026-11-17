@@ -7159,3 +7159,9 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Geprüft:** siehe PR-Text.
 - **Beim Schreiben festgestellt:** Die Tests der Maske „Erinnerungen“ liefen bisher immer mit allen Routen; ein fehlendes Modul ließ sich nur im echten Einzelplatz sehen. `HasUnsavedChanges` setzte beide gespeicherten Stände voraus und wäre ohne Wiederbuchung nie wahr geworden, das ist mit angepasst. Die Karten „Zahlungen“ und „Postfach & Nummern“ laden ohne eigenen Schalter; sie sind nur über die Verwaltung erreichbar, die sie jetzt ausblendet.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Lager › Bestand: Spaltenköpfe nur mit Zeilen (17.11.2026)
+
+- **Was:** Die Kopfzeile der Tabelle (Material, Bestand, Reicht für, Status) steht nur noch, wenn es Zeilen gibt (`IsVisible="{Binding !ShowEmpty}"` in `StockOverviewSection.axaml`); leer steht nur „Noch kein Material angelegt.“. Nachtrag zu P10c, wo die übrigen Leersätze schon so arbeiten.
+- **Geprüft:** Ansichtstests `Leerer_Betrieb_Lager_Bestand_zeigt_Material_anlegen_ueber_der_Liste` und `Lager_Bestand_hat_vier_Spalten_und_die_uebrigen_Werte_im_Seitenpanel` (hell und dunkel) grün, Bilder angesehen; das Handbuchbild mit Daten ist unverändert.
+- **Text-Prüfung:** kein neuer Text.

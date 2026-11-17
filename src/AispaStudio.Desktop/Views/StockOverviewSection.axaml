@@ -23,7 +23,7 @@
           <Run Text="Lagerwert " /><Run Text="{Binding ValueText}" /><Run Text=" " /><Run Text="{Binding ValueNote}" />
         </TextBlock>
 
-        <Grid ColumnDefinitions="*,200,150,130" ColumnSpacing="12" Margin="10,0" AutomationProperties.AccessibilityView="Raw">
+        <Grid ColumnDefinitions="*,200,150,130" ColumnSpacing="12" Margin="10,0" AutomationProperties.AccessibilityView="Raw" IsVisible="{Binding !ShowEmpty}">
           <TextBlock Text="Material" Classes="group" />
           <TextBlock Grid.Column="1" Text="Bestand" Classes="group" />
           <TextBlock Grid.Column="2" Text="Reicht für" Classes="group" />
