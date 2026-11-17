@@ -1,6 +1,7 @@
 using AispaStudio.Desktop.Controls;
 using AispaStudio.Desktop.ViewModels;
 using AispaStudio.Desktop.Views;
+using Avalonia.Automation;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.VisualTree;
@@ -34,4 +35,25 @@ public sealed partial class ViewTests
         Assert.Equal(5, Named<ComboBox>(card, "VoucherListStatus").ItemCount);
         return shell.Pos;
     }, Api());
+
+    [Fact]
+    public Task Kassa_Given_Online_Zahlungen_geoeffnet_Then_Gutscheine_und_Erstattungen_mit_Stand() => Render("hell", "kassa-online-zahlungen", async (window, main) =>
+    {
+        await SignedInCalendar(main);
+        var shell = (ShellViewModel)main.Content!;
+        await shell.CheckoutAsync(SpaSample.Paying);
+        await Pump(Settling);
+        var page = window.GetVisualDescendants().OfType<PosView>().First();
+        Assert.Equal("Online-Zahlungen", AutomationProperties.GetName(Named<Button>(page, "OnlinePaymentsButton")));
+        var popup = page.GetVisualDescendants().OfType<Popup>().Single(p => p.Child is Border { Name: "OnlinePaymentsCard" });
+
+        await shell.Pos.ToggleOnlinePaymentsCommand.ExecuteAsync(null);
+        await Pump(Settling);
+
+        Assert.True(popup.IsOpen);
+        var texts = ((Border)popup.Child!).GetVisualDescendants().OfType<TextBlock>().Where(t => t.IsEffectivelyVisible).Select(t => t.Text).ToList();
+        Assert.Contains("Wertgutschein 50,00 € · 19.10.2026 09:12", texts);
+        Assert.Contains("Erstattungen", texts);
+        return shell.Pos;
+    }, PosOnlinePaymentsTests.WithPayments(Api()));
 }

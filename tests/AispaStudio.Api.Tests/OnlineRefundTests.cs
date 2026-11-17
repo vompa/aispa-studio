@@ -86,6 +86,15 @@ public sealed class OnlineRefundTests(ApiFixture fixture)
 
         var again = await spa.Client.PostAsync($"/api/pos/receipts/{sale.Id}/online-refund", null, Ct);
         Assert.Equal(HttpStatusCode.Conflict, again.StatusCode);
+
+        // Liste „Online-Zahlungen“ in der Kassa: Bestellung mit Beleg, Erstattung mit Beleg und Stornobeleg.
+        var orders = await spa.GetAsync<List<VoucherOrderStaffEntry>>($"/api/locations/{spa.Location.Id}/voucher-orders", Ct);
+        Assert.Equal((VoucherOrderStatus.Refunded, $"{register.Code} Nr. {sale.Number}, {sale.IssuedAt:dd.MM.yyyy}"),
+            (Assert.Single(orders).Status, orders[0].Receipt));
+        var listed = Assert.Single(await spa.GetAsync<List<OnlineRefundStaffEntry>>($"/api/locations/{spa.Location.Id}/online-refunds", Ct));
+        Assert.Equal((sale.Id, OnlinePaymentSource.Voucher, 50m, OnlineRefundStatus.Refunded), (listed.ReceiptId, listed.Source, listed.Amount, listed.Status));
+        Assert.Equal($"{register.Code} Nr. {voided.Number}, {voided.IssuedAt:dd.MM.yyyy}", listed.VoidReceipt);
+        Assert.NotNull(listed.RefundedAt);
     }
 
     [Fact]
@@ -153,5 +162,7 @@ public sealed class OnlineRefundTests(ApiFixture fixture)
 
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
         Assert.Equal(HttpStatusCode.NotFound, foreign.StatusCode);
+        Assert.Empty(await spa.GetAsync<List<OnlineRefundStaffEntry>>($"/api/locations/{spa.Location.Id}/online-refunds", Ct));
+        Assert.Equal(HttpStatusCode.NotFound, (await other.Client.GetAsync($"/api/locations/{spa.Location.Id}/online-refunds", Ct)).StatusCode);
     }
 }
