@@ -77,7 +77,7 @@
                               <TextBlock Text="Niemand eingetragen" />
                             </StackPanel>
                           </Border>
-                          <Button Classes="ghost link" Content="+ Person" IsVisible="{Binding HasCandidates}" AutomationProperties.Name="{Binding AddName}" VerticalAlignment="Top" Margin="0,2,0,0">
+                          <Button Classes="ghost link" Content="+ Person" IsVisible="{Binding HasCandidates}" AutomationProperties.Name="{Binding AddName}" VerticalAlignment="Center" Margin="0,0,0,6">
                             <Button.Flyout>
                               <MenuFlyout Placement="BottomEdgeAlignedLeft" ItemsSource="{Binding Candidates}">
                                 <MenuFlyout.ItemContainerTheme>

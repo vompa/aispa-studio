@@ -74,8 +74,8 @@
             <Grid ColumnDefinitions="Auto,Auto,*,Auto" ColumnSpacing="4">
               <TextBlock Text="Wer darf was, wer ist zuständig?" Classes="h3" VerticalAlignment="Center" />
               <ui:HelpButton Topic="regelungen-vollmachten" Section="wer-darf-was" Grid.Column="1" />
-              <ComboBox Grid.Column="3" x:Name="RightsLocationBox" ItemsSource="{Binding Powers.Locations}" SelectedItem="{Binding Powers.SelectedLocation}" MinWidth="180"
-                        IsVisible="{Binding Powers.ShowsLocations}" AutomationProperties.Name="Standort der Tabelle">
+              <ComboBox Grid.Column="3" x:Name="RightsLocationBox" ItemsSource="{Binding Powers?.Locations}" SelectedItem="{Binding Powers?.SelectedLocation}" MinWidth="180"
+                        IsVisible="{Binding ShowsRightsLocations}" AutomationProperties.Name="Standort der Tabelle">
                 <ComboBox.ItemTemplate>
                   <DataTemplate x:DataType="vm:RightsLocation">
                     <TextBlock Text="{Binding Name}" />

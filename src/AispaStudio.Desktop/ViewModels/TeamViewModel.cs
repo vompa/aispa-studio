@@ -162,6 +162,9 @@ public sealed partial class TeamViewModel : ViewModelBase, ITargetedArea
     /// <summary>Der Abschnitt „Wer darf was?“ steht in „Rechte und Zuständigkeiten“.</summary>
     public bool ShowsPowersSection => Powers is not null;
 
+    /// <summary>Die Standortwahl der Rechte-Tabelle steht nur bei mehr als einem Standort.</summary>
+    public bool ShowsRightsLocations => Powers?.ShowsLocations == true;
+
     /// <summary>Der Abschnitt „Zuständigkeiten“ steht in „Rechte und Zuständigkeiten“.</summary>
     public bool ShowsDutiesSection => Duties is not null;
 
@@ -439,6 +442,13 @@ public sealed partial class TeamViewModel : ViewModelBase, ITargetedArea
         {
             Powers = new RightsTableViewModel(_context!);
             Powers.Changed += OnRightsChangedAsync;
+            Powers.PropertyChanged += (_, e) =>
+            {
+                if (e.PropertyName == nameof(RightsTableViewModel.ShowsLocations))
+                {
+                    OnPropertyChanged(nameof(ShowsRightsLocations));
+                }
+            };
         }
 
         if (CanDuties)
