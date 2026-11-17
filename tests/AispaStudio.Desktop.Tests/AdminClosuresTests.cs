@@ -5,7 +5,11 @@ using AispaStudio.Desktop.ViewModels;
 
 namespace AispaStudio.Desktop.Tests;
 
-/// <summary>R05 Slice 95 (Ä206): native Maske „Schließzeiten“ nach ClosuresPage.tsx: Liste mit Reitern, Formular, Löschen, Termine absagen, Protokoll und Wartezeit.</summary>
+/// <summary>
+/// R05 Slice 95 (Ä206), seit ADR 0098 die Seite „Schließzeiten“: eine Liste mit Schließzeiten und Raumsperren aus der Übersicht der API, kommende zuerst, Vergangenes eingeklappt; das
+/// Formular der Schließzeit in der Seitenleiste mit Löschen, Termine absagen und Protokoll; „Einrichtung“ mit der Wartezeit; Rückmeldungen als Toast. Die Raumsperre steht in
+/// <see cref="AdminRoomClosuresTests"/>.
+/// </summary>
 public sealed class AdminClosuresTests
 {
     private const string FormError = "Die Schließzeit konnte nicht gespeichert werden. Bitte die markierten Felder prüfen.";
@@ -27,16 +31,30 @@ public sealed class AdminClosuresTests
 
     private static StubApi Api(params ClosureDto[] closures)
     {
-        // Die Liste verändert sich mit POST und PUT wie die der API.
+        // Die Liste verändert sich mit POST und PUT wie die der API; die Übersicht und der Einzelabruf lesen sie.
         var list = closures.ToList();
-        return new StubApi()
+        var api = new StubApi()
             .On("GET /api/locations", new List<LocationDto> { TestData.Location })
-            .On($"GET {Route()}", list)
+            .On($"GET /api/locations/{TestData.LocationId}/resources", TestData.Resources)
+            .OnOverview(TestData.LocationId, () => list.Select(ClosuresTestKit.ToItem))
             .On($"GET /api/locations/{TestData.LocationId}/guest-message-delay", new GuestMessageDelayDto(10))
+            .OnJson($"DELETE {Route("/" + ClosureId)}", _ =>
+            {
+                list.RemoveAll(c => c.Id == ClosureId);
+                return new object();
+            }, System.Net.HttpStatusCode.NoContent);
+        void Serve(Guid id) => api.OnJson($"GET {Route("/" + id)}", _ => list.First(c => c.Id == id));
+        foreach (var closure in list)
+        {
+            Serve(closure.Id);
+        }
+
+        return api
             .OnJson($"POST {Route()}", body =>
             {
                 var created = FromInput(Guid.NewGuid(), body);
                 list.Add(created);
+                Serve(created.Id);
                 return created;
             })
             .OnJson($"PUT {Route("/" + ClosureId)}", body =>
@@ -44,8 +62,7 @@ public sealed class AdminClosuresTests
                 var changed = FromInput(ClosureId, body);
                 list[list.FindIndex(c => c.Id == ClosureId)] = changed;
                 return changed;
-            })
-            .On($"DELETE {Route("/" + ClosureId)}", null, System.Net.HttpStatusCode.NoContent);
+            });
     }
 
     private static ClosureDto FromInput(Guid id, string? body)
@@ -54,24 +71,35 @@ public sealed class AdminClosuresTests
         return Closure(id, input.FromDate, input.UntilDate, input.Kind, reason: input.InternalReason, guest: input.GuestText) with { FromTime = input.FromTime, UntilTime = input.UntilTime };
     }
 
-    private static async Task<ClosuresViewModel> Open(StubApi api, CurrentUser? user = null, FakeDialogs? dialogs = null)
+    private static async Task<ClosuresPageViewModel> Open(StubApi api, CurrentUser? user = null, FakeDialogs? dialogs = null)
     {
-        var closures = new ClosuresViewModel(api.Client(), user ?? TestData.Owner(), Now) { Dialogs = dialogs };
-        await closures.EnsureLoadedAsync();
-        return closures;
+        var page = new ClosuresPageViewModel(api.Client(), user ?? TestData.Owner(), Now) { Dialogs = dialogs };
+        await page.EnsureLoadedAsync();
+        return page;
+    }
+
+    /// <summary>Die Seite mit dem Formular der ersten kommenden Schließzeit offen.</summary>
+    private static async Task<ClosuresPageViewModel> OpenFirst(StubApi api, CurrentUser? user = null, FakeDialogs? dialogs = null)
+    {
+        var page = await Open(api, user, dialogs);
+        await page.OpenRowAsync(page.Upcoming[0]);
+        return page;
     }
 
     private static T Sent<T>(StubApi api, string route) => JsonSerializer.Deserialize<T>(api.Calls.Single(c => c.Route == route).Body!, ApiClient.Json)!;
 
     private static int CallsTo(StubApi api, string route) => api.Calls.Count(c => c.Route == route);
 
+    private static string OverviewRoute(ClosureScope scope) => $"GET /api/locations/{TestData.LocationId}/closure-overview?scope={scope}";
+
     [Fact]
     public async Task Given_eine_Schliesszeit_24_bis_26_12_When_sie_angelegt_wird_Then_POST_mit_den_Tagen_und_der_Art()
     {
         var api = Api();
-        var closures = await Open(api);
+        var page = await Open(api);
+        var closures = page.ClosureEditor;
 
-        await closures.NewCommand.ExecuteAsync(null);
+        await page.NewCommand.ExecuteAsync(null);
         closures.Period.FromDate = "24.12.2027";
         closures.Period.UntilDate = "26.12.2027";
         closures.Kind = ClosureKind.SpecialClosure;
@@ -79,32 +107,38 @@ public sealed class AdminClosuresTests
         Assert.True(await closures.SaveChangesAsync());
 
         Assert.Equal(new ClosureInput(new(2027, 12, 24), null, new(2027, 12, 26), null, ClosureKind.SpecialClosure, null, "Frohe Weihnachten"), Sent<ClosureInput>(api, $"POST {Route()}"));
-        Assert.Equal("Gespeichert.", closures.StatusText);
         Assert.False(closures.HasUnsavedChanges);
-        var row = Assert.Single(closures.Rows);
-        Assert.Equal(("Sonderschließung", "24.12.2027 bis 26.12.2027"), (row.Title, row.Period));
-        Assert.Same(row, closures.SelectedRow);
+        var row = Assert.Single(page.Upcoming);
+        Assert.Equal(("Sonderschließung", "24.12.2027 bis 26.12.2027", "Frohe Weihnachten", "Standort"), (row.Title, row.Period, row.Reason, row.TypeText));
+        Assert.Same(row, page.SelectedUpcoming);
+        Assert.Equal("Schließzeit gespeichert", page.Toast);
     }
 
     [Fact]
     public async Task Given_ein_neues_Formular_Then_Von_und_Bis_sind_heute_und_die_Art_ist_Betriebsurlaub()
     {
-        var closures = await Open(Api());
+        var page = await Open(Api());
+        var closures = page.ClosureEditor;
 
-        await closures.NewCommand.ExecuteAsync(null);
+        await page.NewCommand.ExecuteAsync(null);
 
         Assert.True(closures.IsCreating);
         Assert.Equal(("01.03.2027", "01.03.2027", ClosureKind.Vacation, false), (closures.Period.FromDate, closures.Period.UntilDate, closures.Kind, closures.Period.IsPartial));
         Assert.False(closures.HasUnsavedChanges);
         Assert.Equal("Neue Schließzeit", closures.HeadingText);
+        Assert.True(page.IsPanelOpen);
+        Assert.Same(closures, page.Editor);
+        Assert.Equal("Neue Schließzeit", page.PanelTitle);
+        Assert.False(page.NewIsRoom);
     }
 
     [Fact]
     public async Task Given_bis_vor_von_When_gespeichert_wird_Then_Fehler_am_Feld_und_kein_Aufruf()
     {
         var api = Api();
-        var closures = await Open(api);
-        await closures.NewCommand.ExecuteAsync(null);
+        var page = await Open(api);
+        var closures = page.ClosureEditor;
+        await page.NewCommand.ExecuteAsync(null);
 
         closures.Period.FromDate = "26.12.2027";
         closures.Period.UntilDate = "24.12.2027";
@@ -120,8 +154,9 @@ public sealed class AdminClosuresTests
     public async Task Given_ein_halber_Tag_mit_Ende_vor_Beginn_When_gespeichert_wird_Then_Fehler_an_der_Uhrzeit()
     {
         var api = Api();
-        var closures = await Open(api);
-        await closures.NewCommand.ExecuteAsync(null);
+        var page = await Open(api);
+        var closures = page.ClosureEditor;
+        await page.NewCommand.ExecuteAsync(null);
 
         closures.Period.IsPartial = true;
         closures.Period.FromTime = "13:00";
@@ -136,9 +171,9 @@ public sealed class AdminClosuresTests
     [Fact]
     public async Task Given_ein_leeres_Datum_When_gespeichert_wird_Then_steht_der_Fehler_am_Feld_wie_im_Web()
     {
-        var api = Api();
-        var closures = await Open(api);
-        await closures.NewCommand.ExecuteAsync(null);
+        var page = await Open(Api());
+        var closures = page.ClosureEditor;
+        await page.NewCommand.ExecuteAsync(null);
 
         closures.Period.FromDate = "";
         closures.Period.UntilDate = "";
@@ -155,8 +190,9 @@ public sealed class AdminClosuresTests
     public async Task Given_ein_halber_Tag_When_gespeichert_wird_Then_gehen_die_Uhrzeiten_mit_und_ohne_Haken_nicht()
     {
         var api = Api();
-        var closures = await Open(api);
-        await closures.NewCommand.ExecuteAsync(null);
+        var page = await Open(api);
+        var closures = page.ClosureEditor;
+        await page.NewCommand.ExecuteAsync(null);
         closures.Period.FromDate = "24.12.2027";
         closures.Period.UntilDate = "24.12.2027";
         closures.Period.FromTime = "13:00";
@@ -167,7 +203,7 @@ public sealed class AdminClosuresTests
         Assert.Equal(new ClosureInput(new(2027, 12, 24), new(13, 0), new(2027, 12, 24), null, ClosureKind.Vacation, "Wasserschaden", null), Sent<ClosureInput>(api, $"POST {Route()}"));
 
         // Haken weg: Uhrzeiten bleiben im Formular stehen, gehen aber nicht mit.
-        await closures.NewCommand.ExecuteAsync(null);
+        await page.NewCommand.ExecuteAsync(null);
         closures.Period.FromTime = "13:00";
         closures.Period.IsPartial = false;
         Assert.True(await closures.SaveChangesAsync());
@@ -179,8 +215,9 @@ public sealed class AdminClosuresTests
     [Fact]
     public async Task Given_zu_langer_Text_When_gespeichert_wird_Then_Fehler_am_Feld()
     {
-        var closures = await Open(Api());
-        await closures.NewCommand.ExecuteAsync(null);
+        var page = await Open(Api());
+        var closures = page.ClosureEditor;
+        await page.NewCommand.ExecuteAsync(null);
 
         closures.GuestText = new string('a', 201);
         closures.InternalReason = new string('b', 201);
@@ -190,95 +227,88 @@ public sealed class AdminClosuresTests
     }
 
     [Fact]
-    public async Task Given_die_Liste_When_geladen_Then_zeigt_sie_die_aktuellen_und_mit_Beendete_zeigen_auch_die_beendeten()
+    public async Task Given_die_Liste_When_geladen_Then_zeigt_sie_die_kommenden_und_Vergangene_klappt_die_beendeten_auf()
     {
-        // ADR 0098: „Beendete zeigen“ ist ein Kontrollkästchen wie „Ausgeschiedene zeigen“ im Team, keine Reiter „Aktuell“ und „Beendet“.
-        var closures = await Open(Api(Christmas, Past));
+        // ADR 0098: Kommendes zuerst; Vergangenes ist eingeklappt und lädt erst beim Aufklappen (ein Aufruf mit „alle“).
+        var api = Api(Christmas, Past);
+        var page = await Open(api);
 
-        Assert.False(closures.ShowEnded);
-        Assert.Equal("Beendete zeigen (1)", closures.ShowEndedLabel);
-        Assert.Equal("Schließzeiten: aktuelle", closures.ListLabel);
-        Assert.Equal(["Betriebsurlaub"], closures.Rows.Select(r => r.Title));
-        Assert.Equal("Betriebsurlaub, 24.12.2027 bis 26.12.2027", closures.HeadingText);
-        Assert.Equal("Geplant", closures.PhaseText);
+        Assert.Equal(["Betriebsurlaub"], page.Upcoming.Select(r => r.Title));
+        Assert.Equal(("Vergangene (1)", true, false), (page.PastLabel, page.HasPast, page.IsPastOpen));
+        Assert.Empty(page.Past);
+        Assert.Equal(1, CallsTo(api, OverviewRoute(ClosureScope.Upcoming)));
+        Assert.Equal(0, CallsTo(api, OverviewRoute(ClosureScope.All)));
+        var row = page.Upcoming[0];
+        Assert.Equal(("Standort", "Inventur", "keine offenen Termine", "Geplant", false), (row.TypeText, row.Reason, row.AppointmentsText, row.StatusText, row.IsEnded));
 
-        closures.ShowEnded = true;
-        await Task.Yield();
+        await page.TogglePastCommand.ExecuteAsync(null);
 
-        // Die beendeten stehen nach den aktuellen; der offene Eintrag bleibt gewählt.
-        Assert.Equal(["Betriebsurlaub", "Ausfall"], closures.Rows.Select(r => r.Title));
-        Assert.Equal([false, true], closures.Rows.Select(r => r.IsEnded));
-        Assert.Equal("Schließzeiten: aktuelle und beendete", closures.ListLabel);
-        Assert.Equal("Betriebsurlaub", closures.SelectedRow?.Title);
-        Assert.Equal("Geplant", closures.PhaseText);
+        Assert.True(page.IsPastOpen);
+        Assert.Equal(1, CallsTo(api, OverviewRoute(ClosureScope.All)));
+        var ended = Assert.Single(page.Past);
+        Assert.Equal(("Ausfall", "Wasserschaden", "Beendet", true), (ended.Title, ended.Reason, ended.StatusText, ended.IsEnded));
+        Assert.Contains("beendet", ended.Name.ToLowerInvariant(), StringComparison.Ordinal);
+        Assert.Equal(["Betriebsurlaub"], page.Upcoming.Select(r => r.Title));
 
-        closures.SelectedRow = closures.Rows[1];
-        await Task.Yield();
-        Assert.Equal("Beendet", closures.PhaseText);
-        Assert.Equal(("Ausfall", "Wasserschaden"), (closures.SelectedRow?.Title, closures.SelectedRow?.Detail));
-        Assert.Contains("beendet", closures.SelectedRow!.Name, StringComparison.Ordinal);
+        // Ein vergangener Eintrag öffnet sich wie jeder andere, mit seinem Zustand.
+        await page.OpenRowAsync(ended);
+        Assert.Equal(("Beendet", "Wasserschaden"), (page.ClosureEditor.PhaseText, page.ClosureEditor.GuestText));
+        Assert.Same(ended, page.SelectedPast);
+        Assert.Null(page.SelectedUpcoming);
 
-        // Ohne den Haken verschwindet der beendete Eintrag, und der erste aktuelle ist gewählt.
-        closures.ShowEnded = false;
-        await Task.Yield();
-        Assert.Equal(["Betriebsurlaub"], closures.Rows.Select(r => r.Title));
-        Assert.Equal("Betriebsurlaub", closures.SelectedRow?.Title);
-        Assert.Equal("Geplant", closures.PhaseText);
+        await page.TogglePastCommand.ExecuteAsync(null);
+        Assert.False(page.IsPastOpen);
+        Assert.Empty(page.Past);
     }
 
     [Fact]
-    public async Task Given_ein_beendeter_Eintrag_mit_Aenderungen_When_Beendete_zeigen_abgewaehlt_wird_Then_fragt_die_Maske_und_bleibt_bei_Abbrechen()
+    public async Task Given_ein_neues_Formular_When_Vergangene_aufgeklappt_wird_Then_bleiben_die_Eingaben()
     {
-        var dialogs = new FakeDialogs().Answer(ConfirmChoice.Cancelled);
-        var closures = await Open(Api(Christmas, Past), dialogs: dialogs);
-        closures.ShowEnded = true;
-        await Task.Yield();
-        closures.SelectedRow = closures.Rows[1];
-        await Task.Yield();
-        closures.InternalReason = "Wasserschaden im Keller";
-        Assert.True(closures.HasUnsavedChanges);
+        var page = await Open(Api(Christmas, Past));
+        await page.NewCommand.ExecuteAsync(null);
+        page.ClosureEditor.InternalReason = "Inventur";
 
-        closures.ShowEnded = false;
-        await Task.Yield();
+        await page.TogglePastCommand.ExecuteAsync(null);
 
-        Assert.Single(dialogs.Asked);
-        Assert.True(closures.ShowEnded);
-        Assert.Equal(["Betriebsurlaub", "Ausfall"], closures.Rows.Select(r => r.Title));
-        Assert.Equal("Wasserschaden im Keller", closures.InternalReason);
+        Assert.True(page.ClosureEditor.IsCreating);
+        Assert.Equal("Inventur", page.ClosureEditor.InternalReason);
+        Assert.Single(page.Past);
     }
 
     [Fact]
-    public async Task Given_ein_neues_Formular_When_Beendete_zeigen_umgeschaltet_wird_Then_bleiben_die_Eingaben()
+    public async Task Given_keine_Schliesszeit_Then_zeigt_die_Seite_den_Leerzustand_mit_der_ersten_Aktion()
     {
-        var closures = await Open(Api(Christmas, Past));
-        await closures.NewCommand.ExecuteAsync(null);
-        closures.InternalReason = "Inventur";
+        var page = await Open(Api());
 
-        closures.ShowEnded = true;
-        await Task.Yield();
+        Assert.Empty(page.Upcoming);
+        Assert.True(page.ShowEmpty);
+        Assert.False(page.ShowList);
+        Assert.Equal($"{TestData.Location.Name} ist durchgehend offen", page.EmptyTitle);
+        Assert.False(page.Editor?.HasForm == true);
 
-        Assert.True(closures.IsCreating);
-        Assert.Equal("Inventur", closures.InternalReason);
-        Assert.Equal(2, closures.Rows.Count);
+        await page.NewLocationCommand.ExecuteAsync(null);
+        Assert.True(page.ClosureEditor.IsCreating);
+        Assert.False(page.NewIsRoom);
     }
 
     [Fact]
-    public async Task Given_keine_Schliesszeit_Then_die_Liste_sagt_es_und_das_Formular_fehlt()
+    public async Task Given_nur_vergangene_Eintraege_Then_steht_eine_ruhige_Zeile_statt_der_Aktionen()
     {
-        var closures = await Open(Api());
+        var page = await Open(Api(Past));
 
-        Assert.Empty(closures.Rows);
-        Assert.False(closures.HasForm);
-        Assert.Equal("Es ist keine Schließzeit eingetragen.", closures.EmptyText);
+        Assert.False(page.ShowEmpty);
+        Assert.True(page.ShowNoUpcoming);
+        Assert.True(page.ShowList);
+        Assert.Equal("Vergangene (1)", page.PastLabel);
     }
 
     [Fact]
-    public async Task Given_eine_Schliesszeit_mit_abgesagten_Terminen_When_die_Maske_sie_zeigt_Then_fehlt_Loeschen_und_das_Protokoll_ist_da()
+    public async Task Given_eine_Schliesszeit_mit_abgesagten_Terminen_When_das_Formular_sie_zeigt_Then_fehlt_Loeschen_und_das_Protokoll_ist_da()
     {
         var notice = Notice(ClosureNoticeState.Sent);
         var api = Api(Christmas with { CancelledAppointments = 1 }).On($"GET {Route("/" + ClosureId + "/notices")}", new List<ClosureNoticeDto> { notice });
 
-        var closures = await Open(api);
+        var closures = (await OpenFirst(api)).ClosureEditor;
 
         Assert.False(closures.CanDelete);
         Assert.False(closures.DeleteCommand.CanExecute(null));
@@ -292,7 +322,7 @@ public sealed class AdminClosuresTests
     [Fact]
     public async Task Given_eine_Schliesszeit_ohne_Absagen_Then_ist_Loeschen_moeglich_und_das_Protokoll_fehlt()
     {
-        var closures = await Open(Api(Christmas));
+        var closures = (await OpenFirst(Api(Christmas))).ClosureEditor;
 
         Assert.True(closures.CanDelete);
         Assert.False(closures.HasProtocol);
@@ -310,7 +340,7 @@ public sealed class AdminClosuresTests
         var api = Api(open)
             .On($"GET {Route("/" + ClosureId + "/cancellation")}", preview)
             .On($"POST {Route("/" + ClosureId + "/cancellation")}", new CancelClosureAppointmentsResult(2, 2, 0, 0, []));
-        var closures = await Open(api, dialogs: dialogs);
+        var closures = (await OpenFirst(api, dialogs: dialogs)).ClosureEditor;
         Assert.Equal("2 Termine liegen in der Schließzeit und bleiben gebucht, bis sie abgesagt werden. 1 Eintrag der Warteliste hat den Wunsch in der Schließzeit und wartet auf eine Nachricht.", closures.OpenNotice);
 
         var asking = closures.CancelAppointmentsCommand.ExecuteAsync(null);
@@ -327,7 +357,7 @@ public sealed class AdminClosuresTests
     }
 
     [Fact]
-    public async Task Given_eine_Absage_When_sie_durch_ist_Then_steht_die_Rueckmeldung_in_der_Maske_und_die_Liste_ist_neu_geladen()
+    public async Task Given_eine_Absage_When_sie_durch_ist_Then_steht_die_Rueckmeldung_als_Toast_und_die_Liste_ist_neu_geladen()
     {
         var rows = new[] { ClosureTests.Row("Ida Muster", 10, ClosureChannel.Email) };
         var open = Christmas with { OpenAppointments = 1 };
@@ -335,21 +365,43 @@ public sealed class AdminClosuresTests
         var api = Api(open)
             .On($"GET {Route("/" + ClosureId + "/cancellation")}", ClosureTests.Preview(true, rows) with { Closure = open })
             .On($"POST {Route("/" + ClosureId + "/cancellation")}", new CancelClosureAppointmentsResult(1, 1, 0, 0, []));
-        var closures = await Open(api, dialogs: dialogs);
+        var page = await OpenFirst(api, dialogs: dialogs);
 
-        var asking = closures.CancelAppointmentsCommand.ExecuteAsync(null);
+        var asking = page.ClosureEditor.CancelAppointmentsCommand.ExecuteAsync(null);
         (await Opened(dialogs, asking)).SendCommand.Execute(null);
         await asking;
 
-        Assert.Equal("1 Termin abgesagt, 1 Nachricht", closures.Message);
-        Assert.Equal(2, CallsTo(api, $"GET {Route()}"));
+        // Ein Erfolg ist ein Toast (eine Zeile, ohne Schlusspunkt), kein Balken im Formular (meldungen.md M1).
+        Assert.Equal("1 Termin abgesagt, 1 Nachricht", page.Toast);
+        Assert.Null(page.ClosureEditor.Message);
+        Assert.Equal(2, CallsTo(api, OverviewRoute(ClosureScope.Upcoming)));
+    }
+
+    [Fact]
+    public async Task Given_eine_Absage_mit_Problemen_Then_bleibt_die_Warnung_im_Formular_stehen()
+    {
+        var rows = new[] { ClosureTests.Row("Ida Muster", 10, ClosureChannel.Email) };
+        var open = Christmas with { OpenAppointments = 1 };
+        var dialogs = new FakeDialogs();
+        var api = Api(open)
+            .On($"GET {Route("/" + ClosureId + "/cancellation")}", ClosureTests.Preview(true, rows) with { Closure = open })
+            .On($"POST {Route("/" + ClosureId + "/cancellation")}", new CancelClosureAppointmentsResult(1, 1, 0, 1, []));
+        var page = await OpenFirst(api, dialogs: dialogs);
+
+        var asking = page.ClosureEditor.CancelAppointmentsCommand.ExecuteAsync(null);
+        (await Opened(dialogs, asking)).SendCommand.Execute(null);
+        await asking;
+
+        Assert.Null(page.Toast);
+        Assert.Contains("nicht möglich", page.ClosureEditor.Message, StringComparison.Ordinal);
+        Assert.Equal(AispaStudio.Desktop.Controls.InfoBarSeverity.Warning, page.ClosureEditor.MessageSeverity);
     }
 
     [Fact]
     public async Task Given_eine_Absage_ohne_Recht_zu_buchen_Then_fehlt_der_Knopf_und_ein_Hinweis_steht_da()
     {
         var user = TestData.Manager() with { Rights = [AccessRight.ViewCalendar, AccessRight.ManageLocation] };
-        var closures = await Open(Api(Christmas with { OpenAppointments = 1 }), user);
+        var closures = (await OpenFirst(Api(Christmas with { OpenAppointments = 1 }), user)).ClosureEditor;
 
         Assert.False(closures.CanBook);
         Assert.False(closures.CancelAppointmentsCommand.CanExecute(null));
@@ -363,7 +415,7 @@ public sealed class AdminClosuresTests
         var api = Api(Christmas with { CancelledAppointments = 1 })
             .On($"GET {Route("/" + ClosureId + "/notices")}", new List<ClosureNoticeDto> { waiting })
             .On($"POST {Route("/" + ClosureId + "/notices/" + waiting.Id + "/send-now")}", waiting with { State = ClosureNoticeState.Sent });
-        var closures = await Open(api);
+        var closures = (await OpenFirst(api)).ClosureEditor;
 
         var row = Assert.Single(closures.Notices);
         Assert.True(row.IsWaiting);
@@ -377,13 +429,13 @@ public sealed class AdminClosuresTests
     }
 
     [Fact]
-    public async Task Given_eine_wartende_Nachricht_When_Nicht_senden_und_schon_gesendet_Then_steht_der_Hinweis_in_der_Maske()
+    public async Task Given_eine_wartende_Nachricht_When_Nicht_senden_und_schon_gesendet_Then_steht_der_Hinweis_im_Formular()
     {
         var waiting = Notice(ClosureNoticeState.Queued) with { ScheduledFor = Now.GetUtcNow().AddMinutes(10) };
         var api = Api(Christmas with { CancelledAppointments = 1 })
             .On($"GET {Route("/" + ClosureId + "/notices")}", new List<ClosureNoticeDto> { waiting })
             .On($"POST {Route("/" + ClosureId + "/notices/" + waiting.Id + "/cancel")}", null, System.Net.HttpStatusCode.Conflict);
-        var closures = await Open(api);
+        var closures = (await OpenFirst(api)).ClosureEditor;
 
         await closures.Notices[0].CancelCommand.ExecuteAsync(null);
 
@@ -392,14 +444,16 @@ public sealed class AdminClosuresTests
     }
 
     [Fact]
-    public async Task Given_eine_Schliesszeit_When_Loeschen_bestaetigt_wird_Then_Rueckfrage_und_DELETE()
+    public async Task Given_eine_Schliesszeit_When_Loeschen_bestaetigt_wird_Then_Rueckfrage_DELETE_Toast_und_die_Leiste_schliesst()
     {
         var dialogs = new FakeDialogs().Answer(ConfirmChoice.Cancelled).Answer(ConfirmChoice.Confirmed);
         var api = Api(Christmas);
-        var closures = await Open(api, dialogs: dialogs);
+        var page = await OpenFirst(api, dialogs: dialogs);
+        var closures = page.ClosureEditor;
 
         await closures.DeleteCommand.ExecuteAsync(null);
         Assert.Equal(0, CallsTo(api, $"DELETE {Route("/" + ClosureId)}"));
+        Assert.True(page.IsPanelOpen);
 
         await closures.DeleteCommand.ExecuteAsync(null);
 
@@ -408,26 +462,34 @@ public sealed class AdminClosuresTests
         Assert.Equal("Schließzeit löschen?", asked.Title);
         Assert.Equal("Die Schließzeit „Betriebsurlaub, 24.12.2027 bis 26.12.2027“ ist danach weg. Termine werden nicht angefasst; ab dann gibt es in der Zeit wieder freie Zeiten.", asked.Message);
         Assert.Equal("Löschen", asked.ConfirmText);
-        Assert.Equal("Gelöscht.", closures.Message);
+        // Statt des Balkens „Gelöscht.“ ein Toast (meldungen.md M1); die Seitenleiste ist zu, die Zeile weg.
+        Assert.Equal("Schließzeit gelöscht", page.Toast);
+        Assert.Null(closures.Message);
+        Assert.False(page.IsPanelOpen);
+        Assert.Empty(page.Upcoming);
+        Assert.True(page.ShowEmpty);
     }
 
     [Fact]
-    public async Task Given_ungespeicherte_Schliesszeit_When_eine_andere_gewaehlt_wird_Then_fragt_die_Maske_Aenderungen_speichern()
+    public async Task Given_ungespeicherte_Schliesszeit_When_eine_andere_gewaehlt_wird_Then_fragt_die_Seite_Aenderungen_speichern()
     {
         var dialogs = new FakeDialogs().Answer(ConfirmChoice.Cancelled).Answer(ConfirmChoice.Alternative);
         var second = Closure(Guid.NewGuid(), new(2028, 2, 1), new(2028, 2, 3));
-        var closures = await Open(Api(Christmas, second), dialogs: dialogs);
-        var first = closures.SelectedRow;
+        var page = await OpenFirst(Api(Christmas, second), dialogs: dialogs);
+        var closures = page.ClosureEditor;
+        var first = page.SelectedUpcoming;
         closures.InternalReason = "geändert";
 
         // Abbrechen: bleibt bei der Schließzeit, die Eingabe bleibt.
-        closures.SelectedRow = closures.Rows[1];
+        page.SelectedUpcoming = page.Upcoming[1];
         await Task.Yield();
-        Assert.Same(first, closures.SelectedRow);
+        await Task.Yield();
+        Assert.Same(first, page.SelectedUpcoming);
         Assert.Equal("geändert", closures.InternalReason);
 
         // Verwerfen: wechselt, die Schließzeit steht wieder auf dem gespeicherten Stand.
-        closures.SelectedRow = closures.Rows[1];
+        page.SelectedUpcoming = page.Upcoming[1];
+        await Task.Yield();
         await Task.Yield();
         Assert.Equal("01.02.2028", closures.Period.FromDate);
         Assert.Equal(["Änderungen speichern?", "Änderungen speichern?"], dialogs.AssertRules().Asked.Select(a => a.Title));
@@ -435,24 +497,70 @@ public sealed class AdminClosuresTests
     }
 
     [Fact]
-    public async Task Given_ein_Sprung_mit_Zeitraum_When_die_Maske_offen_ist_Then_neues_Formular_mit_Von_und_Bis()
+    public async Task Given_ungespeicherte_Aenderungen_When_die_Leiste_geschlossen_wird_Then_fragt_die_Seite_und_oeffnet_sie_bei_Abbrechen_wieder()
     {
-        var closures = await Open(Api(Christmas));
+        var dialogs = new FakeDialogs().Answer(ConfirmChoice.Cancelled).Answer(ConfirmChoice.Alternative);
+        var page = await OpenFirst(Api(Christmas), dialogs: dialogs);
+        page.ClosureEditor.InternalReason = "geändert";
 
-        closures.Open(new AdminTarget(Location: TestData.LocationId, From: new(2027, 8, 2), Until: new(2027, 8, 6)));
+        page.IsPanelOpen = false;
+        await Task.Yield();
+        await Task.Yield();
+        Assert.True(page.IsPanelOpen);
+        Assert.Equal("geändert", page.ClosureEditor.InternalReason);
+
+        page.IsPanelOpen = false;
+        await Task.Yield();
+        await Task.Yield();
+        Assert.False(page.IsPanelOpen);
+        Assert.False(page.HasUnsavedChanges);
+        Assert.Null(page.SelectedUpcoming);
+        Assert.Equal(2, dialogs.Asked.Count);
+    }
+
+    [Fact]
+    public async Task Given_ein_offenes_neues_Formular_When_zwischen_Standort_und_Raum_gewechselt_wird_Then_oeffnet_das_andere_Formular()
+    {
+        var page = await Open(Api());
+        await page.NewCommand.ExecuteAsync(null);
+        Assert.Same(page.ClosureEditor, page.Editor);
+        Assert.True(page.NewIsLocation);
+
+        page.NewIsRoom = true;
+        await Task.Yield();
         await Task.Yield();
 
+        // Die Testdaten haben Räume: das Formular „Einzelner Raum“ gilt, das der Schließzeit ist leer.
+        Assert.Same(page.RoomEditor, page.Editor);
+        Assert.True(page.RoomEditor.IsCreating);
+        Assert.False(page.ClosureEditor.HasForm);
+        Assert.Equal("Neue Raumsperre", page.PanelTitle);
+    }
+
+    [Fact]
+    public async Task Given_ein_Sprung_mit_Zeitraum_When_die_Seite_offen_ist_Then_neues_Formular_mit_Von_und_Bis()
+    {
+        var page = await Open(Api(Christmas));
+
+        page.Open(new AdminTarget(Location: TestData.LocationId, From: new(2027, 8, 2), Until: new(2027, 8, 6)));
+        await Task.Yield();
+        await Task.Yield();
+
+        var closures = page.ClosureEditor;
         Assert.True(closures.IsCreating);
         Assert.Equal(("02.08.2027", "06.08.2027"), (closures.Period.FromDate, closures.Period.UntilDate));
-        Assert.Equal(TestData.LocationId, closures.SelectedLocation?.Id);
+        Assert.Equal(TestData.LocationId, page.SelectedLocation?.Id);
+        Assert.True(page.IsPanelOpen);
     }
 
     [Fact]
     public async Task Given_ein_Sprung_mit_Zeitraum_When_Verwerfen_gewaehlt_wird_Then_bleibt_der_vorbelegte_Zeitraum_stehen()
     {
-        var closures = await Open(Api(Christmas));
-        closures.Open(new AdminTarget(Location: TestData.LocationId, From: new(2027, 8, 2), Until: new(2027, 8, 6)));
+        var page = await Open(Api(Christmas));
+        page.Open(new AdminTarget(Location: TestData.LocationId, From: new(2027, 8, 2), Until: new(2027, 8, 6)));
         await Task.Yield();
+        await Task.Yield();
+        var closures = page.ClosureEditor;
         closures.Period.FromDate = "10.08.2027";
 
         closures.DiscardCommand.Execute(null);
@@ -462,64 +570,105 @@ public sealed class AdminClosuresTests
     }
 
     [Fact]
-    public async Task Given_ein_Sprung_vor_dem_Laden_When_die_Maske_laedt_Then_gilt_der_Zeitraum_danach()
+    public async Task Given_ein_Sprung_vor_dem_Laden_When_die_Seite_laedt_Then_gilt_der_Zeitraum_danach()
     {
-        var closures = new ClosuresViewModel(Api(Christmas).Client(), TestData.Owner(), Now);
+        var page = new ClosuresPageViewModel(Api(Christmas).Client(), TestData.Owner(), Now);
 
-        closures.Open(new AdminTarget(From: new(2027, 8, 2), Until: new(2027, 8, 6)));
-        await closures.EnsureLoadedAsync();
+        page.Open(new AdminTarget(From: new(2027, 8, 2), Until: new(2027, 8, 6)));
+        await page.EnsureLoadedAsync();
 
-        Assert.True(closures.IsCreating);
-        Assert.Equal("02.08.2027", closures.Period.FromDate);
+        Assert.True(page.ClosureEditor.IsCreating);
+        Assert.Equal("02.08.2027", page.ClosureEditor.Period.FromDate);
     }
 
     [Fact]
-    public async Task Given_die_Wartezeit_When_sie_geaendert_und_gespeichert_wird_Then_PUT_guest_message_delay()
+    public async Task Given_die_Wartezeit_When_sie_in_der_Einrichtung_geaendert_und_gespeichert_wird_Then_PUT_guest_message_delay_und_Toast()
     {
         var api = Api().OnJson($"PUT /api/locations/{TestData.LocationId}/guest-message-delay", body => JsonSerializer.Deserialize<GuestMessageDelayDto>(body!, ApiClient.Json)!);
-        var closures = await Open(api);
-        Assert.Equal(10m, closures.GuestDelayMinutes);
-        Assert.False(closures.SaveGuestDelayCommand.CanExecute(null));
+        var page = await Open(api);
+        var setup = page.Setup;
+        Assert.Equal(10m, setup.GuestDelayMinutes);
+        Assert.True(setup.HasGuestDelay);
+        Assert.False(setup.SaveGuestDelayCommand.CanExecute(null));
 
-        closures.GuestDelayMinutes = 15m;
-        await closures.SaveGuestDelayCommand.ExecuteAsync(null);
+        await page.OpenSetupCommand.ExecuteAsync(null);
+        Assert.True(page.IsSetupOpen);
+        Assert.False(page.IsPanelOpen);
+        setup.GuestDelayMinutes = 15m;
+        await setup.SaveGuestDelayCommand.ExecuteAsync(null);
 
         Assert.Equal(new GuestMessageDelayDto(15), Sent<GuestMessageDelayDto>(api, $"PUT /api/locations/{TestData.LocationId}/guest-message-delay"));
-        Assert.Equal("Gespeichert.", closures.GuestDelayStatus);
-        Assert.False(closures.SaveGuestDelayCommand.CanExecute(null));
+        Assert.Equal("Wartezeit gespeichert", page.Toast);
+        Assert.False(setup.SaveGuestDelayCommand.CanExecute(null));
     }
 
     [Fact]
     public async Task Given_eine_Wartezeit_ueber_60_When_gespeichert_wird_Then_Fehler_und_kein_Aufruf()
     {
         var api = Api();
-        var closures = await Open(api);
+        var page = await Open(api);
 
-        closures.GuestDelayMinutes = 61m;
-        await closures.SaveGuestDelayCommand.ExecuteAsync(null);
+        page.Setup.GuestDelayMinutes = 61m;
+        await page.Setup.SaveGuestDelayCommand.ExecuteAsync(null);
 
-        Assert.Equal("Bitte eine ganze Zahl von 0 bis 60 eingeben.", closures.GuestDelayError);
+        Assert.Equal("Bitte eine ganze Zahl von 0 bis 60 eingeben.", page.Setup.GuestDelayError);
         Assert.DoesNotContain(api.Calls, c => c.Route.StartsWith("PUT ", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task Given_ein_offenes_Formular_mit_Aenderungen_When_Einrichtung_gewaehlt_wird_Then_fragt_die_Seite_zuerst()
+    {
+        var dialogs = new FakeDialogs().Answer(ConfirmChoice.Cancelled);
+        var page = await OpenFirst(Api(Christmas), dialogs: dialogs);
+        page.ClosureEditor.InternalReason = "geändert";
+
+        await page.OpenSetupCommand.ExecuteAsync(null);
+
+        Assert.False(page.IsSetupOpen);
+        Assert.True(page.IsPanelOpen);
+        Assert.Equal("Änderungen speichern?", Assert.Single(dialogs.Asked).Title);
     }
 
     [Fact]
     public async Task Given_ein_Fehler_der_API_When_gespeichert_wird_Then_steht_er_ueber_der_Leiste()
     {
         var api = Api().On($"POST {Route()}", new { detail = "Zwei Schließzeiten desselben Standorts dürfen sich nicht überschneiden." }, System.Net.HttpStatusCode.BadRequest);
-        var closures = await Open(api);
-        await closures.NewCommand.ExecuteAsync(null);
+        var page = await Open(api);
+        var closures = page.ClosureEditor;
+        await page.NewCommand.ExecuteAsync(null);
 
         Assert.False(await closures.SaveChangesAsync());
 
         Assert.Equal("Zwei Schließzeiten desselben Standorts dürfen sich nicht überschneiden.", closures.Error);
+        Assert.Null(page.Toast);
     }
 
     [Fact]
-    public void Given_Rezeptionistin_Then_hat_die_Verwaltung_keine_Maske_Schliesszeiten()
+    public async Task Given_ein_Toast_When_er_geschlossen_wird_Then_ist_er_weg_und_ein_neuer_ersetzt_den_alten()
+    {
+        var page = await OpenFirst(Api(Christmas));
+        page.ClosureEditor.InternalReason = "neu";
+        await page.ClosureEditor.SaveChangesAsync();
+        Assert.Equal("Schließzeit gespeichert", page.Toast);
+
+        page.HoldToast(true);
+        page.HoldToast(false);
+        page.ClosureEditor.InternalReason = "noch neuer";
+        await page.ClosureEditor.SaveChangesAsync();
+        Assert.Equal("Schließzeit gespeichert", page.Toast);
+        Assert.True(page.HasToast);
+
+        page.CloseToastCommand.Execute(null);
+        Assert.Null(page.Toast);
+        Assert.False(page.HasToast);
+    }
+
+    [Fact]
+    public void Given_Rezeptionistin_Then_hat_die_Verwaltung_keine_Seite_Schliesszeiten()
     {
         var page = new ShellViewModel(new StubApi().Client(), TestData.Reception(), null, TimeProvider.System, new ThemeController(new MemorySettingsStore()), "Test", () => Task.CompletedTask).AdminPage;
 
-        Assert.Null(page.Closures);
+        Assert.Null(page.ClosuresPage);
         Assert.DoesNotContain(page.Areas, a => a.Title == "Schließzeiten");
     }
 
@@ -532,8 +681,6 @@ public sealed class AdminClosuresTests
 
         Assert.Equal("Schließzeiten", shell.AdminPage.SelectedArea?.Title);
         Assert.Same(shell.AdminPage.ClosuresPage, shell.AdminPage.Content);
-        Assert.Same(shell.AdminPage.Closures, shell.AdminPage.ClosuresPage!.Closures);
-        Assert.Equal(ClosuresPageViewModel.ClosuresSection, shell.AdminPage.ClosuresPage.FocusedSection);
     }
 
     private static ClosureNoticeDto Notice(ClosureNoticeState state) =>

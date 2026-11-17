@@ -222,6 +222,7 @@ builder.Services.AddScoped<PromotionService>();
 builder.Services.AddScoped<BusinessContactService>();
 builder.Services.AddScoped<ClosureService>();
 builder.Services.AddScoped<RoomClosureService>();
+builder.Services.AddScoped<ClosureOverviewService>();
 builder.Services.AddScoped<ClosureCancellations>();
 builder.Services.AddScoped<ClosureNoticeSender>();
 builder.Services.AddScoped<DepositReturns>();
@@ -375,6 +376,7 @@ static void MapApplicationEndpoints(WebApplication app)
     app.MapBusinessContactEndpoints();
     app.MapClosureEndpoints();
     app.MapRoomClosureEndpoints();
+    app.MapClosureOverviewEndpoints();
     app.MapTerminalEndpoints();
     app.MapRosterEndpoints();
     app.MapAbsenceRequestEndpoints();

@@ -1225,22 +1225,26 @@ Expected: Den Reiter „Berichte“ gibt es nicht.
 Closes: –
 Result: ☐
 
-### T-064 – Betrieb: Schließzeiten und Raumsperren auf einer Seite, „Beendete zeigen“
+### T-064 – Betrieb: Schließzeiten und Raumsperren in einer Liste, Formular als Seitenleiste
 Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Inhaberin anmelden, **Verwaltung** › **Betrieb** öffnen
 1. Die Reiter unter dem Balken ansehen.
 Expected: Fünf Reiter in einer Zeile: Firmendaten, Standorte & Räume, Schließzeiten, Kalender-Abos, Handbuch. „Raumsperren“ gibt es nicht mehr als Reiter.
-2. **Schließzeiten** wählen und nach unten rollen.
-Expected: Oben steht der Abschnitt „Schließzeiten“ mit Liste und Formular, darunter nach einer Linie der Abschnitt „Raumsperren“ mit eigener Liste, eigenem Formular und **Neue Raumsperre**.
-3. Über der Liste der Schließzeiten **Beendete zeigen** anhaken.
-Expected: Die beendeten Schließzeiten stehen unter den aktuellen, rechts mit dem Wort „Beendet“; die gewählte Schließzeit bleibt gewählt. Die Zahl am Kontrollkästchen nennt die beendeten.
-4. Eine beendete Schließzeit wählen, den **Grund für das Team** ändern und den Haken bei **Beendete zeigen** entfernen.
-Expected: Die Rückfrage „Änderungen speichern?“ erscheint. Nach **Abbrechen** bleibt der Haken, der Eintrag und die Änderung.
-5. Die Änderung verwerfen und den Haken entfernen.
-Expected: Die Liste zeigt nur die aktuellen Schließzeiten, die erste ist gewählt.
-6. In den **Kalender** wechseln, in der Raumansicht mit der rechten Maustaste auf den Kopf eines Raums klicken und **Raum sperren …** wählen.
-Expected: Die Seite „Schließzeiten“ ist offen und zum Abschnitt „Raumsperren“ gerollt; ein neues Formular mit dem Raum steht da, der Cursor im ersten Feld.
-7. Zeitraum eintragen und **Strg+S** drücken.
-Expected: „Gespeichert.“ erscheint im Abschnitt „Raumsperren“; die Schließzeiten darüber bleiben unverändert.
+2. **Schließzeiten** wählen.
+Expected: Eine Liste „Schließzeiten und Raumsperren“: kommende zuerst, jede Zeile mit dem Kennzeichen „Standort“ oder „Raum“, Zeitraum, Grund, Zustand und Zahl offener Termine. Über der Liste der Filter „Alle / Standort geschlossen / Raum gesperrt“, unter der Liste „Vergangene (n)“. Oben rechts **Einrichtung** und fest **Neue Schließzeit**; die Wartezeit steht nicht mehr als Karte über der Liste.
+3. Eine Zeile wählen.
+Expected: Das Formular öffnet sich rechts in einer Seitenleiste; die Liste bleibt links stehen. Esc oder das Kreuz schließt die Leiste.
+4. **Vergangene** aufklappen, eine beendete Schließzeit wählen, den **Grund für das Team** ändern und die Leiste mit dem Kreuz schließen.
+Expected: Die Rückfrage „Änderungen speichern?“ erscheint. Nach **Abbrechen** bleibt die Leiste offen und die Änderung steht noch da.
+5. Die Änderung verwerfen. **Neue Schließzeit** wählen, oben **Einzelner Raum** wählen, einen Zeitraum eintragen und **Strg+S** drücken.
+Expected: Unten erscheint kurz „Raumsperre gespeichert“ (kein Balken); die neue Raumsperre steht in der Liste mit dem Kennzeichen „Raum“ und ist gewählt.
+6. **Löschen** wählen und bestätigen.
+Expected: Unten erscheint kurz „Raumsperre gelöscht“, die Leiste schließt, die Zeile ist weg.
+7. **Einrichtung** wählen, die Wartezeit ändern und **Wartezeit speichern** wählen.
+Expected: Die Seitenleiste „Einrichtung“ zeigt das Feld „Senden nach (Minuten)“; nach dem Speichern erscheint „Wartezeit gespeichert“.
+8. In den **Kalender** wechseln, in der Raumansicht mit der rechten Maustaste auf den Kopf eines Raums klicken und **Raum sperren …** wählen.
+Expected: Die Seite „Schließzeiten“ ist offen; ein neues Formular „Einzelner Raum“ mit dem Raum steht in der Seitenleiste, der Cursor im ersten Feld.
+9. Einen Standort ohne Schließzeit und Raumsperre wählen.
+Expected: Statt der Liste steht „<Standort> ist durchgehend offen“ mit den Knöpfen **Schließzeit anlegen** und **Raum sperren**.
 Closes: –
 Result: ☐
 

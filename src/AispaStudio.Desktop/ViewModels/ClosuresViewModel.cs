@@ -105,18 +105,14 @@ public sealed partial class ClosureNoticeRow : ObservableObject
 }
 
 /// <summary>
-/// Schließzeiten (R05 Slice 95, ADR 0073): native Maske nach <c>ClosuresPage.tsx</c>. In einer Schließzeit gibt es keine freien Zeiten; bestehende Termine bleiben, bis jemand sie in der
-/// Rückfrage „Termine absagen?“ absagt. Gleiche Felder und Regeln wie im Web: Zeitraum (mit Teil-Tagen), Art, Grund für das Team und Text für Gäste (je höchstens 200 Zeichen), dazu die
-/// Wartezeit vor der Nachricht an den Gast je Standort und das Protokoll der Absagen. Verwalten darf, wer Standorte verwaltet; Absagen zusätzlich, wer buchen darf. Die Rückfrage zum Absagen
-/// ist dieselbe wie im Kalender (<see cref="CancelClosureDialogViewModel"/>).
+/// Schließzeit (R05 Slice 95, ADR 0073): Formular nach <c>ClosuresPage.tsx</c>, seit ADR 0098 in der Seitenleiste der Seite „Schließzeiten“. In einer Schließzeit gibt es keine freien Zeiten;
+/// bestehende Termine bleiben, bis jemand sie in der Rückfrage „Termine absagen?“ absagt. Gleiche Felder und Regeln wie im Web: Zeitraum (mit Teil-Tagen), Art, Grund für das Team und Text für
+/// Gäste (je höchstens 200 Zeichen), dazu das Protokoll der Absagen. Verwalten darf, wer Standorte verwaltet; Absagen zusätzlich, wer buchen darf. Die Rückfrage zum Absagen ist dieselbe wie
+/// im Kalender (<see cref="CancelClosureDialogViewModel"/>). Die Wartezeit vor der Nachricht an den Gast steht in der Einrichtung der Seite (<see cref="ClosureSetupViewModel"/>).
 /// </summary>
 public sealed partial class ClosuresViewModel : PeriodAreaViewModel
 {
     public const int MaxText = 200;
-
-    public const int MaxDelayMinutes = 60;
-
-    private const string DelayError = "Bitte eine ganze Zahl von 0 bis 60 eingeben.";
 
     private static readonly (ClosureKind Kind, string Label, string Short)[] KindNames =
     [
@@ -125,9 +121,7 @@ public sealed partial class ClosuresViewModel : PeriodAreaViewModel
         (ClosureKind.Outage, "Ausfall (Schaden, Krankheit, Behörde)", "Ausfall"),
     ];
 
-    private List<ClosureDto> _closures = [];
     private ClosureDto? _current;
-    private int? _savedDelay;
     private bool _noticesLoaded;
 
     public ClosuresViewModel(IWorkstationApi api, CurrentUser user, TimeProvider time)
@@ -139,21 +133,15 @@ public sealed partial class ClosuresViewModel : PeriodAreaViewModel
 
     public override string NewText => "Neue Schließzeit";
 
-    public override string HintText => "In einer Schließzeit gibt es keine freien Zeiten. Bestehende Termine bleiben, bis man sie absagt.";
-
     public override string HelpTopic => "schliesszeiten";
 
     public override string HelpSection => "schliesszeiten";
 
-    public override string SelectHint => "Links eine Schließzeit wählen oder mit „Neue Schließzeit“ eine anlegen.";
-
-    public override string LoadFailedText => "Die Schließzeiten konnten nicht geladen werden.";
-
-    public override string NoLocationText => "Es gibt noch keinen Standort.";
-
-    protected override string EmptyCurrentText => "Es ist keine Schließzeit eingetragen.";
-
     protected override string SaveFailedText => "Die Schließzeit konnte nicht gespeichert werden. Bitte die markierten Felder prüfen.";
+
+    protected override string SavedToast => "Schließzeit gespeichert";
+
+    protected override string DeletedToast => "Schließzeit gelöscht";
 
     /// <summary>Absagen brauchen zusätzlich das Recht zu buchen.</summary>
     public bool CanBook { get; }
@@ -209,69 +197,37 @@ public sealed partial class ClosuresViewModel : PeriodAreaViewModel
     public partial string? GuestTextError { get; private set; }
 
     /// <summary>Hinweis unter dem Text für Gäste: nennt den Standardsatz der gewählten Art.</summary>
-    public string GuestTextHint => $"Kurz; steht im Kundenbereich, beim Assistenten und in der Absage. Leer: „{KindNames.First(k => k.Kind == Kind).Short}“ in einem Standardsatz.";
+    public string GuestTextHint => $"Kurz; steht im Kundenbereich, beim Assistenten und in der Absage. Leer: „{KindShort(Kind)}“ in einem Standardsatz.";
 
-    // ---------- Wartezeit vor der Nachricht an den Gast ----------
-
-    [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(SaveGuestDelayCommand))]
-    public partial decimal? GuestDelayMinutes { get; set; }
-
-    /// <summary>Die Wartezeit des Standorts ist geladen; sonst fehlt der Abschnitt.</summary>
-    [ObservableProperty]
-    public partial bool HasGuestDelay { get; private set; }
-
-    [ObservableProperty]
-    public partial string? GuestDelayError { get; private set; }
-
-    [ObservableProperty]
-    public partial string? GuestDelayStatus { get; private set; }
-
-    public const string GuestDelayHint = "Sagt das Team ab, geht die Nachricht erst danach raus. Beginnt der Termin in weniger als 2 Stunden, geht sie sofort. 0 sendet immer sofort.";
+    /// <summary>Die Art in einem Wort („Betriebsurlaub“, „Sonderschließung“, „Ausfall“), wie sie die Liste zeigt.</summary>
+    public static string KindShort(ClosureKind kind) => KindNames.First(k => k.Kind == kind).Short;
 
     // ---------- Laden und Anzeigen ----------
 
-    protected override async Task<string?> FetchAsync(Guid locationId)
+    protected override async Task<string?> FetchAsync(Guid locationId, Guid id)
     {
-        var closures = await Api.GetAsync<List<ClosureDto>>($"api/locations/{locationId}/closures").ConfigureAwait(true);
-        if (closures.Value is not { } list)
+        var closure = await Api.GetAsync<ClosureDto>($"api/locations/{locationId}/closures/{id}").ConfigureAwait(true);
+        if (closure.Value is not { } loaded)
         {
-            return closures.Error ?? LoadFailedText;
+            return closure.Error ?? "Die Schließzeit konnte nicht geladen werden.";
         }
 
-        _closures = list;
+        _current = loaded;
         return null;
     }
 
-    protected override IReadOnlyList<PeriodRow> BuildRows() =>
-    [
-        .. _closures.Select(c => new PeriodRow(c.Id, TabOf(c.Phase), KindShort(c.Kind), PeriodLabel(c),
-            c.OpenAppointments > 0 || c.OpenWaitlist > 0 ? $"{CalendarViewModel.ClosureWhat(c.OpenAppointments, c.OpenWaitlist)} offen" : c.InternalReason ?? c.GuestText ?? "keine offenen Termine")),
-    ];
-
-    protected override async Task OnLocationReadyAsync(Guid locationId)
+    protected override void ApplyItem()
     {
-        var delay = await Api.GetAsync<GuestMessageDelayDto>($"api/locations/{locationId}/guest-message-delay").ConfigureAwait(true);
-        HasGuestDelay = delay.Value is not null;
-        _savedDelay = delay.Value?.Minutes;
-        GuestDelayMinutes = delay.Value?.Minutes;
-        GuestDelayError = null;
-        GuestDelayStatus = null;
-        SaveGuestDelayCommand.NotifyCanExecuteChanged();
-    }
-
-    protected override void ApplyItem(Guid id)
-    {
-        _current = _closures.First(c => c.Id == id);
-        Period.Set(_current.FromDate, _current.FromTime, _current.UntilDate, _current.UntilTime);
-        Kind = _current.Kind;
-        InternalReason = _current.InternalReason ?? "";
-        GuestText = _current.GuestText ?? "";
+        var current = _current!;
+        Period.Set(current.FromDate, current.FromTime, current.UntilDate, current.UntilTime);
+        Kind = current.Kind;
+        InternalReason = current.InternalReason ?? "";
+        GuestText = current.GuestText ?? "";
         ClearErrors();
         _noticesLoaded = false;
         IsProtocolOpen = false;
         Notices.Clear();
-        SetInfo($"{KindShort(_current.Kind)}, {PeriodLabel(_current)}", PhaseName(_current.Phase), OpenText(_current), $"Angelegt von {_current.CreatedBy} am {Stamp(_current.CreatedAt)}.");
+        SetInfo($"{KindShort(current.Kind)}, {PeriodLabel(current)}", PhaseName(current.Phase), OpenText(current), $"Angelegt von {current.CreatedBy} am {Stamp(current.CreatedAt)}.");
         RaiseItemState();
     }
 
@@ -316,7 +272,7 @@ public sealed partial class ClosuresViewModel : PeriodAreaViewModel
 
     protected override async Task OnItemShownAsync(Guid id)
     {
-        if (_current is not { CancelledAppointments: > 0 } || SelectedLocation?.Id is not { } locationId)
+        if (_current is not { CancelledAppointments: > 0 } || CurrentLocation?.Id is not { } locationId)
         {
             return;
         }
@@ -360,15 +316,7 @@ public sealed partial class ClosuresViewModel : PeriodAreaViewModel
         Touch();
     }
 
-    partial void OnGuestDelayMinutesChanged(decimal? value)
-    {
-        GuestDelayError = null;
-        GuestDelayStatus = null;
-    }
-
     private static string PeriodLabel(ClosureDto c) => PeriodFormViewModel.Label(c.FromDate, c.FromTime, c.UntilDate, c.UntilTime);
-
-    private static string KindShort(ClosureKind kind) => KindNames.First(k => k.Kind == kind).Short;
 
     private void ClearErrors()
     {
@@ -415,12 +363,12 @@ public sealed partial class ClosuresViewModel : PeriodAreaViewModel
 
     /// <summary>
     /// „Termine absagen …“: holt die offenen Termine und den Textvorschlag, fragt in derselben Rückfrage wie der Kalender nach (Auswahl, Text, Zahl der Nachrichten) und sagt erst nach dem
-    /// Klick auf den roten Knopf ab. Danach lädt die Maske neu, damit Zahlen, Protokoll und Hinweis stimmen.
+    /// Klick auf den roten Knopf ab. Danach lädt die Seite neu, damit Zahlen, Protokoll und Hinweis stimmen.
     /// </summary>
     [RelayCommand(CanExecute = nameof(CanCancelAppointments))]
     private async Task CancelAppointmentsAsync()
     {
-        if (_current is not { } closure || SelectedLocation?.Id is not { } locationId || Dialogs is not { } dialogs)
+        if (_current is not { } closure || CurrentLocation?.Id is not { } locationId || Dialogs is not { } dialogs)
         {
             return;
         }
@@ -456,7 +404,7 @@ public sealed partial class ClosuresViewModel : PeriodAreaViewModel
             return;
         }
 
-        await ReloadAsync(closure.Id).ConfigureAwait(true);
+        await OpenAsync(closure.Id).ConfigureAwait(true);
         var problems = new List<string>();
         if (done.Failed > 0)
         {
@@ -469,13 +417,13 @@ public sealed partial class ClosuresViewModel : PeriodAreaViewModel
         }
 
         Notify(string.Join(", ", new[] { CalendarViewModel.CancelledText(done) }.Concat(problems).Where(p => p.Length > 0)), problems.Count > 0 ? InfoBarSeverity.Warning : InfoBarSeverity.Success);
-        AnnounceSaved();
+        await AnnounceChangedAsync().ConfigureAwait(true);
     }
 
     /// <summary>„Jetzt senden“ oder „Nicht senden“ bei einer Nachricht, die noch auf ihre Wartezeit wartet; die Antwort ersetzt die Zeile.</summary>
     private async Task ChangeNoticeAsync(ClosureNoticeRow row, string change)
     {
-        if (_current is not { } closure || SelectedLocation?.Id is not { } locationId)
+        if (_current is not { } closure || CurrentLocation?.Id is not { } locationId)
         {
             return;
         }
@@ -492,36 +440,5 @@ public sealed partial class ClosuresViewModel : PeriodAreaViewModel
         {
             Notices[index] = NoticeRow(updated);
         }
-    }
-
-    private bool CanSaveGuestDelay => HasGuestDelay && GuestDelayMinutes != _savedDelay;
-
-    /// <summary>„Wartezeit speichern“: eine ganze Zahl von 0 bis 60; Gäste, die selbst auslösen, bekommen ihre Nachricht immer sofort.</summary>
-    [RelayCommand(CanExecute = nameof(CanSaveGuestDelay))]
-    private async Task SaveGuestDelayAsync()
-    {
-        if (SelectedLocation?.Id is not { } locationId)
-        {
-            return;
-        }
-
-        if (GuestDelayMinutes is not { } minutes || minutes != decimal.Truncate(minutes) || minutes is < 0 or > MaxDelayMinutes)
-        {
-            GuestDelayError = DelayError;
-            return;
-        }
-
-        var result = await Api.PutAsync<GuestMessageDelayDto>($"api/locations/{locationId}/guest-message-delay", new GuestMessageDelayDto((int)minutes)).ConfigureAwait(true);
-        if (result.Value is not { } saved)
-        {
-            Notify(result.Error ?? "Die Wartezeit wurde nicht gespeichert.", InfoBarSeverity.Error);
-            return;
-        }
-
-        _savedDelay = saved.Minutes;
-        GuestDelayError = null;
-        GuestDelayMinutes = saved.Minutes;
-        GuestDelayStatus = "Gespeichert.";
-        SaveGuestDelayCommand.NotifyCanExecuteChanged();
     }
 }

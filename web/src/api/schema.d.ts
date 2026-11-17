@@ -1074,6 +1074,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/locations/{locationId}/closure-overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Schließzeiten des ganzen Standorts und Raumsperren in einer Liste, je mit Art, Zeitraum, Raum, Grund, Zustand und der Zahl der noch offenen Termine. Mit scope=Upcoming (Standard) die laufenden und geplanten nach Beginn aufsteigend, mit Past die beendeten, neueste zuerst, mit All beide. */
+        get: operations["GetClosureOverview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/employees/{employeeId}/overview": {
         parameters: {
             query?: never;
@@ -3230,6 +3247,23 @@ export interface paths {
         /** Ändert eine Aktion, auch Pausieren und Fortsetzen. Bereits gegebene Rabatte auf Belegen bleiben unverändert. */
         put: operations["UpdatePromotion"];
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/promotions/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Vorschau des Gästepreises für eine Aktion, auch ungespeichert: ein Beispieltermin und die ersten betroffenen Behandlungen mit Preis und Preis mit Rabatt, gerechnet wie an der Kassa. */
+        post: operations["PreviewPromotion"];
         delete?: never;
         options?: never;
         head?: never;
@@ -9876,6 +9910,8 @@ export interface components {
              */
             openWaitlist: number;
         };
+        /** @enum {unknown} */
+        ClosureEntryType: "Location" | "Room";
         ClosureInput: {
             /** Format: date */
             fromDate: string;
@@ -9933,8 +9969,48 @@ export interface components {
         };
         /** @enum {unknown} */
         ClosureNoticeState: "Queued" | "Sent" | "Skipped" | "Failed" | "Cancelled";
+        ClosureOverview: {
+            /** Format: uuid */
+            locationId: string;
+            /** Format: int32 */
+            upcomingCount: number;
+            /** Format: int32 */
+            pastCount: number;
+            items: components["schemas"]["ClosureOverviewItem"][];
+        };
+        ClosureOverviewItem: {
+            /** Format: uuid */
+            id: string;
+            type: components["schemas"]["ClosureEntryType"];
+            kind: string;
+            /** Format: uuid */
+            locationId: string;
+            /** Format: date */
+            fromDate: string;
+            /** Format: time */
+            fromTime: null | string;
+            /** Format: date */
+            untilDate: string;
+            /** Format: time */
+            untilTime: null | string;
+            /** Format: date-time */
+            from: string;
+            /** Format: date-time */
+            until: string;
+            phase: components["schemas"]["ClosurePhase"];
+            reason: null | string;
+            /** Format: int32 */
+            openAppointments: number;
+            /** Format: int32 */
+            openWaitlist: number;
+            /** Format: uuid */
+            roomId?: null | string;
+            roomName?: null | string;
+        };
         /** @enum {unknown} */
         ClosurePhase: "Planned" | "Active" | "Ended";
+        /** @enum {unknown} */
+        ClosureScope: "Upcoming" | "Past" | "All";
         ClosureWaitlistDto: {
             /** Format: uuid */
             entryId: string;
@@ -12139,6 +12215,10 @@ export interface components {
             isActive: boolean;
             isArchived: boolean;
             phase: components["schemas"]["PromotionPhase"];
+            kind?: null | components["schemas"]["PromotionKind"];
+            /** Format: int32 */
+            leadHours?: null | number;
+            slots?: null | components["schemas"]["PromotionSlot"][];
         };
         PromotionInput: {
             name: string;
@@ -12156,7 +12236,13 @@ export interface components {
             scope: components["schemas"]["PromotionScope"];
             treatmentIds: null | string[];
             isActive: boolean;
+            kind?: null | components["schemas"]["PromotionKind"];
+            /** Format: int32 */
+            leadHours?: null | number;
+            slots?: null | components["schemas"]["PromotionSlot"][];
         };
+        /** @enum {unknown} */
+        PromotionKind: "Limited" | "LastMinute" | "OffPeak" | null;
         PromotionOfferDto: {
             /** Format: uuid */
             promotionId: string;
@@ -12175,8 +12261,26 @@ export interface components {
         };
         /** @enum {unknown} */
         PromotionPhase: "Running" | "Planned" | "Paused" | "Expired";
+        PromotionPreviewDto: {
+            example: string;
+            lines: components["schemas"]["PromotionPreviewLineDto"][];
+            note: string;
+        };
+        PromotionPreviewLineDto: {
+            /** Format: uuid */
+            treatmentId: string;
+            name: string;
+            /** Format: double */
+            price: number;
+            /** Format: double */
+            guestPrice: number;
+        };
         /** @enum {unknown} */
         PromotionScope: "AllTreatments" | "SelectedTreatments" | "SelectedPackages";
+        PromotionSlot: {
+            day: components["schemas"]["DayOfWeek"];
+            part: components["schemas"]["DayPart"];
+        };
         PromotionTreatmentDto: {
             /** Format: uuid */
             id: string;
@@ -17388,6 +17492,46 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["CurrentUser"];
                 };
+            };
+        };
+    };
+    GetClosureOverview: {
+        parameters: {
+            query?: {
+                scope?: components["schemas"]["ClosureScope"];
+            };
+            header?: never;
+            path: {
+                locationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClosureOverview"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -23187,6 +23331,39 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    PreviewPromotion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PromotionInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionPreviewDto"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
         };
     };
