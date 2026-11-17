@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using AispaStudio.Contracts;
 using AispaStudio.Desktop.Services;
@@ -5,6 +6,21 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
 namespace AispaStudio.Desktop.ViewModels;
+
+/// <summary>Ein Schritt der Karte „Betrieb einrichten“: Titel, Hinweis, ob erledigt, und das Sprungziel in der Verwaltung.</summary>
+public sealed record SetupStepItem(SetupStepDto Step)
+{
+    public string Title => Step.Title;
+
+    public string Hint => Step.Hint;
+
+    public bool IsDone => Step.Done;
+
+    public bool IsOpen => !Step.Done;
+
+    /// <summary>Name für den Screenreader: „Standort anlegen, erledigt“ bzw. „… , noch offen“.</summary>
+    public string AccessibleName => $"{Step.Title}, {(Step.Done ? "erledigt" : "noch offen")}";
+}
 
 /// <summary>Land des Unternehmenssitzes in der Auswahl: Kürzel für die API, Name für die Oberfläche.</summary>
 public sealed record CountryOption(string Code, string Label)
@@ -66,6 +82,49 @@ public sealed partial class CompanyViewModel : ViewModelBase, INativeArea
 
     /// <summary>Die Firmendaten wurden gespeichert; die Leiste „KI und Hilfe“ bietet dann an, eine Frage zu wiederholen.</summary>
     public event Action? Saved;
+
+    /// <summary>Ein Schritt der Karte „Betrieb einrichten“ wurde gewählt: die Verwaltung springt in die passende Maske (<c>Page</c> und <c>Tab</c> des Schritts).</summary>
+    public event Action<SetupStepDto>? SetupStepRequested;
+
+    /// <summary>Die Schritte der Ersteinrichtung mit ihrem Stand (<c>GET api/setup/progress</c>, ADR 0099); leer, wenn die API sie nicht lieferte.</summary>
+    public ObservableCollection<SetupStepItem> SetupSteps { get; } = [];
+
+    /// <summary>Die Karte steht oben auf der Maske, solange mindestens ein Schritt offen ist; danach verschwindet sie.</summary>
+    [ObservableProperty]
+    public partial bool ShowSetup { get; private set; }
+
+    /// <summary>„2 von 6 Schritten erledigt“.</summary>
+    [ObservableProperty]
+    public partial string SetupSummary { get; private set; } = "";
+
+    /// <summary>Anteil der erledigten Schritte von 0 bis 100 für den Fortschrittsbalken.</summary>
+    [ObservableProperty]
+    public partial double SetupPercent { get; private set; }
+
+    [RelayCommand]
+    private void OpenSetupStep(SetupStepItem? item)
+    {
+        if (item is not null)
+        {
+            SetupStepRequested?.Invoke(item.Step);
+        }
+    }
+
+    /// <summary>Lädt den Stand der Ersteinrichtung; scheitert der Aufruf, bleibt die Karte weg und die Maske unberührt.</summary>
+    private async Task LoadSetupAsync()
+    {
+        var progress = await _api.GetAsync<SetupProgressDto>("api/setup/progress").ConfigureAwait(true);
+        SetupSteps.Clear();
+        foreach (var step in progress.Value?.Steps ?? [])
+        {
+            SetupSteps.Add(new SetupStepItem(step));
+        }
+
+        var done = SetupSteps.Count(s => s.IsDone);
+        ShowSetup = SetupSteps.Any(s => s.IsOpen);
+        SetupSummary = $"{done} von {SetupSteps.Count} Schritten erledigt";
+        SetupPercent = SetupSteps.Count == 0 ? 0 : 100.0 * done / SetupSteps.Count;
+    }
 
     [ObservableProperty]
     public partial bool IsLoaded { get; private set; }
@@ -198,6 +257,7 @@ public sealed partial class CompanyViewModel : ViewModelBase, INativeArea
 
         Apply(tenant);
         ApplyEmbed(settings);
+        await LoadSetupAsync().ConfigureAwait(true);
         IsLoaded = true;
     }
 

@@ -201,8 +201,9 @@ public sealed partial class ViewTests
             var control = Named<Control>(window, field);
             control.BringIntoView();
             await Pump(Settling);
-            Assert.True(control.TranslatePoint(new Point(control.Bounds.Width, 0), window)!.Value.X <= panel.TranslatePoint(new Point(panel.Bounds.Width, 0), window)!.Value.X + 0.5,
-                $"{field} ragt über die Leiste");
+            // Wie in der Seitenleiste der Erinnerungen (P8): die rechte Kante jedes Felds liegt 20 px vor dem Rand der Leiste, sonst schneidet die Bildlaufleiste es an.
+            Assert.True(control.TranslatePoint(new Point(control.Bounds.Width, 0), window)!.Value.X <= panel.TranslatePoint(new Point(panel.Bounds.Width, 0), window)!.Value.X - 20 + 0.5,
+                $"{field} ragt in den Rand der Leiste");
         }
 
         return shell.AdminPage;

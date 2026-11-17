@@ -335,7 +335,8 @@ export interface paths {
         /** Ändert Name, Zeitzone, Währung, Öffnungszeiten, Anschrift und Kontakt. Bestehende Termine bleiben unverändert. */
         put: operations["UpdateLocation"];
         post?: never;
-        delete?: never;
+        /** Löscht einen Standort, an dem nichts hängt; sonst 409 mit der Liste dessen, was daran hängt, und dem Weg „Schließen ab Datum“. */
+        delete: operations["DeleteLocation"];
         options?: never;
         head?: never;
         patch?: never;
@@ -384,6 +385,74 @@ export interface paths {
         };
         /** Räume, Geräte, Team und Behandlungen eines Standorts – alles, was der Kalender zum Planen braucht. */
         get: operations["GetLocationResources"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/locations/{locationId}/close": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Schließt den Standort ab einem Tag: ab dann keine Buchung mehr, vergangene Termine und Belege bleiben. Abgelehnt, solange noch offene Termine ab dem Tag daran liegen oder es der letzte offene Standort wäre. */
+        post: operations["CloseLocation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/locations/{locationId}/reopen": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Öffnet einen geschlossenen Standort wieder: die Schließung ab dem Tag entfällt. */
+        post: operations["ReopenLocation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/locations/{locationId}/deletion-check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Zählt, was an einem Standort hängt; gelöscht werden darf nur, wenn nichts daran hängt, sonst bleibt „Schließen ab Datum“. */
+        get: operations["CheckLocationDeletion"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/setup/progress": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Die Schritte der Ersteinrichtung (Standort, Öffnungszeiten, Räume, Behandlungen, Team, Kassa) und welche davon erledigt sind. */
+        get: operations["GetSetupProgress"];
         put?: never;
         post?: never;
         delete?: never;
@@ -11488,6 +11557,10 @@ export interface components {
         };
         /** @enum {unknown} */
         LocalAiState: "Off" | "Unreachable" | "Missing" | "Downloading" | "Ready";
+        LocationCloseInput: {
+            /** Format: date */
+            closedFrom: string;
+        };
         LocationCompany: {
             legalName: null | string;
             vatId: null | string;
@@ -11524,6 +11597,8 @@ export interface components {
             region?: null | string;
             contact?: null | components["schemas"]["LocationContact"];
             company?: null | components["schemas"]["LocationCompany"];
+            /** Format: date */
+            closedFrom?: null | string;
         };
         LocationInput: {
             name: string;
@@ -13146,6 +13221,17 @@ export interface components {
             /** Format: int32 */
             count: number;
             dueTimes: string[];
+        };
+        SetupProgressDto: {
+            steps: components["schemas"]["SetupStepDto"][];
+        };
+        SetupStepDto: {
+            key: string;
+            title: string;
+            hint: string;
+            done: boolean;
+            page: string;
+            tab: null | string;
         };
         SharedDeviceDto: {
             /** Format: uuid */
@@ -15267,6 +15353,51 @@ export interface operations {
             };
         };
     };
+    DeleteLocation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                locationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeletionCheckDto"];
+                };
+            };
+        };
+    };
     ListHolidayRegions: {
         parameters: {
             query?: never;
@@ -15380,6 +15511,162 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    CloseLocation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                locationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LocationCloseInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LocationDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ReopenLocation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                locationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LocationDto"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    CheckLocationDeletion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                locationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeletionCheckDto"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetSetupProgress: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SetupProgressDto"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
         };
     };

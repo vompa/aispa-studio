@@ -19,6 +19,7 @@ Wer darf was:
 
 In der Windows-App:
 
+- **Standort anlegen** steht fest über der Liste der Standorte, nicht darin.
 - Das Formular des Standorts (Name bis Öffnungszeiten) speichert **Speichern** unter den Öffnungszeiten, auch für einen neuen Standort. **Strg+S** speichert wie der Knopf, **Verwerfen** holt den gespeicherten Stand zurück.
 - Wer den Standort mit ungespeicherten Änderungen verlässt, etwa einen anderen Standort wählt oder zum Kalender wechselt, wird gefragt: „Änderungen speichern?“ mit „Speichern“, „Verwerfen“ und „Abbrechen“. „Abbrechen“ bleibt beim Standort.
 - Online-Buchung, Räume, Tagesstart-Kontrolle und Geräte speichern für sich, mit dem Knopf im Abschnitt bzw. in der Zeile; sie zählen nicht zu den Änderungen, nach denen die Rückfrage fragt. Eine Raumzeile mit eigenen Änderungen zeigt „Nicht gespeichert“ und den Knopf „Speichern“.
@@ -214,6 +215,14 @@ Häkchen für einen Gemeinschaftsbereich wie Sauna, Ruheraum oder Pool. Gäste b
 ### Eintritt {#eintritt}
 
 Nur bei einem Bereich: der Kassa-Artikel, mit dem ein Eintritt je Person abgerechnet wird. Preis, Steuersatz und Erlöskonto kommen vom Artikel. Mit „Nicht an der Kassa“ ist kein Artikel gewählt; dann lässt sich ein Eintritt in diesen Bereich nicht auf eine Rechnung setzen, bis ein Artikel gewählt ist.
+
+### Standort schließen oder löschen {#standort-schliessen}
+
+Nur für Inhaberin und Inhaber. Im Kopf der Karte steht das Menü **⋯** mit **Schließen ab Datum …** und **Löschen …**.
+
+**Schließen ab Datum …** öffnet unter der Überschrift eine Zeile: Datum eintragen und **Schließen** wählen. Ab diesem Tag nimmt der Standort keine Buchung mehr an, auch nicht von der Rezeption, und im Kundenbereich gibt es dort keine freien Zeiten mehr. Vergangene Termine, Belege und Berichte bleiben. In der Liste steht darunter „geschlossen ab …“, über dem Formular ein Hinweis. Liegen ab dem Tag noch offene Termine am Standort, lehnt die Software ab und nennt, wie viele es sind: zuerst verschieben oder stornieren. Der letzte offene Standort lässt sich nicht schließen. Bei einem geschlossenen Standort heißt der Eintrag **Wieder öffnen** und hebt die Schließung auf.
+
+**Löschen …** geht nur, wenn nichts am Standort hängt: keine Räume, Geräte, Termine, Schließzeiten, Kassen, Arbeitszeiten und Lagerbewegungen. Sonst öffnet sich der Dialog „lässt sich nicht löschen“ mit der Liste, was daran hängt, und dem Knopf **Schließen ab Datum …**. Der letzte Standort lässt sich nie löschen.
 
 ### Entfernen {#raum-entfernen}
 

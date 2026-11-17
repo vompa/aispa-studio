@@ -533,9 +533,9 @@ public sealed partial class ViewTests
         {
             var treatments = await OpenTreatments(window, main);
             treatments.Dialogs = new FakeDialogs().Answer(ConfirmChoice.Confirmed);
-            var more = Named<Button>(window, "MoreButton");
+            var more = Named<MoreMenuButton>(window, "MoreButton");
             Assert.True(more.IsEffectivelyVisible);
-            Assert.Equal("Weitere Aktionen zur Behandlung", Avalonia.Automation.AutomationProperties.GetName(more));
+            Assert.Equal("Weitere Aktionen zu Hot Stone 60", Avalonia.Automation.AutomationProperties.GetName(more));
 
             ClickCenter(window, more);
             await Pump(Settling);

@@ -82,6 +82,32 @@ internal static class DeletionChecks
             supplier.IsActive ? new DeletionAlternative(Deactivate, "Nicht mehr verwenden") : null);
     }
 
+    public static async Task<DeletionCheckDto?> LocationAsync(AispaDbContext db, Guid locationId, CancellationToken ct)
+    {
+        if (!await db.Locations.AnyAsync(l => l.Id == locationId, ct))
+        {
+            return null;
+        }
+
+        if (!await db.Locations.AnyAsync(l => l.Id != locationId, ct))
+        {
+            return new DeletionCheckDto(false, "Der letzte Standort lässt sich nicht löschen.", []);
+        }
+
+        var dependents = Dependents(
+            ("rooms", await db.Rooms.CountAsync(r => r.LocationId == locationId, ct), "Raum", "Räume"),
+            ("equipment", await db.Equipment.CountAsync(e => e.LocationId == locationId, ct), "Gerät", "Geräte"),
+            ("appointments", await db.Appointments.CountAsync(a => a.LocationId == locationId, ct), "Termin", "Termine"),
+            ("closures", await db.Closures.CountAsync(c => c.LocationId == locationId, ct), "Schließzeit", "Schließzeiten"),
+            ("employees", await db.Employees.CountAsync(e => e.WorkingHours.Any(w => w.LocationId == locationId), ct), "Person mit Arbeitszeiten hier", "Personen mit Arbeitszeiten hier"),
+            ("registers", await db.CashRegisters.CountAsync(r => r.LocationId == locationId, ct), "Kassa", "Kassen"),
+            ("movements", await db.StockMovements.CountAsync(m => db.StoragePlaces.Any(p => p.Id == m.StoragePlaceId && p.LocationId == locationId), ct), "Lagerbewegung", "Lagerbewegungen"));
+        return dependents.Count == 0
+            ? new DeletionCheckDto(true, "Am Standort hängt nichts. Er lässt sich löschen.", dependents)
+            : new DeletionCheckDto(false, "Am Standort hängen Termine, Belege oder Einrichtung. Sie bleiben erhalten; der Standort lässt sich nur schließen.", dependents,
+                new DeletionAlternative(LocationDeletion.Close, "Schließen ab Datum …"));
+    }
+
     public static async Task<DeletionCheckDto?> StoragePlaceAsync(AispaDbContext db, Guid placeId, CancellationToken ct)
     {
         var place = await db.StoragePlaces.AsNoTracking().Where(p => p.Id == placeId).Select(p => new { p.Kind, p.IsActive }).FirstOrDefaultAsync(ct);

@@ -47,6 +47,10 @@ Der Reiter **Bestand** hat oben die Auswahl **Ansicht** mit **Material**, **Char
 
 Legt ein neues Material an. Es gilt für alle Standorte; den Bestand führt das Lager je Standort. Anlegen dürfen Inhaber und Standortleitung, nur sie sehen diesen Abschnitt. **Ändern** in der Zeile des Materials lädt es in dasselbe Formular.
 
+### Nicht mehr verwenden {#material-nicht-mehr-verwenden}
+
+Im Kopf der Karte steht beim Ändern das Menü **⋯** mit **Nicht mehr verwenden**. Das Material bleibt im Stamm, Bestand und Bewegungen bleiben erhalten, aber es erscheint nicht mehr in Auswahl und Rezeptur. Es fragt nichts und lässt sich umkehren: Bei einem nicht mehr verwendeten Material heißt der Eintrag **Wieder verwenden**. Löschen lässt sich Material nie, denn Bewegungen und Rezepturen verweisen darauf. Der Schalter ändert nur diesen Zustand, nicht die ungespeicherten Eingaben im Formular.
+
 ### Bezeichnung {#bezeichnung}
 
 Name des Materials, zum Beispiel „Massageöl Lavendel“. Pflicht, höchstens 200 Zeichen. Unter diesem Namen erscheint es im Bestand, in Bestellungen und in der Rezeptur einer Behandlung.

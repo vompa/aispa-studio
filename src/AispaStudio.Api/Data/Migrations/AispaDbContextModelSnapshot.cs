@@ -5118,6 +5118,9 @@ namespace AispaStudio.Api.Data.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<DateOnly?>("ClosedFrom")
+                        .HasColumnType("date");
+
                     b.Property<string>("CompanyRegisterCourt")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");

@@ -21,6 +21,9 @@ public sealed class MoreMenuButton : Button
 
     public static readonly StyledProperty<ICommand?> DeactivateCommandProperty = AvaloniaProperty.Register<MoreMenuButton, ICommand?>(nameof(DeactivateCommand));
 
+    /// <summary>Text des ersten Eintrags, wenn „Nicht mehr verwenden“ in der Maske anders heißt („Nicht mehr anbieten …“, „Schließen ab Datum …“, „Wieder verwenden“).</summary>
+    public static readonly StyledProperty<string?> DeactivateTextProperty = AvaloniaProperty.Register<MoreMenuButton, string?>(nameof(DeactivateText));
+
     public static readonly StyledProperty<ICommand?> DeleteCommandProperty = AvaloniaProperty.Register<MoreMenuButton, ICommand?>(nameof(DeleteCommand));
 
     /// <summary>Der Gegenstand für den Screenreader: „Weitere Aktionen zu Hauptlager“.</summary>
@@ -31,6 +34,7 @@ public sealed class MoreMenuButton : Button
     static MoreMenuButton()
     {
         DeactivateCommandProperty.Changed.AddClassHandler<MoreMenuButton>((button, _) => button.Rebuild());
+        DeactivateTextProperty.Changed.AddClassHandler<MoreMenuButton>((button, _) => button.Rebuild());
         DeleteCommandProperty.Changed.AddClassHandler<MoreMenuButton>((button, _) => button.Rebuild());
         SubjectProperty.Changed.AddClassHandler<MoreMenuButton>((button, _) => button.UpdateName());
     }
@@ -57,6 +61,12 @@ public sealed class MoreMenuButton : Button
         set => SetValue(DeactivateCommandProperty, value);
     }
 
+    public string? DeactivateText
+    {
+        get => GetValue(DeactivateTextProperty);
+        set => SetValue(DeactivateTextProperty, value);
+    }
+
     public ICommand? DeleteCommand
     {
         get => GetValue(DeleteCommandProperty);
@@ -76,7 +86,7 @@ public sealed class MoreMenuButton : Button
         _menu.Items.Clear();
         if (DeactivateCommand is { } deactivate)
         {
-            _menu.Items.Add(new MenuItem { Header = DeactivateLabel, Command = deactivate });
+            _menu.Items.Add(new MenuItem { Header = DeactivateText ?? DeactivateLabel, Command = deactivate });
         }
 
         if (DeleteCommand is { } delete)

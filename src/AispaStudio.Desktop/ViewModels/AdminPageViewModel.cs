@@ -122,6 +122,12 @@ public sealed partial class AdminPageViewModel : ViewModelBase
         Reports = _native.Values.OfType<ReportsViewModel>().SingleOrDefault();
         Accounting = _native.Values.OfType<AccountingViewModel>().SingleOrDefault();
         Costs = _native.Values.OfType<CostsViewModel>().SingleOrDefault();
+        if (Company is not null)
+        {
+            // „Betrieb einrichten“ (ADR 0099): jeder Schritt springt in die passende Maske; fehlt dort das Recht, steht der Hinweis der Seite.
+            Company.SetupStepRequested += step => Show(step.Page, step.Tab);
+        }
+
         if (Treatments is not null)
         {
             Treatments.PersonRequested += id => Show("masterData", "team", id, area: PersonCardViewModel.QualificationsTab);

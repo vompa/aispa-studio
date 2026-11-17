@@ -16,7 +16,7 @@ Einstellungen in der Windows-App unter „Verwaltung“ › „Behandlungen“: 
 
 Eine neue Behandlung zeigt zuerst Grunddaten und Preis, Durchführung (nur „Vor- und Nachbereitung“) sowie Qualifikationen und Räume; Material, Bereitstellung, „Passt dazu“, Vorbereitungsschritte und Preisregeln kommen nach dem Anlegen dazu.
 
-Im Kopf der Karte stehen rechts neben dem Namen **Speichern** und **Verwerfen**, die Schaltfläche **Verlauf** ([Verlauf einer Behandlung](hilfe:behandlungen-verlauf)) und das Menü **…** mit **Nicht mehr anbieten**.
+Im Kopf der Karte stehen rechts neben dem Namen **Speichern** und **Verwerfen**, die Schaltfläche **Verlauf** ([Verlauf einer Behandlung](hilfe:behandlungen-verlauf)) und das Menü **⋯** mit **Nicht mehr anbieten …**.
 
 Ändern dürfen Inhaber und Standortleitung. Eine Standortleitung ändert Räume, Geräte, Preise und Preisregeln nur an ihren eigenen Standorten; Einträge an anderen Standorten bleiben beim Speichern unverändert.
 
@@ -263,7 +263,7 @@ Die Kästchen Mo bis So. Mindestens ein Tag muss gewählt sein.
 
 ## Nicht mehr anbieten {#nicht-mehr-anbieten}
 
-Nimmt die Behandlung aus dem Angebot: Sie lässt sich nicht mehr neu buchen und verschwindet aus dem Kundenbereich. Bereits gebuchte Termine bleiben bestehen. In der Windows-App steht **Nicht mehr anbieten …** im Menü **…** im Kopf der Karte und fragt vorher nach.
+Nimmt die Behandlung aus dem Angebot: Sie lässt sich nicht mehr neu buchen und verschwindet aus dem Kundenbereich. Bereits gebuchte Termine bleiben bestehen. In der Windows-App steht **Nicht mehr anbieten …** im Menü **⋯** im Kopf der Karte und fragt vorher nach.
 
 Eine nicht mehr angebotene Behandlung verschwindet aus der Liste. Mit dem Schalter **Nicht mehr angebotene zeigen** unter der Liste steht sie wieder da, ausgegraut und mit dem Vermerk „Nicht angeboten“. Ihre Karte lässt sich ansehen, aber nicht ändern; **Wieder anbieten** im Kopf der Karte holt sie zurück. Der Verlauf zeigt, wer sie wann herausgenommen hat.
 

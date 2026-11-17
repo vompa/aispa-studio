@@ -35,16 +35,9 @@
               <TextBlock Text="Verlauf" VerticalAlignment="Center" />
             </StackPanel>
           </Button>
-          <!-- „…“ › „Nicht mehr anbieten …“: selten und folgenreich, darum im Menü und mit Rückfrage -->
-          <Button Grid.Column="4" x:Name="MoreButton" Classes="ghost icon" Content="…" ToolTip.Tip="Weitere Aktionen" AutomationProperties.Name="Weitere Aktionen zur Behandlung"
-                  IsVisible="{Binding CanDeactivate}" VerticalAlignment="Center">
-            <Button.Flyout>
-              <MenuFlyout Placement="BottomEdgeAlignedRight">
-                <MenuItem x:Name="DeactivateItem" Header="Nicht mehr anbieten …" Command="{Binding DeactivateCommand}"
-                          ToolTip.Tip="Neue Buchungen sind danach nicht mehr möglich; gebuchte Termine bleiben." />
-              </MenuFlyout>
-            </Button.Flyout>
-          </Button>
+          <!-- „⋯“ › „Nicht mehr anbieten …“: selten und folgenreich, darum im gemeinsamen Menü (ADR 0099) und mit Rückfrage; gelöscht wird eine Behandlung nie -->
+          <ui:MoreMenuButton Grid.Column="4" x:Name="MoreButton" Subject="{Binding Title}" DeactivateText="Nicht mehr anbieten …" DeactivateCommand="{Binding DeactivateCommand}"
+                             IsVisible="{Binding CanDeactivate}" VerticalAlignment="Center" />
           <ui:HelpButton Grid.Column="5" Topic="behandlungen" Section="behandlung" VerticalAlignment="Center" />
         </Grid>
 

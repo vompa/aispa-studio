@@ -42,6 +42,9 @@ public sealed class Location
 
     /// <summary>Minuten, die eine Nachricht an den Gast nach einer Absage des Teams wartet (0 bis 60), damit ein Versehen noch zurückgenommen werden kann (Ä95).</summary>
     public int GuestMessageDelayMinutes { get; set; } = 10;
+
+    /// <summary>Erster Tag (Ortszeit), ab dem der Standort geschlossen ist (ADR 0099, Punkt 10b); leer: der Standort ist offen. Ab dann gilt er für Buchung und Kalender wie eine dauernde Schließzeit, vergangene Termine und Belege bleiben.</summary>
+    public DateOnly? ClosedFrom { get; set; }
 }
 
 public sealed class LocationOpeningHours
