@@ -594,6 +594,18 @@ public sealed partial class StockViewModel : ViewModelBase, INativeArea
     [RelayCommand]
     private void CloseError() => Error = null;
 
+    /// <summary>„Material anlegen“ über der Liste: fragt bei ungespeicherten Änderungen im Formular, leert es und setzt den Fokus auf die Bezeichnung.</summary>
+    internal async Task StartNewItemAsync()
+    {
+        if (!CanCatalog || !await UnsavedChanges.ConfirmLeaveAsync(Dialogs, ItemForm).ConfigureAwait(true))
+        {
+            return;
+        }
+
+        ItemForm.Clear();
+        ItemForm.FocusTarget = StockItemFormViewModel.NameField;
+    }
+
     /// <summary>Ein Sprung aus Kalender oder Assistent: das Material im Bestand wählen. Steht die Maske noch nicht, gilt das Ziel nach dem Laden.</summary>
     public void Open(Guid? id, string? section, string? field)
     {

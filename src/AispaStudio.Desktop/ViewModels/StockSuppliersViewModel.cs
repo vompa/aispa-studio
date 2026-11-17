@@ -52,11 +52,15 @@ public sealed partial class StockSuppliersViewModel : ViewModelBase, IFocusTarge
         _owner = owner;
         ChannelOptions = [.. Enum.GetValues<SupplierOrderChannel>().Select(c => new SupplierChannelOption(c, StockFormat.OrderChannel(c)))];
         SelectedChannel = ChannelOptions[0];
+        Rows.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasNone));
     }
 
     public string Title => "Lieferanten";
 
     public ObservableCollection<StockSupplierRow> Rows { get; } = [];
+
+    /// <summary>Es gibt noch keinen Lieferanten (die Zeile „Neuer Lieferant“ am Ende zählt nicht): die Liste zeigt den Leerzustand (ADR 0099).</summary>
+    public bool HasNone => Rows.Count <= 1;
 
     public IReadOnlyList<SupplierChannelOption> ChannelOptions { get; }
 

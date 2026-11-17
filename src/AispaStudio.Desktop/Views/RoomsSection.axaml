@@ -48,6 +48,7 @@
     </Grid>
     <!-- „Neu“ steht fest über der Liste (ADR 0099): die Zeile zum Hinzufügen vor den vorhandenen Räumen -->
     <ContentControl x:Name="NewRoomRow" Content="{Binding NewRoom}" />
+    <TextBlock x:Name="RoomsEmpty" Text="Noch kein Raum angelegt. Ohne Raum lässt sich nichts buchen." Classes="muted" TextWrapping="Wrap" IsVisible="{Binding !Rooms.Count}" />
     <ItemsControl x:Name="RoomList" ItemsSource="{Binding Rooms}" />
     <ui:InfoBar Severity="Error" Message="{Binding RoomMessage}" IsVisible="{Binding HasRoomMessage}" />
   </StackPanel>

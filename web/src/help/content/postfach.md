@@ -155,7 +155,7 @@ Freier Text bis 200 Zeichen für das Team, z. B. „Newsletter“. Er erscheint 
 
 ### Hinzufügen, ändern und löschen {#absender-aendern}
 
-Änderungen an Plattform, Verarbeitung, Aktiv und Notiz gelten sofort, auch ohne „Speichern“ des Postfachs; die Notiz wird beim Verlassen des Feldes gespeichert. **Regel hinzufügen** legt eine neue an, **Löschen** entfernt sie nach einer Rückfrage. Schon eingegangene Mails ändern sich dadurch nicht.
+Änderungen an Plattform, Verarbeitung, Aktiv und Notiz gelten sofort, auch ohne „Speichern“ des Postfachs; die Notiz wird beim Verlassen des Feldes gespeichert. Das Formular **Regel hinzufügen** steht über der Liste und legt eine neue an, **Löschen** entfernt sie nach einer Rückfrage. Schon eingegangene Mails ändern sich dadurch nicht.
 
 ## Nummern {#nummern}
 

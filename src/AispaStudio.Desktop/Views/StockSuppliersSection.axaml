@@ -14,6 +14,7 @@
       <StackPanel Spacing="8">
         <!-- „Neu“ steht fest über der Liste (ADR 0099); der Eintrag „Neuer Lieferant“ in der Liste bleibt als Auswahl, ist aber nicht zu sehen -->
         <Button x:Name="NewSupplierButton" Classes="small" Content="Neuer Lieferant" Command="{Binding NewCommand}" HorizontalAlignment="Stretch" />
+        <TextBlock x:Name="SuppliersEmpty" Text="Noch kein Lieferant angelegt." Classes="muted" Margin="8,0" IsVisible="{Binding HasNone}" />
         <ListBox x:Name="SupplierList" Classes="plain" ItemsSource="{Binding Rows}" SelectedItem="{Binding SelectedRow}" AutomationProperties.Name="Lieferanten">
           <ListBox.Styles>
             <!-- Der Name der Zeile nennt Lieferant und Angaben; sonst liest der Screenreader den Record-Typ -->

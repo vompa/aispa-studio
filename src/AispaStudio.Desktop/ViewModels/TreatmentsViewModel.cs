@@ -99,7 +99,11 @@ public sealed partial class TreatmentsViewModel : ViewModelBase, INativeArea
     public partial TreatmentEditorViewModel? Editor { get; private set; }
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowEmpty))]
     public partial bool IsLoaded { get; private set; }
+
+    /// <summary>Es gibt noch keine Behandlung (auch keine nicht mehr angebotene) und keine neue ist offen: statt einer leeren Seite steht der Leerzustand mit dem Knopf zum Anlegen (ADR 0099).</summary>
+    public bool ShowEmpty => IsLoaded && Editor is null && _treatments.Count == 0 && _inactive.Count == 0;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasLoadError))]
@@ -511,6 +515,7 @@ public sealed partial class TreatmentsViewModel : ViewModelBase, INativeArea
         SelectedEntry = selected is null ? null : entries.FirstOrDefault(e => !e.IsHeading && e.Id == selected.Id && e.IsNew == selected.IsNew);
         _reverting = false;
         OnPropertyChanged(nameof(HasNoMatches));
+        OnPropertyChanged(nameof(ShowEmpty));
     }
 
     /// <summary>„60 Min. · 115 €“: Dauer und Grundpreis.</summary>

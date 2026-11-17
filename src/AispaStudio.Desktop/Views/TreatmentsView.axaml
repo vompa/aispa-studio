@@ -63,6 +63,15 @@
       </Border>
 
       <ContentControl Grid.Column="1" x:Name="EditorHost" Content="{Binding Editor}" />
+
+      <!-- Leerzustand (ADR 0099): ohne Behandlung steht hier ein Satz mit dem Knopf zum Anlegen statt einer leeren Seite -->
+      <Border Grid.Column="1" x:Name="EmptyState" Classes="card" Padding="24" VerticalAlignment="Top" HorizontalAlignment="Left" IsVisible="{Binding ShowEmpty}">
+        <StackPanel Spacing="12">
+          <TextBlock Text="Noch keine Behandlung" Classes="h2" />
+          <TextBlock Text="Ohne Behandlung gibt es nichts zu buchen. Dauer, Preis und Räume lassen sich danach jederzeit ändern." Classes="muted" TextWrapping="Wrap" MaxWidth="480" />
+          <Button x:Name="EmptyNewButton" Classes="primary" Content="Behandlung anlegen" Command="{Binding NewCommand}" HorizontalAlignment="Left" />
+        </StackPanel>
+      </Border>
     </Grid>
   </Grid>
 </UserControl>

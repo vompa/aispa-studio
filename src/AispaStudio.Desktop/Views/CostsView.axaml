@@ -138,7 +138,9 @@
               <TextBlock Text="Räume" Classes="h2" VerticalAlignment="Center" />
               <ui:HelpButton Grid.Column="1" Topic="kosten" Section="raeume" />
             </Grid>
-            <Grid ColumnDefinitions="*,200,200" ColumnSpacing="12" AutomationProperties.AccessibilityView="Raw">
+            <TextBlock x:Name="RoomCostsEmpty" Classes="muted" TextWrapping="Wrap" IsVisible="{Binding !Rooms.Count}"
+                       Text="Noch kein Raum angelegt. Räume entstehen unter „Betrieb“ › „Standorte &amp; Räume“." />
+            <Grid ColumnDefinitions="*,200,200" ColumnSpacing="12" AutomationProperties.AccessibilityView="Raw" IsVisible="{Binding Rooms.Count}">
               <TextBlock Text="Raum" Classes="group" />
               <TextBlock Grid.Column="1" Text="Miete und Nebenkosten pro Monat" Classes="group" TextWrapping="Wrap" />
               <TextBlock Grid.Column="2" Text="Pflegematerial je Reinigung" Classes="group" TextWrapping="Wrap" />
@@ -162,6 +164,8 @@
               <ui:HelpButton Grid.Column="1" Topic="kosten" Section="personal" />
             </Grid>
             <TextBlock Classes="muted" TextWrapping="Wrap" Text="Arbeitgeberkosten pro bezahlter Stunde. Leer: Standard-Stundensatz." />
+            <TextBlock x:Name="EmployeeCostsEmpty" Classes="muted" TextWrapping="Wrap" IsVisible="{Binding !Employees.Count}"
+                       Text="Noch niemand im Team. Personen werden im Bereich „Team“ angelegt." />
             <ItemsControl x:Name="EmployeeCostList" ItemsSource="{Binding Employees}" AutomationProperties.Name="Personalkosten">
               <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="vm:EmployeeCostRow">

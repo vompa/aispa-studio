@@ -14,6 +14,7 @@
       <TextBox x:Name="NewEquipmentField" Text="{Binding NewEquipmentName}" PlaceholderText="Neues Gerät" AutomationProperties.Name="Neues Gerät" MaxLength="100" />
       <Button Grid.Column="1" Content="Hinzufügen" Command="{Binding AddEquipmentCommand}" ui:DisabledHint.Text="Verfügbar, sobald ein Name eingetragen ist." />
     </Grid>
+    <TextBlock x:Name="EquipmentEmpty" Text="Noch kein Gerät angelegt." Classes="muted" IsVisible="{Binding !Equipment.Count}" />
     <ItemsControl x:Name="EquipmentList" ItemsSource="{Binding Equipment}">
       <ItemsControl.ItemsPanel>
         <ItemsPanelTemplate>

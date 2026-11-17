@@ -64,7 +64,8 @@
 
     <StackPanel Spacing="4" Grid.IsSharedSizeScope="True">
       <TextBlock Text="Arbeitszeitaufzeichnung laut Dienstplan" Classes="h2" />
-      <Grid ColumnSpacing="12" AutomationProperties.AccessibilityView="Raw">
+      <TextBlock x:Name="WorkingTimeEmpty" Text="Keine Dienste im Zeitraum." Classes="muted" IsVisible="{Binding !WorkingTime.Count}" />
+      <Grid ColumnSpacing="12" AutomationProperties.AccessibilityView="Raw" IsVisible="{Binding WorkingTime.Count}">
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="Auto" SharedSizeGroup="Person" />
           <ColumnDefinition Width="Auto" SharedSizeGroup="Hours" />
