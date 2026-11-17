@@ -16572,6 +16572,54 @@
         }
       }
     },
+    "/api/v1/locations/{locationId}/online-refunds": {
+      "get": {
+        "tags": [
+          "Kassa"
+        ],
+        "summary": "Erstattungen online bezahlter Belege eines Standorts, neueste zuerst (höchstens 100), mit Beleg, Stornobeleg und Stand.",
+        "operationId": "ListOnlineRefunds",
+        "parameters": [
+          {
+            "name": "locationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OnlineRefundStaffEntry"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/locations/{locationId}/waitlist/pdf": {
       "get": {
         "tags": [
@@ -42701,12 +42749,74 @@
           }
         }
       },
+      "OnlineRefundStaffEntry": {
+        "required": [
+          "receiptId",
+          "receipt",
+          "voidReceipt",
+          "source",
+          "amount",
+          "currency",
+          "status",
+          "requestedAt",
+          "refundedAt",
+          "error"
+        ],
+        "type": "object",
+        "properties": {
+          "receiptId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "receipt": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "voidReceipt": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "source": {
+            "$ref": "#/components/schemas/OnlinePaymentSource"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/OnlineRefundStatus"
+          },
+          "requestedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "refundedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "error": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "OnlineRefundStatus": {
         "enum": [
           "Pending",
           "Refunded",
-          "Failed",
-          null
+          "Failed"
         ]
       },
       "OnlineSuggestedTime": {
@@ -51991,6 +52101,12 @@
             "format": "uuid"
           },
           "error": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "receipt": {
             "type": [
               "null",
               "string"

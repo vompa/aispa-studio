@@ -1417,6 +1417,15 @@ Expected: Im Kalender steht der Termin beim Therapeuten; in der Notiz steht „W
 Closes: –
 Result: ☐
 
+### Kassa – Online-Zahlungen nachsehen
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App als Rezeption; Zahlungsanbieter im Testbetrieb; im Kundenbereich einen Gutschein kaufen und mit „Zahlung simulieren“ bezahlen
+1. In der Kassa oben auf das Weltkugel-Symbol **Online-Zahlungen** klicken.
+Expected: Die Karte zeigt unter „Online gekaufte Gutscheine“ den Gutschein mit Betrag, Zeit, „Ausgestellt“ und Beleg; unter „Erstattungen“ steht „Noch keine.“
+2. Als Kassenaufsicht unter „Belege“ den Gutscheinbeleg stornieren und die Karte neu öffnen.
+Expected: Der Gutschein steht als „Storniert und erstattet“; unter „Erstattungen“ steht er mit Beleg, Stornobeleg und „Erstattet am …“.
+Closes: –
+Result: ☐
+
 ### Paar und Spa-Tag – Sauna für einen Gast ohne Namen
 Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App als Rezeption; am Standort gibt es eine Sauna als Bereich
 1. **Paar oder Spa-Tag** öffnen, Gast 1 aus der Kartei wählen, bei Gast 2 **Name folgt** anhaken. Im ersten Schritt Gast 1 eine Massage und Gast 2 die Sauna (60 Min.) geben, im zweiten Schritt umgekehrt; eine Zeit suchen.

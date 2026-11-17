@@ -119,15 +119,22 @@ internal static class VoucherShopEndpoints
         // Der Standort wird über das Fachmodell geprüft, damit der Mandantenfilter auch hier greift.
         routes.MapGet("/api/locations/{locationId:guid}/voucher-orders", async Task<Results<Ok<List<VoucherOrderStaffEntry>>, NotFound>> (
                 Guid locationId, AispaDbContext db, OnlineDbContext online, CancellationToken ct) =>
-                !await db.Locations.AnyAsync(l => l.Id == locationId, ct)
-                    ? TypedResults.NotFound()
-                    : TypedResults.Ok(await online.VoucherOrders.AsNoTracking()
+            {
+                if (!await db.Locations.AnyAsync(l => l.Id == locationId, ct))
+                {
+                    return TypedResults.NotFound();
+                }
+
+                var orders = await online.VoucherOrders.AsNoTracking()
                     .Where(o => o.LocationId == locationId && o.Status != VoucherOrderStatus.Pending && o.Status != VoucherOrderStatus.Cancelled)
                     .OrderByDescending(o => o.CreatedAt)
                     .Take(100)
                     .Select(o => new VoucherOrderStaffEntry(o.Id, o.CreatedAt, o.Status, o.Kind, o.Amount, o.Currency, o.BuyerEmail,
-                        o.RecipientName, o.ReceiptId, o.Error))
-                    .ToListAsync(ct)))
+                        o.RecipientName, o.ReceiptId, o.Error, null))
+                    .ToListAsync(ct);
+                var receipts = await ReceiptTexts.LoadAsync(db, orders.Select(o => o.ReceiptId), ct);
+                return TypedResults.Ok(orders.Select(o => o with { Receipt = o.ReceiptId is { } id ? receipts.GetValueOrDefault(id) : null }).ToList());
+            })
             .RequirePermission(AccessRight.Book)
             .WithTags("Kassa")
             .WithName("ListOnlineVoucherOrders")

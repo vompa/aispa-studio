@@ -6799,3 +6799,22 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Geprüft:** API `SpaDayBuilderTests`, `GroupBookingTests`, `AreaTests`, `ChannelScanTests` 25 von 25 (neu: Buchen mit Nummer, Name „Gast 1 · Name folgt“, Verschieben behält die Nummer, Nachtragen nimmt den Eintritt mit); Windows-App `GroupAndAreaTests` 14 von 14 (neu: Suche mit Platzhalter, Buchung mit Nummer, Hinweistext), Ansichtstests zu Gruppe, Paar und Spa-Tag grün.
 - **Nicht geprüft:** die laufende App unter Windows.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Kassa: Online-Zahlungen als Liste (17.11.2026)
+
+- **Auftrag:** Offener Punkt „Online-Bestellungen und Erstattungen als Liste in der Kassa“ (Online-Buchung und Kundenbereich, Nr. 7); vom Auftraggeber am 16.11.2026 mit „alle Punkte autonom, wo du mich nicht brauchst“ freigegeben.
+- **Befund:** Der Server lieferte die bezahlten Online-Gutscheine schon (`GET /api/locations/{id}/voucher-orders`), keine Oberfläche zeigte sie. Erstattungen waren nur einzeln am Beleg zu sehen.
+- **Was:**
+  - `GET /api/locations/{id}/online-refunds` (Buchen): Erstattungen online bezahlter Belege, neueste 100, mit Beleg und Stornobeleg in Worten.
+  - `VoucherOrderStaffEntry.Receipt`: der Beleg in Worten statt nur der Id. Die Belegtexte kommen aus einem gemeinsamen Helfer `ReceiptTexts`.
+  - Windows-App: Symbol **Online-Zahlungen** (Weltkugel) in der Kopfzeile der Kassa. Es öffnet eine Karte mit zwei Listen; Fehlgeschlagenes steht in Rot.
+  - Hilfe `kassa-beleg-stornieren` mit Bild `kassa-online-zahlungen.png`.
+  - Im Stand vermerkt: Nr. 5 (Sprache des Gastes) und Nr. 8 (Anzahlung in der Windows-App) gab es schon.
+- **Detailentscheidungen:**
+  1. Nur zum Nachsehen: Erstattet wird weiter über das Storno des Belegs, ein Fehlschlag wird im Beleg erneut angestoßen. So bleibt jede Erstattung mit Stornobeleg im Tagesabschluss.
+  2. Symbol statt beschriftetem Knopf: Mit einem weiteren beschrifteten Knopf wurde das Datum in der Kopfzeile abgeschnitten.
+  3. Recht „Buchen“ wie bei den vorhandenen Abfragen zu Online-Zahlungen am Beleg.
+- **Bewusst offen / später:** einen Eintrag anklicken und den Beleg öffnen; Anzahlungen und Ausfallgebühren als eigene Liste (sie stehen am Termin).
+- **Geprüft:** API `OnlineRefundTests`, `VoucherShopTests`, `ChannelScanTests` 14 von 14 (neu: Liste mit Beleg und Stornobeleg, leere Liste, fremder Standort 404); Windows-App `PosOnlinePaymentsTests` 3 von 3, Ansichtstest „Online-Zahlungen“, Kassa-Ansichten (71) und Knopflängen grün.
+- **Nicht geprüft:** die laufende App unter Windows.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
