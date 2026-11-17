@@ -93,6 +93,7 @@
 
     <StackPanel Spacing="8" IsVisible="{Binding ShowAmounts}">
       <TextBlock Text="Umsatz nach Erlöskonto" Classes="h2" />
+      <TextBlock x:Name="RevenueByAccountEmpty" Text="Keine Umsätze im Zeitraum." Classes="muted" IsVisible="{Binding !RevenueByAccount.Count}" />
       <ItemsControl ItemsSource="{Binding RevenueByAccount}">
         <ItemsControl.ItemTemplate>
           <DataTemplate x:DataType="vm:RevenueRow">
@@ -105,6 +106,7 @@
         </ItemsControl.ItemTemplate>
       </ItemsControl>
       <TextBlock Text="Umsatz nach Zahlungsart" Classes="h2" />
+      <TextBlock x:Name="RevenueByPaymentEmpty" Text="Keine Umsätze im Zeitraum." Classes="muted" IsVisible="{Binding !RevenueByPayment.Count}" />
       <ItemsControl ItemsSource="{Binding RevenueByPayment}">
         <ItemsControl.ItemTemplate>
           <DataTemplate x:DataType="vm:RevenueRow">
@@ -119,7 +121,8 @@
 
     <StackPanel Spacing="8" Grid.IsSharedSizeScope="True">
       <TextBlock Text="Personal" Classes="h2" />
-      <Grid ColumnSpacing="12" AutomationProperties.AccessibilityView="Raw">
+      <TextBlock x:Name="EmployeesEmpty" Text="Keine Dienste im Zeitraum." Classes="muted" IsVisible="{Binding !Employees.Count}" />
+      <Grid ColumnSpacing="12" AutomationProperties.AccessibilityView="Raw" IsVisible="{Binding Employees.Count}">
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="*" />
           <ColumnDefinition Width="Auto" SharedSizeGroup="Shift" />
@@ -157,7 +160,8 @@
 
     <StackPanel Spacing="8" Grid.IsSharedSizeScope="True">
       <TextBlock Text="Behandlungen" Classes="h2" />
-      <Grid ColumnSpacing="12" AutomationProperties.AccessibilityView="Raw">
+      <TextBlock x:Name="TreatmentsEmpty" Text="Keine Behandlungen im Zeitraum." Classes="muted" IsVisible="{Binding !Treatments.Count}" />
+      <Grid ColumnSpacing="12" AutomationProperties.AccessibilityView="Raw" IsVisible="{Binding Treatments.Count}">
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="*" />
           <ColumnDefinition Width="Auto" SharedSizeGroup="Count" />

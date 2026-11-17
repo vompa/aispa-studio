@@ -138,6 +138,13 @@ public sealed partial class StockOverviewViewModel : ViewModelBase
 
     public bool ShowEmpty => Rows.Count == 0;
 
+    /// <summary>„Material anlegen“ steht fest über der Liste (ADR 0099), nur mit dem Recht auf den Katalog.</summary>
+    public bool CanCreate => _owner.CanCatalog;
+
+    /// <summary>Leert das Formular „Material anlegen“ unter der Liste und setzt den Fokus auf die Bezeichnung.</summary>
+    [RelayCommand]
+    private Task NewItemAsync() => _owner.StartNewItemAsync();
+
     /// <summary>Baut die Zeilen aus dem Stand des Besitzers neu auf (nach dem Laden, nach jeder Buchung, beim Wechsel des Lagerorts).</summary>
     internal void Refresh()
     {

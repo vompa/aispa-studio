@@ -114,6 +114,39 @@ Stand: 17.11.2026. Bestandsaufnahme vor dem Muster aus [ADR 0099](../entscheidun
 | Aktion | „Neue Aktion“ über der Liste / `POST api/promotions` | nie (ADR 0071) | Archivieren und Zurückholen, umkehrbar / `POST …/archive`, `…/unarchive` | Angebot › Aktionen | bleibt beim Archivieren; Menü „⋯“: Maske Aktionen (nicht in P10a) |
 | Betriebskontakt | Anlegen in der Maske (darunter die Kategorie „Handwerker und Technik“) / `POST api/business-contacts` | nein | Archivieren und Zurückholen / `POST …/archive`, `…/unarchive` (`BusinessInfoViewModel.cs:878-938`) | Zahlen › Betriebsinfo | Handwerker bleiben Kategorie der Betriebsinfo (ADR 0099); Menü „⋯“: Maske Betriebsinfo |
 
-Stand P10b (17.11.2026): Standort (Schließen ab Datum, Löschen nur ohne Abhängiges), Material („Nicht mehr verwenden“) und Behandlung (gemeinsames Menü) sind erledigt. Offen bleiben: Qualifikation „Löschen …“ in der Personenkarte und „Aus dem Team nehmen“ (Team, P5/P11), Wieder verwenden bei Räumen und Geräten, Aktion und Betriebskontakt im Menü, „Neu“ über den übrigen Listen, Leerzustände aller Seiten und der Test gegen leere API-Antworten (zweiter Teil von P10b). Die Karte „Betrieb einrichten“ auf „Firmendaten“ steht (`GET api/setup/progress`).
+Stand P10b (17.11.2026): Standort (Schließen ab Datum, Löschen nur ohne Abhängiges), Material („Nicht mehr verwenden“) und Behandlung (gemeinsames Menü) sind erledigt. Offen bleiben: Qualifikation „Löschen …“ in der Personenkarte und „Aus dem Team nehmen“ (Team, P5/P11), Wieder verwenden bei Räumen und Geräten sowie Aktion und Betriebskontakt im Menü. „Neu“ über den übrigen Listen, die Leerzustände aller Seiten und der Test gegen leere API-Antworten sind in P10c erledigt (Abschnitt unten). Die Karte „Betrieb einrichten“ auf „Firmendaten“ steht (`GET api/setup/progress`).
 
 Das Muster in der API ist `GET …/{id}/deletion-check` mit `DeletionCheckDto(CanDelete, Summary, Dependents, Alternative)`; die App zeigt es im gemeinsamen Dialog (`DeletionDialog`) und im Menü `MoreMenuButton`. In P10a ist es bei Lagerorten, Lieferanten, Räumen und Geräten eingebaut; die übrigen Masken folgen mit ihren PRs.
+
+## Verwaltungsseiten: „Neu“ über der Liste und Leerzustand (P10c)
+
+Stand: 17.11.2026, zweiter Teil von P10b. Bestandsaufnahme aller Seiten aus `AdminPageViewModel` gegen die Regel aus [ADR 0099](../entscheidungen/0099-anlegen-entfernen-und-leerer-betrieb.md): „Neu“ fest über der Liste, ein Leerzustand mit kurzem Satz und dem Knopf zum Anlegen als erster Aktion. „Vorher“ ist der Stand vor P10c, geprüft am leeren Betrieb (ein Standort, die Inhaberin, sonst nichts; `ViewTests.EmptyBusiness`); „jetzt“ der Stand nach P10c. Zeilenlisten innerhalb einer Karte (Arbeitszeiten, Preisregeln, Schritte, Mindestmengen, Ausnahmen der Wiederbuchungs-Hinweise) behalten ihre Zeile zum Hinzufügen unter der Liste ([Design-Brief, Zeilenlisten](../design.md)); die Regel gilt für Listen von Objekten, die eine Auswahl links und eine Karte rechts haben, und für ihre Formulare zum Anlegen.
+
+| Gruppe › Seite | Liste | „Neu“ vorher | Leerzustand vorher | jetzt |
+| --- | --- | --- | --- | --- |
+| Betrieb › Firmendaten | keine; Karte „Betrieb einrichten“ | – | Karte zeigt den Stand (P10b) | unverändert |
+| Betrieb › Standorte & Räume | Standorte | Knopf „Standort anlegen“ über der Liste (P10b) | nie leer (der letzte Standort bleibt) | unverändert |
+| Betrieb › Standorte & Räume | Räume | Zeile über der Liste (P10a) | keiner | Satz „Noch kein Raum angelegt. Ohne Raum lässt sich nichts buchen.“ |
+| Betrieb › Standorte & Räume | Geräte | Zeile über der Liste (P10a) | keiner | Satz „Noch kein Gerät angelegt.“ |
+| Betrieb › Schließzeiten | Schließzeiten und Raumsperren | Knopf im Kopf der Seite | Karte mit „Schließzeit anlegen“ und „Raum sperren“ | unverändert |
+| Betrieb › Kalender-Abos | Abos | Knopf „Neues Abo“ im Kopf | Satz „Es gibt noch kein Kalender-Abo.“ | unverändert |
+| Betrieb › Handbuch | Einträge | Knopf über der Liste | Satz „Noch kein Eintrag im Handbuch.“ | unverändert |
+| Behandlungen | Behandlungen | Knopf „Neue Behandlung“ über der Liste | **leere Seite** rechts | Karte „Noch keine Behandlung“ mit dem Satz und dem Knopf „Behandlung anlegen“ |
+| Aktionen | Aktionen | Knopf „Neue Aktion“ über der Liste | Satz „Noch keine Aktion angelegt.“ | unverändert |
+| Team (alle Ansichten) | Personen u. a. | Knöpfe über der Liste (P5) | Karte der Inhaberin | **nicht angefasst** (Maske Team, P5 und P11); in „Rechte und Zuständigkeiten“ stehen leer nur die Überschriften „Wer darf was?“ und „Zuständigkeiten“ ohne Satz: Sache von P11 |
+| Lager › Bestand › Material | Material | Formular „Material anlegen“ unter der Liste, kein Knopf darüber | „Noch keine Einträge.“ | Knopf „Material anlegen“ im Kopf der Karte über der Liste (leert das Formular, Cursor in „Bezeichnung“), Satz „Noch kein Material angelegt.“ |
+| Lager › Einrichtung › Lagerorte | Lagerorte | Knopf über der Liste (P10a) | nie leer (das Hauptlager gibt es immer) | unverändert |
+| Lager › Einrichtung › Lieferanten | Lieferanten | Knopf über der Liste (P10a) | keiner | Satz „Noch kein Lieferant angelegt.“ |
+| Lager › Übersicht, Chargen, Bewegungen, Bestellen, Inventur | nichts anzulegen | – | Sätze („Nichts zu tun …“, „Keine Aufgaben …“, „Noch keine Bestellungen.“) | unverändert |
+| Kassa & Geld › Kassa, Zahlungen | keine Liste | – | – | unverändert |
+| Kassa & Geld › Kosten | Räume, Personal | – (die Daten kommen aus Standorten und Team) | Überschrift mit Spaltenköpfen, kein Satz | Sätze „Noch kein Raum angelegt. Räume entstehen unter „Betrieb“ › „Standorte & Räume“.“ und „Noch niemand im Team. …“; Spaltenköpfe nur mit Zeilen |
+| Kassa & Geld › Buchhaltung | Erlöskonten | Formular unter der Liste | – (drei Konten gibt es immer) | Formular „Erlöskonto anlegen“ über der Liste |
+| Kontakt › Erinnerungen | Ausnahmen (Zeilenliste) | Auswahl „+ Ausnahme“ unter der Tabelle | Satz „Keine Ausnahmen …“ | unverändert (Zeilenliste) |
+| Kontakt › Postfach & Nummern | Absenderregeln | Formular „Regel hinzufügen“ unter der Liste | Satz „Keine Regel. …“ | Formular über der Liste |
+| Kontakt › Postfach & Nummern | Nummern | nur lesend (richtet der Betreiber ein) | Satz „Noch keine eigene Nummer. …“ | unverändert |
+| Kontakt › KI | keine Liste | – | – | unverändert |
+| Zahlen › Tagesstart, Mein Tag, Hygiene | Berichte, nichts anzulegen | – | Sätze („Nichts Dringendes offen“, „Keine Behandlungen heute“ …) | unverändert |
+| Zahlen › Berichte (Management und Pflichtberichte) | Tabellen | – | Überschriften mit Spaltenköpfen, kein Satz | Sätze „Keine Umsätze im Zeitraum.“, „Keine Dienste im Zeitraum.“, „Keine Behandlungen im Zeitraum.“; Spaltenköpfe nur mit Zeilen |
+| Zahlen › Betriebsinfo | Betriebskontakte | Knopf „Neuer Eintrag“ über der Liste | Satz „Noch nichts eingetragen. …“; eine leere Kategorie zeigte „Nichts gefunden.“ | Eine gewählte Kategorie ohne Eintrag (zum Beispiel „Handwerker und Technik“) zeigt „Noch nichts bei „<Kategorie>“. Mit „Neuer Eintrag“ beginnen.“; „Neuer Eintrag“ legt dann einen Eintrag in dieser Kategorie an |
+
+Der Test `ViewTests.EmptyBusiness` hält das fest: er öffnet die Shell mit einem Standort und sonst leeren Antworten, wechselt in alle 33 Stellen der Verwaltung (alle Gruppen, Reiter, Ansichten des Lagers, der Zahlen und des Teams) und verlangt je Stelle keinen Absturz, keine Bindungsfehler, keine Fehlerleiste, keine Anfrage ohne vorbereitete Antwort und die Elemente und Sätze aus der Spalte „jetzt“.

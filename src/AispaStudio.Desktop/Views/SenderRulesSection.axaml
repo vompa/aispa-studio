@@ -20,6 +20,25 @@
                 ActionText="Erneut laden" ActionCommand="{Binding LoadCommand}" />
     <ui:InfoBar Severity="{Binding MessageSeverity}" Message="{Binding Message}" IsVisible="{Binding HasMessage}" CloseCommand="{Binding CloseMessageCommand}" />
     <TextBlock Text="Lade Regeln …" Classes="muted" IsVisible="{Binding !IsLoaded}" />
+    <!-- „Neu“ steht fest über der Liste (ADR 0099): erst das Formular zum Anlegen, darunter die Regeln -->
+    <TextBlock Text="Regel hinzufügen" Classes="h2" Margin="0,4,0,0" />
+    <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="12">
+      <ui:FormField Grid.ColumnSpan="2" Label="Adresse oder Domain">
+        <TextBox x:Name="RulePatternField" Text="{Binding NewPattern}" PlaceholderText="buchungen@plattform.example oder plattform.example" />
+      </ui:FormField>
+      <ui:FormField Grid.Row="1" Label="Plattform">
+        <ComboBox x:Name="RulePlatformField" ItemsSource="{x:Static vm:SenderRulesViewModel.Platforms}" SelectedItem="{Binding NewPlatform}" HorizontalAlignment="Stretch" />
+      </ui:FormField>
+      <ui:FormField Grid.Row="1" Grid.Column="1" Label="Verarbeitung">
+        <ComboBox x:Name="RuleHandlingField" ItemsSource="{x:Static vm:SenderRulesViewModel.Handlings}" SelectedItem="{Binding NewHandling}" HorizontalAlignment="Stretch" />
+      </ui:FormField>
+    </Grid>
+    <ui:FormField Label="Notiz">
+      <TextBox x:Name="RuleNoteField" Text="{Binding NewNote}" MaxLength="200" />
+    </ui:FormField>
+    <Button x:Name="AddRuleButton" Content="Regel hinzufügen" Command="{Binding AddCommand}" HorizontalAlignment="Left"
+            ui:DisabledHint.Text="Verfügbar, sobald eine Adresse oder Domain eingetragen ist." />
+
     <TextBlock Classes="muted" TextWrapping="Wrap" IsVisible="{Binding ShowEmpty}"
                Text="Keine Regel. Mails aller Absender bearbeitet die Terminannahme wie normale Anfragen." />
 
@@ -52,23 +71,5 @@
         </DataTemplate>
       </ItemsControl.ItemTemplate>
     </ItemsControl>
-
-    <TextBlock Text="Regel hinzufügen" Classes="h2" Margin="0,8,0,0" />
-    <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="12">
-      <ui:FormField Grid.ColumnSpan="2" Label="Adresse oder Domain">
-        <TextBox x:Name="RulePatternField" Text="{Binding NewPattern}" PlaceholderText="buchungen@plattform.example oder plattform.example" />
-      </ui:FormField>
-      <ui:FormField Grid.Row="1" Label="Plattform">
-        <ComboBox x:Name="RulePlatformField" ItemsSource="{x:Static vm:SenderRulesViewModel.Platforms}" SelectedItem="{Binding NewPlatform}" HorizontalAlignment="Stretch" />
-      </ui:FormField>
-      <ui:FormField Grid.Row="1" Grid.Column="1" Label="Verarbeitung">
-        <ComboBox x:Name="RuleHandlingField" ItemsSource="{x:Static vm:SenderRulesViewModel.Handlings}" SelectedItem="{Binding NewHandling}" HorizontalAlignment="Stretch" />
-      </ui:FormField>
-    </Grid>
-    <ui:FormField Label="Notiz">
-      <TextBox x:Name="RuleNoteField" Text="{Binding NewNote}" MaxLength="200" />
-    </ui:FormField>
-    <Button x:Name="AddRuleButton" Content="Regel hinzufügen" Command="{Binding AddCommand}" HorizontalAlignment="Left"
-            ui:DisabledHint.Text="Verfügbar, sobald eine Adresse oder Domain eingetragen ist." />
   </StackPanel>
 </UserControl>
