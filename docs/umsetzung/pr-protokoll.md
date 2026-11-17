@@ -7199,3 +7199,17 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Bewusst offen / später:** Räume und Geräte bleiben unlöschbar; keine Änderung am Kalender; keine Migration.
 - **Geprüft:** API-Testklasse `FormerRoomsAndEquipmentTests` (entfernen, Liste, Sortierung, Zurückholen und buchbar, schon aktiv, unbekannte und fremde Id 404, ohne Recht 403), `ChannelScanTests`; Desktop-Tests `AdminLocationsFormerTests` und Ansichtstest `Raeume_und_Geraete_zeigen_nicht_mehr_verwendete_gedaempft_mit_Kennzeichen_und_nur_Wieder_verwenden` (hell und dunkel), Bilder angesehen.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Fehlerantwort 400 mit deutschem Satz (17.11.2026)
+
+- **Basiert auf:** `dev` nach „Wieder verwenden“; Fund aus der Prüfung des leeren Betriebs gegen die echte API.
+- **Was:** Scheitert die Bindung eines Parameters (Pflichtwert fehlt, Enum unbekannt, Zahl als Text), läuft der Handler nicht. Bisher kam im Betrieb ein englisches „Bad Request“ ohne `detail`, die App zeigte „Bad Request“; in `Development` (auch in den Tests) wurde daraus eine Ausnahme mit 500. Gefunden bei `accounting/export` und `payroll/export` (`format` ist dort ein Enum), betroffen war jeder Endpunkt mit Pflicht- oder Enum-Parametern.
+  - `Program.cs`: `RouteHandlerOptions.ThrowOnBadRequest = false` in jeder Umgebung, dazu `CustomizeProblemDetails`: Eine Antwort mit 400 ohne `detail`, ohne eigenen Titel und ohne `errors` bekommt „Die Anfrage ist unvollständig, oder ein Wert hat das falsche Format.“
+- **Detailentscheidungen:**
+  1. **An der Wurzel statt je Endpunkt:** Den Fehler kann kein Handler abfangen, weil die Bindung vor ihm scheitert; ein Typwechsel von `format` auf Text wäre ein Breaking Change ([ADR 0085](../entscheidungen/0085-api-version-in-den-pfaden.md)).
+  2. **Ohne Namen des Parameters:** Den kennt nur die Ausnahme, die es nur mit `ThrowOnBadRequest` gibt; das hieße ein Fehlereintrag im Log bei jedem falschen Aufruf.
+  3. **Eigene Texte bleiben:** Antworten mit `errors`, eigenem `detail` oder eigenem Titel bekommen den Satz nicht. Status und Felder bleiben, nur `detail` kommt dazu (kein Breaking Change).
+- **Kein Fehler:** Dass jedes Spa die drei Feiertags-Abos AT, DE und CH hat, ist so gewollt ([ADR 0075](../entscheidungen/0075-kalender-abos-fuer-feiertage-und-ferien.md)); aktiv ist nur das Land des Spas, und ein Abo zählt nur am Standort seines Landes. Der bestehende Test `Jedes_Spa_hat_die_drei_Feiertags_Abos_nach_Land_und_nur_das_eigene_Land_ist_aktiv` prüft das.
+- **Bewusst offen / später:** nichts.
+- **Geprüft:** neue Testklasse `BadRequestTextTests` (vorher rot mit 500, jetzt grün: falsches und fehlendes `format`, Jahr als Text, eigene Prüfung behält ihren Text, 404 ohne den Satz), `AccountingTests`, `PayrollTests`, `ApiVersionTests` (29 grün).
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
