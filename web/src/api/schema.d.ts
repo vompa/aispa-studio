@@ -8697,6 +8697,8 @@ export interface components {
             /** Format: uuid */
             groupId?: null | string;
             warnings?: null | string[];
+            /** Format: int32 */
+            placeholderGuest?: null | number;
         };
         AreaVisitRequest: {
             /** Format: uuid */
@@ -10625,6 +10627,8 @@ export interface components {
             step: number;
             /** Format: int32 */
             minutes: number;
+            /** Format: int32 */
+            placeholderGuest?: null | number;
         };
         GroupAvailabilityRequest: {
             /** Format: date */

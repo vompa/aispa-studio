@@ -1417,6 +1417,17 @@ Expected: Im Kalender steht der Termin beim Therapeuten; in der Notiz steht „W
 Closes: –
 Result: ☐
 
+### Paar und Spa-Tag – Sauna für einen Gast ohne Namen
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App als Rezeption; am Standort gibt es eine Sauna als Bereich
+1. **Paar oder Spa-Tag** öffnen, Gast 1 aus der Kartei wählen, bei Gast 2 **Name folgt** anhaken. Im ersten Schritt Gast 1 eine Massage und Gast 2 die Sauna (60 Min.) geben, im zweiten Schritt umgekehrt; eine Zeit suchen.
+Expected: Unter den Gästen steht „… Die Namen lassen sich später im Termin nachtragen, auch für Sauna und Ruheraum.“; **Buchen** ist nicht gesperrt.
+2. Buchen und die Belegung „Sauna und Ruheraum“ ansehen.
+Expected: Ein Eintritt steht als „Gast 2 · Name folgt“, der andere auf Gast 1.
+3. Den Massagetermin von Gast 2 öffnen, **Namen nachtragen** und einen Gast eintragen.
+Expected: Auch der Sauna-Eintritt von Gast 2 trägt danach diesen Namen.
+Closes: –
+Result: ☐
+
 ### Ausfall-Assistent – Ersatz an einem anderen Tag
 Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App als Rezeption; eine Person mit einem Termin heute, alle anderen mit derselben Qualifikation sind heute abwesend (Urlaub im Dienstplan), arbeiten aber an einem der nächsten Tage; der Gast hat eine Mailadresse; kein zweiter Standort mit Platz
 1. Die Person krank melden und den Ausfall-Assistenten öffnen.

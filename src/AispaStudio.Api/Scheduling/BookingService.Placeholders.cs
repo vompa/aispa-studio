@@ -42,6 +42,10 @@ internal sealed partial class BookingService
                 [new BookingConflict(ResourceKind.Employee, excluded.EmployeeId, "Person", "hat für diesen Gast „Nicht bei mir“ gesetzt")]));
         }
 
+        // Sauna und Ruheraum des Gastes gehören mit: sie tragen dieselbe Nummer und laufen bis jetzt auf die buchende Person.
+        var visits = await db.AreaVisits.Include(v => v.Customer)
+            .Where(v => v.GroupId == groupId && v.PlaceholderGuest == guest && v.CustomerId == appointment.CustomerId && !v.IsCancelled)
+            .ToListAsync(ct);
         var now = time.GetUtcNow();
         foreach (var part in parts)
         {
@@ -51,11 +55,19 @@ internal sealed partial class BookingService
             part.UpdatedAt = now;
         }
 
+        foreach (var visit in visits)
+        {
+            visit.CustomerId = customer.Id;
+            visit.Customer = customer;
+            visit.PlaceholderGuest = null;
+            visit.UpdatedAt = now;
+        }
+
         if (!await TrySaveAsync(ct))
         {
             return new BookingOutcome.Rejected(new BookingRejected("Der Termin wurde gerade von jemand anderem geändert.", []));
         }
 
-        return await PublishGroupAsync(groupId, parts.Select(a => (a, a.Treatment.Name)));
+        return await PublishGroupAsync(groupId, parts.Select(a => (a, a.Treatment.Name)), visits: visits);
     }
 }
