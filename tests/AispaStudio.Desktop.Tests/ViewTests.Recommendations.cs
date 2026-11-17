@@ -114,7 +114,7 @@ public sealed partial class ViewTests
     }
 
     [Fact]
-    public Task Given_eine_gespeicherte_Behandlung_When_die_Inhaberin_unter_Preise_und_Verkauf_das_Oel_hinzufuegt_und_speichert_Then_geht_die_Liste_per_PUT_an_die_API()
+    public Task Given_eine_gespeicherte_Behandlung_When_die_Inhaberin_unter_Grunddaten_und_Preis_das_Oel_hinzufuegt_und_speichert_Then_geht_die_Liste_per_PUT_an_die_API()
     {
         var route = $"/api/treatments/{HotStone60.Id}/recommended-articles";
         var api = TreatmentApi()
@@ -123,7 +123,7 @@ public sealed partial class ViewTests
         return Render("hell", "verwaltung-behandlungen-verkauf", async (window, main) =>
         {
             var treatments = await OpenTreatments(window, main);
-            await ClickSection(window, "Preise und Verkauf");
+            await ClickSection(window, "Grunddaten und Preis");
             Assert.True(Shows(window, "Gesichtscreme Hydro 50 ml"));
 
             Named<ComboBox>(window, "RecommendedArticlePicker").SelectedItem = treatments.Editor!.ArticleChoices.Single(a => a.Id == RecommendedOil.Id);

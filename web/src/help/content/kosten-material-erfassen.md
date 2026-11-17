@@ -12,7 +12,7 @@ Die Rezeptur legt fest, welches Material ein Termin verbraucht. Sie steht bei de
 
 ## Schritte {#schritte}
 
-1. In der Verwaltung **Verwaltung** › **Angebot** › **Behandlungen** öffnen und links die Behandlung wählen. (Von der Seite **Kosten** aus: in der Tabelle auf den Namen der Behandlung klicken und **Material pflegen** wählen.)
+1. In der Verwaltung **Verwaltung** › **Behandlungen** öffnen und links die Behandlung wählen. (Von der Seite **Kosten** aus: in der Tabelle auf den Namen der Behandlung klicken und **Material pflegen** wählen.)
 2. Den Bereich **Durchführung** öffnen und zur Gruppe **Material je Termin** gehen (sie ist nur mit dem Recht auf Berichte mit Beträgen sichtbar).
 3. Auf **Material hinzufügen** klicken.
 4. Gibt es Material im Lager, in der Auswahl das Material wählen. Bezeichnung, Einheit und Preis kommen dann aus dem Lager. Sonst „frei erfasst“ lassen und Material, Einheit und Preis je Einheit selbst eintragen.

@@ -8,12 +8,12 @@ stichwoerter: Verwaltung, Admin, Administration, Einstellungen, Stammdaten, Zug�
 ---
 # Seite „Verwaltung“ in der Windows-App
 
-Unter „Verwaltung“ liegen in der Windows-App alle Verwaltungen: Betrieb, Angebot, Team mit Dienstplan und Zeiten, Lager, Kassa und Geld, Kontakt und Zahlen. Alle Masken sind Teil der App; einen Browser braucht die Verwaltung nicht. Sie arbeitet mit dem Zugang, mit dem man in der App angemeldet ist.
+Unter „Verwaltung“ liegen in der Windows-App alle Verwaltungen: Betrieb, Behandlungen, Aktionen, Team mit Dienstplan und Zeiten, Lager, Kassa und Geld, Kontakt und Zahlen. Alle Masken sind Teil der App; einen Browser braucht die Verwaltung nicht. Sie arbeitet mit dem Zugang, mit dem man in der App angemeldet ist.
 
 ## So kommt man hin {#hinkommen}
 
 1. Links in der Leiste auf **Verwaltung** klicken (über **Hilfe**, unter den Empfangsbereichen).
-2. Der Balken zeigt die Gruppen, die der eigene Zugang sehen darf: **Betrieb**, **Angebot**, **Team**, **Lager**, **Kassa & Geld**, **Kontakt** und **Zahlen**.
+2. Der Balken zeigt die Gruppen, die der eigene Zugang sehen darf: **Betrieb**, **Behandlungen**, **Aktionen**, **Team**, **Lager**, **Kassa & Geld**, **Kontakt** und **Zahlen**.
 3. Eine Gruppe anklicken. Hat sie mehrere Masken, erscheinen sie als Reiter, z. B. unter **Betrieb** die **Firmendaten** und die **Schließzeiten**. Beim Öffnen ist die erste erlaubte Maske gewählt; kehrt man zu einer Gruppe zurück, steht wieder die zuletzt gewählte Maske da.
 
 ![Verwaltung in der Windows-App](images/app/verwaltung.png)
@@ -25,7 +25,7 @@ Ein Tastenkürzel für die Verwaltung gibt es nicht. Der Balken ist mit der Tabu
 Der Balken zeigt nur, was die eigene Rolle darf; eine Gruppe ohne erlaubte Maske fehlt. Die Reihenfolge ist immer dieselbe:
 
 - **Betrieb**: Firmendaten nur Inhaber; Standorte & Räume, Schließzeiten mit den Raumsperren, Kalender-Abos und Handbuch auch die Standortleitung. Siehe [Einrichtung des Spas](hilfe:seite-masterdata).
-- **Angebot**: Behandlungen und Aktionen für Inhaber und Standortleitung.
+- **Behandlungen** und **Aktionen**: je eine Gruppe mit einer Maske, für Inhaber und Standortleitung.
 - **Team**: alle Rollen mit einer der Ansichten; Personen, Wochenplan, Zeiten, Lohn sowie Rechte und Zuständigkeiten schaltet eine Leiste über der Fläche um; die Anträge öffnen im Wochenplan als Seitenleiste. Die Personenkarte hat die Bereiche Übersicht, Profil, Arbeitszeit sowie Lohn und Akte; der Verlauf öffnet über eine Schaltfläche im Kopf der Karte als Seitenleiste. „Zugänge“, „Qualifikationen“, „Dienstplan“ und „Zeiten“ gibt es in der App nicht mehr als eigene Bereiche. Siehe [Team](hilfe:team), [Zugänge](hilfe:zugaenge), [Seite „Dienstplan“](hilfe:seite-roster) und [Seite „Zeiten“](hilfe:seite-time).
   - **Wochenplan**: alle Rollen; planen dürfen nur Inhaber und Standortleitung.
   - **Zeiten**: Inhaber und Standortleitung ändern, das Backoffice liest.

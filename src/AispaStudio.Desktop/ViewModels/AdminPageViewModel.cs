@@ -55,13 +55,14 @@ public sealed partial class AdminPageViewModel : ViewModelBase
     ];
 
     /// <summary>
-    /// Die Gruppen des Balkens mit ihren Masken (Auftraggeber, 31.10.2026, Ä293). Keine Gruppe hat mehr als fünf Masken (ADR 0098): Schließzeiten und Raumsperren stehen auf einer
+    /// Die Gruppen des Balkens mit ihren Masken (Auftraggeber, 31.10.2026, Ä293; acht Gruppen seit dem Nachtrag zu ADR 0098 vom 17.11.2026: „Angebot“ ist in „Behandlungen“ und „Aktionen“ geteilt). Keine Gruppe hat mehr als fünf Masken (ADR 0098): Schließzeiten und Raumsperren stehen auf einer
     /// Seite.
     /// </summary>
     private static readonly (string Title, string Icon, string[] Areas)[] GroupLayout =
     [
         ("Betrieb", Icons.Location, ["Firmendaten", "Standorte & Räume", "Schließzeiten", "Kalender-Abos", "Handbuch"]),
-        ("Angebot", Icons.Steam, ["Behandlungen", "Aktionen"]),
+        ("Behandlungen", Icons.Steam, ["Behandlungen"]),
+        ("Aktionen", Icons.Gift, ["Aktionen"]),
         ("Team", Icons.Users, ["Team"]),
         ("Lager", Icons.Archive, ["Lager"]),
         ("Kassa & Geld", Icons.Register, ["Kassa", "Zahlungen", "Kosten", "Buchhaltung"]),

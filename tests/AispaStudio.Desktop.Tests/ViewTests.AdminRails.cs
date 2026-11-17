@@ -124,10 +124,10 @@ public sealed partial class ViewTests
         }, SettingsApi());
 
     [Fact]
-    public Task Jede_Verwaltungsseite_hat_hoechstens_eine_Schiene_Angebot() =>
-        Render("hell", "probe-verwaltung-schienen-angebot", async (window, main) =>
+    public Task Jede_Verwaltungsseite_hat_hoechstens_eine_Schiene_Behandlungen() =>
+        Render("hell", "probe-verwaltung-schienen-behandlungen", async (window, main) =>
         {
-            await CheckGroupRails(window, main, "Angebot", MaxRailEntries, MaxCardAreas);
+            await CheckGroupRails(window, main, "Behandlungen", MaxRailEntries, MaxCardAreas);
             return ((ShellViewModel)main.Content!).AdminPage;
         }, TreatmentApi());
 

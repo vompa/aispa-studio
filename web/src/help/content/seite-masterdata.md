@@ -13,7 +13,7 @@ Die Einrichtung des Spas steht in der Windows-App unter **Verwaltung**: Standort
 ## Aufbau {#aufbau}
 
 - **Betrieb**: **Firmendaten** (nur Inhaber, [Firmendaten](hilfe:firmendaten)), **Standorte & Räume** ([Standorte & Räume](hilfe:standorte)), **Schließzeiten** ([Schließzeiten](hilfe:schliesszeiten); auf derselben Seite darunter die [Raumsperren](hilfe:raumsperren)), **Kalender-Abos** und **Handbuch**. Außer den Firmendaten auch für die Standortleitung.
-- **Angebot**: **Behandlungen** ([Behandlungen](hilfe:behandlungen)) und **Aktionen**.
+- **Behandlungen** ([Behandlungen](hilfe:behandlungen)) und **Aktionen**: je eine eigene Gruppe im Balken der Verwaltung.
 - **Team**: **Team** mit der Personenkarte, dazu **Qualifikationen** und **Zugang und Rolle** als Abschnitte im Bereich **Profil** der Karte ([Team](hilfe:team), [Qualifikationen](hilfe:qualifikationen)).
 - **Kassa & Geld**: **Kassa** ([Kassa](hilfe:kassa)) und **Zahlungen** ([Zahlungen](hilfe:zahlungen)), nur Inhaber.
 - **Kontakt**: **Erinnerungen** ([Erinnerungen](hilfe:erinnerungen)), **Postfach & Nummern** ([Postfach & Nummern](hilfe:postfach)) und **KI** ([KI](hilfe:ki)), nur Inhaber.

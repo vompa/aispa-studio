@@ -54,12 +54,12 @@ Aufteilung nach dieser Regel:
 | Team, Ansichten | Personen · Wochenplan · Zeiten · Lohn · Rechte und Zuständigkeiten. „Anträge“ ist eine Seitenleiste im Wochenplan. |
 | Team, Personenkarte | Übersicht · Profil (Stammdaten, Zugang und Rolle, Qualifikationen, Zuständigkeiten) · Arbeitszeit (Dienstplan und Abwesenheit, Urlaubskonto, Zeiten) · Lohn und Akte (Lohn, Personalakte, Regelungen und Vollmachten). |
 | Lager | Übersicht (mit Verbrauch) · Bestand (mit Chargen und Bewegungen) · Bestellen · Inventur. Lagerorte und Lieferanten unter „Einrichtung“. |
-| Angebot, Behandlung | Grunddaten · Durchführung (Ablauf, Material, Bereitstellen) · Preise und Verkauf · Qualifikationen und Räume. |
+| Angebot, Behandlung | Grunddaten · Durchführung (Ablauf, Material, Bereitstellen) · Preise und Verkauf · Qualifikationen und Räume. *Geändert im Nachtrag vom 17.11.2026: Übersicht · Grunddaten und Preis · Durchführung · Qualifikationen und Räume.* |
 | Zahlen | Fünf Reiter wie bisher. Management und Pflichtberichte sind Abschnitte in „Berichte“. |
 | Betrieb | Fünf Masken: Schließzeiten und Raumsperren stehen auf einer Seite. |
 | Kassa & Geld, Kontakt | Aufbau bleibt. Proportionen und Verlauf nach den Regeln 3 und 5. |
 
-Der Balken mit den sieben Gruppen bleibt (design.md Abschnitt 6).
+Der Balken mit den sieben Gruppen bleibt (design.md Abschnitt 6). *Geändert im Nachtrag vom 17.11.2026: Der Balken hat acht Gruppen.*
 
 Neue gemeinsame Bausteine der Windows-App: `StatTile` (Kennzahl-Kachel nach design.md 5.5) und `HistoryPanel` (Seitenleiste „Verlauf“ nach design.md 5.12 mit den vorhandenen Verlaufsabschnitten).
 
@@ -86,6 +86,27 @@ Neue gemeinsame Bausteine der Windows-App: `StatTile` (Kennzahl-Kachel nach desi
 - Die Übersicht der Personenkarte braucht einen neuen Endpunkt, der die Kennzahlen am Server rechnet. Er entsteht mit der Personenkarte.
 - Das Handbuch nennt Reiter in rund 30 Themen zum Team. Jeder Schritt zieht seine Themen und Bilder im selben Pull Request nach ([ADR 0056](0056-handbuch-mit-ablaeufen-und-bildern-als-grundlage-der-ki-hilfe.md)).
 - Nicht geprüft ist, ob Liste, Karte und Seitenleiste „Verlauf“ beim Mindestfenster von 1100 Breite neben der Seitenleiste „KI und Hilfe“ Platz haben. Das misst der Schritt Personenkarte; passt es nicht, liegt der Verlauf über der Karte.
+
+## Nachtrag 17.11.2026: acht Gruppen, Behandlungskarte mit Übersicht
+
+*Status des Nachtrags: umgesetzt (P3); Bestätigung durch den Auftraggeber offen.* Grundlage ist der Entwurf v5 vom 17.11.2026, den der Auftraggeber durchgesehen hat.
+
+**Acht Gruppen statt sieben.** Der Balken der Verwaltung hat in dieser Reihenfolge: Betrieb · Behandlungen · Aktionen · Team · Lager · Kassa & Geld · Kontakt · Zahlen. Die Gruppe „Angebot“ mit den Masken „Behandlungen“ und „Aktionen“ entfällt: Beide haben jetzt eine eigene Gruppe mit je einer Maske und ohne Reiterzeile. Die untere Schiene „Behandlungen · Aktionen“ entfällt damit. Das ersetzt „sieben Gruppen“ in der Entscheidung oben, in design.md Abschnitt 6 und in der Festlegung vom 31.10.2026 (Ä293). Die Adressen bleiben (Regel 7): `masterData/treatments` öffnet „Behandlungen“, `promotions` öffnet „Aktionen“. Die Maske „Aktionen“ selbst bleibt zunächst unverändert; sie zieht in einem eigenen Schritt um.
+
+**Behandlungskarte mit Übersicht.** Die Tabelle „Aufteilung nach dieser Regel“ gilt für die Behandlung so:
+
+| Bereich | Inhalt |
+| --- | --- |
+| Übersicht | Kennzahl-Kacheln (`StatTile`): Preis, Dauer, Dürfen behandeln, Räume; jede springt in ihren Bereich. Nur für eine gespeicherte Behandlung. |
+| Grunddaten und Preis | Name und Kategorie (je halbe Breite), Dauer und Preis (je Viertel), Hinweis für Gäste, „Anamnese prüfen“, „Passt dazu“; darunter eingeklappt „Weitere Angaben“: Preis je Standort, Preise nach Wochentag und Uhrzeit, Ausfallgebühr, Anzahlung. |
+| Durchführung | Vor- und Nachbereitung, Vorbereitungsschritte, Material je Termin, „Zum Termin bereitstellen“. |
+| Qualifikationen und Räume | Nötige Qualifikationen mit „Wer kann das?“ daneben, Räume und Geräte je Standort. |
+
+„Preise und Verkauf“ ist kein eigener Bereich mehr. Seine Gruppen sind in „Grunddaten und Preis“ aufgegangen; die alten Sprungziele (`preise-und-verkauf`, `preise`, `verkauf`) bleiben gültig und führen dorthin (Regel 7), „preise“ klappt dabei „Weitere Angaben“ auf.
+
+**Weitere Änderungen an der Maske.** „Neue Behandlung“ steht als primäre Schaltfläche fest über der Liste, die Suche darunter; Kategorien lassen sich einklappen und zeigen ihre Anzahl; je Zeile stehen Dauer und Preis rechts. „Nicht mehr angebotene zeigen“ steht als Schalter unter der Liste; solche Behandlungen stehen ausgegraut mit „Nicht angeboten“, ihre Karte lässt sich ansehen, und „Wieder anbieten“ holt sie zurück (API: `includeInactive` an der Liste, `POST /treatments/{id}/reactivate`). „Speichern“ und „Verwerfen“ stehen an der Karte statt in einer Leiste am Fuß der Seite. „Nicht mehr anbieten“ steht im Menü „…“ im Kopf der Karte neben „Verlauf“, mit Rückfrage.
+
+**Begründung.** „Behandlungen“ und „Aktionen“ sind zwei Dinge mit eigenem Alltag (Katalog und Werbung); als Reiter einer Gruppe „Angebot“ lag die Aktion einen Klick tiefer als nötig. Das Anlegen lag als letzte Listenzeile unter dem sichtbaren Bereich, die erste Zeile war angeschnitten: Die Übersicht der Behandlungskarte und der feste Knopf beheben beides.
 
 ## Quellen
 
