@@ -43,11 +43,16 @@ internal sealed class StockUsageReport(AispaDbContext db)
         var treatmentNames = await db.Treatments.AsNoTracking().Where(t => treatmentIds.Contains(t.Id)).ToDictionaryAsync(t => t.Id, t => t.Name, ct);
 
         var lines = Compute(rows, items, treatmentOf, treatmentNames);
-        return new(locationId, from, until, amounts ? lines : [.. lines.Select(l => l with { ExcessValue = null })],
+        return new(locationId, from, until, amounts ? lines : WithoutAmounts(lines),
             amounts ? decimal.Round(lines.Sum(l => l.ExcessValue ?? 0), 2) : null, !amounts);
     }
 
-    /// <summary>Reine Rechnung; Artikel ohne Soll und ohne Mehrverbrauch erscheinen nicht.</summary>
+    /// <summary>Ohne das Recht für Beträge fehlt der Wert; die Reihenfolge folgt dann dem Anteil am Soll, weil Mengen verschiedener Einheiten sich nicht vergleichen lassen.</summary>
+    private static List<StockUsageLineDto> WithoutAmounts(List<StockUsageLineDto> lines) =>
+        [.. lines.Select(l => l with { ExcessValue = null })
+            .OrderByDescending(l => l.ExcessPercent ?? decimal.MinValue).ThenBy(l => l.Name, StringComparer.Ordinal).ThenBy(l => l.ItemId)];
+
+    /// <summary>Reine Rechnung; Artikel ohne Soll und ohne Mehrverbrauch erscheinen nicht. Sortiert nach dem Wert des Mehrverbrauchs, der größte zuerst.</summary>
     internal static List<StockUsageLineDto> Compute(IReadOnlyList<Row> rows, IReadOnlyDictionary<Guid, ItemInfo> items,
         IReadOnlyDictionary<Guid, Guid> treatmentOf, IReadOnlyDictionary<Guid, string> treatmentNames)
     {
@@ -63,10 +68,13 @@ internal sealed class StockUsageReport(AispaDbContext db)
             }
 
             lines.Add(new(group.Key, item.Name, item.Unit, planned, planned + excess, excess, decimal.Round(excess * item.UnitCost, 2),
-                Treatments(group, treatmentOf, treatmentNames)));
+                Treatments(group, treatmentOf, treatmentNames))
+            {
+                ExcessPercent = planned > 0 ? decimal.Round(excess / planned * 100, 0, MidpointRounding.AwayFromZero) : null,
+            });
         }
 
-        return [.. lines.OrderBy(l => l.Name, StringComparer.Ordinal).ThenBy(l => l.ItemId)];
+        return [.. lines.OrderByDescending(l => l.ExcessValue).ThenBy(l => l.Name, StringComparer.Ordinal).ThenBy(l => l.ItemId)];
     }
 
     /// <summary>Behandlungen, die den Artikel netto verbraucht haben: je Termin Soll (Stornos heben den Verbrauch auf und zählen nicht), je Behandlung Summe und Terminzahl.</summary>

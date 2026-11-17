@@ -50854,6 +50854,13 @@
             "items": {
               "$ref": "#/components/schemas/StockUsageTreatmentDto"
             }
+          },
+          "excessPercent": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
           }
         }
       },

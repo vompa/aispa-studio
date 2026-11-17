@@ -13855,6 +13855,8 @@ export interface components {
             /** Format: double */
             excessValue: null | number;
             treatments: components["schemas"]["StockUsageTreatmentDto"][];
+            /** Format: double */
+            excessPercent?: null | number;
         };
         StockUsageReportDto: {
             /** Format: uuid */
