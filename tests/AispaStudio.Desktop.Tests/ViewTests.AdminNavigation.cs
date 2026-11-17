@@ -9,7 +9,7 @@ using Avalonia.VisualTree;
 
 namespace AispaStudio.Desktop.Tests;
 
-/// <summary>R05 Slice 125 (Ä293): Balken mit sieben Gruppen und Reiter darunter, bedient über echte Klicks und Tasten, als Inhaberin.</summary>
+/// <summary>R05 Slice 125 (Ä293): Balken mit acht Gruppen und Reiter darunter, bedient über echte Klicks und Tasten, als Inhaberin.</summary>
 public sealed partial class ViewTests
 {
     private static OverflowStrip GroupStrip(Window window) => Named<OverflowStrip>(window, "GroupStrip");
@@ -31,12 +31,12 @@ public sealed partial class ViewTests
     }
 
     [Fact]
-    public Task Given_Inhaberin_When_sie_die_Verwaltung_oeffnet_Then_zeigt_der_Balken_sieben_Gruppen_und_keine_Liste() =>
+    public Task Given_Inhaberin_When_sie_die_Verwaltung_oeffnet_Then_zeigt_der_Balken_acht_Gruppen_und_keine_Liste() =>
         Render("hell", "verwaltung", async (window, main) =>
         {
             var shell = await OpenAdminPage(window, main);
 
-            Assert.Equal(["Betrieb", "Angebot", "Team", "Lager", "Kassa & Geld", "Kontakt", "Zahlen"],
+            Assert.Equal(["Betrieb", "Behandlungen", "Aktionen", "Team", "Lager", "Kassa & Geld", "Kontakt", "Zahlen"],
                 GroupStrip(window).Children.OfType<TabButton>().Select(AutomationProperties.GetName));
             Assert.DoesNotContain(window.GetVisualDescendants().OfType<ListBox>(), l => l.Name == "AreaList");
             Assert.True(StripEntry(GroupStrip(window), "Betrieb").IsSelected);
@@ -160,7 +160,7 @@ public sealed partial class ViewTests
             StripEntry(strip, "Betrieb").Focus(NavigationMethod.Tab);
             Press(window, PhysicalKey.ArrowRight);
             await Pump();
-            Assert.Same(StripEntry(strip, "Angebot"), Focused(window));
+            Assert.Same(StripEntry(strip, "Behandlungen"), Focused(window));
             Assert.Equal("Firmendaten", shell.AdminPage.SelectedArea?.Title);
 
             Press(window, PhysicalKey.Enter);

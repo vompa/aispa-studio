@@ -1523,8 +1523,18 @@
         "tags": [
           "Stammdaten"
         ],
-        "summary": "Alle aktiven Behandlungen mit ihren geeigneten Räumen und Geräten an allen Standorten.",
+        "summary": "Alle aktiven Behandlungen mit ihren geeigneten Räumen und Geräten an allen Standorten. Mit includeInactive=true (Recht „Katalog verwalten“) auch die nicht mehr angebotenen; `isActive` sagt, welche.",
         "operationId": "ListTreatments",
+        "parameters": [
+          {
+            "name": "includeInactive",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
         "responses": {
           "403": {
             "description": "Forbidden",
@@ -1694,6 +1704,51 @@
           },
           "204": {
             "description": "No Content"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/v1/treatments/{treatmentId}/reactivate": {
+      "post": {
+        "tags": [
+          "Stammdaten"
+        ],
+        "summary": "Bietet eine nicht mehr angebotene Behandlung wieder an; wer sie schon anbietet, ändert nichts.",
+        "operationId": "ReactivateTreatment",
+        "parameters": [
+          {
+            "name": "treatmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TreatmentDto"
+                }
+              }
+            }
           },
           "404": {
             "description": "Not Found"
@@ -51357,6 +51412,12 @@
             "type": "integer",
             "format": "int32",
             "default": 0
+          },
+          "isActive": {
+            "type": [
+              "null",
+              "boolean"
+            ]
           }
         }
       },

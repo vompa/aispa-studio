@@ -6835,6 +6835,30 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Nicht geprüft:** die laufende App unter Windows.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
 
+## Behandlungen: eigene Gruppe, Übersicht, Liste mit Suche (17.11.2026, P3)
+
+- **Auftrag:** Der Auftraggeber hat im Entwurf v5 vom 17.11.2026 (von ihm durchgesehen, Bestätigung offen) beauftragt: Der obere Reiter „Angebot“ heißt „Behandlungen“, „Aktionen“ wird ein eigener Reiter daneben; die Maske Behandlungen bekommt einen festen Knopf „Neue Behandlung“, Suche, einklappbare Kategorien, nicht mehr angebotene Behandlungen mit „Wieder anbieten“ und eine Karte mit vier Bereichen mit Übersicht ([ADR 0098](../entscheidungen/0098-verwaltungsmasken-eine-schiene-uebersicht-seitenleiste.md), Nachtrag vom 17.11.2026).
+- **Was:**
+  - Navigation: acht Gruppen (Betrieb, Behandlungen, Aktionen, Team, Lager, Kassa & Geld, Kontakt, Zahlen); die Gruppe „Angebot“ und ihre untere Schiene entfallen. Alle Adressen (`masterData/treatments`, `promotions`) bleiben gültig. Die Maske „Aktionen“ ist unverändert.
+  - API: `GET /api/treatments?includeInactive=true` (Recht „Katalog verwalten“, sonst 403), `POST /api/treatments/{id}/reactivate` (`ManageCatalog`), `TreatmentDto.IsActive` als optionale `init`-Eigenschaft (kein Breaking Change, im Schema nicht `required`); API-Tests.
+  - Liste: „Neue Behandlung“ (primär) fest oben statt letzter Listenzeile, Suche (Name und Kategorie), Kategorien einklappbar mit Anzahl, je Zeile „60 Min. · 115 €“, Schalter „Nicht mehr angebotene zeigen“ unter der Liste; die Liste füllt die Höhe und rollt in sich (erste Zeile nicht mehr angeschnitten).
+  - Karte: Übersicht (vier `StatTile`) · Grunddaten und Preis · Durchführung · Qualifikationen und Räume; „Preise und Verkauf“ ist in „Grunddaten und Preis“ aufgegangen (Standortpreise, Preise nach Zeit, Ausfallgebühr, Anzahlung unter „Weitere Angaben“, „Passt dazu“ sichtbar); festes Raster (Name und Kategorie halbe, Dauer und Preis je Viertel Breite). Speichern und Verwerfen im Kopf der Karte statt in einer Leiste am Fuß, „Nicht mehr anbieten …“ im Menü „…“ neben „Verlauf“ (mit Rückfrage), bei einer nicht mehr angebotenen Behandlung „Wieder anbieten“ (Felder gesperrt).
+  - Doku und Hilfe: Nachtrag zu ADR 0098, design.md (Abschnitt 6), Masken-Inventar, Handbuch zu Behandlungen (zehn Themen), Bilder neu (`verwaltung-behandlungen`, `-grunddaten`, `-durchfuehrung`, `-verkauf`, `-verlauf`).
+- **Detailentscheidungen:**
+  1. Das Menü „…“ ist lokal einfach gebaut (`Button` mit `MenuFlyout`, wie „…“ der Kundenliste): Auf `origin/dev` gab es noch kein gemeinsames Menü und keinen Lösch-Dialog von P10a. Es geht auf das gemeinsame Menü über, sobald es da ist.
+  2. Die nicht mehr angebotenen Behandlungen lädt die Maske erst, wenn der Schalter angeht (`includeInactive`), nicht bei jedem Öffnen: Das Laden bleibt unverändert, der Normalfall braucht sie nicht.
+  3. `TreatmentDto.IsActive` ist ein `bool?` (leer: angeboten), damit alte Clients und das Schema unverändert bleiben (ADR 0085 §3).
+  4. Eine nicht mehr angebotene Behandlung ist nur zum Ansehen: `PUT` liefert für sie 404, ein Speichern wäre also ohnehin gescheitert. Zum Ändern erst „Wieder anbieten“.
+  5. Eine gespeicherte Behandlung öffnet mit der Übersicht, eine neue mit „Grunddaten und Preis“ (die Übersicht hätte nichts zu zeigen). Die Kacheln rechnet die Karte aus den geladenen Daten (Preis, Dauer, Zahl der Personen und Räume); sie sind keine Pflichtzahlen.
+  6. Die Alt-Adresse `preise-und-verkauf` führt in „Grunddaten und Preis“, `preise` klappt zusätzlich „Weitere Angaben“ auf und rollt zur Gruppe, `verkauf` rollt zu „Passt dazu“.
+  7. Liste 300 statt 260 breit: Name und „Dauer · Preis“ stehen sonst nicht nebeneinander. Die Karte bleibt höchstens 760 breit und passt bei 1100 neben die Liste.
+  8. Fragezeichen: wie bisher eines im Kopf der Karte und eines je Gruppe mit eigenem Hilfe-Abschnitt; die Regel von P1 liegt noch nicht auf `origin/dev`.
+  9. Eine Kategorie lässt sich mit der Maus ein- und ausklappen; die Pfeiltasten überspringen die Überschrift. Mit der Tastatur ersetzt die Suche das Einklappen (sie klappt alles auf und filtert).
+- **Bewusst offen / später:** Die Maske „Aktionen“ zieht in P4 um. Die übrigen Hilfe-Bilder mit dem Balken der Verwaltung zeigen noch „Angebot“ und werden bei ihrer nächsten Aufnahme neu erzeugt. Tastatur-Einklappen der Kategorien (siehe Detailentscheidung 9). Die Bestätigung des Nachtrags durch den Auftraggeber.
+- **Geprüft:** `dotnet build AispaStudio.slnx -c Release` grün; `dotnet format AispaStudio.slnx --verify-no-changes` grün; API `MasterDataTests` 8 von 8 (neu: nicht mehr angebotene Behandlung mit `includeInactive` und Wieder anbieten, 404 und 403 ohne Recht); Windows-App `TreatmentsTests` (neu: Einklappen, Suche, nicht mehr angebotene, Kacheln, Sprung zu „preise“, Rückfrage bei neuer Behandlung), `AdminPageTests`, Ansichtstests zu Behandlungen (Sprünge, Menü, Liste, Raster, Verlauf, Bindungsscan) und zu Balken und Schienen der Verwaltung; Web `npm run gen:api`, `lint`, `typecheck`, vitest `src/help` grün; Bildschirmfotos hell und dunkel gesehen.
+- **Nicht geprüft:** die laufende App unter Windows; die volle Test-Suite (nur die betroffenen Klassen); Bildschirmleser (nur `AutomationProperties` im Test); Tastaturbedienung der Kategorien.
+- **Beim Schreiben festgestellt:** Das Wiederanbieten gab es bisher nirgends; die alten Hilfetexte sagten „lässt sich nicht wieder anbieten“. Die Hilfe zu `stammdaten-behandlung-entfernen` nennt jetzt den Weg. Ein Bildtest, der die Gruppe „Preise“ aufruft, scheiterte zuerst an der Rolllage: In „Weitere Angaben“ ist die erste Gruppe nicht die erste des Bereichs.
+
 ## „Mein Tag“: Kopf, Status, Gerät und Vorlieben (17.11.2026)
 
 - **Auftrag:** Masken-Überarbeitung P9 (Entwurf Abschnitt 9, Plan-Entscheidung 12): doppelte Dauer im Titel beheben, Status je Termin, Karte einspaltig mit Abschnitten, Gerät abhakbar, Vorlieben nicht doppelt.

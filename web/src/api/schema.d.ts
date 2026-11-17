@@ -550,7 +550,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Alle aktiven Behandlungen mit ihren geeigneten Räumen und Geräten an allen Standorten. */
+        /** Alle aktiven Behandlungen mit ihren geeigneten Räumen und Geräten an allen Standorten. Mit includeInactive=true (Recht „Katalog verwalten“) auch die nicht mehr angebotenen; `isActive` sagt, welche. */
         get: operations["ListTreatments"];
         put?: never;
         post: operations["CreateTreatment"];
@@ -573,6 +573,23 @@ export interface paths {
         post?: never;
         /** Bietet eine Behandlung nicht mehr an. Bereits gebuchte Termine bleiben bestehen. */
         delete: operations["DeactivateTreatment"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/treatments/{treatmentId}/reactivate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Bietet eine nicht mehr angebotene Behandlung wieder an; wer sie schon anbietet, ändert nichts. */
+        post: operations["ReactivateTreatment"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -14011,6 +14028,7 @@ export interface components {
              * @default 0
              */
             processingMinutes: number;
+            isActive?: null | boolean;
         };
         TreatmentExtraDto: {
             /** Format: uuid */
@@ -15652,7 +15670,9 @@ export interface operations {
     };
     ListTreatments: {
         parameters: {
-            query?: never;
+            query?: {
+                includeInactive?: boolean;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -15789,6 +15809,44 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ReactivateTreatment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                treatmentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TreatmentDto"];
+                };
             };
             /** @description Forbidden */
             403: {

@@ -12,7 +12,7 @@ Bei der Behandlung legt die Leitung fest, was vor jedem Termin zu tun ist; darau
 
 ## Schritte anlegen oder ändern {#schritte}
 
-1. **Verwaltung** › **Angebot** › **Behandlungen** öffnen und links die Behandlung wählen.
+1. **Verwaltung** › **Behandlungen** öffnen und links die Behandlung wählen.
 2. Den Bereich **Durchführung** wählen. Vorhandene Schritte erscheinen unter **Vorbereitungsschritte**.
 3. **Schritt hinzufügen** anklicken. Eine leere Zeile erscheint.
 4. Ins erste Feld schreiben, was zu tun ist, z. B. „Steine auf 55 °C aufheizen“.
