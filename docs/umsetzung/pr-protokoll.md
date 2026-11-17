@@ -6738,3 +6738,24 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Geprüft:** `LiveDeliveryTests`: neuer Fall „Fehler aus der SignalR-Backplane wird nur gewarnt“ vor der Änderung rot (NullReferenceException aus dem Konstruktor von `RedisHubLifetimeManager` nicht erkannt), danach grün; neuer Fall „Eigener Abbruch geht weiter“ sichert die Grenze. `LiveBackplaneTests` fünfmal hintereinander mit echtem Redis; `dotnet format --verify-no-changes`, `dotnet build -c Release`.
 - **Nicht geprüft:** Der genaue Abbruch lässt sich nicht gezielt nachstellen; der Test stellt ihn mit einem anderen Fehler aus derselben Assembly nach, die Läufe mit echtem Redis treffen ihn nur zufällig.
 
+
+## Termin-Panel: Anzahlung für Termine der Rezeption per Link (17.11.2026)
+
+- **Auftrag:** Offener Punkt „Anzahlung für Termine der Rezeption per Link“ (Online-Buchung und Kundenbereich, Nr. 2); vom Auftraggeber am 16.11.2026 mit „alle Punkte autonom, wo du mich nicht brauchst“ freigegeben.
+- **Befund:** Eine Anzahlung entstand nur beim Online-Buchen. Für Termine am Telefon oder vor Ort gab es nur „Karte per Link anfordern“ für die Ausfallgebühr.
+- **Was:**
+  - `DepositRequests` (nach dem Muster von `CardRequests`): `GET /api/appointments/{id}/deposit/offer` (Kalender sehen) und `POST /api/appointments/{id}/deposit/request` (Buchen; 409 mit Grund).
+  - `Deposits.AddAsync(…, requested: true)`: Satz der Behandlung oder des Standorts, ohne Zahlungsfrist.
+  - Mail `OnlineMails.DepositRequest` in vier Sprachen mit dem Link zur Terminseite; bezahlt wird dort über den vorhandenen Weg (Anzahlungsbeleg an der Kassa, Verrechnung beim Kassieren).
+  - Windows-App: Knopf „Anzahlung per Link“ / „Link erneut senden“ im Abschnitt Anzahlung des Termin-Panels.
+  - Hilfe `kalender-termin-verlauf` mit Bild `termin-anzahlung-anfordern.png`.
+- **Detailentscheidungen:**
+  1. Keine Frist und keine Freigabe des Termins ohne Zahlung: Die Rezeption hat den Termin mit dem Gast vereinbart; ob sie ihn ohne Zahlung absagt, entscheidet sie selbst. Damit entfällt auch die Erinnerung vor Ablauf der Frist.
+  2. Der Satz gilt auch für Stammgäste („nur neue Gäste“ greift nicht): Die Rezeption fordert bewusst an.
+  3. Nicht zusammen mit einer hinterlegten oder angeforderten Karte: Beim Online-Buchen ersetzt die Anzahlung die Karte ebenso.
+  4. Solange nicht bezahlt ist (offen oder abgebrochen), schickt ein zweiter Aufruf einen neuen Link; danach lehnt der Server ab.
+  5. Nur per Mail; SMS ist ein eigener offener Punkt.
+- **Bewusst offen / später:** Link per SMS; Anzahlung für Paar und Spa-Tag.
+- **Geprüft:** API `DepositTests`, `CardGuaranteeTests`, `ChannelScanTests` 41 von 41 (neu: anfordern, Mail, Terminseite ohne Frist, Link erneut, bezahlen, Verrechnung beim Kassieren, Ablehnung nach Zahlung; ohne Regel, ohne Mail, unbekannter Termin); Windows-App Ansichtstest „Anzahlung per Link“ und die Prüfungen der Knopflängen grün.
+- **Nicht geprüft:** echte Zahlung beim Anbieter (nur Testbetrieb); die laufende App unter Windows; die Übersetzungen der Mail sind nicht von Muttersprachlern gelesen.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).

@@ -79,6 +79,28 @@ internal static class DepositEndpoints
             .WithName("GetDeposit")
             .WithSummary("Anzahlung eines Online-Termins mit Stand des Anzahlungsbelegs; 204, wenn keine verlangt wurde.");
 
+        routes.MapGet("/api/appointments/{appointmentId:guid}/deposit/offer", async Task<Results<Ok<DepositRequestOffer>, NotFound>> (
+                Guid appointmentId, DepositRequests requests, CancellationToken ct) =>
+                await requests.OfferAsync(appointmentId, ct) is { } offer ? TypedResults.Ok(offer) : TypedResults.NotFound())
+            .WithTags("Kalender")
+            .RequirePermission(AccessRight.ViewCalendar)
+            .WithName("GetDepositRequestOffer")
+            .WithSummary("Ob sich für einen Termin der Rezeption eine Anzahlung per Link anfordern lässt, und mit welchem Betrag.");
+
+        routes.MapPost("/api/appointments/{appointmentId:guid}/deposit/request", async Task<Results<Ok<DepositStaffDto>, NotFound, ProblemHttpResult>> (
+                Guid appointmentId, DepositRequests requests, CancellationToken ct) =>
+                await requests.RequestAsync(appointmentId, ct) switch
+                {
+                    DepositRequests.RequestOutcome.Sent s => TypedResults.Ok(s.Deposit),
+                    DepositRequests.RequestOutcome.Refused r => TypedResults.Problem(statusCode: StatusCodes.Status409Conflict, title: r.Message),
+                    _ => TypedResults.NotFound(),
+                })
+            .WithTags("Kalender")
+            .RequirePermission(AccessRight.Book)
+            .WithName("RequestDeposit")
+            .WithSummary("Dem Gast einen Link schicken, um die Anzahlung für einen Termin der Rezeption zu bezahlen; erneut aufgerufen ein neuer Link. "
+                + "Ohne Zahlung bleibt der Termin stehen.");
+
         routes.MapGet("/api/appointments/{appointmentId:guid}/deposit-return", async Task<Results<Ok<DepositReturnInfo>, NoContent, NotFound>> (
                 Guid appointmentId, DepositReturns returns, AccessService access, AispaDbContext db, CancellationToken ct) =>
             {

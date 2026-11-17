@@ -70,16 +70,23 @@ internal sealed class Deposits(
     }
 
     /// <summary>Legt die Anzahlung zur Buchung an (gespeichert wird mit der Buchung); ohne Anzahlung nichts. Die Behandlung muss geladen sein.</summary>
-    public async Task<DepositOrder?> AddAsync(Appointment appointment, string currency, LocationOnlineRules rules, string email, string language, CancellationToken ct)
+    /// <param name="requested">
+    /// Die Rezeption fordert die Anzahlung für einen eigenen Termin an (<see cref="DepositRequests"/>): Es gilt der Satz von Behandlung oder Standort
+    /// auch für Stammgäste, und der Termin wird ohne Zahlung nicht freigegeben.
+    /// </param>
+    public async Task<DepositOrder?> AddAsync(Appointment appointment, string currency, LocationOnlineRules rules, string email, string language, CancellationToken ct,
+        bool requested = false)
     {
-        var percent = await PercentForAsync(rules, appointment.Treatment, appointment.LocationId, appointment.CustomerId, ct);
+        var percent = requested
+            ? await PercentAtAsync(rules, appointment.Treatment, appointment.LocationId, ct)
+            : await PercentForAsync(rules, appointment.Treatment, appointment.LocationId, appointment.CustomerId, ct);
         var amount = CardGuarantees.Fee(appointment.Price, percent);
         if (percent <= 0 || amount <= 0)
         {
             return null;
         }
 
-        DateTimeOffset? releaseAt = rules.CardHoldHours > 0 ? time.GetUtcNow().AddHours(rules.CardHoldHours) : null;
+        DateTimeOffset? releaseAt = !requested && rules.CardHoldHours > 0 ? time.GetUtcNow().AddHours(rules.CardHoldHours) : null;
         var deposit = new DepositOrder
         {
             AppointmentId = appointment.Id,

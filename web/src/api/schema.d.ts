@@ -4754,6 +4754,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/appointments/{appointmentId}/deposit/offer": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Ob sich für einen Termin der Rezeption eine Anzahlung per Link anfordern lässt, und mit welchem Betrag. */
+        get: operations["GetDepositRequestOffer"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/appointments/{appointmentId}/deposit/request": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Dem Gast einen Link schicken, um die Anzahlung für einen Termin der Rezeption zu bezahlen; erneut aufgerufen ein neuer Link. Ohne Zahlung bleibt der Termin stehen. */
+        post: operations["RequestDeposit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/appointments/{appointmentId}/deposit-return": {
         parameters: {
             query?: never;
@@ -10223,6 +10257,15 @@ export interface components {
             Signaturzertifikat: string;
             Zertifizierungsstellen: string[];
             "Belege-kompakt": string[];
+        };
+        DepositRequestOffer: {
+            possible: boolean;
+            /** Format: double */
+            amount: number;
+            currency: string;
+            /** Format: int32 */
+            percent: number;
+            reason: null | string;
         };
         DepositReturnInfo: {
             /** Format: uuid */
@@ -26906,6 +26949,82 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetDepositRequestOffer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                appointmentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DepositRequestOffer"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    RequestDeposit: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                appointmentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DepositStaffDto"];
+                };
             };
             /** @description Forbidden */
             403: {
