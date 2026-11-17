@@ -7183,3 +7183,19 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Bewusst offen / später:** Kein Löschen für Aktion und Betriebskontakt (ADR 0071, ADR 0099).
 - **Geprüft:** siehe PR-Text.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Wieder verwenden bei Räumen und Geräten (17.11.2026)
+
+- **Basiert auf:** `dev` nach T-081; Umsetzung von [ADR 0099](../entscheidungen/0099-anlegen-entfernen-und-leerer-betrieb.md) (Entscheidung 2: „Nicht mehr verwenden“ ist umkehrbar).
+- **Was:** Ein aus der Planung genommener Raum oder ein Gerät lässt sich zurückholen.
+  - API (`MasterDataEndpoints.cs`, je `RequirePermission(AccessRight.ManageLocation)`): `GET /api/locations/{id}/rooms/former` und `…/equipment/former` (nicht mehr verwendete, nach Name; 404 bei unbekanntem oder fremdem Standort), `POST /api/rooms/{id}/reactivate` und `POST /api/equipment/{id}/reactivate` (setzt `IsActive`, liefert das DTO; 404 bei unbekannter oder fremder Id; wer schon aktiv ist, ändert nichts). Nur neue Pfade, keine Felder geändert ([ADR 0085](../entscheidungen/0085-api-version-in-den-pfaden.md), Abschnitt 3); OpenAPI und `web/src/api` nachgezogen.
+  - App (`LocationsViewModel.Former.cs`, `RoomsSection`, `EquipmentSection`): unter den Listen das Häkchen „Nicht mehr verwendete zeigen“ (nur mit `ManageLocation`); die Zeilen stehen gedämpft mit dem Kennzeichen „Nicht mehr verwendet“ unter den aktiven, im Menü „⋯“ nur „Wieder verwenden“ (über `DeactivateText` und `DeactivateCommand` des vorhandenen `MoreMenuButton`, das Steuerelement blieb unverändert). Nach dem Zurückholen steht der Eintrag in der normalen Liste, eine schließbare Erfolgsleiste bestätigt („Raum Sauna wird wieder verwendet“). Wer bei gesetztem Häkchen einen Raum oder ein Gerät entfernt, sieht es sofort bei den nicht mehr verwendeten.
+  - Handbuch `standorte.md`: neuer Abschnitt „Wieder verwenden“ bei den Räumen und ein Punkt bei den Geräten, je mit Bild (`verwaltung-standorte-raeume-nicht-mehr-verwendet.png`, `…-geraete-…`).
+- **Detailentscheidungen:**
+  1. **Eigene Zeilenart statt der Raumzeile:** Die nicht mehr verwendeten Einträge sind nur lesbar (Name, Kennzeichen, Menü); Bearbeiten geht erst nach dem Zurückholen, weil `PUT` nur aktive Einträge findet.
+  2. **Zurückholen ohne Prüfung und ohne Rückfrage:** Es ist umkehrbar und ändert keine Zuordnungen; Behandlungen, Raumpflege und Checkliste bleiben, wie sie waren.
+  3. **Rückmeldung als Erfolgsleiste:** Die Verwaltung hat keinen Toast (er steht nur im Kalender und in der Aktivitätsliste); die Leiste ist wie bei Betriebsinformationen und Buchhaltung schließbar und steht unter der Liste.
+  4. **Häkchen und Liste gelten je Standort:** Beim Wechsel des Standorts wird das Häkchen zurückgenommen und die Liste geleert.
+- **Bewusst offen / später:** Räume und Geräte bleiben unlöschbar; keine Änderung am Kalender; keine Migration.
+- **Geprüft:** API-Testklasse `FormerRoomsAndEquipmentTests` (entfernen, Liste, Sortierung, Zurückholen und buchbar, schon aktiv, unbekannte und fremde Id 404, ohne Recht 403), `ChannelScanTests`; Desktop-Tests `AdminLocationsFormerTests` und Ansichtstest `Raeume_und_Geraete_zeigen_nicht_mehr_verwendete_gedaempft_mit_Kennzeichen_und_nur_Wieder_verwenden` (hell und dunkel), Bilder angesehen.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).

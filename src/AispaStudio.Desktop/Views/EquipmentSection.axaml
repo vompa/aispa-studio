@@ -30,6 +30,26 @@
         </DataTemplate>
       </ItemsControl.ItemTemplate>
     </ItemsControl>
+    <ItemsControl x:Name="FormerEquipmentList" ItemsSource="{Binding FormerEquipment}" IsVisible="{Binding ShowFormerEquipment}">
+      <ItemsControl.ItemsPanel>
+        <ItemsPanelTemplate>
+          <StackPanel Spacing="4" />
+        </ItemsPanelTemplate>
+      </ItemsControl.ItemsPanel>
+      <ItemsControl.ItemTemplate>
+        <DataTemplate x:DataType="vm:FormerRowViewModel">
+          <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8" AutomationProperties.Name="{Binding RowName}">
+            <TextBlock Text="{Binding Name}" Classes="muted" VerticalAlignment="Center" AutomationProperties.AccessibilityView="Raw" />
+            <Border Grid.Column="1" Classes="tag" VerticalAlignment="Center" AutomationProperties.AccessibilityView="Raw">
+              <TextBlock Text="Nicht mehr verwendet" />
+            </Border>
+            <ui:MoreMenuButton Grid.Column="2" Subject="{Binding Name}" DeactivateText="Wieder verwenden" DeactivateCommand="{Binding ReactivateCommand}" />
+          </Grid>
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
+    <CheckBox x:Name="ShowFormerEquipmentBox" Content="Nicht mehr verwendete zeigen" IsChecked="{Binding ShowFormerEquipment}" IsVisible="{Binding CanShowFormer}" />
+    <ui:InfoBar Severity="Success" Message="{Binding EquipmentNotice}" IsVisible="{Binding HasEquipmentNotice}" CloseCommand="{Binding CloseEquipmentNoticeCommand}" />
     <ui:InfoBar Severity="Error" Message="{Binding EquipmentMessage}" IsVisible="{Binding HasEquipmentMessage}" />
   </StackPanel>
 </UserControl>

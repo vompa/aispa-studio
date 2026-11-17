@@ -217,6 +217,33 @@ internal static partial class MasterDataEndpoints
             .RequirePermission(AccessRight.ManageLocation)
             .WithSummary("Nimmt einen Raum aus der Planung. Abgelehnt, solange noch künftige Termine darin liegen.");
 
+        group.MapGet("/locations/{locationId:guid}/rooms/former", async Task<Results<Ok<List<RoomDto>>, NotFound>> (
+                Guid locationId, AispaDbContext db, CancellationToken ct) =>
+                !await db.Locations.AnyAsync(l => l.Id == locationId, ct)
+                    ? TypedResults.NotFound()
+                    : TypedResults.Ok((await db.Rooms.AsNoTracking().Where(r => r.LocationId == locationId && !r.IsActive)
+                        .OrderBy(r => r.Name).ToListAsync(ct)).Select(ToDto).ToList()))
+            .WithName("ListFormerRooms")
+            .RequirePermission(AccessRight.ManageLocation)
+            .WithSummary("Die nicht mehr verwendeten Räume eines Standorts, nach Name; nur für Verwaltung der Standorte.");
+
+        group.MapPost("/rooms/{roomId:guid}/reactivate", async Task<Results<Ok<RoomDto>, NotFound>> (
+                Guid roomId, AispaDbContext db, CancellationToken ct) =>
+            {
+                var room = await db.Rooms.FirstOrDefaultAsync(r => r.Id == roomId, ct);
+                if (room is null)
+                {
+                    return TypedResults.NotFound();
+                }
+
+                room.IsActive = true;
+                await db.SaveChangesAsync(ct);
+                return TypedResults.Ok(ToDto(room));
+            })
+            .WithName("ReactivateRoom")
+            .RequirePermission(AccessRight.ManageLocation)
+            .WithSummary("Nimmt einen nicht mehr verwendeten Raum wieder in die Planung; wer schon aktiv ist, ändert nichts.");
+
         group.MapGet("/rooms/{roomId:guid}/deletion-check", async Task<Results<Ok<DeletionCheckDto>, NotFound>> (
                 Guid roomId, AispaDbContext db, TimeProvider time, CancellationToken ct) =>
                 await DeletionChecks.RoomAsync(db, time, roomId, ct) is { } check ? TypedResults.Ok(check) : TypedResults.NotFound())
@@ -275,6 +302,33 @@ internal static partial class MasterDataEndpoints
             .WithName("DeactivateEquipment")
             .RequirePermission(AccessRight.ManageLocation)
             .WithSummary("Nimmt ein Gerät aus der Planung. Abgelehnt, solange es noch für künftige Termine gebraucht wird.");
+
+        group.MapGet("/locations/{locationId:guid}/equipment/former", async Task<Results<Ok<List<EquipmentDto>>, NotFound>> (
+                Guid locationId, AispaDbContext db, CancellationToken ct) =>
+                !await db.Locations.AnyAsync(l => l.Id == locationId, ct)
+                    ? TypedResults.NotFound()
+                    : TypedResults.Ok((await db.Equipment.AsNoTracking().Where(e => e.LocationId == locationId && !e.IsActive)
+                        .OrderBy(e => e.Name).ToListAsync(ct)).Select(ToDto).ToList()))
+            .WithName("ListFormerEquipment")
+            .RequirePermission(AccessRight.ManageLocation)
+            .WithSummary("Die nicht mehr verwendeten Geräte eines Standorts, nach Name; nur für Verwaltung der Standorte.");
+
+        group.MapPost("/equipment/{equipmentId:guid}/reactivate", async Task<Results<Ok<EquipmentDto>, NotFound>> (
+                Guid equipmentId, AispaDbContext db, CancellationToken ct) =>
+            {
+                var equipment = await db.Equipment.FirstOrDefaultAsync(e => e.Id == equipmentId, ct);
+                if (equipment is null)
+                {
+                    return TypedResults.NotFound();
+                }
+
+                equipment.IsActive = true;
+                await db.SaveChangesAsync(ct);
+                return TypedResults.Ok(ToDto(equipment));
+            })
+            .WithName("ReactivateEquipment")
+            .RequirePermission(AccessRight.ManageLocation)
+            .WithSummary("Nimmt ein nicht mehr verwendetes Gerät wieder in die Planung; wer schon aktiv ist, ändert nichts.");
 
         group.MapGet("/equipment/{equipmentId:guid}/deletion-check", async Task<Results<Ok<DeletionCheckDto>, NotFound>> (
                 Guid equipmentId, AispaDbContext db, TimeProvider time, CancellationToken ct) =>

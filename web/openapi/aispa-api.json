@@ -1204,6 +1204,99 @@
         }
       }
     },
+    "/api/v1/locations/{locationId}/rooms/former": {
+      "get": {
+        "tags": [
+          "Stammdaten"
+        ],
+        "summary": "Die nicht mehr verwendeten Räume eines Standorts, nach Name; nur für Verwaltung der Standorte.",
+        "operationId": "ListFormerRooms",
+        "parameters": [
+          {
+            "name": "locationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RoomDto"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/v1/rooms/{roomId}/reactivate": {
+      "post": {
+        "tags": [
+          "Stammdaten"
+        ],
+        "summary": "Nimmt einen nicht mehr verwendeten Raum wieder in die Planung; wer schon aktiv ist, ändert nichts.",
+        "operationId": "ReactivateRoom",
+        "parameters": [
+          {
+            "name": "roomId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoomDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
     "/api/v1/rooms/{roomId}/deletion-check": {
       "get": {
         "tags": [
@@ -1419,6 +1512,99 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/v1/locations/{locationId}/equipment/former": {
+      "get": {
+        "tags": [
+          "Stammdaten"
+        ],
+        "summary": "Die nicht mehr verwendeten Geräte eines Standorts, nach Name; nur für Verwaltung der Standorte.",
+        "operationId": "ListFormerEquipment",
+        "parameters": [
+          {
+            "name": "locationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EquipmentDto"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/v1/equipment/{equipmentId}/reactivate": {
+      "post": {
+        "tags": [
+          "Stammdaten"
+        ],
+        "summary": "Nimmt ein nicht mehr verwendetes Gerät wieder in die Planung; wer schon aktiv ist, ändert nichts.",
+        "operationId": "ReactivateEquipment",
+        "parameters": [
+          {
+            "name": "equipmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EquipmentDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }

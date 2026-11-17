@@ -230,6 +230,12 @@ Am Ende der Zeile steht das Menü **⋯** mit **Nicht mehr verwenden** und **Lö
 
 Ein Raum lässt sich nicht löschen, denn Termine, Kosten und Auswertungen verweisen auf ihn. **Löschen …** öffnet deshalb den Dialog „lässt sich nicht löschen“: Er zählt, was am Raum hängt (künftige und vergangene Termine, Behandlungen, Lagerorte, Sperrzeiten), und bietet **Nicht mehr verwenden** an.
 
+### Wieder verwenden {#raum-wieder-verwenden}
+
+Unter der Liste der Räume steht das Häkchen **Nicht mehr verwendete zeigen**. Mit dem Häkchen stehen die Räume, die aus der Planung genommen wurden, gedämpft unter den aktiven, mit dem Kennzeichen „Nicht mehr verwendet“. Ihr Menü **⋯** hat nur **Wieder verwenden**. Danach steht der Raum wieder in der Liste, im Kalender und bei den Behandlungen, und eine Meldung bestätigt es. Zugeordnete Behandlungen, Raumpflege und Tagesstart-Kontrolle sind unverändert. Das Häkchen sehen nur Inhaberin, Manager und Standortleitung.
+
+![Räume mit dem Häkchen „Nicht mehr verwendete zeigen“: ein gedämpfter Raum mit Kennzeichen und Menü](images/app/verwaltung-standorte-raeume-nicht-mehr-verwendet.png)
+
 ## Tagesstart-Kontrolle {#tagesstart-kontrolle}
 
 Unter den Räumen eines Standorts (in der Windows-App nach den Räumen, vor den Geräten): die Checkliste, die das Team vor dem ersten Termin in einem Raum oder Bereich abhakt, z. B. „Sauna aufheizen“. Ändern dürfen Inhaber und Standortleitung an ihren Standorten. Mit **Raum** wählt man den Raum, bei **Punkte** steht je Zeile ein Punkt (höchstens 30, je höchstens 200 Zeichen), **Checkliste speichern** speichert die ganze Liste. Eine leere Liste schaltet die Kontrolle für den Raum aus.
@@ -243,3 +249,6 @@ Geräte des Standorts, die eine Behandlung braucht und die nur einmal gleichzeit
 
 - Bei der Behandlung wird festgelegt, welche Geräte sie braucht. Ein Gerät ist nur während der Behandlung selbst belegt, nicht während Vor- und Nachbereitung.
 - Das Menü **⋯** am Gerät hat **Nicht mehr verwenden** und **Löschen …**. **Nicht mehr verwenden** nimmt das Gerät aus der Planung. Das geht nur, wenn es für keinen künftigen Termin mehr gebraucht wird. Löschen lässt sich ein Gerät nicht; der Dialog zeigt, was daran hängt, und bietet **Nicht mehr verwenden** an.
+- Unter der Liste steht das Häkchen **Nicht mehr verwendete zeigen**. Mit dem Häkchen stehen die entfernten Geräte gedämpft mit dem Kennzeichen „Nicht mehr verwendet“ unter den aktiven; im Menü **⋯** gibt es nur **Wieder verwenden**. Danach steht das Gerät wieder in der Liste und bei den Behandlungen.
+
+![Geräte mit dem Häkchen „Nicht mehr verwendete zeigen“: ein gedämpftes Gerät mit Kennzeichen und Menü](images/app/verwaltung-standorte-geraete-nicht-mehr-verwendet.png)
