@@ -113,8 +113,18 @@ internal sealed class RebookPlanner(AispaDbContext db, IMessageBus bus)
     public async Task<int> PlanAsync(DateTimeOffset now, CancellationToken ct)
     {
         var settings = await db.RebookSettings.AsNoTracking().OrderBy(s => s.Id).FirstOrDefaultAsync(ct);
-        var intervals = await db.TreatmentRebookIntervals.AsNoTracking().ToDictionaryAsync(i => i.TreatmentId, i => i.Days, ct);
-        if (settings is not { Enabled: true } || intervals.Count == 0)
+        if (settings is not { Enabled: true })
+        {
+            return 0;
+        }
+
+        var treatmentRows = await db.TreatmentRebookIntervals.AsNoTracking().ToDictionaryAsync(i => i.TreatmentId, i => i.Days, ct);
+        var categoryRows = RebookRules.CategoryMap(await db.CategoryRebookIntervals.AsNoTracking().ToListAsync(ct));
+        var intervals = (await db.Treatments.AsNoTracking().Select(t => new { t.Id, t.Category }).ToListAsync(ct))
+            .Select(t => (t.Id, Days: RebookRules.DaysFor(t.Id, t.Category, settings.DefaultDays, treatmentRows, categoryRows)))
+            .Where(t => t.Days is not null)
+            .ToDictionary(t => t.Id, t => t.Days!.Value);
+        if (intervals.Count == 0)
         {
             return 0;
         }

@@ -9,14 +9,38 @@ public sealed class RebookSettings
 {
     public Guid Id { get; init; } = Guid.CreateVersion7();
     public bool Enabled { get; set; }
+
+    /// <summary>Standardabstand in Tagen für alle Behandlungen ohne Ausnahme; leer heißt kein Hinweis (P8, 17.11.2026).</summary>
+    public int? DefaultDays { get; set; }
 }
 
-/// <summary>Nach wie vielen Tagen seit der letzten abgeschlossenen Behandlung erinnert wird. Ohne Eintrag keine Erinnerung.</summary>
+/// <summary>Ausnahme vom Standardabstand für eine Behandlung: nach wie vielen Tagen seit der letzten abgeschlossenen Behandlung erinnert wird; leer heißt für sie kein Hinweis.</summary>
 public sealed class TreatmentRebookInterval
 {
     public Guid Id { get; init; } = Guid.CreateVersion7();
     public Guid TreatmentId { get; init; }
-    public int Days { get; set; }
+    public int? Days { get; set; }
+}
+
+/// <summary>Ausnahme vom Standardabstand für eine Kategorie von Behandlungen; eine Ausnahme für die Behandlung selbst geht vor. Leer heißt für die Kategorie kein Hinweis.</summary>
+public sealed class CategoryRebookInterval
+{
+    public Guid Id { get; init; } = Guid.CreateVersion7();
+    public required string Category { get; init; }
+    public int? Days { get; set; }
+}
+
+/// <summary>Welcher Abstand für eine Behandlung gilt: die Ausnahme der Behandlung, dann die ihrer Kategorie, dann der Standard; leer heißt kein Hinweis. Die Maske rechnet das nie selbst.</summary>
+internal static class RebookRules
+{
+    public static int? DaysFor(Guid treatmentId, string? category, int? defaultDays,
+        IReadOnlyDictionary<Guid, int?> treatments, IReadOnlyDictionary<string, int?> categories) =>
+        treatments.TryGetValue(treatmentId, out var own) ? own
+        : category is not null && categories.TryGetValue(category, out var inCategory) ? inCategory
+        : defaultDays;
+
+    public static Dictionary<string, int?> CategoryMap(IEnumerable<CategoryRebookInterval> rows) =>
+        rows.ToDictionary(r => r.Category, r => r.Days, StringComparer.OrdinalIgnoreCase);
 }
 
 /// <summary>
@@ -66,6 +90,12 @@ internal static class RetentionModel
         {
             e.Property(i => i.Id).ValueGeneratedNever();
             e.HasIndex(i => i.TreatmentId).IsUnique();
+        });
+        builder.Entity<CategoryRebookInterval>(e =>
+        {
+            e.Property(i => i.Id).ValueGeneratedNever();
+            e.Property(i => i.Category).HasMaxLength(60);
+            e.HasIndex(i => i.Category).IsUnique();
         });
         builder.Entity<MarketingConsent>(e =>
         {

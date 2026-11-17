@@ -8212,6 +8212,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/dispatch-log": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Versandprotokoll: Terminerinnerungen und Wiederbuchungs-Hinweise der letzten Tage (Vorgabe 30, höchstens 366), neueste zuerst. Filter: kind (reminder, rebook), channel (email, sms, whatsapp), result (sent, failed, skipped, queued). */
+        get: operations["ListDispatchLog"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/dispatch-log/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Zahlen des Versandprotokolls der letzten Tage (Vorgabe 30), je Art: verschickt, fehlgeschlagen, entfallen. */
+        get: operations["GetDispatchSummary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/dispatch-log/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Das Versandprotokoll als Excel oder CSV mit denselben Filtern wie die Liste (höchstens so viele Zeilen wie jeder Export). */
+        get: operations["ExportDispatchLog"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/retention/settings": {
         parameters: {
             query?: never;
@@ -8221,7 +8272,7 @@ export interface paths {
         };
         /** Ob und nach wie vielen Tagen je Behandlung ein Wiederbuchungs-Hinweis verschickt wird (ohne Eintrag aus). */
         get: operations["GetRebookSettings"];
-        /** Wiederbuchungs-Hinweis einstellen. Er geht nur an Gäste mit bestätigter Einwilligung. */
+        /** Wiederbuchungs-Hinweis einstellen: Standardabstand und Ausnahmen je Kategorie oder Behandlung. Er geht nur an Gäste mit bestätigter Einwilligung. */
         put: operations["UpdateRebookSettings"];
         post?: never;
         delete?: never;
@@ -10564,6 +10615,39 @@ export interface components {
         DeviceCodeRedeem: {
             code: string;
         };
+        /** @enum {unknown} */
+        DispatchKind: "Reminder" | "Rebook";
+        DispatchKindSummaryDto: {
+            /** Format: int32 */
+            sent: number;
+            /** Format: int32 */
+            failed: number;
+            /** Format: int32 */
+            skipped: number;
+        };
+        DispatchLogEntryDto: {
+            /** Format: uuid */
+            id: string;
+            kind: components["schemas"]["DispatchKind"];
+            /** Format: uuid */
+            customerId: string;
+            recipient: string;
+            subject: string;
+            channel: components["schemas"]["ReminderChannel"];
+            state: string;
+            /** Format: date-time */
+            at: string;
+            /** Format: date-time */
+            appointmentStart: null | string;
+            text: null | string;
+            error: null | string;
+        };
+        DispatchSummaryDto: {
+            /** Format: int32 */
+            days: number;
+            reminders: components["schemas"]["DispatchKindSummaryDto"];
+            rebook: components["schemas"]["DispatchKindSummaryDto"];
+        };
         DisplayBoard: {
             locationName: string;
             timeZone: string;
@@ -12390,6 +12474,11 @@ export interface components {
             device: null | components["schemas"]["SharedDeviceDto"];
             people: components["schemas"]["QuickSwitchPerson"][];
         };
+        RebookCategoryIntervalDto: {
+            category: string;
+            /** Format: int32 */
+            days: null | number;
+        };
         RebookIntervalDto: {
             /** Format: uuid */
             treatmentId: string;
@@ -12415,6 +12504,10 @@ export interface components {
         RebookSettingsDto: {
             enabled: boolean;
             intervals: components["schemas"]["RebookIntervalDto"][];
+            /** Format: int32 */
+            defaultDays?: null | number;
+            categoryIntervals?: null | components["schemas"]["RebookCategoryIntervalDto"][];
+            silentTreatmentIds?: null | string[];
         };
         ReceiptDto: {
             /** Format: uuid */
@@ -37761,6 +37854,125 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    ListDispatchLog: {
+        parameters: {
+            query?: {
+                kind?: string;
+                channel?: string;
+                result?: string;
+                days?: number;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DispatchLogEntryDto"][];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    GetDispatchSummary: {
+        parameters: {
+            query?: {
+                days?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DispatchSummaryDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    ExportDispatchLog: {
+        parameters: {
+            query?: {
+                kind?: string;
+                channel?: string;
+                result?: string;
+                days?: number;
+                format?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
         };
     };

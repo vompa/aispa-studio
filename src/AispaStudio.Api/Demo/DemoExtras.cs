@@ -228,11 +228,10 @@ internal static class DemoExtras
     /// </summary>
     private static async Task AddRebookingAsync(IServiceProvider services, AispaDbContext db, List<Customer> customers, DateTimeOffset now, CancellationToken ct)
     {
-        var days = new Dictionary<string, int> { ["Massagen"] = 42, ["Gesicht"] = 35, ["Hände und Füße"] = 28 };
-        db.RebookSettings.Add(new RebookSettings { Enabled = true });
-        db.TreatmentRebookIntervals.AddRange((await db.Treatments.AsNoTracking().ToListAsync(ct))
-            .Where(t => t.Category is not null && days.ContainsKey(t.Category))
-            .Select(t => new TreatmentRebookInterval { TreatmentId = t.Id, Days = days[t.Category!] }));
+        // Standard 42 Tage, Ausnahmen je Kategorie wie bisher; Kategorien ohne Ausnahme bekommen den Standard.
+        var days = new Dictionary<string, int> { ["Gesicht"] = 35, ["Hände und Füße"] = 28 };
+        db.RebookSettings.Add(new RebookSettings { Enabled = true, DefaultDays = 42 });
+        db.CategoryRebookIntervals.AddRange(days.Select(d => new CategoryRebookInterval { Category = d.Key, Days = d.Value }));
         db.MarketingConsents.AddRange(customers.Where(c => c.Email is not null).Where((_, i) => i % 3 == 0).Select(c => new MarketingConsent
         {
             CustomerId = c.Id,

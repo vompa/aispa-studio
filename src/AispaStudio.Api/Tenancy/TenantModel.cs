@@ -43,6 +43,7 @@ internal static class TenantModel
         (typeof(StockItem), [nameof(StockItem.Barcode)]),
         (typeof(CalendarSubscription), [nameof(CalendarSubscription.Preset)]),
         (typeof(Staff.DutyType), [nameof(Staff.DutyType.Key)]),
+        (typeof(Retention.CategoryRebookInterval), [nameof(Retention.CategoryRebookInterval.Category)]),
     ];
 
     public static bool IsTenantOwned(IReadOnlyEntityType type) =>

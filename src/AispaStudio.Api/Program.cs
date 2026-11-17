@@ -408,6 +408,7 @@ static void MapApplicationEndpoints(WebApplication app)
     app.MapStaffDutyEndpoints();
     app.ForModule(AppModule.Assistant).MapAssistantEndpoints();
     app.ForModule(AppModule.Reminders).MapReminderEndpoints();
+    app.ForModule(AppModule.Reminders).MapDispatchLogEndpoints();
     app.ForModule(AppModule.Rebooking).MapRetentionEndpoints();
     app.MapHub<LiveHub>(LiveHubContract.Path).AllowChannel(AccessChannel.Display);
 }
