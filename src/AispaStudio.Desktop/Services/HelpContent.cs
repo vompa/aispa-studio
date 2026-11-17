@@ -30,14 +30,27 @@ public static class HelpContent
         _ => null,
     };
 
-    /// <summary>Zeigt die Hilfe im Rahmen der App; ohne Rahmen (vor der Anmeldung) öffnet sich ein eigenes Fenster.</summary>
+    /// <summary>Zeigt die Hilfe im Rahmen der App in der Leiste „KI und Hilfe“; ohne Rahmen (vor der Anmeldung) öffnet sich ein eigenes Fenster.</summary>
     public static Func<string?, string?, bool>? ShowInApp { get; set; }
+
+    /// <summary>Zeigt die Seite „Hilfe“ der App (das ganze Handbuch) an der Stelle; ohne Rahmen öffnet sich ein eigenes Fenster.</summary>
+    public static Func<string?, string?, bool>? ShowManualInApp { get; set; }
 
     public static Action<string?, string?>? ShowWindow { get; set; }
 
+    /// <summary>Hilfe zu einer Stelle in der Leiste „KI und Hilfe“, die Maske bleibt stehen (ADR 0079, Nachtrag 17.11.2026).</summary>
     public static void Open(string? topic, string? section = null)
     {
         if (ShowInApp?.Invoke(topic, section) != true)
+        {
+            ShowWindow?.Invoke(topic, section);
+        }
+    }
+
+    /// <summary>Das ganze Handbuch auf der Seite „Hilfe“, z. B. „Im Handbuch öffnen“ oder „Alle Hilfethemen“.</summary>
+    public static void OpenManual(string? topic, string? section = null)
+    {
+        if (ShowManualInApp?.Invoke(topic, section) != true)
         {
             ShowWindow?.Invoke(topic, section);
         }

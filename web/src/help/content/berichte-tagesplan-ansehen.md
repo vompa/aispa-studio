@@ -19,25 +19,29 @@ Der Reiter „Mein Tag“ unter „Zahlen“ zeigt den Tag einer Person mit Dien
 
 ![Tagesplan mit Behandlungskarten](images/app/verwaltung-berichte-tagesplan.png)
 
-Oben stehen der Name, der Tag und die Dienstzeiten an diesem Standort („Kein Dienst an diesem Standort.“, wenn keiner eingeteilt ist). Darunter Hinweise, zum Beispiel ein Raumwechsel, weniger als 5 Minuten zwischen zwei Behandlungen, ein Termin außerhalb des Dienstes oder eine Abwesenheit laut Dienstplan.
+Oben stehen der Name, der Tag, der Status (offene Vorbereitungen und Hinweise zum Tag) und die Dienstzeiten an diesem Standort („Kein Dienst an diesem Standort.“, wenn keiner eingeteilt ist). Darunter Hinweise, zum Beispiel ein Raumwechsel, weniger als 5 Minuten zwischen zwei Behandlungen, ein Termin außerhalb des Dienstes oder eine Abwesenheit laut Dienstplan.
 
 ## Was auf der Behandlungskarte steht {#karte}
 
-- Uhrzeit, Behandlung mit Dauer und Raum.
+Die Karte steht einspaltig untereinander, höchstens so breit wie eine Zeitungsspalte.
+
+- **Kopf**: Uhrzeit und Name der Behandlung als Titel, daneben als Kennzeichen die Dauer und der Raum. Ganz rechts die **Statuszeile**: „2 Vorbereitungen offen, erste bis 09:30“ oder „Bereit“, wenn alles abgehakt ist.
 - Gast mit Besuchszahl („Erstbesuch“ oder z. B. „4. Besuch“), letzter Besuch und Anlass (Geburtstag in den drei Tagen vor oder nach dem Termin).
-- Stand des Gesundheitsfragebogens, z. B. „Fragebogen vom 01.03.2026“, „Fragebogen fehlt (Erstbesuch)“ oder „älter als ein Jahr: bitte erneuern lassen“. Die Antworten selbst stehen nie auf der Karte.
-- „Hinweis zur Buchung“, wenn beim Termin eine Notiz steht.
-- **Vorbereitung**: die Schritte aus dem Behandlungsrezept zum Abhaken, mit „ab“ und Uhrzeit, wenn ein Schritt vor Beginn fällig ist. Darunter Punkte ohne Häkchen mit ihrer Herkunft in Klammern: benötigtes Gerät (Termin), Vorlieben des Gastes (Vorliebe), die letzte Notiz (Notiz), Erstbesuch oder Geburtstag (Anlass).
+- **Vorbereitung**: die Schritte aus dem Behandlungsrezept und das benötigte Gerät („Steinwärmer bereitstellen“) zum Abhaken, mit „ab“ und Uhrzeit, wenn ein Schritt vor Beginn fällig ist.
+- **Das wünscht sich <Vorname>**: die Vorlieben des Gastes als Kennzeichen („Druck: fest“, „Duft: Lavendel“), mit **Bearbeiten** daneben. Sie stehen nur hier, nicht noch einmal in der Vorbereitung.
+- **Hinweise**: Stand des Gesundheitsfragebogens, z. B. „Fragebogen vom 01.03.2026“, „Fragebogen fehlt (Erstbesuch)“ oder „älter als ein Jahr: bitte erneuern lassen“ (die Antworten selbst stehen nie auf der Karte), der „Hinweis zur Buchung“, die letzte Notiz sowie Erstbesuch oder Geburtstag.
 - **Letzte Behandlungen**: die letzten drei Besuche mit Behandlung, Person und Notiz.
+
+![Mein Tag bei 1100 Pixel Breite](images/app/verwaltung-mein-tag-1100.png)
 
 ## Vorbereitung abhaken {#abhaken}
 
-1. Auf der Karte unter **Vorbereitung** das Kästchen vor dem Schritt anklicken.
+1. Auf der Karte unter **Vorbereitung** das Kästchen vor dem Schritt anklicken, auch beim Gerät.
 2. Das Häkchen wird sofort gespeichert und ist für alle sichtbar, auch in „Mein Tag“ am Handy. Ein zweiter Klick nimmt es wieder weg.
 
 ## Vorlieben des Gastes ändern {#vorlieben}
 
-1. Auf der Karte **Vorlieben bearbeiten** anklicken.
+1. Auf der Karte im Abschnitt „Das wünscht sich …“ **Bearbeiten** anklicken.
 2. Felder **Druck**, **Duft**, **Raumtemperatur**, **Musik**, **Fokus**, **Nicht behandeln**, **Sonstiges** ausfüllen; bei Bedarf **Wenig Gespräch** anhaken.
 3. **Vorlieben speichern** anklicken. Mit **Abbrechen** bleibt alles wie vorher.
 

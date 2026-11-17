@@ -324,7 +324,7 @@ internal static class StockEndpoints
             .RequirePermission(AccessRight.ManageLocation);
     }
 
-    /// <summary>Lieferantenstamm: sehen und pflegen mit dem Recht auf den Katalog; Löschen gibt es nicht, nur Deaktivieren.</summary>
+    /// <summary>Lieferantenstamm: sehen und pflegen mit dem Recht auf den Katalog; Löschen geht nur ohne Material (ADR 0099), sonst bleibt Deaktivieren.</summary>
     private static void MapSuppliers(RouteGroupBuilder group)
     {
         group.MapGet("/suppliers", (StockSuppliers suppliers, CancellationToken ct) => suppliers.ListAsync(ct))
@@ -355,6 +355,34 @@ internal static class StockEndpoints
             })
             .WithName("UpdateStockSupplier")
             .WithSummary("Lieferant ändern oder deaktivieren. Bestellungen behalten den Namen zum Zeitpunkt der Bestellung.")
+            .RequirePermission(AccessRight.ManageCatalog);
+
+        group.MapGet("/suppliers/{supplierId:guid}/deletion-check", async Task<Results<Ok<DeletionCheckDto>, NotFound>> (
+                Guid supplierId, AispaDbContext db, CancellationToken ct) =>
+                await DeletionChecks.SupplierAsync(db, supplierId, ct) is { } check ? TypedResults.Ok(check) : TypedResults.NotFound())
+            .WithName("CheckStockSupplierDeletion")
+            .WithSummary("Zählt, wie viel Material am Lieferanten hängt; „Nicht mehr verwenden“ bleibt als Alternative.")
+            .RequirePermission(AccessRight.ManageCatalog);
+
+        group.MapDelete("/suppliers/{supplierId:guid}", async Task<Results<NoContent, NotFound, Conflict<DeletionCheckDto>>> (
+                Guid supplierId, AispaDbContext db, CancellationToken ct) =>
+            {
+                if (await DeletionChecks.SupplierAsync(db, supplierId, ct) is not { } check)
+                {
+                    return TypedResults.NotFound();
+                }
+
+                if (!check.CanDelete)
+                {
+                    return TypedResults.Conflict(check);
+                }
+
+                db.StockSuppliers.Remove(await db.StockSuppliers.FirstAsync(s => s.Id == supplierId, ct));
+                await db.SaveChangesAsync(ct);
+                return TypedResults.NoContent();
+            })
+            .WithName("DeleteStockSupplier")
+            .WithSummary("Löscht einen Lieferanten ohne Material; sonst 409 mit der Liste dessen, was daran hängt. Bestellungen behalten den Namen.")
             .RequirePermission(AccessRight.ManageCatalog);
     }
 
@@ -443,6 +471,20 @@ internal static class StockEndpoints
             })
             .WithName("DeleteStoragePlace")
             .WithSummary("Lagerort löschen, solange er keine Bewegungen hat; das Hauptlager nie.")
+            .RequirePermission(AccessRight.ManageLocation);
+
+        group.MapGet("/locations/{locationId:guid}/storage-places/{placeId:guid}/deletion-check", async Task<Results<Ok<DeletionCheckDto>, NotFound, ValidationProblem>> (
+                Guid locationId, Guid placeId, AispaDbContext db, CancellationToken ct) =>
+            {
+                if (await db.StoragePlaces.Where(p => p.Id == placeId).Select(p => (Guid?)p.LocationId).FirstOrDefaultAsync(ct) is not { } placeLocation)
+                {
+                    return TypedResults.NotFound();
+                }
+
+                return placeLocation != locationId ? WrongLocation() : TypedResults.Ok((await DeletionChecks.StoragePlaceAsync(db, placeId, ct))!);
+            })
+            .WithName("CheckStoragePlaceDeletion")
+            .WithSummary("Zählt die Bewegungen eines Lagerorts; das Hauptlager lässt sich nie löschen, „Nicht mehr verwenden“ bleibt als Alternative.")
             .RequirePermission(AccessRight.ManageLocation);
 
         group.MapGet("/locations/{locationId:guid}/storage-places/{placeId:guid}/levels", async Task<Results<Ok<StoragePlaceLevelsDto>, NotFound, ValidationProblem>> (

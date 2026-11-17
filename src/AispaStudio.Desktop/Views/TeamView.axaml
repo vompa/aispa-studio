@@ -75,7 +75,7 @@
         <StackPanel x:Name="DutiesSection" Spacing="8" IsVisible="{Binding ShowsDutiesSection}">
           <Grid ColumnDefinitions="*,Auto">
             <TextBlock Text="Zuständigkeiten" Classes="h3" VerticalAlignment="Center" />
-            <ui:HelpButton Topic="zustaendigkeiten-zertifikate" Grid.Column="1" />
+            <ui:HelpButton Topic="zustaendigkeiten-zertifikate" Section="uebersicht" Grid.Column="1" />
           </Grid>
           <ContentControl x:Name="DutiesOverviewHost" Content="{Binding Duties}" />
         </StackPanel>

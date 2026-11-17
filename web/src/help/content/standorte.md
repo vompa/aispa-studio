@@ -188,7 +188,7 @@ Erscheint, sobald der Standort eigene Regeln hat. Löscht die eigenen Regeln; da
 
 ## Räume {#raeume}
 
-Die Räume des Standorts, eine Zeile je Raum. Eine neue Zeile wird mit „Hinzufügen“ angelegt, Änderungen an einer bestehenden Zeile mit „Speichern“ in dieser Zeile. Welche Behandlung in welchem Raum stattfinden kann, wird bei der Behandlung festgelegt.
+Die Räume des Standorts, eine Zeile je Raum. Die Zeile für einen neuen Raum steht fest über der Liste und wird mit „Hinzufügen“ angelegt, Änderungen an einer bestehenden Zeile mit „Speichern“ in dieser Zeile. Welche Behandlung in welchem Raum stattfinden kann, wird bei der Behandlung festgelegt.
 
 ### Name {#raumname}
 
@@ -217,7 +217,9 @@ Nur bei einem Bereich: der Kassa-Artikel, mit dem ein Eintritt je Person abgerec
 
 ### Entfernen {#raum-entfernen}
 
-Nimmt den Raum aus der Planung; in der Windows-App ist es der Papierkorb am Ende der Zeile. Das geht nur, wenn keine künftigen Termine mehr darin liegen; sonst erscheint, wie viele es sind. Diese zuerst verschieben oder stornieren. Vergangene Termine behalten ihren Raum.
+Am Ende der Zeile steht das Menü **⋯** mit **Nicht mehr verwenden** und **Löschen …**. **Nicht mehr verwenden** nimmt den Raum aus der Planung. Das geht nur, wenn keine künftigen Termine mehr darin liegen; sonst erscheint, wie viele es sind. Diese zuerst verschieben oder stornieren. Vergangene Termine behalten ihren Raum.
+
+Ein Raum lässt sich nicht löschen, denn Termine, Kosten und Auswertungen verweisen auf ihn. **Löschen …** öffnet deshalb den Dialog „lässt sich nicht löschen“: Er zählt, was am Raum hängt (künftige und vergangene Termine, Behandlungen, Lagerorte, Sperrzeiten), und bietet **Nicht mehr verwenden** an.
 
 ## Tagesstart-Kontrolle {#tagesstart-kontrolle}
 
@@ -228,7 +230,7 @@ Unter den Räumen eines Standorts (in der Windows-App nach den Räumen, vor den 
 
 ## Geräte {#geraete}
 
-Geräte des Standorts, die eine Behandlung braucht und die nur einmal gleichzeitig verwendet werden können, z. B. ein Dampfbad-Kabinett oder ein Hydrojet. Neues Gerät: Namen eingeben und „Hinzufügen“.
+Geräte des Standorts, die eine Behandlung braucht und die nur einmal gleichzeitig verwendet werden können, z. B. ein Dampfbad-Kabinett oder ein Hydrojet. Neues Gerät: Namen im Feld über der Liste eingeben und „Hinzufügen“.
 
 - Bei der Behandlung wird festgelegt, welche Geräte sie braucht. Ein Gerät ist nur während der Behandlung selbst belegt, nicht während Vor- und Nachbereitung.
-- „Entfernen“ nimmt das Gerät aus der Planung. Das geht nur, wenn es für keinen künftigen Termin mehr gebraucht wird.
+- Das Menü **⋯** am Gerät hat **Nicht mehr verwenden** und **Löschen …**. **Nicht mehr verwenden** nimmt das Gerät aus der Planung. Das geht nur, wenn es für keinen künftigen Termin mehr gebraucht wird. Löschen lässt sich ein Gerät nicht; der Dialog zeigt, was daran hängt, und bietet **Nicht mehr verwenden** an.

@@ -340,7 +340,7 @@ Fläche toast, Text toast-fg, Radius 8, Innenabstand 10/16, unten mittig mit 16 
 
 ### 5.11 Hilfe-Knopf
 
-22 × 22, Kreis, Fläche surface, Rahmen 1 px line-strong, Text „?“ 12/600 fg-2. Hover: Rahmen und Text accent. Steht rechts neben dem Titel einer Gruppe oder Karte mit 6 px Abstand und öffnet die Hilfe genau zum Abschnitt der Gruppe (ADR 0055, ADR 0067). Jede Gruppe und jede Karte mit Einstellungen hat einen, höchstens einen; jedes Feld steht trotzdem im Hilfethema. Ein zusätzlicher Knopf an einem einzelnen Feld ist die begründete Ausnahme.
+22 × 22, Kreis, Fläche surface, Rahmen 1 px line-strong, Text „?“ 12/600 fg-2. Hover: Rahmen und Text accent. Steht rechts neben dem Titel einer Gruppe oder Karte mit 6 px Abstand und öffnet die Hilfe genau zum Abschnitt der Gruppe (ADR 0055, ADR 0067). Jede Gruppe und jede Karte mit Einstellungen hat einen, höchstens einen; jedes Feld steht trotzdem im Hilfethema. Ein zusätzlicher Knopf an einem einzelnen Feld ist die begründete Ausnahme. Aktiv (seine Hilfe steht in der Leiste „KI und Hilfe“, *ADR 0079, Nachtrag 17.11.2026*): gefüllt in accent, Rahmen accent, „?“ in on-accent; Hover und Drücken accent-hover.
 
 ### 5.12 Seitenleiste (verbindliches Layout, Stand 21.10.2026 abends; Vorbild: Warteliste)
 

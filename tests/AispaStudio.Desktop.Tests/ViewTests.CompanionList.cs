@@ -170,7 +170,7 @@ public sealed partial class ViewTests
             await AskByKeyboard(window, "Termine morgen?");
             shell.Companion.ShowAllRowsCommand.Execute(null);
             await Pump(Settling);
-            var scroller = panel.GetVisualAncestors().OfType<ScrollViewer>().First();
+            var scroller = Named<ScrollViewer>(panel, "AssistantScroll");
             scroller.ScrollToEnd();
             await Pump(Settling);
             var errorBar = Named<StackPanel>(panel, "ErrorBar");

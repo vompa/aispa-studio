@@ -40,8 +40,8 @@ public sealed partial class CompanionViewModel
 
     public bool HasRecentQuestions => RecentQuestions.Count > 0;
 
-    /// <summary>Der Teil zur Seite („Diese Seite“) entfällt auf der Seite „Hilfe“: dort bleibt nur der Assistent.</summary>
-    public bool ShowsPageSection => _page != "hilfe";
+    /// <summary>Der Teil zur Seite („Diese Seite“) entfällt auf der Seite „Hilfe“ und solange der Hilfe-Bereich eine Stelle zeigt: dann bleibt nur der Assistent.</summary>
+    public bool ShowsPageSection => _page != "hilfe" && Help is null;
 
     /// <summary>Es gibt etwas, das „Neu beginnen“ zurücksetzt.</summary>
     public bool CanReset => HasAnswer || HasError || IsBooking || IsAsking || Question.Length > 0 || BookedText is not null || SavedNotice is not null || CopiedText is not null;
@@ -80,11 +80,16 @@ public sealed partial class CompanionViewModel
     public void Dismiss()
     {
         ClearState();
+        ForgetHelp();
         IsOpen = false;
     }
 
     /// <summary>Der Reiter des Assistenten im Kalender wurde geschlossen: zurücksetzen, ohne das Panel selbst anzufassen.</summary>
-    public void StartFresh() => ClearState();
+    public void StartFresh()
+    {
+        ClearState();
+        ForgetHelp();
+    }
 
     /// <summary>Eine Frage aus „Zuletzt gefragt“ noch einmal stellen: frische Antwort der API, nie eine gespeicherte.</summary>
     [RelayCommand]

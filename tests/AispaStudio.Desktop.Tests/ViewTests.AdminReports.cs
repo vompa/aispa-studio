@@ -75,7 +75,7 @@ public sealed partial class ViewTests
         Assert.True(Shows(window, "Vorbereitung"));
         Assert.True(Shows(window, "Letzte Behandlungen"));
         return shell.AdminPage;
-    }, ReportsApi());
+    }, ReportsApi().On(DayPlanRoute, LavaDay()));
 
     [Theory]
     [InlineData("hell")]

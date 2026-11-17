@@ -1936,4 +1936,16 @@
   <Style Selector="Border.scrim">
     <Setter Property="Background" Value="{DynamicResource ScrimBrush}" />
   </Style>
+
+  <!-- Aktives Fragezeichen (Hilfe in der Leiste, ADR 0079 Nachtrag, Design-Brief 5.11): seine Hilfe steht in „KI und Hilfe“; gefüllt in accent, Text accent-fg, auch bei Hover und Drücken -->
+  <Style Selector="Button.help.active">
+    <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource AccentFgBrush}" />
+  </Style>
+  <Style Selector="Button.help.active:pointerover /template/ ContentPresenter#PART_ContentPresenter, Button.help.active:pressed /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource AccentHoverBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource AccentHoverBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource AccentFgBrush}" />
+  </Style>
 </Styles>

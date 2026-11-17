@@ -105,6 +105,7 @@ public sealed class AispaDbContext(DbContextOptions<AispaDbContext> options, Ten
     public DbSet<TreatmentPreparationStep> TreatmentPreparationSteps => Set<TreatmentPreparationStep>();
     public DbSet<CustomerPreference> CustomerPreferences => Set<CustomerPreference>();
     public DbSet<AppointmentPreparationCheck> AppointmentPreparationChecks => Set<AppointmentPreparationCheck>();
+    public DbSet<AppointmentEquipmentCheck> AppointmentEquipmentChecks => Set<AppointmentEquipmentCheck>();
     public DbSet<AppointmentFollowUp> AppointmentFollowUps => Set<AppointmentFollowUp>();
 
     public DbSet<TreatmentExtra> TreatmentExtras => Set<TreatmentExtra>();

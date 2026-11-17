@@ -237,10 +237,12 @@ public sealed partial class AdminReportsTests
         Assert.False(own.DayPlan.CanChoosePerson);
         Assert.Contains(api.Calls, c => c.Route == DayPlanRoute);
         var card = Assert.Single(own.DayPlan.Cards);
-        Assert.Contains("Klassische Massage (60 Min.), Raum 1", card.Title, StringComparison.Ordinal);
+        Assert.Equal("10:00 Klassische Massage", card.Title);
+        Assert.Equal(("60 Min.", "Raum 1"), (card.DurationText, card.RoomName));
         Assert.Equal("Anna Berg · 3. Besuch, zuletzt 19.10.2026 · Geburtstag", card.Guest);
         Assert.True(card.IsAnamnesisWarning);
-        Assert.Equal(["Lavendel bereitstellen (Vorliebe)"], card.TodoNotes);
+        Assert.Empty(card.TodoNotes);
+        Assert.Contains("Duft: Lavendel", card.Wishes);
 
         var none = Reports(new StubApi().On("GET /api/locations", new List<LocationDto> { StockSample.Vienna }).On("GET /api/employees", new List<EmployeeDto>()),
             new CurrentUser("u", "m", "L", 1, new CurrentAccess(Guid.NewGuid(), "S", StaffRole.Therapist, true, []), null, [AccessRight.ViewCalendar]));

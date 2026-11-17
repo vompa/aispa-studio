@@ -8,8 +8,44 @@
              xmlns:views="using:AispaStudio.Desktop.Views"
              x:Class="AispaStudio.Desktop.Views.CompanionContent"
              x:DataType="vm:CompanionViewModel">
-  <!-- Inhalt von „KI und Hilfe“: Erklärung zur Seite und KI-Assistent. Er steht im Kalender als Reiter der Seitenleiste, auf den übrigen Seiten in der Leiste der Shell. -->
-  <StackPanel Spacing="12">
+  <!-- Inhalt von „KI und Hilfe“: oben die Hilfe zu einem Fragezeichen, darunter Erklärung zur Seite und KI-Assistent. Er steht im Kalender als Reiter der Seitenleiste,
+       auf den übrigen Seiten in der Leiste der Shell. Die Zeilenhöhen setzt der Code dahinter: mit Hilfe 3 : 2, ohne nur der Assistent. -->
+  <Grid x:Name="Layout" RowDefinitions="0,Auto,*">
+    <!-- Hilfe in der Leiste (ADR 0079, Nachtrag): Kopf und „Im Handbuch öffnen“ nativ, dazwischen die eine Web-Hilfe im Modus „ansicht=leiste“.
+         Das native Browserfenster liegt über allem in seiner Fläche: dort liegt nichts von Avalonia darüber, auch kein Flyout. -->
+    <DockPanel x:Name="HelpArea" IsVisible="{Binding ShowsHelp}" ui:RegionNavigation.IsRegion="True" AutomationProperties.Name="{Binding HelpTitle}">
+      <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" ColumnSpacing="8" Margin="16,12,12,8">
+        <StackPanel Spacing="2" VerticalAlignment="Center">
+          <TextBlock x:Name="HelpTitle" Text="{Binding HelpTitle}" FontWeight="SemiBold" FontSize="16" TextWrapping="Wrap" />
+          <TextBlock x:Name="HelpSubtitle" Text="{Binding HelpSubtitle}" Classes="muted small" TextWrapping="Wrap"
+                     IsVisible="{Binding HelpSubtitle, Converter={x:Static ObjectConverters.IsNotNull}}" />
+        </StackPanel>
+        <Button Grid.Column="1" x:Name="HelpClose" Classes="ghost icon" Command="{Binding CloseHelpCommand}" ToolTip.Tip="Hilfe schließen (Esc)"
+                AutomationProperties.Name="Hilfe schließen">
+          <ui:Icon Data="{x:Static ui:Icons.Close}" Width="16" Height="16" />
+        </Button>
+      </Grid>
+      <Button DockPanel.Dock="Bottom" x:Name="OpenManualButton" Classes="link" Content="Im Handbuch öffnen" Command="{Binding OpenManualCommand}"
+              Margin="16,8,16,12" HorizontalAlignment="Left" ToolTip.Tip="Die Seite „Hilfe“ an dieser Stelle" />
+      <Panel>
+        <!-- Bis die Seite geladen ist (und in Tests ohne Browser): der erste Absatz des Abschnitts -->
+        <ItemsControl x:Name="HelpLead" ItemsSource="{Binding HelpLead}" Margin="16,0,16,0"
+                      IsVisible="{Binding HelpArea.Error, Converter={x:Static ObjectConverters.IsNull}, FallbackValue=True}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="help:HelpParagraph">
+              <ui:HelpText Spans="{Binding Spans}" Classes="secondary" />
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        <ui:InfoBar Severity="Error" Title="Hilfe nicht erreichbar" Message="{Binding HelpArea.Error, FallbackValue=''}" Stacked="True" Margin="16,0" VerticalAlignment="Top"
+                    IsVisible="{Binding HelpArea.Error, Converter={x:Static ObjectConverters.IsNotNull}, FallbackValue=False}" />
+        <views:HelpBrowser x:Name="HelpBrowser" Model="{Binding HelpArea}" />
+      </Panel>
+    </DockPanel>
+    <Border Grid.Row="1" Classes="divider" IsVisible="{Binding ShowsHelp}" />
+
+    <ScrollViewer Grid.Row="2" x:Name="AssistantScroll">
+  <StackPanel Spacing="12" Margin="16">
     <!-- Diese Seite; auf der Seite „Hilfe“ entfällt der Teil, dort bleibt nur der Assistent (Ä347) -->
     <StackPanel Spacing="12" IsVisible="{Binding ShowsPageSection}">
     <StackPanel Spacing="6" IsVisible="{Binding HasTopic}">
@@ -287,4 +323,6 @@
       </Border>
     </StackPanel>
   </StackPanel>
+    </ScrollViewer>
+  </Grid>
 </UserControl>

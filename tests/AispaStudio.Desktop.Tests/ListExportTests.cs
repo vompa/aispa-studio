@@ -4,7 +4,7 @@ using AispaStudio.Desktop.ViewModels;
 namespace AispaStudio.Desktop.Tests;
 
 /// <summary>
-/// Der Knopf „Exportieren“ in Kassa, Lager, Zeiterfassung, Dienstplan und Management-Bericht (Export/Import, Aufgabe D): wer ihn sieht, welche Einträge er hat, welchen Pfad ein Klick
+/// Der Knopf „Exportieren“ in Kassa, Zeiterfassung, Dienstplan und Management-Bericht (Export/Import, Aufgabe D): wer ihn sieht, welche Einträge er hat, welchen Pfad ein Klick
 /// aufruft und wie die Seite „Gespeichert: …“ meldet. Inhalt, Format und Rechte der Dateien prüfen die API-Tests.
 /// </summary>
 public sealed class ListExportTests
@@ -83,45 +83,7 @@ public sealed class ListExportTests
         Assert.Null(pos.ExportSaved);
     }
 
-    // ---------- Lager ----------
-
-    private static async Task<StockViewModel> Stock(StubApi api, CurrentUser user)
-    {
-        var stock = new StockViewModel(api.Client(), user, new StockSample.FixedTime());
-        await stock.EnsureLoadedAsync();
-        return stock;
-    }
-
-    [Fact]
-    public async Task Lager_nur_die_Leitung_sieht_fuenf_Listen_in_Excel_und_CSV()
-    {
-        var owner = await Stock(StockSample.Api(), TestData.Owner());
-        var general = await Stock(StockSample.Api(), TestData.Owner(StaffRole.GeneralManager));
-        var manager = await Stock(StockSample.Api(), TestData.Manager());
-
-        Assert.Equal(
-            ["Bestand je Lagerort (Excel)", "Bestand je Lagerort (CSV)", "Inventur (Excel)", "Inventur (CSV)", "Lagerbewegungen (Excel)", "Lagerbewegungen (CSV)", "Bestellungen (Excel)",
-                "Bestellungen (CSV)", "Ablaufliste (Excel)", "Ablaufliste (CSV)"],
-            Labels(owner.Export));
-        Assert.NotNull(general.Export);
-        Assert.Null(manager.Export);
-    }
-
-    [Fact]
-    public async Task Lager_Bewegungen_nehmen_die_letzten_30_Tage_bis_heute_Bestand_keinen_Zeitraum()
-    {
-        var api = StockSample.Api()
-            .OnFile($"GET {StockSample.Route("/export?list=movements&from=2027-01-30&until=2027-03-01&format=csv")}", File, "Lagerbewegungen_2027-03-01.csv")
-            .OnFile($"GET {StockSample.Route("/export?list=levels&format=xlsx")}", File, "Bestand_2027-03-01.xlsx");
-        var stock = await Stock(api, TestData.Owner());
-        stock.Export!.Files = new FakeFileSaver();
-
-        await Click(stock.Export, "Lagerbewegungen (CSV)");
-        Assert.Equal("Gespeichert: Lagerbewegungen_2027-03-01.csv", stock.ExportSaved);
-
-        await Click(stock.Export, "Bestand je Lagerort (Excel)");
-        Assert.Equal("Gespeichert: Bestand_2027-03-01.xlsx", stock.ExportSaved);
-    }
+    // Lager: seit P7 ein Dialog statt Menü, siehe StockExportDialogTests.
 
     // ---------- Zeiterfassung und Dienstplan ----------
 
