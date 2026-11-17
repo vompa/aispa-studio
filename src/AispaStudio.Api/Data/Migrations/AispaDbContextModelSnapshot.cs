@@ -4590,6 +4590,9 @@ namespace AispaStudio.Api.Data.Migrations
                     b.Property<int>("Persons")
                         .HasColumnType("integer");
 
+                    b.Property<int?>("PlaceholderGuest")
+                        .HasColumnType("integer");
+
                     b.Property<Guid>("RoomId")
                         .HasColumnType("uuid");
 

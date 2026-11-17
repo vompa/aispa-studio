@@ -73,12 +73,12 @@
           <ColumnDefinition Width="Auto" SharedSizeGroup="Sick" />
           <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
-        <TextBlock Text="Person" Classes="muted small" />
-        <TextBlock Grid.Column="1" Text="Stunden" Classes="muted small" />
-        <TextBlock Grid.Column="2" Text="Arbeitstage" Classes="muted small" />
-        <TextBlock Grid.Column="3" Text="Urlaub" Classes="muted small" />
-        <TextBlock Grid.Column="4" Text="Krank" Classes="muted small" />
-        <TextBlock Grid.Column="5" Text="Hinweise" Classes="muted small" />
+        <TextBlock Text="Person" Classes="group" />
+        <TextBlock Grid.Column="1" Text="Stunden" Classes="group" />
+        <TextBlock Grid.Column="2" Text="Arbeitstage" Classes="group" />
+        <TextBlock Grid.Column="3" Text="Urlaub" Classes="group" />
+        <TextBlock Grid.Column="4" Text="Krank" Classes="group" />
+        <TextBlock Grid.Column="5" Text="Hinweise" Classes="group" />
       </Grid>
       <ItemsControl ItemsSource="{Binding WorkingTime}">
         <ItemsControl.ItemTemplate>

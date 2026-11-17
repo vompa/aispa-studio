@@ -6739,6 +6739,102 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Nicht geprüft:** Der genaue Abbruch lässt sich nicht gezielt nachstellen; der Test stellt ihn mit einem anderen Fehler aus derselben Assembly nach, die Läufe mit echtem Redis treffen ihn nur zufällig.
 
 
+## Termin-Panel: Anzahlung für Termine der Rezeption per Link (17.11.2026)
+
+- **Auftrag:** Offener Punkt „Anzahlung für Termine der Rezeption per Link“ (Online-Buchung und Kundenbereich, Nr. 2); vom Auftraggeber am 16.11.2026 mit „alle Punkte autonom, wo du mich nicht brauchst“ freigegeben.
+- **Befund:** Eine Anzahlung entstand nur beim Online-Buchen. Für Termine am Telefon oder vor Ort gab es nur „Karte per Link anfordern“ für die Ausfallgebühr.
+- **Was:**
+  - `DepositRequests` (nach dem Muster von `CardRequests`): `GET /api/appointments/{id}/deposit/offer` (Kalender sehen) und `POST /api/appointments/{id}/deposit/request` (Buchen; 409 mit Grund).
+  - `Deposits.AddAsync(…, requested: true)`: Satz der Behandlung oder des Standorts, ohne Zahlungsfrist.
+  - Mail `OnlineMails.DepositRequest` in vier Sprachen mit dem Link zur Terminseite; bezahlt wird dort über den vorhandenen Weg (Anzahlungsbeleg an der Kassa, Verrechnung beim Kassieren).
+  - Windows-App: Knopf „Anzahlung per Link“ / „Link erneut senden“ im Abschnitt Anzahlung des Termin-Panels.
+  - Hilfe `kalender-termin-verlauf` mit Bild `termin-anzahlung-anfordern.png`.
+- **Detailentscheidungen:**
+  1. Keine Frist und keine Freigabe des Termins ohne Zahlung: Die Rezeption hat den Termin mit dem Gast vereinbart; ob sie ihn ohne Zahlung absagt, entscheidet sie selbst. Damit entfällt auch die Erinnerung vor Ablauf der Frist.
+  2. Der Satz gilt auch für Stammgäste („nur neue Gäste“ greift nicht): Die Rezeption fordert bewusst an.
+  3. Nicht zusammen mit einer hinterlegten oder angeforderten Karte: Beim Online-Buchen ersetzt die Anzahlung die Karte ebenso.
+  4. Solange nicht bezahlt ist (offen oder abgebrochen), schickt ein zweiter Aufruf einen neuen Link; danach lehnt der Server ab.
+  5. Nur per Mail; SMS ist ein eigener offener Punkt.
+- **Bewusst offen / später:** Link per SMS; Anzahlung für Paar und Spa-Tag.
+- **Geprüft:** API `DepositTests`, `CardGuaranteeTests`, `ChannelScanTests` 41 von 41 (neu: anfordern, Mail, Terminseite ohne Frist, Link erneut, bezahlen, Verrechnung beim Kassieren, Ablehnung nach Zahlung; ohne Regel, ohne Mail, unbekannter Termin); Windows-App Ansichtstest „Anzahlung per Link“ und die Prüfungen der Knopflängen grün.
+- **Nicht geprüft:** echte Zahlung beim Anbieter (nur Testbetrieb); die laufende App unter Windows; die Übersetzungen der Mail sind nicht von Muttersprachlern gelesen.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Ausfall-Assistent: Ersatz an einem anderen Tag (17.11.2026)
+
+- **Auftrag:** Offener Punkt im Kalender („Ausfall-Assistent: Ersatz an anderen Tagen“); vom Auftraggeber am 16.11.2026 mit „alle Punkte autonom, wo du mich nicht brauchst“ freigegeben.
+- **Befund:** Gab es am Tag weder am eigenen noch an einem anderen Standort Ersatz, sagte der Assistent nur „Bitte den Gast kontaktieren und einen anderen Tag anbieten“; den Tag musste die Rezeption selbst suchen.
+- **Was:**
+  - `AbsenceAssistant.ProposeAsync`: neue Stufe nach dem anderen Standort, neuer Wert `AbsenceOption.OtherDay`. Gesucht wird an den nächsten 14 Tagen am eigenen Standort, die erste freie Zeit eines Tages möglichst nahe der gewohnten Uhrzeit.
+  - Ohne Treffer: „Auch in den nächsten 14 Tagen ist niemand mit der Qualifikation frei. Bitte den Gast kontaktieren.“
+  - Mail beim Übernehmen: „Wie besprochen verschieben wir Ihren Termin von … auf …“.
+  - Windows-App: Abschnitt „Andere Tage“ im Ausfall-Assistenten, nicht vorausgewählt.
+  - Hilfe `dienstplan-ersatz-vorschlagen` mit Bild `kalender-ausfall-anderer-tag.png`.
+- **Detailentscheidungen:**
+  1. Die ausgefallene Person wird auch an den anderen Tagen nicht vorgeschlagen: Eine Krankmeldung trägt nur einen Tag ein, und ob sie danach wieder da ist, weiß der Assistent nicht.
+  2. Reihenfolge: gleicher Tag hier, anderer Standort am selben Tag, dann anderer Tag hier. Ein anderer Tag am anderen Standort wird nicht gesucht.
+  3. Nicht vorausgewählt und eigener Abschnitt, wie beim anderen Standort: Der Gast muss zustimmen.
+  4. Nur einzeln gebuchte, noch nicht eingecheckte Termine; Paar und Spa-Tag bleiben, wie sie sind.
+  5. 14 Tage als feste Grenze, ohne Einstellung in der Verwaltung.
+- **Bewusst offen / später:** Paar und Spa-Tag verlegen; mehrere Vorschläge je Termin zur Auswahl.
+- **Geprüft:** API `AbsenceTests` und Raumsperre 20 von 20 (neu: anderer Tag zur gewohnten Uhrzeit, Übernehmen mit Mail; nichts in 14 Tagen; Rezeption ohne zweiten Standort bekommt den anderen Tag); Windows-App Ansichtstest „Ersatz an einem anderen Tag“, `AbsenceNotifyTests`, Knopflängen grün.
+- **Nicht geprüft:** die laufende App unter Windows.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Paar und Spa-Tag: Sauna und Ruheraum für Gäste ohne Namen (17.11.2026)
+
+- **Auftrag:** Offener Punkt aus den Rezeptions-Schritten („Sauna für Gäste ohne Namen“); vom Auftraggeber am 16.11.2026 mit „alle Punkte autonom, wo du mich nicht brauchst“ freigegeben.
+- **Befund:** Ein Eintritt in Sauna oder Ruheraum kannte keine Gastnummer. Für einen Gast ohne Namen hätte er die buchende Person getragen; die Windows-App sperrte deshalb **Buchen** („Verfügbar, sobald Sauna und Ruheraum nur bei Gästen mit Namen stehen.“).
+- **Was:**
+  - `AreaVisit.PlaceholderGuest` (Migration `AreaVisitPlaceholderGuest`); `GroupAreaItem.PlaceholderGuest`, `AreaVisitDto.PlaceholderGuest`.
+  - Prüfung „ein Gast, zwei Dinge gleichzeitig“ unterscheidet auch bei Bereichen nach Nummer; Verschieben der ganzen Buchung behält die Nummer.
+  - **Namen nachtragen** trägt den Gast auch auf seine Eintritte derselben Buchung ein.
+  - Der Eintritt heißt bis dahin „Gast 3 · Name folgt“ (vom Server, so sehen es alle Oberflächen).
+  - Windows-App: Sperre und Hinweis „nur für Gäste mit Namen“ entfallen.
+  - Hilfe `kalender-paar-und-spa-tag`.
+- **Detailentscheidungen:**
+  1. Der Name „Gast 3 · Name folgt“ kommt vom Server, weil Eintritte an mehreren Stellen stehen (Belegung, Kalender, Kassa); bei Terminen setzt ihn die Windows-App.
+  2. Bezahlt wird wie bei den Terminen von der buchenden Person.
+- **Bewusst offen / später:** Hat ein Gast ohne Namen nur Sauna oder Ruheraum und keine Behandlung, lässt sich sein Name nicht nachtragen (das Nachtragen geht über einen Termin); Ausfallgebühr für Gäste ohne Namen; die Demo im Arbeitsspeicher kennt Bereiche im Spa-Tag weiterhin nicht.
+- **Geprüft:** API `SpaDayBuilderTests`, `GroupBookingTests`, `AreaTests`, `ChannelScanTests` 25 von 25 (neu: Buchen mit Nummer, Name „Gast 1 · Name folgt“, Verschieben behält die Nummer, Nachtragen nimmt den Eintritt mit); Windows-App `GroupAndAreaTests` 14 von 14 (neu: Suche mit Platzhalter, Buchung mit Nummer, Hinweistext), Ansichtstests zu Gruppe, Paar und Spa-Tag grün.
+- **Nicht geprüft:** die laufende App unter Windows.
+
+## Beschriftungen und Kategorien größer und halbfett (P12, 17.11.2026)
+
+- **Auftrag:** Die kleinen grauen Einordnungen waren auf allen Masken zu klein, „zumindest in bold“ (Auftraggeber, 17.11.2026): Feldbeschriftungen, Kategorie- und Gruppenüberschriften in Listen, Tabellenköpfe. Hinweise unter Feldern bleiben 12/400.
+- **Was:** Die Stufe „Beschriftung“ ist jetzt 13 px, Gewicht 600, Zeilenhöhe 18, Farbe fg-2 (vorher 12/500/16). `docs/design.md` (Tabelle in Abschnitt 3, Mindestgröße, gewollte Abweichung zu Gewicht 500, 5.2), `docs/design-tokens.json` (Größe 13 neu in `schriftgroessen`), `Styles.axaml` (`TextBlock.label`, `TextBlock.group`), Web `index.css` mit den Variablen `--label-size`, `--label-weight`, `--label-line` und einer gemeinsamen Regel statt verstreuter Werte (Feldbeschriftungen, `.edit-table th`, `.roster-table thead th`, `.assistant-answer th`, Betragsfeld); Eingabefelder innerhalb einer Beschriftung bleiben 14/400. `StatTile` nutzt schon `group` und folgt von selbst.
+- **Auf die Stufe gebracht (vorher `muted small` von Hand):** Spaltenköpfe in Buchhaltung, Kosten (Behandlungen und Räume), Pflichtberichten, Managementbericht und Lagerorten; Kennzahl-Beschriftungen im Kundenüberblick und in der Tagesübersicht des Kalenders sowie im Urlaubskonto; Gruppentitel im Tagesplan und „Kundennotiz“; die Kategorien der Behandlungsliste (vorher 14/400 grau) und die Gruppenüberschrift der Kontaktliste. Hinweise (`small`, `hint`) blieben unverändert.
+- **Detailentscheidungen:**
+  1. 13 px ist eine neue Größe außerhalb der Fluent-Rampe (12/14); sie ist im Brief als Stufe benannt, die Größenprüfung kennt sie über `schriftgroessen`. 600 statt 500, weil der Auftraggeber „bold“ wollte und 500 auf grauem Grund kaum vom Text abhob; 600 war schon erlaubt.
+  2. Kontrast fg-2 gemessen (WCAG-Formel, 17.11.2026): hell auf surface 8,1, surface-2 7,6, surface-3 6,6; dunkel auf surface 8,4, surface-2 7,8; alle über 4,5 : 1. Die Farbe blieb, ein Wechsel war nicht nötig.
+  3. Raster: Zeilenhöhe 18 plus 4 px Abstand zum Feld; die Feldhöhe 34 und die Abstände zwischen Feldern (Brief 4.1) ändern sich nicht, die Maske wird je Beschriftung 2 px höher.
+  4. Web mit Variablen und einem Block, die Werte in `:root` prüft `designTokens.test.ts` gegen die Tokendatei (ein Selektor der Tokendatei passt nicht, weil die Regel eine Liste ist). Die Erklärseite `/ueber/` (`about.css`) bleibt: eigene Tabelle mit 14/600 im Kopf.
+  5. Die Beschriftung „Artikelnummer beim Lieferanten“ heißt jetzt „Artikelnummer Lieferant“ (Hilfetext angepasst): Sie wurde im Lager-Formular bei 1100 Breite abgeschnitten.
+- **Bewusst offen / später:** `FormField` legt Beschriftung und Stern in ein waagrechtes `StackPanel`, deshalb bricht eine zu lange Beschriftung nicht um, sondern wird abgeschnitten, obwohl `TextWrapping="Wrap"` gesetzt ist; bei 13/600 ist das Risiko etwas größer (Fund, nicht behoben). Weitere handgesetzte Köpfe mit `muted small`, die nicht klar Spaltenköpfe sind, blieben unberührt.
+- **Geprüft:** `DesignTokenTests` und `Schriftstufen_Muster…` auf die neuen Werte angepasst (rot vor, grün nach der Änderung der Tokendatei), `TreatmentsTests`; Web `designTokens.test.ts` um die Prüfung der Variablen erweitert, ganze vitest-Suite 395 von 395, `npm run lint` und `typecheck` grün; Bildtests bei 1100 Breite (hell, dunkel): Behandlung (Grunddaten, Durchführung), Lager (Bestand mit Seitenpanel), Kosten, Kassa, Personenkarte beim Mindestfenster: kein Umbruch, keine Überlappung der Beschriftungen, bis auf den Spaltenkopf „Material“ im Bestand (siehe unten). Handbuchbilder der gerenderten Masken neu erzeugt.
+- **Nicht geprüft:** alle übrigen Masken bei 1100 (nur die dichten sind gerendert); die Web-Oberflächen im Browser (nur Tests, Lint, Typen); Windows-Hochkontrast.
+- **Beim Schreiben festgestellt:** Bei 1100 Breite und offenem Seitenpanel ist die Spalte „Material“ im Lagerbestand so schmal, dass schon die Zeilen („M…“) abgeschnitten werden; der Kassa-Titel „Kassa“ liegt unter der Schiene. Beides ist nicht gegen den alten Stand verglichen, die Ursache liegt im Aufbau, nicht in der Schrift; die Kostentabelle (11 Spalten) läuft bei 1100 rechts über.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Kassa: Online-Zahlungen als Liste (17.11.2026)
+
+- **Auftrag:** Offener Punkt „Online-Bestellungen und Erstattungen als Liste in der Kassa“ (Online-Buchung und Kundenbereich, Nr. 7); vom Auftraggeber am 16.11.2026 mit „alle Punkte autonom, wo du mich nicht brauchst“ freigegeben.
+- **Befund:** Der Server lieferte die bezahlten Online-Gutscheine schon (`GET /api/locations/{id}/voucher-orders`), keine Oberfläche zeigte sie. Erstattungen waren nur einzeln am Beleg zu sehen.
+- **Was:**
+  - `GET /api/locations/{id}/online-refunds` (Buchen): Erstattungen online bezahlter Belege, neueste 100, mit Beleg und Stornobeleg in Worten.
+  - `VoucherOrderStaffEntry.Receipt`: der Beleg in Worten statt nur der Id. Die Belegtexte kommen aus einem gemeinsamen Helfer `ReceiptTexts`.
+  - Windows-App: Symbol **Online-Zahlungen** (Weltkugel) in der Kopfzeile der Kassa. Es öffnet eine Karte mit zwei Listen; Fehlgeschlagenes steht in Rot.
+  - Hilfe `kassa-beleg-stornieren` mit Bild `kassa-online-zahlungen.png`.
+  - Im Stand vermerkt: Nr. 5 (Sprache des Gastes) und Nr. 8 (Anzahlung in der Windows-App) gab es schon.
+- **Detailentscheidungen:**
+  1. Nur zum Nachsehen: Erstattet wird weiter über das Storno des Belegs, ein Fehlschlag wird im Beleg erneut angestoßen. So bleibt jede Erstattung mit Stornobeleg im Tagesabschluss.
+  2. Symbol statt beschriftetem Knopf: Mit einem weiteren beschrifteten Knopf wurde das Datum in der Kopfzeile abgeschnitten.
+  3. Recht „Buchen“ wie bei den vorhandenen Abfragen zu Online-Zahlungen am Beleg.
+- **Bewusst offen / später:** einen Eintrag anklicken und den Beleg öffnen; Anzahlungen und Ausfallgebühren als eigene Liste (sie stehen am Termin).
+- **Geprüft:** API `OnlineRefundTests`, `VoucherShopTests`, `ChannelScanTests` 14 von 14 (neu: Liste mit Beleg und Stornobeleg, leere Liste, fremder Standort 404); Windows-App `PosOnlinePaymentsTests` 3 von 3, Ansichtstest „Online-Zahlungen“, Kassa-Ansichten (71) und Knopflängen grün.
+- **Nicht geprüft:** die laufende App unter Windows.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
 ## Masken: Hilfe als Leiste „KI und Hilfe“ (P1, 17.11.2026)
 
 - **Auftrag:** Plan der Maskenrunde, Entscheidung 1 des Auftraggebers: Das Fragezeichen öffnet die Hilfe nicht mehr als Seite „Hilfe“, sondern in der Leiste „KI und Hilfe“; die Maske bleibt stehen.

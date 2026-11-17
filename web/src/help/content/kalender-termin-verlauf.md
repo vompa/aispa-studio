@@ -26,9 +26,13 @@ Jeder Eintrag sagt, was geschah, darunter stehen Datum und Uhrzeit in der Ortsze
 
 ## Ausfallgebühr und Erinnerungen {#ausfallgebuehr}
 
-Im Termin-Panel stehen zwei weitere Abschnitte, sobald es dazu etwas gibt:
+Im Termin-Panel stehen weitere Abschnitte, sobald es dazu etwas gibt:
 
 - **Ausfallgebühr** zeigt, ob eine Karte hinterlegt ist, mit Betrag und Prozent. Verlangt der Standort eine Gebühr und fehlt die Karte, schickt **Karte per Link anfordern** dem Gast einen Link. Ist die Gebühr fällig, bucht **Ausfallgebühr belasten …** sie nach einer Rückfrage ab; diesen Knopf sieht nur die Kassenaufsicht.
+- **Anzahlung** zeigt, ob der Gast angezahlt hat, mit Betrag und Prozent. Verlangt der Standort eine Anzahlung und hat die Rezeption den Termin gebucht, schickt **Anzahlung per Link** dem Gast eine Mail mit einem Link. Dort bezahlt er; der Anzahlungsbeleg entsteht an der Kassa und wird beim Kassieren abgezogen. Bezahlt der Gast nicht, bleibt der Termin trotzdem stehen. Solange nichts bezahlt ist, schickt **Link erneut senden** einen neuen Link. Den Knopf gibt es nicht, wenn der Gast keine Mailadresse hat oder schon eine Karte für die Ausfallgebühr hinterlegt oder angefordert ist.
+
+![Termin mit dem Abschnitt Anzahlung, nachdem der Link verschickt ist](images/app/termin-anzahlung-anfordern.png)
+
 - **Terminerinnerungen** zeigt, welche Erinnerungen der Gast bekommen hat, mit Kanal, Zustand und Zeit.
 - **Wiederbuchungs-Hinweis** ist eine Werbe-Mail einige Wochen nach der letzten Behandlung und braucht die Einwilligung des Gastes. Die Karte zeigt, ob der Gast eingewilligt hat. **Einwilligung anfragen** schickt ihm eine Mail (Sprache wählbar), er bestätigt per Link; erst dann kommen Hinweise. Sagt der Gast am Empfang, er möchte keine mehr, klicken Sie **Widerrufen**. Beide Knöpfe sehen nur Personen, die buchen dürfen.
 

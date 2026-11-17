@@ -29,7 +29,7 @@
           </ListBox.Styles>
           <ListBox.ItemTemplate>
             <DataTemplate x:DataType="vm:TreatmentEntry">
-              <TextBlock Text="{Binding Title}" Classes.muted="{Binding IsHeading}" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Title}" />
+              <TextBlock Text="{Binding Title}" Classes.group="{Binding IsHeading}" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Title}" />
             </DataTemplate>
           </ListBox.ItemTemplate>
         </ListBox>

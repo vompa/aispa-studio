@@ -1417,6 +1417,48 @@ Expected: Im Kalender steht der Termin beim Therapeuten; in der Notiz steht „W
 Closes: –
 Result: ☐
 
+### Kassa – Online-Zahlungen nachsehen
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App als Rezeption; Zahlungsanbieter im Testbetrieb; im Kundenbereich einen Gutschein kaufen und mit „Zahlung simulieren“ bezahlen
+1. In der Kassa oben auf das Weltkugel-Symbol **Online-Zahlungen** klicken.
+Expected: Die Karte zeigt unter „Online gekaufte Gutscheine“ den Gutschein mit Betrag, Zeit, „Ausgestellt“ und Beleg; unter „Erstattungen“ steht „Noch keine.“
+2. Als Kassenaufsicht unter „Belege“ den Gutscheinbeleg stornieren und die Karte neu öffnen.
+Expected: Der Gutschein steht als „Storniert und erstattet“; unter „Erstattungen“ steht er mit Beleg, Stornobeleg und „Erstattet am …“.
+Closes: –
+Result: ☐
+
+### Paar und Spa-Tag – Sauna für einen Gast ohne Namen
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App als Rezeption; am Standort gibt es eine Sauna als Bereich
+1. **Paar oder Spa-Tag** öffnen, Gast 1 aus der Kartei wählen, bei Gast 2 **Name folgt** anhaken. Im ersten Schritt Gast 1 eine Massage und Gast 2 die Sauna (60 Min.) geben, im zweiten Schritt umgekehrt; eine Zeit suchen.
+Expected: Unter den Gästen steht „… Die Namen lassen sich später im Termin nachtragen, auch für Sauna und Ruheraum.“; **Buchen** ist nicht gesperrt.
+2. Buchen und die Belegung „Sauna und Ruheraum“ ansehen.
+Expected: Ein Eintritt steht als „Gast 2 · Name folgt“, der andere auf Gast 1.
+3. Den Massagetermin von Gast 2 öffnen, **Namen nachtragen** und einen Gast eintragen.
+Expected: Auch der Sauna-Eintritt von Gast 2 trägt danach diesen Namen.
+Closes: –
+Result: ☐
+
+### Ausfall-Assistent – Ersatz an einem anderen Tag
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App als Rezeption; eine Person mit einem Termin heute, alle anderen mit derselben Qualifikation sind heute abwesend (Urlaub im Dienstplan), arbeiten aber an einem der nächsten Tage; der Gast hat eine Mailadresse; kein zweiter Standort mit Platz
+1. Die Person krank melden und den Ausfall-Assistenten öffnen.
+Expected: Der Termin steht unter **Andere Tage** mit Tag, Uhrzeit, Person und Raum, nicht angehakt; die Erklärung endet mit „nur nach Rücksprache mit dem Gast übernehmen“.
+2. Den Vorschlag anhaken und **Gewählte übernehmen** klicken.
+Expected: Der Termin liegt am vorgeschlagenen Tag; im Postfach des Gastes liegt „Änderung Ihres Termins am …“ mit „Wie besprochen verschieben wir Ihren Termin …“.
+Closes: –
+Result: ☐
+
+### Termin-Panel – Anzahlung per Link anfordern
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App als Rezeption; am Standort ist in den Online-Regeln eine Anzahlung (z. B. 30 %) eingestellt, Zahlungskonto (Testbetrieb genügt) und Kassa sind eingerichtet; ein Gast mit Mailadresse
+1. Für den Gast in der Windows-App einen Termin in den nächsten Tagen buchen und ihn öffnen.
+Expected: Im Abschnitt „Anzahlung“ steht „Der Standort verlangt 30 % (…)“ und der Knopf **Anzahlung per Link**.
+2. Auf **Anzahlung per Link** klicken.
+Expected: Meldung „Link per Mail verschickt“; im Abschnitt steht „Noch nicht bezahlt · … (30 %)“, der Knopf heißt jetzt **Link erneut senden**. Im Postfach des Gastes liegt die Mail „Anzahlung für …“ mit Betrag und Link.
+3. Den Link öffnen und die Anzahlung bezahlen (im Testbetrieb „Zahlung simulieren“).
+Expected: Auf der Terminseite steht keine Frist zum Bezahlen. Nach dem Bezahlen zeigt das Termin-Panel „Bezahlt, Anzahlungsbeleg erstellt“, der Knopf ist verschwunden; an der Kassa ist der Betrag beim Kassieren des Termins abgezogen.
+4. Einen zweiten Termin für einen Gast ohne Mailadresse buchen und öffnen.
+Expected: Kein Knopf **Anzahlung per Link**.
+Closes: –
+Result: ☐
+
 ### Ausfall-Assistent – Gäste ohne Ersatz benachrichtigen
 Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App als Rezeption; eine Person mit einem Termin heute, für den niemand sonst die Qualifikation hat; der Gast hat eine Mailadresse
 1. Im Kalender die Person als ausgefallen markieren und den Ausfall-Assistenten öffnen.

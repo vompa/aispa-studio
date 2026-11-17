@@ -16371,6 +16371,96 @@
         }
       }
     },
+    "/api/v1/appointments/{appointmentId}/deposit/offer": {
+      "get": {
+        "tags": [
+          "Kalender"
+        ],
+        "summary": "Ob sich für einen Termin der Rezeption eine Anzahlung per Link anfordern lässt, und mit welchem Betrag.",
+        "operationId": "GetDepositRequestOffer",
+        "parameters": [
+          {
+            "name": "appointmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DepositRequestOffer"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/appointments/{appointmentId}/deposit/request": {
+      "post": {
+        "tags": [
+          "Kalender"
+        ],
+        "summary": "Dem Gast einen Link schicken, um die Anzahlung für einen Termin der Rezeption zu bezahlen; erneut aufgerufen ein neuer Link. Ohne Zahlung bleibt der Termin stehen.",
+        "operationId": "RequestDeposit",
+        "parameters": [
+          {
+            "name": "appointmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DepositStaffDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/appointments/{appointmentId}/deposit-return": {
       "get": {
         "tags": [
@@ -16462,6 +16552,54 @@
               "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/locations/{locationId}/online-refunds": {
+      "get": {
+        "tags": [
+          "Kassa"
+        ],
+        "summary": "Erstattungen online bezahlter Belege eines Standorts, neueste zuerst (höchstens 100), mit Beleg, Stornobeleg und Stand.",
+        "operationId": "ListOnlineRefunds",
+        "parameters": [
+          {
+            "name": "locationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OnlineRefundStaffEntry"
+                  }
                 }
               }
             }
@@ -29580,7 +29718,8 @@
           "SameTime",
           "OtherTime",
           "None",
-          "OtherLocation"
+          "OtherLocation",
+          "OtherDay"
         ]
       },
       "AbsenceProposal": {
@@ -31468,6 +31607,13 @@
             "items": {
               "type": "string"
             }
+          },
+          "placeholderGuest": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
           }
         }
       },
@@ -37664,6 +37810,38 @@
           }
         }
       },
+      "DepositRequestOffer": {
+        "required": [
+          "possible",
+          "amount",
+          "currency",
+          "percent",
+          "reason"
+        ],
+        "type": "object",
+        "properties": {
+          "possible": {
+            "type": "boolean"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "percent": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "DepositReturnInfo": {
         "required": [
           "receiptId",
@@ -38994,6 +39172,13 @@
           },
           "minutes": {
             "type": "integer",
+            "format": "int32"
+          },
+          "placeholderGuest": {
+            "type": [
+              "null",
+              "integer"
+            ],
             "format": "int32"
           }
         }
@@ -42564,12 +42749,74 @@
           }
         }
       },
+      "OnlineRefundStaffEntry": {
+        "required": [
+          "receiptId",
+          "receipt",
+          "voidReceipt",
+          "source",
+          "amount",
+          "currency",
+          "status",
+          "requestedAt",
+          "refundedAt",
+          "error"
+        ],
+        "type": "object",
+        "properties": {
+          "receiptId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "receipt": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "voidReceipt": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "source": {
+            "$ref": "#/components/schemas/OnlinePaymentSource"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/OnlineRefundStatus"
+          },
+          "requestedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "refundedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "error": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "OnlineRefundStatus": {
         "enum": [
           "Pending",
           "Refunded",
-          "Failed",
-          null
+          "Failed"
         ]
       },
       "OnlineSuggestedTime": {
@@ -51854,6 +52101,12 @@
             "format": "uuid"
           },
           "error": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "receipt": {
             "type": [
               "null",
               "string"

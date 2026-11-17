@@ -232,6 +232,7 @@ internal sealed class AreaVisitService(AispaDbContext db, TimeProvider time)
             .Any(o => LocalTime.ToUtc(date, o.Opens, zone) <= from && until <= LocalTime.ToUtc(date, o.Closes, zone));
     }
 
+    /// <summary>Bei einem Gast ohne Namen steht „Gast 3 · Name folgt“ statt der buchenden Person, wie bei seinen Terminen.</summary>
     public static AreaVisitDto ToDto(AreaVisit v) => new(v.Id, v.LocationId, v.RoomId, v.CustomerId,
-        v.Customer.InHouseName, v.Persons, v.From, v.Until, v.IsCancelled, v.Note, v.GroupId);
+        v.PlaceholderGuest is { } number ? $"Gast {number} · Name folgt" : v.Customer.InHouseName, v.Persons, v.From, v.Until, v.IsCancelled, v.Note, v.GroupId, PlaceholderGuest: v.PlaceholderGuest);
 }

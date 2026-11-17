@@ -26,12 +26,24 @@ public partial class AppointmentViewModel
         ? $"{Money.Format(deposit.Amount, deposit.Currency)} bezahlt ({deposit.Way}), Beleg {deposit.ReceiptText}. Beim Retournieren geht das Geld auf diesem Weg zurück: Storno-Beleg über die Kassa, der Grund steht darauf."
         : "";
 
-    /// <summary>Stand der Anzahlung für alle, die den Kalender sehen; eine Anzahlung anfordern gibt es nicht, sie entsteht bei der Online-Buchung.</summary>
+    /// <summary>Stand der Anzahlung für alle, die den Kalender sehen; sie entsteht bei der Online-Buchung oder wenn die Rezeption sie per Link anfordert.</summary>
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasDepositCard), nameof(HasDepositState), nameof(DepositTitle), nameof(DepositStateText), nameof(DepositLines))]
+    [NotifyPropertyChangedFor(nameof(HasDepositCard), nameof(HasDepositState), nameof(DepositTitle), nameof(DepositStateText), nameof(DepositLines), nameof(CanRequestDeposit),
+        nameof(RequestDepositText))]
     public partial DepositStaffDto? DepositState { get; private set; }
 
-    public bool HasDepositCard => DepositState is not null || HasReturnableDeposit;
+    /// <summary>Die Anzahlung lässt sich für einen Termin der Rezeption per Link anfordern; ob und mit welchem Betrag, sagt der Server.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasDepositCard), nameof(DepositLines), nameof(CanRequestDeposit))]
+    public partial DepositRequestOffer? DepositOffer { get; private set; }
+
+    public bool HasDepositCard => DepositState is not null || DepositOffer is not null || HasReturnableDeposit;
+
+    /// <summary>Anfordern, solange es keine Anzahlung gibt; erneut senden, solange sie nicht bezahlt ist.</summary>
+    public bool CanRequestDeposit => MayBook && IsBooked
+        && (DepositState is { } deposit ? deposit.Status is OnlineDepositStatus.Pending or OnlineDepositStatus.Failed : DepositOffer is not null);
+
+    public string RequestDepositText => DepositState is null ? "Anzahlung per Link" : "Link erneut senden";
 
     public bool HasDepositState => DepositState is not null;
 
@@ -49,7 +61,9 @@ public partial class AppointmentViewModel
         {
             if (DepositState is not { } deposit)
             {
-                return [];
+                return DepositOffer is { } offer
+                    ? [$"Der Standort verlangt {offer.Percent} % ({Money.Format(offer.Amount, offer.Currency)}). Der Gast bekommt einen Link und bezahlt dort; der Termin bleibt auch ohne Zahlung stehen."]
+                    : [];
             }
 
             List<string> lines = [];
@@ -84,8 +98,29 @@ public partial class AppointmentViewModel
         }
     }
 
-    private async Task LoadDepositStateAsync() =>
+    private async Task LoadDepositStateAsync()
+    {
         DepositState = (await Api.GetAsync<DepositStaffDto>($"api/appointments/{Appointment.Id}/deposit").ConfigureAwait(true)).Value;
+        DepositOffer = DepositState is null && IsBooked && MayBook
+            && (await Api.GetAsync<DepositRequestOffer>($"api/appointments/{Appointment.Id}/deposit/offer").ConfigureAwait(true)).Value is { Possible: true } offer
+            ? offer
+            : null;
+    }
+
+    [RelayCommand]
+    private async Task RequestDepositAsync()
+    {
+        var result = await Api.PostAsync<DepositStaffDto>($"api/appointments/{Appointment.Id}/deposit/request", null).ConfigureAwait(true);
+        if (result.Value is not { } deposit)
+        {
+            ShowFailure("Link nicht verschickt", result.Error);
+            return;
+        }
+
+        DepositState = deposit;
+        DepositOffer = null;
+        ShowToast?.Invoke("Link per Mail verschickt");
+    }
 
     private static string DepositStatusText(DepositStaffDto deposit) => deposit switch
     {

@@ -331,7 +331,7 @@
           <TextBlock Text="{Binding PaymentText}" TextWrapping="Wrap" MaxWidth="280" Foreground="{DynamicResource OkBrush}" />
         </Border>
 
-        <!-- Stand der Anzahlung für alle (Ä285). Retournieren (Ä47): nur Inhaberin und Geschäftsführung, solange es eine offene Anzahlung gibt; der Knopf fragt nach und stellt erst dann den Storno-Beleg aus -->
+        <!-- Stand der Anzahlung für alle (Ä285). Anfordern per Link für Termine der Rezeption: Betrag und Gründe kommen vom Server. Retournieren (Ä47): nur Inhaberin und Geschäftsführung, solange es eine offene Anzahlung gibt; der Knopf fragt nach und stellt erst dann den Storno-Beleg aus -->
         <Border x:Name="DepositCard" Classes="panelcard" IsVisible="{Binding HasDepositCard}">
           <StackPanel Spacing="6">
             <TextBlock Text="{Binding DepositTitle}" FontWeight="Medium" />
@@ -343,6 +343,7 @@
                 </DataTemplate>
               </ItemsControl.ItemTemplate>
             </ItemsControl>
+            <Button x:Name="RequestDepositButton" Content="{Binding RequestDepositText}" HorizontalAlignment="Left" Command="{Binding RequestDepositCommand}" IsVisible="{Binding CanRequestDeposit}" />
             <TextBlock Text="{Binding DepositText}" Classes="muted small" TextWrapping="Wrap" MaxWidth="280" IsVisible="{Binding HasReturnableDeposit}" />
             <Button x:Name="ReturnDepositButton" Classes="danger" Content="Anzahlung retournieren …" HorizontalAlignment="Left" Command="{Binding ReturnDepositCommand}" IsVisible="{Binding HasReturnableDeposit}" />
           </StackPanel>
@@ -949,22 +950,22 @@
                 <StackPanel ToolTip.Tip="Erledigte Besuche insgesamt" ui:ToolTipBehavior.Reachable="True" AutomationProperties.Name="{Binding VisitsText, StringFormat='Besuche gesamt {0}'}"
                             AutomationProperties.ControlTypeOverride="Text" AutomationProperties.AccessibilityView="Content">
                   <TextBlock Text="{Binding VisitsText}" FontSize="22" FontWeight="SemiBold" Classes="num" AutomationProperties.AccessibilityView="Raw" />
-                  <TextBlock Text="Besuche gesamt" Classes="muted small" AutomationProperties.AccessibilityView="Raw" />
+                  <TextBlock Text="Besuche gesamt" Classes="group" AutomationProperties.AccessibilityView="Raw" />
                 </StackPanel>
                 <StackPanel ToolTip.Tip="{Binding LastVisitTip}" ui:ToolTipBehavior.Reachable="True" AutomationProperties.Name="{Binding LastVisitText, StringFormat='Letzter Besuch {0}'}"
                             AutomationProperties.ControlTypeOverride="Text" AutomationProperties.AccessibilityView="Content">
                   <TextBlock Text="{Binding LastVisitText}" FontSize="22" FontWeight="SemiBold" Classes="num" AutomationProperties.AccessibilityView="Raw" />
-                  <TextBlock Text="Letzter Besuch" Classes="muted small" AutomationProperties.AccessibilityView="Raw" />
+                  <TextBlock Text="Letzter Besuch" Classes="group" AutomationProperties.AccessibilityView="Raw" />
                 </StackPanel>
                 <StackPanel ToolTip.Tip="Termine, zu denen der Gast nicht erschienen ist" ui:ToolTipBehavior.Reachable="True" AutomationProperties.Name="{Binding NoShowsText, StringFormat='Nicht erschienen {0}'}"
                             AutomationProperties.ControlTypeOverride="Text" AutomationProperties.AccessibilityView="Content">
                   <TextBlock Text="{Binding NoShowsText}" FontSize="22" FontWeight="SemiBold" Classes="num" Classes.warn="{Binding HasNoShows}" AutomationProperties.AccessibilityView="Raw" />
-                  <TextBlock Text="Nicht erschienen" Classes="muted small" AutomationProperties.AccessibilityView="Raw" />
+                  <TextBlock Text="Nicht erschienen" Classes="group" AutomationProperties.AccessibilityView="Raw" />
                 </StackPanel>
                 <StackPanel ToolTip.Tip="{Binding NextTip}" ui:ToolTipBehavior.Reachable="True" AutomationProperties.Name="{Binding NextText, StringFormat='Nächster Termin {0}'}"
                             AutomationProperties.ControlTypeOverride="Text" AutomationProperties.AccessibilityView="Content">
                   <TextBlock Text="{Binding NextText}" FontSize="22" FontWeight="SemiBold" Classes="num" AutomationProperties.AccessibilityView="Raw" />
-                  <TextBlock Text="Nächster Termin" Classes="muted small" AutomationProperties.AccessibilityView="Raw" />
+                  <TextBlock Text="Nächster Termin" Classes="group" AutomationProperties.AccessibilityView="Raw" />
                 </StackPanel>
               </UniformGrid>
               <TextBlock Text="{Binding OpenLine}" Classes="small" TextWrapping="Wrap" IsVisible="{Binding HasOpen}" />
@@ -977,7 +978,7 @@
             <Border Classes="divider" />
             <Border Classes="hint" IsVisible="{Binding HasNote}">
               <StackPanel Spacing="2">
-                <TextBlock Text="Kundennotiz" Classes="muted small" />
+                <TextBlock Text="Kundennotiz" Classes="group" />
                 <TextBlock Text="{Binding Note}" TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding NoteTip}" />
               </StackPanel>
             </Border>
@@ -2345,7 +2346,7 @@
                               ToolTip.Tip="Im Kalender hervorheben" AutomationProperties.Name="{Binding Overview?.Appointments, StringFormat='Termine, {0}', TargetNullValue='Termine, 0'}">
                         <StackPanel>
                           <TextBlock Text="{Binding Overview.Appointments, FallbackValue=0}" FontSize="22" FontWeight="SemiBold" Classes="num" />
-                          <TextBlock Text="Termine" Classes="muted small" />
+                          <TextBlock Text="Termine" Classes="group" />
                         </StackPanel>
                       </Button>
                       <Button Classes="ghost stat" Command="{Binding FocusOnCommand}" CommandParameter="{x:Static vm:CalendarFocus.CheckedIn}" Click="OnOverviewAction"
@@ -2353,21 +2354,21 @@
                         <StackPanel>
                           <TextBlock Text="{Binding Overview.CheckedIn, FallbackValue=0}" FontSize="22" FontWeight="SemiBold" Classes="num"
                                      Foreground="{DynamicResource OkBrush}" />
-                          <TextBlock Text="Eingecheckt" Classes="muted small" />
+                          <TextBlock Text="Eingecheckt" Classes="group" />
                         </StackPanel>
                       </Button>
                       <Button Classes="ghost stat" Command="{Binding FocusOnCommand}" CommandParameter="{x:Static vm:CalendarFocus.Expected}" Click="OnOverviewAction"
                               ToolTip.Tip="Im Kalender hervorheben" AutomationProperties.Name="{Binding Overview?.Open, StringFormat='Noch erwartet, {0}', TargetNullValue='Noch erwartet, 0'}">
                         <StackPanel>
                           <TextBlock Text="{Binding Overview.Open, FallbackValue=0}" FontSize="22" FontWeight="SemiBold" Classes="num" />
-                          <TextBlock Text="Noch erwartet" Classes="muted small" />
+                          <TextBlock Text="Noch erwartet" Classes="group" />
                         </StackPanel>
                       </Button>
                       <Button Classes="ghost stat" Command="{Binding OpenFreeTimeCommand}" Click="OnOverviewAction" ToolTip.Tip="Freie Zeit suchen: wo ist noch Platz?"
                               AutomationProperties.Name="{Binding Overview?.Utilization, StringFormat='Auslastung Team, {0}', TargetNullValue='Auslastung Team, –'}">
                         <StackPanel>
                           <TextBlock Text="{Binding Overview.Utilization, FallbackValue='–'}" FontSize="22" FontWeight="SemiBold" Classes="num" />
-                          <TextBlock Text="Auslastung Team" Classes="muted small" />
+                          <TextBlock Text="Auslastung Team" Classes="group" />
                         </StackPanel>
                       </Button>
                     </UniformGrid>

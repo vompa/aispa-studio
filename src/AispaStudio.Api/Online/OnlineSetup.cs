@@ -26,6 +26,7 @@ internal static class OnlineSetup
         services.AddScoped<CardGuarantees>();
         services.AddScoped<OnlineRefunds>();
         services.AddScoped<CardRequests>();
+        services.AddScoped<DepositRequests>();
         services.AddScoped<Deposits>();
         services.AddSingleton<SavedCardCleanup>();
         services.AddSingleton<UnsecuredBookingRelease>();
@@ -93,6 +94,7 @@ internal static class OnlineSetup
         routes.MapCardGuaranteeEndpoints();
         routes.MapDepositEndpoints();
         routes.MapOnlineRefundEndpoints();
+        routes.MapOnlinePaymentEndpoints();
         routes.MapPaymentAccountEndpoints();
         return routes;
     }

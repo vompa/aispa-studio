@@ -56,14 +56,14 @@
                 <ColumnDefinition Width="Auto" SharedSizeGroup="Center" />
                 <ColumnDefinition Width="*" />
               </Grid.ColumnDefinitions>
-              <TextBlock Text="Datum" Classes="muted small" />
-              <TextBlock Grid.Column="1" Text="Beleg" Classes="muted small" />
-              <TextBlock Grid.Column="2" Text="Soll" Classes="muted small" />
-              <TextBlock Grid.Column="3" Text="Haben" Classes="muted small" />
-              <TextBlock Grid.Column="4" Text="Betrag" Classes="muted small" HorizontalAlignment="Right" />
-              <TextBlock Grid.Column="5" Text="USt" Classes="muted small" HorizontalAlignment="Right" />
-              <TextBlock Grid.Column="6" Text="Kostenstelle" Classes="muted small" />
-              <TextBlock Grid.Column="7" Text="Text" Classes="muted small" />
+              <TextBlock Text="Datum" Classes="group" />
+              <TextBlock Grid.Column="1" Text="Beleg" Classes="group" />
+              <TextBlock Grid.Column="2" Text="Soll" Classes="group" />
+              <TextBlock Grid.Column="3" Text="Haben" Classes="group" />
+              <TextBlock Grid.Column="4" Text="Betrag" Classes="group" HorizontalAlignment="Right" />
+              <TextBlock Grid.Column="5" Text="USt" Classes="group" HorizontalAlignment="Right" />
+              <TextBlock Grid.Column="6" Text="Kostenstelle" Classes="group" />
+              <TextBlock Grid.Column="7" Text="Text" Classes="group" />
             </Grid>
             <ItemsControl x:Name="PostingList" ItemsSource="{Binding Postings}" AutomationProperties.Name="Buchungen">
               <ItemsControl.ItemTemplate>

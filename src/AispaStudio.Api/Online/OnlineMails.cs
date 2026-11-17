@@ -640,6 +640,79 @@ internal static class OnlineMails
     /// Die Rezeption bittet nach einer Buchung am Telefon oder vor Ort, eine Karte für die Ausfallgebühr zu hinterlegen. Zugestimmt
     /// wird erst auf der Seite hinter dem Link.
     /// </summary>
+    /// <summary>Die Rezeption bittet um die Anzahlung für einen Termin, den sie gebucht hat; der Link führt zur Terminseite mit der Zahlung.</summary>
+    public static OutgoingMail DepositRequest(
+        string to, GuestName guest, string treatment, DateTimeOffset start, string timeZone, string location, decimal amount, string currency,
+        int percent, string url, string? language)
+    {
+        var lang = GuestLanguage.Normalize(language);
+        var when = Format(start, timeZone, lang);
+        var sum = amount.ToString("0.00", OnlineLanguage.Culture(lang));
+        return lang switch
+        {
+            "en" => new(to, $"Deposit for {treatment}",
+                $"""
+                 Hello {guest.FirstName},
+
+                 for your appointment
+
+                 {treatment}
+                 {when}
+                 {location}
+
+                 we ask for a deposit of {sum} {currency} ({percent} % of the price). It is deducted when you pay for the treatment.
+
+                 Pay the deposit:
+                 {url}
+                 """),
+            "fr" => new(to, $"Acompte pour {treatment}",
+                $"""
+                 Bonjour {guest.FirstName},
+
+                 pour votre rendez-vous
+
+                 {treatment}
+                 {when}
+                 {location}
+
+                 nous vous demandons un acompte de {sum} {currency} ({percent} % du prix). Il sera déduit lors du paiement du soin.
+
+                 Régler l’acompte :
+                 {url}
+                 """),
+            "it" => new(to, $"Acconto per {treatment}",
+                $"""
+                 Buongiorno {guest.FirstName},
+
+                 per il suo appuntamento
+
+                 {treatment}
+                 {when}
+                 {location}
+
+                 le chiediamo un acconto di {sum} {currency} ({percent} % del prezzo). Verrà detratto al pagamento del trattamento.
+
+                 Versare l’acconto:
+                 {url}
+                 """),
+            _ => new(to, $"Anzahlung für {treatment}",
+                $"""
+                 Guten Tag {guest.GreetingName},
+
+                 für Ihren Termin
+
+                 {treatment}
+                 {when}
+                 {location}
+
+                 bitten wir um eine Anzahlung von {sum} {currency} ({percent} % des Preises). Sie wird beim Bezahlen der Behandlung abgezogen.
+
+                 Anzahlung bezahlen:
+                 {url}
+                 """),
+        };
+    }
+
     public static OutgoingMail CardRequest(
         string to, GuestName guest, string treatment, DateTimeOffset start, string timeZone, string location, decimal amount, string currency,
         int percent, int deadlineHours, string url, string? language)

@@ -28,15 +28,15 @@
           <TextBox x:Name="LeaveCarriedOverField" Text="{Binding CarriedOverText}" MaxLength="6" Width="120" HorizontalAlignment="Left" Watermark="0" />
         </ui:FormField>
         <StackPanel Spacing="4" VerticalAlignment="Top">
-          <TextBlock Text="Genommen" Classes="small muted" />
+          <TextBlock Text="Genommen" Classes="group" />
           <TextBlock x:Name="LeaveTakenText" Text="{Binding TakenText}" Classes="num" />
         </StackPanel>
         <StackPanel Spacing="4" VerticalAlignment="Top">
-          <TextBlock Text="Geplant" Classes="small muted" />
+          <TextBlock Text="Geplant" Classes="group" />
           <TextBlock x:Name="LeavePlannedText" Text="{Binding PlannedText}" Classes="num" />
         </StackPanel>
         <StackPanel Spacing="4" VerticalAlignment="Top">
-          <TextBlock Text="Rest" Classes="small muted" />
+          <TextBlock Text="Rest" Classes="group" />
           <TextBlock x:Name="LeaveRemainingText" Text="{Binding RemainingText}" Classes="num" FontWeight="SemiBold" IsVisible="{Binding !IsOverdrawn}" />
           <TextBlock x:Name="LeaveOverdrawnText" Text="{Binding RemainingText}" Classes="num" FontWeight="SemiBold" Foreground="{DynamicResource WarnBrush}" IsVisible="{Binding IsOverdrawn}" />
         </StackPanel>
