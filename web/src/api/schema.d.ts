@@ -3167,6 +3167,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/promotions/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Vorschau des Gästepreises für eine Aktion, auch ungespeichert: ein Beispieltermin und die ersten betroffenen Behandlungen mit Preis und Preis mit Rabatt, gerechnet wie an der Kassa. */
+        post: operations["PreviewPromotion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/promotions/{promotionId}/archive": {
         parameters: {
             query?: never;
@@ -12003,6 +12020,10 @@ export interface components {
             isActive: boolean;
             isArchived: boolean;
             phase: components["schemas"]["PromotionPhase"];
+            kind?: null | components["schemas"]["PromotionKind"];
+            /** Format: int32 */
+            leadHours?: null | number;
+            slots?: null | components["schemas"]["PromotionSlot"][];
         };
         PromotionInput: {
             name: string;
@@ -12020,7 +12041,13 @@ export interface components {
             scope: components["schemas"]["PromotionScope"];
             treatmentIds: null | string[];
             isActive: boolean;
+            kind?: null | components["schemas"]["PromotionKind"];
+            /** Format: int32 */
+            leadHours?: null | number;
+            slots?: null | components["schemas"]["PromotionSlot"][];
         };
+        /** @enum {unknown} */
+        PromotionKind: "Limited" | "LastMinute" | "OffPeak" | null;
         PromotionOfferDto: {
             /** Format: uuid */
             promotionId: string;
@@ -12039,8 +12066,26 @@ export interface components {
         };
         /** @enum {unknown} */
         PromotionPhase: "Running" | "Planned" | "Paused" | "Expired";
+        PromotionPreviewDto: {
+            example: string;
+            lines: components["schemas"]["PromotionPreviewLineDto"][];
+            note: string;
+        };
+        PromotionPreviewLineDto: {
+            /** Format: uuid */
+            treatmentId: string;
+            name: string;
+            /** Format: double */
+            price: number;
+            /** Format: double */
+            guestPrice: number;
+        };
         /** @enum {unknown} */
         PromotionScope: "AllTreatments" | "SelectedTreatments" | "SelectedPackages";
+        PromotionSlot: {
+            day: components["schemas"]["DayOfWeek"];
+            part: components["schemas"]["DayPart"];
+        };
         PromotionTreatmentDto: {
             /** Format: uuid */
             id: string;
@@ -22842,6 +22887,39 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    PreviewPromotion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PromotionInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionPreviewDto"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
         };
     };

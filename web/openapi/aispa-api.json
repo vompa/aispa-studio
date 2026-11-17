@@ -11075,6 +11075,47 @@
         }
       }
     },
+    "/api/v1/promotions/preview": {
+      "post": {
+        "tags": [
+          "Aktionen"
+        ],
+        "summary": "Vorschau des Gästepreises für eine Aktion, auch ungespeichert: ein Beispieltermin und die ersten betroffenen Behandlungen mit Preis und Preis mit Rabatt, gerechnet wie an der Kassa.",
+        "operationId": "PreviewPromotion",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PromotionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionPreviewDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/promotions/{promotionId}/archive": {
       "post": {
         "tags": [
@@ -44236,6 +44277,32 @@
           },
           "phase": {
             "$ref": "#/components/schemas/PromotionPhase"
+          },
+          "kind": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PromotionKind"
+              }
+            ]
+          },
+          "leadHours": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "slots": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/PromotionSlot"
+            }
           }
         }
       },
@@ -44311,8 +44378,42 @@
           },
           "isActive": {
             "type": "boolean"
+          },
+          "kind": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PromotionKind"
+              }
+            ]
+          },
+          "leadHours": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "slots": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/PromotionSlot"
+            }
           }
         }
+      },
+      "PromotionKind": {
+        "enum": [
+          "Limited",
+          "LastMinute",
+          "OffPeak",
+          null
+        ]
       },
       "PromotionOfferDto": {
         "required": [
@@ -44375,12 +44476,75 @@
           "Expired"
         ]
       },
+      "PromotionPreviewDto": {
+        "required": [
+          "example",
+          "lines",
+          "note"
+        ],
+        "type": "object",
+        "properties": {
+          "example": {
+            "type": "string"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PromotionPreviewLineDto"
+            }
+          },
+          "note": {
+            "type": "string"
+          }
+        }
+      },
+      "PromotionPreviewLineDto": {
+        "required": [
+          "treatmentId",
+          "name",
+          "price",
+          "guestPrice"
+        ],
+        "type": "object",
+        "properties": {
+          "treatmentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "price": {
+            "type": "number",
+            "format": "double"
+          },
+          "guestPrice": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
       "PromotionScope": {
         "enum": [
           "AllTreatments",
           "SelectedTreatments",
           "SelectedPackages"
         ]
+      },
+      "PromotionSlot": {
+        "required": [
+          "day",
+          "part"
+        ],
+        "type": "object",
+        "properties": {
+          "day": {
+            "$ref": "#/components/schemas/DayOfWeek"
+          },
+          "part": {
+            "$ref": "#/components/schemas/DayPart"
+          }
+        }
       },
       "PromotionTreatmentDto": {
         "required": [

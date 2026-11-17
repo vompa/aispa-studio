@@ -40,8 +40,34 @@ Ein eigenes Entity ist die einzige Form, die Kassa und Assistent auswerten könn
 - Beispieldaten: „Herbstzauber“ (läuft) und „Sommerfrische“ (seit drei Tagen vorbei, nur Wien); die Kassa der Beispieldaten wendet sie an den Tagen ihrer Laufzeit an.
 - Offen: die Antwort des Assistenten (K2); Auswertung der Wirkung einer Aktion (Umsatz mit Aktion) in den Berichten; Aktionen in der Online-Buchung (der Kundenbereich zeigt noch keine); Aktion auf Artikel und Eintritte.
 
+## Nachtrag 17.11.2026: drei Arten, Gästepreis-Vorschau
+
+*Status des Nachtrags: umgesetzt (P4 der Masken-Überarbeitung); die Frage nach dem Online-Preis ist an den Auftraggeber gestellt.* Grundlage ist der Entwurf v5 vom 17.11.2026 („Aktionen nach dem Muster von Treatwell“), den der Auftraggeber durchgesehen hat.
+
+**Was die Plattformen machen.** Treatwell fasst Rabatte unter „Smart Pricing“ mit zwei Werkzeugen zusammen: Last-Minute-Rabatte für Termine, die weniger als eine festgelegte Zahl an Stunden nach der Buchung beginnen, und Off-Peak-Rabatte als Satz von Rabatten je Wochentag und Tageszeit. Treffen mehrere zu, gilt nur der größte; beide gelten nur für Termine, nicht für Gutscheine. Belegt ist das nur über Auszüge der öffentlichen Hilfe von Wahanda, das Treatwell übernommen hat; die Hilfe für Partner selbst (partnercare.treatwell.com) braucht eine Anmeldung. Wie Treatwell dem Gast den Preis zeigt (durchgestrichen, Kennzeichen), ließ sich nicht belegen. Fresha bietet mit „Smart Pricing“ dasselbe Raster.
+
+**Drei Arten (`PromotionKind`).**
+
+| Art | Gilt für | Feld |
+| --- | --- | --- |
+| Befristet (`Limited`) | jeden Tag des Zeitraums, wie bisher | – |
+| Kurzfristig frei (`LastMinute`) | Termine, die höchstens so viele Stunden vor Beginn gebucht wurden (Beginn minus `Appointment.CreatedAt`) | Vorlauf in Stunden, 1 bis 168 |
+| Schwache Zeiten (`OffPeak`) | Termine, deren Beginn am Standort in einem gewählten Feld des Wochenrasters liegt | Raster Wochentag × Vormittag (bis 12 Uhr), Nachmittag (12 bis 17 Uhr), Abend (ab 17 Uhr), mindestens ein Feld |
+
+Alle drei haben Zeitraum, Rabatt (Prozent oder Betrag), Gültigkeit und Standorte wie bisher; bei den beiden neuen Arten ist der Zeitraum die Laufzeit der Regel (neu angelegt ein Jahr). Pakete gibt es nur bei befristeten Aktionen, weil die beiden anderen Arten am Termin hängen. Ein Rabattsatz je Aktion, nicht je Feld des Rasters: Wer verschiedene Sätze will, legt zwei Aktionen an; die Kassa schlägt dann die höhere zuerst vor. Das Raster liegt als eine Zahl (21 Bits) in `Promotion.OffPeakSlots`, Migration `PromotionKinds`; bestehende Aktionen sind befristet.
+
+**Kassa bleibt, wie sie war.** Der Vorschlag (`GET /api/pos/bills/{id}/promotions`) prüft je Termin-Position zusätzlich Vorlauf bzw. Feld des Rasters (`PromotionRules.FitsTiming`). Treffen mehrere Aktionen zu, steht die mit dem höheren Rabatt vorn (wie bisher sortiert). Angewendet wird weiter nur auf Klick und nur eine: Eine Position mit Rabatt bekommt keinen zweiten. Der Beleg nennt die Aktion wie bisher („Aktion Ruhige Vormittage 15 %“). Der Assistent nennt weiter Name und Gästetext; die Bedingung steht im Gästetext.
+
+**Vorschau des Gästepreises.** `POST /api/promotions/preview` (Recht `ManageCatalog`) rechnet für den Stand des Formulars, auch ungespeichert, ein Beispiel („Dienstag, 24.11., Vormittag“) und die ersten fünf betroffenen Behandlungen mit Katalogpreis und Preis mit Rabatt, mit denselben Rechenschritten wie die Kassa (`PromotionRules.DiscountOf`). Die Maske zeigt sie rechts neben dem Formular.
+
+**Online-Buchung bleibt ohne Aktionspreis (offen).** Der Kundenbereich zeigt weiter den vollen Preis. Gründe: Die Recherche belegt nicht, wie Treatwell den Preis anzeigt; und ein online angezeigter reduzierter Preis wäre eine Zusage an den Gast, die an der Kassa erst mit einem Klick eingelöst wird. Würde die Kassa den Rabatt deshalb von selbst setzen, widerspräche das „nur auf Klick“ oben; ohne das bezahlt der Gast womöglich mehr als angezeigt. ADR 0010 verbietet beides nicht, solange der Rabatt über Beleg und Signatur läuft, verlangt aber, dass Anzeige und Beleg übereinstimmen. Die Frage geht an den Auftraggeber: Soll die Online-Buchung den Aktionspreis zeigen, und soll die Kassa ihn dann bei online gebuchten Terminen von selbst vorschlagen und vorbelegen?
+
+**Maske.** „Neue Aktion“ steht als primäre Schaltfläche fest über der Liste, jede Zeile zeigt Art und Zustand. Die Karte hat die Gruppe „Art“ mit den Feldern der gewählten Art (Vorlauf bzw. Raster als abhakbares Gitter). Pausieren und Archivieren stehen im Menü „⋯“ im Kopf, „Zurückholen“ als Knopf bei einer archivierten Aktion. Löschen gibt es weiterhin nicht.
+
+
 ## Quellen
 
 - [ADR 0010](0010-kassa-compliance-by-design.md), [ADR 0067](0067-masken-und-meldungen-nach-material-3-und-fluent-2.md), [ADR 0055](0055-hilfe-zu-jeder-einstellung-im-repository.md)
 - [PR-Protokoll, Runde 5: Block K1 (Aktionen)](../umsetzung/pr-protokoll.md)
 - Hilfe: `web/src/help/content/aktionen.md`, `aktionen-anlegen.md`, `kassa-aktion-anwenden.md`
+- Nachtrag: Wahanda-Hilfe „Smart Pricing“ (https://wahanda.atlassian.net/wiki/x/UgD5AQ, nur als Suchauszug lesbar), Treatwell für Partner (https://www.treatwell.ie/partners?p=4871, https://treatwell.be/en/partners/why-treatwell/fill-up-your-schedule), Fresha „Smart pricing“ (https://www.fresha.com/help-center/knowledge-base/marketing/148-creating-smart-pricing); abgerufen am 17.11.2026

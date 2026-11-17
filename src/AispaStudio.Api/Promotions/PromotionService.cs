@@ -1,3 +1,4 @@
+using System.Globalization;
 using AispaStudio.Api.Access;
 using AispaStudio.Api.Data;
 using AispaStudio.Api.Scheduling;
@@ -13,6 +14,14 @@ namespace AispaStudio.Api.Promotions;
 /// </summary>
 internal sealed class PromotionService(AispaDbContext db, TimeProvider time)
 {
+    /// <summary>Längster Vorlauf für kurzfristige Termine: eine Woche.</summary>
+    public const int MaxLeadHours = 168;
+
+    /// <summary>So viele Behandlungen zeigt die Vorschau des Gästepreises.</summary>
+    public const int PreviewLines = 5;
+
+    private static readonly CultureInfo PreviewCulture = CultureInfo.GetCultureInfo("de-AT");
+
     // ---------- Abfrage für Kassa und Assistent ----------
 
     /// <summary>
@@ -186,6 +195,23 @@ internal sealed class PromotionService(AispaDbContext db, TimeProvider time)
             errors.Check(await db.Locations.CountAsync(l => locationIds.Contains(l.Id), ct) == locationIds.Count, nameof(input.LocationIds), "Standort nicht gefunden.");
         }
 
+        var kind = input.Kind ?? PromotionKind.Limited;
+        if (!Enum.IsDefined(kind))
+        {
+            errors.Add(nameof(input.Kind), "Art der Aktion wählen.");
+        }
+        else if (kind == PromotionKind.LastMinute)
+        {
+            errors.Check(input.LeadHours is >= 1 and <= MaxLeadHours, nameof(input.LeadHours), $"Vorlauf in Stunden zwischen 1 und {MaxLeadHours} angeben.");
+        }
+        else if (kind == PromotionKind.OffPeak)
+        {
+            errors.Check(PromotionRules.SlotsOf(input.Slots ?? []) != 0, nameof(input.Slots), "Mindestens ein Feld im Wochenraster wählen.");
+        }
+
+        errors.Check(kind == PromotionKind.Limited || input.Scope != PromotionScope.SelectedPackages, nameof(input.Scope),
+            "Pakete gibt es nur bei befristeten Aktionen; kurzfristige Termine und schwache Zeiten gelten für Termine.");
+
         var treatmentIds = (input.TreatmentIds ?? []).Distinct().ToList();
         if (!Enum.IsDefined(input.Scope))
         {
@@ -214,6 +240,7 @@ internal sealed class PromotionService(AispaDbContext db, TimeProvider time)
         promotion.DiscountAmount = input.DiscountAmount;
         promotion.Scope = input.Scope;
         promotion.IsActive = input.IsActive;
+        ApplyKind(promotion, input);
         if (!input.AllLocations)
         {
             foreach (var locationId in (input.LocationIds ?? []).Distinct())
@@ -235,6 +262,14 @@ internal sealed class PromotionService(AispaDbContext db, TimeProvider time)
         }
     }
 
+    /// <summary>Art, Vorlauf und Wochenraster; was nicht zur Art gehört, bleibt leer.</summary>
+    private static void ApplyKind(Promotion promotion, PromotionInput input)
+    {
+        promotion.Kind = input.Kind ?? PromotionKind.Limited;
+        promotion.LeadHours = promotion.Kind == PromotionKind.LastMinute ? input.LeadHours : null;
+        promotion.OffPeakSlots = promotion.Kind == PromotionKind.OffPeak ? PromotionRules.SlotsOf(input.Slots ?? []) : 0;
+    }
+
     /// <summary>Wer nur einzelne Standorte sieht, verwaltet nur Aktionen, die ganz in seinen Standorten liegen.</summary>
     private static bool Manages(UserAccess access, Promotion promotion) =>
         access.AllLocations || (!promotion.AllLocations && promotion.Locations.All(l => access.CanSee(l.LocationId)));
@@ -248,6 +283,96 @@ internal sealed class PromotionService(AispaDbContext db, TimeProvider time)
         var zone = (p.Locations.Count > 0 ? zones.GetValueOrDefault(p.Locations.Min(l => l.LocationId)) : null) ?? zones.Values.FirstOrDefault() ?? TimeZoneInfo.Utc;
         return new(p.Id, p.Name, p.GuestText, p.ValidFrom, p.ValidUntil, p.AllLocations, [.. p.Locations.Select(l => l.LocationId).Order()],
             p.DiscountPercent, p.DiscountAmount, p.Scope, [.. p.Treatments.Select(t => t.TreatmentId).Order()], p.IsActive, p.ArchivedAt is not null,
-            PromotionRules.PhaseOf(p, LocalTime.LocalDate(time.GetUtcNow(), zone)));
+            PromotionRules.PhaseOf(p, LocalTime.LocalDate(time.GetUtcNow(), zone)))
+        {
+            Kind = p.Kind,
+            LeadHours = p.LeadHours,
+            Slots = PromotionRules.SlotList(p.OffPeakSlots),
+        };
     }
+
+    // ---------- Vorschau des Gästepreises ----------
+
+    /// <summary>
+    /// „So sieht es der Gast“ für eine Aktion, auch ungespeichert: ein Beispiel für einen Termin, an dem sie gilt, und die ersten <see cref="PreviewLines"/> betroffenen
+    /// Behandlungen (nach Name) mit Katalogpreis und Preis mit Rabatt, gerechnet wie an der Kassa. Prüft die Eingabe nicht; ohne gültigen Rabatt ist der Gästepreis der Preis.
+    /// </summary>
+    public async Task<PromotionPreviewDto> PreviewAsync(PromotionInput input, CancellationToken ct)
+    {
+        var promotion = new Promotion
+        {
+            Name = "",
+            GuestText = "",
+            ValidFrom = input.ValidFrom,
+            ValidUntil = input.ValidUntil,
+            DiscountPercent = input.DiscountPercent is > 0 and < 100 ? input.DiscountPercent : null,
+            DiscountAmount = input.DiscountPercent is null && input.DiscountAmount is > 0 ? input.DiscountAmount : null,
+            Scope = input.Scope,
+        };
+        ApplyKind(promotion, input);
+        var example = ExampleOf(promotion, await PreviewTodayAsync(ct));
+        var note = NoteOf(promotion);
+        if (promotion.Scope == PromotionScope.SelectedPackages)
+        {
+            return new PromotionPreviewDto(example, [], $"Bei Paketen rechnet die Kassa den Rabatt auf den Paketpreis. {note}");
+        }
+
+        var chosen = (input.TreatmentIds ?? []).ToList();
+        var all = promotion.Scope == PromotionScope.AllTreatments;
+        var treatments = await db.Treatments.AsNoTracking()
+            .Where(t => t.IsActive && (all || chosen.Contains(t.Id)))
+            .Select(t => new { t.Id, t.Name, t.Price }).ToListAsync(ct);
+        var lines = treatments.OrderBy(t => t.Name, StringComparer.Ordinal).Take(PreviewLines)
+            .Select(t => new PromotionPreviewLineDto(t.Id, t.Name, t.Price, t.Price - PromotionRules.DiscountOf(promotion, t.Price)))
+            .ToList();
+        return new PromotionPreviewDto(example, lines, note);
+    }
+
+    /// <summary>„Heute“ für das Beispiel: der Kalendertag am ersten Standort des Spas (nach Name).</summary>
+    private async Task<DateOnly> PreviewTodayAsync(CancellationToken ct)
+    {
+        var zone = await db.Locations.AsNoTracking().OrderBy(l => l.Name).Select(l => l.TimeZone).FirstOrDefaultAsync(ct);
+        return LocalTime.LocalDate(time.GetUtcNow(), zone is null ? TimeZoneInfo.Utc : LocalTime.Zone(zone));
+    }
+
+    /// <summary>Ein Termin, an dem die Aktion gilt, z. B. „Dienstag, 24.11., Vormittag“ (erstes Feld des Rasters ab heute bzw. ab Beginn des Zeitraums).</summary>
+    private static string ExampleOf(Promotion promotion, DateOnly today)
+    {
+        var from = promotion.ValidFrom > today ? promotion.ValidFrom : today;
+        switch (promotion.Kind)
+        {
+            case PromotionKind.LastMinute:
+                return $"{from.ToString("dddd, dd.MM.", PreviewCulture)}, Termin höchstens {promotion.LeadHours ?? 0} Stunden vorher gebucht";
+            case PromotionKind.OffPeak:
+                var slots = PromotionRules.SlotList(promotion.OffPeakSlots);
+                if (slots.Count == 0)
+                {
+                    return "Noch kein Feld im Wochenraster gewählt";
+                }
+
+                var (date, slot) = Enumerable.Range(0, 7).Select(from.AddDays)
+                    .SelectMany(d => slots.Where(s => s.Day == d.DayOfWeek).Select(s => (Date: d, Slot: s))).First();
+                return $"{date.ToString("dddd, dd.MM.", PreviewCulture)}, {PartText(slot.Part)}";
+            default:
+                return $"Termin von {promotion.ValidFrom.ToString("dd.MM.", PreviewCulture)} bis {promotion.ValidUntil.ToString("dd.MM.yyyy", PreviewCulture)}";
+        }
+    }
+
+    private static string NoteOf(Promotion promotion)
+    {
+        var when = promotion.Kind switch
+        {
+            PromotionKind.LastMinute => $"Der Rabatt gilt für Termine, die höchstens {promotion.LeadHours ?? 0} Stunden vor Beginn gebucht werden.",
+            PromotionKind.OffPeak => "Der Rabatt gilt für Termine, die in einem gewählten Feld des Wochenrasters beginnen.",
+            _ => "Der Rabatt gilt an jedem Tag des Zeitraums.",
+        };
+        return $"{when} Treffen zwei Rabatte zusammen, schlägt die Kassa den höheren zuerst vor; es gilt immer nur einer. Die Kassa setzt den Rabatt auf Klick, der Beleg nennt die Aktion.";
+    }
+
+    private static string PartText(DayPart part) => part switch
+    {
+        DayPart.Morning => "Vormittag",
+        DayPart.Afternoon => "Nachmittag",
+        _ => "Abend",
+    };
 }

@@ -325,8 +325,11 @@ public sealed class AdminPromotionsTests
     {
         var promotions = await Open(Api(Today));
 
-        Assert.Equal(["Herbst", "Frühling", "Sommerpause", "Ostern"], promotions.Rows.Select(r => r.Name));
-        Assert.Equal(["Läuft", "Geplant", "Pausiert", "Abgelaufen"], promotions.Rows.Select(r => r.PhaseText));
+        Assert.Equal(["Herbst", "Frühling", "Sommerpause", "Ostern", "Kurzfristig frei", "Ruhige Vormittage"], promotions.Rows.Select(r => r.Name));
+        Assert.Equal(["Läuft", "Geplant", "Pausiert", "Abgelaufen", "Läuft", "Läuft"], promotions.Rows.Select(r => r.PhaseText));
+        Assert.Equal(["Befristet", "Befristet", "Befristet", "Befristet", "Kurzfristig frei", "Schwache Zeiten"], promotions.Rows.Select(r => r.KindText));
+        Assert.Equal("20 % · bis 24 Std. vor Beginn gebucht", Row(promotions, LastMinuteId).Detail);
+        Assert.Equal("15 % · 4 Felder im Wochenraster", Row(promotions, OffPeakId).Detail);
         Assert.Equal("10 % · 19.2.2027 bis 21.3.2027", Row(promotions, AutumnId).Detail);
         Assert.Equal("5,00 € · 31.3.2027 bis 30.4.2027", Row(promotions, SpringId).Detail);
         Assert.Equal(["alle Standorte", "Wien"], promotions.Rows.Take(2).Select(r => r.PlacesText));
@@ -481,6 +484,41 @@ public sealed class AdminPromotionsTests
     }
 
     [Fact]
+    public async Task Given_Aktion_fuer_schwache_Zeiten_When_sie_pausiert_wird_Then_bleiben_Art_und_Wochenraster_erhalten()
+    {
+        var api = Api(Today);
+        var promotions = await Open(api);
+        promotions.SelectedRow = Row(promotions, OffPeakId);
+        Assert.True(promotions.IsOffPeak);
+        Assert.Equal(4, promotions.OffPeakGrid.SelectMany(r => r.Cells).Count(c => c.IsSelected));
+        Assert.False(promotions.ShowPackagesOption);
+
+        await promotions.TogglePauseCommand.ExecuteAsync(null);
+
+        var sent = Sent(api, $"PUT /api/promotions/{OffPeakId}");
+        Assert.Equal((false, PromotionKind.OffPeak, 4), (sent.IsActive, sent.Kind, sent.Slots!.Count));
+        Assert.True(promotions.IsOffPeak);
+        Assert.Equal("Pausiert.", promotions.Message);
+    }
+
+    [Fact]
+    public async Task Given_neue_Aktion_When_die_Art_wechselt_Then_passt_das_Ende_und_Pakete_werden_zu_Behandlungen()
+    {
+        var promotions = await Open(Api(Today));
+        Assert.Equal(30, promotions.ValidUntil!.Value.DayNumber - promotions.ValidFrom!.Value.DayNumber);
+        promotions.ScopePackages = true;
+
+        promotions.IsLastMinute = true;
+
+        Assert.Equal(365, promotions.ValidUntil!.Value.DayNumber - promotions.ValidFrom!.Value.DayNumber);
+        Assert.True(promotions.ScopeTreatments);
+        Assert.False(promotions.ShowPackagesOption);
+        promotions.IsLimited = true;
+        Assert.Equal(30, promotions.ValidUntil!.Value.DayNumber - promotions.ValidFrom!.Value.DayNumber);
+        Assert.True(promotions.ShowPackagesOption);
+    }
+
+    [Fact]
     public async Task Given_ungespeicherte_Aenderung_When_Neue_Aktion_gewaehlt_wird_Then_fragt_die_Maske_und_Speichern_legt_zuerst_die_Aenderung_ab()
     {
         var api = Api(Today);
@@ -559,7 +597,7 @@ public sealed class AdminPromotionsTests
 
         Assert.True(promotions.IsLoaded);
         Assert.Null(promotions.LoadError);
-        Assert.Equal(4, promotions.Rows.Count);
+        Assert.Equal(6, promotions.Rows.Count);
     }
 
     [Fact]
