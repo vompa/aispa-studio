@@ -91,7 +91,7 @@ public sealed partial class ViewTests
         Assert.Contains(AiLabels.WhyAssistant, TextsIn(footer));
         Assert.True(why.IsChecked);
 
-        panel.GetVisualAncestors().OfType<ScrollViewer>().First().ScrollToEnd();
+        Named<ScrollViewer>(panel, "AssistantScroll").ScrollToEnd();
         await Pump(Settling);
         SaveShot(window, "ki-kennzeichnung-antwort", theme);
         return calendar;

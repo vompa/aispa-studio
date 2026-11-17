@@ -76,7 +76,7 @@ Hilfethemen nennen ihre Seite (`seite:` im Kopf, z. B. `seite-time.md`); das ist
 
 ## Bleibt im Web
 
-- **Hilfe und Handbuch:** Inhalte in `web/src/help/content/`, angezeigt im eingebetteten Browser der Windows-App (ADR 0079, E1).
+- **Hilfe und Handbuch:** Inhalte in `web/src/help/content/`, angezeigt im eingebetteten Browser der Windows-App (ADR 0079, E1): die Seite „Hilfe“ mit Verzeichnis und Suche und seit dem 17.11.2026 die Hilfe zu einem Fragezeichen in der Leiste „KI und Hilfe“ (`ansicht=leiste`, nur der Abschnitt; Kopf und Schließen nativ).
 - **Kundenbereich** (`web/src/booking/`): wird die Handy-App für Kunden (Slice 108).
 - **Mein Tag** (`web/src/myday/`): wird die Handy-App für Mitarbeitende (Slice 106) mit der Seite für die Leitung (Slice 109).
 - **Dashboard für den Pausenraum:** neu (Slice 105).

@@ -13,11 +13,17 @@ namespace AispaStudio.Desktop.Views;
 /// Rahmen der App. F6 und Umschalt+F6 wechseln zwischen den großen Bereichen (<see cref="RegionNavigation"/>). „KI und Hilfe“ folgt denselben Regeln wie die Seiten der Seitenleiste im Kalender,
 /// wo der Assistent ein Reiter ist (Ä66), und auf den übrigen Seiten die Leiste der Shell: Strg+Leertaste öffnet und schließt,
 /// Esc schließt ihn, der Fokus geht beim Öffnen ins Fragefeld und beim Schließen zum Knopf zurück.
+/// Ein Fragezeichen (<see cref="HelpButton"/>) öffnet die Hilfe in derselben Leiste und ist markiert, solange seine Hilfe steht; Esc schließt dann zuerst die Hilfe.
+/// F1 zeigt außerhalb des Kalenders die Hilfe zum Fokus (im Kalender bleibt F1 die Tastenhilfe).
 /// </summary>
 public partial class ShellView : UserControl
 {
     private CompanionViewModel? _companion;
+    private ShellViewModel? _shell;
     private TopLevel? _topLevel;
+
+    /// <summary>Das Fragezeichen, dessen Hilfe gerade in der Leiste steht (Stil-Klasse <c>active</c>).</summary>
+    private HelpButton? _activeHelp;
 
     public ShellView()
     {
@@ -37,6 +43,7 @@ public partial class ShellView : UserControl
             }
         }, RoutingStrategies.Tunnel);
         DataContextChanged += (_, _) => Subscribe();
+        AddHandler(HelpButton.RequestedEvent, OnHelpRequested);
     }
 
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
@@ -60,12 +67,68 @@ public partial class ShellView : UserControl
         if (_companion is { } old)
         {
             old.Toggled -= OnToggled;
+            old.PropertyChanged -= OnCompanionChanged;
         }
 
-        _companion = (DataContext as ShellViewModel)?.Companion;
+        if (_shell is { } oldShell)
+        {
+            oldShell.HelpKeyRequested -= ShowHelpForFocus;
+        }
+
+        _shell = DataContext as ShellViewModel;
+        _companion = _shell?.Companion;
         if (_companion is { } companion)
         {
             companion.Toggled += OnToggled;
+            companion.PropertyChanged += OnCompanionChanged;
+        }
+
+        if (_shell is { } shell)
+        {
+            shell.HelpKeyRequested += ShowHelpForFocus;
+        }
+    }
+
+    /// <summary>Ein Fragezeichen will seine Hilfe zeigen: in der Leiste „KI und Hilfe“, die Seite bleibt stehen; das Fragezeichen ist danach markiert.</summary>
+    private void OnHelpRequested(object? sender, RoutedEventArgs e)
+    {
+        if (e.Source is not HelpButton button || _shell is not { } shell)
+        {
+            return;
+        }
+
+        e.Handled = shell.ShowHelpInPanel(button.Topic, button.Section);
+        MarkActive(_companion?.ShowsHelp == true ? button : null);
+    }
+
+    private void OnCompanionChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(CompanionViewModel.ShowsHelp) && _companion?.ShowsHelp != true)
+        {
+            MarkActive(null);
+        }
+    }
+
+    /// <summary>Nur das Fragezeichen der gezeigten Hilfe ist markiert; ein weiteres tauscht die Markierung.</summary>
+    private void MarkActive(HelpButton? button)
+    {
+        _activeHelp?.Classes.Set("active", false);
+        _activeHelp = button;
+        _activeHelp?.Classes.Set("active", true);
+    }
+
+    /// <summary>F1: die Hilfe zum Fokus (das Fragezeichen im Bereich des Fokus, sonst das im Seitenkopf, sonst die Erklärung zur Seite).</summary>
+    private void ShowHelpForFocus()
+    {
+        var focused = TopLevel.GetTopLevel(this)?.FocusManager?.GetFocusedElement() as Visual;
+        var inPage = focused is not null && PageHost.IsVisualAncestorOf(focused) ? focused : null;
+        if (HelpButton.NearestTo(inPage, PageHost) is { } button)
+        {
+            button.Open();
+        }
+        else
+        {
+            _shell?.ShowHelpInPanel(null, null);
         }
     }
 
@@ -132,12 +195,27 @@ public partial class ShellView : UserControl
 
             e.Handled = true;
         }
+        else if (e.Key == Key.F1 && e.KeyModifiers == KeyModifiers.None && shell.SelectedPage?.Page != shell.Calendar)
+        {
+            // Im Kalender bleibt F1 die Tastenhilfe (CalendarViewModel.Keyboard); sonst die Hilfe zum Feld mit dem Fokus.
+            ShowHelpForFocus();
+            e.Handled = true;
+        }
         else if (e.Key == Key.Escape && e.KeyModifiers == KeyModifiers.None && companion.IsOpen && !shell.Calendar.IsDragging && CanCloseWithEscape())
         {
             // Esc schließt die oberste Leiste: überall in der Leiste, sonst nur, wenn nicht gerade ein anderes Eingabefeld (z. B. die Suche) Esc braucht.
+            // Steht eine Hilfe, geht zuerst nur sie weg (war die Leiste nur für sie offen, mit ihr die Leiste).
             companion.Presence.UsingKeyboard = true;
             shell.Calendar.Presence.UsingKeyboard = true;
-            companion.Dismiss();
+            if (companion.ShowsHelp)
+            {
+                companion.CloseHelp();
+            }
+            else
+            {
+                companion.Dismiss();
+            }
+
             e.Handled = true;
         }
     }

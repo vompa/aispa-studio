@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { installAppShortcuts } from "../appShortcuts";
 import { HelpBlocks } from "./HelpDrawer";
 import { HelpIndex } from "./HelpIndex";
+import { HelpPanelView } from "./HelpPanelView";
 import { TopicFoot, TopicHead, TopicToc } from "./HelpTopicParts";
 import { openHelp, useHelpRequest } from "./help";
 import { buildHelpUrl, readHelpUrl } from "./helpUrl";
@@ -66,7 +67,7 @@ export function HelpApp() {
   const wide = useWide();
 
   useEffect(() => void loadTopics().then(setTopics), []);
-  // Eingebettet in der Windows-App meldet Strg+Leertaste „KI und Hilfe“ an die App.
+  // Eingebettet in der Windows-App meldet Strg+Leertaste „KI und Hilfe“, F1 und in der Leiste Esc an die App.
   useEffect(() => installAppShortcuts(), []);
 
   // Adresse → Anzeige: beim Start und bei Zurück/Vor.
@@ -117,6 +118,11 @@ export function HelpApp() {
     () => ({ surface: params.surface ?? "verwaltung", role: params.role }),
     [params],
   );
+
+  if (params.view === "leiste")
+    return (
+      <HelpPanelView topics={topics} topic={topic} section={request?.section} />
+    );
 
   return (
     <div className="help-page">

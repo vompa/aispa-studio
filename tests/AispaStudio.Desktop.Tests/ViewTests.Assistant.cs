@@ -81,7 +81,7 @@ public sealed partial class ViewTests
         why.IsChecked = true;
         await Pump();
         Assert.Contains(footer.Why!, TextsIn(footer));
-        panel.GetVisualAncestors().OfType<ScrollViewer>().First().ScrollToEnd();
+        Named<ScrollViewer>(panel, "AssistantScroll").ScrollToEnd();
         await Pump(Settling);
         SaveShot(window, name, theme);
         return panel;
