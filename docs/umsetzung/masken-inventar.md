@@ -39,7 +39,7 @@ Jede Slice hat ihren Bereich vollständig ersetzt, mit denselben Feldern, Regeln
 | `masterData` | `treatments` | Behandlungen | Slice 94 | „Wer kann das?“ nur lesend mit Sprung ins Team; eigene Gruppe „Behandlungen“ im Balken (seit 17.11.2026); Bereiche Übersicht, Grunddaten und Preis, Durchführung, Qualifikationen und Räume; alte Abschnittsadressen bleiben gültig (`preise-und-verkauf` → Grunddaten und Preis) |
 | `masterData` | `qualifications` | Qualifikationen | Slice 98 | Bereich „Profil“ der Personenkarte (Abschnitt „Qualifikationen“); native Maske seit Slice 98, Bereiche seit T-065 |
 | `masterData` | `handbook` | Handbuch | Slice 97 | nativ als Rezeptionshandbuch mit Liste und Formular (Slice 97), daneben das Fragezeichen zur Hilfe (E1) |
-| `masterData` | `reminders` | Erinnerungen | Slice 96 | |
+| `masterData` | `reminders` | Erinnerungen | Slice 96 | seit P8 (17.11.2026): zwei Karten mit Standardabstand und Ausnahmen je Kategorie oder Behandlung (Tage leer = kein Hinweis), „Zuletzt verschickt“ ist das Versandprotokoll als Seitenleiste mit Filter, Zeitraum und Export (API `GET …/dispatch-log`); Nachrichten je Gast auf der Kundenkarte offen |
 | `masterData` | `intake` | Postfach & Nummern | Slice 97 | mit Absenderregeln |
 | `masterData` | `company` | Firmendaten | Slice 93 | erste native Maske, Vorbild der übrigen |
 | `masterData` | `payments` | Zahlungen | Slice 96 | Schlüssel nur maskiert |

@@ -3958,6 +3958,32 @@ namespace AispaStudio.Api.Data.Migrations
                     b.ToTable("TreatmentPreparationSteps", "aispa");
                 });
 
+            modelBuilder.Entity("AispaStudio.Api.Retention.CategoryRebookInterval", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)");
+
+                    b.Property<int?>("Days")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantId");
+
+                    b.HasIndex("TenantId", "Category")
+                        .IsUnique();
+
+                    b.ToTable("CategoryRebookIntervals", "aispa");
+                });
+
             modelBuilder.Entity("AispaStudio.Api.Retention.MarketingConsent", b =>
                 {
                     b.Property<Guid>("Id")
@@ -4064,6 +4090,9 @@ namespace AispaStudio.Api.Data.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid");
 
+                    b.Property<int?>("DefaultDays")
+                        .HasColumnType("integer");
+
                     b.Property<bool>("Enabled")
                         .HasColumnType("boolean");
 
@@ -4082,7 +4111,7 @@ namespace AispaStudio.Api.Data.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid");
 
-                    b.Property<int>("Days")
+                    b.Property<int?>("Days")
                         .HasColumnType("integer");
 
                     b.Property<Guid>("TenantId")
@@ -7750,6 +7779,15 @@ namespace AispaStudio.Api.Data.Migrations
                         .WithMany()
                         .HasForeignKey("TreatmentId")
                         .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AispaStudio.Api.Retention.CategoryRebookInterval", b =>
+                {
+                    b.HasOne("AispaStudio.Api.Tenancy.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 

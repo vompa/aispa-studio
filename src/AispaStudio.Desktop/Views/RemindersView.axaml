@@ -6,104 +6,149 @@
              x:DataType="vm:RemindersViewModel"
              ui:SaveShortcut.IsScope="True">
   <!--
-    Erinnerungen (R05 Slice 96): Terminerinnerungen und Wiederbuchungs-Hinweise mit denselben Feldern, Grenzen, Texten und Hilfen wie
-    web/src/admin/RemindersTab.tsx und RebookSection.tsx; ein gemeinsames „Speichern“ im Fuß, Strg+S speichert.
+    Erinnerungen (R05 Slice 96, P8 17.11.2026): zwei Karten, Terminerinnerungen und Wiederbuchungs-Hinweise. Der Wiederbuchungs-Hinweis hat einen Standardabstand und eine kurze Liste von
+    Ausnahmen je Kategorie oder Behandlung (Tage leer = kein Hinweis). Unter jeder Karte steht eine Zeile mit den Zahlen der letzten 30 Tage und dem Knopf „Versandprotokoll“, der die
+    Seitenleiste mit der Liste aller verschickten Nachrichten öffnet (Filter, Zeitraum, Export). Ein gemeinsames „Speichern“ im Fuß, Strg+S speichert.
   -->
-  <Grid RowDefinitions="*,Auto">
-    <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
-      <StackPanel Spacing="20" Margin="0,0,16,16">
+  <Grid ColumnDefinitions="*,Auto" RowDefinitions="*,Auto">
+    <ScrollViewer x:Name="MainScroll" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+      <StackPanel Spacing="20" Margin="0,0,16,16" MaxWidth="720" HorizontalAlignment="Left">
         <ui:InfoBar Severity="Error" Title="Erinnerungen nicht geladen" Message="{Binding LoadError}" IsVisible="{Binding HasLoadError}"
-                    ActionText="Erneut laden" ActionCommand="{Binding LoadCommand}" MaxWidth="720" HorizontalAlignment="Left" />
+                    ActionText="Erneut laden" ActionCommand="{Binding LoadCommand}" />
         <TextBlock Text="Lade Einstellungen …" Classes="muted" IsVisible="{Binding !IsLoaded}" />
 
-        <!-- Einstellungen links (höchstens 720), „Zuletzt verschickt“ als Nebeninhalt rechts im Verhältnis 3 : 2; unter 720 Breite untereinander (masken.md R14) -->
-        <ui:MainSideColumns x:Name="ReminderColumns" Spacing="32" LineSpacing="20" StackBelow="720" MaxWidth="1232" HorizontalAlignment="Left" IsVisible="{Binding IsLoaded}">
-         <StackPanel Spacing="20" MaxWidth="720" HorizontalAlignment="Left">
+        <StackPanel Spacing="20" IsVisible="{Binding IsLoaded}">
           <!-- Terminerinnerungen -->
-          <StackPanel Spacing="8">
-            <Grid ColumnDefinitions="*,Auto">
-              <TextBlock Text="Terminerinnerungen" Classes="h2" VerticalAlignment="Center" />
-              <ui:HelpButton Grid.Column="1" Topic="erinnerungen" Section="terminerinnerungen" />
-            </Grid>
-            <TextBlock Classes="muted" TextWrapping="Wrap"
-                       Text="Gäste bekommen vor dem Termin eine Erinnerung mit Link zum Ansehen oder Absagen. Das ist keine Werbung und braucht keine Einwilligung." />
-            <CheckBox x:Name="EnabledField" Content="Erinnerungen verschicken" IsChecked="{Binding Enabled}" />
-            <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="12">
-              <ui:FormField Label="Erste Erinnerung (Stunden vorher, 0 = keine)">
-                <ui:NumberField x:Name="FirstHoursField" Value="{Binding FirstHours}" Minimum="0" Maximum="168" Width="200" HorizontalAlignment="Left" />
-              </ui:FormField>
-              <ui:FormField Grid.Column="1" Label="Zweite Erinnerung (Stunden vorher, 0 = keine)" Error="{Binding SecondHoursError}">
-                <ui:NumberField x:Name="SecondHoursField" Value="{Binding SecondHours}" Minimum="0" Maximum="168" Width="200" HorizontalAlignment="Left" />
-              </ui:FormField>
-              <ui:FormField Grid.Row="1" Label="Kanal">
-                <ComboBox x:Name="ChannelField" ItemsSource="{x:Static vm:RemindersViewModel.Channels}" SelectedItem="{Binding Channel}" HorizontalAlignment="Stretch" />
-              </ui:FormField>
-            </Grid>
-          </StackPanel>
+          <Border x:Name="ReminderCard" Classes="card" Padding="20">
+            <StackPanel Spacing="12">
+              <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Text="Terminerinnerungen" Classes="h2" VerticalAlignment="Center" />
+                <ui:HelpButton Grid.Column="1" Topic="erinnerungen" Section="terminerinnerungen" />
+              </Grid>
+              <TextBlock Classes="muted" TextWrapping="Wrap"
+                         Text="Gäste bekommen vor dem Termin eine Erinnerung mit Link zum Ansehen oder Absagen. Das ist keine Werbung und braucht keine Einwilligung." />
+              <CheckBox x:Name="EnabledField" Content="Erinnerungen verschicken" IsChecked="{Binding Enabled}" />
+              <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="12">
+                <ui:FormField Label="Erste Erinnerung (Stunden vorher, 0 = keine)">
+                  <ui:NumberField x:Name="FirstHoursField" Value="{Binding FirstHours}" Minimum="0" Maximum="168" Width="200" HorizontalAlignment="Left" />
+                </ui:FormField>
+                <ui:FormField Grid.Column="1" Label="Zweite Erinnerung (Stunden vorher, 0 = keine)" Error="{Binding SecondHoursError}">
+                  <ui:NumberField x:Name="SecondHoursField" Value="{Binding SecondHours}" Minimum="0" Maximum="168" Width="200" HorizontalAlignment="Left" />
+                </ui:FormField>
+                <ui:FormField Grid.Row="1" Label="Kanal">
+                  <ComboBox x:Name="ChannelField" ItemsSource="{x:Static vm:RemindersViewModel.Channels}" SelectedItem="{Binding Channel}" HorizontalAlignment="Stretch" />
+                </ui:FormField>
+              </Grid>
 
-          <!-- WhatsApp-Vorlage, nur für WhatsApp -->
-          <StackPanel Spacing="8" IsVisible="{Binding IsWhatsApp}">
-            <Grid ColumnDefinitions="*,Auto">
-              <TextBlock Text="Vorlage für WhatsApp" Classes="h2" VerticalAlignment="Center" />
-              <ui:HelpButton Grid.Column="1" Topic="erinnerungen" Section="whatsapp-vorlage" />
-            </Grid>
-            <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
-              <ui:FormField Label="WhatsApp-Vorlage (Meta: Name, Twilio: Content-SID)" IsRequired="True" Error="{Binding TemplateError}">
-                <TextBox x:Name="TemplateField" Text="{Binding WhatsAppTemplate}" />
-              </ui:FormField>
-              <ui:FormField Grid.Column="1" Label="Sprache der Vorlage" IsRequired="True" Error="{Binding LanguageError}">
-                <TextBox x:Name="LanguageField" Text="{Binding WhatsAppLanguage}" />
-              </ui:FormField>
-            </Grid>
-            <TextBlock Classes="muted" TextWrapping="Wrap"
-                       Text="Platzhalter der Vorlage: {{1}} Vorname, {{2}} Behandlung, {{3}} Datum und Uhrzeit, {{4}} Standort, {{5}} Link zum Termin." />
-          </StackPanel>
+              <!-- WhatsApp-Vorlage, nur für WhatsApp -->
+              <StackPanel Spacing="8" IsVisible="{Binding IsWhatsApp}">
+                <Grid ColumnDefinitions="*,Auto">
+                  <TextBlock Text="Vorlage für WhatsApp" Classes="h3" VerticalAlignment="Center" />
+                  <ui:HelpButton Grid.Column="1" Topic="erinnerungen" Section="whatsapp-vorlage" />
+                </Grid>
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                  <ui:FormField Label="WhatsApp-Vorlage (Meta: Name, Twilio: Content-SID)" IsRequired="True" Error="{Binding TemplateError}">
+                    <TextBox x:Name="TemplateField" Text="{Binding WhatsAppTemplate}" />
+                  </ui:FormField>
+                  <ui:FormField Grid.Column="1" Label="Sprache der Vorlage" IsRequired="True" Error="{Binding LanguageError}">
+                    <TextBox x:Name="LanguageField" Text="{Binding WhatsAppLanguage}" />
+                  </ui:FormField>
+                </Grid>
+                <TextBlock Classes="muted" TextWrapping="Wrap"
+                           Text="Platzhalter der Vorlage: {{1}} Vorname, {{2}} Behandlung, {{3}} Datum und Uhrzeit, {{4}} Standort, {{5}} Link zum Termin." />
+              </StackPanel>
+
+              <Border Classes="divider" />
+              <Grid ColumnDefinitions="*,Auto">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <TextBlock x:Name="ReminderSummaryText" Text="{Binding ReminderSummary}" Classes="muted" VerticalAlignment="Center" TextWrapping="Wrap" />
+                  <Border Classes="pill crit" IsVisible="{Binding HasReminderFailed}" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding ReminderFailed}" />
+                  </Border>
+                </StackPanel>
+                <Button x:Name="ReminderLogButton" Grid.Column="1" Classes="ghost" Content="Versandprotokoll" Command="{Binding OpenReminderLogCommand}"
+                        AutomationProperties.Name="Versandprotokoll der Terminerinnerungen öffnen" />
+              </Grid>
+            </StackPanel>
+          </Border>
 
           <!-- Wiederbuchungs-Hinweise -->
-          <StackPanel Spacing="8">
-            <Grid ColumnDefinitions="*,Auto">
-              <TextBlock Text="Wiederbuchungs-Hinweise" Classes="h2" VerticalAlignment="Center" />
-              <ui:HelpButton Grid.Column="1" Topic="erinnerungen" Section="naechste-behandlung" />
-            </Grid>
-            <TextBlock Classes="muted" TextWrapping="Wrap"
-                       Text="Gäste bekommen nach einer abgeschlossenen Behandlung eine Mail mit Link zum Buchen, wenn der eingestellte Abstand vorbei ist und kein Termin gebucht ist. Das ist Werbung: nur für Gäste, die ihre Einwilligung per Mail bestätigt haben (im Termin unter „Wiederbuchungs-Hinweis“ anfragen). Den persönlichen Teil schreibt die KI, ohne Preise oder Angebote." />
-            <CheckBox x:Name="RebookEnabledField" Content="Wiederbuchungs-Hinweise verschicken" IsChecked="{Binding RebookEnabled}" />
-            <ItemsControl x:Name="IntervalList" ItemsSource="{Binding Intervals}">
-              <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                  <WrapPanel />
-                </ItemsPanelTemplate>
-              </ItemsControl.ItemsPanel>
-              <ItemsControl.ItemTemplate>
-                <DataTemplate x:DataType="vm:RebookIntervalRow">
-                  <ui:FormField Label="{Binding Label}" Width="348" Margin="0,0,12,12">
-                    <ui:NumberField Value="{Binding Days}" Minimum="7" Maximum="730" Width="200" HorizontalAlignment="Left" />
-                  </ui:FormField>
-                </DataTemplate>
-              </ItemsControl.ItemTemplate>
-            </ItemsControl>
-          </StackPanel>
+          <Border x:Name="RebookCard" Classes="card" Padding="20">
+            <StackPanel Spacing="12">
+              <Grid ColumnDefinitions="Auto,Auto,*,Auto" ColumnSpacing="8">
+                <TextBlock Text="Wiederbuchungs-Hinweise" Classes="h2" VerticalAlignment="Center" />
+                <Border Grid.Column="1" Classes="pill warn" VerticalAlignment="Center">
+                  <TextBlock Text="Werbung, nur mit Einwilligung" />
+                </Border>
+                <ui:HelpButton Grid.Column="3" Topic="erinnerungen" Section="naechste-behandlung" />
+              </Grid>
+              <TextBlock Classes="muted" TextWrapping="Wrap"
+                         Text="Gäste bekommen nach einer abgeschlossenen Behandlung eine Mail mit Link zum Buchen, wenn der eingestellte Abstand vorbei ist und kein Termin gebucht ist. Das ist Werbung: nur für Gäste, die ihre Einwilligung per Mail bestätigt haben (im Termin unter „Wiederbuchungs-Hinweis“ anfragen). Den persönlichen Teil schreibt die KI, ohne Preise oder Angebote." />
+              <CheckBox x:Name="RebookEnabledField" Content="Wiederbuchungs-Hinweise verschicken" IsChecked="{Binding RebookEnabled}" />
 
-         </StackPanel>
+              <StackPanel Spacing="4">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <TextBlock Text="Hinweis nach" VerticalAlignment="Center" />
+                  <ui:NumberField x:Name="DefaultDaysField" Value="{Binding RebookDefaultDays}" Minimum="7" Maximum="730" Width="100"
+                                  AutomationProperties.Name="Standardabstand in Tagen" />
+                  <TextBlock Text="Tagen ohne neuen Termin" VerticalAlignment="Center" />
+                </StackPanel>
+                <TextBlock Classes="muted small" TextWrapping="Wrap" Text="Zwischen 7 und 730 Tage. Leer: nur die Ausnahmen unten bekommen einen Hinweis." />
+              </StackPanel>
 
-          <!-- Zuletzt verschickt -->
-          <StackPanel x:Name="RecentSection" Spacing="8" IsVisible="{Binding HasRecent}">
-            <Grid ColumnDefinitions="*,Auto">
-              <TextBlock Text="Zuletzt verschickt" Classes="h2" VerticalAlignment="Center" />
-              <ui:HelpButton Grid.Column="1" Topic="erinnerungen" Section="zuletzt-verschickt" />
-            </Grid>
-            <ItemsControl x:Name="RecentList" ItemsSource="{Binding Recent}">
-              <ItemsControl.ItemTemplate>
-                <DataTemplate x:DataType="vm:RebookReminderRow">
-                  <StackPanel Spacing="2" Margin="0,0,0,8">
-                    <TextBlock Text="{Binding Line}" TextWrapping="Wrap" />
-                    <TextBlock Text="{Binding Text}" Classes="muted" TextWrapping="Wrap" IsVisible="{Binding Text, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+              <!-- Ausnahmen vom Standard: eine Kategorie oder eine Behandlung; Tage leer heißen kein Hinweis -->
+              <StackPanel Spacing="8">
+                <TextBlock Text="Ausnahmen" Classes="label" />
+                <Border x:Name="ExceptionTable" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1" CornerRadius="8" IsVisible="{Binding HasExceptions}">
+                  <StackPanel>
+                    <Grid ColumnDefinitions="*,200,32" Margin="12,8">
+                      <TextBlock Text="Ausnahme" Classes="label" />
+                      <TextBlock Grid.Column="1" Text="Abstand" Classes="label" />
+                    </Grid>
+                    <ItemsControl x:Name="ExceptionList" ItemsSource="{Binding Exceptions}">
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:RebookExceptionRow">
+                          <StackPanel>
+                            <Border Classes="divider" />
+                            <Grid ColumnDefinitions="*,200,32" Margin="12,6">
+                              <TextBlock Text="{Binding Label}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                              <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                                <ui:NumberField Value="{Binding Days}" Minimum="7" Maximum="730" Width="90" AutomationProperties.Name="{Binding DaysName}" />
+                                <TextBlock Text="Tage" VerticalAlignment="Center" IsVisible="{Binding !HasNoHint}" />
+                                <TextBlock Text="kein Hinweis" Classes="muted" VerticalAlignment="Center" IsVisible="{Binding HasNoHint}" />
+                              </StackPanel>
+                              <Button Grid.Column="2" Classes="ghost icon" Command="{Binding RemoveCommand}" AutomationProperties.Name="{Binding RemoveName}"
+                                      ToolTip.Tip="Ausnahme entfernen">
+                                <ui:Icon Data="{x:Static ui:Icons.Close}" Width="14" Height="14" />
+                              </Button>
+                            </Grid>
+                          </StackPanel>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
                   </StackPanel>
-                </DataTemplate>
-              </ItemsControl.ItemTemplate>
-            </ItemsControl>
-          </StackPanel>
-        </ui:MainSideColumns>
+                </Border>
+                <TextBlock Classes="muted" TextWrapping="Wrap" IsVisible="{Binding !HasExceptions}"
+                           Text="Keine Ausnahmen: alle Behandlungen folgen dem Standard." />
+                <ComboBox x:Name="AddExceptionField" ItemsSource="{Binding ExceptionChoices}" SelectedItem="{Binding NewException}" PlaceholderText="+ Ausnahme"
+                          IsVisible="{Binding HasExceptionChoices}" HorizontalAlignment="Left" MinWidth="240" MaxDropDownHeight="320"
+                          AutomationProperties.Name="Ausnahme hinzufügen" />
+              </StackPanel>
+
+              <Border Classes="divider" />
+              <Grid ColumnDefinitions="*,Auto">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <TextBlock x:Name="RebookSummaryText" Text="{Binding RebookSummary}" Classes="muted" VerticalAlignment="Center" TextWrapping="Wrap" />
+                  <Border Classes="pill crit" IsVisible="{Binding HasRebookFailed}" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding RebookFailed}" />
+                  </Border>
+                </StackPanel>
+                <Button x:Name="RebookLogButton" Grid.Column="1" Classes="ghost" Content="Versandprotokoll" Command="{Binding OpenRebookLogCommand}"
+                        AutomationProperties.Name="Versandprotokoll der Wiederbuchungs-Hinweise öffnen" />
+              </Grid>
+            </StackPanel>
+          </Border>
+        </StackPanel>
       </StackPanel>
     </ScrollViewer>
 
@@ -112,5 +157,80 @@
                   ActionText="Erneut versuchen" ActionCommand="{Binding SaveCommand}" CloseCommand="{Binding CloseErrorCommand}" />
       <ui:SaveBar SaveCommand="{Binding SaveCommand}" DiscardCommand="{Binding DiscardCommand}" CanDiscard="{Binding HasUnsavedChanges}" Status="{Binding StatusText}" />
     </StackPanel>
+
+    <!-- Versandprotokoll als Seitenleiste (Brief 5.12): Terminerinnerungen und Wiederbuchungs-Hinweise in einer Liste -->
+    <ui:SidePanel Grid.Column="1" Grid.RowSpan="2" x:Name="LogPanel" Title="Versandprotokoll" IsOpen="{Binding Log.IsOpen, Mode=TwoWay}">
+      <ui:SidePanel.HeaderAction>
+        <ui:HelpButton Topic="erinnerungen" Section="versandprotokoll" Margin="0,0,4,0" VerticalAlignment="Center" />
+      </ui:SidePanel.HeaderAction>
+      <ui:SidePanel.Body>
+        <Grid RowDefinitions="Auto,*">
+          <StackPanel Margin="20,12,20,8" Spacing="12">
+            <ListBox x:Name="LogFilters" Classes="chips" ItemsSource="{x:Static vm:DispatchLogViewModel.Filters}" SelectedItem="{Binding Log.SelectedFilter}"
+                     AutomationProperties.Name="Art der Nachrichten">
+              <ListBox.Styles>
+                <Style Selector="ListBoxItem" x:DataType="vm:DispatchFilterOption">
+                  <Setter Property="AutomationProperties.Name" Value="{Binding Label}" />
+                </Style>
+              </ListBox.Styles>
+              <ListBox.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <WrapPanel />
+                </ItemsPanelTemplate>
+              </ListBox.ItemsPanel>
+              <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:DispatchFilterOption">
+                  <TextBlock Text="{Binding Label}" />
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+              <ui:FormField Label="Zeitraum">
+                <ComboBox x:Name="LogPeriod" ItemsSource="{x:Static vm:DispatchLogViewModel.Periods}" SelectedItem="{Binding Log.Period}" HorizontalAlignment="Stretch" />
+              </ui:FormField>
+              <ui:ExportButton x:Name="LogExportButton" Grid.Column="1" DataContext="{Binding Log.Export}" VerticalAlignment="Bottom" />
+            </Grid>
+            <ui:InfoBar Severity="Error" Title="Nicht geladen" Message="{Binding Log.Error}" IsVisible="{Binding Log.HasError}"
+                        ActionText="Erneut laden" ActionCommand="{Binding Log.LoadCommand}" />
+            <TextBlock Text="{Binding Log.ExportStatus}" Classes="muted small" TextWrapping="Wrap" IsVisible="{Binding Log.ExportStatus, Converter={x:Static ObjectConverters.IsNotNull}}" />
+          </StackPanel>
+          <ScrollViewer Grid.Row="1" x:Name="LogScroll" Classes="panelbody" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="20,0,20,16">
+              <TextBlock Text="Wird geladen …" Classes="muted" IsVisible="{Binding !Log.IsLoaded}" />
+              <TextBlock x:Name="LogEmpty" Text="{Binding Log.EmptyText}" Classes="muted" TextWrapping="Wrap" IsVisible="{Binding Log.ShowEmpty}" />
+              <ItemsControl x:Name="LogList" ItemsSource="{Binding Log.Rows}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:DispatchLogRow">
+                    <StackPanel>
+                      <Border Classes="divider" />
+                      <Button Classes="ghost" Command="{Binding ToggleCommand}" Focusable="{Binding HasDetail}" HorizontalAlignment="Stretch"
+                              HorizontalContentAlignment="Stretch" Padding="0,8">
+                        <Grid ColumnDefinitions="68,*,Auto" ColumnSpacing="8">
+                          <TextBlock Text="{Binding When}" Classes="muted small" VerticalAlignment="Top" Margin="0,2,0,0" />
+                          <StackPanel Grid.Column="1" Spacing="2">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
+                              <TextBlock Text="{Binding Chevron}" Classes="muted" />
+                              <TextBlock Text="{Binding Recipient}" TextTrimming="CharacterEllipsis" />
+                            </StackPanel>
+                            <TextBlock Text="{Binding Detail}" Classes="muted small" TextWrapping="Wrap" />
+                          </StackPanel>
+                          <Border Grid.Column="2" Classes="pill" Classes.ok="{Binding IsSent}" Classes.crit="{Binding IsFailed}" VerticalAlignment="Top">
+                            <TextBlock Text="{Binding StateText}" />
+                          </Border>
+                        </Grid>
+                      </Button>
+                      <StackPanel Margin="76,0,0,8" Spacing="2" IsVisible="{Binding IsExpanded}">
+                        <TextBlock Text="{Binding Text}" Classes="muted small" TextWrapping="Wrap" IsVisible="{Binding Text, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                        <TextBlock Text="{Binding Reason}" Classes="muted small" TextWrapping="Wrap" IsVisible="{Binding Reason, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                      </StackPanel>
+                    </StackPanel>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </ScrollViewer>
+        </Grid>
+      </ui:SidePanel.Body>
+    </ui:SidePanel>
   </Grid>
 </UserControl>
