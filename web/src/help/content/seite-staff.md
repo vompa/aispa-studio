@@ -14,8 +14,8 @@ Auf „Zugänge“ legt das Spa fest, wer sich anmelden darf, mit welcher Rolle 
 
 In der Windows-App gibt es keinen eigenen Bereich „Zugänge“. Der Zugang einer Person ist der Abschnitt **Zugang und Rolle** im Bereich **Profil** ihrer Karte unter **Verwaltung** › **Team**:
 
-- **Links** die Liste aller Personen. Unter dem Namen stehen die Rolle und, falls zutreffend, „gesperrt“, „abgelaufen“ oder „endet bald, bis …“ bzw. „bis …“ bei einer Befristung.
-- **Ganz unten in der Liste** **Person einladen**, im Einzelplatz-Betrieb **Zugang anlegen**.
+- **Links** die Liste aller Personen. Unter dem Namen steht die Rolle; ein Kennzeichen am Zeilenende nur bei einer Abweichung: „Gesperrt“, „Abgelaufen“, „Endet bald, bis …“ bzw. „bis …“ bei einer Befristung.
+- **Über der Liste** **Person hinzufügen** und darunter **Person einladen**, im Einzelplatz-Betrieb **Zugang anlegen**.
 - **Rechts** die Karte der gewählten Person mit dem Abschnitt **Zugang und Rolle** im Bereich **Profil**, darin auch die offenen Einladungen (nicht im Einzelplatz-Betrieb).
 - Das Empfangsgerät meldet man unter [Geräte](hilfe:geraete#empfangsgeraet) an.
 

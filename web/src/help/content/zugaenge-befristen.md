@@ -13,7 +13,7 @@ Ein befristeter Zugang gilt bis einschließlich zu einem bestimmten Tag, z. B. f
 ## Befristung setzen {#setzen}
 
 1. In der Windows-App **Verwaltung** › **Team** öffnen, die Person wählen und den Bereich **Profil** öffnen; dort steht **Zugang und Rolle**.
-2. Bei **Befristet bis einschließlich** den letzten gültigen Tag wählen.
+2. Unter **Weitere Angaben** bei **Befristet bis einschließlich** den letzten gültigen Tag wählen. Ist der Zugang schon befristet, steht **Weitere Angaben** aufgeklappt.
 3. Auf **Speichern** klicken.
 
 Beim Einladen oder Anlegen lässt sich die Befristung gleich mitgeben.

@@ -662,6 +662,45 @@
     <Setter Property="FontWeight" Value="SemiBold" />
   </Style>
 
+  <!-- Auswahl-Chip (Personenkarte, P5): ein Umschalter in Kapselform für Qualifikationen, Standorte und Sprachen. Gewählt: weiche Akzentfläche, Akzentrand und ein Haken, damit der Zustand
+       nicht nur an der Farbe hängt; der Screenreader liest ihn als Umschalter mit Zustand. Höhe 32, Schrift 14/400 -->
+  <Style Selector="ToggleButton.choicechip">
+    <Setter Property="MinHeight" Value="32" />
+    <Setter Property="Padding" Value="12,0" />
+    <Setter Property="FontSize" Value="14" />
+    <Setter Property="FontWeight" Value="Normal" />
+    <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Border x:Name="Chip" MinHeight="{TemplateBinding MinHeight}" Padding="{TemplateBinding Padding}" CornerRadius="999" BorderThickness="1"
+                Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource LineBrush}">
+          <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+            <Path x:Name="Check" Data="M4 12l5 5L20 6" Stroke="{DynamicResource AccentBrush}" StrokeThickness="2.5" StrokeLineCap="Round" StrokeJoin="Round" Width="12" Height="12"
+                  Stretch="Uniform" IsVisible="False" />
+            <ContentPresenter x:Name="ChipContent" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" Foreground="{TemplateBinding Foreground}"
+                              VerticalAlignment="Center" />
+          </StackPanel>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+  <Style Selector="ToggleButton.choicechip:pointerover /template/ Border#Chip">
+    <Setter Property="Background" Value="{DynamicResource Surface2Brush}" />
+  </Style>
+  <Style Selector="ToggleButton.choicechip:checked /template/ Border#Chip, ToggleButton.choicechip:checked:pointerover /template/ Border#Chip">
+    <Setter Property="Background" Value="{DynamicResource AccentSoftBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+  </Style>
+  <Style Selector="ToggleButton.choicechip:checked /template/ Path#Check">
+    <Setter Property="IsVisible" Value="True" />
+  </Style>
+  <Style Selector="ToggleButton.choicechip:checked /template/ ContentPresenter#ChipContent">
+    <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+  </Style>
+  <Style Selector="ToggleButton.choicechip:disabled /template/ Border#Chip">
+    <Setter Property="Opacity" Value="0.5" />
+  </Style>
+
   <!-- Kleiner Knopf (Design-Brief 5.1): Höhe 28, Innenabstand 8, Schrift 12 -->
   <Style Selector="Button.small">
     <Setter Property="MinHeight" Value="28" />

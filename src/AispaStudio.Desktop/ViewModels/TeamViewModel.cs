@@ -8,7 +8,7 @@ namespace AispaStudio.Desktop.ViewModels;
 
 /// <summary>
 /// Bereich „Team“ der Verwaltung (R05 Slice 98, Ä191, Ä250): links alle Personen mit Suche, Rolle und Status (aktiv, gesperrt, abgelaufen, eingeladen,
-/// ausgeschieden) und „Person anlegen“ bzw. „Person einladen“, rechts die Personenkarte (<see cref="PersonCardViewModel"/>). Ersetzt die Web-Masken
+/// ausgeschieden) und „Person hinzufügen“ bzw. „Person einladen“ fest über der Liste, rechts die Personenkarte (<see cref="PersonCardViewModel"/>). Ersetzt die Web-Masken
 /// <c>TeamTab.tsx</c>, <c>StaffPage.tsx</c> (ohne Empfangsgerät) und <c>QualificationsTab.tsx</c>. Wer mit ungespeicherten Änderungen eine andere Person
 /// wählt, wird gefragt (<see cref="UnsavedChanges"/>). Über der Fläche schaltet eine Leiste um (R05 Slice 99, ADR 0098 höchstens fünf): „Personen“ (die Karten), „Wochenplan“
 /// (der Dienstplan für alle, <see cref="RosterPlanViewModel"/>, mit der Seitenleiste „Anträge“, <see cref="AbsenceRequestsViewModel"/>), „Zeiten“ (<see cref="TimesheetViewModel"/>), „Lohn“
@@ -32,6 +32,8 @@ public sealed partial class TeamViewModel : ViewModelBase, ITargetedArea
     /// <summary>Frühere Ansicht „Zuständigkeiten“ (bis ADR 0098): führt zu „Rechte und Zuständigkeiten“, Abschnitt „Zuständigkeiten“. Als Abschnitt eines Sprungs mit Person ist es der Abschnitt der Karte.</summary>
     public const string DutiesMode = "zustaendigkeiten";
 
+    private const string AllLocations = "alle";
+
     private const string NotInTeam = "Diese Person steht nicht mehr im Team und deshalb nicht in der Liste.";
 
     private static readonly TimeSpan EndsSoon = TimeSpan.FromDays(7);
@@ -45,6 +47,9 @@ public sealed partial class TeamViewModel : ViewModelBase, ITargetedArea
     private readonly SynchronizationContext? _ui = SynchronizationContext.Current;
     private TeamContext? _context;
     private IReadOnlyList<TeamEntry> _all = [];
+    private TeamEntry? _newPerson;
+    private TeamEntry? _newAccess;
+    private Guid? _locationFilter;
     private bool _reverting;
 
     /// <summary>Sprungziel (Behandlungen, Kalender, Assistent), das vor dem Laden oder vor dem Wechsel der Person kam; gilt, sobald sie offen ist.</summary>
@@ -204,6 +209,53 @@ public sealed partial class TeamViewModel : ViewModelBase, ITargetedArea
     [ObservableProperty]
     public partial TeamEntry? SelectedEntry { get; set; }
 
+    /// <summary>Die Wahl in der Liste: nur eine Zeile der Liste; „Person hinzufügen“ und „Person einladen“ stehen über der Liste und wählen keine Zeile.</summary>
+    public TeamEntry? ListSelection
+    {
+        get => SelectedEntry is { IsNew: false } entry ? entry : null;
+        set
+        {
+            if (value is not null)
+            {
+                SelectedEntry = value;
+            }
+        }
+    }
+
+    /// <summary>„Person hinzufügen“ steht fest über der Liste, nie als letzte Zeile (ADR 0099, Regel 1).</summary>
+    public bool CanAddPerson => CanShowFormer;
+
+    /// <summary>„Person einladen“, im Einzelplatz „Zugang anlegen“, steht unter „Person hinzufügen“.</summary>
+    public bool CanInvite => CanStaff;
+
+    public string InviteLabel => _context?.Standalone == true ? "Zugang anlegen" : "Person einladen";
+
+    /// <summary>Die Liste ist leer (nach Suche und Standort): der Leerzustand nennt die erste Aktion.</summary>
+    public bool HasNoEntries => IsLoaded && Entries.Count == 0;
+
+    /// <summary>Die Standorte als Filter über der Liste: „Alle“ und je Standort; erst ab zwei Standorten.</summary>
+    public IReadOnlyList<CardTab> LocationChips { get; private set; } = [];
+
+    public bool ShowsLocationChips => LocationChips.Count > 2;
+
+    [RelayCommand]
+    private void AddPerson()
+    {
+        if (_newPerson is { } entry)
+        {
+            SelectedEntry = entry;
+        }
+    }
+
+    [RelayCommand]
+    private void Invite()
+    {
+        if (_newAccess is { } entry)
+        {
+            SelectedEntry = entry;
+        }
+    }
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(Title), nameof(HasUnsavedChanges), nameof(StatusText), nameof(Error), nameof(HasError), nameof(HasSaveBar),
         nameof(CanRemove))]
@@ -217,7 +269,8 @@ public sealed partial class TeamViewModel : ViewModelBase, ITargetedArea
     public partial bool ShowFormer { get; set; }
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(ShowsModesBar), nameof(ShowsPeopleView), nameof(ShowsRosterView), nameof(ShowsTimesView), nameof(ShowsPayrollView), nameof(ShowsRightsView))]
+    [NotifyPropertyChangedFor(nameof(ShowsModesBar), nameof(ShowsPeopleView), nameof(ShowsRosterView), nameof(ShowsTimesView), nameof(ShowsPayrollView), nameof(ShowsRightsView),
+        nameof(HasNoEntries))]
     public partial bool IsLoaded { get; private set; }
 
     [ObservableProperty]
@@ -676,6 +729,7 @@ public sealed partial class TeamViewModel : ViewModelBase, ITargetedArea
 
     partial void OnSelectedEntryChanged(TeamEntry? oldValue, TeamEntry? newValue)
     {
+        OnPropertyChanged(nameof(ListSelection));
         if (_reverting || newValue is null)
         {
             return;
@@ -736,6 +790,8 @@ public sealed partial class TeamViewModel : ViewModelBase, ITargetedArea
         }
 
         _all = [.. BuildEntries(_context.Data).Select(WithFlags)];
+        BuildLocationChips(_context.Data.Locations);
+        OnPropertyChanged(nameof(InviteLabel));
         Filter();
         return true;
     }
@@ -762,8 +818,8 @@ public sealed partial class TeamViewModel : ViewModelBase, ITargetedArea
     }
 
     /// <summary>
-    /// Team und Zugänge (eine Zeile je Person, ein Zugang ohne Person für sich), dann offene Einladungen ohne Person, dann Ausgeschiedene, je alphabetisch;
-    /// am Ende „Person anlegen“ und „Person einladen“ bzw. „Zugang anlegen“.
+    /// Team und Zugänge (eine Zeile je Person, ein Zugang ohne Person für sich), dann offene Einladungen ohne Person, dann Ausgeschiedene, je alphabetisch.
+    /// „Person hinzufügen“ und „Person einladen“ bzw. „Zugang anlegen“ stehen nicht in der Liste, sondern fest darüber.
     /// </summary>
     private List<TeamEntry> BuildEntries(TeamData data)
     {
@@ -773,60 +829,117 @@ public sealed partial class TeamViewModel : ViewModelBase, ITargetedArea
         {
             var member = data.Members.FirstOrDefault(m => m.EmployeeId == employee.Id);
             var invitation = member is null ? data.Invitations.FirstOrDefault(i => i.EmployeeId == employee.Id) : null;
-            var subtitle = member is not null ? StatusOf(member, now)
-                : invitation is not null ? $"{RoleChoice.LabelOf(invitation.Role)} · eingeladen"
-                : CanStaff ? "ohne Zugang" : "";
-            rows.Add((0, new TeamEntry(TeamEntryKind.Person, employee.DisplayName, subtitle, employee.Id, member?.UserId, invitation?.Id,
-                member?.Email ?? invitation?.Email)));
+            var (role, badge, kind) = member is not null ? MemberLabels(member, now)
+                : invitation is not null ? (RoleChoice.LabelOf(invitation.Role), "Eingeladen", EntryBadgeKind.Neutral)
+                : ("", CanStaff ? "Ohne Zugang" : null, EntryBadgeKind.Neutral);
+            rows.Add((0, new TeamEntry(TeamEntryKind.Person, employee.DisplayName, role, employee.Id, member?.UserId, invitation?.Id,
+                member?.Email ?? invitation?.Email, Badge: badge, BadgeKind: kind)));
         }
 
         var team = data.Employees.Select(e => e.Id).ToHashSet();
         foreach (var member in data.Members.Where(m => m.EmployeeId is not { } id || !team.Contains(id)))
         {
-            rows.Add((0, new TeamEntry(TeamEntryKind.Account, member.DisplayName, StatusOf(member, now), UserId: member.UserId, Email: member.Email)));
+            var (role, badge, kind) = MemberLabels(member, now);
+            rows.Add((0, new TeamEntry(TeamEntryKind.Account, member.DisplayName, role, UserId: member.UserId, Email: member.Email, Badge: badge, BadgeKind: kind)));
         }
 
         foreach (var invitation in data.Invitations.Where(i => i.EmployeeId is not { } id || !team.Contains(id)))
         {
-            rows.Add((1, new TeamEntry(TeamEntryKind.Invitation, invitation.DisplayName, $"{RoleChoice.LabelOf(invitation.Role)} · eingeladen",
-                InvitationId: invitation.Id, Email: invitation.Email)));
+            rows.Add((1, new TeamEntry(TeamEntryKind.Invitation, invitation.DisplayName, RoleChoice.LabelOf(invitation.Role),
+                InvitationId: invitation.Id, Email: invitation.Email, Badge: "Eingeladen")));
         }
 
-        rows.AddRange(data.Former.Select(e => (2, new TeamEntry(TeamEntryKind.Former, e.DisplayName, "ausgeschieden", e.Id))));
-        var entries = rows.OrderBy(r => r.Group).ThenBy(r => r.Entry.Title, StringComparer.CurrentCulture).ThenBy(r => r.Entry.Kind)
-            .Select(r => r.Entry).ToList();
-        if (CanShowFormer)
-        {
-            entries.Add(new TeamEntry(TeamEntryKind.NewPerson, "Person anlegen", ""));
-        }
-
-        if (CanStaff)
-        {
-            entries.Add(new TeamEntry(TeamEntryKind.NewAccess, _context.Standalone ? "Zugang anlegen" : "Person einladen", ""));
-        }
-
-        return entries;
+        rows.AddRange(data.Former.Select(e => (2, new TeamEntry(TeamEntryKind.Former, e.DisplayName, "", e.Id, Badge: "Ausgeschieden"))));
+        _newPerson = CanShowFormer ? new TeamEntry(TeamEntryKind.NewPerson, "Person hinzufügen", "") : null;
+        _newAccess = CanStaff ? new TeamEntry(TeamEntryKind.NewAccess, _context.Standalone ? "Zugang anlegen" : "Person einladen", "") : null;
+        return [.. rows.OrderBy(r => r.Group).ThenBy(r => r.Entry.Title, StringComparer.CurrentCulture).ThenBy(r => r.Entry.Kind).Select(r => r.Entry)];
     }
 
-    /// <summary>„Rolle · Status“ wie die Zeile in <c>StaffPage.tsx</c>; dazu „aktiv“ ohne Befristung.</summary>
-    private string StatusOf(StaffMemberDto member, DateTimeOffset now) => $"{RoleChoice.LabelOf(member.Role)} · {(!member.IsActive ? "gesperrt" : member.ExpiresAt switch
+    /// <summary>
+    /// Die Rolle und das Kennzeichen der Zeile eines Zugangs: aktiv ohne Befristung hat keines, gesperrt und abgelaufen sind kritisch, eine Befristung („bis 19.12.2026“, auch „endet bald“)
+    /// ist gelb. Die Teile stehen als <see cref="TeamEntry.Role"/> und <see cref="TeamEntry.Badge"/>; die Karte zeigt „Zugang aktiv“, wenn es kein Kennzeichen gibt.
+    /// </summary>
+    private (string Role, string? Badge, EntryBadgeKind Kind) MemberLabels(StaffMemberDto member, DateTimeOffset now)
     {
-        null => "aktiv",
-        { } end when end <= now => "abgelaufen",
-        { } end => $"{(end - now <= EndsSoon ? "endet bald, " : "")}bis {_context!.DateText(end.AddTicks(-1))}",
-    })}";
+        var role = RoleChoice.LabelOf(member.Role);
+        if (!member.IsActive)
+        {
+            return (role, "Gesperrt", EntryBadgeKind.Critical);
+        }
 
-    /// <summary>Suche über Name und E-Mail, „Ausgeschiedene zeigen“; die Neu-Zeilen bleiben immer.</summary>
+        return member.ExpiresAt switch
+        {
+            null => (role, null, EntryBadgeKind.Neutral),
+            { } end when end <= now => (role, "Abgelaufen", EntryBadgeKind.Critical),
+            { } end => (role, $"{(end - now <= EndsSoon ? "Endet bald, " : "")}bis {_context!.DateText(end.AddTicks(-1))}", EntryBadgeKind.Warning),
+        };
+    }
+
+    /// <summary>Suche über Name und E-Mail, „Ausgeschiedene zeigen“ und der Standort.</summary>
     private void Filter()
     {
         var search = Search.Trim();
-        var entries = _all.Where(e => e.IsNew || ((ShowFormer || e.Kind != TeamEntryKind.Former) && (search.Length == 0
-            || e.Title.Contains(search, StringComparison.OrdinalIgnoreCase) || e.Email?.Contains(search, StringComparison.OrdinalIgnoreCase) == true))).ToList();
+        var entries = _all.Where(e => (ShowFormer || e.Kind != TeamEntryKind.Former) && AtLocation(e) && (search.Length == 0
+            || e.Title.Contains(search, StringComparison.OrdinalIgnoreCase) || e.Email?.Contains(search, StringComparison.OrdinalIgnoreCase) == true)).ToList();
         var selected = SelectedEntry ?? Card?.Entry;
         _reverting = true;
         Entries = entries;
-        SelectedEntry = selected is null ? null : entries.FirstOrDefault(e => e.SameAs(selected));
+        SelectedEntry = selected is null ? null : selected.IsNew ? selected : entries.FirstOrDefault(e => e.SameAs(selected));
         _reverting = false;
+        OnPropertyChanged(nameof(HasNoEntries));
+    }
+
+    /// <summary>Gehört die Zeile zum gewählten Standort: die Person arbeitet dort (Wochenarbeitszeit) oder ihr Zugang gilt dort; ohne Standortwahl immer.</summary>
+    private bool AtLocation(TeamEntry entry)
+    {
+        if (_locationFilter is not { } location)
+        {
+            return true;
+        }
+
+        var data = _context!.Data;
+        var employee = entry.EmployeeId is { } id ? data.Employees.Concat(data.Former).FirstOrDefault(e => e.Id == id) : null;
+        if (employee?.WorkingHours.Any(h => h.LocationId == location) == true)
+        {
+            return true;
+        }
+
+        var member = entry.UserId is { } user ? data.Members.FirstOrDefault(m => m.UserId == user) : null;
+        var invitation = entry.InvitationId is { } invited ? data.Invitations.FirstOrDefault(i => i.Id == invited) : null;
+        return member is { } m ? m.AllLocations || m.LocationIds.Contains(location) : invitation is { } i && (i.AllLocations || i.LocationIds.Contains(location));
+    }
+
+    /// <summary>„Alle“ und je Standort; ein Standort, den es nicht mehr gibt, setzt den Filter zurück.</summary>
+    private void BuildLocationChips(IReadOnlyList<LocationDto> locations)
+    {
+        if (_locationFilter is { } shown && locations.All(l => l.Id != shown))
+        {
+            _locationFilter = null;
+        }
+
+        LocationChips =
+        [
+            .. new[] { new CardTab(AllLocations, "Alle", SelectLocation) }
+                .Concat(locations.Select(l => new CardTab(l.Id.ToString(), l.Name, SelectLocation))),
+        ];
+        foreach (var chip in LocationChips)
+        {
+            chip.IsOn = _locationFilter is null ? chip.Id == AllLocations : chip.Id == _locationFilter.ToString();
+        }
+
+        OnPropertyChanged(nameof(LocationChips));
+        OnPropertyChanged(nameof(ShowsLocationChips));
+    }
+
+    private void SelectLocation(string id)
+    {
+        _locationFilter = Guid.TryParse(id, out var location) ? location : null;
+        foreach (var chip in LocationChips)
+        {
+            chip.IsOn = chip.Id == id;
+        }
+
+        Filter();
     }
 
     /// <summary>Die Zeile einer Person im Team, auch wenn sie gerade weggefiltert ist (Suche, Ausgeschiedene).</summary>
@@ -990,7 +1103,7 @@ public sealed partial class TeamViewModel : ViewModelBase, ITargetedArea
 
         if (keep)
         {
-            var current = _all.FirstOrDefault(e => e.SameAs(card.Entry))
+            var current = _all.FirstOrDefault(e => e.SameAs(card.Entry)) ?? (card.Entry.IsNew ? card.Entry : null)
                 ?? (card.EmployeeId is { } id ? _all.FirstOrDefault(e => e.EmployeeId == id) : null)
                 ?? (card.Entry.UserId is { } user ? _all.FirstOrDefault(e => e.UserId == user) : null);
             if (current is not null && (current.Kind != card.Entry.Kind || current.UserId != card.Entry.UserId))

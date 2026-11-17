@@ -32,7 +32,7 @@ Die Person öffnet den Link im Browser und legt auf der Seite „Anmelden“ ihr
 - Bis zur Annahme steht die Einladung unter **Offene Einladungen**.
 - Gibt es für die Adresse schon ein Konto, ist keine Einladung möglich.
 - „Inhaber“ und „Manager“ vergibt nur der Inhaber. Manager und Standortleitung haken nur ihre eigenen Standorte an.
-- Bei Standortleitung und Rezeption kann der Inhaber oder Manager das Häkchen **Berichte mit Beträgen** setzen: [Berichte mit Beträgen](hilfe:zugaenge#berichte-mit-betraegen). Das Backoffice gilt immer für alle Standorte.
+- Bei Standortleitung und Rezeption kann der Inhaber oder Manager den Schalter **Berichte mit Beträgen** einschalten: [Berichte mit Beträgen](hilfe:zugaenge#berichte-mit-betraegen). Das Backoffice gilt immer für alle Standorte.
 - Damit die Person Behandlungen bekommt, muss sie zusätzlich in den Stammdaten im Team stehen: [Person im Team anlegen](hilfe:stammdaten-person-anlegen). Die Person im Team zuerst anlegen, dann einladen.
 - Im Einzelplatz-Betrieb gibt es keine Einladungen: [Zugang anlegen (Einzelplatz)](hilfe:zugaenge-zugang-anlegen).
 

@@ -27,20 +27,30 @@ public enum TeamEntryKind
 }
 
 /// <summary>
-/// Zeile der Teamliste (R05 Slice 98): Name und darunter „Rolle · Status“. Eine Person im Team ist eine Zeile, auch mit Zugang oder Einladung; Zugänge und
+/// Zeile der Teamliste (R05 Slice 98): Name und darunter die Rolle; ein Kennzeichen am Zeilenende steht nur bei einer Abweichung (ADR 0098, Nachtrag zu P5). Eine Person im Team ist eine Zeile, auch mit Zugang oder Einladung; Zugänge und
 /// Einladungen ohne Person stehen für sich.
 /// </summary>
-public sealed record TeamEntry(TeamEntryKind Kind, string Title, string Subtitle, Guid? EmployeeId = null, string? UserId = null, Guid? InvitationId = null,
-    string? Email = null, string? FlagText = null, bool HasFlagWarning = false)
+public sealed record TeamEntry(TeamEntryKind Kind, string Title, string Role, Guid? EmployeeId = null, string? UserId = null, Guid? InvitationId = null,
+    string? Email = null, string? FlagText = null, bool HasFlagWarning = false, string? Badge = null, EntryBadgeKind BadgeKind = EntryBadgeKind.Neutral)
 {
+    /// <summary>Die Rolle unter dem Namen in der Liste; leer bei einer Person ohne Zugang.</summary>
+    public bool HasRole => Role.Length > 0;
+
+    /// <summary>Das Kennzeichen am Zeilenende steht nur bei einer Abweichung (befristet, gesperrt, eingeladen, ohne Zugang).</summary>
+    public bool HasBadge => Badge is not null;
+
+    public bool BadgeIsCritical => HasBadge && BadgeKind == EntryBadgeKind.Critical;
+
+    public bool BadgeIsWarning => HasBadge && BadgeKind == EntryBadgeKind.Warning;
+
+    public bool BadgeIsNeutral => HasBadge && BadgeKind == EntryBadgeKind.Neutral;
+
     public bool HasFlags => FlagText is not null;
 
     public bool IsNew => Kind is TeamEntryKind.NewPerson or TeamEntryKind.NewAccess;
 
-    public bool HasSubtitle => Subtitle.Length > 0;
-
     /// <summary>Für den Screenreader beides in einem Satz.</summary>
-    public string Name => string.Join(", ", new[] { Title, Subtitle, FlagText }.Where(p => !string.IsNullOrEmpty(p)));
+    public string Name => string.Join(", ", new[] { Title, HasRole ? Role : null, Badge, FlagText }.Where(p => !string.IsNullOrEmpty(p)));
 
     /// <summary>Dieselbe Zeile nach dem Neuladen (Zugang und Einladung können dazukommen).</summary>
     public bool SameAs(TeamEntry other) => Kind == other.Kind && (Kind switch
@@ -52,6 +62,14 @@ public sealed record TeamEntry(TeamEntryKind Kind, string Title, string Subtitle
     });
 
     public override string ToString() => Title;
+}
+
+/// <summary>Farbe des Kennzeichens in der Teamliste: gesperrt und abgelaufen kritisch, befristet gelb, sonst grau.</summary>
+public enum EntryBadgeKind
+{
+    Neutral,
+    Warning,
+    Critical,
 }
 
 /// <summary>Ein Kennzeichen oben auf der Personenkarte; eine Warnung steht mit Warnsymbol vorn (R05 Slice 117).</summary>

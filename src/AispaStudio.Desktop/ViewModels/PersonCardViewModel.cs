@@ -8,7 +8,7 @@ namespace AispaStudio.Desktop.ViewModels;
 /// <summary>
 /// Personenkarte im Bereich „Team“ (R05 Slice 98, Ä250, ADR 0098): Kopf mit Name und Status, darunter höchstens vier Bereiche: „Übersicht“ (Kennzahl-Kacheln,
 /// <see cref="PersonOverviewViewModel"/>), „Profil“ (Stammdaten, Zugang und Rolle, Qualifikationen, Zuständigkeiten), „Arbeitszeit“ (Dienstplan und Abwesenheit mit Urlaubskonto,
-/// Zeiten) und „Lohn und Akte“ (Lohn, Personalakte, Regelungen und Vollmachten). Ein Abschnitt steht nur da, wenn Recht und Art der Zeile ihn erlauben; ein Bereich ohne Abschnitt fehlt.
+/// Regelarbeitszeit, Zeiten) und „Lohn und Akte“ (Lohn, Personalakte, Regelungen und Vollmachten). Ein Abschnitt steht nur da, wenn Recht und Art der Zeile ihn erlauben; ein Bereich ohne Abschnitt fehlt.
 /// Der Verlauf ist eine Seitenleiste (<see cref="IsHistoryOpen"/>). Die bisherigen Reiter-Ids gelten als Abschnitts-Ids weiter (<see cref="SelectTab"/>).
 /// Ein „Speichern“ für die Karte: geänderte Stammdaten und Qualifikationen gehen zusammen an <c>api/employees</c>, danach ein geänderter Zugang an <c>api/staff/{userId}</c>;
 /// der erste Fehler hält an, die Meldung der API steht über der Leiste und nennt, was schon gespeichert ist. Dienstplan, Zeiten, Personalakte, Regelungen und Zuständigkeiten haben
@@ -34,6 +34,9 @@ public sealed partial class PersonCardViewModel : ViewModelBase, IEditableArea
     public const string AccessTab = "zugang";
     public const string QualificationsTab = "qualifikationen";
     public const string RosterTab = "dienstplan";
+
+    /// <summary>Die Regelarbeitszeit der Person (Wochenraster), im Bereich „Arbeitszeit“ (Nachtrag zu ADR 0098, P5).</summary>
+    public const string WorkingHoursTab = "regelarbeitszeit";
     public const string TimesTab = "zeiten";
     public const string PayrollTab = "lohn";
     public const string HrFileTab = "personalakte";
@@ -46,7 +49,7 @@ public sealed partial class PersonCardViewModel : ViewModelBase, IEditableArea
     private static readonly (string Section, string Area)[] Layout =
     [
         (DetailsTab, ProfileArea), (AccessTab, ProfileArea), (QualificationsTab, ProfileArea), (DutiesTab, ProfileArea),
-        (RosterTab, WorkTimeArea), (TimesTab, WorkTimeArea),
+        (RosterTab, WorkTimeArea), (WorkingHoursTab, WorkTimeArea), (TimesTab, WorkTimeArea),
         (PayrollTab, PayAndFileArea), (HrFileTab, PayAndFileArea), (RegulationsTab, PayAndFileArea),
     ];
 
@@ -88,6 +91,13 @@ public sealed partial class PersonCardViewModel : ViewModelBase, IEditableArea
         {
             Access = new PersonAccessViewModel(context, mode, member, invitation, employee, Changed);
             Access.DataChanged += keep => DataChanged is { } changed ? changed(this, keep) : Task.CompletedTask;
+            Access.PropertyChanged += (_, e) =>
+            {
+                if (e.PropertyName == nameof(PersonAccessViewModel.IsActive))
+                {
+                    OnPropertyChanged(nameof(ToggleAccessLabel));
+                }
+            };
         }
 
         var home = employee?.WorkingHours.Select(h => h.LocationId).FirstOrDefault(id => context.Data.Locations.Any(l => l.Id == id));
@@ -201,7 +211,8 @@ public sealed partial class PersonCardViewModel : ViewModelBase, IEditableArea
 
     /// <summary>Die Zeile der Liste; nach dem Neuladen der neue Stand (<see cref="Refreshed"/>).</summary>
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(Title), nameof(StatusLine), nameof(HasStatusLine))]
+    [NotifyPropertyChangedFor(nameof(Title), nameof(Initials), nameof(HeadLine), nameof(HasHeadLine), nameof(PillText), nameof(HasPill), nameof(PillIsOk), nameof(PillIsWarning), nameof(PillIsCritical),
+        nameof(PillIsNeutral))]
     public partial TeamEntry Entry { get; private set; }
 
     public StaffMemberDto? Member { get; }
@@ -217,10 +228,31 @@ public sealed partial class PersonCardViewModel : ViewModelBase, IEditableArea
         _ => _employee?.DisplayName ?? Entry.Title,
     };
 
-    /// <summary>„Rolle · Status“ unter dem Namen.</summary>
-    public string StatusLine => Entry.Subtitle;
+    /// <summary>Zwei Buchstaben für den Kreis vor dem Namen im Kopf.</summary>
+    public string Initials => DayLayout.Initials(Title);
 
-    public bool HasStatusLine => StatusLine.Length > 0 && !Entry.IsNew;
+    /// <summary>„Rolle · Standort“ unter dem Namen: die Rolle des Zugangs und der Standort, an dem die Person arbeitet.</summary>
+    public string HeadLine => string.Join(" · ", new[] { Entry.Role, HomeLocationName }.Where(part => !string.IsNullOrEmpty(part)));
+
+    public bool HasHeadLine => HeadLine.Length > 0 && !Entry.IsNew;
+
+    private string? HomeLocationName => _employee?.WorkingHours.Select(h => _context.Data.Locations.FirstOrDefault(l => l.Id == h.LocationId)?.Name).FirstOrDefault(name => name is not null);
+
+    /// <summary>
+    /// Das Kennzeichen im Kopf: die Abweichung der Liste („Gesperrt“, „bis 19.12.2026“, „Eingeladen“, „Ohne Zugang“), sonst „Zugang aktiv“ bei einem Zugang. Eine neue Zeile und der eigene
+    /// Zugang einer Person ohne Karte haben keines.
+    /// </summary>
+    public string? PillText => Entry.IsNew ? null : Entry.Badge ?? (Member is not null ? "Zugang aktiv" : null);
+
+    public bool HasPill => PillText is not null;
+
+    public bool PillIsOk => HasPill && Entry.Badge is null;
+
+    public bool PillIsWarning => HasPill && Entry.BadgeIsWarning;
+
+    public bool PillIsCritical => HasPill && Entry.BadgeIsCritical;
+
+    public bool PillIsNeutral => HasPill && Entry.BadgeIsNeutral;
 
     /// <summary>„Person einladen“ trägt seine Überschrift mit Hilfe im Reiter; die Karte wiederholt sie nicht.</summary>
     public bool ShowsHeader => Entry.Kind != TeamEntryKind.NewAccess;
@@ -243,7 +275,7 @@ public sealed partial class PersonCardViewModel : ViewModelBase, IEditableArea
 
     /// <summary>Der gewählte Bereich.</summary>
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(ShowsOverview), nameof(ShowsDetails), nameof(ShowsAccess), nameof(ShowsQualifications), nameof(ShowsRoster), nameof(ShowsTimes), nameof(ShowsPayroll),
+    [NotifyPropertyChangedFor(nameof(ShowsOverview), nameof(ShowsDetails), nameof(ShowsAccess), nameof(ShowsQualifications), nameof(ShowsRoster), nameof(ShowsWorkingHours), nameof(ShowsTimes), nameof(ShowsPayroll),
         nameof(ShowsHrFile), nameof(ShowsRegulations), nameof(ShowsDuties), nameof(HasSaveBar))]
     public partial string SelectedTab { get; private set; } = ProfileArea;
 
@@ -263,6 +295,8 @@ public sealed partial class PersonCardViewModel : ViewModelBase, IEditableArea
     public bool ShowsQualifications => Shows(QualificationsTab);
 
     public bool ShowsRoster => Shows(RosterTab);
+
+    public bool ShowsWorkingHours => Shows(WorkingHoursTab);
 
     public bool ShowsTimes => Shows(TimesTab);
 
@@ -403,6 +437,33 @@ public sealed partial class PersonCardViewModel : ViewModelBase, IEditableArea
     /// <summary>„Aus dem Team nehmen“ für eine gespeicherte Person im Team.</summary>
     public bool CanRemove => Entry.Kind == TeamEntryKind.Person && _context.CanCatalog;
 
+    /// <summary>„Zugang sperren“ bzw. „Zugang freigeben“ im Menü „⋯“: für den Zugang eines anderen Mitglieds, solange die Karte nicht nur lesbar ist.</summary>
+    public bool CanToggleAccess => !IsReadOnly && Access is { IsMember: true };
+
+    /// <summary>Der Eintrag im Menü ändert den Schalter „Zugang aktiv“; gesperrt wird erst mit „Speichern“, wie alles auf der Karte.</summary>
+    public string ToggleAccessLabel => Access is { IsActive: false } ? "Zugang freigeben" : "Zugang sperren";
+
+    /// <summary>Das Menü „⋯“ im Kopf hat einen Eintrag, sonst steht der Knopf nicht da.</summary>
+    public bool HasMoreMenu => CanToggleAccess || CanRemove;
+
+    /// <summary>Die Befehle für <see cref="Controls.MoreMenuButton"/>: ein Eintrag steht nur, wenn sein Befehl gesetzt ist.</summary>
+    public IRelayCommand? ToggleAccessMenu => CanToggleAccess ? ToggleAccessCommand : null;
+
+    public IAsyncRelayCommand? RemoveMenu => CanRemove ? RemoveFromTeamCommand : null;
+
+    [RelayCommand]
+    private void ToggleAccess()
+    {
+        if (Access is { IsMember: true } access)
+        {
+            access.IsActive = !access.IsActive;
+            OnPropertyChanged(nameof(ToggleAccessLabel));
+        }
+    }
+
+    [RelayCommand]
+    private async Task RemoveFromTeamAsync() => await RemoveAsync().ConfigureAwait(true);
+
     private bool DetailsChanged => Details is not null && !IsReadOnly && Details.State() != _detailsState;
 
     /// <summary>Änderungen an Stammdaten, Qualifikationen oder Zugang; der offene Tag des Dienstplans und der Zeiten hat seine eigene Leiste und zählt nicht dazu.</summary>
@@ -461,6 +522,7 @@ public sealed partial class PersonCardViewModel : ViewModelBase, IEditableArea
         QualificationsTab => Qualifications is not null,
         DutiesTab => Duties is not null,
         RosterTab => Roster is not null,
+        WorkingHoursTab => Details is not null,
         TimesTab => Times is not null,
         PayrollTab => Payroll is not null,
         HrFileTab => HrFile is not null,
@@ -677,6 +739,9 @@ public sealed partial class PersonCardViewModel : ViewModelBase, IEditableArea
         _detailsState = details.State();
         Qualifications?.Saved(saved.QualificationIds);
         OnPropertyChanged(nameof(Title));
+        OnPropertyChanged(nameof(Initials));
+        OnPropertyChanged(nameof(HeadLine));
+        OnPropertyChanged(nameof(HasHeadLine));
         OnPropertyChanged(nameof(EmployeeId));
         return true;
     }

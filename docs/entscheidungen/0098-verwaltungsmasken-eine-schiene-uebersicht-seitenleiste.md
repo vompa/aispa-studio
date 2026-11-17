@@ -108,6 +108,22 @@ Neue gemeinsame Bausteine der Windows-App: `StatTile` (Kennzahl-Kachel nach desi
 
 **Begründung.** „Behandlungen“ und „Aktionen“ sind zwei Dinge mit eigenem Alltag (Katalog und Werbung); als Reiter einer Gruppe „Angebot“ lag die Aktion einen Klick tiefer als nötig. Das Anlegen lag als letzte Listenzeile unter dem sichtbaren Bereich, die erste Zeile war angeschnitten: Die Übersicht der Behandlungskarte und der feste Knopf beheben beides.
 
+## Nachtrag 17.11.2026: Personenkarte und Teamliste (P5)
+
+*Status des Nachtrags: umgesetzt (P5); Bestätigung durch den Auftraggeber offen.* Grundlage ist der Entwurf v5 vom 17.11.2026, Abschnitt „Personenkarte“.
+
+**Regelarbeitszeit unter „Arbeitszeit“.** Die Tabelle „Aufteilung nach dieser Regel“ gilt für die Personenkarte so: Der Bereich **Arbeitszeit** hat jetzt drei Abschnitte: Dienstplan und Abwesenheit (mit Urlaubskonto und Kalenderdatei) · **Regelarbeitszeit** · Zeiten. Die Regelarbeitszeit (früher „Wochenarbeitszeiten“ im Profil) ist die Grundlage des Dienstplans und steht deshalb dort. Sie wird weiter mit „Speichern“ zusammen mit den Stammdaten gespeichert (`PUT api/employees/{id}`), nichts am Server ändert sich. Der neue Abschnitt heißt für Sprungziele `regelarbeitszeit`; `team#wochenarbeitszeiten` und die Abschnitte der bisherigen Adressen bleiben gültig (Regel 7). Eine neue und eine ausgeschiedene Person haben den Bereich ebenfalls (die ausgeschiedene nur lesbar).
+
+**Kopf und Schiene stehen fest.** Der Kopf der Karte (Initialen, Name, „Rolle · Standort“, Kennzeichen, „Verlauf“, Menü „⋯“, Fragezeichen) und die Schiene der Bereiche liegen außerhalb des Rollbereichs; nur die Bereiche darunter rollen. Das Menü „⋯“ hat „Zugang sperren“ bzw. „Zugang freigeben“ (nur bei einer Person mit Zugang) und „Aus dem Team nehmen …“. „Aus dem Team nehmen“ steht damit nicht mehr als Knopf unten neben „Speichern“ (ADR 0099, Regel 2). „Zugang sperren“ schaltet den Schalter „Zugang aktiv“; gesperrt ist der Zugang erst mit „Speichern“, wie jede Änderung der Karte.
+
+**Jeder Abschnitt ist eine Karte.** Im Bereich Profil stehen „Stammdaten“ und „Zugang und Rolle“ gleich breit nebeneinander (gleichrangig, masken.md R14; unter 860 Breite untereinander), darunter „Qualifikationen“ und „Zuständigkeiten“ in voller Breite. Qualifikationen, Standorte und Sprachen sind Auswahl-Chips (gewählt: weiche Akzentfläche mit Haken), die Zuständigkeiten bleiben die vollständige Liste mit Formular statt einer Zusammenfassung mit „Ändern“, weil ein zweiter Weg dorthin ein zweites Formular brauchte. „Weitere Angaben“ (Zuordnung zu einer Person im Team, Befristung) ist eingeklappt und offen, wenn der Zugang befristet ist (R2). Der Entwurf zeigt Vorname, Nachname und Telefon; die Karte hat sie nicht (die Person hat einen vollständigen Namen und einen Namen im Haus, die E-Mail steht beim Zugang), und es entstehen keine neuen Felder.
+
+**Schalter in einer Maske mit „Speichern“.** design.md 5.23 verlangt Schalter nur für sofort wirkende Einstellungen. Der Entwurf des Auftraggebers zeigt auf der Personenkarte Schalter für „Zugang aktiv“, „Berichte mit Beträgen“, „Auswertungen ohne Beträge im Assistenten“ und „Alle Standorte“ statt Häkchen mit doppelter Beschriftung. Das gilt hier als benannte Ausnahme: Die Schalter wirken erst mit „Speichern“, die Beschriftung steht einmal am Schalter, der Hinweis darunter. Andere Masken mit „Speichern“ behalten Kontrollkästchen.
+
+**Teamliste.** „Person hinzufügen“ (primär) und „Person einladen“ bzw. „Zugang anlegen“ stehen fest über der Liste, nicht mehr als letzte Zeilen darin (ADR 0099, Regel 1); darunter die Suche und bei mehr als einem Standort „Alle“ und je Standort als Auswahl. Die Zeile nennt Name und Rolle; ein Kennzeichen am Zeilenende steht nur bei einer Abweichung: Gesperrt, Abgelaufen, „bis 19.12.2026“ (Befristung), Eingeladen, Ohne Zugang, Ausgeschieden. Ein Standort zeigt die Personen, die dort Arbeitszeit haben, oder deren Zugang dort gilt. Eine leere Liste nennt „Person hinzufügen“ als erste Aktion. Alles rechnet die Liste aus Daten, die die Karte ohnehin lädt; es gibt keinen neuen Endpunkt.
+
+**Begründung.** Die Regelarbeitszeit gehört zur Planung, nicht zu den Stammdaten; im Profil lag sie unter Sprachen und wurde übersehen. Ein fester Kopf hält Name und Menü im Bild, während man durch die Bereiche rollt. Das Kennzeichen nur bei Abweichungen entlastet die Liste: Wer normal angemeldet ist, braucht keinen Zusatz.
+
 ## Quellen
 
 - Rückmeldung des Auftraggebers vom 16.11.2026 mit Bild der Personenkarte, Auftrag vom selben Tag
