@@ -40,7 +40,7 @@
         <ui:FormField Label="Lieferant">
           <ComboBox x:Name="ItemSupplierField" ItemsSource="{Binding Suppliers}" SelectedItem="{Binding SelectedSupplier}" HorizontalAlignment="Stretch" />
         </ui:FormField>
-        <ui:FormField Grid.Column="1" Label="Artikelnummer beim Lieferanten">
+        <ui:FormField Grid.Column="1" Label="Artikelnummer Lieferant">
           <TextBox x:Name="ItemSupplierNumberField" Text="{Binding SupplierArticleNumber}" MaxLength="50" />
         </ui:FormField>
         <ui:FormField Grid.Column="2" Label="Barcode">

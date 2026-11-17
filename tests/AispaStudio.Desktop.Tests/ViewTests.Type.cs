@@ -19,7 +19,7 @@ public sealed partial class ViewTests
             new TextBlock { Text = "Zwischentitel 16/22 Semibold", Classes = { "h3" } },
             new TextBlock { Text = "Text 14/20 Regular: Der Termin von Mia Muster beginnt um 10:30." },
             new TextBlock { Text = "Klein 12/16 Regular: Hilfetext unter einem Feld.", Classes = { "small" } },
-            new TextBlock { Text = "Beschriftung 12/16 Medium", Classes = { "label" } },
+            new TextBlock { Text = "Beschriftung 13/18 Semibold", Classes = { "label" } },
             new TextBlock { Text = "Gruppentitel in Satzschreibweise", Classes = { "group" } },
             new Border { Classes = { "pill", "accent" }, Child = new TextBlock { Text = "Mini 12/14 Medium" } },
         },
@@ -38,8 +38,8 @@ public sealed partial class ViewTests
         Assert.Equal((16, 22, FontWeight.SemiBold), Of("Zwischentitel"));
         Assert.Equal((14, double.NaN, FontWeight.Normal), Of("Text 14"));
         Assert.Equal((12, 16, FontWeight.Normal), Of("Klein"));
-        Assert.Equal((12, 16, FontWeight.Medium), Of("Beschriftung"));
-        Assert.Equal((12, 16, FontWeight.Medium), Of("Gruppentitel"));
+        Assert.Equal((13, 18, FontWeight.SemiBold), Of("Beschriftung"));
+        Assert.Equal((13, 18, FontWeight.SemiBold), Of("Gruppentitel"));
         Assert.Equal((12, 14, FontWeight.Medium), Of("Mini"));
     }, "schriftstufen");
 }
