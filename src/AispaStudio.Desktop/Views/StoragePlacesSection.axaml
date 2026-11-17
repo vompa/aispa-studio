@@ -72,9 +72,9 @@
           <TextBlock Classes="muted small" TextWrapping="Wrap"
                      Text="Fällt der Bestand an diesem Ort darunter, steht er im Bestand als „unter Minimum“. Ohne Eintrag gilt hier kein Mindestwert. Bei einem Raumschrank sind die Mindestmengen die Raumausstattung: Nach der Behandlung prüft das Team, was fehlt. Die Höchstmenge ist freiwillig: Bis dahin füllt der Bestellvorschlag auf." />
           <Grid ColumnDefinitions="*,120,120,28" ColumnSpacing="8" IsVisible="{Binding HasMinimums}">
-            <TextBlock Text="Material" Classes="muted small" />
-            <TextBlock Grid.Column="1" Text="Mindestmenge" Classes="muted small" />
-            <TextBlock Grid.Column="2" Text="Höchstmenge" Classes="muted small" />
+            <TextBlock Text="Material" Classes="group" />
+            <TextBlock Grid.Column="1" Text="Mindestmenge" Classes="group" />
+            <TextBlock Grid.Column="2" Text="Höchstmenge" Classes="group" />
           </Grid>
           <ItemsControl x:Name="MinimumList" ItemsSource="{Binding Minimums}" IsVisible="{Binding HasMinimums}" AutomationProperties.Name="Mindestmengen">
             <ItemsControl.ItemTemplate>

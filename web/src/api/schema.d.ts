@@ -4858,6 +4858,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/locations/{locationId}/online-refunds": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Erstattungen online bezahlter Belege eines Standorts, neueste zuerst (höchstens 100), mit Beleg, Stornobeleg und Stand. */
+        get: operations["ListOnlineRefunds"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/locations/{locationId}/waitlist/pdf": {
         parameters: {
             query?: never;
@@ -11698,8 +11715,24 @@ export interface components {
             error: null | string;
             canRetry: boolean;
         };
+        OnlineRefundStaffEntry: {
+            /** Format: uuid */
+            receiptId: string;
+            receipt: null | string;
+            voidReceipt: null | string;
+            source: components["schemas"]["OnlinePaymentSource"];
+            /** Format: double */
+            amount: number;
+            currency: string;
+            status: components["schemas"]["OnlineRefundStatus"];
+            /** Format: date-time */
+            requestedAt: string;
+            /** Format: date-time */
+            refundedAt: null | string;
+            error: null | string;
+        };
         /** @enum {unknown} */
-        OnlineRefundStatus: "Pending" | "Refunded" | "Failed" | null;
+        OnlineRefundStatus: "Pending" | "Refunded" | "Failed";
         OnlineSuggestedTime: {
             /** Format: uuid */
             treatmentId: string;
@@ -14286,6 +14319,7 @@ export interface components {
             /** Format: uuid */
             receiptId: null | string;
             error: null | string;
+            receipt?: null | string;
         };
         VoucherOrderStarted: {
             /** Format: uuid */
@@ -27386,6 +27420,44 @@ export interface operations {
                 };
                 content: {
                     "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ListOnlineRefunds: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                locationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OnlineRefundStaffEntry"][];
                 };
             };
             /** @description Forbidden */

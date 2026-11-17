@@ -88,6 +88,14 @@ describe('Design-Token: Schriftstufen in index.css', () => {
     expect(Number(/font-weight:\s*(\d+)/.exec(block)?.[1])).toBe(gewicht)
   })
 
+  it('Beschriftung: die Variablen in :root tragen Größe, Zeilenhöhe und Gewicht des Briefs', () => {
+    const level = typeScale.schriftstufen.find((entry) => entry.name === 'Beschriftung')!
+    const root = /^:root \{([\s\S]*?)^\}/m.exec(indexCss)?.[1] ?? ''
+    expect(Number(/--label-size:\s*([0-9.]+)px/.exec(root)?.[1])).toBe(level.groesse)
+    expect(Number(/--label-line:\s*([0-9.]+)px/.exec(root)?.[1])).toBe(level.zeile)
+    expect(Number(/--label-weight:\s*(\d+)/.exec(root)?.[1])).toBe(level.gewicht)
+  })
+
   it('kennt nur Schriftgrößen der Stufen', () => {
     const sizes = [...indexCss.matchAll(/font-size:\s*([0-9.]+)px/g)].map((m) => Number(m[1]))
     expect([...new Set(sizes.filter((size) => !typeScale.schriftgroessen.includes(size)))]).toEqual([])

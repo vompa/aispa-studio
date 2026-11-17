@@ -9,6 +9,10 @@
 }
 
 :root {
+  /* Stufe „Beschriftung“ (Design-Brief 3): gemeinsame Werte für Feldbeschriftung, Gruppentitel und Tabellenkopf */
+  --label-size: 13px;
+  --label-weight: 600;
+  --label-line: 18px;
   /* Farben wie in der Windows-App (Themes/Colors.axaml), damit die Verwaltung dort nicht fremd wirkt (ADR 0053). */
   --bg: #f3f0ea;
   --fg: #1a2321;
@@ -1076,7 +1080,6 @@ input[type='radio'] {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  font-size: 12px;
 }
 
 .panel fieldset {
@@ -1354,12 +1357,6 @@ input[aria-invalid='true']:hover {
   gap: var(--space-label);
 }
 
-.money-field > label {
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--muted);
-}
-
 .num > .money-field {
   align-items: flex-end;
 }
@@ -1374,14 +1371,30 @@ input[aria-invalid='true']:hover {
   margin-block: -4px;
 }
 
-/* Beschriftung eines Feldes (Design-Brief 3): 12,5 px, Gewicht 500, --muted, über dem Feld; Text neben Kontrollkästchen (label.inline) bleibt Text */
+/* Stufe „Beschriftung“ (Design-Brief 3, Auftraggeber 17.11.2026): 13 px, Gewicht 600, Zeilenhöhe 18, --muted. Gilt für Feldbeschriftung über dem Feld,
+   Tabellenkopf und Kennzahl-Beschriftung; Text neben Kontrollkästchen (label.inline) bleibt Text. Werte nur hier und in :root (Test designTokens.test.ts). */
 .form-grid label:not(.inline),
 .panel label:not(.inline),
 .new-customer label,
 label.stacked,
-.field-head label {
-  font-weight: 500;
+.field-head label,
+.money-field > label,
+.signup label,
+.scan-answers label:not(.inline),
+.edit-table th,
+.roster-table thead th,
+.assistant-answer th {
+  font-size: var(--label-size);
+  font-weight: var(--label-weight);
+  line-height: var(--label-line);
   color: var(--muted);
+}
+
+/* Eingabefelder erben die Schrift (font: inherit) und bleiben Text, auch innerhalb einer Beschriftung */
+:is(.form-grid label:not(.inline), .panel label:not(.inline), .new-customer label, label.stacked, .field-head label, .money-field > label, .signup label, .scan-answers label:not(.inline)) :is(input, select, textarea) {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
 }
 
 /* Das Farbfeld ist so hoch wie die anderen Felder, damit die Beschriftungen einer Zeile auf einer Höhe stehen. */
@@ -1492,9 +1505,6 @@ label.inline {
 
 .edit-table th {
   text-align: left;
-  font-weight: 500;
-  color: var(--muted);
-  font-size: 12px;
   border-bottom: 1px solid var(--border-strong);
 }
 
@@ -1812,8 +1822,6 @@ input.qty {
   position: sticky;
   top: 0;
   background: var(--surface);
-  font-weight: 500;
-  color: var(--muted);
   border-bottom-color: var(--border-strong);
 }
 
@@ -1868,7 +1876,6 @@ ul.roster-warning {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  font-size: 12px;
 }
 
 /* Buchhaltung */
@@ -1987,7 +1994,6 @@ th.amount {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  font-size: 12px;
 }
 
 .scan-answers .yesno {
@@ -2499,7 +2505,6 @@ label.stacked {
   display: flex;
   flex-direction: column;
   gap: var(--space-label);
-  font-size: 12px;
 }
 
 label.stacked + label.stacked,

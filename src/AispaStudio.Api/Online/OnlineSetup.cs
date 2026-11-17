@@ -94,6 +94,7 @@ internal static class OnlineSetup
         routes.MapCardGuaranteeEndpoints();
         routes.MapDepositEndpoints();
         routes.MapOnlineRefundEndpoints();
+        routes.MapOnlinePaymentEndpoints();
         routes.MapPaymentAccountEndpoints();
         return routes;
     }

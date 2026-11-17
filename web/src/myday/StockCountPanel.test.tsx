@@ -98,7 +98,8 @@ describe('Inventur am Handy', () => {
     offline = false
     window.dispatchEvent(new Event('online'))
 
-    expect(await screen.findByText('Gespeichert')).toBeTruthy()
+    // Erneutes Senden ist ein Speichern wie jedes andere: dieselbe Wartezeit wie oben, sonst reicht unter Last in der CI eine Sekunde nicht.
+    expect(await screen.findByText('Gespeichert', {}, SAVE_WAIT)).toBeTruthy()
     expect(screen.queryByText(/wartet auf Verbindung/)).toBeNull()
     expect(localStorage.getItem('aispa-mein-tag-count:cs-1')).toBeNull()
     expect(screen.getByRole('button', { name: 'Abschicken' }).getAttribute('aria-disabled')).toBeNull()
