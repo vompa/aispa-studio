@@ -31,6 +31,7 @@ public sealed class ChannelScanTests(ApiFixture fixture)
         "GET /api/reports/locations/{locationId:guid}/management",
         "GET /api/reports/appointments/{appointmentId:guid}/card",
         "PUT /api/reports/appointments/{appointmentId:guid}/preparation/{stepId:guid}",
+        "PUT /api/reports/appointments/{appointmentId:guid}/equipment-prepared",
         "PUT /api/reports/appointments/{appointmentId:guid}/follow-up",
         "POST /api/appointments/{appointmentId:guid}/status",
         "POST /api/appointments/{appointmentId:guid}/begin",
