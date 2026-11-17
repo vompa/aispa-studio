@@ -681,6 +681,7 @@ public sealed partial class LocationsViewModel : ViewModelBase, IEditableArea, I
         RoomMessage = null;
         EquipmentMessage = null;
         NewEquipmentName = "";
+        ResetFormer();
         Rooms.Clear();
         Equipment.Clear();
         if (choice.Id is { } id && _locations.Find(l => l.Id == id) is { } location)
@@ -784,6 +785,11 @@ public sealed partial class LocationsViewModel : ViewModelBase, IEditableArea, I
             return;
         }
 
+        if (_resources[locationId].Rooms.FirstOrDefault(r => r.Id == id) is { } removed)
+        {
+            AddFormerRoom(removed);
+        }
+
         _resources[locationId] = _resources[locationId] with { Rooms = [.. _resources[locationId].Rooms.Where(r => r.Id != id)] };
         FillSections(locationId);
     }
@@ -859,6 +865,11 @@ public sealed partial class LocationsViewModel : ViewModelBase, IEditableArea, I
         {
             EquipmentMessage = result.Error ?? "Das Gerät wurde nicht entfernt.";
             return;
+        }
+
+        if (_resources[locationId].Equipment.FirstOrDefault(e => e.Id == row.Id) is { } removed)
+        {
+            AddFormerEquipment(removed);
         }
 
         _resources[locationId] = _resources[locationId] with { Equipment = [.. _resources[locationId].Equipment.Where(e => e.Id != row.Id)] };

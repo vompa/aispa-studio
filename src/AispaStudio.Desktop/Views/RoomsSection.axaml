@@ -50,6 +50,27 @@
     <ContentControl x:Name="NewRoomRow" Content="{Binding NewRoom}" />
     <TextBlock x:Name="RoomsEmpty" Text="Noch kein Raum angelegt. Ohne Raum lässt sich nichts buchen." Classes="muted" TextWrapping="Wrap" IsVisible="{Binding !Rooms.Count}" />
     <ItemsControl x:Name="RoomList" ItemsSource="{Binding Rooms}" />
+    <!-- Nicht mehr verwendete (ADR 0099): gedämpft unter den aktiven, im Menü „⋯“ nur „Wieder verwenden“ -->
+    <ItemsControl x:Name="FormerRoomList" ItemsSource="{Binding FormerRooms}" IsVisible="{Binding ShowFormerRooms}">
+      <ItemsControl.ItemsPanel>
+        <ItemsPanelTemplate>
+          <StackPanel Spacing="4" />
+        </ItemsPanelTemplate>
+      </ItemsControl.ItemsPanel>
+      <ItemsControl.ItemTemplate>
+        <DataTemplate x:DataType="vm:FormerRowViewModel">
+          <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8" AutomationProperties.Name="{Binding RowName}">
+            <TextBlock Text="{Binding Name}" Classes="muted" VerticalAlignment="Center" AutomationProperties.AccessibilityView="Raw" />
+            <Border Grid.Column="1" Classes="tag" VerticalAlignment="Center" AutomationProperties.AccessibilityView="Raw">
+              <TextBlock Text="Nicht mehr verwendet" />
+            </Border>
+            <ui:MoreMenuButton Grid.Column="2" Subject="{Binding Name}" DeactivateText="Wieder verwenden" DeactivateCommand="{Binding ReactivateCommand}" />
+          </Grid>
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
+    <CheckBox x:Name="ShowFormerRoomsBox" Content="Nicht mehr verwendete zeigen" IsChecked="{Binding ShowFormerRooms}" IsVisible="{Binding CanShowFormer}" />
+    <ui:InfoBar Severity="Success" Message="{Binding RoomNotice}" IsVisible="{Binding HasRoomNotice}" CloseCommand="{Binding CloseRoomNoticeCommand}" />
     <ui:InfoBar Severity="Error" Message="{Binding RoomMessage}" IsVisible="{Binding HasRoomMessage}" />
   </StackPanel>
 </UserControl>
