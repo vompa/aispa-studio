@@ -448,7 +448,7 @@
               </ui:FormField>
               <StackPanel x:Name="DialogButtons" Classes="confirmbuttons" Classes.stacked="{Binding HasAlternative}">
                 <Button x:Name="ConfirmButton" Classes.primary="{Binding !IsDestructive}" Classes.danger="{Binding IsDestructive}" Classes.filled="{Binding IsDestructive}"
-                        Content="{Binding ConfirmText}" Command="{Binding ConfirmCommand}" />
+                        Content="{Binding ConfirmText}" Command="{Binding ConfirmCommand}" IsVisible="{Binding HasConfirm}" />
                 <Button x:Name="AlternativeButton" Classes="danger" Content="{Binding AlternativeText}" Command="{Binding AlternativeCommand}"
                         IsVisible="{Binding HasAlternative}" />
                 <Button x:Name="CancelButton" Classes="ghost" Content="{Binding CancelText}" Command="{Binding CancelCommand}" />
