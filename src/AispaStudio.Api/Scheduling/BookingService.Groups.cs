@@ -130,6 +130,7 @@ internal sealed partial class BookingService
                 RoomId = area.Area.Id,
                 CustomerId = area.Item.CustomerId,
                 Customer = customers[area.Item.CustomerId],
+                PlaceholderGuest = area.Item.PlaceholderGuest,
                 Persons = 1,
                 GroupId = groupId,
                 Note = request.Note,
@@ -277,7 +278,7 @@ internal sealed partial class BookingService
         return (
             [.. appointments.Select(a => new GroupBookingItem(a.TreatmentId, a.CustomerId, starts.IndexOf(a.Start), a.EmployeeId, a.RoomId, a.PlaceholderGuest))],
             [.. appointments.Select(a => new GroupBookingItem(a.TreatmentId, a.CustomerId, starts.IndexOf(a.Start), PlaceholderGuest: a.PlaceholderGuest))],
-            [.. visits.Select(v => new GroupAreaItem(v.RoomId, v.CustomerId, starts.IndexOf(v.From), (int)(v.Until - v.From).TotalMinutes))],
+            [.. visits.Select(v => new GroupAreaItem(v.RoomId, v.CustomerId, starts.IndexOf(v.From), (int)(v.Until - v.From).TotalMinutes, v.PlaceholderGuest))],
             gap < TimeSpan.Zero ? TimeSpan.Zero : gap);
     }
 
@@ -295,14 +296,14 @@ internal sealed partial class BookingService
             return new BookingOutcome.Invalid("areas", "Zeit in einem Bereich zwischen 15 und 240 Minuten.");
         }
 
-        if (items.Any(i => i.PlaceholderGuest is < 1 or > MaxGroupItems))
+        if (items.Any(i => i.PlaceholderGuest is < 1 or > MaxGroupItems) || areas.Any(a => a.PlaceholderGuest is < 1 or > MaxGroupItems))
         {
             return new BookingOutcome.Invalid("items", $"Gäste ohne Namen sind von 1 bis {MaxGroupItems} nummeriert.");
         }
 
         // Ein Gast ist ein Kunde oder ein Gast ohne Namen (Nummer); Gäste ohne Namen tragen die Id der buchenden Person.
         var all = items.Select(i => (i.Step, Guest: (i.CustomerId, i.PlaceholderGuest)))
-            .Concat(areas.Select(a => (a.Step, Guest: (a.CustomerId, (int?)null)))).ToList();
+            .Concat(areas.Select(a => (a.Step, Guest: (a.CustomerId, a.PlaceholderGuest)))).ToList();
         var steps = all.Select(i => i.Step).Distinct().Order().ToList();
         if (steps[0] != 0 || steps[^1] != steps.Count - 1)
         {

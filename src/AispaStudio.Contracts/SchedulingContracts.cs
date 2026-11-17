@@ -744,6 +744,9 @@ public enum AbsenceOption
 
     /// <summary>Hier kein Ersatz, aber an einem anderen Standort desselben Spas; nur nach Rücksprache mit dem Gast übernehmen.</summary>
     OtherLocation,
+
+    /// <summary>An diesem Tag nirgends Ersatz, aber an einem der nächsten Tage am selben Standort; nur nach Rücksprache mit dem Gast übernehmen.</summary>
+    OtherDay,
 }
 
 /// <summary>Ausfall einer Person an einem Tag: für ihre Termine an diesem Standort Ersatz vorschlagen.</summary>
@@ -792,8 +795,9 @@ public sealed record GroupBookingItem(Guid TreatmentId, Guid CustomerId, int Ste
 
 /// <summary>
 /// Zeit in einem Bereich (Sauna, Ruheraum) als Teil des Spa-Tags: der Gast belegt im Schritt <c>Step</c> einen Platz für <c>Minutes</c>.
+/// <c>PlaceholderGuest</c>: Gast ohne Namen wie bei <see cref="GroupBookingItem"/>; <c>CustomerId</c> ist dann die buchende Person.
 /// </summary>
-public sealed record GroupAreaItem(Guid RoomId, Guid CustomerId, int Step, int Minutes);
+public sealed record GroupAreaItem(Guid RoomId, Guid CustomerId, int Step, int Minutes, int? PlaceholderGuest = null);
 
 /// <summary>
 /// Paar- oder Spa-Tag-Buchung: alle Behandlungen werden gemeinsam gebucht oder keine. <c>GapMinutes</c>: Pause zwischen den Schritten.
@@ -858,7 +862,8 @@ public sealed record AreaVisitDto(
     bool IsCancelled,
     string? Note,
     Guid? GroupId = null,
-    IReadOnlyList<string>? Warnings = null);
+    IReadOnlyList<string>? Warnings = null,
+    int? PlaceholderGuest = null);
 
 /// <summary>Hinweise an die Rezeption, die nichts sperren; der Server schickt sie in <c>Warnings</c>, die Windows-App zeigt denselben Text vorab in der Maske.</summary>
 public static class BookingNotices

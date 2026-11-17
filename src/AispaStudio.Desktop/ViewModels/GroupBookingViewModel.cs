@@ -435,8 +435,8 @@ public partial class GroupBookingViewModel : ViewModelBase
     /// <summary>Hinweis unter den Gästen, sobald jemand „Name folgt“ hat.</summary>
     public string? NameLaterNote => !Guests.Any(g => g.NameLater) ? null
         : Booker is { } booker
-            ? $"Gäste ohne Namen laufen auf {$"{booker.FirstName} {booker.LastName}".Trim()}. Die Namen lassen sich später im Termin nachtragen; "
-                + "Sauna und Ruheraum nur für Gäste mit Namen."
+            ? $"Gäste ohne Namen laufen auf {$"{booker.FirstName} {booker.LastName}".Trim()}. Die Namen lassen sich später im Termin nachtragen, "
+                + "auch für Sauna und Ruheraum."
             : "Mindestens ein Gast braucht einen Namen: wer bucht.";
 
     /// <summary>Für die Suche reicht es, die Gäste zu unterscheiden; Gewählte gehen mit ihrer Id mit.</summary>
@@ -445,7 +445,8 @@ public partial class GroupBookingViewModel : ViewModelBase
             PlaceholderGuest: !placeholders && e.Guest.NameLater ? e.Guest.Number : null))];
 
     private List<GroupAreaItem> Areas(bool placeholders) =>
-        [.. Entries().Where(e => e.AreaId is not null).Select(e => new GroupAreaItem(e.AreaId!.Value, CustomerOf(e, placeholders), e.Step, e.Minutes))];
+        [.. Entries().Where(e => e.AreaId is not null).Select(e => new GroupAreaItem(e.AreaId!.Value, CustomerOf(e, placeholders), e.Step, e.Minutes,
+            !placeholders && e.Guest.NameLater ? e.Guest.Number : null))];
 
     private bool Flexible => FlexibleOrder && Entries().Select(e => e.Step).Distinct().Count() > 1;
 
@@ -564,11 +565,6 @@ public partial class GroupBookingViewModel : ViewModelBase
             if (entries.Count < 2 || entries.All(e => e.TreatmentId is null))
             {
                 return "Verfügbar, sobald mindestens zwei Teile gewählt sind, davon eine Behandlung.";
-            }
-
-            if (entries.Any(e => e.Guest.NameLater && e.AreaId is not null))
-            {
-                return "Verfügbar, sobald Sauna und Ruheraum nur bei Gästen mit Namen stehen.";
             }
 
             if (Slot is null && !(IsOffline && TryOfflineStart(out _)))

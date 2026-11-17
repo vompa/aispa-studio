@@ -22,17 +22,20 @@ public partial class AbsenceRow : ViewModelBase
             AbsenceOption.OtherLocation => item.Start == item.Appointment.Start
                 ? $"in {item.LocationName} zur gleichen Zeit bei {item.EmployeeName}, {item.RoomName}"
                 : $"in {item.LocationName} um {DayLayout.Local(item.Start!.Value, zone):HH:mm} bei {item.EmployeeName}, {item.RoomName}",
+            AbsenceOption.OtherDay => $"{DayLayout.ShortDayTime(item.Start!.Value, zone)} bei {item.EmployeeName}, {item.RoomName}",
             _ => withDate ? "kein anderer Raum an diesem Tag" : "kein Ersatz an diesem Tag",
         };
         CanApply = item.Option != AbsenceOption.None;
 
-        // Ein anderer Standort ist ein größerer Einschnitt für den Gast: erst mit ihm sprechen, dann anhaken.
-        IsChosen = CanApply && !IsOtherLocation;
+        // Ein anderer Standort oder Tag ist ein größerer Einschnitt für den Gast: erst mit ihm sprechen, dann anhaken.
+        IsChosen = CanApply && !IsOtherLocation && !IsOtherDay;
     }
 
     public AbsenceProposalItem Item { get; }
 
     public bool IsOtherLocation => Item.Option == AbsenceOption.OtherLocation;
+
+    public bool IsOtherDay => Item.Option == AbsenceOption.OtherDay;
 
     public string Guest { get; }
 
@@ -56,8 +59,8 @@ public partial class AbsenceRow : ViewModelBase
 
 /// <summary>
 /// Ausfall-Assistent im Kalender: schlägt für die offenen Termine einer abwesenden Person Ersatz vor (gleiche Zeit bei jemand anderem,
-/// sonst die nächste freie Zeit am selben Tag). Geht hier gar nichts, zeigt der Abschnitt „Andere Standorte“ Vorschläge von dort; sie sind nicht vorausgewählt,
-/// weil der Gast zustimmen muss. Die Rezeption wählt aus und übernimmt; verschoben wird über den Server.
+/// sonst die nächste freie Zeit am selben Tag). Geht hier gar nichts, zeigt der Abschnitt „Andere Standorte“ Vorschläge von dort, und geht es an diesem Tag
+/// nirgends, der Abschnitt „Andere Tage“ den nächsten freien Termin der folgenden zwei Wochen; beide sind nicht vorausgewählt, weil der Gast zustimmen muss. Die Rezeption wählt aus und übernimmt; verschoben wird über den Server.
 /// Dasselbe Fenster dient als Umbuchungshilfe für eine Raumsperre (ADR 0076): für die offenen Termine im gesperrten Raum ein anderer Raum zur gleichen Zeit,
 /// sonst die nächste freie Zeit am selben Tag; übernommen wird über denselben Weg.
 /// </summary>
@@ -116,9 +119,16 @@ public partial class AbsenceAssistantViewModel : ViewModelBase
     [NotifyPropertyChangedFor(nameof(HasRows), nameof(HasOtherRows), nameof(IsEmpty))]
     public partial IReadOnlyList<AbsenceRow> OtherRows { get; private set; } = [];
 
-    public bool HasRows => Rows.Count > 0 || OtherRows.Count > 0;
+    /// <summary>Vorschläge an einem der nächsten Tage, wenn es am Tag selbst nirgends Ersatz gibt: eigener Abschnitt, nicht vorausgewählt.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasRows), nameof(HasDayRows), nameof(IsEmpty))]
+    public partial IReadOnlyList<AbsenceRow> DayRows { get; private set; } = [];
+
+    public bool HasRows => Rows.Count > 0 || OtherRows.Count > 0 || DayRows.Count > 0;
 
     public bool HasOtherRows => OtherRows.Count > 0;
+
+    public bool HasDayRows => DayRows.Count > 0;
 
     public bool IsEmpty => !IsLoading && !HasRows && Error is null;
 
@@ -159,8 +169,9 @@ public partial class AbsenceAssistantViewModel : ViewModelBase
             }
 
             var rows = result.Value.Items.Select(i => new AbsenceRow(i, _zone, IsRoomClosure)).ToList();
-            Rows = [.. rows.Where(r => !r.IsOtherLocation)];
+            Rows = [.. rows.Where(r => !r.IsOtherLocation && !r.IsOtherDay)];
             OtherRows = [.. rows.Where(r => r.IsOtherLocation)];
+            DayRows = [.. rows.Where(r => r.IsOtherDay)];
         }
         finally
         {
@@ -172,7 +183,7 @@ public partial class AbsenceAssistantViewModel : ViewModelBase
     [RelayCommand]
     public async Task ApplyAsync()
     {
-        var chosen = Rows.Concat(OtherRows).Where(r => r.IsChosen && r.CanApply).ToList();
+        var chosen = Rows.Concat(OtherRows).Concat(DayRows).Where(r => r.IsChosen && r.CanApply).ToList();
         if (chosen.Count == 0)
         {
             Error = "Bitte mindestens einen Vorschlag wählen.";

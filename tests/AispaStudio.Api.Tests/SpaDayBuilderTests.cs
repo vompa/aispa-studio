@@ -26,6 +26,41 @@ public sealed class SpaDayBuilderTests(ApiFixture fixture)
         spa.PostAsync<List<GroupSlot>>($"/api/locations/{spa.Location.Id}/appointment-groups/availability", request, Ct);
 
     [Fact]
+    public async Task Gast_ohne_Namen_bekommt_die_Sauna_und_sie_geht_beim_Nachtragen_mit()
+    {
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        var sauna = await SaunaAsync(spa, 4);
+        var booker = await GuestAsync(spa);
+        var named = await GuestAsync(spa);
+        var massage = spa.MassageTreatment.Id;
+        // Die buchende Person und Gast 1 tauschen: erst Massage und Sauna nebeneinander, dann umgekehrt.
+        GroupBookingItem[] items = [new(massage, booker.Id, 0), new(massage, booker.Id, 1, PlaceholderGuest: 1)];
+        GroupAreaItem[] areas = [new(sauna.Id, booker.Id, 0, 60, PlaceholderGuest: 1), new(sauna.Id, booker.Id, 1, 60)];
+
+        var response = await spa.Client.PostAsJsonAsync("/api/appointment-groups",
+            new GroupBookingRequest(spa.Location.Id, TestSpa.At(10), items, 0, "Firmenfeier", null, areas), TestSpa.Json, Ct);
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        var booked = await TestSpa.ReadAsync<GroupBookingResult>(response, Ct);
+        Assert.Equal([1, null], booked.AreaVisits!.OrderBy(v => v.From).Select(v => v.PlaceholderGuest));
+        var guestVisit = booked.AreaVisits!.Single(v => v.PlaceholderGuest == 1);
+        Assert.Equal((booker.Id, "Gast 1 · Name folgt"), (guestVisit.CustomerId, guestVisit.CustomerName));
+
+        // Verschieben behält die Nummer.
+        var moved = await spa.PostAsync<GroupBookingResult>($"/api/locations/{spa.Location.Id}/appointment-groups/{booked.GroupId}/move",
+            new MoveGroupRequest(TestSpa.At(13)), Ct);
+        Assert.Equal(1, moved.AreaVisits!.Single(v => v.Id == guestVisit.Id).PlaceholderGuest);
+
+        var guestAppointment = moved.Appointments.Single(a => a.PlaceholderGuest == 1);
+        var assigned = await spa.PutAsync<GroupBookingResult>($"/api/appointments/{guestAppointment.Id}/guest", new AssignGuestRequest(named.Id), Ct);
+        var visit = Assert.Single(assigned.AreaVisits!);
+        Assert.Equal((guestVisit.Id, named.Id, (int?)null), (visit.Id, visit.CustomerId, visit.PlaceholderGuest));
+        var areaDay = await spa.GetAsync<List<AreaDay>>($"/api/locations/{spa.Location.Id}/areas?date={TestSpa.Monday:yyyy-MM-dd}", Ct);
+        var visits = Assert.Single(areaDay).Visits;
+        Assert.Equal(named.Id, visits.Single(v => v.Id == guestVisit.Id).CustomerId);
+        Assert.Equal(booker.Id, visits.Single(v => v.Id != guestVisit.Id).CustomerId);
+    }
+
+    [Fact]
     public async Task Planer_stellt_die_Sauna_vor_die_Massage_wenn_der_Tag_so_frueher_endet()
     {
         var spa = await TestSpa.CreateAsync(fixture, Ct);

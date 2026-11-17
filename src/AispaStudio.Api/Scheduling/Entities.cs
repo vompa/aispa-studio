@@ -462,8 +462,13 @@ public sealed class AreaVisit
     public Guid Id { get; init; } = Guid.CreateVersion7();
     public Guid LocationId { get; init; }
     public Guid RoomId { get; init; }
-    public Guid CustomerId { get; init; }
-    public Customer Customer { get; init; } = null!;
+
+    /// <summary>Bei einem Gast ohne Namen die buchende Person, bis der Name nachgetragen ist (<see cref="PlaceholderGuest"/>).</summary>
+    public Guid CustomerId { get; set; }
+    public Customer Customer { get; set; } = null!;
+
+    /// <summary>Gast ohne Namen im Spa-Tag einer Gruppe: Nummer des Gastes in der Buchung, wie bei <see cref="Appointment.PlaceholderGuest"/>.</summary>
+    public int? PlaceholderGuest { get; set; }
     public int Persons { get; init; }
     public DateTimeOffset From { get; set; }
     public DateTimeOffset Until { get; set; }

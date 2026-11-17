@@ -70,6 +70,32 @@ public sealed partial class ViewTests
     }
 
     [Fact]
+    public Task Termin_ohne_Anzahlung_mit_Angebot_Klick_auf_Anzahlung_per_Link_zeigt_den_Stand()
+    {
+        var pending = DepositState() with { Status = OnlineDepositStatus.Pending, PaidAt = null, ReceiptId = null, Hint = "Der Gast hat den Link bekommen und noch nicht bezahlt." };
+        var stub = Api()
+            .On($"GET {DepositStateRoute}", null, HttpStatusCode.NoContent)
+            .On($"GET {DepositStateRoute}/offer", new DepositRequestOffer(true, 30m, "EUR", 30, null))
+            .On($"POST {DepositStateRoute}/request", pending);
+        return Render("hell", "termin-anzahlung-anfordern", async (window, main) =>
+        {
+            var calendar = await OpenSelected(main);
+
+            Assert.Contains("Der Standort verlangt 30 % (30,00 €). Der Gast bekommt einen Link und bezahlt dort; der Termin bleibt auch ohne Zahlung stehen.", PanelTexts(window, "DepositCard"));
+            Assert.Equal("Anzahlung per Link", Named<Button>(window, "RequestDepositButton").Content);
+            Assert.DoesNotContain(stub.Calls, c => c.Route == $"POST {DepositStateRoute}/request");
+
+            await ClickScrolled(window, "RequestDepositButton");
+
+            Assert.Contains(stub.Calls, c => c.Route == $"POST {DepositStateRoute}/request");
+            Assert.Contains("Noch nicht bezahlt · 30,00 € (30 %)", PanelTexts(window, "DepositCard"));
+            Assert.Equal("Link erneut senden", Named<Button>(window, "RequestDepositButton").Content);
+            Assert.Equal("Link per Mail verschickt", calendar.Toast);
+            return calendar;
+        }, stub);
+    }
+
+    [Fact]
     public Task Ausfallgebuehr_belasten_fragt_nach_und_ruft_charge_erst_nach_Ja()
     {
         var stub = Api()

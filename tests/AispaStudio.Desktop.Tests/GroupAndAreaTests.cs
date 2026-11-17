@@ -285,6 +285,39 @@ public sealed class GroupAndAreaTests
     }
 
     [Fact]
+    public async Task Gast_ohne_Namen_bekommt_Sauna_und_die_Buchung_traegt_seine_Nummer()
+    {
+        // In der Suche trägt Gast 2 eine Platzhalter-Id, beim Buchen die Id der buchenden Person und die Nummer.
+        var unnamedSearchId = Guid.Parse("00000000-0000-4000-8000-000000000002");
+        var slot = new GroupSlot(TestData.At(10), TestData.At(11), SharedRoom: false,
+            [new GroupSlotItem(TestData.At(10), TestData.At(10, 50), TestData.Anna.Id, TestData.Room.Id, null)],
+            [new GroupSlotArea(TestData.At(10), TestData.At(11), Sauna.Id, unnamedSearchId)]);
+        var api = Api().On(Availability, new List<GroupSlot> { slot });
+        var vm = await OpenAsync(api);
+        vm.OpenGroupBookingCommand.Execute(null);
+        var group = vm.GroupBooking!;
+        await group.Guests[0].Search.SearchAsync("eva");
+        group.Guests[0].Search.Customer = group.Guests[0].Search.Results[0];
+        group.Guests[1].NameLater = true;
+        group.Steps[0].Entries[0].Choice = group.Steps[0].Entries[0].Choices.First(c => c.Id == TestData.MassageTreatment.Id);
+        group.Steps[0].Entries[1].Choice = group.Steps[0].Entries[1].Choices.First(c => c.AreaId == Sauna.Id && c.Minutes == 60);
+        await group.SearchSlotsAsync();
+
+        Assert.Equal("Gäste ohne Namen laufen auf Eva Muster. Die Namen lassen sich später im Termin nachtragen, auch für Sauna und Ruheraum.", group.NameLaterNote);
+        var search = JsonSerializer.Deserialize<GroupAvailabilityRequest>(api.Calls.Last(c => c.Route == Availability).Body!, ApiClient.Json)!;
+        Assert.Equal(unnamedSearchId, Assert.Single(search.Areas!).CustomerId);
+
+        var groupId = Guid.NewGuid();
+        api.On("POST /api/appointment-groups", new GroupBookingResult(groupId, [Grouped(TestData.Appointment(10, TestData.Anna), groupId, Eva)]), HttpStatusCode.Created);
+        await group.BookCommand.ExecuteAsync(null);
+
+        var request = JsonSerializer.Deserialize<GroupBookingRequest>(api.Calls.Last(c => c.Route == "POST /api/appointment-groups").Body!, ApiClient.Json)!;
+        var area = Assert.Single(request.Areas!);
+        Assert.Equal((Eva.Id, (int?)2), (area.CustomerId, area.PlaceholderGuest));
+        Assert.Equal((Eva.Id, (int?)null), (Assert.Single(request.Items).CustomerId, request.Items[0].PlaceholderGuest));
+    }
+
+    [Fact]
     public async Task Baukasten_nimmt_die_Sauna_als_Teil_laesst_den_Planer_ordnen_und_zeigt_den_Ablauf()
     {
         var slot = new GroupSlot(TestData.At(10), TestData.At(11, 55), SharedRoom: false,

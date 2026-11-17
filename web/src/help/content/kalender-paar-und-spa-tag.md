@@ -59,7 +59,7 @@ Alle Termine stehen im Kalender, jeder mit einem farbigen Etikett, z. B. „Paar
 - Mindestens zwei Teile, davon eine Behandlung, müssen gewählt sein, sonst steht dort „Mindestens zwei Teile wählen, davon eine Behandlung.“
 - „An diesem Tag ist keine gemeinsame Zeit frei. Anderen Tag wählen.“ heißt: kein Beginn, zu dem alle Personen, Räume und Geräte frei sind. Dann Pause, Behandlungen oder Tag ändern.
 - Ist **Alles buchen** grau, nennt der Hinweis am Knopf den ersten fehlenden Punkt.
-- Sauna oder Ruheraum im Spa-Tag werden als Eintritt derselben Buchung gebucht, zählen in der Belegung mit und gehen beim Verschieben und Stornieren der ganzen Buchung mit; sie gehen nur für Gäste mit Namen.
+- Sauna oder Ruheraum im Spa-Tag werden als Eintritt derselben Buchung gebucht, zählen in der Belegung mit und gehen beim Verschieben und Stornieren der ganzen Buchung mit; das gilt auch für Gäste ohne Namen.
 - Ein Eintritt in Sauna oder Ruheraum ohne Behandlung wird eigens gebucht: [Sauna-Eintritt](hilfe:kalender-sauna-eintritt).
 
 
@@ -79,7 +79,7 @@ Bei Gruppen und Firmen-Events kennt die Rezeption beim Buchen oft nur die Person
 - **Namen nachtragen**: Termin anklicken oder Rechtsklick › **Namen nachtragen**, im Kasten **NAME NACHTRAGEN** den Gast suchen und **Gast eintragen** klicken. Das gilt für alle Termine dieses Gastes in der Buchung.
 - Hat der Gast bei der Person „Nicht bei mir“, lehnt der Server das Nachtragen ab; dann erst umbuchen.
 - Einen einzelnen Gast storniert man wie jeden Termin über Rechtsklick › **Stornieren …**.
-- Sauna und Ruheraum gehen nur für Gäste mit Namen.
+- Sauna und Ruheraum gehen auch für Gäste ohne Namen. Der Eintritt steht als „Gast 3 · Name folgt“ in der Belegung; beim Namen nachtragen geht er mit auf den Gast.
 
 ## Gemeinsame Buchung ansehen und ändern {#aendern}
 

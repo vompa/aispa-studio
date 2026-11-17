@@ -29,6 +29,11 @@ internal sealed class AbsenceAssistant(AispaDbContext db, BookingService booking
     private static readonly AppointmentStatus[] Open = [AppointmentStatus.Booked, AppointmentStatus.CheckedIn];
     private static readonly TimeSpan Step = TimeSpan.FromMinutes(15);
 
+    /// <summary>So viele Tage nach dem Ausfall sucht der Assistent einen anderen Tag, wenn es am Tag selbst nirgends Ersatz gibt.</summary>
+    internal const int OtherDays = 14;
+
+    private static readonly CultureInfo German = CultureInfo.GetCultureInfo("de-AT");
+
     public async Task<AbsenceProposal?> ProposeAsync(Guid locationId, AbsenceProposalRequest request, UserAccess? access, CancellationToken ct)
     {
         var zoneId = await db.Locations.Where(l => l.Id == locationId).Select(l => l.TimeZone).FirstOrDefaultAsync(ct);
@@ -141,6 +146,46 @@ internal sealed class AbsenceAssistant(AispaDbContext db, BookingService booking
                     var when = sameTime is not null ? $"zur gleichen Zeit um {Time(found.Times.Start, otherZone)}" : $"um {Time(found.Times.Start, otherZone)}";
                     explanation = $"In {here} ist an diesem Tag niemand frei. In {other.Name} geht es {when} bei {found.Employee.DisplayName} in {found.Room.Name}; nur nach Rücksprache mit dem Gast übernehmen.";
                     break;
+                }
+            }
+
+            // Weder hier noch anderswo an diesem Tag: der nächste Tag am eigenen Standort, an dem jemand anderes frei ist, möglichst zur gewohnten Uhrzeit.
+            // Die ausgefallene Person bleibt außen vor; ob sie bis dahin wieder da ist, weiß der Assistent nicht.
+            if (plan is null && appointment.GroupId is null && appointment.Status == AppointmentStatus.Booked)
+            {
+                var timeOfDay = TimeOf(appointment.Start, zone);
+                for (var day = 1; day <= OtherDays && plan is null; day++)
+                {
+                    var date = request.Date.AddDays(day);
+                    var dayLoaded = await booking.LoadContextAsync(locationId, appointment.TreatmentId, date, appointment.Id, ct);
+                    if (dayLoaded is null)
+                    {
+                        break;
+                    }
+
+                    var dayContext = dayLoaded with
+                    {
+                        Employees = [.. dayLoaded.Employees.Where(e => e.Id != request.EmployeeId)],
+                        Bookings = [.. dayLoaded.Bookings, .. reserved],
+                    };
+                    var dayPlanner = new ResourcePlanner(BookingService.WithTimesOf(appointment, dayContext));
+                    plan = dayPlanner.FreeSlots(date, Step, null)
+                        .Where(s => s.Start > time.GetUtcNow())
+                        .OrderBy(s => Math.Abs((TimeOf(s.Start, zone) - timeOfDay).TotalMinutes))
+                        .ThenBy(s => s.Fit == SlotFit.LeavesGap)
+                        .Select(s => dayPlanner.Plan(s.Start, s.EmployeeId, s.RoomId).Plan)
+                        .FirstOrDefault(p => p is not null);
+                }
+
+                if (plan is not null)
+                {
+                    option = AbsenceOption.OtherDay;
+                    explanation = $"An diesem Tag ist niemand mit der Qualifikation frei. Nächster freier Termin: {DayAndTime(plan.Times.Start, zone)} bei {plan.Employee.DisplayName} "
+                        + $"in {plan.Room.Name}; nur nach Rücksprache mit dem Gast übernehmen.";
+                }
+                else
+                {
+                    explanation = $"Auch in den nächsten {OtherDays} Tagen ist niemand mit der Qualifikation frei. Bitte den Gast kontaktieren.";
                 }
             }
 
@@ -367,6 +412,8 @@ internal sealed class AbsenceAssistant(AispaDbContext db, BookingService booking
         var when = Date(appointment.Start, zone);
         var change = previousLocation is not null
             ? $"Wie besprochen findet Ihr Termin nicht in {previousLocation}, sondern in {location} statt: am {when}, bei {employee}. Der Preis bleibt wie gebucht."
+            : LocalTime.LocalDate(appointment.Start, zone) != LocalTime.LocalDate(previousStart, zone)
+            ? $"Wie besprochen verschieben wir Ihren Termin von {Date(previousStart, zone)} auf {when}, bei {employee}. Ihre Therapeutin bzw. Ihr Therapeut ist leider ausgefallen."
             : appointment.Start == previousStart
             ? $"Ihr Termin am {when} bleibt zur gleichen Zeit. Leider ist Ihre Therapeutin bzw. Ihr Therapeut ausgefallen; Sie werden von {employee} behandelt."
             : $"Leider müssen wir Ihren Termin verschieben: von {Date(previousStart, zone)} auf {when}, bei {employee}.";
@@ -388,6 +435,15 @@ internal sealed class AbsenceAssistant(AispaDbContext db, BookingService booking
 
     private static string Time(DateTimeOffset utc, TimeZoneInfo zone) =>
         TimeZoneInfo.ConvertTime(utc, zone).ToString("HH:mm", CultureInfo.InvariantCulture);
+
+    private static TimeOnly TimeOf(DateTimeOffset utc, TimeZoneInfo zone) => TimeOnly.FromDateTime(TimeZoneInfo.ConvertTime(utc, zone).DateTime);
+
+    /// <summary>„Di. 24.11. um 10:00“.</summary>
+    private static string DayAndTime(DateTimeOffset utc, TimeZoneInfo zone)
+    {
+        var local = TimeZoneInfo.ConvertTime(utc, zone);
+        return $"{German.DateTimeFormat.GetAbbreviatedDayName(local.DayOfWeek).TrimEnd('.')}. {local:dd.MM.} um {local:HH:mm}";
+    }
 
     private static string Date(DateTimeOffset utc, TimeZoneInfo zone) =>
         TimeZoneInfo.ConvertTime(utc, zone).ToString("dd.MM.yyyy 'um' HH:mm 'Uhr'", CultureInfo.InvariantCulture);

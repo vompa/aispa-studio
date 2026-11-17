@@ -329,6 +329,25 @@ internal static class SpaSample
         return proposal with { Items = [.. proposal.Items.Take(proposal.Items.Count - 1), elsewhere] };
     }
 
+    /// <summary>Wie <see cref="AbsenceProposal()"/>, nur dass es für den dritten Termin erst eine Woche später Ersatz gibt.</summary>
+    public static AbsenceProposal AbsenceProposalWithOtherDay()
+    {
+        var proposal = AbsenceProposal();
+        var last = proposal.Items[^1];
+        var later = last with
+        {
+            Option = AbsenceOption.OtherDay,
+            Start = last.Appointment.Start.AddDays(7),
+            EmployeeId = Malee.Id,
+            EmployeeName = Malee.DisplayName,
+            RoomId = Thai.Id,
+            RoomName = Thai.Name,
+            Explanation = "An diesem Tag ist niemand mit der Qualifikation frei. Nächster freier Termin: Mo. 26.10. um 15:00 bei Malee Chaiyasit in Thai-Raum; "
+                + "nur nach Rücksprache mit dem Gast übernehmen.",
+        };
+        return proposal with { Items = [.. proposal.Items.Take(proposal.Items.Count - 1), later] };
+    }
+
     /// <summary>Besuche und Hinweise der Gäste, wie sie der Server zum Kalendertag liefert: Stammgäste, Erstbesuche, Hinweise.</summary>
     private static CalendarDay WithGuests(CalendarDay day) => day with
     {
