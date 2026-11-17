@@ -12,7 +12,7 @@ Auf der Seite „Aktionen“ legen Inhaber und Standortleitung zeitlich begrenzt
 
 ## Aufbau {#aufbau}
 
-In der Windows-App steht die Seite unter „Verwaltung“ › „Angebot“ › „Aktionen“: oben der Knopf **Neue Aktion** und **Archivierte anzeigen**, in der Liste der Zustand jeder Aktion (Läuft, Geplant, Pausiert, Abgelaufen). Links die Liste mit Name, Rabatt, Zeitraum und Standorten, rechts die Maske der gewählten Aktion mit den Gruppen Aktion, Rabatt, Zeitraum, Gilt für und Standorte. Über **Weitere Aktionen** lässt sich die Aktion pausieren, fortsetzen und archivieren.
+In der Windows-App steht die Seite unter „Verwaltung“ › „Aktionen“: oben der Knopf **Neue Aktion** und **Archivierte anzeigen**, in der Liste der Zustand jeder Aktion (Läuft, Geplant, Pausiert, Abgelaufen). Links die Liste mit Name, Rabatt, Zeitraum und Standorten, rechts die Maske der gewählten Aktion mit den Gruppen Aktion, Rabatt, Zeitraum, Gilt für und Standorte. Über **Weitere Aktionen** lässt sich die Aktion pausieren, fortsetzen und archivieren.
 
 ## Wer was sieht {#rechte}
 

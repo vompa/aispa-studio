@@ -45,14 +45,15 @@ public sealed class AdminPageTests
     // R05 Slice 125 (Ä293): Gruppen und Reihenfolge sind die Festlegung des Auftraggebers vom 31.10.2026, hier wörtlich aus der Slice-Datei.
     // ADR 0098 (16.11.2026): Schließzeiten und Raumsperren stehen auf einer Seite, „Betrieb“ hat damit fünf Masken.
     [Fact]
-    public void Given_Inhaberin_When_sie_die_Verwaltung_oeffnet_Then_sieben_Gruppen_mit_ihren_Masken()
+    public void Given_Inhaberin_When_sie_die_Verwaltung_oeffnet_Then_acht_Gruppen_mit_ihren_Masken()
     {
         var page = Shell(TestData.Owner()).AdminPage;
 
         Assert.Equal(
             [
                 "Betrieb: Firmendaten, Standorte & Räume, Schließzeiten, Kalender-Abos, Handbuch",
-                "Angebot: Behandlungen, Aktionen",
+                "Behandlungen: Behandlungen",
+                "Aktionen: Aktionen",
                 "Team: Team",
                 "Lager: Lager",
                 "Kassa & Geld: Kassa, Zahlungen, Kosten, Buchhaltung",
@@ -99,7 +100,8 @@ public sealed class AdminPageTests
     [Theory]
     [InlineData("masterData", "closures", "Betrieb", "Schließzeiten")]
     [InlineData("masterData", "roomClosures", "Betrieb", "Schließzeiten")]
-    [InlineData("masterData", "treatments", "Angebot", "Behandlungen")]
+    [InlineData("masterData", "treatments", "Behandlungen", "Behandlungen")]
+    [InlineData("promotions", null, "Aktionen", "Aktionen")]
     [InlineData("roster", null, "Team", "Team")]
     [InlineData("masterData", "qualifications", "Team", "Team")]
     [InlineData("stock", null, "Lager", "Lager")]

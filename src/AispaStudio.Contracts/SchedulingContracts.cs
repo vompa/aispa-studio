@@ -194,7 +194,11 @@ public sealed record TreatmentDto(
     string? GuestHint = null,
     bool CheckAnamnesis = false,
     int HandsOnMinutes = 0,
-    int ProcessingMinutes = 0);
+    int ProcessingMinutes = 0)
+{
+    /// <summary>Wird die Behandlung angeboten? Nur die Liste mit <c>includeInactive</c> enthält auch nicht mehr angebotene; leer heißt angeboten (ältere Antworten).</summary>
+    public bool? IsActive { get; init; }
+}
 
 /// <summary>Alles, was ein Standort zum Planen braucht: Räume, Geräte, Personen mit Arbeitszeit dort und angebotene Behandlungen.</summary>
 public sealed record LocationResources(

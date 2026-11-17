@@ -12,7 +12,7 @@ Im Kopf der Behandlung steht rechts neben dem Namen die Schaltfläche **Verlauf*
 
 ## Verlauf ansehen {#ansehen}
 
-1. Unter „Verwaltung“ › „Angebot“ › „Behandlungen“ die Behandlung in der Liste wählen.
+1. Unter „Verwaltung“ › „Behandlungen“ die Behandlung in der Liste wählen.
 2. Im Kopf der Karte, rechts neben dem Namen der Behandlung, auf **Verlauf** klicken. Rechts öffnet sich die Seitenleiste „Verlauf“ und lädt den Stand; die neueste Änderung steht an erster Stelle.
 3. Mit **Esc** oder dem Kreuz oben in der Leiste schließen.
 

@@ -154,10 +154,14 @@ public partial class TreatmentEditorView : UserControl
         _ => null,
     };
 
-    /// <summary>Rollt die Gruppe an den oberen Rand; die erste Gruppe eines Bereichs bleibt unter Titel und Schiene stehen.</summary>
+    /// <summary>
+    /// Rollt die Gruppe an den oberen Rand; die erste Gruppe eines Bereichs bleibt unter Titel und Schiene stehen. Eine Gruppe in „Weitere Angaben“ ist keine erste Gruppe:
+    /// über ihr stehen die Felder des Bereichs.
+    /// </summary>
     private void ScrollTo(StackPanel section)
     {
-        var isFirst = section.Parent is Panel area && area.Children.FirstOrDefault(c => c.IsVisible) == section;
+        var isFirst = section.Parent is Panel { Name: { } name } area && name.EndsWith("Section", StringComparison.Ordinal)
+            && area.Children.FirstOrDefault(c => c.IsVisible) == section;
         var top = FieldsScroll.Content is Visual content ? section.TranslatePoint(default, content)?.Y ?? 0 : 0;
         FieldsScroll.Offset = new Vector(0, isFirst ? 0 : Math.Max(0, top - GroupGap));
     }

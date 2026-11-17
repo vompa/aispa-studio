@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Text.Json;
 using AispaStudio.Contracts;
+using AispaStudio.Desktop.Controls;
 using AispaStudio.Desktop.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -37,8 +38,9 @@ public sealed partial class TreatmentSection(string id, string label, Action<str
 
 /// <summary>
 /// Eine Behandlung in der nativen Verwaltung (R05 Slice 94): dieselben Felder, Grenzen und Texte wie <c>web/src/admin/TreatmentsTab.tsx</c>, seit ADR 0098 in
-/// vier Bereichen: Grunddaten, Durchführung (Ablauf mit Vorbereitungsschritten, Material, Zum Termin bereitstellen), Preise und Verkauf (je Standort, nach
-/// Zeit, „Passt dazu“) und Qualifikationen/Räume/Geräte. Der Verlauf steht in einer Seitenleiste.
+/// vier Bereichen: Übersicht (Kennzahl-Kacheln), Grunddaten und Preis (mit „Passt dazu“ und, aufklappbar, Preis je Standort, Preisen nach Zeit, Ausfallgebühr und
+/// Anzahlung), Durchführung (Ablauf mit Vorbereitungsschritten, Material, Zum Termin bereitstellen) und Qualifikationen/Räume/Geräte. Der Verlauf steht in einer
+/// Seitenleiste. Eine nicht mehr angebotene Behandlung lässt sich ansehen, aber nicht ändern; „Wieder anbieten“ holt sie zurück.
 /// Anders als im Web speichert ein „Speichern“ alles gemeinsam: die Behandlung und danach jede geänderte Teil-Liste. Prüfen und Rechnen macht die API; hier
 /// stehen nur die Pflichtfelder vorab am Feld und der Hinweis auf eine fehlende Qualifikation.
 /// </summary>
@@ -49,13 +51,16 @@ public sealed partial class TreatmentEditorViewModel : ViewModelBase, IEditableA
     public const string DurationField = "treatment.duration";
     public const string QualificationsField = "qualifications";
 
-    // Die vier Bereiche der Schiene (masken.md R15, ADR 0098).
+    // Die vier Bereiche der Schiene (masken.md R15, ADR 0098 mit Nachtrag vom 17.11.2026).
+    public const string Overview = "uebersicht";
     public const string Basics = "grunddaten";
     public const string Execution = "durchfuehrung";
-    public const string Offer = "preise-und-verkauf";
     public const string Resources = "ressourcen";
 
-    // Gruppen in „Durchführung“ und „Preise und Verkauf“. Bis ADR 0098 waren es eigene Reiter; die Namen bleiben als Sprungziel gültig.
+    /// <summary>Bis zum Nachtrag zu ADR 0098 ein eigener Bereich „Preise und Verkauf“; als Sprungziel gilt er weiter und führt in „Grunddaten und Preis“.</summary>
+    public const string Offer = "preise-und-verkauf";
+
+    // Gruppen in „Grunddaten und Preis“ und „Durchführung“. Bis ADR 0098 waren es eigene Reiter; die Namen bleiben als Sprungziel gültig.
     public const string Process = "ablauf";
     public const string Material = "material";
     public const string Provide = "bereitstellen";
@@ -67,7 +72,7 @@ public sealed partial class TreatmentEditorViewModel : ViewModelBase, IEditableA
 
     private static readonly (string Id, string Label)[] AllSections =
     [
-        (Basics, "Grunddaten"), (Execution, "Durchführung"), (Offer, "Preise und Verkauf"), (Resources, "Qualifikationen und Räume"),
+        (Overview, "Übersicht"), (Basics, "Grunddaten und Preis"), (Execution, "Durchführung"), (Resources, "Qualifikationen und Räume"),
     ];
 
     private static readonly string[] Inputs =
@@ -109,7 +114,10 @@ public sealed partial class TreatmentEditorViewModel : ViewModelBase, IEditableA
         Apply(treatment);
         ApplyLists([], [], [], []);
         ApplyRecommended([]);
-        MoreOpen = NoShowFeePercent is not null || DepositPercent is not null;
+        MoreOpen = NoShowFeePercent is not null || DepositPercent is not null || LocationPrices.Any(p => p.Price is not null);
+
+        // Eine gespeicherte Behandlung beginnt mit der Übersicht, eine neue mit den Grunddaten.
+        SelectSection(treatment is null ? Basics : Overview);
 
         // Eine neue Behandlung hat keine Teil-Listen; eine gespeicherte lädt sie (LoadAsync).
         IsLoaded = treatment is null;
@@ -119,6 +127,29 @@ public sealed partial class TreatmentEditorViewModel : ViewModelBase, IEditableA
     public Guid? Id => _saved?.Id;
 
     public bool IsNew => _saved is null;
+
+    /// <summary>Die Behandlung wird nicht mehr angeboten: die Karte zeigt sie nur noch, „Wieder anbieten“ holt sie zurück.</summary>
+    public bool IsInactive => _saved?.IsActive == false;
+
+    /// <summary>„Nicht mehr anbieten“ im Menü „⋯“ gibt es nur für eine gespeicherte, angebotene Behandlung.</summary>
+    public bool CanDeactivate => !IsNew && !IsInactive;
+
+    /// <summary>Speichern und Verwerfen gibt es, solange die Behandlung angeboten wird.</summary>
+    public bool CanEdit => !IsInactive;
+
+    /// <summary>Das Menü „⋯“ der Karte: das Modell der Liste setzt, was „Nicht mehr anbieten“ und „Wieder anbieten“ tun (Rückfrage, API, Liste).</summary>
+    public Action? DeactivateAction { get; init; }
+
+    public Action? ReactivateAction { get; init; }
+
+    /// <summary>Läuft nach dem erfolgreichen Speichern, bevor die Karte „Gespeichert“ meldet: die Liste lädt neu.</summary>
+    public Func<TreatmentEditorViewModel, Task>? AfterSaveAsync { get; init; }
+
+    [RelayCommand(CanExecute = nameof(CanDeactivate))]
+    private void Deactivate() => DeactivateAction?.Invoke();
+
+    [RelayCommand]
+    private void Reactivate() => ReactivateAction?.Invoke();
 
     /// <summary>Name in der Rückfrage und Überschrift: wie gespeichert, für eine neue „Neue Behandlung“.</summary>
     public string Title => _saved?.Name ?? "Neue Behandlung";
@@ -130,14 +161,14 @@ public sealed partial class TreatmentEditorViewModel : ViewModelBase, IEditableA
     public partial IReadOnlyList<TreatmentSection> Sections { get; private set; } = [];
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(ShowsBasics), nameof(ShowsExecution), nameof(ShowsOffer), nameof(ShowsResources))]
+    [NotifyPropertyChangedFor(nameof(ShowsOverview), nameof(ShowsBasics), nameof(ShowsExecution), nameof(ShowsResources))]
     public partial string SelectedSection { get; private set; } = Basics;
+
+    public bool ShowsOverview => SelectedSection == Overview;
 
     public bool ShowsBasics => SelectedSection == Basics;
 
     public bool ShowsExecution => SelectedSection == Execution;
-
-    public bool ShowsOffer => SelectedSection == Offer;
 
     public bool ShowsResources => SelectedSection == Resources;
 
@@ -151,7 +182,17 @@ public sealed partial class TreatmentEditorViewModel : ViewModelBase, IEditableA
     [ObservableProperty]
     public partial string? GroupTarget { get; set; }
 
-    /// <summary>„Weitere Angaben“ in den Grunddaten (eigene Ausfallgebühr und Anzahlung): zu, solange beide leer sind (masken.md R2).</summary>
+    /// <summary>
+    /// Kennzahl-Kacheln der Übersicht (Preis, Dauer, Dürfen behandeln, Räume), aus den Daten der Karte; ein Klick springt in den Bereich, zu dem die Zahl gehört. Bei einem Sprung
+    /// ändert sich nichts an den Daten.
+    /// </summary>
+    [ObservableProperty]
+    public partial IReadOnlyList<OverviewTile> Tiles { get; private set; } = [];
+
+    /// <summary>
+    /// „Weitere Angaben“ in „Grunddaten und Preis“ (Preis je Standort, Preise nach Wochentag und Uhrzeit, Ausfallgebühr, Anzahlung): zu, solange alle leer sind
+    /// (masken.md R2); ein Sprung zu einer dieser Angaben öffnet sie.
+    /// </summary>
     [ObservableProperty]
     public partial bool MoreOpen { get; set; }
 
@@ -359,7 +400,9 @@ public sealed partial class TreatmentEditorViewModel : ViewModelBase, IEditableA
 
         ApplyLists(rules.Value, steps.Value, materials.Value, extras.Value);
         await LoadRecommendedAsync(id).ConfigureAwait(true);
+        MoreOpen |= PriceRules.Count > 0;
         IsLoaded = true;
+        RefreshTiles();
         OnPropertyChanged(nameof(HasUnsavedChanges));
     }
 
@@ -375,8 +418,9 @@ public sealed partial class TreatmentEditorViewModel : ViewModelBase, IEditableA
     }
 
     /// <summary>
-    /// Wählt einen Bereich oder eine Gruppe darin (die Abschnittsnamen von vor ADR 0098 bleiben gültig): „material“ öffnet „Durchführung“ bei der Gruppe
-    /// Material. Einen Bereich, den es für eine neue Behandlung nicht gibt, ersetzt „Grunddaten“; eine Gruppe, die es nicht gibt, der Anfang ihres Bereichs.
+    /// Wählt einen Bereich oder eine Gruppe darin (die Abschnittsnamen von vor ADR 0098 und der Bereich „Preise und Verkauf“ bleiben gültig): „material“ öffnet „Durchführung“
+    /// bei der Gruppe Material, „preise“ „Grunddaten und Preis“ bei den aufgeklappten Preisen. Einen Bereich, den es für eine neue Behandlung nicht gibt, ersetzt „Grunddaten“;
+    /// eine Gruppe, die es nicht gibt, der Anfang ihres Bereichs.
     /// </summary>
     public void SelectSection(string? section)
     {
@@ -387,13 +431,21 @@ public sealed partial class TreatmentEditorViewModel : ViewModelBase, IEditableA
             s.IsOn = s.Id == SelectedSection;
         }
 
-        GroupTarget = SelectedSection == area && area != section && HasGroup(section) ? section : null;
+        var group = SelectedSection == area && area != section && HasGroup(section) ? section : null;
+        if (group == Prices)
+        {
+            // Vor dem Sprungziel: die Ansicht rollt zur Gruppe, sobald sie es hört, und braucht sie dann sichtbar.
+            MoreOpen = true;
+        }
+
+        GroupTarget = group;
+        RefreshTiles();
     }
 
     private static string? AreaOf(string? section) => section switch
     {
         Process or Material or Provide => Execution,
-        Prices or Sales => Offer,
+        Prices or Sales or Offer => Basics,
         _ => section,
     };
 
@@ -453,6 +505,11 @@ public sealed partial class TreatmentEditorViewModel : ViewModelBase, IEditableA
                 return false;
             }
 
+            if (AfterSaveAsync is { } after)
+            {
+                await after(this).ConfigureAwait(true);
+            }
+
             StatusText = "Gespeichert. Gilt für neue Buchungen.";
             if (IsHistoryOpen && History is not null)
             {
@@ -465,6 +522,7 @@ public sealed partial class TreatmentEditorViewModel : ViewModelBase, IEditableA
         {
             IsSaving = false;
             OnPropertyChanged(nameof(HasUnsavedChanges));
+            RefreshTiles();
         }
     }
 
@@ -650,6 +708,7 @@ public sealed partial class TreatmentEditorViewModel : ViewModelBase, IEditableA
 
         StatusText = null;
         OnPropertyChanged(nameof(HasUnsavedChanges));
+        RefreshTiles();
     }
 
     private void QualificationsChanged()
@@ -737,9 +796,8 @@ public sealed partial class TreatmentEditorViewModel : ViewModelBase, IEditableA
 
         if (sectionsChange)
         {
-            // Neu angelegt gibt es nur, was ohne gespeicherte Behandlung geht (wie im Web): von „Preise und Verkauf“ allein den Preis je Standort.
-            Sections = [.. AllSections.Where(s => !IsNew || s.Id != Offer || HasSeveralLocations)
-                .Select(s => new TreatmentSection(s.Id, s.Label, SelectSection))];
+            // Neu angelegt gibt es keine Übersicht: sie hätte nichts zu zeigen.
+            Sections = [.. AllSections.Where(s => !IsNew || s.Id != Overview).Select(s => new TreatmentSection(s.Id, s.Label, SelectSection))];
             SelectSection(SelectedSection);
         }
 
@@ -750,7 +808,55 @@ public sealed partial class TreatmentEditorViewModel : ViewModelBase, IEditableA
         OnPropertyChanged(nameof(HasMaterial));
         OnPropertyChanged(nameof(Title));
         OnPropertyChanged(nameof(HasUnsavedChanges));
+        OnPropertyChanged(nameof(IsInactive));
+        OnPropertyChanged(nameof(CanDeactivate));
+        OnPropertyChanged(nameof(CanEdit));
+        DeactivateCommand.NotifyCanExecuteChanged();
+        RefreshTiles();
     }
+
+    /// <summary>Die Kacheln der Übersicht nach dem Stand der Felder (auch ungespeichert); die Zahlen kommen aus Daten, die die Karte schon hat.</summary>
+    private void RefreshTiles()
+    {
+        if (IsNew || _applying)
+        {
+            return;
+        }
+
+        var rooms = LocationGroups.SelectMany(g => g.Rooms).Count(r => r.IsChecked);
+        var locationsWithRoom = LocationGroups.Count(g => g.Rooms.Any(r => r.IsChecked));
+        var chosen = Qualifications.Where(q => q.IsChecked).Select(q => q.Label).ToList();
+        var priceHints = new List<string>();
+        if (LocationPrices.Count(p => p.Price is not null) is > 0 and var different)
+        {
+            priceHints.Add(different == 1 ? "Abweichend an 1 Standort" : $"Abweichend an {different} Standorten");
+        }
+
+        if (PriceRules.Count > 0)
+        {
+            priceHints.Add(PriceRules.Count == 1 ? "1 Preisregel nach Zeit" : $"{PriceRules.Count} Preisregeln nach Zeit");
+        }
+
+        Tiles =
+        [
+            new OverviewTile("Preis", PriceText(Price ?? 0), priceHints.Count == 0 ? "Grundpreis" : string.Join(" · ", priceHints), StatTileState.None, new RelayCommand(() => FocusField(PriceField))),
+            new OverviewTile("Dauer", $"{(int)(Duration ?? 0)} Min.", $"Davor {(int)(PreparationMinutes ?? 0)}, danach {(int)(FollowUpMinutes ?? 0)} Min.", StatTileState.None,
+                new RelayCommand(() => FocusField(DurationField))),
+            new OverviewTile("Dürfen behandeln", WhoCanDo.Count switch { 0 => "Niemand", 1 => "1 Person", var n => $"{n} Personen" },
+                chosen.Count == 0 ? "Keine Qualifikation nötig" : string.Join(", ", chosen), WhoCanDo.Count == 0 ? StatTileState.Warn : StatTileState.None,
+                new RelayCommand(() =>
+                {
+                    SelectSection(Resources);
+                    FocusTarget = QualificationsField;
+                })),
+            new OverviewTile("Räume", rooms == 1 ? "1 Raum" : $"{rooms} Räume",
+                rooms == 0 ? "Ohne Raum nicht buchbar" : locationsWithRoom == 1 ? "An 1 Standort" : $"An {locationsWithRoom} Standorten",
+                rooms == 0 ? StatTileState.Warn : StatTileState.None, new RelayCommand(() => SelectSection(Resources))),
+        ];
+    }
+
+    /// <summary>„115 €“ oder „89,50 €“ in der Schreibweise des Landes: Cent nur, wenn der Preis welche hat (Liste und Übersicht).</summary>
+    internal static string PriceText(decimal price) => $"{price.ToString(price % 1 == 0 ? "N0" : "N2", System.Globalization.CultureInfo.GetCultureInfo("de-AT"))} €";
 
     /// <summary>Setzt die genannten Teil-Listen auf den gespeicherten Stand; <c>null</c> lässt eine Liste, wie sie ist.</summary>
     private void ApplyLists(List<TreatmentPriceRuleDto>? rules, List<PreparationStepDto>? steps, List<MaterialLine>? materials, List<TreatmentExtraDto>? extras)
