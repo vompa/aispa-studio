@@ -314,3 +314,21 @@
     border-bottom: 1px solid var(--border);
   }
 }
+
+/* Hilfe in der Leiste „KI und Hilfe“ der Windows-App (ansicht=leiste, ADR 0079 Nachtrag): eine Spalte für 360 px, ohne Navigation und Verzeichnis,
+   Fläche surface wie die Leiste; Titel und Schließen zeichnet die App darüber. Bilder auf die Breite skaliert. */
+.help-panel-view {
+  height: 100vh;
+  height: 100dvh;
+  box-sizing: border-box;
+  padding: 0 16px 16px;
+  background: var(--surface);
+}
+
+.help-panel-view > :first-child {
+  margin-top: 0;
+}
+
+.help-panel-view .help-image img {
+  width: 100%;
+}

@@ -109,4 +109,37 @@ public sealed class StockExportTests(ApiFixture fixture)
         Assert.Contains("Keine eingereichte", await noCount.Content.ReadAsStringAsync(Ct), StringComparison.Ordinal);
         Assert.Equal(HttpStatusCode.BadRequest, noRange.StatusCode);
     }
+
+    private static string Availability(TestSpa spa) => $"/api/stock/locations/{spa.Location.Id}/export/availability";
+
+    /// <summary>Befund „Export funktioniert nicht“: ohne eingereichte Zählung liefert „Inventur“ 400; die Verfügbarkeit nennt das vorher, mit Grund.</summary>
+    [Fact]
+    public async Task Verfuegbarkeit_sperrt_die_Inventur_ohne_eingereichte_Zaehlung_und_gibt_sie_nach_dem_Einreichen_frei()
+    {
+        var fresh = await TestSpa.CreateAsync(fixture, Ct);
+        var spa = await StockAsync();
+
+        var empty = await fresh.GetAsync<StockExportAvailabilityDto>(Availability(fresh), Ct);
+        var full = await spa.GetAsync<StockExportAvailabilityDto>(Availability(spa), Ct);
+
+        Assert.Equal(["levels", "count", "movements", "orders", "expiry"], empty.Lists.Select(l => l.List));
+        Assert.All(empty.Lists, l => Assert.False(l.Available));
+        Assert.Equal("Noch keine Zählung an diesem Standort.", Assert.Single(empty.Lists, l => l.List == "count").Reason);
+        Assert.All(full.Lists, l => Assert.True(l.Available, $"{l.List}: {l.Reason}"));
+        Assert.All(full.Lists, l => Assert.Null(l.Reason));
+    }
+
+    [Fact]
+    public async Task Verfuegbarkeit_nur_fuer_die_Leitung_und_nur_im_eigenen_Mandanten()
+    {
+        var spa = await StockAsync();
+        using var manager = await TestUsers.ClientAsync(fixture, Ct, StaffRole.Manager, [spa.Location.Id]);
+        using var stranger = await TestUsers.ClientAsync(fixture, Ct);
+
+        using var forManager = await manager.GetAsync(Availability(spa), Ct);
+        using var forStranger = await stranger.GetAsync(Availability(spa), Ct);
+
+        Assert.Equal(HttpStatusCode.Forbidden, forManager.StatusCode);
+        Assert.Contains(forStranger.StatusCode, new[] { HttpStatusCode.Forbidden, HttpStatusCode.NotFound });
+    }
 }

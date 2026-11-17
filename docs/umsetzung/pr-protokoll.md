@@ -6859,6 +6859,27 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Nicht geprüft:** die laufende App unter Windows; die volle Test-Suite (nur die betroffenen Klassen); Bildschirmleser (nur `AutomationProperties` im Test); Tastaturbedienung der Kategorien.
 - **Beim Schreiben festgestellt:** Das Wiederanbieten gab es bisher nirgends; die alten Hilfetexte sagten „lässt sich nicht wieder anbieten“. Die Hilfe zu `stammdaten-behandlung-entfernen` nennt jetzt den Weg. Ein Bildtest, der die Gruppe „Preise“ aufruft, scheiterte zuerst an der Rolllage: In „Weitere Angaben“ ist die erste Gruppe nicht die erste des Bereichs.
 
+## Lager-Export als Dialog (P7, 17.11.2026)
+
+- **Auftrag:** Der Auftraggeber meldete „Export funktioniert nicht“. Erst nachstellen, dann beheben; danach statt des Menüs mit zehn Zeilen ein Dialog (Entwurf Abschnitt 7).
+- **Befund je Kombination** (alle fünf Listen in Excel und CSV gegen das Beispiel-Spa mit 8 Wochen Verlauf, Standort Wien, `StockExportMatrixTests`): Bestand je Lagerort, Lagerbewegungen, Bestellungen und Ablaufliste liefern in beiden Formaten 200, den richtigen Inhaltstyp, den Dateinamen mit Datum, die erwartete Kopfzeile und Datenzeilen; die CSV hat Byte-Order-Mark, Strichpunkt, richtige Umlaute und in jeder Zeile gleich viele Spalten. **Inventur** liefert in beiden Formaten 400 „Keine eingereichte oder abgeschlossene Zählung an diesem Standort“, weil das Beispiel-Spa keine eingereichte Zählung hat (offene Zählungen zählen nicht). Die API arbeitet richtig. Kaputt war die Maske: Sie zeigte jeden Exportfehler unter dem Titel „Nicht gebucht“, ohne die Liste vorher zu sperren. Mit einer eingereichten Zählung liefert auch die Inventur beide Formate. Mengen: die Bewegungen von 30 Tagen sind im Beispiel-Spa 1.391 Zeilen (Grenze 50.000), 55 KB, 290 ms.
+- **Was:**
+  - API: `GET /api/stock/locations/{id}/export/availability` (Recht wie der Export: Inhaberin und Geschäftsführung) meldet je Liste `available` und bei `false` den Grund; neue Records `StockExportAvailabilityDto` und `StockExportListAvailabilityDto` (additiv, kein Breaking Change in v1).
+  - Windows-App: Dialog `StockExportDialogViewModel` (Optionsfelder mit Erklärung, Format als Segment, Zeitraum nur bei den Lagerbewegungen, Standard letzte 30 Tage); Vorauswahl nach dem offenen Reiter (Inventur → Inventur, Bestellen → Bestellungen, sonst Bestand je Lagerort); das Format steht in den Einstellungen des Arbeitsplatzes (`StockExportFormat`).
+  - Rückmeldung: Toast „Gespeichert: <Datei>“ mit „Ordner öffnen“ (Explorer mit markierter Datei, 8 Sekunden, die Maus hält ihn an); Abbruch des Speicherdialogs meldet nichts; Exportfehler als Meldungsleiste „Export nicht erstellt“ mit „Erneut versuchen“; ein alter Fehler verschwindet beim neuen Versuch.
+  - Gemeinsame Teile abwärtsverträglich: `ExportViewModel.SavedPath` (neu, nur gelesen), `IReportsSavedPath` und `IFolderOpener` (neu), `StorageFileSaver` merkt den Pfad; kein Aufruf der anderen Nutzer ändert sich.
+  - Hilfe: `seite-stock` und `daten-exportieren` angepasst, Bild `lager-exportieren.png` neu.
+- **Detailentscheidungen:**
+  1. Gesperrt ist eine Liste, wenn es an diesem Standort nichts zum Exportieren gäbe (kein Material, keine eingereichte Zählung, keine Bewegung, keine Bestellung, keine Charge mit Ablaufdatum), nicht nur bei der Inventur: Eine Datei mit nur der Kopfzeile hilft niemandem. Der Export-Endpunkt selbst liefert weiter eine leere Datei, die Sperre ist Sache der Maske.
+  2. Das Format steht in `DesktopSettings` (Datei `einstellungen.json`) wie Kalender-Zoom und Kassa-Panel; `AdminPageViewModel` gibt dem Lager dafür den gemeinsamen `FileSettingsStore.Default` (eine Zeile).
+  3. Der Dialog ist ein weiterer Dialog nach dem Muster „Terminliste exportieren“ (eine Karte, 420 breit, Esc ist Abbrechen); das Format als Segment (wie die Reiter), die Inhalte als Optionsfelder.
+  4. Fehler der Verfügbarkeitsabfrage: kein Dialog, sondern dieselbe Meldungsleiste „Export nicht erstellt“.
+  5. „Ordner öffnen“ nur, wenn der Speicherdialog den Pfad nennt; sonst zeigt der Toast nur „Gespeichert: …“.
+- **Bewusst offen / später:** Ein Export der Inventur einer bestimmten, älteren Zählung (`sessionId`) bleibt nur über die API; die Maske nimmt immer die zuletzt eingereichte.
+- **Geprüft:** API `StockExportMatrixTests` (Theorie über 10 Kombinationen, Zeilen und Zeit der 30 Tage) und `StockExportTests` 16 von 16; Windows-App `StockExportDialogTests` (je Liste und Format bis zur gespeicherten Datei, Vorauswahl, gesperrte Liste, Format gemerkt, Zeitraum, Abbruch, Fehler, alter Fehler, Ordner öffnen), `ListExportTests`, `ExportButtonTests` und die Ansichtstests zu Lager und Export; Bildschirmfotos hell und dunkel des Dialogs, des Zeitraums, der gesperrten Inventur und des Toasts.
+- **Nicht geprüft:** die laufende App unter Windows (echter Speicherdialog, Explorer mit markierter Datei); Excel selbst beim Öffnen der CSV (nur Bytes: Byte-Order-Mark, Strichpunkt, Kodierung).
+- **Beim Schreiben festgestellt:** Das Beispiel-Spa hat keine eingereichte Inventur, deshalb war „Inventur“ dort nie exportierbar; eine Beispielzählung im Testdatensatz wäre eine eigene Aufgabe. Die Matrixtests reichen für ihre Läufe selbst eine Zählung ein.
+
 ## „Mein Tag“: Kopf, Status, Gerät und Vorlieben (17.11.2026)
 
 - **Auftrag:** Masken-Überarbeitung P9 (Entwurf Abschnitt 9, Plan-Entscheidung 12): doppelte Dauer im Titel beheben, Status je Termin, Karte einspaltig mit Abschnitten, Gerät abhakbar, Vorlieben nicht doppelt.
@@ -6878,3 +6899,29 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Geprüft:** API `MyDayCardTests` 6 von 6 (neu), Windows-App `AdminReportsTests` Mein-Tag-Tests und `ViewTests` Mein Tag (hell und dunkel, 1100 und 1900 breit, Karte höchstens 760), Namensprüfung der Berichte-Seiten grün; `aispa-api.json` nur um Felder und einen Pfad erweitert.
 - **Nicht geprüft:** die laufende App unter Windows; Handy-App und Web-Ansicht „Mein Tag“ (unverändert, zeigen Gerät und Vorlieben weiter als Zeilen ohne Haken).
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Masken: Hilfe als Leiste „KI und Hilfe“ (P1, 17.11.2026)
+
+- **Auftrag:** Plan der Maskenrunde, Entscheidung 1 des Auftraggebers: Das Fragezeichen öffnet die Hilfe nicht mehr als Seite „Hilfe“, sondern in der Leiste „KI und Hilfe“; die Maske bleibt stehen.
+- **Was:**
+  - Windows-App: `HelpButton` meldet sich über das RoutedEvent `Requested`; die Shell zeigt die Hilfe oben in „KI und Hilfe“ (`CompanionViewModel.ShowHelp`, Kopf mit Titel des Abschnitts, Thema als Untertitel, Kreuz, unten „Im Handbuch öffnen“) und markiert das Fragezeichen (Stil `Button.help.active`). Ein weiteres Fragezeichen tauscht den Inhalt.
+  - Der Browser der Hilfe ist jetzt ein eigenes Steuerelement `HelpBrowser`, das die Seite „Hilfe“ und die Leiste gemeinsam nutzen; die Leiste lädt die Web-Hilfe mit `ansicht=leiste`.
+  - Tasten: F1 außerhalb des Kalenders zeigt die Hilfe zum Fokus (`HelpButton.NearestTo`), Esc schließt zuerst die Hilfe; beides wirkt auch, wenn der Fokus im Browser liegt (Web-Nachrichten `f1`, `escape`). Im Kalender bleibt F1 die Tastenhilfe, das Fragezeichen wählt den Reiter „KI und Hilfe“.
+  - `SidePanelLayer`: offene Seitenleisten der Maske (Verlauf u. a.) sind ausgeblendet, solange die Hilfe offen ist; öffnet eine Seitenleiste, schließt die Hilfe.
+  - Web: `HelpPanelView` zeigt bei `ansicht=leiste` nur den Abschnitt (ohne seine Überschrift) oder das ganze Thema, ohne Kopf und Navigation; `appShortcuts` sendet F1 und (nur in der Leiste) Esc an die App.
+  - Fragezeichen ausgedünnt: doppeltes Stammdaten-Fragezeichen der Personenkarte entfernt; Zeiten, Lohn, Inventur am Handy und Zuständigkeiten zeigen jetzt auf ihren Abschnitt.
+  - Nachtrag zu ADR 0079, Handbuch `ki-assistent-fragen#fragezeichen` mit neuem Bild `ki-und-hilfe-fragezeichen`.
+- **Detailentscheidungen:**
+  1. `SidePanelLayer` statt des Arbeitsnamens `SidePanelStack`: die Analyse CA1711 verbietet das Suffix „Stack“. Die Ebene hängt als geerbte Eigenschaft an der Shell, nicht statisch, damit Tests unabhängig bleiben.
+  2. Kopf, Schließen und „Im Handbuch öffnen“ sind nativ über und unter dem Browser; die Web-Hilfe zeichnet in der Leiste nur Text und Bilder. Ein zweiter Markdown-Renderer entfällt.
+  3. Bis der Browser geladen ist, steht der erste Absatz des Abschnitts als Text da (aus denselben Hilfedateien der App).
+  4. F1 sucht vom Fokus aus den kleinsten Bereich mit genau einem Fragezeichen; gibt es keinen, gilt das Fragezeichen der Seite ohne Abschnitt, sonst das Seitenthema.
+  5. Öffnet ein Fragezeichen die Leiste, merkt sich die Seite das nicht; Schließen der Hilfe schließt die Leiste wieder, wenn sie vorher zu war. Ein Seitenwechsel schließt die Hilfe.
+  6. Esc aus der Web-Hilfe wird nur im Modus `ansicht=leiste` gesendet; auf der Seite „Hilfe“ bleibt Esc beim Browser (Suche, Lightbox).
+  7. Generische Abschnittstitel („Schritte“) bekommen das Thema als Untertitel.
+  8. Im Kalender liegt die Leiste nicht mehr in einem ScrollViewer (der Browser ist ein natives Fenster); der Assistent scrollt in der Leiste selbst.
+- **Bewusst offen / später:** Folgt man in der Leiste einem Link zu einem anderen Thema, bleibt der native Titel beim ursprünglichen Abschnitt. Weitere Ausdünnung der Fragezeichen über den Regeltest hinaus.
+- **Geprüft:** Windows-App: `HelpPanelTests` und `HelpTests` 26/26 (neu: Regeltest „höchstens ein Fragezeichen ohne Abschnitt je Ansicht, keines doppelt“, vorher mit drei Verstößen); neue Bildtests (Leiste mit Adresse, Eingabe bleibt, Tauschen und Esc, Verlauf ausgeblendet, F1 zum Fokus, Kalender-Reiter) grün; Klassen Companion*, Personenkarte, Lager, Behandlungen, Personalakte, Kalender-Tasten und -Leisten 248/248; Bildtests `*.KI_*` und Tab-Reihenfolge 42/42 (die Bildtests des Assistenten suchen den Scroller jetzt in der Leiste: `AssistantScroll`). Web: lint, typecheck, vitest `src/help` und `appShortcuts` grün, build, check:bundle (/help/ 94,3 kB von 100 kB).
+- **Nicht geprüft:** die laufende App mit WebView2 (die Tests prüfen die Adresse, nicht das gerenderte Web); volle Suiten (nur betroffene Klassen).
+- **Beim Schreiben festgestellt:** `KI_und_Hilfe_Leiste_steht_auf_Seiten_mit_Browser_neben_dem_Browser("Verwaltung")` war vor dieser Änderung auf `dev` rot; mit diesem Stand ist er grün (Ursache nicht weiter untersucht).
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md); Hilfetext von `textRules.test.ts` geprüft.

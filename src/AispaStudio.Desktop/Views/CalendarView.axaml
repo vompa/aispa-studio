@@ -3173,9 +3173,11 @@
               <ContentControl Content="{Binding MessagesPanel}" />
               <ContentControl Content="{Binding MessageDetail}" />
               <ContentControl Content="{Binding RoomCarePanel}" />
-              <ContentControl Content="{Binding CompanionPanel}" />
             </Panel>
           </ScrollViewer>
+          <!-- KI und Hilfe rollt selbst (Hilfe-Bereich und Assistent getrennt): der eingebettete Browser der Hilfe darf in keinem ScrollViewer liegen -->
+          <ContentControl x:Name="CompanionHost" Content="{Binding CompanionPanel}" Margin="0,0,0,32"
+                          IsVisible="{Binding CompanionPanel, Converter={x:Static ObjectConverters.IsNotNull}}" />
           <!-- Kundendaten ergänzen: dasselbe Formular wie in der Kundenkarte; das Panel wird dafür breiter, die Aktionsleiste steht fest im Fuß -->
           <Border IsVisible="{Binding Selected?.IsEditingCustomer, TargetNullValue=False}">
             <local:CustomerContactForm x:Name="PanelCustomerForm" Docked="True" DataContext="{Binding Selected?.CustomerForm}" HorizontalAlignment="Stretch" />

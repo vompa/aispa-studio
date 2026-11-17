@@ -51,7 +51,8 @@ public sealed partial class CompanionViewModel : ViewModelBase, ISidePanel, IDis
     /// <summary>Der Assistent geht auf (<c>true</c>) oder zu, durch Klick, Esc oder Strg+Leertaste; die Ansicht setzt den Fokus.</summary>
     public event Action<bool>? Toggled;
 
-    private bool _showingPage;
+    /// <summary>Offen oder zu wird gesetzt, ohne es je Seite zu merken (Seitenwechsel, Hilfe aus einem Fragezeichen).</summary>
+    private bool _quiet;
 
     /// <summary>
     /// Die offene Seite ist der Kalender: der Assistent steht dort als Reiter der Seitenleiste, die Leiste der Shell bleibt zu.
@@ -108,12 +109,12 @@ public sealed partial class CompanionViewModel : ViewModelBase, ISidePanel, IDis
 
     /// <summary>Der Assistent ist zu sehen: als gewählter Reiter im Kalender, sonst in der Leiste der Shell.</summary>
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(ShellOpen))]
+    [NotifyPropertyChangedFor(nameof(ShellOpen), nameof(ShowsHelp))]
     public partial bool IsOpen { get; set; }
 
     partial void OnIsOpenChanged(bool value)
     {
-        if (!_showingPage)
+        if (!_quiet)
         {
             // Offen oder zu gilt je Seite: wer auf „Kassa“ die Hilfe zu lässt, findet sie dort wieder zu.
             var settings = _store.Load();
@@ -165,13 +166,15 @@ public sealed partial class CompanionViewModel : ViewModelBase, ISidePanel, IDis
     /// <summary>Seite gewechselt, z. B. „kassa“: die Erklärung kommt aus dem Seitenthema der Hilfe („seite-kassa“).</summary>
     public void ShowPage(string page)
     {
+        // Die Hilfe gehört zur Maske der vorigen Seite: sie geht mit dem Wechsel weg.
+        CloseHelp();
         _page = page;
         OnPropertyChanged(nameof(ShowsPageSection));
         if (_store.Load().CompanionPages is { } pages && pages.TryGetValue(page, out var open) && open != IsOpen)
         {
-            _showingPage = true;
+            _quiet = true;
             IsOpen = open;
-            _showingPage = false;
+            _quiet = false;
         }
 
         Topic = _find($"seite-{page}");
@@ -201,8 +204,9 @@ public sealed partial class CompanionViewModel : ViewModelBase, ISidePanel, IDis
     [RelayCommand]
     private void Close() => Dismiss();
 
+    /// <summary>„Ganze Beschreibung öffnen“, „Alle Hilfethemen“ und „Handbuch öffnen“: die Seite „Hilfe“.</summary>
     [RelayCommand]
-    private void OpenHelp() => HelpContent.Open(Topic?.Id);
+    private void OpenHelp() => HelpContent.OpenManual(Topic?.Id);
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(AskCommand))]

@@ -76,7 +76,7 @@ Hilfethemen nennen ihre Seite (`seite:` im Kopf, z. B. `seite-time.md`); das ist
 
 ## Bleibt im Web
 
-- **Hilfe und Handbuch:** Inhalte in `web/src/help/content/`, angezeigt im eingebetteten Browser der Windows-App (ADR 0079, E1).
+- **Hilfe und Handbuch:** Inhalte in `web/src/help/content/`, angezeigt im eingebetteten Browser der Windows-App (ADR 0079, E1): die Seite „Hilfe“ mit Verzeichnis und Suche und seit dem 17.11.2026 die Hilfe zu einem Fragezeichen in der Leiste „KI und Hilfe“ (`ansicht=leiste`, nur der Abschnitt; Kopf und Schließen nativ).
 - **Kundenbereich** (`web/src/booking/`): wird die Handy-App für Kunden (Slice 108).
 - **Mein Tag** (`web/src/myday/`): wird die Handy-App für Mitarbeitende (Slice 106) mit der Seite für die Leitung (Slice 109).
 - **Dashboard für den Pausenraum:** neu (Slice 105).
@@ -91,7 +91,7 @@ Ziel nach [ADR 0098](../entscheidungen/0098-verwaltungsmasken-eine-schiene-ueber
 | Betrieb | 6 Masken | 5 Masken (Schließzeiten und Raumsperren auf einer Seite) | T-064, 16.11.2026 (PR offen) |
 | Angebot (seit 17.11.2026: Behandlungen und Aktionen als zwei Gruppen) | 2 Masken; Behandlung mit 7 Abschnittsreitern | 2 Gruppen mit je einer Maske, keine Reiterzeile; Behandlung mit 4 Bereichen (Übersicht · Grunddaten und Preis · Durchführung · Qualifikationen und Räume) | Schritt 3 (Behandlung, 16.11.2026); P3 (17.11.2026): acht Gruppen, Übersicht, Nachtrag zu ADR 0098 |
 | Team | 7 Ansichten; Personenkarte mit 10 Reitern | 5 Ansichten; Personenkarte mit 4 Bereichen, Verlauf als Seitenleiste | Personenkarte umgesetzt (T-065, 16.11.2026); Ansichten umgesetzt (T-066, 16.11.2026): Personen · Wochenplan · Zeiten · Lohn · Rechte und Zuständigkeiten, „Anträge“ als Seitenleiste im Wochenplan |
-| Lager | 9 Reiter | 4 Reiter (Übersicht mit Verbrauch, Bestand mit den Ansichten Material, Chargen und Bewegungen, Bestellen, Inventur), dazu die Seite „Einrichtung“ mit Lagerorten und Lieferanten | T-061, Schritt 2 (Pull Request offen) |
+| Lager | 9 Reiter | 4 Reiter (Übersicht mit Verbrauch, Bestand mit den Ansichten Material, Chargen und Bewegungen, Bestellen, Inventur), dazu die Seite „Einrichtung“ mit Lagerorten und Lieferanten | T-061, Schritt 2 (Pull Request offen); Export als Dialog statt Menü mit zehn Zeilen: P7, 17.11.2026 (Pull Request offen) |
 | Kassa & Geld | 4 Masken | 4 Masken | T-064, 16.11.2026 (PR offen): Warnungen oben |
 | Kontakt | 3 Masken | 3 Masken | T-064, 16.11.2026 (PR offen): Erinnerungen 3 : 2, Warnung oben |
 | Zahlen | 5 Reiter, „Berichte“ mit 2 Unterreitern | 5 Reiter, „Berichte“ mit 2 Abschnitten | T-063, 16.11.2026 (PR offen) |
