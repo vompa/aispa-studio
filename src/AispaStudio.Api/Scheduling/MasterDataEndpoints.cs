@@ -23,6 +23,8 @@ internal static partial class MasterDataEndpoints
         var group = routes.MapGroup("/api").WithTags("Stammdaten").RequirePermission(AccessRight.ViewCalendar);
 
         MapLocations(group);
+        MapLocationClosing(group);
+        MapSetupProgress(group);
         MapRoomsAndEquipment(group);
         MapQualifications(group);
         MapEmployees(group);
@@ -793,7 +795,7 @@ internal static partial class MasterDataEndpoints
 
     public static LocationDto ToDto(Location l) => new(l.Id, l.Name, l.TimeZone, l.Currency,
         [.. l.OpeningHours.OrderBy(o => o.Day).ThenBy(o => o.Opens).Select(o => new OpeningHours(o.Day, o.Opens, o.Closes))], l.Region,
-        ContactOf(l), CompanyOf(l));
+        ContactOf(l), CompanyOf(l), l.ClosedFrom);
 
     public static LocationContact ContactOf(Location l) => new(l.Street, l.PostalCode, l.City, l.Phone, l.Email, l.Directions);
 

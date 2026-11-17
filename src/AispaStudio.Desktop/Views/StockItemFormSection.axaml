@@ -11,10 +11,15 @@
   -->
   <Border Classes="card">
     <StackPanel Spacing="12">
-      <Grid ColumnDefinitions="*,Auto">
+      <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="4">
         <TextBlock Text="{Binding HeadingText}" Classes="h2" VerticalAlignment="Center" />
-        <ui:HelpButton Grid.Column="1" Topic="lager" Section="material-anlegen" />
+        <!-- „⋯“ im Kopf der Karte (ADR 0099): „Nicht mehr verwenden“ bzw. „Wieder verwenden“, umkehrbar und ohne Rückfrage; Material wird nie gelöscht, Lagerbewegungen bleiben -->
+        <ui:MoreMenuButton Grid.Column="1" x:Name="ItemMoreMenu" IsVisible="{Binding IsEditing}" Subject="{Binding ItemName}"
+                           DeactivateText="{Binding ActiveMenuText}" DeactivateCommand="{Binding ToggleActiveCommand}" />
+        <ui:HelpButton Grid.Column="2" Topic="lager" Section="material-anlegen" />
       </Grid>
+      <TextBlock x:Name="ItemInactiveNote" Classes="muted small" TextWrapping="Wrap" IsVisible="{Binding IsItemInactive}"
+                 Text="Dieses Material wird nicht mehr verwendet: es erscheint nicht mehr in Auswahl und Rezeptur, der Bestand und alle Bewegungen bleiben. Über „⋯“ lässt es sich wieder verwenden." />
       <TextBlock Classes="muted small" TextWrapping="Wrap"
                  Text="Ist ein Verkaufsprodukt der Kassa verknüpft, bucht jeder Verkauf ab. In der Rezeptur einer Behandlung (Seite „Kosten“) gewählt, bucht jede abgeschlossene Behandlung ab." />
       <Grid ColumnDefinitions="*,120" ColumnSpacing="12">

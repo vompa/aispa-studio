@@ -194,6 +194,12 @@ public sealed partial class StockItemFormViewModel : ViewModelBase, IFocusTarget
 
     public string ErrorTitle => IsEditing ? "Nicht gespeichert" : "Nicht angelegt";
 
+    /// <summary>Das geladene Material wird nicht mehr verwendet (ADR 0099): es bleibt im Stamm, erscheint aber nicht mehr in Auswahl und Rezeptur.</summary>
+    public bool IsItemInactive => _editing is { IsActive: false };
+
+    /// <summary>Text im Menü „⋯“: „Nicht mehr verwenden“, bei einem nicht mehr verwendeten Material „Wieder verwenden“.</summary>
+    public string ActiveMenuText => IsItemInactive ? "Wieder verwenden" : "Nicht mehr verwenden";
+
     /// <summary>Eine Eingabe weicht vom leeren Formular oder vom gewählten Material ab.</summary>
     public bool IsDirty => Signature() != _savedSignature;
 
@@ -354,6 +360,34 @@ public sealed partial class StockItemFormViewModel : ViewModelBase, IFocusTarget
 
     private static string? Blank(string value) => value.Trim().Length == 0 ? null : value.Trim();
 
+    /// <summary>
+    /// „Nicht mehr verwenden“ und „Wieder verwenden“ im Menü „⋯“: setzt nur <c>IsActive</c> des gespeicherten Materials (<c>PUT</c> mit den gespeicherten Werten), nie die noch
+    /// ungespeicherten Eingaben des Formulars; die Liste lädt danach neu.
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(IsEditing))]
+    private async Task ToggleActiveAsync()
+    {
+        if (_editing is not { } item || IsSaving)
+        {
+            return;
+        }
+
+        IsSaving = true;
+        Error = null;
+        var body = new StockItemInput(item.Name, item.Unit, item.UnitCost, item.MinimumQuantity, item.ArticleId, !item.IsActive, null, item.SupplierArticleNumber,
+            item.SupplierId, item.PackUnit, item.PackSize, item.CaseUnit, item.PacksPerCase, item.TreatmentDose, item.ExpiryWarningDays, item.Barcode);
+        var result = await _api.PutAsync<StockItemDto>($"api/stock/items/{item.Id}", body).ConfigureAwait(true);
+        IsSaving = false;
+        if (result.Value is not { } saved)
+        {
+            Error = result.Error ?? "Das Material wurde nicht geändert.";
+            return;
+        }
+
+        Clear();
+        await _owner.ReloadAsync(body.IsActive ? $"{saved.Name} wird wieder verwendet." : $"{saved.Name} wird nicht mehr verwendet.").ConfigureAwait(true);
+    }
+
     /// <summary>Zurück auf das leere Formular.</summary>
     [RelayCommand]
     public void Clear()
@@ -389,6 +423,9 @@ public sealed partial class StockItemFormViewModel : ViewModelBase, IFocusTarget
         OnPropertyChanged(nameof(HeadingText));
         OnPropertyChanged(nameof(ButtonText));
         OnPropertyChanged(nameof(ErrorTitle));
+        OnPropertyChanged(nameof(IsItemInactive));
+        OnPropertyChanged(nameof(ActiveMenuText));
+        ToggleActiveCommand.NotifyCanExecuteChanged();
         Touch();
     }
 

@@ -13,12 +13,13 @@
       <TextBlock Text="Zeitraum" Classes="h2" VerticalAlignment="Center" />
       <ui:HelpButton Grid.Column="1" Topic="{Binding HelpTopic}" Section="zeitraum" />
     </Grid>
+    <!-- Width="NaN": das Datumsfeld ist sonst 160 breit, zwei davon passen nicht in die 320 der Seitenleiste und das rechte reichte unter die Bildlaufleiste -->
     <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
       <ui:FormField Label="Von" IsRequired="True" Error="{Binding Period.FromDateError}">
-        <ui:DateField x:Name="FromDateField" CommittedText="{Binding Period.FromDate}" />
+        <ui:DateField x:Name="FromDateField" CommittedText="{Binding Period.FromDate}" Width="NaN" MinWidth="120" />
       </ui:FormField>
       <ui:FormField Grid.Column="1" Label="Bis" IsRequired="True" Error="{Binding Period.UntilDateError}">
-        <ui:DateField x:Name="UntilDateField" CommittedText="{Binding Period.UntilDate}" />
+        <ui:DateField x:Name="UntilDateField" CommittedText="{Binding Period.UntilDate}" Width="NaN" MinWidth="120" />
       </ui:FormField>
     </Grid>
     <CheckBox x:Name="PartialBox" IsChecked="{Binding Period.IsPartial}" Content="Nur ein Teil der Tage (mit Uhrzeit)" />

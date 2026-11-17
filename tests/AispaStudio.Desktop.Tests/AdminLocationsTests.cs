@@ -247,9 +247,11 @@ public sealed class AdminLocationsTests
         var owner = await Open();
 
         Assert.False(manager.CanCreate);
-        Assert.DoesNotContain(manager.Choices, c => c.Id is null);
+        Assert.Null(manager.CreateChoice);
+        Assert.False(manager.NewLocationCommand.CanExecute(null));
         Assert.True(owner.CanCreate);
-        Assert.Equal(["Wien", "Salzburg", "Standort anlegen"], owner.Choices.Select(c => c.Title));
+        Assert.Equal(["Wien", "Salzburg"], owner.Choices.Select(c => c.Title));
+        Assert.Equal("Standort anlegen", owner.CreateChoice!.Title);
     }
 
     [Fact]
@@ -258,7 +260,7 @@ public sealed class AdminLocationsTests
         var api = Api();
         var locations = await Open(api);
 
-        locations.SelectedChoice = locations.Choices.Single(c => c.Id is null);
+        locations.NewLocationCommand.Execute(null);
         locations.Name = "Linz";
         Assert.True(await locations.SaveChangesAsync());
 
@@ -266,7 +268,7 @@ public sealed class AdminLocationsTests
         Assert.Equal(("Linz", "Europe/Vienna", "EUR"), (input.Name, input.TimeZone, input.Currency));
         Assert.Equal(6, input.OpeningHours.Count);
         Assert.Equal("Linz", locations.SelectedChoice?.Title);
-        Assert.Equal(["Wien", "Salzburg", "Linz", "Standort anlegen"], locations.Choices.Select(c => c.Title));
+        Assert.Equal(["Wien", "Salzburg", "Linz"], locations.Choices.Select(c => c.Title));
     }
 
     [Fact]

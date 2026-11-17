@@ -649,6 +649,52 @@
             "description": "Not Found"
           }
         }
+      },
+      "delete": {
+        "tags": [
+          "Stammdaten"
+        ],
+        "summary": "Löscht einen Standort, an dem nichts hängt; sonst 409 mit der Liste dessen, was daran hängt, und dem Weg „Schließen ab Datum“.",
+        "operationId": "DeleteLocation",
+        "parameters": [
+          {
+            "name": "locationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeletionCheckDto"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/v1/holidays/regions": {
@@ -793,6 +839,192 @@
           },
           "404": {
             "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/v1/locations/{locationId}/close": {
+      "post": {
+        "tags": [
+          "Stammdaten"
+        ],
+        "summary": "Schließt den Standort ab einem Tag: ab dann keine Buchung mehr, vergangene Termine und Belege bleiben. Abgelehnt, solange noch offene Termine ab dem Tag daran liegen oder es der letzte offene Standort wäre.",
+        "operationId": "CloseLocation",
+        "parameters": [
+          {
+            "name": "locationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LocationCloseInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocationDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/v1/locations/{locationId}/reopen": {
+      "post": {
+        "tags": [
+          "Stammdaten"
+        ],
+        "summary": "Öffnet einen geschlossenen Standort wieder: die Schließung ab dem Tag entfällt.",
+        "operationId": "ReopenLocation",
+        "parameters": [
+          {
+            "name": "locationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocationDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/v1/locations/{locationId}/deletion-check": {
+      "get": {
+        "tags": [
+          "Stammdaten"
+        ],
+        "summary": "Zählt, was an einem Standort hängt; gelöscht werden darf nur, wenn nichts daran hängt, sonst bleibt „Schließen ab Datum“.",
+        "operationId": "CheckLocationDeletion",
+        "parameters": [
+          {
+            "name": "locationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeletionCheckDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/v1/setup/progress": {
+      "get": {
+        "tags": [
+          "Stammdaten"
+        ],
+        "summary": "Die Schritte der Ersteinrichtung (Standort, Öffnungszeiten, Räume, Behandlungen, Team, Kassa) und welche davon erledigt sind.",
+        "operationId": "GetSetupProgress",
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetupProgressDto"
+                }
+              }
+            }
           }
         }
       }
@@ -42251,6 +42483,18 @@
           "Ready"
         ]
       },
+      "LocationCloseInput": {
+        "required": [
+          "closedFrom"
+        ],
+        "type": "object",
+        "properties": {
+          "closedFrom": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      },
       "LocationCompany": {
         "required": [
           "legalName",
@@ -42420,6 +42664,13 @@
                 "$ref": "#/components/schemas/LocationCompany"
               }
             ]
+          },
+          "closedFrom": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
           }
         }
       },
@@ -48439,6 +48690,54 @@
               "type": "string",
               "format": "date-time"
             }
+          }
+        }
+      },
+      "SetupProgressDto": {
+        "required": [
+          "steps"
+        ],
+        "type": "object",
+        "properties": {
+          "steps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SetupStepDto"
+            }
+          }
+        }
+      },
+      "SetupStepDto": {
+        "required": [
+          "key",
+          "title",
+          "hint",
+          "done",
+          "page",
+          "tab"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "hint": {
+            "type": "string"
+          },
+          "done": {
+            "type": "boolean"
+          },
+          "page": {
+            "type": "string"
+          },
+          "tab": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
