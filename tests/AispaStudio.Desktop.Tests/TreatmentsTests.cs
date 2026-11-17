@@ -68,8 +68,16 @@ public sealed class TreatmentsTests
 
     private static async Task<TreatmentEditorViewModel> Choose(TreatmentsViewModel treatments, string title)
     {
-        treatments.SelectedEntry = treatments.Entries.Single(e => e.Title == title);
-        var expected = title == "Behandlung anlegen" ? "Neue Behandlung" : title;
+        if (title == "Neue Behandlung")
+        {
+            await treatments.NewCommand.ExecuteAsync(null);
+        }
+        else
+        {
+            treatments.SelectedEntry = treatments.Entries.Single(e => e.Title == title);
+        }
+
+        var expected = title;
         await Until(() => treatments.Editor?.Title == expected && treatments.Editor.IsLoaded);
         return treatments.Editor!;
     }
@@ -89,13 +97,14 @@ public sealed class TreatmentsTests
         new(api.Client(), TestData.Owner(), null, TimeProvider.System, new ThemeController(new MemorySettingsStore()), "Test", () => Task.CompletedTask);
 
     [Fact]
-    public async Task Given_Behandlungen_mit_Kategorien_When_die_Maske_laedt_Then_Liste_nach_Kategorie_ohne_Kategorie_zuletzt_und_Behandlung_anlegen()
+    public async Task Given_Behandlungen_mit_Kategorien_When_die_Maske_laedt_Then_Liste_nach_Kategorie_ohne_Kategorie_zuletzt_mit_Dauer_und_Preis()
     {
         var treatments = await Loaded(Api());
 
-        Assert.Equal(["Kosmetik", "Gesichtsbehandlung", "Massagen", "Hot Stone 60", "Ohne Kategorie", "Fußbad", "Behandlung anlegen"],
-            treatments.Entries.Select(e => e.Title));
-        Assert.Equal([true, false, true, false, true, false, false], treatments.Entries.Select(e => e.IsHeading));
+        Assert.Equal(["Kosmetik", "Gesichtsbehandlung", "Massagen", "Hot Stone 60", "Ohne Kategorie", "Fußbad"], treatments.Entries.Select(e => e.Title));
+        Assert.Equal([true, false, true, false, true, false], treatments.Entries.Select(e => e.IsHeading));
+        Assert.Equal([1, 1, 1], treatments.Entries.Where(e => e.IsHeading).Select(e => e.Count));
+        Assert.Equal([null, "45 Min. · 75 €", null, "60 Min. · 89 €", null, "20 Min. · 29 €"], treatments.Entries.Select(e => e.Meta));
         Assert.Equal("Gesichtsbehandlung", treatments.SelectedEntry?.Title);
         Assert.Equal(Facial.Id, treatments.Editor?.Id);
     }
@@ -147,7 +156,7 @@ public sealed class TreatmentsTests
     {
         var api = Api();
         var treatments = await Loaded(api);
-        var editor = await Choose(treatments, "Behandlung anlegen");
+        var editor = await Choose(treatments, "Neue Behandlung");
         Assert.True(editor.IsNew);
         editor.Name = "Kräuterstempel";
         editor.Price = 59m;
@@ -172,7 +181,7 @@ public sealed class TreatmentsTests
     {
         var api = Api();
         var treatments = await Loaded(api);
-        var editor = await Choose(treatments, "Behandlung anlegen");
+        var editor = await Choose(treatments, "Neue Behandlung");
         editor.Name = "Kräuterstempel";
         Assert.False(await treatments.SaveChangesAsync());
 
@@ -247,7 +256,8 @@ public sealed class TreatmentsTests
         var treatments = await Loaded(api, dialogs);
         await Choose(treatments, "Hot Stone 60");
 
-        await treatments.DeactivateCommand.ExecuteAsync(null);
+        treatments.Editor!.DeactivateCommand.Execute(null);
+        await Until(() => treatments.Entries.All(e => e.Title != "Hot Stone 60"));
 
         var asked = Assert.Single(dialogs.AssertRules().Asked);
         Assert.Equal("„Hot Stone 60“ nicht mehr anbieten?", asked.Title);
@@ -341,9 +351,9 @@ public sealed class TreatmentsTests
         treatments.Open(Guid.NewGuid(), TreatmentEditorViewModel.Process, null);
 
         Assert.Same(editor, treatments.Editor);
-        Assert.Equal(TreatmentEditorViewModel.Basics, editor.SelectedSection);
+        Assert.Equal(TreatmentEditorViewModel.Overview, editor.SelectedSection);
         Assert.Equal("Diese Behandlung wird nicht mehr angeboten und steht deshalb nicht in der Liste.", treatments.Notice);
-        Assert.False(treatments.HasError);
+        Assert.False(treatments.Editor!.HasError);
     }
 
     [Fact]
@@ -354,7 +364,8 @@ public sealed class TreatmentsTests
         var treatments = await Loaded(api, dialogs);
         var editor = await Choose(treatments, "Hot Stone 60");
 
-        await treatments.DeactivateCommand.ExecuteAsync(null);
+        editor.DeactivateCommand.Execute(null);
+        await Until(() => treatments.HasNotice);
 
         Assert.Null(treatments.LoadError);
         Assert.True(treatments.HasNotice);
@@ -434,18 +445,20 @@ public sealed class TreatmentsTests
     }
 
     [Fact]
-    public async Task Given_eine_neue_Behandlung_When_die_Maske_offen_ist_Then_fehlt_der_Bereich_Preise_und_Verkauf_und_eine_gespeicherte_hat_ihn()
+    public async Task Given_eine_neue_Behandlung_When_die_Maske_offen_ist_Then_fehlt_die_Übersicht_und_eine_gespeicherte_hat_sie_zuerst()
     {
         var treatments = await Loaded(SalesApi());
 
         var saved = await Choose(treatments, "Hot Stone 60");
-        Assert.Contains(saved.Sections, s => s.Id == TreatmentEditorViewModel.Offer && s.Label == "Preise und Verkauf");
-        var created = await Choose(treatments, "Behandlung anlegen");
+        Assert.Equal(TreatmentEditorViewModel.Overview, saved.Sections[0].Id);
+        var created = await Choose(treatments, "Neue Behandlung");
 
-        // Ein Standort: ohne gespeicherte Behandlung gibt es weder Preisregeln noch „Passt dazu“, also keinen Bereich.
+        // Ohne gespeicherte Behandlung gibt es keine Übersicht, und „Passt dazu“ fehlt in „Grunddaten und Preis“.
         Assert.Equal([TreatmentEditorViewModel.Basics, TreatmentEditorViewModel.Execution, TreatmentEditorViewModel.Resources], created.Sections.Select(s => s.Id));
+        Assert.Equal(TreatmentEditorViewModel.Basics, created.SelectedSection);
         created.SelectSection(TreatmentEditorViewModel.Sales);
         Assert.Equal(TreatmentEditorViewModel.Basics, created.SelectedSection);
+        Assert.Null(created.GroupTarget);
     }
 
     [Fact]
@@ -456,18 +469,20 @@ public sealed class TreatmentsTests
         var editor = await Choose(treatments, "Hot Stone 60");
 
         // masken.md R15 (ADR 0098): eine Karte neben einer Liste hat höchstens vier Bereiche.
-        Assert.Equal(["Grunddaten", "Durchführung", "Preise und Verkauf", "Qualifikationen und Räume"], editor.Sections.Select(s => s.Label));
-        Assert.Equal(TreatmentEditorViewModel.Basics, editor.SelectedSection);
+        Assert.Equal(["Übersicht", "Grunddaten und Preis", "Durchführung", "Qualifikationen und Räume"], editor.Sections.Select(s => s.Label));
+        Assert.Equal(TreatmentEditorViewModel.Overview, editor.SelectedSection);
         Assert.True(editor.HasMaterial);
     }
 
     [Theory]
+    [InlineData("uebersicht", TreatmentEditorViewModel.Overview, null)]
     [InlineData("grunddaten", TreatmentEditorViewModel.Basics, null)]
+    [InlineData("preise-und-verkauf", TreatmentEditorViewModel.Basics, null)]
     [InlineData("ablauf", TreatmentEditorViewModel.Execution, "ablauf")]
     [InlineData("material", TreatmentEditorViewModel.Execution, "material")]
     [InlineData("bereitstellen", TreatmentEditorViewModel.Execution, "bereitstellen")]
-    [InlineData("preise", TreatmentEditorViewModel.Offer, "preise")]
-    [InlineData("verkauf", TreatmentEditorViewModel.Offer, "verkauf")]
+    [InlineData("preise", TreatmentEditorViewModel.Basics, "preise")]
+    [InlineData("verkauf", TreatmentEditorViewModel.Basics, "verkauf")]
     [InlineData("ressourcen", TreatmentEditorViewModel.Resources, null)]
     [InlineData("durchfuehrung", TreatmentEditorViewModel.Execution, null)]
     [InlineData("gibt-es-nicht", TreatmentEditorViewModel.Basics, null)]
@@ -495,7 +510,7 @@ public sealed class TreatmentsTests
 
         Assert.False(await treatments.SaveChangesAsync());
 
-        Assert.True(treatments.HasError);
+        Assert.True(editor.HasError);
         Assert.Equal(TreatmentEditorViewModel.Execution, editor.SelectedSection);
         Assert.Equal(TreatmentEditorViewModel.Material, editor.GroupTarget);
         Assert.True(treatments.HasUnsavedChanges);
@@ -526,7 +541,7 @@ public sealed class TreatmentsTests
     {
         var treatments = await Loaded(Api());
 
-        var created = await Choose(treatments, "Behandlung anlegen");
+        var created = await Choose(treatments, "Neue Behandlung");
 
         Assert.False(created.HasHistory);
         Assert.Empty(created.HistorySections);
@@ -548,5 +563,128 @@ public sealed class TreatmentsTests
         // masken.md R2: Seltenes ist eingeklappt; ist ein Feld darin befüllt, ist die Gruppe offen.
         Assert.False((await Choose(treatments, "Hot Stone 60")).MoreOpen);
         Assert.True((await Choose(treatments, "Hot Stone 90")).MoreOpen);
+    }
+
+    [Fact]
+    public async Task Given_die_Liste_When_eine_Kategorie_zugeklappt_wird_Then_zeigt_sie_nur_die_Ueberschrift_mit_Anzahl_und_klappt_wieder_auf()
+    {
+        var treatments = await Loaded(Api());
+        var massages = treatments.Entries.Single(e => e.Title == "Massagen");
+
+        treatments.SelectedEntry = massages;
+
+        var collapsed = treatments.Entries.Single(e => e.Title == "Massagen");
+        Assert.True(collapsed.IsCollapsed);
+        Assert.Equal(1, collapsed.Count);
+        Assert.DoesNotContain(treatments.Entries, e => e.Title == "Hot Stone 60");
+        Assert.Equal("1 Behandlung, eingeklappt", collapsed.Description);
+        Assert.Equal(Facial.Id, treatments.Editor?.Id);
+
+        treatments.SelectedEntry = collapsed;
+
+        Assert.Contains(treatments.Entries, e => e.Title == "Hot Stone 60");
+        Assert.False(treatments.Entries.Single(e => e.Title == "Massagen").IsCollapsed);
+    }
+
+    [Fact]
+    public async Task Given_ein_Suchbegriff_When_er_Name_oder_Kategorie_trifft_Then_filtert_die_Liste_klappt_alles_auf_und_sagt_bei_keinem_Treffer_Bescheid()
+    {
+        var treatments = await Loaded(Api());
+        treatments.SelectedEntry = treatments.Entries.Single(e => e.Title == "Massagen");
+
+        treatments.Search = "stone";
+        // Bleibt eine Kategorie übrig, steht keine Überschrift mehr da.
+        Assert.Equal(["Hot Stone 60"], treatments.Entries.Select(e => e.Title));
+        Assert.False(treatments.HasNoMatches);
+
+        treatments.Search = "kosmetik";
+        Assert.Equal(["Gesichtsbehandlung"], treatments.Entries.Select(e => e.Title));
+
+        treatments.Search = "gibt es nicht";
+        Assert.Empty(treatments.Entries);
+        Assert.True(treatments.HasNoMatches);
+    }
+
+    [Fact]
+    public async Task Given_eine_nicht_mehr_angebotene_Behandlung_When_der_Schalter_an_ist_Then_steht_sie_ausgegraut_in_der_Liste_und_Wieder_anbieten_holt_sie_zurueck()
+    {
+        var retired = FootBath with { Id = Guid.NewGuid(), Name = "Altes Fußbad", IsActive = false };
+        var api = Api()
+            .On("GET /api/treatments?includeInactive=true", new List<TreatmentDto> { HotStone60, Facial, FootBath, retired })
+            .On($"GET /api/treatments/{retired.Id}/price-rules", new List<TreatmentPriceRuleDto>())
+            .On($"GET /api/reports/treatments/{retired.Id}/preparation", new List<PreparationStepDto>())
+            .On($"GET /api/costs/treatments/{retired.Id}/materials", new List<MaterialLine>())
+            .On($"GET /api/treatments/{retired.Id}/extras", new List<TreatmentExtraDto>())
+            .On($"GET /api/treatments/{retired.Id}/history", new List<HistoryEntry>())
+            .On($"POST /api/treatments/{retired.Id}/reactivate", retired with { IsActive = true });
+        var treatments = await Loaded(api);
+        Assert.DoesNotContain(treatments.Entries, e => e.Title == "Altes Fußbad");
+
+        treatments.ShowInactive = true;
+        await Until(() => treatments.Entries.Any(e => e.Title == "Altes Fußbad"));
+
+        var row = treatments.Entries.Single(e => e.Title == "Altes Fußbad");
+        Assert.False(row.IsOffered);
+        Assert.Equal("20 Min. · 29 €, nicht angeboten", row.Description);
+        var editor = await Choose(treatments, "Altes Fußbad");
+        Assert.True(editor.IsInactive);
+        Assert.False(editor.CanEdit);
+        Assert.False(editor.CanDeactivate);
+
+        editor.ReactivateCommand.Execute(null);
+        await Until(() => treatments.Entries.Single(e => e.Title == "Altes Fußbad").IsOffered);
+
+        Assert.Single(api.Calls, c => c.Route == $"POST /api/treatments/{retired.Id}/reactivate");
+        Assert.False(treatments.Editor!.IsInactive);
+        Assert.Equal("Altes Fußbad", treatments.SelectedEntry?.Title);
+    }
+
+    [Fact]
+    public async Task Given_Hot_Stone_60_When_die_Uebersicht_zaehlt_Then_vier_Kacheln_mit_Preis_Dauer_Personen_und_Raeumen_und_der_Klick_springt()
+    {
+        var treatments = await Loaded(Api());
+        var editor = await Choose(treatments, "Hot Stone 60");
+
+        Assert.Equal(["Preis", "Dauer", "Dürfen behandeln", "Räume"], editor.Tiles.Select(t => t.Label));
+        Assert.Equal(["89 €", "60 Min.", "1 Person", "1 Raum"], editor.Tiles.Select(t => t.Value));
+        Assert.Equal("Hot Stone", editor.Tiles[2].Hint);
+
+        editor.Price = 89.5m;
+        editor.Tiles[0].Command.Execute(null);
+
+        Assert.Equal("89,50 €", editor.Tiles[0].Value);
+        Assert.Equal(TreatmentEditorViewModel.Basics, editor.SelectedSection);
+        Assert.Equal(TreatmentEditorViewModel.PriceField, editor.FocusTarget);
+        editor.Tiles[3].Command.Execute(null);
+        Assert.Equal(TreatmentEditorViewModel.Resources, editor.SelectedSection);
+    }
+
+    [Fact]
+    public async Task Given_ein_Sprung_zu_den_Preisen_nach_Zeit_When_er_ankommt_Then_ist_Weitere_Angaben_offen()
+    {
+        var treatments = await Loaded(Api());
+        var editor = await Choose(treatments, "Hot Stone 60");
+        Assert.False(editor.MoreOpen);
+
+        editor.SelectSection(TreatmentEditorViewModel.Prices);
+
+        Assert.True(editor.MoreOpen);
+        Assert.Equal(TreatmentEditorViewModel.Basics, editor.SelectedSection);
+        Assert.Equal(TreatmentEditorViewModel.Prices, editor.GroupTarget);
+    }
+
+    [Fact]
+    public async Task Given_eine_neue_Behandlung_mit_Eingaben_When_eine_andere_gewaehlt_wird_Then_fragt_die_Maske_und_bleibt_bei_Abbruch_bei_der_neuen()
+    {
+        var dialogs = new FakeDialogs().Answer(ConfirmChoice.Cancelled);
+        var treatments = await Loaded(Api(), dialogs);
+        var created = await Choose(treatments, "Neue Behandlung");
+        created.Name = "Kräuterstempel";
+
+        treatments.SelectedEntry = treatments.Entries.Single(e => e.Title == "Fußbad");
+        await Until(() => dialogs.Asked.Count == 1);
+
+        Assert.Same(created, treatments.Editor);
+        Assert.Equal("Änderungen speichern?", dialogs.AssertRules().Asked.Single().Title);
     }
 }

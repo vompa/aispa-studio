@@ -36,7 +36,7 @@ Jede Slice hat ihren Bereich vollständig ersetzt, mit denselben Feldern, Regeln
 | `masterData` | `roomClosures` | Raumsperren | Slice 95 | seit T-064 (ADR 0098) der zweite Abschnitt der Seite „Schließzeiten“; das Sprungziel bleibt und rollt zum Abschnitt |
 | `masterData` | `subscriptions` | Kalender-Abos | Slice 95 | Feiertage und Ferien (ADR 0075), keine Kunden-Abos |
 | `masterData` | `team` | Team | Slice 98 | Personenkarte, Bereich Profil (Abschnitt Stammdaten); native Maske seit Slice 98, Bereiche seit T-065 |
-| `masterData` | `treatments` | Behandlungen | Slice 94 | „Wer kann das?“ nur lesend mit Sprung ins Team |
+| `masterData` | `treatments` | Behandlungen | Slice 94 | „Wer kann das?“ nur lesend mit Sprung ins Team; eigene Gruppe „Behandlungen“ im Balken (seit 17.11.2026); Bereiche Übersicht, Grunddaten und Preis, Durchführung, Qualifikationen und Räume; alte Abschnittsadressen bleiben gültig (`preise-und-verkauf` → Grunddaten und Preis) |
 | `masterData` | `qualifications` | Qualifikationen | Slice 98 | Bereich „Profil“ der Personenkarte (Abschnitt „Qualifikationen“); native Maske seit Slice 98, Bereiche seit T-065 |
 | `masterData` | `handbook` | Handbuch | Slice 97 | nativ als Rezeptionshandbuch mit Liste und Formular (Slice 97), daneben das Fragezeichen zur Hilfe (E1) |
 | `masterData` | `reminders` | Erinnerungen | Slice 96 | |
@@ -89,7 +89,7 @@ Ziel nach [ADR 0098](../entscheidungen/0098-verwaltungsmasken-eine-schiene-ueber
 | Gruppe | Schiene heute | Schiene neu | Umgestellt |
 | --- | --- | --- | --- |
 | Betrieb | 6 Masken | 5 Masken (Schließzeiten und Raumsperren auf einer Seite) | T-064, 16.11.2026 (PR offen) |
-| Angebot | 2 Masken; Behandlung mit 7 Abschnittsreitern | 2 Masken; Behandlung mit 4 Bereichen | Schritt 3 (Behandlung, 16.11.2026) |
+| Angebot (seit 17.11.2026: Behandlungen und Aktionen als zwei Gruppen) | 2 Masken; Behandlung mit 7 Abschnittsreitern | 2 Gruppen mit je einer Maske, keine Reiterzeile; Behandlung mit 4 Bereichen (Übersicht · Grunddaten und Preis · Durchführung · Qualifikationen und Räume) | Schritt 3 (Behandlung, 16.11.2026); P3 (17.11.2026): acht Gruppen, Übersicht, Nachtrag zu ADR 0098 |
 | Team | 7 Ansichten; Personenkarte mit 10 Reitern | 5 Ansichten; Personenkarte mit 4 Bereichen, Verlauf als Seitenleiste | Personenkarte umgesetzt (T-065, 16.11.2026); Ansichten umgesetzt (T-066, 16.11.2026): Personen · Wochenplan · Zeiten · Lohn · Rechte und Zuständigkeiten, „Anträge“ als Seitenleiste im Wochenplan |
 | Lager | 9 Reiter | 4 Reiter (Übersicht mit Verbrauch, Bestand mit den Ansichten Material, Chargen und Bewegungen, Bestellen, Inventur), dazu die Seite „Einrichtung“ mit Lagerorten und Lieferanten | T-061, Schritt 2 (Pull Request offen) |
 | Kassa & Geld | 4 Masken | 4 Masken | T-064, 16.11.2026 (PR offen): Warnungen oben |
