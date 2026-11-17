@@ -382,10 +382,19 @@ internal static partial class MasterDataEndpoints
 
     private static void MapTreatments(RouteGroupBuilder group)
     {
-        group.MapGet("/treatments", async (AispaDbContext db, CancellationToken ct) =>
-                (await TreatmentsQuery(db).ToListAsync(ct)).Select(t => ToDto(t)).ToList())
+        group.MapGet("/treatments", async Task<Results<Ok<List<TreatmentDto>>, ForbidHttpResult>> (
+                AispaDbContext db, AccessService accessService, CancellationToken ct, bool includeInactive = false) =>
+            {
+                // Nicht mehr angebotene Behandlungen sieht, wer sie bearbeiten und wieder anbieten darf.
+                if (includeInactive && (await accessService.CurrentAsync(ct))?.Has(AccessRight.ManageCatalog) != true)
+                {
+                    return TypedResults.Forbid();
+                }
+
+                return TypedResults.Ok((await TreatmentsQuery(db, includeInactive).ToListAsync(ct)).Select(t => ToDto(t)).ToList());
+            })
             .WithName("ListTreatments")
-            .WithSummary("Alle aktiven Behandlungen mit ihren geeigneten Räumen und Geräten an allen Standorten.");
+            .WithSummary("Alle aktiven Behandlungen mit ihren geeigneten Räumen und Geräten an allen Standorten. Mit includeInactive=true (Recht „Katalog verwalten“) auch die nicht mehr angebotenen; `isActive` sagt, welche.");
 
         group.MapPost("/treatments", async Task<Results<Created<TreatmentDto>, ValidationProblem>> (
                 TreatmentInput input, AispaDbContext db, AccessService accessService, CancellationToken ct) =>
@@ -438,6 +447,20 @@ internal static partial class MasterDataEndpoints
             .WithName("DeactivateTreatment")
             .RequirePermission(AccessRight.ManageCatalog)
             .WithSummary("Bietet eine Behandlung nicht mehr an. Bereits gebuchte Termine bleiben bestehen.");
+
+        group.MapPost("/treatments/{treatmentId:guid}/reactivate", async Task<Results<Ok<TreatmentDto>, NotFound>> (
+                Guid treatmentId, AispaDbContext db, CancellationToken ct) =>
+            {
+                if (await db.Treatments.Where(t => t.Id == treatmentId).ExecuteUpdateAsync(s => s.SetProperty(t => t.IsActive, true), ct) == 0)
+                {
+                    return TypedResults.NotFound();
+                }
+
+                return TypedResults.Ok(ToDto(await TreatmentsQuery(db, includeInactive: true).FirstAsync(t => t.Id == treatmentId, ct)));
+            })
+            .WithName("ReactivateTreatment")
+            .RequirePermission(AccessRight.ManageCatalog)
+            .WithSummary("Bietet eine nicht mehr angebotene Behandlung wieder an; wer sie schon anbietet, ändert nichts.");
     }
 
     /// <summary>Deaktiviert Person, Raum oder Gerät, sofern keine künftigen Termine mehr daran hängen.</summary>
@@ -473,11 +496,11 @@ internal static partial class MasterDataEndpoints
             .Where(e => e.IsActive)
             .OrderBy(e => e.PreferredName ?? e.DisplayName);
 
-    private static IQueryable<Treatment> TreatmentsQuery(AispaDbContext db) =>
+    private static IQueryable<Treatment> TreatmentsQuery(AispaDbContext db, bool includeInactive = false) =>
         db.Treatments.AsNoTracking()
             .Include(t => t.RequiredQualifications).Include(t => t.Rooms).Include(t => t.Equipment).Include(t => t.LocationPrices).Include(t => t.PriceRules)
             .AsSplitQuery()
-            .Where(t => t.IsActive)
+            .Where(t => includeInactive || t.IsActive)
             .OrderBy(t => t.Name);
 
     private static Errors Apply(Location location, LocationInput input)
@@ -752,7 +775,10 @@ internal static partial class MasterDataEndpoints
         t.Category,
         t.Price,
         [.. t.LocationPrices.OrderBy(p => p.LocationId).Select(p => new TreatmentLocationPriceDto(p.LocationId, p.Price))],
-        t.NoShowFeePercent, t.DepositPercent, t.GuestHint, t.CheckAnamnesis, t.HandsOnMinutes, t.ProcessingMinutes);
+        t.NoShowFeePercent, t.DepositPercent, t.GuestHint, t.CheckAnamnesis, t.HandsOnMinutes, t.ProcessingMinutes)
+    {
+        IsActive = t.IsActive,
+    };
 
     [GeneratedRegex("^[A-Z]{3}$")]
     private static partial Regex CurrencyCode();
