@@ -5,37 +5,12 @@
              x:Class="AispaStudio.Desktop.Views.DutyOverviewView"
              x:DataType="vm:DutyOverviewViewModel">
   <!--
-    Ansicht „Zuständigkeiten“ im Bereich Team (R05 Slice 117, Ä274, E14): wer wofür zuständig ist, was bald abläuft, und die pflegbare Liste der Zuständigkeiten
-    mit verlangtem Zertifikat und Mindestzahl Ersthelferinnen im Dienst. Die Zuständigkeiten einer Person pflegt man auf ihrer Karte.
-    Seit ADR 0098 ein Abschnitt der Ansicht „Rechte und Zuständigkeiten“: die Überschrift (h3) trägt TeamView, die drei Gruppen hier haben Gruppentitel.
+    Abschnitt „Zertifikate und Liste der Zuständigkeiten“ im Bereich Team (R05 Slice 117, Ä274, E14): was bald abläuft und die pflegbare Liste der Zuständigkeiten
+    mit verlangtem Zertifikat und Mindestzahl Ersthelferinnen im Dienst. Wer wofür zuständig ist, steht in der Tabelle darüber (P11).
+    Seit ADR 0098 ein Abschnitt der Ansicht „Rechte und Zuständigkeiten“: die Überschrift (h3) trägt TeamView, die zwei Gruppen hier haben Gruppentitel.
   -->
   <StackPanel x:Name="DutyOverview" Spacing="24" MaxWidth="760" HorizontalAlignment="Left" ui:SaveShortcut.IsScope="True">
     <ui:InfoBar Severity="Error" Title="Nicht geladen" Message="{Binding LoadError}" IsVisible="{Binding HasLoadError}" ActionText="Erneut laden" ActionCommand="{Binding LoadCommand}" />
-
-    <StackPanel Spacing="12">
-      <Grid ColumnDefinitions="*,Auto">
-        <TextBlock Text="Wer ist wofür zuständig?" Classes="group" VerticalAlignment="Center" />
-        <ui:HelpButton Topic="zustaendigkeiten-zertifikate" Section="uebersicht" Grid.Column="1" />
-      </Grid>
-      <ItemsControl x:Name="DutyRows" ItemsSource="{Binding Rows}" AutomationProperties.Name="Zuständigkeiten">
-        <ItemsControl.ItemTemplate>
-          <DataTemplate x:DataType="vm:DutyOverviewRow">
-            <StackPanel Spacing="2" Margin="0,0,0,16">
-              <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
-              <TextBlock Text="{Binding Certificate}" Classes="muted small" IsVisible="{Binding HasCertificate}" />
-              <TextBlock Text="Niemand eingetragen" Classes="muted" IsVisible="{Binding HasNoHolders}" />
-              <ItemsControl ItemsSource="{Binding Holders}">
-                <ItemsControl.ItemTemplate>
-                  <DataTemplate x:DataType="vm:DutyHolderRow">
-                    <TextBlock Text="{Binding Text}" Classes.muted="{Binding IsExpired}" TextWrapping="Wrap" />
-                  </DataTemplate>
-                </ItemsControl.ItemTemplate>
-              </ItemsControl>
-            </StackPanel>
-          </DataTemplate>
-        </ItemsControl.ItemTemplate>
-      </ItemsControl>
-    </StackPanel>
 
     <StackPanel Spacing="12">
       <TextBlock Text="Was läuft bald ab?" Classes="group" />

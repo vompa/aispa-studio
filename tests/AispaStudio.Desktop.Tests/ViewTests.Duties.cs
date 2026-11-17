@@ -97,8 +97,6 @@ public sealed partial class ViewTests
             await Pump(Settling);
 
             Assert.True(Named<Control>(window, "DutyOverview").IsEffectivelyVisible);
-            Assert.True(Shows(window, "Lena Huber, Vertretung Marco Berger, gültig ab 1.1.2026"));
-            Assert.True(Shows(window, "Niemand eingetragen"));
             Assert.True(Shows(window, "Lena Huber: Erste-Hilfe-Kurs, abgelaufen am 3.10.2026"));
             Assert.True(VisibleNamed<Control>(window, "MinimumOnDutyField").IsEffectivelyVisible);
             Assert.False(Named<Control>(window, "TeamList").IsEffectivelyVisible);

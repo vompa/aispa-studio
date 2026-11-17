@@ -57,9 +57,10 @@ internal static class StaffRegulationEndpoints
             .WithName("ListStaffFlags")
             .WithSummary("Kennzeichen für Karte und Teamliste: die heute gültigen Einträge je Person in Worten.");
 
-        group.MapGet("/staff-regulations/powers", async (AispaDbContext db, TimeProvider time, CancellationToken ct) => await OverviewAsync(db, await TodayAsync(db, time, ct), ct))
+        group.MapGet("/staff-regulations/powers", async (Guid? locationId, AispaDbContext db, TimeProvider time, CancellationToken ct) =>
+                await OverviewAsync(db, await TodayAsync(db, time, ct), locationId, ct))
             .WithName("ListPowerOverview")
-            .WithSummary("„Wer darf was?“: je Vollmacht aus der festen Liste, wer sie hat und bis wann.");
+            .WithSummary("„Wer darf was?“: je Vollmacht aus der festen Liste, wer sie hat und bis wann, dazu Thema, Hinweis, Wirkung und ob sie unbesetzt ist; mit locationId nur die Personen, die an dem Standort arbeiten.");
 
         routes.MapGet("/api/employee-notes/symbols", async (DateOnly on, AispaDbContext db, AccessService access, CancellationToken ct) =>
             {
@@ -185,22 +186,35 @@ internal static class StaffRegulationEndpoints
         ];
     }
 
-    private static async Task<List<PowerOverviewRowDto>> OverviewAsync(AispaDbContext db, DateOnly today, CancellationToken ct)
+    private static async Task<List<PowerOverviewRowDto>> OverviewAsync(AispaDbContext db, DateOnly today, Guid? locationId, CancellationToken ct)
     {
         var powers = await db.Set<StaffPower>().AsNoTracking()
-            .Select(p => new { Power = p, Name = p.Employee.PreferredName ?? p.Employee.DisplayName })
+            .Select(p => new { Power = p, Name = p.Employee.PreferredName ?? p.Employee.DisplayName, p.Employee.IsActive })
             .ToListAsync(ct);
+        var atLocation = await StaffRightsTable.PeopleAtAsync(db, locationId, ct);
         return
         [
-            .. Enum.GetValues<StaffPowerKind>().Select(kind => new PowerOverviewRowDto(
-                kind,
-                StaffPowerCheck.Label(kind),
-                StaffPowerCheck.IsChecked(kind),
-                [
-                    .. powers.Where(p => p.Power.Kind == kind)
-                        .Select(p => new PowerHolderDto(p.Power.EmployeeId, p.Name, p.Power.ValidFrom, p.Power.ValidUntil, p.Power.GrantedBy, p.Power.ValidUntil < today))
-                        .OrderBy(h => h.IsExpired).ThenBy(h => h.Name, StringComparer.Ordinal),
-                ])),
+            .. Enum.GetValues<StaffPowerKind>().Select(kind =>
+            {
+                var ofKind = powers.Where(p => p.Power.Kind == kind).ToList();
+                var group = StaffRightsTable.GroupOf(kind);
+                return new PowerOverviewRowDto(
+                    kind,
+                    StaffPowerCheck.Label(kind),
+                    StaffPowerCheck.IsChecked(kind),
+                    [
+                        .. ofKind.Where(p => atLocation is null || atLocation.Contains(p.Power.EmployeeId))
+                            .Select(p => new PowerHolderDto(p.Power.EmployeeId, p.Name, p.Power.ValidFrom, p.Power.ValidUntil, p.Power.GrantedBy, p.Power.ValidUntil < today) { EntryId = p.Power.Id })
+                            .OrderBy(h => h.IsExpired).ThenBy(h => h.Name, StringComparer.Ordinal),
+                    ])
+                {
+                    Group = group,
+                    GroupOrder = StaffRightsTable.OrderOf(group),
+                    Hint = StaffRightsTable.HintOf(kind),
+                    Effect = StaffRightsTable.EffectOf(kind),
+                    IsUnstaffed = !StaffRightsTable.IsStaffed(ofKind.Select(p => (p.Power.EmployeeId, p.IsActive, p.Power.ValidFrom, p.Power.ValidUntil)), atLocation, today),
+                };
+            }),
         ];
     }
 

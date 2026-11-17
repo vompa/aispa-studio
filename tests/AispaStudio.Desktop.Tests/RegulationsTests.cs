@@ -136,30 +136,6 @@ public sealed class RegulationsTests
     }
 
     [Fact]
-    public async Task Given_die_Uebersicht_When_die_Inhaberin_sie_oeffnet_Then_steht_je_Vollmacht_wer_und_bis_wann()
-    {
-        var api = Api().On("GET /api/staff-regulations/powers", new List<PowerOverviewRowDto>
-        {
-            new(StaffPowerKind.CashVoid, "Kassa-Storno", true,
-                [new(Lena.Id, "Lena", new DateOnly(2027, 1, 1), new DateOnly(2027, 6, 30), "Katrin", false), new(RosterSample.Marco.Id, "Marco", new DateOnly(2026, 1, 1), new DateOnly(2027, 3, 1), "Katrin", true)]),
-            new(StaffPowerKind.Safe, "Tresor", false, [new(Lena.Id, "Lena", new DateOnly(2027, 1, 1), null, "Katrin", false)]),
-            new(StaffPowerKind.Keys, "Schlüssel", false, []),
-        });
-        var team = await RosterTests.Loaded(api);
-
-        Assert.True(await team.SwitchToAsync(TeamViewModel.PowersMode));
-        await RosterTests.Until(() => team.Powers!.Rows.Count == 3);
-
-        var rows = team.Powers!.Rows;
-        Assert.Equal("Prüft die API zusätzlich zur Rolle", rows[0].Effect);
-        Assert.Equal(["Lena, bis 30.6.2027, erteilt von Katrin", "Marco, abgelaufen am 1.3.2027, erteilt von Katrin"], rows[0].Holders.Select(h => h.Text));
-        Assert.Equal([false, true], rows[0].Holders.Select(h => h.IsExpired));
-        Assert.Equal("Nur zur Anzeige", rows[1].Effect);
-        Assert.Equal("Lena, ohne Ende, erteilt von Katrin", Assert.Single(rows[1].Holders).Text);
-        Assert.True(rows[2].HasNoHolders);
-    }
-
-    [Fact]
     public async Task Given_Lena_hat_die_Regel_When_die_Managerin_im_Tageseditor_speichert_Then_warnt_die_Maske_und_speichert_erst_nach_Klick_auf_Trotzdem_speichern()
     {
         var api = Api().On(DayRoute, Rule, HttpStatusCode.Conflict);

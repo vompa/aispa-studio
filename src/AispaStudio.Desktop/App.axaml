@@ -198,8 +198,8 @@
     <DataTemplate DataType="vm:PersonRegulationsViewModel">
       <views:PersonRegulationsView />
     </DataTemplate>
-    <DataTemplate DataType="vm:PowerOverviewViewModel">
-      <views:PowerOverviewView />
+    <DataTemplate DataType="vm:RightsTableViewModel">
+      <views:RightsTableView />
     </DataTemplate>
     <DataTemplate DataType="vm:PersonDutiesViewModel">
       <views:PersonDutiesView />

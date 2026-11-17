@@ -1,0 +1,106 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             x:Class="AispaStudio.Desktop.Views.RightsTableView"
+             x:DataType="vm:RightsTableViewModel">
+  <!--
+    Tabelle „Wer darf was, wer ist zuständig?“ (Masken-Überarbeitung P11, ADR 0098 Nachtrag): Vollmachten und Zuständigkeiten nach Themen, je Zeile die eingetragenen Personen als Kennzeichen
+    mit „✕“ und „+ Person“. Überschrift, Fragezeichen und Standortwahl trägt der Abschnitt in TeamView. Pflegt dieselben Einträge wie die Personenkarte.
+  -->
+  <StackPanel x:Name="PowerOverview" Spacing="12" MaxWidth="980" HorizontalAlignment="Left">
+    <ui:InfoBar Severity="Error" Title="Nicht geladen" Message="{Binding LoadError}" IsVisible="{Binding HasLoadError}" ActionText="Erneut laden" ActionCommand="{Binding LoadCommand}" />
+    <ui:InfoBar Severity="Error" Title="Nicht gespeichert" Message="{Binding Error}" IsVisible="{Binding HasError}" CloseCommand="{Binding CloseErrorCommand}" />
+
+    <ItemsControl x:Name="RightsFilters" ItemsSource="{Binding Filters}" AutomationProperties.Name="Filter der Tabelle">
+      <ItemsControl.ItemsPanel>
+        <ItemsPanelTemplate>
+          <WrapPanel ItemSpacing="6" LineSpacing="6" />
+        </ItemsPanelTemplate>
+      </ItemsControl.ItemsPanel>
+      <ItemsControl.ItemTemplate>
+        <DataTemplate x:DataType="vm:RightsFilter">
+          <Button Classes="headchip" Classes.on="{Binding IsOn}" Content="{Binding Label}" Command="{Binding SelectCommand}" AutomationProperties.Name="{Binding Label}" />
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
+
+    <TextBlock Text="Nichts passt zu diesem Filter." Classes="muted" IsVisible="{Binding HasNoGroups}" />
+
+    <Border Classes="card" Padding="0" IsVisible="{Binding !HasNoGroups}">
+      <ItemsControl x:Name="RightsGroups" ItemsSource="{Binding Groups}" AutomationProperties.Name="Vollmachten und Zuständigkeiten">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="vm:RightsGroup">
+            <StackPanel>
+              <Grid ColumnDefinitions="220,140,*" ColumnSpacing="12" Margin="16,12,16,6">
+                <TextBlock Text="{Binding Title}" Classes="group" />
+                <TextBlock Grid.Column="1" Text="Wirkung" Classes="group" />
+                <TextBlock Grid.Column="2" Text="Personen" Classes="group" />
+              </Grid>
+              <ItemsControl ItemsSource="{Binding Rows}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:RightsRow">
+                    <Border BorderBrush="{DynamicResource LineBrush}" BorderThickness="0,1,0,0" Padding="16,10">
+                      <Grid ColumnDefinitions="220,140,*" ColumnSpacing="12">
+                        <StackPanel Spacing="2">
+                          <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                          <TextBlock Text="{Binding Hint}" Classes="muted small" TextWrapping="Wrap" IsVisible="{Binding HasHint}" />
+                        </StackPanel>
+                        <Border Grid.Column="1" Classes="pill" Classes.accent="{Binding FreesSomething}" VerticalAlignment="Top">
+                          <TextBlock Text="{Binding Effect}" />
+                        </Border>
+                        <WrapPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Top">
+                          <ItemsControl ItemsSource="{Binding Holders}">
+                            <ItemsControl.ItemsPanel>
+                              <ItemsPanelTemplate>
+                                <WrapPanel />
+                              </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                              <DataTemplate x:DataType="vm:RightsHolder">
+                                <Border Classes="tag" ToolTip.Tip="{Binding Tip}" ui:ToolTipBehavior.Reachable="True" AutomationProperties.Name="{Binding Text}"
+                                        AutomationProperties.HelpText="{Binding Tip}">
+                                  <StackPanel Orientation="Horizontal" Spacing="4">
+                                    <TextBlock Text="{Binding Text}" Classes.muted="{Binding IsExpired}" VerticalAlignment="Center" />
+                                    <Button Classes="ghost chipx" VerticalAlignment="Center" Command="{Binding RemoveCommand}" ToolTip.Tip="Entfernen"
+                                            AutomationProperties.Name="{Binding RemoveName}">
+                                      <ui:Icon Data="{x:Static ui:Icons.Close}" Width="12" Height="12" />
+                                    </Button>
+                                  </StackPanel>
+                                </Border>
+                              </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                          </ItemsControl>
+                          <Border Classes="pill warn" IsVisible="{Binding IsUnstaffed}" Margin="0,0,6,6" VerticalAlignment="Top">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
+                              <ui:Icon Data="{x:Static ui:Icons.Warning}" Width="12" Height="12" Foreground="{DynamicResource WarnBrush}" VerticalAlignment="Center" />
+                              <TextBlock Text="Niemand eingetragen" />
+                            </StackPanel>
+                          </Border>
+                          <Button Classes="ghost link" Content="+ Person" IsVisible="{Binding HasCandidates}" AutomationProperties.Name="{Binding AddName}" VerticalAlignment="Top">
+                            <Button.Flyout>
+                              <MenuFlyout Placement="BottomEdgeAlignedLeft" ItemsSource="{Binding Candidates}">
+                                <MenuFlyout.ItemContainerTheme>
+                                  <ControlTheme TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}" x:DataType="vm:RightsCandidate">
+                                    <Setter Property="Header" Value="{Binding Name}" />
+                                    <Setter Property="Command" Value="{Binding AddCommand}" />
+                                  </ControlTheme>
+                                </MenuFlyout.ItemContainerTheme>
+                              </MenuFlyout>
+                            </Button.Flyout>
+                          </Button>
+                        </WrapPanel>
+                      </Grid>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </Border>
+
+    <TextBlock Text="Dieselben Einträge stehen auf der Personenkarte unter „Zuständigkeiten“ und „Regelungen“. Geändert wird an beiden Stellen dasselbe." Classes="muted small" TextWrapping="Wrap" />
+  </StackPanel>
+</UserControl>

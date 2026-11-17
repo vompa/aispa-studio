@@ -34,10 +34,10 @@ internal static class StaffDutyEndpoints
         MapCertificates(group);
         MapScans(group);
 
-        group.MapGet("/staff-duties/overview", async (AispaDbContext db, TimeProvider time, CancellationToken ct) =>
-                await OverviewAsync(db, await StaffRegulationEndpoints.TodayAsync(db, time, ct), ct))
+        group.MapGet("/staff-duties/overview", async (Guid? locationId, AispaDbContext db, TimeProvider time, CancellationToken ct) =>
+                await OverviewAsync(db, await StaffRegulationEndpoints.TodayAsync(db, time, ct), locationId, ct))
             .WithName("ListDutyOverview")
-            .WithSummary("„Wer ist wofür zuständig?“: je Eintrag der Liste die Personen mit Vertretung und Gültigkeit, auch ohne Eintrag.");
+            .WithSummary("„Wer ist wofür zuständig?“: je Eintrag der Liste die Personen mit Vertretung und Gültigkeit, auch ohne Eintrag, dazu Thema, Hinweis, Wirkung und ob er unbesetzt ist; mit locationId nur die Personen, die an dem Standort arbeiten.");
 
         group.MapGet("/staff-duties/expiring", async (AispaDbContext db, TimeProvider time, CancellationToken ct) =>
                 await ExpiringAsync(db, await StaffRegulationEndpoints.TodayAsync(db, time, ct), ct))
@@ -400,23 +400,36 @@ internal static class StaffDutyEndpoints
         return flags;
     }
 
-    private static async Task<List<DutyOverviewRowDto>> OverviewAsync(AispaDbContext db, DateOnly today, CancellationToken ct)
+    private static async Task<List<DutyOverviewRowDto>> OverviewAsync(AispaDbContext db, DateOnly today, Guid? locationId, CancellationToken ct)
     {
         await StaffDutyModel.EnsureDefaultsAsync(db, ct);
         var types = (await db.Set<DutyType>().AsNoTracking().Where(t => t.IsActive).ToListAsync(ct)).InListOrder();
         var duties = await DutiesQuery(db, d => d.Employee.IsActive).ToListAsync(ct);
         var active = await db.Employees.Where(e => e.IsActive).Select(e => e.Id).ToListAsync(ct);
+        var atLocation = await StaffRightsTable.PeopleAtAsync(db, locationId, ct);
         return
         [
-            .. types.Select(t => new DutyOverviewRowDto(t.Id, t.Key, t.Name, t.RequiredCertificate,
-            [
-                .. duties.Where(d => d.Duty.DutyTypeId == t.Id)
-                    .Select(d => new DutyHolderDto(d.Duty.Id, d.Duty.EmployeeId, d.Name,
-                        d.Duty.DeputyId is { } deputy && active.Contains(deputy) ? deputy : null,
-                        d.Duty.DeputyId is { } shown && active.Contains(shown) ? d.DeputyName : null,
-                        d.Duty.ValidFrom, d.Duty.ValidUntil, d.Duty.ValidUntil < today))
-                    .OrderBy(h => h.IsExpired).ThenBy(h => h.Name, StringComparer.Ordinal).ThenBy(h => h.ValidFrom),
-            ])),
+            .. types.Select(t =>
+            {
+                var group = StaffRightsTable.GroupOf(t.Key);
+                var ofType = duties.Where(d => d.Duty.DutyTypeId == t.Id).ToList();
+                return new DutyOverviewRowDto(t.Id, t.Key, t.Name, t.RequiredCertificate,
+                [
+                    .. ofType.Where(d => atLocation is null || atLocation.Contains(d.Duty.EmployeeId))
+                        .Select(d => new DutyHolderDto(d.Duty.Id, d.Duty.EmployeeId, d.Name,
+                            d.Duty.DeputyId is { } deputy && active.Contains(deputy) ? deputy : null,
+                            d.Duty.DeputyId is { } shown && active.Contains(shown) ? d.DeputyName : null,
+                            d.Duty.ValidFrom, d.Duty.ValidUntil, d.Duty.ValidUntil < today))
+                        .OrderBy(h => h.IsExpired).ThenBy(h => h.Name, StringComparer.Ordinal).ThenBy(h => h.ValidFrom),
+                ])
+                {
+                    Group = group,
+                    GroupOrder = StaffRightsTable.OrderOf(group),
+                    Hint = t.RequiredCertificate is { } required ? $"Verlangt: {required}" : null,
+                    Effect = StaffRightsTable.EffectOf(t.Key),
+                    IsUnstaffed = !StaffRightsTable.IsStaffed(ofType.Select(d => (d.Duty.EmployeeId, true, d.Duty.ValidFrom, d.Duty.ValidUntil)), atLocation, today),
+                };
+            }),
         ];
     }
 

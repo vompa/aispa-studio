@@ -89,11 +89,30 @@ public sealed record StaffRegulationsDto(IReadOnlyList<StaffNoteDto> Notes, IRea
 public sealed record StaffFlagsDto(
     Guid EmployeeId, IReadOnlyList<string> Notes, IReadOnlyList<string> Rules, IReadOnlyList<string> Powers, IReadOnlyList<DutyFlagDto>? Duties = null);
 
-/// <summary>Eine Person in „Wer darf was?“.</summary>
-public sealed record PowerHolderDto(Guid EmployeeId, string Name, DateOnly ValidFrom, DateOnly? ValidUntil, string GrantedBy, bool IsExpired);
+/// <summary>Eine Person in „Wer darf was?“. <c>EntryId</c>: der Eintrag der Vollmacht, zum Entfernen unter <c>api/employees/{id}/regulations/powers/{entryId}</c>; fehlt in älteren Antworten.</summary>
+public sealed record PowerHolderDto(Guid EmployeeId, string Name, DateOnly ValidFrom, DateOnly? ValidUntil, string GrantedBy, bool IsExpired)
+{
+    public Guid? EntryId { get; init; }
+}
 
-/// <summary>Eine Vollmacht in „Wer darf was?“. <c>IsChecked</c>: die API prüft sie zusätzlich zur Rolle, sonst ist sie nur Anzeige.</summary>
-public sealed record PowerOverviewRowDto(StaffPowerKind Kind, string Label, bool IsChecked, IReadOnlyList<PowerHolderDto> Holders);
+/// <summary>
+/// Eine Vollmacht in „Wer darf was?“. <c>IsChecked</c>: die API prüft sie zusätzlich zur Rolle, sonst ist sie nur Anzeige.
+/// Für die Tabelle „Rechte und Zuständigkeiten“ kommen fünf optionale Felder dazu (fehlen in älteren Antworten): <c>Group</c> (Thema der Tabelle) mit <c>GroupOrder</c> (Reihenfolge der Themen), <c>Hint</c> (ein Satz, wofür),
+/// <c>Effect</c> („Schaltet frei“ oder „Nur Aushang“) und <c>IsUnstaffed</c> (heute hat niemand Aktives sie). Mit <c>locationId</c> in der Anfrage zählen nur Personen,
+/// die an dem Standort arbeiten.
+/// </summary>
+public sealed record PowerOverviewRowDto(StaffPowerKind Kind, string Label, bool IsChecked, IReadOnlyList<PowerHolderDto> Holders)
+{
+    public string? Group { get; init; }
+
+    public int? GroupOrder { get; init; }
+
+    public string? Hint { get; init; }
+
+    public string? Effect { get; init; }
+
+    public bool? IsUnstaffed { get; init; }
+}
 
 /// <summary>Ein Hinweis als Symbol im Dienstplan und im Kopf der Kalenderspalte.</summary>
 public sealed record StaffNoteSymbolDto(Guid EmployeeId, string Text);

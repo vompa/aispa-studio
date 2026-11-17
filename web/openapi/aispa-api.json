@@ -28326,8 +28326,18 @@
         "tags": [
           "Regelungen und Vollmachten"
         ],
-        "summary": "„Wer darf was?“: je Vollmacht aus der festen Liste, wer sie hat und bis wann.",
+        "summary": "„Wer darf was?“: je Vollmacht aus der festen Liste, wer sie hat und bis wann, dazu Thema, Hinweis, Wirkung und ob sie unbesetzt ist; mit locationId nur die Personen, die an dem Standort arbeiten.",
         "operationId": "ListPowerOverview",
+        "parameters": [
+          {
+            "name": "locationId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
         "responses": {
           "403": {
             "description": "Forbidden",
@@ -29364,8 +29374,18 @@
         "tags": [
           "Zuständigkeiten und Zertifikate"
         ],
-        "summary": "„Wer ist wofür zuständig?“: je Eintrag der Liste die Personen mit Vertretung und Gültigkeit, auch ohne Eintrag.",
+        "summary": "„Wer ist wofür zuständig?“: je Eintrag der Liste die Personen mit Vertretung und Gültigkeit, auch ohne Eintrag, dazu Thema, Hinweis, Wirkung und ob er unbesetzt ist; mit locationId nur die Personen, die an dem Standort arbeiten.",
         "operationId": "ListDutyOverview",
+        "parameters": [
+          {
+            "name": "locationId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
         "responses": {
           "403": {
             "description": "Forbidden",
@@ -39240,6 +39260,37 @@
             "items": {
               "$ref": "#/components/schemas/DutyHolderDto"
             }
+          },
+          "group": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "groupOrder": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "hint": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "effect": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "isUnstaffed": {
+            "type": [
+              "null",
+              "boolean"
+            ]
           }
         }
       },
@@ -44731,6 +44782,13 @@
           },
           "isExpired": {
             "type": "boolean"
+          },
+          "entryId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
           }
         }
       },
@@ -44757,6 +44815,37 @@
             "items": {
               "$ref": "#/components/schemas/PowerHolderDto"
             }
+          },
+          "group": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "groupOrder": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "hint": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "effect": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "isUnstaffed": {
+            "type": [
+              "null",
+              "boolean"
+            ]
           }
         }
       },
