@@ -27,4 +27,4 @@ Die Meldung „Raum Lotus ist gesperrt (…): 4 Termine umbuchen“ steht in der
 
 - Das Fenster zeigt immer alle offenen Termine der Sperre, auch an anderen Tagen, mit dem Tag vor der Zeit.
 - Ein einzelner Termin lässt sich auch von Hand in einen anderen Raum ziehen: [Termin verschieben](hilfe:kalender-termin-verschieben#andere-person).
-- Die Sperre selbst legt man in der Windows-App unter **Verwaltung** › **Betrieb** › **Schließzeiten** im Abschnitt **Raumsperren** an oder hebt sie dort auf: [Raumsperren](hilfe:raumsperren).
+- Die Sperre selbst legt man in der Windows-App unter **Verwaltung** › **Betrieb** › **Schließzeiten** in der gemeinsamen Liste mit den Schließzeiten an oder hebt sie dort auf: [Raumsperren](hilfe:raumsperren).

@@ -1074,6 +1074,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/locations/{locationId}/closure-overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Schließzeiten des ganzen Standorts und Raumsperren in einer Liste, je mit Art, Zeitraum, Raum, Grund, Zustand und der Zahl der noch offenen Termine. Mit scope=Upcoming (Standard) die laufenden und geplanten nach Beginn aufsteigend, mit Past die beendeten, neueste zuerst, mit All beide. */
+        get: operations["GetClosureOverview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/employees/{employeeId}/overview": {
         parameters: {
             query?: never;
@@ -9893,6 +9910,8 @@ export interface components {
              */
             openWaitlist: number;
         };
+        /** @enum {unknown} */
+        ClosureEntryType: "Location" | "Room";
         ClosureInput: {
             /** Format: date */
             fromDate: string;
@@ -9950,8 +9969,48 @@ export interface components {
         };
         /** @enum {unknown} */
         ClosureNoticeState: "Queued" | "Sent" | "Skipped" | "Failed" | "Cancelled";
+        ClosureOverview: {
+            /** Format: uuid */
+            locationId: string;
+            /** Format: int32 */
+            upcomingCount: number;
+            /** Format: int32 */
+            pastCount: number;
+            items: components["schemas"]["ClosureOverviewItem"][];
+        };
+        ClosureOverviewItem: {
+            /** Format: uuid */
+            id: string;
+            type: components["schemas"]["ClosureEntryType"];
+            kind: string;
+            /** Format: uuid */
+            locationId: string;
+            /** Format: date */
+            fromDate: string;
+            /** Format: time */
+            fromTime: null | string;
+            /** Format: date */
+            untilDate: string;
+            /** Format: time */
+            untilTime: null | string;
+            /** Format: date-time */
+            from: string;
+            /** Format: date-time */
+            until: string;
+            phase: components["schemas"]["ClosurePhase"];
+            reason: null | string;
+            /** Format: int32 */
+            openAppointments: number;
+            /** Format: int32 */
+            openWaitlist: number;
+            /** Format: uuid */
+            roomId?: null | string;
+            roomName?: null | string;
+        };
         /** @enum {unknown} */
         ClosurePhase: "Planned" | "Active" | "Ended";
+        /** @enum {unknown} */
+        ClosureScope: "Upcoming" | "Past" | "All";
         ClosureWaitlistDto: {
             /** Format: uuid */
             entryId: string;
@@ -17431,6 +17490,46 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["CurrentUser"];
                 };
+            };
+        };
+    };
+    GetClosureOverview: {
+        parameters: {
+            query?: {
+                scope?: components["schemas"]["ClosureScope"];
+            };
+            header?: never;
+            path: {
+                locationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClosureOverview"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

@@ -3660,6 +3660,59 @@
         }
       }
     },
+    "/api/v1/locations/{locationId}/closure-overview": {
+      "get": {
+        "tags": [
+          "Schließzeiten"
+        ],
+        "summary": "Schließzeiten des ganzen Standorts und Raumsperren in einer Liste, je mit Art, Zeitraum, Raum, Grund, Zustand und der Zahl der noch offenen Termine. Mit scope=Upcoming (Standard) die laufenden und geplanten nach Beginn aufsteigend, mit Past die beendeten, neueste zuerst, mit All beide.",
+        "operationId": "GetClosureOverview",
+        "parameters": [
+          {
+            "name": "locationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "scope",
+            "in": "query",
+            "schema": {
+              "default": "Upcoming",
+              "$ref": "#/components/schemas/ClosureScope"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClosureOverview"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/employees/{employeeId}/overview": {
       "get": {
         "tags": [
@@ -36129,6 +36182,12 @@
           }
         }
       },
+      "ClosureEntryType": {
+        "enum": [
+          "Location",
+          "Room"
+        ]
+      },
       "ClosureInput": {
         "required": [
           "fromDate",
@@ -36346,11 +36405,142 @@
           "Cancelled"
         ]
       },
+      "ClosureOverview": {
+        "required": [
+          "locationId",
+          "upcomingCount",
+          "pastCount",
+          "items"
+        ],
+        "type": "object",
+        "properties": {
+          "locationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "upcomingCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pastCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ClosureOverviewItem"
+            }
+          }
+        }
+      },
+      "ClosureOverviewItem": {
+        "required": [
+          "id",
+          "type",
+          "kind",
+          "locationId",
+          "fromDate",
+          "fromTime",
+          "untilDate",
+          "untilTime",
+          "from",
+          "until",
+          "phase",
+          "reason",
+          "openAppointments",
+          "openWaitlist"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "type": {
+            "$ref": "#/components/schemas/ClosureEntryType"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "locationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "fromDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "fromTime": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "time"
+          },
+          "untilDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "untilTime": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "time"
+          },
+          "from": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "until": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "phase": {
+            "$ref": "#/components/schemas/ClosurePhase"
+          },
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "openAppointments": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "openWaitlist": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "roomId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "roomName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "ClosurePhase": {
         "enum": [
           "Planned",
           "Active",
           "Ended"
+        ]
+      },
+      "ClosureScope": {
+        "enum": [
+          "Upcoming",
+          "Past",
+          "All"
         ]
       },
       "ClosureWaitlistDto": {
@@ -53244,6 +53434,9 @@
       "name": "Berichte"
     },
     {
+      "name": "Schließzeiten"
+    },
+    {
       "name": "Dienstplan"
     },
     {
@@ -53272,9 +53465,6 @@
     },
     {
       "name": "Betriebsinformationen"
-    },
-    {
-      "name": "Schließzeiten"
     },
     {
       "name": "Raumsperren"

@@ -1,4 +1,3 @@
-using System.Collections.ObjectModel;
 using AispaStudio.Contracts;
 using AispaStudio.Desktop.Controls;
 using AispaStudio.Desktop.Services;
@@ -6,23 +5,6 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
 namespace AispaStudio.Desktop.ViewModels;
-
-/// <summary>Stand eines Eintrags der Liste: aktuell (aktiv oder geplant) oder beendet. Beendete zeigt die Liste nur mit „Beendete zeigen“.</summary>
-public enum PeriodTab
-{
-    Current,
-    Ended,
-}
-
-/// <summary>Eine Zeile der Liste: Art (bei Raumsperren mit Raum), Zeitraum und eine Nebenzeile (offene Termine, Grund oder Text).</summary>
-public sealed record PeriodRow(Guid Id, PeriodTab Tab, string Title, string Period, string Detail)
-{
-    /// <summary>Beendete Einträge tragen in der Liste das Wort „Beendet“, weil sie neben den aktuellen stehen.</summary>
-    public bool IsEnded => Tab == PeriodTab.Ended;
-
-    /// <summary>Alles in einer Zeile für Screenreader; sonst läse die Liste den Typnamen.</summary>
-    public string Name => IsEnded ? $"{Title}, beendet, {Period}, {Detail}" : $"{Title}, {Period}, {Detail}";
-}
 
 /// <summary>Eine Art in der Auswahl (Optionsfelder): ein Wert des Aufzählungstyps der Maske, seine Beschriftung und ob er gerade gewählt ist.</summary>
 public sealed class KindOption(object value, string label, Func<object> current, Action<object> select) : ObservableObject
@@ -48,26 +30,20 @@ public sealed class KindOption(object value, string label, Func<object> current,
 }
 
 /// <summary>
-/// Gemeinsame Grundlage der Masken „Schließzeiten“ und „Raumsperren“ (R05 Slice 95, <c>ClosuresPage.tsx</c> und <c>RoomClosuresPage.tsx</c>): Standort wählen, Liste der aktuellen
-/// Einträge, mit „Beendete zeigen“ auch der beendeten (ADR 0098: ein Kontrollkästchen statt der Reiter „Aktuell“ und „Beendet“), daneben das Formular des gewählten Eintrags oder eines
-/// neuen (Zeitraum in <see cref="Period"/>, Art und Texte in der Maske), Speichern mit Strg+S, Verwerfen und Löschen mit Rückfrage. Wer mit ungespeicherten Änderungen die Zeile, den
-/// Standort oder die Seite wechselt oder den offenen beendeten Eintrag ausblendet, wird gefragt (<see cref="UnsavedChanges"/>). Prüfen und Speichern
-/// macht die API; vorab prüft die Maske die Regeln des Servers, damit der Fehler am Feld steht. Sprungziele aus Kalender und Assistent (<see cref="Open(AdminTarget)"/>) wählen Standort und legen bei
-/// einem Zeitraum oder Raum ein neues Formular an.
+/// Gemeinsame Grundlage der Formulare „Schließzeit“ und „Raumsperre“ (R05 Slice 95; seit ADR 0098 die Seitenleiste der Seite „Schließzeiten“, die beide Arten in einer Liste zeigt):
+/// das Formular eines Eintrags oder eines neuen (Zeitraum in <see cref="Period"/>, Art und Texte im Formular), Speichern mit Strg+S, Verwerfen und Löschen mit Rückfrage. Standort und Liste
+/// gehören der Seite (<see cref="ClosuresPageViewModel"/>): sie setzt den Standort (<see cref="SetLocation"/>) und öffnet einen Eintrag (<see cref="OpenAsync"/>) oder ein neues Formular
+/// (<see cref="StartNew"/>); nach Speichern, Löschen und Absagen ruft das Formular <see cref="Refresh"/>, damit die Liste neu lädt. Wer mit ungespeicherten Änderungen den Eintrag wechselt, wird
+/// von der Seite gefragt (<see cref="UnsavedChanges"/>). Prüfen und Speichern macht die API; vorab prüft das Formular die Regeln des Servers, damit der Fehler am Feld steht.
+/// Rückmeldungen zu einer Aktion (Gespeichert, Gelöscht, Termine abgesagt) gehen als Toast an die Seite (<see cref="ToastRequested"/>, meldungen.md M1), Fehler stehen im Formular.
 /// </summary>
-public abstract partial class PeriodAreaViewModel : ViewModelBase, IEditableArea, ITargetedArea
+public abstract partial class PeriodAreaViewModel : ViewModelBase, IEditableArea
 {
-    private readonly SynchronizationContext? _ui = SynchronizationContext.Current;
     private readonly TimeProvider _time;
-    private readonly Dictionary<Guid, LocationDto> _locations = [];
-    private List<PeriodRow> _all = [];
-    private AdminTarget? _pending;
+    private LocationDto? _location;
     private AdminTarget? _newTarget;
-    private Task? _loading;
     private string? _savedSnapshot;
     private bool _applying;
-    private bool _reverting;
-    private bool _switching;
 
     protected PeriodAreaViewModel(IWorkstationApi api, CurrentUser user, TimeProvider time, string title, string firstDayMissing, string lastDayMissing)
     {
@@ -84,33 +60,19 @@ public abstract partial class PeriodAreaViewModel : ViewModelBase, IEditableArea
     /// <summary>Von, Bis und die Uhrzeiten eines Teil-Tages.</summary>
     public PeriodFormViewModel Period { get; }
 
-    /// <summary>Die Standorte; die Auswahl erscheint nur bei mehreren.</summary>
-    public ObservableCollection<LocationChoice> Locations { get; } = [];
-
-    /// <summary>Die Einträge der Liste: die aktuellen, mit <see cref="ShowEnded"/> danach die beendeten.</summary>
-    public ObservableCollection<PeriodRow> Rows { get; } = [];
-
-    /// <summary>Die Maske wurde gespeichert, gelöscht oder hat Termine abgesagt; die Leiste „KI und Hilfe“ bietet dann an, eine Frage zu wiederholen.</summary>
+    /// <summary>Das Formular hat gespeichert, gelöscht oder Termine abgesagt; die Leiste „KI und Hilfe“ bietet dann an, eine Frage zu wiederholen.</summary>
     public event Action? Saved;
 
-    public bool HasSeveralLocations => Locations.Count > 1;
+    /// <summary>Eine Rückmeldung zu einer Aktion für den Toast der Seite (eine Zeile, ohne Schlusspunkt).</summary>
+    public event Action<string>? ToastRequested;
 
-    public bool HasNoLocation => IsLoaded && Locations.Count == 0;
+    /// <summary>Der Eintrag wurde gelöscht; die Seite schließt die Seitenleiste.</summary>
+    public event Action? Removed;
 
-    /// <summary>Beschriftung des Kontrollkästchens; sie nennt die Zahl der beendeten Einträge, damit man sieht, ob etwas ausgeblendet ist: „Beendete zeigen (2)“.</summary>
-    public string ShowEndedLabel => EndedCount > 0 ? $"Beendete zeigen ({EndedCount})" : "Beendete zeigen";
-
-    /// <summary>Name der Liste für Screenreader: „Schließzeiten: aktuelle“ bzw. „Schließzeiten: aktuelle und beendete“.</summary>
-    public string ListLabel => $"{Title}: {(ShowEnded ? "aktuelle und beendete" : "aktuelle")}";
-
-    public string EmptyText => EmptyCurrentText;
-
-    public bool ShowEmpty => IsLoaded && Rows.Count == 0;
+    /// <summary>Lädt die Liste der Seite neu; das Formular wartet darauf, bevor es seine Aktion beendet.</summary>
+    public Func<Task>? Refresh { get; set; }
 
     public bool HasForm => IsCreating || CurrentId is not null;
-
-    /// <summary>Weder ein Eintrag noch ein neues Formular: rechts steht der Hinweis, links zu wählen.</summary>
-    public bool ShowSelectHint => IsLoaded && !HasForm;
 
     public bool CanDelete => HasForm && !IsCreating && CanDeleteItem;
 
@@ -124,53 +86,26 @@ public abstract partial class PeriodAreaViewModel : ViewModelBase, IEditableArea
 
     public bool HasError => Error is not null;
 
-    public bool HasLoadError => LoadError is not null;
+    public bool HasUnsavedChanges => HasForm && _savedSnapshot is not null && Snapshot() != _savedSnapshot;
 
-    public bool HasUnsavedChanges => IsLoaded && HasForm && _savedSnapshot is not null && Snapshot() != _savedSnapshot;
+    // ---------- Texte des Formulars ----------
 
-    // ---------- Texte der Maske ----------
-
-    /// <summary>„Neue Schließzeit“: Beschriftung des Knopfes und Überschrift des neuen Formulars.</summary>
+    /// <summary>„Neue Schließzeit“: Überschrift des neuen Formulars.</summary>
     public abstract string NewText { get; }
-
-    /// <summary>Satz im Kopf, was die Sperre bewirkt.</summary>
-    public abstract string HintText { get; }
 
     public abstract string HelpTopic { get; }
 
     public abstract string HelpSection { get; }
 
-    /// <summary>Hinweis, wenn nichts gewählt ist.</summary>
-    public abstract string SelectHint { get; }
-
-    public abstract string LoadFailedText { get; }
-
-    public abstract string NoLocationText { get; }
-
-    protected abstract string EmptyCurrentText { get; }
-
     protected abstract string SaveFailedText { get; }
 
+    /// <summary>Toast nach dem Speichern, z. B. „Schließzeit gespeichert“.</summary>
+    protected abstract string SavedToast { get; }
+
+    /// <summary>Toast nach dem Löschen, z. B. „Schließzeit gelöscht“.</summary>
+    protected abstract string DeletedToast { get; }
+
     // ---------- Zustand ----------
-
-    [ObservableProperty]
-    public partial LocationChoice? SelectedLocation { get; set; }
-
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasNoLocation), nameof(ShowEmpty), nameof(ShowSelectHint))]
-    public partial bool IsLoaded { get; private set; }
-
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasLoadError))]
-    public partial string? LoadError { get; private set; }
-
-    /// <summary>„Beendete zeigen“ (ADR 0098, masken.md R15): Die Liste zeigt zusätzlich die beendeten Einträge, wie „Ausgeschiedene zeigen“ im Team.</summary>
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(ListLabel))]
-    public partial bool ShowEnded { get; set; }
-
-    [ObservableProperty]
-    public partial PeriodRow? SelectedRow { get; set; }
 
     /// <summary>Ein neues Formular ist offen.</summary>
     [ObservableProperty]
@@ -207,31 +142,27 @@ public abstract partial class PeriodAreaViewModel : ViewModelBase, IEditableArea
     [NotifyPropertyChangedFor(nameof(HasError))]
     public partial string? Error { get; private set; }
 
-    /// <summary>„Gespeichert.“ in der Leiste, bis wieder etwas geändert wird.</summary>
-    [ObservableProperty]
-    public partial string? StatusText { get; private set; }
-
-    /// <summary>Eine Rückmeldung zu einer Aktion (Gelöscht, Termine abgesagt) oder ein Fehler dabei, über der Liste.</summary>
+    /// <summary>Ein Fehler oder eine Warnung zu einer Aktion (Absagen, Nachricht), oben im Formular; sie bleibt, bis man sie schließt (meldungen.md M2).</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasMessage))]
     public partial string? Message { get; private set; }
 
     [ObservableProperty]
-    public partial InfoBarSeverity MessageSeverity { get; private set; } = InfoBarSeverity.Success;
+    public partial InfoBarSeverity MessageSeverity { get; private set; } = InfoBarSeverity.Warning;
 
     /// <summary>Das Feld, das den Fokus bekommen soll (Feldkennung); die Ansicht setzt ihn und leert die Angabe.</summary>
     [ObservableProperty]
     public partial string? FocusTarget { get; set; }
 
-    // ---------- Ableitungen der Masken ----------
+    // ---------- Ableitungen der Formulare ----------
 
     protected IWorkstationApi Api { get; }
 
     protected CurrentUser User { get; }
 
-    protected LocationDto? CurrentLocation => SelectedLocation?.Id is { } id && _locations.TryGetValue(id, out var location) ? location : null;
+    protected LocationDto? CurrentLocation => _location;
 
-    protected TimeZoneInfo Zone => CurrentLocation is { } location ? TimeZoneInfo.FindSystemTimeZoneById(location.TimeZone) : _time.LocalTimeZone;
+    protected TimeZoneInfo Zone => _location is { } location ? TimeZoneInfo.FindSystemTimeZoneById(location.TimeZone) : _time.LocalTimeZone;
 
     /// <summary>Der heutige Tag am Standort.</summary>
     protected DateOnly Today => DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(_time.GetUtcNow(), Zone).DateTime);
@@ -240,20 +171,18 @@ public abstract partial class PeriodAreaViewModel : ViewModelBase, IEditableArea
 
     protected virtual bool CanDeleteItem => true;
 
-    protected virtual bool CanCreateNew => true;
-
     /// <summary>Das erste Feld des Formulars, das bei einem neuen den Fokus bekommt.</summary>
     protected virtual string FirstField => PeriodFormViewModel.FromDateField;
 
-    protected abstract Task<string?> FetchAsync(Guid locationId);
+    /// <summary>Lädt den Eintrag; liefert die Fehlermeldung oder nichts.</summary>
+    protected abstract Task<string?> FetchAsync(Guid locationId, Guid id);
 
-    protected abstract IReadOnlyList<PeriodRow> BuildRows();
-
-    protected abstract void ApplyItem(Guid id);
+    /// <summary>Füllt das Formular aus dem geladenen Eintrag.</summary>
+    protected abstract void ApplyItem();
 
     protected abstract void ApplyBlank(AdminTarget? target);
 
-    /// <summary>Was die Maske über den Zeitraum hinaus eingibt, für die Frage „geändert?“.</summary>
+    /// <summary>Was das Formular über den Zeitraum hinaus eingibt, für die Frage „geändert?“.</summary>
     protected abstract string FormSignature();
 
     /// <summary>Prüft die übrigen Felder; liefert die Kennung des ersten fehlerhaften Felds oder nichts.</summary>
@@ -265,23 +194,11 @@ public abstract partial class PeriodAreaViewModel : ViewModelBase, IEditableArea
 
     protected abstract ConfirmRequest DeleteRequest(Guid id);
 
-    protected virtual Task LoadExtraAsync(IReadOnlyList<LocationDto> locations) => Task.CompletedTask;
-
-    protected virtual Task OnLocationReadyAsync(Guid locationId) => Task.CompletedTask;
-
     protected virtual Task OnItemShownAsync(Guid id) => Task.CompletedTask;
 
     protected virtual void FormStateChanged()
     {
     }
-
-    /// <summary>Der Standort, zu dem ein Sprungziel gehört; bei Raumsperren der des Raums.</summary>
-    protected virtual Guid? LocationFor(AdminTarget target) => target.Location;
-
-    /// <summary>Das Sprungziel legt ein neues Formular an (Zeitraum vom Assistenten, Raum vom Kalender).</summary>
-    protected virtual bool OpensNew(AdminTarget target) => target.From is not null || target.Until is not null;
-
-    protected static PeriodTab TabOf(ClosurePhase phase) => phase == ClosurePhase.Ended ? PeriodTab.Ended : PeriodTab.Current;
 
     protected static string PhaseName(ClosurePhase phase) => phase switch
     {
@@ -295,7 +212,7 @@ public abstract partial class PeriodAreaViewModel : ViewModelBase, IEditableArea
 
     protected static string? Trimmed(string text) => text.Trim().Length == 0 ? null : text.Trim();
 
-    /// <summary>Überschrift, Zustand, Warnung und Angabe zum Anlegen des Formulars; die Maske setzt sie beim Anzeigen eines Eintrags.</summary>
+    /// <summary>Überschrift, Zustand, Warnung und Angabe zum Anlegen des Formulars; das Formular setzt sie beim Anzeigen eines Eintrags.</summary>
     protected void SetInfo(string heading, string phase, string? openNotice, string? created)
     {
         HeadingText = heading;
@@ -304,14 +221,22 @@ public abstract partial class PeriodAreaViewModel : ViewModelBase, IEditableArea
         CreatedText = created;
     }
 
-    /// <summary>Eine Rückmeldung über der Liste.</summary>
+    /// <summary>
+    /// Eine Rückmeldung zu einer Aktion: ein Erfolg ist ein Toast der Seite (kurz, ohne Schlusspunkt), alles andere eine Meldung oben im Formular, die stehen bleibt (meldungen.md M1, M2).
+    /// </summary>
     protected void Notify(string text, InfoBarSeverity severity = InfoBarSeverity.Success)
     {
+        if (severity == InfoBarSeverity.Success)
+        {
+            ToastRequested?.Invoke(CalendarViewModel.FitToast(text));
+            return;
+        }
+
         Message = text;
         MessageSeverity = severity;
     }
 
-    /// <summary>Eine Eingabe der Maske hat sich geändert: der Stand „Gespeichert.“ gilt nicht mehr, und „Verwerfen“ wird bedienbar.</summary>
+    /// <summary>Eine Eingabe des Formulars hat sich geändert: „Verwerfen“ wird bedienbar.</summary>
     protected void Touch()
     {
         if (_applying)
@@ -319,32 +244,18 @@ public abstract partial class PeriodAreaViewModel : ViewModelBase, IEditableArea
             return;
         }
 
-        StatusText = null;
         OnPropertyChanged(nameof(HasUnsavedChanges));
     }
 
-    /// <summary>Lädt die Liste des Standorts neu und behält danach den Eintrag mit der Kennung (oder den ersten der Liste); ist er beendet, zeigt die Liste die beendeten.</summary>
-    protected async Task ReloadAsync(Guid? keep = null)
+    /// <summary>Meldet der Seite eine Änderung und wartet, bis sie ihre Liste neu geladen hat.</summary>
+    protected async Task AnnounceChangedAsync()
     {
-        await LoadItemsAsync().ConfigureAwait(true);
-        var row = keep is { } id ? _all.FirstOrDefault(r => r.Id == id) : null;
-        if (row is { IsEnded: true })
+        Saved?.Invoke();
+        if (Refresh is { } refresh)
         {
-            SetShowEnded(true);
-        }
-
-        RefreshRows();
-        if (Rows.FirstOrDefault(r => r.Id == keep) is { } shown)
-        {
-            await SelectRowAsync(shown).ConfigureAwait(true);
-        }
-        else
-        {
-            await SelectFirstOrNoneAsync().ConfigureAwait(true);
+            await refresh().ConfigureAwait(true);
         }
     }
-
-    protected void AnnounceSaved() => Saved?.Invoke();
 
     /// <summary>Wendet <paramref name="fill"/> an, ohne dass es als Änderung der Person gilt, und merkt den Stand für „Verwerfen“ und die Rückfrage.</summary>
     protected void Apply(Action fill)
@@ -363,302 +274,39 @@ public abstract partial class PeriodAreaViewModel : ViewModelBase, IEditableArea
         OnPropertyChanged(nameof(HasUnsavedChanges));
     }
 
-    // ---------- Laden ----------
+    // ---------- Öffnen ----------
 
-    /// <summary>Lädt die Standorte und die Liste des gewählten; beim ersten Öffnen und über „Erneut laden“.</summary>
-    [RelayCommand]
-    public async Task LoadAsync()
+    /// <summary>Der Standort, an dem das Formular arbeitet (Zeitzone, Währung); die Seite setzt ihn, wenn sie einen anderen wählt.</summary>
+    public void SetLocation(LocationDto? location) => _location = location;
+
+    /// <summary>Lädt den Eintrag und zeigt ihn im Formular. Liefert die Fehlermeldung oder nichts; bei einem Fehler bleibt das Formular, wie es war.</summary>
+    public async Task<string?> OpenAsync(Guid id)
     {
-        LoadError = null;
-        var locations = await Api.GetAsync<List<LocationDto>>("api/locations").ConfigureAwait(true);
-        if (locations.Value is not { } list)
+        if (_location?.Id is not { } locationId)
         {
-            LoadError = locations.Error ?? LoadFailedText;
-            return;
+            return null;
         }
 
-        await LoadExtraAsync(list).ConfigureAwait(true);
-        _locations.Clear();
-        Locations.Clear();
-        foreach (var location in list)
-        {
-            _locations[location.Id] = location;
-            Locations.Add(new LocationChoice(location.Id, location.Name));
-        }
-
-        OnPropertyChanged(nameof(HasSeveralLocations));
-        IsLoaded = true;
-        var wanted = _pending is { } target && LocationFor(target) is { } id ? Locations.FirstOrDefault(c => c.Id == id) : null;
-        ChooseLocation(wanted ?? Locations.FirstOrDefault());
-        await LoadItemsAsync().ConfigureAwait(true);
-        RefreshRows();
-        await SelectFirstOrNoneAsync().ConfigureAwait(true);
-        NewCommand.NotifyCanExecuteChanged();
-        await ApplyPendingAsync().ConfigureAwait(true);
-    }
-
-    /// <summary>Lädt nur, wenn noch nichts geladen ist (beim Öffnen des Bereichs); ein vorgemerktes Sprungziel gilt danach.</summary>
-    public async Task EnsureLoadedAsync()
-    {
-        if (IsLoaded)
-        {
-            await ApplyPendingAsync().ConfigureAwait(true);
-            return;
-        }
-
-        // Die Seite und ein Sprung öffnen den Bereich fast gleichzeitig: ein zweiter Aufruf wartet auf das Laden des ersten.
-        var load = _loading ??= LoadAsync();
-        await load.ConfigureAwait(true);
-        if (ReferenceEquals(_loading, load))
-        {
-            _loading = null;
-        }
-    }
-
-    /// <summary>Sprung aus Kalender oder Assistent: wählt den Standort und legt bei einem Zeitraum oder Raum ein neues Formular an; steht die Maske noch nicht, gilt das Ziel nach dem Laden.</summary>
-    public void Open(AdminTarget target)
-    {
-        _pending = target;
-        if (IsLoaded)
-        {
-            _ = ApplyPendingAsync();
-        }
-    }
-
-    /// <summary>Der Sprung ohne Standort und Zeitraum (die Schnittstelle aller nativen Bereiche).</summary>
-    public void Open(Guid? id, string? section, string? field) => Open(new AdminTarget(id, null, null, null, field));
-
-    private async Task ApplyPendingAsync()
-    {
-        if (_pending is not { } target || !IsLoaded)
-        {
-            return;
-        }
-
-        _pending = null;
-        if (LocationFor(target) is { } id && Locations.FirstOrDefault(c => c.Id == id) is { } choice && choice != SelectedLocation)
-        {
-            if (!await ConfirmLeaveAsync().ConfigureAwait(true))
-            {
-                return;
-            }
-
-            ChooseLocation(choice);
-            await ChangeLocationAsync().ConfigureAwait(true);
-        }
-
-        if (OpensNew(target) && await ConfirmLeaveAsync().ConfigureAwait(true))
-        {
-            StartNew(target);
-        }
-    }
-
-    private async Task LoadItemsAsync()
-    {
-        if (SelectedLocation?.Id is not { } locationId)
-        {
-            _all = [];
-            return;
-        }
-
-        var error = await FetchAsync(locationId).ConfigureAwait(true);
+        var error = await FetchAsync(locationId, id).ConfigureAwait(true);
         if (error is not null)
         {
-            LoadError = error;
-            return;
-        }
-
-        LoadError = null;
-        _all = [.. BuildRows()];
-        await OnLocationReadyAsync(locationId).ConfigureAwait(true);
-    }
-
-    private void RefreshRows()
-    {
-        _switching = true;
-        try
-        {
-            Rows.Clear();
-            foreach (var row in _all.Where(r => ShowEnded || !r.IsEnded).OrderBy(r => r.IsEnded))
-            {
-                Rows.Add(row);
-            }
-        }
-        finally
-        {
-            _switching = false;
-        }
-
-        OnPropertyChanged(nameof(ShowEndedLabel));
-        OnPropertyChanged(nameof(ShowEmpty));
-    }
-
-    private int EndedCount => _all.Count(r => r.IsEnded);
-
-    /// <summary>Setzt „Beendete zeigen“, ohne dass es als Klick der Person gilt (kein Neuaufbau, keine Rückfrage).</summary>
-    private void SetShowEnded(bool value)
-    {
-        _switching = true;
-        try
-        {
-            ShowEnded = value;
-        }
-        finally
-        {
-            _switching = false;
-        }
-    }
-
-    partial void OnShowEndedChanged(bool value)
-    {
-        if (_reverting || _switching)
-        {
-            return;
-        }
-
-        if (!value && HasUnsavedChanges && _all.Any(r => r.Id == CurrentId && r.IsEnded))
-        {
-            // Der offene Eintrag verschwände mit seinen Änderungen aus der Liste: erst fragen, das Kästchen bleibt bis zur Antwort an.
-            Revert(() => ShowEnded = true);
-            _ = LeaveEndedAsync();
-            return;
-        }
-
-        _ = ApplyShowEndedAsync();
-    }
-
-    private async Task LeaveEndedAsync()
-    {
-        if (await ConfirmLeaveAsync().ConfigureAwait(true))
-        {
-            SetShowEnded(false);
-            await ApplyShowEndedAsync().ConfigureAwait(true);
-        }
-    }
-
-    /// <summary>Baut die Liste neu auf. Der offene Eintrag und ein neues Formular bleiben samt Eingaben stehen; nur wenn der Eintrag nicht mehr in der Liste steht, folgt der erste.</summary>
-    private async Task ApplyShowEndedAsync()
-    {
-        Message = null;
-        RefreshRows();
-        if (IsCreating)
-        {
-            return;
-        }
-
-        if (Rows.FirstOrDefault(r => r.Id == CurrentId) is { } shown)
-        {
-            _switching = true;
-            try
-            {
-                SelectedRow = shown;
-            }
-            finally
-            {
-                _switching = false;
-            }
-        }
-        else
-        {
-            await SelectFirstOrNoneAsync().ConfigureAwait(true);
-        }
-    }
-
-    // ---------- Auswahl ----------
-
-    private void ChooseLocation(LocationChoice? choice)
-    {
-        _switching = true;
-        try
-        {
-            SelectedLocation = choice;
-        }
-        finally
-        {
-            _switching = false;
-        }
-    }
-
-    private async Task ChangeLocationAsync()
-    {
-        Message = null;
-        await LoadItemsAsync().ConfigureAwait(true);
-        RefreshRows();
-        await SelectFirstOrNoneAsync().ConfigureAwait(true);
-        NewCommand.NotifyCanExecuteChanged();
-    }
-
-    private async Task SelectFirstOrNoneAsync()
-    {
-        if (Rows.FirstOrDefault() is { } first)
-        {
-            await SelectRowAsync(first).ConfigureAwait(true);
-        }
-        else
-        {
-            ClearForm();
-        }
-    }
-
-    private async Task SelectRowAsync(PeriodRow row)
-    {
-        _switching = true;
-        try
-        {
-            SelectedRow = row;
-        }
-        finally
-        {
-            _switching = false;
-        }
-
-        await ShowRowAsync(row).ConfigureAwait(true);
-    }
-
-    private async Task ShowRowAsync(PeriodRow row)
-    {
-        IsCreating = false;
-        CurrentId = row.Id;
-        Message = null;
-        ResetFeedback();
-        Apply(() => ApplyItem(row.Id));
-        RaiseFormState();
-        await OnItemShownAsync(row.Id).ConfigureAwait(true);
-    }
-
-    private void ClearForm()
-    {
-        _switching = true;
-        try
-        {
-            SelectedRow = null;
-        }
-        finally
-        {
-            _switching = false;
+            return error;
         }
 
         IsCreating = false;
-        CurrentId = null;
-        _savedSnapshot = null;
+        CurrentId = id;
+        Message = null;
         ResetFeedback();
-        SetInfo("", "", null, null);
+        Apply(ApplyItem);
         RaiseFormState();
+        await OnItemShownAsync(id).ConfigureAwait(true);
+        return null;
     }
 
-    private void StartNew(AdminTarget? target)
+    /// <summary>Ein neues Formular; ein Sprung aus Kalender oder Assistent gibt Zeitraum und Raum vor.</summary>
+    public void StartNew(AdminTarget? target)
     {
         _newTarget = target;
-        _switching = true;
-        try
-        {
-            SelectedRow = null;
-        }
-        finally
-        {
-            _switching = false;
-        }
-
         IsCreating = true;
         CurrentId = null;
         Message = null;
@@ -673,16 +321,23 @@ public abstract partial class PeriodAreaViewModel : ViewModelBase, IEditableArea
         FocusTarget = FirstField;
     }
 
-    private void ResetFeedback()
+    /// <summary>Schließt das Formular: kein Eintrag, kein neues Formular, nichts zu speichern.</summary>
+    public void Clear()
     {
-        StatusText = null;
-        Error = null;
+        IsCreating = false;
+        CurrentId = null;
+        _savedSnapshot = null;
+        Message = null;
+        ResetFeedback();
+        SetInfo("", "", null, null);
+        RaiseFormState();
     }
+
+    private void ResetFeedback() => Error = null;
 
     private void RaiseFormState()
     {
         OnPropertyChanged(nameof(HasForm));
-        OnPropertyChanged(nameof(ShowSelectHint));
         OnPropertyChanged(nameof(CanDelete));
         OnPropertyChanged(nameof(HasUnsavedChanges));
         SaveCommand.NotifyCanExecuteChanged();
@@ -690,111 +345,16 @@ public abstract partial class PeriodAreaViewModel : ViewModelBase, IEditableArea
         FormStateChanged();
     }
 
-    partial void OnSelectedRowChanged(PeriodRow? oldValue, PeriodRow? newValue)
-    {
-        if (_reverting || _switching || newValue is null)
-        {
-            return;
-        }
-
-        if (HasUnsavedChanges)
-        {
-            // Erst fragen, dann wechseln: die Liste bleibt bei der alten Zeile, bis die Antwort da ist.
-            Revert(() => SelectedRow = oldValue);
-            _ = LeaveToRowAsync(newValue);
-            return;
-        }
-
-        _ = ShowRowAsync(newValue);
-    }
-
-    partial void OnSelectedLocationChanged(LocationChoice? oldValue, LocationChoice? newValue)
-    {
-        if (_reverting || _switching || newValue is null)
-        {
-            return;
-        }
-
-        if (oldValue is not null && HasUnsavedChanges)
-        {
-            Revert(() => SelectedLocation = oldValue);
-            _ = LeaveToLocationAsync(newValue);
-            return;
-        }
-
-        _ = ChangeLocationAsync();
-    }
-
-    private async Task LeaveToRowAsync(PeriodRow row)
-    {
-        if (await ConfirmLeaveAsync().ConfigureAwait(true))
-        {
-            await SelectRowAsync(row).ConfigureAwait(true);
-        }
-    }
-
-    private async Task LeaveToLocationAsync(LocationChoice choice)
-    {
-        if (await ConfirmLeaveAsync().ConfigureAwait(true))
-        {
-            ChooseLocation(choice);
-            await ChangeLocationAsync().ConfigureAwait(true);
-        }
-    }
-
-    /// <summary>
-    /// Zurück zur alten Auswahl. Kam der Wechsel aus der Liste, übernimmt sie einen Wert, den das Modell noch während ihrer eigenen Auswahl zurücksetzt, nicht; deshalb erst danach
-    /// (gepostet), dann sieht sie eine echte Änderung.
-    /// </summary>
-    private void Revert(Action restore)
-    {
-        void Restore()
-        {
-            _reverting = true;
-            try
-            {
-                restore();
-            }
-            finally
-            {
-                _reverting = false;
-            }
-        }
-
-        if (_ui is null)
-        {
-            Restore();
-        }
-        else
-        {
-            _ui.Post(_ => Restore(), null);
-        }
-    }
-
-    private Task<bool> ConfirmLeaveAsync() => UnsavedChanges.ConfirmLeaveAsync(Dialogs, this);
-
     // ---------- Befehle ----------
 
-    private bool CanNew => IsLoaded && SelectedLocation is not null && CanCreateNew;
-
-    /// <summary>Ein neues Formular; die Wahl der Zeile fragt vorher, wenn etwas ungespeichert ist.</summary>
-    [RelayCommand(CanExecute = nameof(CanNew))]
-    private async Task NewAsync()
-    {
-        if (await ConfirmLeaveAsync().ConfigureAwait(true))
-        {
-            StartNew(null);
-        }
-    }
-
-    private bool CanSave => !IsSaving && IsLoaded && HasForm;
+    private bool CanSave => !IsSaving && HasForm;
 
     [RelayCommand(CanExecute = nameof(CanSave))]
     private async Task SaveAsync() => await SaveChangesAsync().ConfigureAwait(true);
 
     public async Task<bool> SaveChangesAsync()
     {
-        if (IsSaving || !IsLoaded || !HasForm || SelectedLocation?.Id is not { } locationId)
+        if (IsSaving || !HasForm || _location?.Id is not { } locationId)
         {
             return false;
         }
@@ -818,9 +378,13 @@ public abstract partial class PeriodAreaViewModel : ViewModelBase, IEditableArea
             return false;
         }
 
-        await ReloadAsync(savedId).ConfigureAwait(true);
-        StatusText = "Gespeichert.";
-        Saved?.Invoke();
+        if (await OpenAsync(savedId).ConfigureAwait(true) is { } reloadError)
+        {
+            Notify(reloadError, InfoBarSeverity.Error);
+        }
+
+        Notify(SavedToast);
+        await AnnounceChangedAsync().ConfigureAwait(true);
         return true;
     }
 
@@ -828,11 +392,7 @@ public abstract partial class PeriodAreaViewModel : ViewModelBase, IEditableArea
     [RelayCommand]
     public void Discard()
     {
-        if (CurrentId is { } id)
-        {
-            Apply(() => ApplyItem(id));
-        }
-        else if (IsCreating)
+        if (IsCreating)
         {
             // Ein neuer Eintrag aus einem Sprung behält Raum und Zeitraum des Sprungs.
             var target = _newTarget;
@@ -841,6 +401,10 @@ public abstract partial class PeriodAreaViewModel : ViewModelBase, IEditableArea
                 ApplyBlank(target);
                 Period.Set(target?.From ?? target?.Until ?? Today, null, target?.Until ?? target?.From ?? Today, null);
             });
+        }
+        else if (CurrentId is not null)
+        {
+            Apply(ApplyItem);
         }
 
         Error = null;
@@ -855,7 +419,7 @@ public abstract partial class PeriodAreaViewModel : ViewModelBase, IEditableArea
     [RelayCommand(CanExecute = nameof(CanDelete))]
     private async Task DeleteAsync()
     {
-        if (CurrentId is not { } id || SelectedLocation?.Id is not { } locationId)
+        if (CurrentId is not { } id || _location?.Id is not { } locationId)
         {
             return;
         }
@@ -872,9 +436,10 @@ public abstract partial class PeriodAreaViewModel : ViewModelBase, IEditableArea
             return;
         }
 
-        await ReloadAsync().ConfigureAwait(true);
-        Notify("Gelöscht.");
-        Saved?.Invoke();
+        Clear();
+        Notify(DeletedToast);
+        await AnnounceChangedAsync().ConfigureAwait(true);
+        Removed?.Invoke();
     }
 
     private string Snapshot() => $"{Period.Signature}§{FormSignature()}";

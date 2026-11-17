@@ -179,14 +179,9 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
             locations.Saved += Companion.OnDataSaved;
         }
 
-        if (AdminPage.Closures is { } closures)
+        if (AdminPage.ClosuresPage is { } closures)
         {
             closures.Saved += Companion.OnDataSaved;
-        }
-
-        if (AdminPage.RoomClosures is { } roomClosures)
-        {
-            roomClosures.Saved += Companion.OnDataSaved;
         }
 
         if (AdminPage.Subscriptions is { } subscriptions)
