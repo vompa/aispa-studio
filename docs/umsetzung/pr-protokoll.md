@@ -6950,3 +6950,21 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Nicht geprüft:** die laufende App unter Windows; die vollen Suiten (läuft in der CI); Bedienung des Menüs mit der Tastatur im echten Fenster (Avalonia-Menü, im Headless-Test nur geöffnet und mit Esc geschlossen).
 - **Beim Schreiben festgestellt:** `StockSupplierTests` und `StoragePlaceTests` prüfen das Löschen eines Lagerorts weiterhin am API-Weg, die Antwort bei Bewegungen (400 „Deaktivieren statt löschen“) bleibt neben dem neuen Ablauf bestehen, weil die App sie nach der Vorprüfung nicht mehr auslöst. Das Statusfeld `IsActive` des Lieferanten wird in der Liste nur als „deaktiviert“ im Untertitel gezeigt; wieder verwenden geht nur über „Aktiv“.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md): ohne „Sie“, Aktionen als Verb, Folgen im Text, Dialogknöpfe in ein bis drei Wörtern.
+
+## Lager: Verbrauch als Tabelle mit Abweichung (P6, 17.11.2026)
+
+- **Auftrag:** Masken-Überarbeitung P6 (Entwurf Abschnitt 6): Die Spalte „Wert“ war der Mehrverbrauch mal Preis, ohne dass die Maske es sagte; die Tabelle stand nach Namen sortiert, die Summe doppelt (Kachel und Zeile über der Tabelle).
+- **Was:**
+  - API (nur additiv, ADR 0085 §3): `StockUsageLineDto.ExcessPercent` als optionale `init`-Eigenschaft (Mehrverbrauch in Prozent des Soll, ganzzahlig, leer ohne Soll); der Bericht kommt nach dem Wert des Mehrverbrauchs sortiert, der größte zuerst (ohne das Recht für Beträge nach dem Anteil). In `aispa-api.json` steht `excessPercent` nicht unter `required`.
+  - Windows-App: Karte höchstens 900 breit; Spalten Material, Soll, Ist, Abweichung („+120 ml · 18 %“) und „Wert der Abweichung“; als Standard nur Abweichungen (Schalter „Nur Abweichungen“), darunter „2 weitere Materialien nach Rezept verbraucht“ mit „Alle zeigen“; die Behandlungen je Material klappen per Klick auf den Namen auf, in denselben Spalten (Soll, Termine). Die Zeile mit der Summe über der Tabelle entfällt, die Summe steht nur in der Kachel „Mehrverbrauch“ der Übersicht.
+  - Handbuch `lager` (Abschnitt „Verbrauch (Soll und Ist)“) neu gefasst; Bilder `verwaltung-lager-verbrauch.png` (neu) und `verwaltung-lager-uebersicht.png` (zeigt den Abschnitt) neu erzeugt.
+- **Detailentscheidungen:**
+  1. Sortierung und Prozent liefert die API (die App zeigt nur an). Ohne das Recht für Beträge fehlt der Wert, dann sortiert die API nach dem Anteil, weil Mengen verschiedener Einheiten sich nicht vergleichen lassen; Artikel ohne Soll (kein Bezug) stehen dabei zuletzt.
+  2. Der Prozentanteil bezieht sich auf das Soll (120 ml von 660 ml ergibt 18 %, wie im Entwurf) und ist ganzzahlig gerundet; ein Fund (negativer Mehrverbrauch) zeigt „-50 ml · -17 %“.
+  3. „Abweichung“ ersetzt „Mehrverbrauch“ in der Spalte, weil die Zahl auch negativ sein kann; „Wert der Abweichung“ ersetzt „Wert“ und sagt, was die Euro-Zahl ist (Abweichung mal Einstandspreis). Die Kachel der Übersicht heißt weiter „Mehrverbrauch“.
+  4. „Nur Abweichungen“ filtert die App nach „Mehrverbrauch ungleich 0“, das ist eine Anzeigeeinstellung, keine Geschäftsregel; der Schalter ist nicht gemerkt und steht nach dem Öffnen wieder an.
+  5. Die Zeile „N weitere Materialien nach Rezept verbraucht“ zählt Materialien ohne Abweichung im Zeitraum (Artikel ohne Verbrauch und ohne Abweichung liefert der Bericht nicht).
+- **Bewusst offen / später:** Sortierung nach anderen Spalten (Klick auf den Kopf); ein Zeitraum mit eigenem Datum.
+- **Geprüft:** `dotnet format AispaStudio.slnx --verify-no-changes` und `dotnet build AispaStudio.slnx -c Release` grün; API `StockUsageReportTests` 12 von 12 (neu: Reihenfolge und Anteil, Artikel ohne Soll und Fund, Leitung ohne Betragsrecht); vorher waren die neuen Fälle rot (Reihenfolge nach Namen, kein Anteil). Windows-App: neue Ansichtstests in `ViewTests.StockUsage` (Standard nur Abweichungen mit Summenzeile entfernt und Breite höchstens 900, Aufklappen, „Alle zeigen“, Zeitraumwechsel, ohne Betragsrecht, hell und dunkel, 1100 und 1440 breit), dazu `alte_Sprungziele` und `Lager_melden_keine_Bindungsfehler`; Web `lint`, `typecheck`, `vitest src/help` (Textregeln) grün.
+- **Nicht geprüft:** die laufende App unter Windows; die vollen Suiten (läuft in der CI).
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).

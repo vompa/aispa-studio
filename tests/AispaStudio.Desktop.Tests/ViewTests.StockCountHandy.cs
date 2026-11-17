@@ -153,37 +153,4 @@ public sealed partial class ViewTests
             return shell.AdminPage;
         }, api);
     }
-
-    [Fact]
-    public Task Given_der_Abschnitt_Verbrauch_der_Uebersicht_When_der_Zeitraum_gewaehlt_wird_Then_zeigt_die_Tabelle_Soll_Ist_und_Mehrverbrauch()
-    {
-        var report = new StockUsageReportDto(StockSample.Vienna.Id, new DateOnly(2026, 7, 21), new DateOnly(2026, 10, 19),
-            [new StockUsageLineDto(OilId, "Massageöl", "Flasche", 10m, 12m, 2m, 25m,
-                [new StockUsageTreatmentDto(Guid.NewGuid(), "Aromaöl-Massage", 8m, 4), new StockUsageTreatmentDto(Guid.NewGuid(), "Klassische Massage", 2m, 1)])],
-            25m, false);
-        var api = StockApi()
-            .On($"GET /api/reports/locations/{StockSample.Vienna.Id}/stock-usage?from=2026-09-20&until=2026-10-19", report with { From = new DateOnly(2026, 9, 20) })
-            .On($"GET /api/reports/locations/{StockSample.Vienna.Id}/stock-usage?from=2026-07-22&until=2026-10-19", report);
-        return Render("hell", "verwaltung-lager-verbrauch", async (window, main) =>
-        {
-            // Die Übersicht lädt den Verbrauch mit; das alte Sprungziel „Verbrauch“ holt den Abschnitt ins Bild und lädt nicht noch einmal.
-            var (shell, stock) = await OpenStockOverview(window, main);
-            stock.SetTab(StockTab.Usage);
-            await Pump(Settling);
-
-            Assert.True(stock.IsOverviewTab);
-            Assert.Equal(1, CallsTo(api, $"GET /api/reports/locations/{StockSample.Vienna.Id}/stock-usage?from=2026-09-20&until=2026-10-19"));
-            var period = Named<ComboBox>(window, "UsagePeriodField");
-            period.SelectedItem = Choice(period, "Letzte 90 Tage");
-            await Pump(Settling);
-            await Pump(Settling);
-
-            Assert.Equal(1, CallsTo(api, $"GET /api/reports/locations/{StockSample.Vienna.Id}/stock-usage?from=2026-07-22&until=2026-10-19"));
-            var row = window.GetVisualDescendants().OfType<Grid>().First(g => AutomationProperties.GetName(g)?.StartsWith("Massageöl, Soll", StringComparison.Ordinal) == true);
-            Assert.Equal("Massageöl, Soll 10 Flasche, Ist 12 Flasche, Mehrverbrauch 2 Flasche, Wert 25,00 €", AutomationProperties.GetName(row));
-            Assert.True(Shows(window, "Aromaöl-Massage"));
-            Assert.True(Shows(window, "4 Termine"));
-            return shell.AdminPage;
-        }, api);
-    }
 }
