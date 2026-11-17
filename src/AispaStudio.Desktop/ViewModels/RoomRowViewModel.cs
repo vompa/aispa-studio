@@ -27,11 +27,14 @@ public sealed partial class RoomRowViewModel : ObservableObject
 {
     private readonly Func<RoomRowViewModel, Task> _save;
     private readonly Func<RoomRowViewModel, Task>? _deactivate;
+    private readonly Func<RoomRowViewModel, Task>? _delete;
     private RoomDto? _saved;
     private IReadOnlyList<ArticleOption> _articles;
 
-    public RoomRowViewModel(RoomDto? room, IReadOnlyList<ArticleOption> articles, Func<RoomRowViewModel, Task> save, Func<RoomRowViewModel, Task>? deactivate)
+    public RoomRowViewModel(RoomDto? room, IReadOnlyList<ArticleOption> articles, Func<RoomRowViewModel, Task> save, Func<RoomRowViewModel, Task>? deactivate,
+        Func<RoomRowViewModel, Task>? delete = null)
     {
+        _delete = delete;
         _articles = articles;
         _save = save;
         _deactivate = deactivate;
@@ -76,7 +79,7 @@ public sealed partial class RoomRowViewModel : ObservableObject
     /// <summary>Name für den Screenreader an Knopf und Zeile, damit mehrere „Speichern“ unterscheidbar sind.</summary>
     public string SaveName => IsNew ? "Neuen Raum hinzufügen" : $"Raum {_saved!.Name} speichern";
 
-    public string DeactivateName => $"Raum {_saved?.Name} entfernen";
+    public string DeactivateName => $"Raum {_saved?.Name} nicht mehr verwenden";
 
     /// <summary>Etwas an der Zeile ist geändert (die neue Zeile gilt immer als geändert, wie im Web).</summary>
     public bool IsDirty => _saved is null || Name != _saved.Name || Minutes(CleaningMinutes) != _saved.CleaningMinutes || Minutes(Places) != _saved.Places
@@ -120,6 +123,10 @@ public sealed partial class RoomRowViewModel : ObservableObject
     [RelayCommand(CanExecute = nameof(CanDeactivate))]
     private Task DeactivateAsync() => _deactivate!(this);
 
+    /// <summary>„Löschen …“ im Menü der Zeile: die API prüft, was am Raum hängt (ADR 0099); ein Raum bleibt für Belege im Stamm, es bleibt „Nicht mehr verwenden“.</summary>
+    [RelayCommand(CanExecute = nameof(CanDeactivate))]
+    private Task DeleteAsync() => _delete is null ? Task.CompletedTask : _delete(this);
+
     protected override void OnPropertyChanged(PropertyChangedEventArgs e)
     {
         base.OnPropertyChanged(e);
@@ -150,6 +157,7 @@ public sealed partial class RoomRowViewModel : ObservableObject
         OnPropertyChanged(nameof(DeactivateName));
         SaveCommand.NotifyCanExecuteChanged();
         DeactivateCommand.NotifyCanExecuteChanged();
+        DeleteCommand.NotifyCanExecuteChanged();
     }
 
     private static int Minutes(decimal? value) => (int)(value ?? 0);

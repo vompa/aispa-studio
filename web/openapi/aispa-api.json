@@ -972,6 +972,51 @@
         }
       }
     },
+    "/api/v1/rooms/{roomId}/deletion-check": {
+      "get": {
+        "tags": [
+          "Stammdaten"
+        ],
+        "summary": "Zählt, was an einem Raum hängt. Ein Raum lässt sich nie löschen; die Alternative ist „Nicht mehr verwenden“.",
+        "operationId": "CheckRoomDeletion",
+        "parameters": [
+          {
+            "name": "roomId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeletionCheckDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
     "/api/v1/locations/{locationId}/equipment": {
       "post": {
         "tags": [
@@ -1146,6 +1191,51 @@
         }
       }
     },
+    "/api/v1/equipment/{equipmentId}/deletion-check": {
+      "get": {
+        "tags": [
+          "Stammdaten"
+        ],
+        "summary": "Zählt, was an einem Gerät hängt. Ein Gerät lässt sich nie löschen; die Alternative ist „Nicht mehr verwenden“.",
+        "operationId": "CheckEquipmentDeletion",
+        "parameters": [
+          {
+            "name": "equipmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeletionCheckDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
     "/api/v1/qualifications": {
       "get": {
         "tags": [
@@ -1281,6 +1371,97 @@
               "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Stammdaten"
+        ],
+        "summary": "Löscht eine Qualifikation, an der nichts mehr hängt; sonst 409 mit der Liste dessen, was daran hängt.",
+        "operationId": "DeleteQualification",
+        "parameters": [
+          {
+            "name": "qualificationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeletionCheckDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/qualifications/{qualificationId}/deletion-check": {
+      "get": {
+        "tags": [
+          "Stammdaten"
+        ],
+        "summary": "Zählt, welche Personen und Behandlungen eine Qualifikation tragen; gelöscht werden darf nur, wenn keine mehr daran hängt.",
+        "operationId": "CheckQualificationDeletion",
+        "parameters": [
+          {
+            "name": "qualificationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeletionCheckDto"
                 }
               }
             }
@@ -3112,6 +3293,51 @@
               "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/stock/locations/{locationId}/export/availability": {
+      "get": {
+        "tags": [
+          "Lager"
+        ],
+        "summary": "Welche Listen des Lager-Exports etwas enthalten, nur für die Leitung: je Liste available und bei false der Grund (z. B. noch keine eingereichte Zählung).",
+        "operationId": "StockExportAvailability",
+        "parameters": [
+          {
+            "name": "locationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StockExportAvailabilityDto"
                 }
               }
             }
@@ -22561,6 +22787,70 @@
         }
       }
     },
+    "/api/v1/stock/locations/{locationId}/storage-places/{placeId}/deletion-check": {
+      "get": {
+        "tags": [
+          "Lager"
+        ],
+        "summary": "Zählt die Bewegungen eines Lagerorts; das Hauptlager lässt sich nie löschen, „Nicht mehr verwenden“ bleibt als Alternative.",
+        "operationId": "CheckStoragePlaceDeletion",
+        "parameters": [
+          {
+            "name": "locationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "placeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeletionCheckDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/stock/locations/{locationId}/storage-places/{placeId}/levels": {
       "get": {
         "tags": [
@@ -23871,6 +24161,97 @@
             }
           }
         }
+      },
+      "delete": {
+        "tags": [
+          "Lager"
+        ],
+        "summary": "Löscht einen Lieferanten ohne Material; sonst 409 mit der Liste dessen, was daran hängt. Bestellungen behalten den Namen.",
+        "operationId": "DeleteStockSupplier",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeletionCheckDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/stock/suppliers/{supplierId}/deletion-check": {
+      "get": {
+        "tags": [
+          "Lager"
+        ],
+        "summary": "Zählt, wie viel Material am Lieferanten hängt; „Nicht mehr verwenden“ bleibt als Alternative.",
+        "operationId": "CheckStockSupplierDeletion",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeletionCheckDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/v1/locations/{locationId}/stock-counts/{countId}/pdf": {
@@ -24469,6 +24850,53 @@
                 }
               }
             }
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/reports/appointments/{appointmentId}/equipment-prepared": {
+      "put": {
+        "tags": [
+          "Berichte"
+        ],
+        "operationId": "CheckEquipmentPrepared",
+        "parameters": [
+          {
+            "name": "appointmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PreparationCheck"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
           },
           "404": {
             "description": "Not Found"
@@ -37785,6 +38213,53 @@
           }
         }
       },
+      "DeletionAlternative": {
+        "required": [
+          "kind",
+          "label"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          }
+        }
+      },
+      "DeletionCheckDto": {
+        "required": [
+          "canDelete",
+          "summary",
+          "dependents"
+        ],
+        "type": "object",
+        "properties": {
+          "canDelete": {
+            "type": "boolean"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "dependents": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DependentCount"
+            }
+          },
+          "alternative": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/DeletionAlternative"
+              }
+            ]
+          }
+        }
+      },
       "DeliveryNoteLineSuggestion": {
         "required": [
           "lineId",
@@ -37864,6 +38339,26 @@
               "null",
               "string"
             ]
+          }
+        }
+      },
+      "DependentCount": {
+        "required": [
+          "kind",
+          "count",
+          "label"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "label": {
+            "type": "string"
           }
         }
       },
@@ -49063,6 +49558,41 @@
           }
         }
       },
+      "StockExportAvailabilityDto": {
+        "required": [
+          "lists"
+        ],
+        "type": "object",
+        "properties": {
+          "lists": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StockExportListAvailabilityDto"
+            }
+          }
+        }
+      },
+      "StockExportListAvailabilityDto": {
+        "required": [
+          "list",
+          "available"
+        ],
+        "type": "object",
+        "properties": {
+          "list": {
+            "type": "string"
+          },
+          "available": {
+            "type": "boolean"
+          },
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "StockItemDto": {
         "required": [
           "id",
@@ -51151,6 +51681,12 @@
           },
           "done": {
             "type": "boolean"
+          },
+          "isEquipment": {
+            "type": [
+              "null",
+              "boolean"
+            ]
           }
         }
       },
@@ -51300,6 +51836,12 @@
           "checkAnamnesis": {
             "type": "boolean",
             "default": false
+          },
+          "displayName": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },

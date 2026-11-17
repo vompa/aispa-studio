@@ -180,10 +180,11 @@ public sealed partial class ViewTests
         var (shell, reports) = await OpenReports(window, main, ReportsViewModel.DayTab);
 
         // Then stehen oben der Hinweis des Tages und die Werte, darunter der Termin als Abschnitt.
-        Assert.True(Shows(window, "1 Hinweis zum Tag"));
+        Assert.True(Shows(window, "1 Vorbereitung offen, 1 Hinweis zum Tag"));
         Assert.True(Shows(window, "Raumwechsel um 11:00"));
         Assert.True(Shows(window, "Vorbereitung offen"));
-        Assert.True(Shows(window, "Klassische Massage (60 Min.), Raum 1"));
+        Assert.True(Shows(window, "10:00 Klassische Massage"));
+        Assert.True(Shows(window, "60 Min."));
 
         // Und bei „Hygiene“ der Stand der Punkte mit den Werten.
         reports.SelectTabCommand.Execute(ReportsViewModel.HygieneTab);

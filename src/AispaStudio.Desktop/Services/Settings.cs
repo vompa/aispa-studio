@@ -25,6 +25,7 @@ public enum ThemeChoice
 /// <param name="CalendarAllStaff">Kalender: „Alle Mitarbeitenden“, auch Mitarbeitende ohne Dienst an diesem Standort (schraffierte Spalten mit Grund).</param>
 /// <param name="PosSalesPanelOpen">Kassa: Panel „Artikel und Gutscheine“ neben der Rechnung aufgeklappt; Standard zugeklappt (schmale Leiste, Slice 137). Löst den früheren Schlüssel <c>PosSalesColumnCollapsed</c> ab, dessen Wert einmalig verfällt.</param>
 /// <param name="AssistantHistory">„Zuletzt gefragt“ im Assistenten: die Fragen der angemeldeten Person von heute, nur auf diesem Gerät; nie Antworten.</param>
+/// <param name="StockExportFormat">Lager › Exportieren: zuletzt gewähltes Format, „xlsx“ oder „csv“; leer heißt Excel.</param>
 /// <param name="CompanionPages">„KI und Hilfe“ offen oder zu je Seite (Seitenkennung wie „kalender“); ohne Eintrag gilt der letzte Stand in <c>CompanionOpen</c>.</param>
 public sealed record DesktopSettings(
     ThemeChoice Theme = ThemeChoice.System,
@@ -42,7 +43,8 @@ public sealed record DesktopSettings(
     IReadOnlyDictionary<string, bool>? CompanionPages = null,
     bool CalendarAllStaff = false,
     bool PosSalesPanelOpen = false,
-    AssistantHistory? AssistantHistory = null);
+    AssistantHistory? AssistantHistory = null,
+    string? StockExportFormat = null);
 
 /// <summary>Die Fragen von heute für „Zuletzt gefragt“, neueste zuerst; gilt nur für <paramref name="UserId"/> und den Kalendertag <paramref name="Day"/>.</summary>
 public sealed record AssistantHistory(string UserId, DateOnly Day, IReadOnlyList<string> Questions);

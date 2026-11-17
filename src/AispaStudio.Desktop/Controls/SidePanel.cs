@@ -32,6 +32,7 @@ public class SidePanel : Border
     private readonly SidePanelHeader _header = new() { Margin = new Thickness(20, 16, 12, 12), CloseTip = "Schließen (Esc)" };
     private readonly ContentControl _body = new() { Padding = new Thickness(0) };
     private IInputElement? _before;
+    private SidePanelLayer? _layer;
 
     static SidePanel()
     {
@@ -105,6 +106,31 @@ public class SidePanel : Border
         set => SetValue(HeaderActionProperty, value);
     }
 
+    protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        base.OnAttachedToVisualTree(e);
+        _layer = SidePanelLayer.GetCurrent(this);
+        if (_layer is not null)
+        {
+            _layer.CoveredChanged += OnCoveredChanged;
+            OnCoveredChanged();
+        }
+    }
+
+    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        if (_layer is not null)
+        {
+            _layer.CoveredChanged -= OnCoveredChanged;
+            _layer = null;
+        }
+
+        base.OnDetachedFromVisualTree(e);
+    }
+
+    /// <summary>Die Hilfe in „KI und Hilfe“ liegt darüber (<see cref="SidePanelLayer"/>): ausblenden und offen lassen; danach wieder zeigen.</summary>
+    private void OnCoveredChanged() => IsVisible = IsOpen && _layer?.IsCovered != true;
+
     protected override void OnKeyDown(KeyEventArgs e)
     {
         base.OnKeyDown(e);
@@ -126,8 +152,13 @@ public class SidePanel : Border
 
     private void OnIsOpenChanged(bool open)
     {
-        // Wie bei der Seitenleiste im Kalender: sichtbar und „open“ zugleich, die Bewegung kommt aus den Stilen.
-        IsVisible = open;
+        // Wie bei der Seitenleiste im Kalender: sichtbar und „open“ zugleich, die Bewegung kommt aus den Stilen. Steht die Hilfe, macht sie Platz (nur eine Leiste rechts).
+        if (open)
+        {
+            _layer?.ReportOpened();
+        }
+
+        IsVisible = open && _layer?.IsCovered != true;
         Classes.Set("open", open);
         if (open)
         {

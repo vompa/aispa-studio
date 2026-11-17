@@ -61,10 +61,8 @@
 
       <!-- Profil -->
       <StackPanel x:Name="DetailsBlock" Spacing="8" MaxWidth="760" HorizontalAlignment="Left" IsVisible="{Binding ShowsDetails}">
-        <Grid ColumnDefinitions="*,Auto">
-          <TextBlock Text="Stammdaten" Classes="h3" VerticalAlignment="Center" />
-          <ui:HelpButton Topic="team" Section="person" Grid.Column="1" />
-        </Grid>
+        <!-- Das Fragezeichen im Kopf der Karte zeigt denselben Abschnitt (team#person); ein zweites hier wäre doppelt -->
+        <TextBlock Text="Stammdaten" Classes="h3" VerticalAlignment="Center" />
         <ContentControl x:Name="DetailsHost" Content="{Binding Details}" />
       </StackPanel>
       <ContentControl x:Name="AccessHost" Content="{Binding Access}" MaxWidth="760" HorizontalAlignment="Left" IsVisible="{Binding ShowsAccess}" />
@@ -98,7 +96,7 @@
       <StackPanel x:Name="TimesSection" Spacing="12" IsVisible="{Binding ShowsTimes}">
         <Grid ColumnDefinitions="*,Auto">
           <TextBlock Text="Zeiten" Classes="h3" VerticalAlignment="Center" />
-          <ui:HelpButton Topic="zeiten-nachtragen" Grid.Column="1" />
+          <ui:HelpButton Topic="zeiten-nachtragen" Section="schritte" Grid.Column="1" />
         </Grid>
         <ContentControl x:Name="TimesHost" Content="{Binding Times}" />
       </StackPanel>
@@ -107,7 +105,7 @@
       <StackPanel x:Name="PayrollSection" Spacing="8" MaxWidth="760" HorizontalAlignment="Left" IsVisible="{Binding ShowsPayroll}">
         <Grid ColumnDefinitions="*,Auto">
           <TextBlock Text="Lohn" Classes="h3" VerticalAlignment="Center" />
-          <ui:HelpButton Topic="lohn" Grid.Column="1" />
+          <ui:HelpButton Topic="lohn" Section="personalnummern" Grid.Column="1" />
         </Grid>
         <ContentControl x:Name="PayrollHost" Content="{Binding Payroll}" />
       </StackPanel>

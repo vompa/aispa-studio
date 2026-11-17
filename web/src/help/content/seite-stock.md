@@ -30,7 +30,9 @@ Oben stehen die vier Reiter **Übersicht**, **Bestand**, **Bestellen** und **Inv
 - **Inventur**: einen Lagerort zählen.
 - **Einrichtung**: öffnet eine eigene Seite mit **Zurück**. Dort stehen **Lagerorte** (Lagerorte anlegen und pflegen, mit Mindestmengen) und **Lieferanten** (mit Kontakt, Lieferzeit, Mindestbestellwert und Bestellweg); mit beiden Rechten wählt man oben zwischen beiden. Wer keines der beiden Rechte hat, sieht die Schaltfläche nicht.
 
-In der Kopfzeile speichert **Exportieren** Listen des gewählten Standorts als Excel oder CSV: Bestand je Lagerort, die letzte eingereichte Inventur, die Lagerbewegungen der letzten 30 Tage, die Bestellungen und die Ablaufliste. Den Knopf sehen nur Inhaberin und Geschäftsführung; jeder Export steht im Verlauf.
+In der Kopfzeile öffnet **Exportieren** einen Dialog. Dort wählt man den **Inhalt** (Bestand je Lagerort, Lagerbewegungen, Bestellungen, Ablaufliste oder Inventur), das **Format** Excel oder CSV und bei den Lagerbewegungen den Zeitraum, zuerst die letzten 30 Tage. Der Dialog steht zuerst auf dem Inhalt, der zum offenen Reiter passt, und die App merkt sich das Format. Was es am Standort noch nicht gibt, ist gesperrt und nennt den Grund, z. B. „Noch keine Zählung an diesem Standort“; die Inventur nimmt die zuletzt eingereichte Zählung. Nach dem Speichern steht unten „Gespeichert: …“ mit **Ordner öffnen**. Den Knopf sehen nur Inhaberin und Geschäftsführung; jeder Export steht im Verlauf.
+
+![Dialog „Lager exportieren“ mit fünf Inhalten, dem Format Excel oder CSV und dem Knopf Exportieren](images/app/lager-exportieren.png)
 
 Der geplante Verbrauch kommt aus der Rezeptur der Behandlungen (Seite „Kosten“) für die gebuchten Termine der nächsten 14 Tage.
 

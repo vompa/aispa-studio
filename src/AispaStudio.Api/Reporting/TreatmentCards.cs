@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text.RegularExpressions;
 using AispaStudio.Api.Data;
 using AispaStudio.Api.Online;
 using AispaStudio.Api.Operations;
@@ -13,7 +14,7 @@ namespace AispaStudio.Api.Reporting;
 /// Baut Behandlungskarten aus Termin, Kundenprofil, Behandlungsrezept, Raum und Verlauf.
 /// Gesundheitsdaten bleiben verschlüsselt: die Karte nennt nur, ob und wann der Fragebogen ausgefüllt wurde.
 /// </summary>
-internal sealed class TreatmentCards(AispaDbContext db, OnlineDbContext online, RoomCareService roomCare)
+internal sealed partial class TreatmentCards(AispaDbContext db, OnlineDbContext online, RoomCareService roomCare)
 {
     private static readonly CultureInfo German = CultureInfo.GetCultureInfo("de-AT");
 
@@ -40,6 +41,7 @@ internal sealed class TreatmentCards(AispaDbContext db, OnlineDbContext online, 
         var recipes = await StockRecipes.ForAsync(db, treatmentIds, ct);
         var checks = (await db.AppointmentPreparationChecks.AsNoTracking().Where(c => ids.Contains(c.AppointmentId)).ToListAsync(ct))
             .Select(c => (c.AppointmentId, c.StepId)).ToHashSet();
+        var equipmentChecks = (await db.AppointmentEquipmentChecks.AsNoTracking().Where(c => ids.Contains(c.AppointmentId)).Select(c => c.AppointmentId).ToListAsync(ct)).ToHashSet();
         var preferences = await db.CustomerPreferences.AsNoTracking().Where(p => customerIds.Contains(p.CustomerId)).ToDictionaryAsync(p => p.CustomerId, ct);
         var visits = (await db.Appointments.AsNoTracking()
                 .Where(a => customerIds.Contains(a.CustomerId) && a.Start <= latest && a.Status != AppointmentStatus.Cancelled)
@@ -81,7 +83,7 @@ internal sealed class TreatmentCards(AispaDbContext db, OnlineDbContext online, 
                 checks.Contains((a.Id, s.Id)))));
             if (a.EquipmentId is { } equipmentId && equipment.TryGetValue(equipmentId, out var equipmentName))
             {
-                todo.Add(new(null, $"{equipmentName} bereitstellen", null, "Termin", false));
+                todo.Add(new(null, $"{equipmentName} bereitstellen", null, "Termin", equipmentChecks.Contains(a.Id)) { IsEquipment = true });
             }
 
             void Prefer(string? value, string format)
@@ -128,11 +130,24 @@ internal sealed class TreatmentCards(AispaDbContext db, OnlineDbContext online, 
                 restock.GetValueOrDefault(a.Id),
                 a.StartedAt,
                 HandsOnMinutes: a.ProcessingMinutes > 0 ? a.HandsOnMinutes : 0,
-                ProcessingMinutes: a.ProcessingMinutes));
+                ProcessingMinutes: a.ProcessingMinutes)
+            {
+                DisplayName = DisplayNameOf(a.Treatment.Name),
+            });
         }
 
         return cards;
     }
+
+    /// <summary>Name ohne die Dauer am Ende („Lava-Hot-Stone-Massage (60 Min.)“ wird „Lava-Hot-Stone-Massage“): Die Karte zeigt die Dauer als eigenes Kennzeichen, sonst stünde sie doppelt da.</summary>
+    internal static string DisplayNameOf(string name)
+    {
+        var trimmed = DurationSuffix().Replace(name, "").Trim();
+        return trimmed.Length == 0 ? name.Trim() : trimmed;
+    }
+
+    [GeneratedRegex(@"\s*\(\s*\d+\s*Min\.?\s*\)\s*$", RegexOptions.CultureInvariant)]
+    private static partial Regex DurationSuffix();
 
     /// <summary>Material des Schritts aus dem Lager, z. B. „ (Massageöl, 20 ml)“; die Menge steht im Rezept der Behandlung.</summary>
     private static string MaterialNote(TreatmentPreparationStep step, Dictionary<Guid, decimal>? recipe, Dictionary<Guid, StockItem> items)

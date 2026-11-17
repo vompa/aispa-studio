@@ -10,7 +10,7 @@ stichwoerter: Lagerort, Lagerorte, Hauptlager, Standardlager, Schrank, Raumschra
 
 Ein Lagerort ist ein Platz, an dem Material liegt: das Hauptlager, der Schrank eines Behandlungsraums, das Verkaufsregal an der Rezeption oder ein Wagen. Jeder Standort hat sein Hauptlager (das Standardlager) und kann bis zu neun weitere Lagerorte haben, zusammen höchstens 10. Der Bestand eines Standorts ist die Summe seiner Lagerorte; Bedarfsprüfung, Bestellvorschlag und Lagerwert rechnen weiter mit dem ganzen Standort.
 
-Lagerorte pflegen dürfen Inhaber und Standortleitung an ihren Standorten, in der Windows-App unter „Verwaltung“ › „Lager“ › **Einrichtung** › **Lagerorte**. Links steht die Liste, rechts das Formular; **Neuer Lagerort** legt einen weiteren an.
+Lagerorte pflegen dürfen Inhaber und Standortleitung an ihren Standorten, in der Windows-App unter „Verwaltung“ › „Lager“ › **Einrichtung** › **Lagerorte**. Links steht die Liste, rechts das Formular; **Neuer Lagerort** über der Liste legt einen weiteren an.
 
 ![Die Seite „Einrichtung“ des Lagers mit den Lagerorten](images/app/verwaltung-lager-einrichtung.png)
 
@@ -21,7 +21,20 @@ Lagerorte pflegen dürfen Inhaber und Standortleitung an ihren Standorten, in de
 3. **Name**, **Art** und bei Bedarf **Raum**, **Beschreibung** und **Mindestmengen** eintragen.
 4. Auf **Speichern** klicken. Es erscheint „Gespeichert.“
 
-Mit **Verwerfen** nimmt man ungespeicherte Änderungen zurück. **Löschen** geht nur, solange der Lagerort keine Bewegungen hat; sonst den Lagerort mit **Aktiv** ausschalten.
+Mit **Verwerfen** nimmt man ungespeicherte Änderungen zurück. Wie man einen Lagerort entfernt, steht im nächsten Abschnitt.
+
+## Lagerort entfernen {#entfernen}
+
+Das Menü **⋯** im Kopf der Karte hat zwei Einträge: **Nicht mehr verwenden** und **Löschen …**. Das Hauptlager hat kein Menü, es gehört zum Standort.
+
+1. Den Lagerort in der Liste wählen und im Kopf der Karte auf **⋯** (Weitere Aktionen) klicken.
+2. **Löschen …** wählen. Das Programm prüft, ob am Lagerort etwas hängt.
+3. Hat der Lagerort keine Bewegungen, fragt es „„Name“ löschen?“. Mit **Löschen** ist er weg.
+4. Hat er Bewegungen, steht im Dialog „„Name“ lässt sich nicht löschen“ mit der Zahl der Lagerbewegungen. Die Bewegungen bleiben für die Nachvollziehbarkeit erhalten. Mit **Nicht mehr verwenden** erscheint der Lagerort nicht mehr als Ziel beim Nachfüllen und Umbuchen; sein Bestand bleibt sichtbar.
+
+![Der Dialog „lässt sich nicht löschen“ mit der Zahl der Lagerbewegungen und dem Knopf „Nicht mehr verwenden“](images/app/verwaltung-lager-lagerort-loeschen-dialog.png)
+
+**Nicht mehr verwenden** lässt sich rückgängig machen: den Lagerort wählen, **Aktiv** einschalten und speichern.
 
 ### Name {#name}
 

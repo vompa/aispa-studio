@@ -426,6 +426,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/rooms/{roomId}/deletion-check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Zählt, was an einem Raum hängt. Ein Raum lässt sich nie löschen; die Alternative ist „Nicht mehr verwenden“. */
+        get: operations["CheckRoomDeletion"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/locations/{locationId}/equipment": {
         parameters: {
             query?: never;
@@ -459,6 +476,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/equipment/{equipmentId}/deletion-check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Zählt, was an einem Gerät hängt. Ein Gerät lässt sich nie löschen; die Alternative ist „Nicht mehr verwenden“. */
+        get: operations["CheckEquipmentDeletion"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/qualifications": {
         parameters: {
             query?: never;
@@ -484,6 +518,24 @@ export interface paths {
         };
         get?: never;
         put: operations["RenameQualification"];
+        post?: never;
+        /** Löscht eine Qualifikation, an der nichts mehr hängt; sonst 409 mit der Liste dessen, was daran hängt. */
+        delete: operations["DeleteQualification"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/qualifications/{qualificationId}/deletion-check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Zählt, welche Personen und Behandlungen eine Qualifikation tragen; gelöscht werden darf nur, wenn keine mehr daran hängt. */
+        get: operations["CheckQualificationDeletion"];
+        put?: never;
         post?: never;
         delete?: never;
         options?: never;
@@ -929,6 +981,23 @@ export interface paths {
         };
         /** Listen des Lagers als Excel oder CSV, nur für die Leitung: list=levels (Bestand je Lagerort), count (Inventur mit Differenzen: sessionId oder die zuletzt eingereichte Zählung), movements (Bewegungen von from bis until), orders (Bestellungen), expiry (Ablaufliste der Chargen). */
         get: operations["ExportStockList"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stock/locations/{locationId}/export/availability": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Welche Listen des Lager-Exports etwas enthalten, nur für die Leitung: je Liste available und bei false der Grund (z. B. noch keine eingereichte Zählung). */
+        get: operations["StockExportAvailability"];
         put?: never;
         post?: never;
         delete?: never;
@@ -6533,6 +6602,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/stock/locations/{locationId}/storage-places/{placeId}/deletion-check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Zählt die Bewegungen eines Lagerorts; das Hauptlager lässt sich nie löschen, „Nicht mehr verwenden“ bleibt als Alternative. */
+        get: operations["CheckStoragePlaceDeletion"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/stock/locations/{locationId}/storage-places/{placeId}/levels": {
         parameters: {
             query?: never;
@@ -6868,6 +6954,24 @@ export interface paths {
         /** Lieferant ändern oder deaktivieren. Bestellungen behalten den Namen zum Zeitpunkt der Bestellung. */
         put: operations["UpdateStockSupplier"];
         post?: never;
+        /** Löscht einen Lieferanten ohne Material; sonst 409 mit der Liste dessen, was daran hängt. Bestellungen behalten den Namen. */
+        delete: operations["DeleteStockSupplier"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stock/suppliers/{supplierId}/deletion-check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Zählt, wie viel Material am Lieferanten hängt; „Nicht mehr verwenden“ bleibt als Alternative. */
+        get: operations["CheckStockSupplierDeletion"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -7038,6 +7142,22 @@ export interface paths {
         };
         get: operations["GetTreatmentCard"];
         put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/appointments/{appointmentId}/equipment-prepared": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["CheckEquipmentPrepared"];
         post?: never;
         delete?: never;
         options?: never;
@@ -10285,6 +10405,16 @@ export interface components {
             cards: components["schemas"]["TreatmentCard"][];
             hints: string[];
         };
+        DeletionAlternative: {
+            kind: string;
+            label: string;
+        };
+        DeletionCheckDto: {
+            canDelete: boolean;
+            summary: string;
+            dependents: components["schemas"]["DependentCount"][];
+            alternative?: null | components["schemas"]["DeletionAlternative"];
+        };
         DeliveryNoteLineSuggestion: {
             /** Format: uuid */
             lineId: string;
@@ -10302,6 +10432,12 @@ export interface components {
             lines: components["schemas"]["DeliveryNoteLineSuggestion"][];
             unmatched: string[];
             note: null | string;
+        };
+        DependentCount: {
+            kind: string;
+            /** Format: int32 */
+            count: number;
+            label: string;
         };
         DepExport: {
             "Belege-Gruppe": components["schemas"]["DepGroup"][];
@@ -13353,6 +13489,14 @@ export interface components {
             sellOff: components["schemas"]["StockExpiryTaskDto"][];
             expired: components["schemas"]["StockExpiryTaskDto"][];
         };
+        StockExportAvailabilityDto: {
+            lists: components["schemas"]["StockExportListAvailabilityDto"][];
+        };
+        StockExportListAvailabilityDto: {
+            list: string;
+            available: boolean;
+            reason?: null | string;
+        };
         StockItemDto: {
             /** Format: uuid */
             id: string;
@@ -13937,6 +14081,7 @@ export interface components {
             dueAt: null | string;
             source: string;
             done: boolean;
+            isEquipment?: null | boolean;
         };
         TreatmentCard: {
             /** Format: uuid */
@@ -13983,6 +14128,7 @@ export interface components {
             processingMinutes: number;
             /** @default false */
             checkAnamnesis: boolean;
+            displayName?: null | string;
         };
         TreatmentCostDto: {
             /** Format: uuid */
@@ -15230,6 +15376,44 @@ export interface operations {
             };
         };
     };
+    CheckRoomDeletion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                roomId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeletionCheckDto"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     CreateEquipment: {
         parameters: {
             query?: never;
@@ -15377,6 +15561,44 @@ export interface operations {
             };
         };
     };
+    CheckEquipmentDeletion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                equipmentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeletionCheckDto"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     ListQualifications: {
         parameters: {
             query?: never;
@@ -15479,6 +15701,89 @@ export interface operations {
                 };
                 content: {
                     "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    DeleteQualification: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                qualificationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeletionCheckDto"];
+                };
+            };
+        };
+    };
+    CheckQualificationDeletion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                qualificationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeletionCheckDto"];
                 };
             };
             /** @description Forbidden */
@@ -16914,6 +17219,44 @@ export interface operations {
                 };
                 content: {
                     "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    StockExportAvailability: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                locationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StockExportAvailabilityDto"];
                 };
             };
             /** @description Forbidden */
@@ -32070,6 +32413,54 @@ export interface operations {
             };
         };
     };
+    CheckStoragePlaceDeletion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                locationId: string;
+                placeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeletionCheckDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     GetStoragePlaceLevels: {
         parameters: {
             query?: never;
@@ -33080,6 +33471,89 @@ export interface operations {
             };
         };
     };
+    DeleteStockSupplier: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                supplierId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeletionCheckDto"];
+                };
+            };
+        };
+    };
+    CheckStockSupplierDeletion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                supplierId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeletionCheckDto"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     StockCountPdf: {
         parameters: {
             query?: {
@@ -33525,6 +33999,46 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["TreatmentCard"];
                 };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    CheckEquipmentPrepared: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                appointmentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PreparationCheck"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Forbidden */
             403: {
