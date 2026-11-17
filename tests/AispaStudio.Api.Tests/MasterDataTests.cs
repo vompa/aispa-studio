@@ -98,4 +98,42 @@ public sealed class MasterDataTests(ApiFixture fixture)
         Assert.Equal(spa.Anna.Id, first.EmployeeId);
         Assert.Equal(HttpStatusCode.Conflict, second.StatusCode);
     }
+
+    [Fact]
+    public async Task Nicht_mehr_angebotene_Behandlung_steht_nur_mit_includeInactive_in_der_Liste_und_wird_wieder_angeboten()
+    {
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        var id = spa.MassageTreatment.Id;
+
+        var deactivated = await spa.Client.DeleteAsync($"/api/treatments/{id}", Ct);
+        var offered = await spa.GetAsync<List<TreatmentDto>>("/api/treatments", Ct);
+        var all = await spa.GetAsync<List<TreatmentDto>>("/api/treatments?includeInactive=true", Ct);
+        var reactivated = await spa.Client.PostAsync($"/api/treatments/{id}/reactivate", null, Ct);
+        var again = await spa.GetAsync<List<TreatmentDto>>("/api/treatments", Ct);
+
+        Assert.Equal(HttpStatusCode.NoContent, deactivated.StatusCode);
+        Assert.DoesNotContain(offered, t => t.Id == id);
+        Assert.False(all.Single(t => t.Id == id).IsActive);
+        Assert.All(all.Where(t => t.Id != id), t => Assert.True(t.IsActive));
+        Assert.Equal(HttpStatusCode.OK, reactivated.StatusCode);
+        Assert.True((await TestSpa.ReadAsync<TreatmentDto>(reactivated, Ct)).IsActive);
+        Assert.Contains(again, t => t.Id == id);
+    }
+
+    [Fact]
+    public async Task Wieder_anbieten_einer_unbekannten_Behandlung_ist_404_und_includeInactive_braucht_das_Recht_zum_Bearbeiten()
+    {
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        using var reception = await TestUsers.ClientAsync(fixture, Ct, StaffRole.Reception, [spa.Location.Id]);
+
+        var unknown = await spa.Client.PostAsync($"/api/treatments/{Guid.NewGuid()}/reactivate", null, Ct);
+        var receptionAll = await reception.GetAsync("/api/treatments?includeInactive=true", Ct);
+        var receptionOffered = await reception.GetAsync("/api/treatments", Ct);
+        var receptionReactivate = await reception.PostAsync($"/api/treatments/{spa.MassageTreatment.Id}/reactivate", null, Ct);
+
+        Assert.Equal(HttpStatusCode.NotFound, unknown.StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, receptionAll.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, receptionOffered.StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, receptionReactivate.StatusCode);
+    }
 }

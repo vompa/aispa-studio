@@ -12,7 +12,7 @@ Bei einer Behandlung legt man fest, was zu jedem Termin bereitgestellt wird, und
 
 ## Schritte {#schritte}
 
-1. **Verwaltung** › **Angebot** › **Behandlungen** öffnen und die Behandlung wählen.
+1. **Verwaltung** › **Behandlungen** öffnen und die Behandlung wählen.
 2. Den Bereich **Durchführung** öffnen, zur Gruppe **Zum Termin bereitstellen** gehen und **Eintrag hinzufügen** anklicken.
 3. Bei **Bezeichnung** eintragen, was bereitgestellt wird, z. B. „Früchteteller“.
 4. Bei **Zeitpunkt** „Bei Ankunft“, „Minuten vor Ende“ (dann die Minuten eintragen) oder „Nach der Behandlung“ wählen.
