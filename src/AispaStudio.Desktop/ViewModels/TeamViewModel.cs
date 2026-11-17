@@ -12,7 +12,7 @@ namespace AispaStudio.Desktop.ViewModels;
 /// <c>TeamTab.tsx</c>, <c>StaffPage.tsx</c> (ohne Empfangsgerät) und <c>QualificationsTab.tsx</c>. Wer mit ungespeicherten Änderungen eine andere Person
 /// wählt, wird gefragt (<see cref="UnsavedChanges"/>). Über der Fläche schaltet eine Leiste um (R05 Slice 99, ADR 0098 höchstens fünf): „Personen“ (die Karten), „Wochenplan“
 /// (der Dienstplan für alle, <see cref="RosterPlanViewModel"/>, mit der Seitenleiste „Anträge“, <see cref="AbsenceRequestsViewModel"/>), „Zeiten“ (<see cref="TimesheetViewModel"/>), „Lohn“
-/// und „Rechte und Zuständigkeiten“ (<see cref="PowerOverviewViewModel"/> und <see cref="DutyOverviewViewModel"/> als Abschnitte), je nach Recht. Wer nur den Kalender sehen darf,
+/// und „Rechte und Zuständigkeiten“ (<see cref="RightsTableViewModel"/> und <see cref="DutyOverviewViewModel"/> als Abschnitte), je nach Recht. Wer nur den Kalender sehen darf,
 /// bekommt nur den Wochenplan, ohne Personenliste. Ein Klick auf einen Namen im Wochenplan öffnet die Karte der Person im Reiter „Dienstplan und Abwesenheit“, in den Zeiten im Reiter „Zeiten“.
 /// </summary>
 public sealed partial class TeamViewModel : ViewModelBase, ITargetedArea
@@ -162,6 +162,9 @@ public sealed partial class TeamViewModel : ViewModelBase, ITargetedArea
     /// <summary>Der Abschnitt „Wer darf was?“ steht in „Rechte und Zuständigkeiten“.</summary>
     public bool ShowsPowersSection => Powers is not null;
 
+    /// <summary>Die Standortwahl der Rechte-Tabelle steht nur bei mehr als einem Standort.</summary>
+    public bool ShowsRightsLocations => Powers?.ShowsLocations == true;
+
     /// <summary>Der Abschnitt „Zuständigkeiten“ steht in „Rechte und Zuständigkeiten“.</summary>
     public bool ShowsDutiesSection => Duties is not null;
 
@@ -183,10 +186,10 @@ public sealed partial class TeamViewModel : ViewModelBase, ITargetedArea
     /// <summary>Monatswerte, Export und Einstellungen der Lohnverrechnung (R05 Slice 100); nur mit dem Recht auf den Lohn, angelegt beim Laden.</summary>
     public PayrollViewModel? Payroll { get; private set; }
 
-    /// <summary>„Wer darf was?“ (R05 Slice 111), Abschnitt von „Rechte und Zuständigkeiten“; nur mit dem Recht auf die Personalakte, angelegt beim Laden.</summary>
-    public PowerOverviewViewModel? Powers { get; private set; }
+    /// <summary>Tabelle „Wer darf was, wer ist zuständig?“ (P11), Abschnitt von „Rechte und Zuständigkeiten“; nur mit dem Recht auf die Personalakte, angelegt beim Laden.</summary>
+    public RightsTableViewModel? Powers { get; private set; }
 
-    /// <summary>„Zuständigkeiten“ (R05 Slice 117), Abschnitt von „Rechte und Zuständigkeiten“; nur mit dem Recht auf die Personalakte, angelegt beim Laden.</summary>
+    /// <summary>„Zertifikate und Liste“ (R05 Slice 117, P11), Abschnitt von „Rechte und Zuständigkeiten“: was bald abläuft und die Liste der Zuständigkeiten; nur mit dem Recht auf die Personalakte, angelegt beim Laden.</summary>
     public DutyOverviewViewModel? Duties { get; private set; }
 
     /// <summary>
@@ -437,7 +440,15 @@ public sealed partial class TeamViewModel : ViewModelBase, ITargetedArea
 
         if (CanPowers)
         {
-            Powers = new PowerOverviewViewModel(_api);
+            Powers = new RightsTableViewModel(_context!);
+            Powers.Changed += OnRightsChangedAsync;
+            Powers.PropertyChanged += (_, e) =>
+            {
+                if (e.PropertyName == nameof(RightsTableViewModel.ShowsLocations))
+                {
+                    OnPropertyChanged(nameof(ShowsRightsLocations));
+                }
+            };
         }
 
         if (CanDuties)
@@ -496,6 +507,11 @@ public sealed partial class TeamViewModel : ViewModelBase, ITargetedArea
             Payroll.Dialogs = Dialogs;
         }
 
+        if (_context is not null)
+        {
+            _context.Dialogs = Dialogs;
+        }
+
         return Mode switch
         {
             PayrollMode when Payroll is not null => Payroll.EnsureLoadedAsync(),
@@ -510,6 +526,24 @@ public sealed partial class TeamViewModel : ViewModelBase, ITargetedArea
     /// <summary>Der Wochenplan lädt mit den Anträgen, denn ihr Knopf in der Werkzeugzeile zeigt die Zahl der offenen.</summary>
     private Task LoadRosterAsync(RosterPlanViewModel plan) =>
         Requests is null ? plan.EnsureLoadedAsync() : Task.WhenAll(plan.EnsureLoadedAsync(), Requests.EnsureLoadedAsync());
+
+    /// <summary>
+    /// Die Tabelle hat einen Eintrag gesetzt oder entfernt: die Kennzeichen der Liste kommen neu, und die offene Karte holt Vollmachten und Zuständigkeiten neu,
+    /// damit Tabelle und Karte dasselbe zeigen.
+    /// </summary>
+    private async Task OnRightsChangedAsync()
+    {
+        await RefreshAsync().ConfigureAwait(true);
+        if (Card?.Regulations is { IsLoaded: true } regulations)
+        {
+            await regulations.LoadAsync().ConfigureAwait(true);
+        }
+
+        if (Card?.Duties is { IsLoaded: true } duties)
+        {
+            await duties.LoadAsync().ConfigureAwait(true);
+        }
+    }
 
     /// <summary>„Rechte und Zuständigkeiten“ lädt beide Abschnitte, soweit erlaubt.</summary>
     private Task LoadRightsAsync() => Task.WhenAll(Powers?.EnsureLoadedAsync() ?? Task.CompletedTask, Duties?.EnsureLoadedAsync() ?? Task.CompletedTask);

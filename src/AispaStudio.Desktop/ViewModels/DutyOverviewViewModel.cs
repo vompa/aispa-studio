@@ -8,17 +8,6 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace AispaStudio.Desktop.ViewModels;
 
-/// <summary>Eine Person in „Wer ist wofür zuständig?“.</summary>
-public sealed record DutyHolderRow(string Text, bool IsExpired);
-
-/// <summary>Eine Zuständigkeit in „Wer ist wofür zuständig?“ mit den Personen, die sie haben.</summary>
-public sealed record DutyOverviewRow(string Name, string? Certificate, IReadOnlyList<DutyHolderRow> Holders)
-{
-    public bool HasCertificate => Certificate is not null;
-
-    public bool HasNoHolders => Holders.Count == 0;
-}
-
 /// <summary>Ein Zertifikat in „Was läuft bald ab?“; abgelaufene mit Warnung als Text und Symbol.</summary>
 public sealed record ExpiringRow(string Text, bool IsExpired)
 {
@@ -70,9 +59,9 @@ public sealed partial class DutyTypeRow(Guid? id, DutyTypeKey? key, Action chang
 }
 
 /// <summary>
-/// Ansicht „Zuständigkeiten“ im Bereich Team (R05 Slice 117, Ä274, E14): „Wer ist wofür zuständig?“ (je Eintrag Person, Vertretung, Gültigkeit), „Was läuft bald ab?“ (Zertifikate in der Frist
-/// und abgelaufene) und die pflegbare „Liste der Zuständigkeiten“ mit verlangtem Zertifikat und der Mindestzahl Ersthelferinnen im Dienst. Nur mit <c>ManageHrFile</c>; die Zuständigkeiten
-/// der Personen pflegt man auf der Personenkarte.
+/// Abschnitt „Zertifikate und Liste der Zuständigkeiten“ im Bereich Team (R05 Slice 117, Ä274, E14): „Was läuft bald ab?“ (Zertifikate in der Frist
+/// und abgelaufene) und die pflegbare „Liste der Zuständigkeiten“ mit verlangtem Zertifikat und der Mindestzahl Ersthelferinnen im Dienst. Nur mit <c>ManageHrFile</c>; wer wofür zuständig ist, steht in der Tabelle
+/// <see cref="RightsTableViewModel"/>.
 /// </summary>
 public sealed partial class DutyOverviewViewModel(IWorkstationApi api) : ViewModelBase, IEditableArea
 {
@@ -84,9 +73,6 @@ public sealed partial class DutyOverviewViewModel(IWorkstationApi api) : ViewMod
 
     [ObservableProperty]
     public partial bool IsLoaded { get; private set; }
-
-    [ObservableProperty]
-    public partial IReadOnlyList<DutyOverviewRow> Rows { get; private set; } = [];
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasNoExpiring))]
@@ -119,16 +105,14 @@ public sealed partial class DutyOverviewViewModel(IWorkstationApi api) : ViewMod
     public async Task LoadAsync()
     {
         LoadError = null;
-        var overview = await api.GetAsync<List<DutyOverviewRowDto>>("api/staff-duties/overview").ConfigureAwait(true);
         var expiring = await api.GetAsync<List<ExpiringCertificateDto>>("api/staff-duties/expiring").ConfigureAwait(true);
         var types = await api.GetAsync<List<DutyTypeDto>>(TypesPath).ConfigureAwait(true);
-        if (overview.Value is null || expiring.Value is null || types.Value is null)
+        if (expiring.Value is null || types.Value is null)
         {
-            LoadError = overview.Error ?? expiring.Error ?? types.Error ?? "Die Zuständigkeiten wurden nicht geladen.";
+            LoadError = expiring.Error ?? types.Error ?? "Die Zuständigkeiten wurden nicht geladen.";
             return;
         }
 
-        Rows = [.. overview.Value.Select(ToRow)];
         Expiring = [.. expiring.Value.Select(c => new ExpiringRow(
             c.IsExpired ? $"{c.EmployeeName}: {c.Name}, abgelaufen am {Day(c.ValidUntil)}" : $"{c.EmployeeName}: {c.Name}, läuft am {Day(c.ValidUntil)} ab", c.IsExpired))];
         _applying = true;
@@ -217,21 +201,6 @@ public sealed partial class DutyOverviewViewModel(IWorkstationApi api) : ViewMod
     }
 
     private static string Day(DateOnly day) => day.ToString("d.M.yyyy", CultureInfo.InvariantCulture);
-
-    private static DutyOverviewRow ToRow(DutyOverviewRowDto row) => new(
-        row.Name, row.RequiredCertificate is { } required ? $"Verlangt: {required}" : null, [.. row.Holders.Select(h => new DutyHolderRow(HolderText(h), h.IsExpired))]);
-
-    private static string HolderText(DutyHolderDto holder)
-    {
-        var deputy = holder.DeputyName is { } name ? $", Vertretung {name}" : "";
-        var period = (holder.IsExpired, holder.ValidUntil) switch
-        {
-            (true, { } until) => $"abgelaufen am {Day(until)}",
-            (false, { } until) => $"gültig von {Day(holder.ValidFrom)} bis {Day(until)}",
-            _ => $"gültig ab {Day(holder.ValidFrom)}",
-        };
-        return $"{holder.Name}{deputy}, {period}";
-    }
 
     private string TypesState() => string.Join('\n', Types.Select(t => t.State));
 

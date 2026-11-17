@@ -137,6 +137,8 @@ Die Zeile „Betrieb: Schließzeiten und Raumsperren stehen auf einer Seite“ g
 
 **Begründung.** Die Regelarbeitszeit gehört zur Planung, nicht zu den Stammdaten; im Profil lag sie unter Sprachen und wurde übersehen. Ein fester Kopf hält Name und Menü im Bild, während man durch die Bereiche rollt. Das Kennzeichen nur bei Abweichungen entlastet die Liste: Wer normal angemeldet ist, braucht keinen Zusatz.
 
+**Nachtrag P11 (17.11.2026): Rechte und Zuständigkeiten als Tabelle.** Die Ansicht „Rechte und Zuständigkeiten“ zeigt oben eine Tabelle „Wer darf was, wer ist zuständig?“ statt der beiden Textlisten: Vollmachten und Zuständigkeiten stehen zusammen, nach Themen geordnet (Kassa und Geld, Lager, Sicherheit und Vertretung, Weiteres), je Zeile mit Hinweis, Wirkung („Schaltet frei“ oder „Nur Aushang“) und den eingetragenen Personen als Kennzeichen. „+ Person“ und „✕“ in der Zeile rufen dieselben Endpunkte wie die Personenkarte (`…/regulations/powers`, `…/duties`), damit beide Stellen dasselbe ändern. Was unbesetzt ist, steht als Warnkennzeichen in der Zeile und als Zahl an einem Filter; bei mehr als einem Standort wählt der Kopf den Standort. Darunter steht der Abschnitt „Zertifikate und Liste der Zuständigkeiten“ (was bald abläuft, Liste pflegen). Die Texte „Prüft die API zusätzlich zur Rolle“ und „Nur zur Anzeige“ entfallen. Die API liefert Thema, Hinweis, Wirkung und „Unbesetzt“ als optionale Felder der vorhandenen Übersichten (kein zweiter Endpunkt, [ADR 0085](0085-api-version-in-den-pfaden.md) §3).
+
 ## Quellen
 
 - Rückmeldung des Auftraggebers vom 16.11.2026 mit Bild der Personenkarte, Auftrag vom selben Tag

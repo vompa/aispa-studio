@@ -7939,7 +7939,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** „Wer darf was?“: je Vollmacht aus der festen Liste, wer sie hat und bis wann. */
+        /** „Wer darf was?“: je Vollmacht aus der festen Liste, wer sie hat und bis wann, dazu Thema, Hinweis, Wirkung und ob sie unbesetzt ist; mit locationId nur die Personen, die an dem Standort arbeiten. */
         get: operations["ListPowerOverview"];
         put?: never;
         post?: never;
@@ -8099,7 +8099,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** „Wer ist wofür zuständig?“: je Eintrag der Liste die Personen mit Vertretung und Gültigkeit, auch ohne Eintrag. */
+        /** „Wer ist wofür zuständig?“: je Eintrag der Liste die Personen mit Vertretung und Gültigkeit, auch ohne Eintrag, dazu Thema, Hinweis, Wirkung und ob er unbesetzt ist; mit locationId nur die Personen, die an dem Standort arbeiten. */
         get: operations["ListDutyOverview"];
         put?: never;
         post?: never;
@@ -10764,6 +10764,12 @@ export interface components {
             name: string;
             requiredCertificate: null | string;
             holders: components["schemas"]["DutyHolderDto"][];
+            group?: null | string;
+            /** Format: int32 */
+            groupOrder?: null | number;
+            hint?: null | string;
+            effect?: null | string;
+            isUnstaffed?: null | boolean;
         };
         DutyReminderDto: {
             kind: components["schemas"]["DutyReminderKind"];
@@ -12241,12 +12247,20 @@ export interface components {
             validUntil: null | string;
             grantedBy: string;
             isExpired: boolean;
+            /** Format: uuid */
+            entryId?: null | string;
         };
         PowerOverviewRowDto: {
             kind: components["schemas"]["StaffPowerKind"];
             label: string;
             isChecked: boolean;
             holders: components["schemas"]["PowerHolderDto"][];
+            group?: null | string;
+            /** Format: int32 */
+            groupOrder?: null | number;
+            hint?: null | string;
+            effect?: null | string;
+            isUnstaffed?: null | boolean;
         };
         PreparationCheck: {
             done: boolean;
@@ -36774,7 +36788,9 @@ export interface operations {
     };
     ListPowerOverview: {
         parameters: {
-            query?: never;
+            query?: {
+                locationId?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -37559,7 +37575,9 @@ export interface operations {
     };
     ListDutyOverview: {
         parameters: {
-            query?: never;
+            query?: {
+                locationId?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
