@@ -25,15 +25,19 @@ internal sealed partial class PosService
             return [];
         }
 
-        var (locationId, today, currency) = await PromotionDayAsync(bill.RegisterId, ct);
-        return OffersFor(await PromotionService.RunningAsync(db, locationId, today, ct), bill.Lines, currency);
+        var day = await PromotionDayAsync(bill.RegisterId, ct);
+        return OffersFor(await PromotionService.RunningAsync(db, day.LocationId, day.Today, ct), bill.Lines, await TimingsAsync(bill.Lines, day.Zone, ct), day.Currency);
     }
 
-    /// <summary>Die Vorschläge zu einer Liste laufender Aktionen: nur Aktionen mit mindestens einer passenden Position, größter Rabatt zuerst.</summary>
-    internal static List<PromotionOfferDto> OffersFor(IEnumerable<Promotion> promotions, IEnumerable<BillLine> lines, string currency)
+    /// <summary>
+    /// Die Vorschläge zu einer Liste laufender Aktionen: nur Aktionen mit mindestens einer passenden Position, größter Rabatt zuerst. Treffen mehrere Arten zu
+    /// (etwa befristet und schwache Zeit), steht die mit dem höheren Rabatt vorn; angewendet wird nur eine, weil eine Position mit Rabatt keine zweite bekommt.
+    /// </summary>
+    internal static List<PromotionOfferDto> OffersFor(IEnumerable<Promotion> promotions, IEnumerable<BillLine> lines, IReadOnlyDictionary<Guid, AppointmentTiming> timings,
+        string currency)
     {
         var ordered = lines.OrderBy(l => l.Position).ToList();
-        return [.. promotions.Select(p => (Promotion: p, Matches: PromotionRules.Matches(p, ordered)))
+        return [.. promotions.Select(p => (Promotion: p, Matches: PromotionRules.Matches(p, ordered, timings)))
             .Where(x => x.Matches.Count > 0)
             .Select(x => new PromotionOfferDto(x.Promotion.Id, x.Promotion.Name, PromotionRules.DiscountText(x.Promotion, currency),
                 [.. x.Matches.Select(m => new PromotionOfferLineDto(m.Line.Id, m.Line.Description, m.Discount))], x.Matches.Sum(m => m.Discount)))
@@ -51,30 +55,44 @@ internal sealed partial class PosService
             var bill = await LoadOpenBillAsync(register, billId, ct);
             var promotion = await db.Promotions.AsNoTracking().Include(p => p.Locations).Include(p => p.Treatments).AsSplitQuery()
                 .FirstOrDefaultAsync(p => p.Id == promotionId, ct) ?? throw PosFailure.NotFound("Aktion");
-            var (locationId, today, _) = await PromotionDayAsync(register.Id, ct);
-            ApplyPromotion(bill, promotion, locationId, today);
+            var day = await PromotionDayAsync(register.Id, ct);
+            ApplyPromotion(bill, promotion, day.LocationId, day.Today, await TimingsAsync(bill.Lines, day.Zone, ct));
             return bill.Id;
         }, ct);
 
     /// <summary>Prüft Lauf und Passung und setzt den Rabatt auf die Positionen (ohne Datenbank; der Verlauf der Beispieldaten im Speicher nutzt dasselbe).</summary>
-    internal static void ApplyPromotion(Bill bill, Promotion promotion, Guid locationId, DateOnly today)
+    internal static void ApplyPromotion(Bill bill, Promotion promotion, Guid locationId, DateOnly today, IReadOnlyDictionary<Guid, AppointmentTiming> timings)
     {
         if (!PromotionRules.IsRunning(promotion, locationId, today))
         {
             throw PosFailure.Invalid("promotionId", "Die Aktion läuft heute an diesem Standort nicht.");
         }
 
-        if (PromotionRules.Apply(promotion, bill.Lines).Count == 0)
+        if (PromotionRules.Apply(promotion, bill.Lines, timings).Count == 0)
         {
             throw PosFailure.Invalid("promotionId", "Die Aktion passt zu keiner offenen Position dieser Rechnung (Positionen mit anderem Rabatt bleiben, wie sie sind).");
         }
     }
 
-    /// <summary>Standort der Kasse, dessen heutiger Kalendertag und Währung.</summary>
-    private async Task<(Guid LocationId, DateOnly Today, string Currency)> PromotionDayAsync(Guid registerId, CancellationToken ct)
+    /// <summary>Standort der Kasse, dessen heutiger Kalendertag, Zeitzone und Währung.</summary>
+    private async Task<(Guid LocationId, DateOnly Today, TimeZoneInfo Zone, string Currency)> PromotionDayAsync(Guid registerId, CancellationToken ct)
     {
         var location = await db.CashRegisters.AsNoTracking().Where(r => r.Id == registerId)
             .Join(db.Locations.AsNoTracking(), r => r.LocationId, l => l.Id, (_, l) => new { l.Id, l.TimeZone, l.Currency }).FirstAsync(ct);
-        return (location.Id, LocalTime.LocalDate(time.GetUtcNow(), LocalTime.Zone(location.TimeZone)), location.Currency);
+        var zone = LocalTime.Zone(location.TimeZone);
+        return (location.Id, LocalTime.LocalDate(time.GetUtcNow(), zone), zone, location.Currency);
+    }
+
+    /// <summary>Beginn (auch in der Ortszeit der Kasse) und Buchungszeitpunkt der Termine auf den Positionen; für kurzfristige Termine und schwache Zeiten.</summary>
+    private async Task<Dictionary<Guid, AppointmentTiming>> TimingsAsync(IEnumerable<BillLine> lines, TimeZoneInfo zone, CancellationToken ct)
+    {
+        var ids = lines.Where(l => l.AppointmentId is not null).Select(l => l.AppointmentId!.Value).Distinct().ToList();
+        if (ids.Count == 0)
+        {
+            return [];
+        }
+
+        var appointments = await db.Appointments.AsNoTracking().Where(a => ids.Contains(a.Id)).Select(a => new { a.Id, a.Start, a.CreatedAt }).ToListAsync(ct);
+        return appointments.ToDictionary(a => a.Id, a => new AppointmentTiming(a.Start, TimeZoneInfo.ConvertTime(a.Start, zone).DateTime, a.CreatedAt));
     }
 }
