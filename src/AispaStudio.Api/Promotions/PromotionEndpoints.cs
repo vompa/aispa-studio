@@ -47,6 +47,12 @@ internal static class PromotionEndpoints
             .WithSummary("Legt eine Aktion an: Zeitraum, Standorte, Rabatt in Prozent oder als Betrag und wofür sie gilt. Die Kassa schlägt sie vor, den Rabatt rechnet die Kassa.")
             .RequirePermission(AccessRight.ManageCatalog);
 
+        group.MapPost("/preview", async (PromotionInput input, PromotionService promotions, CancellationToken ct) =>
+                TypedResults.Ok(await promotions.PreviewAsync(input, ct)))
+            .WithName("PreviewPromotion")
+            .WithSummary("Vorschau des Gästepreises für eine Aktion, auch ungespeichert: ein Beispieltermin und die ersten betroffenen Behandlungen mit Preis und Preis mit Rabatt, gerechnet wie an der Kassa.")
+            .RequirePermission(AccessRight.ManageCatalog);
+
         group.MapPut("/{promotionId:guid}", async Task<Results<Ok<PromotionDto>, NotFound, ValidationProblem>> (
                 Guid promotionId, PromotionInput input, PromotionService promotions, AccessService access, CancellationToken ct) =>
             {

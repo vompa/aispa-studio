@@ -13,22 +13,22 @@
       <TextBlock Text="Zeitraum" Classes="h2" VerticalAlignment="Center" />
       <ui:HelpButton Grid.Column="1" Topic="{Binding HelpTopic}" Section="zeitraum" />
     </Grid>
-    <StackPanel Orientation="Horizontal" Spacing="12">
+    <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
       <ui:FormField Label="Von" IsRequired="True" Error="{Binding Period.FromDateError}">
         <ui:DateField x:Name="FromDateField" CommittedText="{Binding Period.FromDate}" />
       </ui:FormField>
-      <ui:FormField Label="Bis" IsRequired="True" Error="{Binding Period.UntilDateError}">
+      <ui:FormField Grid.Column="1" Label="Bis" IsRequired="True" Error="{Binding Period.UntilDateError}">
         <ui:DateField x:Name="UntilDateField" CommittedText="{Binding Period.UntilDate}" />
       </ui:FormField>
-    </StackPanel>
+    </Grid>
     <CheckBox x:Name="PartialBox" IsChecked="{Binding Period.IsPartial}" Content="Nur ein Teil der Tage (mit Uhrzeit)" />
-    <StackPanel Orientation="Horizontal" Spacing="12" IsVisible="{Binding Period.IsPartial}">
-      <ui:FormField Label="Ab Uhrzeit" Help="Am ersten Tag; leer: ab 0:00 Uhr." Error="{Binding Period.FromTimeError}" MinWidth="200">
+    <WrapPanel Orientation="Horizontal" IsVisible="{Binding Period.IsPartial}">
+      <ui:FormField Label="Ab Uhrzeit" Help="Am ersten Tag; leer: ab 0:00 Uhr." Error="{Binding Period.FromTimeError}" MinWidth="140" Margin="0,0,12,8">
         <ui:TimeField x:Name="FromTimeField" CommittedText="{Binding Period.FromTime}" HorizontalAlignment="Left" />
       </ui:FormField>
-      <ui:FormField Label="Bis Uhrzeit" Help="Am letzten Tag; leer: bis zum Ende des Tages." Error="{Binding Period.UntilTimeError}" MinWidth="200">
+      <ui:FormField Label="Bis Uhrzeit" Help="Am letzten Tag; leer: bis zum Ende des Tages." Error="{Binding Period.UntilTimeError}" MinWidth="140" Margin="0,0,12,8">
         <ui:TimeField x:Name="UntilTimeField" CommittedText="{Binding Period.UntilTime}" HorizontalAlignment="Left" />
       </ui:FormField>
-    </StackPanel>
+    </WrapPanel>
   </StackPanel>
 </UserControl>

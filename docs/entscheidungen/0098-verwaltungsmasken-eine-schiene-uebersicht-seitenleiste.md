@@ -108,6 +108,19 @@ Neue gemeinsame Bausteine der Windows-App: `StatTile` (Kennzahl-Kachel nach desi
 
 **Begründung.** „Behandlungen“ und „Aktionen“ sind zwei Dinge mit eigenem Alltag (Katalog und Werbung); als Reiter einer Gruppe „Angebot“ lag die Aktion einen Klick tiefer als nötig. Das Anlegen lag als letzte Listenzeile unter dem sichtbaren Bereich, die erste Zeile war angeschnitten: Die Übersicht der Behandlungskarte und der feste Knopf beheben beides.
 
+## Nachtrag 17.11.2026: Schließzeiten und Raumsperren in einer Liste
+
+*Status des Nachtrags: umgesetzt (P2); Bestätigung durch den Auftraggeber offen.* Grundlage ist der Entwurf v5 vom 17.11.2026 (Abschnitt 2), den der Auftraggeber durchgesehen hat.
+
+Die Zeile „Betrieb: Schließzeiten und Raumsperren stehen auf einer Seite“ galt zuerst als zwei gestapelte Abschnitte mit eigener Liste und eigenem Formular. Sie gilt jetzt als **eine** Liste:
+
+- Schließzeiten des ganzen Standorts und Raumsperren stehen in einer Liste nach Beginn, kommende zuerst, Vergangenes eingeklappt („Vergangene (n)“, Regel 6). Die Art ist ein Kennzeichen an der Zeile („Standort“, „Raum“); ein Filter über der Liste zeigt nur eine Art.
+- „Neue Schließzeit“ steht fest über der Liste. Das Formular öffnet in einer Seitenleiste (Regel 3 gilt sinngemäß für jedes Formular einer Liste), bei einem neuen Eintrag mit der Wahl „Ganzer Standort“ oder „Einzelner Raum“. Die Formulare beider Arten bleiben getrennt, weil sich die Felder unterscheiden.
+- Die Wartezeit vor der Nachricht an den Gast ist eine selten geänderte Einstellung und liegt hinter „Einrichtung“ (Regel 4), nicht mehr als Karte über der Liste.
+- Ohne Eintrag steht statt der Liste der Leerzustand mit den ersten Aktionen. Rückmeldungen nach Speichern und Löschen sind ein Toast (meldungen.md M1) statt „Gelöscht.“ als Balken.
+- Die Liste kommt aus **einem** Aufruf der API: `GET /api/locations/{id}/closure-overview?scope=Upcoming|Past|All` liefert beide Arten mit Zustand und Zahl offener Termine, sortiert wie die Liste, dazu die Zahlen der kommenden und vergangenen Einträge. Es sind neue Typen, die bestehenden Wege bleiben unverändert (ADR 0085 §3); Anlegen, Ändern und Löschen laufen weiter über die Wege je Art.
+- Alte Adressen bleiben (Regel 7): `masterData/closures` öffnet die Seite, `masterData/roomClosures` öffnet sie mit einem neuen Formular „Einzelner Raum“ (Raum und Zeitraum des Sprungs vorbelegt).
+
 ## Nachtrag 17.11.2026: Personenkarte und Teamliste (P5)
 
 *Status des Nachtrags: umgesetzt (P5); Bestätigung durch den Auftraggeber offen.* Grundlage ist der Entwurf v5 vom 17.11.2026, Abschnitt „Personenkarte“.

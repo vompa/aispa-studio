@@ -1,0 +1,24 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             x:Class="AispaStudio.Desktop.Views.ClosureEntryLine"
+             x:DataType="vm:ClosureEntryRow">
+  <!--
+    Eine Zeile der Liste „Schließzeiten und Raumsperren“ (ADR 0098): links das Kennzeichen der Art („Standort“ oder „Raum“), in der Mitte was (Art, bei einer Raumsperre mit Raum), der Zeitraum und der
+    Grund, rechts der Zustand und die offenen Termine. Zwei Zeilen hoch, damit die Liste auch neben der Seitenleiste (360 px) beim Mindestfenster lesbar bleibt.
+  -->
+  <Grid ColumnDefinitions="76,*,Auto" ColumnSpacing="12" Margin="0,4">
+    <Border Classes="pill" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,1,0,0">
+      <TextBlock Text="{Binding TypeText}" />
+    </Border>
+    <StackPanel Grid.Column="1" Spacing="2">
+      <TextBlock Text="{Binding Title}" FontWeight="Medium" TextTrimming="CharacterEllipsis" />
+      <TextBlock Text="{Binding Period}" Classes="muted small num" TextTrimming="CharacterEllipsis" />
+      <TextBlock Text="{Binding Reason}" Classes="muted small" TextTrimming="CharacterEllipsis" IsVisible="{Binding HasReason}" />
+    </StackPanel>
+    <StackPanel Grid.Column="2" Spacing="2" HorizontalAlignment="Right" MinWidth="130">
+      <TextBlock Text="{Binding StatusText}" HorizontalAlignment="Right" />
+      <TextBlock Text="{Binding AppointmentsText}" Classes="muted small" HorizontalAlignment="Right" TextTrimming="CharacterEllipsis" />
+    </StackPanel>
+  </Grid>
+</UserControl>

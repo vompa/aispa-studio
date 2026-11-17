@@ -31,6 +31,18 @@ public sealed class Promotion
 
     public PromotionScope Scope { get; set; }
 
+    /// <summary>Befristet, kurzfristig frei oder schwache Zeiten (Nachtrag zu ADR 0071).</summary>
+    public PromotionKind Kind { get; set; }
+
+    /// <summary>Nur bei <see cref="PromotionKind.LastMinute"/>: höchstens so viele Stunden zwischen Buchung und Beginn des Termins.</summary>
+    public int? LeadHours { get; set; }
+
+    /// <summary>
+    /// Nur bei <see cref="PromotionKind.OffPeak"/>: die Felder des Wochenrasters als Bits, je Wochentag (Sonntag = 0) drei Bits für Vormittag, Nachmittag
+    /// und Abend (<see cref="PromotionRules.SlotBit"/>). Eine Zahl statt einer Kindtabelle: 21 Felder, immer zusammen gelesen und geschrieben.
+    /// </summary>
+    public int OffPeakSlots { get; set; }
+
     /// <summary>Aktiv oder pausiert.</summary>
     public bool IsActive { get; set; } = true;
 

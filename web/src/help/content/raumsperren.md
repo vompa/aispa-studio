@@ -23,16 +23,18 @@ Verwalten dürfen Inhaber, Manager und Standortleitung (Recht „Standorte verwa
 
 ## Raumsperren verwalten {#raumsperren}
 
-1. In der Windows-App **Verwaltung** › **Betrieb** › **Schließzeiten** öffnen und zum Abschnitt **Raumsperren** rollen; er steht unter den Schließzeiten. Gibt es mehrere Standorte, im Kopf des Abschnitts den **Standort** wählen. Aus dem Kalender kommt man mit einem Rechtsklick auf den Kopf eines Raums und **Raum sperren …** gleich dorthin: ein neues Formular mit dem Raum schon gewählt.
-2. Die Liste links zeigt die aktuellen Sperren (aktiv und geplant). **Beendete zeigen** über der Liste blendet die beendeten dazu ein; die Zahl daneben nennt, wie viele es sind.
-3. Links eine Sperre wählen oder auf **Neue Raumsperre** klicken, rechts die Maske ausfüllen und auf **Speichern** klicken (in der Windows-App auch **Strg+S**). Es erscheint „Gespeichert“.
+1. In der Windows-App **Verwaltung** › **Betrieb** › **Schließzeiten** öffnen. Raumsperren und [Schließzeiten](hilfe:schliesszeiten) stehen in **einer** Liste; das Kennzeichen **Raum** vor der Zeile zeigt eine Raumsperre. Gibt es mehrere Standorte, oben den **Standort** wählen. Aus dem Kalender kommt man mit einem Rechtsklick auf den Kopf eines Raums und **Raum sperren …** gleich dorthin: ein neues Formular mit dem Raum schon gewählt.
+2. Der Filter **Raum gesperrt** über der Liste zeigt nur die Raumsperren, **Vergangene** unter der Liste klappt die beendeten auf. Rechts neben jeder Zeile steht die Zahl der noch offenen Termine im gesperrten Raum.
+3. Eine Raumsperre wählen oder auf **Neue Schließzeit** klicken und oben in der Seitenleiste **Einzelner Raum** wählen. Das Formular ausfüllen und auf **Speichern** klicken (auch **Strg+S**). Unten erscheint kurz „Raumsperre gespeichert“. **Raum sperren** im Leerzustand der Seite öffnet gleich dieses Formular.
+
+![Raumsperre in der Liste, rechts ihr Formular mit Raum, Zeitraum, Art und Grund](images/app/verwaltung-raumsperren.png)
 
 In der Windows-App gilt zusätzlich:
 
-- **Verwerfen** neben **Speichern** holt den gespeicherten Stand zurück. Wer mit ungespeicherten Änderungen eine andere Raumsperre, einen anderen Reiter, Standort oder Bereich wählt, wird gefragt: „Änderungen speichern?“ mit **Speichern**, **Verwerfen** und **Abbrechen**.
+- **Verwerfen** neben **Speichern** holt den gespeicherten Stand zurück. Wer mit ungespeicherten Änderungen eine andere Zeile, einen anderen Standort oder Bereich wählt oder die Seitenleiste schließt, wird gefragt: „Änderungen speichern?“ mit **Speichern**, **Verwerfen** und **Abbrechen**.
 - Ein Fehler steht am Feld, und der Cursor springt ins erste Feld mit einem Fehler.
 - Datum und Uhrzeit lassen sich kurz eintippen: „24.12.“, „9“ wird 09:00, „1430“ wird 14:30.
-- **Löschen** fragt vorher nach: „Raumsperre löschen?“.
+- **Löschen** steht unten in der Seitenleiste und fragt vorher nach: „Raumsperre löschen?“. Danach erscheint kurz „Raumsperre gelöscht“.
 
 Der Zustand wird gerechnet: **Geplant** beginnt später, **Aktiv** läuft gerade, **Beendet** ist vorbei. Zwei Sperren desselben Raums dürfen sich nicht überschneiden; für verschiedene Räume gibt es keine Grenze. **Löschen** hebt die Sperre auf, der Raum ist sofort wieder buchbar.
 

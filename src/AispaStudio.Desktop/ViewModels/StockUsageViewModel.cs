@@ -20,24 +20,57 @@ public sealed record UsageTreatmentRow(string Name, string PlannedText, string A
     public override string ToString() => Summary;
 }
 
-/// <summary>Soll und Ist eines Artikels; alle Zahlen stammen aus der API.</summary>
-public sealed record UsageRow(string Material, string PlannedText, string ActualText, string ExcessText, bool IsLoss, string ValueText, IReadOnlyList<UsageTreatmentRow> Treatments)
+/// <summary>
+/// Eine Zeile der Tabelle: Soll, Ist, Abweichung in Menge und Prozent und der Wert der Abweichung; alle Zahlen stammen aus der API. Aufklappen zeigt die Behandlungen, die das Material nutzen.
+/// </summary>
+public sealed partial class UsageRow(string material, string plannedText, string actualText, string deviationText, bool isLoss, bool hasDeviation, string valueText, IReadOnlyList<UsageTreatmentRow> treatments)
+    : ObservableObject
 {
-    public string Summary => $"{Material}, Soll {PlannedText}, Ist {ActualText}, Mehrverbrauch {ExcessText}{(ValueText.Length > 0 ? $", Wert {ValueText}" : "")}";
+    public string Material { get; } = material;
+
+    public string PlannedText { get; } = plannedText;
+
+    public string ActualText { get; } = actualText;
+
+    /// <summary>„+120 ml · 18 %“; ohne Abweichung die Menge 0.</summary>
+    public string DeviationText { get; } = deviationText;
+
+    public bool IsLoss { get; } = isLoss;
+
+    public bool HasDeviation { get; } = hasDeviation;
+
+    public string ValueText { get; } = valueText;
+
+    public IReadOnlyList<UsageTreatmentRow> Treatments { get; } = treatments;
+
+    public string Summary => $"{Material}, Soll {PlannedText}, Ist {ActualText}, Abweichung {DeviationText}{(ValueText.Length > 0 ? $", Wert {ValueText}" : "")}";
 
     public bool HasTreatments => Treatments.Count > 0;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(Glyph), nameof(ToggleName))]
+    public partial bool IsExpanded { get; set; }
+
+    public string Glyph => IsExpanded ? "▾" : "▸";
+
+    public string ToggleName => $"{Material}, Behandlungen {(IsExpanded ? "ausblenden" : "zeigen")}";
+
+    [RelayCommand]
+    private void Toggle() => IsExpanded = !IsExpanded;
 
     public override string ToString() => Summary;
 }
 
 /// <summary>
-/// Verbrauch (R05 Slice 116, Ä271; seit ADR 0098 ein Abschnitt der Übersicht) nach <c>StockUsage.tsx</c>: je Artikel das Soll (gebuchter Verbrauch laut Rezept), das Ist (Soll plus Mehrverbrauch aus den Inventuren) und die Behandlungen,
-/// die den Artikel nutzen. Rechnet in der API (Recht ViewFinance) und bucht nichts; den Wert in Euro liefert sie nur mit dem Recht „Berichte mit Beträgen“.
+/// Verbrauch (R05 Slice 116, Ä271; seit ADR 0098 ein Abschnitt der Übersicht): je Material das Soll (gebuchter Verbrauch laut Rezept), das Ist (Soll plus Mehrverbrauch aus den Inventuren), die Abweichung
+/// in Menge und Prozent und ihr Wert. Reihenfolge und Prozent liefert die API (größter Wert zuerst); als Standard zeigt die Tabelle nur Materialien mit Abweichung, die übrigen stehen als eine Zeile mit „Alle zeigen“.
+/// Rechnet in der API (Recht ViewFinance) und bucht nichts; den Wert in Euro liefert sie nur mit dem Recht „Berichte mit Beträgen“. Die Summe zeigt allein die Kachel der Übersicht.
 /// </summary>
 public sealed partial class StockUsageViewModel : ViewModelBase
 {
     private readonly StockViewModel _owner;
     private readonly TimeProvider _time;
+    private List<UsageRow> _all = [];
     private int _version;
 
     internal StockUsageViewModel(StockViewModel owner, TimeProvider time)
@@ -49,6 +82,7 @@ public sealed partial class StockUsageViewModel : ViewModelBase
 
     public IReadOnlyList<UsagePeriod> Periods { get; } = [new(7, "Letzte 7 Tage"), new(30, "Letzte 30 Tage"), new(90, "Letzte 90 Tage")];
 
+    /// <summary>Die gezeigten Zeilen: mit „Nur Abweichungen“ ohne die Materialien, die genau nach Rezept verbraucht wurden.</summary>
     public ObservableCollection<UsageRow> Rows { get; } = [];
 
     [ObservableProperty]
@@ -60,11 +94,9 @@ public sealed partial class StockUsageViewModel : ViewModelBase
 
     public bool HasLoadError => LoadError is not null;
 
+    /// <summary>Standard: nur Materialien mit Abweichung; ausgeschaltet stehen alle in der Tabelle.</summary>
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasTotal))]
-    public partial string? TotalText { get; private set; }
-
-    public bool HasTotal => TotalText is not null;
+    public partial bool OnlyDeviations { get; set; } = true;
 
     /// <summary>Der Mehrverbrauch zum Einstandspreis als Betrag für die Kachel der Übersicht; ohne das Recht „Berichte mit Beträgen“ fehlt er.</summary>
     internal string? ExcessValueText { get; private set; }
@@ -74,12 +106,22 @@ public sealed partial class StockUsageViewModel : ViewModelBase
     public partial bool AmountsHidden { get; private set; }
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(ShowEmpty))]
+    [NotifyPropertyChangedFor(nameof(ShowEmpty), nameof(ShowNoDeviation))]
     public partial bool IsLoaded { get; private set; }
 
     public bool HasRows => Rows.Count > 0;
 
-    public bool ShowEmpty => IsLoaded && Rows.Count == 0 && !HasLoadError;
+    /// <summary>Im Zeitraum wurde nichts verbraucht.</summary>
+    public bool ShowEmpty => IsLoaded && _all.Count == 0 && !HasLoadError;
+
+    /// <summary>Es gibt Verbrauch, aber keine Abweichung, und die übrigen Materialien sind ausgeblendet.</summary>
+    public bool ShowNoDeviation => IsLoaded && Rows.Count == 0 && HiddenCount > 0;
+
+    public int HiddenCount => _all.Count - Rows.Count;
+
+    public bool HasHidden => HiddenCount > 0;
+
+    public string HiddenText => HiddenCount == 1 ? "1 weiteres Material nach Rezept verbraucht" : $"{HiddenCount} weitere Materialien nach Rezept verbraucht";
 
     [RelayCommand]
     public async Task LoadAsync()
@@ -102,6 +144,10 @@ public sealed partial class StockUsageViewModel : ViewModelBase
         Show(result.Value);
     }
 
+    /// <summary>„Alle zeigen“ in der Zeile unter der Tabelle.</summary>
+    [RelayCommand]
+    private void ShowAll() => OnlyDeviations = false;
+
     /// <summary>Beim Standortwechsel: die Zahlen des alten Standorts und seine noch laufende Antwort gelten nicht mehr.</summary>
     internal void Reset()
     {
@@ -112,23 +158,46 @@ public sealed partial class StockUsageViewModel : ViewModelBase
 
     private void Show(StockUsageReportDto? report)
     {
-        Rows.Clear();
-        foreach (var line in report?.Lines ?? [])
-        {
-            Rows.Add(new UsageRow(line.Name, Amount(line.Planned, line.Unit), Amount(line.Actual, line.Unit), Amount(line.Excess, line.Unit), line.Excess > 0,
-                line.ExcessValue is { } value ? Money.Format(value) : "", [.. line.Treatments.Select(t => new UsageTreatmentRow(t.Name, Amount(t.Planned, line.Unit), t.Appointments == 1 ? "1 Termin" : $"{t.Appointments} Termine"))]));
-        }
-
+        _all = [.. (report?.Lines ?? []).Select(Row)];
         AmountsHidden = report?.AmountsHidden == true;
         ExcessValueText = report?.ExcessValue is { } total ? Money.Format(total) : null;
-        TotalText = ExcessValueText is null ? null : $"Mehrverbrauch zum Einstandspreis: {ExcessValueText}";
         IsLoaded = report is not null || LoadError is not null;
+        ApplyFilter();
+        _owner.Todo.RefreshStats();
+    }
+
+    /// <summary>Füllt die gezeigten Zeilen in der Reihenfolge der API.</summary>
+    private void ApplyFilter()
+    {
+        Rows.Clear();
+        foreach (var row in _all.Where(r => !OnlyDeviations || r.HasDeviation))
+        {
+            Rows.Add(row);
+        }
+
         OnPropertyChanged(nameof(HasRows));
         OnPropertyChanged(nameof(ShowEmpty));
-        _owner.Todo.RefreshStats();
+        OnPropertyChanged(nameof(ShowNoDeviation));
+        OnPropertyChanged(nameof(HiddenCount));
+        OnPropertyChanged(nameof(HasHidden));
+        OnPropertyChanged(nameof(HiddenText));
+    }
+
+    private static UsageRow Row(StockUsageLineDto line) =>
+        new(line.Name, Amount(line.Planned, line.Unit), Amount(line.Actual, line.Unit), Deviation(line), line.Excess > 0, line.Excess != 0,
+            line.ExcessValue is { } value ? Money.Format(value) : "",
+            [.. line.Treatments.Select(t => new UsageTreatmentRow(t.Name, Amount(t.Planned, line.Unit), t.Appointments == 1 ? "1 Termin" : $"{t.Appointments} Termine"))]);
+
+    /// <summary>„+120 ml · 18 %“ bei Mehrverbrauch, „-50 ml · -17 %“ bei Fund, „0 ml“ ohne Abweichung; den Prozentanteil rechnet die API.</summary>
+    private static string Deviation(StockUsageLineDto line)
+    {
+        var amount = $"{(line.Excess > 0 ? "+" : "")}{Amount(line.Excess, line.Unit)}";
+        return line.Excess != 0 && line.ExcessPercent is { } percent ? $"{amount} · {StockFormat.Quantity(percent)} %" : amount;
     }
 
     private static string Amount(decimal value, string unit) => $"{StockFormat.Quantity(value)} {unit}";
 
     partial void OnSelectedPeriodChanged(UsagePeriod value) => _ = LoadAsync();
+
+    partial void OnOnlyDeviationsChanged(bool value) => ApplyFilter();
 }
