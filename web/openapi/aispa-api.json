@@ -31559,6 +31559,13 @@
             "items": {
               "type": "string"
             }
+          },
+          "placeholderGuest": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
           }
         }
       },
@@ -39117,6 +39124,13 @@
           },
           "minutes": {
             "type": "integer",
+            "format": "int32"
+          },
+          "placeholderGuest": {
+            "type": [
+              "null",
+              "integer"
+            ],
             "format": "int32"
           }
         }

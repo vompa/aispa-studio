@@ -6780,3 +6780,22 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Geprüft:** API `AbsenceTests` und Raumsperre 20 von 20 (neu: anderer Tag zur gewohnten Uhrzeit, Übernehmen mit Mail; nichts in 14 Tagen; Rezeption ohne zweiten Standort bekommt den anderen Tag); Windows-App Ansichtstest „Ersatz an einem anderen Tag“, `AbsenceNotifyTests`, Knopflängen grün.
 - **Nicht geprüft:** die laufende App unter Windows.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Paar und Spa-Tag: Sauna und Ruheraum für Gäste ohne Namen (17.11.2026)
+
+- **Auftrag:** Offener Punkt aus den Rezeptions-Schritten („Sauna für Gäste ohne Namen“); vom Auftraggeber am 16.11.2026 mit „alle Punkte autonom, wo du mich nicht brauchst“ freigegeben.
+- **Befund:** Ein Eintritt in Sauna oder Ruheraum kannte keine Gastnummer. Für einen Gast ohne Namen hätte er die buchende Person getragen; die Windows-App sperrte deshalb **Buchen** („Verfügbar, sobald Sauna und Ruheraum nur bei Gästen mit Namen stehen.“).
+- **Was:**
+  - `AreaVisit.PlaceholderGuest` (Migration `AreaVisitPlaceholderGuest`); `GroupAreaItem.PlaceholderGuest`, `AreaVisitDto.PlaceholderGuest`.
+  - Prüfung „ein Gast, zwei Dinge gleichzeitig“ unterscheidet auch bei Bereichen nach Nummer; Verschieben der ganzen Buchung behält die Nummer.
+  - **Namen nachtragen** trägt den Gast auch auf seine Eintritte derselben Buchung ein.
+  - Der Eintritt heißt bis dahin „Gast 3 · Name folgt“ (vom Server, so sehen es alle Oberflächen).
+  - Windows-App: Sperre und Hinweis „nur für Gäste mit Namen“ entfallen.
+  - Hilfe `kalender-paar-und-spa-tag`.
+- **Detailentscheidungen:**
+  1. Der Name „Gast 3 · Name folgt“ kommt vom Server, weil Eintritte an mehreren Stellen stehen (Belegung, Kalender, Kassa); bei Terminen setzt ihn die Windows-App.
+  2. Bezahlt wird wie bei den Terminen von der buchenden Person.
+- **Bewusst offen / später:** Hat ein Gast ohne Namen nur Sauna oder Ruheraum und keine Behandlung, lässt sich sein Name nicht nachtragen (das Nachtragen geht über einen Termin); Ausfallgebühr für Gäste ohne Namen; die Demo im Arbeitsspeicher kennt Bereiche im Spa-Tag weiterhin nicht.
+- **Geprüft:** API `SpaDayBuilderTests`, `GroupBookingTests`, `AreaTests`, `ChannelScanTests` 25 von 25 (neu: Buchen mit Nummer, Name „Gast 1 · Name folgt“, Verschieben behält die Nummer, Nachtragen nimmt den Eintritt mit); Windows-App `GroupAndAreaTests` 14 von 14 (neu: Suche mit Platzhalter, Buchung mit Nummer, Hinweistext), Ansichtstests zu Gruppe, Paar und Spa-Tag grün.
+- **Nicht geprüft:** die laufende App unter Windows.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
