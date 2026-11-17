@@ -1417,6 +1417,15 @@ Expected: Im Kalender steht der Termin beim Therapeuten; in der Notiz steht „W
 Closes: –
 Result: ☐
 
+### Ausfall-Assistent – Ersatz an einem anderen Tag
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App als Rezeption; eine Person mit einem Termin heute, alle anderen mit derselben Qualifikation sind heute abwesend (Urlaub im Dienstplan), arbeiten aber an einem der nächsten Tage; der Gast hat eine Mailadresse; kein zweiter Standort mit Platz
+1. Die Person krank melden und den Ausfall-Assistenten öffnen.
+Expected: Der Termin steht unter **Andere Tage** mit Tag, Uhrzeit, Person und Raum, nicht angehakt; die Erklärung endet mit „nur nach Rücksprache mit dem Gast übernehmen“.
+2. Den Vorschlag anhaken und **Gewählte übernehmen** klicken.
+Expected: Der Termin liegt am vorgeschlagenen Tag; im Postfach des Gastes liegt „Änderung Ihres Termins am …“ mit „Wie besprochen verschieben wir Ihren Termin …“.
+Closes: –
+Result: ☐
+
 ### Termin-Panel – Anzahlung per Link anfordern
 Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App als Rezeption; am Standort ist in den Online-Regeln eine Anzahlung (z. B. 30 %) eingestellt, Zahlungskonto (Testbetrieb genügt) und Kassa sind eingerichtet; ein Gast mit Mailadresse
 1. Für den Gast in der Windows-App einen Termin in den nächsten Tagen buchen und ihn öffnen.

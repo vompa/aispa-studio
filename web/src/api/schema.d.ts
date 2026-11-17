@@ -8169,7 +8169,7 @@ export interface components {
             failed: components["schemas"]["AbsenceMoveFailure"][];
         };
         /** @enum {unknown} */
-        AbsenceOption: "SameTime" | "OtherTime" | "None" | "OtherLocation";
+        AbsenceOption: "SameTime" | "OtherTime" | "None" | "OtherLocation" | "OtherDay";
         AbsenceProposal: {
             /** Format: uuid */
             employeeId: string;

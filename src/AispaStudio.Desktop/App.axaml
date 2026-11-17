@@ -249,6 +249,12 @@
                      Classes="muted small" TextWrapping="Wrap" />
           <ItemsControl ItemsSource="{Binding OtherRows}" Margin="0,8,0,0" />
         </StackPanel>
+        <StackPanel Spacing="4" IsVisible="{Binding HasDayRows}">
+          <TextBlock Text="Andere Tage" Classes="group" />
+          <TextBlock Text="An diesem Tag ist nirgends jemand frei. Nur nach Rücksprache mit dem Gast anhaken; der Termin wird dann auf diesen Tag verschoben."
+                     Classes="muted small" TextWrapping="Wrap" />
+          <ItemsControl ItemsSource="{Binding DayRows}" Margin="0,8,0,0" />
+        </StackPanel>
         <CheckBox IsChecked="{Binding NotifyCustomers}" IsVisible="{Binding HasRows}" Content="Gäste per Mail über die Änderung informieren" />
         <ui:InfoBar Severity="Error" Message="{Binding Error}" IsVisible="{Binding Error, Converter={x:Static ObjectConverters.IsNotNull}}" />
         <Border IsVisible="{Binding HasSummary}" Padding="12,10" CornerRadius="8" Background="{DynamicResource OkSoftBrush}">
