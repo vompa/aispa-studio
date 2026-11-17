@@ -239,20 +239,20 @@ public sealed partial class PersonCardViewModel : ViewModelBase, IEditableArea
     private string? HomeLocationName => _employee?.WorkingHours.Select(h => _context.Data.Locations.FirstOrDefault(l => l.Id == h.LocationId)?.Name).FirstOrDefault(name => name is not null);
 
     /// <summary>
-    /// Das Kennzeichen im Kopf: die Abweichung der Liste („Gesperrt“, „bis 19.12.2026“, „Eingeladen“, „Ohne Zugang“), sonst „Zugang aktiv“ bei einem Zugang. Eine neue Zeile und der eigene
-    /// Zugang einer Person ohne Karte haben keines.
+    /// Das Kennzeichen im Kopf: die Abweichung der Liste („Gesperrt“, „bis 19.12.2026“, „Eingeladen“), „Ohne Zugang“ (in der Liste ein Filter statt eines Kennzeichens), sonst
+    /// „Zugang aktiv“ bei einem Zugang. Eine neue Zeile und der eigene Zugang einer Person ohne Karte haben keines.
     /// </summary>
-    public string? PillText => Entry.IsNew ? null : Entry.Badge ?? (Member is not null ? "Zugang aktiv" : null);
+    public string? PillText => Entry.IsNew ? null : Entry.Badge ?? (Member is not null ? "Zugang aktiv" : Entry.HasNoAccess ? "Ohne Zugang" : null);
 
     public bool HasPill => PillText is not null;
 
-    public bool PillIsOk => HasPill && Entry.Badge is null;
+    public bool PillIsOk => HasPill && Entry.Badge is null && !Entry.HasNoAccess;
 
     public bool PillIsWarning => HasPill && Entry.BadgeIsWarning;
 
     public bool PillIsCritical => HasPill && Entry.BadgeIsCritical;
 
-    public bool PillIsNeutral => HasPill && Entry.BadgeIsNeutral;
+    public bool PillIsNeutral => HasPill && (Entry.BadgeIsNeutral || (Entry.Badge is null && Entry.HasNoAccess));
 
     /// <summary>„Person einladen“ trägt seine Überschrift mit Hilfe im Reiter; die Karte wiederholt sie nicht.</summary>
     public bool ShowsHeader => Entry.Kind != TeamEntryKind.NewAccess;

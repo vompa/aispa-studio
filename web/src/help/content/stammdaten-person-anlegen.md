@@ -8,7 +8,7 @@ stichwoerter: Person anlegen, Rufname, Spitzname, Name im Haus, Mitarbeiterin an
 ---
 # Person im Team anlegen oder ändern
 
-Im Team stehen die Personen, die Behandlungen geben, mit Kalenderfarbe, Qualifikationen und regelmäßiger Wochenarbeitszeit. Der Zugang zur Software ist davon getrennt und liegt in der Windows-App im Bereich „Profil“ derselben Personenkarte, Abschnitt „Zugang und Rolle“. Eine Person ohne Zugang lässt sich einplanen; die Liste zeigt sie mit dem Kennzeichen „Ohne Zugang“.
+Im Team stehen die Personen, die Behandlungen geben, mit Kalenderfarbe, Qualifikationen und regelmäßiger Wochenarbeitszeit. Der Zugang zur Software ist davon getrennt und liegt in der Windows-App im Bereich „Profil“ derselben Personenkarte, Abschnitt „Zugang und Rolle“. Eine Person ohne Zugang lässt sich einplanen; **Nur ohne Zugang** unter der Liste zeigt alle Personen ohne Zugang, und der Kopf ihrer Karte nennt „Ohne Zugang“.
 
 ## Neue Person anlegen {#anlegen}
 
