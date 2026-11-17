@@ -27,7 +27,7 @@
               <TextBlock Text="{Binding Guest}" TextWrapping="Wrap" />
               <TextBlock Text="{Binding Anamnesis}" Classes="muted" Classes.error="{Binding IsAnamnesisWarning}" TextWrapping="Wrap" />
               <TextBlock Text="{Binding BookingNote}" TextWrapping="Wrap" IsVisible="{Binding HasBookingNote}" />
-              <TextBlock Text="Vorbereitung" Classes="muted small" />
+              <TextBlock Text="Vorbereitung" Classes="group" />
               <ItemsControl ItemsSource="{Binding Todo}">
                 <ItemsControl.ItemTemplate>
                   <DataTemplate x:DataType="vm:ReportCheckRow">
@@ -46,7 +46,7 @@
                 </ItemsControl.ItemTemplate>
               </ItemsControl>
               <StackPanel Spacing="4" IsVisible="{Binding HasHistory}">
-                <TextBlock Text="Letzte Behandlungen" Classes="muted small" />
+                <TextBlock Text="Letzte Behandlungen" Classes="group" />
                 <ItemsControl ItemsSource="{Binding History}">
                   <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="x:String">
@@ -57,7 +57,7 @@
               </StackPanel>
               <Button Content="Vorlieben bearbeiten" Classes="ghost" Command="{Binding EditPreferencesCommand}" IsVisible="{Binding IsNotEditing}" />
               <StackPanel Spacing="8" IsVisible="{Binding IsEditingPreferences}">
-                <TextBlock Text="Vorlieben" Classes="muted small" />
+                <TextBlock Text="Vorlieben" Classes="group" />
                 <WrapPanel ItemSpacing="12" LineSpacing="8">
                   <ui:FormField Label="Druck"><TextBox Text="{Binding Pressure}" Width="200" /></ui:FormField>
                   <ui:FormField Label="Duft"><TextBox Text="{Binding Scent}" Width="200" /></ui:FormField>

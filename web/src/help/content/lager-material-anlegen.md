@@ -16,7 +16,7 @@ Neues Material gilt für alle Standorte; den Bestand führt das Lager je Standor
 2. **Bezeichnung** und **Einheit** eintragen, z. B. „Massageöl Lavendel“ und „ml“. Vorbelegt ist „Stück“.
 3. **Einstandspreis je Einheit (netto)** und **Mindestbestand je Standort** eintragen.
 4. Wird das Material an der Kassa verkauft, bei **Verkaufsprodukt der Kassa** den Artikel wählen.
-5. Optional **Lieferant** wählen und **Artikelnummer beim Lieferanten** eintragen. Ohne Lieferant kommt das Material nicht in den Bestellvorschlag.
+5. Optional **Lieferant** wählen und **Artikelnummer Lieferant** eintragen. Ohne Lieferant kommt das Material nicht in den Bestellvorschlag.
 6. Optional den **Barcode** von der Verpackung eintragen oder mit dem Handscanner in das Feld lesen. Dann findet der Scanner das Material im Lager und an der Kassa.
 7. Optional **Packung**, **Menge je Packung**, **Gebinde** und **Packungen je Gebinde** eintragen, z. B. Flasche, 500, Karton und 4. Dazu **Menge je Behandlung** und **Ablaufwarnung in Tagen**.
 8. Auf **Material anlegen** klicken.
