@@ -30,8 +30,14 @@ public sealed record AreaGlance(string Name, string Text, double Share, bool IsH
 
 /// <summary>Ein Eintritt in der Liste eines Bereichs.</summary>
 public sealed partial class AreaVisitRow(AreaVisitDto visit, TimeZoneInfo zone, bool canCancel, Func<AreaVisitDto, Task> cancel,
-    Func<AreaVisitDto, Task>? checkout = null, bool isPending = false)
+    Func<AreaVisitDto, Task>? checkout = null, bool isPending = false, Action<AreaVisitRow>? name = null)
 {
+    /// <summary>„Namen nachtragen“: ein Gast ohne Namen aus einer Gruppe (Auftraggeber, 18.11.2026), mit dem Recht zu buchen.</summary>
+    public bool CanName { get; } = canCancel && name is not null && visit.PlaceholderGuest is not null && !visit.IsCancelled && !isPending;
+
+    [RelayCommand]
+    private void NameGuest() => name?.Invoke(this);
+
     /// <summary>Ohne Verbindung vorgemerkt: noch nicht beim Server, deshalb weder stornierbar noch an der Kassa.</summary>
     public bool IsPending { get; } = isPending;
 
@@ -308,7 +314,7 @@ public partial class AreasViewModel : ViewModelBase
         }
 
         var visits = day.Visits.OrderBy(v => v.IsCancelled).ThenBy(v => v.From)
-            .Select(v => new AreaVisitRow(v, _zone, CanBook, AskCancelAsync, _checkout, pending.Contains(v.Id))).ToList();
+            .Select(v => new AreaVisitRow(v, _zone, CanBook, AskCancelAsync, _checkout, pending.Contains(v.Id), StartNaming)).ToList();
         return new AreaCard(day, summary, bars, visits, $"{DayLayout.Local(open, _zone):HH:mm}", $"{DayLayout.Local(close, _zone):HH:mm}");
     }
 
@@ -349,6 +355,68 @@ public partial class AreasViewModel : ViewModelBase
         Search.Query = "";
         Persons = 1;
         Note = null;
+        await LoadAsync().ConfigureAwait(true);
+    }
+
+    // ---------- Namen nachtragen für einen Gast ohne Namen ----------
+
+    /// <summary>Der Eintritt, für den gerade ein Name nachgetragen wird; sonst null.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsNaming), nameof(NamingTitle))]
+    public partial AreaVisitRow? Naming { get; private set; }
+
+    public bool IsNaming => Naming is not null;
+
+    public string NamingTitle => Naming is { } row ? $"Namen nachtragen: {row.Name}" : "";
+
+    /// <summary>Suche für den Gast, der eingetragen wird; eigene Suche, damit ein angefangener neuer Eintritt stehen bleibt.</summary>
+    public CustomerSearchViewModel GuestSearch => _guestSearch ??= NewGuestSearch();
+
+    private CustomerSearchViewModel? _guestSearch;
+
+    private CustomerSearchViewModel NewGuestSearch()
+    {
+        var search = new CustomerSearchViewModel(_api);
+        search.Changed += () => AssignGuestCommand.NotifyCanExecuteChanged();
+        return search;
+    }
+
+    private void StartNaming(AreaVisitRow row)
+    {
+        Error = null;
+        Info = null;
+        GuestSearch.Customer = null;
+        GuestSearch.Query = "";
+        Naming = row;
+    }
+
+    [RelayCommand]
+    private void CancelNaming() => Naming = null;
+
+    private bool CanAssignGuest => Naming is not null && !Busy && GuestSearch.HasCustomer;
+
+    /// <summary>Trägt den Gast ein: bei allen seinen Eintritten und Terminen der Buchung (der Server sucht sie über die Gastnummer).</summary>
+    [RelayCommand(CanExecute = nameof(CanAssignGuest))]
+    private async Task AssignGuestAsync()
+    {
+        if (Naming is not { } row || GuestSearch.Customer is not { } customer)
+        {
+            return;
+        }
+
+        Error = null;
+        Busy = true;
+        var result = await _api.PutAsync<GroupBookingResult>($"api/locations/{_locationId}/area-visits/{row.Visit.Id}/guest",
+            new AssignGuestRequest(customer.Id)).ConfigureAwait(true);
+        Busy = false;
+        if (result.Value is null)
+        {
+            Error = result.Error;
+            return;
+        }
+
+        Info = $"{row.Name}: jetzt {GuestSearch.Name}.";
+        Naming = null;
         await LoadAsync().ConfigureAwait(true);
     }
 

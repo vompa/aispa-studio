@@ -6667,6 +6667,87 @@
         }
       }
     },
+    "/api/v1/locations/{locationId}/area-visits/{visitId}/guest": {
+      "put": {
+        "tags": [
+          "Kalender"
+        ],
+        "summary": "Trägt für einen Gast ohne Namen den Gast vom Eintritt in Sauna oder Ruheraum aus ein, bei allen seinen Eintritten und Terminen der Buchung.",
+        "operationId": "AssignPlaceholderAreaGuest",
+        "parameters": [
+          {
+            "name": "locationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "visitId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssignGuestRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GroupBookingResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingRejected"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/blocks": {
       "post": {
         "tags": [

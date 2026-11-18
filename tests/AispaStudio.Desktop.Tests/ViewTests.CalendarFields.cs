@@ -1,4 +1,5 @@
 using System.Xml.Linq;
+using AispaStudio.Contracts;
 using AispaStudio.Desktop.Controls;
 using AispaStudio.Desktop.ViewModels;
 using Avalonia;
@@ -129,6 +130,33 @@ public sealed partial class ViewTests
         await Pump();
         return calendar;
     });
+
+    [Fact]
+    public Task Eintritt_eines_Gasts_ohne_Namen_zeigt_Namen_nachtragen_mit_Suche() => Render("hell", "kalender-sauna-namen-nachtragen", async (window, main) =>
+    {
+        var calendar = await SignedInCalendar(main);
+        calendar.OpenAreasCommand.Execute(null);
+        await Pump();
+        var areas = calendar.Areas!;
+        var row = areas.Areas[0].Visits.Single(v => v.CanName);
+        row.NameGuestCommand.Execute(null);
+        await Pump();
+
+        var panel = SidePanelOf(window);
+        Assert.Contains(panel.GetVisualDescendants().OfType<Button>(), b => b.IsEffectivelyVisible && b.Content as string == "Gast eintragen");
+        Assert.Contains(panel.GetVisualDescendants().OfType<TextBlock>(), t => t.IsEffectivelyVisible && t.Text == "Namen nachtragen: Gast 2 · Name folgt");
+        Named<Border>(window, "AreaNamingCard").BringIntoView();
+        await Pump();
+        return calendar;
+    }, Api().On($"GET /api/locations/{SpaSample.LocationId}/areas?date=2026-10-19", WithUnnamedGuest(SpaSample.Areas())));
+
+    private static List<AreaDay> WithUnnamedGuest(List<AreaDay> days)
+    {
+        var sauna = days[0];
+        var unnamed = new AreaVisitDto(Guid.NewGuid(), SpaSample.LocationId, sauna.RoomId, Guid.NewGuid(), "Gast 2 · Name folgt", 1, SpaSample.At(10), SpaSample.At(13),
+            false, null, Guid.NewGuid(), PlaceholderGuest: 2);
+        return [sauna with { Visits = [.. sauna.Visits, unnamed] }, .. days.Skip(1)];
+    }
 
     [Theory]
     [InlineData("25")]

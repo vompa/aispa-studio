@@ -7289,3 +7289,20 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Geprüft:** API `CardGuaranteeTests`, `DepositTests`, `OnlineBookingTests`, `GroupBookingTests`, `OnlineRefundTests`, `ChannelScanTests`: 100 von 100. Neu: Mail an die buchende Person mit Gastnummer; nach dem Nachtragen öffnet ihr Link die Seite ohne Absagen und Verschieben; Absagen über den Link 404; Zustimmen und Hinterlegen gehen; Hinweis für das Team; Termin gehört dem Gast.
 - **Nicht geprüft:** die laufende App unter Windows; echte Belastung beim Anbieter.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Sauna und Ruheraum: Namen am Eintritt nachtragen (18.11.2026)
+
+- **Auftrag:** Entscheidung des Auftraggebers am 18.11.2026: Für einen Gast ohne Namen, der in der Buchung nur Sauna oder Ruheraum hat, lässt sich der Name direkt am Eintritt nachtragen. Paar und Spa-Tag im Ausfall-Assistenten an einen anderen Tag oder Standort verlegen bleibt Handarbeit.
+- **Befund:** Namen nachtragen ging nur über einen Termin. Ein Gast mit nur einem Eintritt blieb „Gast 2 · Name folgt“.
+- **Was:**
+  - `PUT /api/locations/{id}/area-visits/{visitId}/guest` (Buchen): trägt den Gast bei allen Eintritten und Terminen dieses Gastes in der Buchung ein.
+  - `BookingService.AssignVisitGuestAsync` nutzt denselben Kern wie das Nachtragen am Termin (`AssignAsync`), samt Prüfung „Nicht bei mir“.
+  - Windows-App: **Namen nachtragen** unter einem solchen Eintritt in **Sauna und Ruheraum**; eine Karte mit Suche und **Gast eintragen**.
+  - Hilfe `kalender-paar-und-spa-tag` mit Bild `kalender-sauna-namen-nachtragen.png`; in `dienstplan-ersatz-vorschlagen` der Hinweis, dass Paar und Spa-Tag von Hand verlegt werden. Stand und Übergabe ergänzt.
+- **Detailentscheidungen:**
+  1. Eigene Suche für den Gast in der Karte, damit ein angefangener neuer Eintritt stehen bleibt.
+  2. **Gast eintragen** ist kein Hauptknopf: Strg+S bleibt beim Buchen eines neuen Eintritts.
+  3. Der Knopf steht in einer eigenen Zeile unter dem Eintritt; daneben war in der schmalen Liste kein Platz für den Namen.
+- **Geprüft:** API `SpaDayBuilderTests`, `GroupBookingTests`, `CardGuaranteeTests`, `ChannelScanTests` 38 von 38 (neu: Name am Eintritt, Massage der buchenden Person bleibt, zweites Mal 400, fremder Standort 404); Windows-App `GroupAndAreaTests` 15 von 15 (neu: Knopf nur am Gast ohne Namen, Aufruf mit Kunde, Meldung), Ansichtstest, Prüfungen der Knöpfe (165), Strg+S (52), „höchstens“ (33) grün. Die Prüfung „Abbrechen ist ein Ghost-Knopf“ zählt jetzt neun Stellen.
+- **Nicht geprüft:** die laufende App unter Windows.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).

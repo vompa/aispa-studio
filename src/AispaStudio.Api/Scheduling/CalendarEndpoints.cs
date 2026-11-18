@@ -503,6 +503,20 @@ internal static class CalendarEndpoints
             .RequirePermission(AccessRight.Book)
             .WithSummary("Storniert einen Eintritt und gibt die Plätze frei.");
 
+        group.MapPut("/locations/{locationId:guid}/area-visits/{visitId:guid}/guest", async Task<Results<Ok<GroupBookingResult>, ValidationProblem, ProblemHttpResult, Conflict<BookingRejected>>> (
+                Guid locationId, Guid visitId, AssignGuestRequest request, BookingService booking, CancellationToken ct) =>
+                await booking.AssignVisitGuestAsync(locationId, visitId, request.CustomerId, ct) switch
+                {
+                    BookingOutcome.GroupBooked g => TypedResults.Ok(g.Result),
+                    BookingOutcome.NotFound n => NotFound(n),
+                    BookingOutcome.Invalid i => Invalid(i),
+                    BookingOutcome.Rejected r => TypedResults.Conflict(r.Reason),
+                    var other => throw Unexpected(other),
+                })
+            .WithName("AssignPlaceholderAreaGuest")
+            .RequirePermission(AccessRight.Book)
+            .WithSummary("Trägt für einen Gast ohne Namen den Gast vom Eintritt in Sauna oder Ruheraum aus ein, bei allen seinen Eintritten und Terminen der Buchung.");
+
         group.MapPost("/blocks", async Task<Results<Created<BlockDto>, ValidationProblem, Conflict<BookingRejected>>> (
                 BlockInput input, AispaDbContext db, BookingService booking, CancellationToken ct) =>
             {

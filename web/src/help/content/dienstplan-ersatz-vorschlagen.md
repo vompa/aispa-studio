@@ -30,6 +30,7 @@ Danach steht, wie viele Termine umverteilt und wie viele Gäste informiert wurde
 
 ![Ausfall-Assistent mit dem Abschnitt Andere Tage](images/app/kalender-ausfall-anderer-tag.png)
 
+- Termine aus einer Paar- oder Spa-Tag-Buchung verlegt der Assistent nicht an einen anderen Standort oder Tag. Am selben Tag verschiebt man sie im Termin mit **Ganze Buchung verschieben**. Für einen anderen Tag storniert man sie und bucht neu, siehe [Paar und Spa-Tag](hilfe:kalender-paar-und-spa-tag).
 - Hat die Person an dem Tag keine offenen Termine, steht „An diesem Tag hat die Person hier keine offenen Termine.“
 - Termine ohne Vorschlag im Kalender von Hand verschieben oder mit dem Gast klären.
 - Für Termine ohne Vorschlag gibt es **Ohne Ersatz: informieren**. Nach einer Rückfrage bekommen diese Gäste eine Mail, ohne Mailadresse eine SMS: Der Termin könne nicht wie geplant stattfinden, das Team melde sich. Der Termin bleibt im Kalender stehen; verschoben oder storniert wird nichts. An der Zeile steht danach „Gast benachrichtigt“ oder der Grund, warum nicht, z. B. „Keine Mailadresse und keine Nummer für eine SMS. Bitte den Gast anrufen.“

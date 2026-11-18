@@ -1421,6 +1421,15 @@ Expected: Im Kalender steht der Termin beim Therapeuten; in der Notiz steht „W
 Closes: –
 Result: ☐
 
+### Sauna und Ruheraum – Namen am Eintritt nachtragen
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App als Rezeption; am Standort gibt es eine Sauna als Bereich
+1. **Paar oder Spa-Tag** mit Gast 1 aus der Kartei (Massage) und Gast 2 mit **Name folgt** buchen, Gast 2 bekommt nur die Sauna.
+Expected: In **Sauna und Ruheraum** steht der Eintritt „Gast 2 · Name folgt“ mit **Namen nachtragen** darunter.
+2. **Namen nachtragen** klicken, einen Gast suchen und **Gast eintragen** klicken.
+Expected: Der Eintritt trägt den Namen des Gastes; die Massage von Gast 1 bleibt bei Gast 1.
+Closes: –
+Result: ☐
+
 ### Paar und Spa-Tag – Ausfallgebühr für einen Gast ohne Namen
 Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App als Rezeption; am Standort ist eine Ausfallgebühr eingestellt, Zahlungsanbieter im Testbetrieb; die buchende Person hat eine Mailadresse
 1. **Paar oder Spa-Tag** mit Gast 1 aus der Kartei und Gast 2 mit **Name folgt** buchen, den Termin von Gast 2 öffnen und **Karte per Link anfordern** klicken.

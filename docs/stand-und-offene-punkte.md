@@ -375,7 +375,7 @@ Die Nummern sind die Reihenfolge, die der jeweilige Thread gewählt hätte ([Üb
 
 **Kalender, Dienstplan, Zugänge**
 1. Ausfall-Assistent: Gäste ohne Ersatz per WhatsApp informieren (per Mail und SMS seit 16.11.2026; WhatsApp braucht eine eigene freigegebene Vorlage).
-2. Ausfall-Assistent: Ersatz an anderen Tagen seit 17.11.2026 gebaut (nächste 14 Tage am eigenen Standort, nicht vorausgewählt); offen: Paar- und Spa-Tag-Buchungen an einen anderen Standort oder Tag verlegen.
+2. Ausfall-Assistent: Ersatz an anderen Tagen seit 17.11.2026 gebaut (nächste 14 Tage am eigenen Standort, nicht vorausgewählt); Paar- und Spa-Tag-Buchungen an einen anderen Standort oder Tag verlegt die Rezeption von Hand (Auftraggeber, 18.11.2026: bleibt Handarbeit).
 3. Leerlaufzeit eines angemeldeten Empfangsgeräts ändern; Liste aller Empfangsgeräte des Spas.
 4. Lücken durch Verschieben mehrerer Termine hintereinander schließen (Ketten).
 5. Feiertage weiterer Kantone und einzelner Gemeinden.

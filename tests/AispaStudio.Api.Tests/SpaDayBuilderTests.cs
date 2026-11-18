@@ -61,6 +61,35 @@ public sealed class SpaDayBuilderTests(ApiFixture fixture)
     }
 
     [Fact]
+    public async Task Gast_ohne_Namen_nur_mit_Sauna_bekommt_den_Namen_am_Eintritt()
+    {
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        var sauna = await SaunaAsync(spa, 4);
+        var booker = await GuestAsync(spa);
+        var named = await GuestAsync(spa);
+        GroupBookingItem[] items = [new(spa.MassageTreatment.Id, booker.Id, 0)];
+        GroupAreaItem[] areas = [new(sauna.Id, booker.Id, 0, 60, PlaceholderGuest: 2)];
+        var response = await spa.Client.PostAsJsonAsync("/api/appointment-groups",
+            new GroupBookingRequest(spa.Location.Id, TestSpa.At(10), items, 0, null, null, areas), TestSpa.Json, Ct);
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        var visit = Assert.Single((await TestSpa.ReadAsync<GroupBookingResult>(response, Ct)).AreaVisits!);
+        var route = $"/api/locations/{spa.Location.Id}/area-visits/{visit.Id}/guest";
+
+        var assigned = await spa.PutAsync<GroupBookingResult>(route, new AssignGuestRequest(named.Id), Ct);
+
+        var renamed = Assert.Single(assigned.AreaVisits!);
+        Assert.Equal((named.Id, (int?)null, named.FirstName), (renamed.CustomerId, renamed.PlaceholderGuest, renamed.CustomerName.Split(' ')[0]));
+        // Die Massage der buchenden Person bleibt bei ihr.
+        Assert.Empty(assigned.Appointments);
+        var again = await spa.Client.PutAsJsonAsync(route, new AssignGuestRequest(named.Id), TestSpa.Json, Ct);
+        Assert.Equal(HttpStatusCode.BadRequest, again.StatusCode);
+        var other = await TestSpa.CreateAsync(fixture, Ct);
+        var foreign = await other.Client.PutAsJsonAsync($"/api/locations/{other.Location.Id}/area-visits/{visit.Id}/guest", new AssignGuestRequest(named.Id),
+            TestSpa.Json, Ct);
+        Assert.Equal(HttpStatusCode.NotFound, foreign.StatusCode);
+    }
+
+    [Fact]
     public async Task Planer_stellt_die_Sauna_vor_die_Massage_wenn_der_Tag_so_frueher_endet()
     {
         var spa = await TestSpa.CreateAsync(fixture, Ct);
