@@ -50,7 +50,7 @@ public partial class App : Application
             api.TransportFailed += error => CrashLog.Default.Write("Server nicht erreichbar", error);
             var theme = new ThemeController(FileSettingsStore.Default);
             theme.Apply();
-            var viewModel = new MainViewModel(api, () => new LiveUpdates(api), theme: theme, local: local)
+            var viewModel = new MainViewModel(api, () => new LiveUpdates(api), theme: theme, local: local, facts: new SystemFacts())
             {
                 Connect = local is null ? new NetworkConnectViewModel(FileSettingsStore.Default, () => Restart(desktop)) : null,
                 ServerConnect = local is null ? new ServerConnectViewModel(FileSettingsStore.Default, () => Restart(desktop)) : null,

@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:AispaStudio.Desktop.ViewModels"
              xmlns:ui="using:AispaStudio.Desktop.Controls"
+             xmlns:svc="using:AispaStudio.Desktop.Services"
              x:Class="AispaStudio.Desktop.Views.StartupScreen"
              x:DataType="vm:MainViewModel"
              AutomationProperties.Name="AISPA Studio startet">
@@ -92,10 +93,13 @@
 
       <!-- Server nicht erreichbar: die heutige Karte, auf der Petrolfläche -->
       <StackPanel Spacing="12" Margin="0,20,0,0" IsVisible="{Binding IsOffline}">
-        <Border x:Name="OfflineCard" Width="480" Padding="24,20" CornerRadius="12" Background="{DynamicResource RailHoverBrush}">
+        <Border x:Name="OfflineCard" Width="480" Padding="24,20" CornerRadius="12" Background="{DynamicResource RailHoverBrush}" IsVisible="{Binding !IsBlocked}">
           <StackPanel Spacing="8">
             <TextBlock Text="{Binding ConnectionTitle}" Classes="h1" Foreground="{DynamicResource RailFgBrush}" />
             <TextBlock Text="{Binding StatusText}" Foreground="{DynamicResource RailFg2Brush}" TextWrapping="Wrap" AutomationProperties.LiveSetting="Assertive" />
+            <!-- Adresse auf diesem PC und kein Server: der Weg dorthin (Startprüfung) -->
+            <TextBlock x:Name="OfflineAdvice" Text="{Binding OfflineAdvice}" Foreground="{DynamicResource RailFgBrush}" TextWrapping="Wrap"
+                       IsVisible="{Binding OfflineAdvice, Converter={x:Static ObjectConverters.IsNotNull}}" />
             <TextBlock Text="{Binding ApiAddress}" Classes="small" Foreground="{DynamicResource RailFg2Brush}" />
             <Button x:Name="Retry" Classes="startup-retry" Command="{Binding StartCommand}" HorizontalAlignment="Left" Margin="0,8,0,0">
               <StackPanel Orientation="Horizontal" Spacing="8">
@@ -105,20 +109,40 @@
             </Button>
           </StackPanel>
         </Border>
-        <!-- Die zwei Wege zu einem Server nebeneinander, damit der Bildschirm bei 1366 × 768 reicht -->
-        <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Center" VerticalAlignment="Top">
-          <!-- Weiterer PC im Spa: mit dem Haupt-PC im Netz verbinden -->
-          <Border Classes="card" Width="480" Padding="24" VerticalAlignment="Top" IsVisible="{Binding Connect, Converter={x:Static ObjectConverters.IsNotNull}}">
-            <ContentControl Content="{Binding Connect}" />
-          </Border>
-          <!-- Verwalten von zu Hause: Adresse eines Servers eintragen -->
-          <Border Classes="card" Width="480" Padding="24" VerticalAlignment="Top" IsVisible="{Binding ServerConnect, Converter={x:Static ObjectConverters.IsNotNull}}">
-            <ContentControl Content="{Binding ServerConnect}" />
+        <StackPanel Spacing="12" IsVisible="{Binding !IsBlocked}">
+          <!-- Die zwei Wege zu einem Server nebeneinander, damit der Bildschirm bei 1366 × 768 reicht -->
+          <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Center" VerticalAlignment="Top">
+            <!-- Weiterer PC im Spa: mit dem Haupt-PC im Netz verbinden -->
+            <Border Classes="card" Width="480" Padding="24" VerticalAlignment="Top" IsVisible="{Binding Connect, Converter={x:Static ObjectConverters.IsNotNull}}">
+              <ContentControl Content="{Binding Connect}" />
+            </Border>
+            <!-- Verwalten von zu Hause: Adresse eines Servers eintragen -->
+            <Border Classes="card" Width="480" Padding="24" VerticalAlignment="Top" IsVisible="{Binding ServerConnect, Converter={x:Static ObjectConverters.IsNotNull}}">
+              <ContentControl Content="{Binding ServerConnect}" />
+            </Border>
+          </StackPanel>
+          <!-- Einzelplatz: Zugangsdaten unlesbar oder neuer PC -->
+          <Border Classes="card" Width="480" Padding="24" IsVisible="{Binding Restore, Converter={x:Static ObjectConverters.IsNotNull}}">
+            <ContentControl Content="{Binding Restore}" />
           </Border>
         </StackPanel>
-        <!-- Einzelplatz: Zugangsdaten unlesbar oder neuer PC -->
-        <Border Classes="card" Width="480" Padding="24" IsVisible="{Binding Restore, Converter={x:Static ObjectConverters.IsNotNull}}">
-          <ContentControl Content="{Binding Restore}" />
+        <!-- Startprüfung: ein Fund verhindert den Start; es gibt nur „Beenden“ -->
+        <Border x:Name="BlockedCard" Width="480" Padding="24,20" CornerRadius="12" Background="{DynamicResource RailHoverBrush}" IsVisible="{Binding IsBlocked}">
+          <StackPanel Spacing="12">
+            <TextBlock Text="AISPA Studio kann auf diesem PC nicht starten" Classes="h1" Foreground="{DynamicResource RailFgBrush}" TextWrapping="Wrap"
+                       AutomationProperties.LiveSetting="Assertive" />
+            <ItemsControl x:Name="BlockedList" ItemsSource="{Binding BlockedFindings}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="svc:StartupFinding">
+                  <StackPanel Spacing="2" Margin="0,0,0,8">
+                    <TextBlock Text="{Binding Title}" FontWeight="SemiBold" Foreground="{DynamicResource RailFgBrush}" TextWrapping="Wrap" />
+                    <TextBlock Text="{Binding Text}" Foreground="{DynamicResource RailFg2Brush}" TextWrapping="Wrap" />
+                  </StackPanel>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <Button x:Name="Quit" Classes="startup-retry" Content="Beenden" HorizontalAlignment="Left" />
+          </StackPanel>
         </Border>
       </StackPanel>
     </StackPanel>

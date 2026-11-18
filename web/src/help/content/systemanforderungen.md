@@ -31,6 +31,24 @@ Die App verbindet sich mit dem Server des Spas (in der Cloud oder mit dem Haupt-
 - **Prozessoren mit ARM** (z. B. Snapdragon): nicht geprüft. Windows 11 führt die x64-App dort in Emulation aus.
 - **Netzwerk:** Die App braucht pro Kalendertag rund 15 bis 20 kB (gemessen). Eine normale Büroleitung reicht; wichtiger als Bandbreite ist eine stabile Verbindung.
 
+## Startprüfung {#startpruefung}
+
+Die Windows-App prüft bei jedem Start, ob der PC die Voraussetzungen erfüllt, bevor sie sich mit dem Server verbindet oder den Einzelplatz startet. Sie installiert dabei nichts.
+
+Diese Funde verhindern den Start. Statt der Anmeldung erscheint die Karte „AISPA Studio kann auf diesem PC nicht starten“ mit allen Funden und dem Knopf **Beenden**:
+
+- Das Windows ist keine 64-Bit-Fassung.
+- Das Windows ist älter als Windows 10 22H2.
+- Im Einzelplatz sind auf dem Laufwerk der Daten weniger als 1 GB frei.
+
+Diese Funde stehen als schließbare Warnung über der Anmeldung und halten den Start nicht auf:
+
+- Der PC hat weniger als 4 GB Arbeitsspeicher.
+- Die WebView2-Runtime fehlt. Dann lässt sich die Hilfe in der App nicht öffnen; die „WebView2 Runtime“ (Evergreen) bei Microsoft kostenlos laden.
+- Der PC hat Windows 10. Dafür gibt es Sicherheitsupdates nur noch mit erweitertem Support, für einen PC mit Kassa ist Windows 11 besser.
+
+Läuft die App mit Server und der Server unter `localhost` oder `127.0.0.1` antwortet nicht, nennt die Karte „Keine Verbindung zum Server“ zusätzlich den Weg. Ohne Docker auf dem PC steht dort, dass auf diesem PC kein Server läuft und wie sich die App als Einzelplatz ausprobieren lässt. Mit Docker steht dort der Befehl „docker compose up -d“. Bei einer anderen Adresse fehlt der Satz.
+
 ## Zusatzpaket: Einzelplatz und Haupt-PC {#einzelplatz}
 
 Im Einzelplatz-Betrieb (siehe „Einzelplatz“) laufen auf dem PC zusätzlich die Datenbank (PostgreSQL) und der Server von AISPA Studio. Als Haupt-PC (siehe „Im Netz“) bedient er auch die anderen PCs im Spa.

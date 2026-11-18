@@ -8,7 +8,7 @@ namespace AispaStudio.Desktop.ViewModels;
 /// <summary>Rahmen der App: Verbindung prüfen, dann Anmeldung oder die Arbeitsfläche mit Navigation.</summary>
 /// <param name="local">Einzelplatz-Betrieb: Datenbank und API auf diesem PC, die App startet sie selbst (ADR 0041).</param>
 public partial class MainViewModel(IWorkstationApi api, Func<ILiveUpdates>? liveFactory = null, TimeProvider? time = null, ThemeController? theme = null,
-    ILocalServer? local = null)
+    ILocalServer? local = null, ISystemFacts? facts = null)
     : ViewModelBase
 {
     /// <summary>So lange vor dem Abmelden ohne Eingabe warnt die App (wie im Browser).</summary>
@@ -128,6 +128,7 @@ public partial class MainViewModel(IWorkstationApi api, Func<ILiveUpdates>? live
 
     /// <summary>Anmeldung oder Arbeitsfläche.</summary>
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(AreHintsShown))]
     public partial ViewModelBase? Content { get; private set; }
 
     public bool IsSignedIn => User is not null;
@@ -236,6 +237,11 @@ public partial class MainViewModel(IWorkstationApi api, Func<ILiveUpdates>? live
 
     private async Task StartCoreAsync()
     {
+        if (!CheckRequirements())
+        {
+            return;
+        }
+
         if (local is not null && !await StartLocalAsync().ConfigureAwait(true))
         {
             return;

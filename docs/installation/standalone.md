@@ -114,5 +114,6 @@ Eine Update-Funktion gibt es noch nicht. Ein neuer Stand kommt so auf den PC:
 | Weiterer PC findet den Haupt-PC nicht | Haupt-PC an und App offen? Firewall für private Netzwerke erlaubt? Adresse und Verbindungscode auf der Seite „Im Netz“ vergleichen. |
 | Gesundheitsdaten nicht lesbar | Die App läuft unter einem anderen Windows-Konto als beim Einrichten, oder `zugang.bin` fehlt. Mit dem ursprünglichen Konto starten oder aus der Sicherung wiederherstellen. |
 | Hilfe bleibt leer | Die WebView2-Runtime fehlt (nur Windows 10 ohne Edge); bei Microsoft kostenlos laden. |
+| „AISPA Studio kann auf diesem PC nicht starten“ | Die Startprüfung hat einen Fund, der den Start verhindert: Windows älter als 10 22H2, kein 64-Bit-Windows oder weniger als 1 GB frei auf dem Laufwerk der Daten. Die Karte nennt den Grund; Windows aktualisieren bzw. Platz schaffen und die App neu starten. |
 
 Technische Einzelheiten zu allen Schaltern und Dateien: [Betriebsarten und Module: Referenz](operating-modes.md).
