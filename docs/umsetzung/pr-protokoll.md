@@ -7213,3 +7213,18 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Bewusst offen / später:** nichts.
 - **Geprüft:** neue Testklasse `BadRequestTextTests` (vorher rot mit 500, jetzt grün: falsches und fehlendes `format`, Jahr als Text, eigene Prüfung behält ihren Text, 404 ohne den Satz), `AccountingTests`, `PayrollTests`, `ApiVersionTests` (29 grün).
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Startanleitung auf der Release-Seite (18.11.2026)
+
+- **Basiert auf:** `dev` nach der Fehlerantwort 400; Wunsch des Auftraggebers.
+- **Was:** Die Release-Seite „windows-app“ erklärt jetzt Schritt für Schritt, wie man die App aus der ZIP-Datei entpackt und aus dem Ordner startet: als Einzelplatz über eine Verknüpfung mit `--standalone` oder mit Server bzw. Haupt-PC per Doppelklick, dazu SmartScreen und neuer Stand. Bisher stand dort ein einziger Satz.
+  - Neue Datei `.github/release-notes/windows-app.md` mit dem Platzhalter `{{SHA}}` für den Stand und einem Abschnitt „Voraussetzungen“ (Windows, Arbeitsspeicher, Platz; Einzelplatz ohne Docker, Server zum Ausprobieren mit Docker Desktop), Werte aus `docs/installation/README.md`.
+  - `ci.yml`, Job „Windows-App zum Herunterladen“: holt nur diese Datei (`sparse-checkout`), setzt den Stand per `sed` ein und übergibt sie mit `--notes-file`.
+  - `docs/installation/standalone.md`: Die ZIP-Datei enthält den Ordner `AispaStudio-Windows`; die App liegt darin, nicht direkt im Zielordner. Das stand bisher nicht in der Doku.
+- **Detailentscheidungen:**
+  1. **Text als eigene Datei im Repository statt im Workflow:** Markdown mit Überschriften und Listen lässt sich dort lesen und ändern, ohne YAML anzufassen.
+  2. **Links absolut auf GitHub:** Relative Links funktionieren auf der Release-Seite nicht.
+  3. **Kurzfassung statt der ganzen Anleitung:** Sicherung, Mehrplatz und Fehlerbilder stehen in `standalone.md`, die Release-Seite verlinkt dorthin.
+- **Bewusst offen / später:** Installer und Signatur.
+- **Geprüft:** `sed`-Schritt lokal mit dem Stand `80f32e6` nachgestellt; Einrückung des Jobs gelesen. Der Text erscheint erst nach dem nächsten Push auf `main`.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).

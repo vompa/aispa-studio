@@ -17,8 +17,8 @@ Voraussetzungen: [Windows-PC am Empfang und Zusatz für Einzelplatz](README.md#s
    auf `main` ersetzt.
 2. Die ZIP-Datei in einen eigenen Ordner entpacken, z. B. `%LOCALAPPDATA%\Programs\AispaStudio`. Ein Ordner unter
    `C:\Program Files` geht auch, braucht aber Administratorrechte zum Entpacken.
-3. Im Ordner liegen `AispaStudio.Desktop.exe` und die Unterordner `api`, `web` und `postgres`. Nichts davon
-   verschieben; die App findet Datenbank und Server neben sich.
+3. Im Zielordner liegt dann der Ordner `AispaStudio-Windows`. Darin stehen `AispaStudio.Desktop.exe` und die
+   Unterordner `api`, `web` und `postgres`. Nichts davon verschieben; die App findet Datenbank und Server neben sich.
 
 > [!NOTE]
 > Die App ist nicht signiert. Beim ersten Start kann Windows SmartScreen warnen („Der Computer wurde durch Windows
