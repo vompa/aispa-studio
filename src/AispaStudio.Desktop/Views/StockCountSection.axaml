@@ -21,7 +21,7 @@
         <StackPanel x:Name="HandyBlock" Spacing="8" IsVisible="{Binding HasHandySessions}">
           <Grid ColumnDefinitions="*,Auto">
             <TextBlock Text="{Binding HandyHeading}" Classes="h3" VerticalAlignment="Center" AutomationProperties.LiveSetting="Polite" />
-            <ui:HelpButton Grid.Column="1" Topic="lager-inventur-handy" />
+            <ui:HelpButton Grid.Column="1" Topic="lager-inventur-handy" Section="abschliessen" />
           </Grid>
           <ItemsControl x:Name="HandySessionList" ItemsSource="{Binding HandySessions}" AutomationProperties.Name="Zählungen vom Handy">
             <ItemsControl.ItemTemplate>
@@ -54,7 +54,7 @@
       <StackPanel Spacing="12" IsVisible="{Binding IsCounting}">
         <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto" ColumnSpacing="12">
           <TextBlock Text="{Binding Heading}" Classes="h2" VerticalAlignment="Center" />
-          <ui:HelpButton Grid.Column="1" Topic="lager-inventur" Section="schritte" />
+          <ui:HelpButton Grid.Column="1" Topic="lager-inventur" />
           <CheckBox Grid.Column="2" x:Name="HideTargetBox" IsChecked="{Binding HideTarget}" Content="Soll ausblenden" VerticalAlignment="Center" />
           <Button Grid.Column="3" x:Name="LeaveAdoptedButton" Content="Zurück" Command="{Binding LeaveAdoptedCommand}" IsVisible="{Binding IsAdopted}" />
           <Button Grid.Column="4" x:Name="BookCountButton" Classes="primary" Content="Inventur buchen" Command="{Binding BookCommand}" />

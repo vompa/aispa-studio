@@ -237,15 +237,10 @@ public sealed class DutiesTests
     }
 
     [Fact]
-    public async Task Given_die_Uebersicht_When_sie_geoeffnet_wird_Then_steht_je_Zustaendigkeit_Person_Vertretung_und_Gueltigkeit()
+    public async Task Given_die_Uebersicht_When_sie_geoeffnet_wird_Then_steht_was_bald_ablaeuft_mit_Warnung_fuer_Abgelaufenes()
     {
         var overview = await Overview(OverviewApi());
 
-        Assert.Equal(["Ersthelfer", "Hygiene"], overview.Rows.Select(r => r.Name));
-        Assert.Equal("Verlangt: Erste-Hilfe-Kurs", overview.Rows[0].Certificate);
-        Assert.Equal(["Lena Huber, Vertretung Marco Berger, gültig ab 1.1.2026", "Marco Berger, abgelaufen am 30.6.2026"], overview.Rows[0].Holders.Select(h => h.Text));
-        Assert.Equal([false, true], overview.Rows[0].Holders.Select(h => h.IsExpired));
-        Assert.True(overview.Rows[1].HasNoHolders);
         Assert.Equal(["Lena Huber: Erste-Hilfe-Kurs, abgelaufen am 3.10.2026", "Marco Berger: Brandschutz, läuft am 30.4.2027 ab"], overview.Expiring.Select(e => e.Text));
         Assert.Equal([true, false], overview.Expiring.Select(e => e.IsExpired));
     }

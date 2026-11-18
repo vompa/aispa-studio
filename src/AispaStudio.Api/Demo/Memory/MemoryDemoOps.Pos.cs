@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using AispaStudio.Api.Pos;
 using AispaStudio.Api.Pos.Terminals;
+using AispaStudio.Api.Promotions;
 using AispaStudio.Api.Scheduling;
 using AispaStudio.Api.Tenancy;
 using AispaStudio.Contracts;
@@ -77,7 +78,7 @@ internal sealed partial class MemoryDemoOps
             var bill = OpenBill(register, billId);
             var promotion = _snapshot.Promotions.GetValueOrDefault(promotionId) ?? throw PosFailure.NotFound("Aktion");
             var today = LocalTime.LocalDate(_clock.GetUtcNow(), Zone(_snapshot.Locations[register.LocationId]));
-            PosService.ApplyPromotion(bill, promotion, register.LocationId, today);
+            PosService.ApplyPromotion(bill, promotion, register.LocationId, today, PromotionRules.NoTimings);
             foreach (var line in bill.Lines)
             {
                 _world.Normalize(line);

@@ -146,13 +146,19 @@ internal sealed partial class BookingService(AispaDbContext db, RosterService ro
         }
 
         var start = request.Start.ToUniversalTime();
-        var zoneId = await db.Locations.Where(l => l.Id == request.LocationId).Select(l => l.TimeZone).FirstOrDefaultAsync(ct);
-        if (zoneId is null)
+        var place = await db.Locations.Where(l => l.Id == request.LocationId).Select(l => new { l.TimeZone, l.ClosedFrom }).FirstOrDefaultAsync(ct);
+        if (place is null)
         {
             return new BookingOutcome.NotFound("Standort");
         }
 
-        var zone = LocalTime.Zone(zoneId);
+        var zone = LocalTime.Zone(place.TimeZone);
+        // Ein Standort, der ab einem Tag geschlossen ist (ADR 0099), nimmt ab dann auch von der Rezeption keine Buchung mehr an: das ist keine Schließzeit mit „Trotzdem buchen“.
+        if (place.ClosedFrom is { } closedFrom && LocalTime.LocalDate(start, zone) >= closedFrom)
+        {
+            return new BookingOutcome.Rejected(new BookingRejected($"Der Standort ist ab dem {closedFrom:dd.MM.yyyy} geschlossen.", []));
+        }
+
         var house = source == AppointmentSource.Reception;
         // „Trotzdem buchen“ gilt nur für die Rezeption (Slice 85); Gäste, KI und Plattformen bauen ihre Anfrage selbst und können es nicht setzen.
         var confirmed = house && request.OutsideHoursConfirmed;

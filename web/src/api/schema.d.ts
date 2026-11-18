@@ -335,7 +335,8 @@ export interface paths {
         /** Ändert Name, Zeitzone, Währung, Öffnungszeiten, Anschrift und Kontakt. Bestehende Termine bleiben unverändert. */
         put: operations["UpdateLocation"];
         post?: never;
-        delete?: never;
+        /** Löscht einen Standort, an dem nichts hängt; sonst 409 mit der Liste dessen, was daran hängt, und dem Weg „Schließen ab Datum“. */
+        delete: operations["DeleteLocation"];
         options?: never;
         head?: never;
         patch?: never;
@@ -392,6 +393,74 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/locations/{locationId}/close": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Schließt den Standort ab einem Tag: ab dann keine Buchung mehr, vergangene Termine und Belege bleiben. Abgelehnt, solange noch offene Termine ab dem Tag daran liegen oder es der letzte offene Standort wäre. */
+        post: operations["CloseLocation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/locations/{locationId}/reopen": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Öffnet einen geschlossenen Standort wieder: die Schließung ab dem Tag entfällt. */
+        post: operations["ReopenLocation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/locations/{locationId}/deletion-check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Zählt, was an einem Standort hängt; gelöscht werden darf nur, wenn nichts daran hängt, sonst bleibt „Schließen ab Datum“. */
+        get: operations["CheckLocationDeletion"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/setup/progress": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Die Schritte der Ersteinrichtung (Standort, Öffnungszeiten, Räume, Behandlungen, Team, Kassa) und welche davon erledigt sind. */
+        get: operations["GetSetupProgress"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/locations/{locationId}/rooms": {
         parameters: {
             query?: never;
@@ -421,6 +490,57 @@ export interface paths {
         post?: never;
         /** Nimmt einen Raum aus der Planung. Abgelehnt, solange noch künftige Termine darin liegen. */
         delete: operations["DeactivateRoom"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/locations/{locationId}/rooms/former": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Die nicht mehr verwendeten Räume eines Standorts, nach Name; nur für Verwaltung der Standorte. */
+        get: operations["ListFormerRooms"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/rooms/{roomId}/reactivate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Nimmt einen nicht mehr verwendeten Raum wieder in die Planung; wer schon aktiv ist, ändert nichts. */
+        post: operations["ReactivateRoom"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/rooms/{roomId}/deletion-check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Zählt, was an einem Raum hängt. Ein Raum lässt sich nie löschen; die Alternative ist „Nicht mehr verwenden“. */
+        get: operations["CheckRoomDeletion"];
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -459,6 +579,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/locations/{locationId}/equipment/former": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Die nicht mehr verwendeten Geräte eines Standorts, nach Name; nur für Verwaltung der Standorte. */
+        get: operations["ListFormerEquipment"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/equipment/{equipmentId}/reactivate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Nimmt ein nicht mehr verwendetes Gerät wieder in die Planung; wer schon aktiv ist, ändert nichts. */
+        post: operations["ReactivateEquipment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/equipment/{equipmentId}/deletion-check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Zählt, was an einem Gerät hängt. Ein Gerät lässt sich nie löschen; die Alternative ist „Nicht mehr verwenden“. */
+        get: operations["CheckEquipmentDeletion"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/qualifications": {
         parameters: {
             query?: never;
@@ -484,6 +655,24 @@ export interface paths {
         };
         get?: never;
         put: operations["RenameQualification"];
+        post?: never;
+        /** Löscht eine Qualifikation, an der nichts mehr hängt; sonst 409 mit der Liste dessen, was daran hängt. */
+        delete: operations["DeleteQualification"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/qualifications/{qualificationId}/deletion-check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Zählt, welche Personen und Behandlungen eine Qualifikation tragen; gelöscht werden darf nur, wenn keine mehr daran hängt. */
+        get: operations["CheckQualificationDeletion"];
+        put?: never;
         post?: never;
         delete?: never;
         options?: never;
@@ -550,7 +739,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Alle aktiven Behandlungen mit ihren geeigneten Räumen und Geräten an allen Standorten. */
+        /** Alle aktiven Behandlungen mit ihren geeigneten Räumen und Geräten an allen Standorten. Mit includeInactive=true (Recht „Katalog verwalten“) auch die nicht mehr angebotenen; `isActive` sagt, welche. */
         get: operations["ListTreatments"];
         put?: never;
         post: operations["CreateTreatment"];
@@ -573,6 +762,23 @@ export interface paths {
         post?: never;
         /** Bietet eine Behandlung nicht mehr an. Bereits gebuchte Termine bleiben bestehen. */
         delete: operations["DeactivateTreatment"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/treatments/{treatmentId}/reactivate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Bietet eine nicht mehr angebotene Behandlung wieder an; wer sie schon anbietet, ändert nichts. */
+        post: operations["ReactivateTreatment"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -920,6 +1126,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/stock/locations/{locationId}/export/availability": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Welche Listen des Lager-Exports etwas enthalten, nur für die Leitung: je Liste available und bei false der Grund (z. B. noch keine eingereichte Zählung). */
+        get: operations["StockExportAvailability"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/locations/{locationId}/staff/export": {
         parameters: {
             query?: never;
@@ -982,6 +1205,23 @@ export interface paths {
         put?: never;
         /** Schränkt die laufende Anmeldung auf die Mitarbeiter-App ein: nur freigegebene Endpunkte und nur eigene Daten. */
         post: operations["UseStaffAppChannel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/locations/{locationId}/closure-overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Schließzeiten des ganzen Standorts und Raumsperren in einer Liste, je mit Art, Zeitraum, Raum, Grund, Zustand und der Zahl der noch offenen Termine. Mit scope=Upcoming (Standard) die laufenden und geplanten nach Beginn aufsteigend, mit Past die beendeten, neueste zuerst, mit All beide. */
+        get: operations["GetClosureOverview"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -3144,6 +3384,23 @@ export interface paths {
         /** Ändert eine Aktion, auch Pausieren und Fortsetzen. Bereits gegebene Rabatte auf Belegen bleiben unverändert. */
         put: operations["UpdatePromotion"];
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/promotions/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Vorschau des Gästepreises für eine Aktion, auch ungespeichert: ein Beispieltermin und die ersten betroffenen Behandlungen mit Preis und Preis mit Rabatt, gerechnet wie an der Kassa. */
+        post: operations["PreviewPromotion"];
         delete?: never;
         options?: never;
         head?: never;
@@ -6499,6 +6756,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/stock/locations/{locationId}/storage-places/{placeId}/deletion-check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Zählt die Bewegungen eines Lagerorts; das Hauptlager lässt sich nie löschen, „Nicht mehr verwenden“ bleibt als Alternative. */
+        get: operations["CheckStoragePlaceDeletion"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/stock/locations/{locationId}/storage-places/{placeId}/levels": {
         parameters: {
             query?: never;
@@ -6834,6 +7108,24 @@ export interface paths {
         /** Lieferant ändern oder deaktivieren. Bestellungen behalten den Namen zum Zeitpunkt der Bestellung. */
         put: operations["UpdateStockSupplier"];
         post?: never;
+        /** Löscht einen Lieferanten ohne Material; sonst 409 mit der Liste dessen, was daran hängt. Bestellungen behalten den Namen. */
+        delete: operations["DeleteStockSupplier"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stock/suppliers/{supplierId}/deletion-check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Zählt, wie viel Material am Lieferanten hängt; „Nicht mehr verwenden“ bleibt als Alternative. */
+        get: operations["CheckStockSupplierDeletion"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -7004,6 +7296,22 @@ export interface paths {
         };
         get: operations["GetTreatmentCard"];
         put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/appointments/{appointmentId}/equipment-prepared": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["CheckEquipmentPrepared"];
         post?: never;
         delete?: never;
         options?: never;
@@ -7768,7 +8076,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** „Wer darf was?“: je Vollmacht aus der festen Liste, wer sie hat und bis wann. */
+        /** „Wer darf was?“: je Vollmacht aus der festen Liste, wer sie hat und bis wann, dazu Thema, Hinweis, Wirkung und ob sie unbesetzt ist; mit locationId nur die Personen, die an dem Standort arbeiten. */
         get: operations["ListPowerOverview"];
         put?: never;
         post?: never;
@@ -7928,7 +8236,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** „Wer ist wofür zuständig?“: je Eintrag der Liste die Personen mit Vertretung und Gültigkeit, auch ohne Eintrag. */
+        /** „Wer ist wofür zuständig?“: je Eintrag der Liste die Personen mit Vertretung und Gültigkeit, auch ohne Eintrag, dazu Thema, Hinweis, Wirkung und ob er unbesetzt ist; mit locationId nur die Personen, die an dem Standort arbeiten. */
         get: operations["ListDutyOverview"];
         put?: never;
         post?: never;
@@ -8041,6 +8349,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/dispatch-log": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Versandprotokoll: Terminerinnerungen und Wiederbuchungs-Hinweise der letzten Tage (Vorgabe 30, höchstens 366), neueste zuerst. Filter: kind (reminder, rebook), channel (email, sms, whatsapp), result (sent, failed, skipped, queued). */
+        get: operations["ListDispatchLog"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/dispatch-log/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Zahlen des Versandprotokolls der letzten Tage (Vorgabe 30), je Art: verschickt, fehlgeschlagen, entfallen. */
+        get: operations["GetDispatchSummary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/dispatch-log/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Das Versandprotokoll als Excel oder CSV mit denselben Filtern wie die Liste (höchstens so viele Zeilen wie jeder Export). */
+        get: operations["ExportDispatchLog"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/retention/settings": {
         parameters: {
             query?: never;
@@ -8050,7 +8409,7 @@ export interface paths {
         };
         /** Ob und nach wie vielen Tagen je Behandlung ein Wiederbuchungs-Hinweis verschickt wird (ohne Eintrag aus). */
         get: operations["GetRebookSettings"];
-        /** Wiederbuchungs-Hinweis einstellen. Er geht nur an Gäste mit bestätigter Einwilligung. */
+        /** Wiederbuchungs-Hinweis einstellen: Standardabstand und Ausnahmen je Kategorie oder Behandlung. Er geht nur an Gäste mit bestätigter Einwilligung. */
         put: operations["UpdateRebookSettings"];
         post?: never;
         delete?: never;
@@ -9739,6 +10098,8 @@ export interface components {
              */
             openWaitlist: number;
         };
+        /** @enum {unknown} */
+        ClosureEntryType: "Location" | "Room";
         ClosureInput: {
             /** Format: date */
             fromDate: string;
@@ -9796,8 +10157,48 @@ export interface components {
         };
         /** @enum {unknown} */
         ClosureNoticeState: "Queued" | "Sent" | "Skipped" | "Failed" | "Cancelled";
+        ClosureOverview: {
+            /** Format: uuid */
+            locationId: string;
+            /** Format: int32 */
+            upcomingCount: number;
+            /** Format: int32 */
+            pastCount: number;
+            items: components["schemas"]["ClosureOverviewItem"][];
+        };
+        ClosureOverviewItem: {
+            /** Format: uuid */
+            id: string;
+            type: components["schemas"]["ClosureEntryType"];
+            kind: string;
+            /** Format: uuid */
+            locationId: string;
+            /** Format: date */
+            fromDate: string;
+            /** Format: time */
+            fromTime: null | string;
+            /** Format: date */
+            untilDate: string;
+            /** Format: time */
+            untilTime: null | string;
+            /** Format: date-time */
+            from: string;
+            /** Format: date-time */
+            until: string;
+            phase: components["schemas"]["ClosurePhase"];
+            reason: null | string;
+            /** Format: int32 */
+            openAppointments: number;
+            /** Format: int32 */
+            openWaitlist: number;
+            /** Format: uuid */
+            roomId?: null | string;
+            roomName?: null | string;
+        };
         /** @enum {unknown} */
         ClosurePhase: "Planned" | "Active" | "Ended";
+        /** @enum {unknown} */
+        ClosureScope: "Upcoming" | "Past" | "All";
         ClosureWaitlistDto: {
             /** Format: uuid */
             entryId: string;
@@ -10251,6 +10652,16 @@ export interface components {
             cards: components["schemas"]["TreatmentCard"][];
             hints: string[];
         };
+        DeletionAlternative: {
+            kind: string;
+            label: string;
+        };
+        DeletionCheckDto: {
+            canDelete: boolean;
+            summary: string;
+            dependents: components["schemas"]["DependentCount"][];
+            alternative?: null | components["schemas"]["DeletionAlternative"];
+        };
         DeliveryNoteLineSuggestion: {
             /** Format: uuid */
             lineId: string;
@@ -10268,6 +10679,12 @@ export interface components {
             lines: components["schemas"]["DeliveryNoteLineSuggestion"][];
             unmatched: string[];
             note: null | string;
+        };
+        DependentCount: {
+            kind: string;
+            /** Format: int32 */
+            count: number;
+            label: string;
         };
         DepExport: {
             "Belege-Gruppe": components["schemas"]["DepGroup"][];
@@ -10334,6 +10751,39 @@ export interface components {
         };
         DeviceCodeRedeem: {
             code: string;
+        };
+        /** @enum {unknown} */
+        DispatchKind: "Reminder" | "Rebook";
+        DispatchKindSummaryDto: {
+            /** Format: int32 */
+            sent: number;
+            /** Format: int32 */
+            failed: number;
+            /** Format: int32 */
+            skipped: number;
+        };
+        DispatchLogEntryDto: {
+            /** Format: uuid */
+            id: string;
+            kind: components["schemas"]["DispatchKind"];
+            /** Format: uuid */
+            customerId: string;
+            recipient: string;
+            subject: string;
+            channel: components["schemas"]["ReminderChannel"];
+            state: string;
+            /** Format: date-time */
+            at: string;
+            /** Format: date-time */
+            appointmentStart: null | string;
+            text: null | string;
+            error: null | string;
+        };
+        DispatchSummaryDto: {
+            /** Format: int32 */
+            days: number;
+            reminders: components["schemas"]["DispatchKindSummaryDto"];
+            rebook: components["schemas"]["DispatchKindSummaryDto"];
         };
         DisplayBoard: {
             locationName: string;
@@ -10451,6 +10901,12 @@ export interface components {
             name: string;
             requiredCertificate: null | string;
             holders: components["schemas"]["DutyHolderDto"][];
+            group?: null | string;
+            /** Format: int32 */
+            groupOrder?: null | number;
+            hint?: null | string;
+            effect?: null | string;
+            isUnstaffed?: null | boolean;
         };
         DutyReminderDto: {
             kind: components["schemas"]["DutyReminderKind"];
@@ -11175,6 +11631,10 @@ export interface components {
         };
         /** @enum {unknown} */
         LocalAiState: "Off" | "Unreachable" | "Missing" | "Downloading" | "Ready";
+        LocationCloseInput: {
+            /** Format: date */
+            closedFrom: string;
+        };
         LocationCompany: {
             legalName: null | string;
             vatId: null | string;
@@ -11211,6 +11671,8 @@ export interface components {
             region?: null | string;
             contact?: null | components["schemas"]["LocationContact"];
             company?: null | components["schemas"]["LocationCompany"];
+            /** Format: date */
+            closedFrom?: null | string;
         };
         LocationInput: {
             name: string;
@@ -11928,12 +12390,20 @@ export interface components {
             validUntil: null | string;
             grantedBy: string;
             isExpired: boolean;
+            /** Format: uuid */
+            entryId?: null | string;
         };
         PowerOverviewRowDto: {
             kind: components["schemas"]["StaffPowerKind"];
             label: string;
             isChecked: boolean;
             holders: components["schemas"]["PowerHolderDto"][];
+            group?: null | string;
+            /** Format: int32 */
+            groupOrder?: null | number;
+            hint?: null | string;
+            effect?: null | string;
+            isUnstaffed?: null | boolean;
         };
         PreparationCheck: {
             done: boolean;
@@ -11986,6 +12456,10 @@ export interface components {
             isActive: boolean;
             isArchived: boolean;
             phase: components["schemas"]["PromotionPhase"];
+            kind?: null | components["schemas"]["PromotionKind"];
+            /** Format: int32 */
+            leadHours?: null | number;
+            slots?: null | components["schemas"]["PromotionSlot"][];
         };
         PromotionInput: {
             name: string;
@@ -12003,7 +12477,13 @@ export interface components {
             scope: components["schemas"]["PromotionScope"];
             treatmentIds: null | string[];
             isActive: boolean;
+            kind?: null | components["schemas"]["PromotionKind"];
+            /** Format: int32 */
+            leadHours?: null | number;
+            slots?: null | components["schemas"]["PromotionSlot"][];
         };
+        /** @enum {unknown} */
+        PromotionKind: "Limited" | "LastMinute" | "OffPeak" | null;
         PromotionOfferDto: {
             /** Format: uuid */
             promotionId: string;
@@ -12022,8 +12502,26 @@ export interface components {
         };
         /** @enum {unknown} */
         PromotionPhase: "Running" | "Planned" | "Paused" | "Expired";
+        PromotionPreviewDto: {
+            example: string;
+            lines: components["schemas"]["PromotionPreviewLineDto"][];
+            note: string;
+        };
+        PromotionPreviewLineDto: {
+            /** Format: uuid */
+            treatmentId: string;
+            name: string;
+            /** Format: double */
+            price: number;
+            /** Format: double */
+            guestPrice: number;
+        };
         /** @enum {unknown} */
         PromotionScope: "AllTreatments" | "SelectedTreatments" | "SelectedPackages";
+        PromotionSlot: {
+            day: components["schemas"]["DayOfWeek"];
+            part: components["schemas"]["DayPart"];
+        };
         PromotionTreatmentDto: {
             /** Format: uuid */
             id: string;
@@ -12133,6 +12631,11 @@ export interface components {
             device: null | components["schemas"]["SharedDeviceDto"];
             people: components["schemas"]["QuickSwitchPerson"][];
         };
+        RebookCategoryIntervalDto: {
+            category: string;
+            /** Format: int32 */
+            days: null | number;
+        };
         RebookIntervalDto: {
             /** Format: uuid */
             treatmentId: string;
@@ -12158,6 +12661,10 @@ export interface components {
         RebookSettingsDto: {
             enabled: boolean;
             intervals: components["schemas"]["RebookIntervalDto"][];
+            /** Format: int32 */
+            defaultDays?: null | number;
+            categoryIntervals?: null | components["schemas"]["RebookCategoryIntervalDto"][];
+            silentTreatmentIds?: null | string[];
         };
         ReceiptDto: {
             /** Format: uuid */
@@ -12797,6 +13304,17 @@ export interface components {
             count: number;
             dueTimes: string[];
         };
+        SetupProgressDto: {
+            steps: components["schemas"]["SetupStepDto"][];
+        };
+        SetupStepDto: {
+            key: string;
+            title: string;
+            hint: string;
+            done: boolean;
+            page: string;
+            tab: null | string;
+        };
         SharedDeviceDto: {
             /** Format: uuid */
             id: string;
@@ -13291,6 +13809,14 @@ export interface components {
             sellOff: components["schemas"]["StockExpiryTaskDto"][];
             expired: components["schemas"]["StockExpiryTaskDto"][];
         };
+        StockExportAvailabilityDto: {
+            lists: components["schemas"]["StockExportListAvailabilityDto"][];
+        };
+        StockExportListAvailabilityDto: {
+            list: string;
+            available: boolean;
+            reason?: null | string;
+        };
         StockItemDto: {
             /** Format: uuid */
             id: string;
@@ -13497,6 +14023,8 @@ export interface components {
             /** Format: double */
             excessValue: null | number;
             treatments: components["schemas"]["StockUsageTreatmentDto"][];
+            /** Format: double */
+            excessPercent?: null | number;
         };
         StockUsageReportDto: {
             /** Format: uuid */
@@ -13875,6 +14403,7 @@ export interface components {
             dueAt: null | string;
             source: string;
             done: boolean;
+            isEquipment?: null | boolean;
         };
         TreatmentCard: {
             /** Format: uuid */
@@ -13921,6 +14450,7 @@ export interface components {
             processingMinutes: number;
             /** @default false */
             checkAnamnesis: boolean;
+            displayName?: null | string;
         };
         TreatmentCostDto: {
             /** Format: uuid */
@@ -13993,6 +14523,7 @@ export interface components {
              * @default 0
              */
             processingMinutes: number;
+            isActive?: null | boolean;
         };
         TreatmentExtraDto: {
             /** Format: uuid */
@@ -14904,6 +15435,51 @@ export interface operations {
             };
         };
     };
+    DeleteLocation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                locationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeletionCheckDto"];
+                };
+            };
+        };
+    };
     ListHolidayRegions: {
         parameters: {
             query?: never;
@@ -15017,6 +15593,162 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    CloseLocation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                locationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LocationCloseInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LocationDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ReopenLocation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                locationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LocationDto"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    CheckLocationDeletion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                locationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeletionCheckDto"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetSetupProgress: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SetupProgressDto"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
         };
     };
@@ -15167,6 +15899,120 @@ export interface operations {
             };
         };
     };
+    ListFormerRooms: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                locationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoomDto"][];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ReactivateRoom: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                roomId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoomDto"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    CheckRoomDeletion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                roomId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeletionCheckDto"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     CreateEquipment: {
         parameters: {
             query?: never;
@@ -15314,6 +16160,120 @@ export interface operations {
             };
         };
     };
+    ListFormerEquipment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                locationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EquipmentDto"][];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ReactivateEquipment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                equipmentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EquipmentDto"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    CheckEquipmentDeletion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                equipmentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeletionCheckDto"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     ListQualifications: {
         parameters: {
             query?: never;
@@ -15416,6 +16376,89 @@ export interface operations {
                 };
                 content: {
                     "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    DeleteQualification: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                qualificationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeletionCheckDto"];
+                };
+            };
+        };
+    };
+    CheckQualificationDeletion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                qualificationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeletionCheckDto"];
                 };
             };
             /** @description Forbidden */
@@ -15634,7 +16677,9 @@ export interface operations {
     };
     ListTreatments: {
         parameters: {
-            query?: never;
+            query?: {
+                includeInactive?: boolean;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -15771,6 +16816,44 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ReactivateTreatment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                treatmentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TreatmentDto"];
+                };
             };
             /** @description Forbidden */
             403: {
@@ -16831,6 +17914,44 @@ export interface operations {
             };
         };
     };
+    StockExportAvailability: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                locationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StockExportAvailabilityDto"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     ExportStaffList: {
         parameters: {
             query?: {
@@ -16985,6 +18106,46 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["CurrentUser"];
                 };
+            };
+        };
+    };
+    GetClosureOverview: {
+        parameters: {
+            query?: {
+                scope?: components["schemas"]["ClosureScope"];
+            };
+            header?: never;
+            path: {
+                locationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClosureOverview"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -22784,6 +23945,39 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    PreviewPromotion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PromotionInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionPreviewDto"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
         };
     };
@@ -31934,6 +33128,54 @@ export interface operations {
             };
         };
     };
+    CheckStoragePlaceDeletion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                locationId: string;
+                placeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeletionCheckDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     GetStoragePlaceLevels: {
         parameters: {
             query?: never;
@@ -32944,6 +34186,89 @@ export interface operations {
             };
         };
     };
+    DeleteStockSupplier: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                supplierId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeletionCheckDto"];
+                };
+            };
+        };
+    };
+    CheckStockSupplierDeletion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                supplierId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeletionCheckDto"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     StockCountPdf: {
         parameters: {
             query?: {
@@ -33389,6 +34714,46 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["TreatmentCard"];
                 };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    CheckEquipmentPrepared: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                appointmentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PreparationCheck"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Forbidden */
             403: {
@@ -35930,7 +37295,9 @@ export interface operations {
     };
     ListPowerOverview: {
         parameters: {
-            query?: never;
+            query?: {
+                locationId?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -36715,7 +38082,9 @@ export interface operations {
     };
     ListDutyOverview: {
         parameters: {
-            query?: never;
+            query?: {
+                locationId?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -37012,6 +38381,125 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    ListDispatchLog: {
+        parameters: {
+            query?: {
+                kind?: string;
+                channel?: string;
+                result?: string;
+                days?: number;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DispatchLogEntryDto"][];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    GetDispatchSummary: {
+        parameters: {
+            query?: {
+                days?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DispatchSummaryDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    ExportDispatchLog: {
+        parameters: {
+            query?: {
+                kind?: string;
+                channel?: string;
+                result?: string;
+                days?: number;
+                format?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
         };
     };

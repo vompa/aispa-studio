@@ -32,9 +32,21 @@ internal sealed class ClosureService(AispaDbContext db, OnlineDbContext online, 
         return [.. candidates.Where(c => c.StartsAt(zone) < until && from < c.EndsAt(zone)).OrderBy(c => c.StartsAt(zone))];
     }
 
-    /// <summary>Die geschlossenen Zeiträume für den Planer.</summary>
-    public static async Task<List<ClosedSpan>> SpansAsync(AispaDbContext db, Guid locationId, DateTimeOffset from, DateTimeOffset until, TimeZoneInfo zone, CancellationToken ct) =>
-        [.. (await InAsync(db, locationId, from, until, zone, ct)).Select(c => new ClosedSpan(c.StartsAt(zone), c.EndsAt(zone), c.Kind))];
+    /// <summary>Die geschlossenen Zeiträume für den Planer; ein Standort, der ab einem Tag geschlossen ist (<see cref="Location.ClosedFrom"/>), zählt ab dort als dauernd geschlossen.</summary>
+    public static async Task<List<ClosedSpan>> SpansAsync(AispaDbContext db, Guid locationId, DateTimeOffset from, DateTimeOffset until, TimeZoneInfo zone, CancellationToken ct)
+    {
+        List<ClosedSpan> spans = [.. (await InAsync(db, locationId, from, until, zone, ct)).Select(c => new ClosedSpan(c.StartsAt(zone), c.EndsAt(zone), c.Kind))];
+        if (await db.Locations.AsNoTracking().Where(l => l.Id == locationId).Select(l => l.ClosedFrom).FirstOrDefaultAsync(ct) is { } closedFrom)
+        {
+            var start = LocalTime.ToUtc(closedFrom, TimeOnly.MinValue, zone);
+            if (start < until)
+            {
+                spans.Add(new ClosedSpan(start, start.AddYears(50), ClosureKind.SpecialClosure));
+            }
+        }
+
+        return spans;
+    }
 
     /// <summary>Die Schließzeit, in der <paramref name="from"/> bis <paramref name="until"/> ganz oder teilweise liegt; sonst <c>null</c>.</summary>
     public static async Task<Closure?> FindAsync(AispaDbContext db, Guid locationId, DateTimeOffset from, DateTimeOffset until, TimeZoneInfo zone, CancellationToken ct) =>

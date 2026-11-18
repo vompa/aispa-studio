@@ -3570,10 +3570,21 @@ namespace AispaStudio.Api.Data.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<int?>("LeadHours")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(40)
                         .HasColumnType("character varying(40)");
+
+                    b.Property<int>("OffPeakSlots")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Scope")
                         .IsRequired()
@@ -3741,6 +3752,28 @@ namespace AispaStudio.Api.Data.Migrations
                     b.HasIndex("TenantId");
 
                     b.ToTable("ReminderSettings", "aispa");
+                });
+
+            modelBuilder.Entity("AispaStudio.Api.Reporting.AppointmentEquipmentCheck", b =>
+                {
+                    b.Property<Guid>("AppointmentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CheckedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("UserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.HasKey("AppointmentId");
+
+                    b.HasIndex("TenantId");
+
+                    b.ToTable("AppointmentEquipmentChecks", "aispa");
                 });
 
             modelBuilder.Entity("AispaStudio.Api.Reporting.AppointmentFollowUp", b =>
@@ -3925,6 +3958,32 @@ namespace AispaStudio.Api.Data.Migrations
                     b.ToTable("TreatmentPreparationSteps", "aispa");
                 });
 
+            modelBuilder.Entity("AispaStudio.Api.Retention.CategoryRebookInterval", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)");
+
+                    b.Property<int?>("Days")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantId");
+
+                    b.HasIndex("TenantId", "Category")
+                        .IsUnique();
+
+                    b.ToTable("CategoryRebookIntervals", "aispa");
+                });
+
             modelBuilder.Entity("AispaStudio.Api.Retention.MarketingConsent", b =>
                 {
                     b.Property<Guid>("Id")
@@ -4031,6 +4090,9 @@ namespace AispaStudio.Api.Data.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid");
 
+                    b.Property<int?>("DefaultDays")
+                        .HasColumnType("integer");
+
                     b.Property<bool>("Enabled")
                         .HasColumnType("boolean");
 
@@ -4049,7 +4111,7 @@ namespace AispaStudio.Api.Data.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid");
 
-                    b.Property<int>("Days")
+                    b.Property<int?>("Days")
                         .HasColumnType("integer");
 
                     b.Property<Guid>("TenantId")
@@ -5055,6 +5117,9 @@ namespace AispaStudio.Api.Data.Migrations
                     b.Property<string>("City")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
+
+                    b.Property<DateOnly?>("ClosedFrom")
+                        .HasColumnType("date");
 
                     b.Property<string>("CompanyRegisterCourt")
                         .HasMaxLength(100)
@@ -7619,6 +7684,21 @@ namespace AispaStudio.Api.Data.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("AispaStudio.Api.Reporting.AppointmentEquipmentCheck", b =>
+                {
+                    b.HasOne("AispaStudio.Api.Scheduling.Appointment", null)
+                        .WithOne()
+                        .HasForeignKey("AispaStudio.Api.Reporting.AppointmentEquipmentCheck", "AppointmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AispaStudio.Api.Tenancy.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("AispaStudio.Api.Reporting.AppointmentFollowUp", b =>
                 {
                     b.HasOne("AispaStudio.Api.Scheduling.Appointment", null)
@@ -7702,6 +7782,15 @@ namespace AispaStudio.Api.Data.Migrations
                         .WithMany()
                         .HasForeignKey("TreatmentId")
                         .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AispaStudio.Api.Retention.CategoryRebookInterval", b =>
+                {
+                    b.HasOne("AispaStudio.Api.Tenancy.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 

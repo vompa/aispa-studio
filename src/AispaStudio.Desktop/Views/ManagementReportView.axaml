@@ -93,6 +93,7 @@
 
     <StackPanel Spacing="8" IsVisible="{Binding ShowAmounts}">
       <TextBlock Text="Umsatz nach Erlöskonto" Classes="h2" />
+      <TextBlock x:Name="RevenueByAccountEmpty" Text="Keine Umsätze im Zeitraum." Classes="muted" IsVisible="{Binding !RevenueByAccount.Count}" />
       <ItemsControl ItemsSource="{Binding RevenueByAccount}">
         <ItemsControl.ItemTemplate>
           <DataTemplate x:DataType="vm:RevenueRow">
@@ -105,6 +106,7 @@
         </ItemsControl.ItemTemplate>
       </ItemsControl>
       <TextBlock Text="Umsatz nach Zahlungsart" Classes="h2" />
+      <TextBlock x:Name="RevenueByPaymentEmpty" Text="Keine Umsätze im Zeitraum." Classes="muted" IsVisible="{Binding !RevenueByPayment.Count}" />
       <ItemsControl ItemsSource="{Binding RevenueByPayment}">
         <ItemsControl.ItemTemplate>
           <DataTemplate x:DataType="vm:RevenueRow">
@@ -119,7 +121,8 @@
 
     <StackPanel Spacing="8" Grid.IsSharedSizeScope="True">
       <TextBlock Text="Personal" Classes="h2" />
-      <Grid ColumnSpacing="12" AutomationProperties.AccessibilityView="Raw">
+      <TextBlock x:Name="EmployeesEmpty" Text="Keine Dienste im Zeitraum." Classes="muted" IsVisible="{Binding !Employees.Count}" />
+      <Grid ColumnSpacing="12" AutomationProperties.AccessibilityView="Raw" IsVisible="{Binding Employees.Count}">
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="*" />
           <ColumnDefinition Width="Auto" SharedSizeGroup="Shift" />
@@ -127,11 +130,11 @@
           <ColumnDefinition Width="Auto" SharedSizeGroup="Use" />
           <ColumnDefinition Width="Auto" SharedSizeGroup="PerHour" />
         </Grid.ColumnDefinitions>
-        <TextBlock Text="Person" Classes="muted small" />
-        <TextBlock Grid.Column="1" Text="Dienststunden" Classes="muted small" />
-        <TextBlock Grid.Column="2" Text="Behandlungsstunden" Classes="muted small" />
-        <TextBlock Grid.Column="3" Text="Auslastung" Classes="muted small" />
-        <TextBlock Grid.Column="4" Text="Umsatz je Stunde" Classes="muted small" IsVisible="{Binding ShowAmounts}" />
+        <TextBlock Text="Person" Classes="group" />
+        <TextBlock Grid.Column="1" Text="Dienststunden" Classes="group" />
+        <TextBlock Grid.Column="2" Text="Behandlungsstunden" Classes="group" />
+        <TextBlock Grid.Column="3" Text="Auslastung" Classes="group" />
+        <TextBlock Grid.Column="4" Text="Umsatz je Stunde" Classes="group" IsVisible="{Binding ShowAmounts}" />
       </Grid>
       <ItemsControl ItemsSource="{Binding Employees}">
         <ItemsControl.ItemTemplate>
@@ -157,17 +160,18 @@
 
     <StackPanel Spacing="8" Grid.IsSharedSizeScope="True">
       <TextBlock Text="Behandlungen" Classes="h2" />
-      <Grid ColumnSpacing="12" AutomationProperties.AccessibilityView="Raw">
+      <TextBlock x:Name="TreatmentsEmpty" Text="Keine Behandlungen im Zeitraum." Classes="muted" IsVisible="{Binding !Treatments.Count}" />
+      <Grid ColumnSpacing="12" AutomationProperties.AccessibilityView="Raw" IsVisible="{Binding Treatments.Count}">
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="*" />
           <ColumnDefinition Width="Auto" SharedSizeGroup="Count" />
           <ColumnDefinition Width="Auto" SharedSizeGroup="Revenue" />
           <ColumnDefinition Width="Auto" SharedSizeGroup="Margin" />
         </Grid.ColumnDefinitions>
-        <TextBlock Text="Behandlung" Classes="muted small" />
-        <TextBlock Grid.Column="1" Text="Termine" Classes="muted small" />
-        <TextBlock Grid.Column="2" Text="Umsatz netto" Classes="muted small" IsVisible="{Binding ShowAmounts}" />
-        <TextBlock Grid.Column="3" Text="Marge je Termin (Vollkosten)" Classes="muted small" IsVisible="{Binding ShowAmounts}" />
+        <TextBlock Text="Behandlung" Classes="group" />
+        <TextBlock Grid.Column="1" Text="Termine" Classes="group" />
+        <TextBlock Grid.Column="2" Text="Umsatz netto" Classes="group" IsVisible="{Binding ShowAmounts}" />
+        <TextBlock Grid.Column="3" Text="Marge je Termin (Vollkosten)" Classes="group" IsVisible="{Binding ShowAmounts}" />
       </Grid>
       <ItemsControl ItemsSource="{Binding Treatments}">
         <ItemsControl.ItemTemplate>

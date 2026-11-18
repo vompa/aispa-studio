@@ -795,7 +795,8 @@ internal static partial class DemoHistory
     private static async Task<decimal> ApplyPromotionAsync(IDemoOps pos, Run run, Guid billId, DemoLocation location, DateOnly date, AppointmentDto appointment,
         CancellationToken ct)
     {
-        var promotion = run.Promotions.FirstOrDefault(p => PromotionRules.IsRunning(p, location.Location.Id, date)
+        // Nur befristete Aktionen: die Regeln für kurzfristige Termine und schwache Zeiten brauchen die Buchungszeit, die der Verlauf im Speicher nicht führt.
+        var promotion = run.Promotions.FirstOrDefault(p => p.Kind == PromotionKind.Limited && PromotionRules.IsRunning(p, location.Location.Id, date)
             && (p.Scope == PromotionScope.AllTreatments || (p.Scope == PromotionScope.SelectedTreatments && p.Treatments.Any(t => t.TreatmentId == appointment.TreatmentId))));
         if (promotion is null)
         {

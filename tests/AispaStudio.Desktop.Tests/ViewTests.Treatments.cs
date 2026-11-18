@@ -110,7 +110,7 @@ public sealed partial class ViewTests
         // Then hat die Schiene vier Bereiche auf einer Zeile innerhalb der Karte (masken.md R15)
         var strip = Named<Border>(window, "SectionTabs");
         var tabs = strip.GetVisualDescendants().OfType<TabButton>().ToList();
-        Assert.Equal(["Grunddaten", "Durchführung", "Preise und Verkauf", "Qualifikationen und Räume"], tabs.Select(t => t.Content as string));
+        Assert.Equal(["Übersicht", "Grunddaten und Preis", "Durchführung", "Qualifikationen und Räume"], tabs.Select(t => t.Content as string));
         Assert.Single(tabs.Select(t => Math.Round(InWindow(window, t).Y)).Distinct());
         var editor = window.GetVisualDescendants().OfType<TreatmentEditorView>().Single();
         Assert.True(InWindow(window, strip).Right <= InWindow(window, editor).Right + 0.5,
@@ -143,8 +143,8 @@ public sealed partial class ViewTests
     [InlineData("ablauf", "ExecutionSection", "ProcessGroup")]
     [InlineData("material", "ExecutionSection", "MaterialGroup")]
     [InlineData("bereitstellen", "ExecutionSection", "ProvideGroup")]
-    [InlineData("preise", "OfferSection", "PricesGroup")]
-    [InlineData("verkauf", "OfferSection", "SalesGroup")]
+    [InlineData("preise", "BasicsSection", "PricesGroup")]
+    [InlineData("verkauf", "BasicsSection", "SalesGroup")]
     public Task Given_eine_alte_Abschnittsadresse_When_die_Verwaltung_dorthin_springt_Then_ist_der_Bereich_offen_und_der_Fokus_in_der_Gruppe(
         string address, string area, string group) => Render("hell", $"probe-behandlungen-sprung-{address}", async (window, main) =>
         {
@@ -154,7 +154,9 @@ public sealed partial class ViewTests
             await Pump(Settling);
 
             Assert.True(Named<Control>(window, area).IsEffectivelyVisible);
-            Assert.True(InFieldsViewport(window, Named<Control>(window, group)));
+            var scroll = Named<ScrollViewer>(window, "FieldsScroll");
+            var top = Named<Control>(window, group).TranslatePoint(new Point(0, 0), scroll)?.Y;
+            Assert.True(InFieldsViewport(window, Named<Control>(window, group)), $"Gruppe bei {top}, Fenster {scroll.Viewport.Height}, Versatz {scroll.Offset.Y}, Umfang {scroll.Extent.Height}, sichtbar {Named<Control>(window, group).IsEffectivelyVisible}, offen {treatments.Editor!.MoreOpen}");
             Assert.True(HasFocusInside(window, Named<Control>(window, group)), $"Fokus liegt auf {Focused(window)}");
             Assert.Null(treatments.Editor!.GroupTarget);
             return treatments;
@@ -173,7 +175,7 @@ public sealed partial class ViewTests
             await ClickIntoView(window, ButtonWithText(window, "Speichern"));
             await Pump(Settling);
 
-            Assert.True(treatments.HasError);
+            Assert.True(treatments.Editor!.HasError);
             Assert.True(Named<Control>(window, "ExecutionSection").IsEffectivelyVisible);
             Assert.True(InFieldsViewport(window, Named<Control>(window, "MaterialGroup")));
             Assert.True(HasFocusInside(window, Named<Control>(window, "MaterialGroup")), $"Fokus liegt auf {Focused(window)}");
@@ -258,17 +260,17 @@ public sealed partial class ViewTests
         Render("hell", "probe-behandlungen-neu", async (window, main) =>
         {
             var treatments = await OpenTreatments(window, main);
-            var create = RowIn(window, "TreatmentList", "Behandlung anlegen");
-            create.BringIntoView();
-            await Pump(Settling);
-            ClickCenter(window, create);
+            ClickCenter(window, Named<Button>(window, "NewButton"));
             await Pump(Settling);
 
             Assert.True(treatments.Editor?.IsNew);
             Assert.False(Named<Button>(window, "HistoryButton").IsEffectivelyVisible);
+            Assert.DoesNotContain(window.GetVisualDescendants().OfType<TabButton>(), t => t.Content as string == "Übersicht");
 
-            // Zwei Standorte: von „Preise und Verkauf“ gibt es vor dem Anlegen nur den Preis je Standort.
-            await ClickSection(window, "Preise und Verkauf");
+            // Zwei Standorte: von den „Weiteren Angaben“ gibt es vor dem Anlegen nur den Preis je Standort.
+            Assert.False(Shows(window, "Preis je Standort"));
+            ClickCenter(window, Named<ToggleButton>(window, "MoreToggle"));
+            await Pump(Settling);
             Assert.True(Shows(window, "Preis je Standort"));
             Assert.False(Named<Control>(window, "SalesGroup").IsEffectivelyVisible);
             Assert.False(Shows(window, "Preise nach Wochentag und Uhrzeit"));
@@ -284,9 +286,34 @@ public sealed partial class ViewTests
     [InlineData("dunkel")]
     public Task Verwaltung_Behandlungen(string theme) => Render(theme, "verwaltung-behandlungen", async (window, main) =>
     {
+        // Die Karte einer gespeicherten Behandlung beginnt mit der Übersicht: vier Kacheln, Speichern an der Karte, „Neue Behandlung“ über der Liste.
         var treatments = await OpenTreatments(window, main);
-        Assert.Equal("Hot Stone 60", Named<TextBox>(window, "NameField").Text);
         Assert.Equal("Hot Stone 60", treatments.SelectedEntry?.Title);
+        Assert.True(Named<Control>(window, "OverviewSection").IsEffectivelyVisible);
+        Assert.Equal(4, window.GetVisualDescendants().OfType<StatTile>().Count(t => t.IsEffectivelyVisible));
+        Assert.False(Named<Control>(window, "BasicsSection").IsEffectivelyVisible);
+        Assert.True(InWindow(window, Named<Button>(window, "NewButton")).Bottom <= InWindow(window, Named<SearchField>(window, "TreatmentSearch")).Top);
+        Assert.True(InWindow(window, Named<SaveBar>(window, "CardSaveBar")).Bottom <= InWindow(window, Named<Border>(window, "SectionTabs")).Top);
+        return treatments;
+    }, TreatmentApi());
+
+    [Theory]
+    [InlineData("hell")]
+    [InlineData("dunkel")]
+    public Task Verwaltung_Behandlungen_Grunddaten(string theme) => Render(theme, "verwaltung-behandlungen-grunddaten", async (window, main) =>
+    {
+        var treatments = await OpenTreatments(window, main);
+        await ClickSection(window, "Grunddaten und Preis");
+
+        // Name und Kategorie je halbe Breite, Dauer und Preis je Viertel (Nachtrag zu ADR 0098)
+        var name = InWindow(window, Named<TextBox>(window, "NameField"));
+        var category = InWindow(window, Named<TextBox>(window, "CategoryField"));
+        var duration = InWindow(window, Named<Control>(window, "DurationField"));
+        var price = InWindow(window, Named<Control>(window, "PriceField"));
+        Assert.InRange(Math.Abs(name.Width - category.Width), 0, 1.5);
+        Assert.InRange(Math.Abs(duration.Width - price.Width), 0, 1.5);
+        Assert.InRange(Math.Abs(name.Width - (2 * duration.Width + 12)), 0, 1.5);
+        Assert.Equal("Hot Stone 60", Named<TextBox>(window, "NameField").Text);
         return treatments;
     }, TreatmentApi());
 
@@ -297,6 +324,7 @@ public sealed partial class ViewTests
         return Render("hell", "verwaltung-behandlungen-gespeichert", async (window, main) =>
         {
             var treatments = await OpenTreatments(window, main);
+            await ClickSection(window, "Grunddaten und Preis");
             Assert.Equal("89,00", Named<TextBox>(window, "PriceField").Text);
 
             await TypeInto(window, "PriceField", "95");
@@ -346,10 +374,7 @@ public sealed partial class ViewTests
         return Render("hell", "verwaltung-behandlungen-qualifikation", async (window, main) =>
         {
             var treatments = await OpenTreatments(window, main);
-            var create = RowIn(window, "TreatmentList", "Behandlung anlegen");
-            create.BringIntoView();
-            await Pump(Settling);
-            ClickCenter(window, create);
+            ClickCenter(window, Named<Button>(window, "NewButton"));
             await Pump(Settling);
             Assert.True(treatments.Editor?.IsNew);
 
@@ -373,6 +398,7 @@ public sealed partial class ViewTests
         return Render("hell", "verwaltung-behandlungen-knopf", async (window, main) =>
         {
             var treatments = await OpenTreatments(window, main);
+            await ClickSection(window, "Grunddaten und Preis");
             await TypeInto(window, "PriceField", "95");
             var save = window.GetVisualDescendants().OfType<SaveBar>().Single().GetVisualDescendants().OfType<Button>().First(b => b.Content as string == "Speichern");
             ClickCenter(window, save);
@@ -447,9 +473,9 @@ public sealed partial class ViewTests
                     problems.AddRange(await TabProblems(window, $"Behandlungen, {section}"));
                 }
 
-                await AssertNoBindingErrors(log, "Behandlung anlegen", async () =>
+                await AssertNoBindingErrors(log, "Neue Behandlung", async () =>
                 {
-                    treatments.SelectedEntry = treatments.Entries.Single(e => e.IsNew);
+                    ClickCenter(window, Named<Button>(window, "NewButton"));
                     await Pump(Settling);
                 });
                 await AssertNoBindingErrors(log, "Zum Kalender", async () =>
@@ -467,4 +493,60 @@ public sealed partial class ViewTests
                 Logger.Sink = previous;
             }
         }, TreatmentApi());
+
+    [Theory]
+    [InlineData("hell")]
+    [InlineData("dunkel")]
+    public Task Verwaltung_Behandlungen_Liste_klappt_Kategorien_zu_und_zeigt_Dauer_und_Preis(string theme) => Render(theme, "verwaltung-behandlungen-liste", async (window, main) =>
+    {
+        // Given die Liste mit Kategorien: „Neue Behandlung“ fest oben, darunter Suche, Liste und der Schalter für nicht mehr angebotene
+        var treatments = await OpenTreatments(window, main);
+        var list = Named<ListBox>(window, "TreatmentList");
+        Assert.True(list.GetVisualDescendants().OfType<ListBoxItem>().All(i => i.Bounds.Height > 0));
+        Assert.True(Shows(window, "60 Min. · 89 €"));
+        var first = InWindow(window, list.GetVisualDescendants().OfType<ListBoxItem>().First());
+        Assert.True(first.Top >= InWindow(window, list).Top - 0.5, "Die erste Zeile ist angeschnitten");
+        Assert.True(Named<CheckBox>(window, "ShowInactiveBox").IsEffectivelyVisible);
+
+        // When die Inhaberin die Kategorie „Massagen“ anklickt Then zeigt sie nur noch die Überschrift mit Anzahl, die offene Behandlung bleibt
+        ClickCenter(window, RowIn(window, "TreatmentList", "Massagen"));
+        await Pump(Settling);
+        Assert.DoesNotContain(treatments.Entries, e => e.Title == "Hot Stone 60");
+        Assert.True(treatments.Entries.Single(e => e.Title == "Massagen").IsCollapsed);
+        Assert.Equal("Hot Stone 60", treatments.Editor?.Title);
+
+        // And die Suche klappt auf und filtert
+        Named<SearchField>(window, "TreatmentSearch").Text = "hot";
+        await Pump(Settling);
+        Assert.Contains(treatments.Entries, e => e.Title == "Hot Stone 60");
+        Assert.All(treatments.Entries.Where(e => !e.IsHeading), e => Assert.Contains("hot", e.Title, StringComparison.OrdinalIgnoreCase));
+        Named<SearchField>(window, "TreatmentSearch").Text = "";
+        await Pump(Settling);
+        return treatments;
+    }, TreatmentApi());
+
+    [Fact]
+    public Task Given_Hot_Stone_60_When_die_Inhaberin_im_Menue_Nicht_mehr_anbieten_waehlt_Then_fragt_die_Maske_und_nimmt_sie_aus_der_Liste()
+    {
+        var api = TreatmentApi().On($"DELETE /api/treatments/{HotStone60.Id}", null, HttpStatusCode.NoContent);
+        return Render("hell", "probe-behandlungen-menue", async (window, main) =>
+        {
+            var treatments = await OpenTreatments(window, main);
+            treatments.Dialogs = new FakeDialogs().Answer(ConfirmChoice.Confirmed);
+            var more = Named<MoreMenuButton>(window, "MoreButton");
+            Assert.True(more.IsEffectivelyVisible);
+            Assert.Equal("Weitere Aktionen zu Hot Stone 60", Avalonia.Automation.AutomationProperties.GetName(more));
+
+            ClickCenter(window, more);
+            await Pump(Settling);
+            var item = Assert.IsType<MenuFlyout>(more.Flyout).Items.OfType<MenuItem>().Single();
+            Assert.Equal("Nicht mehr anbieten …", item.Header);
+            item.Command!.Execute(null);
+            await Pump(Settling);
+
+            Assert.Single(api.Calls, c => c.Route == $"DELETE /api/treatments/{HotStone60.Id}");
+            Assert.DoesNotContain(treatments.Entries, e => e.Title == "Hot Stone 60");
+            return treatments;
+        }, api);
+    }
 }

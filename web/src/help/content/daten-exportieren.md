@@ -19,7 +19,7 @@ Fast jede Liste der App lässt sich als Datei speichern: als **Excel** zum Weite
 - **Kunden**: Kundenliste, Portal-CSV, Kontakte als vCard, für die Leitung die Newsletter-Liste. Mehr dazu: [Kunden exportieren](hilfe:kunden-exportieren).
 - **Kalender**: am Knopf **Termin** die Terminliste eines Zeitraums; im Termin und in der Personenkarte die Kalenderdatei. Mehr dazu: [Kalenderdatei für Outlook, Apple und Google](hilfe:kalender-kalenderdatei).
 - **Kassa**: Belegliste, Umsatz je Tag, je Zahlart und je Behandlung und Person, Tagesabschlüsse und Gutscheinbestand, siehe [Seite „Kassa“](hilfe:seite-kassa#kopfzeile).
-- **Lager**: Bestand je Lagerort, Inventur, Lagerbewegungen, Bestellungen und Ablaufliste, siehe [Seite „Lager“](hilfe:seite-stock#aufbau).
+- **Lager**: ein Dialog mit Inhalt (Bestand je Lagerort, Inventur, Lagerbewegungen, Bestellungen, Ablaufliste), Format und Zeitraum, siehe [Seite „Lager“](hilfe:seite-stock#aufbau).
 - **Zeiten** und **Wochenplan**: Stundenliste, Abwesenheiten und Dienstplan der Woche, siehe [Seite „Zeiten“](hilfe:seite-time#aufbau) und [Seite „Dienstplan“](hilfe:seite-roster#aufbau).
 - **Berichte** › **Management**: die Kennzahlen des Zeitraums, siehe [Kennzahlen im Management ansehen](hilfe:berichte-kennzahlen-ansehen#zeitraum).
 

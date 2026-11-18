@@ -950,22 +950,22 @@
                 <StackPanel ToolTip.Tip="Erledigte Besuche insgesamt" ui:ToolTipBehavior.Reachable="True" AutomationProperties.Name="{Binding VisitsText, StringFormat='Besuche gesamt {0}'}"
                             AutomationProperties.ControlTypeOverride="Text" AutomationProperties.AccessibilityView="Content">
                   <TextBlock Text="{Binding VisitsText}" FontSize="22" FontWeight="SemiBold" Classes="num" AutomationProperties.AccessibilityView="Raw" />
-                  <TextBlock Text="Besuche gesamt" Classes="muted small" AutomationProperties.AccessibilityView="Raw" />
+                  <TextBlock Text="Besuche gesamt" Classes="group" AutomationProperties.AccessibilityView="Raw" />
                 </StackPanel>
                 <StackPanel ToolTip.Tip="{Binding LastVisitTip}" ui:ToolTipBehavior.Reachable="True" AutomationProperties.Name="{Binding LastVisitText, StringFormat='Letzter Besuch {0}'}"
                             AutomationProperties.ControlTypeOverride="Text" AutomationProperties.AccessibilityView="Content">
                   <TextBlock Text="{Binding LastVisitText}" FontSize="22" FontWeight="SemiBold" Classes="num" AutomationProperties.AccessibilityView="Raw" />
-                  <TextBlock Text="Letzter Besuch" Classes="muted small" AutomationProperties.AccessibilityView="Raw" />
+                  <TextBlock Text="Letzter Besuch" Classes="group" AutomationProperties.AccessibilityView="Raw" />
                 </StackPanel>
                 <StackPanel ToolTip.Tip="Termine, zu denen der Gast nicht erschienen ist" ui:ToolTipBehavior.Reachable="True" AutomationProperties.Name="{Binding NoShowsText, StringFormat='Nicht erschienen {0}'}"
                             AutomationProperties.ControlTypeOverride="Text" AutomationProperties.AccessibilityView="Content">
                   <TextBlock Text="{Binding NoShowsText}" FontSize="22" FontWeight="SemiBold" Classes="num" Classes.warn="{Binding HasNoShows}" AutomationProperties.AccessibilityView="Raw" />
-                  <TextBlock Text="Nicht erschienen" Classes="muted small" AutomationProperties.AccessibilityView="Raw" />
+                  <TextBlock Text="Nicht erschienen" Classes="group" AutomationProperties.AccessibilityView="Raw" />
                 </StackPanel>
                 <StackPanel ToolTip.Tip="{Binding NextTip}" ui:ToolTipBehavior.Reachable="True" AutomationProperties.Name="{Binding NextText, StringFormat='Nächster Termin {0}'}"
                             AutomationProperties.ControlTypeOverride="Text" AutomationProperties.AccessibilityView="Content">
                   <TextBlock Text="{Binding NextText}" FontSize="22" FontWeight="SemiBold" Classes="num" AutomationProperties.AccessibilityView="Raw" />
-                  <TextBlock Text="Nächster Termin" Classes="muted small" AutomationProperties.AccessibilityView="Raw" />
+                  <TextBlock Text="Nächster Termin" Classes="group" AutomationProperties.AccessibilityView="Raw" />
                 </StackPanel>
               </UniformGrid>
               <TextBlock Text="{Binding OpenLine}" Classes="small" TextWrapping="Wrap" IsVisible="{Binding HasOpen}" />
@@ -978,7 +978,7 @@
             <Border Classes="divider" />
             <Border Classes="hint" IsVisible="{Binding HasNote}">
               <StackPanel Spacing="2">
-                <TextBlock Text="Kundennotiz" Classes="muted small" />
+                <TextBlock Text="Kundennotiz" Classes="group" />
                 <TextBlock Text="{Binding Note}" TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding NoteTip}" />
               </StackPanel>
             </Border>
@@ -2346,7 +2346,7 @@
                               ToolTip.Tip="Im Kalender hervorheben" AutomationProperties.Name="{Binding Overview?.Appointments, StringFormat='Termine, {0}', TargetNullValue='Termine, 0'}">
                         <StackPanel>
                           <TextBlock Text="{Binding Overview.Appointments, FallbackValue=0}" FontSize="22" FontWeight="SemiBold" Classes="num" />
-                          <TextBlock Text="Termine" Classes="muted small" />
+                          <TextBlock Text="Termine" Classes="group" />
                         </StackPanel>
                       </Button>
                       <Button Classes="ghost stat" Command="{Binding FocusOnCommand}" CommandParameter="{x:Static vm:CalendarFocus.CheckedIn}" Click="OnOverviewAction"
@@ -2354,21 +2354,21 @@
                         <StackPanel>
                           <TextBlock Text="{Binding Overview.CheckedIn, FallbackValue=0}" FontSize="22" FontWeight="SemiBold" Classes="num"
                                      Foreground="{DynamicResource OkBrush}" />
-                          <TextBlock Text="Eingecheckt" Classes="muted small" />
+                          <TextBlock Text="Eingecheckt" Classes="group" />
                         </StackPanel>
                       </Button>
                       <Button Classes="ghost stat" Command="{Binding FocusOnCommand}" CommandParameter="{x:Static vm:CalendarFocus.Expected}" Click="OnOverviewAction"
                               ToolTip.Tip="Im Kalender hervorheben" AutomationProperties.Name="{Binding Overview?.Open, StringFormat='Noch erwartet, {0}', TargetNullValue='Noch erwartet, 0'}">
                         <StackPanel>
                           <TextBlock Text="{Binding Overview.Open, FallbackValue=0}" FontSize="22" FontWeight="SemiBold" Classes="num" />
-                          <TextBlock Text="Noch erwartet" Classes="muted small" />
+                          <TextBlock Text="Noch erwartet" Classes="group" />
                         </StackPanel>
                       </Button>
                       <Button Classes="ghost stat" Command="{Binding OpenFreeTimeCommand}" Click="OnOverviewAction" ToolTip.Tip="Freie Zeit suchen: wo ist noch Platz?"
                               AutomationProperties.Name="{Binding Overview?.Utilization, StringFormat='Auslastung Team, {0}', TargetNullValue='Auslastung Team, –'}">
                         <StackPanel>
                           <TextBlock Text="{Binding Overview.Utilization, FallbackValue='–'}" FontSize="22" FontWeight="SemiBold" Classes="num" />
-                          <TextBlock Text="Auslastung Team" Classes="muted small" />
+                          <TextBlock Text="Auslastung Team" Classes="group" />
                         </StackPanel>
                       </Button>
                     </UniformGrid>
@@ -3173,9 +3173,11 @@
               <ContentControl Content="{Binding MessagesPanel}" />
               <ContentControl Content="{Binding MessageDetail}" />
               <ContentControl Content="{Binding RoomCarePanel}" />
-              <ContentControl Content="{Binding CompanionPanel}" />
             </Panel>
           </ScrollViewer>
+          <!-- KI und Hilfe rollt selbst (Hilfe-Bereich und Assistent getrennt): der eingebettete Browser der Hilfe darf in keinem ScrollViewer liegen -->
+          <ContentControl x:Name="CompanionHost" Content="{Binding CompanionPanel}" Margin="0,0,0,32"
+                          IsVisible="{Binding CompanionPanel, Converter={x:Static ObjectConverters.IsNotNull}}" />
           <!-- Kundendaten ergänzen: dasselbe Formular wie in der Kundenkarte; das Panel wird dafür breiter, die Aktionsleiste steht fest im Fuß -->
           <Border IsVisible="{Binding Selected?.IsEditingCustomer, TargetNullValue=False}">
             <local:CustomerContactForm x:Name="PanelCustomerForm" Docked="True" DataContext="{Binding Selected?.CustomerForm}" HorizontalAlignment="Stretch" />

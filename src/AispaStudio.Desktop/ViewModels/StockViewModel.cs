@@ -53,11 +53,13 @@ public sealed partial class StockViewModel : ViewModelBase, INativeArea
     private int _locationVersion;
     private int _levelsVersion;
     private readonly bool _isLeadership;
+    private readonly ISettingsStore _settings;
     private StockTab _tabBeforeSetup = StockTab.Overview;
     private bool _usageRequested;
 
-    public StockViewModel(IWorkstationApi api, CurrentUser user, TimeProvider time, ILiveUpdates? live = null)
+    public StockViewModel(IWorkstationApi api, CurrentUser user, TimeProvider time, ILiveUpdates? live = null, ISettingsStore? settings = null)
     {
+        _settings = settings ?? new MemorySettingsStore();
         Api = api;
         Time = time;
         CanViewUsage = user.Rights.Contains(AccessRight.ViewFinance);
@@ -591,6 +593,18 @@ public sealed partial class StockViewModel : ViewModelBase, INativeArea
 
     [RelayCommand]
     private void CloseError() => Error = null;
+
+    /// <summary>„Material anlegen“ über der Liste: fragt bei ungespeicherten Änderungen im Formular, leert es und setzt den Fokus auf die Bezeichnung.</summary>
+    internal async Task StartNewItemAsync()
+    {
+        if (!CanCatalog || !await UnsavedChanges.ConfirmLeaveAsync(Dialogs, ItemForm).ConfigureAwait(true))
+        {
+            return;
+        }
+
+        ItemForm.Clear();
+        ItemForm.FocusTarget = StockItemFormViewModel.NameField;
+    }
 
     /// <summary>Ein Sprung aus Kalender oder Assistent: das Material im Bestand wählen. Steht die Maske noch nicht, gilt das Ziel nach dem Laden.</summary>
     public void Open(Guid? id, string? section, string? field)

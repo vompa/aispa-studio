@@ -5,15 +5,20 @@ using AispaStudio.Desktop.ViewModels;
 
 namespace AispaStudio.Desktop.Tests;
 
-/// <summary>R05 Slice 96 (Ä191, ADR 0084): Erinnerungen als native Maske; geplant wird in der API nach dem gespeicherten Stand.</summary>
+/// <summary>R05 Slice 96 (Ä191, ADR 0084) und P8 (17.11.2026): Erinnerungen als native Maske; geplant wird in der API nach dem gespeicherten Stand.</summary>
 public sealed class RemindersTests
 {
     internal static readonly ReminderSettingsDto Day = new(true, 24, 2, ReminderChannel.Email, null, "de");
 
-    internal static readonly RebookSettingsDto Rebook = new(true, [new RebookIntervalDto(TestData.MassageTreatment.Id, 56)]);
+    /// <summary>Standard 42 Tage, die Kategorie „Gesicht“ nach 35, die Massage nach 56; „Massage“ liegt in der Kategorie „Massagen“.</summary>
+    internal static readonly RebookSettingsDto Rebook = new(true, [new RebookIntervalDto(TestData.MassageTreatment.Id, 56)])
+    {
+        DefaultDays = 42,
+        CategoryIntervals = [new RebookCategoryIntervalDto("Gesicht", 35)],
+        SilentTreatmentIds = [],
+    };
 
-    internal static readonly RebookReminderDto Sent = new(Guid.NewGuid(), Guid.NewGuid(), "Lena Huber", "Gesicht", "Sent", true, "Liebe Lena …",
-        new DateTimeOffset(2026, 10, 19, 11, 30, 0, TimeSpan.Zero), new DateTimeOffset(2026, 10, 19, 11, 40, 0, TimeSpan.Zero), null);
+    internal static readonly DispatchSummaryDto Summary = new(30, new DispatchKindSummaryDto(34, 0, 2), new DispatchKindSummaryDto(12, 1, 0));
 
     internal static StubApi Api() => new StubApi()
         .On("GET /api/reminders/settings", Day)
@@ -21,7 +26,7 @@ public sealed class RemindersTests
         .On("GET /api/retention/settings", Rebook)
         .OnJson("PUT /api/retention/settings", body => JsonSerializer.Deserialize<RebookSettingsDto>(body!, ApiClient.Json)!)
         .On("GET /api/treatments", new[] { TestData.Facial, TestData.MassageTreatment })
-        .On("GET /api/retention/reminders", new[] { Sent });
+        .On("GET /api/dispatch-log/summary", Summary);
 
     private static async Task<RemindersViewModel> Loaded(StubApi api)
     {
@@ -30,6 +35,9 @@ public sealed class RemindersTests
         Assert.True(reminders.IsLoaded);
         return reminders;
     }
+
+    private static RebookSettingsDto SentRebook(StubApi api) =>
+        JsonSerializer.Deserialize<RebookSettingsDto>(Assert.Single(api.Calls, c => c.Route == "PUT /api/retention/settings").Body!, ApiClient.Json)!;
 
     [Fact]
     public async Task Given_24_Stunden_When_48_eingetragen_und_gespeichert_Then_PUT_mit_48_und_nur_die_Terminerinnerung()
@@ -50,23 +58,100 @@ public sealed class RemindersTests
     }
 
     [Fact]
-    public async Task Given_Wiederbuchen_When_Tage_fuer_eine_Behandlung_eingetragen_Then_PUT_der_Abstaende_und_leer_heisst_keine()
+    public async Task Given_Standard_und_Ausnahmen_When_geladen_Then_Kategorien_vor_Behandlungen_und_das_Menue_nennt_den_Rest()
+    {
+        var reminders = await Loaded(Api());
+
+        Assert.Equal(42m, reminders.RebookDefaultDays);
+        Assert.Equal(["Kategorie Gesicht", "Massage"], reminders.Exceptions.Select(r => r.Label));
+        Assert.Equal([35m, 56m], reminders.Exceptions.Select(r => r.Days));
+        Assert.Equal(["Kategorie Massagen", "Gesicht"], reminders.ExceptionChoices.Select(c => c.Label));
+        Assert.False(reminders.HasUnsavedChanges);
+    }
+
+    [Fact]
+    public async Task Given_Standard_When_28_eingetragen_und_gespeichert_Then_PUT_mit_neuem_Standard_und_unveraenderten_Ausnahmen()
     {
         var api = Api();
         var reminders = await Loaded(api);
-        Assert.Equal(["Gesicht (Tage, leer = keine)", "Massage (Tage, leer = keine)"], reminders.Intervals.Select(r => r.Label));
-        Assert.Equal([null, 56m], reminders.Intervals.Select(r => r.Days));
 
-        reminders.Intervals[0].Days = 42m;
-        reminders.Intervals[1].Days = null;
+        reminders.RebookDefaultDays = 28m;
         Assert.True(reminders.HasUnsavedChanges);
         Assert.True(await reminders.SaveChangesAsync());
 
-        var put = Assert.Single(api.Calls, c => c.Route == "PUT /api/retention/settings");
-        var sent = JsonSerializer.Deserialize<RebookSettingsDto>(put.Body!, ApiClient.Json)!;
-        Assert.True(sent.Enabled);
-        Assert.Equal([new RebookIntervalDto(TestData.Facial.Id, 42)], sent.Intervals);
+        var sent = SentRebook(api);
+        Assert.Equal(28, sent.DefaultDays);
+        Assert.Equal([new RebookCategoryIntervalDto("Gesicht", 35)], sent.CategoryIntervals);
+        Assert.Equal([new RebookIntervalDto(TestData.MassageTreatment.Id, 56)], sent.Intervals);
+        Assert.Empty(sent.SilentTreatmentIds!);
         Assert.DoesNotContain(api.Calls, c => c.Route == "PUT /api/reminders/settings");
+    }
+
+    [Fact]
+    public async Task Given_Standard_geleert_When_gespeichert_Then_PUT_ohne_Standard_aber_mit_Kategorien_damit_die_API_ihn_loescht()
+    {
+        var api = Api();
+        var reminders = await Loaded(api);
+
+        reminders.RebookDefaultDays = null;
+        Assert.True(await reminders.SaveChangesAsync());
+
+        var sent = SentRebook(api);
+        Assert.Null(sent.DefaultDays);
+        Assert.NotNull(sent.CategoryIntervals);
+    }
+
+    [Fact]
+    public async Task Given_Menue_When_Behandlung_gewaehlt_Then_Zeile_ohne_Tage_heisst_kein_Hinweis_und_wird_als_Ausnahme_ohne_Hinweis_gespeichert()
+    {
+        var api = Api();
+        var reminders = await Loaded(api);
+
+        reminders.NewException = reminders.ExceptionChoices.Single(c => c.Label == "Gesicht");
+
+        Assert.Null(reminders.NewException);
+        var row = Assert.Single(reminders.Exceptions, r => r.TreatmentId == TestData.Facial.Id);
+        Assert.True(row.HasNoHint);
+        Assert.DoesNotContain(reminders.ExceptionChoices, c => c.TreatmentId == TestData.Facial.Id);
+        Assert.True(reminders.HasUnsavedChanges);
+        Assert.True(await reminders.SaveChangesAsync());
+
+        var sent = SentRebook(api);
+        Assert.Equal([TestData.Facial.Id], sent.SilentTreatmentIds);
+        Assert.Equal([new RebookIntervalDto(TestData.MassageTreatment.Id, 56)], sent.Intervals);
+    }
+
+    [Fact]
+    public async Task Given_Ausnahme_When_Tage_eingetragen_und_eine_andere_entfernt_Then_PUT_mit_dem_neuen_Stand()
+    {
+        var api = Api();
+        var reminders = await Loaded(api);
+        reminders.NewException = reminders.ExceptionChoices.Single(c => c.Label == "Kategorie Massagen");
+        reminders.Exceptions.Single(r => r.Category == "Massagen").Days = 49m;
+        reminders.Exceptions.Single(r => r.TreatmentId == TestData.MassageTreatment.Id).RemoveCommand.Execute(null);
+
+        Assert.True(reminders.HasUnsavedChanges);
+        Assert.Contains(reminders.ExceptionChoices, c => c.TreatmentId == TestData.MassageTreatment.Id);
+        Assert.True(await reminders.SaveChangesAsync());
+
+        var sent = SentRebook(api);
+        Assert.Empty(sent.Intervals);
+        Assert.Equal([new RebookCategoryIntervalDto("Gesicht", 35), new RebookCategoryIntervalDto("Massagen", 49)], sent.CategoryIntervals);
+    }
+
+    [Fact]
+    public async Task Given_Aenderung_When_verworfen_Then_Standard_und_Ausnahmen_wie_gespeichert()
+    {
+        var reminders = await Loaded(Api());
+        reminders.RebookDefaultDays = 70m;
+        reminders.Exceptions[0].RemoveCommand.Execute(null);
+        Assert.True(reminders.HasUnsavedChanges);
+
+        reminders.Discard();
+
+        Assert.Equal(42m, reminders.RebookDefaultDays);
+        Assert.Equal(["Kategorie Gesicht", "Massage"], reminders.Exceptions.Select(r => r.Label));
+        Assert.False(reminders.HasUnsavedChanges);
     }
 
     [Fact]
@@ -82,14 +167,24 @@ public sealed class RemindersTests
     }
 
     [Fact]
-    public async Task Given_verschickte_Erinnerung_When_geladen_Then_Zeile_wie_im_Web()
+    public async Task Given_Zahlen_der_letzten_30_Tage_When_geladen_Then_je_Abschnitt_eine_Zeile_und_Fehlgeschlagenes_als_eigene_Marke()
     {
         var reminders = await Loaded(Api());
 
-        var row = Assert.Single(reminders.Recent);
-        Assert.Equal("Lena Huber, Gesicht: gesendet (Text von der KI) 19.10.26, 11:40", row.Line);
-        Assert.Equal("Liebe Lena …", row.Text);
-        Assert.True(reminders.HasRecent);
+        Assert.Equal("Letzte 30 Tage: 34 verschickt, 0 fehlgeschlagen", reminders.ReminderSummary);
+        Assert.False(reminders.HasReminderFailed);
+        Assert.Equal("Letzte 30 Tage: 12 verschickt,", reminders.RebookSummary);
+        Assert.Equal("1 fehlgeschlagen", reminders.RebookFailed);
+        Assert.True(reminders.HasRebookFailed);
+    }
+
+    [Fact]
+    public async Task Given_noch_nichts_verschickt_When_geladen_Then_die_Zeile_sagt_das()
+    {
+        var reminders = await Loaded(Api().On("GET /api/dispatch-log/summary", new DispatchSummaryDto(30, new(0, 0, 0), new(0, 0, 0))));
+
+        Assert.Equal("Letzte 30 Tage: noch nichts verschickt", reminders.ReminderSummary);
+        Assert.Equal("Letzte 30 Tage: noch nichts verschickt", reminders.RebookSummary);
     }
 
     [Fact]
@@ -107,22 +202,23 @@ public sealed class RemindersTests
         Assert.True(reminders.HasUnsavedChanges);
     }
 
-    /// <summary>Die Behandlungsliste der API enthält nur angebotene Behandlungen; Abstände anderer Behandlungen bleiben wie im Web erhalten.</summary>
+    /// <summary>Die Behandlungsliste der API enthält nur angebotene Behandlungen; Ausnahmen anderer Behandlungen bleiben wie im Web erhalten.</summary>
     [Fact]
-    public async Task Given_Abstand_einer_nicht_mehr_angebotenen_Behandlung_When_geladen_und_gespeichert_Then_bleibt_er_erhalten()
+    public async Task Given_Ausnahmen_einer_nicht_mehr_angebotenen_Behandlung_When_geladen_und_gespeichert_Then_bleiben_sie_erhalten()
     {
         var retired = new RebookIntervalDto(Guid.NewGuid(), 90);
-        var api = Api().On("GET /api/retention/settings", Rebook with { Intervals = [.. Rebook.Intervals, retired] });
+        var retiredSilent = Guid.NewGuid();
+        var api = Api().On("GET /api/retention/settings", Rebook with { Intervals = [.. Rebook.Intervals, retired], SilentTreatmentIds = [retiredSilent] });
         var reminders = await Loaded(api);
         Assert.False(reminders.HasUnsavedChanges);
+        Assert.Equal(2, reminders.Exceptions.Count);
 
-        reminders.Intervals[0].Days = 42m;
+        reminders.RebookDefaultDays = 30m;
         Assert.True(await reminders.SaveChangesAsync());
 
-        var put = Assert.Single(api.Calls, c => c.Route == "PUT /api/retention/settings");
-        var sent = JsonSerializer.Deserialize<RebookSettingsDto>(put.Body!, ApiClient.Json)!;
+        var sent = SentRebook(api);
         Assert.Contains(retired, sent.Intervals);
-        Assert.Contains(new RebookIntervalDto(TestData.Facial.Id, 42), sent.Intervals);
+        Assert.Equal([retiredSilent], sent.SilentTreatmentIds);
     }
 
     [Fact]
@@ -157,12 +253,62 @@ public sealed class RemindersTests
     }
 
     [Fact]
-    public async Task Given_Liste_zuletzt_verschickt_laedt_nicht_When_geladen_Then_ist_die_Maske_trotzdem_bedienbar()
+    public async Task Given_Zahlen_laden_nicht_When_geladen_Then_ist_die_Maske_trotzdem_bedienbar()
     {
-        var api = Api().On("GET /api/retention/reminders", new { title = "Fehler" }, System.Net.HttpStatusCode.InternalServerError);
+        var api = Api().On("GET /api/dispatch-log/summary", new { title = "Fehler" }, System.Net.HttpStatusCode.InternalServerError);
         var reminders = await Loaded(api);
 
-        Assert.False(reminders.HasRecent);
+        Assert.Null(reminders.ReminderSummary);
+        Assert.Null(reminders.RebookSummary);
         Assert.Equal(24m, reminders.FirstHours);
+    }
+
+    // T-081: In der Stufe „Start“ sind die Erinnerungen an und die Wiederbuchung aus; die Maske lädt nur, was die API anbietet.
+    [Fact]
+    public async Task Given_Wiederbuchung_aus_When_geladen_Then_ohne_Aufruf_der_Wiederbuchung_und_ohne_Fehler()
+    {
+        var api = Api();
+        var reminders = new RemindersViewModel(api.Client(), TimeZoneInfo.Utc, rebookingOn: false);
+
+        await reminders.LoadAsync();
+
+        Assert.True(reminders.IsLoaded);
+        Assert.False(reminders.HasLoadError);
+        Assert.True(reminders.RemindersOn);
+        Assert.False(reminders.RebookingOn);
+        Assert.Equal(24m, reminders.FirstHours);
+        Assert.DoesNotContain(api.Calls, c => c.Route == "GET /api/retention/settings");
+        Assert.False(reminders.HasUnsavedChanges);
+    }
+
+    [Fact]
+    public async Task Given_Wiederbuchung_aus_When_Erinnerung_geaendert_und_gespeichert_Then_nur_die_Terminerinnerung_geht_raus()
+    {
+        var api = Api();
+        var reminders = new RemindersViewModel(api.Client(), TimeZoneInfo.Utc, rebookingOn: false);
+        await reminders.LoadAsync();
+
+        reminders.FirstHours = 48m;
+        Assert.True(reminders.HasUnsavedChanges);
+        Assert.True(await reminders.SaveChangesAsync());
+
+        Assert.Single(api.Calls, c => c.Route == "PUT /api/reminders/settings");
+        Assert.DoesNotContain(api.Calls, c => c.Route.Contains("retention"));
+    }
+
+    [Fact]
+    public async Task Given_Terminerinnerung_aus_When_geladen_Then_nur_die_Wiederbuchung_ohne_Versandprotokoll()
+    {
+        var api = Api();
+        var reminders = new RemindersViewModel(api.Client(), TimeZoneInfo.Utc, remindersOn: false);
+
+        await reminders.LoadAsync();
+
+        Assert.True(reminders.IsLoaded);
+        Assert.False(reminders.HasLoadError);
+        Assert.False(reminders.RemindersOn);
+        Assert.True(reminders.RebookingOn);
+        Assert.Equal(42m, reminders.RebookDefaultDays);
+        Assert.DoesNotContain(api.Calls, c => c.Route == "GET /api/reminders/settings" || c.Route.StartsWith("GET /api/dispatch-log", StringComparison.Ordinal));
     }
 }

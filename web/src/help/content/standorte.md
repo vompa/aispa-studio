@@ -19,6 +19,7 @@ Wer darf was:
 
 In der Windows-App:
 
+- **Standort anlegen** steht fest über der Liste der Standorte, nicht darin.
 - Das Formular des Standorts (Name bis Öffnungszeiten) speichert **Speichern** unter den Öffnungszeiten, auch für einen neuen Standort. **Strg+S** speichert wie der Knopf, **Verwerfen** holt den gespeicherten Stand zurück.
 - Wer den Standort mit ungespeicherten Änderungen verlässt, etwa einen anderen Standort wählt oder zum Kalender wechselt, wird gefragt: „Änderungen speichern?“ mit „Speichern“, „Verwerfen“ und „Abbrechen“. „Abbrechen“ bleibt beim Standort.
 - Online-Buchung, Räume, Tagesstart-Kontrolle und Geräte speichern für sich, mit dem Knopf im Abschnitt bzw. in der Zeile; sie zählen nicht zu den Änderungen, nach denen die Rückfrage fragt. Eine Raumzeile mit eigenen Änderungen zeigt „Nicht gespeichert“ und den Knopf „Speichern“.
@@ -188,7 +189,7 @@ Erscheint, sobald der Standort eigene Regeln hat. Löscht die eigenen Regeln; da
 
 ## Räume {#raeume}
 
-Die Räume des Standorts, eine Zeile je Raum. Eine neue Zeile wird mit „Hinzufügen“ angelegt, Änderungen an einer bestehenden Zeile mit „Speichern“ in dieser Zeile. Welche Behandlung in welchem Raum stattfinden kann, wird bei der Behandlung festgelegt.
+Die Räume des Standorts, eine Zeile je Raum. Die Zeile für einen neuen Raum steht fest über der Liste und wird mit „Hinzufügen“ angelegt, Änderungen an einer bestehenden Zeile mit „Speichern“ in dieser Zeile. Welche Behandlung in welchem Raum stattfinden kann, wird bei der Behandlung festgelegt.
 
 ### Name {#raumname}
 
@@ -215,9 +216,25 @@ Häkchen für einen Gemeinschaftsbereich wie Sauna, Ruheraum oder Pool. Gäste b
 
 Nur bei einem Bereich: der Kassa-Artikel, mit dem ein Eintritt je Person abgerechnet wird. Preis, Steuersatz und Erlöskonto kommen vom Artikel. Mit „Nicht an der Kassa“ ist kein Artikel gewählt; dann lässt sich ein Eintritt in diesen Bereich nicht auf eine Rechnung setzen, bis ein Artikel gewählt ist.
 
+### Standort schließen oder löschen {#standort-schliessen}
+
+Nur für Inhaberin und Inhaber. Im Kopf der Karte steht das Menü **⋯** mit **Schließen ab Datum …** und **Löschen …**.
+
+**Schließen ab Datum …** öffnet unter der Überschrift eine Zeile: Datum eintragen und **Schließen** wählen. Ab diesem Tag nimmt der Standort keine Buchung mehr an, auch nicht von der Rezeption, und im Kundenbereich gibt es dort keine freien Zeiten mehr. Vergangene Termine, Belege und Berichte bleiben. In der Liste steht darunter „geschlossen ab …“, über dem Formular ein Hinweis. Liegen ab dem Tag noch offene Termine am Standort, lehnt die Software ab und nennt, wie viele es sind: zuerst verschieben oder stornieren. Der letzte offene Standort lässt sich nicht schließen. Bei einem geschlossenen Standort heißt der Eintrag **Wieder öffnen** und hebt die Schließung auf.
+
+**Löschen …** geht nur, wenn nichts am Standort hängt: keine Räume, Geräte, Termine, Schließzeiten, Kassen, Arbeitszeiten und Lagerbewegungen. Sonst öffnet sich der Dialog „lässt sich nicht löschen“ mit der Liste, was daran hängt, und dem Knopf **Schließen ab Datum …**. Der letzte Standort lässt sich nie löschen.
+
 ### Entfernen {#raum-entfernen}
 
-Nimmt den Raum aus der Planung; in der Windows-App ist es der Papierkorb am Ende der Zeile. Das geht nur, wenn keine künftigen Termine mehr darin liegen; sonst erscheint, wie viele es sind. Diese zuerst verschieben oder stornieren. Vergangene Termine behalten ihren Raum.
+Am Ende der Zeile steht das Menü **⋯** mit **Nicht mehr verwenden** und **Löschen …**. **Nicht mehr verwenden** nimmt den Raum aus der Planung. Das geht nur, wenn keine künftigen Termine mehr darin liegen; sonst erscheint, wie viele es sind. Diese zuerst verschieben oder stornieren. Vergangene Termine behalten ihren Raum.
+
+Ein Raum lässt sich nicht löschen, denn Termine, Kosten und Auswertungen verweisen auf ihn. **Löschen …** öffnet deshalb den Dialog „lässt sich nicht löschen“: Er zählt, was am Raum hängt (künftige und vergangene Termine, Behandlungen, Lagerorte, Sperrzeiten), und bietet **Nicht mehr verwenden** an.
+
+### Wieder verwenden {#raum-wieder-verwenden}
+
+Unter der Liste der Räume steht das Häkchen **Nicht mehr verwendete zeigen**. Mit dem Häkchen stehen die Räume, die aus der Planung genommen wurden, gedämpft unter den aktiven, mit dem Kennzeichen „Nicht mehr verwendet“. Ihr Menü **⋯** hat nur **Wieder verwenden**. Danach steht der Raum wieder in der Liste, im Kalender und bei den Behandlungen, und eine Meldung bestätigt es. Zugeordnete Behandlungen, Raumpflege und Tagesstart-Kontrolle sind unverändert. Das Häkchen sehen nur Inhaberin, Manager und Standortleitung.
+
+![Räume mit dem Häkchen „Nicht mehr verwendete zeigen“: ein gedämpfter Raum mit Kennzeichen und Menü](images/app/verwaltung-standorte-raeume-nicht-mehr-verwendet.png)
 
 ## Tagesstart-Kontrolle {#tagesstart-kontrolle}
 
@@ -228,7 +245,10 @@ Unter den Räumen eines Standorts (in der Windows-App nach den Räumen, vor den 
 
 ## Geräte {#geraete}
 
-Geräte des Standorts, die eine Behandlung braucht und die nur einmal gleichzeitig verwendet werden können, z. B. ein Dampfbad-Kabinett oder ein Hydrojet. Neues Gerät: Namen eingeben und „Hinzufügen“.
+Geräte des Standorts, die eine Behandlung braucht und die nur einmal gleichzeitig verwendet werden können, z. B. ein Dampfbad-Kabinett oder ein Hydrojet. Neues Gerät: Namen im Feld über der Liste eingeben und „Hinzufügen“.
 
 - Bei der Behandlung wird festgelegt, welche Geräte sie braucht. Ein Gerät ist nur während der Behandlung selbst belegt, nicht während Vor- und Nachbereitung.
-- „Entfernen“ nimmt das Gerät aus der Planung. Das geht nur, wenn es für keinen künftigen Termin mehr gebraucht wird.
+- Das Menü **⋯** am Gerät hat **Nicht mehr verwenden** und **Löschen …**. **Nicht mehr verwenden** nimmt das Gerät aus der Planung. Das geht nur, wenn es für keinen künftigen Termin mehr gebraucht wird. Löschen lässt sich ein Gerät nicht; der Dialog zeigt, was daran hängt, und bietet **Nicht mehr verwenden** an.
+- Unter der Liste steht das Häkchen **Nicht mehr verwendete zeigen**. Mit dem Häkchen stehen die entfernten Geräte gedämpft mit dem Kennzeichen „Nicht mehr verwendet“ unter den aktiven; im Menü **⋯** gibt es nur **Wieder verwenden**. Danach steht das Gerät wieder in der Liste und bei den Behandlungen.
+
+![Geräte mit dem Häkchen „Nicht mehr verwendete zeigen“: ein gedämpftes Gerät mit Kennzeichen und Menü](images/app/verwaltung-standorte-geraete-nicht-mehr-verwendet.png)

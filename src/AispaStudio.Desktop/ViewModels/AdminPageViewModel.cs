@@ -31,37 +31,41 @@ public sealed record AdminArea(string Title, string Page, string? Tab)
 /// </summary>
 public sealed partial class AdminPageViewModel : ViewModelBase
 {
-    /// <summary>Alle Bereiche in der Reihenfolge des Inventars, mit den Rechten, von denen eines reicht, damit der Balken den Bereich zeigt.</summary>
-    private static readonly (AdminArea Area, AccessRight[] AnyOf)[] All =
+    /// <summary>
+    /// Alle Bereiche in der Reihenfolge des Inventars, mit den Rechten, von denen eines reicht, damit der Balken den Bereich zeigt, und dem Webmodul, das dafür eingeschaltet sein muss
+    /// (<c>null</c>: der Bereich braucht kein Modul). T-081: ohne das Modul antwortet die API mit 404, der Bereich steht dann gar nicht im Balken.
+    /// </summary>
+    private static readonly (AdminArea Area, AccessRight[] AnyOf, Func<SystemModules, bool>? Module)[] All =
     [
-        (new("Firmendaten", "masterData", "company"), [AccessRight.ManageOrganization]),
-        (new("Standorte & Räume", "masterData", "locations"), [AccessRight.ManageLocation]),
-        (new("Schließzeiten", "masterData", ClosuresPageViewModel.ClosuresSection), [AccessRight.ManageLocation]),
-        (new("Kalender-Abos", "masterData", "subscriptions"), [AccessRight.ManageLocation]),
-        (new("Handbuch", "masterData", "handbook"), [AccessRight.ManageLocation]),
-        (new("Behandlungen", "masterData", "treatments"), [AccessRight.ManageCatalog]),
+        (new("Firmendaten", "masterData", "company"), [AccessRight.ManageOrganization], null),
+        (new("Standorte & Räume", "masterData", "locations"), [AccessRight.ManageLocation], null),
+        (new("Schließzeiten", "masterData", ClosuresPageViewModel.ClosuresSection), [AccessRight.ManageLocation], null),
+        (new("Kalender-Abos", "masterData", "subscriptions"), [AccessRight.ManageLocation], null),
+        (new("Handbuch", "masterData", "handbook"), [AccessRight.ManageLocation], null),
+        (new("Behandlungen", "masterData", "treatments"), [AccessRight.ManageCatalog], null),
         (new("Team", "masterData", "team"),
-            [AccessRight.ManageCatalog, AccessRight.ManageStaff, AccessRight.ViewCalendar, AccessRight.ManageLocation, AccessRight.ViewStaffRecords]),
-        (new("Erinnerungen", "masterData", "reminders"), [AccessRight.ManageOrganization]),
-        (new("Postfach & Nummern", "masterData", "intake"), [AccessRight.ManageOrganization]),
-        (new("Zahlungen", "masterData", "payments"), [AccessRight.ManageOrganization]),
-        (new("Kassa", "masterData", "kassa"), [AccessRight.ManageOrganization]),
-        (new("KI", "masterData", "ai"), [AccessRight.ManageOrganization]),
-        (new("Lager", "stock", null), [AccessRight.Book]),
-        (new("Aktionen", "promotions", null), [AccessRight.ManageCatalog]),
-        (new("Zahlen", "reports", null), [AccessRight.ViewCalendar, AccessRight.ViewFinance]),
-        (new("Kosten", "costs", null), [AccessRight.ViewAmountReports]),
-        (new("Buchhaltung", "accounting", null), [AccessRight.ViewAmountReports]),
+            [AccessRight.ManageCatalog, AccessRight.ManageStaff, AccessRight.ViewCalendar, AccessRight.ManageLocation, AccessRight.ViewStaffRecords], null),
+        (new("Erinnerungen", "masterData", "reminders"), [AccessRight.ManageOrganization], m => m.Reminders || m.Rebooking),
+        (new("Postfach & Nummern", "masterData", "intake"), [AccessRight.ManageOrganization], m => m.BookingIntake),
+        (new("Zahlungen", "masterData", "payments"), [AccessRight.ManageOrganization], m => m.OnlineBooking),
+        (new("Kassa", "masterData", "kassa"), [AccessRight.ManageOrganization], null),
+        (new("KI", "masterData", "ai"), [AccessRight.ManageOrganization], null),
+        (new("Lager", "stock", null), [AccessRight.Book], null),
+        (new("Aktionen", "promotions", null), [AccessRight.ManageCatalog], null),
+        (new("Zahlen", "reports", null), [AccessRight.ViewCalendar, AccessRight.ViewFinance], null),
+        (new("Kosten", "costs", null), [AccessRight.ViewAmountReports], null),
+        (new("Buchhaltung", "accounting", null), [AccessRight.ViewAmountReports], null),
     ];
 
     /// <summary>
-    /// Die Gruppen des Balkens mit ihren Masken (Auftraggeber, 31.10.2026, Ä293). Keine Gruppe hat mehr als fünf Masken (ADR 0098): Schließzeiten und Raumsperren stehen auf einer
+    /// Die Gruppen des Balkens mit ihren Masken (Auftraggeber, 31.10.2026, Ä293; acht Gruppen seit dem Nachtrag zu ADR 0098 vom 17.11.2026: „Angebot“ ist in „Behandlungen“ und „Aktionen“ geteilt). Keine Gruppe hat mehr als fünf Masken (ADR 0098): Schließzeiten und Raumsperren stehen auf einer
     /// Seite.
     /// </summary>
     private static readonly (string Title, string Icon, string[] Areas)[] GroupLayout =
     [
         ("Betrieb", Icons.Location, ["Firmendaten", "Standorte & Räume", "Schließzeiten", "Kalender-Abos", "Handbuch"]),
-        ("Angebot", Icons.Steam, ["Behandlungen", "Aktionen"]),
+        ("Behandlungen", Icons.Steam, ["Behandlungen"]),
+        ("Aktionen", Icons.Gift, ["Aktionen"]),
         ("Team", Icons.Users, ["Team"]),
         ("Lager", Icons.Archive, ["Lager"]),
         ("Kassa & Geld", Icons.Register, ["Kassa", "Zahlungen", "Kosten", "Buchhaltung"]),
@@ -81,8 +85,15 @@ public sealed partial class AdminPageViewModel : ViewModelBase
     /// <summary>Kurzform von <see cref="UnknownNotice"/> für die Meldung unten.</summary>
     public const string UnknownToast = "Diese Stelle gibt es in der Windows-App nicht";
 
+    /// <summary>Hinweis, wenn ein Sprung auf einen Bereich zeigt, dessen Webmodul ausgeschaltet ist (T-081; meldungen.md M5: Problem und Ausweg).</summary>
+    public const string ModuleOffNotice = "Dieses Webmodul ist in dieser Installation ausgeschaltet. Einschalten lässt es sich in den Einstellungen des Servers (Hilfe „Einzelplatz“).";
+
+    /// <summary>Kurzform von <see cref="ModuleOffNotice"/> für die Meldung unten.</summary>
+    public const string ModuleOffToast = "Dieses Webmodul ist ausgeschaltet";
+
     /// <summary>Die native Maske je erlaubtem Bereich; angelegt in <see cref="CreateNative"/>.</summary>
     private readonly Dictionary<AdminArea, ViewModelBase> _native = [];
+    private readonly SystemModules? _modules;
     private bool _initialized;
     private bool _reverting;
 
@@ -92,16 +103,18 @@ public sealed partial class AdminPageViewModel : ViewModelBase
     /// <summary>Sprung in einen anderen nativen Bereich, der erst nach der Rückfrage zu ungespeicherten Änderungen gilt.</summary>
     private Action? _nativeJump;
 
-    public AdminPageViewModel(IWorkstationApi api, CurrentUser user, TimeProvider time, ILiveUpdates? live = null)
+    /// <param name="modules">Die eingeschalteten Webmodule; <c>null</c> (noch keine Antwort) heißt wie in der Shell: alle an.</param>
+    public AdminPageViewModel(IWorkstationApi api, CurrentUser user, TimeProvider time, ILiveUpdates? live = null, SystemModules? modules = null)
     {
-        Areas = [.. All.Where(a => a.AnyOf.Any(user.Rights.Contains)).Select(a => a.Area)];
+        _modules = modules;
+        Areas = [.. All.Where(a => a.AnyOf.Any(user.Rights.Contains) && ModuleOn(a.Module)).Select(a => a.Area)];
         Groups = [.. GroupLayout
             .Select(g => (g.Title, g.Icon, Areas: Areas.Where(a => g.Areas.Contains(a.Title)).OrderBy(a => Array.IndexOf(g.Areas, a.Title)).ToList()))
             .Where(g => g.Areas.Count > 0)
             .Select(g => new AdminGroup(g.Title, g.Icon, g.Areas))];
         foreach (var area in Areas)
         {
-            _native[area] = CreateNative(area, api, user, time, live);
+            _native[area] = CreateNative(area, api, user, time, live, _modules);
         }
 
         Company = _native.Values.OfType<CompanyViewModel>().SingleOrDefault();
@@ -121,6 +134,12 @@ public sealed partial class AdminPageViewModel : ViewModelBase
         Reports = _native.Values.OfType<ReportsViewModel>().SingleOrDefault();
         Accounting = _native.Values.OfType<AccountingViewModel>().SingleOrDefault();
         Costs = _native.Values.OfType<CostsViewModel>().SingleOrDefault();
+        if (Company is not null)
+        {
+            // „Betrieb einrichten“ (ADR 0099): jeder Schritt springt in die passende Maske; fehlt dort das Recht, steht der Hinweis der Seite.
+            Company.SetupStepRequested += step => Show(step.Page, step.Tab);
+        }
+
         if (Treatments is not null)
         {
             Treatments.PersonRequested += id => Show("masterData", "team", id, area: PersonCardViewModel.QualificationsTab);
@@ -154,14 +173,8 @@ public sealed partial class AdminPageViewModel : ViewModelBase
     /// <summary>Standorte &amp; Räume; nur, wer Standorte verwalten darf (ManageLocation).</summary>
     public LocationsViewModel? Locations { get; }
 
-    /// <summary>Seite „Schließzeiten“ mit den Abschnitten Schließzeiten und Raumsperren (ADR 0098); nur, wer Standorte verwalten darf (ManageLocation).</summary>
+    /// <summary>Seite „Schließzeiten“ mit Schließzeiten und Raumsperren in einer Liste (ADR 0098); nur, wer Standorte verwalten darf (ManageLocation).</summary>
     public ClosuresPageViewModel? ClosuresPage { get; }
-
-    /// <summary>Abschnitt „Schließzeiten“ der Seite.</summary>
-    public ClosuresViewModel? Closures => ClosuresPage?.Closures;
-
-    /// <summary>Abschnitt „Raumsperren“ der Seite.</summary>
-    public RoomClosuresViewModel? RoomClosures => ClosuresPage?.RoomClosures;
 
     /// <summary>Kalender-Abos; nur, wer Standorte verwalten darf (ManageLocation).</summary>
     public SubscriptionsViewModel? Subscriptions { get; }
@@ -248,21 +261,21 @@ public sealed partial class AdminPageViewModel : ViewModelBase
     /// Die Maske eines Bereichs. Erweiterungsstelle: ein Bereich bekommt seine Maske, indem er in <see cref="All"/> steht und
     /// hier eine Zeile steht (<c>"subscriptions" =&gt; new SubscriptionsViewModel(api, time)</c>), die <see cref="INativeArea"/> umsetzt; mehr braucht die Seite nicht.
     /// </summary>
-    private static ViewModelBase CreateNative(AdminArea area, IWorkstationApi api, CurrentUser user, TimeProvider time, ILiveUpdates? live) => area.Tab switch
+    private static ViewModelBase CreateNative(AdminArea area, IWorkstationApi api, CurrentUser user, TimeProvider time, ILiveUpdates? live, SystemModules? modules) => area.Tab switch
     {
         "company" => new CompanyViewModel(api, time.LocalTimeZone),
         "locations" => new LocationsViewModel(api, user),
         ClosuresPageViewModel.ClosuresSection => new ClosuresPageViewModel(api, user, time),
         "subscriptions" => new SubscriptionsViewModel(api, time),
         "treatments" => new TreatmentsViewModel(api, time.LocalTimeZone, user.Rights.Contains(AccessRight.ViewAmountReports)),
-        "reminders" => new RemindersViewModel(api, time.LocalTimeZone),
+        "reminders" => new RemindersViewModel(api, time.LocalTimeZone, remindersOn: modules?.Reminders != false, rebookingOn: modules?.Rebooking != false),
         "payments" => new PaymentsViewModel(api),
         "kassa" => new PosSettingsViewModel(api),
         "team" => new TeamViewModel(api, user, time),
         "handbook" => new HandbookViewModel(api),
         "intake" => new IntakeViewModel(api, time.LocalTimeZone),
         "ai" => new AiViewModel(api),
-        _ when area.Page == "stock" => new StockViewModel(api, user, time, live),
+        _ when area.Page == "stock" => new StockViewModel(api, user, time, live, FileSettingsStore.Default),
         _ when area.Page == "promotions" => new PromotionsViewModel(api, time),
         _ when area.Page == "reports" => new ReportsViewModel(api, user, time),
         _ when area.Page == "accounting" => new AccountingViewModel(api, user, time),
@@ -312,14 +325,21 @@ public sealed partial class AdminPageViewModel : ViewModelBase
             ("time", _) => ("masterData", "team", area ?? TeamViewModel.TimesMode),
             // R07 Slice 144: die Betriebsinfo ist ein Reiter in „Zahlen“.
             ("businessInfo", _) => ("reports", ReportsViewModel.BusinessInfoTab, area),
-            // ADR 0098: die Raumsperren sind ein Abschnitt der Seite „Schließzeiten“.
+            // ADR 0098: die Raumsperren stehen in der Liste der Seite „Schließzeiten“.
             ("masterData", ClosuresPageViewModel.RoomClosuresSection) => ("masterData", ClosuresPageViewModel.ClosuresSection, ClosuresPageViewModel.RoomClosuresSection),
             _ => (page, tab, area),
         };
         var target = Find(Areas, page, tab);
         if (NativeFor(target) is not { } native)
         {
-            return Find(All.Select(a => a.Area), page, tab) is null ? ShowNotice(UnknownNotice, UnknownToast) : ShowNotice(NoRightNotice, NoRightToast);
+            var known = Find(All.Select(a => a.Area), page, tab);
+            if (known is null)
+            {
+                return ShowNotice(UnknownNotice, UnknownToast);
+            }
+
+            var module = All.Single(a => a.Area == known).Module;
+            return ModuleOn(module) ? ShowNotice(NoRightNotice, NoRightToast) : ShowNotice(ModuleOffNotice, ModuleOffToast);
         }
 
         void Jump()
@@ -355,6 +375,9 @@ public sealed partial class AdminPageViewModel : ViewModelBase
         SelectedArea = target;
         return null;
     }
+
+    /// <summary>Ist das Webmodul des Bereichs an? Ohne Angabe zu den Modulen gilt wie in der Shell: alle an.</summary>
+    private bool ModuleOn(Func<SystemModules, bool>? module) => module is null || _modules is null || module(_modules);
 
     /// <summary>Der Bereich mit dieser Seite und diesem Reiter, sonst der Bereich der Seite ohne Reiter (<c>reports</c>/<c>management</c> → Berichte).</summary>
     private static AdminArea? Find(IEnumerable<AdminArea> areas, string page, string? tab)

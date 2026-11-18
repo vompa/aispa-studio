@@ -18,6 +18,7 @@ internal static class PromotionModel
             e.Property(p => p.DiscountPercent).HasPrecision(5, 2);
             e.Property(p => p.DiscountAmount).HasPrecision(10, 2);
             e.Property(p => p.Scope).HasConversion<string>().HasMaxLength(20);
+            e.Property(p => p.Kind).HasConversion<string>().HasMaxLength(20);
             e.HasIndex(p => new { p.ValidFrom, p.ValidUntil });
             e.HasMany(p => p.Locations).WithOne().HasForeignKey(l => l.PromotionId).OnDelete(DeleteBehavior.Cascade);
             e.HasMany(p => p.Treatments).WithOne().HasForeignKey(t => t.PromotionId).OnDelete(DeleteBehavior.Cascade);

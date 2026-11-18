@@ -649,6 +649,52 @@
             "description": "Not Found"
           }
         }
+      },
+      "delete": {
+        "tags": [
+          "Stammdaten"
+        ],
+        "summary": "Löscht einen Standort, an dem nichts hängt; sonst 409 mit der Liste dessen, was daran hängt, und dem Weg „Schließen ab Datum“.",
+        "operationId": "DeleteLocation",
+        "parameters": [
+          {
+            "name": "locationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeletionCheckDto"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/v1/holidays/regions": {
@@ -793,6 +839,192 @@
           },
           "404": {
             "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/v1/locations/{locationId}/close": {
+      "post": {
+        "tags": [
+          "Stammdaten"
+        ],
+        "summary": "Schließt den Standort ab einem Tag: ab dann keine Buchung mehr, vergangene Termine und Belege bleiben. Abgelehnt, solange noch offene Termine ab dem Tag daran liegen oder es der letzte offene Standort wäre.",
+        "operationId": "CloseLocation",
+        "parameters": [
+          {
+            "name": "locationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LocationCloseInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocationDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/v1/locations/{locationId}/reopen": {
+      "post": {
+        "tags": [
+          "Stammdaten"
+        ],
+        "summary": "Öffnet einen geschlossenen Standort wieder: die Schließung ab dem Tag entfällt.",
+        "operationId": "ReopenLocation",
+        "parameters": [
+          {
+            "name": "locationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocationDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/v1/locations/{locationId}/deletion-check": {
+      "get": {
+        "tags": [
+          "Stammdaten"
+        ],
+        "summary": "Zählt, was an einem Standort hängt; gelöscht werden darf nur, wenn nichts daran hängt, sonst bleibt „Schließen ab Datum“.",
+        "operationId": "CheckLocationDeletion",
+        "parameters": [
+          {
+            "name": "locationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeletionCheckDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/v1/setup/progress": {
+      "get": {
+        "tags": [
+          "Stammdaten"
+        ],
+        "summary": "Die Schritte der Ersteinrichtung (Standort, Öffnungszeiten, Räume, Behandlungen, Team, Kassa) und welche davon erledigt sind.",
+        "operationId": "GetSetupProgress",
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetupProgressDto"
+                }
+              }
+            }
           }
         }
       }
@@ -972,6 +1204,144 @@
         }
       }
     },
+    "/api/v1/locations/{locationId}/rooms/former": {
+      "get": {
+        "tags": [
+          "Stammdaten"
+        ],
+        "summary": "Die nicht mehr verwendeten Räume eines Standorts, nach Name; nur für Verwaltung der Standorte.",
+        "operationId": "ListFormerRooms",
+        "parameters": [
+          {
+            "name": "locationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RoomDto"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/v1/rooms/{roomId}/reactivate": {
+      "post": {
+        "tags": [
+          "Stammdaten"
+        ],
+        "summary": "Nimmt einen nicht mehr verwendeten Raum wieder in die Planung; wer schon aktiv ist, ändert nichts.",
+        "operationId": "ReactivateRoom",
+        "parameters": [
+          {
+            "name": "roomId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoomDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/v1/rooms/{roomId}/deletion-check": {
+      "get": {
+        "tags": [
+          "Stammdaten"
+        ],
+        "summary": "Zählt, was an einem Raum hängt. Ein Raum lässt sich nie löschen; die Alternative ist „Nicht mehr verwenden“.",
+        "operationId": "CheckRoomDeletion",
+        "parameters": [
+          {
+            "name": "roomId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeletionCheckDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
     "/api/v1/locations/{locationId}/equipment": {
       "post": {
         "tags": [
@@ -1146,6 +1516,144 @@
         }
       }
     },
+    "/api/v1/locations/{locationId}/equipment/former": {
+      "get": {
+        "tags": [
+          "Stammdaten"
+        ],
+        "summary": "Die nicht mehr verwendeten Geräte eines Standorts, nach Name; nur für Verwaltung der Standorte.",
+        "operationId": "ListFormerEquipment",
+        "parameters": [
+          {
+            "name": "locationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EquipmentDto"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/v1/equipment/{equipmentId}/reactivate": {
+      "post": {
+        "tags": [
+          "Stammdaten"
+        ],
+        "summary": "Nimmt ein nicht mehr verwendetes Gerät wieder in die Planung; wer schon aktiv ist, ändert nichts.",
+        "operationId": "ReactivateEquipment",
+        "parameters": [
+          {
+            "name": "equipmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EquipmentDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/v1/equipment/{equipmentId}/deletion-check": {
+      "get": {
+        "tags": [
+          "Stammdaten"
+        ],
+        "summary": "Zählt, was an einem Gerät hängt. Ein Gerät lässt sich nie löschen; die Alternative ist „Nicht mehr verwenden“.",
+        "operationId": "CheckEquipmentDeletion",
+        "parameters": [
+          {
+            "name": "equipmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeletionCheckDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
     "/api/v1/qualifications": {
       "get": {
         "tags": [
@@ -1281,6 +1789,97 @@
               "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Stammdaten"
+        ],
+        "summary": "Löscht eine Qualifikation, an der nichts mehr hängt; sonst 409 mit der Liste dessen, was daran hängt.",
+        "operationId": "DeleteQualification",
+        "parameters": [
+          {
+            "name": "qualificationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeletionCheckDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/qualifications/{qualificationId}/deletion-check": {
+      "get": {
+        "tags": [
+          "Stammdaten"
+        ],
+        "summary": "Zählt, welche Personen und Behandlungen eine Qualifikation tragen; gelöscht werden darf nur, wenn keine mehr daran hängt.",
+        "operationId": "CheckQualificationDeletion",
+        "parameters": [
+          {
+            "name": "qualificationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeletionCheckDto"
                 }
               }
             }
@@ -1523,8 +2122,18 @@
         "tags": [
           "Stammdaten"
         ],
-        "summary": "Alle aktiven Behandlungen mit ihren geeigneten Räumen und Geräten an allen Standorten.",
+        "summary": "Alle aktiven Behandlungen mit ihren geeigneten Räumen und Geräten an allen Standorten. Mit includeInactive=true (Recht „Katalog verwalten“) auch die nicht mehr angebotenen; `isActive` sagt, welche.",
         "operationId": "ListTreatments",
+        "parameters": [
+          {
+            "name": "includeInactive",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
         "responses": {
           "403": {
             "description": "Forbidden",
@@ -1694,6 +2303,51 @@
           },
           "204": {
             "description": "No Content"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/v1/treatments/{treatmentId}/reactivate": {
+      "post": {
+        "tags": [
+          "Stammdaten"
+        ],
+        "summary": "Bietet eine nicht mehr angebotene Behandlung wieder an; wer sie schon anbietet, ändert nichts.",
+        "operationId": "ReactivateTreatment",
+        "parameters": [
+          {
+            "name": "treatmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TreatmentDto"
+                }
+              }
+            }
           },
           "404": {
             "description": "Not Found"
@@ -3077,6 +3731,51 @@
         }
       }
     },
+    "/api/v1/stock/locations/{locationId}/export/availability": {
+      "get": {
+        "tags": [
+          "Lager"
+        ],
+        "summary": "Welche Listen des Lager-Exports etwas enthalten, nur für die Leitung: je Liste available und bei false der Grund (z. B. noch keine eingereichte Zählung).",
+        "operationId": "StockExportAvailability",
+        "parameters": [
+          {
+            "name": "locationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StockExportAvailabilityDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/locations/{locationId}/staff/export": {
       "get": {
         "tags": [
@@ -3372,6 +4071,59 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/CurrentUser"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/locations/{locationId}/closure-overview": {
+      "get": {
+        "tags": [
+          "Schließzeiten"
+        ],
+        "summary": "Schließzeiten des ganzen Standorts und Raumsperren in einer Liste, je mit Art, Zeitraum, Raum, Grund, Zustand und der Zahl der noch offenen Termine. Mit scope=Upcoming (Standard) die laufenden und geplanten nach Beginn aufsteigend, mit Past die beendeten, neueste zuerst, mit All beide.",
+        "operationId": "GetClosureOverview",
+        "parameters": [
+          {
+            "name": "locationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "scope",
+            "in": "query",
+            "schema": {
+              "default": "Upcoming",
+              "$ref": "#/components/schemas/ClosureScope"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClosureOverview"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               }
             }
@@ -11003,6 +11755,47 @@
               "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/promotions/preview": {
+      "post": {
+        "tags": [
+          "Aktionen"
+        ],
+        "summary": "Vorschau des Gästepreises für eine Aktion, auch ungespeichert: ein Beispieltermin und die ersten betroffenen Behandlungen mit Preis und Preis mit Rabatt, gerechnet wie an der Kassa.",
+        "operationId": "PreviewPromotion",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PromotionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionPreviewDto"
                 }
               }
             }
@@ -22465,6 +23258,70 @@
         }
       }
     },
+    "/api/v1/stock/locations/{locationId}/storage-places/{placeId}/deletion-check": {
+      "get": {
+        "tags": [
+          "Lager"
+        ],
+        "summary": "Zählt die Bewegungen eines Lagerorts; das Hauptlager lässt sich nie löschen, „Nicht mehr verwenden“ bleibt als Alternative.",
+        "operationId": "CheckStoragePlaceDeletion",
+        "parameters": [
+          {
+            "name": "locationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "placeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeletionCheckDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/stock/locations/{locationId}/storage-places/{placeId}/levels": {
       "get": {
         "tags": [
@@ -23775,6 +24632,97 @@
             }
           }
         }
+      },
+      "delete": {
+        "tags": [
+          "Lager"
+        ],
+        "summary": "Löscht einen Lieferanten ohne Material; sonst 409 mit der Liste dessen, was daran hängt. Bestellungen behalten den Namen.",
+        "operationId": "DeleteStockSupplier",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeletionCheckDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/stock/suppliers/{supplierId}/deletion-check": {
+      "get": {
+        "tags": [
+          "Lager"
+        ],
+        "summary": "Zählt, wie viel Material am Lieferanten hängt; „Nicht mehr verwenden“ bleibt als Alternative.",
+        "operationId": "CheckStockSupplierDeletion",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeletionCheckDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/v1/locations/{locationId}/stock-counts/{countId}/pdf": {
@@ -24373,6 +25321,53 @@
                 }
               }
             }
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/reports/appointments/{appointmentId}/equipment-prepared": {
+      "put": {
+        "tags": [
+          "Berichte"
+        ],
+        "operationId": "CheckEquipmentPrepared",
+        "parameters": [
+          {
+            "name": "appointmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PreparationCheck"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
           },
           "404": {
             "description": "Not Found"
@@ -27749,8 +28744,18 @@
         "tags": [
           "Regelungen und Vollmachten"
         ],
-        "summary": "„Wer darf was?“: je Vollmacht aus der festen Liste, wer sie hat und bis wann.",
+        "summary": "„Wer darf was?“: je Vollmacht aus der festen Liste, wer sie hat und bis wann, dazu Thema, Hinweis, Wirkung und ob sie unbesetzt ist; mit locationId nur die Personen, die an dem Standort arbeiten.",
         "operationId": "ListPowerOverview",
+        "parameters": [
+          {
+            "name": "locationId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
         "responses": {
           "403": {
             "description": "Forbidden",
@@ -28787,8 +29792,18 @@
         "tags": [
           "Zuständigkeiten und Zertifikate"
         ],
-        "summary": "„Wer ist wofür zuständig?“: je Eintrag der Liste die Personen mit Vertretung und Gültigkeit, auch ohne Eintrag.",
+        "summary": "„Wer ist wofür zuständig?“: je Eintrag der Liste die Personen mit Vertretung und Gültigkeit, auch ohne Eintrag, dazu Thema, Hinweis, Wirkung und ob er unbesetzt ist; mit locationId nur die Personen, die an dem Standort arbeiten.",
         "operationId": "ListDutyOverview",
+        "parameters": [
+          {
+            "name": "locationId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
         "responses": {
           "403": {
             "description": "Forbidden",
@@ -29149,6 +30164,209 @@
         }
       }
     },
+    "/api/v1/dispatch-log": {
+      "get": {
+        "tags": [
+          "Versandprotokoll"
+        ],
+        "summary": "Versandprotokoll: Terminerinnerungen und Wiederbuchungs-Hinweise der letzten Tage (Vorgabe 30, höchstens 366), neueste zuerst. Filter: kind (reminder, rebook), channel (email, sms, whatsapp), result (sent, failed, skipped, queued).",
+        "operationId": "ListDispatchLog",
+        "parameters": [
+          {
+            "name": "kind",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "channel",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "result",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "days",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DispatchLogEntryDto"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/dispatch-log/summary": {
+      "get": {
+        "tags": [
+          "Versandprotokoll"
+        ],
+        "summary": "Zahlen des Versandprotokolls der letzten Tage (Vorgabe 30), je Art: verschickt, fehlgeschlagen, entfallen.",
+        "operationId": "GetDispatchSummary",
+        "parameters": [
+          {
+            "name": "days",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DispatchSummaryDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/dispatch-log/export": {
+      "get": {
+        "tags": [
+          "Versandprotokoll"
+        ],
+        "summary": "Das Versandprotokoll als Excel oder CSV mit denselben Filtern wie die Liste (höchstens so viele Zeilen wie jeder Export).",
+        "operationId": "ExportDispatchLog",
+        "parameters": [
+          {
+            "name": "kind",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "channel",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "result",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "days",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/retention/settings": {
       "get": {
         "tags": [
@@ -29183,7 +30401,7 @@
         "tags": [
           "Wiederbuchungs-Hinweis"
         ],
-        "summary": "Wiederbuchungs-Hinweis einstellen. Er geht nur an Gäste mit bestätigter Einwilligung.",
+        "summary": "Wiederbuchungs-Hinweis einstellen: Standardabstand und Ausnahmen je Kategorie oder Behandlung. Er geht nur an Gäste mit bestätigter Einwilligung.",
         "operationId": "UpdateRebookSettings",
         "requestBody": {
           "content": {
@@ -35605,6 +36823,12 @@
           }
         }
       },
+      "ClosureEntryType": {
+        "enum": [
+          "Location",
+          "Room"
+        ]
+      },
       "ClosureInput": {
         "required": [
           "fromDate",
@@ -35822,11 +37046,142 @@
           "Cancelled"
         ]
       },
+      "ClosureOverview": {
+        "required": [
+          "locationId",
+          "upcomingCount",
+          "pastCount",
+          "items"
+        ],
+        "type": "object",
+        "properties": {
+          "locationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "upcomingCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pastCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ClosureOverviewItem"
+            }
+          }
+        }
+      },
+      "ClosureOverviewItem": {
+        "required": [
+          "id",
+          "type",
+          "kind",
+          "locationId",
+          "fromDate",
+          "fromTime",
+          "untilDate",
+          "untilTime",
+          "from",
+          "until",
+          "phase",
+          "reason",
+          "openAppointments",
+          "openWaitlist"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "type": {
+            "$ref": "#/components/schemas/ClosureEntryType"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "locationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "fromDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "fromTime": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "time"
+          },
+          "untilDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "untilTime": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "time"
+          },
+          "from": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "until": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "phase": {
+            "$ref": "#/components/schemas/ClosurePhase"
+          },
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "openAppointments": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "openWaitlist": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "roomId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "roomName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "ClosurePhase": {
         "enum": [
           "Planned",
           "Active",
           "Ended"
+        ]
+      },
+      "ClosureScope": {
+        "enum": [
+          "Upcoming",
+          "Past",
+          "All"
         ]
       },
       "ClosureWaitlistDto": {
@@ -37689,6 +39044,53 @@
           }
         }
       },
+      "DeletionAlternative": {
+        "required": [
+          "kind",
+          "label"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          }
+        }
+      },
+      "DeletionCheckDto": {
+        "required": [
+          "canDelete",
+          "summary",
+          "dependents"
+        ],
+        "type": "object",
+        "properties": {
+          "canDelete": {
+            "type": "boolean"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "dependents": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DependentCount"
+            }
+          },
+          "alternative": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/DeletionAlternative"
+              }
+            ]
+          }
+        }
+      },
       "DeliveryNoteLineSuggestion": {
         "required": [
           "lineId",
@@ -37768,6 +39170,26 @@
               "null",
               "string"
             ]
+          }
+        }
+      },
+      "DependentCount": {
+        "required": [
+          "kind",
+          "count",
+          "label"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "label": {
+            "type": "string"
           }
         }
       },
@@ -38011,6 +39433,118 @@
         "properties": {
           "code": {
             "type": "string"
+          }
+        }
+      },
+      "DispatchKind": {
+        "enum": [
+          "Reminder",
+          "Rebook"
+        ]
+      },
+      "DispatchKindSummaryDto": {
+        "required": [
+          "sent",
+          "failed",
+          "skipped"
+        ],
+        "type": "object",
+        "properties": {
+          "sent": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "failed": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "skipped": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "DispatchLogEntryDto": {
+        "required": [
+          "id",
+          "kind",
+          "customerId",
+          "recipient",
+          "subject",
+          "channel",
+          "state",
+          "at",
+          "appointmentStart",
+          "text",
+          "error"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/DispatchKind"
+          },
+          "customerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "recipient": {
+            "type": "string"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "channel": {
+            "$ref": "#/components/schemas/ReminderChannel"
+          },
+          "state": {
+            "type": "string"
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "appointmentStart": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "text": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "error": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "DispatchSummaryDto": {
+        "required": [
+          "days",
+          "reminders",
+          "rebook"
+        ],
+        "type": "object",
+        "properties": {
+          "days": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "reminders": {
+            "$ref": "#/components/schemas/DispatchKindSummaryDto"
+          },
+          "rebook": {
+            "$ref": "#/components/schemas/DispatchKindSummaryDto"
           }
         }
       },
@@ -38459,6 +39993,37 @@
             "items": {
               "$ref": "#/components/schemas/DutyHolderDto"
             }
+          },
+          "group": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "groupOrder": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "hint": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "effect": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "isUnstaffed": {
+            "type": [
+              "null",
+              "boolean"
+            ]
           }
         }
       },
@@ -41104,6 +42669,18 @@
           "Ready"
         ]
       },
+      "LocationCloseInput": {
+        "required": [
+          "closedFrom"
+        ],
+        "type": "object",
+        "properties": {
+          "closedFrom": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      },
       "LocationCompany": {
         "required": [
           "legalName",
@@ -41273,6 +42850,13 @@
                 "$ref": "#/components/schemas/LocationCompany"
               }
             ]
+          },
+          "closedFrom": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
           }
         }
       },
@@ -43950,6 +45534,13 @@
           },
           "isExpired": {
             "type": "boolean"
+          },
+          "entryId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
           }
         }
       },
@@ -43976,6 +45567,37 @@
             "items": {
               "$ref": "#/components/schemas/PowerHolderDto"
             }
+          },
+          "group": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "groupOrder": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "hint": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "effect": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "isUnstaffed": {
+            "type": [
+              "null",
+              "boolean"
+            ]
           }
         }
       },
@@ -44181,6 +45803,32 @@
           },
           "phase": {
             "$ref": "#/components/schemas/PromotionPhase"
+          },
+          "kind": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PromotionKind"
+              }
+            ]
+          },
+          "leadHours": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "slots": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/PromotionSlot"
+            }
           }
         }
       },
@@ -44256,8 +45904,42 @@
           },
           "isActive": {
             "type": "boolean"
+          },
+          "kind": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PromotionKind"
+              }
+            ]
+          },
+          "leadHours": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "slots": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/PromotionSlot"
+            }
           }
         }
+      },
+      "PromotionKind": {
+        "enum": [
+          "Limited",
+          "LastMinute",
+          "OffPeak",
+          null
+        ]
       },
       "PromotionOfferDto": {
         "required": [
@@ -44320,12 +46002,75 @@
           "Expired"
         ]
       },
+      "PromotionPreviewDto": {
+        "required": [
+          "example",
+          "lines",
+          "note"
+        ],
+        "type": "object",
+        "properties": {
+          "example": {
+            "type": "string"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PromotionPreviewLineDto"
+            }
+          },
+          "note": {
+            "type": "string"
+          }
+        }
+      },
+      "PromotionPreviewLineDto": {
+        "required": [
+          "treatmentId",
+          "name",
+          "price",
+          "guestPrice"
+        ],
+        "type": "object",
+        "properties": {
+          "treatmentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "price": {
+            "type": "number",
+            "format": "double"
+          },
+          "guestPrice": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
       "PromotionScope": {
         "enum": [
           "AllTreatments",
           "SelectedTreatments",
           "SelectedPackages"
         ]
+      },
+      "PromotionSlot": {
+        "required": [
+          "day",
+          "part"
+        ],
+        "type": "object",
+        "properties": {
+          "day": {
+            "$ref": "#/components/schemas/DayOfWeek"
+          },
+          "part": {
+            "$ref": "#/components/schemas/DayPart"
+          }
+        }
       },
       "PromotionTreatmentDto": {
         "required": [
@@ -44720,6 +46465,25 @@
           }
         }
       },
+      "RebookCategoryIntervalDto": {
+        "required": [
+          "category",
+          "days"
+        ],
+        "type": "object",
+        "properties": {
+          "category": {
+            "type": "string"
+          },
+          "days": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          }
+        }
+      },
       "RebookIntervalDto": {
         "required": [
           "treatmentId",
@@ -44811,6 +46575,32 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/RebookIntervalDto"
+            }
+          },
+          "defaultDays": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "categoryIntervals": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/RebookCategoryIntervalDto"
+            }
+          },
+          "silentTreatmentIds": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string",
+              "format": "uuid"
             }
           }
         }
@@ -47089,6 +48879,54 @@
           }
         }
       },
+      "SetupProgressDto": {
+        "required": [
+          "steps"
+        ],
+        "type": "object",
+        "properties": {
+          "steps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SetupStepDto"
+            }
+          }
+        }
+      },
+      "SetupStepDto": {
+        "required": [
+          "key",
+          "title",
+          "hint",
+          "done",
+          "page",
+          "tab"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "hint": {
+            "type": "string"
+          },
+          "done": {
+            "type": "boolean"
+          },
+          "page": {
+            "type": "string"
+          },
+          "tab": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "SharedDeviceDto": {
         "required": [
           "id",
@@ -48844,6 +50682,41 @@
           }
         }
       },
+      "StockExportAvailabilityDto": {
+        "required": [
+          "lists"
+        ],
+        "type": "object",
+        "properties": {
+          "lists": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StockExportListAvailabilityDto"
+            }
+          }
+        }
+      },
+      "StockExportListAvailabilityDto": {
+        "required": [
+          "list",
+          "available"
+        ],
+        "type": "object",
+        "properties": {
+          "list": {
+            "type": "string"
+          },
+          "available": {
+            "type": "boolean"
+          },
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "StockItemDto": {
         "required": [
           "id",
@@ -49555,6 +51428,13 @@
             "items": {
               "$ref": "#/components/schemas/StockUsageTreatmentDto"
             }
+          },
+          "excessPercent": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
           }
         }
       },
@@ -50932,6 +52812,12 @@
           },
           "done": {
             "type": "boolean"
+          },
+          "isEquipment": {
+            "type": [
+              "null",
+              "boolean"
+            ]
           }
         }
       },
@@ -51081,6 +52967,12 @@
           "checkAnamnesis": {
             "type": "boolean",
             "default": false
+          },
+          "displayName": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -51298,6 +53190,12 @@
             "type": "integer",
             "format": "int32",
             "default": 0
+          },
+          "isActive": {
+            "type": [
+              "null",
+              "boolean"
+            ]
           }
         }
       },
@@ -52477,6 +54375,9 @@
       "name": "Berichte"
     },
     {
+      "name": "Schließzeiten"
+    },
+    {
       "name": "Dienstplan"
     },
     {
@@ -52505,9 +54406,6 @@
     },
     {
       "name": "Betriebsinformationen"
-    },
-    {
-      "name": "Schließzeiten"
     },
     {
       "name": "Raumsperren"
@@ -52562,6 +54460,9 @@
     },
     {
       "name": "Terminerinnerungen"
+    },
+    {
+      "name": "Versandprotokoll"
     },
     {
       "name": "Wiederbuchungs-Hinweis"

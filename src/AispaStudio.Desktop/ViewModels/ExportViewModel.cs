@@ -42,6 +42,9 @@ public sealed partial class ExportViewModel(IAispaApi api, IReadOnlyList<ExportO
     /// <summary>Fehler als Hinweis der Seite (bleibt stehen, nennt Problem und Weg).</summary>
     public Action<string>? Failed { get; init; }
 
+    /// <summary>Ort der zuletzt gespeicherten Datei, wenn der Speicherdialog ihn nennt (<see cref="IReportsSavedPath"/>); für „Ordner öffnen“. Gilt beim Aufruf von <see cref="Saved"/>.</summary>
+    public string? SavedPath { get; private set; }
+
     /// <summary>Solange die Datei entsteht, ist der Knopf gesperrt und zeigt „Wird erstellt …“.</summary>
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(ExportCommand))]
@@ -51,6 +54,7 @@ public sealed partial class ExportViewModel(IAispaApi api, IReadOnlyList<ExportO
     private async Task ExportAsync(ExportOption option)
     {
         IsBusy = true;
+        SavedPath = null;
         try
         {
             var result = await api.GetFileAsync(option.Path()).ConfigureAwait(true);
@@ -69,6 +73,7 @@ public sealed partial class ExportViewModel(IAispaApi api, IReadOnlyList<ExportO
 
             if (await Files.SaveAsync(name, option.TypeName, option.Patterns, file.Content).ConfigureAwait(true))
             {
+                SavedPath = (Files as IReportsSavedPath)?.LastSavedPath;
                 Saved?.Invoke($"Gespeichert: {name}");
             }
         }

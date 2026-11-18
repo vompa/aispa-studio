@@ -64,6 +64,7 @@ die KI keine Zahlen erfindet, und verhindert Zusagen, die das Spa nicht gemacht 
 - Gebaut (16.11.2026): Die Erinnerung trägt die Kopfzeile `List-Unsubscribe` mit derselben Adresse wie der Link „Abmelden“ im Text (`OutgoingMail.ListUnsubscribe`).
 - Offen: Abmelden mit einem Klick ohne Seite (`List-Unsubscribe-Post`, RFC 8058; braucht einen Endpunkt, der ohne Rückfrage abmeldet), SMS und WhatsApp, Schweiz (Art. 3 Abs. 1 lit. o UWG) prüfen, Texte rechtlich
   gegenlesen lassen.
+- Gebaut (17.11.2026, Masken-Überarbeitung P8): Der Abstand gilt nicht mehr nur je Behandlung. Es gibt einen **Standardabstand** (`RebookSettings.DefaultDays`) und **Ausnahmen** je Kategorie (`CategoryRebookInterval`) oder Behandlung (`TreatmentRebookInterval`, `Days` jetzt nullbar); leer heißt für diese Ausnahme kein Hinweis. Es gilt die Ausnahme der Behandlung, dann die der Kategorie, dann der Standard (`RebookRules.DaysFor`); ohne Standard und ohne Ausnahme geht wie bisher nichts hinaus. Bestehende Einstellungen bleiben gleich, weil der Standard leer ist. Die Wege der API bleiben, die neuen Felder sind optional (ADR 0085 §3). Das Versandprotokoll führt Terminerinnerungen und Wiederbuchungs-Hinweise in einer Liste zusammen (`GET /api/dispatch-log`, Filter, Zusammenfassung, Export).
 
 ## Quellen
 

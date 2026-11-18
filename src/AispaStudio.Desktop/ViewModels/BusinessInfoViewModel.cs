@@ -161,7 +161,11 @@ public sealed partial class BusinessInfoViewModel(IWorkstationApi api, CurrentUs
     [ObservableProperty]
     public partial BusinessContactRow? SelectedRow { get; set; }
 
-    public string EmptyText => _all.Count == 0 ? CanManage ? "Noch nichts eingetragen. Mit „Neuer Eintrag“ beginnen." : "Noch nichts eingetragen." : "Nichts gefunden.";
+    public string EmptyText => _all.Count == 0 ? CanManage ? "Noch nichts eingetragen. Mit „Neuer Eintrag“ beginnen." : "Noch nichts eingetragen." : IsCategoryEmpty
+        ? CanManage ? $"Noch nichts bei „{CategoryFilter!.Name}“. Mit „Neuer Eintrag“ beginnen." : $"Noch nichts bei „{CategoryFilter!.Name}“." : "Nichts gefunden.";
+
+    /// <summary>Die gewählte Kategorie (zum Beispiel „Handwerker und Technik“) hat noch keinen Eintrag, und keine Suche schränkt ein: dasselbe Muster wie die leere Liste (ADR 0099).</summary>
+    private bool IsCategoryEmpty => CategoryFilter?.Value is { } category && Query.Trim().Length == 0 && !_all.Any(c => c.Category == category);
 
     public bool ShowEmpty => IsLoaded && Rows.Count == 0;
 
@@ -570,7 +574,7 @@ public sealed partial class BusinessInfoViewModel(IWorkstationApi api, CurrentUs
         _applying = true;
         _current = contact;
         var single = _places.Count == 1;
-        Category = Categories.First(c => c.Value == (contact?.Category ?? BusinessContactCategory.Craftsman));
+        Category = Categories.First(c => c.Value == (contact?.Category ?? CategoryFilter?.Value ?? BusinessContactCategory.Craftsman));
         Designation = contact?.Designation ?? "";
         Company = contact?.Company ?? "";
         ContactPerson = contact?.ContactPerson ?? "";

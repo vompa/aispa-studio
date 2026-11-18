@@ -12,10 +12,10 @@ public sealed record RoomOption(Guid Id, string Name)
 }
 
 /// <summary>
-/// Raumsperren (R05 Slice 95, ADR 0076): native Maske nach <c>RoomClosuresPage.tsx</c>. Ein Raum ist für Tage oder einen Zeitraum gesperrt (Wartung, Schaden, Umbau): in der Zeit bucht
-/// der Planer ihn nicht; bestehende Termine im Raum bleiben, der Kalender meldet sie und die Umbuchungshilfe schlägt einen anderen Raum vor. Formular: Raum (nur beim Anlegen wählbar),
-/// Zeitraum (mit Teil-Tagen), Art und Grund für das Team (höchstens 200 Zeichen). Verwalten darf, wer Standorte verwaltet. „Raum sperren …“ im Kalender öffnet ein neues Formular mit
-/// dem Raum (<see cref="AdminTarget.Id"/>).
+/// Raumsperre (R05 Slice 95, ADR 0076): Formular nach <c>RoomClosuresPage.tsx</c>, seit ADR 0098 in der Seitenleiste der Seite „Schließzeiten“. Ein Raum ist für Tage oder einen Zeitraum gesperrt
+/// (Wartung, Schaden, Umbau): in der Zeit bucht der Planer ihn nicht; bestehende Termine im Raum bleiben, der Kalender meldet sie und die Umbuchungshilfe schlägt einen anderen Raum vor.
+/// Formular: Raum (nur beim Anlegen wählbar), Zeitraum (mit Teil-Tagen), Art und Grund für das Team (höchstens 200 Zeichen). Verwalten darf, wer Standorte verwaltet. „Raum sperren …“ im
+/// Kalender öffnet ein neues Formular mit dem Raum (<see cref="AdminTarget.Id"/>). Die Räume des Standorts gibt die Seite vor (<see cref="SetRooms"/>).
 /// </summary>
 public sealed partial class RoomClosuresViewModel : PeriodAreaViewModel
 {
@@ -33,8 +33,6 @@ public sealed partial class RoomClosuresViewModel : PeriodAreaViewModel
         (RoomClosureKind.Other, "Sonstiges", "Sonstiges"),
     ];
 
-    private readonly Dictionary<Guid, List<RoomOption>> _roomsByLocation = [];
-    private List<RoomClosureDto> _closures = [];
     private RoomClosureDto? _current;
 
     public RoomClosuresViewModel(IWorkstationApi api, CurrentUser user, TimeProvider time)
@@ -43,25 +41,17 @@ public sealed partial class RoomClosuresViewModel : PeriodAreaViewModel
 
     public override string NewText => "Neue Raumsperre";
 
-    public override string HintText => "In der Sperre bucht der Planer den Raum nicht. Bestehende Termine bleiben, bis man sie umbucht.";
-
     public override string HelpTopic => "raumsperren";
 
     public override string HelpSection => "raumsperren";
 
-    public override string SelectHint => "Links eine Raumsperre wählen oder mit „Neue Raumsperre“ eine anlegen.";
-
-    public override string LoadFailedText => "Die Raumsperren konnten nicht geladen werden.";
-
-    public override string NoLocationText => "Es gibt noch keinen Standort.";
-
-    protected override string EmptyCurrentText => "Es ist kein Raum gesperrt.";
-
     protected override string SaveFailedText => "Die Raumsperre konnte nicht gespeichert werden. Bitte die markierten Felder prüfen.";
 
-    protected override string FirstField => RoomField;
+    protected override string SavedToast => "Raumsperre gespeichert";
 
-    protected override bool CanCreateNew => Rooms.Count > 0;
+    protected override string DeletedToast => "Raumsperre gelöscht";
+
+    protected override string FirstField => RoomField;
 
     public IReadOnlyList<KindOption> Kinds { get; }
 
@@ -87,70 +77,49 @@ public sealed partial class RoomClosuresViewModel : PeriodAreaViewModel
     [ObservableProperty]
     public partial string? ReasonError { get; private set; }
 
-    // ---------- Laden und Anzeigen ----------
+    /// <summary>Die Art in einem Wort („Wartung“, „Schaden“, „Umbau“, „Sonstiges“), wie sie die Liste zeigt.</summary>
+    public static string KindShort(RoomClosureKind kind) => KindNames.First(k => k.Kind == kind).Short;
 
-    protected override async Task LoadExtraAsync(IReadOnlyList<LocationDto> locations)
-    {
-        var resources = await Task.WhenAll(locations.Select(l => Api.GetAsync<LocationResources>($"api/locations/{l.Id}/resources"))).ConfigureAwait(true);
-        _roomsByLocation.Clear();
-        for (var i = 0; i < locations.Count; i++)
-        {
-            _roomsByLocation[locations[i].Id] = [.. (resources[i].Value?.Rooms ?? []).Select(r => new RoomOption(r.Id, r.Name))];
-        }
-    }
-
-    protected override async Task<string?> FetchAsync(Guid locationId)
-    {
-        var closures = await Api.GetAsync<List<RoomClosureDto>>($"api/locations/{locationId}/room-closures").ConfigureAwait(true);
-        if (closures.Value is not { } list)
-        {
-            return closures.Error ?? LoadFailedText;
-        }
-
-        _closures = list;
-        return null;
-    }
-
-    protected override IReadOnlyList<PeriodRow> BuildRows() =>
-    [
-        .. _closures.Select(c => new PeriodRow(c.Id, TabOf(c.Phase), $"{c.RoomName}, {KindShort(c.Kind)}", PeriodLabel(c),
-            c.OpenAppointments > 0 ? $"{AppointmentsLabel(c.OpenAppointments)} offen" : c.Reason ?? "keine offenen Termine")),
-    ];
-
-    protected override Task OnLocationReadyAsync(Guid locationId)
+    /// <summary>Die Räume des Standorts, den die Seite gewählt hat.</summary>
+    public void SetRooms(IEnumerable<RoomOption> rooms)
     {
         Rooms.Clear();
-        foreach (var room in _roomsByLocation.GetValueOrDefault(locationId) ?? [])
+        foreach (var room in rooms)
         {
             Rooms.Add(room);
         }
-
-        NewCommand.NotifyCanExecuteChanged();
-        return Task.CompletedTask;
     }
 
-    protected override Guid? LocationFor(AdminTarget target) =>
-        target.Id is { } room && _roomsByLocation.FirstOrDefault(l => l.Value.Any(r => r.Id == room)) is { Value: not null } found ? found.Key : target.Location;
+    // ---------- Laden und Anzeigen ----------
 
-    protected override bool OpensNew(AdminTarget target) =>
-        base.OpensNew(target) || (target.Id is { } room && _roomsByLocation.Values.Any(rooms => rooms.Any(r => r.Id == room)));
-
-    protected override void ApplyItem(Guid id)
+    protected override async Task<string?> FetchAsync(Guid locationId, Guid id)
     {
-        _current = _closures.First(c => c.Id == id);
-        Period.Set(_current.FromDate, _current.FromTime, _current.UntilDate, _current.UntilTime);
-        if (Rooms.All(r => r.Id != _current.RoomId))
+        var closure = await Api.GetAsync<RoomClosureDto>($"api/locations/{locationId}/room-closures/{id}").ConfigureAwait(true);
+        if (closure.Value is not { } loaded)
         {
-            // Ein inzwischen entfernter Raum bleibt in der Anzeige stehen.
-            Rooms.Add(new RoomOption(_current.RoomId, _current.RoomName));
+            return closure.Error ?? "Die Raumsperre konnte nicht geladen werden.";
         }
 
-        SelectedRoom = Rooms.First(r => r.Id == _current.RoomId);
-        Kind = _current.Kind;
-        Reason = _current.Reason ?? "";
+        _current = loaded;
+        return null;
+    }
+
+    protected override void ApplyItem()
+    {
+        var current = _current!;
+        Period.Set(current.FromDate, current.FromTime, current.UntilDate, current.UntilTime);
+        if (Rooms.All(r => r.Id != current.RoomId))
+        {
+            // Ein inzwischen entfernter Raum bleibt in der Anzeige stehen.
+            Rooms.Add(new RoomOption(current.RoomId, current.RoomName));
+        }
+
+        SelectedRoom = Rooms.First(r => r.Id == current.RoomId);
+        Kind = current.Kind;
+        Reason = current.Reason ?? "";
         ClearErrors();
-        SetInfo($"{_current.RoomName}, {KindShort(_current.Kind)}, {PeriodLabel(_current)}", PhaseName(_current.Phase), OpenText(_current.OpenAppointments),
-            $"Angelegt von {_current.CreatedBy} am {Stamp(_current.CreatedAt)}.");
+        SetInfo($"{current.RoomName}, {KindShort(current.Kind)}, {PeriodLabel(current)}", PhaseName(current.Phase), OpenText(current.OpenAppointments),
+            $"Angelegt von {current.CreatedBy} am {Stamp(current.CreatedAt)}.");
     }
 
     protected override void ApplyBlank(AdminTarget? target)
@@ -214,10 +183,6 @@ public sealed partial class RoomClosuresViewModel : PeriodAreaViewModel
     }
 
     private static string PeriodLabel(RoomClosureDto c) => PeriodFormViewModel.Label(c.FromDate, c.FromTime, c.UntilDate, c.UntilTime);
-
-    private static string KindShort(RoomClosureKind kind) => KindNames.First(k => k.Kind == kind).Short;
-
-    private static string AppointmentsLabel(int count) => count == 1 ? "1 Termin" : $"{count} Termine";
 
     private void ClearErrors()
     {

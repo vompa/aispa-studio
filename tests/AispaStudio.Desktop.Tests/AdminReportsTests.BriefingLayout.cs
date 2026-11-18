@@ -322,7 +322,7 @@ public sealed partial class AdminReportsTests
         await reports.DayPlan.ShowAsync(reports.SelectedLocation!, reports.Date!.Value);
 
         var plan = reports.DayPlan;
-        Assert.Equal("1 Hinweis zum Tag", plan.StatusText);
+        Assert.Equal("1 Vorbereitung offen, 1 Hinweis zum Tag", plan.StatusText);
         Assert.False(plan.StatusIsOk);
         Assert.Equal(["Raumwechsel um 11:00"], plan.StatusPoints);
         Assert.Equal([("Behandlungen", "1"), ("Vorbereitung offen", "1"), ("Dienst", "09:00–17:00")], plan.Values.Select(v => (v.Label, v.Text)));

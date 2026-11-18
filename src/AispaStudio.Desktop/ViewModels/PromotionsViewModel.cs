@@ -8,11 +8,11 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace AispaStudio.Desktop.ViewModels;
 
-/// <summary>Eine Aktion in der Liste: Name, Rabatt mit Zeitraum, Standorte und Zustand.</summary>
-public sealed record PromotionRow(Guid Id, string Name, string Detail, string PlacesText, string PhaseText)
+/// <summary>Eine Aktion in der Liste: Name, Art, Rabatt mit Bedingung, Standorte und Zustand.</summary>
+public sealed record PromotionRow(Guid Id, string Name, string KindText, string Detail, string PlacesText, string PhaseText)
 {
     /// <summary>Was der Screenreader für die Zeile liest.</summary>
-    public string SpokenName => $"{Name}, {PhaseText}, {Detail}, {PlacesText}";
+    public string SpokenName => $"{Name}, {KindText}, {PhaseText}, {Detail}, {PlacesText}";
 
     public override string ToString() => Name;
 }
@@ -26,6 +26,29 @@ public sealed partial class PromotionLocationChoice(Guid id, string name) : Obse
 
     [ObservableProperty]
     public partial bool IsSelected { get; set; }
+}
+
+/// <summary>Ein Feld des Wochenrasters schwacher Zeiten zum Abhaken, z. B. „Montag Vormittag“.</summary>
+public sealed partial class OffPeakCell(DayOfWeek day, DayPart part, string name) : ObservableObject
+{
+    public DayOfWeek Day { get; } = day;
+
+    public DayPart Part { get; } = part;
+
+    /// <summary>Wochentag und Tageszeit ausgeschrieben, für Screenreader und Tooltip.</summary>
+    public string Name { get; } = name;
+
+    [ObservableProperty]
+    public partial bool IsSelected { get; set; }
+}
+
+/// <summary>Eine Zeile des Wochenrasters: eine Tageszeit mit ihren sieben Feldern von Montag bis Sonntag.</summary>
+public sealed record OffPeakRow(string Label, string Hours, IReadOnlyList<OffPeakCell> Cells);
+
+/// <summary>Eine Behandlung in der Vorschau „So sieht es der Gast“: Preis laut Katalog und Preis mit Rabatt (von der API gerechnet).</summary>
+public sealed record PromotionPreviewLine(string Name, string PriceText, string GuestPriceText)
+{
+    public string SpokenName => $"{Name}: statt {PriceText} nur {GuestPriceText}";
 }
 
 /// <summary>Eine Behandlung des Katalogs in der Auswahl.</summary>
@@ -54,9 +77,10 @@ public sealed class ChosenTreatment
 }
 
 /// <summary>
-/// Aktionen (R05 Slice 101, ADR 0071), native Maske nach <c>PromotionsPage.tsx</c>: zeitlich begrenzte Rabatte auf Behandlungen oder Pakete. Links die Liste mit dem Zustand jeder Aktion
-/// (Läuft, Geplant, Pausiert, Abgelaufen; archivierte auf Wunsch), rechts das Formular mit Name, Gästetext, Rabatt in Prozent oder als Betrag, Zeitraum, Geltung und Standorten.
-/// Pausieren, Archivieren und Zurückholen sind umkehrbar und fragen nicht. Die Rabattrechnung macht die Kassa; die Maske prüft nur vorab dieselben Regeln wie der Server
+/// Aktionen (R05 Slice 101, ADR 0071 mit Nachtrag vom 17.11.2026), native Maske: Rabatte auf Behandlungen oder Pakete in drei Arten, befristet, kurzfristig frei (Vorlauf in Stunden)
+/// und schwache Zeiten (Wochenraster aus Wochentag und Tageszeit). Links die Liste mit „Neue Aktion“ fest oben, Art und Zustand jeder Aktion (Läuft, Geplant, Pausiert, Abgelaufen;
+/// archivierte auf Wunsch), rechts das Formular mit Name, Gästetext, Art mit ihren Feldern, Rabatt, Zeitraum, Geltung und Standorten und daneben die Vorschau des Gästepreises
+/// aus der API (<c>POST api/promotions/preview</c>). Pausieren und Archivieren stehen im Menü „⋯“; beide und das Zurückholen sind umkehrbar und fragen nicht. Gelöscht wird nie (ADR 0071). Die Rabattrechnung macht die Kassa; die Maske prüft nur vorab dieselben Regeln wie der Server
 /// (<c>PromotionService.ValidateAsync</c>), damit der Fehler am Feld steht. Welche Standorte die Person sieht und ob sie „alle Standorte“ anlegen darf, entscheidet die API.
 /// </summary>
 public sealed partial class PromotionsViewModel(IWorkstationApi api, TimeProvider time) : ViewModelBase, INativeArea, IFocusTarget
@@ -75,6 +99,16 @@ public sealed partial class PromotionsViewModel(IWorkstationApi api, TimeProvide
 
     public const string TreatmentsField = "TreatmentPickerField";
 
+    public const string LeadHoursField = "PromotionLeadHoursField";
+
+    public const string SlotsField = "OffPeakOption";
+
+    public const int MaxLeadHours = 168;
+
+    private const int DefaultLeadHours = 24;
+
+    private const int DefaultRuleDays = 365;
+
     public const int MaxName = 40;
 
     public const int MaxGuestText = 200;
@@ -86,8 +120,18 @@ public sealed partial class PromotionsViewModel(IWorkstationApi api, TimeProvide
     private static readonly string[] Inputs =
     [
         nameof(PromotionName), nameof(GuestText), nameof(IsPercent), nameof(IsAmount), nameof(DiscountValue), nameof(ValidFrom), nameof(ValidUntil), nameof(IsActive),
-        nameof(AllLocations), nameof(SomeLocations), nameof(ScopeAll), nameof(ScopeTreatments), nameof(ScopePackages),
+        nameof(AllLocations), nameof(SomeLocations), nameof(ScopeAll), nameof(ScopeTreatments), nameof(ScopePackages), nameof(IsLimited), nameof(IsLastMinute), nameof(IsOffPeak),
+        nameof(LeadHours),
     ];
+
+    private static readonly (DayOfWeek Day, string Short, string Long)[] Week =
+    [
+        (DayOfWeek.Monday, "Mo", "Montag"), (DayOfWeek.Tuesday, "Di", "Dienstag"), (DayOfWeek.Wednesday, "Mi", "Mittwoch"), (DayOfWeek.Thursday, "Do", "Donnerstag"),
+        (DayOfWeek.Friday, "Fr", "Freitag"), (DayOfWeek.Saturday, "Sa", "Samstag"), (DayOfWeek.Sunday, "So", "Sonntag"),
+    ];
+
+    private static readonly (DayPart Part, string Name, string Hours)[] Parts =
+        [(DayPart.Morning, "Vormittag", "bis 12 Uhr"), (DayPart.Afternoon, "Nachmittag", "12 bis 17 Uhr"), (DayPart.Evening, "Abend", "ab 17 Uhr")];
 
     private readonly SynchronizationContext? _ui = SynchronizationContext.Current;
     private List<PromotionDto> _all = [];
@@ -100,6 +144,8 @@ public sealed partial class PromotionsViewModel(IWorkstationApi api, TimeProvide
     private bool _applying;
     private bool _switching;
     private bool _reverting;
+    private OffPeakRow[]? _grid;
+    private int _previewVersion;
 
     public string Title => "Aktionen";
 
@@ -111,6 +157,15 @@ public sealed partial class PromotionsViewModel(IWorkstationApi api, TimeProvide
     public ObservableCollection<PromotionTreatmentChoice> CatalogTreatments { get; } = [];
 
     public ObservableCollection<ChosenTreatment> Chosen { get; } = [];
+
+    /// <summary>Kopf des Wochenrasters: Mo bis So.</summary>
+    public IReadOnlyList<string> WeekDays { get; } = [.. Week.Select(d => d.Short)];
+
+    /// <summary>Das Wochenraster schwacher Zeiten: drei Zeilen (Vormittag, Nachmittag, Abend) mit je sieben Feldern.</summary>
+    public IReadOnlyList<OffPeakRow> OffPeakGrid => _grid ??= BuildGrid();
+
+    /// <summary>Die Vorschau des Gästepreises aus der API; leer, solange sie nicht da ist.</summary>
+    public ObservableCollection<PromotionPreviewLine> PreviewLines { get; } = [];
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowEmpty))]
@@ -163,6 +218,21 @@ public sealed partial class PromotionsViewModel(IWorkstationApi api, TimeProvide
 
     public bool ShowTreatmentPicker => !ScopeAll;
 
+    /// <summary>Was die gewählte Art bedeutet, eine Zeile unter der Auswahl.</summary>
+    public string KindHint => SelectedKind switch
+    {
+        PromotionKind.LastMinute => "Für Termine, die kurz vor Beginn noch frei sind und kurzfristig gebucht werden.",
+        PromotionKind.OffPeak => "Für Termine in ruhigen Zeiten: die Felder im Wochenraster abhaken.",
+        _ => "Gilt an jedem Tag des Zeitraums.",
+    };
+
+    public string PeriodHint => IsLimited ? "Erster und letzter Tag der Aktion." : "In diesem Zeitraum gilt die Regel; danach läuft sie ab.";
+
+    /// <summary>Pakete gibt es nur bei befristeten Aktionen; die beiden anderen Arten hängen am Termin.</summary>
+    public bool ShowPackagesOption => IsLimited;
+
+    public bool HasPreview => PreviewLines.Count > 0 || PreviewExample is not null;
+
     public string TreatmentHint => ScopePackages ? "Betroffen sind die Pakete (Mehrfachkarten) dieser Behandlungen." : "Aus der Liste eine Behandlung wählen.";
 
     public bool HasChosen => Chosen.Count > 0 && ShowTreatmentPicker;
@@ -200,6 +270,39 @@ public sealed partial class PromotionsViewModel(IWorkstationApi api, TimeProvide
 
     [ObservableProperty]
     public partial bool SomeLocations { get; set; }
+
+    /// <summary>Art „befristet“: gilt an jedem Tag des Zeitraums.</summary>
+    [ObservableProperty]
+    public partial bool IsLimited { get; set; } = true;
+
+    /// <summary>Art „kurzfristig frei“: für Termine, die höchstens <see cref="LeadHours"/> Stunden vor Beginn gebucht werden.</summary>
+    [ObservableProperty]
+    public partial bool IsLastMinute { get; set; }
+
+    /// <summary>Art „schwache Zeiten“: für Termine in den abgehakten Feldern des Wochenrasters.</summary>
+    [ObservableProperty]
+    public partial bool IsOffPeak { get; set; }
+
+    /// <summary>Vorlauf in Stunden als Eingabe (nur bei „kurzfristig frei“).</summary>
+    [ObservableProperty]
+    public partial string LeadHours { get; set; } = "";
+
+    [ObservableProperty]
+    public partial string? LeadHoursError { get; private set; }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasSlotsError))]
+    public partial string? SlotsError { get; private set; }
+
+    public bool HasSlotsError => SlotsError is not null;
+
+    /// <summary>Beispieltermin der Vorschau, z. B. „Dienstag, 24.11., Vormittag“.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasPreview))]
+    public partial string? PreviewExample { get; private set; }
+
+    [ObservableProperty]
+    public partial string? PreviewNote { get; private set; }
 
     [ObservableProperty]
     public partial bool ScopeAll { get; set; } = true;
@@ -386,7 +489,30 @@ public sealed partial class PromotionsViewModel(IWorkstationApi api, TimeProvide
     }
 
     private PromotionRow RowOf(PromotionDto promotion) =>
-        new(promotion.Id, promotion.Name, $"{DiscountLabel(promotion)} · {StockFormat.Date(promotion.ValidFrom)} bis {StockFormat.Date(promotion.ValidUntil)}", PlacesLabel(promotion), PhaseOf(promotion));
+        new(promotion.Id, promotion.Name, KindName(promotion.Kind ?? PromotionKind.Limited), $"{DiscountLabel(promotion)} · {ConditionLabel(promotion)}", PlacesLabel(promotion),
+            PhaseOf(promotion));
+
+    private static string KindName(PromotionKind kind) => kind switch
+    {
+        PromotionKind.LastMinute => "Kurzfristig frei",
+        PromotionKind.OffPeak => "Schwache Zeiten",
+        _ => "Befristet",
+    };
+
+    /// <summary>Wann der Rabatt gilt: Zeitraum, Vorlauf oder die ersten Felder des Rasters.</summary>
+    private static string ConditionLabel(PromotionDto promotion)
+    {
+        switch (promotion.Kind)
+        {
+            case PromotionKind.LastMinute:
+                return $"bis {promotion.LeadHours} Std. vor Beginn gebucht";
+            case PromotionKind.OffPeak:
+                var slots = (promotion.Slots ?? []).Select(s => $"{Week.First(d => d.Day == s.Day).Short} {Parts.First(p => p.Part == s.Part).Name}").ToList();
+                return slots.Count <= 2 ? string.Join(", ", slots) : $"{slots.Count} Felder im Wochenraster";
+            default:
+                return $"{StockFormat.Date(promotion.ValidFrom)} bis {StockFormat.Date(promotion.ValidUntil)}";
+        }
+    }
 
     private string DiscountLabel(PromotionDto promotion) => promotion.DiscountPercent is { } percent
         ? $"{percent.ToString("0.##", German)} %"
@@ -510,6 +636,16 @@ public sealed partial class PromotionsViewModel(IWorkstationApi api, TimeProvide
         IsActive = promotion?.IsActive ?? true;
         AllLocations = promotion?.AllLocations ?? !single;
         SomeLocations = !AllLocations;
+        var kind = promotion?.Kind ?? PromotionKind.Limited;
+        IsLimited = kind == PromotionKind.Limited;
+        IsLastMinute = kind == PromotionKind.LastMinute;
+        IsOffPeak = kind == PromotionKind.OffPeak;
+        LeadHours = (promotion?.LeadHours ?? DefaultLeadHours).ToString(CultureInfo.InvariantCulture);
+        foreach (var cell in OffPeakGrid.SelectMany(r => r.Cells))
+        {
+            cell.IsSelected = promotion?.Slots?.Contains(new PromotionSlot(cell.Day, cell.Part)) == true;
+        }
+
         ScopeAll = promotion is null || promotion.Scope == PromotionScope.AllTreatments;
         ScopeTreatments = promotion?.Scope == PromotionScope.SelectedTreatments;
         ScopePackages = promotion?.Scope == PromotionScope.SelectedPackages;
@@ -540,7 +676,7 @@ public sealed partial class PromotionsViewModel(IWorkstationApi api, TimeProvide
                  {
                      nameof(IsCreating), nameof(HeadingText), nameof(PhaseText), nameof(HasPhase), nameof(IsArchived), nameof(IsEditable), nameof(CanArchive), nameof(CanUnarchive), nameof(CanPause),
                      nameof(PauseText), nameof(ValueLabel), nameof(ValueHint), nameof(ValuePlaceholder), nameof(ShowTreatmentPicker), nameof(TreatmentHint), nameof(HasChosen), nameof(ShowLocationList),
-                     nameof(HasUnsavedChanges),
+                     nameof(HasUnsavedChanges), nameof(KindHint), nameof(PeriodHint), nameof(ShowPackagesOption),
                  })
         {
             OnPropertyChanged(name);
@@ -550,6 +686,23 @@ public sealed partial class PromotionsViewModel(IWorkstationApi api, TimeProvide
         ArchiveCommand.NotifyCanExecuteChanged();
         UnarchiveCommand.NotifyCanExecuteChanged();
         TogglePauseCommand.NotifyCanExecuteChanged();
+        _ = RefreshPreviewAsync();
+    }
+
+    private OffPeakRow[] BuildGrid() =>
+    [
+        .. Parts.Select(part => new OffPeakRow(part.Name, part.Hours, [.. Week.Select(day =>
+        {
+            var cell = new OffPeakCell(day.Day, part.Part, $"{day.Long} {part.Name}");
+            cell.PropertyChanged += OnCellChanged;
+            return cell;
+        })])),
+    ];
+
+    private void OnCellChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        SlotsError = null;
+        Touch();
     }
 
     private ChosenTreatment NewChosen(Guid id, string name) => new(id, name, RemoveTreatment);
@@ -587,6 +740,51 @@ public sealed partial class PromotionsViewModel(IWorkstationApi api, TimeProvide
     }
 
     // ---------- Radiogruppen ----------
+
+    private PromotionKind SelectedKind => IsLastMinute ? PromotionKind.LastMinute : IsOffPeak ? PromotionKind.OffPeak : PromotionKind.Limited;
+
+    partial void OnIsLimitedChanged(bool value) => ChooseKind(value, () => IsLastMinute = false, () => IsOffPeak = false);
+
+    partial void OnIsLastMinuteChanged(bool value) => ChooseKind(value, () => IsLimited = false, () => IsOffPeak = false);
+
+    partial void OnIsOffPeakChanged(bool value) => ChooseKind(value, () => IsLimited = false, () => IsLastMinute = false);
+
+    /// <summary>
+    /// Eine Art gewählt: die anderen gehen aus. Bei einer neuen Aktion mit unverändertem Zeitraum passt das Ende zur Art (befristet 30 Tage, Regeln ein Jahr); Pakete gibt es nur
+    /// befristet, deshalb werden daraus die ausgewählten Behandlungen.
+    /// </summary>
+    private void ChooseKind(bool chosen, params Action[] others)
+    {
+        if (!chosen)
+        {
+            return;
+        }
+
+        foreach (var other in others)
+        {
+            other();
+        }
+
+        if (_applying)
+        {
+            return;
+        }
+
+        if (IsCreating && ValidFrom == Today && (ValidUntil == Today.AddDays(DefaultDays) || ValidUntil == Today.AddDays(DefaultRuleDays)))
+        {
+            ValidUntil = Today.AddDays(IsLimited ? DefaultDays : DefaultRuleDays);
+        }
+
+        if (!IsLimited && ScopePackages)
+        {
+            ScopeTreatments = true;
+        }
+
+        foreach (var name in new[] { nameof(KindHint), nameof(PeriodHint), nameof(ShowPackagesOption) })
+        {
+            OnPropertyChanged(name);
+        }
+    }
 
     partial void OnIsPercentChanged(bool value)
     {
@@ -679,6 +877,13 @@ public sealed partial class PromotionsViewModel(IWorkstationApi api, TimeProvide
             case nameof(ScopeAll) or nameof(ScopeTreatments) or nameof(ScopePackages):
                 TreatmentsError = null;
                 break;
+            case nameof(LeadHours):
+                LeadHoursError = null;
+                break;
+            case nameof(IsLimited) or nameof(IsLastMinute) or nameof(IsOffPeak):
+                LeadHoursError = null;
+                SlotsError = null;
+                break;
         }
 
         Touch();
@@ -694,14 +899,20 @@ public sealed partial class PromotionsViewModel(IWorkstationApi api, TimeProvide
 
         StatusText = null;
         OnPropertyChanged(nameof(HasUnsavedChanges));
+        _ = RefreshPreviewAsync();
     }
 
-    private void ClearErrors() => NameError = GuestTextError = ValueError = FromError = UntilError = LocationsError = TreatmentsError = null;
+    private void ClearErrors() => NameError = GuestTextError = ValueError = FromError = UntilError = LocationsError = TreatmentsError = LeadHoursError = SlotsError = null;
+
+    private IReadOnlyList<PromotionSlot> SelectedSlots => [.. OffPeakGrid.SelectMany(r => r.Cells).Where(c => c.IsSelected).Select(c => new PromotionSlot(c.Day, c.Part))];
+
+    private int? LeadHoursValue => int.TryParse(LeadHours.Trim(), NumberStyles.None, CultureInfo.InvariantCulture, out var hours) ? hours : null;
 
     private PromotionScope Scope => ScopeTreatments ? PromotionScope.SelectedTreatments : ScopePackages ? PromotionScope.SelectedPackages : PromotionScope.AllTreatments;
 
     private string Signature() => string.Join('\u001f', PromotionName, GuestText, IsPercent, DiscountValue, ValidFrom, ValidUntil, IsActive, AllLocations,
-        string.Join(',', Locations.Where(l => l.IsSelected).Select(l => l.Id)), Scope, string.Join(',', Chosen.Select(c => c.Id)));
+        string.Join(',', Locations.Where(l => l.IsSelected).Select(l => l.Id)), Scope, string.Join(',', Chosen.Select(c => c.Id)), SelectedKind,
+        IsLastMinute ? LeadHours : "", IsOffPeak ? string.Join(',', SelectedSlots) : "");
 
     // ---------- Prüfen und Speichern ----------
 
@@ -719,8 +930,12 @@ public sealed partial class PromotionsViewModel(IWorkstationApi api, TimeProvide
         UntilError = ValidUntil is null ? "Trage das Ende ein." : ValidFrom is { } from && ValidUntil < from ? "Das Ende darf nicht vor dem Beginn liegen." : null;
         LocationsError = !AllLocations && Locations.All(l => !l.IsSelected) ? "Mindestens einen Standort wählen." : null;
         TreatmentsError = !ScopeAll && Chosen.Count == 0 ? "Mindestens eine Behandlung wählen." : null;
+        LeadHoursError = IsLastMinute && LeadHoursValue is not (>= 1 and <= MaxLeadHours) ? $"Vorlauf in Stunden zwischen 1 und {MaxLeadHours} angeben." : null;
+        SlotsError = IsOffPeak && SelectedSlots.Count == 0 ? "Mindestens ein Feld im Wochenraster wählen." : null;
         var firstInvalid = NameError is not null ? NameField
             : GuestTextError is not null ? GuestTextField
+            : LeadHoursError is not null ? LeadHoursField
+            : SlotsError is not null ? SlotsField
             : ValueError is not null ? ValueField
             : FromError is not null ? FromField
             : UntilError is not null ? UntilField
@@ -737,8 +952,49 @@ public sealed partial class PromotionsViewModel(IWorkstationApi api, TimeProvide
         var value = StockFormat.Parse(DiscountValue);
         return new PromotionInput(PromotionName.Trim(), GuestText.Trim(), ValidFrom!.Value, ValidUntil!.Value, AllLocations,
             AllLocations ? [] : [.. Locations.Where(l => l.IsSelected).Select(l => l.Id)], IsPercent ? value : null, IsAmount ? value : null, Scope,
-            ScopeAll ? [] : [.. Chosen.Select(c => c.Id)], IsActive);
+            ScopeAll ? [] : [.. Chosen.Select(c => c.Id)], IsActive)
+        {
+            Kind = SelectedKind,
+            LeadHours = IsLastMinute ? LeadHoursValue : null,
+            Slots = IsOffPeak ? SelectedSlots : [],
+        };
     }
+
+    // ---------- Vorschau des Gästepreises ----------
+
+    /// <summary>
+    /// Holt die Vorschau „So sieht es der Gast“ für den Stand des Formulars (auch ungespeichert); den Gästepreis rechnet die API wie die Kassa. Eine ältere Antwort, die nach einer
+    /// neueren Eingabe eintrifft, wird verworfen. Ohne Antwort bleibt die Vorschau leer; Speichern hängt nicht davon ab.
+    /// </summary>
+    private async Task RefreshPreviewAsync()
+    {
+        var version = ++_previewVersion;
+        var value = StockFormat.Parse(DiscountValue);
+        var body = new PromotionInput(PromotionName.Trim(), GuestText.Trim(), ValidFrom ?? Today, ValidUntil ?? ValidFrom ?? Today, AllLocations, [], IsPercent ? value : null,
+            IsAmount ? value : null, Scope, ScopeAll ? [] : [.. Chosen.Select(c => c.Id)], IsActive)
+        {
+            Kind = SelectedKind,
+            LeadHours = IsLastMinute ? LeadHoursValue : null,
+            Slots = IsOffPeak ? SelectedSlots : [],
+        };
+        var result = await api.PostAsync<PromotionPreviewDto>("api/promotions/preview", body).ConfigureAwait(true);
+        if (version != _previewVersion)
+        {
+            return;
+        }
+
+        PreviewLines.Clear();
+        foreach (var line in result.Value?.Lines ?? [])
+        {
+            PreviewLines.Add(new PromotionPreviewLine(line.Name, Money(line.Price), Money(line.GuestPrice)));
+        }
+
+        PreviewExample = result.Value?.Example;
+        PreviewNote = result.Value?.Note;
+        OnPropertyChanged(nameof(HasPreview));
+    }
+
+    private string Money(decimal value) => $"{value.ToString("#,##0.00", German)} {Currency}";
 
     private bool CanSave => !IsSaving && IsEditable;
 
@@ -822,7 +1078,12 @@ public sealed partial class PromotionsViewModel(IWorkstationApi api, TimeProvide
 
         var resume = !promotion.IsActive;
         var body = new PromotionInput(promotion.Name, promotion.GuestText, promotion.ValidFrom, promotion.ValidUntil, promotion.AllLocations, promotion.LocationIds, promotion.DiscountPercent,
-            promotion.DiscountAmount, promotion.Scope, promotion.TreatmentIds, resume);
+            promotion.DiscountAmount, promotion.Scope, promotion.TreatmentIds, resume)
+        {
+            Kind = promotion.Kind,
+            LeadHours = promotion.LeadHours,
+            Slots = promotion.Slots,
+        };
         await ChangeAsync(api.PutAsync<PromotionDto>($"api/promotions/{promotion.Id}", body), resume ? "Fortgesetzt." : "Pausiert.", false).ConfigureAwait(true);
     }
 

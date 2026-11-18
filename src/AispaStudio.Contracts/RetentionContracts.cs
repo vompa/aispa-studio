@@ -37,7 +37,26 @@ public sealed record MarketingConsentRequest(string? Language);
 /// <param name="Days">Nach so vielen Tagen seit der letzten abgeschlossenen Behandlung kommt die Erinnerung.</param>
 public sealed record RebookIntervalDto(Guid TreatmentId, int Days);
 
-public sealed record RebookSettingsDto(bool Enabled, IReadOnlyList<RebookIntervalDto> Intervals);
+/// <param name="Days">Nach so vielen Tagen erinnert die Kategorie; leer heißt für die Kategorie kein Hinweis.</param>
+public sealed record RebookCategoryIntervalDto(string Category, int? Days);
+
+/// <summary>
+/// Wiederbuchungs-Hinweise: ein Standardabstand und Ausnahmen je Kategorie oder Behandlung (P8, 17.11.2026). Die Felder nach <c>Intervals</c> sind
+/// optionale Erweiterungen (ADR 0085): ein Aufruf ohne <c>CategoryIntervals</c> ändert nur <c>Enabled</c> und <c>Intervals</c> und lässt Standard,
+/// Kategorien und Behandlungen ohne Hinweis unverändert; mit <c>CategoryIntervals</c> (auch leer) ersetzt der Aufruf alle Angaben.
+/// </summary>
+/// <param name="Intervals">Behandlungen mit eigenem Abstand in Tagen.</param>
+public sealed record RebookSettingsDto(bool Enabled, IReadOnlyList<RebookIntervalDto> Intervals)
+{
+    /// <summary>Standardabstand für alle Behandlungen ohne Ausnahme; leer heißt kein Hinweis.</summary>
+    public int? DefaultDays { get; init; }
+
+    /// <summary>Ausnahmen je Kategorie; sie gelten für Behandlungen ohne eigene Ausnahme.</summary>
+    public IReadOnlyList<RebookCategoryIntervalDto>? CategoryIntervals { get; init; }
+
+    /// <summary>Behandlungen, für die es keinen Hinweis gibt, auch wenn Standard oder Kategorie einen hätten.</summary>
+    public IReadOnlyList<Guid>? SilentTreatmentIds { get; init; }
+}
 
 /// <summary>Eine Erinnerung an die nächste Behandlung, wie sie verschickt wurde (oder warum nicht).</summary>
 /// <param name="AiWritten">Den persönlichen Teil hat die KI geschrieben; sonst der feste Text.</param>

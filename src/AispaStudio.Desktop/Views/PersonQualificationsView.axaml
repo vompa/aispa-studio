@@ -5,7 +5,7 @@
              x:Class="AispaStudio.Desktop.Views.PersonQualificationsView"
              x:DataType="vm:PersonQualificationsViewModel">
   <!--
-    Reiter „Qualifikationen“ (R05 Slice 98): welche Qualifikationen die Person hat (gespeichert mit der Leiste), darunter „Qualifikationen verwalten“ wie
+    Abschnitt „Qualifikationen“ (R05 Slice 98, P5): welche Qualifikationen die Person hat als Auswahl-Chips (gespeichert mit der Leiste), darunter „Qualifikationen verwalten“ wie
     web/src/admin/QualificationsTab.tsx: Umbenennen und Hinzufügen wirken sofort.
   -->
   <StackPanel x:Name="QualificationsSection" Spacing="20">
@@ -19,12 +19,12 @@
       <ItemsControl x:Name="PersonQualificationsField" ItemsSource="{Binding Options}" AutomationProperties.Name="Qualifikationen der Person">
         <ItemsControl.ItemsPanel>
           <ItemsPanelTemplate>
-            <WrapPanel ItemSpacing="16" />
+            <WrapPanel ItemSpacing="8" LineSpacing="8" />
           </ItemsPanelTemplate>
         </ItemsControl.ItemsPanel>
         <ItemsControl.ItemTemplate>
           <DataTemplate x:DataType="vm:CheckOption">
-            <CheckBox Content="{Binding Label}" IsChecked="{Binding IsChecked}" />
+            <ToggleButton Classes="choicechip" Content="{Binding Label}" IsChecked="{Binding IsChecked}" />
           </DataTemplate>
         </ItemsControl.ItemTemplate>
       </ItemsControl>

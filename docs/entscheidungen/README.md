@@ -76,7 +76,7 @@ Neue Entscheidungen bekommen die nächste freie Nummer und die Vorlage [`vorlage
 | 0068 | [Lagerorte je Standort und neue Lager-Maske](0068-lagerorte-je-standort.md) | 21.10.2026 | Auftraggeber, Ausgestaltung Claude |
 | 0069 | [Fluent 2 als Grundlage der Windows-App](0069-fluent-2-als-grundlage-der-windows-app.md) | 21.10.2026 | Auftraggeber, Ausgestaltung Claude |
 | 0070 | [Rollen Manager und Backoffice, Recht „Berichte mit Beträgen“](0070-rollen-manager-und-backoffice.md) | 22.10.2026 | Auftraggeber (Runde 5, Ä37), Ausgestaltung Claude |
-| 0071 | [Aktionen und Rabatte als eigener Fachbereich](0071-aktionen-und-rabatte.md) | 22.10.2026 | Auftraggeber, Ausgestaltung Claude |
+| 0071 | [Aktionen und Rabatte als eigener Fachbereich](0071-aktionen-und-rabatte.md) | 22.10.2026 | Auftraggeber, Ausgestaltung Claude (Nachtrag 17.11.2026: drei Arten, Gästepreis-Vorschau) |
 | 0072 | [Der Assistent beantwortet Betriebsfragen aus den eigenen Daten](0072-assistent-beantwortet-betriebsfragen.md) | 22.10.2026 | Auftraggeber (Runde 5, Ä36), Ausgestaltung Claude |
 | 0073 | [Schließzeiten je Standort und Absage der betroffenen Termine nach Rückfrage](0073-schliesszeiten-und-terminabsage.md) | 22.10.2026 | Auftraggeber (Runde 5b, Ä38; Nachträge Ä46 bis Ä49 und Ä51 bis Ä54; Nachtrag R03 Ä83, Ä89: die Rezeption trägt an Schließtagen ein), Ausgestaltung Claude |
 | 0074 | [Betriebsinformationen und Kontakte als eigenes Verzeichnis, der Assistent liest sie nach Recht](0074-betriebsinformationen-und-kontakte.md) | 22.10.2026 | Auftraggeber (Runde 5b, Ä39), Ausgestaltung Claude |
@@ -104,5 +104,6 @@ Neue Entscheidungen bekommen die nächste freie Nummer und die Vorlage [`vorlage
 | 0096 | [Kassieren ohne Verbindung: Ersatzbeleg und Nacherfassung](0096-kassieren-ohne-verbindung-ersatzbeleg-und-nacherfassung.md) | 16.11.2026 | Claude, autonom nach ADR 0019 (Steuerberatung offen) |
 | 0097 | [Urlaubskonto: Arbeitstage je Kalenderjahr, Anspruch von der Leitung](0097-urlaubskonto-in-arbeitstagen-je-kalenderjahr.md) | 16.11.2026 | Claude, autonom nach ADR 0019 (Arbeitsrecht offen) |
 | 0098 | [Verwaltungsmasken: eine Schiene, Übersicht zuerst, Verlauf als Seitenleiste](0098-verwaltungsmasken-eine-schiene-uebersicht-seitenleiste.md) | 16.11.2026 | Auftraggeber, Umsetzung Claude |
+| 0099 | [Anlegen, Entfernen und leerer Betrieb](0099-anlegen-entfernen-und-leerer-betrieb.md) | 17.11.2026 | Auftraggeber, Umsetzung Claude |
 
 Detailentscheidungen einzelner Pull Requests stehen im [PR-Protokoll](../umsetzung/pr-protokoll.md).

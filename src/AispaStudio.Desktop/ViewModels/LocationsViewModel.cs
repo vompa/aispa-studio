@@ -16,6 +16,13 @@ public sealed partial class LocationChoice(Guid? id, string title) : ObservableO
     [ObservableProperty]
     public partial string Title { get; set; } = title;
 
+    /// <summary>Zweite Zeile in der Liste, z. B. „geschlossen ab 01.12.2026“; leer für einen offenen Standort.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasNote))]
+    public partial string? Note { get; set; }
+
+    public bool HasNote => !string.IsNullOrEmpty(Note);
+
     public override string ToString() => Title;
 }
 
@@ -104,8 +111,11 @@ public sealed partial class LocationsViewModel : ViewModelBase, IEditableArea, I
     /// <summary>Wer Standorte anlegen darf (ManageOrganization); das Anpassen vorhandener braucht ManageLocation, das der Bereich ohnehin verlangt.</summary>
     public bool CanCreate { get; }
 
-    /// <summary>Die Standorte und, wenn erlaubt, „Standort anlegen“ am Ende.</summary>
+    /// <summary>Die Standorte; „Standort anlegen“ steht nicht in der Liste, sondern fest darüber (<see cref="NewLocationCommand"/>, ADR 0099).</summary>
     public ObservableCollection<LocationChoice> Choices { get; } = [];
+
+    /// <summary>Der Eintrag „Standort anlegen“ (nur mit ManageOrganization); gewählt zeigt das Formular einen neuen Standort.</summary>
+    public LocationChoice? CreateChoice => _createChoice;
 
     /// <summary>Zeitzonen wie im Web; die des Standorts steht immer dabei.</summary>
     public ObservableCollection<string> TimeZones { get; } = ["Europe/Vienna", "Europe/Berlin", "Europe/Zurich"];
@@ -134,6 +144,9 @@ public sealed partial class LocationsViewModel : ViewModelBase, IEditableArea, I
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsNew))]
     [NotifyPropertyChangedFor(nameof(HasLocation))]
+    [NotifyPropertyChangedFor(nameof(CanRemoveLocation))]
+    [NotifyCanExecuteChangedFor(nameof(StartCloseCommand))]
+    [NotifyCanExecuteChangedFor(nameof(DeleteLocationCommand))]
     [NotifyPropertyChangedFor(nameof(HeadingText))]
     public partial LocationChoice? SelectedChoice { get; set; }
 
@@ -279,12 +292,7 @@ public sealed partial class LocationsViewModel : ViewModelBase, IEditableArea, I
         Choices.Clear();
         foreach (var location in list)
         {
-            Choices.Add(new LocationChoice(location.Id, location.Name));
-        }
-
-        if (_createChoice is not null)
-        {
-            Choices.Add(_createChoice);
+            Choices.Add(ChoiceOf(location));
         }
 
         IsLoaded = true;
@@ -354,6 +362,157 @@ public sealed partial class LocationsViewModel : ViewModelBase, IEditableArea, I
         if (focus is not null)
         {
             FocusTarget = focus;
+        }
+    }
+
+    /// <summary>„Standort anlegen“ über der Liste: wählt den leeren Standort (fragt bei ungespeicherten Änderungen wie jeder Wechsel).</summary>
+    [RelayCommand(CanExecute = nameof(CanCreate))]
+    private void NewLocation() => SelectedChoice = _createChoice;
+
+    /// <summary>Ab diesem Tag ist der gewählte Standort geschlossen (<c>ClosedFrom</c> der API); leer, solange er offen ist.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsClosed))]
+    [NotifyPropertyChangedFor(nameof(ClosedText))]
+    [NotifyPropertyChangedFor(nameof(CloseMenuText))]
+    public partial DateOnly? ClosedFrom { get; private set; }
+
+    public bool IsClosed => ClosedFrom is not null;
+
+    /// <summary>Hinweis über dem Formular eines geschlossenen Standorts.</summary>
+    public string ClosedText => ClosedFrom is { } date
+        ? $"Dieser Standort ist ab {date:dd.MM.yyyy} geschlossen. Ab dann gibt es keine Buchung mehr; vergangene Termine, Belege und Berichte bleiben."
+        : "";
+
+    /// <summary>Erster Eintrag im Menü „⋯“ des Standorts: „Schließen ab Datum …“, bei einem geschlossenen „Wieder öffnen“.</summary>
+    public string CloseMenuText => IsClosed ? "Wieder öffnen" : "Schließen ab Datum …";
+
+    /// <summary>Schließen und Löschen darf nur, wer Standorte anlegen darf (ManageOrganization), und nur bei einem gespeicherten Standort.</summary>
+    public bool CanRemoveLocation => CanCreate && HasLocation;
+
+    /// <summary>Die Zeile „Schließen ab“ ist offen (Menü „⋯“ › „Schließen ab Datum …“).</summary>
+    [ObservableProperty]
+    public partial bool IsClosing { get; private set; }
+
+    [ObservableProperty]
+    public partial DateOnly? CloseDate { get; set; }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasCloseDateError))]
+    public partial string? CloseDateError { get; private set; }
+
+    public bool HasCloseDateError => CloseDateError is not null;
+
+    /// <summary>Menü „⋯“ › „Schließen ab Datum …“ öffnet die Zeile mit dem Datum; bei einem geschlossenen Standort heißt der Eintrag „Wieder öffnen“ und öffnet ihn gleich.</summary>
+    [RelayCommand(CanExecute = nameof(CanRemoveLocation))]
+    private async Task StartCloseAsync()
+    {
+        if (IsClosed)
+        {
+            await ReopenAsync().ConfigureAwait(true);
+            return;
+        }
+
+        CloseDateError = null;
+        CloseDate ??= DateOnly.FromDateTime(DateTime.Today);
+        IsClosing = true;
+    }
+
+    [RelayCommand]
+    private void CancelClose()
+    {
+        IsClosing = false;
+        CloseDateError = null;
+    }
+
+    /// <summary>„Schließen“ in der Zeile: <c>POST api/locations/{id}/close</c>; die API lehnt ab, solange ab dem Tag noch Termine am Standort liegen oder es der letzte offene wäre, die Meldung steht an der Zeile.</summary>
+    [RelayCommand]
+    private async Task ConfirmCloseAsync()
+    {
+        if (SelectedChoice is not { Id: { } id } choice)
+        {
+            return;
+        }
+
+        if (CloseDate is not { } date)
+        {
+            CloseDateError = "Das Datum fehlt. Trage ein, ab wann der Standort geschlossen ist, z. B. 01.12.2026.";
+            return;
+        }
+
+        var result = await _api.PostAsync<LocationDto>($"api/locations/{id}/close", new LocationCloseInput(date)).ConfigureAwait(true);
+        if (result.Value is not { } saved)
+        {
+            CloseDateError = result.Error ?? "Der Standort wurde nicht geschlossen.";
+            return;
+        }
+
+        IsClosing = false;
+        CloseDateError = null;
+        TakeClosedState(choice, saved);
+    }
+
+    private async Task ReopenAsync()
+    {
+        if (SelectedChoice is not { Id: { } id } choice)
+        {
+            return;
+        }
+
+        var result = await _api.PostAsync<LocationDto>($"api/locations/{id}/reopen", new { }).ConfigureAwait(true);
+        if (result.Value is not { } saved)
+        {
+            Error = result.Error ?? "Der Standort wurde nicht wieder geöffnet.";
+            return;
+        }
+
+        TakeClosedState(choice, saved);
+        Saved?.Invoke();
+    }
+
+    /// <summary>Übernimmt nur den Stand „geschlossen ab“ der API; die anderen Felder des Formulars bleiben, wie die Person sie gerade hat.</summary>
+    private void TakeClosedState(LocationChoice choice, LocationDto saved)
+    {
+        var index = _locations.FindIndex(l => l.Id == saved.Id);
+        _locations[index] = _locations[index] with { ClosedFrom = saved.ClosedFrom };
+        _resources[saved.Id] = _resources[saved.Id] with { Location = _locations[index] };
+        choice.Note = ClosedNote(saved.ClosedFrom);
+        ClosedFrom = saved.ClosedFrom;
+        Saved?.Invoke();
+    }
+
+    /// <summary>„Löschen …“ im Menü „⋯“ des Standorts (ADR 0099): die API zählt, was daran hängt; der Dialog nennt es und bietet „Schließen ab Datum …“ an.</summary>
+    [RelayCommand(CanExecute = nameof(CanRemoveLocation))]
+    private async Task DeleteLocationAsync()
+    {
+        if (SelectedChoice is not { Id: { } id } choice)
+        {
+            return;
+        }
+
+        Error = null;
+        var outcome = await DeletionDialog.AskAsync(_api, Dialogs, $"api/locations/{id}/deletion-check", choice.Title).ConfigureAwait(true);
+        if (outcome.Error is not null)
+        {
+            Error = outcome.Error;
+        }
+        else if (outcome.Choice == DeletionChoice.Alternative)
+        {
+            await StartCloseAsync().ConfigureAwait(true);
+        }
+        else if (outcome.Choice == DeletionChoice.Delete)
+        {
+            var result = await _api.DeleteAsync<object>($"api/locations/{id}").ConfigureAwait(true);
+            if (!result.Ok)
+            {
+                Error = result.Error ?? "Der Standort wurde nicht gelöscht.";
+                return;
+            }
+
+            _locations.RemoveAll(l => l.Id == id);
+            _resources.Remove(id);
+            Choices.Remove(choice);
+            SelectWithoutAsking(Choices.FirstOrDefault());
+            Saved?.Invoke();
         }
     }
 
@@ -516,9 +675,13 @@ public sealed partial class LocationsViewModel : ViewModelBase, IEditableArea, I
         NameError = null;
         HoursError = null;
         Error = null;
+        IsClosing = false;
+        CloseDateError = null;
+        CloseDate = null;
         RoomMessage = null;
         EquipmentMessage = null;
         NewEquipmentName = "";
+        ResetFormer();
         Rooms.Clear();
         Equipment.Clear();
         if (choice.Id is { } id && _locations.Find(l => l.Id == id) is { } location)
@@ -561,7 +724,7 @@ public sealed partial class LocationsViewModel : ViewModelBase, IEditableArea, I
             }
             else
             {
-                Rooms.Add(new RoomRowViewModel(room, _articles, SaveRoomAsync, DeactivateRoomAsync));
+                Rooms.Add(new RoomRowViewModel(room, _articles, SaveRoomAsync, DeactivateRoomAsync, DeleteRoomAsync));
             }
         }
 
@@ -570,7 +733,7 @@ public sealed partial class LocationsViewModel : ViewModelBase, IEditableArea, I
         Equipment.Clear();
         foreach (var item in resources.Equipment)
         {
-            Equipment.Add(new EquipmentRowViewModel(item, RemoveEquipmentAsync));
+            Equipment.Add(new EquipmentRowViewModel(item, RemoveEquipmentAsync, DeleteEquipmentAsync));
         }
     }
 
@@ -622,8 +785,48 @@ public sealed partial class LocationsViewModel : ViewModelBase, IEditableArea, I
             return;
         }
 
+        if (_resources[locationId].Rooms.FirstOrDefault(r => r.Id == id) is { } removed)
+        {
+            AddFormerRoom(removed);
+        }
+
         _resources[locationId] = _resources[locationId] with { Rooms = [.. _resources[locationId].Rooms.Where(r => r.Id != id)] };
         FillSections(locationId);
+    }
+
+    /// <summary>„Löschen …“ am Raum (ADR 0099): Räume bleiben für Termine, Belege und Auswertungen im Stamm; der Dialog nennt, was daran hängt, und bietet „Nicht mehr verwenden“ an.</summary>
+    private async Task DeleteRoomAsync(RoomRowViewModel row)
+    {
+        if (row.Id is not { } id)
+        {
+            return;
+        }
+
+        RoomMessage = null;
+        var outcome = await DeletionDialog.AskAsync(_api, Dialogs, $"api/rooms/{id}/deletion-check", row.Name).ConfigureAwait(true);
+        if (outcome.Error is not null)
+        {
+            RoomMessage = outcome.Error;
+        }
+        else if (outcome.Choice == DeletionChoice.Alternative)
+        {
+            await DeactivateRoomAsync(row).ConfigureAwait(true);
+        }
+    }
+
+    /// <summary>„Löschen …“ am Gerät: wie beim Raum, ein Gerät bleibt für Termine im Stamm.</summary>
+    private async Task DeleteEquipmentAsync(EquipmentRowViewModel row)
+    {
+        EquipmentMessage = null;
+        var outcome = await DeletionDialog.AskAsync(_api, Dialogs, $"api/equipment/{row.Id}/deletion-check", row.Name).ConfigureAwait(true);
+        if (outcome.Error is not null)
+        {
+            EquipmentMessage = outcome.Error;
+        }
+        else if (outcome.Choice == DeletionChoice.Alternative)
+        {
+            await RemoveEquipmentAsync(row).ConfigureAwait(true);
+        }
     }
 
     private bool CanAddEquipment => NewEquipmentName.Trim().Length > 0;
@@ -646,7 +849,7 @@ public sealed partial class LocationsViewModel : ViewModelBase, IEditableArea, I
 
         _resources[locationId] = _resources[locationId] with { Equipment = [.. _resources[locationId].Equipment, saved] };
         NewEquipmentName = "";
-        Equipment.Add(new EquipmentRowViewModel(saved, RemoveEquipmentAsync));
+        Equipment.Add(new EquipmentRowViewModel(saved, RemoveEquipmentAsync, DeleteEquipmentAsync));
     }
 
     private async Task RemoveEquipmentAsync(EquipmentRowViewModel row)
@@ -664,17 +867,26 @@ public sealed partial class LocationsViewModel : ViewModelBase, IEditableArea, I
             return;
         }
 
+        if (_resources[locationId].Equipment.FirstOrDefault(e => e.Id == row.Id) is { } removed)
+        {
+            AddFormerEquipment(removed);
+        }
+
         _resources[locationId] = _resources[locationId] with { Equipment = [.. _resources[locationId].Equipment.Where(e => e.Id != row.Id)] };
         Equipment.Remove(row);
     }
 
-    /// <summary>Ein neu angelegter Standort kommt vor „Standort anlegen“ in die Liste und ist gewählt; die Maske steht danach auf seinem gespeicherten Stand.</summary>
+    private static LocationChoice ChoiceOf(LocationDto location) => new(location.Id, location.Name) { Note = ClosedNote(location.ClosedFrom) };
+
+    private static string? ClosedNote(DateOnly? closedFrom) => closedFrom is { } date ? $"geschlossen ab {date:dd.MM.yyyy}" : null;
+
+    /// <summary>Ein neu angelegter Standort kommt ans Ende der Liste und ist gewählt; die Maske steht danach auf seinem gespeicherten Stand.</summary>
     private void AddLocation(LocationDto saved)
     {
         _locations.Add(saved);
         _resources[saved.Id] = Empty(saved);
-        var choice = new LocationChoice(saved.Id, saved.Name);
-        Choices.Insert(_createChoice is null ? Choices.Count : Choices.IndexOf(_createChoice), choice);
+        var choice = ChoiceOf(saved);
+        Choices.Add(choice);
         SelectWithoutAsking(choice);
     }
 
@@ -721,6 +933,7 @@ public sealed partial class LocationsViewModel : ViewModelBase, IEditableArea, I
 
         var contact = location.Contact ?? LocationContact.Empty;
         var company = location.Company ?? LocationCompany.Empty;
+        ClosedFrom = location.ClosedFrom;
         Name = location.Name;
         TimeZone = location.TimeZone;
         Currency = location.Currency;
@@ -761,15 +974,18 @@ public sealed partial class LocationsViewModel : ViewModelBase, IEditableArea, I
     private static string? Value(string text) => text.Length == 0 ? null : text;
 }
 
-/// <summary>Ein Gerät des Standorts in der Liste; „Entfernen“ löscht es.</summary>
-public sealed partial class EquipmentRowViewModel(EquipmentDto equipment, Func<EquipmentRowViewModel, Task> remove) : ObservableObject
+/// <summary>Ein Gerät des Standorts in der Liste; „Nicht mehr verwenden“ nimmt es aus der Planung, „Löschen …“ zeigt, was daran hängt (ADR 0099).</summary>
+public sealed partial class EquipmentRowViewModel(EquipmentDto equipment, Func<EquipmentRowViewModel, Task> remove, Func<EquipmentRowViewModel, Task>? delete = null) : ObservableObject
 {
     public Guid Id { get; } = equipment.Id;
 
     public string Name { get; } = equipment.Name;
 
-    public string RemoveName => $"Gerät {Name} entfernen";
+    public string RemoveName => $"Gerät {Name} nicht mehr verwenden";
 
     [RelayCommand]
     private Task RemoveAsync() => remove(this);
+
+    [RelayCommand]
+    private Task DeleteAsync() => delete is null ? Task.CompletedTask : delete(this);
 }

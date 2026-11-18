@@ -54,8 +54,9 @@ public sealed class DemoBulkTests(ApiFixture fixture)
             }
         }
 
-        // Aktionen (ADR 0071): beide Wege legen dieselben zwei an, und die Kassa hat die laufende an Behandlungen ihrer Laufzeit angewendet.
-        Assert.Equal(2, expected["Promotions"].Count);
+        // Aktionen (ADR 0071 mit Nachtrag): beide Wege legen dieselben vier an (zwei befristete, je eine kurzfristige und für schwache Zeiten), und die Kassa hat die laufende
+        // befristete an Behandlungen ihrer Laufzeit angewendet.
+        Assert.Equal(4, expected["Promotions"].Count);
         Assert.Equal(DemoBusinessContacts.Count, expected["BusinessContacts"].Count);
         Assert.Equal(5, expected["BusinessContacts"].Count(c => c.Contains("|Management|", StringComparison.Ordinal)));
         Assert.Contains(expected["Receipts"], r => r.Contains("Aktion Herbstzauber 10 %", StringComparison.Ordinal));

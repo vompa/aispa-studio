@@ -7,22 +7,28 @@
                         x:DataType="vm:PromotionsViewModel"
                         ui:SaveShortcut.IsScope="True">
   <!--
-    Aktionen (R05 Slice 101, ADR 0071), native Maske nach web/src/promotions/PromotionsPage.tsx: links die Liste mit dem Zustand jeder Aktion (Läuft, Geplant, Pausiert, Abgelaufen;
-    archivierte auf Wunsch) und „Neue Aktion“, rechts das Formular in Gruppen mit Überschrift und Fragezeichen am Titel (Brief 5.11). Pausieren, Archivieren und Zurückholen sind
-    umkehrbar und fragen nicht. „Speichern / Verwerfen“ steht am Ende des Formulars (Strg+S).
+    Aktionen (R05 Slice 101, ADR 0071; drei Arten nach dem Nachtrag vom 17.11.2026): links „Neue Aktion“ fest über der Liste mit Art und Zustand jeder Aktion (Läuft, Geplant,
+    Pausiert, Abgelaufen; archivierte auf Wunsch), rechts das Formular in Gruppen mit Überschrift und Fragezeichen (Brief 5.11) und daneben die Vorschau des Gästepreises aus der API
+    (Haupt- und Nebeninhalt 3 : 2). Pausieren und Archivieren stehen im Menü „⋯“, „Zurückholen“ als Knopf bei einer archivierten Aktion; nichts davon fragt, gelöscht wird nie.
+    „Speichern / Verwerfen“ steht am Ende des Formulars (Strg+S).
   -->
   <Grid ColumnDefinitions="300,*">
     <Border Classes="card" Padding="8" Margin="0,0,16,0" VerticalAlignment="Top">
       <StackPanel Spacing="8">
-        <Button x:Name="NewPromotionButton" Content="Neue Aktion" Command="{Binding NewCommand}" HorizontalAlignment="Stretch" />
-        <CheckBox x:Name="ShowArchivedBox" IsChecked="{Binding ShowArchived}" Content="Archivierte anzeigen" Margin="4,0" />
+        <Button x:Name="NewPromotionButton" Classes="primary" Command="{Binding NewCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                AutomationProperties.Name="Neue Aktion">
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <ui:Icon Data="{x:Static ui:Icons.Plus}" Width="16" Height="16" />
+            <TextBlock Text="Neue Aktion" />
+          </StackPanel>
+        </Button>
         <ui:InfoBar Severity="Error" Title="Aktionen nicht geladen" Message="{Binding LoadError}" IsVisible="{Binding HasLoadError}"
                     ActionText="Erneut laden" ActionCommand="{Binding LoadCommand}" />
         <TextBlock Text="Wird geladen …" Classes="muted" Margin="8,4" IsVisible="{Binding !IsLoaded}" />
         <TextBlock Classes="muted" TextWrapping="Wrap" Margin="8,4" IsVisible="{Binding ShowEmpty}" Text="Noch keine Aktion angelegt." />
         <ListBox x:Name="PromotionList" Classes="plain" ItemsSource="{Binding Rows}" SelectedItem="{Binding SelectedRow}" AutomationProperties.Name="Aktionen">
           <ListBox.Styles>
-            <!-- Der Name der Zeile nennt Zustand, Rabatt, Zeitraum und Standorte; sonst liest der Screenreader den Record-Typ -->
+            <!-- Der Name der Zeile nennt Art, Zustand, Rabatt, Bedingung und Standorte; sonst liest der Screenreader den Record-Typ -->
             <Style Selector="ListBoxItem" x:DataType="vm:PromotionRow">
               <Setter Property="AutomationProperties.Name" Value="{Binding SpokenName}" />
             </Style>
@@ -31,152 +37,255 @@
             <DataTemplate x:DataType="vm:PromotionRow">
               <StackPanel Spacing="4" Margin="0,4">
                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                  <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                  <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" ToolTip.Tip="{Binding Name}" />
                   <Border Grid.Column="1" Classes="pill">
                     <TextBlock Text="{Binding PhaseText}" />
                   </Border>
                 </Grid>
-                <TextBlock Text="{Binding Detail}" Classes="muted small" TextTrimming="CharacterEllipsis" />
-                <TextBlock Text="{Binding PlacesText}" Classes="muted small" TextTrimming="CharacterEllipsis" />
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <Border Classes="pill accent">
+                    <TextBlock Text="{Binding KindText}" />
+                  </Border>
+                  <TextBlock Text="{Binding PlacesText}" Classes="muted small" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                </StackPanel>
+                <TextBlock Text="{Binding Detail}" Classes="muted small" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Detail}" />
               </StackPanel>
             </DataTemplate>
           </ListBox.ItemTemplate>
         </ListBox>
+        <CheckBox x:Name="ShowArchivedBox" IsChecked="{Binding ShowArchived}" Content="Archivierte anzeigen" Margin="4,0" />
       </StackPanel>
     </Border>
 
     <ScrollViewer Grid.Column="1" x:Name="FormScroll" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
-      <StackPanel Spacing="20" MaxWidth="720" HorizontalAlignment="Left" Margin="0,0,16,16" IsVisible="{Binding IsLoaded}">
-        <ui:InfoBar Severity="Success" Message="{Binding Message}" IsVisible="{Binding HasMessage}" CloseCommand="{Binding CloseMessageCommand}" />
-
-        <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto" ColumnSpacing="8">
-          <StackPanel Orientation="Horizontal" Spacing="12">
-            <TextBlock Text="{Binding HeadingText}" Classes="h2" VerticalAlignment="Center" TextWrapping="Wrap" />
-            <Border Classes="pill" IsVisible="{Binding HasPhase}" VerticalAlignment="Center">
-              <TextBlock Text="{Binding PhaseText}" />
-            </Border>
-          </StackPanel>
-          <Button Grid.Column="1" x:Name="PauseButton" Content="{Binding PauseText}" Command="{Binding TogglePauseCommand}" IsVisible="{Binding CanPause}" />
-          <Button Grid.Column="2" x:Name="ArchiveButton" Content="Archivieren" Command="{Binding ArchiveCommand}" IsVisible="{Binding CanArchive}" />
-          <Button Grid.Column="3" x:Name="UnarchiveButton" Content="Zurückholen" Command="{Binding UnarchiveCommand}" IsVisible="{Binding CanUnarchive}" />
-          <ui:HelpButton Grid.Column="4" Topic="aktionen" Section="aktionen" />
-        </Grid>
-        <TextBlock Classes="muted small" TextWrapping="Wrap" Text="Die Kassa schlägt eine laufende Aktion vor; den Rabatt setzt sie erst auf Klick." />
-        <TextBlock Classes="muted" TextWrapping="Wrap" IsVisible="{Binding IsArchived}"
-                   Text="Diese Aktion ist archiviert und läuft nicht mehr. Mit „Zurückholen“ lässt sie sich wieder bearbeiten." />
-
-        <StackPanel Spacing="20" IsEnabled="{Binding IsEditable}">
-          <!-- Aktion -->
-          <StackPanel Spacing="8">
-            <Grid ColumnDefinitions="*,Auto">
-              <TextBlock Text="Aktion" Classes="h2" VerticalAlignment="Center" />
-              <ui:HelpButton Grid.Column="1" Topic="aktionen" Section="aktion" />
-            </Grid>
-            <ui:FormField Label="Name" IsRequired="True" Error="{Binding NameError}" Help="Steht auf dem Beleg, z. B. „Herbst“.">
-              <TextBox x:Name="PromotionNameField" Text="{Binding PromotionName}" MaxLength="40" />
-            </ui:FormField>
-            <ui:FormField Label="Gästetext" IsRequired="True" Error="{Binding GuestTextError}" Help="Kurz, für Gäste und den Assistenten, z. B. „10 % auf alle Massagen im Oktober“.">
-              <TextBox x:Name="PromotionGuestTextField" Text="{Binding GuestText}" MaxLength="200" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="64" />
-            </ui:FormField>
-          </StackPanel>
-
-          <!-- Rabatt -->
-          <StackPanel Spacing="8">
-            <Grid ColumnDefinitions="*,Auto">
-              <TextBlock Text="Rabatt" Classes="h2" VerticalAlignment="Center" />
-              <ui:HelpButton Grid.Column="1" Topic="aktionen" Section="rabatt" />
-            </Grid>
-            <StackPanel Spacing="4" AutomationProperties.Name="Art des Rabatts">
-              <RadioButton x:Name="PercentOption" GroupName="PromotionKind" IsChecked="{Binding IsPercent}" Content="Prozent" />
-              <RadioButton x:Name="AmountOption" GroupName="PromotionKind" IsChecked="{Binding IsAmount}" Content="Betrag" />
-            </StackPanel>
-            <ui:FormField Label="{Binding ValueLabel}" IsRequired="True" Error="{Binding ValueError}" Help="{Binding ValueHint}" HorizontalAlignment="Left">
-              <TextBox x:Name="PromotionValueField" Text="{Binding DiscountValue}" Classes="num" Width="160" PlaceholderText="{Binding ValuePlaceholder}" />
-            </ui:FormField>
-          </StackPanel>
-
-          <!-- Zeitraum -->
-          <StackPanel Spacing="8">
-            <Grid ColumnDefinitions="*,Auto">
-              <TextBlock Text="Zeitraum" Classes="h2" VerticalAlignment="Center" />
-              <ui:HelpButton Grid.Column="1" Topic="aktionen" Section="zeitraum" />
-            </Grid>
+      <Grid ColumnDefinitions="3*,2*" RowDefinitions="Auto,*" ColumnSpacing="16" RowSpacing="20" MaxWidth="1100" HorizontalAlignment="Left" Margin="0,0,16,16"
+            IsVisible="{Binding IsLoaded}">
+        <StackPanel Grid.ColumnSpan="2" Spacing="8">
+          <ui:InfoBar Severity="Success" Message="{Binding Message}" IsVisible="{Binding HasMessage}" CloseCommand="{Binding CloseMessageCommand}" />
+          <Grid ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="8">
             <StackPanel Orientation="Horizontal" Spacing="12">
-              <ui:FormField Label="Von" IsRequired="True" Error="{Binding FromError}">
-                <ui:DateField x:Name="PromotionFromField" Value="{Binding ValidFrom}" />
+              <TextBlock Text="{Binding HeadingText}" Classes="h2" VerticalAlignment="Center" TextWrapping="Wrap" />
+              <Border Classes="pill" IsVisible="{Binding HasPhase}" VerticalAlignment="Center">
+                <TextBlock x:Name="PhaseLabel" Text="{Binding PhaseText}" />
+              </Border>
+            </StackPanel>
+            <Button Grid.Column="1" x:Name="UnarchiveButton" Classes="primary" Content="Zurückholen" Command="{Binding UnarchiveCommand}" IsVisible="{Binding CanUnarchive}"
+                    ToolTip.Tip="Die Aktion steht wieder in der Liste und lässt sich bearbeiten." VerticalAlignment="Center" />
+            <!-- „⋯“ › Pausieren bzw. Fortsetzen und Archivieren: beides umkehrbar, ohne Rückfrage. Gelöscht wird eine Aktion nie (ADR 0071). -->
+            <ui:MoreMenuButton Grid.Column="2" x:Name="MoreButton" Subject="{Binding HeadingText}" DeactivateText="{Binding PauseText}" DeactivateCommand="{Binding TogglePauseCommand}"
+                               SecondaryText="Archivieren" SecondaryCommand="{Binding ArchiveCommand}" IsVisible="{Binding CanArchive}" VerticalAlignment="Center" />
+            <ui:HelpButton Grid.Column="3" Topic="aktionen" Section="aktionen" VerticalAlignment="Center" />
+          </Grid>
+          <TextBlock Classes="muted small" TextWrapping="Wrap" Text="Die Kassa schlägt eine passende Aktion vor; den Rabatt setzt sie erst auf Klick." />
+          <TextBlock Classes="muted" TextWrapping="Wrap" IsVisible="{Binding IsArchived}"
+                     Text="Diese Aktion ist archiviert und läuft nicht mehr. Mit „Zurückholen“ lässt sie sich wieder bearbeiten." />
+        </StackPanel>
+
+        <StackPanel Grid.Row="1" Spacing="20">
+          <StackPanel Spacing="20" IsEnabled="{Binding IsEditable}">
+            <!-- Aktion -->
+            <StackPanel Spacing="8">
+              <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Text="Aktion" Classes="h2" VerticalAlignment="Center" />
+                <ui:HelpButton Grid.Column="1" Topic="aktionen" Section="aktion" />
+              </Grid>
+              <ui:FormField Label="Name" IsRequired="True" Error="{Binding NameError}" Help="Steht auf dem Beleg, z. B. „Herbst“.">
+                <TextBox x:Name="PromotionNameField" Text="{Binding PromotionName}" MaxLength="40" />
               </ui:FormField>
-              <ui:FormField Label="Bis" IsRequired="True" Error="{Binding UntilError}">
-                <ui:DateField x:Name="PromotionUntilField" Value="{Binding ValidUntil}" />
+              <ui:FormField Label="Gästetext" IsRequired="True" Error="{Binding GuestTextError}" Help="Kurz, für Gäste und den Assistenten, z. B. „10 % auf alle Massagen im Oktober“.">
+                <TextBox x:Name="PromotionGuestTextField" Text="{Binding GuestText}" MaxLength="200" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="64" />
               </ui:FormField>
             </StackPanel>
-            <CheckBox x:Name="ActiveBox" IsChecked="{Binding IsActive}" Content="Aktiv" />
-            <TextBlock Classes="muted small" TextWrapping="Wrap" Text="Eine pausierte Aktion wird an der Kassa nicht vorgeschlagen." />
+
+            <!-- Art -->
+            <StackPanel Spacing="8">
+              <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Text="Art" Classes="h2" VerticalAlignment="Center" />
+                <ui:HelpButton Grid.Column="1" Topic="aktionen" Section="art" />
+              </Grid>
+              <StackPanel Spacing="4" AutomationProperties.Name="Art der Aktion">
+                <RadioButton x:Name="LimitedOption" GroupName="PromotionType" IsChecked="{Binding IsLimited}" Content="Befristet" />
+                <RadioButton x:Name="LastMinuteOption" GroupName="PromotionType" IsChecked="{Binding IsLastMinute}" Content="Kurzfristig frei" />
+                <RadioButton x:Name="OffPeakOption" GroupName="PromotionType" IsChecked="{Binding IsOffPeak}" Content="Schwache Zeiten" />
+              </StackPanel>
+              <TextBlock x:Name="KindHintText" Classes="muted small" TextWrapping="Wrap" Text="{Binding KindHint}" />
+              <ui:FormField Label="Vorlauf in Stunden" IsRequired="True" Error="{Binding LeadHoursError}" IsVisible="{Binding IsLastMinute}" HorizontalAlignment="Left"
+                            Help="Höchstens so viele Stunden zwischen Buchung und Beginn, z. B. 24.">
+                <TextBox x:Name="PromotionLeadHoursField" Text="{Binding LeadHours}" Classes="num" Width="120" MaxLength="3" PlaceholderText="z. B. 24" HorizontalAlignment="Left" />
+              </ui:FormField>
+              <StackPanel x:Name="OffPeakPanel" Spacing="4" IsVisible="{Binding IsOffPeak}">
+                <Grid ColumnDefinitions="110,*">
+                  <ItemsControl Grid.Column="1" ItemsSource="{Binding WeekDays}" IsTabStop="False">
+                    <ItemsControl.ItemsPanel>
+                      <ItemsPanelTemplate>
+                        <UniformGrid Columns="7" />
+                      </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="x:String">
+                        <TextBlock Text="{Binding}" Classes="label" HorizontalAlignment="Center" />
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </Grid>
+                <ItemsControl x:Name="OffPeakGridField" ItemsSource="{Binding OffPeakGrid}" AutomationProperties.Name="Wochenraster schwacher Zeiten">
+                  <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                      <StackPanel Spacing="4" />
+                    </ItemsPanelTemplate>
+                  </ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:OffPeakRow">
+                      <Grid ColumnDefinitions="110,*">
+                        <StackPanel VerticalAlignment="Center">
+                          <TextBlock Text="{Binding Label}" Classes="label" />
+                          <TextBlock Text="{Binding Hours}" Classes="muted small" />
+                        </StackPanel>
+                        <ItemsControl Grid.Column="1" ItemsSource="{Binding Cells}">
+                          <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                              <UniformGrid Columns="7" />
+                            </ItemsPanelTemplate>
+                          </ItemsControl.ItemsPanel>
+                          <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:OffPeakCell">
+                              <CheckBox IsChecked="{Binding IsSelected}" HorizontalAlignment="Center" AutomationProperties.Name="{Binding Name}" ToolTip.Tip="{Binding Name}" />
+                            </DataTemplate>
+                          </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                      </Grid>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <TextBlock Text="{Binding SlotsError}" Classes="small error" TextWrapping="Wrap" IsVisible="{Binding HasSlotsError}" />
+              </StackPanel>
+            </StackPanel>
+
+            <!-- Rabatt -->
+            <StackPanel Spacing="8">
+              <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Text="Rabatt" Classes="h2" VerticalAlignment="Center" />
+                <ui:HelpButton Grid.Column="1" Topic="aktionen" Section="rabatt" />
+              </Grid>
+              <StackPanel Spacing="4" AutomationProperties.Name="Art des Rabatts">
+                <RadioButton x:Name="PercentOption" GroupName="PromotionKind" IsChecked="{Binding IsPercent}" Content="Prozent" />
+                <RadioButton x:Name="AmountOption" GroupName="PromotionKind" IsChecked="{Binding IsAmount}" Content="Betrag" />
+              </StackPanel>
+              <ui:FormField Label="{Binding ValueLabel}" IsRequired="True" Error="{Binding ValueError}" Help="{Binding ValueHint}" HorizontalAlignment="Left">
+                <TextBox x:Name="PromotionValueField" Text="{Binding DiscountValue}" Classes="num" Width="160" PlaceholderText="{Binding ValuePlaceholder}" />
+              </ui:FormField>
+            </StackPanel>
+
+            <!-- Zeitraum -->
+            <StackPanel Spacing="8">
+              <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Text="Zeitraum" Classes="h2" VerticalAlignment="Center" />
+                <ui:HelpButton Grid.Column="1" Topic="aktionen" Section="zeitraum" />
+              </Grid>
+              <StackPanel Orientation="Horizontal" Spacing="12">
+                <ui:FormField Label="Von" IsRequired="True" Error="{Binding FromError}">
+                  <ui:DateField x:Name="PromotionFromField" Value="{Binding ValidFrom}" />
+                </ui:FormField>
+                <ui:FormField Label="Bis" IsRequired="True" Error="{Binding UntilError}">
+                  <ui:DateField x:Name="PromotionUntilField" Value="{Binding ValidUntil}" />
+                </ui:FormField>
+              </StackPanel>
+              <TextBlock Classes="muted small" TextWrapping="Wrap" Text="{Binding PeriodHint}" />
+              <CheckBox x:Name="ActiveBox" IsChecked="{Binding IsActive}" Content="Aktiv" />
+              <TextBlock Classes="muted small" TextWrapping="Wrap" Text="Eine pausierte Aktion wird an der Kassa nicht vorgeschlagen." />
+            </StackPanel>
+
+            <!-- Gilt für -->
+            <StackPanel Spacing="8">
+              <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Text="Gilt für" Classes="h2" VerticalAlignment="Center" />
+                <ui:HelpButton Grid.Column="1" Topic="aktionen" Section="gilt-fuer" />
+              </Grid>
+              <StackPanel Spacing="4" AutomationProperties.Name="Wofür die Aktion gilt">
+                <RadioButton x:Name="ScopeAllOption" GroupName="PromotionScope" IsChecked="{Binding ScopeAll}" Content="Alle Behandlungen" />
+                <RadioButton x:Name="ScopeTreatmentsOption" GroupName="PromotionScope" IsChecked="{Binding ScopeTreatments}" Content="Ausgewählte Behandlungen" />
+                <RadioButton x:Name="ScopePackagesOption" GroupName="PromotionScope" IsChecked="{Binding ScopePackages}" Content="Pakete ausgewählter Behandlungen"
+                             IsVisible="{Binding ShowPackagesOption}" />
+              </StackPanel>
+              <ui:FormField Label="Behandlung hinzufügen" Error="{Binding TreatmentsError}" Help="{Binding TreatmentHint}" IsVisible="{Binding ShowTreatmentPicker}">
+                <ComboBox x:Name="TreatmentPickerField" ItemsSource="{Binding CatalogTreatments}" SelectedItem="{Binding PickedTreatment}" HorizontalAlignment="Stretch" />
+              </ui:FormField>
+              <ItemsControl x:Name="ChosenList" ItemsSource="{Binding Chosen}" IsVisible="{Binding HasChosen}" AutomationProperties.Name="Gewählte Behandlungen">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate>
+                    <StackPanel Spacing="4" />
+                  </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:ChosenTreatment">
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                      <TextBlock Text="{Binding Name}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                      <Button Grid.Column="1" Classes="small" Content="Entfernen" Command="{Binding RemoveCommand}" AutomationProperties.Name="{Binding RemoveName}" />
+                    </Grid>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+
+            <!-- Standorte -->
+            <StackPanel Spacing="8">
+              <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Text="Standorte" Classes="h2" VerticalAlignment="Center" />
+                <ui:HelpButton Grid.Column="1" Topic="aktionen" Section="standorte" />
+              </Grid>
+              <StackPanel Spacing="4" AutomationProperties.Name="Wo die Aktion gilt">
+                <RadioButton x:Name="AllLocationsOption" GroupName="PromotionPlaces" IsChecked="{Binding AllLocations}" Content="Alle Standorte" />
+                <RadioButton x:Name="SomeLocationsOption" GroupName="PromotionPlaces" IsChecked="{Binding SomeLocations}" Content="Ausgewählte Standorte" />
+              </StackPanel>
+              <ItemsControl x:Name="LocationList" ItemsSource="{Binding Locations}" IsVisible="{Binding ShowLocationList}" AutomationProperties.Name="Standorte" Margin="24,0,0,0">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate>
+                    <StackPanel Spacing="4" />
+                  </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:PromotionLocationChoice">
+                    <CheckBox IsChecked="{Binding IsSelected}" Content="{Binding Name}" />
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+              <TextBlock Text="{Binding LocationsError}" Classes="small error" TextWrapping="Wrap" IsVisible="{Binding HasLocationsError}" />
+            </StackPanel>
           </StackPanel>
 
-          <!-- Gilt für -->
+          <StackPanel x:Name="Footer" Spacing="12">
+            <ui:InfoBar Severity="Error" Title="Nicht gespeichert" Message="{Binding Error}" IsVisible="{Binding HasError}"
+                        ActionText="Erneut versuchen" ActionCommand="{Binding SaveCommand}" CloseCommand="{Binding CloseErrorCommand}" />
+            <ui:SaveBar SaveCommand="{Binding SaveCommand}" DiscardCommand="{Binding DiscardCommand}" CanDiscard="{Binding HasUnsavedChanges}" Status="{Binding StatusText}"
+                        IsVisible="{Binding IsEditable}" />
+          </StackPanel>
+        </StackPanel>
+
+        <!-- Vorschau „So sieht es der Gast“: Beispieltermin und Gästepreise aus der API, gerechnet wie an der Kassa -->
+        <Border Grid.Row="1" Grid.Column="1" x:Name="PreviewCard" Classes="card" VerticalAlignment="Top" IsVisible="{Binding HasPreview}">
           <StackPanel Spacing="8">
-            <Grid ColumnDefinitions="*,Auto">
-              <TextBlock Text="Gilt für" Classes="h2" VerticalAlignment="Center" />
-              <ui:HelpButton Grid.Column="1" Topic="aktionen" Section="gilt-fuer" />
-            </Grid>
-            <StackPanel Spacing="4" AutomationProperties.Name="Wofür die Aktion gilt">
-              <RadioButton x:Name="ScopeAllOption" GroupName="PromotionScope" IsChecked="{Binding ScopeAll}" Content="Alle Behandlungen" />
-              <RadioButton x:Name="ScopeTreatmentsOption" GroupName="PromotionScope" IsChecked="{Binding ScopeTreatments}" Content="Ausgewählte Behandlungen" />
-              <RadioButton x:Name="ScopePackagesOption" GroupName="PromotionScope" IsChecked="{Binding ScopePackages}" Content="Pakete ausgewählter Behandlungen" />
-            </StackPanel>
-            <ui:FormField Label="Behandlung hinzufügen" Error="{Binding TreatmentsError}" Help="{Binding TreatmentHint}" IsVisible="{Binding ShowTreatmentPicker}">
-              <ComboBox x:Name="TreatmentPickerField" ItemsSource="{Binding CatalogTreatments}" SelectedItem="{Binding PickedTreatment}" HorizontalAlignment="Stretch" />
-            </ui:FormField>
-            <ItemsControl x:Name="ChosenList" ItemsSource="{Binding Chosen}" IsVisible="{Binding HasChosen}" AutomationProperties.Name="Gewählte Behandlungen">
+            <TextBlock Text="So sieht es der Gast" Classes="group" />
+            <TextBlock x:Name="PreviewExampleText" Text="{Binding PreviewExample}" TextWrapping="Wrap" />
+            <ItemsControl x:Name="PreviewList" ItemsSource="{Binding PreviewLines}" AutomationProperties.Name="Gästepreise">
               <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
-                  <StackPanel Spacing="4" />
+                  <StackPanel Spacing="6" />
                 </ItemsPanelTemplate>
               </ItemsControl.ItemsPanel>
               <ItemsControl.ItemTemplate>
-                <DataTemplate x:DataType="vm:ChosenTreatment">
-                  <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                    <TextBlock Text="{Binding Name}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
-                    <Button Grid.Column="1" Classes="small" Content="Entfernen" Command="{Binding RemoveCommand}" AutomationProperties.Name="{Binding RemoveName}" />
+                <DataTemplate x:DataType="vm:PromotionPreviewLine">
+                  <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8" AutomationProperties.Name="{Binding SpokenName}">
+                    <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" ToolTip.Tip="{Binding Name}" />
+                    <TextBlock Grid.Column="1" Text="{Binding PriceText}" Classes="muted num" TextDecorations="Strikethrough" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="2" Text="{Binding GuestPriceText}" Classes="num" FontWeight="SemiBold" VerticalAlignment="Center" />
                   </Grid>
                 </DataTemplate>
               </ItemsControl.ItemTemplate>
             </ItemsControl>
+            <TextBlock Text="{Binding PreviewNote}" Classes="muted small" TextWrapping="Wrap" />
           </StackPanel>
-
-          <!-- Standorte -->
-          <StackPanel Spacing="8">
-            <Grid ColumnDefinitions="*,Auto">
-              <TextBlock Text="Standorte" Classes="h2" VerticalAlignment="Center" />
-              <ui:HelpButton Grid.Column="1" Topic="aktionen" Section="standorte" />
-            </Grid>
-            <StackPanel Spacing="4" AutomationProperties.Name="Wo die Aktion gilt">
-              <RadioButton x:Name="AllLocationsOption" GroupName="PromotionPlaces" IsChecked="{Binding AllLocations}" Content="Alle Standorte" />
-              <RadioButton x:Name="SomeLocationsOption" GroupName="PromotionPlaces" IsChecked="{Binding SomeLocations}" Content="Ausgewählte Standorte" />
-            </StackPanel>
-            <ItemsControl x:Name="LocationList" ItemsSource="{Binding Locations}" IsVisible="{Binding ShowLocationList}" AutomationProperties.Name="Standorte" Margin="24,0,0,0">
-              <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                  <StackPanel Spacing="4" />
-                </ItemsPanelTemplate>
-              </ItemsControl.ItemsPanel>
-              <ItemsControl.ItemTemplate>
-                <DataTemplate x:DataType="vm:PromotionLocationChoice">
-                  <CheckBox IsChecked="{Binding IsSelected}" Content="{Binding Name}" />
-                </DataTemplate>
-              </ItemsControl.ItemTemplate>
-            </ItemsControl>
-            <TextBlock Text="{Binding LocationsError}" Classes="small error" TextWrapping="Wrap" IsVisible="{Binding HasLocationsError}" />
-          </StackPanel>
-        </StackPanel>
-
-        <StackPanel x:Name="Footer" Spacing="12">
-          <ui:InfoBar Severity="Error" Title="Nicht gespeichert" Message="{Binding Error}" IsVisible="{Binding HasError}"
-                      ActionText="Erneut versuchen" ActionCommand="{Binding SaveCommand}" CloseCommand="{Binding CloseErrorCommand}" />
-          <ui:SaveBar SaveCommand="{Binding SaveCommand}" DiscardCommand="{Binding DiscardCommand}" CanDiscard="{Binding HasUnsavedChanges}" Status="{Binding StatusText}"
-                      IsVisible="{Binding IsEditable}" />
-        </StackPanel>
-      </StackPanel>
+        </Border>
+      </Grid>
     </ScrollViewer>
   </Grid>
 </views:FocusRequestView>

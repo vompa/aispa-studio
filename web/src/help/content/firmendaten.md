@@ -17,6 +17,10 @@ In der Windows-App:
 - Der Abschnitt „Kundenbereich einbetten“ wird mit demselben „Speichern“ gespeichert.
 - **Verlauf** oben in der Maske öffnet rechts eine Seitenleiste: wer die Firmendaten wann geändert hat (siehe unten).
 
+## Betrieb einrichten {#betrieb-einrichten}
+
+Solange die Ersteinrichtung nicht fertig ist, steht oben in der Maske die Karte **Betrieb einrichten**. Sie zählt, welche Schritte erledigt sind: Standort, Öffnungszeiten, Räume, Behandlungen, Team und Kassa. Ein Schritt gilt als erledigt, sobald es mindestens einen passenden Eintrag gibt. **Öffnen** springt in die passende Maske; fehlt dafür das Recht, erscheint ein Hinweis. Sind alle Schritte erledigt, verschwindet die Karte. Sie ist keine Pflicht und sperrt nichts; die Reihenfolge ist ein Vorschlag.
+
 ## Firmendaten {#firmendaten}
 
 Wo die Angaben verwendet werden:

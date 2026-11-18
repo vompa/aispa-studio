@@ -75,8 +75,46 @@ internal static class StockExports
             .WithSummary("Listen des Lagers als Excel oder CSV, nur für die Leitung: list=levels (Bestand je Lagerort), count (Inventur mit Differenzen: sessionId oder die "
                 + "zuletzt eingereichte Zählung), movements (Bewegungen von from bis until), orders (Bestellungen), expiry (Ablaufliste der Chargen).");
 
+        routes.MapGet("/api/stock/locations/{locationId:guid}/export/availability", async Task<Results<Ok<StockExportAvailabilityDto>, ProblemHttpResult, NotFound>> (
+                Guid locationId, AispaDbContext db, AccessService accessService, StockService stock, StockCountSessions counts, PurchaseOrders orders, CancellationToken ct) =>
+            {
+                if (!(await accessService.CurrentAsync(ct))!.IsOwnerLevel)
+                {
+                    return (ProblemHttpResult)PermissionExtensions.Forbidden(LeadershipOnly);
+                }
+
+                if (!await db.Locations.AsNoTracking().AnyAsync(l => l.Id == locationId, ct))
+                {
+                    return TypedResults.NotFound();
+                }
+
+                var overview = await stock.OverviewAsync(locationId, ct);
+                var hasLevels = overview.Items.Any(i => i.Places is { Count: > 0 });
+                var hasCount = (await counts.ListAsync(locationId, null, ct)).Any(IsExportable);
+                var hasMovements = await db.StockMovements.AsNoTracking().AnyAsync(m => m.LocationId == locationId, ct);
+                var hasOrders = (await orders.ListAsync(locationId, ct)).Count > 0;
+                var hasExpiry = (await stock.BatchesAsync(locationId, ct)).Batches.Count > 0;
+                return TypedResults.Ok(new StockExportAvailabilityDto(
+                [
+                    Entry(Levels, hasLevels, "Noch kein Material im Lager."),
+                    Entry(Count, hasCount, "Noch keine Zählung an diesem Standort."),
+                    Entry(Movements, hasMovements, "Noch keine Bewegung an diesem Standort."),
+                    Entry(Orders, hasOrders, "Noch keine Bestellung."),
+                    Entry(Expiry, hasExpiry, "Keine Charge mit Ablaufdatum."),
+                ]));
+            })
+            .WithTags("Lager")
+            .RequirePermission(AccessRight.ManageLocation)
+            .WithName("StockExportAvailability")
+            .WithSummary("Welche Listen des Lager-Exports etwas enthalten, nur für die Leitung: je Liste available und bei false der Grund (z. B. noch keine eingereichte Zählung).");
+
         return routes;
     }
+
+    private static StockExportListAvailabilityDto Entry(string list, bool available, string reason) => new(list, available, available ? null : reason);
+
+    /// <summary>Nur eingereichte und abgeschlossene Zählungen lassen sich exportieren; offene zählen nicht.</summary>
+    private static bool IsExportable(StockCountSessionDto session) => session.Status is StockCountSessionStatus.Submitted or StockCountSessionStatus.Closed;
 
     private static async Task<ExportTable> LevelTableAsync(AispaDbContext db, StockService stock, Guid locationId, CancellationToken ct)
     {

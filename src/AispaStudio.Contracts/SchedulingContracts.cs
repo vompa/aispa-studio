@@ -54,7 +54,10 @@ public sealed record LocationInput(
     LocationContact? Contact = null,
     LocationCompany? Company = null);
 
-/// <summary><c>Contact</c> und <c>Company</c> sind immer gesetzt; ohne gepflegte Angaben sind die Felder leer.</summary>
+/// <summary>
+/// <c>Contact</c> und <c>Company</c> sind immer gesetzt; ohne gepflegte Angaben sind die Felder leer. <c>ClosedFrom</c>: erster Tag, ab dem der Standort geschlossen ist
+/// (<c>POST /locations/{id}/close</c>); leer, solange er offen ist.
+/// </summary>
 public sealed record LocationDto(
     Guid Id,
     string Name,
@@ -63,7 +66,19 @@ public sealed record LocationDto(
     IReadOnlyList<OpeningHours> OpeningHours,
     string? Region = null,
     LocationContact? Contact = null,
-    LocationCompany? Company = null);
+    LocationCompany? Company = null,
+    DateOnly? ClosedFrom = null);
+
+/// <summary>
+/// Ein Schritt der Ersteinrichtung („Betrieb einrichten“): <c>Done</c>, sobald es mindestens einen passenden Eintrag gibt; <c>Page</c> und <c>Tab</c> sind das Sprungziel der Verwaltung.
+/// </summary>
+public sealed record SetupStepDto(string Key, string Title, string Hint, bool Done, string Page, string? Tab);
+
+/// <summary>Antwort von <c>GET /api/setup/progress</c>: die Schritte in der Reihenfolge, in der man sie abarbeitet.</summary>
+public sealed record SetupProgressDto(IReadOnlyList<SetupStepDto> Steps);
+
+/// <summary>Ab diesem Tag (Ortszeit des Standorts) ist der Standort geschlossen: keine Buchung mehr, im Kalender wie eine dauernde Schließzeit; vergangene Termine und Belege bleiben.</summary>
+public sealed record LocationCloseInput(DateOnly ClosedFrom);
 
 /// <summary>
 /// Neuer Raum. <c>CleaningMinutes</c>: Raumpflege nach jedem Termin, in der der Raum gesperrt bleibt.
@@ -194,7 +209,11 @@ public sealed record TreatmentDto(
     string? GuestHint = null,
     bool CheckAnamnesis = false,
     int HandsOnMinutes = 0,
-    int ProcessingMinutes = 0);
+    int ProcessingMinutes = 0)
+{
+    /// <summary>Wird die Behandlung angeboten? Nur die Liste mit <c>includeInactive</c> enthält auch nicht mehr angebotene; leer heißt angeboten (ältere Antworten).</summary>
+    public bool? IsActive { get; init; }
+}
 
 /// <summary>Alles, was ein Standort zum Planen braucht: Räume, Geräte, Personen mit Arbeitszeit dort und angebotene Behandlungen.</summary>
 public sealed record LocationResources(

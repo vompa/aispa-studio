@@ -41,7 +41,7 @@ DATEV, BMD und RZL sind in Windows-Zeichensatz (ANSI) geschrieben, die Schweizer
 
 ## Erlöskonten {#erloeskonten}
 
-Liste der Erlöskonten des Unternehmens. Drei gibt es immer: 4000 „Erlöse Behandlungen“, 4100 „Erlöse Produkte“ und 3600 „Mehrzweckgutscheine (nicht steuerbar)“. Weitere Konten trennen Geschäftsbereiche, zum Beispiel Shop oder Hotelgäste. Jeder Umsatz darauf wird ganz normal versteuert und signiert.
+Liste der Erlöskonten des Unternehmens, darüber das Formular zum Anlegen. Drei gibt es immer: 4000 „Erlöse Behandlungen“, 4100 „Erlöse Produkte“ und 3600 „Mehrzweckgutscheine (nicht steuerbar)“. Weitere Konten trennen Geschäftsbereiche, zum Beispiel Shop oder Hotelgäste. Jeder Umsatz darauf wird ganz normal versteuert und signiert.
 
 Anlegen dürfen Inhaber, Manager und Standortleitung. Ein angelegtes Konto lässt sich auf dieser Seite nicht mehr ändern oder löschen.
 

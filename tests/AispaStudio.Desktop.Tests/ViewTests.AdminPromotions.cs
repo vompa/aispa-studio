@@ -1,4 +1,5 @@
 using AispaStudio.Contracts;
+using AispaStudio.Desktop.Controls;
 using AispaStudio.Desktop.ViewModels;
 using Avalonia.Controls;
 using Avalonia.VisualTree;
@@ -6,7 +7,10 @@ using static AispaStudio.Desktop.Tests.PromotionSample;
 
 namespace AispaStudio.Desktop.Tests;
 
-/// <summary>R05 Slice 101 (Ä191): native Maske „Aktionen“ im Fenster: Aktion anlegen per Klick, Tastatur und Strg+S, Archivieren ohne Rückfrage, Bildtests, Scans.</summary>
+/// <summary>
+/// R05 Slice 101 (Ä191) und Nachtrag zu ADR 0071: native Maske „Aktionen“ im Fenster: Aktion anlegen per Klick, Tastatur und Strg+S, die drei Arten mit Vorlauf und Wochenraster,
+/// Vorschau des Gästepreises, Archivieren im Menü „⋯“ ohne Rückfrage, Bildtests, Scans.
+/// </summary>
 public sealed partial class ViewTests
 {
     /// <summary>Die Bildtests laufen am 19.10.2026; Standorte und Katalog kommen aus dem Beispiel der Fenstertests.</summary>
@@ -40,6 +44,108 @@ public sealed partial class ViewTests
         Assert.True(Shows(window, "Klassische Massage"));
         return shell.AdminPage;
     }, PromotionsApi());
+
+    [Theory]
+    [InlineData("hell")]
+    [InlineData("dunkel")]
+    public Task Verwaltung_Aktionen_schwache_Zeiten(string theme) => Render(theme, "verwaltung-aktionen-schwache-zeiten", async (window, main) =>
+    {
+        var (shell, promotions) = await OpenPromotions(window, main);
+        promotions.SelectedRow = promotions.Rows.Single(r => r.Id == OffPeakId);
+        await Pump(Settling);
+        await Pump(Settling);
+        Assert.True(Named<RadioButton>(window, "OffPeakOption").IsChecked);
+        Assert.True(Named<Control>(window, "OffPeakPanel").IsEffectivelyVisible);
+        Assert.DoesNotContain(window.GetVisualDescendants().OfType<TextBox>(), b => b.Name == "PromotionLeadHoursField" && b.IsEffectivelyVisible);
+        Assert.Equal(["Montag Vormittag", "Dienstag Vormittag", "Mittwoch Vormittag", "Dienstag Nachmittag"],
+            Cells(window).Where(c => c.IsChecked == true).Select(c => Avalonia.Automation.AutomationProperties.GetName(c)));
+        Assert.Equal(21, Cells(window).Count);
+        Assert.True(Named<Control>(window, "PreviewCard").IsEffectivelyVisible);
+        Assert.True(Shows(window, "So sieht es der Gast"));
+        Assert.True(Shows(window, "Schwache Zeiten"));
+        Assert.False(Named<RadioButton>(window, "ScopePackagesOption").IsEffectivelyVisible);
+        return shell.AdminPage;
+    }, PromotionsApi());
+
+    [Theory]
+    [InlineData("hell")]
+    [InlineData("dunkel")]
+    public Task Verwaltung_Aktionen_kurzfristig(string theme) => Render(theme, "verwaltung-aktionen-kurzfristig", async (window, main) =>
+    {
+        var (shell, promotions) = await OpenPromotions(window, main);
+        promotions.SelectedRow = promotions.Rows.Single(r => r.Id == LastMinuteId);
+        await Pump(Settling);
+        await Pump(Settling);
+        Assert.True(Named<RadioButton>(window, "LastMinuteOption").IsChecked);
+        Assert.Equal("24", Named<TextBox>(window, "PromotionLeadHoursField").Text);
+        Assert.False(Named<Control>(window, "OffPeakPanel").IsEffectivelyVisible);
+        Assert.True(Shows(window, "Termin höchstens 24 Stunden vorher gebucht"));
+        return shell.AdminPage;
+    }, PromotionsApi());
+
+    private static List<CheckBox> Cells(Window window) =>
+        [.. Named<ItemsControl>(window, "OffPeakGridField").GetVisualDescendants().OfType<CheckBox>()];
+
+    [Fact]
+    public Task Schwache_Zeiten_ueber_das_Raster_anlegen_mit_Vorschau_und_Strg_S()
+    {
+        var api = PromotionsApi();
+        return Render("hell", "verwaltung-aktionen-raster", async (window, main) =>
+        {
+            var (shell, promotions) = await OpenPromotions(window, main);
+            await TypeInto(window, "PromotionNameField", "Ruhige Abende");
+            await TypeInto(window, "PromotionGuestTextField", "10 % am Abend");
+            await ClickScrolled(window, "OffPeakOption");
+            await TypeInto(window, "PromotionValueField", "10");
+            Assert.Equal(365, promotions.ValidUntil!.Value.DayNumber - promotions.ValidFrom!.Value.DayNumber);
+
+            await ClickScrolled(window, Cells(window).Single(c => Avalonia.Automation.AutomationProperties.GetName(c) == "Donnerstag Abend"));
+            await ClickScrolled(window, Cells(window).Single(c => Avalonia.Automation.AutomationProperties.GetName(c) == "Sonntag Vormittag"));
+            await Pump(Settling);
+            Assert.True(Shows(window, "Sonntag, Vormittag"));
+            Assert.Contains(promotions.PreviewLines, l => l.GuestPriceText != l.PriceText);
+            PressSave(window);
+            await Pump(Settling);
+
+            var sent = Sent(api, "POST /api/promotions");
+            Assert.Equal(PromotionKind.OffPeak, sent.Kind);
+            Assert.Equal([new(DayOfWeek.Sunday, DayPart.Morning), new PromotionSlot(DayOfWeek.Thursday, DayPart.Evening)],
+                sent.Slots!.OrderBy(s => s.Part).ThenBy(s => s.Day));
+            Assert.Null(sent.LeadHours);
+            Assert.True(Shows(window, "Gespeichert."));
+            Assert.Equal("Schwache Zeiten", promotions.SelectedRow?.KindText);
+            return shell.AdminPage;
+        }, api);
+    }
+
+    [Fact]
+    public Task Kurzfristig_frei_mit_ungueltigem_Vorlauf_zeigt_den_Fehler_am_Feld_mit_Fokus_und_sendet_nichts()
+    {
+        var api = PromotionsApi();
+        return Render("hell", "verwaltung-aktionen-vorlauf", async (window, main) =>
+        {
+            var (shell, promotions) = await OpenPromotions(window, main);
+            await TypeInto(window, "PromotionNameField", "Last Minute");
+            await TypeInto(window, "PromotionGuestTextField", "20 % kurzfristig");
+            await ClickScrolled(window, "LastMinuteOption");
+            await TypeInto(window, "PromotionLeadHoursField", "200");
+            await TypeInto(window, "PromotionValueField", "20");
+            PressSave(window);
+            await Pump(Settling);
+
+            Assert.Equal("Vorlauf in Stunden zwischen 1 und 168 angeben.", promotions.LeadHoursError);
+            Assert.True(Shows(window, "Vorlauf in Stunden zwischen 1 und 168 angeben."));
+            Assert.Same(Named<TextBox>(window, "PromotionLeadHoursField"), Focused(window));
+            Assert.Equal(0, CallsTo(api, "POST /api/promotions"));
+
+            await TypeInto(window, "PromotionLeadHoursField", "12");
+            PressSave(window);
+            await Pump(Settling);
+            var sent = Sent(api, "POST /api/promotions");
+            Assert.Equal((PromotionKind.LastMinute, (int?)12), (sent.Kind, sent.LeadHours));
+            return shell.AdminPage;
+        }, api);
+    }
 
     [Fact]
     public Task Aktion_anlegen_ueber_Klick_und_Strg_S()
@@ -124,7 +230,18 @@ public sealed partial class ViewTests
             promotions.SelectedRow = promotions.Rows.Single(r => r.Id == AutumnId);
             await Pump(Settling);
 
-            await ClickScrolled(window, "ArchiveButton");
+            var more = Named<MoreMenuButton>(window, "MoreButton");
+            Assert.True(more.IsEffectivelyVisible);
+            Assert.Equal("Weitere Aktionen zu Herbst", Avalonia.Automation.AutomationProperties.GetName(more));
+            ClickCenter(window, more);
+            await Pump(Settling);
+            var items = Assert.IsType<MenuFlyout>(more.Flyout).Items.OfType<MenuItem>().ToList();
+            Assert.Equal(["Pausieren", "Archivieren"], items.Select(i => i.Header as string));
+            Assert.All(items, i => Assert.DoesNotContain("danger", i.Classes));
+            Assert.DoesNotContain(items, i => (i.Header as string)?.Contains("Löschen", StringComparison.Ordinal) == true);
+            items[1].Command!.Execute(null);
+            more.Flyout!.Hide();
+            await Pump(Settling);
 
             Assert.Null(main.DialogHost.Current);
             Assert.Equal(1, CallsTo(api, $"POST /api/promotions/{AutumnId}/archive"));
@@ -162,6 +279,13 @@ public sealed partial class ViewTests
                 promotions.ScopePackages = true;
                 promotions.SomeLocations = true;
                 promotions.PickedTreatment = promotions.CatalogTreatments.First();
+                return Task.CompletedTask;
+            });
+            await AssertNoBindingErrors(log, "Arten", () =>
+            {
+                promotions.IsLastMinute = true;
+                promotions.IsOffPeak = true;
+                promotions.OffPeakGrid[0].Cells[0].IsSelected = true;
                 return Task.CompletedTask;
             });
             await AssertNoBindingErrors(log, "Verworfen", () => { promotions.Discard(); return Task.CompletedTask; });
@@ -204,6 +328,12 @@ public sealed partial class ViewTests
         promotions.ScopePackages = true;
         await Pump(Settling);
         Scan("Ausgewählte Standorte und Pakete");
+        promotions.SelectedRow = promotions.Rows.Single(r => r.Id == OffPeakId);
+        await Pump(Settling);
+        Scan("Schwache Zeiten");
+        promotions.SelectedRow = promotions.Rows.Single(r => r.Id == LastMinuteId);
+        await Pump(Settling);
+        Scan("Kurzfristig frei");
         promotions.ShowArchived = true;
         promotions.SelectedRow = promotions.Rows.Single(r => r.Id == WinterId);
         await Pump(Settling);

@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using AispaStudio.Api.Reporting;
 using AispaStudio.Contracts;
 
 namespace AispaStudio.Api.Tests;
@@ -120,6 +121,68 @@ public sealed class StockUsageReportTests(ApiFixture fixture)
         Assert.Null(line.ExcessValue);
         Assert.Null(report.ExcessValue);
         Assert.True(report.AmountsHidden);
+    }
+
+    [Fact]
+    public void Given_drei_Artikel_mit_Mehrverbrauch_When_gerechnet_wird_Then_steht_der_groesste_Wert_zuerst_und_der_Anteil_am_Soll_dabei()
+    {
+        var (oil, tissues, tea) = (Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
+        var items = new Dictionary<Guid, StockUsageReport.ItemInfo>
+        {
+            [oil] = new("Aromaöl", "ml", 0.18m),
+            [tissues] = new("Kosmetiktücher", "Stk", 1.60m),
+            [tea] = new("Tee", "Stk", 0.10m),
+        };
+        StockUsageReport.Row[] rows =
+        [
+            new(tea, StockMovementKind.Consumption, -100m, null), new(tea, StockMovementKind.Count, -10m, null),
+            new(tissues, StockMovementKind.Consumption, -20m, null), new(tissues, StockMovementKind.Count, -6m, null),
+            new(oil, StockMovementKind.Consumption, -660m, null), new(oil, StockMovementKind.Count, -120m, null),
+        ];
+
+        var lines = StockUsageReport.Compute(rows, items, new Dictionary<Guid, Guid>(), new Dictionary<Guid, string>());
+
+        Assert.Equal(["Aromaöl", "Kosmetiktücher", "Tee"], lines.Select(l => l.Name).ToList());
+        Assert.Equal([21.60m, 9.60m, 1.00m], lines.Select(l => l.ExcessValue!.Value).ToList());
+        Assert.Equal([18m, 30m, 10m], lines.Select(l => l.ExcessPercent!.Value).ToList());
+    }
+
+    [Fact]
+    public void Given_ein_Artikel_ohne_Soll_When_gerechnet_wird_Then_hat_er_keinen_Anteil_und_ein_negativer_Wert_steht_zuletzt()
+    {
+        var (found, unplanned, lost) = (Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
+        var items = new Dictionary<Guid, StockUsageReport.ItemInfo>
+        {
+            [found] = new("Fund", "Stk", 1m),
+            [unplanned] = new("Ohne Rezept", "Stk", 1m),
+            [lost] = new("Schwund", "Stk", 1m),
+        };
+        StockUsageReport.Row[] rows =
+        [
+            new(found, StockMovementKind.Consumption, -10m, null), new(found, StockMovementKind.Count, 4m, null),
+            new(unplanned, StockMovementKind.Count, -3m, null),
+            new(lost, StockMovementKind.Consumption, -10m, null), new(lost, StockMovementKind.Count, -1m, null),
+        ];
+
+        var lines = StockUsageReport.Compute(rows, items, new Dictionary<Guid, Guid>(), new Dictionary<Guid, string>());
+
+        Assert.Equal(["Ohne Rezept", "Schwund", "Fund"], lines.Select(l => l.Name).ToList());
+        Assert.Null(lines[0].ExcessPercent);
+        Assert.Equal(10m, lines[1].ExcessPercent);
+        Assert.Equal(-40m, lines[2].ExcessPercent);
+    }
+
+    [Fact]
+    public async Task Given_die_Leitung_ohne_Betragsrecht_When_der_Bericht_laeuft_Then_sind_die_Zeilen_nach_dem_Anteil_sortiert()
+    {
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        var oil = await ConsumeOilAsync(spa);
+        await CountAsync(spa, oil, 580m);
+        using var manager = await TestUsers.ClientAsync(fixture, Ct, StaffRole.Manager, [spa.Location.Id]);
+
+        var line = Assert.Single((await manager.GetFromJsonAsync<StockUsageReportDto>(Url(spa), TestSpa.Json, Ct))!.Lines);
+
+        Assert.Equal(40m, line.ExcessPercent);
     }
 
     private static string Url(TestSpa spa)

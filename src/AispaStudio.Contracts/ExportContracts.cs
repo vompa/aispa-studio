@@ -18,3 +18,12 @@ public enum ExportFormat
     /// <summary>Termine als iCalendar (.ics).</summary>
     Ics,
 }
+
+/// <summary>
+/// Welche Listen des Lager-Exports an einem Standort etwas enthalten (<c>GET /api/stock/locations/{id}/export/availability</c>): je Liste <c>List</c> (<c>levels</c>, <c>count</c>,
+/// <c>movements</c>, <c>orders</c>, <c>expiry</c>), ob sie sich exportieren lässt und, wenn nicht, der Grund in einem Satz für die Maske.
+/// </summary>
+public sealed record StockExportAvailabilityDto(IReadOnlyList<StockExportListAvailabilityDto> Lists);
+
+/// <summary>Eine Liste des Lager-Exports: <paramref name="Reason"/> nennt bei <paramref name="Available"/> = false, warum es sie noch nicht gibt.</summary>
+public sealed record StockExportListAvailabilityDto(string List, bool Available, string? Reason = null);

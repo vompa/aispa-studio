@@ -271,7 +271,8 @@ public sealed record StockUsageTreatmentDto(Guid TreatmentId, string Name, decim
 /// <summary>
 /// Soll und Ist eines Artikels. <c>Planned</c> (Soll): gebuchter Verbrauch laut Rezept. <c>Excess</c> (Mehrverbrauch, Schwund): was die Inventuren darüber hinaus
 /// fehlen sahen, negativ, wenn sie mehr fanden. <c>Actual</c> (Ist) = Soll + Mehrverbrauch. <c>ExcessValue</c>: Mehrverbrauch zum Einstandspreis, nur mit dem Recht
-/// „Berichte mit Beträgen“. <c>Treatments</c>: die Behandlungen, die den Artikel nutzen, mit ihrem Soll.
+/// „Berichte mit Beträgen“. <c>Treatments</c>: die Behandlungen, die den Artikel nutzen, mit ihrem Soll. Die Zeilen des Berichts kommen sortiert: größter Wert
+/// des Mehrverbrauchs zuerst (ohne das Recht für Beträge der größte Anteil <c>ExcessPercent</c> zuerst).
 /// </summary>
 public sealed record StockUsageLineDto(
     Guid ItemId,
@@ -281,7 +282,11 @@ public sealed record StockUsageLineDto(
     decimal Actual,
     decimal Excess,
     decimal? ExcessValue,
-    IReadOnlyList<StockUsageTreatmentDto> Treatments);
+    IReadOnlyList<StockUsageTreatmentDto> Treatments)
+{
+    /// <summary>Mehrverbrauch in Prozent des Soll, ganzzahlig gerundet; leer, wenn das Soll 0 ist (kein Bezug). Fehlt in älteren Antworten.</summary>
+    public decimal? ExcessPercent { get; init; }
+}
 
 /// <summary>Bericht Soll-Ist-Verbrauch eines Standorts (beide Tage eingeschlossen, Ortszeit); <c>AmountsHidden</c>: ohne das Recht „Berichte mit Beträgen“ fehlen die Werte in Euro.</summary>
 public sealed record StockUsageReportDto(

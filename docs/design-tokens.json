@@ -41,13 +41,13 @@
     { "web": "--st-done", "app": "StDoneBrush" },
     { "web": "--st-done-bg", "app": "StDoneBgBrush" }
   ],
-  "schriftgroessen": [12, 14, 16, 18, 22],
+  "schriftgroessen": [12, 13, 14, 16, 18, 22],
   "schriftstufen": [
     { "name": "Titel", "groesse": 22, "zeile": 28, "gewicht": 600, "web": "h1", "app": "TextBlock.h1" },
     { "name": "Überschrift", "groesse": 18, "zeile": 24, "gewicht": 600, "web": "h2", "app": "TextBlock.h2" },
     { "name": "Zwischentitel", "groesse": 16, "zeile": 22, "gewicht": 600, "web": "h3", "app": "TextBlock.h3" },
     { "name": "Klein", "groesse": 12, "zeile": 16, "gewicht": 400, "app": "TextBlock.small" },
-    { "name": "Beschriftung", "groesse": 12, "zeile": 16, "gewicht": 500, "app": "TextBlock.label" },
+    { "name": "Beschriftung", "groesse": 13, "zeile": 18, "gewicht": 600, "app": "TextBlock.label" },
     { "name": "Mini", "groesse": 12, "zeile": 14, "gewicht": 500, "app": "Border.pill > TextBlock" }
   ],
   "abstaende": { "raster": [4, 8, 12, 16, 20, 24, 32], "ausgleich": [2, 6, 10] },

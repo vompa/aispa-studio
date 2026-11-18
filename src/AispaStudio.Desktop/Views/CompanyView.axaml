@@ -32,6 +32,38 @@
                      Text="Gelten für alle Standorte, die keine eigene Gesellschaft eingetragen haben: auf Rechnungen, für die Sofortüberweisung und im Impressum der Online-Buchung." />
         </StackPanel>
 
+        <!-- „Betrieb einrichten“ (ADR 0099): oben, solange ein Schritt offen ist; die API zählt, jeder Schritt springt in die passende Maske -->
+        <Border x:Name="SetupCard" Classes="card" IsVisible="{Binding ShowSetup}" AutomationProperties.Name="Betrieb einrichten">
+          <StackPanel Spacing="12">
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+              <TextBlock Text="Betrieb einrichten" Classes="h2" VerticalAlignment="Center" />
+              <TextBlock Grid.Column="1" x:Name="SetupSummaryText" Text="{Binding SetupSummary}" Classes="muted" VerticalAlignment="Center" AutomationProperties.LiveSetting="Polite" />
+            </Grid>
+            <ProgressBar x:Name="SetupProgress" Minimum="0" Maximum="100" Value="{Binding SetupPercent}" AutomationProperties.Name="Fortschritt der Einrichtung" />
+            <ItemsControl x:Name="SetupList" ItemsSource="{Binding SetupSteps}">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <StackPanel Spacing="4" />
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:SetupStepItem">
+                  <Grid ColumnDefinitions="20,*,Auto" ColumnSpacing="8" MinHeight="32" AutomationProperties.Name="{Binding AccessibleName}">
+                    <ui:Icon Data="{x:Static ui:Icons.Check}" Width="16" Height="16" IsVisible="{Binding IsDone}" VerticalAlignment="Center" />
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                      <TextBlock Text="{Binding Title}" TextWrapping="Wrap" />
+                      <TextBlock Text="{Binding Hint}" Classes="muted small" TextWrapping="Wrap" />
+                    </StackPanel>
+                    <Button Grid.Column="2" Content="Öffnen" Classes="ghost" IsVisible="{Binding IsOpen}" VerticalAlignment="Center"
+                            Command="{Binding $parent[UserControl].((vm:CompanyViewModel)DataContext)?.OpenSetupStepCommand}" CommandParameter="{Binding}"
+                            AutomationProperties.Name="{Binding Title}" />
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </Border>
+
         <ui:InfoBar Severity="Error" Title="Firmendaten nicht geladen" Message="{Binding LoadError}" IsVisible="{Binding HasLoadError}"
                     ActionText="Erneut laden" ActionCommand="{Binding LoadCommand}" />
         <TextBlock Text="Lade Firmendaten …" Classes="muted" IsVisible="{Binding !IsLoaded}" />

@@ -105,6 +105,7 @@ public sealed class AispaDbContext(DbContextOptions<AispaDbContext> options, Ten
     public DbSet<TreatmentPreparationStep> TreatmentPreparationSteps => Set<TreatmentPreparationStep>();
     public DbSet<CustomerPreference> CustomerPreferences => Set<CustomerPreference>();
     public DbSet<AppointmentPreparationCheck> AppointmentPreparationChecks => Set<AppointmentPreparationCheck>();
+    public DbSet<AppointmentEquipmentCheck> AppointmentEquipmentChecks => Set<AppointmentEquipmentCheck>();
     public DbSet<AppointmentFollowUp> AppointmentFollowUps => Set<AppointmentFollowUp>();
 
     public DbSet<TreatmentExtra> TreatmentExtras => Set<TreatmentExtra>();
@@ -126,6 +127,7 @@ public sealed class AispaDbContext(DbContextOptions<AispaDbContext> options, Ten
     public DbSet<AppointmentReminder> AppointmentReminders => Set<AppointmentReminder>();
     public DbSet<RebookSettings> RebookSettings => Set<RebookSettings>();
     public DbSet<TreatmentRebookInterval> TreatmentRebookIntervals => Set<TreatmentRebookInterval>();
+    public DbSet<CategoryRebookInterval> CategoryRebookIntervals => Set<CategoryRebookInterval>();
     public DbSet<MarketingConsent> MarketingConsents => Set<MarketingConsent>();
     public DbSet<RebookReminder> RebookReminders => Set<RebookReminder>();
     public DbSet<PaymentAccount> PaymentAccounts => Set<PaymentAccount>();

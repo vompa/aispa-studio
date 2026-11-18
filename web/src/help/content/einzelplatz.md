@@ -24,6 +24,10 @@ Die App wird einmal mit dem Schalter `--standalone` gestartet, z. B. über eine 
 
 Weil der PC ohne Abgleich die einzige Kopie aller Daten ist, gehört zum Einzelplatz immer die tägliche Sicherung (siehe „Sicherung“).
 
+## Ausgeschaltete Webmodule {#module}
+
+Ist ein Webmodul ausgeschaltet, fehlt sein Bereich in der Verwaltung: **Erinnerungen** (Modul Erinnerungen oder Wiederbuchung), **Postfach & Nummern** (Terminannahme) und **Zahlungen** (Online-Buchung). **KI** bleibt immer da. Bei einem Server mit der Stufe „Start“ stehen die Erinnerungen vor dem Termin in der Maske **Erinnerungen**, die Wiederbuchungs-Hinweise fehlen dort, weil sie erst ab der Stufe „Spa“ dabei sind. Einschalten lassen sich die Module in den Einstellungen des Servers, nicht in der App.
+
 ## Spa einrichten {#einrichten}
 
 Beim allerersten Start ist die Datenbank leer, und die App zeigt „Spa einrichten“. Das geht nur direkt an diesem PC, nicht über das Netz, und nur einmal. Danach legt die Leitung alle weiteren Zugänge unter „Zugänge“ an.

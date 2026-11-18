@@ -19,7 +19,7 @@ Im Reiter „Betriebsinfo“ lesen Inhaber, Manager, Standortleitung, das Backof
 1. In der Windows-App unter „Verwaltung“ **Zahlen** öffnen und den Reiter **Betriebsinfo** wählen.
 2. Links stehen die Einträge nach Kategorie. Mit **Suchen** (Bezeichnung, Firma, Ansprechperson, Zuständigkeit) und **Kategorie** engt man die Liste ein.
 3. Einen Eintrag anklicken. Rechts stehen Telefon, Mobil und E-Mail als Links zum Anrufen und Schreiben; **Kopieren** legt die Nummer oder die Adresse in die Zwischenablage, **Alles kopieren** alle Angaben.
-4. Wer verwalten darf, ändert die Felder und klickt auf **Speichern**, oder legt mit **Neuer Eintrag** einen neuen an. Mit **Archivieren** verschwindet ein Eintrag aus der Liste; über **Archivierte zeigen** und **Zurückholen** kommt er wieder.
+4. Wer verwalten darf, ändert die Felder und klickt auf **Speichern**, oder legt mit **Neuer Eintrag** einen neuen an. Hat eine gewählte Kategorie, z. B. „Handwerker und Technik“, noch keinen Eintrag, steht in der Liste ein Satz dazu; **Neuer Eintrag** legt dann einen Eintrag in dieser Kategorie an. Im Menü **⋯** im Kopf des Eintrags steht **Archivieren**; damit verschwindet ein Eintrag aus der Liste. Über **Archivierte zeigen** und **Zurückholen** kommt er wieder.
 
 Archivieren löscht nichts: der Eintrag bleibt erhalten, steht aber nicht mehr in der Liste, und der Assistent nennt ihn nicht mehr.
 

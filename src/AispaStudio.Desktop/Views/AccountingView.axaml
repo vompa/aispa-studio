@@ -56,14 +56,14 @@
                 <ColumnDefinition Width="Auto" SharedSizeGroup="Center" />
                 <ColumnDefinition Width="*" />
               </Grid.ColumnDefinitions>
-              <TextBlock Text="Datum" Classes="muted small" />
-              <TextBlock Grid.Column="1" Text="Beleg" Classes="muted small" />
-              <TextBlock Grid.Column="2" Text="Soll" Classes="muted small" />
-              <TextBlock Grid.Column="3" Text="Haben" Classes="muted small" />
-              <TextBlock Grid.Column="4" Text="Betrag" Classes="muted small" HorizontalAlignment="Right" />
-              <TextBlock Grid.Column="5" Text="USt" Classes="muted small" HorizontalAlignment="Right" />
-              <TextBlock Grid.Column="6" Text="Kostenstelle" Classes="muted small" />
-              <TextBlock Grid.Column="7" Text="Text" Classes="muted small" />
+              <TextBlock Text="Datum" Classes="group" />
+              <TextBlock Grid.Column="1" Text="Beleg" Classes="group" />
+              <TextBlock Grid.Column="2" Text="Soll" Classes="group" />
+              <TextBlock Grid.Column="3" Text="Haben" Classes="group" />
+              <TextBlock Grid.Column="4" Text="Betrag" Classes="group" HorizontalAlignment="Right" />
+              <TextBlock Grid.Column="5" Text="USt" Classes="group" HorizontalAlignment="Right" />
+              <TextBlock Grid.Column="6" Text="Kostenstelle" Classes="group" />
+              <TextBlock Grid.Column="7" Text="Text" Classes="group" />
             </Grid>
             <ItemsControl x:Name="PostingList" ItemsSource="{Binding Postings}" AutomationProperties.Name="Buchungen">
               <ItemsControl.ItemTemplate>
@@ -103,17 +103,7 @@
           <ui:HelpButton Grid.Column="1" Topic="buchhaltung" Section="erloeskonten" />
         </Grid>
         <TextBlock Classes="muted" TextWrapping="Wrap" Text="Eigene Erlöskonten trennen Geschäftsbereiche, z. B. Shop oder Hotelgäste; jeder Umsatz bleibt voll versteuert." />
-        <ItemsControl x:Name="AccountList" ItemsSource="{Binding Accounts}" AutomationProperties.Name="Erlöskonten">
-          <ItemsControl.ItemTemplate>
-            <DataTemplate x:DataType="contracts:RevenueAccountDto">
-              <Grid Margin="0,4" ColumnDefinitions="96,*,160" ColumnSpacing="12">
-                <TextBlock Text="{Binding Code}" Classes="num" />
-                <TextBlock Grid.Column="1" Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
-                <TextBlock Grid.Column="2" Text="{Binding CostCenter}" />
-              </Grid>
-            </DataTemplate>
-          </ItemsControl.ItemTemplate>
-        </ItemsControl>
+        <!-- „Neu“ steht fest über der Liste (ADR 0099): erst das Formular zum Anlegen, darunter die Erlöskonten -->
         <StackPanel Spacing="12" IsVisible="{Binding CanAddAccount}">
           <Grid ColumnDefinitions="*,*,*" ColumnSpacing="12">
             <ui:FormField Label="Kontonummer" IsRequired="True" Error="{Binding AccountCodeError}">
@@ -130,6 +120,17 @@
           <ui:InfoBar Severity="Error" Title="Nicht angelegt" Message="{Binding AccountError}" IsVisible="{Binding HasAccountError}" CloseCommand="{Binding CloseAccountErrorCommand}" />
           <ui:InfoBar Severity="Success" Message="{Binding AccountMessage}" IsVisible="{Binding HasAccountMessage}" CloseCommand="{Binding CloseAccountMessageCommand}" />
         </StackPanel>
+        <ItemsControl x:Name="AccountList" ItemsSource="{Binding Accounts}" AutomationProperties.Name="Erlöskonten">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="contracts:RevenueAccountDto">
+              <Grid Margin="0,4" ColumnDefinitions="96,*,160" ColumnSpacing="12">
+                <TextBlock Text="{Binding Code}" Classes="num" />
+                <TextBlock Grid.Column="1" Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
+                <TextBlock Grid.Column="2" Text="{Binding CostCenter}" />
+              </Grid>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
       </StackPanel>
 
       <!-- Kontenzuordnung -->

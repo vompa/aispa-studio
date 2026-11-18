@@ -13,6 +13,9 @@ internal sealed class StubApi : HttpMessageHandler
 
     public List<(string Route, string? Body)> Calls { get; } = [];
 
+    /// <summary>Anfragen, für die es keine Antwort gibt (die API hätte geantwortet, der Test hat nur nichts vorbereitet); ohne Wiederholungen.</summary>
+    public IReadOnlyList<string> Unrouted => [.. Calls.Select(c => c.Route).Where(r => !_routes.ContainsKey(r)).Distinct()];
+
     /// <summary>Die echten Adressen der Anfragen (mit Version); <see cref="Calls"/> und der Abgleich lesen den Pfad ohne <c>/v1</c>.</summary>
     public List<string> Requests { get; } = [];
 

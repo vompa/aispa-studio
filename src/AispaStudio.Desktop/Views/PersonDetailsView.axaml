@@ -5,8 +5,8 @@
              x:Class="AispaStudio.Desktop.Views.PersonDetailsView"
              x:DataType="vm:PersonDetailsViewModel">
   <!--
-    Reiter „Stammdaten“ (R05 Slice 98): dieselben Felder, Grenzen und Texte wie EmployeeForm in web/src/admin/TeamTab.tsx ohne die Qualifikationen
-    (eigener Reiter). Feld zu Feld 12, Gruppe zu Gruppe 20 (masken.md), Fragezeichen am Gruppentitel (Brief 5.11).
+    Abschnitt „Stammdaten“ (R05 Slice 98, P5): dieselben Felder, Grenzen und Texte wie EmployeeForm in web/src/admin/TeamTab.tsx ohne die Qualifikationen und die
+    Regelarbeitszeit (beide eigene Abschnitte der Karte). Feld zu Feld 12, Gruppe zu Gruppe 20 (masken.md), Fragezeichen am Gruppentitel (Brief 5.11); Sprachen als Auswahl-Chips.
   -->
   <StackPanel x:Name="DetailsSection" Spacing="20" IsEnabled="{Binding IsEditable}">
     <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="12">
@@ -25,7 +25,7 @@
         </Grid>
       </ui:FormField>
       <ui:FormField Grid.Row="1" Grid.Column="1" Label="Für Gäste mit Wunsch">
-        <ComboBox x:Name="GenderField" ItemsSource="{x:Static vm:PersonGenderChoice.All}" SelectedItem="{Binding Gender}" MinWidth="200" />
+        <ComboBox x:Name="GenderField" ItemsSource="{x:Static vm:PersonGenderChoice.All}" SelectedItem="{Binding Gender}" HorizontalAlignment="Stretch" />
       </ui:FormField>
     </Grid>
 
@@ -38,41 +38,15 @@
       <ItemsControl x:Name="LanguagesField" ItemsSource="{Binding Languages}" AutomationProperties.Name="Sprachen">
         <ItemsControl.ItemsPanel>
           <ItemsPanelTemplate>
-            <WrapPanel ItemSpacing="16" />
+            <WrapPanel ItemSpacing="8" LineSpacing="8" />
           </ItemsPanelTemplate>
         </ItemsControl.ItemsPanel>
         <ItemsControl.ItemTemplate>
           <DataTemplate x:DataType="vm:LanguageOption">
-            <CheckBox Content="{Binding Label}" IsChecked="{Binding IsChecked}" />
+            <ToggleButton Classes="choicechip" Content="{Binding Label}" IsChecked="{Binding IsChecked}" />
           </DataTemplate>
         </ItemsControl.ItemTemplate>
       </ItemsControl>
-    </StackPanel>
-
-    <StackPanel Spacing="8">
-      <Grid ColumnDefinitions="*,Auto">
-        <TextBlock Text="Wochenarbeitszeiten" Classes="h3" VerticalAlignment="Center" />
-        <ui:HelpButton Topic="team" Section="wochenarbeitszeiten" Grid.Column="1" />
-      </Grid>
-      <ItemsControl ItemsSource="{Binding WorkingHours}">
-        <ItemsControl.ItemTemplate>
-          <DataTemplate x:DataType="vm:WorkingHoursRow">
-            <Grid ColumnDefinitions="150,*,Auto,Auto,Auto" ColumnSpacing="8" Margin="0,0,0,8">
-              <ComboBox ItemsSource="{x:Static vm:WorkDayChoice.All}" SelectedItem="{Binding Day}" HorizontalAlignment="Stretch" AutomationProperties.Name="Tag" />
-              <ComboBox Grid.Column="1" ItemsSource="{Binding Locations}" SelectedItem="{Binding Location}" HorizontalAlignment="Stretch"
-                        AutomationProperties.Name="Standort" />
-              <ui:TimeField Grid.Column="2" Value="{Binding Start}" AutomationProperties.Name="Beginn" />
-              <ui:TimeField Grid.Column="3" Value="{Binding End}" NotBefore="{Binding Start}" AutomationProperties.Name="Ende" />
-              <Button Grid.Column="4" Classes="ghost icon" Width="32" Height="32" Command="{Binding RemoveCommand}" ToolTip.Tip="Arbeitszeit entfernen"
-                      AutomationProperties.Name="Arbeitszeit entfernen">
-                <ui:Icon Data="{x:Static ui:Icons.Trash}" Width="16" Height="16" />
-              </Button>
-            </Grid>
-          </DataTemplate>
-        </ItemsControl.ItemTemplate>
-      </ItemsControl>
-      <Button x:Name="AddHoursButton" Content="Arbeitszeit hinzufügen" Command="{Binding AddHoursCommand}" IsEnabled="{Binding CanAddHours}"
-              HorizontalAlignment="Left" ToolTip.Tip="Nächster Tag ohne Eintrag, mit den Zeiten des letzten Eintrags" />
     </StackPanel>
   </StackPanel>
 </UserControl>

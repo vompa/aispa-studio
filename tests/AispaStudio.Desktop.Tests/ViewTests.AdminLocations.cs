@@ -65,7 +65,7 @@ public sealed partial class ViewTests
     {
         var shell = await OpenLocations(window, main);
         Assert.Equal("Wien Innere Stadt", Named<TextBox>(window, "NameField").Text);
-        Assert.Equal(["Wien Innere Stadt", "Salzburg", "Standort anlegen"], shell.AdminPage.Locations!.Choices.Select(c => c.Title));
+        Assert.Equal(["Wien Innere Stadt", "Salzburg"], shell.AdminPage.Locations!.Choices.Select(c => c.Title));
         Assert.Contains(window.GetVisualDescendants().OfType<TextBox>(), t => t.Name == "RoomNameField" && t.Text == "Raum Lavendel");
         return shell.AdminPage;
     }, LocationsApi());
@@ -222,7 +222,7 @@ public sealed partial class ViewTests
             });
             var locations = shell.AdminPage.Locations!;
             await AssertNoBindingErrors(log, "Anderer Standort", () => { locations.SelectedChoice = locations.Choices.Single(c => c.Title == "Salzburg"); return Task.CompletedTask; });
-            await AssertNoBindingErrors(log, "Standort anlegen", () => { locations.SelectedChoice = locations.Choices.Single(c => c.Id is null); return Task.CompletedTask; });
+            await AssertNoBindingErrors(log, "Standort anlegen", () => { locations.SelectedChoice = locations.CreateChoice; return Task.CompletedTask; });
             await AssertNoBindingErrors(log, "Zurück zum ersten Standort", () => { locations.SelectedChoice = locations.Choices[0]; return Task.CompletedTask; });
             await AssertNoBindingErrors(log, "Neuer Raum eingegeben", () => { locations.NewRoom!.Name = "Ruheraum Nord"; return Task.CompletedTask; });
             await AssertNoBindingErrors(log, "Anderer Bereich", () =>
@@ -260,7 +260,7 @@ public sealed partial class ViewTests
         locations.Rooms[0].Name = "Raum Lavendel 2";
         await Pump(Settling);
         Scan("Zeilen geändert");
-        locations.SelectedChoice = locations.Choices.Single(c => c.Id is null);
+        locations.SelectedChoice = locations.CreateChoice;
         await Pump(Settling);
         Scan("Standort anlegen");
 

@@ -8,6 +8,7 @@
              xmlns:views="using:AispaStudio.Desktop.Views"
              x:Class="AispaStudio.Desktop.Views.ShellView"
              x:DataType="vm:ShellViewModel"
+             ui:SidePanelLayer.Current="{Binding Panels}"
              x:Name="Root">
   <UserControl.Styles>
     <!-- Der Name der Navigationszeile ist die Seite, mit Zähler „Anfragen, 3 offen“; sonst nennt der Screenreader den Typnamen des Modells -->
@@ -202,9 +203,8 @@
           </ui:SidePanelHeader.Action>
         </ui:SidePanelHeader>
         <Border DockPanel.Dock="Top" Classes="divider" />
-        <ScrollViewer>
-          <ContentControl Content="{Binding ShellContent}" Margin="16" />
-        </ScrollViewer>
+        <!-- Hilfe-Bereich und Assistent rollen je für sich (CompanionContent); der Browser der Hilfe darf in keinem ScrollViewer liegen -->
+        <ContentControl Content="{Binding ShellContent}" />
       </DockPanel>
     </Border>
     </Grid>

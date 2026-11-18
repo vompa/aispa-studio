@@ -43,6 +43,14 @@ public sealed class AppointmentPreparationCheck
     public string? UserId { get; init; }
 }
 
+/// <summary>Bereitgestelltes Gerät eines Termins („Mein Tag“): Das Gerät ist kein Rezeptschritt, der Haken hängt deshalb am Termin.</summary>
+public sealed class AppointmentEquipmentCheck
+{
+    public Guid AppointmentId { get; init; }
+    public DateTimeOffset CheckedAt { get; init; }
+    public string? UserId { get; init; }
+}
+
 /// <summary>Nachbereitung eines Termins; die Notiz erscheint auf den nächsten Karten des Gastes.</summary>
 public sealed class AppointmentFollowUp
 {
@@ -82,6 +90,13 @@ internal static class ReportModel
             e.HasKey(c => new { c.AppointmentId, c.StepId });
             e.HasOne<Appointment>().WithMany().HasForeignKey(c => c.AppointmentId).OnDelete(DeleteBehavior.Cascade);
             e.HasOne<TreatmentPreparationStep>().WithMany().HasForeignKey(c => c.StepId).OnDelete(DeleteBehavior.Cascade);
+            e.Property(c => c.UserId).HasMaxLength(450);
+        });
+
+        builder.Entity<AppointmentEquipmentCheck>(e =>
+        {
+            e.HasKey(c => c.AppointmentId);
+            e.HasOne<Appointment>().WithOne().HasForeignKey<AppointmentEquipmentCheck>(c => c.AppointmentId).OnDelete(DeleteBehavior.Cascade);
             e.Property(c => c.UserId).HasMaxLength(450);
         });
 

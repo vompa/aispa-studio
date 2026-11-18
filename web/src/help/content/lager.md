@@ -47,6 +47,10 @@ Der Reiter **Bestand** hat oben die Auswahl **Ansicht** mit **Material**, **Char
 
 Legt ein neues Material an. Es gilt für alle Standorte; den Bestand führt das Lager je Standort. Anlegen dürfen Inhaber und Standortleitung, nur sie sehen diesen Abschnitt. **Ändern** in der Zeile des Materials lädt es in dasselbe Formular.
 
+### Nicht mehr verwenden {#material-nicht-mehr-verwenden}
+
+Im Kopf der Karte steht beim Ändern das Menü **⋯** mit **Nicht mehr verwenden**. Das Material bleibt im Stamm, Bestand und Bewegungen bleiben erhalten, aber es erscheint nicht mehr in Auswahl und Rezeptur. Es fragt nichts und lässt sich umkehren: Bei einem nicht mehr verwendeten Material heißt der Eintrag **Wieder verwenden**. Löschen lässt sich Material nie, denn Bewegungen und Rezepturen verweisen darauf. Der Schalter ändert nur diesen Zustand, nicht die ungespeicherten Eingaben im Formular.
+
 ### Bezeichnung {#bezeichnung}
 
 Name des Materials, zum Beispiel „Massageöl Lavendel“. Pflicht, höchstens 200 Zeichen. Unter diesem Namen erscheint es im Bestand, in Bestellungen und in der Rezeptur einer Behandlung.
@@ -130,14 +134,18 @@ Beim Buchen eines Termins erscheint dieselbe Warnung, wenn der neue Termin eine 
 
 Zeigt je Material, wie viel laut Rezept verbraucht sein sollte und wie viel die Inventuren tatsächlich ergeben haben. So fällt Schwund auf. Der Abschnitt **Verbrauch** steht in der **Übersicht** unter „Was ist zu tun“ und erscheint für Personen mit dem Recht, Kennzahlen des Betriebs zu sehen.
 
-Mit **Zeitraum** wählt man die letzten 7, 30 oder 90 Tage bis heute. Die Tabelle nennt je Material:
+![Der Abschnitt Verbrauch mit Soll, Ist, Abweichung und Wert der Abweichung](images/app/verwaltung-lager-verbrauch.png)
+
+Mit **Zeitraum** wählt man die letzten 7, 30 oder 90 Tage bis heute. Die Tabelle ist höchstens 900 Pixel breit und steht nach dem Wert der Abweichung sortiert, der größte zuerst. Je Material nennt sie:
 
 - **Soll:** der Verbrauch, der laut Rezept der gebuchten Behandlungen entstanden ist.
 - **Ist:** das Soll plus der Mehrverbrauch.
-- **Mehrverbrauch:** was die Inventuren im Zeitraum darüber hinaus als Schwund gefunden haben. Eine negative Zahl heißt, die Inventuren fanden mehr als erwartet.
-- **Wert:** der Mehrverbrauch zum Einstandspreis. Den Wert zeigt der Bericht nur mit dem Recht „Berichte mit Beträgen“; ohne das Recht steht ein Hinweis.
+- **Abweichung:** der Mehrverbrauch in Menge und in Prozent vom Soll, z. B. „+120 ml · 18 %“. Was die Inventuren im Zeitraum darüber hinaus als Schwund gefunden haben, steht als Mehrverbrauch. Eine negative Zahl heißt, die Inventuren fanden mehr als erwartet.
+- **Wert der Abweichung:** der Mehrverbrauch zum Einstandspreis. Den Wert zeigt der Bericht nur mit dem Recht „Berichte mit Beträgen“; ohne das Recht steht ein Hinweis, und die Tabelle folgt dem Anteil statt dem Wert.
 
-Unter jedem Material stehen die Behandlungen, die es verbrauchen, mit ihrem Soll und der Zahl der Termine. Korrekturen mit Grund, z. B. Bruch, und Verkäufe an der Kassa zählen nicht mit. Ohne Inventur im Zeitraum gibt es keinen Mehrverbrauch. Der Bericht bucht nichts.
+Als Standard zeigt die Tabelle nur Materialien mit Abweichung. Unter der Tabelle steht, wie viele weitere Materialien genau nach Rezept verbraucht wurden; **Alle zeigen** oder der Schalter **Nur Abweichungen** nimmt sie in die Tabelle auf.
+
+Ein Klick auf den Namen eines Materials klappt die Behandlungen auf, die es verbrauchen, mit ihrem Soll und der Zahl der Termine. Die Summe über alle Materialien steht nur in der Kachel **Mehrverbrauch** der Übersicht. Korrekturen mit Grund, z. B. Bruch, und Verkäufe an der Kassa zählen nicht mit. Ohne Inventur im Zeitraum gibt es keinen Mehrverbrauch. Der Bericht bucht nichts.
 
 ## Charge zurückverfolgen {#rueckverfolgung}
 

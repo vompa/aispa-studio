@@ -57,8 +57,23 @@ public sealed record StaffCertificateScanInput(string FileName, string ContentTy
 public sealed record DutyHolderDto(
     Guid DutyId, Guid EmployeeId, string Name, Guid? DeputyId, string? DeputyName, DateOnly ValidFrom, DateOnly? ValidUntil, bool IsExpired);
 
-/// <summary>Eine Zuständigkeit in „Wer ist wofür zuständig?“; ohne Eintrag mit leerer Liste („niemand eingetragen“).</summary>
-public sealed record DutyOverviewRowDto(Guid DutyTypeId, DutyTypeKey? Key, string Name, string? RequiredCertificate, IReadOnlyList<DutyHolderDto> Holders);
+/// <summary>
+/// Eine Zuständigkeit in „Wer ist wofür zuständig?“; ohne Eintrag mit leerer Liste („niemand eingetragen“). Für die Tabelle „Rechte und Zuständigkeiten“ kommen fünf optionale Felder dazu
+/// (fehlen in älteren Antworten): <c>Group</c> (Thema der Tabelle) mit <c>GroupOrder</c> (Reihenfolge der Themen), <c>Hint</c> (z. B. „Verlangt: Erste-Hilfe-Kurs“), <c>Effect</c> („Nur Aushang“ oder was die App damit tut) und
+/// <c>IsUnstaffed</c> (heute hat niemand Aktives sie). Mit <c>locationId</c> in der Anfrage zählen nur Personen, die an dem Standort arbeiten.
+/// </summary>
+public sealed record DutyOverviewRowDto(Guid DutyTypeId, DutyTypeKey? Key, string Name, string? RequiredCertificate, IReadOnlyList<DutyHolderDto> Holders)
+{
+    public string? Group { get; init; }
+
+    public int? GroupOrder { get; init; }
+
+    public string? Hint { get; init; }
+
+    public string? Effect { get; init; }
+
+    public bool? IsUnstaffed { get; init; }
+}
 
 /// <summary>Ein Zertifikat in „Was läuft bald ab?“: in der Erinnerungsfrist oder abgelaufen, nicht erneuert.</summary>
 public sealed record ExpiringCertificateDto(Guid CertificateId, Guid EmployeeId, string EmployeeName, string Name, DateOnly ValidUntil, bool IsExpired);

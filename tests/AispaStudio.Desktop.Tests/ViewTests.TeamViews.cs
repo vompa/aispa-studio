@@ -166,15 +166,15 @@ public sealed partial class ViewTests
             Assert.True(powers.IsEffectivelyVisible);
             Assert.True(duties.IsEffectivelyVisible);
             Assert.Equal(20, TopOf(window, duties) - (TopOf(window, powers) + powers.Bounds.Height), 1);
-            foreach (var (section, title, topic) in new[] { (powers, "Wer darf was?", "regelungen-vollmachten"), (duties, "Zuständigkeiten", "zustaendigkeiten-zertifikate") })
+            foreach (var (section, title, topic) in new[] { (powers, "Wer darf was, wer ist zuständig?", "regelungen-vollmachten"), (duties, "Zertifikate und Liste der Zuständigkeiten", "zustaendigkeiten-zertifikate") })
             {
                 var heading = section.GetVisualDescendants().OfType<TextBlock>().First(t => t.Text == title);
                 Assert.True(heading.Classes.Contains("h3"), $"{title}: keine Zwischenüberschrift");
                 Assert.Equal(topic, section.GetVisualDescendants().OfType<HelpButton>().First().Topic);
             }
 
-            Assert.True(Shows(window, "Lena, bis 31.12.2026, erteilt von Katrin"));
-            Assert.True(Shows(window, "Lena Huber, Vertretung Marco Berger, gültig ab 1.1.2026"));
+            Assert.True(Shows(window, "Kassa-Storno"));
+            Assert.True(Shows(window, "Ersthelfer"));
             Assert.False(Named<Control>(window, "TeamList").IsEffectivelyVisible);
             Assert.False(team.HasUnsavedChanges);
             return team;

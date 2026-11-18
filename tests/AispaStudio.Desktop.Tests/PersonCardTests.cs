@@ -31,6 +31,7 @@ public sealed class PersonCardTests
         [PersonCardViewModel.QualificationsTab] = PersonCardViewModel.ProfileArea,
         [PersonCardViewModel.DutiesTab] = PersonCardViewModel.ProfileArea,
         [PersonCardViewModel.RosterTab] = PersonCardViewModel.WorkTimeArea,
+        [PersonCardViewModel.WorkingHoursTab] = PersonCardViewModel.WorkTimeArea,
         [PersonCardViewModel.TimesTab] = PersonCardViewModel.WorkTimeArea,
         [PersonCardViewModel.PayrollTab] = PersonCardViewModel.PayAndFileArea,
         [PersonCardViewModel.HrFileTab] = PersonCardViewModel.PayAndFileArea,
@@ -51,6 +52,13 @@ public sealed class PersonCardTests
     {
         team.SelectedEntry = team.Entries.Single(e => e.Title == title);
         await Until(() => team.Card?.Entry.Title == title);
+        return team.Card!;
+    }
+
+    private static async Task<PersonCardViewModel> Add(TeamViewModel team)
+    {
+        team.AddPersonCommand.Execute(null);
+        await Until(() => team.Card?.Entry.Kind == TeamEntryKind.NewPerson);
         return team.Card!;
     }
 
@@ -195,6 +203,7 @@ public sealed class PersonCardTests
     [InlineData(PersonCardViewModel.QualificationsTab, PersonCardViewModel.ProfileArea)]
     [InlineData(PersonCardViewModel.DutiesTab, PersonCardViewModel.ProfileArea)]
     [InlineData(PersonCardViewModel.RosterTab, PersonCardViewModel.WorkTimeArea)]
+    [InlineData(PersonCardViewModel.WorkingHoursTab, PersonCardViewModel.WorkTimeArea)]
     [InlineData(PersonCardViewModel.TimesTab, PersonCardViewModel.WorkTimeArea)]
     [InlineData(PersonCardViewModel.PayrollTab, PersonCardViewModel.PayAndFileArea)]
     [InlineData(PersonCardViewModel.HrFileTab, PersonCardViewModel.PayAndFileArea)]
@@ -216,6 +225,7 @@ public sealed class PersonCardTests
             [PersonCardViewModel.QualificationsTab] = card.ShowsQualifications,
             [PersonCardViewModel.DutiesTab] = card.ShowsDuties,
             [PersonCardViewModel.RosterTab] = card.ShowsRoster,
+            [PersonCardViewModel.WorkingHoursTab] = card.ShowsWorkingHours,
             [PersonCardViewModel.TimesTab] = card.ShowsTimes,
             [PersonCardViewModel.PayrollTab] = card.ShowsPayroll,
             [PersonCardViewModel.HrFileTab] = card.ShowsHrFile,
@@ -328,6 +338,7 @@ public sealed class PersonCardTests
         Assert.True(team.HasSaveBar);
         card.SelectTab(PersonCardViewModel.OverviewArea);
         Assert.True(card.HasSaveBar);
+        Assert.True(card.HasSaveBar);
 
         team.Discard();
         Assert.False(card.HasSaveBar);
@@ -340,13 +351,14 @@ public sealed class PersonCardTests
         var team = await Loaded(api);
         // Die erste Person ist schon gewählt und hat ihre Übersicht geladen; gezählt wird erst ab dem Wechsel.
         var before = api.Calls.Count;
-        var card = await Choose(team, "Person anlegen");
+        var card = await Add(team);
 
         Assert.Null(card.Overview);
-        Assert.Equal([PersonCardViewModel.ProfileArea], card.Tabs.Select(t => t.Id));
-        Assert.Equal([PersonCardViewModel.DetailsTab, PersonCardViewModel.QualificationsTab], card.Sections);
+        // Die Regelarbeitszeit steht im Bereich „Arbeitszeit“, auch bei einer neuen Person (P5).
+        Assert.Equal([PersonCardViewModel.ProfileArea, PersonCardViewModel.WorkTimeArea], card.Tabs.Select(t => t.Id));
+        Assert.Equal([PersonCardViewModel.DetailsTab, PersonCardViewModel.QualificationsTab, PersonCardViewModel.WorkingHoursTab], card.Sections);
         Assert.Equal(PersonCardViewModel.ProfileArea, card.SelectedTab);
-        Assert.False(card.ShowsTabs);
+        Assert.True(card.ShowsTabs);
         Assert.True(card.ShowsDetails);
         Assert.False(card.HasHistory);
         Assert.DoesNotContain(api.Calls.Skip(before), c => c.Route.EndsWith("/overview", StringComparison.Ordinal));
@@ -360,8 +372,9 @@ public sealed class PersonCardTests
         var card = await Choose(team, "Sophie Gruber");
 
         Assert.Null(card.Overview);
-        Assert.Equal([PersonCardViewModel.ProfileArea, PersonCardViewModel.PayAndFileArea], card.Tabs.Select(t => t.Id));
-        Assert.Equal([PersonCardViewModel.DetailsTab, PersonCardViewModel.DutiesTab, PersonCardViewModel.HrFileTab, PersonCardViewModel.RegulationsTab], card.Sections);
+        Assert.Equal([PersonCardViewModel.ProfileArea, PersonCardViewModel.WorkTimeArea, PersonCardViewModel.PayAndFileArea], card.Tabs.Select(t => t.Id));
+        Assert.Equal([PersonCardViewModel.DetailsTab, PersonCardViewModel.DutiesTab, PersonCardViewModel.WorkingHoursTab, PersonCardViewModel.HrFileTab, PersonCardViewModel.RegulationsTab],
+            card.Sections);
         Assert.Equal(PersonCardViewModel.ProfileArea, card.SelectedTab);
         Assert.True(card.IsReadOnly);
         foreach (var area in card.Tabs.Select(t => t.Id))

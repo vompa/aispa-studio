@@ -40,6 +40,7 @@ using AispaStudio.Api.System;
 using AispaStudio.Api.Tenancy;
 using AispaStudio.Api.TimeTracking;
 using AispaStudio.Contracts;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Wolverine;
@@ -143,7 +144,18 @@ builder.Services.ConfigureHttpJsonOptions(o =>
     o.SerializerOptions.NumberHandling = JsonNumberHandling.Strict;
     o.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
 });
-builder.Services.AddProblemDetails();
+// Scheitert die Bindung eines Parameters (Pflichtwert fehlt, Enum unbekannt), antwortet jede Umgebung mit 400 statt einer Ausnahme (sonst 500 in Development),
+// und eine Antwort ohne eigenen Text bekommt einen deutschen Satz, den die App anzeigt (HttpApiClient liest detail vor title).
+builder.Services.Configure<RouteHandlerOptions>(o => o.ThrowOnBadRequest = false);
+builder.Services.AddProblemDetails(o => o.CustomizeProblemDetails = c =>
+{
+    var problem = c.ProblemDetails;
+    if (problem.Status == StatusCodes.Status400BadRequest && problem.Detail is null && problem is not HttpValidationProblemDetails
+        && (problem.Title is null || problem.Title == ReasonPhrases.GetReasonPhrase(StatusCodes.Status400BadRequest)))
+    {
+        problem.Detail = "Die Anfrage ist unvollständig, oder ein Wert hat das falsche Format.";
+    }
+});
 builder.Services.AddOpenApi(options => options.AddDocumentTransformer((document, _, _) =>
 {
     document.Info.Title = "AISPA Studio API";
@@ -222,6 +234,7 @@ builder.Services.AddScoped<PromotionService>();
 builder.Services.AddScoped<BusinessContactService>();
 builder.Services.AddScoped<ClosureService>();
 builder.Services.AddScoped<RoomClosureService>();
+builder.Services.AddScoped<ClosureOverviewService>();
 builder.Services.AddScoped<ClosureCancellations>();
 builder.Services.AddScoped<ClosureNoticeSender>();
 builder.Services.AddScoped<DepositReturns>();
@@ -375,6 +388,7 @@ static void MapApplicationEndpoints(WebApplication app)
     app.MapBusinessContactEndpoints();
     app.MapClosureEndpoints();
     app.MapRoomClosureEndpoints();
+    app.MapClosureOverviewEndpoints();
     app.MapTerminalEndpoints();
     app.MapRosterEndpoints();
     app.MapAbsenceRequestEndpoints();
@@ -406,6 +420,7 @@ static void MapApplicationEndpoints(WebApplication app)
     app.MapStaffDutyEndpoints();
     app.ForModule(AppModule.Assistant).MapAssistantEndpoints();
     app.ForModule(AppModule.Reminders).MapReminderEndpoints();
+    app.ForModule(AppModule.Reminders).MapDispatchLogEndpoints();
     app.ForModule(AppModule.Rebooking).MapRetentionEndpoints();
     app.MapHub<LiveHub>(LiveHubContract.Path).AllowChannel(AccessChannel.Display);
 }

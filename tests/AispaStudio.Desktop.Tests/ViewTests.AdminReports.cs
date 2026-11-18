@@ -1,4 +1,5 @@
 using AispaStudio.Contracts;
+using AispaStudio.Desktop.Controls;
 using AispaStudio.Desktop.ViewModels;
 using Avalonia.Controls;
 using Avalonia.VisualTree;
@@ -75,7 +76,7 @@ public sealed partial class ViewTests
         Assert.True(Shows(window, "Vorbereitung"));
         Assert.True(Shows(window, "Letzte Behandlungen"));
         return shell.AdminPage;
-    }, ReportsApi());
+    }, ReportsApi().On(DayPlanRoute, LavaDay()));
 
     [Theory]
     [InlineData("hell")]
@@ -121,6 +122,63 @@ public sealed partial class ViewTests
         Assert.True(Shows(window, "Haftpflicht"));
         return shell.AdminPage;
     }, ReportsApi());
+
+    [Fact]
+    public Task Betriebskontakt_archiviert_im_Menue_und_hat_keinen_eigenen_Knopf_Archivieren()
+    {
+        var api = ReportsApi().On($"POST /api/business-contacts/{ContactId}/archive", Contact(archived: true));
+        return Render("hell", "probe-betriebsinfo-menue", async (window, main) =>
+        {
+            var (shell, reports) = await OpenReports(window, main, ReportsViewModel.BusinessInfoTab);
+            reports.BusinessInfo!.Dialogs = new FakeDialogs().Answer(ConfirmChoice.Confirmed);
+            reports.BusinessInfo.SelectedRow = reports.BusinessInfo.Rows.Single(r => r.Id == ContactId);
+            await Pump(Settling);
+
+            Assert.DoesNotContain(window.GetVisualDescendants().OfType<Button>(), b => b.IsEffectivelyVisible && b is not MoreMenuButton && b.Content as string == "Archivieren");
+            Assert.Equal("Alles kopieren", Named<Button>(window, "CopyAllButton").Content);
+            var more = Named<MoreMenuButton>(window, "BusinessMoreMenu");
+            Assert.True(more.IsEffectivelyVisible);
+            Assert.Equal("Weitere Aktionen zu Haftpflicht", Avalonia.Automation.AutomationProperties.GetName(more));
+            ClickCenter(window, more);
+            await Pump(Settling);
+            var items = Assert.IsType<MenuFlyout>(more.Flyout).Items.OfType<MenuItem>().ToList();
+            Assert.Equal(["Archivieren"], items.Select(i => i.Header as string));
+            Assert.DoesNotContain("danger", items[0].Classes);
+            items[0].Command!.Execute(null);
+            more.Flyout!.Hide();
+            await Pump(Settling);
+            await Pump(Settling);
+
+            Assert.Single(api.Calls, c => c.Route == $"POST /api/business-contacts/{ContactId}/archive");
+            return shell.AdminPage;
+        }, api);
+    }
+
+    [Fact]
+    public Task Menue_mit_zweitem_Eintrag_zeigt_ihn_zwischen_dem_ersten_und_Loeschen_nur_mit_Befehl()
+    {
+        return Render("hell", "probe-menue-zweiter-eintrag", (window, main) =>
+        {
+            var command = new CommunityToolkit.Mvvm.Input.RelayCommand(() => { });
+            var button = new MoreMenuButton { DeactivateCommand = command, DeleteCommand = command };
+            Assert.Equal(["Nicht mehr verwenden", "Löschen …"], Items(button));
+
+            button.SecondaryText = "Archivieren";
+            Assert.Equal(["Nicht mehr verwenden", "Löschen …"], Items(button));
+
+            button.SecondaryCommand = command;
+            Assert.Equal(["Nicht mehr verwenden", "Archivieren", "Löschen …"], Items(button));
+            var items = ((MenuFlyout)button.Flyout!).Items.OfType<MenuItem>().ToList();
+            Assert.DoesNotContain("danger", items[1].Classes);
+            Assert.Contains("danger", items[2].Classes);
+
+            button.SecondaryCommand = null;
+            Assert.Equal(["Nicht mehr verwenden", "Löschen …"], Items(button));
+            return Task.FromResult<object>(main);
+
+            static List<string?> Items(MoreMenuButton b) => ((MenuFlyout)b.Flyout!).Items.OfType<MenuItem>().Select(i => i.Header as string).ToList();
+        });
+    }
 
     [Theory]
     [InlineData("hell")]

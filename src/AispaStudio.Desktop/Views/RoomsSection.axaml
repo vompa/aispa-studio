@@ -6,7 +6,7 @@
              x:DataType="vm:LocationsViewModel">
   <!--
     Räume und Tagesstart-Kontrolle (R05 Slice 95), nach web/src/admin/LocationsTab.tsx (RoomList, RoomRow) und RoomChecklist.tsx: eine Zeile je Raum mit eigenem
-    Speichern (Knopf erst mit einer Änderung und einem Namen), die letzte Zeile ist die neue. Darunter die Checkliste des gewählten Raums, ein Punkt je Zeile.
+    Speichern (Knopf erst mit einer Änderung und einem Namen), die neue Zeile steht fest über der Liste; „Nicht mehr verwenden“ und „Löschen …“ im Menü „⋯“ der Zeile (ADR 0099). Darunter die Checkliste des gewählten Raums, ein Punkt je Zeile.
   -->
   <UserControl.DataTemplates>
     <DataTemplate DataType="vm:RoomRowViewModel" x:DataType="vm:RoomRowViewModel">
@@ -23,10 +23,8 @@
                   AutomationProperties.Name="Artikel für den Eintritt" />
         <StackPanel Grid.Column="5" Orientation="Horizontal" Spacing="4" VerticalAlignment="Top">
           <Button Content="{Binding SaveText}" Command="{Binding SaveCommand}" IsVisible="{Binding CanSave}" AutomationProperties.Name="{Binding SaveName}" />
-          <Button Classes="ghost icon" Width="28" Height="28" MinHeight="28" Command="{Binding DeactivateCommand}" IsVisible="{Binding CanDeactivate}"
-                  ToolTip.Tip="Entfernen" AutomationProperties.Name="{Binding DeactivateName}">
-            <ui:Icon Data="{x:Static ui:Icons.Trash}" Width="16" Height="16" />
-          </Button>
+          <ui:MoreMenuButton x:Name="RoomMoreMenu" IsVisible="{Binding CanDeactivate}" Subject="{Binding Name}"
+                             DeactivateCommand="{Binding DeactivateCommand}" DeleteCommand="{Binding DeleteCommand}" />
         </StackPanel>
       </Grid>
     </DataTemplate>
@@ -48,8 +46,31 @@
       <TextBlock Grid.Column="4" Text="Eintritt" Classes="label"
                  ToolTip.Tip="Kassa-Artikel, mit dem ein Eintritt in den Bereich je Person abgerechnet wird (Preis, Steuersatz und Erlöskonto kommen vom Artikel)" />
     </Grid>
-    <ItemsControl x:Name="RoomList" ItemsSource="{Binding Rooms}" />
+    <!-- „Neu“ steht fest über der Liste (ADR 0099): die Zeile zum Hinzufügen vor den vorhandenen Räumen -->
     <ContentControl x:Name="NewRoomRow" Content="{Binding NewRoom}" />
+    <TextBlock x:Name="RoomsEmpty" Text="Noch kein Raum angelegt. Ohne Raum lässt sich nichts buchen." Classes="muted" TextWrapping="Wrap" IsVisible="{Binding !Rooms.Count}" />
+    <ItemsControl x:Name="RoomList" ItemsSource="{Binding Rooms}" />
+    <!-- Nicht mehr verwendete (ADR 0099): gedämpft unter den aktiven, im Menü „⋯“ nur „Wieder verwenden“ -->
+    <ItemsControl x:Name="FormerRoomList" ItemsSource="{Binding FormerRooms}" IsVisible="{Binding ShowFormerRooms}">
+      <ItemsControl.ItemsPanel>
+        <ItemsPanelTemplate>
+          <StackPanel Spacing="4" />
+        </ItemsPanelTemplate>
+      </ItemsControl.ItemsPanel>
+      <ItemsControl.ItemTemplate>
+        <DataTemplate x:DataType="vm:FormerRowViewModel">
+          <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8" AutomationProperties.Name="{Binding RowName}">
+            <TextBlock Text="{Binding Name}" Classes="muted" VerticalAlignment="Center" AutomationProperties.AccessibilityView="Raw" />
+            <Border Grid.Column="1" Classes="tag" VerticalAlignment="Center" AutomationProperties.AccessibilityView="Raw">
+              <TextBlock Text="Nicht mehr verwendet" />
+            </Border>
+            <ui:MoreMenuButton Grid.Column="2" Subject="{Binding Name}" DeactivateText="Wieder verwenden" DeactivateCommand="{Binding ReactivateCommand}" />
+          </Grid>
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
+    <CheckBox x:Name="ShowFormerRoomsBox" Content="Nicht mehr verwendete zeigen" IsChecked="{Binding ShowFormerRooms}" IsVisible="{Binding CanShowFormer}" />
+    <ui:InfoBar Severity="Success" Message="{Binding RoomNotice}" IsVisible="{Binding HasRoomNotice}" CloseCommand="{Binding CloseRoomNoticeCommand}" />
     <ui:InfoBar Severity="Error" Message="{Binding RoomMessage}" IsVisible="{Binding HasRoomMessage}" />
   </StackPanel>
 </UserControl>

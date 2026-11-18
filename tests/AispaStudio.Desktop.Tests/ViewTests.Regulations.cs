@@ -56,36 +56,6 @@ public sealed partial class ViewTests
         }, api);
     }
 
-    [Theory]
-    [InlineData("hell")]
-    [InlineData("dunkel")]
-    public Task Verwaltung_Team_Wer_darf_was_zeigt_je_Vollmacht_wer_und_bis_wann(string theme)
-    {
-        var (api, _) = RosterApi();
-        api.On("GET /api/staff-regulations/powers", new List<PowerOverviewRowDto>
-        {
-            new(StaffPowerKind.CashVoid, "Kassa-Storno", true, [new(RosterLena.Id, "Lena", new DateOnly(2026, 1, 1), new DateOnly(2026, 12, 31), "Katrin", false)]),
-            new(StaffPowerKind.Safe, "Tresor", false, [new(RosterLena.Id, "Lena", new DateOnly(2026, 1, 1), new DateOnly(2026, 9, 30), "Katrin", true)]),
-            new(StaffPowerKind.Keys, "Schlüssel", false, []),
-        })
-            .On("GET /api/staff-duties/types", new List<DutyTypeDto>())
-            .On("GET /api/staff-duties/overview", new List<DutyOverviewRowDto>())
-            .On("GET /api/staff-duties/expiring", new List<ExpiringCertificateDto>());
-        return Render(theme, "verwaltung-team-wer-darf-was", async (window, main) =>
-        {
-            var team = await OpenTeam(window, main);
-            await ClickSection(window, "Rechte und Zuständigkeiten");
-            await Pump(Settling);
-
-            Assert.True(Named<Control>(window, "PowerOverview").IsEffectivelyVisible);
-            Assert.True(Shows(window, "Lena, bis 31.12.2026, erteilt von Katrin"));
-            Assert.True(Shows(window, "Lena, abgelaufen am 30.9.2026, erteilt von Katrin"));
-            Assert.True(Shows(window, "Niemand"));
-            Assert.False(Named<Control>(window, "TeamList").IsEffectivelyVisible);
-            return team;
-        }, api);
-    }
-
     [Fact]
     public Task Given_die_Regel_When_die_Managerin_im_Tageseditor_speichert_Then_warnt_die_Maske_und_der_Klick_auf_Trotzdem_speichern_schickt_die_Bestaetigung()
     {

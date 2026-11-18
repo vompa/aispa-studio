@@ -12,23 +12,25 @@
   <Grid ColumnDefinitions="*,Auto">
     <Border Classes="card" VerticalAlignment="Top">
       <StackPanel Spacing="12">
-        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="16">
+        <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="16">
           <TextBlock Text="Bestand" Classes="h2" VerticalAlignment="Center" />
           <CheckBox x:Name="OnlyBelowBox" Grid.Column="1" IsChecked="{Binding OnlyBelow}" Content="Nur unter Minimum" VerticalAlignment="Center" />
-          <ui:HelpButton Grid.Column="2" Topic="lager" Section="bestand" />
+          <!-- „Neu“ steht fest über der Liste (ADR 0099): der Knopf leert das Formular „Material anlegen“ darunter -->
+          <Button x:Name="NewItemButton" Grid.Column="2" Classes="primary" Content="Material anlegen" Command="{Binding NewItemCommand}" IsVisible="{Binding CanCreate}" VerticalAlignment="Center" />
+          <ui:HelpButton Grid.Column="3" Topic="lager" Section="bestand" />
         </Grid>
         <TextBlock x:Name="ValueLine" Classes="muted small">
           <Run Text="Lagerwert " /><Run Text="{Binding ValueText}" /><Run Text=" " /><Run Text="{Binding ValueNote}" />
         </TextBlock>
 
-        <Grid ColumnDefinitions="*,200,150,130" ColumnSpacing="12" Margin="10,0" AutomationProperties.AccessibilityView="Raw">
+        <Grid ColumnDefinitions="*,200,150,130" ColumnSpacing="12" Margin="10,0" AutomationProperties.AccessibilityView="Raw" IsVisible="{Binding !ShowEmpty}">
           <TextBlock Text="Material" Classes="group" />
           <TextBlock Grid.Column="1" Text="Bestand" Classes="group" />
           <TextBlock Grid.Column="2" Text="Reicht für" Classes="group" />
           <TextBlock Grid.Column="3" Text="Status" Classes="group" />
         </Grid>
 
-        <TextBlock Text="Noch keine Einträge." Classes="muted" IsVisible="{Binding ShowEmpty}" />
+        <TextBlock Text="Noch kein Material angelegt." Classes="muted" IsVisible="{Binding ShowEmpty}" />
         <ListBox x:Name="StockList" Classes="plain" ItemsSource="{Binding Rows}" SelectedItem="{Binding SelectedRow}" AutomationProperties.Name="Bestand">
           <ListBox.Styles>
             <!-- Der Name der Zeile nennt Material, Bestand und Hinweise; sonst liest der Screenreader den Record-Typ -->

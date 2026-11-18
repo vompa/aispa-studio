@@ -162,13 +162,17 @@ public sealed partial class ViewTests
         return Render("hell", "verwaltung-lager-lagerorte", async (window, main) =>
         {
             var (shell, stock) = await OpenStock(window, main);
-            await ClickScrolled(window, "SetupButton");
+            await OpenPlaces(window, stock);
             stock.PlacesAdmin.SelectedRow = stock.PlacesAdmin.Rows.Single(r => r.Id == ShopId);
             await Pump(Settling);
             Assert.Equal("Verkaufsregal", Named<TextBox>(window, "PlaceNameField").Text);
 
-            await ClickScrolled(window, "DeletePlaceButton");
-            Assert.Equal("Lagerort löschen?", Assert.IsType<ConfirmDialogViewModel>(main.DialogHost.Current).Title);
+            // Löschen liegt seit ADR 0099 im Menü „⋯“ im Kopf der Karte; der Dialog fragt nach, gesendet wird erst nach der Bestätigung.
+            ClickCenter(window, MoreButton(window, "PlaceMoreMenu"));
+            await Pump(Settling);
+            ClickCenter(window, window.GetVisualDescendants().OfType<MenuItem>().Single(i => i.IsEffectivelyVisible && (string?)i.Header == "Löschen …"));
+            await Pump(Settling);
+            Assert.Equal("„Verkaufsregal“ löschen?", Assert.IsType<ConfirmDialogViewModel>(main.DialogHost.Current).Title);
             Assert.Equal(0, CallsTo(api, $"DELETE {Route($"/storage-places/{ShopId}")}"));
             ClickCenter(window, DialogButton(window, "ConfirmButton"));
             await Pump(Settling);

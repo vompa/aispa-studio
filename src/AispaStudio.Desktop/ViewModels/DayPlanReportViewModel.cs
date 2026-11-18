@@ -97,11 +97,23 @@ public sealed partial class DayPlanReportViewModel(IWorkstationApi api, TimeProv
     private void ApplyOverview(DayPlanDto plan)
     {
         var points = plan.Hints.ToList();
-        var (status, ok) = (points.Count, plan.Cards.Count) switch
+        var open = Cards.Sum(c => c.OpenCount);
+        var parts = new List<string>();
+        if (open > 0)
+        {
+            parts.Add(Plural(open, "Vorbereitung offen", "Vorbereitungen offen"));
+        }
+
+        if (points.Count > 0)
+        {
+            parts.Add(Plural(points.Count, "Hinweis zum Tag", "Hinweise zum Tag"));
+        }
+
+        var (status, ok) = (parts.Count, plan.Cards.Count) switch
         {
             (0, 0) => ("Keine Behandlungen heute", true),
             (0, _) => ("Nichts Dringendes offen", true),
-            _ => (Plural(points.Count, "Hinweis zum Tag", "Hinweise zum Tag"), false),
+            _ => (string.Join(", ", parts), false),
         };
         SetOverview(
             status,
@@ -109,7 +121,7 @@ public sealed partial class DayPlanReportViewModel(IWorkstationApi api, TimeProv
             points,
             [
                 new("Behandlungen", Cards.Count.ToString(CultureInfo.InvariantCulture)),
-                new("Vorbereitung offen", Cards.Sum(c => c.Todo.Count(t => !t.Done)).ToString(CultureInfo.InvariantCulture)),
+                new("Vorbereitung offen", Cards.Sum(c => c.OpenCount).ToString(CultureInfo.InvariantCulture)),
                 new("Dienst", plan.Shifts.Count == 0 ? "kein Dienst" : string.Join(", ", plan.Shifts.Select(s => $"{Clock(s.Start)}–{Clock(s.End)}"))),
             ]);
     }
@@ -141,7 +153,10 @@ public sealed partial class TreatmentCardRow : ViewModelBase
     {
         (_api, _reload, _customerId) = (api, reload, card.CustomerId);
         AppointmentId = card.AppointmentId;
-        Title = $"{clock(card.Start)} {card.TreatmentName} ({card.DurationMinutes} Min.), {card.RoomName}";
+        _clock = clock;
+        Title = $"{clock(card.Start)} {card.DisplayName ?? card.TreatmentName}";
+        DurationText = $"{card.DurationMinutes} Min.";
+        RoomName = card.RoomName;
         var visit = card.VisitNumber == 1 ? "Erstbesuch" : $"{card.VisitNumber}. Besuch";
         var last = card.LastVisit is { } lastVisit ? $", zuletzt {day(lastVisit)}" : "";
         var occasion = card.Occasion is { } text ? $" · {text}" : "";
@@ -149,18 +164,78 @@ public sealed partial class TreatmentCardRow : ViewModelBase
         Anamnesis = card.AnamnesisStatus;
         IsAnamnesisWarning = !card.AnamnesisStatus.StartsWith("Fragebogen vom", StringComparison.Ordinal);
         BookingNote = card.BookingNote is { } note ? $"Hinweis zur Buchung: {note}" : null;
-        Todo = [.. card.Todo.Where(t => t.StepId is not null).Select(t => new ReportCheckRow(t.StepId!.Value, ToggleStepAsync)
+        Todo = [.. card.Todo.Where(t => t.StepId is not null || t.IsEquipment == true).Select(t => new ReportCheckRow(t.StepId ?? card.AppointmentId, t.IsEquipment == true ? ToggleEquipmentAsync : ToggleStepAsync)
         {
             Text = t.Text,
             Done = t.Done,
             Detail = t.DueAt is { } due ? $"ab {clock(due)}" : null,
         })];
-        TodoNotes = [.. card.Todo.Where(t => t.StepId is null).Select(t => $"{t.Text} ({t.Source})")];
+        _dueTimes = [.. card.Todo.Where(t => t.StepId is not null || t.IsEquipment == true).Select(t => t.DueAt)];
+        foreach (var row in Todo)
+        {
+            row.PropertyChanged += (_, e) =>
+            {
+                if (e.PropertyName == nameof(ReportCheckRow.Done))
+                {
+                    RefreshStatus();
+                }
+            };
+        }
+
+        RefreshStatus();
+        TodoNotes = [.. card.Todo.Where(t => t.StepId is null && t.IsEquipment != true && t.Source != PreferenceSource).Select(t => t.Text)];
         History = [.. card.History.Select(h => $"{day(h.Start)} {h.TreatmentName} bei {h.EmployeeName}{(h.Note is { } n ? $": {n}" : "")}")];
         _savedNote = card.FollowUpNote ?? "";
         Note = unsavedNote ?? _savedNote;
+        WishesHeading = $"Das wünscht sich {FirstName(card.CustomerName)}";
         LoadPreferences(card.Preferences);
     }
+
+    private const string PreferenceSource = "Vorliebe";
+
+    private readonly Func<DateTimeOffset, string> _clock;
+    private readonly IReadOnlyList<DateTimeOffset?> _dueTimes;
+
+    public string DurationText { get; }
+
+    public string RoomName { get; }
+
+    public string WishesHeading { get; }
+
+    /// <summary>Offene Schritte der Vorbereitung inklusive Gerät.</summary>
+    public int OpenCount => Todo.Count(t => !t.Done);
+
+    [ObservableProperty]
+    public partial string StatusText { get; private set; } = "";
+
+    [ObservableProperty]
+    public partial bool IsReady { get; private set; }
+
+    /// <summary>Statuszeile des Termins: Zahl der offenen Schritte und die erste Frist, sonst „Bereit“.</summary>
+    private void RefreshStatus()
+    {
+        var open = Todo.Select((row, index) => (row, due: _dueTimes[index])).Where(t => !t.row.Done).ToList();
+        IsReady = open.Count == 0;
+        OnPropertyChanged(nameof(OpenCount));
+        if (IsReady)
+        {
+            StatusText = "Bereit";
+            return;
+        }
+
+        var count = open.Count == 1 ? "1 Vorbereitung offen" : $"{open.Count} Vorbereitungen offen";
+        var first = open.Where(t => t.due is not null).Select(t => t.due!.Value).Order().Cast<DateTimeOffset?>().FirstOrDefault();
+        StatusText = first is { } due ? $"{count}, erste bis {_clock(due)}" : count;
+    }
+
+    private static string FirstName(string customerName) => customerName.Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? customerName;
+
+    /// <summary>Die Vorlieben des Gastes als kurze Zeilen („Druck: fest“); sie ersetzen die frühere Doppelung in der Vorbereitung.</summary>
+    public IReadOnlyList<string> Wishes { get; private set; } = [];
+
+    public bool HasWishes => Wishes.Count > 0;
+
+    public bool HasNoWishes => Wishes.Count == 0;
 
     public Guid AppointmentId { get; }
 
@@ -280,12 +355,43 @@ public sealed partial class TreatmentCardRow : ViewModelBase
     {
         (Pressure, Scent, RoomTemperature, Music) = (preferences.Pressure, preferences.Scent, preferences.RoomTemperature, preferences.Music);
         (FocusAreas, AvoidAreas, Other, PrefersQuiet) = (preferences.FocusAreas, preferences.AvoidAreas, preferences.Other, preferences.PrefersQuiet == true);
+        Wishes = WishLines(preferences);
     }
 
-    private async Task ToggleStepAsync(ReportCheckRow row)
+    private static List<string> WishLines(CustomerPreferences preferences)
+    {
+        var lines = new List<string>();
+        void Add(string label, string? value)
+        {
+            if (!string.IsNullOrWhiteSpace(value))
+            {
+                lines.Add($"{label}: {value.Trim()}");
+            }
+        }
+
+        Add("Druck", preferences.Pressure);
+        Add("Duft", preferences.Scent);
+        Add("Raumtemperatur", preferences.RoomTemperature);
+        Add("Musik", preferences.Music);
+        Add("Fokus", preferences.FocusAreas);
+        Add("Nicht behandeln", preferences.AvoidAreas);
+        Add("Sonstiges", preferences.Other);
+        if (preferences.PrefersQuiet == true)
+        {
+            lines.Add("Wenig Gespräch");
+        }
+
+        return lines;
+    }
+
+    private Task ToggleStepAsync(ReportCheckRow row) => SaveCheckAsync(row, $"api/reports/appointments/{AppointmentId}/preparation/{row.Id}");
+
+    private Task ToggleEquipmentAsync(ReportCheckRow row) => SaveCheckAsync(row, $"api/reports/appointments/{AppointmentId}/equipment-prepared");
+
+    private async Task SaveCheckAsync(ReportCheckRow row, string route)
     {
         Error = null;
-        var result = await _api.PutAsync<object>($"api/reports/appointments/{AppointmentId}/preparation/{row.Id}", new PreparationCheck(row.Done)).ConfigureAwait(true);
+        var result = await _api.PutAsync<object>(route, new PreparationCheck(row.Done)).ConfigureAwait(true);
         if (result.Error is { } error)
         {
             Error = error;

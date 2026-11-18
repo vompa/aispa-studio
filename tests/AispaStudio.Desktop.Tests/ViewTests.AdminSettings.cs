@@ -25,13 +25,12 @@ public sealed partial class ViewTests
         .On("GET /api/tenant/payments", PaymentsTests.OwnKeys)
         .On("GET /api/reminders/settings", RemindersTests.Day)
         .OnJson("PUT /api/reminders/settings", body => JsonSerializer.Deserialize<ReminderSettingsDto>(body!, ApiClient.Json)!)
-        .On("GET /api/retention/settings", new RebookSettingsDto(true, [new RebookIntervalDto(SpaSample.Treatments[0].Id, 42)]))
+        .On("GET /api/retention/settings", RemindersTests.Rebook with { Intervals = [new RebookIntervalDto(SpaSample.Treatments[0].Id, 42)] })
         .On("GET /api/treatments", SpaSample.Treatments)
-        .On("GET /api/retention/reminders", new List<RebookReminderDto>
-        {
-            new(Guid.NewGuid(), Guid.NewGuid(), "Lena Huber", SpaSample.Treatments[0].Name, "Sent", true, "Liebe Lena, Zeit für die nächste Auszeit.",
-                SpaSample.At(9, 0), SpaSample.At(9, 2), null),
-        });
+        .On("GET /api/dispatch-log/summary", RemindersTests.Summary)
+        .On("GET /api/dispatch-log?days=30", new[] { DispatchLogViewModelTests.Rebook, DispatchLogViewModelTests.Failed, DispatchLogViewModelTests.Reminder })
+        .On("GET /api/dispatch-log?kind=reminder&days=30", new[] { DispatchLogViewModelTests.Reminder })
+        .On("GET /api/dispatch-log?kind=rebook&days=30", new[] { DispatchLogViewModelTests.Rebook, DispatchLogViewModelTests.Failed });
 
     /// <summary>Den Bereich in der offenen Verwaltung anklicken, bis seine Maske geladen ist.</summary>
     private static async Task<object?> ClickArea(Window window, ShellViewModel shell, string title)
@@ -77,6 +76,19 @@ public sealed partial class ViewTests
     [InlineData("dunkel")]
     public Task Verwaltung_Erinnerungen(string theme) => Render(theme, "verwaltung-erinnerungen", async (window, main) =>
         await OpenSettingsArea<RemindersViewModel>(window, main, "Erinnerungen"), SettingsApi());
+
+    [Theory]
+    [InlineData("hell")]
+    [InlineData("dunkel")]
+    public Task Verwaltung_Versandprotokoll(string theme) => Render(theme, "verwaltung-versandprotokoll", async (window, main) =>
+    {
+        var reminders = await OpenSettingsArea<RemindersViewModel>(window, main, "Erinnerungen");
+        await reminders.Log.OpenAsync(DispatchFilter.All);
+        await Pump(Settling);
+        Assert.Equal(3, reminders.Log.Rows.Count);
+        Assert.True(Named<SidePanel>(window, "LogPanel").IsEffectivelyVisible);
+        return reminders;
+    }, SettingsApi());
 
     [Fact]
     public Task Given_hinterlegter_Stripe_Schluessel_When_die_Inhaberin_Zahlungen_oeffnet_Then_steht_nur_Punkte_mit_den_letzten_vier_Zeichen() =>

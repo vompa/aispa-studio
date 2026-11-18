@@ -133,7 +133,7 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
         }
 
         // Verwaltung (ADR 0084): alle Bereiche nativ in der App (seit Slice 103 ohne eingebettete Team-Oberfläche).
-        AdminPage = new AdminPageViewModel(api, user, time, live) { Dialogs = dialogs };
+        AdminPage = new AdminPageViewModel(api, user, time, live, modules) { Dialogs = dialogs };
         pages.Add(new NavItem("Verwaltung", Icons.Sliders, AdminPage));
         _web = new ServerWeb(api);
         Help = new HelpViewModel(() => _web.Address, time: time, prepare: _web.LookUpAsync);
@@ -141,7 +141,11 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
         Help.Role = user.Access?.Role;
         // Strg+Leertaste im eingebetteten Browser der Hilfe kommt als Nachricht der Seite (appShortcuts.ts); sie zählt nur, solange die Seite offen ist.
         Help.CompanionRequested += () => ToggleCompanionFromBrowser(Help);
-        HelpContent.ShowInApp = ShowHelp;
+        Help.KeyHelpRequested += () => HelpKeyRequested?.Invoke();
+        HelpContent.ShowInApp = ShowHelpInPanel;
+        HelpContent.ShowManualInApp = ShowHelp;
+        // Hilfe in der Leiste (ADR 0079, Nachtrag): dieselbe Hilfe-Seite im Modus „ansicht=leiste“, mit eigenem eingebetteten Browser.
+        var helpArea = new HelpViewModel(() => _web.Address, time: time, prepare: _web.LookUpAsync) { Role = user.Access?.Role, InPanel = true };
         Companion = new CompanionViewModel(api, theme.Store,
             // Das Backoffice hat keinen Kalender, aber Auswertungen: der Assistent beantwortet ihm nur diese und Fragen zur Bedienung (ADR 0072).
             (user.Rights.Contains(AccessRight.ViewCalendar) || user.Rights.Contains(AccessRight.ViewFinance)) && modules?.Assistant != false,
@@ -162,6 +166,8 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
             WaitlistRequested = ShowWaitlist,
             OrderRequested = OpenAssistantOrderAsync,
             ReferenceSource = OpenGuest,
+            HelpArea = helpArea,
+            ManualRequested = (topic, section) => ShowHelp(topic, section),
         };
         if (AdminPage.Company is { } company)
         {
@@ -173,14 +179,9 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
             locations.Saved += Companion.OnDataSaved;
         }
 
-        if (AdminPage.Closures is { } closures)
+        if (AdminPage.ClosuresPage is { } closures)
         {
             closures.Saved += Companion.OnDataSaved;
-        }
-
-        if (AdminPage.RoomClosures is { } roomClosures)
-        {
-            roomClosures.Saved += Companion.OnDataSaved;
         }
 
         if (AdminPage.Subscriptions is { } subscriptions)
@@ -213,6 +214,23 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
             team.Saved += Companion.OnDataSaved;
             team.RosterChanged += () => _calendarStale = true;
         }
+
+        // Esc und Strg+Leertaste in der Hilfe der Leiste kommen als Nachricht der Seite; nur eine Leiste rechts (SidePanelLayer).
+        helpArea.CloseRequested += Companion.CloseHelp;
+        helpArea.CompanionRequested += () =>
+        {
+            Companion.Presence.UsingKeyboard = true;
+            Companion.Toggle();
+        };
+        helpArea.KeyHelpRequested += () => HelpKeyRequested?.Invoke();
+        Panels.PanelOpened += Companion.CloseHelp;
+        Companion.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(CompanionViewModel.ShowsHelp))
+            {
+                Panels.IsCovered = Companion.ShowsHelp;
+            }
+        };
 
         // Im Kalender ist KI und Hilfe ein Reiter der Seitenleiste (Ä66): „offen“ heißt, der Reiter ist gewählt. Wählt man einen anderen Reiter,
         // bleibt der Assistent im Hintergrund offen; schließt man ihn, bleiben die übrigen Reiter stehen. Auf den anderen Seiten gilt die Leiste der Shell.
@@ -314,6 +332,16 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
     /// <summary>Woher die Hilfe kommt, wenn sie nicht neben der App liegt.</summary>
     private readonly ServerWeb _web;
 
+    /// <summary>Immer nur eine Leiste rechts: die Hilfe in „KI und Hilfe“ blendet offene Leisten der Masken aus, solange sie steht.</summary>
+    public SidePanelLayer Panels { get; } = new();
+
+    /// <summary>F1 kam aus einem eingebetteten Browser der Hilfe: die Ansicht zeigt die Hilfe zum Fokus wie bei F1 in der App.</summary>
+    public event Action? HelpKeyRequested;
+
+    /// <summary>Fragezeichen: die Hilfe in der Leiste „KI und Hilfe“ (im Kalender deren Reiter), die Seite bleibt stehen; ein unbekanntes Thema zeigt die Seite „Hilfe“.</summary>
+    internal bool ShowHelpInPanel(string? topic, string? section) => Companion.ShowHelp(topic, section) || ShowHelp(topic, section);
+
+    /// <summary>Die Seite „Hilfe“ beim Thema (das ganze Handbuch).</summary>
     internal bool ShowHelp(string? topic, string? section)
     {
         _ = ShowHelpAsync(topic, section);
@@ -743,9 +771,14 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
     /// <summary>Hintergrundabgleich beenden (beim Abmelden).</summary>
     public void Dispose()
     {
-        if (HelpContent.ShowInApp == ShowHelp)
+        if (HelpContent.ShowInApp == ShowHelpInPanel)
         {
             HelpContent.ShowInApp = null;
+        }
+
+        if (HelpContent.ShowManualInApp == ShowHelp)
+        {
+            HelpContent.ShowManualInApp = null;
         }
 
         Companion.Dispose();

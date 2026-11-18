@@ -7,22 +7,22 @@ seite: verwaltung
 ---
 # Behandlungen
 
-Einstellungen in der Windows-App unter „Verwaltung“ › „Angebot“ › „Behandlungen“: was das Spa anbietet, wie lange es dauert, was es kostet und was dafür gebraucht wird. Die Liste links ist nach Kategorie gruppiert. Alles zu einer Behandlung steht an dieser einen Stelle, gegliedert in vier Bereiche:
+Einstellungen in der Windows-App unter „Verwaltung“ › „Behandlungen“: was das Spa anbietet, wie lange es dauert, was es kostet und was dafür gebraucht wird. Links steht die Liste: oben der Knopf **Neue Behandlung**, darunter die Suche, dann die Behandlungen nach Kategorie. Ein Klick auf eine Kategorie klappt sie ein und wieder aus; rechts neben jeder Behandlung stehen Dauer und Preis, z. B. „60 Min. · 115 €“. Wer eine Behandlung sucht, tippt einen Teil von Name oder Kategorie in die Suche. Alles zu einer Behandlung steht an dieser einen Stelle, gegliedert in vier Bereiche:
 
-- **Grunddaten**: Name, Dauer, Preis, Kategorie, Hinweis für Gäste und „Anamnese prüfen“. Eingeklappt darunter steht die Gruppe **Weitere Angaben** (Ausfallgebühr und Anzahlung); sie ist von selbst offen, wenn die Behandlung eine eigene Ausfallgebühr oder Anzahlung hat.
+- **Übersicht**: vier Kacheln mit Preis, Dauer, wie viele Personen die Behandlung geben dürfen und in wie vielen Räumen sie stattfindet. Ein Klick auf eine Kachel springt zur passenden Stelle. Eine neue Behandlung hat noch keine Übersicht.
+- **Grunddaten und Preis**: Name und Kategorie, Dauer und Preis, Hinweis für Gäste, „Anamnese prüfen“ und „Passt dazu“ (Produkte, die zur Behandlung passen und die Kassa vorschlägt). Eingeklappt darunter steht die Gruppe **Weitere Angaben** mit „Preis je Standort“ (nur bei mehreren Standorten), „Preise nach Wochentag und Uhrzeit“, Ausfallgebühr und Anzahlung; sie ist von selbst offen, wenn die Behandlung dort schon einen Wert hat.
 - **Durchführung**: was um den Termin herum geschieht, in Gruppen untereinander: „Vor- und Nachbereitung“ (Minuten und Einwirkzeit), „Vorbereitungsschritte“, „Material je Termin“ (nur mit dem Recht auf Berichte mit Beträgen) und „Zum Termin bereitstellen“.
-- **Preise und Verkauf**: „Preis je Standort“ (nur bei mehreren Standorten), „Preise nach Wochentag und Uhrzeit“ und „Passt dazu“ (Produkte, die zur Behandlung passen und die Kassa vorschlägt).
 - **Qualifikationen und Räume**: „Nötige Qualifikationen“ mit „Wer kann das?“ daneben, darunter die Räume und Geräte je Standort.
 
-Eine neue Behandlung zeigt zuerst Grunddaten, Durchführung (nur „Vor- und Nachbereitung“), Qualifikationen und Räume sowie, bei mehreren Standorten, Preise und Verkauf (nur „Preis je Standort“); Material, Bereitstellung, „Passt dazu“, Vorbereitungsschritte und Preisregeln kommen nach dem Anlegen dazu.
+Eine neue Behandlung zeigt zuerst Grunddaten und Preis, Durchführung (nur „Vor- und Nachbereitung“) sowie Qualifikationen und Räume; Material, Bereitstellung, „Passt dazu“, Vorbereitungsschritte und Preisregeln kommen nach dem Anlegen dazu.
 
-Im Kopf der Karte steht rechts neben dem Namen die Schaltfläche **Verlauf**: [Verlauf einer Behandlung](hilfe:behandlungen-verlauf).
+Im Kopf der Karte stehen rechts neben dem Namen **Speichern** und **Verwerfen**, die Schaltfläche **Verlauf** ([Verlauf einer Behandlung](hilfe:behandlungen-verlauf)) und das Menü **⋯** mit **Nicht mehr anbieten …**.
 
 Ändern dürfen Inhaber und Standortleitung. Eine Standortleitung ändert Räume, Geräte, Preise und Preisregeln nur an ihren eigenen Standorten; Einträge an anderen Standorten bleiben beim Speichern unverändert.
 
-![Behandlungen in der Windows-App](images/app/verwaltung-behandlungen.png)
+![Behandlungen in der Windows-App: Liste und Übersicht](images/app/verwaltung-behandlungen.png)
 
-In der Windows-App speichert ein **Speichern** unten alles zur offenen Behandlung gemeinsam, aus allen Bereichen:
+In der Windows-App speichert ein **Speichern** im Kopf der Karte alles zur offenen Behandlung gemeinsam, aus allen Bereichen:
 
 - **Strg+S** speichert wie der Knopf „Speichern“.
 - **Verwerfen** holt den gespeicherten Stand zurück.
@@ -32,7 +32,9 @@ In der Windows-App speichert ein **Speichern** unten alles zur offenen Behandlun
 
 Änderungen gelten für neue Buchungen; gebuchte Termine behalten Zeiten und Preis.
 
-## Grunddaten {#behandlung}
+## Grunddaten und Preis {#behandlung}
+
+![Grunddaten und Preis einer Behandlung](images/app/verwaltung-behandlungen-grunddaten.png)
 
 ### Name {#name}
 
@@ -89,7 +91,7 @@ Für Behandlungen, bei denen Angaben aus dem Anamnesebogen wichtig sind, z. B. H
 
 ## Ablauf {#ablauf}
 
-Alles, was um den Termin herum geschieht: die Zeiten davor und danach und die Schritte, die vor jedem Termin zu tun sind. Die Zeiten speichert „Speichern“ unten, die Schritte haben einen eigenen Knopf. In der Windows-App steht das im Bereich „Durchführung“: die Zeiten in der Gruppe „Vor- und Nachbereitung“, die Schritte in der Gruppe „Vorbereitungsschritte“.
+Alles, was um den Termin herum geschieht: die Zeiten davor und danach und die Schritte, die vor jedem Termin zu tun sind. Die Zeiten speichert „Speichern“ im Kopf der Karte, die Schritte haben einen eigenen Knopf. In der Windows-App steht das im Bereich „Durchführung“: die Zeiten in der Gruppe „Vor- und Nachbereitung“, die Schritte in der Gruppe „Vorbereitungsschritte“.
 
 ![Bereich Durchführung einer Behandlung](images/app/verwaltung-behandlungen-durchfuehrung.png)
 
@@ -189,13 +191,13 @@ Optional. Mit einem Lagerartikel und einer Menge je Termin bucht jede abgeschlos
 
 ## Passt dazu {#passt-dazu}
 
-Produkte aus der Kassa, die zu dieser Behandlung passen, z. B. das Massageöl zur Hot-Stone-Massage. In der Windows-App steht die Gruppe „Passt dazu“ im Bereich „Preise und Verkauf“ und erscheint bei einer gespeicherten Behandlung. Wählen Sie einen Artikel aus und klicken Sie **Artikel hinzufügen**; höchstens 5 Artikel, jeder einmal. Die Reihenfolge der Liste ist die Reihenfolge der Vorschläge. Gespeichert wird mit der Behandlung.
+Produkte aus der Kassa, die zu dieser Behandlung passen, z. B. das Massageöl zur Hot-Stone-Massage. In der Windows-App steht die Gruppe „Passt dazu“ im Bereich „Grunddaten und Preis“ und erscheint bei einer gespeicherten Behandlung. Wählen Sie einen Artikel aus und klicken Sie **Artikel hinzufügen**; höchstens 5 Artikel, jeder einmal. Die Reihenfolge der Liste ist die Reihenfolge der Vorschläge. Gespeichert wird mit der Behandlung.
 
 Nach dem Abschließen des Termins schlagen Termin-Panel und Kassa diese Artikel vor, aber nur, wenn sie am Verkaufsregal des Standorts liegen. Gibt es kein Verkaufsregal, zählt das Hauptlager, wie beim Abbuchen an der Kassa. Ein Artikel ohne Material im Lager wird nie vorgeschlagen, weil sein Bestand unbekannt ist. Eine Provision auf den Verkauf gibt es nicht.
 
 Ändern dürfen Inhaber und Standortleitung.
 
-![Passt dazu im Bereich Preise und Verkauf einer Behandlung](images/app/verwaltung-behandlungen-verkauf.png)
+![Passt dazu im Bereich Grunddaten und Preis einer Behandlung](images/app/verwaltung-behandlungen-verkauf.png)
 
 ## Nötige Qualifikationen {#noetige-qualifikationen}
 
@@ -218,14 +220,14 @@ Angeboten wird die Behandlung an allen Standorten, an denen ein geeigneter Raum 
 
 ## Preis je Standort {#preis-je-standort}
 
-Erscheint im Bereich „Preise und Verkauf“, nur bei mehr als einem Standort. Je Standort kann ein abweichender Preis stehen, z. B. höher in der Innenstadt. Ab 0, höchstens zwei Nachkommastellen.
+Steht im Bereich „Grunddaten und Preis“ unter „Weitere Angaben“, nur bei mehr als einem Standort. Je Standort kann ein abweichender Preis stehen, z. B. höher in der Innenstadt. Ab 0, höchstens zwei Nachkommastellen.
 
 - Leer gilt der Grundpreis. Ein Preis gleich dem Grundpreis wird nicht als Abweichung gespeichert.
 - Gebuchte Termine behalten ihren Preis.
 
 ## Preise nach Wochentag und Uhrzeit {#preise-nach-zeit}
 
-Erscheint im Bereich „Preise und Verkauf“, sobald die Behandlung angelegt ist. Hier lassen sich Preise für bestimmte Zeiten festlegen, z. B. günstiger am Vormittag oder teurer am Wochenende. Höchstens 20 Regeln je Behandlung.
+Steht im Bereich „Grunddaten und Preis“ unter „Weitere Angaben“, sobald die Behandlung angelegt ist. Hier lassen sich Preise für bestimmte Zeiten festlegen, z. B. günstiger am Vormittag oder teurer am Wochenende. Höchstens 20 Regeln je Behandlung.
 
 Wichtig: Preisregeln haben einen eigenen Knopf „Preisregeln speichern“. Der Knopf „Speichern“ der Behandlung speichert sie nicht mit.
 
@@ -261,7 +263,9 @@ Die Kästchen Mo bis So. Mindestens ein Tag muss gewählt sein.
 
 ## Nicht mehr anbieten {#nicht-mehr-anbieten}
 
-Nimmt die Behandlung aus dem Angebot: Sie lässt sich nicht mehr neu buchen und verschwindet aus dem Kundenbereich. Bereits gebuchte Termine bleiben bestehen. In der Windows-App fragt der Knopf **Nicht mehr anbieten** vorher nach.
+Nimmt die Behandlung aus dem Angebot: Sie lässt sich nicht mehr neu buchen und verschwindet aus dem Kundenbereich. Bereits gebuchte Termine bleiben bestehen. In der Windows-App steht **Nicht mehr anbieten …** im Menü **⋯** im Kopf der Karte und fragt vorher nach.
+
+Eine nicht mehr angebotene Behandlung verschwindet aus der Liste. Mit dem Schalter **Nicht mehr angebotene zeigen** unter der Liste steht sie wieder da, ausgegraut und mit dem Vermerk „Nicht angeboten“. Ihre Karte lässt sich ansehen, aber nicht ändern; **Wieder anbieten** im Kopf der Karte holt sie zurück. Der Verlauf zeigt, wer sie wann herausgenommen hat.
 
 ## Verlauf {#verlauf}
 

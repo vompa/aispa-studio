@@ -13,7 +13,7 @@ namespace AispaStudio.Api.Scheduling;
 
 /// <summary>
 /// Stammdaten für die Planung: Standorte, Räume, Geräte, Qualifikationen, Team und Behandlungen.
-/// Löschen heißt deaktivieren: bestehende Termine behalten ihre Bezüge, Neues wird nicht mehr darauf gebucht.
+/// Löschen heißt deaktivieren: bestehende Termine behalten ihre Bezüge, Neues wird nicht mehr darauf gebucht; nur eine Qualifikation, an der nichts hängt, lässt sich löschen (ADR 0099).
 /// Lesen darf jede Rolle; Standortdaten pflegt die Standortleitung, Team und Behandlungen ebenso, Standorte anlegen nur Inhaber.
 /// </summary>
 internal static partial class MasterDataEndpoints
@@ -23,6 +23,8 @@ internal static partial class MasterDataEndpoints
         var group = routes.MapGroup("/api").WithTags("Stammdaten").RequirePermission(AccessRight.ViewCalendar);
 
         MapLocations(group);
+        MapLocationClosing(group);
+        MapSetupProgress(group);
         MapRoomsAndEquipment(group);
         MapQualifications(group);
         MapEmployees(group);
@@ -215,6 +217,40 @@ internal static partial class MasterDataEndpoints
             .RequirePermission(AccessRight.ManageLocation)
             .WithSummary("Nimmt einen Raum aus der Planung. Abgelehnt, solange noch künftige Termine darin liegen.");
 
+        group.MapGet("/locations/{locationId:guid}/rooms/former", async Task<Results<Ok<List<RoomDto>>, NotFound>> (
+                Guid locationId, AispaDbContext db, CancellationToken ct) =>
+                !await db.Locations.AnyAsync(l => l.Id == locationId, ct)
+                    ? TypedResults.NotFound()
+                    : TypedResults.Ok((await db.Rooms.AsNoTracking().Where(r => r.LocationId == locationId && !r.IsActive)
+                        .OrderBy(r => r.Name).ToListAsync(ct)).Select(ToDto).ToList()))
+            .WithName("ListFormerRooms")
+            .RequirePermission(AccessRight.ManageLocation)
+            .WithSummary("Die nicht mehr verwendeten Räume eines Standorts, nach Name; nur für Verwaltung der Standorte.");
+
+        group.MapPost("/rooms/{roomId:guid}/reactivate", async Task<Results<Ok<RoomDto>, NotFound>> (
+                Guid roomId, AispaDbContext db, CancellationToken ct) =>
+            {
+                var room = await db.Rooms.FirstOrDefaultAsync(r => r.Id == roomId, ct);
+                if (room is null)
+                {
+                    return TypedResults.NotFound();
+                }
+
+                room.IsActive = true;
+                await db.SaveChangesAsync(ct);
+                return TypedResults.Ok(ToDto(room));
+            })
+            .WithName("ReactivateRoom")
+            .RequirePermission(AccessRight.ManageLocation)
+            .WithSummary("Nimmt einen nicht mehr verwendeten Raum wieder in die Planung; wer schon aktiv ist, ändert nichts.");
+
+        group.MapGet("/rooms/{roomId:guid}/deletion-check", async Task<Results<Ok<DeletionCheckDto>, NotFound>> (
+                Guid roomId, AispaDbContext db, TimeProvider time, CancellationToken ct) =>
+                await DeletionChecks.RoomAsync(db, time, roomId, ct) is { } check ? TypedResults.Ok(check) : TypedResults.NotFound())
+            .WithName("CheckRoomDeletion")
+            .RequirePermission(AccessRight.ManageLocation)
+            .WithSummary("Zählt, was an einem Raum hängt. Ein Raum lässt sich nie löschen; die Alternative ist „Nicht mehr verwenden“.");
+
         group.MapPost("/locations/{locationId:guid}/equipment", async Task<Results<Created<EquipmentDto>, ValidationProblem, NotFound>> (
                 Guid locationId, EquipmentInput input, AispaDbContext db, CancellationToken ct) =>
             {
@@ -266,6 +302,40 @@ internal static partial class MasterDataEndpoints
             .WithName("DeactivateEquipment")
             .RequirePermission(AccessRight.ManageLocation)
             .WithSummary("Nimmt ein Gerät aus der Planung. Abgelehnt, solange es noch für künftige Termine gebraucht wird.");
+
+        group.MapGet("/locations/{locationId:guid}/equipment/former", async Task<Results<Ok<List<EquipmentDto>>, NotFound>> (
+                Guid locationId, AispaDbContext db, CancellationToken ct) =>
+                !await db.Locations.AnyAsync(l => l.Id == locationId, ct)
+                    ? TypedResults.NotFound()
+                    : TypedResults.Ok((await db.Equipment.AsNoTracking().Where(e => e.LocationId == locationId && !e.IsActive)
+                        .OrderBy(e => e.Name).ToListAsync(ct)).Select(ToDto).ToList()))
+            .WithName("ListFormerEquipment")
+            .RequirePermission(AccessRight.ManageLocation)
+            .WithSummary("Die nicht mehr verwendeten Geräte eines Standorts, nach Name; nur für Verwaltung der Standorte.");
+
+        group.MapPost("/equipment/{equipmentId:guid}/reactivate", async Task<Results<Ok<EquipmentDto>, NotFound>> (
+                Guid equipmentId, AispaDbContext db, CancellationToken ct) =>
+            {
+                var equipment = await db.Equipment.FirstOrDefaultAsync(e => e.Id == equipmentId, ct);
+                if (equipment is null)
+                {
+                    return TypedResults.NotFound();
+                }
+
+                equipment.IsActive = true;
+                await db.SaveChangesAsync(ct);
+                return TypedResults.Ok(ToDto(equipment));
+            })
+            .WithName("ReactivateEquipment")
+            .RequirePermission(AccessRight.ManageLocation)
+            .WithSummary("Nimmt ein nicht mehr verwendetes Gerät wieder in die Planung; wer schon aktiv ist, ändert nichts.");
+
+        group.MapGet("/equipment/{equipmentId:guid}/deletion-check", async Task<Results<Ok<DeletionCheckDto>, NotFound>> (
+                Guid equipmentId, AispaDbContext db, TimeProvider time, CancellationToken ct) =>
+                await DeletionChecks.EquipmentAsync(db, time, equipmentId, ct) is { } check ? TypedResults.Ok(check) : TypedResults.NotFound())
+            .WithName("CheckEquipmentDeletion")
+            .RequirePermission(AccessRight.ManageLocation)
+            .WithSummary("Zählt, was an einem Gerät hängt. Ein Gerät lässt sich nie löschen; die Alternative ist „Nicht mehr verwenden“.");
     }
 
     private static void MapQualifications(RouteGroupBuilder group)
@@ -312,6 +382,34 @@ internal static partial class MasterDataEndpoints
             })
             .WithName("RenameQualification")
             .RequirePermission(AccessRight.ManageCatalog);
+
+        group.MapGet("/qualifications/{qualificationId:guid}/deletion-check", async Task<Results<Ok<DeletionCheckDto>, NotFound>> (
+                Guid qualificationId, AispaDbContext db, CancellationToken ct) =>
+                await DeletionChecks.QualificationAsync(db, qualificationId, ct) is { } check ? TypedResults.Ok(check) : TypedResults.NotFound())
+            .WithName("CheckQualificationDeletion")
+            .RequirePermission(AccessRight.ManageCatalog)
+            .WithSummary("Zählt, welche Personen und Behandlungen eine Qualifikation tragen; gelöscht werden darf nur, wenn keine mehr daran hängt.");
+
+        group.MapDelete("/qualifications/{qualificationId:guid}", async Task<Results<NoContent, NotFound, Conflict<DeletionCheckDto>>> (
+                Guid qualificationId, AispaDbContext db, CancellationToken ct) =>
+            {
+                if (await DeletionChecks.QualificationAsync(db, qualificationId, ct) is not { } check)
+                {
+                    return TypedResults.NotFound();
+                }
+
+                if (!check.CanDelete)
+                {
+                    return TypedResults.Conflict(check);
+                }
+
+                db.Qualifications.Remove(await db.Qualifications.FirstAsync(q => q.Id == qualificationId, ct));
+                await db.SaveChangesAsync(ct);
+                return TypedResults.NoContent();
+            })
+            .WithName("DeleteQualification")
+            .RequirePermission(AccessRight.ManageCatalog)
+            .WithSummary("Löscht eine Qualifikation, an der nichts mehr hängt; sonst 409 mit der Liste dessen, was daran hängt.");
     }
 
     private static void MapEmployees(RouteGroupBuilder group)
@@ -382,10 +480,19 @@ internal static partial class MasterDataEndpoints
 
     private static void MapTreatments(RouteGroupBuilder group)
     {
-        group.MapGet("/treatments", async (AispaDbContext db, CancellationToken ct) =>
-                (await TreatmentsQuery(db).ToListAsync(ct)).Select(t => ToDto(t)).ToList())
+        group.MapGet("/treatments", async Task<Results<Ok<List<TreatmentDto>>, ForbidHttpResult>> (
+                AispaDbContext db, AccessService accessService, CancellationToken ct, bool includeInactive = false) =>
+            {
+                // Nicht mehr angebotene Behandlungen sieht, wer sie bearbeiten und wieder anbieten darf.
+                if (includeInactive && (await accessService.CurrentAsync(ct))?.Has(AccessRight.ManageCatalog) != true)
+                {
+                    return TypedResults.Forbid();
+                }
+
+                return TypedResults.Ok((await TreatmentsQuery(db, includeInactive).ToListAsync(ct)).Select(t => ToDto(t)).ToList());
+            })
             .WithName("ListTreatments")
-            .WithSummary("Alle aktiven Behandlungen mit ihren geeigneten Räumen und Geräten an allen Standorten.");
+            .WithSummary("Alle aktiven Behandlungen mit ihren geeigneten Räumen und Geräten an allen Standorten. Mit includeInactive=true (Recht „Katalog verwalten“) auch die nicht mehr angebotenen; `isActive` sagt, welche.");
 
         group.MapPost("/treatments", async Task<Results<Created<TreatmentDto>, ValidationProblem>> (
                 TreatmentInput input, AispaDbContext db, AccessService accessService, CancellationToken ct) =>
@@ -438,6 +545,20 @@ internal static partial class MasterDataEndpoints
             .WithName("DeactivateTreatment")
             .RequirePermission(AccessRight.ManageCatalog)
             .WithSummary("Bietet eine Behandlung nicht mehr an. Bereits gebuchte Termine bleiben bestehen.");
+
+        group.MapPost("/treatments/{treatmentId:guid}/reactivate", async Task<Results<Ok<TreatmentDto>, NotFound>> (
+                Guid treatmentId, AispaDbContext db, CancellationToken ct) =>
+            {
+                if (await db.Treatments.Where(t => t.Id == treatmentId).ExecuteUpdateAsync(s => s.SetProperty(t => t.IsActive, true), ct) == 0)
+                {
+                    return TypedResults.NotFound();
+                }
+
+                return TypedResults.Ok(ToDto(await TreatmentsQuery(db, includeInactive: true).FirstAsync(t => t.Id == treatmentId, ct)));
+            })
+            .WithName("ReactivateTreatment")
+            .RequirePermission(AccessRight.ManageCatalog)
+            .WithSummary("Bietet eine nicht mehr angebotene Behandlung wieder an; wer sie schon anbietet, ändert nichts.");
     }
 
     /// <summary>Deaktiviert Person, Raum oder Gerät, sofern keine künftigen Termine mehr daran hängen.</summary>
@@ -473,11 +594,11 @@ internal static partial class MasterDataEndpoints
             .Where(e => e.IsActive)
             .OrderBy(e => e.PreferredName ?? e.DisplayName);
 
-    private static IQueryable<Treatment> TreatmentsQuery(AispaDbContext db) =>
+    private static IQueryable<Treatment> TreatmentsQuery(AispaDbContext db, bool includeInactive = false) =>
         db.Treatments.AsNoTracking()
             .Include(t => t.RequiredQualifications).Include(t => t.Rooms).Include(t => t.Equipment).Include(t => t.LocationPrices).Include(t => t.PriceRules)
             .AsSplitQuery()
-            .Where(t => t.IsActive)
+            .Where(t => includeInactive || t.IsActive)
             .OrderBy(t => t.Name);
 
     private static Errors Apply(Location location, LocationInput input)
@@ -728,7 +849,7 @@ internal static partial class MasterDataEndpoints
 
     public static LocationDto ToDto(Location l) => new(l.Id, l.Name, l.TimeZone, l.Currency,
         [.. l.OpeningHours.OrderBy(o => o.Day).ThenBy(o => o.Opens).Select(o => new OpeningHours(o.Day, o.Opens, o.Closes))], l.Region,
-        ContactOf(l), CompanyOf(l));
+        ContactOf(l), CompanyOf(l), l.ClosedFrom);
 
     public static LocationContact ContactOf(Location l) => new(l.Street, l.PostalCode, l.City, l.Phone, l.Email, l.Directions);
 
@@ -752,7 +873,10 @@ internal static partial class MasterDataEndpoints
         t.Category,
         t.Price,
         [.. t.LocationPrices.OrderBy(p => p.LocationId).Select(p => new TreatmentLocationPriceDto(p.LocationId, p.Price))],
-        t.NoShowFeePercent, t.DepositPercent, t.GuestHint, t.CheckAnamnesis, t.HandsOnMinutes, t.ProcessingMinutes);
+        t.NoShowFeePercent, t.DepositPercent, t.GuestHint, t.CheckAnamnesis, t.HandsOnMinutes, t.ProcessingMinutes)
+    {
+        IsActive = t.IsActive,
+    };
 
     [GeneratedRegex("^[A-Z]{3}$")]
     private static partial Regex CurrencyCode();

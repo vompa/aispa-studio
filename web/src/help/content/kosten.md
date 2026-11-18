@@ -104,4 +104,4 @@ Eine Zeile je aktiver Person mit Arbeitszeiten an diesem Standort. Eingetragen w
 
 ## Material je Behandlung {#material}
 
-Das Material je Termin einer Behandlung wird nicht hier, sondern bei der Behandlung gepflegt: **Verwaltung** › **Angebot** › **Behandlungen**, Bereich **Material** (in der Windows-App Bereich **Durchführung**, Gruppe **Material je Termin**; in der Tabelle öffnet **Material pflegen** diese Stelle). Die Vollkosten rechnen mit dieser Liste. Alle Angaben dazu stehen unter [Behandlungen, Material](hilfe:behandlungen#material).
+Das Material je Termin einer Behandlung wird nicht hier, sondern bei der Behandlung gepflegt: **Verwaltung** › **Behandlungen**, Bereich **Material** (in der Windows-App Bereich **Durchführung**, Gruppe **Material je Termin**; in der Tabelle öffnet **Material pflegen** diese Stelle). Die Vollkosten rechnen mit dieser Liste. Alle Angaben dazu stehen unter [Behandlungen, Material](hilfe:behandlungen#material).
