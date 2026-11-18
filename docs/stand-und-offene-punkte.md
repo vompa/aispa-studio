@@ -375,7 +375,7 @@ Die Nummern sind die Reihenfolge, die der jeweilige Thread gewählt hätte ([Üb
 
 **Kalender, Dienstplan, Zugänge**
 1. Ausfall-Assistent: Gäste ohne Ersatz per WhatsApp informieren (per Mail und SMS seit 16.11.2026; WhatsApp braucht eine eigene freigegebene Vorlage).
-2. Ausfall-Assistent: Ersatz an anderen Tagen seit 17.11.2026 gebaut (nächste 14 Tage am eigenen Standort, nicht vorausgewählt); offen: Paar- und Spa-Tag-Buchungen an einen anderen Standort oder Tag verlegen.
+2. Ausfall-Assistent: Ersatz an anderen Tagen seit 17.11.2026 gebaut (nächste 14 Tage am eigenen Standort, nicht vorausgewählt); Paar- und Spa-Tag-Buchungen an einen anderen Standort oder Tag verlegt die Rezeption von Hand (Auftraggeber, 18.11.2026: bleibt Handarbeit).
 3. Leerlaufzeit eines angemeldeten Empfangsgeräts ändern; Liste aller Empfangsgeräte des Spas.
 4. Lücken durch Verschieben mehrerer Termine hintereinander schließen (Ketten).
 5. Feiertage weiterer Kantone und einzelner Gemeinden.
@@ -405,7 +405,7 @@ Die Nummern sind die Reihenfolge, die der jeweilige Thread gewählt hätte ([Üb
 **Online-Buchung und Kundenbereich**
 1. Gast vor Ablauf der Frist für Karte oder Anzahlung erinnern: seit 16.11.2026 gebaut (einmal, wenn drei Viertel der Frist um sind).
 2. Anzahlung für Termine der Rezeption per Link: seit 17.11.2026 gebaut (Knopf „Anzahlung per Link“ im Termin-Panel; ohne Frist, der Termin bleibt stehen).
-3. Zahlungs- und Kartenlink auch per SMS.
+3. Zahlungs- und Kartenlink auch per SMS: seit 18.11.2026 gebaut (ohne Mailadresse per SMS, ebenso Beleg, Belastung und Erstattung).
 4. Stripe-Kunden aus abgebrochenen Hinterlegungen löschen.
 5. Bevorzugte Sprache des Gastes im Kundenstamm: vorhanden (Feld „Sprache“ in der Kundenkarte, Ä52); am 17.11.2026 als erledigt vermerkt.
 6. Teilerstattung; Meldungen des Anbieters zu fehlgeschlagenen Erstattungen.

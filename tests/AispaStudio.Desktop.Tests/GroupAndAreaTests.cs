@@ -442,6 +442,37 @@ public sealed class GroupAndAreaTests
     }
 
     [Fact]
+    public async Task Eintritt_eines_Gasts_ohne_Namen_bekommt_den_Namen_in_der_Liste()
+    {
+        var groupId = Guid.NewGuid();
+        var unnamed = new AreaVisitDto(Guid.NewGuid(), TestData.LocationId, Sauna.Id, Eva.Id, "Gast 2 · Name folgt", 1, TestData.At(9), TestData.At(10), false, null,
+            groupId, PlaceholderGuest: 2);
+        var own = new AreaVisitDto(Guid.NewGuid(), TestData.LocationId, Sauna.Id, Eva.Id, "Eva Muster", 1, TestData.At(9), TestData.At(10), false, null, groupId);
+        var areas = $"GET /api/locations/{TestData.LocationId}/areas?date=2027-03-01";
+        var assign = $"PUT /api/locations/{TestData.LocationId}/area-visits/{unnamed.Id}/guest";
+        var api = Api().On(areas, new List<AreaDay> { new(Sauna.Id, Sauna.Name, 12, [unnamed, own], []) })
+            .On(assign, new GroupBookingResult(groupId, [], [unnamed with { CustomerId = Paul.Id, CustomerName = "Paul Gast", PlaceholderGuest = null }]));
+        var vm = await OpenAsync(api);
+        vm.OpenAreasCommand.Execute(null);
+        var panel = vm.Areas!;
+        await panel.LoadAsync();
+        var rows = panel.Areas[0].Visits;
+
+        Assert.Equal([true, false], rows.Select(r => r.CanName));
+        rows[0].NameGuestCommand.Execute(null);
+        Assert.Equal("Namen nachtragen: Gast 2 · Name folgt", panel.NamingTitle);
+        Assert.False(panel.AssignGuestCommand.CanExecute(null));
+        await panel.GuestSearch.SearchAsync("paul");
+        panel.GuestSearch.Customer = panel.GuestSearch.Results[0];
+        await panel.AssignGuestCommand.ExecuteAsync(null);
+
+        var call = Assert.Single(api.Calls, c => c.Route == assign);
+        Assert.Equal(Paul.Id, JsonSerializer.Deserialize<AssignGuestRequest>(call.Body!, ApiClient.Json)!.CustomerId);
+        Assert.False(panel.IsNaming);
+        Assert.StartsWith("Gast 2 · Name folgt: jetzt Paul", panel.Info, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task Eintritt_ohne_Verbindung_vormerken_zeigen_und_beim_Abgleich_senden()
     {
         var areas = $"GET /api/locations/{TestData.LocationId}/areas?date=2027-03-01";

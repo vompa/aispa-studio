@@ -81,6 +81,9 @@ Bei Gruppen und Firmen-Events kennt die Rezeption beim Buchen oft nur die Person
 - Hat der Gast bei der Person „Nicht bei mir“, lehnt der Server das Nachtragen ab; dann erst umbuchen.
 - Einen einzelnen Gast storniert man wie jeden Termin über Rechtsklick › **Stornieren …**.
 - Sauna und Ruheraum gehen auch für Gäste ohne Namen. Der Eintritt steht als „Gast 3 · Name folgt“ in der Belegung; beim Namen nachtragen geht er mit auf den Gast.
+- Hat ein Gast ohne Namen nur Sauna oder Ruheraum, trägt man den Namen in **Sauna und Ruheraum** nach: beim Eintritt auf **Namen nachtragen** klicken, den Gast suchen und **Gast eintragen** klicken. Das gilt für alle Eintritte und Termine dieses Gastes in der Buchung.
+
+![Namen nachtragen beim Sauna-Eintritt](images/app/kalender-sauna-namen-nachtragen.png)
 
 ## Gemeinsame Buchung ansehen und ändern {#aendern}
 

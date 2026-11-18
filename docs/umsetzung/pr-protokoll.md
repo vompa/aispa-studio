@@ -7289,3 +7289,41 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Geprüft:** API `CardGuaranteeTests`, `DepositTests`, `OnlineBookingTests`, `GroupBookingTests`, `OnlineRefundTests`, `ChannelScanTests`: 100 von 100. Neu: Mail an die buchende Person mit Gastnummer; nach dem Nachtragen öffnet ihr Link die Seite ohne Absagen und Verschieben; Absagen über den Link 404; Zustimmen und Hinterlegen gehen; Hinweis für das Team; Termin gehört dem Gast.
 - **Nicht geprüft:** die laufende App unter Windows; echte Belastung beim Anbieter.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Sauna und Ruheraum: Namen am Eintritt nachtragen (18.11.2026)
+
+- **Auftrag:** Entscheidung des Auftraggebers am 18.11.2026: Für einen Gast ohne Namen, der in der Buchung nur Sauna oder Ruheraum hat, lässt sich der Name direkt am Eintritt nachtragen. Paar und Spa-Tag im Ausfall-Assistenten an einen anderen Tag oder Standort verlegen bleibt Handarbeit.
+- **Befund:** Namen nachtragen ging nur über einen Termin. Ein Gast mit nur einem Eintritt blieb „Gast 2 · Name folgt“.
+- **Was:**
+  - `PUT /api/locations/{id}/area-visits/{visitId}/guest` (Buchen): trägt den Gast bei allen Eintritten und Terminen dieses Gastes in der Buchung ein.
+  - `BookingService.AssignVisitGuestAsync` nutzt denselben Kern wie das Nachtragen am Termin (`AssignAsync`), samt Prüfung „Nicht bei mir“.
+  - Windows-App: **Namen nachtragen** unter einem solchen Eintritt in **Sauna und Ruheraum**; eine Karte mit Suche und **Gast eintragen**.
+  - Hilfe `kalender-paar-und-spa-tag` mit Bild `kalender-sauna-namen-nachtragen.png`; in `dienstplan-ersatz-vorschlagen` der Hinweis, dass Paar und Spa-Tag von Hand verlegt werden. Stand und Übergabe ergänzt.
+- **Detailentscheidungen:**
+  1. Eigene Suche für den Gast in der Karte, damit ein angefangener neuer Eintritt stehen bleibt.
+  2. **Gast eintragen** ist kein Hauptknopf: Strg+S bleibt beim Buchen eines neuen Eintritts.
+  3. Der Knopf steht in einer eigenen Zeile unter dem Eintritt; daneben war in der schmalen Liste kein Platz für den Namen.
+- **Geprüft:** API `SpaDayBuilderTests`, `GroupBookingTests`, `CardGuaranteeTests`, `ChannelScanTests` 38 von 38 (neu: Name am Eintritt, Massage der buchenden Person bleibt, zweites Mal 400, fremder Standort 404); Windows-App `GroupAndAreaTests` 15 von 15 (neu: Knopf nur am Gast ohne Namen, Aufruf mit Kunde, Meldung), Ansichtstest, Prüfungen der Knöpfe (165), Strg+S (52), „höchstens“ (33) grün. Die Prüfung „Abbrechen ist ein Ghost-Knopf“ zählt jetzt neun Stellen.
+- **Nicht geprüft:** die laufende App unter Windows.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Karten- und Anzahlungslink per SMS für Gäste ohne Mailadresse (18.11.2026)
+
+- **Auftrag:** Offener Punkt „Zahlungs- und Kartenlink auch per SMS“; Entscheidung des Auftraggebers am 18.11.2026: ja, und die Nachrichten danach (Beleg, Belastung, Erstattung) ebenso per SMS.
+- **Befund:** Karte und Anzahlung per Link setzten eine Mailadresse voraus; ohne sie lehnte der Server ab. Die Mailadresse war Pflicht an Hinterlegung, Anzahlung und Erstattung, und der Zahlungsanbieter bekam sie immer.
+- **Was:**
+  - `GuestMessages`: Mail an den Gast, ohne Mailadresse SMS an die Handynummer aus seiner Kundenkarte (wie „Ohne Ersatz: informieren“, von der eigenen Nummer des Spas). Die SMS ist der Betreff der Mail, bei Anforderungen mit dem Link.
+  - Anforderungen von Karte und Anzahlung: möglich mit Mailadresse oder mit Handynummer und SMS-Anbieter; sonst „weder eine E-Mail-Adresse noch eine Handynummer“.
+  - Nachrichten nach Belastung der Ausfallgebühr, nach dem Anzahlungsbeleg und nach der Erstattung gehen ohne Mailadresse als SMS.
+  - Stripe bekommt ohne Mailadresse keine leere Adresse (`customer_email`, `email` der Kundin bzw. des Kunden), sondern fragt selbst.
+  - Windows-App: Meldung „Link an den Gast verschickt“; die Erklärung nennt „Mail, sonst SMS“.
+  - ADR 0036 und 0047, Nachtrag; Hilfe `kalender-termin-verlauf`.
+- **Detailentscheidungen:**
+  1. Keine Migration: Eine leere Mailadresse an Hinterlegung oder Anzahlung heißt „per SMS“, die Nummer kommt beim Senden aus der Kundenkarte der zahlenden Person. So gilt eine geänderte Nummer sofort.
+  2. SMS-Text = Betreff der Mail (in der Sprache des Gastes) plus Link; die ausführliche Mail mit Beleg-Nummern gibt es per SMS nicht.
+  3. Ein Fehler beim SMS-Versand bricht Belastung, Beleg oder Erstattung nicht ab; er steht im Log, das Team sieht den Stand am Termin.
+  4. Online-Buchungen sind unverändert: Dort ist die Mailadresse Pflicht.
+- **Bewusst offen / später:** WhatsApp statt SMS (braucht freigegebene Vorlagen); ein Vermerk am Termin, über welchen Weg der Link ging.
+- **Geprüft:** API `CardGuaranteeTests`, `DepositTests`, `OnlineRefundTests`, `OnlineBookingTests`, `StripePaymentTests`, `VoucherShopTests`, `ChannelScanTests` 103 von 103. Neu: Kartenlink per SMS, Zustimmen und Hinterlegen über den Link, Belastung per SMS; Anzahlungslink per SMS, Beleg per SMS; ohne Mail und ohne Nummer keine Anforderung. Windows-App: Ansichtstests zu Karte und Anzahlung grün.
+- **Nicht geprüft:** eine echte SMS beim Anbieter (Tests mit abgefangenem Versand); Stripe-Checkout ohne Mailadresse beim echten Anbieter; die laufende App unter Windows.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).

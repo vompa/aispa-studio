@@ -1421,6 +1421,26 @@ Expected: Im Kalender steht der Termin beim Therapeuten; in der Notiz steht „W
 Closes: –
 Result: ☐
 
+### Termin-Panel – Karten- und Anzahlungslink per SMS
+Start: `dotnet run --project src/AispaStudio.AppHost` mit eingerichtetem SMS-Anbieter (Twilio), Windows-App als Rezeption; am Standort sind Ausfallgebühr oder Anzahlung eingestellt; ein Gast ohne Mailadresse, mit eigener Handynummer in der Kundenkarte
+1. Für den Gast einen Termin buchen, öffnen und **Anzahlung per Link** (oder **Karte per Link anfordern**) klicken.
+Expected: Meldung „Link an den Gast verschickt“; aufs Handy kommt eine SMS „Anzahlung für …: <Link>“.
+2. Den Link öffnen und bezahlen (bzw. zustimmen und die Karte hinterlegen).
+Expected: Nach dem Bezahlen kommt die SMS „Anzahlung erhalten: …“. Bei der Karte kommt nach „Nicht erschienen“ und **Ausfallgebühr belasten …** die SMS „Ausfallgebühr für …“.
+3. Einen Gast ohne Mailadresse und ohne Handynummer öffnen.
+Expected: Kein Knopf zum Anfordern.
+Closes: –
+Result: ☐
+
+### Sauna und Ruheraum – Namen am Eintritt nachtragen
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App als Rezeption; am Standort gibt es eine Sauna als Bereich
+1. **Paar oder Spa-Tag** mit Gast 1 aus der Kartei (Massage) und Gast 2 mit **Name folgt** buchen, Gast 2 bekommt nur die Sauna.
+Expected: In **Sauna und Ruheraum** steht der Eintritt „Gast 2 · Name folgt“ mit **Namen nachtragen** darunter.
+2. **Namen nachtragen** klicken, einen Gast suchen und **Gast eintragen** klicken.
+Expected: Der Eintritt trägt den Namen des Gastes; die Massage von Gast 1 bleibt bei Gast 1.
+Closes: –
+Result: ☐
+
 ### Paar und Spa-Tag – Ausfallgebühr für einen Gast ohne Namen
 Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App als Rezeption; am Standort ist eine Ausfallgebühr eingestellt, Zahlungsanbieter im Testbetrieb; die buchende Person hat eine Mailadresse
 1. **Paar oder Spa-Tag** mit Gast 1 aus der Kartei und Gast 2 mit **Name folgt** buchen, den Termin von Gast 2 öffnen und **Karte per Link anfordern** klicken.
@@ -1466,7 +1486,7 @@ Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App als Rezeption
 1. Für den Gast in der Windows-App einen Termin in den nächsten Tagen buchen und ihn öffnen.
 Expected: Im Abschnitt „Anzahlung“ steht „Der Standort verlangt 30 % (…)“ und der Knopf **Anzahlung per Link**.
 2. Auf **Anzahlung per Link** klicken.
-Expected: Meldung „Link per Mail verschickt“; im Abschnitt steht „Noch nicht bezahlt · … (30 %)“, der Knopf heißt jetzt **Link erneut senden**. Im Postfach des Gastes liegt die Mail „Anzahlung für …“ mit Betrag und Link.
+Expected: Meldung „Link an den Gast verschickt“; im Abschnitt steht „Noch nicht bezahlt · … (30 %)“, der Knopf heißt jetzt **Link erneut senden**. Im Postfach des Gastes liegt die Mail „Anzahlung für …“ mit Betrag und Link.
 3. Den Link öffnen und die Anzahlung bezahlen (im Testbetrieb „Zahlung simulieren“).
 Expected: Auf der Terminseite steht keine Frist zum Bezahlen. Nach dem Bezahlen zeigt das Termin-Panel „Bezahlt, Anzahlungsbeleg erstellt“, der Knopf ist verschwunden; an der Kassa ist der Betrag beim Kassieren des Termins abgezogen.
 4. Einen zweiten Termin für einen Gast ohne Mailadresse buchen und öffnen.

@@ -102,14 +102,14 @@ public sealed partial class ViewTests
     });
 
     [Fact]
-    public void Abbrechen_im_Kalender_ist_an_allen_acht_Stellen_ein_Ghost_Knopf()
+    public void Abbrechen_im_Kalender_ist_an_allen_neun_Stellen_ein_Ghost_Knopf()
     {
         var path = Path.Combine(RepositoryRoot(), "src", "AispaStudio.Desktop", "Views", "CalendarView.axaml");
         var cancels = XDocument.Load(path).Descendants()
             .Where(e => e.Name.LocalName == "Button" && (string?)e.Attribute("Content") == "Abbrechen")
             .ToList();
 
-        Assert.Equal(8, cancels.Count);
+        Assert.Equal(9, cancels.Count);
         Assert.All(cancels, e => Assert.Contains("ghost", ((string?)e.Attribute("Classes") ?? "").Split(' ')));
     }
 }

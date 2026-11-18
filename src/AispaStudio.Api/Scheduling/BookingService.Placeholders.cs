@@ -6,7 +6,7 @@ namespace AispaStudio.Api.Scheduling;
 // ---------- Gruppen mit Gästen ohne Namen: Namen später nachtragen ----------
 internal sealed partial class BookingService
 {
-    /// <summary>Trägt den Gast für einen Platzhalter ein, bei allen Terminen dieses Gastes in der Buchung.</summary>
+    /// <summary>Trägt den Gast für einen Platzhalter ein, bei allen Terminen und Eintritten dieses Gastes in der Buchung.</summary>
     public async Task<BookingOutcome> AssignGuestAsync(Guid id, Guid customerId, CancellationToken ct)
     {
         var appointment = await LoadAsync(id, ct);
@@ -15,11 +15,30 @@ internal sealed partial class BookingService
             return new BookingOutcome.NotFound("Termin");
         }
 
-        if (appointment.PlaceholderGuest is not { } guest || appointment.GroupId is not { } groupId)
+        return appointment.PlaceholderGuest is not { } guest || appointment.GroupId is not { } groupId
+            ? new BookingOutcome.Invalid(nameof(AssignGuestRequest.CustomerId), "Der Termin hat schon einen Gast.")
+            : await AssignAsync(groupId, guest, appointment.CustomerId, customerId, ct);
+    }
+
+    /// <summary>
+    /// Wie <see cref="AssignGuestAsync"/>, aber vom Eintritt in Sauna oder Ruheraum aus: für einen Gast ohne Namen, der in der Buchung nur einen
+    /// Bereich hat (Auftraggeber, 18.11.2026). Hat er auch Termine, bekommen sie den Gast ebenso.
+    /// </summary>
+    public async Task<BookingOutcome> AssignVisitGuestAsync(Guid locationId, Guid visitId, Guid customerId, CancellationToken ct)
+    {
+        var visit = await db.AreaVisits.AsNoTracking().FirstOrDefaultAsync(v => v.Id == visitId && v.LocationId == locationId, ct);
+        if (visit is null)
         {
-            return new BookingOutcome.Invalid(nameof(AssignGuestRequest.CustomerId), "Der Termin hat schon einen Gast.");
+            return new BookingOutcome.NotFound("Eintritt");
         }
 
+        return visit.PlaceholderGuest is not { } guest || visit.GroupId is not { } groupId || visit.IsCancelled
+            ? new BookingOutcome.Invalid(nameof(AssignGuestRequest.CustomerId), "Der Eintritt hat schon einen Gast.")
+            : await AssignAsync(groupId, guest, visit.CustomerId, customerId, ct);
+    }
+
+    private async Task<BookingOutcome> AssignAsync(Guid groupId, int guest, Guid bookerId, Guid customerId, CancellationToken ct)
+    {
         if (await db.Customers.FirstOrDefaultAsync(c => c.Id == customerId, ct) is not { } customer)
         {
             return new BookingOutcome.NotFound("Kunde");
@@ -31,7 +50,7 @@ internal sealed partial class BookingService
         }
 
         var parts = await db.Appointments.Include(a => a.Customer).Include(a => a.Treatment)
-            .Where(a => a.GroupId == groupId && a.PlaceholderGuest == guest && a.CustomerId == appointment.CustomerId
+            .Where(a => a.GroupId == groupId && a.PlaceholderGuest == guest && a.CustomerId == bookerId
                 && a.Status != AppointmentStatus.Cancelled)
             .OrderBy(a => a.Start)
             .ToListAsync(ct);
@@ -44,7 +63,7 @@ internal sealed partial class BookingService
 
         // Sauna und Ruheraum des Gastes gehören mit: sie tragen dieselbe Nummer und laufen bis jetzt auf die buchende Person.
         var visits = await db.AreaVisits.Include(v => v.Customer)
-            .Where(v => v.GroupId == groupId && v.PlaceholderGuest == guest && v.CustomerId == appointment.CustomerId && !v.IsCancelled)
+            .Where(v => v.GroupId == groupId && v.PlaceholderGuest == guest && v.CustomerId == bookerId && !v.IsCancelled)
             .ToListAsync(ct);
         var now = time.GetUtcNow();
         foreach (var part in parts)

@@ -55,7 +55,7 @@ public sealed partial class ViewTests
         {
             var calendar = await OpenSelected(main);
 
-            Assert.Contains("Der Standort verlangt 30 % (27,00 €). Der Gast bekommt einen Link, stimmt zu und hinterlegt eine Karte.", PanelTexts(window, "CardGuaranteeCard"));
+            Assert.Contains("Der Standort verlangt 30 % (27,00 €). Der Gast bekommt einen Link (Mail, sonst SMS), stimmt zu und hinterlegt eine Karte.", PanelTexts(window, "CardGuaranteeCard"));
             Assert.Equal("Karte per Link anfordern", Named<Button>(window, "RequestCardButton").Content);
             Assert.DoesNotContain(stub.Calls, c => c.Route == $"POST {CardRoute}/request");
 
@@ -64,7 +64,7 @@ public sealed partial class ViewTests
             Assert.Contains(stub.Calls, c => c.Route == $"POST {CardRoute}/request");
             Assert.Contains("Link verschickt, Zustimmung offen · 27,00 € (30 %) seit 19.10.2026 09:00", PanelTexts(window, "CardGuaranteeCard"));
             Assert.Equal("Link erneut senden", Named<Button>(window, "RequestCardButton").Content);
-            Assert.Equal("Link per Mail verschickt", calendar.Toast);
+            Assert.Equal("Link an den Gast verschickt", calendar.Toast);
             return calendar;
         }, stub);
     }
@@ -81,7 +81,7 @@ public sealed partial class ViewTests
         {
             var calendar = await OpenSelected(main);
 
-            Assert.Contains("Der Standort verlangt 30 % (30,00 €). Der Gast bekommt einen Link und bezahlt dort; der Termin bleibt auch ohne Zahlung stehen.", PanelTexts(window, "DepositCard"));
+            Assert.Contains("Der Standort verlangt 30 % (30,00 €). Der Gast bekommt einen Link (Mail, sonst SMS) und bezahlt dort; der Termin bleibt auch ohne Zahlung stehen.", PanelTexts(window, "DepositCard"));
             Assert.Equal("Anzahlung per Link", Named<Button>(window, "RequestDepositButton").Content);
             Assert.DoesNotContain(stub.Calls, c => c.Route == $"POST {DepositStateRoute}/request");
 
@@ -90,7 +90,7 @@ public sealed partial class ViewTests
             Assert.Contains(stub.Calls, c => c.Route == $"POST {DepositStateRoute}/request");
             Assert.Contains("Noch nicht bezahlt · 30,00 € (30 %)", PanelTexts(window, "DepositCard"));
             Assert.Equal("Link erneut senden", Named<Button>(window, "RequestDepositButton").Content);
-            Assert.Equal("Link per Mail verschickt", calendar.Toast);
+            Assert.Equal("Link an den Gast verschickt", calendar.Toast);
             return calendar;
         }, stub);
     }

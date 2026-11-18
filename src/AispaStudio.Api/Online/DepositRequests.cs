@@ -1,11 +1,8 @@
 using AispaStudio.Api.Data;
 using AispaStudio.Api.Mail;
-using AispaStudio.Api.MailIntake;
 using AispaStudio.Api.Scheduling;
-using AispaStudio.Api.Tenancy;
 using AispaStudio.Contracts;
 using Microsoft.EntityFrameworkCore;
-using Wolverine;
 
 namespace AispaStudio.Api.Online;
 
@@ -21,9 +18,8 @@ internal sealed class DepositRequests(
     OnlineRules rules,
     OnlinePortal portal,
     AccessLinks links,
-    IMessageBus bus,
-    TenantContext tenants,
-    TimeProvider time)
+    TimeProvider time,
+    GuestMessages messages)
 {
     public abstract record RequestOutcome
     {
@@ -58,7 +54,9 @@ internal sealed class DepositRequests(
             (_, { } status) when status is not (OnlineDepositStatus.Pending or OnlineDepositStatus.Failed) => "Für diesen Termin gibt es schon eine Anzahlung.",
             _ when card is CardGuaranteeStatus.Saved or CardGuaranteeStatus.Pending or CardGuaranteeStatus.AwaitingConsent => "Für diesen Termin ist schon eine Karte für die Ausfallgebühr hinterlegt oder angefordert.",
             _ when appointment.Status != AppointmentStatus.Booked || appointment.Start <= time.GetUtcNow() => "Nur für bevorstehende, gebuchte Termine.",
-            _ when string.IsNullOrWhiteSpace(appointment.Customer.Email) => "Für den Gast ist keine E-Mail-Adresse hinterlegt.",
+            _ when !messages.CanReach(appointment.Customer) => messages.CanText
+                ? "Für den Gast ist weder eine E-Mail-Adresse noch eine Handynummer hinterlegt."
+                : "Für den Gast ist keine E-Mail-Adresse hinterlegt, und SMS sind nicht eingerichtet.",
             _ when amount <= 0 => "Der Termin hat keinen Preis.",
             _ => null,
         };
@@ -80,7 +78,8 @@ internal sealed class DepositRequests(
 
         var appointment = (await portal.LoadAppointmentAsync(appointmentId, ct))!;
         var location = await db.Locations.AsNoTracking().FirstAsync(l => l.Id == appointment.LocationId, ct);
-        var email = appointment.Customer.Email!;
+        // Ohne Mailadresse geht der Link per SMS; die leere Adresse merkt sich das für die Nachrichten danach.
+        var email = appointment.Customer.Email ?? "";
         var language = GuestLanguage.Resolve(appointment.Customer);
         var deposit = await online.Deposits.FirstOrDefaultAsync(d => d.AppointmentId == appointmentId, ct)
             ?? (await deposits.AddAsync(appointment, location.Currency, await rules.ForAsync(location.Id, ct), email, language, ct, requested: true))!;
@@ -90,9 +89,9 @@ internal sealed class DepositRequests(
         var url = portal.Url($"termin/{token}");
         await deposits.StartAsync(deposit, appointment.Treatment.Name, location.Name, url, ct);
 
-        await bus.PublishGuestMailAsync(tenants, OnlineMails.DepositRequest(email, GuestName.Of(appointment.Customer, location.TimeZone),
+        await messages.SendAsync(OnlineMails.DepositRequest(email, GuestName.Of(appointment.Customer, location.TimeZone),
             OnlineMails.ForGuest(appointment.Treatment.Name, appointment.PlaceholderGuest, deposit.Language),
-            appointment.Start, location.TimeZone, location.Name, deposit.Amount, deposit.Currency, deposit.Percent, url, deposit.Language));
+            appointment.Start, location.TimeZone, location.Name, deposit.Amount, deposit.Currency, deposit.Percent, url, deposit.Language), appointment.CustomerId, url, ct);
         return new RequestOutcome.Sent(Deposits.ToStaff(deposit, appointment, null));
     }
 }

@@ -166,10 +166,41 @@ public sealed class DepositTests(ApiFixture fixture)
     }
 
     [Fact]
+    public async Task Ohne_Mailadresse_gehen_Anzahlungslink_und_Beleg_per_SMS()
+    {
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        await RequireDepositAsync(spa);
+        await CreateRegisterAsync(spa);
+        var number = $"+43 664 {Random.Shared.Next(1000000, 9999999)}";
+        var phone = PhoneNumbers.Normalize(number);
+        var customer = await spa.PostAsync<CustomerDto>("/api/customers", new CustomerInput("Sam", "Telefon", null, number, null, null), Ct);
+        var booked = await TestSpa.ReadAsync<AppointmentDto>(await spa.BookAsync(TestSpa.At(14), Ct, customer: customer.Id), Ct);
+
+        await spa.PostAsync<DepositStaffDto>($"/api/appointments/{booked.Id}/deposit/request", new { }, Ct);
+        var link = Assert.Single(fixture.Texts.To(phone));
+        Assert.StartsWith("Anzahlung für Massage: ", link.Text, StringComparison.Ordinal);
+        var token = global::System.Text.RegularExpressions.Regex.Match(link.Text, "#/termin/([A-Za-z0-9_-]+)").Groups[1].Value;
+
+        using var client = spa.OnlineClient();
+        var paid = await client.PostAsJsonAsync($"/api/online/bookings/{token}/deposit/test", new TestPaymentResult(true), TestSpa.Json, Ct);
+        Assert.Equal(HttpStatusCode.OK, paid.StatusCode);
+        await WaitForAsync(spa, booked.Id, d => d.Status == OnlineDepositStatus.Receipted);
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(Ct);
+        timeout.CancelAfter(TimeSpan.FromSeconds(15));
+        while (fixture.Texts.To(phone).Count < 2)
+        {
+            await Task.Delay(50, timeout.Token);
+        }
+
+        Assert.Equal("Anzahlung erhalten: Massage", fixture.Texts.To(phone)[1].Text);
+    }
+
+    [Fact]
     public async Task Ohne_Regel_oder_ohne_Mail_laesst_sich_keine_Anzahlung_anfordern()
     {
         var spa = await TestSpa.CreateAsync(fixture, Ct);
-        var noMail = await spa.PostAsync<CustomerDto>("/api/customers", new CustomerInput("Ohne", "Mail", null, "+43 660 1", null, null), Ct);
+        // Weder Mailadresse noch Handynummer: kein Weg für den Link.
+        var noMail = await spa.PostAsync<CustomerDto>("/api/customers", new CustomerInput("Ohne", "Mail", null, null, null, null), Ct);
         var booked = await TestSpa.ReadAsync<AppointmentDto>(await spa.BookAsync(TestSpa.At(15), Ct, customer: noMail.Id), Ct);
 
         var withoutRule = await spa.GetAsync<DepositRequestOffer>($"/api/appointments/{booked.Id}/deposit/offer", Ct);
@@ -182,7 +213,7 @@ public sealed class DepositTests(ApiFixture fixture)
         Assert.False(withoutRule.Possible);
         Assert.Contains("keine Anzahlung eingestellt", withoutRule.Reason, StringComparison.Ordinal);
         Assert.False(withoutMail.Possible);
-        Assert.Contains("keine E-Mail-Adresse", withoutMail.Reason, StringComparison.Ordinal);
+        Assert.Contains("weder eine E-Mail-Adresse noch eine Handynummer", withoutMail.Reason, StringComparison.Ordinal);
         Assert.Equal(HttpStatusCode.Conflict, request.StatusCode);
         Assert.Equal(HttpStatusCode.NotFound, unknown.StatusCode);
     }

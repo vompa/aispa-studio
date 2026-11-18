@@ -27,6 +27,7 @@ internal static class OnlineSetup
         services.AddScoped<OnlineRefunds>();
         services.AddScoped<CardRequests>();
         services.AddScoped<DepositRequests>();
+        services.AddScoped<GuestMessages>();
         services.AddScoped<Deposits>();
         services.AddSingleton<SavedCardCleanup>();
         services.AddSingleton<UnsecuredBookingRelease>();

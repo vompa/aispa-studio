@@ -48,7 +48,7 @@ public partial class AppointmentViewModel
             if (CardGuarantee is not { } card)
             {
                 return CardOffer is { } offer
-                    ? [$"Der Standort verlangt {offer.FeePercent} % ({Money.Format(offer.FeeAmount, offer.Currency)}). Der Gast bekommt einen Link, stimmt zu und hinterlegt eine Karte."]
+                    ? [$"Der Standort verlangt {offer.FeePercent} % ({Money.Format(offer.FeeAmount, offer.Currency)}). Der Gast bekommt einen Link (Mail, sonst SMS), stimmt zu und hinterlegt eine Karte."]
                     : [];
             }
 
@@ -106,7 +106,7 @@ public partial class AppointmentViewModel
         }
 
         CardGuarantee = card;
-        ShowToast?.Invoke("Link per Mail verschickt");
+        ShowToast?.Invoke("Link an den Gast verschickt");
     }
 
     /// <summary>„Ausfallgebühr belasten“ fragt nach (Rückfragedialog, Design-Brief 5.27); erst „Belasten“ bucht von der Karte ab.</summary>
