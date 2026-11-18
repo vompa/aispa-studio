@@ -55,9 +55,10 @@ public sealed partial class ViewTests
         var shell = (ShellViewModel)main.Content!;
 
         Assert.False(shell.ShowDemoBar);
-        Assert.False(DemoBarOf(window).IsEffectivelyVisible);
+        // Ohne Recht steht keine sichtbare Leiste da; ob das Element im Baum liegt, hängt von der Vorlage ab.
+        Assert.DoesNotContain(window.GetVisualDescendants().OfType<InfoBar>(), b => b.Name == "DemoBar" && b.IsEffectivelyVisible);
         return shell.Calendar;
-    }, DemoApi().On("GET /api/auth/me", Reception()));
+    }, DemoApi().On("GET /api/auth/me", Reception()), local: new SampleLocal());
 
     [Fact]
     public Task Sicherung_im_Beispiel_Spa_sagt_dass_nicht_gesichert_wird_und_sperrt_Jetzt_sichern() => Render("hell", "beispiel-spa-sicherung", async (window, main) =>
