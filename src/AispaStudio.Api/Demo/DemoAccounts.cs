@@ -1,5 +1,6 @@
 using AispaStudio.Api.Access;
 using AispaStudio.Api.Data;
+using AispaStudio.Api.System;
 using AispaStudio.Contracts;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -21,6 +22,9 @@ internal static class DemoAccounts
     /// <summary>PIN für den Schnellwechsel am Empfangsgerät: alle Testkonten „1234“, Inhaberin und Manager „123456“ (Inhaber und Manager brauchen sechs Ziffern).</summary>
     public const string Pin = "1234";
     public const string OwnerPin = "123456";
+
+    /// <summary>Passwort aller Testkonten im Beispiel-Spa (<c>Demo:Enabled</c>, ADR 0100): damit geht die Anmeldung im Einzelplatz. Nur dort, nie in der Entwicklung oder in den Tests.</summary>
+    public const string Password = "demo";
 
     /// <summary><c>Days</c>: befristeter Zugang, endet so viele Tage nach dem Anlegen (Aushilfe).</summary>
     private sealed record Account(string DisplayName, string Mailbox, StaffRole Role, string[] Locations, int? Days = null);
@@ -48,6 +52,7 @@ internal static class DemoAccounts
     {
         var db = scoped.GetRequiredService<AispaDbContext>();
         var users = scoped.GetRequiredService<UserManager<AispaUser>>();
+        var withPassword = DemoSpa.IsEnabled(scoped.GetRequiredService<IConfiguration>());
         var locations = await db.Locations.AsNoTracking().ToListAsync(ct);
         var employees = await db.Employees.Include(e => e.WorkingHours).OrderBy(e => e.DisplayName).ToListAsync(ct);
 
@@ -55,7 +60,7 @@ internal static class DemoAccounts
         {
             var ids = locations.Where(l => account.Locations.Any(prefix => l.Name.StartsWith(prefix, StringComparison.Ordinal)))
                 .Select(l => l.Id).ToList();
-            await AddUserAsync(db, users, account.DisplayName, Email(account.Mailbox), account.Role, ids, now, ct,
+            await AddUserAsync(db, users, account.DisplayName, Email(account.Mailbox), account.Role, ids, now, withPassword, ct,
                 account.Days is { } days ? now.AddDays(days) : null);
         }
 
@@ -63,17 +68,23 @@ internal static class DemoAccounts
         {
             var ids = employee.WorkingHours.Select(w => w.LocationId).Distinct().ToList();
             employee.UserId = await AddUserAsync(db, users, employee.DisplayName, EmployeeEmail(employee.DisplayName),
-                StaffRole.Therapist, ids, now, ct);
+                StaffRole.Therapist, ids, now, withPassword, ct);
         }
 
         await db.SaveChangesAsync(ct);
     }
 
     private static async Task<string> AddUserAsync(AispaDbContext db, UserManager<AispaUser> users, string name, string email,
-        StaffRole role, List<Guid> locationIds, DateTimeOffset now, CancellationToken ct, DateTimeOffset? expiresAt = null)
+        StaffRole role, List<Guid> locationIds, DateTimeOffset now, bool withPassword, CancellationToken ct, DateTimeOffset? expiresAt = null)
     {
         var allLocations = role is StaffRole.Owner or StaffRole.GeneralManager or StaffRole.Backoffice;
         var user = new AispaUser { UserName = email, Email = email, EmailConfirmed = true, DisplayName = name };
+        if (withPassword)
+        {
+            // Direkt als Hash: die Regel „mindestens acht Zeichen“ gilt für Passwörter, die Menschen wählen, nicht für das feste Beispielpasswort.
+            user.PasswordHash = users.PasswordHasher.HashPassword(user, Password);
+        }
+
         var created = await users.CreateAsync(user);
         if (!created.Succeeded)
         {

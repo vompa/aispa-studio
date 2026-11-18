@@ -7235,3 +7235,23 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Geprüft:** Testklasse `StartupRequirementsTests` (Regeln je Fund mit Grenzwerten 19044/19045, 21999/22000, 4 GB, 1 GB, Docker-Satz nur bei `localhost`; Rahmen: gesperrt, Hinweise, ohne Prüfung), `LocalStartTests` (Einzelplatz startet bei Fund nicht, bei Hinweis schon), Ansichtstests `Startpruefung_*` (Karte, Warnungen, Weg, hell und dunkel, keine Bindungsfehler), Bilder angesehen.
 - **Nicht geprüft:** auf einem echten PC mit zu altem Windows, 32-Bit-System oder ohne WebView2-Runtime; die Registry-Abfrage lief nur auf dem Entwicklungs-PC.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md); Hilfetext durch `textRules.test.ts`.
+
+## Beispiel-Spa in eigener Datenbank (18.11.2026)
+
+- **Basiert auf:** `dev` nach „Startprüfung der Voraussetzungen“. Entscheidung: [ADR 0100](../entscheidungen/0100-beispiel-spa-in-eigener-datenbank.md) (die nächste freie Nummer war nicht 0091, die Nummern bis 0099 sind vergeben).
+- **Was:** Das Beispiel-Spa liegt in der Datenbank `aispademo`, im Einzelplatz und am Server auf demselben Weg, und lässt sich löschen. `aispadb` bleibt unberührt.
+  - API: Einstellung `Demo:Enabled` (`System/DemoSpa.cs`) schreibt vor DbContext und Wolverine die Verbindung auf `aispademo` um, legt die Datenbank über `postgres` an und schaltet das Einspielen ein (nur Instanzen mit Hintergrunddiensten). `DemoAccounts` setzt das Passwort `demo` als Hash, nur mit `Demo:Enabled`. `SystemModules` bekommt `Demo`; `DELETE /api/system/demo` (Recht „Standort verwalten“, 404 ohne Beispiel-Spa, sonst 202, danach `DROP DATABASE … WITH (FORCE)` und Ende der API).
+  - Windows-App: Schalter `--demo` (Einzelplatz, nichts gemerkt), `LocalServer` setzt `Demo__Enabled`, Hinweis auf der Anmeldung, Leiste „Sie sehen Beispieldaten.“ mit **Beispieldaten löschen …** über allen Seiten, Sicherungsseite „Im Beispiel-Spa wird nicht gesichert.“.
+  - Docker: `compose.yaml` mit `Demo__Enabled: ${AISPA_DEMO:-true}` und `Database__SeedDemoData: "false"`; `compose.scale.yaml` gibt `Demo__Enabled` allen Instanzen und dem Migrationslauf, gefüllt wird weiter nur im Worker.
+  - Doku: Einzelplatz, Server, Betriebsarten, Testdaten, Hilfe „Einzelplatz“, ADR 0100; die Notiz der Windows-App-Veröffentlichung in `ci.yml` nennt `--demo`.
+- **Detailentscheidungen:**
+  1. **Passwort als Hash gesetzt:** Die Mindestlänge von acht Zeichen gilt für selbst gewählte Passwörter; `demo` hat vier. Der Hash kommt direkt aus dem Hasher von Identity.
+  2. **Das Einspielen folgt der Rolle:** Mit `Demo:Enabled` füllt eine Instanz nur, wenn sie Hintergrunddienste hat; sonst würden im Mehrinstanz-Betrieb alle Instanzen zugleich die leere Datenbank füllen. `Database__SeedDemoData` ist in beiden Compose-Dateien aus.
+  3. **Kein Abgleich im Beispiel-Spa:** Die App gibt `Sync__CentralConnectionString` bei `--demo` nicht weiter, damit Beispieldaten nie in die zentrale Datenbank laufen. Die API selbst lässt die Einstellung unverändert, wie vorgegeben.
+  4. **Hinweis auf der Anmeldung nur im Einzelplatz:** Die Passwort-Anmeldung gibt es nur dort; am Server melden Testkonten an. Die Startanzeige („Beispiel-Spa wird eingerichtet“) erscheint auch in Production, sonst scheitert die Anmeldung in der ersten halben Minute ohne Erklärung.
+  5. **Leiste außerhalb der höchstens zwei Banner:** Sie steht in einer eigenen Zeile über den Bannern und ist nicht schließbar; sie beschreibt den Zustand der ganzen Arbeitsfläche, nicht eine Störung.
+  6. **Löschen im Hintergrund:** Die API antwortet 202 und löscht nach dem Ende der Antwort; das Löschen beendet auch die Verbindungen dieser Anfrage.
+- **Bewusst offen / später:** Löschen und Beenden betreffen im Mehrinstanz-Betrieb nur die Instanz, die den Aufruf bekam; die übrigen müssen neu gestartet werden. Eine schon laufende API ohne `--demo` wird beim Start mit `--demo` wiederverwendet.
+- **Geprüft:** API: `DemoSpaTests` (Daten in `aispademo`, Ausgangsdatenbank ohne Tabelle, `modules.Demo`, Anmeldung mit `demo`, 403 für Rezeption und Therapeutin, 202 und Datenbank weg, 404 ohne Beispiel-Spa, kein Passwort ohne `Demo:Enabled`). Windows-App: `DemoSpaTests`, `LocalServerTests`, Ansichtstests `ViewTests.DemoSpa` (Leiste, Anmeldung, Sicherung; hell und dunkel; keine Bindungsfehler), Bilder angesehen.
+- **Nicht geprüft:** Windows-Paket mit der mitgelieferten PostgreSQL und `--demo`; Docker-Server mit `AISPA_DEMO`; Löschen gegen einen Datenbankbenutzer ohne Recht für `DROP DATABASE`.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md); Hilfetext durch `textRules.test.ts`.

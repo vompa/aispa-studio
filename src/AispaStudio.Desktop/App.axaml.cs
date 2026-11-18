@@ -38,7 +38,7 @@ public partial class App : Application
             ISessionStore device = OperatingSystem.IsWindows() ? new WindowsSessionStore("empfangsgeraet.bin") : new MemorySessionStore();
             var local = StandaloneMode.Resolve(desktop.Args ?? [], FileSettingsStore.Default)
                 ? new LocalServer(LocalServerPaths.Default, new SystemProcessRunner(),
-                    OperatingSystem.IsWindows() ? new DpapiProtector() : new PlainProtector())
+                    OperatingSystem.IsWindows() ? new DpapiProtector() : new PlainProtector(), demo: StandaloneMode.IsDemo(desktop.Args ?? []))
                 : null;
             // Adresse der API im Server-Betrieb: Umgebungsvariable AISPA_API_URL, sonst der eingetragene Server oder Haupt-PC, sonst localhost.
             var server = ServerChoice.Resolve(FileSettingsStore.Default.Load(), Environment.GetEnvironmentVariable("AISPA_API_URL"));
@@ -52,6 +52,7 @@ public partial class App : Application
             theme.Apply();
             var viewModel = new MainViewModel(api, () => new LiveUpdates(api), theme: theme, local: local, facts: new SystemFacts())
             {
+                CloseApp = () => Dispatcher.UIThread.Post(() => desktop.Shutdown()),
                 Connect = local is null ? new NetworkConnectViewModel(FileSettingsStore.Default, () => Restart(desktop)) : null,
                 ServerConnect = local is null ? new ServerConnectViewModel(FileSettingsStore.Default, () => Restart(desktop)) : null,
                 ServerLink = local is null ? new ServerLinkViewModel(FileSettingsStore.Default, server, () => Restart(desktop)) : null,

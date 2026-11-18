@@ -21,7 +21,15 @@ docker compose up -d --build
 ```
 
 Beim ersten Start legt der Server ein Beispiel-Spa mit Testdaten an (rund eine halbe Minute, Fortschritt mit
-`docker compose logs -f api`). Alle Ports hören nur auf diesem Rechner (127.0.0.1).
+`docker compose logs -f api`). Es liegt in einer eigenen Datenbank `aispademo` im selben PostgreSQL; die Datenbank
+`aispadb` bleibt leer. Alle Ports hören nur auf diesem Rechner (127.0.0.1).
+
+Das Beispiel-Spa steuert die Einstellung `AISPA_DEMO` (Umgebung oder `.env` neben `compose.yaml`; Standard `true`).
+Mit `AISPA_DEMO=false` startet der Server ohne Beispieldaten und nutzt die leere Datenbank `aispadb`.
+Löschen: in der Windows-App, verbunden mit diesem Server, steht über allen Seiten die Leiste **„Sie sehen
+Beispieldaten.“** mit **„Beispieldaten löschen …“** (nur mit dem Recht, den Standort zu verwalten). Der Server löscht
+dann die Datenbank `aispademo` und beendet sich. Vor dem Neustart `AISPA_DEMO` entfernen (bei Docker Compose auf
+`false` setzen, weil dort `true` der Standard ist); sonst legt der Server neue Beispieldaten an.
 
 | Dienst | Adresse |
 | --- | --- |
@@ -82,7 +90,8 @@ Die API wird über Umgebungsvariablen eingestellt: Aus dem Schlüssel `Abschnitt
 | Einstellung | Pflicht | Wozu |
 | --- | --- | --- |
 | `ConnectionStrings__aispadb` | ja | Verbindung zur Datenbank; die Datenbank `aispadb` muss vorher existieren |
-| `ASPNETCORE_ENVIRONMENT` | – | ohne Angabe `Production`; nur `Development` erlaubt Testkonten und Beispieldaten |
+| `ASPNETCORE_ENVIRONMENT` | – | ohne Angabe `Production`; nur `Development` erlaubt Testkonten ohne Passkey |
+| `Demo__Enabled` (Compose: `AISPA_DEMO`) | – | `true` nutzt die eigene Datenbank `aispademo` mit Beispiel-Spa; `aispadb` bleibt unberührt |
 | `Database__MigrateOnStartup` | – | `true` bringt die Datenbank beim Start auf den neuesten Stand; sonst Befehl `migrate` |
 | `HealthData__CurrentKeyId`, `HealthData__Keys__<id>` | für Echtbetrieb | Schlüssel für Gesundheitsdaten (32 Byte, Base64); ohne ihn lassen sich keine Anamnesen speichern |
 | `OnlineBooking__PublicUrl`, `Passkeys__ServerDomain` | für Echtbetrieb | öffentliche Adresse für Online-Buchung und Anmeldung mit Passkey |

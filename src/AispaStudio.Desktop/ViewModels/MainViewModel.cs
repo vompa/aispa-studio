@@ -17,6 +17,9 @@ public partial class MainViewModel(IWorkstationApi api, Func<ILiveUpdates>? live
     /// <summary>Der eine Rückfragedialog des Fensters (Design-Brief 5.27); die Arbeitsfläche stellt ihre Rückfragen darüber.</summary>
     public ConfirmDialogHost DialogHost { get; } = new();
 
+    /// <summary>Schließt die App (nach dem Löschen der Beispieldaten im Einzelplatz); sie beendet dabei API und Datenbank geordnet.</summary>
+    public Action? CloseApp { get; init; }
+
     private readonly ThemeController _theme = theme ?? new ThemeController(new MemorySettingsStore());
     private readonly TimeProvider _time = time ?? TimeProvider.System;
     private DateTimeOffset _lastActivity;
@@ -350,7 +353,7 @@ public partial class MainViewModel(IWorkstationApi api, Func<ILiveUpdates>? live
         Device = (await api.GetAsync<QuickSwitchState>("api/auth/quick-switch").ConfigureAwait(true)).Value?.Device;
         NoteActivity();
         var shell = new ShellViewModel(api, user, liveFactory?.Invoke(), _time, _theme, StatusText, SignOutAsync,
-            modules: modules, device: Device, deviceChanged: device => Device = device, local: local, dialogs: DialogHost, serverLink: ServerLink);
+            modules: modules, device: Device, deviceChanged: device => Device = device, local: local, dialogs: DialogHost, serverLink: ServerLink, closeApp: CloseApp);
         Content = shell;
         await shell.InitializeAsync().ConfigureAwait(true);
     }

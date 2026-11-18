@@ -76,6 +76,12 @@ if (string.IsNullOrWhiteSpace(builder.Configuration.GetConnectionString(Database
         + "\"Host=localhost;Database=aispadb;Username=postgres;Password=…\" --project src/AispaStudio.Api.");
 }
 
+// Beispiel-Spa (ADR 0100): eigene Datenbank im selben PostgreSQL; vor DbContext und Wolverine, damit alle Stellen die umgeschriebene Verbindung nutzen.
+if (!isOpenApiGeneration && DemoSpa.IsEnabled(builder.Configuration))
+{
+    await DemoSpa.ApplyAsync(builder.Configuration, DatabaseName);
+}
+
 // Ohne Pooling: der Kontext bekommt den Mandanten des Aufrufs in den Konstruktor (Abfragefilter).
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<TenantContext>();
