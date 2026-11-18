@@ -713,6 +713,19 @@ internal static class OnlineMails
         };
     }
 
+    /// <summary>
+    /// Behandlung für eine Mail an die buchende Person, wenn der Termin einem Gast ohne Namen gehört: „Massage – für Gast 2 Ihrer Buchung“.
+    /// Die buchende Person zahlt für ihre Gäste ohne Namen (Auftraggeber, 18.11.2026).
+    /// </summary>
+    public static string ForGuest(string treatment, int? guest, string? language) => guest is not { } number ? treatment
+        : GuestLanguage.Normalize(language) switch
+        {
+            "en" => $"{treatment} – for guest {number} of your booking",
+            "fr" => $"{treatment} – pour l’invité {number} de votre réservation",
+            "it" => $"{treatment} – per l’ospite {number} della sua prenotazione",
+            _ => $"{treatment} – für Gast {number} Ihrer Buchung",
+        };
+
     public static OutgoingMail CardRequest(
         string to, GuestName guest, string treatment, DateTimeOffset start, string timeZone, string location, decimal amount, string currency,
         int percent, int deadlineHours, string url, string? language)

@@ -255,7 +255,7 @@ public static class ReleaseUnsecuredBookingHandler
 
         var portal = services.GetRequiredService<OnlinePortal>();
         var cancelled = await portal.ToOnlineAsync((await portal.LoadAppointmentAsync(appointment.Id, ct))!, ct);
-        var customer = await db.Customers.AsNoTracking().FirstAsync(c => c.Id == appointment.CustomerId, ct);
+        var customer = await db.Customers.AsNoTracking().FirstAsync(c => c.Id == guarantee.CustomerId, ct);
         await services.GetRequiredService<IMessageBus>().PublishGuestMailAsync(tenants, OnlineMails.Released(
             guarantee.Email, GuestName.Of(customer, cancelled.TimeZone), cancelled, portal.Url("", tenantId), record?.Language ?? guarantee.Language));
     }

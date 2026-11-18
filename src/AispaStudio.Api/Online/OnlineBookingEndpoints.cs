@@ -119,9 +119,9 @@ internal static class OnlineBookingEndpoints
             {
                 var link = await links.FindAsync(token, AccessLinkPurpose.ManageAppointment, ct);
                 var appointment = link?.AppointmentId is { } id ? await portal.LoadAppointmentAsync(id, ct) : null;
-                return appointment is null || appointment.CustomerId != link!.CustomerId
-                    ? TypedResults.NotFound()
-                    : TypedResults.Ok(await portal.ToOnlineAsync(appointment, ct));
+                return appointment is not null && await portal.ForLinkAsync(appointment, link!.CustomerId, ct) is { } shown
+                    ? TypedResults.Ok(shown)
+                    : TypedResults.NotFound();
             })
             .WithName("GetOnlineBooking")
             .WithSummary("Termin über den Link aus der Bestätigungsmail.");

@@ -275,6 +275,7 @@ internal sealed class CardGuarantees(
         };
         var canCharge = g.Status is CardGuaranteeStatus.Saved or CardGuaranteeStatus.ChargeFailed && !removed
             && (a.Status == AppointmentStatus.NoShow || late);
+        hint = OnlinePortal.WithPayerNote(hint, g.CustomerId, a);
         return new CardGuaranteeStaffDto(g.Id, g.Status, g.FeeAmount, g.Currency, g.FeePercent, g.AcceptedAt, g.SavedAt, canCharge,
             hint, g.ChargedAt, g.ReceiptId, g.Error, g.CardRemovedAt,
             g.Status is CardGuaranteeStatus.Pending or CardGuaranteeStatus.Failed && a.Status == AppointmentStatus.Booked ? g.ReleaseAt : null,

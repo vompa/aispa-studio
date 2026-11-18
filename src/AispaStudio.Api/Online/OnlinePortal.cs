@@ -106,6 +106,39 @@ internal sealed class OnlinePortal(
     public async Task<OnlineAppointment> ToOnlineAsync(Appointment appointment, CancellationToken ct) =>
         (await ToOnlineAsync([appointment], ct))[0];
 
+    /// <summary>
+    /// Zahlt jemand anderes als der Gast des Termins Karte oder Anzahlung: die buchende Person einer Gruppe für ihre Gäste ohne Namen, auch nachdem
+    /// deren Namen nachgetragen sind (Auftraggeber, 18.11.2026).
+    /// </summary>
+    public async Task<bool> IsPayerAsync(Guid appointmentId, Guid customerId, CancellationToken ct) =>
+        await online.CardGuarantees.AnyAsync(g => g.AppointmentId == appointmentId && g.CustomerId == customerId, ct)
+        || await online.Deposits.AnyAsync(d => d.AppointmentId == appointmentId && d.CustomerId == customerId, ct);
+
+    /// <summary>Darf, wer den Link hat, Karte hinterlegen oder Anzahlung bezahlen: der Gast des Termins oder wer zahlt.</summary>
+    public async Task<bool> MayPayAsync(Appointment appointment, Guid linkCustomerId, CancellationToken ct) =>
+        appointment.CustomerId == linkCustomerId || await IsPayerAsync(appointment.Id, linkCustomerId, ct);
+
+    /// <summary>
+    /// Der Termin, wie ihn der Link zeigt. Wer nur zahlt, sieht ihn mit Karte und Anzahlung, aber ohne Absagen, Verschieben und Verspätung:
+    /// das bleibt beim Gast des Termins. Gehört der Link weder dem Gast noch der zahlenden Person, <c>null</c>.
+    /// </summary>
+    public async Task<OnlineAppointment?> ForLinkAsync(Appointment appointment, Guid linkCustomerId, CancellationToken ct)
+    {
+        if (appointment.CustomerId == linkCustomerId)
+        {
+            return await ToOnlineAsync(appointment, ct);
+        }
+
+        return await IsPayerAsync(appointment.Id, linkCustomerId, ct)
+            ? await ToOnlineAsync(appointment, ct) with { CanCancel = false, CanMove = false, CanCancelLate = false, CanReportLate = false }
+            : null;
+    }
+
+    /// <summary>Hängt an den Hinweis für das Team an, dass die buchende Person zahlt, wenn der Termin inzwischen einem anderen Gast gehört.</summary>
+    internal static string? WithPayerNote(string? hint, Guid payerId, Appointment appointment) =>
+        payerId == appointment.CustomerId ? hint
+        : string.Join(" ", new[] { hint, "Zahlt die buchende Person der Gruppe." }.Where(t => !string.IsNullOrEmpty(t)));
+
     private OnlineAppointment ToOnline(Appointment a, Location location, int cancellationDeadlineHours, bool anamnesis, OnlineCardGuarantee? card,
         OnlineDeposit? deposit)
     {
