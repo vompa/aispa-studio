@@ -7270,3 +7270,22 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Geprüft:** API: `DemoSpaTests` (Daten in `aispademo`, Ausgangsdatenbank ohne Tabelle, `modules.Demo`, Anmeldung mit `demo`, 403 für Rezeption und Therapeutin, 202 und Datenbank weg, 404 ohne Beispiel-Spa, kein Passwort ohne `Demo:Enabled`). Windows-App: `DemoSpaTests`, `LocalServerTests`, Ansichtstests `ViewTests.DemoSpa` (Leiste, Anmeldung, Sicherung; hell und dunkel; keine Bindungsfehler), Bilder angesehen.
 - **Nicht geprüft:** Windows-Paket mit der mitgelieferten PostgreSQL und `--demo`; Docker-Server mit `AISPA_DEMO`; Löschen gegen einen Datenbankbenutzer ohne Recht für `DROP DATABASE`.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md); Hilfetext durch `textRules.test.ts`.
+
+## Paar und Spa-Tag: Ausfallgebühr und Anzahlung für Gäste ohne Namen zahlt die buchende Person (18.11.2026)
+
+- **Auftrag:** Offener Punkt „Ausfallgebühr für Gäste ohne Namen“; Entscheidung des Auftraggebers am 18.11.2026: „buchende Person zahlt für alle“.
+- **Befund:** Karte und Anzahlung hängen am einzelnen Termin. Bei einem Gast ohne Namen gehören sie schon der buchenden Person, weil der Termin bis zum Nachtragen auf sie läuft. Nach dem **Namen nachtragen** gehörte der Termin dem Gast: Der Link der buchenden Person zeigte „nicht gefunden“, sie konnte weder zustimmen noch die Karte hinterlegen noch bezahlen. Beleg-, Erstattungs- und Freigabemails an ihre Adresse sprachen den Gast mit Namen an.
+- **Was:**
+  - `OnlinePortal.IsPayerAsync`, `MayPayAsync`, `ForLinkAsync`: Wer Karte oder Anzahlung zahlt, öffnet die Terminseite über den Link weiter, stimmt zu, hinterlegt die Karte und bezahlt. Absagen, Verschieben und Verspätung bleiben beim Gast (die Seite bietet sie nicht an, der Server lehnt ab).
+  - Mails nach Belastung, Anzahlungsbeleg und Freigabe sprechen die zahlende Person an (`CustomerId` der Hinterlegung bzw. Anzahlung).
+  - **Karte per Link anfordern** und **Anzahlung per Link** nennen bei einem Gast ohne Namen den Gast: „Massage – für Gast 2 Ihrer Buchung“ (vier Sprachen, `OnlineMails.ForGuest`).
+  - Hinweis für das Team: „Zahlt die buchende Person der Gruppe.“, sobald der Termin einem anderen Gast gehört. Die Windows-App zeigt ihn ohne Änderung unter „Ausfallgebühr“ und „Anzahlung“.
+  - ADR 0036, Nachtrag; Hilfe `kalender-paar-und-spa-tag`.
+- **Detailentscheidungen:**
+  1. Es zahlt, wer Karte oder Anzahlung hinterlegt hat; das Nachtragen des Namens ändert daran nichts. So bleibt eine Zustimmung zur Gebühr bei der Person, die sie gegeben hat.
+  2. Fordert die Rezeption Karte oder Anzahlung erst nach dem Nachtragen an, geht der Link an den nachgetragenen Gast: Er ist dann bekannt und hat eine eigene Kundenkarte.
+  3. Die zahlende Person darf über ihren Link nicht absagen oder verschieben: Der Termin gehört dem Gast.
+- **Bewusst offen / später:** Eine Karte für alle Gäste ohne Namen einer Buchung mit einem Link (heute je Termin ein Link); die Sicht im Kundenkonto (Mein Konto) zeigt fremde Termine, für die man zahlt, nicht.
+- **Geprüft:** API `CardGuaranteeTests`, `DepositTests`, `OnlineBookingTests`, `GroupBookingTests`, `OnlineRefundTests`, `ChannelScanTests`: 100 von 100. Neu: Mail an die buchende Person mit Gastnummer; nach dem Nachtragen öffnet ihr Link die Seite ohne Absagen und Verschieben; Absagen über den Link 404; Zustimmen und Hinterlegen gehen; Hinweis für das Team; Termin gehört dem Gast.
+- **Nicht geprüft:** die laufende App unter Windows; echte Belastung beim Anbieter.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).

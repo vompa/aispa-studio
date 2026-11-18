@@ -76,6 +76,7 @@ Bei Gruppen und Firmen-Events kennt die Rezeption beim Buchen oft nur die Person
 
 - Im Kalender stehen diese Termine als „Gast 3 · Name folgt“, die Hover-Karte nennt, wer gebucht hat. Kennzeichen und Besuche der buchenden Person stehen nicht daran.
 - Bis zum Nachtragen laufen die Termine auf die buchende Person; an der Kassa zahlt sie.
+- Ausfallgebühr und Anzahlung für Gäste ohne Namen zahlt die buchende Person. **Karte per Link anfordern** und **Anzahlung per Link** gehen an sie, die Mail nennt den Gast („Massage – für Gast 2 Ihrer Buchung“). Das bleibt so, wenn der Name später nachgetragen wird: Über ihren Link zahlt die buchende Person weiter, und im Termin steht „Zahlt die buchende Person der Gruppe.“ Absagen oder verschieben kann über diesen Link nur der Gast selbst.
 - **Namen nachtragen**: Termin anklicken oder Rechtsklick › **Namen nachtragen**, im Kasten **NAME NACHTRAGEN** den Gast suchen und **Gast eintragen** klicken. Das gilt für alle Termine dieses Gastes in der Buchung.
 - Hat der Gast bei der Person „Nicht bei mir“, lehnt der Server das Nachtragen ab; dann erst umbuchen.
 - Einen einzelnen Gast storniert man wie jeden Termin über Rechtsklick › **Stornieren …**.

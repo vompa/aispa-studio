@@ -128,7 +128,7 @@ public static partial class ReceiptOnlineDepositHandler
         var receiptDto = await pos.GetReceiptAsync(receiptId, ct);
         var receiptText = receiptDto is null ? receiptId.ToString() : $"{receiptDto.RegisterCode} Nr. {receiptDto.Number}, {receiptDto.IssuedAt:dd.MM.yyyy}";
         await services.GetRequiredService<IMessageBus>().PublishGuestMailAsync(services.GetRequiredService<TenantContext>(),
-            OnlineMails.DepositReceived(deposit.Email, GuestName.Of(appointment.Customer, location.TimeZone), appointment.Treatment.Name, appointment.Start, location.TimeZone,
+            OnlineMails.DepositReceived(deposit.Email, GuestName.Of(await db.Customers.AsNoTracking().FirstAsync(c => c.Id == deposit.CustomerId, ct), location.TimeZone), appointment.Treatment.Name, appointment.Start, location.TimeZone,
                 location.Name, deposit.Amount, deposit.Currency, deposit.Percent, receiptText, deposit.Language));
     }
 
@@ -245,7 +245,8 @@ public static class ReleaseUnpaidDepositHandler
 
         var portal = services.GetRequiredService<OnlinePortal>();
         var cancelled = await portal.ToOnlineAsync((await portal.LoadAppointmentAsync(appointment.Id, ct))!, ct);
-        var customer = await db.Customers.AsNoTracking().FirstAsync(c => c.Id == appointment.CustomerId, ct);
+        // Wer gezahlt hätte, bekommt die Nachricht; bei einer Gruppe auch nach dem Nachtragen des Namens die buchende Person.
+        var customer = await db.Customers.AsNoTracking().FirstAsync(c => c.Id == deposit.CustomerId, ct);
         await services.GetRequiredService<IMessageBus>().PublishGuestMailAsync(tenants, OnlineMails.Released(
             deposit.Email, GuestName.Of(customer, cancelled.TimeZone), cancelled, portal.Url("", tenantId), record?.Language ?? deposit.Language, deposit: true));
     }

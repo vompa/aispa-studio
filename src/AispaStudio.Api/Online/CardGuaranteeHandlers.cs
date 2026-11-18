@@ -182,7 +182,7 @@ public static partial class ChargeNoShowFeeHandler
         var receiptDto = await pos.GetReceiptAsync(receiptId, ct);
         var receiptText = receiptDto is null ? receiptId.ToString() : $"{receiptDto.RegisterCode} Nr. {receiptDto.Number}, {receiptDto.IssuedAt:dd.MM.yyyy}";
         await services.GetRequiredService<IMessageBus>().PublishGuestMailAsync(services.GetRequiredService<TenantContext>(), OnlineMails.NoShowFeeCharged(
-            guarantee.Email, GuestName.Of(appointment.Customer, location.TimeZone), appointment.Treatment.Name, appointment.Start, location.TimeZone, location.Name,
+            guarantee.Email, GuestName.Of(await db.Customers.AsNoTracking().FirstAsync(c => c.Id == guarantee.CustomerId, ct), location.TimeZone), appointment.Treatment.Name, appointment.Start, location.TimeZone, location.Name,
             guarantee.FeeAmount,
             guarantee.Currency, receiptText, guarantee.Language));
     }

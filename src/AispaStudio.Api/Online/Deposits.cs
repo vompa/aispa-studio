@@ -289,6 +289,7 @@ internal sealed class Deposits(
             OnlineDepositStatus.Released => "Termin freigegeben, weil die Anzahlung in der Frist nicht bezahlt wurde.",
             _ => null,
         };
+        hint = OnlinePortal.WithPayerNote(hint, d.CustomerId, a);
         return new DepositStaffDto(d.Id, d.Status, d.Amount, d.Currency, d.Percent, d.AcceptedAt, d.PaidAt, d.ReceiptId, settled,
             booked?.SettledOnReceiptId, kept, voided, hint, d.Error,
             d.Status is OnlineDepositStatus.Pending or OnlineDepositStatus.Failed && a.Status == AppointmentStatus.Booked ? d.ReleaseAt : null);

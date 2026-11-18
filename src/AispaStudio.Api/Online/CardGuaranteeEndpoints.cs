@@ -29,7 +29,7 @@ internal static class CardGuaranteeEndpoints
             {
                 var link = await links.FindAsync(token, AccessLinkPurpose.ManageAppointment, ct);
                 var appointment = link?.AppointmentId is { } id ? await portal.LoadAppointmentAsync(id, ct) : null;
-                return appointment is not null && appointment.CustomerId == link!.CustomerId
+                return appointment is not null && await portal.MayPayAsync(appointment, link!.CustomerId, ct)
                        && await cards.RetryAsync(appointment, portal.Url($"termin/{token}"), ct)
                     ? await AppointmentAsync(portal, appointment.Id, link.CustomerId, ct)
                     : TypedResults.NotFound();
@@ -42,7 +42,7 @@ internal static class CardGuaranteeEndpoints
             {
                 var link = await links.FindAsync(token, AccessLinkPurpose.ManageAppointment, ct);
                 var appointment = link?.AppointmentId is { } id ? await portal.LoadAppointmentAsync(id, ct) : null;
-                return appointment is not null && appointment.CustomerId == link!.CustomerId
+                return appointment is not null && await portal.MayPayAsync(appointment, link!.CustomerId, ct)
                        && await cards.AcceptAsync(appointment, portal.Url($"termin/{token}"), ct)
                     ? await AppointmentAsync(portal, appointment.Id, link.CustomerId, ct)
                     : TypedResults.NotFound();
@@ -133,7 +133,7 @@ internal static class CardGuaranteeEndpoints
     }
 
     private static async Task<Results<Ok<OnlineAppointment>, NotFound>> AppointmentAsync(OnlinePortal portal, Guid appointmentId, Guid customerId, CancellationToken ct) =>
-        await portal.LoadAppointmentAsync(appointmentId, ct) is { } appointment && appointment.CustomerId == customerId
-            ? TypedResults.Ok(await portal.ToOnlineAsync(appointment, ct))
+        await portal.LoadAppointmentAsync(appointmentId, ct) is { } appointment && await portal.ForLinkAsync(appointment, customerId, ct) is { } shown
+            ? TypedResults.Ok(shown)
             : TypedResults.NotFound();
 }

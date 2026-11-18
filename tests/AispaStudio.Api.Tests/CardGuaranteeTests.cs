@@ -201,6 +201,48 @@ public sealed class CardGuaranteeTests(ApiFixture fixture)
     }
 
     [Fact]
+    public async Task Fuer_einen_Gast_ohne_Namen_zahlt_die_buchende_Person_auch_nach_dem_Nachtragen()
+    {
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        await RequireCardAsync(spa);
+        await CreateRegisterAsync(spa);
+        var bookerEmail = NewEmail();
+        var booker = await spa.PostAsync<CustomerDto>("/api/customers", new CustomerInput("Eva", "Bucht", bookerEmail, null, null, null), Ct);
+        var guest = await spa.PostAsync<CustomerDto>("/api/customers", new CustomerInput("Paul", "Gast", NewEmail(), null, null, null), Ct);
+        var massage = spa.MassageTreatment.Id;
+        var response = await spa.Client.PostAsJsonAsync("/api/appointment-groups", new GroupBookingRequest(spa.Location.Id, TestSpa.At(14),
+            [new GroupBookingItem(massage, booker.Id, 0), new GroupBookingItem(massage, booker.Id, 0, PlaceholderGuest: 1)], 0, "Firmenfeier", null), TestSpa.Json, Ct);
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        var group = await TestSpa.ReadAsync<GroupBookingResult>(response, Ct);
+        var unnamed = group.Appointments.Single(a => a.PlaceholderGuest == 1);
+
+        await spa.PostAsync<CardGuaranteeStaffDto>($"/api/appointments/{unnamed.Id}/card-guarantee/request", new { }, Ct);
+        var mail = await fixture.Mailbox.WaitForAsync(bookerEmail, m => m.Subject.StartsWith("Bitte Karte hinterlegen", StringComparison.Ordinal), Ct);
+        Assert.Contains("Massage – für Gast 1 Ihrer Buchung", mail.Text, StringComparison.Ordinal);
+        var token = Regex.Match(mail.Text, "#/termin/([A-Za-z0-9_-]+)").Groups[1].Value;
+
+        // Der Name wird nachgetragen: Der Termin gehört jetzt Paul, bezahlt wird weiter über den Link der buchenden Person.
+        await spa.PutAsync<GroupBookingResult>($"/api/appointments/{unnamed.Id}/guest", new AssignGuestRequest(guest.Id), Ct);
+        using var client = spa.OnlineClient();
+        var page = await client.GetFromJsonAsync<OnlineAppointment>($"/api/online/bookings/{token}", TestSpa.Json, Ct);
+        Assert.Equal(CardGuaranteeStatus.AwaitingConsent, page!.CardGuarantee!.Status);
+        // Absagen und Verschieben bleiben beim Gast des Termins.
+        Assert.Equal((false, false, false), (page.CanCancel, page.CanMove, page.CanReportLate));
+        var cancel = await client.PostAsync($"/api/online/bookings/{token}/cancel", null, Ct);
+        Assert.Equal(HttpStatusCode.NotFound, cancel.StatusCode);
+
+        var accepted = await client.PostAsync($"/api/online/bookings/{token}/card/accept", null, Ct);
+        Assert.Equal(HttpStatusCode.OK, accepted.StatusCode);
+        var saved = await client.PostAsJsonAsync($"/api/online/bookings/{token}/card/test", new TestCardResult(true), TestSpa.Json, Ct);
+        Assert.Equal(CardGuaranteeStatus.Saved, (await TestSpa.ReadAsync<OnlineAppointment>(saved, Ct)).CardGuarantee!.Status);
+
+        var staff = await spa.GetAsync<CardGuaranteeStaffDto>($"/api/appointments/{unnamed.Id}/card-guarantee", Ct);
+        Assert.EndsWith("Zahlt die buchende Person der Gruppe.", staff.Hint, StringComparison.Ordinal);
+        var own = await spa.GetAsync<AppointmentDto>($"/api/appointments/{unnamed.Id}", Ct);
+        Assert.Equal(guest.Id, own.CustomerId);
+    }
+
+    [Fact]
     public async Task Ohne_Regel_oder_ohne_Mail_laesst_sich_keine_Karte_anfordern()
     {
         var spa = await TestSpa.CreateAsync(fixture, Ct);

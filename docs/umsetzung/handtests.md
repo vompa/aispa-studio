@@ -1421,6 +1421,17 @@ Expected: Im Kalender steht der Termin beim Therapeuten; in der Notiz steht „W
 Closes: –
 Result: ☐
 
+### Paar und Spa-Tag – Ausfallgebühr für einen Gast ohne Namen
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App als Rezeption; am Standort ist eine Ausfallgebühr eingestellt, Zahlungsanbieter im Testbetrieb; die buchende Person hat eine Mailadresse
+1. **Paar oder Spa-Tag** mit Gast 1 aus der Kartei und Gast 2 mit **Name folgt** buchen, den Termin von Gast 2 öffnen und **Karte per Link anfordern** klicken.
+Expected: Die Mail geht an die buchende Person und nennt „… – für Gast 2 Ihrer Buchung“.
+2. Für den Termin von Gast 2 **Namen nachtragen** und einen anderen Gast eintragen; danach den Link aus der Mail öffnen.
+Expected: Die Terminseite öffnet sich und bietet das Hinterlegen der Karte an, aber kein Absagen und kein Verschieben.
+3. Zustimmen und die Karte hinterlegen (im Testbetrieb „Karte simulieren“), dann den Termin in der Windows-App öffnen.
+Expected: Unter „Ausfallgebühr“ steht „Karte hinterlegt …“ und „Zahlt die buchende Person der Gruppe.“
+Closes: –
+Result: ☐
+
 ### Kassa – Online-Zahlungen nachsehen
 Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App als Rezeption; Zahlungsanbieter im Testbetrieb; im Kundenbereich einen Gutschein kaufen und mit „Zahlung simulieren“ bezahlen
 1. In der Kassa oben auf das Weltkugel-Symbol **Online-Zahlungen** klicken.
