@@ -45,6 +45,7 @@ public partial class StartupScreen : UserControl
     public StartupScreen()
     {
         InitializeComponent();
+        Quit.Click += (_, _) => (TopLevel.GetTopLevel(this) as Window)?.Close();
     }
 
     /// <summary>Die Ansicht dahinter: sie blendet nach dem Übergang ein; ihre Leiste bzw. Markenspalte (<c>BrandSurface</c>, <c>BrandTile</c>, <c>BrandName</c>) ist das Ziel.</summary>
@@ -135,7 +136,7 @@ public partial class StartupScreen : UserControl
         if (vm.IsOffline && !_wasOffline)
         {
             // Erst jetzt gibt es etwas zu bedienen.
-            Dispatcher.UIThread.Post(() => Retry.Focus(), DispatcherPriority.Loaded);
+            Dispatcher.UIThread.Post(() => (vm.IsBlocked ? Quit : Retry).Focus(), DispatcherPriority.Loaded);
         }
 
         _wasOffline = vm.IsOffline;

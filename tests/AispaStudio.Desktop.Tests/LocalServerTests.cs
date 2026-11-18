@@ -740,4 +740,37 @@ public sealed class LocalStartTests
         Assert.Equal("Für den Einzelplatz-Betrieb fehlt pg_ctl.", vm.StatusText);
         Assert.Empty(api.Calls);
     }
+
+    [Fact]
+    public async Task Ein_Fund_der_den_Start_verhindert_startet_den_Einzelplatz_nicht()
+    {
+        var api = new StubApi();
+        var local = new FakeLocal();
+        var vm = new AispaStudio.Desktop.ViewModels.MainViewModel(api.Client(), local: local,
+            facts: new StartupRequirementsTests.Facts(Disk: 1024L * 1024 * 1024 - 1));
+
+        await vm.StartAsync();
+
+        Assert.Empty(local.Steps);
+        Assert.Empty(api.Calls);
+        Assert.True(vm.IsBlocked);
+        Assert.Equal("Zu wenig freier Speicherplatz", Assert.Single(vm.BlockedFindings).Title);
+    }
+
+    [Fact]
+    public async Task Hinweise_halten_den_Start_des_Einzelplatzes_nicht_auf()
+    {
+        var api = new StubApi()
+            .On("GET /api/system/status", new AispaStudio.Contracts.SystemStatus("1", "Production", DateTimeOffset.UtcNow))
+            .On("GET /api/auth/me", null, System.Net.HttpStatusCode.Unauthorized);
+        var local = new FakeLocal();
+        var vm = new AispaStudio.Desktop.ViewModels.MainViewModel(api.Client(), local: local,
+            facts: new StartupRequirementsTests.Facts(WebView2: false));
+
+        await vm.StartAsync();
+
+        Assert.Equal(["start"], local.Steps);
+        Assert.False(vm.IsBlocked);
+        Assert.Equal("Hilfe nicht verfügbar", Assert.Single(vm.Hints).Title);
+    }
 }

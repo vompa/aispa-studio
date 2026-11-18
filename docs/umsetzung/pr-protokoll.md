@@ -7213,3 +7213,25 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Bewusst offen / später:** nichts.
 - **Geprüft:** neue Testklasse `BadRequestTextTests` (vorher rot mit 500, jetzt grün: falsches und fehlendes `format`, Jahr als Text, eigene Prüfung behält ihren Text, 404 ohne den Satz), `AccountingTests`, `PayrollTests`, `ApiVersionTests` (29 grün).
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Startprüfung der Voraussetzungen (18.11.2026)
+
+- **Basiert auf:** `dev` nach „Fehlerantwort 400 mit deutschem Satz“; keine API-Änderung. Werte aus [Systemvoraussetzungen](../installation/README.md#systemvoraussetzungen).
+- **Was:** Die Windows-App prüft beim Start ihre Voraussetzungen und sagt, was fehlt.
+  - `StartupRequirements` und `ISystemFacts` (`Services/StartupRequirements.cs`): reine Regeln über die Angaben dieses PCs; `SystemFacts` liest sie (Windows-Build, 64-Bit, eingebauter Arbeitsspeicher, freier Platz auf dem Laufwerk von `%LOCALAPPDATA%\AispaStudio`, WebView2, `docker.exe` im PATH).
+  - Verhindern den Start: kein 64-Bit-Windows; Build unter 19045; nur im Einzelplatz weniger als 1 GB frei. Die Karte „AISPA Studio kann auf diesem PC nicht starten“ nennt alle Funde und bietet nur **Beenden**; `LocalServer.StartAsync` und der Verbindungsversuch laufen dann nicht. Die Paketprüfung in `LocalServer` bleibt unverändert.
+  - Hinweise (schließbare Warnungen über Startbildschirm und Anmeldung, nicht in der Arbeitsfläche): unter 4 GB Arbeitsspeicher, keine WebView2-Runtime, Windows 10 (Build unter 22000).
+  - Karte „Keine Verbindung zum Server“: bei Server-Betrieb und Adresse `localhost` oder `127.0.0.1` ein Satz mit dem Weg; ohne `docker.exe` Docker Desktop und Einzelplatz, mit `docker.exe` „docker compose up -d“ oder Einzelplatz; bei anderer Adresse kein Satz.
+  - `MainViewModel` bekommt `ISystemFacts` über den Konstruktor (`facts`); `App.axaml.cs` übergibt `SystemFacts`. Ohne `facts` (Tests, Designer) gibt es keine Prüfung.
+  - Handbuch `systemanforderungen.md` (Abschnitt „Startprüfung“), `docs/installation/standalone.md` (Zeile bei „Wenn etwas nicht geht“).
+- **Detailentscheidungen:**
+  1. **WebView2 über die Registry statt über das Paket:** `Microsoft.Web.WebView2` ist nicht direkt eingebunden (die Hilfe nutzt `Avalonia.Controls.WebView`); die Prüfung liest den Eintrag der Runtime unter „EdgeUpdate“ (Rechner und Benutzer). Eine feste Runtime ohne Eintrag gilt als fehlend; das trifft nur Hinweis, nichts blockiert.
+  2. **Arbeitsspeicher eingebaut, nicht verfügbar:** `GetPhysicallyInstalledSystemMemory` liefert 4 GB für einen 4-GB-PC; die von Windows gemeldete Menge läge durch den Anteil der Grafik darunter und würde jeden PC am Minimum warnen. Ohne Wert gibt es keinen Hinweis.
+  3. **Unbekannte Werte blockieren nie:** Lässt sich der freie Platz oder der Speicher nicht ermitteln, entfällt der Fund.
+  4. **Hinweise einmal je Programmstart:** „Erneut versuchen“ bringt geschlossene Hinweise nicht zurück; ein blockierter Start bleibt blockiert.
+  5. **Warnungen oben links, über der Markenspalte:** mittig überdeckten bis zu drei Warnungen die Anmeldekarte. Sie stehen nur bis zur Anmeldung, nicht in der Arbeitsfläche.
+  6. **Kein „Weiter“ auf der Karte:** wie vorgegeben; wer 32-Bit-Windows hat, kann die App ohnehin nicht nutzen.
+- **Bewusst offen / später:** kein Installieren von WebView2 oder Docker und kein Starten von Docker durch die App; keine Prüfung des Prozessors (Kerne, ARM), des Bildschirms und der Docker-Voraussetzungen des Haupt-PCs.
+- **Geprüft:** Testklasse `StartupRequirementsTests` (Regeln je Fund mit Grenzwerten 19044/19045, 21999/22000, 4 GB, 1 GB, Docker-Satz nur bei `localhost`; Rahmen: gesperrt, Hinweise, ohne Prüfung), `LocalStartTests` (Einzelplatz startet bei Fund nicht, bei Hinweis schon), Ansichtstests `Startpruefung_*` (Karte, Warnungen, Weg, hell und dunkel, keine Bindungsfehler), Bilder angesehen.
+- **Nicht geprüft:** auf einem echten PC mit zu altem Windows, 32-Bit-System oder ohne WebView2-Runtime; die Registry-Abfrage lief nur auf dem Entwicklungs-PC.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md); Hilfetext durch `textRules.test.ts`.
