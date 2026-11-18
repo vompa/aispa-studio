@@ -90,7 +90,8 @@ internal sealed class DepositRequests(
         var url = portal.Url($"termin/{token}");
         await deposits.StartAsync(deposit, appointment.Treatment.Name, location.Name, url, ct);
 
-        await bus.PublishGuestMailAsync(tenants, OnlineMails.DepositRequest(email, GuestName.Of(appointment.Customer, location.TimeZone), appointment.Treatment.Name,
+        await bus.PublishGuestMailAsync(tenants, OnlineMails.DepositRequest(email, GuestName.Of(appointment.Customer, location.TimeZone),
+            OnlineMails.ForGuest(appointment.Treatment.Name, appointment.PlaceholderGuest, deposit.Language),
             appointment.Start, location.TimeZone, location.Name, deposit.Amount, deposit.Currency, deposit.Percent, url, deposit.Language));
         return new RequestOutcome.Sent(Deposits.ToStaff(deposit, appointment, null));
     }

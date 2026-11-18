@@ -33,7 +33,7 @@ internal static class DepositEndpoints
             {
                 var link = await links.FindAsync(token, AccessLinkPurpose.ManageAppointment, ct);
                 var appointment = link?.AppointmentId is { } id ? await portal.LoadAppointmentAsync(id, ct) : null;
-                return appointment is not null && appointment.CustomerId == link!.CustomerId
+                return appointment is not null && await portal.MayPayAsync(appointment, link!.CustomerId, ct)
                        && await deposits.RetryAsync(appointment, portal.Url($"termin/{token}"), ct)
                     ? await AppointmentAsync(portal, appointment.Id, link.CustomerId, ct)
                     : TypedResults.NotFound();
@@ -165,7 +165,7 @@ internal static class DepositEndpoints
         statusCode: error.Kind == PosErrorKind.Forbidden ? StatusCodes.Status403Forbidden : StatusCodes.Status409Conflict, title: error.Message);
 
     private static async Task<Results<Ok<OnlineAppointment>, NotFound>> AppointmentAsync(OnlinePortal portal, Guid appointmentId, Guid customerId, CancellationToken ct) =>
-        await portal.LoadAppointmentAsync(appointmentId, ct) is { } appointment && appointment.CustomerId == customerId
-            ? TypedResults.Ok(await portal.ToOnlineAsync(appointment, ct))
+        await portal.LoadAppointmentAsync(appointmentId, ct) is { } appointment && await portal.ForLinkAsync(appointment, customerId, ct) is { } shown
+            ? TypedResults.Ok(shown)
             : TypedResults.NotFound();
 }

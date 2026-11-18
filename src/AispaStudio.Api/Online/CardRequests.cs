@@ -83,7 +83,8 @@ internal sealed class CardRequests(
         var token = links.Create(AccessLinkPurpose.ManageAppointment, appointment.CustomerId, appointment.Id, appointment.End.AddDays(30));
         await online.SaveChangesAsync(ct);
 
-        await bus.PublishGuestMailAsync(tenants, OnlineMails.CardRequest(email, GuestName.Of(appointment.Customer, location.TimeZone), appointment.Treatment.Name,
+        await bus.PublishGuestMailAsync(tenants, OnlineMails.CardRequest(email, GuestName.Of(appointment.Customer, location.TimeZone),
+            OnlineMails.ForGuest(appointment.Treatment.Name, appointment.PlaceholderGuest, guarantee.Language),
             appointment.Start, location.TimeZone, location.Name, guarantee.FeeAmount, guarantee.Currency, guarantee.FeePercent,
             guarantee.DeadlineHours, portal.Url($"termin/{token}"), guarantee.Language));
         return new RequestOutcome.Sent(CardGuarantees.ToStaff(guarantee, appointment));
