@@ -43,6 +43,7 @@ public sealed record PongEvent(Guid PingId, string Message, DateTimeOffset Proce
 /// <param name="Benchmark">Vergleich mit anderen Spas.</param>
 /// <param name="Dashboard">Dashboard für den Pausenraum: Anzeigen koppeln und die Tafel mit dem Tag (Slice 105).</param>
 /// <param name="Plan">Abo-Stufe des angemeldeten Spas (ADR 0015); leer ohne Anmeldung. Die Module oben gelten dann schon für diese Stufe.</param>
+/// <param name="Demo">Beispiel-Spa in der eigenen Datenbank <c>aispademo</c> (ADR 0100); die Oberflächen zeigen dann den Hinweis auf Beispieldaten.</param>
 public sealed record SystemModules(
     bool Standalone,
     bool OnlineBooking,
@@ -52,7 +53,8 @@ public sealed record SystemModules(
     bool Rebooking,
     bool Benchmark,
     bool Dashboard,
-    SubscriptionPlan? Plan = null);
+    SubscriptionPlan? Plan = null,
+    bool Demo = false);
 
 /// <summary>
 /// Abo-Stufe eines Spas (ADR 0015): Start, Spa, Spa Plus. Sie schaltet zuschaltbare Webmodule frei; der Kern (Kalender, Kassa,

@@ -24,6 +24,17 @@
     <!-- Startbildschirm bis die API bereit ist, danach ohne Verbindung die Karte „Keine Verbindung zum Server“ (Design-Brief 5.31) -->
     <local:StartupScreen Target="{Binding #Main}" />
 
+    <!-- Hinweise der Startprüfung (WebView2, Arbeitsspeicher, Windows 10): oben links auf Startbildschirm und Anmeldung (über der Markenspalte), schließbar, ohne den Start aufzuhalten -->
+    <ItemsControl x:Name="StartupHints" ItemsSource="{Binding Hints}" IsVisible="{Binding AreHintsShown}" HorizontalAlignment="Left" VerticalAlignment="Top"
+                  Margin="16" MaxWidth="560">
+      <ItemsControl.ItemTemplate>
+        <DataTemplate x:DataType="vm:StartupHint">
+          <ui:InfoBar Severity="Warning" Title="{Binding Title}" Message="{Binding Text}" CloseCommand="{Binding CloseCommand}" Margin="0,0,0,8"
+                      BoxShadow="{DynamicResource RaisedShadow}" />
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
+
     <!-- Empfangsgerät: Warnung vor dem Abmelden ohne Eingabe als Karte in der Mitte über dem Scrim; jede Eingabe (auch ein Klick auf den Scrim) hebt sie auf -->
     <Panel x:Name="IdleOverlay" IsVisible="{Binding IsIdleWarning}">
       <Border x:Name="IdleScrim" Classes="scrim" />

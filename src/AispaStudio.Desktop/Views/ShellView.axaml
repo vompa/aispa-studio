@@ -116,7 +116,11 @@
     </Border>
 
     <Grid Grid.Column="1" ColumnDefinitions="*,Auto">
-    <Grid RowDefinitions="Auto,Auto,Auto,*">
+    <!-- Beispiel-Spa (ADR 0100): über allen Seiten, nur mit dem Recht, den Standort zu verwalten; zählt nicht zu den höchstens zwei Bannern darunter -->
+    <Grid RowDefinitions="Auto,*">
+    <ui:InfoBar Grid.Row="0" x:Name="DemoBar" Severity="Info" Margin="16,12,16,0" Message="{x:Static vm:ShellViewModel.DemoBarText}"
+                ActionText="Beispieldaten löschen …" ActionCommand="{Binding DeleteDemoCommand}" IsVisible="{Binding ShowDemoBar}" />
+    <Grid Grid.Row="1" RowDefinitions="Auto,Auto,Auto,*">
       <!-- Ohne Verbindung: was weiterhin geht und was nicht -->
       <!-- Höchstens zwei Banner gleichzeitig, der Abgleichfehler zuerst; was nicht passt, nennt die letzte Zeile (Design-Brief 5.15) -->
       <ui:InfoBar Grid.Row="1" Severity="Warning" Margin="16,12,16,0" Message="{Binding OfflineBanner}" ActionText="Verbindung prüfen"
@@ -184,6 +188,7 @@
           <TextBlock Text="{x:Static svc:AiLabels.Pill}" FontSize="12" LineHeight="14" FontWeight="Medium" Foreground="{DynamicResource RailMarkBrush}" HorizontalAlignment="Center" />
         </StackPanel>
       </Button>
+    </Grid>
     </Grid>
 
     <!-- Leiste rechts für die Seiten ohne Reiterschiene (Kunden, Kassa, Verwaltung, Hilfe …): Erklärung zur offenen Seite und der KI-Assistent; gleiche Breite, gleicher Kopf und

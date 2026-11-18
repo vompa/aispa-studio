@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Security.Claims;
+using AispaStudio.Api.Access;
 using AispaStudio.Api.Data;
 using AispaStudio.Api.Tenancy;
 using AispaStudio.Contracts;
@@ -31,6 +32,30 @@ internal static class SystemEndpoints
             .WithSummary("Betriebsart und eingeschaltete Webmodule; angemeldet nur die, die die Abo-Stufe des Spas enthält (ADR 0041, ADR 0015). "
                 + "Die Oberflächen blenden die anderen aus.");
 
+        group.MapDelete("/demo", Results<Accepted, ProblemHttpResult> (ModuleSwitches modules, IConfiguration configuration,
+                HttpContext http, IHostApplicationLifetime lifetime, ILoggerFactory loggers) =>
+            {
+                if (!modules.Demo)
+                {
+                    return TypedResults.Problem(statusCode: StatusCodes.Status404NotFound, title: "Kein Beispiel-Spa.",
+                        detail: "Es läuft kein Beispiel-Spa; es gibt keine Beispieldaten zu löschen.");
+                }
+
+                // Erst nach der Antwort: Das Löschen beendet alle Verbindungen zur Datenbank, auch die dieser Anfrage.
+                var log = loggers.CreateLogger(nameof(SystemEndpoints));
+                var connection = configuration.GetConnectionString("aispadb")!;
+                http.Response.OnCompleted(() =>
+                {
+                    _ = Task.Run(() => DropDemoAsync(connection, lifetime, log));
+                    return Task.CompletedTask;
+                });
+                return TypedResults.Accepted((string?)null);
+            })
+            .RequirePermission(AccessRight.ManageLocation)
+            .WithName("DeleteDemoSpa")
+            .WithSummary("Löscht das Beispiel-Spa samt seiner Datenbank „aispademo“ und beendet danach die API (202). "
+                + "Ohne Beispiel-Spa 404. Die echte Datenbank „aispadb“ wird nie angefasst: der Name ist fest.");
+
         group.MapPost("/ping", async Task<Results<Accepted<PingAccepted>, UnauthorizedHttpResult>> (PingRequest request, ClaimsPrincipal user, IMessageBus bus) =>
             {
                 // Rein defensiv: Jede Anmeldung trägt NameIdentifier (Zugriff, Schnellwechsel); die Anzeige-Geräte kommen an der Kanal-Sperre vorher nicht vorbei.
@@ -48,6 +73,22 @@ internal static class SystemEndpoints
             .WithSummary("Stellt einen Ping in die Queue; das Ergebnis kommt per SignalR (Pong) nur an die Verbindungen des Aufrufers.");
 
         return routes;
+    }
+
+    private static async Task DropDemoAsync(string connection, IHostApplicationLifetime lifetime, ILogger log)
+    {
+        try
+        {
+            await DemoSpa.DropAsync(connection, CancellationToken.None);
+            log.LogInformation("Beispiel-Spa gelöscht; die API wird beendet.");
+        }
+        catch (Exception ex)
+        {
+            log.LogError(ex, "Das Beispiel-Spa konnte nicht gelöscht werden.");
+            return;
+        }
+
+        lifetime.StopApplication();
     }
 
     private static string AppVersion { get; } =

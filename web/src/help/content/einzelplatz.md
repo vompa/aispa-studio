@@ -14,6 +14,16 @@ Weitere PCs im Spa verbinden sich bei Bedarf mit diesem PC (siehe „Im Netz“)
 
 Die App wird einmal mit dem Schalter `--standalone` gestartet, z. B. über eine Verknüpfung. Sie merkt sich das; jeder weitere Start läuft dann ohne Schalter als Einzelplatz. Mit `--server` schaltet man auf den Betrieb mit Server zurück, auch das wird gemerkt. Die Daten des Einzelplatzes bleiben dabei auf dem PC liegen.
 
+## Beispiel-Spa ausprobieren {#beispiel-spa}
+
+Zum Ansehen startet man die App mit dem Schalter `--demo`, z. B. über eine zweite Verknüpfung. Sie legt dann eine eigene Datenbank `aispademo` an und füllt sie mit einem Beispiel-Spa. Das echte Spa in der Datenbank `aispadb` bleibt unberührt.
+
+- Der Schalter gilt nur für diesen Start und schaltet immer den Einzelplatz ein. Die App merkt ihn sich nicht; ohne `--demo` startet wieder das echte Spa.
+- Der erste Start dauert rund eine halbe Minute. Die Anmeldung zeigt den Stand.
+- Alle Beispielkonten haben das Passwort `demo`, zum Beispiel `inhaberin@demo.aispa.test`.
+- Über allen Seiten steht die Leiste „Sie sehen Beispieldaten.“ Wer den Standort verwalten darf, löscht das Beispiel-Spa dort mit **Beispieldaten löschen …**. Nach der Rückfrage schließt sich die App.
+- Im Beispiel-Spa sichert die App nicht und gleicht nicht ab.
+
 ## Wo die Daten liegen {#daten}
 
 - Alle Daten liegen im Ordner `%LOCALAPPDATA%\AispaStudio\daten` des Windows-Kontos, mit dem die App läuft. Die Datenbank ist nur auf diesem PC selbst erreichbar.

@@ -7213,3 +7213,60 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Bewusst offen / später:** nichts.
 - **Geprüft:** neue Testklasse `BadRequestTextTests` (vorher rot mit 500, jetzt grün: falsches und fehlendes `format`, Jahr als Text, eigene Prüfung behält ihren Text, 404 ohne den Satz), `AccountingTests`, `PayrollTests`, `ApiVersionTests` (29 grün).
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Startanleitung auf der Release-Seite (18.11.2026)
+
+- **Basiert auf:** `dev` nach der Fehlerantwort 400; Wunsch des Auftraggebers.
+- **Was:** Die Release-Seite „windows-app“ erklärt jetzt Schritt für Schritt, wie man die App aus der ZIP-Datei entpackt und aus dem Ordner startet: als Einzelplatz über eine Verknüpfung mit `--standalone` oder mit Server bzw. Haupt-PC per Doppelklick, dazu SmartScreen und neuer Stand. Bisher stand dort ein einziger Satz.
+  - Neue Datei `.github/release-notes/windows-app.md` mit dem Platzhalter `{{SHA}}` für den Stand und einem Abschnitt „Voraussetzungen“ (Windows, Arbeitsspeicher, Platz; Einzelplatz ohne Docker, Server zum Ausprobieren mit Docker Desktop), Werte aus `docs/installation/README.md`.
+  - `ci.yml`, Job „Windows-App zum Herunterladen“: holt nur diese Datei (`sparse-checkout`), setzt den Stand per `sed` ein und übergibt sie mit `--notes-file`.
+  - `docs/installation/standalone.md`: Die ZIP-Datei enthält den Ordner `AispaStudio-Windows`; die App liegt darin, nicht direkt im Zielordner. Das stand bisher nicht in der Doku.
+- **Detailentscheidungen:**
+  1. **Text als eigene Datei im Repository statt im Workflow:** Markdown mit Überschriften und Listen lässt sich dort lesen und ändern, ohne YAML anzufassen.
+  2. **Links absolut auf GitHub:** Relative Links funktionieren auf der Release-Seite nicht.
+  3. **Kurzfassung statt der ganzen Anleitung:** Sicherung, Mehrplatz und Fehlerbilder stehen in `standalone.md`, die Release-Seite verlinkt dorthin.
+- **Bewusst offen / später:** Installer und Signatur.
+- **Geprüft:** `sed`-Schritt lokal mit dem Stand `80f32e6` nachgestellt; Einrückung des Jobs gelesen. Der Text erscheint erst nach dem nächsten Push auf `main`.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Startprüfung der Voraussetzungen (18.11.2026)
+
+- **Basiert auf:** `dev` nach „Fehlerantwort 400 mit deutschem Satz“; keine API-Änderung. Werte aus [Systemvoraussetzungen](../installation/README.md#systemvoraussetzungen).
+- **Was:** Die Windows-App prüft beim Start ihre Voraussetzungen und sagt, was fehlt.
+  - `StartupRequirements` und `ISystemFacts` (`Services/StartupRequirements.cs`): reine Regeln über die Angaben dieses PCs; `SystemFacts` liest sie (Windows-Build, 64-Bit, eingebauter Arbeitsspeicher, freier Platz auf dem Laufwerk von `%LOCALAPPDATA%\AispaStudio`, WebView2, `docker.exe` im PATH).
+  - Verhindern den Start: kein 64-Bit-Windows; Build unter 19045; nur im Einzelplatz weniger als 1 GB frei. Die Karte „AISPA Studio kann auf diesem PC nicht starten“ nennt alle Funde und bietet nur **Beenden**; `LocalServer.StartAsync` und der Verbindungsversuch laufen dann nicht. Die Paketprüfung in `LocalServer` bleibt unverändert.
+  - Hinweise (schließbare Warnungen über Startbildschirm und Anmeldung, nicht in der Arbeitsfläche): unter 4 GB Arbeitsspeicher, keine WebView2-Runtime, Windows 10 (Build unter 22000).
+  - Karte „Keine Verbindung zum Server“: bei Server-Betrieb und Adresse `localhost` oder `127.0.0.1` ein Satz mit dem Weg; ohne `docker.exe` Docker Desktop und Einzelplatz, mit `docker.exe` „docker compose up -d“ oder Einzelplatz; bei anderer Adresse kein Satz.
+  - `MainViewModel` bekommt `ISystemFacts` über den Konstruktor (`facts`); `App.axaml.cs` übergibt `SystemFacts`. Ohne `facts` (Tests, Designer) gibt es keine Prüfung.
+  - Handbuch `systemanforderungen.md` (Abschnitt „Startprüfung“), `docs/installation/standalone.md` (Zeile bei „Wenn etwas nicht geht“).
+- **Detailentscheidungen:**
+  1. **WebView2 über die Registry statt über das Paket:** `Microsoft.Web.WebView2` ist nicht direkt eingebunden (die Hilfe nutzt `Avalonia.Controls.WebView`); die Prüfung liest den Eintrag der Runtime unter „EdgeUpdate“ (Rechner und Benutzer). Eine feste Runtime ohne Eintrag gilt als fehlend; das trifft nur Hinweis, nichts blockiert.
+  2. **Arbeitsspeicher eingebaut, nicht verfügbar:** `GetPhysicallyInstalledSystemMemory` liefert 4 GB für einen 4-GB-PC; die von Windows gemeldete Menge läge durch den Anteil der Grafik darunter und würde jeden PC am Minimum warnen. Ohne Wert gibt es keinen Hinweis.
+  3. **Unbekannte Werte blockieren nie:** Lässt sich der freie Platz oder der Speicher nicht ermitteln, entfällt der Fund.
+  4. **Hinweise einmal je Programmstart:** „Erneut versuchen“ bringt geschlossene Hinweise nicht zurück; ein blockierter Start bleibt blockiert.
+  5. **Warnungen oben links, über der Markenspalte:** mittig überdeckten bis zu drei Warnungen die Anmeldekarte. Sie stehen nur bis zur Anmeldung, nicht in der Arbeitsfläche.
+  6. **Kein „Weiter“ auf der Karte:** wie vorgegeben; wer 32-Bit-Windows hat, kann die App ohnehin nicht nutzen.
+- **Bewusst offen / später:** kein Installieren von WebView2 oder Docker und kein Starten von Docker durch die App; keine Prüfung des Prozessors (Kerne, ARM), des Bildschirms und der Docker-Voraussetzungen des Haupt-PCs.
+- **Geprüft:** Testklasse `StartupRequirementsTests` (Regeln je Fund mit Grenzwerten 19044/19045, 21999/22000, 4 GB, 1 GB, Docker-Satz nur bei `localhost`; Rahmen: gesperrt, Hinweise, ohne Prüfung), `LocalStartTests` (Einzelplatz startet bei Fund nicht, bei Hinweis schon), Ansichtstests `Startpruefung_*` (Karte, Warnungen, Weg, hell und dunkel, keine Bindungsfehler), Bilder angesehen.
+- **Nicht geprüft:** auf einem echten PC mit zu altem Windows, 32-Bit-System oder ohne WebView2-Runtime; die Registry-Abfrage lief nur auf dem Entwicklungs-PC.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md); Hilfetext durch `textRules.test.ts`.
+
+## Beispiel-Spa in eigener Datenbank (18.11.2026)
+
+- **Basiert auf:** `dev` nach „Startprüfung der Voraussetzungen“. Entscheidung: [ADR 0100](../entscheidungen/0100-beispiel-spa-in-eigener-datenbank.md) (die nächste freie Nummer war nicht 0091, die Nummern bis 0099 sind vergeben).
+- **Was:** Das Beispiel-Spa liegt in der Datenbank `aispademo`, im Einzelplatz und am Server auf demselben Weg, und lässt sich löschen. `aispadb` bleibt unberührt.
+  - API: Einstellung `Demo:Enabled` (`System/DemoSpa.cs`) schreibt vor DbContext und Wolverine die Verbindung auf `aispademo` um, legt die Datenbank über `postgres` an und schaltet das Einspielen ein (nur Instanzen mit Hintergrunddiensten). `DemoAccounts` setzt das Passwort `demo` als Hash, nur mit `Demo:Enabled`. `SystemModules` bekommt `Demo`; `DELETE /api/system/demo` (Recht „Standort verwalten“, 404 ohne Beispiel-Spa, sonst 202, danach `DROP DATABASE … WITH (FORCE)` und Ende der API).
+  - Windows-App: Schalter `--demo` (Einzelplatz, nichts gemerkt), `LocalServer` setzt `Demo__Enabled`, Hinweis auf der Anmeldung, Leiste „Sie sehen Beispieldaten.“ mit **Beispieldaten löschen …** über allen Seiten, Sicherungsseite „Im Beispiel-Spa wird nicht gesichert.“.
+  - Docker: `compose.yaml` mit `Demo__Enabled: ${AISPA_DEMO:-true}` und `Database__SeedDemoData: "false"`; `compose.scale.yaml` gibt `Demo__Enabled` allen Instanzen und dem Migrationslauf, gefüllt wird weiter nur im Worker.
+  - Doku: Einzelplatz, Server, Betriebsarten, Testdaten, Hilfe „Einzelplatz“, ADR 0100; die Notiz der Windows-App-Veröffentlichung in `ci.yml` nennt `--demo`.
+- **Detailentscheidungen:**
+  1. **Passwort als Hash gesetzt:** Die Mindestlänge von acht Zeichen gilt für selbst gewählte Passwörter; `demo` hat vier. Der Hash kommt direkt aus dem Hasher von Identity.
+  2. **Das Einspielen folgt der Rolle:** Mit `Demo:Enabled` füllt eine Instanz nur, wenn sie Hintergrunddienste hat; sonst würden im Mehrinstanz-Betrieb alle Instanzen zugleich die leere Datenbank füllen. `Database__SeedDemoData` ist in beiden Compose-Dateien aus.
+  3. **Kein Abgleich im Beispiel-Spa:** Die App gibt `Sync__CentralConnectionString` bei `--demo` nicht weiter, damit Beispieldaten nie in die zentrale Datenbank laufen. Die API selbst lässt die Einstellung unverändert, wie vorgegeben.
+  4. **Hinweis auf der Anmeldung nur im Einzelplatz:** Die Passwort-Anmeldung gibt es nur dort; am Server melden Testkonten an. Die Startanzeige („Beispiel-Spa wird eingerichtet“) erscheint auch in Production, sonst scheitert die Anmeldung in der ersten halben Minute ohne Erklärung.
+  5. **Leiste außerhalb der höchstens zwei Banner:** Sie steht in einer eigenen Zeile über den Bannern und ist nicht schließbar; sie beschreibt den Zustand der ganzen Arbeitsfläche, nicht eine Störung.
+  6. **Löschen im Hintergrund:** Die API antwortet 202 und löscht nach dem Ende der Antwort; das Löschen beendet auch die Verbindungen dieser Anfrage.
+- **Bewusst offen / später:** Löschen und Beenden betreffen im Mehrinstanz-Betrieb nur die Instanz, die den Aufruf bekam; die übrigen müssen neu gestartet werden. Eine schon laufende API ohne `--demo` wird beim Start mit `--demo` wiederverwendet.
+- **Geprüft:** API: `DemoSpaTests` (Daten in `aispademo`, Ausgangsdatenbank ohne Tabelle, `modules.Demo`, Anmeldung mit `demo`, 403 für Rezeption und Therapeutin, 202 und Datenbank weg, 404 ohne Beispiel-Spa, kein Passwort ohne `Demo:Enabled`). Windows-App: `DemoSpaTests`, `LocalServerTests`, Ansichtstests `ViewTests.DemoSpa` (Leiste, Anmeldung, Sicherung; hell und dunkel; keine Bindungsfehler), Bilder angesehen.
+- **Nicht geprüft:** Windows-Paket mit der mitgelieferten PostgreSQL und `--demo`; Docker-Server mit `AISPA_DEMO`; Löschen gegen einen Datenbankbenutzer ohne Recht für `DROP DATABASE`.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md); Hilfetext durch `textRules.test.ts`.

@@ -8,7 +8,7 @@ namespace AispaStudio.Desktop.ViewModels;
 /// <summary>Rahmen der App: Verbindung prüfen, dann Anmeldung oder die Arbeitsfläche mit Navigation.</summary>
 /// <param name="local">Einzelplatz-Betrieb: Datenbank und API auf diesem PC, die App startet sie selbst (ADR 0041).</param>
 public partial class MainViewModel(IWorkstationApi api, Func<ILiveUpdates>? liveFactory = null, TimeProvider? time = null, ThemeController? theme = null,
-    ILocalServer? local = null)
+    ILocalServer? local = null, ISystemFacts? facts = null)
     : ViewModelBase
 {
     /// <summary>So lange vor dem Abmelden ohne Eingabe warnt die App (wie im Browser).</summary>
@@ -16,6 +16,9 @@ public partial class MainViewModel(IWorkstationApi api, Func<ILiveUpdates>? live
 
     /// <summary>Der eine Rückfragedialog des Fensters (Design-Brief 5.27); die Arbeitsfläche stellt ihre Rückfragen darüber.</summary>
     public ConfirmDialogHost DialogHost { get; } = new();
+
+    /// <summary>Schließt die App (nach dem Löschen der Beispieldaten im Einzelplatz); sie beendet dabei API und Datenbank geordnet.</summary>
+    public Action? CloseApp { get; init; }
 
     private readonly ThemeController _theme = theme ?? new ThemeController(new MemorySettingsStore());
     private readonly TimeProvider _time = time ?? TimeProvider.System;
@@ -128,6 +131,7 @@ public partial class MainViewModel(IWorkstationApi api, Func<ILiveUpdates>? live
 
     /// <summary>Anmeldung oder Arbeitsfläche.</summary>
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(AreHintsShown))]
     public partial ViewModelBase? Content { get; private set; }
 
     public bool IsSignedIn => User is not null;
@@ -236,6 +240,11 @@ public partial class MainViewModel(IWorkstationApi api, Func<ILiveUpdates>? live
 
     private async Task StartCoreAsync()
     {
+        if (!CheckRequirements())
+        {
+            return;
+        }
+
         if (local is not null && !await StartLocalAsync().ConfigureAwait(true))
         {
             return;
@@ -344,7 +353,7 @@ public partial class MainViewModel(IWorkstationApi api, Func<ILiveUpdates>? live
         Device = (await api.GetAsync<QuickSwitchState>("api/auth/quick-switch").ConfigureAwait(true)).Value?.Device;
         NoteActivity();
         var shell = new ShellViewModel(api, user, liveFactory?.Invoke(), _time, _theme, StatusText, SignOutAsync,
-            modules: modules, device: Device, deviceChanged: device => Device = device, local: local, dialogs: DialogHost, serverLink: ServerLink);
+            modules: modules, device: Device, deviceChanged: device => Device = device, local: local, dialogs: DialogHost, serverLink: ServerLink, closeApp: CloseApp);
         Content = shell;
         await shell.InitializeAsync().ConfigureAwait(true);
     }

@@ -17,8 +17,8 @@ Voraussetzungen: [Windows-PC am Empfang und Zusatz für Einzelplatz](README.md#s
    auf `main` ersetzt.
 2. Die ZIP-Datei in einen eigenen Ordner entpacken, z. B. `%LOCALAPPDATA%\Programs\AispaStudio`. Ein Ordner unter
    `C:\Program Files` geht auch, braucht aber Administratorrechte zum Entpacken.
-3. Im Ordner liegen `AispaStudio.Desktop.exe` und die Unterordner `api`, `web` und `postgres`. Nichts davon
-   verschieben; die App findet Datenbank und Server neben sich.
+3. Im Zielordner liegt dann der Ordner `AispaStudio-Windows`. Darin stehen `AispaStudio.Desktop.exe` und die
+   Unterordner `api`, `web` und `postgres`. Nichts davon verschieben; die App findet Datenbank und Server neben sich.
 
 > [!NOTE]
 > Die App ist nicht signiert. Beim ersten Start kann Windows SmartScreen warnen („Der Computer wurde durch Windows
@@ -57,6 +57,21 @@ sieben Tage, steht ein Hinweis über allen Seiten.
 Wiederherstellen auf einem neuen PC: App mit `--standalone` starten und vor „Spa einrichten“ „Aus einer Sicherung
 wiederherstellen …“ wählen. Ausführlich: Hilfethema [Sicherung](../../web/src/help/content/sicherung.md).
 
+## Beispiel-Spa zum Ausprobieren
+
+Wer AISPA Studio erst ansehen will, startet die App mit dem Schalter `--demo`, am einfachsten über eine zweite
+Verknüpfung (Ziel: Pfad plus ` --demo`):
+
+- Die App legt dafür eine eigene Datenbank `aispademo` an und füllt sie mit einem Beispiel-Spa. Der erste Start dauert
+  rund eine halbe Minute, die Anmeldung zeigt den Stand. Die echte Datenbank `aispadb` bleibt unberührt.
+- Der Schalter gilt nur für diesen Start und schaltet immer den Einzelplatz ein. Die App merkt ihn sich nicht;
+  ohne `--demo` startet sie wieder das echte Spa bzw. **„Spa einrichten“**.
+- Alle Beispielkonten haben das Passwort `demo`, zum Beispiel `inhaberin@demo.aispa.test`. Die Anmeldung nennt das.
+  Weitere Konten: [Testdaten](../testdaten.md).
+- Über allen Seiten steht die Leiste **„Sie sehen Beispieldaten.“**. Wer den Standort verwalten darf, löscht das
+  Beispiel-Spa dort mit **„Beispieldaten löschen …“**; nach der Rückfrage schließt sich die App.
+- Im Beispiel-Spa sichert die App nicht und gleicht nicht mit einer zentralen Datenbank ab.
+
 ## Weitere PCs im Spa verbinden
 
 Ein PC im Einzelplatz kann für die anderen PCs im selben Netz der **Haupt-PC** sein. Die Datenbank bleibt dabei auf
@@ -80,7 +95,7 @@ Ausführlich: Hilfethemen [Im Netz](../../web/src/help/content/im-netz.md) und
 | Was | Wo |
 | --- | --- |
 | Programm | der Ordner, in den die ZIP-Datei entpackt wurde |
-| Daten, Datenbank, Protokolle | `%LOCALAPPDATA%\AispaStudio\daten` (Datenbank in `pg`, Protokolle in `protokolle`) |
+| Daten, Datenbank, Protokolle | `%LOCALAPPDATA%\AispaStudio\daten` (Datenbank in `pg`, Protokolle in `protokolle`); das echte Spa liegt in der Datenbank `aispadb`, das Beispiel-Spa (`--demo`) in `aispademo` im selben Ordner |
 | Zugang zur Datenbank und Schlüssel für Gesundheitsdaten | `%LOCALAPPDATA%\AispaStudio\daten\zugang.bin`, mit Windows geschützt; lesbar nur für dasselbe Windows-Konto |
 | Zwischenspeicher für Netzausfall | `%LOCALAPPDATA%\AispaStudio\offline.bin` |
 | Ports | Datenbank und Server nur an 127.0.0.1 (meist 55432 und 55086), im Netz HTTPS auf 55443 |
@@ -114,5 +129,6 @@ Eine Update-Funktion gibt es noch nicht. Ein neuer Stand kommt so auf den PC:
 | Weiterer PC findet den Haupt-PC nicht | Haupt-PC an und App offen? Firewall für private Netzwerke erlaubt? Adresse und Verbindungscode auf der Seite „Im Netz“ vergleichen. |
 | Gesundheitsdaten nicht lesbar | Die App läuft unter einem anderen Windows-Konto als beim Einrichten, oder `zugang.bin` fehlt. Mit dem ursprünglichen Konto starten oder aus der Sicherung wiederherstellen. |
 | Hilfe bleibt leer | Die WebView2-Runtime fehlt (nur Windows 10 ohne Edge); bei Microsoft kostenlos laden. |
+| „AISPA Studio kann auf diesem PC nicht starten“ | Die Startprüfung hat einen Fund, der den Start verhindert: Windows älter als 10 22H2, kein 64-Bit-Windows oder weniger als 1 GB frei auf dem Laufwerk der Daten. Die Karte nennt den Grund; Windows aktualisieren bzw. Platz schaffen und die App neu starten. |
 
 Technische Einzelheiten zu allen Schaltern und Dateien: [Betriebsarten und Module: Referenz](operating-modes.md).

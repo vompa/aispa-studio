@@ -9,7 +9,8 @@
 # - api (zwei Instanzen, Hosting:Role=Api): beantwortet Anfragen, startet keine Hintergrunddienste. Schlüsselring in der Datenbank, deshalb
 #   braucht es das Volume api-keys nicht mehr. Live-Meldungen über Redis.
 # - worker (genau eine Instanz, Hosting:Role=Worker): Hintergrunddienste und Mail-Queue. Nie auf mehr als eine Instanz skalieren.
-#   Er legt auch das Beispiel-Spa an (Database:SeedDemoData): drei Instanzen, die zugleich eine leere Datenbank füllen, wären falsch.
+#   Er legt auch das Beispiel-Spa in der Datenbank aispademo an (Demo:Enabled, AISPA_DEMO=false schaltet es ab): drei Instanzen, die zugleich
+#   eine leere Datenbank füllen, wären falsch, deshalb füllen es nur Instanzen mit Hintergrunddiensten (nicht die Rolle Api).
 #   Die Testkonten erscheinen daher erst nach dem Einspielen (gemessen: rund eine Minute); /health des Workers meldet bis dahin 503.
 # - nginx (Dienst web) hat eine feste Adresse und ist der einzige Proxy, dem die API Adresse und Schema glaubt. /api/ verteilt er reihum,
 #   /hubs/ mit fester Zuordnung je Client-Adresse (docker/nginx-hubs-hash.conf, Upstream api_hubs in docker/nginx.conf).
@@ -24,6 +25,8 @@ x-api-image: &api-build
 
 x-database: &database
   ConnectionStrings__aispadb: "Host=db;Database=aispadb;Username=postgres;Password=aispa-lokal"
+  # Alle Instanzen und der Migrationslauf arbeiten im Beispiel-Spa (Datenbank aispademo, ADR 0100); Demo:Enabled legt sie bei Bedarf an.
+  Demo__Enabled: ${AISPA_DEMO:-true}
   Database__MigrateOnStartup: "false"
   DataProtection__Store: Database
 
@@ -108,7 +111,7 @@ services:
     environment:
       <<: *instance
       Hosting__Role: Worker
-      Database__SeedDemoData: "true"
+      Database__SeedDemoData: "false"
     healthcheck: *health
 
   web:
