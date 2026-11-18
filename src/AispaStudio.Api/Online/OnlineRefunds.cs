@@ -274,8 +274,15 @@ public static partial class RefundOnlinePaymentHandler
         var location = await db.Locations.AsNoTracking().Where(l => l.Id == refund.LocationId).Select(l => l.Name).FirstAsync(ct);
         var voidReceipt = refund.VoidReceiptId is { } voidId ? await services.GetRequiredService<PosService>().GetReceiptAsync(voidId, ct) : null;
         var receiptText = voidReceipt is null ? "" : $"{voidReceipt.RegisterCode} Nr. {voidReceipt.Number}, {voidReceipt.IssuedAt:dd.MM.yyyy}";
-        await services.GetRequiredService<IMessageBus>().PublishAsync(new SendMail(OnlineMails.PaymentRefunded(
-            refund.Email, guest, refund.Source, location, refund.Amount, refund.Currency, receiptText, refund.Language)));
+        var mail = OnlineMails.PaymentRefunded(refund.Email, guest, refund.Source, location, refund.Amount, refund.Currency, receiptText, refund.Language);
+        if (string.IsNullOrWhiteSpace(refund.Email))
+        {
+            // Ohne Mailadresse (Link per SMS an der Rezeption angefordert): die Erstattung als SMS an die zahlende Person.
+            await services.GetRequiredService<GuestMessages>().TextAsync(customerId, mail.Subject, ct);
+            return;
+        }
+
+        await services.GetRequiredService<IMessageBus>().PublishAsync(new SendMail(mail));
     }
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "Erstattung {RefundId} abgelehnt: {Error}")]

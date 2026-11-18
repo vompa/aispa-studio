@@ -405,7 +405,7 @@ Die Nummern sind die Reihenfolge, die der jeweilige Thread gewählt hätte ([Üb
 **Online-Buchung und Kundenbereich**
 1. Gast vor Ablauf der Frist für Karte oder Anzahlung erinnern: seit 16.11.2026 gebaut (einmal, wenn drei Viertel der Frist um sind).
 2. Anzahlung für Termine der Rezeption per Link: seit 17.11.2026 gebaut (Knopf „Anzahlung per Link“ im Termin-Panel; ohne Frist, der Termin bleibt stehen).
-3. Zahlungs- und Kartenlink auch per SMS.
+3. Zahlungs- und Kartenlink auch per SMS: seit 18.11.2026 gebaut (ohne Mailadresse per SMS, ebenso Beleg, Belastung und Erstattung).
 4. Stripe-Kunden aus abgebrochenen Hinterlegungen löschen.
 5. Bevorzugte Sprache des Gastes im Kundenstamm: vorhanden (Feld „Sprache“ in der Kundenkarte, Ä52); am 17.11.2026 als erledigt vermerkt.
 6. Teilerstattung; Meldungen des Anbieters zu fehlgeschlagenen Erstattungen.

@@ -38,6 +38,8 @@ Der Anzahlungsbeleg erfüllt die Belegpflicht zum Zahlungszeitpunkt und versteue
 - Eine Zahlung, die nach Freigabe oder Absage noch eingeht, bekommt trotzdem einen Beleg und wird dann über das Storno erstattet.
 - Offen: Teilerstattung einer Anzahlung, Erinnerung vor Ablauf der Zahlungsfrist, Zahlungslink per SMS, Anzahlung für Termine der Rezeption per Link.
 
+- Nachtrag (18.11.2026): Die Rezeption fordert die Anzahlung für eigene Termine per Link an (PR #68); ohne Mailadresse des Gastes geht der Link per SMS, ebenso der Anzahlungsbeleg und die Erstattung (Entscheidung des Auftraggebers, Einzelheiten in [ADR 0036](0036-kartenhinterlegung-und-ausfallgebuehr.md), Nachtrag vom 18.11.2026).
+
 ## Quellen
 
 - [Ergänzende Themen, Abschnitt 5](../konzepte/ergaenzende-themen.md)

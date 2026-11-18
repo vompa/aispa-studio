@@ -1,12 +1,10 @@
 using AispaStudio.Api.Data;
 using AispaStudio.Api.Mail;
-using AispaStudio.Api.MailIntake;
 using AispaStudio.Api.Pos;
 using AispaStudio.Api.Scheduling;
 using AispaStudio.Api.Tenancy;
 using AispaStudio.Contracts;
 using Microsoft.EntityFrameworkCore;
-using Wolverine;
 
 namespace AispaStudio.Api.Online;
 
@@ -181,10 +179,10 @@ public static partial class ChargeNoShowFeeHandler
 
         var receiptDto = await pos.GetReceiptAsync(receiptId, ct);
         var receiptText = receiptDto is null ? receiptId.ToString() : $"{receiptDto.RegisterCode} Nr. {receiptDto.Number}, {receiptDto.IssuedAt:dd.MM.yyyy}";
-        await services.GetRequiredService<IMessageBus>().PublishGuestMailAsync(services.GetRequiredService<TenantContext>(), OnlineMails.NoShowFeeCharged(
+        await services.GetRequiredService<GuestMessages>().SendAsync(OnlineMails.NoShowFeeCharged(
             guarantee.Email, GuestName.Of(await db.Customers.AsNoTracking().FirstAsync(c => c.Id == guarantee.CustomerId, ct), location.TimeZone), appointment.Treatment.Name, appointment.Start, location.TimeZone, location.Name,
             guarantee.FeeAmount,
-            guarantee.Currency, receiptText, guarantee.Language));
+            guarantee.Currency, receiptText, guarantee.Language), guarantee.CustomerId, null, ct);
     }
 
     private static async Task FailAsync(OnlineDbContext online, CardGuarantee guarantee, string error, ILogger logger, CancellationToken ct)
