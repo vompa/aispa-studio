@@ -237,6 +237,12 @@ jobs:
     permissions:
       contents: write
     steps:
+      # Nur die Startanleitung für die Release-Seite, nicht das ganze Repository.
+      - uses: actions/checkout@v7
+        with:
+          sparse-checkout: .github/release-notes
+          sparse-checkout-cone-mode: false
+
       - uses: actions/download-artifact@v8
         with:
           name: aispa-desktop-win-x64
@@ -249,10 +255,11 @@ jobs:
           GH_REPO: ${{ github.repository }}
         run: |
           zip -qr AispaStudio-Windows.zip AispaStudio-Windows
+          sed "s/{{SHA}}/${GITHUB_SHA::7}/g" .github/release-notes/windows-app.md > release-notes.md
           gh release delete windows-app --yes --cleanup-tag || true
           gh release create windows-app AispaStudio-Windows.zip --prerelease --target "$GITHUB_SHA" \
             --title "Windows-App (Prototyp, neuester Stand)" \
-            --notes "Stand ${GITHUB_SHA::7}. ZIP entpacken, AispaStudio.Desktop.exe starten. Verbindet sich mit http://localhost:5086 (Installation: docs/installation/standalone.md). Ohne Server: AispaStudio.Desktop.exe --standalone startet Datenbank und API auf diesem PC (Einzelplatz)."
+            --notes-file release-notes.md
 
   docker:
     name: Lokaler Testbetrieb (Docker Compose)
