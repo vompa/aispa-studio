@@ -243,10 +243,46 @@ public sealed class CardGuaranteeTests(ApiFixture fixture)
     }
 
     [Fact]
+    public async Task Ohne_Mailadresse_geht_der_Kartenlink_und_die_Belastung_per_SMS()
+    {
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        await RequireCardAsync(spa);
+        await CreateRegisterAsync(spa);
+        var number = $"+43 664 {Random.Shared.Next(1000000, 9999999)}";
+        var phone = PhoneNumbers.Normalize(number);
+        var customer = await spa.PostAsync<CustomerDto>("/api/customers", new CustomerInput("Sam", "Telefon", null, number, null, null), Ct);
+        var booked = await TestSpa.ReadAsync<AppointmentDto>(await spa.BookAsync(TestSpa.At(14), Ct, customer: customer.Id), Ct);
+
+        Assert.True((await spa.GetAsync<CardRequestOffer>($"/api/appointments/{booked.Id}/card-guarantee/offer", Ct)).Possible);
+        await spa.PostAsync<CardGuaranteeStaffDto>($"/api/appointments/{booked.Id}/card-guarantee/request", new { }, Ct);
+        var link = Assert.Single(fixture.Texts.To(phone));
+        Assert.StartsWith("Bitte Karte hinterlegen: Massage: ", link.Text, StringComparison.Ordinal);
+        var token = Regex.Match(link.Text, "#/termin/([A-Za-z0-9_-]+)").Groups[1].Value;
+
+        using var client = spa.OnlineClient();
+        Assert.Equal(HttpStatusCode.OK, (await client.PostAsync($"/api/online/bookings/{token}/card/accept", null, Ct)).StatusCode);
+        var saved = await client.PostAsJsonAsync($"/api/online/bookings/{token}/card/test", new TestCardResult(true), TestSpa.Json, Ct);
+        Assert.Equal(CardGuaranteeStatus.Saved, (await TestSpa.ReadAsync<OnlineAppointment>(saved, Ct)).CardGuarantee!.Status);
+
+        await spa.SetStatusAsync(booked.Id, AppointmentStatus.NoShow, Ct);
+        await spa.PostAsync<CardGuaranteeStaffDto>($"/api/appointments/{booked.Id}/card-guarantee/charge", new { }, Ct);
+        await WaitForAsync(spa, booked.Id, CardGuaranteeStatus.Charged);
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(Ct);
+        timeout.CancelAfter(TimeSpan.FromSeconds(15));
+        while (fixture.Texts.To(phone).Count < 2)
+        {
+            await Task.Delay(50, timeout.Token);
+        }
+
+        Assert.Equal("Ausfallgebühr für Massage", fixture.Texts.To(phone)[1].Text);
+    }
+
+    [Fact]
     public async Task Ohne_Regel_oder_ohne_Mail_laesst_sich_keine_Karte_anfordern()
     {
         var spa = await TestSpa.CreateAsync(fixture, Ct);
-        var noMail = await spa.PostAsync<CustomerDto>("/api/customers", new CustomerInput("Ohne", "Mail", null, "+43 660 1", null, null), Ct);
+        // Weder Mailadresse noch Handynummer: kein Weg für den Link.
+        var noMail = await spa.PostAsync<CustomerDto>("/api/customers", new CustomerInput("Ohne", "Mail", null, null, null, null), Ct);
         var booked = await TestSpa.ReadAsync<AppointmentDto>(await spa.BookAsync(TestSpa.At(15), Ct, customer: noMail.Id), Ct);
 
         var withoutRule = await spa.GetAsync<CardRequestOffer>($"/api/appointments/{booked.Id}/card-guarantee/offer", Ct);
@@ -256,7 +292,7 @@ public sealed class CardGuaranteeTests(ApiFixture fixture)
 
         Assert.False(withoutRule.Possible);
         Assert.Contains("keine Ausfallgebühr", withoutRule.Reason, StringComparison.Ordinal);
-        Assert.Contains("keine E-Mail-Adresse", withoutMail.Reason, StringComparison.Ordinal);
+        Assert.Contains("weder eine E-Mail-Adresse noch eine Handynummer", withoutMail.Reason, StringComparison.Ordinal);
         Assert.Equal(HttpStatusCode.Conflict, request.StatusCode);
     }
 

@@ -68,7 +68,6 @@ internal sealed class StripePaymentProvider(IHttpClientFactory http, IOptions<On
             ["mode"] = "payment",
             ["success_url"] = payment.ReturnUrl,
             ["cancel_url"] = payment.ReturnUrl,
-            ["customer_email"] = payment.BuyerEmail,
             ["client_reference_id"] = payment.OrderId.ToString(),
             ["metadata[orderId]"] = payment.OrderId.ToString(),
             ["expires_at"] = time.GetUtcNow().AddMinutes(Math.Clamp(o.SessionMinutes, 30, 24 * 60)).ToUnixTimeSeconds().ToString(CultureInfo.InvariantCulture),
@@ -77,6 +76,12 @@ internal sealed class StripePaymentProvider(IHttpClientFactory http, IOptions<On
             ["line_items[0][price_data][unit_amount]"] = MinorUnits(payment.Amount).ToString(CultureInfo.InvariantCulture),
             ["line_items[0][price_data][product_data][name]"] = payment.Description,
         };
+        // Ohne Mailadresse (Link per SMS) fragt Stripe selbst danach; eine leere Adresse würde es ablehnen.
+        if (!string.IsNullOrWhiteSpace(payment.BuyerEmail))
+        {
+            form["customer_email"] = payment.BuyerEmail;
+        }
+
         using var request = new HttpRequestMessage(HttpMethod.Post, new Uri(o.ApiBase, "v1/checkout/sessions"))
         {
             Content = new FormUrlEncodedContent(form),
@@ -98,11 +103,13 @@ internal sealed class StripePaymentProvider(IHttpClientFactory http, IOptions<On
     {
         var o = Options;
         var credentials = await CredentialsAsync(setup.TenantId, ct);
-        using var customer = await PostAsync(credentials, "v1/customers", new Dictionary<string, string>
+        var customerForm = new Dictionary<string, string> { ["metadata[guaranteeId]"] = setup.GuaranteeId.ToString() };
+        if (!string.IsNullOrWhiteSpace(setup.Email))
         {
-            ["email"] = setup.Email,
-            ["metadata[guaranteeId]"] = setup.GuaranteeId.ToString(),
-        }, $"aispa-guarantee-customer-{setup.GuaranteeId:N}", ct);
+            customerForm["email"] = setup.Email;
+        }
+
+        using var customer = await PostAsync(credentials, "v1/customers", customerForm, $"aispa-guarantee-customer-{setup.GuaranteeId:N}", ct);
         var form = new Dictionary<string, string>
         {
             ["mode"] = "setup",

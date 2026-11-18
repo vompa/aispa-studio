@@ -127,9 +127,9 @@ public static partial class ReceiptOnlineDepositHandler
         var location = await db.Locations.AsNoTracking().FirstAsync(l => l.Id == deposit.LocationId, ct);
         var receiptDto = await pos.GetReceiptAsync(receiptId, ct);
         var receiptText = receiptDto is null ? receiptId.ToString() : $"{receiptDto.RegisterCode} Nr. {receiptDto.Number}, {receiptDto.IssuedAt:dd.MM.yyyy}";
-        await services.GetRequiredService<IMessageBus>().PublishGuestMailAsync(services.GetRequiredService<TenantContext>(),
+        await services.GetRequiredService<GuestMessages>().SendAsync(
             OnlineMails.DepositReceived(deposit.Email, GuestName.Of(await db.Customers.AsNoTracking().FirstAsync(c => c.Id == deposit.CustomerId, ct), location.TimeZone), appointment.Treatment.Name, appointment.Start, location.TimeZone,
-                location.Name, deposit.Amount, deposit.Currency, deposit.Percent, receiptText, deposit.Language));
+                location.Name, deposit.Amount, deposit.Currency, deposit.Percent, receiptText, deposit.Language), deposit.CustomerId, null, ct);
     }
 
     private static async Task FailAsync(OnlineDbContext online, DepositOrder deposit, string error, ILogger logger, CancellationToken ct)

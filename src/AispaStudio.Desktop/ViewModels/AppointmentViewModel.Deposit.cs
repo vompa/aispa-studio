@@ -62,7 +62,7 @@ public partial class AppointmentViewModel
             if (DepositState is not { } deposit)
             {
                 return DepositOffer is { } offer
-                    ? [$"Der Standort verlangt {offer.Percent} % ({Money.Format(offer.Amount, offer.Currency)}). Der Gast bekommt einen Link und bezahlt dort; der Termin bleibt auch ohne Zahlung stehen."]
+                    ? [$"Der Standort verlangt {offer.Percent} % ({Money.Format(offer.Amount, offer.Currency)}). Der Gast bekommt einen Link (Mail, sonst SMS) und bezahlt dort; der Termin bleibt auch ohne Zahlung stehen."]
                     : [];
             }
 
@@ -119,7 +119,7 @@ public partial class AppointmentViewModel
 
         DepositState = deposit;
         DepositOffer = null;
-        ShowToast?.Invoke("Link per Mail verschickt");
+        ShowToast?.Invoke("Link an den Gast verschickt");
     }
 
     private static string DepositStatusText(DepositStaffDto deposit) => deposit switch

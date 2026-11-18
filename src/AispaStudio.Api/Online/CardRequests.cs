@@ -1,10 +1,7 @@
 using AispaStudio.Api.Data;
 using AispaStudio.Api.Mail;
-using AispaStudio.Api.MailIntake;
-using AispaStudio.Api.Tenancy;
 using AispaStudio.Contracts;
 using Microsoft.EntityFrameworkCore;
-using Wolverine;
 
 namespace AispaStudio.Api.Online;
 
@@ -20,9 +17,8 @@ internal sealed class CardRequests(
     OnlineRules rules,
     OnlinePortal portal,
     AccessLinks links,
-    IMessageBus bus,
-    TenantContext tenants,
-    TimeProvider time)
+    TimeProvider time,
+    GuestMessages messages)
 {
     public abstract record RequestOutcome
     {
@@ -54,7 +50,9 @@ internal sealed class CardRequests(
             ( <= 0, _) => "Für diese Behandlung ist keine Ausfallgebühr eingestellt, sie gilt nur für neue Gäste, oder es ist kein Zahlungsanbieter eingerichtet.",
             (_, { } status) when status != CardGuaranteeStatus.AwaitingConsent => "Für diesen Termin gibt es schon eine Kartenhinterlegung.",
             _ when appointment.Status != AppointmentStatus.Booked || appointment.Start <= time.GetUtcNow() => "Nur für bevorstehende, gebuchte Termine.",
-            _ when string.IsNullOrWhiteSpace(appointment.Customer.Email) => "Für den Gast ist keine E-Mail-Adresse hinterlegt.",
+            _ when !messages.CanReach(appointment.Customer) => messages.CanText
+                ? "Für den Gast ist weder eine E-Mail-Adresse noch eine Handynummer hinterlegt."
+                : "Für den Gast ist keine E-Mail-Adresse hinterlegt, und SMS sind nicht eingerichtet.",
             _ when fee <= 0 => "Der Termin hat keinen Preis.",
             _ => null,
         };
@@ -77,16 +75,18 @@ internal sealed class CardRequests(
 
         var appointment = (await portal.LoadAppointmentAsync(appointmentId, ct))!;
         var location = await db.Locations.AsNoTracking().FirstAsync(l => l.Id == appointment.LocationId, ct);
-        var email = appointment.Customer.Email!;
+        // Ohne Mailadresse geht der Link per SMS; die leere Adresse merkt sich das für die Nachrichten danach.
+        var email = appointment.Customer.Email ?? "";
         var guarantee = await online.CardGuarantees.FirstOrDefaultAsync(g => g.AppointmentId == appointmentId, ct)
             ?? (await cards.AddAsync(appointment, location.Currency, await rules.ForAsync(location.Id, ct), email, "de", consented: false, ct))!;
         var token = links.Create(AccessLinkPurpose.ManageAppointment, appointment.CustomerId, appointment.Id, appointment.End.AddDays(30));
         await online.SaveChangesAsync(ct);
 
-        await bus.PublishGuestMailAsync(tenants, OnlineMails.CardRequest(email, GuestName.Of(appointment.Customer, location.TimeZone),
+        var url = portal.Url($"termin/{token}");
+        await messages.SendAsync(OnlineMails.CardRequest(email, GuestName.Of(appointment.Customer, location.TimeZone),
             OnlineMails.ForGuest(appointment.Treatment.Name, appointment.PlaceholderGuest, guarantee.Language),
             appointment.Start, location.TimeZone, location.Name, guarantee.FeeAmount, guarantee.Currency, guarantee.FeePercent,
-            guarantee.DeadlineHours, portal.Url($"termin/{token}"), guarantee.Language));
+            guarantee.DeadlineHours, url, guarantee.Language), appointment.CustomerId, url, ct);
         return new RequestOutcome.Sent(CardGuarantees.ToStaff(guarantee, appointment));
     }
 }
