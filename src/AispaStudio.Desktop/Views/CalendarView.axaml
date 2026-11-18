@@ -1672,18 +1672,22 @@
                   <ItemsControl ItemsSource="{Binding Visits}">
                     <ItemsControl.ItemTemplate>
                       <DataTemplate x:DataType="vm:AreaVisitRow">
-                        <Grid ColumnDefinitions="88,*,Auto,Auto" Margin="0,2" Opacity="{Binding Opacity}">
+                        <Grid ColumnDefinitions="88,*,Auto,Auto" RowDefinitions="Auto,Auto" Margin="0,2" Opacity="{Binding Opacity}">
                           <TextBlock Text="{Binding TimeText}" Classes="num small" VerticalAlignment="Center" />
                           <StackPanel Grid.Column="1" VerticalAlignment="Center">
                             <TextBlock Text="{Binding Name}" FontWeight="Medium" TextTrimming="CharacterEllipsis" />
                             <TextBlock Text="{Binding Detail}" Classes="muted small" IsVisible="{Binding HasDetail}" TextTrimming="CharacterEllipsis" />
                           </StackPanel>
+                          <!-- Gast ohne Namen aus einer Gruppe: Namen direkt am Eintritt nachtragen, auch wenn der Gast keinen Termin hat -->
+                          <Button Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="3" Classes="ghost" Content="Namen nachtragen" Command="{Binding NameGuestCommand}"
+                                  IsVisible="{Binding CanName}" Padding="0,2" FontSize="12" HorizontalAlignment="Left" />
                           <Button Grid.Column="2" Classes="ghost icon" ToolTip.Tip="Eintritt an der Kassa abrechnen" Command="{Binding CheckoutCommand}"
                                   IsVisible="{Binding CanCheckout}">
                             <ui:Icon Data="{x:Static ui:Icons.Register}" Width="16" Height="16" />
                           </Button>
                           <Button Grid.Column="3" Classes="ghost" Content="Stornieren" Command="{Binding CancelCommand}" IsVisible="{Binding CanCancel}"
                                   Padding="8,4" FontSize="12" />
+
                         </Grid>
                       </DataTemplate>
                     </ItemsControl.ItemTemplate>
@@ -1695,6 +1699,17 @@
         </ItemsControl>
 
         <ui:InfoBar Severity="Error" Message="{Binding Error}" IsVisible="{Binding Error, Converter={x:Static ObjectConverters.IsNotNull}}" />
+        <Border x:Name="AreaNamingCard" Classes="panelcard" IsVisible="{Binding IsNaming}">
+          <StackPanel Spacing="8">
+            <TextBlock Text="{Binding NamingTitle}" FontWeight="Medium" TextWrapping="Wrap" />
+            <TextBlock Text="Der Gast gilt für alle seine Eintritte und Termine dieser Buchung." Classes="muted small" TextWrapping="Wrap" />
+            <ContentControl Content="{Binding GuestSearch}" />
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <Button x:Name="AreaAssignGuestButton" Content="Gast eintragen" Command="{Binding AssignGuestCommand}" />
+              <Button Classes="ghost" Content="Abbrechen" Command="{Binding CancelNamingCommand}" />
+            </StackPanel>
+          </StackPanel>
+        </Border>
         <StackPanel Spacing="10" IsVisible="{Binding ShowForm}">
           <TextBlock Text="Neuer Eintritt" Classes="group" />
           <ContentControl Content="{Binding Search}" />
