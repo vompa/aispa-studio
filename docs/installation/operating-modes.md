@@ -47,6 +47,16 @@ Hilfe) liefert dieselbe API aus (`Hosting:WebRoot`), unter der Adresse, die die 
 geordnet: Sie legt `api.stop` im Datenordner an (`Hosting:StopFile`), die API schließt laufende Anfragen und Hintergrundarbeit ab
 und endet; nur wenn sie nach 20 Sekunden noch läuft, wird sie hart beendet.
 
+**Beispiel-Spa in eigener Datenbank** ([ADR 0100](../entscheidungen/0100-beispiel-spa-in-eigener-datenbank.md)). Die Einstellung
+`Demo:Enabled=true` (Umgebung `Demo__Enabled`) schaltet die API auf die Datenbank `aispademo` im selben PostgreSQL um: Sie schreibt
+`ConnectionStrings:aispadb` auf diesen Datenbanknamen um, legt die Datenbank über die Wartungsdatenbank `postgres` an, falls sie fehlt,
+und füllt sie mit dem Beispiel-Spa (`Database:SeedDemoData` gilt dann als eingeschaltet, im Mehrinstanz-Betrieb nur für Instanzen mit
+Hintergrunddiensten). Die Beispielkonten haben dort das Passwort `demo`. `GET /api/system/modules` meldet `demo: true`;
+`DELETE /api/system/demo` (Recht „Standort verwalten“) löscht die Datenbank `aispademo` und beendet die API. Der Name ist fest, der
+Endpunkt kann `aispadb` nicht löschen. In der Windows-App startet `--demo` den Einzelplatz mit `Demo__Enabled=true`, nur für diesen
+Start (nichts wird gemerkt); Sicherung, Wiederherstellung und Abgleich arbeiten weiter nur mit `aispadb` bzw. gar nicht. Am Server
+steuert `AISPA_DEMO` (Compose, Standard `true`) die Einstellung.
+
 **Mehrplatz im eigenen Netz** ([ADR 0049](../entscheidungen/0049-mehrplatz-im-eigenen-netz.md)). Am Haupt-PC gibt, wer den
 Standort verwalten darf, unter „Im Netz“ den Einzelplatz frei. Die App stellt dabei einmal ein eigenes Zertifikat aus (`netz.pfx`,
 Passwort in `zugang.bin`) und startet die API zusätzlich unter `https://*:55443` (Kestrel-Endpunkt `Netz`); die Datenbank bleibt

@@ -31,19 +31,20 @@
             <TextBlock Text="Stand" Classes="h2" />
             <ui:HelpButton Topic="sicherung" Section="stand" />
           </StackPanel>
-          <TextBlock Text="{Binding FolderText}" TextWrapping="Wrap" />
-          <TextBlock Text="{Binding LastBackupText}" TextWrapping="Wrap" />
+          <TextBlock Text="{x:Static vm:BackupViewModel.DemoText}" TextWrapping="Wrap" IsVisible="{Binding IsDemo}" />
+          <TextBlock Text="{Binding FolderText}" TextWrapping="Wrap" IsVisible="{Binding !IsDemo}" />
+          <TextBlock Text="{Binding LastBackupText}" TextWrapping="Wrap" IsVisible="{Binding !IsDemo}" />
           <TextBlock Text="{Binding ScheduleText}" Classes="muted small" TextWrapping="Wrap"
                      IsVisible="{Binding ScheduleText, Converter={x:Static ObjectConverters.IsNotNull}}" />
           <ui:InfoBar Severity="Error" Message="{Binding ErrorText}" IsVisible="{Binding ErrorText, Converter={x:Static ObjectConverters.IsNotNull}}" />
           <StackPanel Orientation="Horizontal" Spacing="10">
-            <Button Content="Jetzt sichern" Command="{Binding BackupNowCommand}" ui:DisabledHint.Text="Verfügbar, sobald ein Sicherungsordner gespeichert ist." />
+            <Button Content="Jetzt sichern" Command="{Binding BackupNowCommand}" ui:DisabledHint.Text="{Binding BackupNowHint}" />
             <TextBlock Text="{Binding Message}" VerticalAlignment="Center" Classes="muted" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
           </StackPanel>
         </StackPanel>
       </Border>
 
-      <Border Classes="card" IsVisible="{Binding CanConfigure}">
+      <Border Classes="card" IsVisible="{Binding ShowFolderSettings}">
         <StackPanel Spacing="10">
           <StackPanel Orientation="Horizontal" Spacing="8">
             <TextBlock Text="Ordner" Classes="h2" />

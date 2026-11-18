@@ -68,6 +68,30 @@
         }
       }
     },
+    "/api/v1/system/demo": {
+      "delete": {
+        "tags": [
+          "System"
+        ],
+        "summary": "Löscht das Beispiel-Spa samt seiner Datenbank „aispademo“ und beendet danach die API (202). Ohne Beispiel-Spa 404. Die echte Datenbank „aispadb“ wird nie angefasst: der Name ist fest.",
+        "operationId": "DeleteDemoSpa",
+        "responses": {
+          "202": {
+            "description": "Accepted"
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/system/ping": {
       "post": {
         "tags": [
@@ -52256,6 +52280,10 @@
                 "$ref": "#/components/schemas/SubscriptionPlan"
               }
             ]
+          },
+          "demo": {
+            "type": "boolean",
+            "default": false
           }
         }
       },

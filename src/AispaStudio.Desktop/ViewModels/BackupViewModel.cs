@@ -24,6 +24,14 @@ public partial class BackupViewModel(ILocalServer local, ISettingsStore settings
     /// <summary>Ordner wählen und Wiederherstellungsschlüssel erzeugen (Recht „Standort verwalten“).</summary>
     public bool CanConfigure { get; init; }
 
+    /// <summary>Beispiel-Spa (ADR 0100): Die Daten liegen in einer eigenen Datenbank, die diese Seite nicht sichert.</summary>
+    public bool IsDemo { get; init; }
+
+    public const string DemoText = "Im Beispiel-Spa wird nicht gesichert.";
+
+    /// <summary>Ordner und Wiederherstellungsschlüssel einrichten: im Beispiel-Spa gibt es nichts zu sichern.</summary>
+    public bool ShowFolderSettings => CanConfigure && !IsDemo;
+
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(SaveFolderCommand))]
     public partial string FolderInput { get; set; } = settings.Load().BackupFolder ?? "";
@@ -63,7 +71,8 @@ public partial class BackupViewModel(ILocalServer local, ISettingsStore settings
     public string LastBackupText => LastBackupAt is { } at ? $"Letzte Sicherung: {Local(at)}." : "Noch keine Sicherung.";
 
     /// <summary>Hinweis über allen Seiten, solange die letzte Sicherung fehlt oder älter als sieben Tage ist.</summary>
-    public string? ReminderText => Folder is null
+    public string? ReminderText => IsDemo ? null
+        : Folder is null
         ? "Noch keine tägliche Sicherung eingerichtet. Die Daten liegen nur auf diesem PC; die Leitung wählt unter „Sicherung“ einen Ordner auf einem zweiten Laufwerk oder im Netz."
         : LastBackupAt is not { } at ? "Noch keine Sicherung erstellt. Bitte unter „Sicherung“ prüfen, ob der Ordner erreichbar ist."
         : time.GetUtcNow() - at > RemindAfter ? $"Die letzte Sicherung ist vom {Local(at)} und damit älter als sieben Tage. Bitte unter „Sicherung“ prüfen."
@@ -71,7 +80,10 @@ public partial class BackupViewModel(ILocalServer local, ISettingsStore settings
 
     public bool HasReminder => ReminderText is not null;
 
-    private bool CanSaveFolder => CanConfigure && !IsBusy && FolderInput.Trim().Length > 0;
+    /// <summary>Warum „Jetzt sichern“ gesperrt ist.</summary>
+    public string BackupNowHint => IsDemo ? DemoText : "Verfügbar, sobald ein Sicherungsordner gespeichert ist.";
+
+    private bool CanSaveFolder => ShowFolderSettings && !IsBusy && FolderInput.Trim().Length > 0;
 
     /// <summary>Ordner merken, beim ersten Mal den Wiederherstellungsschlüssel erzeugen und gleich sichern.</summary>
     [RelayCommand(CanExecute = nameof(CanSaveFolder))]
@@ -124,7 +136,7 @@ public partial class BackupViewModel(ILocalServer local, ISettingsStore settings
     [RelayCommand]
     private void CodeNoted() => NewCode = null;
 
-    private bool CanBackupNow => Folder is not null && !IsBusy;
+    private bool CanBackupNow => !IsDemo && Folder is not null && !IsBusy;
 
     [RelayCommand(CanExecute = nameof(CanBackupNow))]
     public async Task BackupNowAsync()
@@ -160,6 +172,11 @@ public partial class BackupViewModel(ILocalServer local, ISettingsStore settings
     /// <summary>Aus dem Hintergrund: sichern, wenn die letzte Sicherung einen Tag alt ist; nach einem Fehler frühestens nach 30 Minuten wieder.</summary>
     public async Task RunIfDueAsync()
     {
+        if (IsDemo)
+        {
+            return;
+        }
+
         if (!_scheduleTried && local.HasRecoveryKey)
         {
             await ScheduleAsync().ConfigureAwait(true);

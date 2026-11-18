@@ -152,10 +152,23 @@ public partial class LoginViewModel(IWorkstationApi api, Func<CurrentUser, Task>
 
     /// <summary>Einzelplatz-Betrieb: Anmeldung mit Benutzername und Passwort statt Einmal-Code.</summary>
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsServer), nameof(ShowPasswordLogin), nameof(ShowCodeForm), nameof(OtherAccountText), nameof(ShowRecovery))]
+    [NotifyPropertyChangedFor(nameof(IsServer), nameof(ShowPasswordLogin), nameof(ShowCodeForm), nameof(OtherAccountText), nameof(ShowRecovery), nameof(HasDemoHint))]
     public partial bool IsStandalone { get; private set; }
 
     public bool IsServer => !IsStandalone;
+
+    /// <summary>Beispiel-Spa in der eigenen Datenbank (ADR 0100): Die Konten haben alle das Passwort „demo“.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasDemoHint), nameof(StartupTitle))]
+    public partial bool IsDemo { get; private set; }
+
+    /// <summary>Hinweis über dem Anmeldefeld; die Passwort-Anmeldung gibt es nur im Einzelplatz.</summary>
+    public const string DemoHint = "Beispiel-Spa: Anmelden z. B. mit inhaberin@demo.aispa.test, Passwort demo";
+
+    public bool HasDemoHint => IsDemo && IsStandalone;
+
+    /// <summary>Überschrift der Startanzeige: im Beispiel-Spa meldet die API Production und das Einspielen dauert eine halbe Minute.</summary>
+    public string StartupTitle => IsDemo ? "Beispiel-Spa wird eingerichtet" : "Entwicklung: API startet noch";
 
     /// <summary>Einzelplatz-Betrieb, noch kein Spa angelegt: Einrichtung gleich hier (oder im Browser über die lokale API).</summary>
     [ObservableProperty]
@@ -286,6 +299,7 @@ public partial class LoginViewModel(IWorkstationApi api, Func<CurrentUser, Task>
     {
         var modules = await api.GetAsync<SystemModules>("api/system/modules").ConfigureAwait(true);
         IsStandalone = modules.Value?.Standalone == true;
+        IsDemo = modules.Value?.Demo == true;
         SignInPage = await _web.SignInPageAsync().ConfigureAwait(true);
         if (IsStandalone)
         {
@@ -311,7 +325,7 @@ public partial class LoginViewModel(IWorkstationApi api, Func<CurrentUser, Task>
     public async Task RefreshStartupAsync()
     {
         var status = (await api.GetAsync<SystemStatus>("api/system/status").ConfigureAwait(true)).Value;
-        var startup = status?.Environment == "Development" ? status.Startup : null;
+        var startup = status?.Environment == "Development" || IsDemo ? status?.Startup : null;
         StartupNotice = startup is { Phase: not StartupPhase.Ready } ? startup.Text : null;
         _startupFailed = startup?.Phase == StartupPhase.Failed;
         if (StartupNotice is null && !HasTestAccounts)

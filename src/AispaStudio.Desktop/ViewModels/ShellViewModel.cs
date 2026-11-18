@@ -46,8 +46,12 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
     public ShellViewModel(IWorkstationApi api, CurrentUser user, ILiveUpdates? live, TimeProvider time, ThemeController theme,
         string connection, Func<Task> signOut, TimeSpan? checkInterval = null, SystemModules? modules = null,
         SharedDeviceDto? device = null, Action<SharedDeviceDto?>? deviceChanged = null, ILocalServer? local = null, IConfirmDialogs? dialogs = null,
-        ServerLinkViewModel? serverLink = null)
+        ServerLinkViewModel? serverLink = null, Action? closeApp = null)
     {
+        _demoDialogs = dialogs;
+        _closeApp = closeApp;
+        _runsLocally = local is not null;
+        IsDemo = modules?.Demo == true;
         Device = device;
         _theme = theme;
         _signOut = signOut;
@@ -113,7 +117,11 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
             };
             item = new NavItem("Abgleich", Icons.Refresh, Sync);
             pages.Add(item);
-            Backup = new BackupViewModel(local, theme.Store, time, WindowsBackupScheduler.ForThisPc()) { CanConfigure = user.Rights.Contains(AccessRight.ManageLocation) };
+            Backup = new BackupViewModel(local, theme.Store, time, WindowsBackupScheduler.ForThisPc())
+            {
+                CanConfigure = user.Rights.Contains(AccessRight.ManageLocation),
+                IsDemo = IsDemo,
+            };
             Backup.PropertyChanged += (_, e) =>
             {
                 if (e.PropertyName == nameof(BackupViewModel.HasReminder))

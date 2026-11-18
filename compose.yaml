@@ -1,8 +1,9 @@
 # Lokaler Testbetrieb ohne .NET und Node: Datenbank, API, Web-Apps und Test-Postfach in Docker.
 #   docker compose up -d --build
 # Web (Apps wie /anmelden/, /buchen/, /mein-tag/): http://localhost:5173  ·  API (für die Windows-App): http://localhost:5086  ·  Mails: http://localhost:8025
-# Die API läuft in der Entwicklungsumgebung: legt beim ersten Start das Beispiel-Spa an (einige Minuten, siehe docs/testdaten.md)
-# und bietet die Anmeldung mit Testkonten ohne Passkey. Nie öffentlich betreiben.
+# Die API läuft in der Entwicklungsumgebung: legt beim ersten Start das Beispiel-Spa in der eigenen Datenbank aispademo an (einige Minuten,
+# siehe docs/testdaten.md) und bietet die Anmeldung mit Testkonten ohne Passkey. Nie öffentlich betreiben.
+# Ohne Beispiel-Spa: in .env AISPA_DEMO=false; dann nutzt die API die leere Datenbank aispadb. Löschen geht in der Windows-App (Leiste "Sie sehen Beispieldaten").
 # Optional lokale KI ohne Internet (ADR 0057): in .env AISPA_LOCAL_AI_URL=http://ollama:11434 und COMPOSE_PROFILES=ki-lokal,
 # dann das Modell unter Stammdaten > KI laden. Braucht etwa 4 GB Image, 3,3 GB Modell und 8 GB Arbeitsspeicher.
 name: aispa
@@ -39,6 +40,9 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__aispadb: "Host=db;Database=aispadb;Username=postgres;Password=aispa-lokal"
+      # Beispiel-Spa in der eigenen Datenbank aispademo (ADR 0100); aispadb bleibt unberührt. Demo__Enabled schaltet das Einspielen selbst ein.
+      Database__SeedDemoData: "false"
+      Demo__Enabled: ${AISPA_DEMO:-true}
       Mail__Smtp__Host: mailpit
       Mail__Smtp__Port: "1025"
       Mail__Smtp__Security: None

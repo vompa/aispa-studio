@@ -110,6 +110,9 @@
                   IsVisible="{Binding !CodeRequested}" />
         </StackPanel>
 
+        <!-- Beispiel-Spa (ADR 0100): welches Konto und Passwort gelten -->
+        <ui:InfoBar Severity="Info" Message="{x:Static vm:LoginViewModel.DemoHint}" IsVisible="{Binding HasDemoHint}" />
+
         <!-- Einzelplatz-Betrieb (ADR 0041): Benutzername und Passwort -->
         <StackPanel Spacing="10" IsVisible="{Binding ShowPasswordLogin}">
           <StackPanel Orientation="Horizontal" Spacing="8">
@@ -258,11 +261,11 @@
         <TextBlock Text="Die App bleibt danach auf diesem PC angemeldet." Classes="muted small" HorizontalAlignment="Center" />
         </StackPanel>
 
-        <!-- Entwicklung: API migriert noch oder spielt das Beispiel-Spa ein (oder das scheiterte) -->
+        <!-- Entwicklung oder Beispiel-Spa: API migriert noch oder spielt das Beispiel-Spa ein (oder das scheiterte) -->
         <Border Classes="card" Background="{DynamicResource WarnSoftBrush}" BorderBrush="{DynamicResource WarnBrush}" Padding="12,10"
                 IsVisible="{Binding HasStartupNotice}">
           <StackPanel Spacing="8">
-            <TextBlock Text="Entwicklung: API startet noch" Classes="group" Foreground="{DynamicResource WarnBrush}" />
+            <TextBlock Text="{Binding StartupTitle}" Classes="group" Foreground="{DynamicResource WarnBrush}" />
             <TextBlock Text="{Binding StartupNotice}" TextWrapping="Wrap" />
           </StackPanel>
         </Border>

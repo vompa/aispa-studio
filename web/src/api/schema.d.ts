@@ -55,6 +55,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/system/demo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Löscht das Beispiel-Spa samt seiner Datenbank „aispademo“ und beendet danach die API (202). Ohne Beispiel-Spa 404. Die echte Datenbank „aispadb“ wird nie angefasst: der Name ist fest. */
+        delete: operations["DeleteDemoSpa"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/system/ping": {
         parameters: {
             query?: never;
@@ -14247,6 +14264,8 @@ export interface components {
             benchmark: boolean;
             dashboard: boolean;
             plan?: null | components["schemas"]["SubscriptionPlan"];
+            /** @default false */
+            demo: boolean;
         };
         SystemStatus: {
             version: string;
@@ -14915,6 +14934,33 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SystemModules"];
+                };
+            };
+        };
+    };
+    DeleteDemoSpa: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
         };

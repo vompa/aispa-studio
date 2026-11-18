@@ -57,6 +57,21 @@ sieben Tage, steht ein Hinweis über allen Seiten.
 Wiederherstellen auf einem neuen PC: App mit `--standalone` starten und vor „Spa einrichten“ „Aus einer Sicherung
 wiederherstellen …“ wählen. Ausführlich: Hilfethema [Sicherung](../../web/src/help/content/sicherung.md).
 
+## Beispiel-Spa zum Ausprobieren
+
+Wer AISPA Studio erst ansehen will, startet die App mit dem Schalter `--demo`, am einfachsten über eine zweite
+Verknüpfung (Ziel: Pfad plus ` --demo`):
+
+- Die App legt dafür eine eigene Datenbank `aispademo` an und füllt sie mit einem Beispiel-Spa. Der erste Start dauert
+  rund eine halbe Minute, die Anmeldung zeigt den Stand. Die echte Datenbank `aispadb` bleibt unberührt.
+- Der Schalter gilt nur für diesen Start und schaltet immer den Einzelplatz ein. Die App merkt ihn sich nicht;
+  ohne `--demo` startet sie wieder das echte Spa bzw. **„Spa einrichten“**.
+- Alle Beispielkonten haben das Passwort `demo`, zum Beispiel `inhaberin@demo.aispa.test`. Die Anmeldung nennt das.
+  Weitere Konten: [Testdaten](../testdaten.md).
+- Über allen Seiten steht die Leiste **„Sie sehen Beispieldaten.“**. Wer den Standort verwalten darf, löscht das
+  Beispiel-Spa dort mit **„Beispieldaten löschen …“**; nach der Rückfrage schließt sich die App.
+- Im Beispiel-Spa sichert die App nicht und gleicht nicht mit einer zentralen Datenbank ab.
+
 ## Weitere PCs im Spa verbinden
 
 Ein PC im Einzelplatz kann für die anderen PCs im selben Netz der **Haupt-PC** sein. Die Datenbank bleibt dabei auf
@@ -80,7 +95,7 @@ Ausführlich: Hilfethemen [Im Netz](../../web/src/help/content/im-netz.md) und
 | Was | Wo |
 | --- | --- |
 | Programm | der Ordner, in den die ZIP-Datei entpackt wurde |
-| Daten, Datenbank, Protokolle | `%LOCALAPPDATA%\AispaStudio\daten` (Datenbank in `pg`, Protokolle in `protokolle`) |
+| Daten, Datenbank, Protokolle | `%LOCALAPPDATA%\AispaStudio\daten` (Datenbank in `pg`, Protokolle in `protokolle`); das echte Spa liegt in der Datenbank `aispadb`, das Beispiel-Spa (`--demo`) in `aispademo` im selben Ordner |
 | Zugang zur Datenbank und Schlüssel für Gesundheitsdaten | `%LOCALAPPDATA%\AispaStudio\daten\zugang.bin`, mit Windows geschützt; lesbar nur für dasselbe Windows-Konto |
 | Zwischenspeicher für Netzausfall | `%LOCALAPPDATA%\AispaStudio\offline.bin` |
 | Ports | Datenbank und Server nur an 127.0.0.1 (meist 55432 und 55086), im Netz HTTPS auf 55443 |

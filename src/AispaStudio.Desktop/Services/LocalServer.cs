@@ -197,11 +197,14 @@ public sealed class LocalServer : ILocalServer
     private readonly TimeProvider _time;
     private IRunningProcess? _api;
     private LocalSecrets? _secrets;
+    private readonly bool _demo;
 
+    /// <param name="demo">Beispiel-Spa (<c>--demo</c>, ADR 0100): die API arbeitet in der Datenbank <c>aispademo</c>; Sicherung und Wiederherstellung bleiben bei <c>aispadb</c>.</param>
     public LocalServer(LocalServerPaths paths, IProcessRunner runner, ISecretProtector protector,
         Func<Uri, CancellationToken, Task<bool>>? isApiReady = null, TimeSpan? apiTimeout = null, TimeProvider? time = null,
-        TimeSpan? stopTimeout = null)
+        TimeSpan? stopTimeout = null, bool demo = false)
     {
+        _demo = demo;
         _time = time ?? TimeProvider.System;
         _paths = paths;
         _runner = runner;
@@ -608,7 +611,8 @@ public sealed class LocalServer : ILocalServer
     public IReadOnlyDictionary<string, string> ApiEnvironment(LocalSecrets secrets)
     {
         var env = BaseEnvironment(secrets);
-        if (secrets.CentralConnectionString is { } central)
+        // Im Beispiel-Spa nie abgleichen: die Beispieldaten gehören nicht in die zentrale Datenbank (ADR 0100).
+        if (!_demo && secrets.CentralConnectionString is { } central)
         {
             env["Sync__CentralConnectionString"] = central;
         }
@@ -636,6 +640,11 @@ public sealed class LocalServer : ILocalServer
             ["HealthData__CurrentKeyId"] = secrets.KeyId,
             [$"HealthData__Keys__{secrets.KeyId}"] = secrets.HealthKey,
         };
+        if (_demo)
+        {
+            env["Demo__Enabled"] = "true";
+        }
+
         var local = $"http://127.0.0.1:{_config.ApiPort}";
         if (_config.Shared && NetworkCode(secrets) is not null)
         {

@@ -37,14 +37,18 @@ public sealed class ModuleSwitches
 {
     private readonly HashSet<AppModule> _enabled;
 
-    private ModuleSwitches(bool standalone, HostingRole role, HashSet<AppModule> enabled)
+    private ModuleSwitches(bool standalone, HostingRole role, HashSet<AppModule> enabled, bool demo)
     {
         Standalone = standalone;
+        Demo = demo;
         Role = role;
         _enabled = enabled;
     }
 
     public bool Standalone { get; }
+
+    /// <summary>Beispiel-Spa in der eigenen Datenbank (<c>Demo:Enabled</c>, ADR 0100).</summary>
+    public bool Demo { get; }
 
     public HostingRole Role { get; }
 
@@ -79,7 +83,7 @@ public sealed class ModuleSwitches
         var enabled = Enum.GetValues<AppModule>()
             .Where(m => configuration.GetValue<bool?>($"Modules:{m}") ?? !standalone)
             .ToHashSet();
-        return new(standalone, role, enabled);
+        return new(standalone, role, enabled, DemoSpa.IsEnabled(configuration));
     }
 
     /// <summary>Leer oder fehlend gilt als aus (wie <c>Hosting:ForwardedHeaders:Enabled</c>; Compose setzt unbelegte Werte als leeren Text), sonst nur <c>true</c> oder <c>false</c>.</summary>
@@ -122,7 +126,8 @@ public sealed class ModuleSwitches
         IsOn(AppModule.Rebooking, plan),
         IsOn(AppModule.Benchmark, plan),
         IsOn(AppModule.Dashboard, plan),
-        plan);
+        plan,
+        Demo);
 }
 
 internal static class ModuleExtensions

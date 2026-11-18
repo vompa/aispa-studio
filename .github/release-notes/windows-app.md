@@ -22,6 +22,8 @@ Vorabstand der Windows-App zum Ausprobieren, Stand `{{SHA}}`. Kein Installer, ke
 
 Die App merkt sich die Betriebsart. Danach genügt ein Doppelklick auf `AispaStudio.Desktop.exe`.
 
+**Beispiel-Spa zum Ausprobieren:** wie beim Einzelplatz eine Verknüpfung anlegen, aber ` --demo` anhängen. Die App legt beim ersten Start in einer eigenen Datenbank ein Beispiel-Spa mit Testdaten an (rund eine halbe Minute); die echten Daten bleiben unberührt. Anmelden z. B. mit `inhaberin@demo.aispa.test` und dem Passwort `demo`. Die Leiste „Sie sehen Beispieldaten.“ bietet „Beispieldaten löschen …“. Die App merkt sich `--demo` nicht: ohne den Schalter startet sie wieder mit den echten Daten.
+
 **Mit Server oder Haupt-PC:** `AispaStudio.Desktop.exe` per Doppelklick starten, ohne Schalter. Die App verbindet sich mit dem Server unter `http://localhost:5086`. Für einen Haupt-PC im Spa auf dem Startbildschirm in der Karte „Mit Haupt-PC im Netz verbinden“ Adresse und Verbindungscode eintragen; beides zeigt der Haupt-PC unter „Im Netz“.
 
 > [!NOTE]

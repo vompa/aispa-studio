@@ -524,6 +524,29 @@ public sealed class LocalServerTests : IDisposable
         Assert.False(settings.Load().Standalone);
     }
 
+    [Fact]
+    public async Task Beispiel_Spa_setzt_Demo_Enabled_nur_mit_dem_Schalter_und_gleicht_nie_ab()
+    {
+        InstallPackage();
+        var plain = new FakeRunner(Paths);
+        var normal = new LocalServer(Paths, plain, new PlainProtector(), (_, _) => Task.FromResult(plain.ApiStarted));
+        await normal.StartAsync(ct: Ct);
+        Assert.False(plain.ApiEnvironment!.ContainsKey("Demo__Enabled"));
+
+        const string Central = "Host=db.spa-am-see.at;Database=aispadb;Username=gmunden;Password=geheim;SSL Mode=Require";
+        var runner = new FakeRunner(Paths) { DatabaseRunning = true, DatabaseExists = true };
+        var demo = new LocalServer(Paths, runner, new PlainProtector(), (_, _) => Task.FromResult(runner.ApiStarted), demo: true);
+        await demo.StartAsync(ct: Ct);
+        Assert.True(await demo.SetCentralAsync(Central, Ct));
+
+        var env = runner.ApiEnvironment!;
+        Assert.Equal("true", env["Demo__Enabled"]);
+        // Die API schreibt die Verbindung selbst auf aispademo um; die App gibt weiter aispadb mit, damit Sicherung und Wiederherstellung dort bleiben.
+        Assert.Contains("Database=aispadb;", env["ConnectionStrings__aispadb"], StringComparison.Ordinal);
+        Assert.Equal("true", env["Hosting__Standalone"]);
+        Assert.False(env.ContainsKey("Sync__CentralConnectionString"));
+    }
+
     private sealed class SyncProgress(List<string> steps) : IProgress<string>
     {
         public void Report(string value) => steps.Add(value);
