@@ -239,9 +239,11 @@ public sealed class CalendarTests
         var paar = layout.Columns[0];
 
         Assert.Equal(
-            ["Paarraum · 2 Plätze", "Raumpflege 10 Min. nach jedem Termin", "1 Termin heute", $"Klick: alle Termine von Raum Zeder der nächsten {CalendarFilter.Days} Tage"],
+            ["Paarraum · 2 Plätze", "Raumpflege 10 Min. nach jedem Termin · 2 Behandlungen", "1 Termin heute", $"Klick: alle Termine von Raum Zeder der nächsten {CalendarFilter.Days} Tage"],
             paar.HeaderTipLines.Select(l => l.Text));
         Assert.Equal([Icons.Users, Icons.Broom, Icons.Calendar, Icons.Cursor], paar.HeaderTipLines.Select(l => l.Icon));
+        // Der Kopf kürzt, der Hinweis nennt den vollen Text (Durchsicht Kalender 1, 2c).
+        Assert.Equal("Pflege 10 Min. · 2 Beh.", paar.HeaderSecondLine);
         Assert.DoesNotContain(paar.HeaderTipLines, l => l.Text.Contains("Gesicht", StringComparison.Ordinal) || l.Text.Contains("Behandlungen:", StringComparison.Ordinal));
 
         var single = layout.Columns[1];

@@ -52,7 +52,7 @@ public partial class AppointmentViewModel
     public bool MayReadHealthData { get; init; }
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasAnamnesis), nameof(AnamnesisStateText), nameof(HasAnamnesisRecord), nameof(CanReadAnamnesisRecord), nameof(AnamnesisScans),
+    [NotifyPropertyChangedFor(nameof(HasAnamnesis), nameof(AnamnesisStateText), nameof(AnamnesisChipText), nameof(AnamnesisChipIsWarn), nameof(HasAnamnesisRecord), nameof(CanReadAnamnesisRecord), nameof(AnamnesisScans),
         nameof(CanSeeHealthAccesses))]
     public partial AnamnesisOverview? AnamnesisOverview { get; private set; }
 
@@ -121,6 +121,17 @@ public partial class AppointmentViewModel
             + (overview.ValidUntil is { } until ? $", gültig bis {Day(until)}." : "."),
         _ => "Fehlt noch.",
     };
+
+    /// <summary>Kennzeichen oben bei den Chips (Durchsicht, Befund 16): nur der Stand, keine Antworten.</summary>
+    public string AnamnesisChipText => AnamnesisOverview switch
+    {
+        null => "",
+        { LastSubmittedAt: not null } overview => overview.ValidUntil > Time.GetUtcNow() ? "Anamnese liegt vor" : "Anamnese abgelaufen",
+        _ => "Anamnese fehlt",
+    };
+
+    /// <summary>Fehlt oder abgelaufen: das Kennzeichen steht in der Warnfarbe, sonst in Grün.</summary>
+    public bool AnamnesisChipIsWarn => AnamnesisOverview is not { LastSubmittedAt: not null } overview || overview.ValidUntil <= Time.GetUtcNow();
 
     public IReadOnlyList<AnamnesisScanRow> AnamnesisScans => AnamnesisOverview is { } overview
         ? [.. overview.OpenScans.Select(s => new AnamnesisScanRow(

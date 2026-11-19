@@ -214,11 +214,12 @@ public sealed partial class CompanionViewModel : ViewModelBase, ISidePanel, IDis
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(AskCommand))]
-    [NotifyPropertyChangedFor(nameof(ShowsAnswer))]
+    [NotifyPropertyChangedFor(nameof(ShowsAnswer), nameof(VisibleRecentQuestions), nameof(HasVisibleRecentQuestions))]
     public partial bool IsAsking { get; private set; }
 
     /// <summary>Die Frage der angezeigten Antwort (Kopf der Karte).</summary>
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(VisibleRecentQuestions), nameof(HasVisibleRecentQuestions))]
     public partial string? Asked { get; private set; }
 
     /// <summary>Die Frage, auf deren Antwort die Leiste gerade wartet; steht als Kopf über dem Ladezustand (Ä316).</summary>
@@ -229,7 +230,8 @@ public sealed partial class CompanionViewModel : ViewModelBase, ISidePanel, IDis
     [NotifyPropertyChangedFor(nameof(HasAnswer), nameof(FirstHelp), nameof(MoreHelp), nameof(Suggestions), nameof(HelpAction))]
     [NotifyPropertyChangedFor(nameof(Block), nameof(BlockTable), nameof(SourceText), nameof(LinkLabel), nameof(CopyText), nameof(HasBlockLink), nameof(HasCopy))]
     [NotifyPropertyChangedFor(nameof(FollowUps), nameof(WhyText), nameof(WhyTitle), nameof(HasBlockActions), nameof(Gaps))]
-    [NotifyPropertyChangedFor(nameof(Rows), nameof(HasRows), nameof(HasMoreRows), nameof(ShowAllText), nameof(ShowsAnswer))]
+    [NotifyPropertyChangedFor(nameof(Rows), nameof(HasRows), nameof(HasMoreRows), nameof(ShowAllText), nameof(ShowsAnswer), nameof(VisibleRecentQuestions), nameof(HasVisibleRecentQuestions))]
+    [NotifyPropertyChangedFor(nameof(HasFigures), nameof(HasGaps), nameof(HasFollowUps), nameof(HasSuggestions), nameof(HasMoreHelp))]
     public partial AssistantAnswer? Answer { get; private set; }
 
     public bool HasAnswer => Answer is not null;
@@ -242,6 +244,11 @@ public sealed partial class CompanionViewModel : ViewModelBase, ISidePanel, IDis
 
     /// <summary>Weitere Treffer als Verweis in die Hilfe.</summary>
     public IReadOnlyList<AssistantHelpLink> MoreHelp => Answer?.Help.Skip(1).ToList() ?? [];
+
+    // Leere Listen nehmen keinen Platz: jede sichtbare, aber leere Liste in der Karte brächte 8 px Abstand (Durchsicht, Befund 21b).
+    public bool HasFigures => Answer?.Figures is { Count: > 0 };
+
+    public bool HasMoreHelp => MoreHelp.Count > 0;
 
     [RelayCommand]
     private static void OpenHelpLink(AssistantHelpLink link) => HelpContent.Open(link.Topic, link.Section);

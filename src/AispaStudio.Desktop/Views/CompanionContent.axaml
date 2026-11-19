@@ -62,11 +62,11 @@
           </DataTemplate>
         </ItemsControl.ItemTemplate>
       </ItemsControl>
-      <Button Classes="ghost" Content="Ganze Beschreibung öffnen" Command="{Binding OpenHelpCommand}" HorizontalAlignment="Left" />
+      <Button x:Name="OpenWholeTopic" Content="Ganze Beschreibung öffnen" Command="{Binding OpenHelpCommand}" HorizontalAlignment="Left" />
     </StackPanel>
     <StackPanel Spacing="6" IsVisible="{Binding !HasTopic}">
       <TextBlock Text="Zu jeder Einstellung öffnet das Fragezeichen daneben die Beschreibung." Classes="muted" TextWrapping="Wrap" />
-      <Button Classes="ghost" Content="Alle Hilfethemen" Command="{Binding OpenHelpCommand}" HorizontalAlignment="Left" />
+      <Button Content="Alle Hilfethemen" Command="{Binding OpenHelpCommand}" HorizontalAlignment="Left" />
     </StackPanel>
     <Border Classes="divider" />
     </StackPanel>
@@ -91,9 +91,9 @@
         <Button Grid.Column="1" Classes="primary" Content="Fragen" Command="{Binding AskCommand}" VerticalAlignment="Top" />
       </Grid>
       <!-- Die letzten Fragen von heute (nur dieses Gerät, nur diese Person, nur die Fragen): ein Klick stellt sie neu und holt eine frische Antwort (Ä347) -->
-      <StackPanel x:Name="RecentQuestionsList" Spacing="2" IsVisible="{Binding HasRecentQuestions}">
+      <StackPanel x:Name="RecentQuestionsList" Spacing="2" IsVisible="{Binding HasVisibleRecentQuestions}">
         <TextBlock Text="Zuletzt gefragt" Classes="muted small" />
-        <ItemsControl ItemsSource="{Binding RecentQuestions}" Margin="-8,0">
+        <ItemsControl ItemsSource="{Binding VisibleRecentQuestions}" Margin="-8,0">
           <ItemsControl.ItemTemplate>
             <DataTemplate x:DataType="x:String">
               <Button Classes="ghost" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Padding="8,4"
@@ -153,7 +153,7 @@
           </Grid>
           <!-- Avalonia sagt eine Live-Region an, wenn sich der Name ändert; der Name des Texts ist die Antwort, der Rahmen der Karte hätte keinen -->
           <TextBlock Text="{Binding Answer?.Text, TargetNullValue=''}" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
-          <ItemsControl ItemsSource="{Binding Answer?.Figures}">
+          <ItemsControl ItemsSource="{Binding Answer?.Figures}" IsVisible="{Binding HasFigures}">
             <ItemsControl.ItemTemplate>
               <DataTemplate x:DataType="contracts:AssistantFigure">
                 <Grid ColumnDefinitions="*,Auto" Margin="0,2">
@@ -194,7 +194,7 @@
           <TextBlock Text="{Binding SourceText}" Classes="muted small" TextWrapping="Wrap"
                      IsVisible="{Binding SourceText, Converter={x:Static ObjectConverters.IsNotNull}}" />
           <!-- Angaben, die dem Spa fehlen: Ort und „Jetzt ergänzen“ mit Recht, sonst „Nur Leitung“ -->
-          <ItemsControl ItemsSource="{Binding Gaps}">
+          <ItemsControl ItemsSource="{Binding Gaps}" IsVisible="{Binding HasGaps}">
             <ItemsControl.ItemTemplate>
               <DataTemplate x:DataType="vm:CompanionGap">
                 <!-- Hinweisfläche statt Meldungsleiste: in der schmalen Leiste steht der Knopf unter dem Text, nicht daneben -->
@@ -223,7 +223,7 @@
           </WrapPanel>
           <TextBlock Text="{Binding CopiedText}" Classes="muted small" AutomationProperties.LiveSetting="Polite"
                      IsVisible="{Binding CopiedText, Converter={x:Static ObjectConverters.IsNotNull}}" />
-          <ItemsControl ItemsSource="{Binding FollowUps}">
+          <ItemsControl ItemsSource="{Binding FollowUps}" IsVisible="{Binding HasFollowUps}">
             <ItemsControl.ItemsPanel>
               <ItemsPanelTemplate>
                 <WrapPanel />
@@ -239,7 +239,13 @@
           </ItemsControl>
           <!-- Weitere Schritte, die keine Zeile der Liste sind („Freie Zeit suchen“, „Alle Termine von …“): je ein Knopf mit der Beschriftung, der Tooltip sagt,
                was er tut; gebucht wird erst nach Wahl des Kunden -->
-          <ItemsControl ItemsSource="{Binding Suggestions}" IsVisible="{Binding !IsBooking}">
+          <ItemsControl ItemsSource="{Binding Suggestions}">
+            <ItemsControl.IsVisible>
+              <MultiBinding Converter="{x:Static BoolConverters.And}">
+                <Binding Path="HasSuggestions" />
+                <Binding Path="!IsBooking" />
+              </MultiBinding>
+            </ItemsControl.IsVisible>
             <ItemsControl.ItemsPanel>
               <ItemsPanelTemplate>
                 <StackPanel Spacing="6" />
@@ -355,7 +361,7 @@
           <Button Content="{Binding HelpAction?.Label, TargetNullValue=''}" Command="{Binding RunHelpActionCommand}"
                   IsVisible="{Binding HelpAction, Converter={x:Static ObjectConverters.IsNotNull}}" HorizontalAlignment="Left"
                   ToolTip.Tip="{Binding HelpAction?.Tip, TargetNullValue=''}" />
-          <ItemsControl ItemsSource="{Binding MoreHelp}">
+          <ItemsControl ItemsSource="{Binding MoreHelp}" IsVisible="{Binding HasMoreHelp}">
             <ItemsControl.ItemTemplate>
               <DataTemplate x:DataType="contracts:AssistantHelpLink">
                 <Button Classes="ghost" Content="{Binding Title}" HorizontalAlignment="Left"

@@ -119,8 +119,11 @@ public partial class CalendarViewModel
     /// </summary>
     public const double MinTabWidth = 96;
 
-    /// <summary>Platz für einen der höchstens zwei Reiter mit Text; ab der dritten Seite steht der Chip mit den Pfeilen in der Schiene.</summary>
-    public double TabWidth => (RailWidth - (OpenPanels.Count > MaxVisibleTabs ? TabOverflowWidth : 0) - 2) / 2;
+    /// <summary>
+    /// Platz für einen der höchstens zwei Reiter mit Text; ab der dritten Seite steht der Chip mit den Pfeilen in der Schiene.
+    /// Ein einzelner Reiter bekommt die ganze Schiene, damit „Neuer Termin · Brigitte Müller“ nicht gekürzt wird, solange daneben nichts steht.
+    /// </summary>
+    public double TabWidth => (RailWidth - (OpenPanels.Count > MaxVisibleTabs ? TabOverflowWidth : 0) - 2) / Math.Clamp(OpenPanels.Count, 1, MaxVisibleTabs);
 
     /// <summary>Die Reiter zeigen nur das Symbol.</summary>
     public bool TabsCompact => TabWidth < MinTabWidth;

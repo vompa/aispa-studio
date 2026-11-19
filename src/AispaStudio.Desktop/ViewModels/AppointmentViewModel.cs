@@ -142,10 +142,10 @@ public partial class AppointmentViewModel(
     private bool HasStatusActions => CanChangeStatus && Appointment.Status is AppointmentStatus.Booked or AppointmentStatus.CheckedIn;
 
     /// <summary>
-    /// Hinter „Mehr“ steht etwas: Erledigt, Nicht erschienen, Wiederholen, Zeiten ändern, die Bestätigung oder die Kalenderdatei. Stornieren und Einchecken zurücknehmen stehen im
-    /// Aktionsblock (Ä81).
+    /// Hinter „Mehr“ steht etwas: Erledigt, Nicht erschienen, Wiederholen, Zeiten ändern, die Bestätigung, die Kalenderdatei oder Termin stornieren (M1, 19.11.2026).
+    /// Einchecken zurücknehmen steht im Aktionsblock (Ä81).
     /// </summary>
-    public bool HasMore => HasStatusActions || CanRepeat || CanChangeTimes || CanConfirm || CanSaveCalendarFile;
+    public bool HasMore => HasStatusActions || CanRepeat || CanChangeTimes || CanConfirm || CanSaveCalendarFile || CanCancel;
 
     /// <summary>„Mehr“ › „Kalenderdatei …“ (Export/Import, Aufgabe C): der Termin als iCal für den Gast, bei einer Buchung mit mehreren Teilen alle Teile; nicht bei Stornierten.</summary>
     public bool CanSaveCalendarFile => Appointment.Status != AppointmentStatus.Cancelled;
@@ -174,7 +174,7 @@ public partial class AppointmentViewModel(
 
     public bool HasPaymentText => PaymentText is not null;
 
-    /// <summary>Die Buchung ist in Treatwell noch anzunehmen (bis die Rezeption „Erledigt“ sagt).</summary>
+    /// <summary>Die Buchung ist in Treatwell noch anzunehmen (bis die Rezeption „In Treatwell angenommen“ sagt).</summary>
     public bool ShowAcceptPending => Appointment is { AcceptInPlatformPending: true, Status: not AppointmentStatus.Cancelled };
 
     public bool ShowAssignmentOpen => Appointment is { CustomerAssignmentOpen: true, Status: not AppointmentStatus.Cancelled };
@@ -289,8 +289,9 @@ public partial class AppointmentViewModel(
             return;
         }
 
-        var notice = LateCancelNotice;
-        var reason = notice is not null && CancelReason == DefaultCancelReason ? LateCancelReason : CancelReason;
+        var lateNotice = LateCancelNotice;
+        var notice = lateNotice is null ? DepositKeptNotice : DepositKeptNotice is { } kept ? $"{lateNotice}\n{kept}" : lateNotice;
+        var reason = lateNotice is not null && CancelReason == DefaultCancelReason ? LateCancelReason : CancelReason;
         var answer = await AskAsync(new ConfirmRequest("Termin stornieren?",
             $"Der Termin von {Title} am {ShortDateText}, {TimeText}, ist danach storniert und blockiert keine Zeit mehr.{(fee is null ? "" : $" {fee}")}", CancelOneText,
             AlternativeText: CanCancelFollowing ? "Diesen und alle folgenden" : null, InputLabel: "Grund", InputText: reason, Notice: notice)).ConfigureAwait(true);

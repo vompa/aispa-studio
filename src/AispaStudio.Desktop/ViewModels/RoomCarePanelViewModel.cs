@@ -81,6 +81,9 @@ public sealed partial class RoomCarePanelViewModel : ViewModelBase, ISidePanel
 
     public bool CanFinish => _canCheck && Rows.All(r => !r.IsOpen);
 
+    /// <summary>Warum „Raumpflege erledigt“ gesperrt ist (Durchsicht, Befund 26a); leer, wenn alle Zeilen beantwortet sind.</summary>
+    public string? FinishHint => Rows.Any(r => r.IsOpen) ? "Erst jede Zeile mit „Aufgefüllt“ oder „Reicht noch“ beantworten." : null;
+
     [ObservableProperty]
     public partial string? Error { get; private set; }
 
@@ -114,6 +117,7 @@ public sealed partial class RoomCarePanelViewModel : ViewModelBase, ISidePanel
 
         OnPropertyChanged(nameof(Rows));
         OnPropertyChanged(nameof(CanFinish));
+        OnPropertyChanged(nameof(FinishHint));
         FinishCommand.NotifyCanExecuteChanged();
         await _changed().ConfigureAwait(true);
     }

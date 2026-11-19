@@ -4,7 +4,7 @@ bereich: Kalender
 oberflaeche: windows-app
 rollen: rezeption, therapeut, leitung, inhaber, manager
 seite: kalender
-stichwoerter: Meldungen, Warnung, Hinweis, Fehler, Glocke, Benachrichtigung, wegklicken, Was tun, Pause fehlt, Lager, Raumpflege überfällig, Tagesstart offen, Mindestbestand, Symbol im Spaltenkopf, notifications, alerts
+stichwoerter: Meldungen, Warnung, Hinweis, Fehler, Glocke, Benachrichtigung, wegklicken, ausblenden, Was tun, Pause fehlt, Lager, Raumpflege überfällig, Tagesstart offen, Mindestbestand, Symbol im Spaltenkopf, notifications, alerts
 ---
 # Meldungen: Warnungen und Hinweise des Tages
 
@@ -30,7 +30,7 @@ Die Seitenleiste ordnet nach Schwere: **Fehler**, **Warnungen**, **Hinweise** un
 
 - das Symbol der Art, den Titel und die Art („Pause“, „Lager“, „Raumpflege“, „Tagesstart“, „Mindestbestand“, „Handbuch“, „Ausfall“, „Schließzeit“, „Raumsperre“),
 - einen Kurztext und seit wann die Meldung besteht,
-- **eine** passende Aktion und **Wegklicken**.
+- **eine** passende Aktion und **Ausblenden**.
 
 Welche Aktion zu welcher Meldung gehört:
 
@@ -55,9 +55,9 @@ Zu den [Kalender-Abos](hilfe:kalender-abos-anzeigen#meldungen) erscheinen vier A
 
 Hat die Rezeption im Posteingang eine Zeit für einen Gast vorgemerkt und der Gast sich nicht gemeldet, erscheint die Warnung **Gast hat sich nicht gemeldet** mit Gast, Zeit und Behandlung; **Zur Anfrage** öffnet die Anfrage im Posteingang mit **Bestätigen** und **Freigeben**. Wann sie erscheint, richtet sich nach dem Termin: am selben Tag eine Stunde nach dem Vormerken (spätestens eine Stunde vor Beginn), für morgen bis 12 Uhr vorgemerkt drei Stunden später, sonst zum Tagesstart des Termintags, für spätere Tage zum Tagesstart am Vortag. Antwortet der Gast, verschwindet die Warnung. Siehe [Anfrage annehmen](hilfe:anfragen-annehmen#keine-antwort).
 
-## Wegklicken {#wegklicken}
+## Ausblenden {#ausblenden}
 
-**Wegklicken** blendet eine Meldung aus, bis sich ihr Auslöser ändert, z. B. wenn aus „Raumpflege offen“ „überfällig“ wird. Das gilt je Tag und Standort, solange die App läuft. Eine Warnung ist nie abhakbar: ist der Zustand behoben, verschwindet sie von selbst und steht kurz unter **Erledigt**.
+**Ausblenden** blendet eine Meldung aus, bis sich ihr Auslöser ändert, z. B. wenn aus „Raumpflege offen“ „überfällig“ wird. Das gilt je Tag und Standort, solange die App läuft. Eine Warnung ist nie abhakbar: ist der Zustand behoben, verschwindet sie von selbst und steht kurz unter **Erledigt**.
 
 ## Detail und „Was tun?“ {#detail}
 
@@ -71,7 +71,7 @@ Ein Klick auf eine Karte öffnet die **Detailansicht** als eigenen Reiter **Meld
 
 ## Ohne Verbindung {#offline}
 
-Die Seitenleiste zeigt den letzten Stand und einen Hinweis „Ohne Verbindung“. Die Aktionen sind abgeschaltet, **Wegklicken** geht weiter.
+Die Seitenleiste zeigt den letzten Stand und einen Hinweis „Ohne Verbindung“. Die Aktionen sind abgeschaltet, **Ausblenden** geht weiter.
 
 ## Gut zu wissen {#gut-zu-wissen}
 

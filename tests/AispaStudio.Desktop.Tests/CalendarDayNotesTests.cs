@@ -79,7 +79,7 @@ public sealed class CalendarDayNotesTests
         Assert.Equal("Vorb. 5 · Öl anwärmen", team.Stripes[0].LongText);
         Assert.Equal(5 * DayLayout.PixelsPerMinute, team.Stripes[0].Height, 3);
         // Nachbereitung und Raumpflege sind in der Raumansicht ein einziger Streifen; der Text steht auch als Hinweis daran.
-        Assert.Equal(["Vorb. 5 Min.", "Nachb. 10 · Raumpflege 10 Min."], rooms.Stripes.Select(s => s.Text));
+        Assert.Equal(["Vorb. 5 Min.", "Nachb. 10 · Pflege 10"], rooms.Stripes.Select(s => s.Text));
         Assert.Equal(20 * DayLayout.PixelsPerMinute, rooms.Stripes[1].Height, 3);
         Assert.Equal(["Vorbereitung 5 Min.: Öl anwärmen", "Nachbereitung 10 Min. · Raumpflege 10 Min."], rooms.Stripes.Select(s => s.Tip));
         Assert.All(rooms.Stripes, s => Assert.Equal(appointment.Id, s.Appointment!.Id));

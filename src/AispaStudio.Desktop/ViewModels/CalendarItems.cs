@@ -125,6 +125,12 @@ public sealed class CalendarColumn(Guid id, string title, string color, string s
     /// <summary>Zweite und letzte Zeile im Kopf: Dienstzeit bzw. Grund, bei Dienst an einem anderen Standort mit dem Standort davor („Graz · 10:00–18:00“); bei Räumen Raumpflege und Behandlungen.</summary>
     public string SecondLine => HasPlace ? $"{Place} · {ShiftText}" : ShiftText;
 
+    /// <summary>Kurzfassung der zweiten Zeile für den schmalen Kopf einer Raumspalte („Pflege 10 Min. · 3 Beh.“); der volle Text steht im Hinweis am Kopf.</summary>
+    public string? ShortSecondLine { get; init; }
+
+    /// <summary>Was die zweite Zeile im Kopf zeigt: bei Räumen die Kurzfassung, sonst <see cref="SecondLine"/>.</summary>
+    public string HeaderSecondLine => string.IsNullOrEmpty(ShortSecondLine) ? SecondLine : ShortSecondLine;
+
     public string Initials { get; init; } = DayLayout.Initials(title);
 
     /// <summary>Spalte eines Tages in der 7-Tage-Ansicht einer Person oder eines Raums (Titel „Mo. 19.10.“, Kreis mit der Tageszahl).</summary>
@@ -254,8 +260,11 @@ public enum StripeKind
 /// </summary>
 public sealed record CalendarStripe(double Top, double Height, string Text, StripeKind Kind)
 {
-    /// <summary>Text nur, wenn der Streifen hoch genug ist; sonst steht er in der Hover-Karte.</summary>
-    public bool ShowText => Height >= 14;
+    /// <summary>Bahn des Termins, zu dem der Streifen gehört: bei zwei Terminen nebeneinander nur die Breite dieser Bahn.</summary>
+    public LanePlace Place { get; init; } = LanePlace.Alone;
+
+    /// <summary>Text nur, wenn der Streifen hoch und breit genug ist (nicht in einer schmalen Bahn); sonst steht er in der Hover-Karte.</summary>
+    public bool ShowText => Height >= 14 && Place.LaneCount <= 1;
 
     /// <summary>Ausführlicher Text („Vorb. 5 · Steine heizen“) für Streifen ab 20 Pixel Höhe; leer, wenn es nichts Ausführlicheres gibt.</summary>
     public string? LongText { get; init; }
@@ -332,6 +341,7 @@ public sealed record CalendarItem(
 {
     private bool _isSelected;
     private bool _isGroupHighlighted;
+    private bool _isGapHighlighted;
 
     /// <summary>Nur die Auswahl ändert sich nach dem Aufbau; die Ansicht zeigt sie, ohne die Spalten neu aufzubauen.</summary>
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -378,6 +388,20 @@ public sealed record CalendarItem(
 
     public bool ShowWho => Who is not null;
 
+    /// <summary>
+    /// Zwei Termine nebeneinander (halbe Spaltenbreite): der Kreis der behandelnden Person entfällt, damit der Name nicht zu „Ine…“ schrumpft (Durchsicht Kalender 1, 2b);
+    /// wer behandelt, steht in der Hover-Karte und im Namen für Screenreader.
+    /// </summary>
+    public bool ShowWhoInTitle => ShowWho && Place.LaneCount <= 1;
+
+    /// <summary>Halbe Spaltenbreite mit Platz für die Zeile der Behandlung: die Kennzeichen stehen dort statt neben dem Namen.</summary>
+    public bool FlagsInSubtitle => HasFlags && Place.LaneCount > 1 && ShowSubtitle;
+
+    public bool FlagsInTitle => HasFlags && !FlagsInSubtitle;
+
+    /// <summary>Halbe Spaltenbreite mit Platz für eine zweite Namenszeile: ein langer Name bricht um, statt mit „…“ zu enden.</summary>
+    public Avalonia.Media.TextWrapping TitleWrapping => Place.LaneCount > 1 && ShowSubtitle ? Avalonia.Media.TextWrapping.Wrap : Avalonia.Media.TextWrapping.NoWrap;
+
     /// <summary>Dritte Zeile: zuerst, was Handeln verlangt (überfällig, umbuchen, Status, Verspätung, Zusage, vorgemerkt), dann Uhrzeit, Gruppe, Serie und Quelle. Schmale Karten kürzen von hinten. Wer behandelt, zeigt in der Raumansicht der Kreis vor dem Namen (Hover-Karte: voller Name).</summary>
     public string MetaText => string.Join(" · ", new[]
     {
@@ -394,6 +418,13 @@ public sealed record CalendarItem(
     public string? GroupLabel { get; init; }
 
     public string? GroupColor { get; init; }
+
+    /// <summary>Der Termin gehört zum gewählten Vorschlag in „Lücken schließen“ (er oder ein Termin der Kette) und leuchtet wie die Teile einer gemeinsamen Buchung.</summary>
+    public bool IsGapHighlighted
+    {
+        get => _isGapHighlighted;
+        set => Set(ref _isGapHighlighted, value, nameof(IsGapHighlighted));
+    }
 
     public bool IsGroupHighlighted
     {

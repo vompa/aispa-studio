@@ -34,7 +34,7 @@ Im Panel **Paar oder Spa-Tag** unter **Wann** den Tag eintragen. Dann in der Kar
 
 ### 3. Behandlungen wählen
 
-In der Karte jedes Gastes unter **Behandlung** die Behandlung wählen; „– nichts –“ heißt, dieser Gast hat in diesem Abschnitt nichts. Ohne Behandlung gibt es keine freien Zeiten. Hat der Standort Sauna oder Ruheraum, stehen sie mit 30, 60 oder 90 Minuten in derselben Liste. Für einen Spa-Tag **Abschnitt danach** klicken (bis zu vier Abschnitte) und unter **Pause** die Minuten zwischen den Abschnitten wählen (Standard 15). Weitere Abschnitte stehen als eigene Karten darunter, je Gast mit vollem Namen.
+In der Karte jedes Gastes unter **Behandlung** die Behandlung wählen; „– nichts –“ heißt, dieser Gast hat in diesem Abschnitt nichts. Ohne Behandlung gibt es keine freien Zeiten. Hat der Standort Sauna oder Ruheraum, stehen sie mit 30, 60 oder 90 Minuten in derselben Liste. Für einen Spa-Tag **Abschnitt danach hinzufügen** klicken, siehe [Abschnitte](hilfe:kalender-paar-und-spa-tag#abschnitte) (bis zu vier Abschnitte) und unter **Pause zwischen den Abschnitten** die Minuten wählen (Standard 15). Weitere Abschnitte stehen als eigene Karten darunter, je Gast mit vollem Namen.
 
 ![Panel Paar oder Spa-Tag mit markierten Karten der Gäste und ihren Behandlungen](images/app/paar-und-spa-tag-3.png)
 
@@ -63,6 +63,10 @@ Alle Termine stehen im Kalender, jeder mit einem farbigen Etikett, z. B. „Paar
 - Ein Eintritt in Sauna oder Ruheraum ohne Behandlung wird eigens gebucht: [Sauna-Eintritt](hilfe:kalender-sauna-eintritt).
 
 
+
+## Abschnitte {#abschnitte}
+
+Ein Abschnitt ist ein Teil des Tages, in dem alle Gäste gleichzeitig beginnen: zuerst die Massage für beide, danach die Sauna. **Abschnitt danach hinzufügen** fügt einen weiteren Abschnitt hinzu, der nach dem ersten folgt. Zwischen den Abschnitten liegt die Pause, die unter **Pause zwischen den Abschnitten** eingestellt ist; sie gilt für alle Gäste gleich, z. B. 10 Minuten zwischen Massage und Sauna. Ein Gast, der in einem Abschnitt nichts hat, bekommt dort „– nichts –“.
 
 ## Gruppe mit Gästen ohne Namen {#ohne-namen}
 
