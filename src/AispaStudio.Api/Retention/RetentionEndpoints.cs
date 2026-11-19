@@ -169,6 +169,19 @@ internal static class RetentionEndpoints
             .WithName("WithdrawOnlineConsent")
             .WithSummary("Widerruft die Einwilligung; danach gehen keine Wiederbuchungs-Hinweise mehr.");
 
+        // Abmelden mit einem Klick (RFC 8058): Das Mailprogramm schickt ein POST mit „List-Unsubscribe=One-Click“ an die Adresse aus der Kopfzeile.
+        // Ein GET (Virenscanner, ältere Mailprogramme, der Link im Browser) ändert nichts und führt auf die Seite im Kundenbereich.
+        open.MapPost("/{token}/unsubscribe", async Task<Results<Ok, NotFound>> (string token, MarketingConsents consents, CancellationToken ct) =>
+                await consents.WithdrawAsync(token, ct) is not null ? TypedResults.Ok() : TypedResults.NotFound())
+            .RequireRateLimiting(OnlineSetup.SensitiveRateLimit)
+            .DisableAntiforgery()
+            .WithName("UnsubscribeOneClick")
+            .WithSummary("Abmelden mit einem Klick aus dem Mailprogramm (RFC 8058): widerruft die Einwilligung ohne Rückfrage.");
+
+        open.MapGet("/{token}/unsubscribe", (string token, OnlinePortal portal) => TypedResults.Redirect(portal.Url($"einwilligung/{token}")))
+            .WithName("UnsubscribeOneClickPage")
+            .WithSummary("Der Abmeldelink im Browser: führt ohne Änderung auf die Seite der Einwilligung im Kundenbereich.");
+
         return routes;
     }
 

@@ -56,18 +56,28 @@ public sealed partial class RetentionTests(ApiFixture fixture)
         Assert.Contains(RebookTexts.AiNoticeDe, mail.Text, StringComparison.Ordinal);
         Assert.Contains($"#/?standort={spa.Location.Id}&behandlung={spa.MassageTreatment.Id}", mail.Text, StringComparison.Ordinal);
         Assert.Contains("Abmelden: ", mail.Text, StringComparison.Ordinal);
-        // Dieselbe Adresse steht in der Kopfzeile, damit das Mailprogramm „Abmelden“ anbietet.
-        Assert.NotNull(mail.ListUnsubscribe);
-        Assert.Contains($"Abmelden: {mail.ListUnsubscribe}", mail.Text, StringComparison.Ordinal);
+        // In der Kopfzeile steht die Adresse zum Abmelden mit einem Klick (RFC 8058) mit demselben Code; das Mailprogramm schickt dorthin ein POST.
+        Assert.True(mail.OneClickUnsubscribe);
+        Assert.EndsWith($"/api/online/consent/{Token(mail.Text)}/unsubscribe", mail.ListUnsubscribe, StringComparison.Ordinal);
+        // Ein GET (Virenscanner, Browser) ändert nichts und führt auf die Seite im Kundenbereich.
+        using var noRedirect = fixture.Factory.CreateClient(new Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+        var preview = await noRedirect.GetAsync($"/api/online/consent/{Token(mail.Text)}/unsubscribe", Ct);
+        Assert.Equal(HttpStatusCode.Redirect, preview.StatusCode);
+        Assert.EndsWith($"#/einwilligung/{Token(mail.Text)}", preview.Headers.Location!.ToString(), StringComparison.Ordinal);
+        Assert.Equal(MarketingConsentState.Confirmed, (await spa.GetAsync<MarketingConsentDto>($"/api/customers/{guest.Id}/marketing-consent", Ct)).State);
 
         var sent = Assert.Single(await WaitForSentAsync(spa, 1));
         Assert.Equal("Sent", sent.State);
         Assert.True(sent.AiWritten);
         Assert.Equal("Massage", sent.TreatmentName);
 
-        // Abmelden über den Link in der Erinnerung, ohne Anmeldung.
-        var withdrawn = await ReadAsync<OnlineConsentDto>(await online.PostAsync($"/api/online/consent/{Token(mail.Text)}/withdraw", null, Ct));
-        Assert.Equal(MarketingConsentState.Withdrawn, withdrawn.State);
+        // Abmelden mit einem Klick aus dem Mailprogramm: POST mit „List-Unsubscribe=One-Click“, ohne Anmeldung und ohne Rückfrage.
+        var oneClick = await online.PostAsync($"/api/online/consent/{Token(mail.Text)}/unsubscribe",
+            new FormUrlEncodedContent([new KeyValuePair<string, string>("List-Unsubscribe", "One-Click")]), Ct);
+        Assert.Equal(HttpStatusCode.OK, oneClick.StatusCode);
+        Assert.Equal(MarketingConsentState.Withdrawn, (await spa.GetAsync<MarketingConsentDto>($"/api/customers/{guest.Id}/marketing-consent", Ct)).State);
+        var unknown = await online.PostAsync("/api/online/consent/unbekannt/unsubscribe", null, Ct);
+        Assert.Equal(HttpStatusCode.NotFound, unknown.StatusCode);
         Assert.Equal(MarketingConsentState.Withdrawn, (await spa.GetAsync<MarketingConsentDto>($"/api/customers/{guest.Id}/marketing-consent", Ct)).State);
     }
 

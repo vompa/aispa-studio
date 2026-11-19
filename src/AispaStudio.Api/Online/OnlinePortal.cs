@@ -423,6 +423,9 @@ internal sealed class OnlinePortal(
             .ToListAsync(ct);
     }
 
+    /// <summary>Adresse eines öffentlichen Endpunkts der API unter der Adresse des Kundenbereichs, z. B. für das Abmelden mit einem Klick.</summary>
+    public string ApiUrl(string path) => $"{Options.PublicUrl.TrimEnd('/')}/{path.TrimStart('/')}";
+
     /// <summary>Link in den Kundenbereich (Hash-Route, damit der Code nicht in Server-Logs landet).</summary>
     /// <param name="spa">Mandant für Links, die ohne Kundin funktionieren müssen (z. B. Buchung aus der Warteliste).</param>
     public string Url(string route, Guid? spa = null) =>

@@ -34,7 +34,7 @@ Im Termin-Panel stehen weitere Abschnitte, sobald es dazu etwas gibt:
 ![Termin mit dem Abschnitt Anzahlung, nachdem der Link verschickt ist](images/app/termin-anzahlung-anfordern.png)
 
 - **Terminerinnerungen** zeigt, welche Erinnerungen der Gast bekommen hat, mit Kanal, Zustand und Zeit.
-- **Wiederbuchungs-Hinweis** ist eine Werbe-Mail einige Wochen nach der letzten Behandlung und braucht die Einwilligung des Gastes. Die Karte zeigt, ob der Gast eingewilligt hat. **Einwilligung anfragen** schickt ihm eine Mail (Sprache wählbar), er bestätigt per Link; erst dann kommen Hinweise. Sagt der Gast am Empfang, er möchte keine mehr, klicken Sie **Widerrufen**. Beide Knöpfe sehen nur Personen, die buchen dürfen.
+- **Wiederbuchungs-Hinweis** ist eine Werbe-Mail einige Wochen nach der letzten Behandlung und braucht die Einwilligung des Gastes. Die Karte zeigt, ob der Gast eingewilligt hat. **Einwilligung anfragen** schickt ihm eine Mail (Sprache wählbar), er bestätigt per Link; erst dann kommen Hinweise. Sagt der Gast am Empfang, er möchte keine mehr, klicken Sie **Widerrufen**. In der Mail selbst kann sich der Gast über den Link unten abmelden; viele Mailprogramme bieten dafür auch einen Knopf **Abmelden** an, der ohne Rückfrage wirkt. Beide Knöpfe sehen nur Personen, die buchen dürfen.
 
 ## Gut zu wissen {#gut-zu-wissen}
 

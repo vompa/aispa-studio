@@ -7327,3 +7327,21 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Geprüft:** API `CardGuaranteeTests`, `DepositTests`, `OnlineRefundTests`, `OnlineBookingTests`, `StripePaymentTests`, `VoucherShopTests`, `ChannelScanTests` 103 von 103. Neu: Kartenlink per SMS, Zustimmen und Hinterlegen über den Link, Belastung per SMS; Anzahlungslink per SMS, Beleg per SMS; ohne Mail und ohne Nummer keine Anforderung. Windows-App: Ansichtstests zu Karte und Anzahlung grün.
 - **Nicht geprüft:** eine echte SMS beim Anbieter (Tests mit abgefangenem Versand); Stripe-Checkout ohne Mailadresse beim echten Anbieter; die laufende App unter Windows.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Wiederbuchungs-Hinweis: Abmelden mit einem Klick im Mailprogramm (19.11.2026)
+
+- **Auftrag:** Block „KI-Terminannahme und Posteingang“, Punkt 3 (`List-Unsubscribe-Post`); vom Auftraggeber am 19.11.2026 zum autonomen Abarbeiten freigegeben.
+- **Befund:** Die Kopfzeile `List-Unsubscribe` zeigte auf die Seite im Kundenbereich (`…/buchen/#/einwilligung/{Code}`). Dorthin kann ein Mailprogramm kein Abmelden mit einem Klick schicken: Der Teil nach `#` erreicht den Server nicht, und die Seite will einen Klick auf „Widerrufen“.
+- **Was:**
+  - `POST /api/online/consent/{Code}/unsubscribe` widerruft ohne Rückfrage (RFC 8058).
+  - `GET` auf dieselbe Adresse führt ohne Änderung auf die Seite im Kundenbereich.
+  - `OutgoingMail.OneClickUnsubscribe` setzt `List-Unsubscribe-Post: List-Unsubscribe=One-Click`.
+  - Der Wiederbuchungs-Hinweis nutzt beide Adressen mit demselben Code: die Seite im Text, die neue Adresse in der Kopfzeile.
+  - ADR 0040, Nachtrag; Hilfe `kalender-termin-verlauf`.
+  - Stand bereinigt: Wunsch ♀/♂ (#61) und Absage eines späteren Termins (#59) waren schon gebaut.
+- **Detailentscheidungen:**
+  1. GET ändert nichts, weil Virenscanner Links vorab aufrufen; so steht es schon beim Bestätigen der Einwilligung.
+  2. Unbekannter oder abgelaufener Code: 404 ohne Hinweis, ob es den Gast gibt.
+- **Geprüft:** API `RetentionTests`, `MailboxAdapterTests`, `ChannelScanTests` 25 von 25 (neu: Kopfzeilen, Adresse mit dem Code aus dem Text, GET leitet weiter und ändert nichts, POST widerruft, unbekannter Code 404).
+- **Nicht geprüft:** ein echtes Mailprogramm (Gmail und Outlook zeigen den Knopf nur bei signierten Mails mit gutem Ruf des Absenders, DKIM); Handtest dafür angelegt.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
