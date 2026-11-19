@@ -215,6 +215,9 @@ internal sealed class VoucherShop(
     }
 
     /// <summary>Warum hier gerade keine Gutscheine online verkauft werden, oder <c>null</c>.</summary>
+    /// <summary>Lassen sich an diesem Standort Gutscheine online kaufen (Zahlungsanbieter und Kasse)?</summary>
+    public async Task<bool> AvailableAsync(Guid locationId, CancellationToken ct) => await UnavailableReasonAsync(locationId, ct) is null;
+
     private async Task<string?> UnavailableReasonAsync(Guid locationId, CancellationToken ct)
     {
         if (await payments.ActiveProviderAsync(ct) is null)

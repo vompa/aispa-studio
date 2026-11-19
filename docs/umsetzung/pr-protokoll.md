@@ -7327,3 +7327,75 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Geprüft:** API `CardGuaranteeTests`, `DepositTests`, `OnlineRefundTests`, `OnlineBookingTests`, `StripePaymentTests`, `VoucherShopTests`, `ChannelScanTests` 103 von 103. Neu: Kartenlink per SMS, Zustimmen und Hinterlegen über den Link, Belastung per SMS; Anzahlungslink per SMS, Beleg per SMS; ohne Mail und ohne Nummer keine Anforderung. Windows-App: Ansichtstests zu Karte und Anzahlung grün.
 - **Nicht geprüft:** eine echte SMS beim Anbieter (Tests mit abgefangenem Versand); Stripe-Checkout ohne Mailadresse beim echten Anbieter; die laufende App unter Windows.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Wiederbuchungs-Hinweis: Abmelden mit einem Klick im Mailprogramm (19.11.2026)
+
+- **Auftrag:** Block „KI-Terminannahme und Posteingang“, Punkt 3 (`List-Unsubscribe-Post`); vom Auftraggeber am 19.11.2026 zum autonomen Abarbeiten freigegeben.
+- **Befund:** Die Kopfzeile `List-Unsubscribe` zeigte auf die Seite im Kundenbereich (`…/buchen/#/einwilligung/{Code}`). Dorthin kann ein Mailprogramm kein Abmelden mit einem Klick schicken: Der Teil nach `#` erreicht den Server nicht, und die Seite will einen Klick auf „Widerrufen“.
+- **Was:**
+  - `POST /api/online/consent/{Code}/unsubscribe` widerruft ohne Rückfrage (RFC 8058).
+  - `GET` auf dieselbe Adresse führt ohne Änderung auf die Seite im Kundenbereich.
+  - `OutgoingMail.OneClickUnsubscribe` setzt `List-Unsubscribe-Post: List-Unsubscribe=One-Click`.
+  - Der Wiederbuchungs-Hinweis nutzt beide Adressen mit demselben Code: die Seite im Text, die neue Adresse in der Kopfzeile.
+  - ADR 0040, Nachtrag; Hilfe `kalender-termin-verlauf`.
+  - Stand bereinigt: Wunsch ♀/♂ (#61) und Absage eines späteren Termins (#59) waren schon gebaut.
+- **Detailentscheidungen:**
+  1. GET ändert nichts, weil Virenscanner Links vorab aufrufen; so steht es schon beim Bestätigen der Einwilligung.
+  2. Unbekannter oder abgelaufener Code: 404 ohne Hinweis, ob es den Gast gibt.
+- **Geprüft:** API `RetentionTests`, `MailboxAdapterTests`, `ChannelScanTests` 25 von 25 (neu: Kopfzeilen, Adresse mit dem Code aus dem Text, GET leitet weiter und ändert nichts, POST widerruft, unbekannter Code 404).
+- **Nicht geprüft:** ein echtes Mailprogramm (Gmail und Outlook zeigen den Knopf nur bei signierten Mails mit gutem Ruf des Absenders, DKIM); Handtest dafür angelegt.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Posteingang: Verschiebungswunsch mit freien Zeiten, verschieben mit einem Klick (19.11.2026)
+
+- **Auftrag:** Block „KI-Terminannahme und Posteingang“, Punkt 1 („KI-Vorschläge für Absagen und Verschiebungen im Posteingang“); vom Auftraggeber am 19.11.2026 zum autonomen Abarbeiten freigegeben.
+- **Befund:** Absagen fand die Terminannahme schon samt Termin und Knopf (seit #59). Ein Verschiebungswunsch wurde erkannt, aber nur weitergereicht: kein Termin, keine Zeiten, keine Aktion.
+- **Was:**
+  - Terminannahme: Beim Verschiebungswunsch merkt sich die Nachricht den nächsten Termin des Gasts (nur mit sicher erkanntem oder zugeordnetem Gast, ADR 0061) und sucht freie Zeiten für dieselbe Behandlung am selben Standort (`ProposeMoveAsync`). Gesucht wird nach den Wunschzeiten aus der Nachricht, sonst ab morgen um die gewohnte Uhrzeit, zuerst bei derselben Person; der Termin selbst zählt dabei als frei, seine bisherige Zeit kommt nicht als Vorschlag.
+  - `POST /api/inbox/{id}/move-appointment`: verschiebt auf eine der vorgeschlagenen Zeiten über `BookingService.MoveAsync`, wie im Kalender; danach „Eingetragen“ und ein neuer Antwortentwurf (`ReplyCase.Moved`, vier Sprachen, auch im Auftrag an die KI).
+  - `InboundMailDto.CanMoveAppointment`.
+  - Windows-App: „Freie Zeiten zum Verschieben“ mit Knöpfen „Auf Di. 20.10. 17:00 verschieben“, mit Rückfrage.
+  - Hilfe `anfragen-verschiebung` mit Bild `posteingang-verschieben.png`, verlinkt von `seite-anfragen`.
+  - Nebenbei: doppelter `<summary>`-Kommentar an `CancellableAsync` entfernt.
+- **Detailentscheidungen:**
+  1. Nur vorgeschlagene Zeiten lassen sich hier wählen (sonst 400); andere Zeiten verschiebt die Rezeption im Kalender.
+  2. Wird der Gast erst später zugeordnet, sind die Wunschzeiten der Nachricht nicht mehr bekannt: Dann sucht die Terminannahme um die gewohnte Uhrzeit.
+  3. Kein automatisches Verschieben, auch nicht bei einer freien Wunschzeit (ADR 0008).
+- **Bewusst offen / später:** Die KI liest den gemeinten Termin aus der Nachricht, wenn der Gast mehrere hat (heute der nächste; bei Absagen gibt es schon die Auswahl); Verschieben von Paar und Spa-Tag aus dem Posteingang.
+- **Geprüft:** API alle `MailIntake*`-Tests, `LocalAiTests`, `ChannelScanTests` 108 von 108 (neu: Verschiebungswunsch mit Termin und Zeiten, Termin unverändert bis zum Klick, fremde Zeit 400, Verschieben, zweites Mal 400, Antwort „wie gewünscht verschoben“; angepasst: ohne sichere Zuordnung weder Termin noch Zeiten, nach dem Zuordnen beides); Windows-App Posteingang-Tests 20 von 20 (neu: Rückfrage, Aufruf mit der Zeit, Meldung), Ansichtstest, Knopflängen (165), „höchstens“ (33).
+- **Nicht geprüft:** die echte KI (Claude) mit einer Verschiebungsmail und Wunschzeit; die laufende App unter Windows.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Posteingang: Antwortvorschläge kennen Anreise, Schließtage, Hinweise und Gutscheine (19.11.2026)
+
+- **Auftrag:** Block „KI-Terminannahme und Posteingang“, Punkt 2 („Wissensbasis des Spas … als Quelle für Antwortvorschläge“); vom Auftraggeber am 19.11.2026 zum autonomen Abarbeiten freigegeben.
+- **Befund:** Die Vorschläge auf Fragen von Gästen kannten Adresse, Öffnungszeiten, Stornofrist, Behandlungen mit Preis und den Buchungslink (`SpaFacts`). Anreise und Parken (`Location.Directions`) waren gepflegt, gingen aber nicht mit; ebenso die Hinweise der Behandlungen für Gäste, Schließtage und der Gutscheinkauf.
+- **Was:**
+  - `SpaFacts.DescribeAsync` ergänzt je Standort:
+    - „Anreise und Parken: …“
+    - „Geschlossen: …“ mit dem Text für Gäste, für die nächsten 90 Tage
+    - den Link zum Gutscheinkauf, wenn dort Gutscheine online verkauft werden (`VoucherShop.AvailableAsync`)
+    - je Behandlung „(Hinweis für Gäste: …)“
+  - Hilfe `anfragen-antwort-freigeben`, Abschnitt „Fragen von Gästen“.
+- **Detailentscheidungen:**
+  1. Nur was Gäste ohnehin sehen dürfen: Der interne Grund einer Schließzeit, das Rezeptionshandbuch und die Betriebsinformationen gehen nie an die KI (ADR 0074 für die Betriebsinformationen).
+  2. Eine frei gepflegte Wissensbasis (Hausregeln, Gutscheinbedingungen) wird hier nicht gebaut: Sie braucht eine Maske in der Verwaltung, die gerade ein anderer Agent umbaut.
+  3. Die Prüfung „jede Zahl muss in den Angaben stehen“ bleibt; die neuen Angaben erweitern nur, was als bekannt gilt.
+- **Geprüft:** API alle `MailIntake*`-, `Assistant*`- und `Business*`-Tests: 426 von 426. Neu: Anreise, Schließtag mit Text für Gäste und Hinweis der Behandlung stehen in den Angaben, der interne Grund nicht.
+- **Nicht geprüft:** die echte KI (Claude) mit einer Frage nach Anreise oder Schließtagen.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Leiste „KI und Hilfe“: neuen Gast beim Buchen anlegen (19.11.2026)
+
+- **Auftrag:** Offener Punkt der Windows-App „Neuen Kunden direkt aus der Leiste ‚KI und Hilfe‘ anlegen (bisher nur Suche)“, im Block „KI-Terminannahme und Posteingang“ mitgenommen; vom Auftraggeber am 19.11.2026 zum autonomen Abarbeiten freigegeben.
+- **Befund:** Beim Buchen eines Vorschlags aus der Leiste gab es unter „Für wen?“ nur die Suche; ein neuer Gast musste erst unter **Kunden** angelegt werden.
+- **Was:**
+  - `NewGuestFormViewModel`: kurze Neuanlage mit Vorname, Nachname, Telefon, E-Mail und „Gibt es schon?“ (`DuplicateHintViewModel`). Was im Suchfeld steht, wird übernommen: als Name, als Mailadresse oder als Telefonnummer.
+  - In der Leiste: **Neuer Gast …** unter „Für wen?“; nach **Anlegen** oder **Übernehmen** ist der Gast gewählt.
+  - Hilfe `ki-assistent-fragen` mit Bild `ki-und-hilfe-neuer-gast.png`.
+- **Detailentscheidungen:**
+  1. Angelegt wird über denselben Weg wie im Kalender (`CreateCustomerAsync`, auch ohne Verbindung vorgemerkt); gebucht wird erst mit **Termin buchen**.
+  2. **Anlegen** ist kein Hauptknopf: In der Leiste bleibt „Fragen“ der einzige (Brief 5.12, Punkt 6).
+- **Geprüft:** Windows-App `CompanionTests` 8 von 8 (neu: Name aus der Suche, Anlegen mit Telefon, danach gewählt und buchbar, Abbrechen), Ansichtstest, Knopflängen (165), Leiste (121), Companion (58), „höchstens“ (33).
+- **Nicht geprüft:** die laufende App unter Windows.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).

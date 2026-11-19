@@ -206,6 +206,46 @@ public sealed partial class MailIntakeTests(ApiFixture fixture)
     }
 
     [Fact]
+    public async Task Verschiebungswunsch_findet_den_Termin_schlaegt_Zeiten_vor_und_die_Rezeption_verschiebt_mit_einem_Klick()
+    {
+        var spa = await MailSpa.CreateAsync(fixture, Ct);
+        var customer = await spa.Spa.PostAsync<CustomerDto>("/api/customers",
+            new CustomerInput("Lena", $"Gruber{Guid.NewGuid():N}", spa.Guest, null, null, null), Ct);
+        var appointment = await TestSpa.ReadAsync<AppointmentDto>(
+            await spa.Spa.BookAsync(TestSpa.At(10), Ct, treatment: spa.Treatment, location: spa.Location.Id, customer: customer.Id), Ct);
+
+        var mail = await spa.ReceiveAsync(spa.Guest, "Montag", "Hallo, ich muss meinen Termin leider verschieben. Danke, Lena", Ct);
+
+        Assert.Equal(InboundMailKind.Reschedule, mail.Kind);
+        Assert.Equal(InboundMailStatus.NeedsReview, mail.Status);
+        Assert.Equal(appointment.Id, mail.AppointmentId);
+        Assert.True(mail.CanMoveAppointment);
+        Assert.False(mail.CanCancelAppointment);
+        Assert.NotEmpty(mail.Proposals);
+        Assert.All(mail.Proposals, p => Assert.NotEqual(appointment.Start, p.Start));
+        Assert.Contains("Gast möchte verschieben. Nächster Termin:", mail.Note, StringComparison.Ordinal);
+        Assert.Contains("verschoben wird erst mit dem Klick", mail.Note, StringComparison.Ordinal);
+        // Vorschlagen ändert nichts am Termin.
+        Assert.Equal(appointment.Start, (await spa.Spa.GetAsync<AppointmentDto>($"/api/appointments/{appointment.Id}", Ct)).Start);
+
+        var chosen = mail.Proposals[0];
+        var other = await spa.Spa.Client.PostAsJsonAsync($"/api/inbox/{mail.Id}/move-appointment",
+            new AcceptProposalRequest(chosen.Start.AddMinutes(7), null, null, null), TestSpa.Json, Ct);
+        Assert.Equal(HttpStatusCode.BadRequest, other.StatusCode);
+
+        var moved = await spa.Spa.PostAsync<InboundMailDto>($"/api/inbox/{mail.Id}/move-appointment", new AcceptProposalRequest(chosen.Start, null, null, null), Ct);
+        var again = await spa.Spa.Client.PostAsJsonAsync($"/api/inbox/{mail.Id}/move-appointment", new AcceptProposalRequest(chosen.Start, null, null, null), TestSpa.Json, Ct);
+
+        Assert.Equal(InboundMailStatus.Booked, moved.Status);
+        Assert.False(moved.CanMoveAppointment);
+        Assert.Equal(HttpStatusCode.BadRequest, again.StatusCode);
+        var stored = await spa.Spa.GetAsync<AppointmentDto>($"/api/appointments/{appointment.Id}", Ct);
+        Assert.Equal((chosen.Start, AppointmentStatus.Booked), (stored.Start, stored.Status));
+        var redrafted = await spa.WaitAsync(mail.Id, m => m.ReplyBody!.Contains("verschoben", StringComparison.Ordinal), Ct);
+        Assert.Contains("wie gewünscht verschoben: neu am", redrafted.ReplyBody, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task Frage_bekommt_einen_Antwortvorschlag_der_KI_aus_den_Angaben_des_Spas_zur_Pruefung()
     {
         var spa = await MailSpa.CreateAsync(fixture, Ct);
@@ -226,6 +266,31 @@ public sealed partial class MailIntakeTests(ApiFixture fixture)
         Assert.Contains("Kostenlos stornieren bis", facts, StringComparison.Ordinal);
         Assert.Contains("/buchen/?spa=", facts, StringComparison.Ordinal);
         Assert.Contains("Sonntag geschlossen", facts, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Antwortvorschlag_kennt_Anreise_Schliesstage_und_Hinweise_aber_keine_internen_Gruende()
+    {
+        var spa = await MailSpa.CreateAsync(fixture, Ct);
+        var l = spa.Location;
+        await spa.Spa.PutAsync<LocationDto>($"/api/locations/{l.Id}", new LocationInput(l.Name, l.TimeZone, l.Currency, l.OpeningHours, l.Region,
+            new LocationContact("Graben 1", "1010", "Wien", null, null, "U1 bis Stephansplatz, Garage Am Graben.")), Ct);
+        var t = spa.Treatment;
+        await spa.Spa.PutAsync<TreatmentDto>($"/api/treatments/{t.Id}", new TreatmentInput(t.Name, t.DurationMinutes, t.PreparationMinutes,
+            t.FollowUpMinutes, t.Price, t.RequiredQualificationIds, t.RoomIds, t.EquipmentIds, GuestHint: "Bitte Badekleidung mitbringen."), Ct);
+        var tomorrow = DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, TimeZoneInfo.FindSystemTimeZoneById(l.TimeZone)).DateTime).AddDays(1);
+        await spa.Spa.PostAsync<ClosureDto>($"/api/locations/{l.Id}/closures",
+            new ClosureInput(tomorrow, null, tomorrow, null, ClosureKind.SpecialClosure, "Wasserschaden im Keller", "Betriebsausflug"), Ct);
+        var subject = $"Anreise {Guid.NewGuid():N}";
+
+        await spa.ReceiveAsync(spa.Guest, subject, "Guten Tag, wie komme ich am besten zu Ihnen?", Ct);
+
+        var facts = FakeQuestionAnswerer.Requests[subject].Facts;
+        Assert.Contains("Anreise und Parken: U1 bis Stephansplatz, Garage Am Graben.", facts, StringComparison.Ordinal);
+        Assert.Contains($"Geschlossen: {tomorrow:dd.MM.yyyy} (Betriebsausflug)", facts, StringComparison.Ordinal);
+        Assert.Contains("(Hinweis für Gäste: Bitte Badekleidung mitbringen.)", facts, StringComparison.Ordinal);
+        // Der Grund für das Team geht nie an die KI.
+        Assert.DoesNotContain("Wasserschaden", facts, StringComparison.Ordinal);
     }
 
     [Fact]

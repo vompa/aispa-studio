@@ -66,6 +66,8 @@ die KI keine Zahlen erfindet, und verhindert Zusagen, die das Spa nicht gemacht 
   gegenlesen lassen.
 - Gebaut (17.11.2026, Masken-Überarbeitung P8): Der Abstand gilt nicht mehr nur je Behandlung. Es gibt einen **Standardabstand** (`RebookSettings.DefaultDays`) und **Ausnahmen** je Kategorie (`CategoryRebookInterval`) oder Behandlung (`TreatmentRebookInterval`, `Days` jetzt nullbar); leer heißt für diese Ausnahme kein Hinweis. Es gilt die Ausnahme der Behandlung, dann die der Kategorie, dann der Standard (`RebookRules.DaysFor`); ohne Standard und ohne Ausnahme geht wie bisher nichts hinaus. Bestehende Einstellungen bleiben gleich, weil der Standard leer ist. Die Wege der API bleiben, die neuen Felder sind optional (ADR 0085 §3). Das Versandprotokoll führt Terminerinnerungen und Wiederbuchungs-Hinweise in einer Liste zusammen (`GET /api/dispatch-log`, Filter, Zusammenfassung, Export).
 
+- Nachtrag (19.11.2026): Abmelden mit einem Klick (RFC 8058). Die Kopfzeile `List-Unsubscribe` der Wiederbuchungs-Hinweise zeigt auf `…/api/online/consent/{Code}/unsubscribe`, dazu `List-Unsubscribe-Post: List-Unsubscribe=One-Click`. Ein POST dorthin widerruft ohne Rückfrage; ein GET ändert nichts (Virenscanner rufen Links vorab auf) und führt auf die Seite der Einwilligung im Kundenbereich. Der Link im Text der Mail bleibt die Seite im Kundenbereich, mit demselben Code.
+
 ## Quellen
 
 - § 7 UWG (DE), § 174 TKG 2021 (AT), Art. 7 DSGVO (Nachweis der Einwilligung)

@@ -161,6 +161,7 @@ public sealed partial class RuleBasedBookingAssistant : IBookingAssistant
             ("de", ReplyCase.NeedsDetails) => $"vielen Dank für Ihre Nachricht. Damit wir Ihnen einen Termin anbieten können, brauchen wir noch: {missing}.",
             ("de", ReplyCase.Cancelled) => $"vielen Dank für Ihre Nachricht. Wir haben Ihren Termin für {treatment}{place} am {When(request.Booked!.Value)} Uhr storniert. Wir freuen uns, wenn Sie bald wieder buchen.",
             ("de", ReplyCase.Held) => $"vielen Dank für Ihre Anfrage. Für {treatment}{place} halten wir Ihnen diesen Termin frei: {When(request.Booked!.Value)} Uhr. Passt er Ihnen? Dann antworten Sie kurz, und der Termin ist fest gebucht.",
+            ("de", ReplyCase.Moved) => $"vielen Dank für Ihre Nachricht. Wir haben Ihren Termin für {treatment}{place} wie gewünscht verschoben: neu am {When(request.Booked!.Value)} Uhr. Wir freuen uns auf Sie!",
             ("de", _) => "vielen Dank für Ihre Nachricht. Wir haben sie erhalten und unser Team meldet sich in Kürze bei Ihnen.",
             ("fr", ReplyCase.Booked) => $"merci pour votre demande. Votre rendez-vous pour {treatment}{place} est réservé le {When(request.Booked!.Value)}. Nous nous réjouissons de vous accueillir !",
             ("fr", ReplyCase.Proposed) => $"merci pour votre demande. Pour {treatment}{place}, nous pouvons vous proposer les créneaux suivants :\n{list}\n\nRépondez simplement avec le créneau qui vous convient.",
@@ -168,6 +169,7 @@ public sealed partial class RuleBasedBookingAssistant : IBookingAssistant
             ("fr", ReplyCase.NeedsDetails) => $"merci pour votre message. Pour vous proposer un rendez-vous, il nous manque : {missing}.",
             ("fr", ReplyCase.Cancelled) => $"merci pour votre message. Nous avons annulé votre rendez-vous pour {treatment}{place} du {When(request.Booked!.Value)}. Au plaisir de vous revoir bientôt.",
             ("fr", ReplyCase.Held) => $"merci pour votre demande. Pour {treatment}{place}, nous vous réservons ce créneau : {When(request.Booked!.Value)}. Vous convient-il ? Répondez simplement et le rendez-vous est confirmé.",
+            ("fr", ReplyCase.Moved) => $"merci pour votre message. Nous avons déplacé votre rendez-vous pour {treatment}{place} comme souhaité : désormais le {When(request.Booked!.Value)}. Nous nous réjouissons de vous accueillir !",
             ("fr", _) => "merci pour votre message. Nous l'avons bien reçu et notre équipe vous répondra rapidement.",
             ("it", ReplyCase.Booked) => $"grazie per la sua richiesta. Abbiamo prenotato il suo appuntamento per {treatment}{place} il {When(request.Booked!.Value)}. La aspettiamo!",
             ("it", ReplyCase.Proposed) => $"grazie per la sua richiesta. Per {treatment}{place} possiamo offrirle questi orari liberi:\n{list}\n\nRisponda semplicemente con l'orario che preferisce.",
@@ -175,6 +177,7 @@ public sealed partial class RuleBasedBookingAssistant : IBookingAssistant
             ("it", ReplyCase.NeedsDetails) => $"grazie per il suo messaggio. Per proporle un appuntamento ci serve ancora: {missing}.",
             ("it", ReplyCase.Cancelled) => $"grazie per il suo messaggio. Abbiamo annullato il suo appuntamento per {treatment}{place} del {When(request.Booked!.Value)}. Speriamo di rivederla presto.",
             ("it", ReplyCase.Held) => $"grazie per la sua richiesta. Per {treatment}{place} le teniamo libero questo orario: {When(request.Booked!.Value)}. Le va bene? Risponda brevemente e l'appuntamento è confermato.",
+            ("it", ReplyCase.Moved) => $"grazie per il suo messaggio. Abbiamo spostato il suo appuntamento per {treatment}{place} come desiderato: ora il {When(request.Booked!.Value)}. La aspettiamo!",
             ("it", _) => "grazie per il suo messaggio. L'abbiamo ricevuto e il nostro team le risponderà a breve.",
             (_, ReplyCase.Booked) => $"thank you for your request. Your appointment for {treatment}{place} is booked for {When(request.Booked!.Value)}. We look forward to seeing you!",
             (_, ReplyCase.Proposed) => $"thank you for your request. For {treatment}{place} we can offer these free times:\n{list}\n\nJust reply with the time that suits you and we will book it.",
@@ -182,6 +185,7 @@ public sealed partial class RuleBasedBookingAssistant : IBookingAssistant
             (_, ReplyCase.NeedsDetails) => $"thank you for your message. To offer you an appointment we still need: {missing}.",
             (_, ReplyCase.Cancelled) => $"thank you for your message. We have cancelled your appointment for {treatment}{place} on {When(request.Booked!.Value)}. We hope to see you again soon.",
             (_, ReplyCase.Held) => $"thank you for your request. For {treatment}{place} we are holding this time for you: {When(request.Booked!.Value)}. Does it suit you? Just reply briefly and the appointment is confirmed.",
+            (_, ReplyCase.Moved) => $"thank you for your message. We have moved your appointment for {treatment}{place} as requested: now on {When(request.Booked!.Value)}. We look forward to seeing you!",
             _ => "thank you for your message. We have received it and our team will get back to you shortly.",
         };
 

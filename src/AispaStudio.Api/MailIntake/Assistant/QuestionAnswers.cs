@@ -91,13 +91,18 @@ internal sealed class ClaudeQuestionAnswerer(ClaudeJson claude) : IQuestionAnswe
 }
 
 /// <summary>
-/// Was das Spa über sich selbst sagen kann, als Text für die KI: Standorte mit Adresse, Öffnungszeiten, Stornofrist und den
-/// angebotenen Behandlungen mit Dauer und Preis am Standort, dazu der Link zum Buchen.
+/// Was das Spa über sich selbst sagen kann, als Text für die KI: Standorte mit Adresse, Anreise und Parken, Öffnungszeiten, kommenden
+/// Schließtagen, Stornofrist und den angebotenen Behandlungen mit Dauer, Preis und Hinweis für Gäste, dazu die Links zum Buchen und zum
+/// Gutscheinkauf. Nur was Gäste ohnehin sehen dürfen; interne Gründe einer Schließzeit, das Rezeptionshandbuch und Betriebsinformationen nie.
 /// </summary>
-internal sealed partial class SpaFacts(AispaDbContext db, OnlineRules rules, OnlinePortal portal, TenantContext tenants)
+internal sealed partial class SpaFacts(AispaDbContext db, OnlineRules rules, OnlinePortal portal, TenantContext tenants, VoucherShop vouchers,
+    TimeProvider time)
 {
     /// <summary>Damit die Anfrage klein bleibt; große Spas haben selten mehr Behandlungen je Standort.</summary>
     private const int MaxTreatments = 60;
+
+    /// <summary>Schließtage so weit voraus: Fragen nach „über Weihnachten“ oder „nächsten Monat“ bleiben beantwortbar.</summary>
+    private const int ClosureDays = 90;
 
     private static readonly CultureInfo German = CultureInfo.GetCultureInfo("de-AT");
 
@@ -126,7 +131,32 @@ internal sealed partial class SpaFacts(AispaDbContext db, OnlineRules rules, Onl
                 text.AppendLine(CultureInfo.InvariantCulture, $"Mail: {location.Email}");
             }
 
+            if (!string.IsNullOrWhiteSpace(location.Directions))
+            {
+                text.AppendLine(CultureInfo.InvariantCulture, $"Anreise und Parken: {location.Directions.Trim()}");
+            }
+
             text.AppendLine(CultureInfo.InvariantCulture, $"Öffnungszeiten: {Hours(location.OpeningHours)}");
+            var zone = LocalTime.Zone(location.TimeZone);
+            var today = LocalTime.LocalDate(time.GetUtcNow(), zone);
+            var closures = await db.Closures.AsNoTracking()
+                .Where(c => c.LocationId == location.Id && c.UntilDate >= today && c.FromDate <= today.AddDays(ClosureDays))
+                .OrderBy(c => c.FromDate).ToListAsync(ct);
+            foreach (var closure in closures)
+            {
+                var span = closure.FromDate == closure.UntilDate
+                    ? $"{closure.FromDate:dd.MM.yyyy}"
+                    : $"{closure.FromDate:dd.MM.yyyy} bis {closure.UntilDate:dd.MM.yyyy}";
+                var hours = closure.FromTime is { } from ? $" ab {from:HH\\:mm}" : "";
+                hours += closure.UntilTime is { } until ? $" bis {until:HH\\:mm}" : "";
+                text.AppendLine(CultureInfo.InvariantCulture, $"Geschlossen: {span}{hours}{(string.IsNullOrWhiteSpace(closure.GuestText) ? "" : $" ({closure.GuestText.Trim()})")}");
+            }
+
+            if (await vouchers.AvailableAsync(location.Id, ct))
+            {
+                text.AppendLine(CultureInfo.InvariantCulture, $"Gutscheine online kaufen: {portal.Url("gutschein", tenantId)}");
+            }
+
             var rule = await rules.ForAsync(location.Id, ct);
             text.AppendLine(CultureInfo.InvariantCulture, $"Kostenlos stornieren bis {rule.CancellationDeadlineHours} Stunden vor Beginn.");
 
@@ -135,8 +165,9 @@ internal sealed partial class SpaFacts(AispaDbContext db, OnlineRules rules, Onl
             foreach (var t in treatments.OrderBy(t => t.Category).ThenBy(t => t.Name).Take(MaxTreatments))
             {
                 var price = t.PriceAt(location.Id).ToString("N2", German);
+                var hint = string.IsNullOrWhiteSpace(t.GuestHint) ? "" : $" (Hinweis für Gäste: {t.GuestHint.Trim()})";
                 text.AppendLine(CultureInfo.InvariantCulture,
-                    $"- {(string.IsNullOrWhiteSpace(t.Category) ? "" : $"{t.Category}: ")}{t.Name}, {t.DurationMinutes} Minuten, {price} {location.Currency}");
+                    $"- {(string.IsNullOrWhiteSpace(t.Category) ? "" : $"{t.Category}: ")}{t.Name}, {t.DurationMinutes} Minuten, {price} {location.Currency}{hint}");
             }
         }
 

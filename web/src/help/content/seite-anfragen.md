@@ -58,4 +58,5 @@ Außerhalb von Eingabefeldern:
 - [Antwort prüfen, überarbeiten und senden](hilfe:anfragen-antwort-freigeben)
 - [Fremdsprachige Nachricht übersetzen](hilfe:anfragen-uebersetzen)
 - [Absage eines Gasts stornieren](hilfe:anfragen-absage-stornieren)
+- [Verschiebungswunsch eines Gasts übernehmen](hilfe:anfragen-verschiebung)
 - [Anfrage ohne Termin erledigen](hilfe:anfragen-erledigen)

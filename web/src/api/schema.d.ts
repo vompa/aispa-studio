@@ -6002,6 +6002,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/inbox/{mailId}/move-appointment": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Verschiebt den Termin, den der Gast verschieben möchte, auf eine der vorgeschlagenen Zeiten; die Antwort an den Gast wird neu entworfen. */
+        post: operations["MoveInboundMailAppointment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/inbox/{mailId}/retry": {
         parameters: {
             query?: never;
@@ -8534,6 +8551,24 @@ export interface paths {
         put?: never;
         /** Widerruft die Einwilligung; danach gehen keine Wiederbuchungs-Hinweise mehr. */
         post: operations["WithdrawOnlineConsent"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/online/consent/{token}/unsubscribe": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Der Abmeldelink im Browser: führt ohne Änderung auf die Seite der Einwilligung im Kundenbereich. */
+        get: operations["UnsubscribeOneClickPage"];
+        put?: never;
+        /** Abmelden mit einem Klick aus dem Mailprogramm (RFC 8058): widerruft die Einwilligung ohne Rückfrage. */
+        post: operations["UnsubscribeOneClick"];
         delete?: never;
         options?: never;
         head?: never;
@@ -11507,6 +11542,8 @@ export interface components {
             suggestedTitlesBefore?: null | string;
             /** Format: date-time */
             heldStart?: null | string;
+            /** @default false */
+            canMoveAppointment: boolean;
         };
         /** @enum {unknown} */
         InboundMailKind: "Unknown" | "BookingRequest" | "Cancellation" | "Reschedule" | "Question" | "Other" | "TreatwellBooking" | "TreatwellCancellation" | "TreatwellChange";
@@ -30812,6 +30849,66 @@ export interface operations {
             };
         };
     };
+    MoveInboundMailAppointment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                mailId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AcceptProposalRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InboundMailDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BookingRejected"];
+                };
+            };
+        };
+    };
     RetryInboundMail: {
         parameters: {
             query?: never;
@@ -38975,6 +39072,53 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["OnlineConsentDto"];
                 };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    UnsubscribeOneClickPage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    UnsubscribeOneClick: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Not Found */
             404: {

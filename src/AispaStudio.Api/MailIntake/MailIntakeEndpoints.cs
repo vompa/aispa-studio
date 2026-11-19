@@ -441,6 +441,58 @@ internal static class MailIntakeEndpoints
             .WithSummary("Storniert den Termin, den der Gast in seiner Nachricht absagt; die Antwort an den Gast wird neu entworfen. "
                 + "Mit appointmentId ein anderer bevorstehender Termin desselben Gastes (siehe „ListInboundMailCancellableAppointments“).");
 
+        group.MapPost("/{mailId:guid}/move-appointment", async Task<Results<Ok<InboundMailDto>, NotFound, ValidationProblem, Conflict<BookingRejected>>> (
+                Guid mailId, AcceptProposalRequest request, AispaDbContext db, AccessService accessService, BookingService booking, IMessageBus bus,
+                IReplyReviser reviser, CancellationToken ct) =>
+            {
+                var mail = await db.InboundMails.FirstOrDefaultAsync(m => m.Id == mailId, ct);
+                if (mail is null)
+                {
+                    return TypedResults.NotFound();
+                }
+
+                if (!CanMoveAppointment(mail))
+                {
+                    return TypedResults.ValidationProblem(new Dictionary<string, string[]> { ["status"] = ["Zu dieser Nachricht gibt es keinen Termin zum Verschieben."] });
+                }
+
+                // Nur eine der vorgeschlagenen Zeiten: Die Rezeption bestätigt einen Vorschlag, sie verschiebt hier nicht frei (das geht im Kalender).
+                if (mail.Proposals.FirstOrDefault(p => p.Start == request.Start) is not { } slot)
+                {
+                    return TypedResults.ValidationProblem(new Dictionary<string, string[]> { ["start"] = ["Diese Zeit gehört nicht zu den Vorschlägen."] });
+                }
+
+                var moveId = mail.AppointmentId!.Value;
+                var location = await db.Appointments.Where(a => a.Id == moveId).Select(a => (Guid?)a.LocationId).FirstOrDefaultAsync(ct);
+                var access = (await accessService.CurrentAsync(ct))!;
+                if (location is null || !(access.AllLocations || access.LocationIds.Contains(location.Value)))
+                {
+                    return TypedResults.NotFound();
+                }
+
+                var outcome = await booking.MoveAsync(moveId, new MoveAppointmentRequest(slot.Start, request.EmployeeId ?? slot.EmployeeId,
+                    request.RoomId ?? slot.RoomId, request.EquipmentId ?? slot.EquipmentId), ct);
+                switch (outcome)
+                {
+                    case BookingOutcome.Success:
+                        mail = await db.InboundMails.FirstAsync(m => m.Id == mailId, ct);
+                        mail.Status = InboundMailStatus.Booked;
+                        mail.Proposals = [];
+                        mail.Note = null;
+                        await db.SaveChangesAsync(ct);
+                        await bus.PublishAsync(new ReplyDraftRequested(mail.Id));
+                        return TypedResults.Ok(ToDto(mail, reviser.Available));
+                    case BookingOutcome.Rejected rejected:
+                        return TypedResults.Conflict(rejected.Reason);
+                    case BookingOutcome.Invalid invalid:
+                        return TypedResults.ValidationProblem(new Dictionary<string, string[]> { [invalid.Field] = [invalid.Message] });
+                    default:
+                        return TypedResults.NotFound();
+                }
+            })
+            .WithName("MoveInboundMailAppointment")
+            .WithSummary("Verschiebt den Termin, den der Gast verschieben möchte, auf eine der vorgeschlagenen Zeiten; die Antwort an den Gast wird neu entworfen.");
+
         group.MapPost("/{mailId:guid}/retry", async Task<Results<Accepted<InboundMailDto>, NotFound, ValidationProblem>> (
                 Guid mailId, AispaDbContext db, IMessageBus bus, IReplyReviser reviser, CancellationToken ct) =>
             {
@@ -599,14 +651,13 @@ internal static class MailIntakeEndpoints
         m.CustomerCandidates, m.CustomerConfirmed,
         m.PlatformReference, m.PlatformPayment, m.PrepaidAmount, m.AcceptInPlatformPending,
         m is { Channel: BookingChannel.Treatwell, Kind: InboundMailKind.TreatwellBooking, Status: InboundMailStatus.Booked, AppointmentId: not null, CustomerConfirmed: false },
-        m.SenderRulePattern, m.SuggestedSalutation, m.SuggestedTitlesBefore, m.HeldStart);
+        m.SenderRulePattern, m.SuggestedSalutation, m.SuggestedTitlesBefore, m.HeldStart, CanMoveAppointment(m));
 
     /// <summary>Terminanfrage ohne Termin, nichts läuft gerade; auch nachdem der Vorschlag gesendet ist (der Gast ruft an).</summary>
     private static bool CanRepropose(InboundMail m) =>
         m.Kind == InboundMailKind.BookingRequest && m.Status is InboundMailStatus.Proposed or InboundMailStatus.NeedsReview
         && m.AppointmentId is null && m.ReplyStatus != ReplyStatus.Sending && !m.Reproposing && !m.ReplyRevising;
 
-    /// <summary>Absage, zu der die Terminannahme den nächsten Termin des Gasts gefunden hat; noch nicht storniert.</summary>
     /// <summary>
     /// Was die Rezeption zu dieser Absage stornieren kann: die nächsten gebuchten Termine des Gastes, dem der gefundene Termin gehört,
     /// an den Standorten der aufrufenden Person; höchstens zehn.
@@ -629,6 +680,12 @@ internal static class MailIntakeEndpoints
         return [.. rows.Select(r => new InboxAppointmentOption(r.Id, r.Start, r.Treatment, locations[r.LocationId].Name, locations[r.LocationId].TimeZone, r.Id == mail.AppointmentId))];
     }
 
+    /// <summary>Verschiebungswunsch mit gefundenem Termin und freien Zeiten; noch nicht verschoben.</summary>
+    private static bool CanMoveAppointment(InboundMail m) =>
+        m.Kind == InboundMailKind.Reschedule && m.Status == InboundMailStatus.NeedsReview && m.AppointmentId is not null && m.CustomerConfirmed
+        && m.Proposals.Count > 0 && m.ReplyStatus != ReplyStatus.Sending && !m.ReplyRevising;
+
+    /// <summary>Absage, zu der die Terminannahme den nächsten Termin des Gasts gefunden hat; noch nicht storniert.</summary>
     private static bool CanCancelAppointment(InboundMail m) =>
         m.Kind == InboundMailKind.Cancellation && m.Status == InboundMailStatus.NeedsReview && m.AppointmentId is not null && m.CustomerConfirmed
         && m.ReplyStatus != ReplyStatus.Sending && !m.ReplyRevising;
