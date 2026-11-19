@@ -395,7 +395,7 @@ Die Nummern sind die Reihenfolge, die der jeweilige Thread gewählt hätte ([Üb
 - Später: Rückruf-Mail an betroffene Gäste (nur nach Freigabe, über die Queue); Bestellung direkt an Lieferanten per Mail oder Schnittstelle, Wareneingang per Lieferschein-Foto; Terminalbelege (auch über den OPI-Druckkanal); Preis nach Auslastung; Pakete Start, Spa, Spa Plus; Datenmigration aus Altsystemen, Onboarding mit KI, Datenexport nach Data Act.
 
 **Windows-App** ([Übergabe vom 20.10.](uebergabe/threads/windows-app-2.md))
-1. Neuen Kunden direkt aus der Leiste „KI und Hilfe“ anlegen (bisher nur Suche).
+1. Neuen Kunden direkt aus der Leiste „KI und Hilfe“ anlegen: seit 19.11.2026 gebaut („Neuer Gast …“ beim Buchen eines Vorschlags).
 2. Handbuch-Bild `web/src/help/images/web/calendar-assistent.png`: am 22.10.2026 neu erzeugt (Runde 5b, Abschlusslauf; zeigt die Antwort auf „Wie lange haben wir heute offen?“ und die neue Navigation mit Betriebsinfo; entstand nachts, alle Termine stehen „abgeschlossen“: tagsüber neu erzeugen).
 3. Verwaltung beim Start über Aspire beim Auftraggeber prüfen; die Ursache der fehlenden Weiterleitung API → Vite ist ungeklärt, #145 umgeht sie.
 4. Hilfe im WebView2, Einzelplatz und Mehrplatz unter echtem Windows ausprobieren; Speicher der App unter Windows messen.

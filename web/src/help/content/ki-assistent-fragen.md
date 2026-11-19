@@ -153,8 +153,10 @@ Auf der Seite Kalender schlägt der Assistent Schritte als Knöpfe vor; ausgefü
 Freie Zeiten stehen als Liste unter der Antwort. Buchen dürfen nur Personen mit Buchungsrecht (Rezeption, Standortleitung, Inhaber); für alle anderen sind die Zeilen nur Text.
 
 1. Die passende Zeit in der Liste anklicken (Tooltip „Buchen …“).
-2. Unter „Für wen?“ den Kunden suchen und wählen. **Ändern** wählt einen anderen.
+2. Unter „Für wen?“ den Kunden suchen und wählen. **Ändern** wählt einen anderen. Ist der Gast neu, **Neuer Gast …** klicken: Was im Suchfeld steht, ist schon als Name eingetragen. Telefon oder E-Mail ergänzen und **Anlegen** klicken; der neue Gast ist danach gewählt. Steht dabei „Gibt es schon?“, den passenden Eintrag mit **Übernehmen** wählen statt doppelt anzulegen.
 3. **Termin buchen** anklicken. „Gebucht: …“ erscheint, und der Termin steht sofort im Kalender.
+
+![Neuer Gast direkt in der Leiste „KI und Hilfe“](images/app/ki-und-hilfe-neuer-gast.png)
 
 Gebucht wird erst mit diesem Klick, über dieselbe Buchung wie im Kalender. Ist die Zeit inzwischen vergeben, meldet der Assistent das; dann die Frage noch einmal stellen. Ohne Verbindung zum Server bucht die Leiste nicht, weil die vorgeschlagene Zeit inzwischen vergeben sein kann; dann im Kalender buchen.
 

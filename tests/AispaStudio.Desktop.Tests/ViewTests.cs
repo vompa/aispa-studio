@@ -1550,6 +1550,35 @@ public sealed partial class ViewTests
          new AssistantSuggestion(AssistantSuggestionKind.OpenCustomer, "Maria Brunner (Stammgast)", null, null, null, SpaSample.Customers[0].Id, null, null)],
         "Antwort einer KI. Zahlen und Zeiten kommen aus Kalender und Kassa.", [])));
 
+    [Fact]
+    public Task KI_und_Hilfe_legt_beim_Buchen_einen_neuen_Gast_an() => Render("hell", "ki-und-hilfe-neuer-gast", async (window, main) =>
+    {
+        var calendar = await SignedInCalendar(main);
+        var shell = (ShellViewModel)main.Content!;
+        shell.Companion.ToggleCommand.Execute(null);
+        await shell.Companion.AskExampleCommand.ExecuteAsync("Wann ist morgen Nachmittag eine Massage frei?");
+        await shell.Companion.UseSuggestionCommand.ExecuteAsync(shell.Companion.Suggestions[0]);
+        shell.Companion.Guest!.Query = "Mara Neu";
+        await Pump();
+        Assert.True(Named<Button>(window, "CompanionNewGuestButton").IsEffectivelyVisible);
+        shell.Companion.StartNewGuestCommand.Execute(null);
+        shell.Companion.NewGuest!.Phone = "+43 660 7654321";
+        await Pump();
+
+        var card = Named<Border>(window, "CompanionNewGuestCard");
+        Assert.True(card.IsEffectivelyVisible);
+        Assert.Equal(["Mara", "Neu", "+43 660 7654321", ""],
+            card.GetVisualDescendants().OfType<TextBox>().Where(t => t.IsEffectivelyVisible).Select(t => t.Text ?? ""));
+        Assert.False(Named<Button>(window, "CompanionNewGuestButton").IsEffectivelyVisible);
+        card.BringIntoView();
+        await Pump();
+        return calendar;
+    }, Api().On("POST /api/assistant", new AssistantAnswer(AssistantAudience.Reception,
+        "Morgen Nachmittag ist eine Hot-Stone-Massage frei:", [],
+        [new AssistantSuggestion(AssistantSuggestionKind.BookSlot, "Di., 14:00 Hot-Stone-Massage bei Lena Huber", SpaSample.LocationId,
+            SpaSample.Treatments[1].Id, SpaSample.Lena.Id, null, null, SpaSample.At(14).AddDays(1))],
+        "Antwort einer KI. Zahlen und Zeiten kommen aus Kalender und Kassa.", [])));
+
     [Theory]
     [InlineData("hell")]
     [InlineData("dunkel")]

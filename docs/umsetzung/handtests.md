@@ -1421,6 +1421,15 @@ Expected: Im Kalender steht der Termin beim Therapeuten; in der Notiz steht „W
 Closes: –
 Result: ☐
 
+### Leiste „KI und Hilfe“ – neuen Gast beim Buchen anlegen
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App als Rezeption, mit KI-Schlüssel
+1. Rechts die Leiste **KI und Hilfe** öffnen, „Wann ist morgen eine Massage frei?“ fragen und eine Zeit anklicken.
+Expected: Unter „Für wen?“ stehen Suchfeld und **Neuer Gast …**.
+2. „Mara Neu“ ins Suchfeld tippen, **Neuer Gast …** klicken, eine Telefonnummer ergänzen und **Anlegen** klicken.
+Expected: Vor- und Nachname waren schon eingetragen; nach dem Anlegen steht „Mara Neu“ unter „Für wen?“, **Termin buchen** ist bereit. In **Kunden** gibt es Mara Neu.
+Closes: –
+Result: ☐
+
 ### Posteingang – Verschiebungswunsch übernehmen
 Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App als Rezeption; ein Gast mit Mailadresse hat einen gebuchten Termin in den nächsten Tagen
 1. Vom Gast eine Mail an das Test-Postfach schicken: „Hallo, ich muss meinen Termin leider verschieben, geht Dienstag nachmittags?“

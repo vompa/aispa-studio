@@ -7384,3 +7384,18 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Geprüft:** API alle `MailIntake*`-, `Assistant*`- und `Business*`-Tests: 426 von 426. Neu: Anreise, Schließtag mit Text für Gäste und Hinweis der Behandlung stehen in den Angaben, der interne Grund nicht.
 - **Nicht geprüft:** die echte KI (Claude) mit einer Frage nach Anreise oder Schließtagen.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Leiste „KI und Hilfe“: neuen Gast beim Buchen anlegen (19.11.2026)
+
+- **Auftrag:** Offener Punkt der Windows-App „Neuen Kunden direkt aus der Leiste ‚KI und Hilfe‘ anlegen (bisher nur Suche)“, im Block „KI-Terminannahme und Posteingang“ mitgenommen; vom Auftraggeber am 19.11.2026 zum autonomen Abarbeiten freigegeben.
+- **Befund:** Beim Buchen eines Vorschlags aus der Leiste gab es unter „Für wen?“ nur die Suche; ein neuer Gast musste erst unter **Kunden** angelegt werden.
+- **Was:**
+  - `NewGuestFormViewModel`: kurze Neuanlage mit Vorname, Nachname, Telefon, E-Mail und „Gibt es schon?“ (`DuplicateHintViewModel`). Was im Suchfeld steht, wird übernommen: als Name, als Mailadresse oder als Telefonnummer.
+  - In der Leiste: **Neuer Gast …** unter „Für wen?“; nach **Anlegen** oder **Übernehmen** ist der Gast gewählt.
+  - Hilfe `ki-assistent-fragen` mit Bild `ki-und-hilfe-neuer-gast.png`.
+- **Detailentscheidungen:**
+  1. Angelegt wird über denselben Weg wie im Kalender (`CreateCustomerAsync`, auch ohne Verbindung vorgemerkt); gebucht wird erst mit **Termin buchen**.
+  2. **Anlegen** ist kein Hauptknopf: In der Leiste bleibt „Fragen“ der einzige (Brief 5.12, Punkt 6).
+- **Geprüft:** Windows-App `CompanionTests` 8 von 8 (neu: Name aus der Suche, Anlegen mit Telefon, danach gewählt und buchbar, Abbrechen), Ansichtstest, Knopflängen (165), Leiste (121), Companion (58), „höchstens“ (33).
+- **Nicht geprüft:** die laufende App unter Windows.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).

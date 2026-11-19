@@ -290,6 +290,52 @@
                   </ListBox.ItemTemplate>
                 </ListBox>
               </StackPanel>
+              <!-- Neuer Gast direkt hier, statt über „Kunden“: kurze Neuanlage mit „Gibt es schon?“ wie beim Buchen im Kalender -->
+              <Button x:Name="CompanionNewGuestButton" Classes="ghost" Content="Neuer Gast …" Command="{Binding StartNewGuestCommand}"
+                      IsVisible="{Binding !IsCreatingGuest}" HorizontalAlignment="Left"
+                      ToolTip.Tip="Neuen Gast anlegen; was oben getippt ist, steht als Name darin" />
+              <Border x:Name="CompanionNewGuestCard" Classes="panelcard" IsVisible="{Binding IsCreatingGuest}">
+                <StackPanel Spacing="8" DataContext="{Binding NewGuest}" x:DataType="vm:NewGuestFormViewModel">
+                  <TextBlock Text="Neuer Gast" Classes="group" />
+                  <UniformGrid Columns="2" ColumnSpacing="8">
+                    <ui:FormField Label="Vorname">
+                      <TextBox Text="{Binding FirstName}" />
+                    </ui:FormField>
+                    <ui:FormField Label="Nachname">
+                      <TextBox Text="{Binding LastName}" />
+                    </ui:FormField>
+                  </UniformGrid>
+                  <ui:FormField Label="Telefon">
+                    <TextBox Text="{Binding Phone}" />
+                  </ui:FormField>
+                  <ui:FormField Label="E-Mail">
+                    <TextBox Text="{Binding Email}" />
+                  </ui:FormField>
+                  <Border Classes="hint warn" IsVisible="{Binding Duplicates.HasOptions}">
+                    <StackPanel Spacing="6">
+                      <TextBlock Text="Gibt es schon?" FontWeight="SemiBold" />
+                      <ItemsControl ItemsSource="{Binding Duplicates.Options}">
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate x:DataType="vm:DuplicateOption">
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8" Margin="0,0,0,4">
+                              <StackPanel Spacing="1">
+                                <TextBlock Text="{Binding Name}" FontWeight="Medium" />
+                                <TextBlock Text="{Binding Reason}" Classes="muted small" TextWrapping="Wrap" />
+                              </StackPanel>
+                              <Button Grid.Column="1" Content="Übernehmen" Command="{Binding AdoptCommand}" VerticalAlignment="Center" />
+                            </Grid>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                    </StackPanel>
+                  </Border>
+                  <ui:InfoBar Severity="Error" Message="{Binding Error}" IsVisible="{Binding Error, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                  <StackPanel Orientation="Horizontal" Spacing="8">
+                    <Button x:Name="CompanionCreateGuestButton" Content="Anlegen" Command="{Binding CreateCommand}" />
+                    <Button Classes="ghost" Content="Abbrechen" Command="{Binding CancelCommand}" />
+                  </StackPanel>
+                </StackPanel>
+              </Border>
               <StackPanel Orientation="Horizontal" Spacing="8">
                 <!-- Sekundär: in der Leiste ist „Fragen“ der einzige Primärknopf (Brief 5.12 Punkt 6) -->
                 <Button Content="Termin buchen" Command="{Binding BookCommand}" />
