@@ -411,14 +411,14 @@ Die Nummern sind die Reihenfolge, die der jeweilige Thread gewählt hätte ([Üb
 6. Teilerstattung; Meldungen des Anbieters zu fehlgeschlagenen Erstattungen.
 7. Online-Bestellungen und Erstattungen als Liste in der Kassa: seit 17.11.2026 gebaut (Karte „Online-Zahlungen“, nur zum Nachsehen).
 8. Anzahlung in der Windows-App anzeigen: vorhanden (Abschnitt „Anzahlung“ im Termin-Panel, Ä285); am 17.11.2026 als erledigt vermerkt.
-9. Aus den Buchungsproblemen offen (seit 16.11.2026 gebaut: Absage eines späteren Termins im Posteingang, Wunsch Therapeutin oder Therapeut bei der Online-Buchung): Bestätigung der E-Mail vor einer Gastbuchung, Gutschein mit Anzahlung verrechnen, Absage eines späteren als des nächsten Termins per Klick, Wunsch ♀/♂ bei der Online-Buchung.
+9. Aus den Buchungsproblemen offen (seit 16.11.2026 gebaut: Absage eines späteren Termins im Posteingang, Wunsch Therapeutin oder Therapeut bei der Online-Buchung): Bestätigung der E-Mail vor einer Gastbuchung, Gutschein mit Anzahlung verrechnen (Wunsch ♀/♂ bei der Online-Buchung seit #61 und Absage eines späteren Termins im Posteingang seit #59 gebaut, am 19.11.2026 bereinigt).
 10. CSP des Kundenbereichs durchsetzen ([ADR 0080](entscheidungen/0080-csp-fuer-den-kundenbereich.md)): nach einem Stand ohne CSP-Meldungen in Chrome, Edge, Firefox und Safari den Header-Namen umstellen und dabei den Header für `frame-ancestors` (Einbetten, Slice 58) mit der Richtlinie für Inhalte zusammenführen.
 - Später: Spa-Tag, Paar und Eintritte im Kundenbereich; Regeln für Ausfallgebühr und Anzahlung je Kundengruppe, Tageszeit oder No-Show-Risiko; Wissensbasis des Spas für Fragen im Kundenbereich; Reserve with Google und Gutscheinportale (erst nach der Freigabe des Auftraggebers, [ADR 0014](entscheidungen/0014-buchungsplattformen-ohne-partnervertrag.md)).
 
 **KI-Terminannahme, Kanäle, Assistent**
 1. KI-Vorschläge für Absagen und Verschiebungen im Posteingang (Termin finden, Storno oder Ersatzzeiten vorschlagen, Rezeption bestätigt).
 2. Wissensbasis des Spas (Parken, Anreise, Gutscheine, Hausregeln) als Quelle für Antwortvorschläge.
-3. Abmelden mit einem Klick im Mailprogramm (`List-Unsubscribe-Post`); die Kopfzeile `List-Unsubscribe` und die Einwilligung beim Online-Buchen sind seit 16.11.2026 gebaut.
+3. Abmelden mit einem Klick im Mailprogramm (`List-Unsubscribe-Post`, RFC 8058): seit 19.11.2026 gebaut.
 4. Ansage am Telefon je Spa und in weiteren Sprachen; Rückruf statt SMS für Festnetz-Anrufer.
 5. KI-Vorschläge im Dienstplan, nur als Vorschlag, abgestimmt mit dem Kalender.
 6. Lokale KI: Schalter in der Windows-App für Ollama beim Einzelplatz, `gemma3:4b` mit echten Mails prüfen und mit `qwen3:4b` vergleichen ([ADR 0057](entscheidungen/0057-lokale-ki-optional-mit-ollama.md)).

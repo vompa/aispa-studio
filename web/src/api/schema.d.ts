@@ -8540,6 +8540,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/online/consent/{token}/unsubscribe": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Der Abmeldelink im Browser: führt ohne Änderung auf die Seite der Einwilligung im Kundenbereich. */
+        get: operations["UnsubscribeOneClickPage"];
+        put?: never;
+        /** Abmelden mit einem Klick aus dem Mailprogramm (RFC 8058): widerruft die Einwilligung ohne Rückfrage. */
+        post: operations["UnsubscribeOneClick"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -38975,6 +38993,53 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["OnlineConsentDto"];
                 };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    UnsubscribeOneClickPage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    UnsubscribeOneClick: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Not Found */
             404: {

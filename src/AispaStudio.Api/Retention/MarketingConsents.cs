@@ -190,8 +190,17 @@ internal sealed class MarketingConsents(
     }
 
     /// <summary>Neuer Abmeldelink für eine Erinnerung; gespeichert wird er mit dem nächsten <c>SaveChanges</c> des Kundenbereichs.</summary>
-    public string UnsubscribeUrl(Guid customerId) =>
-        portal.Url($"einwilligung/{links.Create(AccessLinkPurpose.MarketingConsent, customerId, null, time.GetUtcNow() + LinkLifetime)}");
+    public string UnsubscribeUrl(Guid customerId) => UnsubscribeLinks(customerId).Page;
+
+    /// <summary>
+    /// Abmelden für eine Erinnerung, mit einem Code: <c>Page</c> ist die Seite im Kundenbereich (für den Text der Mail), <c>OneClick</c> die Adresse für
+    /// die Kopfzeile <c>List-Unsubscribe</c>. Ein POST dorthin meldet ohne Rückfrage ab (RFC 8058), ein GET leitet nur auf die Seite weiter.
+    /// </summary>
+    public (string Page, string OneClick) UnsubscribeLinks(Guid customerId)
+    {
+        var token = links.Create(AccessLinkPurpose.MarketingConsent, customerId, null, time.GetUtcNow() + LinkLifetime);
+        return (portal.Url($"einwilligung/{token}"), portal.ApiUrl($"api/online/consent/{token}/unsubscribe"));
+    }
 
     public async Task<OnlineConsentDto?> ForTokenAsync(string token, CancellationToken ct) =>
         await FindAsync(token, ct) is { } found ? await ToOnlineAsync(found.Consent, ct) : null;

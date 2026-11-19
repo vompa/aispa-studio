@@ -1421,6 +1421,15 @@ Expected: Im Kalender steht der Termin beim Therapeuten; in der Notiz steht „W
 Closes: –
 Result: ☐
 
+### Wiederbuchungs-Hinweis – Abmelden mit einem Klick im Mailprogramm
+Start: Testbetrieb mit echtem Mailversand an ein eigenes Gmail- oder Outlook-Postfach; ein Gast mit bestätigter Einwilligung, dessen letzte Behandlung lange genug her ist
+1. Den Wiederbuchungs-Hinweis an das Postfach gehen lassen und die Mail öffnen.
+Expected: Neben dem Absender bietet das Mailprogramm **Abmelden** an (Gmail: „Abmelden“ oben; Outlook: Hinweisleiste).
+2. **Abmelden** klicken.
+Expected: Keine Seite öffnet sich; in der Windows-App zeigt die Kundenkarte die Einwilligung als widerrufen.
+Closes: –
+Result: ☐
+
 ### Termin-Panel – Karten- und Anzahlungslink per SMS
 Start: `dotnet run --project src/AispaStudio.AppHost` mit eingerichtetem SMS-Anbieter (Twilio), Windows-App als Rezeption; am Standort sind Ausfallgebühr oder Anzahlung eingestellt; ein Gast ohne Mailadresse, mit eigener Handynummer in der Kundenkarte
 1. Für den Gast einen Termin buchen, öffnen und **Anzahlung per Link** (oder **Karte per Link anfordern**) klicken.

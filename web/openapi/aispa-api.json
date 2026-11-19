@@ -30901,6 +30901,55 @@
           }
         }
       }
+    },
+    "/api/online/consent/{token}/unsubscribe": {
+      "post": {
+        "tags": [
+          "Kundenbereich"
+        ],
+        "summary": "Abmelden mit einem Klick aus dem Mailprogramm (RFC 8058): widerruft die Einwilligung ohne Rückfrage.",
+        "operationId": "UnsubscribeOneClick",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Kundenbereich"
+        ],
+        "summary": "Der Abmeldelink im Browser: führt ohne Änderung auf die Seite der Einwilligung im Kundenbereich.",
+        "operationId": "UnsubscribeOneClickPage",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
     }
   },
   "components": {

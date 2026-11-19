@@ -312,11 +312,11 @@ internal sealed partial class RebookSender(
         reminder.Text = text ?? RebookTexts.Fallback(facts);
 
         var book = portal.Url($"?standort={last.LocationId}&behandlung={last.TreatmentId}", tenantId);
-        var unsubscribe = consents.UnsubscribeUrl(customer.Id);
+        var unsubscribe = consents.UnsubscribeLinks(customer.Id);
         await online.SaveChangesAsync(ct);
         try
         {
-            await mails.SendAsync(RebookTexts.Mail(consent.Email, facts, reminder.Text, reminder.AiWritten, book, unsubscribe), ct);
+            await mails.SendAsync(RebookTexts.Mail(consent.Email, facts, reminder.Text, reminder.AiWritten, book, unsubscribe.Page, unsubscribe.OneClick), ct);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
@@ -383,7 +383,7 @@ internal static class RebookTexts
         _ => $"Ihr letzter Besuch bei uns für „{f.Treatment}“ ist schon eine Weile her. Wenn Sie sich wieder etwas Gutes tun möchten, buchen Sie Ihren nächsten Termin einfach online.",
     };
 
-    public static OutgoingMail Mail(string to, RebookFacts f, string text, bool aiWritten, string book, string unsubscribe)
+    public static OutgoingMail Mail(string to, RebookFacts f, string text, bool aiWritten, string book, string unsubscribe, string? oneClick = null)
     {
         var (subject, greeting, bookLabel, aiNotice, why, unsubscribeLabel) = f.Language switch
         {
@@ -409,6 +409,6 @@ internal static class RebookTexts
             --
             {(aiWritten ? aiNotice + "\n" : "")}{why}
             {unsubscribeLabel}: {unsubscribe}
-            """, ListUnsubscribe: unsubscribe);
+            """, ListUnsubscribe: oneClick ?? unsubscribe, OneClickUnsubscribe: oneClick is not null);
     }
 }

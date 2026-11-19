@@ -101,8 +101,15 @@ public sealed class MailboxAdapterTests
         var reminder = MailMessages.Build(new OutgoingMail("gast@example.at", "Zeit für Ihren nächsten Termin?", "Text", ListUnsubscribe: "https://spa.example/einwilligung/abc"), from);
         var plain = MailMessages.Build(new OutgoingMail("gast@example.at", "Ihr Termin", "Text"), from);
 
+        var oneClick = MailMessages.Build(new OutgoingMail("gast@example.at", "Zeit für Ihren nächsten Termin?", "Text",
+            ListUnsubscribe: "https://spa.example/api/online/consent/abc/unsubscribe", OneClickUnsubscribe: true), from);
+
         Assert.Equal("<https://spa.example/einwilligung/abc>", reminder.Headers[HeaderId.ListUnsubscribe]);
+        Assert.Null(reminder.Headers["List-Unsubscribe-Post"]);
         Assert.Null(plain.Headers[HeaderId.ListUnsubscribe]);
+        // Abmelden mit einem Klick (RFC 8058): beide Kopfzeilen.
+        Assert.Equal("<https://spa.example/api/online/consent/abc/unsubscribe>", oneClick.Headers[HeaderId.ListUnsubscribe]);
+        Assert.Equal("List-Unsubscribe=One-Click", oneClick.Headers["List-Unsubscribe-Post"]);
     }
 
     [Fact]

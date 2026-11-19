@@ -10,6 +10,9 @@ namespace AispaStudio.Api.Mail;
 /// <param name="ListUnsubscribe">Adresse zum Abmelden (https) für die Kopfzeile <c>List-Unsubscribe</c>; nur bei Mails nach Einwilligung (ADR 0040), damit das Mailprogramm „Abmelden“ anbietet.</param>
 /// <param name="ReplyTo">Adresse für Antworten des Empfängers, z. B. das Postfach des Spas, wenn über den gemeinsamen Versand gesendet wird.</param>
 /// <param name="FromName">Anzeigename des Absenders, z. B. der Name des Spas; ohne Angabe der aus <see cref="MailOptions"/>.</param>
+/// <param name="OneClickUnsubscribe">
+/// <c>ListUnsubscribe</c> nimmt ein POST ohne Rückfrage an (RFC 8058): dazu die Kopfzeile <c>List-Unsubscribe-Post</c>, damit das Mailprogramm mit einem Klick abmeldet.
+/// </param>
 /// <param name="Attachments">Anhänge, z. B. ein Beleg als PDF (ADR 0092); zusammen höchstens <see cref="MaxAttachmentBytes"/>.</param>
 public sealed record OutgoingMail(
     string To,
@@ -20,7 +23,8 @@ public sealed record OutgoingMail(
     string? ReplyTo = null,
     string? FromName = null,
     IReadOnlyList<MailAttachment>? Attachments = null,
-    string? ListUnsubscribe = null)
+    string? ListUnsubscribe = null,
+    bool OneClickUnsubscribe = false)
 {
     /// <summary>5 MB je Mail: mehr nehmen viele Postfächer nicht an, und die Queue trägt den Anhang mit.</summary>
     public const int MaxAttachmentBytes = 5 * 1024 * 1024;
@@ -93,6 +97,10 @@ internal static class MailMessages
         if (mail.ListUnsubscribe is { } unsubscribe)
         {
             message.Headers.Add(HeaderId.ListUnsubscribe, $"<{unsubscribe}>");
+            if (mail.OneClickUnsubscribe)
+            {
+                message.Headers.Add("List-Unsubscribe-Post", "List-Unsubscribe=One-Click");
+            }
         }
 
         if (mail.InReplyTo is { } inReplyTo)
