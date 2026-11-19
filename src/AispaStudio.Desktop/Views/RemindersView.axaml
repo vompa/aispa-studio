@@ -204,12 +204,12 @@
                     <StackPanel>
                       <Border Classes="divider" />
                       <Button Classes="ghost" Command="{Binding ToggleCommand}" Focusable="{Binding HasDetail}" HorizontalAlignment="Stretch"
-                              HorizontalContentAlignment="Stretch" Padding="0,8">
+                              HorizontalContentAlignment="Stretch" Padding="0,8" AutomationProperties.Name="{Binding ToggleName}" ToolTip.Tip="{Binding ToggleTip}">
                         <Grid ColumnDefinitions="68,*,Auto" ColumnSpacing="8">
                           <TextBlock Text="{Binding When}" Classes="muted small" VerticalAlignment="Top" Margin="0,2,0,0" />
                           <StackPanel Grid.Column="1" Spacing="2">
                             <StackPanel Orientation="Horizontal" Spacing="4">
-                              <TextBlock Text="{Binding Chevron}" Classes="muted" />
+                              <TextBlock Text="{Binding Chevron}" Classes="muted" AutomationProperties.AccessibilityView="Raw" />
                               <TextBlock Text="{Binding Recipient}" TextTrimming="CharacterEllipsis" />
                             </StackPanel>
                             <TextBlock Text="{Binding Detail}" Classes="muted small" TextWrapping="Wrap" />

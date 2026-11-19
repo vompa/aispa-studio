@@ -60,7 +60,15 @@ public sealed partial class DispatchLogRow(DispatchLogEntryDto entry, string whe
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(Chevron))]
+    [NotifyPropertyChangedFor(nameof(ToggleName))]
+    [NotifyPropertyChangedFor(nameof(ToggleTip))]
     public partial bool IsExpanded { get; set; }
+
+    /// <summary>Hinweis am Pfeil: ohne Text der Nachricht und ohne Grund gibt es nichts aufzuklappen.</summary>
+    public string? ToggleTip => !HasDetail ? null : IsExpanded ? "Text der Nachricht ausblenden" : "Text der Nachricht anzeigen";
+
+    /// <summary>Name der Zeile für Screenreader: wer, wann, Stand und was der Pfeil tut („▸“ allein sagt nichts).</summary>
+    public string ToggleName => $"{Recipient}, {When}, {StateText}, {Detail}{(ToggleTip is { } tip ? $". {tip}" : "")}";
 
     /// <summary>Zeichen vor dem Namen: leer ohne Text, sonst ▸ zu und ▾ auf.</summary>
     public string Chevron => !HasDetail ? "" : IsExpanded ? "▾" : "▸";
