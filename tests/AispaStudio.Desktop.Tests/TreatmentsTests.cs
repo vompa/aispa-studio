@@ -418,6 +418,23 @@ public sealed class TreatmentsTests
     }
 
     [Fact]
+    public async Task Given_Passt_dazu_laedt_nicht_When_Erneut_laden_gewaehlt_wird_Then_verschwindet_die_Warnung_und_ein_Artikel_laesst_sich_hinzufuegen()
+    {
+        var api = Api().On("GET /api/pos/articles", Articles);
+        var treatments = await Loaded(api);
+        var editor = await Choose(treatments, "Hot Stone 60");
+        Assert.True(editor.HasSalesLoadError);
+
+        api.On($"GET /api/treatments/{HotStone60.Id}/recommended-articles", new List<Guid>());
+        await editor.ReloadSalesCommand.ExecuteAsync(null);
+
+        Assert.False(editor.HasSalesLoadError);
+        Assert.False(treatments.HasUnsavedChanges);
+        editor.ArticleToAdd = editor.ArticleChoices[0];
+        Assert.True(editor.AddRecommendedArticleCommand.CanExecute(null));
+    }
+
+    [Fact]
     public async Task Given_fuenf_empfohlene_Artikel_When_ein_sechster_gewaehlt_wird_Then_laesst_die_Maske_ihn_nicht_hinzufuegen()
     {
         var treatments = await Loaded(SalesApi([.. Articles.Take(5)]));

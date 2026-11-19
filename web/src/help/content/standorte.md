@@ -68,7 +68,7 @@ Fehlen in den Firmendaten des Spas Anschrift, Telefon oder E-Mail, verwendet das
 
 Der [KI-Assistent](hilfe:ki-assistent-fragen) antwortet auf „Unsere Kontaktdaten“, „Wie lautet unsere Telefonnummer?“ oder „Wie ist unsere Adresse?“ aus diesen Feldern und bietet **Kopieren** an. Fehlt ein Feld, sagt er „Dazu ist nichts hinterlegt“ und verweist auf diese Stelle.
 
-### Anreise und Parkplätze {#anreise}
+### Wegbeschreibung {#anreise}
 
 Freier Text, höchstens 500 Zeichen, z. B. „U1 bis Stephansplatz, Garage Am Graben 2 Minuten zu Fuß“. Leer ist erlaubt.
 
@@ -87,7 +87,7 @@ Nur ausfüllen, wenn dieser Standort zu einer anderen Gesellschaft gehört als d
 
 Bleiben alle vier Felder leer, gelten die Firmendaten des Spas („Verwaltung“ › „Betrieb“ › „Firmendaten“). Sobald auch nur ein Feld ausgefüllt ist, gelten für diesen Standort ausschließlich die Angaben von hier; dann alle vier vollständig ausfüllen.
 
-Die Angaben stehen auf Kassenbeleg und Rechnung der Kassen dieses Standorts.
+Die Angaben stehen auf Kassenbeleg und Rechnung der Kassen dieses Standorts, wenn der Belegkopf sie nicht schon nennt.
 
 ## Öffnungszeiten {#oeffnungszeiten}
 

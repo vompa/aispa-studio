@@ -36,7 +36,7 @@ In der Windows-App gilt zusätzlich:
 - Datum und Uhrzeit lassen sich kurz eintippen: „24.12.“, „9“ wird 09:00, „1430“ wird 14:30.
 - **Löschen** steht unten in der Seitenleiste und fragt vorher nach: „Raumsperre löschen?“. Danach erscheint kurz „Raumsperre gelöscht“.
 
-Der Zustand wird gerechnet: **Geplant** beginnt später, **Aktiv** läuft gerade, **Beendet** ist vorbei. Zwei Sperren desselben Raums dürfen sich nicht überschneiden; für verschiedene Räume gibt es keine Grenze. **Löschen** hebt die Sperre auf, der Raum ist sofort wieder buchbar.
+Der Zustand wird gerechnet: **Geplant** beginnt später, **Läuft** gerade, **Beendet** ist vorbei. Zwei Sperren desselben Raums dürfen sich nicht überschneiden; für verschiedene Räume gibt es keine Grenze. **Löschen** hebt die Sperre auf, der Raum ist sofort wieder buchbar.
 
 ## Raum {#raum}
 

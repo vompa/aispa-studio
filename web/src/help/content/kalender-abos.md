@@ -47,7 +47,7 @@ Was die Einträge sind:
 
 Die Art eines vorab eingetragenen Abos bleibt.
 
-### Quelle wählen {#quelle}
+### Quelle {#quelle}
 
 Eine Auswahl von Vorschlägen je Land und Region: Feiertage Österreich, Deutschland und Schweiz (öffentliche Google-Kalender), Schulferien über die öffentliche Schnittstelle OpenHolidays (Bundesland oder Kanton in der Adresse anpassen) und ein Hinweis auf feiertagskalender.ch für Schweizer Kantone. Ein Vorschlag füllt Adresse, Art und Region aus; den Namen nur, wenn noch keiner steht. Alles bleibt änderbar. Bei jedem Vorschlag steht, wann die Adresse zuletzt geprüft wurde. **Der Betrieb bestätigt die Quelle**, die Vorschläge sind keine Zusage des Anbieters.
 

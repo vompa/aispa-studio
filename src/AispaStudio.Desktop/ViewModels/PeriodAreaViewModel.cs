@@ -118,7 +118,7 @@ public abstract partial class PeriodAreaViewModel : ViewModelBase, IEditableArea
     [ObservableProperty]
     public partial string HeadingText { get; private set; } = "";
 
-    /// <summary>„Geplant“, „Aktiv“ oder „Beendet“; leer bei einem neuen Formular.</summary>
+    /// <summary>„Geplant“, „Läuft“ oder „Beendet“ (wie in der Liste); leer bei einem neuen Formular.</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasPhase))]
     public partial string PhaseText { get; private set; } = "";
@@ -203,7 +203,7 @@ public abstract partial class PeriodAreaViewModel : ViewModelBase, IEditableArea
     protected static string PhaseName(ClosurePhase phase) => phase switch
     {
         ClosurePhase.Planned => "Geplant",
-        ClosurePhase.Active => "Aktiv",
+        ClosurePhase.Active => "Läuft",
         _ => "Beendet",
     };
 
