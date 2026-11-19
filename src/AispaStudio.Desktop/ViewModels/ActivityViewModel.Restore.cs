@@ -36,7 +36,7 @@ public sealed partial class ActivityViewModel
         {
             case RestoreStep.Restored:
                 var restored = outcome.Restored!;
-                ShowToast($"Termin wiederhergestellt: {restored.CustomerName}, {DayLayout.WhenText(restored.Start, zone, Today())}");
+                Toast.Show($"Termin wiederhergestellt: {restored.CustomerName}, {DayLayout.WhenText(restored.Start, zone, Today())}");
                 await ReloadAsync().ConfigureAwait(true);
                 break;
             case RestoreStep.NewTimeWanted when NewTimeRequested is { } request:

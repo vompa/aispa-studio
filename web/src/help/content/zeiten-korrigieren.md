@@ -28,7 +28,7 @@ Der Abschnitt trägt danach den Zusatz „korrigiert“. Auf der Personenkarte (
 3. Auf **Entfernen** klicken.
 4. In der Rückfrage **Abschnitt entfernen?** nochmals auf **Entfernen** klicken. Mit **Abbrechen** bleibt der Abschnitt bestehen.
 
-Die Rückfrage nennt die Zeitspanne und den Grund. Danach steht „Abschnitt entfernt.“ bei den Zeiten des Tages. Der Abschnitt bleibt mit dem Grund im Verlauf sichtbar.
+Die Rückfrage nennt die Zeitspanne und den Grund. Danach erscheint unten kurz „Abschnitt entfernt“. Der Abschnitt bleibt mit dem Grund im Verlauf sichtbar.
 
 ## Verlauf ansehen {#verlauf}
 

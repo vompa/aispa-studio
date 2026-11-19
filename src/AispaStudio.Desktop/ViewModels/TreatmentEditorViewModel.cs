@@ -104,9 +104,10 @@ public sealed partial class TreatmentEditorViewModel : ViewModelBase, IEditableA
     /// <summary>Der Hinweis auf die fehlende Qualifikation wurde gezeigt; das nächste Speichern speichert ohne.</summary>
     private bool _qualificationNoticed;
 
-    public TreatmentEditorViewModel(IWorkstationApi api, TreatmentCatalog catalog, TreatmentDto? treatment, TimeZoneInfo zone)
+    public TreatmentEditorViewModel(IWorkstationApi api, TreatmentCatalog catalog, TreatmentDto? treatment, TimeZoneInfo zone, ToastState toast)
     {
         _api = api;
+        Toast = toast;
         _catalog = catalog;
         _zone = zone;
         _stock = [new Choice(null, "Ohne Material"), .. catalog.StockItems.Select(s => new Choice(s.Id, s.Name))];
@@ -359,9 +360,8 @@ public sealed partial class TreatmentEditorViewModel : ViewModelBase, IEditableA
 
     public bool HasError => Error is not null;
 
-    /// <summary>„Gespeichert. Gilt für neue Buchungen.“ in der Leiste, bis wieder etwas geändert wird.</summary>
-    [ObservableProperty]
-    public partial string? StatusText { get; private set; }
+    /// <summary>Die Bestätigung nach dem Speichern: der eine Toast der Shell.</summary>
+    public ToastState Toast { get; }
 
     /// <summary>Das Feld, das den Fokus bekommen soll; die Ansicht setzt ihn und leert die Angabe.</summary>
     [ObservableProperty]
@@ -521,7 +521,7 @@ public sealed partial class TreatmentEditorViewModel : ViewModelBase, IEditableA
                 await after(this).ConfigureAwait(true);
             }
 
-            StatusText = "Gespeichert. Gilt für neue Buchungen.";
+            Toast.Show("Gespeichert");
             if (IsHistoryOpen && History is not null)
             {
                 await History.LoadAsync().ConfigureAwait(true);
@@ -717,7 +717,6 @@ public sealed partial class TreatmentEditorViewModel : ViewModelBase, IEditableA
             return;
         }
 
-        StatusText = null;
         OnPropertyChanged(nameof(HasUnsavedChanges));
         RefreshTiles();
     }

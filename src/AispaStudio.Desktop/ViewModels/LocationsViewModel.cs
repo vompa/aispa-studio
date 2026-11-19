@@ -91,9 +91,10 @@ public sealed partial class LocationsViewModel : ViewModelBase, IEditableArea, I
     private bool _reverting;
     private bool _switching;
 
-    public LocationsViewModel(IWorkstationApi api, CurrentUser user)
+    public LocationsViewModel(IWorkstationApi api, CurrentUser user, ToastState? toast = null)
     {
         _api = api;
+        Toast = toast ?? new ToastState(TimeProvider.System);
         _user = user;
         CanCreate = user.Rights.Contains(AccessRight.ManageOrganization);
         _createChoice = CanCreate ? new LocationChoice(null, "Standort anlegen") : null;
@@ -220,9 +221,8 @@ public sealed partial class LocationsViewModel : ViewModelBase, IEditableArea, I
 
     public bool HasError => Error is not null;
 
-    /// <summary>„Gespeichert.“ in der Leiste, bis wieder etwas geändert wird.</summary>
-    [ObservableProperty]
-    public partial string? StatusText { get; private set; }
+    /// <summary>Die Bestätigung nach dem Speichern: der eine Toast der Shell.</summary>
+    public ToastState Toast { get; }
 
     /// <summary>Das Feld, das den Fokus bekommen soll (Feldkennung oder <c>room:{id}</c>); die Ansicht setzt ihn und leert die Angabe.</summary>
     [ObservableProperty]
@@ -570,7 +570,7 @@ public sealed partial class LocationsViewModel : ViewModelBase, IEditableArea, I
             OnPropertyChanged(nameof(HeadingText));
         }
 
-        StatusText = "Gespeichert.";
+        Toast.Show("Gespeichert");
         Saved?.Invoke();
         return true;
     }
@@ -671,7 +671,6 @@ public sealed partial class LocationsViewModel : ViewModelBase, IEditableArea, I
 
     private void ApplyChoice(LocationChoice choice)
     {
-        StatusText = null;
         NameError = null;
         HoursError = null;
         Error = null;
@@ -687,9 +686,9 @@ public sealed partial class LocationsViewModel : ViewModelBase, IEditableArea, I
         if (choice.Id is { } id && _locations.Find(l => l.Id == id) is { } location)
         {
             Apply(location);
-            OnlineRules = new OnlineRulesViewModel(_api, id, _user.Rights.Contains(AccessRight.ManageLocation)) { Dialogs = Dialogs };
+            OnlineRules = new OnlineRulesViewModel(_api, id, _user.Rights.Contains(AccessRight.ManageLocation), Toast) { Dialogs = Dialogs };
             OnlineRules.Saved += () => Saved?.Invoke();
-            Checklist = new RoomChecklistViewModel(_api) { Dialogs = Dialogs };
+            Checklist = new RoomChecklistViewModel(_api, Toast) { Dialogs = Dialogs };
             Checklist.Saved += () => Saved?.Invoke();
             FillSections(id);
             _ = OnlineRules.LoadAsync();
@@ -913,7 +912,6 @@ public sealed partial class LocationsViewModel : ViewModelBase, IEditableArea, I
             return;
         }
 
-        StatusText = null;
         HoursError = null;
         OnPropertyChanged(nameof(HasUnsavedChanges));
     }

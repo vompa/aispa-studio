@@ -18,7 +18,7 @@ Die Firmendaten gelten für alle Standorte ohne eigene Gesellschaft: auf Rechnun
 4. Unter **Sitz und Kontakt** Anschrift, Telefon, E-Mail und Website eintragen.
 5. Unter **Bankverbindung** Kontoinhaber, IBAN und BIC eintragen.
 6. Unter **Impressum** Unternehmensgegenstand, Gewerbe- bzw. Aufsichtsbehörde und Kammer eintragen.
-7. Auf **Speichern** klicken. Es erscheint „Gespeichert.“
+7. Auf **Speichern** klicken. Unten erscheint kurz „Gespeichert“.
 
 ## Gut zu wissen {#hinweise}
 

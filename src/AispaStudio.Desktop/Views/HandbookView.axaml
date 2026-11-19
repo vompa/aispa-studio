@@ -80,7 +80,7 @@
           <ui:InfoBar Severity="Error" Title="Nicht gespeichert" Message="{Binding Error}" IsVisible="{Binding HasError}"
                       ActionText="Erneut versuchen" ActionCommand="{Binding SaveCommand}" CloseCommand="{Binding CloseErrorCommand}" />
           <StackPanel Orientation="Horizontal" Spacing="24">
-            <ui:SaveBar SaveCommand="{Binding SaveCommand}" DiscardCommand="{Binding DiscardCommand}" CanDiscard="{Binding HasUnsavedChanges}" Status="{Binding StatusText}" />
+            <ui:SaveBar SaveCommand="{Binding SaveCommand}" DiscardCommand="{Binding DiscardCommand}" CanDiscard="{Binding HasUnsavedChanges}" />
             <Button x:Name="DeleteButton" Classes="danger" Content="Löschen" Command="{Binding DeleteCommand}" IsVisible="{Binding CanDelete}" />
           </StackPanel>
         </StackPanel>

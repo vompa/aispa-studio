@@ -23,11 +23,11 @@ Für einen einzelnen Tag lässt sich der Dienst einer Person abweichend von ihre
 
 Für eine einzelne Person geht es auch auf ihrer Karte: Im Team die Person wählen und den Bereich **Arbeitszeit** öffnen; dort steht **Dienstplan und Abwesenheit**. Dort steht nur ihre Woche; der Tag lässt sich genauso planen.
 
-Ohne Häkchen bei **Sofort gültig, ohne Veröffentlichen** entsteht ein Entwurf: „Als Entwurf gespeichert. Er gilt, sobald der Dienstplan veröffentlicht ist.“ Die Zelle trägt dann einen gestrichelten Rand, und im Wochenplan steht oben das Band „Entwurf: … nicht veröffentlicht“. Zum Veröffentlichen: [Dienstplan veröffentlichen](hilfe:dienstplan-veroeffentlichen). Auf der Personenkarte gibt es das Veröffentlichen nicht; dort führt **Wochenplan öffnen** zum Wochenplan.
+Ohne Häkchen bei **Sofort gültig, ohne Veröffentlichen** entsteht ein Entwurf: Unten erscheint kurz „Als Entwurf gespeichert“. Er gilt, sobald der Dienstplan veröffentlicht ist. Die Zelle trägt dann einen gestrichelten Rand, und im Wochenplan steht oben das Band „Entwurf: … nicht veröffentlicht“. Zum Veröffentlichen: [Dienstplan veröffentlichen](hilfe:dienstplan-veroeffentlichen). Auf der Personenkarte gibt es das Veröffentlichen nicht; dort führt **Wochenplan öffnen** zum Wochenplan.
 
 ## Sofort gültig {#sofort}
 
-Soll die Änderung gleich gelten, z. B. bei einem kurzfristigen Tausch, vor dem Speichern **Sofort gültig, ohne Veröffentlichen** anhaken. Dann steht „Gespeichert. Kalender und Buchung richten sich ab sofort danach.“
+Soll die Änderung gleich gelten, z. B. bei einem kurzfristigen Tausch, vor dem Speichern **Sofort gültig, ohne Veröffentlichen** anhaken. Dann erscheint unten kurz „Gespeichert“; Kalender und Buchung richten sich ab sofort danach.
 
 ## Zurück zur Wochenarbeitszeit {#zuruecksetzen}
 

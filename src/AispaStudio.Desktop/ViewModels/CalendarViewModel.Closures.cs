@@ -125,7 +125,7 @@ public partial class CalendarViewModel
         }
 
         await LoadAsync().ConfigureAwait(true);
-        ShowToast(FitToast(CancelledText(result.Value)));
+        ShowToast(CancelledText(result.Value));
         if (result.Value.Failed > 0)
         {
             ShowProblem("Nicht alle Termine abgesagt", $"{result.Value.Failed} Termine ließen sich nicht absagen, weil sie sich inzwischen geändert haben. Sie stehen weiter in der Meldung.", isError: false);

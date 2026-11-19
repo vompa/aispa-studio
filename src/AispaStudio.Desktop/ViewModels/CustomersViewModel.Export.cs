@@ -14,19 +14,15 @@ public sealed record ConsentChoice(MarketingConsentState State, string Label)
     public override string ToString() => Label;
 }
 
-// ---------- Export der Kundenliste, Kontakt als vCard, Werbe-Einwilligung am Empfang, Meldung unten (Export/Import, Aufgabe B) ----------
+// ---------- Export der Kundenliste, Kontakt als vCard, Werbe-Einwilligung am Empfang (Export/Import, Aufgabe B) ----------
 public partial class CustomersViewModel
 {
-    private static readonly TimeSpan ToastDuration = TimeSpan.FromSeconds(5);
-
     private ExportViewModel? _export;
-    private int _toastClock;
-    private bool _toastHeld;
 
     /// <summary>Der Knopf „Exportieren“ über der Liste: Excel, CSV, Portal-CSV, vCard, für die Leitung dazu die Newsletter-Liste; jeder Eintrag nimmt die aktuelle Suche mit.</summary>
     public ExportViewModel Export => _export ??= new ExportViewModel(api, ExportOptions())
     {
-        Saved = ShowToast,
+        Saved = text => Toast.Show(text),
         Failed = text => Error = text,
     };
 
@@ -51,47 +47,6 @@ public partial class CustomersViewModel
     }
 
     private string ExportPath(string format) => $"api/customers/export?format={format}&search={Uri.EscapeDataString(Query.Trim())}";
-
-    // ---------- Meldung unten („Gespeichert: Kunden_2026-11-09.xlsx“), eine Zeile, 5 Sekunden, die Maus darüber hält sie an (meldungen.md M1) ----------
-
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasToast))]
-    public partial string? Toast { get; private set; }
-
-    public bool HasToast => Toast is not null;
-
-    private void ShowToast(string text)
-    {
-        Toast = text;
-        StartToastClock();
-    }
-
-    [RelayCommand]
-    private void CloseToast() => Toast = null;
-
-    public void HoldToast(bool held)
-    {
-        _toastHeld = held;
-        StartToastClock();
-    }
-
-    private void StartToastClock()
-    {
-        var clock = ++_toastClock;
-        if (Toast is not null && !_toastHeld)
-        {
-            _ = ExpireToastAsync(clock);
-        }
-    }
-
-    private async Task ExpireToastAsync(int clock)
-    {
-        await Task.Delay(ToastDuration, time).ConfigureAwait(true);
-        if (clock == _toastClock)
-        {
-            Toast = null;
-        }
-    }
 
     // ---------- Werbe-Einwilligung: Stand aus der bestehenden Einwilligung (ADR 0040), am Empfang als Ja, Nein oder nicht gefragt erfasst ----------
 
@@ -196,7 +151,7 @@ public partial class CustomersViewModel
 
         Consent = consent;
         IsEditingConsent = false;
-        ShowToast("Werbe-Einwilligung gespeichert");
+        Toast.Show("Werbe-Einwilligung gespeichert");
     }
 
     /// <summary>„Ja“ am Empfang ersetzt die Bestätigung per Mail; die Rückfrage hält fest, dass der Gast mündlich oder schriftlich zugestimmt hat (meldungen.md, Dialog).</summary>

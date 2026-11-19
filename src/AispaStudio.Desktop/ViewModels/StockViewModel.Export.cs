@@ -13,11 +13,6 @@ public sealed partial class StockViewModel : ISavesFiles
     public const string AvailabilityMissing = "Der Export ist gerade nicht möglich. Versuchen Sie es noch einmal.";
     public const string OpenFolderText = "Ordner öffnen";
 
-    private static readonly TimeSpan ToastDuration = TimeSpan.FromSeconds(5);
-    private static readonly TimeSpan ToastWithActionDuration = TimeSpan.FromSeconds(8);
-
-    private int _toastClock;
-    private bool _toastHeld;
     private string? _savedPath;
 
     /// <summary>Der Speicherdialog des Fensters; die Ansicht setzt ihn beim Einhängen.</summary>
@@ -86,27 +81,13 @@ public sealed partial class StockViewModel : ISavesFiles
         await export.ExportCommand.ExecuteAsync(option).ConfigureAwait(true);
     }
 
-    // ---------- Meldung unten („Gespeichert: Lagerbestand_2027-03-01.xlsx“ mit „Ordner öffnen“), 8 Sekunden mit Aktion, die Maus darüber hält sie an (meldungen.md M1) ----------
-
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasToast))]
-    public partial string? Toast { get; private set; }
-
-    public bool HasToast => Toast is not null;
-
-    /// <summary>„Ordner öffnen“ gibt es nur, wenn der Speicherdialog den Ort der Datei genannt hat.</summary>
-    public bool CanOpenSavedFolder => _savedPath is not null;
+    // ---------- Meldung unten („Gespeichert: Lagerbestand_2027-03-01.xlsx“ mit „Ordner öffnen“): der Toast der Shell, mit Aktion 8 Sekunden (meldungen.md M1) ----------
 
     private void ShowToast(string text, string? savedPath)
     {
         _savedPath = savedPath;
-        OnPropertyChanged(nameof(CanOpenSavedFolder));
-        Toast = text;
-        StartToastClock();
+        Toast.Show(text, OpenFolderText, savedPath is null ? null : OpenSavedFolderCommand);
     }
-
-    [RelayCommand]
-    private void CloseToast() => Toast = null;
 
     [RelayCommand]
     private void OpenSavedFolder()
@@ -116,39 +97,6 @@ public sealed partial class StockViewModel : ISavesFiles
             FolderOpener.Reveal(path);
         }
 
-        Toast = null;
-    }
-
-    partial void OnToastChanged(string? value)
-    {
-        if (value is null)
-        {
-            _savedPath = null;
-            OnPropertyChanged(nameof(CanOpenSavedFolder));
-        }
-    }
-
-    public void HoldToast(bool held)
-    {
-        _toastHeld = held;
-        StartToastClock();
-    }
-
-    private void StartToastClock()
-    {
-        var clock = ++_toastClock;
-        if (Toast is not null && !_toastHeld)
-        {
-            _ = ExpireToastAsync(clock);
-        }
-    }
-
-    private async Task ExpireToastAsync(int clock)
-    {
-        await Task.Delay(_savedPath is null ? ToastDuration : ToastWithActionDuration, Time).ConfigureAwait(true);
-        if (clock == _toastClock)
-        {
-            Toast = null;
-        }
+        Toast.Close();
     }
 }

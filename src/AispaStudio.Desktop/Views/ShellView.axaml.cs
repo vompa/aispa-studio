@@ -46,6 +46,11 @@ public partial class ShellView : UserControl
         AddHandler(HelpButton.RequestedEvent, OnHelpRequested);
     }
 
+    // Der Mauszeiger über dem Toast hält seine Frist an (meldungen.md M1).
+    private void OnToastEntered(object? sender, PointerEventArgs e) => (DataContext as ShellViewModel)?.Confirmation.Hold(true);
+
+    private void OnToastExited(object? sender, PointerEventArgs e) => (DataContext as ShellViewModel)?.Confirmation.Hold(false);
+
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
     {
         base.OnAttachedToVisualTree(e);

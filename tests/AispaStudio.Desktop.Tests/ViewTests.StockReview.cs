@@ -275,8 +275,7 @@ public sealed partial class ViewTests
             await Pump(Settling);
 
             // Then bestätigt der Toast unten in einer Zeile ohne Schlusspunkt (design.md 5.10, meldungen.md M1), und über der Liste steht keine Erfolgs-InfoBar
-            Assert.Equal("Gespeichert", stock.Toast);
-            Assert.True(Named<Border>(window, "StockToast").IsEffectivelyVisible);
+            Assert.Equal("Gespeichert", stock.Toast.Text);
             Assert.False(stock.HasMessage);
             Assert.DoesNotContain(window.GetVisualDescendants().OfType<InfoBar>(), b => b.IsEffectivelyVisible && b.Severity == InfoBarSeverity.Success);
             return shell.AdminPage;

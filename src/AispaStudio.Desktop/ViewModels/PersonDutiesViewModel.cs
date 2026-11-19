@@ -79,7 +79,7 @@ public sealed partial class PersonDutiesViewModel : ViewModelBase, ISavesFiles
     public PersonDutiesViewModel(TeamContext context, Guid employeeId, bool isReadOnly)
     {
         _context = context;
-        Toast = new ToastState(context.Time);
+        Toast = context.Toast;
         _employeeId = employeeId;
         _dutiesPath = $"api/employees/{employeeId}/duties";
         _certificatesPath = $"api/employees/{employeeId}/certificates";

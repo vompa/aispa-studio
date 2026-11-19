@@ -25,7 +25,7 @@ Schneller geht es mit dem Assistenten: „Wer ist für die Heizung zuständig?�
 3. Bei **Erreichbarkeit** **Telefon**, **Mobil**, **E-Mail** und **Adresse** eintragen. Mindestens eines von Firma, Ansprechperson, Telefon, Mobil und E-Mail ist Pflicht.
 4. Bei einer **Versicherung** erscheint die Gruppe **Versicherung**: **Versicherer**, **Polizzennummer**, **Schadenshotline** und **Deckung**.
 5. Bei **Sichtbarkeit und Standorte** wählen, wer den Eintrag liest (**Team** oder **Leitung**) und wo er gilt (**Alle Standorte** oder **Ausgewählte Standorte**).
-6. Auf **Speichern** klicken. Es erscheint „Gespeichert“; der Eintrag steht in seiner Kategorie.
+6. Auf **Speichern** klicken. Unten erscheint kurz „Gespeichert“; der Eintrag steht in seiner Kategorie.
 
 Fehlt etwas oder passt etwas nicht, steht der Hinweis am Feld, und der Cursor springt ins erste Feld mit einem Fehler. **Keine Passwörter oder Zugangsdaten eintragen**, auch nicht in die Notizen. Mehr zu jedem Feld: [Betriebsinformationen](hilfe:betriebsinformationen).
 

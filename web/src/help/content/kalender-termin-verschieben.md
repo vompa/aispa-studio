@@ -35,7 +35,7 @@ An die neue Uhrzeit bzw. in die Spalte einer anderen Person ziehen. Eine Vorscha
 
 Die Maustaste loslassen. Unten erscheint z. B. „Verschoben auf 10:00“ (an einem anderen Tag mit Wochentag, z. B. „Verschoben auf Do 10:00“) mit **Rückgängig**. Person und Raum stehen nicht in der Meldung, sie sind im Kalender zu sehen. Die Meldung verschwindet nach 8 Sekunden, solange die Maus nicht darüber steht.
 
-![Meldung unten im Kalender mit dem Knopf Rückgängig](images/app/termin-verschieben-3.png)
+![Meldung unten in der App mit dem Knopf Rückgängig](images/app/termin-verschieben-3.png)
 
 ## Was danach {#was-danach}
 

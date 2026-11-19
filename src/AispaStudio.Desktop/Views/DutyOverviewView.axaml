@@ -58,7 +58,7 @@
       </ItemsControl>
       <Button x:Name="AddDutyTypeButton" Content="Eintrag hinzufügen" Command="{Binding AddTypeCommand}" HorizontalAlignment="Left" />
       <ui:InfoBar Severity="Error" Title="Nicht gespeichert" Message="{Binding Error}" IsVisible="{Binding HasError}" CloseCommand="{Binding CloseErrorCommand}" />
-      <ui:SaveBar x:Name="DutyTypesSaveBar" SaveCommand="{Binding SaveCommand}" DiscardCommand="{Binding DiscardChangesCommand}" CanDiscard="{Binding HasUnsavedChanges}" Status="{Binding StatusText}" />
+      <ui:SaveBar x:Name="DutyTypesSaveBar" SaveCommand="{Binding SaveCommand}" DiscardCommand="{Binding DiscardChangesCommand}" CanDiscard="{Binding HasUnsavedChanges}" />
     </StackPanel>
   </StackPanel>
 </UserControl>

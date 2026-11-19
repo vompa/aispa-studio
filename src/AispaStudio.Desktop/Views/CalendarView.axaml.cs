@@ -774,10 +774,6 @@ public partial class CalendarView : UserControl
         }
     }
 
-    private void OnToastEntered(object? sender, PointerEventArgs e) => ViewModel?.HoldToast(true);
-
-    private void OnToastExited(object? sender, PointerEventArgs e) => ViewModel?.HoldToast(false);
-
     private async void OnHostReleased(object? sender, PointerReleasedEventArgs e)
     {
         if (ViewModel is not { } vm)

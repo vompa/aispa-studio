@@ -118,7 +118,7 @@ public sealed class AdminHandbookTests
         Assert.True(await handbook.SaveChangesAsync());
 
         Assert.Equal(("Schlüssel Sauna", "Am Empfang abholen.", "Sauna", true, "Monday,Friday", true), Fields(Sent(api, $"POST {Route}")));
-        Assert.Equal("Gespeichert.", handbook.StatusText);
+        Assert.Equal("Gespeichert", handbook.Toast.Text);
         Assert.Equal(["Gäste mit Hund ★", "Schlüssel Sauna ★"], handbook.Entries.Select(e => e.Name));
         Assert.Equal("Schlüssel Sauna", handbook.SelectedRow?.Name.Replace(" ★", ""));
         Assert.False(handbook.IsCreating);
@@ -167,7 +167,7 @@ public sealed class AdminHandbookTests
 
         Assert.Equal(("Gäste mit Hund", "Hunde bleiben an der Leine.", "Empfang", true, "Monday", false), Fields(Sent(api, $"PUT {Route}/{DogId}")));
         Assert.Equal(["Gäste mit Hund ★ (aus)", "Schlüssel Saunabereich (aus)"], handbook.Entries.Select(e => e.Name));
-        Assert.Equal("Gespeichert.", handbook.StatusText);
+        Assert.Equal("Gespeichert", handbook.Toast.Text);
     }
 
     [Fact]

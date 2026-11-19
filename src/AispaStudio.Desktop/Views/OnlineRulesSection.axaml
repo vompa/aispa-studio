@@ -60,8 +60,6 @@
     <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding CanEdit}">
       <Button Content="Regeln speichern" Command="{Binding SaveCommand}" IsEnabled="{Binding IsLoaded}" />
       <Button Content="Vorgaben wiederherstellen" Command="{Binding ResetCommand}"
-              ui:DisabledHint.Text="Verfügbar, sobald dieser Standort eigene Regeln hat." />
-      <TextBlock Text="{Binding StatusText}" Classes="muted" VerticalAlignment="Center" AutomationProperties.LiveSetting="Polite" />
-    </StackPanel>
+              ui:DisabledHint.Text="Verfügbar, sobald dieser Standort eigene Regeln hat." />    </StackPanel>
   </StackPanel>
 </UserControl>

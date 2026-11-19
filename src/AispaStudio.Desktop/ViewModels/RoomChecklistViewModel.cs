@@ -18,9 +18,14 @@ public sealed record ChecklistRoom(Guid Id, string Name)
 public sealed partial class RoomChecklistViewModel : ViewModelBase
 {
     private readonly IWorkstationApi _api;
+    private readonly ToastState _toast;
     private int _loadId;
 
-    public RoomChecklistViewModel(IWorkstationApi api) => _api = api;
+    public RoomChecklistViewModel(IWorkstationApi api, ToastState toast)
+    {
+        _api = api;
+        _toast = toast;
+    }
 
     /// <summary>Die Checkliste eines Raums wurde gespeichert.</summary>
     public event Action? Saved;
@@ -38,9 +43,6 @@ public sealed partial class RoomChecklistViewModel : ViewModelBase
     /// <summary>Die Punkte, einer je Zeile.</summary>
     [ObservableProperty]
     public partial string Text { get; set; } = "";
-
-    [ObservableProperty]
-    public partial string? StatusText { get; private set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasError))]
@@ -63,7 +65,6 @@ public sealed partial class RoomChecklistViewModel : ViewModelBase
     public async Task LoadAsync(ChecklistRoom? room)
     {
         var load = ++_loadId;
-        StatusText = null;
         if (room is null)
         {
             Text = "";
@@ -93,13 +94,12 @@ public sealed partial class RoomChecklistViewModel : ViewModelBase
         if (result.Value is not { } saved)
         {
             Error = result.Error ?? "Die Checkliste wurde nicht gespeichert.";
-            StatusText = null;
             return;
         }
 
         Error = null;
         Text = string.Join('\n', saved.Select(i => i.Text));
-        StatusText = "Checkliste gespeichert.";
+        _toast.Show("Checkliste gespeichert");
         Saved?.Invoke();
     }
 }

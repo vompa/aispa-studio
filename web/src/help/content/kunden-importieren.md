@@ -16,7 +16,7 @@ Beim Umstieg von einem anderen Programm übernimmt der Import die Gäste aus ein
 4. **Schritt 3 von 4 · Vorschau und Prüfung**: Oben steht, wie viele Zeilen neu, Dubletten und fehlerhaft sind. Jede Dublette steht auf **Überspringen**, dann bleibt der Gast im Bestand unverändert; mit **Ergänzen** füllt der Import beim vorhandenen Gast nur leere Felder, er überschreibt nichts. Fehlerhafte Zeilen stehen darunter mit Grund.
 5. **Schritt 4 von 4 · Probelauf und Import**: Zuerst **Probelauf starten** klicken. Der Probelauf zählt nur, z. B. „Probelauf: 240 neu, 0 ergänzt, 12 übersprungen. Es wurde nichts gespeichert.“ Eine Dublette steht im Ergebnis als „ergänzt“ oder „übersprungen“, je nach Wahl in Schritt 3. Passt das Ergebnis, auf **Importieren** klicken. Mit **Zurück** lässt sich jeder Schritt vorher noch ändern.
 
-Danach schließt der Dialog, die Kundenliste lädt neu und kurz steht z. B. „Importiert: 240 neu, 0 ergänzt, 12 übersprungen“.
+Danach schließt der Dialog, die Kundenliste lädt neu und kurz steht z. B. „Import: 240 neu, 0 ergänzt, 12 übersprungen“. Waren Zeilen fehlerhaft, bleibt das Ergebnis als Hinweis über der Kundenliste stehen.
 
 ![Dialog Kunden importieren, Schritt 2: Spalten der Datei mit Beispielwerten und dem zugeordneten Feld](images/app/kunden-import-2-zuordnung.png)
 

@@ -1,6 +1,7 @@
 using AispaStudio.Contracts;
 using AispaStudio.Desktop.Controls;
 using AispaStudio.Desktop.ViewModels;
+using Avalonia.Automation;
 using Avalonia.Controls;
 using Avalonia.VisualTree;
 
@@ -82,11 +83,19 @@ public sealed partial class ViewTests
         await Pump(Settling);
         await Pump(Settling);
 
-        var toast = Named<Border>(window, "StockToast");
+        // Der Toast gehört der Shell: Die Seite gibt ihn an die gemeinsame Instanz, die Shell zeigt ihn unten mit der Aktion.
+        Assert.Equal("Gespeichert: Lagerbestand_2027-03-01.xlsx", stock.Toast.Text);
+        Assert.Equal("Ordner öffnen", stock.Toast.ActionText);
+        Assert.Same(shell.Confirmation, stock.Toast);
+        var toast = Named<Border>(window, "ConfirmToast");
         Assert.True(toast.IsEffectivelyVisible);
-        Assert.Equal("Gespeichert: Lagerbestand_2027-03-01.xlsx", stock.Toast);
-        Assert.Equal("Ordner öffnen", Named<Button>(window, "StockToastFolder").Content);
-        Assert.True(Named<Button>(window, "StockToastFolder").IsEffectivelyVisible);
+        Assert.Equal(AutomationLiveSetting.Polite, AutomationProperties.GetLiveSetting(toast));
+        var text = Named<TextBlock>(window, "ConfirmToastText");
+        Assert.Equal("Gespeichert: Lagerbestand_2027-03-01.xlsx", text.Text);
+        Assert.Equal("Meldung", AutomationProperties.GetName(text));
+        var action = Named<Button>(window, "ConfirmToastAction");
+        Assert.True(action.IsEffectivelyVisible);
+        Assert.Equal("Ordner öffnen", action.Content);
         SaveShot(window, "lager-exportiert", theme);
         return shell.AdminPage;
     }, StockExportApi(StockExportDialogTests.All()));

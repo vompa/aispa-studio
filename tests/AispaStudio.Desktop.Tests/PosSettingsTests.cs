@@ -39,7 +39,7 @@ public sealed class PosSettingsTests
         var put = Assert.Single(api.Calls, c => c.Route == "PUT /api/pos/settings");
         Assert.Equal(new PosSettingsInput(12.5m, 2m), JsonSerializer.Deserialize<PosSettingsInput>(put.Body!, ApiClient.Json));
         Assert.False(settings.HasUnsavedChanges);
-        Assert.Equal("Gespeichert.", settings.StatusText);
+        Assert.Equal("Gespeichert", settings.Toast.Text);
     }
 
     [Fact]
@@ -51,7 +51,7 @@ public sealed class PosSettingsTests
         Assert.True(await settings.SaveChangesAsync());
 
         Assert.DoesNotContain(api.Calls, c => c.Route.StartsWith("PUT ", StringComparison.Ordinal));
-        Assert.Equal("Gespeichert.", settings.StatusText);
+        Assert.Equal("Gespeichert", settings.Toast.Text);
     }
 
     [Fact]
@@ -66,7 +66,7 @@ public sealed class PosSettingsTests
 
         Assert.Contains("Zwischen 0 und 100 Prozent.", settings.Error, StringComparison.Ordinal);
         Assert.True(settings.HasUnsavedChanges);
-        Assert.Null(settings.StatusText);
+        Assert.Null(settings.Toast.Text);
     }
 
     [Fact]

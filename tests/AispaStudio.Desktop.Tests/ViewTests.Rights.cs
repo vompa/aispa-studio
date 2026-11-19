@@ -133,7 +133,7 @@ public sealed partial class ViewTests
             await Pump(Settling);
 
             Assert.Single(api.Calls, c => c.Route.StartsWith("POST /api/employees/", StringComparison.Ordinal) && c.Route.EndsWith("/regulations/powers", StringComparison.Ordinal));
-            await RosterTests.Until(() => team.Powers.StatusText == "Eingetragen.");
+            await RosterTests.Until(() => team.Powers.Toast.Text == "Eingetragen");
             return team;
         }, api);
     }

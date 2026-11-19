@@ -160,11 +160,15 @@ public sealed partial class ActivityViewModel : ViewModelBase
     private bool _suspended;
     private int _searchVersion;
 
-    public ActivityViewModel(IWorkstationApi api, CurrentUser user, TimeProvider time)
+    /// <summary>Die eine Bestätigung der App (Toast der Shell), z. B. nach „Termin wiederherstellen“.</summary>
+    public ToastState Toast { get; }
+
+    public ActivityViewModel(IWorkstationApi api, CurrentUser user, TimeProvider time, ToastState? toast = null)
     {
         _api = api;
         _user = user;
         _time = time;
+        Toast = toast ?? new ToastState(time);
         KindChips = [.. BuildChips()];
         Channels = [new(null, "Alle Kanäle"), new(ActivityChannel.Reception, "Rezeption"), new(ActivityChannel.Online, "Online"),
             new(ActivityChannel.Assistant, "Terminannahme"), new(ActivityChannel.Background, "Hintergrund")];

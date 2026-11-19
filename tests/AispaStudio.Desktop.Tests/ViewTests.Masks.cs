@@ -424,7 +424,7 @@ public sealed partial class ViewTests
     }, OperationsApi());
 
     [Fact]
-    public Task Toast_hat_eine_Zeile_und_nur_Rueckgaengig_und_Schliessen() => Render("hell", "kalender-verschoben", async (window, main) =>
+    public Task Toast_nach_dem_Verschieben_hat_eine_Zeile_und_bietet_Rueckgaengig_an() => Render("hell", "kalender-verschoben", async (window, main) =>
     {
         var calendar = await SignedInCalendar(main);
         calendar.ByRoom = true;
@@ -434,15 +434,19 @@ public sealed partial class ViewTests
         await calendar.DropAsync();
         await Pump();
 
+        // Die Ansicht zeigt den Toast nicht mehr selbst: Die Shell zeigt ihn unten, eine Zeile, mit „Rückgängig“.
+        var text = Named<TextBlock>(window, "ConfirmToastText");
+        Assert.True(Named<Border>(window, "ConfirmToast").IsEffectivelyVisible);
+        Assert.Equal(calendar.Toast.Text, text.Text);
+        Assert.True(text.Bounds.Height < 30, $"Toast in einer Zeile: {text.Bounds.Height}");
+        var action = Named<Button>(window, "ConfirmToastAction");
+        Assert.True(action.IsEffectivelyVisible);
+        Assert.Equal("Rückgängig", action.Content);
         Assert.True(calendar.CanUndo);
-        var toast = window.GetVisualDescendants().OfType<Border>().First(b => b.Name == "ToastBar");
-        Assert.True(toast.IsEffectivelyVisible);
-        var buttons = toast.GetVisualDescendants().OfType<Button>().Where(b => b.IsEffectivelyVisible).ToList();
-        Assert.Equal(2, buttons.Count);
-        Assert.Contains(buttons, b => b.GetVisualDescendants().OfType<TextBlock>().Any(t => t.Text == "Rückgängig"));
-        var text = toast.GetVisualDescendants().OfType<TextBlock>().First(t => t.Classes.Contains("msg"));
-        Assert.Single(text.TextLayout.TextLines);
-        Assert.True(text.Text!.Length < 80, $"Toast unter 80 Zeichen: {text.Text.Length}");
+        Assert.True(calendar.Toast.IsShown);
+        Assert.Equal("Rückgängig", calendar.Toast.ActionText);
+        Assert.Same(calendar.UndoMoveCommand, calendar.Toast.Action);
+        Assert.True(calendar.Toast.Text!.Length < 80, $"Toast unter 80 Zeichen: {calendar.Toast.Text.Length}");
         return calendar;
     });
 
@@ -455,14 +459,13 @@ public sealed partial class ViewTests
         await Pump();
         await Pump();
 
-        // Der Termin bleibt an seiner Zeit, die Karte nennt die Ankunft, der Toast bestätigt; nur „Schließen“ steht im Toast.
+        // Der Termin bleibt an seiner Zeit, die Karte nennt die Ankunft, der Toast bestätigt ohne Aktion.
         var item = calendar.Columns.SelectMany(c => c.Items).First(i => i.Appointment?.Id == SpaSample.Selected.Id);
         Assert.Equal(SpaSample.Selected.Start, item.Appointment!.Start);
         Assert.Contains("kommt 10:45", item.MetaText, StringComparison.Ordinal);
         Assert.Null(calendar.Problem);
-        var toast = window.GetVisualDescendants().OfType<Border>().First(b => b.Name == "ToastBar");
-        Assert.True(toast.IsEffectivelyVisible);
-        Assert.Single(toast.GetVisualDescendants().OfType<Button>(), b => b.IsEffectivelyVisible);
+        Assert.True(calendar.Toast.IsShown);
+        Assert.False(calendar.Toast.HasAction);
         return calendar;
     }, Api().On($"PUT /api/appointments/{SpaSample.Selected.Id}/late", SpaSample.Selected with { LateMinutes = 15, UpdatedAt = SpaSample.At(9, 50) }));
 

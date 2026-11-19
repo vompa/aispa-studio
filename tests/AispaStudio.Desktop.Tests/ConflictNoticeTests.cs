@@ -236,7 +236,7 @@ public sealed class ConflictNoticeTests
         await panel.ApplyTimesCommand.ExecuteAsync(null);
 
         Assert.Equal("Sperrzeit · 11:00–12:00 · Mittagspause", Assert.Single(panel.Conflict!.Lines).Text);
-        Assert.Null(vm.Toast);
+        Assert.Null(vm.Toast.Text);
         Assert.True(panel.IsEditingTimes);
     }
 

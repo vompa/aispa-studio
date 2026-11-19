@@ -125,7 +125,7 @@ public sealed partial class EmployeeCostRow(EmployeeCostDto employee) : Observab
 /// Kosten (R05 Slice 102), native Maske nach <c>CostsPage.tsx</c>: Vollkosten je Behandlung für Standort und Monat, darunter die Kostensätze, Räume und Stundensätze des Standorts. Alle Beträge
 /// rechnet die API. Das Web speichert jeden Raum und jede Person einzeln; hier gilt eine Leiste „Speichern“ für alle Änderungen (Brief 5.27). Ändern darf nur, wer den Katalog pflegt (ManageCatalog).
 /// </summary>
-public sealed partial class CostsViewModel(IWorkstationApi api, CurrentUser user, TimeProvider time) : ViewModelBase, INativeArea, IFocusTarget
+public sealed partial class CostsViewModel(IWorkstationApi api, CurrentUser user, TimeProvider time, ToastState? toast = null) : ViewModelBase, INativeArea, IFocusTarget
 {
     public const string UtilizationField = "PlannedUtilizationField";
 
@@ -234,9 +234,8 @@ public sealed partial class CostsViewModel(IWorkstationApi api, CurrentUser user
     [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
     public partial bool IsSaving { get; private set; }
 
-    /// <summary>„Gespeichert.“ in der Leiste, bis wieder etwas geändert wird.</summary>
-    [ObservableProperty]
-    public partial string? StatusText { get; private set; }
+    /// <summary>Der Toast der Shell für die Bestätigung nach dem Speichern.</summary>
+    public ToastState Toast { get; } = toast ?? new ToastState(time);
 
     public bool HasUnsavedChanges => CanEdit && _settings is not null && (SettingsChanged || Rooms.Any(r => r.IsChanged) || Employees.Any(e => e.IsChanged));
 
@@ -428,7 +427,6 @@ public sealed partial class CostsViewModel(IWorkstationApi api, CurrentUser user
             return;
         }
 
-        StatusText = null;
         OnPropertyChanged(nameof(HasUnsavedChanges));
     }
 
@@ -552,7 +550,7 @@ public sealed partial class CostsViewModel(IWorkstationApi api, CurrentUser user
         }
 
         await LoadLocationAsync().ConfigureAwait(true);
-        StatusText = "Gespeichert.";
+        Toast.Show("Gespeichert");
         return true;
     }
 

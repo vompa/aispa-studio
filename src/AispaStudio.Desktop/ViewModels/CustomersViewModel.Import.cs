@@ -30,7 +30,18 @@ public partial class CustomersViewModel
             return;
         }
 
-        ShowToast($"Importiert: {CustomerImportViewModel.ResultText(result)}");
+        // Mit fehlerhaften Zeilen muss das Ergebnis gelesen werden: Es bleibt als Hinweisleiste stehen (meldungen.md M2), der Toast kürzte es.
+        var text = $"Import: {CustomerImportViewModel.ResultText(result)}";
+        if (result.Failed > 0)
+        {
+            Notice = $"{text}.";
+        }
+        else
+        {
+            Notice = null;
+            Toast.Show(text);
+        }
+
         await SearchAsync(Query).ConfigureAwait(true);
     }
 }

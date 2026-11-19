@@ -106,7 +106,7 @@ public sealed class CalendarEdgeDragTests
         Assert.Equal(TestData.At(12, 45), change.From);
         Assert.Equal(TestData.At(13, 30), change.Until);
         Assert.Equal(loadsBefore + 1, api.Calls.Count(c => c.Route == dayRoute));
-        Assert.Equal("Pause geändert", vm.Toast);
+        Assert.Equal("Pause geändert", vm.Toast.Text);
     }
 
     [Fact]

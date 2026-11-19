@@ -228,7 +228,7 @@ public abstract partial class PeriodAreaViewModel : ViewModelBase, IEditableArea
     {
         if (severity == InfoBarSeverity.Success)
         {
-            ToastRequested?.Invoke(CalendarViewModel.FitToast(text));
+            ToastRequested?.Invoke(ToastState.Fit(text));
             return;
         }
 

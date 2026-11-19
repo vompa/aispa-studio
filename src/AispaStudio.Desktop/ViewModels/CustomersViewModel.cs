@@ -19,8 +19,11 @@ public sealed record CustomerVisit(string Date, string Time, string Treatment, s
 /// Kundenstamm an der Rezeption: suchen (Name, Telefon, E-Mail), Kundenkarte mit Kontakt, Notiz und allen Terminen,
 /// neue Kundin oder neuen Kunden anlegen. Der Kundenstamm ist standortübergreifend, Termine zeigt der Server je Zugang.
 /// </summary>
-public partial class CustomersViewModel(IWorkstationApi api, TimeProvider time) : ViewModelBase
+public partial class CustomersViewModel(IWorkstationApi api, TimeProvider time, ToastState? toast = null) : ViewModelBase
 {
+    /// <summary>Die eine Bestätigung der App (Toast der Shell), z. B. nach dem Export.</summary>
+    public ToastState Toast { get; } = toast ?? new ToastState(time);
+
     private int _searchVersion;
     private int _detailVersion;
     private Dictionary<Guid, string>? _currencies;
@@ -589,7 +592,7 @@ public partial class CustomersViewModel(IWorkstationApi api, TimeProvider time) 
         Matches.Clear();
     }
 
-    /// <summary>Hinweis nach einer ohne Verbindung vorgemerkten Anlage.</summary>
+    /// <summary>Hinweis, der stehen bleibt: nach einer ohne Verbindung vorgemerkten Anlage und nach einem Import mit fehlerhaften Zeilen.</summary>
     [ObservableProperty]
     public partial string? Notice { get; private set; }
 

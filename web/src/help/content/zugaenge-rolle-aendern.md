@@ -17,7 +17,7 @@ stichwoerter: Rolle ändern, Rechte ändern, befördern, Standortleitung machen,
 3. **Rolle** wählen. Unter dem Feld steht kurz, was die Rolle darf.
 4. Bei Bedarf **Person im Team** ändern.
 5. Unter **Standorte** Standorte an- oder abhaken.
-6. Auf **Speichern** klicken. Es erscheint „Gespeichert. Gilt ab sofort.“
+6. Auf **Speichern** klicken. Unten erscheint kurz „Gespeichert“. Die Rolle gilt ab sofort.
 
 ## Gut zu wissen {#hinweise}
 

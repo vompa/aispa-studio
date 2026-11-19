@@ -3215,27 +3215,6 @@
               </Grid>
             </Grid>
           </Border>
-
-          <!-- Rückmeldung unten -->
-          <Border x:Name="ToastBar" Classes="toast" Classes.shown="{Binding HasToast}" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="16,0,16,12"
-                  CornerRadius="8" Padding="16,10,6,10"
-                  BoxShadow="{DynamicResource RaisedShadow}" MaxWidth="760" PointerEntered="OnToastEntered" PointerExited="OnToastExited"
-                  AutomationProperties.LiveSetting="Polite">
-            <!-- Eine Zeile, höchstens eine Aktion („Rückgängig“); Entscheidungen gehören in ein Flyout am Termin (meldungen.md, M1) -->
-            <StackPanel Orientation="Horizontal" Spacing="8">
-              <TextBlock Classes="msg" Text="{Binding Toast}" Foreground="{DynamicResource ToastFgBrush}" VerticalAlignment="Center" MaxWidth="540" AutomationProperties.Name="Meldung"
-                         ToolTip.Tip="{Binding Toast}" />
-              <Button Classes="ghost" Command="{Binding UndoMoveCommand}" IsVisible="{Binding CanUndo}" Foreground="{DynamicResource ToastFgBrush}">
-                <StackPanel Orientation="Horizontal" Spacing="6">
-                  <ui:Icon Data="{x:Static ui:Icons.Undo}" Width="16" Height="16" />
-                  <TextBlock Text="Rückgängig" />
-                </StackPanel>
-              </Button>
-              <Button Classes="ghost icon" Command="{Binding CloseToastCommand}" Foreground="{DynamicResource ToastFgBrush}" ToolTip.Tip="Schließen">
-                <ui:Icon Data="{x:Static ui:Icons.Close}" Width="16" Height="16" />
-              </Button>
-            </StackPanel>
-          </Border>
         </Panel>
       </Border>
 

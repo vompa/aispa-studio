@@ -67,7 +67,7 @@ public sealed partial class PersonRegulationsViewModel : ViewModelBase
     public PersonRegulationsViewModel(TeamContext context, Guid employeeId, bool isReadOnly)
     {
         _context = context;
-        Toast = new ToastState(context.Time);
+        Toast = context.Toast;
         _basePath = $"api/employees/{employeeId}/regulations";
         IsEditable = !isReadOnly;
         Days = [.. Enum.GetValues<DayOfWeek>().OrderBy(d => ((int)d + 6) % 7).Select(d => new RegulationDayOption(d, DayNames[((int)d + 6) % 7], FormChanged))];

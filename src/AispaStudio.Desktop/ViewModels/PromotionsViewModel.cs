@@ -83,7 +83,7 @@ public sealed class ChosenTreatment
 /// aus der API (<c>POST api/promotions/preview</c>). Pausieren und Archivieren stehen im Menü „⋯“; beide und das Zurückholen sind umkehrbar und fragen nicht. Gelöscht wird nie (ADR 0071). Die Rabattrechnung macht die Kassa; die Maske prüft nur vorab dieselben Regeln wie der Server
 /// (<c>PromotionService.ValidateAsync</c>), damit der Fehler am Feld steht. Welche Standorte die Person sieht und ob sie „alle Standorte“ anlegen darf, entscheidet die API.
 /// </summary>
-public sealed partial class PromotionsViewModel(IWorkstationApi api, TimeProvider time) : ViewModelBase, INativeArea, IFocusTarget
+public sealed partial class PromotionsViewModel(IWorkstationApi api, TimeProvider time, ToastState? toast = null) : ViewModelBase, INativeArea, IFocusTarget
 {
     public const string NameField = "PromotionNameField";
 
@@ -358,9 +358,8 @@ public sealed partial class PromotionsViewModel(IWorkstationApi api, TimeProvide
     [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
     public partial bool IsSaving { get; private set; }
 
-    /// <summary>„Gespeichert.“ in der Leiste, bis wieder etwas geändert wird.</summary>
-    [ObservableProperty]
-    public partial string? StatusText { get; private set; }
+    /// <summary>Die Bestätigung nach dem Speichern: der eine Toast der Shell.</summary>
+    public ToastState Toast { get; } = toast ?? new ToastState(time);
 
     /// <summary>Rückmeldung wie „Archiviert.“ über dem Formular.</summary>
     [ObservableProperty]
@@ -670,7 +669,6 @@ public sealed partial class PromotionsViewModel(IWorkstationApi api, TimeProvide
         _applying = false;
         _savedSignature = Signature();
         ClearErrors();
-        StatusText = null;
         Error = null;
         foreach (var name in new[]
                  {
@@ -897,7 +895,6 @@ public sealed partial class PromotionsViewModel(IWorkstationApi api, TimeProvide
             return;
         }
 
-        StatusText = null;
         OnPropertyChanged(nameof(HasUnsavedChanges));
         _ = RefreshPreviewAsync();
     }
@@ -1041,7 +1038,7 @@ public sealed partial class PromotionsViewModel(IWorkstationApi api, TimeProvide
             Error = reloadError;
         }
 
-        StatusText = "Gespeichert.";
+        Toast.Show("Gespeichert");
         return true;
     }
 

@@ -140,7 +140,7 @@ public sealed class AdminSubscriptionsTests
 
         Assert.Equal(new CalendarSubscriptionInput("Feiertage Österreich", "https://example.org/at.ics", SubscriptionKind.PublicHoliday, "AT", SecondId, true),
             Sent<CalendarSubscriptionInput>(api, $"POST {Route()}"));
-        Assert.Equal("Gespeichert.", subscriptions.StatusText);
+        Assert.Equal("Gespeichert", subscriptions.Toast.Text);
         Assert.Equal("Feiertage Österreich", subscriptions.SelectedRow?.Title);
         Assert.False(subscriptions.HasUnsavedChanges);
     }

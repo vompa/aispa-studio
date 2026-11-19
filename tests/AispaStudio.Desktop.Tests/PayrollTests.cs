@@ -232,7 +232,7 @@ public sealed class PayrollTests
         Assert.Equal("1234567", sent.DatevConsultantNumber);
         Assert.Equal(new TimeOnly(22, 0), sent.NightStart);
         Assert.False(payroll.HasUnsavedChanges);
-        Assert.Equal("Einstellungen gespeichert.", payroll.StatusText);
+        Assert.Equal("Einstellungen gespeichert", payroll.Toast.Text);
     }
 
     [Fact]
@@ -332,7 +332,7 @@ public sealed class PayrollTests
         var sent = JsonSerializer.Deserialize<PersonnelNumberInput>(Assert.Single(api.Calls, c => c.Route == $"PUT /api/payroll/employees/{Lena.Id}").Body!, ApiClient.Json)!;
         Assert.Equal("4712", sent.PersonnelNumber);
         Assert.False(card.HasUnsavedChanges);
-        Assert.Equal("Gespeichert.", card.StatusText);
+        Assert.Equal("Gespeichert", card.Toast.Text);
     }
 
     [Fact]

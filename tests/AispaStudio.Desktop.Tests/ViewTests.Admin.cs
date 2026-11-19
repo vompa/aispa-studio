@@ -106,7 +106,7 @@ public sealed partial class ViewTests
             var put = Assert.Single(api.Calls, c => c.Route == "PUT /api/tenant");
             Assert.Equal("Day-Spa am Ring", JsonSerializer.Deserialize<TenantInput>(put.Body!, ApiClient.Json)!.Name);
             Assert.False(company.HasUnsavedChanges);
-            Assert.True(Shows(window, "Gespeichert."));
+            Assert.Equal("Gespeichert", company.Toast.Text);
 
             // ADR 0098: Der Verlauf ist eine Seitenleiste, die „Verlauf“ im Kopf öffnet; im Formular steht kein Abschnitt „Verlauf“ mehr.
             var panel = Named<HistoryPanel>(window, "CompanyHistoryPanel");

@@ -351,7 +351,7 @@ public sealed class ActivityPanelTests
         Assert.Contains("Der Termin von Anna Huber am Mo. 1.3., 14:00–14:50, ist danach wieder gebucht.", asked.Message, StringComparison.Ordinal);
         var request = BodyOf<RestoreAppointmentRequest>(api, "/restore");
         Assert.Equal((null, false, 7u), (request.Start, request.SendCorrection, request.ExpectedVersion));
-        Assert.Equal("Termin wiederhergestellt: Anna Huber, 14:00", activity.Toast);
+        Assert.Equal("Termin wiederhergestellt: Anna Huber, 14:00", activity.Toast.Text);
         Assert.Equal(loads + 1, api.Calls.Count(c => c.Route == HistoryRoute));
         Assert.False(activity.HasPanel);
     }
@@ -389,7 +389,7 @@ public sealed class ActivityPanelTests
         await activity.RestoreCommand.ExecuteAsync(null);
 
         Assert.DoesNotContain(api.Calls, c => c.Route.EndsWith("/restore", StringComparison.Ordinal));
-        Assert.Null(activity.Toast);
+        Assert.Null(activity.Toast.Text);
         Assert.True(activity.HasPanel);
     }
 
@@ -423,7 +423,7 @@ public sealed class ActivityPanelTests
         Assert.Equal(CancelledAppointment(id), wanted?.Appointment);
         Assert.Equal(OccupiedByAnna.Conflicts, wanted?.Conflict?.Conflicts);
         Assert.Null(activity.PanelError);
-        Assert.Null(activity.Toast);
+        Assert.Null(activity.Toast.Text);
         Assert.Equal(loads, api.Calls.Count(c => c.Route == HistoryRoute));
     }
 
@@ -452,7 +452,7 @@ public sealed class ActivityPanelTests
         Assert.Equal(CancelledAppointment(id), wanted?.Appointment);
         Assert.Null(wanted?.Conflict);
         Assert.DoesNotContain(api.Calls, c => c.Route.EndsWith("/restore", StringComparison.Ordinal));
-        Assert.Null(activity.Toast);
+        Assert.Null(activity.Toast.Text);
         Assert.True(activity.HasPanel);
     }
 
@@ -522,7 +522,7 @@ public sealed class ActivityPanelTests
 
         Assert.False(wanted);
         Assert.DoesNotContain(api.Calls, c => c.Route.EndsWith("/restore", StringComparison.Ordinal));
-        Assert.Null(activity.Toast);
+        Assert.Null(activity.Toast.Text);
         Assert.Null(activity.PanelError);
         Assert.True(activity.HasPanel);
         Assert.Equal(loads, api.Calls.Count(c => c.Route == HistoryRoute));
@@ -686,13 +686,13 @@ public sealed class ActivityPanelTests
         var activity = await OpenAsync(api, dialogs: new FakeDialogs().Answer(ConfirmChoice.Confirmed), time: time);
         Open(activity);
         await activity.RestoreCommand.ExecuteAsync(null);
-        Assert.True(activity.HasToast);
+        Assert.True(activity.Toast.IsShown);
 
         time.Advance(TimeSpan.FromSeconds(4));
-        Assert.True(activity.HasToast);
+        Assert.True(activity.Toast.IsShown);
         time.Advance(TimeSpan.FromSeconds(1));
 
-        await WaitUntilAsync(() => !activity.HasToast);
+        await WaitUntilAsync(() => !activity.Toast.IsShown);
     }
 
     [Fact]

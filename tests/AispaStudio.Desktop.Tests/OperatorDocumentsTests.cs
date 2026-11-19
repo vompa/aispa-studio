@@ -295,7 +295,7 @@ public sealed class OperatorDocumentsTests
         await sending;
         await RosterTests.Until(() => stock.Orders.Orders.Single().HasSentMails);
 
-        Assert.Equal("Gesendet an bestellung@lavendelhof.example", stock.Toast);
+        Assert.Equal("Gesendet an bestellung@lavendelhof.example", stock.Toast.Text);
         Assert.Equal(["Gesendet am 01.03.2027 10:00 an bestellung@lavendelhof.example von Anna"], stock.Orders.Orders.Single().SentMailLines);
     }
 

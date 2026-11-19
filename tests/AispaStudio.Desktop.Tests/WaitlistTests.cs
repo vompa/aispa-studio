@@ -167,7 +167,7 @@ public sealed class WaitlistTests
         Assert.Contains(Guest.Id.ToString(), post.Body, StringComparison.Ordinal);
         Assert.Contains(TestData.Anna.Id.ToString(), post.Body, StringComparison.Ordinal);
         Assert.Equal([other.Id], vm.Waitlist.Select(r => r.Entry.Id));
-        Assert.StartsWith("Gebucht: Eva Muster", vm.Toast, StringComparison.Ordinal);
+        Assert.StartsWith("Gebucht: Eva Muster", vm.Toast.Text, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -191,7 +191,7 @@ public sealed class WaitlistTests
         Assert.Contains("\"reason\":\"Arranged\"", call.Body, StringComparison.OrdinalIgnoreCase);
         Assert.Equal([other.Id], vm.Waitlist.Select(r => r.Entry.Id));
         Assert.Equal([other.Id], vm.WaitlistPanel!.Rows.Select(r => r.Entry.Id));
-        Assert.Contains("Eva Muster von der Warteliste, Termin vereinbart", vm.Toast, StringComparison.Ordinal);
+        Assert.Contains("Eva Muster von der Warteliste, Termin vereinbart", vm.Toast.Text, StringComparison.Ordinal);
     }
 
     [Fact]

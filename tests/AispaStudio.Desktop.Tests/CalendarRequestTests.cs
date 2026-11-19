@@ -217,7 +217,7 @@ public sealed class CalendarRequestTests
         var post = Assert.Single(api.Calls, c => c.Route == "POST /api/appointments");
         Assert.Contains(guest.Id.ToString(), post.Body, StringComparison.Ordinal);
         Assert.Null(vm.NewEntry);
-        Assert.StartsWith("Gebucht: Brigitte Müller", vm.Toast, StringComparison.Ordinal);
+        Assert.StartsWith("Gebucht: Brigitte Müller", vm.Toast.Text, StringComparison.Ordinal);
     }
 
     [Fact]

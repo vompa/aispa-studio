@@ -80,9 +80,10 @@ public sealed partial class RemindersViewModel : ViewModelBase, INativeArea
 
     /// <param name="remindersOn">Modul „Terminerinnerungen“ (Terminerinnerung und Versandprotokoll); ausgeschaltet antwortet die API mit 404, die Maske lädt den Teil gar nicht (T-081).</param>
     /// <param name="rebookingOn">Modul „Wiederbuchung“ (in der Stufe „Start“ aus); ausgeschaltet gilt dasselbe.</param>
-    public RemindersViewModel(IWorkstationApi api, TimeZoneInfo zone, TimeProvider? time = null, bool remindersOn = true, bool rebookingOn = true)
+    public RemindersViewModel(IWorkstationApi api, TimeZoneInfo zone, TimeProvider? time = null, bool remindersOn = true, bool rebookingOn = true, ToastState? toast = null)
     {
         _api = api;
+        Toast = toast ?? new ToastState(time ?? TimeProvider.System);
         RemindersOn = remindersOn;
         RebookingOn = rebookingOn;
         Log = new DispatchLogViewModel(api, zone, time);
@@ -191,8 +192,8 @@ public sealed partial class RemindersViewModel : ViewModelBase, INativeArea
 
     public bool HasError => Error is not null;
 
-    [ObservableProperty]
-    public partial string? StatusText { get; private set; }
+    /// <summary>Die Bestätigung nach dem Speichern: der eine Toast der Shell.</summary>
+    public ToastState Toast { get; }
 
     /// <summary>Fehler am Feld „Zweite Erinnerung“.</summary>
     [ObservableProperty]
@@ -321,7 +322,7 @@ public sealed partial class RemindersViewModel : ViewModelBase, INativeArea
             IsSaving = false;
         }
 
-        StatusText = "Gespeichert.";
+        Toast.Show("Gespeichert");
         Saved?.Invoke();
         return true;
     }
@@ -390,7 +391,6 @@ public sealed partial class RemindersViewModel : ViewModelBase, INativeArea
 
     private void Changed()
     {
-        StatusText = null;
         OnPropertyChanged(nameof(HasUnsavedChanges));
     }
 

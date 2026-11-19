@@ -74,8 +74,8 @@ public sealed partial class LeaveAccountViewModel : ViewModelBase, IEditableArea
     [ObservableProperty]
     public partial bool IsLoaded { get; private set; }
 
-    [ObservableProperty]
-    public partial string? StatusText { get; private set; }
+    /// <summary>Der Toast der Shell: „Gespeichert“ nach dem Speichern des Urlaubskontos.</summary>
+    public ToastState Toast => _context.Toast;
 
     public bool HasUnsavedChanges => IsEditable && _account is { } account
         && (EntitlementText.Trim() != Format(account.Entitlement) || CarriedOverText.Trim() != FormatCarried(account.CarriedOver));
@@ -172,7 +172,7 @@ public sealed partial class LeaveAccountViewModel : ViewModelBase, IEditableArea
 
         Error = null;
         Show(result.Value, keepInput: false);
-        StatusText = "Gespeichert.";
+        Toast.Show("Gespeichert");
         Saved?.Invoke();
         return true;
     }
@@ -196,7 +196,6 @@ public sealed partial class LeaveAccountViewModel : ViewModelBase, IEditableArea
             CarriedOverText = FormatCarried(account.CarriedOver);
         }
 
-        StatusText = null;
         TakenText = Days(account.Taken);
         PlannedText = Days(account.Planned);
         RemainingText = account.Remaining is { } rest ? Days(rest) : "–";

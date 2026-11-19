@@ -1614,3 +1614,18 @@ Expected: Die Suche ohne Verbindung findet den Gast nicht; andere Gäste findet 
 Expected: Auch Gerät B findet den Gast nicht; im Kalender steht an seinen alten Terminen nach dem Neuladen „Gelöschter Gast“.
 Closes: –
 Result: ☐
+
+### Verwaltung – „Gespeichert“ erscheint als Toast unten in der App
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App als Inhaberin anmelden
+1. **Verwaltung** › **Betrieb** › **Firmendaten** öffnen, ein Feld ändern, **Speichern** klicken.
+Expected: Unten mittig im Seitenbereich erscheint für 5 Sekunden „Gespeichert“ (ohne Punkt); neben **Speichern** steht kein Text mehr. Der Mauszeiger auf der Meldung hält sie an, das Kreuz schließt sie.
+2. Gleich danach in **Team** eine Person öffnen, die Rolle ändern und speichern.
+Expected: Es steht wieder nur eine Meldung „Gespeichert“; sie ersetzt die vorige.
+3. Im **Kalender** einen Termin auf eine andere Zeit ziehen.
+Expected: Dieselbe Meldung unten mittig zeigt „Verschoben auf …“ mit **Rückgängig** und bleibt 8 Sekunden; **Rückgängig** und Strg+Z setzen den Termin zurück.
+4. Im **Lager** **Exportieren** wählen und eine Datei speichern.
+Expected: Die Meldung „Gespeichert: …“ trägt den Knopf **Ordner öffnen**.
+5. Im Team **Person hinzufügen**, mit Zugang anlegen.
+Expected: Der Hinweis zur Anmeldung mit dem Startpasswort steht als Hinweisleiste auf der Karte und bleibt, bis man ihn schließt.
+Closes: –
+Result: ☐

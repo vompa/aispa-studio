@@ -423,9 +423,18 @@ public sealed partial class PersonCardViewModel : ViewModelBase, IEditableArea
 
     public bool HasError => Error is not null;
 
-    /// <summary>„Gespeichert.“ in der Leiste, bis wieder etwas geändert wird.</summary>
+    /// <summary>Der Toast der Shell (über den Kontext): „Gespeichert“ und die Bestätigungen der Reiter.</summary>
+    public ToastState Toast => _context.Toast;
+
+    /// <summary>Hinweis, der gelesen werden muss, als Hinweisleiste über den Bereichen (z. B. nach dem Anlegen eines Zugangs im Einzelplatz); schließbar.</summary>
     [ObservableProperty]
-    public partial string? StatusText { get; set; }
+    [NotifyPropertyChangedFor(nameof(HasNotice))]
+    public partial string? Notice { get; set; }
+
+    public bool HasNotice => Notice is not null;
+
+    [RelayCommand]
+    private void CloseNotice() => Notice = null;
 
     /// <summary>Grund und Weg, solange „Speichern“ gesperrt ist: bei einer neuen Person fehlt der Pflichtname (masken.md R5); sonst leer.</summary>
     public string? SaveBlocker => Entry.IsNew && Details is { IsEditable: true } details && details.Name.Trim().Length == 0
@@ -698,7 +707,7 @@ public sealed partial class PersonCardViewModel : ViewModelBase, IEditableArea
                 return false;
             }
 
-            StatusText = accessSaved ? "Gespeichert. Gilt ab sofort." : "Gespeichert.";
+            _context.Toast.Show("Gespeichert");
             OnPropertyChanged(nameof(HasUnsavedChanges));
             OnPropertyChanged(nameof(HasSaveBar));
             await ReportSavedAsync(employeeSaved || accessSaved || payrollSaved, !created).ConfigureAwait(true);
@@ -763,7 +772,6 @@ public sealed partial class PersonCardViewModel : ViewModelBase, IEditableArea
         Regulations?.Discard();
         Duties?.Discard();
         Error = null;
-        StatusText = null;
         OnPropertyChanged(nameof(HasUnsavedChanges));
         OnPropertyChanged(nameof(HasSaveBar));
     }
@@ -804,7 +812,6 @@ public sealed partial class PersonCardViewModel : ViewModelBase, IEditableArea
 
     private void Changed()
     {
-        StatusText = null;
         OnPropertyChanged(nameof(HasUnsavedChanges));
         OnPropertyChanged(nameof(HasSaveBar));
         OnPropertyChanged(nameof(SaveBlocker));

@@ -80,7 +80,7 @@ public sealed class UndoCancelCheckInTests
         vm.Mark(vm.Columns[0].Items[0]);
 
         vm.HandleKey(Key.Delete, KeyModifiers.None);
-        await Until(() => vm.Toast == "Termin storniert");
+        await Until(() => vm.Toast.Text == "Termin storniert");
 
         Assert.True(vm.CanUndo);
         Assert.Contains(vm.KeyHints, h => h is { Key: "Strg+Z", Text: "Rückgängig" });
@@ -107,12 +107,12 @@ public sealed class UndoCancelCheckInTests
         vm.Dialogs = new FakeDialogs().Answer(ConfirmChoice.Confirmed, "Versehen");
         vm.Mark(vm.Columns[0].Items[0]);
         vm.HandleKey(Key.Delete, KeyModifiers.None);
-        await Until(() => vm.Toast == "Termin storniert");
+        await Until(() => vm.Toast.Text == "Termin storniert");
 
         await vm.UndoMoveCommand.ExecuteAsync(null);
 
         Assert.Single(vm.Columns[0].Items);
-        Assert.StartsWith("Wieder gebucht", vm.Toast, StringComparison.Ordinal);
+        Assert.StartsWith("Wieder gebucht", vm.Toast.Text, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -125,7 +125,7 @@ public sealed class UndoCancelCheckInTests
         vm.Mark(vm.Columns[0].Items[0]);
         vm.HandleKey(Key.E, KeyModifiers.None);
         await Until(() => vm.Columns[0].Items[0].IsCheckedIn);
-        Assert.Equal("Eva Muster eingecheckt", vm.Toast);
+        Assert.Equal("Eva Muster eingecheckt", vm.Toast.Text);
         Assert.True(vm.CanUndo);
 
         api.On($"POST /api/appointments/{appointment.Id}/status", Later(appointment, AppointmentStatus.Booked, 2));

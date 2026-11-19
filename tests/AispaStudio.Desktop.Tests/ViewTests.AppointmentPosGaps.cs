@@ -64,7 +64,7 @@ public sealed partial class ViewTests
             Assert.Contains(stub.Calls, c => c.Route == $"POST {CardRoute}/request");
             Assert.Contains("Link verschickt, Zustimmung offen · 27,00 € (30 %) seit 19.10.2026 09:00", PanelTexts(window, "CardGuaranteeCard"));
             Assert.Equal("Link erneut senden", Named<Button>(window, "RequestCardButton").Content);
-            Assert.Equal("Link an den Gast verschickt", calendar.Toast);
+            Assert.Equal("Link an den Gast verschickt", calendar.Toast.Text);
             return calendar;
         }, stub);
     }
@@ -90,7 +90,7 @@ public sealed partial class ViewTests
             Assert.Contains(stub.Calls, c => c.Route == $"POST {DepositStateRoute}/request");
             Assert.Contains("Noch nicht bezahlt · 30,00 € (30 %)", PanelTexts(window, "DepositCard"));
             Assert.Equal("Link erneut senden", Named<Button>(window, "RequestDepositButton").Content);
-            Assert.Equal("Link an den Gast verschickt", calendar.Toast);
+            Assert.Equal("Link an den Gast verschickt", calendar.Toast.Text);
             return calendar;
         }, stub);
     }

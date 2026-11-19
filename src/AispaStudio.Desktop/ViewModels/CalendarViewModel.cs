@@ -21,18 +21,10 @@ public partial class CalendarViewModel : ViewModelBase
     private DateTimeOffset _dayStart;
     private DragState? _drag;
     private MoveUndo? _undo;
-    private int _toastClock;
-    private bool _toastHeld;
     private HashSet<Guid> _pending = [];
     private readonly ISettingsStore _settings;
     private double _viewportWidth;
     private double _viewportHeight;
-
-    /// <summary>So lange bleibt eine Bestätigung stehen (meldungen.md, M1); Fehlermeldungen bleiben bis zum Schließen.</summary>
-    private static readonly TimeSpan ToastDuration = TimeSpan.FromSeconds(5);
-
-    /// <summary>Mit „Rückgängig“ bleibt die Bestätigung länger, damit man die Aktion erreicht.</summary>
-    private static readonly TimeSpan ToastUndoDuration = TimeSpan.FromSeconds(8);
 
     /// <summary>Stufen für Strg + Mausrad bzw. Strg +/−, in Pixeln je Minute.</summary>
     private static readonly double[] ZoomSteps = [0.8, 1.0, 1.2, 1.4, 1.6, 2.0, 2.4, 3.0];
@@ -52,8 +44,10 @@ public partial class CalendarViewModel : ViewModelBase
     /// <param name="After">Version des Termins nach der eigenen Änderung (Ä281): „Rückgängig“ schickt sie mit, hat inzwischen jemand anders geändert, meldet der Server den Konflikt.</param>
     private sealed record MoveUndo(AppointmentDto Before, UndoKind Kind = UndoKind.Move, uint? After = null);
 
-    public CalendarViewModel(IWorkstationApi api, CurrentUser user, ILiveUpdates? live, TimeProvider time, ISettingsStore? settings = null)
+    public CalendarViewModel(IWorkstationApi api, CurrentUser user, ILiveUpdates? live, TimeProvider time, ISettingsStore? settings = null, ToastState? toast = null)
     {
+        Toast = toast ?? new ToastState(time);
+        Toast.PropertyChanged += (_, _) => EndUndoWhenToastEnds();
         _api = api;
         _user = user;
         _live = live;
@@ -279,16 +273,12 @@ public partial class CalendarViewModel : ViewModelBase
     [ObservableProperty]
     public partial string NowText { get; private set; } = "";
 
-    /// <summary>Kurze Rückmeldung unten im Kalender, z. B. nach dem Verschieben.</summary>
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasToast))]
-    public partial string? Toast { get; private set; }
+    /// <summary>Die eine Bestätigung der App (Toast der Shell), z. B. nach dem Verschieben.</summary>
+    public ToastState Toast { get; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(KeyHints))]
     public partial bool CanUndo { get; private set; }
-
-    public bool HasToast => Toast is not null;
 
     public bool IsToday => Date == DateOnly.FromDateTime(_time.GetLocalNow().DateTime);
 
@@ -1479,42 +1469,25 @@ public partial class CalendarViewModel : ViewModelBase
         }
     }
 
-    [RelayCommand]
-    private void CloseToast() => ShowToast(null);
-
-    /// <summary>Die Maus ist über der Rückmeldung (<paramref name="held"/>) bzw. wieder weg: solange sie darüber steht, läuft die Frist nicht.</summary>
-    public void HoldToast(bool held)
+    private void ShowToast(string text, MoveUndo? undo = null)
     {
-        _toastHeld = held;
-        StartToastClock();
-    }
-
-    /// <summary>Startet die Frist neu; eine ältere, noch laufende Frist erkennt an der Nummer, dass sie überholt ist.</summary>
-    private void StartToastClock()
-    {
-        var clock = ++_toastClock;
-        if (Toast is not null && !_toastHeld)
-        {
-            _ = ExpireToastAsync(clock, CanUndo ? ToastUndoDuration : ToastDuration);
-        }
-    }
-
-    private async Task ExpireToastAsync(int clock, TimeSpan duration)
-    {
-        await Task.Delay(duration, _time).ConfigureAwait(true);
-        if (clock == _toastClock)
-        {
-            CloseToast();
-        }
-    }
-
-    private void ShowToast(string? text, MoveUndo? undo = null)
-    {
-        Toast = text is null ? null : FitToast(text);
+        // Erst zeigen, dann merken: Beim Zeigen meldet der Toast Änderungen, und EndUndoWhenToastEnds sähe sonst noch die alte Aktion.
+        Toast.Show(text, "Rückgängig", undo is null ? null : UndoMoveCommand);
         _undo = undo;
         CanUndo = undo is not null;
-        _toastHeld &= text is not null;
-        StartToastClock();
+    }
+
+    /// <summary>
+    /// „Rückgängig“ gilt nur, solange der Toast mit dieser Aktion steht: schließt er oder ersetzt ihn ein anderer (auch einer einer anderen
+    /// Seite mit eigener Aktion), endet es, damit Strg+Z nichts zurücknimmt, was nicht mehr angeboten wird.
+    /// </summary>
+    private void EndUndoWhenToastEnds()
+    {
+        if (CanUndo && !ReferenceEquals(Toast.Action, UndoMoveCommand))
+        {
+            _undo = null;
+            CanUndo = false;
+        }
     }
 
     private string Describe(AppointmentDto appointment)

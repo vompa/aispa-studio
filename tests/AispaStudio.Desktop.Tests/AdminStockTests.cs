@@ -138,7 +138,7 @@ public sealed class AdminStockTests
         var sent = SentItem(api);
         Assert.Equal(("Sauna-Aufguss", "ml", 0.04m, 500m, ArticleId, true, supplier.Id, "SA-7"),
             (sent.Name, sent.Unit, sent.UnitCost, sent.MinimumQuantity, sent.ArticleId, sent.IsActive, sent.SupplierId, sent.SupplierArticleNumber));
-        Assert.Equal("Sauna-Aufguss angelegt", stock.Toast);
+        Assert.Equal("Sauna-Aufguss angelegt", stock.Toast.Text);
         Assert.Equal("", form.ItemName);
         Assert.Equal("Stück", form.Unit);
         Assert.False(stock.HasUnsavedChanges);
@@ -338,7 +338,7 @@ public sealed class AdminStockTests
         var sent = SentMovement(api);
         Assert.Equal((OilId, StockMovementKind.GoodsReceipt, 5.5m, (decimal?)11.9m, "L-2", new DateOnly(2027, 12, 31), MainId, (Guid?)null, (Guid?)null, "Lieferung"),
             (sent.ItemId, sent.Kind, sent.Quantity, sent.UnitCost, sent.Batch, sent.ExpiresOn, sent.StoragePlaceId, sent.TargetStoragePlaceId, sent.TargetLocationId, sent.Reason));
-        Assert.Equal("Gebucht", stock.Toast);
+        Assert.Equal("Gebucht", stock.Toast.Text);
         Assert.Null(stock.Booking.SelectedItem);
         Assert.Equal("", stock.Booking.Amount);
     }
@@ -507,7 +507,7 @@ public sealed class AdminStockTests
 
         var sent = SentMovement(api);
         Assert.Equal((StockMovementKind.Correction, -3m, MainId, "Abgelaufen, Charge L-0 (1.2.2027)"), (sent.Kind, sent.Quantity, sent.StoragePlaceId, sent.Reason));
-        Assert.Equal("3 Flasche Massageöl ausgebucht", stock.Toast);
+        Assert.Equal("3 Flasche Massageöl ausgebucht", stock.Toast.Text);
     }
 
     // ── Bewegungen ──
@@ -581,7 +581,7 @@ public sealed class AdminStockTests
 
         var sent = Assert.Single(SentMovements(api));
         Assert.Equal((OilId, StockMovementKind.Count, 7.5m, MainId), (sent.ItemId, sent.Kind, sent.Quantity, sent.StoragePlaceId));
-        Assert.Equal("Inventur gebucht: 1 Position", stock.Toast);
+        Assert.Equal("Inventur gebucht: 1 Position", stock.Toast.Text);
         Assert.False(stock.Count.IsCounting);
         Assert.False(stock.HasUnsavedChanges);
     }
@@ -711,7 +711,7 @@ public sealed class AdminStockTests
         var post = JsonSerializer.Deserialize<StoragePlaceInput>(Assert.Single(api.Calls, c => c.Route == $"POST {Route("/storage-places")}").Body!, ApiClient.Json)!;
         Assert.Equal(("Kühlschrank", StoragePlaceKind.Room, (Guid?)RoomId, true), (post.Name, post.Kind, post.RoomId, post.IsActive));
         Assert.Equal([new StoragePlaceMinimumDto(OilId, 3)], post.Minimums);
-        Assert.Equal("Gespeichert", stock.Toast);
+        Assert.Equal("Gespeichert", stock.Toast.Text);
         Assert.Equal("Kühlschrank", stock.PlacesAdmin.HeadingText);
     }
 
@@ -779,7 +779,7 @@ public sealed class AdminStockTests
         Assert.Equal("„Verkaufsregal“ löschen?", asked.Title);
         Assert.Equal("Löschen", asked.ConfirmText);
         Assert.True(asked.IsDestructive);
-        Assert.Equal("Lagerort gelöscht", stock.Toast);
+        Assert.Equal("Lagerort gelöscht", stock.Toast.Text);
         Assert.Equal("Hauptlager", stock.PlacesAdmin.HeadingText);
         Assert.DoesNotContain(stock.PlacesAdmin.Rows, r => r.Id == ShopId);
     }
@@ -817,7 +817,7 @@ public sealed class AdminStockTests
         var put = JsonSerializer.Deserialize<StoragePlaceInput>(Assert.Single(api.Calls, c => c.Route == $"PUT {Route($"/storage-places/{CabinetId}")}").Body!, ApiClient.Json)!;
         Assert.False(put.IsActive);
         Assert.Null(put.Minimums);
-        Assert.Equal("Lagerort wird nicht mehr verwendet", stock.Toast);
+        Assert.Equal("Lagerort wird nicht mehr verwendet", stock.Toast.Text);
     }
 
     [Fact]
@@ -851,7 +851,7 @@ public sealed class AdminStockTests
         var put = JsonSerializer.Deserialize<StockSupplierInput>(Assert.Single(api.Calls, c => c.Route == $"PUT /api/stock/suppliers/{SupplierId}").Body!, ApiClient.Json)!;
         Assert.False(put.IsActive);
         Assert.Equal("Lavendelhof", put.Name);
-        Assert.Equal("Lieferant wird nicht mehr verwendet", stock.Toast);
+        Assert.Equal("Lieferant wird nicht mehr verwendet", stock.Toast.Text);
     }
 
     [Fact]
@@ -869,7 +869,7 @@ public sealed class AdminStockTests
 
         Assert.Equal("„Lavendelhof“ löschen?", dialogs.AssertRules().Asked.Single().Title);
         Assert.Equal(1, api.Calls.Count(c => c.Route == $"DELETE /api/stock/suppliers/{SupplierId}"));
-        Assert.Equal("Lieferant gelöscht", stock.Toast);
+        Assert.Equal("Lieferant gelöscht", stock.Toast.Text);
     }
 
     [Fact]
@@ -939,7 +939,7 @@ public sealed class AdminStockTests
         await places.CopyMinimumsCommand.ExecuteAsync(null);
 
         Assert.Equal(1, api.Calls.Count(c => c.Route == $"POST {Route($"/storage-places/{ShopId}/minimums/copy-from/{CabinetId}")}"));
-        Assert.Equal("Mindestmengen übernommen", stock.Toast);
+        Assert.Equal("Mindestmengen übernommen", stock.Toast.Text);
     }
 
     // ── Rechte ──

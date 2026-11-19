@@ -12,7 +12,7 @@ Fast jede Liste der App lässt sich als Datei speichern: als **Excel** zum Weite
 
 1. Die Seite mit der Liste öffnen und, wo es geht, filtern (Suche, Zeitraum, Standort).
 2. Auf **Exportieren** klicken und die Liste mit dem Format wählen, z. B. **Belegliste (Excel)**.
-3. Im Speicherdialog den Ort wählen. Der Dateiname ist schon vorgeschlagen, z. B. `Belege_2026-11-09.xlsx`. Neben dem Knopf steht danach kurz „Gespeichert: …“.
+3. Im Speicherdialog den Ort wählen. Der Dateiname ist schon vorgeschlagen, z. B. `Belege_2026-11-09.xlsx`. Danach steht kurz „Gespeichert: …“ mit dem Dateinamen.
 
 ## Wo es einen Knopf gibt {#orte}
 

@@ -55,10 +55,7 @@ public sealed partial class ClosuresPageViewModel : ViewModelBase, ITargetedArea
 
     private const string LoadFailedText = "Die Schließzeiten konnten nicht geladen werden.";
 
-    private static readonly TimeSpan ToastDuration = TimeSpan.FromSeconds(5);
-
     private readonly IWorkstationApi _api;
-    private readonly TimeProvider _time;
     private readonly SynchronizationContext? _ui = SynchronizationContext.Current;
     private readonly Dictionary<Guid, LocationDto> _locations = [];
     private readonly Dictionary<Guid, List<RoomOption>> _rooms = [];
@@ -69,22 +66,20 @@ public sealed partial class ClosuresPageViewModel : ViewModelBase, ITargetedArea
     private bool _switching;
     private bool _reverting;
     private bool _internal;
-    private int _toastClock;
-    private bool _toastHeld;
 
-    public ClosuresPageViewModel(IWorkstationApi api, CurrentUser user, TimeProvider time)
+    public ClosuresPageViewModel(IWorkstationApi api, CurrentUser user, TimeProvider time, ToastState? toast = null)
     {
         _api = api;
-        _time = time;
+        Toast = toast ?? new ToastState(time);
         ClosureEditor = new ClosuresViewModel(api, user, time);
         RoomEditor = new RoomClosuresViewModel(api, user, time);
         Editor = ClosureEditor;
         Setup = new ClosureSetupViewModel(api);
-        Setup.ToastRequested += ShowToast;
+        Setup.ToastRequested += text => Toast.Show(text);
         foreach (var editor in new PeriodAreaViewModel[] { ClosureEditor, RoomEditor })
         {
             editor.Refresh = RefreshAfterChangeAsync;
-            editor.ToastRequested += ShowToast;
+            editor.ToastRequested += text => Toast.Show(text);
             editor.Saved += () => Saved?.Invoke();
             editor.Removed += OnEditorRemoved;
             editor.PropertyChanged += (_, e) =>
@@ -145,8 +140,6 @@ public sealed partial class ClosuresPageViewModel : ViewModelBase, ITargetedArea
     public bool HasLoadError => LoadError is not null;
 
     public bool HasMessage => Message is not null;
-
-    public bool HasToast => Toast is not null;
 
     /// <summary>Es gibt Räume am Standort; nur dann lässt sich „Einzelner Raum“ wählen.</summary>
     public bool CanSelectRoomKind => RoomEditor.Rooms.Count > 0;
@@ -248,10 +241,8 @@ public sealed partial class ClosuresPageViewModel : ViewModelBase, ITargetedArea
     [ObservableProperty]
     public partial InfoBarSeverity MessageSeverity { get; private set; } = InfoBarSeverity.Error;
 
-    /// <summary>Rückmeldung unten („Schließzeit gespeichert“), eine Zeile, 5 Sekunden (meldungen.md M1).</summary>
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasToast))]
-    public partial string? Toast { get; private set; }
+    /// <summary>Rückmeldung unten („Schließzeit gespeichert“): der eine Toast der Shell (meldungen.md M1).</summary>
+    public ToastState Toast { get; }
 
     /// <summary>Überschrift der Seitenleiste: die des Formulars (bei einem neuen „Neue Schließzeit“ bzw. „Neue Raumsperre“).</summary>
     public string PanelTitle => Editor.HasForm ? Editor.HeadingText : "";
@@ -814,40 +805,4 @@ public sealed partial class ClosuresPageViewModel : ViewModelBase, ITargetedArea
 
     [RelayCommand]
     private void CloseMessage() => Message = null;
-
-    // ---------- Toast ----------
-
-    private void ShowToast(string text)
-    {
-        Toast = text;
-        StartToastClock();
-    }
-
-    [RelayCommand]
-    private void CloseToast() => Toast = null;
-
-    /// <summary>Hält den Toast an, solange der Mauszeiger darüber steht (meldungen.md M1).</summary>
-    public void HoldToast(bool held)
-    {
-        _toastHeld = held;
-        StartToastClock();
-    }
-
-    private void StartToastClock()
-    {
-        var clock = ++_toastClock;
-        if (Toast is not null && !_toastHeld)
-        {
-            _ = ExpireToastAsync(clock);
-        }
-    }
-
-    private async Task ExpireToastAsync(int clock)
-    {
-        await Task.Delay(ToastDuration, _time).ConfigureAwait(true);
-        if (clock == _toastClock)
-        {
-            Toast = null;
-        }
-    }
 }

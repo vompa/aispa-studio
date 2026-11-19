@@ -91,7 +91,7 @@ public sealed class CalendarDocumentsTests
         Assert.False(print.IsTeam);
         Assert.EndsWith("&by=rooms", print.Document.Source.PdfPath, StringComparison.Ordinal);
         Assert.Equal("Tagesplan-Wien-2027-03-01.pdf", files.SavedName);
-        Assert.Equal("Gespeichert: Tagesplan-Wien-2027-03-01.pdf", vm.Toast);
+        Assert.Equal("Gespeichert: Tagesplan-Wien-2027-03-01.pdf", vm.Toast.Text);
     }
 
     [Fact]
@@ -134,6 +134,6 @@ public sealed class CalendarDocumentsTests
         document.Files = files;
         await document.SaveCommand.ExecuteAsync(null);
         Assert.Equal("Warteliste-Wien-2027-03-01.pdf", files.SavedName);
-        Assert.Equal("Gespeichert: Warteliste-Wien-2027-03-01.pdf", vm.Toast);
+        Assert.Equal("Gespeichert: Warteliste-Wien-2027-03-01.pdf", vm.Toast.Text);
     }
 }

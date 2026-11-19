@@ -135,14 +135,14 @@ public sealed class CalendarNoticeTests
         var vm = await OpenAsync(api, time);
 
         await vm.ReportLateAsync(appointment, 0);
-        Assert.Equal("Eva Muster kommt doch pünktlich", vm.Toast);
+        Assert.Equal("Eva Muster kommt doch pünktlich", vm.Toast.Text);
         Assert.False(vm.CanUndo);
 
         time.Advance(TimeSpan.FromSeconds(4.9));
         await Task.Delay(30, TestContext.Current.CancellationToken);
-        Assert.NotNull(vm.Toast);
+        Assert.NotNull(vm.Toast.Text);
         time.Advance(TimeSpan.FromSeconds(0.2));
-        await Until(() => vm.Toast is null);
+        await Until(() => vm.Toast.Text is null);
     }
 
     // ---------- Fluent 2 F21: Toast-Texte, Fehler und Warnungen als InfoBar ----------
@@ -151,14 +151,14 @@ public sealed class CalendarNoticeTests
     [InlineData("Termin verschoben.", "Termin verschoben")]
     [InlineData("  Gebucht  ", "Gebucht")]
     [InlineData("Eva Muster kommt 15 Min. später (10:15)", "Eva Muster kommt 15 Min. später (10:15)")]
-    public void Der_Toast_endet_ohne_Schlusspunkt(string text, string expected) => Assert.Equal(expected, CalendarViewModel.FitToast(text));
+    public void Der_Toast_endet_ohne_Schlusspunkt(string text, string expected) => Assert.Equal(expected, ToastState.Fit(text));
 
     [Fact]
     public void Ein_zu_langer_Toast_wird_auf_hoechstens_60_Zeichen_gekuerzt()
     {
-        var line = CalendarViewModel.FitToast(new string('a', 40) + " " + new string('b', 40) + ".");
+        var line = ToastState.Fit(new string('a', 40) + " " + new string('b', 40) + ".");
 
-        Assert.Equal(CalendarViewModel.ToastMaxLength, line.Length);
+        Assert.Equal(ToastState.MaxLength, line.Length);
         Assert.EndsWith("…", line, StringComparison.Ordinal);
     }
 
@@ -172,8 +172,8 @@ public sealed class CalendarNoticeTests
 
         await vm.ReportLateAsync(appointment, 15);
 
-        Assert.InRange(vm.Toast!.Length, 1, CalendarViewModel.ToastMaxLength);
-        Assert.False(vm.Toast.EndsWith('.'));
+        Assert.InRange(vm.Toast.Text!.Length, 1, ToastState.MaxLength);
+        Assert.False(vm.Toast.Text.EndsWith('.'));
     }
 
     // ---------- A2 (B3, B4): Zeitpunkt in Toasts kurz, ohne Kürzung ----------
@@ -206,11 +206,11 @@ public sealed class CalendarNoticeTests
         vm.Dialogs = new FakeDialogs().Answer(ConfirmChoice.Confirmed, "Versehen");
         vm.Mark(vm.Columns[0].Items[0]);
         vm.HandleKey(Avalonia.Input.Key.Delete, Avalonia.Input.KeyModifiers.None);
-        await Until(() => vm.Toast == "Termin storniert");
+        await Until(() => vm.Toast.Text == "Termin storniert");
 
         await vm.UndoMoveCommand.ExecuteAsync(null);
 
-        Assert.Equal("Wieder gebucht: Elif Demir, 10:00", vm.Toast);
+        Assert.Equal("Wieder gebucht: Elif Demir, 10:00", vm.Toast.Text);
     }
 
     [Fact]
@@ -223,9 +223,9 @@ public sealed class CalendarNoticeTests
         vm.BeginDrag(vm.Columns[0].Items[0], grabOffset: 0);
         vm.DragTo(10, vm.Columns[0].Items[0].Top + 270 * DayLayout.PixelsPerMinute);
         await vm.DropAsync();
-        Assert.StartsWith("Verschoben auf", vm.Toast, StringComparison.Ordinal);
-        Assert.EndsWith("14:35", vm.Toast, StringComparison.Ordinal);
-        Assert.Equal("Verschoben auf Do 14:35", vm.Toast);
+        Assert.StartsWith("Verschoben auf", vm.Toast.Text, StringComparison.Ordinal);
+        Assert.EndsWith("14:35", vm.Toast.Text, StringComparison.Ordinal);
+        Assert.Equal("Verschoben auf Do 14:35", vm.Toast.Text);
     }
 
     [Fact]
@@ -253,7 +253,7 @@ public sealed class CalendarNoticeTests
 
         await vm.ReportLateAsync(appointment, 15);
 
-        Assert.Null(vm.Toast);
+        Assert.Null(vm.Toast.Text);
         Assert.Equal(InfoBarSeverity.Error, vm.Problem!.Severity);
         Assert.Equal("Verspätung nicht gespeichert", vm.Problem.Title);
         Assert.Contains("Der Server antwortet nicht", vm.Problem.Message, StringComparison.Ordinal);
@@ -262,7 +262,7 @@ public sealed class CalendarNoticeTests
         // „Erneut versuchen“ führt dieselbe Aktion noch einmal aus und schließt die Meldung.
         api.On(route, appointment with { LateMinutes = 15 });
         vm.Problem!.Action!.Execute(null);
-        await Until(() => vm.Toast is not null);
+        await Until(() => vm.Toast.Text is not null);
         Assert.Null(vm.Problem);
     }
 

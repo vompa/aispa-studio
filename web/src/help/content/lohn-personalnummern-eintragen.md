@@ -15,7 +15,7 @@ Ohne Personalnummer wird für eine Person nichts an die Lohnverrechnung übergeb
 1. **Verwaltung** › **Team** öffnen und die Person in der Liste wählen.
 2. Den Bereich **Lohn und Akte** öffnen; dort steht der Abschnitt **Lohn**.
 3. Ins Feld **Personalnummer** klicken und die Nummer der Lohnverrechnung eintippen.
-4. Unten **Speichern** klicken oder Strg+S drücken. Die Leiste zeigt „Gespeichert.“. Ist die Nummer schon vergeben, bleibt die Karte im Bereich **Lohn und Akte** und die Meldung nennt den Grund.
+4. Unten **Speichern** klicken oder Strg+S drücken. Unten erscheint kurz „Gespeichert“. Ist die Nummer schon vergeben, bleibt die Karte im Bereich **Lohn und Akte** und die Meldung nennt den Grund.
 
 ## Hinweise {#hinweise}
 

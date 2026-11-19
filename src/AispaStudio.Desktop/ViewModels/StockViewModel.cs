@@ -57,8 +57,9 @@ public sealed partial class StockViewModel : ViewModelBase, INativeArea
     private StockTab _tabBeforeSetup = StockTab.Overview;
     private bool _usageRequested;
 
-    public StockViewModel(IWorkstationApi api, CurrentUser user, TimeProvider time, ILiveUpdates? live = null, ISettingsStore? settings = null)
+    public StockViewModel(IWorkstationApi api, CurrentUser user, TimeProvider time, ILiveUpdates? live = null, ISettingsStore? settings = null, ToastState? toast = null)
     {
+        Toast = toast ?? new ToastState(time);
         _settings = settings ?? new MemorySettingsStore();
         Api = api;
         Time = time;
@@ -91,6 +92,9 @@ public sealed partial class StockViewModel : ViewModelBase, INativeArea
     internal IWorkstationApi Api { get; }
 
     internal TimeProvider Time { get; }
+
+    /// <summary>Der Toast der Shell für Bestätigungen und das Speichern von Dateien („Ordner öffnen“).</summary>
+    public ToastState Toast { get; }
 
     /// <summary>Der Abschnitt „Verbrauch“ der Übersicht (Soll und Ist) zeigt Kennzahlen der Leitung (ViewFinance).</summary>
     public bool CanViewUsage { get; }

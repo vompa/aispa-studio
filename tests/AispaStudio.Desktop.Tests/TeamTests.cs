@@ -169,7 +169,7 @@ public sealed class TeamTests
         Assert.Equal("Lena", input.PreferredName);
         Assert.DoesNotContain(api.Calls, c => c.Route.StartsWith("PUT /api/staff/", StringComparison.Ordinal));
         Assert.False(team.HasUnsavedChanges);
-        Assert.Equal("Gespeichert.", team.StatusText);
+        Assert.Equal("Gespeichert", team.Toast.Text);
         Assert.Contains(team.Entries, e => e.Title == "Lena Maria Huber");
     }
 
@@ -512,7 +512,7 @@ public sealed class TeamTests
         Assert.Equal("Nina Koller", JsonSerializer.Deserialize<EmployeeInput>(post.Body!, ApiClient.Json)!.DisplayName);
         Assert.Equal("Nina Koller", team.Card?.Title);
         Assert.Equal("Nina Koller", team.SelectedEntry?.Title);
-        Assert.Equal("Gespeichert.", team.StatusText);
+        Assert.Equal("Gespeichert", team.Toast.Text);
     }
 
     [Fact]
@@ -695,7 +695,7 @@ public sealed class TeamTests
         Assert.Equal("Marco Berger", team.Card?.Title);
         Assert.Equal("Marco Berger", team.SelectedEntry?.Title);
         Assert.Equal("u-rita", team.Card?.Entry.UserId);
-        Assert.Equal("Gespeichert. Gilt ab sofort.", team.StatusText);
+        Assert.Equal("Gespeichert", team.Toast.Text);
     }
 
     [Fact]

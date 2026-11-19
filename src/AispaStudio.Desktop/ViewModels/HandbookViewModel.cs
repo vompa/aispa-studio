@@ -55,9 +55,10 @@ public sealed partial class HandbookViewModel : ViewModelBase, INativeArea
     private bool _switching;
     private bool _reverting;
 
-    public HandbookViewModel(IWorkstationApi api)
+    public HandbookViewModel(IWorkstationApi api, ToastState? toast = null)
     {
         _api = api;
+        Toast = toast ?? new ToastState(TimeProvider.System);
         foreach (var day in Days)
         {
             day.PropertyChanged += (_, _) => Touch();
@@ -131,9 +132,8 @@ public sealed partial class HandbookViewModel : ViewModelBase, INativeArea
     [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
     public partial bool IsSaving { get; private set; }
 
-    /// <summary>„Gespeichert.“ in der Leiste, bis wieder etwas geändert wird.</summary>
-    [ObservableProperty]
-    public partial string? StatusText { get; private set; }
+    /// <summary>Die Bestätigung nach dem Speichern: der eine Toast der Shell.</summary>
+    public ToastState Toast { get; }
 
     /// <summary>Rückmeldung „Gelöscht.“ über dem Formular.</summary>
     [ObservableProperty]
@@ -194,7 +194,7 @@ public sealed partial class HandbookViewModel : ViewModelBase, INativeArea
 
         Message = null;
         await ReloadAsync(saved.Id).ConfigureAwait(true);
-        StatusText = "Gespeichert.";
+        Toast.Show("Gespeichert");
         return true;
     }
 
@@ -382,7 +382,6 @@ public sealed partial class HandbookViewModel : ViewModelBase, INativeArea
         _savedSignature = Signature();
         TitleError = null;
         TextError = null;
-        StatusText = null;
         foreach (var name in new[] { nameof(IsCreating), nameof(HeadingText), nameof(CanDelete), nameof(HasUnsavedChanges) })
         {
             OnPropertyChanged(name);
@@ -391,7 +390,7 @@ public sealed partial class HandbookViewModel : ViewModelBase, INativeArea
         DeleteCommand.NotifyCanExecuteChanged();
     }
 
-    /// <summary>Eine Eingabe hat sich geändert: „Gespeichert.“ gilt nicht mehr, und „Verwerfen“ wird bedienbar.</summary>
+    /// <summary>Eine Eingabe hat sich geändert: „Verwerfen“ wird bedienbar.</summary>
     private void Touch()
     {
         if (_applying)
@@ -399,7 +398,6 @@ public sealed partial class HandbookViewModel : ViewModelBase, INativeArea
             return;
         }
 
-        StatusText = null;
         OnPropertyChanged(nameof(HasUnsavedChanges));
     }
 

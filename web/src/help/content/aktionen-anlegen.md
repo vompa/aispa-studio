@@ -19,7 +19,7 @@ Eine Aktion legt einen Rabatt fest: befristet, für kurzfristig gebuchte Termine
 5. Bei **Zeitraum** **Von** und **Bis** wählen.
 6. Bei **Gilt für** wählen: alle Behandlungen, ausgewählte Behandlungen oder (nur befristet) Pakete ausgewählter Behandlungen. Bei einer Auswahl die Behandlungen unter **Behandlung hinzufügen** eintippen und aus der Liste wählen.
 7. Bei **Standorte** **Alle Standorte** oder **Ausgewählte Standorte** wählen.
-8. Auf **Speichern** klicken. Es erscheint „Gespeichert“; die Aktion steht unter **Laufend**, **Geplant** oder **Pausiert**, je nach Zeitraum.
+8. Auf **Speichern** klicken. Unten erscheint kurz „Gespeichert“; die Aktion steht unter **Laufend**, **Geplant** oder **Pausiert**, je nach Zeitraum.
 
 Fehlt etwas oder passt etwas nicht, steht der Hinweis am Feld, und der Cursor springt ins erste Feld mit einem Fehler. Mehr zu jedem Feld: [Aktionen](hilfe:aktionen).
 

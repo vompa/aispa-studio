@@ -30,7 +30,7 @@ Angeboten wird die Behandlung an allen Standorten, an denen ein geeigneter Raum 
 
 1. Links die Behandlung anklicken. Die Liste ist nach Kategorie gruppiert.
 2. Felder ändern.
-3. Auf **Speichern** klicken. Es erscheint „Gespeichert. Gilt für neue Buchungen.“
+3. Auf **Speichern** klicken. Unten erscheint kurz „Gespeichert“. Die Änderung gilt für neue Buchungen.
 
 Gebuchte Termine behalten Zeiten und Preis.
 

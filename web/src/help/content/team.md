@@ -19,7 +19,7 @@ Gespeichert wird mit „Speichern“. Änderungen gelten für neue Buchungen; ge
 
 In der Windows-App gilt ein **Speichern** unten für die ganze Karte, aus allen Bereichen:
 
-- **Strg+S** speichert wie der Knopf. Es erscheint „Gespeichert.“
+- **Strg+S** speichert wie der Knopf. Unten erscheint kurz „Gespeichert“.
 - **Verwerfen** holt den gespeicherten Stand zurück.
 - Wer mit ungespeicherten Änderungen eine andere Person wählt oder die Seite verlässt, wird gefragt: „Änderungen speichern?“ mit „Speichern“, „Verwerfen“ und „Abbrechen“.
 - Eine neue Person legt **Person hinzufügen** über der Liste an; wer sich anmelden soll, bekommt über **Person einladen** darunter einen Zugang (siehe [Person einladen](hilfe:zugaenge-person-einladen)). Eine Person braucht keinen Zugang, um eingeplant zu werden.

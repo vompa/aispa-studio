@@ -138,7 +138,7 @@ public sealed partial class ViewTests
         await running;
         await Pump();
         Assert.False(main.DialogHost.HasDialog);
-        Assert.Null(shell.Customers.Toast);
+        Assert.Null(shell.Customers.Toast.Text);
         return shell;
     }, ImportApi());
 

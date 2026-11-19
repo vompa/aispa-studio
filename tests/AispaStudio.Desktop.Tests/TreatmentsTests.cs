@@ -128,7 +128,7 @@ public sealed class TreatmentsTests
         Assert.Equal([HotStone.Id], sent.RequiredQualificationIds);
         Assert.Single(api.Calls, c => c.Route.StartsWith("PUT ", StringComparison.Ordinal));
         Assert.False(treatments.HasUnsavedChanges);
-        Assert.Equal("Gespeichert. Gilt für neue Buchungen.", treatments.StatusText);
+        Assert.Equal("Gespeichert", treatments.Toast.Text);
         Assert.Same(editor, treatments.Editor);
     }
 

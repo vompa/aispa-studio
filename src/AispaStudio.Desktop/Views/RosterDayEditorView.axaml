@@ -64,6 +64,8 @@
       <StackPanel Spacing="4">
         <CheckBox x:Name="ImmediateBox" Content="Sofort gültig, ohne Veröffentlichen" IsChecked="{Binding IsImmediate}" IsEnabled="{Binding CanChooseImmediate}" />
         <TextBlock x:Name="SickHint" Text="Krankenstand gilt immer sofort." Classes="muted small" IsVisible="{Binding ShowsSickHint}" />
+        <TextBlock x:Name="DraftHint" Text="Ohne Haken ist der Tag ein Entwurf und gilt, sobald der Dienstplan veröffentlicht ist." Classes="muted small" TextWrapping="Wrap"
+                   IsVisible="{Binding !IsImmediate}" />
       </StackPanel>
 
       <ui:InfoBar Severity="Error" Title="Nicht gespeichert" Message="{Binding Error}" IsVisible="{Binding HasError}" CloseCommand="{Binding CloseErrorCommand}" />
@@ -75,9 +77,6 @@
         <Button x:Name="ResetButton" Content="Wie Wochenarbeitszeit" Command="{Binding ResetCommand}" IsVisible="{Binding CanReset}"
                 ToolTip.Tip="Für diesen Tag gilt wieder die regelmäßige Wochenarbeitszeit" />
       </StackPanel>
-      <!-- Die Meldung nach dem Speichern bricht im Popover um (Ä370): in der SaveBar stünde sie in einer Zeile und wäre breiter als der Tag; angesagt wird sie wie dort -->
-      <TextBlock x:Name="DayStatus" Text="{Binding StatusText}" Classes="muted" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite"
-                 IsVisible="{Binding StatusText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
 
       <StackPanel Spacing="8" IsVisible="{Binding ShowsOpenWeekPlan}">
         <ui:InfoBar Severity="Info" Message="Der Entwurf gilt erst, wenn der Dienstplan veröffentlicht ist. Das geht im Wochenplan." />

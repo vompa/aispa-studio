@@ -171,7 +171,7 @@ public sealed class TimesheetTests
         Assert.Equal(new DateTimeOffset(2027, 3, 4, 1, 0, 0, TimeSpan.Zero), input.End);
         Assert.Equal("Nachtdienst", input.Reason);
         Assert.False(day.IsEditing);
-        Assert.Equal(TimeDayEditorViewModel.Saved, day.StatusText);
+        Assert.Equal(TimeDayEditorViewModel.Saved, day.Toast.Text);
         Assert.Equal("22:00–02:00", Assert.Single(day.Records).SpanText);
         Assert.False(times.HasUnsavedChanges);
         Assert.Equal(2, api.Calls.Count(c => c.Route == $"GET /api/locations/{RosterSample.Vienna.Id}/timesheet?from=2027-03-01"));
@@ -299,7 +299,7 @@ public sealed class TimesheetTests
         Assert.Equal("doppelt gestempelt", JsonSerializer.Deserialize<TimeRecordDeletion>(call.Body!, ApiClient.Json)!.Reason);
         Assert.True(day.HasNoRecords);
         Assert.False(day.IsEditing);
-        Assert.Equal(TimeDayEditorViewModel.Removed, day.StatusText);
+        Assert.Equal(TimeDayEditorViewModel.Removed, day.Toast.Text);
         Assert.Equal("8 / –", times.Rows[0].Cells[1].HoursText);
     }
 

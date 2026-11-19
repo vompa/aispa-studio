@@ -91,7 +91,7 @@ public sealed class GroupAndAreaTests
         var items = vm.Columns.SelectMany(c => c.Items).ToList();
         Assert.Equal(2, items.Count);
         Assert.All(items, i => Assert.Contains("Paar mit ", i.MetaText, StringComparison.Ordinal));
-        Assert.Equal("Gemeinsam gebucht: 2 Termine ab 15:00", vm.Toast);
+        Assert.Equal("Gemeinsam gebucht: 2 Termine ab 15:00", vm.Toast.Text);
     }
 
     [Fact]
@@ -163,7 +163,7 @@ public sealed class GroupAndAreaTests
         var pending = Assert.Single(cache.Pending);
         var request = JsonSerializer.Deserialize<GroupBookingRequest>(pending.Body, ApiClient.Json)!;
         Assert.Null(vm.GroupBooking);
-        Assert.Equal("Ohne Verbindung vorgemerkt, Abgleich folgt", vm.Toast);
+        Assert.Equal("Ohne Verbindung vorgemerkt, Abgleich folgt", vm.Toast.Text);
         Assert.Equal("api/appointment-groups", pending.Path);
         Assert.Equal(TestData.At(14, 30), request.Start);
         Assert.Equal([Eva.Id, Paul.Id], request.Items.Select(i => i.CustomerId));

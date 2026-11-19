@@ -168,9 +168,26 @@
       <ContentControl Grid.Row="3" x:Name="PageHost" Content="{Binding SelectedPage.Page, FallbackValue={x:Null}}" AutomationProperties.Name="{Binding SelectedPage.Title, FallbackValue=Seite}" />
       <!-- Ein Sprung in die Verwaltung ging nicht, und die Person hat dort keinen Bereich (Slice 103): Warnung unten mittig, bleibt bis „Schließen“ (meldungen.md M1) -->
       <!-- Ohne Meldung auch unsichtbar: der Schließen-Knopf soll kein Tab-Halt sein, solange nichts steht -->
-      <Border Grid.Row="3" x:Name="ShellToast" Classes="toast" Classes.shown="{Binding Toast, Converter={x:Static ObjectConverters.IsNotNull}}"
+      <StackPanel Grid.Row="3" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="16,0,16,20" Spacing="8">
+      <!-- Der eine Toast der App (design.md 5.10, meldungen.md M1): Bestätigung einer eigenen Aktion, unten mittig im Seitenbereich, eine Zeile,
+           5 Sekunden (mit Aktion 8), der Mauszeiger darüber hält ihn an. Die Seiten zeigen ihn über ToastState; er liegt über der Warnung. -->
+      <Border x:Name="ConfirmToast" Classes="toast" Classes.shown="{Binding Confirmation.IsShown}" IsVisible="{Binding Confirmation.IsShown}"
+              HorizontalAlignment="Center" CornerRadius="8" Padding="16,10,6,10" BoxShadow="{DynamicResource RaisedShadow}" MaxWidth="760"
+              PointerEntered="OnToastEntered" PointerExited="OnToastExited" AutomationProperties.LiveSetting="Polite">
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <TextBlock x:Name="ConfirmToastText" Classes="msg" Text="{Binding Confirmation.Text}" Foreground="{DynamicResource ToastFgBrush}" VerticalAlignment="Center"
+                     MaxWidth="540" AutomationProperties.Name="Meldung" ToolTip.Tip="{Binding Confirmation.FullText}" />
+          <Button x:Name="ConfirmToastAction" Classes="ghost" Content="{Binding Confirmation.ActionText}" Command="{Binding Confirmation.Action}"
+                  IsVisible="{Binding Confirmation.HasAction}" Foreground="{DynamicResource ToastFgBrush}" />
+          <Button Classes="ghost icon" Command="{Binding Confirmation.CloseCommand}" Foreground="{DynamicResource ToastFgBrush}" ToolTip.Tip="Schließen"
+                  AutomationProperties.Name="Meldung schließen">
+            <ui:Icon Data="{x:Static ui:Icons.Close}" Width="16" Height="16" />
+          </Button>
+        </StackPanel>
+      </Border>
+      <Border x:Name="ShellToast" Classes="toast" Classes.shown="{Binding Toast, Converter={x:Static ObjectConverters.IsNotNull}}"
               IsVisible="{Binding Toast, Converter={x:Static ObjectConverters.IsNotNull}}"
-              HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="16,0,16,20" CornerRadius="8" Padding="16,10,6,10"
+              HorizontalAlignment="Center" CornerRadius="8" Padding="16,10,6,10"
               BoxShadow="{DynamicResource RaisedShadow}" MaxWidth="760" AutomationProperties.LiveSetting="Assertive">
         <StackPanel Orientation="Horizontal" Spacing="8">
           <ui:Icon Data="{x:Static ui:Icons.Warning}" Width="16" Height="16" Foreground="{DynamicResource ToastFgBrush}" VerticalAlignment="Center" />
@@ -182,6 +199,7 @@
           </Button>
         </StackPanel>
       </Border>
+      </StackPanel>
       <!-- KI und Hilfe: ein ruhiger Knopf, der sich nie von selbst meldet -->
       <Button Grid.Row="3" x:Name="CompanionFab" Classes="companionfab" Command="{Binding Companion.ToggleCommand}"
               IsVisible="{Binding !Companion.IsOpen}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,20,20"

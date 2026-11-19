@@ -172,9 +172,8 @@ public sealed partial class PayrollViewModel : ViewModelBase, IEditableArea, ISa
 
     public bool HasSettingsError => SettingsError is not null;
 
-    /// <summary>„Einstellungen gespeichert.“, bis wieder etwas geändert wird.</summary>
-    [ObservableProperty]
-    public partial string? StatusText { get; private set; }
+    /// <summary>Der Toast der Shell: „Einstellungen gespeichert“.</summary>
+    public ToastState Toast => _context.Toast;
 
     public bool HasUnsavedChanges => IsLoaded && IsEditable && State() != _savedState;
 
@@ -190,7 +189,6 @@ public sealed partial class PayrollViewModel : ViewModelBase, IEditableArea, ISa
         base.OnPropertyChanged(e);
         if (!_applying && e.PropertyName is { } name && SettingFields.Contains(name))
         {
-            StatusText = null;
             SettingsError = null;
             OnPropertyChanged(nameof(HasUnsavedChanges));
         }
@@ -266,7 +264,6 @@ public sealed partial class PayrollViewModel : ViewModelBase, IEditableArea, ISa
         }
 
         NightStartError = NightEndError = SettingsError = null;
-        StatusText = null;
         OnPropertyChanged(nameof(HasUnsavedChanges));
     }
 
@@ -297,7 +294,7 @@ public sealed partial class PayrollViewModel : ViewModelBase, IEditableArea, ISa
         }
 
         Apply(saved);
-        StatusText = "Einstellungen gespeichert.";
+        Toast.Show("Einstellungen gespeichert");
         OnPropertyChanged(nameof(HasUnsavedChanges));
         return true;
     }

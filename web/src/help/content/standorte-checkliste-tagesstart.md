@@ -15,7 +15,7 @@ Für jeden Raum oder Bereich lässt sich eine Checkliste festlegen, die das Team
 1. In der Windows-App **Verwaltung** › **Betrieb** › **Standorte & Räume** öffnen, den Standort wählen und zum Abschnitt **Tagesstart-Kontrolle** gehen.
 2. Bei **Raum** den Raum oder Bereich wählen.
 3. Bei **Punkte** je Zeile einen Punkt eintragen.
-4. Auf **Checkliste speichern** klicken. Es erscheint „Checkliste gespeichert.“ Der Knopf gilt nur für diese Liste; er ist unabhängig vom Speichern des Standorts weiter oben.
+4. Auf **Checkliste speichern** klicken. Unten erscheint kurz „Checkliste gespeichert“. Der Knopf gilt nur für diese Liste; er ist unabhängig vom Speichern des Standorts weiter oben.
 
 ## Gut zu wissen {#hinweise}
 

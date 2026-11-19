@@ -54,7 +54,7 @@ public sealed class RemindersTests
         Assert.Equal(Day with { FirstHoursBefore = 48 }, JsonSerializer.Deserialize<ReminderSettingsDto>(put.Body!, ApiClient.Json));
         Assert.DoesNotContain(api.Calls, c => c.Route == "PUT /api/retention/settings");
         Assert.False(reminders.HasUnsavedChanges);
-        Assert.Equal("Gespeichert.", reminders.StatusText);
+        Assert.Equal("Gespeichert", reminders.Toast.Text);
     }
 
     [Fact]

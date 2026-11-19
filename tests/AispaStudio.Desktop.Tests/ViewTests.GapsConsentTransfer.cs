@@ -178,7 +178,7 @@ public sealed partial class ViewTests
             Assert.Contains(SpaSample.Lena.Id.ToString(), call.Body, StringComparison.Ordinal);
             Assert.Contains("2026-10-19T08:10:00", call.Body, StringComparison.Ordinal);
             Assert.Contains("Keine Lücke, die sich mit wenigen Minuten Verschieben schließen lässt.", PanelTexts(window, "GapsList"));
-            Assert.Equal("Brigitte Müller auf 10:10 verschoben", calendar.Toast);
+            Assert.Equal("Brigitte Müller auf 10:10 verschoben", calendar.Toast.Text);
             return calendar;
         }, stub);
     }
@@ -221,7 +221,7 @@ public sealed partial class ViewTests
             Assert.Contains(ChainFollowerId.ToString(), call.Body, StringComparison.Ordinal);
             Assert.Contains("2026-10-19T09:40:00", call.Body, StringComparison.Ordinal);
             Assert.DoesNotContain(stub.Calls, c => c.Route.EndsWith("/move", StringComparison.Ordinal));
-            Assert.Equal("2 Termine bei Lena Huber verschoben", calendar.Toast);
+            Assert.Equal("2 Termine bei Lena Huber verschoben", calendar.Toast.Text);
             return calendar;
         }, stub);
     }
@@ -266,7 +266,7 @@ public sealed partial class ViewTests
             Assert.Contains("\"language\":\"de\"", call.Body, StringComparison.Ordinal);
             var texts = PanelTexts(window, "ConsentCard");
             Assert.Contains("Angefragt am 19.10.2026, wartet auf Bestätigung durch den Gast (brigitte@example.test)", texts);
-            Assert.Equal("Mail zum Bestätigen ist unterwegs", calendar.Toast);
+            Assert.Equal("Mail zum Bestätigen ist unterwegs", calendar.Toast.Text);
             Assert.True(IsShown(window, "WithdrawConsentButton"));
             return calendar;
         }, stub);
@@ -302,7 +302,7 @@ public sealed partial class ViewTests
 
             Assert.Contains(stub.Calls, c => c.Route == $"DELETE {ConsentRoute}");
             Assert.Contains("Widerrufen am 19.10.2026", PanelTexts(window, "ConsentCard"));
-            Assert.Equal("Einwilligung widerrufen", calendar.Toast);
+            Assert.Equal("Einwilligung widerrufen", calendar.Toast.Text);
             Assert.False(IsShown(window, "WithdrawConsentButton"));
             Assert.True(IsShown(window, "RequestConsentButton"));
             return calendar;

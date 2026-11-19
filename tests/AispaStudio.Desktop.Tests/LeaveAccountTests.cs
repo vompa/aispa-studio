@@ -53,7 +53,7 @@ public sealed class LeaveAccountTests
         Assert.Equal("26,5 Tage", leave.RemainingText);
         Assert.False(leave.IsOverdrawn);
         Assert.False(leave.HasUnsavedChanges);
-        Assert.Equal("Gespeichert.", leave.StatusText);
+        Assert.Equal("Gespeichert", leave.Toast.Text);
     }
 
     [Fact]
