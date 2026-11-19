@@ -37,10 +37,10 @@
           <TextBlock Text="{Binding ScheduleText}" Classes="muted small" TextWrapping="Wrap"
                      IsVisible="{Binding ScheduleText, Converter={x:Static ObjectConverters.IsNotNull}}" />
           <ui:InfoBar Severity="Error" Message="{Binding ErrorText}" IsVisible="{Binding ErrorText, Converter={x:Static ObjectConverters.IsNotNull}}" />
-          <StackPanel Orientation="Horizontal" Spacing="10">
+          <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
             <Button Content="Jetzt sichern" Command="{Binding BackupNowCommand}" ui:DisabledHint.Text="{Binding BackupNowHint}" />
-            <TextBlock Text="{Binding Message}" VerticalAlignment="Center" Classes="muted" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
-          </StackPanel>
+            <TextBlock Grid.Column="1" Text="{Binding Message}" VerticalAlignment="Center" Classes="muted" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
+          </Grid>
         </StackPanel>
       </Border>
 
@@ -56,7 +56,7 @@
             <TextBox Text="{Binding FolderInput}" AutomationProperties.Name="Sicherungsordner" PlaceholderText="z. B. D:\Sicherung oder \\server\freigabe\aispa" />
             <Button Grid.Column="1" Classes="primary" Content="Speichern und sichern" Command="{Binding SaveFolderCommand}" ui:DisabledHint.Text="Verfügbar, sobald ein Ordner eingetragen ist." />
           </Grid>
-          <Button Classes="ghost" Content="Neuen Wiederherstellungsschlüssel erzeugen" Command="{Binding NewRecoveryKeyCommand}" HorizontalAlignment="Left"
+          <Button Content="Neuen Wiederherstellungsschlüssel erzeugen" Command="{Binding NewRecoveryKeyCommand}" HorizontalAlignment="Left"
                   ToolTip.Tip="Falls der alte verloren ist; ältere Sicherungen brauchen weiter den alten Schlüssel" />
         </StackPanel>
       </Border>
