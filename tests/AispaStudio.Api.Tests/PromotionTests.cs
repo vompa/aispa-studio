@@ -329,6 +329,51 @@ public sealed class PromotionTests(ApiFixture fixture)
     }
 
     [Fact]
+    public async Task Der_Managementbericht_zeigt_die_Wirkung_der_Aktion_ohne_Storno_und_ohne_ueberschriebenen_Rabatt()
+    {
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        var register = await CreateRegisterAsync(spa);
+        var promotion = await CreateAsync(spa, Input("Herbst"));
+        var max = await spa.PostAsync<CustomerDto>("/api/customers", new CustomerInput("Max", $"Neu{Guid.NewGuid():N}", "max@example.at", "+43 664 111", null, null), Ct);
+        // Eva war schon einmal da, Max kommt zum ersten Mal.
+        await spa.BookInThePastAsync(TestSpa.At(10, date: Today.AddDays(-30)), Ct);
+
+        async Task<BillDto> PromotedAsync(int hour, Guid? customer)
+        {
+            var appointment = await spa.BookOkAsync(TestSpa.At(hour), Ct, customer: customer);
+            await spa.SetStatusAsync(appointment.Id, AppointmentStatus.CheckedIn, Ct);
+            var bill = await spa.PostAsync<BillDto>("/api/pos/bills", new BillInput(register.Id, customer ?? spa.Customer.Id, [appointment.Id]), Ct);
+            return await TestSpa.ReadAsync<BillDto>(await ApplyAsync(spa.Client, bill.Id, promotion.Id), Ct);
+        }
+
+        Task<ReceiptDto> PayAsync(BillDto bill) =>
+            spa.PostAsync<ReceiptDto>($"/api/pos/bills/{bill.Id}/checkout", new CheckoutRequest(null, [new PaymentInput(PaymentMethod.Cash, bill.Open, null, null)]), Ct);
+
+        await PayAsync(await PromotedAsync(10, null));
+        await PayAsync(await PromotedAsync(12, max.Id));
+        // Rabatt von Hand überschrieben: zählt nicht mehr zur Aktion.
+        var manual = await PromotedAsync(14, null);
+        manual = await spa.PutAsync<BillDto>($"/api/pos/bills/{manual.Id}/lines/{manual.Lines[0].Id}/discount", new LineDiscountInput(0), Ct);
+        await PayAsync(manual);
+        // Storniert: hebt sich auf.
+        var voided = await PayAsync(await PromotedAsync(16, max.Id));
+        await spa.PostAsync<ReceiptDto>($"/api/pos/receipts/{voided.Id}/void", new VoidRequest("Falsch kassiert"), Ct);
+
+        var report = await spa.GetAsync<ManagementReportDto>(
+            $"/api/reports/locations/{spa.Location.Id}/management?from={Today.AddDays(-6):yyyy-MM-dd}&until={Today:yyyy-MM-dd}", Ct);
+
+        var effect = Assert.Single(report.Promotions!);
+        Assert.Equal((promotion.Id, "Herbst", 2, 2, 1, (decimal?)15.80m, (decimal?)142.20m),
+            (effect.PromotionId, effect.Name, effect.Positions, effect.Guests, effect.NewGuests, effect.Discount, effect.Revenue));
+        Assert.Equal("Herbst: 2 Positionen, 2 Gäste, davon 1 neu, Rabatt 15,8 €, Umsatz 142,2 €", Reporting.ManagementReports.PromotionText(effect));
+        Assert.Contains("Aktionen an der Kassa:", Reporting.ManagementSummaries.FactsText(report), StringComparison.Ordinal);
+
+        var hidden = Assert.Single(Reporting.ManagementReports.WithoutAmounts(report).Promotions!);
+        Assert.Equal((2, (decimal?)null, (decimal?)null), (hidden.Positions, hidden.Discount, hidden.Revenue));
+        Assert.Equal("Herbst: 2 Positionen, 2 Gäste, davon 1 neu", Reporting.ManagementReports.PromotionText(hidden));
+    }
+
+    [Fact]
     public async Task Betrag_je_Position_nennt_auf_dem_Beleg_den_Prozentsatz_und_geht_nicht_ueber_den_Preis()
     {
         var spa = await TestSpa.CreateAsync(fixture, Ct);

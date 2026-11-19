@@ -7471,6 +7471,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/reports/mail-subscription": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Ob die angemeldete Person Wochen- und Monatsbericht per Mail bekommt (Inhaber, Manager, Standortleitung). */
+        get: operations["GetReportMailSubscription"];
+        /** Wochen- und Monatsbericht per Mail für die angemeldete Person ein- oder abbestellen. */
+        put: operations["SetReportMailSubscription"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/reports/locations/{locationId}/stock-usage": {
         parameters: {
             query?: never;
@@ -11822,6 +11840,11 @@ export interface components {
              * @default 0
              */
             cancellations: number;
+            aiSummary?: null | string;
+            /** @default false */
+            aiSummaryPending: boolean;
+            aiNotice?: null | string;
+            promotions?: null | components["schemas"]["PromotionKpi"][];
         };
         MarketingConsentDecision: {
             state: components["schemas"]["MarketingConsentState"];
@@ -12555,6 +12578,21 @@ export interface components {
         };
         /** @enum {unknown} */
         PromotionKind: "Limited" | "LastMinute" | "OffPeak" | null;
+        PromotionKpi: {
+            /** Format: uuid */
+            promotionId: string;
+            name: string;
+            /** Format: int32 */
+            positions: number;
+            /** Format: int32 */
+            guests: number;
+            /** Format: int32 */
+            newGuests: number;
+            /** Format: double */
+            discount: null | number;
+            /** Format: double */
+            revenue: null | number;
+        };
         PromotionOfferDto: {
             /** Format: uuid */
             promotionId: string;
@@ -12886,6 +12924,13 @@ export interface components {
         ReportLateRequest: {
             /** Format: int32 */
             minutes: number;
+        };
+        ReportMailSubscription: {
+            enabled: boolean;
+            available: boolean;
+        };
+        ReportMailSubscriptionInput: {
+            enabled: boolean;
         };
         ReproposeInput: {
             hint?: null | string;
@@ -35328,6 +35373,77 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    GetReportMailSubscription: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportMailSubscription"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    SetReportMailSubscription: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReportMailSubscriptionInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportMailSubscription"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
         };
     };

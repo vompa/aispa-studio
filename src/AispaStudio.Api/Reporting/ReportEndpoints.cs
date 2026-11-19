@@ -334,7 +334,8 @@ internal static class ReportEndpoints
             .RequirePermission(AccessRight.Book);
 
         group.MapGet("/locations/{locationId:guid}/management", async Task<Results<Ok<ManagementReportDto>, NotFound, ValidationProblem>> (
-                Guid locationId, DateOnly from, DateOnly until, ManagementReports reports, AccessService accessService, CancellationToken ct) =>
+                Guid locationId, DateOnly from, DateOnly until, ManagementReports reports, ManagementSummaries summaries, AccessService accessService,
+                CancellationToken ct) =>
             {
                 if (from > until || until.DayNumber - from.DayNumber > 366)
                 {
@@ -342,12 +343,46 @@ internal static class ReportEndpoints
                 }
 
                 var amounts = (await accessService.CurrentAsync(ct))!.Has(AccessRight.ViewAmountReports);
-                return await reports.ManagementAsync(locationId, from, until, amounts, ct) is { } report ? TypedResults.Ok(report) : TypedResults.NotFound();
+                return await reports.ManagementAsync(locationId, from, until, amounts, ct) is { } report
+                    ? TypedResults.Ok(await summaries.AttachAsync(report, ct))
+                    : TypedResults.NotFound();
             })
             .WithName("GetManagementReport")
             .WithSummary("Kennzahlen eines Zeitraums mit Vergleich zum gleich langen Zeitraum davor; ohne das Recht „Berichte mit Beträgen“ ohne Geldbeträge. Auch in der Mitarbeiter-App für „Heute im Spa“, mit den Rechten der Rolle.")
             .RequirePermission(AccessRight.ViewFinance)
             .AllowChannel(AccessChannel.StaffApp);
+
+        group.MapGet("/mail-subscription", async Task<Ok<ReportMailSubscription>> (AccessService accessService, AispaDbContext db, CancellationToken ct) =>
+            {
+                var access = (await accessService.CurrentAsync(ct))!;
+                var row = await db.StaffAccess.AsNoTracking().FirstOrDefaultAsync(a => a.UserId == access.UserId, ct);
+                var available = ReportMailSetup.Receives(access.Role);
+                return TypedResults.Ok(new ReportMailSubscription(available && row?.ReportMails != false, available));
+            })
+            .WithName("GetReportMailSubscription")
+            .WithSummary("Ob die angemeldete Person Wochen- und Monatsbericht per Mail bekommt (Inhaber, Manager, Standortleitung).")
+            .RequirePermission(AccessRight.ViewFinance);
+
+        group.MapPut("/mail-subscription", async Task<Results<Ok<ReportMailSubscription>, ValidationProblem>> (
+                ReportMailSubscriptionInput input, AccessService accessService, AispaDbContext db, TimeProvider time, CancellationToken ct) =>
+            {
+                var access = (await accessService.CurrentAsync(ct))!;
+                if (!ReportMailSetup.Receives(access.Role) || await db.StaffAccess.FirstOrDefaultAsync(a => a.UserId == access.UserId, ct) is not { } row)
+                {
+                    return TypedResults.ValidationProblem(new Dictionary<string, string[]>
+                    {
+                        ["enabled"] = ["Wochen- und Monatsbericht per Mail gibt es für Inhaber, Manager und Standortleitung."],
+                    });
+                }
+
+                row.ReportMails = input.Enabled;
+                row.UpdatedAt = time.GetUtcNow();
+                await db.SaveChangesAsync(ct);
+                return TypedResults.Ok(new ReportMailSubscription(row.ReportMails, true));
+            })
+            .WithName("SetReportMailSubscription")
+            .WithSummary("Wochen- und Monatsbericht per Mail für die angemeldete Person ein- oder abbestellen.")
+            .RequirePermission(AccessRight.ViewFinance);
 
         group.MapGet("/locations/{locationId:guid}/stock-usage", async Task<Results<Ok<StockUsageReportDto>, NotFound, ValidationProblem>> (
                 Guid locationId, DateOnly from, DateOnly until, StockUsageReport report, AccessService accessService, CancellationToken ct) =>

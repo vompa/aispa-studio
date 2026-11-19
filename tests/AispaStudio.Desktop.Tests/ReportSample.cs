@@ -57,6 +57,12 @@ internal static class ReportSample
         [new TreatmentKpi(TreatmentId, "Klassische Massage", 12, hidden ? null : 900m, hidden ? null : -2.5m)],
         ["Auslastung unter Plan"], hidden);
 
+    public static IReadOnlyList<PromotionKpi> Promotions(bool hidden = false) =>
+    [
+        new(Guid.Parse("7c0f2d4e-3a51-4c8e-9a0b-1d2e3f405162"), "Herbst", 14, 12, 4, hidden ? null : 110.60m, hidden ? null : 995.40m),
+        new(Guid.Parse("7c0f2d4e-3a51-4c8e-9a0b-1d2e3f405163"), "Last Minute", 3, 3, 1, hidden ? null : 23.70m, hidden ? null : 213.30m),
+    ];
+
     public static BenchmarkReport Benchmark() => new(LocationId, "Wien", new DateOnly(2026, 7, 21), Today, "EUR", "Österreich, ähnliche Größe", 24, true,
         [
             new BenchmarkMetric("utilization", "Auslastung", "%", 61.5m, 50m, 60m, 70m, true, BenchmarkRating.AboveMedian, null),
@@ -159,11 +165,14 @@ internal static class ReportSample
         .On("GET /api/business-contacts?includeArchived=true", new List<BusinessContactDto> { Contact(), Contact(archived: true) with { Id = Guid.NewGuid(), Designation = "Alt" } });
 
     /// <summary>Alle Antworten der Berichte für die Inhaberin; einzelne Fälle ersetzen Routen danach mit <c>On</c>.</summary>
+    public const string MailSubscriptionRoute = "GET /api/reports/mail-subscription";
+
     public static StubApi AddReports(StubApi api) => api
         .On("GET /api/locations", new List<LocationDto> { Vienna, Salzburg })
         .On("GET /api/employees", new List<EmployeeDto> { new(PersonId, "Lisa", "#2f6f5e", [], []) })
         .On(ManagementRoute(new DateOnly(2026, 10, 1), Today), Management())
         .On(BenchmarkRoute(30), Benchmark())
+        .On(MailSubscriptionRoute, new ReportMailSubscription(Enabled: true, Available: true))
         .On(BriefingRoute, Briefing())
         .On(ServingsRoute, Servings())
         .On(DayPlanRoute, DayPlan())

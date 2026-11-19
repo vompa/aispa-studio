@@ -78,6 +78,7 @@ internal static class MailIntakeSetup
             services.AddSingleton<IAssistantClassifier, ModelAssistantClassifier>();
             services.AddSingleton<IAnswerPhraser>(sp => new ModelAnswerPhraser(sp.GetRequiredService<ClaudeJson>(), sp.GetRequiredService<ILogger<ModelAnswerPhraser>>()));
             services.AddSingleton<IBriefingSummarizer, ClaudeBriefingSummarizer>();
+            services.AddSingleton<IManagementSummarizer, ClaudeManagementSummarizer>();
             services.AddSingleton<IRebookWriter, ClaudeRebookWriter>();
             services.AddSingleton<IQuestionAnswerer, ClaudeQuestionAnswerer>();
             services.AddSingleton<IMessageTranslator, ClaudeMessageTranslator>();
@@ -101,6 +102,7 @@ internal static class MailIntakeSetup
 
             services.AddSingleton<IAnswerPhraser, NoAnswerPhraser>();
             services.AddSingleton<IBriefingSummarizer, NoBriefingSummarizer>();
+            services.AddSingleton<IManagementSummarizer, NoManagementSummarizer>();
             services.AddSingleton<IRebookWriter, NoRebookWriter>();
             services.AddSingleton<IQuestionAnswerer, NoQuestionAnswerer>();
             services.AddSingleton<IMessageTranslator, NoMessageTranslator>();

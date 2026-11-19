@@ -108,6 +108,22 @@ internal static class ReportModel
             e.Property(f => f.UserId).HasMaxLength(450);
         });
 
+        builder.Entity<ReportMailing>(e =>
+        {
+            e.HasOne<Location>().WithMany().HasForeignKey(m => m.LocationId).OnDelete(DeleteBehavior.Cascade);
+            e.HasIndex(m => new { m.LocationId, m.Kind, m.From }).IsUnique();
+            e.Property(m => m.Kind).HasConversion<string>().HasMaxLength(10);
+        });
+
+        builder.Entity<ManagementSummary>(e =>
+        {
+            e.HasOne<Location>().WithMany().HasForeignKey(s => s.LocationId).OnDelete(DeleteBehavior.Cascade);
+            e.HasIndex(s => new { s.LocationId, s.From, s.Until, s.Amounts }).IsUnique();
+            e.Property(s => s.Fingerprint).HasMaxLength(64);
+            e.Property(s => s.Status).HasConversion<string>().HasMaxLength(20);
+            e.Property(s => s.Text).HasMaxLength(ManagementSummaries.MaxLength);
+        });
+
         builder.Entity<BriefingSummary>(e =>
         {
             e.HasOne<Location>().WithMany().HasForeignKey(s => s.LocationId).OnDelete(DeleteBehavior.Cascade);

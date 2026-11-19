@@ -7399,3 +7399,63 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Geprüft:** Windows-App `CompanionTests` 8 von 8 (neu: Name aus der Suche, Anlegen mit Telefon, danach gewählt und buchbar, Abbrechen), Ansichtstest, Knopflängen (165), Leiste (121), Companion (58), „höchstens“ (33).
 - **Nicht geprüft:** die laufende App unter Windows.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Berichte: KI-Kommentar im Managementbericht (19.11.2026)
+
+- **Auftrag:** Block „Berichte und KI“, Punkt 1 (KI-Zusammenfassung im Management- und Wochenbericht); vom Auftraggeber am 19.11.2026 zum autonomen Abarbeiten freigegeben.
+- **Befund:** Eine KI-Zusammenfassung gab es nur im Tagesstart (`BriefingSummaries`). Einen eigenen Wochenbericht gibt es nicht; der Managementbericht deckt jeden Zeitraum ab.
+- **Was:**
+  - `ManagementSummaries` nach dem Muster des Tagesstarts:
+    - Tabelle `ManagementSummaries` je Standort, Zeitraum und Sicht mit oder ohne Beträge (Migration).
+    - Auftrag über die Queue, Fingerabdruck der Fakten, Text höchstens 1000 Zeichen.
+    - Zahlenprüfung über `BriefingSummaries.OnlyKnownNumbers`, jetzt auch für einen beliebigen Faktentext.
+  - `IManagementSummarizer` mit Claude und ohne KI. Fakten: Zeitraum, Kennzahlen mit Vorperiode, No-Shows und Stornos, Hinweise, Behandlungen nach Anzahl, Personal mit Auslastung; ohne Gästenamen.
+  - `ManagementReportDto.AiSummary`, `AiSummaryPending`, `AiNotice`.
+  - Windows-App: Kommentar mit Pille „KI“ über den Alarmen; der Reiter fragt nach, solange der Kommentar aussteht.
+  - Hilfe `berichte-kennzahlen-ansehen`, Abschnitt „Kommentar der KI“ mit Bild; ADR 0022, Nachtrag.
+- **Detailentscheidungen:**
+  1. Erst ab sieben Tagen: Ein einzelner Tag („Heute im Spa“ am Handy) ändert sich laufend, ein Kommentar dazu hätte wenig zu sagen und kostete jedes Mal.
+  2. Getrennte Texte mit und ohne Beträge: Wer keine Beträge sehen darf, bekommt auch keinen Kommentar, der sie nennt.
+  3. Ein verworfener Text (fremde Zahl) bleibt verworfen, bis sich die Zahlen ändern; kein zweiter Versuch, wie beim Tagesstart.
+- **Geprüft:** API `ManagementSummaryTests` 2 von 2 (neu: Kommentar über die Queue, Fakten ohne Gästenamen, erfundene Zahl verworfen, einzelner Tag ohne Kommentar), Berichts- und Tagesstart-Tests 39 von 39, `ChannelScanTests`; Windows-App `AdminReportsTests` 45 von 45 (neu: Nachfragen bis zum Kommentar), Ansichtstest, Knopflängen (165), „höchstens“ (33).
+- **Nicht geprüft:** die echte KI (Claude) mit echten Kennzahlen; die laufende App unter Windows.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Berichte: Wochen- und Monatsbericht per Mail (19.11.2026)
+
+- **Auftrag:** Block „Berichte und KI“, Punkt 2 (Wochen- und Monatsbericht per Mail, abbestellbar); vom Auftraggeber am 19.11.2026 zum autonomen Abarbeiten freigegeben.
+- **Befund:** Den Managementbericht gab es nur in der App und am Handy; per Mail kam kein Bericht.
+- **Was:**
+  - `ReportMailScheduler` im Hintergrund (stündlich, alle Mandanten): Wochenbericht montags ab 7 Uhr Ortszeit für die Vorwoche (Montag bis Sonntag), Monatsbericht am Ersten ab 7 Uhr für den Vormonat; je Standort eine Mail an alle, die ihn bekommen.
+  - Empfänger: aktive, nicht abgelaufene Zugänge mit Rolle Inhaber, Manager oder Standortleitung, Mailadresse, Sicht auf den Standort und Haken gesetzt. Beträge nur mit dem Recht „Berichte mit Beträgen“; dafür gehen zwei Fassungen raus, wenn nötig.
+  - Inhalt: Kommentar der KI (sofort geschrieben, gleiche Zahlenprüfung wie in der App), „Worauf achten“, Kennzahlen mit dem Zeitraum davor, Hinweis zum Abbestellen.
+  - Tabelle `ReportMailings` (je Standort, Art und Beginn eindeutig) gegen doppelten Versand; `StaffAccess.ReportMails` (Standard an). Migration `ReportMails`.
+  - `GET/PUT /api/reports/mail-subscription`; Windows-App: Haken **Wochen- und Monatsbericht per Mail** beim Management, nur für Rollen, die ihn bekommen.
+  - Hilfe `berichte-kennzahlen-ansehen`, Abschnitt „Bericht per Mail“; ADR 0022, Nachtrag.
+- **Detailentscheidungen:**
+  1. Standard an: Wer das Management führt, soll den Bericht ohne Einstellen bekommen; abbestellen ist ein Haken.
+  2. Nachholen bis drei Tage: Läuft der Server am Montag nicht, kommt der Wochenbericht bis Donnerstag; danach nicht mehr, ein alter Bericht hilft nicht.
+  3. Der Versand wird vor dem Senden eingetragen: Zwei Server schicken nicht doppelt; scheitert das Senden, kommt die Mail über die Mailwarteschlange erneut.
+  4. Rezeption und Backoffice bekommen keine Mail: Der Bericht ist für die Führung des Spas.
+- **Geprüft:** API `ReportMailTests` 3 von 3 (neu: einmal je Woche mit KI-Kommentar, nicht an die Rezeption, nicht zu früh; abbestellen, Manager darf, Rezeption 403; Text ohne Beträge), `ChannelScanTests`, `AccessExpiry`; Windows-App `AdminReportsTests` 47 von 47 (neu: Haken ab- und wieder an, Haken nur für Empfänger), Knopflängen, „höchstens“.
+- **Nicht geprüft:** echter Mailversand und die echte KI; die laufende App unter Windows.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Berichte: Wirkung von Aktionen im Managementbericht (19.11.2026)
+
+- **Auftrag:** Block „Berichte und KI“, Punkt 3 (Wirkung von Aktionen in Berichten); offener Punkt aus ADR 0071; vom Auftraggeber am 19.11.2026 zum autonomen Abarbeiten freigegeben.
+- **Befund:** Die Kassa setzte den Rabatt einer Aktion und nannte sie auf dem Beleg, merkte sich aber nicht, welche Aktion es war. Eine Auswertung ging nur über den Rabatttext.
+- **Was:**
+  - `BillLine.PromotionId` (Migration `BillLinePromotion`): gesetzt beim Anwenden der Aktion, gelöscht bei einem Rabatt von Hand auf dieselbe Position.
+  - Managementbericht: `ManagementReportDto.Promotions` mit `PromotionKpi` je Aktion (Positionen, Gäste, davon neu, Rabatt, Umsatz brutto). Grundlage sind die Belegzeilen des Zeitraums über die Rechnungsposition; Stornos heben auf, Gutschein- und Anzahlungsabzüge zählen nicht.
+  - Ohne „Berichte mit Beträgen“ fehlen Rabatt und Umsatz schon im Bericht.
+  - Die Aktionen gehen in den Kommentar der KI und in die Berichtsmail („Aktionen an der Kassa“).
+  - Windows-App: Tabelle „Aktionen“ unter den Behandlungen, nur wenn es welche gibt.
+  - Hilfe `berichte-kennzahlen-ansehen` (Abschnitt „Aktionen“ mit Bild), `kassa-aktion-anwenden`; ADR 0071, Nachtrag.
+- **Detailentscheidungen:**
+  1. Keine neue Spalte am Beleg: Der Beleg ist signiert und bleibt, wie er ist; die Zuordnung hängt an der Rechnungsposition.
+  2. Alte Positionen ohne Zuordnung fehlen, statt sie aus dem Rabatttext zu raten: Aktionsnamen können sich ändern.
+  3. „Neu“ heißt: Der Termin auf der Position ist der erste Termin des Gastes im Spa (ohne Stornos und No-Shows).
+- **Geprüft:** API `PromotionTests` (neu: zwei Positionen mit Aktion, eine von Hand überschrieben, eine storniert; Stammgast und neuer Gast; Text für KI und Mail; ohne Beträge), mit `PromotionKindTests`, `ManagementSummaryTests`, `ReportMailTests`, `BusinessReportTests`, `PosTests`, `ChannelScanTests`: 79 von 79. Windows-App: voller Lauf 3200 von 3204 (ein fehlender Stub, behoben; ein Speicherabbruch im Container, danach grün), `AdminReportsTests` 48 von 48 (neu: Tabelle mit und ohne Beträge), Ansichtstest mit Bild, Knopflängen und „höchstens“ (197).
+- **Nicht geprüft:** echte Belege im laufenden System; die laufende App unter Windows.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).

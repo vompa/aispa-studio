@@ -106,6 +106,9 @@ public sealed class BillLine
     /// <summary>Wer einen Rabatt über der Grenze des Spas per PIN freigegeben hat (Nachvollziehbarkeit).</summary>
     public string? DiscountApprovedByUserId { get; set; }
 
+    /// <summary>Aktion, aus der der Rabatt stammt (ADR 0071); für die Wirkung der Aktion im Managementbericht. Ein anderer Rabatt löscht sie.</summary>
+    public Guid? PromotionId { get; set; }
+
     /// <summary>Zu zahlender Bruttobetrag der Position: Menge × Preis − Rabatt.</summary>
     public decimal Amount { get; set; }
 

@@ -15,6 +15,9 @@ public sealed record EmployeeKpiRow(string Name, string ShiftHours, string Treat
 
 public sealed record TreatmentKpiRow(string Name, string Appointments, string Revenue, string Margin, bool IsLoss);
 
+/// <summary>Wirkung einer Aktion: Positionen, Gäste (davon neu), Rabatt und Umsatz; „–“ ohne das Recht „Berichte mit Beträgen“.</summary>
+public sealed record PromotionKpiRow(string Name, string Positions, string Guests, string NewGuests, string Discount, string Revenue);
+
 public sealed record BenchmarkPeriod(int Days, string Label)
 {
     public override string ToString() => Label;
@@ -28,6 +31,68 @@ public sealed record BenchmarkRow(string Label, string Own, string Rating, strin
 /// <summary>Reiter „Management“ nach web/src/reports/ManagementView.tsx und BenchmarkView.tsx: Kennzahlen eines Zeitraums, auf Wunsch mit dem Vergleich zu anderen Spas.</summary>
 public sealed partial class ManagementReportViewModel(IWorkstationApi api, TimeProvider time) : ReportTabViewModel(api, time)
 {
+    /// <summary>So oft fragt der Reiter nach dem KI-Kommentar, solange er aussteht (wie im Tagesstart).</summary>
+    private const int AiAttempts = 15;
+
+    /// <summary>Kommentar der KI aus genau diesen Zahlen (ab sieben Tagen, nur mit KI); die Zahlen selbst kommen nie von der KI.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasAiSummary))]
+    public partial string? AiSummary { get; private set; }
+
+    [ObservableProperty]
+    public partial string? AiNotice { get; private set; }
+
+    [ObservableProperty]
+    public partial bool IsAiPending { get; private set; }
+
+    public bool HasAiSummary => AiSummary is not null;
+
+    // ---------- Wochen- und Monatsbericht per Mail ----------
+
+    /// <summary>Den Haken gibt es nur für Rollen, die den Bericht per Mail bekommen (Inhaber, Manager, Standortleitung).</summary>
+    [ObservableProperty]
+    public partial bool CanMailReports { get; private set; }
+
+    /// <summary>Wochen- und Monatsbericht per Mail; ändern speichert sofort für die angemeldete Person.</summary>
+    [ObservableProperty]
+    public partial bool MailReports { get; set; }
+
+    private bool _settingMail;
+
+    private async Task LoadMailSubscriptionAsync()
+    {
+        var result = await Api.GetAsync<ReportMailSubscription>("api/reports/mail-subscription").ConfigureAwait(true);
+        _settingMail = true;
+        CanMailReports = result.Value?.Available == true;
+        MailReports = result.Value?.Enabled == true;
+        _settingMail = false;
+    }
+
+    partial void OnMailReportsChanged(bool value)
+    {
+        if (!_settingMail)
+        {
+            _ = SaveMailSubscriptionAsync(value);
+        }
+    }
+
+    private async Task SaveMailSubscriptionAsync(bool enabled)
+    {
+        var result = await Api.PutAsync<ReportMailSubscription>("api/reports/mail-subscription", new ReportMailSubscriptionInput(enabled)).ConfigureAwait(true);
+        if (result.Value is not { } saved)
+        {
+            LoadError = result.Error ?? "Die Einstellung wurde nicht gespeichert.";
+            _settingMail = true;
+            MailReports = !enabled;
+            _settingMail = false;
+            return;
+        }
+
+        _settingMail = true;
+        MailReports = saved.Enabled;
+        _settingMail = false;
+    }
+
     public const string AmountsHint = "Beträge nur mit Berechtigung: Umsätze, Kosten und Margen sieht, wer das Recht „Berichte mit Beträgen“ hat. Das vergibt der Inhaber oder ein Manager unter „Zugänge“.";
 
     private bool _rangeIsSet;
@@ -56,6 +121,10 @@ public sealed partial class ManagementReportViewModel(IWorkstationApi api, TimeP
 
     [ObservableProperty]
     public partial IReadOnlyList<TreatmentKpiRow> Treatments { get; private set; } = [];
+
+    /// <summary>Aktionen an der Kassa im Zeitraum (ADR 0071); leer, wenn keine kassiert wurde.</summary>
+    [ObservableProperty]
+    public partial IReadOnlyList<PromotionKpiRow> Promotions { get; private set; } = [];
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowAmounts))]
@@ -137,17 +206,40 @@ public sealed partial class ManagementReportViewModel(IWorkstationApi api, TimeP
         {
             LoadError = result.Error ?? "Der Bericht konnte nicht geladen werden.";
             Alerts = [];
+            AiSummary = null;
+            IsAiPending = false;
             Kpis = [];
             RevenueByAccount = [];
             RevenueByPayment = [];
             Employees = [];
             Treatments = [];
+            Promotions = [];
             return;
         }
 
         Apply(report);
         IsLoaded = true;
         await LoadBenchmarkAsync().ConfigureAwait(true);
+        await LoadMailSubscriptionAsync().ConfigureAwait(true);
+
+        // Den KI-Kommentar schreibt der Server im Hintergrund; solange er aussteht, fragt der Reiter nach.
+        for (var attempt = 1; report.AiSummaryPending && attempt <= AiAttempts; attempt++)
+        {
+            await Task.Delay(PollInterval, Time).ConfigureAwait(true);
+            if (version != Version)
+            {
+                return;
+            }
+
+            var again = await Api.GetAsync<ManagementReportDto>($"api/reports/locations/{location.Id}/management?from={Iso(from)}&until={Iso(until)}").ConfigureAwait(true);
+            if (version != Version || again.Value is not { } next)
+            {
+                return;
+            }
+
+            report = next;
+            Apply(report);
+        }
     }
 
     partial void OnFromChanged(DateOnly? value) => ReloadAfterRangeChange();
@@ -184,6 +276,9 @@ public sealed partial class ManagementReportViewModel(IWorkstationApi api, TimeP
     {
         AmountsHidden = report.AmountsHidden;
         Alerts = report.Alerts;
+        AiSummary = report.AiSummary;
+        AiNotice = report.AiNotice;
+        IsAiPending = report.AiSummaryPending;
         Kpis = [.. report.Kpis.Select(k => new KpiRow(k.Label, KpiValue(k.Value, k.Unit), k.Previous is { } previous ? $"Vorperiode {KpiValue(previous, k.Unit)}" : null))];
         RevenueByAccount = [.. report.RevenueByAccount.Select(r => new RevenueRow(r.CostCenter is { } center ? $"{r.Label} ({center})" : r.Label, Money.Format(r.Gross), $"netto {Money.Format(r.Net)}"))];
         RevenueByPayment = [.. report.RevenueByPayment.Select(r => new RevenueRow(r.Label, Money.Format(r.Gross), ""))];
@@ -191,6 +286,8 @@ public sealed partial class ManagementReportViewModel(IWorkstationApi api, TimeP
             e.Name, Number(e.ShiftHours, 1), Number(e.TreatmentHours, 1), $"{e.Utilization} %", e.RevenuePerHour is { } revenue ? Money.Format(revenue) : "–"))];
         Treatments = [.. report.Treatments.Select(t => new TreatmentKpiRow(
             t.Name, Number(t.Appointments), t.NetRevenue is { } net ? Money.Format(net) : "–", t.MarginPerAppointment is { } margin ? Money.Format(margin) : "–", t.MarginPerAppointment < 0))];
+        Promotions = [.. (report.Promotions ?? []).Select(p => new PromotionKpiRow(p.Name, Number(p.Positions), Number(p.Guests), Number(p.NewGuests),
+            p.Discount is { } discount ? Money.Format(discount) : "–", p.Revenue is { } revenue ? Money.Format(revenue) : "–"))];
     }
 
     private static string KpiValue(decimal value, string unit) => unit switch

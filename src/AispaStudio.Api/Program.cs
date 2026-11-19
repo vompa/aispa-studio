@@ -205,6 +205,7 @@ builder.AddMailIntake(modules);
 builder.Services.AddReminders(builder.Configuration, modules);
 builder.Services.AddRetention(builder.Configuration, modules);
 builder.Services.AddAccessExpiry(builder.Configuration, modules);
+builder.Services.AddReportMails(builder.Configuration, modules);
 builder.Services.AddCalendarSubscriptions(builder.Configuration, modules);
 
 // Kassa: Kassenrecht je Land. Österreich signiert für den Prototyp mit der Test-Signatureinrichtung;
@@ -262,6 +263,7 @@ builder.Services.AddScoped<ServingService>();
 builder.Services.AddScoped<RoomRestockService>();
 builder.Services.AddScoped<RoomCareService>();
 builder.Services.AddScoped<BriefingSummaries>();
+builder.Services.AddScoped<ManagementSummaries>();
 builder.Services.AddScoped<ManagementReports>();
 builder.Services.AddScoped<PayrollExport>();
 builder.Services.AddScoped<Benchmark>();

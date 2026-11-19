@@ -65,6 +65,15 @@ Alle drei haben Zeitraum, Rabatt (Prozent oder Betrag), Gültigkeit und Standort
 **Maske.** „Neue Aktion“ steht als primäre Schaltfläche fest über der Liste, jede Zeile zeigt Art und Zustand. Die Karte hat die Gruppe „Art“ mit den Feldern der gewählten Art (Vorlauf bzw. Raster als abhakbares Gitter). Pausieren und Archivieren stehen im Menü „⋯“ im Kopf, „Zurückholen“ als Knopf bei einer archivierten Aktion. Löschen gibt es weiterhin nicht.
 
 
+## Nachtrag 19.11.2026: Wirkung im Managementbericht
+
+*Status des Nachtrags: umgesetzt (Block „Berichte und KI“, Punkt 3).*
+
+- Die Kassa merkt sich an der Position, aus welcher Aktion der Rabatt stammt (`BillLine.PromotionId`). Ein Rabatt von Hand auf dieselbe Position löscht die Zuordnung; der Beleg bleibt unverändert (keine neue Belegspalte, nichts an der Signatur).
+- Der Managementbericht zeigt je Aktion: kassierte Positionen (Stornos heben auf), Gäste, davon zum ersten Mal im Spa, gewährten Rabatt und Umsatz brutto nach Rabatt. Grundlage sind die Belegzeilen des Zeitraums, verknüpft über die Rechnungsposition; Abzüge für Gutscheine und Anzahlungen zählen nicht, die Position war so viel wert.
+- Rabatt und Umsatz nur mit dem Recht „Berichte mit Beträgen“. Die Zeile geht auch in den Kommentar der KI und in die Berichtsmail.
+- Positionen, die vor diesem Nachtrag mit Aktion kassiert wurden, haben keine Zuordnung und fehlen in der Auswertung; aus dem Rabatttext („Aktion Herbst 10 %“) wird bewusst nicht zurückgeschlossen, weil Namen sich ändern können.
+
 ## Quellen
 
 - [ADR 0010](0010-kassa-compliance-by-design.md), [ADR 0067](0067-masken-und-meldungen-nach-material-3-und-fluent-2.md), [ADR 0055](0055-hilfe-zu-jeder-einstellung-im-repository.md)

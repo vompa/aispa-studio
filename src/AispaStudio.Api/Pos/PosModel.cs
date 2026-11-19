@@ -1,5 +1,6 @@
 using AispaStudio.Api.Pos.Fiscal;
 using AispaStudio.Api.Pos.VatIds;
+using AispaStudio.Api.Promotions;
 using AispaStudio.Api.Scheduling;
 using Microsoft.EntityFrameworkCore;
 
@@ -91,6 +92,8 @@ internal static class PosModel
             e.Property(l => l.Discount).HasPrecision(10, 2);
             e.Property(l => l.DiscountNote).HasMaxLength(60);
             e.Property(l => l.DiscountApprovedByUserId).HasMaxLength(450);
+            e.HasOne<Promotion>().WithMany().HasForeignKey(l => l.PromotionId).OnDelete(DeleteBehavior.SetNull);
+            e.HasIndex(l => l.PromotionId);
             e.Property(l => l.Amount).HasPrecision(10, 2);
             e.Property(l => l.PaidAmount).HasPrecision(10, 2);
             e.Property(l => l.TaxCategory).HasConversion<string>().HasMaxLength(16);
