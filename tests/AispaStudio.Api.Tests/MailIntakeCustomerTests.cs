@@ -251,6 +251,8 @@ public sealed partial class MailIntakeTests
         Assert.Equal(InboundMailStatus.NeedsReview, mail.Status);
         Assert.Null(mail.AppointmentId);
         Assert.False(mail.CanCancelAppointment);
+        Assert.False(mail.CanMoveAppointment);
+        Assert.Empty(mail.Proposals);
         Assert.Single(mail.CustomerCandidates!);
         foreach (var text2 in new[] { mail.Note, mail.ReplyBody, mail.Summary })
         {
@@ -267,8 +269,10 @@ public sealed partial class MailIntakeTests
         // Erlaubt: Nach der Bestätigung durch die Rezeption steht der nächste Termin im Hinweis (nicht im Entwurf an den Gast).
         var assigned = await spa.Spa.PostAsync<InboundMailDto>($"/api/inbox/{mail.Id}/customer/assign", new AssignCustomerInput(customer.Id), Ct);
         Assert.Contains("am 01.03.2027 um 10:00 Uhr", assigned.Note, StringComparison.Ordinal);
-        Assert.Equal(kind == InboundMailKind.Cancellation ? appointment.Id : null, assigned.AppointmentId);
+        // Absage: storniert wird mit einem Klick; Verschieben: freie Zeiten für denselben Termin, verschoben wird mit einem Klick.
+        Assert.Equal(appointment.Id, assigned.AppointmentId);
         Assert.Equal(kind == InboundMailKind.Cancellation, assigned.CanCancelAppointment);
+        Assert.Equal(kind == InboundMailKind.Reschedule, assigned.CanMoveAppointment);
         Assert.DoesNotContain("01.03.2027", assigned.ReplyBody ?? "", StringComparison.Ordinal);
     }
 

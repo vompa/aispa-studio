@@ -147,4 +147,36 @@ public sealed partial class ViewTests
     }, WithHaiderOverview(Api()
         .On("GET /api/inbox", new List<InboundMailSummary> { SpaSample.Inbox()[0] with { Status = InboundMailStatus.NeedsReview } })
         .On($"GET /api/inbox/{SpaSample.InboxMailId}", SpaSample.InboxMailWhoIsThis())));
+
+    [Fact]
+    public Task Posteingang_Verschiebungswunsch_zeigt_freie_Zeiten_als_Knoepfe() => Render("hell", "posteingang-verschieben", async (window, main) =>
+    {
+        var (shell, detail) = await OpenInboxMail(main);
+        await Pump(Settling);
+
+        Assert.True(detail.CanMoveAppointment);
+        var panel = window.GetVisualDescendants().OfType<StackPanel>().Single(p => p.Name == "MoveOptionsPanel");
+        Assert.True(panel.IsEffectivelyVisible);
+        Assert.Equal(["Auf Di. 20.10. 17:00 verschieben", "Auf Do. 22.10. 10:00 verschieben"],
+            panel.GetVisualDescendants().OfType<Button>().Where(b => b.IsEffectivelyVisible).Select(b => b.Content as string));
+        return shell.Inbox;
+    }, WithHaiderOverview(Api()).On($"GET /api/inbox/{SpaSample.InboxMailId}", RecognizedMail() with
+    {
+        Subject = "Termin am Donnerstag",
+        Body = "Guten Tag, ich schaffe es am Donnerstag leider nicht. Geht es auch an einem anderen Tag zur selben Zeit? Liebe Grüße, Claudia Haider",
+        Status = InboundMailStatus.NeedsReview,
+        Kind = InboundMailKind.Reschedule,
+        AppointmentId = Guid.NewGuid(),
+        CanRepropose = false,
+        CanMoveAppointment = true,
+        Summary = "Möchte den Termin am Donnerstag verschieben.",
+        ReplySubject = "Re: Termin am Donnerstag",
+        ReplyBody = "Liebe Frau Haider,\n\nvielen Dank für Ihre Nachricht. Wir haben sie erhalten und unser Team meldet sich in Kürze bei Ihnen.\n\nHerzliche Grüße\nIhr Spa-Team Wien Innere Stadt",
+        Note = "Gast möchte verschieben. Nächster Termin: Hot-Stone-Massage am 22.10.2026 um 17:00 Uhr, Wien. Freie Zeiten zum Verschieben stehen unten; verschoben wird erst mit dem Klick.",
+        Proposals =
+        [
+            new AvailableSlot(SpaSample.At(17).AddDays(1), SpaSample.At(18).AddDays(1), SpaSample.Elif.Id, SpaSample.Hamam.Id, null),
+            new AvailableSlot(SpaSample.At(10).AddDays(3), SpaSample.At(11).AddDays(3), SpaSample.Elif.Id, SpaSample.Hamam.Id, null),
+        ],
+    }));
 }

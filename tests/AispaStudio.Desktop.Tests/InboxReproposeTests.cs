@@ -106,4 +106,40 @@ public sealed class InboxReproposeTests
         Assert.False(detail.CanCancelAppointment);
         Assert.Equal("Termin storniert. Die Antwort wird neu entworfen.", detail.Notice);
     }
+
+    [Fact]
+    public async Task Verschiebungswunsch_zeigt_freie_Zeiten_und_verschiebt_erst_nach_der_Rueckfrage()
+    {
+        var slot = new AvailableSlot(SpaSample.At(14), SpaSample.At(15), SpaSample.Elif.Id, SpaSample.Hamam.Id, null);
+        var mail = SpaSample.InboxMail() with
+        {
+            Status = InboundMailStatus.NeedsReview,
+            Kind = InboundMailKind.Reschedule,
+            Proposals = [slot],
+            AppointmentId = Guid.NewGuid(),
+            CanRepropose = false,
+            CanMoveAppointment = true,
+            Note = "Gast möchte verschieben. Nächster Termin: Hot-Stone-Massage am 22.10.2026 um 17:00 Uhr, Wien.",
+        };
+        var (detail, api) = await OpenAsync(mail);
+        var route = $"POST /api/inbox/{SpaSample.InboxMailId}/move-appointment";
+        api.On(route, mail with { Status = InboundMailStatus.Booked, CanMoveAppointment = false, Proposals = [], Note = null });
+
+        Assert.True(detail.CanMoveAppointment);
+        var option = Assert.Single(detail.MoveOptions);
+        Assert.Equal("Auf Mo. 19.10. 14:00 verschieben", option.Text);
+        var dialogs = new FakeDialogs().Answer(ConfirmChoice.Cancelled).Answer(ConfirmChoice.Confirmed);
+        detail.Dialogs = dialogs;
+        await detail.AskMoveAppointmentCommand.ExecuteAsync(option);
+        Assert.DoesNotContain(api.Calls, c => c.Route == route);
+        Assert.Equal("Termin verschieben?", dialogs.Asked[0].Title);
+        dialogs.AssertRules();
+        await detail.AskMoveAppointmentCommand.ExecuteAsync(option);
+
+        var call = Assert.Single(api.Calls, c => c.Route == route);
+        Assert.Contains(slot.Start.ToString("yyyy-MM-ddTHH:mm", System.Globalization.CultureInfo.InvariantCulture), call.Body, StringComparison.Ordinal);
+        Assert.False(detail.CanMoveAppointment);
+        Assert.Empty(detail.MoveOptions);
+        Assert.Equal("Termin auf Mo. 19.10. 14:00 verschoben. Die Antwort wird neu entworfen.", detail.Notice);
+    }
 }

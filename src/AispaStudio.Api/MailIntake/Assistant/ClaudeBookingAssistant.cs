@@ -123,7 +123,8 @@ internal sealed class ClaudeBookingAssistant(ClaudeJson claude, IAiJson analysis
         Fälle: Booked = Termin ist eingetragen; Proposed = die Alternativen als Liste anbieten und um Antwort mit der passenden Zeit bitten;
         NoAvailability = nichts frei, das Team meldet sich; NeedsDetails = nach den fehlenden Angaben fragen;
         Forwarded = Eingang bestätigen, das Team kümmert sich; Cancelled = der Termin (gebucht) ist storniert, kurz bestätigen;
-        Held = die Zeit (gebucht) ist für den Gast freigehalten, um eine kurze Bestätigung bitten, dann ist der Termin fest.
+        Held = die Zeit (gebucht) ist für den Gast freigehalten, um eine kurze Bestätigung bitten, dann ist der Termin fest;
+        Moved = der Termin ist wie gewünscht auf die neue Zeit (gebucht) verschoben, kurz bestätigen.
         Sprich den Gast so an, wie anrede es angibt (deutsch z. B. „Guten Tag Frau Mag. Huber“); Titel, Frau und Herr nicht ändern oder weglassen.
         Mit Anrede und Grußformel im Namen des Spas. Keinen Hinweis auf KI schreiben, der wird automatisch angehängt.
         Ist kurznachricht true (SMS oder WhatsApp): höchstens drei kurze Sätze, Anrede in einer Zeile, Alternativen knapp, kein Briefstil.

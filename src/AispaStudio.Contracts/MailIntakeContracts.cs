@@ -135,7 +135,8 @@ public sealed record InboundMailDto(
     string? SenderRulePattern = null,
     CustomerSalutation? SuggestedSalutation = null,
     string? SuggestedTitlesBefore = null,
-    DateTimeOffset? HeldStart = null);
+    DateTimeOffset? HeldStart = null,
+    bool CanMoveAppointment = false);
 
 /// <summary>
 /// Wie der Gast eine Plattformbuchung bezahlt: <c>Prepaid</c> vorab über die Plattform (die Plattform rechnet mit dem Spa ab),

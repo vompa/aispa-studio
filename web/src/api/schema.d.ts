@@ -6002,6 +6002,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/inbox/{mailId}/move-appointment": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Verschiebt den Termin, den der Gast verschieben möchte, auf eine der vorgeschlagenen Zeiten; die Antwort an den Gast wird neu entworfen. */
+        post: operations["MoveInboundMailAppointment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/inbox/{mailId}/retry": {
         parameters: {
             query?: never;
@@ -11525,6 +11542,8 @@ export interface components {
             suggestedTitlesBefore?: null | string;
             /** Format: date-time */
             heldStart?: null | string;
+            /** @default false */
+            canMoveAppointment: boolean;
         };
         /** @enum {unknown} */
         InboundMailKind: "Unknown" | "BookingRequest" | "Cancellation" | "Reschedule" | "Question" | "Other" | "TreatwellBooking" | "TreatwellCancellation" | "TreatwellChange";
@@ -30784,6 +30803,66 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InboundMailDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BookingRejected"];
+                };
+            };
+        };
+    };
+    MoveInboundMailAppointment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                mailId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AcceptProposalRequest"];
+            };
+        };
         responses: {
             /** @description OK */
             200: {

@@ -20284,6 +20284,81 @@
         }
       }
     },
+    "/api/v1/inbox/{mailId}/move-appointment": {
+      "post": {
+        "tags": [
+          "Terminannahme"
+        ],
+        "summary": "Verschiebt den Termin, den der Gast verschieben möchte, auf eine der vorgeschlagenen Zeiten; die Antwort an den Gast wird neu entworfen.",
+        "operationId": "MoveInboundMailAppointment",
+        "parameters": [
+          {
+            "name": "mailId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AcceptProposalRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InboundMailDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingRejected"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/inbox/{mailId}/retry": {
       "post": {
         "tags": [
@@ -42250,6 +42325,10 @@
               "string"
             ],
             "format": "date-time"
+          },
+          "canMoveAppointment": {
+            "type": "boolean",
+            "default": false
           }
         }
       },

@@ -147,6 +147,11 @@ internal sealed partial class MailIntakeProcessor(
             {
                 mail.AppointmentId = null;
                 mail.Note = await ForwardNoteAsync(mail, customer, ct);
+                if (mail.Kind == InboundMailKind.Reschedule)
+                {
+                    // Die Wunschzeiten der Nachricht sind hier nicht mehr bekannt: gesucht wird um die gewohnte Uhrzeit.
+                    await ProposeMoveAsync(mail, [], time.GetUtcNow(), ct);
+                }
             }
             else if (mail is { Kind: InboundMailKind.BookingRequest, AppointmentId: null })
             {
@@ -181,6 +186,7 @@ internal sealed partial class MailIntakeProcessor(
         if (mail.Kind is InboundMailKind.Cancellation or InboundMailKind.Reschedule)
         {
             mail.AppointmentId = null;
+            mail.Proposals = [];
             mail.Note = await ForwardNoteAsync(mail, null, ct);
         }
         else if (mail is { Kind: InboundMailKind.BookingRequest, AppointmentId: null } && mail.CustomerCandidates.Count > 0)
@@ -217,6 +223,7 @@ internal sealed partial class MailIntakeProcessor(
         var location = await db.Locations.AsNoTracking().FirstAsync(l => l.Id == appointment.LocationId, ct);
         var zone = LocalTime.Zone(location.TimeZone);
         var replyCase = mail.Status == InboundMailStatus.Cancelled ? ReplyCase.Cancelled
+            : mail is { Kind: InboundMailKind.Reschedule, Status: InboundMailStatus.Booked } ? ReplyCase.Moved
             : appointment.HeldSince is not null ? ReplyCase.Held
             : ReplyCase.Booked;
         await DraftAsync(mail, replyCase, await GuestNameAsync(mail, appointment.Customer, ct), appointment.Treatment.Name, location.Name,
@@ -615,6 +622,11 @@ internal sealed partial class MailIntakeProcessor(
         {
             mail.Status = InboundMailStatus.NeedsReview;
             mail.Note = await ForwardNoteAsync(mail, customer, ct);
+            if (mail.Kind == InboundMailKind.Reschedule)
+            {
+                await ProposeMoveAsync(mail, analysis.Wishes, now, ct);
+            }
+
             await DraftAsync(mail, ReplyCase.Forwarded, guest, null, null, null, [], [], ct);
             if (mail.Kind == InboundMailKind.Question)
             {
@@ -714,7 +726,7 @@ internal sealed partial class MailIntakeProcessor(
     /// </summary>
     private async Task<SlotSearch> FindSlotsAsync(Guid locationId, Guid treatmentId, Guid? employeeId,
         IReadOnlyList<RequestedTime> wishes, DateTimeOffset earliest, TimeZoneInfo zone, IReadOnlyCollection<DateTimeOffset> rejected,
-        CustomerRules rules, CancellationToken ct)
+        CustomerRules rules, CancellationToken ct, Guid? moving = null)
     {
         // Schon vorgeschlagene Zeiten kommen als Alternative nicht wieder, für keine Person (15 Minuten um den Beginn).
         bool Open(AvailableSlot slot) => !rejected.Any(r => Math.Abs((slot.Start - r).TotalMinutes) < 15);
@@ -728,7 +740,7 @@ internal sealed partial class MailIntakeProcessor(
             var proposals = new List<AvailableSlot>();
             foreach (var wish in wishes.OrderBy(w => w.Date))
             {
-                var context = await booking.LoadContextAsync(locationId, treatmentId, wish.Date, null, ct);
+                var context = await booking.LoadContextAsync(locationId, treatmentId, wish.Date, moving, ct);
                 if (context is null)
                 {
                     break;
@@ -766,7 +778,7 @@ internal sealed partial class MailIntakeProcessor(
                      date <= firstDay.AddDays(Options.SearchDays) && proposals.Count < Options.MaxProposals;
                      date = date.AddDays(1))
                 {
-                    var context = await booking.LoadContextAsync(locationId, treatmentId, date, null, ct);
+                    var context = await booking.LoadContextAsync(locationId, treatmentId, date, moving, ct);
                     if (context is null)
                     {
                         break;
@@ -1325,8 +1337,38 @@ internal sealed partial class MailIntakeProcessor(
     };
 
     /// <summary>
-    /// Für die Rezeption: Absage oder Verschiebung mit dem nächsten Termin des Gasts. Bei einer Absage merkt sich die Mail diesen
-    /// Termin, damit die Rezeption ihn mit einem Klick storniert; storniert wird nie ohne sie.
+    /// Verschiebungswunsch mit gefundenem Termin: freie Zeiten für dieselbe Behandlung am selben Standort, nach den Wunschzeiten aus der
+    /// Nachricht, sonst ab morgen um die gewohnte Uhrzeit; zuerst bei derselben Person. Verschoben wird erst, wenn die Rezeption eine Zeit wählt.
+    /// </summary>
+    private async Task ProposeMoveAsync(InboundMail mail, IReadOnlyList<RequestedTime> wishes, DateTimeOffset now, CancellationToken ct)
+    {
+        mail.Proposals = [];
+        var appointment = mail.AppointmentId is { } id
+            ? await db.Appointments.AsNoTracking().Include(a => a.Treatment).FirstOrDefaultAsync(a => a.Id == id, ct)
+            : null;
+        if (appointment is null)
+        {
+            return;
+        }
+
+        var location = await db.Locations.AsNoTracking().FirstAsync(l => l.Id == appointment.LocationId, ct);
+        var zone = LocalTime.Zone(location.TimeZone);
+        var usual = TimeOnly.FromDateTime(TimeZoneInfo.ConvertTime(appointment.Start, zone).DateTime);
+        var search = wishes.Count > 0 ? wishes : [new RequestedTime(LocalTime.LocalDate(now, zone).AddDays(1), usual, null)];
+        var rules = await CustomerRules.LoadAsync(db, appointment.CustomerId, ct);
+        var found = await FindSlotsAsync(location.Id, appointment.TreatmentId, appointment.EmployeeId, search, now.AddMinutes(Options.MinLeadMinutes), zone,
+            [.. mail.RejectedStarts, appointment.Start], rules, ct, appointment.Id);
+        var proposals = (found.Exact is { } exact ? [exact, .. found.Proposals.Where(p => p.Start != exact.Start)] : found.Proposals)
+            .Take(Options.MaxProposals).OrderBy(p => p.Start).ToList();
+        mail.Proposals = proposals;
+        mail.Note = proposals.Count > 0
+            ? $"{mail.Note} Freie Zeiten zum Verschieben stehen unten; verschoben wird erst mit dem Klick."
+            : $"{mail.Note} In den nächsten {Options.SearchDays} Tagen ist für {appointment.Treatment.Name} nichts frei.";
+    }
+
+    /// <summary>
+    /// Für die Rezeption: Absage oder Verschiebung mit dem nächsten Termin des Gasts. Die Mail merkt sich diesen Termin, damit die
+    /// Rezeption ihn mit einem Klick storniert oder auf eine vorgeschlagene Zeit verschiebt; beides geschieht nie ohne sie.
     /// </summary>
     private async Task<string> ForwardNoteAsync(InboundMail mail, Customer? customer, CancellationToken ct)
     {
@@ -1341,7 +1383,7 @@ internal sealed partial class MailIntakeProcessor(
             var location = await db.Locations.AsNoTracking().FirstAsync(l => l.Id == next.LocationId, ct);
             var start = TimeZoneInfo.ConvertTime(next.Start, LocalTime.Zone(location.TimeZone));
             upcoming = $"Nächster Termin: {next.Treatment.Name} am {start:dd.MM.yyyy} um {start:HH:mm} Uhr, {location.Name}.";
-            if (mail.Kind == InboundMailKind.Cancellation)
+            if (mail.Kind is InboundMailKind.Cancellation or InboundMailKind.Reschedule)
             {
                 mail.AppointmentId = next.Id;
                 mail.LocationId ??= next.LocationId;
