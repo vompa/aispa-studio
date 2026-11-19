@@ -88,7 +88,7 @@ public sealed partial class ViewTests
 
             var sent = System.Text.Json.JsonSerializer.Deserialize<StockItemInput>(Assert.Single(api.Calls, c => c.Route == "POST /api/stock/items").Body!, ApiClient.Json)!;
             Assert.Equal(("Duftkerze", "Stück", 2.5m, stock.ItemForm.Suppliers.Single(s => s.Name == "Lavendelhof").Id), (sent.Name, sent.Unit, sent.UnitCost, sent.SupplierId));
-            Assert.True(Shows(window, "Duftkerze angelegt."));
+            Assert.True(Shows(window, "Duftkerze angelegt"));
             Assert.Equal("", Named<TextBox>(window, "ItemNameField").Text);
             Assert.False(stock.HasUnsavedChanges);
             return shell.AdminPage;
@@ -115,7 +115,7 @@ public sealed partial class ViewTests
 
             var sent = SentMovement(api);
             Assert.Equal((OilId, StockMovementKind.GoodsReceipt, 4m, "L-9", MainId), (sent.ItemId, sent.Kind, sent.Quantity, sent.Batch, sent.StoragePlaceId));
-            Assert.True(Shows(window, "Gebucht."));
+            Assert.True(Shows(window, "Gebucht"));
             return shell.AdminPage;
         }, api);
     }
@@ -149,7 +149,7 @@ public sealed partial class ViewTests
 
             var sent = Assert.Single(SentMovements(api));
             Assert.Equal((OilId, StockMovementKind.Count, 8m, MainId), (sent.ItemId, sent.Kind, sent.Quantity, sent.StoragePlaceId));
-            Assert.True(Shows(window, "Inventur gebucht: 1 Position."));
+            Assert.True(Shows(window, "Inventur gebucht: 1 Position"));
             Assert.False(stock.Count.IsCounting);
             return shell.AdminPage;
         }, api);
@@ -178,7 +178,7 @@ public sealed partial class ViewTests
             await Pump(Settling);
 
             Assert.Equal(1, CallsTo(api, $"DELETE {Route($"/storage-places/{ShopId}")}"));
-            Assert.True(Shows(window, "Lagerort gelöscht."));
+            Assert.True(Shows(window, "Lagerort gelöscht"));
             return shell.AdminPage;
         }, api);
     }
@@ -230,7 +230,7 @@ public sealed partial class ViewTests
 
             Assert.Equal(1, CallsTo(api, $"POST /api/stock/orders/{OrderId}/send"));
             Assert.True(Shows(window, "bestellt"));
-            Assert.True(Shows(window, "Bestellung 7 ist bestellt, die Mail an bestellung@lavendelhof.example ist unterwegs."));
+            Assert.True(Shows(window, "Bestellung 7 bestellt, Mail ist unterwegs"));
             return shell.AdminPage;
         }, api);
     }
@@ -362,7 +362,7 @@ public sealed partial class ViewTests
             var sent = SentDelivery(api);
             var line = Assert.Single(sent.Lines);
             Assert.Equal((DraftOrder.Lines[0].Id, 5m, "L-9", "LS-3"), (line.LineId, line.Quantity, line.Batch, sent.DeliveryNote));
-            Assert.True(Shows(window, "Lieferung zu Bestellung 7 gebucht."));
+            Assert.True(Shows(window, "Lieferung zu Bestellung 7 gebucht"));
             Assert.True(Shows(window, "geliefert"));
             Assert.DoesNotContain(window.GetVisualDescendants().OfType<Button>(), b => b.IsEffectivelyVisible && AutomationProperties.GetName(b) == "Lieferung zu Bestellung 7 buchen");
             Assert.Equal("15", stock.Overview.Rows.Single(r => r.ItemId == OilId).QuantityText);
@@ -394,7 +394,7 @@ public sealed partial class ViewTests
             await Pump(Settling);
             await Pump(Settling);
             Assert.Equal(1, CallsTo(api, $"POST /api/stock/orders/{OrderId}/close"));
-            Assert.True(Shows(window, "Bestellung 7 abgeschlossen."));
+            Assert.True(Shows(window, "Bestellung 7 abgeschlossen"));
             return shell.AdminPage;
         }, api);
     }
@@ -545,7 +545,7 @@ public sealed partial class ViewTests
             var put = calls.IndexOf($"PUT /api/stock/orders/{OrderId}");
             Assert.InRange(put, 0, calls.IndexOf($"POST /api/stock/orders/{OrderId}/ordered") - 1);
             Assert.Equal(0, CallsTo(api, $"POST /api/stock/orders/{OrderId}/send"));
-            Assert.True(Shows(window, "Bestellung 7 als bestellt markiert."));
+            Assert.True(Shows(window, "Bestellung 7 als bestellt markiert"));
             Assert.Equal("12", FieldNamed(window, "Geliefert Massageöl (Flasche)").Text);
             return shell.AdminPage;
         }, api);
@@ -721,7 +721,7 @@ public sealed partial class ViewTests
 
             var sent = System.Text.Json.JsonSerializer.Deserialize<StockSupplierInput>(Assert.Single(api.Calls, c => c.Route == "POST /api/stock/suppliers").Body!, ApiClient.Json)!;
             Assert.Equal(("Haslauer", "Eva Muster", 5, 150m, SupplierOrderChannel.Portal), (sent.Name, sent.ContactPerson, sent.LeadTimeDays, sent.MinimumOrderValue, sent.OrderChannel));
-            Assert.True(Shows(window, "Gespeichert."));
+            Assert.True(Shows(window, "Gespeichert"));
             Assert.True(Shows(window, "Haslauer"));
             return shell.AdminPage;
         }, api);
@@ -753,7 +753,7 @@ public sealed partial class ViewTests
 
             var sent = System.Text.Json.JsonSerializer.Deserialize<StockItemInput>(Assert.Single(api.Calls, c => c.Route == $"PUT /api/stock/items/{TowelId}").Body!, ApiClient.Json)!;
             Assert.Equal(("Handtuch", SupplierId, "Packung", 10m, "Karton", 5), (sent.Name, sent.SupplierId, sent.PackUnit, sent.PackSize, sent.CaseUnit, sent.PacksPerCase));
-            Assert.True(Shows(window, "Handtuch gespeichert."));
+            Assert.True(Shows(window, "Handtuch gespeichert"));
             Assert.False(stock.HasUnsavedChanges);
             return shell.AdminPage;
         }, api);

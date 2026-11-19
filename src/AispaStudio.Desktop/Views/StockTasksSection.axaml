@@ -7,7 +7,7 @@
   <!--
     Aufgaben des Lagers (R05 Slice 112): „Bald ablaufend“, „Abverkaufsliste“ und „Abgelaufen“. Erledigt ist eine Aufgabe, wenn die Charge verbraucht oder ausgebucht ist.
   -->
-  <StackPanel Spacing="16">
+  <StackPanel Spacing="16" Grid.IsSharedSizeScope="True">
     <ui:InfoBar Severity="Error" Title="Aufgaben nicht geladen" Message="{Binding LoadError}" IsVisible="{Binding HasLoadError}" />
 
     <!-- Ablaufliste als PDF (PDF-Ausgaben F, ADR 0092): „Ablaufliste als PDF“ öffnet die Wahl des Zeitraums und den Knopfblock ohne Senden -->
@@ -47,10 +47,32 @@
           <ui:HelpButton Grid.Column="1" Topic="lager-ablauf-aufgaben" />
         </Grid>
         <TextBlock Text="Chargen innerhalb der Ablaufwarnung ihres Materials, zuerst ablaufend zuerst." Classes="muted small" TextWrapping="Wrap" />
+        <!-- Kopfzeile (design.md 5.7): dieselben Spalten wie die Zeilen, die Breiten teilen sich die Gruppen -->
+        <Grid AutomationProperties.AccessibilityView="Raw">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" SharedSizeGroup="ExpiringBatch" />
+            <ColumnDefinition Width="Auto" SharedSizeGroup="ExpiringPlace" />
+            <ColumnDefinition Width="Auto" SharedSizeGroup="ExpiringExpiry" />
+            <ColumnDefinition Width="Auto" SharedSizeGroup="ExpiringQuantity" />
+          </Grid.ColumnDefinitions>
+          <TextBlock Text="Material" Classes="group" />
+          <TextBlock Grid.Column="1" Text="Charge" Classes="group" MinWidth="80" Margin="12,0,0,0" />
+          <TextBlock Grid.Column="2" Text="Lagerort" Classes="group" MinWidth="120" Margin="12,0,0,0" />
+          <TextBlock Grid.Column="3" Text="Ablauf" Classes="group" MinWidth="176" Margin="12,0,0,0" />
+          <TextBlock Grid.Column="4" Text="Bestand" Classes="group" MinWidth="96" Margin="12,0,0,0" TextAlignment="Right" />
+        </Grid>
         <ItemsControl x:Name="TaskExpiringList" ItemsSource="{Binding Expiring}" AutomationProperties.Name="Bald ablaufend">
           <ItemsControl.ItemTemplate>
             <DataTemplate x:DataType="vm:StockTaskRow">
-              <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto" Margin="0,4">
+              <Grid Margin="0,4">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*" />
+                  <ColumnDefinition Width="Auto" SharedSizeGroup="ExpiringBatch" />
+                  <ColumnDefinition Width="Auto" SharedSizeGroup="ExpiringPlace" />
+                  <ColumnDefinition Width="Auto" SharedSizeGroup="ExpiringExpiry" />
+                  <ColumnDefinition Width="Auto" SharedSizeGroup="ExpiringQuantity" />
+                </Grid.ColumnDefinitions>
                 <TextBlock Text="{Binding Material}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
                 <TextBlock Grid.Column="1" Text="{Binding BatchText}" MinWidth="80" Margin="12,0,0,0" VerticalAlignment="Center" />
                 <TextBlock Grid.Column="2" Text="{Binding PlaceName}" MinWidth="120" Margin="12,0,0,0" VerticalAlignment="Center" />
@@ -70,10 +92,28 @@
       <StackPanel Spacing="12">
         <TextBlock Text="Abverkaufsliste" Classes="h2" />
         <TextBlock Text="Bald ablaufende Chargen, die an der Kassa verkauft werden können. Abgelaufenes steht nie auf dieser Liste." Classes="muted small" TextWrapping="Wrap" />
+        <Grid AutomationProperties.AccessibilityView="Raw">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" SharedSizeGroup="SellOffPlace" />
+            <ColumnDefinition Width="Auto" SharedSizeGroup="SellOffDue" />
+            <ColumnDefinition Width="Auto" SharedSizeGroup="SellOffQuantity" />
+          </Grid.ColumnDefinitions>
+          <TextBlock Text="Artikel" Classes="group" />
+          <TextBlock Grid.Column="1" Text="Lagerort" Classes="group" MinWidth="120" Margin="12,0,0,0" />
+          <TextBlock Grid.Column="2" Text="Ablauf" Classes="group" MinWidth="96" Margin="12,0,0,0" />
+          <TextBlock Grid.Column="3" Text="Bestand" Classes="group" MinWidth="96" Margin="12,0,0,0" TextAlignment="Right" />
+        </Grid>
         <ItemsControl x:Name="TaskSellOffList" ItemsSource="{Binding SellOff}" AutomationProperties.Name="Abverkaufsliste">
           <ItemsControl.ItemTemplate>
             <DataTemplate x:DataType="vm:StockTaskRow">
-              <Grid ColumnDefinitions="*,Auto,Auto,Auto" Margin="0,4">
+              <Grid Margin="0,4">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*" />
+                  <ColumnDefinition Width="Auto" SharedSizeGroup="SellOffPlace" />
+                  <ColumnDefinition Width="Auto" SharedSizeGroup="SellOffDue" />
+                  <ColumnDefinition Width="Auto" SharedSizeGroup="SellOffQuantity" />
+                </Grid.ColumnDefinitions>
                 <TextBlock Text="{Binding ArticleText}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
                 <TextBlock Grid.Column="1" Text="{Binding PlaceName}" MinWidth="120" Margin="12,0,0,0" VerticalAlignment="Center" />
                 <TextBlock Grid.Column="2" Text="{Binding DueText}" Classes="warn small" MinWidth="96" Margin="12,0,0,0" VerticalAlignment="Center" />
@@ -88,11 +128,35 @@
     <Border Classes="card" IsVisible="{Binding HasExpired}">
       <StackPanel Spacing="12">
         <TextBlock Text="Abgelaufen" Classes="h2" />
-        <TextBlock Text="Diese Chargen darfst du nicht mehr verwenden. Buche sie aus, sobald sie entsorgt sind." Classes="muted small" TextWrapping="Wrap" />
+        <TextBlock Text="Diese Chargen nicht mehr verwenden. Nach der Entsorgung ausbuchen." Classes="muted small" TextWrapping="Wrap" />
+        <Grid AutomationProperties.AccessibilityView="Raw">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" SharedSizeGroup="ExpiredBatch" />
+            <ColumnDefinition Width="Auto" SharedSizeGroup="ExpiredPlace" />
+            <ColumnDefinition Width="Auto" SharedSizeGroup="ExpiredDue" />
+            <ColumnDefinition Width="Auto" SharedSizeGroup="ExpiredQuantity" />
+            <ColumnDefinition Width="Auto" SharedSizeGroup="ExpiredAction" />
+          </Grid.ColumnDefinitions>
+          <TextBlock Text="Material" Classes="group" />
+          <TextBlock Grid.Column="1" Text="Charge" Classes="group" MinWidth="80" Margin="12,0,0,0" />
+          <TextBlock Grid.Column="2" Text="Lagerort" Classes="group" MinWidth="120" Margin="12,0,0,0" />
+          <TextBlock Grid.Column="3" Text="Ablauf" Classes="group" MinWidth="176" Margin="12,0,0,0" />
+          <TextBlock Grid.Column="4" Text="Bestand" Classes="group" MinWidth="96" Margin="12,0,0,0" TextAlignment="Right" />
+          <Border Grid.Column="5" Margin="12,0,0,0" />
+        </Grid>
         <ItemsControl x:Name="TaskExpiredList" ItemsSource="{Binding Expired}" AutomationProperties.Name="Abgelaufen">
           <ItemsControl.ItemTemplate>
             <DataTemplate x:DataType="vm:StockTaskRow">
-              <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto,Auto" Margin="0,4">
+              <Grid Margin="0,4">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*" />
+                  <ColumnDefinition Width="Auto" SharedSizeGroup="ExpiredBatch" />
+                  <ColumnDefinition Width="Auto" SharedSizeGroup="ExpiredPlace" />
+                  <ColumnDefinition Width="Auto" SharedSizeGroup="ExpiredDue" />
+                  <ColumnDefinition Width="Auto" SharedSizeGroup="ExpiredQuantity" />
+                  <ColumnDefinition Width="Auto" SharedSizeGroup="ExpiredAction" />
+                </Grid.ColumnDefinitions>
                 <TextBlock Text="{Binding Material}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
                 <TextBlock Grid.Column="1" Text="{Binding BatchText}" MinWidth="80" Margin="12,0,0,0" VerticalAlignment="Center" />
                 <TextBlock Grid.Column="2" Text="{Binding PlaceName}" MinWidth="120" Margin="12,0,0,0" VerticalAlignment="Center" />

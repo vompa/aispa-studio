@@ -156,6 +156,9 @@ public sealed partial class StoragePlacesViewModel : ViewModelBase, IFocusTarget
 
     public bool CanEditKind => !IsMain;
 
+    /// <summary>Warum „Art“ gesperrt ist; beim Hauptlager steht der Grund unter dem Feld und im Hinweis am gesperrten Feld.</summary>
+    public string? KindHelp => IsMain ? "Beim Hauptlager fest." : null;
+
     public bool ShowRoom => SelectedKind?.Kind == StoragePlaceKind.Room;
 
     public string HeadingText => _current?.Name ?? "Neuer Lagerort";
@@ -500,7 +503,7 @@ public sealed partial class StoragePlacesViewModel : ViewModelBase, IFocusTarget
 
     private void NotifyStateChanged()
     {
-        foreach (var name in new[] { nameof(IsCreating), nameof(IsMain), nameof(CanEditKind), nameof(HeadingText), nameof(CanDelete), nameof(CanDeactivate), nameof(HasCopySources), nameof(HasMinimums), nameof(HasUnsavedChanges), nameof(CanSave), nameof(CanCopy) })
+        foreach (var name in new[] { nameof(IsCreating), nameof(IsMain), nameof(CanEditKind), nameof(KindHelp), nameof(HeadingText), nameof(CanDelete), nameof(CanDeactivate), nameof(HasCopySources), nameof(HasMinimums), nameof(HasUnsavedChanges), nameof(CanSave), nameof(CanCopy) })
         {
             OnPropertyChanged(name);
         }

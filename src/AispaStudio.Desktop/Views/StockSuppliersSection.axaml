@@ -36,7 +36,7 @@
     </Border>
 
     <Border Grid.Column="1" Classes="card">
-      <StackPanel Spacing="16" MaxWidth="720">
+      <StackPanel Spacing="16" MinWidth="560" MaxWidth="720" HorizontalAlignment="Left">
         <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="4">
           <TextBlock Text="{Binding HeadingText}" Classes="h2" VerticalAlignment="Center" TextWrapping="Wrap" />
           <ui:MoreMenuButton x:Name="SupplierMoreMenu" Grid.Column="1" IsVisible="{Binding CanRemove}" Subject="{Binding HeadingText}"

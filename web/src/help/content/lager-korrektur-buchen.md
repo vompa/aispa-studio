@@ -18,7 +18,7 @@ Eine Korrektur ändert den Bestand um eine Menge mit Vorzeichen und braucht imme
 4. Bei mehreren Lagerorten bei **Lagerort** den Ort wählen, an dem die Menge fehlt oder gefunden wurde.
 5. Bei **Menge (mit Vorzeichen)** die Menge eintragen: negativ für Abgänge, positiv für Funde, z. B. −2 für Bruch.
 6. Bei **Grund** den Grund eintragen, z. B. „Bruch“.
-7. Auf **Buchen** klicken. Es erscheint „Gebucht.“
+7. Auf **Buchen** klicken. Unten erscheint kurz „Gebucht“.
 
 ## Abgelaufene Charge ausbuchen {#abgelaufen}
 

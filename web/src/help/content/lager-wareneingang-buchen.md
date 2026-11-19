@@ -20,7 +20,7 @@ Ein Wareneingang erhöht den Bestand am gewählten Standort, im Hauptlager. Kam 
 4. Bei mehreren Lagerorten ist bei **Lagerort** das Hauptlager vorbelegt; nur ändern, wenn die Ware gleich an einen anderen Ort kommt.
 5. **Menge** in der Einheit des Materials eintragen.
 6. Optional **Preis je Einheit (€, netto)**, **Charge** und **Ablaufdatum** eintragen, dazu einen **Grund**.
-7. Auf **Buchen** klicken. Es erscheint „Gebucht.“
+7. Auf **Buchen** klicken. Unten erscheint kurz „Gebucht“.
 
 ## In Packungen oder Gebinden erfassen {#gebinde}
 
@@ -29,7 +29,7 @@ Kennt das Material Packung oder Gebinde, erscheint das Feld **Erfasst in**.
 1. Bei **Erfasst in** die Ebene wählen, z. B. „Karton (4 × 500 ml)“.
 2. Bei **Menge** die Anzahl Kartons eintragen. Unter dem Feld steht, was das in der Einheit des Materials ergibt, z. B. „= 2.000 ml“.
 3. Der **Preis** gilt je Karton. Das Lager rechnet ihn in den Preis je Einheit um.
-4. Auf **Buchen** klicken. Es erscheint die gebuchte Menge, z. B. „Gebucht: 2.000 ml.“
+4. Auf **Buchen** klicken. Unten erscheint kurz die gebuchte Menge, z. B. „Gebucht: 2.000 ml“.
 
 ## Gut zu wissen {#hinweise}
 
