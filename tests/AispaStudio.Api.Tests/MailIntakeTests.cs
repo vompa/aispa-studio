@@ -269,6 +269,31 @@ public sealed partial class MailIntakeTests(ApiFixture fixture)
     }
 
     [Fact]
+    public async Task Antwortvorschlag_kennt_Anreise_Schliesstage_und_Hinweise_aber_keine_internen_Gruende()
+    {
+        var spa = await MailSpa.CreateAsync(fixture, Ct);
+        var l = spa.Location;
+        await spa.Spa.PutAsync<LocationDto>($"/api/locations/{l.Id}", new LocationInput(l.Name, l.TimeZone, l.Currency, l.OpeningHours, l.Region,
+            new LocationContact("Graben 1", "1010", "Wien", null, null, "U1 bis Stephansplatz, Garage Am Graben.")), Ct);
+        var t = spa.Treatment;
+        await spa.Spa.PutAsync<TreatmentDto>($"/api/treatments/{t.Id}", new TreatmentInput(t.Name, t.DurationMinutes, t.PreparationMinutes,
+            t.FollowUpMinutes, t.Price, t.RequiredQualificationIds, t.RoomIds, t.EquipmentIds, GuestHint: "Bitte Badekleidung mitbringen."), Ct);
+        var tomorrow = DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, TimeZoneInfo.FindSystemTimeZoneById(l.TimeZone)).DateTime).AddDays(1);
+        await spa.Spa.PostAsync<ClosureDto>($"/api/locations/{l.Id}/closures",
+            new ClosureInput(tomorrow, null, tomorrow, null, ClosureKind.SpecialClosure, "Wasserschaden im Keller", "Betriebsausflug"), Ct);
+        var subject = $"Anreise {Guid.NewGuid():N}";
+
+        await spa.ReceiveAsync(spa.Guest, subject, "Guten Tag, wie komme ich am besten zu Ihnen?", Ct);
+
+        var facts = FakeQuestionAnswerer.Requests[subject].Facts;
+        Assert.Contains("Anreise und Parken: U1 bis Stephansplatz, Garage Am Graben.", facts, StringComparison.Ordinal);
+        Assert.Contains($"Geschlossen: {tomorrow:dd.MM.yyyy} (Betriebsausflug)", facts, StringComparison.Ordinal);
+        Assert.Contains("(Hinweis für Gäste: Bitte Badekleidung mitbringen.)", facts, StringComparison.Ordinal);
+        // Der Grund für das Team geht nie an die KI.
+        Assert.DoesNotContain("Wasserschaden", facts, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task Ohne_Antwort_in_den_Angaben_oder_mit_erfundener_Zahl_bleibt_es_beim_Weiterleiten()
     {
         var spa = await MailSpa.CreateAsync(fixture, Ct);

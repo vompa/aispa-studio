@@ -417,7 +417,7 @@ Die Nummern sind die Reihenfolge, die der jeweilige Thread gewählt hätte ([Üb
 
 **KI-Terminannahme, Kanäle, Assistent**
 1. KI-Vorschläge für Absagen und Verschiebungen im Posteingang: seit 19.11.2026 gebaut (Absage mit einem Klick seit #59; Verschiebungswunsch mit freien Zeiten und „Auf … verschieben“).
-2. Wissensbasis des Spas (Parken, Anreise, Gutscheine, Hausregeln) als Quelle für Antwortvorschläge.
+2. Wissensbasis des Spas als Quelle für Antwortvorschläge: seit 19.11.2026 kennen die Vorschläge Anreise und Parken, Schließtage (Text für Gäste), Hinweise der Behandlungen und den Gutscheinkauf; offen sind frei gepflegte Einträge wie Hausregeln (braucht eine Maske in der Verwaltung, die gerade umgebaut wird).
 3. Abmelden mit einem Klick im Mailprogramm (`List-Unsubscribe-Post`, RFC 8058): seit 19.11.2026 gebaut.
 4. Ansage am Telefon je Spa und in weiteren Sprachen; Rückruf statt SMS für Festnetz-Anrufer.
 5. KI-Vorschläge im Dienstplan, nur als Vorschlag, abgestimmt mit dem Kalender.

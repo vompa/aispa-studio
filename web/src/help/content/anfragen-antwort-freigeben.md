@@ -32,6 +32,10 @@ Unter „Mit KI überarbeiten“ schreibt die KI den Entwurf um:
 - Datum, Uhrzeit und Preis übernimmt die KI nur aus dem Entwurf; erfindet sie eine Zahl, bleibt der Entwurf, wie er ist.
 - Ohne API-Schlüssel für die KI steht „Überarbeiten mit KI ist ohne API-Schlüssel nicht verfügbar.“
 
+## Fragen von Gästen {#fragen}
+
+Stellt ein Gast eine Frage (Öffnungszeiten, Preis, Anreise), schlägt die KI eine Antwort vor, aber nur aus den Angaben des Spas: Standorte mit Adresse, Anreise und Parken, Öffnungszeiten, Schließtage der nächsten 90 Tage mit dem Text für Gäste, Stornofrist, Behandlungen mit Dauer, Preis und Hinweis für Gäste, dazu die Links zum Buchen und zum Gutscheinkauf. Interne Gründe einer Schließzeit, das Rezeptionshandbuch und die Betriebsinformationen bekommt die KI nicht. Steht die Antwort nicht in diesen Angaben, bleibt es bei der Eingangsbestätigung, und die Rezeption antwortet selbst.
+
 ## Antwort in einer anderen Sprache {#fremdsprache}
 
 Schreibt der Gast in einer anderen Sprache, entwirft die KI die Antwort in seiner Sprache und zeigt darunter „Auf Deutsch, zur Kontrolle“. Nach eigenen Änderungen verschwindet die Kontrollübersetzung, bis die KI wieder überarbeitet. Siehe [Nachricht übersetzen](hilfe:anfragen-uebersetzen).

@@ -7365,3 +7365,22 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Geprüft:** API alle `MailIntake*`-Tests, `LocalAiTests`, `ChannelScanTests` 108 von 108 (neu: Verschiebungswunsch mit Termin und Zeiten, Termin unverändert bis zum Klick, fremde Zeit 400, Verschieben, zweites Mal 400, Antwort „wie gewünscht verschoben“; angepasst: ohne sichere Zuordnung weder Termin noch Zeiten, nach dem Zuordnen beides); Windows-App Posteingang-Tests 20 von 20 (neu: Rückfrage, Aufruf mit der Zeit, Meldung), Ansichtstest, Knopflängen (165), „höchstens“ (33).
 - **Nicht geprüft:** die echte KI (Claude) mit einer Verschiebungsmail und Wunschzeit; die laufende App unter Windows.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Posteingang: Antwortvorschläge kennen Anreise, Schließtage, Hinweise und Gutscheine (19.11.2026)
+
+- **Auftrag:** Block „KI-Terminannahme und Posteingang“, Punkt 2 („Wissensbasis des Spas … als Quelle für Antwortvorschläge“); vom Auftraggeber am 19.11.2026 zum autonomen Abarbeiten freigegeben.
+- **Befund:** Die Vorschläge auf Fragen von Gästen kannten Adresse, Öffnungszeiten, Stornofrist, Behandlungen mit Preis und den Buchungslink (`SpaFacts`). Anreise und Parken (`Location.Directions`) waren gepflegt, gingen aber nicht mit; ebenso die Hinweise der Behandlungen für Gäste, Schließtage und der Gutscheinkauf.
+- **Was:**
+  - `SpaFacts.DescribeAsync` ergänzt je Standort:
+    - „Anreise und Parken: …“
+    - „Geschlossen: …“ mit dem Text für Gäste, für die nächsten 90 Tage
+    - den Link zum Gutscheinkauf, wenn dort Gutscheine online verkauft werden (`VoucherShop.AvailableAsync`)
+    - je Behandlung „(Hinweis für Gäste: …)“
+  - Hilfe `anfragen-antwort-freigeben`, Abschnitt „Fragen von Gästen“.
+- **Detailentscheidungen:**
+  1. Nur was Gäste ohnehin sehen dürfen: Der interne Grund einer Schließzeit, das Rezeptionshandbuch und die Betriebsinformationen gehen nie an die KI (ADR 0074 für die Betriebsinformationen).
+  2. Eine frei gepflegte Wissensbasis (Hausregeln, Gutscheinbedingungen) wird hier nicht gebaut: Sie braucht eine Maske in der Verwaltung, die gerade ein anderer Agent umbaut.
+  3. Die Prüfung „jede Zahl muss in den Angaben stehen“ bleibt; die neuen Angaben erweitern nur, was als bekannt gilt.
+- **Geprüft:** API alle `MailIntake*`-, `Assistant*`- und `Business*`-Tests: 426 von 426. Neu: Anreise, Schließtag mit Text für Gäste und Hinweis der Behandlung stehen in den Angaben, der interne Grund nicht.
+- **Nicht geprüft:** die echte KI (Claude) mit einer Frage nach Anreise oder Schließtagen.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
