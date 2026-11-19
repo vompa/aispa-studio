@@ -118,6 +118,7 @@ public sealed class AispaDbContext(DbContextOptions<AispaDbContext> options, Ten
     public DbSet<RoomApproval> RoomApprovals => Set<RoomApproval>();
 
     public DbSet<BriefingSummary> BriefingSummaries => Set<BriefingSummary>();
+    public DbSet<ManagementSummary> ManagementSummaries => Set<ManagementSummary>();
     public DbSet<PayrollSettings> PayrollSettings => Set<PayrollSettings>();
     public DbSet<EmployeePayroll> EmployeePayrolls => Set<EmployeePayroll>();
     public DbSet<LocationOnlineSettings> LocationOnlineSettings => Set<LocationOnlineSettings>();

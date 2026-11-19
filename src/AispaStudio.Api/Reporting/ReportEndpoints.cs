@@ -334,7 +334,8 @@ internal static class ReportEndpoints
             .RequirePermission(AccessRight.Book);
 
         group.MapGet("/locations/{locationId:guid}/management", async Task<Results<Ok<ManagementReportDto>, NotFound, ValidationProblem>> (
-                Guid locationId, DateOnly from, DateOnly until, ManagementReports reports, AccessService accessService, CancellationToken ct) =>
+                Guid locationId, DateOnly from, DateOnly until, ManagementReports reports, ManagementSummaries summaries, AccessService accessService,
+                CancellationToken ct) =>
             {
                 if (from > until || until.DayNumber - from.DayNumber > 366)
                 {
@@ -342,7 +343,9 @@ internal static class ReportEndpoints
                 }
 
                 var amounts = (await accessService.CurrentAsync(ct))!.Has(AccessRight.ViewAmountReports);
-                return await reports.ManagementAsync(locationId, from, until, amounts, ct) is { } report ? TypedResults.Ok(report) : TypedResults.NotFound();
+                return await reports.ManagementAsync(locationId, from, until, amounts, ct) is { } report
+                    ? TypedResults.Ok(await summaries.AttachAsync(report, ct))
+                    : TypedResults.NotFound();
             })
             .WithName("GetManagementReport")
             .WithSummary("Kennzahlen eines Zeitraums mit Vergleich zum gleich langen Zeitraum davor; ohne das Recht „Berichte mit Beträgen“ ohne Geldbeträge. Auch in der Mitarbeiter-App für „Heute im Spa“, mit den Rechten der Rolle.")

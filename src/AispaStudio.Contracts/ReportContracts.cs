@@ -157,6 +157,8 @@ public sealed record TreatmentKpi(Guid TreatmentId, string Name, int Appointment
 /// Umsätze aus den signierten Belegen der Kassen des Standorts, Termine und Auslastung aus dem Kalender.
 /// <c>AmountsHidden</c>: ohne das Recht „Berichte mit Beträgen“ fehlen alle Geldbeträge (Umsatz-Kennzahlen, Umsatz nach Konto und Zahlart,
 /// Umsatz je Behandlung und Person, Margen); Auslastung, Anzahlen und Quoten bleiben.
+/// <c>AiSummary</c>: Kommentar der KI aus genau diesen Angaben (nur mit KI und ab sieben Tagen); solange er geschrieben wird, ist <c>AiSummaryPending</c>
+/// gesetzt. Die Zahlen kommen nie von der KI. <c>AiNotice</c> ist der Hinweis, der neben dem KI-Text stehen muss.
 /// </summary>
 public sealed record ManagementReportDto(
     Guid LocationId,
@@ -170,7 +172,10 @@ public sealed record ManagementReportDto(
     IReadOnlyList<string> Alerts,
     bool AmountsHidden = false,
     int NoShows = 0,
-    int Cancellations = 0);
+    int Cancellations = 0,
+    string? AiSummary = null,
+    bool AiSummaryPending = false,
+    string? AiNotice = null);
 
 // ---------- Pflichtberichte ----------
 

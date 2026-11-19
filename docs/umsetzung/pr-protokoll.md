@@ -7399,3 +7399,24 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Geprüft:** Windows-App `CompanionTests` 8 von 8 (neu: Name aus der Suche, Anlegen mit Telefon, danach gewählt und buchbar, Abbrechen), Ansichtstest, Knopflängen (165), Leiste (121), Companion (58), „höchstens“ (33).
 - **Nicht geprüft:** die laufende App unter Windows.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Berichte: KI-Kommentar im Managementbericht (19.11.2026)
+
+- **Auftrag:** Block „Berichte und KI“, Punkt 1 (KI-Zusammenfassung im Management- und Wochenbericht); vom Auftraggeber am 19.11.2026 zum autonomen Abarbeiten freigegeben.
+- **Befund:** Eine KI-Zusammenfassung gab es nur im Tagesstart (`BriefingSummaries`). Einen eigenen Wochenbericht gibt es nicht; der Managementbericht deckt jeden Zeitraum ab.
+- **Was:**
+  - `ManagementSummaries` nach dem Muster des Tagesstarts:
+    - Tabelle `ManagementSummaries` je Standort, Zeitraum und Sicht mit oder ohne Beträge (Migration).
+    - Auftrag über die Queue, Fingerabdruck der Fakten, Text höchstens 1000 Zeichen.
+    - Zahlenprüfung über `BriefingSummaries.OnlyKnownNumbers`, jetzt auch für einen beliebigen Faktentext.
+  - `IManagementSummarizer` mit Claude und ohne KI. Fakten: Zeitraum, Kennzahlen mit Vorperiode, No-Shows und Stornos, Hinweise, Behandlungen nach Anzahl, Personal mit Auslastung; ohne Gästenamen.
+  - `ManagementReportDto.AiSummary`, `AiSummaryPending`, `AiNotice`.
+  - Windows-App: Kommentar mit Pille „KI“ über den Alarmen; der Reiter fragt nach, solange der Kommentar aussteht.
+  - Hilfe `berichte-kennzahlen-ansehen`, Abschnitt „Kommentar der KI“ mit Bild; ADR 0022, Nachtrag.
+- **Detailentscheidungen:**
+  1. Erst ab sieben Tagen: Ein einzelner Tag („Heute im Spa“ am Handy) ändert sich laufend, ein Kommentar dazu hätte wenig zu sagen und kostete jedes Mal.
+  2. Getrennte Texte mit und ohne Beträge: Wer keine Beträge sehen darf, bekommt auch keinen Kommentar, der sie nennt.
+  3. Ein verworfener Text (fremde Zahl) bleibt verworfen, bis sich die Zahlen ändern; kein zweiter Versuch, wie beim Tagesstart.
+- **Geprüft:** API `ManagementSummaryTests` 2 von 2 (neu: Kommentar über die Queue, Fakten ohne Gästenamen, erfundene Zahl verworfen, einzelner Tag ohne Kommentar), Berichts- und Tagesstart-Tests 39 von 39, `ChannelScanTests`; Windows-App `AdminReportsTests` 45 von 45 (neu: Nachfragen bis zum Kommentar), Ansichtstest, Knopflängen (165), „höchstens“ (33).
+- **Nicht geprüft:** die echte KI (Claude) mit echten Kennzahlen; die laufende App unter Windows.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).

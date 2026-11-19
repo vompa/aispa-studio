@@ -43346,6 +43346,22 @@
             "type": "integer",
             "format": "int32",
             "default": 0
+          },
+          "aiSummary": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "aiSummaryPending": {
+            "type": "boolean",
+            "default": false
+          },
+          "aiNotice": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },

@@ -201,10 +201,13 @@ internal sealed partial class BriefingSummaries(
     }
 
     /// <summary>Jede Zahl im KI-Text muss so in den Fakten vorkommen; die KI rechnet keine Pflicht- oder Kennzahlen.</summary>
-    internal static bool OnlyKnownNumbers(string text, BriefingDto facts)
+    internal static bool OnlyKnownNumbers(string text, BriefingDto facts) => OnlyKnownNumbers(text, FactsText(facts));
+
+    /// <summary>Wie oben für einen beliebigen Faktentext (auch der Managementbericht nutzt das).</summary>
+    internal static bool OnlyKnownNumbers(string text, string factsText)
     {
         // Auch Teile wie „18“ aus „18.10.2026“ oder „9“ aus „09:00“ gelten als bekannt.
-        var known = Numbers().Matches(FactsText(facts))
+        var known = Numbers().Matches(factsText)
             .SelectMany(m => m.Value.Split('.', ',').Append(m.Value))
             .Select(Normalize)
             .ToHashSet(StringComparer.Ordinal);

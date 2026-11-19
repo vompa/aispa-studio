@@ -29,6 +29,8 @@ Die Behandlungskarte ist das sichtbarste Alleinstellungsmerkmal: Was ein Therape
 
 Berichte in PR #16 (Mein Tag, Tagesstart, Management, Pflichtberichte, Vorbereitung). Offen: KI-Zusammenfassung im Tagesstart, Push um 7:30 und Mails, Lesemodelle bei Bedarf.
 
+- Nachtrag (19.11.2026): KI-Kommentar im Managementbericht. Ab sieben Tagen schreibt die KI im Hintergrund drei bis fünf Sätze aus den fertig gerechneten Kennzahlen (Tabelle `ManagementSummaries` je Standort, Zeitraum und Sicht mit/ohne Beträge; Fingerabdruck der Fakten; Queue wie der Tagesstart). Jede Zahl im Text muss wörtlich in den Fakten stehen, sonst wird er verworfen (ADR 0008). Ohne das Recht „Berichte mit Beträgen“ sieht die KI keine Beträge; Gästenamen und Gesundheitsdaten nie.
+
 ## Quellen
 
 - [Reporting-Konzept](../konzepte/reporting.md)

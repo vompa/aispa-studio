@@ -1421,6 +1421,17 @@ Expected: Im Kalender steht der Termin beim Therapeuten; in der Notiz steht „W
 Closes: –
 Result: ☐
 
+### Berichte – KI-Kommentar im Managementbericht
+Start: `dotnet run --project src/AispaStudio.AppHost` mit KI-Schlüssel und Beispieldaten, Windows-App als Inhaber
+1. **Verwaltung** › **Zahlen** › **Berichte** öffnen; Zeitraum vom Monatsersten bis heute (mindestens sieben Tage).
+Expected: Zuerst „Die KI kommentiert den Zeitraum …“, nach ein paar Sekunden drei bis fünf Sätze mit der Pille „KI“ und dem Hinweis „Maßgeblich sind die Zahlen selbst.“; jede Zahl darin steht auch in den Kennzahlen.
+2. Als Standortleitung ohne „Berichte mit Beträgen“ denselben Zeitraum öffnen.
+Expected: Der Kommentar nennt keine Beträge.
+3. Einen einzelnen Tag wählen (Von = Bis).
+Expected: Kein Kommentar.
+Closes: –
+Result: ☐
+
 ### Leiste „KI und Hilfe“ – neuen Gast beim Buchen anlegen
 Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App als Rezeption, mit KI-Schlüssel
 1. Rechts die Leiste **KI und Hilfe** öffnen, „Wann ist morgen eine Massage frei?“ fragen und eine Zeit anklicken.

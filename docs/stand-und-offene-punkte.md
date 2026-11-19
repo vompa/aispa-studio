@@ -429,7 +429,7 @@ Die Nummern sind die Reihenfolge, die der jeweilige Thread gewählt hätte ([Üb
 - Suche und weitere Sprachen der Hilfe, dunkle Bilder, Markierungen in Bildern. Mehrsprachige Oberflächen samt Hilfe: Entscheidungsvorlage mit Aufwand in [Mehrsprachigkeit](konzepte/mehrsprachigkeit.md); gebaut wird erst nach der Entscheidung des Auftraggebers.
 
 **Berichte und KI**
-- KI-Zusammenfassung in Management- und Wochenbericht, Push um 7:30, Wochen- und Monatsbericht per Mail.
+- KI-Kommentar im Managementbericht: seit 19.11.2026 gebaut (ab sieben Tagen). Offen: Wochen- und Monatsbericht per Mail, Push um 7:30.
 - Gesundheitshinweise auf der Behandlungskarte mit protokolliertem Abruf.
 - Lesemodelle, sobald Messungen es verlangen.
 - Testdatensatz: Ist-Zeiten der Zeiterfassung, Termine der Windows-App (Offline-Abgleich).
