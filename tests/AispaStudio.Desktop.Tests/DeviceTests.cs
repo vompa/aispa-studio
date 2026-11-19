@@ -334,11 +334,11 @@ public sealed class DeviceTests
 
         Assert.Equal([display], listed);
         Assert.Equal(0, afterCancel);
-        Assert.Equal("Anzeige widerrufen?", dialogs.Asked[0].Title);
+        Assert.Equal("Kopplung aufheben?", dialogs.Asked[0].Title);
         dialogs.AssertRules();
         Assert.Empty(devices.Displays);
         Assert.False(devices.HasDisplays);
-        Assert.Equal("„Pausenraum“ widerrufen.", devices.DisplayText);
+        Assert.Equal("Kopplung von „Pausenraum“ aufgehoben.", devices.DisplayText);
     }
 
     [Fact]
