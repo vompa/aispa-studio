@@ -60,7 +60,7 @@ public sealed partial class AdminReportsTests
         hidden ? [] : [new RevenueLine("Karte", null, 1200m, 1000m)],
         [new EmployeeKpi(Guid.NewGuid(), "Lisa", 80m, 60m, 75, hidden ? null : 50m)],
         [new TreatmentKpi(Guid.NewGuid(), "Massage", 12, hidden ? null : 900m, hidden ? null : -2.5m)],
-        ["Auslastung unter Plan"], hidden);
+        ["Klassische Massage bringt je Termin 2,50 € Verlust (Vollkosten)."], hidden);
 
     private static StubApi Api() => new StubApi()
         .On("GET /api/locations", new List<LocationDto> { StockSample.Vienna, StockSample.Salzburg })
@@ -391,7 +391,7 @@ public sealed partial class AdminReportsTests
         var room = Assert.Single(reports.Hygiene.Rooms);
         var item = Assert.Single(room.Items);
         Assert.Equal("Raum 1: teilweise abgehakt", room.Heading);
-        Assert.Equal("Ausstattung vollständig: 1 Material unter Minimum", room.Equipment);
+        Assert.Equal("Ausstattung unvollständig: 1 Material unter Minimum", room.Equipment);
         Assert.Equal(["Massageöl: 200 von 500 ml, 300 ml nachfüllen"], room.EquipmentLines);
 
         api.On(RoomStartRoute, RoomStart(RoomStartState.Checked, done: true));

@@ -215,7 +215,7 @@ public sealed partial class HygieneRoomRow(Guid roomId, Func<HygieneRoomRow, Rep
             return row;
         }, (row, i) => Update(row, i, approved, clock));
         Equipment = room.Equipment is { } equipment
-            ? $"Ausstattung vollständig: {(equipment.Complete ? "ja" : $"{(equipment.Below.Count == 1 ? "1 Material" : $"{equipment.Below.Count} Materialien")} unter Minimum")}"
+            ? equipment.Complete ? "Ausstattung vollständig" : $"Ausstattung unvollständig: {(equipment.Below.Count == 1 ? "1 Material" : $"{equipment.Below.Count} Materialien")} unter Minimum"
             : null;
         EquipmentIsWarning = room.Equipment is { Complete: false };
         EquipmentLines = room.Equipment is { Complete: false } below

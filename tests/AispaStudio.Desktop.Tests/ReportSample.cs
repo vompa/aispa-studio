@@ -55,7 +55,7 @@ internal static class ReportSample
         hidden ? [] : [new RevenueLine("Karte", null, 1200m, 1000m)],
         [new EmployeeKpi(PersonId, "Lisa", 80m, 60m, 75, hidden ? null : 50m)],
         [new TreatmentKpi(TreatmentId, "Klassische Massage", 12, hidden ? null : 900m, hidden ? null : -2.5m)],
-        ["Auslastung unter Plan"], hidden);
+        ["Klassische Massage bringt je Termin 2,50 € Verlust (Vollkosten)."], hidden);
 
     public static IReadOnlyList<PromotionKpi> Promotions(bool hidden = false) =>
     [
@@ -75,7 +75,7 @@ internal static class ReportSample
         [new BriefingItem(AppointmentId, At(9), "Anamnese fehlt bei Anna Berg")],
         [new BriefingItem(AppointmentId, At(9), "Anna Berg: Erstbesuch")],
         [],
-        [new BriefingItem(null, null, "Kassa AT1 offen")],
+        [new BriefingItem(null, null, "Kassa AT1: noch kein Tagesabschluss.")],
         pending ? null : "Ein ruhiger Tag mit einem Erstbesuch.", pending, pending ? null : "Von der KI zusammengefasst.",
         [new ServingTotalDto("Früchteteller", 2, [At(11, 20), At(12, 40)])],
         [new HandbookEntryDto(Guid.Empty, "Schlüssel", "Saunaschlüssel liegt am Empfang.", "Empfang", true, [], true, At(8))]);
