@@ -33,7 +33,7 @@ Ein Standort, der zu einer anderen Gesellschaft gehört, trägt unter „Standor
 
 Alle Felder außer dem Namen des Spas und dem Land sind freiwillig. Leere Felder erscheinen nirgends.
 
-### Name des Spas, wie Gäste und Team ihn sehen {#name}
+### Name des Spas {#name}
 
 Der Name, unter dem das Spa auftritt, z. B. „Day Spa Huber“. Pflichtfeld. Er erscheint unter anderem als Absendername in Mails an Gäste, im Betreff des Wiederbuchungs-Hinweises, in Hinweis-Mails an das Team und im Impressum der Online-Buchung. Fehlen Kontoinhaber und Firmenwortlaut, steht er auch als Empfänger im QR-Code der Sofortüberweisung.
 
@@ -103,6 +103,7 @@ Das Konto, auf das Gäste per Sofortüberweisung an der Kassa zahlen. An der Kas
 - Eine Kasse mit eigenem Konto verwendet ihres. Ein Standort mit eigener Gesellschaft verwendet die Bankverbindung aus den Firmendaten nicht.
 - Sofortüberweisung gibt es nur in Euro. Ohne IBAN (in den Firmendaten oder an der Kasse) ist sie nicht möglich.
 - Im Impressum erscheint die Bankverbindung nicht.
+- Später soll die Bankverbindung auch für Zahlungsanbieter dienen.
 
 ### Kontoinhaber {#kontoinhaber}
 

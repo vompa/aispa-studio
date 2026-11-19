@@ -44,7 +44,8 @@
      </StackPanel>
     </Border>
 
-    <ScrollViewer Grid.Column="1" x:Name="FieldsScroll" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+    <Grid Grid.Column="1" RowDefinitions="*,Auto">
+    <ScrollViewer x:Name="FieldsScroll" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
       <StackPanel Spacing="20" MaxWidth="800" HorizontalAlignment="Left" Margin="0,0,16,16">
         <ui:InfoBar Severity="Error" Title="Standorte nicht geladen" Message="{Binding LoadError}" IsVisible="{Binding HasLoadError}"
                     ActionText="Erneut laden" ActionCommand="{Binding LoadCommand}" />
@@ -85,12 +86,9 @@
                 <ComboBox ItemsSource="{x:Static vm:LocationsViewModel.Currencies}" SelectedItem="{Binding Currency}" HorizontalAlignment="Stretch" />
               </ui:FormField>
             </Grid>
-            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="4" Margin="0,4,0,0">
-              <ui:FormField Label="Bundesland / Kanton" Help="Bestimmt die gesetzlichen Feiertage, auch für den KI-Assistenten.">
-                <ComboBox x:Name="RegionField" ItemsSource="{Binding Regions}" SelectedItem="{Binding Region}" HorizontalAlignment="Stretch" MaxDropDownHeight="360" />
-              </ui:FormField>
-              <ui:HelpButton Grid.Column="1" Topic="standorte" Section="bundesland-kanton" VerticalAlignment="Top" Margin="0,22,0,0" />
-            </Grid>
+            <ui:FormField Label="Bundesland / Kanton" Help="Bestimmt die gesetzlichen Feiertage, auch für den KI-Assistenten." Margin="0,4,0,0">
+              <ComboBox x:Name="RegionField" ItemsSource="{Binding Regions}" SelectedItem="{Binding Region}" HorizontalAlignment="Stretch" MaxDropDownHeight="360" />
+            </ui:FormField>
           </StackPanel>
 
           <!-- Anschrift und Kontakt -->
@@ -127,7 +125,7 @@
               <TextBlock Text="Anreise und Parkplätze" Classes="h2" VerticalAlignment="Center" />
               <ui:HelpButton Grid.Column="1" Topic="standorte" Section="anreise" />
             </Grid>
-            <ui:FormField Label="Anreise und Parkplätze"
+            <ui:FormField Label="Wegbeschreibung"
                           Help="Gäste lesen ihn im Kundenbereich und in der Bestätigungsmail.">
               <TextBox x:Name="DirectionsField" Text="{Binding Directions}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="72" MaxLength="500"
                        PlaceholderText="z. B. U1 bis Stephansplatz, Garage Am Graben 2 Minuten zu Fuß." />
@@ -141,7 +139,7 @@
               <ui:HelpButton Grid.Column="1" Topic="standorte" Section="eigene-gesellschaft" />
             </Grid>
             <TextBlock Classes="muted" TextWrapping="Wrap"
-                       Text="Nur ausfüllen, wenn dieser Standort zu einer anderen Gesellschaft gehört. Leer gelten die Firmendaten des Spas; sie stehen auf Kassenbeleg und Rechnung, wenn der Belegkopf sie nicht schon nennt." />
+                       Text="Nur ausfüllen, wenn dieser Standort zu einer anderen Gesellschaft gehört." />
             <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="12">
               <ui:FormField Label="Firmenwortlaut">
                 <TextBox Text="{Binding LegalName}" />
@@ -185,12 +183,6 @@
             <TextBlock Text="{Binding HoursError}" Classes="small error" TextWrapping="Wrap" IsVisible="{Binding HoursError, Converter={x:Static ObjectConverters.IsNotNull}}" />
           </StackPanel>
 
-          <StackPanel x:Name="Footer" Spacing="12">
-            <ui:InfoBar Severity="Error" Title="Nicht gespeichert" Message="{Binding Error}" IsVisible="{Binding HasError}"
-                        ActionText="Erneut versuchen" ActionCommand="{Binding SaveCommand}" CloseCommand="{Binding CloseErrorCommand}" />
-            <ui:SaveBar SaveCommand="{Binding SaveCommand}" DiscardCommand="{Binding DiscardCommand}" CanDiscard="{Binding HasUnsavedChanges}" Status="{Binding StatusText}" />
-          </StackPanel>
-
           <!-- Abschnitte des gewählten Standorts, jeder mit eigenem Speichern -->
           <StackPanel Spacing="24" IsVisible="{Binding HasLocation}">
             <Border Classes="divider" />
@@ -202,5 +194,12 @@
         </StackPanel>
       </StackPanel>
     </ScrollViewer>
+
+    <StackPanel x:Name="Footer" Grid.Row="1" Spacing="12" MaxWidth="800" HorizontalAlignment="Left" Margin="0,12,16,0" IsVisible="{Binding IsLoaded}">
+      <ui:InfoBar Severity="Error" Title="Nicht gespeichert" Message="{Binding Error}" IsVisible="{Binding HasError}"
+                  ActionText="Erneut versuchen" ActionCommand="{Binding SaveCommand}" CloseCommand="{Binding CloseErrorCommand}" />
+      <ui:SaveBar SaveCommand="{Binding SaveCommand}" DiscardCommand="{Binding DiscardCommand}" CanDiscard="{Binding HasUnsavedChanges}" Status="{Binding StatusText}" />
+    </StackPanel>
+    </Grid>
   </Grid>
 </UserControl>

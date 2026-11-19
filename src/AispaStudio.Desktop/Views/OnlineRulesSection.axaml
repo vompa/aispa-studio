@@ -32,27 +32,25 @@
         <ui:FormField Grid.Row="1" Grid.Column="1" Label="Startzeiten im Raster">
           <ComboBox ItemsSource="{x:Static vm:OnlineRulesViewModel.Steps}" SelectedItem="{Binding SlotStep}" MinWidth="160" />
         </ui:FormField>
-        <ui:FormField Grid.Row="2" Label="Ausfallgebühr (% des Preises, 0 = keine)">
+        <ui:FormField Grid.Row="2" Label="Ausfallgebühr (%)" Help="0 = keine Gebühr.">
           <ui:NumberField Value="{Binding NoShowFeePercent}" Minimum="0" Maximum="100" HorizontalAlignment="Left" Width="120" />
         </ui:FormField>
-        <ui:FormField Grid.Row="2" Grid.Column="1" Label="Anzahlung (% des Preises, 100 = Vorauszahlung)">
+        <ui:FormField Grid.Row="2" Grid.Column="1" Label="Anzahlung (%)" Help="0 = keine, 100 = Vorauszahlung.">
           <ui:NumberField Value="{Binding DepositPercent}" Minimum="0" Maximum="100" HorizontalAlignment="Left" Width="120" />
         </ui:FormField>
-        <ui:FormField Grid.Row="3" Label="Ohne Karte oder Anzahlung freigeben nach (Stunden, 0 = nie)">
+        <ui:FormField Grid.Row="3" Label="Freigabe ohne Karte oder Anzahlung (Stunden)" Help="0 = nie freigeben.">
           <ui:NumberField Value="{Binding CardHoldHours}" Minimum="0" Maximum="168" HorizontalAlignment="Left" Width="120" />
         </ui:FormField>
       </Grid>
-      <TextBlock Classes="muted small" TextWrapping="Wrap"
-                 Text="Mit Ausfallgebühr stimmt der Gast beim Online-Buchen zu und hinterlegt eine Karte. Belastet wird nur auf Knopfdruck im Termin, bei „Nicht erschienen“ oder einer Absage nach der Stornofrist, und immer mit Beleg an der Kassa. Mit Frist wird ein online gebuchter Termin freigegeben, wenn so viele Stunden nach dem Buchen keine Karte hinterlegt ist. Eine Behandlung kann in den Stammdaten eigene Prozent haben. Mit Anzahlung bezahlt der Gast online einen Teil oder alles im Voraus und bekommt einen Anzahlungsbeleg der Kassa; beim Kassieren der Behandlung wird sie abgezogen. Die Anzahlung ersetzt dann die Karte. Wirkt nur mit eingerichtetem Zahlungsanbieter, die Anzahlung zusätzlich nur mit aktiver Kasse am Standort." />
       <CheckBox IsChecked="{Binding NewCustomersOnly}"
                 Content="Ausfallgebühr und Anzahlung nur von neuen Gästen verlangen (ohne abgeschlossene Behandlung im Spa)" />
-      <ui:FormField Label="Hinweis für Gäste, erscheint vor dem Buchen">
+      <ui:FormField Label="Hinweis für Gäste" Help="Erscheint vor dem Buchen.">
         <TextBox Text="{Binding GuestNote}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="56" MaxLength="300"
                  PlaceholderText="z. B. Bitte kommen Sie 10 Minuten vor Ihrem Termin." />
       </ui:FormField>
       <Grid ColumnDefinitions="*,Auto" ColumnSpacing="4">
-        <ui:FormField Label="Stornoregel in eigenen Worten, für Team und KI-Assistent"
-                      Help="Dient nur dem Team und dem KI-Assistenten; Frist, Gebühr und Anzahlung gelten über die Felder oben.">
+        <ui:FormField Label="Stornoregel"
+                      Help="In eigenen Worten, nur für Team und KI-Assistent; es gelten die Felder oben.">
           <TextBox x:Name="CancellationPolicyField" Text="{Binding CancellationPolicy}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="56" MaxLength="500"
                    PlaceholderText="z. B. Absage bis 24 Stunden vorher ist kostenlos, danach 50 % des Preises." />
         </ui:FormField>
@@ -61,7 +59,7 @@
     </StackPanel>
     <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding CanEdit}">
       <Button Content="Regeln speichern" Command="{Binding SaveCommand}" IsEnabled="{Binding IsLoaded}" />
-      <Button Classes="ghost" Content="Vorgaben wiederherstellen" Command="{Binding ResetCommand}"
+      <Button Content="Vorgaben wiederherstellen" Command="{Binding ResetCommand}"
               ui:DisabledHint.Text="Verfügbar, sobald dieser Standort eigene Regeln hat." />
       <TextBlock Text="{Binding StatusText}" Classes="muted" VerticalAlignment="Center" AutomationProperties.LiveSetting="Polite" />
     </StackPanel>

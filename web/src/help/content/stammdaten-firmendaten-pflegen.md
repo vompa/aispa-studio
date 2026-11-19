@@ -13,7 +13,7 @@ Die Firmendaten gelten für alle Standorte ohne eigene Gesellschaft: auf Rechnun
 ## Schritte {#schritte}
 
 1. In der Verwaltung **Stammdaten** öffnen, Reiter **Firmendaten**.
-2. Oben **Name des Spas, wie Gäste und Team ihn sehen** und **Land des Unternehmenssitzes** prüfen.
+2. Oben **Name des Spas** und **Land des Unternehmenssitzes** prüfen.
 3. Unter **Unternehmen** Firmenwortlaut mit Rechtsform, UID-Nummer, Firmenbuch- bzw. Handelsregisternummer und Firmenbuchgericht eintragen.
 4. Unter **Sitz und Kontakt** Anschrift, Telefon, E-Mail und Website eintragen.
 5. Unter **Bankverbindung** Kontoinhaber, IBAN und BIC eintragen.

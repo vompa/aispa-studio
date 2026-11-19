@@ -29,7 +29,7 @@
             <ui:HelpButton Grid.Column="2" Topic="firmendaten" Section="firmendaten" />
           </Grid>
           <TextBlock Classes="muted" TextWrapping="Wrap"
-                     Text="Gelten für alle Standorte, die keine eigene Gesellschaft eingetragen haben: auf Rechnungen, für die Sofortüberweisung und im Impressum der Online-Buchung." />
+                     Text="Gelten für alle Standorte ohne eigene Gesellschaft." />
         </StackPanel>
 
         <!-- „Betrieb einrichten“ (ADR 0099): oben, solange ein Schritt offen ist; die API zählt, jeder Schritt springt in die passende Maske -->
@@ -70,7 +70,7 @@
 
         <StackPanel Spacing="20" IsVisible="{Binding IsLoaded}">
           <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
-            <ui:FormField Label="Name des Spas, wie Gäste und Team ihn sehen" IsRequired="True" Error="{Binding NameError}">
+            <ui:FormField Label="Name des Spas" IsRequired="True" Error="{Binding NameError}" Help="So sehen Gäste und Team den Namen.">
               <TextBox x:Name="NameField" Text="{Binding Name}" />
             </ui:FormField>
             <ui:FormField Grid.Column="1" Label="Land des Unternehmenssitzes">
@@ -137,7 +137,7 @@
               <ui:HelpButton Grid.Column="1" Topic="firmendaten" Section="bankverbindung" />
             </Grid>
             <TextBlock Classes="muted" TextWrapping="Wrap"
-                       Text="Für die Sofortüberweisung an der Kassa (QR-Code) und später für Zahlungsanbieter. Eine Kasse mit eigenem Konto verwendet ihres." />
+                       Text="Für die Sofortüberweisung an der Kassa (QR-Code)." />
             <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="12">
               <ui:FormField Label="Kontoinhaber">
                 <TextBox Text="{Binding AccountHolder}" />
@@ -158,7 +158,7 @@
               <ui:HelpButton Grid.Column="1" Topic="firmendaten" Section="impressum" />
             </Grid>
             <TextBlock Classes="muted" TextWrapping="Wrap"
-                       Text="Ergänzt das Impressum der Online-Buchung. Firmenwortlaut, Sitz und E-Mail stehen dort ohnehin." />
+                       Text="Ergänzt das Impressum der Online-Buchung." />
             <StackPanel Spacing="12">
               <ui:FormField Label="Unternehmensgegenstand">
                 <TextBox Text="{Binding BusinessPurpose}" PlaceholderText="Betrieb eines Day-Spas" />
@@ -178,8 +178,7 @@
               <TextBlock Text="Kundenbereich einbetten" Classes="h2" VerticalAlignment="Center" />
               <ui:HelpButton Grid.Column="1" Topic="firmendaten" Section="einbetten" />
             </Grid>
-            <ui:FormField Label="Einbetten erlaubt auf: Websites, eine Adresse je Zeile" Error="{Binding EmbedError}"
-                          Help="Nur mit https:// und ohne Pfad, z. B. https://www.beispiel-spa.at. Leer: Die Online-Buchung lässt sich nur auf ihrer eigenen Adresse zeigen.">
+            <ui:FormField Label="Einbetten erlaubt auf" Error="{Binding EmbedError}" Help="Eine Website je Zeile, nur mit https:// und ohne Pfad.">
               <TextBox x:Name="EmbedField" Text="{Binding EmbedOrigins}" AcceptsReturn="True" TextWrapping="NoWrap" MinHeight="96"
                        PlaceholderText="https://www.beispiel-spa.at" />
             </ui:FormField>
