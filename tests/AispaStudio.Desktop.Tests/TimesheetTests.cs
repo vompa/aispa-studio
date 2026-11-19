@@ -60,7 +60,7 @@ public sealed class TimesheetTests
         Assert.Equal(["Pause zu kurz."], row.Cells[1].Warnings);
         Assert.Contains("Warnung: Pause zu kurz.", row.Cells[1].AutomationName, StringComparison.Ordinal);
         Assert.True(row.Cells[0].HasNoHours);
-        Assert.Contains("Österreich (AZG, ARG)", times.Legend, StringComparison.Ordinal);
+        Assert.Contains("Österreich (Arbeitszeitgesetz, Arbeitsruhegesetz)", times.Legend, StringComparison.Ordinal);
         Assert.Contains("anklicken", times.Legend, StringComparison.Ordinal);
         Assert.Contains(api.Calls, c => c.Route == $"GET /api/locations/{RosterSample.Vienna.Id}/timesheet?from=2027-03-01");
     }

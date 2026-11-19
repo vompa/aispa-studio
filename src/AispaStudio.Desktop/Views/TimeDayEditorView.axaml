@@ -13,7 +13,7 @@
     <StackPanel Spacing="12">
       <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
         <TextBlock x:Name="TimeDayHeading" Text="{Binding Heading}" Classes="h3" VerticalAlignment="Center" TextWrapping="Wrap" />
-        <Button Grid.Column="1" x:Name="CloseTimeDayButton" Content="Schließen" Command="{Binding CloseCommand}" Classes="ghost" ToolTip.Tip="Tag schließen" />
+        <Button Grid.Column="1" x:Name="CloseTimeDayButton" Content="Schließen" Command="{Binding CloseCommand}" Classes="small" ToolTip.Tip="Tag schließen" />
       </Grid>
 
       <TextBlock x:Name="TimeSummary" Text="{Binding SummaryText}" Classes="muted num" />
@@ -29,9 +29,9 @@
                   <TextBlock Text="{Binding SpanText}" Classes="num" />
                   <TextBlock Text="{Binding DetailText}" Classes="muted small" IsVisible="{Binding HasDetail}" VerticalAlignment="Center" />
                 </StackPanel>
-                <Button Grid.Column="1" Content="Ändern" Classes="ghost" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Command="{Binding ChangeCommand}" IsVisible="{Binding CanChange}"
+                <Button Grid.Column="1" Content="Ändern" Classes="small" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Command="{Binding ChangeCommand}" IsVisible="{Binding CanChange}"
                         AutomationProperties.Name="{Binding ChangeName}" />
-                <Button Grid.Column="2" Content="Verlauf" Classes="ghost" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Command="{Binding HistoryCommand}" IsVisible="{Binding CanHistory}"
+                <Button Grid.Column="2" Content="Verlauf" Classes="small" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Command="{Binding HistoryCommand}" IsVisible="{Binding CanHistory}"
                         AutomationProperties.Name="{Binding HistoryName}" />
               </Grid>
               <ItemsControl ItemsSource="{Binding History}" IsVisible="{Binding HasHistory}" Margin="12,0,0,0">

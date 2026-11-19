@@ -14,7 +14,7 @@
     <StackPanel Spacing="12">
       <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
         <TextBlock x:Name="DayHeading" Text="{Binding Heading}" Classes="h3" VerticalAlignment="Center" TextWrapping="Wrap" />
-        <Button Grid.Column="1" x:Name="CloseDayButton" Content="Schließen" Command="{Binding CloseCommand}" Classes="ghost" ToolTip.Tip="Tag schließen" />
+        <Button Grid.Column="1" x:Name="CloseDayButton" Content="Schließen" Command="{Binding CloseCommand}" Classes="small" ToolTip.Tip="Tag schließen" />
       </Grid>
 
       <Border Classes="segmented" HorizontalAlignment="Left" AutomationProperties.Name="Art">
