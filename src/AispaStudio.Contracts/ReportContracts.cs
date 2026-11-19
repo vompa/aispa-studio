@@ -153,6 +153,12 @@ public sealed record GuestKpi(Guid CustomerId, string Name, int Visits, decimal?
 public sealed record TreatmentKpi(Guid TreatmentId, string Name, int Appointments, decimal? NetRevenue, decimal? MarginPerAppointment);
 
 /// <summary>
+/// Wirkung einer Aktion im Zeitraum, aus den Kassenbelegen: kassierte Positionen mit dieser Aktion (Stornos abgezogen), Gäste darauf, davon zum
+/// ersten Mal im Spa, gewährter Rabatt und Umsatz brutto nach Rabatt. Rabatt und Umsatz fehlen ohne das Recht „Berichte mit Beträgen“.
+/// </summary>
+public sealed record PromotionKpi(Guid PromotionId, string Name, int Positions, int Guests, int NewGuests, decimal? Discount, decimal? Revenue);
+
+/// <summary>
 /// Management-Cockpit für einen Zeitraum (Ortszeit, beide Tage eingeschlossen) mit Vergleich zum gleich langen Zeitraum davor.
 /// Umsätze aus den signierten Belegen der Kassen des Standorts, Termine und Auslastung aus dem Kalender.
 /// <c>AmountsHidden</c>: ohne das Recht „Berichte mit Beträgen“ fehlen alle Geldbeträge (Umsatz-Kennzahlen, Umsatz nach Konto und Zahlart,
@@ -175,7 +181,14 @@ public sealed record ManagementReportDto(
     int Cancellations = 0,
     string? AiSummary = null,
     bool AiSummaryPending = false,
-    string? AiNotice = null);
+    string? AiNotice = null,
+    IReadOnlyList<PromotionKpi>? Promotions = null);
+
+/// <summary>Wochen- und Monatsbericht per Mail für die angemeldete Person: <c>Enabled</c>, ob sie ihn bekommt; <c>Available</c>, ob ihre Rolle ihn überhaupt bekommt.</summary>
+public sealed record ReportMailSubscription(bool Enabled, bool Available);
+
+/// <summary>Ein- oder abbestellen.</summary>
+public sealed record ReportMailSubscriptionInput(bool Enabled);
 
 // ---------- Pflichtberichte ----------
 

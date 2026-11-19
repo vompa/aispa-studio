@@ -7,6 +7,7 @@ using AispaStudio.Api.HrFile;
 using AispaStudio.Api.MailIntake;
 using AispaStudio.Api.Online;
 using AispaStudio.Api.Reminders;
+using AispaStudio.Api.Reporting;
 using AispaStudio.Api.Retention;
 using AispaStudio.Api.Sync;
 using AispaStudio.Api.System;
@@ -27,6 +28,7 @@ public sealed class HostingRoleTests(ApiFixture fixture)
     [
         typeof(SavedCardCleanup), typeof(UnsecuredBookingRelease), typeof(PaymentRecovery), typeof(MailboxPoller), typeof(RebookScheduler),
         typeof(ReminderScheduler), typeof(AccessExpiryScheduler), typeof(HistoryCleanup), typeof(HrFileCleanup), typeof(CalendarSubscriptionScheduler),
+        typeof(ReportMailScheduler),
     ];
 
     /// <summary>Dienste der Instanz, in jeder Rolle; in den Tests nur der Migrator (<c>Database:MigrateOnStartup</c>).</summary>

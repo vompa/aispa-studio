@@ -26023,6 +26023,86 @@
         }
       }
     },
+    "/api/v1/reports/mail-subscription": {
+      "get": {
+        "tags": [
+          "Berichte"
+        ],
+        "summary": "Ob die angemeldete Person Wochen- und Monatsbericht per Mail bekommt (Inhaber, Manager, Standortleitung).",
+        "operationId": "GetReportMailSubscription",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportMailSubscription"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Berichte"
+        ],
+        "summary": "Wochen- und Monatsbericht per Mail für die angemeldete Person ein- oder abbestellen.",
+        "operationId": "SetReportMailSubscription",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportMailSubscriptionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportMailSubscription"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/reports/locations/{locationId}/stock-usage": {
       "get": {
         "tags": [
@@ -43362,6 +43442,15 @@
               "null",
               "string"
             ]
+          },
+          "promotions": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/PromotionKpi"
+            }
           }
         }
       },
@@ -46190,6 +46279,53 @@
           null
         ]
       },
+      "PromotionKpi": {
+        "required": [
+          "promotionId",
+          "name",
+          "positions",
+          "guests",
+          "newGuests",
+          "discount",
+          "revenue"
+        ],
+        "type": "object",
+        "properties": {
+          "promotionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "positions": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "guests": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "newGuests": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "discount": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "revenue": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
       "PromotionOfferDto": {
         "required": [
           "promotionId",
@@ -47393,6 +47529,32 @@
           "minutes": {
             "type": "integer",
             "format": "int32"
+          }
+        }
+      },
+      "ReportMailSubscription": {
+        "required": [
+          "enabled",
+          "available"
+        ],
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "available": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ReportMailSubscriptionInput": {
+        "required": [
+          "enabled"
+        ],
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
           }
         }
       },

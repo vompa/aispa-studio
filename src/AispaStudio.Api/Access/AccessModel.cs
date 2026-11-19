@@ -30,6 +30,9 @@ public sealed class StaffAccess
     /// </summary>
     public bool PlainReports { get; set; } = true;
 
+    /// <summary>Wochen- und Monatsbericht per Mail (nur Inhaber, Manager und Standortleitung); jede Person bestellt ihn selbst ab.</summary>
+    public bool ReportMails { get; set; } = true;
+
     public DateTimeOffset UpdatedAt { get; set; }
 }
 
@@ -72,6 +75,7 @@ internal static class AccessModel
             e.HasKey(a => a.UserId);
             e.Property(a => a.UserId).HasMaxLength(450);
             e.Property(a => a.Role).HasConversion<string>().HasMaxLength(32);
+            e.Property(a => a.ReportMails).HasDefaultValue(true);
             e.HasOne<AispaUser>().WithOne().HasForeignKey<StaffAccess>(a => a.UserId).OnDelete(DeleteBehavior.Cascade);
         });
 

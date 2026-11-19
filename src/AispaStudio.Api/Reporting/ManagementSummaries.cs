@@ -152,6 +152,31 @@ internal sealed partial class ManagementSummaries(
         return With(report, row);
     }
 
+    /// <summary>
+    /// Für den Bericht per Mail: den Kommentar gleich schreiben, statt über die Queue; einen schon passenden nimmt er. Ohne KI, bei kurzem Zeitraum
+    /// oder wenn der Text verworfen wird: <c>null</c>, die Mail kommt dann ohne Kommentar.
+    /// </summary>
+    public async Task<string?> CommentNowAsync(ManagementReportDto report, CancellationToken ct)
+    {
+        var attached = await AttachAsync(report, ct);
+        if (attached.AiSummary is { } done || !attached.AiSummaryPending)
+        {
+            return attached.AiSummary;
+        }
+
+        var amounts = !report.AmountsHidden;
+        var row = await db.ManagementSummaries.AsNoTracking().FirstOrDefaultAsync(
+            s => s.LocationId == report.LocationId && s.From == report.From && s.Until == report.Until && s.Amounts == amounts, ct);
+        if (row is null)
+        {
+            return null;
+        }
+
+        await WriteAsync(row.Id, ct);
+        return await db.ManagementSummaries.AsNoTracking().Where(s => s.Id == row.Id && s.Status == BriefingSummaryStatus.Done)
+            .Select(s => s.Text).FirstOrDefaultAsync(ct);
+    }
+
     public async Task WriteAsync(Guid id, CancellationToken ct)
     {
         var row = await db.ManagementSummaries.FirstOrDefaultAsync(s => s.Id == id, ct);
@@ -209,6 +234,11 @@ internal sealed partial class ManagementSummaries(
             .Select(t => $"{t.Name}: {t.Appointments} Termine{(t.NetRevenue is { } net ? $", netto {Number(net)} €" : "")}"));
         Section(text, "Personal", report.Employees.OrderByDescending(e => e.Utilization).Take(10)
             .Select(e => $"{e.Name}: Auslastung {e.Utilization} %, {e.Appointments} Termine"));
+        if (report.Promotions is { Count: > 0 } promotions)
+        {
+            Section(text, "Aktionen an der Kassa", promotions.Select(ManagementReports.PromotionText));
+        }
+
         return text.ToString();
     }
 

@@ -15,6 +15,9 @@
         <ui:DateField x:Name="ManagementUntilField" Value="{Binding Until}" />
       </ui:FormField>
       <CheckBox x:Name="ManagementCompareField" Content="Mit anderen Spas vergleichen" IsChecked="{Binding Compare}" VerticalAlignment="Bottom" />
+      <!-- Wochenbericht montags, Monatsbericht am Ersten, je für die angemeldete Person; abbestellen jederzeit hier -->
+      <CheckBox x:Name="ManagementMailField" Content="Wochen- und Monatsbericht per Mail" IsChecked="{Binding MailReports}" IsVisible="{Binding CanMailReports}"
+                VerticalAlignment="Bottom" ToolTip.Tip="Montags der Bericht der Vorwoche, am Monatsersten der des Vormonats, an Ihre Mailadresse" />
       <!-- Export der Kennzahlen des Zeitraums (Export/Import, Aufgabe D) -->
       <ui:ExportButton x:Name="ManagementExportButton" DataContext="{Binding Export}" VerticalAlignment="Bottom" />
       <TextBlock x:Name="ManagementExportSaved" Text="{Binding ExportSaved}" Classes="muted small" IsVisible="{Binding HasExportSaved}" VerticalAlignment="Bottom" AutomationProperties.LiveSetting="Polite" />
@@ -197,6 +200,49 @@
               <TextBlock Grid.Column="1" Text="{Binding Appointments}" Classes="num" />
               <TextBlock Grid.Column="2" Text="{Binding Revenue}" Classes="num" />
               <TextBlock Grid.Column="3" Text="{Binding Margin}" Classes="num" Classes.error="{Binding IsLoss}" />
+            </Grid>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </StackPanel>
+
+    <!-- Wirkung der Aktionen (ADR 0071): nur Positionen, die mit Aktion kassiert wurden; Stornos abgezogen -->
+    <StackPanel x:Name="ManagementPromotions" Spacing="8" Grid.IsSharedSizeScope="True" IsVisible="{Binding Promotions.Count}">
+      <TextBlock Text="Aktionen" Classes="h2" />
+      <Grid ColumnSpacing="12" AutomationProperties.AccessibilityView="Raw">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="Auto" SharedSizeGroup="Positions" />
+          <ColumnDefinition Width="Auto" SharedSizeGroup="Guests" />
+          <ColumnDefinition Width="Auto" SharedSizeGroup="New" />
+          <ColumnDefinition Width="Auto" SharedSizeGroup="Discount" />
+          <ColumnDefinition Width="Auto" SharedSizeGroup="Revenue" />
+        </Grid.ColumnDefinitions>
+        <TextBlock Text="Aktion" Classes="group" />
+        <TextBlock Grid.Column="1" Text="Positionen" Classes="group" />
+        <TextBlock Grid.Column="2" Text="Gäste" Classes="group" />
+        <TextBlock Grid.Column="3" Text="davon neu" Classes="group" />
+        <TextBlock Grid.Column="4" Text="Rabatt" Classes="group" IsVisible="{Binding ShowAmounts}" />
+        <TextBlock Grid.Column="5" Text="Umsatz brutto" Classes="group" IsVisible="{Binding ShowAmounts}" />
+      </Grid>
+      <ItemsControl ItemsSource="{Binding Promotions}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="vm:PromotionKpiRow">
+            <Grid ColumnSpacing="12" Margin="0,0,0,4">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" SharedSizeGroup="Positions" />
+                <ColumnDefinition Width="Auto" SharedSizeGroup="Guests" />
+                <ColumnDefinition Width="Auto" SharedSizeGroup="New" />
+                <ColumnDefinition Width="Auto" SharedSizeGroup="Discount" />
+                <ColumnDefinition Width="Auto" SharedSizeGroup="Revenue" />
+              </Grid.ColumnDefinitions>
+              <TextBlock Text="{Binding Name}" TextWrapping="Wrap" />
+              <TextBlock Grid.Column="1" Text="{Binding Positions}" Classes="num" />
+              <TextBlock Grid.Column="2" Text="{Binding Guests}" Classes="num" />
+              <TextBlock Grid.Column="3" Text="{Binding NewGuests}" Classes="num" />
+              <TextBlock Grid.Column="4" Text="{Binding Discount}" Classes="num" />
+              <TextBlock Grid.Column="5" Text="{Binding Revenue}" Classes="num" />
             </Grid>
           </DataTemplate>
         </ItemsControl.ItemTemplate>

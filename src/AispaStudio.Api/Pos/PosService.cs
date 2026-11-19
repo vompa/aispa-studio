@@ -269,6 +269,7 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
 
             line.Discount = discount;
             line.DiscountNote = discount == 0 ? null : ManualNote(discount, gross, input.Percent);
+            line.PromotionId = null;
             line.DiscountApprovedByUserId = discount == 0 ? null : approvedBy;
             line.Amount = gross - discount;
             return bill.Id;

@@ -201,6 +201,60 @@ public sealed partial class AdminReportsTests
     }
 
     [Fact]
+    public async Task Management_zeigt_die_Wirkung_der_Aktionen_mit_und_ohne_Betraege()
+    {
+        var route = ManagementRoute(new DateOnly(2026, 10, 1), Today);
+        var api = AddReports(new StubApi()).On(route, Management() with { Promotions = Promotions() });
+        var reports = Reports(api);
+        await reports.EnsureLoadedAsync();
+        reports.SelectTabCommand.Execute(ReportsViewModel.ManagementTab);
+        await WaitUntilAsync(() => reports.Management.Promotions.Count == 2);
+
+        var autumn = reports.Management.Promotions[0];
+        Assert.Equal(("Herbst", "14", "12", "4"), (autumn.Name, autumn.Positions, autumn.Guests, autumn.NewGuests));
+        Assert.Contains("110,60", autumn.Discount, StringComparison.Ordinal);
+        Assert.Contains("995,40", autumn.Revenue, StringComparison.Ordinal);
+
+        api.On(route, Management(hidden: true) with { Promotions = Promotions(hidden: true) });
+        await reports.Management.RetryCommand.ExecuteAsync(null);
+        Assert.Equal(("–", "–"), (reports.Management.Promotions[0].Discount, reports.Management.Promotions[0].Revenue));
+
+        api.On(route, Management());
+        await reports.Management.RetryCommand.ExecuteAsync(null);
+        Assert.Empty(reports.Management.Promotions);
+    }
+
+    [Fact]
+    public async Task Management_bestellt_den_Bericht_per_Mail_ab_und_wieder()
+    {
+        var api = AddReports(new StubApi())
+            .OnJson("PUT /api/reports/mail-subscription", body => new ReportMailSubscription(body!.Contains("true", StringComparison.Ordinal), true));
+        var reports = Reports(api);
+        await reports.EnsureLoadedAsync();
+        reports.SelectTabCommand.Execute(ReportsViewModel.ManagementTab);
+        await WaitUntilAsync(() => reports.Management.CanMailReports);
+        Assert.True(reports.Management.MailReports);
+        Assert.DoesNotContain(api.Calls, c => c.Route == "PUT /api/reports/mail-subscription");
+
+        reports.Management.MailReports = false;
+        await WaitUntilAsync(() => api.Calls.Any(c => c.Route == "PUT /api/reports/mail-subscription"));
+        Assert.Contains("false", api.Calls.Last(c => c.Route == "PUT /api/reports/mail-subscription").Body, StringComparison.Ordinal);
+        Assert.False(reports.Management.MailReports);
+    }
+
+    [Fact]
+    public async Task Management_zeigt_den_Mail_Haken_nur_wer_den_Bericht_bekommen_kann()
+    {
+        var api = AddReports(new StubApi()).On(MailSubscriptionRoute, new ReportMailSubscription(false, false));
+        var reports = Reports(api);
+        await reports.EnsureLoadedAsync();
+        reports.SelectTabCommand.Execute(ReportsViewModel.ManagementTab);
+        await WaitUntilAsync(() => api.Calls.Any(c => c.Route == MailSubscriptionRoute));
+        await Task.Yield();
+        Assert.False(reports.Management.CanMailReports);
+    }
+
+    [Fact]
     public async Task Der_Tagesstart_fragt_nach_der_KI_Zusammenfassung_nach_und_endet_beim_Verlassen()
     {
         var time = new FixedTime();
