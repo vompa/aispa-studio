@@ -15,7 +15,7 @@ Freigeben und die Freigabe zurücknehmen dürfen nur Inhaber und Standortleitung
 
 ## Aufbau {#aufbau}
 
-- **Freigabe**: vor der Freigabe **Im Netz freigeben**; danach „Adresse (eine davon)“, „Verbindungscode“ und **Freigabe zurücknehmen**.
-- Am anderen PC startet man die App ohne „--standalone“ und trägt beides unter „Mit Haupt-PC im Netz verbinden“ ein. Angemeldet wird dort mit demselben Benutzernamen und Passwort.
+- **Freigabe**: vor der Freigabe **Im Netz freigeben**; danach „Adressen“, „Verbindungscode“ und **Freigabe zurücknehmen**.
+- Am anderen PC startet man die App ohne „--standalone“ und trägt beides unter „Mit Haupt-PC im Netz verbinden“ ein. Angemeldet wird dort wie am Haupt-PC mit Benutzername und Passwort, am Empfangsgerät mit Name und PIN.
 
 Alle Felder und was zu tun ist, wenn es nicht klappt, erklärt die Einstellungshilfe [Im Netz](hilfe:im-netz).

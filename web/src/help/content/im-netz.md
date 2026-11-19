@@ -23,7 +23,7 @@ Schaltet die Freigabe ein. Beim ersten Mal erstellt der PC ein eigenes Zertifika
 
 Fragt Windows danach nach der Firewall, **private Netzwerke** erlauben. Ohne diese Erlaubnis erreichen die anderen PCs den Haupt-PC nicht. Erscheint „Gespeichert. Gilt ab dem nächsten Start der App.“, gilt die Freigabe erst nach einem Neustart der App.
 
-### Adresse (eine davon) {#adresse}
+### Adressen {#adresse}
 
 Unter diesen Adressen erreichen die anderen PCs den Haupt-PC: der Name des PCs und jede IPv4-Adresse im Netz, jeweils mit Port, z. B. `https://empfang-pc:55443/` oder `https://192.168.1.20:55443/`. Am anderen PC reicht eine davon. Der PC-Name ist bequemer; klappt er nicht, eine IP-Adresse nehmen. Damit sich die IP-Adresse nicht ändert, sollte der Haupt-PC im Router eine feste Adresse bekommen.
 

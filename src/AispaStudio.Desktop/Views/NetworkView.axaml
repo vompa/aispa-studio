@@ -21,11 +21,16 @@
           </StackPanel>
           <TextBlock Text="{Binding StateText}" TextWrapping="Wrap" />
           <StackPanel Spacing="6" IsVisible="{Binding IsShared}">
-            <TextBlock Text="Adresse (eine davon)" Classes="muted small" />
-            <SelectableTextBlock Text="{Binding AddressesText}" FontFamily="Consolas, Menlo, monospace" />
-            <TextBlock Text="Verbindungscode" Classes="muted small" />
-            <SelectableTextBlock Text="{Binding Code}" FontFamily="Consolas, Menlo, monospace" FontSize="22" FontWeight="SemiBold" />
-            <TextBlock Text="Am anderen PC Adresse und Verbindungscode unter „Mit Haupt-PC im Netz verbinden“ eintragen. Die Anmeldung dort ist dieselbe wie hier: Benutzername und Passwort."
+            <StackPanel>
+              <TextBlock Text="Adressen" Classes="label" />
+              <SelectableTextBlock Text="{Binding AddressesText}" FontFamily="Consolas, Menlo, monospace" />
+              <TextBlock Text="Eine davon genügt." Classes="muted small" Margin="0,4,0,0" />
+            </StackPanel>
+            <StackPanel>
+              <TextBlock Text="Verbindungscode" Classes="label" />
+              <SelectableTextBlock Text="{Binding Code}" FontFamily="Consolas, Menlo, monospace" FontSize="22" FontWeight="SemiBold" />
+            </StackPanel>
+            <TextBlock Text="Am anderen PC eine Adresse und den Verbindungscode unter „Mit Haupt-PC im Netz verbinden“ eintragen. Angemeldet wird dort wie hier mit Benutzername und Passwort, am Empfangsgerät mit Name und PIN."
                        Classes="muted small" TextWrapping="Wrap" />
             <ui:TechnicalDetails Text="Die App am anderen PC ohne „--standalone“ starten. Im Browser warnt die Seite einmal vor dem eigenen Zertifikat." />
           </StackPanel>
