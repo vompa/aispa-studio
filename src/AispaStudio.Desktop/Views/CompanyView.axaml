@@ -14,7 +14,11 @@
   <Grid ColumnDefinitions="*,Auto">
    <Grid RowDefinitions="*,Auto">
     <ScrollViewer x:Name="FieldsScroll" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
-      <StackPanel Spacing="20" MaxWidth="720" HorizontalAlignment="Left" Margin="0,0,16,16">
+      <Grid Margin="0,0,16,16" HorizontalAlignment="Stretch">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*" MaxWidth="720" />
+        </Grid.ColumnDefinitions>
+      <StackPanel Spacing="20">
 
         <StackPanel Spacing="8">
           <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
@@ -191,6 +195,7 @@
           </StackPanel>
         </StackPanel>
       </StackPanel>
+      </Grid>
     </ScrollViewer>
 
     <StackPanel x:Name="Footer" Grid.Row="1" Spacing="12" MaxWidth="720" HorizontalAlignment="Left" Margin="0,12,16,0" IsVisible="{Binding IsLoaded}">

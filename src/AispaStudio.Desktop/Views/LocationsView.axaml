@@ -46,7 +46,11 @@
 
     <Grid Grid.Column="1" RowDefinitions="*,Auto">
     <ScrollViewer x:Name="FieldsScroll" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
-      <StackPanel Spacing="20" MaxWidth="800" HorizontalAlignment="Left" Margin="0,0,16,16">
+      <Grid Margin="0,0,16,16" HorizontalAlignment="Stretch">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*" MaxWidth="800" />
+        </Grid.ColumnDefinitions>
+      <StackPanel Spacing="20">
         <ui:InfoBar Severity="Error" Title="Standorte nicht geladen" Message="{Binding LoadError}" IsVisible="{Binding HasLoadError}"
                     ActionText="Erneut laden" ActionCommand="{Binding LoadCommand}" />
         <TextBlock Text="Lade Standorte …" Classes="muted" IsVisible="{Binding !IsLoaded}" />
@@ -193,6 +197,7 @@
           </StackPanel>
         </StackPanel>
       </StackPanel>
+      </Grid>
     </ScrollViewer>
 
     <StackPanel x:Name="Footer" Grid.Row="1" Spacing="12" MaxWidth="800" HorizontalAlignment="Left" Margin="0,12,16,0" IsVisible="{Binding IsLoaded}">
