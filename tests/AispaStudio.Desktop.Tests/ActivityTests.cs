@@ -96,7 +96,8 @@ public sealed class ActivityTests
         Assert.Equal([$"{HistoryRoute}?from={Today}&until={Today}"], api.Calls.Where(c => c.Route.StartsWith(HistoryRoute, StringComparison.Ordinal)).Select(c => c.Route));
         Assert.Equal(["Heute, Montag, 1. März", "Gebucht von Rita", "Storniert von Rita"], activity.Rows.Select(r => r is ActivityDayHeader h ? h.Title : r.AccessibleName));
         var row = Assert.IsType<ActivityRow>(activity.Rows[1]);
-        Assert.Equal(("10:05", "Anna Huber · von Rita"), (row.Time, row.Detail));
+        // Der Satz „Gebucht von Rita“ nennt die Person schon; sie steht nicht noch einmal in der zweiten Zeile.
+        Assert.Equal(("10:05", "Anna Huber"), (row.Time, row.Detail));
         Assert.True(((ActivityRow)activity.Rows[2]).IsLate);
         Assert.True(((ActivityRow)activity.Rows[2]).IsWarn);
     }
