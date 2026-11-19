@@ -461,8 +461,7 @@ internal static partial class ReceptionJourney
             for (var run = 1; run <= runs; run++)
             {
                 SelectCard(s, booked, "Gebucht");
-                s.Expect(Button("Termin stornieren …"), "Knopf „Termin stornieren …“");
-                s.Click(Button("Termin stornieren …"), "Knopf „Termin stornieren …“");
+                ClickCancel(s);
                 if (s.TryFind("ConfirmButton", TimeSpan.FromSeconds(3)) is null)
                 {
                     lost++;
@@ -581,7 +580,7 @@ internal static partial class ReceptionJourney
         s.Step("Karte des Termins anklicken: Panel öffnet", () =>
         {
             SelectCard(s, booked, status);
-            s.Expect(Button("Termin stornieren …"), "Knopf „Termin stornieren …“");
+            s.Expect(MoreToggle, "Bereich „Mehr“ im Termin-Panel");
             Thread.Sleep(900); // Sichtprüfung 09.11.2026: ein zu früher Klick im frisch geöffneten Panel geht ins Leere
         });
 
@@ -723,7 +722,7 @@ internal static partial class ReceptionJourney
     private static void BeginCancel(LiveSession s) =>
         s.Step("„Termin stornieren …“: Dialog „Termin stornieren?“", () =>
         {
-            s.Click(Button("Termin stornieren …"), "Knopf „Termin stornieren …“");
+            ClickCancel(s);
             s.Expect("Termin stornieren?");
             s.Expect("ConfirmButton");
         });

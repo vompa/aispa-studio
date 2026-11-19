@@ -95,7 +95,7 @@ public partial class InboxViewModel : ViewModelBase
 
     public string LiveText => IsLive ? "Live" : "Nicht live";
 
-    public string LiveTip => IsLive ? "Neue Nachrichten erscheinen sofort." : "Keine Live-Verbindung; die App fragt regelmäßig nach.";
+    public string LiveTip => IsLive ? "Neue Nachrichten erscheinen sofort." : "Keine Live-Verbindung: die App fragt regelmäßig nach neuen Nachrichten. „Aktualisieren“ fragt sofort.";
 
     /// <summary>Offene Nachrichten (Prüfen, Vorschlag, Fehler) für die Zahl in der Navigation.</summary>
     [ObservableProperty]
@@ -394,9 +394,10 @@ public partial class InboxDetailViewModel : ViewModelBase
     /// <summary>Treatwell-Buchung, die schon im Kalender steht, deren Gast aber noch vorläufig angelegt ist (ADR 0062).</summary>
     public bool AssignmentOpen => Mail.CustomerAssignmentOpen;
 
+    /// <summary>Der Text im Kasten „Wer ist das?“; er trägt auch die Aussage des Hinweises vom Server, der darum bei den Vorschlägen entfällt (<see cref="HasNote"/>).</summary>
     public string CandidatesHint => AssignmentOpen
-        ? "Der Termin steht schon im Kalender, der Gast ist vorläufig angelegt. Mit „Zuordnen“ wandert der Termin auf den Kunden; den vorläufigen Gast gibt es danach nicht mehr."
-        : "Der Absender ist keinem Kunden sicher zuzuordnen. Erst nach Ihrer Entscheidung nutzen Antwort und Buchung Daten aus der Kundenkarte.";
+        ? "Der Termin steht schon im Kalender, der Gast ist vorläufig angelegt. Mit „Zuordnen“ wandert der Termin auf den Kunden; den vorläufigen Gast gibt es danach nicht mehr. Oder den Gast bewusst als neu bestätigen."
+        : "Der Absender ist keinem Kunden sicher zuzuordnen. Einen Vorschlag zuordnen oder bewusst neu anlegen; gebucht wird erst danach, und erst dann nutzen Antwort und Buchung Daten aus der Kundenkarte.";
 
     public string CreateCustomerText => AssignmentOpen ? "Als neuen Kunden bestätigen" : "Neu anlegen";
 
@@ -412,12 +413,13 @@ public partial class InboxDetailViewModel : ViewModelBase
     /// <summary>„Vorab über Treatwell bezahlt: 35,00 €“ oder „Zahlt vor Ort“.</summary>
     public string? PaymentText => PlatformText.Payment(Mail.PlatformPayment, Mail.PrepaidAmount);
 
-    public bool HasPaymentText => PaymentText is not null;
+    /// <summary>Steht die Zahlung schon in der Zusammenfassung der KI, zeigt die eigene Karte sie nicht noch einmal.</summary>
+    public bool HasPaymentText => PaymentText is { } payment && Mail.Summary?.Contains(payment, StringComparison.Ordinal) != true;
 
     /// <summary>Die Buchung steht im Kalender, ist in Treatwell aber noch anzunehmen, bis die Rezeption „Erledigt“ sagt.</summary>
     public bool ShowAcceptPending => Mail.AcceptInPlatformPending;
 
-    public string AcceptPendingText => $"Die Buchung {Mail.PlatformReference} steht im Kalender, gilt bei Treatwell aber erst, wenn Sie sie dort annehmen. Danach hier „Erledigt“.";
+    public string AcceptPendingText => $"Die Buchung {Mail.PlatformReference} steht im Kalender, gilt bei Treatwell aber erst, wenn Sie sie dort annehmen. Danach hier „In Treatwell angenommen“.";
 
     [RelayCommand(CanExecute = nameof(CanConfirmAccepted))]
     private Task PlatformAcceptedAsync() => ActAsync(
@@ -515,7 +517,10 @@ public partial class InboxDetailViewModel : ViewModelBase
 
     public string? Note => Mail.Note;
 
-    public bool HasNote => !string.IsNullOrEmpty(Mail.Note);
+    /// <summary>„Wer ist das? …“ vom Server entfällt, solange der Kasten „Wer ist das?“ mit denselben Angaben darunter steht.</summary>
+    public bool HasNote => !string.IsNullOrEmpty(Mail.Note) && !(HasCandidates && Mail.Note.StartsWith(WhoIsThisPrefix, StringComparison.Ordinal));
+
+    private const string WhoIsThisPrefix = "Wer ist das?";
 
     public string Body => Mail.Body;
 

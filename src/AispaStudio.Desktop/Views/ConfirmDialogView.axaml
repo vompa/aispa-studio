@@ -230,16 +230,21 @@
                   <!-- 1. Datei wählen -->
                   <StackPanel x:Name="ImportFileStep" Spacing="8" IsVisible="{Binding IsFileStep}">
                     <ui:FormField Label="Datei" Error="{Binding FileError}" Help="Excel (.xlsx) oder CSV, bis 10 MB.">
-                      <TextBlock x:Name="ImportFileName" Text="{Binding FileName, FallbackValue=Noch keine Datei gewählt}" TextWrapping="Wrap" />
+                      <TextBlock x:Name="ImportFileName" Text="{Binding FileName, TargetNullValue='Noch keine Datei gewählt'}" TextWrapping="Wrap" />
                     </ui:FormField>
-                    <TextBlock Text="Erste Zeile: Spaltenköpfe. Gesundheitsdaten, Wünsche und Vermerke werden nicht importiert." Classes="muted small" TextWrapping="Wrap" />
+                    <TextBlock Text="Erste Zeile: Spaltenköpfe. Gesundheitsdaten, Wünsche und Vermerke werden nicht importiert." Classes="muted" TextWrapping="Wrap" />
                   </StackPanel>
 
                   <!-- 2. Spalten zuordnen -->
                   <StackPanel x:Name="ImportMappingStep" Spacing="12" IsVisible="{Binding IsMappingStep}">
                     <TextBlock Text="{Binding FileName, StringFormat=Datei: {0}}" Classes="muted" TextWrapping="Wrap" />
-                    <ui:FormField Label="Zuordnung" Error="{Binding MappingError}" Help="Links die Spalte der Datei, rechts das Feld in AISPA.">
+                    <ui:FormField Label="Zuordnung" Error="{Binding MappingError}">
                       <Border Classes="closurelist">
+                       <StackPanel>
+                        <Grid ColumnDefinitions="*,200" ColumnSpacing="12" Margin="12,8,12,0">
+                          <TextBlock Text="Spalte in der Datei" Classes="label" Margin="0" />
+                          <TextBlock Grid.Column="1" Text="Feld in AISPA" Classes="label" Margin="0" />
+                        </Grid>
                         <ScrollViewer MaxHeight="230" VerticalScrollBarVisibility="Auto">
                           <ItemsControl x:Name="ImportColumns" ItemsSource="{Binding Columns}" Margin="12,4">
                             <ItemsControl.ItemTemplate>
@@ -256,6 +261,7 @@
                             </ItemsControl.ItemTemplate>
                           </ItemsControl>
                         </ScrollViewer>
+                       </StackPanel>
                       </Border>
                     </ui:FormField>
                     <ui:FormField Label="Datumsformat" MaxWidth="240" HorizontalAlignment="Left">
@@ -289,7 +295,7 @@
                     </StackPanel>
                     <StackPanel x:Name="ImportDuplicates" Spacing="6" IsVisible="{Binding HasDuplicates}">
                       <TextBlock Text="Dubletten" Classes="group" />
-                      <TextBlock Text="Überspringen lässt den Gast im Bestand unverändert. Ergänzen füllt nur leere Felder, nichts wird überschrieben." Classes="muted small" TextWrapping="Wrap" />
+                      <TextBlock Text="Überspringen lässt den Gast im Bestand unverändert. Ergänzen füllt nur leere Felder, nichts wird überschrieben." Classes="muted" TextWrapping="Wrap" />
                       <Border Classes="closurelist">
                         <ScrollViewer MaxHeight="170" VerticalScrollBarVisibility="Auto">
                           <ItemsControl x:Name="ImportDuplicateRows" ItemsSource="{Binding DuplicateRows}" Margin="12,4">
@@ -311,7 +317,7 @@
                     </StackPanel>
                     <StackPanel x:Name="ImportInvalid" Spacing="6" IsVisible="{Binding HasInvalid}">
                       <TextBlock Text="Fehlerhafte Zeilen" Classes="group" />
-                      <TextBlock Text="Diese Zeilen werden nicht importiert." Classes="muted small" TextWrapping="Wrap" />
+                      <TextBlock Text="Diese Zeilen werden nicht importiert." Classes="muted" TextWrapping="Wrap" />
                       <Border Classes="closurelist">
                         <ScrollViewer MaxHeight="130" VerticalScrollBarVisibility="Auto">
                           <ItemsControl x:Name="ImportInvalidRows" ItemsSource="{Binding InvalidRows}" Margin="12,4">
@@ -336,7 +342,7 @@
                   <!-- 4. Probelauf und Import -->
                   <StackPanel x:Name="ImportRunStep" Spacing="12" IsVisible="{Binding IsRunStep}">
                     <TextBlock Text="{Binding Summary}" FontWeight="SemiBold" />
-                    <TextBlock Text="„Nur prüfen“ zählt, was der Import täte, und speichert nichts. „Importieren“ legt die Gäste an und trägt den Import im Verlauf ein." Classes="muted" TextWrapping="Wrap" />
+                    <TextBlock Text="„Probelauf starten“ zählt, was der Import täte, und speichert nichts. Eine Dublette aus Schritt 3 steht im Ergebnis als „ergänzt“ oder „übersprungen“, je nach Wahl. „Importieren“ legt die Gäste an und trägt den Import im Verlauf ein." Classes="muted" TextWrapping="Wrap" />
                     <TextBlock x:Name="ImportDryRun" Text="{Binding DryRunText}" IsVisible="{Binding HasDryRun}" TextWrapping="Wrap" />
                     <ProgressBar x:Name="ImportProgress" IsIndeterminate="True" IsVisible="{Binding IsBusy}" AutomationProperties.Name="Der Import läuft" />
                   </StackPanel>
@@ -344,7 +350,7 @@
               </ScrollViewer>
               <StackPanel x:Name="DialogButtons" Grid.Row="2" Classes="confirmbuttons">
                 <Button x:Name="ConfirmButton" Classes="primary" Content="{Binding ContinueText}" Command="{Binding ContinueCommand}" />
-                <Button x:Name="CheckButton" Content="Nur prüfen" Command="{Binding CheckCommand}" IsVisible="{Binding IsRunStep}" />
+                <Button x:Name="CheckButton" Content="Probelauf starten" Command="{Binding CheckCommand}" IsVisible="{Binding IsRunStep}" />
                 <Button x:Name="BackButton" Classes="ghost" Content="Zurück" Command="{Binding BackCommand}" IsVisible="{Binding CanGoBack}" />
                 <Button x:Name="CancelButton" Classes="ghost" Content="{Binding CancelText}" Command="{Binding CancelCommand}" />
               </StackPanel>

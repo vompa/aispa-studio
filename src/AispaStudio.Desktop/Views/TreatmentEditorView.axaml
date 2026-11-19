@@ -115,9 +115,12 @@
               <TextBox Text="{Binding GuestHint}" AcceptsReturn="True" TextWrapping="Wrap" MaxLength="300" MinHeight="56"
                        PlaceholderText="z. B. Bitte 15 Minuten früher kommen, Badekleidung mitbringen" AutomationProperties.Name="Hinweis für Gäste" />
             </StackPanel>
-            <StackPanel Orientation="Horizontal" Spacing="4">
-              <CheckBox Content="Anamnese prüfen" IsChecked="{Binding CheckAnamnesis}" />
-              <ui:HelpButton Topic="behandlungen" Section="anamnese-pruefen" />
+            <StackPanel Spacing="2">
+              <StackPanel Orientation="Horizontal" Spacing="4">
+                <CheckBox Content="Anamnese prüfen" IsChecked="{Binding CheckAnamnesis}" />
+                <ui:HelpButton Topic="behandlungen" Section="anamnese-pruefen" />
+              </StackPanel>
+              <TextBlock x:Name="AnamnesisHelp" Text="Beim Buchen erscheint ein Hinweis, wenn der Gast Angaben im Bogen hat." Classes="muted small" Margin="28,0,0,0" />
             </StackPanel>
 
             <!-- Verkauf (Slice 115): „Passt dazu“, höchstens fünf Kassa-Artikel -->
@@ -127,7 +130,8 @@
                 <ui:HelpButton Grid.Column="1" Topic="behandlungen" Section="passt-dazu" />
               </Grid>
               <TextBlock Classes="muted" TextWrapping="Wrap" Text="Die Kassa und das Termin-Panel schlagen diese Artikel vor, wenn sie am Verkaufsregal liegen." />
-              <ui:InfoBar Severity="Warning" Message="Die Kassa-Artikel wurden nicht geladen. „Passt dazu“ lässt sich gerade nicht ändern." IsVisible="{Binding HasSalesLoadError}" />
+              <ui:InfoBar Severity="Warning" Message="Die Kassa-Artikel wurden nicht geladen. „Passt dazu“ lässt sich gerade nicht ändern." IsVisible="{Binding HasSalesLoadError}"
+                          ActionText="Erneut laden" ActionCommand="{Binding ReloadSalesCommand}" />
               <ItemsControl ItemsSource="{Binding RecommendedArticles}">
                 <ItemsControl.ItemTemplate>
                   <DataTemplate x:DataType="vm:RecommendedArticleRow">
@@ -281,10 +285,10 @@
                   <ui:FormField Grid.Column="1" Label="Nachbereitung (min)">
                     <ui:NumberField x:Name="FollowUpField" Value="{Binding FollowUpMinutes}" Minimum="0" Maximum="120" Increment="5" />
                   </ui:FormField>
-                  <ui:FormField Grid.Row="1" Label="Am Gast bis Einwirkzeit (min)">
+                  <ui:FormField Grid.Row="1" Label="Arbeit vor der Einwirkzeit (min)" Help="Die Person arbeitet am Gast, z. B. auftragen.">
                     <ui:NumberField Value="{Binding HandsOnMinutes}" Minimum="0" Maximum="120" Increment="5" />
                   </ui:FormField>
-                  <ui:FormField Grid.Row="1" Grid.Column="1" Label="Einwirkzeit (min)">
+                  <ui:FormField Grid.Row="1" Grid.Column="1" Label="Einwirkzeit (min)" Help="Der Gast liegt allein, die Person ist frei.">
                     <ui:NumberField Value="{Binding ProcessingMinutes}" Minimum="0" Maximum="120" Increment="5" />
                   </ui:FormField>
                 </Grid>
@@ -294,6 +298,11 @@
                 <Grid ColumnDefinitions="*,Auto">
                   <TextBlock Text="Vorbereitungsschritte" Classes="h3" VerticalAlignment="Center" />
                   <ui:HelpButton Grid.Column="1" Topic="behandlungen" Section="vorbereitungsschritte" />
+                </Grid>
+                <Grid x:Name="StepHeader" ColumnDefinitions="*,100,200,32" ColumnSpacing="8" IsVisible="{Binding PreparationSteps.Count}">
+                  <TextBlock Text="Schritt" Classes="label" />
+                  <TextBlock Grid.Column="1" Text="Min. vorher" Classes="label" />
+                  <TextBlock Grid.Column="2" Text="Material aus dem Lager" Classes="label" />
                 </Grid>
                 <ItemsControl ItemsSource="{Binding PreparationSteps}">
                   <ItemsControl.ItemTemplate>
@@ -325,6 +334,13 @@
                 <TextBlock Text="Material je Termin" Classes="h3" VerticalAlignment="Center" />
                 <ui:HelpButton Grid.Column="1" Topic="behandlungen" Section="material" />
               </Grid>
+              <Grid x:Name="MaterialHeader" ColumnDefinitions="180,*,80,110,90,32" ColumnSpacing="8" IsVisible="{Binding Materials.Count}">
+                <TextBlock Text="Aus dem Lager" Classes="label" />
+                <TextBlock Grid.Column="1" Text="Bezeichnung" Classes="label" />
+                <TextBlock Grid.Column="2" Text="Einheit" Classes="label" />
+                <TextBlock Grid.Column="3" Text="Je Einheit (€)" Classes="label" />
+                <TextBlock Grid.Column="4" Text="Menge" Classes="label" />
+              </Grid>
               <ItemsControl ItemsSource="{Binding Materials}">
                 <ItemsControl.ItemTemplate>
                   <DataTemplate x:DataType="vm:MaterialRow">
@@ -355,10 +371,17 @@
                 <TextBlock Text="Zum Termin bereitstellen" Classes="h3" VerticalAlignment="Center" />
                 <ui:HelpButton Grid.Column="1" Topic="behandlungen" Section="zum-termin-bereitstellen" />
               </Grid>
+              <Grid x:Name="ExtraHeader" ColumnDefinitions="*,190,80,160,90,32" ColumnSpacing="8" IsVisible="{Binding Extras.Count}">
+                <TextBlock Text="Bezeichnung" Classes="label" />
+                <TextBlock Grid.Column="1" Text="Zeitpunkt" Classes="label" />
+                <TextBlock Grid.Column="2" Text="Minuten" Classes="label" />
+                <TextBlock Grid.Column="3" Text="Lagerartikel" Classes="label" />
+                <TextBlock Grid.Column="4" Text="Menge" Classes="label" />
+              </Grid>
               <ItemsControl ItemsSource="{Binding Extras}">
                 <ItemsControl.ItemTemplate>
                   <DataTemplate x:DataType="vm:ExtraRow">
-                    <Grid ColumnDefinitions="*,170,80,170,90,Auto" ColumnSpacing="8" Margin="0,0,0,8">
+                    <Grid ColumnDefinitions="*,190,80,160,90,Auto" ColumnSpacing="8" Margin="0,0,0,8">
                       <TextBox Text="{Binding Name}" PlaceholderText="z. B. Früchteteller" AutomationProperties.Name="Bezeichnung" />
                       <ComboBox Grid.Column="1" ItemsSource="{x:Static vm:TimingChoice.All}" SelectedItem="{Binding Timing}" HorizontalAlignment="Stretch"
                                 AutomationProperties.Name="Zeitpunkt" />
@@ -382,26 +405,27 @@
 
           <!-- Qualifikationen, Räume und Geräte; „Wer kann das?“ steht als Nebeninhalt 3 : 2 daneben (masken.md R14) -->
           <StackPanel x:Name="ResourcesSection" Spacing="20" IsEnabled="{Binding CanEdit}" IsVisible="{Binding ShowsResources}">
+            <ui:InfoBar x:Name="QualificationBar" Severity="Warning" Message="{Binding QualificationNotice}" IsVisible="{Binding HasQualificationNotice}"
+                        ActionText="Trotzdem speichern" ActionCommand="{Binding SaveCommand}" />
             <ui:MainSideColumns Spacing="20" LineSpacing="20" StackBelow="600">
               <StackPanel Spacing="8">
                 <Grid ColumnDefinitions="*,Auto">
                   <TextBlock Text="Nötige Qualifikationen" Classes="h3" VerticalAlignment="Center" />
                   <ui:HelpButton Grid.Column="1" Topic="behandlungen" Section="noetige-qualifikationen" />
                 </Grid>
-                <ui:FormField Label="Nur wer alle gewählten hat, kann die Behandlung übernehmen" Warning="{Binding QualificationNotice}">
-                  <ItemsControl x:Name="QualificationsField" ItemsSource="{Binding Qualifications}" AutomationProperties.Name="Nötige Qualifikationen">
-                    <ItemsControl.ItemsPanel>
-                      <ItemsPanelTemplate>
-                        <WrapPanel ItemSpacing="16" />
-                      </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                    <ItemsControl.ItemTemplate>
-                      <DataTemplate x:DataType="vm:CheckOption">
-                        <CheckBox Content="{Binding Label}" IsChecked="{Binding IsChecked}" />
-                      </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                  </ItemsControl>
-                </ui:FormField>
+                <TextBlock Classes="muted small" TextWrapping="Wrap" Text="Nur wer alle gewählten hat, kann die Behandlung übernehmen." />
+                <ItemsControl x:Name="QualificationsField" ItemsSource="{Binding Qualifications}" AutomationProperties.Name="Nötige Qualifikationen">
+                  <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                      <WrapPanel ItemSpacing="16" />
+                    </ItemsPanelTemplate>
+                  </ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:CheckOption">
+                      <CheckBox Content="{Binding Label}" IsChecked="{Binding IsChecked}" />
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
               </StackPanel>
 
               <StackPanel x:Name="WhoCanDoSection" Spacing="8">
@@ -432,7 +456,8 @@
                 <DataTemplate x:DataType="vm:LocationResourceGroup">
                   <StackPanel Spacing="8" Margin="0,0,0,20">
                     <TextBlock Text="{Binding Name}" Classes="h3" />
-                    <TextBlock Text="Geeignete Räume:" Classes="muted" />
+                    <TextBlock Text="Geeignete Räume" Classes="label" />
+                    <TextBlock Text="Noch kein Raum an diesem Standort." Classes="muted" IsVisible="{Binding HasNoRooms}" />
                     <ItemsControl ItemsSource="{Binding Rooms}">
                       <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
@@ -445,7 +470,7 @@
                         </DataTemplate>
                       </ItemsControl.ItemTemplate>
                     </ItemsControl>
-                    <TextBlock Text="Braucht eines dieser Geräte:" Classes="muted" IsVisible="{Binding HasEquipment}" />
+                    <TextBlock Text="Braucht eines dieser Geräte" Classes="label" IsVisible="{Binding HasEquipment}" />
                     <ItemsControl ItemsSource="{Binding Equipment}" IsVisible="{Binding HasEquipment}">
                       <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>

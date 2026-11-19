@@ -208,7 +208,7 @@ public sealed class StartupWaitTests
         Assert.Contains(seen, s => s.StartsWith("Verbindung wird aufgebaut …", StringComparison.Ordinal));
         Assert.False(vm.IsConnected);
         Assert.Equal("Keine Verbindung zum Server", vm.ConnectionTitle);
-        Assert.StartsWith("Server nicht erreichbar", vm.StatusText, StringComparison.Ordinal);
+        Assert.Equal(MainViewModel.ServerUnreachableAdvice, vm.StatusText);
     }
 
     [Fact]
@@ -227,6 +227,6 @@ public sealed class StartupWaitTests
 
         Assert.True(watch.Elapsed < TimeSpan.FromSeconds(10), $"Der Start wartete {watch.Elapsed}.");
         Assert.False(vm.IsConnected);
-        Assert.StartsWith("Server nicht erreichbar", vm.StatusText, StringComparison.Ordinal);
+        Assert.Equal(MainViewModel.ServerUnreachableAdvice, vm.StatusText);
     }
 }

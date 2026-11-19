@@ -163,7 +163,7 @@ public sealed partial class ViewTests
 
         // Beschriftungen über den Feldern, mit der Währung der Kasse.
         var labels = page.GetVisualDescendants().OfType<FormField>().Where(f => f.IsEffectivelyVisible).Select(f => f.Label).ToList();
-        Assert.Contains("Paketpreis (EUR)", labels);
+        Assert.Contains("Paketpreis (€)", labels);
         Assert.Contains("Anzahl", labels);
         Assert.Contains("Einzulösen bis", labels);
 

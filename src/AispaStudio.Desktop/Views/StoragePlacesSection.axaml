@@ -48,8 +48,9 @@
             <ui:FormField Label="Name" IsRequired="True" Error="{Binding NameError}">
               <TextBox x:Name="PlaceNameField" Text="{Binding PlaceName}" MaxLength="60" />
             </ui:FormField>
-            <ui:FormField Grid.Column="1" Label="Art">
-              <ComboBox x:Name="PlaceKindField" ItemsSource="{Binding KindOptions}" SelectedItem="{Binding SelectedKind}" IsEnabled="{Binding CanEditKind}" HorizontalAlignment="Stretch" />
+            <ui:FormField Grid.Column="1" Label="Art" Help="{Binding KindHelp}">
+              <ComboBox x:Name="PlaceKindField" ItemsSource="{Binding KindOptions}" SelectedItem="{Binding SelectedKind}" IsEnabled="{Binding CanEditKind}" HorizontalAlignment="Stretch"
+                        ToolTip.Tip="{Binding KindHelp}" ToolTip.ShowOnDisabled="True" />
             </ui:FormField>
           </Grid>
           <ui:FormField Label="Raum" IsVisible="{Binding ShowRoom}">
@@ -70,7 +71,7 @@
             <ui:HelpButton Grid.Column="1" Topic="lager-lagerorte" Section="mindestmengen" />
           </Grid>
           <TextBlock Classes="muted small" TextWrapping="Wrap"
-                     Text="Fällt der Bestand an diesem Ort darunter, steht er im Bestand als „unter Minimum“. Ohne Eintrag gilt hier kein Mindestwert. Bei einem Raumschrank sind die Mindestmengen die Raumausstattung: Nach der Behandlung prüft das Team, was fehlt. Die Höchstmenge ist freiwillig: Bis dahin füllt der Bestellvorschlag auf." />
+                     Text="Fällt der Bestand an diesem Ort darunter, steht er im Bestand als „unter Minimum“." />
           <Grid ColumnDefinitions="*,120,120,28" ColumnSpacing="8" IsVisible="{Binding HasMinimums}">
             <TextBlock Text="Material" Classes="group" />
             <TextBlock Grid.Column="1" Text="Mindestmenge" Classes="group" />
@@ -97,7 +98,8 @@
           <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding HasCopySources}">
             <ComboBox x:Name="CopySourceField" ItemsSource="{Binding CopySources}" SelectedItem="{Binding CopySource}" MinWidth="200" PlaceholderText="Lagerort wählen"
                       AutomationProperties.Name="Lagerort, von dem die Mindestmengen übernommen werden" />
-            <Button x:Name="CopyMinimumsButton" Classes="small" Content="Von Raum … übernehmen" Command="{Binding CopyMinimumsCommand}" VerticalAlignment="Center" />
+            <Button x:Name="CopyMinimumsButton" Classes="small" Content="Von Raum … übernehmen" Command="{Binding CopyMinimumsCommand}" VerticalAlignment="Center"
+                    ToolTip.Tip="Ersetzt die Mindestmengen dieses Lagerorts durch die des gewählten Lagerorts und speichert sofort." />
           </StackPanel>
         </StackPanel>
 

@@ -88,7 +88,7 @@
           <StackPanel x:Name="DutiesSection" Spacing="8" IsVisible="{Binding ShowsDutiesSection}">
             <Grid ColumnDefinitions="*,Auto">
               <TextBlock Text="Zertifikate und Liste der Zuständigkeiten" Classes="h3" VerticalAlignment="Center" />
-              <ui:HelpButton Topic="zustaendigkeiten-zertifikate" Section="uebersicht" Grid.Column="1" />
+              <ui:HelpButton Topic="zustaendigkeiten-zertifikate" Section="liste" Grid.Column="1" />
             </Grid>
             <ContentControl x:Name="DutiesOverviewHost" Content="{Binding Duties}" />
           </StackPanel>
@@ -170,7 +170,7 @@
                   ActionText="Erneut versuchen" ActionCommand="{Binding SaveCommand}" CloseCommand="{Binding CloseErrorCommand}" />
       <Grid ColumnDefinitions="*" IsVisible="{Binding HasSaveBar}">
         <ui:SaveBar SaveCommand="{Binding SaveCommand}" DiscardCommand="{Binding DiscardChangesCommand}" CanDiscard="{Binding HasUnsavedChanges}"
-                    Status="{Binding StatusText}" />
+                    Status="{Binding StatusText}" SaveHint="{Binding SaveBlocker}" />
       </Grid>
     </StackPanel>
   </Grid>

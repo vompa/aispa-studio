@@ -8,10 +8,9 @@
     „Warum?“; aufgeklappt stehen Quelle und Regel darunter. Keine Rückmeldeknöpfe.
   -->
   <StackPanel Spacing="2">
-    <!-- Immer eine Zeile: ein zu langer Hinweis wird gekürzt, der volle Wortlaut steht im Tooltip -->
-    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8" HorizontalAlignment="Left">
-      <TextBlock x:Name="DisclaimerText" Text="{Binding #Self.Disclaimer}" Classes="muted small" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
-                 ToolTip.Tip="{Binding #Self.Disclaimer}" />
+    <!-- Der Hinweis ist Pflicht und steht immer ganz da: ist die Leiste zu schmal, bricht er um (Auftraggeber, 19.11.2026), „Warum?“ bleibt rechts daneben -->
+    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+      <TextBlock x:Name="DisclaimerText" Text="{Binding #Self.Disclaimer}" Classes="muted small" VerticalAlignment="Center" TextWrapping="Wrap" />
       <ui:AccordionHeader x:Name="WhyToggle" Grid.Column="1" Classes="more" Padding="0,0,6,0" MinHeight="24"
                           IsVisible="{Binding #Self.Why, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
         <StackPanel Orientation="Horizontal" Spacing="4">

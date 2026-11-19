@@ -18,7 +18,7 @@ Die Seite sehen alle, die Termine buchen dürfen (Inhaber, Standortleitung, Reze
 
 - **Bondrucker**: „Adresse“, „Zeichen pro Zeile“, der Haken „Nach dem Kassieren und Stornieren automatisch drucken“ und **Probedruck**.
 - **Kartenterminal**: die Auswahl des Terminals an diesem PC und darunter, was das Terminal zuletzt gemeldet hat. Für die Leitung zusätzlich **Gewähltes Terminal entfernen** und „Neues Terminal im Netz“ mit **Terminal anlegen**.
-- **Anzeigen im Pausenraum** (nur Leitung): die gekoppelten Anzeigen mit **Widerrufen**, darunter „Code vom Bildschirm“, „Name der Anzeige“ und „Standort“ mit **Anzeige koppeln**.
+- **Anzeigen im Pausenraum** (nur Leitung): die gekoppelten Anzeigen mit **Kopplung aufheben**, darunter „Code vom Bildschirm“, „Name der Anzeige“ und „Standort“ mit **Anzeige koppeln**.
 - **Speichern** übernimmt Bondrucker und Terminal für diesen PC.
 - **Empfangsgerät**: Name, Standort und Leerlaufzeit mit **Diesen PC als Empfangsgerät anmelden**, oder, wenn der PC schon eines ist, sein Name mit **Kein Empfangsgerät mehr**.
 

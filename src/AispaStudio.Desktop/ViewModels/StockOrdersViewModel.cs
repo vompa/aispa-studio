@@ -213,6 +213,9 @@ public sealed partial class PurchaseOrderCard : ObservableObject
 
     public string SaveName => $"Mengen der Bestellung {Order.Number} speichern";
 
+    /// <summary>Hinweis am Knopf „Mengen speichern“; gesperrt nennt er den Grund.</summary>
+    public string SaveTip => IsDirty ? "Speichern (Strg+S)" : "Keine Menge geändert";
+
     public string DiscardName => $"Entwurf verwerfen, Bestellung {Order.Number}";
 
     internal bool IsDirty => IsDraft && Lines.Any(l => l.IsDirty);
@@ -224,6 +227,7 @@ public sealed partial class PurchaseOrderCard : ObservableObject
     {
         OrderText = null; // Der Text nennt die alte Menge und darf so nicht in eine Mail.
         SaveCommand.NotifyCanExecuteChanged();
+        OnPropertyChanged(nameof(SaveTip));
         _owner.NotifyChanged();
     }
 }
@@ -349,7 +353,7 @@ public sealed partial class StockOrdersViewModel : ViewModelBase, IEditableArea
             0 => "Es ist nichts zu bestellen, oder dem Material fehlt der Lieferant.",
             1 => "1 Entwurf angelegt.",
             _ => $"{created.Count} Entwürfe angelegt.",
-        }).ConfigureAwait(true);
+        }, isNotice: created.Count == 0).ConfigureAwait(true);
     }
 
     internal async Task SendAsync(PurchaseOrderCard card)
@@ -384,7 +388,7 @@ public sealed partial class StockOrdersViewModel : ViewModelBase, IEditableArea
             return;
         }
 
-        await _owner.ReloadAsync($"Bestellung {card.Order.Number} ist bestellt, die Mail an {card.Order.SupplierEmail} ist unterwegs.").ConfigureAwait(true);
+        await _owner.ReloadAsync($"Bestellung {card.Order.Number} bestellt, Mail ist unterwegs.").ConfigureAwait(true);
     }
 
     internal async Task SaveAsync(PurchaseOrderCard card)

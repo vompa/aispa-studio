@@ -92,7 +92,7 @@ public partial class SyncViewModel(IWorkstationApi api, ILocalServer local, Time
     public bool HasError => Status?.LastError is not null;
 
     public string PendingText => Status is { Enabled: true, PendingChanges: var n }
-        ? n == 0 ? "Alle Änderungen dieses PCs sind übertragen." : $"{n} Änderung(en) warten auf den nächsten Abgleich."
+        ? n == 0 ? "Alle Änderungen dieses PCs sind übertragen." : n == 1 ? "1 Änderung wartet auf den nächsten Abgleich." : $"{n} Änderungen warten auf den nächsten Abgleich."
         : "";
 
     [RelayCommand]

@@ -10,6 +10,10 @@ stichwoerter: Warteliste, warten, Wartende, ausgebucht, voll, Nachrücken, wenn 
 
 Gäste, die online keinen passenden Termin gefunden haben, können sich auf die Warteliste setzen. Wird etwas frei (Storno oder Verschiebung), schreibt der Server ihnen selbst. Im Kalender sieht die Rezeption die offenen Wünsche, kann freie Zeiten zeigen, für den Gast gleich buchen und erledigte Wünsche entfernen.
 
+## Was die Warteliste kann {#uebersicht}
+
+Wird etwas frei, schreibt der Server den Wartenden selbst. Im Panel lassen sich freie Zeiten zeigen, für den Gast buchen und Anfragen abschließen. Der Satz oben im Panel nennt nur das Wichtigste, hier steht der Rest; die Schritte folgen unter [Ansehen](hilfe:kalender-warteliste#ansehen).
+
 ## Ansehen {#ansehen}
 
 1. In der Kopfzeile auf **Warteliste** mit der Anzahl klicken (nur sichtbar, wenn jemand wartet), oder im Menü neben **Termin** **Warteliste ansehen** wählen.

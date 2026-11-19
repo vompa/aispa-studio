@@ -52,14 +52,16 @@ public sealed partial class ViewTests
         Assert.Contains("Storniert von Rita: Grund „Krank“", texts);
         Assert.Contains("Brigitte Müller", texts);
         Assert.Contains("+43 664 123 45 67", texts);
-        Assert.Contains("von Rita", texts);
-        Assert.Contains("Rezeption", texts);
-        Assert.Contains("Grund: Krank", texts);
+        // Person und Grund nennt der Satz schon: jede Angabe steht einmal. Das Symbol der Kanalzeile trägt ein Wort.
+        Assert.DoesNotContain("Person: Rita", texts);
+        Assert.DoesNotContain("Grund: Krank", texts);
+        Assert.Contains("Kanal: Rezeption", texts);
         Assert.Contains("Kurzfristig abgesagt: innerhalb der Stornofrist von 24 Stunden. Laut Regel fallen 50 % Ausfallgebühr an.", texts);
         // Werte: Kopf und Zeilen; leer steht als „–“, der Grund steht nur in der Hauptkarte.
         Assert.Equal(["Feld", "Vorher", "Nachher"], texts.Where(t => t is "Feld" or "Vorher" or "Nachher").ToList());
         var values = VisibleTexts(Named<ItemsControl>(panel, "ValuesList"));
-        Assert.Equal(["Status", "Gebucht", "Storniert", "Ausfallgebühr", "–", "–"], values);
+        // „Ausfallgebühr“ ohne Vorher und Nachher wäre eine Zeile „– –“ neben dem Hinweis „Laut Regel fallen 50 % an“: sie entfällt.
+        Assert.Equal(["Status", "Gebucht", "Storniert"], values);
         Assert.Equal("Stornierung zurücknehmen", Label(Assert.Single(VisiblePrimaries(panel))));
         Assert.True(Named<Button>(panel, "RestoreButton").IsEnabled);
         Assert.Equal(["Stornierung zurücknehmen", "Termin öffnen", "Kundenkarte öffnen"], panel.GetVisualDescendants().OfType<Button>().Where(b => b.IsEffectivelyVisible && b.Name is not null).Select(Label));

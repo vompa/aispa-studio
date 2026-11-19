@@ -78,6 +78,7 @@ public sealed partial class PersonHrFileViewModel : ViewModelBase, ISavesFiles
     public PersonHrFileViewModel(TeamContext context, Guid employeeId, string personName, bool isReadOnly)
     {
         _context = context;
+        Toast = new ToastState(context.Time);
         _basePath = $"api/employees/{employeeId}/hr-file";
         _personName = personName;
         IsEditable = !isReadOnly;
@@ -119,13 +120,6 @@ public sealed partial class PersonHrFileViewModel : ViewModelBase, ISavesFiles
     public bool ShowsFormError => HasError && IsEditing;
 
     public bool ShowsListError => HasError && !IsEditing;
-
-    /// <summary>„personalakte-Lena Huber.pdf gespeichert.“</summary>
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasMessage))]
-    public partial string? Message { get; private set; }
-
-    public bool HasMessage => Message is not null;
 
     [ObservableProperty]
     public partial bool IsBusy { get; private set; }
@@ -204,9 +198,8 @@ public sealed partial class PersonHrFileViewModel : ViewModelBase, ISavesFiles
     [ObservableProperty]
     public partial string? ExpiresError { get; private set; }
 
-    /// <summary>„Gespeichert.“ über der Liste, bis wieder etwas geändert wird.</summary>
-    [ObservableProperty]
-    public partial string? StatusText { get; private set; }
+    /// <summary>„Gespeichert“, „Gelöscht“ und „Gespeichert: personalakte-Lena Huber.pdf“ als Toast (meldungen.md M1).</summary>
+    public ToastState Toast { get; }
 
     public bool HasUnsavedChanges => IsEditing && State() != _savedState;
 
@@ -241,7 +234,7 @@ public sealed partial class PersonHrFileViewModel : ViewModelBase, ISavesFiles
         var result = await _context.Api.GetAsync<List<HrEntryDto>>(_basePath).ConfigureAwait(true);
         if (result.Value is not { } entries)
         {
-            LoadError = result.Error ?? "Die Personalakte wurde nicht geladen.";
+            LoadError = TeamContext.LoadFailure(result.Error, "Die Personalakte wurde nicht geladen");
             return;
         }
 
@@ -285,14 +278,10 @@ public sealed partial class PersonHrFileViewModel : ViewModelBase, ISavesFiles
     [RelayCommand]
     private void CloseError() => Error = null;
 
-    [RelayCommand]
-    private void CloseMessage() => Message = null;
-
     public void Discard()
     {
         Close();
         Error = null;
-        StatusText = null;
     }
 
     [RelayCommand]
@@ -306,7 +295,7 @@ public sealed partial class PersonHrFileViewModel : ViewModelBase, ISavesFiles
         IsBusy = true;
         try
         {
-            Message = Error = null;
+            Error = null;
             var result = await _context.Api.GetBytesAsync($"{_basePath}/export").ConfigureAwait(true);
             if (result.Value is not { } content)
             {
@@ -318,7 +307,7 @@ public sealed partial class PersonHrFileViewModel : ViewModelBase, ISavesFiles
             var fileName = $"personalakte-{string.Concat(_personName.Select(c => invalid.Contains(c) ? '-' : c))}.pdf";
             if (Files is not null && await Files.SaveAsync(fileName, "PDF-Datei", ["*.pdf"], content).ConfigureAwait(true))
             {
-                Message = $"{fileName} gespeichert.";
+                Toast.Show($"Gespeichert: {fileName}");
             }
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
@@ -395,7 +384,7 @@ public sealed partial class PersonHrFileViewModel : ViewModelBase, ISavesFiles
 
         Close();
         await LoadAsync().ConfigureAwait(true);
-        StatusText = "Gespeichert.";
+        Toast.Show("Gespeichert");
         return true;
     }
 
@@ -421,7 +410,7 @@ public sealed partial class PersonHrFileViewModel : ViewModelBase, ISavesFiles
 
         Error = null;
         await LoadAsync().ConfigureAwait(true);
-        StatusText = "Gelöscht.";
+        Toast.Show("Gelöscht");
     }
 
     private void Open(HrEntryKind kind, HrEntryDto? entry)
@@ -445,7 +434,7 @@ public sealed partial class PersonHrFileViewModel : ViewModelBase, ISavesFiles
         HandedOverInWriting = entry?.HandedOverInWriting ?? false;
         ExpiresOn = entry?.ExpiresOn;
         _applying = false;
-        DateError = TextError = IssuedByError = ExpiresError = Error = StatusText = Message = null;
+        DateError = TextError = IssuedByError = ExpiresError = Error = null;
         _savedState = State();
         OnPropertyChanged(nameof(FormTitle));
         IsEditing = true;
@@ -467,7 +456,6 @@ public sealed partial class PersonHrFileViewModel : ViewModelBase, ISavesFiles
 
     private void FormChanged()
     {
-        StatusText = null;
         OnPropertyChanged(nameof(HasUnsavedChanges));
     }
 

@@ -173,7 +173,7 @@ public sealed partial class ViewTests
             await shell.CheckoutAsync(SpaSample.Paying);
             await Pump(Settling);
             var page = window.GetVisualDescendants().OfType<PosView>().First();
-            var field = (MoneyField)page.GetVisualDescendants().OfType<FormField>().Single(f => f.Label == "Wert (EUR)").Content!;
+            var field = (MoneyField)page.GetVisualDescendants().OfType<FormField>().Single(f => f.Label == "Wert (€)").Content!;
             var sell = page.GetVisualDescendants().OfType<Button>().Single(b => b.IsEffectivelyVisible && ReferenceEquals(b.Command, shell.Pos.SellVoucherCommand));
             field.BringIntoView();
             await Pump();

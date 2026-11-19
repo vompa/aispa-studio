@@ -495,7 +495,7 @@ public sealed partial class CustomerImportViewModel : ConfirmDialogViewModel
 
     private bool CanCheck() => !IsBusy && Step == CustomerImportStep.Run;
 
-    /// <summary>„Nur prüfen“: derselbe Aufruf wie der Import mit <c>dryRun=true</c>; es wird nichts gespeichert.</summary>
+    /// <summary>„Probelauf starten“: derselbe Aufruf wie der Import mit <c>dryRun=true</c>; es wird nichts gespeichert.</summary>
     [RelayCommand(CanExecute = nameof(CanCheck))]
     private Task CheckAsync() => RunAsync(dryRun: true);
 

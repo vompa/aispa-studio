@@ -57,13 +57,15 @@ public sealed class PosOnlinePaymentsTests
         var card = pos.OnlinePayments!;
 
         Assert.Equal(new OnlinePaymentLine("Wertgutschein 50,00 € · 19.10.2026 09:12", "Ausgestellt · Beleg K1 Nr. 12, 19.10.2026 · für Maria", false), card.Orders[0]);
-        Assert.Equal(new OnlinePaymentLine("Behandlungsgutschein 89,00 € · 19.10.2026 08:00", "Bezahlt, aber nicht ausgestellt · Die Kassa war nicht eingerichtet.", true),
+        Assert.Equal(new OnlinePaymentLine("Behandlungsgutschein 89,00 € · 19.10.2026 08:00", "Bezahlt, aber nicht ausgestellt", true, "Die Kassa war nicht eingerichtet."),
             card.Orders[1]);
         Assert.Equal(new OnlinePaymentLine("Online-Gutschein 50,00 € · 19.10.2026 10:00",
             "Erstattet am 19.10.2026 10:01 · Beleg K1 Nr. 9, 18.10.2026 · Stornobeleg K1 Nr. 13, 19.10.2026", false), card.Refunds[0]);
         Assert.True(card.Refunds[1].IsProblem);
-        Assert.StartsWith("Erstattung fehlgeschlagen; im Beleg erneut anstoßen", card.Refunds[1].Detail, StringComparison.Ordinal);
-        Assert.EndsWith("Der Anbieter hat abgelehnt.", card.Refunds[1].Detail, StringComparison.Ordinal);
+        // Zustand und nächster Schritt stehen getrennt: der Zustand kurz, der Weg samt Fehlertext darunter.
+        Assert.Equal("Erstattung fehlgeschlagen", card.Refunds[1].Detail);
+        Assert.StartsWith("Im Beleg erneut anstoßen (Kassenaufsicht)", card.Refunds[1].Next, StringComparison.Ordinal);
+        Assert.EndsWith("Der Anbieter hat abgelehnt.", card.Refunds[1].Next, StringComparison.Ordinal);
         Assert.False(card.NoOrders);
         Assert.Null(card.Error);
     }

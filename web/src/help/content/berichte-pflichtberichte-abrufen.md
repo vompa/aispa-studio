@@ -24,9 +24,11 @@ Oben stehen Fristen, zum Beispiel bis 15. Februar die Prüfung des Jahresbelegs 
 1. Bei der Kassa **Datenerfassungsprotokoll (DEP) herunterladen** anklicken.
 2. Die Datei wird gespeichert. Sie enthält alle signierten Belege dieser Kassa.
 
-Das DEP mindestens vierteljährlich extern sichern.
+Das DEP (Datenerfassungsprotokoll) ist die Aufzeichnung aller signierten Belege einer Kassa; es mindestens vierteljährlich extern sichern.
 
 ## Deutschland: DSFinV-K und TSE-Export {#dsfinvk}
+
+Die DSFinV-K ist die „Digitale Schnittstelle der Finanzverwaltung für Kassensysteme“, das Dateiformat für eine Kassenprüfung. Die TSE ist die technische Sicherheitseinrichtung, die jeden Beleg signiert; ihr Export ist die Datei mit diesen Signaturdaten. „TSE-Export aufbewahren“ bei der Kasse erinnert daran, ihn aufzubewahren.
 
 1. Bei der Kasse **DSFinV-K seit Jahresbeginn herunterladen** anklicken. Die Datei reicht vom 1. Jänner bis zum gewählten Datum.
 2. Für die Daten der TSE **TSE-Export anfordern** anklicken. Die Meldung „TSE-Export angefordert. Er steht gleich in der Liste.“ erscheint.

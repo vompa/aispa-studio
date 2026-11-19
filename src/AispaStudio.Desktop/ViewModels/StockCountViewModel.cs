@@ -57,6 +57,8 @@ public sealed partial class CountRow : ObservableObject
 
     public bool DifferenceIsNegative => Difference < 0;
 
+    public bool WorthIsNegative => Worth < 0 && WorthText.Length > 0;
+
     public string WorthText => Difference is { } difference && difference != 0 ? Money.Format(Worth) : "";
 
     /// <summary>Gebucht wird, was gezählt wurde und vom Soll abweicht.</summary>
@@ -74,7 +76,7 @@ public sealed partial class CountRow : ObservableObject
     partial void OnEnteredChanged(string value)
     {
         foreach (var name in new[] { nameof(IsEntered), nameof(IsInvalid), nameof(Value), nameof(Difference), nameof(Worth), nameof(DifferenceText), nameof(DifferenceIsNegative),
-            nameof(WorthText), nameof(IsChange) })
+            nameof(WorthText), nameof(WorthIsNegative), nameof(IsChange) })
         {
             OnPropertyChanged(name);
         }
@@ -187,6 +189,8 @@ public sealed partial class StockCountViewModel : ViewModelBase
     public string SumText => $"Summe der Differenzen ({(ChangeCount == 1 ? "1 Position" : $"{ChangeCount} Positionen")})";
 
     public string WorthSumText => Money.Format(WorthSum);
+
+    public bool WorthSumIsNegative => WorthSum < 0;
 
     public string Heading => $"Inventur: {SelectedPlace?.Name}{(_adopted?.StartedBy is { } by ? $", gezählt von {by}" : "")}";
 
@@ -470,7 +474,7 @@ public sealed partial class StockCountViewModel : ViewModelBase
 
     private void Changed()
     {
-        foreach (var name in new[] { nameof(ChangeCount), nameof(HasInvalid), nameof(WorthSum), nameof(SumText), nameof(WorthSumText), nameof(CanBook), nameof(HasUnsavedChanges),
+        foreach (var name in new[] { nameof(ChangeCount), nameof(HasInvalid), nameof(WorthSum), nameof(SumText), nameof(WorthSumText), nameof(WorthSumIsNegative), nameof(CanBook), nameof(HasUnsavedChanges),
             nameof(ShowEmpty), nameof(Heading) })
         {
             OnPropertyChanged(name);

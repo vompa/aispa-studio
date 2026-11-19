@@ -238,12 +238,12 @@ public partial class DevicesViewModel(
         DisplayText = $"„{display.Name}“ gekoppelt. Die Anzeige zeigt den Tag in wenigen Sekunden.";
     }
 
-    /// <summary>„Widerrufen“ fragt nach; die Anzeige meldet sich danach bei ihrer nächsten Anfrage ab.</summary>
+    /// <summary>„Kopplung aufheben“ fragt nach; die Anzeige meldet sich danach bei ihrer nächsten Anfrage ab.</summary>
     [RelayCommand]
     private async Task AskRevokeDisplayAsync(DisplayDeviceDto display)
     {
-        var answer = await AskAsync(new ConfirmRequest("Anzeige widerrufen?",
-            $"„{display.Name}“ meldet sich ab und zeigt wieder einen Code. Zum erneuten Anzeigen den Code hier wieder koppeln.", "Widerrufen")).ConfigureAwait(true);
+        var answer = await AskAsync(new ConfirmRequest("Kopplung aufheben?",
+            $"„{display.Name}“ meldet sich ab und zeigt wieder einen Code. Zum erneuten Anzeigen den Code hier wieder koppeln.", "Kopplung aufheben")).ConfigureAwait(true);
         if (!answer.IsConfirmed)
         {
             return;
@@ -255,7 +255,7 @@ public partial class DevicesViewModel(
         {
             Displays.Remove(display);
             OnPropertyChanged(nameof(HasDisplays));
-            DisplayText = $"„{display.Name}“ widerrufen.";
+            DisplayText = $"Kopplung von „{display.Name}“ aufgehoben.";
         }
     }
 

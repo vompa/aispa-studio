@@ -47,11 +47,11 @@
                   <ui:Icon Data="{x:Static ui:Icons.ChevronDown}" Width="14" Height="14" VerticalAlignment="Center" IsVisible="{Binding IsExpandedHeading}" />
                   <ui:Icon Data="{x:Static ui:Icons.ChevronRight}" Width="14" Height="14" VerticalAlignment="Center" IsVisible="{Binding IsCollapsed}" />
                   <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                    <TextBlock Text="{Binding Title}" Classes.group="{Binding IsHeading}" Classes.muted="{Binding IsNotOffered}" TextTrimming="CharacterEllipsis"
+                    <TextBlock Text="{Binding Title}" Classes.group="{Binding IsHeading}" Classes.muted="{Binding IsNotOffered}" TextWrapping="Wrap"
                                ToolTip.Tip="{Binding Title}" />
                     <TextBlock Text="Nicht angeboten" Classes="muted small" IsVisible="{Binding IsNotOffered}" />
                   </StackPanel>
-                  <TextBlock Grid.Column="2" Text="{Binding Meta}" Classes="muted small num" VerticalAlignment="Center" IsVisible="{Binding IsTreatment}" />
+                  <TextBlock Grid.Column="2" Text="{Binding Meta}" Classes="muted small num" VerticalAlignment="Top" IsVisible="{Binding IsTreatment}" />
                   <TextBlock Grid.Column="2" Text="{Binding Count}" Classes="muted small num" VerticalAlignment="Center" IsVisible="{Binding IsHeading}" />
                 </Grid>
               </DataTemplate>

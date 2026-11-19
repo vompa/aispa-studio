@@ -18,9 +18,13 @@
       <ItemsControl x:Name="ExpiringRows" ItemsSource="{Binding Expiring}" AutomationProperties.Name="Was läuft bald ab?">
         <ItemsControl.ItemTemplate>
           <DataTemplate x:DataType="vm:ExpiringRow">
-            <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,0,0,8" AutomationProperties.Name="{Binding AutomationName}">
-              <ui:Icon Data="{x:Static ui:Icons.Warning}" Width="16" Height="16" Foreground="{DynamicResource WarnBrush}" VerticalAlignment="Center" IsVisible="{Binding IsExpired}" />
-              <TextBlock Text="{Binding Text}" TextWrapping="Wrap" VerticalAlignment="Center" />
+            <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,0,0,8">
+              <ui:Icon Data="{x:Static ui:Icons.Warning}" Width="16" Height="16" Foreground="{DynamicResource WarnBrush}" VerticalAlignment="Center" IsVisible="{Binding IsExpired}"
+                       AutomationProperties.AccessibilityView="Raw" />
+              <TextBlock Text="{Binding Text}" TextWrapping="Wrap" VerticalAlignment="Center" AutomationProperties.Name="{Binding AutomationName}" />
+              <!-- Der Weg zur Person: ihre Zuständigkeiten und Zertifikate auf der Karte, wo das Zertifikat erneuert wird -->
+              <Button Classes="small" Content="Karte öffnen" Command="{Binding OpenCommand}" IsVisible="{Binding CanOpen}" AutomationProperties.Name="{Binding OpenName}"
+                      ToolTip.Tip="Zuständigkeiten und Zertifikate der Person auf ihrer Karte öffnen" VerticalAlignment="Center" Margin="6,0,0,0" />
             </StackPanel>
           </DataTemplate>
         </ItemsControl.ItemTemplate>
@@ -28,10 +32,8 @@
     </StackPanel>
 
     <StackPanel Spacing="12">
-      <Grid ColumnDefinitions="*,Auto">
-        <TextBlock Text="Liste der Zuständigkeiten" Classes="group" VerticalAlignment="Center" />
-        <ui:HelpButton Topic="zustaendigkeiten-zertifikate" Section="liste" Grid.Column="1" />
-      </Grid>
+      <!-- Das Fragezeichen am Abschnitt „Zertifikate und Liste der Zuständigkeiten“ (TeamView, Anker liste) gilt für beide Gruppen; ein zweites wäre doppelt (masken.md R9) -->
+      <TextBlock Text="Liste der Zuständigkeiten" Classes="group" VerticalAlignment="Center" />
       <TextBlock Classes="muted" TextWrapping="Wrap" Text="Vorgaben lassen sich umbenennen und ausblenden, nicht löschen. Das Programm prüft keine Rechtsvorschrift." />
       <ItemsControl x:Name="DutyTypeRows" ItemsSource="{Binding Types}" AutomationProperties.Name="Liste der Zuständigkeiten">
         <ItemsControl.ItemTemplate>

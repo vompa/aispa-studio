@@ -84,6 +84,6 @@
       </ItemsControl>
     </StackPanel>
 
-    <Button x:Name="HygieneLogButton" Content="Hygieneprotokoll (CSV)" ToolTip.Tip="Hygieneprotokoll der letzten 30 Tage" Classes="ghost" Command="{Binding SaveLogCommand}" IsVisible="{Binding IsLeader}" HorizontalAlignment="Left" />
+    <Button x:Name="HygieneLogButton" Content="Hygieneprotokoll (CSV)" ToolTip.Tip="Hygieneprotokoll der letzten 30 Tage" Command="{Binding SaveLogCommand}" IsVisible="{Binding IsLeader}" HorizontalAlignment="Left" />
   </StackPanel>
 </UserControl>

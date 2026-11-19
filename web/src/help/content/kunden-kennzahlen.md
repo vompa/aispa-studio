@@ -21,7 +21,7 @@ Die Kennzahlen stehen in einer Zeile unter dem Kopf der Kundenkarte, Wünsche un
 - **Umsatz in 12 Monaten** und in Klammern gesamt, aus den Kassenbelegen (Verkäufe minus Stornos, gekaufte Gutscheine eingeschlossen). Nur wer das Recht „Zahlen sehen“ hat (Inhaber, Standortleitung), sieht den Umsatz.
 - **nicht erschienen** und **späte Absagen** stehen daneben in Gelb mit Warndreieck; die Daten zeigt der Tooltip. Spät heißt: weniger als 24 Stunden vor Beginn storniert.
 
-Bei wem der Gast war, steht rechts im Verlauf an jedem Termin; daraus kommt auch der Vorschlag unter „Termine am liebsten“. Offene Pakete stehen ebenfalls im Verlauf, siehe [Paket verkaufen und abziehen](hilfe:kassa-paket). Leere Kennzahlen fallen weg; ohne Besuch steht „Noch kein Besuch“. Gezählt werden nur Standorte, die man sehen darf.
+Bei wem der Gast war, steht rechts unter „Termine“ an jedem Termin; daraus kommt auch der Vorschlag unter „Termine am liebsten“. Offene Pakete stehen ebenfalls dort, siehe [Paket verkaufen und abziehen](hilfe:kassa-paket). Leere Kennzahlen fallen weg; ohne Besuch steht „Noch kein Besuch“. Gezählt werden nur Standorte, die man sehen darf.
 
 ## Sterne {#sterne}
 

@@ -8,7 +8,7 @@
     <StackPanel Margin="16" Spacing="16" MaxWidth="720" HorizontalAlignment="Left">
       <StackPanel>
         <TextBlock Text="Netz" Classes="h1" />
-        <TextBlock Text="Hier steht, mit welchem Server diese App arbeitet. Von zu Hause verwaltet man über dieselbe App und dieselbe Anmeldung."
+        <TextBlock Text="Hier steht, mit welchem Server diese App verbunden ist. Zu Hause gibt man in derselben App die Serveradresse des Spas ein und meldet sich wie im Spa an."
                    Classes="muted" TextWrapping="Wrap" />
       </StackPanel>
 
@@ -20,7 +20,10 @@
             <ui:HelpButton Topic="im-netz" Section="verbinden-server" />
           </StackPanel>
           <TextBlock Text="{Binding Text}" TextWrapping="Wrap" />
-          <Button Content="Verbindung lösen" Command="{Binding ReleaseCommand}" HorizontalAlignment="Left" />
+          <TextBlock Text="Verbindung lösen trägt die Adresse auf diesem PC aus und startet die App neu. Danach fragt der Startbildschirm wieder nach einem Server."
+                     Classes="muted small" TextWrapping="Wrap" />
+          <Button Content="Verbindung lösen" Command="{Binding ReleaseCommand}" HorizontalAlignment="Left"
+                  ui:DisabledHint.Text="Verfügbar, wenn ein Server oder Haupt-PC eingetragen ist." />
         </StackPanel>
       </Border>
     </StackPanel>

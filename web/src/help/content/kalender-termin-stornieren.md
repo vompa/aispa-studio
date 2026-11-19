@@ -21,7 +21,7 @@ Sagt ein Gast ab, wird der Termin storniert: Person, Raum und Gerät sind sofort
 
 ### 1. Termin markieren
 
-Den Termin anklicken (markieren). Alternativ im Panel auf **Termin stornieren …** klicken (rot, unter **Verschieben …**; es braucht kein Einchecken vorher), oder per Rechtsklick **Stornieren …** wählen.
+Den Termin anklicken (markieren). Alternativ im Panel auf **Mehr** und dann auf **Termin stornieren …** klicken (rot, ganz unten in der Liste; es braucht kein Einchecken vorher), oder per Rechtsklick **Stornieren …** wählen.
 
 ![Kalender mit markiertem Termin von Brigitte Müller](images/app/termin-stornieren-1.png)
 
@@ -30,6 +30,8 @@ Den Termin anklicken (markieren). Alternativ im Panel auf **Termin stornieren �
 **Entf** drücken. Eine Rückfrage „Termin stornieren?“ erscheint. Unter **Grund** den Grund eintragen; vorbelegt ist „An der Rezeption storniert“.
 
 Liegt die Absage innerhalb der Stornofrist des Standorts, steht über dem Feld ein Hinweis: „Absage innerhalb der Stornofrist (bis 21.10. 09:00). Laut Regel fallen 50 % Ausfallgebühr an; belasten kann die Standortleitung.“ Wer die Kassenaufsicht hat, liest stattdessen den Weg „Belasten unter **Ausfallgebühr belasten …** nach dem Stornieren“. Der Grund ist dann mit „Kurzfristig an der Rezeption storniert“ vorbelegt. Frist und Gebühr kommen aus den [Regeln des Standorts](hilfe:standorte#ausfallgebuehr) (Behandlung vor Standort, „nur neue Gäste“); ohne Frist oder außerhalb der Frist gibt es keine Zeile. Belastet wird nie automatisch.
+
+Ist für den Termin eine Anzahlung bezahlt, steht darunter eine zweite Zeile: „Die Anzahlung von 30,00 € bleibt bestehen; zurückgeben unter „Anzahlung retournieren“.“ Das Stornieren gibt die Anzahlung also nicht zurück. Wer sie zurückgeben darf, findet **Anzahlung retournieren …** in der Karte Anzahlung im Panel des Termins. Ohne bezahlte Anzahlung fehlt die Zeile.
 
 ![Rückfrage zum Stornieren mit markiertem Feld Grund](images/app/termin-stornieren-2.png)
 

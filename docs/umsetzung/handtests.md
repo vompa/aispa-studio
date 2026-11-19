@@ -462,11 +462,11 @@ Result: ☐
 
 ### Rezeptions-Lücken C – Storno-Dialog mit Frist und Ausfallgebühr
 Start: `dotnet run --project src/AispaStudio.AppHost`, als Inhaber unter **Verwaltung** › **Standorte** für Wien Stornofrist 24 Stunden und Ausfallgebühr 50 % einstellen; dann als Rezeption im Kalender einen gebuchten Termin von heute Nachmittag anklicken
-1. **Termin stornieren …** klicken.
+1. **Mehr** öffnen und **Termin stornieren …** klicken.
 Expected: Über dem Feld „Grund“ steht mit Warnsymbol „Absage innerhalb der Stornofrist (bis <gestern> HH:mm). Laut Regel fallen 50 % Ausfallgebühr an; belasten kann die Standortleitung.“; „Grund“ ist mit „Kurzfristig an der Rezeption storniert“ vorbelegt.
 2. **Abbrechen**, dann als Inhaber anmelden und denselben Termin stornieren wollen.
 Expected: Der Hinweis endet mit „Belasten unter „Ausfallgebühr belasten …“ nach dem Stornieren.“
-3. Einen gebuchten Termin in zwei Wochen anklicken und **Termin stornieren …** klicken.
+3. Einen gebuchten Termin in zwei Wochen anklicken, **Mehr** öffnen und **Termin stornieren …** klicken.
 Expected: Keine Hinweiszeile, „Grund“ ist mit „An der Rezeption storniert“ vorbelegt.
 4. Die Ausfallgebühr des Standorts auf 0 % stellen und einen Termin von heute Nachmittag stornieren wollen.
 Expected: Nur „Absage innerhalb der Stornofrist (bis <gestern> HH:mm).“
@@ -827,7 +827,7 @@ Expected: **Weiter** ist gesperrt; am Feld „Zuordnung“ steht „Nachname feh
 Expected: Schritt 3 zeigt „4 neu, 1 Dublette, 2 fehlerhaft“; die Dublette „Lena Beispiel“ mit „doppelt in der Datei (Zeile 2)“ und der Wahl **Überspringen** oder **Ergänzen**; fehlerhaft „Mia Demo“ (Geburtstag kein Datum) und Zeile 8 (Nachname fehlt).
 4. **Fehlerzeilen als Excel …** speichern und öffnen.
 Expected: Spalten Zeile, Grund und die Spalten der Datei, zwei Zeilen.
-5. Bei der Dublette **Ergänzen** wählen, **Weiter** und **Nur prüfen** klicken.
+5. Bei der Dublette **Ergänzen** wählen, **Weiter** und **Probelauf starten** klicken.
 Expected: Im Dialog „Probelauf: 4 neu, 1 ergänzt, 0 übersprungen, 2 fehlerhaft. Es wurde nichts gespeichert.“; in der Kundenliste ist noch niemand neu.
 6. **Importieren** klicken.
 Expected: Der Dialog schließt, Hinweis „Importiert: 4 neu, 1 ergänzt, 0 übersprungen, 2 fehlerhaft“; die Kundenliste zeigt Lena Beispiel, Paul Probe, Sophie Muster und Jonas Erfunden. In der Karte von Lena Beispiel steht im Verlauf „Angelegt beim Import von …“ und unter „Werbung per Mail“ eine Einwilligung aus dem Import; bei Paul Probe keine.
@@ -1595,3 +1595,13 @@ Expected: An der Zeile steht „Gast benachrichtigt“, darunter „1 Gast benac
 Closes: –
 Result: ☐
 
+### Masken-Durchsicht – Mehr, Sauna-Zeilenmenü und Stand „Bezahlt“
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App als Inhaberin anmelden, **Kalender**; einen gebuchten Termin von heute und für die Sauna einen Eintritt mit zwei Gästen anlegen
+1. Den Termin anklicken und im Termin-Panel **Mehr** öffnen.
+Expected: Eine schlichte Liste mit einheitlichen Symbolen; **Termin stornieren …** steht darin und fragt nach. **Entf** fragt ebenfalls nach.
+2. In der Sauna auf **⋯** an der Zeile eines Gastes klicken.
+Expected: Das Menü bietet **Stornieren**; der Name in der Zeile bricht um, statt gekürzt zu werden.
+3. Den Termin in der **Kassa** kassieren und bar bezahlen.
+Expected: Statt der leeren Zahlungsmaske steht „Bezahlt · Beleg Nr. …“ mit Zahlungsart und bei Überzahlung „Rückgeld: …“; der Fokus liegt im Suchfeld, ein Satz nennt, womit die nächste Rechnung beginnt.
+Closes: –
+Result: ☐

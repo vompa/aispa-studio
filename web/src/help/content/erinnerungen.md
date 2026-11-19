@@ -28,11 +28,11 @@ Gäste bekommen vor einem gebuchten Termin eine Nachricht mit Behandlung, Datum 
 
 Schaltet die Terminerinnerungen für das ganze Spa ein oder aus. Standard ist eingeschaltet. Ausgeschaltet geht keine Erinnerung mehr hinaus, auch nicht für schon gebuchte Termine.
 
-### Erste Erinnerung (Stunden vorher, 0 = keine) {#erste-erinnerung}
+### Erste Erinnerung (Stunden) {#erste-erinnerung}
 
 So viele Stunden vor Beginn des Termins geht die erste Erinnerung. Erlaubt sind ganze Zahlen von 0 bis 168 (eine Woche). 0 schaltet die erste Erinnerung ab. Standard sind 48 Stunden.
 
-### Zweite Erinnerung (Stunden vorher, 0 = keine) {#zweite-erinnerung}
+### Zweite Erinnerung (Stunden) {#zweite-erinnerung}
 
 So viele Stunden vor Beginn geht die zweite Erinnerung. Erlaubt sind 0 bis 168; 0 schaltet sie ab. Standard sind 2 Stunden.
 
@@ -51,7 +51,7 @@ Fehlt beim Gast die Angabe für den gewählten Kanal, nimmt das Programm einen a
 
 Mails gehen aus dem eigenen Postfach des Spas, wenn dort „Aus diesem Postfach senden“ eingeschaltet ist, sonst über den gemeinsamen Versand mit dem Namen des Spas als Absender.
 
-### WhatsApp-Vorlage (Meta: Name, Twilio: Content-SID) {#whatsapp-vorlage}
+### WhatsApp-Vorlage {#whatsapp-vorlage}
 
 Erscheint nur beim Kanal WhatsApp und ist dann Pflicht. Hier steht die Kennung der freigegebenen Vorlage, höchstens 200 Zeichen:
 

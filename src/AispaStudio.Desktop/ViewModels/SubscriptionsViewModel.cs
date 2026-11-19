@@ -14,6 +14,21 @@ public sealed record SubscriptionRow(Guid Id, string Title, string Badges, strin
 {
     public bool HasBadges => Badges.Length > 0;
 
+    /// <summary>„Fehler“ und Widersprüche verlangen eine Handlung (Warnung); „Aus“ allein ist ein neutraler Zustand.</summary>
+    public bool NeedsAttention => HasBadges && Badges != "Aus";
+
+    public bool IsPlainBadge => HasBadges && !NeedsAttention;
+
+    /// <summary>Was die Kennzeichen bedeuten, für den Tooltip der Pille.</summary>
+    public string BadgesTip => string.Join(" ", Badges.Split(" · ", StringSplitOptions.RemoveEmptyEntries).Select(BadgeTip));
+
+    private static string BadgeTip(string badge) => badge switch
+    {
+        "Aus" => "Aus: kein Abruf und keine Anzeige.",
+        "Fehler" => "Der letzte Abruf ist fehlgeschlagen. Die gespeicherte Kopie gilt weiter.",
+        _ => "Das Abo und die Feiertagsregeln weichen ab. Im Formular unter Widersprüche entscheiden.",
+    };
+
     /// <summary>Alles in einer Zeile für Screenreader; sonst läse die Liste den Typnamen.</summary>
     public string Name => $"{Title}{(HasBadges ? $", {Badges}" : "")}, {Detail}, {Places}";
 }
@@ -120,10 +135,10 @@ public sealed partial class SubscriptionsViewModel : ViewModelBase, IEditableAre
 
     private static readonly Dictionary<SubscriptionKind, string> KindEffects = new()
     {
-        [SubscriptionKind.PublicHoliday] = "Die Tage erscheinen im Kalender, in der Feiertagsliste und beim Assistenten. Die Buchung ändern sie nicht: an einem Feiertag wird gebucht wie an jedem Tag.",
-        [SubscriptionKind.SchoolHoliday] = "Die Ferien erscheinen im Kalender und beim Assistenten („Wann sind Ferien?“). Die Buchung ändern sie nicht.",
-        [SubscriptionKind.Notice] = "Die Hinweise erscheinen im Kalender am Datum. Die Buchung ändern sie nicht.",
-        [SubscriptionKind.Other] = "Die Einträge erscheinen im Kalender am Datum. Die Buchung ändern sie nicht.",
+        [SubscriptionKind.PublicHoliday] = "Erscheinen im Kalender, in der Feiertagsliste und beim Assistenten; die Buchung ändert sich nicht.",
+        [SubscriptionKind.SchoolHoliday] = "Erscheinen im Kalender und beim Assistenten; die Buchung ändert sich nicht.",
+        [SubscriptionKind.Notice] = "Erscheinen im Kalender am Datum; die Buchung ändert sich nicht.",
+        [SubscriptionKind.Other] = "Erscheinen im Kalender am Datum; die Buchung ändert sich nicht.",
     };
 
     private readonly IWorkstationApi _api;
@@ -717,7 +732,7 @@ public sealed partial class SubscriptionsViewModel : ViewModelBase, IEditableAre
         var open = Conflicts.Count(c => c.Decision is null);
         ConflictsHint = open == 0
             ? "Alle Widersprüche zu den Feiertagsregeln sind entschieden."
-            : $"{(open == 1 ? "1 Tag" : $"{open} Tage")} ohne Entscheidung. Nichts wird überschrieben: Tage nur im Abo gelten, bis sie ignoriert werden; die Feiertagsregeln bleiben für die Lohnverrechnung.";
+            : $"{(open == 1 ? "1 Tag" : $"{open} Tage")} ohne Entscheidung. Nichts wird überschrieben.";
         OnPropertyChanged(nameof(HasConflicts));
     }
 

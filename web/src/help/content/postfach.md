@@ -32,7 +32,7 @@ Schaltet den Abruf ein oder aus. Bei einem neuen Postfach ist er eingeschaltet. 
 
 Wie das Programm auf das Postfach zugreift:
 
-- **IMAP (z. B. beim Hoster)**: für die meisten Mailanbieter. Dazu gehören Server, Port, Verschlüsselung, Benutzername, Ordner und Passwort. Standard.
+- **IMAP (z. B. beim Hoster)**: das übliche Verfahren, mit dem ein Programm Mails aus einem Postfach liest; für die meisten Mailanbieter. Dazu gehören Server, Port, Verschlüsselung, Benutzername, Ordner und Passwort. Standard.
 - **Microsoft 365**: für Postfächer in Microsoft 365 (Exchange Online). Dazu gehören Verzeichnis-ID, Anwendungs-ID und Client-Geheimnis einer App, die in Microsoft Entra für das Spa angelegt ist. Die App braucht die Anwendungsberechtigung `Mail.ReadWrite`, für das Senden aus dem Postfach zusätzlich `Mail.Send`. Am besten beschränkt die IT des Spas die App auf dieses eine Postfach.
 
 Wechselt man die Art, muss das Passwort bzw. Client-Geheimnis neu eingegeben werden.

@@ -708,7 +708,7 @@
     <Setter Property="FontSize" Value="12" />
   </Style>
 
-  <!-- Karte einer Meldung (Button.messagecard in einer Border.panelcard): der Kopfteil der Karte ist der Knopf, Hover wie eine Listenzeile; Aktion und „Wegklicken“ liegen darunter -->
+  <!-- Karte einer Meldung (Button.messagecard in einer Border.panelcard): der Kopfteil der Karte ist der Knopf, Hover wie eine Listenzeile; Aktion und „Ausblenden“ liegen darunter -->
   <Style Selector="Button.messagecard">
     <Setter Property="Background" Value="Transparent" />
     <Setter Property="BorderThickness" Value="0" />
@@ -1297,7 +1297,7 @@
     <Setter Property="Background" Value="{DynamicResource WarnSoftBrush}" />
     <Setter Property="BorderBrush" Value="{DynamicResource WarnBrush}" />
   </Style>
-  <Style Selector="Border.appt.grouped">
+  <Style Selector="Border.appt.grouped, Border.appt.gapmark">
     <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
     <Setter Property="BorderThickness" Value="4,2,2,2" />
     <Setter Property="Padding" Value="7,2,4,2" />
@@ -1487,9 +1487,10 @@
     <Setter Property="VerticalAlignment" Value="Center" />
   </Style>
 
+  <!-- Erledigte Zeile: durchgestrichen in fg-2 statt mit Deckkraft 0,6, damit sie lesbar bleibt (Durchsicht, Befund 18c) -->
   <Style Selector="TextBlock.done">
     <Setter Property="TextDecorations" Value="Strikethrough" />
-    <Setter Property="Opacity" Value="0.6" />
+    <Setter Property="Foreground" Value="{DynamicResource Fg2Brush}" />
   </Style>
 
   <Style Selector="Border.pill.warn > TextBlock">

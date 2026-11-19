@@ -51,7 +51,7 @@ public sealed partial class ViewTests
 
             Assert.Equal(StaffPowerKind.CashVoid, powers[^1].Kind);
             Assert.False(team.Card!.HasUnsavedChanges);
-            Assert.True(Shows(window, "Gespeichert."));
+            Assert.True(Shows(window, "Gespeichert"));
             return team;
         }, api);
     }

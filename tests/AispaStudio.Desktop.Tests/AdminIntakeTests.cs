@@ -76,7 +76,7 @@ public sealed class AdminIntakeTests
         Assert.Equal(MailboxSecurity.SslOnConnect, intake.Security.Value);
         Assert.Equal("Zuletzt abgerufen 30.10.2026, 11:40.", intake.StatusLine);
         Assert.False(intake.StatusIsWarning);
-        Assert.Equal("gespeichert, leer lassen zum Behalten", intake.SecretPlaceholder);
+        Assert.Equal("Gespeichert. Leer lassen, um es zu behalten.", intake.SecretHelp);
         Assert.Equal("Passwort", intake.SecretLabel);
         Assert.Equal(["SMS: +4366412345678", "WhatsApp: +4366412345679", "Telefon: +4312345678", "Mail: anfragen@day-spa-wien.at"], intake.Routes);
         Assert.False(intake.HasUnsavedChanges);
@@ -92,7 +92,7 @@ public sealed class AdminIntakeTests
         Assert.False(intake.CanCheck);
         Assert.Equal("", intake.Address);
         Assert.Equal(993m, intake.Port);
-        Assert.Equal("", intake.SecretPlaceholder);
+        Assert.Equal("", intake.SecretHelp);
         Assert.Null(intake.StatusLine);
         Assert.False(intake.HasUnsavedChanges);
     }
@@ -201,9 +201,9 @@ public sealed class AdminIntakeTests
         intake.Kind = IntakeViewModel.MailboxKinds[1];
 
         Assert.Equal("", intake.Secret);
-        Assert.Equal("", intake.SecretPlaceholder);
+        Assert.Equal("", intake.SecretHelp);
         intake.Kind = IntakeViewModel.MailboxKinds[0];
-        Assert.Equal("gespeichert, leer lassen zum Behalten", intake.SecretPlaceholder);
+        Assert.Equal("Gespeichert. Leer lassen, um es zu behalten.", intake.SecretHelp);
     }
 
     [Fact]

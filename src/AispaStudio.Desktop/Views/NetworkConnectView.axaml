@@ -14,7 +14,7 @@
     <ui:FormField Label="Adresse" Help="Mit https:// und Port." IsRequired="True">
       <TextBox Text="{Binding Address}" PlaceholderText="z. B. https://empfang-pc:55443" />
     </ui:FormField>
-    <ui:FormField Label="Verbindungscode" Help="Steht am Haupt-PC unter „Im Netz“." IsRequired="True">
+    <ui:FormField Label="Verbindungscode" Help="Steht am Haupt-PC unter „Im Netz“." IsRequired="True" HorizontalAlignment="Left" Width="280">
       <TextBox Text="{Binding Code}" PlaceholderText="z. B. 3F9A-12C4-77B0-E1D2-9A0B" />
     </ui:FormField>
     <ui:InfoBar Severity="Error" Message="{Binding Error}" IsVisible="{Binding Error, Converter={x:Static ObjectConverters.IsNotNull}}" />

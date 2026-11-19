@@ -266,6 +266,7 @@ public partial class CalendarViewModel
                 {
                     Links = ConflictLinksOf,
                     FreeTimeSearch = (prefill, day) => ShowFreeTimeAsync(prefill, day),
+                    FocusRequested = RequestPanelFocus,
                 };
             case NewEntryKind.Group:
                 return CreateGroupBooking(date, Clear);

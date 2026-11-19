@@ -54,19 +54,21 @@ public sealed partial class MessageDetailViewModel : ViewModelBase, ISidePanel
         Links = [.. item.Subjects.Select(s => new SubjectLink(s, new RelayCommand(() => openSubject(s))))];
     }
 
-    public string PanelTitle => "Meldung";
+    /// <summary>Der Titel der Meldung steht als Titel der Leiste (Durchsicht, Befund 18b); darunter, dass es eine Meldung ist.</summary>
+    public string PanelTitle => Item.Title;
 
-    public string? PanelSubtitle => Item.Title;
+    public string? PanelSubtitle => "Meldung";
 
     public PanelKind PanelKind => PanelKind.MessageDetail;
 
     public string PanelIcon => Icons.Bell;
 
-    public string PanelTabText => "Meldung";
+    /// <summary>Der Reiter trägt den Titel der Meldung, damit er sich vom Reiter „Meldungen“ unterscheidet (Durchsicht, Befund 18a).</summary>
+    public string PanelTabText => Item.Title;
 
     /// <summary>Die Meldung; wechselt, wenn der Kalender sie neu aufbaut (z. B. nach dem Laden).</summary>
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(PanelSubtitle), nameof(HasLines), nameof(IsResolved), nameof(CanAct))]
+    [NotifyPropertyChangedFor(nameof(PanelTitle), nameof(PanelTabText), nameof(HasLines), nameof(IsResolved), nameof(CanAct))]
     public partial MessageItem Item { get; private set; }
 
     public IReadOnlyList<SubjectLink> Links { get; }
@@ -75,7 +77,7 @@ public sealed partial class MessageDetailViewModel : ViewModelBase, ISidePanel
 
     public bool HasLines => Item.Lines.Count > 0;
 
-    /// <summary>Die Meldung gibt es nicht mehr: sie ist erledigt oder weggeklickt.</summary>
+    /// <summary>Die Meldung gibt es nicht mehr: sie ist erledigt oder ausgeblendet.</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsResolved), nameof(CanAct))]
     public partial bool Gone { get; private set; }

@@ -432,7 +432,10 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
     public partial bool ShowAllBanners { get; private set; }
 
     /// <summary>Welche Banner gerade stehen (höchstens zwei, Abgleichfehler zuerst).</summary>
-    public ShellBanners Banners => ShellBanners.For(HasFailed, IsOffline, Backup?.HasReminder == true, ShowAllBanners);
+    public ShellBanners Banners => ShellBanners.For(HasFailed, IsOffline, ShowsBackupReminder, ShowAllBanners);
+
+    /// <summary>Das Sicherungs-Banner steht auf allen Seiten außer „Sicherung“: dort zeigt die Seite den Zustand selbst, und „Sicherung öffnen“ führte auf die eigene Seite.</summary>
+    private bool ShowsBackupReminder => Backup?.HasReminder == true && SelectedPage?.Page != Backup;
 
     partial void OnIsOfflineChanged(bool value) => RefreshBanners();
 
@@ -440,7 +443,7 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
 
     private void RefreshBanners()
     {
-        if (new[] { HasFailed, IsOffline, Backup?.HasReminder == true }.Count(b => b) <= ShellBanners.MaxVisible)
+        if (new[] { HasFailed, IsOffline, ShowsBackupReminder }.Count(b => b) <= ShellBanners.MaxVisible)
         {
             ShowAllBanners = false;
         }
@@ -814,6 +817,7 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
     /// <summary>Bereiche laden ihre Daten erst beim ersten Öffnen.</summary>
     partial void OnSelectedPageChanged(NavItem? value)
     {
+        RefreshBanners();
         // Ohne Seite (die Leiste räumt die Auswahl) gibt es nichts zu laden; „Abgleich“ fehlt im Server-Betrieb,
         // dann wäre „value?.Page == Sync“ null == null gewesen und Sync!.RefreshAsync() abgestürzt.
         if (value is null || _returning)

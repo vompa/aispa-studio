@@ -30,7 +30,7 @@ Sichert sofort, unabhängig vom Zeitplan. Der Knopf geht, sobald ein Ordner eing
 
 ### Erinnerung {#erinnerung}
 
-Über allen Seiten der App erscheint ein gelber Hinweis, solange
+Über allen Seiten der App außer „Sicherung“ erscheint ein gelber Hinweis, solange
 
 - noch kein Ordner gewählt ist,
 - noch keine Sicherung gelungen ist, oder

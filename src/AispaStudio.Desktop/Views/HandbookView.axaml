@@ -12,7 +12,7 @@
   <Grid ColumnDefinitions="260,*">
     <Border Classes="card" Padding="8" Margin="0,0,16,0" VerticalAlignment="Top">
       <StackPanel Spacing="8">
-        <Button x:Name="NewEntryButton" Content="Neuen Eintrag anlegen" Command="{Binding NewCommand}" HorizontalAlignment="Stretch" />
+        <Button x:Name="NewEntryButton" Classes="primary" Content="Neuen Eintrag anlegen" Command="{Binding NewCommand}" HorizontalAlignment="Stretch" />
         <ui:InfoBar Severity="Error" Title="Handbuch nicht geladen" Message="{Binding LoadError}" IsVisible="{Binding HasLoadError}"
                     ActionText="Erneut laden" ActionCommand="{Binding LoadCommand}" />
         <TextBlock Text="Wird geladen …" Classes="muted" Margin="8,4" IsVisible="{Binding !IsLoaded}" />
@@ -60,7 +60,8 @@
             <ui:HelpButton Grid.Column="1" Topic="handbuch" Section="erinnern" />
           </Grid>
           <StackPanel Spacing="4" IsVisible="{Binding RemindAtDayStart}" AutomationProperties.Name="Wochentage der Erinnerung">
-            <TextBlock Classes="muted" TextWrapping="Wrap" Text="Nur an diesen Tagen (keiner gewählt heißt täglich):" />
+            <TextBlock Text="Wochentage" Classes="label" />
+            <TextBlock x:Name="DaysHelp" Classes="muted small" Text="Erinnert nur an diesen Tagen; ohne Auswahl täglich." />
             <WrapPanel Orientation="Horizontal">
               <CheckBox x:Name="DayMonday" IsChecked="{Binding Days[0].IsSelected}" Content="{Binding Days[0].Label}" Margin="0,0,16,0" />
               <CheckBox x:Name="DayTuesday" IsChecked="{Binding Days[1].IsSelected}" Content="{Binding Days[1].Label}" Margin="0,0,16,0" />
@@ -71,7 +72,8 @@
               <CheckBox x:Name="DaySunday" IsChecked="{Binding Days[6].IsSelected}" Content="{Binding Days[6].Label}" Margin="0,0,16,0" />
             </WrapPanel>
           </StackPanel>
-          <CheckBox x:Name="ActiveBox" IsChecked="{Binding IsActive}" Content="Gilt (ausgeschaltete Einträge erinnern nicht mehr)" />
+          <CheckBox x:Name="ActiveBox" IsChecked="{Binding IsActive}" Content="Gilt" />
+          <TextBlock x:Name="ActiveHelp" Classes="muted small" Text="Ausgeschaltete Einträge erinnern nicht mehr." />
         </StackPanel>
 
         <StackPanel x:Name="Footer" Spacing="12">

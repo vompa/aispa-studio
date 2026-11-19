@@ -24,7 +24,7 @@ Legt fest, bis zu welchem Prozentsatz jede Person an der Kassa und in der Kunden
 - Freigeben kann nur, wer eine PIN festgelegt hat (über das eigene Profilbild bzw. „PIN festlegen“). Nach fünf falschen PINs ist die PIN 15 Minuten gesperrt.
 - Die Grenze gilt auch für den dauerhaften Rabatt in der Kundenkartei.
 
-### Barzahlungsrabatt (%, 0 = aus) {#barzahlungsrabatt}
+### Barzahlungsrabatt (%) {#barzahlungsrabatt}
 
 Ein Nachlass, wenn der Gast den ganzen Beleg bar bezahlt. Erlaubt sind 0 bis 10 %; 0 schaltet ihn aus (Standard).
 

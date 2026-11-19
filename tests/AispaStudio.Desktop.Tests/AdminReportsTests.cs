@@ -60,7 +60,7 @@ public sealed partial class AdminReportsTests
         hidden ? [] : [new RevenueLine("Karte", null, 1200m, 1000m)],
         [new EmployeeKpi(Guid.NewGuid(), "Lisa", 80m, 60m, 75, hidden ? null : 50m)],
         [new TreatmentKpi(Guid.NewGuid(), "Massage", 12, hidden ? null : 900m, hidden ? null : -2.5m)],
-        ["Auslastung unter Plan"], hidden);
+        ["Klassische Massage bringt je Termin 2,50 € Verlust (Vollkosten)."], hidden);
 
     private static StubApi Api() => new StubApi()
         .On("GET /api/locations", new List<LocationDto> { StockSample.Vienna, StockSample.Salzburg })
@@ -391,7 +391,7 @@ public sealed partial class AdminReportsTests
         var room = Assert.Single(reports.Hygiene.Rooms);
         var item = Assert.Single(room.Items);
         Assert.Equal("Raum 1: teilweise abgehakt", room.Heading);
-        Assert.Equal("Ausstattung vollständig: 1 Material unter Minimum", room.Equipment);
+        Assert.Equal("Ausstattung unvollständig: 1 Material unter Minimum", room.Equipment);
         Assert.Equal(["Massageöl: 200 von 500 ml, 300 ml nachfüllen"], room.EquipmentLines);
 
         api.On(RoomStartRoute, RoomStart(RoomStartState.Checked, done: true));
@@ -482,7 +482,7 @@ public sealed partial class AdminReportsTests
         await Task.Yield();
 
         var compliance = reports.Compliance;
-        Assert.Equal("3 offene Gutscheine über 450,00 € (Verbindlichkeit, aktueller Stand), 1 offene Pakete mit 4 Behandlungen.", compliance.Vouchers);
+        Assert.Equal("3 offene Gutscheine über 450,00 € (Verbindlichkeit, aktueller Stand), 1 offenes Paket mit 4 Behandlungen.", compliance.Vouchers);
         Assert.Equal("160,5", compliance.WorkingTime[0].Hours);
         var at = compliance.Registers[0];
         Assert.Equal("Kassa AT1 (AT)", at.Title);
@@ -498,7 +498,7 @@ public sealed partial class AdminReportsTests
         await Task.Yield();
         Assert.True(compliance.ShowAmountsHint);
         Assert.All(compliance.Registers, r => Assert.False(r.ShowExport || r.ShowTse));
-        Assert.Equal("3 offene Gutscheine, 1 offene Pakete mit 4 Behandlungen.", compliance.Vouchers);
+        Assert.Equal("3 offene Gutscheine, 1 offenes Paket mit 4 Behandlungen.", compliance.Vouchers);
     }
 
     [Fact]

@@ -13,12 +13,12 @@ Aus diesen Sätzen rechnet die Seite „Kosten“ die Vollkosten. Sie gelten je 
 ## Kostensätze des Standorts {#kostensaetze}
 
 1. In der Windows-App unter „Verwaltung“ **Kosten** öffnen und oben den **Standort** wählen.
-2. Unter **Kostensätze des Standorts** eintragen: **Raumpflege pro Stunde**, **Standard-Stundensatz Personal**, **Gemeinkosten pro Monat**, **Geplante Raumauslastung (%)** und **Produktive Arbeitszeit (%)**.
+2. Unter **Kostensätze des Standorts** eintragen: **Raumpflege pro Stunde (€)**, **Standard-Stundensatz Personal (€)**, **Gemeinkosten pro Monat (€)**, **Geplante Raumauslastung (%)** und **Produktive Arbeitszeit (%)**.
 3. Auf **Speichern** klicken (Strg+S).
 
 ## Miete je Raum {#raeume}
 
-1. Unter **Räume** in der Zeile des Raums **Miete und Nebenkosten pro Monat** und **Pflegematerial je Reinigung** eintragen.
+1. Unter **Räume** in der Zeile des Raums **Miete und Nebenkosten pro Monat (€)** und **Pflegematerial je Reinigung (€)** eintragen.
 2. Auf **Speichern** klicken (Strg+S).
 
 ## Stundensatz einer Person {#personal}

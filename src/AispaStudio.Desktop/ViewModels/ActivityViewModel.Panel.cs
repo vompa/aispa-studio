@@ -115,7 +115,8 @@ public sealed partial class ActivityViewModel
 
     public string? PanelActor => string.IsNullOrWhiteSpace(PanelEntry?.Actor) ? null : PanelEntry.Actor;
 
-    public bool HasPanelActor => PanelActor is not null;
+    /// <summary>Die Person steht nur dann in einer eigenen Zeile, wenn der Satz sie nicht schon nennt.</summary>
+    public bool HasPanelActor => PanelActor is { } actor && !ActivityRow.Mentions(PanelText, actor);
 
     public string PanelChannel => PanelEntry?.Channel switch
     {
@@ -130,13 +131,15 @@ public sealed partial class ActivityViewModel
         ? reason.New ?? reason.Old
         : null;
 
-    public bool HasPanelReason => !string.IsNullOrWhiteSpace(PanelReason);
+    /// <summary>Der Grund steht nur dann in einer eigenen Zeile, wenn der Satz ihn nicht schon nennt („Storniert von Lena: Gast krank“).</summary>
+    public bool HasPanelReason => !string.IsNullOrWhiteSpace(PanelReason) && !ActivityRow.Mentions(PanelText, PanelReason);
 
     public bool HasLateNotice => LateNotice is not null;
 
     /// <summary>Die Werte alt → neu; der Grund einer Absage steht schon darüber und kommt nicht doppelt.</summary>
     public IReadOnlyList<ActivityValueRow> PanelValues => PanelEntry is { } entry
-        ? [.. entry.Values.Where(v => !(entry.Kind == ActivityKind.Cancelled && v.Label == ReasonLabel)).Select(ActivityValueRow.From)]
+        ? [.. entry.Values.Where(v => !(entry.Kind == ActivityKind.Cancelled && v.Label == ReasonLabel) && !(string.IsNullOrWhiteSpace(v.Old) && string.IsNullOrWhiteSpace(v.New)))
+            .Select(ActivityValueRow.From)]
         : [];
 
     public bool HasPanelValues => PanelValues.Count > 0;

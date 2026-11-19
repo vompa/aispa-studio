@@ -107,7 +107,7 @@ public sealed class AreaCard(AreaDay day, string summary, IReadOnlyList<AreaLoad
 public partial class AreasViewModel : ViewModelBase
 {
     /// <summary>Breite des Belegungsverlaufs in der Seitenleiste.</summary>
-    public const double TimelineWidth = 320;
+    public const double TimelineWidth = 288;
 
     public const double TimelineHeight = 30;
 

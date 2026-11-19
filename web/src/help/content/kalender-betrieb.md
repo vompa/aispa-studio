@@ -14,7 +14,7 @@ Der Kalender zeigt, was im Haus zu tun ist: ob die Räume am Morgen kontrolliert
 
 ## Raumpflege abhaken {#raumpflege}
 
-In der [Raumansicht](hilfe:kalender-raumansicht) steht unter jedem Termin ein Streifen „Nachb. 10 · Raumpflege 10 Min.“. Er hat kein Kästchen; Farbe und Text zeigen den Zustand der Aufgabe „Raum pflegen bis HH:MM“:
+In der [Raumansicht](hilfe:kalender-raumansicht) steht unter jedem Termin ein Streifen „Nachb. 10 · Pflege 10“ (Minuten; der volle Text „Nachbereitung 10 Min. · Raumpflege 10 Min.“ steht im Hinweis). Er hat kein Kästchen; Farbe und Text zeigen den Zustand der Aufgabe „Raum pflegen bis HH:MM“:
 
 - **grau:** offen
 - **grün:** erledigt; der Hinweis am Streifen nennt Person und Uhrzeit

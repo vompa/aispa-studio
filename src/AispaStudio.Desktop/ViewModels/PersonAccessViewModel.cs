@@ -110,7 +110,11 @@ public sealed partial class PersonAccessViewModel : ViewModelBase
     public string? InfoText => _member is not { } m ? null
         : _context.Standalone
             ? $"Benutzername {m.UserName ?? "?"}{(m.MustChangePassword ? " · Startpasswort noch nicht geändert" : "")}"
-            : $"{m.Email} · {m.PasskeyCount} Passkey(s)";
+            : $"{m.Email} · {m.PasskeyCount} {(m.PasskeyCount == 1 ? "Passkey" : "Passkeys")}";
+
+    /// <summary>Tooltip der Zeile: was ein Passkey ist; im Einzelplatz steht in der Zeile kein Passkey, dann entfällt er.</summary>
+    public string? InfoTip => _member is not null && !_context.Standalone
+        ? "Ein Passkey ist die Anmeldung per Fingerabdruck, Gesichtserkennung oder Geräte-PIN statt mit Passwort." : null;
 
     public bool HasInfoText => InfoText is not null;
 

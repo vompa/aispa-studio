@@ -32,9 +32,11 @@ public sealed partial class ViewTests
         await ClickRow(window, "UpcomingList", 0);
         Assert.Same(page.RoomEditor, page.Editor);
         Assert.Equal("Lüftung wird gewartet", Named<TextBox>(window, "ReasonField").Text);
-        Assert.True(Shows(window, "1 Termin liegt im gesperrten Raum"));
-        Assert.True(Shows(window, "Aktiv"));
-        Assert.False(Named<ComboBox>(window, "RoomField").IsEnabled);
+        Assert.True(Shows(window, "1 Termin im gesperrten Raum"));
+        Assert.True(Shows(window, "Läuft"));
+        Assert.False(Shows(window, "Aktiv"));
+        Assert.DoesNotContain(window.GetVisualDescendants().OfType<ComboBox>(), c => c.Name == "RoomField" && c.IsEffectivelyVisible);
+        Assert.Equal("Raum Zeder", Named<TextBlock>(window, "RoomFixedText").Text);
         Assert.False(Named<StackPanel>(window, "NewKindChoice").IsEffectivelyVisible);
         return shell.AdminPage;
     }, ClosuresApi());

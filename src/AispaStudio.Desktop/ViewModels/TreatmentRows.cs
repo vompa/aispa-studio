@@ -57,6 +57,8 @@ public sealed partial class DayOption(DayOfWeek day, bool isChecked, Action chan
 public sealed record LocationResourceGroup(string Name, IReadOnlyList<CheckOption> Rooms, IReadOnlyList<CheckOption> Equipment)
 {
     public bool HasEquipment => Equipment.Count > 0;
+
+    public bool HasNoRooms => Rooms.Count == 0;
 }
 
 /// <summary>Abweichender Preis an einem Standort; leer heißt Grundpreis.</summary>

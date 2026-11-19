@@ -93,10 +93,6 @@ public partial class CalendarEntryViewModel : ViewModelBase
     /// <summary>Das Feld für das Ende steht bei Sperrzeit und Pause (Pflicht) und bei der Notiz an einer Zeit (optional).</summary>
     public bool ShowEnd => HasEnd || Kind == CalendarEntryKind.Note;
 
-    public string StartLabel => Kind == CalendarEntryKind.Note ? "Uhrzeit" : "Beginn";
-
-    public string EndLabel => Kind == CalendarEntryKind.Note ? "Bis" : "Ende";
-
     /// <summary>Eine Pause braucht keinen Text: der Grund ist „Pause“.</summary>
     public bool HasText => !IsBreak;
 

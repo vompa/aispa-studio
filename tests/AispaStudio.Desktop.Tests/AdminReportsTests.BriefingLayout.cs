@@ -339,7 +339,7 @@ public sealed partial class AdminReportsTests
 
         Assert.Equal("Keine Behandlungen heute", reports.DayPlan.StatusText);
         Assert.True(reports.DayPlan.StatusIsOk);
-        Assert.Equal([("Behandlungen", "0"), ("Vorbereitung offen", "0"), ("Dienst", "kein Dienst")], reports.DayPlan.Values.Select(v => (v.Label, v.Text)));
+        Assert.Equal([("Behandlungen", "0"), ("Vorbereitungen offen", "0"), ("Dienst", "kein Dienst")], reports.DayPlan.Values.Select(v => (v.Label, v.Text)));
     }
 
     [Fact]

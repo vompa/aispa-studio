@@ -20,7 +20,7 @@ Den Stand und abgelehnte Einträge sehen alle, die angemeldet sind. Als erledigt
 
 ## Stand {#stand}
 
-Zeigt, welche zentrale Datenbank eingetragen ist (Server und Name der Datenbank, nie das Passwort), wann zuletzt abgeglichen wurde und wie viele Änderungen dieses PCs noch auf den nächsten Abgleich warten („Alle Änderungen dieses PCs sind übertragen.“ oder „… Änderung(en) warten auf den nächsten Abgleich.“).
+Zeigt, welche zentrale Datenbank eingetragen ist (Server und Name der Datenbank, nie das Passwort), wann zuletzt abgeglichen wurde und wie viele Änderungen dieses PCs noch auf den nächsten Abgleich warten („Alle Änderungen dieses PCs sind übertragen.“ oder „1 Änderung wartet auf den nächsten Abgleich.“ bzw. „3 Änderungen warten auf den nächsten Abgleich.“).
 
 Ist der letzte Abgleich fehlgeschlagen, steht der Grund in einer Warnung unter „Stand“, z. B. keine Verbindung zum Server oder ein Schlüsselcode, der nicht passt. Der nächste Versuch folgt von selbst. „Neu laden“ holt den aktuellen Stand, ohne einen Abgleich auszulösen.
 

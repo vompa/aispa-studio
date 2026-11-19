@@ -93,15 +93,20 @@
               <ui:FormField Label="Lieferschein" Width="240" HorizontalAlignment="Left" IsVisible="{Binding IsReceiving}">
                 <TextBox Text="{Binding DeliveryNote}" MaxLength="100" AutomationProperties.Name="{Binding DeliveryNoteName}" />
               </ui:FormField>
-              <WrapPanel ItemSpacing="8" LineSpacing="8">
-                <Button Classes="primary" Content="Bestellen und senden" Command="{Binding SendCommand}" IsVisible="{Binding IsDraft}" AutomationProperties.Name="{Binding SendName}" />
-                <Button Content="Mengen speichern" Command="{Binding SaveCommand}" IsVisible="{Binding IsDraft}" ui:SaveShortcut.IsSave="True" ToolTip.Tip="Speichern (Strg+S)" AutomationProperties.Name="{Binding SaveName}" />
-                <Button Content="Als bestellt markieren" Command="{Binding MarkOrderedCommand}" IsVisible="{Binding IsDraft}" AutomationProperties.Name="{Binding MarkOrderedName}" />
-                <Button Classes="primary" Content="Lieferung buchen" Command="{Binding DeliverCommand}" IsVisible="{Binding IsReceiving}" AutomationProperties.Name="{Binding DeliverName}" />
-                <Button Content="Bestelltext" Command="{Binding ShowTextCommand}" AutomationProperties.Name="{Binding ShowTextName}" />
-                <Button Classes="danger" Margin="16,0,0,0" Content="Entwurf verwerfen" Command="{Binding DiscardCommand}" IsVisible="{Binding IsDraft}" AutomationProperties.Name="{Binding DiscardName}" />
-                <Button Classes="danger" Margin="16,0,0,0" Content="{Binding CloseText}" Command="{Binding CloseCommand}" IsVisible="{Binding IsReceiving}" AutomationProperties.Name="{Binding CloseName}" />
-              </WrapPanel>
+              <!-- Knopfleiste (design.md 5.1): Hauptaktionen von links, der gefährliche Knopf steht rechts außen -->
+              <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">
+                <WrapPanel x:Name="OrderActions" ItemSpacing="8" LineSpacing="8">
+                  <Button Classes="primary" Content="Bestellen und senden" Command="{Binding SendCommand}" IsVisible="{Binding IsDraft}" AutomationProperties.Name="{Binding SendName}" />
+                  <Button Content="Mengen speichern" Command="{Binding SaveCommand}" IsVisible="{Binding IsDraft}" ui:SaveShortcut.IsSave="True" ToolTip.Tip="{Binding SaveTip}" AutomationProperties.Name="{Binding SaveName}" />
+                  <Button Content="Als bestellt markieren" Command="{Binding MarkOrderedCommand}" IsVisible="{Binding IsDraft}" AutomationProperties.Name="{Binding MarkOrderedName}" />
+                  <Button Classes="primary" Content="Lieferung buchen" Command="{Binding DeliverCommand}" IsVisible="{Binding IsReceiving}" AutomationProperties.Name="{Binding DeliverName}" />
+                  <Button Content="Bestelltext" Command="{Binding ShowTextCommand}" ToolTip.Tip="Zeigt den Text der Bestellung zum Kopieren, wenn man selbst beim Lieferanten bestellt." AutomationProperties.Name="{Binding ShowTextName}" />
+                </WrapPanel>
+                <StackPanel x:Name="OrderDangerActions" Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Top">
+                  <Button Classes="danger" Content="Entwurf verwerfen" Command="{Binding DiscardCommand}" IsVisible="{Binding IsDraft}" AutomationProperties.Name="{Binding DiscardName}" />
+                  <Button Classes="danger" Content="{Binding CloseText}" Command="{Binding CloseCommand}" IsVisible="{Binding IsReceiving}" AutomationProperties.Name="{Binding CloseName}" />
+                </StackPanel>
+              </Grid>
               <!-- Bestellung als PDF (PDF-Ausgaben F): Drucken, Speichern und Per Mail senden an den Lieferanten; darunter die Vermerke „Gesendet am … an …“ -->
               <StackPanel x:Name="OrderDocument" Spacing="6">
                 <ui:DocumentActions DataContext="{Binding Document}" />

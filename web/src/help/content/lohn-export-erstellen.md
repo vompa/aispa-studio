@@ -22,7 +22,7 @@ In der Ansicht „Lohn“ des Bereichs „Team“ entsteht für einen Monat eine
 
 1. Den Monat wählen.
 2. Auf das Programm der Lohnverrechnung klicken: **BMD Lohn**, **DATEV Lodas** oder **DATEV Lohn und Gehalt**.
-3. Im Speicherdialog von Windows den Ort wählen und speichern. Die Meldung „… gespeichert.“ nennt den Dateinamen, z. B. „lohn-BmdLohn-2026-10.csv“. Die Datei an die Lohnverrechnung schicken und dort wie bisher einlesen, z. B. in Excel öffnen, um sie anzusehen.
+3. Im Speicherdialog von Windows den Ort wählen und speichern. Die Meldung „… gespeichert.“ nennt den Dateinamen, z. B. „lohn-BmdLohn-2026-10.csv“; **Ordner öffnen** zeigt die Datei im Explorer. Die Datei an die Lohnverrechnung schicken und dort wie bisher einlesen, z. B. in Excel öffnen, um sie anzusehen.
 
 Vorher holt das Programm die Monatswerte und zeigt sie an. Könnte keine Zeile übergeben werden, weil Personalnummern oder Lohnarten fehlen oder der Monat leer ist, entsteht keine Datei, sondern eine Meldung, was fehlt. Fehlt es nur bei einzelnen Personen oder Positionen, kommen sie nicht in die Datei; die Hinweise über der Tabelle der Monatswerte nennen sie. Die Nummer auf der Karte der Person im Bereich **Lohn und Akte**, die Lohnart unter **Einstellungen der Lohnverrechnung** eintragen und den Export erneut starten. Schlägt der Export aus anderem Grund fehl, steht ebenfalls eine Meldung da; Verbindung prüfen und noch einmal versuchen.
 

@@ -69,7 +69,7 @@ public sealed class HelpTeaser : StackPanel
         }
 
         Excerpt = ExcerptOf(topic, Section);
-        Children.Add(new TextBlock { Text = topic.Title, Classes = { "h2" }, TextWrapping = TextWrapping.Wrap });
+        Children.Add(new TextBlock { Text = topic.Title, Classes = { "h3" }, TextWrapping = TextWrapping.Wrap });
         if (Excerpt.Length > 0)
         {
             Children.Add(new TextBlock { Text = Excerpt, Classes = { "secondary" }, TextWrapping = TextWrapping.Wrap });

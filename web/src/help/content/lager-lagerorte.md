@@ -19,7 +19,7 @@ Lagerorte pflegen dürfen Inhaber und Standortleitung an ihren Standorten, in de
 1. In der Verwaltung **Lager** öffnen, bei mehreren Standorten den **Standort** wählen, auf **Einrichtung** klicken und **Lagerorte** wählen.
 2. In der Liste einen Lagerort wählen oder auf **Neuer Lagerort** klicken.
 3. **Name**, **Art** und bei Bedarf **Raum**, **Beschreibung** und **Mindestmengen** eintragen.
-4. Auf **Speichern** klicken. Es erscheint „Gespeichert.“
+4. Auf **Speichern** klicken. Unten erscheint kurz „Gespeichert“.
 
 Mit **Verwerfen** nimmt man ungespeicherte Änderungen zurück. Wie man einen Lagerort entfernt, steht im nächsten Abschnitt.
 
@@ -79,6 +79,6 @@ Bei einem Lagerort der Art **Raum** sind die Mindestmengen die Raumausstattung: 
 Damit die Raumausstattung nicht für jeden Raum einzeln getippt wird, gibt es unter den Mindestmengen die Auswahl **Lagerort** und den Knopf **Von Raum … übernehmen**.
 
 1. Den Lagerort wählen, der die gewünschten Mindestmengen schon hat (zur Auswahl stehen nur Lagerorte mit Mindestmengen).
-2. Auf **Von Raum … übernehmen** klicken. Es erscheint „Mindestmengen übernommen.“
+2. Auf **Von Raum … übernehmen** klicken. Unten erscheint kurz „Mindestmengen übernommen“.
 
 Die Mindestmengen des gewählten Lagerorts ersetzen die vorhandenen des aktuellen Lagerorts und sind sofort gespeichert; der Knopf ist erst aktiv, wenn keine ungespeicherten Änderungen offen sind. Danach lassen sich einzelne Zeilen ändern. Das dürfen Inhaber und Standortleitung.

@@ -66,7 +66,7 @@ Nur für Personen, die den Standort verwalten dürfen (Inhaber, Standortleitung)
 
 - **Name**: frei wählbar, 1 bis 100 Zeichen, Vorschlag „Empfang“. Der Name erscheint in der Auswahl und in der Kassa.
 - **Standort**: zu welchem Standort das Terminal gehört. Die Kassen dieses Standorts können damit kassieren. Der Standort bestimmt auch die Währung, die an das Terminal geht (CHF in der Schweiz, sonst EUR).
-- **Protokoll**: „ZVT (Deutschland, Österreich; meist Port 20007)“ (Standard) oder „OPI (z. B. Worldline, Schweiz; meist Port 20002)“. Welches Protokoll das Terminal spricht, sagt der Zahlungsdienstleister bei der Einrichtung.
+- **Protokoll**: die Sprache, in der die Kassa mit dem Terminal spricht. Zur Wahl stehen „ZVT (Deutschland, Österreich; meist Port 20007)“ (Standard) oder „OPI (z. B. Worldline, Schweiz; meist Port 20002)“. Welches Protokoll das Terminal spricht, sagt der Zahlungsdienstleister bei der Einrichtung.
 - **Adresse**: IP-Adresse und Port des Terminals, z. B. `192.168.1.50:20007`. Ohne Port nimmt die App 20007 bei ZVT und 20002 bei OPI.
 
 „Terminal anlegen“ ist erst möglich, wenn Name, Standort und Adresse ausgefüllt sind. Das neue Terminal wird gleich in der Auswahl oben gewählt; angesteuert wird es aber erst nach „Speichern“.
@@ -97,7 +97,7 @@ Der Standort, dessen Tag die Anzeige zeigt. Vorausgewählt ist der Standort dies
 
 Koppelt die Anzeige mit dem Code an den Standort. Wenige Sekunden später zeigt sie den Tag. Steht „Diesen Code kennt keine Anzeige, oder er ist abgelaufen.“, den Code noch einmal vom Bildschirm abtippen.
 
-### Widerrufen {#anzeige-widerrufen}
+### Kopplung aufheben {#anzeige-widerrufen}
 
 Nimmt einer Anzeige den Zugang, nach einer Rückfrage. Die Anzeige meldet sich bei ihrer nächsten Anfrage ab und zeigt wieder einen Code. Das ist der Weg, wenn ein Bildschirm ausgetauscht wird oder verloren geht.
 

@@ -198,6 +198,7 @@ public sealed partial class ActivityViewModel
         HasMore = page.NextBefore is not null;
     }
 
+    /// <summary>Gast und Person; die Person fehlt, wenn der Satz sie schon nennt („Storniert von Lena“), damit sie nicht doppelt steht.</summary>
     private static string? DetailOf(ActivityEntry entry)
     {
         var parts = new List<string>();
@@ -206,7 +207,7 @@ public sealed partial class ActivityViewModel
             parts.Add(entry.CustomerName);
         }
 
-        if (!string.IsNullOrWhiteSpace(entry.Actor))
+        if (!string.IsNullOrWhiteSpace(entry.Actor) && !ActivityRow.Mentions(entry.Text, entry.Actor))
         {
             parts.Add($"von {entry.Actor}");
         }

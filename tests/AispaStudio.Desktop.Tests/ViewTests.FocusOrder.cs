@@ -90,10 +90,10 @@ public sealed partial class ViewTests
         await Pump();
         var order = await TabOrder(window, panel);
         WriteFocusOrder("termin-panel", order);
-        // Kopf (Gast, Kundendaten, Schließen), Termin-Infos und Notiz, gleich danach der Aktionsblock (Hauptaktion, Verschieben, Stornieren, zuletzt „Mehr“; Auftraggeber, 05.11.2026),
+        // Kopf (Gast, Kundendaten, Schließen), Termin-Infos und Notiz, gleich danach der Aktionsblock (Hauptaktion, Verschieben, zuletzt „Mehr“; Stornieren steht seit 19.11.2026 hinter „Mehr“; Auftraggeber, 05.11.2026),
         // dann der Kopf des Abschnitts Kunde mit den Kennzahlen als einem Stopp, der Kopf des Abschnitts Verlauf (Slice 90) und die Reiter unten (Brief 5.12, Punkt 9; Slice 75b).
         Assert.Equal(["Kundenübersicht (Button)", "Kundendaten ergänzen (Button)", "Schließen (Button)", "Raum-Infos Raum Lotus (Button)", "Notiz ändern (Button)",
-            "Einchecken (Button)", "Verschieben … (Button)", "Termin stornieren … (Button)", "Mehr (Button)", "Kunde (Button)", "Besuche gesamt 14 (Text)", "Verlauf (Button)", "Termin (TabItem)"], order);
+            "Einchecken (Button)", "Verschieben … (Button)", "Mehr (Button)", "Kunde (Button)", "Besuche gesamt 14 (Text)", "Verlauf (Button)", "Termin (TabItem)"], order);
         return calendar;
     });
 
@@ -228,10 +228,10 @@ public sealed partial class ViewTests
         // Kopf, Raum, Link „Notiz hinzufügen“, der Aktionsblock (Auftraggeber, 05.11.2026), dann der Abschnitt Kunde: Kopf, Kennzahlen (ein Stopp), Zuletzt (vier Zeilen), Anruf, Kopieren,
         // WhatsApp, E-Mail, Kopieren, Kundenkarte.
         Assert.Equal(["Kundenübersicht (Button)", "Kundendaten ergänzen (Button)", "Schließen (Button)", "Raum-Infos Raum Lotus (Button)", "Notiz hinzufügen (Button)",
-            "Einchecken (Button)", "Verschieben … (Button)", "Termin stornieren … (Button)", "Mehr (Button)", "Kunde (Button)", "Besuche gesamt 14 (Text)"], order.Take(11));
+            "Einchecken (Button)", "Verschieben … (Button)", "Mehr (Button)", "Kunde (Button)", "Besuche gesamt 14 (Text)"], order.Take(10));
         Assert.Equal(4, order.Count(o => o.Contains(" bei ", StringComparison.Ordinal)));
         var card = order.IndexOf("Kundenkarte öffnen (Button)");
-        Assert.True(card > 10, string.Join(" | ", order));
+        Assert.True(card > 9, string.Join(" | ", order));
         return calendar;
     }, NoteApi(null));
 
