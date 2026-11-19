@@ -431,7 +431,7 @@ Die Nummern sind die Reihenfolge, die der jeweilige Thread gewählt hätte ([Üb
 **Berichte und KI**
 - KI-Kommentar im Managementbericht: seit 19.11.2026 gebaut (ab sieben Tagen).
 - Wochen- und Monatsbericht per Mail: seit 19.11.2026 gebaut (Inhaber, Manager, Standortleitung; abbestellbar beim Management). Offen: Push um 7:30.
-- Gesundheitshinweise auf der Behandlungskarte mit protokolliertem Abruf.
+- Gesundheitshinweise auf der Behandlungskarte mit protokolliertem Abruf: seit 19.11.2026 gebaut (behandelnde Person, Rezeption, Standortleitung; Protokoll aller Lesezugriffe, Liste für die Leitung im Termin).
 - Lesemodelle, sobald Messungen es verlangen.
 - Testdatensatz: Ist-Zeiten der Zeiterfassung, Termine der Windows-App (Offline-Abgleich).
 

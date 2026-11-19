@@ -399,6 +399,34 @@ describe('Mein Tag', () => {
     expect(screen.getAllByText(/Allergie angegeben/)).toHaveLength(1)
   })
 
+  it('lädt Gesundheitshinweise erst auf Klick und nennt das Protokoll', async () => {
+    routes['GET /api/v1/reports/locations/loc-1/day-plan'] = () => ({ status: 200, body: { ...plan, cards: [plan.cards[0], { ...plan.cards[1], hasHealthHints: true }] } })
+    const id = plan.cards[1].appointmentId
+    routes[`GET /api/v1/reports/appointments/${id}/health`] = () => ({
+      status: 200,
+      body: {
+        appointmentId: id,
+        submittedAt: '2026-02-20T10:00:00Z',
+        hints: [{ key: 'pregnancy', label: 'Schwanger/stillend', details: '20. Woche' }, { key: 'medication', label: 'Medikamente', details: null }],
+        notice: 'Angaben des Gastes aus dem Fragebogen. Ihr Abruf wird protokolliert.',
+      },
+    })
+    render(<MyDayApp />)
+
+    const massage = await screen.findByRole('article', { name: /Klassische Massage/ })
+    expect(requests.some((r) => r.path.endsWith('/health'))).toBe(false)
+    fireEvent.click(within(massage).getByRole('button', { name: 'Gesundheitshinweise ansehen' }))
+
+    expect(await within(massage).findByText('Schwanger/stillend')).toBeTruthy()
+    expect(within(massage).getByText(/20\. Woche/)).toBeTruthy()
+    expect(within(massage).getByText('Angaben des Gastes aus dem Fragebogen. Ihr Abruf wird protokolliert.')).toBeTruthy()
+    await expectAccessible()
+
+    fireEvent.click(within(massage).getByRole('button', { name: 'Ausblenden' }))
+    expect(within(massage).queryByText('Schwanger/stillend')).toBeNull()
+    expect(screen.getAllByRole('button', { name: 'Gesundheitshinweise ansehen' })).toHaveLength(1)
+  })
+
   it('wechselt nach der Anmeldung in den Kanal der Mitarbeiter-App', async () => {
     render(<MyDayApp />)
     await screen.findByRole('heading', { name: /Heute/ })

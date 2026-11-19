@@ -5651,7 +5651,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Neuester Anamnesebogen eines Kunden, entschlüsselt. */
+        /** Neuester Anamnesebogen eines Kunden, entschlüsselt; der Abruf wird protokolliert (mit Termin, wenn angegeben). */
         get: operations["GetCustomerAnamnesis"];
         put?: never;
         post?: never;
@@ -5707,6 +5707,23 @@ export interface paths {
         put?: never;
         /** Geprüften Papierbogen als Anamnese übernehmen. Das Foto bleibt als Beleg der Unterschrift verschlüsselt erhalten. */
         post: operations["ConfirmAnamnesisScan"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customers/{customerId}/anamnesis/accesses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Wer die Gesundheitsdaten des Gastes wann wozu abgerufen hat (die letzten 100); nur für die Leitung. */
+        get: operations["GetHealthDataAccesses"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -7346,6 +7363,23 @@ export interface paths {
             cookie?: never;
         };
         get: operations["GetTreatmentCard"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/appointments/{appointmentId}/health": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Gesundheitshinweise für die Behandlungskarte (nur „Ja“ und Sonstiges); jeder Abruf wird protokolliert. */
+        get: operations["GetTreatmentHealthHints"];
         put?: never;
         post?: never;
         delete?: never;
@@ -11338,6 +11372,22 @@ export interface components {
             /** @default true */
             isActive: boolean;
         };
+        HealthAccessEntry: {
+            /** Format: date-time */
+            at: string;
+            person: string;
+            purpose: components["schemas"]["HealthAccessPurpose"];
+            treatment: null | string;
+            /** Format: date-time */
+            appointmentStart: null | string;
+        };
+        /** @enum {unknown} */
+        HealthAccessPurpose: "TreatmentCard" | "Anamnesis" | "Scan" | "Disclosure";
+        HealthHint: {
+            key: string;
+            label: string;
+            details: null | string;
+        };
         HistoryEntry: {
             /** Format: date-time */
             at: string;
@@ -14568,6 +14618,8 @@ export interface components {
             processingMinutes: number;
             /** @default false */
             checkAnamnesis: boolean;
+            /** @default false */
+            hasHealthHints: boolean;
             displayName?: null | string;
         };
         TreatmentCostDto: {
@@ -14669,6 +14721,14 @@ export interface components {
              * @default 0
              */
             quantity: number;
+        };
+        TreatmentHealthHints: {
+            /** Format: uuid */
+            appointmentId: string;
+            /** Format: date-time */
+            submittedAt: null | string;
+            hints: components["schemas"]["HealthHint"][];
+            notice: string;
         };
         TreatmentInput: {
             name: string;
@@ -29844,7 +29904,9 @@ export interface operations {
     };
     GetCustomerAnamnesis: {
         parameters: {
-            query?: never;
+            query?: {
+                appointmentId?: string;
+            };
             header?: never;
             path: {
                 customerId: string;
@@ -30018,6 +30080,44 @@ export interface operations {
                 };
                 content: {
                     "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetHealthDataAccesses: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                customerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HealthAccessEntry"][];
                 };
             };
             /** @description Forbidden */
@@ -34972,6 +35072,44 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TreatmentCard"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetTreatmentHealthHints: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                appointmentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TreatmentHealthHints"];
                 };
             };
             /** @description Forbidden */

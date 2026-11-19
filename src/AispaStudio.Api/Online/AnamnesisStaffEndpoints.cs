@@ -31,12 +31,26 @@ internal static class AnamnesisStaffEndpoints
         var health = group.MapGroup("").RequirePermission(AccessRight.ViewHealthData);
 
         health.MapGet("", async Task<Results<Ok<AnamnesisRecordDto>, NotFound>> (
-                Guid customerId, AispaDbContext db, AnamnesisStore anamnesis, CancellationToken ct) =>
-                await CustomerExistsAsync(db, customerId, ct) && await anamnesis.LatestAsync(customerId, ct) is { } record
-                    ? TypedResults.Ok(record)
-                    : TypedResults.NotFound())
+                Guid customerId, Guid? appointmentId, ClaimsPrincipal principal, AispaDbContext db, AnamnesisStore anamnesis, HealthAccessLog log,
+                CancellationToken ct) =>
+            {
+                if (!await CustomerExistsAsync(db, customerId, ct) || await anamnesis.LatestAsync(customerId, ct) is not { } record)
+                {
+                    return TypedResults.NotFound();
+                }
+
+                await log.WriteAsync(principal, customerId, appointmentId, HealthAccessPurpose.Anamnesis, ct);
+                return TypedResults.Ok(record);
+            })
             .WithName("GetCustomerAnamnesis")
-            .WithSummary("Neuester Anamnesebogen eines Kunden, entschlüsselt.");
+            .WithSummary("Neuester Anamnesebogen eines Kunden, entschlüsselt; der Abruf wird protokolliert (mit Termin, wenn angegeben).");
+
+        group.MapGet("/accesses", async Task<Results<Ok<List<HealthAccessEntry>>, NotFound>> (
+                Guid customerId, AispaDbContext db, HealthAccessLog log, CancellationToken ct) =>
+                await CustomerExistsAsync(db, customerId, ct) ? TypedResults.Ok(await log.ListAsync(customerId, ct)) : TypedResults.NotFound())
+            .WithName("GetHealthDataAccesses")
+            .WithSummary("Wer die Gesundheitsdaten des Gastes wann wozu abgerufen hat (die letzten 100); nur für die Leitung.")
+            .RequirePermission(AccessRight.ManageStaff);
 
         read.MapGet("/overview", async Task<Results<Ok<AnamnesisOverview>, NotFound>> (
                 Guid customerId, AispaDbContext db, OnlineDbContext store, IOptions<OnlineBookingOptions> options, CancellationToken ct) =>
@@ -182,10 +196,17 @@ internal static class AnamnesisStaffEndpoints
             .WithSummary("Foto eines ausgefüllten Papierbogens hochladen; die KI liest es im Hintergrund.");
 
         health.MapGet("/scans/{scanId:guid}", async Task<Results<Ok<AnamnesisScanDto>, NotFound>> (
-                Guid customerId, Guid scanId, AispaDbContext db, OnlineDbContext store, HealthDataProtector protector, CancellationToken ct) =>
-                await FindScanAsync(db, store, customerId, scanId, ct) is { } scan
-                    ? TypedResults.Ok(AnamnesisScanData.ToDto(scan, protector))
-                    : TypedResults.NotFound())
+                Guid customerId, Guid scanId, ClaimsPrincipal principal, AispaDbContext db, OnlineDbContext store, HealthDataProtector protector,
+                HealthAccessLog log, CancellationToken ct) =>
+            {
+                if (await FindScanAsync(db, store, customerId, scanId, ct) is not { } scan)
+                {
+                    return TypedResults.NotFound();
+                }
+
+                await log.WriteAsync(principal, customerId, scan.AppointmentId, HealthAccessPurpose.Scan, ct);
+                return TypedResults.Ok(AnamnesisScanData.ToDto(scan, protector));
+            })
             .WithName("GetAnamnesisScan")
             .WithSummary("Fotografierter Bogen mit dem Vorschlag der KI; unsichere Felder sind markiert.");
 

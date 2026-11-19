@@ -14,6 +14,9 @@ public sealed partial class ViewTests
 {
     private static readonly string AnamnesisRoute = $"/api/customers/{SpaSample.Selected.CustomerId}/anamnesis";
 
+    /// <summary>Den Bogen holt das Panel mit dem Termin, damit das Protokoll ihn nennt.</summary>
+    private static readonly string RecordRoute = $"{AnamnesisRoute}?appointmentId={SpaSample.Selected.Id}";
+
     private static readonly Guid ScanId = Guid.Parse("00000000-0000-0000-0000-00000000a127");
 
     private static readonly string[] AnamnesisFlowButtons = ["TabletLinkButton", "PaperSheetButton", "UploadPhotoButton"];
@@ -83,12 +86,12 @@ public sealed partial class ViewTests
     {
         var stub = Api()
             .On($"GET {AnamnesisRoute}/overview", SheetOnFile())
-            .On($"GET {AnamnesisRoute}", SampleRecord());
+            .On($"GET {RecordRoute}", SampleRecord());
         return Render("hell", "termin-anamnese-antworten", async (window, main) =>
         {
             var calendar = await OpenSelected(main);
             Assert.Contains("Liegt vor: auf Papier am 19.10.2026, gültig bis 19.10.2036.", PanelTexts(window, "AnamnesisCard"));
-            Assert.DoesNotContain(stub.Calls, c => c.Route == $"GET {AnamnesisRoute}");
+            Assert.DoesNotContain(stub.Calls, c => c.Route == $"GET {RecordRoute}");
 
             await ClickScrolled(window, "ShowRecordButton");
 
@@ -102,6 +105,33 @@ public sealed partial class ViewTests
     }
 
     [Fact]
+    public Task Inhaberin_sieht_wer_die_Gesundheitsdaten_wann_abgerufen_hat()
+    {
+        var stub = Api()
+            .On($"GET {AnamnesisRoute}/overview", SheetOnFile())
+            .On($"GET {AnamnesisRoute}/accesses", new List<HealthAccessEntry>
+            {
+                new(SpaSample.At(10, 20), "Lena Huber", HealthAccessPurpose.TreatmentCard, "Hot-Stone-Massage", SpaSample.Selected.Start),
+                new(SpaSample.At(9, 5), "Sara Empfang", HealthAccessPurpose.Anamnesis, "Hot-Stone-Massage", SpaSample.Selected.Start),
+            });
+        return Render("hell", "termin-anamnese-abrufe", async (window, main) =>
+        {
+            var calendar = await OpenSelected(main);
+            Assert.DoesNotContain(stub.Calls, c => c.Route == $"GET {AnamnesisRoute}/accesses");
+
+            await ClickScrolled(window, "ShowHealthAccessesButton");
+
+            var texts = PanelTexts(window, "AnamnesisCard");
+            Assert.Contains(texts, t => t.EndsWith("· Lena Huber", StringComparison.Ordinal));
+            Assert.Contains(texts, t => t.StartsWith("Behandlungskarte (", StringComparison.Ordinal));
+            Assert.Contains(texts, t => t.StartsWith("Bogen im Termin (", StringComparison.Ordinal));
+            Named<ItemsControl>(window, "HealthAccessList").BringIntoView();
+            await Pump();
+            return calendar;
+        }, stub);
+    }
+
+    [Fact]
     public Task Therapeutin_ohne_Book_liest_die_Antworten_ohne_Knoepfe_fuer_die_Ablaeufe()
     {
         var stub = Api()
@@ -109,7 +139,7 @@ public sealed partial class ViewTests
                 new CurrentAccess(Guid.NewGuid(), "Day-Spa Wien", StaffRole.Therapist, true, []), null,
                 [AccessRight.ViewCalendar, AccessRight.ChangeStatus, AccessRight.ViewHealthData]))
             .On($"GET {AnamnesisRoute}/overview", SheetOnFile() with { OpenScans = [new(ScanId, AnamnesisScanStatus.ReadyForReview, SpaSample.At(9))] })
-            .On($"GET {AnamnesisRoute}", SampleRecord());
+            .On($"GET {RecordRoute}", SampleRecord());
         return Render("hell", "termin-anamnese-therapeutin", async (window, main) =>
         {
             var calendar = await OpenSelected(main);
@@ -123,6 +153,8 @@ public sealed partial class ViewTests
             {
                 Assert.False(IsShown(window, button), button);
             }
+            // Das Abrufprotokoll ist der Leitung vorbehalten.
+            Assert.False(IsShown(window, "ShowHealthAccessesButton"));
 
             return calendar;
         }, stub);
@@ -149,7 +181,7 @@ public sealed partial class ViewTests
             Assert.False(IsShown(window, "ShowRecordButton"));
             Assert.False(IsShown(window, "ReviewScanButton"));
             Assert.True(IsShown(window, "UploadPhotoButton"));
-            Assert.DoesNotContain(stub.Calls, c => c.Route == $"GET {AnamnesisRoute}");
+            Assert.DoesNotContain(stub.Calls, c => c.Route == $"GET {RecordRoute}");
             return calendar;
         }, stub);
     }
