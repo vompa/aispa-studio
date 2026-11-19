@@ -129,6 +129,7 @@ public sealed class ApiFixture : IAsyncLifetime
                 services.AddSingleton<IAnamnesisReader, FakeAnamnesisReader>();
                 services.AddSingleton<Stock.IDeliveryNoteReader>(DeliveryNotes);
                 services.AddSingleton<IBriefingSummarizer, FakeBriefingSummarizer>();
+                services.AddSingleton<IManagementSummarizer, FakeManagementSummarizer>();
                 services.AddSingleton<IRebookWriter, FakeRebookWriter>();
                 services.AddSingleton<IQuestionAnswerer, FakeQuestionAnswerer>();
                 services.AddSingleton<IMessageTranslator, FakeMessageTranslator>();

@@ -55,6 +55,22 @@ public sealed partial class ViewTests
         return shell.AdminPage;
     }, ReportsApi());
 
+    [Fact]
+    public Task Verwaltung_Berichte_Management_mit_KI_Kommentar() => Render("hell", "verwaltung-berichte-management-ki", async (window, main) =>
+    {
+        var (shell, reports) = await OpenReports(window, main, ReportsViewModel.ManagementTab);
+        await Pump(Settling);
+        Assert.True(Shows(window, "Mehr Umsatz als im Zeitraum davor bei etwas höherer Auslastung. Die Klassische Massage bringt je Termin Verlust: Preis oder Vollkosten prüfen."));
+        Named<Border>(window, "ManagementAiSummary").BringIntoView();
+        await Pump();
+        return shell.AdminPage;
+    }, ReportsApi().On($"GET /api/reports/locations/{ReportSample.LocationId}/management?from=2026-10-01&until={ReportSample.Today:yyyy-MM-dd}",
+        ReportSample.Management() with
+        {
+            AiSummary = "Mehr Umsatz als im Zeitraum davor bei etwas höherer Auslastung. Die Klassische Massage bringt je Termin Verlust: Preis oder Vollkosten prüfen.",
+            AiNotice = "Von der KI aus den Zahlen dieses Berichts kommentiert. Maßgeblich sind die Zahlen selbst.",
+        }));
+
     [Theory]
     [InlineData("hell")]
     [InlineData("dunkel")]

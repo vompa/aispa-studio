@@ -177,6 +177,30 @@ public sealed partial class AdminReportsTests
     }
 
     [Fact]
+    public async Task Management_fragt_nach_dem_KI_Kommentar_nach_bis_er_da_ist()
+    {
+        var time = new FixedTime();
+        var route = ManagementRoute(new DateOnly(2026, 10, 1), Today);
+        var api = AddReports(new StubApi()).On(route, Management() with { AiSummaryPending = true });
+        var reports = Reports(api, time: time);
+        await reports.EnsureLoadedAsync();
+
+        reports.SelectTabCommand.Execute(ReportsViewModel.ManagementTab);
+        await WaitUntilAsync(() => reports.Management.IsAiPending);
+        Assert.False(reports.Management.HasAiSummary);
+        var before = api.Calls.Count(c => c.Route == route);
+
+        api.On(route, Management() with { AiSummary = "Mehr Umsatz als im Monat davor; Auslastung unter Plan.", AiNotice = "Von der KI kommentiert." });
+        time.FireTimers();
+        await WaitUntilAsync(() => reports.Management.HasAiSummary);
+
+        Assert.Equal(before + 1, api.Calls.Count(c => c.Route == route));
+        Assert.False(reports.Management.IsAiPending);
+        Assert.Equal("Mehr Umsatz als im Monat davor; Auslastung unter Plan.", reports.Management.AiSummary);
+        Assert.Equal("Von der KI kommentiert.", reports.Management.AiNotice);
+    }
+
+    [Fact]
     public async Task Der_Tagesstart_fragt_nach_der_KI_Zusammenfassung_nach_und_endet_beim_Verlassen()
     {
         var time = new FixedTime();

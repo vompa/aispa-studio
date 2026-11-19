@@ -11822,6 +11822,10 @@ export interface components {
              * @default 0
              */
             cancellations: number;
+            aiSummary?: null | string;
+            /** @default false */
+            aiSummaryPending: boolean;
+            aiNotice?: null | string;
         };
         MarketingConsentDecision: {
             state: components["schemas"]["MarketingConsentState"];

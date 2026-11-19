@@ -28,6 +28,22 @@ public sealed record BenchmarkRow(string Label, string Own, string Rating, strin
 /// <summary>Reiter „Management“ nach web/src/reports/ManagementView.tsx und BenchmarkView.tsx: Kennzahlen eines Zeitraums, auf Wunsch mit dem Vergleich zu anderen Spas.</summary>
 public sealed partial class ManagementReportViewModel(IWorkstationApi api, TimeProvider time) : ReportTabViewModel(api, time)
 {
+    /// <summary>So oft fragt der Reiter nach dem KI-Kommentar, solange er aussteht (wie im Tagesstart).</summary>
+    private const int AiAttempts = 15;
+
+    /// <summary>Kommentar der KI aus genau diesen Zahlen (ab sieben Tagen, nur mit KI); die Zahlen selbst kommen nie von der KI.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasAiSummary))]
+    public partial string? AiSummary { get; private set; }
+
+    [ObservableProperty]
+    public partial string? AiNotice { get; private set; }
+
+    [ObservableProperty]
+    public partial bool IsAiPending { get; private set; }
+
+    public bool HasAiSummary => AiSummary is not null;
+
     public const string AmountsHint = "Beträge nur mit Berechtigung: Umsätze, Kosten und Margen sieht, wer das Recht „Berichte mit Beträgen“ hat. Das vergibt der Inhaber oder ein Manager unter „Zugänge“.";
 
     private bool _rangeIsSet;
@@ -137,6 +153,8 @@ public sealed partial class ManagementReportViewModel(IWorkstationApi api, TimeP
         {
             LoadError = result.Error ?? "Der Bericht konnte nicht geladen werden.";
             Alerts = [];
+            AiSummary = null;
+            IsAiPending = false;
             Kpis = [];
             RevenueByAccount = [];
             RevenueByPayment = [];
@@ -148,6 +166,25 @@ public sealed partial class ManagementReportViewModel(IWorkstationApi api, TimeP
         Apply(report);
         IsLoaded = true;
         await LoadBenchmarkAsync().ConfigureAwait(true);
+
+        // Den KI-Kommentar schreibt der Server im Hintergrund; solange er aussteht, fragt der Reiter nach.
+        for (var attempt = 1; report.AiSummaryPending && attempt <= AiAttempts; attempt++)
+        {
+            await Task.Delay(PollInterval, Time).ConfigureAwait(true);
+            if (version != Version)
+            {
+                return;
+            }
+
+            var again = await Api.GetAsync<ManagementReportDto>($"api/reports/locations/{location.Id}/management?from={Iso(from)}&until={Iso(until)}").ConfigureAwait(true);
+            if (version != Version || again.Value is not { } next)
+            {
+                return;
+            }
+
+            report = next;
+            Apply(report);
+        }
     }
 
     partial void OnFromChanged(DateOnly? value) => ReloadAfterRangeChange();
@@ -184,6 +221,9 @@ public sealed partial class ManagementReportViewModel(IWorkstationApi api, TimeP
     {
         AmountsHidden = report.AmountsHidden;
         Alerts = report.Alerts;
+        AiSummary = report.AiSummary;
+        AiNotice = report.AiNotice;
+        IsAiPending = report.AiSummaryPending;
         Kpis = [.. report.Kpis.Select(k => new KpiRow(k.Label, KpiValue(k.Value, k.Unit), k.Previous is { } previous ? $"Vorperiode {KpiValue(previous, k.Unit)}" : null))];
         RevenueByAccount = [.. report.RevenueByAccount.Select(r => new RevenueRow(r.CostCenter is { } center ? $"{r.Label} ({center})" : r.Label, Money.Format(r.Gross), $"netto {Money.Format(r.Net)}"))];
         RevenueByPayment = [.. report.RevenueByPayment.Select(r => new RevenueRow(r.Label, Money.Format(r.Gross), ""))];
