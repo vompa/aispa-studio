@@ -70,6 +70,9 @@ public enum ReplyCase
 
     /// <summary>Die Rezeption hat eine Zeit für den Gast vorgemerkt (ADR 0083); <c>Booked</c> ist ihre Zeit, der Gast soll kurz bestätigen.</summary>
     Held,
+
+    /// <summary>Die Rezeption hat den Termin auf Wunsch des Gasts verschoben; <c>Booked</c> ist die neue Zeit.</summary>
+    Moved,
 }
 
 /// <summary>Fakten für die Antwort. Die KI formuliert nur, sie erfindet keine Zeiten oder Preise dazu.</summary>

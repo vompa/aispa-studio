@@ -308,6 +308,9 @@ public sealed partial class CandidateOption(CustomerCandidateDto candidate, Func
     private Task AssignAsync() => assign(candidate);
 }
 
+/// <summary>Eine freie Zeit, auf die die Rezeption einen Termin aus einem Verschiebungswunsch verschieben kann.</summary>
+public sealed record MoveOption(AvailableSlot Slot, string Text);
+
 /// <summary>
 /// Geöffnete Nachricht, aus Sicht der Rezeption so einfach wie möglich (Auftraggeber, 29.10.2026): oben die Nachricht (fremdsprachig mit „DE“), rechts daneben
 /// die freie Zeit; ein Klick merkt die Zeit für den Gast vor und schreibt den Vorschlag in den Entwurf (ADR 0083). Gesendet wird erst nach Freigabe
@@ -476,7 +479,7 @@ public partial class InboxDetailViewModel : ViewModelBase
         nameof(CanRetry), nameof(CanDismiss), nameof(IsWorking), nameof(HasTranslation), nameof(ShowsTranslation), nameof(MessageText),
         nameof(MessageSubject), nameof(HasMessageSubject), nameof(TranslationNote), nameof(HasTranslationNote), nameof(ReplyTranslation), nameof(HasReplyTranslation),
         nameof(CanRevise), nameof(IsRevising), nameof(ReplyNotice), nameof(HasReplyNotice), nameof(LanguageButton), nameof(LanguageButtonTip),
-        nameof(CanCancelAppointment), nameof(Candidates), nameof(HasCandidates), nameof(HasAssigned),
+        nameof(CanCancelAppointment), nameof(CanMoveAppointment), nameof(MoveOptions), nameof(Candidates), nameof(HasCandidates), nameof(HasAssigned),
         nameof(AssignedText), nameof(CanReleaseCustomer), nameof(AssignmentOpen), nameof(CandidatesHint), nameof(CreateCustomerText),
         nameof(PaymentText), nameof(HasPaymentText), nameof(ShowAcceptPending), nameof(AcceptPendingText), nameof(SalutationSuggestionText),
         nameof(ShowFreeTime), nameof(HasHold), nameof(HoldText), nameof(HoldDetail), nameof(HeaderName), nameof(Overview), nameof(AssignedInitials), nameof(SenderTip), nameof(SenderLine))]
@@ -923,6 +926,35 @@ public partial class InboxDetailViewModel : ViewModelBase
         () => _api.PostAsync<InboundMailDto>(
             SelectedCancelOption is { Option.Found: false } later ? $"api/inbox/{Id}/cancel-appointment?appointmentId={later.Option.Id}" : $"api/inbox/{Id}/cancel-appointment", null),
         "Termin storniert. Die Antwort wird neu entworfen.");
+
+    // ---------- Verschiebungswunsch: die Rezeption wählt eine der vorgeschlagenen Zeiten ----------
+
+    /// <summary>Verschiebungswunsch mit gefundenem Termin und freien Zeiten; verschoben wird erst mit dem Klick.</summary>
+    public bool CanMoveAppointment => Mail.CanMoveAppointment;
+
+    /// <summary>Die freien Zeiten der Terminannahme, je ein Knopf „Auf Di. 24.11. 10:00 verschieben“.</summary>
+    public IReadOnlyList<MoveOption> MoveOptions => Mail.CanMoveAppointment
+        ? [.. Mail.Proposals.Select(p => new MoveOption(p, $"Auf {DayLayout.ShortDayTime(p.Start, _zone)} verschieben"))]
+        : [];
+
+    /// <summary>„Auf … verschieben“ fragt nach (Rückfragedialog, Design-Brief 5.27); erst „Verschieben“ ändert den Termin.</summary>
+    [RelayCommand(CanExecute = nameof(CanAct))]
+    private async Task AskMoveAppointmentAsync(MoveOption? option)
+    {
+        if (option is null)
+        {
+            return;
+        }
+
+        var when = DayLayout.ShortDayTime(option.Slot.Start, _zone);
+        var answer = await AskAsync(new ConfirmRequest("Termin verschieben?",
+            $"Der Termin des Gastes liegt danach am {when}; die Antwort an den Gast wird neu entworfen.", "Verschieben", IsDestructive: false)).ConfigureAwait(true);
+        if (answer.IsConfirmed)
+        {
+            await ActAsync(() => _api.PostAsync<InboundMailDto>($"api/inbox/{Id}/move-appointment", new AcceptProposalRequest(option.Slot.Start, null, null, null)),
+                $"Termin auf {when} verschoben. Die Antwort wird neu entworfen.").ConfigureAwait(true);
+        }
+    }
 
     [RelayCommand(CanExecute = nameof(CanAct))]
     private Task DismissAsync() => ActAsync(() => _api.PostAsync<InboundMailDto>($"api/inbox/{Id}/dismiss", null), "Als erledigt markiert.");

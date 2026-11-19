@@ -1421,6 +1421,15 @@ Expected: Im Kalender steht der Termin beim Therapeuten; in der Notiz steht „W
 Closes: –
 Result: ☐
 
+### Posteingang – Verschiebungswunsch übernehmen
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App als Rezeption; ein Gast mit Mailadresse hat einen gebuchten Termin in den nächsten Tagen
+1. Vom Gast eine Mail an das Test-Postfach schicken: „Hallo, ich muss meinen Termin leider verschieben, geht Dienstag nachmittags?“
+Expected: In **Anfragen** steht die Nachricht mit „Prüfen“; der Hinweis nennt den Termin, darunter **Freie Zeiten zum Verschieben** mit bis zu drei Knöpfen „Auf … verschieben“, möglichst am Dienstagnachmittag.
+2. Eine Zeit anklicken und in der Rückfrage **Verschieben** wählen.
+Expected: „Termin auf … verschoben. Die Antwort wird neu entworfen.“; im Kalender liegt der Termin auf der neuen Zeit; der Entwurf an den Gast nennt die neue Zeit.
+Closes: –
+Result: ☐
+
 ### Wiederbuchungs-Hinweis – Abmelden mit einem Klick im Mailprogramm
 Start: Testbetrieb mit echtem Mailversand an ein eigenes Gmail- oder Outlook-Postfach; ein Gast mit bestätigter Einwilligung, dessen letzte Behandlung lange genug her ist
 1. Den Wiederbuchungs-Hinweis an das Postfach gehen lassen und die Mail öffnen.

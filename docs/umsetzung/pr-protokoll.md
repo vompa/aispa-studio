@@ -7345,3 +7345,23 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Geprüft:** API `RetentionTests`, `MailboxAdapterTests`, `ChannelScanTests` 25 von 25 (neu: Kopfzeilen, Adresse mit dem Code aus dem Text, GET leitet weiter und ändert nichts, POST widerruft, unbekannter Code 404).
 - **Nicht geprüft:** ein echtes Mailprogramm (Gmail und Outlook zeigen den Knopf nur bei signierten Mails mit gutem Ruf des Absenders, DKIM); Handtest dafür angelegt.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Posteingang: Verschiebungswunsch mit freien Zeiten, verschieben mit einem Klick (19.11.2026)
+
+- **Auftrag:** Block „KI-Terminannahme und Posteingang“, Punkt 1 („KI-Vorschläge für Absagen und Verschiebungen im Posteingang“); vom Auftraggeber am 19.11.2026 zum autonomen Abarbeiten freigegeben.
+- **Befund:** Absagen fand die Terminannahme schon samt Termin und Knopf (seit #59). Ein Verschiebungswunsch wurde erkannt, aber nur weitergereicht: kein Termin, keine Zeiten, keine Aktion.
+- **Was:**
+  - Terminannahme: Beim Verschiebungswunsch merkt sich die Nachricht den nächsten Termin des Gasts (nur mit sicher erkanntem oder zugeordnetem Gast, ADR 0061) und sucht freie Zeiten für dieselbe Behandlung am selben Standort (`ProposeMoveAsync`). Gesucht wird nach den Wunschzeiten aus der Nachricht, sonst ab morgen um die gewohnte Uhrzeit, zuerst bei derselben Person; der Termin selbst zählt dabei als frei, seine bisherige Zeit kommt nicht als Vorschlag.
+  - `POST /api/inbox/{id}/move-appointment`: verschiebt auf eine der vorgeschlagenen Zeiten über `BookingService.MoveAsync`, wie im Kalender; danach „Eingetragen“ und ein neuer Antwortentwurf (`ReplyCase.Moved`, vier Sprachen, auch im Auftrag an die KI).
+  - `InboundMailDto.CanMoveAppointment`.
+  - Windows-App: „Freie Zeiten zum Verschieben“ mit Knöpfen „Auf Di. 20.10. 17:00 verschieben“, mit Rückfrage.
+  - Hilfe `anfragen-verschiebung` mit Bild `posteingang-verschieben.png`, verlinkt von `seite-anfragen`.
+  - Nebenbei: doppelter `<summary>`-Kommentar an `CancellableAsync` entfernt.
+- **Detailentscheidungen:**
+  1. Nur vorgeschlagene Zeiten lassen sich hier wählen (sonst 400); andere Zeiten verschiebt die Rezeption im Kalender.
+  2. Wird der Gast erst später zugeordnet, sind die Wunschzeiten der Nachricht nicht mehr bekannt: Dann sucht die Terminannahme um die gewohnte Uhrzeit.
+  3. Kein automatisches Verschieben, auch nicht bei einer freien Wunschzeit (ADR 0008).
+- **Bewusst offen / später:** Die KI liest den gemeinten Termin aus der Nachricht, wenn der Gast mehrere hat (heute der nächste; bei Absagen gibt es schon die Auswahl); Verschieben von Paar und Spa-Tag aus dem Posteingang.
+- **Geprüft:** API alle `MailIntake*`-Tests, `LocalAiTests`, `ChannelScanTests` 108 von 108 (neu: Verschiebungswunsch mit Termin und Zeiten, Termin unverändert bis zum Klick, fremde Zeit 400, Verschieben, zweites Mal 400, Antwort „wie gewünscht verschoben“; angepasst: ohne sichere Zuordnung weder Termin noch Zeiten, nach dem Zuordnen beides); Windows-App Posteingang-Tests 20 von 20 (neu: Rückfrage, Aufruf mit der Zeit, Meldung), Ansichtstest, Knopflängen (165), „höchstens“ (33).
+- **Nicht geprüft:** die echte KI (Claude) mit einer Verschiebungsmail und Wunschzeit; die laufende App unter Windows.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
