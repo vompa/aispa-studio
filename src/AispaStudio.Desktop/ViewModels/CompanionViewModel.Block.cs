@@ -32,6 +32,8 @@ public sealed partial class CompanionViewModel
 
     public IReadOnlyList<AssistantFollowUp> FollowUps => Block?.FollowUps ?? [];
 
+    public bool HasFollowUps => FollowUps.Count > 0;
+
     public bool HasBlockActions => HasBlockLink || HasCopy;
 
     /// <summary>Begründung für „Warum diese Antwort?“ mit der Quelle; ohne Block der feste Text des Assistenten.</summary>
@@ -47,6 +49,8 @@ public sealed partial class CompanionViewModel
 
     /// <summary>Angaben, die dem Spa fehlen, obwohl die Antwort möglich war („Unvollständig“, mit Verweis auf das Feld oder dem Hinweis „Nur Leitung“).</summary>
     public IReadOnlyList<CompanionGap> Gaps => Block?.Incomplete?.Select(CompanionGap.Of).ToList() ?? [];
+
+    public bool HasGaps => Gaps.Count > 0;
 
     private bool _awaitingSave;
 

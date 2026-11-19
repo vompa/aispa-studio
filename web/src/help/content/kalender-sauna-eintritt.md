@@ -31,7 +31,7 @@ Bereiche wie Sauna oder Ruheraum haben keine Termine, sondern Eintritte mit Von,
 
 ## Eintritt stornieren {#stornieren}
 
-Beim Eintritt auf **Stornieren** klicken. Es gibt keine Rückfrage; der Eintritt bleibt blass mit „storniert“ in der Liste.
+Beim Eintritt auf das Menü **⋯** und dann auf **Stornieren …** klicken. Die Rückfrage „Eintritt stornieren?“ mit **Stornieren** bestätigen; der Eintritt bleibt blass mit „storniert“ in der Liste.
 
 ## Eintritt kassieren {#kassieren}
 

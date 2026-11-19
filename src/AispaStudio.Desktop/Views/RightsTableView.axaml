@@ -46,7 +46,8 @@
                           <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextWrapping="Wrap" />
                           <TextBlock Text="{Binding Hint}" Classes="muted small" TextWrapping="Wrap" IsVisible="{Binding HasHint}" />
                         </StackPanel>
-                        <Border Grid.Column="1" Classes="pill" Classes.accent="{Binding FreesSomething}" VerticalAlignment="Top">
+                        <Border Grid.Column="1" Classes="pill" Classes.accent="{Binding FreesSomething}" VerticalAlignment="Top" ToolTip.Tip="{Binding EffectTip}"
+                                ui:ToolTipBehavior.Reachable="True">
                           <TextBlock Text="{Binding Effect}" />
                         </Border>
                         <WrapPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Top">
@@ -77,7 +78,7 @@
                               <TextBlock Text="Niemand eingetragen" />
                             </StackPanel>
                           </Border>
-                          <Button Classes="ghost link" Content="+ Person" IsVisible="{Binding HasCandidates}" AutomationProperties.Name="{Binding AddName}" VerticalAlignment="Center" Margin="0,0,0,6">
+                          <Button Classes="small" Content="+ Person" IsVisible="{Binding HasCandidates}" AutomationProperties.Name="{Binding AddName}" VerticalAlignment="Center" Margin="0,0,0,6">
                             <Button.Flyout>
                               <MenuFlyout Placement="BottomEdgeAlignedLeft" ItemsSource="{Binding Candidates}">
                                 <MenuFlyout.ItemContainerTheme>
@@ -101,6 +102,6 @@
       </ItemsControl>
     </Border>
 
-    <TextBlock Text="Dieselben Einträge stehen auf der Personenkarte unter „Zuständigkeiten“ und „Regelungen“. Geändert wird an beiden Stellen dasselbe." Classes="muted small" TextWrapping="Wrap" />
+    <TextBlock Text="Dieselben Einträge stehen auf der Personenkarte: Zuständigkeiten im Bereich „Profil“, Vollmachten im Bereich „Lohn und Akte“ unter „Regelungen und Vollmachten“. Geändert wird an beiden Stellen dasselbe." Classes="muted small" TextWrapping="Wrap" />
   </StackPanel>
 </UserControl>

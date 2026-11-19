@@ -486,6 +486,9 @@ public sealed record FreeSlotRow(AvailableSlot Slot, string Time, string Who, st
 {
     public bool HasGapNote => GapNote is not null;
 
+    /// <summary>Hinweis an der Zeile, die ohne Lücke anschließt; sie trägt kein Kennzeichen, nur die Zeilen mit Abweichung nennen sie („lässt 30 Min. Lücke danach“).</summary>
+    public string? SnugTip => IsSnug ? "Schließt ohne Lücke an" : null;
+
     /// <summary>Name für Screenreader: alles, was die Zeile zeigt, in Lesereihenfolge („Do. 22.10., 09:00–10:20, Lena, Lotus, passt genau“).</summary>
     public string AccessibleName =>
         AccessibleNames.Join(DayText, Time, Who, Room, SpeaksLanguage, OutsideWish, GapNote, IsSnug ? "passt genau" : null, IsWishPerson ? "Wunsch" : null);

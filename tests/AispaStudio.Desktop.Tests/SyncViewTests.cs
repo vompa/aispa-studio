@@ -87,7 +87,7 @@ public sealed class SyncViewTests
         Assert.Equal("1", nav.Badge);
         Assert.True(sync.HasConflicts);
         Assert.Equal("Termine", sync.Conflicts[0].Area);
-        Assert.Equal("3 Änderung(en) warten auf den nächsten Abgleich.", sync.PendingText);
+        Assert.Equal("3 Änderungen warten auf den nächsten Abgleich.", sync.PendingText);
         Assert.StartsWith("Zuletzt abgeglichen", sync.StateText, StringComparison.Ordinal);
         Assert.False(sync.CanConfigure);
         Assert.False(sync.ConnectCommand.CanExecute(null));
@@ -99,6 +99,20 @@ public sealed class SyncViewTests
         Assert.Null(nav.Badge);
         Assert.False(sync.HasConflicts);
         shell.Dispose();
+    }
+
+    [Theory]
+    [InlineData(0, "Alle Änderungen dieses PCs sind übertragen.")]
+    [InlineData(1, "1 Änderung wartet auf den nächsten Abgleich.")]
+    [InlineData(2, "2 Änderungen warten auf den nächsten Abgleich.")]
+    public async Task Wartende_Aenderungen_stehen_in_richtiger_Ein_und_Mehrzahl(int pending, string expected)
+    {
+        var api = new StubApi().On("GET /api/system/sync", new SyncStatus(true, Detected, null, pending, []));
+        var sync = new SyncViewModel(api.Client(), new FakeLocal(), TimeProvider.System);
+
+        await sync.RefreshAsync();
+
+        Assert.Equal(expected, sync.PendingText);
     }
 
     [Fact]

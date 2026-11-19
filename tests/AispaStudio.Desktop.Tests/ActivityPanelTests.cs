@@ -284,6 +284,43 @@ public sealed class ActivityPanelTests
     }
 
     [Fact]
+    public async Task Person_und_Grund_stehen_nur_dann_in_eigenen_Zeilen_wenn_der_Satz_sie_nicht_nennt()
+    {
+        var reason = new ActivityValue[] { new("Grund", null, "Gast krank") };
+        var named = await OpenAsync(Api(Entry(ActivityKind.Cancelled, "Storniert von Rita: Gast krank", Guid.NewGuid(), values: reason)));
+        Open(named);
+        var plain = await OpenAsync(Api(Entry(ActivityKind.Cancelled, "Storniert", Guid.NewGuid(), values: reason)));
+        Open(plain);
+
+        Assert.False(named.HasPanelActor);
+        Assert.False(named.HasPanelReason);
+        Assert.True(plain.HasPanelActor);
+        Assert.True(plain.HasPanelReason);
+        // In der Liste steht die Person nur, wenn der Satz sie nicht nennt.
+        Assert.Equal("Anna Huber", Assert.IsType<ActivityRow>(named.Rows[1]).Detail);
+        Assert.Equal("Anna Huber · von Rita", Assert.IsType<ActivityRow>(plain.Rows[1]).Detail);
+    }
+
+    [Theory]
+    [InlineData("Storniert von Rita", "Rita", true)]
+    [InlineData("Storniert von RITA: Gast krank", "rita", true)]
+    [InlineData("Geändert von Margarita", "Rita", false)]
+    [InlineData("Bezahlt bar: 85,00 €", "Rita", false)]
+    [InlineData("Storniert", "", false)]
+    public void Der_Satz_nennt_einen_Wert_nur_als_ganzes_Wort(string text, string value, bool expected) => Assert.Equal(expected, ActivityRow.Mentions(text, value));
+
+    [Fact]
+    public async Task Werte_ohne_Vorher_und_Nachher_stehen_nicht_in_der_Tabelle()
+    {
+        var values = new ActivityValue[] { new("Status", "Gebucht", "Storniert"), new("Ausfallgebühr", null, null) };
+        var activity = await OpenAsync(Api(Entry(ActivityKind.Cancelled, "Storniert von Rita", Guid.NewGuid(), values: values)));
+
+        Open(activity);
+
+        Assert.Equal([new ActivityValueRow("Status", "Gebucht", "Storniert")], activity.PanelValues);
+    }
+
+    [Fact]
     public async Task Ein_rechtzeitiger_Storno_hat_keinen_Hinweis_zur_Stornofrist()
     {
         var activity = await OpenAsync(Api(Entry(ActivityKind.Cancelled, "Storniert von Rita", Guid.NewGuid(), late: false)));

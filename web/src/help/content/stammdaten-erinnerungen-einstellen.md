@@ -14,7 +14,7 @@ Gäste bekommen vor dem Termin eine Erinnerung mit Link zum Ansehen oder Absagen
 
 1. In der Windows-App **Verwaltung** öffnen, im Balken **Kontakt** und dann den Reiter **Erinnerungen** wählen.
 2. Unter **Terminerinnerungen** das Häkchen bei **Erinnerungen verschicken** setzen.
-3. **Erste Erinnerung (Stunden vorher, 0 = keine)** und **Zweite Erinnerung (Stunden vorher, 0 = keine)** einstellen, z. B. 24 und 2.
+3. **Erste Erinnerung (Stunden)** und **Zweite Erinnerung (Stunden)** einstellen, z. B. 24 und 2.
 4. **Kanal** wählen: Mail, SMS oder WhatsApp. Bei WhatsApp zusätzlich die freigegebene Vorlage und ihre Sprache eintragen.
 5. Auf **Speichern** klicken.
 

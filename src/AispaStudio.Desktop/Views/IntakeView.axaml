@@ -74,8 +74,8 @@
               </ui:FormField>
             </Grid>
 
-            <ui:FormField Label="{Binding SecretLabel}">
-              <TextBox x:Name="SecretField" Text="{Binding Secret}" PasswordChar="●" PlaceholderText="{Binding SecretPlaceholder}" />
+            <ui:FormField Label="{Binding SecretLabel}" Help="{Binding SecretHelp}">
+              <TextBox x:Name="SecretField" Text="{Binding Secret}" PasswordChar="●" />
             </ui:FormField>
           </StackPanel>
 
@@ -135,14 +135,13 @@
       <ui:InfoBar Severity="Error" Title="Nicht gespeichert" Message="{Binding Error}" IsVisible="{Binding HasError}"
                   ActionText="Erneut versuchen" ActionCommand="{Binding SaveCommand}" CloseCommand="{Binding CloseErrorCommand}" />
       <ui:InfoBar Severity="{Binding MessageSeverity}" Message="{Binding Message}" IsVisible="{Binding HasMessage}" CloseCommand="{Binding CloseMessageCommand}" />
-      <StackPanel Orientation="Horizontal" Spacing="24">
+      <!-- Gefährliches steht rechts außen, durch Abstand getrennt (design.md 5.1) -->
+      <Grid ColumnDefinitions="Auto,Auto,*,Auto" ColumnSpacing="8" MinWidth="720">
         <ui:SaveBar SaveCommand="{Binding SaveCommand}" DiscardCommand="{Binding DiscardCommand}" CanDiscard="{Binding HasUnsavedChanges}" Status="{Binding StatusText}" />
-        <StackPanel Orientation="Horizontal" Spacing="8">
-          <Button x:Name="CheckButton" Classes="ghost" Content="{Binding CheckText}" Command="{Binding CheckCommand}"
-                  ui:DisabledHint.Text="Verfügbar, sobald ein eingeschaltetes Postfach gespeichert ist." />
-          <Button x:Name="RemoveButton" Classes="danger" Content="Postfach entfernen" Command="{Binding RemoveCommand}" IsVisible="{Binding HasMailbox}" />
-        </StackPanel>
-      </StackPanel>
+        <Button x:Name="CheckButton" Grid.Column="1" Content="{Binding CheckText}" Command="{Binding CheckCommand}" VerticalAlignment="Top"
+                ui:DisabledHint.Text="Verfügbar, sobald ein eingeschaltetes Postfach gespeichert ist." />
+        <Button x:Name="RemoveButton" Grid.Column="3" Classes="danger" Content="Postfach entfernen" Command="{Binding RemoveCommand}" IsVisible="{Binding HasMailbox}" VerticalAlignment="Top" />
+      </Grid>
     </StackPanel>
   </Grid>
 </UserControl>

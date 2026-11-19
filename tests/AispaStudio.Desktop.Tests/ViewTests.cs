@@ -135,15 +135,18 @@ public sealed partial class ViewTests
         await Pump();
         bool Visible(string text) => window.GetVisualDescendants().OfType<Button>().Any(b => b.IsEffectivelyVisible && b.Content as string == text);
 
-        // Stornieren steht ohne „Mehr“ im Aktionsblock (Ä81); Erledigt und Nicht erschienen stehen hinter „Mehr“.
-        Assert.True(Visible("Termin stornieren …"));
-        Assert.False(Visible("Erledigt"));
+        // Stornieren steht hinter „Mehr“ (Durchsicht 19.11.2026, M1), ebenso Erledigt und Nicht erschienen; Entf und das Kontextmenü bleiben.
+        bool CancelVisible() => window.GetVisualDescendants().OfType<Button>().Any(b => b.Name == "CancelButton" && b.IsEffectivelyVisible);
+        Assert.False(CancelVisible());
+        Assert.False(Visible("Termin stornieren …"));
         var more = window.GetVisualDescendants().OfType<Avalonia.Controls.Primitives.ToggleButton>().Single(t => t.Name == "MoreToggle");
         more.IsChecked = true;
         await Pump();
 
-        Assert.True(Visible("Erledigt"));
-        Assert.True(Visible("Nicht erschienen"));
+        bool RowVisible(string name) => window.GetVisualDescendants().OfType<Button>().Any(b => b.Name == name && b.IsEffectivelyVisible);
+        Assert.True(RowVisible("CompleteButton"));
+        Assert.True(RowVisible("NoShowButton"));
+        Assert.True(CancelVisible());
 
         // Kalenderdatei für den Gast (Export/Import, Aufgabe C).
         Assert.True(window.GetVisualDescendants().OfType<Button>().Single(b => b.Name == "CalendarFileButton").IsEffectivelyVisible);
@@ -962,7 +965,7 @@ public sealed partial class ViewTests
         var calendar = await SignedInCalendar(main);
         calendar.ByRoom = true;
         Assert.Contains(calendar.Columns.SelectMany(c => c.Stripes), s => s.LongText is not null && s.LongText.EndsWith("· Steine auf 55 °C aufheizen", StringComparison.Ordinal));
-        Assert.Contains(calendar.Columns.SelectMany(c => c.Stripes), s => s.Text == "Nachb. 10 · Raumpflege 10 Min.");
+        Assert.Contains(calendar.Columns.SelectMany(c => c.Stripes), s => s.Text == "Nachb. 10 · Pflege 10");
         return calendar;
     }, Api()
         .On($"GET /api/locations/{SpaSample.LocationId}/resources", SpaSample.ResourcesWithAbsent)
@@ -1328,6 +1331,8 @@ public sealed partial class ViewTests
         }
 
         Assert.True(shell.Inbox.Detail!.FreeTime is { HasSlots: true });
+        AssertInboxRowsSeparate(window);
+        AssertInboxControlsExplained(window);
         return shell.Inbox;
     }, Api()
         .On($"GET /api/inbox/{SpaSample.InboxMailId}", SpaSample.InboxMail() with { CanRepropose = true })
@@ -1394,6 +1399,12 @@ public sealed partial class ViewTests
         Assert.True(detail.HasCandidates);
         detail.RememberContact = true;
         await Pump();
+        // Der Hinweis „Wer ist das? …“ vom Server entfällt; der Kasten trägt seine Aussage („gebucht wird erst danach“).
+        var texts = VisibleTexts(VisibleInbox(window));
+        Assert.DoesNotContain(texts, t => t.StartsWith("Wer ist das? ", StringComparison.Ordinal));
+        Assert.Single(texts, t => t == "Wer ist das?");
+        Assert.Contains(texts, t => t.Contains("gebucht wird erst danach", StringComparison.Ordinal));
+        Assert.Equal("Beim Zuordnen Adresse/Nummer merken", Named<CheckBox>(VisibleInbox(window), "RememberContactBox").Content);
         return shell.Inbox;
     }, Api()
         .On("GET /api/inbox", new List<InboundMailSummary>
@@ -1415,6 +1426,14 @@ public sealed partial class ViewTests
         Assert.True(detail.ShowAcceptPending);
         Assert.True(detail.HasCandidates);
         await Pump();
+        AssertInboxRowsSeparate(window);
+        var texts = VisibleTexts(VisibleInbox(window));
+        // Die Vorauszahlung steht einmal im KI-Teil, der Mailtext bleibt unverändert.
+        Assert.Single(texts, t => t.Contains("Vorab über Treatwell bezahlt: 35,00 €", StringComparison.Ordinal));
+        Assert.Contains(texts, t => t.Contains("Zahlungsstatus: Online bezahlt", StringComparison.Ordinal));
+        Assert.Single(texts, t => t == "Wer ist das?");
+        Assert.DoesNotContain(texts, t => t.StartsWith("Wer ist das? ", StringComparison.Ordinal));
+        Assert.Equal("In Treatwell angenommen", Named<Button>(VisibleInbox(window), "PlatformAcceptedButton").Content);
         return shell.Inbox;
     }, Api()
         .On("GET /api/inbox", new List<InboundMailSummary>
@@ -1634,7 +1653,8 @@ public sealed partial class ViewTests
         shell.Customers.AddFlagCommand.Execute(null);
         await Pump();
         Assert.Equal(2, shell.Customers.Flags.Count);
-        Assert.Equal(CustomerFlagKind.MoreTime, shell.Customers.NewFlag!.Kind);
+        // Vorbelegt ist das erste Kennzeichen, das Brigitte noch nicht hat (30a).
+        Assert.Equal(CustomerFlagKind.InformManagement, shell.Customers.NewFlag!.Kind);
         return calendar;
     });
 
@@ -1852,7 +1872,7 @@ public sealed partial class ViewTests
         var card = shell.Pos.Payments.First(p => p.IsCard);
         await shell.Pos.StartCardPaymentCommand.ExecuteAsync(card);
         Assert.True(card.IsApproved);
-        Assert.Equal("Stornieren", card.CancelTerminalText);
+        Assert.Equal("Kartenzahlung stornieren", card.CancelTerminalText);
         Assert.True(shell.Pos.CanPay);
         return shell.Pos;
     });
@@ -1915,6 +1935,10 @@ public sealed partial class ViewTests
         await shell.Devices.InitializeAsync();
         Assert.Equal(2, shell.Devices.Terminals.Count);
         shell.Devices.PrinterAddress = "192.168.1.60";
+        shell.Devices.Terminal = shell.Devices.Terminals[1];
+        shell.Devices.Terminal = shell.Devices.Terminals[0];
+        await Pump();
+        AssertDevicesExplained(window);
         shell.Devices.Terminal = shell.Devices.Terminals[1];
         return shell.Devices;
     });

@@ -55,7 +55,7 @@ public sealed partial class ViewTests
         Assert.Contains(item.Text, peer.GetName(), StringComparison.Ordinal);
         Assert.Contains("Details", peer.GetHelpText(), StringComparison.Ordinal);
 
-        // Keine Knöpfe in Knöpfen: Aktion und „Wegklicken“ liegen neben der Karte.
+        // Keine Knöpfe in Knöpfen: Aktion und „Ausblenden“ liegen neben der Karte.
         Assert.Empty(card.GetVisualDescendants().OfType<Button>());
 
         card.BringIntoView();
@@ -63,7 +63,7 @@ public sealed partial class ViewTests
         card.Focus(NavigationMethod.Tab);
         Press(window, PhysicalKey.Enter);
         await Pump(Settling);
-        Assert.Equal("Meldung", calendar.ActivePanel!.PanelTitle);
+        Assert.Equal(calendar.MessageDetail!.Item.Title, calendar.ActivePanel!.PanelTitle);
         return calendar;
     }, OperationsApi());
 

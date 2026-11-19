@@ -7,7 +7,7 @@ stichwoerter: Sicherung, Backup, Datensicherung, sichern, Wiederherstellungsschl
 ---
 # Seite „Sicherung“ in der Windows-App
 
-Die Seite „Sicherung“ gibt es nur im Einzelplatz-Betrieb, wenn die Datenbank auf diesem PC liegt. Die App sichert sie einmal am Tag in einen Ordner und behält die letzten 14 Sicherungen. Fehlt eine Sicherung oder ist sie älter als sieben Tage, erinnert ein gelber Hinweis oben auf jeder Seite.
+Die Seite „Sicherung“ gibt es nur im Einzelplatz-Betrieb, wenn die Datenbank auf diesem PC liegt. Die App sichert sie einmal am Tag in einen Ordner und behält die letzten 14 Sicherungen. Fehlt eine Sicherung oder ist sie älter als sieben Tage, erinnert ein gelber Hinweis oben auf jeder anderen Seite; auf der Seite „Sicherung“ zeigt „Stand“ den Zustand selbst.
 
 Den Stand sehen alle Angemeldeten. Den Ordner wählen und einen neuen Wiederherstellungsschlüssel erzeugen dürfen nur Inhaber und Standortleitung.
 

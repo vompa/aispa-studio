@@ -41,6 +41,24 @@ public sealed class ActivityRow(ActivityEntry entry, string time, string? detail
 
     public bool HasDetail => !string.IsNullOrEmpty(Detail);
 
+    /// <summary>Der Satz nennt den Wert schon (ganzes Wort, ohne Rücksicht auf Groß- und Kleinschreibung): „Lena“ in „Storniert von Lena: Gast krank“.</summary>
+    public static bool Mentions(string text, string value)
+    {
+        var from = 0;
+        while (value.Length > 0 && text.IndexOf(value, from, StringComparison.OrdinalIgnoreCase) is var at and >= 0)
+        {
+            var end = at + value.Length;
+            if ((at == 0 || !char.IsLetterOrDigit(text[at - 1])) && (end == text.Length || !char.IsLetterOrDigit(text[end])))
+            {
+                return true;
+            }
+
+            from = at + 1;
+        }
+
+        return false;
+    }
+
     public override bool CanSelect => true;
 
     public override string AccessibleName => Entry.Text;

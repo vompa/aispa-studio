@@ -55,7 +55,7 @@ Ein Zertifikat in der Erinnerungsfrist zeigt „Läuft am … ab“, ein abgelau
 
 Wer wofür zuständig ist, steht in der Tabelle **Wer darf was, wer ist zuständig?** oben in der Ansicht **Rechte und Zuständigkeiten**, zusammen mit den Vollmachten und nach Themen geordnet. Steht niemand in der Zeile, heißt es „Niemand eingetragen“. **+ Person** trägt jemanden ein, das Kreuz am Kennzeichen entfernt die Person; Vertretung und Gültigkeit pflegt die Karte der Person. Siehe [Regelungen und Vollmachten](hilfe:regelungen-vollmachten#wer-darf-was).
 
-Der Abschnitt **Zertifikate und Liste der Zuständigkeiten** darunter nennt unter **Was läuft bald ab?** alle Zertifikate aktiver Personen in der Erinnerungsfrist und die abgelaufenen, die noch nicht erneuert sind, nach Datum.
+Der Abschnitt **Zertifikate und Liste der Zuständigkeiten** darunter nennt unter **Was läuft bald ab?** alle Zertifikate aktiver Personen in der Erinnerungsfrist und die abgelaufenen, die noch nicht erneuert sind, nach Datum. **Karte öffnen** neben einem Eintrag führt zu den Zuständigkeiten und Zertifikaten der Person, wo das Zertifikat erneuert wird.
 
 ![Abschnitt Zertifikate und Liste der Zuständigkeiten mit einem abgelaufenen Kurs und der Mindestzahl Ersthelfer](images/app/verwaltung-team-zustaendigkeiten.png)
 

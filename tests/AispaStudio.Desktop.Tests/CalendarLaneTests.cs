@@ -198,7 +198,7 @@ public sealed class CalendarLaneTests
         var entry = vm.Entry!;
 
         // Das Ende ist mit 15 Minuten vorbelegt (Auftraggeber, 23.10.2026) und lässt sich ändern oder leeren.
-        Assert.Equal(("Uhrzeit", "Bis", true, "14:15"), (entry.StartLabel, entry.EndLabel, entry.ShowEnd, entry.EndText));
+        Assert.Equal((true, "14:15"), (entry.ShowEnd, entry.EndText));
         entry.Text = "Herr Lang ruft zurück";
         entry.EndText = "14:30";
         await entry.SaveAsync();
@@ -237,7 +237,7 @@ public sealed class CalendarLaneTests
 
         Assert.True(vm.SelectNewEntry(4));
 
-        Assert.Equal(("Beginn", "Ende", true), (vm.Entry!.StartLabel, vm.Entry.EndLabel, vm.Entry.ShowEnd));
+        Assert.True(vm.Entry!.ShowEnd);
         Assert.NotEqual("", vm.Entry.EndText);
     }
 }

@@ -21,6 +21,8 @@ public sealed class SaveBar : StackPanel
 
     public static readonly StyledProperty<string?> StatusProperty = AvaloniaProperty.Register<SaveBar, string?>(nameof(Status));
 
+    public static readonly StyledProperty<string?> SaveHintProperty = AvaloniaProperty.Register<SaveBar, string?>(nameof(SaveHint));
+
     private readonly Button _save = new() { Name = "SaveButton", Content = "Speichern" };
     private readonly Button _discard = new() { Name = "DiscardButton", Content = "Verwerfen" };
     private readonly TextBlock _status = new() { VerticalAlignment = VerticalAlignment.Center };
@@ -31,6 +33,7 @@ public sealed class SaveBar : StackPanel
         DiscardCommandProperty.Changed.AddClassHandler<SaveBar>((bar, e) => bar._discard.Command = e.NewValue as ICommand);
         CanDiscardProperty.Changed.AddClassHandler<SaveBar>((bar, e) => bar._discard.IsEnabled = e.NewValue is true);
         StatusProperty.Changed.AddClassHandler<SaveBar>((bar, e) => bar._status.Text = e.NewValue as string);
+        SaveHintProperty.Changed.AddClassHandler<SaveBar>((bar, e) => DisabledHint.SetText(bar._save, e.NewValue as string));
     }
 
     public SaveBar()
@@ -62,6 +65,13 @@ public sealed class SaveBar : StackPanel
     {
         get => GetValue(DiscardCommandProperty);
         set => SetValue(DiscardCommandProperty, value);
+    }
+
+    /// <summary>Wann „Speichern“ verfügbar wird („Verfügbar, sobald …“); zeigt der Tooltip, solange der Befehl gesperrt ist.</summary>
+    public string? SaveHint
+    {
+        get => GetValue(SaveHintProperty);
+        set => SetValue(SaveHintProperty, value);
     }
 
     /// <summary>Es gibt ungespeicherte Änderungen; nur dann lässt sich verwerfen.</summary>

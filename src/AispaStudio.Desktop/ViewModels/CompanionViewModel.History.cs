@@ -40,6 +40,12 @@ public sealed partial class CompanionViewModel
 
     public bool HasRecentQuestions => RecentQuestions.Count > 0;
 
+    /// <summary>„Zuletzt gefragt“ ohne die Frage, deren Antwort gerade in der Karte steht: dieselbe Frage steht nur einmal da (Durchsicht, Befund 21c).</summary>
+    public IReadOnlyList<string> VisibleRecentQuestions =>
+        [.. RecentQuestions.Where(question => !(ShowsAnswer && string.Equals(question, Asked, StringComparison.OrdinalIgnoreCase)))];
+
+    public bool HasVisibleRecentQuestions => VisibleRecentQuestions.Count > 0;
+
     /// <summary>Der Teil zur Seite („Diese Seite“) entfällt auf der Seite „Hilfe“ und solange der Hilfe-Bereich eine Stelle zeigt: dann bleibt nur der Assistent.</summary>
     public bool ShowsPageSection => _page != "hilfe" && Help is null;
 
@@ -179,6 +185,8 @@ public sealed partial class CompanionViewModel
         {
             RecentQuestions.Clear();
             OnPropertyChanged(nameof(HasRecentQuestions));
+            OnPropertyChanged(nameof(VisibleRecentQuestions));
+            OnPropertyChanged(nameof(HasVisibleRecentQuestions));
         }
     }
 
@@ -187,6 +195,8 @@ public sealed partial class CompanionViewModel
     {
         RecentQuestions.Clear();
         OnPropertyChanged(nameof(HasRecentQuestions));
+        OnPropertyChanged(nameof(VisibleRecentQuestions));
+        OnPropertyChanged(nameof(HasVisibleRecentQuestions));
         _store.Save(_store.Load() with { AssistantHistory = null });
     }
 
@@ -217,6 +227,8 @@ public sealed partial class CompanionViewModel
         }
 
         OnPropertyChanged(nameof(HasRecentQuestions));
+        OnPropertyChanged(nameof(VisibleRecentQuestions));
+        OnPropertyChanged(nameof(HasVisibleRecentQuestions));
     }
 
     /// <summary>Merkt eine gestellte Frage: nach oben, doppelte (ohne Rücksicht auf Groß- und Kleinschreibung) einmal, höchstens fünf.</summary>
@@ -238,6 +250,8 @@ public sealed partial class CompanionViewModel
         }
 
         OnPropertyChanged(nameof(HasRecentQuestions));
+        OnPropertyChanged(nameof(VisibleRecentQuestions));
+        OnPropertyChanged(nameof(HasVisibleRecentQuestions));
         if (HistoryOwner is { } owner)
         {
             _store.Save(_store.Load() with { AssistantHistory = new AssistantHistory(owner, Today, [.. RecentQuestions]) });

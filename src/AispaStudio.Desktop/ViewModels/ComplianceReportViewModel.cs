@@ -35,8 +35,8 @@ public sealed partial class ComplianceReportViewModel(IWorkstationApi api, TimeP
             }
 
             var liabilities = report.VoucherLiabilities is { } amount ? $" über {Money.Format(amount)} (Verbindlichkeit, aktueller Stand)" : "";
-            var packages = report.OpenPackages > 0 ? $", {report.OpenPackages} offene Pakete mit {report.PackageUnitsLeft} Behandlungen" : "";
-            return $"{report.OpenVouchers} offene Gutscheine{liabilities}{packages}.";
+            var packages = report.OpenPackages > 0 ? $", {report.OpenPackages} {(report.OpenPackages == 1 ? "offenes Paket" : "offene Pakete")} mit {report.PackageUnitsLeft} {(report.PackageUnitsLeft == 1 ? "Behandlung" : "Behandlungen")}" : "";
+            return $"{report.OpenVouchers} {(report.OpenVouchers == 1 ? "offener Gutschein" : "offene Gutscheine")}{liabilities}{packages}.";
         }
     }
 

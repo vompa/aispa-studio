@@ -86,7 +86,12 @@ public sealed partial class ViewTests
         Assert.True(Math.Abs(LeftOf(window, labels[0]) - LeftOf(window, labels[2])) < 1);
         Assert.True(LeftOf(window, labels[1]) > LeftOf(window, labels[0]) + 40);
         Assert.Equal(22, ((StackPanel)labels[0].Parent!).Children.OfType<TextBlock>().First().FontSize);
-        Assert.Equal("Offen 45,00 € · Paket Hot-Stone-Massage: 7 von 10 offen", TextIn(header, "Offen 45,00 € · Paket Hot-Stone-Massage: 7 von 10 offen").Text);
+        // Der offene Betrag steht oben in der Karte, vor den Kennzahlen, in der Warnfarbe und halbfett; die Pakete bleiben klein darunter.
+        var open = TextIn(header, "Offen 45,00 €");
+        Assert.Contains("warn", open.Classes);
+        Assert.Equal(FontWeight.SemiBold, open.FontWeight);
+        Assert.True(TopOf(window, open) < TopOf(window, labels[0]), "Offen steht über den Kennzahlen");
+        Assert.True(TopOf(window, TextIn(header, "Paket Hot-Stone-Massage: 7 von 10 offen")) > TopOf(window, labels[2]));
         // Zu: nichts vom Rest ist zu sehen, auch nicht die Links.
         Assert.DoesNotContain(panel.GetVisualDescendants().OfType<TextBlock>(), t => t.IsEffectivelyVisible && t.Text is "Zuletzt" or "Kontakt" or "Kundennotiz");
         Assert.False(Named<Button>(panel, "PhoneLink").IsEffectivelyVisible);

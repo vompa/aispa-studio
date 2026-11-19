@@ -283,23 +283,40 @@ public sealed partial class StockViewModel : ViewModelBase, INativeArea
 
     public Task EnsureLoadedAsync() => IsLoaded ? Task.CompletedTask : LoadAsync();
 
-    /// <summary>Eine Rückmeldung der Maske, z. B. nach dem Speichern oder Senden eines PDFs (PDF-Ausgaben F).</summary>
+    /// <summary>
+    /// Die Bestätigung einer eigenen Aktion, z. B. nach dem Speichern oder Senden eines PDFs (PDF-Ausgaben F), als Toast unten: eine Zeile, ohne Schlusspunkt, 5 Sekunden
+    /// (design.md 5.10, meldungen.md M1). Ein Hinweis, der stehen bleiben soll, geht über <see cref="ShowNotice"/>.
+    /// </summary>
     internal void ShowMessage(string message)
+    {
+        Message = null;
+        Error = null;
+        ShowToast(message.TrimEnd('.'), null);
+    }
+
+    /// <summary>Ein Hinweis zum Ergebnis, der stehen bleibt, bis man ihn schließt (z. B. „Es ist nichts zu bestellen“): die InfoBar „Erfolg“ der Maske.</summary>
+    internal void ShowNotice(string message)
     {
         Message = message;
         Error = null;
     }
 
     /// <summary>
-    /// Lädt Material und Bestand des Standorts neu (nach jeder Buchung); <paramref name="message"/> erscheint danach als Rückmeldung. Eingaben in der Zählliste und in
-    /// den Formularen bleiben stehen.
+    /// Lädt Material und Bestand des Standorts neu (nach jeder Buchung); <paramref name="message"/> erscheint danach als Toast, mit <paramref name="isNotice"/> als stehender Hinweis.
+    /// Eingaben in der Zählliste und in den Formularen bleiben stehen.
     /// </summary>
-    public async Task ReloadAsync(string? message = null)
+    public async Task ReloadAsync(string? message = null, bool isNotice = false)
     {
         if (message is not null)
         {
-            Message = message;
-            Error = null;
+            if (isNotice)
+            {
+                ShowNotice(message);
+            }
+            else
+            {
+                ShowMessage(message);
+            }
         }
 
         if (!await LoadItemsAsync().ConfigureAwait(true))

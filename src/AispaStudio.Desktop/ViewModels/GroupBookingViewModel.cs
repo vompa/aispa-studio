@@ -104,6 +104,9 @@ public partial class GroupStepViewModel(Action<GroupStepViewModel> remove) : Vie
 /// <summary>Freie Startzeit zum Anklicken.</summary>
 public sealed record GroupSlotOption(GroupSlot Slot, string Text);
 
+/// <summary>Ein Teil einer gewählten Zeit für Paar oder Spa-Tag: wer (Gast), wann, bei wem (<c>null</c> beim Eintritt in Sauna oder Ruheraum) und in welchem Raum.</summary>
+public sealed record GroupPreviewPart(DateTimeOffset Start, DateTimeOffset End, Guid? EmployeeId, Guid RoomId, string Guest, string What);
+
 /// <summary>
 /// Paar- oder Spa-Tag-Buchung an der Rezeption: Gäste wählen, je Abschnitt ihre Behandlungen. Der Server sucht Zeiten, zu denen
 /// alles zusammenpasst (Personen, Räume, Paarsuite), und bucht alles oder nichts (ADR 0005, Belegung nur im Backend).
@@ -272,6 +275,28 @@ public partial class GroupBookingViewModel : ViewModelBase
             var areas = (Slot.Slot.Areas ?? []).Zip(entries.Where(e => e.AreaId is not null), (a, e) => (Start: a.From,
                 Text: $"{DayLayout.TimeText(a.From, a.Until, _zone)}  {e.Guest.ShortName}: {RoomName(a.RoomId)}"));
             return [.. treatments.Concat(areas).OrderBy(p => p.Start).Select(p => p.Text)];
+        }
+    }
+
+    /// <summary>
+    /// Die Teile der gewählten Zeit für die Vorschau im Kalender: je Behandlung und je Sauna- oder Ruheraum-Eintritt Zeit, Person (leer beim Eintritt), Raum und der Vorname des Gastes.
+    /// Alles stammt aus der gewählten Zeit des Servers; ohne gewählte Zeit gibt es keine Teile.
+    /// </summary>
+    public IReadOnlyList<GroupPreviewPart> PreviewParts
+    {
+        get
+        {
+            if (Slot is null)
+            {
+                return [];
+            }
+
+            var entries = Entries();
+            var treatments = Slot.Slot.Items.Zip(entries.Where(e => e.TreatmentId is not null),
+                (p, e) => new GroupPreviewPart(p.Start, p.End, p.EmployeeId, p.RoomId, e.Guest.ShortName, TreatmentName(e.TreatmentId!.Value)));
+            var areas = (Slot.Slot.Areas ?? []).Zip(entries.Where(e => e.AreaId is not null),
+                (a, e) => new GroupPreviewPart(a.From, a.Until, null, a.RoomId, e.Guest.ShortName, RoomName(a.RoomId)));
+            return [.. treatments.Concat(areas).OrderBy(p => p.Start)];
         }
     }
 

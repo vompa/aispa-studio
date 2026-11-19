@@ -25,11 +25,11 @@ Oben stehen der Name, der Tag, der Status (offene Vorbereitungen und Hinweise zu
 
 Die Karte steht einspaltig untereinander, höchstens so breit wie eine Zeitungsspalte.
 
-- **Kopf**: Uhrzeit und Name der Behandlung als Titel, daneben als Kennzeichen die Dauer und der Raum. Ganz rechts die **Statuszeile**: „2 Vorbereitungen offen, erste bis 09:30“ oder „Bereit“, wenn alles abgehakt ist.
+- **Kopf**: Uhrzeit und Name der Behandlung als Titel, daneben als Kennzeichen die Dauer und der Raum. Ganz rechts die **Statuszeile**: „erste bis 09:30“ (die früheste Frist der offenen Schritte; wie viele offen sind, steht im Band und in der Kachel „Vorbereitungen offen“ darüber) oder „Bereit“, wenn alles abgehakt ist.
 - Gast mit Besuchszahl („Erstbesuch“ oder z. B. „4. Besuch“), letzter Besuch und Anlass (Geburtstag in den drei Tagen vor oder nach dem Termin).
 - **Vorbereitung**: die Schritte aus dem Behandlungsrezept und das benötigte Gerät („Steinwärmer bereitstellen“) zum Abhaken, mit „ab“ und Uhrzeit, wenn ein Schritt vor Beginn fällig ist.
 - **Das wünscht sich <Vorname>**: die Vorlieben des Gastes als Kennzeichen („Druck: fest“, „Duft: Lavendel“), mit **Bearbeiten** daneben. Sie stehen nur hier, nicht noch einmal in der Vorbereitung.
-- **Hinweise**: Stand des Gesundheitsfragebogens, z. B. „Fragebogen vom 01.03.2026“, „Fragebogen fehlt (Erstbesuch)“ oder „älter als ein Jahr: bitte erneuern lassen“ (die Antworten selbst stehen nie auf der Karte), der „Hinweis zur Buchung“, die letzte Notiz sowie Erstbesuch oder Geburtstag.
+- **Hinweise**: Stand des Gesundheitsfragebogens, z. B. „Fragebogen vom 01.03.2026“, „Fragebogen fehlt (Erstbesuch)“ oder „älter als ein Jahr: bitte erneuern lassen“ (die Antworten selbst stehen nie auf der Karte), die „Notiz zur Buchung“, die letzte Notiz sowie Erstbesuch oder Geburtstag.
 - **Letzte Behandlungen**: die letzten drei Besuche mit Behandlung, Person und Notiz.
 
 ![Mein Tag bei 1100 Pixel Breite](images/app/verwaltung-mein-tag-1100.png)

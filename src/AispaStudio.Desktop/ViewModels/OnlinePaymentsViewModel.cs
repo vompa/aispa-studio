@@ -5,8 +5,14 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace AispaStudio.Desktop.ViewModels;
 
-/// <summary>Eine Zeile der Karte „Online-Zahlungen“: was, wie viel und wann in der ersten Zeile, Stand und Belege darunter.</summary>
-public sealed record OnlinePaymentLine(string Title, string Detail, bool IsProblem);
+/// <summary>
+/// Eine Zeile der Karte „Online-Zahlungen“: was, wie viel und wann in der ersten Zeile, Stand und Belege darunter.
+/// Bei einem Problem nennt <paramref name="Detail"/> nur den Zustand (in normaler Textgröße) und <paramref name="Next"/> den nächsten Schritt samt Belegen und Fehlertext (klein).
+/// </summary>
+public sealed record OnlinePaymentLine(string Title, string Detail, bool IsProblem, string? Next = null)
+{
+    public bool HasNext => !string.IsNullOrEmpty(Next);
+}
 
 /// <summary>
 /// „Online-Zahlungen …“ in der Kopfzeile der Kassa: bezahlte Online-Gutscheine und Erstattungen online bezahlter Belege des Standorts, je die neuesten 100.
@@ -104,8 +110,10 @@ public sealed partial class OnlinePaymentsViewModel : ObservableObject
             parts.Add(error);
         }
 
-        return new($"{kind} {Money.Format(order.Amount, order.Currency)} · {Stamp(order.CreatedAt)}", string.Join(" · ", parts),
-            order.Status == VoucherOrderStatus.Failed);
+        var title = $"{kind} {Money.Format(order.Amount, order.Currency)} · {Stamp(order.CreatedAt)}";
+        return order.Status == VoucherOrderStatus.Failed
+            ? new(title, state, true, string.Join(" · ", parts.Skip(1)))
+            : new(title, string.Join(" · ", parts), false);
     }
 
     /// <summary>„Online-Gutschein 50,00 € · 17.11.2026 10:00“ und „Erstattet am 17.11.2026 10:01 · Beleg K1 Nr. 12 · Stornobeleg K1 Nr. 13“.</summary>
@@ -120,7 +128,7 @@ public sealed partial class OnlinePaymentsViewModel : ObservableObject
         var state = refund.Status switch
         {
             OnlineRefundStatus.Refunded => refund.RefundedAt is { } at ? $"Erstattet am {Stamp(at)}" : "Erstattet",
-            OnlineRefundStatus.Failed => "Erstattung fehlgeschlagen; im Beleg erneut anstoßen (Kassenaufsicht)",
+            OnlineRefundStatus.Failed => "Erstattung fehlgeschlagen",
             _ => "Erstattung läuft …",
         };
         List<string> parts = [state];
@@ -139,7 +147,9 @@ public sealed partial class OnlinePaymentsViewModel : ObservableObject
             parts.Add(error);
         }
 
-        return new($"{source} {Money.Format(refund.Amount, refund.Currency)} · {Stamp(refund.RequestedAt)}", string.Join(" · ", parts),
-            refund.Status == OnlineRefundStatus.Failed);
+        var title = $"{source} {Money.Format(refund.Amount, refund.Currency)} · {Stamp(refund.RequestedAt)}";
+        return refund.Status == OnlineRefundStatus.Failed
+            ? new(title, state, true, string.Join(" · ", parts.Skip(1).Prepend("Im Beleg erneut anstoßen (Kassenaufsicht)")))
+            : new(title, string.Join(" · ", parts), false);
     }
 }

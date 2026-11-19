@@ -147,7 +147,7 @@ public sealed partial class TimesheetViewModel : ViewModelBase, IEditableArea
 
     public string WeekTitle => $"Zeiten ab {DayLayout.ShortDay(WeekStart)}";
 
-    /// <summary>„Soll / Ist in Stunden · Hinweise nach Österreich (AZG, ARG)“; vor dem Laden ohne Land.</summary>
+    /// <summary>„Soll / Ist in Stunden · Hinweise nach Österreich (Arbeitszeitgesetz, Arbeitsruhegesetz)“; vor dem Laden ohne Land.</summary>
     [ObservableProperty]
     public partial string Legend { get; private set; } = "Soll / Ist in Stunden";
 
@@ -259,9 +259,9 @@ public sealed partial class TimesheetViewModel : ViewModelBase, IEditableArea
 
     private static string CountryText(string country) => country switch
     {
-        "AT" => "Österreich (AZG, ARG)",
-        "DE" => "Deutschland (ArbZG)",
-        "CH" => "Schweiz (ArG)",
+        "AT" => "Österreich (Arbeitszeitgesetz, Arbeitsruhegesetz)",
+        "DE" => "Deutschland (Arbeitszeitgesetz)",
+        "CH" => "Schweiz (Arbeitsgesetz)",
         _ => country,
     };
 

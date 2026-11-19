@@ -520,7 +520,7 @@ internal static partial class ReceptionJourney
         s.Step("Karte öffnen: kein Knopf „Einchecken“, Hinweise lesen", () =>
         {
             SelectCard(s, tomorrow, "Gebucht");
-            s.Expect(Button("Termin stornieren …"), "Knopf „Termin stornieren …“");
+            s.Expect(MoreToggle, "Bereich „Mehr“ im Termin-Panel");
             Thread.Sleep(900);
             s.ExpectMissing(Button("Einchecken"), "Knopf „Einchecken“ bei einem Termin von morgen");
             Note(s, $"TEXTE mit „Einchecken“: {string.Join(" | ", s.VisibleTexts(NameContains("Einchecken")))}");
@@ -670,7 +670,7 @@ internal static partial class ReceptionJourney
         {
             ShowDay(s, booked, startFromToday: true);
             SelectCard(s, booked, "Gebucht");
-            s.Expect(Button("Termin stornieren …"), "Knopf „Termin stornieren …“");
+            s.Expect(MoreToggle, "Bereich „Mehr“ im Termin-Panel");
             Thread.Sleep(900);
             LiveSession.FocusCalendar();
             Note(s, $"Tastenleiste vor V: {string.Join(" | ", BottomTexts(s))}");
@@ -859,7 +859,7 @@ internal static partial class ReceptionJourney
                 Note(s, $"Karte: {card.Properties.Name.ValueOrDefault}");
                 s.ScrollIntoBody(card);
                 s.Click(card);
-                s.Expect(Button("Termin stornieren …"), "Knopf „Termin stornieren …“");
+                s.Expect(MoreToggle, "Bereich „Mehr“ im Termin-Panel");
                 Thread.Sleep(900);
                 ReportOffline(s, "Karte geöffnet");
                 if (s.TryFind(EnabledButton("Einchecken"), TimeSpan.FromSeconds(2)) is { } checkIn)

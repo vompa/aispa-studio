@@ -19,7 +19,7 @@ public sealed partial class ViewTests
     /// <summary>Die sechs Karten mit dem Titel ihrer Karte und der Beschriftung ihres ersten Feldes.</summary>
     public static TheoryData<string, string, string> CustomerCardFirstFields => new()
     {
-        { "Kennzeichen", "Kennzeichen", "Kennzeichen" },
+        { "Kennzeichen", "Kennzeichen", "Neues Kennzeichen" },
         { "Wünsche", "Wünsche", "Druck" },
         { "Vermerk", "Rezeptionsvermerk", "Rezeptionsvermerk" },
         { "Termine", "Termine am liebsten", "Person" },

@@ -406,6 +406,17 @@ public sealed partial class TreatmentEditorViewModel : ViewModelBase, IEditableA
         OnPropertyChanged(nameof(HasUnsavedChanges));
     }
 
+    /// <summary>„Erneut laden“ der Warnung unter „Passt dazu“: holt die Zuordnung und die Kassa-Artikel noch einmal.</summary>
+    [RelayCommand]
+    public async Task ReloadSalesAsync()
+    {
+        if (_saved is { } treatment)
+        {
+            await LoadRecommendedAsync(treatment.Id).ConfigureAwait(true);
+            OnPropertyChanged(nameof(HasUnsavedChanges));
+        }
+    }
+
     /// <summary>„Passt dazu“ und die Kassa-Artikel; ohne sie bleibt die Liste leer und unverändert, der Rest der Behandlung lässt sich trotzdem bearbeiten.</summary>
     private async Task LoadRecommendedAsync(Guid id)
     {
@@ -614,7 +625,7 @@ public sealed partial class TreatmentEditorViewModel : ViewModelBase, IEditableA
         if (!Qualifications.Any(q => q.IsChecked) && (IsNew || _saved!.RequiredQualificationIds.Count > 0) && !_qualificationNoticed)
         {
             QualificationNotice =
-                "Keine Qualifikation gewählt: Jede Person im Team kann diese Behandlung übernehmen. Zum Speichern ohne Qualifikation noch einmal „Speichern“ wählen.";
+                "Keine Qualifikation gewählt: Jede Person im Team kann diese Behandlung übernehmen.";
             _qualificationNoticed = true;
             SelectSection(Resources);
             FocusTarget = QualificationsField;

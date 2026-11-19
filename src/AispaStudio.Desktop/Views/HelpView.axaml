@@ -11,7 +11,8 @@
     <Border x:Name="OpenQuestionsBar" DockPanel.Dock="Top" Classes="card" Margin="16,16,16,0" IsVisible="{Binding CanReviewQuestions}">
       <StackPanel Spacing="8">
         <StackPanel Orientation="Horizontal" Spacing="4">
-          <ToggleButton x:Name="OpenQuestionsToggle" Classes="ghost" Content="{Binding QuestionsTitle}" IsChecked="{Binding QuestionsExpanded}" />
+          <ToggleButton x:Name="OpenQuestionsToggle" Classes="ghost" Content="{Binding QuestionsTitle}" IsChecked="{Binding QuestionsExpanded}"
+                        ToolTip.Tip="Klappt die Liste der Fragen auf, auf die der Assistent nichts gefunden hat" />
           <ui:HelpButton Topic="ki-assistent-fragen" Section="offene-fragen" VerticalAlignment="Center" />
         </StackPanel>
         <StackPanel Spacing="8" IsVisible="{Binding QuestionsExpanded}">

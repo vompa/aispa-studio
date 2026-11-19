@@ -139,7 +139,7 @@ public sealed partial class ViewTests
         Assert.Equal("Paket verkaufen", Label(shell.Pos.SellPackageCommand));
 
         // Die längeren Knöpfe drücken die Felder daneben nicht zusammen: Wert und Behandlung nutzen die Breite der Spalte.
-        var value = page.GetVisualDescendants().OfType<FormField>().Single(f => f.Label == "Wert (EUR)");
+        var value = page.GetVisualDescendants().OfType<FormField>().Single(f => f.Label == "Wert (€)");
         var treatment = page.GetVisualDescendants().OfType<FormField>().Single(f => f.Label == "Behandlung");
         // Die Felder füllen die Spalte „Artikel und Gutscheine“ bis auf Kartenrand und Rollbalken (Slice 129: 232 px statt der alten 330 px Spalte).
         var available = Named<Control>(page, "SalesColumn").Bounds.Width - 44;

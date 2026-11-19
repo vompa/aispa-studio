@@ -38,7 +38,7 @@
             <!-- Abgeleitete Werte als ruhige Textzeile, ohne Karte (R11) -->
             <StackPanel Spacing="2" IsVisible="{Binding ShowPreview}" Margin="0,-4,0,0">
               <TextBlock Classes="secondary small" TextWrapping="Wrap">
-                <Run Text="Anschrift: " FontWeight="Medium" /><Run Text="{Binding AddressPreview, Mode=OneWay}" />
+                <Run Text="Auf Belegen: " FontWeight="Medium" /><Run Text="{Binding AddressPreview, Mode=OneWay}" />
               </TextBlock>
               <TextBlock Text="{Binding GreetingPreview}" Classes="secondary small" TextWrapping="Wrap" />
             </StackPanel>

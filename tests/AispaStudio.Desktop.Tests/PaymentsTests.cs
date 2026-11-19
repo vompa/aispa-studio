@@ -9,7 +9,7 @@ namespace AispaStudio.Desktop.Tests;
 public sealed class PaymentsTests
 {
     internal static readonly PaymentAccountDto OwnKeys = new("Stripe", true, false, PaymentAccountMode.OwnKeys, true,
-        "Online-Zahlungen laufen über das Stripe-Konto „Day-Spa Wien“.", "Day-Spa Wien", null, false, false, false, null, "sk_live_…wxyz", true, true,
+        "Bereit. Online-Zahlungen laufen über die eigenen Schlüssel des Spas.", "Day-Spa Wien", null, false, false, false, null, "sk_live_…wxyz", true, true,
         "https://spa.example/api/payments/stripe/webhook/t1", null);
 
     internal static readonly PaymentAccountDto Nothing = new("Stripe", true, false, PaymentAccountMode.None, false,

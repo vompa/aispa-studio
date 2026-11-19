@@ -106,20 +106,13 @@ public sealed partial class CustomerSectionViewModel : ViewModelBase
     [ObservableProperty]
     public partial string? NextTip { get; private set; }
 
-    /// <summary>„Offen 45,00 €“; leer ohne offenen Betrag oder ohne das Recht.</summary>
+    /// <summary>„Offen 45,00 €“, oben in der Karte hervorgehoben; leer ohne offenen Betrag oder ohne das Recht.</summary>
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasOpen))]
     public partial string? OpenText { get; private set; }
 
     /// <summary>„Paket Massage: 3 von 10 offen“, mehrere mit „ · “.</summary>
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasOpen))]
     public partial string? PackagesText { get; private set; }
-
-    public bool HasOpen => OpenText is not null || PackagesText is not null;
-
-    /// <summary>Die Zeile unter den Kennzahlen: „Offen 45,00 € · Paket Massage: 3 von 10 offen“.</summary>
-    public string OpenLine => string.Join(" · ", new[] { OpenText, PackagesText }.OfType<string>());
 
     // ---------- Aufgeklappt ----------
 
@@ -201,7 +194,6 @@ public sealed partial class CustomerSectionViewModel : ViewModelBase
         PackagesText = s.Open is { Packages.Count: > 0 } packages
             ? string.Join(" · ", packages.Packages.Select(p => $"Paket {p.TreatmentName}: {p.UnitsLeft} von {p.Units} offen"))
             : null;
-        OnPropertyChanged(nameof(OpenLine));
         Note = string.IsNullOrWhiteSpace(s.Note) ? null : s.Note.Trim();
         AnamnesisText = s.AnamnesisOnFile ? "Anamnese vorhanden" : "Anamnese fehlt";
         Recent = [.. s.Recent.Select(r => new RecentVisitRow

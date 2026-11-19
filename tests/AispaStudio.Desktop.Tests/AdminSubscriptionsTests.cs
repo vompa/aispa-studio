@@ -264,7 +264,7 @@ public sealed class AdminSubscriptionsTests
         Assert.Equal(("Pfingstfreitag", "Nur im Abo, nicht in den Feiertagsregeln · Wien, Salzburg"), (subscriptions.Conflicts[0].Title, subscriptions.Conflicts[0].Detail));
         Assert.Equal("Nur in den Feiertagsregeln, nicht im Abo", subscriptions.Conflicts[1].Detail);
         Assert.True(subscriptions.Conflicts[1].IsIgnored);
-        Assert.Equal("1 Tag ohne Entscheidung. Nichts wird überschrieben: Tage nur im Abo gelten, bis sie ignoriert werden; die Feiertagsregeln bleiben für die Lohnverrechnung.", subscriptions.ConflictsHint);
+        Assert.Equal("1 Tag ohne Entscheidung. Nichts wird überschrieben.", subscriptions.ConflictsHint);
 
         subscriptions.SelectedRow = subscriptions.Rows[1];
         await Task.Delay(50, TestContext.Current.CancellationToken);

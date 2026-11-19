@@ -79,6 +79,7 @@ public sealed partial class PersonDutiesViewModel : ViewModelBase, ISavesFiles
     public PersonDutiesViewModel(TeamContext context, Guid employeeId, bool isReadOnly)
     {
         _context = context;
+        Toast = new ToastState(context.Time);
         _employeeId = employeeId;
         _dutiesPath = $"api/employees/{employeeId}/duties";
         _certificatesPath = $"api/employees/{employeeId}/certificates";
@@ -135,8 +136,8 @@ public sealed partial class PersonDutiesViewModel : ViewModelBase, ISavesFiles
 
     public bool ShowsListError => HasError && !IsEditing;
 
-    [ObservableProperty]
-    public partial string? StatusText { get; private set; }
+    /// <summary>„Gespeichert“, „Gelöscht“ und „Scan gespeichert“ als Toast (meldungen.md M1).</summary>
+    public ToastState Toast { get; }
 
     // ---------- Offenes Formular ----------
 
@@ -227,7 +228,7 @@ public sealed partial class PersonDutiesViewModel : ViewModelBase, ISavesFiles
         var certificates = await _context.Api.GetAsync<List<StaffCertificateDto>>(_certificatesPath).ConfigureAwait(true);
         if (types.Value is null || duties.Value is null || certificates.Value is null)
         {
-            LoadError = types.Error ?? duties.Error ?? certificates.Error ?? "Die Zuständigkeiten und Zertifikate wurden nicht geladen.";
+            LoadError = TeamContext.LoadFailure(types.Error ?? duties.Error ?? certificates.Error, "Die Zuständigkeiten und Zertifikate wurden nicht geladen");
             return;
         }
 
@@ -266,7 +267,6 @@ public sealed partial class PersonDutiesViewModel : ViewModelBase, ISavesFiles
     {
         Close();
         Error = null;
-        StatusText = null;
     }
 
     private static string Day(DateOnly day) => day.ToString("d.M.yyyy", CultureInfo.InvariantCulture);
@@ -366,7 +366,7 @@ public sealed partial class PersonDutiesViewModel : ViewModelBase, ISavesFiles
         _form = form;
         _editingId = id;
         fill();
-        DutyTypeError = CertificateNameError = ValidFromError = ValidUntilError = RemindDaysError = Error = StatusText = null;
+        DutyTypeError = CertificateNameError = ValidFromError = ValidUntilError = RemindDaysError = Error = null;
         FormTitle = title;
         _applying = false;
         _savedState = State();
@@ -403,7 +403,6 @@ public sealed partial class PersonDutiesViewModel : ViewModelBase, ISavesFiles
             return;
         }
 
-        StatusText = null;
         OnPropertyChanged(nameof(HasUnsavedChanges));
     }
 
@@ -453,7 +452,7 @@ public sealed partial class PersonDutiesViewModel : ViewModelBase, ISavesFiles
 
         Close();
         await AfterChangeAsync().ConfigureAwait(true);
-        StatusText = "Gespeichert.";
+        Toast.Show("Gespeichert");
         return true;
     }
 
@@ -473,7 +472,7 @@ public sealed partial class PersonDutiesViewModel : ViewModelBase, ISavesFiles
             return;
         }
 
-        Error = StatusText = null;
+        Error = null;
         if (await picker.PickBytesAsync("Scan des Zertifikats wählen", "PDF oder Bild", ScanPatterns, MaxScanBytes).ConfigureAwait(true) is not { } content)
         {
             return;
@@ -499,7 +498,7 @@ public sealed partial class PersonDutiesViewModel : ViewModelBase, ISavesFiles
         }
 
         await AfterChangeAsync().ConfigureAwait(true);
-        StatusText = "Scan gespeichert.";
+        Toast.Show("Scan gespeichert");
     }
 
     private async Task SaveScanAsync(StaffCertificateDto certificate, string path)
@@ -509,7 +508,7 @@ public sealed partial class PersonDutiesViewModel : ViewModelBase, ISavesFiles
             return;
         }
 
-        Error = StatusText = null;
+        Error = null;
         var result = await _context.Api.GetBytesAsync(path).ConfigureAwait(true);
         if (result.Value is not { } content)
         {
@@ -520,7 +519,7 @@ public sealed partial class PersonDutiesViewModel : ViewModelBase, ISavesFiles
         var extension = ScanType(content)?.Extension ?? ".pdf";
         if (await files.SaveAsync(certificate.Name + extension, "Scan", [$"*{extension}"], content).ConfigureAwait(true))
         {
-            StatusText = "Datei gespeichert.";
+            Toast.Show("Scan als Datei gespeichert");
         }
     }
 
@@ -545,7 +544,7 @@ public sealed partial class PersonDutiesViewModel : ViewModelBase, ISavesFiles
         }
 
         await AfterChangeAsync().ConfigureAwait(true);
-        StatusText = "Gelöscht.";
+        Toast.Show("Gelöscht");
     }
 
     private async Task AfterChangeAsync()

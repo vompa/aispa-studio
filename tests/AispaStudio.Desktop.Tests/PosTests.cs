@@ -682,7 +682,8 @@ public sealed class PosTests
         Assert.Equal("138,80", card.Amount);
         Assert.True(card.IsApproved);
         Assert.True(card.IsLocked);
-        Assert.Equal("Genehmigt · Mastercard •••• 4711", card.TerminalText);
+        // Geschützte Leerzeichen vor dem Punkt und vor der Kartennummer: der Umbruch fällt nie vor den Punkt.
+        Assert.Equal("Genehmigt\u00A0· Mastercard\u00A0•••• 4711", card.TerminalText);
         Assert.True(pos.CanPay);
 
         // Genehmigtes Geld am Terminal: Rechnung lässt sich nicht verwerfen.

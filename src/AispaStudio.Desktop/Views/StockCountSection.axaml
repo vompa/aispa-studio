@@ -57,7 +57,8 @@
           <ui:HelpButton Grid.Column="1" Topic="lager-inventur" />
           <CheckBox Grid.Column="2" x:Name="HideTargetBox" IsChecked="{Binding HideTarget}" Content="Soll ausblenden" VerticalAlignment="Center" />
           <Button Grid.Column="3" x:Name="LeaveAdoptedButton" Content="Zurück" Command="{Binding LeaveAdoptedCommand}" IsVisible="{Binding IsAdopted}" />
-          <Button Grid.Column="4" x:Name="BookCountButton" Classes="primary" Content="Inventur buchen" Command="{Binding BookCommand}" />
+          <Button Grid.Column="4" x:Name="BookCountButton" Classes="primary" Content="Inventur buchen" Command="{Binding BookCommand}"
+                  ToolTip.Tip="Bucht nur gezählte Zeilen mit Abweichung; nicht gezählte bleiben unverändert." />
         </Grid>
         <Button x:Name="CountingDocumentButton" Content="{Binding DocumentButtonText}" Command="{Binding ToggleDocumentCommand}" HorizontalAlignment="Left"
                 ToolTip.Tip="Druckt oder speichert die Liste dieser Zählung als PDF." />
@@ -97,15 +98,15 @@
                 <TextBlock Grid.Column="1" Text="{Binding Unit}" MinWidth="56" Margin="12,0,0,0" VerticalAlignment="Center" />
                 <TextBlock Grid.Column="2" Text="{Binding TargetText}" Classes="num" MinWidth="72" Margin="12,0,0,0" TextAlignment="Right" VerticalAlignment="Center" IsVisible="{Binding ShowTarget}" />
                 <TextBox Grid.Column="3" Text="{Binding Entered}" IsReadOnly="{Binding IsReadOnly}" Classes="num" Width="104" Margin="12,0,0,0" TextAlignment="Right" AutomationProperties.Name="{Binding Name, StringFormat='Gezählt {0}'}" />
-                <TextBlock Grid.Column="4" Text="{Binding DifferenceText}" Classes="num" MinWidth="80" Margin="12,0,0,0" TextAlignment="Right" VerticalAlignment="Center" IsVisible="{Binding ShowTarget}" />
-                <TextBlock Grid.Column="5" Text="{Binding WorthText}" Classes="num" MinWidth="88" Margin="12,0,0,0" TextAlignment="Right" VerticalAlignment="Center" IsVisible="{Binding ShowTarget}" />
+                <TextBlock Grid.Column="4" Text="{Binding DifferenceText}" Classes="num" Classes.crit="{Binding DifferenceIsNegative}" MinWidth="80" Margin="12,0,0,0" TextAlignment="Right" VerticalAlignment="Center" IsVisible="{Binding ShowTarget}" />
+                <TextBlock Grid.Column="5" Text="{Binding WorthText}" Classes="num" Classes.crit="{Binding WorthIsNegative}" MinWidth="88" Margin="12,0,0,0" TextAlignment="Right" VerticalAlignment="Center" IsVisible="{Binding ShowTarget}" />
               </Grid>
             </DataTemplate>
           </ItemsControl.ItemTemplate>
         </ItemsControl>
         <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding ShowTarget}">
           <TextBlock Text="{Binding SumText}" Classes="muted" />
-          <TextBlock Grid.Column="1" Text="{Binding WorthSumText}" Classes="num" />
+          <TextBlock Grid.Column="1" Text="{Binding WorthSumText}" Classes="num" Classes.crit="{Binding WorthSumIsNegative}" />
         </Grid>
       </StackPanel>
 

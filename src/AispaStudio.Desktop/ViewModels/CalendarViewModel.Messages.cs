@@ -11,7 +11,7 @@ public sealed record OffDutyPrompt(string Message, string ActionText, RelayComma
 /// <summary>
 /// Meldungen des Kalenders (docs/gestaltung/meldungen.md, Schritt 16): Fehler, Warnungen und Hinweise des Tages aus Pausenprüfung, Lager, Raumpflege, Tagesstart,
 /// Raumausstattung, Handbuch und Abwesenheiten als Karten der Seitenleiste „Meldungen“ (<see cref="MessagesPanelViewModel"/>), dazu der Zähler der Schaltfläche in der
-/// Kopfzeile und das Symbol in den Spaltenköpfen. „Wegklicken“ blendet eine Meldung bis zum nächsten Auslöser aus (je Standort und Tag im Speicher); was in der Sitzung
+/// Kopfzeile und das Symbol in den Spaltenköpfen. „Ausblenden“ blendet eine Meldung bis zum nächsten Auslöser aus (je Standort und Tag im Speicher); was in der Sitzung
 /// erledigt wurde, steht blass in der Gruppe „Erledigt“. Warnungen sind nie abhakbar: sie verschwinden, wenn der Zustand behoben ist.
 /// </summary>
 public partial class CalendarViewModel
@@ -56,9 +56,13 @@ public partial class CalendarViewModel
 
     public string MessagesLabel => IsCompactHeader ? MessagesCompact : MessagesButtonText;
 
-    public string MessagesTip => HasDayNotes
-        ? $"{ChipTip(MessagesButtonText, "Hinweise und Notizen des Tages (M)")}{Environment.NewLine}{DayNotesText}"
-        : ChipTip(MessagesButtonText, "Hinweise und Notizen des Tages (M)");
+    /// <summary>Hinweis der Schaltfläche (Durchsicht, Befund 17c): sagt, was die Zahl und was das kleine Notizsymbol bedeuten; je Zeile ein Satz.</summary>
+    public string MessagesTip => string.Join(Environment.NewLine, new[]
+    {
+        ChipTip(MessagesButtonText, "Hinweise und Notizen des Tages (M)"),
+        Messages.Count > 0 ? "Die Zahl zählt die offenen Hinweise" : null,
+        HasDayNotes ? $"Das Notizsymbol steht für {DayNotesText}" : null,
+    }.Where(line => line is not null));
 
     /// <summary>Name der Schaltfläche für Screenreader: mit Zähler und, wenn es welche gibt, den Notizen des Tages (der Punkt allein sagt es nicht).</summary>
     public string MessagesName => HasDayNotes ? $"{MessagesButtonText}, {DayNotesText}" : MessagesButtonText;
@@ -271,7 +275,7 @@ public partial class CalendarViewModel
         RefreshMessages();
     }
 
-    /// <summary>Wegklicken: die Meldung bleibt weg, bis sich ihr Auslöser ändert.</summary>
+    /// <summary>Ausblenden: die Meldung bleibt weg, bis sich ihr Auslöser ändert.</summary>
     private void DismissMessage(string key, string trigger)
     {
         StateOfDay().Dismissed[key] = trigger;

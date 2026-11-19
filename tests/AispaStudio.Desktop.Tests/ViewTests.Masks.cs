@@ -113,7 +113,7 @@ public sealed partial class ViewTests
 
         var overview = calendar.Selected!.Overview;
         Assert.False(overview.IsLoading);
-        Assert.Equal("Gitti Müller", overview.Name);
+        Assert.Equal("Brigitte Müller", overview.Name);
         Assert.Equal("(sie/ihr)", overview.Pronouns);
         Assert.Equal("Frau Mag. Brigitte Müller", overview.AddressLine);
         Assert.Equal("Rufname Gitti", overview.PreferredNameText);
@@ -142,7 +142,7 @@ public sealed partial class ViewTests
         await Pump();
         await Pump();
         Assert.True(FlyoutBase.GetAttachedFlyout(name)!.IsOpen);
-        Assert.Equal("Gitti Müller", calendar.Selected!.Overview.Name);
+        Assert.Equal("Brigitte Müller", calendar.Selected!.Overview.Name);
         FlyoutBase.GetAttachedFlyout(name)!.Hide();
         await Pump();
 
@@ -393,7 +393,7 @@ public sealed partial class ViewTests
         Assert.Equal(calendar.Messages.Count + calendar.DoneMessages.Count, cards.Count);
         Assert.Contains(window.GetVisualDescendants().OfType<TextBlock>(), t => t.Text == "Warnungen" && t.IsEffectivelyVisible);
         Assert.Contains(window.GetVisualDescendants().OfType<TextBlock>(), t => t.Text == "Hinweise" && t.IsEffectivelyVisible);
-        Assert.Contains(window.GetVisualDescendants().OfType<Button>(), b => b.IsEffectivelyVisible && b.Content as string == "Wegklicken");
+        Assert.Contains(window.GetVisualDescendants().OfType<Button>(), b => b.IsEffectivelyVisible && b.Content as string == "Ausblenden");
         return calendar;
     }, OperationsApi());
 
@@ -413,8 +413,10 @@ public sealed partial class ViewTests
         await Pump();
         await Pump();
 
-        Assert.Equal("Meldung", calendar.ActivePanel!.PanelTitle);
-        Assert.Equal(["Meldung", "Meldungen"], calendar.OpenPanels.Select(t => t.Text));
+        // Durchsicht, Befunde 18a und 18b: Titel der Leiste und Reiter tragen den Titel der Meldung, der Reiter „Meldungen“ ist davon zu unterscheiden.
+        var detailTitle = calendar.MessageDetail!.Item.Title;
+        Assert.Equal(detailTitle, calendar.ActivePanel!.PanelTitle);
+        Assert.Equal([detailTitle, "Meldungen"], calendar.OpenPanels.Select(t => t.Text));
         Assert.Contains(window.GetVisualDescendants().OfType<TextBlock>(), t => t.Text == "Was tun?" && t.IsEffectivelyVisible);
         // Die Checkliste des Raums gehört zur Tagesstart-Meldung.
         Assert.Contains(window.GetVisualDescendants().OfType<CheckBox>(), c => c.IsEffectivelyVisible);
@@ -490,6 +492,8 @@ public sealed partial class ViewTests
         var tamara = calendar.Columns.Single(c => c.Title == "Tamara Wolf");
         Assert.Equal(("Salzburg", "10:00–18:00"), (tamara.Place, tamara.ShiftText));
         Assert.StartsWith("Urlaub bis", off["Johanna Lechner"], StringComparison.Ordinal);
+        // Durchsicht Kalender 1 (4a, 4b): Verlauf und Knopf „zurück“ am linken Rand decken den Text der ersten Spalte nicht zu.
+        AssertEdgesDoNotCoverText(window);
         return calendar;
     }, Api()
         .On($"GET /api/locations/{SpaSample.LocationId}/resources", SpaSample.ResourcesWithAbsent with { Employees = [.. SpaSample.ResourcesWithAbsent.Employees, Nora, Tamara] })

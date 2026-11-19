@@ -107,12 +107,12 @@ Vorbereitung, Dauer und Nachbereitung zusammen ergeben die Personalzeit in den V
 
 Vorbereitung, Dauer und Nachbereitung zusammen ergeben die Personalzeit in den Vollkosten je Behandlung; eine Einwirkzeit (siehe unten) zählt dabei nicht mit.
 
-### Am Gast bis Einwirkzeit (min) {#am-gast}
+### Arbeit vor der Einwirkzeit (min) {#am-gast}
 
 Nur für Behandlungen mit Einwirkzeit, z. B. Körperpackung oder Gesichtsmaske: wie viele Minuten die Person am Gast arbeitet, bevor die Einwirkzeit beginnt (auftragen, einpacken). Erlaubt sind 0 bis 120 Minuten, Standard 0 (keine Einwirkzeit).
 
 - Mit Einwirkzeit muss hier mehr als 0 stehen; ohne Minuten am Gast gibt es keine Einwirkzeit.
-- „Am Gast bis Einwirkzeit“ und „Einwirkzeit“ zusammen dürfen die **Dauer** nicht übersteigen. Der Rest der Dauer ist die Ausarbeitung danach (abnehmen, pflegen); sie darf 0 sein. Bei 60 Minuten Dauer, 20 am Gast und 20 Einwirkzeit sind es also 20 Minuten Ausarbeitung.
+- „Arbeit vor der Einwirkzeit“ und „Einwirkzeit“ zusammen dürfen die **Dauer** nicht übersteigen. Der Rest der Dauer ist die Ausarbeitung danach (abnehmen, pflegen); sie darf 0 sein. Bei 60 Minuten Dauer, 20 am Gast und 20 Einwirkzeit sind es also 20 Minuten Ausarbeitung.
 - Wie bei allen Zeiten gilt die Einstellung für neue Buchungen; gebuchte Termine behalten ihre Minuten.
 
 ### Einwirkzeit (min) {#einwirkzeit}
@@ -203,7 +203,7 @@ Nach dem Abschließen des Termins schlagen Termin-Panel und Kassa diese Artikel 
 
 Häkchen bei allen Qualifikationen, die eine Person für diese Behandlung braucht. Gebucht wird nur eine Person, die alle gewählten hat. Ohne Häkchen kann jede Person im Dienst die Behandlung geben. Die Qualifikationen selbst werden unter „Verwaltung“ › „Team“, Bereich „Profil“, Abschnitt „Qualifikationen“ angelegt und unter „Team“ den Personen gegeben.
 
-In der Windows-App fragt das erste „Speichern“ ohne Häkchen nach: Am Feld steht „Keine Qualifikation gewählt: Jede Person im Team kann diese Behandlung übernehmen.“ Ein zweites „Speichern“ speichert ohne Qualifikation, z. B. für ein Fußbad, das alle geben dürfen.
+In der Windows-App fragt das erste „Speichern“ ohne Häkchen nach: Über den Qualifikationen steht der Hinweis „Keine Qualifikation gewählt: Jede Person im Team kann diese Behandlung übernehmen.“ mit dem Knopf **Trotzdem speichern**. Er (oder ein zweites „Speichern“) speichert ohne Qualifikation, z. B. für ein Fußbad, das alle geben dürfen.
 
 ### Wer kann das? {#wer-kann-das}
 

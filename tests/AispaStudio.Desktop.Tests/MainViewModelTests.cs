@@ -27,7 +27,7 @@ public sealed class MainViewModelTests
         await vm.CheckStatusCommand.ExecuteAsync(null);
 
         Assert.False(vm.IsConnected);
-        Assert.StartsWith("Server nicht erreichbar", vm.StatusText, StringComparison.Ordinal);
+        Assert.Equal(MainViewModel.ServerUnreachableAdvice, vm.StatusText);
     }
 
     [Fact]

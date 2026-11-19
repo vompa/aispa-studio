@@ -46,6 +46,9 @@ public partial class CustomersViewModel
     /// <summary>„(sie/ihr)“ hinter dem Namen im Kopf, wenn eingetragen.</summary>
     public string SelectedPronouns => Selected?.Pronouns is { Length: > 0 } p ? $"({p})" : "";
 
+    /// <summary>„Anrede: Frau“ für Tooltip und Namen des Symbols neben dem Namen im Kopf.</summary>
+    public string SelectedSymbolText => Selected is { } c ? $"Anrede: {PersonNames.Label(c.Salutation)}" : "";
+
     public string? SelectedSymbolIcon => Controls.Icons.Salutation(SelectedSymbol);
 
     /// <summary>„Frau Mag. Stefanie Huber, MSc“, nur wenn es mehr sagt als der Name im Kopf.</summary>

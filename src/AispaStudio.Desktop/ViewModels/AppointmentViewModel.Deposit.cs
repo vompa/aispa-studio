@@ -39,6 +39,14 @@ public partial class AppointmentViewModel
 
     public bool HasDepositCard => DepositState is not null || DepositOffer is not null || HasReturnableDeposit;
 
+    /// <summary>
+    /// Zweite Zeile der Storno-Rückfrage (Durchsicht 19.11.2026, Befund 23): Ist eine Anzahlung bezahlt und nicht storniert oder erstattet, bleibt sie beim Stornieren bestehen; die Rückgabe läuft
+    /// über „Anzahlung retournieren“. Ohne bezahlte Anzahlung keine Zeile.
+    /// </summary>
+    public string? DepositKeptNotice => DepositState is { Voided: false, Status: OnlineDepositStatus.Paid or OnlineDepositStatus.Receipted } deposit
+        ? $"Die Anzahlung von {Money.Format(deposit.Amount, deposit.Currency)} bleibt bestehen; zurückgeben unter „Anzahlung retournieren“."
+        : null;
+
     /// <summary>Anfordern, solange es keine Anzahlung gibt; erneut senden, solange sie nicht bezahlt ist.</summary>
     public bool CanRequestDeposit => MayBook && IsBooked
         && (DepositState is { } deposit ? deposit.Status is OnlineDepositStatus.Pending or OnlineDepositStatus.Failed : DepositOffer is not null);

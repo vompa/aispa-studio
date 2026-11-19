@@ -14,7 +14,7 @@ namespace AispaStudio.Desktop.Tests;
 public sealed partial class ViewTests
 {
     [Fact]
-    public Task Given_Neuer_Termin_mit_gewaehltem_Gast_When_Tab_von_der_Kundensuche_Then_folgen_Aendern_Vorschlag_Behandlung_Freie_Zeit_Datum_Beginn_Notiz_Termin_buchen() =>
+    public Task Given_Neuer_Termin_mit_gewaehltem_Gast_When_Tab_vom_Chip_Aendern_Then_folgen_Vorschlag_Behandlung_Freie_Zeit_Datum_Beginn_Notiz_Termin_buchen() =>
         Render("hell", "fokus-neuer-termin", async (window, main) =>
         {
             var calendar = await SignedInCalendar(main);
@@ -40,13 +40,15 @@ public sealed partial class ViewTests
             Assert.True(booking.HasWishSuggestion);
             await Pump(Settling);
             var panel = SidePanelOf(window);
-            panel.GetVisualDescendants().OfType<SearchField>().Single().Focus(NavigationMethod.Tab);
+            // Nach der Wahl steht nur der Chip mit „Ändern“; das Suchfeld ist weg und kein Tab-Halt (Durchsicht Kalender 1, 5a).
+            Assert.DoesNotContain(panel.GetVisualDescendants().OfType<SearchField>(), f => f.IsEffectivelyVisible);
+            panel.GetVisualDescendants().OfType<Button>().First(b => b.IsEffectivelyVisible && b.Content as string == "Ändern").Focus(NavigationMethod.Tab);
             await Pump();
 
             var order = await TabOrder(window, panel);
             WriteFocusOrder("neuer-termin", order);
-            Assert.Equal(["Kundin oder Kunde suchen (Edit)", "Ändern (Button)", "Wunsch in die Notiz übernehmen (Button)", "Behandlung (ComboBox)", "Freie Zeit suchen (Button)",
-                "Datum (Edit), Pflicht", "Beginn (Edit), Pflicht", "Notiz (Edit)", "Termin buchen (Button)"], order.Take(9));
+            Assert.Equal(["Ändern (Button)", "Wunsch in die Notiz übernehmen (Button)", "Behandlung (ComboBox)", "Freie Zeit suchen (Button)",
+                "Datum (Edit), Pflicht", "Beginn (Edit), Pflicht", "Notiz (Edit)", "Termin buchen (Button)"], order.Take(8));
             return calendar;
         });
 

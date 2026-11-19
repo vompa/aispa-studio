@@ -36,7 +36,7 @@
             </Grid>
             <TextBlock Classes="muted" TextWrapping="Wrap"
                        Text="Der Barzahlungsrabatt gilt, wenn ein Beleg ganz bar bezahlt wird, nicht auf verkaufte Gutscheine. Er steht als eigene Zeile auf dem Beleg, die Umsatzsteuer wird vom verminderten Betrag gerechnet." />
-            <ui:FormField Label="Barzahlungsrabatt (%, 0 = aus)">
+            <ui:FormField Label="Barzahlungsrabatt (%)" Help="0 schaltet den Barzahlungsrabatt aus.">
               <ui:NumberField x:Name="CashDiscountField" Value="{Binding CashDiscount}" Minimum="0" Maximum="100" DecimalPlaces="2" Width="200" HorizontalAlignment="Left" />
             </ui:FormField>
           </StackPanel>

@@ -160,7 +160,7 @@ public partial class CalendarViewModel : ViewModelBase
 
     /// <summary>Offene Wünsche der Warteliste am Standort, nach gewünschtem Beginn.</summary>
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasWaitlist), nameof(WaitlistPreview), nameof(WaitlistTitle), nameof(WaitlistMore), nameof(HasWaitlistMore), nameof(WaitlistTip), nameof(WaitlistLabel))]
+    [NotifyPropertyChangedFor(nameof(HasWaitlist), nameof(WaitlistPreview), nameof(WaitlistTitle), nameof(WaitlistMore), nameof(HasWaitlistMore), nameof(WaitlistTip), nameof(WaitlistLabel), nameof(WaitlistName))]
     public partial IReadOnlyList<WaitlistRow> Waitlist { get; private set; } = [];
 
     public bool HasWaitlist => Waitlist.Count > 0;
@@ -260,6 +260,9 @@ public partial class CalendarViewModel : ViewModelBase
 
     /// <summary>Text des Chips in der Kopfzeile: „Warteliste 3“, kompakt nur die Zahl.</summary>
     public string WaitlistLabel => IsCompactHeader ? Waitlist.Count.ToString(System.Globalization.CultureInfo.CurrentCulture) : $"Warteliste {Waitlist.Count}";
+
+    /// <summary>Name des Chips für Screenreader: immer der volle Text, auch wenn der Chip kompakt nur die Zahl zeigt.</summary>
+    public string WaitlistName => $"Warteliste {Waitlist.Count}";
 
     public string WaitlistTip => ChipTip("Warteliste", Waitlist.Count == 1 ? "1 offener Wunsch" : $"{Waitlist.Count} offene Wünsche");
 
@@ -466,6 +469,9 @@ public partial class CalendarViewModel : ViewModelBase
     /// <summary>Das Suchfeld wird in der kompakten Kopfzeile schmaler, damit der Datumstitel Platz behält.</summary>
     public double SearchWidth => IsCompactHeader ? 130 : 200;
 
+    /// <summary>Platzhalter des Suchfelds: kompakt ohne den Hinweis auf die Taste (er steht im Tooltip), damit nichts abgeschnitten wird.</summary>
+    public string SearchPlaceholder => IsCompactHeader ? "Suchen" : "Suchen (Strg+F)";
+
     /// <summary>Sichtbare Fläche der Spalten; die Ansicht meldet sie bei jeder Größenänderung.</summary>
     public void SetViewport(double width, double height)
     {
@@ -480,7 +486,7 @@ public partial class CalendarViewModel : ViewModelBase
         if (wasCompact != IsCompactHeader)
         {
             // Die Chips der Kopfzeile zeigen kompakt Symbol und Zahl, voll Symbol und Text.
-            foreach (var name in new[] { nameof(IsCompactHeader), nameof(SearchWidth), nameof(OverviewLabel), nameof(OverviewTip), nameof(AreaLabel), nameof(AreaTip), nameof(WaitlistLabel), nameof(WaitlistTip), nameof(CancelledLabel), nameof(AllStaffLabel), nameof(AllStaffTip), nameof(RoomFilterLabel), nameof(RoomFilterTip), nameof(MessagesLabel), nameof(MessagesTip), nameof(SubscriptionsTip), nameof(ClosureChipLabel) })
+            foreach (var name in new[] { nameof(IsCompactHeader), nameof(SearchWidth), nameof(SearchPlaceholder), nameof(OverviewLabel), nameof(OverviewTip), nameof(AreaLabel), nameof(AreaTip), nameof(WaitlistLabel), nameof(WaitlistTip), nameof(CancelledLabel), nameof(CancelledTip), nameof(AllStaffLabel), nameof(AllStaffTip), nameof(RoomFilterLabel), nameof(RoomFilterTip), nameof(MessagesLabel), nameof(MessagesTip), nameof(SubscriptionsTip), nameof(ClosureChipLabel) })
             {
                 OnPropertyChanged(name);
             }
@@ -1035,6 +1041,7 @@ public partial class CalendarViewModel : ViewModelBase
         BirthdayLine = _week is null ? DayLayout.BirthdayLine(scoped, _zone) : null;
         RefreshNow();
         UpdateSlotMarks();
+        ApplyGapMarks();
         _messageDay = day;
         DayNotes = DayLayout.DayNotes(day);
         RefreshMessages();

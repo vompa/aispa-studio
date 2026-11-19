@@ -144,8 +144,8 @@ public partial class CalendarViewModel
             new("S", "Sauna-Eintritt"),
             new("B", "Sperrzeit (z. B. Arzt 10 bis 12)"),
             new("Umschalt+B", "Pause der Person"),
-            new(",", "Notiz an einer Uhrzeit"),
-            new(".", "Tagesnotiz für den Standort"),
+            new("Komma", "Notiz an einer Uhrzeit"),
+            new("Punkt", "Tagesnotiz für den Standort"),
             new("Alt+1 … 6", "Art im Eingabefenster wechseln (Termin, Paar/Spa, Pause …)"),
             new("Strg+F", "Suchen: Gast, Telefon oder Behandlung"),
         ]),
@@ -1039,6 +1039,9 @@ public partial class CalendarViewModel
 public sealed record KeyHint(string Key, string Text, Avalonia.Input.Key? Press = null, KeyModifiers Modifiers = KeyModifiers.None, string? BlockedReason = null)
 {
     public bool IsEnabled => Press is not null && BlockedReason is null;
+
+    /// <summary>„Alle Tasten“: bleibt in der einzeiligen Leiste auch bei Platzmangel stehen.</summary>
+    public bool IsHelp => Key == "?";
 
     public string Tip => BlockedReason ?? $"{Text} ({Key})";
 

@@ -4,7 +4,7 @@ bereich: Geräte
 oberflaeche: windows-app
 rollen: leitung, inhaber, manager
 seite: geraete
-stichwoerter: Anzeige koppeln, Pausenraum, Dashboard, Bildschirm, Fernseher, Monitor, Anzeige widerrufen, Code vom Bildschirm, display, breakroom screen
+stichwoerter: Anzeige koppeln, Pausenraum, Dashboard, Bildschirm, Fernseher, Monitor, Kopplung aufheben, Anzeige widerrufen, Code vom Bildschirm, display, breakroom screen
 ---
 # Anzeige im Pausenraum koppeln
 
@@ -19,9 +19,9 @@ Ein Bildschirm im Pausenraum zeigt dem Team den Tag mit Initialen statt Gastname
 
 ![Geräte mit dem Abschnitt Anzeigen im Pausenraum nach dem Koppeln](images/app/geraete-anzeige-koppeln.png)
 
-## Widerrufen {#widerrufen}
+## Kopplung aufheben {#widerrufen}
 
-Bei der Anzeige in der Liste auf **Widerrufen** klicken und die Rückfrage bestätigen. Die Anzeige meldet sich ab und zeigt wieder einen Code. So geht es auch, wenn ein Bildschirm ausgetauscht wird oder verloren geht.
+Bei der Anzeige in der Liste auf **Kopplung aufheben** klicken und die Rückfrage bestätigen. Die Anzeige meldet sich ab und zeigt wieder einen Code. So geht es auch, wenn ein Bildschirm ausgetauscht wird oder verloren geht.
 
 ## Gut zu wissen {#hinweise}
 

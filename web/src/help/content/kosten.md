@@ -44,20 +44,20 @@ Die Vollkostenrechnung ist eine Auswertung für die Leitung. Sie ändert keine P
 
 Diese Sätze gelten nur für den oben gewählten Standort und wirken sofort auf die Vollkosten aller Behandlungen dort. Gespeichert wird mit **Speichern** (Strg+S). Beträge sind in Euro netto, ab 0 und mit höchstens zwei Nachkommastellen; ein leeres Feld zählt als 0.
 
-### Raumpflege pro Stunde {#raumpflege-pro-stunde}
+### Raumpflege pro Stunde (€) {#raumpflege-pro-stunde}
 
 Was eine Stunde Reinigung kostet, also die Arbeitgeberkosten der Person, die den Raum zwischen zwei Terminen herrichtet. Standard ist 0.
 
 - Gerechnet wird mit der Raumpflege-Zeit des Raums („Raumpflege in Minuten“ unter „Verwaltung“ › „Betrieb“ › „Standorte & Räume“).
 - Bleibt der Satz 0, obwohl Räume eine Raumpflege-Zeit haben, erscheint der Hinweis „Kein Stundensatz für die Raumpflege.“.
 
-### Standard-Stundensatz Personal {#standard-stundensatz}
+### Standard-Stundensatz Personal (€) {#standard-stundensatz}
 
 Arbeitgeberkosten pro bezahlter Stunde für alle Personen, die unter „Personal“ keinen eigenen Satz haben. Standard ist 0.
 
 - Ist weder ein eigener noch ein Standardsatz da, erscheint „Kein Stundensatz für das Personal.“.
 
-### Gemeinkosten pro Monat {#gemeinkosten}
+### Gemeinkosten pro Monat (€) {#gemeinkosten}
 
 Alle monatlichen Kosten, die keinem Raum direkt gehören, zum Beispiel Rezeption, Energie, Versicherung oder Software. Standard ist 0.
 
@@ -80,13 +80,13 @@ Welcher Anteil der bezahlten Arbeitszeit für Behandlungen genutzt wird; der Res
 
 Eine Zeile je aktivem Raum des Standorts. Jede Zeile wird mit ihrem eigenen „Speichern“ gespeichert. Beträge in Euro netto, ab 0, höchstens zwei Nachkommastellen.
 
-### Miete und Nebenkosten pro Monat {#miete}
+### Miete und Nebenkosten pro Monat (€) {#miete}
 
 Der Anteil an Miete und Betriebskosten, der auf diesen Raum entfällt, pro Monat. Standard ist 0.
 
 - Daraus wird der Mietanteil je Minute (siehe „Vollkosten pro Behandlung“). Bleibt der Betrag 0, nennt die Tabelle den Raum unter „Mietanteil fehlt für:“.
 
-### Pflegematerial je Reinigung {#pflegematerial}
+### Pflegematerial je Reinigung (€) {#pflegematerial}
 
 Was eine Reinigung des Raums an Material kostet, zum Beispiel frische Wäsche, Reinigungsmittel, Einwegauflagen. Standard ist 0.
 

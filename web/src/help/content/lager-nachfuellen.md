@@ -17,7 +17,7 @@ Beim Nachfüllen wandert Material vom Hauptlager in einen anderen Lagerort desse
 3. Bei **Material** das Material wählen (vorbelegt, wenn man aus der Zeile kommt).
 4. Bei **Von Lagerort** den Ausgang wählen, vorbelegt ist das Hauptlager, und bei **Nach Lagerort** das Ziel.
 5. **Menge** in der Einheit des Materials eintragen, optional einen **Grund**.
-6. Auf **Buchen** klicken. Es erscheint „Gebucht.“
+6. Auf **Buchen** klicken. Unten erscheint kurz „Gebucht“.
 
 ## Gut zu wissen {#hinweise}
 

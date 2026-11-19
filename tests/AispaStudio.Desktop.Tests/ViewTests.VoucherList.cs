@@ -29,7 +29,7 @@ public sealed partial class ViewTests
         Assert.True(popup.IsOpen);
         var card = (Border)popup.Child!;
         Assert.Equal(["PrintButton", "SaveButton"], VisibleButtonNames(card));
-        Assert.Equal(["läuft in 30 Tagen ab", "noch nicht versendet"], card.GetVisualDescendants().OfType<CheckBox>().Where(c => c.IsEffectivelyVisible).Select(c => c.Content as string));
+        Assert.Equal(["Läuft in 30 Tagen ab", "Noch nicht versendet"], card.GetVisualDescendants().OfType<CheckBox>().Where(c => c.IsEffectivelyVisible).Select(c => c.Content as string));
         Assert.NotNull(Named<DateField>(card, "VoucherListFromField"));
         Assert.NotNull(Named<DateField>(card, "VoucherListUntilField"));
         Assert.Equal(5, Named<ComboBox>(card, "VoucherListStatus").ItemCount);

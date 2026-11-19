@@ -96,7 +96,8 @@
             </ui:FormField>
             <!-- Standardknopf nur, solange „Anderes Konto“ nicht aufgeklappt ist: sonst feuerten beide Anmeldeknöpfe bei Enter -->
             <Button Classes="primary" Content="Anmelden" Command="{Binding QuickSwitchCommand}"
-                    HorizontalAlignment="Stretch" HorizontalContentAlignment="Center">
+                    HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                    ui:DisabledHint.Text="Verfügbar, sobald die PIN mindestens 4 Ziffern hat.">
               <Button.IsDefault>
                 <MultiBinding Converter="{x:Static BoolConverters.And}">
                   <Binding Path="IsQuickSwitch" />
@@ -106,7 +107,7 @@
             </Button>
           </StackPanel>
           <ui:InfoBar Severity="Error" Message="{Binding Error}" IsVisible="{Binding Error, Converter={x:Static ObjectConverters.IsNotNull}}" />
-          <Button Classes="ghost" Content="{Binding OtherAccountText}" Command="{Binding RequestCodeCommand}" HorizontalAlignment="Center"
+          <Button Classes="link" Content="{Binding OtherAccountText}" Command="{Binding RequestCodeCommand}" HorizontalAlignment="Center"
                   IsVisible="{Binding !CodeRequested}" />
         </StackPanel>
 
@@ -126,7 +127,8 @@
             <TextBox Text="{Binding Password}" PasswordChar="●" />
           </ui:FormField>
           <Button Classes="primary" Content="Anmelden" Command="{Binding SignInWithPasswordCommand}" IsDefault="{Binding ShowPasswordLogin}"
-                  HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
+                  HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                  ui:DisabledHint.Text="Verfügbar, sobald Benutzername und Passwort eingetragen sind." />
           <Button Classes="ghost" Content="Passwort vergessen?" Command="{Binding ToggleRecoveryCommand}" HorizontalAlignment="Left" />
         </StackPanel>
 
@@ -249,7 +251,8 @@
                    HorizontalContentAlignment="Center" LetterSpacing="3" />
         </ui:FormField>
         <Button Classes="primary" Content="Anmelden" Command="{Binding SignInCommand}" IsDefault="{Binding ShowCodeForm}"
-                HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
+                HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                ui:DisabledHint.Text="Verfügbar, sobald der Code mit 8 Zeichen eingetragen ist." />
         <ui:InfoBar Severity="Error" Message="{Binding Error}">
           <ui:InfoBar.IsVisible>
             <MultiBinding Converter="{x:Static BoolConverters.And}">

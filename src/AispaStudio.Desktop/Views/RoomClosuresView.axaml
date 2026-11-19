@@ -20,9 +20,15 @@
         <TextBlock Text="Raum" Classes="h2" VerticalAlignment="Center" />
         <ui:HelpButton Grid.Column="1" Topic="raumsperren" Section="raum" />
       </Grid>
-      <ui:FormField Label="Raum" IsRequired="True" Error="{Binding RoomError}">
+      <ui:FormField Label="Gesperrter Raum" IsRequired="True" Error="{Binding RoomError}" IsVisible="{Binding CanSelectRoom}">
         <ComboBox x:Name="RoomField" ItemsSource="{Binding Rooms}" SelectedItem="{Binding SelectedRoom}" IsEnabled="{Binding CanSelectRoom}" MinWidth="200" HorizontalAlignment="Left" />
       </ui:FormField>
+      <!-- Der Raum einer bestehenden Sperre bleibt: ein dauerhaft unveränderlicher Wert ist Text, kein gesperrtes Feld (design.md 5.16) -->
+      <StackPanel x:Name="RoomFixed" Spacing="4" IsVisible="{Binding !CanSelectRoom}">
+        <TextBlock Text="Gesperrter Raum" Classes="label" />
+        <TextBlock x:Name="RoomFixedText" Text="{Binding RoomName}" Classes="value" AutomationProperties.Name="Gesperrter Raum" />
+        <TextBlock Text="Der Raum einer Sperre lässt sich nicht ändern." Classes="muted small" />
+      </StackPanel>
     </StackPanel>
 
     <views:PeriodSection />

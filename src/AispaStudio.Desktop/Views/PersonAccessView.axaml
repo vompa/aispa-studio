@@ -13,7 +13,7 @@
       <TextBlock Text="{Binding Heading}" Classes="h3" VerticalAlignment="Center" />
       <ui:HelpButton Grid.Column="1" Topic="zugaenge" Section="{Binding HelpSection}" />
     </Grid>
-    <TextBlock Text="{Binding InfoText}" Classes="muted" IsVisible="{Binding HasInfoText}" TextWrapping="Wrap" />
+    <TextBlock x:Name="AccessInfo" Text="{Binding InfoText}" Classes="muted" IsVisible="{Binding HasInfoText}" TextWrapping="Wrap" ToolTip.Tip="{Binding InfoTip}" />
 
     <!-- Eigener Zugang: nur lesbar. -->
     <TextBlock IsVisible="{Binding IsOwn}" TextWrapping="Wrap"

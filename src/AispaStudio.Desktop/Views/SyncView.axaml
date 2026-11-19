@@ -19,7 +19,7 @@
             <ui:Icon Data="{x:Static ui:Icons.Refresh}" Width="18" Height="18" />
             <TextBlock Text="Stand" Classes="h2" />
             <ui:HelpButton Topic="abgleich" Section="stand" />
-            <Button Classes="ghost" Content="Neu laden" Command="{Binding RefreshCommand}" Margin="8,0,0,0" VerticalAlignment="Center" />
+            <Button Content="Neu laden" Command="{Binding RefreshCommand}" Margin="8,0,0,0" VerticalAlignment="Center" />
           </StackPanel>
           <TextBlock Text="{Binding CentralText}" TextWrapping="Wrap" />
           <TextBlock Text="{Binding StateText}" TextWrapping="Wrap" IsVisible="{Binding HasCentral}" />
@@ -49,7 +49,7 @@
                     </TextBlock>
                     <TextBlock Text="{Binding Reason}" Classes="muted small" TextWrapping="Wrap" />
                   </StackPanel>
-                  <Button Grid.Column="1" Classes="ghost" Content="Erledigt" Margin="8,0,0,0" VerticalAlignment="Center"
+                  <Button Grid.Column="1" Classes="ok small" Content="Erledigt" Margin="8,0,0,0" VerticalAlignment="Center"
                           AutomationProperties.Name="{Binding ResolveName}"
                           IsVisible="{Binding #Root.((vm:SyncViewModel)DataContext).CanResolve}"
                           Command="{Binding #Root.((vm:SyncViewModel)DataContext).ResolveCommand}" CommandParameter="{Binding}" />
@@ -72,14 +72,14 @@
           <ui:FormField Label="Verbindungsangabe">
             <TextBox Text="{Binding ConnectionInput}" PasswordChar="•" PlaceholderText="Host=…;Database=…;Username=…;Password=…" />
           </ui:FormField>
-          <TextBlock Text="Schlüsselcode des Spas: damit lesen alle Stellen die Anamnesen der anderen. Bei der ersten Stelle leer lassen, die App erzeugt ihn; bei jeder weiteren den Code der ersten eintragen."
-                     Classes="muted small" TextWrapping="Wrap" />
           <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
             <ui:FormField Label="Schlüsselcode des Spas">
               <TextBox Text="{Binding ShareCodeInput}" PlaceholderText="z. B. K7QM-2XRT-H9PW-4CNE-YB3D-ZF6A" />
             </ui:FormField>
-            <Button Grid.Column="1" Classes="primary" Content="Eintragen" Command="{Binding ConnectCommand}" VerticalAlignment="Bottom" />
+            <Button Grid.Column="1" Classes="primary" Content="Eintragen" Command="{Binding ConnectCommand}" VerticalAlignment="Bottom"
+                    ui:DisabledHint.Text="Verfügbar, sobald eine Verbindungsangabe eingetragen ist." />
           </Grid>
+          <TextBlock x:Name="ShareCodeHelp" Text="Erste Stelle: leer lassen. Weitere Stelle: den Code der ersten eintragen." Classes="muted small" />
           <ui:InfoBar Severity="Warning" IsVisible="{Binding HasShownCode}" Title="Schlüsselcode notieren"
                       Message="Jede weitere Stelle braucht ihn beim Verbinden. Sicher aufbewahren."
                       ActionText="Verstanden" ActionCommand="{Binding CodeNotedCommand}">
@@ -88,8 +88,8 @@
             </ui:InfoBar.Detail>
           </ui:InfoBar>
           <StackPanel Orientation="Horizontal" Spacing="8">
-            <Button Classes="ghost" Content="Schlüsselcode anzeigen" Command="{Binding ShowCodeCommand}" IsVisible="{Binding HasShareCode}" />
-            <Button Classes="ghost" Content="Abgleich ausschalten" Command="{Binding DisconnectCommand}" IsVisible="{Binding HasCentral}" />
+            <Button Content="Schlüsselcode anzeigen" Command="{Binding ShowCodeCommand}" IsVisible="{Binding HasShareCode}" />
+            <Button Content="Abgleich ausschalten" Command="{Binding DisconnectCommand}" IsVisible="{Binding HasCentral}" />
           </StackPanel>
         </StackPanel>
       </Border>

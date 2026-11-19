@@ -240,9 +240,9 @@ public sealed class MessagesPanelTests
         pause.OpenCommand!.Execute(null);
 
         var detail = Assert.IsType<MessageDetailViewModel>(vm.MessageDetail);
-        Assert.Equal(["Meldung", "Meldungen"], vm.OpenPanels.Select(t => t.Text));
-        Assert.Equal("Meldung", vm.ActivePanel!.PanelTitle);
-        Assert.Equal("Pause", detail.PanelSubtitle);
+        Assert.Equal([detail.Item.Title, "Meldungen"], vm.OpenPanels.Select(t => t.Text));
+        Assert.Equal(detail.Item.Title, vm.ActivePanel!.PanelTitle);
+        Assert.Equal("Meldung", detail.PanelSubtitle);
         Assert.Equal(["Ben"], detail.Links.Select(l => l.Name));
         Assert.StartsWith("seit ", detail.Item.SinceText, StringComparison.Ordinal);
         Assert.True(detail.CanAct);

@@ -8,7 +8,7 @@ namespace AispaStudio.Desktop.ViewModels;
 /// <summary>
 /// Seitenleiste „Meldungen“ (Design-Brief 5.12, Schritt 16): ganz oben die Gruppe „Notizen heute“ mit den Tagesnotizen ohne Uhrzeit (Runde 5, Ä31),
 /// darunter alles, was am Tag Aufmerksamkeit braucht, in Gruppen nach Schwere (Fehler, Warnungen, Hinweise) und was in dieser Sitzung erledigt wurde.
-/// Je Meldung eine Karte mit einer Aktion und „Wegklicken“; ein Klick auf die Karte öffnet die Detailansicht. Notizen sind keine Meldungen und zählen
+/// Je Meldung eine Karte mit einer Aktion und „Ausblenden“; ein Klick auf die Karte öffnet die Detailansicht. Notizen sind keine Meldungen und zählen
 /// nicht mit. Der Kalender hält Meldungen und Notizen und gibt sie nach jeder Änderung weiter; ein Filter auf eine Person, einen Raum oder ein Material
 /// zeigt nur deren Meldungen (ohne die Notizen des Tages).
 /// </summary>

@@ -153,6 +153,8 @@ public static class RosterChipColors
 /// <summary>Eine Zeile im Dienstplan: eine Person mit sieben Tagen, den Balken für Abwesenheiten und den Stunden der Woche gegen die Wochenarbeitszeit.</summary>
 public sealed class RosterRowViewModel
 {
+    private readonly bool _hasTarget;
+
     public RosterRowViewModel(RosterRow row, bool showsName, bool canOpenPerson, Action<Guid> openPerson, double? targetHours = null)
     {
         ShowsName = showsName;
@@ -161,6 +163,7 @@ public sealed class RosterRowViewModel
         Color = row.Color;
         var german = CultureInfo.GetCultureInfo("de-AT");
         var planned = row.PlannedHours.ToString("0.##", german);
+        _hasTarget = targetHours is > 0;
         HoursText = targetHours is > 0 ? $"{planned} / {targetHours.Value.ToString("0.##", german)} h" : $"{planned} h";
         Warnings = row.Warnings;
         CanOpenPerson = canOpenPerson;
@@ -175,6 +178,9 @@ public sealed class RosterRowViewModel
     public string Color { get; }
 
     public string HoursText { get; }
+
+    /// <summary>Was „8 / 40 h“ heißt: geplant in dieser Woche, gegen die Wochenarbeitszeit (Soll), wenn die Person eine hat.</summary>
+    public string HoursTip => _hasTarget ? "Geplante Stunden dieser Woche von der Wochenarbeitszeit (Soll)" : "Geplante Stunden dieser Woche";
 
     public IReadOnlyList<string> Warnings { get; }
 

@@ -39,7 +39,7 @@ In der Windows-App gilt zusätzlich:
 - **Löschen** steht unten in der Seitenleiste und fragt vorher nach: „Schließzeit löschen?“. Danach erscheint kurz „Schließzeit gelöscht“.
 - Hat der Standort noch keine Schließzeit und keine Raumsperre, zeigt die Seite statt der Liste die ersten Schritte: **Schließzeit anlegen** und **Raum sperren**.
 
-Der Zustand wird gerechnet: **Geplant** beginnt später, **Aktiv** läuft gerade, **Beendet** ist vorbei. Zwei Schließzeiten desselben Standorts dürfen sich nicht überschneiden. **Löschen** gibt es nur, solange wegen der Schließzeit keine Termine abgesagt wurden; danach bleibt sie als Verlauf stehen.
+Der Zustand wird gerechnet: **Geplant** beginnt später, **Läuft** gerade, **Beendet** ist vorbei. Zwei Schließzeiten desselben Standorts dürfen sich nicht überschneiden. **Löschen** gibt es nur, solange wegen der Schließzeit keine Termine abgesagt wurden; danach bleibt sie als Verlauf stehen.
 
 ## Zeitraum {#zeitraum}
 

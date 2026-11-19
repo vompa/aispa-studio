@@ -80,7 +80,7 @@
                           <ColumnDefinition Width="Auto" SharedSizeGroup="Count" />
                           <ColumnDefinition Width="Auto" SharedSizeGroup="Contribution" />
                         </Grid.ColumnDefinitions>
-                        <ToggleButton IsChecked="{Binding IsOpen}" Content="{Binding Name}" AutomationProperties.Name="{Binding ToggleName}" HorizontalAlignment="Left" />
+                        <ui:AccordionHeader Classes="more" Margin="-12,0,0,0" IsChecked="{Binding IsOpen}" Content="{Binding Name}" AutomationProperties.Name="{Binding ToggleName}" HorizontalAlignment="Left" />
                         <TextBlock Grid.Column="1" Text="{Binding NetPrice}" Classes="num" HorizontalAlignment="Right" VerticalAlignment="Center" />
                         <TextBlock Grid.Column="2" Text="{Binding Material}" Classes="num" HorizontalAlignment="Right" VerticalAlignment="Center" />
                         <TextBlock Grid.Column="3" Text="{Binding Staff}" Classes="num" HorizontalAlignment="Right" VerticalAlignment="Center" />
@@ -114,13 +114,13 @@
         <StackPanel Spacing="24" IsEnabled="{Binding CanEdit}">
           <StackPanel Spacing="12">
             <Grid ColumnDefinitions="*,*,*" ColumnSpacing="12" RowDefinitions="Auto,Auto" RowSpacing="12">
-              <ui:FormField Label="Raumpflege pro Stunde">
+              <ui:FormField Label="Raumpflege pro Stunde (€)">
                 <ui:MoneyField x:Name="CleaningHourlyField" Value="{Binding CleaningHourly}" />
               </ui:FormField>
-              <ui:FormField Grid.Column="1" Label="Standard-Stundensatz Personal">
+              <ui:FormField Grid.Column="1" Label="Standard-Stundensatz Personal (€)">
                 <ui:MoneyField x:Name="DefaultStaffHourlyField" Value="{Binding DefaultStaffHourly}" />
               </ui:FormField>
-              <ui:FormField Grid.Column="2" Label="Gemeinkosten pro Monat">
+              <ui:FormField Grid.Column="2" Label="Gemeinkosten pro Monat (€)">
                 <ui:MoneyField x:Name="OtherMonthlyField" Value="{Binding OtherMonthly}" />
               </ui:FormField>
               <ui:FormField Grid.Row="1" Label="Geplante Raumauslastung (%)" IsRequired="True" Error="{Binding UtilizationError}">
@@ -142,8 +142,8 @@
                        Text="Noch kein Raum angelegt. Räume entstehen unter „Betrieb“ › „Standorte &amp; Räume“." />
             <Grid ColumnDefinitions="*,200,200" ColumnSpacing="12" AutomationProperties.AccessibilityView="Raw" IsVisible="{Binding Rooms.Count}">
               <TextBlock Text="Raum" Classes="group" />
-              <TextBlock Grid.Column="1" Text="Miete und Nebenkosten pro Monat" Classes="group" TextWrapping="Wrap" />
-              <TextBlock Grid.Column="2" Text="Pflegematerial je Reinigung" Classes="group" TextWrapping="Wrap" />
+              <TextBlock Grid.Column="1" Text="Miete und Nebenkosten pro Monat (€)" Classes="group" TextWrapping="Wrap" />
+              <TextBlock Grid.Column="2" Text="Pflegematerial je Reinigung (€)" Classes="group" TextWrapping="Wrap" />
             </Grid>
             <ItemsControl x:Name="RoomCostList" ItemsSource="{Binding Rooms}" AutomationProperties.Name="Raumkosten">
               <ItemsControl.ItemTemplate>
@@ -163,7 +163,7 @@
               <TextBlock Text="Personal" Classes="h2" VerticalAlignment="Center" />
               <ui:HelpButton Grid.Column="1" Topic="kosten" Section="personal" />
             </Grid>
-            <TextBlock Classes="muted" TextWrapping="Wrap" Text="Arbeitgeberkosten pro bezahlter Stunde. Leer: Standard-Stundensatz." />
+            <TextBlock Classes="muted" TextWrapping="Wrap" Text="Arbeitgeberkosten pro bezahlter Stunde in Euro. Leer: Standard-Stundensatz." />
             <TextBlock x:Name="EmployeeCostsEmpty" Classes="muted" TextWrapping="Wrap" IsVisible="{Binding !Employees.Count}"
                        Text="Noch niemand im Team. Personen werden im Bereich „Team“ angelegt." />
             <ItemsControl x:Name="EmployeeCostList" ItemsSource="{Binding Employees}" AutomationProperties.Name="Personalkosten">

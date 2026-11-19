@@ -152,7 +152,7 @@ public sealed class CustomerCardTests
         Assert.True(customers.CreateCommand.CanExecute(null));
     }
 
-    private static readonly PreferenceChip PackageChip = new("Hot-Stone-Massage: 7 von 10 offen", Tip: "Hot-Stone-Massage: 7 von 10 offen, gültig bis 30.06.2027");
+    private static readonly PreferenceChip PackageChip = new("Paket Hot-Stone-Massage: 7 von 10 offen", Tip: "Paket Hot-Stone-Massage: 7 von 10 offen, gültig bis 30.06.2027");
 
     [Fact]
     public async Task Offene_Gutscheine_und_letzte_Kaeufe_im_Verlauf()
@@ -234,7 +234,7 @@ public sealed class CustomerCardTests
         await customers.SaveWishesCommand.ExecuteAsync(null);
         var wishes = JsonSerializer.Deserialize<CustomerPreferences>(stub.Calls.Last(c => c.Route.StartsWith("PUT ", StringComparison.Ordinal)).Body!, ApiClient.Json);
         Assert.Equal(new CustomerPreferences("sanft", null, null, null, true, null, null, null), wishes);
-        Assert.Equal(["Druck: sanft", "wenig Gespräch"], customers.WishChips.Select(c => c.Text));
+        Assert.Equal(["Druck: sanft", "Gespräch: wenig"], customers.WishChips.Select(c => c.Text));
     }
 
     [Fact]

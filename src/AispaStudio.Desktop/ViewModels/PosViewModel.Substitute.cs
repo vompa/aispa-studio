@@ -44,7 +44,7 @@ public partial class PosViewModel
 
     /// <summary>Der rechts gezeigte Ersatzbeleg: ansehen und noch einmal drucken.</summary>
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(SelectedReceipt), nameof(HasShownReceipt), nameof(VoidDisabledHint))]
+    [NotifyPropertyChangedFor(nameof(SelectedReceipt), nameof(HasShownReceipt), nameof(VoidDisabledHint), nameof(VoidBlockedByRole))]
     public partial SubstituteItem? SelectedSubstitute { get; set; }
 
     partial void OnSelectedSubstituteChanged(SubstituteItem? value)

@@ -125,7 +125,7 @@ public sealed partial class ViewTests
         Assert.Contains("\"code\":\"k7qm-2xrt\"", body, StringComparison.Ordinal);
         Assert.Contains($"\"locationId\":\"{SpaSample.LocationId}\"", body, StringComparison.Ordinal);
         Assert.Contains(window.GetVisualDescendants().OfType<Button>(),
-            b => b.IsEffectivelyVisible && AutomationProperties.GetName(b) == "Anzeige Pausenraum widerrufen");
+            b => b.IsEffectivelyVisible && AutomationProperties.GetName(b) == "Kopplung der Anzeige Pausenraum aufheben");
         Assert.Equal("", Named<TextBox>(window, "DisplayCode").Text);
         return shell.Devices;
     }, stub);

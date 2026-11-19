@@ -33,6 +33,8 @@ Die Anfragen verlassen das eigene Netz nicht.
 
 ### Zustand {#zustand}
 
+Die Zeile „Modell: gemma3:4b“ nennt das eingestellte Modell: ein kleines Sprachmodell (Gemma 3 mit 4 Milliarden Parametern), das auf dem eigenen Rechner läuft. Ollama ist das Programm, das es ausführt.
+
 - **Nicht eingerichtet:** Auf dem Server ist kein lokales Modell eingetragen. Das ist die Grundeinstellung.
 - **Dienst antwortet nicht:** Eingetragen, aber der Dienst (Ollama) läuft nicht. Prüfen, ob der Container oder das Programm gestartet ist.
 - **Noch nicht geladen:** Der Dienst läuft, das Modell fehlt. Mit „Modell herunterladen“ laden.
