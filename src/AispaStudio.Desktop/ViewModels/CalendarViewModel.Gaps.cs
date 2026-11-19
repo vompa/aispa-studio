@@ -67,6 +67,12 @@ public partial class CalendarViewModel
         }
 
         panel.Message = null;
+        if (row.IsChain)
+        {
+            await MoveGapChainAsync(panel, row).ConfigureAwait(true);
+            return;
+        }
+
         var result = await _api.PostAsync<AppointmentDto>($"api/appointments/{before.Id}/move",
             new MoveAppointmentRequest(suggestion.SuggestedStart, suggestion.EmployeeId, null, null)).ConfigureAwait(true);
         if (result.Value is not { } moved)
@@ -77,6 +83,27 @@ public partial class CalendarViewModel
 
         Apply(moved);
         ShowToast($"{suggestion.CustomerName} auf {row.NewTime} verschoben", new MoveUndo(before));
+        await LoadGapsAsync().ConfigureAwait(true);
+    }
+
+    /// <summary>Kette: alle Termine in einem Aufruf; scheitert einer, nimmt der Server die schon verschobenen zurück und die Seitenleiste nennt den Grund.</summary>
+    private async Task MoveGapChainAsync(GapsViewModel panel, GapRow row)
+    {
+        var suggestion = row.Suggestion;
+        List<GapChainStep> steps = [new(suggestion.AppointmentId, suggestion.SuggestedStart), .. suggestion.Chain!.Select(c => new GapChainStep(c.AppointmentId, c.SuggestedStart))];
+        var result = await _api.PostAsync<List<AppointmentDto>>("api/gap-chains", new GapChainRequest(steps)).ConfigureAwait(true);
+        if (result.Value is not { } moved)
+        {
+            panel.Message = ConflictNotice.ToastText(result, _zone, Date);
+            return;
+        }
+
+        foreach (var appointment in moved)
+        {
+            Apply(appointment);
+        }
+
+        ShowToast($"{steps.Count} Termine bei {suggestion.EmployeeName} verschoben");
         await LoadGapsAsync().ConfigureAwait(true);
     }
 }

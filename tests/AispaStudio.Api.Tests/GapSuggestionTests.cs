@@ -1,3 +1,5 @@
+using System.Net;
+using System.Net.Http.Json;
 using AispaStudio.Api.Data;
 using AispaStudio.Api.Tenancy;
 using AispaStudio.Contracts;
@@ -34,15 +36,65 @@ public sealed class GapSuggestionTests(ApiFixture fixture)
     }
 
     [Fact]
-    public async Task Kein_Vorschlag_wenn_dadurch_nur_eine_neue_Luecke_entsteht()
+    public async Task Eingeklemmter_Termin_wird_zur_Kette_und_die_Kette_rueckt_in_einem_Aufruf_vor()
     {
-        // 10:30 ist zwischen 9:05 und 11:35 eingeklemmt: vorziehen ließe 20 Minuten danach frei, 9:05 nach hinten 20 Minuten davor.
+        // 10:30 ist zwischen 9:05 und 11:35 eingeklemmt: allein vorziehen ließe 20 Minuten danach frei. Zusammen mit 11:35 rücken beide vor;
+        // hinter 11:35 ist bis Dienstende Platz.
         var spa = await TestSpa.CreateAsync(fixture, Ct);
         await spa.BookOkAsync(TestSpa.At(9, 5), Ct, employee: spa.Anna.Id);
-        await spa.BookOkAsync(TestSpa.At(10, 30), Ct, employee: spa.Anna.Id);
-        await spa.BookOkAsync(TestSpa.At(11, 35), Ct, employee: spa.Anna.Id);
+        var middle = await spa.BookOkAsync(TestSpa.At(10, 30), Ct, employee: spa.Anna.Id);
+        var last = await spa.BookOkAsync(TestSpa.At(11, 35), Ct, employee: spa.Anna.Id);
 
+        var suggestion = Assert.Single(await SuggestionsAsync(spa));
+        Assert.Equal((middle.Id, TestSpa.At(10, 10)), (suggestion.AppointmentId, suggestion.SuggestedStart));
+        var follower = Assert.Single(suggestion.Chain!);
+        Assert.Equal((last.Id, TestSpa.At(11, 35), TestSpa.At(11, 15)), (follower.AppointmentId, follower.CurrentStart, follower.SuggestedStart));
+        Assert.Contains("rücken 2 Termine nacheinander um 20 Minuten vor", suggestion.Reason, StringComparison.Ordinal);
+
+        var moved = await spa.PostAsync<List<AppointmentDto>>("/api/gap-chains",
+            new GapChainRequest([new(follower.AppointmentId, follower.SuggestedStart), new(suggestion.AppointmentId, suggestion.SuggestedStart)]), Ct);
+        Assert.Equal([TestSpa.At(10, 10), TestSpa.At(11, 15)], moved.Select(a => a.Start));
+        Assert.All(moved, a => Assert.Equal(spa.Anna.Id, a.EmployeeId));
         Assert.Empty(await SuggestionsAsync(spa));
+    }
+
+    [Fact]
+    public async Task Scheitert_ein_Schritt_der_Kette_gehen_die_verschobenen_Termine_zurueck()
+    {
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        await spa.BookOkAsync(TestSpa.At(9, 5), Ct, employee: spa.Anna.Id);
+        var middle = await spa.BookOkAsync(TestSpa.At(10, 30), Ct, employee: spa.Anna.Id);
+        var last = await spa.BookOkAsync(TestSpa.At(11, 35), Ct, employee: spa.Anna.Id);
+
+        // Der zweite Schritt zielt auf 9:05, wo Anna schon behandelt.
+        var response = await spa.Client.PostAsJsonAsync("/api/gap-chains",
+            new GapChainRequest([new(middle.Id, TestSpa.At(10, 10)), new(last.Id, TestSpa.At(9, 5))]), TestSpa.Json, Ct);
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+
+        var after = await spa.GetAsync<AppointmentDto>($"/api/appointments/{middle.Id}", Ct);
+        Assert.Equal(TestSpa.At(10, 30), after.Start);
+        Assert.Equal(TestSpa.At(11, 35), (await spa.GetAsync<AppointmentDto>($"/api/appointments/{last.Id}", Ct)).Start);
+
+        // Gemischte Richtungen und einzelne Termine sind keine Kette.
+        Assert.Equal(HttpStatusCode.BadRequest, (await spa.Client.PostAsJsonAsync("/api/gap-chains",
+            new GapChainRequest([new(middle.Id, TestSpa.At(10, 10)), new(last.Id, TestSpa.At(12))]), TestSpa.Json, Ct)).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await spa.Client.PostAsJsonAsync("/api/gap-chains",
+            new GapChainRequest([new(middle.Id, TestSpa.At(10, 10))]), TestSpa.Json, Ct)).StatusCode);
+    }
+
+    [Fact]
+    public async Task Keine_Kette_wenn_auch_hinter_dem_vierten_Termin_eine_unbrauchbare_Luecke_bliebe()
+    {
+        // Fünf Massagen ohne Platz dazwischen bis zum Dienstende: Die Kette bräuchte mehr als vier Termine.
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        await spa.BookOkAsync(TestSpa.At(9, 5), Ct, employee: spa.Anna.Id);
+        foreach (var (hour, minute) in new[] { (10, 30), (11, 35), (12, 40), (13, 45), (14, 50) })
+        {
+            await spa.BookOkAsync(TestSpa.At(hour, minute), Ct, employee: spa.Anna.Id);
+        }
+
+        var suggestions = await SuggestionsAsync(spa);
+        Assert.DoesNotContain(suggestions, s => s.Chain is { Count: > 0 });
     }
 
     [Fact]

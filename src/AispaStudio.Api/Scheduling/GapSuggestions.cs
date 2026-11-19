@@ -91,6 +91,7 @@ internal sealed partial class BookingService
 
                 // Erst den Termin danach vorziehen (der Gast ist früher fertig), sonst den davor nach hinten schieben.
                 var candidates = new[] { (Booking: next, Minutes: -gap), (Booking: previous, Minutes: gap) };
+                var handled = false;
                 foreach (var (booking, minutes) in candidates)
                 {
                     if (booking?.AppointmentId is not { } id || !movable.TryGetValue(id, out var appointment) || suggested.Contains(id))
@@ -111,12 +112,165 @@ internal sealed partial class BookingService
                         $"Bei {name} bleiben sonst {gap} Minuten frei, in die keine Behandlung passt (kürzeste {useful} Minuten). {reason}",
                         appointment.Source));
                     suggested.Add(id);
+                    handled = true;
                     break;
+                }
+
+                // Geht es allein nicht, rücken die folgenden Termine mit (Kette), sofern der Termin danach überhaupt verschiebbar ist.
+                if (!handled && next?.AppointmentId is { } first && !suggested.Contains(first) && movable.ContainsKey(first)
+                    && await ChainAsync(own, i, gap, useful, shift.End, movable, suggested, now, date, ct) is { } chain)
+                {
+                    var name = names.GetValueOrDefault(shift.EmployeeId, "");
+                    var lead = chain.Moves[0];
+                    suggestions.Add(new GapSuggestion(lead.Appointment.Id, shift.EmployeeId, name,
+                        lead.Appointment.Customer.InHouseName, lead.Appointment.Treatment.Name,
+                        lead.Appointment.Start, lead.Start, gap,
+                        $"Bei {name} bleiben sonst {gap} Minuten frei, in die keine Behandlung passt (kürzeste {useful} Minuten). "
+                        + $"Dafür rücken {chain.Moves.Count} Termine nacheinander um {gap} Minuten vor. {chain.Reason}",
+                        lead.Appointment.Source,
+                        [.. chain.Moves.Skip(1).Select(m => new GapChainMove(m.Appointment.Id, m.Appointment.Customer.InHouseName, m.Appointment.Treatment.Name,
+                            m.Appointment.Start, m.Start, m.Appointment.Source))]));
+                    suggested.UnionWith(chain.Moves.Select(m => m.Appointment.Id));
                 }
             }
         }
 
         return [.. suggestions.OrderBy(s => s.CurrentStart)];
+    }
+
+    /// <summary>Höchstens so viele Termine rücken in einer Kette mit; mehr wäre für die Rezeption zu viel abzusprechen.</summary>
+    internal const int MaxChain = 4;
+
+    private sealed record ChainStep(Appointment Appointment, DateTimeOffset Start);
+
+    private sealed record Chain(List<ChainStep> Moves, string Reason);
+
+    /// <summary>
+    /// Kette ab der Belegung <paramref name="from"/>: die Termine danach rücken so lange mit um <paramref name="gap"/> Minuten vor, bis hinter dem letzten
+    /// eine brauchbare Zeit (oder das Dienstende mit brauchbarer Zeit) bleibt. Alle müssen gebucht, einzeln und noch nicht begonnen sein; jeder muss zur neuen Zeit
+    /// bei derselben Person planbar sein, wobei die Belegungen der Kette selbst als frei zählen. Null, wenn es keine solche Kette mit zwei bis
+    /// <see cref="MaxChain"/> Terminen gibt.
+    /// </summary>
+    private async Task<Chain?> ChainAsync(List<ResourceBooking> own, int from, int gap, int useful, DateTimeOffset shiftEnd, Dictionary<Guid, Appointment> movable,
+        HashSet<Guid> suggested, DateTimeOffset now, DateOnly date, CancellationToken ct)
+    {
+        var members = new List<Appointment>();
+        var closed = false;
+        for (var j = from; j < own.Count && members.Count < MaxChain;)
+        {
+            if (own[j].AppointmentId is not { } id || !movable.TryGetValue(id, out var appointment) || suggested.Contains(id) || appointment.Start.AddMinutes(-gap) <= now)
+            {
+                return null;
+            }
+
+            members.Add(appointment);
+            // Alle Belegungen dieses Termins (Einwirkzeit: zwei) gehören zusammen; danach kommt die nächste fremde Belegung.
+            var end = own.Where(b => b.AppointmentId == id).Max(b => b.Until);
+            j = own.FindIndex(j, b => b.AppointmentId != id && b.From >= end);
+            var after = j < 0 ? shiftEnd : own[j].From < shiftEnd ? own[j].From : shiftEnd;
+            if ((int)(after - end).TotalMinutes + gap >= useful)
+            {
+                closed = true;
+                break;
+            }
+
+            if (j < 0)
+            {
+                break;
+            }
+        }
+
+        if (!closed || members.Count < 2)
+        {
+            return null;
+        }
+
+        var ids = members.Select(m => m.Id).ToList();
+        var moves = new List<ChainStep>();
+        string? reason = null;
+        foreach (var member in members)
+        {
+            var start = member.Start.AddMinutes(-gap);
+            var context = await LoadContextIgnoringAsync(member.LocationId, member.TreatmentId, date, ids, ct);
+            if (context is null)
+            {
+                return null;
+            }
+
+            var planner = new ResourcePlanner(WithTimesOf(member, context));
+            var plan = planner.Plan(start, member.EmployeeId, member.RoomId, member.EquipmentId).Plan ?? planner.Plan(start, member.EmployeeId).Plan;
+            if (plan is null)
+            {
+                return null;
+            }
+
+            if (member == members[^1])
+            {
+                var (fit, why) = planner.Fit(plan);
+                if (fit == SlotFit.LeavesGap)
+                {
+                    return null;
+                }
+
+                reason = why;
+            }
+
+            moves.Add(new ChainStep(member, start));
+        }
+
+        return new Chain(moves, reason ?? "");
+    }
+
+    /// <summary>
+    /// Verschiebt eine Kette aus den Lückenvorschlägen: in der Reihenfolge, in der jeder Termin in schon freie Zeit rückt (beim Vorziehen der früheste zuerst),
+    /// jeweils bei derselben Person. Scheitert ein Schritt, gehen die schon verschobenen Termine an ihre alte Zeit zurück und die Antwort nennt den Grund.
+    /// </summary>
+    public async Task<BookingOutcome> MoveChainAsync(IReadOnlyList<GapChainStep> steps, CancellationToken ct)
+    {
+        if (steps.Count is < 2 or > MaxChain || steps.Select(s => s.AppointmentId).Distinct().Count() != steps.Count)
+        {
+            return new BookingOutcome.Invalid(nameof(GapChainRequest.Moves), $"Eine Kette hat zwei bis {MaxChain} verschiedene Termine.");
+        }
+
+        var ids = steps.Select(s => s.AppointmentId).ToList();
+        var current = await db.Appointments.AsNoTracking().Where(a => ids.Contains(a.Id))
+            .Select(a => new { a.Id, a.Start, a.EmployeeId, a.RoomId, a.EquipmentId }).ToDictionaryAsync(a => a.Id, ct);
+        if (current.Count != steps.Count)
+        {
+            return new BookingOutcome.NotFound("Termin");
+        }
+
+        var earlier = steps.All(s => s.Start < current[s.AppointmentId].Start);
+        var later = steps.All(s => s.Start > current[s.AppointmentId].Start);
+        if (!earlier && !later)
+        {
+            return new BookingOutcome.Invalid(nameof(GapChainRequest.Moves), "Alle Termine einer Kette rücken in dieselbe Richtung.");
+        }
+
+        var ordered = earlier ? steps.OrderBy(s => current[s.AppointmentId].Start).ToList() : steps.OrderByDescending(s => current[s.AppointmentId].Start).ToList();
+        var done = new List<Guid>();
+        foreach (var step in ordered)
+        {
+            var before = current[step.AppointmentId];
+            var outcome = await MoveAsync(step.AppointmentId, new MoveAppointmentRequest(step.Start, before.EmployeeId, null, null), ct, house: true);
+            if (outcome is BookingOutcome.Success)
+            {
+                done.Add(step.AppointmentId);
+                continue;
+            }
+
+            foreach (var id in Enumerable.Reverse(done))
+            {
+                var old = current[id];
+                await MoveAsync(id, new MoveAppointmentRequest(old.Start, old.EmployeeId, old.RoomId, old.EquipmentId), ct, house: true);
+            }
+
+            return outcome;
+        }
+
+        var moved = await db.Appointments.AsNoTracking().Include(a => a.Customer).Include(a => a.Treatment).Where(a => ids.Contains(a.Id))
+            .OrderBy(a => a.Start).ToListAsync(ct);
+        return new BookingOutcome.ChainMoved([.. moved.Select(a => ToDto(a, a.Treatment.Name))]);
     }
 
     /// <summary>Kürzeste Behandlung des Standorts mit Vor- und Nachbereitung, in Minuten: Lücken darunter bleiben ungenutzt.</summary>

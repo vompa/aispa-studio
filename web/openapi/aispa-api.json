@@ -5044,6 +5044,70 @@
         }
       }
     },
+    "/api/v1/gap-chains": {
+      "post": {
+        "tags": [
+          "Kalender"
+        ],
+        "summary": "Verschiebt eine Kette aus den Lückenvorschlägen (zwei bis vier Termine derselben Person, alle in dieselbe Richtung) in einem Aufruf. Scheitert ein Termin, gehen die schon verschobenen an ihre alte Zeit zurück und die Antwort nennt den Grund (409).",
+        "operationId": "MoveGapChain",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GapChainRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AppointmentDto"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingRejected"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/appointments/{appointmentId}": {
       "get": {
         "tags": [
@@ -41073,6 +41137,70 @@
           }
         }
       },
+      "GapChainMove": {
+        "required": [
+          "appointmentId",
+          "customerName",
+          "treatmentName",
+          "currentStart",
+          "suggestedStart"
+        ],
+        "type": "object",
+        "properties": {
+          "appointmentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "customerName": {
+            "type": "string"
+          },
+          "treatmentName": {
+            "type": "string"
+          },
+          "currentStart": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "suggestedStart": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "source": {
+            "$ref": "#/components/schemas/AppointmentSource"
+          }
+        }
+      },
+      "GapChainRequest": {
+        "required": [
+          "moves"
+        ],
+        "type": "object",
+        "properties": {
+          "moves": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GapChainStep"
+            }
+          }
+        }
+      },
+      "GapChainStep": {
+        "required": [
+          "appointmentId",
+          "start"
+        ],
+        "type": "object",
+        "properties": {
+          "appointmentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "start": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "GapSuggestion": {
         "required": [
           "appointmentId",
@@ -41121,6 +41249,15 @@
           },
           "source": {
             "$ref": "#/components/schemas/AppointmentSource"
+          },
+          "chain": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/GapChainMove"
+            }
           }
         }
       },

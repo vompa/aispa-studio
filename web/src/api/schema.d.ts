@@ -1486,6 +1486,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/gap-chains": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Verschiebt eine Kette aus den Lückenvorschlägen (zwei bis vier Termine derselben Person, alle in dieselbe Richtung) in einem Aufruf. Scheitert ein Termin, gehen die schon verschobenen an ihre alte Zeit zurück und die Antwort nennt den Grund (409). */
+        post: operations["MoveGapChain"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/appointments/{appointmentId}": {
         parameters: {
             query?: never;
@@ -11195,6 +11212,26 @@ export interface components {
         FollowUpNote: {
             note: string;
         };
+        GapChainMove: {
+            /** Format: uuid */
+            appointmentId: string;
+            customerName: string;
+            treatmentName: string;
+            /** Format: date-time */
+            currentStart: string;
+            /** Format: date-time */
+            suggestedStart: string;
+            source?: components["schemas"]["AppointmentSource"];
+        };
+        GapChainRequest: {
+            moves: components["schemas"]["GapChainStep"][];
+        };
+        GapChainStep: {
+            /** Format: uuid */
+            appointmentId: string;
+            /** Format: date-time */
+            start: string;
+        };
         GapSuggestion: {
             /** Format: uuid */
             appointmentId: string;
@@ -11211,6 +11248,7 @@ export interface components {
             gapMinutes: number;
             reason: string;
             source?: components["schemas"]["AppointmentSource"];
+            chain?: null | components["schemas"]["GapChainMove"][];
         };
         GroupAreaItem: {
             /** Format: uuid */
@@ -18892,6 +18930,57 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    MoveGapChain: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GapChainRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AppointmentDto"][];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BookingRejected"];
+                };
             };
         };
     };

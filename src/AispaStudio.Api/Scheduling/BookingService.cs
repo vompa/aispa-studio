@@ -29,6 +29,9 @@ internal abstract record BookingOutcome
     public sealed record SeriesPreviewed(List<SeriesOccurrence> Occurrences) : BookingOutcome;
 
     public sealed record SeriesChanged(SeriesResult Result) : BookingOutcome;
+
+    /// <summary>Eine Kette aus den Lückenvorschlägen ist verschoben; die Termine in zeitlicher Reihenfolge.</summary>
+    public sealed record ChainMoved(List<AppointmentDto> Appointments) : BookingOutcome;
 }
 
 /// <summary>
