@@ -14,7 +14,7 @@ Eine Aktion legt einen Rabatt fest: befristet, für kurzfristig gebuchte Termine
 
 1. In der Verwaltung **Aktionen** öffnen und oben auf **Neue Aktion** klicken.
 2. **Name** und **Gästetext** eintragen, zum Beispiel „Herbst“ und „10 % auf alle Massagen im Oktober“.
-3. Bei **Art** wählen: **Befristet**, **Kurzfristig frei** oder **Schwache Zeiten**. Bei „Kurzfristig frei“ den **Vorlauf in Stunden** eintragen, bei „Schwache Zeiten“ im Wochenraster die Felder abhaken.
+3. Bei **Art** wählen: **Befristet**, **Kurzfristig frei** oder **Schwache Zeiten**. Bei „Kurzfristig frei“ den **Vorlauf (Stunden)** eintragen, bei „Schwache Zeiten“ im Wochenraster die Felder abhaken.
 4. Bei **Rabatt** **Prozent** oder **Betrag** wählen und den Wert eintragen. Rechts zeigt **So sieht es der Gast** gleich den Preis mit Rabatt.
 5. Bei **Zeitraum** **Von** und **Bis** wählen.
 6. Bei **Gilt für** wählen: alle Behandlungen, ausgewählte Behandlungen oder (nur befristet) Pakete ausgewählter Behandlungen. Bei einer Auswahl die Behandlungen unter **Behandlung hinzufügen** eintippen und aus der Liste wählen.

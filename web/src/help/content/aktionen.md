@@ -30,7 +30,7 @@ Ob eine Aktion läuft, richtet sich nach dem heutigen Tag am Standort. **Pausier
 ## Art {#art}
 
 - **Befristet**: Der Rabatt gilt an jedem Tag des Zeitraums.
-- **Kurzfristig frei**: Der Rabatt gilt für Termine, die höchstens so viele Stunden vor Beginn gebucht werden, wie unter **Vorlauf in Stunden** steht (1 bis 168, also höchstens eine Woche). Bei 24 bekommt ein Termin um 10 Uhr den Rabatt, wenn er am Vortag um 10 Uhr oder später gebucht wurde.
+- **Kurzfristig frei**: Der Rabatt gilt für Termine, die höchstens so viele Stunden vor Beginn gebucht werden, wie unter **Vorlauf (Stunden)** steht (1 bis 168, also höchstens eine Woche). Bei 24 bekommt ein Termin um 10 Uhr den Rabatt, wenn er am Vortag um 10 Uhr oder später gebucht wurde.
 - **Schwache Zeiten**: Der Rabatt gilt für Termine, die in einem abgehakten Feld des Wochenrasters beginnen. Das Raster hat für jeden Wochentag drei Felder: Vormittag (bis 12 Uhr), Nachmittag (12 bis 17 Uhr) und Abend (ab 17 Uhr), jeweils in der Zeit des Standorts. Mindestens ein Feld abhaken. Alle Felder einer Aktion haben denselben Rabatt; für einen anderen Satz legt man eine zweite Aktion an.
 
 ![Schwache Zeiten mit Wochenraster und Vorschau des Gästepreises](images/app/verwaltung-aktionen-schwache-zeiten.png)
