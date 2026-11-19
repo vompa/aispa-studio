@@ -110,6 +110,9 @@ public partial class MainViewModel(IWorkstationApi api, Func<ILiveUpdates>? live
 
     private const string NoConnectionTitle = "Keine Verbindung zum Server";
 
+    /// <summary>Unter dem Titel der Karte „Keine Verbindung zum Server“: der Weg, nicht der Befund noch einmal (meldungen.md M5); die technische Ursache steht im Absturzprotokoll.</summary>
+    public const string ServerUnreachableAdvice = "Adresse und Netzwerk prüfen, dann „Erneut versuchen“.";
+
     private const string StartingTitle = "AISPA Studio startet …";
 
     private const string WaitingTitle = "Verbindung wird aufgebaut …";
@@ -184,7 +187,7 @@ public partial class MainViewModel(IWorkstationApi api, Func<ILiveUpdates>? live
 
                 IsConnected = false;
                 ConnectionTitle = local is null ? NoConnectionTitle : StartingTitle;
-                StatusText = ex is HttpRequestException ? $"Server nicht erreichbar: {ex.Message}" : "Der Server antwortet nicht.";
+                StatusText = ex is HttpRequestException && local is null ? ServerUnreachableAdvice : "Der Server antwortet nicht.";
                 return;
             }
 

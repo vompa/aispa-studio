@@ -15,6 +15,11 @@
     <Style Selector="ListBox.nav ListBoxItem" x:DataType="vm:NavItem">
       <Setter Property="AutomationProperties.Name" Value="{Binding AccessibleName}" />
     </Style>
+    <!-- Mit Abgleich, Sicherung und Im Netz hat die Leiste elf Einträge; bei 1440 × 900 passen sie nur mit dichterem Abstand (Hilfe und Verwaltung blieben unter dem Rand) -->
+    <Style Selector="ListBox.nav ListBoxItem">
+      <Setter Property="Padding" Value="2,5" />
+      <Setter Property="Margin" Value="8,2" />
+    </Style>
     <Style Selector="Button.companionfab /template/ ContentPresenter">
       <Setter Property="BoxShadow" Value="{DynamicResource RaisedShadow}" />
     </Style>

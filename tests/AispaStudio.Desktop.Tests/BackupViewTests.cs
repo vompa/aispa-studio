@@ -211,6 +211,7 @@ public sealed class BackupViewTests
         shell.OpenBackupCommand.Execute(null);
 
         Assert.Equal("Sicherung", shell.SelectedPage?.Title);
+        Assert.False(shell.Banners.Backup);
         shell.Dispose();
     }
 
