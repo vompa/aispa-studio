@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using AispaStudio.Desktop.Controls;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace AispaStudio.Desktop.ViewModels;
 
@@ -51,6 +52,7 @@ public partial class CalendarViewModel
     /// </summary>
     private void UpdateEntryPreview()
     {
+        GroupGhosts = [];
         var preview = BuildEntryPreview();
         if (preview is null && _preview is null)
         {
@@ -110,6 +112,14 @@ public partial class CalendarViewModel
     /// <summary>Paar oder Spa-Tag suchen ihre Zeit selbst: die Vorschau steht an der angeklickten Stelle, so lang wie die längste Behandlung des ersten Abschnitts.</summary>
     private CalendarGhost? GroupPreview(GroupBookingViewModel group, (CalendarColumn Column, DateTimeOffset Start)? anchor)
     {
+        // Ist eine Zeit gewählt, steht je Teil der gemeinsamen Buchung eine Vorschau in der Spalte der Person (Teamansicht) bzw. des Raums (Raumansicht), soweit die Spalte da ist.
+        var parts = GroupPreviewGhosts(group);
+        if (parts.Count > 0)
+        {
+            GroupGhosts = parts.Skip(1).ToList();
+            return parts[0];
+        }
+
         if (anchor is not { } at || PreviewColumn(at.Column.Id, DateOf(at.Column)) is not { } column)
         {
             return null;
@@ -120,6 +130,28 @@ public partial class CalendarViewModel
             .DefaultIfEmpty(0).Max() ?? 0;
         var end = at.Start.AddMinutes(minutes > 0 ? minutes : 60);
         return PreviewAt(column, at.Start, end, "Paar/Spa", 0, 0, IsOccupied(at.Column.Id, at.Start, end));
+    }
+
+    /// <summary>Weitere Vorschauen einer gemeinsamen Buchung neben der ersten (<see cref="Ghost"/>): je ein Teil in seiner Spalte.</summary>
+    [ObservableProperty]
+    public partial IReadOnlyList<CalendarGhost> GroupGhosts { get; private set; } = [];
+
+    private List<CalendarGhost> GroupPreviewGhosts(GroupBookingViewModel group)
+    {
+        var ghosts = new List<CalendarGhost>();
+        foreach (var part in group.PreviewParts)
+        {
+            var id = ByRoom ? part.RoomId : part.EmployeeId;
+            var date = DateOnly.FromDateTime(DayLayout.Local(part.Start, _zone));
+            if (id is not { } columnId || PreviewColumn(columnId, date) is not { } column)
+            {
+                continue;
+            }
+
+            ghosts.Add(PreviewAt(column, part.Start, part.End, $"{part.Guest}: {part.What}", 0, 0, IsOccupied(columnId, part.Start, part.End)));
+        }
+
+        return ghosts;
     }
 
     /// <summary>Pause, Sperrzeit und Notiz: von Beginn bis Ende der Eingabe; eine Notiz ohne Ende ist ein Zettel von 15 Minuten.</summary>

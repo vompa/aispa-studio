@@ -490,6 +490,8 @@ public sealed partial class ViewTests
         var tamara = calendar.Columns.Single(c => c.Title == "Tamara Wolf");
         Assert.Equal(("Salzburg", "10:00–18:00"), (tamara.Place, tamara.ShiftText));
         Assert.StartsWith("Urlaub bis", off["Johanna Lechner"], StringComparison.Ordinal);
+        // Durchsicht Kalender 1 (4a, 4b): Verlauf und Knopf „zurück“ am linken Rand decken den Text der ersten Spalte nicht zu.
+        AssertEdgesDoNotCoverText(window);
         return calendar;
     }, Api()
         .On($"GET /api/locations/{SpaSample.LocationId}/resources", SpaSample.ResourcesWithAbsent with { Employees = [.. SpaSample.ResourcesWithAbsent.Employees, Nora, Tamara] })

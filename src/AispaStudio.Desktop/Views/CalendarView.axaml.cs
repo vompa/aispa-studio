@@ -61,6 +61,7 @@ public partial class CalendarView : UserControl
             ViewModel?.SetHorizontalView(BodyScroll.Offset.X - Host.Margin.Left, BodyScroll.Viewport.Width);
         };
         BodyScroll.SizeChanged += (_, _) => ReportViewport();
+        DateHost.SizeChanged += OnDateHostSizeChanged;
         DataContextChanged += (_, _) =>
         {
             ReportViewport();
@@ -181,6 +182,23 @@ public partial class CalendarView : UserControl
     {
         SearchBox.Focus();
         SearchBox.SelectAll();
+    }
+
+    /// <summary>Feste Mindestbreite des Datumsknopfs (Ä78) in der Kopfzeile.</summary>
+    private const double DateBoxWidth = 340;
+
+    /// <summary>Innenabstand des Knopfs (2 × 6) und Außenabstand rechts (4), die der Inhalt nicht belegen darf.</summary>
+    private const double DateButtonChrome = 16;
+
+    /// <summary>
+    /// Der Datumsknopf behält seine feste Breite, solange der Platz zwischen den Pfeilen und der Suche reicht; mit breiter Seitenleiste wird er schmaler
+    /// (Datum und Standort kürzen sich mit „…“), damit er nie unter das Suchfeld ragt.
+    /// </summary>
+    private void OnDateHostSizeChanged(object? sender, SizeChangedEventArgs e)
+    {
+        DateBox.MinWidth = Math.Clamp(e.NewSize.Width - DateButtonChrome, 0, DateBoxWidth);
+        // Der Titel steht neben dem Pfeil des Menüs (14 + 6 Abstand) und kürzt sich mit „…“, statt über das Suchfeld zu ragen.
+        DateTitle.MaxWidth = Math.Max(0, e.NewSize.Width - DateButtonChrome - 20);
     }
 
     private void OpenDatePicker() => DateButton.Flyout?.ShowAt(DateButton);

@@ -1040,6 +1040,9 @@ public sealed record KeyHint(string Key, string Text, Avalonia.Input.Key? Press 
 {
     public bool IsEnabled => Press is not null && BlockedReason is null;
 
+    /// <summary>„Alle Tasten“: bleibt in der einzeiligen Leiste auch bei Platzmangel stehen.</summary>
+    public bool IsHelp => Key == "?";
+
     public string Tip => BlockedReason ?? $"{Text} ({Key})";
 
     public string AccessibleName => $"{Text}, Taste {Key}";

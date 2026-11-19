@@ -95,7 +95,16 @@ public partial class BookingViewModel : ViewModelBase
         OutsideHours = ClosedHint();
     }
 
-    partial void OnStartTextChanged(string value) => RefreshClosedHint();
+    partial void OnStartTextChanged(string value)
+    {
+        RefreshClosedHint();
+        OnPropertyChanged(nameof(EndText));
+    }
+
+    /// <summary>Ende des Termins neben dem Beginn („bis 15:50“, nur Anzeige): Beginn plus Dauer der gewählten Behandlung; leer, solange Beginn oder Behandlung fehlen.</summary>
+    public string? EndText => Treatment is { } treatment && TryStart(out var start)
+        ? $"bis {DayLayout.Local(start.AddMinutes(treatment.DurationMinutes), _zone).ToString("HH:mm", CultureInfo.InvariantCulture)}"
+        : null;
 
     partial void OnDateChanged(DateOnly value) => RefreshClosedHint();
 
@@ -286,7 +295,15 @@ public partial class BookingViewModel : ViewModelBase
     {
         Customer = null;
         CustomerQuery = "";
+        // Das Suchfeld erscheint erst jetzt wieder (der Chip mit „Ändern“ ersetzt es nach der Wahl): der Fokus geht gleich hinein.
+        FocusRequested?.Invoke(CustomerSearchName);
     }
+
+    /// <summary>Name des Suchfelds in der Maske, für den Fokus nach „Ändern“.</summary>
+    public const string CustomerSearchName = "BookingCustomerSearch";
+
+    /// <summary>Bittet die Seitenleiste, ein Element dieses Namens zu fokussieren (der Kalender setzt es).</summary>
+    public Action<string>? FocusRequested { get; init; }
 
     /// <summary>Vorlieben der gewählten Kundin, z. B. „Feste Therapeut:in: Lena Huber · lieber Do.“.</summary>
     public string? PreferenceHint => DayLayout.BookingPreferenceText(Customer?.Booking,
@@ -309,6 +326,7 @@ public partial class BookingViewModel : ViewModelBase
     partial void OnTreatmentChanged(TreatmentDto? value)
     {
         RefreshClosedHint();
+        OnPropertyChanged(nameof(EndText));
         _ = LoadAnamnesisCheckAsync();
     }
 

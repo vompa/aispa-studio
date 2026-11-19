@@ -19,11 +19,18 @@ public partial class CalendarViewModel
     /// <summary>Text des Chips: „Storniert 2“, kompakt nur die Zahl.</summary>
     public string CancelledLabel => IsCompactHeader ? CancelledCount.ToString(System.Globalization.CultureInfo.CurrentCulture) : $"Storniert {CancelledCount}";
 
+    /// <summary>Name des Chips für Screenreader: immer „Storniert 2“, auch wenn der Chip kompakt nur die Zahl zeigt.</summary>
+    public string CancelledName => $"Storniert {CancelledCount}";
+
+    public string CancelledTip => ChipTip(CancelledName, "Stornierte Termine dieses Tags im Verlauf ansehen.");
+
     private void NotifyCancelled()
     {
         OnPropertyChanged(nameof(CancelledCount));
         OnPropertyChanged(nameof(HasCancelled));
         OnPropertyChanged(nameof(CancelledLabel));
+        OnPropertyChanged(nameof(CancelledName));
+        OnPropertyChanged(nameof(CancelledTip));
     }
 
     [RelayCommand]

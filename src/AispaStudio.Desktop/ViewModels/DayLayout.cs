@@ -208,11 +208,50 @@ public static class DayLayout
         }
 
         columns.ForEach(AssignLanes);
+        columns.ForEach(PlaceStripes);
 
         var hours = Enumerable.Range(startHour, endHour - startHour + 1)
             .Select(h => new HourMark($"{h:00}:00", (h - startHour) * 60 * ppm))
             .ToList();
         return new(columns, hours, dayStart, dayHeight);
+    }
+
+    /// <summary>Breite, mit der die Bahnen zweier Elemente auf Überlappung verglichen werden (nur das Verhältnis zählt).</summary>
+    private const double LaneProbeWidth = 100;
+
+    private static bool SameSide(LanePlace a, LanePlace b) =>
+        LaneLeft(LaneProbeWidth, a) < LaneLeft(LaneProbeWidth, b) + LaneWidth(LaneProbeWidth, b) && LaneLeft(LaneProbeWidth, b) < LaneLeft(LaneProbeWidth, a) + LaneWidth(LaneProbeWidth, a);
+
+    /// <summary>
+    /// Streifen in der Bahn ihres Termins und gekürzt, wo ein anderer Termin beginnt (Durchsicht Kalender 1, 2a): Stehen zwei Termine nebeneinander, hat der Streifen nur die Breite
+    /// seiner Bahn, sonst läge die Karte der Nachbarbahn über seinem Text. Beginnt in seiner Bahn der nächste Termin, endet der Streifen dort; bleibt weniger als die Texthöhe übrig
+    /// oder ist die Bahn schmal, zeigt er keinen Text mehr, der volle Hinweis steht weiter am Streifen. Vorbereitungsstreifen enden am eigenen Termin und werden nicht gekürzt.
+    /// </summary>
+    private static void PlaceStripes(CalendarColumn column)
+    {
+        for (var i = 0; i < column.Stripes.Count; i++)
+        {
+            var stripe = column.Stripes[i];
+            var own = column.Items.FirstOrDefault(item => item.Appointment is not null && item.Appointment.Id == stripe.Appointment?.Id);
+            if (own is { Place.LaneCount: > 1 })
+            {
+                stripe = stripe with { Place = own.Place };
+            }
+
+            if (!stripe.IsPreparation)
+            {
+                var end = stripe.Top + stripe.Height;
+                var next = column.Items.Where(item => item.Appointment is not null && item.Appointment.Id != stripe.Appointment?.Id && item.Top >= stripe.Top && item.Top < end - 0.5
+                        && SameSide(item.Place, stripe.Place))
+                    .Select(item => item.Top).DefaultIfEmpty(end).Min();
+                if (next < end)
+                {
+                    stripe = stripe with { Height = Math.Max(0, next - stripe.Top) };
+                }
+            }
+
+            column.Stripes[i] = stripe;
+        }
     }
 
     /// <summary>Ein Zeitraum ohne die Raumsperren: übrig bleiben die Stücke davor, dazwischen und danach.</summary>
@@ -430,10 +469,16 @@ public static class DayLayout
         var kind = new HeaderTipLine(isCouple ? Icons.Users : Icons.Door, facts.Kind);
         if (closures is not { Count: > 0 } || day is null || zone is null)
         {
+            // Kopf kürzt auf „Pflege 10 Min. · 3 Beh.“; der volle Text („Raumpflege 10 Min. · 3 Behandlungen“) steht im Hinweis.
+            var shortTreatments = facts.Treatments.Count == 0 ? null : $"{facts.Treatments.Count} Beh.";
+            // Die Zahl der Behandlungen steht in der Zeile der Raumpflege, damit der Hinweis bei höchstens fünf Zeilen bleibt.
+            var tipLines = new List<HeaderTipLine> { kind, new(Icons.Broom, treatmentCount is null ? facts.CleaningLong : $"{facts.CleaningLong} · {treatmentCount}") };
+
             return new CalendarColumn(room.Id, room.Name, RoomColor, string.Join(" · ", new[] { facts.Cleaning, treatmentCount }.OfType<string>()), isRoom: true)
             {
                 IsCouple = isCouple,
-                TipLines = [kind, new HeaderTipLine(Icons.Broom, facts.CleaningLong)],
+                ShortSecondLine = string.Join(" · ", new[] { facts.Cleaning?.Replace("Raumpflege", "Pflege", StringComparison.Ordinal), shortTreatments }.OfType<string>()),
+                TipLines = tipLines,
             };
         }
 
@@ -944,9 +989,11 @@ public static class DayLayout
                 extra > 0 ? $"Puffer {extra} Min." : null,
                 cleaningMinutes > 0 ? $"Raumpflege {cleaningMinutes} Min." : null,
             }.OfType<string>());
-            // Alles in einem schmalen Streifen: gekürzt, damit es in die Spalte passt; der volle Text steht im Hinweis.
+            // Alles in einem schmalen Streifen: gekürzt, damit es in die Spalte passt („Nachb. 10 · Pflege 10“, ohne Einheit wie die Teile des Ablaufs); der volle Text steht im Hinweis.
             var text = followUp > 0 || extra > 0
-                ? $"{string.Join(" · ", TimeParts(a).Where(p => !p.StartsWith("Vorb.", StringComparison.Ordinal)).Concat(cleaningMinutes > 0 ? [$"Raumpflege {cleaningMinutes}"] : []))} Min."
+                ? cleaningMinutes > 0
+                    ? string.Join(" · ", TimeParts(a).Where(p => !p.StartsWith("Vorb.", StringComparison.Ordinal)).Append($"Pflege {cleaningMinutes}"))
+                    : $"{string.Join(" · ", TimeParts(a).Where(p => !p.StartsWith("Vorb.", StringComparison.Ordinal)))} Min."
                 : tip;
             column.Stripes.Add(new(y(a.End), Math.Max(MinStripeHeight, y(until) - y(a.End)), text, followUp > 0 || extra > 0 ? StripeKind.FollowUp : StripeKind.Cleaning)
             {

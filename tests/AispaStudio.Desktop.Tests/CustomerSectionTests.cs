@@ -151,22 +151,23 @@ public sealed class CustomerSectionTests
     }
 
     [Fact]
-    public async Task Offener_Betrag_und_Pakete_stehen_in_einer_Zeile_nur_wenn_der_Server_sie_liefert()
+    public async Task Offener_Betrag_und_Pakete_stehen_getrennt_nur_wenn_der_Server_sie_liefert()
     {
         var withRight = Section(new StubApi().On(SummaryRoute, Summary(finance: true)));
         await withRight.LoadAsync();
-        Assert.True(withRight.HasOpen);
-        Assert.Equal("Offen 45,00 € · Paket Massage: 7 von 10 offen", withRight.OpenLine);
+        Assert.Equal("Offen 45,00 €", withRight.OpenText);
+        Assert.Equal("Paket Massage: 7 von 10 offen", withRight.PackagesText);
 
         var without = Section(new StubApi().On(SummaryRoute, Summary()));
         await without.LoadAsync();
-        Assert.False(without.HasOpen);
-        Assert.Equal("", without.OpenLine);
+        Assert.Null(without.OpenText);
+        Assert.Null(without.PackagesText);
 
         // Nur ein Paket, kein offener Betrag.
         var onlyPackage = Section(new StubApi().On(SummaryRoute, Summary() with { Open = new CustomerOpenItems(0, "EUR", [new GuestPackage(Guid.NewGuid(), "Massage", 3, 3, null)]) }));
         await onlyPackage.LoadAsync();
-        Assert.Equal("Paket Massage: 3 von 3 offen", onlyPackage.OpenLine);
+        Assert.Null(onlyPackage.OpenText);
+        Assert.Equal("Paket Massage: 3 von 3 offen", onlyPackage.PackagesText);
     }
 
     [Fact]

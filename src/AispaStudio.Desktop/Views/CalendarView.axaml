@@ -960,6 +960,9 @@
                 <ui:Icon Grid.Column="2" Classes="chevron" Data="{x:Static ui:Icons.ChevronDown}" Foreground="{DynamicResource Fg2Brush}" Width="16" Height="16" VerticalAlignment="Center" />
               </Grid>
               <TextBlock Text="Wird geladen …" Classes="muted small" IsVisible="{Binding IsLoading}" />
+              <!-- Der offene Betrag steht oben in der Karte und hervorgehoben (Warnfarbe, 14/600): an der Kassa ist es die Zahl, die man zuerst braucht -->
+              <TextBlock x:Name="OpenAmountLine" Text="{Binding OpenText}" Classes="warn" FontWeight="SemiBold" TextWrapping="Wrap"
+                         IsVisible="{Binding OpenText, Converter={x:Static ObjectConverters.IsNotNull}}" />
               <UniformGrid Columns="2" RowSpacing="6" ColumnSpacing="8" IsVisible="{Binding ShowStats}" ui:ToolTipBehavior.ReachableGroup="True">
                 <StackPanel ToolTip.Tip="Erledigte Besuche insgesamt" ui:ToolTipBehavior.Reachable="True" AutomationProperties.Name="{Binding VisitsText, StringFormat='Besuche gesamt {0}'}"
                             AutomationProperties.ControlTypeOverride="Text" AutomationProperties.AccessibilityView="Content">
@@ -982,7 +985,7 @@
                   <TextBlock Text="Nächster Termin" Classes="group" AutomationProperties.AccessibilityView="Raw" />
                 </StackPanel>
               </UniformGrid>
-              <TextBlock Text="{Binding OpenLine}" Classes="small" TextWrapping="Wrap" IsVisible="{Binding HasOpen}" />
+              <TextBlock Text="{Binding PackagesText}" Classes="small" TextWrapping="Wrap" IsVisible="{Binding PackagesText, Converter={x:Static ObjectConverters.IsNotNull}}" />
             </StackPanel>
           </ui:AccordionHeader>
           <StackPanel Orientation="Horizontal" Spacing="8" Margin="16,0,16,12" IsVisible="{Binding HasError}">
@@ -1289,10 +1292,12 @@
     <DataTemplate DataType="vm:BookingViewModel">
       <StackPanel Spacing="12">
 
+        <!-- Nach der Wahl steht nur der Chip mit „Ändern“ (der Name nicht doppelt); das Suchfeld kommt mit „Ändern“ zurück und nimmt den Fokus -->
         <StackPanel>
           <TextBlock Text="Kundin oder Kunde" Classes="label" />
-          <ui:SearchField Text="{Binding CustomerQuery}" PlaceholderText="Name, Telefon oder E-Mail suchen" AutomationProperties.Name="Kundin oder Kunde suchen"
-                          AddCommand="{Binding StartNewCustomerCommand}" AddText="Neue Kundin oder neuen Kunden anlegen" ShowAdd="{Binding !HasChosenCustomer}" />
+          <ui:SearchField x:Name="BookingCustomerSearch" Text="{Binding CustomerQuery}" PlaceholderText="Name, Telefon oder E-Mail suchen" AutomationProperties.Name="Kundin oder Kunde suchen"
+                          AddCommand="{Binding StartNewCustomerCommand}" AddText="Neue Kundin oder neuen Kunden anlegen" ShowAdd="{Binding !HasChosenCustomer}"
+                          IsVisible="{Binding !HasChosenCustomer}" />
         </StackPanel>
         <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding HasChosenCustomer}">
           <Border Classes="hint">
@@ -1421,17 +1426,21 @@
         <!-- Nur was die Spalte kann (Auftraggeber, 27.10.2026); alles andere über die freie Zeit -->
         <StackPanel Spacing="4">
           <TextBlock Text="{Binding ColumnScopeText}" Classes="muted small" TextWrapping="Wrap" />
-          <Button Classes="ghost" Content="Freie Zeit suchen" Command="{Binding SearchFreeTimeCommand}" HorizontalAlignment="Left"
+          <!-- Ein Knopf mit Rahmen, nicht Text: „Freie Zeit suchen“ ist eine Aktion (Brief 5.1, Zweitaktion) -->
+          <Button x:Name="BookingFreeTimeButton" Content="Freie Zeit suchen" Command="{Binding SearchFreeTimeCommand}" HorizontalAlignment="Left"
                   IsVisible="{Binding CanSearchFreeTime}" />
         </StackPanel>
 
-        <Grid ColumnDefinitions="160,110" ColumnSpacing="12">
+        <Grid ColumnDefinitions="136,96,*" ColumnSpacing="12">
           <ui:FormField Label="Datum" IsRequired="True">
             <ui:DateField CommittedText="{Binding DateText}" Minimum="{Binding Today}" />
           </ui:FormField>
           <ui:FormField Grid.Column="1" Label="Beginn" IsRequired="True">
             <ui:TimeField CommittedText="{Binding StartText}" />
           </ui:FormField>
+          <!-- Ende aus Beginn und Dauer der Behandlung, nur Anzeige (kein Feld, kein Tab-Halt) -->
+          <TextBlock x:Name="BookingEndText" Grid.Column="2" Text="{Binding EndText}" Classes="muted" VerticalAlignment="Bottom" Margin="0,0,0,8"
+                     IsVisible="{Binding EndText, Converter={x:Static ObjectConverters.IsNotNull}}" />
         </Grid>
 
         <ui:FormField Label="Notiz">
@@ -1563,14 +1572,19 @@
             </DataTemplate>
           </ItemsControl.ItemTemplate>
         </ItemsControl>
-        <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,-4,0,0">
-          <Button Classes="ghost" Command="{Binding AddStepCommand}" IsVisible="{Binding CanAddStep}">
-            <StackPanel Orientation="Horizontal" Spacing="6">
-              <ui:Icon Data="{x:Static ui:Icons.Plus}" Width="16" Height="16" />
-              <TextBlock Text="Abschnitt danach" />
-            </StackPanel>
-          </Button>
-          <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" IsVisible="{Binding ShowGap}">
+        <StackPanel Spacing="8" Margin="0,-4,0,0">
+          <!-- „Abschnitt danach“ war schwer zu verstehen (Durchsicht Kalender 1, 6b): das Verb steht im Text, der Tooltip nennt ein Beispiel, das Fragezeichen erklärt die Abschnitte -->
+          <StackPanel Orientation="Horizontal" IsVisible="{Binding CanAddStep}">
+            <Button x:Name="AddStepButton" Classes="ghost" Command="{Binding AddStepCommand}"
+                    ToolTip.Tip="Ein weiterer Abschnitt folgt nach einer Pause, z. B. erst die Massage, danach die Sauna.">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <ui:Icon Data="{x:Static ui:Icons.Plus}" Width="16" Height="16" />
+                <TextBlock Text="Abschnitt danach hinzufügen" />
+              </StackPanel>
+            </Button>
+            <ui:HelpButton Topic="kalender-paar-und-spa-tag" Section="abschnitte" Margin="6,0,0,0" VerticalAlignment="Center" />
+          </StackPanel>
+          <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding ShowGap}">
             <TextBlock x:Name="GroupGapLabel" Text="Pause" Classes="muted small" VerticalAlignment="Center" />
             <ComboBox ItemsSource="{Binding GapOptions}" SelectedItem="{Binding Gap}" MinWidth="80" AutomationProperties.LabeledBy="{Binding #GroupGapLabel}">
               <ComboBox.ItemTemplate>
@@ -1580,7 +1594,7 @@
               </ComboBox.ItemTemplate>
             </ComboBox>
           </StackPanel>
-        </Grid>
+        </StackPanel>
 
         <CheckBox IsChecked="{Binding FlexibleOrder}" IsVisible="{Binding ShowFlexible}" Margin="0,-4,0,0"
                   ToolTip.Tip="Der Planer stellt die Abschnitte so um, dass am wenigsten gewartet wird, höchstens 30 Minuten je Abschnitt.">
@@ -1655,7 +1669,8 @@
                     <TextBlock Text="{Binding Summary}" Classes="muted small" />
                   </StackPanel>
                   <StackPanel Spacing="2">
-                    <Border BorderBrush="{DynamicResource LineBrush}" BorderThickness="0,0,0,1" Width="320" Height="30" HorizontalAlignment="Left">
+                    <!-- Achse und Balken so breit wie der Innenraum der Karte (288), damit „20:00“ ganz in der Karte steht (Durchsicht Kalender 1, 8a) -->
+                    <Border BorderBrush="{DynamicResource LineBrush}" BorderThickness="0,0,0,1" Width="{x:Static vm:AreasViewModel.TimelineWidth}" Height="30" HorizontalAlignment="Left">
                       <ItemsControl Classes="positioned" ItemsSource="{Binding Bars}">
                         <ItemsControl.ItemsPanel>
                           <ItemsPanelTemplate>
@@ -1676,7 +1691,7 @@
                         </ItemsControl.ItemTemplate>
                       </ItemsControl>
                     </Border>
-                    <Grid ColumnDefinitions="*,*" Width="320" HorizontalAlignment="Left">
+                    <Grid x:Name="AreaAxis" ColumnDefinitions="*,*" Width="{x:Static vm:AreasViewModel.TimelineWidth}" HorizontalAlignment="Left">
                       <TextBlock Text="{Binding OpenFrom}" Classes="muted small num" />
                       <TextBlock Grid.Column="1" Text="{Binding OpenUntil}"
                                  Classes="muted small num" HorizontalAlignment="Right" />
@@ -1686,17 +1701,18 @@
                   <ItemsControl ItemsSource="{Binding Visits}">
                     <ItemsControl.ItemTemplate>
                       <DataTemplate x:DataType="vm:AreaVisitRow">
-                        <Grid ColumnDefinitions="88,*,Auto,Auto" RowDefinitions="Auto,Auto" Margin="0,2" Opacity="{Binding Opacity}">
+                        <!-- Der Name darf umbrechen, statt zu „Gerhard …“ zu werden; „Stornieren“ und das Symbol bleiben in der Zeile (Durchsicht Kalender 1, 8b) -->
+                        <Grid ColumnDefinitions="80,*,Auto,Auto" RowDefinitions="Auto,Auto" Margin="0,2" Opacity="{Binding Opacity}">
                           <TextBlock Text="{Binding TimeText}" Classes="num small" VerticalAlignment="Center" />
                           <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                            <TextBlock Text="{Binding Name}" FontWeight="Medium" TextTrimming="CharacterEllipsis" />
-                            <TextBlock Text="{Binding Detail}" Classes="muted small" IsVisible="{Binding HasDetail}" TextTrimming="CharacterEllipsis" />
+                            <TextBlock Text="{Binding Name}" FontWeight="Medium" TextWrapping="Wrap" />
+                            <TextBlock Text="{Binding Detail}" Classes="muted small" IsVisible="{Binding HasDetail}" TextWrapping="Wrap" />
                           </StackPanel>
                           <!-- Gast ohne Namen aus einer Gruppe: Namen direkt am Eintritt nachtragen, auch wenn der Gast keinen Termin hat -->
                           <Button Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="3" Classes="ghost" Content="Namen nachtragen" Command="{Binding NameGuestCommand}"
                                   IsVisible="{Binding CanName}" Padding="0,2" FontSize="12" HorizontalAlignment="Left" />
                           <Button Grid.Column="2" Classes="ghost icon" ToolTip.Tip="Eintritt an der Kassa abrechnen" Command="{Binding CheckoutCommand}"
-                                  IsVisible="{Binding CanCheckout}">
+                                  AutomationProperties.Name="{Binding Name, StringFormat='Eintritt an der Kassa abrechnen: {0}'}" IsVisible="{Binding CanCheckout}">
                             <ui:Icon Data="{x:Static ui:Icons.Register}" Width="16" Height="16" />
                           </Button>
                           <Button Grid.Column="3" Classes="ghost" Content="Stornieren" Command="{Binding CancelCommand}" IsVisible="{Binding CanCancel}"
@@ -2073,19 +2089,20 @@
     <Style Selector="Grid.filterable">
       <Setter Property="Cursor" Value="Hand" />
     </Style>
-    <!-- Weitere Spalten am Rand des Rasters (R04 Slice 86, Ä154, Variante 2): weicher Verlauf über Kopf und Raster, darauf ein runder Knopf mit Pfeil und „+n“ -->
+    <!-- Weitere Spalten am Rand des Rasters (R04 Slice 86, Ä154, Variante 2): schmaler Verlauf über Kopf und Raster, daneben ein schmaler Knopf mit Pfeil und „+n“.
+         Durchsicht Kalender 1 (4a, 4b): Verlauf und Knopf liegen auf dem Rand der Zeitleiste und der Spalte, nicht mehr über dem Text der ersten Karte -->
     <Style Selector="Border.edgefade">
-      <Setter Property="Width" Value="56" />
+      <Setter Property="Width" Value="14" />
       <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
       <Setter Property="IsHitTestVisible" Value="False" />
     </Style>
     <Style Selector="Button.edge">
-      <Setter Property="Width" Value="40" />
-      <Setter Property="Height" Value="40" />
+      <Setter Property="Width" Value="26" />
+      <Setter Property="Height" Value="44" />
       <Setter Property="MinWidth" Value="0" />
       <Setter Property="MinHeight" Value="0" />
       <Setter Property="Padding" Value="0" />
-      <Setter Property="CornerRadius" Value="20" />
+      <Setter Property="CornerRadius" Value="13" />
       <Setter Property="VerticalAlignment" Value="Center" />
       <Setter Property="HorizontalContentAlignment" Value="Center" />
       <Setter Property="VerticalContentAlignment" Value="Center" />
@@ -2112,8 +2129,9 @@
               <ui:Icon Data="{x:Static ui:Icons.ChevronRight}" />
             </Button>
           </StackPanel>
-          <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-          <Button Classes="ghost" Padding="6,2" x:Name="DateButton" Margin="0,0,4,0" HorizontalAlignment="Left" HorizontalContentAlignment="Left" ToolTip.Tip="{Binding DayFactsTip}">
+          <!-- Der Platz zwischen Pfeilen und Suche: der Datumsknopf behält seine feste Breite (Ä78), solange sie passt, und wird sonst schmaler, statt unter das Suchfeld zu ragen (OnDateHostSizeChanged) -->
+          <Grid Grid.Column="1" x:Name="DateHost" VerticalAlignment="Center">
+          <Button Classes="ghost" Padding="6,2" x:Name="DateButton" Margin="0,0,4,0" MinWidth="0" HorizontalAlignment="Left" HorizontalContentAlignment="Left" ToolTip.Tip="{Binding DayFactsTip}">
             <Button.Flyout>
               <Flyout Placement="BottomEdgeAlignedLeft">
                 <StackPanel Spacing="8" Width="300">
@@ -2136,9 +2154,9 @@
               </Flyout>
             </Button.Flyout>
             <!-- Feste Mindestbreite (Ä78): Wochentag und Datum wechseln beim Weiterschalten ihre Länge, der Knopf und mit ihm die geöffnete Auswahl dürfen nicht wandern -->
-            <StackPanel MinWidth="340">
+            <StackPanel x:Name="DateBox" MinWidth="340">
               <StackPanel Orientation="Horizontal" Spacing="6">
-                <TextBlock Text="{Binding DayTitle}" Classes="h1" TextTrimming="CharacterEllipsis" />
+                <TextBlock x:Name="DateTitle" Text="{Binding DayTitle}" Classes="h1" TextTrimming="CharacterEllipsis" />
                 <ui:Icon Data="{x:Static ui:Icons.ChevronRight}" Width="14" Height="14" Foreground="{DynamicResource Fg3Brush}" VerticalAlignment="Center">
                   <ui:Icon.RenderTransform>
                     <RotateTransform Angle="90" />
@@ -2147,7 +2165,7 @@
               </StackPanel>
               <!-- Datum und Standort; der Standort folgt direkt auf das Datum und wird bei Platzmangel gekürzt. Rechts davon steht in dieser Zeile nichts, das wandern könnte. -->
               <DockPanel LastChildFill="True">
-                <TextBlock DockPanel.Dock="Left" Text="{Binding DateShort}" Classes="muted" x:Name="DateLine" />
+                <TextBlock DockPanel.Dock="Left" Text="{Binding DateShort}" Classes="muted" x:Name="DateLine" TextTrimming="CharacterEllipsis" />
                 <!-- Feiertag im Datumstitel (ADR 0075): „Montag, 26. Oktober 2026 · Nationalfeiertag“; der Hinweis am Datum nennt Quelle und Stand, Ferien und Hinweise stehen nur dort -->
                 <TextBlock DockPanel.Dock="Left" x:Name="DateFacts" Text="{Binding DayFactsText, StringFormat='· {0}'}" FontWeight="SemiBold" Margin="6,0,0,0" MaxWidth="420"
                            TextTrimming="CharacterEllipsis" IsVisible="{Binding HasDayFactsText}" />
@@ -2158,12 +2176,12 @@
                          IsVisible="{Binding IsOfflineView}" />
             </StackPanel>
           </Button>
-          </StackPanel>
+          </Grid>
           <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
             <Panel>
-              <ui:SearchField x:Name="SearchBox" Width="{Binding SearchWidth}" Text="{Binding SearchText}" PlaceholderText="Suchen (Strg+F)"
+              <ui:SearchField x:Name="SearchBox" Width="{Binding SearchWidth}" Text="{Binding SearchText}" PlaceholderText="{Binding SearchPlaceholder}"
                               AutomationProperties.Name="Im Kalender suchen"
-                              ToolTip.Tip="Gast, Telefon oder Behandlung suchen; Enter springt zum ersten Treffer" />
+                              ToolTip.Tip="Gast, Telefon oder Behandlung suchen (Strg+F); Enter springt zum ersten Treffer" />
               <Popup PlacementTarget="{Binding #SearchBox}" Placement="BottomEdgeAlignedRight" IsOpen="{Binding HasSearchHits}"
                      IsLightDismissEnabled="False">
                 <Border Classes="card" Padding="6" Width="340" BoxShadow="{DynamicResource CardShadow}">
@@ -2504,7 +2522,8 @@
             </Button>
           </Border>
           <Border ui:OverflowStrip.Header="{Binding AreaChip}" ui:OverflowStrip.Icon="{x:Static ui:Icons.Steam}">
-            <Button x:Name="HeadSauna" Classes="headchip" Command="{Binding OpenAreasCommand}" IsVisible="{Binding HasAreaGlances}" ToolTip.Tip="{Binding AreaTip}">
+            <Button x:Name="HeadSauna" Classes="headchip" Command="{Binding OpenAreasCommand}" IsVisible="{Binding HasAreaGlances}" ToolTip.Tip="{Binding AreaTip}"
+                    AutomationProperties.Name="{Binding AreaChip}">
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <ui:Icon Data="{x:Static ui:Icons.Steam}" Width="16" Height="16" />
                 <TextBlock Text="{Binding AreaLabel}" Classes="num" />
@@ -2512,7 +2531,8 @@
             </Button>
           </Border>
           <Border ui:OverflowStrip.Header="{Binding Waitlist.Count, StringFormat='Warteliste {0}'}" ui:OverflowStrip.Icon="{x:Static ui:Icons.Clock}">
-            <Button x:Name="HeadWaitlist" Classes="headchip warn" Command="{Binding OpenWaitlistCommand}" IsVisible="{Binding HasWaitlist}" ToolTip.Tip="{Binding WaitlistTip}">
+            <Button x:Name="HeadWaitlist" Classes="headchip warn" Command="{Binding OpenWaitlistCommand}" IsVisible="{Binding HasWaitlist}" ToolTip.Tip="{Binding WaitlistTip}"
+                    AutomationProperties.Name="{Binding WaitlistName}">
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <ui:Icon Data="{x:Static ui:Icons.Clock}" Width="16" Height="16" />
                 <TextBlock Text="{Binding WaitlistLabel}" />
@@ -2521,7 +2541,8 @@
           </Border>
           <!-- Stornierte Termine des Tages: Chip nach 5.8, „warn“ nur mit Stornos; der Klick öffnet sie im Verlauf -->
           <Border ui:OverflowStrip.Header="{Binding CancelledCount, StringFormat='Storniert {0}'}" ui:OverflowStrip.Icon="{x:Static ui:Icons.History}">
-            <Button x:Name="HeadCancelled" Classes="headchip warn" Command="{Binding OpenCancelledCommand}" IsVisible="{Binding HasCancelled}" ToolTip.Tip="Stornierte Termine dieses Tags im Verlauf ansehen.">
+            <Button x:Name="HeadCancelled" Classes="headchip warn" Command="{Binding OpenCancelledCommand}" IsVisible="{Binding HasCancelled}" ToolTip.Tip="{Binding CancelledTip}"
+                    AutomationProperties.Name="{Binding CancelledName}">
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <ui:Icon Data="{x:Static ui:Icons.History}" Width="16" Height="16" />
                 <TextBlock Text="{Binding CancelledLabel}" />
@@ -2641,7 +2662,7 @@
                              bei krank gemeldeten Personen mit offenen Terminen der Weg zum Ausfall-Assistenten -->
                         <Grid Grid.Row="1" Grid.ColumnSpan="3" ColumnDefinitions="Auto,*" ColumnSpacing="4" IsVisible="{Binding !HasAffected}">
                           <ui:Icon Data="{x:Static ui:Icons.Pin}" Width="16" Height="16" Foreground="{DynamicResource Fg2Brush}" VerticalAlignment="Center" IsVisible="{Binding HasPlace}" />
-                          <TextBlock Grid.Column="1" Text="{Binding SecondLine}" Classes="muted small num" Classes.absent="{Binding HasReasonLine}" TextTrimming="CharacterEllipsis" />
+                          <TextBlock Grid.Column="1" Text="{Binding HeaderSecondLine}" Classes="muted small num" Classes.absent="{Binding HasReasonLine}" TextTrimming="CharacterEllipsis" />
                         </Grid>
                         <!-- Verweis zum Ausfall-Assistenten: ein Link (Brief 5.24), unterstrichen erst bei Hover und Fokus -->
                         <Button Grid.Row="1" Grid.ColumnSpan="3" Classes="link" Click="OnAffectedClick" IsVisible="{Binding HasAffected}"
@@ -2715,10 +2736,22 @@
                             <DataTemplate x:DataType="vm:CalendarStripe">
                               <!-- Raumpflege: grau offen, grün erledigt, orange überfällig, nur Text und Fläche (Ä13); ein Klick hakt ab, der Hinweis sagt es -->
                               <Border Classes="stripe" Classes.prep="{Binding IsPreparation}" Classes.after="{Binding IsAfter}" Classes.care="{Binding HasCare}" Classes.caredone="{Binding IsCareDone}" Classes.careoverdue="{Binding IsCareOverdue}"
-                                      Width="{Binding #Root.((vm:CalendarViewModel)DataContext)?.Scale.ItemWidth, TargetNullValue=0}" Height="{Binding Height}"
-                                      Margin="3,0,3,0" ToolTip.Tip="{Binding Tip}" ToolTip.ShowDelay="300" ToolTip.Placement="RightEdgeAlignedTop"
+                                      Height="{Binding Height}"
+                                      ToolTip.Tip="{Binding Tip}" ToolTip.ShowDelay="300" ToolTip.Placement="RightEdgeAlignedTop"
                                       ToolTip.ServiceEnabled="{Binding #Root.((vm:CalendarViewModel)DataContext)?.HoverCardsEnabled, TargetNullValue=False}"
                                       AutomationProperties.Name="{Binding AccessibleName}" AutomationProperties.ControlTypeOverride="Text" AutomationProperties.AccessibilityView="Content">
+                                <Border.Width>
+                                  <MultiBinding Converter="{x:Static vm:Converters.LaneWidth}">
+                                    <Binding Path="#Root.((vm:CalendarViewModel)DataContext)?.Scale.ItemWidth" />
+                                    <Binding Path="Place" />
+                                  </MultiBinding>
+                                </Border.Width>
+                                <Border.Margin>
+                                  <MultiBinding Converter="{x:Static vm:Converters.LaneMargin}">
+                                    <Binding Path="#Root.((vm:CalendarViewModel)DataContext)?.Scale.ItemWidth" />
+                                    <Binding Path="Place" />
+                                  </MultiBinding>
+                                </Border.Margin>
                                 <TextBlock Text="{Binding DisplayText}" IsVisible="{Binding ShowText}" />
                               </Border>
                             </DataTemplate>
@@ -2767,7 +2800,7 @@
                                       <TextBlock Text="{Binding ProcessingText}" IsVisible="{Binding ShowProcessingText}" />
                                     </Border>
                                     <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto" VerticalAlignment="Top" IsVisible="{Binding IsCompact}">
-                                      <Border Classes="who" Background="{Binding WhoColor}" IsVisible="{Binding ShowWho}" ToolTip.Tip="{Binding Who}">
+                                      <Border Classes="who" Background="{Binding WhoColor}" IsVisible="{Binding ShowWhoInTitle}" ToolTip.Tip="{Binding Who}">
                                         <TextBlock Text="{Binding WhoInitials}" />
                                       </Border>
                                       <Ellipse Grid.Column="1" Width="7" Height="7" Fill="{Binding GroupColor}" Margin="0,0,5,0" VerticalAlignment="Center"
@@ -2799,19 +2832,19 @@
                                     </Grid>
                                     <StackPanel IsVisible="{Binding !IsCompact}" Spacing="1">
                                       <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto">
-                                        <Border Classes="who" Background="{Binding WhoColor}" IsVisible="{Binding ShowWho}" ToolTip.Tip="{Binding Who}">
+                                        <Border Classes="who" Background="{Binding WhoColor}" IsVisible="{Binding ShowWhoInTitle}" ToolTip.Tip="{Binding Who}">
                                           <TextBlock Text="{Binding WhoInitials}" />
                                         </Border>
                                         <Ellipse Grid.Column="1" Width="8" Height="8" Fill="{Binding GroupColor}" Margin="0,0,5,0" VerticalAlignment="Center"
                                                  IsVisible="{Binding IsGroup}" />
-                                        <TextBlock Grid.Column="2" TextTrimming="CharacterEllipsis">
+                                        <TextBlock Grid.Column="2" TextTrimming="CharacterEllipsis" TextWrapping="{Binding TitleWrapping}" MaxLines="2">
                                           <Run Text="{Binding Title, Mode=OneWay}" FontWeight="SemiBold" />
                                         </TextBlock>
                                         <!-- ♀/♂ aus der Anrede: klein und grau, ohne Rahmen, eigene Spalte vor den Kennzeichen; der Wunsch „Therapeutin/Therapeut“ ist ein Kennzeichen rechts -->
                                         <ui:Icon Grid.Column="3" Data="{Binding SymbolIcon}" Width="11" Height="11" Foreground="{DynamicResource Fg2Brush}"
                                                  Margin="4,0,0,0" VerticalAlignment="Center"
                                                  IsVisible="{Binding SymbolIcon, Converter={x:Static ObjectConverters.IsNotNull}}" />
-                                        <ItemsControl Grid.Column="4" ItemsSource="{Binding Flags}" VerticalAlignment="Top" IsVisible="{Binding HasFlags}" Margin="4,0,-2,0">
+                                        <ItemsControl Grid.Column="4" ItemsSource="{Binding Flags}" VerticalAlignment="Top" IsVisible="{Binding FlagsInTitle}" Margin="4,0,-2,0">
                                           <ItemsControl.ItemsPanel>
                                             <ItemsPanelTemplate>
                                               <StackPanel Orientation="Horizontal" Spacing="2" />
@@ -2829,8 +2862,24 @@
                                         <ui:Icon Grid.Column="5" Classes="birthday" Data="{x:Static ui:Icons.Gift}" Width="16" Height="16" Foreground="{DynamicResource AccentBrush}" Margin="4,0,0,0"
                                                  VerticalAlignment="Center" IsVisible="{Binding BirthdayToday}" ToolTip.Tip="Geburtstag heute" AutomationProperties.Name="Geburtstag heute" />
                                       </Grid>
-                                      <TextBlock Text="{Binding Subtitle}" FontSize="12" Foreground="{DynamicResource Fg2Brush}" TextTrimming="CharacterEllipsis"
-                                                 IsVisible="{Binding ShowSubtitle}" />
+                                      <!-- Halbe Spaltenbreite: die Kennzeichen stehen vor der Behandlung, damit der Name die Zeile für sich hat (FlagsInSubtitle) -->
+                                      <Grid ColumnDefinitions="Auto,*" IsVisible="{Binding ShowSubtitle}">
+                                        <ItemsControl ItemsSource="{Binding Flags}" VerticalAlignment="Center" IsVisible="{Binding FlagsInSubtitle}" Margin="0,0,4,0">
+                                          <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                              <StackPanel Orientation="Horizontal" Spacing="2" />
+                                            </ItemsPanelTemplate>
+                                          </ItemsControl.ItemsPanel>
+                                          <ItemsControl.ItemTemplate>
+                                            <DataTemplate x:DataType="vm:GuestFlag">
+                                              <Border Classes="flag" Classes.note="{Binding IsNote}" Classes.regular="{Binding IsRegular}" Classes.wide="{Binding IsWide}" ToolTip.Tip="{Binding Tip}">
+                                                <TextBlock Text="{Binding Symbol}" />
+                                              </Border>
+                                            </DataTemplate>
+                                          </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                        <TextBlock Grid.Column="1" Text="{Binding Subtitle}" FontSize="12" Foreground="{DynamicResource Fg2Brush}" TextTrimming="CharacterEllipsis" />
+                                      </Grid>
                                       <TextBlock Text="{Binding MetaText}" FontSize="12" Foreground="{DynamicResource Fg2Brush}"
                                                  TextTrimming="CharacterEllipsis" Classes="num" Classes.overdue="{Binding IsOverdue}" />
                                     </StackPanel>
@@ -2968,6 +3017,34 @@
                           Width="{Binding Scale.ItemWidth}" Height="{Binding Ghost?.AfterHeight, TargetNullValue=0}" Margin="3,1,3,0" CornerRadius="0,0,3,3"
                           Background="{DynamicResource Surface3Brush}" Opacity="0.7" IsHitTestVisible="False"
                           IsVisible="{Binding Ghost, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                  <!-- Paar oder Spa-Tag mit gewählter Zeit: die übrigen Teile in ihren Spalten (die erste Vorschau ist der Ghost darunter) -->
+                  <ItemsControl x:Name="GroupGhostList" ItemsSource="{Binding GroupGhosts}" Width="{Binding ColumnsWidth}" Height="{Binding DayHeight}" IsHitTestVisible="False">
+                    <ItemsControl.ItemsPanel>
+                      <ItemsPanelTemplate>
+                        <Canvas />
+                      </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.Styles>
+                      <Style Selector="ItemsControl > ContentPresenter" x:DataType="vm:CalendarGhost">
+                        <Setter Property="Canvas.Left" Value="{Binding Left}" />
+                        <Setter Property="Canvas.Top" Value="{Binding Top}" />
+                      </Style>
+                    </ItemsControl.Styles>
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="vm:CalendarGhost">
+                        <Panel Width="{Binding #Root.((vm:CalendarViewModel)DataContext)?.Scale.ItemWidth, TargetNullValue=0}" Height="{Binding Height}" Margin="3,1,3,0">
+                          <Rectangle RadiusX="5" RadiusY="5" Fill="{DynamicResource AccentSoftBrush}" Stroke="{DynamicResource AccentBrush}"
+                                     StrokeThickness="1.5" StrokeDashArray="4,3" IsVisible="{Binding !IsWarning}" />
+                          <Rectangle RadiusX="5" RadiusY="5" Fill="{DynamicResource WarnSoftBrush}" Stroke="{DynamicResource WarnBrush}"
+                                     StrokeThickness="1.5" StrokeDashArray="4,3" IsVisible="{Binding IsWarning}" />
+                          <TextBlock Text="{Binding Text}" Foreground="{DynamicResource AccentBrush}" FontSize="12" FontWeight="SemiBold" Margin="8,2" Classes="num"
+                                     TextWrapping="Wrap" TextTrimming="CharacterEllipsis" IsVisible="{Binding !IsWarning}" />
+                          <TextBlock Text="{Binding Text}" Foreground="{DynamicResource WarnBrush}" FontSize="12" FontWeight="SemiBold" Margin="8,2" Classes="num"
+                                     TextWrapping="Wrap" TextTrimming="CharacterEllipsis" IsVisible="{Binding IsWarning}" />
+                        </Panel>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
                   <Panel Canvas.Left="{Binding Ghost?.Left, TargetNullValue=0}" Canvas.Top="{Binding Ghost?.Top, TargetNullValue=0}"
                          Width="{Binding Scale.ItemWidth}" Height="{Binding Ghost?.Height, TargetNullValue=0}" Margin="3,1,3,0"
                          IsVisible="{Binding Ghost, Converter={x:Static ObjectConverters.IsNotNull}}">
@@ -2995,7 +3072,7 @@
                 </LinearGradientBrush>
               </Border.OpacityMask>
             </Border>
-            <Border x:Name="EdgeFadeNext" Grid.Column="1" Grid.RowSpan="2" Classes="edgefade" HorizontalAlignment="Right" Margin="0,0,16,16"
+            <Border x:Name="EdgeFadeNext" Grid.Column="1" Grid.RowSpan="2" Classes="edgefade" Width="24" HorizontalAlignment="Right" Margin="0,0,16,16"
                     IsVisible="{Binding RightEdge, Converter={x:Static ObjectConverters.IsNotNull}}">
               <Border.OpacityMask>
                 <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
@@ -3004,7 +3081,7 @@
                 </LinearGradientBrush>
               </Border.OpacityMask>
             </Border>
-            <Button x:Name="EdgePrevious" Grid.Row="1" Grid.Column="1" Classes="edge" HorizontalAlignment="Left" Margin="12,0,0,0" Click="OnEdgePreviousClick"
+            <Button x:Name="EdgePrevious" Grid.Row="1" Grid.Column="1" Classes="edge" HorizontalAlignment="Left" Margin="-10,0,0,0" Click="OnEdgePreviousClick"
                     IsVisible="{Binding LeftEdge, Converter={x:Static ObjectConverters.IsNotNull}}"
                     ToolTip.Tip="{Binding LeftEdge?.Tip, TargetNullValue=''}" AutomationProperties.Name="{Binding LeftEdge?.Tip, TargetNullValue=''}">
               <StackPanel>
@@ -3012,7 +3089,7 @@
                 <TextBlock Text="{Binding LeftEdge?.Badge, TargetNullValue=''}" Classes="num" FontSize="12" FontWeight="SemiBold" HorizontalAlignment="Center" />
               </StackPanel>
             </Button>
-            <Button x:Name="EdgeNext" Grid.Row="1" Grid.Column="1" Classes="edge" HorizontalAlignment="Right" Margin="0,0,12,0" Click="OnEdgeNextClick"
+            <Button x:Name="EdgeNext" Grid.Row="1" Grid.Column="1" Classes="edge" HorizontalAlignment="Right" Margin="0,0,16,0" Click="OnEdgeNextClick"
                     IsVisible="{Binding RightEdge, Converter={x:Static ObjectConverters.IsNotNull}}"
                     ToolTip.Tip="{Binding RightEdge?.Tip, TargetNullValue=''}" AutomationProperties.Name="{Binding RightEdge?.Tip, TargetNullValue=''}">
               <StackPanel>
@@ -3097,10 +3174,16 @@
 
       <!-- Unterleiste: die wichtigsten Tasten für die aktuelle Lage -->
       <Panel Grid.Row="3" Margin="2,8,2,0">
+        <!-- Immer eine Zeile: was nicht passt, fällt von rechts weg, nur „Alle Tasten“ bleibt; die Tasten wirken weiter (HintStrip) -->
         <ItemsControl ItemsSource="{Binding KeyHints}">
+          <ItemsControl.Styles>
+            <Style Selector="ContentPresenter" x:DataType="vm:KeyHint">
+              <Setter Property="ui:HintStrip.Keep" Value="{Binding IsHelp}" />
+            </Style>
+          </ItemsControl.Styles>
           <ItemsControl.ItemsPanel>
             <ItemsPanelTemplate>
-              <WrapPanel ItemSpacing="16" LineSpacing="4" />
+              <ui:HintStrip Spacing="16" />
             </ItemsPanelTemplate>
           </ItemsControl.ItemsPanel>
           <ItemsControl.ItemTemplate>
@@ -3195,9 +3278,9 @@
             </Border>
           </WrapPanel>
         </Border>
-        <!-- Unten 32 Rand: der runde Knopf „KI und Hilfe“ der Shell (48 px, 20 px vom Rand) ragt 32 px über die Reiterschiene in die Leiste, seit sie ohne Rand am Fenster anliegt; so endet der scrollende Inhalt oberhalb (das Kundenformular behält seine Aktionsleiste im Fuß) (bis Slice 31 den Knopf verlegt, Ä74) -->
+        <!-- Unten 40 Rand: der runde Knopf „KI und Hilfe“ der Shell (48 px, 20 px vom Rand) ragt 31 px über die Reiterschiene in die Leiste, seit sie ohne Rand am Fenster anliegt; so endet der scrollende Inhalt mit 8 px Luft oberhalb (das Kundenformular behält seine Aktionsleiste im Fuß) (bis Slice 31 den Knopf verlegt, Ä74) -->
         <Grid Grid.Row="4" RowDefinitions="*,Auto">
-          <ScrollViewer Classes="panelbody" Classes.withfoot="{Binding Booking, Converter={x:Static ObjectConverters.IsNotNull}}" Padding="16,12,16,32" Margin="0,0,0,32"
+          <ScrollViewer Classes="panelbody" Classes.withfoot="{Binding Booking, Converter={x:Static ObjectConverters.IsNotNull}}" Padding="16,12,16,40" Margin="0,0,0,40"
                         IsVisible="{Binding !Selected?.IsEditingCustomer, TargetNullValue=True}">
             <Panel>
               <ContentControl Content="{Binding Selected}" />
@@ -3213,14 +3296,14 @@
             </Panel>
           </ScrollViewer>
           <!-- KI und Hilfe rollt selbst (Hilfe-Bereich und Assistent getrennt): der eingebettete Browser der Hilfe darf in keinem ScrollViewer liegen -->
-          <ContentControl x:Name="CompanionHost" Content="{Binding CompanionPanel}" Margin="0,0,0,32"
+          <ContentControl x:Name="CompanionHost" Content="{Binding CompanionPanel}" Margin="0,0,0,40"
                           IsVisible="{Binding CompanionPanel, Converter={x:Static ObjectConverters.IsNotNull}}" />
           <!-- Kundendaten ergänzen: dasselbe Formular wie in der Kundenkarte; das Panel wird dafür breiter, die Aktionsleiste steht fest im Fuß -->
           <Border IsVisible="{Binding Selected?.IsEditingCustomer, TargetNullValue=False}">
             <local:CustomerContactForm x:Name="PanelCustomerForm" Docked="True" DataContext="{Binding Selected?.CustomerForm}" HorizontalAlignment="Stretch" />
           </Border>
-          <!-- Neuer Termin: Meldung über dem Knopf der Aktion (meldungen.md, M7) und „Termin buchen“ fest im Fuß (design.md 5.1: Trennlinie oben, Innenabstand 12/16; unten 32 für den Knopf „KI und Hilfe“); außerhalb der Öffnungszeit oder des Dienstes als Warnung mit „Trotzdem buchen“ (Slice 85) -->
-          <Border Grid.Row="1" x:Name="BookingFoot" BorderThickness="0,1,0,0" BorderBrush="{DynamicResource LineBrush}" Padding="16,12,16,32"
+          <!-- Neuer Termin: Meldung über dem Knopf der Aktion (meldungen.md, M7) und „Termin buchen“ fest im Fuß (design.md 5.1: Trennlinie oben, Innenabstand 12/16; unten 40 für den Knopf „KI und Hilfe“); außerhalb der Öffnungszeit oder des Dienstes als Warnung mit „Trotzdem buchen“ (Slice 85) -->
+          <Border Grid.Row="1" x:Name="BookingFoot" BorderThickness="0,1,0,0" BorderBrush="{DynamicResource LineBrush}" Padding="16,12,16,40"
                   IsVisible="{Binding Booking, Converter={x:Static ObjectConverters.IsNotNull}}">
             <StackPanel Spacing="8" DataContext="{Binding Booking}" x:DataType="vm:BookingViewModel">
               <ui:InfoBar Severity="Warning" Message="{Binding OutsideHours}" ActionText="Trotzdem buchen" ActionCommand="{Binding BookAnywayCommand}"
