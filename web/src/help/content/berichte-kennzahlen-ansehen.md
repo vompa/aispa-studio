@@ -38,6 +38,27 @@ Bei einem Zeitraum ab sieben Tagen schreibt die KI über den Alarmen drei bis f�
 
 ![Management mit dem Kommentar der KI](images/app/verwaltung-berichte-management-ki.png)
 
+## Aktionen {#aktionen}
+
+Wurden im Zeitraum Positionen mit einer [Aktion](hilfe:kassa-aktion-anwenden) kassiert, steht unten die Tabelle **Aktionen**, je Aktion:
+
+- **Positionen:** wie oft die Aktion kassiert wurde; ein Storno hebt eine Position wieder auf.
+- **Gäste** und **davon neu:** wie viele Gäste die Aktion bekommen haben, und wie viele davon zum ersten Mal im Spa waren.
+- **Rabatt** und **Umsatz brutto** (nach Rabatt): nur mit dem Recht „Berichte mit Beträgen“.
+
+Hat jemand den Rabatt der Position von Hand geändert, zählt sie nicht mehr zur Aktion. Was vor dem 19.11.2026 mit Aktion kassiert wurde, fehlt in der Tabelle.
+
+![Management mit der Tabelle Aktionen](images/app/verwaltung-berichte-management-aktionen.png)
+
+## Bericht per Mail {#bericht-per-mail}
+
+Inhaber, Manager und Standortleitung bekommen den Bericht auch per Mail, je Standort, den sie sehen:
+
+- **Wochenbericht** montags ab 7 Uhr, für Montag bis Sonntag der Vorwoche.
+- **Monatsbericht** am Monatsersten ab 7 Uhr, für den Vormonat.
+
+In der Mail stehen der Kommentar der KI, was zu beachten ist, die Kennzahlen mit dem Zeitraum davor und die Aktionen; Beträge nur mit dem Recht „Berichte mit Beträgen“. Abbestellen: beim Management den Haken **Wochen- und Monatsbericht per Mail** entfernen; wieder setzen bestellt ihn wieder. Der Haken gilt nur für Sie selbst. Ohne Mailadresse im Konto kommt keine Mail.
+
 ## Hinweise {#hinweise}
 
 - Inhaber, Manager, Standortleitung und Backoffice; die Standortleitung sieht nur ihre Standorte.

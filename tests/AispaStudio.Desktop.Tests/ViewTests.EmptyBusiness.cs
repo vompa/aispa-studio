@@ -130,6 +130,7 @@ public sealed partial class ViewTests
         .On($"GET /api/locations/{OnlyLocation.Id}/room-approvers", new List<QuickSwitchPerson>())
         .On($"GET /api/reports/locations/{OnlyLocation.Id}/day-plan?date=2026-10-19&employeeId={OnlyOwner.Id}", new DayPlanDto(OnlyOwner.Id, OnlyOwner.DisplayName, SpaSample.Day, [], [], []))
         .On($"GET /api/reports/locations/{OnlyLocation.Id}/management?from=2026-10-01&until=2026-10-19", new ManagementReportDto(OnlyLocation.Id, new DateOnly(2026, 10, 1), SpaSample.Day, [], [], [], [], [], []))
+        .On("GET /api/reports/mail-subscription", new ReportMailSubscription(Enabled: true, Available: true))
         .On($"GET /api/reports/locations/{OnlyLocation.Id}/compliance?date=2026-10-19", new ComplianceReportDto(OnlyLocation.Id, SpaSample.Day, [], 0m, 0, [], []));
 
     private static readonly List<DateOnly> Week = [.. Enumerable.Range(0, 7).Select(SpaSample.Day.AddDays)];

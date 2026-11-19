@@ -290,6 +290,11 @@ namespace AispaStudio.Api.Data.Migrations
                     b.Property<bool>("PlainReports")
                         .HasColumnType("boolean");
 
+                    b.Property<bool>("ReportMails")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
                     b.Property<string>("Role")
                         .IsRequired()
                         .HasMaxLength(32)
@@ -2565,6 +2570,9 @@ namespace AispaStudio.Api.Data.Migrations
                     b.Property<int>("Position")
                         .HasColumnType("integer");
 
+                    b.Property<Guid?>("PromotionId")
+                        .HasColumnType("uuid");
+
                     b.Property<int>("Quantity")
                         .HasColumnType("integer");
 
@@ -2611,6 +2619,8 @@ namespace AispaStudio.Api.Data.Migrations
                         .HasFilter("\"AreaVisitId\" IS NOT NULL");
 
                     b.HasIndex("BillId");
+
+                    b.HasIndex("PromotionId");
 
                     b.HasIndex("RevenueAccountId");
 
@@ -3967,6 +3977,45 @@ namespace AispaStudio.Api.Data.Migrations
                         .IsUnique();
 
                     b.ToTable("ManagementSummaries", "aispa");
+                });
+
+            modelBuilder.Entity("AispaStudio.Api.Reporting.ReportMailing", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateOnly>("From")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<Guid>("LocationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Recipients")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("SentAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateOnly>("Until")
+                        .HasColumnType("date");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantId");
+
+                    b.HasIndex("LocationId", "Kind", "From")
+                        .IsUnique();
+
+                    b.ToTable("ReportMailings", "aispa");
                 });
 
             modelBuilder.Entity("AispaStudio.Api.Reporting.TreatmentPreparationStep", b =>
@@ -7388,6 +7437,11 @@ namespace AispaStudio.Api.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("AispaStudio.Api.Promotions.Promotion", null)
+                        .WithMany()
+                        .HasForeignKey("PromotionId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("AispaStudio.Api.Pos.RevenueAccount", null)
                         .WithMany()
                         .HasForeignKey("RevenueAccountId")
@@ -7814,6 +7868,21 @@ namespace AispaStudio.Api.Data.Migrations
                 });
 
             modelBuilder.Entity("AispaStudio.Api.Reporting.ManagementSummary", b =>
+                {
+                    b.HasOne("AispaStudio.Api.Scheduling.Location", null)
+                        .WithMany()
+                        .HasForeignKey("LocationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AispaStudio.Api.Tenancy.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AispaStudio.Api.Reporting.ReportMailing", b =>
                 {
                     b.HasOne("AispaStudio.Api.Scheduling.Location", null)
                         .WithMany()

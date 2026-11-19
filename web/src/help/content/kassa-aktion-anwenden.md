@@ -28,3 +28,4 @@ Läuft an diesem Standort eine Aktion, die zu einer Position auf der Rechnung pa
 - Wer die Aktion nicht geben will, klickt nicht auf **Anwenden**. Einen schon angewendeten Rabatt nimmt man mit dem Prozentzeichen an der Position zurück ([Rabatt geben](hilfe:kassa-rabatt-geben)); bei einem Paket das Paket entfernen und neu verkaufen.
 - Ist die Rechnung schon bezahlt oder läuft eine Kartenzahlung am Terminal, ist **Anwenden** nicht möglich.
 - Welche Aktionen es gibt und wie man sie festlegt: [Aktion anlegen](hilfe:aktionen-anlegen).
+- Was eine Aktion gebracht hat, steht im Managementbericht unter „Aktionen“: [Kennzahlen ansehen](hilfe:berichte-kennzahlen-ansehen#aktionen). Gibt man der Position danach einen anderen Rabatt, zählt sie dort nicht mehr zur Aktion.

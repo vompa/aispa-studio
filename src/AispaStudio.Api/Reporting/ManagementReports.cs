@@ -41,6 +41,7 @@ internal sealed partial class ManagementReports(AispaDbContext db, RosterService
             Treatments = [.. report.Treatments.OrderByDescending(t => t.Appointments).ThenBy(t => t.Name, StringComparer.CurrentCulture)
                 .Select(t => t with { NetRevenue = null, MarginPerAppointment = null })],
             Alerts = [.. report.Alerts.Where(a => !a.Contains('€'))],
+            Promotions = report.Promotions is null ? null : [.. report.Promotions.Select(p => p with { Discount = null, Revenue = null })],
             AmountsHidden = true,
         };
 
@@ -118,6 +119,8 @@ internal sealed partial class ManagementReports(AispaDbContext db, RosterService
             .Where(k => k.ShiftHours > 0 || k.TreatmentHours > 0)
             .ToList();
 
+        var promotions = await PromotionsAsync(lines, locationId, ct);
+
         var vouchers = await db.Vouchers.AsNoTracking().Where(v => v.Status == VoucherStatus.Active).SumAsync(v => v.Balance, ct);
         var closings = await db.DayClosings.AsNoTracking()
             .Where(c => registerIds.Contains(c.RegisterId) && c.Until >= start && c.Until < end)
@@ -169,7 +172,65 @@ internal sealed partial class ManagementReports(AispaDbContext db, RosterService
             alerts.Add($"Kassendifferenzen im Zeitraum zusammen {cashDifference.ToString("0.00", German)} €.");
         }
 
-        return new(locationId, from, until, kpis, byAccount, byPayment, employeeKpis, treatments, alerts, NoShows: current.NoShows, Cancellations: current.Cancellations);
+        return new(locationId, from, until, kpis, byAccount, byPayment, employeeKpis, treatments, alerts, NoShows: current.NoShows, Cancellations: current.Cancellations,
+            Promotions: promotions);
+    }
+
+    /// <summary>
+    /// Wirkung der Aktionen aus den Belegzeilen des Zeitraums: je Position mit Aktion zählt, was netto kassiert blieb (Stornos heben auf, Teilbeträge zählen
+    /// zusammen). Abzüge für Gutscheine und Anzahlungen bleiben außen vor: Die Position war so viel wert, auch wenn das Geld früher kam.
+    /// „Neu“ ist ein Gast, dessen erster Termin im Spa der Termin der Position ist.
+    /// </summary>
+    private async Task<List<PromotionKpi>> PromotionsAsync(List<ReceiptLine> lines, Guid locationId, CancellationToken ct)
+    {
+        var billLineIds = lines.Where(l => l.BillLineId is not null && l.VoucherId is null && l.DepositId is null).Select(l => l.BillLineId!.Value).Distinct().ToList();
+        if (billLineIds.Count == 0)
+        {
+            return [];
+        }
+
+        var promoted = await db.BillLines.AsNoTracking().Where(b => b.PromotionId != null && billLineIds.Contains(b.Id))
+            .Join(db.Bills.AsNoTracking(), l => l.BillId, b => b.Id, (l, b) => new { l.Id, PromotionId = l.PromotionId!.Value, l.Discount, l.AppointmentId, b.CustomerId })
+            .ToListAsync(ct);
+        if (promoted.Count == 0)
+        {
+            return [];
+        }
+
+        var kept = lines.Where(l => l.BillLineId is not null && l.VoucherId is null && l.DepositId is null)
+            .GroupBy(l => l.BillLineId!.Value).ToDictionary(g => g.Key, g => g.Sum(l => l.Amount));
+        var paid = promoted.Where(p => kept.GetValueOrDefault(p.Id) > 0).ToList();
+        var customers = paid.Where(p => p.CustomerId is not null).Select(p => p.CustomerId!.Value).Distinct().ToList();
+        var firstVisits = await db.Appointments.AsNoTracking()
+            .Where(a => customers.Contains(a.CustomerId) && a.Status != AppointmentStatus.Cancelled && a.Status != AppointmentStatus.NoShow)
+            .GroupBy(a => a.CustomerId)
+            .Select(g => new { Customer = g.Key, First = g.OrderBy(a => a.Start).Select(a => a.Id).First() })
+            .ToDictionaryAsync(f => f.Customer, f => f.First, ct);
+        var names = await db.Promotions.AsNoTracking().Where(p => paid.Select(x => x.PromotionId).Contains(p.Id)).ToDictionaryAsync(p => p.Id, p => p.Name, ct);
+
+        return [.. paid.GroupBy(p => p.PromotionId)
+            .Select(g => new PromotionKpi(g.Key, names.GetValueOrDefault(g.Key, "Aktion"), g.Count(),
+                g.Where(p => p.CustomerId is not null).Select(p => p.CustomerId).Distinct().Count(),
+                g.Where(p => p.CustomerId is { } c && p.AppointmentId is { } a && firstVisits.GetValueOrDefault(c) == a).Select(p => p.CustomerId).Distinct().Count(),
+                g.Sum(p => p.Discount), g.Sum(p => kept[p.Id])))
+            .OrderByDescending(p => p.Positions).ThenBy(p => p.Name, StringComparer.CurrentCulture)];
+    }
+
+    /// <summary>Eine Aktion in einer Zeile, für den Kommentar der KI und die Mail: „Herbst: 12 Positionen, 10 Gäste, davon 3 neu, Rabatt 84 €, Umsatz 756 €“.</summary>
+    internal static string PromotionText(PromotionKpi promotion)
+    {
+        var text = $"{promotion.Name}: {promotion.Positions} {(promotion.Positions == 1 ? "Position" : "Positionen")}, {promotion.Guests} {(promotion.Guests == 1 ? "Gast" : "Gäste")}, davon {promotion.NewGuests} neu";
+        if (promotion.Discount is { } discount)
+        {
+            text += $", Rabatt {discount.ToString("0.##", German)} €";
+        }
+
+        if (promotion.Revenue is { } revenue)
+        {
+            text += $", Umsatz {revenue.ToString("0.##", German)} €";
+        }
+
+        return text;
     }
 
     private async Task<Period> PeriodAsync(Location location, TimeZoneInfo zone, DateOnly from, DateOnly until, CancellationToken ct)

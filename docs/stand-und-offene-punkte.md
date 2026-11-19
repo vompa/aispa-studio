@@ -390,7 +390,7 @@ Die Nummern sind die Reihenfolge, die der jeweilige Thread gewählt hätte ([Üb
 4. DSFinV-K und TSE-Export mit dem Prüfprogramm prüfen.
 5. Rechnung mit Empfänger in der Windows-App mit #85 abgleichen.
 6. Lager: Charge bei Korrekturen von Hand angeben, Rückverfolgung exportieren.
-7. Aktionen ([ADR 0071](entscheidungen/0071-aktionen-und-rabatte.md)): Wirkung einer Aktion (Umsatz mit Aktion) in den Berichten, Aktionen im Kundenbereich der Online-Buchung, Aktion auf Artikel und Eintritte.
+7. Aktionen ([ADR 0071](entscheidungen/0071-aktionen-und-rabatte.md)): Wirkung einer Aktion in den Berichten seit 19.11.2026 gebaut (Managementbericht, Tabelle „Aktionen“). Offen: Aktionen im Kundenbereich der Online-Buchung, Aktion auf Artikel und Eintritte.
 8. Kalender-Abos ([ADR 0075](entscheidungen/0075-kalender-abos-fuer-feiertage-und-ferien.md)): Feiertage sind entschieden reine Information (Ä50, kein Sperren, kein Warnen; wer zu hat, trägt eine Schließzeit ein); Kantone außerhalb von Bern, Basel-Stadt und Zürich kommen über die Kalender-Abos, eine eigene Kantonsquelle ist nicht nötig.
 - Später: Rückruf-Mail an betroffene Gäste (nur nach Freigabe, über die Queue); Bestellung direkt an Lieferanten per Mail oder Schnittstelle, Wareneingang per Lieferschein-Foto; Terminalbelege (auch über den OPI-Druckkanal); Preis nach Auslastung; Pakete Start, Spa, Spa Plus; Datenmigration aus Altsystemen, Onboarding mit KI, Datenexport nach Data Act.
 
@@ -429,7 +429,8 @@ Die Nummern sind die Reihenfolge, die der jeweilige Thread gewählt hätte ([Üb
 - Suche und weitere Sprachen der Hilfe, dunkle Bilder, Markierungen in Bildern. Mehrsprachige Oberflächen samt Hilfe: Entscheidungsvorlage mit Aufwand in [Mehrsprachigkeit](konzepte/mehrsprachigkeit.md); gebaut wird erst nach der Entscheidung des Auftraggebers.
 
 **Berichte und KI**
-- KI-Kommentar im Managementbericht: seit 19.11.2026 gebaut (ab sieben Tagen). Offen: Wochen- und Monatsbericht per Mail, Push um 7:30.
+- KI-Kommentar im Managementbericht: seit 19.11.2026 gebaut (ab sieben Tagen).
+- Wochen- und Monatsbericht per Mail: seit 19.11.2026 gebaut (Inhaber, Manager, Standortleitung; abbestellbar beim Management). Offen: Push um 7:30.
 - Gesundheitshinweise auf der Behandlungskarte mit protokolliertem Abruf.
 - Lesemodelle, sobald Messungen es verlangen.
 - Testdatensatz: Ist-Zeiten der Zeiterfassung, Termine der Windows-App (Offline-Abgleich).

@@ -1432,6 +1432,27 @@ Expected: Kein Kommentar.
 Closes: –
 Result: ☐
 
+### Berichte – Wochen- und Monatsbericht per Mail
+Start: `dotnet run --project src/AispaStudio.AppHost` mit KI-Schlüssel, Beispieldaten und Mailversand (Mailpit), Server-Uhr auf einen Montag nach 7 Uhr
+1. Eine Stunde warten (oder den Server neu starten) und das Postfach des Inhabers öffnen.
+Expected: Eine Mail „Wochenbericht {Standort}: … bis …“ mit KI-Kommentar, „Worauf achten:“, Kennzahlen mit „(Woche davor: …)“ und dem Hinweis zum Abbestellen; die Rezeption bekommt keine.
+2. Server neu starten.
+Expected: Keine zweite Mail für dieselbe Woche.
+3. In der Windows-App als Manager **Verwaltung** › **Zahlen** › **Berichte** › Management: Haken **Wochen- und Monatsbericht per Mail** entfernen; als Rezeption denselben Reiter öffnen.
+Expected: Der Haken bleibt nach erneutem Öffnen entfernt; die nächste Mail geht nicht mehr an den Manager. Die Rezeption sieht keinen Haken.
+Closes: –
+Result: ☐
+
+### Berichte – Wirkung von Aktionen
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App als Inhaber, eine laufende Aktion „Herbst“ für alle Behandlungen
+1. An der Kassa zwei Termine (ein Stammgast, ein neuer Gast) abrechnen, jeweils **Anwenden** beim Hinweis zur Aktion, bezahlen. Einen dritten mit Aktion bezahlen und stornieren.
+2. **Verwaltung** › **Zahlen** › **Berichte** › Management, Zeitraum mit heute.
+Expected: Tabelle „Aktionen“ mit Herbst: 2 Positionen, 2 Gäste, davon 1 neu, Rabatt und Umsatz brutto passend zu den Belegen.
+3. Als Standortleitung ohne „Berichte mit Beträgen“ denselben Bericht öffnen.
+Expected: Positionen und Gäste stehen da, Rabatt und Umsatz zeigen „–“.
+Closes: –
+Result: ☐
+
 ### Leiste „KI und Hilfe“ – neuen Gast beim Buchen anlegen
 Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App als Rezeption, mit KI-Schlüssel
 1. Rechts die Leiste **KI und Hilfe** öffnen, „Wann ist morgen eine Massage frei?“ fragen und eine Zeit anklicken.

@@ -113,6 +113,7 @@ public sealed class ApiFixture : IAsyncLifetime
             builder.UseSetting("OnlineBooking:CardHoldPollSeconds", "0");
             builder.UseSetting("OnlineBooking:PaymentRecoveryPollSeconds", "0");
             builder.UseSetting("AccessExpiry:PollSeconds", "0");
+            builder.UseSetting("ReportMails:PollSeconds", "0");
             builder.UseSetting("CalendarSubscriptions:PollSeconds", "0");
             builder.UseSetting("Operator:ApiKey", OperatorKey);
             builder.UseSetting("Queue:RetrySeconds:0", "1");

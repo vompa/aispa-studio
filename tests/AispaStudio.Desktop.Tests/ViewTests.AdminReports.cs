@@ -71,6 +71,19 @@ public sealed partial class ViewTests
             AiNotice = "Von der KI aus den Zahlen dieses Berichts kommentiert. Maßgeblich sind die Zahlen selbst.",
         }));
 
+    [Fact]
+    public Task Verwaltung_Berichte_Management_mit_Aktionen() => Render("hell", "verwaltung-berichte-management-aktionen", async (window, main) =>
+    {
+        var (shell, _) = await OpenReports(window, main, ReportsViewModel.ManagementTab);
+        await Pump(Settling);
+        Assert.True(Shows(window, "Last Minute"));
+        Assert.True(Shows(window, "davon neu"));
+        Named<StackPanel>(window, "ManagementPromotions").BringIntoView();
+        await Pump();
+        return shell.AdminPage;
+    }, ReportsApi().On($"GET /api/reports/locations/{ReportSample.LocationId}/management?from=2026-10-01&until={ReportSample.Today:yyyy-MM-dd}",
+        ReportSample.Management() with { Promotions = ReportSample.Promotions() }));
+
     [Theory]
     [InlineData("hell")]
     [InlineData("dunkel")]

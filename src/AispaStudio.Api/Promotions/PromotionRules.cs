@@ -125,6 +125,7 @@ internal static class PromotionRules
         {
             line.Discount = discount;
             line.DiscountNote = Note(promotion, line, discount);
+            line.PromotionId = promotion.Id;
             line.Amount = (line.UnitPrice * line.Quantity) - discount;
             applied.Add(line);
         }
