@@ -46,6 +46,7 @@ public sealed class AispaDbContext(DbContextOptions<AispaDbContext> options, Ten
     public DbSet<TreatmentPriceRule> TreatmentPriceRules => Set<TreatmentPriceRule>();
     public DbSet<Customer> Customers => Set<Customer>();
     public DbSet<CustomerFlag> CustomerFlags => Set<CustomerFlag>();
+    public DbSet<CustomerFlagDismissal> CustomerFlagDismissals => Set<CustomerFlagDismissal>();
     public DbSet<CustomerEmail> CustomerEmails => Set<CustomerEmail>();
     public DbSet<CustomerNameChangeEntry> CustomerNameChanges => Set<CustomerNameChangeEntry>();
     public DbSet<Appointment> Appointments => Set<Appointment>();
@@ -74,6 +75,7 @@ public sealed class AispaDbContext(DbContextOptions<AispaDbContext> options, Ten
     public DbSet<CashRegister> CashRegisters => Set<CashRegister>();
     public DbSet<Bill> Bills => Set<Bill>();
     public DbSet<BillLine> BillLines => Set<BillLine>();
+    public DbSet<HealthDataAccess> HealthDataAccesses => Set<HealthDataAccess>();
     public DbSet<Receipt> Receipts => Set<Receipt>();
     public DbSet<ReceiptRecipient> ReceiptRecipients => Set<ReceiptRecipient>();
     public DbSet<Voucher> Vouchers => Set<Voucher>();
@@ -178,6 +180,7 @@ public sealed class AispaDbContext(DbContextOptions<AispaDbContext> options, Ten
         PaymentAccountModel.Configure(builder);
         PromotionModel.Configure(builder);
         CalendarSubscriptionModel.Configure(builder);
+        HealthAccessModel.Configure(builder);
         BusinessContactModel.Configure(builder);
         ClosureModel.Configure(builder);
         RoomClosureModel.Configure(builder);

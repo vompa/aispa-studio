@@ -23,7 +23,14 @@ public sealed partial class GapRow(GapSuggestion suggestion, TimeZoneInfo zone, 
     /// <summary>Der Termin kommt von Treatwell: Die App bucht dort nicht um (ADR 0062).</summary>
     public string? PlatformHint => Suggestion.Source == AppointmentSource.Treatwell ? PlatformText.MoveInPlatform : null;
 
-    public string MoveText => $"Auf {Time(Suggestion.SuggestedStart)} verschieben";
+    /// <summary>Kette: die Termine, die mitrücken, je „Danach: Anna Berg, Massage, 11:35 auf 11:15“.</summary>
+    public IReadOnlyList<string> Followers => [.. (Suggestion.Chain ?? []).Select(c =>
+        $"Danach: {c.CustomerName}, {c.TreatmentName}, {Time(c.CurrentStart)} auf {Time(c.SuggestedStart)}"
+        + (c.Source == AppointmentSource.Treatwell ? $" ({PlatformText.MoveInPlatform})" : ""))];
+
+    public bool IsChain => Suggestion.Chain is { Count: > 0 };
+
+    public string MoveText => IsChain ? $"Alle {Suggestion.Chain!.Count + 1} verschieben" : $"Auf {Time(Suggestion.SuggestedStart)} verschieben";
 
     public string NewTime => Time(Suggestion.SuggestedStart);
 

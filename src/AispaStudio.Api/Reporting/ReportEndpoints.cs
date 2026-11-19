@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using AispaStudio.Api.Access;
 using AispaStudio.Api.Data;
 using AispaStudio.Api.Online;
@@ -21,13 +22,14 @@ internal static class ReportEndpoints
     /// „Anamnese prüfen“ (<see cref="TreatmentCard.CheckAnamnesis"/>) bekommt jede Karte, deren Behandlung es verlangt und deren Gast Angaben gemacht hat,
     /// so wie die Rezeption es beim Buchen sieht. Das Allergie-Kennzeichen sieht nur, wer die Person selbst behandelt (<paramref name="own"/>).
     /// </summary>
-    private static async Task<DayPlanDto> WithAnamnesisHintsAsync(DayPlanDto plan, bool own, AnamnesisStore anamnesis, AispaDbContext db, CancellationToken ct)
+    private static async Task<DayPlanDto> WithAnamnesisHintsAsync(DayPlanDto plan, bool own, bool hints, AnamnesisStore anamnesis, AispaDbContext db,
+        CancellationToken ct)
     {
         var appointmentIds = plan.Cards.Select(c => c.AppointmentId).ToList();
         var toCheck = (await db.Appointments.AsNoTracking().Where(a => appointmentIds.Contains(a.Id) && a.Treatment.CheckAnamnesis).Select(a => a.Id).ToListAsync(ct)).ToHashSet();
         var allergies = new HashSet<Guid>();
         var findings = new HashSet<Guid>();
-        foreach (var customerId in plan.Cards.Where(c => own || toCheck.Contains(c.AppointmentId)).Select(c => c.CustomerId).Distinct())
+        foreach (var customerId in plan.Cards.Where(c => own || hints || toCheck.Contains(c.AppointmentId)).Select(c => c.CustomerId).Distinct())
         {
             if (await anamnesis.LatestAsync(customerId, ct) is not { } record)
             {
@@ -51,9 +53,21 @@ internal static class ReportEndpoints
             {
                 AllergyFlag = allergies.Contains(c.CustomerId),
                 CheckAnamnesis = toCheck.Contains(c.AppointmentId) && findings.Contains(c.CustomerId),
+                HasHealthHints = hints && findings.Contains(c.CustomerId),
             })],
         };
     }
+
+    /// <summary>Hinweis unter den Gesundheitshinweisen der Karte.</summary>
+    public const string HealthHintsNotice = "Angaben des Gastes aus dem Fragebogen. Ihr Abruf wird protokolliert.";
+
+    /// <summary>
+    /// Gesundheitshinweise auf der Karte (Auftraggeber, 19.11.2026): wer den Gast behandelt, die Rezeption und die Standortleitung des Standorts;
+    /// Inhaber, Manager und Backoffice nicht. Die Rolle braucht dazu das Recht, Gesundheitsdaten zu lesen.
+    /// </summary>
+    internal static bool MaySeeHealthHints(UserAccess access, Guid employeeId, Guid locationId) =>
+        (access.EmployeeId == employeeId)
+        || (access.Role is StaffRole.Reception or StaffRole.Manager && access.CanSee(locationId));
 
     public static IEndpointRouteBuilder MapReportEndpoints(this IEndpointRouteBuilder routes)
     {
@@ -81,7 +95,9 @@ internal static class ReportEndpoints
                 }
 
                 // Nur wer die Person selbst behandelt, sieht das Kennzeichen; die Rezeption sieht weiter nur den Stand des Fragebogens.
-                return TypedResults.Ok(await WithAnamnesisHintsAsync(plan, employee == access.EmployeeId, anamnesis, db, ct));
+                // Ob es Gesundheitshinweise gibt (nur ja oder nein); lesen kann man sie über die Karte, mit Protokoll.
+                var hints = access.Has(AccessRight.ViewHealthData) && MaySeeHealthHints(access, employee.Value, locationId);
+                return TypedResults.Ok(await WithAnamnesisHintsAsync(plan, employee == access.EmployeeId, hints, anamnesis, db, ct));
             })
             .WithName("GetDayPlan")
             .WithSummary("Tagesplan mit Behandlungskarten; ohne Person der eigene. Im eigenen Plan sagt AllergyFlag nur ja oder nein, ohne Inhalt.")
@@ -103,6 +119,37 @@ internal static class ReportEndpoints
             })
             .WithName("GetTreatmentCard")
             .RequirePermission(AccessRight.ChangeStatus)
+            .AllowChannel(AccessChannel.StaffApp);
+
+        group.MapGet("/appointments/{appointmentId:guid}/health", async Task<Results<Ok<TreatmentHealthHints>, NotFound, ProblemHttpResult>> (
+                Guid appointmentId, ClaimsPrincipal principal, AispaDbContext db, AccessService accessService, AnamnesisStore anamnesis, HealthAccessLog log,
+                CancellationToken ct) =>
+            {
+                var appointment = await db.Appointments.AsNoTracking().Where(a => a.Id == appointmentId)
+                    .Select(a => new { a.CustomerId, a.EmployeeId, a.LocationId }).FirstOrDefaultAsync(ct);
+                if (appointment is null)
+                {
+                    return TypedResults.NotFound();
+                }
+
+                var access = (await accessService.CurrentAsync(ct))!;
+                if (!MaySeeHealthHints(access, appointment.EmployeeId, appointment.LocationId))
+                {
+                    return (ProblemHttpResult)PermissionExtensions.Forbidden(
+                        "Gesundheitshinweise sieht nur, wer den Gast behandelt, die Rezeption und die Standortleitung.");
+                }
+
+                var record = await anamnesis.LatestAsync(appointment.CustomerId, ct);
+                if (record is not null)
+                {
+                    await log.WriteAsync(principal, appointment.CustomerId, appointmentId, HealthAccessPurpose.TreatmentCard, ct);
+                }
+
+                return TypedResults.Ok(new TreatmentHealthHints(appointmentId, record?.SubmittedAt, record is null ? [] : AnamnesisForm.Hints(record), HealthHintsNotice));
+            })
+            .WithName("GetTreatmentHealthHints")
+            .WithSummary("Gesundheitshinweise für die Behandlungskarte (nur „Ja“ und Sonstiges); jeder Abruf wird protokolliert.")
+            .RequirePermission(AccessRight.ViewHealthData)
             .AllowChannel(AccessChannel.StaffApp);
 
         group.MapPut("/appointments/{appointmentId:guid}/equipment-prepared", async Task<Results<NoContent, NotFound>> (

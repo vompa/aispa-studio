@@ -1057,6 +1057,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/customers/{customerId}/flags/suggestions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Vorschläge für Kennzeichen aus den letzten 12 Monaten: „Braucht mehr Zeit“ ab zwei Verspätungen oder Überziehungen von mindestens 10 Minuten, „Leitung informieren“ ab zwei Mal nicht erschienen. Nur Kennzeichen, die die angemeldete Person setzen darf, die noch nicht gesetzt und nicht in den letzten 180 Tagen verworfen sind. Gesetzt wird nichts von selbst. */
+        get: operations["ListCustomerFlagSuggestions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customers/{customerId}/flags/suggestions/{kind}/dismiss": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Verwirft einen Vorschlag; er kommt für diesen Gast erst nach 180 Tagen wieder. Rechte wie beim Setzen des Kennzeichens. */
+        post: operations["DismissCustomerFlagSuggestion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/customers/{customerId}/emails": {
         parameters: {
             query?: never;
@@ -1480,6 +1514,23 @@ export interface paths {
         get: operations["GetGapSuggestions"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/gap-chains": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Verschiebt eine Kette aus den Lückenvorschlägen (zwei bis vier Termine derselben Person, alle in dieselbe Richtung) in einem Aufruf. Scheitert ein Termin, gehen die schon verschobenen an ihre alte Zeit zurück und die Antwort nennt den Grund (409). */
+        post: operations["MoveGapChain"];
         delete?: never;
         options?: never;
         head?: never;
@@ -5651,7 +5702,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Neuester Anamnesebogen eines Kunden, entschlüsselt. */
+        /** Neuester Anamnesebogen eines Kunden, entschlüsselt; der Abruf wird protokolliert (mit Termin, wenn angegeben). */
         get: operations["GetCustomerAnamnesis"];
         put?: never;
         post?: never;
@@ -5707,6 +5758,23 @@ export interface paths {
         put?: never;
         /** Geprüften Papierbogen als Anamnese übernehmen. Das Foto bleibt als Beleg der Unterschrift verschlüsselt erhalten. */
         post: operations["ConfirmAnamnesisScan"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customers/{customerId}/anamnesis/accesses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Wer die Gesundheitsdaten des Gastes wann wozu abgerufen hat (die letzten 100); nur für die Leitung. */
+        get: operations["GetHealthDataAccesses"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -7346,6 +7414,23 @@ export interface paths {
             cookie?: never;
         };
         get: operations["GetTreatmentCard"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/appointments/{appointmentId}/health": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Gesundheitshinweise für die Behandlungskarte (nur „Ja“ und Sonstiges); jeder Abruf wird protokolliert. */
+        get: operations["GetTreatmentHealthHints"];
         put?: never;
         post?: never;
         delete?: never;
@@ -10502,6 +10587,10 @@ export interface components {
         };
         /** @enum {unknown} */
         CustomerFlagKind: "MoreTime" | "InformManagement" | "NotWithMe" | "DoNotBook";
+        CustomerFlagSuggestion: {
+            kind: components["schemas"]["CustomerFlagKind"];
+            evidence: string;
+        };
         /** @enum {unknown} */
         CustomerImportField: "FirstName" | "LastName" | "Email" | "Phone" | "BirthDate" | "Salutation" | "Street" | "PostalCode" | "City" | "Country" | "MarketingConsent" | null;
         CustomerImportMapping: {
@@ -11161,6 +11250,26 @@ export interface components {
         FollowUpNote: {
             note: string;
         };
+        GapChainMove: {
+            /** Format: uuid */
+            appointmentId: string;
+            customerName: string;
+            treatmentName: string;
+            /** Format: date-time */
+            currentStart: string;
+            /** Format: date-time */
+            suggestedStart: string;
+            source?: components["schemas"]["AppointmentSource"];
+        };
+        GapChainRequest: {
+            moves: components["schemas"]["GapChainStep"][];
+        };
+        GapChainStep: {
+            /** Format: uuid */
+            appointmentId: string;
+            /** Format: date-time */
+            start: string;
+        };
         GapSuggestion: {
             /** Format: uuid */
             appointmentId: string;
@@ -11177,6 +11286,7 @@ export interface components {
             gapMinutes: number;
             reason: string;
             source?: components["schemas"]["AppointmentSource"];
+            chain?: null | components["schemas"]["GapChainMove"][];
         };
         GroupAreaItem: {
             /** Format: uuid */
@@ -11337,6 +11447,22 @@ export interface components {
             days: components["schemas"]["DayOfWeek"][];
             /** @default true */
             isActive: boolean;
+        };
+        HealthAccessEntry: {
+            /** Format: date-time */
+            at: string;
+            person: string;
+            purpose: components["schemas"]["HealthAccessPurpose"];
+            treatment: null | string;
+            /** Format: date-time */
+            appointmentStart: null | string;
+        };
+        /** @enum {unknown} */
+        HealthAccessPurpose: "TreatmentCard" | "Anamnesis" | "Scan" | "Disclosure";
+        HealthHint: {
+            key: string;
+            label: string;
+            details: null | string;
         };
         HistoryEntry: {
             /** Format: date-time */
@@ -14568,6 +14694,8 @@ export interface components {
             processingMinutes: number;
             /** @default false */
             checkAnamnesis: boolean;
+            /** @default false */
+            hasHealthHints: boolean;
             displayName?: null | string;
         };
         TreatmentCostDto: {
@@ -14669,6 +14797,14 @@ export interface components {
              * @default 0
              */
             quantity: number;
+        };
+        TreatmentHealthHints: {
+            /** Format: uuid */
+            appointmentId: string;
+            /** Format: date-time */
+            submittedAt: null | string;
+            hints: components["schemas"]["HealthHint"][];
+            notice: string;
         };
         TreatmentInput: {
             name: string;
@@ -17815,6 +17951,81 @@ export interface operations {
             };
         };
     };
+    ListCustomerFlagSuggestions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                customerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomerFlagSuggestion"][];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    DismissCustomerFlagSuggestion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                customerId: string;
+                kind: components["schemas"]["CustomerFlagKind"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     ListCustomerEmails: {
         parameters: {
             query?: never;
@@ -18832,6 +19043,57 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    MoveGapChain: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GapChainRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AppointmentDto"][];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BookingRejected"];
+                };
             };
         };
     };
@@ -29844,7 +30106,9 @@ export interface operations {
     };
     GetCustomerAnamnesis: {
         parameters: {
-            query?: never;
+            query?: {
+                appointmentId?: string;
+            };
             header?: never;
             path: {
                 customerId: string;
@@ -30018,6 +30282,44 @@ export interface operations {
                 };
                 content: {
                     "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetHealthDataAccesses: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                customerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HealthAccessEntry"][];
                 };
             };
             /** @description Forbidden */
@@ -34972,6 +35274,44 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TreatmentCard"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetTreatmentHealthHints: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                appointmentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TreatmentHealthHints"];
                 };
             };
             /** @description Forbidden */

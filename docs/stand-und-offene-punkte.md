@@ -377,9 +377,9 @@ Die Nummern sind die Reihenfolge, die der jeweilige Thread gewählt hätte ([Üb
 1. Ausfall-Assistent: Gäste ohne Ersatz per WhatsApp informieren (per Mail und SMS seit 16.11.2026; WhatsApp braucht eine eigene freigegebene Vorlage).
 2. Ausfall-Assistent: Ersatz an anderen Tagen seit 17.11.2026 gebaut (nächste 14 Tage am eigenen Standort, nicht vorausgewählt); Paar- und Spa-Tag-Buchungen an einen anderen Standort oder Tag verlegt die Rezeption von Hand (Auftraggeber, 18.11.2026: bleibt Handarbeit).
 3. Leerlaufzeit eines angemeldeten Empfangsgeräts ändern; Liste aller Empfangsgeräte des Spas.
-4. Lücken durch Verschieben mehrerer Termine hintereinander schließen (Ketten).
+4. Lücken durch Verschieben mehrerer Termine hintereinander schließen (Ketten): seit 19.11.2026 gebaut (bis vier Termine, Vorziehen; ein Aufruf mit Rücknahme).
 5. Feiertage weiterer Kantone und einzelner Gemeinden.
-6. Aus den Rezeptions-Schritten offen („Kommt später“ meldet der Gast seit 16.11.2026 selbst über den Termin-Link): Ausfallgebühr für Gäste ohne Namen seit 18.11.2026 gebaut (zahlt die buchende Person; Sauna seit 17.11.2026); Hinweis „Anamnese prüfen“ auch bei Paar und Spa-Tag (in „Mein Tag“ seit 16.11.2026); automatische Vorschläge für Kennzeichen; Schwellen der Kennzahlen einstellbar.
+6. Aus den Rezeptions-Schritten offen („Kommt später“ meldet der Gast seit 16.11.2026 selbst über den Termin-Link): Ausfallgebühr für Gäste ohne Namen seit 18.11.2026 gebaut (zahlt die buchende Person; Sauna seit 17.11.2026); Hinweis „Anamnese prüfen“ auch bei Paar und Spa-Tag (in „Mein Tag“ seit 16.11.2026); automatische Vorschläge für Kennzeichen seit 19.11.2026 gebaut („Braucht mehr Zeit“, „Leitung informieren“); Schwellen der Kennzahlen einstellbar.
 - Nicht gebaut (Auftraggeber, 16.11.2026): Zeiterfassung am Empfangsgerät per PIN.
 - Später: Chipkarte oder NFC für den Schnellwechsel; Entfernung oder bevorzugter Ausweichstandort; Lückenbewertung in Online-Buchung und KI-Terminannahme; SSO; Korrekturwünsche, Monatsbestätigung, Ist-Zeiten in den Berichten; Benachrichtigung beim Veröffentlichen des Dienstplans; KI-Vorschläge im Dienstplan (Entwurf `RosterDraftTests`).
 
@@ -431,7 +431,7 @@ Die Nummern sind die Reihenfolge, die der jeweilige Thread gewählt hätte ([Üb
 **Berichte und KI**
 - KI-Kommentar im Managementbericht: seit 19.11.2026 gebaut (ab sieben Tagen).
 - Wochen- und Monatsbericht per Mail: seit 19.11.2026 gebaut (Inhaber, Manager, Standortleitung; abbestellbar beim Management). Offen: Push um 7:30.
-- Gesundheitshinweise auf der Behandlungskarte mit protokolliertem Abruf.
+- Gesundheitshinweise auf der Behandlungskarte mit protokolliertem Abruf: seit 19.11.2026 gebaut (behandelnde Person, Rezeption, Standortleitung; Protokoll aller Lesezugriffe, Liste für die Leitung im Termin).
 - Lesemodelle, sobald Messungen es verlangen.
 - Testdatensatz: Ist-Zeiten der Zeiterfassung, Termine der Windows-App (Offline-Abgleich).
 

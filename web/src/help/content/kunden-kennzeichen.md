@@ -29,6 +29,20 @@ Statt eines Freitexts wie „schwierige Kundin“ gibt es feste, sachliche Kennz
 
 Neue Termine richten sich sofort danach. Schon gebuchte Termine bleiben, wie sie sind.
 
+## Vorschläge {#vorschlaege}
+
+Aus dem Verlauf der letzten 12 Monate schlägt die App Kennzeichen vor. Sie stehen im Abschnitt **Kennzeichen** als „Vorschlag: …“ mit der Begründung:
+
+- **Braucht mehr Zeit:** ab zwei Mal mindestens 10 Minuten zu spät (gemeldete Verspätung) oder 10 Minuten länger behandelt (begonnen und beendet in „Mein Tag“).
+- **Leitung informieren:** ab zwei Mal nicht erschienen. Diesen Vorschlag sieht nur die Leitung.
+
+1. **Übernehmen** setzt das Kennzeichen; die Begründung steht als Grund dabei.
+2. **Verwerfen** blendet den Vorschlag aus. Für diesen Gast kommt er erst nach einem halben Jahr wieder.
+
+Die App setzt nie selbst ein Kennzeichen. Vorschläge sieht nur, wer das Kennzeichen auch setzen darf.
+
+![Vorschlag für ein Kennzeichen](images/app/kunden-kennzeichen-vorschlag.png)
+
 ## Aufheben {#aufheben}
 
 Auf das Kreuz am Chip des Kennzeichens klicken (Tooltip „Aufheben“). Wirkung und Grund zeigt der Tooltip des Chips. Aufheben darf, wer es auch setzen darf; „Nicht bei mir“ nur die Person selbst oder die Leitung. Aufgehobene Kennzeichen bleiben mit Zeitpunkt und Person gespeichert, damit nachvollziehbar ist, wer was geändert hat.

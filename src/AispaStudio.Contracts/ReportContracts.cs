@@ -70,7 +70,8 @@ public sealed record TreatmentCard(
     bool AllergyFlag = false,
     int HandsOnMinutes = 0,
     int ProcessingMinutes = 0,
-    bool CheckAnamnesis = false)
+    bool CheckAnamnesis = false,
+    bool HasHealthHints = false)
 {
     /// <summary>Name der Behandlung ohne die Dauer am Ende („Lava-Hot-Stone-Massage (60 Min.)“ wird „Lava-Hot-Stone-Massage“); die Dauer steht in <c>DurationMinutes</c>.</summary>
     public string? DisplayName { get; init; }

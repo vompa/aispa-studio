@@ -29,6 +29,9 @@ internal abstract record BookingOutcome
     public sealed record SeriesPreviewed(List<SeriesOccurrence> Occurrences) : BookingOutcome;
 
     public sealed record SeriesChanged(SeriesResult Result) : BookingOutcome;
+
+    /// <summary>Eine Kette aus den Lückenvorschlägen ist verschoben; die Termine in zeitlicher Reihenfolge.</summary>
+    public sealed record ChainMoved(List<AppointmentDto> Appointments) : BookingOutcome;
 }
 
 /// <summary>
@@ -512,9 +515,19 @@ internal sealed partial class BookingService(AispaDbContext db, RosterService ro
             return new BookingOutcome.NotFound("Termin");
         }
 
-        return running is { Status: AppointmentStatus.CheckedIn, StartedAt: not null }
-            ? await ChangeStatusAsync(id, AppointmentStatus.Completed, ct)
-            : new BookingOutcome.Invalid("status", "Bitte zuerst „begonnen“ melden.");
+        if (running is not { Status: AppointmentStatus.CheckedIn, StartedAt: not null })
+        {
+            return new BookingOutcome.Invalid("status", "Bitte zuerst „begonnen“ melden.");
+        }
+
+        var outcome = await ChangeStatusAsync(id, AppointmentStatus.Completed, ct);
+        if (outcome is BookingOutcome.Success)
+        {
+            var now = time.GetUtcNow();
+            await db.Appointments.Where(a => a.Id == id).ExecuteUpdateAsync(s => s.SetProperty(a => a.FinishedAt, now), ct);
+        }
+
+        return outcome;
     }
 
     /// <summary>

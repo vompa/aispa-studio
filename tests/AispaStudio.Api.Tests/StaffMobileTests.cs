@@ -77,6 +77,13 @@ public sealed class StaffMobileTests(ApiFixture fixture)
         Assert.Equal(HttpStatusCode.BadRequest, early.StatusCode);
         Assert.Equal(AppointmentStatus.Completed, finished.Status);
         Assert.Equal(AppointmentStatus.Completed, (await spa.GetAsync<AppointmentDto>($"/api/appointments/{appointment.Id}", Ct)).Status);
+
+        // Das Ende ist gespeichert (tatsächliche Dauer für den Vorschlag „Braucht mehr Zeit“).
+        await using var scope = spa.Fixture.Factory.Services.CreateAsyncScope();
+        scope.ServiceProvider.GetRequiredService<TenantContext>().Use(spa.TenantId);
+        var stored = await scope.ServiceProvider.GetRequiredService<AispaDbContext>().Appointments.AsNoTracking().FirstAsync(a => a.Id == appointment.Id, Ct);
+        Assert.NotNull(stored.FinishedAt);
+        Assert.True(stored.FinishedAt >= stored.StartedAt);
     }
 
     [Fact]

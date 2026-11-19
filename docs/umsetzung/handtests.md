@@ -1432,6 +1432,37 @@ Expected: Kein Kommentar.
 Closes: –
 Result: ☐
 
+### Kunden – Vorschläge für Kennzeichen
+Start: `dotnet run --project src/AispaStudio.AppHost` mit Beispieldaten; ein Gast mit zwei Terminen „Nicht erschienen“ in den letzten 12 Monaten
+1. In der Windows-App als Inhaberin **Kunden** öffnen und den Gast wählen.
+Expected: Im Abschnitt **Kennzeichen** steht „Vorschlag: Leitung informieren“ mit „In den letzten 12 Monaten 2-mal nicht erschienen.“
+2. **Verwerfen** klicken, die Karte neu öffnen.
+Expected: Der Vorschlag kommt nicht wieder. Als Rezeption ist der Vorschlag nie zu sehen.
+3. Bei einem Gast mit zwei gemeldeten Verspätungen von 10 Minuten als Rezeption **Übernehmen** bei „Braucht mehr Zeit“.
+Expected: Das Kennzeichen steht mit der Begründung als Grund; ein neuer Termin bekommt 10 Minuten Puffer.
+Closes: –
+Result: ☐
+
+### Kalender – Lücken schließen mit Kette
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App als Rezeption; bei einer Person drei Massagen an einem Tag: 9:05, 10:30 und direkt danach 11:35
+1. Im Menü neben **Termin** **Lücken schließen** wählen.
+Expected: Ein Vorschlag für 10:30 auf 10:10 mit der Zeile „Danach: …, 11:35 auf 11:15“ und dem Knopf **Alle 2 verschieben**.
+2. **Alle 2 verschieben** klicken.
+Expected: Beide Termine stehen im Kalender 20 Minuten früher; die Meldung „2 Termine bei … verschoben“; der Vorschlag ist weg.
+Closes: –
+Result: ☐
+
+### Behandlungskarte – Gesundheitshinweise mit Protokoll
+Start: `dotnet run --project src/AispaStudio.AppHost` mit Beispieldaten; ein Gast mit ausgefülltem Fragebogen (z. B. „Medikamente: Ja, Blutverdünner“) und einem Termin bei Lena heute
+1. Als Lena „Mein Tag“ am Handy öffnen.
+Expected: Auf der Karte des Gastes steht **Gesundheitshinweise ansehen**; nach dem Antippen „Medikamente: Blutverdünner“ und „Ihr Abruf wird protokolliert.“
+2. Als Rezeption denselben Termin über die Behandlungskarte öffnen; als andere Therapeutin ohne diesen Termin versuchen.
+Expected: Die Rezeption sieht die Hinweise; die andere Therapeutin bekommt keinen Knopf (und der Aufruf wird abgelehnt).
+3. In der Windows-App als Inhaberin den Termin öffnen, Karte **Anamnese**, **Abrufe ansehen**.
+Expected: Lenas Abruf als „Behandlungskarte (Behandlung am Datum)“ mit Uhrzeit; ein **Ansehen** in der Karte erscheint danach als „Bogen im Termin“. Als Rezeption gibt es den Knopf **Abrufe ansehen** nicht.
+Closes: –
+Result: ☐
+
 ### Berichte – Wochen- und Monatsbericht per Mail
 Start: `dotnet run --project src/AispaStudio.AppHost` mit KI-Schlüssel, Beispieldaten und Mailversand (Mailpit), Server-Uhr auf einen Montag nach 7 Uhr
 1. Eine Stunde warten (oder den Server neu starten) und das Postfach des Inhabers öffnen.

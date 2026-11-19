@@ -62,6 +62,25 @@ internal static class AnamnesisForm
 
     public static IReadOnlySet<string> Keys { get; } = Questions.Select(q => q.Key).ToHashSet();
 
+    /// <summary>Kurze Titel für die Behandlungskarte; der volle Fragetext steht im Bogen.</summary>
+    private static readonly Dictionary<string, string> ShortLabels = new()
+    {
+        ["allergies"] = "Allergien",
+        ["skin"] = "Haut",
+        ["circulation"] = "Herz/Kreislauf",
+        ["pregnancy"] = "Schwanger/stillend",
+        ["medication"] = "Medikamente",
+        ["surgery"] = "OP/Verletzung",
+        ["other"] = "Sonstiges",
+    };
+
+    /// <summary>Die Hinweise eines Bogens in der Reihenfolge der Fragen: „Ja“-Antworten und „Sonstiges“ mit Text.</summary>
+    public static List<HealthHint> Hints(AnamnesisRecordDto record) =>
+        [.. Questions.Select(q => (Question: q, Answer: record.Answers.FirstOrDefault(a => a.Key == q.Key)))
+            .Where(x => x.Answer is { } a && (a.Yes == true || (x.Question.Kind == AnamnesisQuestionKind.Text && !string.IsNullOrWhiteSpace(a.Details))))
+            .Select(x => new HealthHint(x.Question.Key, ShortLabels.GetValueOrDefault(x.Question.Key, x.Question.De.Label),
+                string.IsNullOrWhiteSpace(x.Answer!.Details) ? null : x.Answer.Details.Trim()))];
+
     public static bool IsYesNo(string key) => Questions.Any(q => q.Key == key && q.Kind == AnamnesisQuestionKind.YesNo);
 
     public static AnamnesisFormDefinition Definition(string? language)

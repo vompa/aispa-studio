@@ -390,6 +390,12 @@ public sealed record CustomerFlagDto(
     DateOnly Since,
     bool MayRemove);
 
+/// <summary>
+/// Vorschlag für ein Kennzeichen aus dem Verlauf des Gastes (nur Vorschlag, ADR 0008): welches und warum, z. B. „In den letzten 12 Monaten 2-mal nicht erschienen.“
+/// Übernommen wird über „AddCustomerFlag“, verworfen über „DismissCustomerFlagSuggestion“.
+/// </summary>
+public sealed record CustomerFlagSuggestion(CustomerFlagKind Kind, string Evidence);
+
 /// <summary>Neues Kennzeichen; <c>EmployeeId</c> nur bei „Nicht bei mir“ (leer: die angemeldete Person), <c>Reason</c> Pflicht bei „Nicht mehr buchen“.</summary>
 public sealed record CustomerFlagInput(CustomerFlagKind Kind, Guid? EmployeeId = null, string? Reason = null);
 
@@ -543,7 +549,26 @@ public sealed record GapSuggestion(
     DateTimeOffset SuggestedStart,
     int GapMinutes,
     string Reason,
+    AppointmentSource Source = AppointmentSource.Reception,
+    IReadOnlyList<GapChainMove>? Chain = null);
+
+/// <summary>
+/// Kette (Lücken schließen): Lässt sich der Termin nicht allein verschieben, weil dahinter sonst eine neue unbrauchbare Lücke entstünde, rücken die direkt folgenden
+/// Termine derselben Person um dieselben Minuten mit. <c>Chain</c> nennt diese weiteren Termine in zeitlicher Reihenfolge; verschoben wird alles zusammen über
+/// „MoveGapChain“.
+/// </summary>
+public sealed record GapChainMove(
+    Guid AppointmentId,
+    string CustomerName,
+    string TreatmentName,
+    DateTimeOffset CurrentStart,
+    DateTimeOffset SuggestedStart,
     AppointmentSource Source = AppointmentSource.Reception);
+
+/// <summary>Eine Kette verschieben: jeder Termin auf seinen neuen Beginn, bei derselben Person.</summary>
+public sealed record GapChainRequest(IReadOnlyList<GapChainStep> Moves);
+
+public sealed record GapChainStep(Guid AppointmentId, DateTimeOffset Start);
 
 /// <param name="ExpectedVersion">
 /// <see cref="AppointmentDto.Version"/> des Stands, von dem aus geändert wird (Ä281). Weicht der Termin inzwischen ab, antwortet der Server mit 409 und

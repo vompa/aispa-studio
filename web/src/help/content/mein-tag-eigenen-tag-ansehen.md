@@ -18,6 +18,19 @@ In „Mein Tag“ sieht man am Handy die eigenen Termine eines Tages mit Behandl
 
 ![Eigener Tag am Handy](images/web/myday-heute.png)
 
+## Gesundheitshinweise {#gesundheit}
+
+Hat der Gast im Fragebogen etwas angegeben, steht auf der Karte **Gesundheitshinweise ansehen**.
+
+1. **Gesundheitshinweise ansehen** antippen. Es erscheinen nur die Fragen mit „Ja“ und was der Gast dazu geschrieben hat, z. B. „Medikamente: Blutverdünner“.
+2. Nach dem Lesen **Ausblenden** antippen.
+
+![Gesundheitshinweise auf der Karte](images/web/myday-gesundheit.png)
+
+- Jeder Abruf wird mit Person und Uhrzeit protokolliert; die Leitung kann sehen, wer die Angaben gelesen hat.
+- Die Hinweise sehen, wer den Gast behandelt, die Rezeption und die Standortleitung. Kolleginnen mit einem anderen Termin sehen sie nicht.
+- Die Hinweise lädt das Handy erst mit dem Antippen und nur mit Netz; sie werden nicht für unterwegs gespeichert.
+
 ## Anderen Tag ansehen {#anderer-tag}
 
 1. **‹ Vortag** oder **Folgetag ›** antippen.

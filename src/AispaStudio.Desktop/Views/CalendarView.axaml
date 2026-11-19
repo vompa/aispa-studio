@@ -416,6 +416,20 @@
                 </DataTemplate>
               </ItemsControl.ItemTemplate>
             </ItemsControl>
+            <!-- Abrufprotokoll (ADR 0013, Nachtrag 19.11.2026): nur die Leitung -->
+            <Button x:Name="ShowHealthAccessesButton" Classes="ghost" Content="{Binding ShowAccessesText}" HorizontalAlignment="Left"
+                    Command="{Binding ToggleHealthAccessesCommand}" IsVisible="{Binding CanSeeHealthAccesses}" />
+            <TextBlock Text="Noch kein Abruf protokolliert." Classes="muted small" IsVisible="{Binding HasNoHealthAccesses}" />
+            <ItemsControl x:Name="HealthAccessList" ItemsSource="{Binding HealthAccesses}" IsVisible="{Binding HealthAccesses, Converter={x:Static ObjectConverters.IsNotNull}}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:HealthAccessRow">
+                  <StackPanel Margin="0,2">
+                    <TextBlock Text="{Binding Who}" TextWrapping="Wrap" MaxWidth="280" />
+                    <TextBlock Text="{Binding What}" Classes="muted small" TextWrapping="Wrap" MaxWidth="280" />
+                  </StackPanel>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
             <ItemsControl ItemsSource="{Binding AnamnesisScans}">
               <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="vm:AnamnesisScanRow">
@@ -1763,6 +1777,14 @@
                     <StackPanel Spacing="6">
                       <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextWrapping="Wrap" MaxWidth="280" />
                       <TextBlock Text="{Binding Detail}" TextWrapping="Wrap" MaxWidth="280" />
+                      <!-- Kette: die Termine, die mitrücken -->
+                      <ItemsControl x:Name="GapChainList" ItemsSource="{Binding Followers}" IsVisible="{Binding IsChain}">
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate x:DataType="x:String">
+                            <TextBlock Text="{Binding}" TextWrapping="Wrap" MaxWidth="280" />
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
                       <TextBlock Text="{Binding Reason}" Classes="muted small" TextWrapping="Wrap" MaxWidth="280" />
                       <TextBlock x:Name="GapPlatformHint" Text="{Binding PlatformHint}" Classes="small" Foreground="{DynamicResource WarnBrush}" FontWeight="Medium" TextWrapping="Wrap" MaxWidth="280"
                                  IsVisible="{Binding PlatformHint, Converter={x:Static ObjectConverters.IsNotNull}}" />

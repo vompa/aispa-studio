@@ -48,7 +48,7 @@ public partial class CustomersViewModel
 
     public bool WishesSectionVisible => WishChips.Count > 0 || IsEditingWishes;
 
-    public bool FlagsSectionVisible => Flags.Count > 0 || IsAddingFlag;
+    public bool FlagsSectionVisible => Flags.Count > 0 || IsAddingFlag || FlagSuggestions.Count > 0;
 
     public bool ReceptionNoteSectionVisible => MaySeeReceptionNote && (Insights?.ReceptionNote is not null || IsEditingReceptionNote);
 

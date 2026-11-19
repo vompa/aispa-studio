@@ -43,6 +43,8 @@ Nachtrag (05.11.2026, Aufgabe T-013): Die Regel aus Ä309 ist bestätigt (Auftra
 | Tablet-Link, Papierbogen, Foto hochladen | ja | ja | nein | nein |
 | Foto ansehen, prüfen, übernehmen, verwerfen | ja | ja | ja | nein |
 
+Nachtrag (19.11.2026, Block „Behandlung und Kalender“): Gesundheitshinweise auf der Behandlungskarte mit protokolliertem Abruf. Der Auftraggeber hat festgelegt, wer die Hinweise auf der Karte sieht: die Person, die den Gast behandelt, die Rezeption und die Standortleitung (je an ihren Standorten); Inhaber, Manager und Backoffice nicht. Die Karte selbst sagt nur, ob es Hinweise gibt; die Hinweise (nur „Ja“-Antworten und Sonstiges mit Text) kommen erst auf Klick über einen eigenen Aufruf. Jeder Lesezugriff auf Gesundheitsdaten steht seither im Protokoll `HealthDataAccesses` (Person, Zeit, Gast, Termin, Zweck: Behandlungskarte, Bogen im Termin, fotografierter Bogen, Datenschutz-Auskunft), ohne Gesundheitsdaten selbst. Das Protokoll liest nur die Leitung (Recht, Personal zu verwalten). Die Regel aus Ä309 für den Bogen im Termin bleibt unverändert.
+
 ## Quellen
 
 - [Ergänzende Themen, Abschnitt 1](../konzepte/ergaenzende-themen.md#1-datenschutz-und-dsgvo)

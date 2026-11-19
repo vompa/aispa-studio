@@ -170,6 +170,31 @@ internal static class CalendarEndpoints
                 + "in die keine Behandlung passt. Verschoben wird nur über „MoveAppointment“, nach Absprache mit dem Gast. "
                 + "Mit days (1 bis 7) für mehrere Tage ab date, mit employeeId nur für diese Person.");
 
+        group.MapPost("/gap-chains", async Task<Results<Ok<List<AppointmentDto>>, ValidationProblem, ProblemHttpResult, Conflict<BookingRejected>>> (
+                GapChainRequest request, BookingService booking, AispaDbContext db, TimeProvider time, CancellationToken ct) =>
+            {
+                foreach (var step in request.Moves ?? [])
+                {
+                    if (await PastBookings.CheckMoveAsync(db, time, step.AppointmentId, step.Start, ct) is { } past)
+                    {
+                        return TypedResults.Conflict(past);
+                    }
+                }
+
+                return await booking.MoveChainAsync(request.Moves ?? [], ct) switch
+                {
+                    BookingOutcome.ChainMoved m => TypedResults.Ok(m.Appointments),
+                    BookingOutcome.NotFound n => NotFound(n),
+                    BookingOutcome.Invalid i => Invalid(i),
+                    BookingOutcome.Rejected r => TypedResults.Conflict(r.Reason),
+                    var other => throw Unexpected(other),
+                };
+            })
+            .WithName("MoveGapChain")
+            .RequirePermission(AccessRight.Book)
+            .WithSummary("Verschiebt eine Kette aus den Lückenvorschlägen (zwei bis vier Termine derselben Person, alle in dieselbe Richtung) in einem Aufruf. "
+                + "Scheitert ein Termin, gehen die schon verschobenen an ihre alte Zeit zurück und die Antwort nennt den Grund (409).");
+
         group.MapGet("/appointments/{appointmentId:guid}", async Task<Results<Ok<AppointmentDto>, NotFound>> (
                 Guid appointmentId, AispaDbContext db, CancellationToken ct) =>
                 await db.Appointments.AsNoTracking().Include(a => a.Customer).Include(a => a.Treatment)

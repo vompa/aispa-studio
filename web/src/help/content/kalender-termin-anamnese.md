@@ -18,6 +18,17 @@ Im Termin-Panel steht die Karte **Anamnese**. Sie zeigt, ob ein Bogen vorliegt u
 
 Die Antworten lädt die App erst mit dem Klick und zeigt sie nur in der Karte.
 
+## Wer hat gelesen? {#abrufe}
+
+Inhaber, Manager und Standortleitung sehen in der Karte **Anamnese** den Knopf **Abrufe ansehen**. Er listet, wer die Gesundheitsdaten des Gastes wann gelesen hat, die neuesten zuerst:
+
+- **Behandlungskarte:** Gesundheitshinweise in „Mein Tag“ ([Eigenen Tag ansehen](hilfe:mein-tag-eigenen-tag-ansehen#gesundheit)).
+- **Bogen im Termin:** **Ansehen** in dieser Karte.
+- **Fotografierter Bogen:** ein Papierbogen beim Prüfen.
+- **Datenschutz-Auskunft:** die Auskunft als PDF mit den Antworten.
+
+![Abrufe in der Karte Anamnese](images/app/termin-anamnese-abrufe.png)
+
 ## Am Tablet ausfüllen {#tablet}
 
 1. Unter **Sprache des Bogens** die Sprache des Gastes wählen.

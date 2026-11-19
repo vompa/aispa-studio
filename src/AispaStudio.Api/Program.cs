@@ -258,6 +258,7 @@ else
     builder.Services.AddSingleton<IDeliveryNoteReader, ClaudeDeliveryNoteReader>();
 }
 builder.Services.AddScoped<TreatmentCards>();
+builder.Services.AddScoped<HealthAccessLog>();
 builder.Services.AddScoped<DailyReports>();
 builder.Services.AddScoped<ServingService>();
 builder.Services.AddScoped<RoomRestockService>();
