@@ -50,6 +50,11 @@ public sealed partial class ViewTests
 
             Assert.Equal("Ziele besprochen", saved[0].Text);
             Assert.False(team.Card!.HasUnsavedChanges);
+
+            // 90a: „Gespeichert.“ steht als Erfolgshinweis, nicht als Fließtext.
+            var status = VisibleNamed<AispaStudio.Desktop.Controls.InfoBar>(window, "HrStatus");
+            Assert.Equal("Gespeichert.", status.Message);
+            Assert.Equal(AispaStudio.Desktop.Controls.InfoBarSeverity.Success, status.Severity);
             return team;
         }, api);
     }
