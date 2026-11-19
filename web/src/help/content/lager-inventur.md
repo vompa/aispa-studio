@@ -18,7 +18,7 @@ Bei der Inventur trägt man den gezählten Bestand eines Lagerorts ein. Das Lage
 4. Bei jedem gezählten Material die Menge unter **Gezählt** eintragen. Leere Felder bleiben unberührt. Mit **Soll ausblenden** zählt man „blind“.
 5. Auf **Inventur buchen** klicken und die Rückfrage mit **Inventur buchen** bestätigen.
 
-Danach steht „Inventur gebucht: N Positionen.“, oder „Bestand stimmt, nichts zu buchen.“, wenn die Zählung zum Bestand passt.
+Danach erscheint unten kurz „Inventur gebucht: N Positionen“, oder „Bestand stimmt, nichts zu buchen.“, wenn die Zählung zum Bestand passt.
 
 ## Zählliste und Inventurliste drucken {#pdf}
 

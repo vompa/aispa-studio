@@ -41,17 +41,23 @@ public sealed partial class UsageRow(string material, string plannedText, string
 
     public string ValueText { get; } = valueText;
 
+    /// <summary>Ein negativer Mehrverbrauch (die Inventuren fanden mehr als erwartet) steht wie jeder negative Betrag in der Gefahrenfarbe (design.md 5.7).</summary>
+    public bool ValueIsNegative { get; init; }
+
     public IReadOnlyList<UsageTreatmentRow> Treatments { get; } = treatments;
 
-    public string Summary => $"{Material}, Soll {PlannedText}, Ist {ActualText}, Abweichung {DeviationText}{(ValueText.Length > 0 ? $", Wert {ValueText}" : "")}";
+    public string Summary => $"{Material}, Soll {PlannedText}, Ist {ActualText}, Abweichung {DeviationText}{(ValueText.Length > 0 ? $", Mehrverbrauch {ValueText}" : "")}";
 
     public bool HasTreatments => Treatments.Count > 0;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(Glyph), nameof(ToggleName))]
+    [NotifyPropertyChangedFor(nameof(Glyph), nameof(ToggleName), nameof(ToggleTip))]
     public partial bool IsExpanded { get; set; }
 
     public string Glyph => IsExpanded ? "▾" : "▸";
+
+    /// <summary>Hinweis am Pfeil vor dem Material; der Name der Zeile nennt zusätzlich das Material.</summary>
+    public string ToggleTip => IsExpanded ? "Behandlungen ausblenden" : "Behandlungen zeigen";
 
     public string ToggleName => $"{Material}, Behandlungen {(IsExpanded ? "ausblenden" : "zeigen")}";
 
@@ -186,7 +192,10 @@ public sealed partial class StockUsageViewModel : ViewModelBase
     private static UsageRow Row(StockUsageLineDto line) =>
         new(line.Name, Amount(line.Planned, line.Unit), Amount(line.Actual, line.Unit), Deviation(line), line.Excess > 0, line.Excess != 0,
             line.ExcessValue is { } value ? Money.Format(value) : "",
-            [.. line.Treatments.Select(t => new UsageTreatmentRow(t.Name, Amount(t.Planned, line.Unit), t.Appointments == 1 ? "1 Termin" : $"{t.Appointments} Termine"))]);
+            [.. line.Treatments.Select(t => new UsageTreatmentRow(t.Name, Amount(t.Planned, line.Unit), t.Appointments == 1 ? "1 Termin" : $"{t.Appointments} Termine"))])
+        {
+            ValueIsNegative = line.ExcessValue < 0,
+        };
 
     /// <summary>„+120 ml · 18 %“ bei Mehrverbrauch, „-50 ml · -17 %“ bei Fund, „0 ml“ ohne Abweichung; den Prozentanteil rechnet die API.</summary>
     private static string Deviation(StockUsageLineDto line)

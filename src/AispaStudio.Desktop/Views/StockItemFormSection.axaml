@@ -52,7 +52,7 @@
           <TextBox x:Name="ItemBarcodeField" Text="{Binding Barcode}" MaxLength="50" />
         </ui:FormField>
       </Grid>
-      <Grid ColumnDefinitions="*,*,*,*" ColumnSpacing="12">
+      <Grid ColumnDefinitions="*,*,*" ColumnSpacing="12">
         <ui:FormField Label="Packung" Help="z. B. Flasche" Error="{Binding PackUnitError}">
           <TextBox x:Name="ItemPackUnitField" Text="{Binding PackUnit}" MaxLength="20" />
         </ui:FormField>
@@ -62,15 +62,15 @@
         <ui:FormField Grid.Column="2" Label="Gebinde" Help="z. B. Karton" Error="{Binding CaseUnitError}">
           <TextBox x:Name="ItemCaseUnitField" Text="{Binding CaseUnit}" MaxLength="20" />
         </ui:FormField>
-        <ui:FormField Grid.Column="3" Label="Packungen je Gebinde" Help="z. B. 4" Error="{Binding PacksPerCaseError}">
+      </Grid>
+      <Grid ColumnDefinitions="*,*,*" ColumnSpacing="12">
+        <ui:FormField Label="Packungen je Gebinde" Help="z. B. 4" Error="{Binding PacksPerCaseError}">
           <TextBox x:Name="ItemPacksPerCaseField" Text="{Binding PacksPerCase}" Classes="num" />
         </ui:FormField>
-      </Grid>
-      <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
-        <ui:FormField Label="Menge je Behandlung" Help="Richtwert in der Einheit, z. B. 15. Abgebucht wird nach der Rezeptur." Error="{Binding DoseError}">
+        <ui:FormField Grid.Column="1" Label="Menge je Behandlung" Help="Richtwert in der Einheit, z. B. 15." Error="{Binding DoseError}">
           <TextBox x:Name="ItemDoseField" Text="{Binding TreatmentDose}" Classes="num" />
         </ui:FormField>
-        <ui:FormField Grid.Column="1" Label="Ablaufwarnung in Tagen" Help="Ab dann steht eine Charge in den Aufgaben." Error="{Binding WarningError}">
+        <ui:FormField Grid.Column="2" Label="Ablaufwarnung in Tagen" Help="Ab dann steht eine Charge in den Aufgaben." Error="{Binding WarningError}">
           <TextBox x:Name="ItemWarningField" Text="{Binding ExpiryWarningDays}" Classes="num" />
         </ui:FormField>
       </Grid>

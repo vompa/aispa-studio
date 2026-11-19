@@ -5,8 +5,8 @@
              x:Class="AispaStudio.Desktop.Views.StockUsageSection"
              x:DataType="vm:StockUsageViewModel">
   <!--
-    Verbrauch (R05 Slice 116, Ä271; Überarbeitung P6): je Material Soll (laut Rezept gebuchter Verbrauch), Ist (Soll plus Mehrverbrauch aus den Inventuren), Abweichung in Menge und Prozent und der Wert
-    der Abweichung. Höchstens 900 breit; als Standard nur Abweichungen, nach Wert sortiert (die API sortiert); die Behandlungen je Material klappen auf. Die Summe steht nur in der Kachel der Übersicht.
+    Verbrauch (R05 Slice 116, Ä271; Überarbeitung P6): je Material Soll (laut Rezept gebuchter Verbrauch), Ist (Soll plus Abweichung aus den Inventuren), Abweichung in Menge und Prozent und der Mehrverbrauch
+    als Wert der Abweichung. Höchstens 900 breit; als Standard nur Abweichungen, nach Wert sortiert (die API sortiert); die Behandlungen je Material klappen auf. Die Summe steht nur in der Kachel der Übersicht.
     Alle Zahlen stammen aus der API; den Wert in Euro gibt es nur mit dem Recht „Berichte mit Beträgen“.
   -->
   <Border x:Name="UsageCard" Classes="card" MaxWidth="900" HorizontalAlignment="Left">
@@ -16,7 +16,7 @@
         <ui:HelpButton Grid.Column="1" Topic="lager" Section="verbrauch" />
       </Grid>
       <TextBlock Classes="muted" TextWrapping="Wrap"
-                 Text="Soll ist der Verbrauch laut Rezept der gebuchten Behandlungen. Ist ist das Soll plus der Mehrverbrauch, den die Inventuren gezeigt haben. Die Abweichung ist der Mehrverbrauch in Menge und in Prozent vom Soll." />
+                 Text="Soll ist der Verbrauch laut Rezept der gebuchten Behandlungen. Ist ist das Soll plus die Abweichung, die die Inventuren gezeigt haben, in Menge und in Prozent vom Soll. Der Mehrverbrauch ist ihr Wert zum Einstandspreis." />
       <StackPanel Orientation="Horizontal" Spacing="24">
         <ui:FormField Label="Zeitraum">
           <ComboBox x:Name="UsagePeriodField" ItemsSource="{Binding Periods}" SelectedItem="{Binding SelectedPeriod}" MinWidth="200" />
@@ -34,7 +34,7 @@
           <TextBlock Grid.Column="1" Text="Soll" Classes="group" TextAlignment="Right" />
           <TextBlock Grid.Column="2" Text="Ist" Classes="group" TextAlignment="Right" />
           <TextBlock Grid.Column="3" Text="Abweichung" Classes="group" TextAlignment="Right" />
-          <TextBlock Grid.Column="4" Text="Wert der Abweichung" Classes="group" TextAlignment="Right" TextWrapping="Wrap" IsVisible="{Binding !AmountsHidden}" />
+          <TextBlock Grid.Column="4" Text="Mehrverbrauch" Classes="group" TextAlignment="Right" IsVisible="{Binding !AmountsHidden}" />
         </Grid>
         <ItemsControl x:Name="UsageList" ItemsSource="{Binding Rows}" AutomationProperties.Name="Verbrauch je Material">
           <ItemsControl.ItemTemplate>
@@ -43,7 +43,7 @@
                 <StackPanel Spacing="2">
                   <Grid ColumnDefinitions="*,90,90,150,130" AutomationProperties.Name="{Binding Summary}">
                     <Button x:Name="UsageDetailsButton" Classes="ghost" HorizontalAlignment="Left" HorizontalContentAlignment="Left" Padding="4,6" MinHeight="32"
-                            Command="{Binding ToggleCommand}" IsVisible="{Binding HasTreatments}" AutomationProperties.Name="{Binding ToggleName}">
+                            Command="{Binding ToggleCommand}" IsVisible="{Binding HasTreatments}" AutomationProperties.Name="{Binding ToggleName}" ToolTip.Tip="{Binding ToggleTip}">
                       <StackPanel Orientation="Horizontal" Spacing="8">
                         <TextBlock Text="{Binding Glyph}" Classes="muted" VerticalAlignment="Center" />
                         <TextBlock Text="{Binding Material}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
@@ -53,7 +53,7 @@
                     <TextBlock Grid.Column="1" Text="{Binding PlannedText}" Classes="num" TextAlignment="Right" VerticalAlignment="Center" />
                     <TextBlock Grid.Column="2" Text="{Binding ActualText}" Classes="num" TextAlignment="Right" VerticalAlignment="Center" />
                     <TextBlock Grid.Column="3" Text="{Binding DeviationText}" Classes="num" Classes.warn="{Binding IsLoss}" TextAlignment="Right" VerticalAlignment="Center" />
-                    <TextBlock Grid.Column="4" Text="{Binding ValueText}" Classes="num" TextAlignment="Right" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="4" Text="{Binding ValueText}" Classes="num" Classes.crit="{Binding ValueIsNegative}" TextAlignment="Right" VerticalAlignment="Center" />
                   </Grid>
                   <ItemsControl ItemsSource="{Binding Treatments}" Margin="26,0,0,4" IsVisible="{Binding IsExpanded}" AutomationProperties.Name="{Binding Material, StringFormat='Behandlungen mit {0}'}">
                     <ItemsControl.ItemTemplate>

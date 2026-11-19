@@ -28,6 +28,10 @@ public sealed partial class ViewTests
         .On($"GET /api/reports/locations/{StockSample.Vienna.Id}/stock-usage?from=2026-09-20&until=2026-10-19", report with { From = new DateOnly(2026, 9, 20) })
         .On($"GET /api/reports/locations/{StockSample.Vienna.Id}/stock-usage?from=2026-07-22&until=2026-10-19", report);
 
+    /// <summary>Die Spalte „Mehrverbrauch“ (der Wert der Abweichung) steht nur mit dem Recht „Berichte mit Beträgen“ in der Tabelle.</summary>
+    private static bool UsageValueColumnShown(Window window) =>
+        Named<Border>(window, "UsageCard").GetVisualDescendants().OfType<TextBlock>().Any(t => t.IsEffectivelyVisible && t.Classes.Contains("group") && t.Text == "Mehrverbrauch");
+
     private static List<Button> UsageRowButtons(Window window) =>
         [.. Named<ItemsControl>(window, "UsageList").GetVisualDescendants().OfType<Button>().Where(b => b.Name == "UsageDetailsButton")];
 
@@ -44,9 +48,9 @@ public sealed partial class ViewTests
 
             var usage = stock.Usage;
             Assert.Equal(["Zimtöl, Mischung nach Wahl", "Einweg-Kosmetiktücher"], usage.Rows.Select(r => r.Material).ToList());
-            Assert.Equal("Zimtöl, Mischung nach Wahl, Soll 660 ml, Ist 780 ml, Abweichung +120 ml · 18 %, Wert 21,60 €", usage.Rows[0].Summary);
+            Assert.Equal("Zimtöl, Mischung nach Wahl, Soll 660 ml, Ist 780 ml, Abweichung +120 ml · 18 %, Mehrverbrauch 21,60 €", usage.Rows[0].Summary);
             Assert.True(Shows(window, "2 weitere Materialien nach Rezept verbraucht"));
-            Assert.True(Shows(window, "Wert der Abweichung"));
+            Assert.True(UsageValueColumnShown(window));
             Assert.False(Shows(window, "Mehrverbrauch zum Einstandspreis"));
             var card = Named<Border>(window, "UsageCard");
             Assert.True(card.Bounds.Width <= 900.5, $"Die Tabelle ist {card.Bounds.Width} breit");
@@ -133,7 +137,7 @@ public sealed partial class ViewTests
             await Pump(Settling);
             await Pump(Settling);
 
-            Assert.False(Shows(window, "Wert der Abweichung"));
+            Assert.False(UsageValueColumnShown(window));
             Assert.True(Shows(window, "Den Wert in Euro zeigt der Bericht nur mit dem Recht"));
             Assert.Equal("Zimtöl, Mischung nach Wahl, Soll 660 ml, Ist 780 ml, Abweichung +120 ml · 18 %", stock.Usage.Rows[0].Summary);
             return shell.AdminPage;
