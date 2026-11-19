@@ -156,7 +156,7 @@ public sealed partial class ViewTests
         var costs = shell.AdminPage.Costs!;
 
         // Then steht über der Tabelle ein Hinweis „Warnung“ mit der Zahl; was fehlt, nennt weiter die Zeile.
-        Assert.Equal("Bei 1 Behandlung fehlen Angaben für die Vollkosten. Die Zeile nennt, was fehlt.", costs.MissingNotice);
+        Assert.Equal("Bei 1 Behandlung fehlen Angaben für die Vollkosten. Die Zeile nennt, was fehlt; Sätze und Räume trägt man weiter unten ein, Material bei der Behandlung.", costs.MissingNotice);
         var notice = Named<InfoBar>(window, "MissingNoticeBar");
         Assert.True(notice.IsEffectivelyVisible);
         Assert.Equal(InfoBarSeverity.Warning, notice.Severity);
