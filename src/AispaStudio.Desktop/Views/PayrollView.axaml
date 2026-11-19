@@ -31,7 +31,8 @@
         <Button x:Name="PayrollExportLohnButton" Content="DATEV Lohn und Gehalt" Command="{Binding ExportLohnUndGehaltCommand}" IsEnabled="{Binding !IsBusy}" />
       </WrapPanel>
       <ui:InfoBar Severity="Error" Title="Kein Export" Message="{Binding Error}" IsVisible="{Binding HasError}" />
-      <ui:InfoBar Severity="Success" Message="{Binding Message}" IsVisible="{Binding HasMessage}" />
+      <ui:InfoBar x:Name="PayrollSavedBar" Severity="Success" Message="{Binding Message}" IsVisible="{Binding HasMessage}"
+                  ActionText="{Binding OpenFolderText}" ActionCommand="{Binding OpenFolderCommand}" />
       <ItemsControl ItemsSource="{Binding Warnings}" IsVisible="{Binding HasWarnings}" AutomationProperties.Name="Hinweise zum Monat">
         <ItemsControl.ItemTemplate>
           <DataTemplate x:DataType="x:String">
@@ -42,6 +43,13 @@
 
       <StackPanel x:Name="PayrollTable" Spacing="4" IsVisible="{Binding HasPreview}" AutomationProperties.Name="Monatswerte">
         <TextBlock Text="Keine Dienste oder Abwesenheiten im Monat." Classes="muted" IsVisible="{Binding ShowsEmpty}" />
+        <Grid x:Name="PayrollTableHead" ColumnDefinitions="2*,*,1.5*,1.2*,*" ColumnSpacing="12" Margin="0,0,0,4" IsVisible="{Binding !ShowsEmpty}" AutomationProperties.AccessibilityView="Raw">
+          <TextBlock Text="Person" Classes="label" />
+          <TextBlock Grid.Column="1" Text="Personalnummer" Classes="label" />
+          <TextBlock Grid.Column="2" Text="Position" Classes="label" />
+          <TextBlock Grid.Column="3" Text="Menge" Classes="label" HorizontalAlignment="Right" />
+          <TextBlock Grid.Column="4" Text="Lohnart" Classes="label" />
+        </Grid>
         <ItemsControl ItemsSource="{Binding Rows}" IsVisible="{Binding !ShowsEmpty}">
           <ItemsControl.ItemTemplate>
             <DataTemplate x:DataType="vm:PayrollRow">
@@ -56,7 +64,7 @@
           </ItemsControl.ItemTemplate>
         </ItemsControl>
         <TextBlock Classes="muted small" TextWrapping="Wrap" IsVisible="{Binding !ShowsEmpty}"
-                   Text="Person, Personalnummer, Position, Menge und Lohnart. Eine Zeile ohne Personalnummer oder Lohnart wird nicht übergeben." />
+                   Text="Eine Zeile ohne Personalnummer oder Lohnart wird nicht übergeben." />
       </StackPanel>
     </StackPanel>
 
@@ -67,44 +75,56 @@
       </Grid>
       <TextBlock Classes="muted" TextWrapping="Wrap" Text="Lohnarten bitte mit der Lohnverrechnung oder Steuerberatung abstimmen. Leer heißt: nicht übergeben." />
       <TextBlock Classes="muted" TextWrapping="Wrap" Text="Nur lesen: Die Einstellungen ändern Inhaberin und Manager." IsVisible="{Binding !IsEditable}" />
-      <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" ColumnSpacing="12" RowSpacing="12" IsEnabled="{Binding IsEditable}">
-        <ui:FormField Label="Feiertage">
-          <ComboBox x:Name="PayrollCountryField" ItemsSource="{Binding Countries}" SelectedItem="{Binding SelectedCountry}" MinWidth="200" AutomationProperties.Name="Feiertage" />
+      <!-- Feldbreite folgt der Eingabe (design.md 5.2): Auswahl 220, Uhrzeit 100, Nummern und Lohnarten (höchstens 10 Zeichen) 120; Paare nur, wo sie zusammengehören -->
+      <StackPanel Spacing="12" IsEnabled="{Binding IsEditable}">
+        <ui:FormField Label="Feiertage" HorizontalAlignment="Left">
+          <ComboBox x:Name="PayrollCountryField" ItemsSource="{Binding Countries}" SelectedItem="{Binding SelectedCountry}" Width="220" AutomationProperties.Name="Feiertage" />
         </ui:FormField>
-        <ui:FormField Grid.Column="1" Label="Nacht ab" Error="{Binding NightStartError}">
-          <TextBox x:Name="PayrollNightStartField" Text="{Binding NightStartText}" MaxLength="5" Width="100" HorizontalAlignment="Left" PlaceholderText="22:00" />
-        </ui:FormField>
-        <ui:FormField Grid.Row="1" Label="Nacht bis" Error="{Binding NightEndError}">
-          <TextBox x:Name="PayrollNightEndField" Text="{Binding NightEndText}" MaxLength="5" Width="100" HorizontalAlignment="Left" PlaceholderText="06:00" />
-        </ui:FormField>
-        <ui:FormField Grid.Row="2" Label="DATEV-Beraternummer">
-          <TextBox x:Name="PayrollConsultantField" Text="{Binding ConsultantNumber}" MaxLength="7" />
-        </ui:FormField>
-        <ui:FormField Grid.Row="2" Grid.Column="1" Label="DATEV-Mandantennummer">
-          <TextBox x:Name="PayrollClientField" Text="{Binding ClientNumber}" MaxLength="5" />
-        </ui:FormField>
-        <ui:FormField Grid.Row="3" Label="Lohnart Stunden">
-          <TextBox x:Name="PayrollHoursWageField" Text="{Binding HoursWageType}" MaxLength="10" />
-        </ui:FormField>
-        <ui:FormField Grid.Row="3" Grid.Column="1" Label="Lohnart Sonntag">
-          <TextBox Text="{Binding SundayWageType}" MaxLength="10" />
-        </ui:FormField>
-        <ui:FormField Grid.Row="4" Label="Lohnart Feiertag">
-          <TextBox Text="{Binding HolidayWageType}" MaxLength="10" />
-        </ui:FormField>
-        <ui:FormField Grid.Row="4" Grid.Column="1" Label="Lohnart Nacht">
-          <TextBox Text="{Binding NightWageType}" MaxLength="10" />
-        </ui:FormField>
-        <ui:FormField Grid.Row="5" Label="Lohnart Urlaub">
-          <TextBox Text="{Binding VacationWageType}" MaxLength="10" />
-        </ui:FormField>
-        <ui:FormField Grid.Row="5" Grid.Column="1" Label="Lohnart Krankenstand">
-          <TextBox Text="{Binding SickWageType}" MaxLength="10" />
-        </ui:FormField>
-      </Grid>
-      <ui:FormField Label="Lohnart Schulung" IsEnabled="{Binding IsEditable}">
-        <TextBox Text="{Binding TrainingWageType}" MaxLength="10" Width="200" HorizontalAlignment="Left" />
-      </ui:FormField>
+        <StackPanel>
+          <StackPanel Orientation="Horizontal" Spacing="12">
+            <ui:FormField Label="Nacht ab" Error="{Binding NightStartError}" HideMessage="True">
+              <TextBox x:Name="PayrollNightStartField" Text="{Binding NightStartText}" MaxLength="5" Width="100" HorizontalAlignment="Left" PlaceholderText="22:00" />
+            </ui:FormField>
+            <ui:FormField Label="Nacht bis" Error="{Binding NightEndError}" HideMessage="True">
+              <TextBox x:Name="PayrollNightEndField" Text="{Binding NightEndText}" MaxLength="5" Width="100" HorizontalAlignment="Left" PlaceholderText="06:00" />
+            </ui:FormField>
+          </StackPanel>
+          <!-- Die Fehlertexte der schmalen Uhrzeitfelder stehen unter dem Paar über die ganze Breite (R8, HideMessage) -->
+          <ui:FormField Error="{Binding NightStartError}" />
+          <ui:FormField Error="{Binding NightEndError}" />
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" Spacing="12">
+          <ui:FormField Label="DATEV-Beraternummer">
+            <TextBox x:Name="PayrollConsultantField" Text="{Binding ConsultantNumber}" MaxLength="7" Width="120" HorizontalAlignment="Left" />
+          </ui:FormField>
+          <ui:FormField Label="DATEV-Mandantennummer">
+            <TextBox x:Name="PayrollClientField" Text="{Binding ClientNumber}" MaxLength="5" Width="120" HorizontalAlignment="Left" />
+          </ui:FormField>
+        </StackPanel>
+        <WrapPanel ItemSpacing="12" LineSpacing="12">
+          <ui:FormField Label="Lohnart Stunden">
+            <TextBox x:Name="PayrollHoursWageField" Text="{Binding HoursWageType}" MaxLength="10" Width="120" HorizontalAlignment="Left" />
+          </ui:FormField>
+          <ui:FormField Label="Lohnart Sonntag">
+            <TextBox Text="{Binding SundayWageType}" MaxLength="10" Width="120" HorizontalAlignment="Left" />
+          </ui:FormField>
+          <ui:FormField Label="Lohnart Feiertag">
+            <TextBox Text="{Binding HolidayWageType}" MaxLength="10" Width="120" HorizontalAlignment="Left" />
+          </ui:FormField>
+          <ui:FormField Label="Lohnart Nacht">
+            <TextBox Text="{Binding NightWageType}" MaxLength="10" Width="120" HorizontalAlignment="Left" />
+          </ui:FormField>
+          <ui:FormField Label="Lohnart Urlaub">
+            <TextBox Text="{Binding VacationWageType}" MaxLength="10" Width="120" HorizontalAlignment="Left" />
+          </ui:FormField>
+          <ui:FormField Label="Lohnart Krankenstand">
+            <TextBox Text="{Binding SickWageType}" MaxLength="10" Width="120" HorizontalAlignment="Left" />
+          </ui:FormField>
+          <ui:FormField Label="Lohnart Schulung">
+            <TextBox Text="{Binding TrainingWageType}" MaxLength="10" Width="120" HorizontalAlignment="Left" />
+          </ui:FormField>
+        </WrapPanel>
+      </StackPanel>
       <ui:InfoBar Severity="Error" Title="Nicht gespeichert" Message="{Binding SettingsError}" IsVisible="{Binding HasSettingsError}" />
       <ui:SaveBar SaveCommand="{Binding SaveSettingsCommand}" DiscardCommand="{Binding DiscardSettingsCommand}" CanDiscard="{Binding HasUnsavedChanges}"
                   Status="{Binding StatusText}" IsVisible="{Binding IsEditable}" />

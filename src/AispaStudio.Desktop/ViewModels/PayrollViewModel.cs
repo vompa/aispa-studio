@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Globalization;
 using AispaStudio.Contracts;
+using AispaStudio.Desktop.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
@@ -47,6 +48,11 @@ public sealed partial class PayrollViewModel : ViewModelBase, IEditableArea, ISa
 
     public IFileSaver? Files { get; set; }
 
+    /// <summary>Öffnet den Ordner der gespeicherten Datei („Ordner öffnen“ an der Meldung, wie beim Export im Lager); Tests setzen einen eigenen.</summary>
+    public IFolderOpener FolderOpener { get; set; } = new ExplorerFolderOpener();
+
+    private string? _savedPath;
+
     /// <summary>Einstellungen ändern darf nur, wer die Organisation verwaltet (wie die API).</summary>
     public bool IsEditable => _context.CanManagePayroll;
 
@@ -79,6 +85,19 @@ public sealed partial class PayrollViewModel : ViewModelBase, IEditableArea, ISa
     public partial string? Message { get; private set; }
 
     public bool HasMessage => Message is not null;
+
+    /// <summary>Die Meldung „gespeichert“ nennt den Ort nicht; der Speicherdialog verrät ihn, dann gibt es „Ordner öffnen“.</summary>
+    [ObservableProperty]
+    public partial string? OpenFolderText { get; private set; }
+
+    [RelayCommand]
+    private void OpenFolder()
+    {
+        if (_savedPath is { } path)
+        {
+            FolderOpener.Reveal(path);
+        }
+    }
 
     /// <summary>Warum kein Export oder keine Vorschau entstanden ist (Text der API oder die Prüfung vor dem Export).</summary>
     [ObservableProperty]
@@ -373,7 +392,8 @@ public sealed partial class PayrollViewModel : ViewModelBase, IEditableArea, ISa
 
     private async Task ExportCoreAsync(PayrollFormat format)
     {
-        Message = Error = null;
+        Message = Error = OpenFolderText = null;
+        _savedPath = null;
         var month = SelectedMonth;
         if (await LoadPreviewAsync().ConfigureAwait(true) is not { } preview)
         {
@@ -399,6 +419,8 @@ public sealed partial class PayrollViewModel : ViewModelBase, IEditableArea, ISa
             if (Files is not null && await Files.SaveAsync(fileName, "CSV-Datei", ["*.csv"], content).ConfigureAwait(true))
             {
                 Message = $"{fileName} gespeichert.";
+                _savedPath = (Files as IReportsSavedPath)?.LastSavedPath;
+                OpenFolderText = _savedPath is null ? null : StockViewModel.OpenFolderText;
             }
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
