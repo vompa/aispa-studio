@@ -70,7 +70,12 @@ Die rechtlichen Grenzen kommen aus der Recherche vom 10.11.2026:
   - das Anonymisieren im Web
   - Freitext ohne Gastbezug, etwa Kalendernotizen
   - Die Endpunkte des Teams für Anamnese-Scans lassen für einen anonymisierten Gast noch neue Scans zu.
-  - Die Offline-Kopie der Windows-App (`offline.bin`, `OfflineCache`) behält ältere Antworten mit dem Klarnamen. Betroffen sind Suchlisten und Kundenlisten, bis sie neu geladen werden. Spätestens nach 14 Tagen (`MaxAge`) oder beim Abmelden sind sie weg, und sie liegen verschlüsselt (DPAPI) auf dem Gerät. Die Offline-Suche findet den Gast bis dahin. Folgeaufgabe: Einträge mit der Kunden-Id nach dem Anonymisieren entfernen, auf anderen Geräten beim nächsten Abgleich.
+- Nachtrag 19.11.2026, Offline-Kopie der Windows-App (`offline.bin`, `OfflineCache`, Aufgabe T-082):
+  - Das Gerät, das anonymisiert, entfernt den Gast sofort aus seinem Stand: jede Antwort, die seine Kunden-Id enthält, alle Suchlisten und alle Antworten, die einen Namen ohne Kunden-Id tragen können (gehaltene Termine, Lückenvorschläge, Schließzeiten, Raumsperren, Gutscheinbestellungen). Sie laden mit Verbindung neu. Eine vorgemerkte Änderung zu dem Gast bleibt vorgemerkt und heißt „Gelöschter Gast: vorgemerkte Änderung“; ein Ersatzbeleg bleibt unverändert.
+  - Andere Geräte fragen `GET /api/customers/anonymized?since=…` ab, rund 15 Sekunden nach dem Start und danach höchstens alle 10 Minuten, und entfernen dieselben Antworten. Die Antwort nennt nur Ids und wird nicht abgelegt.
+  - Eine Suche legt ihren Suchbegriff nicht mehr im Stand ab; die Suche ohne Verbindung läuft über die Kundenkarten und zeigt keinen anonymisierten Gast.
+  - Antworten, die älter als 14 Tage sind (`MaxAge`), zeigt die App nicht mehr, auch wenn das Gerät so lange aus war.
+  - Grenzen: Ein Gerät ohne Verbindung zum Server behält den Namen bis zum nächsten Kontakt, höchstens 14 Tage. Der Stand liegt verschlüsselt (DPAPI) auf dem Gerät. Eine schon abgelehnte Änderung in der Liste der abgelehnten Änderungen behält ihren Text, bis jemand sie abhakt. Ein Gerät, das länger als 14 Tage aus war, startet nicht mehr ohne Verbindung.
 
 ## Quellen
 

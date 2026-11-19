@@ -712,6 +712,7 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
     private async Task PrefetchCoreAsync(CancellationToken ct)
     {
         _lastPrefetch = _time.GetUtcNow();
+        await RemoveAnonymizedAsync(ct).ConfigureAwait(true);
         var customers = new HashSet<Guid>();
         foreach (var location in Calendar.Locations)
         {
@@ -745,6 +746,28 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
             await _api.GetAsync<List<ArticleDto>>("api/pos/articles", ct).ConfigureAwait(true);
         }
     }
+
+    /// <summary>
+    /// Gäste, die inzwischen auf einem anderen Gerät anonymisiert wurden, aus dem lokalen Stand entfernen (ADR 0093). Das Fenster
+    /// liegt einen Tag über <see cref="OfflineCache.MaxAge"/>: Älteres zeigt der Stand ohnehin nicht mehr, ein Merker je Gerät ist unnötig.
+    /// </summary>
+    private async Task RemoveAnonymizedAsync(CancellationToken ct)
+    {
+        if (_api.Offline is null)
+        {
+            return;
+        }
+
+        var since = _time.GetUtcNow() - OfflineCache.MaxAge - TimeSpan.FromDays(1);
+        var result = await _api.GetAsync<AnonymizedCustomers>($"{OfflineCache.AnonymizedPath}?since={since.UtcDateTime:yyyy-MM-ddTHH:mm:ssZ}", ct).ConfigureAwait(true);
+        if (result.Value?.Ids.Where(_removedCustomers.Add).ToList() is { Count: > 0 } fresh)
+        {
+            _api.Offline?.RemoveCustomers(fresh);
+        }
+    }
+
+    // In dieser Sitzung schon Entferntes: spart die Suche durch den ganzen Stand bei jedem Lauf.
+    private readonly HashSet<Guid> _removedCustomers = [];
 
     [RelayCommand]
     private void DismissFailed(FailedChange failed) => _api.Offline?.DismissFailed(failed.Id);

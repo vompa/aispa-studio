@@ -1605,3 +1605,12 @@ Expected: Das Menü bietet **Stornieren**; der Name in der Zeile bricht um, stat
 Expected: Statt der leeren Zahlungsmaske steht „Bezahlt · Beleg Nr. …“ mit Zahlungsart und bei Überzahlung „Rückgeld: …“; der Fokus liegt im Suchfeld, ein Satz nennt, womit die nächste Rechnung beginnt.
 Closes: –
 Result: ☐
+
+### Kunden – Anonymisierter Gast verschwindet aus dem Stand ohne Verbindung
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App auf zwei Geräten (oder zwei Windows-Konten) als Inhaberin anmelden; auf beiden **Kunden** öffnen und denselben Gast ohne künftige Termine suchen
+1. Auf Gerät A die Kundenkarte öffnen, **…** und **Gast anonymisieren …** wählen, bestätigen. Danach die Verbindung von Gerät A trennen und den Namen suchen.
+Expected: Die Suche ohne Verbindung findet den Gast nicht; andere Gäste findet sie.
+2. Auf Gerät B höchstens 10 Minuten warten oder die App neu starten, dann die Verbindung trennen und den Namen suchen.
+Expected: Auch Gerät B findet den Gast nicht; im Kalender steht an seinen alten Terminen nach dem Neuladen „Gelöschter Gast“.
+Closes: –
+Result: ☐

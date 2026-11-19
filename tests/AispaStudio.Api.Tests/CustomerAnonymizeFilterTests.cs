@@ -32,6 +32,39 @@ public sealed partial class CustomerAnonymizeTests
         Assert.Contains(await spa.GetAsync<List<CustomerDto>>($"/api/customers?search={other.LastName}", Ct), c => c.Id == other.Id);
     }
 
+    private static string AnonymizedSince(DateTimeOffset since) => $"/api/customers/anonymized?since={Uri.EscapeDataString(since.ToString("O"))}";
+
+    [Fact]
+    public async Task Die_Liste_der_Anonymisierten_nennt_den_Gast_ab_dem_Zeitpunkt_und_nur_im_eigenen_Spa()
+    {
+        // Given zwei Spas, im ersten wird ein Gast anonymisiert
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        var foreign = await TestSpa.CreateAsync(fixture, Ct);
+        var before = DateTimeOffset.UtcNow.AddMinutes(-1);
+        Assert.Empty((await spa.GetAsync<AnonymizedCustomers>(AnonymizedSince(before), Ct)).Ids);
+        Assert.Equal(HttpStatusCode.NoContent, (await spa.Client.PostAsync($"/api/customers/{spa.Customer.Id}/anonymize", null, Ct)).StatusCode);
+
+        // When die Windows-App die Liste abfragt
+        var since = await spa.GetAsync<AnonymizedCustomers>(AnonymizedSince(before), Ct);
+        var later = await spa.GetAsync<AnonymizedCustomers>(AnonymizedSince(DateTimeOffset.UtcNow.AddMinutes(1)), Ct);
+        var other = await foreign.GetAsync<AnonymizedCustomers>(AnonymizedSince(before), Ct);
+
+        // Then steht nur die Id darin, nicht nach dem Zeitpunkt und nicht im anderen Spa
+        Assert.Equal([spa.Customer.Id], since.Ids);
+        Assert.Empty(later.Ids);
+        Assert.Empty(other.Ids);
+    }
+
+    [Fact]
+    public async Task Die_Liste_der_Anonymisierten_gibt_es_nicht_ohne_Anmeldung()
+    {
+        using var anonymous = fixture.Factory.CreateClient();
+
+        using var response = await anonymous.GetAsync(AnonymizedSince(DateTimeOffset.UtcNow.AddDays(-1)), Ct);
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
     [Fact]
     public async Task Kundenexport_laesst_den_anonymisierten_Gast_weg_und_seine_vCard_gibt_es_nicht_mehr()
     {

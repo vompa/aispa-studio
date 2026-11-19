@@ -1,5 +1,6 @@
 using System.Net;
 using AispaStudio.Contracts;
+using AispaStudio.Desktop.Services;
 using AispaStudio.Desktop.ViewModels;
 
 namespace AispaStudio.Desktop.Tests;
@@ -73,6 +74,28 @@ public sealed class CustomerAnonymizeTests
         Assert.Null(customers.Selected);
         Assert.Null(customers.Error);
         Assert.Equal(searchesBefore + 1, stub.Calls.Count(c => c.Route.StartsWith("GET /api/customers?search=", StringComparison.Ordinal)));
+    }
+
+    [Fact]
+    public async Task Bestaetigen_entfernt_den_Gast_aus_dem_Stand_fuer_die_Arbeit_ohne_Verbindung()
+    {
+        // Given die Karte und eine Suchliste mit dem Gast liegen im Stand
+        var stub = Api().On(Route, null, HttpStatusCode.NoContent).On($"GET /api/customers/{Guest.Id}", Guest);
+        var store = new MemoryOfflineStore();
+        var api = stub.Client(new OfflineCache(store));
+        await api.GetAsync<CustomerDto>($"api/customers/{Guest.Id}", TestContext.Current.CancellationToken);
+        var customers = new CustomersViewModel(api, TimeProvider.System) { User = TestData.Owner(), Dialogs = new FakeDialogs().Answer(ConfirmChoice.Confirmed) };
+        await customers.InitializeAsync();
+        customers.Selected = customers.Results[0];
+        stub.On("GET /api/customers?search=", new List<CustomerDto>());
+
+        // When der Gast anonymisiert wird
+        await customers.AskAnonymizeCommand.ExecuteAsync(null);
+
+        // Then steht seine Id in keiner Antwort des Stands mehr
+        api.Offline!.Flush();
+        Assert.DoesNotContain(store.Load().Responses, r => r.Key.Contains(Guest.Id.ToString(), StringComparison.Ordinal)
+            || r.Value.Json.Contains(Guest.Id.ToString(), StringComparison.Ordinal));
     }
 
     [Fact]

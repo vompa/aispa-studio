@@ -430,6 +430,10 @@ public sealed record CustomerDiscount(decimal Percent, CustomerDiscountScope Sco
 /// </summary>
 public sealed record CustomerAnonymizeRejected(string Message, IReadOnlyList<string> Open);
 
+/// <summary>Gäste, die seit einem Zeitpunkt anonymisiert wurden. Die Windows-App entfernt sie damit aus ihrem Stand für die Arbeit ohne Verbindung.</summary>
+/// <param name="Ids">Kunden-Ids, ohne weitere Angaben.</param>
+public sealed record AnonymizedCustomers(IReadOnlyList<Guid> Ids);
+
 /// <summary>Kundenrabatt festlegen; über der Rabattgrenze des Spas mit Freigabe per PIN durch Inhaber oder Standortleitung.</summary>
 public sealed record CustomerDiscountInput(decimal Percent, CustomerDiscountScope Scope = CustomerDiscountScope.All, SupervisorApproval? Approval = null);
 
