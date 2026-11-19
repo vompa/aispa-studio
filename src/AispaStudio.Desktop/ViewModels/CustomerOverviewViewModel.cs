@@ -55,7 +55,7 @@ public sealed partial class CustomerOverviewViewModel : ViewModelBase
     [ObservableProperty]
     public partial string? Error { get; private set; }
 
-    /// <summary>Name im Haus (Rufname statt Vorname).</summary>
+    /// <summary>Der volle Name (Vorname und Nachname); der Rufname steht in <see cref="PreferredNameText"/>.</summary>
     [ObservableProperty]
     public partial string Name { get; private set; } = "";
 
@@ -147,7 +147,8 @@ public sealed partial class CustomerOverviewViewModel : ViewModelBase
 
     private void Show(CustomerDto customer, CustomerInsights? insights, IReadOnlyList<CustomerFlagDto> flags, CustomerPreferences? wishes, IReadOnlyList<AppointmentDto> appointments)
     {
-        Name = customer.InHouseName;
+        // Der volle Name steht als Titel, damit man den Gast an der Leiste daneben wiedererkennt; der Rufname steht darunter (Durchsicht, Befund 13a).
+        Name = customer.LegalName;
         SymbolIcon = Controls.Icons.Salutation(PersonNames.Symbol(customer.Salutation));
         Pronouns = string.IsNullOrWhiteSpace(customer.Pronouns) ? null : $"({customer.Pronouns.Trim()})";
         AddressLine = PersonNames.AddressLine(customer.Salutation, customer.TitlesBefore, customer.FirstName, customer.LastName, customer.TitlesAfter);
@@ -195,7 +196,7 @@ public sealed partial class CustomerOverviewViewModel : ViewModelBase
             p.Scent is { } scent ? $"Duft: {scent}" : null,
             p.RoomTemperature is { } temperature ? $"Raum: {temperature}" : null,
             p.Music is { } music ? $"Musik: {music}" : null,
-            p.PrefersQuiet == true ? "wenig Gespräch" : null,
+            p.PrefersQuiet == true ? "Gespräch: wenig" : null,
             p.FocusAreas is { } focus ? $"Fokus: {focus}" : null,
             p.AvoidAreas is { } avoid ? $"nicht behandeln: {avoid}" : null,
             p.Other,

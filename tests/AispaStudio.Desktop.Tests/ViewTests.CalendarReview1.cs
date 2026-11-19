@@ -468,21 +468,27 @@ public sealed partial class ViewTests
             Assert.Contains(texts, t => t.Text == "20:00");
         }
 
-        // 8b: Der Name darf umbrechen, „Stornieren“ bleibt in der Zeile.
-        var cancel = panel.GetVisualDescendants().OfType<Button>().Where(b => b.IsEffectivelyVisible && b.Content as string == "Stornieren").ToList();
-        Assert.NotEmpty(cancel);
+        // 8b und M2 (Teil 2): Der Name darf umbrechen; „Stornieren …“ steht im Zeilenmenü „⋯“ und lässt dem Namen mehr Platz.
+        var menus = panel.GetVisualDescendants().OfType<MoreMenuButton>().Where(b => b.IsEffectivelyVisible).ToList();
+        Assert.NotEmpty(menus);
+        Assert.DoesNotContain(panel.GetVisualDescendants().OfType<Button>(), b => b.IsEffectivelyVisible && b.Content as string == "Stornieren");
         foreach (var row in panel.GetVisualDescendants().OfType<Grid>().Where(g => g.DataContext is AreaVisitRow { CanCancel: true } && g.IsEffectivelyVisible))
         {
             var model = (AreaVisitRow)row.DataContext!;
             var name = row.GetVisualDescendants().OfType<TextBlock>().First(t => t.Text == model.Name);
             Assert.Equal(TextWrapping.Wrap, name.TextWrapping);
-            var button = row.GetVisualDescendants().OfType<Button>().First(b => b.Content as string == "Stornieren");
-            Assert.True(BoundsIn(name, window).Right <= BoundsIn(button, window).Left + 0.5, "Der Name liegt unter „Stornieren“");
-            Assert.True(BoundsIn(button, window).Right <= BoundsIn(SidePanelOf(window), window).Right, "„Stornieren“ ragt aus der Leiste");
+            var button = row.GetVisualDescendants().OfType<MoreMenuButton>().Single();
+            Assert.True(BoundsIn(name, window).Right <= BoundsIn(button, window).Left + 0.5, "Der Name liegt unter dem Menü");
+            Assert.True(BoundsIn(button, window).Right <= BoundsIn(SidePanelOf(window), window).Right, "Das Menü ragt aus der Leiste");
+            Assert.True(name.Bounds.Width >= 100, $"Der Name hat nur {name.Bounds.Width} px");
+            Assert.Equal($"Weitere Aktionen zu {model.Name}", AutomationProperties.GetName(button));
+            var item = Assert.IsType<MenuItem>(Assert.Single(Assert.IsType<MenuFlyout>(button.Flyout).Items));
+            Assert.Equal("Stornieren …", item.Header);
+            Assert.Same(model.CancelCommand, item.Command);
         }
 
         // 8c: Das Belegsymbol hat Hinweis und Namen.
-        var receipts = panel.GetVisualDescendants().OfType<Button>().Where(b => b.IsEffectivelyVisible && b.DataContext is AreaVisitRow { CanCheckout: true } && b.GetVisualDescendants().OfType<Icon>().Any()).ToList();
+        var receipts = panel.GetVisualDescendants().OfType<Button>().Where(b => b.IsEffectivelyVisible && b is not MoreMenuButton && b.DataContext is AreaVisitRow { CanCheckout: true } && b.GetVisualDescendants().OfType<Icon>().Any()).ToList();
         Assert.NotEmpty(receipts);
         Assert.All(receipts, b =>
         {

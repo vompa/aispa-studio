@@ -63,8 +63,8 @@ public sealed record MessageSubject(MessageSubjectKind Kind, Guid Id, string Nam
 }
 
 /// <summary>
-/// Eine Meldung der Seitenleiste „Meldungen“ (docs/gestaltung/meldungen.md, Schritt 16): Titel, Kurztext, die eine passende Aktion und „Wegklicken“.
-/// <see cref="Key"/> erkennt dieselbe Meldung wieder (Quelle plus Betroffener), <see cref="Trigger"/> den Auslöser: „Wegklicken“ blendet sie nur aus,
+/// Eine Meldung der Seitenleiste „Meldungen“ (docs/gestaltung/meldungen.md, Schritt 16): Titel, Kurztext, die eine passende Aktion und „Ausblenden“.
+/// <see cref="Key"/> erkennt dieselbe Meldung wieder (Quelle plus Betroffener), <see cref="Trigger"/> den Auslöser: „Ausblenden“ blendet sie nur aus,
 /// bis sich der Auslöser ändert (z. B. Raumpflege von offen auf überfällig).
 /// </summary>
 public sealed class MessageItem
@@ -131,6 +131,9 @@ public sealed class MessageItem
         MessageSeverity.Warning => Icons.Warning,
         _ => Icons.Info,
     };
+
+    /// <summary>Die Pille rechts oben steht nur da, wenn sie etwas anderes sagt als der Titel („Pause“ unter dem Titel „Pause“ nicht; Durchsicht, Befund 17a).</summary>
+    public bool ShowKind => !string.Equals(KindText, Title, StringComparison.OrdinalIgnoreCase);
 
     /// <summary>Text der Pille rechts oben.</summary>
     public string KindText => IsDone ? "Erledigt" : Kind switch

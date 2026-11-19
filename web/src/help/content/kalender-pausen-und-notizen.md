@@ -70,12 +70,12 @@ Rechtsklick auf die Pause bzw. Sperrzeit, dann **Pause löschen** bzw. **Sperrze
 ## Notiz an einer Uhrzeit {#notiz}
 
 1. Rechtsklick an der Stelle, dann **Notiz hier**. Oder den Mauszeiger auf die Stelle halten und **,** (Komma) drücken.
-2. Im Panel **Notiz** die **Uhrzeit** prüfen und den Text eintragen, z. B. „Herr Lang ruft zurück“. Unter **Bis** steht ein Ende 15 Minuten später vorgeschlagen; es lässt sich ändern oder leeren.
+2. Im Panel **Notiz** den **Beginn** prüfen und den Text eintragen, z. B. „Herr Lang ruft zurück“. Unter **Ende** steht ein Ende 15 Minuten später vorgeschlagen; es lässt sich ändern oder leeren.
 3. Auf **Notiz speichern** klicken.
 
-- Die Notiz steht als kleiner Zettel mit Uhrzeit in der Spalte. Mit **Bis** reicht der gelbe Zettel von Beginn bis Ende (Text oben, mindestens 18 Pixel hoch) und zeigt „10:00–10:30 Herr Lang ruft zurück“; ohne Ende steht er nur zu seiner Uhrzeit. Das Ende muss nach dem Beginn liegen. Auch mit Ende belegt die Notiz nichts.
+- Die Notiz steht als kleiner Zettel mit Uhrzeit in der Spalte. Mit **Ende** reicht der gelbe Zettel von Beginn bis Ende (Text oben, mindestens 18 Pixel hoch) und zeigt „10:00–10:30 Herr Lang ruft zurück“; ohne Ende steht er nur zu seiner Uhrzeit. Das Ende muss nach dem Beginn liegen. Auch mit Ende belegt die Notiz nichts.
 - Der Zettel steht **neben** Terminen und Sperrzeiten, nie darüber: Überschneidet er sich zeitlich mit einem Termin, bekommt er eine schmale Bahn rechts (ein Drittel der Spalte, mindestens 72 Pixel; längerer Text endet mit „…“, der volle Text steht im Hinweis), der Termin den Rest. Ohne Überschneidung hat er die volle Breite.
-- Ein Klick auf den Zettel öffnet ihn zum Bearbeiten, wie bei einem Termin: Uhrzeit, Bis, Text und das Kästchen **Erledigt**; **Speichern** übernimmt alles. Ein erledigter Zettel bleibt blass stehen. Rechtsklick bietet **Details öffnen**, **Erledigt** bzw. **Wieder offen** und **Notiz löschen**.
+- Ein Klick auf den Zettel öffnet ihn zum Bearbeiten, wie bei einem Termin: Beginn, Ende, Text und das Kästchen **Erledigt**; **Speichern** übernimmt alles. Ein erledigter Zettel bleibt blass stehen. Rechtsklick bietet **Details öffnen**, **Erledigt** bzw. **Wieder offen** und **Notiz löschen**.
 
 ![Termin links, Notiz mit Ende rechts daneben](images/app/kalender-notiz-neben-termin.png)
 
@@ -98,7 +98,7 @@ Eine Notiz für den ganzen Tag am Standort, z. B. „Lieferung Öle um 11“. Si
 
 - **Notizen heute** steht ganz oben in der Seitenleiste [Meldungen](hilfe:kalender-meldungen#notizen). Gibt es Tagesnotizen, trägt die Schaltfläche **Meldungen** in der Kopfzeile neben der Zahl einen kleinen Notiz-Punkt; die Zahl zählt weiter nur Meldungen, Notizen sind keine. Ein Filter auf eine Person oder einen Raum blendet die Gruppe aus.
 - Wer heute nicht da ist, zeigen die Spalten (mit **Alle Mitarbeitenden** samt Grund). Hat eine abwesende Person offene Termine, steht zusätzlich die Meldung **Abwesenheit** in den Meldungen.
-- Die **Meldung „Pause“** in der Seitenleiste [Meldungen](hilfe:kalender-meldungen), wenn für die gesetzliche Pause keine Zeit bleibt. Sie lässt sich nicht abhaken und verschwindet, wenn die Pause eingetragen ist; **Wegklicken** blendet sie bis zum nächsten Auslöser aus. **Pause eintragen** an der Karte öffnet das Fenster. Siehe [Meldungen und Notizen](hilfe:seite-kalender#tagesleiste).
+- Die **Meldung „Pause“** in der Seitenleiste [Meldungen](hilfe:kalender-meldungen), wenn für die gesetzliche Pause keine Zeit bleibt. Sie lässt sich nicht abhaken und verschwindet, wenn die Pause eingetragen ist; **Ausblenden** blendet sie bis zum nächsten Auslöser aus. **Pause eintragen** an der Karte öffnet das Fenster. Siehe [Meldungen und Notizen](hilfe:seite-kalender#tagesleiste).
 
 ## Notiz zu einem Termin {#termin-notiz}
 

@@ -1041,6 +1041,7 @@ public partial class CalendarViewModel : ViewModelBase
         BirthdayLine = _week is null ? DayLayout.BirthdayLine(scoped, _zone) : null;
         RefreshNow();
         UpdateSlotMarks();
+        ApplyGapMarks();
         _messageDay = day;
         DayNotes = DayLayout.DayNotes(day);
         RefreshMessages();

@@ -23,6 +23,13 @@ public partial class CalendarViewModel
 
         ClosePanels();
         GapsPanel = new GapsViewModel(LocationName, () => GapsPanel = null);
+        GapsPanel.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(GapsViewModel.SelectedRow))
+            {
+                ShowGapSelection();
+            }
+        };
         Rebuild();
         _ = LoadGapsAsync();
     }
@@ -47,7 +54,59 @@ public partial class CalendarViewModel
         }
 
         panel.Scope = week.Length > 0 ? $"{CalendarFilter.Days} Tage ab {DayLayout.ShortDay(from)}{(person.Length > 0 ? $", nur {filter!.Title}" : "")}" : null;
-        panel.Show(result.Value?.Select(s => new GapRow(s, _zone, MoveGapAsync, showDay: week.Length > 0)).ToList());
+        panel.Show(result.Value?.Select(s => new GapRow(s, _zone, MoveGapAsync, showDay: week.Length > 0, select: panel.Select)).ToList());
+    }
+
+    /// <summary>Die Termine des gewählten Vorschlags (der Termin selbst und die der Kette), die der Kalender hervorhebt.</summary>
+    private HashSet<Guid> GapMarkedIds() =>
+        GapsPanel?.SelectedRow is { } row ? [row.Suggestion.AppointmentId, .. (row.Suggestion.Chain ?? []).Select(c => c.AppointmentId)] : [];
+
+    /// <summary>Hebt die Termine des gewählten Vorschlags hervor; ohne Wahl oder ohne Seite verschwindet die Hervorhebung.</summary>
+    private void ApplyGapMarks()
+    {
+        var marked = GapMarkedIds();
+        foreach (var item in Columns.SelectMany(c => c.Items))
+        {
+            item.IsGapHighlighted = marked.Contains(item.Id);
+        }
+    }
+
+    /// <summary>Wahl geändert: Hervorhebung und Vorschau des Ziels nachführen.</summary>
+    private void ShowGapSelection()
+    {
+        ApplyGapMarks();
+        UpdateEntryPreview();
+    }
+
+    partial void OnGapsPanelChanged(GapsViewModel? value) => ShowGapSelection();
+
+    /// <summary>
+    /// Das Ziel des gewählten Vorschlags als gestrichelte Vorschau in der Spalte der Person (Raumansicht: des Raums), wie beim Ziehen; die Termine der Kette stehen als weitere Vorschauen daneben.
+    /// </summary>
+    private CalendarGhost? GapPreview(GapRow row)
+    {
+        var ghosts = new List<CalendarGhost>();
+        foreach (var (id, start, text) in new[] { (row.Suggestion.AppointmentId, row.Suggestion.SuggestedStart, row.Suggestion.CustomerName) }
+                     .Concat((row.Suggestion.Chain ?? []).Select(c => (c.AppointmentId, c.SuggestedStart, c.CustomerName))))
+        {
+            if (_day?.Appointments.FirstOrDefault(a => a.Id == id) is not { } appointment)
+            {
+                continue;
+            }
+
+            var columnId = ByRoom ? appointment.RoomId : appointment.EmployeeId;
+            var date = DateOnly.FromDateTime(DayLayout.Local(start, _zone));
+            if (PreviewColumn(columnId, date) is not { } column)
+            {
+                continue;
+            }
+
+            var end = start + (appointment.End - appointment.Start);
+            ghosts.Add(PreviewAt(column, start, end, $"{DayLayout.Local(start, _zone):HH:mm} · {text}", 0, 0, warning: false) with { IsMove = true });
+        }
+
+        GroupGhosts = ghosts.Skip(1).ToList();
+        return ghosts.FirstOrDefault();
     }
 
     /// <summary>Verschiebt den Termin auf die Zeit des Vorschlags (zu der Person aus dem Vorschlag); der Server prüft wie bei jedem Verschieben.</summary>

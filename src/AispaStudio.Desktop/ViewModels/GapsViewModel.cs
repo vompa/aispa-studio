@@ -9,8 +9,18 @@ namespace AispaStudio.Desktop.ViewModels;
 /// Ein Vorschlag des Servers: der Termin rückt um wenige Minuten, damit bei der Person keine unbrauchbare Lücke bleibt. Zeiten, Person und Grund
 /// stammen vom Server; verschoben wird erst mit dem Knopf, nachdem die Rezeption mit dem Gast gesprochen hat.
 /// </summary>
-public sealed partial class GapRow(GapSuggestion suggestion, TimeZoneInfo zone, Func<GapRow, Task> move, bool showDay = false) : ViewModelBase
+public sealed partial class GapRow(GapSuggestion suggestion, TimeZoneInfo zone, Func<GapRow, Task> move, bool showDay = false, Action<GapRow>? select = null) : ViewModelBase
 {
+    /// <summary>Der Vorschlag ist gewählt: der Kalender hebt den Termin hervor und zeigt das Ziel als Vorschau (Durchsicht, Befund 20).</summary>
+    [ObservableProperty]
+    public partial bool IsSelected { get; set; }
+
+    /// <summary>Name für Screenreader: Titel und Detail der Karte.</summary>
+    public string AccessibleName => $"{Title}. {Detail}";
+
+    [RelayCommand]
+    private void Select() => select?.Invoke(this);
+
     public GapSuggestion Suggestion { get; } = suggestion;
 
     public string Title => $"{Suggestion.CustomerName}, {Suggestion.TreatmentName}";
@@ -60,7 +70,28 @@ public sealed partial class GapsViewModel(string locationName, Action close) : V
     [RelayCommand]
     private void CloseGaps() => close();
 
-    public string Hint { get; } = "Vorher mit dem Gast absprechen; verschoben wird erst mit dem Knopf.";
+    public string Hint { get; } = "Vorher mit dem Gast absprechen; verschoben wird erst mit dem Knopf. Ein Klick auf einen Vorschlag zeigt ihn im Kalender.";
+
+    /// <summary>Der gewählte Vorschlag; der Kalender hebt seinen Termin hervor und zeigt das Ziel.</summary>
+    public GapRow? SelectedRow
+    {
+        get => field;
+        private set
+        {
+            if (ReferenceEquals(field, value))
+            {
+                return;
+            }
+
+            field?.IsSelected = false;
+            field = value;
+            field?.IsSelected = true;
+            OnPropertyChanged();
+        }
+    }
+
+    /// <summary>Wählt den Vorschlag; ein zweiter Klick auf denselben hebt die Wahl auf.</summary>
+    public void Select(GapRow row) => SelectedRow = ReferenceEquals(SelectedRow, row) ? null : row;
 
     /// <summary>In der 7-Tage-Ansicht: für welche Tage und welche Person die Vorschläge gelten; sonst leer (der angezeigte Tag).</summary>
     [ObservableProperty]
@@ -90,12 +121,14 @@ public sealed partial class GapsViewModel(string locationName, Action close) : V
     public void Reset()
     {
         IsLoaded = false;
+        SelectedRow = null;
         Rows = [];
         Message = null;
     }
 
     public void Show(IReadOnlyList<GapRow>? rows)
     {
+        SelectedRow = null;
         LoadFailed = rows is null;
         Rows = rows ?? [];
         IsLoaded = true;

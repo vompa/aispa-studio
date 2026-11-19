@@ -135,15 +135,18 @@ public sealed partial class ViewTests
         await Pump();
         bool Visible(string text) => window.GetVisualDescendants().OfType<Button>().Any(b => b.IsEffectivelyVisible && b.Content as string == text);
 
-        // Stornieren steht ohne „Mehr“ im Aktionsblock (Ä81); Erledigt und Nicht erschienen stehen hinter „Mehr“.
-        Assert.True(Visible("Termin stornieren …"));
-        Assert.False(Visible("Erledigt"));
+        // Stornieren steht hinter „Mehr“ (Durchsicht 19.11.2026, M1), ebenso Erledigt und Nicht erschienen; Entf und das Kontextmenü bleiben.
+        bool CancelVisible() => window.GetVisualDescendants().OfType<Button>().Any(b => b.Name == "CancelButton" && b.IsEffectivelyVisible);
+        Assert.False(CancelVisible());
+        Assert.False(Visible("Termin stornieren …"));
         var more = window.GetVisualDescendants().OfType<Avalonia.Controls.Primitives.ToggleButton>().Single(t => t.Name == "MoreToggle");
         more.IsChecked = true;
         await Pump();
 
-        Assert.True(Visible("Erledigt"));
-        Assert.True(Visible("Nicht erschienen"));
+        bool RowVisible(string name) => window.GetVisualDescendants().OfType<Button>().Any(b => b.Name == name && b.IsEffectivelyVisible);
+        Assert.True(RowVisible("CompleteButton"));
+        Assert.True(RowVisible("NoShowButton"));
+        Assert.True(CancelVisible());
 
         // Kalenderdatei für den Gast (Export/Import, Aufgabe C).
         Assert.True(window.GetVisualDescendants().OfType<Button>().Single(b => b.Name == "CalendarFileButton").IsEffectivelyVisible);

@@ -75,6 +75,11 @@ public partial class CalendarViewModel
 
     private CalendarGhost? BuildEntryPreview()
     {
+        if (GapsPanel?.SelectedRow is { } gap)
+        {
+            return GapPreview(gap);
+        }
+
         if (NewEntry is not { } entry || _resources is null || _day is null)
         {
             return null;

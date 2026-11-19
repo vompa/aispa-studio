@@ -341,6 +341,7 @@ public sealed record CalendarItem(
 {
     private bool _isSelected;
     private bool _isGroupHighlighted;
+    private bool _isGapHighlighted;
 
     /// <summary>Nur die Auswahl ändert sich nach dem Aufbau; die Ansicht zeigt sie, ohne die Spalten neu aufzubauen.</summary>
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -417,6 +418,13 @@ public sealed record CalendarItem(
     public string? GroupLabel { get; init; }
 
     public string? GroupColor { get; init; }
+
+    /// <summary>Der Termin gehört zum gewählten Vorschlag in „Lücken schließen“ (er oder ein Termin der Kette) und leuchtet wie die Teile einer gemeinsamen Buchung.</summary>
+    public bool IsGapHighlighted
+    {
+        get => _isGapHighlighted;
+        set => Set(ref _isGapHighlighted, value, nameof(IsGapHighlighted));
+    }
 
     public bool IsGroupHighlighted
     {

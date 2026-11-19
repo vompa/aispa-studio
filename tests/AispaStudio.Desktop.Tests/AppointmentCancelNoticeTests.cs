@@ -19,7 +19,7 @@ public sealed class AppointmentCancelNoticeTests
         public override TimeZoneInfo LocalTimeZone => Vienna;
     }
 
-    private static async Task<(AppointmentViewModel Panel, FakeDialogs Dialogs)> OpenAsync(CardRequestOffer offer, CurrentUser? user = null)
+    private static async Task<(AppointmentViewModel Panel, FakeDialogs Dialogs)> OpenAsync(CardRequestOffer offer, CurrentUser? user = null, DepositStaffDto? deposit = null)
     {
         var appointment = TestData.Appointment(10, TestData.Anna);
         var api = new StubApi()
@@ -27,6 +27,11 @@ public sealed class AppointmentCancelNoticeTests
             .On($"GET /api/locations/{TestData.LocationId}/resources", TestData.Resources)
             .On($"GET /api/locations/{TestData.LocationId}/calendar?date=2027-03-01", TestData.Day(appointment))
             .On($"GET /api/appointments/{appointment.Id}/card-guarantee/offer", offer);
+        if (deposit is not null)
+        {
+            api.On($"GET /api/appointments/{appointment.Id}/deposit", deposit);
+        }
+
         var dialogs = new FakeDialogs();
         var vm = new CalendarViewModel(api.Client(), user ?? TestData.Reception(), null, new FixedTime()) { Dialogs = dialogs };
         await vm.InitializeAsync();
@@ -85,5 +90,54 @@ public sealed class AppointmentCancelNoticeTests
         var request = Assert.Single(dialogs.Asked);
         Assert.Null(request.Notice);
         Assert.Equal("An der Rezeption storniert", request.InputText);
+    }
+
+    private static DepositStaffDto Deposit(OnlineDepositStatus status, bool voided = false) =>
+        new(Guid.NewGuid(), status, 30m, "EUR", 30, TestData.At(8), TestData.At(8), null, false, null, false, voided, null, null, null);
+
+    [Theory]
+    [InlineData(OnlineDepositStatus.Paid)]
+    [InlineData(OnlineDepositStatus.Receipted)]
+    public async Task Mit_bezahlter_Anzahlung_sagt_die_Rueckfrage_dass_sie_bestehen_bleibt(OnlineDepositStatus status)
+    {
+        var (panel, dialogs) = await OpenAsync(Offer(50, deadlineHoursBefore: 1), deposit: Deposit(status));
+
+        await panel.AskCancelCommand.ExecuteAsync(null);
+
+        Assert.Equal("Die Anzahlung von 30,00 € bleibt bestehen; zurückgeben unter „Anzahlung retournieren“.", Assert.Single(dialogs.Asked).Notice);
+    }
+
+    [Fact]
+    public async Task Innerhalb_der_Frist_und_mit_Anzahlung_stehen_beide_Saetze_untereinander()
+    {
+        var (panel, dialogs) = await OpenAsync(Offer(0), deposit: Deposit(OnlineDepositStatus.Receipted));
+
+        await panel.AskCancelCommand.ExecuteAsync(null);
+
+        Assert.Equal("Absage innerhalb der Stornofrist (bis 28.02. 10:00).\nDie Anzahlung von 30,00 € bleibt bestehen; zurückgeben unter „Anzahlung retournieren“.", Assert.Single(dialogs.Asked).Notice);
+    }
+
+    [Theory]
+    [InlineData(OnlineDepositStatus.Pending, false)]
+    [InlineData(OnlineDepositStatus.Failed, false)]
+    [InlineData(OnlineDepositStatus.Refunded, false)]
+    [InlineData(OnlineDepositStatus.Receipted, true)]
+    public async Task Ohne_bezahlte_Anzahlung_keine_Zeile_dazu(OnlineDepositStatus status, bool voided)
+    {
+        var (panel, dialogs) = await OpenAsync(Offer(50, deadlineHoursBefore: 1), deposit: Deposit(status, voided));
+
+        await panel.AskCancelCommand.ExecuteAsync(null);
+
+        Assert.Null(Assert.Single(dialogs.Asked).Notice);
+    }
+
+    [Fact]
+    public async Task Ganz_ohne_Anzahlung_bleibt_die_Rueckfrage_wie_sie_war()
+    {
+        var (panel, dialogs) = await OpenAsync(Offer(50, deadlineHoursBefore: 1));
+
+        await panel.AskCancelCommand.ExecuteAsync(null);
+
+        Assert.Null(Assert.Single(dialogs.Asked).Notice);
     }
 }

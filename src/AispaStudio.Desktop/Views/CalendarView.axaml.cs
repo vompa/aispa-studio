@@ -7,6 +7,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
+using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using CalendarItem = AispaStudio.Desktop.ViewModels.CalendarItem;
@@ -60,6 +61,7 @@ public partial class CalendarView : UserControl
             GutterScroll.Offset = new Vector(0, BodyScroll.Offset.Y);
             ViewModel?.SetHorizontalView(BodyScroll.Offset.X - Host.Margin.Left, BodyScroll.Viewport.Width);
         };
+        PanelScroll.ScrollChanged += (_, _) => AppointmentChips.BorderBrush = PanelScroll.Offset.Y > 0 && this.TryFindResource("LineBrush", ActualThemeVariant, out var line) && line is IBrush brush ? brush : Brushes.Transparent;
         BodyScroll.SizeChanged += (_, _) => ReportViewport();
         DateHost.SizeChanged += OnDateHostSizeChanged;
         DataContextChanged += (_, _) =>
