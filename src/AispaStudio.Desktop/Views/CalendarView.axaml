@@ -1625,7 +1625,7 @@
                     ToolTip.Tip="Ein weiterer Abschnitt folgt nach einer Pause, z. B. erst die Massage, danach die Sauna.">
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <ui:Icon Data="{x:Static ui:Icons.Plus}" Width="16" Height="16" />
-                <TextBlock Text="Abschnitt danach hinzufügen" />
+                <TextBlock Text="Abschnitt danach anfügen" />
               </StackPanel>
             </Button>
             <ui:HelpButton Topic="kalender-paar-und-spa-tag" Section="abschnitte" Margin="6,0,0,0" VerticalAlignment="Center" />

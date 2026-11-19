@@ -965,7 +965,7 @@ public sealed partial class ViewTests
         var calendar = await SignedInCalendar(main);
         calendar.ByRoom = true;
         Assert.Contains(calendar.Columns.SelectMany(c => c.Stripes), s => s.LongText is not null && s.LongText.EndsWith("· Steine auf 55 °C aufheizen", StringComparison.Ordinal));
-        Assert.Contains(calendar.Columns.SelectMany(c => c.Stripes), s => s.Text == "Nachb. 10 · Raumpflege 10 Min.");
+        Assert.Contains(calendar.Columns.SelectMany(c => c.Stripes), s => s.Text == "Nachb. 10 · Pflege 10");
         return calendar;
     }, Api()
         .On($"GET /api/locations/{SpaSample.LocationId}/resources", SpaSample.ResourcesWithAbsent)

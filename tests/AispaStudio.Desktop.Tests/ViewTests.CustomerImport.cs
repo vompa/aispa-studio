@@ -117,7 +117,7 @@ public sealed partial class ViewTests
         Assert.True(card.GetVisualDescendants().OfType<RadioButton>().First(r => r.IsEffectivelyVisible).IsChecked);
         Assert.Contains("Geburtstag kein Datum", ImportTexts(window));
         Assert.True(DialogButton(window, "ImportErrorsButton").IsEffectivelyVisible);
-        Assert.Equal("Fehlerzeilen als Excel speichern …", DialogButton(window, "ImportErrorsButton").Content);
+        Assert.Equal("Fehlerzeilen als Excel …", DialogButton(window, "ImportErrorsButton").Content);
         SaveShot(window, "kunden-import-3-vorschau", theme);
 
         // 4. Probelauf

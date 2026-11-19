@@ -66,7 +66,7 @@ Alle Termine stehen im Kalender, jeder mit einem farbigen Etikett, z. B. „Paar
 
 ## Abschnitte {#abschnitte}
 
-Ein Abschnitt ist ein Teil des Tages, in dem alle Gäste gleichzeitig beginnen: zuerst die Massage für beide, danach die Sauna. **Abschnitt danach hinzufügen** fügt einen weiteren Abschnitt hinzu, der nach dem ersten folgt. Zwischen den Abschnitten liegt die Pause, die unter **Pause zwischen den Abschnitten** eingestellt ist; sie gilt für alle Gäste gleich, z. B. 10 Minuten zwischen Massage und Sauna. Ein Gast, der in einem Abschnitt nichts hat, bekommt dort „– nichts –“.
+Ein Abschnitt ist ein Teil des Tages, in dem alle Gäste gleichzeitig beginnen: zuerst die Massage für beide, danach die Sauna. **Abschnitt danach anfügen** fügt einen weiteren Abschnitt hinzu, der nach dem ersten folgt. Zwischen den Abschnitten liegt die Pause, die unter **Pause zwischen den Abschnitten** eingestellt ist; sie gilt für alle Gäste gleich, z. B. 10 Minuten zwischen Massage und Sauna. Ein Gast, der in einem Abschnitt nichts hat, bekommt dort „– nichts –“.
 
 ## Gruppe mit Gästen ohne Namen {#ohne-namen}
 

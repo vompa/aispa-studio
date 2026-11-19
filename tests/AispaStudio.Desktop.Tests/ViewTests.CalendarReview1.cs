@@ -406,7 +406,7 @@ public sealed partial class ViewTests
 
         // 6b: Der Knopf nennt das Verb, und ein Fragezeichen erklärt die Abschnitte.
         var add = Named<Button>(window, "AddStepButton");
-        Assert.Contains(add.GetVisualDescendants().OfType<TextBlock>(), t => t.Text == "Abschnitt danach hinzufügen");
+        Assert.Contains(add.GetVisualDescendants().OfType<TextBlock>(), t => t.Text == "Abschnitt danach anfügen");
         Assert.False(string.IsNullOrWhiteSpace(ToolTip.GetTip(add) as string));
         var help = add.GetVisualAncestors().OfType<StackPanel>().First().GetVisualDescendants().OfType<HelpButton>().Single();
         Assert.Equal("abschnitte", help.Section);

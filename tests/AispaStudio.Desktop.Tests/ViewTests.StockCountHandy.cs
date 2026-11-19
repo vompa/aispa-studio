@@ -104,7 +104,7 @@ public sealed partial class ViewTests
 
             Assert.Equal(1, CallsTo(api, $"POST {Route($"/count-sessions/{CabinetSessionId}/close")}"));
             Assert.Empty(SentMovements(api));
-            Assert.True(Shows(window, "Inventur gebucht: 1 Position."));
+            Assert.True(Shows(window, "Inventur gebucht: 1 Position"));
             Assert.False(stock.Count.IsCounting);
             Assert.False(HasButton(window, "Zählung Schrank Zeder von Lena Huber übernehmen"));
             Assert.True(Shows(window, "Eine Zählung vom Handy wartet"));

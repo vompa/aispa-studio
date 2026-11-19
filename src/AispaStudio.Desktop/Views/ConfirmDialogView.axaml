@@ -333,7 +333,7 @@
                         </ScrollViewer>
                       </Border>
                       <StackPanel Orientation="Horizontal" Spacing="12">
-                        <Button x:Name="ImportErrorsButton" Content="Fehlerzeilen als Excel speichern …" Command="{Binding SaveErrorsCommand}" />
+                        <Button x:Name="ImportErrorsButton" Content="Fehlerzeilen als Excel …" Command="{Binding SaveErrorsCommand}" />
                         <TextBlock x:Name="ImportSaved" Text="{Binding SavedText}" IsVisible="{Binding HasSaved}" Classes="muted" VerticalAlignment="Center" TextWrapping="Wrap" />
                       </StackPanel>
                     </StackPanel>
