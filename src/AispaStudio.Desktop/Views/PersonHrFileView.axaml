@@ -77,7 +77,10 @@
       <ui:SaveBar SaveCommand="{Binding SaveCommand}" DiscardCommand="{Binding CancelCommand}" CanDiscard="True" />
     </StackPanel>
 
-    <TextBlock x:Name="HrStatus" Text="{Binding StatusText}" Classes="muted" IsVisible="{Binding !IsEditing}" />
+    <!-- „Gespeichert.“ als Erfolgshinweis (Brief 5.9, meldungen.md M2) statt als Fließtext zwischen Knöpfen und Einträgen -->
+    <StackPanel IsVisible="{Binding !IsEditing}">
+      <ui:InfoBar x:Name="HrStatus" Severity="Success" Message="{Binding StatusText}" IsVisible="{Binding StatusText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+    </StackPanel>
     <TextBlock Text="Lade Personalakte …" Classes="muted" IsVisible="{Binding ShowsLoading}" />
     <TextBlock Text="Noch keine Einträge." Classes="muted" IsVisible="{Binding ShowsEmpty}" />
 

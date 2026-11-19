@@ -241,7 +241,7 @@ public sealed partial class PersonHrFileViewModel : ViewModelBase, ISavesFiles
         var result = await _context.Api.GetAsync<List<HrEntryDto>>(_basePath).ConfigureAwait(true);
         if (result.Value is not { } entries)
         {
-            LoadError = result.Error ?? "Die Personalakte wurde nicht geladen.";
+            LoadError = TeamContext.LoadFailure(result.Error, "Die Personalakte wurde nicht geladen");
             return;
         }
 

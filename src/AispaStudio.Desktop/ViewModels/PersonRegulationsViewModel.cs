@@ -240,7 +240,7 @@ public sealed partial class PersonRegulationsViewModel : ViewModelBase
         var result = await _context.Api.GetAsync<StaffRegulationsDto>(_basePath).ConfigureAwait(true);
         if (result.Value is not { } regulations)
         {
-            LoadError = result.Error ?? "Die Regelungen und Vollmachten wurden nicht geladen.";
+            LoadError = TeamContext.LoadFailure(result.Error, "Die Regelungen und Vollmachten wurden nicht geladen");
             return;
         }
 

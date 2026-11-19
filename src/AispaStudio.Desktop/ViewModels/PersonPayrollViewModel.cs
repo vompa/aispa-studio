@@ -44,7 +44,10 @@ public sealed partial class PersonPayrollViewModel : ViewModelBase
     public partial string PersonnelNumber { get; set; } = "";
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasRows))]
     public partial IReadOnlyList<PayrollRow> Rows { get; private set; } = [];
+
+    public bool HasRows => Rows.Count > 0;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowsEmpty), nameof(CanEditNumber))]

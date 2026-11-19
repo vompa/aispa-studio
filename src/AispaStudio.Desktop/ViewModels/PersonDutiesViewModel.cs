@@ -227,7 +227,7 @@ public sealed partial class PersonDutiesViewModel : ViewModelBase, ISavesFiles
         var certificates = await _context.Api.GetAsync<List<StaffCertificateDto>>(_certificatesPath).ConfigureAwait(true);
         if (types.Value is null || duties.Value is null || certificates.Value is null)
         {
-            LoadError = types.Error ?? duties.Error ?? certificates.Error ?? "Die Zuständigkeiten und Zertifikate wurden nicht geladen.";
+            LoadError = TeamContext.LoadFailure(types.Error ?? duties.Error ?? certificates.Error, "Die Zuständigkeiten und Zertifikate wurden nicht geladen");
             return;
         }
 

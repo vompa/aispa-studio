@@ -105,7 +105,10 @@
       <ui:SaveBar SaveCommand="{Binding SaveCommand}" DiscardCommand="{Binding CancelCommand}" CanDiscard="True" />
     </StackPanel>
 
-    <TextBlock x:Name="RegulationsStatus" Text="{Binding StatusText}" Classes="muted" IsVisible="{Binding !IsEditing}" />
+    <!-- „Gespeichert.“ als Erfolgshinweis (Brief 5.9, meldungen.md M2) statt als Fließtext zwischen Knöpfen und Einträgen -->
+    <StackPanel IsVisible="{Binding !IsEditing}">
+      <ui:InfoBar x:Name="RegulationsStatus" Severity="Success" Message="{Binding StatusText}" IsVisible="{Binding StatusText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+    </StackPanel>
     <TextBlock Text="Lade Regelungen und Vollmachten …" Classes="muted" IsVisible="{Binding ShowsLoading}" />
 
     <StackPanel Spacing="8">

@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
+using System.Windows.Input;
 using AispaStudio.Contracts;
 using AispaStudio.Desktop.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -9,8 +10,13 @@ using CommunityToolkit.Mvvm.Input;
 namespace AispaStudio.Desktop.ViewModels;
 
 /// <summary>Ein Zertifikat in „Was läuft bald ab?“; abgelaufene mit Warnung als Text und Symbol.</summary>
-public sealed record ExpiringRow(string Text, bool IsExpired)
+public sealed record ExpiringRow(string Text, bool IsExpired, string PersonName = "", ICommand? OpenCommand = null)
 {
+    /// <summary>Der Weg zur Person: ihre Karte öffnet bei den Zuständigkeiten (nur, wenn die Maske ihn anbietet).</summary>
+    public bool CanOpen => OpenCommand is not null;
+
+    public string OpenName => $"Karte von {PersonName} öffnen";
+
     /// <summary>Für den Screenreader: die Warnung gehört zum Namen, nicht nur zum Symbol.</summary>
     public string AutomationName => IsExpired ? $"Warnung: {Text}" : Text;
 }
@@ -63,7 +69,7 @@ public sealed partial class DutyTypeRow(Guid? id, DutyTypeKey? key, Action chang
 /// und abgelaufene) und die pflegbare „Liste der Zuständigkeiten“ mit verlangtem Zertifikat und der Mindestzahl Ersthelferinnen im Dienst. Nur mit <c>ManageHrFile</c>; wer wofür zuständig ist, steht in der Tabelle
 /// <see cref="RightsTableViewModel"/>.
 /// </summary>
-public sealed partial class DutyOverviewViewModel(IWorkstationApi api) : ViewModelBase, IEditableArea
+public sealed partial class DutyOverviewViewModel(IWorkstationApi api, Action<Guid>? openPerson = null) : ViewModelBase, IEditableArea
 {
     private const string TypesPath = "api/staff-duties/types";
     private string _savedState = "";
@@ -114,7 +120,8 @@ public sealed partial class DutyOverviewViewModel(IWorkstationApi api) : ViewMod
         }
 
         Expiring = [.. expiring.Value.Select(c => new ExpiringRow(
-            c.IsExpired ? $"{c.EmployeeName}: {c.Name}, abgelaufen am {Day(c.ValidUntil)}" : $"{c.EmployeeName}: {c.Name}, läuft am {Day(c.ValidUntil)} ab", c.IsExpired))];
+            c.IsExpired ? $"{c.EmployeeName}: {c.Name}, abgelaufen am {Day(c.ValidUntil)}" : $"{c.EmployeeName}: {c.Name}, läuft am {Day(c.ValidUntil)} ab", c.IsExpired,
+            c.EmployeeName, openPerson is null ? null : new RelayCommand(() => openPerson(c.EmployeeId))))];
         _applying = true;
         Types.Clear();
         foreach (var type in types.Value)

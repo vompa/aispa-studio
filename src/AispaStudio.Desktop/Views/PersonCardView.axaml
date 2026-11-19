@@ -101,7 +101,7 @@
           <StackPanel Spacing="12">
             <Grid ColumnDefinitions="*,Auto">
               <TextBlock Text="Dienstplan und Abwesenheit" Classes="h3" VerticalAlignment="Center" />
-              <ui:HelpButton Topic="dienstplan-tag-planen" Grid.Column="1" />
+              <ui:HelpButton Topic="seite-roster" Grid.Column="1" />
             </Grid>
             <ContentControl x:Name="RosterHost" Content="{Binding Roster}" />
             <!-- Urlaubskonto (ADR 0097): Anspruch, genommen, geplant und Rest des Jahres -->
@@ -178,7 +178,7 @@
           <StackPanel Spacing="12">
             <Grid ColumnDefinitions="*,Auto">
               <TextBlock Text="Zeiten" Classes="h3" VerticalAlignment="Center" />
-              <ui:HelpButton Topic="zeiten-nachtragen" Section="schritte" Grid.Column="1" />
+              <ui:HelpButton Topic="seite-time" Grid.Column="1" />
             </Grid>
             <ContentControl x:Name="TimesHost" Content="{Binding Times}" />
           </StackPanel>

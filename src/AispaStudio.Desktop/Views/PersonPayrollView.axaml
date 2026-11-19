@@ -12,11 +12,8 @@
     <ui:InfoBar Severity="Error" Title="Lohn nicht geladen" Message="{Binding LoadError}" IsVisible="{Binding HasLoadError}"
                 ActionText="Erneut laden" ActionCommand="{Binding ReloadCommand}" />
 
+    <!-- Das Fragezeichen im Kopf der Karte „Lohn“ (team, personalnummern) gilt für beide Gruppen; ein zweites mit eigener Überschrift „Personalnummer“ wäre doppelt (masken.md R9) -->
     <StackPanel Spacing="8">
-      <Grid ColumnDefinitions="*,Auto">
-        <TextBlock Text="Personalnummer" Classes="h3" VerticalAlignment="Center" />
-        <ui:HelpButton Topic="lohn" Section="personalnummern" Grid.Column="1" />
-      </Grid>
       <TextBlock Classes="muted" TextWrapping="Wrap" Text="Die Nummer der Lohnverrechnung oder Steuerberatung (Dienstnehmernummer in BMD, Personalnummer in DATEV)." />
       <ui:FormField Label="Personalnummer" IsEnabled="{Binding CanEditNumber}">
         <TextBox x:Name="PersonnelNumberField" Text="{Binding PersonnelNumber}" MaxLength="20" Width="200" HorizontalAlignment="Left" />
@@ -32,6 +29,11 @@
       </ui:FormField>
       <TextBlock Text="Lade Monatswerte …" Classes="muted" IsVisible="{Binding !IsLoaded}" />
       <TextBlock Text="Keine Dienste oder Abwesenheiten im Monat." Classes="muted" IsVisible="{Binding ShowsEmpty}" />
+      <Grid x:Name="PersonPayrollHead" ColumnDefinitions="2*,1.2*,*" ColumnSpacing="12" Margin="0,0,0,4" IsVisible="{Binding HasRows}" AutomationProperties.AccessibilityView="Raw">
+        <TextBlock Text="Position" Classes="label" />
+        <TextBlock Grid.Column="1" Text="Menge" Classes="label" HorizontalAlignment="Right" />
+        <TextBlock Grid.Column="2" Text="Lohnart" Classes="label" />
+      </Grid>
       <ItemsControl x:Name="PersonPayrollRows" ItemsSource="{Binding Rows}" AutomationProperties.Name="Monatswerte der Person">
         <ItemsControl.ItemTemplate>
           <DataTemplate x:DataType="vm:PayrollRow">

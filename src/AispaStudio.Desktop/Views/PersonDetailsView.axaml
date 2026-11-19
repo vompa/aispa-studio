@@ -13,7 +13,7 @@
       <ui:FormField Label="Vollständiger Name" IsRequired="True" Error="{Binding NameError}">
         <TextBox x:Name="PersonNameField" Text="{Binding Name}" MaxLength="100" />
       </ui:FormField>
-      <ui:FormField Grid.Column="1" Label="Name im Haus" Help="So heißt die Person im Kalender und für Gäste, z. B. Lena.">
+      <ui:FormField Grid.Column="1" Label="Name im Haus" Help="Für Kalender und Gäste, z. B. Lena.">
         <TextBox x:Name="PreferredNameField" Text="{Binding PreferredName}" MaxLength="40" />
       </ui:FormField>
       <ui:FormField Grid.Row="1" Label="Farbe im Kalender">
