@@ -14,8 +14,8 @@ stichwoerter: Kosten, Vollkosten, Kalkulation, Deckungsbeitrag, Marge, was koste
 
 - **Vollkosten pro Behandlung**: oben **Standort** und **Monat**, darüber „… Öffnungsstunden je Raum im Monat“. Die Tabelle zeigt je Behandlung Preis netto, Material, Personal, Raum, Raumpflege, Gemeinkosten, Vollkosten, Marge, Termine und Deckungsbeitrag. Negative Werte sind hervorgehoben.
 - Ein Klick auf den Namen einer Behandlung klappt die Rechnung Schritt für Schritt auf und darunter **Material pflegen**, das zum Material der Behandlung in den Stammdaten führt.
-- **Kostensätze des Standorts**: Raumpflege pro Stunde, Standard-Stundensatz Personal, Gemeinkosten pro Monat, Geplante Raumauslastung (%) und Produktive Arbeitszeit (%).
-- **Räume**: je Raum Miete und Nebenkosten pro Monat und Pflegematerial je Reinigung.
+- **Kostensätze des Standorts**: Raumpflege pro Stunde (€), Standard-Stundensatz Personal (€), Gemeinkosten pro Monat (€), Geplante Raumauslastung (%) und Produktive Arbeitszeit (%).
+- **Räume**: je Raum Miete und Nebenkosten pro Monat (€) und Pflegematerial je Reinigung (€).
 - **Personal**: je Person der Stundensatz. Leer gilt der Standard-Stundensatz.
 - **Speichern** (Strg+S) sichert alle geänderten Sätze, Räume und Personen auf einmal.
 

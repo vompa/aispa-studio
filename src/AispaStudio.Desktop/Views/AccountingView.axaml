@@ -33,7 +33,7 @@
         </StackPanel>
         <WrapPanel ItemSpacing="8" LineSpacing="8">
           <Button x:Name="ShowPostingsButton" Content="Buchungen anzeigen" Command="{Binding ShowPostingsCommand}" />
-          <Button x:Name="ExportDatevButton" Classes="primary" Content="DATEV-Buchungsstapel" Command="{Binding ExportDatevCommand}" />
+          <Button x:Name="ExportDatevButton" Content="DATEV-Buchungsstapel" Command="{Binding ExportDatevCommand}" />
           <Button x:Name="ExportBmdButton" Content="BMD-Import" Command="{Binding ExportBmdCommand}" />
           <Button x:Name="ExportRzlButton" Content="RZL-Import" Command="{Binding ExportRzlCommand}" />
           <Button x:Name="ExportSwissButton" Content="Schweiz (Abacus, bexio)" Command="{Binding ExportSwissCommand}" />
@@ -107,13 +107,13 @@
         <StackPanel Spacing="12" IsVisible="{Binding CanAddAccount}">
           <Grid ColumnDefinitions="*,*,*" ColumnSpacing="12">
             <ui:FormField Label="Kontonummer" IsRequired="True" Error="{Binding AccountCodeError}">
-              <TextBox x:Name="RevenueAccountCodeField" Text="{Binding AccountCode}" />
+              <TextBox x:Name="RevenueAccountCodeField" Text="{Binding AccountCode}" Width="120" HorizontalAlignment="Left" />
             </ui:FormField>
             <ui:FormField Grid.Column="1" Label="Bezeichnung" IsRequired="True" Error="{Binding AccountNameError}">
-              <TextBox x:Name="RevenueAccountNameField" Text="{Binding AccountName}" />
+              <TextBox x:Name="RevenueAccountNameField" Text="{Binding AccountName}" Width="280" HorizontalAlignment="Left" />
             </ui:FormField>
             <ui:FormField Grid.Column="2" Label="Kostenstelle">
-              <TextBox x:Name="RevenueAccountCenterField" Text="{Binding AccountCostCenter}" />
+              <TextBox x:Name="RevenueAccountCenterField" Text="{Binding AccountCostCenter}" Width="160" HorizontalAlignment="Left" />
             </ui:FormField>
           </Grid>
           <Button x:Name="AddAccountButton" Content="Erlöskonto anlegen" Command="{Binding AddAccountCommand}" HorizontalAlignment="Left" />
@@ -152,8 +152,8 @@
             </ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplate>
               <DataTemplate x:DataType="vm:AccountMappingField">
-                <ui:FormField Label="{Binding Label}">
-                  <TextBox Text="{Binding Value}" AutomationProperties.Name="{Binding Label}" />
+                <ui:FormField Label="{Binding Label}" Help="{Binding Help}">
+                  <TextBox Text="{Binding Value}" AutomationProperties.Name="{Binding Label}" Width="160" HorizontalAlignment="Left" />
                 </ui:FormField>
               </DataTemplate>
             </ItemsControl.ItemTemplate>

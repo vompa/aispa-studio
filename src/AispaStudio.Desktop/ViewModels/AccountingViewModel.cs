@@ -22,9 +22,12 @@ public sealed record AccountingCountryChoice(FiscalCountry? Value, string Name)
 }
 
 /// <summary>Ein Konto der Kontenzuordnung mit seiner Beschriftung.</summary>
-public sealed partial class AccountMappingField(string label, Func<AccountingSettingsDto, string> read, Func<AccountingSettingsDto, string, AccountingSettingsDto> write) : ObservableObject
+public sealed partial class AccountMappingField(string label, string help, Func<AccountingSettingsDto, string> read, Func<AccountingSettingsDto, string, AccountingSettingsDto> write) : ObservableObject
 {
     public string Label { get; } = label;
+
+    /// <summary>Was das Konto ist, in einem Satz unter dem Feld; die Beschriftung trägt keine Klammer (design.md 5.2).</summary>
+    public string Help { get; } = help;
 
     [ObservableProperty]
     public partial string Value { get; set; } = "";
@@ -92,17 +95,17 @@ public sealed partial class AccountingViewModel(IWorkstationApi api, CurrentUser
 
     public IReadOnlyList<AccountMappingField> MappingFields { get; } =
     [
-        new("Verrechnungskonto Kassa", s => s.TransitAccount, (s, v) => s with { TransitAccount = v }),
-        new("Kassa (Bar)", s => s.CashAccount, (s, v) => s with { CashAccount = v }),
-        new("Karte (Verrechnung Terminal)", s => s.CardAccount, (s, v) => s with { CardAccount = v }),
-        new("Bank (Sofortüberweisung)", s => s.InstantTransferAccount, (s, v) => s with { InstantTransferAccount = v }),
-        new("Gutscheine (Verbindlichkeit)", s => s.VoucherAccount, (s, v) => s with { VoucherAccount = v }),
-        new("Geldtransit (Einlage/Entnahme)", s => s.CashTransferAccount, (s, v) => s with { CashTransferAccount = v }),
-        new("Digitaler Euro (Verrechnung)", s => s.DigitalEuroAccount, (s, v) => s with { DigitalEuroAccount = v }),
-        new("Treatwell (Forderung, vorab bezahlt)", s => s.TreatwellAccount, (s, v) => s with { TreatwellAccount = v }),
-        new("Kassenfehlbetrag (Tagesabschluss)", s => s.CashShortageAccount, (s, v) => s with { CashShortageAccount = v }),
-        new("Kassenüberschuss (Tagesabschluss)", s => s.CashSurplusAccount, (s, v) => s with { CashSurplusAccount = v }),
-        new("Trinkgeld für das Team (Verbindlichkeit)", s => s.TipsAccount, (s, v) => s with { TipsAccount = v }),
+        new("Verrechnungskonto Kassa", "Zwischenkonto für jeden Beleg.", s => s.TransitAccount, (s, v) => s with { TransitAccount = v }),
+        new("Kassa bar", "Geldkonto für Barzahlungen.", s => s.CashAccount, (s, v) => s with { CashAccount = v }),
+        new("Karte", "Verrechnung des Kartenterminals.", s => s.CardAccount, (s, v) => s with { CardAccount = v }),
+        new("Bank", "Geldkonto für Sofortüberweisungen.", s => s.InstantTransferAccount, (s, v) => s with { InstantTransferAccount = v }),
+        new("Gutscheine", "Verbindlichkeit aus Gutscheinen.", s => s.VoucherAccount, (s, v) => s with { VoucherAccount = v }),
+        new("Geldtransit", "Gegenkonto für Einlage und Entnahme.", s => s.CashTransferAccount, (s, v) => s with { CashTransferAccount = v }),
+        new("Digitaler Euro", "Verrechnung für den digitalen Euro.", s => s.DigitalEuroAccount, (s, v) => s with { DigitalEuroAccount = v }),
+        new("Treatwell", "Vorab bezahlte Forderung an Treatwell.", s => s.TreatwellAccount, (s, v) => s with { TreatwellAccount = v }),
+        new("Kassenfehlbetrag", "Fehlbetrag beim Tagesabschluss.", s => s.CashShortageAccount, (s, v) => s with { CashShortageAccount = v }),
+        new("Kassenüberschuss", "Überschuss beim Tagesabschluss.", s => s.CashSurplusAccount, (s, v) => s with { CashSurplusAccount = v }),
+        new("Trinkgeld für das Team", "Verbindlichkeit gegenüber dem Team.", s => s.TipsAccount, (s, v) => s with { TipsAccount = v }),
     ];
 
     [ObservableProperty]

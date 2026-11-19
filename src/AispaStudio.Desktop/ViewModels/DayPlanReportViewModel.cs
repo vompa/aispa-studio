@@ -121,7 +121,7 @@ public sealed partial class DayPlanReportViewModel(IWorkstationApi api, TimeProv
             points,
             [
                 new("Behandlungen", Cards.Count.ToString(CultureInfo.InvariantCulture)),
-                new("Vorbereitung offen", Cards.Sum(c => c.OpenCount).ToString(CultureInfo.InvariantCulture)),
+                new(open == 1 ? "Vorbereitung offen" : "Vorbereitungen offen", open.ToString(CultureInfo.InvariantCulture)),
                 new("Dienst", plan.Shifts.Count == 0 ? "kein Dienst" : string.Join(", ", plan.Shifts.Select(s => $"{Clock(s.Start)}–{Clock(s.End)}"))),
             ]);
     }
@@ -163,7 +163,7 @@ public sealed partial class TreatmentCardRow : ViewModelBase
         Guest = $"{card.CustomerName} · {visit}{last}{occasion}";
         Anamnesis = card.AnamnesisStatus;
         IsAnamnesisWarning = !card.AnamnesisStatus.StartsWith("Fragebogen vom", StringComparison.Ordinal);
-        BookingNote = card.BookingNote is { } note ? $"Hinweis zur Buchung: {note}" : null;
+        BookingNote = card.BookingNote is { } note ? $"Notiz zur Buchung: {note}" : null;
         Todo = [.. card.Todo.Where(t => t.StepId is not null || t.IsEquipment == true).Select(t => new ReportCheckRow(t.StepId ?? card.AppointmentId, t.IsEquipment == true ? ToggleEquipmentAsync : ToggleStepAsync)
         {
             Text = t.Text,
@@ -223,9 +223,9 @@ public sealed partial class TreatmentCardRow : ViewModelBase
             return;
         }
 
-        var count = open.Count == 1 ? "1 Vorbereitung offen" : $"{open.Count} Vorbereitungen offen";
+        // Die Zahl der offenen Schritte steht schon im Band und in der Kachel; die Pille nennt nur die Frist.
         var first = open.Where(t => t.due is not null).Select(t => t.due!.Value).Order().Cast<DateTimeOffset?>().FirstOrDefault();
-        StatusText = first is { } due ? $"{count}, erste bis {_clock(due)}" : count;
+        StatusText = first is { } due ? $"erste bis {_clock(due)}" : open.Count == 1 ? "1 Vorbereitung offen" : $"{open.Count} Vorbereitungen offen";
     }
 
     private static string FirstName(string customerName) => customerName.Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? customerName;

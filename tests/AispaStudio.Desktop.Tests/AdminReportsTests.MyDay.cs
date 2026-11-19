@@ -34,7 +34,7 @@ public sealed partial class AdminReportsTests
             .On($"PUT /api/reports/appointments/{AppointmentId}/equipment-prepared", new { });
         var card = await OpenLavaCard(api);
 
-        Assert.Equal("2 Vorbereitungen offen, erste bis 09:30", card.StatusText);
+        Assert.Equal("erste bis 09:30", card.StatusText);
         Assert.False(card.IsReady);
 
         card.Todo[0].Done = true;

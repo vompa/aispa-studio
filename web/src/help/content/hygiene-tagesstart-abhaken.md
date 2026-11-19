@@ -19,7 +19,7 @@ Vor dem ersten Termin in einem Raum hakt das Team die Punkte der Checkliste ab, 
 
 ## Ausstattung vollständig {#ausstattung}
 
-Hat der Raum einen Raumschrank mit Mindestmengen, steht beim Raum zusätzlich der Punkt **Ausstattung vollständig**. Ist im Schrank nichts unter der Mindestmenge, steht dort „ja“ in grün. Sonst steht er in orange mit „2 Materialien unter Minimum“ und einer Liste, z. B. „Massageöl neutral: 200 von 500 ml, 300 ml nachfüllen“. Der Punkt ist eine Anzeige und kein Kästchen: Aufgefüllt wird nach der Behandlung ([Raum nach der Behandlung prüfen](hilfe:kalender-raumcheck)) oder im Lager ([Nachfüllen](hilfe:lager-nachfuellen)). Er hält weder den Tagesstart noch die Abnahme auf.
+Hat der Raum einen Raumschrank mit Mindestmengen, steht beim Raum zusätzlich der Punkt **Ausstattung vollständig**. Ist im Schrank nichts unter der Mindestmenge, steht dort nur „Ausstattung vollständig“. Sonst steht dort in rot „Ausstattung unvollständig: 2 Materialien unter Minimum“ und darunter eine Liste, z. B. „Massageöl neutral: 200 von 500 ml, 300 ml nachfüllen“. Der Punkt ist eine Anzeige und kein Kästchen: Aufgefüllt wird nach der Behandlung ([Raum nach der Behandlung prüfen](hilfe:kalender-raumcheck)) oder im Lager ([Nachfüllen](hilfe:lager-nachfuellen)). Er hält weder den Tagesstart noch die Abnahme auf.
 
 ## Gut zu wissen {#hinweise}
 

@@ -29,7 +29,7 @@ public sealed record SecurityOption(MailboxSecurity Value, string Label)
 /// </summary>
 public sealed partial class IntakeViewModel : ViewModelBase, INativeArea
 {
-    private const string SecretKept = "gespeichert, leer lassen zum Behalten";
+    private const string SecretKept = "Gespeichert. Leer lassen, um es zu behalten.";
     private const int CheckAttempts = 20;
 
     private static readonly string[] Inputs =
@@ -155,8 +155,8 @@ public sealed partial class IntakeViewModel : ViewModelBase, INativeArea
 
     public string SecretLabel => IsImap ? "Passwort" : "Client-Geheimnis";
 
-    /// <summary>Hinweis im leeren Feld: ein gespeichertes Geheimnis gilt nur für dieselbe Art.</summary>
-    public string SecretPlaceholder => _box is { HasSecret: true } box && box.Kind == Kind.Value ? SecretKept : "";
+    /// <summary>Hilfetext unter dem Feld (kein Platzhalter, design.md 5.2): ein gespeichertes Geheimnis gilt nur für dieselbe Art.</summary>
+    public string SecretHelp => _box is { HasSecret: true } box && box.Kind == Kind.Value ? SecretKept : "";
 
     public bool ShowSmtp => SendReplies && IsImap;
 
@@ -362,7 +362,7 @@ public sealed partial class IntakeViewModel : ViewModelBase, INativeArea
             OnPropertyChanged(nameof(IsImap));
             OnPropertyChanged(nameof(IsGraph));
             OnPropertyChanged(nameof(SecretLabel));
-            OnPropertyChanged(nameof(SecretPlaceholder));
+            OnPropertyChanged(nameof(SecretHelp));
         }
 
         if (name is nameof(Kind) or nameof(SendReplies) or nameof(SaveSentCopy))
@@ -412,7 +412,7 @@ public sealed partial class IntakeViewModel : ViewModelBase, INativeArea
 
     private void RefreshStatus()
     {
-        foreach (var name in new[] { nameof(StatusLine), nameof(HasStatusLine), nameof(StatusIsWarning), nameof(SendNotice), nameof(HasSendNotice), nameof(SecretPlaceholder) })
+        foreach (var name in new[] { nameof(StatusLine), nameof(HasStatusLine), nameof(StatusIsWarning), nameof(SendNotice), nameof(HasSendNotice), nameof(SecretHelp) })
         {
             OnPropertyChanged(name);
         }

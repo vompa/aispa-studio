@@ -14,7 +14,7 @@ Bis zur Rabattgrenze darf jede Person an der Kassa und in der Kundenkartei Rabat
 
 1. In der Verwaltung **Stammdaten** öffnen, Reiter **Kassa**.
 2. Bei **Rabatt ohne Freigabe bis (%)** die Grenze eintragen, z. B. 10.
-3. Bei **Barzahlungsrabatt (%, 0 = aus)** den Satz eintragen oder 0 lassen.
+3. Bei **Barzahlungsrabatt (%)** den Satz eintragen oder 0 lassen.
 4. Auf **Speichern** klicken.
 
 ## Gut zu wissen {#hinweise}

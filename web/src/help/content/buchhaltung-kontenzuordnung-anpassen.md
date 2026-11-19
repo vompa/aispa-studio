@@ -14,7 +14,7 @@ Die Kontenzuordnung legt fest, auf welche Konten der Buchhaltungsexport Geld, Ve
 
 1. **Buchhaltung** öffnen und zum Bereich **Kontenzuordnung** gehen.
 2. Bei **Gilt für** wählen, wofür die Zuordnung gelten soll: **Standard (alle Länder)**, **Österreich**, **Deutschland** oder **Schweiz**.
-3. Die Konten mit der Steuerberatung abstimmen und eintragen, z. B. **Kassa (Bar)** oder **Verrechnungskonto Kassa**.
+3. Die Konten mit der Steuerberatung abstimmen und eintragen, z. B. **Kassa bar** oder **Verrechnungskonto Kassa**.
 4. Bei Bedarf die DATEV-Angaben, die **MWST-Codes Schweiz je Satz (z. B. 8.1=UN81)** oder **Erlöskonten umschlüsseln (z. B. 4000=3400)** ausfüllen.
 5. **Speichern** anklicken. Die Meldung „Einstellungen gespeichert.“ erscheint.
 

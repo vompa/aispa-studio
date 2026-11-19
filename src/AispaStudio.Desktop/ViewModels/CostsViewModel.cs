@@ -193,8 +193,8 @@ public sealed partial class CostsViewModel(IWorkstationApi api, CurrentUser user
     public string? MissingNotice => Rows.Count(r => r.HasMissing) switch
     {
         0 => null,
-        1 => "Bei 1 Behandlung fehlen Angaben für die Vollkosten. Die Zeile nennt, was fehlt.",
-        var count => $"Bei {count} Behandlungen fehlen Angaben für die Vollkosten. Die Zeilen nennen, was fehlt.",
+        1 => "Bei 1 Behandlung fehlen Angaben für die Vollkosten. Die Zeile nennt, was fehlt; Sätze und Räume trägt man weiter unten ein, Material bei der Behandlung.",
+        var count => $"Bei {count} Behandlungen fehlen Angaben für die Vollkosten. Die Zeilen nennen, was fehlt; Sätze und Räume trägt man weiter unten ein, Material bei der Behandlung.",
     };
 
     public bool HasMissingNotice => MissingNotice is not null;

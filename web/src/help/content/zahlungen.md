@@ -64,7 +64,7 @@ Beginnt mit `sk_live_` (echtes Geld) oder `sk_test_` (Probe). Ein eingeschränkt
 
 ### Webhook-Geheimnis {#webhook-geheimnis}
 
-Beginnt mit `whsec_`. Ohne es erfährt AISPA nicht, dass bezahlt wurde. So richtet man den Webhook ein:
+Beginnt mit `whsec_`. Ein Webhook ist die Nachricht, mit der Stripe AISPA meldet, dass bezahlt wurde; das Geheimnis belegt, dass sie wirklich von Stripe kommt. Ohne es erfährt AISPA nicht, dass bezahlt wurde. So richtet man den Webhook ein:
 
 1. Im Stripe-Dashboard „Entwickler“ › „Webhooks“ › „Endpunkt hinzufügen“.
 2. Als Adresse die Webhook-Adresse eintragen, die AISPA nach dem Speichern unter den Feldern anzeigt (sie endet auf `/api/hooks/payments/stripe/` und der Kennung des Spas).

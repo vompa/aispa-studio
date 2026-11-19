@@ -76,7 +76,8 @@ public sealed partial class ViewTests
         var intake = shell.AdminPage.Intake!;
         var secret = Named<TextBox>(window, "SecretField");
         Assert.Equal('●', secret.PasswordChar);
-        Assert.Equal("gespeichert, leer lassen zum Behalten", secret.PlaceholderText);
+        Assert.True(string.IsNullOrEmpty(secret.PlaceholderText));
+        Assert.True(Shows(window, "Gespeichert. Leer lassen, um es zu behalten."));
 
         await TypeInto(window, "AddressField", "buchung@day-spa-wien.at");
         await TypeInto(window, "SecretField", "geheim-123");
