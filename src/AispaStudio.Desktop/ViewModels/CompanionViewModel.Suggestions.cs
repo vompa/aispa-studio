@@ -96,6 +96,29 @@ public sealed partial class CompanionViewModel
     [NotifyCanExecuteChangedFor(nameof(BookCommand))]
     public partial bool IsBookingBusy { get; private set; }
 
+    /// <summary>Neuer Gast direkt aus der Leiste: offen, solange er angelegt wird; danach ist er in „Für wen?“ gewählt.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsCreatingGuest))]
+    public partial NewGuestFormViewModel? NewGuest { get; private set; }
+
+    public bool IsCreatingGuest => NewGuest is not null;
+
+    /// <summary>„Neuer Gast“ unter der Suche: übernimmt, was schon getippt ist.</summary>
+    [RelayCommand]
+    private void StartNewGuest()
+    {
+        if (Guest is not { } search)
+        {
+            return;
+        }
+
+        NewGuest = new NewGuestFormViewModel(_api, search.Query, customer =>
+        {
+            search.Customer = customer;
+            NewGuest = null;
+        }, () => NewGuest = null);
+    }
+
     /// <summary>„Gebucht: …“ nach erfolgreicher Buchung.</summary>
     [ObservableProperty]
     public partial string? BookedText { get; private set; }
@@ -162,6 +185,7 @@ public sealed partial class CompanionViewModel
     {
         Pick = null;
         Guest = null;
+        NewGuest = null;
     }
 
     private bool CanBookNow() => Pick is not null && Guest?.Customer is not null && !IsBookingBusy;

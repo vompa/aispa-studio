@@ -133,6 +133,40 @@ public sealed class CompanionTests
     }
 
     [Fact]
+    public async Task Neuer_Gast_laesst_sich_beim_Buchen_aus_der_Leiste_anlegen_und_ist_dann_gewaehlt()
+    {
+        var created = new CustomerDto(Guid.NewGuid(), "Mara", "Neu", null, "+43 660 7654321", null, null, null);
+        var stub = new StubApi()
+            .On("POST /api/assistant", WithSuggestions(Free()))
+            .On("GET /api/customers?search=mara neu", new List<CustomerDto>())
+            .On("POST /api/customers", created, HttpStatusCode.Created);
+        var companion = new CompanionViewModel(stub.Client(), new MemorySettingsStore(), true, AssistantAudience.Reception) { CanBook = true };
+        await companion.AskExampleCommand.ExecuteAsync("Wann ist morgen eine Massage frei?");
+        await companion.UseSuggestionCommand.ExecuteAsync(Assert.Single(companion.Suggestions));
+        companion.Guest!.Query = "Mara Neu";
+
+        companion.StartNewGuestCommand.Execute(null);
+        var form = companion.NewGuest!;
+        Assert.True(companion.IsCreatingGuest);
+        Assert.Equal(("Mara", "Neu"), (form.FirstName, form.LastName));
+        form.Phone = "+43 660 7654321";
+        await form.CreateCommand.ExecuteAsync(null);
+
+        var call = Assert.Single(stub.Calls, c => c.Route == "POST /api/customers");
+        var sent = System.Text.Json.JsonSerializer.Deserialize<CustomerInput>(call.Body!, AispaStudio.Desktop.Services.ApiClient.Json)!;
+        Assert.Equal(("Mara", "Neu", "+43 660 7654321"), (sent.FirstName, sent.LastName, sent.Phone));
+        Assert.False(companion.IsCreatingGuest);
+        Assert.Equal(created, companion.Guest.Customer);
+        Assert.True(companion.BookCommand.CanExecute(null));
+
+        // Abbrechen schließt nur die Neuanlage.
+        companion.StartNewGuestCommand.Execute(null);
+        companion.NewGuest!.CancelCommand.Execute(null);
+        Assert.False(companion.IsCreatingGuest);
+        Assert.True(companion.IsBooking);
+    }
+
+    [Fact]
     public async Task Freie_Zeit_bucht_erst_nach_Wahl_des_Kunden()
     {
         var maria = new CustomerDto(Guid.NewGuid(), "Maria", "Brunner", "maria@example.at", "+43 660 1234567", null, null, null);
