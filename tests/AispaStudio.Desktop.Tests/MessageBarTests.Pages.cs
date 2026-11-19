@@ -69,7 +69,7 @@ public sealed partial class MessageBarTests
 
     [Theory]
     [InlineData(CardPaymentStatus.Pending, InfoBarSeverity.Info, "Abbrechen")]
-    [InlineData(CardPaymentStatus.Approved, InfoBarSeverity.Success, "Stornieren")]
+    [InlineData(CardPaymentStatus.Approved, InfoBarSeverity.Success, "Kartenzahlung stornieren")]
     [InlineData(CardPaymentStatus.Declined, InfoBarSeverity.Error, null)]
     [InlineData(CardPaymentStatus.Cancelled, InfoBarSeverity.Info, null)]
     [InlineData(CardPaymentStatus.ReversalPending, InfoBarSeverity.Info, null)]

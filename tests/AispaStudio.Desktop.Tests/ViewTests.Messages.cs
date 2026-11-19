@@ -52,7 +52,7 @@ public sealed partial class ViewTests
         var bar = VisibleInfoBar(window.GetVisualDescendants().OfType<PosView>().First(), card.TerminalText);
         Assert.Equal(InfoBarSeverity.Success, bar.Severity);
         Assert.Equal(AutomationLiveSetting.Polite, AutomationProperties.GetLiveSetting(bar));
-        Assert.Contains(bar.GetVisualDescendants().OfType<Button>(), b => b.IsEffectivelyVisible && b.Content as string == "Stornieren");
+        Assert.Contains(bar.GetVisualDescendants().OfType<Button>(), b => b.IsEffectivelyVisible && b.Content as string == "Kartenzahlung stornieren");
         var shell = (ShellViewModel)main.Content!;
         Assert.Same(shell.Pos.CancelCardPaymentCommand, bar.ActionCommand);
         Assert.Same(card, bar.ActionParameter);

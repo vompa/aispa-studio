@@ -40,6 +40,6 @@ Die Knöpfe sehen nur Personen, die Belege ansehen dürfen. Eine Therapeutin ohn
 ## Gut zu wissen {#hinweise}
 
 - Ohne Bondrucker ist **Drucken** grau und es steht „Kein Bondrucker eingerichtet (unter „Geräte“).“ Einrichten: [Bondrucker einrichten](hilfe:geraete-bondrucker-einrichten). **A4 drucken**, **PDF speichern** und **Per Mail senden** gehen trotzdem.
-- „Storno“ kennzeichnet einen Stornobeleg, „storniert“ einen Beleg, zu dem es einen Stornobeleg gibt.
+- „Stornobeleg“ kennzeichnet einen Stornobeleg, „storniert“ einen Beleg, zu dem es einen Stornobeleg gibt.
 - Die Liste zeigt einen Tag und nur die gewählte Kasse; andere Kassen über die Auswahl der Kasse. Beim nächsten Öffnen von „Belege“ steht wieder heute da. Das Datenerfassungsprotokoll (DEP) lädt die Leitung in der Windows-App unter **Verwaltung** › **Zahlen** › **Berichte** › **Pflichtberichte** herunter.
 - Wird ein Beleg zur Rechnung mit Empfänger, druckt er danach als Rechnung: [Rechnung mit Empfänger](hilfe:kassa-rechnung-mit-empfaenger).

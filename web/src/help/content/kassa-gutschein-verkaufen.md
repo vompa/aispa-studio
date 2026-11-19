@@ -83,7 +83,7 @@ Gutscheine drucken und senden darf, wer buchen oder Belege ansehen darf.
 Die Gutscheinliste zeigt alle Gutscheine des Standorts mit Werten, Status, Käufern und Versandvermerk, am Ende mit der Summe der offenen Restwerte.
 
 1. In der Kassa in der Kopfzeile auf **Gutscheinliste …** klicken. Es öffnet sich die Karte „Gutscheinliste“.
-2. Bei Bedarf filtern: **Ausgestellt von** und **bis**, **Status** (Alle, aktiv, aufgebraucht, abgelaufen, storniert) und die Haken **läuft in 30 Tagen ab** und **noch nicht versendet**.
+2. Bei Bedarf filtern: **Ausgestellt von** und **bis**, **Status** (Alle, aktiv, aufgebraucht, abgelaufen, storniert) und die Haken **Läuft in 30 Tagen ab** und **Noch nicht versendet**. „Noch nicht versendet“ zeigt Gutscheine ohne Versandvermerk, also weder per Mail gesendet noch gedruckt noch übergeben.
 3. Auf **Drucken** oder **PDF speichern** klicken. **Per Mail senden** gibt es hier nicht.
 
 ![Kassa mit geöffneter Karte Gutscheinliste, Filtern und den Knöpfen Drucken und PDF speichern](images/app/kassa-gutscheinliste.png)

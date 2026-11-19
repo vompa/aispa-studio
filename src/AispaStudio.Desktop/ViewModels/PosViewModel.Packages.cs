@@ -99,7 +99,7 @@ public partial class PosViewModel
 
             var name = Treatments.FirstOrDefault(t => t.Id == package.TreatmentId)?.Name ?? "Behandlung";
             hints.Add(new PackageHint(package,
-                $"Paket {name}: {package.UnitsLeft} von {package.Units} offen{(package.ValidUntil is { } until ? $", gültig bis {until:dd.MM.yyyy}" : "")}",
+                $"Paket {name}: {package.UnitsLeft} von {package.Units} Terminen offen{(package.ValidUntil is { } until ? $", gültig bis {until:dd.MM.yyyy}" : "")}",
                 lines.Count == 1 ? "1 Termin abziehen" : $"{lines.Count} Termine abziehen",
                 lines.Sum(l => l.Amount - l.PaidAmount)));
         }

@@ -66,6 +66,12 @@ public partial class PosView : UserControl
             // Das Suchfeld wird erst über die Bindung sichtbar: nach dem Layout fokussieren.
             FocusSearch(DispatcherPriority.Background);
         }
+
+        // Nach dem Bezahlen verschwindet der Knopf mit dem Fokus: die nächste Rechnung beginnt im Suchfeld.
+        if (e.PropertyName == nameof(PosViewModel.ShowPayForm) && _pos is { IsCheckout: true, ShowPayForm: false })
+        {
+            FocusSearch(DispatcherPriority.Background);
+        }
     }
 
     private void FocusSearch(DispatcherPriority priority) => Dispatcher.UIThread.Post(() => PosScanField.Focus(), priority);
