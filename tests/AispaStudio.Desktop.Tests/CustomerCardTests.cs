@@ -290,6 +290,44 @@ public sealed class CustomerCardTests
     }
 
     [Fact]
+    public async Task Kennzeichen_Vorschlaege_uebernehmen_und_verwerfen()
+    {
+        var customer = SpaSample.Customers[0];
+        var flag = new CustomerFlagDto(Guid.NewGuid(), CustomerFlagKind.MoreTime, null, null, "In den letzten 12 Monaten 2-mal mindestens 10 Minuten zu spät gekommen.",
+            new DateOnly(2026, 10, 19), true);
+        var stub = new StubApi()
+            .On("GET /api/customers?search=", SpaSample.Customers.ToList())
+            .On($"GET /api/customers/{customer.Id}/appointments", new List<AppointmentDto>())
+            .On($"GET /api/customers/{customer.Id}/flags", new List<CustomerFlagDto>())
+            .On($"GET /api/customers/{customer.Id}/flags/suggestions", new List<CustomerFlagSuggestion>
+            {
+                new(CustomerFlagKind.MoreTime, "In den letzten 12 Monaten 2-mal mindestens 10 Minuten zu spät gekommen."),
+                new(CustomerFlagKind.InformManagement, "In den letzten 12 Monaten 2-mal nicht erschienen."),
+            })
+            .On($"POST /api/customers/{customer.Id}/flags", new List<CustomerFlagDto> { flag })
+            .On($"POST /api/customers/{customer.Id}/flags/suggestions/InformManagement/dismiss", null, System.Net.HttpStatusCode.NoContent);
+        var lead = new CurrentUser("u1", "leitung@aispa.test", "Lea Leitung", 1, null, null, [AccessRight.ViewCalendar, AccessRight.Book, AccessRight.ManageLocation]);
+        var customers = new CustomersViewModel(stub.Client(), TimeProvider.System) { User = lead };
+        await customers.InitializeAsync();
+        customers.Selected = customers.Results[0];
+        await customers.LoadVisitsAsync(customers.Selected);
+
+        Assert.Equal(["Vorschlag: Braucht mehr Zeit", "Vorschlag: Leitung informieren"], customers.FlagSuggestions.Select(s => s.Heading));
+        Assert.True(customers.FlagsSectionVisible);
+        Assert.Empty(customers.Flags);
+
+        await customers.AcceptFlagSuggestionCommand.ExecuteAsync(customers.FlagSuggestions[0]);
+        var sent = JsonSerializer.Deserialize<CustomerFlagInput>(stub.Calls.Last(c => c.Route == $"POST /api/customers/{customer.Id}/flags").Body!, ApiClient.Json);
+        Assert.Equal(new CustomerFlagInput(CustomerFlagKind.MoreTime, null, "In den letzten 12 Monaten 2-mal mindestens 10 Minuten zu spät gekommen."), sent);
+        Assert.Equal(["Braucht mehr Zeit"], customers.Flags.Select(f => f.Title));
+
+        await customers.DismissFlagSuggestionCommand.ExecuteAsync(Assert.Single(customers.FlagSuggestions));
+        Assert.Contains(stub.Calls, c => c.Route == $"POST /api/customers/{customer.Id}/flags/suggestions/InformManagement/dismiss");
+        Assert.Empty(customers.FlagSuggestions);
+        Assert.Null(customers.Error);
+    }
+
+    [Fact]
     public async Task Die_Kundenkarte_nennt_neben_dem_Geburtsdatum_Alter_und_den_naechsten_Geburtstag()
     {
         var customer = SpaSample.Customers[0] with { BirthDate = new DateOnly(1981, 3, 13) };

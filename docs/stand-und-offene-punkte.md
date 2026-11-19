@@ -379,7 +379,7 @@ Die Nummern sind die Reihenfolge, die der jeweilige Thread gewählt hätte ([Üb
 3. Leerlaufzeit eines angemeldeten Empfangsgeräts ändern; Liste aller Empfangsgeräte des Spas.
 4. Lücken durch Verschieben mehrerer Termine hintereinander schließen (Ketten): seit 19.11.2026 gebaut (bis vier Termine, Vorziehen; ein Aufruf mit Rücknahme).
 5. Feiertage weiterer Kantone und einzelner Gemeinden.
-6. Aus den Rezeptions-Schritten offen („Kommt später“ meldet der Gast seit 16.11.2026 selbst über den Termin-Link): Ausfallgebühr für Gäste ohne Namen seit 18.11.2026 gebaut (zahlt die buchende Person; Sauna seit 17.11.2026); Hinweis „Anamnese prüfen“ auch bei Paar und Spa-Tag (in „Mein Tag“ seit 16.11.2026); automatische Vorschläge für Kennzeichen; Schwellen der Kennzahlen einstellbar.
+6. Aus den Rezeptions-Schritten offen („Kommt später“ meldet der Gast seit 16.11.2026 selbst über den Termin-Link): Ausfallgebühr für Gäste ohne Namen seit 18.11.2026 gebaut (zahlt die buchende Person; Sauna seit 17.11.2026); Hinweis „Anamnese prüfen“ auch bei Paar und Spa-Tag (in „Mein Tag“ seit 16.11.2026); automatische Vorschläge für Kennzeichen seit 19.11.2026 gebaut („Braucht mehr Zeit“, „Leitung informieren“); Schwellen der Kennzahlen einstellbar.
 - Nicht gebaut (Auftraggeber, 16.11.2026): Zeiterfassung am Empfangsgerät per PIN.
 - Später: Chipkarte oder NFC für den Schnellwechsel; Entfernung oder bevorzugter Ausweichstandort; Lückenbewertung in Online-Buchung und KI-Terminannahme; SSO; Korrekturwünsche, Monatsbestätigung, Ist-Zeiten in den Berichten; Benachrichtigung beim Veröffentlichen des Dienstplans; KI-Vorschläge im Dienstplan (Entwurf `RosterDraftTests`).
 

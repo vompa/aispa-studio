@@ -1432,6 +1432,17 @@ Expected: Kein Kommentar.
 Closes: –
 Result: ☐
 
+### Kunden – Vorschläge für Kennzeichen
+Start: `dotnet run --project src/AispaStudio.AppHost` mit Beispieldaten; ein Gast mit zwei Terminen „Nicht erschienen“ in den letzten 12 Monaten
+1. In der Windows-App als Inhaberin **Kunden** öffnen und den Gast wählen.
+Expected: Im Abschnitt **Kennzeichen** steht „Vorschlag: Leitung informieren“ mit „In den letzten 12 Monaten 2-mal nicht erschienen.“
+2. **Verwerfen** klicken, die Karte neu öffnen.
+Expected: Der Vorschlag kommt nicht wieder. Als Rezeption ist der Vorschlag nie zu sehen.
+3. Bei einem Gast mit zwei gemeldeten Verspätungen von 10 Minuten als Rezeption **Übernehmen** bei „Braucht mehr Zeit“.
+Expected: Das Kennzeichen steht mit der Begründung als Grund; ein neuer Termin bekommt 10 Minuten Puffer.
+Closes: –
+Result: ☐
+
 ### Kalender – Lücken schließen mit Kette
 Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App als Rezeption; bei einer Person drei Massagen an einem Tag: 9:05, 10:30 und direkt danach 11:35
 1. Im Menü neben **Termin** **Lücken schließen** wählen.

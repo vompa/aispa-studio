@@ -46,6 +46,7 @@ public sealed class AispaDbContext(DbContextOptions<AispaDbContext> options, Ten
     public DbSet<TreatmentPriceRule> TreatmentPriceRules => Set<TreatmentPriceRule>();
     public DbSet<Customer> Customers => Set<Customer>();
     public DbSet<CustomerFlag> CustomerFlags => Set<CustomerFlag>();
+    public DbSet<CustomerFlagDismissal> CustomerFlagDismissals => Set<CustomerFlagDismissal>();
     public DbSet<CustomerEmail> CustomerEmails => Set<CustomerEmail>();
     public DbSet<CustomerNameChangeEntry> CustomerNameChanges => Set<CustomerNameChangeEntry>();
     public DbSet<Appointment> Appointments => Set<Appointment>();

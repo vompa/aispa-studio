@@ -4577,6 +4577,9 @@ namespace AispaStudio.Api.Data.Migrations
                     b.Property<int>("ExtraFollowUpMinutes")
                         .HasColumnType("integer");
 
+                    b.Property<DateTimeOffset?>("FinishedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<int>("FollowUpMinutes")
                         .HasColumnType("integer");
 
@@ -5094,6 +5097,39 @@ namespace AispaStudio.Api.Data.Migrations
                     b.HasIndex("TenantId");
 
                     b.ToTable("CustomerFlags", "aispa");
+                });
+
+            modelBuilder.Entity("AispaStudio.Api.Scheduling.CustomerFlagDismissal", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CustomerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("DismissedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(24)
+                        .HasColumnType("character varying(24)");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("UserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantId");
+
+                    b.HasIndex("CustomerId", "Kind");
+
+                    b.ToTable("CustomerFlagDismissals", "aispa");
                 });
 
             modelBuilder.Entity("AispaStudio.Api.Scheduling.CustomerNameChangeEntry", b =>
@@ -8284,6 +8320,21 @@ namespace AispaStudio.Api.Data.Migrations
                 });
 
             modelBuilder.Entity("AispaStudio.Api.Scheduling.CustomerFlag", b =>
+                {
+                    b.HasOne("AispaStudio.Api.Scheduling.Customer", null)
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AispaStudio.Api.Tenancy.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AispaStudio.Api.Scheduling.CustomerFlagDismissal", b =>
                 {
                     b.HasOne("AispaStudio.Api.Scheduling.Customer", null)
                         .WithMany()

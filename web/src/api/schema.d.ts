@@ -1057,6 +1057,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/customers/{customerId}/flags/suggestions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Vorschläge für Kennzeichen aus den letzten 12 Monaten: „Braucht mehr Zeit“ ab zwei Verspätungen oder Überziehungen von mindestens 10 Minuten, „Leitung informieren“ ab zwei Mal nicht erschienen. Nur Kennzeichen, die die angemeldete Person setzen darf, die noch nicht gesetzt und nicht in den letzten 180 Tagen verworfen sind. Gesetzt wird nichts von selbst. */
+        get: operations["ListCustomerFlagSuggestions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customers/{customerId}/flags/suggestions/{kind}/dismiss": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Verwirft einen Vorschlag; er kommt für diesen Gast erst nach 180 Tagen wieder. Rechte wie beim Setzen des Kennzeichens. */
+        post: operations["DismissCustomerFlagSuggestion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/customers/{customerId}/emails": {
         parameters: {
             query?: never;
@@ -10553,6 +10587,10 @@ export interface components {
         };
         /** @enum {unknown} */
         CustomerFlagKind: "MoreTime" | "InformManagement" | "NotWithMe" | "DoNotBook";
+        CustomerFlagSuggestion: {
+            kind: components["schemas"]["CustomerFlagKind"];
+            evidence: string;
+        };
         /** @enum {unknown} */
         CustomerImportField: "FirstName" | "LastName" | "Email" | "Phone" | "BirthDate" | "Salutation" | "Street" | "PostalCode" | "City" | "Country" | "MarketingConsent" | null;
         CustomerImportMapping: {
@@ -17894,6 +17932,81 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["CustomerFlagDto"][];
                 };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ListCustomerFlagSuggestions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                customerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomerFlagSuggestion"][];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    DismissCustomerFlagSuggestion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                customerId: string;
+                kind: components["schemas"]["CustomerFlagKind"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Forbidden */
             403: {

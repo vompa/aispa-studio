@@ -7496,3 +7496,21 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Geprüft:** API `GapSuggestionTests` 7 von 7 (neu: Kette vorgeschlagen und in einem Aufruf verschoben, Rücknahme bei Fehler, gemischte Richtung und Einzeltermin abgelehnt, keine Kette über vier Termine), `ChannelScanTests`; Windows-App Lücken-Ansichtstests 25 von 25 (neu: Kette anzeigen mit Bild, alle in einem Aufruf), Knopflängen, „höchstens“, leerer Betrieb.
 - **Nicht geprüft:** die laufende App unter Windows.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Kunden: Vorschläge für Kennzeichen (19.11.2026)
+
+- **Auftrag:** Block „Behandlung und Kalender“, Punkt 3 (offener Punkt „automatische Vorschläge für Kennzeichen“ aus den Rezeptions-Schritten); vom Auftraggeber am 19.11.2026 freigegeben.
+- **Befund:** Kennzeichen setzte das Team nur von Hand; Hinweise aus dem Verlauf (Verspätungen, nicht erschienen) standen nur in der Kundenkarte, ohne Vorschlag. Das tatsächliche Ende einer Behandlung wurde nicht gespeichert.
+- **Was:**
+  - `Appointment.FinishedAt`: gesetzt bei „Beendet melden“ in „Mein Tag“; mit `StartedAt` die tatsächliche Dauer.
+  - `GET /api/customers/{id}/flags/suggestions`: aus den letzten 12 Monaten „Braucht mehr Zeit“ ab zwei Vorfällen (gemeldete Verspätung oder Überziehen von mindestens 10 Minuten) und „Leitung informieren“ ab zwei Mal nicht erschienen; nur Kennzeichen, die die Person setzen darf, die noch nicht gesetzt und nicht verworfen sind.
+  - `POST /api/customers/{id}/flags/suggestions/{kind}/dismiss`: verwirft für 180 Tage (Tabelle `CustomerFlagDismissals`, Migration `CustomerFlagSuggestions`).
+  - Windows-App, Kundenkarte: „Vorschlag: …“ mit Begründung, **Übernehmen** (setzt mit der Begründung als Grund) und **Verwerfen**.
+  - Hilfe `kunden-kennzeichen`, Abschnitt „Vorschläge“ mit Bild.
+- **Detailentscheidungen:**
+  1. Keine Vorschläge für „Nicht bei mir“ und „Nicht mehr buchen“: Das sind persönliche Entscheidungen, die sich nicht aus Zahlen ergeben.
+  2. Gesetzt wird nie von selbst (ADR 0008); verworfen bleibt ein halbes Jahr verworfen, damit der Vorschlag nicht jedes Mal wieder auftaucht.
+  3. Überziehen zählt erst ab jetzt (neues Feld); bis dahin trägt die gemeldete Verspätung den Vorschlag.
+- **Geprüft:** API `CustomerFlagSuggestionTests` 2 von 2 (neu: Schwellen, 12 Monate, Rechte, Übernehmen, Verwerfen), `StaffMobileTests` (Ende gespeichert), Kennzeichen- und Channel-Scan-Tests 14 von 14; Windows-App `CustomerCardTests` und Kundenkarten-Ansichtstests 26 von 26 (neu: Übernehmen und Verwerfen, Ansicht mit Bild), Knopflängen, „höchstens“, „Abbrechen“ (293).
+- **Nicht geprüft:** die laufende App unter Windows.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).

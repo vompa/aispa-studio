@@ -3392,6 +3392,100 @@
         }
       }
     },
+    "/api/v1/customers/{customerId}/flags/suggestions": {
+      "get": {
+        "tags": [
+          "Kunden"
+        ],
+        "summary": "Vorschläge für Kennzeichen aus den letzten 12 Monaten: „Braucht mehr Zeit“ ab zwei Verspätungen oder Überziehungen von mindestens 10 Minuten, „Leitung informieren“ ab zwei Mal nicht erschienen. Nur Kennzeichen, die die angemeldete Person setzen darf, die noch nicht gesetzt und nicht in den letzten 180 Tagen verworfen sind. Gesetzt wird nichts von selbst.",
+        "operationId": "ListCustomerFlagSuggestions",
+        "parameters": [
+          {
+            "name": "customerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CustomerFlagSuggestion"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/v1/customers/{customerId}/flags/suggestions/{kind}/dismiss": {
+      "post": {
+        "tags": [
+          "Kunden"
+        ],
+        "summary": "Verwirft einen Vorschlag; er kommt für diesen Gast erst nach 180 Tagen wieder. Rechte wie beim Setzen des Kennzeichens.",
+        "operationId": "DismissCustomerFlagSuggestion",
+        "parameters": [
+          {
+            "name": "customerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "kind",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/CustomerFlagKind"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
     "/api/v1/customers/{customerId}/emails": {
       "get": {
         "tags": [
@@ -38531,6 +38625,21 @@
           "NotWithMe",
           "DoNotBook"
         ]
+      },
+      "CustomerFlagSuggestion": {
+        "required": [
+          "kind",
+          "evidence"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/CustomerFlagKind"
+          },
+          "evidence": {
+            "type": "string"
+          }
+        }
       },
       "CustomerImportField": {
         "enum": [

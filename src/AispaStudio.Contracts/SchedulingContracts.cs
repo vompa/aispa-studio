@@ -390,6 +390,12 @@ public sealed record CustomerFlagDto(
     DateOnly Since,
     bool MayRemove);
 
+/// <summary>
+/// Vorschlag für ein Kennzeichen aus dem Verlauf des Gastes (nur Vorschlag, ADR 0008): welches und warum, z. B. „In den letzten 12 Monaten 2-mal nicht erschienen.“
+/// Übernommen wird über „AddCustomerFlag“, verworfen über „DismissCustomerFlagSuggestion“.
+/// </summary>
+public sealed record CustomerFlagSuggestion(CustomerFlagKind Kind, string Evidence);
+
 /// <summary>Neues Kennzeichen; <c>EmployeeId</c> nur bei „Nicht bei mir“ (leer: die angemeldete Person), <c>Reason</c> Pflicht bei „Nicht mehr buchen“.</summary>
 public sealed record CustomerFlagInput(CustomerFlagKind Kind, Guid? EmployeeId = null, string? Reason = null);
 
