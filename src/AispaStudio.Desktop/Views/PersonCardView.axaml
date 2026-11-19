@@ -178,7 +178,7 @@
           <StackPanel Spacing="12">
             <Grid ColumnDefinitions="*,Auto">
               <TextBlock Text="Zeiten" Classes="h3" VerticalAlignment="Center" />
-              <ui:HelpButton Topic="seite-time" Grid.Column="1" />
+              <ui:HelpButton Topic="seite-time" Section="ablaeufe" Grid.Column="1" />
             </Grid>
             <ContentControl x:Name="TimesHost" Content="{Binding Times}" />
           </StackPanel>

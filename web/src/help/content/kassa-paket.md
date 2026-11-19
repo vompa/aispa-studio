@@ -21,7 +21,7 @@ Ein Paket ist ein Gutschein für mehrere gleiche Behandlungen, z. B. ein 10er-Bl
 ## Termin vom Paket abziehen {#abziehen}
 
 1. Den Termin des Gastes auf die Rechnung setzen.
-2. Hat der Gast ein Paket für diese Behandlung, steht rechts unter **Bezahlen** z. B. „Paket Klassische Massage: 7 von 10 Terminen offen“.
+2. Hat der Gast ein Paket für diese Behandlung, steht rechts unter **Bezahlen** z. B. „Paket Klassische Massage: 7 von 10 offen“.
 3. Auf **1 Termin abziehen** klicken. Die Kassa trägt das Paket als Gutschein-Zahlung über den Preis des Termins ein.
 4. Auf **Bezahlen und Beleg erstellen** klicken. Der Beleg zeigt „Paket … eingelöst (4/10)“, zu zahlen bleibt für diesen Termin nichts.
 

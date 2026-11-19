@@ -83,7 +83,7 @@ public sealed class PosTests
 
         var hint = Assert.Single(pos.PackageHints);
         Assert.StartsWith("Paket ", hint.Text, StringComparison.Ordinal);
-        Assert.EndsWith(": 7 von 10 Terminen offen, gültig bis 30.06.2027", hint.Text, StringComparison.Ordinal);
+        Assert.EndsWith(": 7 von 10 offen, gültig bis 30.06.2027", hint.Text, StringComparison.Ordinal);
         Assert.Equal("1 Termin abziehen", hint.ButtonText);
         pos.UsePackageCommand.Execute(hint);
         var voucher = pos.Payments.First(p => p.IsVoucher);

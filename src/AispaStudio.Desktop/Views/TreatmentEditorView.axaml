@@ -28,10 +28,10 @@
                       IsVisible="{Binding CanEdit}" VerticalAlignment="Center" />
           <Button Grid.Column="2" x:Name="ReactivateButton" Classes="primary" Content="Wieder anbieten" Command="{Binding ReactivateCommand}" IsVisible="{Binding IsInactive}"
                   ToolTip.Tip="Neue Buchungen sind danach wieder möglich." VerticalAlignment="Center" />
-          <Button Grid.Column="3" x:Name="HistoryButton" Classes="ghost" Command="{Binding ToggleHistoryCommand}" IsVisible="{Binding HasHistory}"
+          <Button Grid.Column="3" x:Name="HistoryButton" Command="{Binding ToggleHistoryCommand}" IsVisible="{Binding HasHistory}"
                   ToolTip.Tip="Wer die Behandlung und ihre Preise wann geändert hat" AutomationProperties.Name="Verlauf" VerticalAlignment="Center">
             <StackPanel Orientation="Horizontal" Spacing="6">
-              <ui:Icon Data="{x:Static ui:Icons.History}" Width="16" Height="16" VerticalAlignment="Center" />
+              <ui:Icon Data="{x:Static ui:Icons.Clock}" Width="16" Height="16" VerticalAlignment="Center" />
               <TextBlock Text="Verlauf" VerticalAlignment="Center" />
             </StackPanel>
           </Button>

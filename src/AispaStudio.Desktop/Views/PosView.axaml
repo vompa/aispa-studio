@@ -487,7 +487,7 @@
             </ItemsControl>
           </ScrollViewer>
           <Border x:Name="BillFooter" Grid.Row="2" Background="{DynamicResource HeroBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="0,1,0,0"
-                  CornerRadius="0,0,12,12" Padding="20,12,20,14">
+                  CornerRadius="0,0,12,12" Padding="20,12">
             <StackPanel Spacing="10">
             <!-- Vorschlag der laufenden Aktion (ADR 0071): nur mit Klick, den Rabatt rechnet der Server -->
             <ItemsControl ItemsSource="{Binding PromotionHints}" IsVisible="{Binding HasPromotionHints}">
@@ -750,7 +750,7 @@
               </DataTemplate>
             </ItemsControl.ItemTemplate>
           </ItemsControl>
-          <TextBlock x:Name="PaidChange" Text="{Binding PaidChangeText}" FontSize="22" FontWeight="SemiBold" Foreground="{DynamicResource OkBrush}"
+          <TextBlock x:Name="PaidChange" Text="{Binding PaidChangeText}" AutomationProperties.LiveSetting="Polite" FontSize="22" FontWeight="SemiBold" Foreground="{DynamicResource OkBrush}"
                      IsVisible="{Binding PaidChangeText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
           <TextBlock Text="Die nächste Rechnung beginnt mit einem Termin oder Artikel." Classes="muted small" TextWrapping="Wrap" />
         </StackPanel>

@@ -86,7 +86,7 @@
             </Grid>
             <ui:FormField Label="Protokoll">
               <ComboBox Name="NewTerminalProtocol" ItemsSource="{Binding Protocols}" SelectedItem="{Binding NewTerminalProtocol}" HorizontalAlignment="Stretch"
-                        ToolTip.Tip="ZVT und OPI sind die Protokolle zwischen Kassa und Kartenterminal, das passende nennt der Zahlungsdienstleister">
+                        ToolTip.Tip="So spricht die Kassa mit dem Kartenterminal; das passende nennt der Zahlungsdienstleister">
                 <ComboBox.ItemTemplate>
                   <DataTemplate x:DataType="vm:ProtocolChoice">
                     <TextBlock Text="{Binding Title}" />

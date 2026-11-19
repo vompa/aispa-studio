@@ -100,6 +100,20 @@ internal static partial class ReceptionJourney
 
     private static Func<AutomationElement, bool> Button(string name) => Class("Button", NameIs(name));
 
+    /// <summary>„Mehr“ im Termin-Panel: dahinter steht „Termin stornieren …“ (Durchsicht 19.11.2026).</summary>
+    private static Func<AutomationElement, bool> MoreToggle => Class("AccordionHeader", NameStarts("Mehr"));
+
+    /// <summary>Klickt „Termin stornieren …“; ist „Mehr“ noch zu, öffnet es zuerst „Mehr“.</summary>
+    private static void ClickCancel(LiveSession s)
+    {
+        if (s.TryFind(Button("Termin stornieren …"), TimeSpan.FromMilliseconds(500)) is null)
+        {
+            s.Click(MoreToggle, "Bereich „Mehr“");
+        }
+
+        s.Click(Button("Termin stornieren …"), "Knopf „Termin stornieren …“");
+    }
+
     /// <summary>Die Kalenderkarte des Termins, mit dem Status am Ende („Gebucht“, „Eingecheckt“ …); ohne Status trifft jede.</summary>
     private static Func<AutomationElement, bool> Card(BookedAppointment appointment, string? status = null) =>
         Class("AppointmentCard", e => e.Properties.Name.ValueOrDefault is { } card

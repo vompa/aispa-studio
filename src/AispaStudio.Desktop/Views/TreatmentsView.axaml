@@ -49,12 +49,9 @@
                   <StackPanel Grid.Column="1" VerticalAlignment="Center">
                     <TextBlock Text="{Binding Title}" Classes.group="{Binding IsHeading}" Classes.muted="{Binding IsNotOffered}" TextWrapping="Wrap"
                                ToolTip.Tip="{Binding Title}" />
-                    <!-- Dauer und Preis in der zweiten Zeile: der Name bekommt die ganze Breite (design.md 5.6) -->
-                    <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding IsTreatment}">
-                      <TextBlock Text="{Binding Meta}" Classes="muted small num" />
-                      <TextBlock Text="· Nicht angeboten" Classes="muted small" IsVisible="{Binding IsNotOffered}" />
-                    </StackPanel>
+                    <TextBlock Text="Nicht angeboten" Classes="muted small" IsVisible="{Binding IsNotOffered}" />
                   </StackPanel>
+                  <TextBlock Grid.Column="2" Text="{Binding Meta}" Classes="muted small num" VerticalAlignment="Top" IsVisible="{Binding IsTreatment}" />
                   <TextBlock Grid.Column="2" Text="{Binding Count}" Classes="muted small num" VerticalAlignment="Center" IsVisible="{Binding IsHeading}" />
                 </Grid>
               </DataTemplate>

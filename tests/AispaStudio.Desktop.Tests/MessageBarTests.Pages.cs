@@ -51,7 +51,7 @@ public sealed partial class MessageBarTests
     public void Wechselgeld_und_Druckstatus_der_Kassa_sind_hoeflich_angesagt()
     {
         var lines = Regex.Matches(View("PosView.axaml"), @"<TextBlock[^>]*(ChangeText|PrintText)\}""[^>]*>");
-        Assert.Equal(3, lines.Count);
+        Assert.Equal(4, lines.Count);
         Assert.All(lines, line => Assert.Contains("AutomationProperties.LiveSetting=\"Polite\"", line.Value, StringComparison.Ordinal));
     }
 
