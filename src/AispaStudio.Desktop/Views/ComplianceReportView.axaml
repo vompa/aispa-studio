@@ -44,7 +44,7 @@
                       <DataTemplate x:DataType="vm:TseExportRow">
                         <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,0,0,4">
                           <TextBlock Text="{Binding Text}" VerticalAlignment="Center" TextWrapping="Wrap" />
-                          <Button Content="{Binding SaveText}" Classes="ghost small" Command="{Binding SaveCommand}" IsVisible="{Binding IsDone}" />
+                          <Button Content="{Binding SaveText}" Classes="small" Command="{Binding SaveCommand}" IsVisible="{Binding IsDone}" />
                         </StackPanel>
                       </DataTemplate>
                     </ItemsControl.ItemTemplate>
@@ -75,10 +75,10 @@
           <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
         <TextBlock Text="Person" Classes="group" />
-        <TextBlock Grid.Column="1" Text="Stunden" Classes="group" />
-        <TextBlock Grid.Column="2" Text="Arbeitstage" Classes="group" />
-        <TextBlock Grid.Column="3" Text="Urlaub" Classes="group" />
-        <TextBlock Grid.Column="4" Text="Krank" Classes="group" />
+        <TextBlock Grid.Column="1" Text="Stunden" Classes="group" HorizontalAlignment="Right" />
+        <TextBlock Grid.Column="2" Text="Arbeitstage" Classes="group" HorizontalAlignment="Right" />
+        <TextBlock Grid.Column="3" Text="Urlaub" Classes="group" HorizontalAlignment="Right" />
+        <TextBlock Grid.Column="4" Text="Krank" Classes="group" HorizontalAlignment="Right" />
         <TextBlock Grid.Column="5" Text="Hinweise" Classes="group" />
       </Grid>
       <ItemsControl ItemsSource="{Binding WorkingTime}">
@@ -94,10 +94,10 @@
                 <ColumnDefinition Width="*" />
               </Grid.ColumnDefinitions>
               <TextBlock Text="{Binding Name}" />
-              <TextBlock Grid.Column="1" Text="{Binding Hours}" Classes="num" />
-              <TextBlock Grid.Column="2" Text="{Binding WorkDays}" Classes="num" />
-              <TextBlock Grid.Column="3" Text="{Binding VacationDays}" Classes="num" />
-              <TextBlock Grid.Column="4" Text="{Binding SickDays}" Classes="num" />
+              <TextBlock Grid.Column="1" Text="{Binding Hours}" Classes="num" HorizontalAlignment="Right" />
+              <TextBlock Grid.Column="2" Text="{Binding WorkDays}" Classes="num" HorizontalAlignment="Right" />
+              <TextBlock Grid.Column="3" Text="{Binding VacationDays}" Classes="num" HorizontalAlignment="Right" />
+              <TextBlock Grid.Column="4" Text="{Binding SickDays}" Classes="num" HorizontalAlignment="Right" />
               <TextBlock Grid.Column="5" Text="{Binding Warnings}" Classes="error" TextWrapping="Wrap" />
             </Grid>
           </DataTemplate>

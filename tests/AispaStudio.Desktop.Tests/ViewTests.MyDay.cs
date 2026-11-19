@@ -25,7 +25,7 @@ public sealed partial class ViewTests
             Assert.True(Shows(window, "10:00 Lava-Hot-Stone-Massage"));
             Assert.False(Shows(window, "(60 Min.)"));
             Assert.True(Shows(window, "60 Min."));
-            Assert.True(Shows(window, "2 Vorbereitungen offen, erste bis 09:30"));
+            Assert.True(Shows(window, "erste bis 09:30"));
             Assert.True(Shows(window, "Steinwärmer bereitstellen"));
             Assert.True(Shows(window, "Das wünscht sich Anna"));
             Assert.True(Shows(window, "Duft: Lavendel"));

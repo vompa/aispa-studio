@@ -482,7 +482,7 @@ public sealed partial class AdminReportsTests
         await Task.Yield();
 
         var compliance = reports.Compliance;
-        Assert.Equal("3 offene Gutscheine über 450,00 € (Verbindlichkeit, aktueller Stand), 1 offene Pakete mit 4 Behandlungen.", compliance.Vouchers);
+        Assert.Equal("3 offene Gutscheine über 450,00 € (Verbindlichkeit, aktueller Stand), 1 offenes Paket mit 4 Behandlungen.", compliance.Vouchers);
         Assert.Equal("160,5", compliance.WorkingTime[0].Hours);
         var at = compliance.Registers[0];
         Assert.Equal("Kassa AT1 (AT)", at.Title);
@@ -498,7 +498,7 @@ public sealed partial class AdminReportsTests
         await Task.Yield();
         Assert.True(compliance.ShowAmountsHint);
         Assert.All(compliance.Registers, r => Assert.False(r.ShowExport || r.ShowTse));
-        Assert.Equal("3 offene Gutscheine, 1 offene Pakete mit 4 Behandlungen.", compliance.Vouchers);
+        Assert.Equal("3 offene Gutscheine, 1 offenes Paket mit 4 Behandlungen.", compliance.Vouchers);
     }
 
     [Fact]
