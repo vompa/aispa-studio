@@ -22,8 +22,9 @@
       </StackPanel>
       <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
         <!-- Filter, der sofort wirkt: ein Schalter (Design-Brief 5.23), kein Kontrollkästchen -->
-        <ToggleSwitch Content="Nur „Prüfen“" IsChecked="{Binding OnlyOpen}" VerticalAlignment="Center" />
-        <Border Classes="pill" Classes.ok="{Binding IsLive}" ToolTip.Tip="{Binding LiveTip}">
+        <ToggleSwitch Content="Nur „Prüfen“" IsChecked="{Binding OnlyOpen}" VerticalAlignment="Center"
+                      AutomationProperties.Name="Nur Nachrichten mit Status „Prüfen“ zeigen" ToolTip.Tip="Zeigt nur Nachrichten, die noch geprüft werden müssen." />
+        <Border Classes="pill" Classes.ok="{Binding IsLive}" ToolTip.Tip="{Binding LiveTip}" AutomationProperties.Name="{Binding LiveTip}">
           <TextBlock Text="{Binding LiveText}" />
         </Border>
         <Button Classes="icon" Command="{Binding RefreshCommand}" ToolTip.Tip="Aktualisieren">
@@ -50,17 +51,19 @@
           <ListBox.ItemTemplate>
             <DataTemplate x:DataType="vm:InboxRow">
               <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto" Margin="0,2">
-                <StackPanel Orientation="Horizontal" Spacing="6">
+                <!-- Erste Zeile: Status, Absender (kürzt sich, voller Text im Hinweis) und Uhrzeit; die Quelle steht in der zweiten Zeile, damit nichts übereinanderliegt -->
+                <Grid Grid.ColumnSpan="2" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="6">
                   <Border Classes="pill" Classes.crit="{Binding IsCritical}" Classes.warn="{Binding IsWarn}" Classes.ok="{Binding IsOk}">
                     <TextBlock Text="{Binding StatusText}" />
                   </Border>
-                  <TextBlock Text="{Binding From}" FontWeight="SemiBold" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="220" />
-                  <Border Classes="pill" IsVisible="{Binding ShowChannel}">
-                    <TextBlock Text="{Binding ChannelText}" />
-                  </Border>
-                </StackPanel>
-                <TextBlock Grid.Column="1" Text="{Binding TimeText}" Classes="muted small num" VerticalAlignment="Center" />
-                <TextBlock Grid.Row="1" Grid.ColumnSpan="2" Text="{Binding Subject}" TextTrimming="CharacterEllipsis" Margin="0,4,0,0" />
+                  <TextBlock x:Name="RowFrom" Grid.Column="1" Text="{Binding From}" FontWeight="SemiBold" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                             ToolTip.Tip="{Binding From}" />
+                  <TextBlock x:Name="RowTime" Grid.Column="2" Text="{Binding TimeText}" Classes="muted small num" VerticalAlignment="Center" />
+                </Grid>
+                <TextBlock x:Name="RowSubject" Grid.Row="1" Text="{Binding Subject}" TextTrimming="CharacterEllipsis" Margin="0,4,0,0" />
+                <Border x:Name="RowChannel" Grid.Row="1" Grid.Column="1" Classes="pill" Margin="6,4,0,0" IsVisible="{Binding ShowChannel}">
+                  <TextBlock Text="{Binding ChannelText}" />
+                </Border>
                 <!-- Die Zusammenfassung ist eine KI-Ausgabe und trägt deshalb die Pille wie im Detail (Brief 5.28) -->
                 <Grid Grid.Row="2" Grid.ColumnSpan="2" ColumnDefinitions="Auto,*" ColumnSpacing="6" Margin="0,2,0,0" IsVisible="{Binding HasSummary}">
                   <views:AiPill />
@@ -192,8 +195,8 @@
                       <StackPanel Spacing="6">
                         <TextBlock Text="In Treatwell noch annehmen" Classes="group" />
                         <TextBlock Text="{Binding AcceptPendingText}" TextWrapping="Wrap" />
-                        <Button Content="Erledigt" Command="{Binding PlatformAcceptedCommand}" HorizontalAlignment="Left"
-                                ToolTip.Tip="Ich habe die Buchung in Treatwell angenommen" />
+                        <Button x:Name="PlatformAcceptedButton" Content="In Treatwell angenommen" Command="{Binding PlatformAcceptedCommand}" HorizontalAlignment="Left"
+                                ToolTip.Tip="Vermerkt, dass die Buchung in Treatwell angenommen ist; der Hinweis verschwindet." />
                       </StackPanel>
                     </Border>
 
@@ -235,12 +238,11 @@
                             </DataTemplate>
                           </ItemsControl.ItemTemplate>
                         </ItemsControl>
-                        <WrapPanel ItemSpacing="12" LineSpacing="6">
-                          <CheckBox Content="Adresse/Nummer merken" IsChecked="{Binding RememberContact}"
-                                    ToolTip.Tip="Merkt die Mailadresse bzw. Nummer des Absenders in der Kundenkarte; die nächste Nachricht von dort ist dann sicher zugeordnet." />
-                          <Button Content="{Binding CreateCustomerText}" Command="{Binding CreateCustomerCommand}"
-                                  ToolTip.Tip="Legt einen neuen Kunden aus Name, Telefon und Mailadresse der Nachricht an." />
-                        </WrapPanel>
+                        <!-- Der Haken gilt nur für „Zuordnen“ (der Server wertet ihn nur dort aus) und steht deshalb unter den Vorschlägen, getrennt von „Neu anlegen“ -->
+                        <CheckBox x:Name="RememberContactBox" Content="Beim Zuordnen Adresse/Nummer merken" IsChecked="{Binding RememberContact}"
+                                  ToolTip.Tip="Gilt für „Zuordnen“: merkt die Mailadresse bzw. Nummer des Absenders in der Kundenkarte; die nächste Nachricht von dort ist dann sicher zugeordnet." />
+                        <Button x:Name="CreateCustomerButton" Content="{Binding CreateCustomerText}" Command="{Binding CreateCustomerCommand}" HorizontalAlignment="Left"
+                                ToolTip.Tip="Legt einen neuen Kunden aus Name, Telefon und Mailadresse der Nachricht an." />
                       </StackPanel>
                     </Border>
                     <Border Classes="card" Padding="10,8" Background="{DynamicResource AccentSoftBrush}" BorderThickness="0" IsVisible="{Binding HasAssigned}">
@@ -315,7 +317,8 @@
                             <Button Content="Siezen" Command="{Binding ReviseCommand}" CommandParameter="{x:Static c:ReplyRevisionKind.Formal}" />
                             <Button Content="Duzen" Command="{Binding ReviseCommand}" CommandParameter="{x:Static c:ReplyRevisionKind.Informal}" />
                             <Button Content="Entschuldigung ergänzen" Command="{Binding ReviseCommand}" CommandParameter="{x:Static c:ReplyRevisionKind.Apology}" />
-                            <Button Classes="ghost" Content="Rückgängig" Command="{Binding UndoRevisionCommand}" ToolTip.Tip="Fassung vor der letzten Überarbeitung (Strg+Z)" />
+                            <Button x:Name="UndoRevisionButton" Content="Rückgängig" Command="{Binding UndoRevisionCommand}" ToolTip.Tip="Fassung vor der letzten Überarbeitung (Strg+Z)"
+                                    ui:DisabledHint.Text="Verfügbar, sobald die KI den Entwurf überarbeitet hat." />
                           </WrapPanel>
                           <Grid ColumnDefinitions="*,8,Auto">
                             <ui:FormField Label="Eigener Hinweis">
@@ -343,7 +346,8 @@
 
                     <StackPanel Orientation="Horizontal" Spacing="8">
                       <Button Content="Erneut verarbeiten" Command="{Binding RetryCommand}" IsVisible="{Binding CanRetry}" />
-                      <Button Classes="ghost" Content="Erledigt, ohne Termin und Antwort" Command="{Binding DismissCommand}" IsVisible="{Binding CanDismiss}" />
+                      <Button x:Name="DismissButton" Content="Erledigt, ohne Termin und Antwort" Command="{Binding DismissCommand}" IsVisible="{Binding CanDismiss}"
+                              ToolTip.Tip="Schließt die Nachricht ab, ohne Termin zu buchen und ohne zu antworten." />
                     </StackPanel>
 
                     <ui:InfoBar Severity="{Binding NoticeSeverity}" Message="{Binding Notice}" IsVisible="{Binding HasNotice}" />

@@ -1328,6 +1328,8 @@ public sealed partial class ViewTests
         }
 
         Assert.True(shell.Inbox.Detail!.FreeTime is { HasSlots: true });
+        AssertInboxRowsSeparate(window);
+        AssertInboxControlsExplained(window);
         return shell.Inbox;
     }, Api()
         .On($"GET /api/inbox/{SpaSample.InboxMailId}", SpaSample.InboxMail() with { CanRepropose = true })
@@ -1394,6 +1396,12 @@ public sealed partial class ViewTests
         Assert.True(detail.HasCandidates);
         detail.RememberContact = true;
         await Pump();
+        // Der Hinweis „Wer ist das? …“ vom Server entfällt; der Kasten trägt seine Aussage („gebucht wird erst danach“).
+        var texts = VisibleTexts(VisibleInbox(window));
+        Assert.DoesNotContain(texts, t => t.StartsWith("Wer ist das? ", StringComparison.Ordinal));
+        Assert.Single(texts, t => t == "Wer ist das?");
+        Assert.Contains(texts, t => t.Contains("gebucht wird erst danach", StringComparison.Ordinal));
+        Assert.Equal("Beim Zuordnen Adresse/Nummer merken", Named<CheckBox>(VisibleInbox(window), "RememberContactBox").Content);
         return shell.Inbox;
     }, Api()
         .On("GET /api/inbox", new List<InboundMailSummary>
@@ -1415,6 +1423,14 @@ public sealed partial class ViewTests
         Assert.True(detail.ShowAcceptPending);
         Assert.True(detail.HasCandidates);
         await Pump();
+        AssertInboxRowsSeparate(window);
+        var texts = VisibleTexts(VisibleInbox(window));
+        // Die Vorauszahlung steht einmal im KI-Teil, der Mailtext bleibt unverändert.
+        Assert.Single(texts, t => t.Contains("Vorab über Treatwell bezahlt: 35,00 €", StringComparison.Ordinal));
+        Assert.Contains(texts, t => t.Contains("Zahlungsstatus: Online bezahlt", StringComparison.Ordinal));
+        Assert.Single(texts, t => t == "Wer ist das?");
+        Assert.DoesNotContain(texts, t => t.StartsWith("Wer ist das? ", StringComparison.Ordinal));
+        Assert.Equal("In Treatwell angenommen", Named<Button>(VisibleInbox(window), "PlatformAcceptedButton").Content);
         return shell.Inbox;
     }, Api()
         .On("GET /api/inbox", new List<InboundMailSummary>
@@ -1915,6 +1931,10 @@ public sealed partial class ViewTests
         await shell.Devices.InitializeAsync();
         Assert.Equal(2, shell.Devices.Terminals.Count);
         shell.Devices.PrinterAddress = "192.168.1.60";
+        shell.Devices.Terminal = shell.Devices.Terminals[1];
+        shell.Devices.Terminal = shell.Devices.Terminals[0];
+        await Pump();
+        AssertDevicesExplained(window);
         shell.Devices.Terminal = shell.Devices.Terminals[1];
         return shell.Devices;
     });

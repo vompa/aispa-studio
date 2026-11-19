@@ -21,7 +21,7 @@ Eine Buchung über Treatwell kommt als Mail. Die App liest sie (mit KI, ersatzwe
 ## In Treatwell annehmen {#annehmen}
 
 1. In Treatwell anmelden und die Buchung annehmen (bei Bedarf dort bearbeiten oder verschieben).
-2. In der Nachricht unter **In Treatwell noch annehmen** auf **Erledigt** klicken. Der Hinweis verschwindet auch am Termin.
+2. In der Nachricht unter **In Treatwell noch annehmen** auf **In Treatwell angenommen** klicken. Der Hinweis verschwindet auch am Termin.
 
 Dasselbe geht im Terminpanel des Kalenders (**Erledigt** unter „In Treatwell noch annehmen“). Bis dahin zeigt die Hover-Karte des Termins „In Treatwell noch annehmen“ in Orange.
 
