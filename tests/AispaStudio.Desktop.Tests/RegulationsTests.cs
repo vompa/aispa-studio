@@ -105,7 +105,7 @@ public sealed class RegulationsTests
         Assert.Null(sent.MaxHours);
         Assert.Equal("Kinderbetreuung", sent.Reason);
         Assert.False(tab.IsEditing);
-        Assert.Equal("Gespeichert.", tab.StatusText);
+        Assert.Equal("Gespeichert", tab.Toast.Text);
     }
 
     [Fact]

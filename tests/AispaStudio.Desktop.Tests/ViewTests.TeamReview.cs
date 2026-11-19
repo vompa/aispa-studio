@@ -60,7 +60,7 @@ public sealed partial class ViewTests
         Assert.Equal(LeftOf(window, quantity) + quantity.Bounds.Width, LeftOf(window, heads[1]) + heads[1].Bounds.Width, 1);
 
         // 89c: die Personalakte ist in dieser Stub-API nicht erreichbar; die Meldung nennt trotzdem Problem und Weg.
-        Assert.Equal("Nicht gefunden. Prüfe die Verbindung und wähle „Erneut laden“.", team.Card.HrFile!.LoadError);
+        Assert.Equal("Nicht gefunden. Verbindung prüfen und „Erneut laden“ wählen.", team.Card.HrFile!.LoadError);
         return team;
     }, PayrollApi());
 

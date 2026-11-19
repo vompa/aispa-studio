@@ -105,7 +105,7 @@ public sealed class HrFileTests
         Assert.Equal(new DateOnly(2027, 3, 15), sent.FollowUpOn);
         Assert.False(file.IsEditing);
         Assert.False(file.HasUnsavedChanges);
-        Assert.Equal("Gespeichert.", file.StatusText);
+        Assert.Equal("Gespeichert", file.Toast.Text);
     }
 
     [Fact]
@@ -230,7 +230,7 @@ public sealed class HrFileTests
         dialogs.Answer(ConfirmChoice.Confirmed);
         await file.Rows[0].DeleteCommand.ExecuteAsync(null);
         Assert.Contains(api.Calls, c => c.Route == route);
-        Assert.Equal("Gelöscht.", file.StatusText);
+        Assert.Equal("Gelöscht", file.Toast.Text);
         dialogs.AssertRules();
     }
 
@@ -248,7 +248,7 @@ public sealed class HrFileTests
         var (name, content) = Assert.Single(files.Saved);
         Assert.Equal($"personalakte-{Lena.DisplayName}.pdf", name);
         Assert.Equal(pdf, content);
-        Assert.Equal($"{name} gespeichert.", file.Message);
+        Assert.Equal($"Gespeichert: {name}", file.Toast.Text);
     }
 
     [Fact]

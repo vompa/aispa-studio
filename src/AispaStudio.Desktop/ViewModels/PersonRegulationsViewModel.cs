@@ -67,6 +67,7 @@ public sealed partial class PersonRegulationsViewModel : ViewModelBase
     public PersonRegulationsViewModel(TeamContext context, Guid employeeId, bool isReadOnly)
     {
         _context = context;
+        Toast = new ToastState(context.Time);
         _basePath = $"api/employees/{employeeId}/regulations";
         IsEditable = !isReadOnly;
         Days = [.. Enum.GetValues<DayOfWeek>().OrderBy(d => ((int)d + 6) % 7).Select(d => new RegulationDayOption(d, DayNames[((int)d + 6) % 7], FormChanged))];
@@ -150,8 +151,8 @@ public sealed partial class PersonRegulationsViewModel : ViewModelBase
 
     public bool ShowsListError => HasError && !IsEditing;
 
-    [ObservableProperty]
-    public partial string? StatusText { get; private set; }
+    /// <summary>„Gespeichert“ und „Gelöscht“ als Toast (meldungen.md M1).</summary>
+    public ToastState Toast { get; }
 
     // ---------- Offenes Formular ----------
 
@@ -281,7 +282,6 @@ public sealed partial class PersonRegulationsViewModel : ViewModelBase
     {
         Close();
         Error = null;
-        StatusText = null;
     }
 
     private static string Day(DateOnly day) => day.ToString("d.M.yyyy", CultureInfo.InvariantCulture);
@@ -368,7 +368,7 @@ public sealed partial class PersonRegulationsViewModel : ViewModelBase
         _form = form;
         _editingId = id;
         fill();
-        NoteTextError = ValidFromError = ValidUntilError = ValueError = Error = StatusText = null;
+        NoteTextError = ValidFromError = ValidUntilError = ValueError = Error = null;
         FormTitle = title;
         _applying = false;
         _savedState = State();
@@ -403,7 +403,6 @@ public sealed partial class PersonRegulationsViewModel : ViewModelBase
             return;
         }
 
-        StatusText = null;
         OnPropertyChanged(nameof(HasUnsavedChanges));
     }
 
@@ -465,7 +464,7 @@ public sealed partial class PersonRegulationsViewModel : ViewModelBase
 
         Close();
         await AfterChangeAsync().ConfigureAwait(true);
-        StatusText = "Gespeichert.";
+        Toast.Show("Gespeichert");
         return true;
     }
 
@@ -489,7 +488,7 @@ public sealed partial class PersonRegulationsViewModel : ViewModelBase
             return;
         }
 
-        StatusText = "Gelöscht.";
+        Toast.Show("Gelöscht");
         await AfterChangeAsync().ConfigureAwait(true);
     }
 
