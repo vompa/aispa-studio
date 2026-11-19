@@ -183,6 +183,59 @@ public sealed partial class ViewTests
         }, stub);
     }
 
+    /// <summary>Kette: Brigitte und danach Dr. Bauer rücken je 20 Minuten vor.</summary>
+    private static GapSuggestion SampleChain() => SampleGap() with
+    {
+        Reason = "Bei Lena Huber bleiben sonst 20 Minuten frei, in die keine Behandlung passt (kürzeste 45 Minuten). Dafür rücken 2 Termine nacheinander um 20 Minuten vor.",
+        Chain = [new(ChainFollowerId, "Dr. Wolfgang Bauer", "Ayurveda Abhyanga", SpaSample.At(12), SpaSample.At(11, 40))],
+    };
+
+    private static readonly Guid ChainFollowerId = Guid.Parse("4f6c0f6e-0b9a-4f0e-9d8e-3a6f3c2b1a90");
+
+    [Fact]
+    public Task Kette_zeigt_die_mitrueckenden_Termine_und_verschiebt_alle_in_einem_Aufruf()
+    {
+        var moved = false;
+        var stub = Api()
+            .OnJson($"GET {GapsRoute}", _ => moved ? new List<GapSuggestion>() : new List<GapSuggestion> { SampleChain() })
+            .OnJson("POST /api/gap-chains", _ =>
+            {
+                moved = true;
+                return new List<AppointmentDto> { SpaSample.Selected with { Start = SpaSample.At(10, 10), End = SpaSample.Selected.End.AddMinutes(-20) } };
+            });
+        return Render("hell", "kalender-luecke-kette", async (window, main) =>
+        {
+            var calendar = await OpenGaps(main);
+            var texts = PanelTexts(window, "GapsList");
+            Assert.Contains("Danach: Dr. Wolfgang Bauer, Ayurveda Abhyanga, 12:00 auf 11:40", texts);
+            Assert.Contains("Alle 2 verschieben", texts);
+
+            var shot = VisibleNamed<Button>(window, "MoveGapButton");
+            shot.BringIntoView();
+            await Pump(Settling);
+            ClickCenter(window, shot);
+            await Pump(Settling);
+
+            var call = Assert.Single(stub.Calls, c => c.Route == "POST /api/gap-chains");
+            Assert.Contains(SpaSample.Selected.Id.ToString(), call.Body, StringComparison.Ordinal);
+            Assert.Contains(ChainFollowerId.ToString(), call.Body, StringComparison.Ordinal);
+            Assert.Contains("2026-10-19T09:40:00", call.Body, StringComparison.Ordinal);
+            Assert.DoesNotContain(stub.Calls, c => c.Route.EndsWith("/move", StringComparison.Ordinal));
+            Assert.Equal("2 Termine bei Lena Huber verschoben", calendar.Toast);
+            return calendar;
+        }, stub);
+    }
+
+    [Fact]
+    public Task Kette_zeigt_die_mitrueckenden_Termine() => Render("hell", "kalender-lueckenvorschlag-kette", async (window, main) =>
+    {
+        var calendar = await OpenGaps(main);
+        Assert.Contains("Danach: Dr. Wolfgang Bauer, Ayurveda Abhyanga, 12:00 auf 11:40", PanelTexts(window, "GapsList"));
+        VisibleNamed<Button>(window, "MoveGapButton").BringIntoView();
+        await Pump(Settling);
+        return calendar;
+    }, Api().On($"GET {GapsRoute}", new List<GapSuggestion> { SampleChain() }));
+
     [Fact]
     public Task Ohne_Lueckenvorschlaege_sagt_das_Panel_dass_nichts_zu_schliessen_ist() => Render("hell", "kalender-lueckenvorschlaege-leer", async (window, main) =>
     {

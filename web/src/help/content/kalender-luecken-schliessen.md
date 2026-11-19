@@ -17,6 +17,18 @@ Manchmal bleibt im Tag einer Person eine Lücke, in die keine Behandlung passt. 
 3. Sprechen Sie das Verschieben vorher mit dem Gast ab.
 4. **Auf … verschieben** verschiebt den Termin. Die Meldung nennt den Gast und bietet **Rückgängig**; der Vorschlag verschwindet.
 
+## Mehrere Termine nacheinander (Kette) {#kette}
+
+Manchmal hilft es nicht, nur einen Termin zu verschieben: Dahinter entstünde sonst eine neue Lücke. Dann schlägt der Server vor, die direkt folgenden Termine derselben Person um dieselben Minuten mitzunehmen, höchstens vier Termine.
+
+1. Der Vorschlag nennt den ersten Termin wie gewohnt und darunter je eine Zeile „Danach: Gast, Behandlung, alte auf neue Zeit“.
+2. Sprechen Sie das Verschieben mit allen Gästen der Kette ab.
+3. **Alle … verschieben** verschiebt die Kette in einem Schritt. Die Meldung nennt die Zahl der Termine.
+
+Lässt sich ein Termin der Kette nicht verschieben (z. B. weil inzwischen etwas gebucht wurde), bleiben alle Termine, wie sie waren, und der Grund steht unter der Liste. Für eine Kette gibt es kein **Rückgängig**; verschieben Sie dann einzeln zurück.
+
+![Vorschlag mit Kette](images/app/kalender-lueckenvorschlag-kette.png)
+
 ## Hinweise {#hinweise}
 
 - Die Seite gilt für den angezeigten Tag und den gewählten Standort; sie lädt neu, wenn Sie den Tag wechseln.

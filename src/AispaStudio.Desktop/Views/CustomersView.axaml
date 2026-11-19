@@ -444,6 +444,23 @@
                       </DataTemplate>
                     </ItemsControl.ItemTemplate>
                   </ItemsControl>
+                  <!-- Vorschläge aus dem Verlauf: gesetzt wird erst mit „Übernehmen“ (ADR 0008) -->
+                  <ItemsControl x:Name="FlagSuggestionList" ItemsSource="{Binding FlagSuggestions}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="vm:FlagSuggestionRow">
+                        <StackPanel Spacing="4" Margin="0,0,0,8" MaxWidth="560" HorizontalAlignment="Left">
+                          <TextBlock Text="{Binding Heading}" FontWeight="Medium" TextWrapping="Wrap" />
+                          <TextBlock Text="{Binding Evidence}" Classes="secondary small" TextWrapping="Wrap" />
+                          <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Button x:Name="AcceptFlagSuggestionButton" Content="Übernehmen" AutomationProperties.Name="{Binding Title, StringFormat='{}{0} übernehmen'}"
+                                    Command="{Binding $parent[UserControl].((vm:CustomersViewModel)DataContext)?.AcceptFlagSuggestionCommand}" CommandParameter="{Binding}" />
+                            <Button x:Name="DismissFlagSuggestionButton" Classes="ghost" Content="Verwerfen" AutomationProperties.Name="{Binding Title, StringFormat='Vorschlag {0} verwerfen'}"
+                                    Command="{Binding $parent[UserControl].((vm:CustomersViewModel)DataContext)?.DismissFlagSuggestionCommand}" CommandParameter="{Binding}" />
+                          </StackPanel>
+                        </StackPanel>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
                   <StackPanel Spacing="6" IsVisible="{Binding IsAddingFlag}" MaxWidth="560" HorizontalAlignment="Left">
                     <TextBlock Text="Ihre Rolle darf hier keine Kennzeichen setzen." Classes="secondary small" IsVisible="{Binding !CanAddFlag}" />
                     <ui:FormField Label="Kennzeichen" IsVisible="{Binding CanAddFlag}">

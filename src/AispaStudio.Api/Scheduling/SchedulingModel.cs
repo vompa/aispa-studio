@@ -111,6 +111,14 @@ internal static class SchedulingModel
             e.HasOne<Location>().WithMany().HasForeignKey(p => p.LocationId).OnDelete(DeleteBehavior.Cascade);
         });
 
+        builder.Entity<CustomerFlagDismissal>(e =>
+        {
+            e.Property(d => d.Kind).HasConversion<string>().HasMaxLength(24);
+            e.Property(d => d.UserId).HasMaxLength(450);
+            e.HasIndex(d => new { d.CustomerId, d.Kind });
+            e.HasOne<Customer>().WithMany().HasForeignKey(d => d.CustomerId).OnDelete(DeleteBehavior.Cascade);
+        });
+
         builder.Entity<CustomerFlag>(e =>
         {
             e.Property(f => f.Kind).HasConversion<string>().HasMaxLength(24);

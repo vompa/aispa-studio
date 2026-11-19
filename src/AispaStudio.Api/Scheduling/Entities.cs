@@ -422,6 +422,9 @@ public sealed class Appointment
     /// <summary>Wann die Person die Behandlung als begonnen gemeldet hat (Handy-App, Slice 106); eingecheckt und begonnen heißt: läuft.</summary>
     public DateTimeOffset? StartedAt { get; set; }
 
+    /// <summary>Wann die Person die Behandlung als beendet gemeldet hat; mit <see cref="StartedAt"/> die tatsächliche Dauer (Vorschlag „Braucht mehr Zeit“).</summary>
+    public DateTimeOffset? FinishedAt { get; set; }
+
     /// <summary>Wie oft der Gast den Termin selbst online verschoben hat; begrenzt durch <c>OnlineBooking:MaxGuestMoves</c>.</summary>
     public int GuestMoves { get; set; }
 

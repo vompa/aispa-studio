@@ -19,6 +19,12 @@ public sealed record FlagRow(CustomerFlagDto Flag, string Title, string Effect, 
     public string Tip => string.IsNullOrWhiteSpace(Reason) ? Effect : $"{Effect}\nGrund: {Reason}";
 }
 
+/// <summary>Vorschlag des Servers für ein Kennzeichen, z. B. „Vorschlag: Leitung informieren“ mit Begründung aus dem Verlauf.</summary>
+public sealed record FlagSuggestionRow(CustomerFlagSuggestion Suggestion, string Title, string Evidence)
+{
+    public string Heading => $"Vorschlag: {Title}";
+}
+
 // ---------- Kennzeichen mit Wirkung: mehr Zeit, Leitung informieren, Nicht bei mir, Nicht mehr buchen ----------
 public partial class CustomersViewModel
 {
@@ -28,6 +34,9 @@ public partial class CustomersViewModel
     public ObservableCollection<FlagRow> Flags { get; } = [];
 
     public ObservableCollection<FlagChoice> FlagChoices { get; } = [];
+
+    /// <summary>Vorschläge aus dem Verlauf (nur Kennzeichen, die die Person setzen darf); gesetzt wird erst mit „Übernehmen“.</summary>
+    public ObservableCollection<FlagSuggestionRow> FlagSuggestions { get; } = [];
 
     public bool CanAddFlag => FlagChoices.Count > 0;
 
@@ -90,11 +99,67 @@ public partial class CustomersViewModel
 
     private async Task LoadFlagsAsync(CustomerDto customer, int version)
     {
-        var flags = (await api.GetAsync<List<CustomerFlagDto>>($"api/customers/{customer.Id}/flags").ConfigureAwait(true)).Value;
+        var flagsTask = api.GetAsync<List<CustomerFlagDto>>($"api/customers/{customer.Id}/flags");
+        var suggestionsTask = api.GetAsync<List<CustomerFlagSuggestion>>($"api/customers/{customer.Id}/flags/suggestions");
+        var flags = (await flagsTask.ConfigureAwait(true)).Value;
+        var suggestions = (await suggestionsTask.ConfigureAwait(true)).Value;
         if (version == _detailVersion)
         {
+            ShowSuggestions(suggestions ?? []);
             ShowFlags(flags ?? []);
         }
+    }
+
+    private void ShowSuggestions(IEnumerable<CustomerFlagSuggestion> suggestions)
+    {
+        FlagSuggestions.Clear();
+        foreach (var s in suggestions)
+        {
+            FlagSuggestions.Add(new FlagSuggestionRow(s, Title(new CustomerFlagDto(Guid.Empty, s.Kind, null, null, null, default, false)), s.Evidence));
+        }
+    }
+
+    /// <summary>Übernimmt den Vorschlag: setzt das Kennzeichen mit der Begründung des Servers als Grund.</summary>
+    [RelayCommand]
+    private async Task AcceptFlagSuggestionAsync(FlagSuggestionRow? row)
+    {
+        if (Selected is not { } customer || row is null)
+        {
+            return;
+        }
+
+        var result = await api.PostAsync<List<CustomerFlagDto>>($"api/customers/{customer.Id}/flags",
+            new CustomerFlagInput(row.Suggestion.Kind, null, row.Evidence)).ConfigureAwait(true);
+        if (result.Value is not { } flags)
+        {
+            Error = result.Error;
+            return;
+        }
+
+        Error = null;
+        FlagSuggestions.Remove(row);
+        ShowFlags(flags);
+    }
+
+    /// <summary>Verwirft den Vorschlag; der Server zeigt ihn für diesen Gast ein halbes Jahr nicht mehr.</summary>
+    [RelayCommand]
+    private async Task DismissFlagSuggestionAsync(FlagSuggestionRow? row)
+    {
+        if (Selected is not { } customer || row is null)
+        {
+            return;
+        }
+
+        var result = await api.PostAsync<object>($"api/customers/{customer.Id}/flags/suggestions/{row.Suggestion.Kind}/dismiss", null).ConfigureAwait(true);
+        if (result.Error is { } error)
+        {
+            Error = error;
+            return;
+        }
+
+        Error = null;
+        FlagSuggestions.Remove(row);
+        RaiseSections();
     }
 
     private void ShowFlags(IEnumerable<CustomerFlagDto> flags)

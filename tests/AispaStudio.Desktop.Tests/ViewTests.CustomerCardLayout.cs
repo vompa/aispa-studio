@@ -61,6 +61,28 @@ public sealed partial class ViewTests
     }, Api().On($"GET /api/reports/customers/{SpaSample.Customers[0].Id}/preferences", new CustomerPreferences("sanft", null, null, null, null, null, "Füße (kitzlig)", null)));
 
     [Fact]
+    public Task Kundenkarte_zeigt_Vorschlaege_fuer_Kennzeichen_mit_Uebernehmen_und_Verwerfen() => Render("hell", "kunden-kennzeichen-vorschlag", async (window, main) =>
+    {
+        var calendar = await SignedInCalendar(main);
+        var shell = (ShellViewModel)main.Content!;
+        await shell.ShowCustomerAsync(EmptyGuest.Id);
+        await Pump(Settling);
+
+        var section = VisibleSections(window).Single(s => s.Name == "FlagsSection");
+        var texts = section.GetVisualDescendants().OfType<TextBlock>().Where(t => t.IsEffectivelyVisible).Select(t => t.Text).ToList();
+        Assert.Contains("Vorschlag: Braucht mehr Zeit", texts);
+        Assert.Contains("In den letzten 12 Monaten 2-mal mindestens 10 Minuten zu spät gekommen und 1-mal länger behandelt (bis 15 Minuten).", texts);
+        Assert.True(VisibleNamed<Button>(window, "AcceptFlagSuggestionButton").IsEffectivelyVisible);
+        Assert.True(VisibleNamed<Button>(window, "DismissFlagSuggestionButton").IsEffectivelyVisible);
+        section.BringIntoView();
+        await Pump();
+        return calendar;
+    }, EmptyGuestApi().On($"GET /api/customers/{EmptyGuest.Id}/flags/suggestions", new List<CustomerFlagSuggestion>
+    {
+        new(CustomerFlagKind.MoreTime, "In den letzten 12 Monaten 2-mal mindestens 10 Minuten zu spät gekommen und 1-mal länger behandelt (bis 15 Minuten)."),
+    }));
+
+    [Fact]
     public Task Kundenkarte_Verlauf_mit_Kachel_Stammperson_und_ohne_Umbruch() => Render("hell", "kunden-verlauf", async (window, main) =>
     {
         var calendar = await SignedInCalendar(main);
