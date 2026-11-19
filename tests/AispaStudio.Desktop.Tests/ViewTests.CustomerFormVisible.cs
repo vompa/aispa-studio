@@ -52,4 +52,28 @@ public sealed partial class ViewTests
             Assert.True(top >= 0 && bottom <= scroll.Bounds.Height, $"„Speichern“ in {sectionName} bei {top:0}–{bottom:0} von {scroll.Bounds.Height:0} px ({width} × {height})");
             return calendar;
         });
+
+    [Theory]
+    [InlineData(1440, 900)]
+    [InlineData(1100, 680)]
+    public Task Kundenkarte_Bearbeiten_rollt_mit_Speichern_ins_Bild(int width, int height) =>
+        Render("hell", $"kunden-bearbeiten-sichtbar-{width}", async (window, main) =>
+        {
+            var calendar = await SignedInCalendar(main);
+            var shell = (ShellViewModel)main.Content!;
+            window.Width = width;
+            window.Height = height;
+            await shell.ShowCustomerAsync(SpaSample.Customers[0].Id);
+            await Pump();
+
+            shell.Customers.EditContactCommand.Execute(null);
+            await Pump(Settling);
+
+            var scroll = window.GetVisualDescendants().OfType<ScrollViewer>().Single(s => s.Name == "CardScroll");
+            var form = window.GetVisualDescendants().OfType<AispaStudio.Desktop.Views.CustomerContactForm>().Single(f => f.IsEffectivelyVisible);
+            var save = form.GetVisualDescendants().OfType<Button>().Single(b => b.IsEffectivelyVisible && b.Classes.Contains("primary"));
+            var top = save.TranslatePoint(new Point(0, 0), scroll)!.Value.Y;
+            Assert.True(top >= 0 && top + save.Bounds.Height <= scroll.Bounds.Height, $"„Speichern“ bei {top:0} von {scroll.Bounds.Height:0} px ({width} × {height}); Offset {scroll.Offset.Y:0}, Extent {scroll.Extent.Height:0}, Viewport {scroll.Viewport.Height:0}, Form {form.Bounds.Height:0}");
+            return calendar;
+        });
 }

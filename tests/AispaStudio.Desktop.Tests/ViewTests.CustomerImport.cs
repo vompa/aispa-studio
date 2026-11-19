@@ -77,6 +77,7 @@ public sealed partial class ViewTests
         Assert.Same(confirm, Focused(window));
         Assert.False(DialogButton(window, "BackButton").IsEffectivelyVisible);
         Assert.Contains("Erste Zeile: Spaltenköpfe.", ImportTexts(window).Single(t => t is not null && t.StartsWith("Erste Zeile", StringComparison.Ordinal))!, StringComparison.Ordinal);
+        Assert.Contains("Noch keine Datei gewählt", ImportTexts(window));
         SaveShot(window, "kunden-import-1-datei", theme);
 
         // 2. Spalten zuordnen
@@ -89,6 +90,9 @@ public sealed partial class ViewTests
         Assert.Equal(["Nachname", "Vorname", "Geburtstag", "nicht importieren"], rows.Select(r => r.SelectedItem?.ToString()));
         Assert.Equal("TT.MM.JJJJ", card.GetVisualDescendants().OfType<ComboBox>().Single(c => c.Name == "ImportDateFormat").SelectedItem?.ToString());
         Assert.Contains("Huber · Berger", ImportTexts(window));
+        Assert.Contains("Spalte in der Datei", ImportTexts(window));
+        Assert.Contains("Feld in AISPA", ImportTexts(window));
+        Assert.DoesNotContain("Links die Spalte der Datei, rechts das Feld in AISPA.", ImportTexts(window));
         Assert.True(DialogButton(window, "BackButton").IsEffectivelyVisible);
         SaveShot(window, "kunden-import-2-zuordnung", theme);
 
@@ -113,6 +117,7 @@ public sealed partial class ViewTests
         Assert.True(card.GetVisualDescendants().OfType<RadioButton>().First(r => r.IsEffectivelyVisible).IsChecked);
         Assert.Contains("Geburtstag kein Datum", ImportTexts(window));
         Assert.True(DialogButton(window, "ImportErrorsButton").IsEffectivelyVisible);
+        Assert.Equal("Fehlerzeilen als Excel speichern …", DialogButton(window, "ImportErrorsButton").Content);
         SaveShot(window, "kunden-import-3-vorschau", theme);
 
         // 4. Probelauf
@@ -121,6 +126,7 @@ public sealed partial class ViewTests
         Assert.True(ImportShown(window, "ImportRunStep"));
         Assert.Equal("Importieren", DialogButton(window, "ConfirmButton").Content);
         Assert.True(DialogButton(window, "CheckButton").IsEffectivelyVisible);
+        Assert.Equal("Probelauf starten", DialogButton(window, "CheckButton").Content);
         Assert.False(ImportShown(window, "ImportProgress"));
         await dialog.CheckCommand.ExecuteAsync(null);
         await Pump();

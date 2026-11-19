@@ -40,13 +40,13 @@ public sealed partial class ViewTests
         await Pump(Settling);
         Assert.Equal(ExpandCollapseState.Expanded, StateOf(header));
         var rows = page.GetVisualDescendants().OfType<StackPanel>().Where(p => p.DataContext is HistoryRow && p.IsEffectivelyVisible).ToList();
-        Assert.Equal(["Geändert von Lena: Telefon 0664 111 → 0664 222, 19.10.2026, 09:05", "Angelegt von Lena, 13.10.2026, 08:12"],
+        Assert.Equal(["Geändert von Lena Huber: Telefon 0664 111 → 0664 222, 19.10.2026, 09:05", "Angelegt von Lena Huber, 13.10.2026, 08:12"],
             rows.Select(r => AutomationProperties.GetName(r)));
         return calendar;
     }, Api().On($"GET /api/customers/{SpaSample.Customers[0].Id}/history",
         new List<HistoryEntry>
         {
-            new(SpaSample.At(9, 5), "Geändert von Lena: Telefon 0664 111 → 0664 222"),
-            new(SpaSample.At(8, 12).AddDays(-6), "Angelegt von Lena"),
+            new(SpaSample.At(9, 5), "Geändert von Lena Huber: Telefon 0664 111 → 0664 222"),
+            new(SpaSample.At(8, 12).AddDays(-6), "Angelegt von Lena Huber"),
         }));
 }

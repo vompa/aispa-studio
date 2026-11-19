@@ -21,8 +21,23 @@ public sealed partial class ViewTests
     private static StubApi EmptyGuestApi(StubApi? api = null) => (api ?? Api())
         .On($"GET /api/customers/{EmptyGuest.Id}", EmptyGuest)
         .On($"GET /api/customers/{EmptyGuest.Id}/appointments", new List<AppointmentDto>())
-        .On($"GET /api/customers/{EmptyGuest.Id}/insights", SpaSample.Insights() with { ReceptionNote = null })
+        .On($"GET /api/customers/{EmptyGuest.Id}/insights", NewGuestInsights())
         .On($"GET /api/customers/{EmptyGuest.Id}/flags", new List<CustomerFlagDto>());
+
+    /// <summary>Bernhard Müllner ist noch nie da gewesen: keine Besuche, Sterne, Ausfälle und Personen; das Paket stammt aus einem Kauf.</summary>
+    private static CustomerInsights NewGuestInsights() => SpaSample.Insights() with
+    {
+        Visits = 0,
+        VisitsLastYear = 0,
+        LastVisit = null,
+        IntervalDays = null,
+        Stars = 0,
+        StarsText = "",
+        NoShows = [],
+        LateCancellations = [],
+        Employees = [],
+        ReceptionNote = null,
+    };
 
     private static Border CustomerCardBorder(Window window) => window.GetVisualDescendants().OfType<Border>().Single(b => b.Name == "CustomerCard");
 
@@ -213,6 +228,12 @@ public sealed partial class ViewTests
         Assert.Contains("Weitere E-Mail-Adresse", items);
         Assert.Equal(manages, items.Contains("Leitung informieren …"));
         Assert.Equal(manages, items.Contains("Nicht mehr buchen …"));
+
+        // Der längste Eintrag hat rechts denselben Innenrand wie links (Befund 42a): mindestens 9 px zwischen Text und Menürand.
+        var edit = window.GetVisualDescendants().OfType<MenuItem>().Single(i => i.IsEffectivelyVisible && i.Header as string == "Bearbeiten (Name, Anrede, Kontakt, Notiz)");
+        var text = edit.GetVisualDescendants().OfType<TextBlock>().First(t => t.Text == "Bearbeiten (Name, Anrede, Kontakt, Notiz)");
+        var gap = edit.Bounds.Width - (text.TranslatePoint(new Point(0, 0), edit)!.Value.X + text.Bounds.Width);
+        Assert.True(gap >= 9, $"Rechter Innenrand {gap:0.#} px");
         more.Flyout.Hide();
         return calendar;
     }, role == "Rezeption" ? ReceptionApi() : Api());
@@ -282,12 +303,12 @@ public sealed partial class ViewTests
         await Pump();
 
         // Then stehen sie im Verlauf als Chips, die Käufe als ein Chip mit dem letzten Kauf.
-        Assert.Equal(["Hot-Stone-Massage: 7 von 10 offen", "Gutschein 35,00 €", "Letzter Kauf: Massageöl 2× · 24,00 €"], Chips());
+        Assert.Equal(["Paket Hot-Stone-Massage: 7 von 10 offen", "Gutschein 35,00 €", "Letzter Kauf: Massageöl 2× · 24,00 €"], Chips());
 
         // Ohne Gutscheine und Käufe bleibt nur das Paket.
         await shell.ShowCustomerAsync(EmptyGuest.Id);
         await Pump();
-        Assert.Equal(["Hot-Stone-Massage: 7 von 10 offen"], Chips());
+        Assert.Equal(["Paket Hot-Stone-Massage: 7 von 10 offen"], Chips());
         return calendar;
     }, EmptyGuestApi().On($"GET /api/customers/{SpaSample.Customers[0].Id}/insights", SpaSample.Insights() with
     {

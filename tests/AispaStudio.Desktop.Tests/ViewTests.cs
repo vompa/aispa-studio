@@ -1634,7 +1634,8 @@ public sealed partial class ViewTests
         shell.Customers.AddFlagCommand.Execute(null);
         await Pump();
         Assert.Equal(2, shell.Customers.Flags.Count);
-        Assert.Equal(CustomerFlagKind.MoreTime, shell.Customers.NewFlag!.Kind);
+        // Vorbelegt ist das erste Kennzeichen, das Brigitte noch nicht hat (30a).
+        Assert.Equal(CustomerFlagKind.InformManagement, shell.Customers.NewFlag!.Kind);
         return calendar;
     });
 

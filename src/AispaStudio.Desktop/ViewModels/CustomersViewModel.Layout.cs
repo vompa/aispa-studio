@@ -241,7 +241,7 @@ public partial class CustomersViewModel
         SideChips.Clear();
         foreach (var package in insights?.Packages ?? [])
         {
-            var text = $"{package.TreatmentName}: {package.UnitsLeft} von {package.Units} offen";
+            var text = $"Paket {package.TreatmentName}: {package.UnitsLeft} von {package.Units} offen";
             SideChips.Add(new PreferenceChip(text, Tip: text + ValidUntil(package.ValidUntil)));
         }
 

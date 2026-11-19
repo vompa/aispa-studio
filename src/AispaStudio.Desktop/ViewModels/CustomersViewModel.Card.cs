@@ -227,7 +227,7 @@ public partial class CustomersViewModel
         p.Scent is { } scent ? new PreferenceChip($"Duft: {scent}") : null,
         p.RoomTemperature is { } temperature ? new PreferenceChip($"Raum: {temperature}") : null,
         p.Music is { } music ? new PreferenceChip($"Musik: {music}") : null,
-        p.PrefersQuiet == true ? new PreferenceChip("wenig Gespräch") : null,
+        p.PrefersQuiet == true ? new PreferenceChip("Gespräch: wenig") : null,
         p.FocusAreas is { } focus ? new PreferenceChip($"Fokus: {focus}") : null,
         p.Other is { } other ? new PreferenceChip(other) : null,
     }.OfType<PreferenceChip>();

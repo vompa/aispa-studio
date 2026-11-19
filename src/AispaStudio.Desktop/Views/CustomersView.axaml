@@ -208,6 +208,7 @@
                 <TextBlock x:Name="CardName" Text="{Binding SelectedName}" Classes="h1 value" Margin="0,0,8,0" VerticalAlignment="Center" ui:ToolTipBehavior.Reachable="True"
                            ToolTip.Tip="{Binding SelectedGreeting, StringFormat='So beginnen Mails, Erinnerungen und Antworten der KI an diesen Gast:&#10;{0}'}" />
                 <ui:Icon Data="{Binding SelectedSymbolIcon}" Width="18" Height="18" Foreground="{DynamicResource Fg2Brush}" VerticalAlignment="Center" Margin="0,0,8,0"
+                         ToolTip.Tip="{Binding SelectedSymbolText}" AutomationProperties.Name="{Binding SelectedSymbolText}" ui:ToolTipBehavior.Reachable="True"
                          IsVisible="{Binding SelectedSymbolIcon, Converter={x:Static ObjectConverters.IsNotNull}}" />
                 <TextBlock Text="{Binding SelectedPronouns}" Classes="secondary" VerticalAlignment="Center" Margin="0,0,8,0"
                            IsVisible="{Binding SelectedPronouns, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
@@ -282,7 +283,7 @@
               <Button x:Name="MoreButton" Classes="ghost icon" Content="…" ToolTip.Tip="Weitere Aktionen" AutomationProperties.Name="Weitere Aktionen" IsVisible="{Binding CanBook}">
                 <Button.Flyout>
                   <MenuFlyout Placement="BottomEdgeAlignedRight">
-                    <MenuItem Header="Bearbeiten (Name, Anrede, Kontakt, Notiz)" Command="{Binding EditContactCommand}" />
+                    <MenuItem Header="Bearbeiten (Name, Anrede, Kontakt, Notiz)" MinWidth="320" Command="{Binding EditContactCommand}" />
                     <MenuItem Header="Weitere E-Mail-Adresse" Command="{Binding StartAddEmailCommand}" />
                     <MenuItem Header="Rechnungsempfänger" Command="{Binding EditBillingCommand}" />
                     <MenuItem Header="Stammrabatt" Command="{Binding EditDiscountCommand}" />
@@ -334,8 +335,10 @@
                 <TextBlock x:Name="AvoidWarning" Text="{Binding AvoidWarning?.Text, TargetNullValue=''}" Foreground="{DynamicResource WarnBrush}" FontWeight="SemiBold" TextWrapping="Wrap"
                            ToolTip.Tip="{Binding AvoidWarning?.Tip}" ui:ToolTipBehavior.Reachable="True"
                            IsVisible="{Binding AvoidWarning, Converter={x:Static ObjectConverters.IsNotNull}}" />
-                <StackPanel x:Name="StatsWarning" ToolTip.Tip="{Binding StatsWarningTip}" ui:ToolTipBehavior.Reachable="True" AutomationProperties.Name="{Binding StatsWarning}"
+                <StackPanel x:Name="StatsWarning" ToolTip.Tip="{Binding StatsWarningTip}" ui:ToolTipBehavior.Reachable="True" AutomationProperties.Name="{Binding StatsWarning, StringFormat='Zuverlässigkeit: {0}'}"
                             IsVisible="{Binding StatsWarning, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                  <!-- Wie „Nicht behandeln: …“ mit eigener Überschrift, damit klar ist, worum es geht -->
+                  <TextBlock Text="Zuverlässigkeit" Classes="warn" FontWeight="SemiBold" />
                   <TextBlock Text="{Binding StatsWarning}" Classes="warn" TextWrapping="Wrap" />
                 </StackPanel>
               </StackPanel>
@@ -463,16 +466,16 @@
                   </ItemsControl>
                   <StackPanel Spacing="6" IsVisible="{Binding IsAddingFlag}" MaxWidth="560" HorizontalAlignment="Left">
                     <TextBlock Text="Ihre Rolle darf hier keine Kennzeichen setzen." Classes="secondary small" IsVisible="{Binding !CanAddFlag}" />
-                    <ui:FormField Label="Kennzeichen" IsVisible="{Binding CanAddFlag}">
+                    <ui:FormField Label="Neues Kennzeichen" IsVisible="{Binding CanAddFlag}">
                       <ComboBox x:Name="FlagBox" ItemsSource="{Binding FlagChoices}" SelectedItem="{Binding NewFlag}" HorizontalAlignment="Stretch" />
                     </ui:FormField>
-                    <TextBlock Text="{Binding FlagHint}" Classes="secondary small" TextWrapping="Wrap" />
-                    <ui:FormField Label="Grund" Help="Bei „Nicht mehr buchen“ Pflicht; sachlich, der Gast kann ihn einsehen." IsVisible="{Binding CanAddFlag}">
+                    <TextBlock Text="{Binding FlagHint}" Classes="secondary" TextWrapping="Wrap" />
+                    <ui:FormField Label="Grund" IsRequired="{Binding IsReasonRequired}" Help="Bei „Nicht mehr buchen“ ist der Grund Pflicht. Der Gast kann ihn einsehen, deshalb sachlich schreiben." IsVisible="{Binding CanAddFlag}">
                       <TextBox Text="{Binding NewFlagReason}" MaxLength="500" />
                     </ui:FormField>
                     <ui:InfoBar Severity="Warning" Message="{Binding FlagReasonWarning}" IsVisible="{Binding FlagReasonWarning, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
                     <StackPanel Orientation="Horizontal" Spacing="8">
-                      <Button Classes="primary" Content="Setzen" Command="{Binding SaveFlagCommand}" IsDefault="True" IsVisible="{Binding CanAddFlag}" ui:DisabledHint.Text="Verfügbar, sobald ein Kennzeichen gewählt ist (manche brauchen einen Grund)." />
+                      <Button Classes="primary" Content="Kennzeichen setzen" Command="{Binding SaveFlagCommand}" IsDefault="True" IsVisible="{Binding CanAddFlag}" ui:DisabledHint.Text="Verfügbar, sobald ein Kennzeichen gewählt ist (manche brauchen einen Grund)." />
                       <Button x:Name="CancelFlagButton" Classes="ghost" Content="Abbrechen" Command="{Binding CancelFlagCommand}" />
                     </StackPanel>
                   </StackPanel>
@@ -524,8 +527,8 @@
                   </Grid>
                   <TextBlock Text="{Binding BookingText}" Classes="value" TextWrapping="Wrap" IsVisible="{Binding !IsEditingBooking}" />
                   <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12" IsVisible="{Binding IsEditingBooking}">
-                    <TextBlock Text="{Binding Suggestion?.Text, StringFormat='Aus den Besuchen: {0}', TargetNullValue=''}" Classes="secondary small" TextWrapping="Wrap" VerticalAlignment="Center" />
-                    <Button Grid.Column="1" Classes="ghost" Content="Übernehmen" Command="{Binding TakeSuggestionCommand}" />
+                    <TextBlock Text="{Binding Suggestion?.Text, StringFormat='Aus den Besuchen: {0}', TargetNullValue=''}" Classes="secondary" TextWrapping="Wrap" VerticalAlignment="Center" />
+                    <Button Grid.Column="1" Classes="small" Content="Übernehmen" Command="{Binding TakeSuggestionCommand}" />
                   </Grid>
                   <StackPanel Spacing="8" IsVisible="{Binding IsEditingBooking}" MaxWidth="520" HorizontalAlignment="Left">
                     <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
@@ -703,22 +706,24 @@
               </Border>
 
               <!-- Nicht Erfasstes in einer Zeile; was es bewirkt, sagen Tooltip und Hilfe -->
-              <WrapPanel x:Name="MissingLine" Margin="0,12,0,0" IsVisible="{Binding HasMissing}">
-                <TextBlock Text="Noch nicht erfasst:" Classes="secondary" Margin="0,0,12,0" VerticalAlignment="Center" />
-                <Button x:Name="AddWishesLink" Classes="link" Content="+ Wünsche" Command="{Binding EditWishesCommand}" IsVisible="{Binding MissingWishes}" Margin="0,0,16,0"
+              <StackPanel x:Name="MissingBlock" Margin="0,12,0,0" Spacing="4" IsVisible="{Binding HasMissing}">
+                <TextBlock Text="Noch nicht erfasst:" Classes="secondary" />
+                <WrapPanel x:Name="MissingLine">
+                <Button x:Name="AddWishesLink" Classes="link" Content="+ Wünsche" Command="{Binding EditWishesCommand}" IsVisible="{Binding MissingWishes}" Margin="0,0,16,4"
                         ToolTip.Tip="Vorlieben wie Druck oder Musik; das Team sieht sie in „Mein Tag“ und am Termin im Kalender." />
-                <Button x:Name="AddFlagLink" Classes="link" Content="+ Kennzeichen" Command="{Binding AddFlagCommand}" IsVisible="{Binding MissingFlags}" Margin="0,0,16,0"
+                <Button x:Name="AddFlagLink" Classes="link" Content="+ Kennzeichen" Command="{Binding AddFlagCommand}" IsVisible="{Binding MissingFlags}" Margin="0,0,16,4"
                         ToolTip.Tip="Kennzeichen beschreiben sachlich einen Bedarf und wirken im Kalender, zum Beispiel 10 Minuten Puffer." />
-                <Button x:Name="AddReceptionNoteLink" Classes="link" Content="+ Rezeptionsvermerk" Command="{Binding EditReceptionNoteCommand}" IsVisible="{Binding MissingReceptionNote}" Margin="0,0,16,0"
+                <Button x:Name="AddReceptionNoteLink" Classes="link" Content="+ Rezeptionsvermerk" Command="{Binding EditReceptionNoteCommand}" IsVisible="{Binding MissingReceptionNote}" Margin="0,0,16,4"
                         ToolTip.Tip="Organisatorisches wie „zahlt mit Firmenkarte“ oder „Mann holt ab“; sehen nur Rezeption und Leitung." />
-                <Button x:Name="AddBookingLink" Classes="link" Content="+ Termine am liebsten" Command="{Binding EditBookingCommand}" IsVisible="{Binding MissingBooking}"
+                <Button x:Name="AddBookingLink" Classes="link" Content="+ Termine am liebsten" Command="{Binding EditBookingCommand}" IsVisible="{Binding MissingBooking}" Margin="0,0,16,4"
                         ToolTip.Tip="Wenn der Gast immer zur selben Person möchte, jemanden bestimmten wünscht oder feste Tage und Zeiten hat; Kalender und Terminannahme richten sich danach." />
-              </WrapPanel>
+                </WrapPanel>
+              </StackPanel>
             </StackPanel>
 
             <!-- Rechts der Verlauf (Variante C): nächster Termin als Kachel, „Zuletzt“ kurz mit der Stammperson einmal, Pakete, Gutscheine und Käufe als Chips, darunter alle Termine und die Änderungen -->
             <StackPanel x:Name="Timeline" Spacing="12">
-              <TextBlock Text="Verlauf" Classes="h2" />
+              <TextBlock Text="Termine" Classes="h2" />
               <TextBlock Text="Noch keine Termine." Classes="secondary" IsVisible="{Binding !Visits.Count}" />
               <StackPanel Spacing="6" IsVisible="{Binding NoUpcomingPlanned}">
                 <TextBlock Text="Demnächst" Classes="group" />
@@ -786,7 +791,18 @@
               </ItemsControl>
               <!-- Alle Termine (höchstens die letzten 100) mit Status und Preis, aufgeklappt mit „Alle Termine“ -->
               <Button x:Name="AllVisitsToggle" Classes="link" Command="{Binding ToggleAllVisitsCommand}" IsVisible="{Binding Visits.Count}" HorizontalAlignment="Left">
-                <TextBlock Text="{Binding Visits.Count, StringFormat='Alle Termine ({0})'}" />
+                <Button.Styles>
+                  <Style Selector="ui|Icon.chevron">
+                    <Setter Property="RenderTransform" Value="rotate(0deg)" />
+                  </Style>
+                  <Style Selector="ui|Icon.chevron.open">
+                    <Setter Property="RenderTransform" Value="rotate(90deg)" />
+                  </Style>
+                </Button.Styles>
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <TextBlock Text="{Binding Visits.Count, StringFormat='Alle Termine ({0})'}" />
+                  <ui:Icon Classes="chevron" Classes.open="{Binding ShowAllVisits}" Data="{x:Static ui:Icons.ChevronRight}" Width="14" Height="14" VerticalAlignment="Center" />
+                </StackPanel>
               </Button>
               <ItemsControl ItemsSource="{Binding Visits}" IsVisible="{Binding ShowAllVisits}">
                 <ItemsControl.ItemTemplate>

@@ -46,7 +46,12 @@ public partial class CustomersView : UserControl
     {
         if (e.PropertyName == nameof(CustomersViewModel.IsEditingContact) && _customers is { IsEditingContact: true })
         {
-            Dispatcher.UIThread.Post(() => ContactForm.FocusFirstField(), DispatcherPriority.Background);
+            // Der Fokus im ersten Feld rollt die Karte selbst; erst danach rollt „Speichern“ ins Bild.
+            Dispatcher.UIThread.Post(() =>
+            {
+                ContactForm.FocusFirstField();
+                Dispatcher.UIThread.Post(() => ShowForm(ContactForm), DispatcherPriority.Background);
+            }, DispatcherPriority.Background);
         }
         else if (e.PropertyName == nameof(CustomersViewModel.ShowNew) && _customers is { ShowNew: true })
         {
@@ -141,7 +146,7 @@ public partial class CustomersView : UserControl
     /// </summary>
     private static void ShowForm(Control field)
     {
-        var section = field.GetLogicalAncestors().OfType<Border>().FirstOrDefault(b => b.Classes.Contains("section"));
+        var section = field as CustomerContactForm ?? (Control?)field.GetLogicalAncestors().OfType<Border>().FirstOrDefault(b => b.Classes.Contains("section"));
         if (section is null)
         {
             return;
