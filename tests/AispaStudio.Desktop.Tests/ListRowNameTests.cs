@@ -56,7 +56,7 @@ public sealed class ListRowNameTests
         var receipt = new ReceiptListItem("Nr. 42", "10:15", "€ 89,00", "Karte", false, false, null!);
 
         Assert.Equal("10:15, Nr. 42, Karte, € 89,00", receipt.AccessibleName);
-        Assert.Equal("10:20, Nr. 43, Storno, Karte, -€ 89,00", (receipt with { Number = "Nr. 43", Time = "10:20", Total = "-€ 89,00", IsVoid = true }).AccessibleName);
+        Assert.Equal("10:20, Nr. 43, Stornobeleg, Karte, -€ 89,00", (receipt with { Number = "Nr. 43", Time = "10:20", Total = "-€ 89,00", IsVoid = true }).AccessibleName);
         Assert.Equal("10:15, Nr. 42, storniert, Karte, € 89,00", (receipt with { IsVoided = true }).AccessibleName);
     }
 

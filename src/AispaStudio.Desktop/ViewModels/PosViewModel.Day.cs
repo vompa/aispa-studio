@@ -7,10 +7,10 @@ using CommunityToolkit.Mvvm.Input;
 namespace AispaStudio.Desktop.ViewModels;
 
 /// <summary>Beleg in der Tagesliste.</summary>
-public sealed record ReceiptListItem(string Number, string Time, string Total, string Payments, bool IsVoid, bool IsVoided, ReceiptDto Receipt)
+public sealed record ReceiptListItem(string Number, string Time, string Total, string Payments, bool IsVoid, bool IsVoided, ReceiptDto Receipt, string? Relation = null)
 {
-    /// <summary>Name für Screenreader wie angezeigt: Uhrzeit, Nummer, „Storno“ bzw. „storniert“, Zahlungsart, Betrag („10:15, Nr. 42, Karte, € 89,00“).</summary>
-    public string AccessibleName => AccessibleNames.Join(Time, Number, IsVoid ? "Storno" : null, IsVoided ? "storniert" : null, Payments, Total);
+    /// <summary>Name für Screenreader wie angezeigt: Uhrzeit, Nummer, „Stornobeleg“ bzw. „storniert“, Zahlungsart, Betrag („10:15, Nr. 42, Karte, € 89,00“).</summary>
+    public string AccessibleName => AccessibleNames.Join(Time, Number, IsVoid ? "Stornobeleg" : null, IsVoided ? "storniert" : null, Payments, Total);
 }
 
 /// <summary>Bereich der Kassa: kassieren, Belege des Tages, Kassenlade und Tagesabschluss.</summary>
@@ -74,7 +74,7 @@ public partial class PosViewModel
     private bool _ownerLevel;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(SelectedReceipt), nameof(VoidDisabledHint), nameof(HasShownReceipt))]
+    [NotifyPropertyChangedFor(nameof(SelectedReceipt), nameof(VoidDisabledHint), nameof(VoidBlockedByRole), nameof(HasShownReceipt))]
     public partial ReceiptListItem? SelectedReceiptItem { get; set; }
 
     /// <summary>Der gewählte Beleg der Liste; sein PDF ist ein Nachdruck und trägt „Kopie“. Ein gewählter Ersatzbeleg (ADR 0096) steht an seiner Stelle.</summary>
@@ -85,8 +85,11 @@ public partial class PosViewModel
     /// <summary>Rechts steht ein Beleg der Liste oder ein Ersatzbeleg.</summary>
     public bool HasShownReceipt => SelectedReceiptItem is not null || SelectedSubstitute is not null;
 
+    /// <summary>Der gewählte Beleg ist ein Anzahlungsbeleg und der Nutzer nicht Inhaber oder Manager: „Stornieren“ bleibt gesperrt, auch mit Grund.</summary>
+    public bool VoidBlockedByRole => SelectedReceipt?.VoidBlockedByRole == true;
+
     /// <summary>Warum „Stornieren“ gesperrt ist: wegen der Rolle bei einem Anzahlungsbeleg, sonst fehlt der Grund.</summary>
-    public string VoidDisabledHint => SelectedReceipt?.VoidBlockedByRole == true
+    public string VoidDisabledHint => VoidBlockedByRole
         ? ReceiptViewModel.DepositVoidBlocked
         : "Verfügbar, sobald ein Grund mit mindestens 3 Zeichen eingetragen ist.";
 
@@ -137,8 +140,10 @@ public partial class PosViewModel
     public string ReportTitle => IsClosed ? "Tagesabschluss gespeichert" : "Zwischenbericht seit dem letzten Abschluss";
 
     public string ReportPeriod => Report is { } r
-        ? $"{DayLayout.Local(r.From, Zone):dd.MM.yyyy HH:mm} bis {DayLayout.Local(r.Until, Zone):dd.MM.yyyy HH:mm} · {r.ReceiptCount} Belege, {r.VoidCount} Stornos"
+        ? $"{DayLayout.Local(r.From, Zone):dd.MM.yyyy HH:mm} bis {DayLayout.Local(r.Until, Zone):dd.MM.yyyy HH:mm} · {Count(r.ReceiptCount, "Beleg", "Belege")}, {Count(r.VoidCount, "Storno", "Stornos")}"
         : "";
+
+    private static string Count(int count, string one, string many) => $"{count} {(count == 1 ? one : many)}";
 
     public string ReportRevenue => Format(Report?.Revenue ?? 0);
 
@@ -268,10 +273,15 @@ public partial class PosViewModel
         }
 
         Receipts.Clear();
+        var numbers = result.Value.ToDictionary(r => r.Id, r => r.Number);
         foreach (var r in result.Value.Where(r => r.Kind is ReceiptKind.Sale or ReceiptKind.Void))
         {
+            // Welcher Beleg dazugehört, steht nur im Tooltip und nur, wenn der andere Beleg am selben Tag liegt.
+            var relation = r.Kind == ReceiptKind.Void && r.VoidsReceiptId is { } voided && numbers.TryGetValue(voided, out var voidedNumber) ? $"Storniert Beleg Nr. {voidedNumber}"
+                : r.VoidedByReceiptId is { } voiding && numbers.TryGetValue(voiding, out var voidingNumber) ? $"Storniert mit Stornobeleg Nr. {voidingNumber}"
+                : null;
             Receipts.Add(new ReceiptListItem($"Nr. {r.Number}", $"{DayLayout.Local(r.IssuedAt, Zone):HH:mm}", Format(r.Total),
-                string.Join(", ", r.Payments.Select(p => Money.MethodText(p.Method)).Distinct()), r.Kind == ReceiptKind.Void, r.VoidedByReceiptId is not null, r));
+                string.Join(", ", r.Payments.Select(p => Money.MethodText(p.Method)).Distinct()), r.Kind == ReceiptKind.Void, r.VoidedByReceiptId is not null, r, relation));
         }
 
         SelectedReceiptItem = Receipts.FirstOrDefault(i => i.Receipt.Id == select) ?? Receipts.FirstOrDefault();

@@ -723,7 +723,15 @@ internal static class SpaSample
     /// <summary>Beleg über der Kleinbetragsgrenze mit Unternehmensangaben des Standorts, wie ihn der Server für Rechnungen liefert.</summary>
     public static ReceiptDto LargeReceipt() => Receipt() with
     {
+        Lines =
+        [
+            .. Receipt().Lines,
+            new("Pflegeset Lotus", 1, 341.20m, TaxCategory.Normal, 20, Revenue, "4100", null),
+        ],
+        Taxes = [new(TaxCategory.Normal, 20, 480m, 400m, 80m)],
+        Payments = [new(PaymentMethod.Card, 480m, null, "41")],
         Total = 480m,
+        Change = 0m,
         SmallInvoiceLimit = 400m,
         Company = new LocationCompany("Day-Spa Wien GmbH", "ATU12345678", "FN 123456a", "Handelsgericht Wien"),
     };

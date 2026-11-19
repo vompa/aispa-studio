@@ -27,7 +27,7 @@ In der Kassa oben **Kassenlade & Abschluss** wählen. Ist die richtige Kasse gew
 
 ### 2. Zwischenbericht ansehen
 
-Links steht der „Zwischenbericht seit dem letzten Abschluss“: Zeitraum mit Zahl der Belege und Stornos, Umsatz, „Zahlungsarten“, „Steuern“, „Erlöskonten“ und „Bargeld in der Lade“ (Anfangsbestand, Bar eingenommen, Einlagen, Entnahmen) mit dem **Soll-Bestand**. Das Bargeld in der Lade zählen.
+Links steht der „Zwischenbericht seit dem letzten Abschluss“: Zeitraum mit Zahl der Belege und Stornos, Umsatz, „Zahlungsarten“, „Steuern“, „Erlöskonten“ und „Bargeld in der Lade“ (Anfangsbestand, Bar eingenommen, Einlagen, Entnahmen) mit dem **Soll-Bestand**. Das Bargeld in der Lade zählen. Der Soll-Bestand ist das Bargeld, das laut Kassa in der Lade sein muss: Anfangsbestand plus Bar eingenommen plus Einlagen minus Entnahmen. „Erlöskonten“ teilen den Umsatz auf die Konten der Buchhaltung auf.
 
 ![Kassa mit markiertem Zwischenbericht seit dem letzten Abschluss](images/app/tagesabschluss-2.png)
 

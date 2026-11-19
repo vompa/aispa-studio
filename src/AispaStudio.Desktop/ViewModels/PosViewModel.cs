@@ -55,6 +55,9 @@ public sealed partial class PaymentEntry(PaymentMethod method, Action changed) :
 
     public bool IsVoucher => Method == PaymentMethod.Voucher;
 
+    /// <summary>Der Code ist Pflicht, sobald ein Betrag über 0 eingetragen ist; bei leerem Betrag oder 0,00 trägt das Feld keinen Stern.</summary>
+    public bool IsVoucherCodeRequired => IsVoucher && (Money.Parse(Amount) ?? 0) > 0;
+
     /// <summary>„Über Treatwell bezahlt“ erscheint nur bei Rechnungen mit vorab bezahlten Treatwell-Terminen; alle anderen Zahlungsarten immer.</summary>
     [ObservableProperty]
     public partial bool IsOffered { get; set; } = method != PaymentMethod.Treatwell;
@@ -109,8 +112,16 @@ public sealed partial class PaymentEntry(PaymentMethod method, Action changed) :
     /// <summary>Laufende oder genehmigte Zahlung am angebundenen Terminal.</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsLocked), nameof(IsWaiting), nameof(IsApproved), nameof(TerminalText), nameof(ShowTerminalButton),
-        nameof(CanCancelTerminal), nameof(CancelTerminalText), nameof(TerminalSeverity), nameof(TerminalActionText))]
+        nameof(CanCancelTerminal), nameof(CancelTerminalText), nameof(TerminalSeverity), nameof(TerminalActionText), nameof(LockedHint))]
     public partial CardPaymentDto? CardPayment { get; set; }
+
+    /// <summary>Tooltip am gesperrten Betragsfeld: warum es sich nicht ändern lässt und was dann geht; null, solange das Feld frei ist.</summary>
+    public string? LockedHint => CardPayment?.Status switch
+    {
+        CardPaymentStatus.Approved => "Am Terminal bezahlt. Zum Ändern die Kartenzahlung stornieren.",
+        CardPaymentStatus.Pending or CardPaymentStatus.ReversalPending => "Am Terminal läuft die Zahlung. Der Betrag steht fest.",
+        _ => null,
+    };
 
     public bool IsWaiting => CardPayment?.Status is CardPaymentStatus.Pending or CardPaymentStatus.ReversalPending;
 
@@ -124,7 +135,7 @@ public sealed partial class PaymentEntry(PaymentMethod method, Action changed) :
     public bool CanCancelTerminal => CardPayment?.Status is CardPaymentStatus.Pending or CardPaymentStatus.Approved;
 
     /// <summary>Wartend: abbrechen. Genehmigt, aber noch nicht kassiert: am Terminal stornieren.</summary>
-    public string CancelTerminalText => IsApproved ? "Stornieren" : "Abbrechen";
+    public string CancelTerminalText => IsApproved ? "Kartenzahlung stornieren" : "Abbrechen";
 
     /// <summary>Ergebnis am Terminal mit Symbol: genehmigt oder gutgeschrieben als Erfolg, abgelehnt oder fehlgeschlagen als Fehler, sonst neutral.</summary>
     public InfoBarSeverity TerminalSeverity => CardPayment?.Status switch
@@ -141,7 +152,8 @@ public sealed partial class PaymentEntry(PaymentMethod method, Action changed) :
     {
         null => "",
         { Status: CardPaymentStatus.Pending } => "Bitte Karte am Terminal …",
-        { Status: CardPaymentStatus.Approved } c => $"Genehmigt{(c.CardBrand is { } brand ? $" · {brand}" : "")}{(c.MaskedPan is { } pan ? $" {pan}" : "")}",
+        // Geschützte Leerzeichen: der Umbruch fällt nie vor den Punkt und nie in die Kartennummer.
+        { Status: CardPaymentStatus.Approved } c => $"Genehmigt{(c.CardBrand is { } brand ? $"\u00A0· {brand}" : "")}{(c.MaskedPan is { } pan ? $"\u00A0{pan}" : "")}",
         { Status: CardPaymentStatus.Declined } c => $"Nicht genehmigt{(c.Message is { } m ? $": {m}" : "")}",
         { Status: CardPaymentStatus.Cancelled } => "Abgebrochen",
         { Status: CardPaymentStatus.ReversalPending } => "Storno am Terminal läuft …",
@@ -159,6 +171,7 @@ public sealed partial class PaymentEntry(PaymentMethod method, Action changed) :
             Transfer = null;
         }
 
+        OnPropertyChanged(nameof(IsVoucherCodeRequired));
         changed();
     }
 
@@ -466,11 +479,12 @@ public partial class PosViewModel : ViewModelBase
     public ObservableCollection<PaymentEntry> Payments { get; } = [];
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(Currency), nameof(Export))]
+    [NotifyPropertyChangedFor(nameof(Currency), nameof(CurrencyUnit), nameof(Export))]
     public partial CashRegisterDto? Register { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasBill), nameof(TotalText), nameof(OpenText), nameof(CustomerText), nameof(CashDiscountText), nameof(PlatformPrepaidText))]
+    [NotifyPropertyChangedFor(nameof(ShowOpenRemainder), nameof(ShowPayForm))]
     [NotifyPropertyChangedFor(nameof(CustomerLegalText))]
     public partial BillDto? Bill { get; private set; }
 
@@ -486,7 +500,7 @@ public partial class PosViewModel : ViewModelBase
         : "";
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasReceipt))]
+    [NotifyPropertyChangedFor(nameof(HasReceipt), nameof(ShowPayForm), nameof(PaidText))]
     public partial ReceiptViewModel? Receipt { get; private set; }
 
     [ObservableProperty]
@@ -550,14 +564,28 @@ public partial class PosViewModel : ViewModelBase
 
     public bool HasReceipt => Receipt is not null;
 
+    /// <summary>
+    /// Nach dem Bezahlen gibt es keine Rechnung mehr: die Spalte „Bezahlen“ zeigt dann nur den Stand (<see cref="PaidText"/>) statt der leeren, gesperrten Maske.
+    /// Mit der nächsten Rechnung kommt die Maske zurück.
+    /// </summary>
+    public bool ShowPayForm => !(HasReceipt && !HasBill);
+
+    public string PaidText => Receipt is { } receipt ? $"Bezahlt · {receipt.Title}" : "";
+
     /// <summary>Währung dieser Kasse (CHF in der Schweiz, sonst Euro); alle Beträge der Kassa werden damit angezeigt.</summary>
     public string Currency => Money.CurrencyOf(Register?.Country ?? FiscalCountry.AT);
+
+    /// <summary>Einheit in Feldbeschriftungen („Betrag (€)“, design.md 5.16): das Zeichen für Euro, sonst der Code der Währung („CHF“).</summary>
+    public string CurrencyUnit => Currency == Money.Euro ? "€" : Currency;
 
     private string Format(decimal amount) => Money.Format(amount, Currency);
 
     public string TotalText => Format(Bill?.Total ?? 0);
 
     public string OpenText => Format(Bill?.Open ?? 0);
+
+    /// <summary>„davon offen“ unter der Summe steht nur bei einer Teilzahlung; sonst wäre es dieselbe Zahl wie die Summe (der Rest steht rechts als „Noch offen“).</summary>
+    public bool ShowOpenRemainder => Bill is { } bill && bill.Open != bill.Total;
 
     /// <summary>Name im Haus, groß; der gültige Name (für Belege) steht klein darunter, wenn er abweicht.</summary>
     public string CustomerText => Bill?.CustomerName ?? "Laufkundschaft";

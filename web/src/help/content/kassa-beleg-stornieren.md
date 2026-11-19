@@ -44,7 +44,7 @@ Auf **Stornieren** klicken.
 
 ## Was danach {#was-danach}
 
-- Der Stornobeleg erscheint oben in der Liste mit „Storno“, der alte Beleg trägt „storniert“. Mit automatischem Druck wird der Stornobeleg gleich gedruckt.
+- Der Stornobeleg erscheint oben in der Liste mit „Stornobeleg“, der alte Beleg trägt „storniert“. Fährt man mit der Maus über eine dieser Marken, nennt der Hinweis die Nummer des zugehörigen Belegs. Mit automatischem Druck wird der Stornobeleg gleich gedruckt.
 - Die Rechnung ist wieder offen und steht links unter „Geparkte Rechnungen“. Ihre Positionen lassen sich neu bezahlen, ändern oder entfernen, oder die Rechnung **Verwerfen**.
 - Eingelöste Gutscheine bekommen ihren Wert zurück. Mit dem Beleg verkaufte Gutscheine werden ungültig.
 - Wurde am angebundenen Kartenterminal bezahlt, schickt die Kassa die Gutschrift von selbst an das Terminal. Bar Bezahltes gibt man aus der Lade zurück.
@@ -71,6 +71,7 @@ Alle Online-Zahlungen des Standorts zeigt das Weltkugel-Symbol **Online-Zahlunge
 ## Wer darf stornieren {#rechte}
 
 - Inhaber und Standortleitung stornieren jeden Beleg, **außer einen Anzahlungsbeleg**: den stornieren nur Inhaber und Manager.
+- „Kassenaufsicht“ heißt: jeden Beleg stornieren und Bargeld aus der Lade entnehmen. Das ist ein Recht von Inhaber, Manager und Standortleitung.
 - Die Rezeption storniert nur eigene Belege und nur bis 15 Minuten nach dem Kassieren. Sonst kommt „Stornieren darf die Standortleitung. Eigene Belege kann die Rezeption bis 15 Minuten nach dem Kassieren selbst stornieren.“ Dann die Leitung stornieren lassen.
 
 ## Gut zu wissen {#hinweise}

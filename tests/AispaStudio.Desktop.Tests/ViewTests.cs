@@ -1852,7 +1852,7 @@ public sealed partial class ViewTests
         var card = shell.Pos.Payments.First(p => p.IsCard);
         await shell.Pos.StartCardPaymentCommand.ExecuteAsync(card);
         Assert.True(card.IsApproved);
-        Assert.Equal("Stornieren", card.CancelTerminalText);
+        Assert.Equal("Kartenzahlung stornieren", card.CancelTerminalText);
         Assert.True(shell.Pos.CanPay);
         return shell.Pos;
     });

@@ -39,7 +39,7 @@ Ist am Standort der Kasse ein Kartenterminal eingerichtet, steht unter dem Feld 
 
 ![Genehmigte Zahlung am Terminal](images/app/kassa-terminal.png)
 
-- Solange das Terminal wartet, bricht **Abbrechen** die Zahlung ab. Eine genehmigte, noch nicht kassierte Zahlung storniert **Stornieren** am Terminal.
+- Solange das Terminal wartet, bricht **Abbrechen** die Zahlung ab. Eine genehmigte, noch nicht kassierte Zahlung storniert **Kartenzahlung stornieren** am Terminal. Das Betragsfeld der Karte bleibt gesperrt, solange die Zahlung läuft oder genehmigt ist; der Hinweis am Feld nennt den Grund.
 - Eine genehmigte Kartenzahlung muss auf einen Beleg: Parken, Verwerfen und eine andere Rechnung öffnen gehen erst, wenn bezahlt oder am Terminal storniert ist.
 - Das Terminal wählt man unter „Geräte“ an dem PC, neben dem es steht: [Kartenterminal einrichten](hilfe:geraete-kartenterminal-einrichten).
 
