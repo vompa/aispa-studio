@@ -46,7 +46,12 @@ public partial class CustomersView : UserControl
     {
         if (e.PropertyName == nameof(CustomersViewModel.IsEditingContact) && _customers is { IsEditingContact: true })
         {
-            Dispatcher.UIThread.Post(() => ContactForm.FocusFirstField(), DispatcherPriority.Background);
+            // Der Fokus im ersten Feld rollt die Karte selbst; erst danach rollt „Speichern“ ins Bild.
+            Dispatcher.UIThread.Post(() =>
+            {
+                ContactForm.FocusFirstField();
+                Dispatcher.UIThread.Post(() => ShowForm(ContactForm), DispatcherPriority.Background);
+            }, DispatcherPriority.Background);
         }
         else if (e.PropertyName == nameof(CustomersViewModel.ShowNew) && _customers is { ShowNew: true })
         {
@@ -107,6 +112,7 @@ public partial class CustomersView : UserControl
         nameof(CustomersViewModel.IsEditingBooking) => (c.IsEditingBooking, () => BookingEmployeeBox, [EditBookingButton, AddBookingLink]),
         nameof(CustomersViewModel.IsEditingBilling) => (c.IsEditingBilling, () => BillingNameBox, [EditBillingButton, MoreButton]),
         nameof(CustomersViewModel.IsEditingDiscount) => (c.IsEditingDiscount, () => DiscountPercentBox, [EditDiscountButton, MoreButton]),
+        nameof(CustomersViewModel.IsEditingConsent) => (c.IsEditingConsent, () => ConsentBox, [EditConsentButton, MoreButton]),
         nameof(CustomersViewModel.IsAddingEmail) => (c.IsAddingEmail, () => OtherEmailBox, [MoreButton]),
         _ => null,
     };
@@ -119,7 +125,9 @@ public partial class CustomersView : UserControl
     {
         if (card.IsOpen)
         {
-            card.FirstField().Focus();
+            var first = card.FirstField();
+            first.Focus();
+            ShowForm(first);
             return;
         }
 
@@ -131,4 +139,20 @@ public partial class CustomersView : UserControl
             (card.Openers.FirstOrDefault(o => o.IsEffectivelyVisible) ?? card.Openers[^1]).Focus();
         }
     }, DispatcherPriority.Background);
+
+    /// <summary>
+    /// Ein geöffnetes Formular der Karte rollt ins Bild: erst der Abschnitt, dann der Hauptknopf, damit „Speichern“ sichtbar bleibt (masken.md R5), auch wenn
+    /// die Karte lang ist.
+    /// </summary>
+    private static void ShowForm(Control field)
+    {
+        var section = field as CustomerContactForm ?? (Control?)field.GetLogicalAncestors().OfType<Border>().FirstOrDefault(b => b.Classes.Contains("section"));
+        if (section is null)
+        {
+            return;
+        }
+
+        section.BringIntoView();
+        section.GetVisualDescendants().OfType<Button>().LastOrDefault(b => b.IsEffectivelyVisible && b.Classes.Contains("primary"))?.BringIntoView();
+    }
 }

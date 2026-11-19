@@ -15,8 +15,16 @@ public sealed record FlagChoice(CustomerFlagKind Kind, string Label, bool NeedsR
 /// <summary>Gesetztes Kennzeichen in der Kundenkarte, z. B. „Nicht bei Lena Huber · seit 3.10.2026“.</summary>
 public sealed record FlagRow(CustomerFlagDto Flag, string Title, string Effect, string? Reason, bool MayRemove)
 {
-    /// <summary>Wirkung und Grund für den Tooltip am Chip.</summary>
-    public string Tip => string.IsNullOrWhiteSpace(Reason) ? Effect : $"{Effect}\nGrund: {Reason}";
+    /// <summary>Wirkung und Grund für den Tooltip am Chip; ohne Kreuz steht dort, wer es aufheben darf.</summary>
+    public string Tip => (string.IsNullOrWhiteSpace(Reason) ? Effect : $"{Effect}\nGrund: {Reason}") + (MayRemove ? "" : $"\n{RemoveHint}");
+
+    /// <summary>Warum der Chip kein Kreuz hat: „Nicht bei mir“ hebt die Person selbst oder die Leitung auf, die anderen Kennzeichen das Recht, sie zu setzen.</summary>
+    public string RemoveHint => Flag.Kind switch
+    {
+        CustomerFlagKind.NotWithMe => $"Aufheben kann nur {Flag.EmployeeName ?? "die Person"} selbst oder die Leitung.",
+        CustomerFlagKind.MoreTime => "Aufheben darf, wer Termine buchen darf.",
+        _ => "Aufheben darf nur die Leitung.",
+    };
 }
 
 /// <summary>Vorschlag des Servers für ein Kennzeichen, z. B. „Vorschlag: Leitung informieren“ mit Begründung aus dem Verlauf.</summary>
@@ -46,7 +54,7 @@ public partial class CustomersViewModel
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(SaveFlagCommand))]
-    [NotifyPropertyChangedFor(nameof(FlagHint))]
+    [NotifyPropertyChangedFor(nameof(FlagHint), nameof(IsReasonRequired))]
     public partial FlagChoice? NewFlag { get; set; }
 
     [ObservableProperty]
@@ -55,6 +63,9 @@ public partial class CustomersViewModel
     public partial string NewFlagReason { get; set; } = "";
 
     public string? FlagReasonWarning => HealthWords.Warning(NewFlagReason);
+
+    /// <summary>„Nicht mehr buchen“ verlangt einen Grund; das Feld trägt dann den Pflichtstern (masken.md R8).</summary>
+    public bool IsReasonRequired => NewFlag?.NeedsReason == true;
 
     public string FlagHint => NewFlag is { } choice ? Effect(choice.Kind, User?.DisplayName) : "";
 
@@ -181,7 +192,8 @@ public partial class CustomersViewModel
     {
         CloseEditors();
         FillFlagChoices();
-        NewFlag = FlagChoices.FirstOrDefault();
+        // Vorbelegt mit dem ersten Kennzeichen, das noch nicht gesetzt ist; sind alle gesetzt, mit dem ersten.
+        NewFlag = FlagChoices.FirstOrDefault(c => Flags.All(f => f.Flag.Kind != c.Kind)) ?? FlagChoices.FirstOrDefault();
         NewFlagReason = "";
         IsAddingFlag = true;
     }

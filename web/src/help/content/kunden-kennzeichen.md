@@ -25,7 +25,7 @@ Statt eines Freitexts wie „schwierige Kundin“ gibt es feste, sachliche Kennz
 
 1. Die Kundenkarte öffnen.
 2. Bei „Kennzeichen“ auf **+** klicken, oder ohne Kennzeichen unter „Noch nicht erfasst“ auf **+ Kennzeichen**. Leitung und Inhaber öffnen „Leitung informieren“ und „Nicht mehr buchen“ auch über das Menü **…**. Die Auswahl zeigt nur, was die eigene Rolle setzen darf.
-3. Kennzeichen wählen, bei Bedarf einen Grund eintragen (bei „Nicht mehr buchen“ Pflicht) und **Setzen** klicken.
+3. Kennzeichen wählen, bei Bedarf einen Grund eintragen (bei „Nicht mehr buchen“ Pflicht, mit Stern am Feld) und **Kennzeichen setzen** klicken.
 
 Neue Termine richten sich sofort danach. Schon gebuchte Termine bleiben, wie sie sind.
 
