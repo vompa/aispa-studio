@@ -62,7 +62,11 @@ public sealed partial class RoomClosuresViewModel : PeriodAreaViewModel
     public bool CanSelectRoom => IsCreating;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(RoomName))]
     public partial RoomOption? SelectedRoom { get; set; }
+
+    /// <summary>Der Name des gewählten Raums als Text für eine bestehende Sperre (leer, solange keiner gewählt ist).</summary>
+    public string RoomName => SelectedRoom?.Name ?? "";
 
     [ObservableProperty]
     public partial RoomClosureKind Kind { get; set; }
@@ -190,9 +194,8 @@ public sealed partial class RoomClosuresViewModel : PeriodAreaViewModel
         ReasonError = null;
     }
 
-    /// <summary>„1 Termin liegt im gesperrten Raum und bleibt gebucht, bis er umgebucht wird. Die Umbuchungshilfe steht im Kalender …“</summary>
+    /// <summary>„1 Termin im gesperrten Raum bleibt gebucht. Umbuchen unter Meldungen.“ (höchstens zwei Zeilen in der Seitenleiste)</summary>
     private static string? OpenText(int open) => open == 0
         ? null
-        : $"{(open == 1 ? "1 Termin liegt" : $"{open} Termine liegen")} im gesperrten Raum und {(open == 1 ? "bleibt" : "bleiben")} gebucht, bis {(open == 1 ? "er" : "sie")} umgebucht "
-            + $"{(open == 1 ? "wird" : "werden")}. Die Umbuchungshilfe steht im Kalender: in der Seitenleiste Meldungen auf „Umbuchen …“ klicken.";
+        : $"{(open == 1 ? "1 Termin" : $"{open} Termine")} im gesperrten Raum {(open == 1 ? "bleibt" : "bleiben")} gebucht. Umbuchen unter Meldungen.";
 }

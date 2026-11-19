@@ -186,7 +186,7 @@ public sealed class AdminRoomClosuresTests
 
         Assert.False(closures.CanSelectRoom);
         Assert.Equal("Raum Zeder, Wartung, 24.12.2027 bis 26.12.2027", closures.HeadingText);
-        Assert.Equal("1 Termin liegt im gesperrten Raum und bleibt gebucht, bis er umgebucht wird. Die Umbuchungshilfe steht im Kalender: in der Seitenleiste Meldungen auf „Umbuchen …“ klicken.", closures.OpenNotice);
+        Assert.Equal("1 Termin im gesperrten Raum bleibt gebucht. Umbuchen unter Meldungen.", closures.OpenNotice);
         Assert.Equal("1 Termin offen", page.Upcoming[0].AppointmentsText);
 
         await page.NewRoomCommand.ExecuteAsync(null);
