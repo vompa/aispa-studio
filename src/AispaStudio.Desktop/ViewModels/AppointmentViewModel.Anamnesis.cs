@@ -12,6 +12,9 @@ namespace AispaStudio.Desktop.ViewModels;
 /// <summary>Eine Antwort des Bogens in der Karte; <c>IsFlagged</c> hebt ein „Ja“ hervor.</summary>
 public sealed record AnamnesisAnswerRow(string Question, string Answer, bool IsFlagged);
 
+/// <summary>Ein Abruf der Gesundheitsdaten im Protokoll: Zeitpunkt und Person, darunter wozu.</summary>
+public sealed record HealthAccessRow(string Who, string What);
+
 /// <summary>Ein fotografierter Bogen, der noch gelesen wird oder auf Prüfung wartet.</summary>
 public sealed record AnamnesisScanRow(string Text, bool CanReview, IRelayCommand Review);
 
@@ -49,7 +52,8 @@ public partial class AppointmentViewModel
     public bool MayReadHealthData { get; init; }
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasAnamnesis), nameof(AnamnesisStateText), nameof(HasAnamnesisRecord), nameof(CanReadAnamnesisRecord), nameof(AnamnesisScans))]
+    [NotifyPropertyChangedFor(nameof(HasAnamnesis), nameof(AnamnesisStateText), nameof(HasAnamnesisRecord), nameof(CanReadAnamnesisRecord), nameof(AnamnesisScans),
+        nameof(CanSeeHealthAccesses))]
     public partial AnamnesisOverview? AnamnesisOverview { get; private set; }
 
     [ObservableProperty]
@@ -58,6 +62,19 @@ public partial class AppointmentViewModel
 
     [ObservableProperty]
     public partial IReadOnlyList<AnamnesisAnswerRow> AnamnesisAnswers { get; private set; } = [];
+
+    /// <summary>Abrufprotokoll der Gesundheitsdaten (ADR 0013, Nachtrag 19.11.2026): nur die Leitung (Recht, Personal zu verwalten).</summary>
+    public bool MaySeeHealthAccesses { get; init; }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowAccessesText), nameof(HasNoHealthAccesses))]
+    public partial IReadOnlyList<HealthAccessRow>? HealthAccesses { get; private set; }
+
+    public bool CanSeeHealthAccesses => MaySeeHealthAccesses && HasAnamnesisRecord;
+
+    public bool HasNoHealthAccesses => HealthAccesses is { Count: 0 };
+
+    public string ShowAccessesText => HealthAccesses is null ? "Abrufe ansehen" : "Abrufe ausblenden";
 
     [ObservableProperty]
     public partial ConsentLanguage AnamnesisLanguage { get; set; } = ConsentLanguage.All[0];
@@ -150,7 +167,7 @@ public partial class AppointmentViewModel
             return;
         }
 
-        var result = await Api.GetAsync<AnamnesisRecordDto>(AnamnesisPath).ConfigureAwait(true);
+        var result = await Api.GetAsync<AnamnesisRecordDto>($"{AnamnesisPath}?appointmentId={Appointment.Id}").ConfigureAwait(true);
         if (result.Value is not { } record)
         {
             ShowFailure("Bogen nicht geladen", result.Error);
@@ -161,6 +178,37 @@ public partial class AppointmentViewModel
             AnamnesisQuestions.GetValueOrDefault(a.Key, a.Key), AnswerText(a), a.Yes == true))];
         ShowAnamnesisRecord = true;
     }
+
+    /// <summary>Wer die Gesundheitsdaten des Gastes wann wozu gelesen hat; die neuesten zuerst. Der Server liefert nur der Leitung.</summary>
+    [RelayCommand]
+    private async Task ToggleHealthAccessesAsync()
+    {
+        if (HealthAccesses is not null)
+        {
+            HealthAccesses = null;
+            return;
+        }
+
+        var result = await Api.GetAsync<List<HealthAccessEntry>>($"{AnamnesisPath}/accesses").ConfigureAwait(true);
+        if (result.Value is not { } entries)
+        {
+            ShowFailure("Abrufe nicht geladen", result.Error);
+            return;
+        }
+
+        HealthAccesses = [.. entries.Select(e => new HealthAccessRow(
+            $"{DayLayout.Local(e.At, Zone):dd.MM.yyyy HH:mm} · {e.Person}",
+            PurposeText(e.Purpose) + (e.Treatment is { } treatment && e.AppointmentStart is { } start ? $" ({treatment} am {DayLayout.Local(start, Zone):dd.MM.})" : "")))];
+    }
+
+    private static string PurposeText(HealthAccessPurpose purpose) => purpose switch
+    {
+        HealthAccessPurpose.TreatmentCard => "Behandlungskarte",
+        HealthAccessPurpose.Anamnesis => "Bogen im Termin",
+        HealthAccessPurpose.Scan => "Fotografierter Bogen",
+        HealthAccessPurpose.Disclosure => "Datenschutz-Auskunft",
+        _ => purpose.ToString(),
+    };
 
     private static string AnswerText(AnamnesisAnswer answer)
     {

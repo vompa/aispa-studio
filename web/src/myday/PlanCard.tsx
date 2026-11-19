@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { api, type CustomerPreferences, type RestockLine, type TreatmentCard } from '../api/client'
+import { api, type CustomerPreferences, type RestockLine, type TreatmentCard, type TreatmentHealthHints } from '../api/client'
 import { amount, guestName, parseAmount, problemText, shortDate, timeIn } from './format'
 
 const PREFERENCES: { key: Exclude<keyof CustomerPreferences, 'prefersQuiet'>; label: string }[] = [
@@ -202,6 +202,7 @@ export function PlanCard({
       )}
       {card.allergyFlag && <p className="allergy">Allergie angegeben: bitte den Fragebogen beachten.</p>}
       {card.checkAnamnesis && !card.allergyFlag && <p className="allergy">Anamnese prüfen: Der Fragebogen enthält Angaben, die für diese Behandlung wichtig sein können.</p>}
+      {card.hasHealthHints && <HealthHints appointmentId={card.appointmentId} offline={offline} />}
       <p className="muted">{card.anamnesisStatus}</p>
       {card.bookingNote && <p>Hinweis zur Buchung: {card.bookingNote}</p>}
 
@@ -346,5 +347,74 @@ export function PlanCard({
         {message?.text}
       </p>
     </article>
+  )
+}
+
+/**
+ * Gesundheitshinweise aus dem Fragebogen (nur „Ja“ und Sonstiges). Erst auf Klick geladen, weil jeder Abruf protokolliert wird;
+ * „Ausblenden“ vergisst sie wieder.
+ */
+function HealthHints({ appointmentId, offline }: { appointmentId: string; offline: boolean }) {
+  const [hints, setHints] = useState<TreatmentHealthHints | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
+
+  async function load() {
+    if (offline) {
+      setError('Nur mit Verbindung.')
+      return
+    }
+    if (loading) return
+    setLoading(true)
+    try {
+      const { data, error: problem } = await api.GET('/api/v1/reports/appointments/{appointmentId}/health', { params: { path: { appointmentId } } })
+      if (data) {
+        setHints(data)
+        setError(null)
+      } else {
+        setError(problemText(problem, 'Die Hinweise konnten nicht geladen werden.'))
+      }
+    } catch {
+      setError('Keine Verbindung. Bitte noch einmal versuchen.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (!hints) {
+    return (
+      <div className="health-hints">
+        <div className="actions">
+          <button type="button" aria-disabled={offline || loading || undefined} onClick={() => void load()}>
+            Gesundheitshinweise ansehen
+          </button>
+        </div>
+        {error && <p role="status" className="message error">{error}</p>}
+      </div>
+    )
+  }
+
+  return (
+    <div className="health-hints">
+      <h4>Gesundheitshinweise</h4>
+      {hints.hints.length === 0 ? (
+        <p className="muted">Keine Angaben im Fragebogen.</p>
+      ) : (
+        <ul>
+          {hints.hints.map((h) => (
+            <li key={h.key}>
+              <strong>{h.label}</strong>
+              {h.details && `: ${h.details}`}
+            </li>
+          ))}
+        </ul>
+      )}
+      <p className="muted">{hints.notice}</p>
+      <div className="actions">
+        <button type="button" className="secondary" onClick={() => setHints(null)}>
+          Ausblenden
+        </button>
+      </div>
+    </div>
   )
 }

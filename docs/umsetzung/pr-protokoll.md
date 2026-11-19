@@ -7459,3 +7459,23 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Geprüft:** API `PromotionTests` (neu: zwei Positionen mit Aktion, eine von Hand überschrieben, eine storniert; Stammgast und neuer Gast; Text für KI und Mail; ohne Beträge), mit `PromotionKindTests`, `ManagementSummaryTests`, `ReportMailTests`, `BusinessReportTests`, `PosTests`, `ChannelScanTests`: 79 von 79. Windows-App: voller Lauf 3200 von 3204 (ein fehlender Stub, behoben; ein Speicherabbruch im Container, danach grün), `AdminReportsTests` 48 von 48 (neu: Tabelle mit und ohne Beträge), Ansichtstest mit Bild, Knopflängen und „höchstens“ (197).
 - **Nicht geprüft:** echte Belege im laufenden System; die laufende App unter Windows.
 - **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).
+
+## Behandlungskarte: Gesundheitshinweise mit protokolliertem Abruf (19.11.2026)
+
+- **Auftrag:** Block „Behandlung und Kalender“, Punkt 1; vom Auftraggeber am 19.11.2026 freigegeben. Sichtbarkeit (Auftraggeber, 19.11.2026): behandelnde Person, Rezeption und Standortleitung.
+- **Befund:** Die Karte in „Mein Tag“ sagte nur „Allergie angegeben“ oder „Anamnese prüfen“, ohne Inhalt; den Bogen lasen Rezeption und Leitung im Termin-Panel, ohne Protokoll.
+- **Was:**
+  - `GET /api/reports/appointments/{id}/health`: Hinweise des neuesten Bogens („Ja“-Antworten und Sonstiges mit Text, kurze Titel), nur für die behandelnde Person, Rezeption und Standortleitung des Standorts; auch im Kanal der Mitarbeiter-App.
+  - `TreatmentCard.HasHealthHints` im Tagesplan (nur ja oder nein) für alle, die die Hinweise sehen dürfen.
+  - Protokoll `HealthDataAccesses` (Migration `HealthDataAccesses`): jeder Abruf über die Karte, den Bogen im Termin (mit Termin), den fotografierten Bogen und die Datenschutz-Auskunft. `GET /api/customers/{id}/anamnesis/accesses` (die letzten 100) für die Leitung.
+  - „Mein Tag“: **Gesundheitshinweise ansehen** auf der Karte, erst auf Klick geladen, mit Hinweis auf das Protokoll.
+  - Windows-App: **Abrufe ansehen** in der Karte Anamnese, nur für die Leitung; der Bogen wird mit dem Termin abgerufen.
+  - Hilfe `mein-tag-eigenen-tag-ansehen` (Abschnitt „Gesundheitshinweise“, Bild `myday-gesundheit.png`), `kalender-termin-anamnese` (Abschnitt „Wer hat gelesen?“, Bild); ADR 0013, Nachtrag.
+- **Detailentscheidungen:**
+  1. Inhaber und Manager sehen die Hinweise auf der Karte nicht, lesen aber das Protokoll und weiter den Bogen im Termin (Ä309 bleibt); das ist die Leitung, die Zugriffe kontrolliert.
+  2. Kein Protokolleintrag, wenn es keinen Bogen gibt; die Abfrage, ob es Hinweise gibt (ja oder nein), wird nicht protokolliert.
+  3. Die Hinweise werden nicht offline gespeichert: Gesundheitsdaten sollen nicht auf dem Handy liegen bleiben.
+  4. Das Bild für „Mein Tag“ entstand mit nachgestellten Daten (Vite und abgefangene API), weil die Beispieldaten keinen Termin mit Hinweisen für Lena garantieren.
+- **Geprüft:** API `HealthHintTests` 2 von 2 (neu: Rollen, Hinweise, Protokoll mit Zweck und Termin, Liste nur für die Leitung, ohne Bogen kein Eintrag), `ChannelScanTests`, `CustomerDisclosureTests`, `AnamnesisChannelTests`, `AnamnesisCheckTests`, `StaffMobileTests`; Web `MyDay.test.tsx` 39 von 39 (neu: Laden auf Klick, Ausblenden, axe); Windows-App Anamnese-Ansichtstests (neu: Abrufliste mit Bild, Therapeutin ohne Knopf), Knopflängen und „höchstens“.
+- **Nicht geprüft:** die laufende App unter Windows; „Mein Tag“ auf einem echten Handy.
+- **Text-Prüfung:** von Hand nach [texte.md](../gestaltung/texte.md).

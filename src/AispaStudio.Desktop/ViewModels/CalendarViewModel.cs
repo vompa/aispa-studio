@@ -854,6 +854,7 @@ public partial class CalendarViewModel : ViewModelBase
             MayReturnDeposit = _user.Access?.Role is StaffRole.Owner or StaffRole.GeneralManager,
             MayChargeFee = _user.Rights.Contains(AccessRight.SuperviseCash),
             MayReadHealthData = _user.Rights.Contains(AccessRight.ViewHealthData),
+            MaySeeHealthAccesses = _user.Rights.Contains(AccessRight.ManageStaff),
             IsBilled = _day!.BilledAppointmentIds?.Contains(appointment.Id) == true,
         };
         panel.Loads = Task.WhenAll(panel.LoadDepositAsync(), panel.LoadCardGuaranteeAsync(), panel.LoadRemindersAsync(), panel.LoadConsentAsync(), panel.LoadAnamnesisAsync(),

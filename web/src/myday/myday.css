@@ -465,6 +465,12 @@ textarea[readonly] {
   padding-left: 0.5rem;
 }
 
+/* Gesundheitshinweise (ADR 0013, Nachtrag 19.11.2026): erst auf Klick, weil jeder Abruf protokolliert wird */
+.health-hints ul {
+  margin: 0.25rem 0;
+  padding-left: 1.25rem;
+}
+
 .week,
 .requests {
   display: flex;

@@ -1432,6 +1432,17 @@ Expected: Kein Kommentar.
 Closes: –
 Result: ☐
 
+### Behandlungskarte – Gesundheitshinweise mit Protokoll
+Start: `dotnet run --project src/AispaStudio.AppHost` mit Beispieldaten; ein Gast mit ausgefülltem Fragebogen (z. B. „Medikamente: Ja, Blutverdünner“) und einem Termin bei Lena heute
+1. Als Lena „Mein Tag“ am Handy öffnen.
+Expected: Auf der Karte des Gastes steht **Gesundheitshinweise ansehen**; nach dem Antippen „Medikamente: Blutverdünner“ und „Ihr Abruf wird protokolliert.“
+2. Als Rezeption denselben Termin über die Behandlungskarte öffnen; als andere Therapeutin ohne diesen Termin versuchen.
+Expected: Die Rezeption sieht die Hinweise; die andere Therapeutin bekommt keinen Knopf (und der Aufruf wird abgelehnt).
+3. In der Windows-App als Inhaberin den Termin öffnen, Karte **Anamnese**, **Abrufe ansehen**.
+Expected: Lenas Abruf als „Behandlungskarte (Behandlung am Datum)“ mit Uhrzeit; ein **Ansehen** in der Karte erscheint danach als „Bogen im Termin“. Als Rezeption gibt es den Knopf **Abrufe ansehen** nicht.
+Closes: –
+Result: ☐
+
 ### Berichte – Wochen- und Monatsbericht per Mail
 Start: `dotnet run --project src/AispaStudio.AppHost` mit KI-Schlüssel, Beispieldaten und Mailversand (Mailpit), Server-Uhr auf einen Montag nach 7 Uhr
 1. Eine Stunde warten (oder den Server neu starten) und das Postfach des Inhabers öffnen.

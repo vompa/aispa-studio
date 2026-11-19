@@ -370,3 +370,24 @@ public sealed record OnlineImprint(
     string? SupervisoryAuthority,
     string? ChamberAndRules,
     bool Complete);
+
+/// <summary>Wozu Gesundheitsdaten abgerufen wurden: Behandlungskarte, Bogen im Termin, fotografierter Bogen oder Auskunft an den Gast.</summary>
+public enum HealthAccessPurpose
+{
+    TreatmentCard,
+    Anamnesis,
+    Scan,
+    Disclosure,
+}
+
+/// <summary>Ein Abruf im Protokoll: wann, wer, wozu, und bei welchem Termin (Behandlung und Beginn), falls an einem Termin.</summary>
+public sealed record HealthAccessEntry(DateTimeOffset At, string Person, HealthAccessPurpose Purpose, string? Treatment, DateTimeOffset? AppointmentStart);
+
+/// <summary>Ein Hinweis aus dem Bogen: kurzer Titel der Frage („Allergien“) und was der Gast dazu geschrieben hat.</summary>
+public sealed record HealthHint(string Key, string Label, string? Details);
+
+/// <summary>
+/// Gesundheitshinweise für die Behandlungskarte: nur die Fragen mit „Ja“ und „Sonstiges“ mit Text, aus dem neuesten Bogen. Leer, wenn der Gast
+/// nichts angegeben hat; <c>SubmittedAt</c> null, wenn es keinen Bogen gibt. <c>Notice</c> sagt, dass der Abruf protokolliert ist.
+/// </summary>
+public sealed record TreatmentHealthHints(Guid AppointmentId, DateTimeOffset? SubmittedAt, IReadOnlyList<HealthHint> Hints, string Notice);

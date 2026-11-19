@@ -22,7 +22,7 @@ internal static class CustomerDisclosureEndpoints
         routes.MapGroup("/api/customers/{customerId:guid}").WithTags("Kunden").RequirePermission(AccessRight.ViewCalendar)
             .MapGet("/history/pdf", async Task<Results<FileContentHttpResult, NotFound>> (
                 Guid customerId, ClaimsPrincipal user, AispaDbContext db, OnlineDbContext online, AccessService access, AnamnesisStore anamnesis, EntityHistory history,
-                DocumentHeaders headers, CancellationToken ct) =>
+                DocumentHeaders headers, HealthAccessLog log, CancellationToken ct) =>
             {
                 if (await db.Customers.AsNoTracking().FirstOrDefaultAsync(c => c.Id == customerId, ct) is not { } customer)
                 {
@@ -31,6 +31,11 @@ internal static class CustomerDisclosureEndpoints
 
                 var rights = (await access.CurrentAsync(ct))!;
                 var data = await LoadAsync(customer, rights, db, online, anamnesis, history, ct);
+                if (data.Health.Record is not null)
+                {
+                    await log.WriteAsync(user, customerId, null, HealthAccessPurpose.Disclosure, ct);
+                }
+
                 return DocumentFiles.Pdf(CustomerDisclosure.Build(data, await headers.ForAsync(null, user, ct)), CustomerDisclosure.FileName(customer));
             })
             .WithName("CustomerDisclosurePdf")

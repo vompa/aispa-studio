@@ -74,6 +74,7 @@ public sealed class AispaDbContext(DbContextOptions<AispaDbContext> options, Ten
     public DbSet<CashRegister> CashRegisters => Set<CashRegister>();
     public DbSet<Bill> Bills => Set<Bill>();
     public DbSet<BillLine> BillLines => Set<BillLine>();
+    public DbSet<HealthDataAccess> HealthDataAccesses => Set<HealthDataAccess>();
     public DbSet<Receipt> Receipts => Set<Receipt>();
     public DbSet<ReceiptRecipient> ReceiptRecipients => Set<ReceiptRecipient>();
     public DbSet<Voucher> Vouchers => Set<Voucher>();
@@ -178,6 +179,7 @@ public sealed class AispaDbContext(DbContextOptions<AispaDbContext> options, Ten
         PaymentAccountModel.Configure(builder);
         PromotionModel.Configure(builder);
         CalendarSubscriptionModel.Configure(builder);
+        HealthAccessModel.Configure(builder);
         BusinessContactModel.Configure(builder);
         ClosureModel.Configure(builder);
         RoomClosureModel.Configure(builder);

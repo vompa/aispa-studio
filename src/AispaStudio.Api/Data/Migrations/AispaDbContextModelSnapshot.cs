@@ -1919,6 +1919,43 @@ namespace AispaStudio.Api.Data.Migrations
                     b.ToTable("SpaMailboxes", "aispa");
                 });
 
+            modelBuilder.Entity("AispaStudio.Api.Online.HealthDataAccess", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("AppointmentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("At")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("CustomerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Purpose")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantId");
+
+                    b.HasIndex("CustomerId", "At");
+
+                    b.ToTable("HealthDataAccesses", "aispa");
+                });
+
             modelBuilder.Entity("AispaStudio.Api.Online.LocationOnlineSettings", b =>
                 {
                     b.Property<Guid>("LocationId")
@@ -7154,6 +7191,21 @@ namespace AispaStudio.Api.Data.Migrations
 
             modelBuilder.Entity("AispaStudio.Api.MailIntake.SpaMailbox", b =>
                 {
+                    b.HasOne("AispaStudio.Api.Tenancy.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AispaStudio.Api.Online.HealthDataAccess", b =>
+                {
+                    b.HasOne("AispaStudio.Api.Scheduling.Customer", null)
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("AispaStudio.Api.Tenancy.Tenant", null)
                         .WithMany()
                         .HasForeignKey("TenantId")
