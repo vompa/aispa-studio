@@ -91,7 +91,7 @@ cd web && npm run gen:api && npm run lint && npm run typecheck && npm test && np
 
 Stand 08.11.2026: Seit diesem Tag ist dieses öffentliche Repository das einzige. Das frühere, nicht öffentliche Repository mit der ganzen Historie ist gelöscht. Alle PR-Nummern vor dem 08.11.2026 (in dieser Datei, im [PR-Protokoll](umsetzung/pr-protokoll.md) und in den ADRs) beziehen sich auf dieses frühere Repository. Ihr Inhalt steht im PR-Protokoll, die Historie hat der Auftraggeber lokal gesichert.
 
-Offen sind nur Dependabot-PRs dieses Repositorys (Stand 16.11.2026: nur die zurückgestellte Hauptversion 11 der ASP.NET-Core-Pakete; Tabelle im [Stand](stand-und-offene-punkte.md#nicht-auf-main-offene-pull-requests-und-fertige-branch-stände)). Halbfertige Stände außerhalb von `main` gibt es nicht.
+Offen sind nur Dependabot-PRs dieses Repositorys (Stand 19.11.2026: keine; die Hauptversion 11 der ASP.NET-Core-Pakete überspringt Dependabot bis zum Umstieg auf .NET 11; Tabelle im [Stand](stand-und-offene-punkte.md#nicht-auf-main-offene-pull-requests-und-fertige-branch-stände)). Halbfertige Stände außerhalb von `main` gibt es nicht.
 
 ## 5. Offene Arbeit, in vorgeschlagener Reihenfolge
 

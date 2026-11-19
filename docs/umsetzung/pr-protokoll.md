@@ -7556,3 +7556,16 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Geprüft:** `dotnet build` grün; `dotnet format AispaStudio.slnx --verify-no-changes` grün; Desktop-Tests ohne Ansichtstests 2611 von 2611; Ansichtstests im Gesamtlauf auf `172615cc` 1593 von 1595, die zwei roten danach berichtigt (`c4d599d6`) und einzeln grün; Web-Tests der Hilfe (`npx vitest run src/help`) 65 von 65; Handbuchbilder der Windows-App aus den Ansichtstests neu erzeugt und angesehen.
 - **Nicht geprüft:** API-Tests (kein API-Code geändert, `git diff --stat eda82a4c HEAD -- src/AispaStudio.Api` leer); Live-Tests (`ReceptionJourney.*` öffnen jetzt vor „Termin stornieren …“ den Bereich „Mehr“, ohne Lauf); kein dritter Gesamtlauf der Ansichtstests nach `c4d599d6`; die laufende App unter Windows; der Toast bei Team steht nicht unten mittig.
 - **Text-Prüfung:** Hilfetexte und dieser Abschnitt von Hand nach [texte.md](../gestaltung/texte.md) durchgesehen (aktiv, Gegenwart, einheitliche Begriffe „Toast“, „Stand“, „Zeilenmenü“, keine Versalien zur Betonung, keine Ausrufezeichen); `textRules.test.ts` im Vitest-Lauf `src/help` grün.
+
+## Ausrollen: Masken-Durchsicht der Windows-App, WolverineFx 6.64.1 (19.11.2026)
+
+- **Auftrag:** Der Auftraggeber gab am 19.11.2026 frei, den Stand von `dev` nach `main` auszurollen und die zwei offenen Dependabot-PRs abzuarbeiten.
+- **Was:**
+  - `dev` → `main`: Masken-Durchsicht der Windows-App mit neu erzeugten Handbuchbildern und die Bestätigung der fünf Punkte durch den Auftraggeber (Abschnitt oben). Keine Migration.
+  - WolverineFx 6.64.1 (Dependabot-PR #36, Patch-Version, eine Zeile in `Directory.Packages.props`).
+- **Detailentscheidungen:**
+  1. Der Commit aus #36 kommt per Cherry-pick nach `dev` und von dort mit nach `main`. Ein Merge von #36 direkt in `main` ließe `dev` auf 6.64.0 zurück, und der Branch von Dependabot hängt an `main`.
+  2. Der Dependabot-PR #28 (zwölf Pakete, vom 15.11.2026) wird nicht übernommen. Alle seine Zielversionen stehen seit dem 16.11.2026 gleich oder höher auf `dev`; MailKit (5.0.0) und Anthropic (13.8.0) würde er zurückstufen. Seine roten Backend-Jobs sind Fehler der Wiederherstellung auf der alten Basis (NU1903, NU1109), keine Testfehler.
+- **Geprüft:** `git merge-tree origin/main origin/dev` ohne Konflikt; CI von #36 auf der Basis `main` grün; CI des Rollout-PRs (voller Stand von `dev`) vor dem Merge.
+- **Nicht geprüft:** kein lokaler Build mit WolverineFx 6.64.1 und keine lokale Prüfkette; Beleg ist die CI.
+- **Text-Prüfung:** dieser Abschnitt von Hand nach [texte.md](../gestaltung/texte.md) (aktiv, Gegenwart, keine Namen).
