@@ -68,7 +68,8 @@ public sealed partial class ViewTests
         var required = window.GetVisualDescendants().OfType<FormField>().Where(f => f.IsRequired).Select(f => f.Label).ToList();
         Assert.Equal(["Name", "Standort", "Adresse"], required);
 
-        Assert.Contains("ZVT", ToolTip.GetTip(Named<ComboBox>(window, "NewTerminalProtocol"))?.ToString(), StringComparison.Ordinal);
+        // Technikwörter wie ZVT stehen nur unter „Technische Angaben“ (MessageBarTests); der Hinweis erklärt das Protokoll in Alltagssprache.
+        Assert.Contains("Kartenterminal", ToolTip.GetTip(Named<ComboBox>(window, "NewTerminalProtocol"))?.ToString(), StringComparison.Ordinal);
         Assert.Contains(window.GetVisualDescendants().OfType<HelpButton>(), h => h.Section == "neues-terminal");
 
         var how = window.GetVisualDescendants().OfType<TextBlock>().First(t => t.Text?.StartsWith("Ein Bildschirm im Pausenraum", StringComparison.Ordinal) == true);
