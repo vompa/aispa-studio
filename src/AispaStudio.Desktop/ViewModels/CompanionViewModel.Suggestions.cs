@@ -61,6 +61,8 @@ public sealed partial class CompanionViewModel
     /// <summary>Buchungsrecht: ohne gibt es keine Buchungsknöpfe (der Server schlägt dann auch keine vor).</summary>
     public bool CanBook { get; init; }
 
+    public bool HasSuggestions => Suggestions.Count > 0;
+
     public IReadOnlyList<CompanionSuggestion> Suggestions => Answer?.Suggestions
         .Select(s => s.Kind switch
         {
