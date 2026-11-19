@@ -43,7 +43,16 @@
                 <DataTemplate x:DataType="vm:SubscriptionRow">
                   <StackPanel Spacing="2" Margin="0,2">
                     <TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis" />
-                    <TextBlock Text="{Binding Badges}" Classes="small error" TextTrimming="CharacterEllipsis" IsVisible="{Binding HasBadges}" />
+                    <!-- Kennzeichen als Pille mit Erklärung im Tooltip (design.md 5.8): Fehler und Widerspruch verlangen eine Handlung (Warnung), „Aus“ ist neutral -->
+                    <Border Classes="pill warn" IsVisible="{Binding NeedsAttention}" ToolTip.Tip="{Binding BadgesTip}" AutomationProperties.AccessibilityView="Raw">
+                      <StackPanel Orientation="Horizontal" Spacing="4">
+                        <ui:Icon Classes="warn" Data="{x:Static ui:Icons.Warning}" Width="12" Height="12" VerticalAlignment="Center" />
+                        <TextBlock Text="{Binding Badges}" />
+                      </StackPanel>
+                    </Border>
+                    <Border Classes="pill" IsVisible="{Binding IsPlainBadge}" ToolTip.Tip="{Binding BadgesTip}" AutomationProperties.AccessibilityView="Raw">
+                      <TextBlock Text="{Binding Badges}" />
+                    </Border>
                     <TextBlock Text="{Binding Detail}" Classes="muted small" TextWrapping="Wrap" />
                     <TextBlock Text="{Binding Places}" Classes="muted small" TextTrimming="CharacterEllipsis" />
                   </StackPanel>
@@ -54,8 +63,13 @@
         </Border>
       </ScrollViewer>
 
-      <ScrollViewer Grid.Column="1" x:Name="FormScroll" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
-        <StackPanel Spacing="20" MaxWidth="800" HorizontalAlignment="Left" Margin="0,0,16,16">
+      <Grid Grid.Column="1" RowDefinitions="*,Auto">
+      <ScrollViewer x:Name="FormScroll" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+        <Grid Margin="0,0,16,16" HorizontalAlignment="Stretch">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" MaxWidth="800" />
+          </Grid.ColumnDefinitions>
+        <StackPanel Spacing="20">
           <Border Classes="card" Padding="16" IsVisible="{Binding ShowSelectHint}">
             <TextBlock Text="Links ein Abo wählen oder mit „Neues Abo“ eines anlegen." Classes="muted" TextWrapping="Wrap" />
           </Border>
@@ -80,7 +94,7 @@
               <ui:FormField Label="Art" Help="{Binding KindEffect}">
                 <ComboBox x:Name="KindField" ItemsSource="{Binding Kinds}" SelectedItem="{Binding SelectedKind}" IsEnabled="{Binding CanChooseKind}" MinWidth="280" HorizontalAlignment="Left" />
               </ui:FormField>
-              <ui:FormField Label="Quelle wählen" Help="{Binding SourceHint}" IsVisible="{Binding HasSources}">
+              <ui:FormField Label="Quelle" Help="{Binding SourceHint}" IsVisible="{Binding HasSources}">
                 <ComboBox x:Name="SourceField" ItemsSource="{Binding Sources}" SelectedItem="{Binding SelectedSource}" MinWidth="280" HorizontalAlignment="Left" />
               </ui:FormField>
               <ui:FormField Label="Adresse" Error="{Binding UrlError}" Help="https:// oder webcal://, nur öffentliche Adressen ohne Zugangsdaten. Leer: nur Datei-Import.">
@@ -124,7 +138,7 @@
                   <Button x:Name="FetchButton" Content="Jetzt abrufen" Command="{Binding FetchNowCommand}" />
                   <Button x:Name="ImportButton" Content="Datei importieren" Command="{Binding ImportCommand}" />
                 </StackPanel>
-                <TextBlock Text="Datei: ICS oder CSV mit „Datum;Titel“ bzw. „Von;Bis;Titel“, höchstens 2 MB. Sie gilt für das laufende Jahr und die zwei folgenden." Classes="muted small" TextWrapping="Wrap" />
+                <TextBlock Text="Datei: ICS oder CSV, höchstens 2 MB; sie gilt für das laufende Jahr und die zwei folgenden." Classes="muted small" TextWrapping="Wrap" />
                 <CheckBox x:Name="ShowCheck" Content="Im Kalender zeigen (nur für mich)" IsChecked="{Binding ShowInCalendar, Mode=OneWay}" Command="{Binding ToggleShowCommand}" />
               </StackPanel>
             </StackPanel>
@@ -157,17 +171,20 @@
               </ItemsControl>
             </StackPanel>
 
-            <StackPanel x:Name="Footer" Spacing="12">
-              <ui:InfoBar Severity="Error" Title="Nicht gespeichert" Message="{Binding Error}" IsVisible="{Binding HasError}"
-                          ActionText="Erneut versuchen" ActionCommand="{Binding SaveCommand}" CloseCommand="{Binding CloseErrorCommand}" />
-              <StackPanel Orientation="Horizontal" Spacing="24">
-                <ui:SaveBar SaveCommand="{Binding SaveCommand}" DiscardCommand="{Binding DiscardCommand}" CanDiscard="{Binding HasUnsavedChanges}" Status="{Binding StatusText}" />
-                <Button x:Name="DeleteButton" Classes="danger" Content="Löschen" Command="{Binding DeleteCommand}" IsVisible="{Binding CanDelete}" />
-              </StackPanel>
-            </StackPanel>
           </StackPanel>
         </StackPanel>
+      </Grid>
       </ScrollViewer>
+
+      <StackPanel x:Name="Footer" Grid.Row="1" Spacing="12" MaxWidth="800" HorizontalAlignment="Left" Margin="0,12,16,0" IsVisible="{Binding HasForm}">
+        <ui:InfoBar Severity="Error" Title="Nicht gespeichert" Message="{Binding Error}" IsVisible="{Binding HasError}"
+                    ActionText="Erneut versuchen" ActionCommand="{Binding SaveCommand}" CloseCommand="{Binding CloseErrorCommand}" />
+        <StackPanel Orientation="Horizontal" Spacing="24">
+          <ui:SaveBar SaveCommand="{Binding SaveCommand}" DiscardCommand="{Binding DiscardCommand}" CanDiscard="{Binding HasUnsavedChanges}" Status="{Binding StatusText}" />
+          <Button x:Name="DeleteButton" Classes="danger" Content="Löschen" Command="{Binding DeleteCommand}" IsVisible="{Binding CanDelete}" />
+        </StackPanel>
+      </StackPanel>
+      </Grid>
     </Grid>
   </Grid>
 </UserControl>
