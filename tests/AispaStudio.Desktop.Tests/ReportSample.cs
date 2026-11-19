@@ -140,7 +140,7 @@ internal static class ReportSample
 
     public static CostAnalysisDto CostAnalysis(string month = "2026-10") => new(LocationId, month, 12000m, 0.25m,
         [
-            new TreatmentCostDto(TreatmentId, "Klassische Massage", 50, 60, 90m, 75m, [new CostPart("Material", 1.2m, "30 ml Massageöl")], 1.2m, 30m, 15m, 3m, 5m, 54.2m, 20.8m, 27.73m, 27, 561.6m, ["Stundensatz fehlt"]),
+            new TreatmentCostDto(TreatmentId, "Klassische Massage", 50, 60, 90m, 75m, [new CostPart("Material", 1.2m, "30 ml Massageöl")], 1.2m, 30m, 15m, 3m, 5m, 54.2m, 20.8m, 27.73m, 27, 561.6m, ["Kein Stundensatz für das Personal."]),
         ]);
 
     public static LocationCostSettingsDto CostSettings() => new(18m, 30m, 4000m, 65, 80);

@@ -32,7 +32,7 @@
                 <ItemsControl ItemsSource="{Binding Duties}">
                   <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="x:String">
-                      <TextBlock Text="{Binding}" TextWrapping="Wrap" />
+                      <TextBlock Text="{Binding}" Classes="muted" TextWrapping="Wrap" />
                     </DataTemplate>
                   </ItemsControl.ItemTemplate>
                 </ItemsControl>

@@ -1,6 +1,7 @@
 using AispaStudio.Desktop.ViewModels;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Layout;
 using Avalonia.VisualTree;
 
@@ -112,6 +113,63 @@ public sealed partial class ViewTests
         Assert.True(gap > 48, $"Abstand zwischen „Jetzt prüfen“ und „Postfach entfernen“: {gap}");
         return shell.AdminPage;
     }, IntakeApi());
+
+    [Fact]
+    public Task Kosten_Geldfelder_tragen_die_Einheit_und_der_Name_der_Behandlung_sieht_nicht_wie_ein_Knopf_aus() => Render("hell", "geld-kosten-einheit", async (window, main) =>
+    {
+        var shell = await OpenArea(window, main, "Kosten");
+
+        var labels = FieldLabels(window);
+        Assert.Contains("Raumpflege pro Stunde (€)", labels);
+        Assert.Contains("Standard-Stundensatz Personal (€)", labels);
+        Assert.Contains("Gemeinkosten pro Monat (€)", labels);
+        Assert.True(Shows(window, "Miete und Nebenkosten pro Monat (€)"));
+        Assert.True(Shows(window, "Pflegematerial je Reinigung (€)"));
+
+        // Der Name öffnet die Herleitung, hat aber keine Knopffläche (Klasse „more“ wie ein Ghost-Knopf).
+        var toggle = window.GetVisualDescendants().OfType<ToggleButton>().First(t => t.IsEffectivelyVisible && t.Content as string == "Klassische Massage");
+        Assert.Contains("more", toggle.Classes);
+
+        // Die Meldung nennt den Weg: wo Sätze, Räume und Material ergänzt werden.
+        Assert.True(Shows(window, "trägt man weiter unten ein"));
+        return shell.AdminPage;
+    }, ReportsApi());
+
+    [Fact]
+    public Task Versandprotokoll_Zeilen_haben_einen_Namen_und_einen_Hinweis_am_Pfeil() => Render("hell", "geld-versandprotokoll-namen", async (window, main) =>
+    {
+        var reminders = await OpenSettingsArea<RemindersViewModel>(window, main, "Erinnerungen");
+        await reminders.Log.OpenAsync(DispatchFilter.All);
+        await Pump(Settling);
+
+        // Die Zeile mit Text oder Grund sagt, was der Pfeil „▸“ tut; ohne Detail gibt es keinen Hinweis.
+        var withDetail = reminders.Log.Rows.First(r => r.HasDetail);
+        Assert.Equal("Text der Nachricht anzeigen", withDetail.ToggleTip);
+        Assert.StartsWith(withDetail.Recipient, withDetail.ToggleName, StringComparison.Ordinal);
+        Assert.Contains("Text der Nachricht anzeigen", withDetail.ToggleName, StringComparison.Ordinal);
+        withDetail.ToggleCommand.Execute(null);
+        Assert.Equal("Text der Nachricht ausblenden", withDetail.ToggleTip);
+        return reminders;
+    }, SettingsApi());
+
+    [Fact]
+    public Task Betriebsinfo_Neuer_Eintrag_ist_der_primaere_Knopf_der_Liste() => Render("hell", "geld-betriebsinfo-neu", async (window, main) =>
+    {
+        var (shell, _) = await OpenReports(window, main, ReportsViewModel.BusinessInfoTab);
+
+        Assert.Contains("primary", Named<Button>(window, "NewBusinessContactButton").Classes);
+        return shell.AdminPage;
+    }, ReportsApi());
+
+    [Fact]
+    public Task Mein_Tag_Bearbeiten_der_Vorlieben_ist_ein_Knopf_und_kein_Ghost() => Render("hell", "geld-mein-tag-bearbeiten", async (window, main) =>
+    {
+        var (shell, _) = await OpenReports(window, main, ReportsViewModel.DayTab);
+
+        var edit = window.GetVisualDescendants().OfType<Button>().First(b => b.IsEffectivelyVisible && b.Content as string == "Bearbeiten");
+        Assert.DoesNotContain("ghost", edit.Classes);
+        return shell.AdminPage;
+    }, ReportsApi());
 
     [Fact]
     public Task Hygiene_Protokollknopf_sieht_wie_ein_Knopf_aus_und_die_Ausstattung_widerspricht_sich_nicht() => Render("hell", "geld-hygiene-knopf", async (window, main) =>

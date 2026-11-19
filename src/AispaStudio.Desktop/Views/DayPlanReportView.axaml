@@ -47,7 +47,7 @@
                 <StackPanel Spacing="8">
                   <Grid ColumnDefinitions="*,Auto">
                     <TextBlock Text="{Binding WishesHeading}" Classes="group" VerticalAlignment="Center" />
-                    <Button Grid.Column="1" Content="Bearbeiten" Classes="ghost" Command="{Binding EditPreferencesCommand}" AutomationProperties.Name="Vorlieben bearbeiten" />
+                    <Button Grid.Column="1" Content="Bearbeiten" Classes="small" Command="{Binding EditPreferencesCommand}" AutomationProperties.Name="Vorlieben bearbeiten" />
                   </Grid>
                   <ItemsControl ItemsSource="{Binding Wishes}" IsVisible="{Binding HasWishes}">
                     <ItemsControl.ItemsPanel>
