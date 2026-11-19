@@ -35,8 +35,8 @@ DATEV, BMD und RZL sind in Windows-Zeichensatz (ANSI) geschrieben, die Schweizer
 - Je Beleg: die Erlöse je Erlöskonto und Steuersatz vom **Verrechnungskonto Kassa** an das Erlöskonto, mit Steuersatz und Kostenstelle des Erlöskontos.
 - Je Beleg und Zahlungsart: vom Geldkonto der Zahlungsart (Bar, Karte, Sofortüberweisung, digitaler Euro, Gutschein) an das Verrechnungskonto. Danach ist das Verrechnungskonto je Beleg ausgeglichen.
 - Ein Storno erscheint als Gegenbuchung mit dem Text „Storno Kassa …“.
-- Einlagen in die Kassenlade: Kassa (Bar) an Geldtransit. Entnahmen umgekehrt.
-- Eine Differenz im Tagesabschluss: Fehlbetrag an Kassa (Bar), Überschuss von Kassa (Bar) an das Überschusskonto.
+- Einlagen in die Kassenlade: Kassa bar an Geldtransit. Entnahmen umgekehrt.
+- Eine Differenz im Tagesabschluss: Fehlbetrag an Kassa bar, Überschuss von Kassa bar an das Überschusskonto.
 - Belegnummer ist die Kassennummer mit der Belegnummer, zum Beispiel „K1-123“.
 
 ## Erlöskonten {#erloeskonten}
@@ -74,43 +74,43 @@ Die Vorgaben entsprechen dem deutschen Kontenrahmen SKR03. Für Österreich oder
 
 Zwischenkonto für jeden Beleg: Erlöse gehen von hier ab, Zahlungen hier zu. Vorgabe 1360.
 
-### Kassa (Bar) {#kassa-bar}
+### Kassa bar {#kassa-bar}
 
 Geldkonto für Barzahlungen; auch Gegenkonto bei Einlagen, Entnahmen und Kassendifferenzen. Vorgabe 1000.
 
-### Karte (Verrechnung Terminal) {#karte}
+### Karte {#karte}
 
 Geldkonto für Kartenzahlungen, bis der Zahlungsanbieter auszahlt. Vorgabe 1361.
 
-### Bank (Sofortüberweisung) {#sofortueberweisung}
+### Bank {#sofortueberweisung}
 
 Geldkonto für Zahlungen per Sofortüberweisung. Vorgabe 1200.
 
-### Gutscheine (Verbindlichkeit) {#gutscheine}
+### Gutscheine {#gutscheine}
 
 Konto für Zahlungen mit einem Gutschein; dorthin geht auch jede Zahlungsart, die keinem anderen Konto zugeordnet ist. Vorgabe 3600.
 
-### Geldtransit (Einlage/Entnahme) {#geldtransit}
+### Geldtransit {#geldtransit}
 
 Gegenkonto für Einlagen in die und Entnahmen aus der Kassenlade, zum Beispiel wenn Bargeld zur Bank gebracht wird. Vorgabe 1460.
 
-### Digitaler Euro (Verrechnung) {#digitaler-euro}
+### Digitaler Euro {#digitaler-euro}
 
 Geldkonto für Zahlungen mit dem digitalen Euro, bis der Zahlungsdienstleister sie dem Bankkonto gutschreibt. Vorgabe 1362.
 
-### Treatwell (Forderung, vorab bezahlt) {#treatwell}
+### Treatwell {#treatwell}
 
 Konto für Termine, die der Gast vorab über Treatwell bezahlt hat und die an der Kassa mit der Zahlungsart „Über Treatwell bezahlt“ verrechnet wurden. Es ist eine Forderung des Spas an Treatwell, bis Treatwell sie auszahlt; der Umsatz selbst läuft über das Erlöskonto der Behandlung. Vorgabe 1400.
 
-### Kassenfehlbetrag (Tagesabschluss) {#kassenfehlbetrag}
+### Kassenfehlbetrag {#kassenfehlbetrag}
 
 Aufwandskonto, wenn beim Tagesabschluss weniger Bargeld gezählt wird als laut Kassa da sein sollte. Vorgabe 4900.
 
-### Kassenüberschuss (Tagesabschluss) {#kassenueberschuss}
+### Kassenüberschuss {#kassenueberschuss}
 
 Ertragskonto, wenn beim Tagesabschluss mehr Bargeld gezählt wird als laut Kassa da sein sollte. Vorgabe 2700.
 
-### Trinkgeld für das Team (Verbindlichkeit) {#trinkgeld}
+### Trinkgeld für das Team {#trinkgeld}
 
 Konto für Trinkgeld, das Gäste über die Kassa geben, zum Beispiel mit der Karte. Es gehört dem Team und ist kein Umsatz des Spas: Die Kassa bucht es ohne Steuer vom Geldtransit auf dieses Konto, bis es ausbezahlt ist. Vorgabe 3790. Welches Konto in Ihrem Kontenrahmen passt, klären Sie mit der Steuerberatung.
 

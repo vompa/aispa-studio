@@ -91,7 +91,7 @@
                 <ui:HelpButton Grid.Column="1" Topic="zahlungen" Section="eigene-schluessel" />
               </Grid>
               <TextBlock Classes="muted" TextWrapping="Wrap"
-                         Text="Beides steht im Stripe-Dashboard unter „Entwickler“. Die Schlüssel werden verschlüsselt gespeichert und nie wieder angezeigt." />
+                         Text="Beides steht im Stripe-Dashboard unter „Entwickler“." />
               <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
                 <ui:FormField Label="Geheimer Schlüssel">
                   <TextBox x:Name="SecretKeyField" Text="{Binding SecretKey}" PasswordChar="•" PlaceholderText="{Binding SecretKeyPlaceholder}" />
