@@ -1,5 +1,6 @@
 using AispaStudio.Desktop.ViewModels;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Threading;
 
 namespace AispaStudio.Desktop.Views;
@@ -27,6 +28,10 @@ public partial class PersonHrFileView : UserControl
             }
         };
     }
+
+    private void OnToastEntered(object? sender, PointerEventArgs e) => _model?.Toast.Hold(true);
+
+    private void OnToastExited(object? sender, PointerEventArgs e) => _model?.Toast.Hold(false);
 
     /// <summary>Erst nach dem Einblenden des Formulars lässt sich ein Feld fokussieren.</summary>
     private void FocusField(string name) => Dispatcher.UIThread.Post(() => this.FindControl<Control>(name)?.Focus());

@@ -13,7 +13,7 @@ Mitarbeitende beantragen Urlaub und andere Abwesenheiten in der Handy-App. Die L
 ## Schritte {#schritte}
 
 1. In der Windows-App **Verwaltung** › **Team** öffnen, in der Leiste über der Fläche **Wochenplan** wählen und oben auf **Anträge** klicken. Die Zahl an der Schaltfläche nennt die offenen Anträge. Die Anträge öffnen als Seitenleiste rechts; **Esc** schließt sie wieder.
-2. Den Antrag lesen: Person, Art, Zeitraum, Anmerkung und, wenn Termine in der Zeit liegen, deren Zahl.
+2. Den Antrag lesen: Person, Art, Zeitraum, Anmerkung und, wenn Termine in der Zeit liegen, deren Zahl als Warnhinweis über den Schaltflächen.
 3. Auf **Genehmigen** oder **Ablehnen** klicken.
 4. Liegen Termine der Person in der Zeit, fragt **Abwesenheit genehmigen?** zurück. Mit **Genehmigen** bestätigen.
 5. Bei **Ablehnen** in der Rückfrage **Antrag ablehnen?** mit **Ablehnen** bestätigen.

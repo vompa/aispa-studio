@@ -47,7 +47,7 @@
       <!-- Export der Stundenliste und der Abwesenheiten, nur für Inhaberin und Geschäftsführung (Export/Import, Aufgabe D) -->
       <ui:ExportButton x:Name="TimesExportButton" DataContext="{Binding Export}" VerticalAlignment="Center" />
       <TextBlock x:Name="TimesExportSaved" Text="{Binding ExportSaved}" Classes="muted small" IsVisible="{Binding HasExportSaved}" VerticalAlignment="Center" AutomationProperties.LiveSetting="Polite" />
-      <ui:HelpButton Topic="seite-time" VerticalAlignment="Center" />
+      <ui:HelpButton Topic="seite-time" VerticalAlignment="Center" IsVisible="{Binding !IsCard}" />
       <Button x:Name="TimesDocumentButton" Content="Stundenliste als PDF" Command="{Binding ToggleDocumentCommand}" IsVisible="{Binding CanOfferDocument}"
               ToolTip.Tip="Druckt oder speichert die Stundenliste dieser Person für den gezeigten Monat." />
     </WrapPanel>
@@ -63,7 +63,7 @@
       </StackPanel>
     </Border>
 
-    <TextBlock Text="{Binding Legend}" Classes="muted small" TextWrapping="Wrap" />
+    <TextBlock x:Name="TimesLegend" Text="{Binding Legend}" Classes="muted" TextWrapping="Wrap" />
 
     <TextBlock Text="Lade Zeiten …" Classes="muted" IsVisible="{Binding !IsLoaded}" />
     <TextBlock x:Name="TimesEmpty" Text="{Binding EmptyText}" Classes="muted" IsVisible="{Binding IsEmpty}" />

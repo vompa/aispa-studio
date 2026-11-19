@@ -29,6 +29,9 @@ public sealed class TeamContext(IWorkstationApi api, CurrentUser user, TimeProvi
     /// <summary>Einzelplatz (ADR 0041): Zugänge mit Benutzername und Startpasswort statt Einladung.</summary>
     public bool Standalone => standalone;
 
+    /// <summary>Ladefehler mit Weg (meldungen.md M5): was die API oder der Rückfall sagt, plus der Rat, es noch einmal zu versuchen.</summary>
+    public static string LoadFailure(string? error, string fallback) => $"{(error ?? fallback).Trim().TrimEnd('.')}. Verbindung prüfen und „Erneut laden“ wählen.";
+
     public TeamData Data { get; set; } = new([], [], [], [], [], []);
 
     public IConfirmDialogs? Dialogs { get; set; }

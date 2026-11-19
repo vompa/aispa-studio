@@ -29,6 +29,16 @@ public sealed record RightsRow(
     public bool HasCandidates => Candidates.Count > 0;
 
     public string AddName => $"Person für {Name} eintragen";
+
+    /// <summary>Was die Wirkung bedeutet (Tooltip an der Pille); leer bei einer Wirkung, die die API neu liefert und die hier noch keinen Text hat.</summary>
+    public string? EffectTip => Effect switch
+    {
+        "Schaltet frei" => "Die App prüft diese Vollmacht zusätzlich zur Rolle.",
+        "Nur Aushang" => "Der Eintrag zeigt nur, wer zuständig ist. Die App prüft nichts.",
+        "Warnt im Dienstplan" => "Beim Speichern eines Dienstplantags warnt die App, wenn zu wenige Ersthelfer im Dienst sind.",
+        "Erinnert an Bestellungen und Ablauf" => "Die App erinnert die Zuständigen an Bestellungen und ablaufende Ware.",
+        _ => null,
+    };
 }
 
 /// <summary>Ein Thema der Tabelle mit seinen Zeilen.</summary>

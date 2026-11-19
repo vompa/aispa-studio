@@ -127,7 +127,7 @@ public sealed class DutiesTests
         var sent = Sent<StaffCertificateInput>(api, $"POST {CertificatesPath}");
         Assert.Equal(new StaffCertificateInput("Erste-Hilfe-Kurs", new DateOnly(2027, 2, 1), new DateOnly(2029, 2, 1), "Rotes Kreuz", 60), sent);
         Assert.False(tab.IsEditing);
-        Assert.Equal("Gespeichert.", tab.StatusText);
+        Assert.Equal("Gespeichert", tab.Toast.Text);
     }
 
     [Fact]
