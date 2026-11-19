@@ -14,7 +14,7 @@ Rechts in der Kassa unter „Bezahlen“ steht für jede Zahlungsart der Kasse e
 
 1. Bei **Bar gegeben** den Betrag eintragen, den der Gast hinlegt, z. B. `100`. Ein Klick in ein leeres Betragsfeld trägt schon den offenen Betrag ein und markiert ihn; Tippen ersetzt ihn. **Rest** trägt genau den offenen Betrag ein, auch in ein befülltes Feld.
 2. Unten erscheint das Rückgeld, z. B. „Rückgeld: 11,00 €“.
-3. Auf **Bezahlen und Beleg erstellen** klicken.
+3. Auf **Bezahlen und Beleg erstellen** klicken. Danach steht rechts „Bezahlt · Beleg Nr. …“ mit der Zahlungsart, dem Betrag und dem Rückgeld, links der Beleg.
 
 - Ist ein [Barzahlungsrabatt](hilfe:kassa#barzahlungsrabatt) eingestellt, steht unter der Summe z. B. „Bar 4,16 € günstiger (3 % Barzahlungsrabatt)“. Er gilt nur, wenn alles bar bezahlt wird; **Rest** bei „Bar gegeben“ zieht ihn dann schon ab.
 

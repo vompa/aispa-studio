@@ -143,6 +143,136 @@ public sealed partial class ViewTests
         return shell.Pos;
     });
 
+    private static async Task PayCardOnce(ShellViewModel shell)
+    {
+        await shell.CheckoutAsync(SpaSample.Paying);
+        shell.Pos.Payments.First(p => p.Method == PaymentMethod.Card).Amount = "89";
+        await shell.Pos.PayCommand.ExecuteAsync(null);
+    }
+
+    private static Control? FocusedControl(Window window) => TopLevel.GetTopLevel(window)!.FocusManager!.GetFocusedElement() as Control;
+
+    private static List<(string? Label, string? Value)> PaidRowTexts(Window window) => Named<ItemsControl>(window, "PaidPayments").GetVisualDescendants()
+        .OfType<Grid>().Where(g => g.IsEffectivelyVisible).Select(g => g.Children.OfType<TextBlock>().ToList()).Select(t => (t[0].Text, t[1].Text)).ToList();
+
+    [Fact]
+    public Task Kassa_Bezahlt_zeigt_bei_gemischter_Zahlung_je_Zahlungsart_den_Betrag_und_das_Rueckgeld_und_der_Fokus_steht_im_Suchfeld() =>
+        Render("hell", "kassa-bezahlt-rueckgeld", async (window, main) =>
+        {
+            await SignedInCalendar(main);
+            var shell = (ShellViewModel)main.Content!;
+            await shell.CheckoutAsync(SpaSample.Paying);
+            await Pump(Settling);
+            shell.Pos.Payments.First(p => p.Method == PaymentMethod.Card).Amount = "89";
+            await Pump();
+            Named<Button>(window, "PayButton").Focus();
+            await Pump();
+            Assert.Equal("PayButton", FocusedControl(window)?.Name);
+            await shell.Pos.PayCommand.ExecuteAsync(null);
+            await Pump(Settling);
+
+            // Die Zeilen sind die des Belegs links (Gutschein 50, bar 100); das Rückgeld steht nur, weil der Beleg eines ausweist.
+            Assert.Equal([("Gutschein GS-7K3M-Q9", "50,00 €"), ("Bar", "100,00 €")], PaidRowTexts(window));
+            var change = Named<TextBlock>(window, "PaidChange");
+            Assert.True(change.IsEffectivelyVisible);
+            Assert.Equal("Rückgeld: 11,20 €", change.Text);
+            Assert.Equal(22, change.FontSize);
+            Assert.Equal("PosScanField", FocusedControl(window)?.Name);
+            return shell.Pos;
+        });
+
+    [Fact]
+    public Task Kassa_Bezahlt_zeigt_bei_Kartenzahlung_die_Zahlungsart_und_kein_Rueckgeld() => Render("hell", "kassa-bezahlt-karte", async (window, main) =>
+    {
+        await SignedInCalendar(main);
+        var shell = (ShellViewModel)main.Content!;
+        await PayCardOnce(shell);
+        await Pump(Settling);
+
+        Assert.Equal([("Karte", "480,00 €")], PaidRowTexts(window));
+        Assert.Null(shell.Pos.PaidChangeText);
+        Assert.False(Named<TextBlock>(window, "PaidChange").IsEffectivelyVisible);
+        return shell.Pos;
+    }, Api().On($"POST /api/pos/bills/{SpaSample.BillId}/checkout", SpaSample.LargeReceipt()));
+
+    [Fact]
+    public Task Kassa_Bezahlt_steht_auch_nach_einem_Ersatzbeleg_und_der_Fokus_geht_ins_Suchfeld() =>
+        SubstitutePos("kassa-bezahlt-ersatzbeleg", async (window, pos) =>
+        {
+            pos.Payments.First(p => p.Method == PaymentMethod.Cash).Amount = "100";
+            await Pump();
+            Named<Button>(window, "PayButton").Focus();
+            await Pump();
+            Assert.Equal("PayButton", FocusedControl(window)?.Name);
+            await pos.PayCommand.ExecuteAsync(null);
+            await Pump(Settling);
+
+            Assert.True(pos.Receipt!.IsSubstitute);
+            Assert.False(pos.ShowPayForm);
+            Assert.True(Named<StackPanel>(window, "PaidState").IsEffectivelyVisible);
+            Assert.StartsWith("Bezahlt · Ersatzbeleg E-WIEN-1-", pos.PaidText, StringComparison.Ordinal);
+            Assert.NotEmpty(PaidRowTexts(window));
+            Assert.Equal("PosScanField", FocusedControl(window)?.Name);
+        });
+
+    [Fact]
+    public Task Kassa_Bezahlt_bleibt_bei_einer_Teilzahlung_die_Maske() => Render("hell", "kassa-teilzahlung", async (window, main) =>
+    {
+        await SignedInCalendar(main);
+        var shell = (ShellViewModel)main.Content!;
+        await PayCardOnce(shell);
+        await Pump(Settling);
+        Assert.False(shell.Pos.ShowPayForm);
+
+        // Die nächste Rechnung ist schon teilweise bezahlt: die Maske kommt mit ihr zurück, der Stand verschwindet.
+        await shell.CheckoutAsync(SpaSample.Paying);
+        await Pump(Settling);
+        Assert.True(shell.Pos.ShowOpenRemainder);
+        Assert.True(shell.Pos.ShowPayForm);
+        Assert.True(Named<Button>(window, "PayButton").IsEffectivelyVisible);
+        Assert.False(Named<StackPanel>(window, "PaidState").IsEffectivelyVisible);
+        return shell.Pos;
+    }, Api().On("POST /api/pos/bills", SpaSample.Bill(withArticle: false) with { Paid = 50m, Open = SpaSample.Bill(withArticle: false).Total - 50m }));
+
+    [Fact]
+    public Task Kassa_Bezahlt_bleibt_nach_abgebrochener_Terminalzahlung_die_Maske() => Render("hell", "kassa-terminal-abbruch", async (window, main) =>
+    {
+        await SignedInCalendar(main);
+        var shell = (ShellViewModel)main.Content!;
+        await PayCardOnce(shell);
+        await shell.CheckoutAsync(SpaSample.Paying);
+        var card = shell.Pos.Payments.First(p => p.IsCard);
+        await shell.Pos.StartCardPaymentCommand.ExecuteAsync(card);
+        await shell.Pos.CancelCardPaymentCommand.ExecuteAsync(card);
+        await Pump(Settling);
+
+        Assert.Equal(CardPaymentStatus.Cancelled, card.CardPayment!.Status);
+        Assert.True(shell.Pos.ShowPayForm);
+        Assert.True(Named<Button>(window, "PayButton").IsEffectivelyVisible);
+        Assert.False(Named<StackPanel>(window, "PaidState").IsEffectivelyVisible);
+        return shell.Pos;
+    }, Api().On($"POST /api/pos/card-payments/{CardId}/cancel", Card(CardPaymentStatus.Cancelled)));
+
+    [Fact]
+    public Task Kassa_Bezahlt_kommt_nach_Beleg_schliessen_mit_der_leeren_Maske_zurueck() => Render("hell", "kassa-beleg-schliessen", async (window, main) =>
+    {
+        await SignedInCalendar(main);
+        var shell = (ShellViewModel)main.Content!;
+        await PayCardOnce(shell);
+        await Pump(Settling);
+        Assert.False(shell.Pos.ShowPayForm);
+
+        var close = PosPage(window).GetVisualDescendants().OfType<Button>()
+            .Single(b => b.IsEffectivelyVisible && AutomationProperties.GetName(b) == "Beleg schließen");
+        close.Command!.Execute(close.CommandParameter);
+        await Pump(Settling);
+        Assert.True(shell.Pos.ShowPayForm);
+        Assert.False(Named<StackPanel>(window, "PaidState").IsEffectivelyVisible);
+        Assert.True(Named<ScrollViewer>(window, "PayScroll").IsEffectivelyVisible);
+        Assert.False(Named<Button>(window, "PayButton").IsEffectivelyEnabled);
+        return shell.Pos;
+    });
+
     [Fact]
     public void Gutschein_Code_ist_erst_mit_einem_Betrag_ueber_0_Pflicht()
     {

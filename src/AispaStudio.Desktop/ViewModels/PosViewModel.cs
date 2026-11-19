@@ -500,7 +500,7 @@ public partial class PosViewModel : ViewModelBase
         : "";
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasReceipt), nameof(ShowPayForm), nameof(PaidText))]
+    [NotifyPropertyChangedFor(nameof(HasReceipt), nameof(ShowPayForm), nameof(PaidText), nameof(PaidPayments), nameof(PaidChangeText))]
     public partial ReceiptViewModel? Receipt { get; private set; }
 
     [ObservableProperty]
@@ -571,6 +571,12 @@ public partial class PosViewModel : ViewModelBase
     public bool ShowPayForm => !(HasReceipt && !HasBill);
 
     public string PaidText => Receipt is { } receipt ? $"Bezahlt · {receipt.Title}" : "";
+
+    /// <summary>Zahlungsarten mit Beträgen im Stand „Bezahlt“: dieselben Zeilen wie auf dem Beleg links, so wie der Server sie liefert.</summary>
+    public IReadOnlyList<ReceiptRow> PaidPayments => Receipt?.Payments ?? [];
+
+    /// <summary>„Rückgeld: …“ im Stand „Bezahlt“, nur wenn der Beleg ein Rückgeld über 0 ausweist.</summary>
+    public string? PaidChangeText => Receipt?.Change is { } change ? $"Rückgeld: {change}" : null;
 
     /// <summary>Währung dieser Kasse (CHF in der Schweiz, sonst Euro); alle Beträge der Kassa werden damit angezeigt.</summary>
     public string Currency => Money.CurrencyOf(Register?.Country ?? FiscalCountry.AT);

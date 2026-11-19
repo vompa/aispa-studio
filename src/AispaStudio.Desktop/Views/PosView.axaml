@@ -740,7 +740,19 @@
             <ui:Icon Data="{x:Static ui:Icons.Check}" Foreground="{DynamicResource OkBrush}" Width="18" Height="18" />
             <TextBlock Text="{Binding PaidText}" FontWeight="SemiBold" Foreground="{DynamicResource OkBrush}" TextWrapping="Wrap" />
           </StackPanel>
-          <TextBlock Text="Die nächste Rechnung beginnt in „Heute abzurechnen“." Classes="muted small" TextWrapping="Wrap" />
+          <ItemsControl x:Name="PaidPayments" ItemsSource="{Binding PaidPayments}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:ReceiptRow">
+                <Grid ColumnDefinitions="*,Auto" Margin="0,2">
+                  <TextBlock Text="{Binding Label}" Classes="secondary" />
+                  <TextBlock Grid.Column="1" Text="{Binding Value}" Classes="num secondary" />
+                </Grid>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+          <TextBlock x:Name="PaidChange" Text="{Binding PaidChangeText}" FontSize="22" FontWeight="SemiBold" Foreground="{DynamicResource OkBrush}"
+                     IsVisible="{Binding PaidChangeText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+          <TextBlock Text="Die nächste Rechnung beginnt mit einem Termin oder Artikel." Classes="muted small" TextWrapping="Wrap" />
         </StackPanel>
         <ScrollViewer x:Name="PayScroll" HorizontalScrollBarVisibility="Disabled" Padding="0,0,10,0" IsVisible="{Binding ShowPayForm}">
       <StackPanel Spacing="12" Margin="0,0,0,2">
