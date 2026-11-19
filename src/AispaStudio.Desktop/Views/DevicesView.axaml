@@ -64,39 +64,48 @@
           <TextBlock Text="{Binding Agent?.Status, TargetNullValue=''}" Classes="muted" TextWrapping="Wrap"
                      IsVisible="{Binding Agent?.NeedsAttention, Converter={x:Static BoolConverters.Not}, TargetNullValue=False}" />
           <StackPanel Spacing="8" IsVisible="{Binding CanManageTerminals}">
-            <Button Classes="ghost" Content="Gewähltes Terminal entfernen" Command="{Binding AskRemoveTerminalCommand}" HorizontalAlignment="Left"
+            <Button x:Name="RemoveTerminalButton" Classes="danger" Content="Gewähltes Terminal entfernen" Command="{Binding AskRemoveTerminalCommand}" HorizontalAlignment="Left"
                     ToolTip.Tip="Legt das Terminal still; es steht danach an keinem PC und in keiner Kassa mehr zur Wahl" ui:DisabledHint.Text="Verfügbar, sobald ein Terminal gewählt ist." />
-            <TextBlock Text="Neues Terminal im Netz" Classes="label" />
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <TextBlock Text="Neues Terminal im Netz" Classes="label" VerticalAlignment="Center" />
+              <ui:HelpButton Topic="geraete" Section="neues-terminal" />
+            </StackPanel>
             <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
-              <TextBox Text="{Binding NewTerminalName}" PlaceholderText="Name, z. B. Empfang" AutomationProperties.Name="Name des neuen Terminals" />
-              <ComboBox Grid.Column="1" ItemsSource="{Binding Locations}" SelectedItem="{Binding NewTerminalLocation}" HorizontalAlignment="Stretch"
-                        AutomationProperties.Name="Standort des neuen Terminals">
+              <ui:FormField Label="Name" IsRequired="True">
+                <TextBox Name="NewTerminalName" Text="{Binding NewTerminalName}" PlaceholderText="z. B. Empfang" />
+              </ui:FormField>
+              <ui:FormField Grid.Column="1" Label="Standort" IsRequired="True">
+                <ComboBox ItemsSource="{Binding Locations}" SelectedItem="{Binding NewTerminalLocation}" HorizontalAlignment="Stretch">
+                  <ComboBox.ItemTemplate>
+                    <DataTemplate x:DataType="c:LocationDto">
+                      <TextBlock Text="{Binding Name}" />
+                    </DataTemplate>
+                  </ComboBox.ItemTemplate>
+                </ComboBox>
+              </ui:FormField>
+            </Grid>
+            <ui:FormField Label="Protokoll">
+              <ComboBox Name="NewTerminalProtocol" ItemsSource="{Binding Protocols}" SelectedItem="{Binding NewTerminalProtocol}" HorizontalAlignment="Stretch"
+                        ToolTip.Tip="ZVT und OPI sind die Protokolle zwischen Kassa und Kartenterminal, das passende nennt der Zahlungsdienstleister">
                 <ComboBox.ItemTemplate>
-                  <DataTemplate x:DataType="c:LocationDto">
-                    <TextBlock Text="{Binding Name}" />
+                  <DataTemplate x:DataType="vm:ProtocolChoice">
+                    <TextBlock Text="{Binding Title}" />
                   </DataTemplate>
                 </ComboBox.ItemTemplate>
               </ComboBox>
-            </Grid>
-            <ComboBox ItemsSource="{Binding Protocols}" SelectedItem="{Binding NewTerminalProtocol}" HorizontalAlignment="Stretch"
-                      AutomationProperties.Name="Protokoll des neuen Terminals">
-              <ComboBox.ItemTemplate>
-                <DataTemplate x:DataType="vm:ProtocolChoice">
-                  <TextBlock Text="{Binding Title}" />
-                </DataTemplate>
-              </ComboBox.ItemTemplate>
-            </ComboBox>
-            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-              <TextBox Text="{Binding NewTerminalAddress}" PlaceholderText="Adresse, z. B. 192.168.1.50:20007" AutomationProperties.Name="Adresse des neuen Terminals" />
-              <Button Grid.Column="1" Content="Terminal anlegen" Command="{Binding AddTerminalCommand}" ui:DisabledHint.Text="Verfügbar, sobald Name und Adresse eingetragen sind." />
-            </Grid>
+            </ui:FormField>
+            <ui:FormField Label="Adresse" IsRequired="True">
+              <TextBox Name="NewTerminalAddress" Text="{Binding NewTerminalAddress}" PlaceholderText="z. B. 192.168.1.50:20007" />
+            </ui:FormField>
+            <Button Name="AddTerminal" Content="Terminal anlegen" Command="{Binding AddTerminalCommand}" HorizontalAlignment="Left"
+                    ui:DisabledHint.Text="Verfügbar, sobald Name, Standort und Adresse eingetragen sind." />
             <TextBlock Text="{Binding TerminalText}" Classes="muted small" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite"
                        IsVisible="{Binding TerminalText, Converter={x:Static ObjectConverters.IsNotNull}}" />
           </StackPanel>
         </StackPanel>
       </Border>
 
-      <!-- Anzeigen im Pausenraum: Kopplung mit dem Code vom Bildschirm, widerrufbar (Slice 104) -->
+      <!-- Anzeigen im Pausenraum: Kopplung mit dem Code vom Bildschirm, aufhebbar (Slice 104) -->
       <Border Classes="card" IsVisible="{Binding CanManageDisplays}">
         <StackPanel Spacing="10">
           <StackPanel Orientation="Horizontal" Spacing="8">
@@ -111,9 +120,9 @@
               <DataTemplate x:DataType="c:DisplayDeviceDto">
                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10" Margin="0,2">
                   <TextBlock VerticalAlignment="Center" Text="{Binding Name}" />
-                  <Button Grid.Column="1" Classes="ghost" Content="Widerrufen"
+                  <Button Grid.Column="1" Content="Kopplung aufheben"
                           Command="{Binding #Root.((vm:DevicesViewModel)DataContext)?.AskRevokeDisplayCommand}"
-                          CommandParameter="{Binding}" AutomationProperties.Name="{Binding Name, StringFormat='Anzeige {0} widerrufen'}" />
+                          CommandParameter="{Binding}" AutomationProperties.Name="{Binding Name, StringFormat='Kopplung der Anzeige {0} aufheben'}" />
                 </Grid>
               </DataTemplate>
             </ItemsControl.ItemTemplate>

@@ -92,7 +92,7 @@
                     <TextBlock Text="{Binding Detail}" Classes="small" Foreground="{DynamicResource Fg2Brush}" IsVisible="{Binding HasDetail}" TextTrimming="CharacterEllipsis" />
                   </StackPanel>
                   <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
-                    <Border Classes="pill warn" IsVisible="{Binding IsLate}"><TextBlock Text="Kurzfristig" /></Border>
+                    <Border Classes="pill warn" IsVisible="{Binding IsLate}" ToolTip.Tip="Innerhalb der Stornofrist abgesagt"><TextBlock Text="Kurzfristig" /></Border>
                     <Border Classes="pill accent" IsVisible="{Binding IsOnline}"><TextBlock Text="Online" /></Border>
                     <Border Classes="pill" IsVisible="{Binding IsAssistant}"><TextBlock Text="Terminannahme" /></Border>
                     <Border Classes="pill" IsVisible="{Binding IsBackground}"><TextBlock Text="Hintergrund" /></Border>
@@ -121,21 +121,21 @@
             <Border Classes="panelcard">
               <StackPanel Spacing="8">
                 <TextBlock x:Name="PanelText" Text="{Binding PanelText}" FontWeight="Medium" TextWrapping="Wrap" />
-                <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding HasPanelGuest}">
+                <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding HasPanelGuest}" ToolTip.Tip="Gast">
                   <ui:Icon Data="{x:Static ui:Icons.User}" Width="16" Height="16" Foreground="{DynamicResource Fg2Brush}" />
                   <TextBlock x:Name="PanelGuest" Text="{Binding PanelGuest}" TextWrapping="Wrap" />
                 </StackPanel>
-                <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding HasPanelPhone}">
+                <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding HasPanelPhone}" ToolTip.Tip="Telefon des Gastes">
                   <ui:Icon Data="{x:Static ui:Icons.Phone}" Width="16" Height="16" Foreground="{DynamicResource Fg2Brush}" />
                   <SelectableTextBlock x:Name="PanelPhoneText" Text="{Binding PanelPhone}" Classes="num" AutomationProperties.Name="Telefon des Gastes" />
                 </StackPanel>
-                <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding HasPanelActor}">
+                <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding HasPanelActor}" ToolTip.Tip="Person, die den Eintrag gemacht hat">
                   <ui:Icon Data="{x:Static ui:Icons.Pencil}" Width="16" Height="16" Foreground="{DynamicResource Fg2Brush}" />
-                  <TextBlock x:Name="PanelActorText" Text="{Binding PanelActor, StringFormat='von {0}'}" />
+                  <TextBlock x:Name="PanelActorText" Text="{Binding PanelActor, StringFormat='Person: {0}'}" />
                 </StackPanel>
-                <StackPanel Orientation="Horizontal" Spacing="6">
+                <StackPanel Orientation="Horizontal" Spacing="6" ToolTip.Tip="Weg, über den der Eintrag entstanden ist">
                   <ui:Icon Data="{x:Static ui:Icons.Globe}" Width="16" Height="16" Foreground="{DynamicResource Fg2Brush}" />
-                  <TextBlock x:Name="PanelChannelText" Text="{Binding PanelChannel}" />
+                  <TextBlock x:Name="PanelChannelText" Text="{Binding PanelChannel, StringFormat='Kanal: {0}'}" />
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding HasPanelReason}">
                   <ui:Icon Data="{x:Static ui:Icons.Note}" Width="16" Height="16" Foreground="{DynamicResource Fg2Brush}" />

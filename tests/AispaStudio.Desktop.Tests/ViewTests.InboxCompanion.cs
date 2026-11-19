@@ -118,8 +118,13 @@ public sealed partial class ViewTests
             .Where(b => b.IsEffectivelyVisible && b.Command == detail.ReviseCommand)
             .Select(b => b.Content as string).ToList();
         Assert.Equal(["Freundlicher formulieren", "Kürzer formulieren", "Siezen", "Duzen", "Entschuldigung ergänzen"], labels);
+        // „Rückgängig“ ist ein Knopf wie die übrigen und nennt gesperrt seinen Grund.
+        var undo = Named<Button>(view, "UndoRevisionButton");
+        Assert.DoesNotContain("ghost", undo.Classes);
+        Assert.False(undo.IsEffectivelyEnabled);
+        Assert.Equal("Verfügbar, sobald die KI den Entwurf überarbeitet hat.", ToolTip.GetTip(undo));
         return detail;
-    }, Api().On($"GET /api/inbox/{SpaSample.InboxMailId}", SpaSample.InboxMail() with { CanRevise = true }));
+    }, Api().On($"GET /api/inbox/{SpaSample.InboxMailId}", SpaSample.InboxMail() with { CanRevise = true, CanUndoReply = false }));
 
     [Fact]
     public Task Posteingang_Antwort_Felder_haben_Namen_nicht_aus_dem_Platzhalter() => Render("hell", "posteingang-feldnamen", async (window, main) =>
