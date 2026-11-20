@@ -7610,3 +7610,14 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Bewusst offen:** Erfolgsmeldungen, die Hinweisleisten sind („Gelöscht.“ im Handbuch und bei den Abos, „Notiz gespeichert.“ im Tagesplan, Exporte mit „… gespeichert.“), und die Statuszeilen von Sicherung, Abgleich, Geräten und „Im Netz“ bleiben. Im Einzelplatz setzt das Anlegen eines Zugangs die neue Hinweisleiste der Karte nicht; dort zeigt weiter die Leiste im Reiter „Zugang“ den Text.
 - **Text-Prüfung:** Hilfetexte (`textRules.test.ts` grün), die Nachträge im Brief und dieser Abschnitt nach [texte.md](../gestaltung/texte.md) durchgesehen (aktiv, Gegenwart, Toast-Texte ohne Schlusspunkt, keine Namen).
 - **Volle Prüfkette am Rundenende (20.11.2026, `dev` mit T-082 und T-083):** Format, Build, Desktop-Tests ohne Ansichtstests (2633 grün, 1 übersprungen), Web (`gen:api`, Lint, Typen, 403 Tests, Build, Bundle) grün. Ansichtstests: 1592 von 1595 grün; drei waren im Sammellauf unter Last rot, weil der Toast nach 5 Sekunden ablief, bevor der Test ihn las (`…Inventur_buchen_klickt…`, `Lueckenvorschlag_Klick_auf_Verschieben…`, `Schwache_Zeiten_ueber_das_Raster_anlegen…`), und einzeln wiederholt grün. Die ersten beiden lasen ihren Toast schon vorher mit derselben Frist; beim dritten stand „Gespeichert“ vorher dauerhaft neben dem Knopf. API-Tests: 2460 von 2461 grün; `HrFileTests.Given_eine_Verwarnung_mit_Ablaufdatum_gestern…` war einmal rot (Lauf kurz nach 1 Uhr Ortszeit, Tagesgrenze), einzeln wiederholt grün, ohne Bezug zu beiden Aufgaben.
+
+## Ausrollen: Offline-Kopie nach dem Anonymisieren, „Gespeichert“ als Toast (20.11.2026)
+
+- **Auftrag:** Der Auftraggeber gab am 20.11.2026 frei, den Stand von `dev` nach `main` auszurollen.
+- **Was:** `dev` → `main` mit PR #114 per Merge-Commit: T-082 (Offline-Kopie verliert anonymisierte Gäste) und T-083 („Gespeichert“ als Toast mit einem Host in der Shell), dazu das Ergebnis der vollen Prüfkette. Keine Migration; der neue Endpunkt `GET /api/customers/anonymized` ist additiv.
+- **Detailentscheidungen:**
+  1. Die Einstellung „Allow auto-merge“ des Repositorys ist seit dem 20.11.2026 an (Freigabe des Auftraggebers). Der Auto-Merge für #114 kam trotzdem nicht zustande: GitHub verlangt dafür Pflichtprüfungen auf `main`, die es nicht gibt. Eine Schutzregel ist nicht angelegt; der Merge folgte von Hand nach grüner CI.
+  2. Der Merge ist an den geprüften Stand gebunden (`--match-head-commit 99a59532`).
+- **Geprüft:** `git merge-tree origin/main origin/dev` ohne Konflikt; CI von #114 mit zehn grünen Jobs, darunter alle vier Gruppen der Ansichtstests und beide Gruppen der API-Tests; der Merge-Commit `5e80a01f` trägt die noreply-Adresse.
+- **Nicht geprüft:** kein Handtest in der laufenden App (Blöcke in [handtests.md](handtests.md)); die CI auf `main` nach dem Merge.
+- **Text-Prüfung:** dieser Abschnitt von Hand nach [texte.md](../gestaltung/texte.md) (aktiv, Gegenwart, keine Namen).
