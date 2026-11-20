@@ -121,7 +121,7 @@ public sealed class AdminRoomClosuresTests
             Sent<RoomClosureInput>(api, $"POST {Route()}"));
         var row = Assert.Single(page.Upcoming);
         Assert.Equal(("Raum", "Raum Zeder, Schaden", "24.12.2027 bis 26.12.2027", "Wasserschaden, Trocknung"), (row.TypeText, row.Title, row.Period, row.Reason));
-        Assert.Equal("Raumsperre gespeichert", page.Toast);
+        Assert.Equal("Raumsperre gespeichert", page.Toast.Text);
     }
 
     [Fact]
@@ -211,7 +211,7 @@ public sealed class AdminRoomClosuresTests
         Assert.Equal("Raumsperre löschen?", asked.Title);
         Assert.Equal("Die Raumsperre „Raum Zeder, Wartung, 24.12.2027 bis 26.12.2027“ ist danach weg. Termine werden nicht angefasst; der Raum ist in der Zeit sofort wieder buchbar.", asked.Message);
         Assert.Equal("Löschen", asked.ConfirmText);
-        Assert.Equal("Raumsperre gelöscht", page.Toast);
+        Assert.Equal("Raumsperre gelöscht", page.Toast.Text);
         Assert.False(page.IsPanelOpen);
         Assert.Empty(page.Upcoming);
     }

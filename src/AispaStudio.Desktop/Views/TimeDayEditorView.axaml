@@ -66,13 +66,11 @@
         </ui:FormField>
         <ui:InfoBar Severity="Error" Title="Nicht gespeichert" Message="{Binding Error}" IsVisible="{Binding HasError}" CloseCommand="{Binding CloseErrorCommand}" />
         <StackPanel Orientation="Horizontal" Spacing="24">
-          <ui:SaveBar SaveCommand="{Binding SaveCommand}" DiscardCommand="{Binding DiscardChangesCommand}" CanDiscard="True" Status="{Binding StatusText}" />
+          <ui:SaveBar SaveCommand="{Binding SaveCommand}" DiscardCommand="{Binding DiscardChangesCommand}" CanDiscard="True" />
           <Button x:Name="RemoveTimeButton" Content="Entfernen" Classes="ghost danger" Command="{Binding RemoveCommand}" IsVisible="{Binding CanRemove}"
                   ToolTip.Tip="Der Abschnitt wird entfernt und bleibt mit dem Grund im Verlauf" />
         </StackPanel>
       </StackPanel>
-
-      <TextBlock x:Name="TimeStatus" Text="{Binding StatusText}" Classes="muted small" IsVisible="{Binding !IsEditing}" />
     </StackPanel>
   </Border>
 </UserControl>

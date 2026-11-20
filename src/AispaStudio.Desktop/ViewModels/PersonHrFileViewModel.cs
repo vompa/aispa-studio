@@ -78,7 +78,7 @@ public sealed partial class PersonHrFileViewModel : ViewModelBase, ISavesFiles
     public PersonHrFileViewModel(TeamContext context, Guid employeeId, string personName, bool isReadOnly)
     {
         _context = context;
-        Toast = new ToastState(context.Time);
+        Toast = context.Toast;
         _basePath = $"api/employees/{employeeId}/hr-file";
         _personName = personName;
         IsEditable = !isReadOnly;

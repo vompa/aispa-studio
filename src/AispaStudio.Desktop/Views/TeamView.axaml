@@ -170,7 +170,7 @@
                   ActionText="Erneut versuchen" ActionCommand="{Binding SaveCommand}" CloseCommand="{Binding CloseErrorCommand}" />
       <Grid ColumnDefinitions="*" IsVisible="{Binding HasSaveBar}">
         <ui:SaveBar SaveCommand="{Binding SaveCommand}" DiscardCommand="{Binding DiscardChangesCommand}" CanDiscard="{Binding HasUnsavedChanges}"
-                    Status="{Binding StatusText}" SaveHint="{Binding SaveBlocker}" />
+                    SaveHint="{Binding SaveBlocker}" />
       </Grid>
     </StackPanel>
   </Grid>

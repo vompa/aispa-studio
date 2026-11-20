@@ -104,7 +104,8 @@ public sealed partial class AdminPageViewModel : ViewModelBase
     private Action? _nativeJump;
 
     /// <param name="modules">Die eingeschalteten Webmodule; <c>null</c> (noch keine Antwort) heißt wie in der Shell: alle an.</param>
-    public AdminPageViewModel(IWorkstationApi api, CurrentUser user, TimeProvider time, ILiveUpdates? live = null, SystemModules? modules = null)
+    public AdminPageViewModel(IWorkstationApi api, CurrentUser user, TimeProvider time, ILiveUpdates? live = null, SystemModules? modules = null,
+        ToastState? toast = null)
     {
         _modules = modules;
         Areas = [.. All.Where(a => a.AnyOf.Any(user.Rights.Contains) && ModuleOn(a.Module)).Select(a => a.Area)];
@@ -114,7 +115,7 @@ public sealed partial class AdminPageViewModel : ViewModelBase
             .Select(g => new AdminGroup(g.Title, g.Icon, g.Areas))];
         foreach (var area in Areas)
         {
-            _native[area] = CreateNative(area, api, user, time, live, _modules);
+            _native[area] = CreateNative(area, api, user, time, live, _modules, toast ?? new ToastState(time));
         }
 
         Company = _native.Values.OfType<CompanyViewModel>().SingleOrDefault();
@@ -261,25 +262,25 @@ public sealed partial class AdminPageViewModel : ViewModelBase
     /// Die Maske eines Bereichs. Erweiterungsstelle: ein Bereich bekommt seine Maske, indem er in <see cref="All"/> steht und
     /// hier eine Zeile steht (<c>"subscriptions" =&gt; new SubscriptionsViewModel(api, time)</c>), die <see cref="INativeArea"/> umsetzt; mehr braucht die Seite nicht.
     /// </summary>
-    private static ViewModelBase CreateNative(AdminArea area, IWorkstationApi api, CurrentUser user, TimeProvider time, ILiveUpdates? live, SystemModules? modules) => area.Tab switch
+    private static ViewModelBase CreateNative(AdminArea area, IWorkstationApi api, CurrentUser user, TimeProvider time, ILiveUpdates? live, SystemModules? modules, ToastState toast) => area.Tab switch
     {
-        "company" => new CompanyViewModel(api, time.LocalTimeZone),
-        "locations" => new LocationsViewModel(api, user),
-        ClosuresPageViewModel.ClosuresSection => new ClosuresPageViewModel(api, user, time),
-        "subscriptions" => new SubscriptionsViewModel(api, time),
-        "treatments" => new TreatmentsViewModel(api, time.LocalTimeZone, user.Rights.Contains(AccessRight.ViewAmountReports)),
-        "reminders" => new RemindersViewModel(api, time.LocalTimeZone, remindersOn: modules?.Reminders != false, rebookingOn: modules?.Rebooking != false),
-        "payments" => new PaymentsViewModel(api),
-        "kassa" => new PosSettingsViewModel(api),
-        "team" => new TeamViewModel(api, user, time),
-        "handbook" => new HandbookViewModel(api),
-        "intake" => new IntakeViewModel(api, time.LocalTimeZone),
+        "company" => new CompanyViewModel(api, time.LocalTimeZone, toast),
+        "locations" => new LocationsViewModel(api, user, toast),
+        ClosuresPageViewModel.ClosuresSection => new ClosuresPageViewModel(api, user, time, toast),
+        "subscriptions" => new SubscriptionsViewModel(api, time, toast),
+        "treatments" => new TreatmentsViewModel(api, time.LocalTimeZone, user.Rights.Contains(AccessRight.ViewAmountReports), toast),
+        "reminders" => new RemindersViewModel(api, time.LocalTimeZone, remindersOn: modules?.Reminders != false, rebookingOn: modules?.Rebooking != false, toast: toast),
+        "payments" => new PaymentsViewModel(api, toast),
+        "kassa" => new PosSettingsViewModel(api, toast),
+        "team" => new TeamViewModel(api, user, time, toast),
+        "handbook" => new HandbookViewModel(api, toast),
+        "intake" => new IntakeViewModel(api, time.LocalTimeZone, toast: toast),
         "ai" => new AiViewModel(api),
-        _ when area.Page == "stock" => new StockViewModel(api, user, time, live, FileSettingsStore.Default),
-        _ when area.Page == "promotions" => new PromotionsViewModel(api, time),
-        _ when area.Page == "reports" => new ReportsViewModel(api, user, time),
-        _ when area.Page == "accounting" => new AccountingViewModel(api, user, time),
-        _ when area.Page == "costs" => new CostsViewModel(api, user, time),
+        _ when area.Page == "stock" => new StockViewModel(api, user, time, live, FileSettingsStore.Default, toast),
+        _ when area.Page == "promotions" => new PromotionsViewModel(api, time, toast),
+        _ when area.Page == "reports" => new ReportsViewModel(api, user, time, toast),
+        _ when area.Page == "accounting" => new AccountingViewModel(api, user, time, toast),
+        _ when area.Page == "costs" => new CostsViewModel(api, user, time, toast),
         _ => throw new InvalidOperationException($"Der Bereich „{area.Title}“ hat keine native Maske."),
     };
 

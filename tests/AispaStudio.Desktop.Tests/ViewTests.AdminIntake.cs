@@ -90,7 +90,7 @@ public sealed partial class ViewTests
         Assert.Equal(("buchung@day-spa-wien.at", "geheim-123"), (put.Address, put.Secret));
         Assert.False(intake.HasUnsavedChanges);
         Assert.Equal("", secret.Text);
-        Assert.True(Shows(window, "Gespeichert."));
+        Assert.Equal("Gespeichert", intake.Toast.Text);
     });
 
     [Fact]

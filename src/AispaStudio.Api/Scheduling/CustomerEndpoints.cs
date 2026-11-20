@@ -36,6 +36,13 @@ internal static class CustomerEndpoints
                 + "gleicher oder ähnlicher Name. Dieselbe Erkennung wie bei eingehenden Nachrichten.")
             .RequirePermission(AccessRight.Book);
 
+        group.MapGet("/anonymized", async (DateTimeOffset since, AispaDbContext db, CancellationToken ct) =>
+                new AnonymizedCustomers(await db.Customers.AsNoTracking().Where(c => c.DeletedAt != null && c.DeletedAt >= since)
+                    .OrderBy(c => c.DeletedAt).Select(c => c.Id).ToListAsync(ct)))
+            .WithName("ListAnonymizedCustomers")
+            .WithSummary("Ids der Gäste, die seit dem Zeitpunkt „since“ anonymisiert wurden. Die Windows-App entfernt sie damit aus ihrem Stand für die Arbeit "
+                + "ohne Verbindung.");
+
         group.MapGet("/{customerId:guid}", async Task<Results<Ok<CustomerDto>, NotFound>> (
                 Guid customerId, AispaDbContext db, CancellationToken ct) =>
                 await db.Customers.AsNoTracking().FirstOrDefaultAsync(c => c.Id == customerId, ct) is { } customer

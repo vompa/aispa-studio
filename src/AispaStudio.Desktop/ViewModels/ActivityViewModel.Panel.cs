@@ -21,8 +21,6 @@ public sealed partial class ActivityViewModel
 {
     private const string ReasonLabel = "Grund";
 
-    private static readonly TimeSpan ToastDuration = TimeSpan.FromSeconds(5);
-
     private static readonly string[] PanelProperties =
     [
         nameof(HasPanel), nameof(PanelTitle), nameof(PanelSubtitle), nameof(PanelText), nameof(PanelGuest), nameof(HasPanelGuest), nameof(PanelActor), nameof(HasPanelActor),
@@ -33,7 +31,6 @@ public sealed partial class ActivityViewModel
     ];
 
     private int _panelVersion;
-    private int _toastClock;
 
     /// <summary>„Kundenkarte öffnen“: die Shell wechselt zur Seite Kunden und wählt den Gast.</summary>
     public Func<Guid, Task>? CustomerRequested { get; set; }
@@ -76,13 +73,6 @@ public sealed partial class ActivityViewModel
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasPanelError))]
     public partial string? PanelError { get; private set; }
-
-    /// <summary>Meldung unten (meldungen.md M1): eine Zeile ohne Schlusspunkt, nach 5 Sekunden weg.</summary>
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasToast))]
-    public partial string? Toast { get; private set; }
-
-    public bool HasToast => Toast is not null;
 
     public bool HasPanelError => PanelError is not null;
 
@@ -377,31 +367,5 @@ public sealed partial class ActivityViewModel
         {
             await open(id, entry.At).ConfigureAwait(true);
         }
-    }
-
-    // ---------- Meldung unten ----------
-
-    /// <summary>Zeigt eine Rückmeldung ohne Schlusspunkt, höchstens 60 Zeichen, und blendet sie nach 5 Sekunden aus.</summary>
-    private void ShowToast(string text)
-    {
-        Toast = CalendarViewModel.FitToast(text);
-        var clock = ++_toastClock;
-        _ = ExpireToastAsync(clock);
-    }
-
-    private async Task ExpireToastAsync(int clock)
-    {
-        await Task.Delay(ToastDuration, _time).ConfigureAwait(true);
-        if (clock == _toastClock)
-        {
-            Toast = null;
-        }
-    }
-
-    [RelayCommand]
-    private void CloseToast()
-    {
-        _toastClock++;
-        Toast = null;
     }
 }

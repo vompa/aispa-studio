@@ -123,8 +123,8 @@ public sealed partial class RightsTableViewModel : ViewModelBase
 
     public bool HasError => Error is not null;
 
-    [ObservableProperty]
-    public partial string? StatusText { get; private set; }
+    /// <summary>Der Toast der Shell: „Eingetragen“ und „Entfernt“.</summary>
+    public ToastState Toast => _context.Toast;
 
     private DateOnly Today => DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(_context.Now, _context.Zone).DateTime);
 
@@ -222,7 +222,7 @@ public sealed partial class RightsTableViewModel : ViewModelBase
 
     private async Task AddAsync(string path, object input)
     {
-        Error = StatusText = null;
+        Error = null;
         var result = await _context.Api.PostAsync<object>(path, input).ConfigureAwait(true);
         if (result.Error is { } error)
         {
@@ -230,7 +230,7 @@ public sealed partial class RightsTableViewModel : ViewModelBase
             return;
         }
 
-        await AfterChangeAsync("Eingetragen.").ConfigureAwait(true);
+        await AfterChangeAsync("Eingetragen").ConfigureAwait(true);
     }
 
     private async Task RemoveAsync(string subject, string person, string path, bool canRemove)
@@ -240,7 +240,7 @@ public sealed partial class RightsTableViewModel : ViewModelBase
             return;
         }
 
-        Error = StatusText = null;
+        Error = null;
         var answer = await dialogs.AskAsync(new ConfirmRequest($"{person} bei „{subject}“ entfernen?", "Der Eintrag verschwindet auch auf der Personenkarte. Im Verlauf bleibt nur, dass er entfernt wurde.", "Entfernen", IsDestructive: true))
             .ConfigureAwait(true);
         if (!answer.IsConfirmed)
@@ -255,13 +255,13 @@ public sealed partial class RightsTableViewModel : ViewModelBase
             return;
         }
 
-        await AfterChangeAsync("Entfernt.").ConfigureAwait(true);
+        await AfterChangeAsync("Entfernt").ConfigureAwait(true);
     }
 
     private async Task AfterChangeAsync(string status)
     {
         await LoadAsync().ConfigureAwait(true);
-        StatusText = status;
+        Toast.Show(status);
         if (Changed is { } changed)
         {
             await changed().ConfigureAwait(true);

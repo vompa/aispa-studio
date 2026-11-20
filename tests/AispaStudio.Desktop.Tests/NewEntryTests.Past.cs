@@ -43,7 +43,7 @@ public sealed partial class NewEntryTests
 
         Assert.Null(vm.NewEntry);
         Assert.Null(vm.Booking);
-        Assert.Equal(PastMessage, vm.Toast);
+        Assert.Equal(PastMessage, vm.Toast.Text);
     }
 
     [Fact]
@@ -61,7 +61,7 @@ public sealed partial class NewEntryTests
         Assert.Null(vm.NewEntry);
         vm.ActionsAt(10, Y(vm, "13:00")).Single(a => a.Header.StartsWith("Termin hier", StringComparison.Ordinal)).Run!();
         Assert.Null(vm.NewEntry);
-        Assert.Equal(PastMessage, vm.Toast);
+        Assert.Equal(PastMessage, vm.Toast.Text);
     }
 
     [Fact]
@@ -75,7 +75,7 @@ public sealed partial class NewEntryTests
         Assert.NotNull(vm.NewEntry);
         Assert.Equal(NewEntryKind.Appointment, vm.NewEntry.Kind);
         Assert.Equal("09:00", vm.Booking!.StartText);
-        Assert.Null(vm.Toast);
+        Assert.Null(vm.Toast.Text);
     }
 
     [Fact]
@@ -88,7 +88,7 @@ public sealed partial class NewEntryTests
         vm.OpenNoteAt(10, Y(vm, "13:00"));
 
         Assert.NotNull(vm.NewEntry);
-        Assert.Null(vm.Toast);
+        Assert.Null(vm.Toast.Text);
     }
 
     // ---------- Länge der Pause ----------

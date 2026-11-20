@@ -53,9 +53,7 @@ public sealed partial class ViewTests
             Assert.False(team.Card!.HasUnsavedChanges);
 
             // 90a: „Gespeichert“ steht als Toast (meldungen.md M1, ohne Punkt), nicht als Erfolgs-InfoBar (M2).
-            var toast = VisibleNamed<Border>(window, "HrToast");
             Assert.Equal("Gespeichert", team.Card.HrFile!.Toast.Text);
-            Assert.Contains(toast.GetVisualDescendants().OfType<TextBlock>(), t => t.Text == "Gespeichert");
             Assert.DoesNotContain(window.GetVisualDescendants().OfType<AispaStudio.Desktop.Controls.InfoBar>(), b => b.IsEffectivelyVisible && b.Severity == AispaStudio.Desktop.Controls.InfoBarSeverity.Success);
             return team;
         }, api);

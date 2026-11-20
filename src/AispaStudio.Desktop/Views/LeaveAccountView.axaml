@@ -43,8 +43,6 @@
       </StackPanel>
       <StackPanel Orientation="Horizontal" Spacing="12" IsVisible="{Binding IsEditable}">
         <Button x:Name="LeaveSaveButton" Content="Urlaubskonto speichern" Command="{Binding SaveCommand}" />
-        <TextBlock x:Name="LeaveStatusText" Text="{Binding StatusText}" Classes="muted small" VerticalAlignment="Center" AutomationProperties.LiveSetting="Polite"
-                   IsVisible="{Binding StatusText, Converter={x:Static ObjectConverters.IsNotNull}}" />
       </StackPanel>
       <TextBlock x:Name="LeaveHint" Text="{Binding Hint}" Classes="muted small" TextWrapping="Wrap" MaxWidth="720" HorizontalAlignment="Left" />
       <TextBlock Classes="muted small" TextWrapping="Wrap" Text="Nur lesen: Anspruch und Übertrag ändern Inhaberin und Manager." IsVisible="{Binding IsReadOnly}" />

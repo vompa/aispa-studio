@@ -94,9 +94,9 @@ public sealed class PosReceiptDocumentTests
         await document.SaveAlternativeCommand.ExecuteAsync(null);
 
         Assert.Equal("Beleg-K1-1842.pdf", files.SavedName);
-        Assert.Equal("Gespeichert: Beleg-K1-1842.pdf", pos.Toast);
-        pos.CloseToastCommand.Execute(null);
-        Assert.False(pos.HasToast);
+        Assert.Equal("Gespeichert: Beleg-K1-1842.pdf", pos.Toast.Text);
+        pos.Toast.CloseCommand.Execute(null);
+        Assert.False(pos.Toast.IsShown);
     }
 
     [Fact]

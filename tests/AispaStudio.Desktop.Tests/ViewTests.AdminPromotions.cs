@@ -112,7 +112,7 @@ public sealed partial class ViewTests
             Assert.Equal([new(DayOfWeek.Sunday, DayPart.Morning), new PromotionSlot(DayOfWeek.Thursday, DayPart.Evening)],
                 sent.Slots!.OrderBy(s => s.Part).ThenBy(s => s.Day));
             Assert.Null(sent.LeadHours);
-            Assert.True(Shows(window, "Gespeichert."));
+            Assert.Equal("Gespeichert", promotions.Toast.Text);
             Assert.Equal("Schwache Zeiten", promotions.SelectedRow?.KindText);
             return shell.AdminPage;
         }, api);
@@ -168,7 +168,7 @@ public sealed partial class ViewTests
                 (sent.Name, sent.GuestText, sent.DiscountPercent, sent.DiscountAmount, sent.AllLocations, sent.Scope, sent.IsActive));
             Assert.Equal(30, sent.ValidUntil.DayNumber - sent.ValidFrom.DayNumber);
             Assert.False(promotions.HasUnsavedChanges);
-            Assert.True(Shows(window, "Gespeichert."));
+            Assert.Equal("Gespeichert", promotions.Toast.Text);
             Assert.Equal("Herbst", promotions.SelectedRow?.Name);
             return shell.AdminPage;
         }, api);
@@ -195,7 +195,7 @@ public sealed partial class ViewTests
             var sent = Sent(api, "POST /api/promotions");
             Assert.Equal([HamamRitual.Id], sent.TreatmentIds);
             Assert.Equal((5m, (decimal?)null, PromotionScope.SelectedTreatments, HamamRitual.Id), (sent.DiscountAmount, sent.DiscountPercent, sent.Scope, Assert.Single(sent.TreatmentIds!)));
-            Assert.True(Shows(window, "Gespeichert."));
+            Assert.Equal("Gespeichert", promotions.Toast.Text);
             return shell.AdminPage;
         }, api);
     }

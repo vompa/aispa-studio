@@ -315,7 +315,7 @@ public sealed class CalendarTests
         await booking.BookCommand.ExecuteAsync(null);
 
         Assert.Null(vm.Booking);
-        Assert.Equal("Gebucht: Eva Muster, 09:30", vm.Toast);
+        Assert.Equal("Gebucht: Eva Muster, 09:30", vm.Toast.Text);
     }
 
     [Fact]
@@ -436,7 +436,7 @@ public sealed class CalendarTests
         Assert.Equal(appointment.Id, Assert.Single(vm.Columns[1].Items).Id);
         Assert.Null(vm.Ghost);
         Assert.True(vm.CanUndo);
-        Assert.Equal("Verschoben auf 14:30", vm.Toast);
+        Assert.Equal("Verschoben auf 14:30", vm.Toast.Text);
 
         api.On($"POST /api/appointments/{appointment.Id}/move", appointment with { UpdatedAt = TestData.At(9, 30) });
         await vm.UndoMoveCommand.ExecuteAsync(null);
@@ -524,17 +524,45 @@ public sealed class CalendarTests
         vm.BeginDrag(vm.Columns[0].Items[0], grabOffset: 0);
         vm.DragTo(10, vm.Columns[0].Items[0].Top + 270 * DayLayout.PixelsPerMinute);
         await vm.DropAsync();
-        Assert.NotNull(vm.Toast);
+        Assert.NotNull(vm.Toast.Text);
         return (vm, time, appointment);
     }
 
     /// <summary>Die Frist läuft über Task.Delay; nach dem Weiterstellen kurz warten, bis die Fortsetzung durch ist (oder bis klar ist, dass nichts passiert).</summary>
     private static async Task SettleAsync(CalendarViewModel vm)
     {
-        for (var i = 0; i < 20 && vm.Toast is not null; i++)
+        for (var i = 0; i < 20 && vm.Toast.Text is not null; i++)
         {
             await Task.Delay(10);
         }
+    }
+
+    [Fact]
+    public async Task Rueckgaengig_endet_wenn_eine_andere_Seite_einen_Toast_mit_eigener_Aktion_zeigt()
+    {
+        var (vm, _, _) = await MovedAsync();
+        Assert.True(vm.CanUndo);
+
+        vm.Toast.Show("Gespeichert: Lagerbestand.xlsx", "Ordner öffnen", new CommunityToolkit.Mvvm.Input.RelayCommand(() => { }));
+
+        Assert.False(vm.CanUndo);
+    }
+
+    [Fact]
+    public async Task Rueckgaengig_gilt_auch_nach_einem_Toast_ohne_Aktion_fuer_die_naechste_Verschiebung()
+    {
+        var appointment = TestData.Appointment(10, TestData.Anna);
+        var api = Api(appointment);
+        api.On($"POST /api/appointments/{appointment.Id}/move", appointment with { Start = TestData.At(14, 30), End = TestData.At(15, 20), UpdatedAt = TestData.At(9) });
+        var vm = await OpenAsync(api, time: new TimerTime());
+        vm.Toast.Show("Gespeichert");
+
+        vm.BeginDrag(vm.Columns[0].Items[0], grabOffset: 0);
+        vm.DragTo(10, vm.Columns[0].Items[0].Top + 270 * DayLayout.PixelsPerMinute);
+        await vm.DropAsync();
+
+        Assert.True(vm.CanUndo);
+        Assert.Same(vm.UndoMoveCommand, vm.Toast.Action);
     }
 
     [Fact]
@@ -544,12 +572,12 @@ public sealed class CalendarTests
 
         time.Advance(TimeSpan.FromSeconds(7.9));
         await SettleAsync(vm);
-        Assert.NotNull(vm.Toast);
+        Assert.NotNull(vm.Toast.Text);
         Assert.True(vm.CanUndo);
 
         time.Advance(TimeSpan.FromSeconds(0.2));
         await SettleAsync(vm);
-        Assert.Null(vm.Toast);
+        Assert.Null(vm.Toast.Text);
         Assert.False(vm.CanUndo);
     }
 
@@ -559,16 +587,16 @@ public sealed class CalendarTests
         var (vm, time, appointment) = await MovedAsync();
         time.Advance(TimeSpan.FromSeconds(6));
         await vm.UndoMoveCommand.ExecuteAsync(null);
-        Assert.StartsWith("Zurück auf", vm.Toast, StringComparison.Ordinal);
+        Assert.StartsWith("Zurück auf", vm.Toast.Text, StringComparison.Ordinal);
 
         // Die alte Frist (2 s Rest) darf die neue Meldung nicht vorzeitig schließen.
         time.Advance(TimeSpan.FromSeconds(3));
         await SettleAsync(vm);
-        Assert.NotNull(vm.Toast);
+        Assert.NotNull(vm.Toast.Text);
 
         time.Advance(TimeSpan.FromSeconds(5.1));
         await SettleAsync(vm);
-        Assert.Null(vm.Toast);
+        Assert.Null(vm.Toast.Text);
         Assert.Equal(appointment.Id, Assert.Single(vm.Columns[0].Items).Id);
     }
 
@@ -587,7 +615,7 @@ public sealed class CalendarTests
 
         time.Advance(TimeSpan.FromMinutes(5));
         await SettleAsync(vm);
-        Assert.Null(vm.Toast);
+        Assert.Null(vm.Toast.Text);
         Assert.NotNull(vm.Problem);
 
         vm.DismissProblemCommand.Execute(null);
@@ -599,15 +627,15 @@ public sealed class CalendarTests
     {
         var (vm, time, _) = await MovedAsync();
 
-        vm.HoldToast(true);
+        vm.Toast.Hold(true);
         time.Advance(TimeSpan.FromSeconds(30));
         await SettleAsync(vm);
-        Assert.NotNull(vm.Toast);
+        Assert.NotNull(vm.Toast.Text);
 
-        vm.HoldToast(false);
+        vm.Toast.Hold(false);
         time.Advance(TimeSpan.FromSeconds(8.1));
         await SettleAsync(vm);
-        Assert.Null(vm.Toast);
+        Assert.Null(vm.Toast.Text);
     }
 
     [Fact]
@@ -684,7 +712,7 @@ public sealed class CalendarTests
         Assert.Equal(appointment.Id, Assert.Single(vm.Columns[0].Items).Id);
         Assert.Equal(appointment.Id, vm.MarkedId);
         Assert.True(vm.CanUndo);
-        Assert.Equal("Verschoben auf Mi 14:00", vm.Toast);
+        Assert.Equal("Verschoben auf Mi 14:00", vm.Toast.Text);
 
         panel.MoveDateText = "32.03.2027";
         await panel.MoveToDayCommand.ExecuteAsync(null);

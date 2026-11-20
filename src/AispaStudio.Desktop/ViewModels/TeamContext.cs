@@ -16,13 +16,16 @@ public sealed record TeamData(
 /// Gemeinsames der Personenkarten (R05 Slice 98): API, angemeldete Person mit ihren Rechten, Zeitzone, Einzelplatz und die geladenen Daten. Die Rechte blenden
 /// nur aus; geprüft wird in der API.
 /// </summary>
-public sealed class TeamContext(IWorkstationApi api, CurrentUser user, TimeProvider time, bool standalone)
+public sealed class TeamContext(IWorkstationApi api, CurrentUser user, TimeProvider time, bool standalone, ToastState? toast = null)
 {
     public IWorkstationApi Api => api;
 
     public CurrentUser User => user;
 
     public TimeProvider Time => time;
+
+    /// <summary>Der eine Toast der Shell (oder, ohne Shell, ein eigener): Bestätigungen aller Reiter laufen darüber.</summary>
+    public ToastState Toast { get; } = toast ?? new ToastState(time);
 
     public TimeZoneInfo Zone => time.LocalTimeZone;
 

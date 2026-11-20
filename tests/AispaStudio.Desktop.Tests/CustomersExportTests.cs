@@ -51,10 +51,10 @@ public sealed class CustomersExportTests
         await customers.Export.ExportCommand.ExecuteAsync(customers.Export.Options[0]);
 
         Assert.Equal("Kunden_2026-11-09.xlsx", Assert.Single(files.Saved).Name);
-        Assert.Equal("Gespeichert: Kunden_2026-11-09.xlsx", customers.Toast);
-        Assert.True(customers.HasToast);
-        customers.CloseToastCommand.Execute(null);
-        Assert.Null(customers.Toast);
+        Assert.Equal("Gespeichert: Kunden_2026-11-09.xlsx", customers.Toast.Text);
+        Assert.True(customers.Toast.IsShown);
+        customers.Toast.CloseCommand.Execute(null);
+        Assert.Null(customers.Toast.Text);
     }
 
     [Fact]
@@ -66,7 +66,7 @@ public sealed class CustomersExportTests
         await customers.Export.ExportCommand.ExecuteAsync(customers.Export.Options[1]);
 
         Assert.Equal("Mehr als 50.000 Zeilen. Zeitraum oder Filter enger wählen.", customers.Error);
-        Assert.Null(customers.Toast);
+        Assert.Null(customers.Toast.Text);
     }
 
     [Fact]
@@ -80,7 +80,7 @@ public sealed class CustomersExportTests
         await customers.Export.ExportCommand.ExecuteAsync(customers.VCardOption);
 
         Assert.Equal("Kontakt_Mueller.vcf", Assert.Single(files.Saved).Name);
-        Assert.Equal("Gespeichert: Kontakt_Mueller.vcf", customers.Toast);
+        Assert.Equal("Gespeichert: Kontakt_Mueller.vcf", customers.Toast.Text);
     }
 
     [Fact]
@@ -116,7 +116,7 @@ public sealed class CustomersExportTests
         Assert.Equal(MarketingConsentState.Confirmed, sent.State);
         Assert.False(customers.IsEditingConsent);
         Assert.Equal("Ja, am Empfang erfasst am 9.11.2026 von Lena Berger", customers.ConsentText);
-        Assert.Equal("Werbe-Einwilligung gespeichert", customers.Toast);
+        Assert.Equal("Werbe-Einwilligung gespeichert", customers.Toast.Text);
 
         customers.EditConsentCommand.Execute(null);
         Assert.Equal("Ja", customers.ConsentChoice.Label);

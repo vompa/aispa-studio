@@ -41,8 +41,7 @@
           <ui:HelpButton Grid.Column="5" Topic="behandlungen" Section="behandlung" VerticalAlignment="Center" />
         </Grid>
 
-        <TextBlock x:Name="SaveStatus" Text="{Binding StatusText}" Classes="muted" IsVisible="{Binding StatusText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-                   AutomationProperties.LiveSetting="Polite" />
+        <TextBlock x:Name="ValidityHint" Text="Änderungen gelten für neue Buchungen." Classes="muted" />
         <ui:InfoBar Severity="Error" Title="Nicht gespeichert" Message="{Binding Error}" IsVisible="{Binding HasError}"
                     ActionText="Erneut versuchen" ActionCommand="{Binding SaveCommand}" CloseCommand="{Binding CloseErrorCommand}" />
 

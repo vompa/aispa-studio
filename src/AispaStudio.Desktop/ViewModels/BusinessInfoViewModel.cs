@@ -69,7 +69,7 @@ public sealed partial class BusinessLocationChoice(Guid id, string name) : Obser
 /// schreiben, kopieren), wer ihn ändern darf (<c>CanEdit</c> der API) sieht das Formular. Die Maske prüft vorab dieselben Regeln wie der Server, damit der Fehler am Feld steht.
 /// Einträge der Stufe „Leitung“ schickt der Server nur an die Leitung.
 /// </summary>
-public sealed partial class BusinessInfoViewModel(IWorkstationApi api, CurrentUser user) : ViewModelBase, INativeArea, IFocusTarget
+public sealed partial class BusinessInfoViewModel(IWorkstationApi api, CurrentUser user, ToastState? toast = null) : ViewModelBase, INativeArea, IFocusTarget
 {
     public const string NewEntryField = "NewBusinessContactButton";
 
@@ -314,9 +314,8 @@ public sealed partial class BusinessInfoViewModel(IWorkstationApi api, CurrentUs
     [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
     public partial bool IsSaving { get; private set; }
 
-    /// <summary>„Gespeichert.“ in der Leiste, bis wieder etwas geändert wird.</summary>
-    [ObservableProperty]
-    public partial string? StatusText { get; private set; }
+    /// <summary>Der Toast der Shell für die Bestätigung nach dem Speichern.</summary>
+    public ToastState Toast { get; } = toast ?? new ToastState(TimeProvider.System);
 
     public bool HasUnsavedChanges => _savedSignature is not null && ShowForm && Signature() != _savedSignature;
 
@@ -606,7 +605,6 @@ public sealed partial class BusinessInfoViewModel(IWorkstationApi api, CurrentUs
         _applying = false;
         _savedSignature = Signature();
         DesignationError = ReachError = PhoneError = MobileError = EmailError = HotlineError = LocationsError = null;
-        StatusText = null;
         Error = null;
         foreach (var name in new[]
                  {
@@ -811,7 +809,6 @@ public sealed partial class BusinessInfoViewModel(IWorkstationApi api, CurrentUs
             return;
         }
 
-        StatusText = null;
         OnPropertyChanged(nameof(HasUnsavedChanges));
     }
 
@@ -899,7 +896,7 @@ public sealed partial class BusinessInfoViewModel(IWorkstationApi api, CurrentUs
             Error = reloadError;
         }
 
-        StatusText = "Gespeichert.";
+        Toast.Show("Gespeichert");
         return true;
     }
 

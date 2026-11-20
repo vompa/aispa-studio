@@ -223,7 +223,7 @@ public sealed class FreeTimeSearchTests
         Assert.Contains(TestData.Anna.Id.ToString(), post.Body, StringComparison.Ordinal);
         Assert.Null(vm.NewEntry);
         Assert.Contains(vm.Columns.SelectMany(c => c.Items), i => i.Id == booked.Id);
-        Assert.StartsWith("Gebucht: Brigitte Müller", vm.Toast, StringComparison.Ordinal);
+        Assert.StartsWith("Gebucht: Brigitte Müller", vm.Toast.Text, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -243,7 +243,7 @@ public sealed class FreeTimeSearchTests
 
         await freeTime.BookActiveCommand.ExecuteAsync(null);
 
-        Assert.StartsWith("Gebucht: Brigitte Müller", vm.Toast, StringComparison.Ordinal);
+        Assert.StartsWith("Gebucht: Brigitte Müller", vm.Toast.Text, StringComparison.Ordinal);
         Assert.Null(vm.FreeTime);
         Assert.DoesNotContain(vm.OpenPanels, t => t.Kind == PanelKind.FreeTime);
     }
@@ -284,7 +284,7 @@ public sealed class FreeTimeSearchTests
         Assert.NotNull(vm.Booking);
         Assert.Equal(guest.Id, vm.Booking!.Customer!.Id);
         Assert.False(string.IsNullOrEmpty(vm.Booking.Error));
-        Assert.Null(vm.Toast);
+        Assert.Null(vm.Toast.Text);
     }
 
     [Fact]

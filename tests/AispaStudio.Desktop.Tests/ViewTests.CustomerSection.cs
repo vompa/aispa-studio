@@ -175,7 +175,7 @@ public sealed partial class ViewTests
         Assert.Equal(("Telefonnummer kopieren", "E-Mail-Adresse kopieren"), (ToolTip.GetTip(copyPhone), ToolTip.GetTip(copyMail)));
         Assert.Equal((28, 28), (copyPhone.Bounds.Width, copyPhone.Bounds.Height));
         await ClickIntoView(window, copyPhone);
-        Assert.Equal("Kopiert", calendar.Toast);
+        Assert.Equal("Kopiert", calendar.Toast.Text);
         await ClickIntoView(window, copyMail);
         Assert.Equal(["+43 664 123 45 67", "b.mueller@example.at"], actions.Copied);
         return calendar;

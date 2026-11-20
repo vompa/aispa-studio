@@ -39,7 +39,7 @@ public sealed partial class TeamViewModel : ViewModelBase, ITargetedArea
     private static readonly TimeSpan EndsSoon = TimeSpan.FromDays(7);
 
     private static readonly string[] Forwarded =
-        [nameof(HasUnsavedChanges), nameof(StatusText), nameof(Error), nameof(HasError), nameof(HasSaveBar), nameof(CanRemove), nameof(Title), nameof(SaveBlocker)];
+        [nameof(HasUnsavedChanges), nameof(Error), nameof(HasError), nameof(HasSaveBar), nameof(CanRemove), nameof(Title), nameof(SaveBlocker)];
 
     private readonly IWorkstationApi _api;
     private readonly CurrentUser _user;
@@ -55,11 +55,12 @@ public sealed partial class TeamViewModel : ViewModelBase, ITargetedArea
     /// <summary>Sprungziel (Behandlungen, Kalender, Assistent), das vor dem Laden oder vor dem Wechsel der Person kam; gilt, sobald sie offen ist.</summary>
     private (Guid? Id, string? Section, string? Field)? _pending;
 
-    public TeamViewModel(IWorkstationApi api, CurrentUser user, TimeProvider time)
+    public TeamViewModel(IWorkstationApi api, CurrentUser user, TimeProvider time, ToastState? toast = null)
     {
         _api = api;
         _user = user;
         _time = time;
+        Toast = toast ?? new ToastState(time);
         Modes = [.. ModesOf().Select(m => new CardTab(m.Id, m.Label, id => _ = SwitchToAsync(id)))];
         Mode = Modes.Count > 0 ? Modes[0].Id : PeopleMode;
         foreach (var each in Modes)
@@ -67,6 +68,9 @@ public sealed partial class TeamViewModel : ViewModelBase, ITargetedArea
             each.IsOn = each.Id == Mode;
         }
     }
+
+    /// <summary>Der Toast des Bereichs (die Instanz der Shell): Bestätigungen aller Reiter laufen darüber.</summary>
+    public ToastState Toast { get; }
 
     /// <summary>
     /// Die Ansichten der Leiste nach den Rechten (höchstens fünf, ADR 0098): Personen (Stammdaten oder Zugänge verwalten), Wochenplan (Kalender oder Personalunterlagen sehen),
@@ -146,7 +150,7 @@ public sealed partial class TeamViewModel : ViewModelBase, ITargetedArea
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowsPeople), nameof(ShowsRoster), nameof(ShowsTimes), nameof(ShowsPayroll), nameof(ShowsRights), nameof(ShowsPeopleView), nameof(ShowsRosterView),
-        nameof(ShowsTimesView), nameof(ShowsPayrollView), nameof(ShowsRightsView), nameof(Title), nameof(HasUnsavedChanges), nameof(StatusText), nameof(Error), nameof(HasError), nameof(HasSaveBar), nameof(CanRemove), nameof(SaveBlocker))]
+        nameof(ShowsTimesView), nameof(ShowsPayrollView), nameof(ShowsRightsView), nameof(Title), nameof(HasUnsavedChanges), nameof(Error), nameof(HasError), nameof(HasSaveBar), nameof(CanRemove), nameof(SaveBlocker))]
     public partial string Mode { get; private set; } = PeopleMode;
 
     public bool ShowsPeople => Mode == PeopleMode;
@@ -260,7 +264,7 @@ public sealed partial class TeamViewModel : ViewModelBase, ITargetedArea
     }
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(Title), nameof(HasUnsavedChanges), nameof(StatusText), nameof(Error), nameof(HasError), nameof(HasSaveBar),
+    [NotifyPropertyChangedFor(nameof(Title), nameof(HasUnsavedChanges), nameof(Error), nameof(HasError), nameof(HasSaveBar),
         nameof(CanRemove), nameof(SaveBlocker))]
     public partial PersonCardViewModel? Card { get; private set; }
 
@@ -306,7 +310,6 @@ public sealed partial class TeamViewModel : ViewModelBase, ITargetedArea
 
     public bool HasUnsavedChanges => ActiveArea?.HasUnsavedChanges == true;
 
-    public string? StatusText => ShowsPeople ? Card?.StatusText : null;
 
     public string? Error => ShowsPeople ? Card?.Error : null;
 
@@ -337,7 +340,7 @@ public sealed partial class TeamViewModel : ViewModelBase, ITargetedArea
             return;
         }
 
-        _context = new TeamContext(_api, _user, _time, modules.Value.Standalone) { Dialogs = Dialogs };
+        _context = new TeamContext(_api, _user, _time, modules.Value.Standalone, Toast) { Dialogs = Dialogs };
         if (!await (CanPeople ? RefreshAsync() : LoadLocationsAsync()).ConfigureAwait(true))
         {
             return;
@@ -456,7 +459,7 @@ public sealed partial class TeamViewModel : ViewModelBase, ITargetedArea
 
         if (CanDuties)
         {
-            Duties = new DutyOverviewViewModel(_api, id => Open(id, PersonCardViewModel.DutiesTab, null));
+            Duties = new DutyOverviewViewModel(_api, id => Open(id, PersonCardViewModel.DutiesTab, null), Toast);
             Duties.PropertyChanged += (_, e) =>
             {
                 if (e.PropertyName == nameof(DutyOverviewViewModel.HasUnsavedChanges))
@@ -1150,7 +1153,6 @@ public sealed partial class TeamViewModel : ViewModelBase, ITargetedArea
     /// </summary>
     private async Task OnCardDataChanged(PersonCardViewModel card, bool keep)
     {
-        var status = card.StatusText;
         var loaded = await RefreshAsync().ConfigureAwait(true);
         Saved?.Invoke();
         if (!loaded || !ReferenceEquals(Card, card))
@@ -1165,7 +1167,7 @@ public sealed partial class TeamViewModel : ViewModelBase, ITargetedArea
                 ?? (card.Entry.UserId is { } user ? _all.FirstOrDefault(e => e.UserId == user) : null);
             if (current is not null && (current.Kind != card.Entry.Kind || current.UserId != card.Entry.UserId))
             {
-                Reopen(current, card.Access?.CreatedText ?? status);
+                Reopen(current, card.Access?.CreatedText);
                 return;
             }
 
@@ -1183,14 +1185,10 @@ public sealed partial class TeamViewModel : ViewModelBase, ITargetedArea
 
         var next = card.EmployeeId is { } employee ? Entries.FirstOrDefault(e => e.EmployeeId == employee && e.Kind == TeamEntryKind.Person) : null;
         Select(next ?? FirstEntry);
-        if (next is not null && Card is not null)
-        {
-            Card.StatusText = status;
-        }
     }
 
     /// <summary>Die Zeile des Zugangs hat gewechselt (eine Person zugeordnet oder gelöst, im Einzelplatz angelegt): die Karte passt nicht mehr und öffnet neu.</summary>
-    private void Reopen(TeamEntry entry, string? status)
+    private void Reopen(TeamEntry entry, string? notice)
     {
         if (!Entries.Any(e => e.SameAs(entry)))
         {
@@ -1200,7 +1198,7 @@ public sealed partial class TeamViewModel : ViewModelBase, ITargetedArea
         }
 
         Select(Entries.First(e => e.SameAs(entry)));
-        Card!.StatusText = status;
+        Card!.Notice = notice;
     }
 
     /// <summary>Zurück zur Person, die gefragt hat; gepostet, damit die Liste den Wert übernimmt (wie in der Verwaltung, Slice 93).</summary>

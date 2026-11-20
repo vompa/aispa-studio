@@ -159,7 +159,7 @@ public sealed partial class ViewTests
             var put = Assert.Single(api.Calls, c => c.Route == $"PUT /api/employees/{SpaSample.Lena.Id}");
             Assert.Equal("Lena Maria Huber", JsonSerializer.Deserialize<EmployeeInput>(put.Body!, ApiClient.Json)!.DisplayName);
             Assert.False(team.HasUnsavedChanges);
-            Assert.True(Shows(window, "Gespeichert."));
+            Assert.Equal("Gespeichert", team.Toast.Text);
             Assert.Equal("Lena Maria Huber", team.SelectedEntry?.Title);
             return team;
         }, api);

@@ -19,10 +19,12 @@ public sealed partial class OnlineRulesViewModel : ViewModelBase
 {
     private readonly IWorkstationApi _api;
     private readonly Guid _locationId;
+    private readonly ToastState _toast;
 
-    public OnlineRulesViewModel(IWorkstationApi api, Guid locationId, bool canEdit)
+    public OnlineRulesViewModel(IWorkstationApi api, Guid locationId, bool canEdit, ToastState toast)
     {
         _api = api;
+        _toast = toast;
         _locationId = locationId;
         CanEdit = canEdit;
     }
@@ -43,10 +45,6 @@ public sealed partial class OnlineRulesViewModel : ViewModelBase
     public partial string? Error { get; private set; }
 
     public bool HasError => Error is not null;
-
-    /// <summary>„Gespeichert.“ bzw. „Vorgaben gelten wieder.“ neben den Knöpfen.</summary>
-    [ObservableProperty]
-    public partial string? StatusText { get; private set; }
 
     /// <summary>Es gelten die Vorgaben für alle Standorte, nicht eigene Regeln.</summary>
     [ObservableProperty]
@@ -104,7 +102,6 @@ public sealed partial class OnlineRulesViewModel : ViewModelBase
     [RelayCommand]
     private async Task SaveAsync()
     {
-        StatusText = null;
         var result = await _api.PutAsync<LocationOnlineRules>($"api/locations/{_locationId}/online-rules", Input()).ConfigureAwait(true);
         if (result.Value is not { } rules)
         {
@@ -114,14 +111,13 @@ public sealed partial class OnlineRulesViewModel : ViewModelBase
 
         Error = null;
         Apply(rules);
-        StatusText = "Gespeichert.";
+        _toast.Show("Gespeichert");
         Saved?.Invoke();
     }
 
     [RelayCommand(CanExecute = nameof(CanReset))]
     private async Task ResetAsync()
     {
-        StatusText = null;
         var result = await _api.DeleteAsync<LocationOnlineRules>($"api/locations/{_locationId}/online-rules").ConfigureAwait(true);
         if (result.Value is not { } rules)
         {
@@ -131,7 +127,7 @@ public sealed partial class OnlineRulesViewModel : ViewModelBase
 
         Error = null;
         Apply(rules);
-        StatusText = "Vorgaben gelten wieder.";
+        _toast.Show("Vorgaben gelten wieder");
         Saved?.Invoke();
     }
 

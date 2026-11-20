@@ -16,12 +16,12 @@ Die Kontenzuordnung legt fest, auf welche Konten der Buchhaltungsexport Geld, Ve
 2. Bei **Gilt für** wählen, wofür die Zuordnung gelten soll: **Standard (alle Länder)**, **Österreich**, **Deutschland** oder **Schweiz**.
 3. Die Konten mit der Steuerberatung abstimmen und eintragen, z. B. **Kassa bar** oder **Verrechnungskonto Kassa**.
 4. Bei Bedarf die DATEV-Angaben, die **MWST-Codes Schweiz je Satz (z. B. 8.1=UN81)** oder **Erlöskonten umschlüsseln (z. B. 4000=3400)** ausfüllen.
-5. **Speichern** anklicken. Die Meldung „Einstellungen gespeichert.“ erscheint.
+5. **Speichern** anklicken. Unten erscheint kurz „Gespeichert“.
 
 ## Eigene Zuordnung eines Landes entfernen {#zuruecksetzen}
 
 1. Bei **Gilt für** das Land wählen.
-2. **Auf Standard zurücksetzen** anklicken. Die Rückfrage nennt das Land; mit **Zurücksetzen** bestätigen, mit **Abbrechen** bleibt die Zuordnung bestehen. Die Meldung „Eigene Zuordnung entfernt, es gilt wieder der Standard.“ erscheint.
+2. **Auf Standard zurücksetzen** anklicken. Die Rückfrage nennt das Land; mit **Zurücksetzen** bestätigen, mit **Abbrechen** bleibt die Zuordnung bestehen. Unten erscheint kurz „Eigene Zuordnung entfernt, es gilt der Standard“.
 
 Der Knopf erscheint nur, wenn das Land eine eigene Zuordnung hat.
 

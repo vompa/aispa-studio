@@ -111,7 +111,7 @@ public sealed class AdminClosuresTests
         var row = Assert.Single(page.Upcoming);
         Assert.Equal(("Sonderschließung", "24.12.2027 bis 26.12.2027", "Frohe Weihnachten", "Standort"), (row.Title, row.Period, row.Reason, row.TypeText));
         Assert.Same(row, page.SelectedUpcoming);
-        Assert.Equal("Schließzeit gespeichert", page.Toast);
+        Assert.Equal("Schließzeit gespeichert", page.Toast.Text);
     }
 
     [Fact]
@@ -372,7 +372,7 @@ public sealed class AdminClosuresTests
         await asking;
 
         // Ein Erfolg ist ein Toast (eine Zeile, ohne Schlusspunkt), kein Balken im Formular (meldungen.md M1).
-        Assert.Equal("1 Termin abgesagt, 1 Nachricht", page.Toast);
+        Assert.Equal("1 Termin abgesagt, 1 Nachricht", page.Toast.Text);
         Assert.Null(page.ClosureEditor.Message);
         Assert.Equal(2, CallsTo(api, OverviewRoute(ClosureScope.Upcoming)));
     }
@@ -392,7 +392,7 @@ public sealed class AdminClosuresTests
         (await Opened(dialogs, asking)).SendCommand.Execute(null);
         await asking;
 
-        Assert.Null(page.Toast);
+        Assert.Null(page.Toast.Text);
         Assert.Contains("nicht möglich", page.ClosureEditor.Message, StringComparison.Ordinal);
         Assert.Equal(AispaStudio.Desktop.Controls.InfoBarSeverity.Warning, page.ClosureEditor.MessageSeverity);
     }
@@ -463,7 +463,7 @@ public sealed class AdminClosuresTests
         Assert.Equal("Die Schließzeit „Betriebsurlaub, 24.12.2027 bis 26.12.2027“ ist danach weg. Termine werden nicht angefasst; ab dann gibt es in der Zeit wieder freie Zeiten.", asked.Message);
         Assert.Equal("Löschen", asked.ConfirmText);
         // Statt des Balkens „Gelöscht.“ ein Toast (meldungen.md M1); die Seitenleiste ist zu, die Zeile weg.
-        Assert.Equal("Schließzeit gelöscht", page.Toast);
+        Assert.Equal("Schließzeit gelöscht", page.Toast.Text);
         Assert.Null(closures.Message);
         Assert.False(page.IsPanelOpen);
         Assert.Empty(page.Upcoming);
@@ -598,7 +598,7 @@ public sealed class AdminClosuresTests
         await setup.SaveGuestDelayCommand.ExecuteAsync(null);
 
         Assert.Equal(new GuestMessageDelayDto(15), Sent<GuestMessageDelayDto>(api, $"PUT /api/locations/{TestData.LocationId}/guest-message-delay"));
-        Assert.Equal("Wartezeit gespeichert", page.Toast);
+        Assert.Equal("Wartezeit gespeichert", page.Toast.Text);
         Assert.False(setup.SaveGuestDelayCommand.CanExecute(null));
     }
 
@@ -640,7 +640,21 @@ public sealed class AdminClosuresTests
         Assert.False(await closures.SaveChangesAsync());
 
         Assert.Equal("Zwei Schließzeiten desselben Standorts dürfen sich nicht überschneiden.", closures.Error);
-        Assert.Null(page.Toast);
+        Assert.Null(page.Toast.Text);
+    }
+
+    [Fact]
+    public async Task Given_ein_uebergebener_Toast_When_gespeichert_wird_Then_zeigt_die_Seite_ihn_dort()
+    {
+        var shared = new ToastState(Now);
+        var page = new ClosuresPageViewModel(Api(Christmas).Client(), TestData.Owner(), Now, shared);
+        await page.EnsureLoadedAsync();
+        await page.OpenRowAsync(page.Upcoming[0]);
+        page.ClosureEditor.InternalReason = "neu";
+        await page.ClosureEditor.SaveChangesAsync();
+
+        Assert.Same(shared, page.Toast);
+        Assert.Equal("Schließzeit gespeichert", shared.Text);
     }
 
     [Fact]
@@ -649,18 +663,18 @@ public sealed class AdminClosuresTests
         var page = await OpenFirst(Api(Christmas));
         page.ClosureEditor.InternalReason = "neu";
         await page.ClosureEditor.SaveChangesAsync();
-        Assert.Equal("Schließzeit gespeichert", page.Toast);
+        Assert.Equal("Schließzeit gespeichert", page.Toast.Text);
 
-        page.HoldToast(true);
-        page.HoldToast(false);
+        page.Toast.Hold(true);
+        page.Toast.Hold(false);
         page.ClosureEditor.InternalReason = "noch neuer";
         await page.ClosureEditor.SaveChangesAsync();
-        Assert.Equal("Schließzeit gespeichert", page.Toast);
-        Assert.True(page.HasToast);
+        Assert.Equal("Schließzeit gespeichert", page.Toast.Text);
+        Assert.True(page.Toast.IsShown);
 
-        page.CloseToastCommand.Execute(null);
-        Assert.Null(page.Toast);
-        Assert.False(page.HasToast);
+        page.Toast.CloseCommand.Execute(null);
+        Assert.Null(page.Toast.Text);
+        Assert.False(page.Toast.IsShown);
     }
 
     [Fact]

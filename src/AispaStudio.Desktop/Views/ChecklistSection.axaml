@@ -20,8 +20,6 @@
     </ui:FormField>
     <ui:InfoBar Severity="Error" Message="{Binding Error}" IsVisible="{Binding HasError}" />
     <StackPanel Orientation="Horizontal" Spacing="8">
-      <Button Content="Checkliste speichern" Command="{Binding SaveCommand}" />
-      <TextBlock Text="{Binding StatusText}" Classes="muted" VerticalAlignment="Center" AutomationProperties.LiveSetting="Polite" />
-    </StackPanel>
+      <Button Content="Checkliste speichern" Command="{Binding SaveCommand}" />    </StackPanel>
   </StackPanel>
 </UserControl>

@@ -155,10 +155,11 @@ public sealed partial class SubscriptionsViewModel : ViewModelBase, IEditableAre
     private bool _reverting;
     private bool _switching;
 
-    public SubscriptionsViewModel(IWorkstationApi api, TimeProvider time)
+    public SubscriptionsViewModel(IWorkstationApi api, TimeProvider time, ToastState? toast = null)
     {
         _api = api;
         _time = time;
+        Toast = toast ?? new ToastState(time);
         Kinds = [.. Enum.GetValues<SubscriptionKind>().Select(k => new KindChoice(k, SubscriptionTexts.Kind(k)))];
         SelectedKind = Kinds[0];
         SelectedSource = SourceChoice.Own;
@@ -301,9 +302,8 @@ public sealed partial class SubscriptionsViewModel : ViewModelBase, IEditableAre
     [NotifyCanExecuteChangedFor(nameof(SaveCommand), nameof(FetchNowCommand), nameof(ImportCommand))]
     public partial bool IsSaving { get; private set; }
 
-    /// <summary>„Gespeichert.“ in der Leiste, bis wieder etwas geändert wird.</summary>
-    [ObservableProperty]
-    public partial string? StatusText { get; private set; }
+    /// <summary>Die Bestätigung nach dem Speichern: der eine Toast der Shell.</summary>
+    public ToastState Toast { get; }
 
     /// <summary>Eine Rückmeldung zu einer Aktion (Abruf, Import, Entscheidung, Löschen) oder ein Fehler dabei, über dem Formular.</summary>
     [ObservableProperty]
@@ -653,7 +653,6 @@ public sealed partial class SubscriptionsViewModel : ViewModelBase, IEditableAre
 
     private void ResetFeedback()
     {
-        StatusText = null;
         Error = null;
         NameError = null;
         UrlError = null;
@@ -697,7 +696,6 @@ public sealed partial class SubscriptionsViewModel : ViewModelBase, IEditableAre
             return;
         }
 
-        StatusText = null;
         OnPropertyChanged(nameof(HasUnsavedChanges));
         FetchNowCommand.NotifyCanExecuteChanged();
     }
@@ -908,7 +906,7 @@ public sealed partial class SubscriptionsViewModel : ViewModelBase, IEditableAre
         }
 
         await ReloadAsync(saved.Id).ConfigureAwait(true);
-        StatusText = "Gespeichert.";
+        Toast.Show("Gespeichert");
         Saved?.Invoke();
         if (saved.IsActive && saved.Url.Length > 0)
         {

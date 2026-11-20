@@ -71,8 +71,7 @@ public sealed partial class ViewTests
             var input = JsonSerializer.Deserialize<RoomClosureInput>(post.Body!, ApiClient.Json)!;
             Assert.Equal((new DateOnly(2026, 12, 7), new DateOnly(2026, 12, 8), "Wasserschaden", RoomClosureKind.Maintenance), (input.FromDate, input.UntilDate, input.Reason, input.Kind));
             Assert.False(closures.HasUnsavedChanges);
-            Assert.Equal("Raumsperre gespeichert", page.Toast);
-            Assert.True(Shows(window, "Raumsperre gespeichert"));
+            Assert.Equal("Raumsperre gespeichert", page.Toast.Text);
             Assert.Contains(page.Upcoming, r => r.IsRoom && r.Reason == "Wasserschaden");
             return shell.AdminPage;
         }, api);
@@ -123,8 +122,7 @@ public sealed partial class ViewTests
             await Pump(Settling);
 
             Assert.Equal(1, CallsTo(api, $"DELETE {RoomClosureRoute("/" + MaintenanceId)}"));
-            Assert.Equal("Raumsperre gelöscht", shell.AdminPage.ClosuresPage!.Toast);
-            Assert.True(Shows(window, "Raumsperre gelöscht"));
+            Assert.Equal("Raumsperre gelöscht", shell.AdminPage.ClosuresPage!.Toast.Text);
             Assert.DoesNotContain(shell.AdminPage.ClosuresPage.Upcoming, r => r.IsRoom);
             return shell.AdminPage;
         }, api);

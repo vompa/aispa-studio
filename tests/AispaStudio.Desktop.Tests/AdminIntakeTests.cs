@@ -132,7 +132,7 @@ public sealed class AdminIntakeTests
         Assert.Equal(("buchung@day-spa-wien.at", "imap.hoster.example", 993, MailboxSecurity.SslOnConnect, "anfragen@day-spa-wien.at", MailboxKind.Imap, true),
             (put.Address, put.Host, put.Port, put.Security, put.UserName, put.Kind, put.Enabled));
         Assert.Equal("Verarbeitet", put.ProcessedFolder);
-        Assert.Equal("Gespeichert. Das Postfach wird beim nächsten Abruf gelesen.", intake.StatusText);
+        Assert.Equal("Gespeichert", intake.Toast.Text);
         Assert.False(intake.HasUnsavedChanges);
     }
 

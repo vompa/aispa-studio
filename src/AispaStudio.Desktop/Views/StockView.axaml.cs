@@ -1,7 +1,6 @@
 using AispaStudio.Desktop.ViewModels;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Input;
 using Avalonia.Threading;
 
 namespace AispaStudio.Desktop.Views;
@@ -50,10 +49,6 @@ public partial class StockView : UserControl
             ShowUsage();
         }
     }
-
-    private void OnToastEntered(object? sender, PointerEventArgs e) => _model?.HoldToast(true);
-
-    private void OnToastExited(object? sender, PointerEventArgs e) => _model?.HoldToast(false);
 
     private void Detach()
     {

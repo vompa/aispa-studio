@@ -2630,6 +2630,48 @@
         }
       }
     },
+    "/api/v1/customers/anonymized": {
+      "get": {
+        "tags": [
+          "Kunden"
+        ],
+        "summary": "Ids der Gäste, die seit dem Zeitpunkt „since“ anonymisiert wurden. Die Windows-App entfernt sie damit aus ihrem Stand für die Arbeit ohne Verbindung.",
+        "operationId": "ListAnonymizedCustomers",
+        "parameters": [
+          {
+            "name": "since",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnonymizedCustomers"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/customers/{customerId}": {
       "get": {
         "tags": [
@@ -32780,6 +32822,21 @@
           "expiresAt": {
             "type": "string",
             "format": "date-time"
+          }
+        }
+      },
+      "AnonymizedCustomers": {
+        "required": [
+          "ids"
+        ],
+        "type": "object",
+        "properties": {
+          "ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
           }
         }
       },

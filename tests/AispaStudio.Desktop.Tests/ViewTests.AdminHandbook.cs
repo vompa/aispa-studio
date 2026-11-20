@@ -83,7 +83,7 @@ public sealed partial class ViewTests
             var post = JsonSerializer.Deserialize<HandbookEntryInput>(Assert.Single(api.Calls, c => c.Route == "POST /api/handbook").Body!, ApiClient.Json)!;
             Assert.Equal(("Schlüssel Sauna", "Sauna", "Am Empfang abholen.", true, "Monday"), (post.Title, post.Area, post.Text, post.RemindAtDayStart, string.Join(',', post.Days)));
             Assert.False(handbook.HasUnsavedChanges);
-            Assert.True(Shows(window, "Gespeichert."));
+            Assert.Equal("Gespeichert", handbook.Toast.Text);
             Assert.Equal(["Gäste mit Hund ★", "Schlüssel Sauna ★"], handbook.Entries.Select(e => e.Name));
             return shell.AdminPage;
         }, api);

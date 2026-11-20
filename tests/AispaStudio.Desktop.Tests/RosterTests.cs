@@ -123,7 +123,7 @@ public sealed class RosterTests
         var entry = Assert.Single(body.Entries);
         Assert.Equal(new RosterEntry(RosterKind.Work, RosterSample.Vienna.Id, new TimeOnly(12, 0), new TimeOnly(20, 0)), entry);
         Assert.False(body.Draft);
-        Assert.Equal(RosterDayEditorViewModel.Saved, day.StatusText);
+        Assert.Equal(RosterDayEditorViewModel.Saved, day.Toast.Text);
         Assert.False(plan.HasUnsavedChanges);
         var lena = plan.Rows.Single(r => r.Name == "Lena Huber");
         Assert.Equal(["12:00–20:00"], lena.Cells[1].Lines);
@@ -141,7 +141,7 @@ public sealed class RosterTests
         await day.SaveChangesAsync();
 
         Assert.True(PutBody(api, RosterSample.Lena, Tuesday).Draft);
-        Assert.Equal(RosterDayEditorViewModel.DraftSaved, day.StatusText);
+        Assert.Equal(RosterDayEditorViewModel.DraftSaved, day.Toast.Text);
         Assert.True(plan.Rows.Single().Cells[1].IsDraft);
         Assert.Equal("Entwurf: 1 Änderung nicht veröffentlicht", plan.DraftBandText);
         Assert.True(plan.CanPublish);

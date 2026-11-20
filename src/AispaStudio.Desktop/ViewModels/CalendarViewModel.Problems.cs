@@ -14,9 +14,6 @@ public sealed record CalendarProblem(InfoBarSeverity Severity, string Title, str
 
 public partial class CalendarViewModel
 {
-    /// <summary>Der Toast ist eine Zeile bis zu dieser Länge (Fluent 2: unter etwa 60 Zeichen).</summary>
-    public const int ToastMaxLength = 60;
-
     /// <summary>Das jüngste offene Problem (Fehler oder Warnung) als InfoBar; sonst leer. Es bleibt stehen, bis es geschlossen wird.</summary>
     [ObservableProperty]
     public partial CalendarProblem? Problem { get; private set; }
@@ -99,12 +96,5 @@ public partial class CalendarViewModel
             ResourceKind.Room => person,
             _ => string.Join(", ", new[] { person, room }.OfType<string>()),
         };
-    }
-
-    /// <summary>Zeile für den Toast: ohne Schlusspunkt und höchstens <see cref="ToastMaxLength"/> Zeichen (sonst mit „…“ gekürzt).</summary>
-    internal static string FitToast(string text)
-    {
-        var line = text.Trim().TrimEnd('.');
-        return line.Length <= ToastMaxLength ? line : string.Concat(line.AsSpan(0, ToastMaxLength - 1).TrimEnd(), "…");
     }
 }

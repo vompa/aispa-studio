@@ -62,9 +62,9 @@ public sealed partial class TimeRecordRow : ObservableObject
 /// </summary>
 public sealed partial class TimeDayEditorViewModel : ViewModelBase, IEditableArea
 {
-    public const string Saved = "Gespeichert.";
+    public const string Saved = "Gespeichert";
 
-    public const string Removed = "Abschnitt entfernt.";
+    public const string Removed = "Abschnitt entfernt";
 
     private static readonly CultureInfo German = CultureInfo.GetCultureInfo("de-AT");
 
@@ -76,7 +76,6 @@ public sealed partial class TimeDayEditorViewModel : ViewModelBase, IEditableAre
     private readonly Func<Task> _saved;
     private readonly Action _close;
     private TimeRecordDto? _editing;
-    private bool _seeding;
     private string _savedState = "";
 
     public TimeDayEditorViewModel(TeamContext context, Guid locationId, IReadOnlyList<Choice> locations, TimeZoneInfo zone, Guid employeeId, string employeeName,
@@ -168,9 +167,8 @@ public sealed partial class TimeDayEditorViewModel : ViewModelBase, IEditableAre
 
     public bool HasError => Error is not null;
 
-    /// <summary>„Gespeichert.“ neben der Leiste.</summary>
-    [ObservableProperty]
-    public partial string? StatusText { get; set; }
+    /// <summary>Der Toast der Shell: „Gespeichert“ oder „Abschnitt entfernt“.</summary>
+    public ToastState Toast => _context.Toast;
 
     public bool HasUnsavedChanges => IsEditing && State() != _savedState;
 
@@ -214,7 +212,6 @@ public sealed partial class TimeDayEditorViewModel : ViewModelBase, IEditableAre
             return;
         }
 
-        _seeding = true;
         _editing = record;
         Start = record is null ? new TimeOnly(9, 0) : TimeOnly.FromDateTime(Local(record.Start));
         End = record is null ? new TimeOnly(17, 0) : record.End is { } end ? TimeOnly.FromDateTime(Local(end)) : null;
@@ -222,9 +219,7 @@ public sealed partial class TimeDayEditorViewModel : ViewModelBase, IEditableAre
         StartError = null;
         ReasonError = null;
         Error = null;
-        StatusText = null;
         IsEditing = true;
-        _seeding = false;
         _savedState = State();
         OnPropertyChanged(nameof(EditorTitle));
         OnPropertyChanged(nameof(CanRemove));
@@ -234,26 +229,14 @@ public sealed partial class TimeDayEditorViewModel : ViewModelBase, IEditableAre
     partial void OnStartChanged(TimeOnly? value)
     {
         OnPropertyChanged(nameof(NextDayHint));
-        Edited();
         StartError = null;
     }
 
-    partial void OnEndChanged(TimeOnly? value) => Edited();
-
     partial void OnReasonChanged(string value)
     {
-        Edited();
         if (value.Trim().Length > 0)
         {
             ReasonError = null;
-        }
-    }
-
-    private void Edited()
-    {
-        if (!_seeding)
-        {
-            StatusText = null;
         }
     }
 
@@ -301,7 +284,7 @@ public sealed partial class TimeDayEditorViewModel : ViewModelBase, IEditableAre
     [RelayCommand]
     private async Task SaveAsync() => await SaveChangesAsync().ConfigureAwait(true);
 
-    /// <summary>Schließt den Editor und lädt die Zeiten neu; der Status bleibt neben der Leiste stehen.</summary>
+    /// <summary>Schließt den Editor und lädt die Zeiten neu; die Bestätigung kommt als Toast.</summary>
     private async Task FinishAsync(string status)
     {
         _editing = null;
@@ -310,7 +293,7 @@ public sealed partial class TimeDayEditorViewModel : ViewModelBase, IEditableAre
         OnPropertyChanged(nameof(EditorTitle));
         OnPropertyChanged(nameof(HasUnsavedChanges));
         await _saved().ConfigureAwait(true);
-        StatusText = status;
+        Toast.Show(status);
     }
 
     /// <summary>Verwerfen schließt den Editor; „Zeit nachtragen“ öffnet ihn wieder.</summary>
@@ -321,7 +304,6 @@ public sealed partial class TimeDayEditorViewModel : ViewModelBase, IEditableAre
         StartError = null;
         ReasonError = null;
         Error = null;
-        StatusText = null;
         OnPropertyChanged(nameof(EditorTitle));
         OnPropertyChanged(nameof(HasUnsavedChanges));
     }

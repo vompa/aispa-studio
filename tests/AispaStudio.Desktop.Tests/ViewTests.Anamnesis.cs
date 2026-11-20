@@ -197,7 +197,7 @@ public sealed partial class ViewTests
             Assert.Contains(stub.Calls, c => c.Route == $"POST {AnamnesisRoute}/scans");
             Assert.Null(main.DialogHost.Current);
             Assert.DoesNotContain(stub.Calls, c => c.Route.StartsWith($"GET {AnamnesisRoute}/scans/", StringComparison.Ordinal));
-            Assert.Equal("Foto hochgeladen. Prüfen kann, wer Anamnesen lesen darf", calendar.Toast);
+            Assert.Equal("Foto hochgeladen. Prüfen kann, wer Anamnesen lesen darf", calendar.Toast.Text);
             return calendar;
         }, stub);
     }
@@ -356,7 +356,7 @@ public sealed partial class ViewTests
             Assert.Contains("\"signedOnPaper\":true", call.Body, StringComparison.Ordinal);
             Assert.Null(main.DialogHost.Current);
             Assert.Contains("Liegt vor: auf Papier am 19.10.2026, gültig bis 19.10.2036.", PanelTexts(window, "AnamnesisCard"));
-            Assert.Equal("Anamnese vom Papierbogen übernommen", calendar.Toast);
+            Assert.Equal("Anamnese vom Papierbogen übernommen", calendar.Toast.Text);
             return calendar;
         }, stub);
     }
@@ -374,7 +374,7 @@ public sealed partial class ViewTests
 
             Assert.Contains(stub.Calls, c => c.Route == $"DELETE {AnamnesisRoute}/scans/{ScanId}");
             Assert.Null(main.DialogHost.Current);
-            Assert.Equal("Foto verworfen", calendar.Toast);
+            Assert.Equal("Foto verworfen", calendar.Toast.Text);
             return calendar;
         }, stub);
     }
@@ -448,7 +448,7 @@ public sealed partial class ViewTests
             await Pump(Settling);
 
             Assert.False(canCancelWhileSaving);
-            Assert.Equal("Anamnese vom Papierbogen übernommen", calendar.Toast);
+            Assert.Equal("Anamnese vom Papierbogen übernommen", calendar.Toast.Text);
             return calendar;
         }, stub);
     }

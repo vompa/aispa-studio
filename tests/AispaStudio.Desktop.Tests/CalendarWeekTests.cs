@@ -362,7 +362,7 @@ public sealed class CalendarWeekTests
         Assert.Contains(TestData.Anna.Id.ToString(), post.Body, StringComparison.Ordinal);
         Assert.Empty(vm.Columns[0].Items);
         Assert.Equal(2, vm.Columns[3].Items.Count);
-        Assert.Equal("Verschoben auf Do 11:00", vm.Toast);
+        Assert.Equal("Verschoben auf Do 11:00", vm.Toast.Text);
     }
 
     [Fact]

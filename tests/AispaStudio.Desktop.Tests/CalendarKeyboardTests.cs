@@ -142,7 +142,7 @@ public sealed class CalendarKeyboardTests
         await Until(() => vm.Problem is not null);
 
         Assert.Equal("Nicht verschoben", vm.Problem!.Title);
-        Assert.Null(vm.Toast);
+        Assert.Null(vm.Toast.Text);
         Assert.Equal("10:00–10:50", vm.Columns[0].Items[0].TimeText);
     }
 
@@ -159,9 +159,9 @@ public sealed class CalendarKeyboardTests
         var menu = vm.ActionsFor(vm.Columns[0].Items[0]);
         Assert.DoesNotContain(menu, a => a.Header == "Kommt später");
         menu.Single(a => a.Header == "Kommt 15 Min. später").Run!();
-        await Until(() => vm.Toast is not null);
+        await Until(() => vm.Toast.Text is not null);
 
-        Assert.Equal("Eva Muster kommt 15 Min. später (10:15)", vm.Toast);
+        Assert.Equal("Eva Muster kommt 15 Min. später (10:15)", vm.Toast.Text);
         Assert.Null(vm.Problem);
         Assert.StartsWith("kommt 10:15 · 10:00–10:50", vm.Columns[0].Items[0].MetaText, StringComparison.Ordinal);
         Assert.DoesNotContain(api.Calls, c => c.Route.StartsWith("POST", StringComparison.Ordinal) && c.Route.EndsWith("/move", StringComparison.Ordinal));
@@ -169,7 +169,7 @@ public sealed class CalendarKeyboardTests
         // „Doch pünktlich“ nimmt die Markierung zurück.
         api.On($"PUT /api/appointments/{appointment.Id}/late", appointment with { UpdatedAt = TestData.At(9, 30) });
         vm.ActionsFor(vm.Columns[0].Items[0]).Single(a => a.Header == "Doch pünktlich").Run!();
-        await Until(() => vm.Toast == "Eva Muster kommt doch pünktlich");
+        await Until(() => vm.Toast.Text == "Eva Muster kommt doch pünktlich");
 
         Assert.StartsWith("10:00–10:50", vm.Columns[0].Items[0].MetaText, StringComparison.Ordinal);
     }
@@ -212,12 +212,12 @@ public sealed class CalendarKeyboardTests
         Assert.True(vm.HandleKey(Key.V, KeyModifiers.None));
         Assert.Equal(booked.Id, vm.Selected?.Appointment.Id);
         Assert.True(vm.Selected!.IsMovingToDay);
-        Assert.Null(vm.Toast);
+        Assert.Null(vm.Toast.Text);
 
         vm.Mark(vm.Columns[0].Items.Single(i => i.Id == checkedIn.Id));
         Assert.True(vm.HandleKey(Key.V, KeyModifiers.None));
         Assert.False(vm.Selected!.IsMovingToDay);
-        Assert.StartsWith("Verschieben: ziehen", vm.Toast, StringComparison.Ordinal);
+        Assert.StartsWith("Verschieben: ziehen", vm.Toast.Text, StringComparison.Ordinal);
         Assert.Contains(CalendarViewModel.AllKeys.Single(g => g.Title == "Markierter Termin").Keys, h => h.Key == "V");
     }
 
@@ -234,7 +234,7 @@ public sealed class CalendarKeyboardTests
         await Until(() => vm.Columns[0].Items[0].IsCheckedIn);
 
         Assert.Null(vm.Selected);
-        Assert.Equal("Eva Muster eingecheckt", vm.Toast);
+        Assert.Equal("Eva Muster eingecheckt", vm.Toast.Text);
     }
 
     [Fact]

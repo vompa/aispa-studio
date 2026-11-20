@@ -62,7 +62,7 @@ public sealed class AdminPromotionsTests
             (sent.Name, sent.GuestText, sent.ValidFrom, sent.ValidUntil, sent.AllLocations, sent.DiscountPercent, sent.DiscountAmount, sent.Scope, sent.IsActive));
         Assert.Empty(sent.LocationIds ?? []);
         Assert.Empty(sent.TreatmentIds ?? []);
-        Assert.Equal("Gespeichert.", promotions.StatusText);
+        Assert.Equal("Gespeichert", promotions.Toast.Text);
         Assert.False(promotions.IsCreating);
         Assert.False(promotions.HasUnsavedChanges);
         Assert.Equal("Herbst", promotions.SelectedRow?.Name);

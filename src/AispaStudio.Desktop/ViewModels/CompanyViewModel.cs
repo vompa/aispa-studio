@@ -58,9 +58,10 @@ public sealed partial class CompanyViewModel : ViewModelBase, INativeArea
     private string? _bookingUrl;
     private bool _applying;
 
-    public CompanyViewModel(IWorkstationApi api, TimeZoneInfo zone)
+    public CompanyViewModel(IWorkstationApi api, TimeZoneInfo zone, ToastState? toast = null)
     {
         _api = api;
+        Toast = toast ?? new ToastState(TimeProvider.System);
         History = new HistorySectionViewModel(api, "api/tenant/history", zone, "Wer die Firmendaten wann geändert hat");
         HistorySections = [History];
     }
@@ -226,9 +227,8 @@ public sealed partial class CompanyViewModel : ViewModelBase, INativeArea
 
     public bool HasError => Error is not null;
 
-    /// <summary>„Gespeichert.“ in der Leiste, bis wieder etwas geändert wird.</summary>
-    [ObservableProperty]
-    public partial string? StatusText { get; private set; }
+    /// <summary>Die Bestätigung nach dem Speichern: der eine Toast der Shell.</summary>
+    public ToastState Toast { get; }
 
     /// <summary>Das Feld, das den Fokus bekommen soll (<see cref="WebsiteField"/>, <see cref="NameField"/>); die Ansicht setzt ihn und leert die Angabe.</summary>
     [ObservableProperty]
@@ -309,7 +309,7 @@ public sealed partial class CompanyViewModel : ViewModelBase, INativeArea
             ApplyEmbed(settings);
         }
 
-        StatusText = "Gespeichert.";
+        Toast.Show("Gespeichert");
         Saved?.Invoke();
         if (IsHistoryOpen && History.IsOpen)
         {
@@ -385,7 +385,6 @@ public sealed partial class CompanyViewModel : ViewModelBase, INativeArea
             EmbedStatus = null;
         }
 
-        StatusText = null;
         OnPropertyChanged(nameof(HasUnsavedChanges));
     }
 

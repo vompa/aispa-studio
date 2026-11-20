@@ -237,9 +237,7 @@ public sealed partial class ViewTests
             Assert.False(closures.IsCreating);
             Assert.False(closures.HasUnsavedChanges);
             // Nach dem Speichern ein Toast unten, kein Balken; die neue Zeile ist gewählt.
-            Assert.Equal("Schließzeit gespeichert", page.Toast);
-            Assert.True(Named<Border>(window, "ClosuresToast").IsEffectivelyVisible);
-            Assert.True(Shows(window, "Schließzeit gespeichert"));
+            Assert.Equal("Schließzeit gespeichert", page.Toast.Text);
             Assert.Equal(3, page.Upcoming.Count);
             Assert.NotNull(page.SelectedUpcoming);
             return shell.AdminPage;
@@ -290,8 +288,7 @@ public sealed partial class ViewTests
             await Pump(Settling);
             Assert.Equal(1, CallsTo(api, $"DELETE {ClosureRoute("/" + VacationId)}"));
             // Statt „Gelöscht.“ als Balken ein Toast; die Seitenleiste ist zu.
-            Assert.Equal("Schließzeit gelöscht", shell.AdminPage.ClosuresPage!.Toast);
-            Assert.True(Shows(window, "Schließzeit gelöscht"));
+            Assert.Equal("Schließzeit gelöscht", shell.AdminPage.ClosuresPage!.Toast.Text);
             Assert.False(Named<SidePanel>(window, "EditPanel").IsVisible);
             return shell.AdminPage;
         }, api);
@@ -374,7 +371,7 @@ public sealed partial class ViewTests
             await Pump(Settling);
 
             Assert.Equal(20, JsonSerializer.Deserialize<GuestMessageDelayDto>(api.Calls.Single(c => c.Route.StartsWith("PUT ", StringComparison.Ordinal)).Body!, ApiClient.Json)!.Minutes);
-            Assert.Equal("Wartezeit gespeichert", page.Toast);
+            Assert.Equal("Wartezeit gespeichert", page.Toast.Text);
             Assert.True(Named<SidePanel>(window, "SetupPanel").IsVisible);
             return shell.AdminPage;
         }, api);

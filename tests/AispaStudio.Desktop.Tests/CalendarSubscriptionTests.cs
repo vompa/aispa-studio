@@ -278,8 +278,8 @@ public sealed class CalendarSubscriptionTests
         await Until(() => api.Calls.Count(c => c.Route == CalendarRoute) > loadsBefore);
 
         Assert.False(BodyOf(api, $"POST /api/calendar-subscriptions/{sub.Id}/active").GetProperty("isActive").GetBoolean());
-        await Until(() => leader.Toast is { Length: > 0 });
-        Assert.Equal("Feiertage Wien: ausgeschaltet", leader.Toast);
+        await Until(() => leader.Toast.Text is { Length: > 0 });
+        Assert.Equal("Feiertage Wien: ausgeschaltet", leader.Toast.Text);
         Assert.Contains("Ausgeschaltet", row.Status, StringComparison.Ordinal);
     }
 
@@ -313,7 +313,7 @@ public sealed class CalendarSubscriptionTests
         Assert.Equal("2027-03-01", body.GetProperty("date").GetString());
         Assert.Equal("Am Staatsfeiertag haben wir offen.", body.GetProperty("reason").GetString());
         Assert.Equal(TestData.LocationId, body.GetProperty("locationId").GetGuid());
-        Assert.Equal("Gemeldet, die Leitung sieht Tag und Grund", vm.Toast);
+        Assert.Equal("Gemeldet, die Leitung sieht Tag und Grund", vm.Toast.Text);
     }
 
     [Fact]
@@ -378,7 +378,7 @@ public sealed class CalendarSubscriptionTests
 
         warning.ActionCommand!.Execute(null);
         await Until(() => api.Calls.Any(c => c.Route == $"POST /api/calendar-subscriptions/{sub.Id}/fetch"));
-        await Until(() => leader.Toast == "Der Abruf läuft im Hintergrund");
+        await Until(() => leader.Toast.Text == "Der Abruf läuft im Hintergrund");
 
         notice.ActionCommand!.Execute(null);
         await Until(() => leader.Messages.All(m => m.Key != notice.Key));

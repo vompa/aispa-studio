@@ -202,10 +202,11 @@ public partial class PosViewModel : ViewModelBase
     private List<UnbilledItem> _dayRows = [];
 
     public PosViewModel(IWorkstationApi api, TimeProvider time, ISettingsStore? settings = null, Func<string, IReceiptPrinter>? printer = null,
-        TimeSpan? cardPoll = null)
+        TimeSpan? cardPoll = null, ToastState? toast = null)
     {
         _api = api;
         _time = time;
+        Toast = toast ?? new ToastState(time);
         _settings = settings ?? new MemorySettingsStore();
         IsSalesColumnOpen = _settings.Load().PosSalesPanelOpen;
         _printer = printer ?? (address => new NetworkReceiptPrinter(address));
@@ -248,33 +249,10 @@ public partial class PosViewModel : ViewModelBase
     [ObservableProperty]
     public partial string? PrintText { get; private set; }
 
-    private static readonly TimeSpan ToastDuration = TimeSpan.FromSeconds(5);
-    private int _toastClock;
+    /// <summary>Die eine Bestätigung der App (Toast der Shell), z. B. „Gespeichert: Beleg-K1-142.pdf“.</summary>
+    public ToastState Toast { get; }
 
-    /// <summary>Meldung unten (design.md 5.10): eine Zeile ohne Schlusspunkt, z. B. „Gespeichert: Beleg-K1-142.pdf“; verschwindet nach 5 s.</summary>
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasToast))]
-    public partial string? Toast { get; private set; }
-
-    public bool HasToast => Toast is not null;
-
-    public void ShowToast(string text)
-    {
-        Toast = text;
-        _ = ExpireToastAsync(++_toastClock);
-    }
-
-    [RelayCommand]
-    private void CloseToast() => Toast = null;
-
-    private async Task ExpireToastAsync(int clock)
-    {
-        await Task.Delay(ToastDuration, _time).ConfigureAwait(true);
-        if (clock == _toastClock)
-        {
-            Toast = null;
-        }
-    }
+    private void ShowToast(string text) => Toast.Show(text);
 
     /// <summary>Panel „Artikel und Gutscheine“ neben der Rechnung aufgeklappt; Standard zugeklappt, der Zustand gilt je Arbeitsplatz und bleibt über den Neustart.</summary>
     [ObservableProperty]

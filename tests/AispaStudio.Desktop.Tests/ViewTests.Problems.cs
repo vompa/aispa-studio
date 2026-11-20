@@ -98,10 +98,9 @@ public sealed partial class ViewTests
         Assert.Equal(AutomationLiveSetting.Assertive, AutomationProperties.GetLiveSetting(bar));
         Assert.NotNull(bar.CloseCommand);
         // Die Meldung steht über dem Kalender, nicht unten über dem Raster, und der Toast bleibt leer.
-        var grid = window.GetVisualDescendants().OfType<Border>().First(b => b.Name == "ToastBar");
+        var grid = window.GetVisualDescendants().OfType<ScrollViewer>().First(x => x.Name == "BodyScroll");
         Assert.True(TopOf(window, bar) < TopOf(window, grid));
-        Assert.False(calendar.HasToast);
-        Assert.Equal(AutomationLiveSetting.Polite, AutomationProperties.GetLiveSetting(grid));
+        Assert.False(calendar.Toast.IsShown);
         return calendar;
     }, RejectedMove());
 
@@ -117,8 +116,8 @@ public sealed partial class ViewTests
         var bar = ProblemBar(window);
         Assert.Equal(InfoBarSeverity.Warning, bar.Severity);
         Assert.Equal(AutomationLiveSetting.Assertive, AutomationProperties.GetLiveSetting(bar));
-        Assert.True(calendar.HasToast);
-        Assert.True(calendar.Toast!.Length <= CalendarViewModel.ToastMaxLength);
+        Assert.True(calendar.Toast.IsShown);
+        Assert.True(calendar.Toast.Text!.Length <= ToastState.MaxLength);
         return calendar;
     }, MovedAwayFromFixedTherapist(), time: new StoppedTime());
 
@@ -133,21 +132,21 @@ public sealed partial class ViewTests
         await DragSelectedToSecondColumnAsync(calendar);
         await Pump(Settling);
         var bar = ProblemBar(window);
-        Assert.True(calendar.HasToast);
+        Assert.True(calendar.Toast.IsShown);
 
         bar.CloseCommand!.Execute(null);
         await Pump(Settling);
 
         Assert.False(bar.IsEffectivelyVisible);
-        Assert.True(calendar.HasToast);
+        Assert.True(calendar.Toast.IsShown);
         // Der Toast geht erst mit seiner eigenen Frist zu, nicht mit der Meldung: mit „Rückgängig“ 8 s.
         Assert.True(calendar.CanUndo);
         clock.Advance(TimeSpan.FromSeconds(7));
         await Pump();
-        Assert.True(calendar.HasToast);
+        Assert.True(calendar.Toast.IsShown);
         clock.Advance(TimeSpan.FromSeconds(1));
         await Pump();
-        Assert.False(calendar.HasToast);
+        Assert.False(calendar.Toast.IsShown);
         return calendar;
     }, MovedAwayFromFixedTherapist(), time: clock);
     }

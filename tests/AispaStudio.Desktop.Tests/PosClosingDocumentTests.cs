@@ -98,7 +98,7 @@ public sealed class PosClosingDocumentTests
         await pos.ClosingDocument.SaveCommand.ExecuteAsync(null);
 
         Assert.Equal("Tagesabschluss-K1-2026-10-19.pdf", files.SavedName);
-        Assert.Equal("Gespeichert: Tagesabschluss-K1-2026-10-19.pdf", pos.Toast);
+        Assert.Equal("Gespeichert: Tagesabschluss-K1-2026-10-19.pdf", pos.Toast.Text);
     }
 
     [Fact]

@@ -176,7 +176,7 @@ public sealed class CalendarDayNoteGroupTests
         Assert.False(panel.HasUnsavedChanges);
         Assert.Equal(["Lieferung 10 Uhr"], panel.Notes.Select(n => n.Text));
         Assert.True(vm.HasDayNotes);
-        Assert.Equal("Notiz gespeichert", vm.Toast);
+        Assert.Equal("Notiz gespeichert", vm.Toast.Text);
         Assert.Equal([MessagesPanelViewModel.AddNoteButton], focus);
     }
 
@@ -226,7 +226,7 @@ public sealed class CalendarDayNoteGroupTests
         Assert.Contains("\"text\":\"Lieferung 11 Uhr\"", api.Calls.Single(c => c.Route.StartsWith("PATCH ", StringComparison.Ordinal)).Body!, StringComparison.Ordinal);
         Assert.Equal(["Lieferung 11 Uhr"], panel.Notes.Select(n => n.Text));
         Assert.False(panel.IsEditingNote);
-        Assert.Equal("Notiz geändert", vm.Toast);
+        Assert.Equal("Notiz geändert", vm.Toast.Text);
     }
 
     [Fact]

@@ -63,10 +63,10 @@ public sealed partial class ViewTests
         calendar.DragTo(DayLayout.ColumnLeft(0, calendar.Scale) + 40, item.Top + 20 - (30 * calendar.Scale.PixelsPerMinute));
         await Pump();
         await shots.Shot(2, RectOf(window, FoundVisible(window, c => c is Rectangle { StrokeDashArray.Count: > 0 }, "Vorschau beim Ziehen")));
-        // Schritt 3: loslassen; die Meldung unten bietet Rückgängig an.
+        // Schritt 3: loslassen; der Termin steht an der neuen Zeit, die Meldung mit Rückgängig zeigt die Shell.
         await calendar.DropAsync();
         await Pump();
-        await shots.Shot(3, NamedRect(window, "ToastBar"));
+        await shots.Shot(3, AppointmentRect(window, SpaSample.Selected.Id));
     });
 
     [Fact]

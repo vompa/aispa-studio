@@ -127,7 +127,7 @@
       </StackPanel>
       <ui:InfoBar Severity="Error" Title="Nicht gespeichert" Message="{Binding SettingsError}" IsVisible="{Binding HasSettingsError}" />
       <ui:SaveBar SaveCommand="{Binding SaveSettingsCommand}" DiscardCommand="{Binding DiscardSettingsCommand}" CanDiscard="{Binding HasUnsavedChanges}"
-                  Status="{Binding StatusText}" IsVisible="{Binding IsEditable}" />
+                  IsVisible="{Binding IsEditable}" />
     </StackPanel>
   </StackPanel>
 </UserControl>

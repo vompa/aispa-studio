@@ -49,4 +49,5 @@ Alles andere wird gelöscht oder geleert:
 
 ## Gut zu wissen {#hinweise}
 
+- Der Stand für die Arbeit ohne Verbindung verliert den Gast ebenfalls: auf diesem Gerät sofort, auf anderen Geräten nach spätestens 10 Minuten oder beim nächsten Start. Ein Gerät ohne Verbindung zum Server zeigt den Namen noch bis zum nächsten Kontakt, höchstens 14 Tage.
 - Öffnet man die Karte eines anonymisierten Gastes, etwa über **Kundenkarte öffnen** an einem alten Termin oder im [Verlauf](hilfe:seite-verlauf), steht oben „Anonymisiert am …“. Bearbeiten, Buchen und Kassieren gibt es dort nicht mehr.

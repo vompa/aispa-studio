@@ -60,7 +60,7 @@ public sealed class AdminLocationsTests
             [new OpeningHours(DayOfWeek.Monday, new(9, 0), new(20, 0)), new OpeningHours(DayOfWeek.Saturday, new(9, 0), new(14, 0))],
             input.OpeningHours);
         Assert.False(locations.HasUnsavedChanges);
-        Assert.Equal("Gespeichert.", locations.StatusText);
+        Assert.Equal("Gespeichert", locations.Toast.Text);
     }
 
     [Fact]
@@ -216,7 +216,7 @@ public sealed class AdminLocationsTests
         Assert.Equal(
             [new RoomStartItemInput("Fenster öffnen"), new RoomStartItemInput("Handtücher auffüllen"), new RoomStartItemInput("Licht prüfen")],
             Sent<List<RoomStartItemInput>>(api, $"PUT /api/rooms/{TestData.Room.Id}/start-checklist"));
-        Assert.Equal("Checkliste gespeichert.", checklist.StatusText);
+        Assert.Equal("Checkliste gespeichert", locations.Toast.Text);
     }
 
     [Fact]
@@ -237,7 +237,7 @@ public sealed class AdminLocationsTests
         Assert.Equal("Absage bis 24 Stunden vorher ist kostenlos.", sent.CancellationPolicy);
         Assert.Null(sent.GuestNote);
         Assert.False(rules.IsDefault);
-        Assert.Equal("Gespeichert.", rules.StatusText);
+        Assert.Equal("Gespeichert", locations.Toast.Text);
     }
 
     [Fact]

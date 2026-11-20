@@ -96,9 +96,9 @@ public sealed partial class RosterKindOption(RosterKind kind, string label, Acti
 /// </summary>
 public sealed partial class RosterDayEditorViewModel : ViewModelBase, IEditableArea
 {
-    public const string DraftSaved = "Als Entwurf gespeichert. Er gilt, sobald der Dienstplan veröffentlicht ist.";
+    public const string DraftSaved = "Als Entwurf gespeichert";
 
-    public const string Saved = "Gespeichert. Kalender und Buchung richten sich ab sofort danach.";
+    public const string Saved = "Gespeichert";
 
     private const int MaxShifts = 6;
 
@@ -195,9 +195,8 @@ public sealed partial class RosterDayEditorViewModel : ViewModelBase, IEditableA
     /// <summary>„Wie Wochenarbeitszeit“ gibt es, wo ein Plan oder Entwurf für den Tag steht.</summary>
     public bool CanReset => Cell.Source == RosterSource.Plan || Cell.Draft;
 
-    /// <summary>Status nach dem Speichern („Gespeichert …“ oder „Als Entwurf gespeichert …“), neben der Leiste.</summary>
-    [ObservableProperty]
-    public partial string? StatusText { get; set; }
+    /// <summary>Der Toast der Shell: „Gespeichert“ oder „Als Entwurf gespeichert“.</summary>
+    public ToastState Toast => _context.Toast;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasError))]
@@ -329,7 +328,6 @@ public sealed partial class RosterDayEditorViewModel : ViewModelBase, IEditableA
             return;
         }
 
-        StatusText = null;
         RuleWarning = null;
         OnPropertyChanged(nameof(HasUnsavedChanges));
     }
@@ -417,7 +415,7 @@ public sealed partial class RosterDayEditorViewModel : ViewModelBase, IEditableA
         OnPropertyChanged(nameof(CanReset));
         _savedState = State();
         OnPropertyChanged(nameof(HasUnsavedChanges));
-        StatusText = saved.Day.Draft ? DraftSaved : Saved;
+        Toast.Show(saved.Day.Draft ? DraftSaved : Saved);
         ShowsOpenWeekPlan = saved.Day.Draft && InCard;
         WarningsText = saved.Day.Warnings.Count == 0 ? null : string.Join('\n', saved.Day.Warnings);
         OutsideCount = saved.AppointmentsOutsideShift.Count;
@@ -447,7 +445,6 @@ public sealed partial class RosterDayEditorViewModel : ViewModelBase, IEditableA
 
         Error = null;
         RuleWarning = null;
-        StatusText = null;
         _savedState = State();
         OnPropertyChanged(nameof(HasUnsavedChanges));
     }

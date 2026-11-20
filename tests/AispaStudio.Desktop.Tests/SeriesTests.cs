@@ -64,7 +64,7 @@ public sealed class SeriesTests
         var sent = JsonSerializer.Deserialize<SeriesCreate>(api.Calls.Last(c => c.Body is not null).Body!, ApiClient.Json)!;
         Assert.Equal(new SeriesInput(4, SeriesMode.Weekly, 4, null), sent.Rule);
         Assert.Equal([Weeks(4), Weeks(8, 14)], sent.Picks.Select(p => p.Start));
-        Assert.Equal("Serie angelegt, 0 weitere Termine gebucht", vm.Toast);
+        Assert.Equal("Serie angelegt, 0 weitere Termine gebucht", vm.Toast.Text);
 
         var item = vm.Columns[0].Items.Single();
         Assert.Equal("↻ 1/3", item.SeriesLabel);
@@ -101,7 +101,7 @@ public sealed class SeriesTests
         Assert.True(vm.Selected!.CanCancelFollowing);
         await vm.Selected.AskCancelCommand.ExecuteAsync(null);
         Assert.Equal("Diesen und alle folgenden", dialogs.Asked.Single().AlternativeText);
-        Assert.Equal("1 Termin storniert, Serie beendet", vm.Toast);
+        Assert.Equal("1 Termin storniert, Serie beendet", vm.Toast.Text);
         Assert.Equal(AispaStudio.Desktop.Controls.InfoBarSeverity.Warning, vm.Problem!.Severity);
         Assert.Equal("Nicht frei: Mo. 29.3. (Anna: Urlaub)", vm.Problem.Message);
         Assert.Empty(vm.Columns[0].Items);

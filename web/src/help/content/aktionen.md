@@ -16,7 +16,7 @@ Aktionen verwalten dürfen Inhaber und Standortleitung (Recht „Katalog pflegen
 
 1. In der Windows-App unter „Verwaltung“ **Aktionen** öffnen.
 2. In der Liste steht bei jeder Aktion ihre Art und ihr Zustand: Läuft, Geplant, Pausiert oder Abgelaufen. Archivierte erscheinen erst, wenn **Archivierte anzeigen** unter der Liste eingeschaltet ist.
-3. Links eine Aktion wählen oder oben auf **Neue Aktion** klicken, rechts die Maske ausfüllen und auf **Speichern** (Strg+S) klicken. Es erscheint „Gespeichert“.
+3. Links eine Aktion wählen oder oben auf **Neue Aktion** klicken, rechts die Maske ausfüllen und auf **Speichern** (Strg+S) klicken. Unten erscheint kurz „Gespeichert“.
 
 ![Aktionen in der Windows-App: Liste mit Art und Zustand, rechts eine befristete Aktion](images/app/verwaltung-aktionen.png)
 

@@ -68,6 +68,7 @@
           </ItemsControl.ItemTemplate>
         </ItemsControl>
       </Border>
+      <ui:InfoBar x:Name="CardNotice" Severity="Success" Message="{Binding Notice}" IsVisible="{Binding HasNotice}" CloseCommand="{Binding CloseNoticeCommand}" />
     </StackPanel>
 
     <ScrollViewer Grid.Row="1" x:Name="CardScroll" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">

@@ -81,7 +81,7 @@ public sealed partial class ViewTests
             PressSave(window);
             await Pump(Settling);
 
-            Assert.True(Shows(window, RosterDayEditorViewModel.DraftSaved));
+            Assert.Equal(RosterDayEditorViewModel.DraftSaved, team.Toast.Text);
             var editor = VisibleNamed<Control>(window, "DayEditor");
             Assert.True(editor.Bounds.Width <= 560.5, $"Popover {editor.Bounds.Width} breit");
             // Texte und Knöpfe; Symbole (Viewbox, Path) messen ihre ungeschnittene Geometrie und zählen nicht.

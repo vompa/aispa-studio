@@ -108,7 +108,7 @@ public sealed partial class ViewTests
             var body = JsonSerializer.Deserialize<RosterDayInput>(put.Body!, ApiClient.Json)!;
             Assert.Equal(new RosterEntry(RosterKind.Work, SpaSample.LocationId, new TimeOnly(12, 0), new TimeOnly(20, 0)), Assert.Single(body.Entries));
             Assert.False(body.Draft);
-            Assert.True(Shows(window, RosterDayEditorViewModel.Saved));
+            Assert.Equal(RosterDayEditorViewModel.Saved, team.Toast.Text);
             Assert.False(team.HasUnsavedChanges);
             Assert.NotNull(roster.PlannedCell(RosterLena, RosterTuesday));
             return team;

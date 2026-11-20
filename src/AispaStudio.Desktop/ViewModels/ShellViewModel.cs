@@ -61,10 +61,11 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
         User = user;
         HasInbox = user.Rights.Contains(AccessRight.Book) && modules?.BookingIntake != false;
         Connection = connection;
-        Calendar = new CalendarViewModel(api, user, live, time, theme.Store) { CanAskAssistant = modules?.Assistant != false };
-        Customers = new CustomersViewModel(api, time) { User = user, BookRequested = BookForCustomer };
-        Activity = new ActivityViewModel(api, user, time) { LocationSource = () => Calendar.Location };
-        Pos = new PosViewModel(api, time, theme.Store) { OwnerLevel = user.Access?.Role is StaffRole.Owner or StaffRole.GeneralManager, MaySuperviseCash = user.Rights.Contains(AccessRight.SuperviseCash), MaySeeAmountReports = user.Rights.Contains(AccessRight.ViewAmountReports) };
+        Confirmation = new ToastState(time);
+        Calendar = new CalendarViewModel(api, user, live, time, theme.Store, Confirmation) { CanAskAssistant = modules?.Assistant != false };
+        Customers = new CustomersViewModel(api, time, Confirmation) { User = user, BookRequested = BookForCustomer };
+        Activity = new ActivityViewModel(api, user, time, Confirmation) { LocationSource = () => Calendar.Location };
+        Pos = new PosViewModel(api, time, theme.Store, toast: Confirmation) { OwnerLevel = user.Access?.Role is StaffRole.Owner or StaffRole.GeneralManager, MaySuperviseCash = user.Rights.Contains(AccessRight.SuperviseCash), MaySeeAmountReports = user.Rights.Contains(AccessRight.ViewAmountReports) };
         HasPin = user.HasPin;
         Devices = new DevicesViewModel(api, theme.Store)
         {
@@ -141,7 +142,7 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
         }
 
         // Verwaltung (ADR 0084): alle Bereiche nativ in der App (seit Slice 103 ohne eingebettete Team-Oberfläche).
-        AdminPage = new AdminPageViewModel(api, user, time, live, modules) { Dialogs = dialogs };
+        AdminPage = new AdminPageViewModel(api, user, time, live, modules, Confirmation) { Dialogs = dialogs };
         pages.Add(new NavItem("Verwaltung", Icons.Sliders, AdminPage));
         _web = new ServerWeb(api);
         Help = new HelpViewModel(() => _web.Address, time: time, prepare: _web.LookUpAsync);
@@ -712,6 +713,7 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
     private async Task PrefetchCoreAsync(CancellationToken ct)
     {
         _lastPrefetch = _time.GetUtcNow();
+        await RemoveAnonymizedAsync(ct).ConfigureAwait(true);
         var customers = new HashSet<Guid>();
         foreach (var location in Calendar.Locations)
         {
@@ -745,6 +747,28 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
             await _api.GetAsync<List<ArticleDto>>("api/pos/articles", ct).ConfigureAwait(true);
         }
     }
+
+    /// <summary>
+    /// Gäste, die inzwischen auf einem anderen Gerät anonymisiert wurden, aus dem lokalen Stand entfernen (ADR 0093). Das Fenster
+    /// liegt einen Tag über <see cref="OfflineCache.MaxAge"/>: Älteres zeigt der Stand ohnehin nicht mehr, ein Merker je Gerät ist unnötig.
+    /// </summary>
+    private async Task RemoveAnonymizedAsync(CancellationToken ct)
+    {
+        if (_api.Offline is null)
+        {
+            return;
+        }
+
+        var since = _time.GetUtcNow() - OfflineCache.MaxAge - TimeSpan.FromDays(1);
+        var result = await _api.GetAsync<AnonymizedCustomers>($"{OfflineCache.AnonymizedPath}?since={since.UtcDateTime:yyyy-MM-ddTHH:mm:ssZ}", ct).ConfigureAwait(true);
+        if (result.Value?.Ids.Where(_removedCustomers.Add).ToList() is { Count: > 0 } fresh)
+        {
+            _api.Offline?.RemoveCustomers(fresh);
+        }
+    }
+
+    // In dieser Sitzung schon Entferntes: spart die Suche durch den ganzen Stand bei jedem Lauf.
+    private readonly HashSet<Guid> _removedCustomers = [];
 
     [RelayCommand]
     private void DismissFailed(FailedChange failed) => _api.Offline?.DismissFailed(failed.Id);
@@ -1127,6 +1151,12 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
 
     [RelayCommand]
     private void CloseToast() => Toast = null;
+
+    /// <summary>
+    /// Der eine Toast der App für Bestätigungen („Gespeichert“, „Verschoben auf 14:30“ mit „Rückgängig“): die Seiten bekommen diese Instanz
+    /// und zeigen darüber, die Shell stellt ihn unten mittig im Seitenbereich dar (design.md 5.10, meldungen.md M1).
+    /// </summary>
+    public ToastState Confirmation { get; }
 
     /// <summary>Text der Meldung nach einem unerwarteten Fehler in der Oberfläche (T-055); der Fehler selbst steht in protokolle\app.log.</summary>
     internal const string UnexpectedErrorText = "Unerwarteter Fehler protokolliert. Bitte erneut versuchen";

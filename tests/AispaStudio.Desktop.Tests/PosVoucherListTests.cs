@@ -183,7 +183,7 @@ public sealed class PosVoucherListTests
         await item.HandOverCommand.ExecuteAsync(null);
 
         Assert.Contains(api.Calls, c => c.Route == $"POST /api/pos/vouchers/{Gift.Id}/handed-over");
-        Assert.Equal($"Gutschein {Gift.Code} als übergeben vermerkt", pos.Toast);
+        Assert.Equal($"Gutschein {Gift.Code} als übergeben vermerkt", pos.Toast.Text);
     }
 
     [Fact]
@@ -196,6 +196,6 @@ public sealed class PosVoucherListTests
         await item.HandOverCommand.ExecuteAsync(null);
 
         Assert.NotNull(pos.Error);
-        Assert.Null(pos.Toast);
+        Assert.Null(pos.Toast.Text);
     }
 }

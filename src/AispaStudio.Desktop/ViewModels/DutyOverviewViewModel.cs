@@ -69,7 +69,7 @@ public sealed partial class DutyTypeRow(Guid? id, DutyTypeKey? key, Action chang
 /// und abgelaufene) und die pflegbare „Liste der Zuständigkeiten“ mit verlangtem Zertifikat und der Mindestzahl Ersthelferinnen im Dienst. Nur mit <c>ManageHrFile</c>; wer wofür zuständig ist, steht in der Tabelle
 /// <see cref="RightsTableViewModel"/>.
 /// </summary>
-public sealed partial class DutyOverviewViewModel(IWorkstationApi api, Action<Guid>? openPerson = null) : ViewModelBase, IEditableArea
+public sealed partial class DutyOverviewViewModel(IWorkstationApi api, Action<Guid>? openPerson = null, ToastState? toast = null) : ViewModelBase, IEditableArea
 {
     private const string TypesPath = "api/staff-duties/types";
     private string _savedState = "";
@@ -100,8 +100,8 @@ public sealed partial class DutyOverviewViewModel(IWorkstationApi api, Action<Gu
 
     public bool HasError => Error is not null;
 
-    [ObservableProperty]
-    public partial string? StatusText { get; private set; }
+    /// <summary>Der Toast der Shell: „Gespeichert“ nach dem Speichern der Zuständigkeiten.</summary>
+    public ToastState Toast { get; } = toast ?? new ToastState(TimeProvider.System);
 
     public bool HasUnsavedChanges => IsLoaded && TypesState() != _savedState;
 
@@ -145,7 +145,6 @@ public sealed partial class DutyOverviewViewModel(IWorkstationApi api, Action<Gu
     private void AddType()
     {
         Types.Add(new DutyTypeRow(null, null, TypesChanged));
-        StatusText = null;
         OnPropertyChanged(nameof(HasUnsavedChanges));
     }
 
@@ -196,14 +195,13 @@ public sealed partial class DutyOverviewViewModel(IWorkstationApi api, Action<Gu
         }
 
         await LoadAsync().ConfigureAwait(true);
-        StatusText = "Gespeichert.";
+        Toast.Show("Gespeichert");
         return true;
     }
 
     public void Discard()
     {
         Error = null;
-        StatusText = null;
         _ = LoadAsync();
     }
 
@@ -218,7 +216,6 @@ public sealed partial class DutyOverviewViewModel(IWorkstationApi api, Action<Gu
             return;
         }
 
-        StatusText = null;
         OnPropertyChanged(nameof(HasUnsavedChanges));
     }
 }

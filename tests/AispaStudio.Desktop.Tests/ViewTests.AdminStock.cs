@@ -944,7 +944,7 @@ public sealed partial class ViewTests
         await Scan("Bestellungen, Entwurf");
         await stock.Orders.Orders[0].MarkOrderedCommand.ExecuteAsync(null);
         // Die Bestätigung kommt als Toast und läuft nach 5 Sekunden echter Zeit ab; geprüft wird die Seite ohne ihn, sonst hängt das Ergebnis von der Laufzeit ab.
-        stock.CloseToastCommand.Execute(null);
+        stock.Toast.CloseCommand.Execute(null);
         await Pump(Settling);
         await Scan("Bestellungen, bestellt");
 

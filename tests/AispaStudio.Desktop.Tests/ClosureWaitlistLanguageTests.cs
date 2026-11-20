@@ -143,7 +143,7 @@ public sealed class ClosureWaitlistLanguageTests
         using var json = JsonDocument.Parse(api.Calls.Single(c => c.Route == $"POST {ClosureTests.Path("/cancellation")}").Body!);
         Assert.Empty(json.RootElement.GetProperty("appointmentIds").EnumerateArray());
         Assert.Equal([wishes[0].EntryId], json.RootElement.GetProperty("waitlistEntryIds").EnumerateArray().Select(e => e.GetGuid()));
-        Assert.NotNull(vm.Toast);
+        Assert.NotNull(vm.Toast.Text);
     }
 
     [Fact]

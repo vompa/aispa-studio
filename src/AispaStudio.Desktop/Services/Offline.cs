@@ -109,8 +109,20 @@ public sealed class WindowsOfflineStore : IOfflineStore
 /// </summary>
 public sealed class OfflineCache(IOfflineStore store, TimeProvider? time = null)
 {
-    /// <summary>Was älter ist, wird beim Speichern verworfen.</summary>
+    /// <summary>Was älter ist, wird nicht mehr gezeigt und beim Speichern verworfen.</summary>
     public static readonly TimeSpan MaxAge = TimeSpan.FromDays(14);
+
+    /// <summary>Liste der anonymisierten Gäste: steuert das Bereinigen und gehört selbst nicht in den Stand.</summary>
+    public const string AnonymizedPath = "api/customers/anonymized";
+
+    private const string CustomerSearch = "api/customers?search=";
+
+    // Antworten, die Name oder Mailadresse eines Gastes ohne seine Kunden-Id tragen können (gehaltene Termine, Lückenvorschläge,
+    // Schließzeiten und Raumsperren mit betroffenen Terminen, Gutscheinbestellungen); beim Bereinigen fallen sie ganz weg und laden
+    // mit Verbindung neu. Die Tagesliste der Kassa gehört nicht dazu: jede Zeile trägt Termin oder Besuch mit der Kunden-Id.
+    private static readonly string[] NamedWithoutId = ["/appointment-holds", "/gap-suggestions", "/closure", "/room-closures", "/voucher-orders"];
+
+    private const string DeletedGuest = "Gelöschter Gast";
 
     // Nur Lesendes, das die Rezeption ohne Verbindung braucht. Anamnese, Gesundheit und Berichte bleiben ausgeschlossen.
     private static readonly string[] Cacheable =
@@ -162,7 +174,8 @@ public sealed class OfflineCache(IOfflineStore store, TimeProvider? time = null)
         var p = path.TrimStart('/');
         return Cacheable.Any(prefix => p == prefix || p.StartsWith(prefix + "/", StringComparison.Ordinal) || p.StartsWith(prefix + "?", StringComparison.Ordinal))
             && !p.Contains("anamnes", StringComparison.OrdinalIgnoreCase)
-            && !p.Contains("health", StringComparison.OrdinalIgnoreCase);
+            && !p.Contains("health", StringComparison.OrdinalIgnoreCase)
+            && !p.StartsWith(AnonymizedPath, StringComparison.Ordinal);
     }
 
     private OfflineState State => _state ??= store.Load();
@@ -171,7 +184,19 @@ public sealed class OfflineCache(IOfflineStore store, TimeProvider? time = null)
     {
         lock (_lock)
         {
-            State.Responses[Key(path)] = new CachedResponse(json, _time.GetUtcNow());
+            if (Key(path).StartsWith(CustomerSearch, StringComparison.Ordinal))
+            {
+                // Eine Suchliste liegt je Gast als Kundenkarte im Stand, nie unter dem Suchbegriff: der wäre ein Name im Schlüssel.
+                foreach (var (id, customer) in CustomersOf(json))
+                {
+                    State.Responses[$"api/customers/{id:D}"] = new CachedResponse(customer, _time.GetUtcNow());
+                }
+            }
+            else
+            {
+                State.Responses[Key(path)] = new CachedResponse(json, _time.GetUtcNow());
+            }
+
             _dirty = true;
 
             // Gelesenes höchstens alle fünf Sekunden auf die Platte (beim Vorausladen kommen viele Antworten schnell nacheinander).
@@ -198,13 +223,13 @@ public sealed class OfflineCache(IOfflineStore store, TimeProvider? time = null)
     {
         lock (_lock)
         {
-            if (State.Responses.TryGetValue(Key(path), out var hit))
+            if (State.Responses.TryGetValue(Key(path), out var hit) && !IsExpired(hit))
             {
                 return hit;
             }
 
             // Kundensuche ohne Verbindung: in allen bisher geladenen Kunden suchen.
-            const string Search = "api/customers?search=";
+            const string Search = CustomerSearch;
             var key = Key(path);
             if (key.StartsWith(Search, StringComparison.Ordinal))
             {
@@ -340,12 +365,80 @@ public sealed class OfflineCache(IOfflineStore store, TimeProvider? time = null)
         Changed?.Invoke();
     }
 
+    /// <summary>
+    /// Nach dem Anonymisieren (ADR 0093): entfernt jede Antwort, die einen dieser Gäste nennt, und speichert sofort. Dazu alle
+    /// Suchlisten (der Suchbegriff, also der Name, steht in ihrem Schlüssel) und die Antworten, die einen Namen ohne Kunden-Id tragen.
+    /// Die Suche ohne Verbindung arbeitet danach mit den verbliebenen Kundenkarten.
+    /// </summary>
+    public void RemoveCustomers(IReadOnlyCollection<Guid> customers)
+    {
+        if (customers.Count == 0)
+        {
+            return;
+        }
+
+        // System.Text.Json schreibt eine Guid klein im Format „D“, im Pfad wie in der Antwort.
+        var ids = customers.Select(id => id.ToString("D")).ToList();
+        lock (_lock)
+        {
+            var hits = State.Responses
+                .Where(r => r.Key.StartsWith(CustomerSearch, StringComparison.Ordinal)
+                    || NamedWithoutId.Any(part => PathOf(r.Key).Contains(part, StringComparison.Ordinal))
+                    || ids.Any(id => r.Key.Contains(id, StringComparison.OrdinalIgnoreCase) || r.Value.Json.Contains(id, StringComparison.OrdinalIgnoreCase)))
+                .Select(r => r.Key)
+                .ToList();
+            foreach (var key in hits)
+            {
+                State.Responses.Remove(key);
+            }
+
+            // Vorgemerktes zu dem Gast bleibt (der Server entscheidet beim Abgleich), nennt ihn aber nicht mehr. Ein Ersatzbeleg bleibt, wie er ist.
+            for (var i = 0; i < State.Pending.Count; i++)
+            {
+                var p = State.Pending[i];
+                if (p.Substitute is null && ids.Any(id => p.Body.Contains(id, StringComparison.OrdinalIgnoreCase) || p.Path.Contains(id, StringComparison.OrdinalIgnoreCase)))
+                {
+                    State.Pending[i] = p with
+                    {
+                        Description = $"{DeletedGuest}: vorgemerkte Änderung",
+                        Preview = p.Preview is null ? null : p.Preview with { CustomerName = DeletedGuest },
+                        Visit = p.Visit is null ? null : p.Visit with { CustomerName = DeletedGuest },
+                    };
+                }
+            }
+
+            Persist();
+        }
+    }
+
+    private static string PathOf(string key) => key.Split('?', 2)[0];
+
+    private static List<(Guid Id, string Json)> CustomersOf(string json)
+    {
+        try
+        {
+            using var doc = JsonDocument.Parse(json);
+            return doc.RootElement.ValueKind != JsonValueKind.Array ? [] :
+            [
+                .. doc.RootElement.EnumerateArray()
+                    .Where(item => item.ValueKind == JsonValueKind.Object && item.TryGetProperty("id", out var id) && id.TryGetGuid(out _))
+                    .Select(item => (item.GetProperty("id").GetGuid(), item.GetRawText())),
+            ];
+        }
+        catch (JsonException)
+        {
+            return [];
+        }
+    }
+
+    private bool IsExpired(CachedResponse response) => response.SavedAt < _time.GetUtcNow() - MaxAge;
+
     private List<CustomerDto> KnownCustomers()
     {
         var seen = new Dictionary<Guid, CustomerDto>();
         foreach (var (key, response) in State.Responses)
         {
-            if (!key.StartsWith("api/customers", StringComparison.Ordinal) || key.EndsWith("/appointments", StringComparison.Ordinal))
+            if (!key.StartsWith("api/customers", StringComparison.Ordinal) || key.EndsWith("/appointments", StringComparison.Ordinal) || IsExpired(response))
             {
                 continue;
             }
@@ -366,10 +459,15 @@ public sealed class OfflineCache(IOfflineStore store, TimeProvider? time = null)
             }
         }
 
-        return [.. seen.Values];
+        // Ein anonymisierter Gast („Gelöschter Gast“ mit DeletedAt) ist kein Treffer mehr, wie in der Suche des Servers.
+        return [.. seen.Values.Where(c => c.DeletedAt is null)];
     }
 
+    // Wie die Suche des Servers: jeder Begriff muss treffen, „Ann Hub“ findet Anna Huber.
     private static bool Matches(CustomerDto c, string query) =>
+        MatchesTerm(c, query) || query.Split(' ', StringSplitOptions.RemoveEmptyEntries).All(term => MatchesTerm(c, term));
+
+    private static bool MatchesTerm(CustomerDto c, string query) =>
         $"{c.FirstName} {c.LastName}".Contains(query, StringComparison.CurrentCultureIgnoreCase)
         || c.InHouseName.Contains(query, StringComparison.CurrentCultureIgnoreCase)
         || $"{c.LastName} {c.FirstName}".Contains(query, StringComparison.CurrentCultureIgnoreCase)

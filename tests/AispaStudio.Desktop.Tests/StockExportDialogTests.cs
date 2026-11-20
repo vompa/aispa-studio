@@ -187,13 +187,13 @@ public sealed class StockExportDialogTests
         await running;
 
         Assert.Equal(name, Assert.Single(setup.Files.Saved));
-        Assert.Equal($"Gespeichert: {name}", setup.Stock.Toast);
-        Assert.True(setup.Stock.CanOpenSavedFolder);
+        Assert.Equal($"Gespeichert: {name}", setup.Stock.Toast.Text);
+        Assert.Equal("Ordner öffnen", setup.Stock.Toast.ActionText);
         Assert.Null(setup.Stock.ExportError);
 
-        setup.Stock.OpenSavedFolderCommand.Execute(null);
+        setup.Stock.Toast.Action!.Execute(null);
         Assert.Equal($@"C:\Export\{name}", Assert.Single(setup.Folders.Revealed));
-        Assert.Null(setup.Stock.Toast);
+        Assert.Null(setup.Stock.Toast.Text);
     }
 
     [Fact]
@@ -253,11 +253,11 @@ public sealed class StockExportDialogTests
         await running;
 
         Assert.DoesNotContain(cancelDialog.Api.Calls, c => c.Route.Contains("/export?", StringComparison.Ordinal));
-        Assert.Null(cancelDialog.Stock.Toast);
+        Assert.Null(cancelDialog.Stock.Toast.Text);
         Assert.Empty(cancelSave.Files.Saved);
-        Assert.Null(cancelSave.Stock.Toast);
+        Assert.Null(cancelSave.Stock.Toast.Text);
         Assert.Null(cancelSave.Stock.ExportError);
-        Assert.False(cancelSave.Stock.CanOpenSavedFolder);
+        Assert.False(cancelSave.Stock.Toast.HasAction);
     }
 
     [Fact]
@@ -273,7 +273,7 @@ public sealed class StockExportDialogTests
         Assert.False(string.IsNullOrEmpty(setup.Stock.ExportError));
         Assert.True(setup.Stock.HasExportError);
         Assert.Null(setup.Stock.Error);
-        Assert.Null(setup.Stock.Toast);
+        Assert.Null(setup.Stock.Toast.Text);
         Assert.Equal("Export nicht erstellt", StockViewModel.ExportErrorTitle);
 
         // Neuer Versuch: der alte Fehler ist weg, sobald der Dialog aufgeht; ein Abbruch lässt ihn nicht zurückkommen.
@@ -303,11 +303,11 @@ public sealed class StockExportDialogTests
         dialog.ExportCommand.Execute(null);
         await running;
 
-        Assert.True(setup.Stock.HasToast);
-        Assert.True(setup.Stock.Toast!.Length <= 60, setup.Stock.Toast);
-        Assert.False(setup.Stock.Toast.EndsWith('.'));
-        setup.Stock.CloseToastCommand.Execute(null);
-        Assert.False(setup.Stock.HasToast);
-        Assert.False(setup.Stock.CanOpenSavedFolder);
+        Assert.True(setup.Stock.Toast.IsShown);
+        Assert.True(setup.Stock.Toast.Text!.Length <= 60, setup.Stock.Toast.Text);
+        Assert.False(setup.Stock.Toast.Text.EndsWith('.'));
+        setup.Stock.Toast.CloseCommand.Execute(null);
+        Assert.False(setup.Stock.Toast.IsShown);
+        Assert.False(setup.Stock.Toast.HasAction);
     }
 }

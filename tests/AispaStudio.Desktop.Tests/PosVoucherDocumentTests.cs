@@ -69,6 +69,6 @@ public sealed class PosVoucherDocumentTests
         await documents[0].Document.SaveCommand.ExecuteAsync(null);
 
         Assert.Equal($"Gutschein-{Gift.Code}.pdf", files.SavedName);
-        Assert.Equal($"Gespeichert: Gutschein-{Gift.Code}.pdf", pos.Toast);
+        Assert.Equal($"Gespeichert: Gutschein-{Gift.Code}.pdf", pos.Toast.Text);
     }
 }

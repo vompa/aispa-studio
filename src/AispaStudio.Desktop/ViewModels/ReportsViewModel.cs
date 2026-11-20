@@ -40,8 +40,12 @@ public sealed partial class ReportsViewModel : ViewModelBase, ITargetedArea, ISa
     private bool _isReady;
     private Guid? _targetLocation;
 
-    public ReportsViewModel(IWorkstationApi api, CurrentUser user, TimeProvider time)
+    /// <summary>Der Toast der Shell, auch für die Betriebsinfo.</summary>
+    public ToastState Toast { get; }
+
+    public ReportsViewModel(IWorkstationApi api, CurrentUser user, TimeProvider time, ToastState? toast = null)
     {
+        Toast = toast ?? new ToastState(time);
         (_api, _user) = (api, user);
         DayPlan = new DayPlanReportViewModel(api, time, user.EmployeeId);
         Briefing = new BriefingReportViewModel(api, time);
@@ -50,7 +54,7 @@ public sealed partial class ReportsViewModel : ViewModelBase, ITargetedArea, ISa
         Compliance = new ComplianceReportViewModel(api, time);
         if (CanSeeBusinessInfo)
         {
-            BusinessInfo = new BusinessInfoViewModel(api, user);
+            BusinessInfo = new BusinessInfoViewModel(api, user, Toast);
             BusinessInfo.PropertyChanged += (_, e) =>
             {
                 if (e.PropertyName == nameof(BusinessInfoViewModel.HasUnsavedChanges))

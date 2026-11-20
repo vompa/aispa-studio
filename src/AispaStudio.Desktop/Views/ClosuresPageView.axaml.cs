@@ -1,6 +1,4 @@
-using AispaStudio.Desktop.ViewModels;
 using Avalonia.Controls;
-using Avalonia.Input;
 
 namespace AispaStudio.Desktop.Views;
 
@@ -8,8 +6,4 @@ namespace AispaStudio.Desktop.Views;
 public partial class ClosuresPageView : UserControl
 {
     public ClosuresPageView() => InitializeComponent();
-
-    private void OnToastEntered(object? sender, PointerEventArgs e) => (DataContext as ClosuresPageViewModel)?.HoldToast(true);
-
-    private void OnToastExited(object? sender, PointerEventArgs e) => (DataContext as ClosuresPageViewModel)?.HoldToast(false);
 }

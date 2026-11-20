@@ -147,7 +147,7 @@ public sealed partial class ViewTests
             var input = JsonSerializer.Deserialize<CalendarSubscriptionInput>(post.Body!, ApiClient.Json)!;
             Assert.Equal(("Feiertage Salzburg", "https://example.org/sbg.ics", "AT-5", SubscriptionKind.PublicHoliday), (input.Name, input.Url, input.Region, input.Kind));
             Assert.False(subscriptions.HasUnsavedChanges);
-            Assert.True(Shows(window, "Gespeichert."));
+            Assert.Equal("Gespeichert", subscriptions.Toast.Text);
             return shell.AdminPage;
         }, api);
     }

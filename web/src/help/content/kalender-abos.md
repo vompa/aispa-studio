@@ -26,7 +26,7 @@ Wer darf was:
 So bedient man die Maske in der Windows-App:
 
 1. In der Liste links ein Abo wählen oder auf **Neues Abo** klicken. Die Liste nennt zu jedem Abo die Art, den Stand des Abrufs und wo es gilt; „Aus“, „Fehler“ und die Zahl offener Widersprüche stehen darüber.
-2. Rechts die Maske ausfüllen und auf **Speichern** klicken (oder **Strg+S**). Es erscheint „Gespeichert.“. Ein neues Abo mit Adresse wird danach gleich abgerufen; das Ergebnis steht als Meldung über der Maske.
+2. Rechts die Maske ausfüllen und auf **Speichern** klicken (oder **Strg+S**). Unten erscheint kurz „Gespeichert“. Ein neues Abo mit Adresse wird danach gleich abgerufen; das Ergebnis steht als Meldung über der Maske.
 3. **Verwerfen** neben **Speichern** holt den gespeicherten Stand zurück. Wer mit ungespeicherten Änderungen ein anderes Abo oder einen anderen Bereich wählt, wird gefragt: „Änderungen speichern?“ mit **Speichern**, **Verwerfen** und **Abbrechen**.
 4. Ein Fehler steht am Feld, und der Cursor springt ins erste Feld mit einem Fehler.
 5. **Löschen** am Ende der Maske fragt vorher nach: „Abo löschen?“.

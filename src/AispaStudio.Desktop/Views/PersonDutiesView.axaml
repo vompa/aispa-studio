@@ -103,16 +103,6 @@
       <ui:SaveBar SaveCommand="{Binding SaveCommand}" DiscardCommand="{Binding CancelCommand}" CanDiscard="True" />
     </StackPanel>
 
-    <!-- „Gespeichert“ als Toast (meldungen.md M1: eine Zeile, ohne Punkt, 5 Sekunden, der Mauszeiger darüber hält ihn an), nicht als InfoBar (M2) -->
-    <Border x:Name="DutiesToast" Classes="toast" Classes.shown="{Binding Toast.IsShown}" IsVisible="{Binding Toast.IsShown}" HorizontalAlignment="Left" CornerRadius="8" Padding="16,10,6,10"
-            BoxShadow="{DynamicResource RaisedShadow}" MaxWidth="760" PointerEntered="OnToastEntered" PointerExited="OnToastExited" AutomationProperties.LiveSetting="Polite">
-      <StackPanel Orientation="Horizontal" Spacing="8">
-        <TextBlock Classes="msg" Text="{Binding Toast.Text}" Foreground="{DynamicResource ToastFgBrush}" VerticalAlignment="Center" MaxWidth="540" AutomationProperties.Name="Meldung" />
-        <Button Classes="ghost icon" Command="{Binding Toast.CloseCommand}" Foreground="{DynamicResource ToastFgBrush}" ToolTip.Tip="Schließen" AutomationProperties.Name="Meldung schließen">
-          <ui:Icon Data="{x:Static ui:Icons.Close}" Width="16" Height="16" />
-        </Button>
-      </StackPanel>
-    </Border>
     <TextBlock Text="Lade Zuständigkeiten und Zertifikate …" Classes="muted" IsVisible="{Binding ShowsLoading}" />
 
     <StackPanel Spacing="8">

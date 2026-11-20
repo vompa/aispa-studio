@@ -42,7 +42,7 @@ public sealed partial class AccountMappingField(string label, string help, Func<
 /// unverändert von der API und wird Byte für Byte gespeichert; Buchungen und Dateiformat rechnet nur der Server. Vor dem DATEV-Export prüft die Maske wie das Web, ob jeder Steuersatz einen
 /// BU-Schlüssel hat. Erlöskonten legt nur an, wer den Katalog pflegen darf (ManageCatalog), die Kontenzuordnung ändert nur, wer die Organisation verwaltet (ManageOrganization).
 /// </summary>
-public sealed partial class AccountingViewModel(IWorkstationApi api, CurrentUser user, TimeProvider time) : ViewModelBase, INativeArea, IFocusTarget, ISavesFiles
+public sealed partial class AccountingViewModel(IWorkstationApi api, CurrentUser user, TimeProvider time, ToastState? toast = null) : ViewModelBase, INativeArea, IFocusTarget, ISavesFiles
 {
     public const string FromField = "AccountingFromField";
 
@@ -241,9 +241,8 @@ public sealed partial class AccountingViewModel(IWorkstationApi api, CurrentUser
     [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
     public partial bool IsSaving { get; private set; }
 
-    /// <summary>„Gespeichert.“ in der Leiste, bis wieder etwas geändert wird.</summary>
-    [ObservableProperty]
-    public partial string? StatusText { get; private set; }
+    /// <summary>Der Toast der Shell für die Bestätigung nach dem Speichern.</summary>
+    public ToastState Toast { get; } = toast ?? new ToastState(time);
 
     public bool HasUnsavedChanges => _savedSignature is not null && CanEditSettings && Signature() != _savedSignature;
 
@@ -361,7 +360,6 @@ public sealed partial class AccountingViewModel(IWorkstationApi api, CurrentUser
             return;
         }
 
-        StatusText = null;
         OnPropertyChanged(nameof(HasUnsavedChanges));
     }
 
@@ -591,7 +589,6 @@ public sealed partial class AccountingViewModel(IWorkstationApi api, CurrentUser
         if (result.Value is { } settings)
         {
             Error = null;
-            StatusText = null;
             Apply(settings);
         }
         else
@@ -641,7 +638,7 @@ public sealed partial class AccountingViewModel(IWorkstationApi api, CurrentUser
         }
 
         Apply(saved);
-        StatusText = "Gespeichert.";
+        Toast.Show("Gespeichert");
         return true;
     }
 
@@ -679,7 +676,7 @@ public sealed partial class AccountingViewModel(IWorkstationApi api, CurrentUser
         }
 
         await LoadCountryAsync().ConfigureAwait(true);
-        StatusText = "Eigene Zuordnung entfernt, es gilt wieder der Standard.";
+        Toast.Show("Eigene Zuordnung entfernt, es gilt der Standard");
     }
 
     [RelayCommand]

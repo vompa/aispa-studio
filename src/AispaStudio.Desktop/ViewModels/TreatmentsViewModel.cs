@@ -67,9 +67,10 @@ public sealed partial class TreatmentsViewModel : ViewModelBase, INativeArea
     private (Guid? Id, string? Section, string? Field)? _pending;
 
     /// <param name="showsMaterial">Recht auf Berichte mit Beträgen: nur dann gibt es den Abschnitt „Material“ (Kosten je Behandlung).</param>
-    public TreatmentsViewModel(IWorkstationApi api, TimeZoneInfo zone, bool showsMaterial = true)
+    public TreatmentsViewModel(IWorkstationApi api, TimeZoneInfo zone, bool showsMaterial = true, ToastState? toast = null)
     {
         _api = api;
+        Toast = toast ?? new ToastState(TimeProvider.System);
         _zone = zone;
         _showsMaterial = showsMaterial;
     }
@@ -129,8 +130,8 @@ public sealed partial class TreatmentsViewModel : ViewModelBase, INativeArea
 
     public bool HasUnsavedChanges => Editor?.HasUnsavedChanges == true;
 
-    /// <summary>Der Stand der offenen Behandlung („Gespeichert. Gilt für neue Buchungen.“).</summary>
-    public string? StatusText => Editor?.StatusText;
+    /// <summary>Die Bestätigung nach dem Speichern: der eine Toast der Shell, den auch der Editor der offenen Behandlung nutzt.</summary>
+    public ToastState Toast { get; }
 
     partial void OnEditorChanged(TreatmentEditorViewModel? oldValue, TreatmentEditorViewModel? newValue)
     {
@@ -149,8 +150,7 @@ public sealed partial class TreatmentsViewModel : ViewModelBase, INativeArea
 
     private void OnEditorPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
-        if (e.PropertyName is nameof(TreatmentEditorViewModel.HasUnsavedChanges) or nameof(TreatmentEditorViewModel.StatusText)
-            or nameof(TreatmentEditorViewModel.Title))
+        if (e.PropertyName is nameof(TreatmentEditorViewModel.HasUnsavedChanges) or nameof(TreatmentEditorViewModel.Title))
         {
             RaiseFooter();
         }
@@ -159,7 +159,6 @@ public sealed partial class TreatmentsViewModel : ViewModelBase, INativeArea
     private void RaiseFooter()
     {
         OnPropertyChanged(nameof(HasUnsavedChanges));
-        OnPropertyChanged(nameof(StatusText));
         OnPropertyChanged(nameof(Title));
     }
 
@@ -440,7 +439,7 @@ public sealed partial class TreatmentsViewModel : ViewModelBase, INativeArea
     {
         Notice = null;
         var treatment = _treatments.FirstOrDefault(t => t.Id == entry.Id) ?? _inactive.FirstOrDefault(t => t.Id == entry.Id);
-        Editor = new TreatmentEditorViewModel(_api, _catalog!, treatment, _zone)
+        Editor = new TreatmentEditorViewModel(_api, _catalog!, treatment, _zone, Toast)
         {
             Dialogs = Dialogs,
             AfterSaveAsync = RefreshAfterSaveAsync,

@@ -11,7 +11,7 @@ namespace AispaStudio.Desktop.ViewModels;
 /// Barzahlungsrabatt (<c>api/pos/settings</c>). An der Kassa-Logik, an RKSV und TSE ändert die Maske nichts (ADR 0010); was gilt, rechnet die API. Ohne Änderung
 /// schickt „Speichern“ nichts.
 /// </summary>
-public sealed partial class PosSettingsViewModel(IWorkstationApi api) : ViewModelBase, INativeArea
+public sealed partial class PosSettingsViewModel(IWorkstationApi api, ToastState? toast = null) : ViewModelBase, INativeArea
 {
     /// <summary>Feldkennung der Rabattgrenze, für den Fokus nach einem Fehler.</summary>
     public const string LimitField = "limit";
@@ -56,9 +56,8 @@ public sealed partial class PosSettingsViewModel(IWorkstationApi api) : ViewMode
 
     public bool HasError => Error is not null;
 
-    /// <summary>„Gespeichert.“ in der Leiste, bis wieder etwas geändert wird.</summary>
-    [ObservableProperty]
-    public partial string? StatusText { get; private set; }
+    /// <summary>Der Toast der Shell für die Bestätigung nach dem Speichern.</summary>
+    public ToastState Toast { get; } = toast ?? new ToastState(TimeProvider.System);
 
     /// <summary>Das Feld, das den Fokus bekommen soll; die Ansicht setzt ihn und leert die Angabe.</summary>
     [ObservableProperty]
@@ -98,7 +97,7 @@ public sealed partial class PosSettingsViewModel(IWorkstationApi api) : ViewMode
 
         if (!HasUnsavedChanges)
         {
-            StatusText = "Gespeichert.";
+            Toast.Show("Gespeichert");
             return true;
         }
 
@@ -120,7 +119,7 @@ public sealed partial class PosSettingsViewModel(IWorkstationApi api) : ViewMode
         }
 
         Apply(settings);
-        StatusText = "Gespeichert.";
+        Toast.Show("Gespeichert");
         Saved?.Invoke();
         return true;
     }
@@ -156,7 +155,6 @@ public sealed partial class PosSettingsViewModel(IWorkstationApi api) : ViewMode
             LimitError = null;
         }
 
-        StatusText = null;
         OnPropertyChanged(nameof(HasUnsavedChanges));
     }
 

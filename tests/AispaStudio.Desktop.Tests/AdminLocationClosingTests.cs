@@ -212,7 +212,7 @@ public sealed class AdminLocationClosingTests
         Assert.False(sent.IsActive);
         Assert.Equal("Handtuch", sent.Name);
         Assert.Equal((Towel.Unit, Towel.UnitCost, Towel.MinimumQuantity), (sent.Unit, sent.UnitCost, sent.MinimumQuantity));
-        Assert.Equal("Handtuch wird nicht mehr verwendet", stock.Toast);
+        Assert.Equal("Handtuch wird nicht mehr verwendet", stock.Toast.Text);
         Assert.False(stock.ItemForm.IsEditing);
     }
 

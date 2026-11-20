@@ -43,6 +43,8 @@ public partial class CustomersViewModel
             return;
         }
 
+        // Der Stand für die Arbeit ohne Verbindung kennt den Gast noch mit Namen: sofort entfernen, nicht erst beim nächsten Laden.
+        api.Offline?.RemoveCustomers([customer.Id]);
         Error = null;
         Selected = null;
         await SearchAsync(Query).ConfigureAwait(true);

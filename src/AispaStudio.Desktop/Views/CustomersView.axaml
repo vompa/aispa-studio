@@ -34,18 +34,6 @@
       </StackPanel>
     </Grid>
 
-    <!-- Rückmeldung unten („Gespeichert: Kunden_2026-11-09.xlsx“), eine Zeile, 5 Sekunden (meldungen.md M1) -->
-    <Border x:Name="CustomersToast" Grid.Row="1" Grid.ColumnSpan="2" Classes="toast" Classes.shown="{Binding HasToast}" IsVisible="{Binding HasToast}" ZIndex="10"
-            HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,16" CornerRadius="8" Padding="16,10,6,10" BoxShadow="{DynamicResource RaisedShadow}" MaxWidth="760"
-            PointerEntered="OnToastEntered" PointerExited="OnToastExited" AutomationProperties.LiveSetting="Polite">
-      <StackPanel Orientation="Horizontal" Spacing="8">
-        <TextBlock Classes="msg" Text="{Binding Toast}" Foreground="{DynamicResource ToastFgBrush}" VerticalAlignment="Center" MaxWidth="540" AutomationProperties.Name="Meldung" />
-        <Button Classes="ghost icon" Command="{Binding CloseToastCommand}" Foreground="{DynamicResource ToastFgBrush}" ToolTip.Tip="Schließen" AutomationProperties.Name="Meldung schließen">
-          <ui:Icon Data="{x:Static ui:Icons.Close}" Width="16" Height="16" />
-        </Button>
-      </StackPanel>
-    </Border>
-
     <!-- Suche und Trefferliste -->
     <Border Grid.Row="1" Classes="card" Padding="12" Margin="0,0,16,0">
       <Grid RowDefinitions="Auto,Auto,*">

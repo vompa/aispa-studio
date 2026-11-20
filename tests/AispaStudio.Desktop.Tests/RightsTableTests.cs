@@ -136,7 +136,7 @@ public sealed class RightsTableTests
 
         var sent = JsonSerializer.Deserialize<StaffPowerInput>(Assert.Single(api.Calls, c => c.Route == route).Body!, ApiClient.Json)!;
         Assert.Equal(StaffPowerKind.TriggerOrders, sent.Kind);
-        Assert.Equal((1, "Eingetragen."), (changed, table.StatusText));
+        Assert.Equal((1, "Eingetragen"), (changed, table.Toast.Text));
     }
 
     [Fact]
@@ -171,7 +171,7 @@ public sealed class RightsTableTests
         await holder.RemoveCommand.ExecuteAsync(null);
 
         Assert.Single(api.Calls, c => c.Route == route);
-        Assert.Equal("Entfernt.", table.StatusText);
+        Assert.Equal("Entfernt", table.Toast.Text);
         dialogs.AssertRules();
         Assert.Equal("Lena bei „Kassa-Storno“ entfernen?", dialogs.Asked[0].Title);
     }
@@ -200,6 +200,6 @@ public sealed class RightsTableTests
         await table.Groups[1].Rows.Single().Candidates.Single(c => c.Name == "Marco Berger").AddCommand.ExecuteAsync(null);
 
         Assert.True(table.HasError);
-        Assert.Null(table.StatusText);
+        Assert.Null(table.Toast.Text);
     }
 }

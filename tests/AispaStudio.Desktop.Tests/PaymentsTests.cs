@@ -75,7 +75,7 @@ public sealed class PaymentsTests
             JsonSerializer.Deserialize<PaymentAccountInput>(put.Body!, ApiClient.Json));
         Assert.Equal("", payments.SecretKey);
         Assert.False(payments.HasUnsavedChanges);
-        Assert.Equal("Gespeichert.", payments.StatusText);
+        Assert.Equal("Gespeichert", payments.Toast.Text);
     }
 
     [Fact]

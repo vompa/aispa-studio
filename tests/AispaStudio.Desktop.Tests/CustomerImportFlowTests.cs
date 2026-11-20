@@ -141,15 +141,34 @@ public sealed class CustomerImportFlowTests
         await dialog.CheckCommand.ExecuteAsync(null);
         Assert.Equal("true", Field(BodyOf(api, ImportRoute), "dryRun"));
         Assert.Contains("Probelauf: ", dialog.DryRunText, StringComparison.Ordinal);
-        Assert.Null(customers.Toast);
+        Assert.Null(customers.Toast.Text);
         Assert.Same(dialog, dialogs.Open);
 
         await dialog.ContinueCommand.ExecuteAsync(null);
         await running;
         Assert.Equal("false", Field(BodyOf(api, ImportRoute, 1), "dryRun"));
         Assert.Null(dialogs.Open);
-        Assert.Equal("Importiert: 2 neu, 1 ergänzt, 0 übersprungen, 1 fehlerhaft", customers.Toast);
+        // Mit fehlerhaften Zeilen bleibt das Ergebnis als Hinweisleiste stehen, statt im Toast gekürzt zu verschwinden
+        Assert.Equal("Import: 2 neu, 1 ergänzt, 0 übersprungen, 1 fehlerhaft.", customers.Notice);
+        Assert.Null(customers.Toast.Text);
         Assert.Equal(2, api.Calls.Count(c => c.Route == ListRoute));
+    }
+
+    [Theory]
+    [InlineData(0, "Import: 2400 neu, 1300 ergänzt, 1200 übersprungen", null)]
+    [InlineData(1100, null, "Import: 2400 neu, 1300 ergänzt, 1200 übersprungen, 1100 fehlerhaft.")]
+    public async Task Ein_Import_ohne_Fehler_meldet_im_Toast_einer_mit_Fehlern_in_der_Hinweisleiste_ungekuerzt(int failed, string? toast, string? notice)
+    {
+        var api = Api().On(ImportRoute, new CustomerImportResult(false, 6000, 2400, 1300, 1200, failed));
+        var (customers, dialog, running) = await OpenAsync(api, new FakeDialogs());
+        await dialog.ContinueCommand.ExecuteAsync(null);
+        await dialog.ContinueCommand.ExecuteAsync(null);
+        await dialog.ContinueCommand.ExecuteAsync(null);
+        await dialog.ContinueCommand.ExecuteAsync(null);
+        await running;
+
+        Assert.Equal(toast, customers.Toast.Text);
+        Assert.Equal(notice, customers.Notice);
     }
 
     [Fact]
@@ -236,7 +255,7 @@ public sealed class CustomerImportFlowTests
         await again;
 
         Assert.DoesNotContain(api.Calls, c => c.Route == ImportRoute);
-        Assert.Null(customers.Toast);
+        Assert.Null(customers.Toast.Text);
         Assert.Equal(1, api.Calls.Count(c => c.Route == ListRoute));
     }
 
@@ -327,7 +346,7 @@ public sealed class CustomerImportFlowTests
 
         Assert.Equal("Kunden importiert nur die Leitung.", dialog.Error);
         Assert.Same(dialog, dialogs.Open);
-        Assert.Null(customers.Toast);
+        Assert.Null(customers.Toast.Text);
         Assert.Null(dialog.Outcome);
         Assert.False(dialog.IsBusy);
     }

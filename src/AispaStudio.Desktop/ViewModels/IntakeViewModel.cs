@@ -48,9 +48,10 @@ public sealed partial class IntakeViewModel : ViewModelBase, INativeArea
     private string? _savedSignature;
     private bool _applying;
 
-    public IntakeViewModel(IWorkstationApi api, TimeZoneInfo zone, TimeSpan? checkInterval = null)
+    public IntakeViewModel(IWorkstationApi api, TimeZoneInfo zone, TimeSpan? checkInterval = null, ToastState? toast = null)
     {
         _api = api;
+        Toast = toast ?? new ToastState(TimeProvider.System);
         _zone = zone;
         _checkInterval = checkInterval ?? TimeSpan.FromMilliseconds(750);
         SenderRules = new SenderRulesViewModel(api, AskAsync);
@@ -203,9 +204,8 @@ public sealed partial class IntakeViewModel : ViewModelBase, INativeArea
 
     public bool HasError => Error is not null;
 
-    /// <summary>„Gespeichert. …“ in der Leiste, bis wieder etwas geändert wird.</summary>
-    [ObservableProperty]
-    public partial string? StatusText { get; private set; }
+    /// <summary>Die Bestätigung nach dem Speichern: der eine Toast der Shell.</summary>
+    public ToastState Toast { get; }
 
     /// <summary>Rückmeldung zu „Jetzt prüfen“ und „Postfach entfernen“.</summary>
     [ObservableProperty]
@@ -269,7 +269,7 @@ public sealed partial class IntakeViewModel : ViewModelBase, INativeArea
         }
 
         ApplyBox(saved);
-        StatusText = "Gespeichert. Das Postfach wird beim nächsten Abruf gelesen.";
+        Toast.Show("Gespeichert");
         return true;
     }
 
@@ -372,7 +372,6 @@ public sealed partial class IntakeViewModel : ViewModelBase, INativeArea
             OnPropertyChanged(nameof(RepliesHint));
         }
 
-        StatusText = null;
         OnPropertyChanged(nameof(HasUnsavedChanges));
     }
 

@@ -23,7 +23,7 @@ Zahlen für Dauer und Anzahl sind teils Projektfestlegungen auf Grundlage dieser
 
 | Art | Wofür | Beispiel | Ort |
 | --- | --- | --- | --- |
-| **Toast / Snackbar** | Bestätigung einer eigenen Aktion; nicht kritisch | „Termin verschoben auf Do 14:30“ | unten mittig, im Kalender mittig im Kalenderbereich |
+| **Toast / Snackbar** | Bestätigung einer eigenen Aktion; nicht kritisch | „Termin verschoben auf Do 14:30“ | unten mittig im Seitenbereich |
 | **InfoBar / Banner** | Zustand der Seite oder des Bereichs, der bleibt, bis er behoben oder geschlossen ist | „Ohne Verbindung. Änderungen werden vorgemerkt.“ | oben, über dem Inhalt der Seite |
 | **Hinweis am Objekt** | Gilt für genau einen Termin, Gast, Raum, Artikel | „Gast ist Allergikerin: Anamnese fehlt.“ | am Objekt: im Termin-Panel, in der Kundenkarte, an der Zeile |
 | **Feldfehler** | Eingabe falsch | „Die PLZ hat vier Ziffern.“ | am Feld ([masken.md](masken.md), R8) |
@@ -36,7 +36,7 @@ Entscheidungsfolge: Muss die Person entscheiden? Dialog. Betrifft es ein Feld? F
 
 ### M1. Toast: eine Zeile, höchstens eine Aktion
 
-- Position unten mittig, im Kalender mittig im Kalenderbereich (design.md 5.10), **höchstens ein Toast zugleich**; ein neuer ersetzt den alten (Material: eine Snackbar).
+- Position unten mittig im Seitenbereich: Die Windows-App hat einen Toast für alle Seiten, die Shell zeigt ihn (design.md 5.10, Nachtrag 19.11.2026), **höchstens ein Toast zugleich**; ein neuer ersetzt den alten (Material: eine Snackbar).
 - Text eine Zeile, Ergebnis in der Vergangenheit („Termin verschoben auf Do 14:30“, „Gespeichert“), höchstens **60 Zeichen** und **ohne Schlusspunkt** (Fluent 2; [ADR 0069](../entscheidungen/0069-fluent-2-als-grundlage-der-windows-app.md), vorher „unter etwa 80 Zeichen, Satz mit Punkt“). Ein Satz mit Punkt ist ein Hinweis (design.md 5.9), keine Rückmeldung. Keine Schuldzuweisung.
 - **Höchstens eine Aktion**, ein bis zwei Wörter, meist „Rückgängig“. Weitere Entscheidungen gibt es im Kalender nicht mehr: Kürzen, Nach hinten schieben und Alle folgenden auch wurden am 23.10.2026 entfernt (Ä71), ein Termin bleibt stehen, auch wenn sein Beginn vorbei ist. Der Toast bleibt eine Bestätigung. 
 - Dauer: **5 Sekunden** (Projektfestlegung, bleibt nach ADR 0069; liegt zwischen Material „kurz“ und Fluent 7 s, ist per Tastatur und Maus-Pause nicht hektisch); der Mauszeiger über dem Toast hält ihn an (wie heute `HoldToast`); Toasts mit Aktion „Rückgängig“ bleiben 8 s (heute `ToastDuration` 8 s).

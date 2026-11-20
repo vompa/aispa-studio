@@ -97,7 +97,7 @@ public sealed partial class ViewTests
                 [new OpeningHours(DayOfWeek.Monday, new(9, 0), new(20, 0)), new OpeningHours(DayOfWeek.Saturday, new(9, 0), new(14, 0))],
                 JsonSerializer.Deserialize<LocationInput>(put.Body!, ApiClient.Json)!.OpeningHours);
             Assert.False(locations.HasUnsavedChanges);
-            Assert.True(Shows(window, "Gespeichert."));
+            Assert.Equal("Gespeichert", locations.Toast.Text);
             return shell.AdminPage;
         }, api);
     }

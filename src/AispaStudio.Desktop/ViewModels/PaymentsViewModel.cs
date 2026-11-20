@@ -11,7 +11,7 @@ namespace AispaStudio.Desktop.ViewModels;
 /// Stripe Connect richtet die API über die Queue ein; die Maske fragt den Stand ab, bis er da ist. Schlüssel gehen nur hin: ein hinterlegter Schlüssel steht nur als
 /// „••••“ mit seinen letzten vier Zeichen da, die Felder bleiben leer, und ein leeres Feld behält den gespeicherten.
 /// </summary>
-public sealed partial class PaymentsViewModel(IWorkstationApi api) : ViewModelBase, INativeArea
+public sealed partial class PaymentsViewModel(IWorkstationApi api, ToastState? toast = null) : ViewModelBase, INativeArea
 {
     /// <summary>Ereignisse, die Stripe an den Webhook schicken muss (wie im Web).</summary>
     public const string CheckoutEvents =
@@ -81,8 +81,8 @@ public sealed partial class PaymentsViewModel(IWorkstationApi api) : ViewModelBa
     [ObservableProperty]
     public partial string ErrorTitle { get; private set; } = "Nicht gespeichert";
 
-    [ObservableProperty]
-    public partial string? StatusText { get; private set; }
+    /// <summary>Der Toast der Shell für die Bestätigung nach dem Speichern.</summary>
+    public ToastState Toast { get; } = toast ?? new ToastState(TimeProvider.System);
 
     public bool IsConnect
     {
@@ -217,7 +217,7 @@ public sealed partial class PaymentsViewModel(IWorkstationApi api) : ViewModelBa
         }
 
         Show(account);
-        StatusText = "Gespeichert.";
+        Toast.Show("Gespeichert");
         Saved?.Invoke();
         if (account.Mode == PaymentAccountMode.OwnKeys)
         {
@@ -330,7 +330,6 @@ public sealed partial class PaymentsViewModel(IWorkstationApi api) : ViewModelBa
             return;
         }
 
-        StatusText = null;
         OnPropertyChanged(nameof(HasUnsavedChanges));
     }
 

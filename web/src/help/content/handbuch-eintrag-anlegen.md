@@ -16,7 +16,7 @@ Ein Eintrag im Rezeptionshandbuch hält fest, was das Team über das Haus wissen
 2. In der Liste links **Neuen Eintrag anlegen** anklicken.
 3. **Titel**, optional **Bereich** und den **Text** eintragen.
 4. Soll der Eintrag am Tagesstart erinnern, **Wichtig – am Tagesstart erinnern** anhaken. Optional die Wochentage wählen, an denen er gilt.
-5. Auf **Eintrag anlegen** klicken. Es erscheint „Gespeichert.“
+5. Auf **Eintrag anlegen** klicken. Unten erscheint kurz „Gespeichert“.
 
 ## Gut zu wissen {#hinweise}
 

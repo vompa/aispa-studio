@@ -245,7 +245,7 @@ public sealed class CalendarDayNotesTests
 
         Assert.Contains(api.Calls, c => c.Route == $"POST /api/locations/{TestData.LocationId}/calendar-notes");
         Assert.Equal("Handwerker kommen", Assert.Single(Anna(vm).Notes).Note.Text);
-        Assert.Equal("Notiz gespeichert", vm.Toast);
+        Assert.Equal("Notiz gespeichert", vm.Toast.Text);
         Assert.Null(vm.Selected);
         Assert.Null(vm.MessagesPanel);
         Assert.Null(vm.ActivePanel);
@@ -423,7 +423,7 @@ public sealed class CalendarDayNotesTests
         var put = api.Calls.Single(c => c.Route.StartsWith("PUT /api/locations", StringComparison.Ordinal)).Body!;
         Assert.Contains("\"kind\":\"Sick\"", put, StringComparison.Ordinal);
         Assert.Equal("Ersatz für Ben", vm.Absence?.Title);
-        Assert.Contains("krank gemeldet", vm.Toast, StringComparison.Ordinal);
+        Assert.Contains("krank gemeldet", vm.Toast.Text, StringComparison.Ordinal);
     }
 
     [Fact]

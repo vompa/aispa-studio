@@ -262,7 +262,7 @@ public sealed class ClosureTests
         Assert.Equal([rows[0].AppointmentId, rows[1].AppointmentId], root.GetProperty("appointmentIds").EnumerateArray().Select(e => e.GetGuid()));
         Assert.Equal(("Absage Ihres Termins: {Behandlung}, {Zeit}", "Guten Tag {Anrede}, leider fällt {Behandlung} am {Zeit} aus.", true, false),
             (root.GetProperty("subject").GetString(), root.GetProperty("text").GetString(), root.GetProperty("offerRebooking").GetBoolean(), root.GetProperty("aiWritten").GetBoolean()));
-        Assert.Equal("2 Termine abgesagt, 2 Nachrichten", vm.Toast);
+        Assert.Equal("2 Termine abgesagt, 2 Nachrichten", vm.Toast.Text);
     }
 
     [Fact]
@@ -291,7 +291,7 @@ public sealed class ClosureTests
         await asking;
 
         Assert.DoesNotContain(api.Calls, c => c.Route.StartsWith("POST", StringComparison.Ordinal));
-        Assert.Null(vm.Toast);
+        Assert.Null(vm.Toast.Text);
     }
 
     [Fact]
@@ -327,7 +327,7 @@ public sealed class ClosureTests
         await asking;
         using var json = JsonDocument.Parse(api.Calls.Single(c => c.Route == $"POST {Path("/cancellation")}").Body!);
         Assert.True(json.RootElement.GetProperty("aiWritten").GetBoolean());
-        Assert.Equal("3 Termine abgesagt, 2 Nachrichten, 1 ohne Kontakt", vm.Toast);
+        Assert.Equal("3 Termine abgesagt, 2 Nachrichten, 1 ohne Kontakt", vm.Toast.Text);
     }
 
     [Fact]

@@ -39,14 +39,14 @@ public sealed partial class ViewTests
 
             // Die Frist des Toasts läuft mit echter Zeit (SampleTime stellt nur die Uhr); unter Last schloss er sich vor der Prüfung.
             // Festgehalten wie mit der Maus darüber, damit der Test nur den Text prüft, nicht die Frist.
-            calendar.HoldToast(true);
+            calendar.Toast.Hold(true);
             await ChooseFromContextMenuAsync(window, "Kommt 15 Min. später");
 
             // Das Menü ist zu und bleibt zu, der Termin steht an seiner Zeit mit der Markierung, der Toast bestätigt.
             Assert.Empty(window.GetVisualDescendants().OfType<ContextMenu>());
             Assert.Equal(SpaSample.Selected.Start, current().Appointment!.Start);
             Assert.Contains("kommt 10:45", current().MetaText, StringComparison.Ordinal);
-            Assert.StartsWith("Brigitte Müller kommt 15 Min. später (", calendar.Toast, StringComparison.Ordinal);
+            Assert.StartsWith("Brigitte Müller kommt 15 Min. später (", calendar.Toast.Text, StringComparison.Ordinal);
             Assert.Null(calendar.Problem);
 
             // Der Server meldet die eigene Änderung auch an diesen Arbeitsplatz zurück (Live); derselbe Stand ändert nichts.
@@ -58,7 +58,7 @@ public sealed partial class ViewTests
             // „Doch pünktlich“ löscht die Markierung.
             api.On($"PUT /api/appointments/{SpaSample.Selected.Id}/late", SpaSample.Selected with { UpdatedAt = SpaSample.At(9, 55) });
             await ChooseFromContextMenuAsync(window, "Doch pünktlich");
-            Assert.Equal("Brigitte Müller kommt doch pünktlich", calendar.Toast);
+            Assert.Equal("Brigitte Müller kommt doch pünktlich", calendar.Toast.Text);
             Assert.DoesNotContain("kommt ", current().MetaText, StringComparison.Ordinal);
             return calendar;
         }, api);

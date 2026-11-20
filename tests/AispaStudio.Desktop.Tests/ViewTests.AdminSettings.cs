@@ -122,7 +122,7 @@ public sealed partial class ViewTests
             Assert.Equal(48, JsonSerializer.Deserialize<ReminderSettingsDto>(put.Body!, ApiClient.Json)!.FirstHoursBefore);
             Assert.DoesNotContain(api.Calls, c => c.Route == "PUT /api/retention/settings");
             Assert.False(reminders.HasUnsavedChanges);
-            Assert.True(Shows(window, "Gespeichert."));
+            Assert.Equal("Gespeichert", reminders.Toast.Text);
             return reminders;
         }, api);
     }
@@ -139,7 +139,7 @@ public sealed partial class ViewTests
             await Pump(Settling);
 
             Assert.DoesNotContain(api.Calls, c => c.Route == "PUT /api/pos/settings");
-            Assert.True(Shows(window, "Gespeichert."));
+            Assert.Equal("Gespeichert", settings.Toast.Text);
             return settings;
         }, api);
     }

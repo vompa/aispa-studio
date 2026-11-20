@@ -334,7 +334,7 @@ public sealed partial class ViewTests
             var put = Assert.Single(api.Calls, c => c.Route == $"PUT /api/treatments/{HotStone60.Id}");
             Assert.Equal(95m, JsonSerializer.Deserialize<TreatmentInput>(put.Body!, ApiClient.Json)!.Price);
             Assert.False(treatments.HasUnsavedChanges);
-            Assert.True(Shows(window, "Gespeichert. Gilt für neue Buchungen."));
+            Assert.Equal("Gespeichert", treatments.Toast.Text);
 
             ClickCenter(window, Named<Button>(window, "HistoryButton"));
             await Pump(Settling);
