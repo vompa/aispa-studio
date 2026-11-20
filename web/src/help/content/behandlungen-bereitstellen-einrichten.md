@@ -17,7 +17,7 @@ Bei einer Behandlung legt man fest, was zu jedem Termin bereitgestellt wird, und
 3. Bei **Bezeichnung** eintragen, was bereitgestellt wird, z. B. „Früchteteller“.
 4. Bei **Zeitpunkt** „Bei Ankunft“, „Minuten vor Ende“ (dann die Minuten eintragen) oder „Nach der Behandlung“ wählen.
 5. Optional bei **Lagerartikel** einen Artikel wählen und die **Menge je Termin** eintragen. Jede abgeschlossene Behandlung bucht diese Menge dann im Lager ab.
-6. Auf **Bereitstellen speichern** klicken. Es erscheint „Gespeichert. Gilt für alle Termine dieser Behandlung.“
+6. Oben auf **Speichern** klicken. Unten in der App erscheint „Gespeichert“. Die Liste gilt für neue Buchungen.
 
 ## Gut zu wissen {#hinweise}
 

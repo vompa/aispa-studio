@@ -168,7 +168,8 @@
       <ContentControl Grid.Row="3" x:Name="PageHost" Content="{Binding SelectedPage.Page, FallbackValue={x:Null}}" AutomationProperties.Name="{Binding SelectedPage.Title, FallbackValue=Seite}" />
       <!-- Ein Sprung in die Verwaltung ging nicht, und die Person hat dort keinen Bereich (Slice 103): Warnung unten mittig, bleibt bis „Schließen“ (meldungen.md M1) -->
       <!-- Ohne Meldung auch unsichtbar: der Schließen-Knopf soll kein Tab-Halt sein, solange nichts steht -->
-      <StackPanel Grid.Row="3" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="16,0,16,20" Spacing="8">
+      <!-- 64 px vom unteren Rand: über der unteren Leiste jeder Seite (Tastenleiste im Kalender und Speichern-Leiste 50 px, Summe der Kassa 56 px; T-084) -->
+      <StackPanel Grid.Row="3" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="16,0,16,64" Spacing="8">
       <!-- Der eine Toast der App (design.md 5.10, meldungen.md M1): Bestätigung einer eigenen Aktion, unten mittig im Seitenbereich, eine Zeile,
            5 Sekunden (mit Aktion 8), der Mauszeiger darüber hält ihn an. Die Seiten zeigen ihn über ToastState; er liegt über der Warnung. -->
       <Border x:Name="ConfirmToast" Classes="toast" Classes.shown="{Binding Confirmation.IsShown}" IsVisible="{Binding Confirmation.IsShown}"

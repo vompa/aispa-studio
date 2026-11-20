@@ -14,7 +14,8 @@ public sealed partial class ToastState(TimeProvider time) : ObservableObject
 {
     public const int MaxLength = 60;
 
-    private static readonly TimeSpan Duration = TimeSpan.FromSeconds(5);
+    /// <summary>Dauer ohne Aktion; die Bildtests schalten Zeitgeber ab dieser Frist ab (ViewTests.SampleTime).</summary>
+    internal static readonly TimeSpan Duration = TimeSpan.FromSeconds(5);
     private static readonly TimeSpan ActionDuration = TimeSpan.FromSeconds(8);
 
     private int _clock;

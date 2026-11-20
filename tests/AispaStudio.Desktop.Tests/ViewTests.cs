@@ -24,6 +24,7 @@ public sealed class HeadlessApp
         // egal was der PC oder der Runner von GitHub meldet. Tests für „aus“ setzen die Quelle selbst.
         ReducedMotion.SystemSource = () => false;
         // Bildtests öffnen das Fenster mit echten Timern: unter Last dauerte der Start sonst länger als 300 ms, und der Startbildschirm läge im Bild.
+        // Lange Zeitgeber (Ablauf des Toasts) schaltet SampleTime.CreateTimer ab.
         MainViewModel.DefaultStartupScreenDelay = Timeout.InfiniteTimeSpan;
         return AppBuilder.Configure<App>()
             .UseSkia()
@@ -45,6 +46,22 @@ public sealed partial class ViewTests
         public override DateTimeOffset GetUtcNow() => SpaSample.At(11, 40);
 
         public override TimeZoneInfo LocalTimeZone => TimeZoneInfo.FindSystemTimeZoneById("Europe/Vienna");
+
+        // Zeitgeber ab der Dauer eines Toasts feuern im Bildtest nicht: unter Last vergingen zwischen Aktion und Prüfung sonst mehr als
+        // 5 Sekunden, und der Toast war weg. Kürzere laufen mit der echten Uhr; den Ablauf selbst prüfen Tests mit eigener Uhr.
+        public override ITimer CreateTimer(TimerCallback callback, object? state, TimeSpan dueTime, TimeSpan period) =>
+            dueTime >= ToastState.Duration ? new Never() : base.CreateTimer(callback, state, dueTime, period);
+
+        private sealed class Never : ITimer
+        {
+            public bool Change(TimeSpan dueTime, TimeSpan period) => true;
+
+            public void Dispose()
+            {
+            }
+
+            public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+        }
     }
 
     /// <summary>Bildtests und Handbuchbilder melden sich als Inhaberin an (alle Rechte), wie der Auftraggeber beim Prüfen; Rechte-Ausblenden prüft <see cref="ReceptionApi"/>.</summary>

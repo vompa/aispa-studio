@@ -129,7 +129,7 @@ Zeit, in der der Gast allein im Raum liegt und die Person frei ist, z. B. 20 Min
 
 Das Behandlungsrezept: was vor jeder Behandlung dieser Art vorzubereiten ist. Aus diesen Schritten entsteht die Vorbereitungsliste auf jeder Behandlungskarte, zum Beispiel unter „Mein Tag“. Ändern dürfen Inhaber und Standortleitung; sehen und abhaken kann die Schritte auf den Karten das ganze Team. Die Gruppe erscheint bei einer gespeicherten Behandlung.
 
-„Schritt hinzufügen“ legt eine Zeile an, „Entfernen“ löscht sie, „Vorbereitung speichern“ speichert die ganze Liste dieser Behandlung in der angezeigten Reihenfolge. Die Schritte gelten an allen Standorten.
+„Schritt hinzufügen“ legt eine Zeile an, „Entfernen“ löscht sie, „Speichern“ der Behandlung speichert die ganze Liste in der angezeigten Reihenfolge. Die Schritte gelten an allen Standorten.
 
 #### Schritt {#schritt}
 
@@ -151,7 +151,7 @@ Bleibt ein Schritt beim Speichern gleich (gleicher Text, gleiche Minuten und gle
 
 ## Material {#material}
 
-Welches Material ein Termin dieser Behandlung verbraucht (die Rezeptur). In der Windows-App ist das die Gruppe „Material je Termin“ im Bereich „Durchführung“; sie erscheint nur mit dem Recht auf Berichte mit Beträgen. Die Gruppe erscheint bei einer gespeicherten Behandlung und hat einen eigenen Knopf; die Vollkosten auf der Seite „Kosten“ rechnen damit. „Material hinzufügen“ legt eine Zeile an, „Entfernen“ löscht sie, „Material speichern“ ersetzt die ganze bisherige Liste. Höchstens 50 Zeilen.
+Welches Material ein Termin dieser Behandlung verbraucht (die Rezeptur). In der Windows-App ist das die Gruppe „Material je Termin“ im Bereich „Durchführung“; sie erscheint nur mit dem Recht auf Berichte mit Beträgen. Die Gruppe erscheint bei einer gespeicherten Behandlung und wird mit „Speichern“ der Behandlung gespeichert; die Vollkosten auf der Seite „Kosten“ rechnen damit. „Material hinzufügen“ legt eine Zeile an, „Entfernen“ löscht sie, „Speichern“ ersetzt die ganze bisherige Liste. Höchstens 50 Zeilen.
 
 ### Aus dem Lager {#aus-dem-lager}
 
@@ -175,7 +175,7 @@ Frei erfasstes Material zählt nur für die Vollkosten. Es bucht nichts im Lager
 
 ## Zum Termin bereitstellen {#zum-termin-bereitstellen}
 
-Getränke, Früchteteller und Extras, die zu jedem Termin dieser Behandlung gehören. In der Windows-App ist das die Gruppe „Zum Termin bereitstellen“ im Bereich „Durchführung“. Sie erscheint bei einer gespeicherten Behandlung und gilt an allen Standorten. Je Termin entsteht daraus ein Eintrag mit Uhrzeit, den das Team abhakt, und der Tagesstart zählt die Summen des Tages (z. B. „6 × Früchteteller“). Mit „Bereitstellen speichern“ wird immer die ganze Liste gespeichert; höchstens 20 Einträge.
+Getränke, Früchteteller und Extras, die zu jedem Termin dieser Behandlung gehören. In der Windows-App ist das die Gruppe „Zum Termin bereitstellen“ im Bereich „Durchführung“. Sie erscheint bei einer gespeicherten Behandlung und gilt an allen Standorten. Je Termin entsteht daraus ein Eintrag mit Uhrzeit, den das Team abhakt, und der Tagesstart zählt die Summen des Tages (z. B. „6 × Früchteteller“). Mit „Speichern“ der Behandlung wird immer die ganze Liste gespeichert; höchstens 20 Einträge.
 
 ### Bezeichnung {#extra-bezeichnung}
 
@@ -229,7 +229,7 @@ Steht im Bereich „Grunddaten und Preis“ unter „Weitere Angaben“, nur bei
 
 Steht im Bereich „Grunddaten und Preis“ unter „Weitere Angaben“, sobald die Behandlung angelegt ist. Hier lassen sich Preise für bestimmte Zeiten festlegen, z. B. günstiger am Vormittag oder teurer am Wochenende. Höchstens 20 Regeln je Behandlung.
 
-Wichtig: Preisregeln haben einen eigenen Knopf „Preisregeln speichern“. Der Knopf „Speichern“ der Behandlung speichert sie nicht mit.
+Wichtig: „Speichern“ der Behandlung speichert die Preisregeln mit; einen eigenen Knopf gibt es nicht.
 
 So wird der Preis eines Termins bestimmt:
 
@@ -239,7 +239,7 @@ So wird der Preis eines Termins bestimmt:
 
 Der Kundenbereich zeigt bei Behandlungen mit Preisregeln den Preis zu jeder angebotenen Startzeit. Ein gebuchter Termin behält seinen Preis, auch wenn er später verschoben wird.
 
-„Preisregel hinzufügen“ fügt eine Regel für Montag bis Freitag, 09:00 bis 12:00 Uhr, mit dem Grundpreis hinzu. „Entfernen“ löscht eine Regel; wirksam wird das erst mit „Preisregeln speichern“.
+„Preisregel hinzufügen“ fügt eine Regel für Montag bis Freitag, 09:00 bis 12:00 Uhr, mit dem Grundpreis hinzu. „Entfernen“ löscht eine Regel; wirksam wird das erst mit „Speichern“.
 
 ### Bezeichnung {#preisregel-bezeichnung}
 
@@ -251,7 +251,7 @@ Die Regel gilt für Termine, die ab „Von“ und vor „Bis“ beginnen. Ein Te
 
 ### Preis {#preisregel-preis}
 
-Preis für Termine, auf die die Regel passt. Ab 0 und unter 100.000, mit Komma oder Punkt und höchstens zwei Nachkommastellen. Ein Preis, der fehlt oder sich nicht lesen lässt, bekommt beim Verlassen des Feldes einen Hinweis; **Preisregeln speichern** bleibt dann grau.
+Preis für Termine, auf die die Regel passt. Ab 0 und unter 100.000, mit Komma oder Punkt und höchstens zwei Nachkommastellen. Ein Preis, der fehlt oder sich nicht lesen lässt, bekommt beim Verlassen des Feldes einen Hinweis; **Speichern** bleibt dann grau.
 
 ### Standort {#preisregel-standort}
 

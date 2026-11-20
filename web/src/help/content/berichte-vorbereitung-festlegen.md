@@ -19,7 +19,7 @@ Bei der Behandlung legt die Leitung fest, was vor jedem Termin zu tun ist; darau
 5. Ins zweite Feld (Minuten vorher) eintragen, wie viele Minuten vor Beginn der Schritt fällig ist, z. B. 30. Leer lassen, wenn keine Uhrzeit nötig ist.
 6. Optional bei **Material aus dem Lager** den Artikel wählen, den der Schritt braucht; die Menge je Termin steht schon beim Material der Behandlung.
 7. Weitere Schritte genauso anlegen. Einen Schritt mit **Entfernen** löschen.
-8. **Vorbereitung speichern** anklicken. Die Meldung „Vorbereitung gespeichert.“ erscheint.
+8. Oben auf **Speichern** klicken. Unten in der App erscheint „Gespeichert“.
 
 ## Aus dem Kalender öffnen {#aus-dem-kalender}
 

@@ -1629,3 +1629,14 @@ Expected: Die Meldung „Gespeichert: …“ trägt den Knopf **Ordner öffnen**
 Expected: Der Hinweis zur Anmeldung mit dem Startpasswort steht als Hinweisleiste auf der Karte und bleibt, bis man ihn schließt.
 Closes: –
 Result: ☐
+
+### Meldung unten – Toast sitzt über der unteren Leiste jeder Seite
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App als Inhaberin anmelden
+1. Im **Kalender** einen Termin auf eine andere Zeit ziehen.
+Expected: Die Meldung „Verschoben auf …“ steht über der Tastenleiste am unteren Rand; die Leiste bleibt ganz lesbar.
+2. Das Fenster auf etwa 1100 Pixel Breite ziehen, **Verwaltung** › **Aktionen** öffnen, eine Aktion ändern und **Speichern** klicken.
+Expected: „Gespeichert“ steht über der Leiste mit **Speichern** und **Verwerfen**; beide Knöpfe bleiben frei.
+3. In der **Kassa** einen verkauften Gutschein als übergeben vermerken.
+Expected: Die Meldung „Gutschein … als übergeben vermerkt“ steht über der Zeile **Summe**; die Summe bleibt frei.
+Closes: –
+Result: ☐
