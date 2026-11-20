@@ -1659,3 +1659,16 @@ Expected: **Bezahlen und Beleg erstellen** bleibt grau; der Hinweis am Knopf lau
 Expected: Dasselbe wie in Schritt 1: Das Namensfeld wird rot, nichts wird gespeichert.
 Closes: Regelfrage 2 der Masken-Durchsicht vom 19.11.2026 (Speichern ohne Pflichtangaben)
 Result: ☐
+
+### T-087 – Kalender: Knöpfe zu verdeckten Spalten stehen in der Kopfzeile
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App als Inhaberin anmelden
+1. Im **Kalender** auf **Räume** schalten und das Fenster so schmal ziehen, dass nicht alle Räume Platz haben.
+Expected: Ganz rechts in der zweiten Zeile der Kopfzeile steht ein Knopf mit „+n“ und Pfeil nach rechts. Über den Karten der letzten Spalte liegt kein Knopf; ihr Text ist ganz lesbar.
+2. Auf den Knopf klicken.
+Expected: Der Kalender blättert eine Fensterbreite weiter. Links daneben erscheint ein zweiter Knopf mit Pfeil nach links und „+n“; der Hinweis nennt die Namen der verdeckten Räume.
+3. Das Fenster auf etwa 1100 Pixel Breite ziehen und in die Mitte scrollen.
+Expected: Beide Knöpfe stehen nebeneinander rechts in Zeile 2, kein Chip liegt darunter oder darüber, die Kopfzeile bleibt zwei Zeilen hoch.
+4. Das Fenster so breit ziehen, dass alle Spalten Platz haben.
+Expected: Beide Knöpfe verschwinden; die Chips der Zeile 2 stehen wie bisher.
+Closes: R1 der Masken-Durchsicht vom 19.11.2026 (Knopf am rechten Kalenderrand deckt Kartentext)
+Result: ☐

@@ -7681,3 +7681,21 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Nicht geprüft:** die volle Suite und die Handbuchbilder (beides folgt am Ende der Runde nach T-088); der Fokus im Flyout „Eigene PIN“ und im Posteingang nur per Test, nicht im Fenster; die Ansage des Fehlers durch einen Screenreader; die laufende App (Block in [handtests.md](handtests.md)).
 - **Beim Schreiben festgestellt:** `behandlungen.md` beschrieb schon vorher einen grauen „Speichern“-Knopf bei fehlendem oder unlesbarem Preis, den es nicht gab; der Satz sagt jetzt, was der Klick tut.
 - **Text-Prüfung:** Hilfetexte und dieser Abschnitt nach [texte.md](../gestaltung/texte.md) durchgesehen (aktiv, Gegenwart, keine Namen).
+
+## Kalender: Knöpfe zu verdeckten Spalten in Zeile 2 der Kopfzeile (Aufgabe T-087, 20.11.2026)
+
+- **Auftrag:** Der Auftraggeber hat am 20.11.2026 die Regelfrage R1 der Masken-Durchsicht entschieden („Knopf in die Kopfzeile“, Platz: „Zeile 2 rechts, als Paar“) und die Umsetzung beauftragt („Ja, alle drei“).
+- **Was:**
+  1. `CalendarView.axaml`: Die Knöpfe `EdgePrevious` und `EdgeNext` stehen nicht mehr im Raster, sondern als Paar ganz rechts in Zeile 2 der Kopfzeile. Zeile 2 ist dazu ein Raster mit zwei Spalten: links die bisherige Chip-Zeile mit Überlauf-Menü, rechts das Paar.
+  2. Die Knöpfe sind Kopfzeilen-Chips (Höhe 34) mit Pfeil und „+n“ nebeneinander. Hinweis, Name für den Screenreader, Sichtbarkeit und Klick sind unverändert. Der Stil `Button.edge` entfällt.
+  3. Der schmale Verlauf am Rand des Rasters bleibt als Zeichen für verdeckte Spalten.
+  4. [design.md](../design.md) (Nachtrag zur Kopfzeile des Kalenders), Hilfe [seite-kalender.md](../../web/src/help/content/seite-kalender.md) und [kalender-raumansicht.md](../../web/src/help/content/kalender-raumansicht.md), Handtestblock, Stand.
+- **Detailentscheidungen:**
+  1. Eigener Platz rechts neben der Chip-Zeile statt eines angehefteten Chips in der Chip-Zeile: Angeheftete Chips wandern dort als erste in das Menü „⋯“, mehrere liegen übereinander, und das Menü löst keinen Klick-Handler aus (Befund des Plan-Reviews).
+  2. Ohne verdeckte Spalten ist der rechte Platz 0 breit (der Abstand hängt an den Knöpfen), die Chip-Zeile hat die volle Breite wie bisher.
+  3. Die Knöpfe bleiben ohne Tabstopp; mit der Tastatur scrollen die Pfeiltasten.
+  4. Logik unverändert: Blättern um eine Fensterbreite und die Zahl der verdeckten Spalten rechnet weiter `CalendarViewModel.Edges.cs`.
+- **Geprüft:** Drei neue Ansichtstests in `ViewTests.CalendarScroll.cs`: kein Knopf schneidet das Raster (vorher rot: „EdgeNext … liegt über dem Raster“); bei 1100 Pixel Breite stehen beide Knöpfe auf der Linie der Chips, überlappen nichts und fallen nicht in das Menü (vorher rot); ohne verdeckte Spalten ist die Chip-Zeile so breit wie die Kopfzeile. `AssertEdgesDoNotCoverText` prüft nur noch den linken Verlauf. Ansichtstests mit den Filtern Kalender, Kopfzeile, Weiter, Spalten, Alle Mitarbeitenden, Überlauf, Knöpfe: 290 von 290 grün. Build Release und `dotnet format AispaStudio.slnx --verify-no-changes` grün. Bilder bei 1440 und 1100 Pixel Breite angesehen.
+- **Nicht geprüft:** die übrigen Ansichtstests und die Handbuchbilder (laufen am Ende der Runde nach T-088); dunkles Design; ein Fall mit Personenfilter und beiden Knöpfen zugleich; Screenreader und Tastatur im echten Fenster.
+- **Beim Schreiben festgestellt:** Der Lauf mit Bildern stürzte einmal nach 174 grünen Tests im PNG-Schreiben ab (bekannter Absturz in Skia); die fünf betroffenen Bildtests liefen einzeln grün.
+- **Text-Prüfung:** Nachtrag in `design.md`, die zwei Hilfesätze, der Handtestblock und dieser Abschnitt nach [texte.md](../gestaltung/texte.md) durchgesehen (aktiv, Gegenwart, keine Namen).

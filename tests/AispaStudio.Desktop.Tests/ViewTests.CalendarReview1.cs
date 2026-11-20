@@ -291,22 +291,22 @@ public sealed partial class ViewTests
 
     // ---------- 4: Alle Mitarbeitenden, Rand mit weiteren Spalten ----------
 
-    /// <summary>Weder Verlauf noch Knopf am Rand liegen über dem Text einer Karte; Text und Köpfe bleiben im vollen Kontrast.</summary>
+    /// <summary>
+    /// Der Verlauf am Rand liegt nicht über dem Text einer Karte; Text und Köpfe bleiben im vollen Kontrast.
+    /// Der Knopf „Zurück“ steht seit T-087 in der Kopfzeile und liegt nicht mehr im Raster (eigener Test in ViewTests.CalendarScroll.cs).
+    /// </summary>
     private static void AssertEdgesDoNotCoverText(Window window)
     {
         var body = BodyScrollOf(window);
         var view = BoundsIn(body, window);
-        foreach (var name in new[] { "EdgePrevious", "EdgeFadePrevious" })
+        var edge = window.GetVisualDescendants().OfType<Control>().Single(c => c.Name == "EdgeFadePrevious");
+        Assert.True(edge.IsEffectivelyVisible, "EdgeFadePrevious");
+        var box = BoundsIn(edge, window);
+        var host = window.GetVisualDescendants().OfType<Panel>().Single(p => p.Name == "Host");
+        foreach (var text in VisibleTextBlocks(host))
         {
-            var edge = window.GetVisualDescendants().OfType<Control>().Single(c => c.Name == name);
-            Assert.True(edge.IsEffectivelyVisible, name);
-            var box = BoundsIn(edge, window);
-            var host = window.GetVisualDescendants().OfType<Panel>().Single(p => p.Name == "Host");
-            foreach (var text in VisibleTextBlocks(host))
-            {
-                var textBox = BoundsIn(text, window).Intersect(view);
-                Assert.False(textBox.Width > 1 && textBox.Height > 1 && textBox.Intersects(box), $"{name} {box} liegt über „{text.Text}“ {textBox}");
-            }
+            var textBox = BoundsIn(text, window).Intersect(view);
+            Assert.False(textBox.Width > 1 && textBox.Height > 1 && textBox.Intersects(box), $"EdgeFadePrevious {box} liegt über „{text.Text}“ {textBox}");
         }
     }
 

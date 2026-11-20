@@ -2159,25 +2159,12 @@
     <Style Selector="Grid.filterable">
       <Setter Property="Cursor" Value="Hand" />
     </Style>
-    <!-- Weitere Spalten am Rand des Rasters (R04 Slice 86, Ä154, Variante 2): schmaler Verlauf über Kopf und Raster, daneben ein schmaler Knopf mit Pfeil und „+n“.
-         Durchsicht Kalender 1 (4a, 4b): Verlauf und Knopf liegen auf dem Rand der Zeitleiste und der Spalte, nicht mehr über dem Text der ersten Karte -->
+    <!-- Weitere Spalten am Rand des Rasters (R04 Slice 86, Ä154, Variante 2): schmaler Verlauf über Kopf und Raster. Die Knöpfe „Zurück“/„Weiter“ mit „+n“ liegen seit T-087
+         als Paar in Zeile 2 der Kopfzeile (Befund R1 der Durchsicht vom 19.11.2026: im Raster verdeckten sie Kartentext) -->
     <Style Selector="Border.edgefade">
       <Setter Property="Width" Value="14" />
       <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
       <Setter Property="IsHitTestVisible" Value="False" />
-    </Style>
-    <Style Selector="Button.edge">
-      <Setter Property="Width" Value="26" />
-      <Setter Property="Height" Value="44" />
-      <Setter Property="MinWidth" Value="0" />
-      <Setter Property="MinHeight" Value="0" />
-      <Setter Property="Padding" Value="0" />
-      <Setter Property="CornerRadius" Value="13" />
-      <Setter Property="VerticalAlignment" Value="Center" />
-      <Setter Property="HorizontalContentAlignment" Value="Center" />
-      <Setter Property="VerticalContentAlignment" Value="Center" />
-      <!-- Mit der Tastatur scrollen die Pfeiltasten den Kalender; der Knopf ist für die Maus und den Screenreader da -->
-      <Setter Property="IsTabStop" Value="False" />
     </Style>
   </UserControl.Styles>
 
@@ -2382,7 +2369,9 @@
             </StackPanel>
           </StackPanel>
         </Grid>
-        <!-- Zeile 2: links Umschalter Team/Räume, Zähler, Sauna, Warteliste; rechts auf derselben Linie der Personenfilter (in der Raumansicht gibt es keinen Raumfilter, dann steht dort nichts) -->
+        <!-- Zeile 2: links Umschalter Team/Räume, Zähler, Sauna, Warteliste; rechts auf derselben Linie der Personenfilter (in der Raumansicht gibt es keinen Raumfilter, dann steht dort nichts);
+             ganz rechts das Paar Zurück/Weiter zu verdeckten Spalten (T-087), nur wenn Spalten verdeckt sind: sonst ist die Spalte 0 breit und die Zeile hat die volle Breite -->
+        <Grid ColumnDefinitions="*,Auto">
         <ui:OverflowStrip x:Name="HeaderRow2" Spacing="8">
           <Border ui:OverflowStrip.Header="Team" ui:OverflowStrip.Icon="{x:Static ui:Icons.Users}">
             <ui:TabButton x:Name="HeadTeam" Classes="headchip pair" IsSelected="{Binding !ByRoom}" Command="{Binding ShowTeamCommand}" ToolTip.Tip="Eine Spalte je Mitarbeitenden" AutomationProperties.Name="Team">
@@ -2654,6 +2643,26 @@
         </Button>
           </Border>
         </ui:OverflowStrip>
+        <!-- Weitere Spalten (Ä154): Hinweis und Screenreader nennen die verborgenen Spalten, ein Klick schiebt das Raster um eine Breite; mit der Tastatur scrollen die Pfeiltasten, die Knöpfe sind für Maus und Screenreader -->
+        <StackPanel x:Name="ColumnNav" Grid.Column="1" Orientation="Horizontal">
+          <Button x:Name="EdgePrevious" Classes="headchip" Margin="8,0,0,0" IsTabStop="False" Click="OnEdgePreviousClick"
+                  IsVisible="{Binding LeftEdge, Converter={x:Static ObjectConverters.IsNotNull}}"
+                  ToolTip.Tip="{Binding LeftEdge?.Tip, TargetNullValue=''}" AutomationProperties.Name="{Binding LeftEdge?.Tip, TargetNullValue=''}">
+            <StackPanel Orientation="Horizontal" Spacing="4">
+              <ui:Icon Data="{x:Static ui:Icons.ChevronLeft}" Width="16" Height="16" />
+              <TextBlock Text="{Binding LeftEdge?.Badge, TargetNullValue=''}" Classes="num" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+          <Button x:Name="EdgeNext" Classes="headchip" Margin="8,0,0,0" IsTabStop="False" Click="OnEdgeNextClick"
+                  IsVisible="{Binding RightEdge, Converter={x:Static ObjectConverters.IsNotNull}}"
+                  ToolTip.Tip="{Binding RightEdge?.Tip, TargetNullValue=''}" AutomationProperties.Name="{Binding RightEdge?.Tip, TargetNullValue=''}">
+            <StackPanel Orientation="Horizontal" Spacing="4">
+              <TextBlock Text="{Binding RightEdge?.Badge, TargetNullValue=''}" Classes="num" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" />
+              <ui:Icon Data="{x:Static ui:Icons.ChevronRight}" Width="16" Height="16" />
+            </StackPanel>
+          </Button>
+        </StackPanel>
+        </Grid>
       </StackPanel>
 
       <StackPanel Grid.Row="1" Spacing="8" Margin="0,0,0,10">
@@ -3132,7 +3141,7 @@
               </Panel>
             </ScrollViewer>
 
-            <!-- Weitere Spalten (Ä154): nur an einem Rand mit verborgenen Spalten; die Verläufe lassen unten und rechts 16 px für die Scrollbalken frei; Hinweis und Screenreader nennen ihre Namen, ein Klick schiebt um eine Breite -->
+            <!-- Weitere Spalten (Ä154): Verlauf nur an einem Rand mit verborgenen Spalten, lässt unten und rechts 16 px für die Scrollbalken frei; die Knöpfe dazu stehen in Zeile 2 der Kopfzeile (T-087) -->
             <Border x:Name="EdgeFadePrevious" Grid.Column="1" Grid.RowSpan="2" Classes="edgefade" HorizontalAlignment="Left" Margin="0,0,0,16"
                     IsVisible="{Binding LeftEdge, Converter={x:Static ObjectConverters.IsNotNull}}">
               <Border.OpacityMask>
@@ -3151,22 +3160,6 @@
                 </LinearGradientBrush>
               </Border.OpacityMask>
             </Border>
-            <Button x:Name="EdgePrevious" Grid.Row="1" Grid.Column="1" Classes="edge" HorizontalAlignment="Left" Margin="-10,0,0,0" Click="OnEdgePreviousClick"
-                    IsVisible="{Binding LeftEdge, Converter={x:Static ObjectConverters.IsNotNull}}"
-                    ToolTip.Tip="{Binding LeftEdge?.Tip, TargetNullValue=''}" AutomationProperties.Name="{Binding LeftEdge?.Tip, TargetNullValue=''}">
-              <StackPanel>
-                <ui:Icon Data="{x:Static ui:Icons.ChevronLeft}" Width="16" Height="16" HorizontalAlignment="Center" />
-                <TextBlock Text="{Binding LeftEdge?.Badge, TargetNullValue=''}" Classes="num" FontSize="12" FontWeight="SemiBold" HorizontalAlignment="Center" />
-              </StackPanel>
-            </Button>
-            <Button x:Name="EdgeNext" Grid.Row="1" Grid.Column="1" Classes="edge" HorizontalAlignment="Right" Margin="0,0,16,0" Click="OnEdgeNextClick"
-                    IsVisible="{Binding RightEdge, Converter={x:Static ObjectConverters.IsNotNull}}"
-                    ToolTip.Tip="{Binding RightEdge?.Tip, TargetNullValue=''}" AutomationProperties.Name="{Binding RightEdge?.Tip, TargetNullValue=''}">
-              <StackPanel>
-                <ui:Icon Data="{x:Static ui:Icons.ChevronRight}" Width="16" Height="16" HorizontalAlignment="Center" />
-                <TextBlock Text="{Binding RightEdge?.Badge, TargetNullValue=''}" Classes="num" FontSize="12" FontWeight="SemiBold" HorizontalAlignment="Center" />
-              </StackPanel>
-            </Button>
           </Grid>
 
           <!-- Tastenhilfe („?“), Runde 5 Ä35: Gruppentitel in der Stufe Zwischentitel, zwei gleich breite Spalten, die Tastenspalte hat überall die Breite der längsten Taste
