@@ -50,7 +50,7 @@ Der Termin steht sofort im Kalender; Person, Raum und Gerät sind für die Zeit 
 
 ## Wenn etwas schiefgeht {#wenn-etwas-schiefgeht}
 
-- **Termin buchen** bleibt grau, solange Behandlung, Gast, ein lesbares Datum oder eine gültige Uhrzeit fehlen.
+- Fehlen Behandlung, Gast, ein lesbares Datum oder eine gültige Uhrzeit, markiert **Termin buchen** das erste betroffene Feld rot, setzt den Cursor dorthin und nennt, was fehlt; es wird nichts gebucht.
 - Ein Klick auf eine andere freie Stelle im Kalender schließt die offene Maske nicht: der angefangene Termin wandert an diese Stelle (Spalte, Tag und Beginn), alle Eingaben bleiben. Verworfen wird er nur mit dem Kreuz, mit **Esc** oder mit **Strg+W**, mit Rückfrage, wenn schon etwas eingetragen ist.
 - Ist die Person, der Raum oder ein Gerät belegt, erscheint rot im Panel eine Konfliktmeldung; nichts wird gebucht. Dann eine andere Zeit wählen oder in der Meldung auf **Freie Zeit suchen** klicken. Siehe [Wenn die Zeit belegt ist](hilfe:kalender-termin-buchen#konflikt).
 - Liegt die Zeit außerhalb der Öffnungszeit oder nach dem Dienst der Person, steht über dem Knopf eine gelbe Warnung mit **Trotzdem buchen**, siehe [Außerhalb der Öffnungszeit](hilfe:kalender-termin-buchen#ausserhalb).

@@ -266,7 +266,7 @@ public sealed class ClosureTests
     }
 
     [Fact]
-    public async Task Abbrechen_sagt_nichts_ab_und_ohne_Auswahl_oder_Text_ist_der_Knopf_gesperrt()
+    public async Task Abbrechen_sagt_nichts_ab_ohne_Auswahl_ist_der_Knopf_gesperrt_und_ohne_Text_meldet_der_Klick_den_Fehler()
     {
         var dialogs = new FakeDialogs();
         var api = Api(TestData.Day() with { Closures = [Vacation(open: 3)] }).On($"GET {Path("/cancellation")}", Preview(true, Three()));
@@ -279,12 +279,20 @@ public sealed class ClosureTests
         Assert.Equal(("Kein Termin gewählt.", "0 Termine absagen", false), (dialog.Summary, dialog.SendText, dialog.CanSend));
         Assert.False(dialog.SendCommand.CanExecute(null));
         dialog.AllChecked = true;
+        // Ohne Text oder Betreff bleibt „Absagen“ aktiv; der Klick meldet den Fehler am Feld, setzt den Fokus dorthin und sagt nichts ab.
+        string? focus = null;
+        dialog.FocusRequested += field => focus = field;
         dialog.Text = "   ";
-        Assert.False(dialog.CanSend);
+        Assert.True(dialog.SendCommand.CanExecute(null));
+        dialog.SendCommand.Execute(null);
+        Assert.Equal(("Bitte den Text der Nachricht eintragen.", CancelClosureDialogViewModel.TextField), (dialog.TextError, focus));
         dialog.Text = "Text";
+        Assert.Null(dialog.TextError);
         dialog.Subject = "";
-        Assert.False(dialog.CanSend);
+        dialog.SendCommand.Execute(null);
+        Assert.Equal(("Bitte einen Betreff eintragen.", CancelClosureDialogViewModel.SubjectField), (dialog.SubjectError, focus));
         dialog.Subject = "Betreff";
+        Assert.Null(dialog.SubjectError);
         Assert.True(dialog.SendCommand.CanExecute(null));
 
         dialog.CancelCommand.Execute(null);

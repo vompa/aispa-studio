@@ -299,8 +299,8 @@
                         <ui:FormField Label="Betreff" IsVisible="{Binding !IsShortMessage}">
                           <TextBox Text="{Binding ReplySubject}" IsEnabled="{Binding IsDraft}" />
                         </ui:FormField>
-                        <ui:FormField Label="{Binding ReplyLabel}">
-                          <TextBox Text="{Binding ReplyBody}" AcceptsReturn="True" Height="160"
+                        <ui:FormField Label="{Binding ReplyLabel}" Error="{Binding ReplyBodyError}">
+                          <TextBox x:Name="ReplyBodyBox" Text="{Binding ReplyBody}" AcceptsReturn="True" Height="160"
                                    IsEnabled="{Binding IsDraft}" />
                         </ui:FormField>
                         <Border Classes="card" Padding="10" Background="{DynamicResource Surface2Brush}" IsVisible="{Binding HasReplyTranslation}">
@@ -321,8 +321,8 @@
                                     ui:DisabledHint.Text="Verfügbar, sobald die KI den Entwurf überarbeitet hat." />
                           </WrapPanel>
                           <Grid ColumnDefinitions="*,8,Auto">
-                            <ui:FormField Label="Eigener Hinweis">
-                              <TextBox Text="{Binding ReviseInstruction}" PlaceholderText="z. B. Parkplatz erwähnen" MaxLength="300" />
+                            <ui:FormField Label="Eigener Hinweis" Error="{Binding ReviseInstructionError}">
+                              <TextBox x:Name="ReviseInstructionBox" Text="{Binding ReviseInstruction}" PlaceholderText="z. B. Parkplatz erwähnen" MaxLength="300" />
                             </ui:FormField>
                             <Button Grid.Column="2" Content="Überarbeiten" Command="{Binding ReviseCustomCommand}" VerticalAlignment="Bottom" />
                           </Grid>

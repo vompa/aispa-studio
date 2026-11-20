@@ -66,6 +66,7 @@ public partial class CustomerContactForm : UserControl
     {
         Control? box = field switch
         {
+            CustomerContactFormViewModel.NameField => FirstNameBox,
             CustomerContactFormViewModel.EmailField => EmailBox,
             CustomerContactFormViewModel.BirthDateField => BirthDateBox,
             CustomerContactFormViewModel.PostalCodeField => PostalCodeBox,

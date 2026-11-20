@@ -32,6 +32,10 @@ public partial class GroupGuestViewModel(CustomerSearchViewModel search, Action<
 
     public string Label => $"Gast {Number}";
 
+    /// <summary>Fehler am Feld „Behandlung“ in der Karte des Gastes (masken.md, R8); verschwindet mit der nächsten Wahl.</summary>
+    [ObservableProperty]
+    public partial string? TreatmentError { get; set; }
+
     /// <summary>Behandlung des ersten Abschnitts; sie steht in der Karte des Gastes.</summary>
     [ObservableProperty]
     public partial GroupEntryViewModel? FirstEntry { get; set; }
@@ -48,6 +52,7 @@ public partial class GroupGuestViewModel(CustomerSearchViewModel search, Action<
 
     partial void OnNameLaterChanged(bool value)
     {
+        Search.Error = null;
         NameChanged();
         nameLaterChanged?.Invoke();
     }
@@ -79,7 +84,11 @@ public partial class GroupEntryViewModel(GroupGuestViewModel guest, IReadOnlyLis
     [ObservableProperty]
     public partial TreatmentChoice Choice { get; set; } = choice;
 
-    partial void OnChoiceChanged(TreatmentChoice value) => changed();
+    partial void OnChoiceChanged(TreatmentChoice value)
+    {
+        Guest.TreatmentError = null;
+        changed();
+    }
 }
 
 /// <summary>Abschnitt: was darin steht, beginnt gleichzeitig; der nächste Abschnitt folgt nach dem Ende plus Pause.</summary>
@@ -157,14 +166,21 @@ public partial class GroupBookingViewModel : ViewModelBase
 
     /// <summary>Das Datumsfeld; ein unlesbarer oder früherer Tag lässt den bisherigen Tag stehen und sperrt das Buchen.</summary>
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(BookCommand))]
     public partial string DateText { get; set; } = "";
+
+    /// <summary>Fehler am Datumsfeld und am Feld „Beginn“ ohne Verbindung (masken.md, R8); verschwinden mit der nächsten Eingabe.</summary>
+    [ObservableProperty]
+    public partial string? DateError { get; private set; }
+
+    [ObservableProperty]
+    public partial string? OfflineStartError { get; private set; }
 
     /// <summary>Der erste wählbare Tag: heute am Standort.</summary>
     public DateOnly Today => _today;
 
     partial void OnDateTextChanged(string value)
     {
+        DateError = null;
         if (DateInputParser.TryParse(value, _today) is { } date && date >= _today && date != _date)
         {
             _date = date;
@@ -312,8 +328,9 @@ public partial class GroupBookingViewModel : ViewModelBase
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(BookText))]
-    [NotifyCanExecuteChangedFor(nameof(BookCommand))]
     public partial string OfflineStartText { get; set; } = "10:00";
+
+    partial void OnOfflineStartTextChanged(string value) => OfflineStartError = null;
 
     [ObservableProperty]
     public partial string? Note { get; set; }
@@ -555,63 +572,111 @@ public partial class GroupBookingViewModel : ViewModelBase
     private IEnumerable<GroupGuestViewModel> GuestsWithoutChoice() =>
         Guests.Where(g => !Steps.Any(step => step.Entries.Any(e => e.Guest == g && !e.Choice.IsNone)));
 
-    /// <summary>Der erste fehlende Punkt in der Reihenfolge der Maske, solange „Alles buchen“ gesperrt ist; sonst <c>null</c>.</summary>
-    public string? BookBlocker
+    /// <summary>Warum „Alles buchen“ gesperrt ist: die Buchung läuft oder an dem Tag ist keine gemeinsame Zeit frei; sonst <c>null</c>. Fehlende Angaben sperren nicht, die Prüfung beim Klick zeigt sie am Feld.</summary>
+    public string? BookBlocker =>
+        Busy ? "Verfügbar, sobald die laufende Buchung fertig ist."
+        : NoCommonTime ? "Verfügbar, sobald eine gemeinsame Zeit frei ist; anderen Tag wählen."
+        : null;
+
+    /// <summary>Namen der Felder für <see cref="FocusRequested"/>: das erste ungültige Feld bekommt nach „Alles buchen“ den Fokus.</summary>
+    public const string DateField = "GroupDateBox";
+
+    public const string GuestTreatmentField = "GroupGuestTreatmentBox";
+
+    public const string NameLaterField = "GroupNameLaterSwitch";
+
+    public const string OfflineStartField = "GroupOfflineStartBox";
+
+    /// <summary>Bittet die Seitenleiste, ein Element dieses Namens zu fokussieren (der Kalender setzt es).</summary>
+    public Action<string>? FocusRequested { get; init; }
+
+    /// <summary>
+    /// Prüft Tag, Namen der Gäste, Behandlungen, die Zahl der Teile und ohne Verbindung den Beginn; setzt die Fehler an den Feldern und gibt dem ersten ungültigen Feld in
+    /// der Reihenfolge der Maske den Fokus. Was kein Feld hat (kein Gast mit Namen, zu wenig Teile, keine Zeit), steht als <see cref="Error"/> über dem Knopf.
+    /// </summary>
+    private bool Validate()
     {
-        get
+        var day = DateInputParser.Parse(DateText, _today);
+        DateError = day.Error ?? (day.Value is not { } date ? DateInputParser.MissingError
+            : date < _today ? "Der Tag liegt vor heute. Bitte heute oder einen späteren Tag wählen." : null);
+        foreach (var guest in Guests)
         {
-            var day = DateInputParser.TryParse(DateText, _today);
-            if (day is null)
-            {
-                return "Verfügbar, sobald ein gültiges Datum eingetragen ist.";
-            }
-
-            if (day < _today)
-            {
-                return "Verfügbar, sobald ein Tag ab heute gewählt ist.";
-            }
-
-            if (Guests.FirstOrDefault(g => !g.NameLater && !g.Search.HasCustomer) is { } unnamed)
-            {
-                return $"Verfügbar, sobald {unnamed.Label} einen Namen hat oder „Name folgt“ gilt.";
-            }
-
-            if (Booker is null)
-            {
-                return "Verfügbar, sobald mindestens ein Gast einen Namen hat.";
-            }
-
-            if (GuestsWithoutChoice().FirstOrDefault() is { } without)
-            {
-                return $"Verfügbar, sobald für {without.FullName} eine Behandlung gewählt ist.";
-            }
-
-            var entries = Entries();
-            if (entries.Count < 2 || entries.All(e => e.TreatmentId is null))
-            {
-                return "Verfügbar, sobald mindestens zwei Teile gewählt sind, davon eine Behandlung.";
-            }
-
-            if (Slot is null && !(IsOffline && TryOfflineStart(out _)))
-            {
-                return IsOffline ? "Verfügbar, sobald der Beginn eingetragen ist, z. B. 10:00." : NoCommonTime ? "Verfügbar, sobald eine gemeinsame Zeit frei ist; anderen Tag wählen." : "Verfügbar, sobald eine freie Zeit gewählt ist.";
-            }
-
-            return Busy ? "Verfügbar, sobald die laufende Buchung fertig ist." : null;
+            guest.Search.Error = !guest.NameLater && !guest.Search.HasCustomer ? $"Bitte {guest.Label} wählen oder „Name folgt“ einschalten." : null;
+            guest.TreatmentError = null;
         }
+
+        var withoutChoice = GuestsWithoutChoice().ToList();
+        foreach (var guest in withoutChoice)
+        {
+            guest.TreatmentError = $"Bitte für {guest.FullName} eine Behandlung wählen.";
+        }
+
+        var entries = Entries();
+        var time = TimeInputParser.Parse(OfflineStartText);
+        OfflineStartError = IsOffline && Slot is null ? time.Error ?? (time.Value is null ? TimeInputParser.MissingError : null) : null;
+        string? message = null;
+        string? field = null;
+        if (DateError is not null)
+        {
+            field = DateField;
+        }
+        else if (Guests.Any(g => g.Search.Error is not null))
+        {
+            field = CustomerSearchViewModel.SearchBox;
+        }
+        else if (Booker is null)
+        {
+            message = "Mindestens ein Gast braucht einen Namen: wer bucht. Schalte bei einem Gast „Name folgt“ aus und wähle ihn.";
+            field = NameLaterField;
+        }
+        else if (withoutChoice.Count > 0)
+        {
+            field = GuestTreatmentField;
+        }
+        else if (entries.Count < 2 || entries.All(e => e.TreatmentId is null))
+        {
+            message = "Es braucht mindestens zwei Teile, davon eine Behandlung. Füge einen Gast oder einen Abschnitt hinzu oder wähle eine Behandlung.";
+            field = GuestTreatmentField;
+        }
+        else if (OfflineStartError is not null)
+        {
+            field = OfflineStartField;
+        }
+        else if (Slot is null && !IsOffline)
+        {
+            message = SlotsNote ?? "Bitte eine freie Zeit wählen.";
+        }
+
+        if (field is null && message is null)
+        {
+            return true;
+        }
+
+        Error = message ?? "Es ist nichts gebucht. Bitte die markierten Felder prüfen.";
+        if (field is not null)
+        {
+            FocusRequested?.Invoke(field);
+        }
+
+        return false;
     }
 
     [RelayCommand(CanExecute = nameof(CanBook))]
     private async Task BookAsync()
     {
+        if (!Validate())
+        {
+            return;
+        }
+
         DateTimeOffset start;
         if (Slot is not null)
         {
             start = Slot.Slot.Start;
         }
-        else if (!TryOfflineStart(out start))
+        else
         {
-            return;
+            TryOfflineStart(out start);
         }
 
         Error = null;

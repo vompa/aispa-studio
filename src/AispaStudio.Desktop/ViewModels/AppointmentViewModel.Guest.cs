@@ -22,20 +22,19 @@ public partial class AppointmentViewModel
             if (_guestSearch is null)
             {
                 _guestSearch = new CustomerSearchViewModel(Api);
-                _guestSearch.Changed += () => NameGuestCommand.NotifyCanExecuteChanged();
             }
 
             return _guestSearch;
         }
     }
 
-    private bool CanAssign => GuestSearch.HasCustomer;
-
-    [RelayCommand(CanExecute = nameof(CanAssign))]
+    [RelayCommand]
     private async Task NameGuestAsync()
     {
         if (GuestSearch.Customer is not { } customer)
         {
+            GuestSearch.Error = "Bitte einen Gast wählen.";
+            FocusRequested?.Invoke(CustomerSearchViewModel.SearchBox);
             return;
         }
 

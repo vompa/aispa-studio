@@ -16,6 +16,7 @@ namespace AispaStudio.Desktop.Views;
 public partial class ConfirmDialogView : UserControl
 {
     private ConfirmDialogHost? _host;
+    private ConfirmDialogViewModel? _dialog;
     private IInputElement? _trigger;
 
     public ConfirmDialogView()
@@ -59,6 +60,17 @@ public partial class ConfirmDialogView : UserControl
             return;
         }
 
+        if (_dialog is not null)
+        {
+            _dialog.FocusRequested -= FocusField;
+        }
+
+        _dialog = _host?.Current;
+        if (_dialog is not null)
+        {
+            _dialog.FocusRequested += FocusField;
+        }
+
         if (_host?.Current is { } dialog)
         {
             // Der Auslöser ist der Knopf (oder das Feld), das gerade den Fokus hat.
@@ -81,6 +93,13 @@ public partial class ConfirmDialogView : UserControl
             }, DispatcherPriority.Loaded);
         }
     }
+
+    /// <summary>Nach einem Fehler beim Bestätigen bekommt das erste ungültige Feld den Fokus; heißt ein Feld in mehreren Zeilen gleich, die Zeile mit der fehlenden Antwort (masken.md, R8).</summary>
+    private void FocusField(string name) => Dispatcher.UIThread.Post(() =>
+    {
+        var candidates = this.GetVisualDescendants().OfType<Control>().Where(c => c.Name == name && c.IsEffectivelyVisible).ToList();
+        (candidates.FirstOrDefault(c => c.DataContext is ScanQuestionRow { IsMissing: true }) ?? candidates.FirstOrDefault())?.Focus(NavigationMethod.Tab);
+    });
 
     /// <summary>
     /// Mit Eingabefeld (z. B. Grund beim Storno) bekommt das Feld den Anfangsfokus (Fluent 2); Enter im Feld löst nichts aus. Ohne Feld: zerstörende Aktion auf „Abbrechen“,

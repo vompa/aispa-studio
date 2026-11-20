@@ -145,16 +145,18 @@
                 </ItemsControl.ItemTemplate>
               </ItemsControl>
               <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                <ComboBox x:Name="RecommendedArticlePicker" ItemsSource="{Binding ArticleChoices}" SelectedItem="{Binding ArticleToAdd}" HorizontalAlignment="Stretch"
-                          PlaceholderText="Artikel wählen" AutomationProperties.Name="Artikel für „Passt dazu“">
-                  <ComboBox.ItemTemplate>
-                    <DataTemplate x:DataType="contracts:ArticleDto">
-                      <TextBlock Text="{Binding Name}" />
-                    </DataTemplate>
-                  </ComboBox.ItemTemplate>
-                </ComboBox>
-                <Button Grid.Column="1" Content="Artikel hinzufügen" Command="{Binding AddRecommendedArticleCommand}"
-                        ui:DisabledHint.Text="Verfügbar, sobald ein Artikel gewählt ist und weniger als fünf in der Liste stehen." />
+                <ui:FormField Error="{Binding ArticleToAddError}">
+                  <ComboBox x:Name="RecommendedArticlePicker" ItemsSource="{Binding ArticleChoices}" SelectedItem="{Binding ArticleToAdd}" HorizontalAlignment="Stretch"
+                            PlaceholderText="Artikel wählen" AutomationProperties.Name="Artikel für „Passt dazu“">
+                    <ComboBox.ItemTemplate>
+                      <DataTemplate x:DataType="contracts:ArticleDto">
+                        <TextBlock Text="{Binding Name}" />
+                      </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                  </ComboBox>
+                </ui:FormField>
+                <Button Grid.Column="1" Content="Artikel hinzufügen" Command="{Binding AddRecommendedArticleCommand}" VerticalAlignment="Top"
+                        ui:DisabledHint.Text="Verfügbar, solange weniger als fünf Artikel in der Liste stehen." />
               </Grid>
             </StackPanel>
 

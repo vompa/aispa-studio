@@ -94,11 +94,10 @@
                   <TextBlock Text="{Binding UserText}" TextWrapping="Wrap" />
                   <StackPanel Spacing="6">
                     <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                      <ui:FormField Label="{Binding PinLabel}" Help="{Binding PinHelp}">
-                        <TextBox Text="{Binding PinInput}" PasswordChar="•" MaxLength="8" Classes="num" />
+                      <ui:FormField Label="{Binding PinLabel}" Help="{Binding PinHelp}" Error="{Binding PinError}">
+                        <TextBox x:Name="PinBox" Text="{Binding PinInput}" PasswordChar="•" MaxLength="8" Classes="num" />
                       </ui:FormField>
-                      <Button Grid.Column="1" Content="Speichern" Command="{Binding SavePinCommand}" VerticalAlignment="Top" Margin="0,22,0,0"
-                              ui:DisabledHint.Text="Verfügbar, sobald die PIN die Mindestlänge hat." />
+                      <Button Grid.Column="1" Content="Speichern" Command="{Binding SavePinCommand}" VerticalAlignment="Top" Margin="0,22,0,0" />
                     </Grid>
                     <Button Classes="ghost" Content="PIN entfernen" Command="{Binding RemovePinCommand}" IsVisible="{Binding HasPin}" />
                     <TextBlock Text="{Binding PinText}" Classes="muted small" TextWrapping="Wrap" MaxWidth="260"

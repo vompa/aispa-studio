@@ -52,6 +52,12 @@ public sealed partial class RoomRowViewModel : ObservableObject
     [ObservableProperty]
     public partial string Name { get; set; } = "";
 
+    /// <summary>Fehler am Namensfeld (masken.md, R8), z. B. „Bitte einen Namen eintragen.“; verschwindet mit der nächsten Eingabe.</summary>
+    [ObservableProperty]
+    public partial string? NameError { get; set; }
+
+    partial void OnNameChanged(string value) => NameError = null;
+
     /// <summary>Raumpflege nach jedem Termin in Minuten (0 bis 240).</summary>
     [ObservableProperty]
     public partial decimal? CleaningMinutes { get; set; }
@@ -85,8 +91,8 @@ public sealed partial class RoomRowViewModel : ObservableObject
     public bool IsDirty => _saved is null || Name != _saved.Name || Minutes(CleaningMinutes) != _saved.CleaningMinutes || Minutes(Places) != _saved.Places
         || IsArea != _saved.IsArea || (IsArea && Admission.Id != _saved.AdmissionArticleId);
 
-    /// <summary>Der Knopf erscheint, sobald etwas geändert ist und der Raum einen Namen hat.</summary>
-    public bool CanSave => IsDirty && Name.Trim().Length > 0;
+    /// <summary>Der Knopf erscheint, sobald etwas geändert ist; ein fehlender Name wird beim Klick am Feld gemeldet.</summary>
+    public bool CanSave => IsDirty;
 
     /// <summary>Eine geänderte, noch nicht gespeicherte Zeile eines bestehenden Raums; sie zeigt den Hinweis „Nicht gespeichert“.</summary>
     public bool HasPendingChanges => !IsNew && IsDirty;

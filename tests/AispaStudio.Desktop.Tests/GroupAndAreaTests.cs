@@ -64,7 +64,7 @@ public sealed class GroupAndAreaTests
         var group = vm.GroupBooking!;
         await group.SearchSlotsAsync();
         var search = JsonSerializer.Deserialize<GroupAvailabilityRequest>(api.Calls.Last(c => c.Route == Availability).Body!, ApiClient.Json)!;
-        var cannotBookYet = group.BookCommand.CanExecute(null);
+        var canClickBeforeNames = group.BookCommand.CanExecute(null);
 
         await group.Guests[0].Search.SearchAsync("eva");
         group.Guests[0].Search.Customer = group.Guests[0].Search.Results[0];
@@ -79,7 +79,7 @@ public sealed class GroupAndAreaTests
         Assert.Equal(2, search.Items.Select(i => i.CustomerId).Distinct().Count());
         Assert.DoesNotContain(search.Items, i => i.CustomerId == Eva.Id);
         Assert.Equal(15, search.GapMinutes);
-        Assert.False(cannotBookYet);
+        Assert.True(canClickBeforeNames);
         Assert.Equal(["13:00", "15:00"], group.Slots.Select(s => s.Text));
         Assert.Equal("15:00–15:50  Eva: Gesicht bei Anna, Raum Zeder", plan[0]);
         Assert.Equal("15:00–15:50  Paul: Gesicht bei Ben, Raum Zeder", plan[1]);
@@ -125,7 +125,15 @@ public sealed class GroupAndAreaTests
         vm.OpenAppointment(placeholder);
         var panel = vm.Selected!;
         Assert.True(panel.CanNameGuest);
-        Assert.False(panel.NameGuestCommand.CanExecute(null));
+
+        // „Gast eintragen“ ist ohne Gast aktiv; der Klick meldet es am Suchfeld, setzt den Fokus dorthin und sendet nichts.
+        string? focus = null;
+        vm.PanelFocusRequested += field => focus = field;
+        Assert.True(panel.NameGuestCommand.CanExecute(null));
+        await panel.NameGuestCommand.ExecuteAsync(null);
+        Assert.Equal("Bitte einen Gast wählen.", panel.GuestSearch.Error);
+        Assert.Equal(CustomerSearchViewModel.SearchBox, focus);
+        Assert.DoesNotContain(api.Calls, c => c.Route == $"PUT /api/appointments/{placeholder.Id}/guest");
         await panel.GuestSearch.SearchAsync("paul");
         panel.GuestSearch.Customer = panel.GuestSearch.Results[0];
         var named = Grouped(placeholder, groupId, Paul) with { PlaceholderGuest = null, UpdatedAt = TestData.At(9) };
@@ -230,7 +238,15 @@ public sealed class GroupAndAreaTests
         group.DateText = "28.02.2027";
         await group.SearchSlotsAsync();
         Assert.Equal(searches, api.Calls.Count(c => c.Route == Availability));
-        Assert.Equal("Verfügbar, sobald ein Tag ab heute gewählt ist.", group.BookBlocker);
+
+        // Ein früherer Tag sperrt nicht; „Alles buchen“ meldet ihn am Datumsfeld und sendet nichts.
+        string? focus = null;
+        vm.PanelFocusRequested += field => focus = field;
+        Assert.Null(group.BookBlocker);
+        await group.BookCommand.ExecuteAsync(null);
+        Assert.Equal("Der Tag liegt vor heute. Bitte heute oder einen späteren Tag wählen.", group.DateError);
+        Assert.Equal(GroupBookingViewModel.DateField, focus);
+        Assert.DoesNotContain(api.Calls, c => c.Route.StartsWith("POST ", StringComparison.Ordinal) && c.Route != Availability);
     }
 
     [Fact]
@@ -257,26 +273,43 @@ public sealed class GroupAndAreaTests
     }
 
     [Fact]
-    public async Task Gesperrter_Knopf_nennt_den_ersten_fehlenden_Punkt()
+    public async Task Alles_buchen_meldet_den_ersten_fehlenden_Punkt_am_Feld_und_nur_Busy_und_keine_gemeinsame_Zeit_sperren()
     {
-        var api = Api().On(Availability, new List<GroupSlot>());
+        var api = Api().On(Availability, new List<GroupSlot> { Slot(13) });
         var vm = await OpenAsync(api);
         vm.OpenGroupBookingCommand.Execute(null);
         var group = vm.GroupBooking!;
+        string? focus = null;
+        vm.PanelFocusRequested += field => focus = field;
         await group.SearchSlotsAsync();
 
-        Assert.Equal("Verfügbar, sobald Gast 1 einen Namen hat oder „Name folgt“ gilt.", group.BookBlocker);
+        Assert.Null(group.BookBlocker);
+        Assert.True(group.BookCommand.CanExecute(null));
+        await group.BookCommand.ExecuteAsync(null);
+        Assert.Equal("Bitte Gast 1 wählen oder „Name folgt“ einschalten.", group.Guests[0].Search.Error);
+        Assert.Equal("Bitte Gast 2 wählen oder „Name folgt“ einschalten.", group.Guests[1].Search.Error);
+        Assert.Equal(CustomerSearchViewModel.SearchBox, focus);
+        Assert.Equal("Es ist nichts gebucht. Bitte die markierten Felder prüfen.", group.Error);
+        Assert.DoesNotContain(api.Calls, c => c.Route.StartsWith("POST ", StringComparison.Ordinal) && c.Route != Availability);
+
         await group.Guests[0].Search.SearchAsync("eva");
         group.Guests[0].Search.Customer = group.Guests[0].Search.Results[0];
-        Assert.Equal("Verfügbar, sobald Gast 2 einen Namen hat oder „Name folgt“ gilt.", group.BookBlocker);
+        Assert.Null(group.Guests[0].Search.Error);
+        Assert.NotNull(group.Guests[1].Search.Error);
         await group.Guests[1].Search.SearchAsync("paul");
         group.Guests[1].Search.Customer = group.Guests[1].Search.Results[0];
+        api.On(Availability, new List<GroupSlot>());
+        group.Gap = 30;
         await group.SearchSlotsAsync();
         Assert.Equal("An diesem Tag ist keine gemeinsame Zeit frei. Anderen Tag wählen.", group.SlotsNote);
         Assert.Equal("Verfügbar, sobald eine gemeinsame Zeit frei ist; anderen Tag wählen.", group.BookBlocker);
+        Assert.False(group.BookCommand.CanExecute(null));
 
         group.Steps[0].Entries[1].Choice = TreatmentChoice.None;
-        Assert.Equal("Verfügbar, sobald für Paul Muster eine Behandlung gewählt ist.", group.BookBlocker);
+        Assert.Null(group.BookBlocker);
+        await group.BookCommand.ExecuteAsync(null);
+        Assert.Equal("Bitte für Paul Muster eine Behandlung wählen.", group.Guests[1].TreatmentError);
+        Assert.Equal(GroupBookingViewModel.GuestTreatmentField, focus);
         Assert.Equal("Paul Muster", group.Guests[1].FullName);
 
         group.Steps[0].Entries[1].Choice = group.Steps[0].Entries[1].Choices[1];
@@ -461,7 +494,13 @@ public sealed class GroupAndAreaTests
         Assert.Equal([true, false], rows.Select(r => r.CanName));
         rows[0].NameGuestCommand.Execute(null);
         Assert.Equal("Namen nachtragen: Gast 2 · Name folgt", panel.NamingTitle);
-        Assert.False(panel.AssignGuestCommand.CanExecute(null));
+        string? focus = null;
+        vm.PanelFocusRequested += field => focus = field;
+        Assert.True(panel.AssignGuestCommand.CanExecute(null));
+        await panel.AssignGuestCommand.ExecuteAsync(null);
+        Assert.Equal("Bitte einen Gast wählen.", panel.GuestSearch.Error);
+        Assert.Equal(CustomerSearchViewModel.SearchBox, focus);
+        Assert.DoesNotContain(api.Calls, c => c.Route == assign);
         await panel.GuestSearch.SearchAsync("paul");
         panel.GuestSearch.Customer = panel.GuestSearch.Results[0];
         await panel.AssignGuestCommand.ExecuteAsync(null);
@@ -531,7 +570,7 @@ public sealed class GroupAndAreaTests
         var summary = panel.Areas[0].Summary;
         await panel.Search.SearchAsync("eva");
         panel.Search.Customer = panel.Search.Results[0];
-        panel.Persons = 2;
+        panel.PersonsText = "2";
         await panel.BookCommand.ExecuteAsync(null);
         var request = JsonSerializer.Deserialize<AreaVisitRequest>(api.Calls.Last().Body!, ApiClient.Json)!;
         var error = panel.Error;
@@ -559,7 +598,7 @@ public sealed class GroupAndAreaTests
         Assert.Equal("Der Bereich ist zu dieser Zeit voll. Finnische Sauna: hat ab 11:00 nur noch 1 Platz frei.", error);
         Assert.Equal("Eva Muster: Finnische Sauna 10:00–13:00 gebucht.", info);
         Assert.False(panel.Search.HasCustomer);
-        Assert.Equal(1, panel.Persons);
+        Assert.Equal("1", panel.PersonsText);
         Assert.Equal("Eintritt von Eva Muster storniert.", panel.Info);
     }
 }

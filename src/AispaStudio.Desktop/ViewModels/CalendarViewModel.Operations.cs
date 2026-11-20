@@ -47,6 +47,7 @@ public partial class CalendarViewModel
         operations = new DayOperationsViewModel(_api, location.Id, date, _zone, date > today, CanCheckCare, _user.Rights.Contains(AccessRight.ManageLocation),
             _user.Rights.Contains(AccessRight.Book))
         {
+            FocusRequested = RequestPanelFocus,
             Changed = () =>
             {
                 if (ReferenceEquals(Operations, operations))
@@ -124,7 +125,10 @@ public partial class CalendarViewModel
             {
                 RoomCarePanel = null;
                 Rebuild();
-            });
+            })
+        {
+            FocusRequested = RequestPanelFocus,
+        };
         Rebuild();
     }
 

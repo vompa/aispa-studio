@@ -51,7 +51,7 @@ Links steht nun „Tagesabschluss gespeichert“ mit „Keine Differenz“ oder 
 
 - „Kartenzahlung über … ist genehmigt, aber noch keinem Beleg zugeordnet: zuerst kassieren oder am Terminal stornieren.“ Erst den Beleg erstellen oder die Zahlung am Terminal stornieren, dann erneut abschließen.
 - Die Differenz in der Rückfrage weicht von der Anzeige links ab: Seit dem Öffnen kam ein Beleg dazu. Die Rückfrage rechnet mit dem frisch geladenen Bericht und ist maßgeblich; **Abbrechen** und den Bestand neu zählen, falls nötig.
-- **Tagesabschluss durchführen** bleibt grau, solange der gezählte Bestand fehlt.
+- Fehlt der gezählte Bestand oder lässt er sich nicht lesen, markiert **Tagesabschluss durchführen** das Feld rot und nennt, was fehlt; es wird nichts abgeschlossen.
 - Eine falsche Buchung vor dem Abschluss: den Beleg [stornieren](hilfe:kassa-beleg-stornieren).
 
 

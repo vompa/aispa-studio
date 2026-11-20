@@ -88,13 +88,10 @@ public partial class PosViewModel
     /// <summary>Der gewählte Beleg ist ein Anzahlungsbeleg und der Nutzer nicht Inhaber oder Manager: „Stornieren“ bleibt gesperrt, auch mit Grund.</summary>
     public bool VoidBlockedByRole => SelectedReceipt?.VoidBlockedByRole == true;
 
-    /// <summary>Warum „Stornieren“ gesperrt ist: wegen der Rolle bei einem Anzahlungsbeleg, sonst fehlt der Grund.</summary>
-    public string VoidDisabledHint => VoidBlockedByRole
-        ? ReceiptViewModel.DepositVoidBlocked
-        : "Verfügbar, sobald ein Grund mit mindestens 3 Zeichen eingetragen ist.";
+    /// <summary>Warum „Stornieren“ gesperrt ist: wegen der Rolle bei einem Anzahlungsbeleg; sonst ist der Knopf aktiv und prüft den Grund beim Klick.</summary>
+    public string? VoidDisabledHint => VoidBlockedByRole ? ReceiptViewModel.DepositVoidBlocked : null;
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(VoidReceiptCommand), nameof(AskVoidReceiptCommand))]
     public partial string VoidReasonInput { get; set; } = "";
 
     // ---------- Tagesabschluss ----------
@@ -102,27 +99,26 @@ public partial class PosViewModel
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasReport), nameof(ReportRevenue), nameof(ReportPayments), nameof(ReportTaxes), nameof(ReportAccounts),
         nameof(ReportCash), nameof(ReportTitle), nameof(ReportPeriod), nameof(ExpectedCashText), nameof(DifferenceText), nameof(IsClosed))]
+    [NotifyCanExecuteChangedFor(nameof(CloseDayCommand))]
     public partial DayClosingDto? Report { get; private set; }
 
     /// <summary>Der angezeigte Bericht ist ein gespeicherter Tagesabschluss (Z-Bericht), kein Zwischenstand.</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ReportTitle), nameof(DifferenceText))]
+    [NotifyCanExecuteChangedFor(nameof(CloseDayCommand))]
     public partial bool IsClosed { get; private set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(DifferenceText))]
-    [NotifyCanExecuteChangedFor(nameof(CloseDayCommand))]
     public partial string CountedCash { get; set; } = "";
 
     [ObservableProperty]
     public partial string ClosingNote { get; set; } = "";
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(AddMovementCommand))]
     public partial string MovementAmount { get; set; } = "";
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(AddMovementCommand))]
     public partial string MovementReason { get; set; } = "";
 
     [ObservableProperty]
@@ -287,13 +283,25 @@ public partial class PosViewModel
         SelectedReceiptItem = Receipts.FirstOrDefault(i => i.Receipt.Id == select) ?? Receipts.FirstOrDefault();
     }
 
-    private bool CanVoid() => SelectedReceipt is { CanVoid: true, VoidBlockedByRole: false } && VoidReasonInput.Trim().Length >= 3;
+    private bool CanVoid() => SelectedReceipt is { CanVoid: true, VoidBlockedByRole: false };
+
+    /// <summary>Der Grund braucht mindestens 3 Zeichen; sonst steht der Fehler am Feld und es bekommt den Fokus.</summary>
+    private bool ValidateVoidReason()
+    {
+        VoidReasonError = VoidReasonInput.Trim().Length >= 3 ? null : "Bitte einen Grund mit mindestens 3 Zeichen eintragen.";
+        if (VoidReasonError is not null)
+        {
+            FocusTarget = VoidReasonField;
+        }
+
+        return VoidReasonError is null;
+    }
 
     /// <summary>„Stornieren“ fragt nach (Rückfragedialog, Design-Brief 5.27); die Begründung steht schon im Feld darüber.</summary>
     [RelayCommand(CanExecute = nameof(CanVoid))]
     private async Task AskVoidReceiptAsync()
     {
-        if (SelectedReceiptItem is not { } item)
+        if (SelectedReceiptItem is not { } item || !ValidateVoidReason())
         {
             return;
         }
@@ -313,7 +321,7 @@ public partial class PosViewModel
     [RelayCommand(CanExecute = nameof(CanVoid))]
     private async Task VoidReceiptAsync()
     {
-        if (SelectedReceiptItem is not { } item)
+        if (SelectedReceiptItem is not { } item || !ValidateVoidReason())
         {
             return;
         }
@@ -351,14 +359,20 @@ public partial class PosViewModel
         Report = result.Value;
     }
 
-    private bool CanMove() => (Money.Parse(MovementAmount) ?? 0) > 0 && MovementReason.Trim().Length > 0;
-
     /// <summary>Wechselgeld einlegen oder Bargeld entnehmen (kein Umsatz). Entnehmen nur mit Kassenaufsicht.</summary>
-    [RelayCommand(CanExecute = nameof(CanMove))]
+    [RelayCommand]
     private async Task AddMovementAsync()
     {
         if (Register is not { } register)
         {
+            return;
+        }
+
+        MovementAmountError = (Money.Parse(MovementAmount) ?? 0) > 0 ? null : "Bitte einen Betrag über 0 eintragen.";
+        MovementReasonError = MovementReason.Trim().Length > 0 ? null : "Bitte einen Grund eintragen.";
+        if (MovementAmountError is not null || MovementReasonError is not null)
+        {
+            FocusTarget = MovementAmountError is not null ? MovementAmountField : MovementReasonField;
             return;
         }
 
@@ -375,7 +389,7 @@ public partial class PosViewModel
         await LoadReportAsync().ConfigureAwait(true);
     }
 
-    private bool CanCloseDay() => !IsClosed && Report is not null && Money.Parse(CountedCash) is not null && CountedCash.Trim().Length > 0;
+    private bool CanCloseDay() => !IsClosed && Report is not null;
 
     /// <summary>
     /// Z-Bericht mit gezähltem Bestand; der Server speichert ihn unveränderlich. Vorher lädt die App den Bericht neu (der Server rechnet beim Abschluss neu,
@@ -386,6 +400,13 @@ public partial class PosViewModel
     {
         if (Register is not { } register)
         {
+            return;
+        }
+
+        CountedCashError = CountedCash.Trim().Length > 0 && Money.Parse(CountedCash) is not null ? null : "Bitte den gezählten Bargeldbestand eintragen, z. B. 120,50.";
+        if (CountedCashError is not null)
+        {
+            FocusTarget = CountedCashField;
             return;
         }
 
@@ -433,6 +454,7 @@ public partial class PosViewModel
     partial void OnSelectedReceiptItemChanged(ReceiptListItem? value)
     {
         VoidReasonInput = "";
+        VoidReasonError = null;
         VoidReceiptCommand.NotifyCanExecuteChanged();
         AskVoidReceiptCommand.NotifyCanExecuteChanged();
         OnlineRefund = null;

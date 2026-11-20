@@ -24,7 +24,7 @@ public sealed record BatchUsageRow(string AtText, string Location, string KindTe
 /// Chargen-Rückverfolgung (R05 Slice 123, Ä223) nach <c>BatchTrace.tsx</c>: bei einem Rückruf zeigt sie über alle Standorte, wer Material dieser Charge in einer Behandlung oder beim Kauf bekommen hat.
 /// Nur mit ManageLocation, wie im Web; zusammengestellt wird in der API.
 /// </summary>
-public sealed partial class StockBatchTraceViewModel : ViewModelBase
+public sealed partial class StockBatchTraceViewModel : ViewModelBase, IFocusTarget
 {
     private readonly StockViewModel _owner;
 
@@ -35,12 +35,29 @@ public sealed partial class StockBatchTraceViewModel : ViewModelBase
     public ObservableCollection<BatchUsageRow> Rows { get; } = [];
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(TraceCommand))]
     public partial TraceItemChoice? SelectedItem { get; set; }
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(TraceCommand))]
     public partial string Batch { get; set; } = "";
+
+    /// <summary>Namen der Felder (<c>x:Name</c>) für <see cref="FocusTarget"/>: das erste ungültige Feld bekommt nach „Zurückverfolgen“ den Fokus.</summary>
+    public const string ItemField = "TraceItemField";
+
+    public const string BatchField = "TraceBatchField";
+
+    [ObservableProperty]
+    public partial string? FocusTarget { get; set; }
+
+    /// <summary>Fehler an den Feldern (masken.md, R8); jeder verschwindet mit der nächsten Eingabe im Feld.</summary>
+    [ObservableProperty]
+    public partial string? ItemError { get; private set; }
+
+    [ObservableProperty]
+    public partial string? BatchError { get; private set; }
+
+    partial void OnSelectedItemChanged(TraceItemChoice? value) => ItemError = null;
+
+    partial void OnBatchChanged(string value) => BatchError = null;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasError))]
@@ -58,8 +75,6 @@ public sealed partial class StockBatchTraceViewModel : ViewModelBase
 
     public bool ShowNothingBooked => HasResult && !HasRows;
 
-    private bool CanTrace => SelectedItem is not null && Batch.Trim().Length > 0;
-
     /// <summary>Übernimmt das Material des Lagers; die gewählte Zeile bleibt, solange es sie noch gibt.</summary>
     internal void RebuildItems(IReadOnlyList<StockItemDto> items)
     {
@@ -73,9 +88,17 @@ public sealed partial class StockBatchTraceViewModel : ViewModelBase
         SelectedItem = Items.FirstOrDefault(i => i.Id == keep);
     }
 
-    [RelayCommand(CanExecute = nameof(CanTrace))]
+    [RelayCommand]
     private async Task TraceAsync()
     {
+        ItemError = SelectedItem is null ? "Bitte das Material der Charge wählen." : null;
+        BatchError = Batch.Trim().Length == 0 ? "Bitte die Chargennummer eintragen." : null;
+        if (ItemError is not null || BatchError is not null)
+        {
+            FocusTarget = ItemError is not null ? ItemField : BatchField;
+            return;
+        }
+
         var result = await _owner.Api.GetAsync<StockBatchUsageDto>($"api/stock/batch-usage?itemId={SelectedItem!.Id}&batch={Uri.EscapeDataString(Batch.Trim())}").ConfigureAwait(true);
         Error = result.Value is null ? result.Error ?? "Das Material wurde nicht gefunden." : null;
         Show(result.Value);

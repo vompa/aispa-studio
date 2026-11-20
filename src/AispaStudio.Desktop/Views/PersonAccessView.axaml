@@ -27,21 +27,21 @@
 
     <!-- Person einladen bzw. Zugang anlegen. -->
     <Grid ColumnDefinitions="*,*" ColumnSpacing="12" RowSpacing="12" RowDefinitions="Auto" IsVisible="{Binding IsInvite}">
-      <ui:FormField Label="Name" IsRequired="True">
+      <ui:FormField Label="Name" IsRequired="True" Error="{Binding InviteNameError}">
         <TextBox x:Name="InviteNameField" Text="{Binding InviteName}" MaxLength="100" />
       </ui:FormField>
-      <ui:FormField Grid.Column="1" Label="E-Mail" IsRequired="True">
+      <ui:FormField Grid.Column="1" Label="E-Mail" IsRequired="True" Error="{Binding InviteEmailError}">
         <TextBox x:Name="InviteEmailField" Text="{Binding InviteEmail}" MaxLength="200" PlaceholderText="z. B. lena@spa.at" />
       </ui:FormField>
     </Grid>
     <Grid ColumnDefinitions="*,*,*" ColumnSpacing="12" RowDefinitions="Auto" IsVisible="{Binding IsAccount}">
-      <ui:FormField Label="Name" IsRequired="True">
+      <ui:FormField Label="Name" IsRequired="True" Error="{Binding AccountNameError}">
         <TextBox x:Name="AccountNameField" Text="{Binding AccountName}" MaxLength="100" />
       </ui:FormField>
-      <ui:FormField Grid.Column="1" Label="Benutzername" IsRequired="True">
+      <ui:FormField Grid.Column="1" Label="Benutzername" IsRequired="True" Error="{Binding UserNameError}">
         <TextBox x:Name="UserNameField" Text="{Binding UserName}" MaxLength="60" />
       </ui:FormField>
-      <ui:FormField Grid.Column="2" Label="Startpasswort" IsRequired="True" Help="Mindestens 8 Zeichen; die Person wählt bei der ersten Anmeldung ein eigenes.">
+      <ui:FormField Grid.Column="2" Label="Startpasswort" IsRequired="True" Error="{Binding PasswordError}" Help="Mindestens 8 Zeichen; die Person wählt bei der ersten Anmeldung ein eigenes.">
         <TextBox x:Name="PasswordField" Text="{Binding Password}" PasswordChar="●" MaxLength="100" />
       </ui:FormField>
     </Grid>
@@ -123,10 +123,10 @@
     </StackPanel>
 
     <!-- Aktionen für neue Zugänge. -->
-    <Button x:Name="InviteButton" Classes="primary" Content="Einladung senden" Command="{Binding InviteCommand}" IsEnabled="{Binding CanInvite}"
-            IsVisible="{Binding IsInvite}" HorizontalAlignment="Left" ui:DisabledHint.Text="{Binding InviteReason}" />
-    <Button x:Name="CreateAccountButton" Classes="primary" Content="Zugang anlegen" Command="{Binding CreateAccountCommand}" IsEnabled="{Binding CanCreateAccount}"
-            IsVisible="{Binding IsAccount}" HorizontalAlignment="Left" ui:DisabledHint.Text="{Binding AccountReason}" />
+    <Button x:Name="InviteButton" Classes="primary" Content="Einladung senden" Command="{Binding InviteCommand}"
+            IsVisible="{Binding IsInvite}" HorizontalAlignment="Left" />
+    <Button x:Name="CreateAccountButton" Classes="primary" Content="Zugang anlegen" Command="{Binding CreateAccountCommand}"
+            IsVisible="{Binding IsAccount}" HorizontalAlignment="Left" />
 
     <StackPanel Spacing="8" IsVisible="{Binding HasSent}">
       <ui:InfoBar Severity="Success" Message="{Binding SentText}" />
@@ -146,9 +146,10 @@
         <ui:HelpButton Topic="zugaenge" Section="neues-startpasswort" Grid.Column="1" />
       </Grid>
       <StackPanel Orientation="Horizontal" Spacing="8">
-        <TextBox x:Name="NewPasswordField" Text="{Binding NewPassword}" PasswordChar="●" Width="240" MaxLength="100" AutomationProperties.Name="Neues Startpasswort" />
-        <Button x:Name="ResetPasswordButton" Content="Passwort zurücksetzen" Command="{Binding ResetPasswordCommand}" IsEnabled="{Binding CanReset}"
-                ui:DisabledHint.Text="{Binding ResetReason}" />
+        <ui:FormField Width="240" Error="{Binding NewPasswordError}">
+          <TextBox x:Name="NewPasswordField" Text="{Binding NewPassword}" PasswordChar="●" MaxLength="100" AutomationProperties.Name="Neues Startpasswort" />
+        </ui:FormField>
+        <Button x:Name="ResetPasswordButton" Content="Passwort zurücksetzen" Command="{Binding ResetPasswordCommand}" VerticalAlignment="Top" />
       </StackPanel>
       <ui:InfoBar Severity="Success" Message="{Binding ResetText}" IsVisible="{Binding HasResetText}" />
     </StackPanel>

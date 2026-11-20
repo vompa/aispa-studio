@@ -77,7 +77,7 @@ public sealed partial class ViewTests
         return Render("hell", "verwaltung-lager-material", async (window, main) =>
         {
             var (shell, stock) = await OpenStock(window, main);
-            Assert.False(Named<Button>(window, "CreateItemButton").IsEffectivelyEnabled);
+            Assert.True(Named<Button>(window, "CreateItemButton").IsEffectivelyEnabled);
 
             await TypeInto(window, "ItemNameField", "Duftkerze");
             await TypeInto(window, "ItemUnitCostField", "2,5");
@@ -105,7 +105,7 @@ public sealed partial class ViewTests
 
             await ClickScrolled(window, "BookMovementButton");
             Assert.True(stock.Booking.IsOpen);
-            Assert.False(Named<Button>(window, "BookButton").IsEffectivelyEnabled);
+            Assert.True(Named<Button>(window, "BookButton").IsEffectivelyEnabled);
             Named<ComboBox>(window, "MovementItemField").SelectedItem = stock.Booking.Items.Single(i => i.Id == OilId);
             await TypeInto(window, "MovementAmountField", "4");
             await TypeInto(window, "MovementBatchField", "L-9");
@@ -632,7 +632,14 @@ public sealed partial class ViewTests
             await ClickScrolled(window, "MovementsViewButton");
             await Pump(Settling);
 
-            Assert.False(Named<Button>(window, "TraceBatchButton").IsEffectivelyEnabled);
+            // Ohne Material und Charge ist „Zurückverfolgen“ aktiv; der Klick meldet die Fehler an den Feldern und fragt die API nicht.
+            Assert.True(Named<Button>(window, "TraceBatchButton").IsEffectivelyEnabled);
+            await ClickScrolled(window, "TraceBatchButton");
+            await Pump(Settling);
+            Assert.DoesNotContain(api.Calls, c => c.Route.StartsWith("GET /api/stock/batch-usage", StringComparison.Ordinal));
+            Assert.True(Shows(window, "Bitte das Material der Charge wählen."));
+            Assert.True(Shows(window, "Bitte die Chargennummer eintragen."));
+            Assert.True(Named<ComboBox>(window, "TraceItemField").IsFocused);
             var item = Named<ComboBox>(window, "TraceItemField");
             item.SelectedItem = Choice(item, "Massageöl");
             await TypeInto(window, "TraceBatchField", " L-9 ");

@@ -131,12 +131,29 @@ public sealed partial class DayOperationsViewModel : ViewModelBase
     public ObservableCollection<QuickSwitchPerson> Approvers { get; } = [];
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(ConfirmApprovalCommand))]
     public partial QuickSwitchPerson? Approver { get; set; }
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(ConfirmApprovalCommand))]
     public partial string ApprovalPin { get; set; } = "";
+
+    /// <summary>Namen der Felder der Abnahme für <see cref="FocusRequested"/>: das erste ungültige Feld bekommt nach „Abnehmen“ den Fokus.</summary>
+    public const string ApproverField = "DayApproverBox";
+
+    public const string ApprovalPinField = "DayApprovalPinBox";
+
+    /// <summary>Bittet die Seitenleiste, ein Element dieses Namens zu fokussieren (der Kalender setzt es).</summary>
+    public Action<string>? FocusRequested { get; init; }
+
+    /// <summary>Fehler an den Feldern (masken.md, R8); jeder verschwindet mit der nächsten Eingabe im Feld.</summary>
+    [ObservableProperty]
+    public partial string? ApproverError { get; private set; }
+
+    [ObservableProperty]
+    public partial string? ApprovalPinError { get; private set; }
+
+    partial void OnApproverChanged(QuickSwitchPerson? value) => ApproverError = null;
+
+    partial void OnApprovalPinChanged(string value) => ApprovalPinError = null;
 
     /// <summary>Lädt Tagesstart, Bereitstellen, Handbuch-Erinnerungen und (mit Buchungsrecht) die Bedarfsprüfung; fehlt eine Antwort, fehlt nur dieser Teil.</summary>
     public Task LoadAsync() => Task.WhenAll(LoadStartAsync(), LoadServingsAsync(), LoadRemindersAsync(), LoadStockAsync());
@@ -266,18 +283,27 @@ public sealed partial class DayOperationsViewModel : ViewModelBase
 
         Approver = Approvers[0];
         ApprovalPin = "";
+        ApproverError = ApprovalPinError = null;
         ApprovingRoom = room;
     }
 
-    private bool CanConfirmApproval() => ApprovingRoom is not null && Approver is not null && ApprovalPin.Trim().Length >= 4;
-
-    [RelayCommand(CanExecute = nameof(CanConfirmApproval))]
+    [RelayCommand]
     private async Task ConfirmApprovalAsync()
     {
-        if (ApprovingRoom is { } room && Approver is { } approver)
+        if (ApprovingRoom is not { } room)
         {
-            await SendApprovalAsync(room, new SupervisorApproval(approver.UserId, ApprovalPin.Trim())).ConfigureAwait(true);
+            return;
         }
+
+        ApproverError = Approver is null ? "Bitte die Person wählen, die die Abnahme bestätigt." : null;
+        ApprovalPinError = ApprovalPin.Trim().Length < 4 ? "Bitte die PIN mit mindestens 4 Ziffern eintragen." : null;
+        if (Approver is not { } approver || ApprovalPinError is not null)
+        {
+            FocusRequested?.Invoke(ApproverError is not null ? ApproverField : ApprovalPinField);
+            return;
+        }
+
+        await SendApprovalAsync(room, new SupervisorApproval(approver.UserId, ApprovalPin.Trim())).ConfigureAwait(true);
     }
 
     [RelayCommand]

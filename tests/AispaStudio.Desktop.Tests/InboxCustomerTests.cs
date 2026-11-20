@@ -131,8 +131,13 @@ public sealed class InboxCustomerTests
         Assert.Equal("Aus Mail angelegt, bitte Angaben prüfen", customers.CreatedFromText);
         Assert.Equal(["brigitte@privat.example"], customers.OtherEmails.Select(e => e.Address));
 
-        Assert.False(customers.AddEmailCommand.CanExecute(null));
+        // Ohne Adresse ist „Hinzufügen“ aktiv; der Klick meldet den Fehler am Feld, setzt den Fokus dorthin und sendet nichts.
+        Assert.True(customers.AddEmailCommand.CanExecute(null));
+        await customers.AddEmailCommand.ExecuteAsync(null);
+        Assert.Equal(("Bitte eine E-Mail-Adresse mit @ eintragen, z. B. privat@example.at.", CustomersViewModel.OtherEmailField), (customers.OtherEmailError, customers.FocusTarget));
+        Assert.DoesNotContain(stub.Calls, c => c.Route.StartsWith("POST ", StringComparison.Ordinal));
         customers.NewOtherEmail = " b.mueller@firma.example ";
+        Assert.Null(customers.OtherEmailError);
         await customers.AddEmailCommand.ExecuteAsync(null);
         Assert.Contains("\"address\":\"b.mueller@firma.example\"", stub.Calls.Last(c => c.Route.StartsWith("POST ", StringComparison.Ordinal)).Body, StringComparison.Ordinal);
         Assert.Equal(2, customers.OtherEmails.Count);

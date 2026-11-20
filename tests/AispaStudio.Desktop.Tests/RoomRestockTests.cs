@@ -111,6 +111,27 @@ public sealed class RoomRestockTests
     }
 
     [Fact]
+    public async Task Aufgefuellt_ohne_gueltige_Menge_meldet_den_Fehler_am_Feld_und_sendet_nichts()
+    {
+        var appointment = TestData.Appointment(10, TestData.Anna);
+        var api = Api(appointment, [Oil()])
+            .On(AnswerRoute(appointment, OilId), CareTask(appointment, RoomCareState.Open, [Oil(RestockState.Refilled)]));
+        var vm = await OpenAsync(api);
+        await vm.ToggleCareAsync(CareStripe(vm));
+        var panel = vm.RoomCarePanel!;
+        string? focus = null;
+        vm.PanelFocusRequested += field => focus = field;
+
+        panel.Rows[0].Quantity = null;
+        Assert.True(panel.Rows[0].RefillCommand.CanExecute(null));
+        await panel.Rows[0].RefillCommand.ExecuteAsync(null);
+
+        Assert.Equal("Bitte eine Menge von 0 bis 999999 eintragen.", panel.Rows[0].QuantityError);
+        Assert.Equal(RoomCarePanelViewModel.QuantityField, focus);
+        Assert.DoesNotContain(api.Calls, c => c.Route == AnswerRoute(appointment, OilId));
+    }
+
+    [Fact]
     public async Task Reicht_noch_sendet_nur_die_Antwort()
     {
         var appointment = TestData.Appointment(10, TestData.Anna);

@@ -3,16 +3,65 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Threading;
+using Avalonia.VisualTree;
 
 namespace AispaStudio.Desktop.Views;
 
 public partial class InboxView : UserControl
 {
+    private InboxViewModel? _inbox;
+    private InboxDetailViewModel? _detail;
+
     public InboxView()
     {
         InitializeComponent();
         AddHandler(KeyDownEvent, OnKey, RoutingStrategies.Tunnel);
+        DataContextChanged += (_, _) => WatchInbox(DataContext as InboxViewModel);
     }
+
+    /// <summary>Das Detail wechselt mit der gewählten Anfrage; der Fokus nach einem Fehler im Entwurf kommt vom jeweils offenen Detail.</summary>
+    private void WatchInbox(InboxViewModel? inbox)
+    {
+        if (_inbox is not null)
+        {
+            _inbox.PropertyChanged -= OnInboxChanged;
+        }
+
+        _inbox = inbox;
+        if (_inbox is not null)
+        {
+            _inbox.PropertyChanged += OnInboxChanged;
+        }
+
+        WatchDetail(_inbox?.Detail);
+    }
+
+    private void OnInboxChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(InboxViewModel.Detail))
+        {
+            WatchDetail(_inbox?.Detail);
+        }
+    }
+
+    private void WatchDetail(InboxDetailViewModel? detail)
+    {
+        if (_detail is not null)
+        {
+            _detail.FocusRequested -= FocusField;
+        }
+
+        _detail = detail;
+        if (_detail is not null)
+        {
+            _detail.FocusRequested += FocusField;
+        }
+    }
+
+    /// <summary>Das Detail steht in einer Vorlage; das Feld wird deshalb im sichtbaren Baum gesucht.</summary>
+    private void FocusField(string name) => Dispatcher.UIThread.Post(() =>
+        this.GetVisualDescendants().OfType<Control>().FirstOrDefault(c => c.Name == name && c.IsEffectivelyVisible)?.Focus());
 
     /// <summary>Klick auf die Initialen des erkannten Absenders: Kundenübersicht neu laden, das Flyout öffnet der Knopf selbst.</summary>
     private void OnSenderOverviewClick(object? sender, RoutedEventArgs e)

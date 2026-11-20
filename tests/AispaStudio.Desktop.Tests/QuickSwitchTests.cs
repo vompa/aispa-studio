@@ -116,9 +116,16 @@ public sealed class QuickSwitchTests
         var shell = new ShellViewModel(api.Client(), TestData.Reception(), null, TimeProvider.System, new ThemeController(new MemorySettingsStore()),
             "", () => Task.CompletedTask);
 
+        string? focus = null;
+        shell.FocusRequested += field => focus = field;
         shell.PinInput = "12";
-        Assert.False(shell.SavePinCommand.CanExecute(null));
+        // Zu kurz ist „Speichern“ aktiv; der Klick meldet den Fehler am Feld, setzt den Fokus dorthin und sendet nichts.
+        Assert.True(shell.SavePinCommand.CanExecute(null));
+        await shell.SavePinCommand.ExecuteAsync(null);
+        Assert.Equal(("Bitte eine PIN mit mindestens 4 Ziffern eintragen.", ShellViewModel.PinField), (shell.PinError, focus));
+        Assert.DoesNotContain(api.Calls, c => c.Route == "PUT /api/auth/pin");
         shell.PinInput = "4711";
+        Assert.Null(shell.PinError);
         await shell.SavePinCommand.ExecuteAsync(null);
 
         Assert.True(shell.HasPin);

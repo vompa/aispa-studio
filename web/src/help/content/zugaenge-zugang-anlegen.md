@@ -16,7 +16,7 @@ Im Einzelplatz-Betrieb gibt es keine Einladungen. Ein Zugang wird direkt mit Ben
 2. In der Windows-App in der Teamliste **Zugang anlegen** wählen.
 3. **Name**, **Benutzername** und **Startpasswort (mindestens 8 Zeichen)** eintragen.
 4. **Rolle**, **Person im Team**, gegebenenfalls **Befristet bis einschließlich** und die **Standorte** wählen.
-5. Auf **Zugang anlegen** klicken. Der Knopf ist erst aktiv, wenn Name, Benutzername und ein Startpasswort mit mindestens 8 Zeichen eingetragen sind.
+5. Auf **Zugang anlegen** klicken. Fehlt Name, Benutzername oder ein Startpasswort mit mindestens 8 Zeichen, markiert der Knopf das Feld rot und nennt, was fehlt; es wird nichts angelegt.
 6. Der Person Benutzername und Startpasswort weitergeben.
 
 Danach steht „… kann sich jetzt mit „…“ und dem Startpasswort anmelden und wählt dabei ein eigenes Passwort.“

@@ -15,6 +15,8 @@ namespace AispaStudio.Desktop.ViewModels;
 public sealed partial class CustomerContactFormViewModel : ViewModelBase
 {
     /// <summary>Namen der Felder für <see cref="FocusRequested"/>: das erste ungültige Feld bekommt nach dem Speichern den Fokus.</summary>
+    public const string NameField = "FirstName";
+
     public const string EmailField = "Email";
 
     public const string BirthDateField = "BirthDate";
@@ -96,12 +98,10 @@ public sealed partial class CustomerContactFormViewModel : ViewModelBase
     public static string MoreSummary => "Rufname, Pronomen, Titel, Notiz";
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
     [NotifyPropertyChangedFor(nameof(AddressPreview), nameof(GreetingPreview), nameof(ShowPreview))]
     public partial string FirstName { get; set; }
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
     [NotifyPropertyChangedFor(nameof(AddressPreview), nameof(GreetingPreview), nameof(ShowPreview))]
     public partial string LastName { get; set; }
 
@@ -170,6 +170,9 @@ public sealed partial class CustomerContactFormViewModel : ViewModelBase
 
     /// <summary>Fehler am Feld (masken.md, R8): ersetzt den Hilfetext unter dem Feld und färbt den Rand.</summary>
     [ObservableProperty]
+    public partial string? NameError { get; private set; }
+
+    [ObservableProperty]
     public partial string? EmailError { get; private set; }
 
     [ObservableProperty]
@@ -190,6 +193,10 @@ public sealed partial class CustomerContactFormViewModel : ViewModelBase
     public string AddressPreview => PersonNames.AddressLine(Salutation.Value, TitlesBefore, FirstName.Trim(), LastName.Trim(), TitlesAfter);
 
     public string GreetingPreview => GreetingText(_countries, Salutation.Value, TitlesBefore, FirstName.Trim(), LastName.Trim(), TitleInGreeting.Value);
+
+    partial void OnFirstNameChanged(string value) => NameError = null;
+
+    partial void OnLastNameChanged(string value) => NameError = null;
 
     partial void OnEmailChanged(string value) => EmailError = null;
 
@@ -250,10 +257,7 @@ public sealed partial class CustomerContactFormViewModel : ViewModelBase
     [RelayCommand]
     private void Cancel() => _cancel();
 
-    /// <summary>Pflicht ist ein Name (Vor- oder Nachname), wie am Server; leer lässt „Speichern“ ausgegraut.</summary>
-    private bool CanSave => FirstName.Trim().Length > 0 || LastName.Trim().Length > 0;
-
-    [RelayCommand(CanExecute = nameof(CanSave))]
+    [RelayCommand]
     private async Task SaveAsync()
     {
         if (Validate(out var birthDate) is { } invalid)
@@ -282,10 +286,14 @@ public sealed partial class CustomerContactFormViewModel : ViewModelBase
     [RelayCommand]
     private void CloseError() => Error = null;
 
-    /// <summary>Prüft die Felder mit Format; setzt die Fehler am Feld und nennt das erste ungültige Feld in der Reihenfolge der Maske, sonst <c>null</c>.</summary>
+    /// <summary>
+    /// Prüft Name (Pflicht ist ein Name, Vor- oder Nachname, wie am Server) und die Felder mit Format; setzt die Fehler am Feld und nennt das erste ungültige Feld in der
+    /// Reihenfolge der Maske, sonst <c>null</c>.
+    /// </summary>
     private string? Validate(out DateOnly? birthDate)
     {
         birthDate = null;
+        NameError = FirstName.Trim().Length > 0 || LastName.Trim().Length > 0 ? null : "Bitte einen Vor- oder Nachnamen eintragen.";
         EmailError = Email.Trim().Length > 0 && !Email.Contains('@', StringComparison.Ordinal) ? "Die E-Mail-Adresse braucht ein @, z. B. name@beispiel.at." : null;
         BirthDateError = null;
         var birthday = DateInputParser.Parse(BirthDate, DateOnly.FromDateTime(Time.GetLocalNow().DateTime), BirthDateRules);
@@ -297,7 +305,8 @@ public sealed partial class CustomerContactFormViewModel : ViewModelBase
             ? "Das Land als Kürzel mit zwei Buchstaben eingeben, z. B. AT."
             : null;
         Error = null;
-        return EmailError is not null ? EmailField
+        return NameError is not null ? NameField
+            : EmailError is not null ? EmailField
             : BirthDateError is not null ? BirthDateField
             : PostalCodeError is not null ? PostalCodeField
             : CountryError is not null ? CountryField

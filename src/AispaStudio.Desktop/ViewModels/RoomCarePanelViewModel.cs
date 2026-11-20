@@ -34,6 +34,12 @@ public sealed partial class RestockRow(RestockLine line, bool canAnswer, Func<Re
     [ObservableProperty]
     public partial decimal? Quantity { get; set; } = line.Suggested;
 
+    /// <summary>Fehler am Feld „Menge“ (masken.md, R8); verschwindet mit der nächsten Eingabe.</summary>
+    [ObservableProperty]
+    public partial string? QuantityError { get; set; }
+
+    partial void OnQuantityChanged(decimal? value) => QuantityError = null;
+
     [RelayCommand(CanExecute = nameof(CanAnswer))]
     private Task RefillAsync() => answer(this, RestockState.Refilled);
 
@@ -55,6 +61,12 @@ public sealed partial class RoomCarePanelViewModel : ViewModelBase, ISidePanel
     private readonly Action _close;
     private readonly bool _canCheck;
     private RoomCareTaskDto _task;
+
+    /// <summary>Name des Mengenfelds für <see cref="FocusRequested"/>: es bekommt nach „Aufgefüllt“ ohne gültige Menge den Fokus.</summary>
+    public const string QuantityField = "QuantityBox";
+
+    /// <summary>Bittet die Seitenleiste, ein Element dieses Namens zu fokussieren (der Kalender setzt es).</summary>
+    public Action<string>? FocusRequested { get; init; }
 
     public RoomCarePanelViewModel(IWorkstationApi api, RoomCareTaskDto task, bool canCheck, Func<Task> changed, Action<string> warn, Action close)
     {
@@ -95,6 +107,13 @@ public sealed partial class RoomCarePanelViewModel : ViewModelBase, ISidePanel
         if (_api.IsOffline)
         {
             _warn("Nur mit Verbindung");
+            return;
+        }
+
+        if (state == RestockState.Refilled && row.Quantity is null)
+        {
+            row.QuantityError = "Bitte eine Menge von 0 bis 999999 eintragen.";
+            FocusRequested?.Invoke(QuantityField);
             return;
         }
 

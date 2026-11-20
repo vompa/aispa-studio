@@ -32,6 +32,13 @@ public partial class CustomerSearchViewModel : ViewModelBase
 
     public bool HasCustomer => Customer is not null;
 
+    /// <summary>Name des Suchfelds in der Maske (<c>x:Name</c>), für den Fokus nach einem Fehler.</summary>
+    public const string SearchBox = "CustomerSearchBox";
+
+    /// <summary>Fehler am Suchfeld (masken.md, R8), z. B. „Bitte einen Gast wählen.“; verschwindet, sobald jemand gewählt ist oder getippt wird.</summary>
+    [ObservableProperty]
+    public partial string? Error { get; set; }
+
     /// <summary>Trefferliste nur, solange noch niemand gewählt ist.</summary>
     public bool IsPicking => Customer is null && Results.Count > 0;
 
@@ -40,9 +47,17 @@ public partial class CustomerSearchViewModel : ViewModelBase
     /// <summary>Wahl hat sich geändert.</summary>
     public event Action? Changed;
 
-    partial void OnQueryChanged(string value) => _ = SearchAsync(value);
+    partial void OnQueryChanged(string value)
+    {
+        Error = null;
+        _ = SearchAsync(value);
+    }
 
-    partial void OnCustomerChanged(CustomerDto? value) => Changed?.Invoke();
+    partial void OnCustomerChanged(CustomerDto? value)
+    {
+        Error = null;
+        Changed?.Invoke();
+    }
 
     /// <summary>Sucht ab zwei Zeichen; eine ältere, langsamere Antwort überschreibt keine neuere.</summary>
     public async Task SearchAsync(string query)

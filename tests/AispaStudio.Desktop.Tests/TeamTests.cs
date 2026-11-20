@@ -199,12 +199,21 @@ public sealed class TeamTests
         var card = await Invite(team);
         var access = card.Access!;
         Assert.True(access.IsInvite);
-        Assert.Equal("Name und E-Mail fehlen.", access.InviteReason);
+
+        // Given leere Felder, When „Einladung senden“, Then Fehler an beiden Feldern, Fokus im Namen und keine Einladung an die API.
+        string? focus = null;
+        access.FocusRequested += field => focus = field;
+        Assert.True(access.InviteCommand.CanExecute(null));
+        await access.InviteCommand.ExecuteAsync(null);
+        Assert.Equal("Bitte einen Namen eintragen.", access.InviteNameError);
+        Assert.Equal("Bitte eine E-Mail-Adresse mit @ eintragen, z. B. lena@spa.at.", access.InviteEmailError);
+        Assert.Equal(PersonAccessViewModel.InviteNameField, focus);
+        Assert.DoesNotContain(api.Calls, c => c.Route == "POST /api/staff/invitations");
 
         access.InviteName = "Nina Koller";
+        Assert.Null(access.InviteNameError);
         access.InviteEmail = "nina@spa.test";
         access.Role = RoleChoice.All.Single(r => r.Role == StaffRole.Therapist);
-        Assert.True(access.CanInvite);
         await access.InviteCommand.ExecuteAsync(null);
 
         var post = Assert.Single(api.Calls, c => c.Route == "POST /api/staff/invitations");
@@ -217,7 +226,7 @@ public sealed class TeamTests
 
         // Die Felder leeren sich wie im Web, sonst schickt ein zweiter Klick dieselbe Einladung noch einmal.
         Assert.Equal("", access.InviteEmail);
-        Assert.Equal("Name und E-Mail fehlen.", access.InviteReason);
+        Assert.Equal("", access.InviteName);
     }
 
     [Fact]
@@ -499,6 +508,21 @@ public sealed class TeamTests
     }
 
     [Fact]
+    public async Task Given_Person_anlegen_When_ohne_Namen_gespeichert_Then_Fehler_am_Namensfeld_und_kein_POST()
+    {
+        var api = Api();
+        var team = await Loaded(api);
+        var card = await Add(team);
+
+        Assert.True(team.SaveCommand.CanExecute(null));
+        await team.SaveCommand.ExecuteAsync(null);
+
+        Assert.Equal("Der Name der Person fehlt. Trage den vollständigen Namen ein.", card.Details!.NameError);
+        Assert.Equal(PersonDetailsViewModel.NameField, card.Details.FocusTarget);
+        Assert.DoesNotContain(api.Calls, c => c.Route == "POST /api/employees");
+    }
+
+    [Fact]
     public async Task Given_Person_anlegen_When_Name_eingetragen_und_gespeichert_Then_POST_und_die_neue_Person_ist_offen()
     {
         var api = Api();
@@ -537,14 +561,45 @@ public sealed class TeamTests
     }
 
     [Fact]
+    public async Task Given_leerer_Name_When_Qualifikation_hinzugefuegt_oder_umbenannt_Then_Fehler_am_Feld_Fokus_und_kein_Aufruf()
+    {
+        var api = Api();
+        var team = await Loaded(api);
+        var card = await Choose(team, "Lena Huber");
+        card.SelectTab(PersonCardViewModel.QualificationsTab);
+        var qualifications = card.Qualifications!;
+        string? focus = null;
+        qualifications.FocusRequested += field => focus = field;
+
+        Assert.True(qualifications.AddCommand.CanExecute(null));
+        await qualifications.AddCommand.ExecuteAsync(null);
+        Assert.Equal("Bitte einen Namen für die Qualifikation eintragen.", qualifications.NewNameError);
+        Assert.Equal(PersonQualificationsViewModel.NewNameField, focus);
+
+        var row = qualifications.Rows[0];
+        row.Name = " ";
+        Assert.True(row.CanRename);
+        await row.RenameCommand.ExecuteAsync(null);
+        Assert.Equal("Bitte einen Namen für die Qualifikation eintragen.", row.NameError);
+        Assert.Equal(PersonQualificationsViewModel.RowNameField, focus);
+        Assert.DoesNotContain(api.Calls, c => c.Route == "POST /api/qualifications" || c.Route.StartsWith("PUT /api/qualifications/", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public async Task Given_Einzelplatz_When_Passwort_zurueckgesetzt_Then_POST_password_und_das_Feld_ist_leer()
     {
         var api = Api(standalone: true);
         var team = await Loaded(api);
         var access = (await Choose(team, "Lena Huber")).Access!;
         access.NewPassword = "kurz";
-        Assert.False(access.CanReset);
+        string? focus = null;
+        access.FocusRequested += field => focus = field;
+        await access.ResetPasswordCommand.ExecuteAsync(null);
+        Assert.Equal("Das Startpasswort braucht mindestens 8 Zeichen.", access.NewPasswordError);
+        Assert.Equal(PersonAccessViewModel.NewPasswordField, focus);
+        Assert.DoesNotContain(api.Calls, c => c.Route == "POST /api/staff/u-lena/password");
         access.NewPassword = "neu-12345";
+        Assert.Null(access.NewPasswordError);
 
         await access.ResetPasswordCommand.ExecuteAsync(null);
 

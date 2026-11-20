@@ -201,15 +201,40 @@ public partial class AreasViewModel : ViewModelBase
     public partial AreaCard? Area { get; set; }
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(BookCommand))]
     public partial string FromText { get; set; }
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(BookCommand))]
     public partial string UntilText { get; set; }
 
+    /// <summary>Das Feld „Personen“ als Text: ein ungültiger Wert (leer, außerhalb 1 bis 20) bleibt im Feld stehen und kommt hier an, damit „Eintritt buchen“ ihn am Feld meldet.</summary>
     [ObservableProperty]
-    public partial int Persons { get; set; } = 1;
+    public partial string PersonsText { get; set; } = "1";
+
+    /// <summary>Fehler am Feld (masken.md, R8): ersetzt den Hilfetext unter dem Feld und färbt den Rand; verschwindet mit der nächsten Eingabe.</summary>
+    [ObservableProperty]
+    public partial string? FromError { get; private set; }
+
+    [ObservableProperty]
+    public partial string? UntilError { get; private set; }
+
+    [ObservableProperty]
+    public partial string? PersonsError { get; private set; }
+
+    partial void OnFromTextChanged(string value) => FromError = null;
+
+    partial void OnUntilTextChanged(string value) => UntilError = null;
+
+    partial void OnPersonsTextChanged(string value) => PersonsError = null;
+
+    /// <summary>Namen der Felder für <see cref="FocusRequested"/>: das erste ungültige Feld bekommt nach „Eintritt buchen“ den Fokus.</summary>
+    public const string FromField = "AreaFromBox";
+
+    public const string UntilField = "AreaUntilBox";
+
+    public const string PersonsField = "PersonsBox";
+
+    /// <summary>Bittet die Seitenleiste, ein Element dieses Namens zu fokussieren (der Kalender setzt es).</summary>
+    public Action<string>? FocusRequested { get; init; }
 
     [ObservableProperty]
     public partial string? Note { get; set; }
@@ -222,7 +247,7 @@ public partial class AreasViewModel : ViewModelBase
     public partial string? Info { get; private set; }
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(BookCommand))]
+    [NotifyCanExecuteChangedFor(nameof(BookCommand), nameof(AssignGuestCommand))]
     public partial bool Busy { get; private set; }
 
     /// <summary>Lädt den Tag; kommt eine ältere Antwort nach einer neueren an, wird sie verworfen.</summary>
@@ -323,15 +348,37 @@ public partial class AreasViewModel : ViewModelBase
         ? (_opening.Min(o => o.Start), _opening.Max(o => o.End))
         : (DayLayout.LocalToUtc(_date, new TimeOnly(9, 0), _zone), DayLayout.LocalToUtc(_date, new TimeOnly(21, 0), _zone));
 
-    private bool CanBookVisit => CanBook && !Busy && Area is not null && Search.HasCustomer && TryTimes(out _, out _);
+    private bool CanBookVisit => CanBook && !Busy && Area is not null;
+
+    /// <summary>Prüft Gast, Von, Bis und Personen; setzt die Fehler am Feld und gibt dem ersten ungültigen Feld den Fokus. Liefert die Personenzahl, sonst <see langword="null"/>.</summary>
+    private int? Validate()
+    {
+        Search.Error = Search.HasCustomer ? null : "Bitte einen Gast wählen.";
+        var from = TimeInputParser.Parse(FromText);
+        FromError = from.Error ?? (from.Value is null ? TimeInputParser.MissingError : null);
+        var until = TimeInputParser.Parse(UntilText);
+        UntilError = until.Error ?? (until.Value is null ? TimeInputParser.MissingError
+            : from.Value is { } start && until.Value <= start ? TimeInputParser.EndBeforeStartError : null);
+        var persons = int.TryParse(PersonsText, NumberStyles.None, CultureInfo.InvariantCulture, out var count) && count is >= 1 and <= 20 ? count : (int?)null;
+        PersonsError = persons is null ? "Bitte 1 bis 20 Personen eintragen." : null;
+        if (Search.Error is not null || FromError is not null || UntilError is not null || PersonsError is not null)
+        {
+            FocusRequested?.Invoke(Search.Error is not null ? CustomerSearchViewModel.SearchBox : FromError is not null ? FromField : UntilError is not null ? UntilField : PersonsField);
+            return null;
+        }
+
+        return persons;
+    }
 
     [RelayCommand(CanExecute = nameof(CanBookVisit))]
     private async Task BookAsync()
     {
-        if (!TryTimes(out var from, out var until))
+        if (Validate() is not { } persons)
         {
             return;
         }
+
+        TryTimes(out var from, out var until);
 
         Error = null;
         Info = null;
@@ -339,7 +386,7 @@ public partial class AreasViewModel : ViewModelBase
         var name = Search.Name;
         var note = string.IsNullOrWhiteSpace(Note) ? null : Note.Trim();
         var when = $"{Area!.Name} {DayLayout.TimeText(from, until, _zone)}";
-        var result = await _api.BookAreaVisitAsync(new AreaVisitRequest(_locationId, Area.RoomId, Search.Customer!.Id, from, until, Persons, note),
+        var result = await _api.BookAreaVisitAsync(new AreaVisitRequest(_locationId, Area.RoomId, Search.Customer!.Id, from, until, persons, note),
             name, $"{name}, {DayLayout.DateText(_date)}: Eintritt {when}").ConfigureAwait(true);
         Busy = false;
         if (result.Value is null)
@@ -353,7 +400,7 @@ public partial class AreasViewModel : ViewModelBase
             : $"{name}: {when} gebucht.{(result.Value.Warnings is { Count: > 0 } warnings ? " " + string.Join(" ", warnings) : "")}";
         Search.Customer = null;
         Search.Query = "";
-        Persons = 1;
+        PersonsText = "1";
         Note = null;
         await LoadAsync().ConfigureAwait(true);
     }
@@ -370,16 +417,9 @@ public partial class AreasViewModel : ViewModelBase
     public string NamingTitle => Naming is { } row ? $"Namen nachtragen: {row.Name}" : "";
 
     /// <summary>Suche für den Gast, der eingetragen wird; eigene Suche, damit ein angefangener neuer Eintritt stehen bleibt.</summary>
-    public CustomerSearchViewModel GuestSearch => _guestSearch ??= NewGuestSearch();
+    public CustomerSearchViewModel GuestSearch => _guestSearch ??= new CustomerSearchViewModel(_api);
 
     private CustomerSearchViewModel? _guestSearch;
-
-    private CustomerSearchViewModel NewGuestSearch()
-    {
-        var search = new CustomerSearchViewModel(_api);
-        search.Changed += () => AssignGuestCommand.NotifyCanExecuteChanged();
-        return search;
-    }
 
     private void StartNaming(AreaVisitRow row)
     {
@@ -393,14 +433,21 @@ public partial class AreasViewModel : ViewModelBase
     [RelayCommand]
     private void CancelNaming() => Naming = null;
 
-    private bool CanAssignGuest => Naming is not null && !Busy && GuestSearch.HasCustomer;
+    private bool CanAssignGuest => !Busy;
 
     /// <summary>Trägt den Gast ein: bei allen seinen Eintritten und Terminen der Buchung (der Server sucht sie über die Gastnummer).</summary>
     [RelayCommand(CanExecute = nameof(CanAssignGuest))]
     private async Task AssignGuestAsync()
     {
-        if (Naming is not { } row || GuestSearch.Customer is not { } customer)
+        if (Naming is not { } row)
         {
+            return;
+        }
+
+        if (GuestSearch.Customer is not { } customer)
+        {
+            GuestSearch.Error = "Bitte einen Gast wählen.";
+            FocusRequested?.Invoke(CustomerSearchViewModel.SearchBox);
             return;
         }
 

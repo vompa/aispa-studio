@@ -53,14 +53,28 @@ public partial class CustomersViewModel
     public partial bool IsAddingFlag { get; private set; }
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(SaveFlagCommand))]
     [NotifyPropertyChangedFor(nameof(FlagHint), nameof(IsReasonRequired))]
     public partial FlagChoice? NewFlag { get; set; }
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(SaveFlagCommand))]
     [NotifyPropertyChangedFor(nameof(FlagReasonWarning))]
     public partial string NewFlagReason { get; set; } = "";
+
+    /// <summary>Namen der Felder für <see cref="FocusTarget"/>: das erste ungültige Feld bekommt nach „Kennzeichen setzen“ den Fokus.</summary>
+    public const string FlagField = "FlagBox";
+
+    public const string FlagReasonField = "FlagReasonBox";
+
+    /// <summary>Fehler an den Feldern (masken.md, R8); jeder verschwindet mit der nächsten Eingabe im Feld.</summary>
+    [ObservableProperty]
+    public partial string? FlagError { get; private set; }
+
+    [ObservableProperty]
+    public partial string? FlagReasonError { get; private set; }
+
+    partial void OnNewFlagChanged(FlagChoice? value) => FlagError = FlagReasonError = null;
+
+    partial void OnNewFlagReasonChanged(string value) => FlagReasonError = null;
 
     public string? FlagReasonWarning => HealthWords.Warning(NewFlagReason);
 
@@ -195,17 +209,24 @@ public partial class CustomersViewModel
         // Vorbelegt mit dem ersten Kennzeichen, das noch nicht gesetzt ist; sind alle gesetzt, mit dem ersten.
         NewFlag = FlagChoices.FirstOrDefault(c => Flags.All(f => f.Flag.Kind != c.Kind)) ?? FlagChoices.FirstOrDefault();
         NewFlagReason = "";
+        FlagError = FlagReasonError = null;
         IsAddingFlag = true;
     }
 
     [RelayCommand]
     private void CancelFlag() => IsAddingFlag = false;
 
-    private bool CanSaveFlag => NewFlag is { } choice && (!choice.NeedsReason || NewFlagReason.Trim().Length > 0);
-
-    [RelayCommand(CanExecute = nameof(CanSaveFlag))]
+    [RelayCommand]
     private async Task SaveFlagAsync()
     {
+        FlagError = NewFlag is null ? "Bitte ein Kennzeichen wählen." : null;
+        FlagReasonError = NewFlag is { NeedsReason: true } && NewFlagReason.Trim().Length == 0 ? "Bitte einen Grund eintragen." : null;
+        if (FlagError is not null || FlagReasonError is not null)
+        {
+            FocusTarget = FlagError is not null ? FlagField : FlagReasonField;
+            return;
+        }
+
         if (Selected is not { } customer || NewFlag is not { } choice)
         {
             return;

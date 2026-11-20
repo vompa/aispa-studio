@@ -65,7 +65,7 @@ public sealed partial class ViewTests
     }, local: new SampleLocal());
 
     [Fact]
-    public Task Sicherung_gesperrte_Knoepfe_nennen_den_Grund_und_der_Schluesselknopf_ist_kein_Ghost() => Render("hell", "sicherung-gruende", async (window, main) =>
+    public Task Sicherung_gesperrter_Knopf_nennt_den_Grund_Speichern_prueft_beim_Klick_und_der_Schluesselknopf_ist_kein_Ghost() => Render("hell", "sicherung-gruende", async (window, main) =>
     {
         await OpenBackup(main);
         await Pump();
@@ -73,9 +73,10 @@ public sealed partial class ViewTests
         var now = ButtonNamed(window, "Jetzt sichern");
         Assert.False(now.IsEffectivelyEnabled);
         Assert.Equal("Verfügbar, sobald ein Sicherungsordner gespeichert ist.", ToolTip.GetTip(now));
+        // „Speichern und sichern“ ist aktiv; ohne Ordner meldet der Klick den Fehler am Feld.
         var save = ButtonNamed(window, "Speichern und sichern");
-        Assert.False(save.IsEffectivelyEnabled);
-        Assert.Equal("Verfügbar, sobald ein Ordner eingetragen ist.", ToolTip.GetTip(save));
+        Assert.True(save.IsEffectivelyEnabled);
+        Assert.Null(ToolTip.GetTip(save));
         Assert.DoesNotContain("ghost", ButtonNamed(window, "Neuen Wiederherstellungsschlüssel erzeugen").Classes);
         return window.DataContext!;
     }, local: new SampleLocal());

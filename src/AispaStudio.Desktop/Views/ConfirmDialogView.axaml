@@ -79,7 +79,7 @@
                     </Border>
                   </StackPanel>
                   <StackPanel Spacing="12" IsVisible="{Binding HasRows}">
-                    <ui:FormField Label="Betreff (Mail)">
+                    <ui:FormField Label="Betreff (Mail)" Error="{Binding SubjectError}">
                       <TextBox x:Name="ClosureSubject" Text="{Binding Subject}" MaxLength="200" />
                     </ui:FormField>
                     <ui:FormField Label="Nachricht" Help="{Binding TextHint}" Error="{Binding TextError}">
@@ -150,6 +150,7 @@
                                 <RadioButton x:Name="ScanYes" Content="Ja" AutomationProperties.Name="{Binding YesName}" GroupName="{Binding Key}" IsChecked="{Binding YesChecked}" />
                                 <RadioButton x:Name="ScanNo" Content="Nein" AutomationProperties.Name="{Binding NoName}" GroupName="{Binding Key}" IsChecked="{Binding NoChecked}" />
                               </StackPanel>
+                              <TextBlock Text="{Binding MissingError}" Classes="small crit" TextWrapping="Wrap" IsVisible="{Binding MissingError, Converter={x:Static ObjectConverters.IsNotNull}}" />
                               <ui:FormField Label="{Binding DetailsLabel}">
                                 <TextBox Text="{Binding Details}" MaxLength="1000" />
                               </ui:FormField>
@@ -161,11 +162,13 @@
                     <Border Classes.hint="{Binding IsSignatureUncertain}" Classes.warn="{Binding IsSignatureUncertain}">
                       <StackPanel Spacing="6">
                         <TextBlock Text="Unterschrift" FontWeight="Medium" />
-                        <ui:FormField Label="Name wie auf dem Bogen">
+                        <ui:FormField Label="Name wie auf dem Bogen" Error="{Binding SignatureError}">
                           <TextBox x:Name="ScanSignature" Text="{Binding Signature}" MaxLength="200" />
                         </ui:FormField>
                         <CheckBox x:Name="ScanSignedBox" Content="Der Bogen ist unterschrieben" IsChecked="{Binding IsSigned}" />
+                        <TextBlock Text="{Binding SignedError}" Classes="small crit" TextWrapping="Wrap" IsVisible="{Binding SignedError, Converter={x:Static ObjectConverters.IsNotNull}}" />
                         <CheckBox x:Name="ScanConsentBox" Content="Einwilligung ist auf dem Papier angekreuzt" IsChecked="{Binding HasConsentOnPaper}" />
+                        <TextBlock Text="{Binding ConsentError}" Classes="small crit" TextWrapping="Wrap" IsVisible="{Binding ConsentError, Converter={x:Static ObjectConverters.IsNotNull}}" />
                       </StackPanel>
                     </Border>
                     <TextBlock Text="{Binding MissingText}" Classes="muted" IsVisible="{Binding HasMissing}" />
@@ -197,7 +200,7 @@
                 <ui:FormField Label="An" Error="{Binding ToError}" IsRequired="True">
                   <TextBox x:Name="SendTo" Text="{Binding To}" MaxLength="254" AutomationProperties.Name="An" />
                 </ui:FormField>
-                <ui:FormField Label="Betreff" IsRequired="True">
+                <ui:FormField Label="Betreff" IsRequired="True" Error="{Binding SubjectError}">
                   <TextBox x:Name="SendSubject" Text="{Binding Subject}" MaxLength="200" AutomationProperties.Name="Betreff" />
                 </ui:FormField>
                 <ui:FormField Label="Text">

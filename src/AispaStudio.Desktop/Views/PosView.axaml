@@ -370,15 +370,15 @@
                         Command="{Binding #Root.((vm:PosViewModel)DataContext)?.StartInvoiceCommand}" CommandParameter="{Binding}"
                         IsVisible="{Binding !#Root.((vm:PosViewModel)DataContext)?.IsInvoicing, TargetNullValue=False}" />
                 <StackPanel Spacing="6" IsVisible="{Binding #Root.((vm:PosViewModel)DataContext)?.IsInvoicing, TargetNullValue=False}">
-                  <ui:FormField Label="Name oder Firma" IsRequired="True">
-                    <TextBox Text="{Binding #Root.((vm:PosViewModel)DataContext)?.RecipientName}" />
+                  <ui:FormField Label="Name oder Firma" IsRequired="True" Error="{Binding #Root.((vm:PosViewModel)DataContext)?.RecipientNameError}">
+                    <TextBox x:Name="RecipientNameBox" Text="{Binding #Root.((vm:PosViewModel)DataContext)?.RecipientName}" />
                   </ui:FormField>
-                  <ui:FormField Label="Anschrift" IsRequired="True">
-                    <TextBox Text="{Binding #Root.((vm:PosViewModel)DataContext)?.RecipientAddress}" AcceptsReturn="True" />
+                  <ui:FormField Label="Anschrift" IsRequired="True" Error="{Binding #Root.((vm:PosViewModel)DataContext)?.RecipientAddressError}">
+                    <TextBox x:Name="RecipientAddressBox" Text="{Binding #Root.((vm:PosViewModel)DataContext)?.RecipientAddress}" AcceptsReturn="True" />
                   </ui:FormField>
                   <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6">
-                    <ui:FormField Label="UID-Nummer">
-                      <TextBox Text="{Binding #Root.((vm:PosViewModel)DataContext)?.RecipientVatId}" PlaceholderText="z. B. ATU12345678" />
+                    <ui:FormField Label="UID-Nummer" Error="{Binding #Root.((vm:PosViewModel)DataContext)?.RecipientVatIdError}">
+                      <TextBox x:Name="RecipientVatIdBox" Text="{Binding #Root.((vm:PosViewModel)DataContext)?.RecipientVatId}" PlaceholderText="z. B. ATU12345678" />
                     </ui:FormField>
                     <Button Grid.Column="1" Content="UID prüfen" Command="{Binding #Root.((vm:PosViewModel)DataContext)?.CheckVatIdCommand}" VerticalAlignment="Bottom"
                             ToolTip.Tip="Über VIES prüfen; eine gültige Abfrage wird als Nachweis an die Rechnung gehängt" />
@@ -545,23 +545,23 @@
                   <RadioButton GroupName="DiscountKind" Content="als Betrag" IsChecked="{Binding DiscountInAmount}" />
                 </StackPanel>
                 <Grid ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="6">
-                  <ui:FormField>
+                  <ui:FormField Error="{Binding DiscountInputError}">
                     <Panel>
-                      <ui:NumberField CommittedText="{Binding DiscountInput}" IsVisible="{Binding DiscountInPercent}" Minimum="0" Maximum="100" DecimalPlaces="2" PlaceholderText="0"
+                      <ui:NumberField x:Name="DiscountPercentBox" CommittedText="{Binding DiscountInput}" IsVisible="{Binding DiscountInPercent}" Minimum="0" Maximum="100" DecimalPlaces="2" PlaceholderText="0"
                                       AutomationProperties.Name="Rabatt in Prozent" ToolTip.Tip="Rabatt auf die Position; leer oder 0 nimmt ihn zurück" />
-                      <ui:MoneyField CommittedText="{Binding DiscountInput}" IsVisible="{Binding DiscountInAmount}" PlaceholderText="0,00"
+                      <ui:MoneyField x:Name="DiscountAmountBox" CommittedText="{Binding DiscountInput}" IsVisible="{Binding DiscountInAmount}" PlaceholderText="0,00"
                                      AutomationProperties.Name="Rabatt als Betrag" ToolTip.Tip="Rabatt auf die Position; leer oder 0 nimmt ihn zurück" />
                     </Panel>
                   </ui:FormField>
                   <TextBlock Grid.Column="1" Text="{Binding DiscountPreview}" Classes="muted num" VerticalAlignment="Center" MinWidth="70" />
-                  <Button Grid.Column="2" Content="Übernehmen" Classes="primary" Command="{Binding ApplyDiscountCommand}" ui:DisabledHint.Text="Verfügbar, sobald der Rabatt lesbar ist (und, wenn nötig, die Freigabe mit PIN)." />
+                  <Button Grid.Column="2" Content="Übernehmen" Classes="primary" Command="{Binding ApplyDiscountCommand}" />
                   <Button Grid.Column="3" Content="Abbrechen" Classes="ghost" Command="{Binding CancelDiscountCommand}" />
                 </Grid>
                 <TextBlock Text="{Binding DiscountLimitHint}" Classes="muted small" TextWrapping="Wrap"
                            IsVisible="{Binding DiscountLimitHint, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
                 <Grid ColumnDefinitions="*,120" ColumnSpacing="6" IsVisible="{Binding NeedsApproval}">
-                  <ui:FormField Label="Freigabe durch" IsRequired="True">
-                    <ComboBox ItemsSource="{Binding Approvers}" SelectedItem="{Binding Approver}" HorizontalAlignment="Stretch"
+                  <ui:FormField Label="Freigabe durch" IsRequired="True" Error="{Binding ApproverError}">
+                    <ComboBox x:Name="DiscountApproverBox" ItemsSource="{Binding Approvers}" SelectedItem="{Binding Approver}" HorizontalAlignment="Stretch"
                               ToolTip.Tip="Inhaber oder Standortleitung gibt mit der eigenen PIN frei">
                       <ComboBox.ItemTemplate>
                         <DataTemplate x:DataType="c:QuickSwitchPerson">
@@ -570,8 +570,8 @@
                       </ComboBox.ItemTemplate>
                     </ComboBox>
                   </ui:FormField>
-                  <ui:FormField Grid.Column="1" Label="PIN" IsRequired="True">
-                    <TextBox Text="{Binding ApprovalPin}" PasswordChar="•" MaxLength="8" Classes="num" />
+                  <ui:FormField Grid.Column="1" Label="PIN" IsRequired="True" Error="{Binding ApprovalPinError}">
+                    <TextBox x:Name="DiscountApprovalPinBox" Text="{Binding ApprovalPin}" PasswordChar="•" MaxLength="8" Classes="num" />
                   </ui:FormField>
                 </Grid>
               </StackPanel>
@@ -672,12 +672,11 @@
                 </ui:FormField>
                 <!-- Knöpfe unter dem Feld: neben „… verkaufen“ bliebe dem Feld in der schmalen Spalte zu wenig Platz. -->
                 <StackPanel Spacing="8">
-                  <ui:FormField Label="{Binding CurrencyUnit, StringFormat='Wert ({0})'}">
-                    <ui:MoneyField CommittedText="{Binding VoucherValue}" PlaceholderText="z. B. 50,00" Width="NaN" HorizontalAlignment="Stretch"
+                  <ui:FormField Label="{Binding CurrencyUnit, StringFormat='Wert ({0})'}" Error="{Binding VoucherValueError}">
+                    <ui:MoneyField x:Name="VoucherValueBox" CommittedText="{Binding VoucherValue}" PlaceholderText="z. B. 50,00" Width="NaN" HorizontalAlignment="Stretch"
                                    ToolTip.Tip="Wertgutschein über einen frei gewählten Betrag" />
                   </ui:FormField>
-                  <Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Command="{Binding SellVoucherCommand}" ToolTip.Tip="Wertgutschein auf die Rechnung setzen"
-                          ui:DisabledHint.Text="Verfügbar, sobald ein Betrag über 0 eingetragen ist.">
+                  <Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Command="{Binding SellVoucherCommand}" ToolTip.Tip="Wertgutschein auf die Rechnung setzen">
                     <Grid ColumnDefinitions="Auto,*" ColumnSpacing="6">
                       <ui:Icon Data="{x:Static ui:Icons.Gift}" Width="16" Height="16" />
                       <TextBlock Grid.Column="1" Text="Wertgutschein verkaufen" TextWrapping="Wrap" VerticalAlignment="Center" />
@@ -685,8 +684,8 @@
                   </Button>
                 </StackPanel>
                 <StackPanel Spacing="8">
-                  <ui:FormField Label="Behandlung">
-                    <ComboBox ItemsSource="{Binding Treatments}" SelectedItem="{Binding VoucherTreatment}" HorizontalAlignment="Stretch">
+                  <ui:FormField Label="Behandlung" Error="{Binding VoucherTreatmentError}">
+                    <ComboBox x:Name="VoucherTreatmentBox" ItemsSource="{Binding Treatments}" SelectedItem="{Binding VoucherTreatment}" HorizontalAlignment="Stretch">
                       <ComboBox.ItemTemplate>
                         <DataTemplate x:DataType="c:TreatmentDto">
                           <TextBlock Text="{Binding Name}" />
@@ -695,18 +694,18 @@
                     </ComboBox>
                   </ui:FormField>
                   <Button Content="Behandlung verkaufen" Command="{Binding SellTreatmentVoucherCommand}" HorizontalAlignment="Left"
-                          ToolTip.Tip="Gutschein für genau diese Behandlung zum Preis dieses Standorts" ui:DisabledHint.Text="Verfügbar, sobald eine Behandlung gewählt ist." />
+                          ToolTip.Tip="Gutschein für genau diese Behandlung zum Preis dieses Standorts" />
                 </StackPanel>
                 <TextBlock Text="Paket für die gewählte Behandlung (gehört dem Gast der Rechnung)" Classes="muted small" TextWrapping="Wrap" />
                 <WrapPanel ItemSpacing="12" LineSpacing="8">
-                  <ui:FormField Label="Anzahl" IsRequired="True">
-                    <ui:NumberField CommittedText="{Binding PackageUnits}" Minimum="2" Maximum="50" ToolTip.Tip="Anzahl Behandlungen, z. B. 10" />
+                  <ui:FormField Label="Anzahl" IsRequired="True" Error="{Binding PackageUnitsError}">
+                    <ui:NumberField x:Name="PackageUnitsBox" CommittedText="{Binding PackageUnits}" Minimum="2" Maximum="50" ToolTip.Tip="Anzahl Behandlungen, z. B. 10" />
                   </ui:FormField>
                   <ui:FormField Label="{Binding CurrencyUnit, StringFormat='Paketpreis ({0})'}">
                     <ui:MoneyField CommittedText="{Binding PackagePrice}" ToolTip.Tip="Leer: Einzelpreis mal Anzahl" />
                   </ui:FormField>
                   <Button Content="Paket verkaufen" Command="{Binding SellPackageCommand}" VerticalAlignment="Bottom"
-                          ToolTip.Tip="Paket auf die Rechnung setzen; es wird beim Verkauf versteuert und je Termin abgezogen" ui:DisabledHint.Text="Verfügbar, sobald eine Behandlung und eine Anzahl gewählt sind." />
+                          ToolTip.Tip="Paket auf die Rechnung setzen; es wird beim Verkauf versteuert und je Termin abgezogen" />
                 </WrapPanel>
               </StackPanel>
             </Border>
@@ -964,15 +963,15 @@
                       Command="{Binding #Root.((vm:PosViewModel)DataContext)?.StartInvoiceCommand}" CommandParameter="{Binding}"
                       IsVisible="{Binding !#Root.((vm:PosViewModel)DataContext)?.IsInvoicing, TargetNullValue=False}" />
               <StackPanel Spacing="6" IsVisible="{Binding #Root.((vm:PosViewModel)DataContext)?.IsInvoicing, TargetNullValue=False}">
-                <ui:FormField Label="Name oder Firma" IsRequired="True">
-                  <TextBox Text="{Binding #Root.((vm:PosViewModel)DataContext)?.RecipientName}" />
+                <ui:FormField Label="Name oder Firma" IsRequired="True" Error="{Binding #Root.((vm:PosViewModel)DataContext)?.RecipientNameError}">
+                  <TextBox x:Name="JournalRecipientNameBox" Text="{Binding #Root.((vm:PosViewModel)DataContext)?.RecipientName}" />
                 </ui:FormField>
-                <ui:FormField Label="Anschrift" IsRequired="True">
-                  <TextBox Text="{Binding #Root.((vm:PosViewModel)DataContext)?.RecipientAddress}" AcceptsReturn="True" />
+                <ui:FormField Label="Anschrift" IsRequired="True" Error="{Binding #Root.((vm:PosViewModel)DataContext)?.RecipientAddressError}">
+                  <TextBox x:Name="JournalRecipientAddressBox" Text="{Binding #Root.((vm:PosViewModel)DataContext)?.RecipientAddress}" AcceptsReturn="True" />
                 </ui:FormField>
                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6">
-                  <ui:FormField Label="UID-Nummer">
-                    <TextBox Text="{Binding #Root.((vm:PosViewModel)DataContext)?.RecipientVatId}" PlaceholderText="z. B. ATU12345678" />
+                  <ui:FormField Label="UID-Nummer" Error="{Binding #Root.((vm:PosViewModel)DataContext)?.RecipientVatIdError}">
+                    <TextBox x:Name="JournalRecipientVatIdBox" Text="{Binding #Root.((vm:PosViewModel)DataContext)?.RecipientVatId}" PlaceholderText="z. B. ATU12345678" />
                   </ui:FormField>
                   <Button Grid.Column="1" Content="UID prüfen" Command="{Binding #Root.((vm:PosViewModel)DataContext)?.CheckVatIdCommand}" VerticalAlignment="Bottom"
                           ToolTip.Tip="Über VIES prüfen; eine gültige Abfrage wird als Nachweis an die Rechnung gehängt" />
@@ -1008,8 +1007,8 @@
               </Grid>
               <TextBlock Classes="muted small" TextWrapping="Wrap"
                          Text="Es entsteht ein Stornobeleg mit Begründung. Ohne Kassenaufsicht nur eigene Belege der letzten 15 Minuten." />
-              <ui:FormField Label="Grund" IsRequired="True">
-                <TextBox Text="{Binding #Root.((vm:PosViewModel)DataContext)?.VoidReasonInput}" PlaceholderText="z. B. falsche Behandlung erfasst" />
+              <ui:FormField Label="Grund" IsRequired="True" Error="{Binding #Root.((vm:PosViewModel)DataContext)?.VoidReasonError}">
+                <TextBox x:Name="VoidReasonBox" Text="{Binding #Root.((vm:PosViewModel)DataContext)?.VoidReasonInput}" PlaceholderText="z. B. falsche Behandlung erfasst" />
               </ui:FormField>
               <Button x:Name="VoidButton" Classes="danger" Content="Stornieren" HorizontalAlignment="Left"
                       Command="{Binding #Root.((vm:PosViewModel)DataContext)?.AskVoidReceiptCommand}" ui:DisabledHint.Text="{Binding #Root.((vm:PosViewModel)DataContext)?.VoidDisabledHint}" />
@@ -1106,8 +1105,8 @@
             <TextBlock Text="Tagesabschluss" Classes="h2" />
             <TextBlock Text="Bargeld in der Lade zählen und eintragen. Der Abschluss wird unveränderlich gespeichert."
                        Classes="muted small" TextWrapping="Wrap" />
-            <ui:FormField Label="{Binding CurrencyUnit, StringFormat='Gezählter Bestand ({0})'}" IsRequired="True">
-              <ui:MoneyField CommittedText="{Binding CountedCash}" PlaceholderText="0,00" />
+            <ui:FormField Label="{Binding CurrencyUnit, StringFormat='Gezählter Bestand ({0})'}" IsRequired="True" Error="{Binding CountedCashError}">
+              <ui:MoneyField x:Name="CountedCashBox" CommittedText="{Binding CountedCash}" PlaceholderText="0,00" />
             </ui:FormField>
             <TextBlock Text="{Binding DifferenceText}" FontWeight="SemiBold"
                        IsVisible="{Binding DifferenceText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
@@ -1115,7 +1114,7 @@
               <TextBox Text="{Binding ClosingNote}" PlaceholderText="z. B. Grund einer Differenz" />
             </ui:FormField>
             <Button Classes="primary" Content="Tagesabschluss durchführen" Command="{Binding CloseDayCommand}"
-                    HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" ui:DisabledHint.Text="Verfügbar, sobald der gezählte Bargeldbestand eingetragen ist." />
+                    HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
           </StackPanel>
         </Border>
         <Border Classes="card">
@@ -1132,13 +1131,13 @@
                 <ui:TabButton Content="Entnahme" IsSelected="{Binding MovementIsWithdrawal}" Click="OnWithdrawal" />
               </StackPanel>
             </Border>
-            <ui:FormField Label="{Binding CurrencyUnit, StringFormat='Betrag ({0})'}" IsRequired="True">
-              <ui:MoneyField CommittedText="{Binding MovementAmount}" PlaceholderText="z. B. 50,00" />
+            <ui:FormField Label="{Binding CurrencyUnit, StringFormat='Betrag ({0})'}" IsRequired="True" Error="{Binding MovementAmountError}">
+              <ui:MoneyField x:Name="MovementAmountBox" CommittedText="{Binding MovementAmount}" PlaceholderText="z. B. 50,00" />
             </ui:FormField>
-            <ui:FormField Label="Grund" IsRequired="True">
-              <TextBox Text="{Binding MovementReason}" PlaceholderText="z. B. Wechselgeld oder Abschöpfung zur Bank" />
+            <ui:FormField Label="Grund" IsRequired="True" Error="{Binding MovementReasonError}">
+              <TextBox x:Name="MovementReasonBox" Text="{Binding MovementReason}" PlaceholderText="z. B. Wechselgeld oder Abschöpfung zur Bank" />
             </ui:FormField>
-            <Button Content="Buchen" Command="{Binding AddMovementCommand}" HorizontalAlignment="Left" ui:DisabledHint.Text="Verfügbar, sobald Betrag und Grund eingetragen sind." />
+            <Button Content="Buchen" Command="{Binding AddMovementCommand}" HorizontalAlignment="Left" />
             <TextBlock Text="Kein Umsatz. Entnehmen darf nur, wer die Kassenaufsicht hat." Classes="muted small" TextWrapping="Wrap" />
           </StackPanel>
         </Border>

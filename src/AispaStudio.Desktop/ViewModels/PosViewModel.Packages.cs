@@ -14,7 +14,6 @@ public partial class PosViewModel
 {
     /// <summary>Zahl der Behandlungen im Paket.</summary>
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(SellPackageCommand))]
     public partial string PackageUnits { get; set; } = "10";
 
     /// <summary>Paketpreis; leer heißt Einzelpreis mal Anzahl.</summary>
@@ -26,13 +25,19 @@ public partial class PosViewModel
     public bool HasPackageHints => PackageHints.Count > 0;
 
     /// <summary>Paket für die gewählte Behandlung verkaufen; der Gast der Rechnung bekommt es beim Bezahlen.</summary>
-    [RelayCommand(CanExecute = nameof(CanSellPackage))]
+    [RelayCommand]
     private async Task SellPackageAsync()
     {
-        if (VoucherTreatment is not { } treatment || !int.TryParse(PackageUnits.Trim(), NumberStyles.None, CultureInfo.InvariantCulture, out var units))
+        var unitsValid = int.TryParse(PackageUnits.Trim(), NumberStyles.None, CultureInfo.InvariantCulture, out var units) && units is >= 2 and <= 50;
+        VoucherTreatmentError = VoucherTreatment is null ? "Bitte eine Behandlung wählen." : null;
+        PackageUnitsError = unitsValid ? null : "Bitte eine Anzahl von 2 bis 50 eintragen.";
+        if (VoucherTreatmentError is not null || PackageUnitsError is not null)
         {
+            FocusTarget = VoucherTreatmentError is not null ? VoucherTreatmentField : PackageUnitsField;
             return;
         }
+
+        var treatment = VoucherTreatment!;
 
         decimal? price = null;
         if (PackagePrice.Trim().Length > 0)
@@ -60,10 +65,7 @@ public partial class PosViewModel
         }
     }
 
-    private bool CanSellPackage() => VoucherTreatment is not null
-        && int.TryParse(PackageUnits.Trim(), NumberStyles.None, CultureInfo.InvariantCulture, out var units) && units is >= 2 and <= 50;
-
-    partial void OnVoucherTreatmentChanged(TreatmentDto? value) => SellPackageCommand.NotifyCanExecuteChanged();
+    partial void OnVoucherTreatmentChanged(TreatmentDto? value) => VoucherTreatmentError = null;
 
     partial void OnBillChanged(BillDto? value)
     {

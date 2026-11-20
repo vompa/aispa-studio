@@ -436,10 +436,6 @@ public sealed partial class PersonCardViewModel : ViewModelBase, IEditableArea
     [RelayCommand]
     private void CloseNotice() => Notice = null;
 
-    /// <summary>Grund und Weg, solange „Speichern“ gesperrt ist: bei einer neuen Person fehlt der Pflichtname (masken.md R5); sonst leer.</summary>
-    public string? SaveBlocker => Entry.IsNew && Details is { IsEditable: true } details && details.Name.Trim().Length == 0
-        ? "Verfügbar, sobald der vollständige Name eingetragen ist." : null;
-
     /// <summary>
     /// Die Leiste der Karte steht, wenn der gewählte Bereich einen Abschnitt zeigt, der mit ihr gespeichert wird (Stammdaten, Qualifikationen, Zugang eines Mitglieds, Lohn zum
     /// Bearbeiten), oder wenn es in solchen Abschnitten ungespeicherte Änderungen gibt. Dienstplan, Zeiten, Personalakte, Regelungen und Zuständigkeiten haben ihre eigene Leiste.
@@ -594,7 +590,8 @@ public sealed partial class PersonCardViewModel : ViewModelBase, IEditableArea
 
     public async Task<bool> SaveChangesAsync()
     {
-        if (IsReadOnly || !HasUnsavedChanges)
+        // Eine neue Person ohne Eingabe prüft trotzdem: „Speichern“ meldet den fehlenden Namen am Feld.
+        if (IsReadOnly || (!HasUnsavedChanges && Entry.Kind != TeamEntryKind.NewPerson))
         {
             return true;
         }
@@ -611,7 +608,7 @@ public sealed partial class PersonCardViewModel : ViewModelBase, IEditableArea
         {
             var created = _employee is null && Details is not null;
             var employeeSaved = false;
-            if (DetailsChanged || Qualifications?.HasUnsavedChanges == true)
+            if (DetailsChanged || Entry.Kind == TeamEntryKind.NewPerson || Qualifications?.HasUnsavedChanges == true)
             {
                 if (!await SaveEmployeeAsync().ConfigureAwait(true))
                 {
@@ -814,7 +811,6 @@ public sealed partial class PersonCardViewModel : ViewModelBase, IEditableArea
     {
         OnPropertyChanged(nameof(HasUnsavedChanges));
         OnPropertyChanged(nameof(HasSaveBar));
-        OnPropertyChanged(nameof(SaveBlocker));
     }
 
     /// <summary>Was der Abschnitt „Zugang und Rolle“ zeigt: den Zugang (der eigene nur lesbar), die offene Einladung oder „Einladen“ bzw. im Einzelplatz „Zugang anlegen“.</summary>

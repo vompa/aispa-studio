@@ -71,11 +71,11 @@
               <ui:HelpButton Topic="geraete" Section="neues-terminal" />
             </StackPanel>
             <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
-              <ui:FormField Label="Name" IsRequired="True">
+              <ui:FormField Label="Name" IsRequired="True" Error="{Binding NewTerminalNameError}">
                 <TextBox Name="NewTerminalName" Text="{Binding NewTerminalName}" PlaceholderText="z. B. Empfang" />
               </ui:FormField>
-              <ui:FormField Grid.Column="1" Label="Standort" IsRequired="True">
-                <ComboBox ItemsSource="{Binding Locations}" SelectedItem="{Binding NewTerminalLocation}" HorizontalAlignment="Stretch">
+              <ui:FormField Grid.Column="1" Label="Standort" IsRequired="True" Error="{Binding NewTerminalLocationError}">
+                <ComboBox Name="NewTerminalLocationBox" ItemsSource="{Binding Locations}" SelectedItem="{Binding NewTerminalLocation}" HorizontalAlignment="Stretch">
                   <ComboBox.ItemTemplate>
                     <DataTemplate x:DataType="c:LocationDto">
                       <TextBlock Text="{Binding Name}" />
@@ -94,11 +94,10 @@
                 </ComboBox.ItemTemplate>
               </ComboBox>
             </ui:FormField>
-            <ui:FormField Label="Adresse" IsRequired="True">
+            <ui:FormField Label="Adresse" IsRequired="True" Error="{Binding NewTerminalAddressError}">
               <TextBox Name="NewTerminalAddress" Text="{Binding NewTerminalAddress}" PlaceholderText="z. B. 192.168.1.50:20007" />
             </ui:FormField>
-            <Button Name="AddTerminal" Content="Terminal anlegen" Command="{Binding AddTerminalCommand}" HorizontalAlignment="Left"
-                    ui:DisabledHint.Text="Verfügbar, sobald Name, Standort und Adresse eingetragen sind." />
+            <Button Name="AddTerminal" Content="Terminal anlegen" Command="{Binding AddTerminalCommand}" HorizontalAlignment="Left" />
             <TextBlock Text="{Binding TerminalText}" Classes="muted small" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite"
                        IsVisible="{Binding TerminalText, Converter={x:Static ObjectConverters.IsNotNull}}" />
           </StackPanel>
@@ -131,19 +130,24 @@
             <TextBlock Text="Code vom Bildschirm" Classes="label" />
             <TextBlock Grid.Column="1" Text="Name der Anzeige" Classes="label" />
             <TextBlock Grid.Column="2" Text="Standort" Classes="label" />
-            <TextBox Grid.Row="1" Name="DisplayCode" Text="{Binding DisplayCode}" MaxLength="9" PlaceholderText="z. B. K7QM-2XRT" AutomationProperties.Name="Code vom Bildschirm" />
-            <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding DisplayName}" MaxLength="100" AutomationProperties.Name="Name der Anzeige" />
-            <ComboBox Grid.Row="1" Grid.Column="2" ItemsSource="{Binding Locations}" SelectedItem="{Binding DisplayLocation}" HorizontalAlignment="Stretch"
-                      AutomationProperties.Name="Standort der Anzeige">
-              <ComboBox.ItemTemplate>
-                <DataTemplate x:DataType="c:LocationDto">
-                  <TextBlock Text="{Binding Name}" />
-                </DataTemplate>
-              </ComboBox.ItemTemplate>
-            </ComboBox>
+            <ui:FormField Grid.Row="1" Error="{Binding DisplayCodeError}">
+              <TextBox Name="DisplayCode" Text="{Binding DisplayCode}" MaxLength="9" PlaceholderText="z. B. K7QM-2XRT" AutomationProperties.Name="Code vom Bildschirm" />
+            </ui:FormField>
+            <ui:FormField Grid.Row="1" Grid.Column="1" Error="{Binding DisplayNameError}">
+              <TextBox Name="DisplayNameBox" Text="{Binding DisplayName}" MaxLength="100" AutomationProperties.Name="Name der Anzeige" />
+            </ui:FormField>
+            <ui:FormField Grid.Row="1" Grid.Column="2" Error="{Binding DisplayLocationError}">
+              <ComboBox Name="DisplayLocationBox" ItemsSource="{Binding Locations}" SelectedItem="{Binding DisplayLocation}" HorizontalAlignment="Stretch"
+                        AutomationProperties.Name="Standort der Anzeige">
+                <ComboBox.ItemTemplate>
+                  <DataTemplate x:DataType="c:LocationDto">
+                    <TextBlock Text="{Binding Name}" />
+                  </DataTemplate>
+                </ComboBox.ItemTemplate>
+              </ComboBox>
+            </ui:FormField>
           </Grid>
-          <Button Name="PairDisplay" Content="Anzeige koppeln" Command="{Binding PairDisplayCommand}" HorizontalAlignment="Left"
-                  ui:DisabledHint.Text="Verfügbar, sobald Code, Name und Standort eingetragen sind." />
+          <Button Name="PairDisplay" Content="Anzeige koppeln" Command="{Binding PairDisplayCommand}" HorizontalAlignment="Left" />
           <TextBlock Text="{Binding DisplayText}" Classes="muted small" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite"
                      IsVisible="{Binding DisplayText, Converter={x:Static ObjectConverters.IsNotNull}}" />
           <ui:InfoBar Severity="Error" Message="{Binding DisplayError}" IsVisible="{Binding DisplayError, Converter={x:Static ObjectConverters.IsNotNull}}" />
@@ -190,15 +194,19 @@
             <TextBlock Text="Name des Geräts" Classes="label" />
             <TextBlock Grid.Column="1" Text="Standort" Classes="label" />
             <TextBlock Grid.Column="2" Text="Abmelden ohne Eingabe nach" Classes="label" />
-            <TextBox Grid.Row="1" Text="{Binding DeviceName}" MaxLength="100" AutomationProperties.Name="Name des Geräts" />
-            <ComboBox Grid.Row="1" Grid.Column="1" ItemsSource="{Binding Locations}" SelectedItem="{Binding DeviceLocation}" HorizontalAlignment="Stretch"
-                      AutomationProperties.Name="Standort">
-              <ComboBox.ItemTemplate>
-                <DataTemplate x:DataType="c:LocationDto">
-                  <TextBlock Text="{Binding Name}" />
-                </DataTemplate>
-              </ComboBox.ItemTemplate>
-            </ComboBox>
+            <ui:FormField Grid.Row="1" Error="{Binding DeviceNameError}">
+              <TextBox Name="DeviceNameBox" Text="{Binding DeviceName}" MaxLength="100" AutomationProperties.Name="Name des Geräts" />
+            </ui:FormField>
+            <ui:FormField Grid.Row="1" Grid.Column="1" Error="{Binding DeviceLocationError}">
+              <ComboBox Name="DeviceLocationBox" ItemsSource="{Binding Locations}" SelectedItem="{Binding DeviceLocation}" HorizontalAlignment="Stretch"
+                        AutomationProperties.Name="Standort">
+                <ComboBox.ItemTemplate>
+                  <DataTemplate x:DataType="c:LocationDto">
+                    <TextBlock Text="{Binding Name}" />
+                  </DataTemplate>
+                </ComboBox.ItemTemplate>
+              </ComboBox>
+            </ui:FormField>
             <ComboBox Grid.Row="1" Grid.Column="2" ItemsSource="{Binding IdleChoices}" SelectedItem="{Binding DeviceIdleMinutes}" MinWidth="140"
                       AutomationProperties.Name="Abmelden ohne Eingabe nach">
               <ComboBox.ItemTemplate>
@@ -208,8 +216,7 @@
               </ComboBox.ItemTemplate>
             </ComboBox>
           </Grid>
-          <Button Content="Diesen PC als Empfangsgerät anmelden" Command="{Binding RegisterDeviceCommand}" HorizontalAlignment="Left"
-                  ui:DisabledHint.Text="Verfügbar, sobald Name und Standort gewählt sind.">
+          <Button Content="Diesen PC als Empfangsgerät anmelden" Command="{Binding RegisterDeviceCommand}" HorizontalAlignment="Left">
             <Button.IsVisible>
               <MultiBinding Converter="{x:Static BoolConverters.And}">
                 <Binding Path="CanManageDevice" />

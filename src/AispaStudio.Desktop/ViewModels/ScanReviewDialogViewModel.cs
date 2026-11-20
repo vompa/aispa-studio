@@ -44,6 +44,12 @@ public sealed partial class ScanQuestionRow : ObservableObject
     [NotifyPropertyChangedFor(nameof(YesChecked), nameof(NoChecked), nameof(IsMissing))]
     public partial bool? Yes { get; private set; }
 
+    /// <summary>Fehler an der Frage, solange „Übernehmen“ keine Antwort gefunden hat (masken.md, R8); verschwindet mit der Antwort.</summary>
+    [ObservableProperty]
+    public partial string? MissingError { get; set; }
+
+    partial void OnYesChanged(bool? value) => MissingError = null;
+
     [ObservableProperty]
     public partial string Details { get; set; }
 
@@ -131,19 +137,39 @@ public sealed partial class ScanReviewDialogViewModel : ConfirmDialogViewModel, 
     [NotifyPropertyChangedFor(nameof(HasNote))]
     public partial string? Note { get; private set; }
 
+    /// <summary>Namen der Felder (<c>x:Name</c>): das erste fehlende Feld bekommt nach „Übernehmen“ den Fokus.</summary>
+    public const string AnswerField = "ScanYes";
+
+    public const string SignatureField = "ScanSignature";
+
+    public const string SignedField = "ScanSignedBox";
+
+    public const string ConsentField = "ScanConsentBox";
+
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(CanAccept))]
     public partial string Signature { get; set; } = "";
+
+    /// <summary>Fehler an Unterschrift, Unterschriftsfeld und Einwilligung (masken.md, R8); jeder verschwindet mit der nächsten Eingabe.</summary>
+    [ObservableProperty]
+    public partial string? SignatureError { get; private set; }
+
+    [ObservableProperty]
+    public partial string? SignedError { get; private set; }
+
+    [ObservableProperty]
+    public partial string? ConsentError { get; private set; }
+
+    partial void OnIsSignedChanged(bool value) => SignedError = null;
+
+    partial void OnHasConsentOnPaperChanged(bool value) => ConsentError = null;
 
     [ObservableProperty]
     public partial bool IsSignatureUncertain { get; private set; }
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(CanAccept))]
     public partial bool IsSigned { get; set; }
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(CanAccept))]
     public partial bool HasConsentOnPaper { get; set; }
 
     [ObservableProperty]
@@ -174,7 +200,7 @@ public sealed partial class ScanReviewDialogViewModel : ConfirmDialogViewModel, 
 
     public bool HasOpen => OpenCount > 0;
 
-    public bool CanAccept => HasForm && !IsBusy && MissingCount == 0 && IsSigned && HasConsentOnPaper && !string.IsNullOrWhiteSpace(Signature);
+    public bool CanAccept => HasForm && !IsBusy;
 
     /// <summary>Solange die KI liest, fragt der Dialog alle zwei Sekunden nach; das Hochladen selbst wartet nicht darauf.</summary>
     public async Task LoadAsync()
@@ -259,6 +285,7 @@ public sealed partial class ScanReviewDialogViewModel : ConfirmDialogViewModel, 
 
     partial void OnSignatureChanged(string value)
     {
+        SignatureError = null;
         if (HasForm)
         {
             IsSignatureUncertain = false;
@@ -272,12 +299,26 @@ public sealed partial class ScanReviewDialogViewModel : ConfirmDialogViewModel, 
         OnPropertyChanged(nameof(OpenText));
         OnPropertyChanged(nameof(HasMissing));
         OnPropertyChanged(nameof(HasOpen));
-        OnPropertyChanged(nameof(CanAccept));
     }
 
     [RelayCommand]
     private async Task AcceptAsync()
     {
+        foreach (var question in Questions)
+        {
+            question.MissingError = question.IsMissing ? "Bitte Ja oder Nein wählen." : null;
+        }
+
+        SignatureError = string.IsNullOrWhiteSpace(Signature) ? "Bitte den Namen wie auf dem Bogen eintragen." : null;
+        SignedError = IsSigned ? null : "Bitte bestätigen, dass der Bogen unterschrieben ist.";
+        ConsentError = HasConsentOnPaper ? null : "Bitte bestätigen, dass die Einwilligung auf dem Papier angekreuzt ist.";
+        if (MissingCount > 0 || SignatureError is not null || SignedError is not null || ConsentError is not null)
+        {
+            Error = "Nicht übernommen. Bitte die markierten Angaben ergänzen.";
+            RequestFocus(MissingCount > 0 ? AnswerField : SignatureError is not null ? SignatureField : SignedError is not null ? SignedField : ConsentField);
+            return;
+        }
+
         IsBusy = true;
         Error = null;
         var confirmation = new AnamnesisScanConfirmation([.. Questions.Select(q => q.ToAnswer())], HasConsentOnPaper, IsSigned, Signature, null);

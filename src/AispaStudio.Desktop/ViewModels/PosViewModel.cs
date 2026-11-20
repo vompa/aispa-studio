@@ -188,7 +188,7 @@ public sealed partial class PaymentEntry(PaymentMethod method, Action changed) :
 /// die App zeigt nur an, was er zurückgibt. Dazu Belege (drucken, stornieren), Einlage/Entnahme und Tagesabschluss;
 /// der DEP-Export bleibt im Web.
 /// </summary>
-public partial class PosViewModel : ViewModelBase
+public partial class PosViewModel : ViewModelBase, IFocusTarget
 {
     private readonly IWorkstationApi _api;
     private readonly TimeProvider _time;
@@ -309,11 +309,9 @@ public partial class PosViewModel : ViewModelBase
 
     /// <summary>Wert für einen Wertgutschein (frei wählbar, nicht steuerbar beim Verkauf).</summary>
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(SellVoucherCommand))]
     public partial string VoucherValue { get; set; } = "";
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(SellTreatmentVoucherCommand))]
     public partial TreatmentDto? VoucherTreatment { get; set; }
 
     /// <summary>Position, deren Rabatt gerade eingegeben wird.</summary>
@@ -322,7 +320,6 @@ public partial class PosViewModel : ViewModelBase
     public partial BillLineItem? DiscountLine { get; private set; }
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(ApplyDiscountCommand))]
     [NotifyPropertyChangedFor(nameof(DiscountPreview), nameof(NeedsApproval))]
     public partial string DiscountInput { get; set; } = "";
 
@@ -330,11 +327,9 @@ public partial class PosViewModel : ViewModelBase
     public ObservableCollection<QuickSwitchPerson> Approvers { get; } = [];
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(ApplyDiscountCommand))]
     public partial QuickSwitchPerson? Approver { get; set; }
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(ApplyDiscountCommand))]
     public partial string ApprovalPin { get; set; } = "";
 
     /// <summary>Der eingegebene Rabatt liegt über der Grenze und die angemeldete Person darf ihn nicht selbst geben.</summary>
@@ -343,7 +338,6 @@ public partial class PosViewModel : ViewModelBase
     /// <summary>Rabatt in Prozent (Standard) oder als Betrag; der jeweils andere Wert wird gleich ausgerechnet.</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(DiscountInAmount), nameof(DiscountPreview), nameof(DiscountTitle), nameof(NeedsApproval))]
-    [NotifyCanExecuteChangedFor(nameof(ApplyDiscountCommand))]
     public partial bool DiscountInPercent { get; set; } = true;
 
     public bool DiscountInAmount
@@ -401,21 +395,17 @@ public partial class PosViewModel : ViewModelBase
     /// <summary>Beleg, zu dem gerade ein Rechnungsempfänger erfasst wird (nach dem Bezahlen oder unter „Belege“).</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsInvoicing))]
-    [NotifyCanExecuteChangedFor(nameof(AddRecipientCommand), nameof(CheckVatIdCommand))]
     public partial ReceiptViewModel? InvoiceTarget { get; private set; }
 
     public bool IsInvoicing => InvoiceTarget is not null;
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(AddRecipientCommand))]
     public partial string RecipientName { get; set; } = "";
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(AddRecipientCommand))]
     public partial string RecipientAddress { get; set; } = "";
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(CheckVatIdCommand))]
     public partial string RecipientVatId { get; set; } = "";
 
     /// <summary>Letzte UID-Abfrage über VIES; gültig und zur eingegebenen UID passend wird sie als Nachweis an die Rechnung gehängt.</summary>
@@ -1004,10 +994,17 @@ public partial class PosViewModel : ViewModelBase
     }
 
     /// <summary>Wertgutschein verkaufen: der Server stellt ihn beim Bezahlen aus, der Code steht auf dem Beleg.</summary>
-    [RelayCommand(CanExecute = nameof(CanSellVoucher))]
+    [RelayCommand]
     private async Task SellVoucherAsync()
     {
         var value = Money.Parse(VoucherValue) ?? 0;
+        VoucherValueError = value > 0 ? null : "Bitte einen Betrag über 0 eintragen.";
+        if (VoucherValueError is not null)
+        {
+            FocusTarget = VoucherValueField;
+            return;
+        }
+
         if (WithVoucherExpiry(new BillLineInput(BillLineKind.Voucher, null, null, 1, value, 0, null, null, null, VoucherKind.MultiPurpose, null)) is not { } line)
         {
             return;
@@ -1020,14 +1017,18 @@ public partial class PosViewModel : ViewModelBase
         }
     }
 
-    private bool CanSellVoucher() => (Money.Parse(VoucherValue) ?? 0) > 0;
-
     /// <summary>Einzweckgutschein für eine Behandlung zum Preis am Standort der Kasse (wird beim Verkauf versteuert).</summary>
-    [RelayCommand(CanExecute = nameof(CanSellTreatmentVoucher))]
+    [RelayCommand]
     private async Task SellTreatmentVoucherAsync()
     {
-        if (VoucherTreatment is not { } treatment
-            || WithVoucherExpiry(new BillLineInput(BillLineKind.Voucher, null, null, 1, null, 0, null, null, null, VoucherKind.SinglePurpose, treatment.Id)) is not { } line)
+        if (VoucherTreatment is not { } treatment)
+        {
+            VoucherTreatmentError = "Bitte eine Behandlung wählen.";
+            FocusTarget = VoucherTreatmentField;
+            return;
+        }
+
+        if (WithVoucherExpiry(new BillLineInput(BillLineKind.Voucher, null, null, 1, null, 0, null, null, null, VoucherKind.SinglePurpose, treatment.Id)) is not { } line)
         {
             return;
         }
@@ -1038,8 +1039,6 @@ public partial class PosViewModel : ViewModelBase
             VoucherTreatment = null;
         }
     }
-
-    private bool CanSellTreatmentVoucher() => VoucherTreatment is not null;
 
     /// <summary>Position auf die Rechnung; ohne offene Rechnung wird eine für Laufkundschaft angelegt.</summary>
     private async Task AddLineAsync(BillLineInput line)
@@ -1091,6 +1090,7 @@ public partial class PosViewModel : ViewModelBase
         DiscountInPercent = true;
         Approver = null;
         ApprovalPin = "";
+        DiscountInputError = ApproverError = ApprovalPinError = null;
         // Ein neuer Rabatt darf die Freigebenden erneut laden, falls die letzte Antwort leer war oder fehlschlug.
         _loadingApprovers = null;
         var gross = line.Line.UnitPrice * line.Line.Quantity;
@@ -1120,6 +1120,7 @@ public partial class PosViewModel : ViewModelBase
         RecipientAddress = "";
         RecipientVatId = "";
         VatCheck = null;
+        RecipientNameError = RecipientAddressError = RecipientVatIdError = null;
         Error = null;
         if (receipt.Receipt.CustomerId is not { } customerId)
         {
@@ -1156,11 +1157,18 @@ public partial class PosViewModel : ViewModelBase
     }
 
     /// <summary>UID über VIES prüfen (läuft am Server über die Queue) und das Ergebnis abfragen, bis es da ist.</summary>
-    [RelayCommand(CanExecute = nameof(CanCheckVatId))]
+    [RelayCommand]
     private async Task CheckVatIdAsync()
     {
         if (InvoiceTarget is not { } target)
         {
+            return;
+        }
+
+        RecipientVatIdError = RecipientVatId.Trim().Length >= 4 ? null : "Bitte die UID-Nummer eintragen, mindestens 4 Zeichen.";
+        if (RecipientVatIdError is not null)
+        {
+            FocusTarget = IsCheckout ? RecipientVatIdField : JournalRecipientVatIdField;
             return;
         }
 
@@ -1193,14 +1201,21 @@ public partial class PosViewModel : ViewModelBase
         }
     }
 
-    private bool CanCheckVatId() => InvoiceTarget is not null && RecipientVatId.Trim().Length >= 4;
-
     /// <summary>Empfänger an den Beleg; der Server prüft Pflichtangaben und dass es nur einmal geschieht. Danach gilt der Beleg als Rechnung.</summary>
-    [RelayCommand(CanExecute = nameof(CanAddRecipient))]
+    [RelayCommand]
     private async Task AddRecipientAsync()
     {
         if (InvoiceTarget is not { } target)
         {
+            return;
+        }
+
+        RecipientNameError = RecipientName.Trim().Length == 0 ? "Bitte den Namen oder die Firma eintragen." : null;
+        RecipientAddressError = RecipientAddress.Trim().Length == 0 ? "Bitte die Anschrift eintragen." : null;
+        if (RecipientNameError is not null || RecipientAddressError is not null)
+        {
+            FocusTarget = RecipientNameError is not null ? (IsCheckout ? RecipientNameField : JournalRecipientNameField)
+                : IsCheckout ? RecipientAddressField : JournalRecipientAddressField;
             return;
         }
 
@@ -1241,18 +1256,28 @@ public partial class PosViewModel : ViewModelBase
         }
     }
 
-    private bool CanAddRecipient() => InvoiceTarget is not null && RecipientName.Trim().Length > 0 && RecipientAddress.Trim().Length > 0;
-
     /// <summary>Rabatt in Prozent oder als Betrag an den Server; 0 oder leer nimmt ihn zurück. Steuer und Summe rechnet der Server neu.</summary>
-    [RelayCommand(CanExecute = nameof(CanApplyDiscount))]
+    [RelayCommand]
     private async Task ApplyDiscountAsync()
     {
-        if (Bill is null || DiscountLine is not { } line || DiscountRequest() is not { } request)
+        if (Bill is null || DiscountLine is not { } line)
         {
             return;
         }
 
-        if (NeedsApproval)
+        var needsApproval = NeedsApproval;
+        DiscountInputError = DiscountRequest() is null ? "Der Rabatt ist nicht lesbar. Bitte z. B. 10 oder 5,50 eintragen." : null;
+        ApproverError = needsApproval && Approver is null ? "Bitte die Person wählen, die den Rabatt freigibt." : null;
+        ApprovalPinError = needsApproval && ApprovalPin.Trim().Length < 4 ? "Bitte die PIN mit mindestens 4 Ziffern eintragen." : null;
+        if (DiscountInputError is not null || ApproverError is not null || ApprovalPinError is not null)
+        {
+            FocusTarget = DiscountInputError is not null ? (DiscountInPercent ? DiscountPercentField : DiscountAmountField)
+                : ApproverError is not null ? ApproverField : ApprovalPinField;
+            return;
+        }
+
+        var request = DiscountRequest()!;
+        if (needsApproval)
         {
             if (Approvers.Count == 0)
             {
@@ -1274,8 +1299,6 @@ public partial class PosViewModel : ViewModelBase
         await ShowBillAsync(result).ConfigureAwait(true);
     }
 
-    private bool CanApplyDiscount() => DiscountRequest() is not null && (!NeedsApproval || (Approver is not null && ApprovalPin.Trim().Length >= 4));
-
     /// <summary>Freigabe-Personen am Standort der Kasse; geladen, sobald eine Freigabe nötig wird.</summary>
     private async Task LoadApproversAsync()
     {
@@ -1295,6 +1318,7 @@ public partial class PosViewModel : ViewModelBase
     /// </summary>
     partial void OnDiscountInputChanged(string value)
     {
+        DiscountInputError = null;
         if (NeedsApproval && Approvers.Count == 0 && _loadingApprovers is null)
         {
             _loadingApprovers = LoadApproversAsync();

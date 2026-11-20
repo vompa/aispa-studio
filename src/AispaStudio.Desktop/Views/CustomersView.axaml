@@ -79,7 +79,7 @@
         <TextBlock Text="Neue Kundin / neuer Kunde" Classes="h2" />
         <TextBlock Text="Nur ein Name ist Pflicht." Classes="muted small" />
         <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
-          <ui:FormField Label="Vorname">
+          <ui:FormField Label="Vorname" Error="{Binding NewNameError}">
             <TextBox x:Name="NewFirstNameBox" Text="{Binding NewFirstName}" AutomationProperties.Name="Vorname" />
           </ui:FormField>
           <ui:FormField Grid.Column="1" Label="Nachname">
@@ -156,9 +156,8 @@
         </StackPanel>
 
         <StackPanel Orientation="Horizontal" Spacing="8">
-          <Button Classes="primary" Content="Anlegen und Termin buchen" Command="{Binding CreateAndBookCommand}"
-                  ui:DisabledHint.Text="Verfügbar, sobald ein Vor- oder Nachname eingetragen ist." />
-          <Button Content="Anlegen" Command="{Binding CreateCommand}" ui:DisabledHint.Text="Verfügbar, sobald ein Vor- oder Nachname eingetragen ist." />
+          <Button Classes="primary" Content="Anlegen und Termin buchen" Command="{Binding CreateAndBookCommand}" />
+          <Button Content="Anlegen" Command="{Binding CreateCommand}" />
           <Button Classes="ghost" Content="Abbrechen" Command="{Binding CancelNewCommand}" />
         </StackPanel>
       </StackPanel>
@@ -454,16 +453,16 @@
                   </ItemsControl>
                   <StackPanel Spacing="6" IsVisible="{Binding IsAddingFlag}" MaxWidth="560" HorizontalAlignment="Left">
                     <TextBlock Text="Ihre Rolle darf hier keine Kennzeichen setzen." Classes="secondary small" IsVisible="{Binding !CanAddFlag}" />
-                    <ui:FormField Label="Neues Kennzeichen" IsVisible="{Binding CanAddFlag}">
+                    <ui:FormField Label="Neues Kennzeichen" IsVisible="{Binding CanAddFlag}" Error="{Binding FlagError}">
                       <ComboBox x:Name="FlagBox" ItemsSource="{Binding FlagChoices}" SelectedItem="{Binding NewFlag}" HorizontalAlignment="Stretch" />
                     </ui:FormField>
                     <TextBlock Text="{Binding FlagHint}" Classes="secondary" TextWrapping="Wrap" />
-                    <ui:FormField Label="Grund" IsRequired="{Binding IsReasonRequired}" Help="Bei „Nicht mehr buchen“ ist der Grund Pflicht. Der Gast kann ihn einsehen, deshalb sachlich schreiben." IsVisible="{Binding CanAddFlag}">
-                      <TextBox Text="{Binding NewFlagReason}" MaxLength="500" />
+                    <ui:FormField Label="Grund" IsRequired="{Binding IsReasonRequired}" Help="Bei „Nicht mehr buchen“ ist der Grund Pflicht. Der Gast kann ihn einsehen, deshalb sachlich schreiben." IsVisible="{Binding CanAddFlag}" Error="{Binding FlagReasonError}">
+                      <TextBox x:Name="FlagReasonBox" Text="{Binding NewFlagReason}" MaxLength="500" />
                     </ui:FormField>
                     <ui:InfoBar Severity="Warning" Message="{Binding FlagReasonWarning}" IsVisible="{Binding FlagReasonWarning, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
                     <StackPanel Orientation="Horizontal" Spacing="8">
-                      <Button Classes="primary" Content="Kennzeichen setzen" Command="{Binding SaveFlagCommand}" IsDefault="True" IsVisible="{Binding CanAddFlag}" ui:DisabledHint.Text="Verfügbar, sobald ein Kennzeichen gewählt ist (manche brauchen einen Grund)." />
+                      <Button Classes="primary" Content="Kennzeichen setzen" Command="{Binding SaveFlagCommand}" IsDefault="True" IsVisible="{Binding CanAddFlag}" />
                       <Button x:Name="CancelFlagButton" Classes="ghost" Content="Abbrechen" Command="{Binding CancelFlagCommand}" />
                     </StackPanel>
                   </StackPanel>
@@ -544,17 +543,17 @@
                       </ItemsControl.ItemTemplate>
                     </ItemsControl>
                     <StackPanel Orientation="Horizontal" Spacing="12">
-                      <ui:FormField Label="Frühester Beginn">
+                      <ui:FormField Label="Frühester Beginn" Error="{Binding BookingFromError}">
                         <ui:TimeField x:Name="BookingFromBox" CommittedText="{Binding BookingFrom}" PlaceholderText="z. B. 14:00" />
                       </ui:FormField>
-                      <ui:FormField Label="Spätestes Ende">
-                        <ui:TimeField CommittedText="{Binding BookingUntil}" NotBefore="{Binding #BookingFromBox.Value}" PlaceholderText="z. B. 18:00" />
+                      <ui:FormField Label="Spätestes Ende" Error="{Binding BookingUntilError}">
+                        <ui:TimeField x:Name="BookingUntilBox" CommittedText="{Binding BookingUntil}" NotBefore="{Binding #BookingFromBox.Value}" PlaceholderText="z. B. 18:00" />
                       </ui:FormField>
                     </StackPanel>
                     <TextBlock Text="Die Terminannahme schlägt zuerst diese Person vor und erst, wenn sie nicht frei ist, andere. Bei „fest“ zeigt der Kalender FEST am Termin und warnt beim Verschieben zu jemand anderem."
                                Classes="secondary small" TextWrapping="Wrap" />
                     <StackPanel Orientation="Horizontal" Spacing="8">
-                      <Button Classes="primary" Content="Speichern" Command="{Binding SaveBookingCommand}" IsDefault="True" ui:DisabledHint.Text="Verfügbar, sobald die Zeiten lesbar sind und der Beginn vor dem Ende liegt." />
+                      <Button Classes="primary" Content="Speichern" Command="{Binding SaveBookingCommand}" IsDefault="True" />
                       <Button Classes="ghost" Content="Abbrechen" Command="{Binding CancelBookingCommand}" />
                       <Button Classes="danger" Content="Entfernen" Command="{Binding AskRemoveBookingCommand}"
                               IsVisible="{Binding Selected?.Booking, Converter={x:Static ObjectConverters.IsNotNull}}" />
@@ -581,11 +580,12 @@
                     </ItemsControl.ItemTemplate>
                   </ItemsControl>
                   <StackPanel Spacing="6" IsVisible="{Binding IsAddingEmail}" MaxWidth="420" HorizontalAlignment="Left">
-                    <TextBox x:Name="OtherEmailBox" Text="{Binding NewOtherEmail}" PlaceholderText="z. B. privat@example.at" AutomationProperties.Name="Weitere E-Mail-Adresse" />
+                    <ui:FormField Error="{Binding OtherEmailError}">
+                      <TextBox x:Name="OtherEmailBox" Text="{Binding NewOtherEmail}" PlaceholderText="z. B. privat@example.at" AutomationProperties.Name="Weitere E-Mail-Adresse" />
+                    </ui:FormField>
                     <TextBlock Text="Nachrichten von diesen Adressen werden diesem Kunden sicher zugeordnet." Classes="secondary small" TextWrapping="Wrap" />
                     <StackPanel Orientation="Horizontal" Spacing="8">
-                      <Button Classes="primary" Content="Hinzufügen" Command="{Binding AddEmailCommand}" IsDefault="True"
-                              ui:DisabledHint.Text="Verfügbar, sobald eine E-Mail-Adresse mit @ eingetragen ist." />
+                      <Button Classes="primary" Content="Hinzufügen" Command="{Binding AddEmailCommand}" IsDefault="True" />
                       <Button x:Name="CancelEmailButton" Classes="ghost" Content="Abbrechen" Command="{Binding CancelAddEmailCommand}" />
                     </StackPanel>
                   </StackPanel>
@@ -627,17 +627,17 @@
                   </Grid>
                   <SelectableTextBlock Text="{Binding BillingText}" Classes="value" TextWrapping="Wrap" IsVisible="{Binding !IsEditingBilling}" />
                   <StackPanel Spacing="6" IsVisible="{Binding IsEditingBilling}" MaxWidth="480" HorizontalAlignment="Left">
-                    <ui:FormField Label="Empfänger" IsRequired="True">
+                    <ui:FormField Label="Empfänger" IsRequired="True" Error="{Binding BillingNameError}">
                       <TextBox x:Name="BillingNameBox" Text="{Binding BillingName}" PlaceholderText="Name oder Firma" />
                     </ui:FormField>
-                    <ui:FormField Label="Anschrift" IsRequired="True">
-                      <TextBox Text="{Binding BillingAddress}" AcceptsReturn="True" />
+                    <ui:FormField Label="Anschrift" IsRequired="True" Error="{Binding BillingAddressError}">
+                      <TextBox x:Name="BillingAddressBox" Text="{Binding BillingAddress}" AcceptsReturn="True" />
                     </ui:FormField>
                     <ui:FormField Label="UID-Nummer">
                       <TextBox Text="{Binding BillingVatId}" PlaceholderText="z. B. ATU12345678" />
                     </ui:FormField>
                     <StackPanel Orientation="Horizontal" Spacing="8">
-                      <Button Classes="primary" Content="Speichern" Command="{Binding SaveBillingCommand}" IsDefault="True" ui:DisabledHint.Text="Verfügbar, sobald Name und Anschrift eingetragen sind." />
+                      <Button Classes="primary" Content="Speichern" Command="{Binding SaveBillingCommand}" IsDefault="True" />
                       <Button Classes="ghost" Content="Abbrechen" Command="{Binding CancelBillingCommand}" />
                       <Button Classes="danger" Content="Entfernen" Command="{Binding AskRemoveBillingCommand}"
                               IsVisible="{Binding Selected?.Billing, Converter={x:Static ObjectConverters.IsNotNull}}" />
@@ -658,7 +658,7 @@
                   <TextBlock Text="{Binding DiscountText}" Classes="value" TextWrapping="Wrap" IsVisible="{Binding !IsEditingDiscount}" />
                   <StackPanel Spacing="6" IsVisible="{Binding IsEditingDiscount}" MaxWidth="480" HorizontalAlignment="Left">
                     <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
-                      <ui:FormField Label="Rabatt (%)">
+                      <ui:FormField Label="Rabatt (%)" Error="{Binding DiscountPercentError}">
                         <ui:NumberField x:Name="DiscountPercentBox" CommittedText="{Binding DiscountPercent}" Minimum="0.01" Maximum="99.99" DecimalPlaces="2" PlaceholderText="z. B. 10" />
                       </ui:FormField>
                       <ui:FormField Grid.Column="1" Label="Gilt für">
@@ -670,8 +670,8 @@
                     <TextBlock Text="{Binding DiscountLimitHint}" Classes="secondary small" TextWrapping="Wrap"
                                IsVisible="{Binding DiscountLimitHint, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
                     <Grid ColumnDefinitions="*,120" ColumnSpacing="8" IsVisible="{Binding NeedsApproval}">
-                      <ui:FormField Label="Freigabe durch" IsRequired="True">
-                        <ComboBox ItemsSource="{Binding Approvers}" SelectedItem="{Binding Approver}" HorizontalAlignment="Stretch">
+                      <ui:FormField Label="Freigabe durch" IsRequired="True" Error="{Binding ApproverError}">
+                        <ComboBox x:Name="DiscountApproverBox" ItemsSource="{Binding Approvers}" SelectedItem="{Binding Approver}" HorizontalAlignment="Stretch">
                           <ComboBox.ItemTemplate>
                             <DataTemplate x:DataType="c:QuickSwitchPerson">
                               <TextBlock Text="{Binding DisplayName}" />
@@ -679,12 +679,12 @@
                           </ComboBox.ItemTemplate>
                         </ComboBox>
                       </ui:FormField>
-                      <ui:FormField Grid.Column="1" Label="PIN" IsRequired="True">
-                        <TextBox Text="{Binding ApprovalPin}" PasswordChar="•" MaxLength="8" Classes="num" />
+                      <ui:FormField Grid.Column="1" Label="PIN" IsRequired="True" Error="{Binding ApprovalPinError}">
+                        <TextBox x:Name="DiscountApprovalPinBox" Text="{Binding ApprovalPin}" PasswordChar="•" MaxLength="8" Classes="num" />
                       </ui:FormField>
                     </Grid>
                     <StackPanel Orientation="Horizontal" Spacing="8">
-                      <Button Classes="primary" Content="Speichern" Command="{Binding SaveDiscountCommand}" IsDefault="True" ui:DisabledHint.Text="Verfügbar, sobald der Rabatt lesbar ist (und, wenn nötig, die Freigabe mit PIN)." />
+                      <Button Classes="primary" Content="Speichern" Command="{Binding SaveDiscountCommand}" IsDefault="True" />
                       <Button Classes="ghost" Content="Abbrechen" Command="{Binding CancelDiscountCommand}" />
                       <Button Classes="danger" Content="Entfernen" Command="{Binding AskRemoveDiscountCommand}"
                               IsVisible="{Binding Selected?.Discount, Converter={x:Static ObjectConverters.IsNotNull}}" />

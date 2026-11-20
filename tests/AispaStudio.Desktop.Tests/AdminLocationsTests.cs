@@ -100,6 +100,22 @@ public sealed class AdminLocationsTests
     }
 
     [Fact]
+    public async Task Given_ein_Raum_ohne_Namen_When_gespeichert_wird_Then_Fehler_am_Feld_Fokus_auf_die_Zeile_und_kein_PUT()
+    {
+        var api = Api();
+        var locations = await Open(api);
+        var row = locations.Rooms.Single(r => r.Id == Sauna.Id);
+
+        row.Name = " ";
+        Assert.True(row.CanSave);
+        await row.SaveCommand.ExecuteAsync(null);
+
+        Assert.Equal("Bitte einen Namen für den Raum eintragen.", row.NameError);
+        Assert.Equal($"room:{Sauna.Id}", locations.FocusTarget);
+        Assert.DoesNotContain(api.Calls, c => c.Route == $"PUT /api/rooms/{Sauna.Id}");
+    }
+
+    [Fact]
     public async Task Given_ein_neuer_Raum_When_hinzugefuegt_wird_Then_POST_mit_Raumpflege_Plaetzen_und_Bereich()
     {
         var api = Api().OnJson($"POST /api/locations/{TestData.LocationId}/rooms", body =>
@@ -109,9 +125,17 @@ public sealed class AdminLocationsTests
         });
         var locations = await Open(api);
         var row = locations.NewRoom!;
-        Assert.False(row.CanSave);
+
+        // Ohne Namen ist „Hinzufügen“ aktiv; der Klick meldet den Namen am Feld, setzt den Fokus dorthin und sendet nichts.
+        Assert.True(row.CanSave);
+        await row.SaveCommand.ExecuteAsync(null);
+        Assert.Equal("Bitte einen Namen für den Raum eintragen.", row.NameError);
+        Assert.NotNull(locations.RoomMessage);
+        Assert.Equal(LocationsViewModel.RoomsField, locations.FocusTarget);
+        Assert.DoesNotContain(api.Calls, c => c.Route == $"POST /api/locations/{TestData.LocationId}/rooms");
 
         row.Name = "Ruheraum";
+        Assert.Null(row.NameError);
         row.CleaningMinutes = 5;
         row.Places = 20;
         row.IsArea = true;

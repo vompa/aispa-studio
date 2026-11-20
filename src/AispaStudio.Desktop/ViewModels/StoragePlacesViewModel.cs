@@ -174,8 +174,8 @@ public sealed partial class StoragePlacesViewModel : ViewModelBase, IFocusTarget
 
     public bool HasUnsavedChanges => _savedSignature is not null && Signature() != _savedSignature;
 
-    /// <summary>Ohne Änderung gibt es nichts zu speichern (außer beim neuen Lagerort); ohne Name auch nicht.</summary>
-    public bool CanSave => !IsSaving && PlaceName.Trim().Length > 0 && (IsCreating || HasUnsavedChanges);
+    /// <summary>Ohne Änderung gibt es nichts zu speichern (außer beim neuen Lagerort); ein fehlender Name wird beim Speichern am Feld gemeldet.</summary>
+    public bool CanSave => !IsSaving && (IsCreating || HasUnsavedChanges);
 
     /// <summary>„Von Raum … übernehmen“ geht erst, wenn nichts mehr ungespeichert ist (das Ziel würde sonst überschrieben).</summary>
     public bool CanCopy => CopySource is not null && !HasUnsavedChanges && !IsCreating;

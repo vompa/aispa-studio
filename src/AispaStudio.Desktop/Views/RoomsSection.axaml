@@ -6,13 +6,15 @@
              x:DataType="vm:LocationsViewModel">
   <!--
     Räume und Tagesstart-Kontrolle (R05 Slice 95), nach web/src/admin/LocationsTab.tsx (RoomList, RoomRow) und RoomChecklist.tsx: eine Zeile je Raum mit eigenem
-    Speichern (Knopf erst mit einer Änderung und einem Namen), die neue Zeile steht fest über der Liste; „Nicht mehr verwenden“ und „Löschen …“ im Menü „⋯“ der Zeile (ADR 0099). Darunter die Checkliste des gewählten Raums, ein Punkt je Zeile.
+    Speichern (Knopf erst mit einer Änderung), die neue Zeile steht fest über der Liste; „Nicht mehr verwenden“ und „Löschen …“ im Menü „⋯“ der Zeile (ADR 0099). Darunter die Checkliste des gewählten Raums, ein Punkt je Zeile.
   -->
   <UserControl.DataTemplates>
     <DataTemplate DataType="vm:RoomRowViewModel" x:DataType="vm:RoomRowViewModel">
       <Grid ColumnDefinitions="*,128,72,64,170,160" ColumnSpacing="8" Margin="0,0,0,8">
         <StackPanel Spacing="2">
-          <TextBox x:Name="RoomNameField" Text="{Binding Name}" PlaceholderText="{Binding Placeholder}" AutomationProperties.Name="Raumname" MaxLength="100" />
+          <ui:FormField Error="{Binding NameError}">
+            <TextBox x:Name="RoomNameField" Text="{Binding Name}" PlaceholderText="{Binding Placeholder}" AutomationProperties.Name="Raumname" MaxLength="100" />
+          </ui:FormField>
           <TextBlock Text="Nicht gespeichert" Classes="small warn" Margin="2,0,0,0" IsVisible="{Binding HasPendingChanges}" />
         </StackPanel>
         <ui:NumberField Grid.Column="1" Width="NaN" HorizontalAlignment="Stretch" VerticalAlignment="Top" Value="{Binding CleaningMinutes}" Minimum="0" Maximum="240" Increment="5" LargeIncrement="15"

@@ -41,7 +41,7 @@ Beim Beleg hat **PDF speichern** einen Pfeil: **PDF im Bon-Format speichern** er
 1. Auf **Per Mail senden** klicken. Es öffnet sich die Rückfrage „… per Mail senden?“.
 2. **An** prüfen. Die Adresse ist vorbelegt, bei Beleg und Gutschein aus der Kundenkarte, bei der Bestellung aus den Daten des Lieferanten. Ist keine bekannt, bleibt das Feld leer.
 3. **Betreff** und **Text** prüfen und bei Bedarf ändern. Beide sind vorbelegt, der Text mit Gruß.
-4. Auf **Senden** klicken. **Senden** ist grau, solange die Adresse fehlt oder keine Mailadresse ist („Das ist keine gültige Mailadresse.“) oder der Betreff leer ist. **Abbrechen** oder Esc schließt die Rückfrage ohne Versand.
+4. Auf **Senden** klicken. Fehlt die Adresse, ist sie keine Mailadresse („Das ist keine gültige Mailadresse.“) oder ist der Betreff leer, markiert **Senden** das Feld rot und nennt, was fehlt; es wird nichts gesendet. **Abbrechen** oder Esc schließt die Rückfrage ohne Versand.
 
 ![Rückfrage Per Mail senden mit Adresse, Betreff und Text](images/app/dokumente-per-mail-senden.png)
 

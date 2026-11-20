@@ -52,7 +52,6 @@ public partial class CustomersViewModel
     public bool HasSuggestion => Suggestion?.Text is not null;
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(SaveBookingCommand))]
     [NotifyPropertyChangedFor(nameof(CanBeFixed))]
     public partial EmployeeChoice? BookingEmployee { get; set; }
 
@@ -66,12 +65,26 @@ public partial class CustomersViewModel
     public partial GenderChoice BookingGender { get; set; } = GenderChoice.All[0];
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(SaveBookingCommand))]
     public partial string BookingFrom { get; set; } = "";
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(SaveBookingCommand))]
     public partial string BookingUntil { get; set; } = "";
+
+    /// <summary>Namen der Zeitfelder für <see cref="FocusTarget"/>: das erste ungültige Feld bekommt nach „Speichern“ den Fokus.</summary>
+    public const string BookingFromField = "BookingFromBox";
+
+    public const string BookingUntilField = "BookingUntilBox";
+
+    /// <summary>Fehler an den Zeitfeldern (masken.md, R8); jeder verschwindet mit der nächsten Eingabe im Feld.</summary>
+    [ObservableProperty]
+    public partial string? BookingFromError { get; private set; }
+
+    [ObservableProperty]
+    public partial string? BookingUntilError { get; private set; }
+
+    partial void OnBookingFromChanged(string value) => BookingFromError = null;
+
+    partial void OnBookingUntilChanged(string value) => BookingUntilError = null;
 
     partial void OnBookingEmployeeChanged(EmployeeChoice? value)
     {
@@ -170,6 +183,7 @@ public partial class CustomersViewModel
 
         BookingFrom = p?.From?.ToString("HH:mm", CultureInfo.InvariantCulture) ?? "";
         BookingUntil = p?.Until?.ToString("HH:mm", CultureInfo.InvariantCulture) ?? "";
+        BookingFromError = BookingUntilError = null;
     }
 
     [RelayCommand]
@@ -183,13 +197,20 @@ public partial class CustomersViewModel
         return result.IsValid;
     }
 
-    private bool CanSaveBooking => TryTime(BookingFrom, out var from) && TryTime(BookingUntil, out var until) && (from is null || until is null || from < until);
-
-    [RelayCommand(CanExecute = nameof(CanSaveBooking))]
+    [RelayCommand]
     private Task SaveBookingAsync()
     {
-        TryTime(BookingFrom, out var from);
-        TryTime(BookingUntil, out var until);
+        var fromValid = TryTime(BookingFrom, out var from);
+        var untilValid = TryTime(BookingUntil, out var until);
+        BookingFromError = fromValid ? null : TimeInputParser.Parse(BookingFrom).Error;
+        BookingUntilError = !untilValid ? TimeInputParser.Parse(BookingUntil).Error
+            : from is { } start && until is { } end && start >= end ? TimeInputParser.EndBeforeStartError : null;
+        if (BookingFromError is not null || BookingUntilError is not null)
+        {
+            FocusTarget = BookingFromError is not null ? BookingFromField : BookingUntilField;
+            return Task.CompletedTask;
+        }
+
         var days = Weekdays.Where(d => d.IsChecked).Select(d => d.Day).ToList();
         return StoreBookingAsync(new CustomerBookingPreferences(BookingEmployee?.Id, BookingFixed && BookingEmployee?.Id is not null,
             days.Count == 0 ? null : days, from, until, BookingGender.Value));

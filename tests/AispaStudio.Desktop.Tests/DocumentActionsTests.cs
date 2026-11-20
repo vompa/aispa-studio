@@ -123,25 +123,34 @@ public sealed class DocumentActionsTests
     }
 
     [Fact]
-    public async Task Ohne_gueltige_Adresse_ist_Senden_gesperrt_und_das_Feld_nennt_den_Grund()
+    public async Task Ohne_gueltige_Adresse_meldet_Senden_den_Fehler_am_Feld_setzt_den_Fokus_und_sendet_nichts()
     {
         var dialogs = new FakeDialogs();
-        var model = Model(Api().On($"GET {SendPath}", new DocumentMailDraft(null, "Betreff", "Text")), dialogs);
+        var api = Api().On($"GET {SendPath}", new DocumentMailDraft(null, "Betreff", "Text"));
+        var model = Model(api, dialogs);
 
         _ = model.SendCommand.ExecuteAsync(null);
         var dialog = Assert.IsType<SendDocumentDialogViewModel>(await Until(() => dialogs.Open));
+        string? focus = null;
+        dialog.FocusRequested += field => focus = field;
 
         Assert.False(dialog.HasAddress);
-        Assert.False(dialog.SendCommand.CanExecute(null));
+        Assert.True(dialog.SendCommand.CanExecute(null));
         Assert.Null(dialog.ToError);
+        dialog.SendCommand.Execute(null);
+        Assert.Equal(("Bitte eine Mailadresse eintragen.", SendDocumentDialogViewModel.ToField), (dialog.ToError, focus));
         dialog.To = "anna@";
         Assert.Equal("Das ist keine gültige Mailadresse.", dialog.ToError);
-        Assert.False(dialog.SendCommand.CanExecute(null));
+        dialog.SendCommand.Execute(null);
+        Assert.Equal(("Das ist keine gültige Mailadresse.", SendDocumentDialogViewModel.ToField), (dialog.ToError, focus));
         dialog.To = " anna@example.at ";
         Assert.Null(dialog.ToError);
-        Assert.True(dialog.SendCommand.CanExecute(null));
         dialog.Subject = " ";
-        Assert.False(dialog.SendCommand.CanExecute(null));
+        dialog.SendCommand.Execute(null);
+        Assert.Equal(("Bitte einen Betreff eintragen.", SendDocumentDialogViewModel.SubjectField), (dialog.SubjectError, focus));
+        dialog.Subject = "Betreff";
+        Assert.Null(dialog.SubjectError);
+        Assert.DoesNotContain(api.Calls, c => c.Route == $"POST {SendPath}");
         dialog.CancelCommand.Execute(null);
     }
 

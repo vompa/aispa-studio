@@ -1640,3 +1640,22 @@ Expected: „Gespeichert“ steht über der Leiste mit **Speichern** und **Verwe
 Expected: Die Meldung „Gutschein … als übergeben vermerkt“ steht über der Zeile **Summe**; die Summe bleibt frei.
 Closes: –
 Result: ☐
+
+### T-086 – „Speichern“ bleibt aktiv und prüft
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App als Inhaberin anmelden
+1. **Verwaltung** › **Team**, **Person hinzufügen**, nichts eintragen, **Speichern** klicken.
+Expected: **Speichern** ist nicht grau. Das Feld **Vollständiger Name** wird rot und nennt, was fehlt; der Cursor steht darin; es wird keine Person angelegt.
+2. Im **Kalender** **Termin** öffnen, Behandlung wählen, keinen Gast eintragen, **Termin buchen** klicken.
+Expected: Das Feld für den Gast wird rot mit Fehlertext und hat den Cursor; es wird nichts gebucht.
+3. In der **Kassa** **Einlage** wählen, Grund eintragen, den Betrag leer lassen, den Knopf klicken.
+Expected: Das Betragsfeld wird rot und nennt, was fehlt; es wird nichts gebucht.
+4. In einer **Kundenkarte** einen Rabatt eintragen, die PIN der Freigabe leer lassen, den Knopf klicken.
+Expected: Das Feld der PIN wird rot und hat den Cursor; es wird kein Rabatt vergeben.
+5. **Verwaltung** › **Geräte**, ein Terminal ohne Adresse speichern.
+Expected: Das Feld der Adresse wird rot mit Fehlertext; nichts wird gespeichert.
+6. Gegenprobe: In der **Kassa** weniger zahlen, als die Rechnung verlangt.
+Expected: **Bezahlen und Beleg erstellen** bleibt grau; der Hinweis am Knopf lautet „Verfügbar, sobald die Zahlungen den Betrag decken und jeder Betrag lesbar ist.“
+7. Wieder in **Team** **Person hinzufügen**, den Namen leer lassen, **Strg+S** drücken.
+Expected: Dasselbe wie in Schritt 1: Das Namensfeld wird rot, nichts wird gespeichert.
+Closes: Regelfrage 2 der Masken-Durchsicht vom 19.11.2026 (Speichern ohne Pflichtangaben)
+Result: ☐

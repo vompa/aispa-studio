@@ -561,7 +561,7 @@
             <TextBlock Text="{Binding BookedBy}" Classes="muted small" TextWrapping="Wrap" />
             <ContentControl Content="{Binding GuestSearch}" />
             <Button Content="Gast eintragen" Command="{Binding NameGuestCommand}" HorizontalAlignment="Stretch"
-                    HorizontalContentAlignment="Center" ui:DisabledHint.Text="Verfügbar, sobald ein Gast gewählt ist." />
+                    HorizontalContentAlignment="Center" />
           </StackPanel>
         </Border>
 
@@ -642,12 +642,12 @@
                               AutomationProperties.Name="Enddatum der Serie" />
               </ui:FormField>
             </Grid>
-            <Button Content="Termine prüfen" Command="{Binding PreviewSeriesCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
+            <Button x:Name="PreviewSeriesButton" Content="Termine prüfen" Command="{Binding PreviewSeriesCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
             <ItemsControl ItemsSource="{Binding SeriesRows}" IsVisible="{Binding HasSeriesRows}">
               <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="vm:SeriesRowViewModel">
                   <Grid ColumnDefinitions="Auto,*" Margin="0,0,0,6">
-                    <CheckBox IsChecked="{Binding Take}" IsEnabled="{Binding CanTake}" VerticalAlignment="Top" MinWidth="0" Margin="0,0,6,0"
+                    <CheckBox x:Name="SeriesTakeBox" IsChecked="{Binding Take}" IsEnabled="{Binding CanTake}" VerticalAlignment="Top" MinWidth="0" Margin="0,0,6,0"
                               AutomationProperties.Name="{Binding DateText}" />
                     <StackPanel Grid.Column="1" Spacing="1">
                       <TextBlock Classes="small num" TextWrapping="Wrap">
@@ -664,8 +664,8 @@
               </ItemsControl.ItemTemplate>
             </ItemsControl>
             <UniformGrid Columns="2" ColumnSpacing="8">
-              <Button Classes="primary" Content="{Binding CreateSeriesText}" Command="{Binding CreateSeriesCommand}" IsEnabled="{Binding CanCreateSeries}"
-                      HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" ui:SaveShortcut.IsSave="True" ToolTip.Tip="Serie anlegen (Strg+S)" ui:DisabledHint.Text="Verfügbar, sobald mindestens ein Termin der Vorschau angehakt ist." />
+              <Button Classes="primary" Content="{Binding CreateSeriesText}" Command="{Binding CreateSeriesCommand}"
+                      HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" ui:SaveShortcut.IsSave="True" ToolTip.Tip="Serie anlegen (Strg+S)" />
               <Button Classes="ghost" Content="Abbrechen" Command="{Binding CancelSeriesCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
             </UniformGrid>
           </StackPanel>
@@ -868,8 +868,8 @@
         <Border Classes="panelcard" DataContext="{Binding Operations}" x:DataType="vm:DayOperationsViewModel" IsVisible="{Binding IsAskingApproval}">
           <StackPanel Spacing="8">
             <TextBlock Text="{Binding ApprovalTitle}" FontWeight="SemiBold" TextWrapping="Wrap" />
-            <ui:FormField Label="Leitung">
-              <ComboBox ItemsSource="{Binding Approvers}" SelectedItem="{Binding Approver}" HorizontalAlignment="Stretch">
+            <ui:FormField Label="Leitung" Error="{Binding ApproverError}">
+              <ComboBox x:Name="DayApproverBox" ItemsSource="{Binding Approvers}" SelectedItem="{Binding Approver}" HorizontalAlignment="Stretch">
                 <ComboBox.ItemTemplate>
                   <DataTemplate x:DataType="c:QuickSwitchPerson">
                     <TextBlock Text="{Binding DisplayName}" />
@@ -877,13 +877,15 @@
                 </ComboBox.ItemTemplate>
               </ComboBox>
             </ui:FormField>
-            <TextBox Text="{Binding ApprovalPin}" PasswordChar="•" MaxLength="8" Classes="num" PlaceholderText="PIN" AutomationProperties.Name="PIN der Leitung">
-              <TextBox.KeyBindings>
-                <KeyBinding Gesture="Enter" Command="{Binding ConfirmApprovalCommand}" />
-              </TextBox.KeyBindings>
-            </TextBox>
+            <ui:FormField Error="{Binding ApprovalPinError}">
+              <TextBox x:Name="DayApprovalPinBox" Text="{Binding ApprovalPin}" PasswordChar="•" MaxLength="8" Classes="num" PlaceholderText="PIN" AutomationProperties.Name="PIN der Leitung">
+                <TextBox.KeyBindings>
+                  <KeyBinding Gesture="Enter" Command="{Binding ConfirmApprovalCommand}" />
+                </TextBox.KeyBindings>
+              </TextBox>
+            </ui:FormField>
             <StackPanel Orientation="Horizontal" Spacing="8">
-              <Button Classes="primary" Content="Abnehmen" Command="{Binding ConfirmApprovalCommand}" ui:DisabledHint.Text="Verfügbar, sobald eine Person gewählt und ihre PIN (mindestens 4 Ziffern) eingetragen ist." />
+              <Button Classes="primary" Content="Abnehmen" Command="{Binding ConfirmApprovalCommand}" />
               <Button Classes="ghost" Content="Abbrechen" Command="{Binding CancelApprovalCommand}" />
             </StackPanel>
           </StackPanel>
@@ -1341,9 +1343,10 @@
         <!-- Nach der Wahl steht nur der Chip mit „Ändern“ (der Name nicht doppelt); das Suchfeld kommt mit „Ändern“ zurück und nimmt den Fokus -->
         <StackPanel>
           <TextBlock Text="Kundin oder Kunde" Classes="label" />
-          <ui:SearchField x:Name="BookingCustomerSearch" Text="{Binding CustomerQuery}" PlaceholderText="Name, Telefon oder E-Mail suchen" AutomationProperties.Name="Kundin oder Kunde suchen"
-                          AddCommand="{Binding StartNewCustomerCommand}" AddText="Neue Kundin oder neuen Kunden anlegen" ShowAdd="{Binding !HasChosenCustomer}"
-                          IsVisible="{Binding !HasChosenCustomer}" />
+          <ui:FormField Error="{Binding CustomerError}" IsVisible="{Binding !HasChosenCustomer}">
+            <ui:SearchField x:Name="BookingCustomerSearch" Text="{Binding CustomerQuery}" PlaceholderText="Name, Telefon oder E-Mail suchen" AutomationProperties.Name="Kundin oder Kunde suchen"
+                            AddCommand="{Binding StartNewCustomerCommand}" AddText="Neue Kundin oder neuen Kunden anlegen" ShowAdd="{Binding !HasChosenCustomer}" />
+          </ui:FormField>
         </StackPanel>
         <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding HasChosenCustomer}">
           <Border Classes="hint">
@@ -1452,8 +1455,8 @@
             </StackPanel>
           </StackPanel>
         </Border>
-        <ui:FormField Label="Behandlung">
-          <ComboBox ItemsSource="{Binding Options}" SelectedValueBinding="{ReflectionBinding Treatment}" SelectedValue="{Binding Treatment}"
+        <ui:FormField Label="Behandlung" Error="{Binding TreatmentError}">
+          <ComboBox x:Name="BookingTreatmentBox" ItemsSource="{Binding Options}" SelectedValueBinding="{ReflectionBinding Treatment}" SelectedValue="{Binding Treatment}"
                     HorizontalAlignment="Stretch">
             <ComboBox.ItemTemplate>
               <DataTemplate x:DataType="vm:TreatmentOption">
@@ -1478,11 +1481,11 @@
         </StackPanel>
 
         <Grid ColumnDefinitions="136,96,*" ColumnSpacing="12">
-          <ui:FormField Label="Datum" IsRequired="True">
-            <ui:DateField CommittedText="{Binding DateText}" Minimum="{Binding Today}" />
+          <ui:FormField Label="Datum" IsRequired="True" Error="{Binding DateError}">
+            <ui:DateField x:Name="BookingDateBox" CommittedText="{Binding DateText}" Minimum="{Binding Today}" />
           </ui:FormField>
-          <ui:FormField Grid.Column="1" Label="Beginn" IsRequired="True">
-            <ui:TimeField CommittedText="{Binding StartText}" />
+          <ui:FormField Grid.Column="1" Label="Beginn" IsRequired="True" Error="{Binding StartError}">
+            <ui:TimeField x:Name="BookingStartBox" CommittedText="{Binding StartText}" />
           </ui:FormField>
           <!-- Ende aus Beginn und Dauer der Behandlung, nur Anzeige (kein Feld, kein Tab-Halt) -->
           <TextBlock x:Name="BookingEndText" Grid.Column="2" Text="{Binding EndText}" Classes="muted" VerticalAlignment="Bottom" Margin="0,0,0,8"
@@ -1510,8 +1513,10 @@
           </Border>
           <Button Grid.Column="1" Classes="ghost" Content="Ändern" Command="{Binding ChangeCommand}" Margin="6,0,0,0" />
         </Grid>
-        <ui:SearchField Text="{Binding Query}" PlaceholderText="Name, Telefon oder E-Mail suchen" IsVisible="{Binding !HasCustomer}"
-                        AutomationProperties.Name="Gast suchen" />
+        <ui:FormField Error="{Binding Error}" IsVisible="{Binding !HasCustomer}">
+          <ui:SearchField x:Name="CustomerSearchBox" Text="{Binding Query}" PlaceholderText="Name, Telefon oder E-Mail suchen"
+                          AutomationProperties.Name="Gast suchen" />
+        </ui:FormField>
         <ListBox Classes="plain" ItemsSource="{Binding Results}" SelectedItem="{Binding Customer}" MaxHeight="160" IsVisible="{Binding IsPicking}">
           <ListBox.Styles>
             <!-- Der Name der Zeile ist ihr sichtbarer Inhalt; sonst liest der Screenreader den Record-Typ -->
@@ -1540,8 +1545,8 @@
       <StackPanel Spacing="12">
         <TextBlock Text="Alles wird gemeinsam gebucht oder nichts." Classes="muted small" TextWrapping="Wrap" />
 
-        <ui:FormField Label="Wann" IsRequired="True" HorizontalAlignment="Left" Width="160">
-          <ui:DateField CommittedText="{Binding DateText}" Minimum="{Binding Today}" />
+        <ui:FormField Label="Wann" IsRequired="True" HorizontalAlignment="Left" Width="160" Error="{Binding DateError}">
+          <ui:DateField x:Name="GroupDateBox" CommittedText="{Binding DateText}" Minimum="{Binding Today}" />
         </ui:FormField>
 
         <ItemsControl ItemsSource="{Binding Guests}">
@@ -1551,7 +1556,7 @@
                 <StackPanel Spacing="8">
                   <Grid ColumnDefinitions="*,Auto,Auto">
                     <TextBlock Text="{Binding Label}" Classes="group" VerticalAlignment="Center" />
-                    <ToggleSwitch Grid.Column="1" Content="Name folgt" IsChecked="{Binding NameLater}" Margin="0,0,8,0"
+                    <ToggleSwitch x:Name="GroupNameLaterSwitch" Grid.Column="1" Content="Name folgt" IsChecked="{Binding NameLater}" Margin="0,0,8,0"
                                   AutomationProperties.Name="{Binding Label, StringFormat='{}{0}: Name folgt'}"
                                   ToolTip.Tip="Gruppe oder Firmen-Event: den Gast ohne Namen buchen und den Namen später im Termin nachtragen" />
                     <Button Grid.Column="2" Classes="ghost icon" Command="{Binding RemoveCommand}" IsVisible="{Binding CanRemove}"
@@ -1560,8 +1565,8 @@
                     </Button>
                   </Grid>
                   <ContentControl Content="{Binding Search}" IsVisible="{Binding ShowSearch}" />
-                  <ui:FormField Label="Behandlung">
-                    <ComboBox ItemsSource="{Binding FirstEntry.Choices}" SelectedItem="{Binding FirstEntry.Choice}" HorizontalAlignment="Stretch"
+                  <ui:FormField Label="Behandlung" Error="{Binding TreatmentError}">
+                    <ComboBox x:Name="GroupGuestTreatmentBox" ItemsSource="{Binding FirstEntry.Choices}" SelectedItem="{Binding FirstEntry.Choice}" HorizontalAlignment="Stretch"
                               AutomationProperties.Name="{Binding FullName, StringFormat='Behandlung für {0}'}">
                       <ComboBox.ItemTemplate>
                         <DataTemplate x:DataType="vm:TreatmentChoice">
@@ -1650,8 +1655,8 @@
         <StackPanel Spacing="6">
           <TextBlock Text="Freie Zeiten" Classes="label" />
           <TextBlock Text="{Binding SlotsNote}" Classes="muted small" TextWrapping="Wrap" IsVisible="{Binding HasSlotsNote}" />
-          <ui:FormField Label="Beginn" IsRequired="True" IsVisible="{Binding IsOffline}" HorizontalAlignment="Left">
-            <ui:TimeField CommittedText="{Binding OfflineStartText}" />
+          <ui:FormField Label="Beginn" IsRequired="True" IsVisible="{Binding IsOffline}" HorizontalAlignment="Left" Error="{Binding OfflineStartError}">
+            <ui:TimeField x:Name="GroupOfflineStartBox" CommittedText="{Binding OfflineStartText}" />
           </ui:FormField>
           <ListBox Classes="chips" ItemsSource="{Binding Slots}" SelectedItem="{Binding Slot}" MaxHeight="150">
             <ListBox.Styles>
@@ -1800,22 +1805,22 @@
             </ComboBox>
           </ui:FormField>
           <Grid ColumnDefinitions="*,*,*" ColumnSpacing="8">
-            <ui:FormField Label="Von" IsRequired="True">
+            <ui:FormField Label="Von" IsRequired="True" Error="{Binding FromError}">
               <ui:TimeField x:Name="AreaFromBox" CommittedText="{Binding FromText}" />
             </ui:FormField>
-            <ui:FormField Grid.Column="1" Label="Bis" IsRequired="True">
-              <ui:TimeField CommittedText="{Binding UntilText}" NotBefore="{Binding #AreaFromBox.Value}" />
+            <ui:FormField Grid.Column="1" Label="Bis" IsRequired="True" Error="{Binding UntilError}">
+              <ui:TimeField x:Name="AreaUntilBox" CommittedText="{Binding UntilText}" NotBefore="{Binding #AreaFromBox.Value}" />
             </ui:FormField>
-            <ui:FormField Grid.Column="2" Label="Personen" IsRequired="True">
-              <ui:NumberField x:Name="PersonsBox" Value="{Binding Persons}" Minimum="1" Maximum="20" ShowSpinner="True" Width="NaN" HorizontalAlignment="Stretch" />
+            <ui:FormField Grid.Column="2" Label="Personen" IsRequired="True" Error="{Binding PersonsError}">
+              <ui:NumberField x:Name="PersonsBox" CommittedText="{Binding PersonsText}" Minimum="1" Maximum="20" ShowSpinner="True" Width="NaN" HorizontalAlignment="Stretch" />
             </ui:FormField>
           </Grid>
           <ui:FormField Label="Notiz">
             <TextBox x:Name="AreaNoteBox" Classes="grow" Text="{Binding Note}" AcceptsReturn="True" PlaceholderText="optional, z. B. mit Begleitung" />
           </ui:FormField>
-          <!-- Ein ungültiger Wert in „Personen“ (leer, außerhalb 1–20) bleibt im Feld stehen und erreicht Persons nicht: buchen erst, wenn das Feld gültig ist -->
-          <Button Classes="primary" Content="Eintritt buchen" Command="{Binding BookCommand}" HorizontalAlignment="Stretch" IsEnabled="{Binding #PersonsBox.IsValid}"
-                  HorizontalContentAlignment="Center" ui:SaveShortcut.IsSave="True" ToolTip.Tip="Eintritt buchen (Strg+S)" ui:DisabledHint.Text="Verfügbar, sobald ein Gast, eine gültige Uhrzeit und 1 bis 20 Personen eingetragen sind." />
+          <!-- Ein ungültiger Wert in „Personen“ (leer, außerhalb 1–20) bleibt im Feld stehen und kommt als Text in PersonsText an: „Eintritt buchen“ meldet ihn am Feld -->
+          <Button Classes="primary" Content="Eintritt buchen" Command="{Binding BookCommand}" HorizontalAlignment="Stretch"
+                  HorizontalContentAlignment="Center" ui:SaveShortcut.IsSave="True" ToolTip.Tip="Eintritt buchen (Strg+S)" />
         </StackPanel>
         <Border Classes="hint"
                 IsVisible="{Binding Info, Converter={x:Static ObjectConverters.IsNotNull}}">
@@ -1970,15 +1975,14 @@
                   </Grid>
                   <StackPanel Spacing="8" IsVisible="{Binding IsOpen}">
                     <Grid ColumnDefinitions="Auto,Auto" ColumnSpacing="8">
-                      <ui:FormField Label="Menge" IsRequired="True">
+                      <ui:FormField Label="Menge" IsRequired="True" Error="{Binding QuantityError}">
                         <ui:NumberField x:Name="QuantityBox" Value="{Binding Quantity}" Minimum="0" Maximum="999999" Increment="10" LargeIncrement="100" DecimalPlaces="3"
                                         AutomationProperties.Name="{Binding Line.ItemName, StringFormat='Menge {0} nachfüllen'}" />
                       </ui:FormField>
                       <TextBlock Grid.Column="1" Text="{Binding Unit}" Classes="secondary" VerticalAlignment="Bottom" Margin="0,0,0,8" />
                     </Grid>
                     <UniformGrid Columns="2" ColumnSpacing="8">
-                      <Button x:Name="RefillButton" Content="Aufgefüllt" Command="{Binding RefillCommand}" IsEnabled="{Binding #QuantityBox.IsValid}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
-                              ui:DisabledHint.Text="Verfügbar, sobald die Menge eine gültige Zahl ist." />
+                      <Button x:Name="RefillButton" Content="Aufgefüllt" Command="{Binding RefillCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
                       <Button Content="Reicht noch" Command="{Binding EnoughCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
                     </UniformGrid>
                   </StackPanel>
@@ -3370,7 +3374,7 @@
               <ui:InfoBar Severity="Error" Message="{Binding Error}" IsVisible="{Binding Error, Converter={x:Static ObjectConverters.IsNotNull}}" />
               <ContentControl Content="{Binding Conflict}" IsVisible="{Binding Conflict, Converter={x:Static ObjectConverters.IsNotNull}}" />
               <Button Classes="primary" Content="Termin buchen" Command="{Binding BookCommand}" HorizontalAlignment="Stretch"
-                      HorizontalContentAlignment="Center" ui:SaveShortcut.IsSave="True" ToolTip.Tip="Termin buchen (Strg+S)" ui:DisabledHint.Text="Verfügbar, sobald Gast, Behandlung und Beginn gewählt sind." />
+                      HorizontalContentAlignment="Center" ui:SaveShortcut.IsSave="True" ToolTip.Tip="Termin buchen (Strg+S)" />
             </StackPanel>
           </Border>
         </Grid>

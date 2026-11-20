@@ -40,13 +40,21 @@ public sealed partial class NewGuestFormViewModel : ViewModelBase
     /// <summary>„Gibt es schon?“: ähnliche Kunden, übernehmen statt doppelt anlegen.</summary>
     public DuplicateHintViewModel Duplicates { get; }
 
+    /// <summary>Name des Vornamen-Felds für <see cref="FocusRequested"/>: es bekommt den Fokus, wenn der Name fehlt.</summary>
+    public const string NameField = "NewGuestFirstNameBox";
+
+    /// <summary>Das erste ungültige Feld soll den Fokus bekommen (Name des Feldes, <see cref="NameField"/>).</summary>
+    public event Action<string>? FocusRequested;
+
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(CreateCommand))]
     public partial string FirstName { get; set; } = "";
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(CreateCommand))]
     public partial string LastName { get; set; } = "";
+
+    /// <summary>Feldfehler unter dem Vornamen, wenn weder Vor- noch Nachname steht; <see langword="null"/> ohne Fehler.</summary>
+    [ObservableProperty]
+    public partial string? NameError { get; private set; }
 
     [ObservableProperty]
     public partial string Phone { get; set; } = "";
@@ -61,9 +69,17 @@ public sealed partial class NewGuestFormViewModel : ViewModelBase
     [NotifyCanExecuteChangedFor(nameof(CreateCommand))]
     public partial bool Busy { get; private set; }
 
-    partial void OnFirstNameChanged(string value) => Check();
+    partial void OnFirstNameChanged(string value)
+    {
+        NameError = null;
+        Check();
+    }
 
-    partial void OnLastNameChanged(string value) => Check();
+    partial void OnLastNameChanged(string value)
+    {
+        NameError = null;
+        Check();
+    }
 
     partial void OnPhoneChanged(string value) => Check();
 
@@ -71,12 +87,19 @@ public sealed partial class NewGuestFormViewModel : ViewModelBase
 
     private void Check() => _ = Duplicates.CheckAsync(FirstName, LastName, Email, Phone);
 
-    private bool CanCreate => !Busy && (FirstName.Trim().Length > 0 || LastName.Trim().Length > 0);
+    private bool CanCreate => !Busy;
 
     [RelayCommand(CanExecute = nameof(CanCreate))]
     private async Task CreateAsync()
     {
         Error = null;
+        if (FirstName.Trim().Length == 0 && LastName.Trim().Length == 0)
+        {
+            NameError = "Bitte einen Vor- oder Nachnamen eintragen.";
+            FocusRequested?.Invoke(NameField);
+            return;
+        }
+
         Busy = true;
         var result = await _api.CreateCustomerAsync(new CustomerInput(FirstName.Trim(), LastName.Trim(),
             string.IsNullOrWhiteSpace(Email) ? null : Email.Trim(), string.IsNullOrWhiteSpace(Phone) ? null : Phone.Trim(), null, null)).ConfigureAwait(true);

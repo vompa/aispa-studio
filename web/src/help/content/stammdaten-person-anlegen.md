@@ -18,7 +18,7 @@ Im Team stehen die Personen, die Behandlungen geben, mit Kalenderfarbe, Qualifik
 4. Unter **Qualifikationen** (in der Windows-App ein Abschnitt im Bereich **Profil**) alles wählen, was die Person ausführen darf.
 5. Im Bereich **Arbeitszeit** beim Abschnitt **Regelarbeitszeit** auf **Arbeitszeit hinzufügen** klicken. Es entsteht eine Zeile mit Tag, Von, Bis und Standort (die erste mit 09:00 bis 17:00 Uhr).
 6. Tag, Standort und Zeiten anpassen. Jedes weitere **Arbeitszeit hinzufügen** nimmt den nächsten freien Wochentag mit den Zeiten der letzten Zeile.
-7. Auf **Speichern** klicken. Solange der **Vollständige Name** fehlt, ist **Speichern** gesperrt; der Hinweis an der Schaltfläche nennt den Grund.
+7. Auf **Speichern** klicken. Fehlt der **Vollständige Name**, markiert **Speichern** das Feld rot und nennt, was fehlt; es wird nichts gespeichert.
 
 ![Team in der Windows-App](images/app/verwaltung-team.png)
 

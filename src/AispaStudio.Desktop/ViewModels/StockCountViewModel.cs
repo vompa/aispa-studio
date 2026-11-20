@@ -194,7 +194,7 @@ public sealed partial class StockCountViewModel : ViewModelBase
 
     public string Heading => $"Inventur: {SelectedPlace?.Name}{(_adopted?.StartedBy is { } by ? $", gezählt von {by}" : "")}";
 
-    public bool CanBook => !IsBooking && IsCounting && !HasInvalid && (ChangeCount > 0 || IsAdopted);
+    public bool CanBook => !IsBooking && IsCounting && (ChangeCount > 0 || IsAdopted);
 
     public bool CanStart => SelectedPlace is not null;
 
@@ -404,6 +404,13 @@ public sealed partial class StockCountViewModel : ViewModelBase
     {
         if (!CanBook || _owner.Location is not { } location || SelectedPlace is not { } place)
         {
+            return false;
+        }
+
+        if (Rows.FirstOrDefault(r => r.IsInvalid) is { } invalid)
+        {
+            Error = $"Die Inventur ist nicht gebucht. {invalid.Name}: Bitte eine Zahl ab 0 eintragen, z. B. 12 oder 2,5.";
+            RowFocusRequested?.Invoke(invalid);
             return false;
         }
 

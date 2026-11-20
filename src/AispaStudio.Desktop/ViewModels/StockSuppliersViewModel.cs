@@ -125,7 +125,7 @@ public sealed partial class StockSuppliersViewModel : ViewModelBase, IFocusTarge
 
     public bool HasUnsavedChanges => _savedSignature is not null && Signature() != _savedSignature;
 
-    public bool CanSave => !IsSaving && SupplierName.Trim().Length > 0 && (_current is null || HasUnsavedChanges);
+    public bool CanSave => !IsSaving && (_current is null || HasUnsavedChanges);
 
     /// <summary>Baut die Liste aus dem Stand des Besitzers neu auf; eine angefangene Eingabe bleibt stehen.</summary>
     internal void Rebuild()

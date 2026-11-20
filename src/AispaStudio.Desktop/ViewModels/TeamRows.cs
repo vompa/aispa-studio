@@ -208,8 +208,14 @@ public sealed partial class QualificationRow(QualificationDto qualification, Fun
     [NotifyPropertyChangedFor(nameof(CanRename))]
     public partial string Name { get; set; } = qualification.Name;
 
-    /// <summary>„Umbenennen“ steht nur da, wenn der Name geändert und nicht leer ist.</summary>
-    public bool CanRename => Name.Trim().Length > 0 && Name != qualification.Name;
+    /// <summary>Fehler am Namensfeld (masken.md, R8); verschwindet mit der nächsten Eingabe.</summary>
+    [ObservableProperty]
+    public partial string? NameError { get; set; }
+
+    partial void OnNameChanged(string value) => NameError = null;
+
+    /// <summary>„Umbenennen“ steht nur da, wenn der Name geändert ist; ein leerer Name wird beim Klick am Feld gemeldet.</summary>
+    public bool CanRename => Name != qualification.Name;
 
     [RelayCommand]
     private Task RenameAsync() => rename(this);

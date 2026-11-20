@@ -50,6 +50,7 @@ public sealed partial class TreatmentEditorViewModel : ViewModelBase, IEditableA
     public const string PriceField = "treatment.price";
     public const string DurationField = "treatment.duration";
     public const string QualificationsField = "qualifications";
+    public const string RecommendedArticleField = "sales.article";
 
     // Die vier Bereiche der Schiene (masken.md R15, ADR 0098 mit Nachtrag vom 17.11.2026).
     public const string Overview = "uebersicht";
@@ -274,20 +275,32 @@ public sealed partial class TreatmentEditorViewModel : ViewModelBase, IEditableA
     public partial IReadOnlyList<ArticleDto> ArticleChoices { get; private set; } = [];
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(AddRecommendedArticleCommand))]
     public partial ArticleDto? ArticleToAdd { get; set; }
+
+    /// <summary>Fehler am Feld „Artikel wählen“ (masken.md, R8); verschwindet mit der nächsten Wahl.</summary>
+    [ObservableProperty]
+    public partial string? ArticleToAddError { get; private set; }
+
+    partial void OnArticleToAddChanged(ArticleDto? value) => ArticleToAddError = null;
 
     /// <summary>Die Kassa-Artikel wurden nicht geladen: „Passt dazu“ lässt sich dann nicht ändern.</summary>
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(AddRecommendedArticleCommand))]
     public partial bool HasSalesLoadError { get; private set; }
 
-    private bool CanAddRecommendedArticle => !HasSalesLoadError && ArticleToAdd is not null && RecommendedArticles.Count < MaxRecommendedArticles;
+    private bool CanAddRecommendedArticle => !HasSalesLoadError && RecommendedArticles.Count < MaxRecommendedArticles;
 
     [RelayCommand(CanExecute = nameof(CanAddRecommendedArticle))]
     private void AddRecommendedArticle()
     {
-        if (ArticleToAdd is not { } article || RecommendedArticles.Any(r => r.Id == article.Id))
+        if (ArticleToAdd is not { } article)
+        {
+            ArticleToAddError = "Bitte einen Artikel wählen.";
+            FocusTarget = RecommendedArticleField;
+            return;
+        }
+
+        if (RecommendedArticles.Any(r => r.Id == article.Id))
         {
             return;
         }

@@ -19,7 +19,7 @@ In der Kundenkarte lassen sich Name, Anrede, Rufname, Titel, Postanschrift, Tele
 
 ![Stammdaten in der Kundenkarte bearbeiten](images/app/kunden-bearbeiten.png)
 
-- Pflicht ist ein Name (Vor- oder Nachname, mit Stern gekennzeichnet); bis dahin bleibt **Speichern** ausgegraut. Ein geleertes Feld löscht den gespeicherten Wert.
+- Pflicht ist ein Name (Vor- oder Nachname, mit Stern gekennzeichnet); fehlt er, markiert **Speichern** das Feld rot und nennt, was fehlt. Ein geleertes Feld löscht den gespeicherten Wert.
 - Ist eine Eingabe ungültig (z. B. eine PLZ mit zu wenigen Ziffern, eine E-Mail ohne @, ein Geburtstag, den es nicht gibt), färbt sich das Feld rot, der Text darunter sagt, was erwartet wird, und der Cursor springt ins erste solche Feld.
 - Kann der Server nicht speichern (z. B. keine Verbindung), steht über **Speichern** die Meldung „Nicht gespeichert“ mit **Erneut versuchen**.
 

@@ -46,11 +46,9 @@ public partial class CustomersViewModel(IWorkstationApi api, TimeProvider time, 
     public partial bool ShowNew { get; set; }
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(CreateCommand), nameof(CreateAndBookCommand))]
     public partial string NewFirstName { get; set; } = "";
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(CreateCommand), nameof(CreateAndBookCommand))]
     public partial string NewLastName { get; set; } = "";
 
     [ObservableProperty]
@@ -118,10 +116,18 @@ public partial class CustomersViewModel(IWorkstationApi api, TimeProvider time, 
 
     private NewCustomerMatchesViewModel? _matches;
 
-    partial void OnNewLastNameChanged(string value) => CheckMatches();
+    partial void OnNewLastNameChanged(string value)
+    {
+        NewNameError = null;
+        CheckMatches();
+    }
 
     // Der Vorname schärft die Erkennung „gleicher Name“ (L13).
-    partial void OnNewFirstNameChanged(string value) => CheckMatches();
+    partial void OnNewFirstNameChanged(string value)
+    {
+        NewNameError = null;
+        CheckMatches();
+    }
 
     partial void OnNewPhoneChanged(string value) => CheckMatches();
 
@@ -271,13 +277,27 @@ public partial class CustomersViewModel(IWorkstationApi api, TimeProvider time, 
     [NotifyPropertyChangedFor(nameof(IsEditingAny))]
     public partial bool IsEditingBilling { get; private set; }
 
+    /// <summary>Namen der Felder des Rechnungsempfängers für <see cref="FocusTarget"/>: das erste ungültige Feld bekommt nach „Speichern“ den Fokus.</summary>
+    public const string BillingNameField = "BillingNameBox";
+
+    public const string BillingAddressField = "BillingAddressBox";
+
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(SaveBillingCommand))]
     public partial string BillingName { get; set; } = "";
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(SaveBillingCommand))]
     public partial string BillingAddress { get; set; } = "";
+
+    /// <summary>Fehler an den Feldern (masken.md, R8); jeder verschwindet mit der nächsten Eingabe im Feld.</summary>
+    [ObservableProperty]
+    public partial string? BillingNameError { get; private set; }
+
+    [ObservableProperty]
+    public partial string? BillingAddressError { get; private set; }
+
+    partial void OnBillingNameChanged(string value) => BillingNameError = null;
+
+    partial void OnBillingAddressChanged(string value) => BillingAddressError = null;
 
     [ObservableProperty]
     public partial string BillingVatId { get; set; } = "";
@@ -289,17 +309,26 @@ public partial class CustomersViewModel(IWorkstationApi api, TimeProvider time, 
         BillingName = Selected?.Billing?.Name ?? "";
         BillingAddress = Selected?.Billing?.Address ?? "";
         BillingVatId = Selected?.Billing?.VatId ?? "";
+        BillingNameError = BillingAddressError = null;
         IsEditingBilling = true;
     }
 
     [RelayCommand]
     private void CancelBilling() => IsEditingBilling = false;
 
-    private bool CanSaveBilling => BillingName.Trim().Length > 0 && BillingAddress.Trim().Length > 0;
+    [RelayCommand]
+    private Task SaveBillingAsync()
+    {
+        BillingNameError = BillingName.Trim().Length == 0 ? "Bitte den Empfänger (Name oder Firma) eintragen." : null;
+        BillingAddressError = BillingAddress.Trim().Length == 0 ? "Bitte die Anschrift eintragen." : null;
+        if (BillingNameError is not null || BillingAddressError is not null)
+        {
+            FocusTarget = BillingNameError is not null ? BillingNameField : BillingAddressField;
+            return Task.CompletedTask;
+        }
 
-    [RelayCommand(CanExecute = nameof(CanSaveBilling))]
-    private Task SaveBillingAsync() => StoreBillingAsync(new CustomerBilling(BillingName.Trim(), BillingAddress.Trim(),
-        BillingVatId.Trim().Length == 0 ? null : BillingVatId.Trim()));
+        return StoreBillingAsync(new CustomerBilling(BillingName.Trim(), BillingAddress.Trim(), BillingVatId.Trim().Length == 0 ? null : BillingVatId.Trim()));
+    }
 
     /// <summary>„Entfernen“ fragt nach (Rückfragedialog, Design-Brief 5.27).</summary>
     [RelayCommand]
@@ -357,9 +386,31 @@ public partial class CustomersViewModel(IWorkstationApi api, TimeProvider time, 
     public partial bool IsEditingDiscount { get; private set; }
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(SaveDiscountCommand))]
     [NotifyPropertyChangedFor(nameof(NeedsApproval))]
     public partial string DiscountPercent { get; set; } = "";
+
+    /// <summary>Namen der Felder des Rabatts für <see cref="FocusTarget"/>: das erste ungültige Feld bekommt nach „Speichern“ den Fokus.</summary>
+    public const string DiscountPercentField = "DiscountPercentBox";
+
+    public const string ApproverField = "DiscountApproverBox";
+
+    public const string ApprovalPinField = "DiscountApprovalPinBox";
+
+    /// <summary>Fehler an den Feldern (masken.md, R8); jeder verschwindet mit der nächsten Eingabe im Feld.</summary>
+    [ObservableProperty]
+    public partial string? DiscountPercentError { get; private set; }
+
+    [ObservableProperty]
+    public partial string? ApproverError { get; private set; }
+
+    [ObservableProperty]
+    public partial string? ApprovalPinError { get; private set; }
+
+    partial void OnDiscountPercentChanged(string value) => DiscountPercentError = null;
+
+    partial void OnApproverChanged(QuickSwitchPerson? value) => ApproverError = null;
+
+    partial void OnApprovalPinChanged(string value) => ApprovalPinError = null;
 
     private PosSettingsDto? _settings;
 
@@ -369,11 +420,9 @@ public partial class CustomersViewModel(IWorkstationApi api, TimeProvider time, 
     public ObservableCollection<QuickSwitchPerson> Approvers { get; } = [];
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(SaveDiscountCommand))]
     public partial QuickSwitchPerson? Approver { get; set; }
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(SaveDiscountCommand))]
     public partial string ApprovalPin { get; set; } = "";
 
     [ObservableProperty]
@@ -407,6 +456,7 @@ public partial class CustomersViewModel(IWorkstationApi api, TimeProvider time, 
         }
 
         ApprovalPin = "";
+        DiscountPercentError = ApproverError = ApprovalPinError = null;
 
         DiscountPercent = Selected?.Discount?.Percent.ToString("0.##", German) ?? "";
         DiscountScope = DiscountScopes.First(o => o.Scope == (Selected?.Discount?.Scope ?? CustomerDiscountScope.All));
@@ -420,11 +470,22 @@ public partial class CustomersViewModel(IWorkstationApi api, TimeProvider time, 
         decimal.TryParse(DiscountPercent.Replace("%", "", StringComparison.Ordinal).Trim(), System.Globalization.NumberStyles.Number, German, out var p)
         && p > 0 && p < 100 ? p : null;
 
-    private bool CanSaveDiscount => ParsedPercent is not null && (!NeedsApproval || (Approver is not null && ApprovalPin.Trim().Length >= 4));
+    [RelayCommand]
+    private Task SaveDiscountAsync()
+    {
+        var needsApproval = NeedsApproval;
+        DiscountPercentError = ParsedPercent is null ? "Bitte einen Rabatt zwischen 0,01 und 99,99 % eintragen." : null;
+        ApproverError = needsApproval && Approver is null ? "Bitte die Person wählen, die den Rabatt freigibt." : null;
+        ApprovalPinError = needsApproval && ApprovalPin.Trim().Length < 4 ? "Bitte die PIN mit mindestens 4 Ziffern eintragen." : null;
+        if (DiscountPercentError is not null || ApproverError is not null || ApprovalPinError is not null)
+        {
+            FocusTarget = DiscountPercentError is not null ? DiscountPercentField : ApproverError is not null ? ApproverField : ApprovalPinField;
+            return Task.CompletedTask;
+        }
 
-    [RelayCommand(CanExecute = nameof(CanSaveDiscount))]
-    private Task SaveDiscountAsync() => StoreDiscountAsync(new CustomerDiscountInput(ParsedPercent!.Value, DiscountScope.Scope,
-        NeedsApproval ? new SupervisorApproval(Approver!.UserId, ApprovalPin.Trim()) : null));
+        return StoreDiscountAsync(new CustomerDiscountInput(ParsedPercent!.Value, DiscountScope.Scope,
+            needsApproval ? new SupervisorApproval(Approver!.UserId, ApprovalPin.Trim()) : null));
+    }
 
     /// <summary>„Entfernen“ fragt nach (Rückfragedialog, Design-Brief 5.27).</summary>
     [RelayCommand]
@@ -596,20 +657,18 @@ public partial class CustomersViewModel(IWorkstationApi api, TimeProvider time, 
     [ObservableProperty]
     public partial string? Notice { get; private set; }
 
-    /// <summary>Pflicht ist nur ein Name (Vor- oder Nachname); Telefon, E-Mail und Notiz lassen sich in der Kundenkarte mit „Bearbeiten“ ergänzen.</summary>
-    private bool CanCreate => NewFirstName.Trim().Length > 0 || NewLastName.Trim().Length > 0;
-
-    [RelayCommand(CanExecute = nameof(CanCreate))]
+    [RelayCommand]
     private Task CreateAsync() => CreateCustomerAsync(thenBook: false);
 
     /// <summary>„Anlegen und Termin buchen“: legt an und öffnet die Buchung mit dem Gast.</summary>
-    [RelayCommand(CanExecute = nameof(CanCreate))]
+    [RelayCommand]
     private Task CreateAndBookAsync() => CreateCustomerAsync(thenBook: true);
 
     private async Task CreateCustomerAsync(bool thenBook)
     {
         Error = null;
-        if (!ValidateNewEmail(focusOnError: true))
+        var nameValid = ValidateNewName(focusOnError: true);
+        if (!ValidateNewEmail(focusOnError: nameValid) || !nameValid)
         {
             return;
         }

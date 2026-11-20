@@ -30,5 +30,5 @@ Ohne Verbindung zum Server merkt sich die App die Anlage vor und zeigt „Ohne V
 - Telefon, E-Mail, Geburtstag und Notiz lassen sich später in der Kundenkarte mit **Bearbeiten** ergänzen oder ändern: [Kundendaten ändern](hilfe:kunden-bearbeiten).
 - Neue Gäste lassen sich auch beim Buchen im Kalender anlegen; dort erscheint „Gibt es schon?“.
 - „Schon vorhanden?“ braucht die Verbindung zum Server; ohne sie fehlt der Hinweis, und das Anlegen geht trotzdem.
-- Sind **Anlegen** und **Anlegen und Termin buchen** ausgegraut, fehlt noch ein Vor- oder Nachname.
+- Fehlt der Vor- und der Nachname, markieren **Anlegen** und **Anlegen und Termin buchen** das Feld rot und nennen, was fehlt; es wird nichts angelegt.
 - **Abbrechen** oder Esc schließt die Maske ohne Anlage.

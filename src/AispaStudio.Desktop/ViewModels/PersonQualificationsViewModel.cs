@@ -36,8 +36,20 @@ public sealed partial class PersonQualificationsViewModel : ViewModelBase
     public ObservableCollection<QualificationRow> Rows { get; } = [];
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(AddCommand))]
     public partial string NewName { get; set; } = "";
+
+    /// <summary>Namen der Felder für <see cref="FocusRequested"/>: das Feld mit dem Fehler bekommt den Fokus.</summary>
+    public const string NewNameField = "NewQualificationField";
+
+    public const string RowNameField = "QualificationNameField";
+
+    /// <summary>Fehler am Feld „Neue Qualifikation“ (masken.md, R8); verschwindet mit der nächsten Eingabe.</summary>
+    [ObservableProperty]
+    public partial string? NewNameError { get; private set; }
+
+    partial void OnNewNameChanged(string value) => NewNameError = null;
+
+    public event Action<string>? FocusRequested;
 
     /// <summary>Fehler der API beim Umbenennen oder Hinzufügen.</summary>
     [ObservableProperty]
@@ -67,11 +79,17 @@ public sealed partial class PersonQualificationsViewModel : ViewModelBase
         _applying = false;
     }
 
-    private bool CanAdd => NewName.Trim().Length > 0;
-
-    [RelayCommand(CanExecute = nameof(CanAdd))]
+    [RelayCommand]
     private async Task AddAsync()
     {
+        if (NewName.Trim().Length == 0)
+        {
+            NewNameError = "Bitte einen Namen für die Qualifikation eintragen.";
+            ManageError = "Die Qualifikation ist nicht hinzugefügt. Bitte den markierten Namen eintragen.";
+            FocusRequested?.Invoke(NewNameField);
+            return;
+        }
+
         var result = await _api.PostAsync<QualificationDto>("api/qualifications", new QualificationInput(NewName.Trim())).ConfigureAwait(true);
         if (await ReloadAsync(result.Error).ConfigureAwait(true))
         {
@@ -81,6 +99,14 @@ public sealed partial class PersonQualificationsViewModel : ViewModelBase
 
     private async Task RenameAsync(QualificationRow row)
     {
+        if (row.Name.Trim().Length == 0)
+        {
+            row.NameError = "Bitte einen Namen für die Qualifikation eintragen.";
+            ManageError = "Die Qualifikation ist nicht umbenannt. Bitte den markierten Namen eintragen.";
+            FocusRequested?.Invoke(RowNameField);
+            return;
+        }
+
         var result = await _api.PutAsync<QualificationDto>($"api/qualifications/{row.Id}", new QualificationInput(row.Name.Trim())).ConfigureAwait(true);
         await ReloadAsync(result.Error).ConfigureAwait(true);
     }

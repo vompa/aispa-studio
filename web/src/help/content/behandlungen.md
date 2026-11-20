@@ -46,7 +46,7 @@ Wie lange die Behandlung beim Gast dauert. Erlaubt sind 1 bis 600 Minuten, Stand
 
 ### Preis {#preis}
 
-Grundpreis in der Währung des Standorts, inklusive Umsatzsteuer. Ab 0, mit Komma oder Punkt und höchstens zwei Nachkommastellen, z. B. „89,90“. Standard ist 0,00. Ein Preis, der fehlt oder sich nicht lesen lässt, bekommt beim Verlassen des Feldes einen Hinweis; **Speichern** bleibt dann grau.
+Grundpreis in der Währung des Standorts, inklusive Umsatzsteuer. Ab 0, mit Komma oder Punkt und höchstens zwei Nachkommastellen, z. B. „89,90“. Standard ist 0,00. Ein Preis, der fehlt oder sich nicht lesen lässt, bekommt beim Verlassen des Feldes einen Hinweis; **Speichern** markiert das Feld rot, nennt, was fehlt, und speichert nichts.
 
 - Er gilt, wenn weder ein Preis je Standort noch eine Preisregel passt.
 - Der Preis wird beim Buchen in den Termin übernommen. Spätere Änderungen betreffen nur neue Buchungen.
@@ -251,7 +251,7 @@ Die Regel gilt für Termine, die ab „Von“ und vor „Bis“ beginnen. Ein Te
 
 ### Preis {#preisregel-preis}
 
-Preis für Termine, auf die die Regel passt. Ab 0 und unter 100.000, mit Komma oder Punkt und höchstens zwei Nachkommastellen. Ein Preis, der fehlt oder sich nicht lesen lässt, bekommt beim Verlassen des Feldes einen Hinweis; **Speichern** bleibt dann grau.
+Preis für Termine, auf die die Regel passt. Ab 0 und unter 100.000, mit Komma oder Punkt und höchstens zwei Nachkommastellen. Ein Preis, der fehlt oder sich nicht lesen lässt, bekommt beim Verlassen des Feldes einen Hinweis; **Speichern** markiert das Feld rot, nennt, was fehlt, und speichert nichts.
 
 ### Standort {#preisregel-standort}
 

@@ -522,14 +522,24 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
     private int PinMinimum => User.Access?.Role is StaffRole.Owner or StaffRole.GeneralManager ? 6 : 4;
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(SavePinCommand))]
     public partial string PinInput { get; set; } = "";
+
+    /// <summary>Name des PIN-Felds (<c>x:Name</c>) für <see cref="FocusRequested"/>.</summary>
+    public const string PinField = "PinBox";
+
+    /// <summary>Die Ansicht setzt den Fokus in das Feld dieses Namens.</summary>
+    public event Action<string>? FocusRequested;
+
+    /// <summary>Fehler am PIN-Feld (masken.md, R8); verschwindet mit der nächsten Eingabe.</summary>
+    [ObservableProperty]
+    public partial string? PinError { get; private set; }
 
     [ObservableProperty]
     public partial string? PinText { get; private set; }
 
     partial void OnPinInputChanged(string value)
     {
+        PinError = null;
         var digits = new string(value.Where(char.IsAsciiDigit).Take(8).ToArray());
         if (digits != value)
         {
@@ -537,12 +547,17 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
         }
     }
 
-    private bool CanSavePin => PinInput.Length >= PinMinimum;
-
     /// <summary>Eigene PIN festlegen oder ändern; sie gilt nur auf Empfangsgeräten.</summary>
-    [RelayCommand(CanExecute = nameof(CanSavePin))]
+    [RelayCommand]
     private async Task SavePinAsync()
     {
+        if (PinInput.Length < PinMinimum)
+        {
+            PinError = $"Bitte eine PIN mit mindestens {PinMinimum} Ziffern eintragen.";
+            FocusRequested?.Invoke(PinField);
+            return;
+        }
+
         var result = await _api.PutAsync<object>("api/auth/pin", new QuickSwitchPin(PinInput)).ConfigureAwait(true);
         PinInput = "";
         if (!result.Ok)

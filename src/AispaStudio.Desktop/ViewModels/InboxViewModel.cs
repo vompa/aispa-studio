@@ -591,8 +591,24 @@ public partial class InboxDetailViewModel : ViewModelBase
 
     /// <summary>Eigener Hinweis zum Überarbeiten, z. B. „bitte Parkplatz erwähnen“.</summary>
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(ReviseCustomCommand))]
     public partial string ReviseInstruction { get; set; } = "";
+
+    /// <summary>Namen der Felder (<c>x:Name</c>) für <see cref="FocusRequested"/>: das Feld mit dem Fehler bekommt den Fokus.</summary>
+    public const string ReplyBodyField = "ReplyBodyBox";
+
+    public const string ReviseInstructionField = "ReviseInstructionBox";
+
+    /// <summary>Die Ansicht setzt den Fokus in das Feld dieses Namens.</summary>
+    public event Action<string>? FocusRequested;
+
+    /// <summary>Fehler an den Feldern (masken.md, R8); jeder verschwindet mit der nächsten Eingabe im Feld.</summary>
+    [ObservableProperty]
+    public partial string? ReplyBodyError { get; private set; }
+
+    [ObservableProperty]
+    public partial string? ReviseInstructionError { get; private set; }
+
+    partial void OnReviseInstructionChanged(string value) => ReviseInstructionError = null;
 
     public bool IsShortMessage => Mail.Channel is BookingChannel.Sms or BookingChannel.WhatsApp or BookingChannel.Phone;
 
@@ -804,10 +820,20 @@ public partial class InboxDetailViewModel : ViewModelBase
             : await _api.GetAsync<InboundMailDto>($"api/inbox/{Id}").ConfigureAwait(true);
     }, success);
 
-    private bool CanSave => IsDraft && DraftChanged && !Busy && ReplyBody.Trim().Length > 0;
+    private bool CanSave => IsDraft && DraftChanged && !Busy;
 
     [RelayCommand(CanExecute = nameof(CanSave))]
-    private Task SaveDraftAsync() => ActAsync(PutDraftAsync, "Entwurf gespeichert.");
+    private Task SaveDraftAsync()
+    {
+        if (ReplyBody.Trim().Length == 0)
+        {
+            ReplyBodyError = "Bitte den Text der Antwort eintragen.";
+            FocusRequested?.Invoke(ReplyBodyField);
+            return Task.CompletedTask;
+        }
+
+        return ActAsync(PutDraftAsync, "Entwurf gespeichert.");
+    }
 
     private Task<ApiResult<InboundMailDto>> PutDraftAsync() =>
         _api.PutAsync<InboundMailDto>($"api/inbox/{Id}/reply", new ReplyDraftInput(IsShortMessage && ReplySubject.Trim().Length == 0 ? Mail.Subject : ReplySubject, ReplyBody));
@@ -823,11 +849,16 @@ public partial class InboxDetailViewModel : ViewModelBase
     [RelayCommand(CanExecute = nameof(CanReviseNow))]
     private Task ReviseAsync(ReplyRevisionKind kind) => RunRevisionAsync(new ReplyRevisionInput(kind));
 
-    private bool CanReviseCustom => CanReviseNow && ReviseInstruction.Trim().Length > 0;
-
-    [RelayCommand(CanExecute = nameof(CanReviseCustom))]
+    [RelayCommand(CanExecute = nameof(CanReviseNow))]
     private async Task ReviseCustomAsync()
     {
+        if (ReviseInstruction.Trim().Length == 0)
+        {
+            ReviseInstructionError = "Bitte einen Hinweis für die KI eintragen, z. B. Parkplatz erwähnen.";
+            FocusRequested?.Invoke(ReviseInstructionField);
+            return;
+        }
+
         await RunRevisionAsync(new ReplyRevisionInput(ReplyRevisionKind.Custom, ReviseInstruction.Trim())).ConfigureAwait(true);
         if (!NoticeIsError)
         {

@@ -97,6 +97,11 @@ public partial class ConfirmDialogViewModel : ObservableObject
     /// <summary>Beantwortet die Rückfrage; für Rückfragen mit eigenem Inhalt, die ihre Antwort selbst bilden.</summary>
     protected void Answer(ConfirmResult result) => _answer(result);
 
+    /// <summary>Die Ansicht setzt den Fokus in das Feld dieses Namens (<c>x:Name</c>), z. B. nach einem Fehler beim Bestätigen (masken.md, R8).</summary>
+    public event Action<string>? FocusRequested;
+
+    protected void RequestFocus(string name) => FocusRequested?.Invoke(name);
+
     [RelayCommand]
     private void Confirm() => _answer(new ConfirmResult(ConfirmChoice.Confirmed, HasInput ? Input : null));
 

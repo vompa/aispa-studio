@@ -42,6 +42,8 @@ public sealed partial class MovementBookingViewModel : ViewModelBase, IFocusTarg
 {
     public const string ItemField = "MovementItemField";
 
+    public const string TargetField = "MovementTargetField";
+
     public const string AmountField = "MovementAmountField";
 
     public const string ReasonField = "MovementReasonField";
@@ -74,7 +76,7 @@ public sealed partial class MovementBookingViewModel : ViewModelBase, IFocusTarg
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsReceipt), nameof(IsRefill), nameof(IsTransfer), nameof(IsCorrection), nameof(ShowTarget), nameof(ShowReceiptFields), nameof(AmountLabel),
-        nameof(AmountHelp), nameof(ReasonLabel), nameof(PlaceLabel), nameof(TargetLabel), nameof(HelpTopic), nameof(HelpSection), nameof(Hint), nameof(ShowPackages), nameof(PackagePreview))]
+        nameof(AmountHelp), nameof(ReasonLabel), nameof(PlaceLabel), nameof(TargetLabel), nameof(HelpTopic), nameof(HelpSection), nameof(ShowPackages), nameof(PackagePreview))]
     public partial StockMovementKind Kind { get; set; } = StockMovementKind.GoodsReceipt;
 
     [ObservableProperty]
@@ -108,7 +110,16 @@ public sealed partial class MovementBookingViewModel : ViewModelBase, IFocusTarg
     public partial string Reason { get; set; } = "";
 
     [ObservableProperty]
+    public partial string? ItemError { get; private set; }
+
+    [ObservableProperty]
+    public partial string? TargetError { get; private set; }
+
+    [ObservableProperty]
     public partial string? AmountError { get; private set; }
+
+    [ObservableProperty]
+    public partial string? ReasonError { get; private set; }
 
     [ObservableProperty]
     public partial string? UnitCostError { get; private set; }
@@ -178,10 +189,7 @@ public sealed partial class MovementBookingViewModel : ViewModelBase, IFocusTarg
 
     public string HelpSection => IsCorrection ? "korrektur" : "schritte";
 
-    /// <summary>Was fehlt, damit „Buchen“ bedienbar wird (ruhige Zeile unter den Feldern).</summary>
-    public string? Hint => MissingInput() is { } missing ? $"Zum Buchen fehlt: {missing}." : null;
-
-    public bool CanBook => !IsBusy && MissingInput() is null;
+    public bool CanBook => !IsBusy;
 
     private IReadOnlyList<StoragePlaceDto> ActivePlaces => [.. _owner.Places.Where(p => p.IsActive)];
 
@@ -211,7 +219,7 @@ public sealed partial class MovementBookingViewModel : ViewModelBase, IFocusTarg
         SelectedPlace = PlaceOptions.FirstOrDefault(p => p.Id == (preset.PlaceId ?? main?.Id));
         Amount = UnitCost = Batch = Reason = "";
         ExpiresOn = null;
-        Error = AmountError = UnitCostError = null;
+        Error = ItemError = TargetError = AmountError = ReasonError = UnitCostError = null;
         RebuildPackages(null);
         _applying = false;
         RebuildTargets(preset.TargetPlaceId);
@@ -258,7 +266,11 @@ public sealed partial class MovementBookingViewModel : ViewModelBase, IFocusTarg
         if (MissingInput() is { } missing)
         {
             Error = $"Es fehlt: {missing}.";
-            FocusTarget = SelectedItem is null ? ItemField : ReasonMissing() ? ReasonField : AmountField;
+            ItemError = SelectedItem is null ? "Bitte ein Material wählen." : null;
+            TargetError = ShowTarget && SelectedTarget is null ? "Bitte ein Ziel wählen." : null;
+            AmountError = AmountProblem(required: true);
+            ReasonError = ReasonMissing() ? "Bitte einen Grund eintragen." : null;
+            FocusTarget = ItemError is not null ? ItemField : TargetError is not null ? TargetField : AmountError is not null ? AmountField : ReasonField;
             return false;
         }
 
@@ -418,14 +430,26 @@ public sealed partial class MovementBookingViewModel : ViewModelBase, IFocusTarg
         return ReasonMissing() ? "der Grund" : null;
     }
 
+    /// <summary>Warum die Menge nicht gilt (Zahl, bei der Korrektur ungleich 0, sonst größer als 0); eine leere Menge nur, wenn sie <paramref name="required"/> ist.</summary>
+    private string? AmountProblem(bool required)
+    {
+        if (Amount.Trim().Length == 0)
+        {
+            return required ? "Bitte eine Menge eintragen." : null;
+        }
+
+        var quantity = StockFormat.Parse(Amount);
+        return quantity is null ? "Die Menge ist keine Zahl. Gib sie z. B. als 2,5 ein."
+            : IsCorrection ? (quantity == 0 ? "Die Menge darf nicht 0 sein. Gib z. B. −2 für Bruch ein." : null)
+            : quantity <= 0 ? "Die Menge muss größer als 0 sein." : null;
+    }
+
     private void Refresh()
     {
-        AmountError = Amount.Trim().Length == 0 || MissingInput() != "die Menge" ? null
-            : StockFormat.Parse(Amount) is null ? "Die Menge ist keine Zahl. Gib sie z. B. als 2,5 ein."
-            : IsCorrection ? "Die Menge darf nicht 0 sein. Gib z. B. −2 für Bruch ein." : "Die Menge muss größer als 0 sein.";
+        ItemError = TargetError = ReasonError = null;
+        AmountError = SelectedItem is null ? null : AmountProblem(required: false);
         UnitCostError = null;
         OnPropertyChanged(nameof(PackagePreview));
-        OnPropertyChanged(nameof(Hint));
         OnPropertyChanged(nameof(CanBook));
         BookCommand.NotifyCanExecuteChanged();
     }

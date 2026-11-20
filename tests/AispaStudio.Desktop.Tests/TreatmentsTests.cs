@@ -435,6 +435,23 @@ public sealed class TreatmentsTests
     }
 
     [Fact]
+    public async Task Given_kein_Artikel_gewaehlt_When_Artikel_hinzufuegen_Then_Fehler_am_Feld_und_Fokus_und_die_Liste_bleibt()
+    {
+        var treatments = await Loaded(SalesApi([.. Articles.Take(2)]));
+        var editor = await Choose(treatments, "Hot Stone 60");
+        var before = editor.RecommendedArticles.Count;
+
+        Assert.True(editor.AddRecommendedArticleCommand.CanExecute(null));
+        editor.AddRecommendedArticleCommand.Execute(null);
+
+        Assert.Equal("Bitte einen Artikel wählen.", editor.ArticleToAddError);
+        Assert.Equal(TreatmentEditorViewModel.RecommendedArticleField, editor.FocusTarget);
+        Assert.Equal(before, editor.RecommendedArticles.Count);
+        editor.ArticleToAdd = editor.ArticleChoices[0];
+        Assert.Null(editor.ArticleToAddError);
+    }
+
+    [Fact]
     public async Task Given_fuenf_empfohlene_Artikel_When_ein_sechster_gewaehlt_wird_Then_laesst_die_Maske_ihn_nicht_hinzufuegen()
     {
         var treatments = await Loaded(SalesApi([.. Articles.Take(5)]));

@@ -39,7 +39,7 @@ public sealed partial class TeamViewModel : ViewModelBase, ITargetedArea
     private static readonly TimeSpan EndsSoon = TimeSpan.FromDays(7);
 
     private static readonly string[] Forwarded =
-        [nameof(HasUnsavedChanges), nameof(Error), nameof(HasError), nameof(HasSaveBar), nameof(CanRemove), nameof(Title), nameof(SaveBlocker)];
+        [nameof(HasUnsavedChanges), nameof(Error), nameof(HasError), nameof(HasSaveBar), nameof(CanRemove), nameof(Title)];
 
     private readonly IWorkstationApi _api;
     private readonly CurrentUser _user;
@@ -150,7 +150,7 @@ public sealed partial class TeamViewModel : ViewModelBase, ITargetedArea
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowsPeople), nameof(ShowsRoster), nameof(ShowsTimes), nameof(ShowsPayroll), nameof(ShowsRights), nameof(ShowsPeopleView), nameof(ShowsRosterView),
-        nameof(ShowsTimesView), nameof(ShowsPayrollView), nameof(ShowsRightsView), nameof(Title), nameof(HasUnsavedChanges), nameof(Error), nameof(HasError), nameof(HasSaveBar), nameof(CanRemove), nameof(SaveBlocker))]
+        nameof(ShowsTimesView), nameof(ShowsPayrollView), nameof(ShowsRightsView), nameof(Title), nameof(HasUnsavedChanges), nameof(Error), nameof(HasError), nameof(HasSaveBar), nameof(CanRemove))]
     public partial string Mode { get; private set; } = PeopleMode;
 
     public bool ShowsPeople => Mode == PeopleMode;
@@ -265,7 +265,7 @@ public sealed partial class TeamViewModel : ViewModelBase, ITargetedArea
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(Title), nameof(HasUnsavedChanges), nameof(Error), nameof(HasError), nameof(HasSaveBar),
-        nameof(CanRemove), nameof(SaveBlocker))]
+        nameof(CanRemove))]
     public partial PersonCardViewModel? Card { get; private set; }
 
     /// <summary>Suche über Name und E-Mail.</summary>
@@ -318,9 +318,6 @@ public sealed partial class TeamViewModel : ViewModelBase, ITargetedArea
     public bool HasSaveBar => ShowsPeople && Card?.HasSaveBar == true;
 
     public bool CanRemove => ShowsPeople && Card?.CanRemove == true;
-
-    /// <summary>Warum „Speichern“ gerade gesperrt ist (Text für den Tooltip), sonst leer.</summary>
-    public string? SaveBlocker => ShowsPeople ? Card?.SaveBlocker : null;
 
     [RelayCommand]
     private void CloseNotice() => Notice = null;
@@ -754,18 +751,7 @@ public sealed partial class TeamViewModel : ViewModelBase, ITargetedArea
 
     public void Discard() => ActiveArea?.Discard();
 
-    private bool CanSave => SaveBlocker is null;
-
-    protected override void OnPropertyChanged(PropertyChangedEventArgs e)
-    {
-        base.OnPropertyChanged(e);
-        if (e.PropertyName == nameof(SaveBlocker))
-        {
-            SaveCommand.NotifyCanExecuteChanged();
-        }
-    }
-
-    [RelayCommand(CanExecute = nameof(CanSave))]
+    [RelayCommand]
     private async Task SaveAsync() => await SaveChangesAsync().ConfigureAwait(true);
 
     [RelayCommand]

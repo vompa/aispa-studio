@@ -422,9 +422,14 @@ public sealed class AdminIntakeTests
         }, HttpStatusCode.Created);
         var intake = await Open(api);
         var rules = intake.SenderRules;
-        Assert.False(rules.AddCommand.CanExecute(null));
+        // Ohne Adresse ist „Regel hinzufügen“ aktiv; der Klick meldet den Fehler am Feld, setzt den Fokus dorthin und sendet nichts.
+        Assert.True(rules.AddCommand.CanExecute(null));
+        await rules.AddCommand.ExecuteAsync(null);
+        Assert.Equal(("Bitte eine Adresse oder Domain eintragen, z. B. plattform.example.", SenderRulesViewModel.PatternField), (rules.PatternError, rules.FocusTarget));
+        Assert.DoesNotContain(api.Calls, c => c.Route == $"POST {RulesRoute}");
 
         rules.NewPattern = "  newsletter@plattform.example ";
+        Assert.Null(rules.PatternError);
         rules.NewPlatform = SenderRulesViewModel.Platforms[1];
         rules.NewHandling = SenderRulesViewModel.Handlings[2];
         Assert.True(rules.AddCommand.CanExecute(null));

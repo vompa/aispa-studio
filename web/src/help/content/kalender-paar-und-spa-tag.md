@@ -58,7 +58,7 @@ Alle Termine stehen im Kalender, jeder mit einem farbigen Etikett, z. B. „Paar
 
 - Mindestens zwei Teile, davon eine Behandlung, müssen gewählt sein, sonst steht dort „Mindestens zwei Teile wählen, davon eine Behandlung.“
 - „An diesem Tag ist keine gemeinsame Zeit frei. Anderen Tag wählen.“ heißt: kein Beginn, zu dem alle Personen, Räume und Geräte frei sind. Dann Pause, Behandlungen oder Tag ändern.
-- Ist **Alles buchen** grau, nennt der Hinweis am Knopf den ersten fehlenden Punkt.
+- Fehlt eine Angabe (Tag, Behandlung eines Gastes, Name des buchenden Gastes), markiert **Alles buchen** das Feld rot und nennt, was fehlt; es wird nichts gebucht. Grau ist der Knopf nur, solange eine Buchung läuft oder keine gemeinsame Zeit frei ist; der Hinweis am Knopf nennt den Grund.
 - Sauna oder Ruheraum im Spa-Tag werden als Eintritt derselben Buchung gebucht, zählen in der Belegung mit und gehen beim Verschieben und Stornieren der ganzen Buchung mit; das gilt auch für Gäste ohne Namen.
 - Ein Eintritt in Sauna oder Ruheraum ohne Behandlung wird eigens gebucht: [Sauna-Eintritt](hilfe:kalender-sauna-eintritt).
 

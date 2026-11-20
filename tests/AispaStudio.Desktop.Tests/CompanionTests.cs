@@ -167,7 +167,32 @@ public sealed class CompanionTests
     }
 
     [Fact]
-    public async Task Freie_Zeit_bucht_erst_nach_Wahl_des_Kunden()
+    public async Task Neuer_Gast_ohne_Namen_meldet_den_Fehler_am_Feld_und_legt_nichts_an()
+    {
+        var stub = new StubApi()
+            .On("POST /api/assistant", WithSuggestions(Free()))
+            .On("POST /api/customers", new CustomerDto(Guid.NewGuid(), "Mara", "Neu", null, null, null, null, null), HttpStatusCode.Created);
+        var companion = new CompanionViewModel(stub.Client(), new MemorySettingsStore(), true, AssistantAudience.Reception) { CanBook = true };
+        await companion.AskExampleCommand.ExecuteAsync("Wann ist morgen eine Massage frei?");
+        await companion.UseSuggestionCommand.ExecuteAsync(Assert.Single(companion.Suggestions));
+        companion.StartNewGuestCommand.Execute(null);
+        var form = companion.NewGuest!;
+        string? focus = null;
+        form.FocusRequested += field => focus = field;
+
+        Assert.True(form.CreateCommand.CanExecute(null));
+        await form.CreateCommand.ExecuteAsync(null);
+
+        Assert.Equal("Bitte einen Vor- oder Nachnamen eintragen.", form.NameError);
+        Assert.Equal(NewGuestFormViewModel.NameField, focus);
+        Assert.DoesNotContain(stub.Calls, c => c.Route == "POST /api/customers");
+        Assert.True(companion.IsCreatingGuest);
+        form.LastName = "Neu";
+        Assert.Null(form.NameError);
+    }
+
+    [Fact]
+    public async Task Freie_Zeit_bucht_erst_nach_Wahl_des_Kunden_und_meldet_den_fehlenden_Gast_am_Feld()
     {
         var maria = new CustomerDto(Guid.NewGuid(), "Maria", "Brunner", "maria@example.at", "+43 660 1234567", null, null, null);
         var booked = new List<AppointmentDto>();
@@ -186,7 +211,13 @@ public sealed class CompanionTests
         Assert.Equal("Buchen …", slot.Action);
         await companion.UseSuggestionCommand.ExecuteAsync(slot);
         Assert.True(companion.IsBooking);
-        Assert.False(companion.BookCommand.CanExecute(null));
+        string? focus = null;
+        companion.FocusRequested += field => focus = field;
+        Assert.True(companion.BookCommand.CanExecute(null));
+        await companion.BookCommand.ExecuteAsync(null);
+        Assert.Equal("Bitte einen Gast wählen.", companion.Guest!.Error);
+        Assert.Equal(CompanionViewModel.GuestField, focus);
+        Assert.DoesNotContain(stub.Calls, c => c.Route == "POST /api/appointments");
 
         await companion.Guest!.SearchAsync("br");
         companion.Guest.Customer = Assert.Single(companion.Guest.Results);

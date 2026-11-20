@@ -74,7 +74,7 @@ public sealed partial class ViewTests
     });
 
     [Fact]
-    public Task Kundendaten_Maske_ohne_Vor_und_Nachname_nennt_am_Speichern_den_Grund() => Render("hell", "kunden-bearbeiten-ohne-name", async (window, main) =>
+    public Task Kundendaten_Maske_ohne_Vor_und_Nachname_meldet_am_Speichern_den_Fehler_am_Feld() => Render("hell", "kunden-bearbeiten-ohne-name", async (window, main) =>
     {
         var calendar = await SignedInCalendar(main);
         var shell = (ShellViewModel)main.Content!;
@@ -88,9 +88,12 @@ public sealed partial class ViewTests
 
         var form = window.GetVisualDescendants().OfType<CustomerContactForm>().First(f => f.IsEffectivelyVisible);
         var save = ButtonWithText(form, "Speichern");
-        Assert.False(save.IsEffectivelyEnabled);
-        Assert.Equal("Verfügbar, sobald ein Vor- oder Nachname eingetragen ist.", ToolTip.GetTip(save));
-        Assert.True(ToolTip.GetShowOnDisabled(save));
+        Assert.True(save.IsEffectivelyEnabled);
+        Assert.Equal("Speichern (Strg+S)", ToolTip.GetTip(save));
+        await shell.Customers.Contact.SaveCommand.ExecuteAsync(null);
+        await Pump(Settling);
+        Assert.Contains(form.GetVisualDescendants().OfType<TextBlock>(), t => t.IsEffectivelyVisible && t.Text == "Bitte einen Vor- oder Nachnamen eintragen.");
+        Assert.Same(form.GetVisualDescendants().OfType<TextBox>().First(b => b.Name == "FirstNameBox"), TopLevel.GetTopLevel(window)!.FocusManager!.GetFocusedElement());
         return calendar;
     }, Api().On($"GET /api/customers/{SpaSample.Customers[1].Id}", SpaSample.Customers[1])
         .On($"GET /api/customers/{SpaSample.Customers[1].Id}/appointments", new List<AppointmentDto>()));

@@ -1,9 +1,10 @@
-<UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
-             xmlns:ui="using:AispaStudio.Desktop.Controls"
-             x:Class="AispaStudio.Desktop.Views.SenderRulesSection"
-             x:DataType="vm:SenderRulesViewModel">
+<views:FocusRequestView xmlns="https://github.com/avaloniaui"
+                        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                        xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+                        xmlns:ui="using:AispaStudio.Desktop.Controls"
+                        xmlns:views="using:AispaStudio.Desktop.Views"
+                        x:Class="AispaStudio.Desktop.Views.SenderRulesSection"
+                        x:DataType="vm:SenderRulesViewModel">
   <!--
     Absenderregeln (R05 Slice 97, ADR 0062), nach web/src/admin/SenderRulesSection.tsx: eigene Speicherebene. Plattform, Verarbeitung, Aktiv und Notiz speichern je Zeile sofort
     (die Notiz beim Verlassen des Feldes), „Löschen“ fragt nach, „Regel hinzufügen“ legt eine neue an.
@@ -23,7 +24,7 @@
     <!-- „Neu“ steht fest über der Liste (ADR 0099): erst das Formular zum Anlegen, darunter die Regeln -->
     <TextBlock Text="Regel hinzufügen" Classes="h2" Margin="0,4,0,0" />
     <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="12">
-      <ui:FormField Grid.ColumnSpan="2" Label="Adresse oder Domain">
+      <ui:FormField Grid.ColumnSpan="2" Label="Adresse oder Domain" Error="{Binding PatternError}">
         <TextBox x:Name="RulePatternField" Text="{Binding NewPattern}" PlaceholderText="buchungen@plattform.example oder plattform.example" />
       </ui:FormField>
       <ui:FormField Grid.Row="1" Label="Plattform">
@@ -36,8 +37,7 @@
     <ui:FormField Label="Notiz">
       <TextBox x:Name="RuleNoteField" Text="{Binding NewNote}" MaxLength="200" />
     </ui:FormField>
-    <Button x:Name="AddRuleButton" Content="Regel hinzufügen" Command="{Binding AddCommand}" HorizontalAlignment="Left"
-            ui:DisabledHint.Text="Verfügbar, sobald eine Adresse oder Domain eingetragen ist." />
+    <Button x:Name="AddRuleButton" Content="Regel hinzufügen" Command="{Binding AddCommand}" HorizontalAlignment="Left" />
 
     <TextBlock Classes="muted" TextWrapping="Wrap" IsVisible="{Binding ShowEmpty}"
                Text="Keine Regel. Mails aller Absender bearbeitet die Terminannahme wie normale Anfragen." />
@@ -72,4 +72,4 @@
       </ItemsControl.ItemTemplate>
     </ItemsControl>
   </StackPanel>
-</UserControl>
+</views:FocusRequestView>

@@ -75,6 +75,36 @@ public sealed class SeriesTests
     }
 
     [Fact]
+    public async Task Serie_anlegen_ohne_angekreuzten_Termin_meldet_den_Fehler_setzt_den_Fokus_und_sendet_nichts()
+    {
+        var appointment = TestData.Appointment(10, TestData.Anna);
+        var (vm, api) = await OpenAsync(TestData.Day(appointment));
+        api.On($"POST /api/appointments/{appointment.Id}/series/preview", new List<SeriesOccurrence>
+        {
+            new(TestData.Monday.AddDays(28), Weeks(4), TestData.Anna.Id, "Anna", SeriesOccurrenceState.Free, null),
+        });
+        string? focus = null;
+        vm.PanelFocusRequested += field => focus = field;
+        vm.OpenAppointment(appointment);
+        var panel = vm.Selected!;
+        panel.EditSeriesCommand.Execute(null);
+        panel.SeriesCount = "4";
+
+        // Ohne Vorschau: der Fokus geht zu „Termine prüfen“.
+        Assert.True(panel.CreateSeriesCommand.CanExecute(null));
+        await panel.CreateSeriesCommand.ExecuteAsync(null);
+        Assert.NotNull(panel.Error);
+        Assert.Equal(AppointmentViewModel.PreviewSeriesButton, focus);
+
+        // Mit Vorschau, aber ohne Haken: der Fokus geht zum ersten Haken.
+        await panel.PreviewSeriesCommand.ExecuteAsync(null);
+        panel.SeriesRows[0].Take = false;
+        await panel.CreateSeriesCommand.ExecuteAsync(null);
+        Assert.Equal(AppointmentViewModel.SeriesTakeBox, focus);
+        Assert.DoesNotContain(api.Calls, c => c.Route == $"POST /api/appointments/{appointment.Id}/series");
+    }
+
+    [Fact]
     public async Task Verschieben_eines_Serientermins_laesst_die_folgenden_stehen_und_ab_hier_stornieren_beendet_die_Serie()
     {
         var seriesId = Guid.NewGuid();

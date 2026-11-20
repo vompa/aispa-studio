@@ -20,7 +20,7 @@ Im selben Fenster auf **PIN entfernen** klicken. Danach meldet man sich am Empfa
 
 ## Regeln {#regeln}
 
-- 4 bis 8 Ziffern; für Inhaber mindestens 6. **Speichern** bleibt bis dahin grau.
+- 4 bis 8 Ziffern; für Inhaber mindestens 6. Ist die PIN zu kurz, markiert **Speichern** das Feld rot und nennt, was fehlt.
 - Nicht nur dieselbe Ziffer, also z. B. nicht „1111“.
 - Nach fünf falschen Eingaben ist die PIN 15 Minuten gesperrt.
 - Eine vergessene PIN einfach neu festlegen; die alte muss man dafür nicht kennen.
