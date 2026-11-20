@@ -38,7 +38,7 @@ public sealed partial class ViewTests
     {
         var (shell, stock) = await OpenStock(window, main);
         Assert.True(Named<Button>(window, "StockExportButton").IsEffectivelyVisible);
-        var dialog = await OpenExportDialog(window, main, stock, "lager-exportieren-dialog", theme);
+        var dialog = await OpenExportDialog(window, main, stock, "lager-exportieren", theme);
 
         var card = Dialog(window);
         Assert.Equal(420, card.Bounds.Width, 0.5);

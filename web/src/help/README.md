@@ -104,7 +104,7 @@ Die Startseite der Hilfe (`HelpIndex.tsx`) zeigt über den Bereichen „Erste Sc
 
 Bilder liegen nach Oberfläche getrennt unter `images/app/` (Windows-App) und `images/web/` (Handy-Seite „Mein Tag“) und werden erzeugt, nicht von Hand gemacht:
 
-- Windows-App (`images/app/`): `scripts/help-images.sh` lässt die Bildtests (`tests/AispaStudio.Desktop.Tests/ViewTests.cs`) mit `AISPA_SCREENSHOTS` laufen und übernimmt jedes Bild, das ein Hilfetext mit `images/app/<name>.png` verwendet. Der Bildname ist der Name im Aufruf `Render("hell", "<name>", …)`.
+- Windows-App (`images/app/`): `scripts/help-images.sh` lässt die Bildtests (`tests/AispaStudio.Desktop.Tests/ViewTests.cs`) mit `AISPA_SCREENSHOTS` laufen und übernimmt jedes Bild, das ein Hilfetext mit `images/app/<name>.png` verwendet. Der Bildname ist der Name im Aufruf `Render("hell", "<name>", …)`. Das Skript verkleinert die Bilder und setzt jedes zurück, das sich nicht sichtbar geändert hat (`scripts/help-images-keep-changed.py`: unter 300 abweichende Pixel; die Ausgabe nennt diese Bilder), sodass nur echte Änderungen im Arbeitsbaum stehen. Ist ein Bildtest rot, übernimmt es nichts und nennt den Ordner mit Protokoll und Bildern.
 - Handy-Seite „Mein Tag“ (`images/web/`): `web/scripts/help-images.mjs` meldet sich mit den Testkonten an einer laufenden Umgebung mit Testdaten an und fotografiert die Seiten aus `web/scripts/help-images.json` (Name ohne Ordner und Endung).
 
 Tests in Web und Windows-App schlagen fehl, wenn ein Text ein Bild verwendet, das fehlt, oder auf ein Thema oder einen Anker verweist, den es nicht gibt.
