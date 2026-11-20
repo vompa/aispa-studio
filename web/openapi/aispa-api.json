@@ -9178,7 +9178,7 @@
         "tags": [
           "Kassa"
         ],
-        "summary": "Neue Kasse. Österreich: erzeugt Schlüssel für den Umsatzzähler und den signierten Startbeleg.",
+        "summary": "Neue Kassa. Österreich: erzeugt Schlüssel für den Umsatzzähler und den signierten Startbeleg.",
         "operationId": "CreateCashRegister",
         "requestBody": {
           "content": {
@@ -9377,7 +9377,7 @@
         "tags": [
           "Kassa"
         ],
-        "summary": "Kasse außer Betrieb nehmen (Schlussbeleg). Danach in FinanzOnline abmelden.",
+        "summary": "Kassa außer Betrieb nehmen (Schlussbeleg). Danach in FinanzOnline abmelden.",
         "operationId": "DecommissionCashRegister",
         "parameters": [
           {
@@ -9429,7 +9429,7 @@
         "tags": [
           "Kassa"
         ],
-        "summary": "Belege einer Kasse an einem Tag (Ortszeit), neueste zuerst.",
+        "summary": "Belege einer Kassa an einem Tag (Ortszeit), neueste zuerst.",
         "operationId": "ListReceipts",
         "parameters": [
           {
@@ -9688,7 +9688,7 @@
         "tags": [
           "Kassa"
         ],
-        "summary": "Die letzten zehn TSE-Exporte einer Kasse mit Stand.",
+        "summary": "Die letzten zehn TSE-Exporte einer Kassa mit Stand.",
         "operationId": "ListTseExports",
         "parameters": [
           {
@@ -9941,7 +9941,7 @@
         "tags": [
           "Kassa"
         ],
-        "summary": "Die letzten 60 Tagesabschlüsse einer Kasse mit allen Zahlen; nur mit dem Recht „Berichte mit Beträgen“.",
+        "summary": "Die letzten 60 Tagesabschlüsse einer Kassa mit allen Zahlen; nur mit dem Recht „Berichte mit Beträgen“.",
         "operationId": "ListDayClosings",
         "parameters": [
           {
@@ -13581,7 +13581,7 @@
         "tags": [
           "Schließzeiten"
         ],
-        "summary": "Lässt die KI den Text der Absage umformulieren, auf Knopfdruck. Neue Zahlen oder verlorene Platzhalter verwirft der Server; der Text trägt danach den Hinweis auf die KI.",
+        "summary": "Lässt die KI den Text der Absage umformulieren, auf Knopfdruck. Neue Zahlen oder verlorene Platzhalter werden verworfen; der Text trägt danach den Hinweis auf die KI.",
         "operationId": "ReviseClosureCancellationText",
         "parameters": [
           {
@@ -17845,7 +17845,7 @@
         "tags": [
           "Kundenbereich"
         ],
-        "summary": "Stand der Bestellung; der Gutscheincode erscheint, sobald die Kasse ihn ausgestellt hat.",
+        "summary": "Stand der Bestellung; der Gutscheincode erscheint, sobald die Kassa ihn ausgestellt hat.",
         "operationId": "GetOnlineVoucherOrder",
         "parameters": [
           {
@@ -18198,7 +18198,7 @@
         "tags": [
           "Kalender"
         ],
-        "summary": "Ausfallgebühr von der hinterlegten Karte belasten und an der Kasse verbuchen (nur bei Nichterscheinen oder später Absage).",
+        "summary": "Ausfallgebühr von der hinterlegten Karte belasten und an der Kassa verbuchen (nur bei Nichterscheinen oder später Absage).",
         "operationId": "ChargeNoShowFee",
         "parameters": [
           {

@@ -18,7 +18,7 @@ const de = {
   navAccessibility: 'Barrierefreiheit',
   loading: 'Wird geladen …',
   errorGeneric: 'Das hat leider nicht geklappt. Bitte versuchen Sie es noch einmal.',
-  errorOffline: 'Keine Verbindung zum Server. Bitte prüfen Sie Ihre Internetverbindung.',
+  errorOffline: 'Keine Verbindung. Bitte prüfen Sie Ihre Internetverbindung.',
   back: 'Zurück',
   retry: 'Erneut versuchen',
   chooseOtherLocation: 'Anderen Standort wählen',

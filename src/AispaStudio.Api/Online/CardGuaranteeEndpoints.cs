@@ -109,7 +109,7 @@ internal static class CardGuaranteeEndpoints
                 })
             .RequirePermission(AccessRight.SuperviseCash)
             .WithName("ChargeNoShowFee")
-            .WithSummary("Ausfallgebühr von der hinterlegten Karte belasten und an der Kasse verbuchen (nur bei Nichterscheinen oder später Absage).");
+            .WithSummary("Ausfallgebühr von der hinterlegten Karte belasten und an der Kassa verbuchen (nur bei Nichterscheinen oder später Absage).");
 
         staff.MapGet("/offer", async Task<Results<Ok<CardRequestOffer>, NotFound>> (Guid appointmentId, CardRequests requests, CancellationToken ct) =>
                 await requests.OfferAsync(appointmentId, ct) is { } offer ? TypedResults.Ok(offer) : TypedResults.NotFound())

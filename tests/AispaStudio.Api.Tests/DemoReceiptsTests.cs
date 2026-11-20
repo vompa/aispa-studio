@@ -49,6 +49,6 @@ public sealed class DemoReceiptsTests(ApiFixture fixture)
             }
         }
 
-        Assert.True(problems.Count == 0, "Kasse WIEN-1 ohne Belege: " + string.Join("; ", problems));
+        Assert.True(problems.Count == 0, "Kassa WIEN-1 ohne Belege: " + string.Join("; ", problems));
     }
 }

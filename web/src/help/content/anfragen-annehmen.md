@@ -35,4 +35,4 @@ Meldet sich der Gast nicht, erinnert der Kalender unter [Meldungen](hilfe:kalend
 - **Freigeben** storniert den Termin, ohne dem Gast zu schreiben.
 - Vorgemerkte Termine bekommen keine Termin-Erinnerung an den Gast.
 - Passt keine Zeit und will der Gast nichts buchen: [Anfrage ohne Termin erledigen](hilfe:anfragen-erledigen).
-- Ohne Verbindung zum Server geht der Posteingang nicht.
+- Ohne Verbindung geht der Posteingang nicht.

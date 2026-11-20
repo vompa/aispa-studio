@@ -71,7 +71,7 @@ Eigene Anzahlung nur für diese Behandlung, in Prozent des Terminpreises. Erlaub
 
 - Leer gilt die Anzahlung aus der Online-Buchung des Standorts, 0 heißt: für diese Behandlung nie eine Anzahlung.
 - Ein Wert über 0 gilt statt des Werts des Standorts, z. B. 100 für ein Ritual, das vorbereitet werden muss.
-- Verlangt die Behandlung eine Anzahlung, braucht sie keine Karte für die Ausfallgebühr. Wirkt nur mit eingerichtetem Zahlungsanbieter und aktiver Kasse am Standort.
+- Verlangt die Behandlung eine Anzahlung, braucht sie keine Karte für die Ausfallgebühr. Wirkt nur mit eingerichtetem Zahlungsanbieter und aktiver Kassa am Standort.
 
 ### Hinweis für Gäste {#hinweis-fuer-gaeste}
 

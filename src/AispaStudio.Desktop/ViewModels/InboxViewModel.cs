@@ -1007,7 +1007,7 @@ public partial class InboxDetailViewModel : ViewModelBase
         {
             // Posteingang-Aktionen brauchen den Server (anders als Buchungen im Kalender wird hier nichts vorgemerkt).
             Notice = result.Status == 0
-                ? "Ohne Verbindung zum Server nicht möglich. Zuordnen, Antworten und Buchen gehen nur mit Verbindung; bitte später noch einmal versuchen."
+                ? "Ohne Verbindung nicht möglich. Zuordnen, Antworten und Buchen gehen nur mit Verbindung; bitte später noch einmal versuchen."
                 : result.Error ?? "Das hat nicht geklappt.";
             NoticeIsError = true;
             return;

@@ -22,7 +22,7 @@ internal static class DayClosingDocument
         pdf.Title($"Tagesabschluss {registerCode}");
         pdf.KeyValues(
         [
-            ("Kasse", registerCode),
+            ("Kassa", registerCode),
             ("Zeitraum", $"{DocumentBuilder.DateTime(closing.From, zone)} bis {DocumentBuilder.DateTime(closing.Until, zone)}"),
             ("Belege", Receipts(closing, range)),
         ]);

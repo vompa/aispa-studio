@@ -24,7 +24,7 @@ Eine offene Rechnung lässt sich beiseitelegen, z. B. wenn der Gast noch in der 
 
 ## Gut zu wissen {#hinweise}
 
-- Geparkte Rechnungen gehören zur Kasse; an einer anderen Kasse erscheinen sie nicht.
+- Geparkte Rechnungen gehören zur Kassa; an einer anderen Kassa erscheinen sie nicht.
 - Ein Klick auf einen Termin, Artikel oder Gutschein bei geparkter Rechnung beginnt eine neue Rechnung, er kommt nicht auf die geparkte.
 - Läuft am Kartenterminal gerade eine Zahlung oder ist sie genehmigt, geht Parken nicht: erst bezahlen oder am Terminal stornieren.
 - Eine stornierte Rechnung ist wieder offen und erscheint ebenfalls unter „Geparkte Rechnungen“, siehe [Beleg stornieren](hilfe:kassa-beleg-stornieren).

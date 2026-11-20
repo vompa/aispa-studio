@@ -108,7 +108,7 @@ public partial class MainViewModel(IWorkstationApi api, Func<ILiveUpdates>? live
     /// <summary>Server-Betrieb: Seite „Netz“ in der Seitenleiste.</summary>
     public ServerLinkViewModel? ServerLink { get; init; }
 
-    private const string NoConnectionTitle = "Keine Verbindung zum Server";
+    private const string NoConnectionTitle = "Keine Verbindung";
 
     /// <summary>Unter dem Titel der Karte „Keine Verbindung zum Server“: der Weg, nicht der Befund noch einmal (meldungen.md M5); die technische Ursache steht im Absturzprotokoll.</summary>
     public const string ServerUnreachableAdvice = "Adresse und Netzwerk prüfen, dann „Erneut versuchen“.";
@@ -180,14 +180,14 @@ public partial class MainViewModel(IWorkstationApi api, Func<ILiveUpdates>? live
                 // Der Server nimmt die Verbindung nicht an, antwortet nicht oder noch mit einem Fehler (er fährt vielleicht noch hoch): kurz warten und
                 // es noch einmal versuchen. Mit lokalem Stand (ADR 0005) gibt es nichts zu warten, die App arbeitet gleich ohne Verbindung weiter.
                 ShowStartupStep(ConnectingStep, ServerStartingText);
-                if (api.Offline?.Get("api/auth/me") is null && await WaitForServerAsync(started, ProbeWindow, "Der Server antwortet noch nicht. Die App versucht es weiter.").ConfigureAwait(true))
+                if (api.Offline?.Get("api/auth/me") is null && await WaitForServerAsync(started, ProbeWindow, "AISPA Studio antwortet noch nicht. Die App versucht es weiter.").ConfigureAwait(true))
                 {
                     continue;
                 }
 
                 IsConnected = false;
                 ConnectionTitle = local is null ? NoConnectionTitle : StartingTitle;
-                StatusText = ex is HttpRequestException && local is null ? ServerUnreachableAdvice : "Der Server antwortet nicht.";
+                StatusText = ex is HttpRequestException && local is null ? ServerUnreachableAdvice : "AISPA Studio antwortet nicht.";
                 return;
             }
 
@@ -206,7 +206,7 @@ public partial class MainViewModel(IWorkstationApi api, Func<ILiveUpdates>? live
             }
 
             StatusText = status is null
-                ? "Leere Antwort vom Server."
+                ? "Leere Antwort."
                 : $"Verbunden · Version {status.Version.Split('+')[0]} · {status.Environment}";
             return;
         }
@@ -272,7 +272,7 @@ public partial class MainViewModel(IWorkstationApi api, Func<ILiveUpdates>? live
             // Der Server antwortet auf die Anmeldung nicht: „keine Verbindung“ statt der Anmeldeseite, die eine gültige Anmeldung nur verdecken würde.
             IsConnected = false;
             ConnectionTitle = NoConnectionTitle;
-            StatusText = "Der Server antwortet nicht.";
+            StatusText = "AISPA Studio antwortet nicht.";
             Content = null;
         }
         else
@@ -299,11 +299,11 @@ public partial class MainViewModel(IWorkstationApi api, Func<ILiveUpdates>? live
             }
             catch (OperationCanceledException)
             {
-                result = new(null, "Der Server antwortet nicht.", 0);
+                result = new(null, "AISPA Studio antwortet nicht.", 0);
             }
 
             if (result.Status != 0 || result.Value is not null
-                || !await WaitForServerAsync(started, StartupWindow, "Die Anmeldung wird geladen. Der Server antwortet noch nicht, die App versucht es weiter.").ConfigureAwait(true))
+                || !await WaitForServerAsync(started, StartupWindow, "Die Anmeldung wird geladen. AISPA Studio antwortet noch nicht, die App versucht es weiter.").ConfigureAwait(true))
             {
                 return result;
             }

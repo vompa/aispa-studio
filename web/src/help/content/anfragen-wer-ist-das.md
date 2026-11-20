@@ -41,6 +41,6 @@ War es doch ein anderer Kunde, steht in der geöffneten Nachricht **Zuordnung l�
 
 - Treatwell-Buchungen gehen anders: Der Termin steht sofort im Kalender und blockt die Zeit, auch wenn der Gast noch nicht sicher zugeordnet ist. Der Gast ist dann vorläufig angelegt („Zuordnung offen“). Mit **Zuordnen** wandert der Termin auf den gewählten Kunden, und der vorläufige Gast wird entfernt, wenn er sonst nichts hat (keine weiteren Termine, Rechnungen oder Belege; sonst bleibt er stehen, und die Nachricht sagt es). **Als neuen Kunden bestätigen** macht den vorläufigen Gast zum Kunden. Siehe [Treatwell-Buchung im Posteingang](hilfe:anfragen-treatwell-buchung).
 - „Freie Zeiten“ sind schon vorgeschlagen; gebucht wird aber erst nach der Zuordnung. Wer vorher eine Zeit anklickt, bekommt „Wer ist das?“ als Meldung.
-- Zuordnen, Neu anlegen und Lösen gehen nur mit Verbindung zum Server; ohne Verbindung steht „Ohne Verbindung zum Server nicht möglich …“.
+- Zuordnen, Neu anlegen und Lösen gehen nur mit Verbindung; ohne Verbindung steht „Ohne Verbindung nicht möglich …“.
 - Sieht die Terminannahme eine Antwort des Gasts auf einen Vorschlag, den die Rezeption schon zugeordnet hat, gilt die Zuordnung weiter.
 - Beim Anlegen eines Kunden zeigt die App „Gibt es schon?“, wenn Name, Telefon oder Adresse zu einem vorhandenen Kunden passen: [Neue Kundin oder neuen Kunden anlegen](hilfe:kunden-anlegen).

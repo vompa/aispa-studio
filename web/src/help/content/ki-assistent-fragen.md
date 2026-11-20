@@ -158,7 +158,7 @@ Freie Zeiten stehen als Liste unter der Antwort. Buchen dürfen nur Personen mit
 
 ![Neuer Gast direkt in der Leiste „KI und Hilfe“](images/app/ki-und-hilfe-neuer-gast.png)
 
-Gebucht wird erst mit diesem Klick, über dieselbe Buchung wie im Kalender. Ist die Zeit inzwischen vergeben, meldet der Assistent das; dann die Frage noch einmal stellen. Ohne Verbindung zum Server bucht die Leiste nicht, weil die vorgeschlagene Zeit inzwischen vergeben sein kann; dann im Kalender buchen.
+Gebucht wird erst mit diesem Klick, über dieselbe Buchung wie im Kalender. Ist die Zeit inzwischen vergeben, meldet der Assistent das; dann die Frage noch einmal stellen. Ohne Verbindung bucht die Leiste nicht, weil die vorgeschlagene Zeit inzwischen vergeben sein kann; dann im Kalender buchen.
 
 Weitere Knöpfe in der Windows-App:
 
@@ -193,7 +193,7 @@ Wo eine KI etwas ausgibt, steht davor die Pille **KI**: beim Assistenten, im Fen
 
 Unter jeder KI-Ausgabe stehen drei Dinge:
 
-- **Ein Hinweis**, dass es ein Vorschlag der KI ist, den Sie prüfen, bevor Sie ihn übernehmen. Der Assistent und „Wunsch eintippen“ bringen vom Server einen eigenen Hinweis mit, der dort steht; bei Antworten aus den Daten des Spas sagt er, dass die Angaben aus den Daten stammen und nicht von der KI.
+- **Ein Hinweis**, dass es ein Vorschlag der KI ist, den Sie prüfen, bevor Sie ihn übernehmen. Der Assistent und „Wunsch eintippen“ bringen einen eigenen Hinweis mit, der dort steht; bei Antworten aus den Daten des Spas sagt er, dass die Angaben aus den Daten stammen und nicht von der KI.
 - **Warum dieser Vorschlag?** (bei Antworten aus den Daten **Warum diese Antwort?**) klappt auf und sagt in zwei, drei Sätzen, woher die Ausgabe kommt: was die KI gelesen hat, was der Kalender oder die Kassa gerechnet hat, bei Antworten aus den Daten auch die Quelle, und dass nichts ohne Ihren Klick gebucht oder gesendet wird.
 - **Hilfreich** und **Nicht hilfreich**. Bei „Nicht hilfreich“ wählen Sie, was zutrifft: ungenau, unvollständig, unangemessen, schädlich, voreingenommen oder Sonstiges. Die Rückmeldung wird nur auf diesem PC gespeichert und enthält keine Gästedaten, auch nicht den Text der Ausgabe.
 
@@ -233,7 +233,7 @@ Findet der Assistent zu einer Frage nichts (weder im Handbuch noch in den Daten 
 ## Hinweise {#hinweise}
 
 - Unter jeder Antwort steht ein Hinweis zur KI. Bei Antworten aus den Daten des Spas: „Antwort eines KI-Assistenten. Die Angaben stammen aus den Daten des Spas (Quelle unten), nicht von der KI; bei Zweifeln bitte dort nachsehen.“ Sonst: „Antwort eines KI-Assistenten. Zahlen und Zeiten stammen aus Kalender und Kassa; bitte vor dem Buchen kurz prüfen.“
-- Die KI versteht nur die Frage. Freie Zeiten rechnet der Kalender, Zahlen kommen aus Kalender, Kassa und Berichten; Pflichtzahlen für Kasse, Steuer und Behörden rechnet nie die KI.
+- Die KI versteht nur die Frage. Freie Zeiten rechnet der Kalender, Zahlen kommen aus Kalender, Kassa und Berichten; Pflichtzahlen für Kassa, Steuer und Behörden rechnet nie die KI.
 - Der Assistent gehört zur Abo-Stufe „Spa“ und muss eingeschaltet sein; sonst zeigt die Leiste „KI und Hilfe“ nur die Erklärung zur Seite. Ohne KI-Schlüssel versteht er die Fragen zum Betrieb und einfache Fragen mit Schlüsselwörtern; Umschreibungen erkennt erst die KI.
 - Er sucht am zuletzt im Kalender gewählten Standort.
 - Im Kalender der Windows-App gibt es zusätzlich die KI-Anfrage für einen einzelnen Terminwunsch (Strg+K): [KI-Anfrage im Kalender](hilfe:kalender-ki-anfrage).

@@ -321,7 +321,7 @@ public sealed partial class ViewTests
         await Pump(Settling);
 
         var intro = Named<TextBlock>(window, "WaitlistIntro");
-        Assert.Equal("Wird etwas frei, schreibt der Server den Wartenden selbst.", intro.Text);
+        Assert.Equal("Wird etwas frei, schreibt AISPA Studio den Wartenden selbst.", intro.Text);
         var help = SidePanelOf(window).GetVisualDescendants().OfType<HelpButton>().Single(b => b.Topic == "kalender-warteliste");
         Assert.Equal("uebersicht", help.Section);
 

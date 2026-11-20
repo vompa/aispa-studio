@@ -702,7 +702,7 @@ public sealed class PosTests(ApiFixture fixture)
         await db.CashRegisters.Where(r => r.Id == register.Id).ExecuteUpdateAsync(u => u.SetProperty(r => r.SiteId, Guid.NewGuid()), Ct);
         var shown = await spa.GetAsync<CashRegisterDto>($"/api/pos/registers/{register.Id}", Ct);
         Assert.True(shown.OtherSite);
-        Assert.Contains(shown.Warnings, w => w.StartsWith("Diese Kasse kassiert an einer anderen Stelle", StringComparison.Ordinal));
+        Assert.Contains(shown.Warnings, w => w.StartsWith("Diese Kassa kassiert an einer anderen Stelle", StringComparison.Ordinal));
 
         var other = await spa.Client.PostAsJsonAsync("/api/pos/bills", new BillInput(register.Id, null, []), Ct);
         Assert.Equal(HttpStatusCode.Conflict, other.StatusCode);
@@ -735,7 +735,7 @@ public sealed class PosTests(ApiFixture fixture)
         Assert.DoesNotContain(PaymentMethod.DigitalEuro, register.PaymentMethods);
         var refused = await spa.Client.PostAsJsonAsync($"/api/pos/bills/{bill.Id}/checkout", new CheckoutRequest(null, [digital]), Ct);
         Assert.Equal(HttpStatusCode.BadRequest, refused.StatusCode);
-        Assert.Contains("Digitaler Euro ist an dieser Kasse nicht verfügbar", await refused.Content.ReadAsStringAsync(Ct), StringComparison.Ordinal);
+        Assert.Contains("Digitaler Euro ist an dieser Kassa nicht verfügbar", await refused.Content.ReadAsStringAsync(Ct), StringComparison.Ordinal);
 
         // Eingeschaltet: in Euro-Ländern wählbar, in der Schweiz nicht.
         await using var scope = fixture.Factory.Services.CreateAsyncScope();

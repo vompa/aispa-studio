@@ -652,7 +652,7 @@ public sealed class PosTests
             .On("GET /api/pos/articles", new List<ArticleDto>())
             .On("GET /api/pos/registers", new List<CashRegisterDto>()).Client(), new SampleTime());
         await pos.InitializeAsync();
-        Assert.Contains("keine Kasse", pos.Error, StringComparison.Ordinal);
+        Assert.Contains("keine Kassa", pos.Error, StringComparison.Ordinal);
     }
 
     [Fact]

@@ -9,12 +9,12 @@ stichwoerter: Baukasten, Sauna im Spa-Tag, Ruheraum, Reihenfolge, Wartezeit, Paa
 ---
 # Paar oder Spa-Tag buchen
 
-Mehrere Gäste und mehrere Behandlungen werden gemeinsam gebucht: alles oder nichts. Was in einem Abschnitt steht, beginnt gleichzeitig; ein weiterer Abschnitt folgt nach einer Pause. Welche Zeiten zusammenpassen, rechnet der Server.
+Mehrere Gäste und mehrere Behandlungen werden gemeinsam gebucht: alles oder nichts. Was in einem Abschnitt steht, beginnt gleichzeitig; ein weiterer Abschnitt folgt nach einer Pause. Welche Zeiten zusammenpassen, rechnet AISPA Studio.
 
 ## Voraussetzungen {#voraussetzungen}
 
 - Rezeption, Standortleitung oder Inhaber.
-- Eine Verbindung zum Server; ohne Verbindung geht nur das [Vormerken](hilfe:kalender-paar-und-spa-tag#offline).
+- Eine Verbindung; ohne Verbindung geht nur das [Vormerken](hilfe:kalender-paar-und-spa-tag#offline).
 - Der Tag steht im Feld **Wann**; es zeigt zuerst den Tag des Kalenders und lässt keinen früheren Tag als heute zu.
 - Die Gäste stehen in der Kundenkartei oder sind „Name folgt“, siehe [Gruppe mit Gästen ohne Namen](hilfe:kalender-paar-und-spa-tag#ohne-namen).
 
@@ -40,7 +40,7 @@ In der Karte jedes Gastes unter **Behandlung** die Behandlung wählen; „– ni
 
 ### 4. Startzeit wählen
 
-Unter **Freie Zeiten** eine Startzeit anklicken. Darunter zeigt **Ablauf**, wer wann was bei wem in welchem Raum hat; „Gemeinsam in einem Raum.“ heißt Paarsuite. Mit **Reihenfolge vom Planer (wenigste Wartezeit)** ordnet der Server die Abschnitte selbst.
+Unter **Freie Zeiten** eine Startzeit anklicken. Darunter zeigt **Ablauf**, wer wann was bei wem in welchem Raum hat; „Gemeinsam in einem Raum.“ heißt Paarsuite. Mit **Reihenfolge vom Planer (wenigste Wartezeit)** ordnet AISPA Studio die Abschnitte selbst.
 
 ![Panel Paar oder Spa-Tag mit markierten Freien Zeiten](images/app/paar-und-spa-tag-4.png)
 
@@ -82,7 +82,7 @@ Bei Gruppen und Firmen-Events kennt die Rezeption beim Buchen oft nur die Person
 - Bis zum Nachtragen laufen die Termine auf die buchende Person; an der Kassa zahlt sie.
 - Ausfallgebühr und Anzahlung für Gäste ohne Namen zahlt die buchende Person. **Karte per Link anfordern** und **Anzahlung per Link** gehen an sie, die Mail nennt den Gast („Massage – für Gast 2 Ihrer Buchung“). Das bleibt so, wenn der Name später nachgetragen wird: Über ihren Link zahlt die buchende Person weiter, und im Termin steht „Zahlt die buchende Person der Gruppe.“ Absagen oder verschieben kann über diesen Link nur der Gast selbst.
 - **Namen nachtragen**: Termin anklicken oder Rechtsklick › **Namen nachtragen**, im Kasten **NAME NACHTRAGEN** den Gast suchen und **Gast eintragen** klicken. Das gilt für alle Termine dieses Gastes in der Buchung.
-- Hat der Gast bei der Person „Nicht bei mir“, lehnt der Server das Nachtragen ab; dann erst umbuchen.
+- Hat der Gast bei der Person „Nicht bei mir“, lehnt AISPA Studio das Nachtragen ab; dann erst umbuchen.
 - Einen einzelnen Gast storniert man wie jeden Termin über Rechtsklick › **Stornieren …**.
 - Sauna und Ruheraum gehen auch für Gäste ohne Namen. Der Eintritt steht als „Gast 3 · Name folgt“ in der Belegung; beim Namen nachtragen geht er mit auf den Gast.
 - Hat ein Gast ohne Namen nur Sauna oder Ruheraum, trägt man den Namen in **Sauna und Ruheraum** nach: beim Eintritt auf **Namen nachtragen** klicken, den Gast suchen und **Gast eintragen** klicken. Das gilt für alle Eintritte und Termine dieses Gastes in der Buchung.
@@ -104,7 +104,7 @@ Einzelne Teile lassen sich wie jeder Termin [einchecken](hilfe:kalender-status-s
 
 ## Ohne Verbindung {#offline}
 
-Ohne Verbindung gibt es keine freien Zeiten. Stattdessen unter **Beginn** die Startzeit eintragen und auf **… vormerken** klicken. Ob alles zusammenpasst und wer behandelt, prüft der Server beim Abgleich; erst danach steht die Buchung im Kalender. Lehnt er ab, erscheint sie oben unter „Beim Abgleich nicht übernommen“. Siehe [Arbeiten ohne Verbindung](hilfe:kalender-offline).
+Ohne Verbindung gibt es keine freien Zeiten. Stattdessen unter **Beginn** die Startzeit eintragen und auf **… vormerken** klicken. Ob alles zusammenpasst und wer behandelt, prüft AISPA Studio beim Abgleich; erst danach steht die Buchung im Kalender. Lehnt er ab, erscheint sie oben unter „Beim Abgleich nicht übernommen“. Siehe [Arbeiten ohne Verbindung](hilfe:kalender-offline).
 
 ## Hinweise {#hinweise}
 

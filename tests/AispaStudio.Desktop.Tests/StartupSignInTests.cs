@@ -65,7 +65,7 @@ public sealed class StartupSignInTests
         await vm.StartAsync();
 
         Assert.Equal(3, server.MeCalls);
-        Assert.Contains("Die Anmeldung wird geladen. Der Server antwortet noch nicht, die App versucht es weiter.", seen);
+        Assert.Contains("Die Anmeldung wird geladen. AISPA Studio antwortet noch nicht, die App versucht es weiter.", seen);
         Assert.IsType<LoginViewModel>(vm.Content);
     }
 
@@ -80,7 +80,7 @@ public sealed class StartupSignInTests
         Assert.True(server.MeCalls >= 2);
         Assert.Null(vm.Content);
         Assert.False(vm.IsConnected);
-        Assert.Equal("Keine Verbindung zum Server", vm.ConnectionTitle);
-        Assert.Equal("Der Server antwortet nicht.", vm.StatusText);
+        Assert.Equal("Keine Verbindung", vm.ConnectionTitle);
+        Assert.Equal("AISPA Studio antwortet nicht.", vm.StatusText);
     }
 }

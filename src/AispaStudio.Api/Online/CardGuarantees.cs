@@ -233,7 +233,7 @@ internal sealed class CardGuarantees(
 
         if (!await db.CashRegisters.AnyAsync(r => r.LocationId == appointment.LocationId && r.IsActive, ct))
         {
-            return new ChargeOutcome.Refused("An diesem Standort gibt es keine aktive Kasse, die die Gebühr verbuchen kann.");
+            return new ChargeOutcome.Refused("An diesem Standort gibt es keine aktive Kassa, die die Gebühr verbuchen kann.");
         }
 
         guarantee.Status = CardGuaranteeStatus.Charging;

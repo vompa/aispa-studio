@@ -107,14 +107,14 @@ public sealed partial class ViewTests
     [Fact]
     public Task Sofortueberweisung_mit_Fehler_der_API_zeigt_den_Fehler_und_laesst_das_Feld_leer()
     {
-        var stub = Api().On($"GET {TransferRoute}", new ProblemDetailsSample("Für diese Kasse ist kein Konto hinterlegt."), HttpStatusCode.UnprocessableEntity);
+        var stub = Api().On($"GET {TransferRoute}", new ProblemDetailsSample("Für diese Kassa ist kein Konto hinterlegt."), HttpStatusCode.UnprocessableEntity);
         return Render("hell", "kassa-sofortueberweisung-fehler", async (window, main) =>
         {
             var pos = await OpenBill(window, main);
 
             await ClickVisible(window, "TransferDetailsButton");
 
-            Assert.Contains("Für diese Kasse ist kein Konto hinterlegt.", VisibleTexts(window.GetVisualDescendants().OfType<PosView>().First()));
+            Assert.Contains("Für diese Kassa ist kein Konto hinterlegt.", VisibleTexts(window.GetVisualDescendants().OfType<PosView>().First()));
             Assert.Equal("", pos.Payments.First(p => p.Method == PaymentMethod.InstantTransfer).Amount);
             Assert.False(IsShown(window, "TransferPayloadBox"));
             return pos;

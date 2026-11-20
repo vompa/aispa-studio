@@ -150,7 +150,7 @@ Prozent des Terminpreises, die der Gast beim Online-Buchen im Voraus bezahlt. Er
 - Beim Kassieren der Behandlung zieht die Kassa die Anzahlung als eigene Zeile ab; offen bleibt nur der Rest.
 - Sagt der Gast online innerhalb der Stornofrist ab, wird der Anzahlungsbeleg storniert und das Geld erstattet. Bei „Nicht erschienen“ oder später Absage bleibt die Anzahlung beim Spa, bis Inhaber oder Manager sie mit „Anzahlung retournieren“ zurückzahlen (die Standortleitung storniert keinen Anzahlungsbeleg).
 - Verlangt ein Termin eine Anzahlung, braucht er keine Karte; die Anzahlung ersetzt die Ausfallgebühr. Eine Behandlung kann unter „Behandlungen“ eigene Prozent haben.
-- Wirkt nur mit eingerichtetem Zahlungsanbieter und aktiver Kasse am Standort. Sonst gilt die Ausfallgebühr mit Karte, falls eingestellt.
+- Wirkt nur mit eingerichtetem Zahlungsanbieter und aktiver Kassa am Standort. Sonst gilt die Ausfallgebühr mit Karte, falls eingestellt.
 
 ### Ohne Karte oder Anzahlung freigeben nach (Stunden, 0 = nie) {#karte-freigeben}
 

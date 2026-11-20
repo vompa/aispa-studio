@@ -12,7 +12,7 @@ Die Zahlen sind am Stand vom 19.10.2026 gemessen, wo „gemessen“ steht, mit d
 
 ## Schlank: Windows-App am Empfang {#schlank}
 
-Die App verbindet sich mit dem Server des Spas (in der Cloud oder mit dem Haupt-PC im eigenen Netz). Datenbank und Server laufen dort, nicht auf diesem PC.
+Die App verbindet sich mit dem Haupt-PC im eigenen Netz oder mit dem Server des Spas. Datenbank und AISPA Studio laufen dort, nicht auf diesem PC.
 
 | | Mindestens | Empfohlen |
 | --- | --- | --- |
@@ -33,7 +33,7 @@ Die App verbindet sich mit dem Server des Spas (in der Cloud oder mit dem Haupt-
 
 ## Startprüfung {#startpruefung}
 
-Die Windows-App prüft bei jedem Start, ob der PC die Voraussetzungen erfüllt, bevor sie sich mit dem Server verbindet oder den Einzelplatz startet. Sie installiert dabei nichts.
+Die Windows-App prüft bei jedem Start, ob der PC die Voraussetzungen erfüllt, bevor sie sich verbindet oder den Einzelplatz startet. Sie installiert dabei nichts.
 
 Diese Funde verhindern den Start. Statt der Anmeldung erscheint die Karte „AISPA Studio kann auf diesem PC nicht starten“ mit allen Funden und dem Knopf **Beenden**:
 
@@ -47,7 +47,7 @@ Diese Funde stehen als schließbare Warnung über der Anmeldung und halten den S
 - Die WebView2-Runtime fehlt. Dann lässt sich die Hilfe in der App nicht öffnen; die „WebView2 Runtime“ (Evergreen) bei Microsoft kostenlos laden.
 - Der PC hat Windows 10. Dafür gibt es Sicherheitsupdates nur noch mit erweitertem Support, für einen PC mit Kassa ist Windows 11 besser.
 
-Läuft die App mit Server und der Server unter `localhost` oder `127.0.0.1` antwortet nicht, nennt die Karte „Keine Verbindung zum Server“ zusätzlich den Weg. Ohne Docker auf dem PC steht dort, dass auf diesem PC kein Server läuft und wie sich die App als Einzelplatz ausprobieren lässt. Mit Docker steht dort der Befehl „docker compose up -d“. Bei einer anderen Adresse fehlt der Satz.
+Läuft die App mit Server und der Server unter `localhost` oder `127.0.0.1` antwortet nicht, nennt die Karte „Keine Verbindung“ zusätzlich den Weg. Ohne Docker auf dem PC steht dort, dass auf diesem PC kein Server läuft und wie sich die App als Einzelplatz ausprobieren lässt. Mit Docker steht dort der Befehl „docker compose up -d“. Bei einer anderen Adresse fehlt der Satz.
 
 ## Zusatzpaket: Einzelplatz und Haupt-PC {#einzelplatz}
 

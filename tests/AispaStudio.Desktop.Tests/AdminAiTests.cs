@@ -32,7 +32,7 @@ public sealed class AdminAiTests
 
     [Theory]
     [InlineData(true, "Eingeschaltet.")]
-    [InlineData(false, "Aus: auf diesem Server ist kein API-Schlüssel gesetzt.")]
+    [InlineData(false, "Aus: es ist kein API-Schlüssel gesetzt.")]
     public async Task Given_Claude_mit_und_ohne_Schluessel_Then_Text_Eingeschaltet_oder_Aus(bool claude, string expected)
     {
         using var ai = await Open(new StubApi().On($"GET {StatusRoute}", Status(claude)));

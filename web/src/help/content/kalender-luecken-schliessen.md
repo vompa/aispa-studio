@@ -8,18 +8,18 @@ stichwoerter: Lücken, Lücke schließen, Lückenvorschlag, verschieben, Leerlau
 ---
 # Lücken schließen
 
-Manchmal bleibt im Tag einer Person eine Lücke, in die keine Behandlung passt. Der Server schlägt vor, einen Termin um wenige Minuten zu verschieben, damit die Lücke verschwindet. Die Rezeption entscheidet, ob sie es tut.
+Manchmal bleibt im Tag einer Person eine Lücke, in die keine Behandlung passt. AISPA Studio schlägt vor, einen Termin um wenige Minuten zu verschieben, damit die Lücke verschwindet. Die Rezeption entscheidet, ob sie es tut.
 
 ## Vorschläge ansehen und verschieben {#verschieben}
 
 1. Im Menü neben **Termin** **Lücken schließen** wählen.
-2. Die Seite zeigt je Vorschlag den Gast und die Behandlung, die Person mit alter und neuer Zeit und den Grund des Servers.
+2. Die Seite zeigt je Vorschlag den Gast und die Behandlung, die Person mit alter und neuer Zeit und den Grund dafür.
 3. Sprechen Sie das Verschieben vorher mit dem Gast ab.
 4. **Auf … verschieben** verschiebt den Termin. Die Meldung nennt den Gast und bietet **Rückgängig**; der Vorschlag verschwindet.
 
 ## Mehrere Termine nacheinander (Kette) {#kette}
 
-Manchmal hilft es nicht, nur einen Termin zu verschieben: Dahinter entstünde sonst eine neue Lücke. Dann schlägt der Server vor, die direkt folgenden Termine derselben Person um dieselben Minuten mitzunehmen, höchstens vier Termine.
+Manchmal hilft es nicht, nur einen Termin zu verschieben: Dahinter entstünde sonst eine neue Lücke. Dann schlägt AISPA Studio vor, die direkt folgenden Termine derselben Person um dieselben Minuten mitzunehmen, höchstens vier Termine.
 
 1. Der Vorschlag nennt den ersten Termin wie gewohnt und darunter je eine Zeile „Danach: Gast, Behandlung, alte auf neue Zeit“.
 2. Sprechen Sie das Verschieben mit allen Gästen der Kette ab.
@@ -34,7 +34,7 @@ Lässt sich ein Termin der Kette nicht verschieben (z. B. weil inzwischen etwas 
 - Die Seite gilt für den angezeigten Tag und den gewählten Standort; sie lädt neu, wenn Sie den Tag wechseln.
 - In der 7-Tage-Ansicht gilt die Seite für alle sieben Tage. Oben steht dann z. B. „7 Tage ab Mo. 19.10., nur Lena Huber“, und jeder Vorschlag nennt seinen Tag. Zeigt die Ansicht eine Person, kommen nur Vorschläge für sie: [7-Tage-Ansicht](hilfe:kalender-sieben-tage).
 - Gibt es nichts zu schließen, steht dort „Keine Lücke, die sich mit wenigen Minuten Verschieben schließen lässt.“
-- Den Menüeintrag sieht nur, wer buchen darf. Lehnt der Server das Verschieben ab, steht der Grund unter der Liste.
-- Rechnen tut der Server; die App verschiebt nur auf Ihren Klick.
+- Den Menüeintrag sieht nur, wer buchen darf. Lehnt AISPA Studio das Verschieben ab, steht der Grund unter der Liste.
+- Rechnen tut AISPA Studio; die App verschiebt nur auf Ihren Klick.
 - Kommt der Termin von Treatwell, steht am Vorschlag „Buchung über Treatwell: nach dem Verschieben auch dort umbuchen.“ Die App ändert bei Treatwell nichts.
 - Die Einwirkzeit einer Behandlung gilt nicht als Lücke.

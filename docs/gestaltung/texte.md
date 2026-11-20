@@ -71,7 +71,8 @@ Beide Leitfäden sind englisch. Die Regeln unten sind auf Deutsch übertragen un
 
 | Gemeint | Schreibweise | Nicht |
 | --- | --- | --- |
-| Verkauf und Bezahlen | Kassa (feste Wörter: Kassenlade, Kassenjournal) | Registrierkasse, POS |
+| Verkauf und Bezahlen | Einzahl „Kassa“ („die Kassa“, „Kassa WIEN-1“), Mehrzahl „Kassen“; Zusammensetzungen mit „Kassen-“ bleiben (Kassenlade, Kassenjournal, Kassenaufsicht, Kassenbeleg, Kassendifferenz) (Auftraggeber, 20.11.2026) | Kasse (Einzahl), POS; „Registrierkasse“ nur im Rechtszitat |
+| Wo die Daten liegen | Haupt-PC (der PC im Spa, auf dem die Daten liegen); Server (eigener oder gemieteter Server, Technik wie „SMTP-Server“); allgemeine Sätze nennen keinen Rechner („Keine Verbindung.“, „AISPA Studio prüft …“) (Auftraggeber, 20.11.2026) | „Server“ als allgemeines Wort für das Programm, Hauptrechner |
 | Person, die behandelt wird | Gast; Kundin/Kunde nur für den Stammdatensatz | Patient, Klient |
 | Leistung am Gast | Behandlung | Anwendung, Service |
 | Buchung im Kalender | Termin | Reservierung |

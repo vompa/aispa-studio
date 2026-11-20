@@ -2687,7 +2687,7 @@ export interface paths {
         };
         get: operations["ListCashRegisters"];
         put?: never;
-        /** Neue Kasse. Österreich: erzeugt Schlüssel für den Umsatzzähler und den signierten Startbeleg. */
+        /** Neue Kassa. Österreich: erzeugt Schlüssel für den Umsatzzähler und den signierten Startbeleg. */
         post: operations["CreateCashRegister"];
         delete?: never;
         options?: never;
@@ -2753,7 +2753,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Kasse außer Betrieb nehmen (Schlussbeleg). Danach in FinanzOnline abmelden. */
+        /** Kassa außer Betrieb nehmen (Schlussbeleg). Danach in FinanzOnline abmelden. */
         post: operations["DecommissionCashRegister"];
         delete?: never;
         options?: never;
@@ -2768,7 +2768,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Belege einer Kasse an einem Tag (Ortszeit), neueste zuerst. */
+        /** Belege einer Kassa an einem Tag (Ortszeit), neueste zuerst. */
         get: operations["ListReceipts"];
         put?: never;
         post?: never;
@@ -2835,7 +2835,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Die letzten zehn TSE-Exporte einer Kasse mit Stand. */
+        /** Die letzten zehn TSE-Exporte einer Kassa mit Stand. */
         get: operations["ListTseExports"];
         put?: never;
         /** TSE-Export (TAR) anfordern (Deutschland); er läuft im Hintergrund, die Datei steht danach in der Liste. */
@@ -2903,7 +2903,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Die letzten 60 Tagesabschlüsse einer Kasse mit allen Zahlen; nur mit dem Recht „Berichte mit Beträgen“. */
+        /** Die letzten 60 Tagesabschlüsse einer Kassa mit allen Zahlen; nur mit dem Recht „Berichte mit Beträgen“. */
         get: operations["ListDayClosings"];
         put?: never;
         /** Tagesabschluss (Z-Bericht) mit gezähltem Kassenbestand; wird unveränderlich gespeichert. */
@@ -3880,7 +3880,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Lässt die KI den Text der Absage umformulieren, auf Knopfdruck. Neue Zahlen oder verlorene Platzhalter verwirft der Server; der Text trägt danach den Hinweis auf die KI. */
+        /** Lässt die KI den Text der Absage umformulieren, auf Knopfdruck. Neue Zahlen oder verlorene Platzhalter werden verworfen; der Text trägt danach den Hinweis auf die KI. */
         post: operations["ReviseClosureCancellationText"];
         delete?: never;
         options?: never;
@@ -5240,7 +5240,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Stand der Bestellung; der Gutscheincode erscheint, sobald die Kasse ihn ausgestellt hat. */
+        /** Stand der Bestellung; der Gutscheincode erscheint, sobald die Kassa ihn ausgestellt hat. */
         get: operations["GetOnlineVoucherOrder"];
         put?: never;
         post?: never;
@@ -5395,7 +5395,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Ausfallgebühr von der hinterlegten Karte belasten und an der Kasse verbuchen (nur bei Nichterscheinen oder später Absage). */
+        /** Ausfallgebühr von der hinterlegten Karte belasten und an der Kassa verbuchen (nur bei Nichterscheinen oder später Absage). */
         post: operations["ChargeNoShowFee"];
         delete?: never;
         options?: never;

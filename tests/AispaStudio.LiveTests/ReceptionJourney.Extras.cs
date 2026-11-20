@@ -798,7 +798,7 @@ internal static partial class ReceptionJourney
                                           && e.Properties.Name.ValueOrDefault is { } name
                                           && !name.StartsWith("Test-Signatureinrichtung", StringComparison.Ordinal)
                                           && !name.Contains("noch nicht eingecheckt", StringComparison.Ordinal)
-                                          && !name.StartsWith("Der Beleg wird am Server", StringComparison.Ordinal)
+                                          && !name.StartsWith("Der Beleg wird signiert", StringComparison.Ordinal)
                                           && (keywords.Any(name.Contains) || e.Properties.ClassName.ValueOrDefault == "InfoBar"));
         var toast = ReadToast(s, TimeSpan.FromSeconds(1));
         Note(s, $"OFFLINE {label}: Meldungen: [{string.Join(" | ", messages)}]; Toast „{toast}“; unterer Rand: [{string.Join(" | ", BottomTexts(s))}]");
@@ -841,7 +841,7 @@ internal static partial class ReceptionJourney
                 // Der Fehler kommt erst nach der Zeitüberschreitung der Anfrage; so lange warten und festhalten, was dann steht.
                 var waited = Stopwatch.StartNew();
                 var shown = s.TryFind(e => e.Properties.Name.ValueOrDefault is { } text
-                                           && (text.StartsWith("Server nicht erreichbar", StringComparison.Ordinal) || text.StartsWith("Keine Verbindung zum Server", StringComparison.Ordinal)),
+                                           && text.StartsWith("Keine Verbindung", StringComparison.Ordinal),
                     TimeSpan.FromSeconds(40));
                 Note(s, $"Erste Meldung zur fehlenden Verbindung nach {waited.Elapsed.TotalSeconds:0} s (nach den 2 s oben): {(shown is null ? "keine" : "da")}.");
                 s.Snapshot("kassieren-ohne-verbindung-nach-wartezeit");

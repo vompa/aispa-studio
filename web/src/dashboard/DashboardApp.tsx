@@ -56,7 +56,7 @@ export function DashboardApp({ live = startDisplayLive }: { live?: StartLive }) 
         {stage === 'off'
           ? 'Das Dashboard ist auf diesem Server nicht eingeschaltet.'
           : offline
-            ? 'Keine Verbindung zum Server. Die Anzeige versucht es weiter.'
+            ? 'Keine Verbindung. Die Anzeige versucht es weiter.'
             : 'Die Anzeige startet …'}
       </p>
     </main>
@@ -101,7 +101,7 @@ function Tafel({ live, onSignedOut, onOff }: { live: StartLive; onSignedOut: () 
     return (
       <main className="screen center">
         <h1>AISPA Studio</h1>
-        <p className="lead">{stale ? 'Keine Verbindung zum Server. Die Anzeige versucht es weiter.' : 'Der Tag wird geladen …'}</p>
+        <p className="lead">{stale ? 'Keine Verbindung. Die Anzeige versucht es weiter.' : 'Der Tag wird geladen …'}</p>
       </main>
     )
   }
@@ -114,7 +114,7 @@ function Tafel({ live, onSignedOut, onOff }: { live: StartLive; onSignedOut: () 
           <span className="day">{dayLabel(now, board.timeZone)}</span> <time dateTime={now.toISOString()}>{timeIn(now, board.timeZone)}</time>
         </p>
       </header>
-      {stale && <p className="hint">Keine Verbindung zum Server. Gezeigt wird der letzte Stand.</p>}
+      {stale && <p className="hint">Keine Verbindung. Gezeigt wird der letzte Stand.</p>}
       <BoardView board={board} now={now} />
     </main>
   )

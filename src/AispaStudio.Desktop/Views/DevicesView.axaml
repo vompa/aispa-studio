@@ -20,7 +20,7 @@
             <TextBlock Text="Bondrucker" Classes="h2" />
             <ui:HelpButton Topic="geraete" Section="bondrucker" />
           </StackPanel>
-          <TextBlock Text="Netzwerkdrucker im Spa (Epson, Star, Bixolon). Den Beleg samt QR-Code erzeugt der Server."
+          <TextBlock Text="Netzwerkdrucker im Spa (Epson, Star, Bixolon). Den Beleg samt QR-Code erzeugt AISPA Studio."
                      Classes="muted small" TextWrapping="Wrap" />
           <ui:TechnicalDetails Text="Der Drucker versteht ESC/POS und nimmt die Daten an Port 9100 an." />
           <TextBlock Text="Adresse" Classes="label" />

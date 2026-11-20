@@ -86,7 +86,7 @@ public sealed partial class AdminPageViewModel : ViewModelBase
     public const string UnknownToast = "Diese Stelle gibt es in der Windows-App nicht";
 
     /// <summary>Hinweis, wenn ein Sprung auf einen Bereich zeigt, dessen Webmodul ausgeschaltet ist (T-081; meldungen.md M5: Problem und Ausweg).</summary>
-    public const string ModuleOffNotice = "Dieses Webmodul ist in dieser Installation ausgeschaltet. Einschalten lässt es sich in den Einstellungen des Servers (Hilfe „Einzelplatz“).";
+    public const string ModuleOffNotice = "Dieses Webmodul ist in dieser Installation ausgeschaltet. Einschalten lässt es sich in den Einstellungen von AISPA Studio (Hilfe „Einzelplatz“).";
 
     /// <summary>Kurzform von <see cref="ModuleOffNotice"/> für die Meldung unten.</summary>
     public const string ModuleOffToast = "Dieses Webmodul ist ausgeschaltet";

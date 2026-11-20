@@ -275,8 +275,8 @@ public sealed partial class CancelClosureDialogViewModel : ConfirmDialogViewMode
     public string TextHint => TextError
         ?? (AiWritten
             ? AiLabels.RevisedNotice
-            : "Je Gast ersetzt der Server {Anrede}, {Behandlung} und {Zeit}. Der Text ist die deutsche Vorlage zur Art der Schließzeit und frei bearbeitbar; Gäste mit einer anderen Sprache "
-                + "(Englisch, Französisch, Italienisch) bekommen die Standardvorlage ihrer Sprache. Eine Rückzahlung der Anzahlung ergänzt der Server dort, wo es eine gibt.");
+            : "Je Gast ersetzt AISPA Studio {Anrede}, {Behandlung} und {Zeit}. Der Text ist die deutsche Vorlage zur Art der Schließzeit und frei bearbeitbar; Gäste mit einer anderen Sprache "
+                + "(Englisch, Französisch, Italienisch) bekommen die Standardvorlage ihrer Sprache. Eine Rückzahlung der Anzahlung ergänzt AISPA Studio dort, wo es eine gibt.");
 
     partial void OnTextChanged(string value)
     {

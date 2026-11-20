@@ -33,7 +33,7 @@ Ist das Terminal schon angelegt:
 
 ## Gut zu wissen {#hinweise}
 
-- Das Terminal nur an **einem** PC wählen. Kassen an anderen PCs desselben Standorts zahlen trotzdem damit; ihre Aufträge laufen über den Server an diesen PC. Die App muss an diesem PC dafür offen sein.
+- Das Terminal nur an **einem** PC wählen. Kassen an anderen PCs desselben Standorts zahlen trotzdem damit; ihre Aufträge laufen über AISPA Studio an diesen PC. Die App muss an diesem PC dafür offen sein.
 - An allen anderen PCs bleibt „Keines (Karte am eigenständigen Gerät oder anderer PC)“ gewählt.
 - Ein gelber Hinweis heißt: die Verbindung brach mitten in einer Zahlung ab. Am Terminal oder auf dem Terminal-Beleg nachsehen, ob die Karte belastet wurde.
 - **Gewähltes Terminal entfernen** (nur Leitung) legt das Terminal still; bisherige Zahlungen bleiben.

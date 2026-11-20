@@ -122,7 +122,7 @@ public sealed partial class ViewTests
         Assert.True(startup.Part<Border>("Tile").IsEffectivelyVisible);
         Assert.Equal(96, startup.Part<Border>("Tile").Bounds.Width);
         Assert.Equal("AISPA Studio", startup.Part<TextBlock>("BrandName").Text);
-        Assert.Equal("Server wird gestartet …", startup.Part<TextBlock>("StatusLine").Text);
+        Assert.Equal("AISPA Studio wird gestartet …", startup.Part<TextBlock>("StatusLine").Text);
         Assert.True(startup.Part<Border>("Bar").IsEffectivelyVisible);
         Assert.Equal(new Size(160, 4), startup.Part<Border>("Bar").Bounds.Size);
 
@@ -200,7 +200,7 @@ public sealed partial class ViewTests
         Assert.Equal(12, card.CornerRadius.TopLeft);
         Assert.True(startup.Part<Border>("Tile").IsEffectivelyVisible);
         Assert.False(startup.Part<StackPanel>("Status").IsEffectivelyVisible);
-        Assert.Contains(card.GetVisualDescendants().OfType<TextBlock>(), t => t.Text == "Keine Verbindung zum Server");
+        Assert.Contains(card.GetVisualDescendants().OfType<TextBlock>(), t => t.Text == "Keine Verbindung");
         var retry = startup.Part<Button>("Retry");
         Assert.Same(retry, startup.Window.FocusManager?.GetFocusedElement());
 

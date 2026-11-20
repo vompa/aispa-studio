@@ -54,7 +54,7 @@ internal sealed partial class TseExports(AispaDbContext db, IEnumerable<ITseClie
         var register = await db.CashRegisters.AsNoTracking().FirstOrDefaultAsync(r => r.Id == registerId, ct);
         if (register is null)
         {
-            return PosFailure.NotFound("Kasse").Error;
+            return PosFailure.NotFound("Kassa").Error;
         }
 
         if (register.Country != FiscalCountry.DE || input.Until < input.From || input.Until.DayNumber - input.From.DayNumber > 366)

@@ -248,7 +248,7 @@ public sealed class CalendarNoticeTests
     {
         var appointment = TestData.Appointment(10, TestData.Anna);
         var route = $"PUT /api/appointments/{appointment.Id}/late";
-        var api = Api(TestData.Day(appointment)).On(route, new { title = "Der Server antwortet nicht." }, HttpStatusCode.ServiceUnavailable);
+        var api = Api(TestData.Day(appointment)).On(route, new { title = "AISPA Studio antwortet nicht." }, HttpStatusCode.ServiceUnavailable);
         var vm = await OpenAsync(api);
 
         await vm.ReportLateAsync(appointment, 15);
@@ -256,7 +256,7 @@ public sealed class CalendarNoticeTests
         Assert.Null(vm.Toast.Text);
         Assert.Equal(InfoBarSeverity.Error, vm.Problem!.Severity);
         Assert.Equal("Verspätung nicht gespeichert", vm.Problem.Title);
-        Assert.Contains("Der Server antwortet nicht", vm.Problem.Message, StringComparison.Ordinal);
+        Assert.Contains("AISPA Studio antwortet nicht", vm.Problem.Message, StringComparison.Ordinal);
         Assert.Equal("Erneut versuchen", vm.Problem.ActionText);
 
         // „Erneut versuchen“ führt dieselbe Aktion noch einmal aus und schließt die Meldung.
@@ -270,7 +270,7 @@ public sealed class CalendarNoticeTests
     public async Task Ein_geschlossenes_Problem_kommt_in_einer_neuen_Sitzung_wieder_wenn_die_Aktion_wieder_scheitert()
     {
         var appointment = TestData.Appointment(10, TestData.Anna);
-        var failing = Api(TestData.Day(appointment)).On($"PUT /api/appointments/{appointment.Id}/late", new { title = "Der Server antwortet nicht." }, HttpStatusCode.ServiceUnavailable);
+        var failing = Api(TestData.Day(appointment)).On($"PUT /api/appointments/{appointment.Id}/late", new { title = "AISPA Studio antwortet nicht." }, HttpStatusCode.ServiceUnavailable);
         var first = await OpenAsync(failing);
         await first.ReportLateAsync(appointment, 15);
         first.DismissProblemCommand.Execute(null);

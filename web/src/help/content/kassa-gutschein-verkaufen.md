@@ -9,11 +9,11 @@ stichwoerter: Gutschein verkaufen, Wertgutschein, Behandlungsgutschein, Einzweck
 ---
 # Gutschein verkaufen
 
-Die Kassa verkauft zwei Arten von Gutscheinen: einen **Wertgutschein** über einen frei gewählten Betrag und einen Gutschein für eine bestimmte **Behandlung**. Den Code stellt der Server beim Bezahlen aus; er steht auf dem Beleg.
+Die Kassa verkauft zwei Arten von Gutscheinen: einen **Wertgutschein** über einen frei gewählten Betrag und einen Gutschein für eine bestimmte **Behandlung**. Den Code stellt AISPA Studio beim Bezahlen aus; er steht auf dem Beleg.
 
 ## Voraussetzungen {#voraussetzungen}
 
-- Rezeption, Standortleitung oder Inhaber; ohne Verbindung zum Server geht der Verkauf nicht.
+- Rezeption, Standortleitung oder Inhaber; ohne Verbindung geht der Verkauf nicht.
 - Die Kassa ist offen, bei Bedarf mit einer offenen Rechnung; ohne offene Rechnung legt sie eine für „Laufkundschaft“ an.
 
 ## Schritte {#schritte}
@@ -50,14 +50,14 @@ Auf dem Beleg steht unter „Ausgestellte Gutscheine“ der Code, z. B. „Gutsc
 ## Gutschein für eine Behandlung {#behandlung}
 
 1. Unter „Gutschein verkaufen“ in der Auswahl **Behandlung** die Behandlung aussuchen.
-2. Auf **Behandlung verkaufen** klicken. Der Preis ist der Preis dieser Behandlung am Standort der Kasse.
+2. Auf **Behandlung verkaufen** klicken. Der Preis ist der Preis dieser Behandlung am Standort der Kassa.
 3. [Bezahlen](hilfe:kassa-bezahlen). Auf dem Beleg steht unter „Ausgestellte Gutscheine“ „Gutschein … (Behandlung)“.
 
 ![Beleg nach dem Bezahlen](images/app/kassa-beleg.png)
 
 ## Ablaufdatum {#ablaufdatum}
 
-Oben unter „Gutschein verkaufen“ steht das Feld **Einzulösen bis**. Es gilt für Wertgutschein, Behandlungsgutschein und [Paket](hilfe:kassa-paket). Die Kassa belegt es nach dem Land der Kasse vor:
+Oben unter „Gutschein verkaufen“ steht das Feld **Einzulösen bis**. Es gilt für Wertgutschein, Behandlungsgutschein und [Paket](hilfe:kassa-paket). Die Kassa belegt es nach dem Land der Kassa vor:
 
 - Deutschland: 31.12. des dritten Jahres nach dem Kauf, z. B. Kauf am 09.11.2026 → 31.12.2029.
 - Schweiz: fünf Jahre ab dem Kauf, z. B. 09.11.2026 → 09.11.2031.

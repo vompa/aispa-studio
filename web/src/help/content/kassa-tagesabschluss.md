@@ -9,19 +9,19 @@ stichwoerter: Tagesabschluss, Kassenabschluss, Z-Bericht, X-Bericht, Zwischenber
 ---
 # Tagesabschluss
 
-Am Ende des Tages zählt man das Bargeld in der Lade und speichert den Tagesabschluss (Z-Bericht). Er wird unveränderlich gespeichert und schließt den Zeitraum seit dem letzten Abschluss dieser Kasse ab.
+Am Ende des Tages zählt man das Bargeld in der Lade und speichert den Tagesabschluss (Z-Bericht). Er wird unveränderlich gespeichert und schließt den Zeitraum seit dem letzten Abschluss dieser Kassa ab.
 
 ## Voraussetzungen {#voraussetzungen}
 
 - Jede Person, die kassieren darf, auch die Rezeption.
 - Alle Zahlungen sind einem Beleg zugeordnet: Ist am Kartenterminal eine Zahlung genehmigt, aber keinem Beleg zugeordnet, geht kein Abschluss.
-- Die richtige Kasse ist gewählt.
+- Die richtige Kassa ist gewählt.
 
 ## Schritte {#schritte}
 
 ### 1. Kassenlade öffnen
 
-In der Kassa oben **Kassenlade & Abschluss** wählen. Ist die richtige Kasse gewählt?
+In der Kassa oben **Kassenlade & Abschluss** wählen. Ist die richtige Kassa gewählt?
 
 ![Kassa mit markiertem Reiter Kassenlade und Abschluss](images/app/tagesabschluss-1.png)
 
@@ -64,7 +64,7 @@ Der Bericht links ist jederzeit ein Zwischenstand (X-Bericht): **Kassenlade & Ab
 
 Sobald der Abschluss gespeichert ist, steht rechts die Karte „Tagesabschluss als PDF“ mit **Drucken** und **PDF speichern**. Das PDF ist zum Abheften gedacht und lässt sich nicht per Mail senden. Vor dem Abschluss, beim Zwischenbericht, fehlt die Karte.
 
-- Die Datei heißt `Tagesabschluss-<Kasse>-<JJJJ-MM-TT>.pdf`. **Drucken** schickt sie an den Standarddrucker von Windows, nicht an den Bondrucker; danach steht „Gedruckt“.
+- Die Datei heißt `Tagesabschluss-<Kassa>-<JJJJ-MM-TT>.pdf`. **Drucken** schickt sie an den Standarddrucker von Windows, nicht an den Bondrucker; danach steht „Gedruckt“.
 - Das PDF zeigt den Zeitraum, die Belege von … bis … mit Zahl der Verkäufe und Stornos, die Summen je Zahlart mit dem Umsatz gesamt, die Steuern und die Kassenlade mit Soll-Bestand, gezähltem Bestand und Differenz. Notiz, Einlagen und Entnahmen mit Grund stehen darunter.
 - Zum Schluss stehen zwei Unterschriftenzeilen, „Gezählt von“ und „Geprüft von“.
 - Gesperrt ist der Block ohne das Recht „Berichte mit Beträgen“; der Hinweis am Knopf nennt es. Das Recht haben Inhaber, Manager und Backoffice immer, die Standortleitung und die Rezeption nur, wenn es ihnen gegeben ist: [Berichte mit Beträgen](hilfe:zugaenge#berichte-mit-betraegen).

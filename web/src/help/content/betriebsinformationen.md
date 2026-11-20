@@ -56,7 +56,7 @@ Wechselt man die Kategorie, fallen die Versicherungsfelder beim Speichern weg.
 ## Sichtbarkeit und Standorte {#sichtbarkeit}
 
 - **Team**: alle Zugänge lesen den Eintrag (Rezeption, Therapeut:innen, Standortleitung, Manager, Inhaber, Backoffice).
-- **Leitung**: nur Inhaber, Manager, Standortleitung und Backoffice lesen den Eintrag. Für alle anderen schickt der Server ihn gar nicht erst; auch der Assistent nennt ihn ihnen nicht und antwortet „Dafür fehlt die Berechtigung“. Geeignet für Polizzennummern, Steuerberatung, Lohnverrechnung und Vertrauenspersonen.
+- **Leitung**: nur Inhaber, Manager, Standortleitung und Backoffice lesen den Eintrag. Für alle anderen schickt AISPA Studio ihn gar nicht erst; auch der Assistent nennt ihn ihnen nicht und antwortet „Dafür fehlt die Berechtigung“. Geeignet für Polizzennummern, Steuerberatung, Lohnverrechnung und Vertrauenspersonen.
 - **Alle Standorte** oder **Ausgewählte Standorte**: wo der Eintrag gilt. Einträge für alle Standorte legt nur der Inhaber (oder Manager) an; die Standortleitung liest sie, ändert aber nur Einträge, die ganz in ihren Standorten liegen. Der Assistent nennt am gefragten Standort die Einträge für alle Standorte und die für diesen Standort ausgewählten.
 
 ## Weitere Angaben {#weitere-angaben}

@@ -46,7 +46,7 @@ Für alles, was eine Person oder einen Raum blockiert, z. B. Arzt, Besprechung, 
 3. Unter **Grund** eintragen, z. B. „Arzt“.
 4. Auf **Sperren** klicken.
 
-- Liegen in der Zeit schon Termine oder Sperrzeiten, lehnt der Server ab. Das Panel zeigt dann „Zeitraum ist belegt.“ mit einer Zeile je Belegung in Ortszeit des Standorts („Termin · 09:40–10:50 · Clara Fischer“, „Sperrzeit · 10:50–12:10 · Mittagspause“); ein Klick auf eine Terminzeile markiert den Termin im Kalender. Diese Termine zuerst verschieben oder einen anderen Zeitraum wählen.
+- Liegen in der Zeit schon Termine oder Sperrzeiten, lehnt AISPA Studio ab. Das Panel zeigt dann „Zeitraum ist belegt.“ mit einer Zeile je Belegung in Ortszeit des Standorts („Termin · 09:40–10:50 · Clara Fischer“, „Sperrzeit · 10:50–12:10 · Mittagspause“); ein Klick auf eine Terminzeile markiert den Termin im Kalender. Diese Termine zuerst verschieben oder einen anderen Zeitraum wählen.
 - Ein Grund, der mit „Pause“ beginnt, zählt als Pause.
 - Sperrzeiten gehen in Personen- und in Raumspalten.
 
@@ -59,7 +59,7 @@ Eine Pause und eine Notiz mit Uhrzeit lassen sich direkt im Kalender in der Höh
 3. Loslassen. Unten erscheint „Pause geändert“ bzw. „Notiz geändert“.
 
 - Am oberen Rand ändert sich der Beginn, am unteren das Ende (bei der Notiz **Bis**). Kürzer als 5 Minuten wird der Balken nicht.
-- Überschneidet die neue Zeit der Pause einen Termin oder eine Sperrzeit, lehnt der Server ab: die Pause bleibt, wie sie war, und über dem Kalender steht „Nicht geändert“ mit der Belegung. Eine Notiz belegt nichts und lässt sich überall hin ziehen.
+- Überschneidet die neue Zeit der Pause einen Termin oder eine Sperrzeit, lehnt AISPA Studio ab: die Pause bleibt, wie sie war, und über dem Kalender steht „Nicht geändert“ mit der Belegung. Eine Notiz belegt nichts und lässt sich überall hin ziehen.
 - **Esc** oder Hinausfahren aus dem Kalender bricht das Ziehen ab. Ein Klick in die Mitte eines Zettels öffnet ihn weiter zum Bearbeiten.
 - Andere Sperrzeiten (z. B. „Arzt“) haben keine ziehbaren Ränder; ihre Zeit ändert man durch Löschen und neu Eintragen.
 
@@ -121,4 +121,4 @@ Urlaub, Schulung und freie Tage kommen aus dem Dienstplan der Verwaltung; im Kal
 ## Hinweise {#hinweise}
 
 - Eintragen, abhaken und löschen dürfen Rezeption, Standortleitung und Inhaber. Therapeut:innen sehen Pausen, Notizen, die **Notizen heute** und die Meldungen.
-- Pausen, Sperrzeiten und Notizen brauchen eine Verbindung zum Server; ohne Verbindung kommt eine Fehlermeldung.
+- Pausen, Sperrzeiten und Notizen brauchen eine Verbindung; ohne Verbindung kommt eine Fehlermeldung.

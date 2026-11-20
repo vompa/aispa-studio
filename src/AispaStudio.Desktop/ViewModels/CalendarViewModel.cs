@@ -1310,7 +1310,7 @@ public partial class CalendarViewModel : ViewModelBase
         if (result.Queued)
         {
             ShowPending();
-            ShowToast("Ohne Verbindung vorgemerkt, Server prüft beim Abgleich");
+            ShowToast("Ohne Verbindung vorgemerkt, wird beim Abgleich geprüft");
             return;
         }
 
@@ -1368,7 +1368,7 @@ public partial class CalendarViewModel : ViewModelBase
         if (result.Queued)
         {
             ShowPending();
-            ShowToast("Ohne Verbindung vorgemerkt, Server prüft beim Abgleich");
+            ShowToast("Ohne Verbindung vorgemerkt, wird beim Abgleich geprüft");
         }
         else
         {

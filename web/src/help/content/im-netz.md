@@ -41,7 +41,7 @@ Schaltet die Freigabe ab und startet AISPA Studio auf diesem PC kurz neu. Die an
 
 ## Mit Haupt-PC im Netz verbinden {#verbinden}
 
-So verbindet sich ein weiterer PC. Die App am weiteren PC wird **ohne** `--standalone` gestartet (Server-Betrieb). Findet sie keinen Server, zeigt sie „Keine Verbindung zum Server“ und darunter „Mit Haupt-PC im Netz verbinden“. Wurde die App auf diesem PC früher als Einzelplatz benutzt, einmal mit `--server` starten; die App merkt sich das.
+So verbindet sich ein weiterer PC. Die App am weiteren PC wird **ohne** `--standalone` gestartet (Server-Betrieb). Kommt keine Verbindung zustande, zeigt sie „Keine Verbindung“ und darunter „Mit Haupt-PC im Netz verbinden“. Wurde die App auf diesem PC früher als Einzelplatz benutzt, einmal mit `--server` starten; die App merkt sich das.
 
 ### Adresse {#verbinden-adresse}
 
@@ -59,7 +59,7 @@ Erscheint, wenn schon ein Haupt-PC eingetragen ist („Eingetragen: …“). Lö
 
 ## Mit Server verbinden {#verbinden-server}
 
-Läuft AISPA Studio auf einem Server, z. B. für die Verwaltung von zu Hause, trägt man dessen Adresse ein. Die Karte „Mit Server verbinden“ erscheint auf dem Startbildschirm unter „Keine Verbindung zum Server“, direkt unter „Mit Haupt-PC im Netz verbinden“. Der ganze Ablauf steht unter [Verwalten von zu Hause](hilfe:verwalten-von-zu-hause).
+Läuft AISPA Studio auf einem Server, z. B. für die Verwaltung von zu Hause, trägt man dessen Adresse ein. Die Karte „Mit Server verbinden“ erscheint auf dem Startbildschirm unter „Keine Verbindung“, direkt unter „Mit Haupt-PC im Netz verbinden“. Der ganze Ablauf steht unter [Verwalten von zu Hause](hilfe:verwalten-von-zu-hause).
 
 ### Serveradresse {#verbinden-server-adresse}
 

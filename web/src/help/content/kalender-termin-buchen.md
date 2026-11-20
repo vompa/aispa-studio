@@ -9,7 +9,7 @@ stichwoerter: Termin buchen, Termin anlegen, Termin eintragen, neuer Termin, buc
 ---
 # Termin buchen
 
-Ein Termin entsteht über **Neuer Termin** im Seitenpanel: Gast, Behandlung, Tag und Beginn wählen, dann **Termin buchen**. Ob Person, Raum und Gerät frei sind, prüft der Server beim Buchen.
+Ein Termin entsteht über **Neuer Termin** im Seitenpanel: Gast, Behandlung, Tag und Beginn wählen, dann **Termin buchen**. Ob Person, Raum und Gerät frei sind, prüft AISPA Studio beim Buchen.
 
 ## Voraussetzungen {#voraussetzungen}
 
@@ -58,7 +58,7 @@ Der Termin steht sofort im Kalender; Person, Raum und Gerät sind für die Zeit 
 
 ## Außerhalb der Öffnungszeit {#ausserhalb}
 
-Liegt der Termin ganz oder teilweise außerhalb der Öffnungszeit oder in einer Schließzeit, steht schon beim Tippen der Uhrzeit die Warnung „Der Standort hat zu dieser Zeit geschlossen.“. Lehnt der Server ab, weil die Person zu dieser Zeit keinen Dienst hat, nennt die Warnung den Grund, z. B. „Lena Huber ist zu dieser Zeit nicht im Dienst.“.
+Liegt der Termin ganz oder teilweise außerhalb der Öffnungszeit oder in einer Schließzeit, steht schon beim Tippen der Uhrzeit die Warnung „Der Standort hat zu dieser Zeit geschlossen.“. Lehnt AISPA Studio ab, weil die Person zu dieser Zeit keinen Dienst hat, nennt die Warnung den Grund, z. B. „Lena Huber ist zu dieser Zeit nicht im Dienst.“.
 
 1. Prüfen, ob der Termin wirklich zu dieser Zeit stattfinden soll.
 2. In der Warnung auf **Trotzdem buchen** klicken.
@@ -71,7 +71,7 @@ Der Termin wird gespeichert, solange Person, Raum und Gerät frei sind; eine Dop
 
 Solange das Fenster **Neuer Termin** offen ist, steht der geplante Eintrag als gestrichelte Karte in der Spalte: bei der Person bzw. im Raum, zum **Beginn**, so lang wie die gewählte **Behandlung**, mit Vorbereitung und Nachbereitung in Grau darüber und darunter. Der Text der Karte ist die Behandlung. Die Vorschau folgt jeder Änderung: andere Behandlung, anderer Beginn, ein Wechsel der Art (**Pause**, **Sperrzeit**, **Notiz**, mit „Pause“, dem Grund bzw. dem Notiztext). Beim Schließen des Fensters verschwindet sie.
 
-- Belegt die Zeit schon etwas (ein Termin samt Vor- und Nachbereitung, eine Pause oder Sperrzeit), oder passt die Behandlung nicht in die freie Zeit, steht die Karte in **Warnfarbe**, so wie der Hinweis „länger als die freie Zeit“ in der Liste der Behandlungen. Gebucht werden kann trotzdem; ob es geht, entscheidet der Server beim Buchen.
+- Belegt die Zeit schon etwas (ein Termin samt Vor- und Nachbereitung, eine Pause oder Sperrzeit), oder passt die Behandlung nicht in die freie Zeit, steht die Karte in **Warnfarbe**, so wie der Hinweis „länger als die freie Zeit“ in der Liste der Behandlungen. Gebucht werden kann trotzdem; ob es geht, entscheidet AISPA Studio beim Buchen.
 - **Paar/Spa** sucht seine Zeit selbst: die Vorschau steht an der angeklickten Stelle, so lang wie die längste Behandlung des ersten Abschnitts. Die gefundene Zeit zeigt sie nicht.
 - Solange die Vorschau steht, zeigt die Maus keine eigene Viertelstunde mehr.
 - Die Vorschau eines Termins lässt sich mit der Maus an eine andere Stelle ziehen: zu einer anderen Uhrzeit, in die Spalte einer anderen Person oder in der [7-Tage-Ansicht](hilfe:kalender-sieben-tage) auf einen anderen Tag. Beim Loslassen übernimmt das Fenster Person, Datum und Beginn (auf 5 Minuten gerundet); Gast, Behandlung und Notiz bleiben stehen. **Esc** oder Hinausfahren aus dem Kalender bricht das Ziehen ab.
@@ -103,7 +103,7 @@ In **Neuer Termin** stehen die Behandlungen, die mit Vor- und Nachbereitung in d
 
 - „passt genau“ oder „passt (50 von 55 Min.)“: Belegung und die Zeit von der Vorbereitung bis zum Ende der Lücke.
 - „Vorbereitung passt nicht davor“: hinten wäre Platz, die Vorbereitung ragt aber in den Termin davor. Einen Beginn etwas später wählen.
-- „länger als die freie Zeit“: die Behandlung lässt sich trotzdem wählen; ob es geht, entscheidet der Server beim Buchen.
+- „länger als die freie Zeit“: die Behandlung lässt sich trotzdem wählen; ob es geht, entscheidet AISPA Studio beim Buchen.
 
 ![Lange Lücke: Termin mit passenden Behandlungen zuerst](images/app/kalender-eintrag-termin.png)
 

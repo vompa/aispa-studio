@@ -7,7 +7,7 @@ public partial class MainViewModel
 {
     private const string ConnectingStep = "Verbinden";
 
-    private const string ServerStartingText = "Server wird gestartet …";
+    private const string ServerStartingText = "AISPA Studio wird gestartet …";
 
     /// <summary>
     /// Vorgabe für <see cref="StartupScreenDelay"/>; ein Haken für die Bildtests, die das Fenster mit echten Timern öffnen: dort erscheint der

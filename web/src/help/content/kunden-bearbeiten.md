@@ -21,7 +21,7 @@ In der Kundenkarte lassen sich Name, Anrede, Rufname, Titel, Postanschrift, Tele
 
 - Pflicht ist ein Name (Vor- oder Nachname, mit Stern gekennzeichnet); fehlt er, markiert **Speichern** das Feld rot und nennt, was fehlt. Ein geleertes Feld löscht den gespeicherten Wert.
 - Ist eine Eingabe ungültig (z. B. eine PLZ mit zu wenigen Ziffern, eine E-Mail ohne @, ein Geburtstag, den es nicht gibt), färbt sich das Feld rot, der Text darunter sagt, was erwartet wird, und der Cursor springt ins erste solche Feld.
-- Kann der Server nicht speichern (z. B. keine Verbindung), steht über **Speichern** die Meldung „Nicht gespeichert“ mit **Erneut versuchen**.
+- Kann AISPA Studio nicht speichern (z. B. keine Verbindung), steht über **Speichern** die Meldung „Nicht gespeichert“ mit **Erneut versuchen**.
 
 ![Fehler am Feld: die PLZ hat vier Ziffern](images/app/kunden-bearbeiten-fehler.png)
 - Eine Änderung am gültigen Namen (Vor- oder Nachname) wird protokolliert und steht unter „Kennzahlen“ als „Name geändert“; ausgestellte Belege bleiben unverändert.
@@ -55,7 +55,7 @@ Die Hauptadresse steht bei **…** › **Bearbeiten**. Hat ein Gast mehrere Adre
 
 - Höchstens zehn weitere Adressen; die Hauptadresse und doppelte Adressen werden abgewiesen.
 - Die Suche findet Kunden auch über weitere Adressen.
-- Diese Änderungen gehen nur mit Verbindung zum Server.
+- Diese Änderungen gehen nur mit Verbindung.
 - Aus dem Posteingang lässt sich die Adresse eines Absenders gleich merken: [Absender einem Kunden zuordnen](hilfe:anfragen-wer-ist-das).
 
 ## Rechnungsempfänger {#rechnungsempfaenger}

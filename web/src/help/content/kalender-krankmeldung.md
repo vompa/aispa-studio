@@ -41,6 +41,6 @@ Fällt eine Person aus, schlägt der Ausfall-Assistent für jeden ihrer offenen 
 
 - Den Ausfall-Assistenten dürfen Rezeption, Standortleitung und Inhaber verwenden.
 - Gesucht wird nur am selben Tag, zuerst am selben Standort, notfalls an einem anderen.
-- Verschoben wird über den Server mit derselben Prüfung wie beim Ziehen; was inzwischen belegt ist, wird abgelehnt.
-- Krank melden und der Assistent brauchen eine Verbindung zum Server.
+- Verschoben wird mit derselben Prüfung wie beim Ziehen; was inzwischen belegt ist, wird abgelehnt.
+- Krank melden und der Assistent brauchen eine Verbindung.
 - Termine bei abwesenden Personen tragen im Kalender „umbuchen“ und in der Hover-Karte „… ist krank gemeldet: bitte umbuchen“.

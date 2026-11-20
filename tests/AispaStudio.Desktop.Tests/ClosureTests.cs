@@ -317,7 +317,7 @@ public sealed class ClosureTests
         var original = dialog.Text;
         Assert.True(dialog.AiAvailable);
         Assert.False(dialog.AiWritten);
-        Assert.StartsWith("Je Gast ersetzt der Server", dialog.TextHint, StringComparison.Ordinal);
+        Assert.StartsWith("Je Gast ersetzt AISPA Studio", dialog.TextHint, StringComparison.Ordinal);
 
         // Verworfen: der Text bleibt, der Grund steht am Feld, keine Kennzeichnung.
         api.On($"POST {Path("/cancellation/revise")}", new { errors = new { text = Rejected } }, HttpStatusCode.BadRequest);

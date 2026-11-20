@@ -56,7 +56,7 @@ public sealed class ClosureWaitlistLanguageTests
         dialog.Rows[1].IsChecked = false;
         dialog.Rows[3].IsChecked = false;
         Assert.Equal("Nachrichten nach Sprache: 1 Deutsch, 1 Französisch.", dialog.LanguageSummary);
-        Assert.StartsWith("Je Gast ersetzt der Server", dialog.TextHint, StringComparison.Ordinal);
+        Assert.StartsWith("Je Gast ersetzt AISPA Studio", dialog.TextHint, StringComparison.Ordinal);
         Assert.Contains("deutsche Vorlage", dialog.TextHint, StringComparison.Ordinal);
         Assert.Contains("Standardvorlage ihrer Sprache", dialog.TextHint, StringComparison.Ordinal);
 

@@ -533,7 +533,7 @@ public sealed class GroupAndAreaTests
         var row = Assert.Single(panel.Areas[0].Visits);
 
         Assert.Null(panel.Error);
-        Assert.Equal("Ohne Verbindung vorgemerkt: Eva Muster, Finnische Sauna 10:00–13:00. Ob Platz ist, prüft der Server beim Abgleich.", panel.Info);
+        Assert.Equal("Ohne Verbindung vorgemerkt: Eva Muster, Finnische Sauna 10:00–13:00. Ob Platz ist, prüft AISPA Studio beim Abgleich.", panel.Info);
         Assert.Equal("api/area-visits", pending.Path);
         Assert.Equal(pending.Visit!.Id, row.Visit.Id);
         Assert.Contains($"\"clientId\":\"{row.Visit.Id}\"", pending.Body, StringComparison.Ordinal);

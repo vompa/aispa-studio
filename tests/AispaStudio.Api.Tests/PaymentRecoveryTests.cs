@@ -118,7 +118,7 @@ public sealed class PaymentRecoveryTests(ApiFixture fixture)
         await MarkDepositPaidAsync(booked.Appointment.Id, now.AddHours(-1));
         await using var scope = fixture.Factory.Services.CreateAsyncScope();
         await scope.ServiceProvider.GetRequiredService<OnlineDbContext>().Deposits.Where(d => d.AppointmentId == booked.Appointment.Id)
-            .ExecuteUpdateAsync(u => u.SetProperty(d => d.Error, "An diesem Standort gibt es keine aktive Kasse mehr."), Ct);
+            .ExecuteUpdateAsync(u => u.SetProperty(d => d.Error, "An diesem Standort gibt es keine aktive Kassa mehr."), Ct);
         Assert.Equal(0, await recovery.RunOnceAsync(now, spa.Location.Id, Ct));
     }
 

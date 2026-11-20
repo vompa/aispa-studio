@@ -337,7 +337,7 @@ internal sealed partial class ManagementReports(AispaDbContext db, RosterService
 
         if (registers.Any(r => r.Country == FiscalCountry.AT && r.IsActive) && date.Month <= 2)
         {
-            reminders.Add($"Bis 15.02.{date.Year}: Jahresbeleg {date.Year - 1} jeder österreichischen Kasse mit der Belegcheck-App prüfen.");
+            reminders.Add($"Bis 15.02.{date.Year}: Jahresbeleg {date.Year - 1} jeder österreichischen Kassa mit der Belegcheck-App prüfen.");
         }
 
         var vouchers = await db.Vouchers.AsNoTracking().Where(v => v.Status == VoucherStatus.Active && v.Balance > 0)

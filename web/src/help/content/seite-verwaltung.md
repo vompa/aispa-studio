@@ -42,7 +42,7 @@ Eine Standortleitung sieht in jedem Bereich nur ihre eigenen Standorte. Was eine
 - „Diese Maske lässt sich mit der eigenen Rolle nicht öffnen. Das Recht vergibt die Leitung im Bereich „Team“.“: Man ist über einen Link, etwa aus einer Antwort des Assistenten, zu einer Maske gesprungen, die die eigene Rolle nicht sieht. Die App zeigt stattdessen die erste Maske, die die Rolle öffnen darf, mit diesem Hinweis über der Maske. Der Hinweis lässt sich schließen und verschwindet mit dem nächsten Wechsel.
 - „Diese Stelle gibt es in der Windows-App nicht. Die passende Maske oben im Balken der Verwaltung wählen.“: Das Ziel des Links gibt es nicht. Auch dann öffnet die erste erlaubte Maske.
 - Hat der Zugang gar keine Maske, bleibt die App auf der aktuellen Seite und zeigt unten die Meldung „Diese Maske braucht ein Recht, das die Leitung vergibt“ oder „Diese Stelle gibt es in der Windows-App nicht“. Die Rolle prüft die Person mit Verwaltungsrecht unter **Verwaltung** › **Team**, Bereich **Profil**, Abschnitt **Zugang und Rolle**, siehe [Rollen und was sie dürfen](hilfe:zugaenge#rollen).
-- Ohne Verbindung zum Server lassen sich die Masken nicht speichern. Kalender, Kunden und Vormerken gehen weiter.
+- Ohne Verbindung lassen sich die Masken nicht speichern. Kalender, Kunden und Vormerken gehen weiter.
 
 Links auf fremde Seiten, z. B. die Einrichtung bei Stripe, öffnen sich im normalen Browser, nicht in der App. Kalender, Anfragen, Geräte und Anmeldung haben eigene Einträge in der linken Leiste. Wer Code für die Windows-App oder einen Passkey braucht, findet die Seite „Anmelden“ im Browser: [Seite „Anmelden“ im Browser](hilfe:anmelden-web).
 

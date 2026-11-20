@@ -77,7 +77,7 @@ Alle Online-Zahlungen des Standorts zeigt das Weltkugel-Symbol **Online-Zahlunge
 ## Gut zu wissen {#hinweise}
 
 - Hat im Spa jemand eine Vollmacht **Kassa-Storno**, auch eine abgelaufene, braucht jede Rolle außer Inhaber und Manager eine heute gültige. Sonst lehnt die App ab und nennt den Grund. Die Vollmacht vergibt die Leitung.
-- Ein **Anzahlungsbeleg** (die Einzahlung einer Anzahlung auf einen Termin) lässt sich nur als Inhaber oder Manager stornieren. Bei Standortleitung und Rezeption ist **Stornieren** gesperrt, der Tooltip nennt den Grund („Anzahlungsbelege storniert nur die Leitung.“), und der Server lehnt den Aufruf mit 403 ab. Üblicher Weg ist der Knopf **Anzahlung retournieren …** (mit Pflichtgrund): [Anzahlung retournieren](hilfe:kassa-anzahlung-retournieren).
+- Ein **Anzahlungsbeleg** (die Einzahlung einer Anzahlung auf einen Termin) lässt sich nur als Inhaber oder Manager stornieren. Bei Standortleitung und Rezeption ist **Stornieren** gesperrt, der Tooltip nennt den Grund („Anzahlungsbelege storniert nur die Leitung.“), und AISPA Studio lehnt den Aufruf mit 403 ab. Üblicher Weg ist der Knopf **Anzahlung retournieren …** (mit Pflichtgrund): [Anzahlung retournieren](hilfe:kassa-anzahlung-retournieren).
 - Nur Verkaufsbelege lassen sich stornieren, und jeder nur einmal. Bei Stornobelegen und stornierten Belegen fehlt „Beleg stornieren“.
 - Ist von einem mit dem Beleg verkauften Gutschein schon etwas eingelöst, geht kein Storno: „Gutschein … wurde schon eingelöst; der Beleg kann nicht storniert werden.“
 - Eine noch nicht bezahlte Rechnung storniert man nicht, man verwirft sie: [Rechnung parken und verwerfen](hilfe:kassa-rechnung-parken#verwerfen).

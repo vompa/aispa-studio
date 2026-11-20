@@ -544,7 +544,7 @@ public partial class GroupBookingViewModel : ViewModelBase
         {
             _searchedKey = null;
             SlotsNote = IsOffline
-                ? "Ohne Verbindung: Beginn selbst eintragen. Ob alles zusammenpasst und wer behandelt, prüft der Server beim Abgleich."
+                ? "Ohne Verbindung: Beginn selbst eintragen. Ob alles zusammenpasst und wer behandelt, prüft AISPA Studio beim Abgleich."
                 : result.Error;
             return;
         }

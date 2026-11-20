@@ -25,7 +25,7 @@ Solange die Ersteinrichtung nicht fertig ist, steht oben in der Maske die Karte 
 
 Wo die Angaben verwendet werden:
 
-- **Belege und Rechnungen**: Firmenwortlaut, UID-Nummer sowie Firmenbuchnummer und Firmenbuchgericht stehen auf jedem Beleg der Kassa, gedruckt und am Bildschirm. Was schon im Belegkopf der Kasse steht, wird nicht doppelt gedruckt.
+- **Belege und Rechnungen**: Firmenwortlaut, UID-Nummer sowie Firmenbuchnummer und Firmenbuchgericht stehen auf jedem Beleg der Kassa, gedruckt und am Bildschirm. Was schon im Belegkopf der Kassa steht, wird nicht doppelt gedruckt.
 - **Sofortüberweisung an der Kassa**: Die Bankverbindung füllt den QR-Code für die Überweisung.
 - **Impressum der Online-Buchung**: Gäste sehen dort Name, Firmenwortlaut, Anschrift, Kontakt, Register- und Impressumsangaben. Die Bankverbindung erscheint dort nicht.
 
@@ -43,7 +43,7 @@ Der Name, unter dem das Spa auftritt, z. B. „Day Spa Huber“. Pflichtfeld. Er
 
 - Danach richten sich die Hinweise zur Arbeitszeit im Dienstplan (Höchstarbeitszeit, Ruhezeit, Pausen, Vorlauf für die Einteilung).
 - Es erscheint im Impressum und wird bei der Einrichtung der Online-Zahlungen an den Zahlungsanbieter übergeben.
-- Steuer und Signatur an der Kassa richten sich nach dem Land, das bei der jeweiligen Kasse eingestellt ist, nicht nach diesem Feld.
+- Steuer und Signatur an der Kassa richten sich nach dem Land, das bei der jeweiligen Kassa eingestellt ist, nicht nach diesem Feld.
 
 ## Unternehmen {#unternehmen}
 
@@ -100,8 +100,8 @@ Adresse der eigenen Website, am besten vollständig mit „https://“. Höchste
 
 Das Konto, auf das Gäste per Sofortüberweisung an der Kassa zahlen. An der Kassa erscheint dazu ein QR-Code mit Empfänger, IBAN und offenem Betrag, den der Gast mit seiner Banking-App scannt.
 
-- Eine Kasse mit eigenem Konto verwendet ihres. Ein Standort mit eigener Gesellschaft verwendet die Bankverbindung aus den Firmendaten nicht.
-- Sofortüberweisung gibt es nur in Euro. Ohne IBAN (in den Firmendaten oder an der Kasse) ist sie nicht möglich.
+- Eine Kassa mit eigenem Konto verwendet ihres. Ein Standort mit eigener Gesellschaft verwendet die Bankverbindung aus den Firmendaten nicht.
+- Sofortüberweisung gibt es nur in Euro. Ohne IBAN (in den Firmendaten oder an der Kassa) ist sie nicht möglich.
 - Im Impressum erscheint die Bankverbindung nicht.
 - Später soll die Bankverbindung auch für Zahlungsanbieter dienen.
 
@@ -153,7 +153,7 @@ Mit dieser Einstellung unter „Firmendaten“, Abschnitt „Kundenbereich einbe
 
 ### Code kopieren {#einbetten-code}
 
-In der Windows-App legt der Knopf „Code kopieren“ unter der Liste den fertigen Code für die Website in die Zwischenablage, mit der Adresse der Online-Buchung dieses Spas und ihrer Spa-Kennung. Daneben steht „Code kopiert.“. Den Code fügen Sie in die Seite Ihrer Website ein, dort wo die Online-Buchung erscheinen soll. Der Knopf erscheint, sobald der Server die Adresse nennt, und braucht kein „Speichern“; die Website, die den Code zeigt, muss aber in der Liste stehen.
+In der Windows-App legt der Knopf „Code kopieren“ unter der Liste den fertigen Code für die Website in die Zwischenablage, mit der Adresse der Online-Buchung dieses Spas und ihrer Spa-Kennung. Daneben steht „Code kopiert.“. Den Code fügen Sie in die Seite Ihrer Website ein, dort wo die Online-Buchung erscheinen soll. Der Knopf erscheint, sobald AISPA Studio die Adresse nennt, und braucht kein „Speichern“; die Website, die den Code zeigt, muss aber in der Liste stehen.
 
 ### Einbetten erlaubt auf {#einbetten-erlaubt-auf}
 

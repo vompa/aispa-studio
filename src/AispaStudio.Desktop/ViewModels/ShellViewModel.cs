@@ -462,13 +462,13 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
     public string ConnectionText => IsOffline ? "Offline" : PendingCount > 0 ? "Gleicht ab" : "Online";
 
     public string ConnectionTip => IsOffline
-        ? $"Keine Verbindung zum Server.{(PendingCount > 0 ? $" {PendingCount} Änderung(en) vorgemerkt." : "")}"
+        ? $"Keine Verbindung.{(PendingCount > 0 ? $" {PendingCount} Änderung(en) vorgemerkt." : "")}"
         : PendingCount > 0 ? $"{PendingCount} vorgemerkte Änderung(en) werden gesendet." : Connection;
 
     public string? OfflineBanner => IsOffline
-        ? "Keine Verbindung zum Server. Kalender und Kunden zeigen den zuletzt geladenen Stand; Buchungen, Verschieben und Status werden " +
+        ? "Keine Verbindung. Kalender und Kunden zeigen den zuletzt geladenen Stand; Buchungen, Verschieben und Status werden " +
           "vorgemerkt und beim nächsten Kontakt gesendet. Die Kassa gibt Ersatzbelege aus. " +
-          $"Die App prüft alle {_checkInterval.TotalSeconds:0} Sekunden von selbst und lädt neu, sobald der Server wieder antwortet." +
+          $"Die App prüft alle {_checkInterval.TotalSeconds:0} Sekunden von selbst und lädt neu, sobald die Verbindung wieder steht." +
           (PendingCount > 0 ? $" Vorgemerkt: {PendingCount}." : "") +
           (LongOutageHint is { } outage ? $" {outage}" : "")
         : null;
@@ -494,7 +494,7 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
                 .Select(s => s?.SubstituteIssuedAt).OfType<DateTimeOffset>().ToList();
             return issued.Count > 0 && issued.Min() is var oldest && _time.GetUtcNow() - oldest > LongOutage
                 ? $"Der älteste Ersatzbeleg ist vom {DayLayout.Local(oldest, _time.LocalTimeZone):dd.MM.yyyy HH:mm} und seit mehr als 48 Stunden nicht nacherfasst: " +
-                  "In Österreich den Ausfall der Kasse über FinanzOnline melden."
+                  "In Österreich den Ausfall der Kassa über FinanzOnline melden."
                 : null;
         }
     }

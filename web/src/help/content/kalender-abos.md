@@ -16,7 +16,7 @@ Einstellungen in der Windows-App unter **Verwaltung** › **Betrieb** › **Kale
 
 Jedes Spa hat von Anfang an drei Abos für gesetzliche Feiertage, je eines für Österreich, Deutschland und die Schweiz. Eingeschaltet ist nur das Abo des Landes, in dem das Spa liegt; die anderen beiden stehen ausgeschaltet in der Liste und lassen sich mit einem Haken bei **Aktiv** einschalten. Die Adressen der drei sind öffentliche Feiertagskalender von Google. **Das Programm prüft diese Quelle nicht für Sie:** der Betrieb bestätigt sie oder tauscht sie gegen eine andere Adresse. Ein Fehler beim Abruf erscheint als Meldung im Kalender.
 
-Der Server holt ein Abo im Hintergrund, einmal am Tag und sofort nach dem Anlegen, Einschalten oder Ändern der Adresse. Er ruft nur ab, was in der Adresse steht, und schickt nichts nach außen. Ohne Internet oder bei einem Fehler gilt die zuletzt gespeicherte Kopie weiter.
+AISPA Studio holt ein Abo im Hintergrund, einmal am Tag und sofort nach dem Anlegen, Einschalten oder Ändern der Adresse. Es ruft nur ab, was in der Adresse steht, und schickt nichts nach außen. Ohne Internet oder bei einem Fehler gilt die zuletzt gespeicherte Kopie weiter.
 
 Wer darf was:
 

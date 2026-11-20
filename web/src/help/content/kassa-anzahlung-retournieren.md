@@ -32,7 +32,7 @@ Alle, die den Kalender sehen, lesen am Termin den Stand der Anzahlung: zum Beisp
 
 ## Wer darf das {#rechte}
 
-Nur **Manager und Inhaber**. Die Standortleitung und die Rezeption sehen den Knopf nicht; der Server lehnt den Aufruf mit „Eine Anzahlung retournieren nur Inhaber und Manager“ ab. Dasselbe gilt für das **Storno des Anzahlungsbelegs** an der Kassa: den hebt nur die Leitung auf, bei Standortleitung und Rezeption ist „Stornieren“ gesperrt und der Tooltip sagt „Anzahlungsbelege storniert nur die Leitung.“ ([Beleg stornieren](hilfe:kassa-beleg-stornieren#rechte)). Die automatische Rückzahlung bei einer Absage wegen einer Schließzeit läuft weiter, auch wenn die Standortleitung die Absage auslöst.
+Nur **Manager und Inhaber**. Die Standortleitung und die Rezeption sehen den Knopf nicht; AISPA Studio lehnt den Aufruf mit „Eine Anzahlung retournieren nur Inhaber und Manager“ ab. Dasselbe gilt für das **Storno des Anzahlungsbelegs** an der Kassa: den hebt nur die Leitung auf, bei Standortleitung und Rezeption ist „Stornieren“ gesperrt und der Tooltip sagt „Anzahlungsbelege storniert nur die Leitung.“ ([Beleg stornieren](hilfe:kassa-beleg-stornieren#rechte)). Die automatische Rückzahlung bei einer Absage wegen einer Schließzeit läuft weiter, auch wenn die Standortleitung die Absage auslöst.
 
 ## Gut zu wissen {#hinweise}
 

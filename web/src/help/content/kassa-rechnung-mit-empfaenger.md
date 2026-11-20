@@ -14,7 +14,7 @@ Ein Beleg wird zur Rechnung an eine Firma, wenn man Name, Anschrift und gegebene
 2. Auf **Empfänger erfassen** klicken.
 3. „Empfänger (Name oder Firma)“ und „Anschrift“ ausfüllen, bei Bedarf die „UID-Nummer, z. B. ATU12345678“.
 4. Optional auf **UID prüfen** klicken. Die Kassa fragt über VIES ab und zeigt z. B. „UID gültig: … · Abfrage …“; leere Felder für Name und Anschrift füllt sie aus der Antwort.
-5. Auf **Empfänger übernehmen** klicken. Der Titel wechselt auf „Rechnung Nr. <Kasse>-<Nummer>“, und der Beleg zeigt „Rechnung an:“ mit dem Empfänger.
+5. Auf **Empfänger übernehmen** klicken. Der Titel wechselt auf „Rechnung Nr. <Kassa>-<Nummer>“, und der Beleg zeigt „Rechnung an:“ mit dem Empfänger.
 6. Die Rechnung als PDF speichern, drucken oder dem Gast per Mail schicken, siehe [Rechnung als PDF](hilfe:kassa-rechnung-mit-empfaenger#pdf). Der Bondrucker druckt sie wie jeden Beleg, siehe [Belege drucken](hilfe:kassa-beleg-drucken).
 
 ![Rechnung mit Empfänger und UID](images/app/kassa-rechnung.png)
@@ -29,7 +29,7 @@ Sobald der Beleg einen Empfänger hat, erzeugen **A4 drucken**, **PDF speichern*
 
 ![Rechnung als PDF mit Rechnung an, Leistungsdatum, Positionen, Steuersatz, Zahlung und QR-Code](images/app/rechnung-als-pdf.png)
 
-- Der Titel heißt „Rechnung Nr. <Kasse>-<Nummer>“, die Datei `Rechnung-<Kasse>-<Nummer>.pdf`.
+- Der Titel heißt „Rechnung Nr. <Kassa>-<Nummer>“, die Datei `Rechnung-<Kassa>-<Nummer>.pdf`.
 - „Rechnung an“ nennt Firma, Anschrift und UID des Empfängers, dazu stehen „Rechnungs- und Leistungsdatum“, die Positionen mit Steuersatz und der QR-Code „Signierter Belegcode (RKSV)“.
 - Ein Nachdruck aus dem Reiter „Belege“ trägt den Vermerk „Kopie“.
 - Beim Senden lautet der Betreff „Ihre Rechnung Nr. … von <Spa>“. Der Vermerk „Per Mail gesendet an … am … von …“ steht unter dem Beleg und bleibt auch beim späteren Öffnen der Rechnung sichtbar.

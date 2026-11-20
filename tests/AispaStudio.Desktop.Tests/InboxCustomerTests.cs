@@ -104,7 +104,7 @@ public sealed class InboxCustomerTests
         await detail.Candidates[0].AssignCommand.ExecuteAsync(null);
 
         Assert.True(detail.NoticeIsError);
-        Assert.StartsWith("Ohne Verbindung zum Server nicht möglich.", detail.Notice, StringComparison.Ordinal);
+        Assert.StartsWith("Ohne Verbindung nicht möglich.", detail.Notice, StringComparison.Ordinal);
         Assert.True(detail.HasCandidates);
     }
 
@@ -149,6 +149,6 @@ public sealed class InboxCustomerTests
         stub.Down = true;
         customers.NewOtherEmail = "x@y.example";
         await customers.AddEmailCommand.ExecuteAsync(null);
-        Assert.StartsWith("Ohne Verbindung zum Server nicht möglich.", customers.Error, StringComparison.Ordinal);
+        Assert.StartsWith("Ohne Verbindung nicht möglich.", customers.Error, StringComparison.Ordinal);
     }
 }

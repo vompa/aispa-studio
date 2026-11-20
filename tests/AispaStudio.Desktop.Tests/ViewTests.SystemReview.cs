@@ -171,7 +171,7 @@ public sealed partial class ViewTests
     {
         await main.StartAsync();
         Assert.False(main.IsConnected);
-        Assert.Equal("Keine Verbindung zum Server", main.ConnectionTitle);
+        Assert.Equal("Keine Verbindung", main.ConnectionTitle);
         Assert.Equal("Adresse und Netzwerk prüfen, dann „Erneut versuchen“.", main.StatusText);
         Assert.DoesNotContain("nicht erreichbar", main.StatusText, StringComparison.Ordinal);
         return main;

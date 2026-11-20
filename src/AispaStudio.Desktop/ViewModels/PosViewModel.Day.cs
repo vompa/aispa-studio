@@ -45,8 +45,8 @@ public partial class PosViewModel
     };
 
     public string ReceiptsEmptyText => ReceiptDaysBack == 0
-        ? "Heute noch keine Belege an dieser Kasse."
-        : "An diesem Tag gab es keine Belege an dieser Kasse.";
+        ? "Heute noch keine Belege an dieser Kassa."
+        : "An diesem Tag gab es keine Belege an dieser Kassa.";
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsCheckout), nameof(IsReceipts), nameof(IsClosing))]

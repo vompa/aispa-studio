@@ -88,10 +88,10 @@
             <ui:TabButton Content="Kassenlade &amp; Abschluss" IsSelected="{Binding IsClosing}" Command="{Binding ShowClosingCommand}" />
           </StackPanel>
         </Border>
-        <ComboBox ItemsSource="{Binding Registers}" SelectedItem="{Binding Register}" MinWidth="200" ToolTip.Tip="Kasse" AutomationProperties.Name="Kasse">
+        <ComboBox ItemsSource="{Binding Registers}" SelectedItem="{Binding Register}" MinWidth="200" ToolTip.Tip="Kassa" AutomationProperties.Name="Kassa">
           <ComboBox.ItemTemplate>
             <DataTemplate x:DataType="c:CashRegisterDto">
-              <TextBlock Text="{Binding Code, StringFormat='Kasse {0}'}" />
+              <TextBlock Text="{Binding Code, StringFormat='Kassa {0}'}" />
             </DataTemplate>
           </ComboBox.ItemTemplate>
         </ComboBox>
@@ -730,7 +730,7 @@
               <TextBlock Text="Bezahlen und Beleg erstellen" FontSize="14" />
             </StackPanel>
           </Button>
-          <TextBlock x:Name="PayFooterNote" Text="Der Beleg wird am Server signiert und im Kassenjournal gespeichert." Classes="muted small" TextWrapping="Wrap" Margin="0,0,56,0" />
+          <TextBlock x:Name="PayFooterNote" Text="Der Beleg wird signiert und im Kassenjournal gespeichert." Classes="muted small" TextWrapping="Wrap" Margin="0,0,56,0" />
         </StackPanel>
         <!-- Nach dem Bezahlen gibt es keine Rechnung mehr: statt der leeren, gesperrten Maske steht der Stand -->
         <StackPanel x:Name="PaidState" DockPanel.Dock="Top" Spacing="8" IsVisible="{Binding !ShowPayForm}">

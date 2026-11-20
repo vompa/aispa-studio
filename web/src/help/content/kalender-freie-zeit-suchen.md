@@ -9,12 +9,12 @@ stichwoerter: freie Zeit, frei, Lücke, wann ist frei, wann geht, Platz, verfüg
 ---
 # Freie Zeit suchen
 
-Für eine Behandlung zeigt der Kalender die freien Zeiten: in einer Liste rechts und als grüne Flächen in den Spalten. Es gibt immer mindestens drei Vorschläge; ist am Tag weniger frei, geht die Suche an den folgenden Tagen (bis 14) weiter. Welche Person, welcher Raum und welches Gerät passen, rechnet der Server.
+Für eine Behandlung zeigt der Kalender die freien Zeiten: in einer Liste rechts und als grüne Flächen in den Spalten. Es gibt immer mindestens drei Vorschläge; ist am Tag weniger frei, geht die Suche an den folgenden Tagen (bis 14) weiter. Welche Person, welcher Raum und welches Gerät passen, rechnet AISPA Studio.
 
 ## Voraussetzungen {#voraussetzungen}
 
 - Rezeption, Standortleitung oder Inhaber.
-- Eine Verbindung zum Server: „Ohne Verbindung lassen sich freie Zeiten nicht suchen.“
+- Eine Verbindung: „Ohne Verbindung lassen sich freie Zeiten nicht suchen.“
 - Gesucht wird ab dem angezeigten Tag, heute erst ab jetzt; für einen anderen Starttag vorher den Tag wechseln (← → oder **G**).
 
 ## Schritte {#schritte}
@@ -50,14 +50,14 @@ Ohne Gast steht **Neuer Termin** offen und ist schon ausgefüllt: den Gast wähl
 ## Wenn etwas schiefgeht {#wenn-etwas-schiefgeht}
 
 - „An diesem Tag ist nichts frei.“ steht klein über der Liste, wenn die Vorschläge von späteren Tagen kommen. Ist auch in den nächsten 14 Tagen nichts frei, steht darüber eine gelbe Meldung mit der Ursache (zum Beispiel „nachmittags“) und einem Knopf, der die Einschränkung aufhebt, etwa **Tageszeit: egal**.
-- Lehnt der Server beim Buchen für einen Gast ab, bleibt **Neuer Termin** mit dem Gast und der Begründung offen.
+- Lehnt AISPA Studio beim Buchen für einen Gast ab, bleibt **Neuer Termin** mit dem Gast und der Begründung offen.
 - Wer den Wunsch lieber in Worten eintippt („Massage morgen nach 17 Uhr, nicht bei Marco“): [Wunsch eintippen (KI)](hilfe:kalender-ki-anfrage).
 
 
 
 ## Für einen Gast suchen {#gast}
 
-Ist **Gast (optional)** gewählt, trägt der Knopf den Namen („Für Brigitte Müller buchen (Enter)“): ein Klick bucht die gewählte Zeit gleich für diesen Gast. Lehnt der Server ab, bleibt **Neuer Termin** mit dem Gast und der Begründung offen. Die Wünsche des Gastes aus der Kundenkarte fließen in die Suche ein: eine feste Person ist vorgewählt, **Gast wünscht** ist gesetzt, Puffer und „Nicht bei mir“ gelten, und Zeiten außerhalb seiner Wochentage und Uhrzeiten stehen weiter unten mit dem Hinweis „außerhalb der Wunschzeit des Gastes“. Die bevorzugte Person trägt die Pille **Wunsch**.
+Ist **Gast (optional)** gewählt, trägt der Knopf den Namen („Für Brigitte Müller buchen (Enter)“): ein Klick bucht die gewählte Zeit gleich für diesen Gast. Lehnt AISPA Studio ab, bleibt **Neuer Termin** mit dem Gast und der Begründung offen. Die Wünsche des Gastes aus der Kundenkarte fließen in die Suche ein: eine feste Person ist vorgewählt, **Gast wünscht** ist gesetzt, Puffer und „Nicht bei mir“ gelten, und Zeiten außerhalb seiner Wochentage und Uhrzeiten stehen weiter unten mit dem Hinweis „außerhalb der Wunschzeit des Gastes“. Die bevorzugte Person trägt die Pille **Wunsch**.
 
 Im Posteingang steht dieselbe Suche rechts neben einer Anfrage; dort merkt **Vormerken und vorschlagen** die Zeit für den Gast vor, siehe [Freie Zeit für eine Anfrage](hilfe:anfragen-freie-zeit-suchen).
 

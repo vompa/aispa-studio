@@ -8,7 +8,7 @@ stichwoerter: bezahlen, Zahlung, bar, Bargeld, Karte, Bankomat, EC-Karte, Kredit
 ---
 # Bezahlen
 
-Rechts in der Kassa unter „Bezahlen“ steht für jede Zahlungsart der Kasse ein Betragsfeld. Ein Beleg entsteht erst mit **Bezahlen und Beleg erstellen**; der Server signiert ihn und speichert ihn im Kassenjournal.
+Rechts in der Kassa unter „Bezahlen“ steht für jede Zahlungsart der Kassa ein Betragsfeld. Ein Beleg entsteht erst mit **Bezahlen und Beleg erstellen**; er wird signiert und im Kassenjournal gespeichert.
 
 ## Bar {#bar}
 
@@ -30,7 +30,7 @@ Ohne angebundenes Kartenterminal tippt man den Betrag am Kartengerät selbst ein
 
 ## Am angebundenen Kartenterminal {#kartenterminal}
 
-Ist am Standort der Kasse ein Kartenterminal eingerichtet, steht unter dem Feld **Karte** der Knopf **Am Terminal zahlen**.
+Ist am Standort der Kassa ein Kartenterminal eingerichtet, steht unter dem Feld **Karte** der Knopf **Am Terminal zahlen**.
 
 1. Bei **Karte** nichts eintragen (dann geht der offene Rest ans Terminal) oder einen Teilbetrag eintragen.
 2. Auf **Am Terminal zahlen** klicken. Es erscheint „Bitte Karte am Terminal …“.
@@ -50,7 +50,7 @@ Ist am Standort der Kasse ein Kartenterminal eingerichtet, steht unter dem Feld 
 
 - Der QR-Code enthält genau die Daten der Kassa. Ändern Sie den Betrag, verschwindet er; klicken Sie dann erneut auf **Zahlungsdaten anzeigen**.
 - Den Zahlungstext (EPC) kann man aus dem Feld darunter kopieren.
-- Fehlt dem Konto der Kasse die Bankverbindung, nennt die Kassa den Grund und lässt das Feld leer.
+- Fehlt dem Konto der Kassa die Bankverbindung, nennt die Kassa den Grund und lässt das Feld leer.
 
 ## Über Treatwell bezahlt {#treatwell}
 

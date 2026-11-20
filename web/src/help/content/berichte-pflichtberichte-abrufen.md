@@ -28,9 +28,9 @@ Das DEP (Datenerfassungsprotokoll) ist die Aufzeichnung aller signierten Belege 
 
 ## Deutschland: DSFinV-K und TSE-Export {#dsfinvk}
 
-Die DSFinV-K ist die „Digitale Schnittstelle der Finanzverwaltung für Kassensysteme“, das Dateiformat für eine Kassenprüfung. Die TSE ist die technische Sicherheitseinrichtung, die jeden Beleg signiert; ihr Export ist die Datei mit diesen Signaturdaten. „TSE-Export aufbewahren“ bei der Kasse erinnert daran, ihn aufzubewahren.
+Die DSFinV-K ist die „Digitale Schnittstelle der Finanzverwaltung für Kassensysteme“, das Dateiformat für eine Kassenprüfung. Die TSE ist die technische Sicherheitseinrichtung, die jeden Beleg signiert; ihr Export ist die Datei mit diesen Signaturdaten. „TSE-Export aufbewahren“ bei der Kassa erinnert daran, ihn aufzubewahren.
 
-1. Bei der Kasse **DSFinV-K seit Jahresbeginn herunterladen** anklicken. Die Datei reicht vom 1. Jänner bis zum gewählten Datum.
+1. Bei der Kassa **DSFinV-K seit Jahresbeginn herunterladen** anklicken. Die Datei reicht vom 1. Jänner bis zum gewählten Datum.
 2. Für die Daten der TSE **TSE-Export anfordern** anklicken. Die Meldung „TSE-Export angefordert. Er steht gleich in der Liste.“ erscheint.
 3. Warten, bis in der Liste „fertig“ steht, dann den Link mit dem Dateinamen anklicken.
 

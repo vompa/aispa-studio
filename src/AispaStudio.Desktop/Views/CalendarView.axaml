@@ -1884,7 +1884,7 @@
       <StackPanel Spacing="12">
         <!-- Ein Satz; was die Warteliste sonst kann, steht hinter dem Fragezeichen (Durchsicht, Befund 19) -->
         <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6">
-          <TextBlock x:Name="WaitlistIntro" Text="Wird etwas frei, schreibt der Server den Wartenden selbst." Classes="muted" TextWrapping="Wrap" VerticalAlignment="Center" />
+          <TextBlock x:Name="WaitlistIntro" Text="Wird etwas frei, schreibt AISPA Studio den Wartenden selbst." Classes="muted" TextWrapping="Wrap" VerticalAlignment="Center" />
           <ui:HelpButton Grid.Column="1" Topic="kalender-warteliste" Section="uebersicht" VerticalAlignment="Center" />
         </Grid>
         <!-- Tagesliste zum Nachtelefonieren (PDF-Ausgaben E, ADR 0092): Drucken und PDF speichern, ohne Senden -->

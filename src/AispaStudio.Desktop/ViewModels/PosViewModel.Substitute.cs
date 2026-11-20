@@ -338,7 +338,7 @@ public partial class PosViewModel
         Line();
         Line("ERSATZBELEG");
         Line(receipt.SubstituteNumber ?? "");
-        Line($"{DayLayout.Local(receipt.IssuedAt, zone):dd.MM.yyyy HH:mm:ss}  Kasse {receipt.RegisterCode}");
+        Line($"{DayLayout.Local(receipt.IssuedAt, zone):dd.MM.yyyy HH:mm:ss}  Kassa {receipt.RegisterCode}");
         Line(new string('-', width));
         foreach (var l in receipt.Lines)
         {
@@ -363,7 +363,7 @@ public partial class PosViewModel
         }
 
         Line();
-        Line("Die Kasse war nicht erreichbar.");
+        Line("Die Kassa war nicht erreichbar.");
         Line("Der signierte Beleg wird nacherfasst");
         Line("und nennt diese Nummer.");
         return text.ToString();

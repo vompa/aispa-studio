@@ -21,7 +21,7 @@ stichwoerter: Rolle ändern, Rechte ändern, befördern, Standortleitung machen,
 
 ## Gut zu wissen {#hinweise}
 
-- Eine Rolle, die man nicht vergeben darf, bleibt in der Windows-App wählbar. Beim Speichern lehnt der Server ab und die Meldung nennt den Grund; daneben steht „Vergeben kann das nur der Inhaber.“
+- Eine Rolle, die man nicht vergeben darf, bleibt in der Windows-App wählbar. Beim Speichern lehnt AISPA Studio ab und die Meldung nennt den Grund; daneben steht „Vergeben kann das nur der Inhaber.“
 - Den eigenen Zugang kann man nicht ändern; das macht eine andere Person mit Verwaltungsrecht.
 - Inhaber und Manager macht nur der Inhaber; Manager und Standortleitung können niemanden dazu machen und deren Zugänge nicht ändern. Sie vergeben nur ihre eigenen Standorte. **Alle Standorte, auch künftige** erscheint nur, wer selbst für alle Standorte gilt.
 - Bei Standortleitung und Rezeption erscheint der Schalter **Berichte mit Beträgen**. Setzen und entziehen können es nur Inhaber und Manager: [Berichte mit Beträgen](hilfe:zugaenge#berichte-mit-betraegen).

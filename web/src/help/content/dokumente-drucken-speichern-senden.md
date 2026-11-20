@@ -8,7 +8,7 @@ stichwoerter: PDF, PDF speichern, drucken, ausdrucken, per Mail senden, Rechnung
 ---
 # Dokumente drucken, als PDF speichern und per Mail senden
 
-Beleg, Rechnung, Terminbestätigung, Tagesplan und viele weitere Dokumente gibt es als PDF. Überall steht derselbe Block mit den Knöpfen **Drucken**, **PDF speichern** und **Per Mail senden**. Was im PDF steht, rechnet der Server; die App zeigt es nur an.
+Beleg, Rechnung, Terminbestätigung, Tagesplan und viele weitere Dokumente gibt es als PDF. Überall steht derselbe Block mit den Knöpfen **Drucken**, **PDF speichern** und **Per Mail senden**. Was im PDF steht, rechnet AISPA Studio; die App zeigt es nur an.
 
 ## Der Knopfblock {#knopfblock}
 
@@ -31,7 +31,7 @@ In der Kassa gibt es zwei Druckknöpfe: **Drucken** bedient wie bisher den Bondr
 
 ## PDF speichern {#speichern}
 
-1. Auf **PDF speichern** klicken. Der Speicherdialog von Windows öffnet sich mit einem Dateinamen, den der Server vorschlägt, z. B. `Rechnung-K1-142.pdf`.
+1. Auf **PDF speichern** klicken. Der Speicherdialog von Windows öffnet sich mit einem Dateinamen, den AISPA Studio vorschlägt, z. B. `Rechnung-K1-142.pdf`.
 2. Ordner wählen und speichern. Danach steht kurz „Gespeichert: …“ mit dem Dateinamen.
 
 Beim Beleg hat **PDF speichern** einen Pfeil: **PDF im Bon-Format speichern** erzeugt dasselbe Dokument schmal wie einen Bon (80 mm).
@@ -72,4 +72,4 @@ Während ein Dokument lädt, sind alle Knöpfe des Blocks kurz grau. Fehler steh
 - Jedes PDF trägt oben Spa-Name und Firmendaten ([Firmendaten](hilfe:firmendaten)) und unten „Erstellt am … von …“ mit Vorname und Seitenzahl. Es zeigt nur Schwarz und Grau und druckt deshalb auch auf einem Schwarzweißdrucker sauber.
 - Ein Nachdruck eines Belegs trägt den Vermerk „Kopie“.
 - Gesundheitsangaben stehen in keinem Dokument außer der Auskunft über gespeicherte Daten, und dort nur mit dem Recht für die Anamnese. Sonst steht der Satz „Gesundheitsangaben: vorhanden, Auskunft durch die Leitung“.
-- Die Dokumente brauchen eine Verbindung zum Server, weil er sie erstellt.
+- Die Dokumente brauchen eine Verbindung, weil sie nicht in der App erstellt werden.

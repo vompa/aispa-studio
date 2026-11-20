@@ -112,6 +112,6 @@ public partial class CustomersViewModel
 
     /// <summary>Weitere Adressen ändern geht nur mit Verbindung (anders als das Anlegen wird nichts vorgemerkt).</summary>
     private static string? EmailError<T>(ApiResult<T> result) => result.Status == 0
-        ? "Ohne Verbindung zum Server nicht möglich. Weitere Mailadressen lassen sich nur mit Verbindung ändern."
+        ? "Ohne Verbindung nicht möglich. Weitere Mailadressen lassen sich nur mit Verbindung ändern."
         : result.Error;
 }

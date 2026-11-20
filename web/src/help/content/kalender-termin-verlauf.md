@@ -40,7 +40,7 @@ Im Termin-Panel stehen weitere Abschnitte, sobald es dazu etwas gibt:
 
 - Den Verlauf sieht, wer den Termin sieht.
 - Alles, was am Standort passiert ist, über alle Termine hinweg, zeigt die Seite [Verlauf](hilfe:seite-verlauf).
-- Was ohne Person geschieht, nennt den Weg: „automatisch“ für Aufgaben im Hintergrund, „beim Abgleich“ für Änderungen vom zentralen Server.
+- Was ohne Person geschieht, nennt den Weg: „automatisch“ für Aufgaben im Hintergrund, „beim Abgleich“ für Änderungen von einem anderen PC.
 - Der Verlauf bleibt 3 Jahre und wird mit dem Gast gelöscht. Inhalte von Gesundheitsdaten stehen nie darin.
 - Termine aus der Zeit vor dem Verlauf zeigen „Noch keine Einträge.“
 - Die Behandlung eines gebuchten Termins lässt sich nicht ändern. Dafür den Termin stornieren und neu buchen, siehe [Termin stornieren](hilfe:kalender-termin-stornieren) und [Termin verschieben](hilfe:kalender-termin-verschieben).

@@ -14,7 +14,7 @@ internal sealed class RksvFiscalization(IRksvSignatureDevice device) : IFiscaliz
 
     public string? Notice => device.ZdaId == "AT0"
         ? "Test-Signatureinrichtung: nicht für den Echtbetrieb. Vor dem Start eine zertifizierte Signatureinrichtung anbinden, " +
-          "Kasse und Signatureinrichtung in FinanzOnline registrieren und den Startbeleg mit der BMF-Belegcheck-App prüfen."
+          "Kassa und Signatureinrichtung in FinanzOnline registrieren und den Startbeleg mit der BMF-Belegcheck-App prüfen."
         : null;
 
     public async Task<string?> InitializeAsync(CashRegister register, CancellationToken ct)

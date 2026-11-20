@@ -36,7 +36,7 @@ public sealed partial class AiViewModel : ViewModelBase, INativeArea, IDisposabl
 
     public bool HasLoadError => LoadError is not null;
 
-    public string ClaudeText => _status is { Claude: true } ? "Eingeschaltet." : "Aus: auf diesem Server ist kein API-Schlüssel gesetzt.";
+    public string ClaudeText => _status is { Claude: true } ? "Eingeschaltet." : "Aus: es ist kein API-Schlüssel gesetzt.";
 
     public string LocalText => _status?.Local switch
     {

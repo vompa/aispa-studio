@@ -59,7 +59,7 @@ internal static class ReceiptPrinter
         }
         else
         {
-            Columns($"{KindLabel(receipt.Kind)} Nr. {receipt.Number}", $"Kasse {receipt.RegisterCode}");
+            Columns($"{KindLabel(receipt.Kind)} Nr. {receipt.Number}", $"Kassa {receipt.RegisterCode}");
         }
 
         Line(issued.ToString("dd.MM.yyyy HH:mm:ss", German));

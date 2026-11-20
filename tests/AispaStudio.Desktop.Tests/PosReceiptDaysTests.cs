@@ -69,13 +69,13 @@ public sealed class PosReceiptDaysTests
         await pos.ShowPreviousReceiptDayCommand.ExecuteAsync(null);
 
         Assert.Equal("Belege Samstag, 17. Oktober 2026", pos.ReceiptsTitle);
-        Assert.Equal("An diesem Tag gab es keine Belege an dieser Kasse.", pos.ReceiptsEmptyText);
+        Assert.Equal("An diesem Tag gab es keine Belege an dieser Kassa.", pos.ReceiptsEmptyText);
         Assert.Empty(pos.Receipts);
 
         await pos.ShowClosingCommand.ExecuteAsync(null);
         await pos.ShowReceiptsCommand.ExecuteAsync(null);
 
         Assert.Equal("Belege heute", pos.ReceiptsTitle);
-        Assert.Equal("Heute noch keine Belege an dieser Kasse.", pos.ReceiptsEmptyText);
+        Assert.Equal("Heute noch keine Belege an dieser Kassa.", pos.ReceiptsEmptyText);
     }
 }

@@ -612,13 +612,13 @@ public partial class PosViewModel : ViewModelBase, IFocusTarget
 
         if (Registers.Count == 0 && registers.Value.Any(r => r.IsActive))
         {
-            Error = "Die Kassen dieses Spas kassieren an einer anderen Stelle (anderer PC oder Server). Für diesen PC bitte eine eigene Kasse anlegen.";
+            Error = "Die Kassen dieses Spas kassieren an einer anderen Stelle (an einem anderen PC). Für diesen PC bitte eine eigene Kassa anlegen.";
             return;
         }
 
         if (Registers.Count == 0)
         {
-            Error = "An diesem Standort ist noch keine Kasse eingerichtet. Kassen legt die Standortleitung unter „Verwaltung“ → „Kassa“ an.";
+            Error = "An diesem Standort ist noch keine Kassa eingerichtet. Kassen legt die Standortleitung unter „Verwaltung“ → „Kassa“ an.";
             return;
         }
 
@@ -1780,7 +1780,7 @@ public sealed class ReceiptViewModel(ReceiptDto receipt, TimeZoneInfo zone, Fisc
 
     public string? VoidReason => Receipt.VoidReason is { } reason ? $"Storno: {reason}" : null;
 
-    public string Subtitle => $"Kasse {Receipt.RegisterCode} · {DayLayout.Local(Receipt.IssuedAt, zone):dd.MM.yyyy HH:mm}";
+    public string Subtitle => $"Kassa {Receipt.RegisterCode} · {DayLayout.Local(Receipt.IssuedAt, zone):dd.MM.yyyy HH:mm}";
 
     public IReadOnlyList<string> Header => Receipt.ReceiptHeader.Split('\n', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
 

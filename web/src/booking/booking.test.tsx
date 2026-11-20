@@ -112,12 +112,12 @@ describe('Online-Buchung', () => {
     routes['GET /api/online/locations'] = () => (fail ? { status: 500 } : { status: 200, body: [location] })
     render(<BookingApp />)
 
-    expect(await screen.findByText(/Keine Verbindung zum Server/)).toBeTruthy()
+    expect(await screen.findByText(/Keine Verbindung/)).toBeTruthy()
     fail = false
     fireEvent.click(screen.getByRole('button', { name: 'Erneut versuchen' }))
 
     expect(await screen.findByText('Schritt 1 von 3')).toBeTruthy()
-    expect(screen.queryByText(/Keine Verbindung zum Server/)).toBeNull()
+    expect(screen.queryByText(/Keine Verbindung/)).toBeNull()
   })
 
   it('Given ein Standort ohne Behandlungen When die Seite das meldet Then führt „Anderen Standort wählen“ zurück zur Auswahl', async () => {
@@ -557,7 +557,7 @@ describe('Online-Buchung', () => {
         locationName: 'Wien Innere Stadt',
         currency: 'EUR',
         available: false,
-        reason: 'An diesem Standort gibt es noch keine Kasse für den Gutscheinverkauf.',
+        reason: 'An diesem Standort gibt es noch keine Kassa für den Gutscheinverkauf.',
         minAmount: 10,
         maxAmount: 500,
         suggestedAmounts: [],
@@ -568,7 +568,7 @@ describe('Online-Buchung', () => {
     window.location.hash = '#/gutschein'
     render(<BookingApp />)
 
-    expect((await screen.findByRole('alert')).textContent).toContain('noch keine Kasse')
+    expect((await screen.findByRole('alert')).textContent).toContain('noch keine Kassa')
     expect(screen.queryByRole('button', { name: 'Weiter zur Zahlung' })).toBeNull()
   })
 

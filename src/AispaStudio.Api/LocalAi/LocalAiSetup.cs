@@ -55,7 +55,7 @@ internal static class LocalAiSetup
             {
                 if (!options.Value.Enabled)
                 {
-                    return Results.Problem("Das lokale KI-Modell ist auf diesem Server nicht eingerichtet.", statusCode: StatusCodes.Status409Conflict);
+                    return Results.Problem("Das lokale KI-Modell ist nicht eingerichtet.", statusCode: StatusCodes.Status409Conflict);
                 }
 
                 if (!status.Downloading)

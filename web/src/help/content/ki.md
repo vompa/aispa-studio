@@ -8,7 +8,7 @@ stichwoerter: künstliche Intelligenz, Claude, offline, ohne Internet, Ollama, l
 ---
 # KI
 
-AISPA Studio arbeitet mit zwei KI-Arten, beide sind freiwillig. Claude läuft über das Internet und kann am meisten. Das lokale Modell läuft im eigenen Netz, auch ohne Internet, und übernimmt nur einfache Aufgaben. Ohne beide arbeitet AISPA Studio nach festen Regeln weiter. Pflichtzahlen wie Kasse, Steuer und Berichte für Behörden rechnet nie eine KI, und freie Zeiten rechnet immer der Kalender.
+AISPA Studio arbeitet mit zwei KI-Arten, beide sind freiwillig. Claude läuft über das Internet und kann am meisten. Das lokale Modell läuft im eigenen Netz, auch ohne Internet, und übernimmt nur einfache Aufgaben. Ohne beide arbeitet AISPA Studio nach festen Regeln weiter. Pflichtzahlen wie Kassa, Steuer und Berichte für Behörden rechnet nie eine KI, und freie Zeiten rechnet immer der Kalender.
 
 Den Stand beider sieht die Leitung in der Windows-App unter „Verwaltung“ › „Kontakt“ › „KI“. Die Maske zeigt den Stand und lädt das lokale Modell herunter; einen Schlüssel trägt man dort nicht ein.
 
@@ -23,7 +23,7 @@ Jede Nachricht, die eine KI an Gäste schreibt, trägt einen Hinweis darauf. Den
 Ein kleines Sprachmodell (Standard: Gemma 3 mit 4 Milliarden Parametern) läuft auf dem eigenen PC oder Server, ohne Grafikkarte und ohne Internet. Es macht zwei Dinge:
 
 - Es liest Terminwünsche aus Mails und Nachrichten und zerlegt sie in Behandlung, Standort, Person und Wunschzeit, zum Beispiel „morgen 17 Uhr Massage, nicht bei Marco“. Welche Zeiten frei sind, rechnet danach der Kalender.
-- Es versteht Fragen ans Team im Assistenten („Was steht morgen an?“, „Wie lief letzte Woche?“, „Wie storniere ich einen Beleg?“). Die Zahlen dazu rechnet der Server, die Antwort auf Hilfefragen kommt aus dem Handbuch.
+- Es versteht Fragen ans Team im Assistenten („Was steht morgen an?“, „Wie lief letzte Woche?“, „Wie storniere ich einen Beleg?“). Die Zahlen dazu rechnet AISPA Studio, die Antwort auf Hilfefragen kommt aus dem Handbuch.
 
 Antworten an Gäste, Übersetzungen und Zusammenfassungen schreibt es nicht. Kleine Modelle formulieren vor allem auf Französisch und Italienisch zu unsicher; ohne Claude kommen Antworten deshalb aus den festen Textbausteinen.
 

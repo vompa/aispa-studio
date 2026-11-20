@@ -22,7 +22,7 @@ Den Stand und abgelehnte Einträge sehen alle, die angemeldet sind. Als erledigt
 
 Zeigt, welche zentrale Datenbank eingetragen ist (Server und Name der Datenbank, nie das Passwort), wann zuletzt abgeglichen wurde und wie viele Änderungen dieses PCs noch auf den nächsten Abgleich warten („Alle Änderungen dieses PCs sind übertragen.“ oder „1 Änderung wartet auf den nächsten Abgleich.“ bzw. „3 Änderungen warten auf den nächsten Abgleich.“).
 
-Ist der letzte Abgleich fehlgeschlagen, steht der Grund in einer Warnung unter „Stand“, z. B. keine Verbindung zum Server oder ein Schlüsselcode, der nicht passt. Der nächste Versuch folgt von selbst. „Neu laden“ holt den aktuellen Stand, ohne einen Abgleich auszulösen.
+Ist der letzte Abgleich fehlgeschlagen, steht der Grund in einer Warnung unter „Stand“, z. B. keine Verbindung oder ein Schlüsselcode, der nicht passt. Der nächste Versuch folgt von selbst. „Neu laden“ holt den aktuellen Stand, ohne einen Abgleich auszulösen.
 
 ## Beim Abgleich abgelehnt {#abgelehnt}
 
@@ -73,5 +73,5 @@ Trägt die zentrale Datenbank aus und startet AISPA Studio auf diesem PC kurz ne
 
 - **Stammdaten, Kunden, Dienstplan**: Die zuletzt gespeicherte Änderung gilt.
 - **Termine**: Über die Belegung entscheidet die zentrale Datenbank. Kollidiert ein hier gebuchter Termin, wird er nicht gelöscht, sondern unter „Beim Abgleich abgelehnt“ gezeigt.
-- **Kassa**: Jede Kasse gehört genau einer Stelle. Belege, Kassenjournal und Tagesabschlüsse werden nur übertragen, nie überschrieben und nie an einer anderen Stelle nachsigniert.
+- **Kassa**: Jede Kassa gehört genau einer Stelle. Belege, Kassenjournal und Tagesabschlüsse werden nur übertragen, nie überschrieben und nie an einer anderen Stelle nachsigniert.
 - **Gesundheitsdaten** bleiben verschlüsselt; übertragen wird nur der verschlüsselte Inhalt.

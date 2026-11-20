@@ -126,7 +126,7 @@ public partial class PosViewModel
     {
         if (Payments.FirstOrDefault(p => p.IsVoucher) is not { } entry)
         {
-            Error = "Gutscheine sind an dieser Kasse nicht als Zahlungsart eingestellt.";
+            Error = "Gutscheine sind an dieser Kassa nicht als Zahlungsart eingestellt.";
             return;
         }
 

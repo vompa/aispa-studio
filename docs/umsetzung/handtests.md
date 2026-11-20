@@ -1672,3 +1672,20 @@ Expected: Beide Knöpfe stehen nebeneinander rechts in Zeile 2, kein Chip liegt 
 Expected: Beide Knöpfe verschwinden; die Chips der Zeile 2 stehen wie bisher.
 Closes: R1 der Masken-Durchsicht vom 19.11.2026 (Knopf am rechten Kalenderrand deckt Kartentext)
 Result: ☐
+
+### T-088 – Begriffe: „Kassa“, „Haupt-PC“, „Server“
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App als Inhaberin anmelden
+1. Die **Kassa** öffnen und die Auswahl oben ansehen.
+Expected: Dort steht „Kassa WIEN-1“, nicht „Kasse WIEN-1“.
+2. Einen Termin kassieren und den Beleg ansehen; danach den Tagesabschluss als PDF öffnen.
+Expected: Auf Beleg und Tagesabschluss steht „Kassa“ vor der Kassen-ID. „Kassenlade“ und „Kassenjournal“ heißen wie bisher.
+3. Die API anhalten (im Aspire-Dashboard den Dienst stoppen) und in der App **Verbindung prüfen** klicken.
+Expected: Die Warnung beginnt mit „Keine Verbindung.“ und nennt keinen Server.
+4. Im **Kalender** die **Warteliste** öffnen.
+Expected: Der Hinweis lautet „Wird etwas frei, schreibt AISPA Studio den Wartenden selbst.“
+5. Die Hilfe öffnen und nach „Kasse“ suchen.
+Expected: Die Seiten zur Kassa erscheinen (Suchwort bleibt), im Text steht „Kassa“.
+6. Gegenprobe: **System** › **Netz** öffnen.
+Expected: „Mit Server verbinden“ und „Haupt-PC“ stehen dort wie bisher.
+Closes: Regelfrage „einheitliche Begriffe“ der Masken-Durchsicht vom 19.11.2026
+Result: ☐

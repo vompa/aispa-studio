@@ -396,7 +396,7 @@ public partial class AreasViewModel : ViewModelBase
         }
 
         Info = result.Queued
-            ? $"Ohne Verbindung vorgemerkt: {name}, {when}. Ob Platz ist, prüft der Server beim Abgleich."
+            ? $"Ohne Verbindung vorgemerkt: {name}, {when}. Ob Platz ist, prüft AISPA Studio beim Abgleich."
             : $"{name}: {when} gebucht.{(result.Value.Warnings is { Count: > 0 } warnings ? " " + string.Join(" ", warnings) : "")}";
         Search.Customer = null;
         Search.Query = "";

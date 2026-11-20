@@ -251,7 +251,7 @@ Ein Einzelplatz oder ein Standort kann seine Daten mit einer zentralen Datenbank
 
 ## KI {#ki}
 
-Claude übernimmt Terminannahme, Assistent, Zusammenfassungen, Texte für die Wiederbuchungs-Hinweise und das Lesen von Anamnesebögen auf Papier. Ohne Schlüssel arbeitet der Server ohne KI: Die Terminannahme läuft nach festen Regeln, Papierbögen überträgt das Team von Hand. Pflichtzahlen wie Kasse und Steuer rechnet nie die KI.
+Claude übernimmt Terminannahme, Assistent, Zusammenfassungen, Texte für die Wiederbuchungs-Hinweise und das Lesen von Anamnesebögen auf Papier. Ohne Schlüssel arbeitet der Server ohne KI: Die Terminannahme läuft nach festen Regeln, Papierbögen überträgt das Team von Hand. Pflichtzahlen wie Kassa und Steuer rechnet nie die KI.
 
 - `Ai:Claude:ApiKey`: API-Schlüssel von Anthropic. Ist er gesetzt, ist die KI an. Nur über Geheimnisspeicher, Umgebungsvariable oder in der Entwicklung über User-Secrets. In Docker Compose zum Beispiel aus der Variable `AISPA_CLAUDE_API_KEY` in einer Datei `.env`.
 - `Ai:Provider`: `RuleBased` schaltet die KI ganz ab, auch wenn ein Schlüssel gesetzt ist, und auch das lokale Modell. Ohne Angabe gilt der Schlüssel.

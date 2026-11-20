@@ -11,7 +11,7 @@ Die Seite „Geräte“ in der Windows-App gilt nur für den PC, an dem Sie gera
 
 ## Bondrucker {#bondrucker}
 
-Ein Bondrucker im Netzwerk, der ESC/POS versteht (übliche Geräte von Epson, Star oder Bixolon). Die App schickt die Daten direkt über Port 9100 an den Drucker; einen Windows-Druckertreiber braucht es nicht. Den Beleg samt QR-Code und Papierschnitt erzeugt der Server, die App reicht ihn nur weiter.
+Ein Bondrucker im Netzwerk, der ESC/POS versteht (übliche Geräte von Epson, Star oder Bixolon). Die App schickt die Daten direkt über Port 9100 an den Drucker; einen Windows-Druckertreiber braucht es nicht. Den Beleg samt QR-Code und Papierschnitt erzeugt AISPA Studio, die App reicht ihn nur weiter.
 
 Die Einstellungen gelten nur an diesem PC und werden erst mit „Speichern“ übernommen. Ändern darf sie jede Person, die die Seite sieht.
 
@@ -40,7 +40,7 @@ Ohne Adresse eines Bondruckers hat der Haken keine Wirkung.
 
 ### Probedruck {#probedruck}
 
-Schickt sofort einen kurzen Zettel mit „AISPA Studio“, „Probedruck“, Datum und Uhrzeit an die eingetragene Adresse und schneidet das Papier ab. Der Probedruck geht direkt an den Drucker, ohne Beleg und ohne Server; er braucht kein vorheriges „Speichern“.
+Schickt sofort einen kurzen Zettel mit „AISPA Studio“, „Probedruck“, Datum und Uhrzeit an die eingetragene Adresse und schneidet das Papier ab. Der Probedruck geht direkt an den Drucker, ohne Beleg und ohne Verbindung; er braucht kein vorheriges „Speichern“.
 
 Daneben steht das Ergebnis: „Probedruck geschickt.“ oder die Fehlermeldung. Ist keine Adresse eingetragen, erscheint „Erst die Adresse des Druckers eintragen.“
 
@@ -48,14 +48,14 @@ Daneben steht das Ergebnis: „Probedruck geschickt.“ oder die Fehlermeldung. 
 
 Ein Kartenterminal im Netz, das AISPA Studio selbst ansteuert: Die Kassa schickt den Betrag, das Terminal fragt die Karte ab, und das Ergebnis kommt automatisch zurück. Unterstützt werden die Protokolle ZVT (Deutschland, Österreich) und OPI (z. B. Worldline, Schweiz).
 
-Wichtig: Ein Terminal darf nur an **einem** PC gewählt sein, an dem PC, neben dem es steht. Nur dieser PC schickt Zahlungen, Stornos und Gutschriften an das Gerät; Kassen auf anderen PCs geben ihre Kartenzahlungen über den Server an ihn weiter. Die App muss an diesem PC dafür offen sein.
+Wichtig: Ein Terminal darf nur an **einem** PC gewählt sein, an dem PC, neben dem es steht. Nur dieser PC schickt Zahlungen, Stornos und Gutschriften an das Gerät; Kassen auf anderen PCs geben ihre Kartenzahlungen über AISPA Studio an ihn weiter. Die App muss an diesem PC dafür offen sein.
 
 ### Terminal an diesem PC {#terminal-auswahl}
 
 Die Auswahlliste zeigt alle Terminals im Netz der Standorte, die Sie sehen dürfen, jeweils mit Name, Standort, Protokoll und Adresse, z. B. „Empfang · Gmunden · ZVT 192.168.1.50:20007“.
 
 - „Keines (Karte am eigenständigen Gerät oder anderer PC)“ ist der Standard. Dann steuert dieser PC kein Terminal an; Kartenzahlungen tippt man am eigenständigen Gerät ein oder sie laufen über das Terminal eines anderen PCs.
-- Die Wahl gilt erst nach „Speichern“. Danach verbindet sich dieser PC mit dem Terminal und fragt alle zwei Sekunden beim Server nach, ob eine Zahlung, ein Storno oder eine Gutschrift wartet.
+- Die Wahl gilt erst nach „Speichern“. Danach verbindet sich dieser PC mit dem Terminal und fragt alle zwei Sekunden bei AISPA Studio nach, ob eine Zahlung, ein Storno oder eine Gutschrift wartet.
 - Wählen und speichern darf jede Person, die die Seite sieht.
 
 Unter der Auswahl steht, was das Terminal zuletzt gemeldet hat, z. B. „Wartet auf Zahlungen.“ Ein gelber Hinweis erscheint, wenn die Verbindung zum Terminal mitten in einer Zahlung abgebrochen ist. Dann ist unklar, ob die Karte belastet wurde: am Terminal oder auf dem Terminal-Beleg nachsehen und in der Kassa entsprechend weiterarbeiten. Die App meldet so einen Fall nicht von selbst als bezahlt.

@@ -22,7 +22,7 @@ Läuft an diesem Standort eine Aktion, die zu einer Position auf der Rechnung pa
 
 - Nichts wird von selbst angewendet. Ohne Klick bleibt der volle Preis.
 - Passen mehrere Aktionen, steht die mit dem höheren Rabatt zuerst. Angewendet wird immer nur eine; danach gibt es für diese Positionen keinen Vorschlag mehr.
-- Den Rabatt rechnet die Kassa auf dem Server; er geht wie jeder Rabatt in Summe, Umsatzsteuer, Signatur und Beleg ein. Es entsteht kein Umsatz an der Kassa vorbei.
+- Den Rabatt rechnet die Kassa; er geht wie jeder Rabatt in Summe, Umsatzsteuer, Signatur und Beleg ein. Es entsteht kein Umsatz an der Kassa vorbei.
 - Die Aktion braucht keine Freigabe über der [Rabattgrenze](hilfe:kassa#rabattgrenze): Inhaberin oder Leitung haben sie festgelegt.
 - Eine Position, die schon einen Rabatt hat (Kundenrabatt oder von Hand gegeben), bekommt die Aktion nicht dazu; der erste Rabatt geht vor. Dann gibt es für diese Position keinen Vorschlag.
 - Wer die Aktion nicht geben will, klickt nicht auf **Anwenden**. Einen schon angewendeten Rabatt nimmt man mit dem Prozentzeichen an der Position zurück ([Rabatt geben](hilfe:kassa-rabatt-geben)); bei einem Paket das Paket entfernen und neu verkaufen.

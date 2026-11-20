@@ -57,7 +57,7 @@ public static partial class ReceiptOnlineDepositHandler
                 .Where(r => r.LocationId == deposit.LocationId && r.IsActive).OrderBy(r => r.Code).FirstOrDefaultAsync(ct);
             if (register is null)
             {
-                await FailAsync(online, deposit, "An diesem Standort gibt es keine aktive Kasse mehr.", logger, ct);
+                await FailAsync(online, deposit, "An diesem Standort gibt es keine aktive Kassa mehr.", logger, ct);
                 return;
             }
 

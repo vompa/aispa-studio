@@ -24,7 +24,7 @@ Der Reiter „Tagesstart“ fasst für die Rezeption zusammen, was an einem Tag 
 - **Personal**: jede Person als Zeitleiste von der Öffnung bis zum Schluss. Die Balken sind die Dienstzeiten, die Zeiten stehen daneben als Text. Wer abwesend ist, zeigt statt der Leiste den Grund, z. B. „Urlaub“.
 - **Gäste**: Erstbesuche und Geburtstage.
 - **Räume und Geräte**: was zu welcher Zeit gesperrt ist und warum.
-- **Kassa**: der Anfangsbestand laut letztem Abschluss als Wert, bei einer Kassa ohne Abschluss „kein Abschluss“. Warnungen der Kasse, z. B. zur Signatur, stehen darunter als Warnung.
+- **Kassa**: der Anfangsbestand laut letztem Abschluss als Wert, bei einer Kassa ohne Abschluss „kein Abschluss“. Warnungen der Kassa, z. B. zur Signatur, stehen darunter als Warnung.
 - **Wichtig laut Handbuch**: Einträge des [Rezeptionshandbuchs](hilfe:handbuch), die als „wichtig – am Tagesstart erinnern“ markiert sind und an diesem Wochentag gelten.
 - **Bereitstellen**: die Summen des Tages, z. B. „6 × Früchteteller: 11:20, 12:40 …“, darunter je Termin eine Zeile mit Uhrzeit, Gast, Raum und Wunsch des Gastes (z. B. Teesorte); mit dem Häkchen wird abgehakt, mit Person und Zeit. Wo ein Gesundheitsfragebogen vorliegt, steht „Anamnese beachten“ – nie sein Inhalt. Eingerichtet wird das unter [Behandlungen, Zum Termin bereitstellen](hilfe:behandlungen#zum-termin-bereitstellen).
 

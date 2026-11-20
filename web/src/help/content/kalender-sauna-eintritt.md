@@ -27,7 +27,7 @@ Bereiche wie Sauna oder Ruheraum haben keine Termine, sondern Eintritte mit Von,
 6. Optional eine Notiz (z. B. „mit Begleitung“).
 7. Auf **Eintritt buchen** klicken. Darunter steht z. B. „Gerhard Lang: Sauna 14:00–17:00 gebucht.“
 
-- Ob noch Platz ist, prüft der Server; ist der Bereich voll, erscheint die Begründung rot.
+- Ob noch Platz ist, prüft AISPA Studio; ist der Bereich voll, erscheint die Begründung rot.
 
 ## Eintritt stornieren {#stornieren}
 
@@ -41,4 +41,4 @@ Beim Eintritt auf das Kassa-Symbol (**Eintritt an der Kassa abrechnen**) klicken
 
 - Bereich-Knopf, Taste **S** und Menüeintrag gibt es nur an Standorten mit Bereichen. Ein Raum wird unter „Verwaltung“ › „Betrieb“ › „Standorte & Räume“ zum Bereich, siehe [Standorte & Räume](hilfe:standorte#bereich).
 - Ansehen dürfen alle; buchen, stornieren und kassieren nur Rezeption, Standortleitung und Inhaber.
-- Ohne Verbindung wird ein Eintritt vorgemerkt („vorgemerkt“ in der Liste); ob Platz ist, prüft der Server beim Abgleich. Stornieren und Kassieren brauchen eine Verbindung.
+- Ohne Verbindung wird ein Eintritt vorgemerkt („vorgemerkt“ in der Liste); ob Platz ist, prüft AISPA Studio beim Abgleich. Stornieren und Kassieren brauchen eine Verbindung.
