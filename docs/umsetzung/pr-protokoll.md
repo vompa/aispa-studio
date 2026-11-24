@@ -7726,3 +7726,21 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Geprüft:** `dotnet format AispaStudio.slnx --verify-no-changes` und Build Release grün, die OpenAPI-Datei bleibt dabei unverändert. Windows-App: 2643 von 2644 Tests ohne Ansichtstests grün (1 übersprungen), alle 1623 Ansichtstests in einem Prozess grün. Web: `gen:api` ohne Änderung, `lint`, `typecheck`, 404 Tests, `build` und `check:bundle` grün (Kundenbereich 86,6 kB gzip). Sechs Bilder angesehen, keines über 300 kB.
 - **API-Tests:** Im Gesamtlauf 2421 von 2462 grün, 40 rot in 18 Klassen, alle mit Zeitüberschreitung (`TaskCanceledException`, Status 499, `HttpClient.Timeout`); jede der 18 Klassen lief einzeln wiederholt grün. Gewertet als Last auf dem Rechner der Prüfung, nicht als Fehler der Änderung; die CI auf `dev` ist die Gegenprobe.
 - **Nicht geprüft:** Live-Tests (nur gebaut); `kalender-raeume.png` zeigt keinen der neuen Knöpfe, weil im Bild alle Räume Platz haben (die Knöpfe belegen die Bildtests aus T-087).
+
+## Beispieldaten für die Vorschau im Designer: Muster an der Kundenliste (Aufgabe T-089, 24.11.2026)
+
+- **Auftrag:** Der Auftraggeber hat am 24.11.2026 Beispieldaten in C# statt JSON gewählt („wäre dann nicht C# überall sinnvoll?“) und beauftragt: „richte das als Muster für die Kundenliste ein“.
+- **Was:**
+  1. Neuer Ordner `src/AispaStudio.Desktop/Design/`: `DesignApi` (ein `HttpMessageHandler` mit festen Antworten je `GET`-Pfad hinter dem echten `ApiClient`), `DesignCustomers` (fünf Kundinnen und Kunden, vier Termine relativ zu heute, Antworten auf alle zehn Aufrufe der Kundenkarte) und `DesignData.Customers`.
+  2. `CustomersView.axaml` bekommt `Design.DataContext` mit `x:Static` sowie `d:DesignWidth`/`d:DesignHeight`. Die Vorschau in Visual Studio zeigt damit die Liste und die geöffnete Karte der ersten Kundin.
+  3. Zwei Ansichtstests in `ViewTests.DesignData.cs`: Die Ansicht zeigt mit den Beispieldaten Liste, Name und Termine ohne Fehler; der Verweis in `Design.DataContext` führt auf eine vorhandene öffentliche Eigenschaft vom Typ des `x:DataType`.
+- **Detailentscheidungen:**
+  1. Der echte `ApiClient` mit einem eigenen Handler statt eines Nachbaus von `IWorkstationApi` (rund 30 Mitglieder). Serialisierung (`ApiClient.Json`) und Pfade mit `/v1` laufen wie im Betrieb. Dasselbe Muster nutzt `StubApi` in den Tests; zusammengelegt wird erst ab der dritten Stelle.
+  2. Termine relativ zu heute statt eines festen `TimeProvider`, damit die Vorschau nie einen leeren Verlauf zeigt.
+  3. `DesignData` ist `public`, weil die Vorschau `x:Static` erst zur Laufzeit auflöst. `DesignApi` und `DesignCustomers` bleiben `internal`.
+  4. Der Avalonia-XAML-Compiler entfernt `Design.*` vor der Typauflösung (`AvaloniaXamlIlDesignPropertiesTransformer`; die kompilierte App enthält keinen Verweis). Der Build prüft den Verweis deshalb nicht, dafür gibt es den zweiten Test. Zur Laufzeit greift niemand auf die Beispieldaten zu; sie liegen mit wenigen KB im Paket.
+  5. Die Tests liegen als `ViewTests.DesignData.cs` in der Klasse `ViewTests`, weil sie deren Fenster-Hilfe `InWindow` brauchen (geplant war eine eigene Klasse `DesignDataTests`).
+- **Geprüft:** `dotnet format AispaStudio.slnx --verify-no-changes` (Exitcode 0), `dotnet build AispaStudio.slnx -c Release` (0, keine Warnung), die zwei neuen Tests grün. Gegenprobe: Mit `DesignData.Kunden` statt `DesignData.Customers` wird der zweite Test rot („keine öffentliche statische Eigenschaft“).
+- **Nicht geprüft:** die Vorschau in Visual Studio selbst (prüft der Auftraggeber nach einem Build mit dem Avalonia XAML Editor); die übrigen Ansichtstests (laufen am Ende der Runde).
+- **Beim Schreiben festgestellt:** Nur `MainWindow.axaml` hatte bisher einen `Design.DataContext`; die übrigen Ansichten zeigen in der Vorschau keine Daten.
+- **Text-Prüfung:** dieser Abschnitt nach [texte.md](../gestaltung/texte.md) durchgesehen (aktiv, Gegenwart, keine Namen).

@@ -4,9 +4,19 @@
              xmlns:c="using:AispaStudio.Contracts"
              xmlns:ui="using:AispaStudio.Desktop.Controls"
              xmlns:local="using:AispaStudio.Desktop.Views"
+             xmlns:design="using:AispaStudio.Desktop.Design"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="1280" d:DesignHeight="800"
              x:Class="AispaStudio.Desktop.Views.CustomersView"
              x:Name="Root"
              x:DataType="vm:CustomersViewModel">
+
+  <!-- Beispieldaten nur für die Vorschau im Designer (Design/DesignData.cs); der Compiler entfernt sie aus der App. -->
+  <Design.DataContext>
+    <x:Static Member="design:DesignData.Customers" />
+  </Design.DataContext>
+
   <Grid ColumnDefinitions="380,*" RowDefinitions="Auto,*" Margin="16">
     <!-- Kopfzeile -->
     <Grid Grid.ColumnSpan="2" ColumnDefinitions="*,Auto" Margin="0,0,0,12">
