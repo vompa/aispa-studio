@@ -16,6 +16,9 @@ internal sealed class StartupState(TimeProvider time)
     private string _failure = "";
     private TaskCompletionSource _ready = Completed();
 
+    /// <summary>Hinweis bei bereitem Start, z. B. abgelaufene Beispieldaten (T-091); steht dann statt „Bereit“ im Text.</summary>
+    public string Notice { get; set; } = "";
+
     public void Begin(StartupPhase phase)
     {
         lock (_gate)
@@ -80,7 +83,7 @@ internal sealed class StartupState(TimeProvider time)
                 StartupPhase.Migrating => $"Datenbank wird migriert (seit {seconds} s)",
                 StartupPhase.Seeding => $"Beispiel-Spa wird eingerichtet (seit {seconds} s)",
                 StartupPhase.Failed => _failure,
-                _ => "Bereit",
+                _ => Notice.Length > 0 ? Notice : StartupInfo.ReadyText,
             });
         }
     }

@@ -7762,3 +7762,25 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Nicht geprüft:** die übrigen Ansichtstests (laufen am Ende der Runde). Die Vorschau in Visual Studio hat der Auftraggeber am 25.11.2026 geprüft: Der Kalender zeigt die Termine des Beispieltags.
 - **Beim Schreiben festgestellt:** Terminkarten im Kalender sind `AppointmentCard`-Steuerelemente; der Name steht dort nicht als einfacher `TextBlock`. Der Test prüft deshalb die Karte.
 - **Text-Prüfung:** dieser Abschnitt nach [texte.md](../gestaltung/texte.md) durchgesehen (aktiv, Gegenwart, keine Namen).
+
+## Veraltete Beispieldaten beim Start erkennen und neu einspielen (Aufgabe T-091, 25.11.2026)
+
+- **Auftrag:** Der Kalender war leer, weil die Beispieldaten vom 20.10.2026 nur bis 17.11.2026 reichten. Der Auftraggeber hat am 25.11.2026 beauftragt: „leg die Aufgabe an und plane A mit C und nur im debug oder bei flag demo“, also automatisch neu einspielen im Debug-Build und im Beispiel-Spa, sonst nur ein Hinweis. Den Ort des Hinweises hat er gewählt: Log und Anmeldemaske.
+- **Was:**
+  1. Neu `Demo/StaleDemoData.cs`: Prüfung beim Start vor DbContext und Wolverine, Neuanlegen der Datenbank, Logzeilen.
+  2. `Program.cs` ruft die Prüfung nach `DemoSpa.ApplyAsync` auf und meldet das Ergebnis nach `builder.Build()`.
+  3. `StartupState.Notice`: Bei bereitem Start steht der Hinweis statt „Bereit“ im Text (Health-Check `startup`, `/api/system/status`); der Health-Check bleibt gesund. `StartupInfo.ReadyText` als Konstante in Contracts.
+  4. `LoginViewModel` zeigt einen Text auch bei bereitem Start, wenn er nicht „Bereit“ lautet; die Testkonten laden trotzdem, und die Anmeldung fragt dann nicht weiter nach.
+  5. Tests: `StaleDemoDataTests` (Regel, Neuanlegen mit Erlaubnis, Hinweis ohne Erlaubnis, Schutz ohne Beispielkonten) und ein Test in `LoginStartupTests`. `ApiFixture` setzt `DemoData:RefreshWhenStale=false`.
+- **Detailentscheidungen:**
+  1. Veraltet heißt: Der späteste Termin liegt weniger als 14 Tage voraus, bei kurzer Vorschau (`WeeksAhead` 1) weniger als die halbe Vorschau. Sonst würde ein Einspielen mit einer Woche Vorschau bei jedem Start erneut gelöscht.
+  2. Gelöscht wird nur eine Datenbank mit Konten der Domain `demo.aispa.test`. Eine mit „Sicherung einspielen …“ geladene Sicherung echter Daten bleibt so unberührt; der Plan-Prüfer hatte das Risiko gefunden.
+  3. Neu angelegt wird nur mit `Database:MigrateOnStartup` und nie im Befehl `migrate`. Ein Worker im Mehrinstanz-Betrieb (`compose.scale.yaml`) löscht so keine Datenbank unter laufenden API-Instanzen.
+  4. Im Beispiel-Spa laufen Löschen und Anlegen über `DemoSpa` mit festem Namen `aispademo` (ADR 0100); im Debug wird die Datenbank der Verbindung neu angelegt, nicht nur geleert, weil Wolverine vor der Migration verbindet.
+  5. `DemoData:RefreshWhenStale` gilt für beide Fälle, nicht nur für Debug wie im Plan: Die Tests spielen das Beispiel-Spa mit einer Woche Vorschau ein und starten es teils mehrfach.
+  6. Weil `docker compose` standardmäßig das Beispiel-Spa nutzt, gilt dort das Neuanlegen; der Hinweis erscheint praktisch nur bei einem Release-Build in der Entwicklung ohne Beispiel-Spa. Das Aspire-Dashboard zeigt die Beschreibung des Health-Checks nicht; deshalb Log und Anmeldemaske.
+- **Geprüft:** `dotnet format` und Release-Build mit Exitcode 0. `StaleDemoDataTests` (7 Fälle), `StartupStateTests`, `DemoSpaTests` und `LoginStartupTests` grün. Gegenprobe: Mit umgedrehter Regel in `IsStale` werden 4 Fälle rot.
+- **Nicht geprüft:** der Debug-Zweig selbst (`#if DEBUG`, die Tests laufen in Release); dafür steht der Handtest T-091 bereit. Die übrigen Suiten laufen am Ende der Runde.
+- **Squash:** Im Hauptordner lagen nicht committete Änderungen des Auftraggebers an `DateField.cs` und `TimeField.cs`, ohne Überschneidung mit dieser Aufgabe; Squash mit Freigabe des Auftraggebers vom 25.11.2026.
+- **Beim Schreiben festgestellt:** PostgreSQL prüft Tabellen schon beim Parsen; eine Abfrage mit `CASE WHEN to_regclass(…)` scheitert deshalb bei fehlender Tabelle. Die Prüfung fragt die Tabelle vorher getrennt ab. `LeaveAccountView.axaml` nutzt noch `TextBox.Watermark` (Warnung AVLN5001), nicht Teil dieser Aufgabe.
+- **Text-Prüfung:** dieser Abschnitt nach [texte.md](../gestaltung/texte.md) durchgesehen (aktiv, Gegenwart, keine Namen).

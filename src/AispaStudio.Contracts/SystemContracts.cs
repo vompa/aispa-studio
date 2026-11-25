@@ -10,7 +10,11 @@ public enum StartupPhase
 }
 
 /// <summary>Startzustand mit Text für die Anzeige, z. B. „Beispiel-Spa wird eingerichtet (seit 12 s)“ oder der Fehler.</summary>
-public sealed record StartupInfo(StartupPhase Phase, string Text);
+public sealed record StartupInfo(StartupPhase Phase, string Text)
+{
+    /// <summary>Text bei bereitem Start ohne Hinweis; ein anderer Text bei <see cref="StartupPhase.Ready"/> ist ein Hinweis (T-091).</summary>
+    public const string ReadyText = "Bereit";
+}
 
 /// <summary>Zustand des Servers, z. B. für die Statusanzeige in Web und Windows-App. Ohne <c>Startup</c> (älterer Server) gilt: bereit.</summary>
 public sealed record SystemStatus(string Version, string Environment, DateTimeOffset ServerTime, StartupInfo? Startup = null);

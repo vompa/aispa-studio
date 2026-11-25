@@ -293,6 +293,7 @@ public partial class LoginViewModel(IWorkstationApi api, Func<CurrentUser, Task>
 
     private bool _signedIn;
     private bool _startupFailed;
+    private bool _startupPending;
 
     /// <summary>Betriebsart, Einrichtungsstand, Empfangsgerät und Testkonten laden.</summary>
     public async Task LoadAsync()
@@ -312,7 +313,7 @@ public partial class LoginViewModel(IWorkstationApi api, Func<CurrentUser, Task>
 
         await LoadQuickSwitchAsync().ConfigureAwait(true);
         await RefreshStartupAsync().ConfigureAwait(true);
-        if (StartupNotice is not null && StartupPoll > TimeSpan.Zero)
+        if (_startupPending && StartupPoll > TimeSpan.Zero)
         {
             _ = WaitForStartupAsync();
         }
@@ -320,15 +321,17 @@ public partial class LoginViewModel(IWorkstationApi api, Func<CurrentUser, Task>
 
     /// <summary>
     /// Startzustand der API lesen (nur in der Entwicklung relevant). Ist alles bereit, werden die Testkonten geladen; vorher wären sie
-    /// leer, weil das Beispiel-Spa noch eingespielt wird.
+    /// leer, weil das Beispiel-Spa noch eingespielt wird. Auch bei bereitem Start kann ein Hinweis dastehen, z. B. abgelaufene
+    /// Beispieldaten (T-091); die Testkonten laden dann trotzdem.
     /// </summary>
     public async Task RefreshStartupAsync()
     {
         var status = (await api.GetAsync<SystemStatus>("api/system/status").ConfigureAwait(true)).Value;
         var startup = status?.Environment == "Development" || IsDemo ? status?.Startup : null;
-        StartupNotice = startup is { Phase: not StartupPhase.Ready } ? startup.Text : null;
+        _startupPending = startup is { Phase: not StartupPhase.Ready };
+        StartupNotice = startup is null || startup is { Phase: StartupPhase.Ready, Text: StartupInfo.ReadyText } ? null : startup.Text;
         _startupFailed = startup?.Phase == StartupPhase.Failed;
-        if (StartupNotice is null && !HasTestAccounts)
+        if (!_startupPending && !HasTestAccounts)
         {
             await LoadTestAccountsAsync().ConfigureAwait(true);
         }
@@ -337,7 +340,7 @@ public partial class LoginViewModel(IWorkstationApi api, Func<CurrentUser, Task>
     private async Task WaitForStartupAsync()
     {
         // Ein gescheitertes Einspielen ändert sich nicht mehr von selbst; die Anzeige bleibt, bis die API neu startet.
-        while (!_signedIn && StartupNotice is not null && !_startupFailed)
+        while (!_signedIn && _startupPending && !_startupFailed)
         {
             await Task.Delay(StartupPoll).ConfigureAwait(true);
             await RefreshStartupAsync().ConfigureAwait(true);

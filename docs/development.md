@@ -37,7 +37,7 @@ eine halbe Minute und läuft im Hintergrund: Das Aspire-Dashboard zeigt den Stan
 starten erst danach. Die Windows-App nennt ihn auf der Anmeldung und zeigt die Testkonten, sobald alles da ist.
 Meldet die API „Beispieldaten unvollständig“, wurde ein früheres Einspielen abgebrochen (z. B. Aspire beendet); dann
 das Volume `aispa-postgres-data` löschen (Docker Desktop › Volumes) bzw. `docker compose down -v` und neu starten.
-Die API löscht nie selbst. Der Behandlungskatalog (30 Behandlungen) ist an öffentliche Preislisten Wiener Day-Spas angelehnt.
+Sonst löscht die API nur veraltete Beispieldaten: Liegt der späteste Termin weniger als 14 Tage voraus, legt sie die Datenbank beim Start im Debug-Build und im Beispiel-Spa (`Demo:Enabled`) leer neu an, und das Beispiel-Spa entsteht neu. Das gilt nur, wenn die Datenbank Konten der Domain `demo.aispa.test` enthält (eine eingespielte Sicherung bleibt unberührt), `Database:MigrateOnStartup` gesetzt ist und nicht der Befehl `migrate` läuft; abschalten mit `DemoData:RefreshWhenStale=false`. In allen anderen Fällen meldet die API die veralteten Daten nur (Log und Anmeldung der Windows-App). Der Behandlungskatalog (30 Behandlungen) ist an öffentliche Preislisten Wiener Day-Spas angelehnt.
 Testkonten und Inhalt: [docs/testdaten.md](testdaten.md). Eine bestehende Datenbank bekommt ihn nicht
 nachträglich; dafür die Datenbank leeren.
 

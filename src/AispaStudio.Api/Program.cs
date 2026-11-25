@@ -82,6 +82,14 @@ if (!isOpenApiGeneration && DemoSpa.IsEnabled(builder.Configuration))
     await DemoSpa.ApplyAsync(builder.Configuration, DatabaseName);
 }
 
+// Veraltete Beispieldaten (T-091): im Debug und im Beispiel-Spa neu anlegen, sonst nur melden; vor DbContext und Wolverine, weil das
+// Neuanlegen die Datenbank löscht.
+var staleDemoData = StaleDemoCheck.Fresh;
+if (!isOpenApiGeneration && builder.Configuration.GetValue<bool>("Database:SeedDemoData"))
+{
+    staleDemoData = await StaleDemoData.CheckAsync(builder.Configuration, DatabaseName, MigrateCommand.IsRequested(args));
+}
+
 // Ohne Pooling: der Kontext bekommt den Mandanten des Aufrufs in den Konstruktor (Abfragefilter).
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<TenantContext>();
@@ -321,6 +329,7 @@ if (MigrateCommand.IsRequested(args))
 
 app.LogHostingRole(modules);
 app.LogLiveBackplane(liveBackplane);
+app.LogStaleDemoData(staleDemoData);
 // Vor RunAsync: Data Protection lädt den Schlüsselring beim Start, die übernommenen Schlüssel müssen dann schon in der Tabelle stehen.
 await app.PrepareKeyStoreAsync(keyStore);
 

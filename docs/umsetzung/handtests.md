@@ -1689,3 +1689,14 @@ Expected: Die Seiten zur Kassa erscheinen (Suchwort bleibt), im Text steht „Ka
 Expected: „Mit Server verbinden“ und „Haupt-PC“ stehen dort wie bisher.
 Closes: Regelfrage „einheitliche Begriffe“ der Masken-Durchsicht vom 19.11.2026
 Result: ☐
+
+### T-091 – Veraltete Beispieldaten beim Start neu einspielen
+Start: Visual Studio, Startprojekt `AispaStudio.AppHost`, Konfiguration Debug
+1. In `src/AispaStudio.Api/appsettings.Development.json` `"DemoData": { "WeeksAhead": 1 }` eintragen, den AppHost starten, an `postgres` im Aspire-Dashboard „Beispiel-Spa neu einspielen …“ ausführen und warten, bis die API bereit ist.
+Expected: Der Kalender reicht nur rund eine Woche voraus.
+2. Den Eintrag aus Schritt 1 wieder entfernen und den AppHost neu starten.
+Expected: Im Log der API steht „Beispieldaten veraltet (letzter Termin …): Datenbank aispadb neu angelegt“. Nach etwa einer halben Minute reicht der Kalender wieder vier Wochen voraus.
+3. Den AppHost ein zweites Mal neu starten.
+Expected: Keine solche Logzeile; die Daten bleiben, wie sie sind.
+Closes: Auftrag vom 25.11.2026 (Kalender nach Ablauf der Beispieldaten leer)
+Result: ☐
