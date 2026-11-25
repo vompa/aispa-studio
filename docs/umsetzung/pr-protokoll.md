@@ -7759,6 +7759,6 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
   3. Die Daten entsprechen einer kleineren Fassung von `SpaSample` (Tests) und werden nicht aus den Tests verschoben: Viele Testdateien hängen am festen Beispieltag 19.10.2026.
   4. Die Vorschau zeigt nur den Tag nach Personen; Woche, Raumansicht und offene Panels gehören nicht dazu.
 - **Geprüft:** `dotnet format` und Release-Build mit Exitcode 0. Die drei Tests in `ViewTests.DesignData` sind grün, die 41 `CalendarTests` ebenfalls. Gegenprobe: Mit `DesignData.Kalender` wird der Verweistest rot und nennt `Views\CalendarView.axaml`.
-- **Nicht geprüft:** die Vorschau in Visual Studio (prüft der Auftraggeber); die übrigen Ansichtstests (laufen am Ende der Runde).
+- **Nicht geprüft:** die übrigen Ansichtstests (laufen am Ende der Runde). Die Vorschau in Visual Studio hat der Auftraggeber am 25.11.2026 geprüft: Der Kalender zeigt die Termine des Beispieltags.
 - **Beim Schreiben festgestellt:** Terminkarten im Kalender sind `AppointmentCard`-Steuerelemente; der Name steht dort nicht als einfacher `TextBlock`. Der Test prüft deshalb die Karte.
 - **Text-Prüfung:** dieser Abschnitt nach [texte.md](../gestaltung/texte.md) durchgesehen (aktiv, Gegenwart, keine Namen).
