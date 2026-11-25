@@ -23,6 +23,7 @@ Zum Ansehen startet man die App mit dem Schalter `--demo`, z. B. über eine zwei
 - Alle Beispielkonten haben das Passwort `demo`, zum Beispiel `inhaberin@demo.aispa.test`.
 - Über allen Seiten steht die Leiste „Sie sehen Beispieldaten.“ Wer den Standort verwalten darf, löscht das Beispiel-Spa dort mit **Beispieldaten löschen …**. Nach der Rückfrage schließt sich die App.
 - Im Beispiel-Spa sichert die App nicht und gleicht nicht ab.
+- Die Termine reichen vier Wochen voraus. Reichen sie weniger als zwei Wochen voraus, legt die App das Beispiel-Spa beim nächsten Start mit `--demo` neu an. Eigene Einträge im Beispiel-Spa gehen dabei verloren.
 
 ## Wo die Daten liegen {#daten}
 

@@ -318,6 +318,8 @@ if (builder.Configuration.GetValue<bool>("Database:SeedDemoData"))
 }
 
 var app = builder.Build();
+// Vor dem Befehl „migrate“, damit auch er veraltete Beispieldaten meldet (er legt sie nie neu an).
+app.LogStaleDemoData(staleDemoData);
 // Befehl „migrate“ (ADR 0087, Aufgabe D): migrieren und beenden, ohne Host-Start; Exitcode über Environment.ExitCode, damit der normale Pfad unverändert bleibt.
 if (MigrateCommand.IsRequested(args))
 {
@@ -329,7 +331,6 @@ if (MigrateCommand.IsRequested(args))
 
 app.LogHostingRole(modules);
 app.LogLiveBackplane(liveBackplane);
-app.LogStaleDemoData(staleDemoData);
 // Vor RunAsync: Data Protection lädt den Schlüsselring beim Start, die übernommenen Schlüssel müssen dann schon in der Tabelle stehen.
 await app.PrepareKeyStoreAsync(keyStore);
 

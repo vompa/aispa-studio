@@ -74,6 +74,7 @@ public sealed class LoginStartupTests
         await login.LoadAsync();
 
         Assert.Equal(Notice, login.StartupNotice);
+        Assert.Equal("Hinweis zum Start", login.StartupTitle);
         Assert.True(login.HasTestAccounts);
     }
 

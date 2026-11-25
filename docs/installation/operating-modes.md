@@ -55,7 +55,9 @@ Hintergrunddiensten). Die Beispielkonten haben dort das Passwort `demo`. `GET /a
 `DELETE /api/system/demo` (Recht „Standort verwalten“) löscht die Datenbank `aispademo` und beendet die API. Der Name ist fest, der
 Endpunkt kann `aispadb` nicht löschen. In der Windows-App startet `--demo` den Einzelplatz mit `Demo__Enabled=true`, nur für diesen
 Start (nichts wird gemerkt); Sicherung, Wiederherstellung und Abgleich arbeiten weiter nur mit `aispadb` bzw. gar nicht. Am Server
-steuert `AISPA_DEMO` (Compose, Standard `true`) die Einstellung.
+steuert `AISPA_DEMO` (Compose, Standard `true`) die Einstellung. Reichen die Termine des Beispiel-Spas weniger als 14 Tage voraus, legt
+eine Instanz mit `Database:MigrateOnStartup` die Datenbank `aispademo` beim Start neu an (T-091, Abschalten mit
+`DemoData:RefreshWhenStale=false`); fehlt ihr das Recht dazu, meldet sie es im Protokoll und startet trotzdem.
 
 **Mehrplatz im eigenen Netz** ([ADR 0049](../entscheidungen/0049-mehrplatz-im-eigenen-netz.md)). Am Haupt-PC gibt, wer den
 Standort verwalten darf, unter „Im Netz“ den Einzelplatz frei. Die App stellt dabei einmal ein eigenes Zertifikat aus (`netz.pfx`,

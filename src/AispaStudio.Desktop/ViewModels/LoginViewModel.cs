@@ -167,8 +167,11 @@ public partial class LoginViewModel(IWorkstationApi api, Func<CurrentUser, Task>
 
     public bool HasDemoHint => IsDemo && IsStandalone;
 
-    /// <summary>Überschrift der Startanzeige: im Beispiel-Spa meldet die API Production und das Einspielen dauert eine halbe Minute.</summary>
-    public string StartupTitle => IsDemo ? "Beispiel-Spa wird eingerichtet" : "Entwicklung: API startet noch";
+    /// <summary>
+    /// Überschrift der Startanzeige: im Beispiel-Spa meldet die API Production und das Einspielen dauert eine halbe Minute. Bei bereitem
+    /// Start mit Hinweis (z. B. abgelaufene Beispieldaten, T-091) startet nichts mehr.
+    /// </summary>
+    public string StartupTitle => !_startupPending ? "Hinweis zum Start" : IsDemo ? "Beispiel-Spa wird eingerichtet" : "Entwicklung: API startet noch";
 
     /// <summary>Einzelplatz-Betrieb, noch kein Spa angelegt: Einrichtung gleich hier (oder im Browser über die lokale API).</summary>
     [ObservableProperty]
@@ -286,7 +289,7 @@ public partial class LoginViewModel(IWorkstationApi api, Func<CurrentUser, Task>
     /// z. B. „Beispiel-Spa wird eingerichtet (seit 12 s)“. Sonst leer.
     /// </summary>
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasStartupNotice))]
+    [NotifyPropertyChangedFor(nameof(HasStartupNotice), nameof(StartupTitle))]
     public partial string? StartupNotice { get; private set; }
 
     public bool HasStartupNotice => StartupNotice is not null;

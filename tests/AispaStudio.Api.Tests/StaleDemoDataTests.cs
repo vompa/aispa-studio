@@ -66,6 +66,24 @@ public sealed class StaleDemoDataTests(ApiFixture fixture)
     }
 
     [Fact]
+    public async Task Eingespielte_Sicherung_wird_nie_neu_angelegt()
+    {
+        var connection = await DatabaseAsync(demoAccount: true);
+        var database = new NpgsqlConnectionStringBuilder(connection).Database;
+        await using (var db = new NpgsqlConnection(new NpgsqlConnectionStringBuilder(connection) { Pooling = false }.ConnectionString))
+        {
+            await db.OpenAsync(Ct);
+            await using var comment = new NpgsqlCommand($"COMMENT ON DATABASE \"{database}\" IS '{StaleDemoData.RestoredBackupComment}'", db);
+            await comment.ExecuteNonQueryAsync(Ct);
+        }
+
+        var check = await StaleDemoData.HandleAsync(connection, Now, 4, ct => StaleDemoData.RecreateDatabaseAsync(connection, ct), Ct);
+
+        Assert.Equal(StaleDemoCheck.Fresh, check);
+        Assert.Equal(OldStart, await StaleDemoData.LatestStartAsync(connection, Ct));
+    }
+
+    [Fact]
     public async Task Datenbank_ohne_Beispielkonten_wird_nie_geloescht()
     {
         var connection = await DatabaseAsync(demoAccount: false);

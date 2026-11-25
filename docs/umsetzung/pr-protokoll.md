@@ -7783,4 +7783,11 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Nicht geprüft:** der Debug-Zweig selbst (`#if DEBUG`, die Tests laufen in Release); dafür steht der Handtest T-091 bereit. Die übrigen Suiten laufen am Ende der Runde.
 - **Squash:** Im Hauptordner lagen nicht committete Änderungen des Auftraggebers an `DateField.cs` und `TimeField.cs`, ohne Überschneidung mit dieser Aufgabe; Squash mit Freigabe des Auftraggebers vom 25.11.2026.
 - **Beim Schreiben festgestellt:** PostgreSQL prüft Tabellen schon beim Parsen; eine Abfrage mit `CASE WHEN to_regclass(…)` scheitert deshalb bei fehlender Tabelle. Die Prüfung fragt die Tabelle vorher getrennt ab. `LeaveAccountView.axaml` nutzt noch `TextBox.Watermark` (Warnung AVLN5001), nicht Teil dieser Aufgabe.
+- **Nachtrag nach der zweiten Planprüfung (25.11.2026):** Ein zweiter kalter Prüflauf am fertigen Code fand drei belegte und fünf vermutete Befunde. Umgesetzt:
+  1. Die Anmeldung nennt bei bereitem Start mit Hinweis „Hinweis zum Start“ statt „Entwicklung: API startet noch“.
+  2. „Sicherung einspielen …“ kennzeichnet die Datenbank mit dem Kommentar `aispa:restored-backup`; die Startprüfung legt sie nie neu an. Sonst wäre eine eingespielte Sicherung des Beispiel-Spas beim folgenden Start im Debug verworfen worden.
+  3. Scheitert das Neuanlegen (Konto ohne Recht, ADR 0100), meldet die API es als Fehler im Protokoll und startet mit dem Hinweis weiter.
+  4. Der Befehl `migrate` meldet veraltete Beispieldaten jetzt auch.
+  5. Handbuch (`einzelplatz.md`, Beispiel-Spa) und `operating-modes.md` nennen das Neuanlegen; im Einzelplatz mit `--demo` gehen eigene Einträge im Beispiel-Spa dabei verloren, wie vom Auftraggeber mit „bei flag demo“ beauftragt. `development.md` nennt das Kennzeichen und die halbe Vorschau.
+  Bewusst offen: Im Mehrinstanz-Aufbau (`compose.scale.yaml`) prüft nur der Worker, die Anmeldung zeigt dort keinen Hinweis.
 - **Text-Prüfung:** dieser Abschnitt nach [texte.md](../gestaltung/texte.md) durchgesehen (aktiv, Gegenwart, keine Namen).
