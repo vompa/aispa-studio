@@ -7741,6 +7741,6 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
   4. Der Avalonia-XAML-Compiler entfernt `Design.*` vor der Typauflösung (`AvaloniaXamlIlDesignPropertiesTransformer`; die kompilierte App enthält keinen Verweis). Der Build prüft den Verweis deshalb nicht, dafür gibt es den zweiten Test. Zur Laufzeit greift niemand auf die Beispieldaten zu; sie liegen mit wenigen KB im Paket.
   5. Die Tests liegen als `ViewTests.DesignData.cs` in der Klasse `ViewTests`, weil sie deren Fenster-Hilfe `InWindow` brauchen (geplant war eine eigene Klasse `DesignDataTests`).
 - **Geprüft:** `dotnet format AispaStudio.slnx --verify-no-changes` (Exitcode 0), `dotnet build AispaStudio.slnx -c Release` (0, keine Warnung), die zwei neuen Tests grün. Gegenprobe: Mit `DesignData.Kunden` statt `DesignData.Customers` wird der zweite Test rot („keine öffentliche statische Eigenschaft“).
-- **Nicht geprüft:** die Vorschau in Visual Studio selbst (prüft der Auftraggeber nach einem Build mit dem Avalonia XAML Editor); die übrigen Ansichtstests (laufen am Ende der Runde).
+- **Nicht geprüft:** die übrigen Ansichtstests (laufen am Ende der Runde). Die Vorschau in Visual Studio hat der Auftraggeber am 25.11.2026 geprüft: Die Kundenliste zeigt die Beispieldaten.
 - **Beim Schreiben festgestellt:** Nur `MainWindow.axaml` hatte bisher einen `Design.DataContext`; die übrigen Ansichten zeigen in der Vorschau keine Daten.
 - **Text-Prüfung:** dieser Abschnitt nach [texte.md](../gestaltung/texte.md) durchgesehen (aktiv, Gegenwart, keine Namen).
