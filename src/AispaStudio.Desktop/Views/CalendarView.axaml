@@ -5,11 +5,20 @@
              xmlns:ui="using:AispaStudio.Desktop.Controls"
              xmlns:local="using:AispaStudio.Desktop.Views"
              xmlns:svc="using:AispaStudio.Desktop.Services"
+             xmlns:design="using:AispaStudio.Desktop.Design"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="1440" d:DesignHeight="900"
              x:Class="AispaStudio.Desktop.Views.CalendarView"
              x:DataType="vm:CalendarViewModel"
              x:Name="Root"
              Focusable="True"
              FocusAdorner="{x:Null}">
+
+  <!-- Beispieltag nur für die Vorschau im Designer (Design/DesignCalendar.cs); der Compiler entfernt ihn aus der App. -->
+  <Design.DataContext>
+    <x:Static Member="design:DesignData.Calendar" />
+  </Design.DataContext>
 
   <UserControl.DataTemplates>
     <!-- Konfliktmeldung in Ortszeit (Design-Brief 5.9): in jedem Panel als ContentControl an „Conflict“ gebunden -->

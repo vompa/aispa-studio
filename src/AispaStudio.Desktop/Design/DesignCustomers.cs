@@ -1,4 +1,5 @@
 using AispaStudio.Contracts;
+using static AispaStudio.Desktop.Design.DesignSpa;
 
 namespace AispaStudio.Desktop.Design;
 
@@ -8,10 +9,6 @@ namespace AispaStudio.Desktop.Design;
 /// </summary>
 internal static class DesignCustomers
 {
-    private static readonly LocationDto Vienna = new(Guid.NewGuid(), "Wien Innere Stadt", "Europe/Vienna", "EUR", []);
-    private static readonly EmployeeDto Lena = new(Guid.NewGuid(), "Lena Huber", "#2f6f5e", [], []);
-    private static readonly EmployeeDto Marco = new(Guid.NewGuid(), "Marco Berger", "#7a4fa3", [], []);
-
     public static readonly CustomerDto[] All =
     [
         new(Guid.NewGuid(), "Brigitte", "Müller", "b.mueller@example.at", "+43 664 123 45 67", new(1968, 10, 21), "Stammkundin, mag Lavendelöl",

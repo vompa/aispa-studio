@@ -24,4 +24,17 @@ public static class DesignData
             return customers;
         }
     }
+
+    /// <summary>Kalender am heutigen Tag als Inhaberin; lädt Standort, Ressourcen und den Beispieltag über <see cref="DesignApi"/>.</summary>
+    public static CalendarViewModel Calendar
+    {
+        get
+        {
+            // Dasselbe Datum, mit dem das ViewModel startet; sonst fände der Abruf des Tages keine Antwort.
+            var today = DateOnly.FromDateTime(TimeProvider.System.GetLocalNow().DateTime);
+            var calendar = new CalendarViewModel(DesignCalendar.Api(today).Client(), DesignSpa.Owner, null, TimeProvider.System);
+            _ = calendar.InitializeAsync();
+            return calendar;
+        }
+    }
 }

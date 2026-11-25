@@ -7744,3 +7744,21 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Nicht geprüft:** die übrigen Ansichtstests (laufen am Ende der Runde). Die Vorschau in Visual Studio hat der Auftraggeber am 25.11.2026 geprüft: Die Kundenliste zeigt die Beispieldaten.
 - **Beim Schreiben festgestellt:** Nur `MainWindow.axaml` hatte bisher einen `Design.DataContext`; die übrigen Ansichten zeigen in der Vorschau keine Daten.
 - **Text-Prüfung:** dieser Abschnitt nach [texte.md](../gestaltung/texte.md) durchgesehen (aktiv, Gegenwart, keine Namen).
+
+## Beispieldaten für die Vorschau im Designer: Kalender (Aufgabe T-090, 25.11.2026)
+
+- **Auftrag:** Nach der Bestätigung der Vorschau der Kundenliste (T-089) hat der Auftraggeber am 25.11.2026 beauftragt: „richte das Muster auch für den Kalender ein“.
+- **Was:**
+  1. Neu `Design/DesignSpa.cs`: gemeinsame Stammdaten der Vorschau. Dazu gehören Standort Wien, vier Personen, vier Räume, fünf Behandlungen und eine Inhaberin mit allen Rechten. `DesignCustomers` nutzt jetzt Standort und Personen daraus.
+  2. Neu `Design/DesignCalendar.cs`: ein Beispieltag (9 bis 20 Uhr, zwölf Termine mit gemischtem Stand, eine Online-Buchung, eine Blockzeit). Er antwortet auf die drei Abrufe, die der Kalender beim Öffnen braucht: Standorte, Ressourcen und den Tag.
+  3. `DesignData.Calendar` und `Design.DataContext` in `CalendarView.axaml` (Vorschau 1440×900).
+  4. Tests in `ViewTests.DesignData.cs`: Neu ist, dass die Kalender-Vorschau ohne Fehler die Karte „Brigitte Müller“ zeigt. Der Verweistest prüft jetzt jede `.axaml` mit `Design.DataContext` und `x:Static` statt nur die Kundenliste.
+- **Detailentscheidungen:**
+  1. Der Tag ist immer heute; das Datum wird genau wie im ViewModel berechnet (`DateOnly.FromDateTime(time.GetLocalNow().DateTime)`). Sonst findet der Abruf des Tages keine Antwort, und die Vorschau zeigt „Nicht gefunden.“.
+  2. Optionale Abrufe (Betrieb, Abos, Warteliste, Lücken …) bleiben ohne Antwort. Sie ignorieren eine 404 ohne Fehlermeldung, wie der Plan-Prüfer mit Fundstellen gezeigt hat. `Error` setzen nur die drei beantworteten Abrufe.
+  3. Die Daten entsprechen einer kleineren Fassung von `SpaSample` (Tests) und werden nicht aus den Tests verschoben: Viele Testdateien hängen am festen Beispieltag 19.10.2026.
+  4. Die Vorschau zeigt nur den Tag nach Personen; Woche, Raumansicht und offene Panels gehören nicht dazu.
+- **Geprüft:** `dotnet format` und Release-Build mit Exitcode 0. Die drei Tests in `ViewTests.DesignData` sind grün, die 41 `CalendarTests` ebenfalls. Gegenprobe: Mit `DesignData.Kalender` wird der Verweistest rot und nennt `Views\CalendarView.axaml`.
+- **Nicht geprüft:** die Vorschau in Visual Studio (prüft der Auftraggeber); die übrigen Ansichtstests (laufen am Ende der Runde).
+- **Beim Schreiben festgestellt:** Terminkarten im Kalender sind `AppointmentCard`-Steuerelemente; der Name steht dort nicht als einfacher `TextBlock`. Der Test prüft deshalb die Karte.
+- **Text-Prüfung:** dieser Abschnitt nach [texte.md](../gestaltung/texte.md) durchgesehen (aktiv, Gegenwart, keine Namen).
