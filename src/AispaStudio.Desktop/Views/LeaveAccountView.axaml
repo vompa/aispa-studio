@@ -22,10 +22,10 @@
     <StackPanel Spacing="8" IsVisible="{Binding IsLoaded}">
       <StackPanel Orientation="Horizontal" Spacing="24">
         <ui:FormField Label="Anspruch (Tage)" IsEnabled="{Binding IsEditable}">
-          <TextBox x:Name="LeaveEntitlementField" Text="{Binding EntitlementText}" MaxLength="6" Width="120" HorizontalAlignment="Left" Watermark="nicht eingetragen" />
+          <TextBox x:Name="LeaveEntitlementField" Text="{Binding EntitlementText}" MaxLength="6" Width="120" HorizontalAlignment="Left" PlaceholderText="nicht eingetragen" />
         </ui:FormField>
         <ui:FormField Label="Übertrag aus dem Vorjahr" IsEnabled="{Binding IsEditable}">
-          <TextBox x:Name="LeaveCarriedOverField" Text="{Binding CarriedOverText}" MaxLength="6" Width="120" HorizontalAlignment="Left" Watermark="0" />
+          <TextBox x:Name="LeaveCarriedOverField" Text="{Binding CarriedOverText}" MaxLength="6" Width="120" HorizontalAlignment="Left" PlaceholderText="0" />
         </ui:FormField>
         <StackPanel Spacing="4" VerticalAlignment="Top">
           <TextBlock Text="Genommen" Classes="group" />
