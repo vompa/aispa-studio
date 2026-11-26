@@ -351,6 +351,41 @@ public sealed class ReportTests(ApiFixture fixture)
     }
 
     [Fact]
+    public async Task Vergleich_waehlbar_Vormonat_und_Vorjahr_nennen_ihren_Zeitraum_und_ohne_Angabe_bleibt_es_die_Vorperiode()
+    {
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        var path = $"/api/reports/locations/{spa.Location.Id}/management?from=2026-11-01&until=2026-11-26";
+
+        var standard = await spa.GetAsync<ManagementReportDto>(path, Ct);
+        var month = await spa.GetAsync<ManagementReportDto>(path + "&compare=month", Ct);
+        var year = await spa.GetAsync<ManagementReportDto>(path + "&compare=year", Ct);
+        var wholeMonth = await spa.GetAsync<ManagementReportDto>(
+            $"/api/reports/locations/{spa.Location.Id}/management?from=2026-11-01&until=2026-11-30&compare=month", Ct);
+        var unknown = await spa.Client.GetAsync(path + "&compare=week", Ct);
+
+        // Given der 1. bis 26. November; Then gilt ohne Angabe der gleich lange Zeitraum davor, „month“ ist 1. bis 26. Oktober und „year“ der Vorjahreszeitraum,
+        // ein ganzer November wird mit dem ganzen Oktober verglichen und eine unbekannte Wahl abgelehnt
+        Assert.Equal((new DateOnly(2026, 10, 6), new DateOnly(2026, 10, 31)), (standard.CompareFrom, standard.CompareUntil));
+        Assert.Equal((new DateOnly(2026, 10, 1), new DateOnly(2026, 10, 26)), (month.CompareFrom, month.CompareUntil));
+        Assert.Equal((new DateOnly(2025, 11, 1), new DateOnly(2025, 11, 26)), (year.CompareFrom, year.CompareUntil));
+        Assert.Equal(new DateOnly(2026, 10, 31), wholeMonth.CompareUntil);
+        Assert.Equal(global::System.Net.HttpStatusCode.BadRequest, unknown.StatusCode);
+    }
+
+    [Fact]
+    public async Task Kennzahlen_sagen_ob_ein_hoeherer_Wert_gut_ist_und_neutrale_Werte_bleiben_leer()
+    {
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+
+        var report = await ManagementAsync(spa, TestSpa.Monday, TestSpa.Monday);
+
+        // Then ist mehr Umsatz gut, mehr No-Shows sind schlecht und offene Gutscheine sind weder noch
+        Assert.True(report.Kpis.Single(k => k.Key == "revenue").HigherIsBetter);
+        Assert.False(report.Kpis.Single(k => k.Key == "noShowRate").HigherIsBetter);
+        Assert.Null(report.Kpis.Single(k => k.Key == "voucherLiabilities").HigherIsBetter);
+    }
+
+    [Fact]
     public async Task Künftiger_Termin_ohne_Beleg_ist_keine_Warnung()
     {
         var spa = await TestSpa.CreateAsync(fixture, Ct);

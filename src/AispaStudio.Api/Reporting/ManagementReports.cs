@@ -35,8 +35,40 @@ internal sealed partial class ManagementReports(AispaDbContext db, RosterService
     /// Kennzahlen eines Zeitraums. Ohne <paramref name="amounts"/> (Recht „Berichte mit Beträgen“) fehlen alle Geldbeträge schon hier,
     /// nicht erst in der Oberfläche.
     /// </summary>
-    public async Task<ManagementReportDto?> ManagementAsync(Guid locationId, DateOnly from, DateOnly until, bool amounts, CancellationToken ct) =>
-        await ManagementAsync(locationId, from, until, ct) is { } report ? amounts ? report : WithoutAmounts(report) : null;
+    public async Task<ManagementReportDto?> ManagementAsync(Guid locationId, DateOnly from, DateOnly until, bool amounts, CancellationToken ct,
+        string compare = CompareModes.Previous) =>
+        await ManagementAsync(locationId, from, until, ct, compare) is { } report ? amounts ? report : WithoutAmounts(report) : null;
+
+    /// <summary>Wählbare Vergleiche (Abfrageparameter <c>compare</c>): Zeitraum davor, derselbe Abschnitt im Vormonat, derselbe Zeitraum im Vorjahr.</summary>
+    internal static class CompareModes
+    {
+        public const string Previous = "previous";
+        public const string Month = "month";
+        public const string Year = "year";
+
+        public static bool IsKnown(string? mode) => mode is Previous or Month or Year;
+    }
+
+    /// <summary>
+    /// Vergleichszeitraum zu <paramref name="from"/> bis <paramref name="until"/>. „Vormonat“ und „Vorjahr“ verschieben beide Enden um ganze Monate; endet der Zeitraum
+    /// am Monatsletzten, endet auch der Vergleich am Monatsletzten (30.11. gegen 31.10., 29.02. gegen 28.02.).
+    /// </summary>
+    internal static (DateOnly From, DateOnly Until) CompareRange(DateOnly from, DateOnly until, string mode)
+    {
+        static DateOnly Shift(DateOnly date, int months, bool monthEnd)
+        {
+            var moved = date.AddMonths(months);
+            return monthEnd ? new DateOnly(moved.Year, moved.Month, DateTime.DaysInMonth(moved.Year, moved.Month)) : moved;
+        }
+
+        var endsMonth = until.Day == DateTime.DaysInMonth(until.Year, until.Month);
+        return mode switch
+        {
+            CompareModes.Month => (Shift(from, -1, false), Shift(until, -1, endsMonth)),
+            CompareModes.Year => (Shift(from, -12, false), Shift(until, -12, endsMonth)),
+            _ => (from.AddDays(-(until.DayNumber - from.DayNumber + 1)), from.AddDays(-1)),
+        };
+    }
 
     /// <summary>Entfernt Geldbeträge: Umsatz-Kennzahlen, Umsatz nach Konto und Zahlart, Umsatz je Person und Behandlung, Margen und Warnungen mit Beträgen.</summary>
     internal static ManagementReportDto WithoutAmounts(ManagementReportDto report) =>
@@ -53,7 +85,7 @@ internal sealed partial class ManagementReports(AispaDbContext db, RosterService
             AmountsHidden = true,
         };
 
-    internal async Task<ManagementReportDto?> ManagementAsync(Guid locationId, DateOnly from, DateOnly until, CancellationToken ct)
+    internal async Task<ManagementReportDto?> ManagementAsync(Guid locationId, DateOnly from, DateOnly until, CancellationToken ct, string compare = CompareModes.Previous)
     {
         var location = await db.Locations.AsNoTracking().Include(l => l.OpeningHours).FirstOrDefaultAsync(l => l.Id == locationId, ct);
         if (location is null)
@@ -64,7 +96,8 @@ internal sealed partial class ManagementReports(AispaDbContext db, RosterService
         var zone = LocalTime.Zone(location.TimeZone);
         var length = until.DayNumber - from.DayNumber + 1;
         var current = await PeriodAsync(location, zone, from, until, ct);
-        var previous = await PeriodAsync(location, zone, from.AddDays(-length), from.AddDays(-1), ct);
+        var (compareFrom, compareUntil) = CompareRange(from, until, compare);
+        var previous = await PeriodAsync(location, zone, compareFrom, compareUntil, ct);
         var (start, _) = LocalTime.Day(from, zone);
         var (_, end) = LocalTime.Day(until, zone);
         var registerIds = await db.CashRegisters.Where(r => r.LocationId == locationId).Select(r => r.Id).ToListAsync(ct);
@@ -151,25 +184,25 @@ internal sealed partial class ManagementReports(AispaDbContext db, RosterService
         decimal Rate(int part, int total) => total == 0 ? 0 : Math.Round(part * 100m / total, 1);
         var kpis = new List<Kpi>
         {
-            new("revenue", "Umsatz brutto", current.Gross, previous.Gross, "€"),
-            new("revenueNet", "Umsatz netto", current.Net, previous.Net, "€"),
+            new("revenue", "Umsatz brutto", current.Gross, previous.Gross, "€", true),
+            new("revenueNet", "Umsatz netto", current.Net, previous.Net, "€", true),
             new("averageTicket", "Durchschnittsbon netto", current.Sales == 0 ? 0 : Math.Round(current.Net / current.Sales, 2),
-                previous.Sales == 0 ? 0 : Math.Round(previous.Net / previous.Sales, 2), "€"),
-            new("serviceRevenueNet", "Umsatz ohne Gutscheinverkauf (netto)", current.ServiceNet, previous.ServiceNet, "€"),
+                previous.Sales == 0 ? 0 : Math.Round(previous.Net / previous.Sales, 2), "€", true),
+            new("serviceRevenueNet", "Umsatz ohne Gutscheinverkauf (netto)", current.ServiceNet, previous.ServiceNet, "€", true),
             new("serviceAverageTicket", "Durchschnittsbon ohne Gutscheinverkauf (netto)",
                 current.ServiceSales == 0 ? 0 : Math.Round(current.ServiceNet / current.ServiceSales, 2),
-                previous.ServiceSales == 0 ? 0 : Math.Round(previous.ServiceNet / previous.ServiceSales, 2), "€"),
+                previous.ServiceSales == 0 ? 0 : Math.Round(previous.ServiceNet / previous.ServiceSales, 2), "€", true),
             new("vouchersSold", "Gutscheine verkauft", current.VouchersSold, previous.VouchersSold, "€"),
             new("vouchersRedeemed", "Gutscheine eingelöst", current.VouchersRedeemed, previous.VouchersRedeemed, "€"),
-            new("appointments", "Behandlungen", current.Appointments, previous.Appointments, ""),
-            new("staffUtilization", "Auslastung Personal", current.StaffUtilization, previous.StaffUtilization, "%"),
-            new("roomUtilization", "Auslastung Räume", current.RoomUtilization, previous.RoomUtilization, "%"),
-            new("noShowRate", "No-Show-Quote", Rate(current.NoShows, all), Rate(previous.NoShows, previousAll), "%"),
-            new("cancellationRate", "Storno-Quote", Rate(current.Cancellations, all), Rate(previous.Cancellations, previousAll), "%"),
-            new("customers", "Gäste", current.Customers, previous.Customers, ""),
-            new("newCustomers", "Neue Gäste", current.NewCustomers, previous.NewCustomers, ""),
-            new("returningRate", "Stammgäste-Anteil", Rate(current.Returning, current.Customers), Rate(previous.Returning, previous.Customers), "%"),
-            new("rebookingRate", "Folgetermin gebucht", current.Rebooking, previous.Rebooking, "%"),
+            new("appointments", "Behandlungen", current.Appointments, previous.Appointments, "", true),
+            new("staffUtilization", "Auslastung Personal", current.StaffUtilization, previous.StaffUtilization, "%", true),
+            new("roomUtilization", "Auslastung Räume", current.RoomUtilization, previous.RoomUtilization, "%", true),
+            new("noShowRate", "No-Show-Quote", Rate(current.NoShows, all), Rate(previous.NoShows, previousAll), "%", false),
+            new("cancellationRate", "Storno-Quote", Rate(current.Cancellations, all), Rate(previous.Cancellations, previousAll), "%", false),
+            new("customers", "Gäste", current.Customers, previous.Customers, "", true),
+            new("newCustomers", "Neue Gäste", current.NewCustomers, previous.NewCustomers, "", true),
+            new("returningRate", "Stammgäste-Anteil", Rate(current.Returning, current.Customers), Rate(previous.Returning, previous.Customers), "%", true),
+            new("rebookingRate", "Folgetermin gebucht", current.Rebooking, previous.Rebooking, "%", true),
             new("voucherLiabilities", "Offene Gutscheine (heute)", vouchers, null, "€"),
             new("openRequests", "Offene Anfragen (heute)", openRequests, null, ""),
         };
@@ -202,14 +235,14 @@ internal sealed partial class ManagementReports(AispaDbContext db, RosterService
 
         // Liegt der Beginn der Vorperiode vor dem ersten Termin des Standorts, fehlt ihr Verlauf: Neue Gäste und Stammgäste sind dann nicht vergleichbar.
         var firstAppointment = await db.Appointments.AsNoTracking().Where(a => a.LocationId == locationId).MinAsync(a => (DateTimeOffset?)a.Start, ct);
-        if (firstAppointment is { } first && LocalTime.LocalDate(first, zone) > from.AddDays(-length))
+        if (firstAppointment is { } first && LocalTime.LocalDate(first, zone) > compareFrom)
         {
             alerts.Add($"Vergleich reicht vor den Beginn der Aufzeichnung am {LocalTime.LocalDate(first, zone).ToString("dd.MM.yyyy", German)}: "
                 + "Die Vorperiode ist unvollständig.");
         }
 
         return new(locationId, from, until, kpis, byAccount, byPayment, employeeKpis, treatments, alerts, NoShows: current.NoShows, Cancellations: current.Cancellations,
-            Promotions: promotions);
+            Promotions: promotions, CompareFrom: compareFrom, CompareUntil: compareUntil);
     }
 
     /// <summary>

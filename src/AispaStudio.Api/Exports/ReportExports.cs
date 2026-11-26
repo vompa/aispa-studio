@@ -16,7 +16,7 @@ internal static class ReportExports
     {
         routes.MapGet("/api/reports/locations/{locationId:guid}/management/export", async Task<Results<FileContentHttpResult, ValidationProblem, NotFound, ProblemHttpResult>> (
                 Guid locationId, DateOnly? from, DateOnly? until, string? format, ManagementReports reports, AccessService accessService, ExportLog log,
-                CancellationToken ct) =>
+                CancellationToken ct, string compare = ManagementReports.CompareModes.Previous) =>
             {
                 if (TableFormat(format) is not { } kind)
                 {
@@ -28,15 +28,20 @@ internal static class ReportExports
                     return Problem("from", rangeError);
                 }
 
+                if (!ManagementReports.CompareModes.IsKnown(compare))
+                {
+                    return Problem("compare", "Vergleich: previous (Zeitraum davor), month (Vormonat) oder year (Vorjahr).");
+                }
+
                 var amounts = (await accessService.CurrentAsync(ct))!.Has(AccessRight.ViewAmountReports);
-                if (await reports.ManagementAsync(locationId, from!.Value, until!.Value, amounts, ct) is not { } report)
+                if (await reports.ManagementAsync(locationId, from!.Value, until!.Value, amounts, ct, compare) is not { } report)
                 {
                     return TypedResults.NotFound();
                 }
 
                 var columns = new ExportColumn[]
                 {
-                    new("Kennzahl", ColumnKind.Text), new("Wert", ColumnKind.Number), new("Vorperiode", ColumnKind.Number), new("Einheit", ColumnKind.Text),
+                    new("Kennzahl", ColumnKind.Text), new("Wert", ColumnKind.Number), new(compare switch { ManagementReports.CompareModes.Month => "Vormonat", ManagementReports.CompareModes.Year => "Vorjahr", _ => "Vorperiode" }, ColumnKind.Number), new("Einheit", ColumnKind.Text),
                 };
                 var rows = report.Kpis.Select(k => new object?[] { k.Label, Value(k.Value, k.Unit), Value(k.Previous, k.Unit), k.Unit }).ToList();
                 var table = new ExportTable("Kennzahlen", columns, rows);

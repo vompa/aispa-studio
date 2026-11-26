@@ -7,12 +7,19 @@
              x:DataType="vm:ManagementReportViewModel">
   <!-- Reiter „Management“ nach web/src/reports/ManagementView.tsx und BenchmarkView.tsx. Der Vergleich zeigt die Werte als Text; ein Balken wäre eine eigene Zeichnung (Ä226). -->
   <StackPanel Spacing="16">
-    <StackPanel Orientation="Horizontal" Spacing="12">
+    <WrapPanel ItemSpacing="12" LineSpacing="12">
+      <ui:FormField Label="Zeitraum">
+        <ComboBox x:Name="ManagementQuickRangeField" ItemsSource="{x:Static vm:ManagementReportViewModel.QuickRanges}" SelectedItem="{Binding SelectedQuickRange}"
+                  PlaceholderText="Schnellwahl" Width="160" />
+      </ui:FormField>
       <ui:FormField Label="Von">
         <ui:DateField x:Name="ManagementFromField" Value="{Binding From}" />
       </ui:FormField>
       <ui:FormField Label="Bis">
         <ui:DateField x:Name="ManagementUntilField" Value="{Binding Until}" />
+      </ui:FormField>
+      <ui:FormField Label="Vergleichen mit">
+        <ComboBox x:Name="ManagementComparisonField" ItemsSource="{x:Static vm:ManagementReportViewModel.CompareChoices}" SelectedItem="{Binding SelectedComparison}" Width="160" />
       </ui:FormField>
       <CheckBox x:Name="ManagementCompareField" Content="Mit anderen Spas vergleichen" IsChecked="{Binding Compare}" VerticalAlignment="Bottom" />
       <!-- Wochenbericht montags, Monatsbericht am Ersten, je für die angemeldete Person; abbestellen jederzeit hier -->
@@ -21,7 +28,12 @@
       <!-- Export der Kennzahlen des Zeitraums (Export/Import, Aufgabe D) -->
       <ui:ExportButton x:Name="ManagementExportButton" DataContext="{Binding Export}" VerticalAlignment="Bottom" />
       <TextBlock x:Name="ManagementExportSaved" Text="{Binding ExportSaved}" Classes="muted small" IsVisible="{Binding HasExportSaved}" VerticalAlignment="Bottom" AutomationProperties.LiveSetting="Polite" />
-    </StackPanel>
+      <Button x:Name="ManagementOpenFolder" Classes="link" Content="{x:Static vm:ManagementReportViewModel.OpenFolderText}" Command="{Binding OpenFolderCommand}"
+              IsVisible="{Binding HasSavedPath}" VerticalAlignment="Bottom" />
+    </WrapPanel>
+    <!-- Womit die Kacheln vergleichen, und dass der heutige Tag noch läuft -->
+    <TextBlock x:Name="ManagementCompareInfo" Text="{Binding CompareInfo}" Classes="muted small" IsVisible="{Binding CompareInfo, Converter={x:Static ObjectConverters.IsNotNull}}" />
+    <TextBlock x:Name="ManagementTodayOpen" Text="{x:Static vm:ManagementReportViewModel.TodayOpenText}" Classes="muted small" IsVisible="{Binding IsTodayOpen}" />
     <ui:InfoBar Severity="Error" Message="{Binding Error}" IsVisible="{Binding HasError}" CloseCommand="{Binding CloseErrorCommand}" />
     <ui:InfoBar Severity="Error" Title="Bericht nicht geladen" Message="{Binding LoadError}" IsVisible="{Binding HasLoadError}"
                 ActionText="Erneut laden" ActionCommand="{Binding RetryCommand}" />
@@ -93,13 +105,7 @@
       </ItemsControl.ItemsPanel>
       <ItemsControl.ItemTemplate>
         <DataTemplate x:DataType="vm:KpiRow">
-          <Border Classes="card" Padding="12" MinWidth="168">
-            <StackPanel Spacing="4">
-              <TextBlock Text="{Binding Label}" Classes="muted small" />
-              <TextBlock Text="{Binding Value}" Classes="h2 num" />
-              <TextBlock Text="{Binding Previous}" Classes="muted small num" IsVisible="{Binding HasPrevious}" />
-            </StackPanel>
-          </Border>
+          <ui:StatTile Width="200" VerticalAlignment="Stretch" Label="{Binding Label}" Value="{Binding Value}" Hint="{Binding Hint}" State="{Binding State}" AccessibleHint="{Binding Spoken}" />
         </DataTemplate>
       </ItemsControl.ItemTemplate>
     </ItemsControl>

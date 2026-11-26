@@ -72,6 +72,33 @@ public sealed partial class ViewTests
     }, ReportsApi());
 
     [Fact]
+    public Task Management_Kacheln_zeigen_beim_Vorjahresvergleich_Pfeil_Zeichen_und_Screenreader_Namen() => Render("hell", "management-kacheln-vergleich", async (window, main) =>
+    {
+        // Given der Management-Bericht der Inhaberin bis heute, mit Vorjahr als Vergleich
+        var (shell, reports) = await OpenReports(window, main, ReportsViewModel.ManagementTab);
+        reports.Management.SelectedComparison = ManagementReportViewModel.CompareChoices.Single(c => c.Key == "year");
+        await Pump(Settling);
+        await Pump(Settling);
+
+        // Then steht der Hinweis auf den laufenden Tag, und jede Kachel nennt die Veränderung auch im Namen für Screenreader (Farbe nie allein)
+        Assert.True(Named<TextBlock>(window, "ManagementTodayOpen").IsEffectivelyVisible);
+        Assert.Equal("Vergleich: Vorjahr · 01.10.2025 bis 19.10.2025", Named<TextBlock>(window, "ManagementCompareInfo").Text);
+        var names = window.GetVisualDescendants().OfType<Controls.StatTile>().Select(t => Avalonia.Automation.AutomationProperties.GetName(t)).ToList();
+        Assert.Contains("Umsatz brutto 19.250,97 €, 24 % unter dem Vorjahr", names);
+        Assert.Contains("No-Show-Quote 5,0 %, 3,0 Prozentpunkte unter dem Vorjahr", names);
+        return shell.AdminPage;
+    }, ReportsApi().On(ManagementRoute(new DateOnly(2026, 10, 1), Today) + "&compare=year", new ManagementReportDto(LocationId, new DateOnly(2026, 10, 1), Today,
+        [
+            new Kpi("revenue", "Umsatz brutto", 19250.97m, 25371m, "€", true),
+            new Kpi("revenueNet", "Umsatz netto", 16041.48m, 21142.50m, "€", true),
+            new Kpi("appointments", "Behandlungen", 212m, 190m, "", true),
+            new Kpi("staffUtilization", "Auslastung Personal", 71.5m, 68m, "%", true),
+            new Kpi("noShowRate", "No-Show-Quote", 5m, 8m, "%", false),
+            new Kpi("customers", "Gäste", 150m, 150m, "", true),
+            new Kpi("voucherLiabilities", "Offene Gutscheine (heute)", 4200m, null, "€"),
+        ], [], [], [], [], [], false, CompareFrom: new DateOnly(2025, 10, 1), CompareUntil: new DateOnly(2025, 10, 19))));
+
+    [Fact]
     public Task Ein_Sprung_auf_die_Pflichtberichte_rollt_bei_Mindestfenster_zum_Abschnitt() => Render("hell", "zahlen-berichte-sprung", async (window, main) =>
     {
         // Given das Fenster am Minimum (1100 × 680) und „Berichte“ mit dem Vergleich: die Pflichtberichte liegen unter dem sichtbaren Bereich

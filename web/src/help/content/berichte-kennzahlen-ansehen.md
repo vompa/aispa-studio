@@ -4,26 +4,40 @@ bereich: Berichte
 oberflaeche: verwaltung
 rollen: leitung, inhaber, manager
 seite: verwaltung
-stichwoerter: Management, Cockpit, Kennzahlen, KPI, Umsatz, Auslastung, No-Show, Storno-Quote, Durchschnittsbon, Stammgäste, neue Gäste, Folgetermin, Marge, Vollkosten, Erlöskonto, Kostenstelle, Personal, Alarme, Vorperiode, Export, Excel, CSV, Kennzahlen exportieren, wie läuft das Geschäft, revenue, utilization, dashboard, figures
+stichwoerter: Management, Cockpit, Kennzahlen, KPI, Umsatz, Auslastung, No-Show, Storno-Quote, Durchschnittsbon, Stammgäste, neue Gäste, Folgetermin, Marge, Vollkosten, Erlöskonto, Kostenstelle, Personal, Alarme, Vorperiode, Vormonat, Vorjahr, Vergleich, Schnellwahl, Veränderung, Pfeil, Export, Excel, CSV, Kennzahlen exportieren, wie läuft das Geschäft, revenue, utilization, dashboard, figures
 ---
 # Kennzahlen im Management ansehen
 
-Der Abschnitt „Management“ im Reiter „Berichte“ zeigt die Kennzahlen eines Standorts für einen Zeitraum, jeweils neben dem gleich langen Zeitraum davor.
+Der Abschnitt „Management“ im Reiter „Berichte“ zeigt die Kennzahlen eines Standorts für einen Zeitraum, jeweils neben einem Vergleichszeitraum.
 
 ## Zeitraum wählen {#zeitraum}
 
 1. In der Windows-App unter „Verwaltung“ **Zahlen** öffnen und den Reiter **Berichte** wählen. Der Abschnitt **Management** steht oben.
 2. **Standort** wählen.
 3. **Von** und **Bis** setzen. Vorbelegt sind der Monatserste und heute. Der Zeitraum darf höchstens ein Jahr lang sein.
-4. Wer die Zahlen weitergeben will: **Exportieren** daneben speichert die Kennzahlen des Zeitraums mit Wert, Vorperiode und Einheit als Excel oder CSV, z. B. als `Kennzahlen_2026-11-01_bis_2026-11-26.xlsx`. Beträge in Euro haben in Excel zwei Nachkommastellen. Beträge stehen nur darin, wenn man sie auf der Seite auch sieht.
+4. Schneller geht es mit der **Schnellwahl**: **Dieser Monat**, **Letzter Monat**, **Dieses Quartal**, **Dieses Jahr** oder **Letzte 12 Monate**. Sie setzt Von und Bis. Dieser Monat, Dieses Quartal und Dieses Jahr reichen bis heute, Letzter Monat ist der ganze Vormonat. Ändern Sie danach ein Datum von Hand, verschwindet die Auswahl.
+5. Reicht **Bis** bis heute oder darüber, steht „Heute ist noch nicht abgeschlossen“: Umsatz und Termine von heute können noch wachsen.
+6. **Vergleichen mit** wählt, wogegen die Kacheln rechnen. Die Zeile „Vergleich:“ darunter nennt den Zeitraum.
+   - **Zeitraum davor** (Standard): der gleich lange Zeitraum direkt davor.
+   - **Vormonat**: derselbe Abschnitt im Vormonat, also 1. bis 26. gegen 1. bis 26. des Vormonats. Endet Ihr Zeitraum am Monatsletzten, zählt der ganze Vormonat.
+   - **Vorjahr**: derselbe Zeitraum im Vorjahr.
+7. Wer die Zahlen weitergeben will: **Exportieren** daneben speichert die Kennzahlen des Zeitraums mit Wert, Vergleichswert und Einheit als Excel oder CSV, z. B. als `Kennzahlen_2026-11-01_bis_2026-11-26.xlsx`. Die Datei nimmt den gewählten Vergleich. Beträge in Euro haben in Excel zwei Nachkommastellen. Beträge stehen nur darin, wenn man sie auf der Seite auch sieht. Nach dem Speichern öffnet **Ordner öffnen** neben „Gespeichert: …“ den Ordner der Datei.
 
 ![Management mit Kennzahlen](images/app/verwaltung-berichte-management.png)
 
 ## Was angezeigt wird {#inhalt}
 
 - **Alarme** oben, wenn etwas auffällt: hohe No-Show-Quote, Personal wenig ausgelastet, eine Behandlung mit Verlust je Termin, Kassendifferenzen von zusammen mindestens 5,00 € im Zeitraum (Überschuss und Fehlbetrag zählen beide), bereits vergangene Termine im Zeitraum, die noch nicht kassiert sind („3 Termine noch nicht kassiert“). Beginnt der Zeitraum davor vor dem ersten Termin des Standorts, steht „Vergleich reicht vor den Beginn der Aufzeichnung“: Die Vorperiode ist dann unvollständig, vor allem Neue Gäste und Stammgäste-Anteil sind nicht vergleichbar.
-- **Kennzahlen**, jeweils mit „Vorperiode“: Umsatz brutto, Umsatz netto, Durchschnittsbon netto, Umsatz ohne Gutscheinverkauf (netto), Durchschnittsbon ohne Gutscheinverkauf (netto), Gutscheine verkauft, Gutscheine eingelöst, Behandlungen, Auslastung Personal, Auslastung Räume, No-Show-Quote, Storno-Quote, Gäste, Neue Gäste, Stammgäste-Anteil, Folgetermin gebucht und Offene Gutscheine (heute, ohne Vorperiode).
+- **Kennzahlen**, jeweils mit dem Vergleichswert („Vorperiode“, „Vormonat“ oder „Vorjahr“): Umsatz brutto, Umsatz netto, Durchschnittsbon netto, Umsatz ohne Gutscheinverkauf (netto), Durchschnittsbon ohne Gutscheinverkauf (netto), Gutscheine verkauft, Gutscheine eingelöst, Behandlungen, Auslastung Personal, Auslastung Räume, No-Show-Quote, Storno-Quote, Gäste, Neue Gäste, Stammgäste-Anteil, Folgetermin gebucht und Offene Gutscheine (heute, ohne Vorperiode).
 - **Folgetermin gebucht**: Anteil der Gäste mit abgeschlossener Behandlung im Zeitraum, die einen späteren Termin haben. Es zählt jeder spätere Termin, der nicht storniert und kein No-Show ist, auch wenn er inzwischen stattgefunden hat.
+
+## Veränderung auf den Kacheln lesen {#veraenderung}
+
+Jede Kachel mit Vergleichswert zeigt unter dem Wert, wie sich die Zahl verändert hat:
+
+- **Pfeil und Zahl:** „↓ 24 %“ heißt 24 Prozent weniger als im Vergleichszeitraum. Bei Quoten wie Auslastung oder No-Show-Quote steht die Veränderung in Prozentpunkten („↓ 3,0 Prozentpunkte“). War der Vergleichswert 0, steht „↑ von 0“. Bleibt der Wert gleich, steht „→ unverändert“.
+- **Haken oder Warnzeichen:** Der Haken heißt, die Veränderung ist gut (mehr Umsatz, weniger No-Shows). Das Warnzeichen heißt, sie ist schlecht (weniger Umsatz, mehr No-Shows). Kennzahlen ohne klare Richtung, etwa „Offene Gutscheine“, zeigen den Pfeil ohne Zeichen. Ein Screenreader liest den ganzen Satz, zum Beispiel „Umsatz brutto 19.250,97 €, 24 % unter der Vorperiode“.
+- Kennzahlen, die nur den Stand von heute zeigen („Offene Gutscheine“, „Offene Anfragen“), haben keinen Vergleich.
 
 ## Gutscheine in den Kennzahlen {#gutscheine}
 

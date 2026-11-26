@@ -7563,7 +7563,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Kennzahlen eines Zeitraums mit Vergleich zum gleich langen Zeitraum davor; ohne das Recht „Berichte mit Beträgen“ ohne Geldbeträge. Auch in der Mitarbeiter-App für „Heute im Spa“, mit den Rechten der Rolle. */
+        /** Kennzahlen eines Zeitraums mit Vergleich zum gleich langen Zeitraum davor (compare=previous, Standard), zum selben Abschnitt des Vormonats (month) oder zum Vorjahr (year); ohne das Recht „Berichte mit Beträgen“ ohne Geldbeträge. Auch in der Mitarbeiter-App für „Heute im Spa“, mit den Rechten der Rolle. */
         get: operations["GetManagementReport"];
         put?: never;
         post?: never;
@@ -11824,6 +11824,7 @@ export interface components {
             /** Format: double */
             previous: null | number;
             unit: string;
+            higherIsBetter?: null | boolean;
         };
         LeaveAccountDto: {
             /** Format: uuid */
@@ -11991,6 +11992,10 @@ export interface components {
             aiSummaryPending: boolean;
             aiNotice?: null | string;
             promotions?: null | components["schemas"]["PromotionKpi"][];
+            /** Format: date */
+            compareFrom?: null | string;
+            /** Format: date */
+            compareUntil?: null | string;
         };
         MarketingConsentDecision: {
             state: components["schemas"]["MarketingConsentState"];
@@ -18410,6 +18415,7 @@ export interface operations {
                 from?: string;
                 until?: string;
                 format?: string;
+                compare?: string;
             };
             header?: never;
             path: {
@@ -35722,6 +35728,7 @@ export interface operations {
             query: {
                 from: string;
                 until: string;
+                compare?: string;
             };
             header?: never;
             path: {

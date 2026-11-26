@@ -133,7 +133,9 @@ public sealed record BriefingDto(
 
 // ---------- Management ----------
 
-public sealed record Kpi(string Key, string Label, decimal Value, decimal? Previous, string Unit);
+/// <param name="Previous">Wert im Vergleichszeitraum (<c>CompareFrom</c> bis <c>CompareUntil</c> des Berichts); leer bei Werten ohne Vergleich.</param>
+/// <param name="HigherIsBetter">Ob ein höherer Wert gut ist (Umsatz) oder schlecht (No-Show-Quote); leer bei neutralen Werten wie „Offene Gutscheine“.</param>
+public sealed record Kpi(string Key, string Label, decimal Value, decimal? Previous, string Unit, bool? HigherIsBetter = null);
 
 public sealed record RevenueLine(string Label, string? CostCenter, decimal Gross, decimal Net);
 
@@ -160,7 +162,8 @@ public sealed record TreatmentKpi(Guid TreatmentId, string Name, int Appointment
 public sealed record PromotionKpi(Guid PromotionId, string Name, int Positions, int Guests, int NewGuests, decimal? Discount, decimal? Revenue);
 
 /// <summary>
-/// Management-Cockpit für einen Zeitraum (Ortszeit, beide Tage eingeschlossen) mit Vergleich zum gleich langen Zeitraum davor.
+/// Management-Cockpit für einen Zeitraum (Ortszeit, beide Tage eingeschlossen) mit Vergleich zum gleich langen Zeitraum davor (Standard), zum selben Abschnitt
+/// des Vormonats oder zum selben Zeitraum des Vorjahres (<c>compare</c>); <c>CompareFrom</c> und <c>CompareUntil</c> nennen den Vergleichszeitraum.
 /// Umsätze aus den signierten Belegen der Kassen des Standorts, Termine und Auslastung aus dem Kalender.
 /// <c>AmountsHidden</c>: ohne das Recht „Berichte mit Beträgen“ fehlen alle Geldbeträge (Umsatz-Kennzahlen, Umsatz nach Konto und Zahlart,
 /// Umsatz je Behandlung und Person, Margen); Auslastung, Anzahlen und Quoten bleiben.
@@ -183,7 +186,9 @@ public sealed record ManagementReportDto(
     string? AiSummary = null,
     bool AiSummaryPending = false,
     string? AiNotice = null,
-    IReadOnlyList<PromotionKpi>? Promotions = null);
+    IReadOnlyList<PromotionKpi>? Promotions = null,
+    DateOnly? CompareFrom = null,
+    DateOnly? CompareUntil = null);
 
 /// <summary>Wochen- und Monatsbericht per Mail für die angemeldete Person: <c>Enabled</c>, ob sie ihn bekommt; <c>Available</c>, ob ihre Rolle ihn überhaupt bekommt.</summary>
 public sealed record ReportMailSubscription(bool Enabled, bool Available);

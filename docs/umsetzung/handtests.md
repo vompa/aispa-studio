@@ -1764,3 +1764,22 @@ Expected: Der Hinweis „Vergleich reicht vor den Beginn der Aufzeichnung …“
 Expected: Der Dateiname lautet `Kennzahlen_<von>_bis_<bis>.xlsx`, Euro-Werte stehen als Währung.
 Closes: Arbeitsanweisung Berichte-Ausbau, Aufgabe A (Befunde 1, 2, 3, 6)
 Result: ☐
+
+### T-093 – Management-Bericht: Zeitraum, Vergleich, Kacheln
+Start: `dotnet run --project src/AispaStudio.AppHost` mit Beispieldaten, im Aspire-Dashboard die Ressource `windows-app` starten, als Inhaberin anmelden, **Verwaltung** › **Zahlen** › **Berichte** › Management-Bericht öffnen
+1. Im Feld **Zeitraum** nacheinander **Dieser Monat**, **Letzter Monat**, **Dieses Quartal**, **Dieses Jahr** und **Letzte 12 Monate** wählen.
+Expected: Von und Bis ändern sich passend (Letzter Monat ist der ganze Vormonat, Letzte 12 Monate endet heute); der Bericht lädt jedes Mal neu. Reicht Bis bis heute, steht „Heute ist noch nicht abgeschlossen. Die Zahlen können sich noch ändern.“, beim Letzten Monat nicht.
+2. Ein Datum von Hand ändern.
+Expected: Die Auswahl im Feld **Zeitraum** verschwindet (Platzhalter „Schnellwahl“).
+3. **Vergleichen mit** nacheinander auf **Zeitraum davor**, **Vormonat** und **Vorjahr** stellen.
+Expected: Die Zeile „Vergleich: …“ nennt den Zeitraum (Vormonat: derselbe Abschnitt, bei einem ganzen Monat der ganze Vormonat; Vorjahr: derselbe Zeitraum im Vorjahr). Die Kacheln schreiben „Vorperiode“, „Vormonat“ bzw. „Vorjahr“ und die Werte ändern sich.
+4. Die Kacheln ansehen.
+Expected: Jede Kachel mit Vergleichswert zeigt Pfeil und Veränderung („↓ 24 %“, bei Quoten „↓ 3,0 Prozentpunkte“, gleiche Werte „→ unverändert“). Besser: Haken und grüne Fläche, schlechter: Warnzeichen (mehr Umsatz und weniger No-Shows sind besser). „Offene Gutscheine“ und „Offene Anfragen“ haben keinen Vergleich. Pfeil und Text sagen dasselbe wie die Farbe.
+5. Mit Tab zu einer Kachel gehen und den Namen vom Screenreader (Erzähler) lesen lassen.
+Expected: Zum Beispiel „Umsatz brutto 19.250,97 €, 24 % unter dem Vorjahr“ (ohne Pfeilzeichen).
+6. Den Bericht mit **Vorjahr** als Excel exportieren und speichern.
+Expected: Die Spalte heißt „Vorjahr“ und enthält die Werte des Vorjahreszeitraums. Neben „Gespeichert: …“ steht **Ordner öffnen**; ein Klick öffnet den Explorer mit der Datei.
+7. Dieselben Schritte als Rolle ohne „Berichte mit Beträgen“ (Backoffice) ansehen.
+Expected: Die Euro-Kacheln fehlen weiterhin, Schnellwahl, Vergleich und Veränderung der übrigen Kacheln funktionieren.
+Closes: Arbeitsanweisung Berichte-Ausbau, Aufgabe B
+Result: ☐

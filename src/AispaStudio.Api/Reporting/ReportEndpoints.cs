@@ -382,20 +382,25 @@ internal static class ReportEndpoints
 
         group.MapGet("/locations/{locationId:guid}/management", async Task<Results<Ok<ManagementReportDto>, NotFound, ValidationProblem>> (
                 Guid locationId, DateOnly from, DateOnly until, ManagementReports reports, ManagementSummaries summaries, AccessService accessService,
-                CancellationToken ct) =>
+                CancellationToken ct, string compare = ManagementReports.CompareModes.Previous) =>
             {
                 if (from > until || until.DayNumber - from.DayNumber > 366)
                 {
                     return TypedResults.ValidationProblem(new Dictionary<string, string[]> { ["until"] = ["Zeitraum von höchstens einem Jahr, Ende nach Beginn."] });
                 }
 
+                if (!ManagementReports.CompareModes.IsKnown(compare))
+                {
+                    return TypedResults.ValidationProblem(new Dictionary<string, string[]> { ["compare"] = ["Vergleich: previous (Zeitraum davor), month (Vormonat) oder year (Vorjahr)."] });
+                }
+
                 var amounts = (await accessService.CurrentAsync(ct))!.Has(AccessRight.ViewAmountReports);
-                return await reports.ManagementAsync(locationId, from, until, amounts, ct) is { } report
+                return await reports.ManagementAsync(locationId, from, until, amounts, ct, compare) is { } report
                     ? TypedResults.Ok(await summaries.AttachAsync(report, ct))
                     : TypedResults.NotFound();
             })
             .WithName("GetManagementReport")
-            .WithSummary("Kennzahlen eines Zeitraums mit Vergleich zum gleich langen Zeitraum davor; ohne das Recht „Berichte mit Beträgen“ ohne Geldbeträge. Auch in der Mitarbeiter-App für „Heute im Spa“, mit den Rechten der Rolle.")
+            .WithSummary("Kennzahlen eines Zeitraums mit Vergleich zum gleich langen Zeitraum davor (compare=previous, Standard), zum selben Abschnitt des Vormonats (month) oder zum Vorjahr (year); ohne das Recht „Berichte mit Beträgen“ ohne Geldbeträge. Auch in der Mitarbeiter-App für „Heute im Spa“, mit den Rechten der Rolle.")
             .RequirePermission(AccessRight.ViewFinance)
             .AllowChannel(AccessChannel.StaffApp);
 

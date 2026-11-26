@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 
 namespace AispaStudio.Desktop.ViewModels;
 
@@ -13,10 +14,17 @@ public sealed partial class ManagementReportViewModel
     /// </summary>
     public ExportViewModel Export => _export ??= new ExportViewModel(Api, ListExportOptions.Pair("Kennzahlen", ExportPath).ToList())
     {
-        Saved = text => ExportSaved = text,
+        Saved = text =>
+        {
+            ExportSaved = text;
+            _savedPath = _export?.SavedPath;
+            OnPropertyChanged(nameof(HasSavedPath));
+        },
         Failed = text =>
         {
             ExportSaved = null;
+            _savedPath = null;
+            OnPropertyChanged(nameof(HasSavedPath));
             Error = text;
         },
     };
@@ -28,6 +36,22 @@ public sealed partial class ManagementReportViewModel
 
     public bool HasExportSaved => !string.IsNullOrEmpty(ExportSaved);
 
+    private string? _savedPath;
+
+    /// <summary>„Ordner öffnen“ gibt es, wenn der Speicherdialog den Ort der Datei genannt hat.</summary>
+    public bool HasSavedPath => HasExportSaved && _savedPath is not null;
+
+    public const string OpenFolderText = "Ordner öffnen";
+
+    [RelayCommand]
+    private void OpenFolder()
+    {
+        if (_savedPath is { } path)
+        {
+            FolderOpener.Reveal(path);
+        }
+    }
+
     private string ExportPath(string format) =>
-        $"api/reports/locations/{Location?.Id}/management/export?from={(From is { } from ? ListExportOptions.Day(from) : "")}&until={(Until is { } until ? ListExportOptions.Day(until) : "")}&format={format}";
+        $"api/reports/locations/{Location?.Id}/management/export?from={(From is { } from ? ListExportOptions.Day(from) : "")}&until={(Until is { } until ? ListExportOptions.Day(until) : "")}&format={format}{(Comparison.IsDefault ? "" : $"&compare={Comparison.Key}")}";
 }

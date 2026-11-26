@@ -26,6 +26,8 @@ public sealed class StatTile : Button
 
     public static readonly StyledProperty<string?> HintProperty = AvaloniaProperty.Register<StatTile, string?>(nameof(Hint));
 
+    public static readonly StyledProperty<string?> AccessibleHintProperty = AvaloniaProperty.Register<StatTile, string?>(nameof(AccessibleHint));
+
     public static readonly StyledProperty<StatTileState> StateProperty = AvaloniaProperty.Register<StatTile, StatTileState>(nameof(State));
 
     private readonly TextBlock _label = new() { Name = "StatTileLabel", TextWrapping = Avalonia.Media.TextWrapping.Wrap };
@@ -39,6 +41,7 @@ public sealed class StatTile : Button
         ValueProperty.Changed.AddClassHandler<StatTile>((tile, _) => tile.Refresh());
         HintProperty.Changed.AddClassHandler<StatTile>((tile, _) => tile.Refresh());
         StateProperty.Changed.AddClassHandler<StatTile>((tile, _) => tile.Refresh());
+        AccessibleHintProperty.Changed.AddClassHandler<StatTile>((tile, _) => tile.Refresh());
         CommandProperty.Changed.AddClassHandler<StatTile>((tile, _) => tile.Refresh());
     }
 
@@ -78,6 +81,16 @@ public sealed class StatTile : Button
         set => SetValue(HintProperty, value);
     }
 
+    /// <summary>
+    /// Satz für Screenreader statt des sichtbaren Hinweises, wenn dieser Pfeile und Kurzformen enthält („24 % unter der Vorperiode“): der Name lautet dann „Beschriftung Wert, Satz“.
+    /// Ein Warnzeichen wird dann nicht noch einmal angesagt, der Satz nennt die Richtung selbst.
+    /// </summary>
+    public string? AccessibleHint
+    {
+        get => GetValue(AccessibleHintProperty);
+        set => SetValue(AccessibleHintProperty, value);
+    }
+
     public StatTileState State
     {
         get => GetValue(StateProperty);
@@ -106,6 +119,12 @@ public sealed class StatTile : Button
         Classes.Set("static", !clickable);
         Focusable = clickable;
         IsTabStop = clickable;
+        if (!string.IsNullOrEmpty(AccessibleHint))
+        {
+            AutomationProperties.SetName(this, $"{Label} {Value}, {AccessibleHint}");
+            return;
+        }
+
         var name = string.IsNullOrEmpty(Hint) ? $"{Label}: {Value}" : $"{Label}: {Value}, {Hint}";
         AutomationProperties.SetName(this, State == StatTileState.Warn ? $"{name}, Warnung" : name);
     }

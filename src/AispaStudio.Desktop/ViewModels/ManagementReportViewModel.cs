@@ -1,12 +1,34 @@
 using AispaStudio.Contracts;
+using AispaStudio.Desktop.Controls;
 using AispaStudio.Desktop.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace AispaStudio.Desktop.ViewModels;
 
-public sealed record KpiRow(string Label, string Value, string? Previous)
+/// <summary>
+/// Kachel einer Kennzahl. <c>Change</c> ist die Veränderung zum Vergleich mit Pfeil („↓ 24 %“, bei Quoten in Prozentpunkten), <c>State</c> ihre Richtung (Haken: besser, Warnzeichen:
+/// schlechter, sonst keines), <c>Spoken</c> der Satz für Screenreader („24 % unter der Vorperiode“). Pfeil, Text und Zeichen sagen dasselbe wie die Farbe.
+/// </summary>
+public sealed record KpiRow(string Label, string Value, string? Previous, string? Change = null, StatTileState State = StatTileState.None, string? Spoken = null)
 {
     public bool HasPrevious => Previous is not null;
+
+    /// <summary>Zeilen unter dem Wert: Veränderung und darunter der Vergleichswert („↓ 24 %“, „Vorjahr 25.371,00 €“).</summary>
+    public string? Hint => Change is not null && Previous is not null ? $"{Change}{Environment.NewLine}{Previous}" : Change ?? Previous;
+}
+
+/// <summary>Wählbarer Vergleich (API-Parameter <c>compare</c>): Zeitraum davor, Vormonat bis zum selben Tag oder Vorjahr. <c>Noun</c> beschriftet den Vergleichswert, <c>Dative</c> den Satz für Screenreader.</summary>
+public sealed record CompareChoice(string Key, string Label, string Noun, string Dative)
+{
+    public bool IsDefault => Key == "previous";
+
+    public override string ToString() => Label;
+}
+
+/// <summary>Schnellwahl für den Zeitraum; <c>Range</c> rechnet Von und Bis aus dem heutigen Tag.</summary>
+public sealed record QuickRange(string Label, Func<DateOnly, (DateOnly From, DateOnly Until)> Range)
+{
+    public override string ToString() => Label;
 }
 
 public sealed record RevenueRow(string Label, string Gross, string Net);
@@ -46,6 +68,50 @@ public sealed partial class ManagementReportViewModel(IWorkstationApi api, TimeP
     public partial bool IsAiPending { get; private set; }
 
     public bool HasAiSummary => AiSummary is not null;
+
+    public static IReadOnlyList<CompareChoice> CompareChoices { get; } =
+    [
+        new("previous", "Zeitraum davor", "Vorperiode", "der Vorperiode"),
+        new("month", "Vormonat", "Vormonat", "dem Vormonat"),
+        new("year", "Vorjahr", "Vorjahr", "dem Vorjahr"),
+    ];
+
+    public static IReadOnlyList<QuickRange> QuickRanges { get; } =
+    [
+        new("Dieser Monat", today => (new DateOnly(today.Year, today.Month, 1), today)),
+        new("Letzter Monat", today =>
+        {
+            var first = new DateOnly(today.Year, today.Month, 1).AddMonths(-1);
+            return (first, first.AddMonths(1).AddDays(-1));
+        }),
+        new("Dieses Quartal", today => (new DateOnly(today.Year, (today.Month - 1) / 3 * 3 + 1, 1), today)),
+        new("Dieses Jahr", today => (new DateOnly(today.Year, 1, 1), today)),
+        new("Letzte 12 Monate", today => (today.AddYears(-1).AddDays(1), today)),
+    ];
+
+    /// <summary>Womit der Zeitraum verglichen wird; wirkt auf alle Kacheln. Standard ist der gleich lange Zeitraum davor, wie bisher.</summary>
+    [ObservableProperty]
+    public partial CompareChoice? SelectedComparison { get; set; } = CompareChoices[0];
+
+    private CompareChoice Comparison => SelectedComparison ?? CompareChoices[0];
+
+    /// <summary>Schnellwahl für Von und Bis; sie bleibt stehen, solange die Daten ihrem Zeitraum entsprechen.</summary>
+    [ObservableProperty]
+    public partial QuickRange? SelectedQuickRange { get; set; }
+
+    private bool _applyingQuickRange;
+
+    /// <summary>Reicht „Bis“ bis heute oder darüber, fehlt dem heutigen Tag noch der Rest: Umsatz und Termine können noch wachsen.</summary>
+    public bool IsTodayOpen => Until is { } until && until >= Today();
+
+    public const string TodayOpenText = "Heute ist noch nicht abgeschlossen. Die Zahlen können sich noch ändern.";
+
+    /// <summary>„Vergleich: Vormonat · 01.10.2026 bis 26.10.2026“, damit klar ist, womit die Kacheln rechnen.</summary>
+    [ObservableProperty]
+    public partial string? CompareInfo { get; private set; }
+
+    /// <summary>Öffnet den Ordner der gespeicherten Datei („Ordner öffnen“ neben „Gespeichert: …“); Tests setzen einen eigenen.</summary>
+    public IFolderOpener FolderOpener { get; set; } = new ExplorerFolderOpener();
 
     // ---------- Wochen- und Monatsbericht per Mail ----------
 
@@ -102,6 +168,7 @@ public sealed partial class ManagementReportViewModel(IWorkstationApi api, TimeP
     public partial DateOnly? From { get; set; }
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsTodayOpen))]
     public partial DateOnly? Until { get; set; }
 
     [ObservableProperty]
@@ -196,7 +263,9 @@ public sealed partial class ManagementReportViewModel(IWorkstationApi api, TimeP
 
         var version = NextVersion();
         LoadError = null;
-        var result = await Api.GetAsync<ManagementReportDto>($"api/reports/locations/{location.Id}/management?from={Iso(from)}&until={Iso(until)}").ConfigureAwait(true);
+        var comparison = Comparison;
+        var path = ReportPath(location, from, until, comparison);
+        var result = await Api.GetAsync<ManagementReportDto>(path).ConfigureAwait(true);
         if (version != Version)
         {
             return;
@@ -214,10 +283,11 @@ public sealed partial class ManagementReportViewModel(IWorkstationApi api, TimeP
             Employees = [];
             Treatments = [];
             Promotions = [];
+            CompareInfo = null;
             return;
         }
 
-        Apply(report);
+        Apply(report, comparison);
         IsLoaded = true;
         await LoadBenchmarkAsync().ConfigureAwait(true);
         await LoadMailSubscriptionAsync().ConfigureAwait(true);
@@ -231,20 +301,54 @@ public sealed partial class ManagementReportViewModel(IWorkstationApi api, TimeP
                 return;
             }
 
-            var again = await Api.GetAsync<ManagementReportDto>($"api/reports/locations/{location.Id}/management?from={Iso(from)}&until={Iso(until)}").ConfigureAwait(true);
+            var again = await Api.GetAsync<ManagementReportDto>(path).ConfigureAwait(true);
             if (version != Version || again.Value is not { } next)
             {
                 return;
             }
 
             report = next;
-            Apply(report);
+            Apply(report, comparison);
         }
     }
 
-    partial void OnFromChanged(DateOnly? value) => ReloadAfterRangeChange();
+    partial void OnFromChanged(DateOnly? value) => RangeEdited();
 
-    partial void OnUntilChanged(DateOnly? value) => ReloadAfterRangeChange();
+    partial void OnUntilChanged(DateOnly? value) => RangeEdited();
+
+    partial void OnSelectedComparisonChanged(CompareChoice? value) => ReloadAfterRangeChange();
+
+    partial void OnSelectedQuickRangeChanged(QuickRange? value)
+    {
+        if (_applyingQuickRange || value is null)
+        {
+            return;
+        }
+
+        _applyingQuickRange = true;
+        _rangeIsSet = true;
+        (From, Until) = value.Range(Today());
+        _applyingQuickRange = false;
+        ReloadAfterRangeChange();
+    }
+
+    private void RangeEdited()
+    {
+        if (_applyingQuickRange)
+        {
+            return;
+        }
+
+        if (SelectedQuickRange is { } quick && quick.Range(Today()) != (From ?? default, Until ?? default))
+        {
+            SelectedQuickRange = null;
+        }
+
+        ReloadAfterRangeChange();
+    }
+
+    private static string ReportPath(LocationDto location, DateOnly from, DateOnly until, CompareChoice comparison) =>
+        $"api/reports/locations/{location.Id}/management?from={Iso(from)}&until={Iso(until)}{(comparison.IsDefault ? "" : $"&compare={comparison.Key}")}";
 
     partial void OnCompareChanged(bool value)
     {
@@ -272,14 +376,17 @@ public sealed partial class ManagementReportViewModel(IWorkstationApi api, TimeP
 
     private DateOnly Today() => DateOnly.FromDateTime(Time.GetLocalNow().DateTime);
 
-    private void Apply(ManagementReportDto report)
+    private void Apply(ManagementReportDto report, CompareChoice comparison)
     {
+        CompareInfo = report.CompareFrom is { } compareFrom && report.CompareUntil is { } compareUntil
+            ? $"Vergleich: {comparison.Label} · {compareFrom:dd.MM.yyyy} bis {compareUntil:dd.MM.yyyy}"
+            : null;
         AmountsHidden = report.AmountsHidden;
         Alerts = report.Alerts;
         AiSummary = report.AiSummary;
         AiNotice = report.AiNotice;
         IsAiPending = report.AiSummaryPending;
-        Kpis = [.. report.Kpis.Select(k => new KpiRow(k.Label, KpiValue(k.Value, k.Unit), k.Previous is { } previous ? $"Vorperiode {KpiValue(previous, k.Unit)}" : null))];
+        Kpis = [.. report.Kpis.Select(k => KpiTile(k, comparison))];
         RevenueByAccount = [.. report.RevenueByAccount.Select(r => new RevenueRow(r.CostCenter is { } center ? $"{r.Label} ({center})" : r.Label, Money.Format(r.Gross), $"netto {Money.Format(r.Net)}"))];
         RevenueByPayment = [.. report.RevenueByPayment.Select(r => new RevenueRow(r.Label, Money.Format(r.Gross), ""))];
         Employees = [.. report.Employees.Select(e => new EmployeeKpiRow(
@@ -288,6 +395,41 @@ public sealed partial class ManagementReportViewModel(IWorkstationApi api, TimeP
             t.Name, Number(t.Appointments), t.NetRevenue is { } net ? Money.Format(net) : "–", t.MarginPerAppointment is { } margin ? Money.Format(margin) : "–", t.MarginPerAppointment < 0))];
         Promotions = [.. (report.Promotions ?? []).Select(p => new PromotionKpiRow(p.Name, Number(p.Positions), Number(p.Guests), Number(p.NewGuests),
             p.Discount is { } discount ? Money.Format(discount) : "–", p.Revenue is { } revenue ? Money.Format(revenue) : "–"))];
+    }
+
+    /// <summary>
+    /// Kachel mit Veränderung zum Vergleich: Quoten (Einheit %) in Prozentpunkten, alles andere in Prozent des Vergleichswerts; ein Vergleichswert 0 hat keine Prozent.
+    /// Der Haken (besser) oder das Warnzeichen (schlechter) kommt nur bei Kennzahlen, deren Richtung die API kennt (<c>HigherIsBetter</c>); gleiche Werte bleiben ohne Zeichen.
+    /// </summary>
+    private static KpiRow KpiTile(Kpi kpi, CompareChoice comparison)
+    {
+        var value = KpiValue(kpi.Value, kpi.Unit);
+        if (kpi.Previous is not { } previous)
+        {
+            return new KpiRow(kpi.Label, value, null);
+        }
+
+        var shown = $"{comparison.Noun} {KpiValue(previous, kpi.Unit)}";
+        var delta = kpi.Value - previous;
+        var points = kpi.Unit == "%";
+        var size = points ? Math.Abs(delta) : previous == 0 ? 0 : Math.Abs(delta / previous * 100);
+        var digits = size < 10 ? 1 : 0;
+        var same = delta == 0 || ((previous != 0 || points) && Math.Round(size, digits) == 0);
+        if (same)
+        {
+            return new KpiRow(kpi.Label, value, shown, "→ unverändert", StatTileState.None, $"unverändert gegenüber {comparison.Dative}");
+        }
+
+        var up = delta > 0;
+        var arrow = up ? "↑" : "↓";
+        var state = kpi.HigherIsBetter is { } higherIsBetter ? up == higherIsBetter ? StatTileState.Ok : StatTileState.Warn : StatTileState.None;
+        if (!points && previous == 0)
+        {
+            return new KpiRow(kpi.Label, value, shown, $"{arrow} von 0", state, $"{(up ? "gestiegen" : "gesunken")}, {comparison.Noun} war 0");
+        }
+
+        var amount = points ? $"{Number(size, 1)} Prozentpunkte" : $"{Number(size, digits)} %";
+        return new KpiRow(kpi.Label, value, shown, $"{arrow} {amount}", state, $"{amount} {(up ? "über" : "unter")} {comparison.Dative}");
     }
 
     private static string KpiValue(decimal value, string unit) => unit switch

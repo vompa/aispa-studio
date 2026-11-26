@@ -4065,6 +4065,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "compare",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "previous"
+            }
           }
         ],
         "responses": {
@@ -26256,7 +26264,7 @@
         "tags": [
           "Berichte"
         ],
-        "summary": "Kennzahlen eines Zeitraums mit Vergleich zum gleich langen Zeitraum davor; ohne das Recht „Berichte mit Beträgen“ ohne Geldbeträge. Auch in der Mitarbeiter-App für „Heute im Spa“, mit den Rechten der Rolle.",
+        "summary": "Kennzahlen eines Zeitraums mit Vergleich zum gleich langen Zeitraum davor (compare=previous, Standard), zum selben Abschnitt des Vormonats (month) oder zum Vorjahr (year); ohne das Recht „Berichte mit Beträgen“ ohne Geldbeträge. Auch in der Mitarbeiter-App für „Heute im Spa“, mit den Rechten der Rolle.",
         "operationId": "GetManagementReport",
         "parameters": [
           {
@@ -26284,6 +26292,14 @@
             "schema": {
               "type": "string",
               "format": "date"
+            }
+          },
+          {
+            "name": "compare",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "previous"
             }
           }
         ],
@@ -43309,6 +43325,12 @@
           },
           "unit": {
             "type": "string"
+          },
+          "higherIsBetter": {
+            "type": [
+              "null",
+              "boolean"
+            ]
           }
         }
       },
@@ -43920,6 +43942,20 @@
             "items": {
               "$ref": "#/components/schemas/PromotionKpi"
             }
+          },
+          "compareFrom": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "compareUntil": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
           }
         }
       },
