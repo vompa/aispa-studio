@@ -92,7 +92,7 @@ Bei Gruppen und Firmen-Events kennt die Rezeption beim Buchen oft nur die Person
 ## Gemeinsame Buchung ansehen und ändern {#aendern}
 
 1. Einen der Termine anklicken.
-2. Der Kasten **Paar** (bei einem Gast **Spa-Tag**, bei mehr als zwei Gästen **Gruppe**) listet alle Teile der Buchung: Zeit, Gast, Behandlung, Person, Raum und Status. Der geöffnete Teil ist hervorgehoben, ein Klick auf einen anderen Teil öffnet ihn, stornierte Teile stehen blass dabei.
+2. Der Kasten **Paar** (bei einem Gast **Spa-Tag**, bei mehr als zwei Gästen **Gruppe**) folgt direkt auf den Kasten **Kunde** und listet alle Teile der Buchung: Zeit, Gast, Behandlung, Person, Raum und Status. Der geöffnete Teil ist hervorgehoben, ein Klick auf einen anderen Teil öffnet ihn, stornierte Teile stehen blass dabei.
 3. **Alle einchecken (2)** checkt alle Teile ein, die noch gebucht sind.
 4. **Alle kassieren** legt alle eingecheckten oder erledigten Teile auf eine gemeinsame Rechnung der Kassa; die Rechnung gehört zum Gast des ersten Teils. Der Knopf erscheint, sobald mindestens zwei Teile bereit sind.
 5. **Ganze Buchung verschieben**: neuen Beginn eintippen und klicken. Geht nur, solange noch niemand eingecheckt ist, und nur am selben Tag.

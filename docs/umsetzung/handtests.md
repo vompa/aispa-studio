@@ -1943,3 +1943,13 @@ Expected: **Netz** steht an derselben Stelle direkt über dem Farbschema, nach *
 Expected: Alle Einträge sind weiter erreichbar (die Liste scrollt); Farbschema, Pille und Konto bleiben sichtbar.
 Closes: T-098 Punkte 5 und 11
 Result: ☐
+### T-107 – Paar-Block oben
+Start: `dotnet run --project src/AispaStudio.AppHost` mit Beispieldaten, im Aspire-Dashboard die Ressource `windows-app` starten, als Inhaberin anmelden.
+1. Im Kalender den Paartermin (z. B. „Nina Weiss“ mit „Jakob Weiss“ um 14:00) anklicken.
+Expected: Im Seitenpanel steht der Kasten **Paar** mit beiden Teilen direkt auf dem Kasten **Kunde**, noch vor **Verlauf**, Anzahlung, Ausfallgebühr, Erinnerungen und Anamnese. Zwischen den Kästen liegt der übliche Abstand.
+2. Mit der Tabulatortaste vom Kasten **Kunde** weitergehen.
+Expected: Der Fokus geht als Nächstes in den Kasten **Paar** (erster Teil, dann zweiter Teil, dann **Alle einchecken**), erst danach zu **Verlauf** und den weiteren Kästen.
+3. Einen Einzeltermin ohne Paar öffnen.
+Expected: Kein Kasten **Paar**; **Kunde** und **Verlauf** folgen wie bisher aufeinander.
+Closes: T-098 Punkt 1
+Result: ☐

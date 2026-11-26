@@ -36,6 +36,8 @@ public sealed partial class ViewTests
 
     private static readonly string[] OpenSectionTitles = ["Kundennotiz", "Zuletzt", "Kontakt"];
 
+    private static readonly string[] CardsBelowGroup = ["DepositCard", "CardGuaranteeCard", "RemindersCard", "ConsentCard", "AnamnesisCard"];
+
     private static readonly string[] StatLabels = ["Besuche gesamt", "Letzter Besuch", "Nicht erschienen", "Nächster Termin"];
 
     /// <summary>Öffnet den Beispieltermin und wartet, bis der Überblick des Gastes geladen ist.</summary>
@@ -228,6 +230,28 @@ public sealed partial class ViewTests
         Press(window, PhysicalKey.Enter, RawInputModifiers.Control);
         await Pump(Settling);
         Assert.Same(shell.Customers, shell.SelectedPage?.Page);
+        return calendar;
+    });
+
+    [Fact]
+    public Task Paar_Block_steht_direkt_unter_dem_Kundenblock() => Render("hell", "termin-paar-oben", async (window, main) =>
+    {
+        var calendar = await SignedInCalendar(main);
+        var couple = calendar.Columns.SelectMany(c => c.Items).First(i => i.Appointment?.GroupId == SpaSample.CoupleId).Appointment!;
+        calendar.OpenAppointment(couple);
+        await Pump(Settling);
+        var panel = Named<Border>(window, "SidePanel");
+        var customer = BoundsIn(Named<Border>(panel, "CustomerSection"), panel);
+        var group = BoundsIn(Named<Border>(panel, "GroupCard"), panel);
+        Assert.InRange(group.Top - customer.Bottom, 0, 16);
+        foreach (var name in CardsBelowGroup)
+        {
+            if (panel.GetVisualDescendants().OfType<Border>().FirstOrDefault(b => b.Name == name && b.IsEffectivelyVisible) is { } below)
+            {
+                Assert.True(BoundsIn(below, panel).Top >= group.Bottom, name);
+            }
+        }
+
         return calendar;
     });
 }

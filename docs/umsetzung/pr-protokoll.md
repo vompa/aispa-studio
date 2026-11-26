@@ -8244,3 +8244,13 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
   - **Geprüft:** Die Ansichtstests `Im_Netz_freigegeben` und `Im_Server_Betrieb_steht_die_Seite_Netz_in_der_Seitenleiste` prüfen jetzt, dass der Eintrag direkt nach „Hilfe“ als Letzter steht. Bild `im-netz.png` neu erzeugt.
   - **Neue Tests:** keine (zwei vorhandene Tests um je zwei Zusicherungen erweitert).
   - **Nicht geprüft:** Verhalten bei 720 px Fensterhöhe am Gerät (Handtest T-106, Schritt 4); Tastenreihenfolge von Hand.
+
+## Paar-Block direkt unter dem Kundenblock (T-107)
+
+- **Paket 1:** Der Kasten „Paar“ (bei einem Gast „Spa-Tag“, ab drei Gästen „Gruppe“) steht im Terminpanel gleich nach dem Kasten „Kunde“.
+  - **Auftrag:** Änderungswunsch des Auftraggebers (T-098, Punkt 1): „Paarbuchungen sollen gleich unterhalb des Kundenblocks ganz oben stehen.“
+  - **Was:** `CalendarView.axaml`, Vorlage des Termins: Der Kasten `GroupCard` ist von hinter Anzahlung, Ausfallgebühr, Erinnerungen, Wiederbuchung, Anamnese, Bereitstellen und Treatwell-Hinweisen vor den Abschnitt „Verlauf“ gewandert. Inhalt und Logik unverändert. Hilfe „Paar oder Spa-Tag buchen“ nennt die Lage („folgt direkt auf den Kasten Kunde“); Bild `kalender-gemeinsam.png` neu.
+  - **Detailentscheidungen:** (1) Der Kasten steht vor „Verlauf“, nicht dahinter: „Verlauf“ ist ein eingeklappter Abschnitt zum Kunden und der Kasten soll „gleich unterhalb“ des Kundenblocks stehen. (2) Dieselbe Vorlage gilt für Paar, Spa-Tag und Gruppe. (3) Andere Ansichten blieben unverändert: Die Maske „Paar oder Spa-Tag“ (Neue Buchung) und die Kundenkarte haben keinen Kasten dieser Art; in der Kassa (`PosView`) ist `IsGroup` die gemeinsame Rechnung, kein Termin- oder Kundenpanel. (4) Abstände und Trennlinien kommen unverändert von der Karte `panelcard` im Stapel des Panels (Abstand wie zwischen allen Karten, [Masken](../gestaltung/masken.md)); die Tab-Reihenfolge folgt der Reihenfolge im Baum und damit der neuen Anordnung.
+  - **Geprüft:** Ansichtstest `Paar_Block_steht_direkt_unter_dem_Kundenblock` (Inhaberin, Paartermin): Abstand zwischen Ende von „Kunde“ und Anfang von „Paar“ höchstens 16 px, und Anzahlung, Ausfallgebühr, Erinnerungen, Wiederbuchung und Anamnese liegen unter dem Kasten (vorher rot, jetzt grün).
+  - **Neue Tests:** 1.
+  - **Nicht geprüft:** Tastenreihenfolge und Anblick am Gerät (Handtest T-107).
