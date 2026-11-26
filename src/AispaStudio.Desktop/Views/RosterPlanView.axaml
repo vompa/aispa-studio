@@ -6,7 +6,7 @@
              x:DataType="vm:RosterPlanViewModel">
   <!--
     Dienstplan einer Woche (R05 Slice 99, Ä191, Ä250; R07 Slice 142, Ä350), nach web/src/roster/RosterPage.tsx: Kopfzeile (links Standort und Wochenwahl, rechts „Anträge“, Menü „Ausgabe“ und Hilfe; T-101), Band für Entwürfe, eine Zeile je Person auf einer Fläche mit
-    feinen Linien. Dienste sind Chips ohne Personenfarbe (die steht als Punkt vor dem Namen), Abwesenheiten ein Balken über die Tage, Stunden und Soll stehen beim Namen, die Spalte von heute ist ein durchgehender Streifen hinter der Tabelle, unten zählt die Summenzeile „Besetzung“.
+    feinen Linien. Dienste sind Chips ohne Personenfarbe (die steht als Punkt vor dem Namen), Abwesenheiten ein Balken über die Tage, Stunden und Soll stehen beim Namen, die Spalte von heute ist ein durchgehender Streifen hinter der Tabelle, unten zählt die Summenzeile „Besetzung“, im Wochenplan des Teams darunter die Besetzung über den Tag als Matrix (T-102).
     Die Tabelle füllt die Breite der Ansicht (sieben gleich breite Spalten, kein Rollbalken; T-100, Paket C) und steht im Wochenplan des Teams auf einer Karte; auf der Personenkarte nicht, dort hat sie die feste Breite 912 und einen waagrechten Rollbalken.
     Der Kopf der Spalte von heute heißt „Heute · Do. 26.11.“ (Stand T-100, Paket D).
     Eine Zelle ist ein Knopf (nur mit dem Recht zu planen); ein Entwurf trägt einen gestrichelten Rand. Der Balken liegt über den Zellen und fängt keine Klicks ab: jeder Tag bleibt einzeln anklickbar.
@@ -127,6 +127,27 @@
     <Style Selector="TextBlock.coverage.zero">
       <Setter Property="Foreground" Value="{DynamicResource Fg2Brush}" />
       <Setter Property="FontWeight" Value="Normal" />
+    </Style>
+    <!-- Zelle der Besetzungsmatrix (Brief 5.32): Höhe 28 (die Zeile), Zahl fg; Lücke warn-soft mit Warndreieck und Zahl in warn 600; außerhalb der Öffnung die Fläche off ohne Zahl -->
+    <Style Selector="Border.staffhead.hint">
+      <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+    </Style>
+    <Style Selector="Border.staffcell">
+      <Setter Property="Margin" Value="1" />
+      <Setter Property="CornerRadius" Value="4" />
+    </Style>
+    <Style Selector="Border.staffcell TextBlock">
+      <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
+    </Style>
+    <Style Selector="Border.staffcell.off">
+      <Setter Property="Background" Value="{DynamicResource OffDutyBrush}" />
+    </Style>
+    <Style Selector="Border.staffcell.gap">
+      <Setter Property="Background" Value="{DynamicResource WarnSoftBrush}" />
+    </Style>
+    <Style Selector="Border.staffcell.gap TextBlock">
+      <Setter Property="Foreground" Value="{DynamicResource WarnBrush}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
     </Style>
     <Style Selector="TextBlock.today">
       <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
@@ -301,6 +322,7 @@
           <Border x:Name="TodayStripe" Grid.Column="{Binding TodayColumn}" Background="{DynamicResource AccentSoftBrush}" CornerRadius="8" />
         </Grid>
       </Grid>
+      <StackPanel>
       <StackPanel x:Name="RosterTable" AutomationProperties.Name="Dienstplan">
         <Border BorderBrush="{DynamicResource LineStrongBrush}" BorderThickness="0,0,0,1" Padding="0,0,0,6">
         <Grid ColumnDefinitions="Auto,*">
@@ -414,6 +436,70 @@
             </ItemsControl>
           </Grid>
         </Border>
+      </StackPanel>
+
+      <!--
+        Besetzung über den Tag (Brief 5.32, T-102): nur im Wochenplan des Teams, in derselben Spaltenteilung wie die Tabelle darüber, damit die Spalte von heute (TodayStripe) durchläuft.
+        Die Zahlen kommen vom Server (HourlyStaffing); die App zeichnet nur. Eine Lücke trägt Fläche, Warndreieck und „0“, ein Zeitraum außerhalb der Öffnung nur die Fläche off.
+      -->
+      <StackPanel x:Name="RosterStaffing" IsVisible="{Binding HasStaffingSection}">
+        <!-- Mit dem Satz statt der Matrix ist der Kopf des Abschnitts deckend: der Streifen von heute endet dann mit der Tabelle -->
+        <Border Classes="staffhead" Classes.hint="{Binding ShowsStaffingHint}" Padding="0,24,0,8">
+          <StackPanel Spacing="8">
+            <StackPanel Orientation="Horizontal" Spacing="4">
+              <TextBlock Text="Besetzung über den Tag" Classes="h3" VerticalAlignment="Center" />
+              <ui:HelpButton Topic="seite-roster" Section="besetzung" VerticalAlignment="Center" />
+            </StackPanel>
+            <TextBlock x:Name="RosterStaffingHint" Text="{x:Static vm:RosterPlanViewModel.StaffingHintText}" Classes="muted" TextWrapping="Wrap" IsVisible="{Binding ShowsStaffingHint}" />
+          </StackPanel>
+        </Border>
+        <StackPanel x:Name="RosterStaffingMatrix" IsVisible="{Binding ShowsStaffing}" AutomationProperties.Name="Besetzung über den Tag" AutomationProperties.ControlTypeOverride="Table">
+          <Grid ColumnDefinitions="Auto,*" Margin="0,0,0,4">
+            <Border Width="{Binding NameColumnWidth}" />
+            <ItemsControl Grid.Column="1" ItemsSource="{Binding Heads}">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <UniformGrid Rows="1" />
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:RosterHeadViewModel">
+                  <TextBlock Text="{Binding Weekday}" Classes="small muted" Classes.today="{Binding IsToday}" HorizontalAlignment="Center"
+                             AutomationProperties.Name="{Binding Text}" AutomationProperties.ControlTypeOverride="HeaderItem" />
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </Grid>
+          <ItemsControl ItemsSource="{Binding StaffingRows}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:StaffingRowViewModel">
+                <Grid ColumnDefinitions="Auto,*" Height="28">
+                  <TextBlock Width="{x:Static vm:StaffingRowViewModel.NameColumnWidth}" Text="{Binding Label}" Classes="small muted num" VerticalAlignment="Center"
+                             AutomationProperties.Name="{Binding AutomationName}" AutomationProperties.ControlTypeOverride="HeaderItem" />
+                  <ItemsControl Grid.Column="1" ItemsSource="{Binding Cells}">
+                    <ItemsControl.ItemsPanel>
+                      <ItemsPanelTemplate>
+                        <UniformGrid Rows="1" />
+                      </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="vm:StaffingCellViewModel">
+                        <Border Classes="staffcell" Classes.off="{Binding IsOff}" Classes.gap="{Binding IsGap}" AutomationProperties.Name="{Binding AutomationName}"
+                                AutomationProperties.ControlTypeOverride="DataItem" AutomationProperties.AccessibilityView="Content">
+                          <StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding ShowsNumber}">
+                            <ui:Icon Data="{x:Static ui:Icons.Warning}" Width="14" Height="14" Foreground="{DynamicResource WarnBrush}" IsVisible="{Binding IsGap}" />
+                            <TextBlock Text="{Binding Text}" Classes="num" AutomationProperties.AccessibilityView="Raw" />
+                          </StackPanel>
+                        </Border>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </Grid>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </StackPanel>
       </StackPanel>
     </Panel>
     </ScrollViewer>

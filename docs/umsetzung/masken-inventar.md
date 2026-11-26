@@ -13,7 +13,7 @@ Jede Slice hat ihren Bereich vollständig ersetzt, mit denselben Feldern, Regeln
 | Seite | Reiter | Name in der Oberfläche | Ziel | Anmerkung |
 |---|---|---|---|---|
 | `calendar` | – | Kalender | entfällt | Kalender ist nativ (ADR 0053) |
-| `roster` | – | Dienstplan | Slice 99 | Bereich „Arbeitszeit“ der Personenkarte (Abschnitt „Dienstplan und Abwesenheit“) und Ansicht „Wochenplan“ im Bereich Team (dort „Anträge“ als Seitenleiste, seit T-066); native Maske seit Slice 99 |
+| `roster` | – | Dienstplan | Slice 99 | Bereich „Arbeitszeit“ der Personenkarte (Abschnitt „Dienstplan und Abwesenheit“) und Ansicht „Wochenplan“ im Bereich Team (dort „Anträge“ als Seitenleiste, seit T-066; darunter seit T-102 die „Besetzung über den Tag“ als Matrix, Brief 5.32, nicht auf der Personenkarte); native Maske seit Slice 99 |
 | `time` | – | Zeiten | Slice 99 | Bereich „Arbeitszeit“ der Personenkarte (Abschnitt „Zeiten“) und Ansicht „Zeiten“ im Bereich Team; native Maske seit Slice 99 |
 | `inbox` | – | Posteingang | entfällt | Posteingang ist nativ |
 | `pos` | – | Kassa | entfällt | Kassa ist nativ; Kassa-Einstellungen siehe Reiter `kassa` |

@@ -11508,6 +11508,15 @@ export interface components {
             country: components["schemas"]["FiscalCountry"];
             name: string;
         };
+        HourlyStaffing: {
+            /** Format: date */
+            date: string;
+            /** Format: int32 */
+            hour: number;
+            open: boolean;
+            /** Format: int32 */
+            count: number;
+        };
         HrAgreement: {
             text: string;
             isDone: boolean;
@@ -13441,6 +13450,7 @@ export interface components {
             drafts: number;
             /** Format: date-time */
             lastPublishedAt?: null | string;
+            hourlyStaffing?: null | components["schemas"]["HourlyStaffing"][];
         };
         SendDocumentRequest: {
             to: string;

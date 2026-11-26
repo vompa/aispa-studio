@@ -1,5 +1,6 @@
 using System.Globalization;
 using AispaStudio.Api.Access;
+using AispaStudio.Api.Closures;
 using AispaStudio.Api.Data;
 using AispaStudio.Api.Scheduling;
 using AispaStudio.Api.Staff;
@@ -30,7 +31,8 @@ internal static class RosterEndpoints
                     return TypedResults.Problem(statusCode: StatusCodes.Status403Forbidden, title: "Keine Berechtigung.", detail: "Den Dienstplan einer einzelnen Person sehen nur Standortleitung und Personalunterlagen.");
                 }
 
-                if (!await db.Locations.AnyAsync(l => l.Id == locationId, ct))
+                var location = await db.Locations.AsNoTracking().Include(l => l.OpeningHours).FirstOrDefaultAsync(l => l.Id == locationId, ct);
+                if (location is null)
                 {
                     return TypedResults.NotFound();
                 }
@@ -61,7 +63,9 @@ internal static class RosterEndpoints
                 var drafts = await db.RosterDrafts.CountAsync(d => d.LocationId == locationId && d.Date >= from && d.Date <= until, ct);
                 var published = await db.RosterPublications.Where(p => p.LocationId == locationId)
                     .MaxAsync(p => (DateTimeOffset?)p.PublishedAt, ct);
-                return TypedResults.Ok(new RosterWeek(locationId, from, dates, rows, drafts, published));
+                // Die Besetzung über den Tag gehört zum Wochenplan des Standorts, nicht zur Personenkarte.
+                var hourly = employeeId is null ? await HourlyStaffingAsync(db, location, dates, rows, ct) : [];
+                return TypedResults.Ok(new RosterWeek(locationId, from, dates, rows, drafts, published, hourly));
             })
             .WithName("GetRoster")
             .AlsoAllow(AccessRight.ViewStaffRecords, insteadOf: AccessRight.ViewCalendar)
@@ -337,6 +341,32 @@ internal static class RosterEndpoints
             db.Add(added);
         }
     }
+
+    /// <summary>Besetzung je Stunde aus denselben Zellen wie der Plan (mit Entwürfen); Öffnungszeiten und Schließzeiten wie bei der Buchung (<see cref="ResourcePlanner.OpeningWindows(IEnumerable{LocationOpeningHours}, TimeZoneInfo, DateOnly, IReadOnlyList{ClosedSpan}?)"/>).</summary>
+    private static async Task<IReadOnlyList<HourlyStaffing>> HourlyStaffingAsync(
+        AispaDbContext db, Location location, List<DateOnly> dates, List<RosterRow> rows, CancellationToken ct)
+    {
+        var zone = LocalTime.IsKnownZone(location.TimeZone) ? LocalTime.Zone(location.TimeZone) : TimeZoneInfo.Utc;
+        var closed = await ClosureService.SpansAsync(db, location.Id, LocalTime.Day(dates[0], zone).From, LocalTime.Day(dates[^1], zone).Until, zone, ct);
+
+        var days = dates.Select((date, i) => new StaffingDay(
+                date,
+                [.. ResourcePlanner.OpeningWindows(location.OpeningHours, zone, date, closed).Select(w => Minutes(w.Start, w.End, date, zone))],
+                [.. rows.Select(r => (IReadOnlyList<MinuteSpan>)[.. r.Days[i].Entries
+                    .Where(e => e.Kind == RosterKind.Work && e.LocationId == location.Id && e.Start is not null && e.End is not null)
+                    .Select(e => new MinuteSpan(Minute(e.Start!.Value), Minute(e.End!.Value)))])]))
+            .ToList();
+        return HourlyStaffingCalculator.Compute(days);
+    }
+
+    private static MinuteSpan Minutes(DateTimeOffset start, DateTimeOffset end, DateOnly date, TimeZoneInfo zone)
+    {
+        var localEnd = TimeZoneInfo.ConvertTime(end, zone);
+        return new MinuteSpan(Minute(TimeOnly.FromDateTime(TimeZoneInfo.ConvertTime(start, zone).DateTime)),
+            DateOnly.FromDateTime(localEnd.DateTime) > date ? 24 * 60 : Minute(TimeOnly.FromDateTime(localEnd.DateTime)));
+    }
+
+    private static int Minute(TimeOnly time) => time.Hour * 60 + time.Minute;
 
     private static RosterCell Cell(DayPlan plan, DayPlan? yesterday, WorkingTimeRules rules) => Cell(plan, plan, yesterday, rules);
 

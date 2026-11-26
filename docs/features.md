@@ -406,6 +406,8 @@ Die Wochenarbeitszeit aus den Stammdaten ist der Normalfall. Im „Dienstplan“
 - mehr als 48 Stunden pro Woche;
 - 7 Tage am Stück ohne freien Tag.
 
+Unter der Tabelle des Wochenplans zeigt die „Besetzung über den Tag“ (`RosterWeek.HourlyStaffing`, `Roster/HourlyStaffingCalculator.cs`) je Tag und voller Stunde, wie viele Personen am Standort im Dienst sind (mindestens 30 Minuten Dienst in der Stunde, mit Entwürfen, ohne Abwesenheiten und ohne Dienste an anderen Standorten). Eine geöffnete Stunde ohne Dienst ist als Lücke mit Warndreieck gekennzeichnet; außerhalb der Öffnungszeit und an Schließtagen steht keine Zahl. Die Matrix gibt es nur im Wochenplan des Teams, nicht auf der Personenkarte.
+
 Fällt jemand aus, schlägt „Ersatz vorschlagen“ für jeden Termin des Tages eine Lösung vor: gleiche Zeit bei einer Kollegin, sonst die nächste freie Zeit am selben Tag. Geht am eigenen Standort nichts, sucht der Assistent an den anderen Standorten, die man selbst sieht. Solche Vorschläge sind nicht angehakt; erst nach Rücksprache mit dem Gast übernehmen. Der Preis bleibt wie gebucht, die Mail an den Gast nennt den neuen Standort.
 
 ## KI-Terminannahme per Mail

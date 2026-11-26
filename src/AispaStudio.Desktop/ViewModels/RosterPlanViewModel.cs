@@ -105,6 +105,9 @@ public sealed record RosterHeadViewModel(string Text, bool IsToday)
 {
     /// <summary>Was im Kopf steht: der Tag, für heute mit dem Wort davor; geschützte Leerzeichen halten Wochentag und Datum zusammen, damit eine schmale Spalte nach dem Punkt umbricht.</summary>
     public string Label => IsToday ? $"Heute · {Text.Replace(' ', '\u00A0')}" : Text;
+
+    /// <summary>Nur der Wochentag („Mo.“), als Spaltenkopf der Besetzungsmatrix.</summary>
+    public string Weekday => Text.Split(' ')[0];
 }
 
 /// <summary>Besetzung eines Tages: die Zahl der Personen im Dienst am Standort.</summary>
@@ -399,6 +402,7 @@ public sealed partial class RosterPlanViewModel : ViewModelBase, IEditableArea
         if (SelectedLocation?.Id is not { } locationId)
         {
             Rows = [];
+            ClearStaffing();
             IsLoaded = true;
             return;
         }
@@ -416,6 +420,7 @@ public sealed partial class RosterPlanViewModel : ViewModelBase, IEditableArea
         {
             LoadError = result.Error ?? "Der Dienstplan wurde nicht geladen.";
             Rows = [];
+            ClearStaffing();
             _week = null;
             DraftCount = 0;
             LastPublishedText = null;
@@ -456,6 +461,7 @@ public sealed partial class RosterPlanViewModel : ViewModelBase, IEditableArea
                 return vm;
             }),
         ];
+        BuildStaffing(week, locationId);
         Coverage = [.. week.Dates.Select((date, day) => new RosterCoverageViewModel(Rows.Count(r => r.Cells[day].Cell.Entries.Any(e => e.Kind == RosterKind.Work && e.LocationId == locationId)).ToString(CultureInfo.InvariantCulture), date == today))];
     }
 

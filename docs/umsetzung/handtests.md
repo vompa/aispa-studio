@@ -1800,3 +1800,20 @@ Expected: Die Standortleitung sieht in **Ausgabe** nur die Gruppe „Aushang“.
 Expected: Der Knopf steht am rechten Rand der Wochenzeile; das Menü hat nur die Gruppe „Liste · mit Entwürfen“, keinen Aushang.
 Closes: Auftrag vom 26.11.2026 (Kopfzeile Wochenplan)
 Result: ☐
+
+### T-102 – Besetzung über den Tag im Wochenplan
+Start: `dotnet run --project src/AispaStudio.AppHost`, im Aspire-Dashboard die Ressource `windows-app` starten, als Inhaberin anmelden, **Verwaltung** › **Team** › **Wochenplan** öffnen (Standort mit Öffnungszeiten und mindestens einem Dienst in der Woche)
+1. Unter der Zeile **Besetzung** den Abschnitt **Besetzung über den Tag** ansehen; die Spalten mit denen des Plans darüber vergleichen.
+Expected: Je Tag eine Spalte, genau unter den Tagen des Plans; eine Zeile je volle Stunde von der frühesten Öffnung bis zum spätesten Schluss der Woche (Beschriftung „10–11“). Die Spalte von heute läuft als helle Fläche bis ans Ende der Matrix durch. Die Seite rollt senkrecht, wenn sie höher ist als das Fenster; die Matrix hat keinen eigenen Rollbalken.
+2. Eine Stunde suchen, in der eine Person Dienst hat, und eine, in der der Standort geöffnet ist, aber niemand Dienst hat. Danach einen Dienst von 10:00 bis 10:20 Uhr (unter 30 Minuten) planen.
+Expected: Die erste Zelle zeigt die Zahl der Personen am Standort. Die zweite trägt eine gelbe Fläche, ein Warndreieck und „0“ (nicht nur Farbe). Der Dienst unter 30 Minuten in der Stunde ändert die Zahl nicht.
+3. Einen Tag ohne Öffnungszeit (Ruhetag) und einen Tag mit Schließzeit (Betriebsurlaub oder Feiertag) ansehen.
+Expected: Die Zellen sind grau ohne Zahl und ohne Warndreieck; es gibt dort keine Lücke.
+4. Einen Dienst an einem anderen Standort und einen Urlaubstag eintragen, dann den Entwurf eines Dienstes planen.
+Expected: Dienst an einem anderen Standort und Abwesenheit ändern die Zahlen nicht; der Entwurf zählt mit, solange der Plan ihn zeigt.
+5. Mit dem Screenreader (Sprachausgabe von Windows) eine Zelle der Matrix anwählen.
+Expected: Die Ansage nennt Tag, Stunde und Besetzung, z. B. „Mi. 25.11., 18 bis 19 Uhr: 1 Person im Dienst“, bei einer Lücke „niemand im Dienst“, außerhalb der Öffnung „geschlossen“. Die Zellen sind nicht anklickbar.
+6. Bei einem Standort ohne eingetragene Öffnungszeiten den Wochenplan öffnen, dann eine Person öffnen (Reiter **Arbeitszeit**, **Dienstplan und Abwesenheit**) und das Fragezeichen am Zwischentitel anklicken.
+Expected: Im Wochenplan steht statt der Matrix ein Satz mit dem Weg zu **Stammdaten** › **Standorte & Räume**. Auf der Karte der Person fehlt der Abschnitt. Das Fragezeichen öffnet die Hilfe „Besetzung über den Tag“.
+Closes: Auftrag vom 26.11.2026 (Besetzung über den Tag)
+Result: ☐

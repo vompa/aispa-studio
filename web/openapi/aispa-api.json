@@ -42117,6 +42117,32 @@
           }
         }
       },
+      "HourlyStaffing": {
+        "required": [
+          "date",
+          "hour",
+          "open",
+          "count"
+        ],
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "hour": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "open": {
+            "type": "boolean"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "HrAgreement": {
         "required": [
           "text",
@@ -49303,6 +49329,15 @@
               "string"
             ],
             "format": "date-time"
+          },
+          "hourlyStaffing": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/HourlyStaffing"
+            }
           }
         }
       },
