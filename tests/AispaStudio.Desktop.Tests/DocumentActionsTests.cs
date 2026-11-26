@@ -178,7 +178,7 @@ public sealed class DocumentActionsTests
     }
 
     [Fact]
-    public async Task Drucken_gibt_das_PDF_an_den_Drucker_und_meldet_Gedruckt()
+    public async Task Drucken_oeffnet_den_Druckdialog_und_meldet_es()
     {
         var printer = new FakePrinter();
         var toasts = new List<string>();
@@ -187,7 +187,25 @@ public sealed class DocumentActionsTests
 
         Assert.Equal("Rechnung-K1-142.pdf", printer.Printed?.FileName);
         Assert.Equal(Pdf, printer.Printed?.Content);
-        Assert.Equal(["Gedruckt"], toasts);
+        Assert.Equal(["Druckdialog geöffnet"], toasts);
+    }
+
+    [Fact]
+    public async Task Waehrend_der_Druckdialog_aufgeht_ist_der_Knopfblock_gesperrt_und_ohne_Fehler()
+    {
+        var opening = new TaskCompletionSource<string?>();
+        var printer = new FakePrinter(answer: opening.Task);
+        var model = Model(Api(), printer: printer);
+
+        var print = model.PrintCommand.ExecuteAsync(null);
+        await Until(() => printer.Printed is null ? null : "gerufen");
+
+        Assert.True(model.IsBusy);
+        Assert.False(model.PrintCommand.CanExecute(null));
+        Assert.Null(model.Error);
+        opening.SetResult(null);
+        await print;
+        Assert.False(model.IsBusy);
     }
 
     [Fact]
@@ -195,7 +213,7 @@ public sealed class DocumentActionsTests
     {
         var toasts = new List<string>();
 
-        await Model(Api(), printer: new FakePrinter(ShellDocumentPrinter.NoPrinter), toasts: toasts).PrintCommand.ExecuteAsync(null);
+        await Model(Api(), printer: new FakePrinter(WindowsPrintDialogPrinter.NoPrinter), toasts: toasts).PrintCommand.ExecuteAsync(null);
 
         Assert.Equal(["Kein Drucker eingerichtet"], toasts);
     }
@@ -230,14 +248,14 @@ public sealed class DocumentActionsTests
         }
     }
 
-    private sealed class FakePrinter(string? problem = null) : IDocumentPrinter
+    private sealed class FakePrinter(string? problem = null, Task<string?>? answer = null) : IDocumentPrinter
     {
         public (string FileName, byte[] Content)? Printed { get; private set; }
 
         public Task<string?> PrintAsync(string fileName, byte[] pdf, CancellationToken ct)
         {
             Printed = (fileName, pdf);
-            return Task.FromResult(problem);
+            return answer ?? Task.FromResult(problem);
         }
     }
 }

@@ -944,7 +944,7 @@ Expected: Die Karte „Gutscheinliste“ mit „Ausgestellt von“ und „bis“
 2. Den Zeitraum auf heute und gestern stellen, den Status auf „aktiv“ stellen, speichern; dann „läuft in 30 Tagen ab“ ankreuzen, speichern.
 Expected: Der Pfad der Karte ändert sich mit jeder Wahl; die Kopfzeile des PDFs nennt die Auswahl („Ausgestellt 08.11.2026 bis 09.11.2026 · Status: aktiv“, „läuft in 30 Tagen ab“); mit „läuft in 30 Tagen ab“ steht nur der Gutschein mit dem Ablaufdatum in 10 Tagen darauf. Ein Ende vor dem Beginn sperrt „Drucken“ und „PDF speichern“ mit dem Hinweis „Das Ende darf nicht vor dem Beginn liegen.“.
 3. Einen frisch verkauften Gutschein unter dem Beleg **Per Mail senden**, einen zweiten **Drucken** (Drucker oder PDF-Drucker), einen dritten **Übergeben** klicken; danach die Liste mit „noch nicht versendet“ drucken.
-Expected: Toasts „Gesendet an …“, „Gedruckt“ und „Gutschein … als übergeben vermerkt“; mit „noch nicht versendet“ fehlen diese drei, der Rest steht darauf. In der Liste ohne Filter steht beim ersten „Mail am <Datum>“ mit „an <Adresse>“, beim zweiten „Gedruckt am <Datum>“, beim dritten „Übergeben am <Datum>“; beim online gekauften Gutschein „Mail am …“ an die Adresse des Käufers. Ein Druck, der am Drucker scheitert, hinterlässt keinen Vermerk.
+Expected: Toasts „Gesendet an …“, „Druckdialog geöffnet“ (seit T-099) und „Gutschein … als übergeben vermerkt“; mit „noch nicht versendet“ fehlen diese drei, der Rest steht darauf. In der Liste ohne Filter steht beim ersten „Mail am <Datum>“ mit „an <Adresse>“, beim zweiten „Zum Drucken geöffnet am <Datum>“ (seit T-099), beim dritten „Übergeben am <Datum>“; beim online gekauften Gutschein „Mail am …“ an die Adresse des Käufers. Lässt sich der Druckdialog nicht öffnen, bleibt kein Vermerk.
 4. Als Rezeption ohne das Recht „Berichte mit Beträgen“ die Kassa öffnen und die Karte öffnen; als Rezeption die Adresse `…/api/pos/locations/<id>/vouchers/pdf` aufrufen.
 Expected: Die Karte lässt sich öffnen, „Drucken“ und „PDF speichern“ sind gesperrt mit dem Hinweis auf Kassenaufsicht oder „Berichte mit Beträgen“; der Aufruf antwortet mit 403. Mit Standortleitung oder Backoffice geht es.
 Closes: Zusatz zur Arbeitsanweisung PDF-Ausgaben (Gutscheinliste)
@@ -1699,4 +1699,21 @@ Expected: Im Log der API steht „Beispieldaten veraltet (letzter Termin …): D
 3. Den AppHost ein zweites Mal neu starten.
 Expected: Keine solche Logzeile; die Daten bleiben, wie sie sind.
 Closes: Auftrag vom 25.11.2026 (Kalender nach Ablauf der Beispieldaten leer)
+Result: ☐
+
+### T-099 – Drucken öffnet den Druckdialog von Windows
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Inhaberin anmelden; in Windows „Microsoft Print to PDF“ oder OneNote als Standarddrucker, ein zweiter Drucker ist eingerichtet.
+1. **Team** → **Wochenplan**, eine veröffentlichte Woche wählen, **Aushang als PDF**, dann **Drucken**.
+Expected: Nach ein bis zwei Sekunden öffnet sich der Druckdialog von Windows („Microsoft Edge WebView2 – Drucken“), unten steht kurz „Druckdialog geöffnet“. Es öffnet sich weder OneNote noch eine Frage nach dem Speicherort. Kein zusätzliches Fenster der App und kein Eintrag in der Taskleiste.
+2. Im Dialog den zweiten Drucker wählen, die Ausrichtung ansehen, **Querformat** wählen und drucken.
+Expected: Der zweite Drucker ist wählbar. Notieren, ob die Ausrichtung auf Hoch- oder Querformat vorbelegt war. Der Ausdruck zeigt den ganzen Aushang auf einer Seite quer, mit scharfer Schrift, nicht leer.
+3. **Drucken** noch einmal klicken und im Dialog **Abbrechen**.
+Expected: Der Dialog geht wieder auf und schließt ohne Druck, in der App steht keine Fehlermeldung, die Druckerwarteschlange bleibt leer.
+4. **Kassa**, einen Beleg öffnen, **A4 drucken**, im Dialog „Microsoft Print to PDF“ wählen und in eine Datei drucken.
+Expected: Das PDF zeigt die Rechnung mit Rändern und Schrift wie bei **PDF speichern**.
+5. Einen Gutschein verkaufen, unter dem Beleg **Drucken**, im Dialog **Abbrechen**; danach **Gutscheinliste …** → **PDF speichern**.
+Expected: In der Spalte „Versand“ steht beim Gutschein „Zum Drucken geöffnet am <Datum>“.
+6. Die App mit dem Kreuz schließen.
+Expected: Die App beendet sich ganz; im Task-Manager bleibt kein Prozess „AispaStudio.Desktop“.
+Closes: Ä388
 Result: ☐

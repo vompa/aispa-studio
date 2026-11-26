@@ -66,6 +66,9 @@ public sealed partial class VoucherListPdfTests(ApiFixture fixture)
     /// <summary>Die Zeile ohne die Zellentrenner: lange Wörter brechen in der Zelle um, so steht der Text wieder zusammen.</summary>
     private static string Flat(string row) => row.Replace(" | ", "", StringComparison.Ordinal);
 
+    // Ein Vermerk, der in der schmalen Spalte „Versand“ an einem Leerzeichen umbricht („Zum Drucken geöffnet am“ / Datum).
+    private static string Spaced(string row) => row.Replace(" | ", " ", StringComparison.Ordinal);
+
     private static async Task<CashRegisterDto> RegisterAsync(TestSpa spa) =>
         await spa.PostAsync<CashRegisterDto>("/api/pos/registers",
             new CashRegisterInput(spa.Location.Id, $"G-{Guid.NewGuid():N}"[..14], FiscalCountry.AT, "Test-Spa GmbH\nTeststraße 1, 1010 Wien\nATU12345678",
@@ -297,7 +300,7 @@ public sealed partial class VoucherListPdfTests(ApiFixture fixture)
         var rows = Rows(all);
         Assert.Contains($"Mail am {Format(Today)}", rows[mailed.Code], StringComparison.Ordinal);
         Assert.Contains(to, Flat(rows[mailed.Code]), StringComparison.Ordinal);
-        Assert.Contains($"Gedruckt am {Format(Today)}", rows[printed.Code], StringComparison.Ordinal);
+        Assert.Contains($"Zum Drucken geöffnet am {Format(Today)}", Spaced(rows[printed.Code]), StringComparison.Ordinal);
         Assert.Contains($"Übergeben am {Format(Today)}", rows[handed.Code], StringComparison.Ordinal);
         Assert.EndsWith("| –", rows[open.Code], StringComparison.Ordinal);
         Assert.Equal([open.Code], [.. Rows(notSent).Keys]);
@@ -330,7 +333,7 @@ public sealed partial class VoucherListPdfTests(ApiFixture fixture)
         var row = Rows(pdf)[voucher.Code];
         Assert.Contains($"Mail am {Format(Today)}", row, StringComparison.Ordinal);
         Assert.Contains("(2× gesendet)", row, StringComparison.Ordinal);
-        Assert.Contains($"Gedruckt am {Format(Today)}", row, StringComparison.Ordinal);
+        Assert.Contains($"Zum Drucken geöffnet am {Format(Today)}", Spaced(row), StringComparison.Ordinal);
     }
 
     [Fact]

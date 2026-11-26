@@ -1560,8 +1560,8 @@ public partial class PosViewModel : ViewModelBase, IFocusTarget
     };
 
     /// <summary>
-    /// Pfade des Geschenk-PDFs eines Gutscheins (PDF-Ausgaben E): Drucken, Speichern und Senden an den Käufer oder eine eingetippte Adresse. Ein erfolgreicher Druck wird vermerkt (<c>…/printed</c>),
-    /// damit die Gutscheinliste „Gedruckt am …“ zeigt.
+    /// Pfade des Geschenk-PDFs eines Gutscheins (PDF-Ausgaben E): Drucken, Speichern und Senden an den Käufer oder eine eingetippte Adresse. Ein geöffneter Druckdialog wird vermerkt (<c>…/printed</c>),
+    /// damit die Gutscheinliste „Zum Drucken geöffnet am …“ zeigt (ADR 0101).
     /// </summary>
     internal static DocumentSource VoucherDocumentSource(VoucherDto voucher) =>
         new($"Gutschein {voucher.Code}", $"api/pos/vouchers/{voucher.Id}/pdf", $"api/pos/vouchers/{voucher.Id}/send", PrintedPath: $"api/pos/vouchers/{voucher.Id}/printed");

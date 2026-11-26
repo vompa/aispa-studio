@@ -32,7 +32,7 @@ Der veröffentlichte Dienstplan lässt sich als Aushang drucken oder als PDF spe
 
 1. Im **Wochenplan** Standort und Woche wählen.
 2. Neben der Wochenwahl auf **Aushang als PDF** klicken. Es erscheint die Karte „Dienstplan-Aushang“ mit dem Satz „Druckt den veröffentlichten Dienstplan der Woche …, ohne Entwürfe.“.
-3. Auf **Drucken** oder **PDF speichern** klicken. **Per Mail senden** gibt es hier nicht. Ein zweiter Klick auf **Aushang als PDF** schließt die Karte; ein Wechsel der Woche oder des Standorts passt den Pfad an.
+3. Auf **Drucken** oder **PDF speichern** klicken. **Drucken** öffnet den Druckdialog von Windows; dort die Ausrichtung **Querformat** wählen. **Per Mail senden** gibt es hier nicht. Ein zweiter Klick auf **Aushang als PDF** schließt die Karte; ein Wechsel der Woche oder des Standorts passt den Pfad an.
 
 Das PDF `Dienstplan-<Standort>-<Montag>.pdf` ist A4 quer: eine Zeile je Person, eine Spalte je Tag, in den Zellen die Zeit (Dienste an einem anderen Standort mit dessen Namen). Urlaub, Krank, Frei und Schulung sind grau hinterlegt, die Notiz des Tages steht darunter, rechts die Stunden der Woche. Unter dem Titel stehen Standort und „Veröffentlicht am …“.
 

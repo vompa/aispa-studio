@@ -29,7 +29,7 @@ Unter dem Beleg steht, nach dem Bezahlen wie im Reiter „Belege“, der Knopfbl
 ![Beleg nach dem Bezahlen mit den Knöpfen Drucken, A4 drucken, PDF speichern und Per Mail senden](images/app/kassa-beleg-als-pdf.png)
 
 - **Drucken** druckt auf dem Bondrucker, wie bisher.
-- **A4 drucken** schickt den Beleg als A4-Seite an den Standarddrucker von Windows.
+- **A4 drucken** öffnet den Druckdialog von Windows für den Beleg als A4-Seite.
 - **PDF speichern** speichert den Beleg als A4-Datei `Beleg-<Kassa>-<Nummer>.pdf`. Am Pfeil daneben speichert **PDF im Bon-Format speichern** denselben Inhalt 80 mm schmal wie einen Bon.
 - **Per Mail senden** schickt das PDF dem Gast. Die Adresse ist aus der Kundenkarte vorbelegt, der Betreff lautet „Ihr Beleg Nr. … von <Spa>“. Danach steht unter dem Beleg „Per Mail gesendet an … am … von …“.
 

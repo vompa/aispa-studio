@@ -4,7 +4,7 @@ bereich: Dokumente
 oberflaeche: windows-app, verwaltung
 rollen: rezeption, therapeut, leitung, inhaber, manager
 seite: kassa
-stichwoerter: PDF, PDF speichern, drucken, ausdrucken, per Mail senden, Rechnung schicken, Rechnung per Mail, Beleg per Mail, Kopie, Nachdruck, Dokument, Anhang, Standarddrucker, A4, Bon-Format, Vermerk, Gesendet an, print, save as PDF, send by email, email invoice, attachment, copy of receipt
+stichwoerter: PDF, PDF speichern, drucken, ausdrucken, per Mail senden, Rechnung schicken, Rechnung per Mail, Beleg per Mail, Kopie, Nachdruck, Dokument, Anhang, Standarddrucker, Druckdialog, Drucker wählen, Querformat, A4, Bon-Format, Vermerk, Gesendet an, print, save as PDF, send by email, email invoice, attachment, copy of receipt
 ---
 # Dokumente drucken, als PDF speichern und per Mail senden
 
@@ -25,9 +25,15 @@ Nicht jedes Dokument lässt sich senden: Wo es keinen Empfänger gibt (Tagesabsc
 
 ## Drucken {#drucken}
 
-**Drucken** schickt das PDF an den Standarddrucker von Windows, ohne eigenen Druckdialog. Danach steht kurz „Gedruckt“. Dafür braucht der PC einen Standarddrucker und ein Programm für PDF-Dateien. Fehlt eines, steht „Kein Drucker eingerichtet“ oder „Kein PDF-Programm zum Drucken eingerichtet“.
+1. Auf **Drucken** klicken. Nach ein bis zwei Sekunden öffnet sich der Druckdialog von Windows, und unten steht kurz „Druckdialog geöffnet“.
+2. Drucker, Ausrichtung, Seiten und Kopien wählen. Vorbelegt ist der Standarddrucker von Windows.
+3. Auf **Drucken** im Dialog klicken. **Abbrechen** schließt den Dialog, ohne zu drucken.
 
-In der Kassa gibt es zwei Druckknöpfe: **Drucken** bedient wie bisher den Bondrucker, **A4 drucken** schickt den Beleg als A4-Seite an den Standarddrucker.
+Ein Querformat-Dokument wie der Dienstplan-Aushang braucht im Dialog die Ausrichtung **Querformat**.
+
+Ohne Drucker in Windows steht „Kein Drucker eingerichtet“. Lässt sich der Dialog nicht öffnen, steht „Der Druckdialog ließ sich nicht öffnen“. Dann das Dokument mit **PDF speichern** sichern und aus einem anderen Programm drucken.
+
+In der Kassa gibt es zwei Druckknöpfe: **Drucken** bedient wie bisher den Bondrucker, **A4 drucken** öffnet den Druckdialog für den Beleg als A4-Seite.
 
 ## PDF speichern {#speichern}
 

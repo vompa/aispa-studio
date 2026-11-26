@@ -177,7 +177,7 @@ internal static class VoucherListDocument
             }
         }
 
-        AddLast(lines, sent, SentDocument.PrintChannel, "Gedruckt am", zone);
+        AddLast(lines, sent, SentDocument.PrintChannel, "Zum Drucken geöffnet am", zone);
         AddLast(lines, sent, SentDocument.HandoverChannel, "Übergeben am", zone);
         return lines.Count == 0 ? Dash : string.Join('\n', lines);
     }

@@ -90,7 +90,7 @@ Die Gutscheinliste zeigt alle Gutscheine des Standorts mit Werten, Status, Käuf
 
 Das PDF `Gutscheinliste-<Standort>-<Datum>.pdf` ist A4 quer. Es hat eine Zeile je Gutschein mit Code, Art, Ausgestellt, Ausgangswert, Restwert, Gültig bis, Status, Käufer, Empfänger, Kanal (Kassa oder Online) und Versand. Die Kopfzeile nennt die gewählten Filter. Unten stehen „Offene Restwerte (Verbindlichkeit)“ mit Betrag und Zahl der aktiven Gutscheine, „Abgelaufen, noch nicht ausgebucht“ und ein Satz zur Berechnung. Bei vielen Gutscheinen läuft die Tabelle über mehrere Seiten mit wiederholtem Kopf.
 
-Die Spalte „Versand“ zeigt, wie der Gutschein zum Gast kam: „Mail am <Datum>“ mit „an <Adresse>“, „Gedruckt am <Datum>“ oder „Übergeben am <Datum>“. Ein Druck, der am Drucker scheitert, hinterlässt keinen Vermerk. Mit **noch nicht versendet** stehen nur Gutscheine ohne einen solchen Vermerk auf der Liste.
+Die Spalte „Versand“ zeigt, wie der Gutschein zum Gast kam: „Mail am <Datum>“ mit „an <Adresse>“, „Zum Drucken geöffnet am <Datum>“ oder „Übergeben am <Datum>“. Der Vermerk „Zum Drucken geöffnet“ entsteht, sobald der Druckdialog für den Gutschein aufgeht, auch wenn danach **Abbrechen** kommt; Windows meldet nicht zurück, ob gedruckt wurde. Mit **noch nicht versendet** stehen nur Gutscheine ohne einen solchen Vermerk auf der Liste.
 
 Die Karte lässt sich immer öffnen. Drucken und Speichern sind gesperrt, wenn das Ende vor dem Beginn liegt („Das Ende darf nicht vor dem Beginn liegen.“) oder wenn das Recht fehlt: „Die Gutscheinliste druckt nur die Kassenaufsicht oder wer „Berichte mit Beträgen“ sehen darf.“ Wie die Knöpfe arbeiten: [Dokumente drucken, speichern und senden](hilfe:dokumente-drucken-speichern-senden).
 

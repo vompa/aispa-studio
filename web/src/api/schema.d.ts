@@ -3398,7 +3398,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Vermerkt, dass der Gutschein ausgedruckt wurde (die App meldet es nach dem Drucken); die Gutscheinliste zeigt „Gedruckt am …“. */
+        /** Vermerkt, dass der Druckdialog für den Gutschein geöffnet wurde (die App meldet es, sobald er aufgeht; ob gedruckt wurde, meldet Windows nicht); die Gutscheinliste zeigt „Zum Drucken geöffnet am …“. */
         post: operations["VoucherPrinted"];
         delete?: never;
         options?: never;

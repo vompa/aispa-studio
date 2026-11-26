@@ -64,7 +64,7 @@ Der Bericht links ist jederzeit ein Zwischenstand (X-Bericht): **Kassenlade & Ab
 
 Sobald der Abschluss gespeichert ist, steht rechts die Karte „Tagesabschluss als PDF“ mit **Drucken** und **PDF speichern**. Das PDF ist zum Abheften gedacht und lässt sich nicht per Mail senden. Vor dem Abschluss, beim Zwischenbericht, fehlt die Karte.
 
-- Die Datei heißt `Tagesabschluss-<Kassa>-<JJJJ-MM-TT>.pdf`. **Drucken** schickt sie an den Standarddrucker von Windows, nicht an den Bondrucker; danach steht „Gedruckt“.
+- Die Datei heißt `Tagesabschluss-<Kassa>-<JJJJ-MM-TT>.pdf`. **Drucken** öffnet den Druckdialog von Windows, nicht den Bondrucker; danach steht kurz „Druckdialog geöffnet“.
 - Das PDF zeigt den Zeitraum, die Belege von … bis … mit Zahl der Verkäufe und Stornos, die Summen je Zahlart mit dem Umsatz gesamt, die Steuern und die Kassenlade mit Soll-Bestand, gezähltem Bestand und Differenz. Notiz, Einlagen und Entnahmen mit Grund stehen darunter.
 - Zum Schluss stehen zwei Unterschriftenzeilen, „Gezählt von“ und „Geprüft von“.
 - Gesperrt ist der Block ohne das Recht „Berichte mit Beträgen“; der Hinweis am Knopf nennt es. Das Recht haben Inhaber, Manager und Backoffice immer, die Standortleitung und die Rezeption nur, wenn es ihnen gegeben ist: [Berichte mit Beträgen](hilfe:zugaenge#berichte-mit-betraegen).
