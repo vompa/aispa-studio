@@ -39,6 +39,9 @@ public sealed class ReportMailTests(ApiFixture fixture)
         Assert.Contains("- Umsatz brutto: ", mail.Text, StringComparison.Ordinal);
         Assert.Contains("Kommentar der KI:", mail.Text, StringComparison.Ordinal);
         Assert.Contains("Abbestellen:", mail.Text, StringComparison.Ordinal);
+        var pdf = Assert.Single(mail.Attachments ?? []);
+        Assert.Equal("application/pdf", pdf.ContentType);
+        Assert.Equal("%PDF"u8.ToArray(), pdf.Content[..4]);
         Assert.Empty(fixture.Mailbox.To(receptionMail));
     }
 

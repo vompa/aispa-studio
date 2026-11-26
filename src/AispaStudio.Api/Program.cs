@@ -273,6 +273,7 @@ builder.Services.AddScoped<RoomRestockService>();
 builder.Services.AddScoped<RoomCareService>();
 builder.Services.AddScoped<BriefingSummaries>();
 builder.Services.AddScoped<ManagementSummaries>();
+builder.Services.AddScoped<ManagementAnalyses>();
 builder.Services.AddScoped<ManagementReports>();
 builder.Services.AddScoped<PayrollExport>();
 builder.Services.AddScoped<Benchmark>();
@@ -387,6 +388,7 @@ static void MapApplicationEndpoints(WebApplication app)
     app.MapStaffExportEndpoints();
     app.MapReportExportEndpoints();
     app.MapManagementReportPdfEndpoints();
+    app.MapManagementAnalysisEndpoints();
     app.MapCustomerImportEndpoints();
     app.MapCalendarEndpoints();
     app.MapAppointmentConfirmationEndpoints();

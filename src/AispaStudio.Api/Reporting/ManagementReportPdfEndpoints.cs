@@ -28,16 +28,22 @@ internal static class ManagementReportPdfEndpoints
 
         group.MapGet("/pdf", async Task<Results<FileContentHttpResult, ValidationProblem, NotFound>> (
                 Guid locationId, DateOnly? from, DateOnly? until, ManagementReports reports, ManagementSummaries summaries, AccessService access,
-                ManagementDocumentSources sources, ExportLog log, ClaimsPrincipal user, CancellationToken ct, string compare = ManagementReports.CompareModes.Previous, bool ai = false) =>
+                ManagementDocumentSources sources, ManagementAnalyses analyses, ExportLog log, ClaimsPrincipal user, CancellationToken ct,
+                string compare = ManagementReports.CompareModes.Previous, bool ai = false, Guid? analysisId = null) =>
             {
                 if (Invalid(from, until, compare) is { } problem)
                 {
                     return problem;
                 }
 
-                if (await LoadAsync(locationId, from!.Value, until!.Value, compare, ai, reports, summaries, access, sources, user, ct) is not { } loaded)
+                if (await LoadAsync(locationId, from!.Value, until!.Value, compare, ai, reports, summaries, access, sources, user, ct, analyses, analysisId) is not { } loaded)
                 {
                     return TypedResults.NotFound();
+                }
+
+                if (loaded.AnalysisRejected)
+                {
+                    return Problem("analysisId", ManagementAnalyses.NotForThisReport);
                 }
 
                 var pdf = ManagementReportPdf.Build(loaded.Document);
@@ -47,7 +53,8 @@ internal static class ManagementReportPdfEndpoints
             .WithName("ManagementReportPdf")
             .WithSummary("Management-Bericht für from bis until (höchstens ein Jahr) als PDF (A4 hoch): Kennzahlen je Gruppe mit Vergleich (compare wie beim Bericht) und Veränderung, "
                 + "Verlauf als Balken, danach die Tabellen des Berichts. Ohne das Recht „Berichte mit Beträgen“ ohne Geldbeträge, Gäste nur mit dem Recht der Kundenliste; "
-                + "mit ai=true der schon geschriebene KI-Kommentar mit Hinweis. Steht im Export-Protokoll.");
+                + "mit ai=true der schon geschriebene KI-Kommentar mit Hinweis, mit analysisId die übernommene KI-Auswertung (fertig, gleicher Standort, Zeitraum, Vergleich "
+                + "und Sicht, sonst ein Fehler) mit Hinweis. Steht im Export-Protokoll.");
 
         group.MapGet("/send", async Task<Results<Ok<DocumentMailDraft>, ValidationProblem, NotFound>> (
                 Guid locationId, DateOnly? from, DateOnly? until, ManagementReports reports, ManagementSummaries summaries, AccessService access,
@@ -70,8 +77,8 @@ internal static class ManagementReportPdfEndpoints
 
         group.MapPost("/send", async Task<Results<Accepted, ValidationProblem, NotFound>> (
                 Guid locationId, DateOnly? from, DateOnly? until, SendDocumentRequest request, ManagementReports reports, ManagementSummaries summaries, AccessService access,
-                ManagementDocumentSources sources, SentDocuments sent, ExportLog log, TenantContext tenants, IMessageBus bus, ClaimsPrincipal user, CancellationToken ct,
-                string compare = ManagementReports.CompareModes.Previous, bool ai = false) =>
+                ManagementDocumentSources sources, ManagementAnalyses analyses, SentDocuments sent, ExportLog log, TenantContext tenants, IMessageBus bus, ClaimsPrincipal user,
+                CancellationToken ct, string compare = ManagementReports.CompareModes.Previous, bool ai = false, Guid? analysisId = null) =>
             {
                 if (Invalid(from, until, compare) is { } problem)
                 {
@@ -83,9 +90,14 @@ internal static class ManagementReportPdfEndpoints
                     return TypedResults.ValidationProblem(errors);
                 }
 
-                if (await LoadAsync(locationId, from!.Value, until!.Value, compare, ai, reports, summaries, access, sources, user, ct) is not { } loaded)
+                if (await LoadAsync(locationId, from!.Value, until!.Value, compare, ai, reports, summaries, access, sources, user, ct, analyses, analysisId) is not { } loaded)
                 {
                     return TypedResults.NotFound();
+                }
+
+                if (loaded.AnalysisRejected)
+                {
+                    return Problem("analysisId", ManagementAnalyses.NotForThisReport);
                 }
 
                 var document = loaded.Document;
@@ -98,21 +110,26 @@ internal static class ManagementReportPdfEndpoints
                 return TypedResults.Accepted($"/api/reports/locations/{locationId}/management");
             })
             .WithName("SendManagementReportPdf")
-            .WithSummary("Management-Bericht als PDF per Mail an die eingetippte Adresse (über die Queue); Inhalt wie GET …/management/pdf. Vermerk im Export-Protokoll mit Empfänger.");
+            .WithSummary("Management-Bericht als PDF per Mail an die eingetippte Adresse (über die Queue); Inhalt wie GET …/management/pdf, auch mit analysisId. "
+                + "Vermerk im Export-Protokoll mit Empfänger.");
 
         return routes;
     }
 
-    internal sealed record Loaded(ManagementReportDocument Document, ManagementReportDto Report);
+    /// <param name="AnalysisRejected">Eine <c>analysisId</c> war angegeben, passt aber nicht zu diesem Bericht oder ist nicht fertig; die Ausgabe antwortet dann mit einem Fehler.</param>
+    internal sealed record Loaded(ManagementReportDocument Document, ManagementReportDto Report, bool AnalysisRejected = false);
 
     internal static ValidationProblem? Invalid(DateOnly? from, DateOnly? until, string compare) =>
         RangeError(from, until) is { } rangeError ? Problem("from", rangeError)
         : !ManagementReports.CompareModes.IsKnown(compare) ? Problem("compare", "Vergleich: previous (Zeitraum davor), month (Vormonat) oder year (Vorjahr).")
         : null;
 
-    /// <summary>Bericht nach den Rechten der Person, daraus der Berichtskern mit Kopf, Vergleich mit anderen Spas (wenn eingeschaltet) und, mit <paramref name="ai"/>, dem gespeicherten KI-Kommentar.</summary>
+    /// <summary>
+    /// Bericht nach den Rechten der Person, daraus der Berichtskern mit Kopf, Vergleich mit anderen Spas (wenn eingeschaltet), mit <paramref name="ai"/> dem gespeicherten
+    /// KI-Kommentar und mit <paramref name="analysisId"/> der übernommenen KI-Auswertung (T-096 E2), wenn sie zu Standort, Zeitraum, Vergleich und Sicht passt.
+    /// </summary>
     internal static async Task<Loaded?> LoadAsync(Guid locationId, DateOnly from, DateOnly until, string compare, bool ai, ManagementReports reports, ManagementSummaries summaries,
-        AccessService accessService, ManagementDocumentSources sources, ClaimsPrincipal user, CancellationToken ct)
+        AccessService accessService, ManagementDocumentSources sources, ClaimsPrincipal user, CancellationToken ct, ManagementAnalyses? analyses = null, Guid? analysisId = null)
     {
         var access = (await accessService.CurrentAsync(ct))!;
         var amounts = access.Has(AccessRight.ViewAmountReports);
@@ -125,7 +142,9 @@ internal static class ManagementReportPdfEndpoints
         var header = await sources.Headers.ForAsync(locationId, user, ct);
         var benchmark = await sources.BenchmarkAsync(report, amounts, ct);
         var summary = ai ? await summaries.StoredAsync(report, ct) : null;
-        return new Loaded(ManagementReportDocument.Build(report, header, compare, guests, benchmark, summary, summary is null ? null : ManagementSummaries.Notice), report);
+        var analysis = analysisId is { } id && analyses is not null ? await analyses.DocumentBlockAsync(id, locationId, from, until, compare, amounts, ct) : null;
+        return new Loaded(ManagementReportDocument.Build(report, header, compare, guests, benchmark, summary, summary is null ? null : ManagementSummaries.Notice, analysis), report,
+            analysisId is not null && analysis is null);
     }
 
     /// <summary>Die Mailadresse des angemeldeten Kontos; null ohne Anmeldung oder Adresse.</summary>

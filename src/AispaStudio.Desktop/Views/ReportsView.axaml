@@ -13,7 +13,7 @@
     nur die Pflichtberichte ein Datum. Die Betriebsinfo hat ihre eigene Maske ohne Standort und Datum.
     Die Inhalte der Reiter stehen in eigenen Ansichten, die App.axaml den ViewModels zuordnet.
   -->
-  <Grid RowDefinitions="Auto,Auto,*">
+  <Grid RowDefinitions="Auto,Auto,*" ColumnDefinitions="*,Auto">
     <StackPanel Spacing="12" Margin="0,0,16,12">
       <ui:InfoBar Severity="Error" Title="Berichte nicht geladen" Message="{Binding LoadError}" IsVisible="{Binding HasLoadError}"
                   ActionText="Erneut laden" ActionCommand="{Binding RetryCommand}" />
@@ -64,5 +64,18 @@
     </ScrollViewer>
 
     <ContentControl Grid.Row="2" x:Name="BusinessInfoHost" Margin="0,0,16,16" Content="{Binding BusinessInfo}" IsVisible="{Binding IsBusinessInfoTab}" />
+
+    <!-- „Mit KI auswerten“ als Seitenleiste (ADR 0066, T-096 E2): neben dem Bericht, außerhalb der Bildlaufleiste; nur im Reiter „Berichte“ -->
+    <Panel Grid.Column="1" Grid.RowSpan="3" IsVisible="{Binding IsManagementTab}">
+      <ui:SidePanel x:Name="ManagementAnalysisPanel" Title="Mit KI auswerten" Subtitle="Management-Bericht" DataContext="{Binding Management.Analysis}"
+                    IsOpen="{Binding IsOpen, Mode=TwoWay}" x:DataType="vm:ManagementAnalysisViewModel">
+        <ui:SidePanel.HeaderAction>
+          <ui:HelpButton Topic="berichte-mit-ki-auswerten" Margin="0,0,4,0" VerticalAlignment="Center" />
+        </ui:SidePanel.HeaderAction>
+        <ui:SidePanel.Body>
+          <views:ManagementAnalysisPanel />
+        </ui:SidePanel.Body>
+      </ui:SidePanel>
+    </Panel>
   </Grid>
 </views:FocusRequestView>

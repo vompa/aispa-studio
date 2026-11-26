@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text;
 using AispaStudio.Api.Access;
 using AispaStudio.Api.Data;
+using AispaStudio.Api.Documents;
 using AispaStudio.Api.Mail;
 using AispaStudio.Api.Scheduling;
 using AispaStudio.Api.System;
@@ -116,12 +117,13 @@ internal sealed partial class ReportMailScheduler(
 /// <summary>
 /// Wochenbericht (Montag bis Sonntag) montags, Monatsbericht am Monatsersten, je ab <c>SendHour</c> Uhr Ortszeit des Standorts: an Inhaber, Manager und
 /// Standortleitung mit Zugang zum Standort, die ihn nicht abbestellt haben. Inhalt wie der Managementbericht (Kennzahlen mit Vorperiode, Hinweise), dazu der
-/// KI-Kommentar, wenn es ihn gibt; Beträge nur für Personen mit dem Recht „Berichte mit Beträgen“.
+/// KI-Kommentar, wenn es ihn gibt, und der Bericht als PDF im Anhang (T-096); Beträge nur für Personen mit dem Recht „Berichte mit Beträgen“.
 /// </summary>
 internal sealed class ReportMailPlanner(
     AispaDbContext db,
     ManagementReports reports,
     ManagementSummaries summaries,
+    ManagementDocumentSources sources,
     IMessageBus bus,
     IOptions<ReportMailOptions> options)
 {
@@ -206,20 +208,18 @@ internal sealed class ReportMailPlanner(
             return 0;
         }
 
-        var texts = new Dictionary<bool, string?>();
+        var contents = new Dictionary<bool, (string Body, MailAttachment? Pdf)?>();
         var sent = 0;
         foreach (var (email, name, access) in recipients)
         {
             var amounts = access.Has(AccessRight.ViewAmountReports);
-            if (!texts.TryGetValue(amounts, out var body))
+            if (!contents.TryGetValue(amounts, out var content))
             {
-                body = await reports.ManagementAsync(location.Id, from, until, amounts, ct) is { } report
-                    ? Body(report, location.Name, kind, await summaries.CommentNowAsync(report, ct))
-                    : null;
-                texts[amounts] = body;
+                content = await ContentAsync(location, kind, from, until, amounts, ct);
+                contents[amounts] = content;
             }
 
-            if (body is null)
+            if (content is not { } mail)
             {
                 continue;
             }
@@ -227,12 +227,34 @@ internal sealed class ReportMailPlanner(
             var title = kind == ReportMailKind.Week ? "Wochenbericht" : "Monatsbericht";
             await bus.PublishAsync(new SendMail(new OutgoingMail(email,
                 $"{title} {location.Name}: {Period(kind, from, until)}",
-                $"Guten Tag{(string.IsNullOrWhiteSpace(name) ? "" : $" {name}")},\n\n{body}",
-                FromName: spa)));
+                $"Guten Tag{(string.IsNullOrWhiteSpace(name) ? "" : $" {name}")},\n\n{mail.Body}",
+                FromName: spa,
+                Attachments: mail.Pdf is { } pdf ? [pdf] : null)));
             sent++;
         }
 
         return sent;
+    }
+
+    /// <summary>
+    /// Text und PDF für eine Sicht (mit oder ohne Beträge): das PDF wie „PDF speichern“ im Bericht (T-095 D2) mit Vergleich zum Zeitraum davor, ohne Gästenamen, mit
+    /// dem KI-Kommentar, wenn es ihn gibt. Über der Grenze für Anhänge geht die Mail ohne PDF hinaus.
+    /// </summary>
+    private async Task<(string Body, MailAttachment? Pdf)?> ContentAsync(Location location, ReportMailKind kind, DateOnly from, DateOnly until, bool amounts, CancellationToken ct)
+    {
+        if (await reports.ManagementAsync(location.Id, from, until, amounts, ct) is not { } report)
+        {
+            return null;
+        }
+
+        var comment = await summaries.CommentNowAsync(report, ct);
+        var header = await sources.Headers.ForAsync(location.Id, null, ct);
+        var document = ManagementReportDocument.Build(report, header, ManagementReports.CompareModes.Previous, guests: false,
+            await sources.BenchmarkAsync(report, amounts, ct), comment, comment is null ? null : ManagementSummaries.Notice);
+        var pdf = ManagementReportPdf.Build(document);
+        return (Body(report, location.Name, kind, comment), pdf.Length <= OutgoingMail.MaxAttachmentBytes
+            ? new MailAttachment(ManagementReportPdf.FileName(document, report), DocumentFiles.PdfContentType, pdf)
+            : null);
     }
 
     private static string Period(ReportMailKind kind, DateOnly from, DateOnly until) => kind == ReportMailKind.Month

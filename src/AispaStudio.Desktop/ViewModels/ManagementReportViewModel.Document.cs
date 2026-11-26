@@ -18,13 +18,18 @@ public sealed partial class ManagementReportViewModel
 
     /// <summary>Baut den Knopfblock für den gerade gezeigten Bericht neu; Fehler zeigt der Knopfblock selbst darunter.</summary>
     private void UpdateDocument(LocationDto location, DateOnly from, DateOnly until, CompareChoice comparison) =>
-        Document = new DocumentActionsViewModel(DocumentSourceFor(location, from, until, comparison, HasAiSummary), Api, Dialogs) { ShowToast = ShowToast };
+        Document = new DocumentActionsViewModel(DocumentSourceFor(location, from, until, comparison, HasAiSummary, Analysis.AdoptedId), Api, Dialogs) { ShowToast = ShowToast };
 
-    /// <summary>Pfade von PDF und Versand; dieselben Abfrageparameter wie der Bericht, mit <c>ai=true</c>, wenn der Reiter einen KI-Kommentar zeigt.</summary>
-    internal static DocumentSource DocumentSourceFor(LocationDto location, DateOnly from, DateOnly until, CompareChoice comparison, bool withAi)
+    /// <summary>
+    /// Pfade von PDF und Versand; dieselben Abfrageparameter wie der Bericht, mit <c>ai=true</c>, wenn der Reiter einen KI-Kommentar zeigt, und mit <c>analysisId</c>,
+    /// wenn eine KI-Auswertung in den Bericht übernommen ist.
+    /// </summary>
+    internal static DocumentSource DocumentSourceFor(LocationDto location, DateOnly from, DateOnly until, CompareChoice comparison, bool withAi, Guid? analysisId = null)
     {
-        var query = $"from={Iso(from)}&until={Iso(until)}{(comparison.IsDefault ? "" : $"&compare={comparison.Key}")}{(withAi ? "&ai=true" : "")}";
+        var query = $"from={Iso(from)}&until={Iso(until)}{(comparison.IsDefault ? "" : $"&compare={comparison.Key}")}{(withAi ? "&ai=true" : "")}{AnalysisQuery(analysisId)}";
         var root = $"api/reports/locations/{location.Id}/management";
         return new DocumentSource($"Management-Bericht {location.Name} {from:dd.MM.yyyy} bis {until:dd.MM.yyyy}", $"{root}/pdf?{query}", $"{root}/send?{query}");
     }
+
+    private static string AnalysisQuery(Guid? analysisId) => analysisId is { } id ? $"&analysisId={id}" : "";
 }

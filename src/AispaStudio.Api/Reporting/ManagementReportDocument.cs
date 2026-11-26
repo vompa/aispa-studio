@@ -35,8 +35,9 @@ internal sealed record ManagementReportDocument(
     /// <param name="guests">Gästenamen (beste und abwandernde Gäste) nur mit dem Recht der Kundenliste; sonst fehlt das Blatt.</param>
     /// <param name="benchmark">Vergleich mit anderen Spas, wenn das Modul eingeschaltet ist.</param>
     /// <param name="aiSummary">KI-Auswertung, wenn gewählt und vorhanden; steht nur mit <paramref name="aiNotice"/> im Dokument.</param>
+    /// <param name="analysis">Die übernommene KI-Auswertung („Mit KI auswerten“, T-096 E2) mit Hinweis, wenn die Person sie in den Bericht übernommen hat.</param>
     public static ManagementReportDocument Build(ManagementReportDto report, DocumentHeader header, string compare, bool guests,
-        BenchmarkReport? benchmark = null, string? aiSummary = null, string? aiNotice = null)
+        BenchmarkReport? benchmark = null, string? aiSummary = null, string? aiNotice = null, ReportTextBlock? analysis = null)
     {
         var amounts = !report.AmountsHidden;
         var compareLabel = compare switch
@@ -108,6 +109,11 @@ internal sealed record ManagementReportDocument(
         if (!string.IsNullOrWhiteSpace(aiSummary) && !string.IsNullOrWhiteSpace(aiNotice))
         {
             texts.Add(new ReportTextBlock("KI-Auswertung", [aiSummary], aiNotice));
+        }
+
+        if (analysis is { AiNotice: not null })
+        {
+            texts.Add(analysis);
         }
 
         return new ManagementReportDocument(header, "Management-Bericht", period, comparison, facts, sections, texts);

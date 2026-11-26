@@ -16,8 +16,8 @@ public sealed partial class ManagementReportViewModel
     /// </summary>
     public ExportViewModel Export => _export ??= new ExportViewModel(Api,
     [
-        ExportOption.For(ExportFormat.Xlsx, () => ExportPath("xlsx") + "&content=report", "Bericht (Excel)"),
-        ExportOption.For(ExportFormat.Docx, () => ExportPath("docx") + (HasAiSummary ? "&ai=true" : ""), "Bericht (Word)"),
+        ExportOption.For(ExportFormat.Xlsx, () => ExportPath("xlsx") + "&content=report" + AnalysisQuery(Analysis.AdoptedId), "Bericht (Excel)"),
+        ExportOption.For(ExportFormat.Docx, () => ExportPath("docx") + (HasAiSummary ? "&ai=true" : "") + AnalysisQuery(Analysis.AdoptedId), "Bericht (Word)"),
         ExportOption.For(ExportFormat.Csv, () => ExportPath("csv"), "Kennzahlen (CSV)"),
     ])
     {

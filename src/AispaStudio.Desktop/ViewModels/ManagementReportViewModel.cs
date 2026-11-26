@@ -81,6 +81,27 @@ public sealed partial class ManagementReportViewModel(IWorkstationApi api, TimeP
 
     public bool HasAiSummary => AiSummary is not null;
 
+    // ---------- „Mit KI auswerten“ (T-096 E2) ----------
+
+    private ManagementAnalysisViewModel? _analysis;
+
+    /// <summary>Die Seitenleiste „Mit KI auswerten“; ihre übernommene Auswertung geht an PDF, Word und Excel.</summary>
+    public ManagementAnalysisViewModel Analysis => _analysis ??= new ManagementAnalysisViewModel(Api, Time) { AdoptedChanged = OnAnalysisAdoptedChanged };
+
+    /// <summary>Ohne Claude-Schlüssel im Server ist „Mit KI auswerten“ gesperrt (<see cref="AnalysisUnavailableHint"/>).</summary>
+    [ObservableProperty]
+    public partial bool AiAnalysisAvailable { get; private set; }
+
+    public const string AnalysisUnavailableHint = "Verfügbar, sobald auf dem Server ein Claude-Schlüssel eingetragen ist.";
+
+    private void OnAnalysisAdoptedChanged()
+    {
+        if (Location is { } location && From is { } from && Until is { } until)
+        {
+            UpdateDocument(location, from, until, Comparison);
+        }
+    }
+
     public static IReadOnlyList<CompareChoice> CompareChoices { get; } =
     [
         new("previous", "Zeitraum davor", "Vorperiode", "der Vorperiode"),
@@ -349,6 +370,7 @@ public sealed partial class ManagementReportViewModel(IWorkstationApi api, TimeP
             LoadError = result.Error ?? "Der Bericht konnte nicht geladen werden.";
             Alerts = [];
             AiSummary = null;
+            AiAnalysisAvailable = false;
             IsAiPending = false;
             Kpis = [];
             KpiGroups = [];
@@ -372,6 +394,7 @@ public sealed partial class ManagementReportViewModel(IWorkstationApi api, TimeP
         }
 
         Apply(report, comparison);
+        Analysis.SetScope(new AnalysisScope(location.Id, from, until, comparison.Key));
         UpdateDocument(location, from, until, comparison);
         IsLoaded = true;
         await LoadBenchmarkAsync().ConfigureAwait(true);
@@ -472,6 +495,7 @@ public sealed partial class ManagementReportViewModel(IWorkstationApi api, TimeP
         AiSummary = report.AiSummary;
         AiNotice = report.AiNotice;
         IsAiPending = report.AiSummaryPending;
+        AiAnalysisAvailable = report.AiAnalysisAvailable;
         Kpis = [.. report.Kpis.Select(k => KpiTile(k, comparison))];
         KpiGroups = [.. report.Kpis.Select((k, i) => (Kpi: k, Tile: Kpis[i])).GroupBy(k => k.Kpi.Group ?? "Kennzahlen")
             .Select(g => new KpiGroupRow(g.Key, [.. g.Select(k => k.Tile)]))];

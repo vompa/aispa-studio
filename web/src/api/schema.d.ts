@@ -1235,7 +1235,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Kennzahlen des Management-Berichts für from bis until (höchstens ein Jahr) als Excel oder CSV: Kennzahl, Wert, Vorperiode, Einheit; ohne das Recht „Berichte mit Beträgen“ ohne Geldbeträge. Mit content=report der ganze Bericht als Excel-Arbeitsmappe (ein Blatt je Abschnitt, Gäste nur mit dem Recht der Kundenliste, Vergleich mit anderen Spas, wenn das Modul eingeschaltet ist). Mit format=docx der ganze Bericht als Word-Datei (A4 hoch, Inhalt wie das PDF, der Verlauf als Tabelle, nach jeder Kennzahlen-Gruppe „Anmerkungen:“); content entfällt, ai=true nimmt den schon geschriebenen KI-Kommentar mit Hinweis auf. */
+        /** Kennzahlen des Management-Berichts für from bis until (höchstens ein Jahr) als Excel oder CSV: Kennzahl, Wert, Vorperiode, Einheit; ohne das Recht „Berichte mit Beträgen“ ohne Geldbeträge. Mit content=report der ganze Bericht als Excel-Arbeitsmappe (ein Blatt je Abschnitt, Gäste nur mit dem Recht der Kundenliste, Vergleich mit anderen Spas, wenn das Modul eingeschaltet ist). Mit format=docx der ganze Bericht als Word-Datei (A4 hoch, Inhalt wie das PDF, der Verlauf als Tabelle, nach jeder Kennzahlen-Gruppe „Anmerkungen:“); content entfällt, ai=true nimmt den schon geschriebenen KI-Kommentar mit Hinweis auf. Mit analysisId stehen Arbeitsmappe und Word-Datei mit der übernommenen KI-Auswertung und Hinweis da (fertig, gleicher Standort, Zeitraum, Vergleich und Sicht, sonst ein Fehler). */
         get: operations["ExportManagementKpis"];
         put?: never;
         post?: never;
@@ -1442,7 +1442,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Management-Bericht für from bis until (höchstens ein Jahr) als PDF (A4 hoch): Kennzahlen je Gruppe mit Vergleich (compare wie beim Bericht) und Veränderung, Verlauf als Balken, danach die Tabellen des Berichts. Ohne das Recht „Berichte mit Beträgen“ ohne Geldbeträge, Gäste nur mit dem Recht der Kundenliste; mit ai=true der schon geschriebene KI-Kommentar mit Hinweis. Steht im Export-Protokoll. */
+        /** Management-Bericht für from bis until (höchstens ein Jahr) als PDF (A4 hoch): Kennzahlen je Gruppe mit Vergleich (compare wie beim Bericht) und Veränderung, Verlauf als Balken, danach die Tabellen des Berichts. Ohne das Recht „Berichte mit Beträgen“ ohne Geldbeträge, Gäste nur mit dem Recht der Kundenliste; mit ai=true der schon geschriebene KI-Kommentar mit Hinweis, mit analysisId die übernommene KI-Auswertung (fertig, gleicher Standort, Zeitraum, Vergleich und Sicht, sonst ein Fehler) mit Hinweis. Steht im Export-Protokoll. */
         get: operations["ManagementReportPdf"];
         put?: never;
         post?: never;
@@ -1462,8 +1462,42 @@ export interface paths {
         /** Vorbelegung für „Per Mail senden“: die eigene Mailadresse der angemeldeten Person, Betreff mit Standort und Zeitraum, kurzer Text. */
         get: operations["ManagementReportMailDraft"];
         put?: never;
-        /** Management-Bericht als PDF per Mail an die eingetippte Adresse (über die Queue); Inhalt wie GET …/management/pdf. Vermerk im Export-Protokoll mit Empfänger. */
+        /** Management-Bericht als PDF per Mail an die eingetippte Adresse (über die Queue); Inhalt wie GET …/management/pdf, auch mit analysisId. Vermerk im Export-Protokoll mit Empfänger. */
         post: operations["SendManagementReportPdf"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/locations/{locationId}/management/analysis": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** KI-Auswertung des Management-Berichts anlegen (Zeitraum und Vergleich wie beim Bericht, Schwerpunkt, eigene Frage bis 300 Zeichen); geschrieben wird über die Queue, Status mit GET …/analysis/{id}. Zu denselben Zahlen, Schwerpunkt und Frage kommt die gespeicherte Auswertung zurück. Ohne Claude-Schlüssel ein Fehler mit Hinweis. */
+        post: operations["RequestManagementAnalysis"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/locations/{locationId}/management/analysis/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Stand einer KI-Auswertung: Pending (läuft), Done mit Ergebnis oder Failed (nichts anzeigen, erneut anlegen). Immer mit Hinweis auf die KI. */
+        get: operations["GetManagementAnalysis"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -8973,6 +9007,15 @@ export interface components {
             /** Format: date-time */
             checkedAt: null | string;
         };
+        AnalysisFinding: {
+            observation: string;
+            possibleCause: string;
+            kpi: string;
+        };
+        AnalysisMeasure: {
+            action: string;
+            successSign: string;
+        };
         AnamnesisAnswer: {
             key: string;
             yes: null | boolean;
@@ -12043,6 +12086,45 @@ export interface components {
         MailboxKind: "Imap" | "Graph";
         /** @enum {unknown} */
         MailboxSecurity: "SslOnConnect" | "StartTls" | "None";
+        ManagementAnalysisDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            locationId: string;
+            /** Format: date */
+            from: string;
+            /** Format: date */
+            until: string;
+            compare: string;
+            focus: components["schemas"]["ManagementAnalysisFocus"];
+            question: null | string;
+            amountsHidden: boolean;
+            status: components["schemas"]["ManagementAnalysisStatus"];
+            result: null | components["schemas"]["ManagementAnalysisResult"];
+            notice: string;
+            /** Format: date-time */
+            requestedAt: string;
+        };
+        /** @enum {unknown} */
+        ManagementAnalysisFocus: "Overall" | "RevenueAndProfit" | "UtilizationAndRoster" | "GuestsAndLoyalty" | "OfferAndPrices";
+        ManagementAnalysisRequest: {
+            /** Format: date */
+            from: string;
+            /** Format: date */
+            until: string;
+            focus?: components["schemas"]["ManagementAnalysisFocus"];
+            question?: null | string;
+            /** @default previous */
+            compare: string;
+        };
+        ManagementAnalysisResult: {
+            keyFindings: string[];
+            findings: components["schemas"]["AnalysisFinding"][];
+            measures: components["schemas"]["AnalysisMeasure"][];
+            notShown: string[];
+        };
+        /** @enum {unknown} */
+        ManagementAnalysisStatus: "Pending" | "Done" | "Failed";
         ManagementReportDto: {
             /** Format: uuid */
             locationId: string;
@@ -12088,6 +12170,7 @@ export interface components {
             forecast?: null | components["schemas"]["ForecastWeek"][];
             /** Format: date */
             forecastAsOf?: null | string;
+            aiAnalysisAvailable?: boolean;
         };
         MarketingConsentDecision: {
             state: components["schemas"]["MarketingConsentState"];
@@ -18543,6 +18626,7 @@ export interface operations {
                 compare?: string;
                 content?: string;
                 ai?: boolean;
+                analysisId?: string;
             };
             header?: never;
             path: {
@@ -18974,6 +19058,7 @@ export interface operations {
                 until?: string;
                 compare?: string;
                 ai?: boolean;
+                analysisId?: string;
             };
             header?: never;
             path: {
@@ -19069,6 +19154,7 @@ export interface operations {
                 until?: string;
                 compare?: string;
                 ai?: boolean;
+                analysisId?: string;
             };
             header?: never;
             path: {
@@ -19096,6 +19182,96 @@ export interface operations {
                 };
                 content: {
                     "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    RequestManagementAnalysis: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                locationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ManagementAnalysisRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ManagementAnalysisDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetManagementAnalysis: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                locationId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ManagementAnalysisDto"];
                 };
             };
             /** @description Forbidden */

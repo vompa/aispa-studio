@@ -381,7 +381,7 @@ internal static class ReportEndpoints
             .RequirePermission(AccessRight.Book);
 
         group.MapGet("/locations/{locationId:guid}/management", async Task<Results<Ok<ManagementReportDto>, NotFound, ValidationProblem>> (
-                Guid locationId, DateOnly from, DateOnly until, ManagementReports reports, ManagementSummaries summaries, AccessService accessService,
+                Guid locationId, DateOnly from, DateOnly until, ManagementReports reports, ManagementSummaries summaries, IManagementAnalyst analyst, AccessService accessService,
                 CancellationToken ct, string compare = ManagementReports.CompareModes.Previous) =>
             {
                 if (from > until || until.DayNumber - from.DayNumber > 366)
@@ -398,7 +398,7 @@ internal static class ReportEndpoints
                 // Gästenamen (beste und abwandernde Gäste) mit demselben Recht wie die Kundenliste.
                 return await reports.ManagementAsync(locationId, from, until, access.Has(AccessRight.ViewAmountReports), ct, compare,
                         guests: access.Has(AccessRight.ViewCalendar)) is { } report
-                    ? TypedResults.Ok(await summaries.AttachAsync(report, ct))
+                    ? TypedResults.Ok(await summaries.AttachAsync(report, ct) with { AiAnalysisAvailable = analyst.Enabled })
                     : TypedResults.NotFound();
             })
             .WithName("GetManagementReport")

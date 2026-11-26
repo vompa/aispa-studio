@@ -29,6 +29,17 @@
       <Panel IsVisible="{Binding Document, Converter={x:Static ObjectConverters.IsNotNull}}" VerticalAlignment="Bottom">
         <ui:DocumentActions x:Name="ManagementDocument" DataContext="{Binding Document}" />
       </Panel>
+      <!-- KI-Auswertung per Knopf (T-096 E2): öffnet die Seitenleiste; ohne Claude-Schlüssel gesperrt mit Grund -->
+      <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Bottom">
+        <Button x:Name="ManagementAnalyzeButton" Command="{Binding Analysis.OpenCommand}" IsEnabled="{Binding AiAnalysisAvailable}"
+                ui:DisabledHint.Text="{x:Static vm:ManagementReportViewModel.AnalysisUnavailableHint}" AutomationProperties.Name="Mit KI auswerten">
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <views:AiPill />
+            <TextBlock Text="Mit KI auswerten" VerticalAlignment="Center" />
+          </StackPanel>
+        </Button>
+        <ui:HelpButton Topic="berichte-mit-ki-auswerten" VerticalAlignment="Center" />
+      </StackPanel>
       <!-- Export der Kennzahlen des Zeitraums (Export/Import, Aufgabe D) -->
       <ui:ExportButton x:Name="ManagementExportButton" DataContext="{Binding Export}" VerticalAlignment="Bottom" />
       <TextBlock x:Name="ManagementExportSaved" Text="{Binding ExportSaved}" Classes="muted small" IsVisible="{Binding HasExportSaved}" VerticalAlignment="Bottom" AutomationProperties.LiveSetting="Polite" />

@@ -1,0 +1,129 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:views="using:AispaStudio.Desktop.Views"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             x:Class="AispaStudio.Desktop.Views.ManagementAnalysisPanel"
+             x:DataType="vm:ManagementAnalysisViewModel">
+  <!--
+    Inhalt der Seitenleiste „Mit KI auswerten“ (T-096 E2, ADR 0066): Schwerpunkt und eigene Frage, darunter das Ergebnis in vier Teilen mit Pille und Hinweis.
+    „Auswerten“ steht fest im Fuß (masken.md R5). Gescheitert: was passiert ist und zwei Wege, einer ohne KI (responsible-ai.md).
+  -->
+  <Grid RowDefinitions="*,Auto">
+    <ScrollViewer x:Name="AnalysisScroll" Classes="panelbody" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+      <StackPanel Spacing="16" Margin="20,12,20,16">
+        <TextBlock Text="{x:Static vm:ManagementAnalysisViewModel.IntroText}" Classes="muted small" TextWrapping="Wrap" />
+        <ui:FormField Label="Schwerpunkt">
+          <ComboBox x:Name="AnalysisFocusField" ItemsSource="{x:Static vm:ManagementAnalysisViewModel.FocusChoices}" SelectedItem="{Binding SelectedFocus}"
+                    HorizontalAlignment="Stretch" AutomationProperties.Name="Schwerpunkt" />
+        </ui:FormField>
+        <ui:FormField Label="Eigene Frage (freiwillig)">
+          <StackPanel Spacing="4">
+            <TextBox x:Name="AnalysisQuestionField" Text="{Binding Question}" MaxLength="{x:Static vm:ManagementAnalysisViewModel.MaxQuestionLength}"
+                     AcceptsReturn="True" TextWrapping="Wrap" MinHeight="72" AutomationProperties.Name="Eigene Frage"
+                     AutomationProperties.HelpText="{x:Static vm:ManagementAnalysisViewModel.QuestionHint}" />
+            <TextBlock Text="{Binding QuestionCount}" Classes="muted small" HorizontalAlignment="Right" />
+            <TextBlock x:Name="AnalysisQuestionHint" Text="{x:Static vm:ManagementAnalysisViewModel.QuestionHint}" Classes="muted small" TextWrapping="Wrap" />
+          </StackPanel>
+        </ui:FormField>
+
+        <!-- Läuft -->
+        <StackPanel x:Name="AnalysisRunning" Spacing="8" IsVisible="{Binding IsRunning}">
+          <ProgressBar IsIndeterminate="True" />
+          <TextBlock Text="{x:Static vm:ManagementAnalysisViewModel.RunningText}" Classes="muted" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
+        </StackPanel>
+
+        <!-- Gescheitert: nichts von der KI anzeigen -->
+        <ui:InfoBar x:Name="AnalysisFailed" Severity="Error" Title="Auswertung gescheitert" Message="{Binding FailureText}" IsVisible="{Binding IsFailed}"
+                    ActionText="Erneut versuchen" ActionCommand="{Binding AnalyzeCommand}" />
+
+        <!-- Fertig: vier Teile, Pille vorn, Hinweis darunter -->
+        <StackPanel x:Name="AnalysisResult" Spacing="16" IsVisible="{Binding IsDone}">
+          <Border Classes="divider" />
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <views:AiPill />
+            <TextBlock Text="{Binding ResultTitle}" Classes="muted small" TextWrapping="Wrap" VerticalAlignment="Center" MaxWidth="260" />
+          </StackPanel>
+
+          <StackPanel Spacing="6">
+            <TextBlock Text="Kernaussagen" Classes="h3" />
+            <ItemsControl x:Name="AnalysisKeyFindings" ItemsSource="{Binding KeyFindings}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="x:String">
+                  <Grid ColumnDefinitions="16,*" Margin="0,0,0,4">
+                    <TextBlock Text="•" AutomationProperties.AccessibilityView="Raw" />
+                    <TextBlock Grid.Column="1" Text="{Binding}" TextWrapping="Wrap" />
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+
+          <StackPanel Spacing="6" IsVisible="{Binding Findings.Count}">
+            <TextBlock Text="Auffälligkeiten" Classes="h3" />
+            <ItemsControl x:Name="AnalysisFindings" ItemsSource="{Binding Findings}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:AnalysisFindingRow">
+                  <StackPanel Spacing="2" Margin="0,0,0,8">
+                    <TextBlock Text="{Binding Observation}" TextWrapping="Wrap" />
+                    <TextBlock Text="{Binding Cause}" Classes="muted small" TextWrapping="Wrap" />
+                    <TextBlock Text="{Binding Kpi}" Classes="muted small" TextWrapping="Wrap" />
+                  </StackPanel>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+
+          <StackPanel Spacing="6" IsVisible="{Binding Measures.Count}">
+            <TextBlock Text="Maßnahmen" Classes="h3" />
+            <ItemsControl x:Name="AnalysisMeasures" ItemsSource="{Binding Measures}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:AnalysisMeasureRow">
+                  <StackPanel Spacing="2" Margin="0,0,0,8">
+                    <TextBlock Text="{Binding Action}" TextWrapping="Wrap" />
+                    <TextBlock Text="{Binding SuccessSign}" Classes="muted small" TextWrapping="Wrap" />
+                  </StackPanel>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+
+          <StackPanel Spacing="6" IsVisible="{Binding NotShown.Count}">
+            <TextBlock Text="Was die Zahlen nicht zeigen" Classes="h3" />
+            <ItemsControl x:Name="AnalysisNotShown" ItemsSource="{Binding NotShown}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="x:String">
+                  <Grid ColumnDefinitions="16,*" Margin="0,0,0,4">
+                    <TextBlock Text="•" AutomationProperties.AccessibilityView="Raw" />
+                    <TextBlock Grid.Column="1" Text="{Binding}" TextWrapping="Wrap" />
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+
+          <TextBlock x:Name="AnalysisNotice" Text="{Binding Notice}" Classes="muted small" TextWrapping="Wrap" />
+
+          <WrapPanel ItemSpacing="8" LineSpacing="8">
+            <Button x:Name="AnalysisCopy" Content="Kopieren" Click="OnCopy" />
+            <Button x:Name="AnalysisAdopt" Content="In den Bericht übernehmen" Command="{Binding AdoptCommand}" IsVisible="{Binding CanAdopt}" />
+          </WrapPanel>
+          <TextBlock Text="{Binding CopyStatus}" Classes="muted small" IsVisible="{Binding CopyStatus, Converter={x:Static ObjectConverters.IsNotNull}}"
+                     AutomationProperties.LiveSetting="Polite" />
+        </StackPanel>
+
+        <!-- Übernommen: steht in PDF, Word und Excel; wieder herausnehmen geht jederzeit -->
+        <StackPanel x:Name="AnalysisAdopted" Spacing="4" IsVisible="{Binding IsAdopted}">
+          <TextBlock Text="{x:Static vm:ManagementAnalysisViewModel.AdoptedText}" Classes="small" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
+          <Button x:Name="AnalysisRemove" Classes="link" Content="Aus dem Bericht nehmen" Command="{Binding RemoveCommand}" HorizontalAlignment="Left" />
+        </StackPanel>
+      </StackPanel>
+    </ScrollViewer>
+    <!-- 60 unten: die runde KI-Schaltfläche der Shell liegt unten rechts über der Seitenleiste -->
+    <StackPanel x:Name="AnalysisFooter" Grid.Row="1" Spacing="12" Margin="20,12,20,60">
+      <Border Classes="divider" />
+      <Button x:Name="AnalysisRun" Classes="primary" Content="Auswerten" Command="{Binding AnalyzeCommand}" HorizontalAlignment="Left"
+              ui:DisabledHint.Text="{x:Static vm:ManagementAnalysisViewModel.RunningHint}" />
+    </StackPanel>
+  </Grid>
+</UserControl>

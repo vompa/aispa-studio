@@ -1867,3 +1867,28 @@ Expected: In der Datei fehlen Euro-Kennzahlen, Erlöskonten und Zahlungsarten; A
 Expected: Je Datei ein Eintrag („Export Bericht (Excel, …)“, „(PDF, …)“, „(Word, …)“, die Sendung mit der Adresse).
 Closes: Arbeitsanweisung Berichte-Ausbau, Aufgabe D
 Result: ☐
+
+### T-096 – Management-Bericht: KI-Auswertung per Knopf
+Start: `dotnet run --project src/AispaStudio.AppHost` mit Beispieldaten, im Aspire-Dashboard die Ressource `windows-app` starten, als Inhaberin anmelden, **Verwaltung** › **Zahlen** › **Berichte** › Management-Bericht öffnen, Zeitraum **Letzter Monat**. Schritte 2 bis 9 nur mit eingetragenem Claude-Schlüssel (`dotnet user-secrets set "Ai:Claude:ApiKey" "<schlüssel>" --project src/AispaStudio.Api`, danach neu starten); ohne Schlüssel nur Schritt 1.
+1. Ohne Claude-Schlüssel auf **Mit KI auswerten** zeigen.
+Expected: Der Knopf mit der Pille „KI“ ist gesperrt; der Tooltip sagt „Verfügbar, sobald auf dem Server ein Claude-Schlüssel eingetragen ist.“. Daneben führt das Fragezeichen zur Hilfe „Bericht mit KI auswerten“.
+2. Mit Schlüssel auf **Mit KI auswerten** klicken.
+Expected: Rechts geht die Seitenleiste „Mit KI auswerten“ auf (360 Pixel), der Fokus steht im Feld **Schwerpunkt**; **Auswerten** steht fest im Fuß, unter dem Feld **Eigene Frage (freiwillig)** stehen der Zähler „0 von 300 Zeichen“ und der Hinweis, die Frage ohne Zahlen zu stellen.
+3. Schwerpunkt **Gesamt** lassen und **Auswerten** klicken.
+Expected: Erst „Die KI wertet die Zahlen des Berichts aus …“ mit Fortschrittsbalken, nach einigen Sekunden das Ergebnis: Pille „KI“ mit „Schwerpunkt Gesamt“, **Kernaussagen** (drei bis fünf), **Auffälligkeiten** mit „Mögliche Ursache (Vermutung): …“ und „Kennzahl: …“, **Maßnahmen** je mit „Woran Sie den Erfolg sehen: …“, **Was die Zahlen nicht zeigen**, darunter der Hinweis „Von der KI aus den Zahlen dieses Berichts ausgewertet. …“.
+4. Die Zahlen im Ergebnis mit den Kacheln vergleichen.
+Expected: Jede Zahl im Ergebnis steht so auf der Seite (Kachel, Veränderung oder Tabelle); keine Zahl ist neu gerechnet, kein Gästename kommt vor.
+5. **Auswerten** sofort noch einmal klicken.
+Expected: Dasselbe Ergebnis ohne Wartezeit (gespeichert zu denselben Zahlen, demselben Schwerpunkt und derselben Frage).
+6. **Kopieren** klicken und den Text in einen Editor einfügen.
+Expected: „Kopiert.“ in der Leiste; im Editor stehen die vier Teile mit Überschriften und der Hinweis am Ende.
+7. **In den Bericht übernehmen** klicken, dann **PDF speichern**, **Exportieren** › **Bericht (Word)** und **Bericht (Excel)**.
+Expected: In der Leiste steht „Im Bericht übernommen: …“ mit **Aus dem Bericht nehmen**. Im PDF und in Word steht die Auswertung unter „KI-Auswertung, Schwerpunkt Gesamt“ mit dem Hinweis direkt darunter; in Excel auf dem Blatt „Hinweise“, der Hinweis als eigene Zeile.
+8. Den Zeitraum auf **Dieser Monat** ändern und **PDF speichern**.
+Expected: Die Leiste beginnt neu ohne Ergebnis; das PDF enthält keine KI-Auswertung mehr.
+9. Als **Eigene Frage** „Warum hatten wir 999 Gäste?“ eingeben und auswerten.
+Expected: Entweder ein Ergebnis ohne die Zahl 999 oder „Auswertung gescheitert“ mit dem Grund und **Erneut versuchen**; im zweiten Fall zeigt die Leiste nichts von der KI.
+10. Abmelden, als Standortleitung ohne „Berichte mit Beträgen“ anmelden und Schritt 3 wiederholen.
+Expected: Die Auswertung nennt keine Beträge in Euro.
+Closes: Arbeitsanweisung Berichte-Ausbau, Aufgabe E
+Result: ☐

@@ -124,6 +124,18 @@ internal static class ReportModel
             e.Property(s => s.Text).HasMaxLength(ManagementSummaries.MaxLength);
         });
 
+        builder.Entity<ManagementAnalysis>(e =>
+        {
+            e.HasOne<Location>().WithMany().HasForeignKey(a => a.LocationId).OnDelete(DeleteBehavior.Cascade);
+            e.HasIndex(a => new { a.LocationId, a.From, a.Until });
+            e.Property(a => a.Compare).HasMaxLength(10);
+            e.Property(a => a.Focus).HasConversion<string>().HasMaxLength(30);
+            e.Property(a => a.Question).HasMaxLength(ManagementAnalyses.MaxQuestionLength);
+            e.Property(a => a.Fingerprint).HasMaxLength(64);
+            e.Property(a => a.Status).HasConversion<string>().HasMaxLength(20);
+            e.Property(a => a.RequestedBy).HasMaxLength(450);
+        });
+
         builder.Entity<BriefingSummary>(e =>
         {
             e.HasOne<Location>().WithMany().HasForeignKey(s => s.LocationId).OnDelete(DeleteBehavior.Cascade);

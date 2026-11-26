@@ -180,6 +180,67 @@ public sealed partial class ViewTests
     }));
 
     [Fact]
+    public Task Management_Mit_KI_auswerten_ist_ohne_Claude_Schluessel_gesperrt_und_nennt_den_Grund() => Render("hell", "management-ki-auswertung-gesperrt", async (window, main) =>
+    {
+        // Given der Management-Bericht der Inhaberin ohne Claude-Schlüssel im Server (aiAnalysisAvailable fehlt)
+        var (shell, _) = await OpenReports(window, main, ReportsViewModel.ManagementTab);
+        await Pump(Settling);
+
+        // Then ist „Mit KI auswerten“ zu sehen, aber gesperrt, und der Tooltip sagt, wann es geht
+        var button = Named<Button>(window, "ManagementAnalyzeButton");
+        Assert.True(button.IsEffectivelyVisible);
+        Assert.False(button.IsEffectivelyEnabled);
+        Assert.Equal(ManagementReportViewModel.AnalysisUnavailableHint, ToolTip.GetTip(button));
+        return shell.AdminPage;
+    }, ReportsApi());
+
+    [Fact]
+    public Task Management_KI_Auswertung_steht_in_der_Seitenleiste_gegliedert_mit_Pille_und_Hinweis() => Render("hell", "verwaltung-berichte-management-ki-auswertung", async (window, main) =>
+    {
+        // Given der Management-Bericht der Inhaberin mit Claude-Schlüssel im Server
+        var (shell, _) = await OpenReports(window, main, ReportsViewModel.ManagementTab);
+        await Pump(Settling);
+
+        // When sie „Mit KI auswerten“ klickt; Then geht rechts die Seitenleiste mit 360 Pixel auf, „Auswerten“ fest im Fuß
+        Named<Button>(window, "ManagementAnalyzeButton").Command!.Execute(null);
+        await Pump(Settling);
+        var panel = Named<Controls.SidePanel>(window, "ManagementAnalysisPanel");
+        Assert.True(panel.IsEffectivelyVisible);
+        Assert.Equal(360, panel.Bounds.Width);
+
+        // When sie „Auswerten“ klickt; Then steht das Ergebnis in vier Teilen, mit der Pille vorn und dem Hinweis des Servers darunter
+        Named<Button>(window, "AnalysisRun").Command!.Execute(null);
+        await Pump(Settling);
+        await Pump(Settling);
+        var result = Named<StackPanel>(window, "AnalysisResult");
+        Assert.True(result.IsEffectivelyVisible);
+        Assert.Contains(result.GetVisualDescendants().OfType<AiPill>(), p => p.IsEffectivelyVisible);
+        Assert.Equal(["Kernaussagen", "Auffälligkeiten", "Maßnahmen", "Was die Zahlen nicht zeigen"],
+            result.GetVisualDescendants().OfType<TextBlock>().Where(t => t.Classes.Contains("h3")).Select(t => t.Text));
+        Assert.Equal(AnalysisNotice, Named<TextBlock>(window, "AnalysisNotice").Text);
+        Assert.True(Named<Button>(window, "AnalysisAdopt").IsEffectivelyVisible);
+        Assert.True(BottomOf(window, Named<Button>(window, "AnalysisRun")) <= BottomOf(window, panel), "„Auswerten“ steht im Fuß der Leiste.");
+        return shell.AdminPage;
+    }, ReportsApi()
+        .On(ManagementRoute(new DateOnly(2026, 10, 1), Today), new ManagementReportDto(LocationId, new DateOnly(2026, 10, 1), Today,
+            [
+                new Kpi("revenue", "Umsatz brutto", 19250.97m, 25371m, "€", true, "Umsatz und Ertrag"),
+                new Kpi("staffUtilization", "Auslastung Personal", 71.5m, 68m, "%", true, "Auslastung"),
+            ], [], [], [], [], [], false)
+        {
+            AiAnalysisAvailable = true,
+        })
+        .On($"POST /api/reports/locations/{LocationId}/management/analysis", new ManagementAnalysisDto(Guid.NewGuid(), LocationId, new DateOnly(2026, 10, 1), Today,
+            "previous", ManagementAnalysisFocus.Overall, null, false, ManagementAnalysisStatus.Done, new ManagementAnalysisResult(
+                ["Der Umsatz liegt 24 % unter der Vorperiode, die Auslastung Personal ist um 3,5 Prozentpunkte gestiegen.", "Mehr Termine bringen weniger Umsatz je Termin."],
+                [new AnalysisFinding("Die Auslastung steigt, der Umsatz sinkt.", "Vermutlich mehr kürzere oder günstigere Behandlungen.", "Umsatz brutto")],
+                [new AnalysisMeasure("Längere Behandlungen am Wochenende anbieten.", "Der Umsatz je Termin steigt im nächsten Monat.")],
+                ["Ob Gäste wegen der Preise fernbleiben."]),
+            AnalysisNotice, DateTimeOffset.UnixEpoch)));
+
+    private const string AnalysisNotice = "Von der KI aus den Zahlen dieses Berichts ausgewertet. Ursachen sind Vermutungen; maßgeblich sind die Zahlen selbst.";
+
+    [Fact]
     public Task Ein_Sprung_auf_die_Pflichtberichte_rollt_bei_Mindestfenster_zum_Abschnitt() => Render("hell", "zahlen-berichte-sprung", async (window, main) =>
     {
         // Given das Fenster am Minimum (1100 × 680) und „Berichte“ mit dem Vergleich: die Pflichtberichte liegen unter dem sichtbaren Bereich

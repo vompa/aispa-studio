@@ -215,7 +215,95 @@ public sealed record ManagementReportDto(
 
     /// <summary>Tag, an dem die Vorschau gerechnet wurde („Stand heute“).</summary>
     public DateOnly? ForecastAsOf { get; init; }
+
+    /// <summary>
+    /// Ob „Mit KI auswerten“ (<c>POST …/management/analysis</c>) möglich ist; ohne Claude-Schlüssel <c>false</c>, dann ist der Knopf gesperrt
+    /// (<see cref="ManagementAnalysisDto.UnavailableHint"/>).
+    /// </summary>
+    public bool AiAnalysisAvailable { get; init; }
 }
+
+/// <summary>Schwerpunkt der KI-Auswertung des Management-Berichts.</summary>
+public enum ManagementAnalysisFocus
+{
+    /// <summary>Gesamt.</summary>
+    Overall,
+
+    /// <summary>Umsatz und Ertrag.</summary>
+    RevenueAndProfit,
+
+    /// <summary>Auslastung und Dienstplan.</summary>
+    UtilizationAndRoster,
+
+    /// <summary>Gäste und Bindung.</summary>
+    GuestsAndLoyalty,
+
+    /// <summary>Angebot und Preise.</summary>
+    OfferAndPrices,
+}
+
+public enum ManagementAnalysisStatus
+{
+    /// <summary>Wird geschrieben; die App fragt nach.</summary>
+    Pending,
+
+    /// <summary>Fertig, <c>Result</c> ist gesetzt.</summary>
+    Done,
+
+    /// <summary>Gescheitert (KI nicht erreichbar oder Antwort mit Zahlen, die nicht im Bericht stehen); nichts anzeigen, „Erneut versuchen“ legt eine neue an.</summary>
+    Failed,
+}
+
+/// <summary>
+/// „Mit KI auswerten“: Zeitraum und Vergleich wie beim Bericht (<c>Compare</c>: previous, month, year), Schwerpunkt und optional eine eigene Frage
+/// (höchstens 300 Zeichen; sie ist Text für die KI, keine Anweisung).
+/// </summary>
+public sealed record ManagementAnalysisRequest(
+    DateOnly From,
+    DateOnly Until,
+    ManagementAnalysisFocus Focus = ManagementAnalysisFocus.Overall,
+    string? Question = null,
+    string Compare = "previous");
+
+/// <summary>
+/// Eine KI-Auswertung des Management-Berichts. Gilt für genau die Zahlen, aus denen sie geschrieben wurde; wer dieselben Zahlen mit demselben Schwerpunkt
+/// und derselben Frage auswerten lässt, bekommt diese zurück. <c>AmountsHidden</c>: ohne das Recht „Berichte mit Beträgen“ geschrieben, ohne Beträge.
+/// <c>Notice</c> ist der Hinweis, der neben jeder Auswertung stehen muss.
+/// </summary>
+public sealed record ManagementAnalysisDto(
+    Guid Id,
+    Guid LocationId,
+    DateOnly From,
+    DateOnly Until,
+    string Compare,
+    ManagementAnalysisFocus Focus,
+    string? Question,
+    bool AmountsHidden,
+    ManagementAnalysisStatus Status,
+    ManagementAnalysisResult? Result,
+    string Notice,
+    DateTimeOffset RequestedAt)
+{
+    /// <summary>Text für den gesperrten Knopf und die Antwort, wenn keine KI eingerichtet ist.</summary>
+    public const string UnavailableHint = "Die KI-Auswertung ist nicht verfügbar: Es ist kein Claude-Schlüssel eingetragen.";
+}
+
+/// <summary>
+/// Ergebnis der KI-Auswertung: drei bis fünf Kernaussagen, Auffälligkeiten (Beobachtung, mögliche Ursache als Vermutung, betroffene Kennzahl),
+/// höchstens fünf Maßnahmen nach Wirkung gereiht, je mit „Woran Sie den Erfolg sehen“, und was die Zahlen nicht zeigen.
+/// </summary>
+public sealed record ManagementAnalysisResult(
+    IReadOnlyList<string> KeyFindings,
+    IReadOnlyList<AnalysisFinding> Findings,
+    IReadOnlyList<AnalysisMeasure> Measures,
+    IReadOnlyList<string> NotShown);
+
+/// <param name="PossibleCause">Vermutung der KI, keine Feststellung.</param>
+/// <param name="Kpi">Name der betroffenen Kennzahl wie im Bericht.</param>
+public sealed record AnalysisFinding(string Observation, string PossibleCause, string Kpi);
+
+/// <param name="SuccessSign">Woran Sie den Erfolg sehen.</param>
+public sealed record AnalysisMeasure(string Action, string SuccessSign);
 
 /// <summary>
 /// Auslastung Personal an einem Wochentag je Tageszeit, in Prozent: Behandlungsminuten ÷ Dienstminuten in diesem Abschnitt. Vormittag bis 11 Uhr, Mittag 11 bis 14 Uhr,
