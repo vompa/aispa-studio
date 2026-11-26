@@ -4,9 +4,12 @@ using AispaStudio.Desktop.ViewModels;
 
 namespace AispaStudio.Desktop.Tests;
 
-/// <summary>R05 Slice 97 (Ä191): native Maske „KI“ nach AiTab.tsx: Stand von Claude und lokalem Modell, Download mit Nachfrage; es gibt keine Schlüsseleingabe.</summary>
+/// <summary>R05 Slice 97 (Ä191): native Maske „KI“ nach AiTab.tsx: Stand von Claude und lokalem Modell, Download mit Nachfrage; seit T-111 auch der Claude-Schlüssel.</summary>
 public sealed class AdminAiTests
 {
+    // Erfundener Testwert, aus Teilen zusammengesetzt, damit kein Token-Muster im Quelltext steht.
+    private const string TestKey = "sk-" + "ant-" + "test-only-a1b2";
+
     private const string StatusRoute = "/api/system/ai";
     private const string DownloadRoute = "/api/system/ai/local/download";
 
@@ -39,6 +42,27 @@ public sealed class AdminAiTests
 
         Assert.True(ai.IsLoaded);
         Assert.Equal(expected, ai.ClaudeText);
+    }
+
+    [Fact]
+    public async Task Given_Schluessel_gespeichert_Then_zeigt_die_Maske_nur_die_Maske_und_Claude_ist_eingeschaltet()
+    {
+        var api = new StubApi()
+            .On($"GET {StatusRoute}", Status(claude: false))
+            .On("GET /api/system/ai/claude-key", new ClaudeKeyStatus(false, ClaudeKeySource.None, null, false))
+            .On("PUT /api/system/ai/claude-key", new ClaudeKeyStatus(true, ClaudeKeySource.App, "sk-ant-…a1b2", true));
+        using var ai = await Open(api);
+        Assert.False(ai.SaveKeyCommand.CanExecute(null));
+
+        ai.ApiKeyInput = " " + TestKey + " ";
+        api.On($"GET {StatusRoute}", Status(claude: true));
+        await ai.SaveKeyCommand.ExecuteAsync(null);
+
+        Assert.Contains(api.Calls, c => c.Route == "PUT /api/system/ai/claude-key" && c.Body!.Contains("\"" + TestKey + "\"", StringComparison.Ordinal));
+        Assert.Equal("", ai.ApiKeyInput);
+        Assert.Equal("Eingetragen: sk-ant-…a1b2", ai.KeyStatusText);
+        Assert.Equal("Eingeschaltet.", ai.ClaudeText);
+        Assert.True(ai.CanRemoveKey);
     }
 
     [Theory]

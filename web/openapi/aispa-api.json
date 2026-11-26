@@ -175,6 +175,146 @@
         }
       }
     },
+    "/api/v1/system/ai/claude-key": {
+      "get": {
+        "tags": [
+          "System"
+        ],
+        "summary": "Zeigt, ob ein Claude-Schlüssel gesetzt ist, woher er kommt und seine Maske; nie den Schlüssel selbst (ADR 0103).",
+        "operationId": "GetClaudeKey",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClaudeKeyStatus"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "System"
+        ],
+        "summary": "Speichert den Claude-Schlüssel des Spas verschlüsselt; gilt sofort, ohne Neustart. 409, wenn der Schlüssel in der Konfiguration gesetzt ist.",
+        "operationId": "SaveClaudeKey",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClaudeKeyInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClaudeKeyStatus"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "System"
+        ],
+        "summary": "Entfernt den in der App eingetragenen Claude-Schlüssel; Claude ist danach sofort aus. 409, wenn der Schlüssel in der Konfiguration gesetzt ist.",
+        "operationId": "RemoveClaudeKey",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClaudeKeyStatus"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/system/ai/claude-key/check": {
+      "post": {
+        "tags": [
+          "System"
+        ],
+        "summary": "Prüft den gesetzten Claude-Schlüssel mit einem kleinen Testaufruf: gültig, ungültig, kein Guthaben oder Limit, nicht erreichbar.",
+        "operationId": "CheckClaudeKey",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClaudeKeyCheck"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/system/sync": {
       "get": {
         "tags": [
@@ -37653,6 +37793,73 @@
               "string"
             ],
             "format": "uuid"
+          }
+        }
+      },
+      "ClaudeKeyCheck": {
+        "required": [
+          "outcome",
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "outcome": {
+            "$ref": "#/components/schemas/ClaudeKeyCheckOutcome"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "ClaudeKeyCheckOutcome": {
+        "enum": [
+          "Valid",
+          "Invalid",
+          "NoCredit",
+          "Unreachable"
+        ]
+      },
+      "ClaudeKeyInput": {
+        "required": [
+          "apiKey"
+        ],
+        "type": "object",
+        "properties": {
+          "apiKey": {
+            "type": "string"
+          }
+        }
+      },
+      "ClaudeKeySource": {
+        "enum": [
+          "None",
+          "Config",
+          "App"
+        ]
+      },
+      "ClaudeKeyStatus": {
+        "required": [
+          "isSet",
+          "source",
+          "mask",
+          "available"
+        ],
+        "type": "object",
+        "properties": {
+          "isSet": {
+            "type": "boolean"
+          },
+          "source": {
+            "$ref": "#/components/schemas/ClaudeKeySource"
+          },
+          "mask": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "available": {
+            "type": "boolean"
           }
         }
       },

@@ -123,6 +123,42 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/system/ai/claude-key": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Zeigt, ob ein Claude-Schlüssel gesetzt ist, woher er kommt und seine Maske; nie den Schlüssel selbst (ADR 0103). */
+        get: operations["GetClaudeKey"];
+        /** Speichert den Claude-Schlüssel des Spas verschlüsselt; gilt sofort, ohne Neustart. 409, wenn der Schlüssel in der Konfiguration gesetzt ist. */
+        put: operations["SaveClaudeKey"];
+        post?: never;
+        /** Entfernt den in der App eingetragenen Claude-Schlüssel; Claude ist danach sofort aus. 409, wenn der Schlüssel in der Konfiguration gesetzt ist. */
+        delete: operations["RemoveClaudeKey"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/system/ai/claude-key/check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Prüft den gesetzten Claude-Schlüssel mit einem kleinen Testaufruf: gültig, ungültig, kein Guthaben oder Limit, nicht erreichbar. */
+        post: operations["CheckClaudeKey"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/system/sync": {
         parameters: {
             query?: never;
@@ -10286,6 +10322,23 @@ export interface components {
             /** Format: uuid */
             tipEmployeeId?: null | string;
         };
+        ClaudeKeyCheck: {
+            outcome: components["schemas"]["ClaudeKeyCheckOutcome"];
+            message: string;
+        };
+        /** @enum {unknown} */
+        ClaudeKeyCheckOutcome: "Valid" | "Invalid" | "NoCredit" | "Unreachable";
+        ClaudeKeyInput: {
+            apiKey: string;
+        };
+        /** @enum {unknown} */
+        ClaudeKeySource: "None" | "Config" | "App";
+        ClaudeKeyStatus: {
+            isSet: boolean;
+            source: components["schemas"]["ClaudeKeySource"];
+            mask: null | string;
+            available: boolean;
+        };
         ClockInput: {
             /** Format: uuid */
             locationId: string;
@@ -15495,6 +15548,135 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    GetClaudeKey: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClaudeKeyStatus"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    SaveClaudeKey: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClaudeKeyInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClaudeKeyStatus"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    RemoveClaudeKey: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClaudeKeyStatus"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    CheckClaudeKey: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClaudeKeyCheck"];
+                };
+            };
             /** @description Forbidden */
             403: {
                 headers: {

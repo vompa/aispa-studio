@@ -77,6 +77,7 @@ public sealed partial class ViewTests
         .On("GET /api/intake/routes", new List<IntakeRouteDto>())
         .On("GET /api/tenant/payments", PaymentsTests.Nothing)
         .On("GET /api/system/ai", new AiStatus(false, LocalAiState.Missing, null, null, null, null))
+        .On("GET /api/system/ai/claude-key", new ClaudeKeyStatus(false, ClaudeKeySource.None, null, false))
         .On("GET /api/accounting/settings", new AccountingSettingsDto(null, null, 4, 1, "1370", "1000", "1360", "1200", "3250", "1460", "1370", "6960", "4960", "19=3;7=2"))
         .On("GET /api/employee-notes/symbols?on=2026-10-19", new List<StaffNoteSymbolDto>())
         .On("GET /api/handbook/reminders?date=2026-10-19", new List<HandbookEntryDto>())

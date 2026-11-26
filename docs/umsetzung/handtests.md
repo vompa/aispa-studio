@@ -1952,4 +1952,23 @@ Expected: Der Fokus geht als Nächstes in den Kasten **Paar** (erster Teil, dann
 3. Einen Einzeltermin ohne Paar öffnen.
 Expected: Kein Kasten **Paar**; **Kunde** und **Verlauf** folgen wie bisher aufeinander.
 Closes: T-098 Punkt 1
+### T-111 – Claude-Schlüssel in der App
+Start: `dotnet run --project src/AispaStudio.AppHost` ohne `Ai:Claude:ApiKey` in User-Secrets und Umgebung, im Aspire-Dashboard die Ressource `windows-app` starten, als Inhaberin anmelden, **Verwaltung** › **Kontakt** › **KI** öffnen. Einen echten Schlüssel aus der Claude Console bereithalten.
+1. Die Maske ansehen.
+Expected: Bei Claude steht „Aus: es ist kein API-Schlüssel gesetzt.“, darunter „API-Schlüssel“ mit Fragezeichen und „Kein Schlüssel eingetragen.“. **Speichern** ist gesperrt, solange das Feld leer ist; **Prüfen** und **Entfernen** sind gesperrt.
+2. Einen ungültigen Text wie „hallo“ eintragen und **Speichern** klicken.
+Expected: Eine rote Meldung erklärt, dass der Schlüssel mit „sk-ant-“ beginnt und wo er steht. Nichts ist gespeichert.
+3. Den echten Schlüssel einfügen und **Speichern** klicken.
+Expected: Das Feld ist wieder leer, die Zeile zeigt „Eingetragen: sk-ant-…“ mit den letzten vier Zeichen, bei Claude steht „Eingeschaltet.“, ohne Neustart. Der Schlüssel steht nirgends im Klartext, auch nicht im Log der API im Aspire-Dashboard.
+4. **Prüfen** klicken.
+Expected: Grüne Meldung „Der Schlüssel ist gültig: Claude hat geantwortet.“.
+5. In der Verwaltung **Berichte** öffnen und **Mit KI auswerten** ansehen.
+Expected: Der Knopf ist bedienbar, ohne Neustart der API.
+6. Zurück zu **KI**, **Entfernen** klicken, in der Rückfrage zuerst **Abbrechen**, dann noch einmal **Entfernen** und **Entfernen**.
+Expected: Nach „Abbrechen“ bleibt alles. Danach steht „Kein Schlüssel eingetragen.“ und bei Claude „Aus: …“. Im Management-Bericht ist **Mit KI auswerten** wieder gesperrt.
+7. Die API mit `Ai__Claude__ApiKey=sk-ant-…` (beliebiger Text mit diesem Anfang) neu starten und **KI** öffnen.
+Expected: Die Zeile zeigt „Aus der Konfiguration gesetzt: sk-ant-…“. Feld, **Speichern** und **Entfernen** sind gesperrt; beim Zeigen auf sie erklärt ein Hinweis, dass der Schlüssel nur am Server zu ändern ist. **Prüfen** meldet bei einem erfundenen Schlüssel „Der Schlüssel ist ungültig …“.
+8. Beim Fragezeichen neben „API-Schlüssel“ klicken.
+Expected: Die Hilfe „Claude-Schlüssel eintragen“ öffnet sich.
+Closes: T-098 Punkt 9
 Result: ☐

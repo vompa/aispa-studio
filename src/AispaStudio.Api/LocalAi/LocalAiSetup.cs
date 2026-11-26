@@ -42,10 +42,10 @@ internal static class LocalAiSetup
     {
         var group = routes.MapGroup("/api/system/ai").WithTags("System");
 
-        group.MapGet("", (LocalModelStatus status, IServiceProvider services) =>
+        group.MapGet("", (LocalModelStatus status, ClaudeAccess claude) =>
             {
                 var (local, percent, error, checkedAt) = status.Current;
-                return new AiStatus(services.GetService<ClaudeJson>() is not null, local, status.Model, percent, error, checkedAt);
+                return new AiStatus(claude.Available, local, status.Model, percent, error, checkedAt);
             })
             .RequirePermission(AccessRight.ManageOrganization)
             .WithName("GetAiStatus")
@@ -68,6 +68,8 @@ internal static class LocalAiSetup
             .RequirePermission(AccessRight.ManageOrganization)
             .WithName("DownloadLocalAiModel")
             .WithSummary("Lädt das lokale KI-Modell im Hintergrund herunter; den Fortschritt zeigt GET /api/system/ai.");
+
+        group.MapClaudeKeyEndpoints();
 
         return routes;
     }

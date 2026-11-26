@@ -1,4 +1,6 @@
 using System.Text.Json;
+using AispaStudio.Api.Data;
+using AispaStudio.Api.Tenancy;
 using AispaStudio.Contracts;
 using Microsoft.EntityFrameworkCore;
 
@@ -43,7 +45,6 @@ public static partial class ReadAnamnesisScanHandler
         var services = scope.ServiceProvider;
         var store = services.GetRequiredService<OnlineDbContext>();
         var protector = services.GetRequiredService<HealthDataProtector>();
-        var reader = services.GetRequiredService<IAnamnesisReader>();
         var logger = services.GetRequiredService<ILogger<AnamnesisScan>>();
         var time = services.GetRequiredService<TimeProvider>();
 
@@ -52,6 +53,15 @@ public static partial class ReadAnamnesisScanHandler
         {
             return;
         }
+
+        // Der Claude-Schlüssel gilt je Spa (ADR 0103): erst das Spa der Kundin festlegen, dann den Leser holen.
+        var customers = services.GetRequiredService<AispaDbContext>().Customers.Where(c => c.Id == scan.CustomerId);
+        if (await TenantModel.TenantOfAsync(customers, ct) is { } tenantId)
+        {
+            services.GetRequiredService<TenantContext>().Use(tenantId);
+        }
+
+        var reader = services.GetRequiredService<IAnamnesisReader>();
 
         var form = AnamnesisForm.Definition(scan.Language);
         var image = new AnamnesisImage(protector.UnprotectBytes(scan.Image, scan.Id, AnamnesisScanData.ImageContext), scan.ContentType);

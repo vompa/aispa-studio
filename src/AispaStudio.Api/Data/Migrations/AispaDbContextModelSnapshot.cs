@@ -1389,6 +1389,29 @@ namespace AispaStudio.Api.Data.Migrations
                     b.ToTable("Imports", "aispa");
                 });
 
+            modelBuilder.Entity("AispaStudio.Api.MailIntake.Assistant.ClaudeKeySetting", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ProtectedKey")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantId");
+
+                    b.ToTable("ClaudeKeySetting", "aispa");
+                });
+
             modelBuilder.Entity("AispaStudio.Api.MailIntake.CalendarFeed", b =>
                 {
                     b.Property<Guid>("Id")
@@ -7228,6 +7251,15 @@ namespace AispaStudio.Api.Data.Migrations
                 });
 
             modelBuilder.Entity("AispaStudio.Api.Importing.ImportEntry", b =>
+                {
+                    b.HasOne("AispaStudio.Api.Tenancy.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AispaStudio.Api.MailIntake.Assistant.ClaudeKeySetting", b =>
                 {
                     b.HasOne("AispaStudio.Api.Tenancy.Tenant", null)
                         .WithMany()

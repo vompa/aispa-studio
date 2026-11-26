@@ -117,3 +117,47 @@ public sealed record AiStatus(
     int? DownloadPercent,
     string? LocalError,
     DateTimeOffset? CheckedAt);
+
+/// <summary>Woher der Claude-Schlüssel kommt (ADR 0103).</summary>
+public enum ClaudeKeySource
+{
+    /// <summary>Kein Schlüssel.</summary>
+    None,
+
+    /// <summary>Einstellung des Servers (<c>Ai:Claude:ApiKey</c>); hat Vorrang, die App kann ihn nicht ändern.</summary>
+    Config,
+
+    /// <summary>In der App eingetragen, verschlüsselt beim Spa gespeichert.</summary>
+    App,
+}
+
+/// <summary>Stand des Claude-Schlüssels; der Schlüssel selbst kommt nie zurück.</summary>
+/// <param name="IsSet">Ob ein Schlüssel gesetzt ist.</param>
+/// <param name="Source">Woher er kommt.</param>
+/// <param name="Mask">Anfang und letzte vier Zeichen, z. B. <c>sk-ant-…a1b2</c>.</param>
+/// <param name="Available">Ob Claude damit eingeschaltet ist; falsch, wenn der Server die KI abschaltet (<c>Ai:Provider=RuleBased</c>).</param>
+public sealed record ClaudeKeyStatus(bool IsSet, ClaudeKeySource Source, string? Mask, bool Available);
+
+/// <summary>Neuer Claude-Schlüssel, beginnt mit <c>sk-ant-</c>.</summary>
+public sealed record ClaudeKeyInput(string ApiKey);
+
+/// <summary>Ergebnis der Prüfung eines Claude-Schlüssels.</summary>
+public enum ClaudeKeyCheckOutcome
+{
+    /// <summary>Claude hat geantwortet.</summary>
+    Valid,
+
+    /// <summary>Der Schlüssel wird abgelehnt.</summary>
+    Invalid,
+
+    /// <summary>Kein Guthaben oder ein Limit ist erreicht.</summary>
+    NoCredit,
+
+    /// <summary>Claude ist nicht erreichbar.</summary>
+    Unreachable,
+}
+
+/// <summary>Prüfung eines Claude-Schlüssels mit einem kleinen Testaufruf.</summary>
+/// <param name="Outcome">Ergebnis.</param>
+/// <param name="Message">Verständlicher Satz für die Leitung.</param>
+public sealed record ClaudeKeyCheck(ClaudeKeyCheckOutcome Outcome, string Message);

@@ -10,7 +10,8 @@ public sealed partial class ViewTests
 {
     private static StubApi AiApi(AiStatus? status = null, StubApi? api = null) => (api ?? Api())
         .On("GET /api/system/ai", status ?? new AiStatus(true, LocalAiState.Missing, "gemma3:4b", null, null, SpaSample.At(10)))
-        .On("POST /api/system/ai/local/download", new { }, System.Net.HttpStatusCode.Accepted);
+        .On("POST /api/system/ai/local/download", new { }, System.Net.HttpStatusCode.Accepted)
+        .On("GET /api/system/ai/claude-key", new ClaudeKeyStatus(true, ClaudeKeySource.App, "sk-ant-…a1b2", true));
 
     private static async Task<ShellViewModel> OpenAi(Window window, MainViewModel main)
     {
@@ -32,7 +33,8 @@ public sealed partial class ViewTests
         Assert.True(Shows(window, "Eingeschaltet."));
         Assert.True(Shows(window, "Der Dienst läuft, das Modell ist noch nicht geladen."));
         Assert.True(Shows(window, "Modell: gemma3:4b"));
-        Assert.False(window.GetVisualDescendants().OfType<TextBox>().Any(t => t.IsEffectivelyVisible && t.PasswordChar != default), "Die KI-Maske hat kein Schlüsselfeld.");
+        Assert.True(Shows(window, "Eingetragen: sk-ant-…a1b2"));
+        Assert.True(window.GetVisualDescendants().OfType<TextBox>().Any(t => t.IsEffectivelyVisible && t.PasswordChar != default), "Die KI-Maske hat ein verdecktes Schlüsselfeld (T-111).");
         return shell.AdminPage;
     }, AiApi());
 

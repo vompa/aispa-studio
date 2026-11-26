@@ -10,11 +10,11 @@ stichwoerter: künstliche Intelligenz, Claude, offline, ohne Internet, Ollama, l
 
 AISPA Studio arbeitet mit zwei KI-Arten, beide sind freiwillig. Claude läuft über das Internet und kann am meisten. Das lokale Modell läuft im eigenen Netz, auch ohne Internet, und übernimmt nur einfache Aufgaben. Ohne beide arbeitet AISPA Studio nach festen Regeln weiter. Pflichtzahlen wie Kassa, Steuer und Berichte für Behörden rechnet nie eine KI, und freie Zeiten rechnet immer der Kalender.
 
-Den Stand beider sieht die Leitung in der Windows-App unter „Verwaltung“ › „Kontakt“ › „KI“. Die Maske zeigt den Stand und lädt das lokale Modell herunter; einen Schlüssel trägt man dort nicht ein.
+Den Stand beider sieht die Leitung in der Windows-App unter „Verwaltung“ › „Kontakt“ › „KI“. Die Maske zeigt den Stand, nimmt den Claude-Schlüssel auf und lädt das lokale Modell herunter.
 
 ## Claude {#claude}
 
-Claude schreibt Antwortvorschläge an Gäste, übersetzt Nachrichten, fasst den Tag zusammen, liest Anamnesebögen auf Papier und versteht Terminwünsche aus Mails, SMS und Anrufen. Eingeschaltet ist Claude, sobald der Betreiber des Servers einen API-Schlüssel hinterlegt hat (siehe „Server-Einstellungen“, Abschnitt KI). In der App lässt sich das nicht umstellen, weil der Schlüssel ein Geheimnis des Servers ist.
+Claude schreibt Antwortvorschläge an Gäste, übersetzt Nachrichten, fasst den Tag zusammen, liest Anamnesebögen auf Papier und versteht Terminwünsche aus Mails, SMS und Anrufen. Eingeschaltet ist Claude, sobald ein API-Schlüssel gilt. Die Inhaberin trägt ihn in der Windows-App unter **KI** ein: [Claude-Schlüssel eintragen](hilfe:ki-schluessel-eintragen). Hat der Betreiber des Servers einen Schlüssel in der Konfiguration hinterlegt (siehe „Server-Einstellungen“, Abschnitt KI), gilt dieser vor dem Eintrag in der App.
 
 Jede Nachricht, die eine KI an Gäste schreibt, trägt einen Hinweis darauf. Den Hinweis fügt AISPA Studio selbst an; er lässt sich nicht weglassen.
 
