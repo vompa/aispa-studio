@@ -41,7 +41,7 @@ internal sealed partial class ModelAnswerPhraser(IAiJson model, ILogger<ModelAns
         {
             var rows = block.Table is null ? "" : "\n" + string.Join('\n', block.Table.Rows.Select(r => string.Join(" | ", r)));
             var prompt = $"<frage>\n{question}\n</frage>\n<fakten>\n{block.Text}{rows}\n</fakten>";
-            var result = await model.AskAsync<PhraseJson>(System, prompt, Schema, ct);
+            var result = await model.AskAsync<PhraseJson>(AiUsageTask.AssistantAnswer, System, prompt, Schema, ct);
             var text = result.Text?.Trim();
             if (string.IsNullOrEmpty(text) || !AnswerGuard.Keeps(block, text))
             {

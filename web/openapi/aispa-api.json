@@ -175,6 +175,58 @@
         }
       }
     },
+    "/api/v1/system/ai/usage": {
+      "get": {
+        "tags": [
+          "System"
+        ],
+        "summary": "Verbrauch von Claude des Spas über die letzten Tage (Standard 30, heute eingeschlossen, Tage in UTC): Aufrufe und Tokens je Aufgabe und Modell, ohne Geldbeträge.",
+        "operationId": "GetAiUsage",
+        "parameters": [
+          {
+            "name": "days",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 30
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiUsageReport"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/system/ai/claude-key": {
       "get": {
         "tags": [
@@ -32896,6 +32948,83 @@
             "format": "date-time"
           }
         }
+      },
+      "AiUsageReport": {
+        "required": [
+          "days",
+          "rows"
+        ],
+        "type": "object",
+        "properties": {
+          "days": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AiUsageRow"
+            }
+          }
+        }
+      },
+      "AiUsageRow": {
+        "required": [
+          "task",
+          "model",
+          "calls",
+          "inputTokens",
+          "outputTokens",
+          "cacheReadTokens",
+          "cacheWriteTokens"
+        ],
+        "type": "object",
+        "properties": {
+          "task": {
+            "$ref": "#/components/schemas/AiUsageTask"
+          },
+          "model": {
+            "type": "string"
+          },
+          "calls": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "inputTokens": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "outputTokens": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "cacheReadTokens": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "cacheWriteTokens": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "AiUsageTask": {
+        "enum": [
+          "BookingRequest",
+          "ReplyDraft",
+          "ReplyRevision",
+          "Translation",
+          "GuestQuestion",
+          "Treatwell",
+          "DeliveryNote",
+          "Anamnesis",
+          "AssistantIntent",
+          "AssistantAnswer",
+          "BriefingSummary",
+          "ManagementSummary",
+          "ManagementAnalysis",
+          "RebookText"
+        ]
       },
       "AnalysisFinding": {
         "required": [

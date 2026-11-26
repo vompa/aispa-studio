@@ -66,7 +66,7 @@ internal sealed class ClaudeManagementSummarizer(ClaudeJson claude) : IManagemen
 
     public bool Enabled => true;
 
-    public async Task<string?> SummarizeAsync(string facts, CancellationToken ct) => (await claude.AskAsync<SummaryJson>(System, facts, Schema, ct)).Summary;
+    public async Task<string?> SummarizeAsync(string facts, CancellationToken ct) => (await claude.AskAsync<SummaryJson>(AiUsageTask.ManagementSummary, System, facts, Schema, ct)).Summary;
 
     private sealed record SummaryJson(string Summary);
 }

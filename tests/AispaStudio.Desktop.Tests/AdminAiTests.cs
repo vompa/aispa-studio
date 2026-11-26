@@ -12,6 +12,7 @@ public sealed class AdminAiTests
 
     private const string StatusRoute = "/api/system/ai";
     private const string DownloadRoute = "/api/system/ai/local/download";
+    private const string UsageRoute = "GET /api/system/ai/usage?days=30";
 
     private static AiStatus Status(bool claude = true, LocalAiState local = LocalAiState.Missing, string? model = "gemma3:4b", int? percent = null, string? error = null) =>
         new(claude, local, model, percent, error, null);
@@ -202,6 +203,28 @@ public sealed class AdminAiTests
 
         Assert.Equal("Es läuft schon ein Download.", ai.Message);
         Assert.Equal(Controls.InfoBarSeverity.Error, ai.MessageSeverity);
+    }
+
+    [Fact]
+    public async Task Given_gemessener_Verbrauch_Then_zeigt_die_Tabelle_je_Aufgabe_und_Modell_die_Zahlen()
+    {
+        var api = new StubApi()
+            .On($"GET {StatusRoute}", Status())
+            .On(UsageRoute, new AiUsageReport(30, [new AiUsageRow(AiUsageTask.ReplyDraft, "claude-sonnet-4-6", 3, 12_345, 678, 9_000, 100)]));
+        using var ai = await Open(api);
+
+        var line = Assert.Single(ai.UsageLines);
+        Assert.Equal(new AiUsageLine("Antwortentwurf", "claude-sonnet-4-6", "3", "12.345", "678", "9.000"), line);
+        Assert.False(ai.ShowNoUsage);
+    }
+
+    [Fact]
+    public async Task Given_noch_kein_Aufruf_gemessen_Then_steht_der_Leerzustand_da()
+    {
+        using var ai = await Open(new StubApi().On($"GET {StatusRoute}", Status()).On(UsageRoute, new AiUsageReport(30, [])));
+
+        Assert.False(ai.HasUsage);
+        Assert.True(ai.ShowNoUsage);
     }
 
     [Fact]

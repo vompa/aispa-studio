@@ -102,7 +102,7 @@ internal sealed class ClaudeManagementAnalyst(ClaudeJson claude) : IManagementAn
     public bool Enabled => true;
 
     public async Task<ManagementAnalysisResult?> AnalyzeAsync(string facts, ManagementAnalysisFocus focus, string? question, CancellationToken ct) =>
-        await claude.AskAsync<ManagementAnalysisResult>(System, ManagementAnalyses.Prompt(facts, focus, question), Schema, ct);
+        await claude.AskAsync<ManagementAnalysisResult>(AiUsageTask.ManagementAnalysis, System, ManagementAnalyses.Prompt(facts, focus, question), Schema, ct);
 }
 
 /// <summary>Queue: KI-Auswertung des Management-Berichts schreiben.</summary>

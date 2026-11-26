@@ -1,14 +1,16 @@
 using System.Text.Json;
+using AispaStudio.Contracts;
 
 namespace AispaStudio.Api.MailIntake.Assistant;
 
 /// <summary>
 /// Ein Sprachmodell, das auf eine Anfrage ein festes JSON-Schema füllt: Claude (<see cref="ClaudeJson"/>) oder das lokale
-/// Modell (<see cref="LocalAi.LocalModelJson"/>). Das Modell liefert nur Daten und löst keine Aktionen aus.
+/// Modell (<see cref="LocalAi.LocalModelJson"/>). Das Modell liefert nur Daten und löst keine Aktionen aus. Die Aufgabe dient der
+/// Verbrauchsmessung von Claude (T-112a).
 /// </summary>
 internal interface IAiJson
 {
-    Task<T> AskAsync<T>(string system, string prompt, Dictionary<string, JsonElement> schema, CancellationToken ct);
+    Task<T> AskAsync<T>(AiUsageTask task, string system, string prompt, Dictionary<string, JsonElement> schema, CancellationToken ct);
 }
 
 /// <summary>
@@ -17,16 +19,16 @@ internal interface IAiJson
 /// </summary>
 internal sealed partial class FallbackAiJson(IAiJson primary, IAiJson fallback, ILogger<FallbackAiJson> log) : IAiJson
 {
-    public async Task<T> AskAsync<T>(string system, string prompt, Dictionary<string, JsonElement> schema, CancellationToken ct)
+    public async Task<T> AskAsync<T>(AiUsageTask task, string system, string prompt, Dictionary<string, JsonElement> schema, CancellationToken ct)
     {
         try
         {
-            return await primary.AskAsync<T>(system, prompt, schema, ct);
+            return await primary.AskAsync<T>(task, system, prompt, schema, ct);
         }
         catch (Exception ex) when (!ct.IsCancellationRequested)
         {
             LogFallback(log, ex);
-            return await fallback.AskAsync<T>(system, prompt, schema, ct);
+            return await fallback.AskAsync<T>(task, system, prompt, schema, ct);
         }
     }
 

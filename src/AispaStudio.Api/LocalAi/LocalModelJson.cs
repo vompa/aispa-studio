@@ -41,7 +41,7 @@ internal sealed class LocalModelJson(IHttpClientFactory http, IOptions<LocalMode
 {
     public const string HttpClientName = "local-ai";
 
-    public async Task<T> AskAsync<T>(string system, string prompt, Dictionary<string, JsonElement> schema, CancellationToken ct)
+    public async Task<T> AskAsync<T>(AiUsageTask task, string system, string prompt, Dictionary<string, JsonElement> schema, CancellationToken ct)
     {
         if (status.Current.Local is LocalAiState.Missing or LocalAiState.Downloading)
         {

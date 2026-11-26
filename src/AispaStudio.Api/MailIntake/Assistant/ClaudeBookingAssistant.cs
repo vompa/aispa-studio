@@ -48,7 +48,7 @@ internal sealed class ClaudeBookingAssistant(ClaudeJson claude, IAiJson analysis
             .Append(request.Earlier is null ? "" : $"<vorher>\n{request.Earlier}\n</vorher>\n")
             .ToString();
 
-        var result = await model.AskAsync<AnalysisJson>(AnalysisSystem, prompt, AnalysisSchema, ct);
+        var result = await model.AskAsync<AnalysisJson>(AiUsageTask.BookingRequest, AnalysisSystem, prompt, AnalysisSchema, ct);
         return new MailAnalysis(
             Enum.TryParse<MailIntent>(result.Intent, ignoreCase: true, out var intent) ? intent : MailIntent.Other,
             GuestLanguage.Normalize(result.Language),
@@ -80,7 +80,7 @@ internal sealed class ClaudeBookingAssistant(ClaudeJson claude, IAiJson analysis
             kurznachricht = request.ShortMessage,
         }, Json);
         var prompt = $"Fakten:\n{facts}\n\n<mail>\nBetreff: {request.OriginalSubject}\n\n{request.OriginalBody}\n</mail>";
-        var result = await claude.AskAsync<ReplyJson>(ReplySystem, prompt, ReplySchema, ct);
+        var result = await claude.AskAsync<ReplyJson>(AiUsageTask.ReplyDraft, ReplySystem, prompt, ReplySchema, ct);
         return new ReplyDraft(result.Subject ?? $"Re: {request.OriginalSubject}", result.Body ?? "");
     }
 

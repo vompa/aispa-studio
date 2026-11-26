@@ -44,7 +44,7 @@ internal sealed class ClaudeAnamnesisReader(IOptions<AnamnesisReaderOptions> opt
             questions.AppendLine();
         }
 
-        var response = await claude.Client().Beta.Messages.Create(new MessageCreateParams
+        var response = await claude.CreateAsync(AiUsageTask.Anamnesis, new MessageCreateParams
         {
             Model = options.Value.Model,
             MaxTokens = 4000,

@@ -123,6 +123,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/system/ai/usage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Verbrauch von Claude des Spas über die letzten Tage (Standard 30, heute eingeschlossen, Tage in UTC): Aufrufe und Tokens je Aufgabe und Modell, ohne Geldbeträge. */
+        get: operations["GetAiUsage"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/system/ai/claude-key": {
         parameters: {
             query?: never;
@@ -9043,6 +9060,27 @@ export interface components {
             /** Format: date-time */
             checkedAt: null | string;
         };
+        AiUsageReport: {
+            /** Format: int32 */
+            days: number;
+            rows: components["schemas"]["AiUsageRow"][];
+        };
+        AiUsageRow: {
+            task: components["schemas"]["AiUsageTask"];
+            model: string;
+            /** Format: int32 */
+            calls: number;
+            /** Format: int64 */
+            inputTokens: number;
+            /** Format: int64 */
+            outputTokens: number;
+            /** Format: int64 */
+            cacheReadTokens: number;
+            /** Format: int64 */
+            cacheWriteTokens: number;
+        };
+        /** @enum {unknown} */
+        AiUsageTask: "BookingRequest" | "ReplyDraft" | "ReplyRevision" | "Translation" | "GuestQuestion" | "Treatwell" | "DeliveryNote" | "Anamnesis" | "AssistantIntent" | "AssistantAnswer" | "BriefingSummary" | "ManagementSummary" | "ManagementAnalysis" | "RebookText";
         AnalysisFinding: {
             observation: string;
             possibleCause: string;
@@ -15548,6 +15586,46 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    GetAiUsage: {
+        parameters: {
+            query?: {
+                days?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AiUsageReport"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
             /** @description Forbidden */
             403: {
                 headers: {

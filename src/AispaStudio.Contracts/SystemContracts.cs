@@ -161,3 +161,64 @@ public enum ClaudeKeyCheckOutcome
 /// <param name="Outcome">Ergebnis.</param>
 /// <param name="Message">Verständlicher Satz für die Leitung.</param>
 public sealed record ClaudeKeyCheck(ClaudeKeyCheckOutcome Outcome, string Message);
+
+/// <summary>Wofür Claude aufgerufen wurde; Grundlage der Verbrauchsmessung (T-112a).</summary>
+public enum AiUsageTask
+{
+    /// <summary>Terminwunsch aus Mail, SMS oder Anruf lesen.</summary>
+    BookingRequest,
+
+    /// <summary>Antwortentwurf an einen Gast.</summary>
+    ReplyDraft,
+
+    /// <summary>Antwortentwurf nach Anweisung des Teams überarbeiten.</summary>
+    ReplyRevision,
+
+    /// <summary>Nachricht eines Gastes übersetzen.</summary>
+    Translation,
+
+    /// <summary>Frage eines Gastes beantworten.</summary>
+    GuestQuestion,
+
+    /// <summary>Buchungsmail von Treatwell lesen.</summary>
+    Treatwell,
+
+    /// <summary>Lieferschein lesen.</summary>
+    DeliveryNote,
+
+    /// <summary>Anamnesebogen auf Papier lesen.</summary>
+    Anamnesis,
+
+    /// <summary>Absicht einer Frage im Assistenten erkennen.</summary>
+    AssistantIntent,
+
+    /// <summary>Antwort des Assistenten formulieren.</summary>
+    AssistantAnswer,
+
+    /// <summary>Tagesbriefing zusammenfassen.</summary>
+    BriefingSummary,
+
+    /// <summary>Management-Bericht zusammenfassen.</summary>
+    ManagementSummary,
+
+    /// <summary>Management-Auswertung.</summary>
+    ManagementAnalysis,
+
+    /// <summary>Text der Erinnerung zum Wiederbuchen.</summary>
+    RebookText,
+}
+
+/// <summary>Verbrauch von Claude je Aufgabe und Modell, aufsummiert über einen Zeitraum; Tokens, keine Geldbeträge.</summary>
+/// <param name="Task">Aufgabe.</param>
+/// <param name="Model">Modell, das geantwortet hat, z. B. <c>claude-sonnet-4-6</c>.</param>
+/// <param name="Calls">Anzahl der Aufrufe.</param>
+/// <param name="InputTokens">Tokens im Eingang, ohne Cache.</param>
+/// <param name="OutputTokens">Tokens in der Antwort.</param>
+/// <param name="CacheReadTokens">Tokens im Eingang, aus dem Cache gelesen.</param>
+/// <param name="CacheWriteTokens">Tokens im Eingang, in den Cache geschrieben.</param>
+public sealed record AiUsageRow(AiUsageTask Task, string Model, int Calls, long InputTokens, long OutputTokens, long CacheReadTokens, long CacheWriteTokens);
+
+/// <summary>Verbrauch von Claude über die letzten Tage, heute eingeschlossen (Tage in UTC).</summary>
+/// <param name="Days">Anzahl der Tage.</param>
+/// <param name="Rows">Summen je Aufgabe und Modell; leer, wenn nichts gemessen wurde.</param>
+public sealed record AiUsageReport(int Days, IReadOnlyList<AiUsageRow> Rows);

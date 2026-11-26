@@ -33,7 +33,7 @@ public sealed class BusinessAnswerTests(ApiFixture fixture)
 
         public List<(string System, string Prompt)> Calls { get; } = [];
 
-        public Task<T> AskAsync<T>(string system, string prompt, Dictionary<string, JsonElement> schema, CancellationToken ct)
+        public Task<T> AskAsync<T>(AiUsageTask task, string system, string prompt, Dictionary<string, JsonElement> schema, CancellationToken ct)
         {
             Calls.Add((system, prompt));
             var json = script(system, prompt) ?? throw new InvalidOperationException("Das Modell ist nicht erreichbar.");

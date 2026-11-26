@@ -71,7 +71,7 @@ internal sealed class ClaudeBriefingSummarizer(ClaudeJson claude) : IBriefingSum
 
     public async Task<string?> SummarizeAsync(BriefingDto facts, CancellationToken ct)
     {
-        var result = await claude.AskAsync<SummaryJson>(System, BriefingSummaries.FactsText(facts), Schema, ct);
+        var result = await claude.AskAsync<SummaryJson>(AiUsageTask.BriefingSummary, System, BriefingSummaries.FactsText(facts), Schema, ct);
         return result.Summary;
     }
 

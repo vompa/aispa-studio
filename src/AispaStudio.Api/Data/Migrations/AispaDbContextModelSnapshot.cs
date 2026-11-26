@@ -1389,6 +1389,52 @@ namespace AispaStudio.Api.Data.Migrations
                     b.ToTable("Imports", "aispa");
                 });
 
+            modelBuilder.Entity("AispaStudio.Api.MailIntake.Assistant.AiUsageDay", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<long>("CacheReadTokens")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("CacheWriteTokens")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("Calls")
+                        .HasColumnType("integer");
+
+                    b.Property<DateOnly>("Day")
+                        .HasColumnType("date");
+
+                    b.Property<long>("InputTokens")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Model")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<long>("OutputTokens")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Task")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantId");
+
+                    b.HasIndex("TenantId", "Day", "Task", "Model")
+                        .IsUnique();
+
+                    b.ToTable("AiUsageDay", "aispa");
+                });
+
             modelBuilder.Entity("AispaStudio.Api.MailIntake.Assistant.ClaudeKeySetting", b =>
                 {
                     b.Property<Guid>("Id")
@@ -7251,6 +7297,15 @@ namespace AispaStudio.Api.Data.Migrations
                 });
 
             modelBuilder.Entity("AispaStudio.Api.Importing.ImportEntry", b =>
+                {
+                    b.HasOne("AispaStudio.Api.Tenancy.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AispaStudio.Api.MailIntake.Assistant.AiUsageDay", b =>
                 {
                     b.HasOne("AispaStudio.Api.Tenancy.Tenant", null)
                         .WithMany()

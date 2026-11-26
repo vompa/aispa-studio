@@ -72,6 +72,7 @@ internal static class MailIntakeSetup
         services.AddSingleton<ClaudeClients>();
         services.AddSingleton<IClaudeKeyCheck, AnthropicKeyCheck>();
         services.AddScoped<ClaudeAccess>();
+        services.AddScoped<AiUsageRecorder>();
         services.AddScoped<ClaudeJson>();
 
         // Ohne Claude und ohne lokales Modell gibt es kein IAiJson (null): Der Treatwell-Leser nimmt dann gleich die Regeln.

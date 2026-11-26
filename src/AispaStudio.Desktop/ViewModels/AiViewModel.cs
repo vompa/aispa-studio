@@ -103,6 +103,21 @@ public sealed partial class AiViewModel : ViewModelBase, INativeArea, IDisposabl
 
     public bool CanDownload => _status?.Local == LocalAiState.Missing;
 
+    /// <summary>Verbrauch von Claude der letzten 30 Tage je Aufgabe und Modell (T-112a); leer, solange nichts gemessen ist.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasUsage), nameof(ShowNoUsage))]
+    public partial IReadOnlyList<AiUsageLine> UsageLines { get; private set; } = [];
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasUsageError), nameof(ShowNoUsage))]
+    public partial string? UsageError { get; private set; }
+
+    public bool HasUsage => UsageLines.Count > 0;
+
+    public bool HasUsageError => UsageError is not null;
+
+    public bool ShowNoUsage => !HasUsage && !HasUsageError;
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasMessage))]
     public partial string? Message { get; private set; }
@@ -150,6 +165,8 @@ public sealed partial class AiViewModel : ViewModelBase, INativeArea, IDisposabl
         {
             ShowKeyMessage(key.Error ?? "Der Stand des Claude-Schlüssels wurde nicht geladen.", InfoBarSeverity.Error);
         }
+
+        await LoadUsageAsync().ConfigureAwait(true);
 
         if (IsDownloading && !_polling)
         {
@@ -251,6 +268,14 @@ public sealed partial class AiViewModel : ViewModelBase, INativeArea, IDisposabl
         await RefreshClaudeAsync().ConfigureAwait(true);
     }
 
+    /// <summary>Ohne Verbrauch bleibt der Rest der Maske nutzbar; ein Fehler steht nur im Abschnitt.</summary>
+    private async Task LoadUsageAsync()
+    {
+        var usage = await _api.GetAsync<AiUsageReport>("api/system/ai/usage?days=30").ConfigureAwait(true);
+        UsageError = usage.Value is null ? usage.Error ?? "Der Verbrauch wurde nicht geladen." : null;
+        UsageLines = usage.Value is { } report ? [.. report.Rows.Select(AiUsageLine.From)] : [];
+    }
+
     private void ShowKeyMessage(string message, InfoBarSeverity severity)
     {
         KeyMessage = message;
@@ -326,4 +351,34 @@ public sealed partial class AiViewModel : ViewModelBase, INativeArea, IDisposabl
 
         DownloadCommand.NotifyCanExecuteChanged();
     }
+}
+
+/// <summary>Eine Zeile der Tabelle „Verbrauch“: Aufgabe in Worten, Zahlen mit Tausenderpunkt.</summary>
+public sealed record AiUsageLine(string Task, string Model, string Calls, string InputTokens, string OutputTokens, string CacheReadTokens)
+{
+    public string SpokenName => $"{Task}, {Model}: {Calls} Aufrufe, {InputTokens} Tokens Eingang, {OutputTokens} Tokens Ausgang, {CacheReadTokens} aus dem Cache gelesen";
+
+    public static AiUsageLine From(AiUsageRow row) =>
+        new(TaskName(row.Task), row.Model, Number(row.Calls), Number(row.InputTokens), Number(row.OutputTokens), Number(row.CacheReadTokens));
+
+    private static string Number(long value) => value.ToString("#,##0", GermanNumbers.Format);
+
+    private static string TaskName(AiUsageTask task) => task switch
+    {
+        AiUsageTask.BookingRequest => "Terminwunsch lesen",
+        AiUsageTask.ReplyDraft => "Antwortentwurf",
+        AiUsageTask.ReplyRevision => "Antwort überarbeiten",
+        AiUsageTask.Translation => "Übersetzung",
+        AiUsageTask.GuestQuestion => "Frage eines Gastes",
+        AiUsageTask.Treatwell => "Treatwell-Mail lesen",
+        AiUsageTask.DeliveryNote => "Lieferschein lesen",
+        AiUsageTask.Anamnesis => "Anamnesebogen lesen",
+        AiUsageTask.AssistantIntent => "Assistent: Frage verstehen",
+        AiUsageTask.AssistantAnswer => "Assistent: Antwort formulieren",
+        AiUsageTask.BriefingSummary => "Tagesbriefing",
+        AiUsageTask.ManagementSummary => "Management-Bericht",
+        AiUsageTask.ManagementAnalysis => "Management-Auswertung",
+        AiUsageTask.RebookText => "Wiederbuchen",
+        _ => task.ToString(),
+    };
 }

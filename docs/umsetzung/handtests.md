@@ -1983,4 +1983,18 @@ Expected: Wo eine Pille keinen Text hat, fehlt sie ganz; wo sie Text hat, sieht 
 4. Im Kalender in eine freie Zeit klicken, sodass das Panel „Neuer Eintrag“ aufgeht, und nacheinander die Reiter **Termin**, **Paar/Spa**, **Pause**, **Sperrzeit**, **Notiz** und **Sauna** wählen.
 Expected: Unter dem Titel und dem Datum folgen direkt die Reiter; keine leeren farbigen Pillen und keine leere Zeile.
 Closes: T-098 Punkt 6
+
+### T-112a – Verbrauch von Claude messen
+Start: `dotnet run --project src/AispaStudio.AppHost` mit gültigem Claude-Schlüssel (in der App eingetragen oder `Ai:Claude:ApiKey`), im Aspire-Dashboard die Ressource `windows-app` starten, als Inhaberin anmelden, **Verwaltung** › **Kontakt** › **KI** öffnen.
+1. Bei einem frischen Betrieb den Abschnitt „Verbrauch (letzte 30 Tage)“ ansehen.
+Expected: Unter der Überschrift steht „Noch keine Aufrufe gemessen.“, daneben ein Fragezeichen.
+2. Im Assistenten eine Frage stellen, etwa „Was steht morgen an?“, dann die Maske **KI** neu öffnen.
+Expected: Die Tabelle zeigt Zeilen wie „Assistent: Frage verstehen“ mit dem Modell, mindestens einem Aufruf und Zahlen bei Tokens Eingang und Tokens Ausgang. Es steht kein Geldbetrag da.
+3. Im Aspire-Dashboard das Log der API nach „Claude-Aufruf“ durchsuchen.
+Expected: Je Aufruf ein Eintrag mit Aufgabe, Modell, Tokens und Spa, ohne Text der Frage und ohne Schlüssel.
+4. Als Rezeption anmelden und `GET /api/v1/system/ai/usage` aufrufen (oder die Verwaltung öffnen).
+Expected: 403; der Reiter KI erscheint nicht.
+5. Beim Fragezeichen neben „Verbrauch (letzte 30 Tage)“ klicken.
+Expected: Die Hilfe „KI“ öffnet sich beim Abschnitt „Verbrauch“.
+Closes: T-112a
 Result: ☐

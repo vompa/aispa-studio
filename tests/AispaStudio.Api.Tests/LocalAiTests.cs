@@ -198,7 +198,7 @@ public sealed class LocalAiTests(ApiFixture fixture)
 
     private sealed class Unreachable : IAiJson
     {
-        public Task<T> AskAsync<T>(string system, string prompt, Dictionary<string, JsonElement> schema, CancellationToken ct) =>
+        public Task<T> AskAsync<T>(AiUsageTask task, string system, string prompt, Dictionary<string, JsonElement> schema, CancellationToken ct) =>
             throw new HttpRequestException("Keine Verbindung.");
     }
 

@@ -69,7 +69,7 @@ internal sealed class ClaudeDeliveryNoteReader(IOptions<DeliveryNoteReaderOption
                 .AppendLine();
         }
 
-        var response = await claude.Client().Beta.Messages.Create(new MessageCreateParams
+        var response = await claude.CreateAsync(AiUsageTask.DeliveryNote, new MessageCreateParams
         {
             Model = options.Value.Model,
             MaxTokens = 4000,

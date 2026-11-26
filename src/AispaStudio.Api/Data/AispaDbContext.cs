@@ -192,6 +192,7 @@ public sealed class AispaDbContext(DbContextOptions<AispaDbContext> options, Ten
         Staff.StaffDutyModel.Configure(builder);
         Documents.SentDocumentModel.Configure(builder);
         MailIntake.Assistant.ClaudeKeyModel.Configure(builder);
+        MailIntake.Assistant.AiUsageModel.Configure(builder);
 
         // Zuletzt, damit alle Fachtabellen bekannt sind.
         TenantModel.Configure(builder, (type, shared) =>

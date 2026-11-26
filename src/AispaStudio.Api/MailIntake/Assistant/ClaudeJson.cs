@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using AispaStudio.Contracts;
 using Anthropic;
 using Anthropic.Models.Beta.Messages;
 using Microsoft.Extensions.Options;
@@ -9,8 +10,9 @@ namespace AispaStudio.Api.MailIntake.Assistant;
 /// <summary>
 /// Gemeinsamer Zugang zu Claude für Terminannahme und Assistenten: eine Anfrage, Antwort in einem festen JSON-Schema.
 /// Das Modell kann so nur Daten liefern und keine Aktionen auslösen. Der Schlüssel gilt je Spa und Aufruf (<see cref="ClaudeAccess"/>, ADR 0103).
+/// Jeder Aufruf läuft über <see cref="CreateAsync"/>, das den Verbrauch an <see cref="AiUsageRecorder"/> meldet (T-112a).
 /// </summary>
-internal sealed class ClaudeJson(IOptions<ClaudeOptions> options, ClaudeAccess access, ClaudeClients clients) : IAiJson
+internal sealed class ClaudeJson(IOptions<ClaudeOptions> options, ClaudeAccess access, ClaudeClients clients, AiUsageRecorder usage) : IAiJson
 {
     private const string FallbackBeta = "server-side-fallback-2026-07-01";
 
@@ -23,11 +25,19 @@ internal sealed class ClaudeJson(IOptions<ClaudeOptions> options, ClaudeAccess a
     public bool Available => access.Available;
 
     /// <summary>Client für den Schlüssel des Spas; ohne Schlüssel eine Ausnahme wie bei einem nicht erreichbaren Dienst.</summary>
-    public AnthropicClient Client() => clients.For(access.Key ?? throw new InvalidOperationException("Für Claude ist kein API-Schlüssel gesetzt."));
+    private AnthropicClient Client() => clients.For(access.Key ?? throw new InvalidOperationException("Für Claude ist kein API-Schlüssel gesetzt."));
 
-    public async Task<T> AskAsync<T>(string system, string prompt, Dictionary<string, JsonElement> schema, CancellationToken ct)
+    /// <summary>Ein Aufruf von Claude mit dem Schlüssel des Spas; der Verbrauch wird gemessen, auch wenn Claude ablehnt.</summary>
+    public async Task<BetaMessage> CreateAsync(AiUsageTask task, MessageCreateParams request, CancellationToken ct)
     {
-        var response = await Client().Beta.Messages.Create(new MessageCreateParams
+        var response = await Client().Beta.Messages.Create(request, ct);
+        await usage.RecordAsync(task, response.Model.Raw(), AiTokens.From(response.Usage), ct);
+        return response;
+    }
+
+    public async Task<T> AskAsync<T>(AiUsageTask task, string system, string prompt, Dictionary<string, JsonElement> schema, CancellationToken ct)
+    {
+        var response = await CreateAsync(task, new MessageCreateParams
         {
             Model = options.Value.Model,
             MaxTokens = 4000,

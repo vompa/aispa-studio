@@ -70,6 +70,7 @@ internal static class LocalAiSetup
             .WithSummary("Lädt das lokale KI-Modell im Hintergrund herunter; den Fortschritt zeigt GET /api/system/ai.");
 
         group.MapClaudeKeyEndpoints();
+        group.MapAiUsageEndpoints();
 
         return routes;
     }
