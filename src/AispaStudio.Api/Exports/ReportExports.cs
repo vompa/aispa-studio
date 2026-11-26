@@ -1,4 +1,6 @@
+using System.Security.Claims;
 using AispaStudio.Api.Access;
+using AispaStudio.Api.Documents;
 using AispaStudio.Api.Reporting;
 using AispaStudio.Contracts;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -16,11 +18,27 @@ internal static class ReportExports
     {
         routes.MapGet("/api/reports/locations/{locationId:guid}/management/export", async Task<Results<FileContentHttpResult, ValidationProblem, NotFound, ProblemHttpResult>> (
                 Guid locationId, DateOnly? from, DateOnly? until, string? format, ManagementReports reports, AccessService accessService, ExportLog log,
-                CancellationToken ct, string compare = ManagementReports.CompareModes.Previous) =>
+                ManagementDocumentSources sources, ManagementSummaries summaries, ClaimsPrincipal user, CancellationToken ct, string compare = ManagementReports.CompareModes.Previous,
+                string content = Contents.Kpis, bool ai = false) =>
             {
+                if (ExportFiles.Parse(format) == ExportFormat.Docx)
+                {
+                    return await WordAsync(locationId, from, until, compare, ai, reports, summaries, accessService, sources, log, user, ct);
+                }
+
                 if (TableFormat(format) is not { } kind)
                 {
                     return Problem("format", TableFormatsOnly);
+                }
+
+                if (content is not (Contents.Kpis or Contents.Report))
+                {
+                    return Problem("content", "Inhalt: kpis (Kennzahlen) oder report (ganzer Bericht).");
+                }
+
+                if (content == Contents.Report && kind != ExportFormat.Xlsx)
+                {
+                    return Problem("format", "Den ganzen Bericht gibt es als Excel (xlsx).");
                 }
 
                 if (RangeError(from, until) is { } rangeError)
@@ -33,10 +51,18 @@ internal static class ReportExports
                     return Problem("compare", "Vergleich: previous (Zeitraum davor), month (Vormonat) oder year (Vorjahr).");
                 }
 
-                var amounts = (await accessService.CurrentAsync(ct))!.Has(AccessRight.ViewAmountReports);
-                if (await reports.ManagementAsync(locationId, from!.Value, until!.Value, amounts, ct, compare) is not { } report)
+                var access = (await accessService.CurrentAsync(ct))!;
+                var amounts = access.Has(AccessRight.ViewAmountReports);
+                // Gästenamen nur im ganzen Bericht und nur mit dem Recht der Kundenliste, wie auf der Seite.
+                var guests = content == Contents.Report && access.Has(AccessRight.ViewCalendar);
+                if (await reports.ManagementAsync(locationId, from!.Value, until!.Value, amounts, ct, compare, guests) is not { } report)
                 {
                     return TypedResults.NotFound();
+                }
+
+                if (content == Contents.Report)
+                {
+                    return await WorkbookAsync(report, compare, guests, amounts, sources, user, log, ct);
                 }
 
                 var columns = new ExportColumn[]
@@ -53,9 +79,52 @@ internal static class ReportExports
             .RequirePermission(AccessRight.ViewFinance)
             .WithName("ExportManagementKpis")
             .WithSummary("Kennzahlen des Management-Berichts für from bis until (höchstens ein Jahr) als Excel oder CSV: Kennzahl, Wert, Vorperiode, Einheit; "
-                + "ohne das Recht „Berichte mit Beträgen“ ohne Geldbeträge.");
+                + "ohne das Recht „Berichte mit Beträgen“ ohne Geldbeträge. Mit content=report der ganze Bericht als Excel-Arbeitsmappe (ein Blatt je Abschnitt, "
+                + "Gäste nur mit dem Recht der Kundenliste, Vergleich mit anderen Spas, wenn das Modul eingeschaltet ist). Mit format=docx der ganze Bericht als Word-Datei "
+                + "(A4 hoch, Inhalt wie das PDF, der Verlauf als Tabelle, nach jeder Kennzahlen-Gruppe „Anmerkungen:“); content entfällt, ai=true nimmt den schon geschriebenen KI-Kommentar mit Hinweis auf.");
 
         return routes;
+    }
+
+    /// <summary>Was der Export enthält: <c>kpis</c> (Standard) die Kennzahlen als eine Tabelle, <c>report</c> den ganzen Bericht als Arbeitsmappe.</summary>
+    internal static class Contents
+    {
+        public const string Kpis = "kpis";
+        public const string Report = "report";
+    }
+
+    /// <summary>Der ganze Bericht als Arbeitsmappe: Inhalt aus <see cref="ManagementReportDocument"/>, Hinweise als letztes Blatt, ein Eintrag im Export-Protokoll.</summary>
+    private static async Task<Results<FileContentHttpResult, ValidationProblem, NotFound, ProblemHttpResult>> WorkbookAsync(ManagementReportDto report, string compare,
+        bool guests, bool amounts, ManagementDocumentSources sources, ClaimsPrincipal user, ExportLog log, CancellationToken ct)
+    {
+        var header = await sources.Headers.ForAsync(report.LocationId, user, ct);
+        var benchmark = await sources.BenchmarkAsync(report, amounts, ct);
+        var document = ManagementReportDocument.Build(report, header, compare, guests, benchmark);
+        IReadOnlyList<ExportTable> tables = [.. document.Sections, document.NotesTable()];
+        await log.RecordAsync("Bericht", ExportFormat.Xlsx, tables.Sum(t => t.Rows.Count), $"{Day(report.From)} bis {Day(report.Until)}", ct);
+        var title = FormattableString.Invariant($"Bericht {report.From:yyyy-MM-dd} bis");
+        return TypedResults.File(TableExport.ToWorkbook(tables, document.Facts), ExportFiles.ContentType(ExportFormat.Xlsx),
+            ExportFiles.Name(title, ExportFormat.Xlsx, report.Until));
+    }
+
+    /// <summary>Der ganze Bericht als Word-Datei: gleicher Inhalt und gleiche Rechte wie das PDF, ein Eintrag im Export-Protokoll.</summary>
+    private static async Task<Results<FileContentHttpResult, ValidationProblem, NotFound, ProblemHttpResult>> WordAsync(Guid locationId, DateOnly? from, DateOnly? until,
+        string compare, bool ai, ManagementReports reports, ManagementSummaries summaries, AccessService access, ManagementDocumentSources sources, ExportLog log,
+        ClaimsPrincipal user, CancellationToken ct)
+    {
+        if (ManagementReportPdfEndpoints.Invalid(from, until, compare) is { } problem)
+        {
+            return problem;
+        }
+
+        if (await ManagementReportPdfEndpoints.LoadAsync(locationId, from!.Value, until!.Value, compare, ai, reports, summaries, access, sources, user, ct) is not { } loaded)
+        {
+            return TypedResults.NotFound();
+        }
+
+        var word = ManagementReportWord.Build(loaded.Document);
+        await log.RecordAsync(ManagementReportPdfEndpoints.Kind, ExportFormat.Docx, ManagementReportPdfEndpoints.RowCount(loaded.Document), loaded.Document.Period, ct);
+        return TypedResults.File(word, WordDocumentBuilder.ContentType, ManagementReportWord.FileName(loaded.Document, loaded.Report));
     }
 
     /// <summary>Euro-Kennzahlen als Betrag mit zwei Nachkommastellen, alle anderen als Zahl.</summary>

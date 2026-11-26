@@ -14,6 +14,7 @@ public sealed record ExportOption(string Label, Func<string> Path, string TypeNa
     public static ExportOption For(ExportFormat format, Func<string> path, string? label = null) => format switch
     {
         ExportFormat.Xlsx => new(label ?? "Excel", path, "Excel-Arbeitsmappe", ["*.xlsx"]),
+        ExportFormat.Docx => new(label ?? "Word", path, "Word-Dokument", ["*.docx"]),
         ExportFormat.Portal => new(label ?? "Portal-CSV", path, "CSV-Datei", ["*.csv"]),
         ExportFormat.Vcf => new(label ?? "vCard", path, "vCard-Datei", ["*.vcf"]),
         ExportFormat.Ics => new(label ?? "Kalenderdatei (iCal)", path, "Kalenderdatei", ["*.ics"]),

@@ -4,7 +4,7 @@ bereich: Berichte
 oberflaeche: verwaltung
 rollen: leitung, inhaber, manager
 seite: verwaltung
-stichwoerter: Management, Cockpit, Kennzahlen, KPI, Umsatz, Auslastung, No-Show, Storno-Quote, Durchschnittsbon, Stammgäste, neue Gäste, Folgetermin, Marge, Vollkosten, Deckungsbeitrag, Umsatz je Dienststunde, Produktanteil, Umsatz je Gast, entgangener Umsatz, Verlauf, Diagramm, Wochentag, Tageszeit, schwache Zeiten, Räume, Kanal, Online-Buchung, beste Gäste, abwandernde Stammgäste, Vorschau, gebuchter Umsatz, Erlöskonto, Kostenstelle, Personal, Alarme, Vorperiode, Vormonat, Vorjahr, Vergleich, Schnellwahl, Veränderung, Pfeil, Export, Excel, CSV, Kennzahlen exportieren, wie läuft das Geschäft, revenue, utilization, dashboard, figures
+stichwoerter: Management, Cockpit, Kennzahlen, KPI, Umsatz, Auslastung, No-Show, Storno-Quote, Durchschnittsbon, Stammgäste, neue Gäste, Folgetermin, Marge, Vollkosten, Deckungsbeitrag, Umsatz je Dienststunde, Produktanteil, Umsatz je Gast, entgangener Umsatz, Verlauf, Diagramm, Wochentag, Tageszeit, schwache Zeiten, Räume, Kanal, Online-Buchung, beste Gäste, abwandernde Stammgäste, Vorschau, gebuchter Umsatz, Erlöskonto, Kostenstelle, Personal, Alarme, Vorperiode, Vormonat, Vorjahr, Vergleich, Schnellwahl, Veränderung, Pfeil, Export, Excel, Arbeitsmappe, Word, Bericht exportieren, Anmerkungen, Datenbalken, Pivot, CSV, PDF, Drucken, Bericht drucken, per Mail senden, Bericht senden, Kennzahlen exportieren, wie läuft das Geschäft, revenue, utilization, dashboard, figures
 ---
 # Kennzahlen im Management ansehen
 
@@ -21,9 +21,51 @@ Der Abschnitt „Management“ im Reiter „Berichte“ zeigt die Kennzahlen ein
    - **Zeitraum davor** (Standard): der gleich lange Zeitraum direkt davor.
    - **Vormonat**: derselbe Abschnitt im Vormonat, also 1. bis 26. gegen 1. bis 26. des Vormonats. Endet Ihr Zeitraum am Monatsletzten, zählt der ganze Vormonat.
    - **Vorjahr**: derselbe Zeitraum im Vorjahr.
-7. Wer die Zahlen weitergeben will: **Exportieren** daneben speichert die Kennzahlen des Zeitraums mit Wert, Vergleichswert und Einheit als Excel oder CSV, z. B. als `Kennzahlen_2026-11-01_bis_2026-11-26.xlsx`. Die Datei nimmt den gewählten Vergleich. Beträge in Euro haben in Excel zwei Nachkommastellen. Beträge stehen nur darin, wenn man sie auf der Seite auch sieht. Nach dem Speichern öffnet **Ordner öffnen** neben „Gespeichert: …“ den Ordner der Datei.
+7. Wer die Zahlen weitergeben will, hat fünf Ausgaben, alle mit dem gewählten Vergleich. Beträge stehen darin nur, wenn man sie auf der Seite auch sieht.
+   - **Exportieren** › **Bericht (Excel)**: eine Arbeitsmappe mit allen Abschnitten, z. B. `Bericht_2026-11-01_bis_2026-11-26.xlsx`. Mehr dazu unter [Bericht als Excel-Arbeitsmappe](#excel).
+   - **Exportieren** › **Bericht (Word)**: der Bericht als Dokument zum Ergänzen, z. B. `Management-Bericht-Wien-2026-11-01-bis-2026-11-26.docx`. Mehr dazu unter [Bericht als Word-Datei](#word).
+   - **Exportieren** › **Kennzahlen (CSV)**: nur die Kennzahlen mit Wert, Vergleichswert und Einheit.
+   - **Drucken** und **PDF speichern**: der Bericht als PDF. Mehr dazu unter [Bericht als PDF](#pdf).
+   - **Per Mail senden**: das PDF an eine Adresse Ihrer Wahl.
+
+   Drucken, PDF und Senden stehen neben **Exportieren**, sobald der Bericht geladen ist. Nach dem Speichern öffnet **Ordner öffnen** neben „Gespeichert: …“ den Ordner der Datei.
 
 ![Management mit Kennzahlen](images/app/verwaltung-berichte-management.png)
+
+## Bericht als Excel-Arbeitsmappe {#excel}
+
+**Exportieren** › **Bericht (Excel)** speichert den ganzen Bericht des Zeitraums. Jeder Abschnitt steht auf einem eigenen Blatt:
+
+- **Übersicht:** die Kennzahlen mit Wert, Vergleichswert, Einheit, Veränderung und Veränderung in Prozent. Bei Quoten steht die Veränderung in Prozentpunkten, die Spalte in Prozent bleibt dort leer. Rechts daneben stehen Betrieb, Standort, Zeitraum, Vergleich und wer die Datei wann erstellt hat. Graue Pfeile zeigen, ob ein Wert gestiegen oder gefallen ist.
+- **Verlauf:** eine Zeile je Tag, bei Zeiträumen über 62 Tagen je Woche. Das Blatt eignet sich als Grundlage für eigene Pivot-Tabellen.
+- **Erlöskonten**, **Zahlungsarten**, **Personal**, **Behandlungen**, **Aktionen**, **Räume**, **Wochentage**, **Kanäle** und **Vorschau** wie die Tabellen auf der Seite.
+- **Gäste:** beste und abwandernde Stammgäste. Das Blatt fehlt, wenn Sie die Kundenliste nicht sehen dürfen.
+- **Vergleich mit Spas:** nur, wenn der [Vergleich mit anderen Spas](hilfe:berichte-mit-anderen-spas-vergleichen) eingeschaltet ist.
+- **Hinweise:** die Alarme und die Hinweise zum Vergleich.
+
+Ohne das Recht „Berichte mit Beträgen“ fehlen die Spalten mit Beträgen und die Blätter Erlöskonten und Zahlungsarten. Jedes Blatt hat eine fixierte Kopfzeile mit Filter. Auslastung und Umsatz haben graue Datenbalken. Gedruckt wird auf A4 quer, mit der Kopfzeile auf jeder Seite und „Seite 1 von 2“ im Fuß.
+
+## Bericht als PDF {#pdf}
+
+Das PDF zeigt den gewählten Standort, Zeitraum und Vergleich auf A4 hoch, z. B. `Management-Bericht-Wien-2026-11-01-bis-2026-11-26.pdf`:
+
+- **Zuerst:** Titel, Zeitraum und Vergleichszeitraum, der Kommentar der KI mit ihrem Hinweis (nur wenn er auf der Seite steht), die Alarme und die Kennzahlen in ihren vier Gruppen mit Vergleichswert, Veränderung und Veränderung in Prozent. Bei Quoten steht die Veränderung in Prozentpunkten.
+- **Danach:** der Verlauf als graue Balken mit dem Wert daneben (Umsatz und Auslastung mit Prozent von 0 bis 100 % Länge), dann die Tabellen wie in der Arbeitsmappe. Ein Abschnitt ohne Zeilen nennt „Keine Einträge im Zeitraum.“
+- **Drucken** öffnet den Druckdialog von Windows mit dem PDF. **PDF speichern** speichert es über den Speicherdialog.
+- **Per Mail senden** fragt nach Adresse, Betreff und Text. Vorbelegt ist Ihre eigene Mailadresse; der Bericht geht nur an die Adresse, die im Feld steht.
+
+Beträge und Gästelisten stehen darin wie in der Arbeitsmappe, also nur mit den Rechten, mit denen man sie auch auf der Seite sieht. Jedes gespeicherte, gedruckte oder gesendete PDF steht im Export-Protokoll, eine Sendung mit der Adresse. Auch Excel-Arbeitsmappe und CSV-Datei stehen dort.
+
+## Bericht als Word-Datei {#word}
+
+**Exportieren** › **Bericht (Word)** speichert den ganzen Bericht als Word-Dokument auf A4 hoch. Es ist zum Weiterarbeiten gedacht, etwa für eine Besprechung:
+
+- Der Inhalt ist derselbe wie im PDF: Titel, Zeitraum, der Kommentar der KI mit ihrem Hinweis (nur wenn er auf der Seite steht), die Alarme, die Kennzahlen in ihren vier Gruppen und danach die Tabellen. Der Verlauf steht als Tabelle, nicht als Balken.
+- Nach jeder Kennzahlen-Gruppe steht „Anmerkungen:“ mit einem leeren Absatz, in den Sie Ihre Notizen schreiben.
+- Kopf und Fuß tragen den Betrieb, den Standort und „Seite 1 von 3“. Die Datei ist schwarz-weiß und hat keine Diagramme.
+- Beträge und Gästelisten stehen darin wie im PDF, also nur mit den Rechten, mit denen man sie auch auf der Seite sieht.
+
+Jede gespeicherte Word-Datei steht im Export-Protokoll.
 
 ## Was angezeigt wird {#inhalt}
 
@@ -53,7 +95,7 @@ Der Abschnitt „Management“ im Reiter „Berichte“ zeigt die Kennzahlen ein
 
 ## Gäste {#gaeste}
 
-Die Gästelisten sieht nur, wer auch die Kundenliste sehen darf. Die Namen gehen nie an die KI und nicht in die Mail.
+Die Gästelisten sieht nur, wer auch die Kundenliste sehen darf. Die Namen gehen nie an die KI und nicht in den Wochen- und Monatsbericht per Mail; im PDF und in der Arbeitsmappe stehen sie nur mit diesem Recht.
 
 - **Beste Gäste:** die zehn Gäste mit den höchsten Ausgaben im Zeitraum, mit Besuchen (abgeschlossene Termine) und Ausgaben. Ohne das Recht „Berichte mit Beträgen“ sind es die zehn mit den meisten Besuchen, ohne Ausgaben.
 - **Abwandernde Stammgäste:** Gäste mit mindestens drei Besuchen an diesem Standort, deren letzter Besuch über 90 Tage zurückliegt und die keinen Termin geplant haben. Die Liste zeigt Name, letzten Besuch und Besuche, die 50 mit den meisten Besuchen zuerst. Die Kachel **Abwandernde Stammgäste (heute)** zählt alle. Beide zeigen den Stand von heute, unabhängig vom gewählten Zeitraum.

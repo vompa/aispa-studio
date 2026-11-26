@@ -1,3 +1,4 @@
+using AispaStudio.Contracts;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
@@ -9,10 +10,16 @@ public sealed partial class ManagementReportViewModel
     private ExportViewModel? _export;
 
     /// <summary>
-    /// Der Knopf „Exportieren“ neben Von und Bis: die Kennzahlen des Zeitraums als Excel oder CSV. Wer den Reiter sieht, darf exportieren; ob Beträge dabei sind, entscheidet die API nach dem Recht.
-    /// Fehlt ein Datum (Feld geleert), geht es leer mit und die API antwortet mit dem Hinweis zum Zeitraum.
+    /// Der Knopf „Exportieren“ neben Von und Bis: der ganze Bericht als Excel-Arbeitsmappe und als Word-Datei (mit dem KI-Kommentar, wenn der Reiter ihn zeigt)
+    /// und die Kennzahlen des Zeitraums als CSV. Das PDF steht im Knopfblock daneben (<see cref="Document"/>). Wer den Reiter sieht, darf exportieren;
+    /// ob Beträge und Gäste dabei sind, entscheidet die API nach dem Recht. Fehlt ein Datum (Feld geleert), geht es leer mit und die API antwortet mit dem Hinweis zum Zeitraum.
     /// </summary>
-    public ExportViewModel Export => _export ??= new ExportViewModel(Api, ListExportOptions.Pair("Kennzahlen", ExportPath).ToList())
+    public ExportViewModel Export => _export ??= new ExportViewModel(Api,
+    [
+        ExportOption.For(ExportFormat.Xlsx, () => ExportPath("xlsx") + "&content=report", "Bericht (Excel)"),
+        ExportOption.For(ExportFormat.Docx, () => ExportPath("docx") + (HasAiSummary ? "&ai=true" : ""), "Bericht (Word)"),
+        ExportOption.For(ExportFormat.Csv, () => ExportPath("csv"), "Kennzahlen (CSV)"),
+    ])
     {
         Saved = text =>
         {

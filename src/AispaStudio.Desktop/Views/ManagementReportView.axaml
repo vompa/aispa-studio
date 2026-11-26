@@ -25,6 +25,10 @@
       <!-- Wochenbericht montags, Monatsbericht am Ersten, je für die angemeldete Person; abbestellen jederzeit hier -->
       <CheckBox x:Name="ManagementMailField" Content="Wochen- und Monatsbericht per Mail" IsChecked="{Binding MailReports}" IsVisible="{Binding CanMailReports}"
                 VerticalAlignment="Bottom" ToolTip.Tip="Montags der Bericht der Vorwoche, am Monatsersten der des Vormonats, an Ihre Mailadresse" />
+      <!-- Der Bericht als PDF: Drucken, speichern, per Mail senden (T-095 D2, ADR 0092) -->
+      <Panel IsVisible="{Binding Document, Converter={x:Static ObjectConverters.IsNotNull}}" VerticalAlignment="Bottom">
+        <ui:DocumentActions x:Name="ManagementDocument" DataContext="{Binding Document}" />
+      </Panel>
       <!-- Export der Kennzahlen des Zeitraums (Export/Import, Aufgabe D) -->
       <ui:ExportButton x:Name="ManagementExportButton" DataContext="{Binding Export}" VerticalAlignment="Bottom" />
       <TextBlock x:Name="ManagementExportSaved" Text="{Binding ExportSaved}" Classes="muted small" IsVisible="{Binding HasExportSaved}" VerticalAlignment="Bottom" AutomationProperties.LiveSetting="Polite" />

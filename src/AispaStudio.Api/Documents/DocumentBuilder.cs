@@ -97,6 +97,13 @@ internal sealed class DocumentBuilder(PaperFormat format, DocumentHeader header)
     public DocumentBuilder Table(IReadOnlyList<DocumentColumn> columns, IEnumerable<DocumentRow> rows, DocumentRow? total = null, bool compact = false) =>
         Add(new TableBlock(columns, [.. rows], total, compact));
 
+    /// <summary>
+    /// Waagrechte Balken, einer je Zeile: Beschriftung links, grauer Balken im Verhältnis zum größten Wert (oder zu <paramref name="fullScale"/>, etwa 100 bei Prozent,
+    /// damit 5 % nicht wie voll aussehen), der Wert als Text rechtsbündig; Kopfzeile wie eine Tabelle, auf Folgeseiten wiederholt. Werte unter null zeichnen keinen Balken.
+    /// </summary>
+    public DocumentBuilder Bars(string labelTitle, string valueTitle, IEnumerable<DocumentBar> bars, decimal? fullScale = null) =>
+        Add(new BarBlock(labelTitle, valueTitle, [.. bars], fullScale));
+
     public DocumentBuilder QrCode(string text, double sizeMm = 30, DocumentAlign align = DocumentAlign.Center) => Add(new QrBlock(text, sizeMm, align));
 
     public DocumentBuilder Space(double points = 8) => Add(new SpaceBlock(points));
@@ -529,6 +536,53 @@ internal sealed class DocumentBuilder(PaperFormat format, DocumentHeader header)
                 KeepWithNext = tableHeader is null,
                 TableHeader = tableHeader,
             };
+        }
+    }
+
+    /// <summary>Beschriftung ein Viertel der Breite, Balken bis zu 55 %, Wert ein Fünftel; der Balken ist so hoch wie die kleine Schrift und steht mittig in der Zeile.</summary>
+    private sealed class BarBlock(string labelTitle, string valueTitle, IReadOnlyList<DocumentBar> bars, decimal? fullScale) : IBlock
+    {
+        private const double LabelShare = 0.25;
+        private const double BarShare = 0.55;
+
+        public IEnumerable<Item> Layout(Layouter layouter)
+        {
+            var sizes = layouter.Sizes;
+            var labelWidth = layouter.Width * LabelShare;
+            var barWidth = layouter.Width * BarShare;
+            var valueWidth = layouter.Width - labelWidth - barWidth;
+            var headFont = layouter.Font(sizes.Small, true);
+            var font = layouter.Font(sizes.Body);
+            var headHeight = LineHeight(sizes.Small) + (2 * CellPadding);
+            var header = new Item(headHeight, (gfx, x, y) =>
+            {
+                Write(gfx, Ansi(labelTitle), headFont, Ink, x + CellPadding, y + CellPadding, labelWidth - (2 * CellPadding), DocumentAlign.Left);
+                Write(gfx, Ansi(valueTitle), headFont, Ink, x + labelWidth + barWidth, y + CellPadding, valueWidth - CellPadding, DocumentAlign.Right);
+                gfx.DrawLine(BlackLine, x, y + headHeight, x + layouter.Width, y + headHeight);
+            })
+            { KeepWithNext = true };
+            yield return header;
+
+            var max = bars.Count == 0 ? 0 : Math.Max(fullScale ?? 0, bars.Max(b => b.Value));
+            var rowHeight = LineHeight(sizes.Body) + (2 * CellPadding);
+            var barHeight = LineHeight(sizes.Small);
+            foreach (var bar in bars)
+            {
+                var length = max > 0 && bar.Value > 0 ? (double)(bar.Value / max) * (barWidth - CellPadding) : 0;
+                yield return new Item(rowHeight, (gfx, x, y) =>
+                {
+                    Write(gfx, Ansi(bar.Label), font, Ink, x + CellPadding, y + CellPadding, labelWidth - (2 * CellPadding), DocumentAlign.Left);
+                    if (length > 0)
+                    {
+                        gfx.DrawRectangle(Grey, x + labelWidth, y + ((rowHeight - barHeight) / 2), length, barHeight);
+                    }
+
+                    Write(gfx, Ansi(bar.Text), font, Ink, x + labelWidth + barWidth, y + CellPadding, valueWidth - CellPadding, DocumentAlign.Right);
+                })
+                { TableHeader = header };
+            }
+
+            yield return new Item(sizes.Gap);
         }
     }
 

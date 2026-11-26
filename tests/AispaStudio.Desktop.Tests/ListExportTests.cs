@@ -148,21 +148,26 @@ public sealed class ListExportTests
     // ---------- Management-Bericht ----------
 
     [Fact]
-    public async Task Bericht_Kennzahlen_nehmen_Standort_und_Zeitraum_der_Seite()
+    public async Task Bericht_als_Arbeitsmappe_nimmt_Standort_und_Zeitraum_der_Seite()
     {
         var location = StockSample.Salzburg;
         var api = new StubApi()
             .On($"GET /api/reports/locations/{location.Id}/management?from=2026-10-01&until=2026-10-31",
                 new ManagementReportDto(location.Id, new DateOnly(2026, 10, 1), new DateOnly(2026, 10, 31), [], [], [], [], [], [], false))
-            .OnFile($"GET /api/reports/locations/{location.Id}/management/export?from=2026-10-01&until=2026-10-31&format=xlsx", File, "Kennzahlen_2026-10-01_bis_2026-10-31.xlsx");
+            .OnFile($"GET /api/reports/locations/{location.Id}/management/export?from=2026-10-01&until=2026-10-31&format=xlsx&content=report", File, "Bericht_2026-10-01_bis_2026-10-31.xlsx")
+            .OnFile($"GET /api/reports/locations/{location.Id}/management/export?from=2026-10-01&until=2026-10-31&format=docx", File, "Management-Bericht-Salzburg-2026-10-01-bis-2026-10-31.docx");
         var report = new ManagementReportViewModel(api.Client(), new PosTime());
         report.SetRange(new DateOnly(2026, 10, 1), new DateOnly(2026, 10, 31));
         await report.ShowAsync(location, new DateOnly(2026, 10, 19));
         report.Export.Files = new FakeFileSaver();
 
-        Assert.Equal(["Kennzahlen (Excel)", "Kennzahlen (CSV)"], Labels(report.Export));
-        await Click(report.Export, "Kennzahlen (Excel)");
+        Assert.Equal(["Bericht (Excel)", "Bericht (Word)", "Kennzahlen (CSV)"], Labels(report.Export));
+        await Click(report.Export, "Bericht (Excel)");
 
-        Assert.Equal("Gespeichert: Kennzahlen_2026-10-01_bis_2026-10-31.xlsx", report.ExportSaved);
+        Assert.Equal("Gespeichert: Bericht_2026-10-01_bis_2026-10-31.xlsx", report.ExportSaved);
+
+        await Click(report.Export, "Bericht (Word)");
+
+        Assert.Equal("Gespeichert: Management-Bericht-Salzburg-2026-10-01-bis-2026-10-31.docx", report.ExportSaved);
     }
 }

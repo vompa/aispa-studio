@@ -50,7 +50,7 @@ public sealed partial class ReportsViewModel : ViewModelBase, ITargetedArea, ISa
         DayPlan = new DayPlanReportViewModel(api, time, user.EmployeeId);
         Briefing = new BriefingReportViewModel(api, time);
         Hygiene = new HygieneReportViewModel(api, time, user);
-        Management = new ManagementReportViewModel(api, time);
+        Management = new ManagementReportViewModel(api, time) { ShowToast = text => Toast.Show(text) };
         Compliance = new ComplianceReportViewModel(api, time);
         if (CanSeeBusinessInfo)
         {
@@ -94,13 +94,14 @@ public sealed partial class ReportsViewModel : ViewModelBase, ITargetedArea, ISa
         set => Compliance.Files = Hygiene.Files = value;
     }
 
-    /// <summary>Die Rückfragen des Fensters gelten auch für die Betriebsinfo (Archivieren, ungespeicherte Änderungen).</summary>
+    /// <summary>Die Rückfragen des Fensters gelten auch für die Betriebsinfo (Archivieren, ungespeicherte Änderungen) und für „Per Mail senden“ im Management-Bericht.</summary>
     public override IConfirmDialogs? Dialogs
     {
         get => base.Dialogs;
         set
         {
             base.Dialogs = value;
+            Management.Dialogs = value;
             if (BusinessInfo is not null)
             {
                 BusinessInfo.Dialogs = value;

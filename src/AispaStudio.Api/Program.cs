@@ -276,6 +276,7 @@ builder.Services.AddScoped<ManagementSummaries>();
 builder.Services.AddScoped<ManagementReports>();
 builder.Services.AddScoped<PayrollExport>();
 builder.Services.AddScoped<Benchmark>();
+builder.Services.AddScoped<ManagementDocumentSources>();
 // Prototyp: Beispieldaten. Der zentrale Vergleichsdienst ersetzt nur IBenchmarkPeers.
 builder.Services.AddSingleton<IBenchmarkPeers, SampleBenchmarkPeers>();
 builder.Services.AddScoped<RoleAssistant>();
@@ -385,6 +386,7 @@ static void MapApplicationEndpoints(WebApplication app)
     app.MapStockExportEndpoints();
     app.MapStaffExportEndpoints();
     app.MapReportExportEndpoints();
+    app.MapManagementReportPdfEndpoints();
     app.MapCustomerImportEndpoints();
     app.MapCalendarEndpoints();
     app.MapAppointmentConfirmationEndpoints();

@@ -367,10 +367,12 @@ public sealed partial class ManagementReportViewModel(IWorkstationApi api, TimeP
             Forecast = [];
             ForecastInfo = null;
             CompareInfo = null;
+            Document = null;
             return;
         }
 
         Apply(report, comparison);
+        UpdateDocument(location, from, until, comparison);
         IsLoaded = true;
         await LoadBenchmarkAsync().ConfigureAwait(true);
         await LoadMailSubscriptionAsync().ConfigureAwait(true);
@@ -392,6 +394,7 @@ public sealed partial class ManagementReportViewModel(IWorkstationApi api, TimeP
 
             report = next;
             Apply(report, comparison);
+            UpdateDocument(location, from, until, comparison);
         }
     }
 

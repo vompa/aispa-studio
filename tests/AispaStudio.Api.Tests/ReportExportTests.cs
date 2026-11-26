@@ -1,5 +1,6 @@
 using System.Net;
 using AispaStudio.Contracts;
+using ClosedXML.Excel;
 
 namespace AispaStudio.Api.Tests;
 
@@ -28,6 +29,55 @@ public sealed class ReportExportTests(ApiFixture fixture)
 
         var history = await spa.GetAsync<List<HistoryEntry>>("/api/exports/history", Ct);
         Assert.Equal($"Export Kennzahlen (Excel, {report.Kpis.Count} Zeilen, 1.3.2027 bis 7.3.2027) von Test Person", Assert.Single(history).Text);
+    }
+
+    [Fact]
+    public async Task Bericht_als_Arbeitsmappe_mit_Blaettern_Formaten_und_Druckeinrichtung()
+    {
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        _ = await spa.BookOkAsync(TestSpa.At(10), Ct);
+        var report = await spa.GetAsync<ManagementReportDto>($"/api/reports/locations/{spa.Location.Id}/management?from=2027-03-01&until=2027-03-07", Ct);
+
+        using var response = await spa.Client.GetAsync($"/api/reports/locations/{spa.Location.Id}/management/export?from=2027-03-01&until=2027-03-07&format=xlsx&content=report", Ct);
+        using var workbook = await WorkbookAsync(response);
+
+        Assert.Equal("Bericht_2027-03-01_bis_2027-03-07.xlsx", ExportResponses.FileName(response));
+        var names = workbook.Worksheets.Select(s => s.Name).ToList();
+        Assert.Equal(("Übersicht", "Hinweise"), (names[0], names[^1]));
+        Assert.Contains("Gäste", names);
+        var overview = workbook.Worksheet("Übersicht");
+        Assert.Equal(["Kennzahl", "Wert", "Vorperiode", "Einheit"], ExportResponses.Headers(overview).Take(4));
+        var revenueRow = report.Kpis.ToList().FindIndex(k => k.Key == "revenue") + 2;
+        var utilizationRow = report.Kpis.ToList().FindIndex(k => k.Key == "staffUtilization") + 2;
+        Assert.Equal(("#,##0.00", "0.0%"), (overview.Row(revenueRow).Cell(2).Style.NumberFormat.Format, overview.Row(utilizationRow).Cell(2).Style.NumberFormat.Format));
+        Assert.Equal((1, XLPageOrientation.Landscape), (overview.SheetView.SplitRow, overview.PageSetup.PageOrientation));
+        Assert.Contains(overview.ConditionalFormats, f => f.ConditionalFormatType == XLConditionalFormatType.IconSet);
+        Assert.Contains(workbook.Worksheet("Verlauf").ConditionalFormats, f => f.ConditionalFormatType == XLConditionalFormatType.DataBar);
+
+        var history = await spa.GetAsync<List<HistoryEntry>>("/api/exports/history", Ct);
+        Assert.StartsWith("Export Bericht (Excel, ", Assert.Single(history).Text);
+    }
+
+    [Fact]
+    public async Task Bericht_ohne_Recht_der_Kundenliste_ohne_Gaesteblatt()
+    {
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        using var backoffice = await TestUsers.ClientAsync(fixture, Ct, StaffRole.Backoffice, [spa.Location.Id]);
+
+        using var response = await backoffice.GetAsync($"/api/reports/locations/{spa.Location.Id}/management/export?from=2027-03-01&until=2027-03-07&format=xlsx&content=report", Ct);
+        using var workbook = await WorkbookAsync(response);
+
+        var names = workbook.Worksheets.Select(s => s.Name).ToList();
+        Assert.DoesNotContain("Gäste", names);
+        Assert.Contains("Verlauf", names);
+    }
+
+    private static async Task<XLWorkbook> WorkbookAsync(HttpResponseMessage response)
+    {
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var bytes = await response.Content.ReadAsByteArrayAsync(Ct);
+        SampleFiles.Save(ExportResponses.FileName(response), bytes);
+        return new XLWorkbook(new MemoryStream(bytes));
     }
 
     [Fact]

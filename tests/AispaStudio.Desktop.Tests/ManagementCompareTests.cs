@@ -95,4 +95,23 @@ public sealed class ManagementCompareTests
         Assert.Null(tiles["Offene Anfragen (heute)"].Hint);
         Assert.Equal("Vergleich: Vorjahr · 01.11.2025 bis 26.11.2025", report.CompareInfo);
     }
+
+    [Fact]
+    public async Task Management_Bericht_hat_Drucken_PDF_speichern_und_Senden_fuer_Zeitraum_und_Vergleich_der_Seite()
+    {
+        var api = new StubApi().On(Route("from=2026-11-01&until=2026-11-26", "&compare=year"), Report());
+        var report = new ManagementReportViewModel(api.Client(), new Today(new DateOnly(2026, 11, 26)))
+        {
+            SelectedComparison = ManagementReportViewModel.CompareChoices.Single(c => c.Key == "year"),
+        };
+        report.SetRange(new DateOnly(2026, 11, 1), new DateOnly(2026, 11, 26));
+        await report.ShowAsync(Location, new DateOnly(2026, 11, 26));
+
+        // Then steht der Knopfblock mit Senden; PDF und Versand nehmen Standort, Zeitraum und Vergleich der Seite (ohne KI-Kommentar ohne ai=true)
+        var document = Assert.IsType<DocumentActionsViewModel>(report.Document);
+        Assert.True(document.HasSend);
+        var root = $"api/reports/locations/{Location.Id}/management";
+        Assert.Equal(($"{root}/pdf?from=2026-11-01&until=2026-11-26&compare=year", $"{root}/send?from=2026-11-01&until=2026-11-26&compare=year"),
+            (document.Source.PdfPath, document.Source.SendPath));
+    }
 }

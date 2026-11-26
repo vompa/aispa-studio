@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text;
+using AispaStudio.Api.Documents;
 using AispaStudio.Contracts;
 
 namespace AispaStudio.Api.Exports;
@@ -13,10 +14,21 @@ internal enum ColumnKind
     Date,
     Time,
     YesNo,
+
+    /// <summary>Anteil in Prozent, im Wert als Prozentzahl (72,5 für 72,5 %); Excel speichert ihn als 0,725 im Prozentformat.</summary>
+    Percent,
 }
 
-/// <summary>Spalte einer Exporttabelle mit dem Spaltenkopf, wie er in der Datei steht.</summary>
-internal sealed record ExportColumn(string Name, ColumnKind Kind);
+/// <summary>Was eine Spalte für die Darstellung bedeutet: eine Größe zum Vergleichen (Balken) oder eine Veränderung mit Vorzeichen (Pfeil).</summary>
+internal enum ColumnHint
+{
+    None,
+    Bar,
+    Change,
+}
+
+/// <summary>Spalte einer Exporttabelle mit dem Spaltenkopf, wie er in der Datei steht; <paramref name="Hint"/> nutzen nur Arbeitsmappe und Dokumente.</summary>
+internal sealed record ExportColumn(string Name, ColumnKind Kind, ColumnHint Hint = ColumnHint.None);
 
 /// <summary>
 /// Eine Liste der App als Tabelle für Excel oder CSV: <paramref name="Name"/> ist Blattname und Listenname, jede Zeile hat je Spalte einen Wert
@@ -43,6 +55,8 @@ internal static class ExportFiles
         ExportFormat.Portal => "Portal-CSV",
         ExportFormat.Vcf => "vCard",
         ExportFormat.Ics => "iCal",
+        ExportFormat.Pdf => "PDF",
+        ExportFormat.Docx => "Word",
         _ => format.ToString(),
     };
 
@@ -51,6 +65,7 @@ internal static class ExportFiles
         ExportFormat.Xlsx => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         ExportFormat.Vcf => "text/vcard; charset=utf-8",
         ExportFormat.Ics => "text/calendar; charset=utf-8",
+        ExportFormat.Docx => WordDocumentBuilder.ContentType,
         _ => "text/csv; charset=utf-8",
     };
 
@@ -59,6 +74,7 @@ internal static class ExportFiles
         ExportFormat.Xlsx => "xlsx",
         ExportFormat.Vcf => "vcf",
         ExportFormat.Ics => "ics",
+        ExportFormat.Docx => "docx",
         _ => "csv",
     };
 

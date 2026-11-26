@@ -810,8 +810,8 @@ Expected: Bestand je Material und Lagerort; Bewegungen der letzten 30 Tage bis h
 Expected: `Stundenliste_<Monatserster>.xlsx` mit Person, Tag, Soll, Ist, Pause und Differenz für den Monat, in dem die gezeigte Woche beginnt.
 6. **Team** › **Wochenplan** öffnen, **Exportieren** › **Dienstplan der Woche (Excel)** speichern.
 Expected: Personen als Zeilen, Montag bis Sonntag als Spalten („Mo 1.3.“), Dienste als „9:00–17:00“, Abwesenheiten als „Urlaub“ usw., ganz rechts die Stunden.
-7. **Zahlen** › **Berichte** › **Management** öffnen, **Exportieren** › **Kennzahlen (Excel)** speichern.
-Expected: Kennzahl, Wert, Vorperiode und Einheit mit denselben Zahlen wie auf der Seite.
+7. **Zahlen** › **Berichte** › **Management** öffnen, **Exportieren** › **Bericht (Excel)** speichern.
+Expected: Das erste Blatt „Übersicht“ hat als erste vier Spalten Kennzahl, Wert, Vorperiode und Einheit mit denselben Zahlen wie auf der Seite.
 8. Abmelden, als Manager eines Standorts anmelden, Kassa, Lager, Zeiten und Wochenplan öffnen.
 Expected: Der Knopf **Exportieren** fehlt dort; im Bericht „Management“ ist er da.
 Closes: Export/Import Aufgabe D (arbeitsanweisung-export-import.md)
@@ -1839,4 +1839,31 @@ Expected: Euro-Kacheln, Umsatz im Verlauf, gebuchter Umsatz der Vorschau und Aus
 9. Als Backoffice anmelden und den Bericht öffnen.
 Expected: Die Tabellen „Beste Gäste“ und „Abwandernde Stammgäste“ fehlen; die Kachel „Abwandernde Stammgäste (heute)“ steht da.
 Closes: Arbeitsanweisung Berichte-Ausbau, Aufgabe C
+Result: ☐
+
+### T-095 – Management-Bericht als Dokument (Excel, PDF, Word)
+Start: `dotnet run --project src/AispaStudio.AppHost` mit Beispieldaten, im Aspire-Dashboard die Ressource `windows-app` starten, als Inhaberin anmelden, **Verwaltung** › **Zahlen** › **Berichte** › Management-Bericht öffnen, Zeitraum **Letzter Monat**; Excel und Word zum Ansehen auf diesem Rechner installiert
+1. Neben **Exportieren** den Knopfblock ansehen und **Exportieren** aufklappen.
+Expected: **Drucken**, **PDF speichern** und **Per Mail senden** stehen im Kopf des Abschnitts; das Menü bietet **Bericht (Excel)**, **Bericht (Word)** und **Kennzahlen (CSV)**.
+2. **Bericht (Excel)** speichern und die Datei in Excel öffnen.
+Expected: `Bericht_<von>_bis_<bis>.xlsx` mit einem Blatt je Abschnitt; das erste Blatt „Übersicht“ hat die Spalte „Veränderung (bei % in Prozentpunkten)“; Umsatz und Auslastung haben graue Datenbalken, bei Prozent reicht 100 % über die ganze Breite der Zelle.
+3. **PDF speichern** wählen und das PDF öffnen.
+Expected: `Management-Bericht-<Standort>-<von>-bis-<bis>.pdf` auf A4 hoch; Titel, Zeitraum, Alarme, Kennzahlen in vier Gruppen; der Verlauf folgt ohne leere halbe Seite direkt auf die Kennzahlen; Auslastung als graue Balken (100 % = ganze Breite); „Seite n von m“ im Fuß.
+4. **Drucken** wählen, im Windows-Druckdialog abbrechen.
+Expected: Der Druckdialog öffnet sich mit dem Bericht; nach dem Abbrechen wird nichts gedruckt und kein Fehler gezeigt.
+5. **Per Mail senden** wählen, die vorbelegte eigene Adresse stehen lassen und senden.
+Expected: Toast „Gesendet an …“; die Mail mit dem PDF-Anhang kommt im eigenen Postfach an. Im Export-Protokoll steht „Export Bericht per Mail (PDF, …, an <Adresse>)“.
+6. **Bericht (Word)** speichern und die Datei in Word öffnen.
+Expected: `Management-Bericht-<Standort>-<von>-bis-<bis>.docx` auf A4 hoch, schwarz-weiß; Titel, Zeitraum, Alarme, Kennzahlen in vier Gruppen mit Tabellen; nach jeder Gruppe „Anmerkungen:“ mit einem leeren Absatz, in den man schreiben kann; der Verlauf steht als Tabelle, ohne Balken; Kopf mit Betrieb und Standort; Fuß mit „Erstellt am …“ und „Seite n von m“, die Zahlen stimmen nach dem Öffnen (bei „Seite 1 von 1“ mit F9 aktualisieren, wenn Word sie nicht selbst füllt). Word meldet keine Beschädigung.
+7. Die Zahlen der drei Dateien mit der Seite vergleichen: Kachel „Behandlungen“ und Zeile „Behandlungen“ in der Übersicht.
+Expected: Dieselben Zahlen in Excel, PDF und Word wie auf der Seite.
+8. Einen Zeitraum ab sieben Tagen wählen, den KI-Kommentar abwarten (nur mit KI-Schlüssel) und **Bericht (Word)** erneut speichern.
+Expected: Der Kommentar steht unter „KI-Auswertung“ mit dem Hinweis auf die KI direkt darunter.
+9. Hilfe zum Management öffnen (Fragezeichen) und zu „Bericht als Word-Datei“ springen.
+Expected: Der Abschnitt beschreibt Anmerkungen, Verlauf als Tabelle und Kopf und Fuß so, wie die Datei sie zeigt.
+10. Abmelden, als Standortleitung ohne „Berichte mit Beträgen“ anmelden, Management öffnen und **Bericht (Word)** speichern.
+Expected: In der Datei fehlen Euro-Kennzahlen, Erlöskonten und Zahlungsarten; Auslastung, Anzahlen und Quoten stehen darin.
+11. Als Inhaberin im Bereich **Verlauf** das Export-Protokoll ansehen.
+Expected: Je Datei ein Eintrag („Export Bericht (Excel, …)“, „(PDF, …)“, „(Word, …)“, die Sendung mit der Adresse).
+Closes: Arbeitsanweisung Berichte-Ausbau, Aufgabe D
 Result: ☐

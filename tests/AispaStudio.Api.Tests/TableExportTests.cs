@@ -91,7 +91,7 @@ public sealed class TableExportTests
     [InlineData("vcf", ExportFormat.Vcf)]
     [InlineData("ics", ExportFormat.Ics)]
     [InlineData("1", null)]
-    [InlineData("pdf", null)]
+    [InlineData("odt", null)]
     [InlineData(null, null)]
     public void Format_aus_der_Abfrage_klein_geschrieben_ohne_Zahlen(string? text, ExportFormat? expected) => Assert.Equal(expected, ExportFiles.Parse(text));
 }

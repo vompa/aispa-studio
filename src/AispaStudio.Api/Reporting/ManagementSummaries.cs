@@ -177,6 +177,20 @@ internal sealed partial class ManagementSummaries(
             .Select(s => s.Text).FirstOrDefaultAsync(ct);
     }
 
+    /// <summary>
+    /// Der schon geschriebene Kommentar zu genau diesen Zahlen, ohne einen neuen anzustoßen (für die Dokumente, T-095 D2); <c>null</c>, wenn es keinen gibt
+    /// oder sich die Zahlen seitdem geändert haben.
+    /// </summary>
+    public async Task<string?> StoredAsync(ManagementReportDto report, CancellationToken ct)
+    {
+        var amounts = !report.AmountsHidden;
+        var fingerprint = Fingerprint(report);
+        return await db.ManagementSummaries.AsNoTracking()
+            .Where(s => s.LocationId == report.LocationId && s.From == report.From && s.Until == report.Until && s.Amounts == amounts
+                && s.Fingerprint == fingerprint && s.Status == BriefingSummaryStatus.Done)
+            .Select(s => s.Text).FirstOrDefaultAsync(ct);
+    }
+
     public async Task WriteAsync(Guid id, CancellationToken ct)
     {
         var row = await db.ManagementSummaries.FirstOrDefaultAsync(s => s.Id == id, ct);
