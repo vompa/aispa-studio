@@ -1817,3 +1817,26 @@ Expected: Die Ansage nennt Tag, Stunde und Besetzung, z. B. „Mi. 25.11., 18 bi
 Expected: Im Wochenplan steht statt der Matrix ein Satz mit dem Weg zu **Stammdaten** › **Standorte & Räume**. Auf der Karte der Person fehlt der Abschnitt. Das Fragezeichen öffnet die Hilfe „Besetzung über den Tag“.
 Closes: Auftrag vom 26.11.2026 (Besetzung über den Tag)
 Result: ☐
+
+### T-094 – Management-Bericht: neue Kennzahlen und Verlauf
+Start: `dotnet run --project src/AispaStudio.AppHost` mit Beispieldaten, im Aspire-Dashboard die Ressource `windows-app` starten, als Inhaberin anmelden, **Verwaltung** › **Zahlen** › **Berichte** › Management-Bericht öffnen, Zeitraum **Letzter Monat**
+1. Die Kacheln ansehen.
+Expected: Vier Gruppen mit Überschrift: „Umsatz und Ertrag“ (mit Deckungsbeitrag, Deckungsbeitrag in Prozent, Umsatz je Dienststunde, Umsatz je Behandlungsstunde, Produktanteil am Umsatz, Produktumsatz je Behandlung, Umsatz je Gast), „Auslastung“, „Gäste“ (mit „Abwandernde Stammgäste (heute)“ ohne Vergleich) und „Ausfälle“ (mit „Entgangen durch No-Show“ und „Entgangen durch Storno“; weniger ist besser).
+2. Den Abschnitt **Verlauf** ansehen, mit der Maus auf eine Säule zeigen und **Werte als Tabelle** aufklappen.
+Expected: Drei Säulendiagramme (Umsatz ohne Gutscheinverkauf, Behandlungen, Auslastung Personal), eine Säule je Tag; der Tooltip nennt Tag und Wert, die Tabelle dieselben Werte. Mit **Letzte 12 Monate** steht jede Säule für eine Woche.
+3. Die Tabelle **Auslastung nach Wochentag und Tageszeit** ansehen.
+Expected: Je Wochentag mit Diensten Vormittag (bis 11), Mittag (11–14), Nachmittag (14–17), Abend (ab 17) in Prozent; Felder unter 50 % zeigen „… · schwach“ auf Warnfläche, Abschnitte ohne Dienst einen Strich. Mit dem Erzähler liest ein Feld „Montag Vormittag: 40,0 %, schwach“.
+4. Die **Vorschau nächste vier Wochen** ansehen, dann im Kalender einen Termin in der nächsten Woche buchen und den Bericht neu laden.
+Expected: Vier Zeilen zu je sieben Tagen ab heute mit Terminen, gebuchtem Umsatz (brutto) und gebuchter Auslastung, darüber „Stand heute, …“. Nach der Buchung steigen Termine und Umsatz der zweiten Zeile.
+5. Die Tabellen **Räume** und **Buchungen nach Kanal** ansehen.
+Expected: Je Raum Auslastung und Termine (ohne Sauna und Ruheraum); je Herkunft (Rezeption, Online-Buchung, Mail …) die Termine, zusammen so viele wie die Kachel „Behandlungen“.
+6. Die Tabellen **Beste Gäste** und **Abwandernde Stammgäste** ansehen.
+Expected: Höchstens zehn beste Gäste mit Besuchen und Ausgaben; abwandernde Stammgäste mit Name, letztem Besuch (über 90 Tage her) und mindestens drei Besuchen, so viele wie die Kachel zählt (höchstens 50 in der Liste). Kein Gast der Liste hat einen künftigen Termin (Stichprobe in der Kundenkarte).
+7. Einen Zeitraum ab sieben Tagen wählen und den KI-Kommentar abwarten (nur mit KI-Schlüssel).
+Expected: Der Kommentar nennt keine Gästenamen.
+8. Als Rolle ohne „Berichte mit Beträgen“ anmelden und den Bericht öffnen.
+Expected: Euro-Kacheln, Umsatz im Verlauf, gebuchter Umsatz der Vorschau und Ausgaben der besten Gäste fehlen (Spalte ohne Kopf, Werte „–“); die besten Gäste sind nach Besuchen geordnet. Auslastung, Anzahlen und Quoten bleiben.
+9. Als Backoffice anmelden und den Bericht öffnen.
+Expected: Die Tabellen „Beste Gäste“ und „Abwandernde Stammgäste“ fehlen; die Kachel „Abwandernde Stammgäste (heute)“ steht da.
+Closes: Arbeitsanweisung Berichte-Ausbau, Aufgabe C
+Result: ☐

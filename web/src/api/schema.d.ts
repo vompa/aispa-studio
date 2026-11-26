@@ -10174,6 +10174,12 @@ export interface components {
             iban: null | string;
             bic: null | string;
         };
+        ChannelKpi: {
+            source: components["schemas"]["AppointmentSource"];
+            label: string;
+            /** Format: int32 */
+            appointments: number;
+        };
         ChannelMappingDto: {
             /** Format: uuid */
             id: string;
@@ -11270,6 +11276,18 @@ export interface components {
         FollowUpNote: {
             note: string;
         };
+        ForecastWeek: {
+            /** Format: date */
+            from: string;
+            /** Format: date */
+            until: string;
+            /** Format: int32 */
+            appointments: number;
+            /** Format: double */
+            bookedRevenue: null | number;
+            /** Format: double */
+            staffUtilization: number;
+        };
         GapChainMove: {
             /** Format: uuid */
             appointmentId: string;
@@ -11411,6 +11429,15 @@ export interface components {
             age: null | number;
             /** Format: int32 */
             ageNow: null | number;
+        };
+        GuestKpi: {
+            /** Format: uuid */
+            customerId: string;
+            name: string;
+            /** Format: int32 */
+            visits: number;
+            /** Format: double */
+            spent: null | number;
         };
         GuestMessageDelayDto: {
             /** Format: int32 */
@@ -11834,6 +11861,16 @@ export interface components {
             previous: null | number;
             unit: string;
             higherIsBetter?: null | boolean;
+            group?: null | string;
+        };
+        LapsingGuest: {
+            /** Format: uuid */
+            customerId: string;
+            name: string;
+            /** Format: date */
+            lastVisit: string;
+            /** Format: int32 */
+            visits: number;
         };
         LeaveAccountDto: {
             /** Format: uuid */
@@ -12005,6 +12042,17 @@ export interface components {
             compareFrom?: null | string;
             /** Format: date */
             compareUntil?: null | string;
+            trend?: null | components["schemas"]["TrendPoint"][];
+            loadByWeekday?: null | components["schemas"]["WeekdayLoad"][];
+            /** Format: double */
+            weakLoadBelow?: null | number;
+            rooms?: null | components["schemas"]["RoomKpi"][];
+            channels?: null | components["schemas"]["ChannelKpi"][];
+            topGuests?: null | components["schemas"]["GuestKpi"][];
+            lapsingGuests?: null | components["schemas"]["LapsingGuest"][];
+            forecast?: null | components["schemas"]["ForecastWeek"][];
+            /** Format: date */
+            forecastAsOf?: null | string;
         };
         MarketingConsentDecision: {
             state: components["schemas"]["MarketingConsentState"];
@@ -13334,6 +13382,15 @@ export interface components {
             isArea?: null | boolean;
             /** Format: uuid */
             admissionArticleId?: null | string;
+        };
+        RoomKpi: {
+            /** Format: uuid */
+            roomId: string;
+            name: string;
+            /** Format: int32 */
+            utilization: number;
+            /** Format: int32 */
+            appointments: number;
         };
         RoomStartCheckInput: {
             /** Format: date */
@@ -14908,6 +14965,18 @@ export interface components {
             /** Format: uuid */
             locationId?: null | string;
         };
+        TrendPoint: {
+            /** Format: date */
+            from: string;
+            /** Format: date */
+            until: string;
+            /** Format: double */
+            revenueNet: null | number;
+            /** Format: int32 */
+            appointments: number;
+            /** Format: double */
+            staffUtilization: number;
+        };
         TseExportDto: {
             /** Format: uuid */
             id: string;
@@ -15116,6 +15185,17 @@ export interface components {
         };
         /** @enum {unknown} */
         WaitlistStatus: "Waiting" | "Booked" | "Cancelled" | "Expired";
+        WeekdayLoad: {
+            day: components["schemas"]["DayOfWeek"];
+            /** Format: double */
+            morning: null | number;
+            /** Format: double */
+            midday: null | number;
+            /** Format: double */
+            afternoon: null | number;
+            /** Format: double */
+            evening: null | number;
+        };
         WorkingHours: {
             /** Format: uuid */
             locationId: string;

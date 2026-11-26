@@ -135,7 +135,8 @@ public sealed record BriefingDto(
 
 /// <param name="Previous">Wert im Vergleichszeitraum (<c>CompareFrom</c> bis <c>CompareUntil</c> des Berichts); leer bei Werten ohne Vergleich.</param>
 /// <param name="HigherIsBetter">Ob ein höherer Wert gut ist (Umsatz) oder schlecht (No-Show-Quote); leer bei neutralen Werten wie „Offene Gutscheine“.</param>
-public sealed record Kpi(string Key, string Label, decimal Value, decimal? Previous, string Unit, bool? HigherIsBetter = null);
+/// <param name="Group">Überschrift der Gruppe, unter der die Kennzahl steht („Umsatz und Ertrag“, „Auslastung“, „Gäste“, „Ausfälle“); leer bei älteren Aufrufen.</param>
+public sealed record Kpi(string Key, string Label, decimal Value, decimal? Previous, string Unit, bool? HigherIsBetter = null, string? Group = null);
 
 public sealed record RevenueLine(string Label, string? CostCenter, decimal Gross, decimal Net);
 
@@ -188,7 +189,60 @@ public sealed record ManagementReportDto(
     string? AiNotice = null,
     IReadOnlyList<PromotionKpi>? Promotions = null,
     DateOnly? CompareFrom = null,
-    DateOnly? CompareUntil = null);
+    DateOnly? CompareUntil = null,
+    IReadOnlyList<TrendPoint>? Trend = null)
+{
+    /// <summary>Auslastung Personal je Wochentag und Tageszeit im Zeitraum; nur Wochentage mit Diensten.</summary>
+    public IReadOnlyList<WeekdayLoad>? LoadByWeekday { get; init; }
+
+    /// <summary>Felder in <see cref="LoadByWeekday"/> unter diesem Wert (Prozent) sind schwach: Lücken für Aktionen.</summary>
+    public decimal? WeakLoadBelow { get; init; }
+
+    /// <summary>Auslastung je Raum im Zeitraum (ohne Bereiche wie Sauna).</summary>
+    public IReadOnlyList<RoomKpi>? Rooms { get; init; }
+
+    /// <summary>Stattfindende Termine des Zeitraums nach der Herkunft, die der Termin speichert (Rezeption, online, Mail …).</summary>
+    public IReadOnlyList<ChannelKpi>? Channels { get; init; }
+
+    /// <summary>Beste Gäste des Zeitraums (höchstens zehn); nur mit dem Recht, Kunden zu sehen, sonst leer. <c>Spent</c> nur mit „Berichte mit Beträgen“.</summary>
+    public IReadOnlyList<GuestKpi>? TopGuests { get; init; }
+
+    /// <summary>Abwandernde Stammgäste, Stand heute (Anzahl als Kennzahl <c>lapsingRegulars</c>); nur mit dem Recht, Kunden zu sehen, sonst leer.</summary>
+    public IReadOnlyList<LapsingGuest>? LapsingGuests { get; init; }
+
+    /// <summary>Gebuchter Stand der nächsten vier Wochen ab <see cref="ForecastAsOf"/>, je sieben Tage; rein gerechnet, unabhängig vom Zeitraum.</summary>
+    public IReadOnlyList<ForecastWeek>? Forecast { get; init; }
+
+    /// <summary>Tag, an dem die Vorschau gerechnet wurde („Stand heute“).</summary>
+    public DateOnly? ForecastAsOf { get; init; }
+}
+
+/// <summary>
+/// Auslastung Personal an einem Wochentag je Tageszeit, in Prozent: Behandlungsminuten ÷ Dienstminuten in diesem Abschnitt. Vormittag bis 11 Uhr, Mittag 11 bis 14 Uhr,
+/// Nachmittag 14 bis 17 Uhr, Abend ab 17 Uhr (Ortszeit). Leer, wenn in diesem Abschnitt niemand Dienst hatte.
+/// </summary>
+public sealed record WeekdayLoad(DayOfWeek Day, decimal? Morning, decimal? Midday, decimal? Afternoon, decimal? Evening);
+
+/// <summary>Stattfindende Termine (ohne stornierte und nicht erschienene) mit dieser Herkunft im Zeitraum.</summary>
+public sealed record ChannelKpi(AppointmentSource Source, string Label, int Appointments);
+
+/// <summary>
+/// Abwandernder Stammgast: mindestens drei Besuche am Standort, seit über 90 Tagen keiner (an keinem Standort) und kein Termin in der Zukunft.
+/// <c>LastVisit</c> ist der Tag des letzten Besuchs, <c>Visits</c> die Besuche am Standort.
+/// </summary>
+public sealed record LapsingGuest(Guid CustomerId, string Name, DateOnly LastVisit, int Visits);
+
+/// <summary>
+/// Eine Woche der Vorschau (sieben Tage ab <c>From</c>): gebuchte Termine, ihr Terminpreis brutto (<c>BookedRevenue</c>, leer ohne „Berichte mit Beträgen“) und die gebuchte
+/// Auslastung Personal in Prozent (Behandlungsminuten ÷ geplante Dienstminuten).
+/// </summary>
+public sealed record ForecastWeek(DateOnly From, DateOnly Until, int Appointments, decimal? BookedRevenue, decimal StaffUtilization);
+
+/// <summary>
+/// Ein Punkt im Verlauf des Management-Berichts: ein Tag, bei Zeiträumen über 62 Tagen eine Woche von Montag bis Sonntag (am Rand gekürzt).
+/// <c>RevenueNet</c> ist der Umsatz ohne Gutscheinverkauf netto, leer ohne das Recht „Berichte mit Beträgen“; <c>StaffUtilization</c> in Prozent.
+/// </summary>
+public sealed record TrendPoint(DateOnly From, DateOnly Until, decimal? RevenueNet, int Appointments, decimal StaffUtilization);
 
 /// <summary>Wochen- und Monatsbericht per Mail für die angemeldete Person: <c>Enabled</c>, ob sie ihn bekommt; <c>Available</c>, ob ihre Rolle ihn überhaupt bekommt.</summary>
 public sealed record ReportMailSubscription(bool Enabled, bool Available);

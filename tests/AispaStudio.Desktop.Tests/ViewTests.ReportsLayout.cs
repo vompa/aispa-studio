@@ -99,6 +99,87 @@ public sealed partial class ViewTests
         ], [], [], [], [], [], false, CompareFrom: new DateOnly(2025, 10, 1), CompareUntil: new DateOnly(2025, 10, 19))));
 
     [Fact]
+    public Task Management_zeigt_Kacheln_in_Gruppen_und_den_Verlauf_als_Säulen_mit_Tabelle() => Render("hell", "management-kennzahlen-verlauf", async (window, main) =>
+    {
+        // Given der Management-Bericht der Inhaberin mit Kennzahlen aus vier Gruppen und einem Verlauf über drei Tage
+        var (shell, _) = await OpenReports(window, main, ReportsViewModel.ManagementTab);
+        await Pump(Settling);
+
+        // Then stehen die Kacheln unter ihren Überschriften, und der höchste Umsatz füllt die Höhe, die Hälfte davon die halbe Höhe
+        var groups = Named<ItemsControl>(window, "ManagementKpiGroups");
+        Assert.Equal(["Umsatz und Ertrag", "Auslastung", "Gäste", "Ausfälle"],
+            groups.GetVisualDescendants().OfType<TextBlock>().Where(t => t.Classes.Contains("h2")).Select(t => t.Text));
+        var revenue = Named<Controls.TrendBars>(window, "TrendRevenueChart");
+        var plot = revenue.GetVisualDescendants().OfType<Grid>().Single(g => g.Name == "TrendPlot");
+        Assert.Equal([Controls.TrendBars.ChartHeight / 2, Controls.TrendBars.ChartHeight, 0], plot.Children.OfType<Border>().Select(b => b.Bounds.Height));
+        Assert.Equal(Avalonia.Automation.AccessibilityView.Raw, Avalonia.Automation.AutomationProperties.GetAccessibilityView(plot));
+
+        // And für Screenreader stehen dieselben Werte in der aufklappbaren Tabelle
+        var toggle = revenue.GetVisualDescendants().OfType<Expander>().Single();
+        Assert.Equal("Umsatz ohne Gutscheinverkauf (netto): Werte als Tabelle", Avalonia.Automation.AutomationProperties.GetName(toggle));
+        toggle.IsExpanded = true;
+        await Pump(Settling);
+        Assert.Equal(["Mo 12.10.", "500,00 €", "Di 13.10.", "1.000,00 €", "Mi 14.10.", "0,00 €"],
+            revenue.GetVisualDescendants().OfType<Grid>().Single(g => g.Name == "TrendTable").Children.OfType<TextBlock>().Select(t => t.Text));
+
+        // Das Bild zeigt den Verlauf, nicht die Kacheln darüber.
+        revenue.BringIntoView();
+        await Pump(Settling);
+        return shell.AdminPage;
+    }, ReportsApi().On(ManagementRoute(new DateOnly(2026, 10, 1), Today), new ManagementReportDto(LocationId, new DateOnly(2026, 10, 1), Today,
+        [
+            new Kpi("revenue", "Umsatz brutto", 19250.97m, 25371m, "€", true, "Umsatz und Ertrag"),
+            new Kpi("contributionMargin", "Deckungsbeitrag", 6120.40m, 5980m, "€", true, "Umsatz und Ertrag"),
+            new Kpi("serviceRevenuePerShiftHour", "Umsatz je Dienststunde", 48.20m, 51m, "€", true, "Umsatz und Ertrag"),
+            new Kpi("staffUtilization", "Auslastung Personal", 71.5m, 68m, "%", true, "Auslastung"),
+            new Kpi("customers", "Gäste", 150m, 150m, "", true, "Gäste"),
+            new Kpi("lostRevenueNoShow", "Entgangen durch No-Show", 316m, 158m, "€", false, "Ausfälle"),
+        ], [], [], [], [], [], Trend:
+        [
+            new TrendPoint(new DateOnly(2026, 10, 12), new DateOnly(2026, 10, 12), 500m, 6, 60m),
+            new TrendPoint(new DateOnly(2026, 10, 13), new DateOnly(2026, 10, 13), 1000m, 11, 82.5m),
+            new TrendPoint(new DateOnly(2026, 10, 14), new DateOnly(2026, 10, 14), 0m, 0, 0m),
+        ])));
+
+    [Fact]
+    public Task Management_zeigt_nach_dem_Verlauf_die_Tabellen_und_kennzeichnet_schwache_Tageszeiten_im_Text() => Render("hell", "management-tabellen", async (window, main) =>
+    {
+        // Given der Management-Bericht der Inhaberin mit Auslastung je Tageszeit, Vorschau, Räumen, Kanälen und Gästen
+        var (shell, _) = await OpenReports(window, main, ReportsViewModel.ManagementTab);
+        await Pump(Settling);
+
+        // Then stehen die Tabellen nach dem Verlauf, in dieser Reihenfolge und sichtbar
+        var load = Named<StackPanel>(window, "ManagementLoadByWeekday");
+        var page = (StackPanel)load.Parent!;
+        string[] sections = ["ManagementTrend", "ManagementLoadByWeekday", "ManagementForecast", "ManagementRooms", "ManagementChannels", "ManagementTopGuests", "ManagementLapsingGuests"];
+        var positions = sections.Select(name => page.Children.IndexOf(page.Children.Single(c => c.Name == name))).ToList();
+        Assert.Equal(positions.Order(), positions);
+        Assert.All(sections, name => Assert.True(Named<StackPanel>(window, name).IsVisible, name));
+
+        // And ein schwaches Feld sagt „schwach“ im Text und für den Screenreader, nicht nur mit der Warnfläche; ohne Dienst steht ein Strich
+        var cells = load.GetVisualDescendants().OfType<Border>().Where(b => b.Classes.Contains("loadcell")).Take(4).ToList();
+        Assert.Equal(["40,0 % · schwach", "72,5 %", "55,0 %", "–"], cells.Select(c => ((TextBlock)c.Child!).Text));
+        Assert.Equal([true, false, false, false], cells.Select(c => c.Classes.Contains("weak")));
+        Assert.Equal("Montag Vormittag: 40,0 %, schwach", Avalonia.Automation.AutomationProperties.GetName(cells[0]));
+
+        load.BringIntoView();
+        await Pump(Settling);
+        return shell.AdminPage;
+    }, ReportsApi().On(ManagementRoute(new DateOnly(2026, 10, 1), Today), new ManagementReportDto(LocationId, new DateOnly(2026, 10, 1), Today,
+        [new Kpi("staffUtilization", "Auslastung Personal", 61.5m, 58m, "%", true, "Auslastung")], [], [], [], [], [],
+        Trend: [new TrendPoint(new DateOnly(2026, 10, 12), new DateOnly(2026, 10, 12), 500m, 6, 60m)])
+    {
+        LoadByWeekday = [new WeekdayLoad(DayOfWeek.Monday, 40m, 72.5m, 55m, null), new WeekdayLoad(DayOfWeek.Saturday, 88m, 91.5m, 76m, 64m)],
+        WeakLoadBelow = 50m,
+        Forecast = [new ForecastWeek(Today, Today.AddDays(6), 42, 3318m, 68.5m), new ForecastWeek(Today.AddDays(7), Today.AddDays(13), 25, 1975m, 41m)],
+        ForecastAsOf = Today,
+        Rooms = [new RoomKpi(Guid.NewGuid(), "Raum Lotus", 64, 38)],
+        Channels = [new ChannelKpi(AppointmentSource.Reception, "Rezeption", 51), new ChannelKpi(AppointmentSource.Online, "Online-Buchung", 23)],
+        TopGuests = [new GuestKpi(Guid.NewGuid(), "Maria Berger", 4, 612m)],
+        LapsingGuests = [new LapsingGuest(Guid.NewGuid(), "Karl Huber", new DateOnly(2026, 6, 30), 7)],
+    }));
+
+    [Fact]
     public Task Ein_Sprung_auf_die_Pflichtberichte_rollt_bei_Mindestfenster_zum_Abschnitt() => Render("hell", "zahlen-berichte-sprung", async (window, main) =>
     {
         // Given das Fenster am Minimum (1100 × 680) und „Berichte“ mit dem Vergleich: die Pflichtberichte liegen unter dem sichtbaren Bereich

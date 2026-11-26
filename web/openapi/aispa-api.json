@@ -37099,6 +37099,26 @@
           }
         }
       },
+      "ChannelKpi": {
+        "required": [
+          "source",
+          "label",
+          "appointments"
+        ],
+        "type": "object",
+        "properties": {
+          "source": {
+            "$ref": "#/components/schemas/AppointmentSource"
+          },
+          "label": {
+            "type": "string"
+          },
+          "appointments": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "ChannelMappingDto": {
         "required": [
           "id",
@@ -41319,6 +41339,41 @@
           }
         }
       },
+      "ForecastWeek": {
+        "required": [
+          "from",
+          "until",
+          "appointments",
+          "bookedRevenue",
+          "staffUtilization"
+        ],
+        "type": "object",
+        "properties": {
+          "from": {
+            "type": "string",
+            "format": "date"
+          },
+          "until": {
+            "type": "string",
+            "format": "date"
+          },
+          "appointments": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "bookedRevenue": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "staffUtilization": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
       "GapChainMove": {
         "required": [
           "appointmentId",
@@ -41769,6 +41824,35 @@
               "integer"
             ],
             "format": "int32"
+          }
+        }
+      },
+      "GuestKpi": {
+        "required": [
+          "customerId",
+          "name",
+          "visits",
+          "spent"
+        ],
+        "type": "object",
+        "properties": {
+          "customerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "visits": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "spent": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
           }
         }
       },
@@ -43357,6 +43441,38 @@
               "null",
               "boolean"
             ]
+          },
+          "group": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "LapsingGuest": {
+        "required": [
+          "customerId",
+          "name",
+          "lastVisit",
+          "visits"
+        ],
+        "type": "object",
+        "properties": {
+          "customerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "lastVisit": {
+            "type": "string",
+            "format": "date"
+          },
+          "visits": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
@@ -43977,6 +44093,83 @@
             "format": "date"
           },
           "compareUntil": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "trend": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/TrendPoint"
+            }
+          },
+          "loadByWeekday": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/WeekdayLoad"
+            }
+          },
+          "weakLoadBelow": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "rooms": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/RoomKpi"
+            }
+          },
+          "channels": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/ChannelKpi"
+            }
+          },
+          "topGuests": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/GuestKpi"
+            }
+          },
+          "lapsingGuests": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/LapsingGuest"
+            }
+          },
+          "forecast": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/ForecastWeek"
+            }
+          },
+          "forecastAsOf": {
             "type": [
               "null",
               "string"
@@ -48897,6 +49090,32 @@
               "string"
             ],
             "format": "uuid"
+          }
+        }
+      },
+      "RoomKpi": {
+        "required": [
+          "roomId",
+          "name",
+          "utilization",
+          "appointments"
+        ],
+        "type": "object",
+        "properties": {
+          "roomId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "utilization": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "appointments": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
@@ -54492,6 +54711,41 @@
           }
         }
       },
+      "TrendPoint": {
+        "required": [
+          "from",
+          "until",
+          "revenueNet",
+          "appointments",
+          "staffUtilization"
+        ],
+        "type": "object",
+        "properties": {
+          "from": {
+            "type": "string",
+            "format": "date"
+          },
+          "until": {
+            "type": "string",
+            "format": "date"
+          },
+          "revenueNet": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "appointments": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "staffUtilization": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
       "TseExportDto": {
         "required": [
           "id",
@@ -55264,6 +55518,49 @@
           "Cancelled",
           "Expired"
         ]
+      },
+      "WeekdayLoad": {
+        "required": [
+          "day",
+          "morning",
+          "midday",
+          "afternoon",
+          "evening"
+        ],
+        "type": "object",
+        "properties": {
+          "day": {
+            "$ref": "#/components/schemas/DayOfWeek"
+          },
+          "morning": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "midday": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "afternoon": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "evening": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
       },
       "WorkingHours": {
         "required": [

@@ -399,6 +399,176 @@ public sealed class ReportTests(ApiFixture fixture)
         Assert.Contains("1 Termin noch nicht kassiert.", after.Alerts);
     }
 
+    [Fact]
+    public async Task Deckungsbeitrag_ist_Belegumsatz_minus_Vollkosten_des_Monats_und_Umsatz_je_Behandlungsstunde_aus_dem_Beleg()
+    {
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        await spa.PutAsync<LocationCostSettingsDto>($"/api/costs/locations/{spa.Location.Id}/settings", new LocationCostSettingsDto(30m, 30m, 891m, 50, 75), Ct);
+        var register = await RegisterAsync(spa);
+        var appointment = await spa.BookOkAsync(TestSpa.At(10), Ct, spa.Anna.Id);
+        await spa.SetStatusAsync(appointment.Id, AppointmentStatus.CheckedIn, Ct);
+        var bill = await spa.PostAsync<BillDto>("/api/pos/bills", new BillInput(register.Id, null, []), Ct);
+        bill = await spa.PostAsync<BillDto>($"/api/pos/bills/{bill.Id}/lines",
+            new BillLineInput(BillLineKind.Appointment, appointment.Id, null, 1, null, 10m, null, null, null, null, null), Ct);
+        await CheckoutAsync(spa, bill);
+        var marchCost = (await spa.GetAsync<CostAnalysisDto>($"/api/costs/locations/{spa.Location.Id}/analysis?month=2027-03", Ct))
+            .Treatments.Single(t => t.TreatmentId == spa.MassageTreatment.Id).Total;
+
+        var report = await ManagementAsync(spa, ViennaToday, TestSpa.Monday);
+
+        // Given eine Massage (50 Minuten) im März, mit 10 € Rabatt kassiert: 57,50 € netto statt 65,83 € laut Terminpreis
+        // Then ist der Deckungsbeitrag 57,50 € minus die Vollkosten des März, und je Behandlungsstunde zählen 69 € aus dem Beleg
+        Assert.Equal(57.50m - marchCost, Kpi(report, "contributionMargin"));
+        Assert.Equal(Math.Round((57.50m - marchCost) / 57.50m * 100, 1), Kpi(report, "contributionMarginRate"));
+        Assert.Equal(69m, Kpi(report, "serviceRevenuePerTreatmentHour"));
+        Assert.Equal(57.50m, Kpi(report, "revenuePerGuest"));
+    }
+
+    [Fact]
+    public async Task Entgangener_Umsatz_steht_für_No_Show_und_Storno_getrennt_und_weniger_ist_besser()
+    {
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        foreach (var (hour, employee) in new[] { (10, spa.Anna.Id), (12, spa.Ben.Id) })
+        {
+            var missed = await spa.BookOkAsync(TestSpa.At(hour), Ct, employee);
+            await spa.SetStatusAsync(missed.Id, AppointmentStatus.NoShow, Ct);
+        }
+
+        var cancelled = await spa.BookOkAsync(TestSpa.At(14), Ct, spa.Anna.Id);
+        await spa.PostAsync<AppointmentDto>($"/api/appointments/{cancelled.Id}/cancel", new CancelAppointmentRequest(null), Ct);
+
+        var report = await ManagementAsync(spa, TestSpa.Monday, TestSpa.Monday);
+
+        // Given zwei Massagen zu 79 € ohne Erscheinen und eine stornierte; Then fehlen 158 € durch No-Show und 79 € durch Storno
+        Assert.Equal(158m, Kpi(report, "lostRevenueNoShow"));
+        Assert.Equal(79m, Kpi(report, "lostRevenueCancellation"));
+        Assert.False(report.Kpis.Single(k => k.Key == "lostRevenueNoShow").HigherIsBetter);
+    }
+
+    [Fact]
+    public async Task Verlauf_hat_bis_62_Tage_einen_Punkt_je_Tag_und_darüber_einen_je_Woche()
+    {
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        await spa.BookOkAsync(TestSpa.At(10, date: TestSpa.Monday.AddDays(1)), Ct, spa.Anna.Id);
+
+        var days = await ManagementAsync(spa, TestSpa.Monday, TestSpa.Monday.AddDays(61));
+        var weeks = await ManagementAsync(spa, TestSpa.Monday, TestSpa.Monday.AddDays(62));
+
+        // Given ein Termin am Dienstag; Then zeigen 62 Tage 62 Tagespunkte und 63 Tage neun Wochen von Montag bis Sonntag, je mit dem Termin am richtigen Punkt
+        Assert.Equal(62, days.Trend!.Count);
+        Assert.Equal((TestSpa.Monday.AddDays(1), TestSpa.Monday.AddDays(1), 1), (days.Trend[1].From, days.Trend[1].Until, days.Trend[1].Appointments));
+        Assert.Equal(9, weeks.Trend!.Count);
+        Assert.Equal((TestSpa.Monday, TestSpa.Monday.AddDays(6), 1), (weeks.Trend[0].From, weeks.Trend[0].Until, weeks.Trend[0].Appointments));
+        Assert.Equal(0, weeks.Trend[1].Appointments);
+    }
+
+    [Fact]
+    public void Ohne_Betragsrecht_fehlen_Deckungsbeitrag_Anteile_aus_Umsätzen_und_der_Umsatz_im_Verlauf()
+    {
+        var shown = new ManagementReportDto(Guid.Empty, TestSpa.Monday, TestSpa.Monday,
+            [new("contributionMarginRate", "Deckungsbeitrag in Prozent", 40, 35, "%", true), new("productShare", "Produktanteil", 12, 10, "%", true),
+                new("staffUtilization", "Auslastung Personal", 60, 50, "%", true)],
+            [], [], [], [], [], Trend: [new(TestSpa.Monday, TestSpa.Monday, 100m, 2, 50m)]);
+
+        var hidden = Reporting.ManagementReports.WithoutAmounts(shown);
+
+        // Then bleiben Auslastung und Anzahl, Quoten aus Geldbeträgen und der Umsatz je Tag fehlen
+        Assert.Equal(["staffUtilization"], hidden.Kpis.Select(k => k.Key));
+        Assert.Equal(new TrendPoint(TestSpa.Monday, TestSpa.Monday, null, 2, 50m), Assert.Single(hidden.Trend!));
+    }
+
+    [Fact]
+    public async Task Auslastung_nach_Wochentag_und_Tageszeit_teilt_Termine_an_den_Grenzen_und_Termine_stehen_nach_Herkunft()
+    {
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        await spa.BookOkAsync(TestSpa.At(9, 10), Ct, spa.Ben.Id);
+        await spa.BookOkAsync(TestSpa.At(10, 30), Ct, spa.Anna.Id);
+
+        var report = await ManagementAsync(spa, TestSpa.Monday, TestSpa.Monday);
+
+        // Given Anna und Ben im Dienst von 9 bis 17 Uhr, eine Massage um 9:10 und eine um 10:30 (50 Minuten, 20 davon nach 11 Uhr)
+        // Then ist der Vormittag zu 80 von 240 Minuten belegt, der Mittag zu 20 von 360, der Nachmittag leer und der Abend ohne Dienst
+        Assert.Equal(new WeekdayLoad(DayOfWeek.Monday, 33.3m, 5.6m, 0m, null), Assert.Single(report.LoadByWeekday!));
+        Assert.Equal(50m, report.WeakLoadBelow);
+        Assert.Equal([new ChannelKpi(AppointmentSource.Reception, "Rezeption", 2)], report.Channels);
+        Assert.Equal(2, report.Rooms!.Sum(r => r.Appointments));
+    }
+
+    [Fact]
+    public async Task Abwandernde_Stammgäste_haben_drei_Besuche_seit_über_90_Tagen_keinen_und_keinen_künftigen_Termin_und_ihr_Name_bleibt_aus_den_KI_Fakten()
+    {
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        var udo = await spa.PostAsync<CustomerDto>("/api/customers", new CustomerInput("Udo", $"Bald{Guid.NewGuid():N}", null, null, null, null), Ct);
+        var ida = await spa.PostAsync<CustomerDto>("/api/customers", new CustomerInput("Ida", $"Selten{Guid.NewGuid():N}", null, null, null, null), Ct);
+        foreach (var hour in new[] { 10, 12, 14 })
+        {
+            await spa.BookOkAsync(TestSpa.At(hour), Ct, spa.Anna.Id);
+            await spa.BookOkAsync(TestSpa.At(hour), Ct, spa.Ben.Id, customer: udo.Id);
+        }
+
+        await spa.BookOkAsync(TestSpa.At(16), Ct, spa.Anna.Id, customer: ida.Id);
+        await spa.BookOkAsync(TestSpa.At(16), Ct, spa.Ben.Id, customer: ida.Id);
+        var later = TestSpa.Monday.AddDays(105);
+        await spa.BookOkAsync(TestSpa.At(10, date: later), Ct, spa.Anna.Id, customer: udo.Id);
+
+        var report = await ManagementAtAsync(spa, TestSpa.At(10, date: TestSpa.Monday.AddDays(98)), TestSpa.Monday, TestSpa.Monday);
+
+        // Given 98 Tage nach drei Besuchen von Eva und Udo und zwei von Ida; Udo hat noch einen Termin vor sich
+        // Then wandert nur Eva ab, mit letztem Besuch und drei Besuchen, und die Fakten für die KI nennen die Anzahl, nicht ihren Namen
+        Assert.Equal(1, Kpi(report, "lapsingRegulars"));
+        var eva = Assert.Single(report.LapsingGuests!);
+        Assert.Equal((spa.Customer.Id, TestSpa.Monday, 3), (eva.CustomerId, eva.LastVisit, eva.Visits));
+        Assert.NotNull(report.TopGuests);
+        var facts = Reporting.ManagementSummaries.FactsText(report);
+        Assert.Contains("Abwandernde Stammgäste (heute): 1", facts, StringComparison.Ordinal);
+        Assert.DoesNotContain(eva.Name, facts, StringComparison.Ordinal);
+
+        // And ohne das Recht auf Gästenamen (so rufen KI-Kommentar und Mail auf) fehlen die Listen
+        await using var scope = fixture.Factory.Services.CreateAsyncScope();
+        scope.ServiceProvider.GetRequiredService<Tenancy.TenantContext>().Use(spa.TenantId);
+        var withoutNames = await scope.ServiceProvider.GetRequiredService<Reporting.ManagementReports>()
+            .ManagementAsync(spa.Location.Id, TestSpa.Monday, TestSpa.Monday, true, Ct);
+        Assert.Null(withoutNames!.LapsingGuests);
+        Assert.Null(withoutNames.TopGuests);
+    }
+
+    [Fact]
+    public async Task Vorschau_zeigt_vier_Wochen_ab_heute_mit_gebuchtem_Umsatz_und_gebuchter_Auslastung()
+    {
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        await spa.BookOkAsync(TestSpa.At(10), Ct, spa.Anna.Id);
+        await spa.BookOkAsync(TestSpa.At(10, date: TestSpa.Monday.AddDays(7)), Ct, spa.Anna.Id);
+
+        var report = await ManagementAtAsync(spa, TestSpa.At(8), TestSpa.Monday, TestSpa.Monday);
+
+        // Given heute ist der Testmontag, je Montag eine Massage zu 79 € und Anna und Ben je acht Stunden im Dienst
+        // Then zeigen die ersten beiden Wochen je einen Termin, 79 € und 50 von 960 Minuten, die letzten zwei nichts
+        Assert.Equal(TestSpa.Monday, report.ForecastAsOf);
+        Assert.Equal(
+            [
+                new ForecastWeek(TestSpa.Monday, TestSpa.Monday.AddDays(6), 1, 79m, 5.2m),
+                new ForecastWeek(TestSpa.Monday.AddDays(7), TestSpa.Monday.AddDays(13), 1, 79m, 5.2m),
+                new ForecastWeek(TestSpa.Monday.AddDays(14), TestSpa.Monday.AddDays(20), 0, 0m, 0m),
+                new ForecastWeek(TestSpa.Monday.AddDays(21), TestSpa.Monday.AddDays(27), 0, 0m, 0m),
+            ], report.Forecast);
+    }
+
+    [Fact]
+    public void Ohne_Betragsrecht_fehlen_die_Ausgaben_der_besten_Gäste_und_der_gebuchte_Umsatz_der_Vorschau()
+    {
+        var shown = new ManagementReportDto(Guid.Empty, TestSpa.Monday, TestSpa.Monday, [], [], [], [], [], [])
+        {
+            TopGuests = [new(Guid.Empty, "Eva", 3, 240m)],
+            Forecast = [new(TestSpa.Monday, TestSpa.Monday.AddDays(6), 4, 316m, 20m)],
+        };
+
+        var hidden = Reporting.ManagementReports.WithoutAmounts(shown);
+
+        // Then bleiben Besuche, Termine und Auslastung, die Beträge fehlen
+        Assert.Equal(new GuestKpi(Guid.Empty, "Eva", 3, null), Assert.Single(hidden.TopGuests!));
+        Assert.Equal(new ForecastWeek(TestSpa.Monday, TestSpa.Monday.AddDays(6), 4, null, 20m), Assert.Single(hidden.Forecast!));
+    }
+
     private static decimal Kpi(ManagementReportDto report, string key) => report.Kpis.Single(k => k.Key == key).Value;
 
     private sealed class FixedTime(DateTimeOffset now) : TimeProvider

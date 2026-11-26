@@ -394,8 +394,10 @@ internal static class ReportEndpoints
                     return TypedResults.ValidationProblem(new Dictionary<string, string[]> { ["compare"] = ["Vergleich: previous (Zeitraum davor), month (Vormonat) oder year (Vorjahr)."] });
                 }
 
-                var amounts = (await accessService.CurrentAsync(ct))!.Has(AccessRight.ViewAmountReports);
-                return await reports.ManagementAsync(locationId, from, until, amounts, ct, compare) is { } report
+                var access = (await accessService.CurrentAsync(ct))!;
+                // Gästenamen (beste und abwandernde Gäste) mit demselben Recht wie die Kundenliste.
+                return await reports.ManagementAsync(locationId, from, until, access.Has(AccessRight.ViewAmountReports), ct, compare,
+                        guests: access.Has(AccessRight.ViewCalendar)) is { } report
                     ? TypedResults.Ok(await summaries.AttachAsync(report, ct))
                     : TypedResults.NotFound();
             })

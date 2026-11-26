@@ -31,6 +31,9 @@ public sealed record QuickRange(string Label, Func<DateOnly, (DateOnly From, Dat
     public override string ToString() => Label;
 }
 
+/// <summary>Kacheln einer Gruppe mit ihrer Überschrift („Umsatz und Ertrag“, „Auslastung“, „Gäste“, „Ausfälle“), wie die API sie ordnet.</summary>
+public sealed record KpiGroupRow(string Title, IReadOnlyList<KpiRow> Kpis);
+
 public sealed record RevenueRow(string Label, string Gross, string Net);
 
 public sealed record EmployeeKpiRow(string Name, string ShiftHours, string TreatmentHours, string Utilization, string RevenuePerHour);
@@ -39,6 +42,15 @@ public sealed record TreatmentKpiRow(string Name, string Appointments, string Re
 
 /// <summary>Wirkung einer Aktion: Positionen, Gäste (davon neu), Rabatt und Umsatz; „–“ ohne das Recht „Berichte mit Beträgen“.</summary>
 public sealed record PromotionKpiRow(string Name, string Positions, string Guests, string NewGuests, string Discount, string Revenue);
+
+/// <summary>Ein Feld der Tabelle Wochentag × Tageszeit: „33,3 % · schwach“ trägt die Kennzeichnung im Text, nicht nur in der Farbe; <c>Spoken</c> für Screenreader.</summary>
+public sealed record LoadCell(string Text, bool IsWeak, string Spoken);
+
+/// <summary>Zeile der Tabelle Wochentag × Tageszeit (Vormittag, Mittag, Nachmittag, Abend).</summary>
+public sealed record WeekdayLoadRow(string Day, LoadCell Morning, LoadCell Midday, LoadCell Afternoon, LoadCell Evening);
+
+/// <summary>Zeile einer einfachen Tabelle mit Name und bis zu drei Werten (Räume, Kanäle, Gäste, Vorschau); leere Spalten bleiben leer.</summary>
+public sealed record ReportRow(string Name, string First, string Second = "", string Third = "");
 
 public sealed record BenchmarkPeriod(int Days, string Label)
 {
@@ -177,6 +189,39 @@ public sealed partial class ManagementReportViewModel(IWorkstationApi api, TimeP
     [ObservableProperty]
     public partial IReadOnlyList<KpiRow> Kpis { get; private set; } = [];
 
+    /// <summary>Die Kacheln nach Gruppen mit Überschrift; Kennzahlen ohne Gruppe (ältere API) stehen unter „Kennzahlen“.</summary>
+    [ObservableProperty]
+    public partial IReadOnlyList<KpiGroupRow> KpiGroups { get; private set; } = [];
+
+    /// <summary>Verlauf je Tag (über 62 Tage je Woche) als drei Reihen; der Umsatz fehlt ohne das Recht „Berichte mit Beträgen“.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasTrend), nameof(HasTrendRevenue))]
+    public partial IReadOnlyList<TrendPoint> Trend { get; private set; } = [];
+
+    public bool HasTrend => Trend.Count > 0;
+
+    public bool HasTrendRevenue => Trend.Any(p => p.RevenueNet is not null);
+
+    public IReadOnlyList<TrendBar> TrendRevenue => [.. Trend.Select(p => new TrendBar(TrendLabel(p), (double)(p.RevenueNet ?? 0), Money.Format(p.RevenueNet ?? 0)))];
+
+    public IReadOnlyList<TrendBar> TrendAppointments => [.. Trend.Select(p => new TrendBar(TrendLabel(p), p.Appointments, Number(p.Appointments)))];
+
+    public IReadOnlyList<TrendBar> TrendUtilization => [.. Trend.Select(p => new TrendBar(TrendLabel(p), (double)p.StaffUtilization, $"{Number(p.StaffUtilization, 1)} %"))];
+
+    /// <summary>„Mo 02.11.“ für einen Tag, „02.11.–08.11.“ für eine Woche.</summary>
+    private static string TrendLabel(TrendPoint point) => point.From == point.Until
+        ? $"{German.DateTimeFormat.GetAbbreviatedDayName(point.From.DayOfWeek)[..2]} {point.From:dd.MM.}"
+        : $"{point.From:dd.MM.}–{point.Until:dd.MM.}";
+
+    private static readonly global::System.Globalization.CultureInfo German = global::System.Globalization.CultureInfo.GetCultureInfo("de-AT");
+
+    partial void OnTrendChanged(IReadOnlyList<TrendPoint> value)
+    {
+        OnPropertyChanged(nameof(TrendRevenue));
+        OnPropertyChanged(nameof(TrendAppointments));
+        OnPropertyChanged(nameof(TrendUtilization));
+    }
+
     [ObservableProperty]
     public partial IReadOnlyList<RevenueRow> RevenueByAccount { get; private set; } = [];
 
@@ -192,6 +237,34 @@ public sealed partial class ManagementReportViewModel(IWorkstationApi api, TimeP
     /// <summary>Aktionen an der Kassa im Zeitraum (ADR 0071); leer, wenn keine kassiert wurde.</summary>
     [ObservableProperty]
     public partial IReadOnlyList<PromotionKpiRow> Promotions { get; private set; } = [];
+
+    /// <summary>Auslastung Personal je Wochentag und Tageszeit; schwache Felder (unter der Schwelle der API) tragen „schwach“ im Text.</summary>
+    [ObservableProperty]
+    public partial IReadOnlyList<WeekdayLoadRow> LoadByWeekday { get; private set; } = [];
+
+    /// <summary>„Schwach: unter 50 % ausgelastet, Lücken für Aktionen.“</summary>
+    [ObservableProperty]
+    public partial string? WeakLoadInfo { get; private set; }
+
+    [ObservableProperty]
+    public partial IReadOnlyList<ReportRow> Rooms { get; private set; } = [];
+
+    [ObservableProperty]
+    public partial IReadOnlyList<ReportRow> Channels { get; private set; } = [];
+
+    /// <summary>Beste Gäste und abwandernde Stammgäste; leer ohne das Recht, Kunden zu sehen.</summary>
+    [ObservableProperty]
+    public partial IReadOnlyList<ReportRow> TopGuests { get; private set; } = [];
+
+    [ObservableProperty]
+    public partial IReadOnlyList<ReportRow> LapsingGuests { get; private set; } = [];
+
+    /// <summary>Gebuchter Stand der nächsten vier Wochen; <c>ForecastInfo</c> nennt den Stand („Stand heute, 26.11.2026“).</summary>
+    [ObservableProperty]
+    public partial IReadOnlyList<ReportRow> Forecast { get; private set; } = [];
+
+    [ObservableProperty]
+    public partial string? ForecastInfo { get; private set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowAmounts))]
@@ -278,11 +351,21 @@ public sealed partial class ManagementReportViewModel(IWorkstationApi api, TimeP
             AiSummary = null;
             IsAiPending = false;
             Kpis = [];
+            KpiGroups = [];
+            Trend = [];
             RevenueByAccount = [];
             RevenueByPayment = [];
             Employees = [];
             Treatments = [];
             Promotions = [];
+            LoadByWeekday = [];
+            WeakLoadInfo = null;
+            Rooms = [];
+            Channels = [];
+            TopGuests = [];
+            LapsingGuests = [];
+            Forecast = [];
+            ForecastInfo = null;
             CompareInfo = null;
             return;
         }
@@ -387,6 +470,9 @@ public sealed partial class ManagementReportViewModel(IWorkstationApi api, TimeP
         AiNotice = report.AiNotice;
         IsAiPending = report.AiSummaryPending;
         Kpis = [.. report.Kpis.Select(k => KpiTile(k, comparison))];
+        KpiGroups = [.. report.Kpis.Select((k, i) => (Kpi: k, Tile: Kpis[i])).GroupBy(k => k.Kpi.Group ?? "Kennzahlen")
+            .Select(g => new KpiGroupRow(g.Key, [.. g.Select(k => k.Tile)]))];
+        Trend = report.Trend ?? [];
         RevenueByAccount = [.. report.RevenueByAccount.Select(r => new RevenueRow(r.CostCenter is { } center ? $"{r.Label} ({center})" : r.Label, Money.Format(r.Gross), $"netto {Money.Format(r.Net)}"))];
         RevenueByPayment = [.. report.RevenueByPayment.Select(r => new RevenueRow(r.Label, Money.Format(r.Gross), ""))];
         Employees = [.. report.Employees.Select(e => new EmployeeKpiRow(
@@ -395,6 +481,34 @@ public sealed partial class ManagementReportViewModel(IWorkstationApi api, TimeP
             t.Name, Number(t.Appointments), t.NetRevenue is { } net ? Money.Format(net) : "–", t.MarginPerAppointment is { } margin ? Money.Format(margin) : "–", t.MarginPerAppointment < 0))];
         Promotions = [.. (report.Promotions ?? []).Select(p => new PromotionKpiRow(p.Name, Number(p.Positions), Number(p.Guests), Number(p.NewGuests),
             p.Discount is { } discount ? Money.Format(discount) : "–", p.Revenue is { } revenue ? Money.Format(revenue) : "–"))];
+        var weakBelow = report.WeakLoadBelow;
+        LoadByWeekday = [.. (report.LoadByWeekday ?? []).Select(d =>
+        {
+            var day = German.DateTimeFormat.GetDayName(d.Day);
+            return new WeekdayLoadRow(day, Cell(day, "Vormittag", d.Morning, weakBelow), Cell(day, "Mittag", d.Midday, weakBelow),
+                Cell(day, "Nachmittag", d.Afternoon, weakBelow), Cell(day, "Abend", d.Evening, weakBelow));
+        })];
+        WeakLoadInfo = weakBelow is { } below ? $"Schwach: unter {Number(below)} % ausgelastet. Das sind die Lücken für Aktionen." : null;
+        Rooms = [.. (report.Rooms ?? []).Select(r => new ReportRow(r.Name, $"{r.Utilization} %", Number(r.Appointments)))];
+        Channels = [.. (report.Channels ?? []).Select(c => new ReportRow(c.Label, Number(c.Appointments)))];
+        TopGuests = [.. (report.TopGuests ?? []).Select(g => new ReportRow(g.Name, Number(g.Visits), g.Spent is { } spent ? Money.Format(spent) : "–"))];
+        LapsingGuests = [.. (report.LapsingGuests ?? []).Select(g => new ReportRow(g.Name, StockFormat.Date(g.LastVisit), Number(g.Visits)))];
+        Forecast = [.. (report.Forecast ?? []).Select(w => new ReportRow($"{w.From:dd.MM.}–{w.Until:dd.MM.}", Number(w.Appointments),
+            w.BookedRevenue is { } revenue ? Money.Format(revenue) : "–", $"{Number(w.StaffUtilization, 1)} %"))];
+        ForecastInfo = report.ForecastAsOf is { } asOf ? $"Stand heute, {StockFormat.Date(asOf)}: nur, was schon gebucht ist." : null;
+    }
+
+    /// <summary>„33,3 %“, unter der Schwelle „33,3 % · schwach“, ohne Dienst „–“; der Screenreader hört Tag, Tageszeit und Wert.</summary>
+    private static LoadCell Cell(string day, string daypart, decimal? value, decimal? weakBelow)
+    {
+        if (value is not { } load)
+        {
+            return new LoadCell("–", false, $"{day} {daypart}: kein Dienst");
+        }
+
+        var weak = load < weakBelow;
+        var text = $"{Number(load, 1)} %{(weak ? " · schwach" : "")}";
+        return new LoadCell(text, weak, $"{day} {daypart}: {text.Replace(" · ", ", ", StringComparison.Ordinal)}");
     }
 
     /// <summary>

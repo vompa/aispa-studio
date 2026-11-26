@@ -29,15 +29,46 @@ internal sealed partial class ManagementReports(AispaDbContext db, RosterService
     private sealed record Period(
         decimal Gross, decimal Net, int Sales, int Appointments, int NoShows, int Cancellations, decimal StaffUtilization,
         decimal RoomUtilization, int Customers, int NewCustomers, int Returning, decimal Rebooking,
-        decimal ServiceNet, int ServiceSales, decimal VouchersSold, decimal VouchersRedeemed);
+        decimal ServiceNet, int ServiceSales, decimal VouchersSold, decimal VouchersRedeemed,
+        decimal ShiftHours, decimal TreatmentHours, decimal ProductNet, decimal ContributionMargin, decimal ContributionBasis, decimal LostNoShow, decimal LostCancellation);
+
+    /// <summary>Gruppen der Kacheln in der Reihenfolge der Maske; jede Kennzahl steht in genau einer.</summary>
+    private static readonly (string Group, string[] Keys)[] KpiGroups =
+    [
+        ("Umsatz und Ertrag", ["revenue", "revenueNet", "averageTicket", "serviceRevenueNet", "serviceAverageTicket", "contributionMargin", "contributionMarginRate",
+            "serviceRevenuePerShiftHour", "serviceRevenuePerTreatmentHour", "productShare", "productRevenuePerAppointment", "revenuePerGuest",
+            "vouchersSold", "vouchersRedeemed", "voucherLiabilities"]),
+        ("Auslastung", ["appointments", "staffUtilization", "roomUtilization", "openRequests"]),
+        ("Gäste", ["customers", "newCustomers", "returningRate", "rebookingRate", "lapsingRegulars"]),
+        ("Ausfälle", ["noShowRate", "cancellationRate", "lostRevenueNoShow", "lostRevenueCancellation"]),
+    ];
+
+    /// <summary>Ordnet die Kennzahlen nach Gruppe und Reihenfolge aus <see cref="KpiGroups"/> und schreibt die Gruppe an jede Kennzahl.</summary>
+    private static List<Kpi> Grouped(IEnumerable<Kpi> kpis)
+    {
+        var order = KpiGroups.SelectMany(g => g.Keys.Select(key => (key, g.Group))).Select((entry, index) => (entry.key, entry.Group, index))
+            .ToDictionary(e => e.key, e => (e.Group, e.index));
+        return [.. kpis.OrderBy(k => order[k.Key].index).Select(k => k with { Group = order[k.Key].Group })];
+    }
 
     /// <summary>
     /// Kennzahlen eines Zeitraums. Ohne <paramref name="amounts"/> (Recht „Berichte mit Beträgen“) fehlen alle Geldbeträge schon hier,
-    /// nicht erst in der Oberfläche.
+    /// nicht erst in der Oberfläche. Gästenamen (beste und abwandernde Gäste) nur mit <paramref name="guests"/> (Recht wie die Kundenliste); KI-Kommentar und Mail
+    /// rufen ohne auf.
     /// </summary>
     public async Task<ManagementReportDto?> ManagementAsync(Guid locationId, DateOnly from, DateOnly until, bool amounts, CancellationToken ct,
-        string compare = CompareModes.Previous) =>
-        await ManagementAsync(locationId, from, until, ct, compare) is { } report ? amounts ? report : WithoutAmounts(report) : null;
+        string compare = CompareModes.Previous, bool guests = false)
+    {
+        if (await ManagementAsync(locationId, from, until, ct, compare) is not { } report)
+        {
+            return null;
+        }
+
+        report = guests
+            ? report with { TopGuests = await TopGuestsAsync(locationId, from, until, amounts, TopGuestCount, ct) }
+            : report with { LapsingGuests = null };
+        return amounts ? report : WithoutAmounts(report);
+    }
 
     /// <summary>Wählbare Vergleiche (Abfrageparameter <c>compare</c>): Zeitraum davor, derselbe Abschnitt im Vormonat, derselbe Zeitraum im Vorjahr.</summary>
     internal static class CompareModes
@@ -70,11 +101,15 @@ internal sealed partial class ManagementReports(AispaDbContext db, RosterService
         };
     }
 
-    /// <summary>Entfernt Geldbeträge: Umsatz-Kennzahlen, Umsatz nach Konto und Zahlart, Umsatz je Person und Behandlung, Margen und Warnungen mit Beträgen.</summary>
+    /// <summary>
+    /// Entfernt Geldbeträge: Umsatz-Kennzahlen, Umsatz nach Konto und Zahlart, Umsatz je Person und Behandlung, Margen, Warnungen mit Beträgen, Ausgaben der besten Gäste
+    /// und den gebuchten Umsatz der Vorschau.
+    /// </summary>
     internal static ManagementReportDto WithoutAmounts(ManagementReportDto report) =>
         report with
         {
-            Kpis = [.. report.Kpis.Where(k => k.Unit != "€")],
+            Kpis = [.. report.Kpis.Where(k => k.Unit != "€" && !AmountShares.Contains(k.Key))],
+            Trend = report.Trend is null ? null : [.. report.Trend.Select(p => p with { RevenueNet = null })],
             RevenueByAccount = [],
             RevenueByPayment = [],
             Employees = [.. report.Employees.Select(e => e with { RevenuePerHour = null })],
@@ -83,6 +118,8 @@ internal sealed partial class ManagementReports(AispaDbContext db, RosterService
             Alerts = [.. report.Alerts.Where(a => !a.Contains('€'))],
             Promotions = report.Promotions is null ? null : [.. report.Promotions.Select(p => p with { Discount = null, Revenue = null })],
             AmountsHidden = true,
+            TopGuests = report.TopGuests is null ? null : [.. report.TopGuests.Select(g => g with { Spent = null })],
+            Forecast = report.Forecast is null ? null : [.. report.Forecast.Select(w => w with { BookedRevenue = null })],
         };
 
     internal async Task<ManagementReportDto?> ManagementAsync(Guid locationId, DateOnly from, DateOnly until, CancellationToken ct, string compare = CompareModes.Previous)
@@ -124,23 +161,18 @@ internal sealed partial class ManagementReports(AispaDbContext db, RosterService
 
         var appointments = await db.Appointments.AsNoTracking()
             .Where(a => a.LocationId == locationId && a.Start >= start && a.Start < end && a.Status != AppointmentStatus.Cancelled && a.Status != AppointmentStatus.NoShow)
-            .Select(a => new { a.Id, a.TreatmentId, Treatment = a.Treatment.Name, a.EmployeeId, a.Start, a.End })
+            .Select(a => new { a.Id, a.TreatmentId, Treatment = a.Treatment.Name, a.EmployeeId, a.Start, a.End, a.Source })
             .ToListAsync(ct);
         var cashed = NetByAppointment(lines);
         decimal Net(Guid appointmentId) => cashed.GetValueOrDefault(appointmentId);
 
         // Vollkosten je Monat des Termins: Ein Zeitraum über zwei Monate rechnet jeden Termin mit den Stückkosten seines Monats.
-        static (int Year, int Month) MonthOf(DateOnly date) => (date.Year, date.Month);
-        var unitCosts = new Dictionary<(int Year, int Month), Dictionary<Guid, TreatmentCostDto>>();
-        foreach (var month in appointments.Select(a => MonthOf(LocalTime.LocalDate(a.Start, zone))).Distinct())
-        {
-            unitCosts[month] = (await costs.AnalyzeAsync(locationId, month.Year, month.Month, ct))?.Treatments.ToDictionary(t => t.TreatmentId) ?? [];
-        }
+        var unitCosts = await UnitCostsAsync(locationId, appointments.Select(a => LocalTime.LocalDate(a.Start, zone)), ct);
 
         var treatments = appointments.GroupBy(a => (a.TreatmentId, a.Treatment))
             .Select(g =>
             {
-                var margins = g.Select(a => unitCosts[MonthOf(LocalTime.LocalDate(a.Start, zone))].GetValueOrDefault(a.TreatmentId) is { } cost
+                var margins = g.Select(a => CostOf(unitCosts, LocalTime.LocalDate(a.Start, zone), a.TreatmentId) is { } cost
                         ? Net(a.Id) - cost.Total
                         : (decimal?)null)
                     .OfType<decimal>().ToList();
@@ -178,6 +210,8 @@ internal sealed partial class ManagementReports(AispaDbContext db, RosterService
         // Mails der Terminannahme, über die die Rezeption noch entscheiden muss: Stand jetzt, nicht je Zeitraum, deshalb ohne Vergleich.
         var openRequests = await db.InboundMails.AsNoTracking()
             .CountAsync(m => m.Status == InboundMailStatus.NeedsReview && (m.LocationId == locationId || m.LocationId == null), ct);
+        var now = time.GetUtcNow();
+        var (lapsingCount, lapsingGuests) = await LapsingGuestsAsync(locationId, zone, now, ct);
 
         var all = current.Appointments + current.NoShows + current.Cancellations;
         var previousAll = previous.Appointments + previous.NoShows + previous.Cancellations;
@@ -205,7 +239,18 @@ internal sealed partial class ManagementReports(AispaDbContext db, RosterService
             new("rebookingRate", "Folgetermin gebucht", current.Rebooking, previous.Rebooking, "%", true),
             new("voucherLiabilities", "Offene Gutscheine (heute)", vouchers, null, "€"),
             new("openRequests", "Offene Anfragen (heute)", openRequests, null, ""),
+            new("lapsingRegulars", "Abwandernde Stammgäste (heute)", lapsingCount, null, "", false),
         };
+        kpis.AddRange(EarningsKpis(current, previous));
+        kpis.AddRange(LossKpis(current, previous));
+
+        var receiptDays = await db.Receipts.AsNoTracking()
+            .Where(r => registerIds.Contains(r.RegisterId) && r.IssuedAt >= start && r.IssuedAt < end && (r.Kind == ReceiptKind.Sale || r.Kind == ReceiptKind.Void))
+            .ToDictionaryAsync(r => r.Id, r => LocalTime.LocalDate(r.IssuedAt, zone), ct);
+        var trend = Trend(from, until,
+            [.. lines.Where(l => l.RevenueAccountId != PosModel.MultiPurposeVouchers.Id).Select(l => (receiptDays[l.ReceiptId], l.Amount, l.TaxPercent))],
+            [.. appointments.Select(a => (LocalTime.LocalDate(a.Start, zone), (a.End - a.Start).TotalMinutes))],
+            [.. plans.SelectMany(p => p.Value.Shifts.Where(s => s.LocationId == locationId).Select(s => (p.Key.Item2, (s.End!.Value - s.Start!.Value).TotalMinutes)))]);
 
         var alerts = new List<string>();
         if (Rate(current.NoShows, all) > 10)
@@ -221,7 +266,6 @@ internal sealed partial class ManagementReports(AispaDbContext db, RosterService
         alerts.AddRange(treatments.Where(t => t.MarginPerAppointment < 0)
             .Select(t => $"{t.Name} bringt je Termin {(-t.MarginPerAppointment!.Value).ToString("0.00", German)} € Verlust (Vollkosten)."));
         var settled = await SettledAppointmentsAsync(lines, ct);
-        var now = time.GetUtcNow();
         var uncashed = appointments.Count(a => a.End <= now && !settled.Contains(a.Id));
         if (uncashed > 0)
         {
@@ -241,8 +285,21 @@ internal sealed partial class ManagementReports(AispaDbContext db, RosterService
                 + "Die Vorperiode ist unvollständig.");
         }
 
-        return new(locationId, from, until, kpis, byAccount, byPayment, employeeKpis, treatments, alerts, NoShows: current.NoShows, Cancellations: current.Cancellations,
-            Promotions: promotions, CompareFrom: compareFrom, CompareUntil: compareUntil);
+        var today = LocalTime.LocalDate(now, zone);
+        return new(locationId, from, until, Grouped(kpis), byAccount, byPayment, employeeKpis, treatments, alerts, NoShows: current.NoShows, Cancellations: current.Cancellations,
+            Promotions: promotions, CompareFrom: compareFrom, CompareUntil: compareUntil, Trend: trend)
+        {
+            LoadByWeekday = LoadByWeekday(
+                appointments.Select(a => (TimeZoneInfo.ConvertTime(a.Start, zone).DateTime, TimeZoneInfo.ConvertTime(a.End, zone).DateTime)),
+                plans.SelectMany(p => p.Value.Shifts.Where(s => s.LocationId == locationId)
+                    .Select(s => (p.Key.Item2.ToDateTime(s.Start!.Value), p.Key.Item2.ToDateTime(s.End!.Value))))),
+            WeakLoadBelow = WeakLoadBelow,
+            Rooms = await RoomsAsync(locationId, from, until, ct),
+            Channels = Channels(appointments.Select(a => a.Source)),
+            LapsingGuests = lapsingGuests,
+            Forecast = await ForecastAsync(locationId, zone, today, ct),
+            ForecastAsOf = today,
+        };
     }
 
     /// <summary>
@@ -378,6 +435,7 @@ internal sealed partial class ManagementReports(AispaDbContext db, RosterService
                 l.VoucherId,
                 MultiPurposeSale = l.RevenueAccountId == PosModel.MultiPurposeVouchers.Id,
                 VoucherSale = db.BillLines.Any(b => b.Id == l.BillLineId && b.Kind == BillLineKind.Voucher),
+                ProductSale = db.BillLines.Any(b => b.Id == l.BillLineId && b.Kind == BillLineKind.Article),
             }))
             .ToListAsync(ct);
         var gross = receiptLines.Sum(l => l.Amount);
@@ -400,9 +458,10 @@ internal sealed partial class ManagementReports(AispaDbContext db, RosterService
 
         var appointments = await db.Appointments.AsNoTracking()
             .Where(a => a.LocationId == location.Id && a.Start >= start && a.Start < end)
-            .Select(a => new { a.Id, a.CustomerId, a.EmployeeId, a.Status, a.Start, a.End, a.BlockedFrom, a.BlockedUntil })
+            .Select(a => new { a.Id, a.CustomerId, a.EmployeeId, a.TreatmentId, a.Status, a.Start, a.End, a.BlockedFrom, a.BlockedUntil, a.Price })
             .ToListAsync(ct);
         var held = appointments.Where(a => a.Status != AppointmentStatus.Cancelled && a.Status != AppointmentStatus.NoShow).ToList();
+        var (contribution, contributionBasis) = await ContributionAsync(location.Id, zone, [.. held.Select(a => (a.Id, a.TreatmentId, a.Start))], start, end, ct);
 
         var employees = await roster.EmployeesAt(location.Id, from).AsNoTracking().Include(e => e.WorkingHours).ToListAsync(ct);
         var plans = await roster.PlansAsync(employees, from, until, ct);
@@ -443,7 +502,14 @@ internal sealed partial class ManagementReports(AispaDbContext db, RosterService
             serviceNet,
             serviceSales,
             vouchersSold,
-            vouchersRedeemed);
+            vouchersRedeemed,
+            (decimal)shiftMinutes / 60,
+            (decimal)treatmentMinutes / 60,
+            TaxRates.NetSum(receiptLines.Where(l => l.ProductSale), l => l.Amount, l => l.TaxPercent),
+            contribution,
+            contributionBasis,
+            appointments.Where(a => a.Status == AppointmentStatus.NoShow).Sum(a => a.Price),
+            appointments.Where(a => a.Status == AppointmentStatus.Cancelled).Sum(a => a.Price));
     }
 
     public async Task<ComplianceReportDto?> ComplianceAsync(Guid locationId, DateOnly date, bool amounts, CancellationToken ct)

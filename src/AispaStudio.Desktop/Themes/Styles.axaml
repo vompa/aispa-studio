@@ -308,6 +308,17 @@
   <Style Selector="Border.pill.warn > StackPanel > TextBlock">
     <Setter Property="Foreground" Value="{DynamicResource WarnBrush}" />
   </Style>
+  <!-- Feld der Tabelle Wochentag × Tageszeit im Management-Bericht (T-094): schwach = Warnfläche und „schwach“ im Text, nie nur Farbe -->
+  <Style Selector="Border.loadcell">
+    <Setter Property="Padding" Value="8,2" />
+    <Setter Property="CornerRadius" Value="4" />
+  </Style>
+  <Style Selector="Border.loadcell.weak">
+    <Setter Property="Background" Value="{DynamicResource WarnSoftBrush}" />
+  </Style>
+  <Style Selector="Border.loadcell.weak > TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource WarnBrush}" />
+  </Style>
   <Style Selector="Border.pill.crit">
     <Setter Property="Background" Value="{DynamicResource CritSoftBrush}" />
   </Style>
