@@ -25,6 +25,7 @@ Ein Klick im Management stellt die eigenen Kennzahlen neben die vergleichbarer D
 - Eine Zeile wie „2 Kennzahlen im stärksten Viertel, 3 Hebel unter der Mitte.“
 - Je Kennzahl der eigene Wert und eine Einstufung: **Stärkstes Viertel**, **Über der Mitte**, **Unter der Mitte**, **Schwächstes Viertel** oder **Keine Daten**.
 - Darunter die Werte der Gruppe, bei No-Show- und Storno-Quote mit „(weniger ist besser)“.
+- Der Durchschnittsbon lässt verkaufte Wertgutscheine weg: Ein Gutscheinverkauf ist noch kein Umsatz und würde den Bon größer machen, als er ist.
 - Liegt der Standort unter der Mitte, steht darunter ein Tipp, z. B. Erinnerung am Vortag oder Folgetermin schon an der Kassa vorschlagen.
 
 ## Hinweise {#hinweise}

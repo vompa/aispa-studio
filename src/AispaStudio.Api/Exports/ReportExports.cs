@@ -38,9 +38,11 @@ internal static class ReportExports
                 {
                     new("Kennzahl", ColumnKind.Text), new("Wert", ColumnKind.Number), new("Vorperiode", ColumnKind.Number), new("Einheit", ColumnKind.Text),
                 };
-                var rows = report.Kpis.Select(k => new object?[] { k.Label, k.Value, k.Previous, k.Unit }).ToList();
+                var rows = report.Kpis.Select(k => new object?[] { k.Label, Value(k.Value, k.Unit), Value(k.Previous, k.Unit), k.Unit }).ToList();
                 var table = new ExportTable("Kennzahlen", columns, rows);
-                return await FileAsync(table, kind, "Kennzahlen", $"{Day(from.Value)} bis {Day(until.Value)}", "Kennzahlen", from, log, ct);
+                // Dateiname mit Von und Bis: „Kennzahlen_2026-11-01_bis_2026-11-26.xlsx“.
+                var title = FormattableString.Invariant($"Kennzahlen {from.Value:yyyy-MM-dd} bis");
+                return await FileAsync(table, kind, "Kennzahlen", $"{Day(from.Value)} bis {Day(until.Value)}", title, until, log, ct);
             })
             .WithTags("Berichte")
             .RequirePermission(AccessRight.ViewFinance)
@@ -50,4 +52,8 @@ internal static class ReportExports
 
         return routes;
     }
+
+    /// <summary>Euro-Kennzahlen als Betrag mit zwei Nachkommastellen, alle anderen als Zahl.</summary>
+    private static object? Value(decimal? value, string unit) =>
+        value is { } number && unit == "€" ? new ExportCell(number, ColumnKind.Money) : value;
 }

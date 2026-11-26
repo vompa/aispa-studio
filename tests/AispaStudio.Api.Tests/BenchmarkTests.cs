@@ -37,8 +37,33 @@ public sealed class BenchmarkTests(ApiFixture fixture)
         Assert.Equal(BenchmarkRating.Bottom, noShow.Rating);
         Assert.Contains("Erinnerung", noShow.Tip, StringComparison.Ordinal);
         var perHour = report.Metrics.Single(m => m.Key == "revenuePerTreatmentHour");
-        Assert.True(perHour.Own > 0);
+        // Umsatz je Behandlungsstunde kommt aus den Belegen: Ohne kassierten Termin ist er 0.
+        Assert.Equal(0m, perHour.Own);
         Assert.All(report.Metrics.Where(m => m.Rating is BenchmarkRating.Top or BenchmarkRating.AboveMedian), m => Assert.Null(m.Tip));
+    }
+
+    [Fact]
+    public async Task Durchschnittsbon_im_Vergleich_ohne_verkauften_Wertgutschein()
+    {
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        await spa.BookOkAsync(TestSpa.At(10), Ct, spa.Anna.Id);
+        var register = await spa.PostAsync<CashRegisterDto>("/api/pos/registers", new CashRegisterInput(spa.Location.Id, $"R-{Guid.NewGuid():N}"[..14],
+            FiscalCountry.AT, "Test-Spa GmbH", "Test-Spa GmbH", "AT61 1904 3002 3457 3201", null), Ct);
+        foreach (var line in new[]
+                 {
+                     new BillLineInput(BillLineKind.Custom, null, null, 1, 12.50m, 0, "Tee", TaxCategory.Normal, null, null, null),
+                     new BillLineInput(BillLineKind.Voucher, null, null, 1, 50m, 0, null, null, null, VoucherKind.MultiPurpose, null),
+                 })
+        {
+            var bill = await spa.PostAsync<BillDto>("/api/pos/bills", new BillInput(register.Id, null, []), Ct);
+            bill = await spa.PostAsync<BillDto>($"/api/pos/bills/{bill.Id}/lines", line, Ct);
+            await spa.PostAsync<ReceiptDto>($"/api/pos/bills/{bill.Id}/checkout", new CheckoutRequest(null, [new PaymentInput(PaymentMethod.Cash, bill.Open, null, null)]), Ct);
+        }
+
+        var report = await spa.GetAsync<BenchmarkReport>($"/api/reports/locations/{spa.Location.Id}/benchmark?until={TestSpa.Monday:yyyy-MM-dd}&days=365", Ct);
+
+        // Given ein Tee (10,42 € netto) und ein verkaufter Wertgutschein (50 €) im Zeitraum; Then vergleicht der Bon nur den Tee
+        Assert.Equal(10.42m, report.Metrics.Single(m => m.Key == "averageTicket").Own);
     }
 
     [Fact]

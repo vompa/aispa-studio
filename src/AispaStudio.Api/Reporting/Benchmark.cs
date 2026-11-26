@@ -116,7 +116,7 @@ internal sealed class Benchmark(AispaDbContext db, ManagementReports reports, IB
     [
         new("revenuePerTreatmentHour", "Umsatz je Behandlungsstunde (netto)", "€", true,
             "Preise der meistgebuchten Behandlungen prüfen und Zusatzleistungen (Upgrade, Produkt) beim Buchen anbieten."),
-        new("averageTicket", "Durchschnittsbon netto", "€", true,
+        new("averageTicket", "Durchschnittsbon ohne Gutscheinverkauf (netto)", "€", true,
             "Pakete und Gutscheine sichtbarer machen, an der Kassa Pflegeprodukte zur Behandlung empfehlen."),
         new("staffUtilization", "Auslastung Personal", "%", true,
             "Dienstplan an die Buchungszeiten anpassen; ruhige Zeiten online und über die Warteliste füllen."),
@@ -162,6 +162,8 @@ internal sealed class Benchmark(AispaDbContext db, ManagementReports reports, IB
         }
 
         var own = report.Kpis.ToDictionary(k => k.Key, k => (decimal?)k.Value);
+        // Verglichen wird der Bon ohne Wertgutscheinverkauf: Ein verkaufter Gutschein ist noch kein Umsatz und würde den Bon aufblähen.
+        own["averageTicket"] = own.GetValueOrDefault("serviceAverageTicket");
         var hours = report.Employees.Sum(e => e.TreatmentHours);
         own["revenuePerTreatmentHour"] = hours > 0 ? Math.Round(report.Employees.Sum(e => (e.RevenuePerHour ?? 0) * e.TreatmentHours) / hours, 2) : null;
         var appointments = own.GetValueOrDefault("appointments") ?? 0;

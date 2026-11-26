@@ -1747,3 +1747,20 @@ Expected: Dieselben Chips auf der Kartenfläche ohne zweite Karte; die Tabelle l
 Expected: Chips, Balken, „Frei“ und „Besetzung“ sind gut lesbar. In der Zelle mit Standort gibt es nur einen Tab-Stopp (die Zelle), keinen zweiten für den Standort.
 Closes: –
 Result: ☐
+
+### T-092 – Management-Bericht: Zahlen richtigstellen
+Start: `dotnet run --project src/AispaStudio.AppHost` mit Beispieldaten, im Aspire-Dashboard die Ressource `windows-app` starten, als Inhaberin anmelden, **Verwaltung** › **Zahlen** › **Berichte** › Management-Bericht für den laufenden Monat öffnen
+1. In der Kassa einen Wertgutschein über 50 € verkaufen und den Bericht neu laden.
+Expected: „Umsatz brutto“ steigt um 50 €, „Umsatz ohne Gutscheinverkauf (netto)“ und „Durchschnittsbon ohne Gutscheinverkauf (netto)“ bleiben gleich, „Gutscheine verkauft“ steigt um 50 €.
+2. Eine Behandlung mit diesem Gutschein bezahlen und den Bericht neu laden.
+Expected: „Gutscheine eingelöst“ steigt um den bezahlten Betrag; in der Tabelle je Behandlung zählt die Behandlung mit ihrem Betrag aus dem Beleg.
+3. Eine Behandlung mit Rabatt kassieren und die Tabellen je Behandlung und je Person ansehen.
+Expected: Der Umsatz entspricht dem Beleg nach Rabatt (netto), nicht dem Terminpreis.
+4. Einen vergangenen Termin ohne Beleg lassen und die Warnungen ansehen.
+Expected: „1 Termin noch nicht kassiert.“ (bzw. die Anzahl); künftige Termine zählen nicht mit. Eine Kassendifferenz unter 5,00 € im Zeitraum erzeugt keine Warnung.
+5. Den Zeitraum auf den ersten Monat der Beispieldaten stellen.
+Expected: Der Hinweis „Vergleich reicht vor den Beginn der Aufzeichnung …“ erscheint.
+6. Den Bericht als Excel exportieren.
+Expected: Der Dateiname lautet `Kennzahlen_<von>_bis_<bis>.xlsx`, Euro-Werte stehen als Währung.
+Closes: Arbeitsanweisung Berichte-Ausbau, Aufgabe A (Befunde 1, 2, 3, 6)
+Result: ☐

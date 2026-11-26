@@ -18,7 +18,10 @@ public sealed class ReportExportTests(ApiFixture fixture)
         using var response = await spa.Client.GetAsync($"/api/reports/locations/{spa.Location.Id}/management/export?from=2027-03-01&until=2027-03-07&format=xlsx", Ct);
         var sheet = await ExportResponses.SheetAsync(response, Ct);
 
-        Assert.Equal("Kennzahlen_2027-03-01.xlsx", ExportResponses.FileName(response));
+        Assert.Equal("Kennzahlen_2027-03-01_bis_2027-03-07.xlsx", ExportResponses.FileName(response));
+        var revenueRow = report.Kpis.ToList().FindIndex(k => k.Key == "revenue") + 2;
+        var appointmentsRow = report.Kpis.ToList().FindIndex(k => k.Key == "appointments") + 2;
+        Assert.Equal(("#,##0.00", "0.####"), (sheet.Row(revenueRow).Cell(2).Style.NumberFormat.Format, sheet.Row(appointmentsRow).Cell(2).Style.NumberFormat.Format));
         Assert.Equal(["Kennzahl", "Wert", "Vorperiode", "Einheit"], ExportResponses.Headers(sheet));
         Assert.Equal(report.Kpis.Count + 1, sheet.LastRowUsed()!.RowNumber());
         Assert.Equal(report.Kpis.Select(k => (k.Label, (double)k.Value)), Enumerable.Range(2, report.Kpis.Count).Select(r => (sheet.Row(r).Cell(1).GetString(), sheet.Row(r).Cell(2).GetDouble())));

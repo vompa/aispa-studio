@@ -1,6 +1,9 @@
 using System.Net;
 using System.Net.Http.Json;
 using AispaStudio.Contracts;
+using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace AispaStudio.Api.Tests;
 
@@ -139,8 +142,7 @@ public sealed class ReportTests(ApiFixture fixture)
             new RosterDayInput([new RosterEntry(RosterKind.Sick, null, null, null)], null), Ct);
         using var reception = await TestUsers.ClientAsync(fixture, Ct, StaffRole.Reception, [spa.Location.Id]);
 
-        var report = await spa.GetAsync<ManagementReportDto>(
-            $"/api/reports/locations/{spa.Location.Id}/management?from={ViennaToday:yyyy-MM-dd}&until={TestSpa.Monday:yyyy-MM-dd}", Ct);
+        var report = await ManagementAtAsync(spa, AfterAppointments, ViennaToday, TestSpa.Monday);
         var compliance = await spa.GetAsync<ComplianceReportDto>($"/api/reports/locations/{spa.Location.Id}/compliance?date=2027-03-15", Ct);
         var forbidden = await reception.GetAsync($"/api/reports/locations/{spa.Location.Id}/compliance?date=2027-03-15", Ct);
 
@@ -153,7 +155,8 @@ public sealed class ReportTests(ApiFixture fixture)
         Assert.Equal(0m, report.Kpis.Single(k => k.Key == "revenue").Previous);
         Assert.Equal(new RevenueLine("Bar", null, 12.50m, 12.50m), Assert.Single(report.RevenueByPayment));
         var massage = Assert.Single(report.Treatments);
-        Assert.Equal((2, 131.66m), (massage.Appointments, massage.NetRevenue));
+        Assert.Equal((2, 0m), (massage.Appointments, massage.NetRevenue));
+        Assert.Contains("2 Termine noch nicht kassiert.", report.Alerts);
         Assert.Contains(report.Alerts, a => a.StartsWith("No-Show-Quote", StringComparison.Ordinal));
         Assert.Contains(report.Employees, e => e.Name == "Anna" && e.TreatmentHours > 0);
 
@@ -167,4 +170,234 @@ public sealed class ReportTests(ApiFixture fixture)
         Assert.Equal((32m, 4, 1), (ben.PlannedHours, ben.WorkDays, ben.SickDays));
         Assert.Equal(HttpStatusCode.Forbidden, forbidden.StatusCode);
     }
+
+    [Fact]
+    public async Task Verkaufter_Mehrzweckgutschein_ist_kein_Umsatz_der_Leistungen()
+    {
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        var register = await RegisterAsync(spa);
+        var bill = await spa.PostAsync<BillDto>("/api/pos/bills", new BillInput(register.Id, null, []), Ct);
+        bill = await spa.PostAsync<BillDto>($"/api/pos/bills/{bill.Id}/lines",
+            new BillLineInput(BillLineKind.Custom, null, null, 1, 12.50m, 0, "Tee", TaxCategory.Normal, null, null, null), Ct);
+        await CheckoutAsync(spa, bill);
+        var voucher = await spa.PostAsync<BillDto>("/api/pos/bills", new BillInput(register.Id, null, []), Ct);
+        voucher = await spa.PostAsync<BillDto>($"/api/pos/bills/{voucher.Id}/lines",
+            new BillLineInput(BillLineKind.Voucher, null, null, 1, 50m, 0, null, null, null, VoucherKind.MultiPurpose, null), Ct);
+        await CheckoutAsync(spa, voucher);
+
+        var report = await ManagementAsync(spa, ViennaToday, ViennaToday);
+
+        // Given ein Tee (12,50 € brutto, 10,42 € netto) und ein verkaufter Mehrzweckgutschein (50 €, eine Verbindlichkeit)
+        // Then enthält „Umsatz brutto“ den Gutschein (bleibt so), der Umsatz und der Durchschnittsbon ohne Gutscheinverkauf aber nicht
+        Assert.Equal(62.50m, Kpi(report, "revenue"));
+        Assert.Equal(10.42m, Kpi(report, "serviceRevenueNet"));
+        Assert.Equal(10.42m, Kpi(report, "serviceAverageTicket"));
+    }
+
+    [Fact]
+    public async Task Folgetermin_zählt_auch_wenn_er_inzwischen_stattgefunden_hat()
+    {
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        var visit = await spa.BookOkAsync(TestSpa.At(10), Ct, spa.Anna.Id);
+        var followUp = await spa.BookOkAsync(TestSpa.At(10, date: TestSpa.Monday.AddDays(7)), Ct, spa.Anna.Id);
+        await spa.SetStatusAsync(visit.Id, AppointmentStatus.Completed, Ct);
+        await spa.SetStatusAsync(followUp.Id, AppointmentStatus.Completed, Ct);
+
+        var report = await ManagementAsync(spa, TestSpa.Monday, TestSpa.Monday);
+
+        // Given der Gast war am Montag da und hatte eine Woche später schon den nächsten Termin, der inzwischen stattgefunden hat
+        // Then hat er für den Montag einen Folgetermin gebucht
+        Assert.Equal(100m, Kpi(report, "rebookingRate"));
+    }
+
+    [Fact]
+    public async Task Umsatz_je_Behandlung_und_Person_kommt_aus_dem_Beleg_mit_Rabatt()
+    {
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        var register = await RegisterAsync(spa);
+        var appointment = await spa.BookOkAsync(TestSpa.At(10), Ct, spa.Anna.Id);
+        await spa.SetStatusAsync(appointment.Id, AppointmentStatus.CheckedIn, Ct);
+        var bill = await spa.PostAsync<BillDto>("/api/pos/bills", new BillInput(register.Id, null, []), Ct);
+        bill = await spa.PostAsync<BillDto>($"/api/pos/bills/{bill.Id}/lines",
+            new BillLineInput(BillLineKind.Appointment, appointment.Id, null, 1, null, 10m, null, null, null, null, null), Ct);
+        await CheckoutAsync(spa, bill);
+
+        var report = await ManagementAsync(spa, ViennaToday, TestSpa.Monday);
+
+        // Given eine Massage zum Terminpreis 79 €, kassiert mit 10 € Rabatt: 69 € brutto, 57,50 € netto
+        // Then zählen Behandlung und Person 57,50 € (laut Terminpreis wären es 65,83 €); die Massage dauert 50 Minuten,
+        // je Behandlungsstunde sind das 69 € (laut Terminpreis 79 €)
+        Assert.Equal(69m, Kpi(report, "revenue"));
+        Assert.Equal(57.50m, Assert.Single(report.Treatments).NetRevenue);
+        Assert.Equal(69m, report.Employees.Single(e => e.Name == "Anna").RevenuePerHour);
+    }
+
+    [Fact]
+    public async Task Mit_Einzweckgutschein_bezahlte_Behandlung_zählt_null_Euro_und_ist_kassiert()
+    {
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        var register = await RegisterAsync(spa);
+        var sale = await spa.PostAsync<BillDto>("/api/pos/bills", new BillInput(register.Id, null, []), Ct);
+        sale = await spa.PostAsync<BillDto>($"/api/pos/bills/{sale.Id}/lines",
+            new BillLineInput(BillLineKind.Voucher, null, null, 1, 79m, 0, null, null, null, VoucherKind.SinglePurpose, spa.MassageTreatment.Id), Ct);
+        var voucher = Assert.Single((await CheckoutAsync(spa, sale)).IssuedVouchers);
+        var appointment = await spa.BookOkAsync(TestSpa.At(10), Ct, spa.Anna.Id);
+        await spa.SetStatusAsync(appointment.Id, AppointmentStatus.CheckedIn, Ct);
+        var bill = await spa.PostAsync<BillDto>("/api/pos/bills", new BillInput(register.Id, null, [appointment.Id]), Ct);
+        await spa.PostAsync<ReceiptDto>($"/api/pos/bills/{bill.Id}/checkout",
+            new CheckoutRequest(null, [new PaymentInput(PaymentMethod.Voucher, 0, voucher.Code, null)]), Ct);
+
+        var report = await ManagementAsync(spa, ViennaToday, TestSpa.Monday);
+
+        // Given ein Einzweckgutschein für die Massage, heute verkauft (Umsatz 65,83 € netto) und am Montag eingelöst
+        // Then zählt die Behandlung 0 €, weil der Umsatz schon beim Verkauf entstand, und sie gilt als kassiert
+        Assert.Equal(65.83m, Kpi(report, "serviceRevenueNet"));
+        Assert.Equal(0m, Assert.Single(report.Treatments).NetRevenue);
+        Assert.DoesNotContain(report.Alerts, a => a.Contains("nicht kassiert", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task Stornierter_Beleg_nimmt_den_Umsatz_der_Behandlung_zurück()
+    {
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        var register = await RegisterAsync(spa);
+        var appointment = await spa.BookOkAsync(TestSpa.At(10), Ct, spa.Anna.Id);
+        await spa.SetStatusAsync(appointment.Id, AppointmentStatus.CheckedIn, Ct);
+        var bill = await spa.PostAsync<BillDto>("/api/pos/bills", new BillInput(register.Id, null, [appointment.Id]), Ct);
+        var receipt = await CheckoutAsync(spa, bill);
+        await spa.PostAsync<ReceiptDto>($"/api/pos/receipts/{receipt.Id}/void", new VoidRequest("Falsche Behandlung"), Ct);
+
+        var report = await ManagementAtAsync(spa, AfterAppointments, ViennaToday, TestSpa.Monday);
+
+        // Given die Massage wurde kassiert und der Beleg storniert; Then zählt sie 0 € und ist wieder offen
+        Assert.Equal(0m, Assert.Single(report.Treatments).NetRevenue);
+        Assert.Contains("1 Termin noch nicht kassiert.", report.Alerts);
+    }
+
+    [Fact]
+    public async Task Marge_rechnet_jeden_Termin_mit_den_Kosten_seines_Monats()
+    {
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        await spa.PutAsync<LocationCostSettingsDto>($"/api/costs/locations/{spa.Location.Id}/settings", new LocationCostSettingsDto(30m, 30m, 891m, 50, 75), Ct);
+        var february = TestSpa.Monday.AddDays(-7);
+        await spa.BookOkAsync(TestSpa.At(10, date: february), Ct, spa.Anna.Id);
+        await spa.BookOkAsync(TestSpa.At(10), Ct, spa.Anna.Id);
+        async Task<decimal> UnitCostAsync(string month) =>
+            (await spa.GetAsync<CostAnalysisDto>($"/api/costs/locations/{spa.Location.Id}/analysis?month={month}", Ct))
+            .Treatments.Single(t => t.TreatmentId == spa.MassageTreatment.Id).Total;
+        var (februaryCost, marchCost) = (await UnitCostAsync("2027-02"), await UnitCostAsync("2027-03"));
+
+        var report = await ManagementAsync(spa, february, TestSpa.Monday);
+
+        // Given je ein noch nicht kassierter Termin im Februar und im März, deren Monate verschiedene Stückkosten haben
+        // Then ist die Marge je Termin der Mittelwert beider Monate, nicht zweimal die Kosten des März
+        Assert.NotEqual(februaryCost, marchCost);
+        Assert.Equal(Math.Round(-(februaryCost + marchCost) / 2, 2), Assert.Single(report.Treatments).MarginPerAppointment);
+    }
+
+    [Fact]
+    public async Task Kleine_Kassendifferenz_unter_fünf_Euro_ist_keine_Warnung()
+    {
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        var register = await RegisterAsync(spa);
+        await spa.PostAsync<DayClosingDto>($"/api/pos/registers/{register.Id}/day-closings", new DayClosingInput(1.38m, null), Ct);
+
+        var report = await ManagementAsync(spa, ViennaToday, ViennaToday);
+
+        // Given ein Tagesabschluss mit 1,38 € zu viel in der Lade; Then steht das nicht unter den Warnungen
+        Assert.DoesNotContain(report.Alerts, a => a.StartsWith("Kassendifferenzen", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task Einzweckgutschein_bleibt_Umsatz_und_Gutscheine_zählen_verkauft_und_eingelöst()
+    {
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        var register = await RegisterAsync(spa);
+        var gifts = await spa.PostAsync<BillDto>("/api/pos/bills", new BillInput(register.Id, null, []), Ct);
+        await spa.PostAsync<BillDto>($"/api/pos/bills/{gifts.Id}/lines",
+            new BillLineInput(BillLineKind.Voucher, null, null, 1, 100m, 0, null, null, null, VoucherKind.SinglePurpose, spa.MassageTreatment.Id), Ct);
+        gifts = await spa.PostAsync<BillDto>($"/api/pos/bills/{gifts.Id}/lines",
+            new BillLineInput(BillLineKind.Voucher, null, null, 1, 40m, 0, null, null, null, VoucherKind.MultiPurpose, null), Ct);
+        var sold = await CheckoutAsync(spa, gifts);
+        var value = sold.IssuedVouchers.Single(v => v.Kind == VoucherKind.MultiPurpose);
+        var tea = await spa.PostAsync<BillDto>("/api/pos/bills", new BillInput(register.Id, null, []), Ct);
+        tea = await spa.PostAsync<BillDto>($"/api/pos/bills/{tea.Id}/lines",
+            new BillLineInput(BillLineKind.Custom, null, null, 1, 12.50m, 0, "Tee", TaxCategory.Normal, null, null, null), Ct);
+        await spa.PostAsync<ReceiptDto>($"/api/pos/bills/{tea.Id}/checkout",
+            new CheckoutRequest(null, [new PaymentInput(PaymentMethod.Voucher, 12.50m, value.Code, null)]), Ct);
+
+        var report = await ManagementAsync(spa, ViennaToday, ViennaToday);
+
+        // Given ein Einzweckgutschein für die Massage (100 €, beim Verkauf mit 20 % versteuert), ein Wertgutschein (40 €)
+        // und ein Tee (12,50 €), der mit dem Wertgutschein bezahlt wurde
+        // Then bleibt der Einzweckgutschein Umsatz, der Tee wird es beim Einlösen, der Wertgutschein beim Verkauf nicht
+        Assert.Equal(93.75m, Kpi(report, "serviceRevenueNet"));
+        Assert.Equal(140m, Kpi(report, "vouchersSold"));
+        Assert.Equal(12.50m, Kpi(report, "vouchersRedeemed"));
+    }
+
+    [Fact]
+    public async Task Hinweis_wenn_die_Vorperiode_vor_dem_ersten_Termin_beginnt()
+    {
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        await spa.BookOkAsync(TestSpa.At(10), Ct, spa.Anna.Id);
+
+        var firstWeek = await ManagementAsync(spa, TestSpa.Monday, TestSpa.Monday.AddDays(6));
+        var secondWeek = await ManagementAsync(spa, TestSpa.Monday.AddDays(7), TestSpa.Monday.AddDays(13));
+
+        // Given der erste Termin des Standorts am Montag; Then fehlt der Woche davor der Verlauf, der Woche danach nicht
+        Assert.Contains(firstWeek.Alerts, a => a.StartsWith("Vergleich reicht vor den Beginn der Aufzeichnung am 01.03.2027", StringComparison.Ordinal));
+        Assert.DoesNotContain(secondWeek.Alerts, a => a.StartsWith("Vergleich reicht", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task Künftiger_Termin_ohne_Beleg_ist_keine_Warnung()
+    {
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        await spa.BookOkAsync(TestSpa.At(10), Ct, spa.Anna.Id);
+
+        var before = await ManagementAtAsync(spa, TestSpa.At(9), TestSpa.Monday, TestSpa.Monday);
+        var after = await ManagementAtAsync(spa, AfterAppointments, TestSpa.Monday, TestSpa.Monday);
+
+        // Given ein Termin am Montag um 10 Uhr ohne Beleg; Then fehlt die Kassa-Warnung, solange er nicht vorbei ist, und steht, sobald er vorbei ist
+        Assert.DoesNotContain(before.Alerts, a => a.Contains("nicht kassiert", StringComparison.Ordinal));
+        Assert.Contains("1 Termin noch nicht kassiert.", after.Alerts);
+    }
+
+    private static decimal Kpi(ManagementReportDto report, string key) => report.Kpis.Single(k => k.Key == key).Value;
+
+    private sealed class FixedTime(DateTimeOffset now) : TimeProvider
+    {
+        public override DateTimeOffset GetUtcNow() => now;
+    }
+
+    /// <summary>Die Testtermine liegen am Montag zwischen 9 und 17 Uhr; mit dieser Uhr sind sie alle vorbei, egal wann der Test läuft.</summary>
+    private static DateTimeOffset AfterAppointments => TestSpa.At(23);
+
+    /// <summary>
+    /// Bericht mit fester Uhr. Angemeldet wird an dieser API, ein Cookie der Test-API von heute wäre dort schon abgelaufen (wie in <see cref="PosDayListTests"/>);
+    /// Belege und Termine entstehen vorher mit der echten Uhr.
+    /// </summary>
+    private async Task<ManagementReportDto> ManagementAtAsync(TestSpa spa, DateTimeOffset now, DateOnly from, DateOnly until)
+    {
+        await using var host = fixture.Factory.WithWebHostBuilder(b => b.ConfigureTestServices(s => s.AddSingleton<TimeProvider>(new FixedTime(now))));
+        using var anonymous = host.CreateClient(new WebApplicationFactoryClientOptions { HandleCookies = false });
+        var signIn = await anonymous.PostAsJsonAsync("/api/auth/dev/register",
+            new DevRegistration($"test-{Guid.NewGuid():N}@aispa.test", "Test Person", StaffRole.Owner, [spa.Location.Id], null), TestSpa.Json, Ct);
+        signIn.EnsureSuccessStatusCode();
+        using var client = host.CreateClient(new WebApplicationFactoryClientOptions { HandleCookies = false });
+        client.DefaultRequestHeaders.Add("Cookie", string.Join("; ", signIn.Headers.GetValues("Set-Cookie").Select(c => c.Split(';')[0])));
+        return (await client.GetFromJsonAsync<ManagementReportDto>(
+            $"/api/reports/locations/{spa.Location.Id}/management?from={from:yyyy-MM-dd}&until={until:yyyy-MM-dd}", TestSpa.Json, Ct))!;
+    }
+
+    private static Task<ManagementReportDto> ManagementAsync(TestSpa spa, DateOnly from, DateOnly until) =>
+        spa.GetAsync<ManagementReportDto>($"/api/reports/locations/{spa.Location.Id}/management?from={from:yyyy-MM-dd}&until={until:yyyy-MM-dd}", Ct);
+
+    private static Task<CashRegisterDto> RegisterAsync(TestSpa spa) =>
+        spa.PostAsync<CashRegisterDto>("/api/pos/registers", new CashRegisterInput(spa.Location.Id, $"R-{Guid.NewGuid():N}"[..14],
+            FiscalCountry.AT, "Test-Spa GmbH", "Test-Spa GmbH", "AT61 1904 3002 3457 3201", null), Ct);
+
+    private static Task<ReceiptDto> CheckoutAsync(TestSpa spa, BillDto bill) =>
+        spa.PostAsync<ReceiptDto>($"/api/pos/bills/{bill.Id}/checkout", new CheckoutRequest(null, [new PaymentInput(PaymentMethod.Cash, bill.Open, null, null)]), Ct);
 }

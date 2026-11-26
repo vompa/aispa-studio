@@ -72,6 +72,9 @@ internal static class TableExport
         {
             case null:
                 return;
+            case ExportCell typed:
+                Fill(cell, typed.Kind, typed.Value);
+                return;
             case DateOnly date:
                 cell.Value = date.ToDateTime(TimeOnly.MinValue);
                 cell.Style.NumberFormat.Format = "DD.MM.YYYY";
@@ -106,6 +109,7 @@ internal static class TableExport
     private static string CsvText(ColumnKind kind, object? value) => value switch
     {
         null => "",
+        ExportCell typed => CsvText(typed.Kind, typed.Value),
         DateOnly date => date.ToString("dd.MM.yyyy", German),
         TimeOnly time => time.ToString("HH:mm", German),
         bool yes => yes ? "Ja" : "Nein",

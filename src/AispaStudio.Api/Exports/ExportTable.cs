@@ -20,9 +20,12 @@ internal sealed record ExportColumn(string Name, ColumnKind Kind);
 
 /// <summary>
 /// Eine Liste der App als Tabelle für Excel oder CSV: <paramref name="Name"/> ist Blattname und Listenname, jede Zeile hat je Spalte einen Wert
-/// (<c>string</c>, <c>decimal</c>/<c>int</c>, <c>DateOnly</c>, <c>TimeOnly</c>, <c>bool</c> oder <c>null</c>).
+/// (<c>string</c>, <c>decimal</c>/<c>int</c>, <c>DateOnly</c>, <c>TimeOnly</c>, <c>bool</c>, <see cref="ExportCell"/> oder <c>null</c>).
 /// </summary>
 internal sealed record ExportTable(string Name, IReadOnlyList<ExportColumn> Columns, IReadOnlyList<object?[]> Rows);
+
+/// <summary>Ein Wert mit eigener Art statt der Art seiner Spalte, z. B. ein Betrag in einer Spalte, die sonst Zahlen und Quoten hat.</summary>
+internal sealed record ExportCell(object? Value, ColumnKind Kind);
 
 /// <summary>Dateinamen, Inhaltstypen und Bezeichnungen der Formate, gemeinsam für alle Exporte.</summary>
 internal static class ExportFiles
