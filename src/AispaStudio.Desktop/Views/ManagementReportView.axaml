@@ -106,9 +106,12 @@
         </ui:FormField>
       </WrapPanel>
       <WrapPanel ItemSpacing="12" LineSpacing="12">
-        <ui:FormField Label="Vergleichen mit">
-          <ComboBox x:Name="ManagementComparisonField" ItemsSource="{x:Static vm:ManagementReportViewModel.CompareChoices}" SelectedItem="{Binding SelectedComparison}" Width="180" />
-        </ui:FormField>
+        <StackPanel Orientation="Horizontal" Spacing="4">
+          <ui:FormField Label="Vergleichen mit">
+            <ComboBox x:Name="ManagementComparisonField" ItemsSource="{x:Static vm:ManagementReportViewModel.CompareChoices}" SelectedItem="{Binding SelectedComparison}" Width="180" />
+          </ui:FormField>
+          <ui:HelpButton Topic="berichte-kennzahlen-ansehen" Section="vergleich" VerticalAlignment="Bottom" Margin="0,0,0,7" />
+        </StackPanel>
         <CheckBox x:Name="ManagementCompareField" Content="Mit anderen Spas vergleichen" IsChecked="{Binding Compare}" VerticalAlignment="Bottom" />
         <!-- Womit die Kacheln vergleichen, und dass der heutige Tag noch läuft -->
         <StackPanel VerticalAlignment="Bottom">

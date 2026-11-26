@@ -17,55 +17,20 @@ Der Abschnitt „Management“ im Reiter „Berichte“ zeigt die Kennzahlen ein
 3. **Von** und **Bis** setzen. Vorbelegt sind der Monatserste und heute. Der Zeitraum darf höchstens ein Jahr lang sein.
 4. Schneller geht es mit **Zeitraum** links neben Von und Bis: **Dieser Monat**, **Letzter Monat**, **Dieses Quartal**, **Dieses Jahr** oder **Letzte 12 Monate**. Die Auswahl setzt Von und Bis. Dieser Monat, Dieses Quartal und Dieses Jahr reichen bis heute, Letzter Monat ist der ganze Vormonat. Passen Von und Bis zu keiner Auswahl, etwa nach einer Änderung von Hand, steht dort **Eigener Zeitraum**.
 5. Reicht **Bis** bis heute oder darüber, steht „Heute läuft noch, die Zahlen können sich ändern.“: Umsatz und Termine von heute können noch wachsen.
-6. **Vergleichen mit** wählt, wogegen die Kacheln rechnen. Der kleine Text „Vergleich: …“ in derselben Zeile nennt den Zeitraum.
-   - **Zeitraum davor** (Standard): der gleich lange Zeitraum direkt davor.
-   - **Vormonat**: derselbe Abschnitt im Vormonat, also 1. bis 26. gegen 1. bis 26. des Vormonats. Endet Ihr Zeitraum am Monatsletzten, zählt der ganze Vormonat.
-   - **Vorjahr**: derselbe Zeitraum im Vorjahr.
-7. Wer die Zahlen weitergeben will, öffnet in der Kopfzeile das Menü **Ausgabe**. Alle Ausgaben nehmen den gewählten Vergleich. Beträge stehen darin nur, wenn man sie auf der Seite auch sieht.
-   - **Drucken …** und **Als PDF speichern**: der Bericht als PDF. Mehr dazu unter [Bericht als PDF](#pdf).
-   - **Per Mail senden …**: das PDF an eine Adresse Ihrer Wahl.
-   - **Bericht (Excel)**: eine Arbeitsmappe mit allen Abschnitten, z. B. `Bericht_2026-11-01_bis_2026-11-26.xlsx`. Mehr dazu unter [Bericht als Excel-Arbeitsmappe](#excel).
-   - **Bericht (Word)**: der Bericht als Dokument zum Ergänzen, z. B. `Management-Bericht-Wien-2026-11-01-bis-2026-11-26.docx`. Mehr dazu unter [Bericht als Word-Datei](#word).
-   - **Kennzahlen (CSV)**: nur die Kennzahlen mit Wert, Vergleichswert und Einheit.
-
-   Drucken, PDF und Mail stehen im Menü, sobald der Bericht geladen ist. Nach dem Speichern einer Datei öffnet **Ordner öffnen** neben „Gespeichert: …“ den Ordner der Datei.
+6. **Vergleichen mit** wählt, wogegen die Kacheln rechnen, siehe [Vergleichen mit](#vergleich).
+7. Wer die Zahlen weitergeben will, öffnet in der Kopfzeile das Menü **Ausgabe**: Drucken, PDF, Mail, Excel, Word und CSV. Mehr dazu unter [Bericht als Dokument ausgeben](hilfe:berichte-als-dokument-ausgeben).
 
 ![Management mit Kennzahlen](images/app/verwaltung-berichte-management.png)
 
-## Bericht als Excel-Arbeitsmappe {#excel}
+## Vergleichen mit {#vergleich}
 
-**Ausgabe** › **Bericht (Excel)** speichert den ganzen Bericht des Zeitraums. Jeder Abschnitt steht auf einem eigenen Blatt:
+**Vergleichen mit** steht neben dem Zeitraum und hat ein Fragezeichen. Das Feld wählt, wogegen die Kacheln rechnen. Der kleine Text „Vergleich: …“ in derselben Zeile nennt den Zeitraum.
 
-- **Übersicht:** die Kennzahlen mit Wert, Vergleichswert, Einheit, Veränderung und Veränderung in Prozent. Bei Quoten steht die Veränderung in Prozentpunkten, die Spalte in Prozent bleibt dort leer. Rechts daneben stehen Betrieb, Standort, Zeitraum, Vergleich und wer die Datei wann erstellt hat. Graue Pfeile zeigen, ob ein Wert gestiegen oder gefallen ist.
-- **Verlauf:** eine Zeile je Tag, bei Zeiträumen über 62 Tagen je Woche. Das Blatt eignet sich als Grundlage für eigene Pivot-Tabellen.
-- **Erlöskonten**, **Zahlungsarten**, **Personal**, **Behandlungen**, **Aktionen**, **Räume**, **Wochentage**, **Kanäle** und **Vorschau** wie die Tabellen auf der Seite.
-- **Gäste:** beste und abwandernde Stammgäste. Das Blatt fehlt, wenn Sie die Kundenliste nicht sehen dürfen.
-- **Vergleich mit Spas:** nur, wenn der [Vergleich mit anderen Spas](hilfe:berichte-mit-anderen-spas-vergleichen) eingeschaltet ist.
-- **Hinweise:** die Alarme und die Hinweise zum Vergleich.
+- **Zeitraum davor** (Standard): der gleich lange Zeitraum direkt davor.
+- **Vormonat**: derselbe Abschnitt im Vormonat, also 1. bis 26. gegen 1. bis 26. des Vormonats. Endet Ihr Zeitraum am Monatsletzten, zählt der ganze Vormonat.
+- **Vorjahr**: derselbe Zeitraum im Vorjahr.
 
-Ohne das Recht „Berichte mit Beträgen“ fehlen die Spalten mit Beträgen und die Blätter Erlöskonten und Zahlungsarten. Jedes Blatt hat eine fixierte Kopfzeile mit Filter. Auslastung und Umsatz haben graue Datenbalken. Gedruckt wird auf A4 quer, mit der Kopfzeile auf jeder Seite und „Seite 1 von 2“ im Fuß.
-
-## Bericht als PDF {#pdf}
-
-Das PDF zeigt den gewählten Standort, Zeitraum und Vergleich auf A4 hoch, z. B. `Management-Bericht-Wien-2026-11-01-bis-2026-11-26.pdf`:
-
-- **Zuerst:** Titel, Zeitraum und Vergleichszeitraum, der Kommentar der KI mit ihrem Hinweis (nur wenn er auf der Seite steht), die Alarme und die Kennzahlen in ihren vier Gruppen mit Vergleichswert, Veränderung und Veränderung in Prozent. Bei Quoten steht die Veränderung in Prozentpunkten.
-- **Danach:** der Verlauf als graue Balken mit dem Wert daneben (Umsatz und Auslastung mit Prozent von 0 bis 100 % Länge), dann die Tabellen wie in der Arbeitsmappe. Ein Abschnitt ohne Zeilen nennt „Keine Einträge im Zeitraum.“
-- **Ausgabe** › **Drucken …** öffnet den Druckdialog von Windows mit dem PDF. **Als PDF speichern** speichert es über den Speicherdialog.
-- **Per Mail senden** fragt nach Adresse, Betreff und Text. Vorbelegt ist Ihre eigene Mailadresse; der Bericht geht nur an die Adresse, die im Feld steht.
-
-Beträge und Gästelisten stehen darin wie in der Arbeitsmappe, also nur mit den Rechten, mit denen man sie auch auf der Seite sieht. Jedes gespeicherte, gedruckte oder gesendete PDF steht im Export-Protokoll, eine Sendung mit der Adresse. Auch Excel-Arbeitsmappe und CSV-Datei stehen dort.
-
-## Bericht als Word-Datei {#word}
-
-**Ausgabe** › **Bericht (Word)** speichert den ganzen Bericht als Word-Dokument auf A4 hoch. Es ist zum Weiterarbeiten gedacht, etwa für eine Besprechung:
-
-- Der Inhalt ist derselbe wie im PDF: Titel, Zeitraum, der Kommentar der KI mit ihrem Hinweis (nur wenn er auf der Seite steht), die Alarme, die Kennzahlen in ihren vier Gruppen und danach die Tabellen. Der Verlauf steht als Tabelle, nicht als Balken.
-- Nach jeder Kennzahlen-Gruppe steht „Anmerkungen:“ mit einem leeren Absatz, in den Sie Ihre Notizen schreiben.
-- Kopf und Fuß tragen den Betrieb, den Standort und „Seite 1 von 3“. Die Datei ist schwarz-weiß und hat keine Diagramme.
-- Beträge und Gästelisten stehen darin wie im PDF, also nur mit den Rechten, mit denen man sie auch auf der Seite sieht.
-
-Jede gespeicherte Word-Datei steht im Export-Protokoll.
+Unter jedem Wert zeigt die Kachel, wie er sich gegenüber dem Vergleichszeitraum verändert hat: in Prozent, bei Quoten in Prozentpunkten. Prozentpunkte sind der Unterschied der beiden Prozentwerte: Von 40 % auf 45 % sind 5 Prozentpunkte, nicht 5 Prozent. Mehr dazu unter [Veränderung auf den Kacheln lesen](#veraenderung). Der Kommentar der KI und der Bericht per Mail vergleichen immer mit dem Zeitraum davor. Die Auswertung der KI per Knopf nimmt den gewählten Vergleich.
 
 ## Was angezeigt wird {#inhalt}
 
@@ -77,14 +42,43 @@ Jede gespeicherte Word-Datei steht im Export-Protokoll.
   - **Ausfälle:** No-Show-Quote, Storno-Quote, Entgangen durch No-Show und Entgangen durch Storno.
 - **Verlauf:** drei kleine Säulendiagramme für Umsatz ohne Gutscheinverkauf (netto), Behandlungen und Auslastung Personal. Bis 62 Tage steht jede Säule für einen Tag, bei längeren Zeiträumen für eine Woche von Montag bis Sonntag. Zeigen Sie mit der Maus auf eine Säule, um ihren Wert zu sehen. **Werte als Tabelle** unter jedem Diagramm klappt dieselben Werte als Liste auf.
 - **Tabellen** nach dem Verlauf: Auslastung nach Wochentag und Tageszeit, Vorschau der nächsten vier Wochen, Räume, Umsatz nach Erlöskonto und Zahlungsart, Personal, Behandlungen, Aktionen, Buchungen nach Kanal und die Gäste. Mehr dazu unter [Auslastung, Räume, Kanäle und Vorschau](#muster) und [Gäste](#gaeste).
-- **Folgetermin gebucht**: Anteil der Gäste mit abgeschlossener Behandlung im Zeitraum, die einen späteren Termin haben. Es zählt jeder spätere Termin, der nicht storniert und kein No-Show ist, auch wenn er inzwischen stattgefunden hat.
 
-## Ertrag, Verkauf und Ausfälle {#ertrag}
+## So wird gerechnet {#rechnung}
 
+Alle Kennzahlen gelten für den gewählten Standort und Zeitraum. Der Vergleichszeitraum wird genauso gerechnet. Ein **Termin** heißt hier ein Termin, der im Zeitraum beginnt. Umsätze kommen aus den Kassenbelegen des Standorts, Stunden aus Kalender und Dienstplan. Netto heißt ohne Umsatzsteuer.
+
+### Umsatz und Ertrag {#ertrag}
+
+- **Umsatz brutto:** Summe aller Belegzeilen der Kassen des Standorts mit Belegdatum im Zeitraum, mit Umsatzsteuer. Ein Storno zieht den Betrag wieder ab.
+- **Umsatz netto:** dieselbe Summe ohne Umsatzsteuer, je Steuersatz herausgerechnet.
+- **Durchschnittsbon netto:** Umsatz netto geteilt durch die Zahl der Bons (Verkaufsbelege minus Stornobelege).
+- **Umsatz ohne Gutscheinverkauf (netto):** Umsatz netto ohne die Zeilen, die Wertgutscheine verkaufen.
+- **Durchschnittsbon ohne Gutscheinverkauf (netto):** dieser Umsatz geteilt durch die Bons, die nicht nur Wertgutscheine enthalten.
+- **Gutscheine verkauft** und **Gutscheine eingelöst:** siehe [Gutscheine in den Kennzahlen](#gutscheine).
 - **Deckungsbeitrag:** je Termin der kassierte Betrag netto minus die Vollkosten der Behandlung in seinem Monat, zusammengezählt. Termine ohne gerechnete Vollkosten zählen nicht mit. **Deckungsbeitrag in Prozent** setzt ihn ins Verhältnis zum Umsatz derselben Termine.
 - **Umsatz je Dienststunde:** Umsatz ohne Gutscheinverkauf (netto) geteilt durch die geplanten Dienststunden am Standort. **Umsatz je Behandlungsstunde:** derselbe Umsatz geteilt durch die Stunden der Behandlungen.
 - **Produktanteil am Umsatz:** Anteil der verkauften Artikel am Umsatz ohne Gutscheinverkauf. **Produktumsatz je Behandlung:** Artikelumsatz netto geteilt durch die Behandlungen. **Umsatz je Gast:** Umsatz ohne Gutscheinverkauf geteilt durch die Gäste.
-- **Entgangen durch No-Show** und **Entgangen durch Storno:** Summe der Terminpreise (brutto) der Termine, zu denen der Gast nicht kam bzw. die storniert wurden. Weniger ist hier besser.
+- **Offene Gutscheine (heute):** Restwert aller aktiven Gutscheine, nicht je Standort. Die Kachel zeigt den Stand von heute und hat keinen Vergleich.
+
+### Auslastung {#auslastung}
+
+- **Behandlungen:** Zahl der Termine im Zeitraum ohne No-Shows und ohne stornierte Termine.
+- **Auslastung Personal:** Minuten dieser Termine geteilt durch die geplanten Dienstminuten am Standort, in Prozent.
+- **Auslastung Räume:** belegte Raumminuten dieser Termine, mit Vor- und Nachbereitung, geteilt durch die Öffnungsminuten mal die Zahl der aktiven Räume, in Prozent.
+- **Offene Anfragen (heute):** Mails der Terminannahme, über die die Rezeption noch entscheiden muss. Stand von heute, ohne Vergleich.
+
+### Gäste {#gaeste-rechnung}
+
+- **Gäste:** Zahl der verschiedenen Gäste mit mindestens einem Termin, der stattfindet oder stattfand.
+- **Neue Gäste:** Gäste, deren erster Termin überhaupt (nicht storniert, kein No-Show) im Zeitraum liegt.
+- **Stammgäste-Anteil:** Gäste ohne die neuen Gäste, geteilt durch alle Gäste, in Prozent.
+- **Folgetermin gebucht:** Anteil der Gäste mit abgeschlossener Behandlung im Zeitraum, die einen späteren Termin nach dem Zeitraum haben. Es zählt jeder spätere Termin, der nicht storniert und kein No-Show ist, auch wenn er inzwischen stattgefunden hat.
+- **Abwandernde Stammgäste (heute):** siehe [Gäste](#gaeste). Stand von heute, ohne Vergleich.
+
+### Ausfälle {#ausfaelle}
+
+- **No-Show-Quote:** No-Shows geteilt durch alle Termine des Zeitraums (stattfindende, No-Shows und stornierte), in Prozent. **Storno-Quote:** stornierte Termine auf dieselbe Weise.
+- **Entgangen durch No-Show** und **Entgangen durch Storno:** Summe der Terminpreise (brutto) der Termine, zu denen der Gast nicht kam bzw. die storniert wurden. Weniger ist hier besser. Eine Ausfallgebühr ist nicht abgezogen.
 
 ## Auslastung, Räume, Kanäle und Vorschau {#muster}
 
@@ -129,8 +123,9 @@ Bei einem Zeitraum ab sieben Tagen schreibt die KI über den Alarmen drei bis f�
 
 - Die KI rechnet nichts: Jede Zahl im Kommentar muss so in den Kennzahlen des Berichts stehen, sonst wird der Kommentar verworfen und es gibt keinen.
 - Ohne das Recht „Berichte mit Beträgen“ bekommt auch die KI keine Beträge; der Kommentar nennt dann keine.
-- Gästenamen und Gesundheitsdaten bekommt die KI nicht.
+- Beim Personal bekommt die KI den Namen im Haus, ersatzweise den Namen der Person, mit den Zahlen je Person. Gästenamen und Gesundheitsdaten bekommt sie nie.
 - Ändern sich die Zahlen des Zeitraums, schreibt die KI beim nächsten Öffnen neu. Ohne KI-Schlüssel gibt es keinen Kommentar.
+- Eine ausführlichere Auswertung mit Auffälligkeiten und Maßnahmen gibt es auf Knopfdruck: [Bericht mit KI auswerten](hilfe:berichte-mit-ki-auswerten).
 
 ![Management mit dem Kommentar der KI](images/app/verwaltung-berichte-management-ki.png)
 
@@ -153,7 +148,7 @@ Inhaber, Manager und Standortleitung bekommen den Bericht auch per Mail, je Stan
 - **Wochenbericht** montags ab 7 Uhr, für Montag bis Sonntag der Vorwoche.
 - **Monatsbericht** am Monatsersten ab 7 Uhr, für den Vormonat.
 
-In der Mail stehen der Kommentar der KI, was zu beachten ist, die Kennzahlen mit dem Zeitraum davor und die Aktionen; Beträge nur mit dem Recht „Berichte mit Beträgen“. Abbestellen: beim Management im Menü **Ausgabe** das Kästchen **Wochen- und Monatsbericht per Mail** abwählen; wieder wählen bestellt ihn wieder. Das Kästchen gilt nur für Sie selbst. Ohne Mailadresse im Konto kommt keine Mail.
+In der Mail stehen der Kommentar der KI, was zu beachten ist, die Kennzahlen mit dem Zeitraum davor und die Aktionen; Beträge nur mit dem Recht „Berichte mit Beträgen“. Dazu hängt der Bericht als PDF an, passend zu dem, was die Person sehen darf, mit Vergleich zum Zeitraum davor und ohne Gästelisten. Wäre das PDF größer als 5 MB, geht die Mail ohne Anhang hinaus. Abbestellen: beim Management im Menü **Ausgabe** das Kästchen **Wochen- und Monatsbericht per Mail** abwählen; wieder wählen bestellt ihn wieder. Das Kästchen gilt nur für Sie selbst. Ohne Mailadresse im Konto kommt keine Mail.
 
 ## Hinweise {#hinweise}
 

@@ -1917,3 +1917,16 @@ Expected: Unter „Was die Zahlen nicht zeigen“ steht die Hinweiszeile „Von 
 Expected: Das Formular geht auf; nach der neuen Auswertung klappt es wieder zu und die Zeile nennt „Schwerpunkt Umsatz und Ertrag“.
 Closes: Änderungswunsch 26.11.2026 (Mockup)
 Result: ☐
+
+### T-097 – Berichte: Hilfe, Bilder, Entscheidungen
+Start: `dotnet run --project src/AispaStudio.AppHost` mit Beispieldaten, im Aspire-Dashboard die Ressource `windows-app` starten, als Inhaberin anmelden, **Verwaltung** › **Zahlen** › **Berichte** öffnen.
+1. Beim Feld **Vergleichen mit** auf das Fragezeichen klicken.
+Expected: Die Hilfe öffnet sich beim Abschnitt „Vergleichen mit“ des Themas „Kennzahlen im Management ansehen“ und nennt Zeitraum davor, Vormonat, Vorjahr und die Prozentpunkte. Das Fragezeichen steht in einer Linie mit dem Feld und verdeckt nichts.
+2. In derselben Hilfeseite zu „So wird gerechnet“ rollen.
+Expected: Jede Kennzahl der Kacheln hat dort eine Zeile, in vier Gruppen (Umsatz und Ertrag, Auslastung, Gäste, Ausfälle). Die Zeilen stimmen mit den Namen auf den Kacheln überein.
+3. In der Hilfe „Bericht als Dokument ausgeben“ öffnen (Link in „Kennzahlen im Management ansehen“, Schritt 7) und mit dem Menü **Ausgabe** vergleichen.
+Expected: Die Einträge des Menüs stehen in der Hilfe in derselben Benennung. Die Hilfe nennt je Format Dateiname und Inhalt.
+4. In der Hilfe „Bericht mit KI auswerten“ öffnen.
+Expected: Das Bild zeigt die Seitenleiste neben dem Bericht mit Kernaussagen, Auffälligkeiten, Maßnahmen und Hinweiszeile; keine Schrift ist abgeschnitten.
+Closes: Arbeitsanweisung Berichte-Ausbau, Aufgabe F
+Result: ☐

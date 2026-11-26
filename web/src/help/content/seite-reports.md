@@ -18,7 +18,7 @@ Unter „Zahlen“ liegen die Auswertungen je Rolle in einer einzigen Reihe von 
 - **Mein Tag**: der Tagesplan einer Person mit Status, Werten und einer Behandlungskarte je Termin. Sehen alle. Therapeut:innen sehen nur den eigenen Plan, Rezeption, Standortleitung und Inhaber wählen die Person.
 - **Hygiene**: die Tagesstart-Kontrolle je Raum und die Raumpflege, mit Status und Werten. Ab Rezeption.
 - **Berichte**: zwei Abschnitte untereinander, oben **Management**, darunter **Pflichtberichte**. Nur mit dem Recht auf Berichte, also Inhaber, Manager, Standortleitung und Backoffice.
-  - **Management**: Kennzahlen eines Zeitraums mit Vergleich zum Zeitraum davor, Umsatz nach Erlöskonto und Zahlungsart, Personal, Behandlungen mit Marge, Alarme. In der Kopfzeile das Menü **Ausgabe** (Drucken, PDF, Mail, Excel, Word, CSV und der Bericht per Mail) und **Mit KI auswerten**, unter dem Zeitraum das Kästchen **Mit anderen Spas vergleichen**. Inhaber, Manager, Standortleitung und Backoffice; Beträge nur mit dem Recht „Berichte mit Beträgen“ ([Berichte mit Beträgen](hilfe:zugaenge#berichte-mit-betraegen)).
+  - **Management**: Kennzahlen eines Zeitraums in Gruppen mit wählbarem Vergleich (Zeitraum davor, Vormonat, Vorjahr) und Veränderung, Verlauf, Auslastung nach Wochentag und Tageszeit, Vorschau, Räume, Umsatz nach Erlöskonto und Zahlungsart, Personal, Behandlungen mit Marge, Aktionen, Kanäle, Gäste und Alarme. In der Kopfzeile das Menü **Ausgabe** (Drucken, PDF, Mail, Excel, Word, CSV und der Bericht per Mail) und **Mit KI auswerten**, unter dem Zeitraum das Kästchen **Mit anderen Spas vergleichen**. Inhaber, Manager, Standortleitung und Backoffice; Beträge nur mit dem Recht „Berichte mit Beträgen“ ([Berichte mit Beträgen](hilfe:zugaenge#berichte-mit-betraegen)).
   - **Pflichtberichte**: Kassen mit ihren Pflichten je Land, Download von DEP bzw. DSFinV-K, Fristen, offene Gutscheine, Arbeitszeitaufzeichnung des Monats. Wie Management; Gutscheinsumme und Downloads nur mit dem Recht „Berichte mit Beträgen“.
 - **Betriebsinfo**: das Verzeichnis der Kontakte rund um den Betrieb ([Seite „Betriebsinfo“](hilfe:seite-businessinfo)). Mit dem Recht auf Berichte oder zum Buchen, also auch für die Rezeption (dort nur Einträge für das Team).
 
@@ -30,6 +30,8 @@ Im Kopf der Maske stehen **Standort** und **Datum**. Bei **Berichte** steht dort
 - [Vorbereitung je Behandlung festlegen](hilfe:berichte-vorbereitung-festlegen)
 - [Tagesstart lesen](hilfe:berichte-tagesstart-lesen)
 - [Kennzahlen im Management ansehen](hilfe:berichte-kennzahlen-ansehen)
+- [Bericht als Dokument ausgeben](hilfe:berichte-als-dokument-ausgeben)
+- [Bericht mit KI auswerten](hilfe:berichte-mit-ki-auswerten)
 - [Mit anderen Spas vergleichen](hilfe:berichte-mit-anderen-spas-vergleichen)
 - [Pflichtberichte abrufen, DEP und DSFinV-K herunterladen](hilfe:berichte-pflichtberichte-abrufen)
 

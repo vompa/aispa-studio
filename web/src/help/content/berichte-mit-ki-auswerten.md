@@ -25,6 +25,8 @@ Die KI liest die Zahlen des Management-Berichts und schreibt Kernaussagen, Auff�
 
 Nach der Auswertung klappt das Formular zu einer Zeile zusammen, etwa „KI · Schwerpunkt Gesamt · Ändern“. So bleibt die ganze Höhe für das Ergebnis.
 
+![Seitenleiste mit der Auswertung der KI neben dem Management-Bericht](images/app/verwaltung-berichte-management-ki-auswertung.png)
+
 - **Kernaussagen:** drei bis fünf Sätze zum Zeitraum, als Liste.
 - **Auffälligkeiten:** je eine Karte mit der Beobachtung, darunter der möglichen Ursache mit der Pille „Vermutung“ und der betroffenen Kennzahl. Die Ursache ist immer eine Vermutung der KI.
 - **Kennzahl anklicken:** Gibt es zur Kennzahl eine Kachel, steht sie als Knopf. Ein Klick hebt die Kachel im Bericht hervor und rollt zu ihr. Ohne passende Kachel steht die Kennzahl als einfacher Text.
@@ -43,7 +45,7 @@ Dieselben Zahlen mit demselben Schwerpunkt und derselben Frage werten nicht neu 
 ## Kopieren und in den Bericht übernehmen {#uebernehmen}
 
 - **Kopieren** legt die Auswertung mit Überschriften und Hinweis in die Zwischenablage.
-- **In den Bericht übernehmen** nimmt die Auswertung in PDF, Word und Excel auf, immer mit dem Hinweis der KI. Das gilt im Menü **Ausgabe** für **Drucken …**, **Als PDF speichern**, **Per Mail senden …**, **Bericht (Excel)** und **Bericht (Word)**.
+- **In den Bericht übernehmen** nimmt die Auswertung in PDF, Word und Excel auf, immer mit dem Hinweis der KI. Das gilt im Menü **Ausgabe** für **Drucken …**, **Als PDF speichern**, **Per Mail senden …**, **Bericht (Excel)** und **Bericht (Word)**; **Kennzahlen (CSV)** enthält sie nicht. Mehr dazu unter [Bericht als Dokument ausgeben](hilfe:berichte-als-dokument-ausgeben#ki).
 - **Aus dem Bericht nehmen** macht das rückgängig.
 - Wer Standort, Zeitraum oder Vergleich ändert, bekommt einen neuen Bericht; die übernommene Auswertung gilt dann nicht mehr und fällt aus den Dateien.
 
@@ -55,6 +57,6 @@ Dieselben Zahlen mit demselben Schwerpunkt und derselben Frage werten nicht neu 
 ## Hinweise {#hinweise}
 
 - Nur Inhaber, Manager, Standortleitung und Backoffice. Ohne das Recht „Berichte mit Beträgen“ sieht die KI keine Beträge, und die Auswertung nennt keine.
-- An die KI gehen nur die Kennzahlen und Tabellen des Berichts, das Personal mit dem Namen im Haus. Gästenamen und Gesundheitsdaten gehen nie an die KI.
+- An die KI gehen nur die Kennzahlen und Tabellen des Berichts, das Personal mit dem Namen im Haus, ersatzweise mit dem Namen der Person, und den Zahlen je Person. Gästenamen und Gesundheitsdaten gehen nie an die KI.
 - Die KI bewertet keine einzelnen Personen und empfiehlt keine Schritte gegen einzelne Personen.
 - Die Kennzahlen selbst: [Kennzahlen im Management ansehen](hilfe:berichte-kennzahlen-ansehen).

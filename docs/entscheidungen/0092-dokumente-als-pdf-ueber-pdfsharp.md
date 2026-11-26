@@ -39,6 +39,8 @@ PDFsharp liefert genau den Teil, der schwer selbst zu bauen ist (PDF-Objekte, Sc
 - Ein Logo im Kopf kommt erst, wenn die Firmendaten eines haben (heute nicht).
 - Bewusst offen (Stufe 3): Kennzahlen-Bericht, Kassenbuch des Monats, gefilterter Verlauf-Export, Umsatz je Behandlung und Person, Anamnesebogen leer und ausgefüllt, Drucken aus der Weboberfläche.
 
+- Nachtrag (26.11.2026): Der Kennzahlen-Bericht, in „Bewusst offen (Stufe 3)“ als später geführt, ist gebaut (T-092 bis T-095 und T-104): Das Management hat jetzt ein Menü **Ausgabe** mit **Drucken …**, **Als PDF speichern** und **Per Mail senden …** für den ganzen Bericht als PDF (A4 hoch, Kennzahlen in vier Gruppen mit Vergleich, Verlauf als Balken, Tabellen), dazu Excel und Word aus demselben Berichtskern ([ADR 0102](0102-berichte-als-dokument-aus-einem-kern.md)). Der Wochen- und Monatsbericht per Mail hängt dasselbe PDF an (T-096). Beträge und Gästelisten stehen darin nur mit den Rechten, mit denen man sie auf der Seite sieht. Der Rest der Stufe 3 (Kassenbuch des Monats, gefilterter Verlauf-Export, Umsatz je Behandlung und Person als eigenes Dokument, Anamnesebogen, Drucken aus der Weboberfläche) bleibt offen.
+
 ## Quellen
 
 - [Arbeitsanweisung PDF-Ausgaben](../umsetzung/arbeitsanweisung-pdf-ausgaben.md)

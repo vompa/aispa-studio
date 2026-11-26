@@ -142,3 +142,41 @@ Die Maske bleibt lesbar: Reihenfolge Status und Warnungen, Kacheln in Gruppen mi
 - ADRs (nächste freie Nummer laut `CLAUDE.md` 0101, vorher prüfen): neu „Berichte als Dokument aus einem Kern (Excel, Word, PDF)“ mit der Paketwahl für Word; Nachtrag zu ADR 0092 (Kennzahlen-Bericht gebaut), zu ADR 0022 (KI-Auswertung per Knopf, PDF im Mailbericht) und zu **ADR 0008** (Entscheidung vom 26.11.2026: der Name im Haus, ersatzweise der Name der Person, und die Zahlen je Person gehen im Management-Bericht an die KI).
 - `docs/stand-und-offene-punkte.md` (Zeile „Berichte je Rolle …“ ist veraltet), `docs/features.md`, `docs/konzepte/reporting.md` (Stand je Punkt), Masken-Inventar.
 - Fertigmeldung an den Auftraggeber: je Aufgabe ein Satz, je Dokumentart eine Beispieldatei, die Liste „bewusst offen“ und die gesammelten Fragen.
+
+## 4. Fertigmeldung (26.11.2026)
+
+Aufgabe F (T-097) schließt den Ausbau ab. Die Einzelheiten und die Prüfungen je Aufgabe stehen im [PR-Protokoll](pr-protokoll.md), die Handtests in [handtests.md](handtests.md).
+
+### Was gebaut ist
+
+- **A, T-092 (Zahlen richtigstellen):** Der Verkauf von Wertgutscheinen zählt nicht mehr als Umsatz (neue Kennzahlen „Umsatz ohne Gutscheinverkauf“, „Gutscheine verkauft“, „Gutscheine eingelöst“), der Folgetermin zählt jeden späteren Termin, Umsatz je Behandlung und Person kommen aus den Belegen, die Marge rechnet jeden Termin mit den Kosten seines Monats, kleine Kassendifferenzen unter 5 € sind keine Warnung mehr, und ein Hinweis nennt den Beginn der Aufzeichnung.
+- **B, T-093 (Zeitraum, Vergleich, Kacheln):** Schnellwahl für den Zeitraum, wählbarer Vergleich (Zeitraum davor, Vormonat, Vorjahr) und Kacheln mit Veränderung und Richtung.
+- **C, T-094 (neue Kennzahlen und Verlauf):** Deckungsbeitrag, Umsatz je Dienst- und Behandlungsstunde, Produktanteil, Umsatz je Gast, entgangener Umsatz, Verlauf als Säulen, Auslastung nach Wochentag und Tageszeit, Räume, Kanäle, beste und abwandernde Gäste und die Vorschau der nächsten vier Wochen.
+- **D, T-095 (Berichtskern und Ausgaben):** Ein Berichtskern ([ADR 0102](../entscheidungen/0102-berichte-als-dokument-aus-einem-kern.md)) liefert PDF, Word und Excel mit Kopf des Betriebs, Zeitraum, Vergleich und „Erstellt am … von …“; Drucken und Per Mail senden für das PDF; jede Datei steht im Export-Protokoll; ohne Betragsrecht fehlen die Beträge, ohne das Recht der Kundenliste die Gästenamen.
+- **E, T-096 (KI-Auswertung):** Der Knopf **Mit KI auswerten** liefert Kernaussagen, Auffälligkeiten, Maßnahmen und „Was die Zahlen nicht zeigen“, nur mit Zahlen des Berichts und mit KI-Hinweis, auf Wunsch in PDF, Word und Excel übernommen; der Wochen- und Monatsbericht hängt das PDF an.
+- **T-104 (neu gestaltet):** Kopfzeile mit Menü **Ausgabe**, Zeitraum in einer Zeile, Kacheln als Raster mit Veränderung als Pille, Seitenleiste der KI mit eingeklapptem Formular und Kennzahl-Chip, Erlöskonto und Zahlungsart nebeneinander.
+- **F, T-097 (Hilfe und Entscheidungen):** Hilfe mit „So wird gerechnet“ je Kennzahl, neu „Bericht als Dokument ausgeben“, vier neue Handbuchbilder, ADR 0102 mit Nachträgen zu ADR 0092, 0022 und 0008, Stand in Reporting-Konzept, Features, Masken-Inventar und Stand-Seite.
+
+### Beispieldateien
+
+Je Dokumentart gibt es eine Beispieldatei aus den vorhandenen Tests (PDF und Word mit `AISPA_PDF_SAMPLES`, Excel mit `AISPA_EXPORT_SAMPLES`; Aufruf: `dotnet test --project tests/AispaStudio.Api.Tests -c Release --filter-class "*.ManagementReportPdfTests" --filter-class "*.ManagementReportWordTests" --filter-class "*.ReportExportTests"`): `management-bericht.pdf` (vier Seiten A4 hoch), `management-bericht-ohne-betraege.pdf`, `management-bericht.docx`, `management-bericht-ki.docx` (mit KI-Text und Hinweis) und `Bericht_2027-03-01_bis_2027-03-07.xlsx` (13 Blätter). Die Dateien liegen nicht im Repository.
+
+### Bewusst offen
+
+- Eingabe des Claude-Schlüssels in der App, Verbrauchsmessung, Prompt-Caching und Modellwahl je Aufgabe (T-098).
+- Rückmeldung „Hilfreich / Nicht hilfreich“ und Karte „Was die KI kann“ beim ersten Öffnen der KI-Leiste (Skill `fluent2-avalonia`).
+- Die Mail mit dem Wochen- und Monatsbericht und ihr PDF enthalten die KI-Auswertung nicht und vergleichen immer mit dem Zeitraum davor; der Kurzkommentar der KI bezieht sich ebenfalls auf den Zeitraum davor.
+- Word: nicht in Word geöffnet und gedruckt (nur Schema und Rücklesen), keine echten Diagramme, kein Logo im Kopf; A4 quer für einzelne breite Tabellen.
+- Kanäle: Anrufe und Laufkundschaft sind nicht getrennt (beides „Rezeption“), kein Umsatz je Kanal, keine Provisionskosten.
+- Kontaktaufnahme mit abwandernden Stammgästen aus der Liste (Newsletter- und Einwilligungsregeln); Vorschau mit Vergleich zum Vorjahr; Auslastung je Raum und Feld.
+- Aufschlüsselung jeder Kennzahl bis zur einzelnen Buchung, Filter nach Therapeut und Behandlung, Standorte nebeneinander, Kundenwert, eingenommene Ausfallgebühren (siehe [Reporting-Konzept](../konzepte/reporting.md), Stand der Umsetzung).
+- Nicht geprüft: Sprachausgabe von Windows an Menü, Kästchen im Menü, Chip und Leiste; dunkles Design der neuen Maske als Bild; Fenster unter 1100 px; echter Aufruf von Claude; die volle Prüfkette am Rundenende und die Handtests T-092 bis T-097.
+
+### Fragen an den Auftraggeber
+
+1. **Ort des KI-Hinweises** in der Seitenleiste: Hinweiszeile unter dem Ergebnis (heute, nach Brief 5.28) oder fester Satz im Fuß (Wunsch im Mockup)? Bis zur Entscheidung gilt der Brief unverändert.
+2. **Zahlen je Person und die KI:** Der Prompt erlaubt Zahlen je Person, verbietet aber Bewertung einzelner Personen und arbeitsrechtliche Schritte. Empfehlung: so lassen (ADR 0008, Nachtrag vom 26.11.2026).
+3. **Vertrag zur Auftragsverarbeitung mit Anthropic** (ADR 0008): Die Fakten enthalten jetzt Namen im Haus von Mitarbeitenden. Empfehlung: vor dem ersten Kunden mit Schlüssel abschließen.
+4. **Offene Gutscheine** zählen heute alle aktiven Gutscheine des Betriebs, nicht nur die des gewählten Standorts. Soll die Kachel je Standort rechnen? Empfehlung: ja, sobald ein Betrieb mehr als einen Standort hat.
+5. **Neue Gäste und Folgetermin** rechnen mit Terminen an jedem Standort des Betriebs („erster Termin überhaupt“, „späterer Termin“), nicht nur am gewählten. Das passt zum gemeinsamen Kundenstamm; soll es dabei bleiben? Empfehlung: ja.
+6. **Zahl in der eigenen Frage** an die KI: Wiederholt die KI sie, scheitert die Auswertung, weil die Zahlenprüfung nur die Fakten kennt. Die Seitenleiste rät deshalb, die Frage ohne Zahlen zu stellen. Empfehlung: so lassen.

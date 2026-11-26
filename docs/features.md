@@ -332,9 +332,16 @@ Seite „Berichte“, je Rolle (`/api/reports/...`):
   aus Behandlungsrezept (abhakbar, mit Uhrzeit), Vorlieben, letzter Notiz und Anlass. Nachbereitung: Notiz für die nächste Karte.
 - **Tagesstart** (Rezeption aufwärts): Zusammenfassung, Personal mit Abwesenheiten, Handlungsbedarf (Termin ohne Dienst,
   Erstbesuch ohne Fragebogen, gestern nicht abgerechnet), Gäste, gesperrte Räume, Kassa (Anfangsbestand, Warnungen).
-- **Management** (`ViewFinance`): Umsatz brutto/netto aus den Belegen, Durchschnittsbon, Auslastung Personal und Räume,
-  No-Show- und Storno-Quote, Gäste, neue Gäste, Stammgäste, Folgetermine, offene Gutscheine, jeweils mit Vorperiode;
-  Umsatz nach Erlöskonto/Kostenstelle und Zahlungsart, Personal, Behandlungen mit Marge aus der Vollkostenrechnung, Alarme.
+- **Management** (`ViewFinance`): Zeitraum mit Schnellwahl und wählbarem Vergleich (Zeitraum davor, Vormonat, Vorjahr). Kennzahlen in
+  vier Gruppen, jeweils mit Vergleichswert und Veränderung: Umsatz brutto/netto aus den Belegen, Umsatz ohne Gutscheinverkauf,
+  Durchschnittsbon, Deckungsbeitrag, Umsatz je Dienst- und Behandlungsstunde, Produktanteil, Gutscheine; Auslastung Personal und
+  Räume; Gäste, neue Gäste, Stammgäste, Folgetermine, abwandernde Stammgäste; No-Show- und Storno-Quote mit entgangenem Umsatz.
+  Dazu Verlauf als Säulen, Auslastung nach Wochentag und Tageszeit, Vorschau der nächsten vier Wochen, Räume, Umsatz nach
+  Erlöskonto/Kostenstelle und Zahlungsart, Personal, Behandlungen mit Marge aus der Vollkostenrechnung, Aktionen, Kanäle, beste und
+  abwandernde Gäste und Alarme. Ausgabe über das Menü **Ausgabe**: PDF (drucken, speichern, per Mail), Word, Excel-Arbeitsmappe
+  und CSV, alle aus einem Berichtskern ([ADR 0102](entscheidungen/0102-berichte-als-dokument-aus-einem-kern.md)). Der Wochen- und
+  Monatsbericht kommt mit PDF-Anhang per Mail. **Mit KI auswerten** liefert Kernaussagen, Auffälligkeiten, Maßnahmen und
+  „Was die Zahlen nicht zeigen“ (ohne Rechnen, nur mit Zahlen des Berichts) und lässt sich in die Dokumente übernehmen.
 - **Vergleich mit anderen Spas** (Knopf im Management, `ViewFinance`): acht Kennzahlen der letzten 30 Tage, 90 Tage oder
   12 Monate neben Mitte und mittlerer Hälfte vergleichbarer Day-Spas (gleiches Land, Größenklasse bis 10 / 11–25 / 26–50
   Mitarbeitende), mit Hebel, wo der Standort unter der Mitte liegt. Andere Spas erscheinen nur als Verteilung, und nur bei
