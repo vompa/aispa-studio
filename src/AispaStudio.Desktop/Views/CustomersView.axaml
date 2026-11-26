@@ -809,7 +809,7 @@
                       <TextBlock Text="{Binding Date}" Classes="value num" />
                       <TextBlock Grid.Column="1" Text="{Binding Time}" Classes="secondary num" />
                       <TextBlock Grid.Column="2" Text="{Binding Treatment}" Classes="value" TextTrimming="CharacterEllipsis" />
-                      <Border Grid.Column="3" Classes="pill" Classes.crit="{Binding IsProblem}" Classes.accent="{Binding IsUpcoming}" Margin="8,0">
+                      <Border Grid.Column="3" Classes="pill" Classes.crit="{Binding IsProblem}" Classes.accent="{Binding IsUpcoming}" Margin="8,0" IsVisible="{Binding Status, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
                         <TextBlock Text="{Binding Status}" />
                       </Border>
                       <TextBlock Grid.Column="4" Text="{Binding Price}" Classes="value num" TextAlignment="Right" />

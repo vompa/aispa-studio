@@ -8,7 +8,7 @@
     Grund, rechts der Zustand und die offenen Termine. Zwei Zeilen hoch, damit die Liste auch neben der Seitenleiste (360 px) beim Mindestfenster lesbar bleibt.
   -->
   <Grid ColumnDefinitions="76,*,Auto" ColumnSpacing="12" Margin="0,4">
-    <Border Classes="pill" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,1,0,0">
+    <Border Classes="pill" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,1,0,0" IsVisible="{Binding TypeText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
       <TextBlock Text="{Binding TypeText}" />
     </Border>
     <StackPanel Grid.Column="1" Spacing="2">

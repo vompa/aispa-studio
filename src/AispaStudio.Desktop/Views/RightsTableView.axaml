@@ -47,7 +47,7 @@
                           <TextBlock Text="{Binding Hint}" Classes="muted small" TextWrapping="Wrap" IsVisible="{Binding HasHint}" />
                         </StackPanel>
                         <Border Grid.Column="1" Classes="pill" Classes.accent="{Binding FreesSomething}" VerticalAlignment="Top" ToolTip.Tip="{Binding EffectTip}"
-                                ui:ToolTipBehavior.Reachable="True">
+                                ui:ToolTipBehavior.Reachable="True" IsVisible="{Binding Effect, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
                           <TextBlock Text="{Binding Effect}" />
                         </Border>
                         <WrapPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Top">

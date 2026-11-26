@@ -401,7 +401,7 @@
                         <ui:Icon Data="{Binding SymbolIcon}" Width="11" Height="11" Foreground="{DynamicResource Fg2Brush}" VerticalAlignment="Center"
                                  IsVisible="{Binding SymbolIcon, Converter={x:Static ObjectConverters.IsNotNull}}" />
                       </StackPanel>
-                      <Border Grid.Column="1" Classes="pill" Classes.ok="{Binding IsCheckedIn}" Classes.crit="{Binding IsProblem}" VerticalAlignment="Center">
+                      <Border Grid.Column="1" Classes="pill" Classes.ok="{Binding IsCheckedIn}" Classes.crit="{Binding IsProblem}" VerticalAlignment="Center" IsVisible="{Binding Status, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
                         <TextBlock Text="{Binding Status}" />
                       </Border>
                       <TextBlock Grid.Row="1" Grid.ColumnSpan="2" Text="{Binding Detail}" Classes="secondary small" TextWrapping="Wrap" />
@@ -952,7 +952,7 @@
               <ui:Icon Data="{x:Static ui:Icons.Door}" Foreground="{DynamicResource Fg2Brush}" Width="16" Height="16" VerticalAlignment="Center" />
               <TextBlock Text="{Binding Name}" Classes="h2" TextWrapping="Wrap" VerticalAlignment="Center" />
             </StackPanel>
-            <Border Grid.Column="1" Classes="pill" VerticalAlignment="Top"><TextBlock Text="{Binding Kind}" /></Border>
+            <Border Grid.Column="1" Classes="pill" VerticalAlignment="Top" IsVisible="{Binding Kind, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"><TextBlock Text="{Binding Kind}" /></Border>
           </Grid>
           <StackPanel Orientation="Horizontal" Spacing="8">
             <ui:Icon Data="{x:Static ui:Icons.Broom}" Foreground="{DynamicResource Fg2Brush}" Width="16" Height="16" VerticalAlignment="Center" />
@@ -1922,7 +1922,7 @@
                             IsEnabled="{Binding CanOpenCustomer}" ToolTip.Tip="Kundenkarte öffnen">
                       <TextBlock Text="{Binding Name}" FontWeight="Medium" TextTrimming="CharacterEllipsis" />
                     </Button>
-                    <Border Grid.Column="1" Classes="pill" Classes.warn="{Binding IsOffered}" VerticalAlignment="Top">
+                    <Border Grid.Column="1" Classes="pill" Classes.warn="{Binding IsOffered}" VerticalAlignment="Top" IsVisible="{Binding State, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
                       <TextBlock Text="{Binding State}" />
                     </Border>
                   </Grid>
@@ -3322,19 +3322,14 @@
         </Border>
         <Border Grid.Row="2" Classes="divider" />
         <!-- Chip-Zeile unter dem Kopf (5.12, Punkt 3): Status und Dauer des Termins als Pillen, 8 px Abstand; deckender Grund und 8 px Luft darunter, beim Rollen ein Trenner (Durchsicht, Befund E) -->
-        <Border Grid.Row="3" x:Name="AppointmentChips" Padding="20,8,20,8" BorderThickness="0,0,0,1" BorderBrush="Transparent" Background="{DynamicResource SurfaceBrush}">
-          <!-- Solange die Kundendaten im Panel offen sind, stehen die Chips nicht da (Durchsicht, Befund 14) -->
-          <Border.IsVisible>
-            <MultiBinding Converter="{x:Static BoolConverters.And}">
-              <Binding Path="HasAppointmentHeader" />
-              <Binding Path="!Selected?.IsEditingCustomer" TargetNullValue="True" />
-            </MultiBinding>
-          </Border.IsVisible>
+        <!-- Solange die Kundendaten im Panel offen sind, stehen die Chips nicht da (Durchsicht, Befund 14); ohne Termin fällt die Zeile weg (T-108) -->
+        <Border Grid.Row="3" x:Name="AppointmentChips" Padding="20,8,20,8" BorderThickness="0,0,0,1" BorderBrush="Transparent" Background="{DynamicResource SurfaceBrush}"
+                IsVisible="{Binding ShowAppointmentChips}">
           <WrapPanel ItemSpacing="8" LineSpacing="4" DataContext="{Binding Selected}" x:DataType="vm:AppointmentViewModel">
-            <Border Classes="pill booked" Classes.ok="{Binding IsCheckedIn}" Classes.crit="{Binding IsProblem}">
+            <Border Classes="pill booked" Classes.ok="{Binding IsCheckedIn}" Classes.crit="{Binding IsProblem}" IsVisible="{Binding StatusText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
               <TextBlock Text="{Binding StatusText}" />
             </Border>
-            <Border Classes="pill">
+            <Border Classes="pill" IsVisible="{Binding Duration, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
               <TextBlock Text="{Binding Duration}" />
             </Border>
             <!-- Nur der Stand der Anamnese, nie Inhalte (Durchsicht, Befund 16); die Antworten stehen unten in der Karte und brauchen das Recht ViewHealthData -->

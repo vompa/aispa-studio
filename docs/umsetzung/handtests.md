@@ -1972,3 +1972,15 @@ Expected: Die Zeile zeigt „Aus der Konfiguration gesetzt: sk-ant-…“. Feld,
 Expected: Die Hilfe „Claude-Schlüssel eintragen“ öffnet sich.
 Closes: T-098 Punkt 9
 Result: ☐
+### T-108 – Leere Pillen ausblenden
+Start: `dotnet run --project src/AispaStudio.AppHost` mit Beispieldaten, im Aspire-Dashboard die Ressource `windows-app` starten, als Inhaberin anmelden.
+1. Im Kalender einen Termin anklicken und den Kopf des Seitenpanels ansehen.
+Expected: Unter dem Namen stehen nur Pillen mit Text (Status, Dauer, bei vorhandener Anamnese deren Stand); keine leere Kapsel, kein Abstand ohne Inhalt.
+2. Nacheinander einen gebuchten, einen eingecheckten und einen stornierten Termin öffnen.
+Expected: Die Status-Pille zeigt jeweils ihren Text in der passenden Farbe; die Dauer steht daneben.
+3. Im Posteingang Nachrichten mit und ohne Status ansehen, im Team die Seite Rechte und Zuständigkeiten und unter Erinnerungen den Verlauf.
+Expected: Wo eine Pille keinen Text hat, fehlt sie ganz; wo sie Text hat, sieht sie aus wie vorher.
+4. Im Kalender in eine freie Zeit klicken, sodass das Panel „Neuer Eintrag“ aufgeht, und nacheinander die Reiter **Termin**, **Paar/Spa**, **Pause**, **Sperrzeit**, **Notiz** und **Sauna** wählen.
+Expected: Unter dem Titel und dem Datum folgen direkt die Reiter; keine leeren farbigen Pillen und keine leere Zeile.
+Closes: T-098 Punkt 6
+Result: ☐
