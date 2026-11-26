@@ -6,22 +6,31 @@
              x:DataType="vm:RosterPlanViewModel">
   <!--
     Dienstplan einer Woche (R05 Slice 99, Ä191, Ä250; R07 Slice 142, Ä350), nach web/src/roster/RosterPage.tsx: Standort, Wochenwahl, Band für Entwürfe, eine Zeile je Person auf einer Fläche mit
-    feinen Linien. Dienste sind Chips in der Farbe der Person, Abwesenheiten ein Balken über die Tage, Stunden und Soll stehen beim Namen, die Spalte von heute ist hervorgehoben, unten zählt die Zeile „Besetzung“.
+    feinen Linien. Dienste sind Chips ohne Personenfarbe (die steht als Punkt vor dem Namen), Abwesenheiten ein Balken über die Tage, Stunden und Soll stehen beim Namen, die Spalte von heute ist ein durchgehender Streifen hinter der Tabelle, unten zählt die Summenzeile „Besetzung“.
+    Die Tabelle füllt die Breite der Ansicht (sieben gleich breite Spalten, kein Rollbalken; T-100, Paket C) und steht im Wochenplan des Teams auf einer Karte; auf der Personenkarte nicht, dort hat sie die feste Breite 912 und einen waagrechten Rollbalken.
+    Der Kopf der Spalte von heute heißt „Heute · Do. 26.11.“ (Stand T-100, Paket D).
     Eine Zelle ist ein Knopf (nur mit dem Recht zu planen); ein Entwurf trägt einen gestrichelten Rand. Der Balken liegt über den Zellen und fängt keine Klicks ab: jeder Tag bleibt einzeln anklickbar.
-    Farben nur über Ressourcen; die Chip-Fläche mischt RosterChip aus der Farbe der Person und dem Token RosterChipBaseBrush je Farbschema (T-039, Ä372).
+    Farben nur über Ressourcen; Chip und Dienst an einem anderen Standort nach Brief 5.8 (T-100, Paket B): Stilklassen chip und chip.elsewhere, in der Spalte von heute (cellToday) auf surface mit accent-line.
     Ein Klick auf eine Zelle öffnet den Tag als Popover direkt unter der Zelle (Ä370, T-017): DayHost liegt in derselben Ansicht über der Tabelle (kein Flyout, damit Fokus, Strg+S und
     DataContext im selben Baum bleiben); die Lage setzt RosterPlanView.axaml.cs. Weil DayHost ein Kind der Wurzel mit Margin ist, wächst die Ansicht mit und nichts wird abgeschnitten.
   -->
   <UserControl.Resources>
     <DataTemplate x:Key="RosterCellContent" x:DataType="vm:RosterCellViewModel">
-      <StackPanel Spacing="2" HorizontalAlignment="Stretch">
+      <StackPanel Spacing="2" HorizontalAlignment="Stretch" Classes.cellToday="{Binding IsToday}">
         <ItemsControl ItemsSource="{Binding Chips}">
           <ItemsControl.ItemTemplate>
             <DataTemplate x:DataType="vm:RosterChipViewModel">
-              <ui:RosterChip Classes="chip" PersonColor="{Binding PersonColor}" CornerRadius="999" Padding="6,2" Margin="0,0,0,2" HorizontalAlignment="Stretch">
-                <TextBlock Text="{Binding Text}" Classes="num small" Classes.planned="{Binding IsPlanned}" Foreground="{DynamicResource RosterChipInkBrush}" TextWrapping="Wrap" TextAlignment="Center"
-                           AutomationProperties.AccessibilityView="Raw" />
-              </ui:RosterChip>
+              <Border Classes="chip" Classes.elsewhere="{Binding IsElsewhere}" HorizontalAlignment="Stretch">
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                  <TextBlock Text="{Binding Time}" Classes="num" Classes.planned="{Binding IsPlanned}" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"
+                             AutomationProperties.AccessibilityView="Raw" />
+                  <Grid ColumnDefinitions="Auto,*" ColumnSpacing="4" HorizontalAlignment="Center" IsVisible="{Binding IsElsewhere}"
+                        ToolTip.Tip="{Binding Location}">
+                    <ui:Icon Data="{x:Static ui:Icons.Location}" Width="12" Height="12" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1" Text="{Binding Location}" Classes="small" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" AutomationProperties.AccessibilityView="Raw" />
+                  </Grid>
+                </StackPanel>
+              </Border>
             </DataTemplate>
           </ItemsControl.ItemTemplate>
         </ItemsControl>
@@ -43,7 +52,7 @@
       <Setter Property="VerticalAlignment" Value="Stretch" />
       <Setter Property="HorizontalContentAlignment" Value="Stretch" />
       <Setter Property="VerticalContentAlignment" Value="Center" />
-      <Setter Property="Padding" Value="4,6" />
+      <Setter Property="Padding" Value="0,6" />
       <Setter Property="Margin" Value="2" />
       <Setter Property="BorderThickness" Value="0" />
       <Setter Property="Background" Value="Transparent" />
@@ -55,6 +64,69 @@
     </Style>
     <Style Selector="TextBlock.planned">
       <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <!-- Dienst-Chip (Brief 5.8): Höhe 28, Fläche surface-3 mit Rahmen line; in der Spalte von heute surface mit accent-line -->
+    <Style Selector="Border.chip">
+      <Setter Property="MinHeight" Value="28" />
+      <Setter Property="CornerRadius" Value="999" />
+      <Setter Property="Padding" Value="6,4" />
+      <Setter Property="Margin" Value="0,0,0,2" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+      <Setter Property="Background" Value="{DynamicResource Surface3Brush}" />
+    </Style>
+    <Style Selector="Border.chip TextBlock">
+      <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
+    </Style>
+    <Style Selector="StackPanel.cellToday Border.chip">
+      <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentLineBrush}" />
+    </Style>
+    <!-- Dienst an einem anderen Standort (Brief 5.8): keine Fläche, fg-2, Rahmen line-strong, zwei Zeilen -->
+    <Style Selector="Border.chip.elsewhere">
+            <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="Padding" Value="8,2" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="{DynamicResource LineStrongBrush}" />
+    </Style>
+    <Style Selector="Border.chip.elsewhere TextBlock">
+      <Setter Property="Foreground" Value="{DynamicResource Fg2Brush}" />
+    </Style>
+    <Style Selector="Border.chip.elsewhere ui|Icon">
+      <Setter Property="Foreground" Value="{DynamicResource Fg2Brush}" />
+    </Style>
+    <Style Selector="StackPanel.cellToday Border.chip.elsewhere">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentLineBrush}" />
+    </Style>
+    <!-- Ohne Karte auf der Personenkarte (die Karte der Person ist schon die Fläche) -->
+    <Style Selector="Border.card.plain">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="BoxShadow" Value="none" />
+    </Style>
+    <!-- Im Wochenplan des Teams füllt die Tabelle die Breite, nie ein Rollbalken. Auf der schmaleren Personenkarte hat sie eine feste Breite (Name 72 plus sieben Tage zu 120) und rollt dort waagrecht. -->
+    <Style Selector="ScrollViewer.planscroll">
+      <Setter Property="HorizontalScrollBarVisibility" Value="Disabled" />
+      <Setter Property="VerticalScrollBarVisibility" Value="Disabled" />
+    </Style>
+    <Style Selector="ScrollViewer.planscroll.cardscroll">
+      <Setter Property="HorizontalScrollBarVisibility" Value="Auto" />
+    </Style>
+    <!-- Die Breite sitzt am gemeinsamen Panel, damit der Streifen für heute dieselbe Spaltenteilung hat wie die Tabelle. -->
+    <Style Selector="Panel.cardtable">
+      <Setter Property="Width" Value="912" />
+    </Style>
+    <Style Selector="ContentPresenter:nth-child(1) > Border.rrow">
+      <Setter Property="BorderThickness" Value="0" />
+    </Style>
+    <Style Selector="TextBlock.coverage">
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="TextBlock.coverage.zero">
+      <Setter Property="Foreground" Value="{DynamicResource Fg2Brush}" />
+      <Setter Property="FontWeight" Value="Normal" />
     </Style>
     <Style Selector="TextBlock.today">
       <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
@@ -73,6 +145,16 @@
       <Setter Property="FontWeight" Value="SemiBold" />
       <Setter Property="VerticalAlignment" Value="Center" />
       <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+    </Style>
+    <Style Selector="Border.bar.single > TextBlock">
+      <Setter Property="HorizontalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Border.bar.dayoff">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="Border.bar.dayoff > TextBlock">
+      <Setter Property="FontWeight" Value="Normal" />
+      <Setter Property="HorizontalAlignment" Value="Center" />
     </Style>
     <Style Selector="Border.bar.vacation">
       <Setter Property="Background" Value="{DynamicResource AccentSoftBrush}" />
@@ -154,11 +236,21 @@
     <TextBlock Text="Lade Dienstplan …" Classes="muted" IsVisible="{Binding !IsLoaded}" />
     <TextBlock x:Name="RosterEmpty" Text="{Binding EmptyText}" Classes="muted" IsVisible="{Binding IsEmpty}" />
 
-    <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" IsVisible="{Binding IsLoaded}">
+    <Border x:Name="RosterCard" Classes="card" Classes.plain="{Binding IsCard}" IsVisible="{Binding IsLoaded}">
+    <ScrollViewer Classes="planscroll" Classes.cardscroll="{Binding IsCard}">
+    <Panel Classes.cardtable="{Binding IsCard}">
+      <!-- Heute: ein durchgehender Streifen hinter Kopf, Zeilen und Besetzung (Brief 6 Punkt 8), in derselben Spaltenteilung wie die Tabelle -->
+      <Grid ColumnDefinitions="Auto,*" IsVisible="{Binding HasToday}" IsHitTestVisible="False">
+        <Border Width="{Binding NameColumnWidth}" />
+        <Grid Grid.Column="1" ColumnDefinitions="*,*,*,*,*,*,*">
+          <Border x:Name="TodayStripe" Grid.Column="{Binding TodayColumn}" Background="{DynamicResource AccentSoftBrush}" CornerRadius="8" />
+        </Grid>
+      </Grid>
       <StackPanel x:Name="RosterTable" AutomationProperties.Name="Dienstplan">
-        <Grid ColumnDefinitions="Auto,*" Margin="0,0,0,6">
+        <Border BorderBrush="{DynamicResource LineStrongBrush}" BorderThickness="0,0,0,1" Padding="0,0,0,6">
+        <Grid ColumnDefinitions="Auto,*">
           <Border Width="{Binding NameColumnWidth}" />
-          <ItemsControl Grid.Column="1" ItemsSource="{Binding Heads}" MinWidth="728">
+          <ItemsControl Grid.Column="1" ItemsSource="{Binding Heads}">
             <ItemsControl.ItemsPanel>
               <ItemsPanelTemplate>
                 <UniformGrid Rows="1" />
@@ -166,18 +258,19 @@
             </ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplate>
               <DataTemplate x:DataType="vm:RosterHeadViewModel">
-                <TextBlock Text="{Binding Text}" Classes="group" Classes.today="{Binding IsToday}" HorizontalAlignment="Center" />
+                <TextBlock Text="{Binding Label}" Classes="group" Classes.today="{Binding IsToday}" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" />
               </DataTemplate>
             </ItemsControl.ItemTemplate>
           </ItemsControl>
         </Grid>
+        </Border>
 
         <ItemsControl ItemsSource="{Binding Rows}">
           <ItemsControl.ItemTemplate>
             <DataTemplate x:DataType="vm:RosterRowViewModel">
-              <Border BorderBrush="{DynamicResource LineBrush}" BorderThickness="0,1,0,0" Padding="0,4">
+              <Border Classes="rrow" BorderBrush="{DynamicResource LineBrush}" BorderThickness="0,1,0,0" MinHeight="44">
                 <Grid ColumnDefinitions="Auto,*">
-                  <StackPanel Width="{Binding NameColumnWidth}" Spacing="2" Margin="0,0,8,0" VerticalAlignment="Center">
+                  <StackPanel Width="{Binding NameColumnWidth}" Spacing="2" VerticalAlignment="Center">
                     <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding ShowsName}">
                       <Ellipse Width="8" Height="8" Fill="{Binding Color}" VerticalAlignment="Center" />
                       <Button Classes="link" Content="{Binding Name}" Command="{Binding OpenPersonCommand}" IsVisible="{Binding CanOpenPerson}"
@@ -189,7 +282,7 @@
                         <ui:Icon Data="{x:Static ui:Icons.Note}" Width="16" Height="16" Foreground="{DynamicResource Fg2Brush}" />
                       </Border>
                     </StackPanel>
-                    <TextBlock x:Name="RosterHours" Text="{Binding HoursText}" Classes="num small" Margin="16,0,0,0" ToolTip.Tip="{Binding HoursTip}" ui:ToolTipBehavior.Reachable="True" />
+                    <TextBlock x:Name="RosterHours" Text="{Binding HoursText}" Classes="num small secondary" Margin="16,0,0,0" ToolTip.Tip="{Binding HoursTip}" ui:ToolTipBehavior.Reachable="True" />
                     <ItemsControl ItemsSource="{Binding Warnings}">
                       <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="x:String">
@@ -198,7 +291,7 @@
                       </ItemsControl.ItemTemplate>
                     </ItemsControl>
                   </StackPanel>
-                  <Panel Grid.Column="1" MinWidth="728">
+                  <Panel Grid.Column="1">
                     <ItemsControl ItemsSource="{Binding Cells}">
                       <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
@@ -208,7 +301,6 @@
                       <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="vm:RosterCellViewModel">
                           <Panel>
-                            <Border Background="{DynamicResource AccentSoftBrush}" CornerRadius="8" Margin="2" IsVisible="{Binding IsToday}" IsHitTestVisible="False" />
                             <Button Classes="rcell" Classes.open="{Binding IsOpen}" Command="{Binding OpenCommand}" IsVisible="{Binding CanOpen}"
                                     AutomationProperties.Name="{Binding AutomationName}" Content="{Binding}" ContentTemplate="{StaticResource RosterCellContent}" />
                             <!-- Ohne Recht zu planen ist die Zelle Text, kein abgeschalteter Knopf (Deckkraft 0,5): der Plan muss gut lesbar bleiben. -->
@@ -234,7 +326,7 @@
                       </ItemsControl.Styles>
                       <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="vm:RosterBarViewModel">
-                          <Border Classes="bar" Classes.vacation="{Binding IsVacation}" Classes.sick="{Binding IsSick}" Classes.training="{Binding IsTraining}">
+                          <Border Classes="bar" Classes.single="{Binding IsSingleDay}" Classes.dayoff="{Binding IsDayOff}" Classes.vacation="{Binding IsVacation}" Classes.sick="{Binding IsSick}" Classes.training="{Binding IsTraining}">
                             <TextBlock Text="{Binding Text}" Classes="small" />
                           </Border>
                         </DataTemplate>
@@ -247,12 +339,12 @@
           </ItemsControl.ItemTemplate>
         </ItemsControl>
 
-        <Border x:Name="RosterCoverage" BorderBrush="{DynamicResource LineBrush}" BorderThickness="0,1,0,0" Padding="0,8" IsVisible="{Binding ShowsCoverage}"
+        <Border x:Name="RosterCoverage" BorderBrush="{DynamicResource LineStrongBrush}" BorderThickness="0,1,0,0" Padding="0,8" IsVisible="{Binding ShowsCoverage}"
                 ToolTip.Tip="Wie viele Personen an dem Tag am Standort im Dienst sind">
           <Grid ColumnDefinitions="Auto,*">
-            <TextBlock Text="Besetzung" Classes="small muted" Width="176" VerticalAlignment="Center" ui:ToolTipBehavior.Reachable="True"
+            <TextBlock Text="Besetzung" Classes="group" Width="160" VerticalAlignment="Center" ui:ToolTipBehavior.Reachable="True"
                        ToolTip.Tip="Wie viele Personen an dem Tag am Standort im Dienst sind" />
-            <ItemsControl Grid.Column="1" ItemsSource="{Binding Coverage}" MinWidth="728">
+            <ItemsControl Grid.Column="1" ItemsSource="{Binding Coverage}">
               <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
                   <UniformGrid Rows="1" />
@@ -260,15 +352,17 @@
               </ItemsControl.ItemsPanel>
               <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="vm:RosterCoverageViewModel">
-                  <TextBlock Text="{Binding Text}" Classes="num" Classes.today="{Binding IsToday}" HorizontalAlignment="Center"
-                             AutomationProperties.Name="{Binding Text, StringFormat='{}{0} im Dienst'}" />
+                  <TextBlock Text="{Binding Text}" Classes="coverage num" Classes.today="{Binding IsToday}" Classes.zero="{Binding IsZero}" HorizontalAlignment="Center"
+                             AutomationProperties.Name="{Binding AutomationName}" />
                 </DataTemplate>
               </ItemsControl.ItemTemplate>
             </ItemsControl>
           </Grid>
         </Border>
       </StackPanel>
+    </Panel>
     </ScrollViewer>
+    </Border>
   </StackPanel>
 
   <ContentControl x:Name="DayHost" Content="{Binding Day}" IsVisible="{Binding HasDay}" HorizontalAlignment="Left" VerticalAlignment="Top" ZIndex="1" />

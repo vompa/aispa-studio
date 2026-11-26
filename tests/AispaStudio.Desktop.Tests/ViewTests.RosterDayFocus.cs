@@ -209,13 +209,34 @@ public sealed partial class ViewTests
             await Pump(Settling);
 
             var cell = RosterCellButton(window, "Lena Huber", "Di.");
-            // Seit Slice 142 füllt der Chip die Zelle: schmaler Innenabstand und Rand, dafür bricht die Zeit nicht um und wird nicht abgeschnitten.
-            Assert.Equal(new Thickness(4, 6), cell.Padding);
+            // Seit Slice 142 füllt der Chip die Zelle: schmaler Innenabstand und Rand (seit T-100 ohne waagrechten Innenabstand), dafür bricht die Zeit nicht um und wird nicht abgeschnitten.
+            Assert.Equal(new Thickness(0, 6), cell.Padding);
             Assert.Equal(new Thickness(2), cell.Margin);
             AssertOneLine(cell.GetVisualDescendants().OfType<TextBlock>().First(t => t.Text == "09:00–17:00"), cell);
             var table = window.GetVisualDescendants().OfType<Control>().First(c => c.Name == "RosterTable" && c.IsEffectivelyVisible);
             var scroll = table.GetVisualAncestors().OfType<ScrollViewer>().First();
             Assert.True(scroll.Extent.Width >= table.Bounds.Width);
+            return team;
+        }, api);
+    }
+
+    [Fact]
+    public Task Given_der_Wochenplan_auf_der_Karte_When_heute_in_der_Woche_liegt_Then_liegt_der_Streifen_unter_der_Zelle_von_heute()
+    {
+        var (api, _) = RosterApi();
+        return Render("hell", "verwaltung-team-karte-dienstplan-heute", async (window, main) =>
+        {
+            var team = await OpenTeam(window, main);
+            await ClickRow(window, "Lena Huber");
+            await ClickCardTab(window, "Dienstplan und Abwesenheit");
+            await Pump(Settling);
+
+            var stripe = Named<Border>(window, "TodayStripe");
+            var cell = RosterCellButton(window, "Lena Huber", "Mo.");
+            var stripeLeft = stripe.TranslatePoint(new Point(0, 0), window)!.Value.X;
+            var cellLeft = cell.TranslatePoint(new Point(0, 0), window)!.Value.X;
+            Assert.InRange(cellLeft - stripeLeft, 0, cell.Margin.Left + 1);
+            Assert.InRange(stripe.Bounds.Width - cell.Bounds.Width, 0, cell.Margin.Left + cell.Margin.Right + 1);
             return team;
         }, api);
     }

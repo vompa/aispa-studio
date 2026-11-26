@@ -44,7 +44,7 @@ public sealed partial class ViewTests
         }, api);
     }
 
-    // T-039 (Ä372): der Chip rechnet seine Fläche aus Personenfarbe und Farbschema; beim Umschalten zur Laufzeit (auch „System“) muss sie mitgehen.
+    // T-039 (Ä372), seit T-100 mit Ressourcen statt Personenfarbe: der Chip steht auf surface-3 und fg; beim Umschalten des Farbschemas zur Laufzeit (auch „System“) müssen Fläche und Schrift mitgehen.
     [Fact]
     public Task Verwaltung_Team_Wochenplan_Chip_folgt_dem_Farbschema_beim_Umschalten()
     {

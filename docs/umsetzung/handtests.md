@@ -1730,3 +1730,20 @@ Expected: Gleicher Aufbau wie in Schritt 1, Umlaute stimmen.
 Expected: Der Aushang hat unverändert die Personen als Zeilen und die Tage als Spalten.
 Closes: Auftrag vom 26.11.2026 (Export gedreht)
 Result: ☐
+
+### T-100 – Wochenplan lesbar
+Start: `dotnet run --project src/AispaStudio.AppHost`, im Aspire-Dashboard die Ressource `windows-app` starten, als Inhaberin anmelden, **Verwaltung** › **Team** › **Wochenplan** öffnen; Fenster auf die Mindestbreite 1100 px ziehen
+1. Im schmalsten Fenster eine Woche mit mehreren Diensten ansehen, auch bei einer Person mit Dienst an einem anderen Standort mit langem Namen.
+Expected: Alle sieben Tage und die Zeile „Besetzung“ sind ohne waagrechten Rollbalken zu sehen; nichts ist abgeschnitten, ein gekürzter Standort endet mit „…“. Notieren, ob die Zeit eines geplanten (fetten) Dienstes in zwei Zeilen umbricht.
+2. In der Woche von heute den Kopf der Spalte von heute und die Fläche dahinter ansehen.
+Expected: Der Kopf heißt „Heute · Do. 26.11.“ (mit dem Datum von heute), die helle Fläche reicht durchgehend vom Kopf bis zur Zeile „Besetzung“ ohne Lücke; der Chip in dieser Spalte hebt sich von der Fläche ab. In einer anderen Woche ist nichts hervorgehoben.
+3. Einen Dienst an einem anderen Standort ansehen und den Mauszeiger auf den Standort halten.
+Expected: Der Dienst hat keine graue Fläche, in der zweiten Zeile stehen Ortssymbol und Standort; der Tooltip nennt den vollen Namen.
+4. Eine Zelle in der ersten und in der letzten Spalte anklicken.
+Expected: Das Feld zum Planen öffnet sich direkt unter der Zelle und ist vollständig sichtbar; mit **Esc** schließt es und der Fokus kehrt zur Zelle zurück.
+5. Bei der Person auf **Personen**, die Karte öffnen, Reiter **Arbeitszeit**.
+Expected: Dieselben Chips auf der Kartenfläche ohne zweite Karte; die Tabelle lässt sich waagrecht verschieben. Notieren, ob der Streifen für heute unter dem Kopf von heute liegt.
+6. In **System** auf das dunkle Farbschema wechseln und den Wochenplan ansehen. Danach mit **Tab** durch eine Zeile gehen.
+Expected: Chips, Balken, „Frei“ und „Besetzung“ sind gut lesbar. In der Zelle mit Standort gibt es nur einen Tab-Stopp (die Zelle), keinen zweiten für den Standort.
+Closes: –
+Result: ☐

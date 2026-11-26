@@ -9,7 +9,7 @@ namespace AispaStudio.Desktop.ViewModels;
 /// <summary>Eine Zelle im Dienstplan: ein Tag einer Person mit Diensten, Entwurf und Warnungen; ein Klick öffnet den Tag zum Planen.</summary>
 public sealed partial class RosterCellViewModel : ObservableObject
 {
-    public RosterCellViewModel(RosterRowViewModel row, RosterCell cell, IReadOnlyList<string> lines, Action<RosterRowViewModel, RosterCellViewModel> open, bool canOpen)
+    public RosterCellViewModel(RosterRowViewModel row, RosterCell cell, IReadOnlyList<string> lines, IReadOnlyList<RosterChipViewModel> chips, Action<RosterRowViewModel, RosterCellViewModel> open, bool canOpen)
     {
         Row = row;
         Cell = cell;
@@ -19,12 +19,16 @@ public sealed partial class RosterCellViewModel : ObservableObject
         IsPlanned = cell.Source == RosterSource.Plan;
         HasLines = lines.Count > 0;
         IsAbsence = cell.Entries.Count > 0 && cell.Entries.All(e => e.Kind != RosterKind.Work);
-        Chips = ShowsChips ? [.. lines.Select(l => new RosterChipViewModel(l, row.Color, IsPlanned))] : [];
+        Chips = ShowsChips ? chips : [];
         CanOpen = canOpen;
         OpenCommand = new RelayCommand(() => open(row, this), () => canOpen);
-        AutomationName = $"{row.Name}, {DayLayout.ShortDay(cell.Date)}{(IsDraft ? " (Entwurf)" : "")}: {(HasLines ? string.Join(", ", lines) : "nicht eingeteilt")}"
+        _nameStart = $"{row.Name}, {DayLayout.ShortDay(cell.Date)}";
+        _nameEnd = $"{(IsDraft ? " (Entwurf)" : "")}: {(HasLines ? string.Join(", ", lines) : "nicht eingeteilt")}"
             + string.Concat(Warnings.Select(w => $". Warnung: {w}"));
     }
+
+    private readonly string _nameStart;
+    private readonly string _nameEnd;
 
     public RosterRowViewModel Row { get; }
 
@@ -59,7 +63,7 @@ public sealed partial class RosterCellViewModel : ObservableObject
 
     public bool CanOpen { get; }
 
-    public string AutomationName { get; }
+    public string AutomationName => $"{_nameStart}{(IsToday ? ", heute" : "")}{_nameEnd}";
 
     public IRelayCommand OpenCommand { get; }
 
@@ -68,8 +72,17 @@ public sealed partial class RosterCellViewModel : ObservableObject
     public partial bool IsOpen { get; set; }
 }
 
-/// <summary>Ein Dienst als Chip: Zeit und Farbe der Person; die Fläche mischt <c>RosterChip</c> je nach Farbschema, <c>IsPlanned</c> hebt Dienste hervor, die für genau diesen Tag geplant sind (sonst gilt die Wochenarbeitszeit).</summary>
-public sealed record RosterChipViewModel(string Text, string PersonColor, bool IsPlanned);
+/// <summary>
+/// Ein Dienst als Chip (Brief 5.8): Zeit und, bei einem Dienst an einem anderen Standort, dessen Name als zweite Zeile; <c>IsPlanned</c> hebt Dienste hervor, die für genau diesen Tag geplant sind
+/// (sonst gilt die Wochenarbeitszeit). Die Farbe der Person trägt der Chip nicht, sie steht als Punkt vor dem Namen.
+/// </summary>
+public sealed record RosterChipViewModel(string Time, string Location, bool IsPlanned)
+{
+    public bool IsElsewhere => Location.Length > 0;
+
+    /// <summary>Zeit und Standort in einer Zeile, für die Namen der Zelle (Screenreader) und <c>Lines</c>.</summary>
+    public string Text => IsElsewhere ? $"{Time} {Location}" : Time;
+}
 
 /// <summary>Ein Balken über mehrere Tage einer Zeile: „Urlaub Di–Fr“ (Spalte 0 bis 6, Breite in Tagen).</summary>
 public sealed record RosterBarViewModel(int Column, int Span, string Text, RosterKind Kind)
@@ -79,75 +92,28 @@ public sealed record RosterBarViewModel(int Column, int Span, string Text, Roste
     public bool IsSick => Kind == RosterKind.Sick;
 
     public bool IsTraining => Kind == RosterKind.Training;
+
+    /// <summary>„Frei“ ist Text ohne Fläche (Brief 5.8).</summary>
+    public bool IsDayOff => Kind == RosterKind.DayOff;
+
+    /// <summary>Über einen Tag steht der Text zentriert, über mehrere Tage linksbündig.</summary>
+    public bool IsSingleDay => Span == 1;
 }
 
 /// <summary>Kopf einer Tagesspalte; die Spalte von heute ist hervorgehoben.</summary>
-public sealed record RosterHeadViewModel(string Text, bool IsToday);
+public sealed record RosterHeadViewModel(string Text, bool IsToday)
+{
+    /// <summary>Was im Kopf steht: der Tag, für heute mit dem Wort davor; geschützte Leerzeichen halten Wochentag und Datum zusammen, damit eine schmale Spalte nach dem Punkt umbricht.</summary>
+    public string Label => IsToday ? $"Heute · {Text.Replace(' ', '\u00A0')}" : Text;
+}
 
 /// <summary>Besetzung eines Tages: die Zahl der Personen im Dienst am Standort.</summary>
-public sealed record RosterCoverageViewModel(string Text, bool IsToday);
-
-/// <summary>
-/// Rechnet die Fläche des Dienst-Chips: die Farbe der Person, zu einem Anteil in die Basis des Farbschemas (Token <c>RosterChipBaseBrush</c>) gemischt, Tinte <c>RosterChipInkBrush</c> (Brief 5.8).
-/// Hell 22 % (gleich der früheren Aufhellung um 78 % zu Weiß), dunkel 45 %. Fällt der Kontrast zur Tinte unter 4,5:1, sinkt der Anteil in 5-Punkt-Schritten.
-/// </summary>
-public static class RosterChipColors
+public sealed record RosterCoverageViewModel(string Text, bool IsToday)
 {
-    public const double ShareLight = 0.22;
-    public const double ShareDark = 0.45;
-    private const double MinimumContrast = 4.5;
-    private const double ShareStep = 0.05;
+    /// <summary>Niemand im Dienst: die Zahl steht schwach (fg-2, Gewicht 400), die übrigen als Summe (14/600).</summary>
+    public bool IsZero => Text == "0";
 
-    /// <summary>Fläche als <c>#rrggbb</c>; ist eine der Farben ungültig, gilt die Basis.</summary>
-    public static string Fill(string personColor, string baseColor, string inkColor, double share)
-    {
-        if (!TryParse(personColor, out var person) || !TryParse(baseColor, out var background) || !TryParse(inkColor, out var ink))
-        {
-            return baseColor;
-        }
-
-        for (var current = share; current > 0; current = Math.Round(current - ShareStep, 10))
-        {
-            var fill = (R: Mix(person.R, background.R, current), G: Mix(person.G, background.G, current), B: Mix(person.B, background.B, current));
-            if (Contrast(fill, ink) >= MinimumContrast)
-            {
-                return $"#{fill.R:x2}{fill.G:x2}{fill.B:x2}";
-            }
-        }
-
-        return baseColor;
-    }
-
-    private static int Mix(int person, int background, double share) => (int)Math.Round(background + ((person - background) * share));
-
-    private static bool TryParse(string hex, out (int R, int G, int B) color)
-    {
-        color = default;
-        if (hex.Length != 7 || hex[0] != '#' || !int.TryParse(hex[1..], NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var rgb))
-        {
-            return false;
-        }
-
-        color = ((rgb >> 16) & 0xff, (rgb >> 8) & 0xff, rgb & 0xff);
-        return true;
-    }
-
-    private static double Contrast((int R, int G, int B) first, (int R, int G, int B) second)
-    {
-        var (a, b) = (Luminance(first), Luminance(second));
-        return (Math.Max(a, b) + 0.05) / (Math.Min(a, b) + 0.05);
-    }
-
-    private static double Luminance((int R, int G, int B) color)
-    {
-        static double Linear(int channel)
-        {
-            var value = channel / 255.0;
-            return value <= 0.04045 ? value / 12.92 : Math.Pow((value + 0.055) / 1.055, 2.4);
-        }
-
-        return (0.2126 * Linear(color.R)) + (0.7152 * Linear(color.G)) + (0.0722 * Linear(color.B));
-    }
+    public string AutomationName => $"{Text} im Dienst{(IsToday ? ", heute" : "")}";
 }
 
 /// <summary>Eine Zeile im Dienstplan: eine Person mit sieben Tagen, den Balken für Abwesenheiten und den Stunden der Woche gegen die Wochenarbeitszeit.</summary>
@@ -202,7 +168,7 @@ public sealed class RosterRowViewModel
     /// <summary>Auf der Karte einer Person steht ihr Name schon darüber.</summary>
     public bool ShowsName { get; }
 
-    /// <summary>Breite der Spalte links: mit Namen 176, auf der Karte nur Platz für die Stunden.</summary>
+    /// <summary>Breite der Spalte links: mit Namen 160, auf der Karte nur Platz für die Stunden.</summary>
     public double NameColumnWidth => RosterPlanViewModel.NameColumnWidthFor(ShowsName);
 
     public bool IsPlainName => !CanOpenPerson;
@@ -252,7 +218,7 @@ public sealed partial class RosterPlanViewModel : ViewModelBase, IEditableArea
 
     public double NameColumnWidth => NameColumnWidthFor(ShowsNames);
 
-    internal static double NameColumnWidthFor(bool showsName) => showsName ? 176 : 72;
+    internal static double NameColumnWidthFor(bool showsName) => showsName ? 160 : 72;
 
     public IReadOnlyList<Choice> Locations { get; }
 
@@ -267,6 +233,13 @@ public sealed partial class RosterPlanViewModel : ViewModelBase, IEditableArea
 
     [ObservableProperty]
     public partial IReadOnlyList<RosterHeadViewModel> Heads { get; private set; } = [];
+
+    /// <summary>Index der Spalte von heute (0 bis 6); die Ansicht legt den Streifen dorthin, wenn die Woche heute enthält (HasToday).</summary>
+    [ObservableProperty]
+    public partial int TodayColumn { get; private set; }
+
+    [ObservableProperty]
+    public partial bool HasToday { get; private set; }
 
     /// <summary>Zeile „Besetzung“: die Zahl der Personen im Dienst je Tag. Eine Warnung gibt es nicht, solange keine Mindestbesetzung hinterlegt werden kann.</summary>
     [ObservableProperty]
@@ -459,6 +432,9 @@ public sealed partial class RosterPlanViewModel : ViewModelBase, IEditableArea
         _week = week;
         var today = TodayAt(locationId);
         Heads = [.. week.Dates.Select(d => new RosterHeadViewModel(DayLayout.ShortDay(d), d == today))];
+        var todayIndex = week.Dates.ToList().FindIndex(d => d == today);
+        TodayColumn = Math.Max(0, todayIndex);
+        HasToday = todayIndex >= 0;
         DraftCount = week.Drafts;
         LastPublishedText = week.LastPublishedAt is { } at
             ? $"Zuletzt veröffentlicht {TimeZoneInfo.ConvertTime(at, _context.ZoneAt(locationId)):d.M.yyyy HH:mm}"
@@ -470,7 +446,8 @@ public sealed partial class RosterPlanViewModel : ViewModelBase, IEditableArea
             .. week.Employees.Select(row =>
             {
                 var vm = new RosterRowViewModel(row, ShowsNames, canOpenPerson, id => PersonRequested?.Invoke(id), WeeklyTargetHours(row.EmployeeId)) { NoteText = symbols.GetValueOrDefault(row.EmployeeId) };
-                vm.Cells = [.. row.Days.Select(cell => new RosterCellViewModel(vm, cell, [.. cell.Entries.Select(e => EntryText(e, locationId))], OpenDay, IsEditable)
+                vm.Cells = [.. row.Days.Select(cell => new RosterCellViewModel(vm, cell, [.. cell.Entries.Select(e => EntryText(e, locationId))],
+                    [.. cell.Entries.Select(e => ChipOf(e, locationId, cell.Source == RosterSource.Plan))], OpenDay, IsEditable)
                 {
                     IsOpen = open is not null && open.EmployeeId == row.EmployeeId && open.Date == cell.Date,
                     IsToday = cell.Date == today,
@@ -517,15 +494,20 @@ public sealed partial class RosterPlanViewModel : ViewModelBase, IEditableArea
 
     private static string WeekdayOf(DateOnly date) => DayLayout.ShortDay(date).Split('.')[0];
 
-    private string EntryText(RosterEntry entry, Guid locationId)
+    private string EntryText(RosterEntry entry, Guid locationId) => ChipOf(entry, locationId, false).Text;
+
+    /// <summary>Ein Dienst am gewählten Standort trägt nur die Zeit, an einem anderen auch dessen Namen; dieselbe Unterscheidung wie die Zeile „Besetzung“.</summary>
+    private RosterChipViewModel ChipOf(RosterEntry entry, Guid locationId, bool isPlanned)
     {
         if (entry.Kind != RosterKind.Work)
         {
-            return KindLabel(entry.Kind);
+            return new RosterChipViewModel(KindLabel(entry.Kind), string.Empty, isPlanned);
         }
 
         var times = $"{entry.Start:HH:mm}–{entry.End:HH:mm}";
-        return entry.LocationId == locationId ? times : $"{times} {Locations.FirstOrDefault(l => l.Id == entry.LocationId)?.Label ?? "anderer Standort"}";
+        return entry.LocationId == locationId
+            ? new RosterChipViewModel(times, string.Empty, isPlanned)
+            : new RosterChipViewModel(times, Locations.FirstOrDefault(l => l.Id == entry.LocationId)?.Label ?? "anderer Standort", isPlanned);
     }
 
     public static string KindLabel(RosterKind kind) => kind switch

@@ -25,8 +25,8 @@ Sehen dürfen den Plan alle Rollen, auch das Backoffice. Planen, Veröffentliche
 - Oben die Auswahl des Standorts.
 - Daneben **‹** (vorherige Woche), **Diese Woche** und **›** (nächste Woche), dazu die Überschrift „Woche ab …“.
 - Gibt es Entwürfe in der angezeigten Woche, steht oben ein Band: „Entwurf: 2 Änderungen nicht veröffentlicht“ mit **Veröffentlichen** und **Verwerfen**, darunter „Zuletzt veröffentlicht …“. Die Karte einer Person zeigt das Band nicht.
-- **Die Tabelle**: eine Zeile je Person mit Farbpunkt, eine Spalte je Tag. Beim Namen stehen die geplanten Stunden der Woche gegen die Wochenarbeitszeit, z. B. „8 / 40 h“; ohne Wochenarbeitszeit nur die Stunden. Die Spalte von heute ist hervorgehoben.
-- **Dienste** sind Chips in der Farbe der Person mit der Zeit, z. B. „09:00–17:00“; Dienste an einem anderen Standort tragen dessen Namen. Ein fett gesetzter Chip ist für diesen Tag geplant, ein normaler folgt der Wochenarbeitszeit. Ein Tag ohne Dienst zeigt ein schwaches „frei“.
+- **Die Tabelle**: eine Zeile je Person mit Farbpunkt, eine Spalte je Tag. Beim Namen stehen die geplanten Stunden der Woche gegen die Wochenarbeitszeit, z. B. „8 / 40 h“; ohne Wochenarbeitszeit nur die Stunden. Die Spalte von heute trägt eine helle Fläche vom Kopf bis zur Zeile **Besetzung**; ihr Kopf heißt „Heute · Do. 26.11.“.
+- **Dienste** sind graue Chips mit der Zeit, z. B. „09:00–17:00“. Die Farbe der Person steht nur als Punkt vor dem Namen. Ein Dienst an einem anderen Standort hat keine Fläche und nennt in einer zweiten Zeile mit Ortssymbol den Standort; ein langer Name wird gekürzt, die Maus zeigt ihn ganz. Ein fett gesetzter Chip ist für diesen Tag geplant, ein normaler folgt der Wochenarbeitszeit. Ein Tag ohne Dienst zeigt ein schwaches „frei“.
 - **Abwesenheiten** sind ein Balken über die Tage, z. B. „Urlaub Di–Fr“, ebenso „Krank“, „Frei“ und „Schulung“. Jeder Tag unter dem Balken bleibt einzeln anklickbar.
 - Ein **Entwurf** trägt einen gestrichelten Rand um die Zelle.
 - Unter der Tabelle zählt die Zeile **Besetzung**, wie viele Personen pro Tag am Standort im Dienst sind. Auf der Karte einer Person fehlt sie.

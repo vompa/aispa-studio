@@ -60,33 +60,20 @@ public sealed partial class DesignTokenTests
         Assert.True(contrast >= 4.5, $"{text} auf {surface} ({Theme(dark)}): {contrast:0.00}:1");
     }
 
-    // T-039 (Ä372): Tinte des Dienst-Chips auf der Basis, auf der die Personenfarbe gemischt wird (Brief 5.8); die Fläche selbst entsteht im Code, ihren Kontrast prüft RosterWeekLayoutTests.
+    // T-100 (Brief 5.8): Zeit im Dienst-Chip (fg auf surface-3) und Angaben in fg-2 (Standort, Stunden, „Frei“) auf allen Flächen des Wochenplans, auch auf der Spalte von heute.
     [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public void Dienst_Chip_Tinte_hat_auf_der_Basis_in_beiden_Schemata_mindestens_4_5_zu_1(bool dark)
+    [InlineData(false, "FgBrush", "Surface3Brush")]
+    [InlineData(false, "Fg2Brush", "SurfaceBrush")]
+    [InlineData(false, "Fg2Brush", "Surface2Brush")]
+    [InlineData(false, "Fg2Brush", "AccentSoftBrush")]
+    [InlineData(true, "FgBrush", "Surface3Brush")]
+    [InlineData(true, "Fg2Brush", "SurfaceBrush")]
+    [InlineData(true, "Fg2Brush", "Surface2Brush")]
+    [InlineData(true, "Fg2Brush", "AccentSoftBrush")]
+    public void Wochenplan_Text_hat_auf_seinen_Flaechen_mindestens_4_5_zu_1_Kontrast(bool dark, string text, string surface)
     {
-        var ink = AppValues(dark, "RosterChipInkBrush").Single();
-        var chipBase = AppValues(dark, "RosterChipBaseBrush").Single();
-        Assert.True(Contrast(ink, chipBase) >= 4.5, $"RosterChipInk {ink} auf RosterChipBase {chipBase} ({Theme(dark)}): {Contrast(ink, chipBase):0.00}:1");
-    }
-
-    [Fact]
-    public void Dienst_Chip_Tokens_stehen_im_Brief_mit_ihren_Werten()
-    {
-        var brief = File.ReadAllText(Path.Combine(RepoRoot, "docs", "design.md"));
-        foreach (var dark in new[] { false, true })
-        {
-            foreach (var key in new[] { "RosterChipBaseBrush", "RosterChipInkBrush" })
-            {
-                var value = AppValues(dark, key).Single();
-                Assert.Contains(key, brief, StringComparison.Ordinal);
-                Assert.True(brief.Contains($"`{value}`", StringComparison.OrdinalIgnoreCase), $"{key} ({Theme(dark)}) = {value} steht nicht im Brief");
-            }
-        }
-
-        Assert.Contains("roster-chip-base", brief, StringComparison.Ordinal);
-        Assert.Contains("roster-chip-ink", brief, StringComparison.Ordinal);
+        var contrast = Contrast(AppValues(dark, text).Single(), AppValues(dark, surface).Single());
+        Assert.True(contrast >= 4.5, $"{text} auf {surface} ({Theme(dark)}): {contrast:0.00}:1");
     }
 
     private static double Contrast(string first, string second)
