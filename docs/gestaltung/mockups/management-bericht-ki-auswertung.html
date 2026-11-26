@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mockup: Management-Bericht mit KI-Auswertung (Entwurf)</title>
+<style>
+  :root {
+    --bg: #f3f0ea; --surface: #ffffff; --surface-2: #f9f7f3; --surface-3: #ece8e0;
+    --line: #e4ded3; --line-strong: #c7bfb1; --fg: #1a2321; --fg-2: #47524f; --fg-3: #757e7a;
+    --accent: #0d5c63; --accent-soft: #d9ebea; --accent-line: #86bcbf;
+    --ok: #2c6e46; --ok-soft: #dbeee2; --warn: #8f5900; --warn-soft: #f6e9cf;
+    --note: #7a6000; --note-soft: #fff2b3; --rail-mark: #e3b77a;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 24px; background: var(--bg); color: var(--fg);
+    font: 400 14px/20px Inter, "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif; }
+  h1 { font-size: 22px; line-height: 28px; font-weight: 600; margin: 0; }
+  h2 { font-size: 18px; line-height: 24px; font-weight: 600; margin: 0; }
+  h2.sub { font-size: 16px; line-height: 22px; font-weight: 600; margin: 0; }
+  .note-bar { background: var(--note-soft); color: var(--note); border-radius: 8px; padding: 10px 12px; margin-bottom: 16px; max-width: 1180px; }
+  .frame { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 16px; align-items: start; max-width: 1180px; }
+  .label { font-size: 13px; line-height: 18px; font-weight: 600; color: var(--fg-2); }
+  .small { font-size: 12px; line-height: 16px; color: var(--fg-2); }
+  .num { font-variant-numeric: tabular-nums; }
+  .mark { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 999px;
+    background: var(--rail-mark); color: var(--fg); font-size: 12px; font-weight: 600; flex: none; }
+  button { font: inherit; font-weight: 500; height: 34px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--line-strong);
+    background: var(--surface); color: var(--fg); display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
+  button:hover { background: var(--surface-2); }
+  button:focus-visible, .chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  button.selected { background: var(--accent-soft); border-color: var(--accent-line); color: var(--accent); }
+  .head { display: flex; align-items: center; justify-content: space-between; gap: 12px; position: relative; }
+  .head-actions { display: flex; align-items: center; gap: 8px; }
+  .menu { position: absolute; right: 0; top: 42px; width: 300px; background: var(--surface); border: 1px solid var(--line);
+    border-radius: 8px; padding: 4px; z-index: 2; box-shadow: 0 1px 2px rgba(26,35,33,.05), 0 4px 14px -6px rgba(26,35,33,.12); }
+  .menu[hidden] { display: none; }
+  .menu-item { padding: 8px 12px; border-radius: 6px; }
+  .menu-item:hover { background: var(--surface-2); }
+  .menu-sep { border-top: 1px solid var(--line); margin: 4px 0; }
+  .filters { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; margin-top: 12px; }
+  .field { background: var(--surface); border: 1px solid var(--line-strong); border-bottom-color: var(--fg-3); border-radius: 8px;
+    height: 34px; padding: 0 10px; display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 4px; width: 160px; }
+  .info { padding-bottom: 9px; }
+  .group { margin: 20px 0 8px; display: flex; align-items: center; gap: 8px; }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+  .tile { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px; }
+  .tile.linked { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(13,92,99,.22); }
+  .kpi { font-size: 22px; line-height: 28px; font-weight: 600; margin: 2px 0 4px; }
+  .pill { display: inline-flex; align-items: center; gap: 4px; border-radius: 999px; padding: 2px 8px; font-size: 12px; line-height: 14px; font-weight: 500; }
+  .pill.warn { background: var(--warn-soft); color: var(--warn); }
+  .pill.ok { background: var(--ok-soft); color: var(--ok); }
+  .pill.ai { background: var(--accent-soft); color: var(--accent); }
+  .pill.guess { background: var(--note-soft); color: var(--note); }
+  .pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 20px; }
+  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; display: flex; flex-direction: column; }
+  .panel-head { padding: 16px 20px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; gap: 8px; }
+  .panel-summary { padding: 8px 20px; background: var(--surface-2); border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 8px; }
+  .panel-body { padding: 16px; display: flex; flex-direction: column; gap: 16px; }
+  .panel-foot { padding: 12px 16px; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 8px; }
+  .finding { border: 1px solid var(--line); border-radius: 8px; padding: 12px 16px; background: var(--surface-2); }
+  ul { margin: 4px 0 0; padding-left: 18px; }
+  li + li { margin-top: 4px; }
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+  .chip { height: 28px; padding: 0 10px; border-radius: 999px; border: 1px solid var(--accent-line); background: var(--surface); color: var(--accent); font-size: 12px; }
+  a { color: var(--accent); }
+  .legend { max-width: 1180px; margin-top: 24px; }
+  .legend li { margin-top: 6px; }
+</style>
+</head>
+<body>
+
+<div class="note-bar">
+  Entwurf vom 26.11.2026, nicht umgesetzt. Nur das helle Farbschema. Echt sind nur die Werte von „Umsatz brutto“ und
+  „Auslastung Personal“; alle anderen Zahlen und die Maßnahme sind Beispielwerte. Das Menü „Ausgabe“ und die Chips im Panel lassen sich anklicken.
+</div>
+
+<div class="frame">
+  <main>
+    <div class="head">
+      <h1>Management</h1>
+      <div class="head-actions">
+        <span class="mark">1</span>
+        <button id="outputButton" aria-haspopup="menu" aria-expanded="false" aria-controls="outputMenu">Ausgabe <span aria-hidden="true">▾</span></button>
+        <button class="selected" aria-pressed="true"><span class="pill ai">KI</span> Mit KI auswerten</button>
+      </div>
+      <div class="menu" id="outputMenu" role="menu" hidden>
+        <div class="menu-item" role="menuitem">Drucken …</div>
+        <div class="menu-item" role="menuitem">PDF speichern</div>
+        <div class="menu-item" role="menuitem">Per Mail senden</div>
+        <div class="menu-item" role="menuitem">Kennzahlen exportieren</div>
+        <div class="menu-sep"></div>
+        <div class="menu-item" role="menuitemcheckbox" aria-checked="true">☑ Wochen- und Monatsbericht per Mail</div>
+      </div>
+    </div>
+
+    <div class="filters">
+      <div><div class="label">Zeitraum <span class="mark">2</span></div><div class="field">Eigener Zeitraum <span aria-hidden="true">▾</span></div></div>
+      <div><div class="label">Von</div><div class="field num">01.10.2026</div></div>
+      <div><div class="label">Bis</div><div class="field num">19.10.2026</div></div>
+      <div><div class="label">Vergleichen mit</div><div class="field">Zeitraum davor <span aria-hidden="true">▾</span></div></div>
+      <div class="small info num">12.09. bis 30.09.2026 · Heute läuft noch, die Zahlen können sich ändern.</div>
+    </div>
+
+    <div class="group"><h2 class="sub">Umsatz und Ertrag</h2><span class="mark">3</span></div>
+    <div class="tiles">
+      <div class="tile linked" data-kpi="revenue">
+        <div class="label">Umsatz brutto</div>
+        <div class="kpi num">19.250,97 €</div>
+        <span class="pill warn num"><span aria-hidden="true">↓</span> 24 %</span>
+        <div class="small num" style="margin-top:4px">Vorperiode 25.371,00 €</div>
+      </div>
+      <div class="tile" data-kpi="revenueNet">
+        <div class="label">Umsatz netto</div>
+        <div class="kpi num">16.042,48 €</div>
+        <span class="pill warn num"><span aria-hidden="true">↓</span> 24 %</span>
+        <div class="small num" style="margin-top:4px">Vorperiode 21.142,50 €</div>
+      </div>
+      <div class="tile" data-kpi="averageTicket">
+        <div class="label">Durchschnittsbon netto</div>
+        <div class="kpi num">38,94 €</div>
+        <span class="pill warn num"><span aria-hidden="true">↓</span> 30 %</span>
+        <div class="small num" style="margin-top:4px">Vorperiode 55,93 €</div>
+      </div>
+    </div>
+
+    <div class="group"><h2 class="sub">Auslastung</h2></div>
+    <div class="tiles">
+      <div class="tile" data-kpi="staffUtilization">
+        <div class="label">Auslastung Personal</div>
+        <div class="kpi num">71,5 %</div>
+        <span class="pill ok num"><span aria-hidden="true">↑</span> 3,5 Prozentpunkte</span>
+        <div class="small num" style="margin-top:4px">Vorperiode 68,0 %</div>
+      </div>
+      <div class="tile" data-kpi="appointments">
+        <div class="label">Behandlungen</div>
+        <div class="kpi num">412</div>
+        <span class="pill ok num"><span aria-hidden="true">↑</span> 9 %</span>
+        <div class="small num" style="margin-top:4px">Vorperiode 378</div>
+      </div>
+    </div>
+
+    <div class="pair">
+      <div><h2 class="sub">Umsatz nach Erlöskonto</h2><div class="small" style="margin-top:8px">Keine Umsätze im Zeitraum.</div></div>
+      <div><h2 class="sub">Umsatz nach Zahlungsart</h2><div class="small" style="margin-top:8px">Keine Umsätze im Zeitraum.</div></div>
+    </div>
+  </main>
+
+  <aside class="panel" aria-label="Mit KI auswerten">
+    <div class="panel-head">
+      <div><h2>Mit KI auswerten</h2><div class="small num">Management · 01.10. bis 19.10.2026</div></div>
+      <div><button aria-label="Hilfe" style="width:34px;padding:0;justify-content:center;border-radius:999px">?</button>
+        <button aria-label="Schließen" style="width:34px;padding:0;justify-content:center;border-color:transparent">✕</button></div>
+    </div>
+
+    <div class="panel-summary">
+      <span class="mark">4</span>
+      <span class="pill ai">KI</span>
+      <span>Schwerpunkt <strong style="font-weight:600">Gesamt</strong></span>
+      <a href="#" style="margin-left:auto">Ändern</a>
+    </div>
+
+    <div class="panel-body">
+      <div>
+        <div class="label">Kernaussagen</div>
+        <ul>
+          <li>Der Umsatz liegt 24 % unter der Vorperiode, die Auslastung Personal ist um 3,5 Prozentpunkte gestiegen.</li>
+          <li>Mehr Termine bringen weniger Umsatz je Termin.</li>
+        </ul>
+      </div>
+
+      <div>
+        <div class="label" style="display:flex;gap:8px;align-items:center;margin-bottom:4px">Auffälligkeiten <span class="mark">5</span></div>
+        <div class="finding">
+          <div style="font-weight:600">Die Auslastung steigt, der Umsatz sinkt.</div>
+          <div style="margin-top:4px"><span class="pill guess">Vermutung</span> Mehr kürzere oder günstigere Behandlungen.</div>
+          <div class="chips">
+            <button class="chip" data-target="revenue">Umsatz brutto</button>
+            <button class="chip" data-target="staffUtilization">Auslastung Personal</button>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="label">Maßnahmen</div>
+        <ul><li>Dauer und Preis der meistgebuchten Behandlungen prüfen.</li></ul>
+      </div>
+    </div>
+
+    <div class="panel-foot">
+      <div class="small">Von der KI erstellt. Sie rechnet nicht; maßgeblich sind die Zahlen des Berichts.</div>
+      <div><button>Neu auswerten</button></div>
+    </div>
+  </aside>
+</div>
+
+<div class="legend">
+  <h2 class="sub">Was die Nummern zeigen</h2>
+  <ol>
+    <li>Ausgaben (Drucken, PDF, Mail, Export) stehen in einem Menü „Ausgabe“; die Bestellung des Wochen- und Monatsberichts steht darin unter einem Trenner.</li>
+    <li>Zeitraum, Von, Bis und Vergleich stehen in einer Zeile. Die Schnellwahl zeigt immer einen Wert. Vergleichszeitraum und der Hinweis auf den laufenden Tag stehen als eine kleine Zeile daneben.</li>
+    <li>Die Kacheln stehen in einem Raster. Die Veränderung steht als Pille mit Pfeil und Zahl; die Kachel selbst trägt keine Farbfläche und kein einzelnes Symbol.</li>
+    <li>Nach der Auswertung klappt das Formular zu einer Zeile ein; „Ändern“ öffnet Schwerpunkt und eigene Frage wieder.</li>
+    <li>Eine Auffälligkeit ist eine Karte mit Aussage, gekennzeichneter Vermutung und den Kennzahlen als Chips. Ein Klick auf einen Chip markiert die Kachel im Bericht.</li>
+  </ol>
+</div>
+
+<script>
+  const outputButton = document.getElementById('outputButton');
+  const outputMenu = document.getElementById('outputMenu');
+  outputButton.addEventListener('click', () => {
+    outputMenu.hidden = !outputMenu.hidden;
+    outputButton.setAttribute('aria-expanded', String(!outputMenu.hidden));
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && !outputMenu.hidden) {
+      outputMenu.hidden = true;
+      outputButton.setAttribute('aria-expanded', 'false');
+      outputButton.focus();
+    }
+  });
+  for (const chip of document.querySelectorAll('.chip')) {
+    chip.addEventListener('click', () => {
+      for (const tile of document.querySelectorAll('.tile')) {
+        tile.classList.toggle('linked', tile.dataset.kpi === chip.dataset.target);
+      }
+    });
+  }
+</script>
+</body>
+</html>
