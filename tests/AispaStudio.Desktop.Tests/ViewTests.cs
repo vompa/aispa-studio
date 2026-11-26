@@ -2033,6 +2033,8 @@ public sealed partial class ViewTests
     {
         await SignedInCalendar(main);
         var shell = (ShellViewModel)main.Content!;
+        Assert.Same(shell.Network, shell.Pages[^1].Page);
+        Assert.Same(shell.Help, shell.Pages[^2].Page);
         shell.SelectedPage = shell.Pages.First(p => p.Page == shell.Network);
         Assert.True(shell.Network!.IsShared);
         Assert.Equal("3F9A-12C4-77B0-E1D2-9A0B", shell.Network.Code);

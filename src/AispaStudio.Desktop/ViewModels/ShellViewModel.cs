@@ -132,13 +132,11 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
             };
             pages.Add(new NavItem("Sicherung", Icons.Archive, Backup));
             Network = new NetworkViewModel(local) { CanConfigure = user.Rights.Contains(AccessRight.ManageLocation) };
-            pages.Add(new NavItem("Im Netz", Icons.Wifi, Network));
         }
         else if (serverLink is not null)
         {
             // Verwalten von zu Hause (ADR 0084, Punkt 5): zeigt den Server und löst ihn wieder.
             ServerLink = serverLink;
-            pages.Add(new NavItem("Netz", Icons.Wifi, serverLink));
         }
 
         // Verwaltung (ADR 0084): alle Bereiche nativ in der App (seit Slice 103 ohne eingebettete Team-Oberfläche).
@@ -147,6 +145,15 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
         _web = new ServerWeb(api);
         Help = new HelpViewModel(() => _web.Address, time: time, prepare: _web.LookUpAsync);
         pages.Add(new NavItem("Hilfe", Icons.Help, Help));
+        // Unten, direkt über dem Farbschema (T-106): Netz gehört zur Verbindung, nicht zu den Fachbereichen.
+        if (Network is not null)
+        {
+            pages.Add(new NavItem("Im Netz", Icons.Wifi, Network));
+        }
+        else if (serverLink is not null)
+        {
+            pages.Add(new NavItem("Netz", Icons.Wifi, serverLink));
+        }
         Help.Role = user.Access?.Role;
         // Strg+Leertaste im eingebetteten Browser der Hilfe kommt als Nachricht der Seite (appShortcuts.ts); sie zählt nur, solange die Seite offen ist.
         Help.CompanionRequested += () => ToggleCompanionFromBrowser(Help);

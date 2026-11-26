@@ -8234,3 +8234,13 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Nicht geprüft:** Das Fragezeichen am Feld **Vergleichen mit** im Bild und am Gerät (der Ansichtstest `Verwaltung_Berichte_Management` zeigt es, der Handtest T-097 prüft den Sprung zum Abschnitt); Hilfeseiten im eingebetteten Browser der App (nur der Quelltext und die Tests); dunkle Bilder; die Rechtschreibung der neuen Sätze nur durch die Textregeln und Lesen; die volle Prüfkette am Rundenende.
 - **Beim Schreiben festgestellt:** Das Bild `verwaltung-berichte-management-aktionen.png` zeigt oben angeschnittene Felder und unten die runde KI-Schaltfläche über der Spalte „Umsatz brutto“ der Aktionen, wie schon das Bild davor (Folge des Bildlaufs im Test, nicht der Maske). `CLAUDE.md` nennt als nächste freie ADR-Nummer 0102; sie ist jetzt belegt, die nächste ist 0103 (die Datei steht nur im Hauptordner, dort nachziehen).
 - **Text-Prüfsatz:** Hilfetexte und ADR folgen [docs/gestaltung/texte.md](../gestaltung/texte.md): kurze Sätze, Namen wie auf dem Bildschirm, Knöpfe fett, kein „bitte“, keine Richtungswörter; `textRules.test.ts` ist grün.
+
+## Netz über System (T-106)
+
+- **Paket 1:** „Im Netz“ und „Netz“ stehen unten in der linken Leiste.
+  - **Auftrag:** Änderungswunsch des Auftraggebers (T-098, Punkte 5 und 11): „Netz“ und „Im Netz“ nach unten, direkt über „System“.
+  - **Was:** `ShellViewModel`: Der Eintrag wird nicht mehr zwischen „Sicherung“ und „Verwaltung“ angelegt, sondern als letzter Eintrag der Seitenliste nach „Hilfe“ (Einzelplatz „Im Netz“, Server-Betrieb „Netz“). Darunter folgen unverändert das Farbschema (Beschriftung „System“), die Verbindungspille und das Konto.
+  - **Detailentscheidungen:** (1) „System“ ist in der Leiste die Beschriftung des Farbschema-Knopfs (Wert „System“ der Farbschema-Wahl); einen Eintrag „System“ gibt es sonst nicht, daher steht „Netz“ am Ende der Seitenliste, unmittelbar über diesem Knopf. (2) Beide Betriebsarten gleich, nichts wird ausgeblendet. (3) Die Reihenfolge der Tab- und Pfeiltasten folgt der Liste und damit der neuen Anordnung; die Auswahl hängt am Eintrag, nicht an der Stelle. (4) Die Hilfetexte nennen die Lage nicht, es gab nichts nachzuziehen; die Hilfe „Verwaltung“ (über **Hilfe**) bleibt richtig.
+  - **Geprüft:** Die Ansichtstests `Im_Netz_freigegeben` und `Im_Server_Betrieb_steht_die_Seite_Netz_in_der_Seitenleiste` prüfen jetzt, dass der Eintrag direkt nach „Hilfe“ als Letzter steht. Bild `im-netz.png` neu erzeugt.
+  - **Neue Tests:** keine (zwei vorhandene Tests um je zwei Zusicherungen erweitert).
+  - **Nicht geprüft:** Verhalten bei 720 px Fensterhöhe am Gerät (Handtest T-106, Schritt 4); Tastenreihenfolge von Hand.

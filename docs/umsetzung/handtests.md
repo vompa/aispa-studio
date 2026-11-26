@@ -1930,3 +1930,16 @@ Expected: Die Einträge des Menüs stehen in der Hilfe in derselben Benennung. D
 Expected: Das Bild zeigt die Seitenleiste neben dem Bericht mit Kernaussagen, Auffälligkeiten, Maßnahmen und Hinweiszeile; keine Schrift ist abgeschnitten.
 Closes: Arbeitsanweisung Berichte-Ausbau, Aufgabe F
 Result: ☐
+
+### T-106 – Netz über System
+Start: `dotnet run --project src/AispaStudio.AppHost` mit Beispieldaten, im Aspire-Dashboard die Ressource `windows-app` starten, als Inhaberin anmelden. Für Schritt 3 die App mit einem Server als Ziel starten.
+1. Die linke Leiste von oben nach unten ansehen (Einzelplatz-Betrieb).
+Expected: Die Reihenfolge ist Kalender, Kunden, Verlauf, Anfragen, Kassa, Geräte, Abgleich, Sicherung, Verwaltung, Hilfe, **Im Netz**; darunter, getrennt, das Farbschema („System“), die Verbindungspille und das Konto. **Im Netz** steht nicht mehr zwischen **Sicherung** und **Verwaltung**.
+2. **Im Netz** klicken, danach mit der Tabulatortaste in die Leiste und mit den Pfeiltasten wechseln.
+Expected: Die aktive Markierung (orange Strich) steht links an **Im Netz**. Die Pfeiltasten gehen in der Reihenfolge der Leiste von **Hilfe** zu **Im Netz**.
+3. Dasselbe im Server-Betrieb mit der Seite **Netz**.
+Expected: **Netz** steht an derselben Stelle direkt über dem Farbschema, nach **Hilfe**.
+4. Die Fensterhöhe auf etwa 720 px verkleinern.
+Expected: Alle Einträge sind weiter erreichbar (die Liste scrollt); Farbschema, Pille und Konto bleiben sichtbar.
+Closes: T-098 Punkte 5 und 11
+Result: ☐
