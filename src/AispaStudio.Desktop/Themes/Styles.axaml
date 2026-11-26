@@ -1892,6 +1892,16 @@
   <Style Selector="MenuItem:disabled">
     <Setter Property="Opacity" Value="0.5" />
   </Style>
+  <!-- Gruppenüberschrift im Menü (Stufe Klein, fg-2; T-101): ein abgeschalteter Eintrag, den die Pfeiltasten überspringen, aber ohne die halbe Deckkraft -->
+  <Style Selector="MenuItem.menugroup:disabled">
+    <Setter Property="Opacity" Value="1" />
+    <Setter Property="MinHeight" Value="24" />
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="Foreground" Value="{DynamicResource Fg2Brush}" />
+  </Style>
+  <Style Selector="MenuItem.menugroup:disabled /template/ ContentPresenter#PART_HeaderPresenter">
+    <Setter Property="Foreground" Value="{DynamicResource Fg2Brush}" />
+  </Style>
   <Style Selector="MenuFlyoutPresenter Separator, ContextMenu Separator">
     <Setter Property="Height" Value="1" />
     <Setter Property="Margin" Value="4,4" />

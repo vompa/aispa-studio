@@ -31,12 +31,12 @@ Die Meldung sagt, wie viele Tage veröffentlicht wurden, und warnt:
 Der veröffentlichte Dienstplan lässt sich als Aushang drucken oder als PDF speichern, ohne Entwürfe.
 
 1. Im **Wochenplan** Standort und Woche wählen.
-2. Neben der Wochenwahl auf **Aushang als PDF** klicken. Es erscheint die Karte „Dienstplan-Aushang“ mit dem Satz „Druckt den veröffentlichten Dienstplan der Woche …, ohne Entwürfe.“.
-3. Auf **Drucken** oder **PDF speichern** klicken. **Drucken** öffnet den Druckdialog von Windows; dort die Ausrichtung **Querformat** wählen. **Per Mail senden** gibt es hier nicht. Ein zweiter Klick auf **Aushang als PDF** schließt die Karte; ein Wechsel der Woche oder des Standorts passt den Pfad an.
+2. In der Kopfzeile des Wochenplans auf **Ausgabe** klicken. Das Menü liegt über dem Plan; in der Gruppe „Aushang · veröffentlichter Stand“ stehen **Drucken …** und **Als PDF speichern**.
+3. **Drucken …** öffnet den Druckdialog von Windows; dort die Ausrichtung **Querformat** wählen. **Als PDF speichern** legt die Datei ab und meldet kurz „Gespeichert: …“. **Per Mail senden** gibt es hier nicht. Ein Wechsel der Woche oder des Standorts passt den Pfad an.
 
 Das PDF `Dienstplan-<Standort>-<Montag>.pdf` ist A4 quer: eine Zeile je Person, eine Spalte je Tag, in den Zellen die Zeit (Dienste an einem anderen Standort mit dessen Namen). Urlaub, Krank, Frei und Schulung sind grau hinterlegt, die Notiz des Tages steht darunter, rechts die Stunden der Woche. Unter dem Titel stehen Standort und „Veröffentlicht am …“.
 
-Entwürfe stehen nicht darauf. Wer Tage geplant hat, muss sie zuerst veröffentlichen. Den Aushang druckt nur die Standortleitung; ohne dieses Recht sind die Knöpfe grau mit dem Hinweis „Den Aushang druckt nur die Standortleitung.“. Wie die Knöpfe arbeiten: [Dokumente drucken, speichern und senden](hilfe:dokumente-drucken-speichern-senden).
+Entwürfe stehen nicht darauf. Wer Tage geplant hat, muss sie zuerst veröffentlichen. Den Aushang druckt nur die Standortleitung; ohne dieses Recht fehlt die Gruppe „Aushang“ im Menü **Ausgabe**. Auf der Personenkarte gibt es keinen Aushang. Wie Drucken und Speichern arbeiten: [Dokumente drucken, speichern und senden](hilfe:dokumente-drucken-speichern-senden).
 
 ## Gut zu wissen {#hinweise}
 

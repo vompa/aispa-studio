@@ -33,7 +33,7 @@ Sehen dürfen den Plan alle Rollen, auch das Backoffice. Planen, Veröffentliche
 - Eine Warnung in einer Zelle oder bei den Stunden weist auf Arbeitszeitgrenzen hin, z. B. zu kurze Ruhezeit, zu kurze Pause oder zu viele Stunden. Die Grenzen richten sich nach dem Land des Spas.
 - Ein Klick auf eine Zelle öffnet direkt an der Zelle das Feld zum Planen dieses Tages. Für eine Person weiter unten zuerst **Schließen**.
 - Ein Klick auf den Namen einer Person wechselt zu **Personen** und öffnet ihre Karte im Bereich **Arbeitszeit**, beim Dienstplan. Das geht nur mit dem Recht, Personen zu sehen.
-- **Exportieren** speichert den Dienstplan der angezeigten Woche (Tage als Zeilen, Personen als Spalten, mit Entwürfen; rechts die Besetzung je Tag, unten die Stunden je Person) und die Abwesenheiten dieser Woche als Excel oder CSV. Den Knopf sehen nur Inhaberin und Geschäftsführung.
+- **Ausgabe** am rechten Rand der Kopfzeile, neben **Anträge** und dem Fragezeichen, ist ein Menü, das beim Blättern an seinem Platz bleibt. Die Gruppe „Liste · mit Entwürfen“ speichert den Dienstplan der angezeigten Woche (Tage als Zeilen, Personen als Spalten, mit Entwürfen; rechts die Besetzung je Tag, unten die Stunden je Person) und die Abwesenheiten dieser Woche als Excel oder CSV; sie sehen nur Inhaberin und Geschäftsführung. Die Gruppe „Aushang · veröffentlichter Stand“ druckt den Aushang oder speichert ihn als PDF, siehe [Dienstplan veröffentlichen](hilfe:dienstplan-veroeffentlichen#aushang). Die Bestätigung „Gespeichert: …“ erscheint als kurze Meldung und verschiebt nichts. Wer keine der beiden Gruppen sehen darf, sieht den Knopf nicht.
 
 ![Wochenplan in der Windows-App](images/app/verwaltung-team-wochenplan.png)
 

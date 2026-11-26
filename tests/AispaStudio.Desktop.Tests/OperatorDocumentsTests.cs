@@ -63,58 +63,50 @@ public sealed class OperatorDocumentsTests
     }
 
     [Fact]
-    public async Task Der_Aushang_oeffnet_den_Knopfblock_fuer_die_Woche_ohne_Senden_und_folgt_dem_Wochenwechsel()
+    public async Task Der_Aushang_steht_im_Menue_Ausgabe_fuer_die_Woche_ohne_Senden_und_folgt_dem_Wochenwechsel()
     {
         var team = await RosterTests.Loaded(RosterApi());
         var plan = await Plan(team);
-        Assert.Null(plan.Document);
-
-        plan.ToggleDocumentCommand.Execute(null);
 
         var document = plan.Document!;
         Assert.Equal($"api/locations/{RosterSample.Vienna.Id}/roster/pdf?week=2027-03-01", document.Source.PdfPath);
         Assert.False(document.HasSend);
         Assert.True(document.IsAllowed);
-        Assert.Contains("01.03. – 07.03.2027", plan.DocumentHint, StringComparison.Ordinal);
 
         await plan.MoveToAsync(RosterSample.Monday.AddDays(7));
 
         Assert.EndsWith("week=2027-03-08", plan.Document!.Source.PdfPath, StringComparison.Ordinal);
-        Assert.Contains("08.03. – 14.03.2027", plan.DocumentHint, StringComparison.Ordinal);
     }
 
     [Fact]
-    public async Task Speichern_des_Aushangs_nimmt_den_Dateinamen_der_API_und_meldet_ihn_unter_den_Knoepfen()
+    public async Task Speichern_des_Aushangs_nimmt_den_Dateinamen_der_API_und_meldet_ihn_als_Toast()
     {
         var team = await RosterTests.Loaded(RosterApi());
         var plan = await Plan(team);
-        plan.ToggleDocumentCommand.Execute(null);
         var files = new RecordingFileSaver();
         plan.Document!.Files = files;
 
         await plan.Document.SaveCommand.ExecuteAsync(null);
 
         Assert.Equal("Dienstplan-Wien-2027-03-01.pdf", files.SavedName);
-        Assert.Equal("Gespeichert: Dienstplan-Wien-2027-03-01.pdf", plan.DocumentMessage);
+        Assert.Equal("Gespeichert: Dienstplan-Wien-2027-03-01.pdf", team.Toast.Text);
     }
 
     [Fact]
-    public async Task Ein_zweiter_Klick_schliesst_den_Aushang_und_auf_der_Karte_einer_Person_gibt_es_ihn_nicht()
+    public async Task Auf_der_Karte_einer_Person_gibt_es_den_Aushang_nicht()
     {
         var api = RosterApi();
         var team = await RosterTests.Loaded(api);
         var plan = await Plan(team);
         Assert.True(plan.CanOfferDocument);
+        Assert.NotNull(plan.Document);
 
-        plan.ToggleDocumentCommand.Execute(null);
-        plan.ToggleDocumentCommand.Execute(null);
-
-        Assert.Null(plan.Document);
         team.SelectedEntry = team.Entries.Single(e => e.Title == "Lena Huber");
         await RosterTests.Until(() => team.Card?.Entry.Title == "Lena Huber");
         team.Card!.SelectTab(PersonCardViewModel.RosterTab);
         await RosterTests.Until(() => team.Card.Roster!.IsLoaded);
         Assert.False(team.Card.Roster!.CanOfferDocument);
+        Assert.Null(team.Card.Roster.Document);
     }
 
     [Fact]
@@ -123,11 +115,29 @@ public sealed class OperatorDocumentsTests
         var team = await RosterTests.Loaded(RosterApi(), TestData.Reception());
         var plan = await Plan(team);
 
-        plan.ToggleDocumentCommand.Execute(null);
-
         Assert.False(plan.Document!.IsAllowed);
         Assert.Equal("Den Aushang druckt nur die Standortleitung.", plan.Document.DisabledHint);
         Assert.False(plan.Document.SaveCommand.CanExecute(null));
+    }
+
+    [Fact]
+    public async Task Menue_Ausgabe_zeigt_je_Rolle_nur_die_Gruppen_mit_Recht()
+    {
+        var owner = await Plan(await RosterTests.Loaded(RosterApi(), TestData.Owner()));
+        Assert.True(owner.HasOutput);
+        Assert.True(owner.ShowsDocumentGroup);
+        Assert.True(owner.HasExport);
+        Assert.True(owner.ShowsOutputSeparator);
+
+        var manager = await Plan(await RosterTests.Loaded(RosterApi(), TestData.Manager()));
+        Assert.True(manager.HasOutput);
+        Assert.True(manager.ShowsDocumentGroup);
+        Assert.False(manager.HasExport);
+
+        var reception = await Plan(await RosterTests.Loaded(RosterApi(), TestData.Reception()));
+        Assert.False(reception.HasOutput);
+        Assert.False(reception.ShowsDocumentGroup);
+        Assert.False(reception.HasExport);
     }
 
     // ---------- Stundenliste ----------

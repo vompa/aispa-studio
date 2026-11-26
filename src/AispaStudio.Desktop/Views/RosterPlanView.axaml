@@ -5,7 +5,7 @@
              x:Class="AispaStudio.Desktop.Views.RosterPlanView"
              x:DataType="vm:RosterPlanViewModel">
   <!--
-    Dienstplan einer Woche (R05 Slice 99, Ä191, Ä250; R07 Slice 142, Ä350), nach web/src/roster/RosterPage.tsx: Standort, Wochenwahl, Band für Entwürfe, eine Zeile je Person auf einer Fläche mit
+    Dienstplan einer Woche (R05 Slice 99, Ä191, Ä250; R07 Slice 142, Ä350), nach web/src/roster/RosterPage.tsx: Kopfzeile (links Standort und Wochenwahl, rechts „Anträge“, Menü „Ausgabe“ und Hilfe; T-101), Band für Entwürfe, eine Zeile je Person auf einer Fläche mit
     feinen Linien. Dienste sind Chips ohne Personenfarbe (die steht als Punkt vor dem Namen), Abwesenheiten ein Balken über die Tage, Stunden und Soll stehen beim Namen, die Spalte von heute ist ein durchgehender Streifen hinter der Tabelle, unten zählt die Summenzeile „Besetzung“.
     Die Tabelle füllt die Breite der Ansicht (sieben gleich breite Spalten, kein Rollbalken; T-100, Paket C) und steht im Wochenplan des Teams auf einer Karte; auf der Personenkarte nicht, dort hat sie die feste Breite 912 und einen waagrechten Rollbalken.
     Der Kopf der Spalte von heute heißt „Heute · Do. 26.11.“ (Stand T-100, Paket D).
@@ -181,41 +181,96 @@
     <ui:InfoBar Severity="Error" Title="Dienstplan nicht geladen" Message="{Binding LoadError}" IsVisible="{Binding HasLoadError}"
                 ActionText="Erneut laden" ActionCommand="{Binding LoadCommand}" />
 
-    <WrapPanel Orientation="Horizontal" ItemSpacing="8" LineSpacing="8">
-      <ComboBox x:Name="RosterLocation" ItemsSource="{Binding Locations}" SelectedItem="{Binding SelectedLocation}" MinWidth="200" VerticalAlignment="Center"
-                AutomationProperties.Name="Standort" />
-      <Button x:Name="PreviousWeekButton" Content="‹" Command="{Binding PreviousWeekCommand}" Classes="icon" AutomationProperties.Name="Vorherige Woche" ToolTip.Tip="Vorherige Woche" />
-      <Button x:Name="ThisWeekButton" Content="Diese Woche" Command="{Binding ThisWeekCommand}" />
-      <Button x:Name="NextWeekButton" Content="›" Command="{Binding NextWeekCommand}" Classes="icon" AutomationProperties.Name="Nächste Woche" ToolTip.Tip="Nächste Woche" />
-      <TextBlock x:Name="WeekTitleText" Text="{Binding WeekTitle}" Classes="h3" VerticalAlignment="Center" />
-      <!-- Export des Dienstplans und der Abwesenheiten der Woche, nur für Inhaberin und Geschäftsführung (Export/Import, Aufgabe D) -->
-      <ui:ExportButton x:Name="RosterExportButton" DataContext="{Binding Export}" VerticalAlignment="Center" />
-      <TextBlock x:Name="RosterExportSaved" Text="{Binding ExportSaved}" Classes="muted small" IsVisible="{Binding HasExportSaved}" VerticalAlignment="Center" AutomationProperties.LiveSetting="Polite" />
-      <ui:HelpButton Topic="seite-roster" VerticalAlignment="Center" IsVisible="{Binding !IsCard}" />
-      <Button x:Name="RosterDocumentButton" Content="Aushang als PDF" Command="{Binding ToggleDocumentCommand}" IsVisible="{Binding CanOfferDocument}"
-              ToolTip.Tip="Druckt oder speichert den veröffentlichten Dienstplan dieser Woche als Aushang." />
-      <!-- Anträge (ADR 0098): öffnet die Seitenleiste „Anträge“ über dem Wochenplan; die Zahl steht nur bei offenen Anträgen -->
-      <Button x:Name="RequestsButton" Command="{Binding ToggleRequestsCommand}" IsVisible="{Binding HasRequests}"
-              AutomationProperties.Name="{Binding RequestsButtonName}" ToolTip.Tip="Offene Abwesenheitsanträge genehmigen oder ablehnen">
-        <StackPanel Orientation="Horizontal" Spacing="8">
-          <TextBlock Text="Anträge" VerticalAlignment="Center" />
-          <Border x:Name="RequestsCount" Classes="pill warn" IsVisible="{Binding HasOpenRequests}">
-            <TextBlock Text="{Binding OpenRequests}" Classes="num" />
-          </Border>
-        </StackPanel>
-      </Button>
-    </WrapPanel>
-
-    <!-- Aushang (PDF-Ausgaben F): „Aushang als PDF“ öffnet den Knopfblock ohne Senden; nur der veröffentlichte Stand, ohne Entwürfe -->
-    <Border x:Name="RosterDocumentCard" Classes="section" IsVisible="{Binding IsDocumentOpen}" HorizontalAlignment="Left">
-      <StackPanel Spacing="8">
-        <TextBlock Text="Dienstplan-Aushang" FontWeight="Medium" />
-        <TextBlock Text="{Binding DocumentHint}" Classes="muted small" TextWrapping="Wrap" MaxWidth="480" />
-        <ui:DocumentActions DataContext="{Binding Document}" />
-        <TextBlock Text="{Binding DocumentMessage}" Classes="secondary small" AutomationProperties.LiveSetting="Polite"
-                   IsVisible="{Binding DocumentMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+    <!--
+      Kopfzeile (Brief 6 Punkt 8, T-101): zwei Spalten in einer Zeile. Links Standort und Wochenwahl (der Wochentitel hat eine feste Mindestbreite), rechts bündig „Anträge“, das Menü „Ausgabe“ und die Hilfe.
+      Die Breite des Wochentitels verschiebt die rechte Seite nie; das Menü und die Meldung (Toast der Shell) belegen keinen Platz im Layout.
+    -->
+    <Grid x:Name="RosterHeader" ColumnDefinitions="*,Auto" ColumnSpacing="16">
+      <WrapPanel Orientation="Horizontal" ItemSpacing="8" LineSpacing="8">
+        <ComboBox x:Name="RosterLocation" ItemsSource="{Binding Locations}" SelectedItem="{Binding SelectedLocation}" MinWidth="200" VerticalAlignment="Center"
+                  AutomationProperties.Name="Standort" />
+        <Button x:Name="PreviousWeekButton" Content="‹" Command="{Binding PreviousWeekCommand}" Classes="icon" AutomationProperties.Name="Vorherige Woche" ToolTip.Tip="Vorherige Woche" />
+        <Button x:Name="ThisWeekButton" Content="Diese Woche" Command="{Binding ThisWeekCommand}" />
+        <Button x:Name="NextWeekButton" Content="›" Command="{Binding NextWeekCommand}" Classes="icon" AutomationProperties.Name="Nächste Woche" ToolTip.Tip="Nächste Woche" />
+        <TextBlock x:Name="WeekTitleText" Text="{Binding WeekTitle}" Classes="h3 num" MinWidth="168" VerticalAlignment="Center" />
+      </WrapPanel>
+      <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" VerticalAlignment="Center">
+        <!-- Anträge (ADR 0098): öffnet die Seitenleiste „Anträge“ über dem Wochenplan; die Zahl steht nur bei offenen Anträgen -->
+        <Button x:Name="RequestsButton" Command="{Binding ToggleRequestsCommand}" IsVisible="{Binding HasRequests}"
+                AutomationProperties.Name="{Binding RequestsButtonName}" ToolTip.Tip="Offene Abwesenheitsanträge genehmigen oder ablehnen">
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <TextBlock Text="Anträge" VerticalAlignment="Center" />
+            <Border x:Name="RequestsCount" Classes="pill warn" IsVisible="{Binding HasOpenRequests}">
+              <TextBlock Text="{Binding OpenRequests}" Classes="num" />
+            </Border>
+          </StackPanel>
+        </Button>
+        <!--
+          Menü „Ausgabe“ (T-101): Aushang (veröffentlichter Stand, Standortleitung) und Listen (mit Entwürfen, Inhaberin und Geschäftsführung); jede Gruppe nur mit ihrem Recht, ohne beide fehlt der Knopf.
+          Die Befehle sind die bestehenden: Drucken und Speichern des Aushangs (Document), Export der Listen (Export; Reihenfolge der Optionen: Dienstplan Excel, Dienstplan CSV, Abwesenheiten Excel, Abwesenheiten CSV).
+        -->
+        <Button x:Name="RosterOutputButton" IsVisible="{Binding HasOutput}" AutomationProperties.Name="Ausgabe"
+                ToolTip.Tip="Aushang drucken oder als PDF speichern, Listen als Excel oder CSV speichern">
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <ui:Icon Data="{x:Static ui:Icons.Download}" Width="16" Height="16" />
+            <TextBlock Text="Ausgabe" VerticalAlignment="Center" />
+            <ui:Icon Data="{x:Static ui:Icons.ChevronDown}" Width="16" Height="16" />
+          </StackPanel>
+          <Button.Flyout>
+            <MenuFlyout Placement="BottomEdgeAlignedRight">
+              <MenuItem Classes="menugroup" Header="Aushang · veröffentlichter Stand" IsEnabled="False" IsVisible="{Binding ShowsDocumentGroup}" AutomationProperties.Name="Aushang, veröffentlichter Stand">
+                <MenuItem.Icon>
+                  <Border Width="16" Height="16" />
+                </MenuItem.Icon>
+              </MenuItem>
+              <MenuItem x:Name="PrintItem" Header="Drucken …" Command="{Binding Document.PrintCommand}" IsVisible="{Binding ShowsDocumentGroup}"
+                        ui:DisabledHint.Text="{Binding Document.DisabledHint}" AutomationProperties.Name="Aushang drucken">
+                <MenuItem.Icon>
+                  <ui:Icon Data="{x:Static ui:Icons.Printer}" Width="16" Height="16" />
+                </MenuItem.Icon>
+              </MenuItem>
+              <MenuItem x:Name="SavePdfItem" Header="Als PDF speichern" Command="{Binding Document.SaveCommand}" IsVisible="{Binding ShowsDocumentGroup}"
+                        ui:DisabledHint.Text="{Binding Document.DisabledHint}" AutomationProperties.Name="Aushang als PDF speichern">
+                <MenuItem.Icon>
+                  <ui:Icon Data="{x:Static ui:Icons.SavePdf}" Width="16" Height="16" />
+                </MenuItem.Icon>
+              </MenuItem>
+              <Separator IsVisible="{Binding ShowsOutputSeparator}" />
+              <MenuItem Classes="menugroup" Header="Liste · mit Entwürfen" IsEnabled="False" IsVisible="{Binding HasExport}" AutomationProperties.Name="Liste, mit Entwürfen">
+                <MenuItem.Icon>
+                  <Border Width="16" Height="16" />
+                </MenuItem.Icon>
+              </MenuItem>
+              <MenuItem x:Name="RosterExcelItem" Header="Dienstplan der Woche als Excel" Command="{Binding Export.ExportCommand}" CommandParameter="{Binding Export.Options[0]}"
+                        IsVisible="{Binding HasExport}" AutomationProperties.Name="Dienstplan der Woche als Excel speichern">
+                <MenuItem.Icon>
+                  <Border Width="16" Height="16" />
+                </MenuItem.Icon>
+              </MenuItem>
+              <MenuItem x:Name="RosterCsvItem" Header="Dienstplan der Woche als CSV" Command="{Binding Export.ExportCommand}" CommandParameter="{Binding Export.Options[1]}"
+                        IsVisible="{Binding HasExport}" AutomationProperties.Name="Dienstplan der Woche als CSV speichern">
+                <MenuItem.Icon>
+                  <Border Width="16" Height="16" />
+                </MenuItem.Icon>
+              </MenuItem>
+              <MenuItem x:Name="AbsencesExcelItem" Header="Abwesenheiten als Excel" Command="{Binding Export.ExportCommand}" CommandParameter="{Binding Export.Options[2]}"
+                        IsVisible="{Binding HasExport}" AutomationProperties.Name="Abwesenheiten als Excel speichern">
+                <MenuItem.Icon>
+                  <Border Width="16" Height="16" />
+                </MenuItem.Icon>
+              </MenuItem>
+              <MenuItem x:Name="AbsencesCsvItem" Header="Abwesenheiten als CSV" Command="{Binding Export.ExportCommand}" CommandParameter="{Binding Export.Options[3]}"
+                        IsVisible="{Binding HasExport}" AutomationProperties.Name="Abwesenheiten als CSV speichern">
+                <MenuItem.Icon>
+                  <Border Width="16" Height="16" />
+                </MenuItem.Icon>
+              </MenuItem>
+            </MenuFlyout>
+          </Button.Flyout>
+        </Button>
+        <ui:HelpButton Topic="seite-roster" VerticalAlignment="Center" IsVisible="{Binding !IsCard}" />
       </StackPanel>
-    </Border>
+    </Grid>
 
     <Border x:Name="DraftBand" Background="{DynamicResource AccentSoftBrush}" BorderBrush="{DynamicResource AccentLineBrush}" BorderThickness="1" CornerRadius="8" Padding="12,8"
             IsVisible="{Binding CanPublish}">

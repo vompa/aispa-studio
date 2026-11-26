@@ -133,15 +133,16 @@ public sealed class ListExportTests
             .OnFile(StaffRoute("list=roster&from=2027-03-01&format=xlsx"), File, "Dienstplan_2027-03-01.xlsx")
             .OnFile(StaffRoute("list=absences&from=2027-03-01&until=2027-03-07&format=xlsx"), File, "Abwesenheiten_2027-03-01.xlsx");
         var user = TestData.Owner();
-        var plan = new RosterPlanViewModel(new TeamContext(api.Client(), user, new RosterTests.RosterClock(), false) { Data = Team(user).Data }, null);
+        var context = new TeamContext(api.Client(), user, new RosterTests.RosterClock(), false) { Data = Team(user).Data };
+        var plan = new RosterPlanViewModel(context, null);
         plan.Export!.Files = new FakeFileSaver();
 
         Assert.Equal(["Dienstplan der Woche (Excel)", "Dienstplan der Woche (CSV)", "Abwesenheiten (Excel)", "Abwesenheiten (CSV)"], Labels(plan.Export));
         await Click(plan.Export, "Dienstplan der Woche (Excel)");
-        Assert.Equal("Gespeichert: Dienstplan_2027-03-01.xlsx", plan.ExportSaved);
+        Assert.Equal("Gespeichert: Dienstplan_2027-03-01.xlsx", context.Toast.Text);
 
         await Click(plan.Export, "Abwesenheiten (Excel)");
-        Assert.Equal("Gespeichert: Abwesenheiten_2027-03-01.xlsx", plan.ExportSaved);
+        Assert.Equal("Gespeichert: Abwesenheiten_2027-03-01.xlsx", context.Toast.Text);
     }
 
     // ---------- Management-Bericht ----------

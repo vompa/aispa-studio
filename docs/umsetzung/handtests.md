@@ -1783,3 +1783,20 @@ Expected: Die Spalte heißt „Vorjahr“ und enthält die Werte des Vorjahresze
 Expected: Die Euro-Kacheln fehlen weiterhin, Schnellwahl, Vergleich und Veränderung der übrigen Kacheln funktionieren.
 Closes: Arbeitsanweisung Berichte-Ausbau, Aufgabe B
 Result: ☐
+
+### T-101 – Kopfzeile des Wochenplans mit Menü „Ausgabe“
+Start: `dotnet run --project src/AispaStudio.AppHost`, im Aspire-Dashboard die Ressource `windows-app` starten, als Inhaberin anmelden, **Verwaltung** › **Team** › **Wochenplan** öffnen; Fenster auf die Mindestbreite 1100 px ziehen
+1. Mit **›** vier Wochen vorblättern (auch über einen Wechsel von einstelligen zu zweistelligen Tagen), danach mit **‹** zurück; dabei einmal eine Datei über **Ausgabe** speichern.
+Expected: **Standort**, **Anträge**, **Ausgabe** und das Fragezeichen stehen in einer Zeile und bleiben an derselben Stelle; die Oberkante der Tabelle springt nicht. Die Meldung „Gespeichert: …“ erscheint unten und verschiebt nichts. Notieren, ob die Zeile bei 1100 px vollständig sichtbar ist.
+2. **Ausgabe** mit der Maus öffnen, dann mit **Esc** schließen. Danach den Knopf per **Tab** anwählen, mit **Enter** öffnen, mit den Pfeiltasten alle Einträge durchgehen und mit **Esc** schließen.
+Expected: Das Menü liegt über dem Plan, rechtsbündig unter dem Knopf, und schiebt die Tabelle nicht. Es hat die Gruppen „Aushang · veröffentlichter Stand“ (**Drucken …**, **Als PDF speichern**) und „Liste · mit Entwürfen“ (Dienstplan und Abwesenheiten je als Excel und CSV). Die Pfeile überspringen die Überschriften; nach **Esc** liegt der Fokus wieder auf **Ausgabe**.
+3. **Ausgabe** › **Drucken …** wählen, im Druckdialog von Windows **Abbrechen** klicken.
+Expected: Der Druckdialog von Windows öffnet sich nach ein bis zwei Sekunden (Ausrichtung **Querformat** wählbar), unten steht kurz „Druckdialog geöffnet“; nach **Abbrechen** ist nichts gedruckt und der Wochenplan unverändert.
+4. Nacheinander **Als PDF speichern**, den Dienstplan als Excel, als CSV und die Abwesenheiten als Excel speichern, jeweils im Speicherdialog bestätigen und die Datei öffnen.
+Expected: Nach jedem Speichern erscheint die Meldung „Gespeichert: <Dateiname>“, die Kopfzeile bleibt unverändert. Das PDF enthält nur veröffentlichte Dienste, die Listen auch Entwürfe.
+5. Als Standortleitung und als Rezeptionistin anmelden und den Wochenplan öffnen.
+Expected: Die Standortleitung sieht in **Ausgabe** nur die Gruppe „Aushang“. Die Rezeptionistin sieht keinen Knopf **Ausgabe**; **Anträge** und das Fragezeichen stehen weiter rechtsbündig. Notieren, ob die Rezeptionistin den Aushang lieber ausgegraut mit Hinweis sehen soll.
+6. Als Inhaberin **Personen**, eine Person, Reiter **Arbeitszeit** öffnen und **Ausgabe** ansehen.
+Expected: Der Knopf steht am rechten Rand der Wochenzeile; das Menü hat nur die Gruppe „Liste · mit Entwürfen“, keinen Aushang.
+Closes: Auftrag vom 26.11.2026 (Kopfzeile Wochenplan)
+Result: ☐

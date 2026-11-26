@@ -19,7 +19,7 @@ Der Block steht dort, wo das Dokument entsteht, und sieht überall gleich aus: d
 - **Kassa**: Beleg, Rechnung, Gutschein, Tagesabschluss und Gutscheinliste, siehe [Belege ansehen und drucken](hilfe:kassa-beleg-drucken), [Gutschein verkaufen](hilfe:kassa-gutschein-verkaufen#pdf) und [Tagesabschluss](hilfe:kassa-tagesabschluss#pdf).
 - **Kalender**: Terminbestätigung, Tagesplan und Warteliste, siehe [Terminbestätigung](hilfe:kalender-terminbestaetigung), [Tagesplan drucken](hilfe:kalender-tagesplan-drucken) und [Warteliste ansehen](hilfe:kalender-warteliste#pdf).
 - **Kundenkarte**: Auskunft über gespeicherte Daten und Stammblatt, siehe [Kundenkarte ansehen](hilfe:kunden-kundenkarte#pdf).
-- **Verwaltung**: Dienstplan-Aushang, Stundenliste, Zählliste und Inventurliste, Bestellung und Ablaufliste, siehe [Dienstplan veröffentlichen](hilfe:dienstplan-veroeffentlichen#aushang), [Arbeitszeit korrigieren](hilfe:zeiten-korrigieren#stundenliste), [Inventur buchen](hilfe:lager-inventur#pdf), [Bestellen](hilfe:lager-bestellen#pdf) und [Bald ablaufende Chargen](hilfe:lager-ablauf-aufgaben#pdf).
+- **Verwaltung**: Dienstplan-Aushang (im Menü **Ausgabe** des Wochenplans), Stundenliste, Zählliste und Inventurliste, Bestellung und Ablaufliste, siehe [Dienstplan veröffentlichen](hilfe:dienstplan-veroeffentlichen#aushang), [Arbeitszeit korrigieren](hilfe:zeiten-korrigieren#stundenliste), [Inventur buchen](hilfe:lager-inventur#pdf), [Bestellen](hilfe:lager-bestellen#pdf) und [Bald ablaufende Chargen](hilfe:lager-ablauf-aufgaben#pdf).
 
 Nicht jedes Dokument lässt sich senden: Wo es keinen Empfänger gibt (Tagesabschluss, Stundenliste, Auskunft), fehlt der Knopf **Per Mail senden**.
 
@@ -66,7 +66,6 @@ Ein grauer Knopf nennt den Grund, sobald der Mauszeiger darauf steht; Screenread
 
 - „Dafür braucht es das Recht „Berichte mit Beträgen“.“ beim Tagesabschluss.
 - „Die Gutscheinliste druckt nur die Kassenaufsicht oder wer „Berichte mit Beträgen“ sehen darf.“ bei der Gutscheinliste.
-- „Den Aushang druckt nur die Standortleitung.“ beim Dienstplan-Aushang.
 - „Die Stundenliste druckt nur, wer die Zeiten lesen darf.“ bei der Stundenliste.
 - „Die Inventur druckt nur die Standortleitung.“ bei Zählliste und Inventurliste, „Die Ablaufliste druckt nur die Standortleitung.“ bei der Ablaufliste.
 - „Das Ende darf nicht vor dem Beginn liegen.“ in der Gutscheinliste, wenn die Daten nicht stimmen.
