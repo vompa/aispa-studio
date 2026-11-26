@@ -33,7 +33,7 @@ Sehen dürfen den Plan alle Rollen, auch das Backoffice. Planen, Veröffentliche
 - Eine Warnung in einer Zelle oder bei den Stunden weist auf Arbeitszeitgrenzen hin, z. B. zu kurze Ruhezeit, zu kurze Pause oder zu viele Stunden. Die Grenzen richten sich nach dem Land des Spas.
 - Ein Klick auf eine Zelle öffnet direkt an der Zelle das Feld zum Planen dieses Tages. Für eine Person weiter unten zuerst **Schließen**.
 - Ein Klick auf den Namen einer Person wechselt zu **Personen** und öffnet ihre Karte im Bereich **Arbeitszeit**, beim Dienstplan. Das geht nur mit dem Recht, Personen zu sehen.
-- **Exportieren** speichert den Dienstplan der angezeigten Woche (Personen als Zeilen, Tage als Spalten, mit Entwürfen) und die Abwesenheiten dieser Woche als Excel oder CSV. Den Knopf sehen nur Inhaberin und Geschäftsführung.
+- **Exportieren** speichert den Dienstplan der angezeigten Woche (Tage als Zeilen, Personen als Spalten, mit Entwürfen; rechts die Besetzung je Tag, unten die Stunden je Person) und die Abwesenheiten dieser Woche als Excel oder CSV. Den Knopf sehen nur Inhaberin und Geschäftsführung.
 
 ![Wochenplan in der Windows-App](images/app/verwaltung-team-wochenplan.png)
 

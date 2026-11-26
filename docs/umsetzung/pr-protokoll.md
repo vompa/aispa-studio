@@ -7811,3 +7811,22 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Nicht geprüft:** echter Ausdruck und Querformat (der Dialog stand in der Probe bei einem A4-quer-PDF auf Hochformat; Handtest T-099), die volle App mit Anmeldung, ob die WebView2-Prozesse des Druckfensters nach dem Ende von selbst schließen (die Probe hat sie 60 ms nach dem Ende beendet), volle Suiten (Rundenende).
 - **Beim Schreiben festgestellt:** Der Vermerk „Zum Drucken geöffnet am“ bricht in der schmalen Spalte „Versand“ der Gutscheinliste vor dem Datum um; das liest sich, die Tests vergleichen die Zelle deshalb mit Leerzeichen statt Zeilenwechsel.
 - **Text-Prüfung:** dieser Abschnitt, ADR 0101 und die Hilfetexte nach [texte.md](../gestaltung/texte.md) durchgesehen (aktiv, Gegenwart, keine Namen).
+
+## Dienstplan-Export mit Tagen links (Aufgabe T-103, 26.11.2026)
+
+- **Auftrag:** Der Auftraggeber hat am 26.11.2026 verlangt: „bei Excel sollen die Mitarbeitenden oben stehen und die Tage links“. Der Wegfall des alten Aufbaus (Personen als Zeilen) ist von ihm freigegeben.
+- **Was:**
+  1. `StaffExports.RosterTableAsync` baut die Tabelle gedreht: erste Spalte „Tag“ (sieben Zeilen „Mo. 1.3.2027“ bis „So. 7.3.2027“), danach eine Spalte je Person, letzte Spalte „Besetzung“, letzte Zeile „Stunden“. Excel und CSV nutzen dieselbe Tabelle.
+  2. `WithSummary` und Klassenkommentar nennen den neuen Aufbau; `web/openapi/aispa-api.json` und der erzeugte Client sind nachgezogen.
+  3. Hilfe `seite-roster.md` berichtigt.
+  4. Test `StaffExportTests` angepasst (Tage als Zeilen, Köpfe mit Personen, Dienst an anderem Standort, CSV).
+- **Detailentscheidungen:**
+  1. Es gibt keinen Schalter für beide Richtungen (Annahme); wer die alte Richtung braucht, dreht in Excel mit „Transponieren“. Abfrage `list=roster`, Parameter, Rechte, Protokoll und Dateiname bleiben.
+  2. Der Aushang als PDF bleibt unverändert (Annahme: Der Wunsch nennt Excel, und auf A4 quer passen sieben Tage als Spalten besser als viele Personen).
+  3. Die Reihenfolge der Personen ist die des Wochenplans (nach Anzeigename). „Besetzung“ zählt wie die Zeile im Plan die Personen mit einem Dienst an diesem Standort; Abwesenheiten und Dienste an anderen Standorten zählen nicht.
+  4. „Stunden“ ist die Summe der geplanten Stunden je Person, wie bisher die Spalte „Stunden“; ein Ist-gegen-Soll-Wert wurde bisher nicht ausgegeben und kommt deshalb nicht dazu. Die Zahlen stehen als Zahl in der Zelle, das Feld „Besetzung“ der Zeile „Stunden“ bleibt leer.
+  5. Tage heißen „Mo. 1.3.2027“ (Wochentag mit Punkt, Datum wie in den übrigen Exporten ohne führende Nullen).
+- **Geprüft:** Test zuerst rot (alter Aufbau), danach grün; `dotnet format`, Release-Build und `ListExportTests` siehe Fertigmeldung. Excel hatte schon fette Kopfzeile, Filter, fixierte Kopfzeile und Spaltenbreite nach Inhalt.
+- **Nicht geprüft:** das Öffnen der Datei in Excel selbst (von Hand, siehe Handtest T-103); die erste Spalte ist nicht fixiert.
+- **Beim Schreiben festgestellt:** Die erste Spalte ließe sich nur fixieren, wenn `ExportTable` eine zusätzliche Angabe bekäme (gemeinsamer Dienst nach ADR 0091); das wurde nicht gebaut. Offene Fragen an den Auftraggeber: Soll der Aushang als PDF ebenfalls gedreht werden? Soll die erste Spalte in Excel fixiert werden (kleine Erweiterung von `ExportTable`)?
+- **Text-Prüfung:** dieser Abschnitt nach [texte.md](../gestaltung/texte.md) durchgesehen (aktiv, Gegenwart, keine Namen).

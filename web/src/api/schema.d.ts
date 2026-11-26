@@ -1218,7 +1218,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Listen des Personals als Excel oder CSV, nur für die Leitung: list=hours (Stundenliste je Person und Tag für month=JJJJ-MM), absences (Abwesenheiten von from bis until), roster (Dienstplan der Woche ab from, Personen als Zeilen, Tage als Spalten); wahlweise nur employeeId. */
+        /** Listen des Personals als Excel oder CSV, nur für die Leitung: list=hours (Stundenliste je Person und Tag für month=JJJJ-MM), absences (Abwesenheiten von from bis until), roster (Dienstplan der Woche ab from, Tage als Zeilen, Personen als Spalten, mit Besetzung je Tag und Stunden je Person); wahlweise nur employeeId. */
         get: operations["ExportStaffList"];
         put?: never;
         post?: never;

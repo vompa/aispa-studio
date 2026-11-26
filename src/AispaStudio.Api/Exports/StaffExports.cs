@@ -13,7 +13,7 @@ namespace AispaStudio.Api.Exports;
 
 /// <summary>
 /// Listen des Personals als Excel oder CSV (Export/Import, Aufgabe D), nur für die Leitung: Stundenliste je Person und Monat (Soll aus dem Dienstplan, Ist aus der
-/// Zeiterfassung), Abwesenheiten eines Zeitraums als zusammenhängende Spannen und der Dienstplan einer Woche mit Personen als Zeilen und Tagen als Spalten.
+/// Zeiterfassung), Abwesenheiten eines Zeitraums als zusammenhängende Spannen und der Dienstplan einer Woche mit Tagen als Zeilen und Personen als Spalten (mit der Besetzung je Tag und den Stunden je Person).
 /// Gerechnet wird wie in „Zeiterfassung“ und „Dienstplan“: Soll und Ist nur an sichtbaren Standorten, der Dienstplan mit Entwürfen.
 /// </summary>
 internal static class StaffExports
@@ -28,6 +28,9 @@ internal static class StaffExports
     private static readonly string[] Lists = [Hours, Absences, Roster];
 
     private static readonly CultureInfo German = CultureInfo.GetCultureInfo("de-AT");
+
+    /// <summary>Wochentage nach <see cref="DayOfWeek"/> (Sonntag zuerst), unabhängig von der Kultur des Servers.</summary>
+    private static readonly string[] WeekdayNames = ["So.", "Mo.", "Di.", "Mi.", "Do.", "Fr.", "Sa."];
 
     public static IEndpointRouteBuilder MapStaffExportEndpoints(this IEndpointRouteBuilder routes)
     {
@@ -77,7 +80,7 @@ internal static class StaffExports
             .RequirePermission(AccessRight.ManageLocation)
             .WithName("ExportStaffList")
             .WithSummary("Listen des Personals als Excel oder CSV, nur für die Leitung: list=hours (Stundenliste je Person und Tag für month=JJJJ-MM), absences "
-                + "(Abwesenheiten von from bis until), roster (Dienstplan der Woche ab from, Personen als Zeilen, Tage als Spalten); wahlweise nur employeeId.");
+                + "(Abwesenheiten von from bis until), roster (Dienstplan der Woche ab from, Tage als Zeilen, Personen als Spalten, mit Besetzung je Tag und Stunden je Person); wahlweise nur employeeId.");
 
         return routes;
     }
@@ -160,18 +163,22 @@ internal static class StaffExports
         var employees = await roster.EmployeesAt(locationId, monday, drafts: true).AsNoTracking().Include(e => e.WorkingHours).OrderBy(e => e.DisplayName).ToListAsync(ct);
         var plans = await roster.PlansAsync(employees, monday, dates[^1], ct, drafts: true);
         var places = await db.Locations.AsNoTracking().ToDictionaryAsync(l => l.Id, l => l.Name, ct);
-        var columns = new List<ExportColumn> { new("Person", ColumnKind.Text) };
-        columns.AddRange(dates.Select(d => new ExportColumn(d.ToString("ddd d.M.", German), ColumnKind.Text)));
-        columns.Add(new ExportColumn("Stunden", ColumnKind.Number));
-        var rows = employees.Select(e =>
+        var columns = new List<ExportColumn> { new("Tag", ColumnKind.Text) };
+        columns.AddRange(employees.Select(e => new ExportColumn(e.DisplayName, ColumnKind.Text)));
+        columns.Add(new ExportColumn("Besetzung", ColumnKind.Number));
+        var visible = employees.ToDictionary(e => e.Id, e => dates.Select(d => plans[(e.Id, d)].VisibleTo(access.CanSee, absences: true)).ToList());
+        var rows = dates.Select((date, day) =>
             {
-                var days = dates.Select(d => plans[(e.Id, d)].VisibleTo(access.CanSee, absences: true)).ToList();
-                var row = new List<object?> { e.DisplayName };
-                row.AddRange(days.Select(d => CellText(d, locationId, places)));
-                row.Add(Math.Round((decimal)days.Sum(d => d.Hours), 2));
+                var row = new List<object?> { $"{WeekdayNames[(int)date.DayOfWeek]} {Day(date)}" };
+                row.AddRange(employees.Select(e => CellText(visible[e.Id][day], locationId, places)));
+                row.Add(employees.Count(e => visible[e.Id][day].Entries.Any(entry => entry.Kind == RosterKind.Work && entry.LocationId == locationId)));
                 return row.ToArray();
             })
             .ToList();
+        var hours = new List<object?> { "Stunden" };
+        hours.AddRange(employees.Select(e => (object?)Math.Round((decimal)visible[e.Id].Sum(d => d.Hours), 2)));
+        hours.Add(null);
+        rows.Add(hours.ToArray());
         return new ExportTable("Dienstplan", columns, rows);
     }
 

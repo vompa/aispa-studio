@@ -1717,3 +1717,16 @@ Expected: In der Spalte „Versand“ steht beim Gutschein „Zum Drucken geöff
 Expected: Die App beendet sich ganz; im Task-Manager bleibt kein Prozess „AispaStudio.Desktop“.
 Closes: Ä388
 Result: ☐
+
+### T-103 – Dienstplan-Export mit Tagen links
+Start: Windows-App, angemeldet als Inhaberin, Bereich „Team“, Wochenplan mit Diensten in mindestens zwei Wochen
+1. „Exportieren“ → „Dienstplan der Woche“ als Excel wählen und die gespeicherte Datei in Excel öffnen.
+Expected: Die erste Spalte heißt „Tag“ und trägt sieben Zeilen „Mo. …“ bis „So. …“; rechts davon steht je Person eine Spalte mit dem Namen im Kopf, in derselben Reihenfolge wie im Wochenplan; ganz rechts „Besetzung“, ganz unten die Zeile „Stunden“.
+2. Einen Dienst an einem anderen Standort und einen Urlaub in der Woche prüfen.
+Expected: Der Dienst am anderen Standort trägt den Standortnamen in der Zelle und zählt nicht in „Besetzung“; Urlaub steht als Text in der Zelle und zählt ebenfalls nicht.
+3. Dasselbe als CSV speichern und in Excel öffnen.
+Expected: Gleicher Aufbau wie in Schritt 1, Umlaute stimmen.
+4. „Aushang als PDF“ speichern.
+Expected: Der Aushang hat unverändert die Personen als Zeilen und die Tage als Spalten.
+Closes: Auftrag vom 26.11.2026 (Export gedreht)
+Result: ☐
