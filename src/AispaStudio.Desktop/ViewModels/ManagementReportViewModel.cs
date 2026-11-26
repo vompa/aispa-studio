@@ -2,6 +2,7 @@ using AispaStudio.Contracts;
 using AispaStudio.Desktop.Controls;
 using AispaStudio.Desktop.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 
 namespace AispaStudio.Desktop.ViewModels;
 
@@ -25,8 +26,8 @@ public sealed record CompareChoice(string Key, string Label, string Noun, string
     public override string ToString() => Label;
 }
 
-/// <summary>Schnellwahl für den Zeitraum; <c>Range</c> rechnet Von und Bis aus dem heutigen Tag.</summary>
-public sealed record QuickRange(string Label, Func<DateOnly, (DateOnly From, DateOnly Until)> Range)
+/// <summary>Schnellwahl für den Zeitraum; <c>Range</c> rechnet Von und Bis aus dem heutigen Tag, beim eigenen Zeitraum fehlt es.</summary>
+public sealed record QuickRange(string Label, Func<DateOnly, (DateOnly From, DateOnly Until)>? Range)
 {
     public override string ToString() => Label;
 }
@@ -85,8 +86,32 @@ public sealed partial class ManagementReportViewModel(IWorkstationApi api, TimeP
 
     private ManagementAnalysisViewModel? _analysis;
 
-    /// <summary>Die Seitenleiste „Mit KI auswerten“; ihre übernommene Auswertung geht an PDF, Word und Excel.</summary>
-    public ManagementAnalysisViewModel Analysis => _analysis ??= new ManagementAnalysisViewModel(Api, Time) { AdoptedChanged = OnAnalysisAdoptedChanged };
+    /// <summary>Die Seitenleiste „Mit KI auswerten“; ihre übernommene Auswertung geht an PDF, Word und Excel, ein Kennzahl-Chip markiert die Kachel dazu.</summary>
+    public ManagementAnalysisViewModel Analysis => _analysis ??= new ManagementAnalysisViewModel(Api, Time)
+    {
+        AdoptedChanged = OnAnalysisAdoptedChanged,
+        FindTile = TileLabel,
+        MarkTile = MarkKpi,
+    };
+
+    /// <summary>
+    /// Die Kachel, die ein Kennzahl-Chip der KI-Auswertung markiert hat (T-104); die Ansicht hebt sie hervor und rollt zu ihr. Ein neuer Bericht nimmt die Markierung weg.
+    /// </summary>
+    [ObservableProperty]
+    public partial string? MarkedKpi { get; private set; }
+
+    /// <summary>Markiert die Kachel und meldet es auch, wenn sie schon markiert war, damit die Ansicht wieder zu ihr rollt.</summary>
+    public void MarkKpi(string label)
+    {
+        MarkedKpi = label;
+        OnPropertyChanged(nameof(MarkedKpi));
+    }
+
+    /// <summary>
+    /// Die Beschriftung der Kachel, die die KI mit <paramref name="kpi"/> meint: gleicher Name ohne Groß- und Kleinschreibung, sonst null (dann ist der Chip nur Text).
+    /// Die KI bekommt die Kennzahlen mit ihrem Namen (Fakten der Auswertung) und nennt sie so.
+    /// </summary>
+    private string? TileLabel(string kpi) => Kpis.FirstOrDefault(k => string.Equals(k.Label, kpi.Trim(), StringComparison.OrdinalIgnoreCase))?.Label;
 
     /// <summary>Ohne Claude-Schlüssel im Server ist „Mit KI auswerten“ gesperrt (<see cref="AnalysisUnavailableHint"/>).</summary>
     [ObservableProperty]
@@ -109,6 +134,9 @@ public sealed partial class ManagementReportViewModel(IWorkstationApi api, TimeP
         new("year", "Vorjahr", "Vorjahr", "dem Vorjahr"),
     ];
 
+    /// <summary>Steht in der Schnellwahl, wenn Von und Bis zu keiner anderen Wahl passen; die Schnellwahl zeigt so immer einen Wert.</summary>
+    public static QuickRange CustomRange { get; } = new("Eigener Zeitraum", null);
+
     public static IReadOnlyList<QuickRange> QuickRanges { get; } =
     [
         new("Dieser Monat", today => (new DateOnly(today.Year, today.Month, 1), today)),
@@ -120,6 +148,7 @@ public sealed partial class ManagementReportViewModel(IWorkstationApi api, TimeP
         new("Dieses Quartal", today => (new DateOnly(today.Year, (today.Month - 1) / 3 * 3 + 1, 1), today)),
         new("Dieses Jahr", today => (new DateOnly(today.Year, 1, 1), today)),
         new("Letzte 12 Monate", today => (today.AddYears(-1).AddDays(1), today)),
+        CustomRange,
     ];
 
     /// <summary>Womit der Zeitraum verglichen wird; wirkt auf alle Kacheln. Standard ist der gleich lange Zeitraum davor, wie bisher.</summary>
@@ -137,7 +166,7 @@ public sealed partial class ManagementReportViewModel(IWorkstationApi api, TimeP
     /// <summary>Reicht „Bis“ bis heute oder darüber, fehlt dem heutigen Tag noch der Rest: Umsatz und Termine können noch wachsen.</summary>
     public bool IsTodayOpen => Until is { } until && until >= Today();
 
-    public const string TodayOpenText = "Heute ist noch nicht abgeschlossen. Die Zahlen können sich noch ändern.";
+    public const string TodayOpenText = "Heute läuft noch, die Zahlen können sich ändern.";
 
     /// <summary>„Vergleich: Vormonat · 01.10.2026 bis 26.10.2026“, damit klar ist, womit die Kacheln rechnen.</summary>
     [ObservableProperty]
@@ -157,6 +186,10 @@ public sealed partial class ManagementReportViewModel(IWorkstationApi api, TimeP
     public partial bool MailReports { get; set; }
 
     private bool _settingMail;
+
+    /// <summary>Das Kästchen im Menü „Ausgabe“ (T-104) schaltet über diesen Befehl um; so wirkt ein Klick genau einmal, auch wenn das Menü selbst den Haken setzt.</summary>
+    [RelayCommand]
+    private void ToggleMailReports() => MailReports = !MailReports;
 
     private async Task LoadMailSubscriptionAsync()
     {
@@ -341,6 +374,7 @@ public sealed partial class ManagementReportViewModel(IWorkstationApi api, TimeP
         _rangeIsSet = true;
         var today = Today();
         (From, Until) = (from ?? new DateOnly(today.Year, today.Month, 1), until ?? today);
+        MatchQuickRange();
     }
 
     protected override async Task ReloadAsync()
@@ -429,7 +463,7 @@ public sealed partial class ManagementReportViewModel(IWorkstationApi api, TimeP
 
     partial void OnSelectedQuickRangeChanged(QuickRange? value)
     {
-        if (_applyingQuickRange || value is null)
+        if (_applyingQuickRange || value?.Range is null)
         {
             return;
         }
@@ -448,12 +482,20 @@ public sealed partial class ManagementReportViewModel(IWorkstationApi api, TimeP
             return;
         }
 
-        if (SelectedQuickRange is { } quick && quick.Range(Today()) != (From ?? default, Until ?? default))
-        {
-            SelectedQuickRange = null;
-        }
-
+        MatchQuickRange();
         ReloadAfterRangeChange();
+    }
+
+    /// <summary>Stellt die Schnellwahl auf die Wahl, deren Zeitraum Von und Bis entspricht; passt keine (oder fehlt ein Datum), auf „Eigener Zeitraum“.</summary>
+    private void MatchQuickRange()
+    {
+        var range = (From ?? default, Until ?? default);
+        var match = SelectedQuickRange?.Range?.Invoke(Today()) == range
+            ? SelectedQuickRange
+            : QuickRanges.FirstOrDefault(q => q.Range?.Invoke(Today()) == range) ?? CustomRange;
+        _applyingQuickRange = true;
+        SelectedQuickRange = match;
+        _applyingQuickRange = false;
     }
 
     private static string ReportPath(LocationDto location, DateOnly from, DateOnly until, CompareChoice comparison) =>
@@ -496,6 +538,7 @@ public sealed partial class ManagementReportViewModel(IWorkstationApi api, TimeP
         AiNotice = report.AiNotice;
         IsAiPending = report.AiSummaryPending;
         AiAnalysisAvailable = report.AiAnalysisAvailable;
+        MarkedKpi = null;
         Kpis = [.. report.Kpis.Select(k => KpiTile(k, comparison))];
         KpiGroups = [.. report.Kpis.Select((k, i) => (Kpi: k, Tile: Kpis[i])).GroupBy(k => k.Kpi.Group ?? "Kennzahlen")
             .Select(g => new KpiGroupRow(g.Key, [.. g.Select(k => k.Tile)]))];

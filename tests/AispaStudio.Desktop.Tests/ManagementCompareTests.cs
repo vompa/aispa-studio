@@ -61,9 +61,9 @@ public sealed class ManagementCompareTests
         Assert.Contains(api.Calls, c => c.Route == Route("from=2026-10-01&until=2026-10-31", "&compare=year"));
         Assert.NotNull(report.SelectedQuickRange);
 
-        // When sie ein Datum von Hand ändert; Then verlässt die Schnellwahl ihren Zeitraum
+        // When sie ein Datum von Hand ändert; Then verlässt die Schnellwahl ihren Zeitraum und zeigt „Eigener Zeitraum“ statt eines leeren Felds (T-104)
         report.From = new DateOnly(2026, 10, 5);
-        Assert.Null(report.SelectedQuickRange);
+        Assert.Same(ManagementReportViewModel.CustomRange, report.SelectedQuickRange);
     }
 
     [Fact]

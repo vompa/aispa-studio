@@ -57,7 +57,7 @@ public sealed class ManagementAnalysisTests
         await analysis.AnalyzeCommand.ExecuteAsync(null);
         Assert.True(analysis.IsDone);
         Assert.Equal(["Die Auslastung ist gestiegen."], analysis.KeyFindings);
-        Assert.Equal("Mögliche Ursache (Vermutung): Vermutlich das Wetter.", Assert.Single(analysis.Findings).Cause);
+        Assert.Equal("Vermutlich das Wetter.", Assert.Single(analysis.Findings).Cause);
         Assert.Equal("Woran Sie den Erfolg sehen: Mehr Termine am Montag.", Assert.Single(analysis.Measures).SuccessSign);
         Assert.Equal("Von der KI ausgewertet.", analysis.Notice);
         Assert.Contains(api.Calls, c => c.Route == $"GET {Root}/analysis/{DoneId}");
@@ -66,5 +66,52 @@ public sealed class ManagementAnalysisTests
         analysis.AdoptCommand.Execute(null);
         Assert.True(analysis.IsAdopted);
         Assert.EndsWith($"&analysisId={DoneId}", report.Document!.Source.PdfPath, StringComparison.Ordinal);
+    }
+
+    /// <summary>Bericht mit einer Kachel „Umsatz brutto“ und eine fertige Auswertung mit zwei Auffälligkeiten: eine zur Kachel, eine ohne Kachel.</summary>
+    private static async Task<ManagementReportViewModel> AnalyzedReport()
+    {
+        var result = new ManagementAnalysisResult(["Weniger Umsatz."],
+            [new AnalysisFinding("Der Umsatz sinkt.", "Vermutlich kürzere Behandlungen.", "umsatz brutto"), new AnalysisFinding("Weniger Stammgäste.", "Vermutlich der Urlaub.", "Stammgäste")],
+            [], []);
+        var api = new StubApi()
+            .On($"GET {Root}?from=2026-11-01&until=2026-11-26",
+                new ManagementReportDto(Location.Id, From, Until, [new Kpi("revenue", "Umsatz brutto", 900m, 1000m, "€", true)], [], [], [], [], [], false) { AiAnalysisAvailable = true })
+            .On($"POST {Root}/analysis", Analysis(DoneId, ManagementAnalysisStatus.Done, result));
+        var report = new ManagementReportViewModel(api.Client(), TimeProvider.System);
+        report.SetRange(From, Until);
+        await report.ShowAsync(Location, Until);
+        await report.Analysis.AnalyzeCommand.ExecuteAsync(null);
+        Assert.True(report.Analysis.IsDone);
+        return report;
+    }
+
+    [Fact]
+    public async Task Nach_der_Auswertung_ist_das_Formular_eingeklappt_und_Aendern_klappt_es_wieder_auf()
+    {
+        // Given eine fertige Auswertung (T-104); Then stehen Schwerpunkt und Frage nicht mehr offen, der Knopf heißt „Neu auswerten“, der Untertitel nennt den Zeitraum
+        var analysis = (await AnalyzedReport()).Analysis;
+        Assert.True(analysis.IsFormCollapsed);
+        Assert.Equal("Neu auswerten", analysis.RunLabel);
+        Assert.Equal("Management-Bericht · 01.11.–26.11.2026", analysis.Subtitle);
+
+        // When sie „Ändern“ wählt; Then sind Schwerpunkt und Frage wieder offen, das Ergebnis bleibt
+        analysis.EditCommand.Execute(null);
+        Assert.True(analysis.IsFormOpen);
+        Assert.True(analysis.IsDone);
+    }
+
+    [Fact]
+    public async Task Kennzahl_Chip_markiert_die_passende_Kachel_und_ist_ohne_Kachel_nur_Text()
+    {
+        // Given eine Auffälligkeit zur Kachel „Umsatz brutto“ (die KI schreibt sie klein) und eine ohne Kachel
+        var report = await AnalyzedReport();
+        var (revenue, guests) = (report.Analysis.Findings[0], report.Analysis.Findings[1]);
+
+        // Then hat nur die erste einen Befehl; When sie ihn auslöst; Then ist die Kachel mit ihrer Beschriftung markiert
+        Assert.False(guests.HasTile);
+        Assert.True(revenue.HasTile);
+        revenue.Mark!.Execute(null);
+        Assert.Equal("Umsatz brutto", report.MarkedKpi);
     }
 }

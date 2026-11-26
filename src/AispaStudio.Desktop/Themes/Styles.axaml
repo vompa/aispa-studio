@@ -791,6 +791,11 @@
   <Style Selector="Button.stattile.warn c|Icon">
     <Setter Property="Foreground" Value="{DynamicResource WarnBrush}" />
   </Style>
+  <!-- Vom Kennzahl-Chip der KI-Auswertung markierte Kachel (T-104): Rahmen accent und weiche Akzentfläche, auch beim Hover der reinen Anzeige -->
+  <Style Selector="Button.stattile.marked /template/ ContentPresenter#PART_ContentPresenter, Button.stattile.static.marked:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource AccentSoftBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+  </Style>
 
   <!-- Umschalter mit zwei Teilen (Team / Räume) -->
   <Style Selector="Border.segmented">
@@ -1896,6 +1901,34 @@
     <Setter Property="FontSize" Value="12" />
     <Setter Property="Foreground" Value="{DynamicResource Fg2Brush}" />
     <Setter Property="Margin" Value="24,0,0,0" />
+  </Style>
+  <!-- Kästchen im Menü (T-104, Fluent 2: Zustand nie nur über den Wortlaut): Das Fluent-Thema zeigt bei ToggleType="CheckBox" nur gewählt einen Haken in einer eigenen Spalte.
+       Mit der Klasse "check" steht das Kästchen als Icon in der Symbolspalte (Menü bleibt einspaltig): abgewählt leer mit Rand fg-3 (3:1 wie beim CheckBox),
+       gewählt Akzent-Kästchen mit Haken; der Haken des Themes ist ausgeblendet. ToggleType bleibt CheckBox (Zustand für den Screenreader). -->
+  <Style Selector="Border.menucheck">
+    <Setter Property="Width" Value="16" />
+    <Setter Property="Height" Value="16" />
+    <Setter Property="CornerRadius" Value="3" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Fg3Brush}" />
+  </Style>
+  <Style Selector="MenuItem.check:checked Border.menucheck">
+    <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+  </Style>
+  <Style Selector="Path.menucheckmark">
+    <Setter Property="IsVisible" Value="False" />
+    <Setter Property="Stroke" Value="{DynamicResource AccentFgBrush}" />
+    <Setter Property="StrokeThickness" Value="1.75" />
+    <Setter Property="StrokeLineCap" Value="Round" />
+    <Setter Property="StrokeJoin" Value="Round" />
+  </Style>
+  <Style Selector="MenuItem.check:checked Path.menucheckmark">
+    <Setter Property="IsVisible" Value="True" />
+  </Style>
+  <Style Selector="MenuItem.check:checked:toggle /template/ ContentControl#PART_ToggleIconPresenter">
+    <Setter Property="IsVisible" Value="False" />
   </Style>
   <Style Selector="MenuItem.danger">
     <Setter Property="Foreground" Value="{DynamicResource CritBrush}" />

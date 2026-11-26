@@ -12,8 +12,19 @@ public sealed record AnalysisFocusChoice(ManagementAnalysisFocus Value, string L
     public override string ToString() => Label;
 }
 
-/// <summary>Auffälligkeit: Beobachtung, mögliche Ursache (ausdrücklich als Vermutung) und betroffene Kennzahl.</summary>
-public sealed record AnalysisFindingRow(string Observation, string Cause, string Kpi);
+/// <summary>
+/// Auffälligkeit: Beobachtung, mögliche Ursache (die Ansicht stellt die Pille „Vermutung“ davor) und betroffene Kennzahl. Gibt es zur Kennzahl eine Kachel im Bericht, markiert
+/// <paramref name="Mark"/> sie (Chip als Knopf); sonst ist die Kennzahl nur Text.
+/// </summary>
+public sealed record AnalysisFindingRow(string Observation, string Cause, string Kpi, IRelayCommand? Mark = null)
+{
+    public bool HasTile => Mark is not null;
+
+    public string CauseText => $"Mögliche Ursache: {Cause}";
+
+    /// <summary>Name des Chips für Screenreader: was ein Klick tut.</summary>
+    public string MarkName => $"Kachel {Kpi} im Bericht zeigen";
+}
 
 /// <summary>Maßnahme mit „Woran Sie den Erfolg sehen“.</summary>
 public sealed record AnalysisMeasureRow(string Action, string SuccessSign);
@@ -74,6 +85,28 @@ public sealed partial class ManagementAnalysisViewModel(IWorkstationApi api, Tim
     /// <summary>Läuft, wenn eine Auswertung übernommen oder wieder herausgenommen wird; der Bericht baut dann seine Dateipfade neu.</summary>
     public Action? AdoptedChanged { get; set; }
 
+    /// <summary>Der Bericht nennt die Beschriftung der Kachel zu einer Kennzahl der KI, oder null, wenn es keine gibt.</summary>
+    public Func<string, string?>? FindTile { get; init; }
+
+    /// <summary>Der Bericht markiert die Kachel mit dieser Beschriftung und rollt zu ihr.</summary>
+    public Action<string>? MarkTile { get; init; }
+
+    /// <summary>„Management-Bericht · 01.10.–19.10.2026“: Untertitel im Kopf der Leiste.</summary>
+    [ObservableProperty]
+    public partial string Subtitle { get; private set; } = ReportName;
+
+    private const string ReportName = "Management-Bericht";
+
+    /// <summary>
+    /// Schwerpunkt, Frage und Hinweis stehen offen, bis eine Auswertung fertig ist; danach steht nur die Zeile „KI · Schwerpunkt … · Ändern“, und das Ergebnis bekommt die Höhe der Leiste.
+    /// „Ändern“ klappt das Formular wieder auf.
+    /// </summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsFormCollapsed))]
+    public partial bool IsFormOpen { get; private set; } = true;
+
+    public bool IsFormCollapsed => !IsFormOpen;
+
     [ObservableProperty]
     public partial bool IsOpen { get; set; }
 
@@ -88,7 +121,7 @@ public sealed partial class ManagementAnalysisViewModel(IWorkstationApi api, Tim
     public string QuestionCount => $"{Question?.Length ?? 0} von {MaxQuestionLength} Zeichen";
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsRunning), nameof(IsDone), nameof(IsFailed), nameof(CanAnalyze))]
+    [NotifyPropertyChangedFor(nameof(IsRunning), nameof(IsDone), nameof(IsFailed), nameof(CanAnalyze), nameof(RunLabel))]
     [NotifyCanExecuteChangedFor(nameof(AnalyzeCommand))]
     public partial AnalysisState State { get; private set; }
 
@@ -99,6 +132,9 @@ public sealed partial class ManagementAnalysisViewModel(IWorkstationApi api, Tim
     public bool IsFailed => State == AnalysisState.Failed;
 
     public bool CanAnalyze => State != AnalysisState.Running && _scope is not null;
+
+    /// <summary>Der Knopf im Fuß: „Auswerten“, nach einer fertigen Auswertung „Neu auswerten“.</summary>
+    public string RunLabel => IsDone ? "Neu auswerten" : "Auswerten";
 
     [ObservableProperty]
     public partial string? FailureText { get; private set; }
@@ -152,6 +188,8 @@ public sealed partial class ManagementAnalysisViewModel(IWorkstationApi api, Tim
         _scope = scope;
         _run++;
         State = AnalysisState.Idle;
+        Subtitle = $"{ReportName} · {Period(scope.From, scope.Until)}";
+        IsFormOpen = true;
         Clear();
         if (AdoptedId is not null)
         {
@@ -165,6 +203,15 @@ public sealed partial class ManagementAnalysisViewModel(IWorkstationApi api, Tim
 
     [RelayCommand]
     private void Open() => IsOpen = true;
+
+    /// <summary>„Ändern“ in der eingeklappten Zeile: Schwerpunkt und Frage wieder zeigen.</summary>
+    [RelayCommand]
+    private void Edit() => IsFormOpen = true;
+
+    /// <summary>„01.10.–19.10.2026“, über den Jahreswechsel „01.12.2025–19.01.2026“.</summary>
+    private static string Period(DateOnly from, DateOnly until) => from.Year == until.Year
+        ? $"{from:dd.MM.}–{until:dd.MM.yyyy}"
+        : $"{from:dd.MM.yyyy}–{until:dd.MM.yyyy}";
 
     /// <summary>„Auswerten“ und „Erneut versuchen“: legt an (oder bekommt die gespeicherte Auswertung zu denselben Zahlen) und fragt nach, solange sie läuft.</summary>
     [RelayCommand(CanExecute = nameof(CanAnalyze))]
@@ -247,7 +294,8 @@ public sealed partial class ManagementAnalysisViewModel(IWorkstationApi api, Tim
             var text = new StringBuilder();
             text.AppendLine("KI-Auswertung, " + ResultTitle);
             Part(text, "Kernaussagen", KeyFindings.Select(k => $"- {k}"));
-            Part(text, "Auffälligkeiten", Findings.Select(f => $"- {f.Observation}{Environment.NewLine}  {f.Cause}{Environment.NewLine}  {f.Kpi}"));
+            Part(text, "Auffälligkeiten", Findings.Select(f =>
+                $"- {f.Observation}{Environment.NewLine}  Mögliche Ursache (Vermutung): {f.Cause}{Environment.NewLine}  Kennzahl: {f.Kpi}"));
             Part(text, "Maßnahmen", Measures.Select((m, i) => $"{i + 1}. {m.Action}{Environment.NewLine}   {m.SuccessSign}"));
             Part(text, "Was die Zahlen nicht zeigen", NotShown.Select(n => $"- {n}"));
             text.AppendLine();
@@ -276,13 +324,17 @@ public sealed partial class ManagementAnalysisViewModel(IWorkstationApi api, Tim
     {
         ResultTitle = $"Schwerpunkt {FocusChoices.First(f => f.Value == analysis.Focus).Label}{(analysis.Question is { } q ? $" · Frage: {q}" : "")}";
         KeyFindings = result.KeyFindings;
-        Findings = [.. result.Findings.Select(f => new AnalysisFindingRow(f.Observation, $"Mögliche Ursache (Vermutung): {f.PossibleCause}", $"Kennzahl: {f.Kpi}"))];
+        Findings = [.. result.Findings.Select(f => new AnalysisFindingRow(f.Observation, f.PossibleCause, f.Kpi, MarkFor(f.Kpi)))];
         Measures = [.. result.Measures.Select(m => new AnalysisMeasureRow(m.Action, $"Woran Sie den Erfolg sehen: {m.SuccessSign}"))];
         NotShown = result.NotShown;
         Notice = analysis.Notice;
         AnalysisId = analysis.Id;
         State = AnalysisState.Done;
+        IsFormOpen = false;
     }
+
+    /// <summary>Der Befehl des Kennzahl-Chips, wenn der Bericht eine Kachel dazu hat; sonst keiner.</summary>
+    private RelayCommand? MarkFor(string kpi) => FindTile?.Invoke(kpi) is { } tile && MarkTile is { } mark ? new RelayCommand(() => mark(tile)) : null;
 
     private void Fail(string text)
     {

@@ -30,10 +30,16 @@ public sealed class StatTile : Button
 
     public static readonly StyledProperty<StatTileState> StateProperty = AvaloniaProperty.Register<StatTile, StatTileState>(nameof(State));
 
+    public static readonly StyledProperty<string?> ChangeProperty = AvaloniaProperty.Register<StatTile, string?>(nameof(Change));
+
+    public static readonly StyledProperty<StatTileState> ChangeStateProperty = AvaloniaProperty.Register<StatTile, StatTileState>(nameof(ChangeState));
+
     private readonly TextBlock _label = new() { Name = "StatTileLabel", TextWrapping = Avalonia.Media.TextWrapping.Wrap };
     private readonly TextBlock _value = new() { Name = "StatTileValue" };
     private readonly TextBlock _hint = new() { Name = "StatTileHint", TextWrapping = Avalonia.Media.TextWrapping.Wrap };
     private readonly Icon _icon = new() { Name = "StatTileIcon", Width = 16, Height = 16, VerticalAlignment = VerticalAlignment.Top, IsVisible = false };
+    private readonly TextBlock _changeText = new() { Classes = { "num" } };
+    private readonly Border _change = new() { Name = "StatTileChange", Margin = new Thickness(0, 4, 0, 2), IsVisible = false };
 
     static StatTile()
     {
@@ -42,6 +48,8 @@ public sealed class StatTile : Button
         HintProperty.Changed.AddClassHandler<StatTile>((tile, _) => tile.Refresh());
         StateProperty.Changed.AddClassHandler<StatTile>((tile, _) => tile.Refresh());
         AccessibleHintProperty.Changed.AddClassHandler<StatTile>((tile, _) => tile.Refresh());
+        ChangeProperty.Changed.AddClassHandler<StatTile>((tile, _) => tile.Refresh());
+        ChangeStateProperty.Changed.AddClassHandler<StatTile>((tile, _) => tile.Refresh());
         CommandProperty.Changed.AddClassHandler<StatTile>((tile, _) => tile.Refresh());
     }
 
@@ -56,7 +64,9 @@ public sealed class StatTile : Button
         Grid.SetColumn(_icon, 1);
         head.Children.Add(_label);
         head.Children.Add(_icon);
-        Content = new StackPanel { Spacing = 2, Children = { head, _value, _hint } };
+        _change.Classes.Add("pill");
+        _change.Child = _changeText;
+        Content = new StackPanel { Spacing = 2, Children = { head, _value, _change, _hint } };
         Refresh();
     }
 
@@ -97,6 +107,23 @@ public sealed class StatTile : Button
         set => SetValue(StateProperty, value);
     }
 
+    /// <summary>
+    /// Veränderung als Pille unter dem Wert („↓ 24 %“, Management-Bericht T-104): ungünstig warn auf warn-soft, günstig ok auf ok-soft (<see cref="ChangeState"/>), sonst grau.
+    /// Die Pille ersetzt Symbol und Fläche von <see cref="State"/>; Kacheln ohne sie bleiben wie bisher.
+    /// </summary>
+    public string? Change
+    {
+        get => GetValue(ChangeProperty);
+        set => SetValue(ChangeProperty, value);
+    }
+
+    /// <summary>Richtung der Veränderung für die Farbe der Pille; Pfeil und Text sagen dasselbe, die Farbe trägt nie allein.</summary>
+    public StatTileState ChangeState
+    {
+        get => GetValue(ChangeStateProperty);
+        set => SetValue(ChangeStateProperty, value);
+    }
+
     protected override Type StyleKeyOverride => typeof(Button);
 
     private void Refresh()
@@ -105,6 +132,10 @@ public sealed class StatTile : Button
         _value.Text = Value;
         _hint.Text = Hint;
         _hint.IsVisible = !string.IsNullOrEmpty(Hint);
+        _changeText.Text = Change;
+        _change.IsVisible = !string.IsNullOrEmpty(Change);
+        _change.Classes.Set("ok", ChangeState == StatTileState.Ok);
+        _change.Classes.Set("warn", ChangeState == StatTileState.Warn);
         _icon.Data = State switch
         {
             StatTileState.Warn => Icons.Warning,

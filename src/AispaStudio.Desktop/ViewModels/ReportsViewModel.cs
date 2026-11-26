@@ -91,7 +91,7 @@ public sealed partial class ReportsViewModel : ViewModelBase, ITargetedArea, ISa
     public IFileSaver? Files
     {
         get => Compliance.Files;
-        set => Compliance.Files = Hygiene.Files = value;
+        set => Compliance.Files = Hygiene.Files = Management.Files = Management.Export.Files = value;
     }
 
     /// <summary>Die Rückfragen des Fensters gelten auch für die Betriebsinfo (Archivieren, ungespeicherte Änderungen) und für „Per Mail senden“ im Management-Bericht.</summary>

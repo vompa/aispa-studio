@@ -4,7 +4,7 @@ bereich: Berichte
 oberflaeche: verwaltung
 rollen: leitung, inhaber, manager
 seite: verwaltung
-stichwoerter: Management, Cockpit, Kennzahlen, KPI, Umsatz, Auslastung, No-Show, Storno-Quote, Durchschnittsbon, Stammgäste, neue Gäste, Folgetermin, Marge, Vollkosten, Deckungsbeitrag, Umsatz je Dienststunde, Produktanteil, Umsatz je Gast, entgangener Umsatz, Verlauf, Diagramm, Wochentag, Tageszeit, schwache Zeiten, Räume, Kanal, Online-Buchung, beste Gäste, abwandernde Stammgäste, Vorschau, gebuchter Umsatz, Erlöskonto, Kostenstelle, Personal, Alarme, Vorperiode, Vormonat, Vorjahr, Vergleich, Schnellwahl, Veränderung, Pfeil, Export, Excel, Arbeitsmappe, Word, Bericht exportieren, Anmerkungen, Datenbalken, Pivot, CSV, PDF, Drucken, Bericht drucken, per Mail senden, Bericht senden, Kennzahlen exportieren, wie läuft das Geschäft, revenue, utilization, dashboard, figures
+stichwoerter: Management, Cockpit, Kennzahlen, KPI, Umsatz, Auslastung, No-Show, Storno-Quote, Durchschnittsbon, Stammgäste, neue Gäste, Folgetermin, Marge, Vollkosten, Deckungsbeitrag, Umsatz je Dienststunde, Produktanteil, Umsatz je Gast, entgangener Umsatz, Verlauf, Diagramm, Wochentag, Tageszeit, schwache Zeiten, Räume, Kanal, Online-Buchung, beste Gäste, abwandernde Stammgäste, Vorschau, gebuchter Umsatz, Erlöskonto, Kostenstelle, Personal, Alarme, Vorperiode, Vormonat, Vorjahr, Vergleich, Schnellwahl, Eigener Zeitraum, Veränderung, Pfeil, Export, Ausgabe, Excel, Arbeitsmappe, Word, Bericht exportieren, Anmerkungen, Datenbalken, Pivot, CSV, PDF, Drucken, Bericht drucken, per Mail senden, Bericht senden, Kennzahlen exportieren, wie läuft das Geschäft, revenue, utilization, dashboard, figures
 ---
 # Kennzahlen im Management ansehen
 
@@ -15,26 +15,26 @@ Der Abschnitt „Management“ im Reiter „Berichte“ zeigt die Kennzahlen ein
 1. In der Windows-App unter „Verwaltung“ **Zahlen** öffnen und den Reiter **Berichte** wählen. Der Abschnitt **Management** steht oben.
 2. **Standort** wählen.
 3. **Von** und **Bis** setzen. Vorbelegt sind der Monatserste und heute. Der Zeitraum darf höchstens ein Jahr lang sein.
-4. Schneller geht es mit der **Schnellwahl**: **Dieser Monat**, **Letzter Monat**, **Dieses Quartal**, **Dieses Jahr** oder **Letzte 12 Monate**. Sie setzt Von und Bis. Dieser Monat, Dieses Quartal und Dieses Jahr reichen bis heute, Letzter Monat ist der ganze Vormonat. Ändern Sie danach ein Datum von Hand, verschwindet die Auswahl.
-5. Reicht **Bis** bis heute oder darüber, steht „Heute ist noch nicht abgeschlossen“: Umsatz und Termine von heute können noch wachsen.
-6. **Vergleichen mit** wählt, wogegen die Kacheln rechnen. Die Zeile „Vergleich:“ darunter nennt den Zeitraum.
+4. Schneller geht es mit **Zeitraum** links neben Von und Bis: **Dieser Monat**, **Letzter Monat**, **Dieses Quartal**, **Dieses Jahr** oder **Letzte 12 Monate**. Die Auswahl setzt Von und Bis. Dieser Monat, Dieses Quartal und Dieses Jahr reichen bis heute, Letzter Monat ist der ganze Vormonat. Passen Von und Bis zu keiner Auswahl, etwa nach einer Änderung von Hand, steht dort **Eigener Zeitraum**.
+5. Reicht **Bis** bis heute oder darüber, steht „Heute läuft noch, die Zahlen können sich ändern.“: Umsatz und Termine von heute können noch wachsen.
+6. **Vergleichen mit** wählt, wogegen die Kacheln rechnen. Der kleine Text „Vergleich: …“ in derselben Zeile nennt den Zeitraum.
    - **Zeitraum davor** (Standard): der gleich lange Zeitraum direkt davor.
    - **Vormonat**: derselbe Abschnitt im Vormonat, also 1. bis 26. gegen 1. bis 26. des Vormonats. Endet Ihr Zeitraum am Monatsletzten, zählt der ganze Vormonat.
    - **Vorjahr**: derselbe Zeitraum im Vorjahr.
-7. Wer die Zahlen weitergeben will, hat fünf Ausgaben, alle mit dem gewählten Vergleich. Beträge stehen darin nur, wenn man sie auf der Seite auch sieht.
-   - **Exportieren** › **Bericht (Excel)**: eine Arbeitsmappe mit allen Abschnitten, z. B. `Bericht_2026-11-01_bis_2026-11-26.xlsx`. Mehr dazu unter [Bericht als Excel-Arbeitsmappe](#excel).
-   - **Exportieren** › **Bericht (Word)**: der Bericht als Dokument zum Ergänzen, z. B. `Management-Bericht-Wien-2026-11-01-bis-2026-11-26.docx`. Mehr dazu unter [Bericht als Word-Datei](#word).
-   - **Exportieren** › **Kennzahlen (CSV)**: nur die Kennzahlen mit Wert, Vergleichswert und Einheit.
-   - **Drucken** und **PDF speichern**: der Bericht als PDF. Mehr dazu unter [Bericht als PDF](#pdf).
-   - **Per Mail senden**: das PDF an eine Adresse Ihrer Wahl.
+7. Wer die Zahlen weitergeben will, öffnet in der Kopfzeile das Menü **Ausgabe**. Alle Ausgaben nehmen den gewählten Vergleich. Beträge stehen darin nur, wenn man sie auf der Seite auch sieht.
+   - **Drucken …** und **Als PDF speichern**: der Bericht als PDF. Mehr dazu unter [Bericht als PDF](#pdf).
+   - **Per Mail senden …**: das PDF an eine Adresse Ihrer Wahl.
+   - **Bericht (Excel)**: eine Arbeitsmappe mit allen Abschnitten, z. B. `Bericht_2026-11-01_bis_2026-11-26.xlsx`. Mehr dazu unter [Bericht als Excel-Arbeitsmappe](#excel).
+   - **Bericht (Word)**: der Bericht als Dokument zum Ergänzen, z. B. `Management-Bericht-Wien-2026-11-01-bis-2026-11-26.docx`. Mehr dazu unter [Bericht als Word-Datei](#word).
+   - **Kennzahlen (CSV)**: nur die Kennzahlen mit Wert, Vergleichswert und Einheit.
 
-   Drucken, PDF und Senden stehen neben **Exportieren**, sobald der Bericht geladen ist. Nach dem Speichern öffnet **Ordner öffnen** neben „Gespeichert: …“ den Ordner der Datei.
+   Drucken, PDF und Mail stehen im Menü, sobald der Bericht geladen ist. Nach dem Speichern einer Datei öffnet **Ordner öffnen** neben „Gespeichert: …“ den Ordner der Datei.
 
 ![Management mit Kennzahlen](images/app/verwaltung-berichte-management.png)
 
 ## Bericht als Excel-Arbeitsmappe {#excel}
 
-**Exportieren** › **Bericht (Excel)** speichert den ganzen Bericht des Zeitraums. Jeder Abschnitt steht auf einem eigenen Blatt:
+**Ausgabe** › **Bericht (Excel)** speichert den ganzen Bericht des Zeitraums. Jeder Abschnitt steht auf einem eigenen Blatt:
 
 - **Übersicht:** die Kennzahlen mit Wert, Vergleichswert, Einheit, Veränderung und Veränderung in Prozent. Bei Quoten steht die Veränderung in Prozentpunkten, die Spalte in Prozent bleibt dort leer. Rechts daneben stehen Betrieb, Standort, Zeitraum, Vergleich und wer die Datei wann erstellt hat. Graue Pfeile zeigen, ob ein Wert gestiegen oder gefallen ist.
 - **Verlauf:** eine Zeile je Tag, bei Zeiträumen über 62 Tagen je Woche. Das Blatt eignet sich als Grundlage für eigene Pivot-Tabellen.
@@ -51,14 +51,14 @@ Das PDF zeigt den gewählten Standort, Zeitraum und Vergleich auf A4 hoch, z. B.
 
 - **Zuerst:** Titel, Zeitraum und Vergleichszeitraum, der Kommentar der KI mit ihrem Hinweis (nur wenn er auf der Seite steht), die Alarme und die Kennzahlen in ihren vier Gruppen mit Vergleichswert, Veränderung und Veränderung in Prozent. Bei Quoten steht die Veränderung in Prozentpunkten.
 - **Danach:** der Verlauf als graue Balken mit dem Wert daneben (Umsatz und Auslastung mit Prozent von 0 bis 100 % Länge), dann die Tabellen wie in der Arbeitsmappe. Ein Abschnitt ohne Zeilen nennt „Keine Einträge im Zeitraum.“
-- **Drucken** öffnet den Druckdialog von Windows mit dem PDF. **PDF speichern** speichert es über den Speicherdialog.
+- **Ausgabe** › **Drucken …** öffnet den Druckdialog von Windows mit dem PDF. **Als PDF speichern** speichert es über den Speicherdialog.
 - **Per Mail senden** fragt nach Adresse, Betreff und Text. Vorbelegt ist Ihre eigene Mailadresse; der Bericht geht nur an die Adresse, die im Feld steht.
 
 Beträge und Gästelisten stehen darin wie in der Arbeitsmappe, also nur mit den Rechten, mit denen man sie auch auf der Seite sieht. Jedes gespeicherte, gedruckte oder gesendete PDF steht im Export-Protokoll, eine Sendung mit der Adresse. Auch Excel-Arbeitsmappe und CSV-Datei stehen dort.
 
 ## Bericht als Word-Datei {#word}
 
-**Exportieren** › **Bericht (Word)** speichert den ganzen Bericht als Word-Dokument auf A4 hoch. Es ist zum Weiterarbeiten gedacht, etwa für eine Besprechung:
+**Ausgabe** › **Bericht (Word)** speichert den ganzen Bericht als Word-Dokument auf A4 hoch. Es ist zum Weiterarbeiten gedacht, etwa für eine Besprechung:
 
 - Der Inhalt ist derselbe wie im PDF: Titel, Zeitraum, der Kommentar der KI mit ihrem Hinweis (nur wenn er auf der Seite steht), die Alarme, die Kennzahlen in ihren vier Gruppen und danach die Tabellen. Der Verlauf steht als Tabelle, nicht als Balken.
 - Nach jeder Kennzahlen-Gruppe steht „Anmerkungen:“ mit einem leeren Absatz, in den Sie Ihre Notizen schreiben.
@@ -102,10 +102,10 @@ Die Gästelisten sieht nur, wer auch die Kundenliste sehen darf. Die Namen gehen
 
 ## Veränderung auf den Kacheln lesen {#veraenderung}
 
-Jede Kachel mit Vergleichswert zeigt unter dem Wert, wie sich die Zahl verändert hat:
+Jede Kachel mit Vergleichswert zeigt unter dem Wert in einer Pille, wie sich die Zahl verändert hat:
 
 - **Pfeil und Zahl:** „↓ 24 %“ heißt 24 Prozent weniger als im Vergleichszeitraum. Bei Quoten wie Auslastung oder No-Show-Quote steht die Veränderung in Prozentpunkten („↓ 3,0 Prozentpunkte“). War der Vergleichswert 0, steht „↑ von 0“. Bleibt der Wert gleich, steht „→ unverändert“.
-- **Haken oder Warnzeichen:** Der Haken heißt, die Veränderung ist gut (mehr Umsatz, weniger No-Shows). Das Warnzeichen heißt, sie ist schlecht (weniger Umsatz, mehr No-Shows). Kennzahlen ohne klare Richtung, etwa „Offene Gutscheine“, zeigen den Pfeil ohne Zeichen. Ein Screenreader liest den ganzen Satz, zum Beispiel „Umsatz brutto 19.250,97 €, 24 % unter der Vorperiode“.
+- **Farbe der Pille:** Grün heißt, die Veränderung ist gut (mehr Umsatz, weniger No-Shows). Orange heißt, sie ist schlecht (weniger Umsatz, mehr No-Shows). Kennzahlen ohne klare Richtung, etwa „Offene Gutscheine“, zeigen eine graue Pille. Darunter steht klein der Wert des Vergleichszeitraums, etwa „Vorperiode 25.330,22 €“. Ein Screenreader liest den ganzen Satz, zum Beispiel „Umsatz brutto 19.250,97 €, 24 % unter der Vorperiode“.
 - Kennzahlen, die nur den Stand von heute zeigen („Offene Gutscheine“, „Offene Anfragen“), haben keinen Vergleich.
 
 ## Gutscheine in den Kennzahlen {#gutscheine}
@@ -116,7 +116,7 @@ Jede Kachel mit Vergleichswert zeigt unter dem Wert, wie sich die Zahl veränder
 - **Gutscheine verkauft**: Wert aller Gutscheine und Pakete, die im Zeitraum verkauft wurden, brutto.
 - **Gutscheine eingelöst**: Wert, der im Zeitraum mit Gutscheinen und Paketen bezahlt wurde, brutto. Ein Storno zieht den Betrag wieder ab.
 - Der [Vergleich mit anderen Spas](hilfe:berichte-mit-anderen-spas-vergleichen) nimmt den Durchschnittsbon ohne Gutscheinverkauf.
-- **Umsatz nach Erlöskonto**: je Erlöskonto mit Kostenstelle brutto und netto, darunter der Umsatz je Zahlungsart.
+- **Umsatz nach Erlöskonto**: je Erlöskonto mit Kostenstelle brutto und netto, daneben der Umsatz je Zahlungsart. In einem schmalen Fenster stehen beide Listen untereinander.
 - **Personal**: je Person Dienststunden, Behandlungsstunden, Auslastung und Umsatz je Behandlungsstunde (netto).
 - **Behandlungen**: je Behandlung Termine, Umsatz netto und Marge je Termin aus der Vollkostenrechnung. Eine negative Marge ist hervorgehoben; „–“ heißt, für die Behandlung sind keine Vollkosten gerechnet.
 - Umsatz je Behandlung und je Person ist der Betrag, der für den Termin im Zeitraum kassiert wurde, netto und nach Rabatt. Ein Barzahlungsrabatt verteilt sich anteilig auf die Positionen des Belegs. Ein Storno zieht den Betrag wieder ab.
@@ -153,7 +153,7 @@ Inhaber, Manager und Standortleitung bekommen den Bericht auch per Mail, je Stan
 - **Wochenbericht** montags ab 7 Uhr, für Montag bis Sonntag der Vorwoche.
 - **Monatsbericht** am Monatsersten ab 7 Uhr, für den Vormonat.
 
-In der Mail stehen der Kommentar der KI, was zu beachten ist, die Kennzahlen mit dem Zeitraum davor und die Aktionen; Beträge nur mit dem Recht „Berichte mit Beträgen“. Abbestellen: beim Management den Haken **Wochen- und Monatsbericht per Mail** entfernen; wieder setzen bestellt ihn wieder. Der Haken gilt nur für Sie selbst. Ohne Mailadresse im Konto kommt keine Mail.
+In der Mail stehen der Kommentar der KI, was zu beachten ist, die Kennzahlen mit dem Zeitraum davor und die Aktionen; Beträge nur mit dem Recht „Berichte mit Beträgen“. Abbestellen: beim Management im Menü **Ausgabe** das Kästchen **Wochen- und Monatsbericht per Mail** abwählen; wieder wählen bestellt ihn wieder. Das Kästchen gilt nur für Sie selbst. Ohne Mailadresse im Konto kommt keine Mail.
 
 ## Hinweise {#hinweise}
 

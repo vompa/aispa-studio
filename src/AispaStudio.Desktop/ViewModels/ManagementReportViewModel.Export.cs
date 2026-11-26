@@ -10,8 +10,8 @@ public sealed partial class ManagementReportViewModel
     private ExportViewModel? _export;
 
     /// <summary>
-    /// Der Knopf „Exportieren“ neben Von und Bis: der ganze Bericht als Excel-Arbeitsmappe und als Word-Datei (mit dem KI-Kommentar, wenn der Reiter ihn zeigt)
-    /// und die Kennzahlen des Zeitraums als CSV. Das PDF steht im Knopfblock daneben (<see cref="Document"/>). Wer den Reiter sieht, darf exportieren;
+    /// Die Export-Einträge im Menü „Ausgabe“ (T-104): der ganze Bericht als Excel-Arbeitsmappe und als Word-Datei (mit dem KI-Kommentar, wenn der Reiter ihn zeigt)
+    /// und die Kennzahlen des Zeitraums als CSV. Drucken, PDF und Mail stehen darüber im selben Menü (<see cref="Document"/>). Wer den Reiter sieht, darf exportieren;
     /// ob Beträge und Gäste dabei sind, entscheidet die API nach dem Recht. Fehlt ein Datum (Feld geleert), geht es leer mit und die API antwortet mit dem Hinweis zum Zeitraum.
     /// </summary>
     public ExportViewModel Export => _export ??= new ExportViewModel(Api,
@@ -21,6 +21,7 @@ public sealed partial class ManagementReportViewModel
         ExportOption.For(ExportFormat.Csv, () => ExportPath("csv"), "Kennzahlen (CSV)"),
     ])
     {
+        Files = Files,
         Saved = text =>
         {
             ExportSaved = text;
@@ -36,7 +37,7 @@ public sealed partial class ManagementReportViewModel
         },
     };
 
-    /// <summary>„Gespeichert: Kennzahlen_2026-10-01_bis_2026-10-31.xlsx“, klein neben dem Knopf.</summary>
+    /// <summary>„Gespeichert: Kennzahlen_2026-10-01_bis_2026-10-31.xlsx“, klein unter der Kopfzeile.</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasExportSaved))]
     public partial string? ExportSaved { get; private set; }

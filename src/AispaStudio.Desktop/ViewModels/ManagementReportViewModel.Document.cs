@@ -16,9 +16,31 @@ public sealed partial class ManagementReportViewModel
     /// <summary>Der Toast der Shell für „Gespeichert: …“, „Druckdialog geöffnet“, „Gesendet an …“.</summary>
     public Action<string>? ShowToast { get; init; }
 
-    /// <summary>Baut den Knopfblock für den gerade gezeigten Bericht neu; Fehler zeigt der Knopfblock selbst darunter.</summary>
-    private void UpdateDocument(LocationDto location, DateOnly from, DateOnly until, CompareChoice comparison) =>
-        Document = new DocumentActionsViewModel(DocumentSourceFor(location, from, until, comparison, HasAiSummary, Analysis.AdoptedId), Api, Dialogs) { ShowToast = ShowToast };
+    /// <summary>Drucken, PDF und Mail stehen im Menü „Ausgabe“, sobald ein Bericht geladen ist (T-104).</summary>
+    public bool HasDocument => Document is not null;
+
+    partial void OnDocumentChanged(DocumentActionsViewModel? value) => OnPropertyChanged(nameof(HasDocument));
+
+    /// <summary>
+    /// Baut die Befehle für Drucken, PDF und Mail für den gerade gezeigten Bericht neu. Sie stehen im Menü „Ausgabe“ (T-104); ihre Fehler zeigt der Bericht oben als Hinweis,
+    /// den Speicherdialog bekommen sie vom Reiter.
+    /// </summary>
+    private void UpdateDocument(LocationDto location, DateOnly from, DateOnly until, CompareChoice comparison)
+    {
+        var document = new DocumentActionsViewModel(DocumentSourceFor(location, from, until, comparison, HasAiSummary, Analysis.AdoptedId), Api, Dialogs)
+        {
+            ShowToast = ShowToast,
+            Files = Files,
+        };
+        document.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(DocumentActionsViewModel.Error) && document.Error is { } problem)
+            {
+                Error = problem;
+            }
+        };
+        Document = document;
+    }
 
     /// <summary>
     /// Pfade von PDF und Versand; dieselben Abfrageparameter wie der Bericht, mit <c>ai=true</c>, wenn der Reiter einen KI-Kommentar zeigt, und mit <c>analysisId</c>,

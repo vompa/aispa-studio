@@ -1892,3 +1892,28 @@ Expected: Entweder ein Ergebnis ohne die Zahl 999 oder „Auswertung gescheitert
 Expected: Die Auswertung nennt keine Beträge in Euro.
 Closes: Arbeitsanweisung Berichte-Ausbau, Aufgabe E
 Result: ☐
+
+### T-104 – Management-Bericht neu gestaltet
+Start: `dotnet run --project src/AispaStudio.AppHost` mit Beispieldaten, im Aspire-Dashboard die Ressource `windows-app` starten, als Inhaberin anmelden, **Verwaltung** › **Zahlen** › **Berichte** öffnen. Schritte 7 bis 10 nur mit eingetragenem Claude-Schlüssel (`dotnet user-secrets set "Ai:Claude:ApiKey" "<schlüssel>" --project src/AispaStudio.Api`, danach neu starten).
+1. Die Kopfzeile des Abschnitts ansehen.
+Expected: Links „Management“, rechts in einer Linie **Ausgabe**, **Mit KI auswerten** mit Pille „KI“ und das Fragezeichen. Einen Knopf „Exportieren“ und eine eigene Knopfreihe für Drucken, PDF und Mail gibt es nicht mehr.
+2. **Ausgabe** öffnen.
+Expected: Das Menü zeigt **Drucken …**, **Als PDF speichern**, **Per Mail senden …**, Trenner, **Bericht (Excel)**, **Bericht (Word)**, **Kennzahlen (CSV)**, Trenner und **Wochen- und Monatsbericht per Mail**. Es liegt über der Seite und schiebt nichts.
+3. **Ausgabe** › **Als PDF speichern**, dann **Ausgabe** › **Bericht (Excel)**; danach **Wochen- und Monatsbericht per Mail** zweimal wählen.
+Expected: Je der Speicherdialog von Windows, danach klein unter der Kopfzeile „Gespeichert: …“ mit **Ordner öffnen**. Das Kästchen wechselt jedes Mal und bleibt nach dem Neuladen der Seite so.
+4. **Zeitraum** auf **Letzter Monat** stellen, dann **Bis** von Hand um einen Tag ändern.
+Expected: Zeitraum, Von und Bis stehen in einer Zeile. Nach der Änderung von Hand zeigt **Zeitraum** „Eigener Zeitraum“, nie ein leeres Feld.
+5. **Zeitraum** auf **Dieser Monat** stellen.
+Expected: Unter dem Zeitraum stehen in einer Zeile **Vergleichen mit**, „Mit anderen Spas vergleichen“ und klein „Vergleich: …“ sowie „Heute läuft noch, die Zahlen können sich ändern.“.
+6. Die Kacheln ansehen, das Fenster auf volle Breite und auf 1100 px stellen.
+Expected: Die Kacheln füllen die Breite in gleich breiten Spalten. Unter dem Wert steht die Veränderung als Pille: ungünstig orange, günstig grün, ohne Richtung grau; darunter klein „Vorperiode …“. Keine Kachel ist grün gefüllt, kein einzelnes Warnzeichen. Erlöskonto und Zahlungsart stehen nebeneinander.
+7. **Mit KI auswerten** klicken, Schwerpunkt **Gesamt**, **Auswerten**.
+Expected: Untertitel „Management-Bericht · <Von>–<Bis>“. Nach der Auswertung steht statt des Formulars die Zeile „KI · Schwerpunkt Gesamt · Ändern“; das Ergebnis nimmt die übrige Höhe. Kernaussagen und Maßnahmen als Liste, jede Auffälligkeit als Karte mit Pille „Vermutung“ vor der Ursache und der Kennzahl als Chip.
+8. Auf einen Kennzahl-Chip klicken.
+Expected: Die Kachel mit dieser Kennzahl ist hervorgehoben und ins Bild gerollt. Eine Kennzahl ohne Kachel steht als Text und lässt sich nicht klicken.
+9. Das Ende des Ergebnisses und den Fuß der Seitenleiste ansehen, **Warum?** aufklappen.
+Expected: Unter „Was die Zahlen nicht zeigen“ steht die Hinweiszeile „Von der KI aus den Zahlen dieses Berichts ausgewertet. …“ mit **Warum?**, darunter **Kopieren** und **In den Bericht übernehmen**. Im Fuß steht nur **Neu auswerten**; der runde KI-Knopf verdeckt ihn nicht.
+10. **Ändern** klicken, Schwerpunkt **Umsatz und Ertrag** wählen, **Neu auswerten**.
+Expected: Das Formular geht auf; nach der neuen Auswertung klappt es wieder zu und die Zeile nennt „Schwerpunkt Umsatz und Ertrag“.
+Closes: Änderungswunsch 26.11.2026 (Mockup)
+Result: ☐

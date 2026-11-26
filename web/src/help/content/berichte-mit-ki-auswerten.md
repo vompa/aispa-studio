@@ -4,7 +4,7 @@ bereich: Berichte
 oberflaeche: verwaltung
 rollen: leitung, inhaber, manager
 seite: verwaltung
-stichwoerter: KI, Auswertung, Claude, auswerten lassen, Kernaussagen, Maßnahmen, Auffälligkeiten, Ursachen, was tun, Empfehlung, Analyse, Bericht erklären, analysis, insights, recommendations
+stichwoerter: KI, Auswertung, Claude, auswerten lassen, Kernaussagen, Maßnahmen, Auffälligkeiten, Ursachen, was tun, Empfehlung, Analyse, Bericht erklären, Neu auswerten, Ändern, Vermutung, analysis, insights, recommendations
 ---
 # Bericht mit KI auswerten
 
@@ -14,7 +14,7 @@ Die KI liest die Zahlen des Management-Berichts und schreibt Kernaussagen, Auff�
 
 1. In der Windows-App unter „Verwaltung“ **Zahlen** öffnen und den Reiter **Berichte** wählen.
 2. **Standort**, Zeitraum und **Vergleichen mit** wie für den Bericht wählen. Die KI wertet genau diesen Bericht aus.
-3. Auf **Mit KI auswerten** klicken. Rechts geht die Seitenleiste auf.
+3. In der Kopfzeile auf **Mit KI auswerten** klicken. Rechts geht die Seitenleiste auf. Unter dem Titel stehen der Bericht und der Zeitraum, etwa „Management-Bericht · 01.10.–19.10.2026“.
 4. Einen **Schwerpunkt** wählen: Gesamt, Umsatz und Ertrag, Auslastung und Dienstplan, Gäste und Bindung oder Angebot und Preise.
 5. Wer will, schreibt eine **Eigene Frage** dazu, höchstens 300 Zeichen, zum Beispiel „Warum sind die Vormittage schwach?“.
 6. Auf **Auswerten** klicken. Die Auswertung dauert meist einige Sekunden; die Seitenleiste zeigt „Die KI wertet die Zahlen des Berichts aus …“.
@@ -23,18 +23,27 @@ Die KI liest die Zahlen des Management-Berichts und schreibt Kernaussagen, Auff�
 
 ## So liest man die Auswertung {#lesen}
 
-- **Kernaussagen:** drei bis fünf Sätze zum Zeitraum.
-- **Auffälligkeiten:** je eine Beobachtung, eine mögliche Ursache und die betroffene Kennzahl. Die Ursache ist immer eine Vermutung der KI.
-- **Maßnahmen:** höchstens fünf, nach erwarteter Wirkung gereiht, je mit „Woran Sie den Erfolg sehen“.
+Nach der Auswertung klappt das Formular zu einer Zeile zusammen, etwa „KI · Schwerpunkt Gesamt · Ändern“. So bleibt die ganze Höhe für das Ergebnis.
+
+- **Kernaussagen:** drei bis fünf Sätze zum Zeitraum, als Liste.
+- **Auffälligkeiten:** je eine Karte mit der Beobachtung, darunter der möglichen Ursache mit der Pille „Vermutung“ und der betroffenen Kennzahl. Die Ursache ist immer eine Vermutung der KI.
+- **Kennzahl anklicken:** Gibt es zur Kennzahl eine Kachel, steht sie als Knopf. Ein Klick hebt die Kachel im Bericht hervor und rollt zu ihr. Ohne passende Kachel steht die Kennzahl als einfacher Text.
+- **Maßnahmen:** höchstens fünf, nach erwarteter Wirkung gereiht, als Liste, je mit „Woran Sie den Erfolg sehen“.
 - **Was die Zahlen nicht zeigen:** was sich aus dem Bericht nicht ablesen lässt.
-- Die Pille „KI“ und der Hinweis darunter kennzeichnen den Text als Auswertung der KI.
+- Die Pille „KI“ und der Hinweis unter dem Ergebnis kennzeichnen den Text als Auswertung der KI. **Warum?** daneben klappt auf, was die KI gelesen hat und was sie nicht tut.
+
+## Schwerpunkt oder Frage ändern {#aendern}
+
+1. In der Zeile über dem Ergebnis auf **Ändern** klicken. Das Formular geht wieder auf.
+2. **Schwerpunkt** oder **Eigene Frage** ändern.
+3. Im Fuß der Seitenleiste auf **Neu auswerten** klicken. Vor der ersten Auswertung heißt der Knopf **Auswerten**.
 
 Dieselben Zahlen mit demselben Schwerpunkt und derselben Frage werten nicht neu aus: Die Seitenleiste zeigt die schon geschriebene Auswertung.
 
 ## Kopieren und in den Bericht übernehmen {#uebernehmen}
 
 - **Kopieren** legt die Auswertung mit Überschriften und Hinweis in die Zwischenablage.
-- **In den Bericht übernehmen** nimmt die Auswertung in PDF, Word und Excel auf, immer mit dem Hinweis der KI. Das gilt für **Drucken**, **PDF speichern**, **Per Mail senden** und unter **Exportieren** für **Bericht (Excel)** und **Bericht (Word)**.
+- **In den Bericht übernehmen** nimmt die Auswertung in PDF, Word und Excel auf, immer mit dem Hinweis der KI. Das gilt im Menü **Ausgabe** für **Drucken …**, **Als PDF speichern**, **Per Mail senden …**, **Bericht (Excel)** und **Bericht (Word)**.
 - **Aus dem Bericht nehmen** macht das rückgängig.
 - Wer Standort, Zeitraum oder Vergleich ändert, bekommt einen neuen Bericht; die übernommene Auswertung gilt dann nicht mehr und fällt aus den Dateien.
 

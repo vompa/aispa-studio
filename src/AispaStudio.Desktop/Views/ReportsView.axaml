@@ -44,8 +44,8 @@
       <StackPanel Spacing="16" Margin="0,0,16,16" IsVisible="{Binding IsLoaded}">
         <ContentControl Content="{Binding CurrentTab}" IsVisible="{Binding !IsManagementTab}" />
         <StackPanel Spacing="20" IsVisible="{Binding IsManagementTab}">
+          <!-- Titel „Management“ und Kopfzeile mit „Ausgabe“, „Mit KI auswerten“ und Hilfe stehen in der Ansicht des Berichts (T-104) -->
           <StackPanel x:Name="ReportManagementSection" Spacing="12">
-            <TextBlock Text="Management" Classes="h1" />
             <ContentControl Content="{Binding Management}" />
           </StackPanel>
           <Border x:Name="ReportComplianceSection" Classes="section" Padding="0,20,0,0" IsVisible="{Binding CanSeeCompliance}">
@@ -67,7 +67,7 @@
 
     <!-- „Mit KI auswerten“ als Seitenleiste (ADR 0066, T-096 E2): neben dem Bericht, außerhalb der Bildlaufleiste; nur im Reiter „Berichte“ -->
     <Panel Grid.Column="1" Grid.RowSpan="3" IsVisible="{Binding IsManagementTab}">
-      <ui:SidePanel x:Name="ManagementAnalysisPanel" Title="Mit KI auswerten" Subtitle="Management-Bericht" DataContext="{Binding Management.Analysis}"
+      <ui:SidePanel x:Name="ManagementAnalysisPanel" Title="Mit KI auswerten" Subtitle="{Binding Subtitle}" DataContext="{Binding Management.Analysis}"
                     IsOpen="{Binding IsOpen, Mode=TwoWay}" x:DataType="vm:ManagementAnalysisViewModel">
         <ui:SidePanel.HeaderAction>
           <ui:HelpButton Topic="berichte-mit-ki-auswerten" Margin="0,0,4,0" VerticalAlignment="Center" />

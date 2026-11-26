@@ -7,30 +7,74 @@
              x:DataType="vm:ManagementReportViewModel">
   <!-- Reiter „Management“ nach web/src/reports/ManagementView.tsx und BenchmarkView.tsx. Der Vergleich zeigt die Werte als Text; ein Balken wäre eine eigene Zeichnung (Ä226). -->
   <StackPanel Spacing="16">
-    <WrapPanel ItemSpacing="12" LineSpacing="12">
-      <ui:FormField Label="Zeitraum">
-        <ComboBox x:Name="ManagementQuickRangeField" ItemsSource="{x:Static vm:ManagementReportViewModel.QuickRanges}" SelectedItem="{Binding SelectedQuickRange}"
-                  PlaceholderText="Schnellwahl" Width="160" />
-      </ui:FormField>
-      <ui:FormField Label="Von">
-        <ui:DateField x:Name="ManagementFromField" Value="{Binding From}" />
-      </ui:FormField>
-      <ui:FormField Label="Bis">
-        <ui:DateField x:Name="ManagementUntilField" Value="{Binding Until}" />
-      </ui:FormField>
-      <ui:FormField Label="Vergleichen mit">
-        <ComboBox x:Name="ManagementComparisonField" ItemsSource="{x:Static vm:ManagementReportViewModel.CompareChoices}" SelectedItem="{Binding SelectedComparison}" Width="160" />
-      </ui:FormField>
-      <CheckBox x:Name="ManagementCompareField" Content="Mit anderen Spas vergleichen" IsChecked="{Binding Compare}" VerticalAlignment="Bottom" />
-      <!-- Wochenbericht montags, Monatsbericht am Ersten, je für die angemeldete Person; abbestellen jederzeit hier -->
-      <CheckBox x:Name="ManagementMailField" Content="Wochen- und Monatsbericht per Mail" IsChecked="{Binding MailReports}" IsVisible="{Binding CanMailReports}"
-                VerticalAlignment="Bottom" ToolTip.Tip="Montags der Bericht der Vorwoche, am Monatsersten der des Vormonats, an Ihre Mailadresse" />
-      <!-- Der Bericht als PDF: Drucken, speichern, per Mail senden (T-095 D2, ADR 0092) -->
-      <Panel IsVisible="{Binding Document, Converter={x:Static ObjectConverters.IsNotNull}}" VerticalAlignment="Bottom">
-        <ui:DocumentActions x:Name="ManagementDocument" DataContext="{Binding Document}" />
-      </Panel>
-      <!-- KI-Auswertung per Knopf (T-096 E2): öffnet die Seitenleiste; ohne Claude-Schlüssel gesperrt mit Grund -->
-      <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Bottom">
+    <!--
+      Kopfzeile (T-104, nach dem Wochenplan T-101): links der Titel, rechts das Menü „Ausgabe“, „Mit KI auswerten“ und die Hilfe. Das Menü bündelt Drucken, PDF und Mail
+      (Befehle von Document), die Export-Einträge (Export, Reihenfolge: Bericht Excel, Bericht Word, Kennzahlen CSV) und unter einem Trenner das Kästchen für den Bericht per Mail.
+    -->
+    <Grid x:Name="ManagementHeader" ColumnDefinitions="*,Auto" ColumnSpacing="16">
+      <TextBlock Text="Management" Classes="h1" VerticalAlignment="Center" />
+      <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+        <Button x:Name="ManagementOutputButton" AutomationProperties.Name="Ausgabe" IsEnabled="{Binding !Export.IsBusy}"
+                ToolTip.Tip="Bericht drucken, als PDF speichern, per Mail senden oder als Datei exportieren">
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <ui:Icon Data="{x:Static ui:Icons.Download}" Width="16" Height="16" />
+            <TextBlock Text="Ausgabe" VerticalAlignment="Center" />
+            <ui:Icon Data="{x:Static ui:Icons.ChevronDown}" Width="16" Height="16" />
+          </StackPanel>
+          <Button.Flyout>
+            <MenuFlyout Placement="BottomEdgeAlignedRight">
+              <MenuItem x:Name="ManagementPrintItem" Header="Drucken …" Command="{Binding Document.PrintCommand}" IsVisible="{Binding HasDocument}"
+                        ui:DisabledHint.Text="{Binding Document.DisabledHint}" AutomationProperties.Name="Bericht drucken">
+                <MenuItem.Icon>
+                  <ui:Icon Data="{x:Static ui:Icons.Printer}" Width="16" Height="16" />
+                </MenuItem.Icon>
+              </MenuItem>
+              <MenuItem x:Name="ManagementSavePdfItem" Header="Als PDF speichern" Command="{Binding Document.SaveCommand}" IsVisible="{Binding HasDocument}"
+                        ui:DisabledHint.Text="{Binding Document.DisabledHint}" AutomationProperties.Name="Bericht als PDF speichern">
+                <MenuItem.Icon>
+                  <ui:Icon Data="{x:Static ui:Icons.SavePdf}" Width="16" Height="16" />
+                </MenuItem.Icon>
+              </MenuItem>
+              <MenuItem x:Name="ManagementSendItem" Header="Per Mail senden …" Command="{Binding Document.SendCommand}" IsVisible="{Binding HasDocument}"
+                        ui:DisabledHint.Text="{Binding Document.DisabledHint}" AutomationProperties.Name="Bericht per Mail senden">
+                <MenuItem.Icon>
+                  <ui:Icon Data="{x:Static ui:Icons.Mail}" Width="16" Height="16" />
+                </MenuItem.Icon>
+              </MenuItem>
+              <Separator IsVisible="{Binding HasDocument}" />
+              <MenuItem x:Name="ManagementExcelItem" Header="{Binding Export.Options[0].Label}" Command="{Binding Export.ExportCommand}" CommandParameter="{Binding Export.Options[0]}"
+                        AutomationProperties.Name="Bericht als Excel speichern">
+                <MenuItem.Icon>
+                  <Border Width="16" Height="16" />
+                </MenuItem.Icon>
+              </MenuItem>
+              <MenuItem x:Name="ManagementWordItem" Header="{Binding Export.Options[1].Label}" Command="{Binding Export.ExportCommand}" CommandParameter="{Binding Export.Options[1]}"
+                        AutomationProperties.Name="Bericht als Word speichern">
+                <MenuItem.Icon>
+                  <Border Width="16" Height="16" />
+                </MenuItem.Icon>
+              </MenuItem>
+              <MenuItem x:Name="ManagementCsvItem" Header="{Binding Export.Options[2].Label}" Command="{Binding Export.ExportCommand}" CommandParameter="{Binding Export.Options[2]}"
+                        AutomationProperties.Name="Kennzahlen als CSV speichern">
+                <MenuItem.Icon>
+                  <Border Width="16" Height="16" />
+                </MenuItem.Icon>
+              </MenuItem>
+              <!-- Wochenbericht montags, Monatsbericht am Ersten, je für die angemeldete Person; abbestellen jederzeit hier -->
+              <Separator IsVisible="{Binding CanMailReports}" />
+              <MenuItem x:Name="ManagementMailItem" Classes="check" Header="Wochen- und Monatsbericht per Mail" ToggleType="CheckBox" IsChecked="{Binding MailReports, Mode=OneWay}"
+                        Command="{Binding ToggleMailReportsCommand}"
+                        IsVisible="{Binding CanMailReports}" ToolTip.Tip="Montags der Bericht der Vorwoche, am Monatsersten der des Vormonats, an Ihre Mailadresse" >
+                <MenuItem.Icon>
+                  <Border Classes="menucheck">
+                    <Path Classes="menucheckmark" Data="M3.5,8.5 L6.5,11.5 L12.5,5" />
+                  </Border>
+                </MenuItem.Icon>
+              </MenuItem>
+            </MenuFlyout>
+          </Button.Flyout>
+        </Button>
+        <!-- KI-Auswertung per Knopf (T-096 E2): öffnet die Seitenleiste; ohne Claude-Schlüssel gesperrt mit Grund -->
         <Button x:Name="ManagementAnalyzeButton" Command="{Binding Analysis.OpenCommand}" IsEnabled="{Binding AiAnalysisAvailable}"
                 ui:DisabledHint.Text="{x:Static vm:ManagementReportViewModel.AnalysisUnavailableHint}" AutomationProperties.Name="Mit KI auswerten">
           <StackPanel Orientation="Horizontal" Spacing="6">
@@ -38,17 +82,41 @@
             <TextBlock Text="Mit KI auswerten" VerticalAlignment="Center" />
           </StackPanel>
         </Button>
-        <ui:HelpButton Topic="berichte-mit-ki-auswerten" VerticalAlignment="Center" />
+        <ui:HelpButton Topic="berichte-kennzahlen-ansehen" VerticalAlignment="Center" />
       </StackPanel>
-      <!-- Export der Kennzahlen des Zeitraums (Export/Import, Aufgabe D) -->
-      <ui:ExportButton x:Name="ManagementExportButton" DataContext="{Binding Export}" VerticalAlignment="Bottom" />
-      <TextBlock x:Name="ManagementExportSaved" Text="{Binding ExportSaved}" Classes="muted small" IsVisible="{Binding HasExportSaved}" VerticalAlignment="Bottom" AutomationProperties.LiveSetting="Polite" />
+    </Grid>
+    <!-- Ergebnis eines Exports, klein unter der Kopfzeile (Drucken, PDF und Mail melden sich als Toast) -->
+    <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right" IsVisible="{Binding HasExportSaved}">
+      <TextBlock x:Name="ManagementExportSaved" Text="{Binding ExportSaved}" Classes="muted small" VerticalAlignment="Center" AutomationProperties.LiveSetting="Polite" />
       <Button x:Name="ManagementOpenFolder" Classes="link" Content="{x:Static vm:ManagementReportViewModel.OpenFolderText}" Command="{Binding OpenFolderCommand}"
-              IsVisible="{Binding HasSavedPath}" VerticalAlignment="Bottom" />
-    </WrapPanel>
-    <!-- Womit die Kacheln vergleichen, und dass der heutige Tag noch läuft -->
-    <TextBlock x:Name="ManagementCompareInfo" Text="{Binding CompareInfo}" Classes="muted small" IsVisible="{Binding CompareInfo, Converter={x:Static ObjectConverters.IsNotNull}}" />
-    <TextBlock x:Name="ManagementTodayOpen" Text="{x:Static vm:ManagementReportViewModel.TodayOpenText}" Classes="muted small" IsVisible="{Binding IsTodayOpen}" />
+              IsVisible="{Binding HasSavedPath}" VerticalAlignment="Center" />
+    </StackPanel>
+
+    <!-- Zeitraum: Schnellwahl (zeigt immer einen Wert, sonst „Eigener Zeitraum“), Von und Bis in einer Zeile; darunter der Vergleich mit dem Vergleichszeitraum als kleinem Text -->
+    <StackPanel Spacing="12">
+      <WrapPanel ItemSpacing="12" LineSpacing="12">
+        <ui:FormField Label="Zeitraum">
+          <ComboBox x:Name="ManagementQuickRangeField" ItemsSource="{x:Static vm:ManagementReportViewModel.QuickRanges}" SelectedItem="{Binding SelectedQuickRange}" Width="180" />
+        </ui:FormField>
+        <ui:FormField Label="Von">
+          <ui:DateField x:Name="ManagementFromField" Value="{Binding From}" />
+        </ui:FormField>
+        <ui:FormField Label="Bis">
+          <ui:DateField x:Name="ManagementUntilField" Value="{Binding Until}" />
+        </ui:FormField>
+      </WrapPanel>
+      <WrapPanel ItemSpacing="12" LineSpacing="12">
+        <ui:FormField Label="Vergleichen mit">
+          <ComboBox x:Name="ManagementComparisonField" ItemsSource="{x:Static vm:ManagementReportViewModel.CompareChoices}" SelectedItem="{Binding SelectedComparison}" Width="180" />
+        </ui:FormField>
+        <CheckBox x:Name="ManagementCompareField" Content="Mit anderen Spas vergleichen" IsChecked="{Binding Compare}" VerticalAlignment="Bottom" />
+        <!-- Womit die Kacheln vergleichen, und dass der heutige Tag noch läuft -->
+        <StackPanel VerticalAlignment="Bottom">
+          <TextBlock x:Name="ManagementCompareInfo" Text="{Binding CompareInfo}" Classes="muted small" IsVisible="{Binding CompareInfo, Converter={x:Static ObjectConverters.IsNotNull}}" />
+          <TextBlock x:Name="ManagementTodayOpen" Text="{x:Static vm:ManagementReportViewModel.TodayOpenText}" Classes="muted small" IsVisible="{Binding IsTodayOpen}" />
+        </StackPanel>
+      </WrapPanel>
+    </StackPanel>
     <ui:InfoBar Severity="Error" Message="{Binding Error}" IsVisible="{Binding HasError}" CloseCommand="{Binding CloseErrorCommand}" />
     <ui:InfoBar Severity="Error" Title="Bericht nicht geladen" Message="{Binding LoadError}" IsVisible="{Binding HasLoadError}"
                 ActionText="Erneut laden" ActionCommand="{Binding RetryCommand}" />
@@ -119,14 +187,16 @@
           <StackPanel Spacing="8" Margin="0,0,0,16">
             <TextBlock Text="{Binding Title}" Classes="h2" />
             <ItemsControl ItemsSource="{Binding Kpis}">
+              <!-- Raster, das die Breite füllt (Brief 5.5: Mindestbreite 160, Abstand 12); die Veränderung steht als Pille, darunter klein der Vergleichswert (T-104) -->
               <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
-                  <WrapPanel ItemSpacing="12" LineSpacing="12" />
+                  <ui:TileGrid MinColumnWidth="160" Spacing="12" />
                 </ItemsPanelTemplate>
               </ItemsControl.ItemsPanel>
               <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="vm:KpiRow">
-                  <ui:StatTile Width="200" VerticalAlignment="Stretch" Label="{Binding Label}" Value="{Binding Value}" Hint="{Binding Hint}" State="{Binding State}" AccessibleHint="{Binding Spoken}" />
+                  <ui:StatTile VerticalAlignment="Stretch" Label="{Binding Label}" Value="{Binding Value}" Change="{Binding Change}" ChangeState="{Binding State}"
+                               Hint="{Binding Previous}" AccessibleHint="{Binding Spoken}" />
                 </DataTemplate>
               </ItemsControl.ItemTemplate>
             </ItemsControl>
@@ -259,33 +329,38 @@
       </ItemsControl>
     </StackPanel>
 
-    <StackPanel Spacing="8" IsVisible="{Binding ShowAmounts}">
-      <TextBlock Text="Umsatz nach Erlöskonto" Classes="h2" />
-      <TextBlock x:Name="RevenueByAccountEmpty" Text="Keine Umsätze im Zeitraum." Classes="muted" IsVisible="{Binding !RevenueByAccount.Count}" />
-      <ItemsControl ItemsSource="{Binding RevenueByAccount}">
-        <ItemsControl.ItemTemplate>
-          <DataTemplate x:DataType="vm:RevenueRow">
-            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="12" Margin="0,0,0,4">
-              <TextBlock Text="{Binding Label}" TextWrapping="Wrap" />
-              <TextBlock Grid.Column="1" Text="{Binding Gross}" Classes="num" />
-              <TextBlock Grid.Column="2" Text="{Binding Net}" Classes="muted num" />
-            </Grid>
-          </DataTemplate>
-        </ItemsControl.ItemTemplate>
-      </ItemsControl>
-      <TextBlock Text="Umsatz nach Zahlungsart" Classes="h2" />
-      <TextBlock x:Name="RevenueByPaymentEmpty" Text="Keine Umsätze im Zeitraum." Classes="muted" IsVisible="{Binding !RevenueByPayment.Count}" />
-      <ItemsControl ItemsSource="{Binding RevenueByPayment}">
-        <ItemsControl.ItemTemplate>
-          <DataTemplate x:DataType="vm:RevenueRow">
-            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12" Margin="0,0,0,4">
-              <TextBlock Text="{Binding Label}" TextWrapping="Wrap" />
-              <TextBlock Grid.Column="1" Text="{Binding Gross}" Classes="num" />
-            </Grid>
-          </DataTemplate>
-        </ItemsControl.ItemTemplate>
-      </ItemsControl>
-    </StackPanel>
+    <!-- Erlöskonto und Zahlungsart gleich breit nebeneinander, unter 640 Breite untereinander (T-104) -->
+    <ui:MainSideColumns x:Name="ManagementRevenueColumns" Share="0.5" Spacing="32" LineSpacing="16" StackBelow="640" IsVisible="{Binding ShowAmounts}">
+      <StackPanel Spacing="8">
+        <TextBlock Text="Umsatz nach Erlöskonto" Classes="h2" />
+        <TextBlock x:Name="RevenueByAccountEmpty" Text="Keine Umsätze im Zeitraum." Classes="muted" IsVisible="{Binding !RevenueByAccount.Count}" />
+        <ItemsControl ItemsSource="{Binding RevenueByAccount}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:RevenueRow">
+              <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="12" Margin="0,0,0,4">
+                <TextBlock Text="{Binding Label}" TextWrapping="Wrap" />
+                <TextBlock Grid.Column="1" Text="{Binding Gross}" Classes="num" />
+                <TextBlock Grid.Column="2" Text="{Binding Net}" Classes="muted num" />
+              </Grid>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </StackPanel>
+      <StackPanel Spacing="8">
+        <TextBlock Text="Umsatz nach Zahlungsart" Classes="h2" />
+        <TextBlock x:Name="RevenueByPaymentEmpty" Text="Keine Umsätze im Zeitraum." Classes="muted" IsVisible="{Binding !RevenueByPayment.Count}" />
+        <ItemsControl ItemsSource="{Binding RevenueByPayment}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:RevenueRow">
+              <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12" Margin="0,0,0,4">
+                <TextBlock Text="{Binding Label}" TextWrapping="Wrap" />
+                <TextBlock Grid.Column="1" Text="{Binding Gross}" Classes="num" />
+              </Grid>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </StackPanel>
+    </ui:MainSideColumns>
 
     <StackPanel Spacing="8" Grid.IsSharedSizeScope="True">
       <TextBlock Text="Personal" Classes="h2" />

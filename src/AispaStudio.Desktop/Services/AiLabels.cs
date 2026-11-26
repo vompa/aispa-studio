@@ -37,6 +37,8 @@ public static class AiLabels
 
     public const string WhyInboxDraft = "Die KI schreibt den Entwurf aus der erkannten Absicht und den vorgeschlagenen Zeiten, in der Sprache des Gastes. Zahlen übernimmt sie nur aus dem Entwurf; erfindet sie eine, bleibt der Entwurf, wie er ist. Gesendet wird erst, wenn Sie auf Senden klicken.";
 
+    public const string WhyManagementAnalysis = "Die KI liest nur die Kennzahlen und Tabellen dieses Berichts, ohne Gästenamen und Gesundheitsdaten. Sie rechnet nichts; nennt sie eine Zahl, die nicht im Bericht steht, scheitert die Auswertung. In PDF, Word und Excel steht sie erst, wenn Sie sie übernehmen.";
+
     public const string WhyWhatToDo = "Der Assistent hat die Meldung gelesen und fasst sie in wenigen Sätzen zusammen. Zahlen stammen aus Kalender und Kassa. Ausgeführt wird nur, was Sie anklicken.";
 
     /// <summary>
