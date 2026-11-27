@@ -9,11 +9,11 @@ seite: verwaltung
 
 Das Lager führt den Bestand an Verbrauchsmaterial und Verkaufsprodukten je Standort und je Lagerort (Hauptlager, Schrank eines Raums, Verkaufsregal): [Lagerorte](hilfe:lager-lagerorte). Verbrauch durch Behandlungen und Verkäufe an der Kassa bucht das Programm selbst; von Hand kommen Wareneingang, Nachfüllen, Inventur, Korrektur und Umbuchung.
 
-## Übersicht {#uebersicht}
+## Kacheln und „Zu tun“ {#uebersicht}
 
-Der Reiter **Übersicht** öffnet das Lager und sagt, was zu tun ist. Oben stehen Kennzahl-Kacheln, darunter „Was ist zu tun“. Jeder Punkt hat einen Link dorthin, wo man ihn erledigt.
+Oben im Lager stehen Kennzahl-Kacheln. Sie bleiben in jedem Reiter sichtbar. Der erste Reiter **Zu tun** öffnet das Lager und zeigt „Was ist zu tun“. Jeder Punkt hat einen Link dorthin, wo man ihn erledigt.
 
-![Die Übersicht des Lagers mit Kennzahl-Kacheln, „Was ist zu tun“ und dem Verbrauch](images/app/verwaltung-lager-uebersicht.png)
+![Das Lager mit den Kennzahl-Kacheln, dem Reiter „Zu tun“ und dem Verbrauch](images/app/verwaltung-lager-uebersicht.png)
 
 Die Kacheln oben:
 
@@ -21,17 +21,17 @@ Die Kacheln oben:
 - **Nachbestellen:** so viele Positionen stehen im Bestellvorschlag. Ein Klick führt in den Reiter **Bestellen**. Die Kachel sehen nur Personen mit dem Recht für den Standort.
 - **Unter Minimum:** ein Klick öffnet den **Bestand** mit **Nur unter Minimum**.
 - **Chargen laufen ab:** ein Klick öffnet im Reiter **Bestand** die Ansicht **Chargen**.
-- **Mehrverbrauch:** der Betrag im gewählten Zeitraum, ein Klick springt zum Abschnitt **Verbrauch** weiter unten. Die Kachel erscheint nur mit dem Recht, Kennzahlen des Betriebs zu sehen, und dem Recht „Berichte mit Beträgen“.
+- **Mehrverbrauch:** der Betrag im gewählten Zeitraum, ein Klick springt im Reiter **Zu tun** zum Abschnitt **Verbrauch**. Die Kachel erscheint nur mit dem Recht, Kennzahlen des Betriebs zu sehen, und dem Recht „Berichte mit Beträgen“.
 
 Ein Klick auf eine Kachel mit Zahl führt dorthin, wo man sie bearbeitet.
 
-Darunter steht „Was ist zu tun“:
+Im Reiter **Zu tun** steht „Was ist zu tun“:
 
 - **Positionen nachbestellen:** so viele Positionen stehen im Bestellvorschlag. Der Link **Bestellen öffnen** führt in den Reiter **Bestellen**.
 - **Material unter dem Mindestbestand** und **Material, das nur noch für wenige Behandlungen reicht** (höchstens 5): beide führen in den **Bestand**.
 - **Chargen, die bald ablaufen** oder abgelaufen sind. Der Link **Chargen öffnen** führt im Reiter **Bestand** zur Ansicht **Chargen**.
 
-Den Punkt „nachbestellen“ und die Links zu **Bestellen** und **Chargen** sehen nur Personen mit dem Recht für den Standort; die Rezeption sieht die Übersicht, den Bestand mit den Ansichten **Material** und **Bewegungen** und im Reiter **Bestellen** nur die Bedarfsprüfung. Darunter folgt der Abschnitt **Verbrauch**, mehr dazu: [Verbrauch (Soll und Ist)](hilfe:lager#verbrauch).
+Den Punkt „nachbestellen“ und die Links zu **Bestellen** und **Chargen** sehen nur Personen mit dem Recht für den Standort; die Rezeption sieht die Kacheln, den Reiter **Zu tun**, den Bestand mit den Ansichten **Material** und **Bewegungen** und im Reiter **Bestellen** nur die Bedarfsprüfung. Darunter folgt der Abschnitt **Verbrauch**, mehr dazu: [Verbrauch (Soll und Ist)](hilfe:lager#verbrauch).
 
 ## Bestand lesen {#bestand}
 
@@ -41,7 +41,7 @@ Der Reiter **Bestand** hat oben die Auswahl **Ansicht** mit **Material**, **Char
 - Ein Klick auf eine Zeile öffnet rechts das Seitenpanel mit den übrigen Werten: Einheit, Mindestbestand, Verbrauch geplant, Bestellt, Bestellvorschlag, Läuft ab, Wert und die Mengen je Lagerort. Dort stehen auch **Buchen**, **Nachfüllen** und **Ändern**.
 - Bei **Alle Lagerorte** ist der Bestand die Summe des Standorts. Mit einem gewählten **Lagerort** zeigt er nur dessen Bestand, Mindestmenge und Wert; „Verbrauch geplant“, „Bestellt“ und „Bestellvorschlag“ gelten nur für den ganzen Standort und entfallen dort.
 - Der Chip **nachbestellen** steht, wenn der Bestand unter der Mindestmenge liegt oder nur noch für wenige Behandlungen reicht; **abgelaufen**, wenn eine Charge abgelaufen ist. **Nur unter Minimum** zeigt nur Zeilen unter der Mindestmenge.
-- Das Feld **Material suchen oder scannen** oben im Lager filtert den Bestand beim Tippen nach dem Namen; tippt man in der Übersicht, wechselt das Lager zum Bestand.
+- Das Feld **Material suchen oder scannen** oben im Lager filtert den Bestand beim Tippen nach dem Namen; tippt man im Reiter **Zu tun**, wechselt das Lager zum Bestand.
 
 ## Material anlegen {#material-anlegen}
 
@@ -132,7 +132,7 @@ Beim Buchen eines Termins erscheint dieselbe Warnung, wenn der neue Termin eine 
 
 ## Verbrauch (Soll und Ist) {#verbrauch}
 
-Zeigt je Material, wie viel laut Rezept verbraucht sein sollte und wie viel die Inventuren tatsächlich ergeben haben. So fällt Schwund auf. Der Abschnitt **Verbrauch** steht in der **Übersicht** unter „Was ist zu tun“ und erscheint für Personen mit dem Recht, Kennzahlen des Betriebs zu sehen.
+Zeigt je Material, wie viel laut Rezept verbraucht sein sollte und wie viel die Inventuren tatsächlich ergeben haben. So fällt Schwund auf. Der Abschnitt **Verbrauch** steht im Reiter **Zu tun** unter „Was ist zu tun“ und erscheint für Personen mit dem Recht, Kennzahlen des Betriebs zu sehen.
 
 ![Der Abschnitt Verbrauch mit Soll, Ist, Abweichung und Mehrverbrauch](images/app/verwaltung-lager-verbrauch.png)
 
@@ -145,7 +145,7 @@ Mit **Zeitraum** wählt man die letzten 7, 30 oder 90 Tage bis heute. Die Tabell
 
 Als Standard zeigt die Tabelle nur Materialien mit Abweichung. Unter der Tabelle steht, wie viele weitere Materialien genau nach Rezept verbraucht wurden; **Alle zeigen** oder der Schalter **Nur Abweichungen** nimmt sie in die Tabelle auf.
 
-Ein Klick auf den Namen oder den Pfeil davor klappt die Behandlungen eines Materials auf, die es verbrauchen, mit ihrem Soll und der Zahl der Termine. Die Summe über alle Materialien steht nur in der Kachel **Mehrverbrauch** der Übersicht. Korrekturen mit Grund, z. B. Bruch, und Verkäufe an der Kassa zählen nicht mit. Ohne Inventur im Zeitraum gibt es keinen Mehrverbrauch. Der Bericht bucht nichts.
+Ein Klick auf den Namen oder den Pfeil davor klappt die Behandlungen eines Materials auf, die es verbrauchen, mit ihrem Soll und der Zahl der Termine. Die Summe über alle Materialien steht nur in der Kachel **Mehrverbrauch** oben im Lager. Korrekturen mit Grund, z. B. Bruch, und Verkäufe an der Kassa zählen nicht mit. Ohne Inventur im Zeitraum gibt es keinen Mehrverbrauch. Der Bericht bucht nichts.
 
 ## Charge zurückverfolgen {#rueckverfolgung}
 

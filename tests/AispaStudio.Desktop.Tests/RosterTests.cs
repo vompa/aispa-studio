@@ -481,7 +481,7 @@ public sealed class RosterTests
 
         var card = await LenasCard(team);
 
-        Assert.Equal([PersonCardViewModel.OverviewArea, PersonCardViewModel.ProfileArea, PersonCardViewModel.WorkTimeArea, PersonCardViewModel.PayAndFileArea], card.Tabs.Select(t => t.Id));
+        Assert.Equal([PersonCardViewModel.ProfileArea, PersonCardViewModel.WorkTimeArea, PersonCardViewModel.PayAndFileArea], card.Tabs.Select(t => t.Id));
         Assert.Equal([PersonCardViewModel.DetailsTab, PersonCardViewModel.AccessTab, PersonCardViewModel.QualificationsTab, PersonCardViewModel.DutiesTab, PersonCardViewModel.RosterTab,
             PersonCardViewModel.WorkingHoursTab, PersonCardViewModel.TimesTab, PersonCardViewModel.PayrollTab, PersonCardViewModel.HrFileTab, PersonCardViewModel.RegulationsTab], card.Sections);
         Assert.True(card.HasHistory);

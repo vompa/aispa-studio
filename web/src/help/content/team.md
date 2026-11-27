@@ -9,7 +9,7 @@ seite: verwaltung
 
 Einstellungen in der Windows-App unter „Verwaltung“ › „Team“: die Personen, die Behandlungen geben, mit Kalenderfarbe, Qualifikationen und Regelarbeitszeit.
 
-In der Windows-App steht die Liste der Personen neben der Personenkarte. Über der Liste stehen **Person hinzufügen** und **Person einladen**. Der Kopf der Karte mit dem Namen und die Leiste der Bereiche bleiben beim Scrollen stehen. Die Karte hat bis zu vier Bereiche in einer Leiste: **Übersicht**, **Profil**, **Arbeitszeit** sowie **Lohn und Akte**. Welche zu sehen sind, hängt von den Rechten ab. Anmeldung und Rolle einer Person (Zugang zur Software) sowie ihre Qualifikationen sind Abschnitte im Bereich **Profil**; „Zugänge“ und „Qualifikationen“ gibt es in der App nicht mehr als eigene Einträge.
+In der Windows-App steht die Liste der Personen neben der Personenkarte. Über der Liste stehen **Person hinzufügen** und **Person einladen**. Der Kopf der Karte mit dem Namen und die Leiste der Bereiche bleiben beim Scrollen stehen. Unter dem Kopf stehen die Kacheln mit den Kennzahlen der Person, darunter bis zu drei Bereiche in einer Leiste: **Profil**, **Arbeitszeit** sowie **Lohn und Akte**. Welche zu sehen sind, hängt von den Rechten ab. Anmeldung und Rolle einer Person (Zugang zur Software) sowie ihre Qualifikationen sind Abschnitte im Bereich **Profil**; „Zugänge“ und „Qualifikationen“ gibt es in der App nicht mehr als eigene Einträge.
 
 ![Team in der Windows-App](images/app/verwaltung-team.png)
 
@@ -57,9 +57,8 @@ Scheitert nur der Zugang, bleiben Stammdaten und Qualifikationen gespeichert. Di
 
 ## Person {#person}
 
-Die Karte einer Person hat bis zu vier Bereiche:
+Oben auf der Karte einer Person stehen fünf Kacheln mit dem nächsten Dienst, den Stunden dieser Woche, dem Resturlaub, den offenen Anträgen und den Zertifikaten. Sie bleiben in jedem Bereich sichtbar. Ein Klick auf eine Kachel springt in den passenden Bereich; **Offene Anträge** öffnet den **Wochenplan** mit der Seitenleiste **Anträge**. Darunter hat die Karte bis zu drei Bereiche:
 
-- **Übersicht**: fünf Kacheln mit dem nächsten Dienst, den Stunden dieser Woche, dem Resturlaub, den offenen Anträgen und den Zertifikaten. Ein Klick auf eine Kachel springt in den passenden Bereich; **Offene Anträge** öffnet den **Wochenplan** mit der Seitenleiste **Anträge**.
 - **Profil**: **Stammdaten** und **Zugang und Rolle** nebeneinander (bei schmalem Fenster untereinander), darunter **Qualifikationen** und **Zuständigkeiten**. Jeder Abschnitt ist eine eigene Karte; Ein und Aus sind Schalter, Qualifikationen, Standorte und Sprachen Auswahl-Chips.
 - **Arbeitszeit**: **Dienstplan und Abwesenheit** mit Urlaubskonto und Kalenderdatei, darunter die **Regelarbeitszeit** und die **Zeiten**.
 - **Lohn und Akte**: **Lohn**, **Personalakte** sowie **Regelungen und Vollmachten**.

@@ -26,7 +26,7 @@
       <ItemsControl.ItemTemplate>
         <DataTemplate x:DataType="vm:EquipmentRowViewModel">
           <Grid ColumnDefinitions="*,Auto">
-            <TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
+            <TextBlock Text="{Binding Name}" Classes="listname" VerticalAlignment="Center" />
             <ui:MoreMenuButton Grid.Column="1" Subject="{Binding Name}" DeactivateCommand="{Binding RemoveCommand}" DeleteCommand="{Binding DeleteCommand}" />
           </Grid>
         </DataTemplate>

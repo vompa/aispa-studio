@@ -203,7 +203,7 @@ public sealed partial class ViewTests
         await Pump(Settling);
 
         // 96a: ein Fragezeichen für Zertifikate und Liste.
-        var duties = Named<Control>(window, "DutiesSection");
+        var duties = VisibleNamed<Control>(window, "DutiesSection");
         var help = Assert.Single(duties.GetVisualDescendants().OfType<HelpButton>(), b => b.IsEffectivelyVisible);
         Assert.Equal("liste", help.Section);
 

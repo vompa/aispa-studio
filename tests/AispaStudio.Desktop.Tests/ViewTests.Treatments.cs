@@ -94,7 +94,7 @@ public sealed partial class ViewTests
     private static bool HasFocusInside(Window window, Control scope) => Focused(window) is Visual focused && scope.IsVisualAncestorOf(focused);
 
     [Fact]
-    public Task Behandlung_hat_vier_Bereiche_auf_einer_Zeile_auch_im_kleinsten_Fenster() => Render("hell", "probe-behandlungen-1100", async (window, main) =>
+    public Task Behandlung_hat_drei_Bereiche_auf_einer_Zeile_auch_im_kleinsten_Fenster() => Render("hell", "probe-behandlungen-1100", async (window, main) =>
     {
         // Given Hot Stone 60 ist offen; When das Fenster seine Mindestgröße 1100 × 680 hat
         var treatments = await OpenTreatments(window, main);
@@ -107,10 +107,10 @@ public sealed partial class ViewTests
         Assert.Equal(1100, window.Bounds.Width, 0.5);
         Assert.Equal(680, window.Bounds.Height, 0.5);
 
-        // Then hat die Schiene vier Bereiche auf einer Zeile innerhalb der Karte (masken.md R15)
+        // Then hat die Schiene drei Bereiche auf einer Zeile innerhalb der Karte (masken.md R15, T-109)
         var strip = Named<Border>(window, "SectionTabs");
         var tabs = strip.GetVisualDescendants().OfType<TabButton>().ToList();
-        Assert.Equal(["Übersicht", "Grunddaten und Preis", "Durchführung", "Qualifikationen und Räume"], tabs.Select(t => t.Content as string));
+        Assert.Equal(["Grunddaten und Preis", "Durchführung", "Qualifikationen und Räume"], tabs.Select(t => t.Content as string));
         Assert.Single(tabs.Select(t => Math.Round(InWindow(window, t).Y)).Distinct());
         var editor = window.GetVisualDescendants().OfType<TreatmentEditorView>().Single();
         Assert.True(InWindow(window, strip).Right <= InWindow(window, editor).Right + 0.5,
@@ -286,12 +286,12 @@ public sealed partial class ViewTests
     [InlineData("dunkel")]
     public Task Verwaltung_Behandlungen(string theme) => Render(theme, "verwaltung-behandlungen", async (window, main) =>
     {
-        // Die Karte einer gespeicherten Behandlung beginnt mit der Übersicht: vier Kacheln, Speichern an der Karte, „Neue Behandlung“ über der Liste.
+        // Die Karte einer gespeicherten Behandlung zeigt vier Kacheln über den Grunddaten (T-109), Speichern an der Karte, „Neue Behandlung“ über der Liste.
         var treatments = await OpenTreatments(window, main);
         Assert.Equal("Hot Stone 60", treatments.SelectedEntry?.Title);
-        Assert.True(Named<Control>(window, "OverviewSection").IsEffectivelyVisible);
+        Assert.True(Named<Control>(window, "OverviewTiles").IsEffectivelyVisible);
         Assert.Equal(4, window.GetVisualDescendants().OfType<StatTile>().Count(t => t.IsEffectivelyVisible));
-        Assert.False(Named<Control>(window, "BasicsSection").IsEffectivelyVisible);
+        Assert.True(Named<Control>(window, "BasicsSection").IsEffectivelyVisible);
         Assert.True(InWindow(window, Named<Button>(window, "NewButton")).Bottom <= InWindow(window, Named<SearchField>(window, "TreatmentSearch")).Top);
         Assert.True(InWindow(window, Named<SaveBar>(window, "CardSaveBar")).Bottom <= InWindow(window, Named<Border>(window, "SectionTabs")).Top);
         return treatments;

@@ -42,7 +42,7 @@
             <DataTemplate x:DataType="vm:StockRow">
               <Grid ColumnDefinitions="*,200,150,130" ColumnSpacing="12" VerticalAlignment="Center" Margin="0,6">
                 <StackPanel Spacing="2" VerticalAlignment="Center">
-                  <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
+                  <TextBlock Text="{Binding Name}" Classes="listname" TextTrimming="CharacterEllipsis" />
                   <TextBlock Text="{Binding PlacesText}" Classes="muted small" IsVisible="{Binding HasPlaces}" TextTrimming="CharacterEllipsis" />
                 </StackPanel>
                 <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">

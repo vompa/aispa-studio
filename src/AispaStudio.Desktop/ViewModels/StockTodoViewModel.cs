@@ -26,8 +26,8 @@ public sealed record StockStat(string Label, string Value, string? Hint, StatTil
 }
 
 /// <summary>
-/// Reiter „Übersicht“ des Lagers (R07 Slice 143, Ä351; Kacheln seit ADR 0098): oben die Kennzahlen als Kacheln (Lagerwert, nachbestellen, unter dem Mindestbestand, ablaufende Chargen, mit ViewFinance der
-/// Mehrverbrauch), darunter „Was ist zu tun“ mit den Einzelheiten, alles aus dem Stand, den die Maske ohnehin geladen hat. Nichts wird hier gerechnet, was die API nicht schon liefert.
+/// Kennzahlen und „Was ist zu tun“ des Lagers (R07 Slice 143, Ä351; Kacheln seit ADR 0098): die Kacheln (Lagerwert, nachbestellen, unter dem Mindestbestand, ablaufende Chargen, mit ViewFinance der
+/// Mehrverbrauch) stehen seit T-109 über jedem Reiter, „Was ist zu tun“ mit den Einzelheiten im Reiter „Zu tun“, alles aus dem Stand, den die Maske ohnehin geladen hat. Nichts wird hier gerechnet, was die API nicht schon liefert.
 /// Was ein Recht verlangt, erscheint ohne das Recht nicht: der Bestellvorschlag nur mit ManageLocation, der Sprung zu den Chargen ebenso.
 /// </summary>
 public sealed partial class StockTodoViewModel : ViewModelBase

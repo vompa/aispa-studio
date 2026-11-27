@@ -283,12 +283,12 @@ public sealed partial class ViewTests
     }, HandbookApi());
 
     [Fact]
-    public Task Behandlungsliste_zeigt_jeden_Namen_vollstaendig_mit_Dauer_und_Preis_rechts_und_Verlauf_ist_sekundaer() => Render("hell", "probe-behandlungen-liste", async (window, main) =>
+    public Task Behandlungsliste_zeigt_jeden_Namen_vollstaendig_mit_Dauer_und_Preis_darunter_und_Verlauf_ist_sekundaer() => Render("hell", "probe-behandlungen-liste", async (window, main) =>
     {
         // Given die Liste der Behandlungen mit Dauer und Preis je Zeile
         var treatments = await OpenTreatments(window, main);
 
-        // Then wird kein Name mit „…“ gekürzt: er bricht bei Bedarf um und Dauer und Preis stehen rechts in derselben Zeile (design.md 575)
+        // Then wird kein Name mit „…“ gekürzt: er bricht bei Bedarf um (design.md, Behandlungen)
         var titles = Named<ListBox>(window, "TreatmentList").GetVisualDescendants().OfType<TextBlock>().Where(t => t.IsEffectivelyVisible && ToolTip.GetTip(t) is not null).ToList();
         Assert.NotEmpty(titles);
         Assert.All(titles, t =>
@@ -297,10 +297,14 @@ public sealed partial class ViewTests
             Assert.Equal(Avalonia.Media.TextWrapping.Wrap, t.TextWrapping);
         });
 
-        // And „Dauer · Preis“ steht rechts neben dem Namen, nicht darunter
-        var meta = Named<ListBox>(window, "TreatmentList").GetVisualDescendants().OfType<TextBlock>().Where(t => t.IsEffectivelyVisible && t.Classes.Contains("num")).ToList();
+        // And „Dauer · Preis“ steht seit T-109 unter dem Namen, damit der Name die volle Breite hat und nicht mitten im Wort bricht
+        var meta = Named<ListBox>(window, "TreatmentList").GetVisualDescendants().OfType<TextBlock>().Where(t => t.IsEffectivelyVisible && t.Classes.Contains("num") && t.Text?.Contains('€') == true).ToList();
         Assert.NotEmpty(meta);
-        Assert.All(meta, m => Assert.Equal(2, Grid.GetColumn(m)));
+        Assert.All(meta, m =>
+        {
+            var title = ((StackPanel)m.Parent!).Children.OfType<TextBlock>().First();
+            Assert.True(TopOf(window, m) >= TopOf(window, title) + title.Bounds.Height - 1, $"{m.Text} steht nicht unter dem Namen");
+        });
 
         // And „Verlauf“ ist ein sekundärer Knopf (design.md 575), kein Ghost-Knopf
         Assert.DoesNotContain("ghost", Named<Button>(window, "HistoryButton").Classes);

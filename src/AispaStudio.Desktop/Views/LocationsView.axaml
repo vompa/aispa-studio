@@ -35,7 +35,7 @@
         <ListBox.ItemTemplate>
           <DataTemplate x:DataType="vm:LocationChoice">
             <StackPanel>
-              <TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis" />
+              <TextBlock Text="{Binding Title}" Classes="listname" TextTrimming="CharacterEllipsis" />
               <TextBlock Text="{Binding Note}" Classes="muted small" TextTrimming="CharacterEllipsis" IsVisible="{Binding HasNote}" />
             </StackPanel>
           </DataTemplate>

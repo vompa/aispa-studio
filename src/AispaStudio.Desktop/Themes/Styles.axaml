@@ -33,6 +33,12 @@
     <Setter Property="LineHeight" Value="22" />
     <Setter Property="FontWeight" Value="SemiBold" />
   </Style>
+  <!-- Name eines Eintrags in den Listen der Verwaltung (T-109, Auftraggeber 26.11.2026): Stufe „Zwischentitel“ 16/22/600, die Unterzeile bleibt „Klein“ -->
+  <Style Selector="TextBlock.listname">
+    <Setter Property="FontSize" Value="16" />
+    <Setter Property="LineHeight" Value="22" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
   <Style Selector="TextBlock.heading">
     <Setter Property="FontSize" Value="18" />
     <Setter Property="LineHeight" Value="24" />

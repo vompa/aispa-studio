@@ -148,14 +148,14 @@ public sealed class TeamTests
         var api = Api();
         var team = await Loaded(api);
         var card = await Choose(team, "Lena Huber");
-        Assert.Equal([PersonCardViewModel.OverviewArea, PersonCardViewModel.ProfileArea, PersonCardViewModel.WorkTimeArea, PersonCardViewModel.PayAndFileArea],
+        Assert.Equal([PersonCardViewModel.ProfileArea, PersonCardViewModel.WorkTimeArea, PersonCardViewModel.PayAndFileArea],
             card.Tabs.Select(t => t.Id));
-        Assert.Equal(["Übersicht", "Profil", "Arbeitszeit", "Lohn und Akte"], card.Tabs.Select(t => t.Label));
+        Assert.Equal(["Profil", "Arbeitszeit", "Lohn und Akte"], card.Tabs.Select(t => t.Label));
         Assert.Equal([PersonCardViewModel.DetailsTab, PersonCardViewModel.AccessTab, PersonCardViewModel.QualificationsTab, PersonCardViewModel.DutiesTab,
             PersonCardViewModel.RosterTab, PersonCardViewModel.WorkingHoursTab, PersonCardViewModel.TimesTab, PersonCardViewModel.PayrollTab, PersonCardViewModel.HrFileTab, PersonCardViewModel.RegulationsTab], card.Sections);
         Assert.Equal(["Zugang und Rolle", "Dienstplan und Abwesenheiten", "Personalakte", "Regelungen und Vollmachten", "Zuständigkeiten und Zertifikate"],
             card.HistorySections.Select(h => h.Title));
-        Assert.Equal(PersonCardViewModel.OverviewArea, card.SelectedTab);
+        Assert.Equal(PersonCardViewModel.ProfileArea, card.SelectedTab);
 
         card.Details!.Name = "Lena Maria Huber";
         Assert.True(team.HasUnsavedChanges);
@@ -289,7 +289,7 @@ public sealed class TeamTests
         var team = await Loaded(api, LocationManager());
         var card = await Choose(team, "Lena Huber");
 
-        Assert.Equal([PersonCardViewModel.OverviewArea, PersonCardViewModel.ProfileArea, PersonCardViewModel.WorkTimeArea], card.Tabs.Select(t => t.Id));
+        Assert.Equal([PersonCardViewModel.ProfileArea, PersonCardViewModel.WorkTimeArea], card.Tabs.Select(t => t.Id));
         Assert.Equal([PersonCardViewModel.DetailsTab, PersonCardViewModel.AccessTab, PersonCardViewModel.QualificationsTab, PersonCardViewModel.RosterTab, PersonCardViewModel.WorkingHoursTab,
             PersonCardViewModel.TimesTab], card.Sections);
         Assert.False(card.HasHistory);

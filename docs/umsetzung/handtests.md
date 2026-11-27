@@ -2027,4 +2027,19 @@ Expected: Nichts läuft über den Rand, kein waagerechtes Scrollen.
 5. Im Kalender die Hilfe-Schublade öffnen.
 Expected: Die Schublade sieht aus wie vorher.
 Closes: T-114
+### T-109 – Übersicht immer sichtbar, Namen in Listen fett
+Start: `dotnet run --project src/AispaStudio.AppHost` mit Beispieldaten, im Aspire-Dashboard die Ressource `windows-app` starten, als Inhaberin anmelden.
+1. **Verwaltung** › **Team** öffnen und eine Person wählen.
+Expected: Unter dem Kopf der Karte stehen die fünf Kacheln in einer Zeile, darunter die Leiste **Profil**, **Arbeitszeit**, **Lohn und Akte**; einen Reiter „Übersicht“ gibt es nicht. Die Karte öffnet bei **Profil**.
+2. Nacheinander **Arbeitszeit** und **Lohn und Akte** wählen, dann auf die Kachel **Nächster Dienst** klicken.
+Expected: Die Kacheln bleiben in jedem Bereich oben stehen; der Klick öffnet **Arbeitszeit** beim Dienstplan.
+3. Das Fenster schmal ziehen (etwa 1100 breit).
+Expected: Die Kacheln brechen in eine zweite Zeile um; der Inhalt darunter bleibt erreichbar.
+4. **Verwaltung** › **Behandlungen** öffnen, eine Behandlung wählen und durch **Grunddaten und Preis**, **Durchführung** und **Qualifikationen und Räume** gehen; danach **Neue Behandlung**.
+Expected: Die vier Kacheln stehen über der Leiste in jedem Bereich; eine neue Behandlung zeigt keine Kacheln und öffnet bei **Grunddaten und Preis**.
+5. **Verwaltung** › **Lager** öffnen und durch **Zu tun**, **Bestand**, **Bestellen** und **Inventur** gehen; auf die Kachel **Mehrverbrauch** klicken.
+Expected: Die Kacheln stehen über der Leiste in jedem Reiter; **Zu tun** zeigt „Was ist zu tun“ und den Verbrauch; die Kachel springt in **Zu tun** zum Verbrauch.
+6. Die Listen in **Aktionen**, **Team**, **Behandlungen**, **Lager** › **Bestand**, **Einrichtung** (Lagerorte, Lieferanten), **Betrieb** › **Standorte** (Geräte), **Betriebsinfo**, **Handbuch** und **Kalender-Abos** ansehen.
+Expected: Der Name jedes Eintrags steht fett und etwas größer als die Unterzeile; die Unterzeile sieht aus wie vorher; lange Namen enden mit „…“. In **Behandlungen** stehen Dauer und Preis als Unterzeile unter dem Namen; „Fußreflexzonenmassage“ und „Gesichtsbehandlung Classic“ brechen nicht mitten im Wort.
+Closes: T-098 Punkte 7 und 8
 Result: ☐

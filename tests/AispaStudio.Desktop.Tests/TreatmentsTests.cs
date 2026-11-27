@@ -351,7 +351,7 @@ public sealed class TreatmentsTests
         treatments.Open(Guid.NewGuid(), TreatmentEditorViewModel.Process, null);
 
         Assert.Same(editor, treatments.Editor);
-        Assert.Equal(TreatmentEditorViewModel.Overview, editor.SelectedSection);
+        Assert.Equal(TreatmentEditorViewModel.Basics, editor.SelectedSection);
         Assert.Equal("Diese Behandlung wird nicht mehr angeboten und steht deshalb nicht in der Liste.", treatments.Notice);
         Assert.False(treatments.Editor!.HasError);
     }
@@ -479,15 +479,16 @@ public sealed class TreatmentsTests
     }
 
     [Fact]
-    public async Task Given_eine_neue_Behandlung_When_die_Maske_offen_ist_Then_fehlt_die_Übersicht_und_eine_gespeicherte_hat_sie_zuerst()
+    public async Task Given_eine_neue_Behandlung_When_die_Maske_offen_ist_Then_fehlen_die_Kacheln_und_eine_gespeicherte_hat_sie()
     {
         var treatments = await Loaded(SalesApi());
 
         var saved = await Choose(treatments, "Hot Stone 60");
-        Assert.Equal(TreatmentEditorViewModel.Overview, saved.Sections[0].Id);
+        Assert.True(saved.ShowsOverview);
         var created = await Choose(treatments, "Neue Behandlung");
 
-        // Ohne gespeicherte Behandlung gibt es keine Übersicht, und „Passt dazu“ fehlt in „Grunddaten und Preis“.
+        // Ohne gespeicherte Behandlung gibt es keine Kacheln, und „Passt dazu“ fehlt in „Grunddaten und Preis“.
+        Assert.False(created.ShowsOverview);
         Assert.Equal([TreatmentEditorViewModel.Basics, TreatmentEditorViewModel.Execution, TreatmentEditorViewModel.Resources], created.Sections.Select(s => s.Id));
         Assert.Equal(TreatmentEditorViewModel.Basics, created.SelectedSection);
         created.SelectSection(TreatmentEditorViewModel.Sales);
@@ -496,20 +497,20 @@ public sealed class TreatmentsTests
     }
 
     [Fact]
-    public async Task Given_eine_gespeicherte_Behandlung_When_die_Maske_offen_ist_Then_hat_die_Schiene_vier_Bereiche_in_fester_Reihenfolge()
+    public async Task Given_eine_gespeicherte_Behandlung_When_die_Maske_offen_ist_Then_hat_die_Schiene_drei_Bereiche_in_fester_Reihenfolge()
     {
         var treatments = await Loaded(SalesApi());
 
         var editor = await Choose(treatments, "Hot Stone 60");
 
-        // masken.md R15 (ADR 0098): eine Karte neben einer Liste hat höchstens vier Bereiche.
-        Assert.Equal(["Übersicht", "Grunddaten und Preis", "Durchführung", "Qualifikationen und Räume"], editor.Sections.Select(s => s.Label));
-        Assert.Equal(TreatmentEditorViewModel.Overview, editor.SelectedSection);
+        // masken.md R15 (ADR 0098): eine Karte neben einer Liste hat höchstens vier Bereiche; die Kacheln stehen seit T-109 über der Schiene.
+        Assert.Equal(["Grunddaten und Preis", "Durchführung", "Qualifikationen und Räume"], editor.Sections.Select(s => s.Label));
+        Assert.Equal(TreatmentEditorViewModel.Basics, editor.SelectedSection);
         Assert.True(editor.HasMaterial);
     }
 
     [Theory]
-    [InlineData("uebersicht", TreatmentEditorViewModel.Overview, null)]
+    [InlineData("uebersicht", TreatmentEditorViewModel.Basics, null)]
     [InlineData("grunddaten", TreatmentEditorViewModel.Basics, null)]
     [InlineData("preise-und-verkauf", TreatmentEditorViewModel.Basics, null)]
     [InlineData("ablauf", TreatmentEditorViewModel.Execution, "ablauf")]

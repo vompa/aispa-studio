@@ -7,9 +7,8 @@ seite: verwaltung
 ---
 # Behandlungen
 
-Einstellungen in der Windows-App unter „Verwaltung“ › „Behandlungen“: was das Spa anbietet, wie lange es dauert, was es kostet und was dafür gebraucht wird. Links steht die Liste: oben der Knopf **Neue Behandlung**, darunter die Suche, dann die Behandlungen nach Kategorie. Ein Klick auf eine Kategorie klappt sie ein und wieder aus; rechts neben jeder Behandlung stehen Dauer und Preis, z. B. „60 Min. · 115 €“. Wer eine Behandlung sucht, tippt einen Teil von Name oder Kategorie in die Suche. Alles zu einer Behandlung steht an dieser einen Stelle, gegliedert in vier Bereiche:
+Einstellungen in der Windows-App unter „Verwaltung“ › „Behandlungen“: was das Spa anbietet, wie lange es dauert, was es kostet und was dafür gebraucht wird. Links steht die Liste: oben der Knopf **Neue Behandlung**, darunter die Suche, dann die Behandlungen nach Kategorie. Ein Klick auf eine Kategorie klappt sie ein und wieder aus; rechts neben jeder Behandlung stehen Dauer und Preis, z. B. „60 Min. · 115 €“. Wer eine Behandlung sucht, tippt einen Teil von Name oder Kategorie in die Suche. Alles zu einer Behandlung steht an dieser einen Stelle. Oben stehen vier Kacheln mit Preis, Dauer, wie viele Personen die Behandlung geben dürfen und in wie vielen Räumen sie stattfindet. Sie bleiben in jedem Bereich sichtbar; ein Klick auf eine Kachel springt zur passenden Stelle. Eine neue Behandlung hat noch keine Kacheln. Darunter ist die Karte in drei Bereiche gegliedert:
 
-- **Übersicht**: vier Kacheln mit Preis, Dauer, wie viele Personen die Behandlung geben dürfen und in wie vielen Räumen sie stattfindet. Ein Klick auf eine Kachel springt zur passenden Stelle. Eine neue Behandlung hat noch keine Übersicht.
 - **Grunddaten und Preis**: Name und Kategorie, Dauer und Preis, Hinweis für Gäste, „Anamnese prüfen“ und „Passt dazu“ (Produkte, die zur Behandlung passen und die Kassa vorschlägt). Eingeklappt darunter steht die Gruppe **Weitere Angaben** mit „Preis je Standort“ (nur bei mehreren Standorten), „Preise nach Wochentag und Uhrzeit“, Ausfallgebühr und Anzahlung; sie ist von selbst offen, wenn die Behandlung dort schon einen Wert hat.
 - **Durchführung**: was um den Termin herum geschieht, in Gruppen untereinander: „Vor- und Nachbereitung“ (Minuten und Einwirkzeit), „Vorbereitungsschritte“, „Material je Termin“ (nur mit dem Recht auf Berichte mit Beträgen) und „Zum Termin bereitstellen“.
 - **Qualifikationen und Räume**: „Nötige Qualifikationen“ mit „Wer kann das?“ daneben, darunter die Räume und Geräte je Standort.
@@ -20,7 +19,7 @@ Im Kopf der Karte stehen rechts neben dem Namen **Speichern** und **Verwerfen**,
 
 Ändern dürfen Inhaber und Standortleitung. Eine Standortleitung ändert Räume, Geräte, Preise und Preisregeln nur an ihren eigenen Standorten; Einträge an anderen Standorten bleiben beim Speichern unverändert.
 
-![Behandlungen in der Windows-App: Liste und Übersicht](images/app/verwaltung-behandlungen.png)
+![Behandlungen in der Windows-App: Liste, Kacheln und Grunddaten](images/app/verwaltung-behandlungen.png)
 
 In der Windows-App speichert ein **Speichern** im Kopf der Karte alles zur offenen Behandlung gemeinsam, aus allen Bereichen:
 

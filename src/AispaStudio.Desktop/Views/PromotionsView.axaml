@@ -37,7 +37,7 @@
             <DataTemplate x:DataType="vm:PromotionRow">
               <StackPanel Spacing="4" Margin="0,4">
                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                  <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" ToolTip.Tip="{Binding Name}" />
+                  <TextBlock Text="{Binding Name}" Classes="listname" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" ToolTip.Tip="{Binding Name}" />
                   <Border Grid.Column="1" Classes="pill" IsVisible="{Binding PhaseText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
                     <TextBlock Text="{Binding PhaseText}" />
                   </Border>

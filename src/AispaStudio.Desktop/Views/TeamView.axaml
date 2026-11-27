@@ -133,7 +133,7 @@
               <DataTemplate x:DataType="vm:TeamEntry">
                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
                   <StackPanel Spacing="2">
-                    <TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Title}" />
+                    <TextBlock Text="{Binding Title}" Classes="listname" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Title}" />
                     <TextBlock Text="{Binding Role}" Classes="muted small" TextTrimming="CharacterEllipsis" IsVisible="{Binding HasRole}" />
                     <StackPanel Orientation="Horizontal" Spacing="4" IsVisible="{Binding HasFlags}">
                       <ui:Icon Data="{x:Static ui:Icons.Warning}" Width="12" Height="12" Foreground="{DynamicResource WarnBrush}" VerticalAlignment="Center" IsVisible="{Binding HasFlagWarning}" />

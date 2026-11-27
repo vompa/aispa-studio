@@ -6,7 +6,7 @@
              x:DataType="vm:PersonCardViewModel">
   <!--
     Personenkarte (R05 Slice 98, ADR 0098, Nachtrag P5): Kopf mit Kürzel, Name, „Rolle · Standort“, Kennzeichen („Zugang aktiv“ …), „Verlauf“ (Seitenleiste in TeamView), Menü „⋯“
-    (Zugang sperren, Aus dem Team nehmen) und Hilfe; darunter eine Schiene (Brief 5.4) mit höchstens vier Bereichen: Übersicht · Profil (Stammdaten und Zugang und Rolle als Karten
+    (Zugang sperren, Aus dem Team nehmen) und Hilfe; darunter die Kennzahl-Kacheln (seit T-109 über jedem Bereich) und eine Schiene (Brief 5.4) mit höchstens drei Bereichen: Profil (Stammdaten und Zugang und Rolle als Karten
     nebeneinander, Qualifikationen als Chips, Zuständigkeiten) · Arbeitszeit (Dienstplan und Abwesenheit, Regelarbeitszeit, Zeiten) · Lohn und Akte, je nach Recht. Kopf und Schiene
     bleiben beim Scrollen stehen, nur die Bereiche darunter rollen. Jeder Abschnitt ist eine eigene Karte; Karten desselben Rangs stehen gleich breit nebeneinander und bei schmaler
     Fläche untereinander (masken.md R14). Gespeichert wird mit der Leiste im Fuß der Seite (TeamView).
@@ -52,6 +52,9 @@
         </ItemsControl>
       </StackPanel>
 
+      <!-- Kennzahl-Kacheln über jedem Bereich (T-109): fest mit Kopf und Schiene, eine Zeile, die bei schmaler Fläche umbricht -->
+      <ContentControl x:Name="OverviewHost" Content="{Binding Overview}" IsVisible="{Binding ShowsOverview}" />
+
       <!-- Schiene in einer Zeile (Brief 5.4, ADR 0098 Regel 1): ein Tab-Stopp, Pfeiltasten über TabStripBehavior -->
       <Border Classes="segmented" x:Name="CardTabs" HorizontalAlignment="Left" IsVisible="{Binding ShowsTabs}" AutomationProperties.Name="Bereiche der Personenkarte">
         <ItemsControl ItemsSource="{Binding Tabs}">
@@ -73,9 +76,6 @@
 
     <ScrollViewer Grid.Row="1" x:Name="CardScroll" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
       <StackPanel Spacing="16" Margin="0,12,16,16">
-
-        <!-- Übersicht: Kennzahl-Kacheln in voller Breite -->
-        <ContentControl x:Name="OverviewHost" Content="{Binding Overview}" IsVisible="{Binding ShowsOverview}" />
 
         <!-- Profil: Stammdaten und Zugang gleichrangig nebeneinander (untereinander unter 640), darunter Qualifikationen und Zuständigkeiten in voller Breite -->
         <ui:MainSideColumns x:Name="ProfileColumns" Share="0.5" Spacing="16" LineSpacing="16" StackBelow="860">

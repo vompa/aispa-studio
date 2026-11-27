@@ -42,7 +42,7 @@
               <ListBox.ItemTemplate>
                 <DataTemplate x:DataType="vm:SubscriptionRow">
                   <StackPanel Spacing="2" Margin="0,2">
-                    <TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Text="{Binding Title}" Classes="listname" TextTrimming="CharacterEllipsis" />
                     <!-- Kennzeichen als Pille mit Erklärung im Tooltip (design.md 5.8): Fehler und Widerspruch verlangen eine Handlung (Warnung), „Aus“ ist neutral -->
                     <Border Classes="pill warn" IsVisible="{Binding NeedsAttention}" ToolTip.Tip="{Binding BadgesTip}" AutomationProperties.AccessibilityView="Raw">
                       <StackPanel Orientation="Horizontal" Spacing="4">

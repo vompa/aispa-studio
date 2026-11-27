@@ -37,7 +37,7 @@ public sealed partial class ViewTests
             TestContext.Current.TestOutputHelper?.WriteLine(
                 $"1100×680: Team {view.Bounds.Width:0}, Karte {host.Bounds.Width:0}, Schiene {rail.Bounds.Width:0}, Stammdaten {details.Bounds.Width:0}, Rest neben Leiste {host.Bounds.Width - 360:0}");
 
-            Assert.Equal(4, tabs.Count);
+            Assert.Equal(3, tabs.Count);
             Assert.All(tabs, t => Assert.Equal(TopOf(window, tabs[0]), TopOf(window, t), 1));
             Assert.True(LeftOf(window, rail) + rail.Bounds.Width <= LeftOf(window, host) + host.Bounds.Width, $"Schiene {rail.Bounds.Width:0}, Karte {host.Bounds.Width:0}");
 
@@ -71,7 +71,7 @@ public sealed partial class ViewTests
             Assert.True(panel.IsEffectivelyVisible);
             Assert.Equal("Lena Huber", panel.Subtitle);
             Assert.Equal(team.Card.HistorySections, panel.Sections);
-            Assert.Equal(PersonCardViewModel.OverviewArea, team.Card.SelectedTab);
+            Assert.Equal(PersonCardViewModel.ProfileArea, team.Card.SelectedTab);
 
             window.KeyPressQwerty(PhysicalKey.Escape, RawInputModifiers.None);
             await Pump(Settling);
@@ -119,7 +119,7 @@ public sealed partial class ViewTests
             Assert.Equal(PersonCardViewModel.WorkTimeArea, team.Card!.SelectedTab);
             var block = Named<Control>(window, "RosterSection");
             Assert.True(block.IsEffectivelyVisible);
-            Assert.False(Named<Control>(window, "OverviewTiles").IsEffectivelyVisible);
+            Assert.True(Named<Control>(window, "OverviewTiles").IsEffectivelyVisible);
             var focused = window.FocusManager?.GetFocusedElement() as Visual;
             Assert.True(focused is not null && block.IsVisualAncestorOf(focused), $"Fokus auf {focused}");
             return team;
@@ -134,7 +134,7 @@ public sealed partial class ViewTests
             var team = await OpenTeam(window, main);
             await ClickRow(window, "Lena Huber");
 
-            Assert.True(Shows(window, "Übersicht nicht geladen"));
+            Assert.True(Shows(window, "Kennzahlen nicht geladen"));
             Assert.DoesNotContain(Named<Control>(window, "OverviewSection").GetVisualDescendants().OfType<StatTile>(), t => t.IsEffectivelyVisible);
             var retry = Named<Control>(window, "OverviewSection").GetVisualDescendants().OfType<Button>().First(b => b.IsEffectivelyVisible && b.Content as string == "Erneut laden");
 
@@ -142,7 +142,7 @@ public sealed partial class ViewTests
             ClickCenter(window, retry);
             await Pump(Settling);
 
-            Assert.False(Shows(window, "Übersicht nicht geladen"));
+            Assert.False(Shows(window, "Kennzahlen nicht geladen"));
             Assert.Equal(5, Named<Control>(window, "OverviewTiles").GetVisualDescendants().OfType<StatTile>().Count(t => t.IsEffectivelyVisible));
             return team;
         }, api);

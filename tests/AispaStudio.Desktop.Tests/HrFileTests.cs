@@ -57,7 +57,7 @@ public sealed class HrFileTests
 
         Assert.Null(team.Card!.HrFile);
         Assert.False(team.Card.HasSection(PersonCardViewModel.HrFileTab));
-        Assert.Equal(PersonCardViewModel.OverviewArea, team.Card.SelectedTab);
+        Assert.Equal(PersonCardViewModel.ProfileArea, team.Card.SelectedTab);
         Assert.Null(team.Card.FocusedSection);
     }
 

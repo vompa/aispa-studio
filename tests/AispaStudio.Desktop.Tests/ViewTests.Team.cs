@@ -15,7 +15,7 @@ namespace AispaStudio.Desktop.Tests;
 /// <summary>R05 Slice 98 (Ä191, Ä250, ADR 0084): Bereich „Team“ mit Personenkarte, mit echter Eingabe (Klick, Tippen, Strg+S) als Inhaberin.</summary>
 public sealed partial class ViewTests
 {
-    private static readonly string[] CardAreas = ["Übersicht", "Profil", "Arbeitszeit", "Lohn und Akte"];
+    private static readonly string[] CardAreas = ["Profil", "Arbeitszeit", "Lohn und Akte"];
 
     /// <summary>Lena arbeitet dienstags 9–17 Uhr in Wien; ihre Woche und die von Marco liefert der Dienstplan-Stub (Slice 99).</summary>
     private static readonly EmployeeDto RosterLena = SpaSample.Lena with { WorkingHours = [new WorkingHours(SpaSample.LocationId, DayOfWeek.Tuesday, new(9, 0), new(17, 0))] };
@@ -70,7 +70,7 @@ public sealed partial class ViewTests
     [Theory]
     [InlineData("hell")]
     [InlineData("dunkel")]
-    public Task Verwaltung_Team_Inhaberin_klickt_Lena_und_findet_alle_vier_Bereiche_auf_derselben_Karte(string theme) => Render(theme, "verwaltung-team", async (window, main) =>
+    public Task Verwaltung_Team_Inhaberin_klickt_Lena_und_findet_alle_Bereiche_mit_den_Kacheln_auf_derselben_Karte(string theme) => Render(theme, "verwaltung-team", async (window, main) =>
     {
         var team = await OpenTeam(window, main);
         await ClickRow(window, "Lena Huber");
@@ -84,7 +84,6 @@ public sealed partial class ViewTests
             ["Profil"] = ["DetailsSection", "AccessSection", "QualificationsSection", "DutiesHost"],
             ["Arbeitszeit"] = ["RosterSection", "WorkingHoursSection", "TimesSection"],
             ["Lohn und Akte"] = ["PayrollSection", "HrFileHost", "RegulationsHost"],
-            ["Übersicht"] = ["OverviewTiles"],
         };
         foreach (var (label, blocks) in areas)
         {
@@ -95,7 +94,8 @@ public sealed partial class ViewTests
                 other => Assert.False(window.GetVisualDescendants().OfType<Control>().Any(c => c.Name == other && c.IsEffectivelyVisible), other));
         }
 
-        // Das Handbuchbild zeigt die Übersicht mit den Kacheln.
+        // Das Handbuchbild zeigt das Profil mit den Kacheln darüber (T-109).
+        await ClickCardArea(window, "Profil");
         Assert.Equal(["Nächster Dienst", "Diese Woche", "Resturlaub 2026", "Offene Anträge", "Zertifikate"],
             Named<Control>(window, "OverviewTiles").GetVisualDescendants().OfType<StatTile>().Where(t => t.IsEffectivelyVisible).Select(t => t.Label));
         Assert.Equal("Lena Huber", Named<TextBox>(window, "PersonNameField").Text);

@@ -6,8 +6,8 @@ using CommunityToolkit.Mvvm.Input;
 namespace AispaStudio.Desktop.ViewModels;
 
 /// <summary>
-/// Personenkarte im Bereich „Team“ (R05 Slice 98, Ä250, ADR 0098): Kopf mit Name und Status, darunter höchstens vier Bereiche: „Übersicht“ (Kennzahl-Kacheln,
-/// <see cref="PersonOverviewViewModel"/>), „Profil“ (Stammdaten, Zugang und Rolle, Qualifikationen, Zuständigkeiten), „Arbeitszeit“ (Dienstplan und Abwesenheit mit Urlaubskonto,
+/// Personenkarte im Bereich „Team“ (R05 Slice 98, Ä250, ADR 0098): Kopf mit Name und Status, darunter die Kennzahl-Kacheln (<see cref="PersonOverviewViewModel"/>), die seit T-109
+/// über jedem Bereich stehen, und höchstens drei Bereiche: „Profil“ (Stammdaten, Zugang und Rolle, Qualifikationen, Zuständigkeiten), „Arbeitszeit“ (Dienstplan und Abwesenheit mit Urlaubskonto,
 /// Regelarbeitszeit, Zeiten) und „Lohn und Akte“ (Lohn, Personalakte, Regelungen und Vollmachten). Ein Abschnitt steht nur da, wenn Recht und Art der Zeile ihn erlauben; ein Bereich ohne Abschnitt fehlt.
 /// Der Verlauf ist eine Seitenleiste (<see cref="IsHistoryOpen"/>). Die bisherigen Reiter-Ids gelten als Abschnitts-Ids weiter (<see cref="SelectTab"/>).
 /// Ein „Speichern“ für die Karte: geänderte Stammdaten und Qualifikationen gehen zusammen an <c>api/employees</c>, danach ein geänderter Zugang an <c>api/staff/{userId}</c>;
@@ -17,7 +17,7 @@ namespace AispaStudio.Desktop.ViewModels;
 /// </summary>
 public sealed partial class PersonCardViewModel : ViewModelBase, IEditableArea
 {
-    /// <summary>Bereich „Übersicht“: Kennzahlen der Person, nur für eine gespeicherte Person im Team.</summary>
+    /// <summary>Bis T-109 der Bereich „Übersicht“; die Kacheln stehen jetzt über jedem Bereich, als Sprungziel führt die Adresse in den ersten Bereich.</summary>
     public const string OverviewArea = "uebersicht";
 
     /// <summary>Bereich „Profil“: Stammdaten, Zugang und Rolle, Qualifikationen, Zuständigkeiten.</summary>
@@ -54,7 +54,7 @@ public sealed partial class PersonCardViewModel : ViewModelBase, IEditableArea
     ];
 
     private static readonly (string Id, string Label)[] Areas =
-        [(OverviewArea, "Übersicht"), (ProfileArea, "Profil"), (WorkTimeArea, "Arbeitszeit"), (PayAndFileArea, "Lohn und Akte")];
+        [(ProfileArea, "Profil"), (WorkTimeArea, "Arbeitszeit"), (PayAndFileArea, "Lohn und Akte")];
 
     private const string EmployeePartSaved = "Stammdaten und Qualifikationen sind gespeichert.";
 
@@ -204,9 +204,9 @@ public sealed partial class PersonCardViewModel : ViewModelBase, IEditableArea
 
         HistorySections = [.. new[] { AccessHistory, RosterHistory, HrHistory, RegulationsHistory, DutiesHistory }.OfType<HistorySectionViewModel>()];
         Sections = [.. Layout.Where(l => SectionExists(l.Section)).Select(l => l.Section)];
-        Tabs = [.. Areas.Where(a => a.Id == OverviewArea ? Overview is not null : Layout.Any(l => l.Area == a.Id && HasSection(l.Section)))
-            .Select(a => new CardTab(a.Id, a.Label, SelectTab))];
+        Tabs = [.. Areas.Where(a => Layout.Any(l => l.Area == a.Id && HasSection(l.Section))).Select(a => new CardTab(a.Id, a.Label, SelectTab))];
         SelectTab(null);
+        _ = Overview?.EnsureLoadedAsync();
     }
 
     /// <summary>Die Zeile der Liste; nach dem Neuladen der neue Stand (<see cref="Refreshed"/>).</summary>
@@ -263,7 +263,7 @@ public sealed partial class PersonCardViewModel : ViewModelBase, IEditableArea
     /// <summary>Ausgeschiedene Personen sind nur lesbar.</summary>
     public bool IsReadOnly => Entry.Kind == TeamEntryKind.Former;
 
-    /// <summary>Die Bereiche der Schiene (Übersicht, Profil, Arbeitszeit, Lohn und Akte), soweit die Karte Abschnitte dafür hat.</summary>
+    /// <summary>Die Bereiche der Schiene (Profil, Arbeitszeit, Lohn und Akte), soweit die Karte Abschnitte dafür hat.</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowsTabs))]
     public partial IReadOnlyList<CardTab> Tabs { get; private set; } = [];
@@ -275,7 +275,7 @@ public sealed partial class PersonCardViewModel : ViewModelBase, IEditableArea
 
     /// <summary>Der gewählte Bereich.</summary>
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(ShowsOverview), nameof(ShowsDetails), nameof(ShowsAccess), nameof(ShowsQualifications), nameof(ShowsRoster), nameof(ShowsWorkingHours), nameof(ShowsTimes), nameof(ShowsPayroll),
+    [NotifyPropertyChangedFor(nameof(ShowsDetails), nameof(ShowsAccess), nameof(ShowsQualifications), nameof(ShowsRoster), nameof(ShowsWorkingHours), nameof(ShowsTimes), nameof(ShowsPayroll),
         nameof(ShowsHrFile), nameof(ShowsRegulations), nameof(ShowsDuties), nameof(HasSaveBar))]
     public partial string SelectedTab { get; private set; } = ProfileArea;
 
@@ -286,7 +286,8 @@ public sealed partial class PersonCardViewModel : ViewModelBase, IEditableArea
     /// <summary>Ein Abschnitt wurde angesprungen (auch derselbe ein zweites Mal); die Ansicht rollt ihn ins Bild und setzt den Fokus hinein.</summary>
     public event Action<string>? SectionRequested;
 
-    public bool ShowsOverview => Overview is not null && SelectedTab == OverviewArea;
+    /// <summary>Die Kacheln stehen über jedem Bereich (T-109), sobald es Kennzahlen gibt.</summary>
+    public bool ShowsOverview => Overview is not null;
 
     public bool ShowsDetails => Shows(DetailsTab);
 
@@ -491,9 +492,9 @@ public sealed partial class PersonCardViewModel : ViewModelBase, IEditableArea
     public event Action? AbsenceRequestsRequested;
 
     /// <summary>
-    /// Wählt einen Bereich (<see cref="OverviewArea"/> …) oder springt zu einem Abschnitt (<see cref="DetailsTab"/> …): der Bereich mit dem Abschnitt öffnet, <see cref="FocusedSection"/>
-    /// nennt den Abschnitt. <see cref="HistoryTab"/> öffnet die Seitenleiste „Verlauf“ und lässt den Bereich, wie er ist. Was die Karte nicht hat, ersetzt der Startbereich
-    /// (Übersicht, sonst der erste).
+    /// Wählt einen Bereich (<see cref="ProfileArea"/> …) oder springt zu einem Abschnitt (<see cref="DetailsTab"/> …): der Bereich mit dem Abschnitt öffnet, <see cref="FocusedSection"/>
+    /// nennt den Abschnitt. <see cref="HistoryTab"/> öffnet die Seitenleiste „Verlauf“ und lässt den Bereich, wie er ist. Was die Karte nicht hat, ersetzt der erste Bereich;
+    /// so führt auch die frühere Adresse <see cref="OverviewArea"/> dorthin.
     /// </summary>
     public void SelectTab(string? id)
     {
@@ -543,9 +544,6 @@ public sealed partial class PersonCardViewModel : ViewModelBase, IEditableArea
     {
         switch (area)
         {
-            case OverviewArea:
-                _ = Overview?.EnsureLoadedAsync();
-                break;
             case ProfileArea:
                 _ = Duties?.EnsureLoadedAsync();
                 break;
