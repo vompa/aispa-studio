@@ -87,6 +87,9 @@ public sealed partial class CompanyViewModel : ViewModelBase, INativeArea
     /// <summary>Ein Schritt der Karte „Betrieb einrichten“ wurde gewählt: die Verwaltung springt in die passende Maske (<c>Page</c> und <c>Tab</c> des Schritts).</summary>
     public event Action<SetupStepDto>? SetupStepRequested;
 
+    /// <summary>„Assistent starten“ auf der Karte „Betrieb einrichten“ (ADR 0104): die Shell öffnet den Assistenten.</summary>
+    public event Action? SetupWizardRequested;
+
     /// <summary>Die Schritte der Ersteinrichtung mit ihrem Stand (<c>GET api/setup/progress</c>, ADR 0099); leer, wenn die API sie nicht lieferte.</summary>
     public ObservableCollection<SetupStepItem> SetupSteps { get; } = [];
 
@@ -103,6 +106,9 @@ public sealed partial class CompanyViewModel : ViewModelBase, INativeArea
     public partial double SetupPercent { get; private set; }
 
     [RelayCommand]
+    private void StartSetupWizard() => SetupWizardRequested?.Invoke();
+
+    [RelayCommand]
     private void OpenSetupStep(SetupStepItem? item)
     {
         if (item is not null)
@@ -112,7 +118,7 @@ public sealed partial class CompanyViewModel : ViewModelBase, INativeArea
     }
 
     /// <summary>Lädt den Stand der Ersteinrichtung; scheitert der Aufruf, bleibt die Karte weg und die Maske unberührt.</summary>
-    private async Task LoadSetupAsync()
+    public async Task LoadSetupAsync()
     {
         var progress = await _api.GetAsync<SetupProgressDto>("api/setup/progress").ConfigureAwait(true);
         SetupSteps.Clear();

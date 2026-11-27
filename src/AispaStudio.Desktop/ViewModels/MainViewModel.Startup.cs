@@ -44,6 +44,58 @@ public partial class MainViewModel
     /// <summary>Kein Start mehr und keine Verbindung: die Karte „Keine Verbindung zum Server“ steht auf der Petrolfläche.</summary>
     public bool IsOffline => !IsConnected && !IsStarting;
 
+    private StartChoiceViewModel? _startChoice;
+
+    /// <summary>Gesetzt, wenn auf diesem PC noch keine Betriebsart gewählt wurde: antwortet dann kein Server, steht die Startauswahl statt „Keine Verbindung“ (ADR 0104).</summary>
+    public StartChoiceViewModel? StartChoice
+    {
+        get => _startChoice;
+        init
+        {
+            _startChoice = value;
+            if (value is not null)
+            {
+                value.PropertyChanged += (_, e) =>
+                {
+                    if (e.PropertyName == nameof(StartChoiceViewModel.IsShown))
+                    {
+                        OnPropertyChanged(nameof(IsStartChoiceShown));
+                    }
+                };
+            }
+        }
+    }
+
+    /// <summary>Die Startauswahl steht auf dem Bildschirm; die Karte „Keine Verbindung zum Server“ ist dann ausgeblendet.</summary>
+    public bool IsStartChoiceShown => StartChoice?.IsShown == true;
+
+    /// <summary>Kurze Probe auf den Standardserver (<see cref="ProbeTimeout"/>); <c>true</c>, wenn die Startauswahl statt des 30-Sekunden-Suchens steht.</summary>
+    private async Task<bool> ShowStartChoiceIfNoServerAsync()
+    {
+        // Mit lokalem Stand (ADR 0005) hat dieser PC schon ein Spa: ein Server, der noch hochfährt, löst keine Startauswahl aus.
+        if (StartChoice is not { IsDeclined: false } choice || api.Offline?.Get("api/auth/me") is not null)
+        {
+            return false;
+        }
+
+        try
+        {
+            using var attempt = new CancellationTokenSource(ProbeTimeout, _time);
+            await api.StatusAsync(attempt.Token).ConfigureAwait(true);
+            choice.MarkMade();
+            return false;
+        }
+        catch (Exception ex) when (ex is HttpRequestException or OperationCanceledException)
+        {
+            IsConnected = false;
+            ConnectionTitle = NoConnectionTitle;
+            StatusText = ServerUnreachableAdvice;
+            Content = null;
+            choice.IsShown = true;
+            return true;
+        }
+    }
+
     private void ShowStartupStep(string step, string status)
     {
         StartupStep = step;

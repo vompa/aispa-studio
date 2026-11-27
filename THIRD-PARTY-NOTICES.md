@@ -151,6 +151,7 @@ gebunden und lassen sich durch eigene Fassungen ersetzen; ihr Quelltext steht un
 - System.Security.Cryptography.ProtectedData 10.0.15 (NuGet): © Microsoft Corporation. All rights reserved.; https://dot.net/
 - Tmds.DBus.Protocol 0.94.1 (NuGet): Tom Deseyn; https://licenses.nuget.org/MIT
 - tr46 0.0.3 (npm): Sebastian Mayr <npm@smayr.name>; https://github.com/Sebmaster/tr46.js#readme
+- Velopack 1.2.161 (NuGet): Copyright © Velopack Ltd. All rights reserved.; https://github.com/velopack/velopack
 - Weasel.Core 9.50.0 (NuGet): Jeremy D. Miller,Babu Annamalai,Oskar Dudycz; https://github.com/JasperFx/weasel
 - Weasel.Postgresql 9.50.0 (NuGet): Jeremy D. Miller,Babu Annamalai,Oskar Dudycz; https://github.com/JasperFx/weasel
 - WolverineFx 6.64.0 (NuGet): Jeremy D. Miller,Babu Annamalai,Jaedyn Tonee; http://github.com/jasperfx/wolverine

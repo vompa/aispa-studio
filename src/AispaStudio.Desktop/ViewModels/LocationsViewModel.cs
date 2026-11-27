@@ -60,11 +60,7 @@ public sealed partial class LocationsViewModel : ViewModelBase, IEditableArea, I
     public const string AreasField = "location.areas";
     public const string CancellationPolicyField = "location.cancellationPolicy";
 
-    private static readonly (DayOfWeek Day, string Label)[] Weekdays =
-    [
-        (DayOfWeek.Monday, "Montag"), (DayOfWeek.Tuesday, "Dienstag"), (DayOfWeek.Wednesday, "Mittwoch"), (DayOfWeek.Thursday, "Donnerstag"),
-        (DayOfWeek.Friday, "Freitag"), (DayOfWeek.Saturday, "Samstag"), (DayOfWeek.Sunday, "Sonntag"),
-    ];
+    private static readonly (DayOfWeek Day, string Label)[] Weekdays = OpeningDayViewModel.Weekdays;
 
     private static readonly string[] Inputs =
     [

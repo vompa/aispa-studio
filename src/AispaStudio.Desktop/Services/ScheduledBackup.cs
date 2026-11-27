@@ -65,7 +65,7 @@ public static class ScheduledBackup
         log.WriteLineAsync($"{at.ToString("u", CultureInfo.InvariantCulture)} {text}");
 
     /// <summary>Läuft die App schon (oder wieder), braucht sie die Datenbank; dann bleibt sie an.</summary>
-    private static bool OtherAppRunning()
+    internal static bool OtherAppRunning()
     {
         using var self = Process.GetCurrentProcess();
         var others = Process.GetProcessesByName(self.ProcessName);

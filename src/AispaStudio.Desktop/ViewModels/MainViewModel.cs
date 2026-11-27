@@ -253,6 +253,11 @@ public partial class MainViewModel(IWorkstationApi api, Func<ILiveUpdates>? live
             return;
         }
 
+        if (await ShowStartChoiceIfNoServerAsync().ConfigureAwait(true))
+        {
+            return;
+        }
+
         await CheckStatusAsync().ConfigureAwait(true);
 
         // Ohne Verbindung, aber mit lokalem Stand: mit der zuletzt angemeldeten Person weiterarbeiten (ADR 0005).
@@ -351,6 +356,7 @@ public partial class MainViewModel(IWorkstationApi api, Func<ILiveUpdates>? live
     private async Task ShowShellAsync(CurrentUser user)
     {
         User = user;
+        var openSetupWizard = Content is LoginViewModel { SetupJustCompleted: true };
         // Ohne Antwort (älterer Server) alles zeigen wie bisher; ausgeschaltete Module antworten ohnehin mit 404 (ADR 0041).
         var modules = (await api.GetAsync<SystemModules>("api/system/modules").ConfigureAwait(true)).Value;
         Device = (await api.GetAsync<QuickSwitchState>("api/auth/quick-switch").ConfigureAwait(true)).Value?.Device;
@@ -359,6 +365,10 @@ public partial class MainViewModel(IWorkstationApi api, Func<ILiveUpdates>? live
             modules: modules, device: Device, deviceChanged: device => Device = device, local: local, dialogs: DialogHost, serverLink: ServerLink, closeApp: CloseApp);
         Content = shell;
         await shell.InitializeAsync().ConfigureAwait(true);
+        if (openSetupWizard)
+        {
+            await shell.OpenSetupWizardAsync().ConfigureAwait(true);
+        }
     }
 
     /// <summary>

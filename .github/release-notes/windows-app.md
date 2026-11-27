@@ -1,4 +1,6 @@
-Vorabstand der Windows-App zum Ausprobieren, Stand `{{SHA}}`. Kein Installer, keine Signatur, Kassa nur mit Test-Signatur: nicht für den Alltag eines Spas verwenden.
+Vorabstand der Windows-App zum Ausprobieren, Stand `{{SHA}}`. Keine Signatur, Kassa nur mit Test-Signatur: nicht für den Alltag eines Spas verwenden.
+
+**Empfohlen ist das Setup mit Updates** im Release [„Windows-Setup“](https://github.com/vompa/aispa-studio/releases/tag/windows-setup) (rund 200 MB). Diese ZIP-Datei ist der zweite Weg, ohne Installation und ohne Updates.
 
 ## Voraussetzungen
 

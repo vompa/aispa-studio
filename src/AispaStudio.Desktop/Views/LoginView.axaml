@@ -176,34 +176,53 @@
             <TextBlock Text="Spa einrichten" Classes="h2" />
             <ui:HelpButton Topic="einzelplatz" Section="einrichten" />
           </StackPanel>
-          <TextBlock Text="{Binding SetupHint}" TextWrapping="Wrap" Classes="secondary" />
-          <ui:FormField Label="Name des Spas" IsRequired="True">
-            <TextBox Text="{Binding SpaName}" />
-          </ui:FormField>
-          <ui:FormField Label="Land" IsRequired="True">
-            <ComboBox ItemsSource="{x:Static vm:LoginViewModel.Countries}" SelectedItem="{Binding Country}" HorizontalAlignment="Stretch" />
-          </ui:FormField>
-          <ui:FormField Label="Erster Standort" IsRequired="True">
-            <TextBox Text="{Binding LocationName}" PlaceholderText="z. B. Ort oder Adresse" />
-          </ui:FormField>
-          <ui:FormField Label="Ihr Name" IsRequired="True">
-            <TextBox Text="{Binding OwnerName}" />
-          </ui:FormField>
-          <ui:FormField Label="Benutzername" IsRequired="True">
-            <TextBox Text="{Binding UserName}" />
-          </ui:FormField>
-          <ui:FormField Label="Passwort" Help="Mindestens 8 Zeichen." IsRequired="True">
-            <TextBox Text="{Binding Password}" PasswordChar="●" />
-          </ui:FormField>
-          <ui:FormField Label="Passwort wiederholen" IsRequired="True">
-            <TextBox Text="{Binding NewPasswordRepeat}" PasswordChar="●" />
-          </ui:FormField>
-          <Button Classes="primary" Content="Spa einrichten" Command="{Binding CompleteSetupCommand}" IsDefault="{Binding ShowSetupForm}"
+          <TextBlock x:Name="SetupStepText" Text="{Binding SetupStepText}" Classes="group" />
+          <!-- 1. Name und Land -->
+          <StackPanel x:Name="SetupSpaStep" Spacing="10" IsVisible="{Binding IsSetupSpaStep}">
+            <TextBlock Text="{Binding SetupHint}" TextWrapping="Wrap" Classes="secondary" />
+            <ui:FormField Label="Name des Spas" IsRequired="True">
+              <TextBox x:Name="SetupSpaNameBox" Text="{Binding SpaName}" />
+            </ui:FormField>
+            <ui:FormField Label="Land" IsRequired="True">
+              <ComboBox ItemsSource="{x:Static vm:LoginViewModel.Countries}" SelectedItem="{Binding Country}" HorizontalAlignment="Stretch" />
+            </ui:FormField>
+          </StackPanel>
+          <!-- 2. Erster Standort -->
+          <StackPanel x:Name="SetupLocationStep" Spacing="10" IsVisible="{Binding IsSetupLocationStep}">
+            <ui:FormField Label="Erster Standort" IsRequired="True">
+              <TextBox x:Name="SetupLocationBox" Text="{Binding LocationName}" PlaceholderText="z. B. Ort oder Adresse" />
+            </ui:FormField>
+          </StackPanel>
+          <!-- 3. Konto der Inhaberin bzw. des Inhabers -->
+          <StackPanel x:Name="SetupAccountStep" Spacing="10" IsVisible="{Binding IsSetupAccountStep}">
+            <ui:FormField Label="Ihr Name" IsRequired="True">
+              <TextBox x:Name="SetupOwnerBox" Text="{Binding OwnerName}" />
+            </ui:FormField>
+            <ui:FormField Label="Benutzername" IsRequired="True">
+              <TextBox Text="{Binding UserName}" />
+            </ui:FormField>
+            <ui:FormField Label="Passwort" Help="Mindestens 8 Zeichen." IsRequired="True">
+              <TextBox Text="{Binding Password}" PasswordChar="●" />
+            </ui:FormField>
+            <ui:FormField Label="Passwort wiederholen" IsRequired="True">
+              <TextBox Text="{Binding NewPasswordRepeat}" PasswordChar="●" />
+            </ui:FormField>
+          </StackPanel>
+          <Button x:Name="SetupContinueButton" Classes="primary" Content="Weiter" Command="{Binding SetupContinueCommand}"
+                  IsVisible="{Binding ShowSetupContinue}" IsDefault="{Binding SetupContinueIsDefault}"
+                  HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                  ui:DisabledHint.Text="Verfügbar, sobald die Pflichtfelder dieses Schritts ausgefüllt sind." />
+          <Button x:Name="SetupFinishButton" Classes="primary" Content="Spa einrichten" Command="{Binding CompleteSetupCommand}"
+                  IsVisible="{Binding ShowSetupFinish}" IsDefault="{Binding ShowSetupFinish}"
                   HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
+          <Button x:Name="SetupBackButton" Classes="ghost" Content="Zurück" Command="{Binding SetupBackCommand}" IsVisible="{Binding ShowSetupBack}"
+                  HorizontalAlignment="Left" />
           <!-- Neuer PC: statt neu einrichten aus der täglichen Sicherung -->
-          <ContentControl Content="{Binding Restore}" IsVisible="{Binding Restore, Converter={x:Static ObjectConverters.IsNotNull}}" />
-          <!-- Weiterer PC eines bestehenden Spas: verbinden statt neu einrichten -->
-          <ContentControl Content="{Binding Join}" IsVisible="{Binding Join, Converter={x:Static ObjectConverters.IsNotNull}}" />
+          <StackPanel Spacing="10" IsVisible="{Binding IsSetupSpaStep}">
+            <ContentControl Content="{Binding Restore}" IsVisible="{Binding Restore, Converter={x:Static ObjectConverters.IsNotNull}}" />
+            <!-- Weiterer PC eines bestehenden Spas: verbinden statt neu einrichten -->
+            <ContentControl Content="{Binding Join}" IsVisible="{Binding Join, Converter={x:Static ObjectConverters.IsNotNull}}" />
+          </StackPanel>
         </StackPanel>
 
         <StackPanel Spacing="10" IsVisible="{Binding ChangePasswordRequired}">

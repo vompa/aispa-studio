@@ -295,6 +295,44 @@ public partial class CalendarViewModel : ViewModelBase
 
     public string DateText => DayLayout.DateText(Date);
 
+    private bool _showingDay;
+
+    /// <summary>
+    /// Zeigt einen Tag an einem Standort, auch wenn Standort oder Stammdaten nach dem Start neu entstanden sind (Assistent „Betrieb einrichten“, Probetermin):
+    /// liest die Standorte neu, wählt den Standort, verwirft die zwischengespeicherten Ressourcen und lädt genau einmal.
+    /// </summary>
+    public async Task ShowDayAsync(Guid locationId, DateOnly day)
+    {
+        var locations = await _api.GetAsync<List<LocationDto>>("api/locations").ConfigureAwait(true);
+        if (locations.Value is { } list)
+        {
+            Locations = list;
+            OnPropertyChanged(nameof(Locations));
+            OnPropertyChanged(nameof(HasLocationChoice));
+        }
+
+        if (Locations.FirstOrDefault(l => l.Id == locationId) is not { } target)
+        {
+            return;
+        }
+
+        _resources = null;
+        _showingDay = true;
+        _changingDay = true;
+        try
+        {
+            Date = day;
+            Location = target;
+        }
+        finally
+        {
+            _changingDay = false;
+            _showingDay = false;
+        }
+
+        await LoadAsync().ConfigureAwait(true);
+    }
+
     public async Task InitializeAsync()
     {
         var locations = await _api.GetAsync<List<LocationDto>>("api/locations").ConfigureAwait(true);
@@ -330,7 +368,11 @@ public partial class CalendarViewModel : ViewModelBase
         WaitlistPanel = null;
         GapsPanel = null;
         DayPlanPrint = null;
-        _ = LoadAsync();
+        if (!_showingDay)
+        {
+            _ = LoadAsync();
+        }
+
         if (value is not null && _live is not null)
         {
             _ = _live.WatchAsync(value.Id);

@@ -7,10 +7,23 @@ sich mit diesem PC als Haupt-PC verbinden.
 Voraussetzungen: [Windows-PC am Empfang und Zusatz für Einzelplatz](README.md#systemvoraussetzungen).
 
 > [!WARNING]
-> Vorabstand zum Ausprobieren: kein Installer, keine Signatur, Kassa nur mit Test-Signatur. Nicht für den Alltag eines
-> Spas verwenden.
+> Vorabstand zum Ausprobieren: keine Signatur, Kassa nur mit Test-Signatur. Nicht für den Alltag eines Spas verwenden.
 
-## 1. Herunterladen und entpacken
+## 1. Installieren
+
+**Empfohlen: mit dem Setup.**
+
+1. Im Release [„Windows-Setup“](https://github.com/vompa/aispa-studio/releases/tag/windows-setup) die Datei
+   `AispaStudioApp-win-Setup.exe` laden (rund 200 MB) und starten. Administratorrechte sind nicht nötig.
+2. Windows SmartScreen warnt („Der Computer wurde durch Windows geschützt“), weil das Setup nicht signiert ist.
+   Über „Weitere Informationen“ und „Trotzdem ausführen“ geht es weiter.
+3. Das Setup installiert das Programm nach `%LOCALAPPDATA%\AispaStudioApp`, legt einen Eintrag im Startmenü an und
+   holt die WebView2-Runtime nach, falls sie fehlt. Datenbank und Server sind im Paket.
+
+Die Daten liegen getrennt unter `%LOCALAPPDATA%\AispaStudio`. Updates kommen von selbst: Die App prüft nach dem Start im
+Hintergrund, lädt einen neuen Stand und spielt ihn beim nächsten Start ein (Näheres unter [Neuer Stand](#neuer-stand)).
+
+**Zweiter Weg: ZIP-Datei ohne Setup.**
 
 1. Im Release [„Windows-App“](https://github.com/vompa/aispa-studio/releases/tag/windows-app) die Datei
    `AispaStudio-Windows.zip` laden (rund 185 MB). Der Release ist ein Vorabstand und wird bei jedem geprüften Stand
@@ -20,24 +33,29 @@ Voraussetzungen: [Windows-PC am Empfang und Zusatz für Einzelplatz](README.md#s
 3. Im Zielordner liegt dann der Ordner `AispaStudio-Windows`. Darin stehen `AispaStudio.Desktop.exe` und die
    Unterordner `api`, `web` und `postgres`. Nichts davon verschieben; die App findet Datenbank und Server neben sich.
 
-> [!NOTE]
-> Die App ist nicht signiert. Beim ersten Start kann Windows SmartScreen warnen („Der Computer wurde durch Windows
-> geschützt“). Über „Weitere Informationen“ und „Trotzdem ausführen“ startet sie. Auf einem frischen PC mit
-> Virenscanner ist das noch nicht ausprobiert.
+Auch hier warnt SmartScreen beim ersten Start; der Weg ist derselbe („Weitere Informationen“ › „Trotzdem ausführen“).
+Eine ZIP-Installation aktualisiert sich nicht selbst. Auf einem frischen PC mit Virenscanner ist das noch nicht
+ausprobiert.
 
 ## 2. Als Einzelplatz starten
 
-Die App einmal mit dem Schalter `--standalone` starten, am einfachsten über eine Verknüpfung:
+Auf einem PC ohne Einrichtung zeigt der erste Start die Startauswahl: **Neues Spa auf diesem PC einrichten** schaltet den
+Einzelplatz ein und startet die App neu. Darunter stehen **Beispiel-Spa ansehen**, **Aus einer Sicherung wiederherstellen**
+und **Mit einem vorhandenen Spa verbinden**. Die Startauswahl erscheint nur, wenn kein Schalter gesetzt ist, keine Adresse
+über `AISPA_API_URL` vorgegeben ist, noch keine Betriebsart gewählt wurde und auf diesem PC kein Server antwortet.
 
-1. Rechtsklick auf `AispaStudio.Desktop.exe` › „Verknüpfung erstellen“.
+Für Skripte und Verknüpfungen gibt es den Schalter `--standalone`; er schaltet den Einzelplatz ohne Startauswahl ein:
+
+1. Rechtsklick auf `AispaStudio.Desktop.exe` › „Verknüpfung erstellen“. Nach dem Setup liegt die Datei unter
+   `%LOCALAPPDATA%\AispaStudioApp\current`; den Eintrag im Startmenü nicht ändern, Updates erneuern ihn.
 2. Rechtsklick auf die Verknüpfung › „Eigenschaften“ › im Feld „Ziel“ hinter den Pfad ` --standalone` anhängen.
 3. Über die Verknüpfung starten.
 
 Die App merkt sich die Betriebsart; jeder weitere Start läuft ohne Schalter als Einzelplatz. `--server` schaltet zurück
 auf den Betrieb mit Server.
 
-Beim ersten Start legt die App die Datenbank an und zeigt dann **„Spa einrichten“**: Name des Spas, Land (Österreich,
-Deutschland oder Schweiz), erster Standort und das Konto der Inhaberin bzw. des Inhabers mit Benutzername und Passwort.
+Beim ersten Start legt die App die Datenbank an und zeigt dann **„Spa einrichten“** in drei Schritten: Name des Spas und Land (Österreich,
+Deutschland oder Schweiz), erster Standort, dann das Konto der Inhaberin bzw. des Inhabers mit Benutzername und Passwort.
 Das geht nur an diesem PC und nur einmal. Weitere Zugänge legt die Leitung danach unter „Zugänge“ an.
 
 Ausführlich: Hilfethema [Einzelplatz](../../web/src/help/content/einzelplatz.md).
@@ -54,7 +72,7 @@ Die App sichert danach einmal am Tag und legt dafür in Windows die Aufgabe „A
 um 23 Uhr, wird nachgeholt, wenn der PC aus war). Die letzten 14 Sicherungen bleiben. Ist die letzte Sicherung älter als
 sieben Tage, steht ein Hinweis über allen Seiten.
 
-Wiederherstellen auf einem neuen PC: App mit `--standalone` starten und vor „Spa einrichten“ „Aus einer Sicherung
+Wiederherstellen auf einem neuen PC: in der Startauswahl **Aus einer Sicherung wiederherstellen** wählen (oder die App mit `--standalone` starten) und vor „Spa einrichten“ „Aus einer Sicherung
 wiederherstellen …“ wählen. Ausführlich: Hilfethema [Sicherung](../../web/src/help/content/sicherung.md).
 
 ## Beispiel-Spa zum Ausprobieren
@@ -94,7 +112,7 @@ Ausführlich: Hilfethemen [Im Netz](../../web/src/help/content/im-netz.md) und
 
 | Was | Wo |
 | --- | --- |
-| Programm | der Ordner, in den die ZIP-Datei entpackt wurde |
+| Programm | mit Setup `%LOCALAPPDATA%\AispaStudioApp` (darin `current` mit der App); mit ZIP-Datei der Ordner, in den sie entpackt wurde |
 | Daten, Datenbank, Protokolle | `%LOCALAPPDATA%\AispaStudio\daten` (Datenbank in `pg`, Protokolle in `protokolle`); das echte Spa liegt in der Datenbank `aispadb`, das Beispiel-Spa (`--demo`) in `aispademo` im selben Ordner |
 | Zugang zur Datenbank und Schlüssel für Gesundheitsdaten | `%LOCALAPPDATA%\AispaStudio\daten\zugang.bin`, mit Windows geschützt; lesbar nur für dasselbe Windows-Konto |
 | Zwischenspeicher für Netzausfall | `%LOCALAPPDATA%\AispaStudio\offline.bin` |
@@ -104,28 +122,36 @@ Immer mit demselben Windows-Konto arbeiten: Ein anderes Konto kann `zugang.bin` 
 
 ## Neuer Stand
 
-Eine Update-Funktion gibt es noch nicht. Ein neuer Stand kommt so auf den PC:
+**Mit Setup** kommt ein neuer Stand von selbst. Die App prüft nach dem Start im Hintergrund, ob es einen neuen Stand
+gibt, und lädt ihn. Eingespielt wird er beim nächsten Start der App; ein neuer Stand ist also meist beim übernächsten
+Start da. Fehlt das Netz, passiert nichts. Läuft die App an diesem PC schon oder startet gerade die abendliche Sicherung,
+wartet das Einspielen bis zum nächsten Start. Die Daten unter `%LOCALAPPDATA%\AispaStudio` bleiben, die Datenbank wird beim
+Start auf den neuen Stand gebracht.
+
+**Mit ZIP-Datei** geht es von Hand:
 
 1. Prüfen, dass die letzte Sicherung von heute ist.
 2. Die App schließen.
 3. Die neue ZIP-Datei in denselben Ordner entpacken und dabei die alten Dateien ersetzen.
-4. Die App wie gewohnt starten. Die Daten unter `%LOCALAPPDATA%\AispaStudio` bleiben; die Datenbank wird beim Start auf
-   den neuen Stand gebracht.
+4. Die App wie gewohnt starten.
 
 ## Entfernen
 
-1. Die App schließen.
-2. In der Windows-Aufgabenplanung die Aufgabe „AISPA Studio Sicherung“ löschen.
-3. Den Programmordner löschen.
-4. Nur wenn die Daten wirklich weg sollen: `%LOCALAPPDATA%\AispaStudio` löschen. Vorher prüfen, ob eine aktuelle
-   Sicherung existiert.
+**Mit Setup:** Windows-Einstellungen › Apps › AISPA Studio › Deinstallieren. Das löscht nur das Programm unter
+`%LOCALAPPDATA%\AispaStudioApp`; die Daten bleiben stehen.
+
+**Mit ZIP-Datei:** die App schließen und den Programmordner löschen.
+
+**In beiden Fällen:** In der Windows-Aufgabenplanung die Aufgabe „AISPA Studio Sicherung“ löschen, wenn die Sicherung
+nicht mehr laufen soll. Die Daten nur löschen, wenn sie wirklich weg sollen (`%LOCALAPPDATA%\AispaStudio`); vorher prüfen,
+ob eine aktuelle Sicherung existiert.
 
 ## Wenn etwas nicht geht
 
 | Was passiert | Was tun |
 | --- | --- |
 | „Einzelplatz startet nicht“ | Die Meldung nennt den Grund und den Pfad zum Protokoll in `protokolle`. Von dort geht auch „Aus einer Sicherung wiederherstellen“. |
-| SmartScreen blockiert den Start | „Weitere Informationen“ › „Trotzdem ausführen“ (die App ist nicht signiert). |
+| SmartScreen blockiert Setup oder Start | „Weitere Informationen“ › „Trotzdem ausführen“ (Setup und App sind nicht signiert). |
 | Weiterer PC findet den Haupt-PC nicht | Haupt-PC an und App offen? Firewall für private Netzwerke erlaubt? Adresse und Verbindungscode auf der Seite „Im Netz“ vergleichen. |
 | Gesundheitsdaten nicht lesbar | Die App läuft unter einem anderen Windows-Konto als beim Einrichten, oder `zugang.bin` fehlt. Mit dem ursprünglichen Konto starten oder aus der Sicherung wiederherstellen. |
 | Hilfe bleibt leer | Die WebView2-Runtime fehlt (nur Windows 10 ohne Edge); bei Microsoft kostenlos laden. |

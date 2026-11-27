@@ -10,6 +10,13 @@ namespace AispaStudio.Desktop.ViewModels;
 /// </summary>
 public sealed partial class OpeningDayViewModel : ObservableObject
 {
+    /// <summary>Die Wochentage in der Reihenfolge der Maske, Montag zuerst; die eine Tabelle für Standorte und den Assistenten „Betrieb einrichten“.</summary>
+    public static readonly (DayOfWeek Day, string Label)[] Weekdays =
+    [
+        (DayOfWeek.Monday, "Montag"), (DayOfWeek.Tuesday, "Dienstag"), (DayOfWeek.Wednesday, "Mittwoch"), (DayOfWeek.Thursday, "Donnerstag"),
+        (DayOfWeek.Friday, "Freitag"), (DayOfWeek.Saturday, "Samstag"), (DayOfWeek.Sunday, "Sonntag"),
+    ];
+
     private static readonly TimeOnly DefaultOpens = new(9, 0);
     private static readonly TimeOnly DefaultCloses = new(18, 0);
 

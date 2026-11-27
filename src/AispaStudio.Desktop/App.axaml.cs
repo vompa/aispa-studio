@@ -36,12 +36,16 @@ public partial class App : Application
             IOfflineStore offline = OperatingSystem.IsWindows() ? new WindowsOfflineStore() : new MemoryOfflineStore();
             // Empfangsgerät (Schnellwechsel per PIN, ADR 0042): eigenes Kennzeichen, das Abmelden und Personenwechsel überdauert.
             ISessionStore device = OperatingSystem.IsWindows() ? new WindowsSessionStore("empfangsgeraet.bin") : new MemorySessionStore();
-            var local = StandaloneMode.Resolve(desktop.Args ?? [], FileSettingsStore.Default)
+            // Vor Resolve gelesen: die Schalter speichern „Betriebsart gewählt“, die Startauswahl gilt nur, solange das fehlt.
+            var args = desktop.Args ?? [];
+            var apiUrl = Environment.GetEnvironmentVariable("AISPA_API_URL");
+            var showStartChoice = StartChoice.IsDue(args, FileSettingsStore.Default.Load(), apiUrl);
+            var local = StandaloneMode.Resolve(args, FileSettingsStore.Default)
                 ? new LocalServer(LocalServerPaths.Default, new SystemProcessRunner(),
-                    OperatingSystem.IsWindows() ? new DpapiProtector() : new PlainProtector(), demo: StandaloneMode.IsDemo(desktop.Args ?? []))
+                    OperatingSystem.IsWindows() ? new DpapiProtector() : new PlainProtector(), demo: StandaloneMode.IsDemo(args))
                 : null;
             // Adresse der API im Server-Betrieb: Umgebungsvariable AISPA_API_URL, sonst der eingetragene Server oder Haupt-PC, sonst localhost.
-            var server = ServerChoice.Resolve(FileSettingsStore.Default.Load(), Environment.GetEnvironmentVariable("AISPA_API_URL"));
+            var server = ServerChoice.Resolve(FileSettingsStore.Default.Load(), apiUrl);
             // Im Einzelplatz kein Offline-Stand: die Datenbank liegt ja auf diesem PC.
             var api = local is null
                 ? new ApiClient(server.Address, store, offline: new OfflineCache(offline), deviceStore: device, certificateCode: server.Code)
@@ -56,6 +60,7 @@ public partial class App : Application
                 Connect = local is null ? new NetworkConnectViewModel(FileSettingsStore.Default, () => Restart(desktop)) : null,
                 ServerConnect = local is null ? new ServerConnectViewModel(FileSettingsStore.Default, () => Restart(desktop)) : null,
                 ServerLink = local is null ? new ServerLinkViewModel(FileSettingsStore.Default, server, () => Restart(desktop)) : null,
+                StartChoice = local is null && showStartChoice ? new StartChoiceViewModel(FileSettingsStore.Default, demo => Restart(desktop, demo)) : null,
             };
             if (local is not null)
             {
@@ -77,12 +82,18 @@ public partial class App : Application
         base.OnFrameworkInitializationCompleted();
     }
 
-    /// <summary>Neu starten, damit die App mit der neuen Server-Adresse arbeitet.</summary>
-    private static void Restart(IClassicDesktopStyleApplicationLifetime desktop)
+    /// <summary>Neu starten, damit die App mit der neuen Server-Adresse arbeitet; <paramref name="demo"/> startet das Beispiel-Spa.</summary>
+    private static void Restart(IClassicDesktopStyleApplicationLifetime desktop, bool demo = false)
     {
         if (Environment.ProcessPath is { } app)
         {
-            Process.Start(new ProcessStartInfo(app) { UseShellExecute = false })?.Dispose();
+            var start = new ProcessStartInfo(app) { UseShellExecute = false };
+            if (demo)
+            {
+                start.ArgumentList.Add("--demo");
+            }
+
+            Process.Start(start)?.Dispose();
         }
 
         desktop.Shutdown();

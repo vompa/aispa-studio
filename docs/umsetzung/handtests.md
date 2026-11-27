@@ -14,7 +14,7 @@ Beim Rundenabschluss wird geprüft, dass jede Aufgabe der Runde einen vollständ
 
 ## Blöcke
 
-Ohne Block, weil die Aufgabe nichts Sichtbares ändert: Antwortvorschläge auf Fragen kennen Anreise, Schließtage, Hinweise der Behandlungen und den Gutscheinkauf (19.11.2026); Erinnerung vor Ablauf der Frist für Karte oder Anzahlung (Mail an den Gast nach Stunden Wartezeit; durch Tests gedeckt), Obergrenze von 2 Erinnerungen je Gast und Tag (greift nur bei nachgebuchten Terminen; durch Test gedeckt), Entscheidung zur Mindestlücke (nur Doku), Kopfzeile `List-Unsubscribe` in der Erinnerung an die nächste Behandlung, Lückenvorschläge mit Treatwell-Hinweis und Einwirkzeit (ein Treatwell-Termin lässt sich ohne echtes Postfach nicht von Hand erzeugen; durch Ansichtstest gedeckt), Erinnerung nach 48 Stunden mit Verbindung (derselbe Satz wie im Block „Hinweis nach 48 Stunden“, nur unter „Beim Abgleich nicht übernommen“), Kassa ohne Verbindung Schritt 1 (nur Schnittstelle; der Block kommt mit Schritt 2), T-013 (Entscheidung, nur Doku), T-014 (Entscheidung, keine Änderung), T-016 (Sichtung der zurückgestellten Kleinigkeiten), T-030 (CI-Zeitlimits), T-033 (Beispieldaten und Test), T-034 (Werkzeug knip, unbenutztes Paket entfernt), T-035 (Skill und Doku), T-040 (ADR und Konzept, nur Doku), Export/Import Aufgabe A (Export-Dienst, Knopf ohne Seite; der Knopf ist im Block „Export/Import B“ geprüft), Verwaltungsmasken Schritt 1 (T-060: Regeln und zwei Bausteine, noch in keiner Maske verwendet), T-085 (Bildskript der Handbuchbilder, nur Werkzeug), T-089 und T-090 (Beispieldaten nur für die Vorschau im Designer).
+Ohne Block, weil die Aufgabe nichts Sichtbares ändert: Antwortvorschläge auf Fragen kennen Anreise, Schließtage, Hinweise der Behandlungen und den Gutscheinkauf (19.11.2026); Erinnerung vor Ablauf der Frist für Karte oder Anzahlung (Mail an den Gast nach Stunden Wartezeit; durch Tests gedeckt), Obergrenze von 2 Erinnerungen je Gast und Tag (greift nur bei nachgebuchten Terminen; durch Test gedeckt), Entscheidung zur Mindestlücke (nur Doku), Kopfzeile `List-Unsubscribe` in der Erinnerung an die nächste Behandlung, Lückenvorschläge mit Treatwell-Hinweis und Einwirkzeit (ein Treatwell-Termin lässt sich ohne echtes Postfach nicht von Hand erzeugen; durch Ansichtstest gedeckt), Erinnerung nach 48 Stunden mit Verbindung (derselbe Satz wie im Block „Hinweis nach 48 Stunden“, nur unter „Beim Abgleich nicht übernommen“), Kassa ohne Verbindung Schritt 1 (nur Schnittstelle; der Block kommt mit Schritt 2), T-013 (Entscheidung, nur Doku), T-014 (Entscheidung, keine Änderung), T-016 (Sichtung der zurückgestellten Kleinigkeiten), T-030 (CI-Zeitlimits), T-033 (Beispieldaten und Test), T-034 (Werkzeug knip, unbenutztes Paket entfernt), T-035 (Skill und Doku), T-040 (ADR und Konzept, nur Doku), Export/Import Aufgabe A (Export-Dienst, Knopf ohne Seite; der Knopf ist im Block „Export/Import B“ geprüft), Verwaltungsmasken Schritt 1 (T-060: Regeln und zwei Bausteine, noch in keiner Maske verwendet), T-085 (Bildskript der Handbuchbilder, nur Werkzeug), T-089 und T-090 (Beispieldaten nur für die Vorschau im Designer), T-134a (API der Ersteinrichtung: feinere Schritte und Bereitschaftsprüfung, die App zeigt sie erst mit T-135), T-134b (API des Startkatalogs, die App zeigt ihn erst mit T-135b), T-137 (Befund zum Kassa-Assistenten, nur ein Dokument).
 
 ### T-015 – Keine Stempeluhr in „Mein Tag“, Zeiten trägt die Leitung ein
 Start: Browser in Handybreite (z. B. 390 px), die Adresse des Spas mit `/mein-tag/` öffnen, als Mitarbeiterin (Therapeutin) anmelden
@@ -2081,4 +2081,92 @@ Expected: Je Modell 10 Aufrufe je Aufgabe mit Tokens; daraus lassen sich die Kos
 5. Auswerten: Anteil falsch gelesener Felder je Modell, getrennt nach Bogen und Lieferschein; dazu Fälle, in denen Haiku falsch lag, ohne „Bitte prüfen“ zu zeigen.
 Expected: Entscheidung des Auftraggebers: Haiku bleibt, oder `Ai:Claude:ModelExtract` wird für den Betrieb auf Opus gesetzt. Danach den Eintrag mit `dotnet user-secrets remove "Ai:Claude:ModelExtract" --project src/AispaStudio.Api` entfernen, wenn Haiku bleibt.
 Closes: T-119 (Auftraggeber, 27.11.2026, Punkt 1)
+Result: ☐
+
+### T-132 – Startauswahl auf einem PC ohne Einrichtung
+Vorbereitung: Kein Server läuft auf diesem PC. Die Datei `%LOCALAPPDATA%\AispaStudio\einstellungen.json` umbenennen, die Umgebungsvariable `AISPA_API_URL` ist nicht gesetzt.
+Start: `AispaStudio.Desktop.exe` ohne Schalter starten.
+1. Den Start abwarten.
+Expected: Nach wenigen Sekunden steht „Willkommen bei AISPA Studio“ mit **Neues Spa auf diesem PC einrichten** und drei Nebenwegen. Der Hauptknopf hat den Fokus.
+2. **Mit einem vorhandenen Spa verbinden** wählen.
+Expected: Die Karte „Keine Verbindung“ mit Netzwerk- und Server-Verbindung erscheint, der Fokus steht auf **Erneut versuchen**. **Erneut versuchen** zeigt die Startauswahl nicht wieder.
+3. Die App schließen, neu starten und **Beispiel-Spa ansehen** wählen.
+Expected: Die App startet neu und richtet das Beispiel-Spa ein. Nach dem Schließen und einem Start ohne Schalter steht wieder die Startauswahl.
+4. **Neues Spa auf diesem PC einrichten** wählen.
+Expected: Die App startet neu im Einzelplatz und zeigt „Spa einrichten“. Jeder weitere Start läuft als Einzelplatz, ohne Startauswahl.
+5. Die App schließen und die umbenannte `einstellungen.json` zurücklegen.
+Expected: Der PC startet wie vor dem Test.
+Closes: T-132 (ADR 0104, Entscheidung 2)
+Result: ☐
+
+### T-131 – Setup und Updates
+Vorbereitung: Ein Windows-PC ohne AISPA Studio; ein grüner Stand auf `main` hat das Release „Windows-Setup“ gefüllt.
+Start: `AispaStudioApp-win-Setup.exe` aus dem Release „Windows-Setup“ laden und starten.
+1. Die Warnung von SmartScreen über „Weitere Informationen“ und „Trotzdem ausführen“ bestätigen.
+Expected: Das Setup läuft ohne Administratorrechte durch, holt fehlende Voraussetzungen nach und startet die App mit der Startauswahl. Im Startmenü steht „AISPA Studio“.
+2. Ein Spa einrichten, einen Kunden anlegen, die App schließen.
+Expected: Das Programm liegt unter `%LOCALAPPDATA%\AispaStudioApp`, die Daten unter `%LOCALAPPDATA%\AispaStudio`.
+3. Nach einem neueren Stand auf `main` die App starten, zwei Minuten warten, schließen und wieder starten.
+Expected: Der zweite Start spielt das Update ein und zeigt danach die Anmeldung. Der Kunde ist noch da.
+4. Die Sicherung einrichten und die Windows-Aufgabe „AISPA Studio Sicherung“ von Hand ausführen, während die App offen ist und ein Update bereitliegt.
+Expected: Die Sicherung läuft, die offene App bleibt offen. `app.log` nennt keinen Fehler der Update-Prüfung.
+5. AISPA Studio über „Apps“ in den Windows-Einstellungen deinstallieren.
+Expected: Der Ordner `AispaStudioApp` ist weg, der Datenordner `AispaStudio` mit der Datenbank ist noch da.
+Closes: T-131 (ADR 0104, Entscheidung 1)
+Result: ☐
+
+### T-133 – „Spa einrichten“ in drei Schritten
+Vorbereitung: Ein Einzelplatz ohne Spa (frischer Datenordner oder nach **Neues Spa auf diesem PC einrichten** in der Startauswahl).
+Start: Die App starten und warten, bis „Spa einrichten“ steht.
+1. Die Karte ansehen.
+Expected: „Schritt 1 von 3“, Felder „Name des Spas“ und „Land“. Der Fokus steht im Namen, **Weiter** ist grau.
+2. Einen Namen eintragen und Enter drücken.
+Expected: Schritt 2 mit „Erster Standort“; „Aus einer Sicherung wiederherstellen“ und „Mit einem bestehenden Spa verbinden“ sind nicht mehr zu sehen.
+3. **Zurück** wählen.
+Expected: Schritt 1 mit dem eingetragenen Namen.
+4. „Aus einer Sicherung wiederherstellen“ aufklappen, in das Feld „Wiederherstellungsschlüssel“ klicken und Enter drücken.
+Expected: Die Seite bleibt in Schritt 1, der Bereich bleibt offen.
+5. Den Bereich schließen, mit **Weiter** bis Schritt 3 gehen, Name, Benutzername und zwei verschiedene Passwörter mit je 8 Zeichen eintragen und **Spa einrichten** wählen.
+Expected: Die Meldung, dass die Passwörter nicht übereinstimmen, steht in Schritt 3; die Eingaben bleiben.
+6. Die Wiederholung an das Passwort angleichen und **Spa einrichten** wählen.
+Expected: Die App meldet an und zeigt das leere Spa mit dem Assistenten „Betrieb einrichten“ (T-135).
+Closes: T-133 (ADR 0104, Entscheidung 3)
+Result: ☐
+
+### T-135 – Assistent „Betrieb einrichten“
+Vorbereitung: Ein Einzelplatz ohne Spa (frischer Datenordner).
+Start: „Spa einrichten“ in drei Schritten abschließen.
+1. Nach der Anmeldung die Ansicht ansehen.
+Expected: Der Assistent „Betrieb einrichten“ steht beim Schritt Öffnungszeiten, Montag bis Samstag 09:00 bis 18:00 als Vorschlag, **Speichern** ist der Hauptknopf.
+2. Den Beginn am Montag auf 08:00 ändern, Enter drücken.
+Expected: „Gespeichert“; der Assistent bleibt im Schritt, der Schritt gilt als erledigt. Unter „Standorte & Räume“ stehen später dieselben Zeiten.
+3. **Weiter** wählen, einen Raumnamen eintragen, Enter drücken; einen zweiten Namen tippen und Esc drücken.
+Expected: Der erste Raum steht in der Liste. Esc leert das Feld und holt nicht den ersten Namen zurück; der Assistent bleibt offen.
+4. **Weiter** wählen. Im Schritt Behandlungen ein Paket anhaken und **Behandlungen anlegen** wählen.
+Expected: Eine Meldung nennt, wie viele Behandlungen angelegt und übersprungen wurden; im Paket steht „vorhanden“. Der Hinweis auf fehlende Preise bleibt.
+5. Dasselbe Paket noch einmal anlegen.
+Expected: 0 angelegt, alle übersprungen; in der Verwaltung steht keine Behandlung doppelt.
+6. **Weiter** wählen. Im Schritt Team Vorname und Nachname eintragen und **Person hinzufügen** wählen.
+Expected: Die Person steht in der Liste; im Bereich „Team“ hat sie die Qualifikationen und die Öffnungszeiten als Arbeitszeit.
+7. **Schließen** wählen, „Unternehmen“ öffnen und auf der Karte „Betrieb einrichten“ **Assistent starten** wählen.
+Expected: Die Karte zeigt den neuen Stand; der Assistent öffnet beim ersten offenen Schritt.
+8. Im Assistenten einen Vornamen tippen und Esc drücken; danach in der Seitenleiste „Kalender“ wählen.
+Expected: Esc schließt nicht. Der Klick in die Seitenleiste schließt den Assistenten.
+Closes: T-135 (ADR 0104, Entscheidungen 4 und 5)
+Result: ☐
+
+### T-136 – Abschluss des Assistenten und Probetermin
+Vorbereitung: Der Einzelplatz aus dem Handtest T-135 (Öffnungszeiten, ein Raum, ein Paket, eine Person).
+Start: „Unternehmen“ öffnen und auf der Karte „Betrieb einrichten“ **Assistent starten** wählen.
+1. Mit **Weiter** und **Überspringen** bis hinter den letzten Schritt gehen.
+Expected: „Das Spa ist bereit für den ersten Termin“ mit Behandlung, Tag, Uhrzeit und Standort. Unter „Noch zu tun“ stehen die Kassa und der Hinweis auf fehlende Preise.
+2. Bei „Behandlungen anlegen“ **Zum Schritt** wählen, dann im Schritt Team in das Feld „Nachname“ klicken und einen Namen tippen.
+Expected: Der Assistent steht im Schritt Behandlungen. Im Schritt Team bleibt der Fokus beim Tippen im Feld „Nachname“.
+3. Zur Abschlussseite zurückgehen und **Probetermin im Kalender** wählen.
+Expected: Der Assistent schließt, der Kalender zeigt den genannten Tag am genannten Standort mit dem Raum und der Person aus dem Assistenten. Ein Termin mit einer Behandlung aus dem Paket lässt sich dort anlegen.
+4. Auf einem zweiten frischen Einzelplatz den Assistenten ohne Eingaben bis zum Ende überspringen.
+Expected: „Noch nicht buchbar“ mit dem Grund; **Zurück** ist der Hauptknopf und gut lesbar. Esc schließt den Assistenten.
+5. Die Hilfe öffnen und „Erste Schritte“ suchen.
+Expected: Das Thema zeigt den Weg von der Startauswahl bis zum Probetermin mit drei Bildern; die Verweise unter „Danach“ öffnen ihre Themen.
+Closes: T-136 (ADR 0104, Entscheidung 4)
 Result: ☐

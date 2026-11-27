@@ -19,6 +19,14 @@ public sealed partial class QuickSwitchChoice(QuickSwitchPerson person) : Observ
     public partial bool IsSelected { get; set; }
 }
 
+/// <summary>Die drei Schritte von „Spa einrichten“ (ADR 0104, Entscheidung 3).</summary>
+public enum SetupStep
+{
+    Spa,
+    Location,
+    Account,
+}
+
 /// <summary>
 /// Anmeldung. Im Server-Betrieb mit dem Einmal-Code, den man im Browser auf der Seite „Anmelden“ des Servers (<c>/anmelden/</c>) unter „Code für die Windows-App“ bekommt;
 /// im Einzelplatz-Betrieb mit Benutzername und Passwort (ADR 0041), ein Startpasswort wird gleich hier geändert.
@@ -28,10 +36,34 @@ public sealed partial class QuickSwitchChoice(QuickSwitchPerson person) : Observ
 public partial class LoginViewModel(IWorkstationApi api, Func<CurrentUser, Task> signedIn) : ViewModelBase
 {
     /// <summary>Einzelplatz: statt einzurichten aus einer Sicherung wiederherstellen (ADR 0041, Schritt 5).</summary>
-    public RestoreViewModel? Restore { get; init; }
+    public RestoreViewModel? Restore
+    {
+        get;
+        init
+        {
+            field = value;
+            value?.PropertyChanged += (_, e) => NotifyIfOpenChanged(e);
+        }
+    }
 
     /// <summary>Einzelplatz: statt einzurichten mit einem bestehenden Spa verbinden (zentrale Datenbank und Schlüsselcode).</summary>
-    public JoinViewModel? Join { get; init; }
+    public JoinViewModel? Join
+    {
+        get;
+        init
+        {
+            field = value;
+            value?.PropertyChanged += (_, e) => NotifyIfOpenChanged(e);
+        }
+    }
+
+    private void NotifyIfOpenChanged(System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(RestoreViewModel.IsOpen))
+        {
+            OnPropertyChanged(nameof(SetupContinueIsDefault));
+        }
+    }
 
     /// <summary>Abstand, in dem der Startbildschirm beim Verbinden nachsieht, ob das Spa schon da ist; <c>Zero</c> schaltet das ab (Tests).</summary>
     public TimeSpan JoinPoll { get; init; } = TimeSpan.FromSeconds(5);
@@ -175,12 +207,12 @@ public partial class LoginViewModel(IWorkstationApi api, Func<CurrentUser, Task>
 
     /// <summary>Einzelplatz-Betrieb, noch kein Spa angelegt: Einrichtung gleich hier (oder im Browser über die lokale API).</summary>
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(ShowPasswordLogin), nameof(ShowSetupForm), nameof(ShowRecovery))]
+    [NotifyPropertyChangedFor(nameof(ShowPasswordLogin), nameof(ShowSetupForm), nameof(ShowSetupContinue), nameof(SetupContinueIsDefault), nameof(ShowSetupFinish), nameof(ShowRecovery))]
     public partial bool SetupRequired { get; private set; }
 
     /// <summary>Noch kein Spa, aber die zentrale Datenbank ist eingetragen: der erste Abgleich holt das bestehende Spa.</summary>
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(ShowSetupForm))]
+    [NotifyPropertyChangedFor(nameof(ShowSetupForm), nameof(ShowSetupContinue), nameof(SetupContinueIsDefault), nameof(ShowSetupFinish))]
     public partial bool Joining { get; private set; }
 
     /// <summary>Warum das Verbinden zuletzt nicht geklappt hat, z. B. falscher Schlüsselcode.</summary>
@@ -188,6 +220,54 @@ public partial class LoginViewModel(IWorkstationApi api, Func<CurrentUser, Task>
     public partial string? JoinError { get; private set; }
 
     public bool ShowSetupForm => SetupRequired && !Joining;
+
+    /// <summary>Der Schritt von „Spa einrichten“; die eingegebenen Werte bleiben beim Wechsel erhalten.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsSetupSpaStep), nameof(IsSetupLocationStep), nameof(IsSetupAccountStep), nameof(ShowSetupContinue), nameof(SetupContinueIsDefault),
+        nameof(ShowSetupBack), nameof(ShowSetupFinish), nameof(SetupStepText))]
+    [NotifyCanExecuteChangedFor(nameof(SetupContinueCommand))]
+    public partial SetupStep SetupStage { get; private set; }
+
+    public bool IsSetupSpaStep => SetupStage == SetupStep.Spa;
+
+    public bool IsSetupLocationStep => SetupStage == SetupStep.Location;
+
+    public bool IsSetupAccountStep => SetupStage == SetupStep.Account;
+
+    public bool ShowSetupContinue => ShowSetupForm && !IsSetupAccountStep;
+
+    /// <summary>Enter löst <b>Weiter</b> nicht aus, solange „Wiederherstellen“ oder „Verbinden“ offen ist; sonst spränge Enter in deren Feldern zu Schritt 2 und blendete den offenen Bereich aus.</summary>
+    public bool SetupContinueIsDefault => ShowSetupContinue && Restore?.IsOpen != true && Join?.IsOpen != true;
+
+    public bool ShowSetupBack => SetupStage != SetupStep.Spa;
+
+    public bool ShowSetupFinish => ShowSetupForm && IsSetupAccountStep;
+
+    public string SetupStepText => $"Schritt {(int)SetupStage + 1} von 3";
+
+    private bool CanSetupContinue => SetupStage switch
+    {
+        SetupStep.Spa => SpaName.Trim().Length > 0,
+        SetupStep.Location => LocationName.Trim().Length > 0,
+        _ => false,
+    };
+
+    [RelayCommand(CanExecute = nameof(CanSetupContinue))]
+    private void SetupContinue()
+    {
+        Error = null;
+        SetupStage++;
+    }
+
+    [RelayCommand]
+    private void SetupBack()
+    {
+        Error = null;
+        if (SetupStage != SetupStep.Spa)
+        {
+            SetupStage--;
+        }
+    }
 
     public bool ShowPasswordLogin => IsStandalone && !SetupRequired && !ChangePasswordRequired && !RecoveryRequested
         && (!IsQuickSwitch || CodeRequested);
@@ -240,14 +320,14 @@ public partial class LoginViewModel(IWorkstationApi api, Func<CurrentUser, Task>
         [new("AT", "Österreich"), new("DE", "Deutschland"), new("CH", "Schweiz")];
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(CompleteSetupCommand))]
+    [NotifyCanExecuteChangedFor(nameof(CompleteSetupCommand), nameof(SetupContinueCommand))]
     public partial string SpaName { get; set; } = "";
 
     [ObservableProperty]
     public partial CountryChoice Country { get; set; } = Countries[0];
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(CompleteSetupCommand))]
+    [NotifyCanExecuteChangedFor(nameof(CompleteSetupCommand), nameof(SetupContinueCommand))]
     public partial string LocationName { get; set; } = "";
 
     [ObservableProperty]
@@ -406,6 +486,12 @@ public partial class LoginViewModel(IWorkstationApi api, Func<CurrentUser, Task>
     private bool CanCompleteSetup => SpaName.Trim().Length > 0 && LocationName.Trim().Length > 0 && OwnerName.Trim().Length > 0
         && UserName.Trim().Length > 0 && Password.Length >= 8 && NewPasswordRepeat.Length > 0;
 
+    /// <summary>
+    /// „Spa einrichten“ ist in diesem Lauf gerade fertig geworden; die App öffnet danach einmal den Assistenten „Betrieb einrichten“ (ADR 0104).
+    /// Nur im Speicher, nirgends gespeichert.
+    /// </summary>
+    public bool SetupJustCompleted { get; private set; }
+
     /// <summary>Einrichtung beim ersten Start; die Wiederholung des Passworts steht in <see cref="NewPasswordRepeat"/>.</summary>
     [RelayCommand(CanExecute = nameof(CanCompleteSetup))]
     private async Task CompleteSetupAsync()
@@ -421,6 +507,7 @@ public partial class LoginViewModel(IWorkstationApi api, Func<CurrentUser, Task>
             UserName.Trim(), Password)).ConfigureAwait(true);
         if (result.Ok)
         {
+            SetupJustCompleted = true;
             SetupRequired = false;
             Password = NewPasswordRepeat = "";
         }

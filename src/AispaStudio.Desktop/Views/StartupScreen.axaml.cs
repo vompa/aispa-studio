@@ -40,6 +40,7 @@ public partial class StartupScreen : UserControl
     private bool _introduced;
     private bool _leaving;
     private bool _wasOffline;
+    private bool _wasChoiceShown;
     private Action<double>? _handover;
 
     public StartupScreen()
@@ -79,7 +80,8 @@ public partial class StartupScreen : UserControl
 
     private void OnViewModelChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName is nameof(MainViewModel.IsStarting) or nameof(MainViewModel.IsStartupScreenShown) or nameof(MainViewModel.IsOffline))
+        if (e.PropertyName is nameof(MainViewModel.IsStarting) or nameof(MainViewModel.IsStartupScreenShown) or nameof(MainViewModel.IsOffline)
+            or nameof(MainViewModel.IsStartChoiceShown))
         {
             Update();
         }
@@ -136,10 +138,17 @@ public partial class StartupScreen : UserControl
         if (vm.IsOffline && !_wasOffline)
         {
             // Erst jetzt gibt es etwas zu bedienen.
-            Dispatcher.UIThread.Post(() => (vm.IsBlocked ? Quit : Retry).Focus(), DispatcherPriority.Loaded);
+            Dispatcher.UIThread.Post(() => (vm.IsBlocked ? Quit : vm.IsStartChoiceShown ? ChoiceSetUp : Retry).Focus(), DispatcherPriority.Loaded);
+        }
+
+        else if (vm.IsOffline && _wasChoiceShown && !vm.IsStartChoiceShown && !vm.IsBlocked)
+        {
+            // Die Auswahl ist weg und mit ihr der Knopf mit dem Fokus.
+            Dispatcher.UIThread.Post(() => Retry.Focus(), DispatcherPriority.Loaded);
         }
 
         _wasOffline = vm.IsOffline;
+        _wasChoiceShown = vm.IsStartChoiceShown;
     }
 
     /// <summary>Die Wellen zeichnen sich in 600 ms (die zweite 120 ms später), danach der Tropfen; Name und Stand erscheinen in 200 ms.</summary>

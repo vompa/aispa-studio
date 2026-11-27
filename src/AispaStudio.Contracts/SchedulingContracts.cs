@@ -70,12 +70,41 @@ public sealed record LocationDto(
     DateOnly? ClosedFrom = null);
 
 /// <summary>
-/// Ein Schritt der Ersteinrichtung („Betrieb einrichten“): <c>Done</c>, sobald es mindestens einen passenden Eintrag gibt; <c>Page</c> und <c>Tab</c> sind das Sprungziel der Verwaltung.
+/// Ein Schritt der Ersteinrichtung („Betrieb einrichten“): <c>Done</c>, sobald der Schritt für das Buchen taugt (ADR 0104, Entscheidung 6); <c>Page</c> und <c>Tab</c> sind das Sprungziel der Verwaltung.
+/// <c>Missing</c>: was fehlt, als fertiger Satz; nur bei offenem Schritt gesetzt. <c>Note</c>: Hinweis, der den Schritt nicht offen lässt (z. B. Behandlungen ohne Preis).
 /// </summary>
-public sealed record SetupStepDto(string Key, string Title, string Hint, bool Done, string Page, string? Tab);
+public sealed record SetupStepDto(string Key, string Title, string Hint, bool Done, string Page, string? Tab, string? Missing = null, string? Note = null);
 
-/// <summary>Antwort von <c>GET /api/setup/progress</c>: die Schritte in der Reihenfolge, in der man sie abarbeitet.</summary>
-public sealed record SetupProgressDto(IReadOnlyList<SetupStepDto> Steps);
+/// <summary>
+/// Antwort von <c>GET /api/setup/progress</c>: die Schritte in der Reihenfolge, in der man sie abarbeitet. <c>Readiness</c>: ob sich in den nächsten 14 Tagen
+/// mindestens eine Behandlung buchen lässt.
+/// </summary>
+public sealed record SetupProgressDto(IReadOnlyList<SetupStepDto> Steps, SetupReadinessDto? Readiness = null);
+
+/// <summary>Bereitschaftsprüfung der Ersteinrichtung: <c>FirstSlot</c> ist bei <c>Ready</c> der erste freie Platz, sonst nennt <c>Reason</c> den Grund als fertigen Satz.</summary>
+public sealed record SetupReadinessDto(bool Ready, SetupFirstSlotDto? FirstSlot = null, string? Reason = null);
+
+/// <summary>Der erste freie Platz, den der Planer für eine Behandlung findet (Beginn in UTC).</summary>
+public sealed record SetupFirstSlotDto(Guid LocationId, string LocationName, Guid TreatmentId, string TreatmentName, DateTimeOffset Start);
+
+/// <summary>
+/// Ein Paket des Startkatalogs (<c>GET /api/setup/catalog</c>): <c>Key</c> ist stabil, <c>Qualification</c> der Name der Qualifikation, die das Paket anlegt
+/// oder nutzt. Die Behandlungen haben keinen Preis.
+/// </summary>
+public sealed record SetupCatalogPackageDto(string Key, string Title, string Hint, string Qualification, IReadOnlyList<SetupCatalogTreatmentDto> Treatments);
+
+/// <summary>Eine Behandlung des Startkatalogs; <c>Exists</c>, wenn es schon eine Behandlung (auch inaktiv) mit diesem Namen gibt (ohne Beachtung der Groß- und Kleinschreibung).</summary>
+public sealed record SetupCatalogTreatmentDto(string Name, int DurationMinutes, int PreparationMinutes, int FollowUpMinutes, string Category, bool Exists);
+
+/// <summary>Auswahl für <c>POST /api/setup/catalog/apply</c>: je Paket die Behandlungsräume, denen seine Behandlungen zugeordnet werden.</summary>
+public sealed record SetupCatalogApplyInput(IReadOnlyList<SetupCatalogChoice> Packages);
+
+public sealed record SetupCatalogChoice(string Key, IReadOnlyList<Guid> RoomIds);
+
+/// <summary>Antwort von <c>apply</c>: je Paket die Zahl der angelegten und der übersprungenen (schon vorhandenen) Behandlungen.</summary>
+public sealed record SetupCatalogApplyResult(IReadOnlyList<SetupCatalogApplied> Packages);
+
+public sealed record SetupCatalogApplied(string Key, int Created, int Skipped);
 
 /// <summary>Ab diesem Tag (Ortszeit des Standorts) ist der Standort geschlossen: keine Buchung mehr, im Kalender wie eine dauernde Schließzeit; vergangene Termine und Belege bleiben.</summary>
 public sealed record LocationCloseInput(DateOnly ClosedFrom);

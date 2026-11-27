@@ -20,9 +20,9 @@ public static class StandaloneMode
         bool? requested = args.Contains("--standalone", StringComparer.OrdinalIgnoreCase) ? true
             : args.Contains("--server", StringComparer.OrdinalIgnoreCase) ? false
             : null;
-        if (requested is { } value && value != current.Standalone)
+        if (requested is { } value && (value != current.Standalone || !current.StartChoiceMade))
         {
-            settings.Save(current with { Standalone = value });
+            settings.Save(current with { Standalone = value, StartChoiceMade = true });
             return value;
         }
 

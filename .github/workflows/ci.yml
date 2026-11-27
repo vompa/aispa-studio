@@ -11,7 +11,8 @@ permissions:
 
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  # Auf main nie mittendrin abbrechen: ein halber Upload ins Release windows-setup wäre ein halber Stand.
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 env:
   DOTNET_NOLOGO: true
@@ -157,7 +158,8 @@ jobs:
 
       - name: Für Windows veröffentlichen
         # win-x64 und selbstständig stehen in der Projektdatei (ADR 0078).
-        run: dotnet publish src/AispaStudio.Desktop -c Release -o publish/desktop
+        # Die Fassung 1.0.<Laufnummer> steht nur hier und in vpk pack, nicht im Repository (ADR 0104).
+        run: dotnet publish src/AispaStudio.Desktop -c Release -p:Version=1.0.${{ github.run_number }} -o publish/desktop
 
       # Einzelplatz-Betrieb (ADR 0041): API, Web-Oberfläche und PostgreSQL kommen mit ins Paket.
       - name: Einzelplatz-Teile ins Paket
@@ -188,6 +190,38 @@ jobs:
         env:
           AISPA_LOCAL_PACKAGE: ${{ github.workspace }}/publish/desktop
         run: dotnet test --project tests/AispaStudio.Desktop.Tests -c Release --filter-class "*LocalServerPackageTests"
+
+      # Nur Ausgabe für die Entscheidung, ob das Setup die VC++-Laufzeit (vcredist143-x64) wirklich braucht (Probe T-130):
+      # welche DLLs postgres.exe beim Start verlangt. Bricht nie ab.
+      - name: Importe von postgres.exe ins Protokoll
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          $vs = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath
+          $dumpbin = Get-ChildItem (Join-Path $vs 'VC\Tools\MSVC') -Recurse -Filter dumpbin.exe | Where-Object { $_.FullName -match 'Hostx64\\x64' } | Select-Object -First 1
+          & $dumpbin.FullName /dependents publish/desktop/postgres/bin/postgres.exe
+
+      # Setup und Updates (ADR 0104, Entscheidung 1): Velopack, ohne Signatur. Die ZIP-Datei bleibt daneben.
+      - name: Setup mit Velopack packen
+        shell: pwsh
+        run: |
+          dotnet tool restore
+          if ($LASTEXITCODE -ne 0) { throw "dotnet tool restore fehlgeschlagen" }
+          # Die Datenordner liegen unter %LOCALAPPDATA%\AispaStudio, das Programm unter %LOCALAPPDATA%\AispaStudioApp: andere packId
+          # nur mit Umzug der Daten (docs/umsetzung/velopack-probe.md). --noPortable: die ZIP-Datei bleibt der zweite Weg.
+          # --delta None: zum Start keine Delta-Pakete, es liegt immer nur das Vollpaket der neuesten Fassung im Release.
+          dotnet tool run vpk pack --packId AispaStudioApp --packVersion 1.0.${{ github.run_number }} --packDir publish/desktop `
+            --mainExe AispaStudio.Desktop.exe --packTitle "AISPA Studio" --icon src/AispaStudio.Desktop/Assets/aispa.ico `
+            --runtime win-x64 --framework webview2,vcredist143-x64 --shortcuts StartMenuRoot --noPortable --delta None --outputDir publish/setup
+          if ($LASTEXITCODE -ne 0) { throw "vpk pack fehlgeschlagen" }
+          Get-ChildItem publish/setup | Select-Object Name, Length
+
+      - name: Setup als Artefakt
+        uses: actions/upload-artifact@v7
+        with:
+          name: aispa-setup-win-x64
+          path: publish/setup
+          retention-days: 14
 
       - name: Protokolle des Einzelplatzes zeigen
         if: failure()
@@ -260,6 +294,47 @@ jobs:
           gh release create windows-app AispaStudio-Windows.zip --prerelease --target "$GITHUB_SHA" \
             --title "Windows-App (Prototyp, neuester Stand)" \
             --notes-file release-notes.md
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: aispa-setup-win-x64
+          path: AispaStudio-Setup
+
+      # Setup und Updates (ADR 0104): Release "windows-setup" bleibt bestehen, die App holt ihre Updates von dieser festen
+      # Adresse (AppUpdate.ReleaseUrl). Es liegt immer nur die neueste Fassung darin (Vollpaket, Setup, Index); Delta-Pakete
+      # gibt es zum Start nicht. Ein älterer Lauf überschreibt keine neuere Fassung. Dateien ersetzt --clobber, damit auch ein
+      # wiederholter Lauf mit derselben Nummer durchläuft. Reihenfolge: Paket, Setup, zuletzt der Index, damit er nie auf
+      # fehlende Pakete zeigt; erst danach fallen die älteren Pakete weg.
+      - name: Setup-Release aktualisieren
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          version="1.0.${{ github.run_number }}"
+          full="AispaStudioApp-${version}-full.nupkg"
+          if ! gh release view windows-setup > /dev/null 2>&1; then
+            gh release create windows-setup --prerelease --target "$GITHUB_SHA" \
+              --title "Windows-Setup (Prototyp, Updates)" \
+              --notes-file .github/release-notes/windows-setup.md
+          fi
+          existing=$(gh release view windows-setup --json assets --jq '.assets[].name')
+          for name in $(echo "$existing" | grep -E '^AispaStudioApp-.*-full\.nupkg$' || true); do
+            other=${name#AispaStudioApp-}
+            other=${other%-full.nupkg}
+            if [ "$other" != "$version" ] && [ "$(printf '%s\n%s\n' "$other" "$version" | sort -V | tail -n 1)" = "$other" ]; then
+              echo "::notice::Das Release trägt schon die neuere Fassung $other; Fassung $version wird nicht hochgeladen."
+              exit 0
+            fi
+          done
+          cd AispaStudio-Setup
+          gh release upload windows-setup "$full" --clobber
+          gh release upload windows-setup AispaStudioApp-win-Setup.exe --clobber
+          gh release upload windows-setup RELEASES releases.win.json assets.win.json --clobber
+          for name in $(echo "$existing" | grep -E '\.nupkg$' || true); do
+            if [ "$name" != "$full" ]; then
+              gh release delete-asset windows-setup "$name" --yes
+            fi
+          done
 
   docker:
     name: Lokaler Testbetrieb (Docker Compose)

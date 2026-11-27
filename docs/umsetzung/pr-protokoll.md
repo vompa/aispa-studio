@@ -8667,3 +8667,190 @@ Entscheidung des Auftraggebers vom 27.11.2026 (Wegfall von ihm freigegeben): Die
 - **Text-Prüfsatz:** die geänderten Hilfesätze und dieser Abschnitt nach [docs/gestaltung/texte.md](../gestaltung/texte.md): keine Anrede, kein „bitte“, Knöpfe fett; `textRules.test.ts` grün. Kurz-Checkliste aus [masken.md](../gestaltung/masken.md) Abschnitt 6: Punkt 14 (Tab-Reihenfolge, Enter, Esc, Beschriftung am Knopf und an den Einträgen) im Ansichtstest geprüft; Punkt 15 (Maße aus design.md: Knopf und Menü wie `TimesOutputButton`) übernommen; Punkt 10 (Fragezeichen, Hilfethema) angepasst; die übrigen Punkte betreffen Eingabemasken und treffen hier nicht zu.
 - **Nicht geprüft:** Anblick in der echten Windows-App und bei schmalem Fenster (Breite der Kopfzeile mit Reitern, Kassa-Auswahl und Symbolknöpfen), echter Speicher- und Druckdialog (Tests nehmen einen Fake), Kassenaufsicht und Rezeption als Bild, Fokus nach dem Schließen der Karte der Gutscheinliste, volle Suite, Handbuchbilder.
 - **Handtest:** **Kassa** als Inhaberin: in der Kopfzeile steht **Ausgabe**, keine Knöpfe „Exportieren“ und „Gutscheinliste …“. Das Menü zeigt „Gutscheinliste · alle Gutscheine“ (nur mit Kassenaufsicht oder Recht auf Berichte mit Beträgen) und „Listen · Belegtag“ mit zwölf Einträgen; ein Eintrag der Listen speichert eine Datei und unten erscheint „Gespeichert: …“. **Drucken oder als PDF speichern …** öffnet die Karte unter dem Knopf. Mit **Tab** auf **Ausgabe**, **Enter**, Pfeile, **Esc**: der Fokus liegt wieder auf dem Knopf. Als Rezeption ohne Recht: kein Knopf **Ausgabe**; **Tagesabschluss als PDF** steht weiter im Reiter „Kassenlade und Abschluss“ nach dem Speichern.
+
+## Startauswahl auf einem PC ohne Einrichtung (T-132, 27.11.2026)
+
+Auftrag des Auftraggebers vom 27.11.2026 ([ADR 0104](../entscheidungen/0104-gefuehrte-ersteinrichtung.md), Entscheidung 2): Die App läuft fast immer im Einzelplatz. Ein PC ohne Einrichtung zeigt eine Startauswahl statt der Suche nach einem Server.
+
+- **Geändertes Verhalten (freigegeben):** Ein Start ohne Schalter suchte bisher rund 30 Sekunden einen Server unter `localhost:5086` und zeigte dann „Keine Verbindung“. Jetzt erscheint nach einer Probe von 3 Sekunden die Startauswahl. PCs mit Schalter, mit `AISPA_API_URL`, mit gespeicherter Verbindung, im Einzelplatz oder mit einem antwortenden Server starten wie bisher.
+- **Was:** Neues Feld `StartChoiceMade` in den Einstellungen der App. Regel `StartChoice.IsDue` (kein Schalter, keine Adresse aus der Umgebung, noch nichts gewählt). Karte `StartChoiceCard` im `StartupScreen` mit der Hauptaktion **Neues Spa auf diesem PC einrichten** und den Nebenwegen **Beispiel-Spa ansehen**, **Aus einer Sicherung wiederherstellen** und **Mit einem vorhandenen Spa verbinden**. `--standalone` und `--server` merken die Wahl, `--demo` nicht.
+- **Detailentscheidungen:**
+  1. **Keine eigene Logik.** „Neues Spa“ und „Wiederherstellen“ speichern den Einzelplatz und starten neu; danach steht „Spa einrichten“. Das Beispiel-Spa startet neu mit `--demo` und speichert nichts. „Verbinden“ zeigt die vorhandenen Karten für Netzwerk und Server.
+  2. **Bestand gilt als gewählt.** Ein PC im Einzelplatz oder mit gespeicherter Serveradresse sieht die Auswahl nie.
+  3. **Server-Betrieb über `localhost`.** Dieser Weg speichert keine Adresse. Antwortet der Server bei der Probe, merkt die App die Wahl; gibt es einen lokalen Offline-Stand ([ADR 0005](../entscheidungen/0005-offline-windows-app-am-empfang.md)), entfällt die Auswahl ganz. Nur der allererste Start ohne erreichbaren Server zeigt sie; [server.md](../installation/server.md) nennt das.
+  4. **„Erneut versuchen“ nach „Verbinden“** zeigt die Auswahl nicht wieder, solange die App läuft.
+  5. **Fokus:** Der Hauptknopf hat beim Erscheinen den Fokus und ist Standardknopf. Nach „Verbinden“ geht der Fokus auf **Erneut versuchen**.
+- **Kalt-Review:** drei Befunde, alle behoben (Punkt 3, eine Wartezeit von rund 30 Sekunden im Test, Fokus nach „Verbinden“).
+- **Hilfe und Doku:** `einzelplatz.md` (`#einschalten`, `#beispiel-spa`), [standalone.md](../installation/standalone.md), [server.md](../installation/server.md), [Masken-Inventar](masken-inventar.md).
+- **Neue Tests:** 4 (Budget 5): drei in `StartChoiceTests` (Regel mit Schaltern, Umgebung und Bestand; Probe mit und ohne Server samt Offline-Stand; „Neues Spa“ speichert und startet neu, das Beispiel speichert nichts) und der Ansichtstest `Startauswahl_zeigt_Hauptknopf_mit_Fokus_und_drei_Nebenwege` (hell und dunkel).
+- **Geprüft:** `dotnet format --verify-no-changes` und `dotnet build -c Release` ohne Warnung (Exitcode 0). Gezielte Läufe: 27, 63 und 30 Tests grün (`.test-logs/t132-run1.log` bis `t132-run3.log`), nach der Korrektur `StartChoiceTests` 3 und `*Startauswahl*` 4 grün (`t132-run4.log`, `t132-run5.log`). `npm test -- src/help` 72 grün. Das Bild der Startauswahl wurde angesehen.
+- **Nicht geprüft:** der Neustart in der echten App (Einzelplatz, `--demo`), die Probe gegen einen echten Server, die ganze Klasse `ViewTests`, die volle Suite, Handbuchbilder.
+- **Beim Schreiben festgestellt:** „Aus einer Sicherung wiederherstellen“ landet nach dem Neustart auf „Spa einrichten“; die Wiederherstellung ist dort einen Klick weiter. Sie gleich zu öffnen, braucht einen Merker über den Neustart und gehört zu T-133.
+- **Text-Prüfsatz:** Texte der Karte, der Hilfe und dieses Abschnitts nach [texte.md](../gestaltung/texte.md): kurze Sätze, Knöpfe fett, kein „bitte“; `textRules.test.ts` grün.
+
+## Betrieb einrichten: feinere Schritte und Bereitschaftsprüfung in der API (T-134a, 27.11.2026)
+
+Auftrag des Auftraggebers vom 27.11.2026 ([ADR 0104](../entscheidungen/0104-gefuehrte-ersteinrichtung.md), Entscheidungen 4 bis 6): Der Assistent führt bis zum ersten buchbaren Termin. Die API sagt deshalb je Schritt, was fehlt, und prüft, ob sich eine Behandlung buchen lässt.
+
+- **Was:** `GET /api/setup/progress` liefert je Schritt zusätzlich `missing` (was fehlt, mit dem Ort in der App) und `note` (Hinweis bei erledigtem Schritt). Mit `?readiness=true` kommt `readiness` dazu: bereit oder nicht, der erste freie Platz (Standort, Behandlung, Beginn) oder der Grund im Klartext. Neue Datei `SetupReadiness.cs`.
+- **Vertrag:** nur erweitert ([ADR 0085](../entscheidungen/0085-api-version-in-den-pfaden.md)). Alle neuen Felder und der Parameter sind optional; `web/openapi/aispa-api.json` und `schema.d.ts` sind nachgezogen.
+- **Detailentscheidungen:**
+  1. **Ein Schritt gilt erst, wenn er für das Buchen taugt.** Räume zählen ohne Bereiche wie die Sauna. Eine Behandlung braucht einen aktiven Raum. Im Team zählt nur eine Person mit Arbeitszeiten oder Diensten, die alle Qualifikationen einer Behandlung hat.
+  2. **Preis 0 lässt den Schritt erledigt** und setzt nur den Hinweis „Bei n Behandlungen fehlt der Preis“. Der Startkatalog legt Behandlungen ohne Preis an.
+  3. **Bereitschaft nur auf Anforderung.** Die Karte „Betrieb einrichten“ lädt bei jedem Öffnen der Firmendaten; ohne den Parameter bleibt es bei fünf Abfragen. Der Assistent fragt die Bereitschaft gezielt ab.
+  4. **Die Prüfung rechnet mit dem Planer**, nicht daneben: `BookingService.LoadContextAsync` und `ResourcePlanner.FreeSlots` im Raster von 15 Minuten, ab jetzt, über 14 Tage. `ResourcePlanner.cs` ist unverändert.
+  5. **Gründe in fester Reihenfolge:** alle Standorte geschlossen, keine Öffnungszeiten, keine Behandlung oder kein Raum, niemand im Team oder Qualifikation fehlt (mit Namen), niemand im Dienst, sonst der allgemeine Satz.
+  6. **Obergrenzen:** höchstens drei Paare aus Standort und Behandlung, reihum über die Standorte verteilt, und höchstens acht Ladevorgänge des Planungskontexts. Geschlossene Standorte zählen nirgends. Tage ohne Öffnungsfenster (Schließzeiten) werden übersprungen, bevor sie einen Ladevorgang kosten.
+  7. **Die Vorlaufzeit der Online-Buchung zählt nicht.** Gefragt ist, ob der Empfang buchen kann.
+- **Kalt-Review:** fünf Befunde, alle behoben (Paare vor der Eignung gekappt, Schließzeiten verbrauchen die Obergrenze, geschlossene Standorte zählen mit, Last bei jedem Aufruf, Tests auf Teilwörter).
+- **Hilfe:** `firmendaten.md`, Abschnitt `#betrieb-einrichten`: ein Satz, wann ein Schritt als erledigt gilt.
+- **Neue Tests:** 7 in `SetupProgressTests` (Budget 5, vom Lead nach dem Kalt-Review um 2 erhöht): Person ohne Arbeitszeiten, fehlende Qualifikation mit Namen, eingerichteter Betrieb mit erstem Platz, leerer Betrieb, Preis 0 als Hinweis und ohne Parameter keine Bereitschaft, geschlossener neben offenem Standort, Schließzeit über neun Tage. Die Gründe werden gegen die Konstanten verglichen.
+- **Geprüft:** `dotnet build AispaStudio.slnx -c Release` ohne Warnung, `dotnet format --verify-no-changes`, `npm run gen:api`, `npm run typecheck` und `npm test -- src/help` (Exitcode 0). `SetupProgressTests` und `LocationClosingTests`: 17 Tests grün (`.test-logs/t134a-k-run1.log`). Ein roter Lauf davor (7 von 15) zeigte eine fehlende Split-Query und ist behoben.
+- **Nicht geprüft:** volle Suite, `DemoBulkTests`, Desktop-Tests (sie bauen), Laufzeit im Beispielbetrieb, Standorte in verschiedenen Zeitzonen.
+- **Beim Schreiben festgestellt:**
+  - Die Diagnose kennt keine Geräte. Fehlt das Gerät einer Behandlung, endet die Prüfung beim allgemeinen Satz.
+  - Der Hinweis „Preis fehlt“ prüft nur den Grundpreis. Eine Behandlung mit Grundpreis 0 und Preisen je Standort oder Preisregeln zählt fälschlich als ohne Preis; das behebt T-134b.
+  - Die Karte in der App zeigt `missing`, `note` und `readiness` noch nicht; das kommt mit T-135.
+- **Handtest:** ohne Block, die App zeigt nichts Neues.
+- **Text-Prüfsatz:** die Sätze der API und dieser Abschnitt nach [texte.md](../gestaltung/texte.md): sie sagen, was fehlt und wo es einzutragen ist, ohne „bitte“.
+
+## Setup und Updates mit Velopack (T-131, 27.11.2026)
+
+Auftrag des Auftraggebers vom 27.11.2026 ([ADR 0104](../entscheidungen/0104-gefuehrte-ersteinrichtung.md), Entscheidung 1): ein kleines Setup, das die Voraussetzungen prüft und installiert, statt die ZIP-Datei zu entpacken. Zum Start ohne Signatur.
+
+- **Was:** Paket `Velopack` 1.2.161 und das Werkzeug `vpk` (`dotnet-tools.json`). `VelopackApp.Build()…Run()` ist die erste Anweisung in `Program.Main`. Neuer Dienst `AppUpdate`: prüft 30 Sekunden nach dem Start im Hintergrund, lädt einen neuen Stand und lässt ihn beim nächsten Start einspielen; nur in einer Installation über das Setup. Die CI packt `AispaStudioApp-win-Setup.exe` (Job `desktop`) und pflegt auf `main` das Release `windows-setup` (Job `windows-download`). Die ZIP-Datei im Release `windows-app` bleibt.
+- **Detailentscheidungen:**
+  1. **packId `AispaStudioApp`.** Das Programm liegt unter `%LOCALAPPDATA%\AispaStudioApp`, die Daten bleiben unter `%LOCALAPPDATA%\AispaStudio`. Eine Deinstallation löscht so keine Daten ([Befund T-130](velopack-probe.md)).
+  2. **Fassung `1.0.<Laufnummer der CI>`.** Sie steht nur im Workflow, nicht im Repository.
+  3. **Kein Einspielen neben einer laufenden App.** Das Einspielen beendet jeden Prozess im Programmordner, auch die offene App mit Server und Datenbank. `AppUpdate.MayApplyOnStartup` erlaubt es deshalb nicht im Lauf der Sicherung (`--sichern`) und nicht, solange eine andere Instanz läuft. Das Update kommt dann beim nächsten Start ohne diese Lage.
+  4. **Zum Start keine Delta-Pakete** (`--delta None`). Im Release liegt immer nur die neueste Fassung: Vollpaket, Setup und Index. Es wächst nicht. Jedes Update lädt dafür das volle Paket (rund 200 MB). Delta-Pakete bleiben bewusst offen.
+  5. **Ein älterer Lauf überschreibt keine neuere Fassung.** Der Upload vergleicht die Fassungen und endet sonst mit einem Hinweis.
+  6. **Reihenfolge im Upload:** Paket, Setup, zuletzt der Index; erst danach fallen ältere Pakete weg. Auf `main` bricht ein neuer Push den laufenden Lauf nicht mehr ab (`cancel-in-progress` nur für andere Branches).
+  7. **Voraussetzungen:** `--framework webview2,vcredist143-x64`. Ob PostgreSQL die VC++-Laufzeit braucht, ist nicht belegt; ein Schritt der CI schreibt die Importe von `postgres.exe` ins Protokoll.
+  8. **Keine Oberfläche für Updates** und keine Signatur. SmartScreen warnt; [standalone.md](../installation/standalone.md) nennt den Weg.
+- **Kalt-Review (Opus):** sechs Befunde. Behoben: Einspielen neben laufender App (Punkt 3), Index ersetzt statt ergänzt und Wiederholung eines älteren Laufs (Punkte 4 und 5), Abbruch mitten im Upload (Punkt 6), Größenangabe 65 statt rund 200 MB, ein Testkommentar, der mehr versprach, als der Test prüft.
+- **Hilfe und Doku:** `einzelplatz.md` (`#einschalten`), [standalone.md](../installation/standalone.md), [Installation](../installation/README.md), `README.md`, Release-Notizen `windows-setup.md` und `windows-app.md`, `THIRD-PARTY-NOTICES.md`.
+- **Neue Tests:** 3 in `AppUpdateTests` (Budget 5): Programm- und Datenordner sind getrennt, ohne Installation prüft die App nichts, das Einspielen beim Start ist nur ohne Sicherungsschalter und ohne andere Instanz erlaubt.
+- **Geprüft:** Build der Desktop-Projekte in Release ohne Warnung, `dotnet format --verify-no-changes` für die geänderten Dateien, `*AppUpdateTests*` 3 von 3 grün (`.test-logs/t131-test4.log`), `npm test -- src/help`. `vpk pack` mit `--delta None` lief lokal durch. `ci.yml` parst als YAML.
+- **Nicht geprüft:** die neuen Schritte der CI (laufen erst mit dem Push), der Upload ins Release (erst auf `main`), Installation, Update von Fassung zu Fassung und Deinstallation auf einem frischen Windows, die Erkennung der anderen Instanz im echten Start, die volle Suite.
+- **Beim Schreiben festgestellt:**
+  - Wer die App nie schließt und sie nur neben der laufenden Sicherung startet, bekommt kein Update. Ein Hinweis in der App fehlt.
+  - Der Delta-Weg von Velopack prüft das fertige Paket nicht gegen die Prüfsumme; das ist ein Grund mehr, mit Vollpaketen zu beginnen.
+- **Text-Prüfsatz:** Hilfe, Installationsseiten und dieser Abschnitt nach [texte.md](../gestaltung/texte.md): kurze Sätze, Knöpfe fett, kein „bitte“; `textRules.test.ts` grün.
+
+## „Spa einrichten“ in drei Schritten (T-133, 27.11.2026)
+
+Auftrag des Auftraggebers vom 27.11.2026 ([ADR 0104](../entscheidungen/0104-gefuehrte-ersteinrichtung.md), Entscheidung 3): Die Ersteinrichtung führt in kurzen Schritten statt mit einem Formular aus sechs Feldern.
+
+- **Was:** Das Formular „Spa einrichten“ in der Anmeldung (`LoginView`) hat drei Schritte: Name des Spas und Land, erster Standort, Konto der Inhaberin bzw. des Inhabers. Die Anzeige „Schritt n von 3“ nennt den Stand. **Weiter** ist aktiv, sobald die Pflichtfelder des Schritts ausgefüllt sind, **Zurück** behält die Eingaben. **Spa einrichten** steht im dritten Schritt.
+- **Vertrag:** unverändert. Die App schickt am Ende dieselbe Anfrage `StandaloneSetup` wie bisher.
+- **Detailentscheidungen:**
+  1. **Muster übernommen**, nicht neu erfunden: Schritt als Enum (`SetupStep`), `SetupContinueCommand`, `SetupBackCommand`, wie im Kundenimport.
+  2. **Wiederherstellen und Verbinden nur in Schritt 1.** Wer aus einer Sicherung wiederherstellt oder sich mit einem bestehenden Spa verbindet, richtet kein neues Spa ein.
+  3. **Fokus** steht nach jedem Wechsel im ersten Feld des Schritts.
+  4. **Fehler der API** erscheinen im dritten Schritt. Die API prüft nur Pflichtfelder und Land; ein Fehler zu einem früheren Schritt ist damit praktisch ausgeschlossen, **Zurück** führt sonst dorthin.
+  5. **Standardknopf:** **Weiter** in Schritt 1 und 2, **Spa einrichten** in Schritt 3. Ist „Wiederherstellen“ oder „Verbinden“ aufgeklappt, hat die Seite keinen Standardknopf; Enter in deren Feldern sprang sonst zu Schritt 2 und blendete den offenen Bereich aus.
+- **Kalt-Review:** vier Befunde, alle behoben (Punkt 5, Schritt 2 fehlte in zwei Zustandstests, eine Zählung prüfte „mindestens 1“ statt genau 2, ein Richtungswort im Hilfetext).
+- **Hilfe und Doku:** `einzelplatz.md` (Abschnitt „Spa einrichten“), [standalone.md](../installation/standalone.md), [Masken-Inventar](masken-inventar.md).
+- **Neue Tests:** 2 (Budget 5): Schritte mit **Weiter** und **Zurück** samt erhaltenen Eingaben in `StandaloneLoginTests`, Ansichtstest der Schritte mit Fokus. Die Zustandstests der Anmeldeseite (Feldnamen, Standardknopf) kennen jetzt alle drei Schritte.
+- **Geprüft:** `dotnet format --verify-no-changes`, Build in Release ohne Warnung, `--filter-method "*Anmeldeseite*"` 20 von 20, `StandaloneLoginTests` 8 von 8 (`.test-logs/t133-k-anm.log`, `t133-k-vm.log`), `npm test -- src/help` grün. Das Bild von Schritt 1 wurde angesehen.
+- **Nicht geprüft:** Enter in der laufenden App, die Bilder der Schritte 2 und 3, die ganze Klasse `ViewTests`, die volle Suite, Handbuchbilder.
+- **Beim Schreiben festgestellt:**
+  - „Aus einer Sicherung wiederherstellen“ in der Startauswahl (T-132) landet weiter auf Schritt 1; der Bereich ist dort nicht von selbst aufgeklappt.
+  - Im aufgeklappten „Wiederherstellen“ oder „Verbinden“ löst Enter keinen Knopf aus; das war vorher auch so.
+- **Text-Prüfsatz:** Texte der Maske, der Hilfe und dieses Abschnitts nach [texte.md](../gestaltung/texte.md): kurze Sätze, Knöpfe fett, kein Richtungswort; `textRules.test.ts` grün.
+
+## Startkatalog nach Art des Spas in der API (T-134b, 27.11.2026)
+
+Auftrag des Auftraggebers vom 27.11.2026 ([ADR 0104](../entscheidungen/0104-gefuehrte-ersteinrichtung.md), Entscheidungen 4 und 5): Der Assistent bietet nach der Art des Spas Pakete typischer Behandlungen an, „wo es sinnvoll ist“.
+
+- **Was:** `GET /api/setup/catalog` liefert vier feste Pakete mit ihren Behandlungen und dem Merkmal `exists`. `POST /api/setup/catalog/apply` legt je gewähltem Paket die fehlende Qualifikation und die fehlenden Behandlungen an, zugeordnet zu den genannten Räumen. Beide verlangen das Recht `ManageCatalog`, wie `POST /api/treatments`. Neue Datei `SetupCatalog.cs`.
+- **Vertrag:** nur erweitert ([ADR 0085](../entscheidungen/0085-api-version-in-den-pfaden.md)); `web/openapi/aispa-api.json` und `schema.d.ts` sind nachgezogen.
+- **Pakete:** Massage (5 Behandlungen), Kosmetik (3), Hand und Fuß (4), Hamam und Wellness (3). Namen und Dauern lehnen sich an die Beispieldaten an. Jedes Paket hat eine Qualifikation und eine Kategorie.
+- **Detailentscheidungen:**
+  1. **Kein zweiter Weg der Anlage.** `apply` ruft dieselbe Prüfung und Anlage wie `POST /api/treatments` und `POST /api/qualifications` auf.
+  2. **Ohne Preis.** Die Behandlungen entstehen mit Preis 0, ohne Gerät, Material und Ausfallgebühr; der Fortschritt meldet „Preis fehlt“.
+  3. **Alles oder nichts.** Die Anlage läuft in einer Transaktion; ein Fehler legt nichts an.
+  4. **Nichts doppelt.** Eine Behandlung gleichen Namens zählt als vorhanden, auch eine inaktive, und wird übersprungen. Sonst gäbe es nach dem Reaktivieren zwei aktive Behandlungen gleichen Namens. Die Qualifikation wird ohne Beachtung der Groß- und Kleinschreibung wiederverwendet.
+  5. **Sperre je Mandant** (`pg_advisory_xact_lock`) gegen zwei gleichzeitige Aufrufe, etwa bei einem Doppelklick.
+  6. **Räume:** nur aktive Behandlungsräume an Standorten, die die Person sieht; keine Bereiche wie die Sauna. Ohne Raum antwortet `apply` mit 400 und Klartext. Der Schritt Räume steht im Assistenten deshalb vor den Behandlungen.
+  7. **Eingabe:** kein Paket, unbekanntes Paket, leeres Element und dasselbe Paket zweimal ergeben 400.
+  8. **Hinweis „Preis fehlt“ berichtigt:** Eine Behandlung gilt als bepreist, wenn der Grundpreis über 0 liegt oder an jedem Standort mit Behandlungsraum ein Standortpreis über 0 steht. Preisregeln zählen nicht, weil außerhalb der Regel der Grundpreis gilt.
+- **Kalt-Review:** fünf Befunde, alle behoben (Punkte 4, 5, 7 und 8, dazu ein Test für den Fall, dass Qualifikation und eine Behandlung schon da sind).
+- **Hilfe:** keine Änderung; die Oberfläche kommt mit dem Assistenten (T-135b) und bringt ihren Hilfetext mit.
+- **Neue Tests:** 6 (Budget 5, vom Lead nach dem Kalt-Review um 2 erhöht): Katalog mit `exists`; Anwenden und erneutes Anwenden; abgelehnte Fälle (Recht, unbekanntes Paket, kein Raum, unbekannter Raum, Bereich, inaktiver Raum, leeres Element, doppeltes Paket) ohne Anlage; zwei gleichzeitige Aufrufe; Teilfall mit vorhandener Qualifikation; Preis-Hinweis mit zwei Standorten. Die Meldungen werden gegen die Konstanten verglichen.
+- **Geprüft:** `dotnet build AispaStudio.slnx -c Release` ohne Warnung, `dotnet format --verify-no-changes` für die geänderten Dateien, `npm run gen:api`, `npm run typecheck`, `SetupCatalogTests` und `SetupProgressTests` grün.
+- **Nicht geprüft:** volle Suite, `DemoBulkTests`; ob der Test der gleichzeitigen Aufrufe ohne die Sperre rot wird.
+- **Beim Schreiben festgestellt:**
+  - `apply` nimmt Räume an einem geschlossenen Standort an, wie `POST /api/treatments`. Der Fortschritt zählt solche Räume nicht und meldet dann weiter „Keine Behandlung hat einen Raum“.
+  - `POST /api/treatments/{id}/reactivate` prüft keinen Namen, `POST /api/qualifications` prüft den Namen ohne Sperre. Beides ist älter als diese Aufgabe.
+- **Handtest:** ohne Block, die App zeigt den Katalog erst mit T-135b.
+- **Text-Prüfsatz:** die Meldungen der API und dieser Abschnitt nach [texte.md](../gestaltung/texte.md): sie sagen, was fehlt und was zu wählen ist, ohne „bitte“.
+
+## Befund zum Kassa-Assistenten (T-137, 27.11.2026)
+
+Auftrag des Auftraggebers vom 27.11.2026 ([ADR 0104](../entscheidungen/0104-gefuehrte-ersteinrichtung.md)): Die Kassa bekommt nach dem Assistenten „Betrieb einrichten“ einen eigenen Assistenten. Diese Aufgabe liefert nur den Befund, gebaut wird nichts.
+
+- **Was:** [kassa-assistent-befund.md](kassa-assistent-befund.md): was heute zur Einrichtung der Kassa gehört, was Pflicht ist, Stand je Land (RKSV, TSE, Schweiz), Endpunkte, einschlägige ADRs, ein Vorschlag für die Schritte und den Schnitt in Pakete, sieben offene Entscheidungen des Auftraggebers.
+- **Wichtigste Befunde:**
+  1. Die Windows-App hat keine Maske, die eine Kassa anlegt; nur die API kann es (`POST /api/pos/registers`). Der Schritt „Kassa einrichten“ der Karte führt zum Reiter „Kassa“, der nur Rabatte kennt.
+  2. „Kassa vorhanden“ zählt jede aktive Kassa, auch eine mit Test-Signatur. Als „erledigt“ taugt das nicht.
+  3. Österreich signiert nur mit der Test-Einrichtung, Deutschland hat nur eine Test-TSE, und die ist im Einzelplatz nicht eingeschaltet (`Fiscal:TestTse` steht nur in der Entwicklungs-Konfiguration).
+- **Geprüft:** 59 Angaben mit Datei und Zeile gegen die Quelle, 12 berichtigt; die drei Befunde oben vom Lead an der Quelle nachgelesen.
+- **Nicht geprüft:** kein Lauf der App oder der API; Aussagen zum Recht geben nur wieder, was Code und ADRs sagen. Was offen blieb, steht im Befund unter „Nicht geklärt“.
+- **Folge:** eigener Plan zur Freigabe, sobald der Auftraggeber die Fragen 1, 2, 6 und 7 des Befunds beantwortet hat.
+- **Handtest:** ohne Block, nur ein Dokument.
+- **Text-Prüfsatz:** Befund und dieser Abschnitt nach [texte.md](../gestaltung/texte.md): Empfehlung zuerst, kurze Sätze, je Punkt Befund, Beleg und Folge.
+
+## Assistent „Betrieb einrichten“ in der Windows-App (T-135, 27.11.2026)
+
+Auftrag des Auftraggebers vom 27.11.2026 ([ADR 0104](../entscheidungen/0104-gefuehrte-ersteinrichtung.md), Entscheidungen 4 und 5): Nach „Spa einrichten“ führt ein Assistent von den Öffnungszeiten bis zum Team; die Behandlungen kommen aus dem Startkatalog nach Art des Spas.
+
+- **Was:** neue Ansicht `SetupWizardView` mit `SetupWizardViewModel`. Sie ersetzt die gewählte Seite im Inhaltsbereich und öffnet sich einmal nach „Spa einrichten“ und über **Assistent starten** auf der Karte „Betrieb einrichten“. Die Schritte und ihr Stand kommen aus `GET /api/setup/progress`. Eigene Eingabe haben Öffnungszeiten, Räume, Behandlungen (Startkatalog) und Team; Standort und Kassa führen in die Verwaltung. Die API ist unverändert.
+- **Kein zweiter Datenweg:** Öffnungszeiten über `PUT /api/locations/{id}`, Räume über `POST /api/locations/{id}/rooms`, Behandlungen über `POST /api/setup/catalog/apply`, Personen über `POST /api/employees`.
+- **Detailentscheidungen:**
+  1. **Öffnungszeiten:** Ein Standort ohne Zeiten bekommt den Vorschlag Montag bis Samstag, 09:00 bis 18:00; er gilt erst nach **Speichern**. Der Hauptknopf im Schritt ist immer **Speichern**, weil das Zeitfeld seinen Wert erst mit Enter übernimmt. Ohne geöffneten Tag sendet der Schritt nichts.
+  2. **Räume:** Ein Raum aus dem Assistenten ist ein Behandlungsraum mit einem Platz und 10 Minuten Raumpflege, wie die Vorgabe in den Stammdaten.
+  3. **Behandlungen:** Pakete als Häkchen, nichts vorbelegt; die Räume sind alle vorgewählt und gelten für jedes gewählte Paket. Der Hauptknopf ist immer **Behandlungen anlegen**; **In der Verwaltung öffnen** bleibt der Nebenweg für eigene Behandlungen und Preise.
+  4. **Team:** Vorname, Nachname, Qualifikationen (alle vorgewählt) und „Arbeitet zu den Öffnungszeiten“. Die Anlage braucht kein Anmeldekonto; Zugänge und Einladungen bleiben in der Verwaltung. Für die Inhaberin bietet der Schritt nichts an.
+  5. **Mehrere Standorte:** Die Schritte wirken auf den ersten offenen Standort; sein Name steht in der Überschrift. „Offen“ heißt wie in der API: kein Schließdatum oder eines in der Zukunft.
+  6. **Ein Aufruf zur Zeit:** Während eines Aufrufs sind alle Knöpfe gesperrt, auch im Befehl selbst. Esc schließt nicht, solange Eingaben ungespeichert sind; ungespeicherte Zeiten überleben den Wechsel des Schritts.
+  7. **Fehler:** Antworten der API stehen als Meldung im Schritt. Scheitert das Neuladen nach einem erfolgreichen Schreiben, bleibt das Angelegte in der Liste und eine Meldung nennt es. Ohne das Recht auf Katalog oder Personen (403) führt der Schritt nur in die Verwaltung.
+  8. **Wochentage:** Die Tabelle der Wochentage steht einmal in `OpeningDayViewModel`; `LocationsViewModel` verwendet sie.
+  9. **Knopf gekürzt:** „Zeiten des ersten Tages für alle übernehmen“ heißt **Für alle Tage übernehmen** (Regel der 26 Zeichen).
+- **Abweichung vom Plan:** T-135a und T-135b liefen im selben Worktree und kommen als ein Squash, weil beide dieselben Dateien ändern. `MainViewModel.cs` kam dazu (Übergabe des Merkers nach „Spa einrichten“).
+- **Kalt-Reviews:** zwei, zusammen 14 Befunde, keiner kritisch, alle behoben (unter anderem Enter im Zeitfeld ohne Speichern, verlorene Zeiten beim Schrittwechsel, doppelter Raum nach Esc, verschluckte Ladefehler, Doppelausführung von **Person hinzufügen**).
+- **Hilfe:** `firmendaten.md`, Abschnitt „Assistent“ mit Startkatalog und Team; Fragezeichen in der Ansicht. [Masken-Inventar](masken-inventar.md) nachgezogen.
+- **Neue Tests:** 16 (14 im Modell, 2 Ansichtstests mit Bildern). Je Paket lag das Budget bei 5 und 3 neuen Tests und wurde gehalten; die langsamen Läufe lagen in drei von vier Paketen über dem Budget (5 statt 3, 4 statt 3, 6 statt 4), die Testzeit je Paket unter 3 Minuten.
+- **Geprüft:** Build der Desktop-Tests ohne Warnung, `dotnet format --verify-no-changes` für die geänderten Dateien, `SetupWizardTests` 14 von 14, die Ansichtstests des Assistenten mit den statischen Regeltests 109 von 109, `TermsAndTooltipTests`, `GridValueTests`, `AdminLocationsTests`, Hilfetests 72 von 72. Bilder der Schritte Öffnungszeiten, Behandlungen und Team als Inhaberin angesehen.
+- **Nicht geprüft:** volle Suite, ganze `ViewTests`, dunkles Schema, der Ablauf gegen die echte API im Einzelplatz (nur Stubs), echtes Enter im Zeitfeld und Esc nach dem Anlegen in der laufenden App, der Fall ohne Recht (403) als Test, mehrere Standorte in Behandlungen und Team.
+- **Beim Schreiben festgestellt:**
+  - Jedes Neuladen im Assistenten ruft sechs Endpunkte nacheinander, auch in Schritten, die nicht alle brauchen.
+  - Die Ansicht hat kein Strg+S; die Hilfe der Firmendaten nennt es für die Seite.
+  - Der Assistent endet mit dem letzten Schritt; Abschlussseite und Probetermin kommen mit T-136.
+- **Handtest:** Block T-135.
+- **Text-Prüfsatz:** Oberfläche, Hilfetext und dieser Abschnitt nach [texte.md](../gestaltung/texte.md): Knöpfe als Verb mit Gegenstand, Hinweise an gesperrten Knöpfen beginnen mit „Verfügbar, sobald“, Meldungen ohne „bitte“.
+
+## Abschluss des Assistenten mit Probetermin, Handbuch „Erste Schritte“ (T-136, 27.11.2026)
+
+Auftrag des Auftraggebers vom 27.11.2026 ([ADR 0104](../entscheidungen/0104-gefuehrte-ersteinrichtung.md), Entscheidung 4, Zeile „Abschluss“): Der Assistent endet mit der Prüfung, ob sich eine Behandlung buchen lässt, und führt zum ersten Termin.
+
+- **Was:** Abschlussseite des Assistenten „Betrieb einrichten“ (`SetupWizardViewModel.Finish.cs`), neue Methode `CalendarViewModel.ShowDayAsync`, neues Hilfethema [Erste Schritte](../../web/src/help/content/erste-schritte.md) mit drei Bildern. Die API ist unverändert.
+- **Detailentscheidungen:**
+  1. **Abschlussseite:** Sie folgt auf den letzten Schritt und öffnet sich direkt, wenn alle Schritte erledigt sind. „Schritt n von m“ zählt sie nicht mit. Beim Öffnen fragt sie `GET /api/setup/progress?readiness=true`.
+  2. **Buchbar:** Behandlung, Tag, Uhrzeit und Standort des ersten freien Platzes, in der Zeitzone des Standorts. **Probetermin im Kalender** ist der Hauptknopf.
+  3. **Nicht buchbar:** der Grund im Wortlaut der API. Die API nennt zum Grund keinen Schritt, deshalb ist **Zurück** der Hauptknopf.
+  4. **„Noch zu tun“:** offene Schritte und erledigte Schritte mit Hinweis (etwa fehlende Preise), je mit **Zum Schritt**. Nichts blockiert.
+  5. **Sprung in den Kalender:** `ShowDayAsync` liest die Standorte neu, verwirft die zwischengespeicherten Stammdaten und lädt einmal. Ohne das kennt der Kalender Räume, Team und Behandlungen nicht, die der Assistent eben angelegt hat. Der Kalender öffnet den Tag; eine Uhrzeit wählt er nicht vor, weil es dafür keine vorhandene Navigation gibt.
+  6. **Schließen** und Esc bleiben während der Prüfung der Bereitschaft möglich; ein Ergebnis nach dem Schließen wird verworfen.
+  7. **Hilfe:** „Erste Schritte“ beschreibt den Weg von der Startauswahl bis zum Probetermin und nennt unter „Danach“ Zugänge, Kundenimport und Module als Verweise. Eine eigene Oberfläche für diese Hinweise gibt es nicht.
+- **Kalt-Review:** sieben Befunde, einer kritisch, alle behoben. Kritisch: Die Abschlussseite meldete ihren Ladezustand bei jeder Eingabe, die Ansicht setzte darauf den Fokus neu; beim Tippen im Schritt Team sprang der Fokus nach jedem Zeichen ins erste Feld. Ein Test im Modell und einer in der Ansicht halten das fest.
+- **Bilder:** `scripts/help-images.sh` kennt nur den vollen Lauf. Die drei Bilder stammen aus den gezielten Ansichtstests (`AISPA_SCREENSHOTS`), wurden nach `web/src/help/images/app/` kopiert und mit `scripts/help-images-shrink.py` verkleinert. Sie tragen keine Markierung. Der volle Bildlauf erzeugt sie unter denselben Namen neu.
+- **Neue Tests:** 7 (6 im Modell, 1 Ansichtstest); zwei Ansichtstests erweitert. Die langsamen Läufe lagen im Korrekturpaket über dem Budget (6 statt 3), die Testzeit unter 5 Minuten.
+- **Geprüft:** Build der Desktop-Tests ohne Warnung, `dotnet format --verify-no-changes` für die geänderten Dateien, `SetupWizardTests` 20 von 20, Ansichtstests des Assistenten mit den statischen Regeltests 110 von 110, `CalendarTests` 42 von 42, `HelpTests` 25 von 25, `npm run lint`, `npm run typecheck`, Hilfetests 72 von 72. Bilder „bereit“ und „nicht buchbar“ als Inhaberin angesehen.
+- **Nicht geprüft:** volle Suite, ganze `ViewTests`, dunkles Schema, der Ablauf gegen die echte API im Einzelplatz, was der Kalender nach dem Sprung zeigt (nur Datum, Standort und Abfragen), Schließen während der laufenden Prüfung und der zweite Besuch der Seite (nur gelesen). Den Korrekturstand hat kein zweiter Kalt-Review gelesen.
+- **Beim Schreiben festgestellt:**
+  - `SetupReadinessDto` nennt zum Grund keinen Schritt; mit einem Schlüssel könnte die Seite direkt zum passenden Schritt springen.
+  - `scripts/help-images.sh` hat keinen Filter für einzelne Bilder.
+- **Handtest:** Block T-136.
+- **Text-Prüfsatz:** Oberfläche, Hilfethema und dieser Abschnitt nach [texte.md](../gestaltung/texte.md): Ergebnis zuerst, Knöpfe als Verb mit Gegenstand, nummerierte Schritte im Handbuch.

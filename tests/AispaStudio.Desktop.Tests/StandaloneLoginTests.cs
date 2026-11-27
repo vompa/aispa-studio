@@ -186,6 +186,49 @@ public sealed class StandaloneLoginTests
         Assert.Contains("\"locationName\":\"Gmunden\"", body, StringComparison.Ordinal);
     }
 
+    /// <summary>Rot, wenn Weiter ohne Pflichtfeld des Schritts freigegeben ist, Zurück Werte löscht oder der Abschluss ein anderes Setup sendet.</summary>
+    [Fact]
+    public async Task Einrichtung_geht_in_drei_Schritten_ohne_Werte_zu_verlieren_und_sendet_dasselbe_Setup()
+    {
+        var api = new StubApi()
+            .On("GET /api/system/modules", Standalone)
+            .On("GET /api/auth/standalone/setup", new StandaloneSetupState(true))
+            .On("POST /api/auth/standalone/setup", Rita(false));
+        var login = new LoginViewModel(api.Client(), _ => Task.CompletedTask);
+        await login.LoadAsync();
+
+        Assert.Equal(SetupStep.Spa, login.SetupStage);
+        Assert.Equal("Schritt 1 von 3", login.SetupStepText);
+        Assert.False(login.SetupContinueCommand.CanExecute(null));
+        login.SpaName = "Spa am See";
+        login.Country = LoginViewModel.Countries.Single(c => c.Code == "CH");
+        login.SetupContinueCommand.Execute(null);
+
+        Assert.Equal(SetupStep.Location, login.SetupStage);
+        Assert.False(login.SetupContinueCommand.CanExecute(null));
+        login.LocationName = "Linz";
+        login.SetupContinueCommand.Execute(null);
+        login.SetupBackCommand.Execute(null);
+        login.SetupBackCommand.Execute(null);
+
+        Assert.Equal(SetupStep.Spa, login.SetupStage);
+        Assert.Equal("Spa am See", login.SpaName);
+        Assert.Equal("CH", login.Country.Code);
+        Assert.Equal("Linz", login.LocationName);
+        login.SetupContinueCommand.Execute(null);
+        login.SetupContinueCommand.Execute(null);
+        login.OwnerName = "Eva Huber";
+        login.UserName = "eva";
+        login.Password = login.NewPasswordRepeat = "seeblick-2026";
+        await login.CompleteSetupCommand.ExecuteAsync(null);
+
+        var body = api.Calls.Single(c => c.Route == "POST /api/auth/standalone/setup").Body!;
+        Assert.Contains("\"spaName\":\"Spa am See\"", body, StringComparison.Ordinal);
+        Assert.Contains("\"country\":\"CH\"", body, StringComparison.Ordinal);
+        Assert.Contains("\"locationName\":\"Linz\"", body, StringComparison.Ordinal);
+        Assert.Contains("\"ownerName\":\"Eva Huber\"", body, StringComparison.Ordinal);
+    }
+
     [Fact]
     public async Task Server_Betrieb_zeigt_den_Einmal_Code()
     {

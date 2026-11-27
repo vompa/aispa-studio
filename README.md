@@ -70,8 +70,9 @@ angebundene Dienste.
 | **Eigener Server** | mehrere Standorte, Online-Buchung, Handy-Apps; mit Docker | [Server](docs/installation/server.md) |
 
 Was ein PC oder Server dafür braucht: [Systemvoraussetzungen](docs/installation/README.md#systemvoraussetzungen).
-Die Windows-App liegt nach jedem geprüften Stand im Release
-[„Windows-App“](https://github.com/vompa/aispa-studio/releases/tag/windows-app).
+Die Windows-App gibt es als Setup mit Updates (rund 200 MB) im Release
+[„Windows-Setup“](https://github.com/vompa/aispa-studio/releases/tag/windows-setup) und nach jedem geprüften Stand als
+ZIP-Datei im Release [„Windows-App“](https://github.com/vompa/aispa-studio/releases/tag/windows-app).
 
 Ausprobieren mit Beispiel-Spa, nur mit Docker:
 
