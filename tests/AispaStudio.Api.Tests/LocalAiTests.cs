@@ -76,12 +76,12 @@ public sealed class LocalAiTests(ApiFixture fixture)
     }
 
     [Fact]
-    public async Task Lokales_Modell_liest_Terminwunsch_und_Ids_ausserhalb_der_Liste_bleiben_leer()
+    public async Task Lokales_Modell_liest_Terminwunsch_und_Nummern_ausserhalb_der_Liste_bleiben_leer()
     {
         var massage = new NamedOption(Guid.NewGuid(), "Massage");
-        var ollama = new FakeOllama(_ => Chat($$"""
+        var ollama = new FakeOllama(_ => Chat("""
             {"intent":"BookingRequest","language":"de","firstName":"Eva","lastName":"Gast","phone":null,
-             "treatmentId":"{{massage.Id}}","locationId":"keine-id","employeeId":null,
+             "treatment":1,"location":3,"employee":null,
              "wishes":[{"date":"2027-03-04","from":"17:00","until":null}],"summary":"Massage morgen um 17 Uhr."}
             """));
         var assistant = new LocalBookingAssistant(ollama.Model(), new RuleBasedBookingAssistant(), NullLogger<LocalBookingAssistant>.Instance);

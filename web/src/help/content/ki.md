@@ -16,6 +16,8 @@ Den Stand beider sieht die Leitung in der Windows-App unter „Verwaltung“ ›
 
 Claude schreibt Antwortvorschläge an Gäste, übersetzt Nachrichten, fasst den Tag zusammen, liest Anamnesebögen auf Papier und versteht Terminwünsche aus Mails, SMS und Anrufen. Eingeschaltet ist Claude, sobald ein API-Schlüssel gilt. Die Inhaberin trägt ihn in der Windows-App unter **KI** ein: [Claude-Schlüssel eintragen](hilfe:ki-schluessel-eintragen). Hat der Betreiber des Servers einen Schlüssel in der Konfiguration hinterlegt (siehe „Server-Einstellungen“, Abschnitt KI), gilt dieser vor dem Eintrag in der App.
 
+Claude arbeitet mit zwei Modellen: ein großes schreibt Texte für Menschen, ein kleineres und günstigeres liest feste Angaben aus Mails, Lieferscheinen und Bögen. Die Maske **KI** zeigt beide unter „Modelle“; ändern lassen sie sich nur in der Konfiguration des Servers.
+
 Jede Nachricht, die eine KI an Gäste schreibt, trägt einen Hinweis darauf. Den Hinweis fügt AISPA Studio selbst an; er lässt sich nicht weglassen.
 
 ## Verbrauch {#verbrauch}

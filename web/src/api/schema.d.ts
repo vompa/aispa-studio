@@ -96,7 +96,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Zeigt, ob Claude eingeschaltet ist und wie es um das optionale lokale KI-Modell steht (ADR 0057). */
+        /** Zeigt, ob Claude eingeschaltet ist, welche Claude-Modelle gelten und wie es um das optionale lokale KI-Modell steht (ADR 0057). */
         get: operations["GetAiStatus"];
         put?: never;
         post?: never;
@@ -9059,6 +9059,8 @@ export interface components {
             localError: null | string;
             /** Format: date-time */
             checkedAt: null | string;
+            claudeModel?: null | string;
+            claudeModelExtract?: null | string;
         };
         AiUsageReport: {
             /** Format: int32 */

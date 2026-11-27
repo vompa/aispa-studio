@@ -9,12 +9,11 @@ namespace AispaStudio.Api.Online;
 
 /// <summary>
 /// Einstellungen für das Lesen von Papierbögen mit Claude (Abschnitt <c>Ai:Claude</c>, derselbe Schlüssel wie bei der
-/// Terminannahme). Den API-Schlüssel liefert <see cref="ClaudeAccess"/> je Spa (ADR 0103), nie aus dem Repository.
+/// Terminannahme). Den API-Schlüssel liefert <see cref="ClaudeAccess"/> je Spa (ADR 0103), nie aus dem Repository; das Modell
+/// <see cref="ClaudeOptions.ModelExtract"/> (T-112b).
 /// </summary>
 public sealed class AnamnesisReaderOptions
 {
-    public string Model { get; set; } = "claude-opus-5-5";
-
     /// <summary>Handschrift lesen braucht etwas mehr Sorgfalt als eine Mail einordnen.</summary>
     public string Effort { get; set; } = "medium";
 }
@@ -25,8 +24,6 @@ public sealed class AnamnesisReaderOptions
 /// </summary>
 internal sealed class ClaudeAnamnesisReader(IOptions<AnamnesisReaderOptions> options, ClaudeJson claude) : IAnamnesisReader
 {
-    private const string FallbackBeta = "server-side-fallback-2026-07-01";
-
     public string Name => "Claude";
 
     public async Task<AnamnesisReading> ReadAsync(AnamnesisImage image, AnamnesisFormDefinition form, CancellationToken ct)
@@ -44,19 +41,10 @@ internal sealed class ClaudeAnamnesisReader(IOptions<AnamnesisReaderOptions> opt
             questions.AppendLine();
         }
 
-        var response = await claude.CreateAsync(AiUsageTask.Anamnesis, new MessageCreateParams
-        {
-            Model = options.Value.Model,
-            MaxTokens = 4000,
-            Betas = [FallbackBeta],
-            Fallbacks = new Default(),
-            System = System,
-            OutputConfig = new BetaOutputConfig
-            {
-                Effort = options.Value.Effort,
-                Format = new BetaJsonOutputFormat { Schema = Schema },
-            },
-            Messages =
+        var response = await claude.CreateAsync(AiUsageTask.Anamnesis, ClaudeJson.Request(
+            claude.ModelFor(AiUsageTask.Anamnesis),
+            options.Value.Effort,
+            [new BetaTextBlockParam { Text = System }],
             [
                 new BetaUserMessageParam
                 {
@@ -70,7 +58,7 @@ internal sealed class ClaudeAnamnesisReader(IOptions<AnamnesisReaderOptions> opt
                     },
                 },
             ],
-        }, ct);
+            Schema), ct);
 
         if (response.StopReason == BetaStopReason.Refusal)
         {

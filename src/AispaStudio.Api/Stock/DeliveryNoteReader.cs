@@ -41,10 +41,12 @@ internal sealed class ManualDeliveryNoteReader : IDeliveryNoteReader
         Task.FromResult(new DeliveryNoteReading(null, [], [], null));
 }
 
-/// <summary>Einstellungen wie beim Lesen von Papierbögen (Abschnitt <c>Ai:Claude</c>); den Schlüssel liefert <see cref="ClaudeAccess"/> je Spa (ADR 0103).</summary>
+/// <summary>
+/// Einstellungen wie beim Lesen von Papierbögen (Abschnitt <c>Ai:Claude</c>); den Schlüssel liefert <see cref="ClaudeAccess"/> je Spa (ADR 0103),
+/// das Modell <see cref="ClaudeOptions.ModelExtract"/> (T-112b).
+/// </summary>
 public sealed class DeliveryNoteReaderOptions
 {
-    public string Model { get; set; } = "claude-opus-5-5";
     public string Effort { get; set; } = "medium";
 }
 
@@ -54,8 +56,6 @@ public sealed class DeliveryNoteReaderOptions
 /// </summary>
 internal sealed class ClaudeDeliveryNoteReader(IOptions<DeliveryNoteReaderOptions> options, ClaudeJson claude) : IDeliveryNoteReader
 {
-    private const string FallbackBeta = "server-side-fallback-2026-07-01";
-
     public bool Enabled => true;
 
     public async Task<DeliveryNoteReading> ReadAsync(DeliveryNoteImage image, IReadOnlyList<DeliveryNoteOrderLine> lines, CancellationToken ct)
@@ -69,19 +69,10 @@ internal sealed class ClaudeDeliveryNoteReader(IOptions<DeliveryNoteReaderOption
                 .AppendLine();
         }
 
-        var response = await claude.CreateAsync(AiUsageTask.DeliveryNote, new MessageCreateParams
-        {
-            Model = options.Value.Model,
-            MaxTokens = 4000,
-            Betas = [FallbackBeta],
-            Fallbacks = new Default(),
-            System = System,
-            OutputConfig = new BetaOutputConfig
-            {
-                Effort = options.Value.Effort,
-                Format = new BetaJsonOutputFormat { Schema = Schema },
-            },
-            Messages =
+        var response = await claude.CreateAsync(AiUsageTask.DeliveryNote, ClaudeJson.Request(
+            claude.ModelFor(AiUsageTask.DeliveryNote),
+            options.Value.Effort,
+            [new BetaTextBlockParam { Text = System }],
             [
                 new BetaUserMessageParam
                 {
@@ -95,7 +86,7 @@ internal sealed class ClaudeDeliveryNoteReader(IOptions<DeliveryNoteReaderOption
                     },
                 },
             ],
-        }, ct);
+            Schema), ct);
 
         if (response.StopReason == BetaStopReason.Refusal)
         {

@@ -40,6 +40,13 @@ public sealed partial class AiViewModel : ViewModelBase, INativeArea, IDisposabl
 
     public string ClaudeText => _status is { Claude: true } ? "Eingeschaltet." : "Aus: es ist kein API-Schlüssel gesetzt.";
 
+    /// <summary>Beide Claude-Modelle nur zur Ansicht (T-112b); ändern lassen sie sich in der Konfiguration des Servers.</summary>
+    public string? ClaudeModelsText => _status is { ClaudeModel: { Length: > 0 } model, ClaudeModelExtract: { Length: > 0 } extract }
+        ? $"Modelle: {model} für Texte, {extract} zum Auslesen von Mails, Lieferscheinen und Bögen."
+        : null;
+
+    public bool HasClaudeModelsText => ClaudeModelsText is not null;
+
     /// <summary>Neuer Schlüssel; nach dem Speichern wieder leer.</summary>
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(SaveKeyCommand))]
@@ -342,7 +349,7 @@ public sealed partial class AiViewModel : ViewModelBase, INativeArea, IDisposabl
         _status = status;
         foreach (var name in new[]
             {
-                nameof(ClaudeText), nameof(LocalText), nameof(ModelText), nameof(HasModelText), nameof(IsDownloading), nameof(DownloadPercent), nameof(LocalError),
+                nameof(ClaudeText), nameof(ClaudeModelsText), nameof(HasClaudeModelsText), nameof(LocalText), nameof(ModelText), nameof(HasModelText), nameof(IsDownloading), nameof(DownloadPercent), nameof(LocalError),
                 nameof(HasLocalError), nameof(CanDownload),
             })
         {

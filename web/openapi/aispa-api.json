@@ -128,7 +128,7 @@
         "tags": [
           "System"
         ],
-        "summary": "Zeigt, ob Claude eingeschaltet ist und wie es um das optionale lokale KI-Modell steht (ADR 0057).",
+        "summary": "Zeigt, ob Claude eingeschaltet ist, welche Claude-Modelle gelten und wie es um das optionale lokale KI-Modell steht (ADR 0057).",
         "operationId": "GetAiStatus",
         "responses": {
           "200": {
@@ -32946,6 +32946,18 @@
               "string"
             ],
             "format": "date-time"
+          },
+          "claudeModel": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "claudeModelExtract": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },

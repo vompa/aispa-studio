@@ -110,13 +110,17 @@ public enum LocalAiState
 /// <param name="DownloadPercent">Fortschritt beim Herunterladen in Prozent.</param>
 /// <param name="LocalError">Letzter Fehler des lokalen Modells, verständlich für die Leitung.</param>
 /// <param name="CheckedAt">Wann der Server das lokale Modell zuletzt geprüft hat.</param>
+/// <param name="ClaudeModel">Claude-Modell für Texte (<c>Ai:Claude:Model</c>), nur zur Ansicht.</param>
+/// <param name="ClaudeModelExtract">Claude-Modell für das Auslesen von Mails, Lieferscheinen und Bögen (<c>Ai:Claude:ModelExtract</c>), nur zur Ansicht.</param>
 public sealed record AiStatus(
     bool Claude,
     LocalAiState Local,
     string? LocalModel,
     int? DownloadPercent,
     string? LocalError,
-    DateTimeOffset? CheckedAt);
+    DateTimeOffset? CheckedAt,
+    string? ClaudeModel = null,
+    string? ClaudeModelExtract = null);
 
 /// <summary>Woher der Claude-Schlüssel kommt (ADR 0103).</summary>
 public enum ClaudeKeySource

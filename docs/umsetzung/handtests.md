@@ -1998,3 +1998,18 @@ Expected: 403; der Reiter KI erscheint nicht.
 Expected: Die Hilfe „KI“ öffnet sich beim Abschnitt „Verbrauch“.
 Closes: T-112a
 Result: ☐
+
+### T-112b – Prompt-Caching, kurze Katalognummern, kleines Modell für das Auslesen
+Start: `dotnet run --project src/AispaStudio.AppHost` mit gültigem Claude-Schlüssel (in der App eingetragen oder `Ai:Claude:ApiKey`), ohne `Ai:Claude:Model` und `Ai:Claude:ModelExtract`, im Aspire-Dashboard die Ressource `windows-app` starten, als Inhaberin anmelden.
+1. **Verwaltung** › **Kontakt** › **KI** öffnen.
+Expected: Unter „Eingeschaltet.“ steht „Modelle: claude-opus-5-5 für Texte, claude-haiku-5-5 zum Auslesen von Mails, Lieferscheinen und Bögen.“
+2. Zwei Mails mit Terminwunsch kurz nacheinander an das Postfach der Terminannahme schicken, etwa „Lava-Hot-Stone-Massage am Freitag um 15 Uhr“, und im Posteingang abwarten, bis beide gelesen sind.
+Expected: Bei beiden ist die richtige Behandlung erkannt, und es stehen passende Vorschläge oder ein Termin da.
+3. Die Maske **KI** neu öffnen und die Tabelle „Verbrauch (letzte 30 Tage)“ ansehen.
+Expected: „Terminwunsch lesen“ steht mit `claude-haiku-5-5`, „Antwortentwurf“ mit `claude-opus-5-5`. Bei „Terminwunsch lesen“ ist „Cache gelesen“ größer als 0, sobald System-Prompt und Katalog zusammen lang genug für den Cache sind (Spa mit vielen Behandlungen).
+4. Im Aspire-Dashboard das Log der API nach „Claude-Aufruf“ durchsuchen.
+Expected: Beim zweiten „Terminwunsch lesen“ stehen Tokens bei „Cache gelesen“, beim ersten bei „Cache geschrieben“; kein Fehler 400 von Claude.
+5. `Ai:Claude:ModelExtract` auf `claude-opus-5-5` setzen, die API neu starten und die Maske **KI** neu öffnen.
+Expected: Die Zeile „Modelle“ nennt zweimal `claude-opus-5-5`.
+Closes: T-112b
+Result: ☐

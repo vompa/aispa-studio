@@ -23,6 +23,7 @@
             <ui:HelpButton Grid.Column="1" Topic="ki" Section="claude" />
           </Grid>
           <TextBlock x:Name="ClaudeState" Text="{Binding ClaudeText}" TextWrapping="Wrap" />
+          <TextBlock x:Name="ClaudeModels" Classes="muted" Text="{Binding ClaudeModelsText}" IsVisible="{Binding HasClaudeModelsText}" TextWrapping="Wrap" />
           <TextBlock Classes="muted" TextWrapping="Wrap"
                      Text="Claude schreibt Antworten an Gäste, übersetzt, fasst zusammen und liest Anamnesebögen. Das braucht Internet." />
         </StackPanel>

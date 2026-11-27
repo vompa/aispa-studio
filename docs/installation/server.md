@@ -99,6 +99,8 @@ Die API wird über Umgebungsvariablen eingestellt: Aus dem Schlüssel `Abschnitt
 | `OnlineBooking__PublicUrl`, `Passkeys__ServerDomain` | für Echtbetrieb | öffentliche Adresse für Online-Buchung und Anmeldung mit Passkey |
 | `Mail__Smtp__Host`, `Mail__FromAddress` | für Echtbetrieb | Mailversand |
 | `Ai__Claude__ApiKey` | – | KI mit Claude für alle Betriebe; hat Vorrang vor dem Schlüssel aus der App (ADR 0103). Ohne beide sind Assistent und Terminannahme aus |
+| `Ai__Claude__Model` | – | Claude-Modell für Texte (Antworten, Übersetzungen, Zusammenfassungen, Auswertungen), Standard `claude-opus-5-5` |
+| `Ai__Claude__ModelExtract` | – | kleineres Claude-Modell für das Auslesen (Terminwünsche, Treatwell, Lieferscheine, Anamnesebögen, Absicht im Assistenten), Standard `claude-haiku-5-5` |
 | `Modules__<Name>` | – | Webmodule einzeln ein- oder ausschalten |
 | `Hosting__Role` | – | `All` (Standard), `Api` oder `Worker` für mehrere Instanzen |
 

@@ -42,14 +42,14 @@ internal static class LocalAiSetup
     {
         var group = routes.MapGroup("/api/system/ai").WithTags("System");
 
-        group.MapGet("", (LocalModelStatus status, ClaudeAccess claude) =>
+        group.MapGet("", (LocalModelStatus status, ClaudeAccess claude, IOptions<ClaudeOptions> claudeOptions) =>
             {
                 var (local, percent, error, checkedAt) = status.Current;
-                return new AiStatus(claude.Available, local, status.Model, percent, error, checkedAt);
+                return new AiStatus(claude.Available, local, status.Model, percent, error, checkedAt, claudeOptions.Value.Model, claudeOptions.Value.ModelExtract);
             })
             .RequirePermission(AccessRight.ManageOrganization)
             .WithName("GetAiStatus")
-            .WithSummary("Zeigt, ob Claude eingeschaltet ist und wie es um das optionale lokale KI-Modell steht (ADR 0057).");
+            .WithSummary("Zeigt, ob Claude eingeschaltet ist, welche Claude-Modelle gelten und wie es um das optionale lokale KI-Modell steht (ADR 0057).");
 
         group.MapPost("/local/download", async (IOptions<LocalModelOptions> options, LocalModelStatus status, IMessageBus bus) =>
             {
