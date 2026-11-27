@@ -64,3 +64,9 @@ Eine Regel, die sich merken lässt: „Neu“ oben, „⋯“ im Kopf, der Dialo
 - **Geltungsbereich der Regel:** „Neu“ fest über der Liste gilt für Listen von Objekten mit Auswahl und Karte und für die Formulare, die Objekte anlegen (Material, Erlöskonto, Absenderregel). Zeilenlisten innerhalb einer Karte (Arbeitszeiten, Preisregeln, Schritte, Mindestmengen, Ausnahmen) behalten ihr „Hinzufügen“ unter der Liste.
 - **Leersätze** stehen als kurzer Satz an der Stelle der Liste; nur wo die ganze Hälfte der Maske sonst leer bliebe (Behandlungen), steht eine Karte mit dem Knopf. Wo eine Liste nie leer sein kann (Erlöskonten, Lagerorte, Standorte), gibt es keinen Satz.
 - Bestandsaufnahme aller Seiten: [Masken-Inventar, Abschnitt „Verwaltungsseiten“](../umsetzung/masken-inventar.md). Offen bleiben die Ansicht „Rechte und Zuständigkeiten“ im Team (nur Überschriften, P11) und das Menü „⋯“ für Aktion und Betriebskontakt.
+
+## Nachtrag 27.11.2026: Assistent „Betrieb einrichten“
+
+- Entscheidung 6 sagte: keine neue Schiene, nur die Karte. [ADR 0104](0104-gefuehrte-ersteinrichtung.md) ergänzt die Karte um einen Assistenten, der bis zum ersten buchbaren Termin führt (Auftraggeber, 27.11.2026).
+- Die Karte bleibt Einstieg und Stand. Der Assistent schreibt über dieselben Endpunkte wie die Masken; fällt er weg, fehlt keine Funktion.
+- Der leere Betrieb bleibt, wie im Nachtrag vom 17.11.2026 festgelegt: ein Standort und die Inhaberin.
