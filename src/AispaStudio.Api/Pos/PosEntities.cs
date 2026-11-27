@@ -40,6 +40,8 @@ public sealed class CashRegister
     public required string Code { get; init; }
 
     public FiscalCountry Country { get; init; }
+    public string? FiscalProvider { get; init; }
+    public bool IsPractice { get; init; }
     public required string ReceiptHeader { get; set; }
     public string? PayeeName { get; set; }
     public string? Iban { get; set; }

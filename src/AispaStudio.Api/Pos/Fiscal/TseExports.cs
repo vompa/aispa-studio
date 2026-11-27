@@ -97,7 +97,8 @@ internal sealed partial class TseExports(AispaDbContext db, IEnumerable<ITseClie
         var (from, _) = LocalTime.Day(export.From, zone);
         var (_, until) = LocalTime.Day(export.Until, zone);
         byte[]? content = null;
-        if (clients.FirstOrDefault() is { } client)
+        var client = KassenSichVFiscalization.SelectClient(clients, register);
+        if (client is not null)
         {
             try
             {
@@ -113,7 +114,7 @@ internal sealed partial class TseExports(AispaDbContext db, IEnumerable<ITseClie
         if (content is null)
         {
             export.Status = TseExportStatus.Failed;
-            export.Error = clients.Any() ? "Die TSE hat den Export nicht geliefert. Bitte erneut anfordern." : "Für Deutschland ist keine TSE angebunden.";
+            export.Error = client is not null ? "Die TSE hat den Export nicht geliefert. Bitte erneut anfordern." : "Für Deutschland ist keine TSE angebunden.";
         }
         else
         {

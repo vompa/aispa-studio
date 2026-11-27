@@ -2170,3 +2170,14 @@ Expected: „Noch nicht buchbar“ mit dem Grund; **Zurück** ist der Hauptknopf
 Expected: Das Thema zeigt den Weg von der Startauswahl bis zum Probetermin mit drei Bildern; die Verweise unter „Danach“ öffnen ihre Themen.
 Closes: T-136 (ADR 0104, Entscheidung 4)
 Result: ☐
+
+### T-138 – Übungsbeleg und lange Kassa-ID
+Start: Einen isolierten Testdatenbestand nach dem Upgrade als Inhaberin öffnen; keine echten Umsätze verwenden. Die neue Kassenverwaltung steht ab T-141/T-142 zur Verfügung.
+1. Eine österreichische oder deutsche Übungskassa auswählen und einen Testverkauf abschließen.
+Expected: Das Beleg-PDF zeigt dauerhaft „ÜBUNGSKASSA – kein gültiger Beleg“.
+2. Den Testbon in 32 und 42 Spalten ausgeben, mit einer 50-stelligen Kassa-ID.
+Expected: Die vollständige Kennung bleibt lesbar; Übungshinweis und Betrag sind vorhanden. Der physische Bondrucker ist gesondert zu prüfen.
+3. Für die deutsche Übungskassa den TSE-Export anfordern und das Archiv öffnen.
+Expected: Der Auftrag wird fertig; die Protokolle tragen die vollständige Kassa-ID im Dateinamen.
+Closes: T-138 (ADR 0105, Anbieterrahmen und Übungskennzeichnung)
+Result: ☐

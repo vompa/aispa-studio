@@ -10,6 +10,7 @@ Stand: 20.10.2026, nach PR #172; Übergabe an Claude Code ([ADR 0046](entscheidu
 | Kalender mit Doppelbuchungsschutz, Web-Rezeptionsansicht | fertig | #3 |
 | Stammdaten in der Oberfläche | fertig | #4 |
 | Kassa mit RKSV (Test-Signatureinrichtung), Splitting, Gutscheine, Storno, Tagesabschluss | fertig für AT-Prototyp | #5, #7 |
+| Kassen-Anbieterrahmen für AT, DE und CH, ausdrückliche Übungskassa, Bereitschaft je Stelle, Übungskennzeichnung auf PDF und Bon, lange TSE-Kennungen und kompatibler Abgleich | API gebaut; native Verwaltung und Assistent folgen in T-141/T-142; echte Anbieter weiterhin offen ([ADR 0105](entscheidungen/0105-kassa-einrichten-anbieterrahmen-und-uebungskassa.md)) | T-138 |
 | Rollen und Rechte je Standort, Einladung per Link | fertig | #6 |
 | Rollen Manager (Rechte wie der Inhaber, ohne Inhaber- und Manager-Zugänge und Lizenz) und Backoffice (Buchhaltung und Lohnverrechnung, nur lesen und exportieren); neues Recht „Berichte mit Beträgen“ (Inhaber, Manager, Backoffice immer, Standortleitung und Rezeption nur einzeln vergeben; im Endpunkt und Berichtsdienst geprüft, Berichte der Team-Oberfläche blenden Beträge aus) ([ADR 0070](entscheidungen/0070-rollen-manager-und-backoffice.md), Runde 5 Block J, Ä37) | fertig (Handbuchbild der Zugänge am 22.10.2026 neu; Lizenz-Kündigung gibt es noch nicht) | #173 |
 | Befristete Zugänge für Aushilfen und Praktika (Ablaufdatum, Einladung mit Befristung, Mail vor Ablauf, um 30 Tage verlängern) | fertig | #68, #72 |

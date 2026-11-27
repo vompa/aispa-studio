@@ -9,6 +9,8 @@ namespace AispaStudio.Api.Pos.Fiscal;
 /// </summary>
 internal interface ITseClient
 {
+    string ProviderId { get; }
+
     /// <summary>Test-TSE ohne Zertifizierung: Belege sind nicht für den Echtbetrieb.</summary>
     bool IsTest { get; }
 
@@ -43,18 +45,21 @@ internal sealed class KassenSichVFiscalization(IEnumerable<ITseClient> clients) 
 {
     public FiscalCountry Country => FiscalCountry.DE;
 
-    public string? Notice => Client?.IsTest == true
+    public string? Notice(CashRegister register) => Client(register)?.IsTest == true
         ? "Nur Test-TSE angebunden: Belege sind nicht für den Echtbetrieb. Vor dem Start eine zertifizierte Cloud- oder USB-TSE einrichten."
         : "Kasse und TSE innerhalb eines Monats nach Anschaffung über ELSTER an das Finanzamt melden (§ 146a Abs. 4 AO).";
 
     /// <summary>Vorgangsart für Kassenbelege nach DSFinV-K.</summary>
     public const string ProcessType = "Kassenbeleg-V1";
 
-    private ITseClient? Client => clients.FirstOrDefault();
+    internal static ITseClient? SelectClient(IEnumerable<ITseClient> candidates, CashRegister register) =>
+        candidates.SingleOrDefault(c => c.ProviderId == (register.FiscalProvider ?? "test"));
+
+    private ITseClient? Client(CashRegister register) => SelectClient(clients, register);
 
     public async Task<string?> InitializeAsync(CashRegister register, CancellationToken ct)
     {
-        if (Client is not { } client)
+        if (Client(register) is not { } client)
         {
             return "Für Deutschland ist noch keine TSE angebunden. Bitte eine Cloud-TSE oder USB-TSE einrichten.";
         }
@@ -64,17 +69,17 @@ internal sealed class KassenSichVFiscalization(IEnumerable<ITseClient> clients) 
     }
 
     public async Task<bool> IsDeviceAvailableAsync(CashRegister register, CancellationToken ct) =>
-        Client is { } client && await client.IsAvailableAsync(ct);
+        Client(register) is { } client && await client.IsAvailableAsync(ct);
 
     public async Task<byte[]?> GetCertificateAsync(CashRegister register, CancellationToken ct) =>
-        Client is { } client ? await client.GetPublicKeyAsync(register.Code, ct) : null;
+        Client(register) is { } client ? await client.GetPublicKeyAsync(register.Code, ct) : null;
 
     public async Task<FiscalResult> SignAsync(CashRegister register, FiscalInput input, CancellationToken ct)
     {
         register.TurnoverCounter += (long)(input.Amounts.Sum(a => a.Gross) * 100m);
 
         var processData = ProcessData(input);
-        var signature = Client is { } client
+        var signature = Client(register) is { } client
             ? await client.SignTransactionAsync(register.Code, ProcessType, processData, ct)
             : null;
         if (signature is null)

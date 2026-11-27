@@ -3,6 +3,7 @@ using System.Security.Cryptography;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
+using AispaStudio.Api.Access;
 using AispaStudio.Api.Data;
 using AispaStudio.Api.Documents;
 using AispaStudio.Api.Pos.Fiscal;
@@ -24,7 +25,7 @@ namespace AispaStudio.Api.Pos;
 /// auch wenn an zwei Plätzen gleichzeitig kassiert wird.
 /// </summary>
 internal sealed partial class PosService(AispaDbContext db, FiscalizationResolver fiscal, TimeProvider time, IOptions<PaymentOptions> paymentOptions,
-    SiteIdentity site)
+    SiteIdentity site, IConfiguration? configuration = null)
 {
     private static readonly CultureInfo German = CultureInfo.GetCultureInfo("de-AT");
 
@@ -57,11 +58,26 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
                 throw PosFailure.Invalid(nameof(input.Code), "Diese Kassen-ID gibt es schon.");
             }
 
+            var provider = FiscalProviderCatalog.Select(input.Country, input.FiscalProvider)
+                ?? throw PosFailure.Invalid(nameof(input.FiscalProvider), "Dieser Anbieter steht für das gewählte Land nicht zur Verfügung.");
+            if (provider.IsTest && input.Practice == false)
+            {
+                throw PosFailure.Invalid(nameof(input.Practice), "Mit einer Testeinrichtung ist nur Übungsbetrieb möglich.");
+            }
+
+            if (input.Country == FiscalCountry.DE && provider.IsTest && string.IsNullOrEmpty(input.FiscalProvider)
+                && input.Practice is null && configuration?.GetValue<bool>("Fiscal:TestTse") != true)
+            {
+                throw PosFailure.Invalid(nameof(input.Practice), "Für eine deutsche Übungskassa die Test-TSE ausdrücklich wählen.");
+            }
+
             var register = new CashRegister
             {
                 LocationId = location.Id,
                 Code = input.Code,
                 Country = input.Country,
+                FiscalProvider = provider.Id,
+                IsPractice = provider.IsTest || input.Practice == true,
                 ReceiptHeader = input.ReceiptHeader.Trim(),
                 PayeeName = Blank(input.PayeeName),
                 Iban = string.IsNullOrEmpty(iban) ? null : iban,
@@ -94,7 +110,7 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
                 await tx.CommitAsync(ct);
             });
 
-            return new PosResult<CashRegisterDto>(ToDto(register), null);
+            return new PosResult<CashRegisterDto>(await RegisterDtoAsync(register, ct), null);
         }
         catch (PosFailure f)
         {
@@ -134,7 +150,7 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
             warnings.Add("Kassa außer Betrieb (Schlussbeleg erstellt).");
         }
 
-        if (fiscal.For(r.Country).Notice is { } notice)
+        if (fiscal.For(r.Country).Notice(r) is { } notice)
         {
             warnings.Add(notice);
         }
@@ -146,7 +162,70 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
         }
 
         return new(r.Id, r.LocationId, r.Code, r.Country, r.ReceiptHeader, r.IsActive, r.LastReceiptNumber,
-            r.SignatureDeviceFailedSince, r.CertificateSerial, warnings, PaymentMethods.Available(r.Country, paymentOptions.Value), otherSite);
+            r.SignatureDeviceFailedSince, r.CertificateSerial, warnings, PaymentMethods.Available(r.Country, paymentOptions.Value), otherSite,
+            r.FiscalProvider ?? FiscalProviderCatalog.Select(r.Country, null)?.Id, r.IsPractice);
+    }
+
+    public async Task<CashRegisterDto> RegisterDtoAsync(CashRegister register, CancellationToken ct) =>
+        await RegisterDtoAsync(register, await db.Receipts.AnyAsync(r => r.RegisterId == register.Id && r.Kind == ReceiptKind.Start, ct), ct);
+
+    private async Task<CashRegisterDto> RegisterDtoAsync(CashRegister register, bool hasStart, CancellationToken ct)
+    {
+        var dto = ToDto(register);
+        var reasons = new List<string>();
+        if (!register.IsActive)
+        {
+            reasons.Add("Die Kassa ist außer Betrieb.");
+        }
+
+        if (!hasStart)
+        {
+            reasons.Add("Der Startbeleg fehlt.");
+        }
+
+        if (dto.OtherSite)
+        {
+            reasons.Add(OtherSiteMessage);
+        }
+        if (reasons.Count == 0 && !await fiscal.For(register.Country).IsDeviceAvailableAsync(register, ct))
+        {
+            reasons.Add("Die Signatureinrichtung ist nicht erreichbar.");
+        }
+
+        var state = FiscalReadinessState.NotReady;
+        if (reasons.Count == 0)
+        {
+            state = register.IsPractice ? FiscalReadinessState.Practice : FiscalReadinessState.Ready;
+            if (register.IsPractice)
+            {
+                reasons.Add("Diese Kassa ist für den Übungsbetrieb eingerichtet.");
+            }
+        }
+
+        return dto with { Readiness = new(state, reasons) };
+    }
+
+    public async Task<List<CashRegisterDto>> RegistersAsync(UserAccess access, Guid? locationId, CancellationToken ct)
+    {
+        var query = db.CashRegisters.AsNoTracking().Where(r => locationId == null || r.LocationId == locationId);
+        if (!access.AllLocations)
+        {
+            var allowed = access.LocationIds.ToArray();
+            query = query.Where(r => allowed.Contains(r.LocationId));
+        }
+
+        var result = new List<CashRegisterDto>();
+        var rows = await query.OrderBy(r => r.Code).Select(r => new
+        {
+            Register = r,
+            HasStart = db.Receipts.Any(receipt => receipt.RegisterId == r.Id && receipt.Kind == ReceiptKind.Start),
+        }).ToListAsync(ct);
+        foreach (var row in rows)
+        {
+            result.Add(await RegisterDtoAsync(row.Register, row.HasStart, ct));
+        }
+
+        return result;
     }
 
     /// <summary>Nullbeleg auf Wunsch, z. B. zur Prüfung mit der Belegcheck-App.</summary>
@@ -1838,7 +1917,7 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
                 sentMails.GetValueOrDefault(receipt.Id),
                 receipt.Tip,
                 receipt.SubstituteNumber,
-                receipt.SubstituteIssuedAt);
+                receipt.SubstituteIssuedAt, register.IsPractice);
         }
 
         static IEnumerable<Guid> VoucherIdsOf(Receipt receipt) =>

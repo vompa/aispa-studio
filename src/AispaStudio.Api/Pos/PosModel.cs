@@ -63,6 +63,7 @@ internal static class PosModel
         builder.Entity<CashRegister>(e =>
         {
             e.Property(r => r.Code).HasMaxLength(50);
+            e.Property(r => r.FiscalProvider).HasMaxLength(30);
             e.Property(r => r.Country).HasConversion<string>().HasMaxLength(2);
             e.Property(r => r.ReceiptHeader).HasMaxLength(1000);
             e.Property(r => r.PayeeName).HasMaxLength(70);
@@ -221,14 +222,14 @@ internal static class PosModel
         builder.Entity<TestTseClientState>(e =>
         {
             e.Property(s => s.Id).ValueGeneratedNever();
-            e.Property(s => s.ClientId).HasMaxLength(30);
+            e.Property(s => s.ClientId).HasMaxLength(50);
             e.HasIndex(s => s.ClientId).IsUnique();
         });
 
         builder.Entity<TestTseLog>(e =>
         {
             e.Property(l => l.Id).ValueGeneratedNever();
-            e.Property(l => l.ClientId).HasMaxLength(30);
+            e.Property(l => l.ClientId).HasMaxLength(50);
             e.Property(l => l.ProcessType).HasMaxLength(30);
             e.Property(l => l.ProcessData).HasMaxLength(500);
             e.Property(l => l.Signature).HasMaxLength(200);

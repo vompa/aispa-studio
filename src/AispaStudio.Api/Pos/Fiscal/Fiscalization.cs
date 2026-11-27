@@ -27,7 +27,7 @@ internal interface IFiscalization
     FiscalCountry Country { get; }
 
     /// <summary>Hinweis für die Leitung, z. B. dass nur eine Test-Signatureinrichtung angebunden ist.</summary>
-    string? Notice { get; }
+    string? Notice(CashRegister register);
 
     /// <summary>Richtet eine neue Kasse ein (Schlüssel, Zertifikat, TSE-Client). Liefert eine Fehlermeldung, wenn das nicht geht.</summary>
     Task<string?> InitializeAsync(CashRegister register, CancellationToken ct);

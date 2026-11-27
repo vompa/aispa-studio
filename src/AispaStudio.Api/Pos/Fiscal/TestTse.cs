@@ -33,12 +33,14 @@ public sealed class TestTseLog
 }
 
 /// <summary>
-/// Test-TSE für Entwicklung und Prototyp (Schalter <c>Fiscal:TestTse</c>, nur in der Entwicklung an): ECDSA P-256 je Kasse, Transaktions- und
+/// Test-TSE für Übungskassen: ECDSA P-256 je Kasse, Transaktions- und
 /// Signaturzähler in der Datenbank. Signiert wird über „Transaktionsnummer;Signaturzähler;Start;Ende;Vorgangsart;Vorgangsdaten“, nicht über
 /// die ASN.1-Lognachricht einer zertifizierten TSE. Für den Echtbetrieb ersetzt eine Cloud- oder USB-TSE diese Klasse; Belege bleiben gleich aufgebaut.
 /// </summary>
 internal sealed class TestTseClient(AispaDbContext db, TimeProvider time) : ITseClient
 {
+    public string ProviderId => "test";
+
     public const string Algorithm = "ecdsa-plain-SHA256";
 
     public bool IsTest => true;
@@ -114,7 +116,7 @@ internal sealed class TestTseClient(AispaDbContext db, TimeProvider time) : ITse
         var serial = Serial(state.PublicKey);
         var created = time.GetUtcNow();
         using var stream = new MemoryStream();
-        await using (var tar = new TarWriter(stream, TarEntryFormat.Ustar, leaveOpen: true))
+        await using (var tar = new TarWriter(stream, TarEntryFormat.Pax, leaveOpen: true))
         {
             var info = new StringBuilder()
                 .AppendLine("Beschreibung;Wert")
@@ -144,7 +146,7 @@ internal sealed class TestTseClient(AispaDbContext db, TimeProvider time) : ITse
     private static async Task AddAsync(TarWriter tar, string name, byte[] content, DateTimeOffset modified, CancellationToken ct)
     {
         using var data = new MemoryStream(content);
-        await tar.WriteEntryAsync(new UstarTarEntry(TarEntryType.RegularFile, name) { DataStream = data, ModificationTime = modified }, ct);
+        await tar.WriteEntryAsync(new PaxTarEntry(TarEntryType.RegularFile, name) { DataStream = data, ModificationTime = modified }, ct);
     }
 
     /// <summary>Was die Test-TSE signiert; Prüfsoftware und Tests bauen es aus dem QR-Code nach.</summary>

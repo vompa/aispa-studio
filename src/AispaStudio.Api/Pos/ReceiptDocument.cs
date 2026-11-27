@@ -13,6 +13,8 @@ internal static class ReceiptDocument
     /// <summary>Zeile für Trinkgeld auf Beleg und Bon: kurz genug für 42 Zeichen Bonbreite, sagt, dass es kein Umsatz ist (ADR 0095).</summary>
     public const string TipLabel = "Trinkgeld (kein Umsatz)";
 
+    public const string PracticeLabel = "ÜBUNGSKASSA – kein gültiger Beleg";
+
     /// <summary>„Nacherfassung zu Ersatzbeleg E-… vom 16.11.2026 10:42“ (ADR 0096), sonst null.</summary>
     public static string? SubstituteNote(ReceiptDto receipt, TimeZoneInfo zone) =>
         receipt is { SubstituteNumber: { } number, SubstituteIssuedAt: { } at }
@@ -59,6 +61,11 @@ internal static class ReceiptDocument
     {
         var narrow = format == DocumentPageFormat.Receipt;
         var pdf = new DocumentBuilder(narrow ? PaperFormat.Receipt80 : PaperFormat.A4Portrait, header);
+        if (receipt.IsPractice)
+        {
+            pdf.Paragraph(PracticeLabel, bold: true, align: DocumentAlign.Center);
+        }
+
         pdf.Title(Title(receipt));
         if (copy)
         {

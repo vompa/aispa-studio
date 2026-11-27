@@ -29,7 +29,7 @@ internal sealed record SetupFacts(
     IReadOnlyList<SetupEmployee> Employees,
     bool AnyRegister)
 {
-    public static async Task<SetupFacts> LoadAsync(AispaDbContext db, DateTimeOffset now, CancellationToken ct)
+    public static async Task<SetupFacts> LoadAsync(AispaDbContext db, DateTimeOffset now, bool includeRegister, CancellationToken ct)
     {
         var all = await db.Locations.AsNoTracking().Include(l => l.OpeningHours).OrderBy(l => l.Name).ThenBy(l => l.Id).ToListAsync(ct);
         var locations = all.Where(l => l.ClosedFrom is not { } closedFrom || closedFrom > LocalTime.LocalDate(now, LocalTime.Zone(l.TimeZone))).ToList();
@@ -59,7 +59,7 @@ internal sealed record SetupFacts(
                         && d.Entries.Any(x => x.Kind == RosterKind.Work && x.LocationId != null && open.Contains(x.LocationId.Value))),
             })
             .ToListAsync(ct);
-        var anyRegister = await db.CashRegisters.AnyAsync(r => r.IsActive, ct);
+        var anyRegister = includeRegister && await db.CashRegisters.AnyAsync(r => r.IsActive, ct);
 
         return new SetupFacts(
             locations,

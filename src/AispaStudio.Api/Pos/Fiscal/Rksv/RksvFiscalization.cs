@@ -8,11 +8,14 @@ namespace AispaStudio.Api.Pos.Fiscal.Rksv;
 /// Fällt die Signatureinrichtung aus, wird weiter kassiert; die Belege tragen „Sicherheitseinrichtung ausgefallen“,
 /// nach der Behebung folgt ein Nullbeleg (Sammelbeleg). Ab 48 Stunden Ausfall muss die Meldung an FinanzOnline erfolgen.
 /// </summary>
-internal sealed class RksvFiscalization(IRksvSignatureDevice device) : IFiscalization
+internal sealed class RksvFiscalization(IEnumerable<IRksvSignatureDevice> devices) : IFiscalization
 {
     public FiscalCountry Country => FiscalCountry.AT;
 
-    public string? Notice => device.ZdaId == "AT0"
+    private IRksvSignatureDevice Device(CashRegister register) =>
+        devices.Single(d => d.ProviderId == (register.FiscalProvider ?? "test"));
+
+    public string? Notice(CashRegister register) => Device(register).ZdaId == "AT0"
         ? "Test-Signatureinrichtung: nicht für den Echtbetrieb. Vor dem Start eine zertifizierte Signatureinrichtung anbinden, " +
           "Kassa und Signatureinrichtung in FinanzOnline registrieren und den Startbeleg mit der BMF-Belegcheck-App prüfen."
         : null;
@@ -20,16 +23,17 @@ internal sealed class RksvFiscalization(IRksvSignatureDevice device) : IFiscaliz
     public async Task<string?> InitializeAsync(CashRegister register, CancellationToken ct)
     {
         register.TurnoverKey = Convert.ToBase64String(RksvCode.NewTurnoverKey());
-        register.CertificateSerial = await device.SetUpAsync(register, ct);
+        register.CertificateSerial = await Device(register).SetUpAsync(register, ct);
         return null;
     }
 
-    public Task<bool> IsDeviceAvailableAsync(CashRegister register, CancellationToken ct) => device.IsAvailableAsync(register, ct);
+    public Task<bool> IsDeviceAvailableAsync(CashRegister register, CancellationToken ct) => Device(register).IsAvailableAsync(register, ct);
 
-    public Task<byte[]?> GetCertificateAsync(CashRegister register, CancellationToken ct) => device.GetCertificateAsync(register, ct);
+    public Task<byte[]?> GetCertificateAsync(CashRegister register, CancellationToken ct) => Device(register).GetCertificateAsync(register, ct);
 
     public async Task<FiscalResult> SignAsync(CashRegister register, FiscalInput input, CancellationToken ct)
     {
+        var device = Device(register);
         var amounts = new RksvAmounts(
             Sum(input, TaxCategory.Normal), Sum(input, TaxCategory.Reduced1), Sum(input, TaxCategory.Reduced2),
             Sum(input, TaxCategory.Zero), Sum(input, TaxCategory.Special));

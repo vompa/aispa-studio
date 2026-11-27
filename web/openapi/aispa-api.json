@@ -1313,6 +1313,13 @@
             "schema": {
               "type": "boolean"
             }
+          },
+          {
+            "name": "includeRegister",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
           }
         ],
         "responses": {
@@ -9830,6 +9837,89 @@
               "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/pos/fiscal/providers": {
+      "get": {
+        "tags": [
+          "Kassa"
+        ],
+        "operationId": "ListFiscalProviders",
+        "parameters": [
+          {
+            "name": "country",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/FiscalCountry"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FiscalProviderDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/pos/setup": {
+      "get": {
+        "tags": [
+          "Kassa"
+        ],
+        "operationId": "GetPosSetup",
+        "parameters": [
+          {
+            "name": "locationId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PosSetupDto"
                 }
               }
             }
@@ -37871,6 +37961,26 @@
           "otherSite": {
             "type": "boolean",
             "default": false
+          },
+          "fiscalProvider": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "isPractice": {
+            "type": "boolean",
+            "default": false
+          },
+          "readiness": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/FiscalReadinessDto"
+              }
+            ]
           }
         }
       },
@@ -37915,6 +38025,18 @@
             "type": [
               "null",
               "string"
+            ]
+          },
+          "fiscalProvider": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "practice": {
+            "type": [
+              "null",
+              "boolean"
             ]
           }
         }
@@ -42213,6 +42335,92 @@
           "AT",
           "DE",
           "CH"
+        ]
+      },
+      "FiscalCredentialFieldDto": {
+        "required": [
+          "key",
+          "label",
+          "secret"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "secret": {
+            "type": "boolean"
+          }
+        }
+      },
+      "FiscalProviderDto": {
+        "required": [
+          "id",
+          "name",
+          "kind",
+          "isTest",
+          "fields",
+          "helpTopic"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/FiscalProviderKind"
+          },
+          "isTest": {
+            "type": "boolean"
+          },
+          "fields": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FiscalCredentialFieldDto"
+            }
+          },
+          "helpTopic": {
+            "type": "string"
+          }
+        }
+      },
+      "FiscalProviderKind": {
+        "enum": [
+          "Test",
+          "OnlineService",
+          "Device",
+          "NoSignature"
+        ]
+      },
+      "FiscalReadinessDto": {
+        "required": [
+          "state",
+          "reasons"
+        ],
+        "type": "object",
+        "properties": {
+          "state": {
+            "$ref": "#/components/schemas/FiscalReadinessState"
+          },
+          "reasons": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "FiscalReadinessState": {
+        "enum": [
+          "NotReady",
+          "Practice",
+          "Ready"
         ]
       },
       "FollowUpNote": {
@@ -47609,6 +47817,21 @@
           }
         }
       },
+      "PosSetupDto": {
+        "required": [
+          "state",
+          "nextStep"
+        ],
+        "type": "object",
+        "properties": {
+          "state": {
+            "$ref": "#/components/schemas/FiscalReadinessState"
+          },
+          "nextStep": {
+            "type": "string"
+          }
+        }
+      },
       "PowerHolderDto": {
         "required": [
           "employeeId",
@@ -48943,6 +49166,10 @@
               "string"
             ],
             "format": "date-time"
+          },
+          "isPractice": {
+            "type": "boolean",
+            "default": false
           }
         }
       },

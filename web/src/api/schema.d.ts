@@ -2834,6 +2834,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/pos/fiscal/providers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ListFiscalProviders"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pos/setup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetPosSetup"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/pos/registers": {
         parameters: {
             query?: never;
@@ -10351,6 +10383,10 @@ export interface components {
             paymentMethods: components["schemas"]["PaymentMethod"][];
             /** @default false */
             otherSite: boolean;
+            fiscalProvider?: null | string;
+            /** @default false */
+            isPractice: boolean;
+            readiness?: null | components["schemas"]["FiscalReadinessDto"];
         };
         CashRegisterInput: {
             /** Format: uuid */
@@ -10361,6 +10397,8 @@ export interface components {
             payeeName: null | string;
             iban: null | string;
             bic: null | string;
+            fiscalProvider?: null | string;
+            practice?: null | boolean;
         };
         ChannelKpi: {
             source: components["schemas"]["AppointmentSource"];
@@ -11478,6 +11516,27 @@ export interface components {
         ExtraTiming: "OnArrival" | "BeforeEnd" | "AfterTreatment";
         /** @enum {unknown} */
         FiscalCountry: "AT" | "DE" | "CH";
+        FiscalCredentialFieldDto: {
+            key: string;
+            label: string;
+            secret: boolean;
+        };
+        FiscalProviderDto: {
+            id: string;
+            name: string;
+            kind: components["schemas"]["FiscalProviderKind"];
+            isTest: boolean;
+            fields: components["schemas"]["FiscalCredentialFieldDto"][];
+            helpTopic: string;
+        };
+        /** @enum {unknown} */
+        FiscalProviderKind: "Test" | "OnlineService" | "Device" | "NoSignature";
+        FiscalReadinessDto: {
+            state: components["schemas"]["FiscalReadinessState"];
+            reasons: string[];
+        };
+        /** @enum {unknown} */
+        FiscalReadinessState: "NotReady" | "Practice" | "Ready";
         FollowUpNote: {
             note: string;
         };
@@ -12928,6 +12987,10 @@ export interface components {
             /** Format: double */
             cashDiscountPercent?: null | number;
         };
+        PosSetupDto: {
+            state: components["schemas"]["FiscalReadinessState"];
+            nextStep: string;
+        };
         PowerHolderDto: {
             /** Format: uuid */
             employeeId: string;
@@ -13275,6 +13338,8 @@ export interface components {
             substituteNumber?: null | string;
             /** Format: date-time */
             substituteIssuedAt?: null | string;
+            /** @default false */
+            isPractice: boolean;
         };
         /** @enum {unknown} */
         ReceiptKind: "Sale" | "Void" | "Start" | "Monthly" | "Yearly" | "Null" | "Closing";
@@ -16662,6 +16727,7 @@ export interface operations {
         parameters: {
             query?: {
                 readiness?: boolean;
+                includeRegister?: boolean;
             };
             header?: never;
             path?: never;
@@ -23111,6 +23177,68 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    ListFiscalProviders: {
+        parameters: {
+            query: {
+                country: components["schemas"]["FiscalCountry"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FiscalProviderDto"][];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    GetPosSetup: {
+        parameters: {
+            query?: {
+                locationId?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PosSetupDto"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
         };
     };

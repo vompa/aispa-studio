@@ -12,6 +12,8 @@ namespace AispaStudio.Api.Pos.Fiscal.Rksv;
 /// </summary>
 internal interface IRksvSignatureDevice
 {
+    string ProviderId { get; }
+
     /// <summary>Kennung des Vertrauensdiensteanbieters im Belegcode: AT1 A-Trust, AT2 Global Trust, AT3 PrimeSign; AT0 ohne Anbieter/Test.</summary>
     string ZdaId { get; }
 
@@ -42,6 +44,8 @@ internal sealed class TestSignatureDeviceSwitch
 /// </summary>
 internal sealed class TestSignatureDevice(AispaDbContext db, TestSignatureDeviceSwitch failure) : IRksvSignatureDevice
 {
+    public string ProviderId => "test";
+
     public string ZdaId => "AT0";
 
     public Task<string> SetUpAsync(CashRegister register, CancellationToken ct)

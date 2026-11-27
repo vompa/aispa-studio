@@ -82,7 +82,8 @@ public sealed class KassenSichVTests(ApiFixture fixture)
     public async Task TSE_Export_als_TAR_ueber_die_Queue()
     {
         var spa = await TestSpa.CreateAsync(fixture, Ct);
-        var register = await CreateGermanRegisterAsync(spa);
+        var input = Input(spa, FiscalCountry.DE) with { Code = Guid.NewGuid().ToString("N").PadRight(50, 'A'), FiscalProvider = "test" };
+        var register = await spa.PostAsync<CashRegisterDto>("/api/pos/registers", input, Ct);
         await SellAsync(spa, register, 30m, new PaymentInput(PaymentMethod.Cash, 30m, null, null));
         await SellAsync(spa, register, 12.5m, new PaymentInput(PaymentMethod.Card, 12.5m, null, null));
 

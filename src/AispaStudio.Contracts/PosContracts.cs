@@ -123,7 +123,9 @@ public sealed record CashRegisterInput(
     string ReceiptHeader,
     string? PayeeName,
     string? Iban,
-    string? Bic);
+    string? Bic,
+    string? FiscalProvider = null,
+    bool? Practice = null);
 
 /// <summary>
 /// Kasse mit Zustand. <c>Warnings</c> nennt, was die Rezeption oder Leitung tun muss, z. B. einen Ausfall an FinanzOnline melden.
@@ -142,7 +144,23 @@ public sealed record CashRegisterDto(
     string? CertificateSerial,
     IReadOnlyList<string> Warnings,
     IReadOnlyList<PaymentMethod> PaymentMethods,
-    bool OtherSite = false);
+    bool OtherSite = false,
+    string? FiscalProvider = null,
+    bool IsPractice = false,
+    FiscalReadinessDto? Readiness = null);
+
+public enum FiscalReadinessState { NotReady, Practice, Ready }
+
+public sealed record FiscalReadinessDto(FiscalReadinessState State, IReadOnlyList<string> Reasons);
+
+public sealed record PosSetupDto(FiscalReadinessState State, string NextStep);
+
+public enum FiscalProviderKind { Test, OnlineService, Device, NoSignature }
+
+public sealed record FiscalCredentialFieldDto(string Key, string Label, bool Secret);
+
+public sealed record FiscalProviderDto(string Id, string Name, FiscalProviderKind Kind, bool IsTest,
+    IReadOnlyList<FiscalCredentialFieldDto> Fields, string HelpTopic);
 
 /// <summary>
 /// Position für eine offene Rechnung. Je nach <c>Kind</c>: Termin (<c>AppointmentId</c>), Artikel (<c>ArticleId</c>, <c>Quantity</c>),
@@ -336,7 +354,8 @@ public sealed record ReceiptDto(
     IReadOnlyList<SentDocumentDto>? SentMails = null,
     decimal Tip = 0,
     string? SubstituteNumber = null,
-    DateTimeOffset? SubstituteIssuedAt = null);
+    DateTimeOffset? SubstituteIssuedAt = null,
+    bool IsPractice = false);
 
 /// <summary>Artikel auf einem Ersatzbeleg.</summary>
 public sealed record SubstituteArticle(Guid ArticleId, int Quantity);

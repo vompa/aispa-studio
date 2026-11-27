@@ -14,8 +14,8 @@ internal static partial class MasterDataEndpoints
     private static void MapSetupProgress(RouteGroupBuilder group)
     {
         MapSetupCatalog(group);
-        group.MapGet("/setup/progress", async (AispaDbContext db, BookingService booking, RosterService roster, TimeProvider time, bool? readiness, CancellationToken ct) =>
-                await SetupProgress.LoadAsync(db, booking, roster, time.GetUtcNow(), readiness == true, ct))
+        group.MapGet("/setup/progress", async (AispaDbContext db, BookingService booking, RosterService roster, TimeProvider time, bool? readiness, bool? includeRegister, CancellationToken ct) =>
+                await SetupProgress.LoadAsync(db, booking, roster, time.GetUtcNow(), readiness == true, includeRegister != false, ct))
             .WithName("GetSetupProgress")
             .RequirePermission(AccessRight.ManageOrganization)
             .WithSummary("Liefert die Schritte der Ersteinrichtung (Standort, Öffnungszeiten, Räume, Behandlungen, Team, Kassa) mit ihrem Stand, mit „readiness=true“ auch, ob sich in den nächsten 14 Tagen eine Behandlung buchen lässt.");
@@ -29,14 +29,14 @@ internal static class SetupProgress
 
     /// <param name="readiness">Auch die Bereitschaftsprüfung rechnen; ohne bleibt <c>Readiness</c> leer und der Aufruf lädt nur die Grunddaten.</param>
     public static async Task<SetupProgressDto> LoadAsync(
-        AispaDbContext db, BookingService booking, RosterService roster, DateTimeOffset now, bool readiness, CancellationToken ct)
+        AispaDbContext db, BookingService booking, RosterService roster, DateTimeOffset now, bool readiness, bool includeRegister, CancellationToken ct)
     {
-        var facts = await SetupFacts.LoadAsync(db, now, ct);
+        var facts = await SetupFacts.LoadAsync(db, now, includeRegister, ct);
         var anyLocation = facts.Locations.Count > 0;
         var hours = facts.Locations.Any(l => l.OpeningHours.Count > 0);
         var treatments = facts.Treatments.Any(t => t.RoomLocationIds.Count > 0);
         var people = facts.Employees.Any(e => e.HasHours && facts.Treatments.Any(t => t.CanBeDoneBy(e)));
-        SetupStepDto[] steps =
+        List<SetupStepDto> steps =
         [
             new("location", "Standort anlegen", "Name, Zeitzone und Anschrift des Spas.", anyLocation, "masterData", "locations",
                 facts.AllLocationsClosed ? SetupReadiness.AllLocationsClosed : null),
@@ -53,8 +53,11 @@ internal static class SetupProgress
                 MissingPrices(facts.Treatments.Count(t => !t.PricedEverywhere))),
             new("people", "Team anlegen", "Wer behandelt und wer an der Rezeption arbeitet.", people, "masterData", "team",
                 people ? null : PeopleMissing(facts)),
-            new("register", "Kassa einrichten", "Kassa-ID, Belegkopf und Land für Belege.", facts.AnyRegister, "masterData", "kassa"),
         ];
+        if (includeRegister)
+        {
+            steps.Add(new("register", "Kassa einrichten", "Kassa-ID, Belegkopf und Land für Belege.", facts.AnyRegister, "masterData", "kassa"));
+        }
 
         return new SetupProgressDto(steps, readiness ? await SetupReadiness.CheckAsync(facts, db, booking, roster, now, ct) : null);
     }

@@ -18,13 +18,38 @@ internal static class ReceiptPrinter
         var text = new StringBuilder();
         void Line(string value = "") => text.Append(value.Length > width ? value[..width] : value).Append('\n');
         void Center(string value) => Line(value.Length >= width ? value : new string(' ', (width - value.Length) / 2) + value);
+        void Wrapped(string value)
+        {
+            while (value.Length > width)
+            {
+                var space = value.LastIndexOf(' ', width);
+                var end = space > 0 ? space : width;
+                Line(value[..end]);
+                value = value[end..].TrimStart();
+            }
+
+            Line(value);
+        }
+
         void Columns(string left, string right)
         {
             var room = width - right.Length - 1;
+            if (room < 0)
+            {
+                Wrapped(left);
+                Wrapped(right);
+                return;
+            }
+
             Line(left.Length > room ? $"{left[..room]} {right}" : left.PadRight(width - right.Length) + right);
         }
 
         string Money(decimal amount) => amount.ToString("#,##0.00", German);
+
+        if (receipt.IsPractice)
+        {
+            Wrapped(ReceiptDocument.PracticeLabel);
+        }
 
         foreach (var header in receipt.ReceiptHeader.Split('\n', StringSplitOptions.TrimEntries))
         {
@@ -54,12 +79,22 @@ internal static class ReceiptPrinter
             }
 
             Line();
-            Line($"Rechnung Nr. {receipt.RegisterCode}-{receipt.Number}");
+            Wrapped($"Rechnung Nr. {receipt.RegisterCode}-{receipt.Number}");
             Line($"Rechnungs- und Leistungsdatum {issued.ToString("dd.MM.yyyy", German)}");
         }
         else
         {
-            Columns($"{KindLabel(receipt.Kind)} Nr. {receipt.Number}", $"Kassa {receipt.RegisterCode}");
+            var number = $"{KindLabel(receipt.Kind)} Nr. {receipt.Number}";
+            var register = $"Kassa {receipt.RegisterCode}";
+            if (number.Length + 1 + register.Length <= width)
+            {
+                Columns(number, register);
+            }
+            else
+            {
+                Line(number);
+                Wrapped(register);
+            }
         }
 
         Line(issued.ToString("dd.MM.yyyy HH:mm:ss", German));

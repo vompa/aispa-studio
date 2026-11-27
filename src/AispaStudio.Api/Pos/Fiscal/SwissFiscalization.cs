@@ -13,7 +13,7 @@ internal sealed class SwissFiscalization : IFiscalization
 {
     public FiscalCountry Country => FiscalCountry.CH;
 
-    public string? Notice => null;
+    public string? Notice(CashRegister register) => null;
 
     public Task<string?> InitializeAsync(CashRegister register, CancellationToken ct) => Task.FromResult<string?>(null);
 

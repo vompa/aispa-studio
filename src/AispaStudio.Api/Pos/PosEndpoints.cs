@@ -28,7 +28,8 @@ internal static class PosEndpoints
     public static IEndpointRouteBuilder MapPosEndpoints(this IEndpointRouteBuilder routes)
     {
         // Kassieren darf, wer buchen darf (Rezeption aufwärts); Konten, Artikel, Preise und Kassen anlegen nur Inhaber und Standortleitung.
-        var group = routes.MapGroup("/api/pos").WithTags("Kassa").RequirePermission(AccessRight.Book);
+        var group = routes.MapGroup("/api/pos").WithTags("Kassa").RequirePermission(AccessRight.Book)
+            .AddEndpointFilter(CheckRegisterLocationAsync);
 
         // ---------- Stammdaten ----------
 
@@ -128,16 +129,31 @@ internal static class PosEndpoints
 
         // ---------- Kassen ----------
 
-        group.MapGet("/registers", async (Guid? locationId, AispaDbContext db, PosService pos, CancellationToken ct) =>
-                (await db.CashRegisters.AsNoTracking().Where(r => locationId == null || r.LocationId == locationId)
-                    .OrderBy(r => r.Code).ToListAsync(ct)).Select(pos.ToDto).ToList())
+        group.MapGet("/fiscal/providers", (FiscalCountry country) => FiscalProviderCatalog.For(country))
+            .WithName("ListFiscalProviders");
+
+        group.MapGet("/setup", async (Guid? locationId, AccessService access, PosService pos, CancellationToken ct) =>
+            {
+                var registers = await pos.RegistersAsync((await access.CurrentAsync(ct))!, locationId, ct);
+                var state = registers.Select(r => r.Readiness!.State).DefaultIfEmpty(FiscalReadinessState.NotReady).Max();
+                return new PosSetupDto(state, state switch
+                {
+                    FiscalReadinessState.Ready => "Die Kassa ist für den Echtbetrieb bereit.",
+                    FiscalReadinessState.Practice => "Für den Echtbetrieb eine eigene Kassa einrichten.",
+                    _ => "Eine Kassa einrichten oder die Hinweise der vorhandenen Kassa prüfen.",
+                });
+            })
+            .WithName("GetPosSetup");
+
+        group.MapGet("/registers", async (Guid? locationId, AccessService access, PosService pos, CancellationToken ct) =>
+                await pos.RegistersAsync((await access.CurrentAsync(ct))!, locationId, ct))
             .WithName("ListCashRegisters")
             .AlsoAllow(AccessRight.ViewReceipts, insteadOf: AccessRight.Book);
 
         group.MapGet("/registers/{registerId:guid}", async Task<Results<Ok<CashRegisterDto>, NotFound>> (
                 Guid registerId, AispaDbContext db, PosService pos, CancellationToken ct) =>
                 await db.CashRegisters.AsNoTracking().FirstOrDefaultAsync(r => r.Id == registerId, ct) is { } r
-                    ? TypedResults.Ok(pos.ToDto(r))
+                    ? TypedResults.Ok(await pos.RegisterDtoAsync(r, ct))
                     : TypedResults.NotFound())
             .WithName("GetCashRegister")
             .AlsoAllow(AccessRight.ViewReceipts, insteadOf: AccessRight.Book);
@@ -705,6 +721,29 @@ internal static class PosEndpoints
     private sealed record RegisterLocation(Guid Id, string TimeZone, string Currency);
 
     private sealed record PreparedReceiptMail(ReceiptDto Receipt, DocumentHeader Header, TimeZoneInfo Zone, string Currency, DocumentMailDraft Draft);
+
+    private static async ValueTask<object?> CheckRegisterLocationAsync(EndpointFilterInvocationContext context, EndpointFilterDelegate next)
+    {
+        var http = context.HttpContext;
+        var ct = http.RequestAborted;
+        Guid? location = context.Arguments.OfType<CashRegisterInput>().FirstOrDefault()?.LocationId;
+        if (Guid.TryParse(http.Request.RouteValues["registerId"]?.ToString(), out var registerId))
+        {
+            var db = http.RequestServices.GetRequiredService<AispaDbContext>();
+            location = await db.CashRegisters.Where(r => r.Id == registerId).Select(r => (Guid?)r.LocationId).FirstOrDefaultAsync(ct);
+        }
+
+        if (location is { } id)
+        {
+            var access = await http.RequestServices.GetRequiredService<AccessService>().CurrentAsync(ct);
+            if (access?.CanSee(id) != true)
+            {
+                return PermissionExtensions.Forbidden("Kein Zugang zu diesem Standort.");
+            }
+        }
+
+        return await next(context);
+    }
 
     private static string? Blank(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 

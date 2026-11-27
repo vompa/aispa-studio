@@ -383,7 +383,7 @@ internal sealed partial class MemoryDemoOps
                 : [],
             null,
             CompanyProfiles.CompanyFor(location, _snapshot.Tenant),
-            PosService.SmallInvoiceLimit(register.Country));
+            PosService.SmallInvoiceLimit(register.Country), IsPractice: register.IsPractice);
     }
 
     // ---------- Kassenlade und Tagesabschluss ----------

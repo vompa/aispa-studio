@@ -216,8 +216,7 @@ builder.Services.AddAccessExpiry(builder.Configuration, modules);
 builder.Services.AddReportMails(builder.Configuration, modules);
 builder.Services.AddCalendarSubscriptions(builder.Configuration, modules);
 
-// Kassa: Kassenrecht je Land. Österreich signiert für den Prototyp mit der Test-Signatureinrichtung;
-// eine zertifizierte Einrichtung (Signaturkarte, HSM, Cloud) ersetzt nur IRksvSignatureDevice. Deutschland braucht eine ITseClient-Umsetzung.
+// Fiskaladapter werden anhand des Landes und des beim Anlegen festgelegten Anbieters gewählt.
 builder.Services.Configure<PaymentOptions>(builder.Configuration.GetSection("Payments"));
 builder.Services.AddScoped<PosService>();
 builder.Services.AddSingleton<SiteIdentity>();
@@ -284,11 +283,7 @@ builder.Services.AddScoped<IFiscalization, KassenSichVFiscalization>();
 builder.Services.AddScoped<IFiscalization, SwissFiscalization>();
 builder.Services.AddScoped<IRksvSignatureDevice, TestSignatureDevice>();
 builder.Services.AddSingleton<TestSignatureDeviceSwitch>();
-if (builder.Configuration.GetValue<bool>("Fiscal:TestTse"))
-{
-    // Nur Entwicklung und Prototyp: deutsche Kassen signieren mit der Test-TSE. Nie in Produktion.
-    builder.Services.AddScoped<ITseClient, TestTseClient>();
-}
+builder.Services.AddScoped<ITseClient, TestTseClient>();
 
 // Startzustand für Health-Check „startup“ und /api/system/status; ohne Migration und Beispieldaten von Anfang an bereit.
 builder.Services.AddSingleton<StartupState>();

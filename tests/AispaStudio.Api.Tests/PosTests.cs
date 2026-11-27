@@ -12,6 +12,9 @@ using AispaStudio.Api.Sync;
 using AispaStudio.Api.Tenancy;
 using AispaStudio.Contracts;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
@@ -23,6 +26,188 @@ public sealed class PosTests(ApiFixture fixture)
 
     private static DateOnly ViennaToday =>
         DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Europe/Vienna")).DateTime);
+
+    [Theory]
+    [InlineData(FiscalCountry.AT, "test", null, true)]
+    [InlineData(FiscalCountry.DE, "test", true, true)]
+    [InlineData(FiscalCountry.CH, "none", false, false)]
+    [InlineData(FiscalCountry.CH, "none", true, true)]
+    public async Task Fiskalanbieter_bestimmt_Uebungsstatus_und_Startbeleg(FiscalCountry country, string providerId, bool? practice, bool expected)
+    {
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        var providers = await spa.GetAsync<List<FiscalProviderDto>>($"/api/pos/fiscal/providers?country={country}", Ct);
+        Assert.Equal(providerId, Assert.Single(providers).Id);
+        var input = RegisterInput(spa, country) with { Code = Guid.NewGuid().ToString("N").PadRight(50, 'A'), FiscalProvider = providerId, Practice = practice };
+        var register = await spa.PostAsync<CashRegisterDto>("/api/pos/registers", input, Ct);
+        Assert.Equal(expected, register.IsPractice);
+        Assert.Equal(providerId, register.FiscalProvider);
+        Assert.Equal(expected ? FiscalReadinessState.Practice : FiscalReadinessState.Ready, register.Readiness!.State);
+        var receipts = await spa.GetAsync<List<ReceiptDto>>($"/api/pos/registers/{register.Id}/receipts?date={ViennaToday:yyyy-MM-dd}", Ct);
+        var receipt = Assert.Single(receipts);
+        Assert.Equal(expected, receipt.IsPractice);
+        var path = $"/api/pos/receipts/{receipt.Id}";
+        var pdf = PdfText.Text(await spa.Client.GetByteArrayAsync($"{path}/pdf", Ct));
+        const string Label = "ÜBUNGSKASSA – kein gültiger Beleg";
+        Assert.Equal(expected, pdf.Contains(Label, StringComparison.Ordinal));
+        foreach (var width in new[] { 32, 42, 64 })
+        {
+            var print = await spa.Client.GetStringAsync($"{path}/print?width={width}", Ct);
+            Assert.All(print.Split('\n'), line => Assert.True(line.Length <= width));
+            Assert.Contains(register.Code, print.Replace("\n", "", StringComparison.Ordinal), StringComparison.Ordinal);
+            Assert.Contains("0,00", print, StringComparison.Ordinal);
+            Assert.Equal(expected, print.Replace('\n', ' ').Contains(Label, StringComparison.Ordinal));
+            var escPos = await spa.Client.GetByteArrayAsync($"{path}/print?format=EscPos&width={width}", Ct);
+            Assert.Contains(print, Encoding.GetEncoding(1252).GetString(escPos), StringComparison.Ordinal);
+        }
+    }
+
+    [Fact]
+    public async Task Fiskalanbieter_validiert_Anbieter_Uebungswunsch_und_Recht()
+    {
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        foreach (var input in new[]
+        {
+            RegisterInput(spa, FiscalCountry.CH) with { FiscalProvider = "test" },
+            RegisterInput(spa, FiscalCountry.AT) with { FiscalProvider = "test", Practice = false },
+            RegisterInput(spa, FiscalCountry.DE) with { FiscalProvider = "test", Practice = false },
+        })
+        {
+            using var invalid = await spa.Client.PostAsJsonAsync("/api/pos/registers", input, TestSpa.Json, Ct);
+            Assert.Equal(HttpStatusCode.BadRequest, invalid.StatusCode);
+        }
+
+        using var reception = await TestUsers.ClientAsync(fixture, Ct, StaffRole.Reception, [spa.Location.Id]);
+        using var denied = await reception.PostAsJsonAsync("/api/pos/registers", RegisterInput(spa, FiscalCountry.CH), TestSpa.Json, Ct);
+        Assert.Equal(HttpStatusCode.Forbidden, denied.StatusCode);
+    }
+
+    [Fact]
+    public async Task Fiskalanbieter_DE_ohne_Testschalter_braucht_explizite_Wahl()
+    {
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        await using var scope = fixture.Factory.Services.CreateAsyncScope();
+        var services = scope.ServiceProvider;
+        services.GetRequiredService<TenantContext>().Use(spa.TenantId);
+        var configuration = new Microsoft.Extensions.Configuration.ConfigurationBuilder().Build();
+        var pos = new PosService(services.GetRequiredService<AispaDbContext>(), services.GetRequiredService<FiscalizationResolver>(),
+            TimeProvider.System, services.GetRequiredService<IOptions<PaymentOptions>>(), services.GetRequiredService<SiteIdentity>(), configuration);
+        var legacy = await pos.CreateRegisterAsync(RegisterInput(spa, FiscalCountry.DE), Ct);
+        Assert.NotNull(legacy.Error);
+        var explicitPractice = await pos.CreateRegisterAsync(RegisterInput(spa, FiscalCountry.DE) with { Practice = true }, Ct);
+        Assert.True(explicitPractice.Value!.IsPractice);
+        Assert.NotNull(explicitPractice.Value.CertificateSerial);
+    }
+
+    [Fact]
+    public async Task Fiskalanbieter_Karte_beruecksichtigt_nur_erlaubte_Standorte()
+    {
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        var own = await spa.CreateLocationAsync("Zweitstandort", [DayOfWeek.Monday], Ct);
+        using var manager = await TestUsers.ClientAsync(fixture, Ct, StaffRole.Manager, [own.Id]);
+        var otherRegister = await CreateRegisterAsync(spa, FiscalCountry.CH);
+        using var denied = await manager.PostAsync($"/api/pos/registers/{otherRegister.Id}/decommission?locationId={own.Id}", null, Ct);
+        Assert.Equal(HttpStatusCode.Forbidden, denied.StatusCode);
+        var setup = await manager.GetFromJsonAsync<PosSetupDto>("/api/pos/setup", TestSpa.Json, Ct);
+        Assert.Equal(FiscalReadinessState.NotReady, setup!.State);
+        var list = await manager.GetFromJsonAsync<List<CashRegisterDto>>("/api/pos/registers", TestSpa.Json, Ct);
+        Assert.Empty(list!);
+        using var created = await manager.PostAsJsonAsync("/api/pos/registers", RegisterInput(spa, FiscalCountry.AT) with { LocationId = own.Id }, TestSpa.Json, Ct);
+        Assert.Equal(HttpStatusCode.Created, created.StatusCode);
+        setup = await manager.GetFromJsonAsync<PosSetupDto>("/api/pos/setup", TestSpa.Json, Ct);
+        Assert.Equal(FiscalReadinessState.Practice, setup!.State);
+
+        var legacyProgress = await spa.GetAsync<SetupProgressDto>("/api/setup/progress", Ct);
+        var progress = await spa.GetAsync<SetupProgressDto>("/api/setup/progress?includeRegister=false", Ct);
+        Assert.Contains(legacyProgress.Steps, s => s.Key == "register");
+        Assert.Equal(legacyProgress.Steps.Where(s => s.Key != "register"), progress.Steps);
+    }
+
+    [Fact]
+    public async Task Fiskalanbieter_Migration_kennzeichnet_bestehende_AT_und_DE_Kassen()
+    {
+        var connection = await fixture.CreateDatabaseAsync(Ct);
+        var options = new DbContextOptionsBuilder<AispaDbContext>().UseNpgsql(connection).Options;
+        await using var db = new AispaDbContext(options, new TenantContext(new Microsoft.AspNetCore.Http.HttpContextAccessor()));
+        await db.Database.ExecuteSqlRawAsync("""
+            CREATE SCHEMA aispa;
+            CREATE TABLE aispa."CashRegisters" ("Id" int PRIMARY KEY, "Country" varchar(2));
+            CREATE TABLE aispa."TestTseLog" ("ClientId" varchar(30) NOT NULL);
+            CREATE TABLE aispa."TestTseClientState" ("ClientId" varchar(30) NOT NULL);
+            INSERT INTO aispa."CashRegisters" VALUES (1, 'AT'), (2, 'CH'), (3, 'DE');
+            """, Ct);
+        var migration = new AispaStudio.Api.Data.Migrations.FiscalProviders();
+        var model = db.GetService<IDesignTimeModel>().Model;
+        foreach (var command in db.GetService<IMigrationsSqlGenerator>().Generate(migration.UpOperations, model))
+        {
+            await db.Database.ExecuteSqlRawAsync(command.CommandText, Ct);
+        }
+
+        var practice = await db.Database.SqlQueryRaw<bool>("""SELECT "IsPractice" AS "Value" FROM aispa."CashRegisters" ORDER BY "Country" """).ToListAsync(Ct);
+        Assert.Equal([true, false, true], practice);
+        var widths = await db.Database.SqlQueryRaw<int>("""
+            SELECT character_maximum_length AS "Value" FROM information_schema.columns
+            WHERE table_schema = 'aispa' AND table_name IN ('TestTseLog', 'TestTseClientState') AND column_name = 'ClientId'
+            """).ToListAsync(Ct);
+        Assert.Equal([50, 50], widths);
+
+        await db.Database.OpenConnectionAsync(Ct);
+        await db.Database.ExecuteSqlRawAsync("""SELECT set_config('aispa.sync_origin', 'altstandort', false)""", Ct);
+        const string Receive = """
+            INSERT INTO aispa."CashRegisters" ("Id", "Country", "FiscalProvider", "IsPractice")
+            SELECT "Id", "Country", "FiscalProvider", "IsPractice" FROM jsonb_populate_record(NULL::aispa."CashRegisters", {0}::jsonb)
+            ON CONFLICT ("Id") DO UPDATE SET ("Country", "FiscalProvider", "IsPractice") =
+                ROW(EXCLUDED."Country", EXCLUDED."FiscalProvider", EXCLUDED."IsPractice")
+            """;
+        foreach (var row in new[]
+        {
+            """{"Id":4,"Country":"AT"}""",
+            """{"Id":5,"Country":"DE"}""",
+            """{"Id":6,"Country":"CH"}""",
+            """{"Id":7,"Country":"CH","FiscalProvider":"none","IsPractice":true}""",
+            """{"Id":7,"Country":"CH"}""",
+        })
+        {
+            await db.Database.ExecuteSqlRawAsync(Receive, [row], Ct);
+        }
+
+        var received = await db.Database.SqlQueryRaw<bool>("""SELECT "IsPractice" AS "Value" FROM aispa."CashRegisters" WHERE "Id" >= 4 ORDER BY "Id" """).ToListAsync(Ct);
+        Assert.Equal([true, true, false, true], received);
+        Assert.Equal("none", await db.Database.SqlQueryRaw<string>("""SELECT "FiscalProvider" AS "Value" FROM aispa."CashRegisters" WHERE "Id" = 7""").SingleAsync(Ct));
+        var fullId = new string('A', 50);
+        await db.Database.ExecuteSqlAsync($"""INSERT INTO aispa."TestTseClientState" ("ClientId") VALUES ({fullId})""", Ct);
+        await db.Database.ExecuteSqlAsync($"""INSERT INTO aispa."TestTseLog" ("ClientId") VALUES ({fullId})""", Ct);
+        await using (var rollback = await db.Database.BeginTransactionAsync(Ct))
+        {
+            foreach (var command in db.GetService<IMigrationsSqlGenerator>().Generate(migration.DownOperations, model))
+            {
+                await db.Database.ExecuteSqlRawAsync(command.CommandText, Ct);
+            }
+
+            await rollback.CommitAsync(Ct);
+        }
+
+        Assert.True(await db.Database.SqlQueryRaw<bool>("""SELECT to_regprocedure('aispa.legacy_register_fiscal_fields()') IS NULL AS "Value" """).SingleAsync(Ct));
+        var retainedIds = await db.Database.SqlQueryRaw<string>("""
+            SELECT "ClientId" AS "Value" FROM aispa."TestTseClientState"
+            UNION ALL SELECT "ClientId" FROM aispa."TestTseLog"
+            """).ToListAsync(Ct);
+        Assert.Equal([fullId, fullId], retainedIds);
+
+        foreach (var command in db.GetService<IMigrationsSqlGenerator>().Generate(migration.UpOperations, model))
+        {
+            await db.Database.ExecuteSqlRawAsync(command.CommandText, Ct);
+        }
+
+        var incompatible = await db.Database.SqlQueryRaw<int>("""
+            SELECT COUNT(*)::int AS "Value" FROM aispa."CashRegisters"
+            WHERE "Id" <> 7 AND ("IsPractice" <> ("Country" IN ('AT','DE')) OR "FiscalProvider" IS NOT NULL)
+            """).SingleAsync(Ct);
+        Assert.Equal(0, incompatible);
+        Assert.True(await db.Database.SqlQueryRaw<bool>("""SELECT "IsPractice" AND "FiscalProvider" = 'none' AS "Value" FROM aispa."CashRegisters" WHERE "Id" = 7""").SingleAsync(Ct));
+        await db.Database.ExecuteSqlRawAsync(Receive, ["""{"Id":8,"Country":"CH","FiscalProvider":"none","IsPractice":true}"""], Ct);
+        await db.Database.ExecuteSqlRawAsync(Receive, ["""{"Id":8,"Country":"CH"}"""], Ct);
+        Assert.True(await db.Database.SqlQueryRaw<bool>("""SELECT "IsPractice" AND "FiscalProvider" = 'none' AS "Value" FROM aispa."CashRegisters" WHERE "Id" = 8""").SingleAsync(Ct));
+    }
 
     [Fact]
     public async Task Neue_Kasse_hat_einen_signierten_Startbeleg()
