@@ -8531,3 +8531,9 @@ Der volle Lauf `*ViewTests` auf dev 75883b69 hatte 7 rote Tests; alle sieben lag
 - **Neue Tests:** keine. App-Code unverändert, daher keine Unit-Testklassen nachgezogen.
 - **Nicht geprüft:** voller `*ViewTests`-Lauf nach der Änderung.
 - **Ohne Block** (nur Tests und Doku, keine sichtbare Änderung).
+
+## Handbuchbilder nach T-098 neu (27.11.2026)
+
+- **Was:** `scripts/help-images.sh` über dev d0d68537: 45 Bilder sichtbar geändert, vor allem durch „Netz“/„Im Netz“ unten über „System“ (T-106), den Paar-Block unter dem Kunden (T-107) und die fehlende Pille „Online“ im Einzelplatz (T-110). 14 Bilder mit Rauschen unter 300 Pixeln blieben beim alten Stand.
+- **Geprüft:** Bildtests grün, Skript mit Exitcode 0 (zweiter Lauf; der erste brach nach 925 grünen Tests mit einem Absturz des Testprozesses ab, Exitcode 139). Stichprobe angesehen: `im-netz`, `sicherung`, `paar-und-spa-tag-3`, `ki-betrieb-auswertung`.
+- **Ohne Block:** nur Bilder.
