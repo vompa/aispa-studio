@@ -49,6 +49,10 @@ Der eigene Ablauf macht den Unterschied zwischen Üben und Echtbetrieb sichtbar.
 
 Die Umsetzung erfolgt in T-138 bis T-144: API-Grundlage, Zugangsdaten, FinanzOnline und Jahresbeleg, Kassenmaske, Assistent und Karte, Integration sowie Handbuch und Bilder. Der Kassa-Schritt der neuen allgemeinen Einrichtung wandert in die eigene Karte; der Verwaltungsweg des Standortschritts bleibt erhalten. Die genaue rückwärtskompatible Antwortform wird im Umsetzungsprotokoll festgehalten.
 
+Der bestehende Endpunkt `GET /api/setup/progress` behält standardmäßig sechs Schritte. Die neue Windows-App fragt mit `includeRegister=false` die fünf allgemeinen Schritte ab; der Abschluss wird über genau diese fünf berechnet. Für alte deutsche Anlageanfragen ohne Anbieter- und Übungsauswahl gilt weiterhin der effektive Wert von `Fiscal:TestTse`. Die bloße Registrierung des Testadapters erweitert diese Zulassung nicht. Eine ausdrückliche Auswahl `FiscalProvider=test` oder `Practice=true` ermöglicht den neuen Übungsweg; widersprüchliche Angaben werden abgelehnt.
+
+Automatische Online-Vorgänge bevorzugen eine verwendbare echte Kassa und behalten einen geeigneten, deterministischen Rückfall auf eine Übungskassa. Eine bereits bezahlte Buchung darf dabei weder verschwinden noch bei einer Wiederholung einer zweiten Kassa zugeordnet werden. Die bestehende Prüfung vor Belastung einer Kartengarantie bleibt bestehen. Eine neue Pflicht zu einer echten Kassa vor Annahme von Online-Zahlungen ist nicht Teil dieses Laufs; sie müsste Zahlungsbeginn, Belastung, Rückmeldungen und Wiederholungen gemeinsam regeln. Diese drei Ergänzungen wurden im beauftragten Automodus durch fünf unabhängige Council-Berater, anonyme Gegenprüfungen und einen Chairman entschieden.
+
 Noch nicht umgesetzt: echte Anbieter, automatischer FinanzOnline-Webservice, ELSTER-Mitteilung, Cloud-Kartenterminals und Empfehlungen 4 bis 12 des Befunds. Druck auf einem echten Bondrucker und Eingaben bei FinanzOnline bleiben ausdrücklich Handtests. Dieser ADR behauptet keine Freigabe für den steuerlichen Echtbetrieb.
 
 ## Quellen
