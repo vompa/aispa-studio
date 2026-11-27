@@ -412,6 +412,139 @@ Bibliothek für ZVT: [`Portalum.Zvt`](https://github.com/Portalum/Portalum.Zvt),
 - **Echtes Gerät:** Auch mit der Bibliothek bleibt ein Test an einem Terminal nötig, vor allem für Abbruch, Zeitüberschreitung und Storno nach einem Neustart.
 - **Externe Kassensysteme:** Eine fremde Kassa hinter der eigenen Oberfläche (zum Beispiel über die Schnittstelle eines Kassenherstellers) hielte Artikel, Steuersätze und Gutscheine doppelt; sie ist nicht Teil des Vorschlags. Ein Spa ohne eigene Kassa bleibt möglich (Frage 7), dann erzeugt die App keine Belege.
 
+Die ersten vier Punkte beantwortet der folgende Nachtrag.
+
+## Nachtrag vom 27.11.2026: Offene Punkte geklärt, Deutschland, Schweiz, Empfehlungen
+
+Auftrag des Auftraggebers: die offenen Punkte klären, dasselbe für Deutschland und die Schweiz erarbeiten und alle Empfehlungen eintragen. Drei Recherche-Läufe haben die Quellen am 27.11.2026 gelesen. Keine Rechtsberatung; „nicht belegt“ heißt, dass die gelesene Quelle dazu nichts sagt.
+
+### Österreich: geklärte Punkte
+
+| Punkt | Ergebnis | Quelle |
+| --- | --- | --- |
+| SumUp ohne Webhook | Möglich. `return_url` ist beim Anlegen der Zahlung keine Pflicht. Das Ergebnis lässt sich mit der `client_transaction_id` über `GET /v2.1/merchants/{merchant_code}/transactions` abfragen (`SUCCESSFUL`, `FAILED`, `CANCELLED`, `PENDING`). Ob der Stand bei Zahlungen am Solo sofort stimmt, ist nicht belegt; das zeigt ein Lauf gegen den „Virtual Solo“. | [Zahlung anlegen](https://developer.sumup.com/api/readers/create-checkout), [Transaktion abfragen](https://developer.sumup.com/api/transactions/get) |
+| Partnerschlüssel von SumUp | Selbstbedienung im SumUp-Konto unter „For developers“, ohne Antrag. Dazu gibt das Spa der Kassa seinen API-Schlüssel oder stimmt per OAuth zu. | [Affiliate Keys](https://developer.sumup.com/tools/authorization/affiliate-keys/), [Anmeldung](https://developer.sumup.com/tools/authorization/) |
+| Gutschrift bei SumUp | Über die API möglich, ganz oder als Teilbetrag. | [Refund](https://developer.sumup.com/api/transactions/refund) |
+| Stripe ohne Webhook | Möglich. Der Stand steht am Reader (`action.status`) und am PaymentIntent; Stripe empfiehlt selbst einen Knopf „Status prüfen“. | [Stripe Terminal, servergesteuert](https://docs.stripe.com/terminal/payments/collect-card-payment?terminal-sdk-platform=server-driven) |
+| Ausfall der Signatureinrichtung | Jeder nicht nur vorübergehende Ausfall ist ohne unnötigen Aufschub zu melden (§ 17 RKSV). Dauert er länger als 48 Stunden, ist binnen einer Woche zu melden. Belege tragen „Sicherheitseinrichtung ausgefallen“; danach folgt ein signierter Sammelbeleg mit Betrag null. Ob ein Ausfall des Internets bei einer Online-Signatur als Ausfall zählt und was bei häufigen kurzen Ausfällen gilt, ist nicht belegt. | [BMF-Handbuch Registrierkassen](https://finanzonline.bmf.gv.at/eLearning/BMF_Handbuch_Registrierkassen.pdf), Stand Jänner 2021 |
+| FinanzOnline per Software | Möglich. Der Registrierkassen-Webservice registriert Signatureinrichtung und Kassa, prüft Belege und meldet Ausfall und Wiederinbetriebnahme. Das Spa legt dafür in FinanzOnline einen Webservice-Benutzer an (Teilnehmer-ID, Benutzer-ID, PIN). | [BMF, Registrierkassen-Webservice](https://www.bmf.gv.at/dam/jcr%3A19c193f4-99cd-42ff-9b23-655f2ab5734e/BMF_Registrierkassen_Webservice.pdf), Stand Mai 2017 |
+| GLOBALTRUST RKS CLOUD | Schnittstelle über WSDL mit Mustercode für C#; Kennung in FinanzOnline `AT2`. Pakete: BASIC mit 10.000 Signaturen je Jahr und einem Zertifikat, größere Pakete für mehrere Unternehmen. Ein Preis in Euro je Paket steht nicht öffentlich; welche Unterlagen die Bestellung verlangt, ist nicht belegt. | [Datenblatt](http://service.globaltrust.eu/static/datasheet-rks.pdf) |
+| PrimeSign Remote Signing | Konto ab 196 € netto je Jahr ohne Grenze für Signaturen, REST-Schnittstelle, Kennung `AT3`. Test ohne Vertrag nicht belegt. | [PrimeSign RKSV](https://primesign.cryptas.com/en/primesign-rksv) |
+| Testgerät für ZVT | hobex liefert zu seiner Java-Schnittstelle einen Terminalsimulator. Ein Testterminal für Kassenhersteller nennt kein Anbieter öffentlich. | [hobex, ECR-Schnittstelle](https://www.hobex.at/technet/ecr/api/java/doc/index.html) |
+
+Der Preis der GLOBALTRUST-Karte steht je nach Seite mit 99 € oder 109 € für drei Jahre.
+
+### Deutschland
+
+**Wege zur TSE.**
+
+| Weg | Wer bestellt | Preis und Laufzeit | Ohne Internet | Mac |
+| --- | --- | --- | --- | --- |
+| fiskaly SIGN DE (Cloud) | der Hersteller der Kassensoftware, der die Nutzung weitergibt | Preis nicht öffentlich; Zertifizierung laut Anbieter bis 2033 | keine Signatur, Kassa läuft im Ausfallmodus weiter | ja, nur REST |
+| Deutsche Fiskal und D-Trust (Cloud) | über Kassenanbieter | nicht belegt; Zertifikat fünf Jahre | braucht zusätzlich ein lokales Sicherheitsmodul auf dem PC | nicht belegt |
+| Swissbit (USB oder SD) | das Spa über Händler | rund 220 €, Zertifikat rund fünf Jahre | läuft | nicht genannt |
+| Epson (im Drucker oder USB) | das Spa über Händler | rund 245 € | läuft | nicht belegt |
+
+Quellen: [fiskaly SIGN DE](https://www.fiskaly.com/de/signde), [D-Trust, Fiskalisierung](https://www.d-trust.net/en/support/fiscalization), [Swissbit USB-TSE](https://www.swissbit.com/en/products/point-of-sale/usb-tse).
+
+**Pflichten und Stand der Kassa.**
+
+| Pflicht | Quelle | Stand im Code |
+| --- | --- | --- |
+| Zertifizierte TSE; die Kassa selbst braucht keine Zulassung | [§ 146a AO](https://www.gesetze-im-internet.de/ao_1977/__146a.html) | fehlt, nur Test-TSE |
+| Mitteilung an das Finanzamt über Mein ELSTER, innerhalb eines Monats nach Anschaffung, mit Art und Seriennummer der TSE und Datum | § 146a Abs. 4 AO, [BMF-Schreiben vom 28.06.2024](https://www.ihk.de/blueprint/servlet/resource/blob/6325954/f6aea825353bceaa32423ad1d885358f/bmf-schreiben-28-06-2024-data.pdf) | nur Hinweistext |
+| Beleg zu jedem Vorgang, auf Papier oder elektronisch | § 146a Abs. 2 AO | vorhanden |
+| Pflichtangaben auf dem Beleg; QR-Code freiwillig | [§ 6 KassenSichV](https://www.gesetze-im-internet.de/kassensichv/__6.html) | vorhanden |
+| Export nach DSFinV-K und der TSE-Daten | Merkblätter der Länder | vorhanden, Prüfprogramm offen |
+| Ausfall der TSE: Zeit und Grund festhalten, Beleg kennzeichnen, Ursache unverzüglich beheben; keine feste Frist | AEAO zu § 146a, Fassung 2023 | Ausfall wird festgehalten; Kennzeichnung prüfen |
+| Aufbewahrung: Quellen nennen 8 oder 10 Jahre | [§ 147 AO](https://www.gesetze-im-internet.de/ao_1977/__147.html) | 10 Jahre vorsehen |
+
+**Kartenzahlung.** In Deutschland zählt die girocard. Der SumUp Solo nimmt sie seit August 2025 an; ob das auch über die Cloud-Schnittstelle gilt, ist nicht belegt. Bei Stripe nimmt nur der Reader S700 die girocard an, der WisePOS E nicht. Vorhandene Terminals der Netzbetreiber laufen über ZVT ([SumUp, girocard](https://www.sumup.com/de-de/press/girolaunch/), [Stripe, Deutschland](https://docs.stripe.com/terminal/payments/regional.md?integration-country=DE)).
+
+**Empfehlung für Deutschland.**
+
+1. Übungskassa im Einzelplatz ermöglichen. Heute scheitert dort schon das Anlegen einer deutschen Kassa (Abschnitt 3).
+2. Echte Kassa mit der Cloud-TSE von fiskaly: keine Hardware, läuft auf dem Mac, das Spa schließt keinen eigenen Vertrag. Die Kosten trägt zuerst der Hersteller der Kassensoftware; das gehört ins Preismodell.
+3. USB-TSE von Swissbit als Weg ohne Internet, erst wenn ein Spa sie verlangt; sie bindet an Windows oder Linux.
+4. Der Assistent zeigt ein Datenblatt für Mein ELSTER (Art und Seriennummer der TSE, Seriennummer der Kassa, Datum) und speichert die Bestätigung der Person.
+5. Kartenzahlung wie in Österreich; beim Cloud-Terminal zuerst die girocard mit dem „Virtual Solo“ und einem echten Gerät prüfen.
+
+### Schweiz
+
+**Recht.**
+
+| Punkt | Ergebnis | Quelle |
+| --- | --- | --- |
+| Signatur oder Fiskalisierung | Keine Pflicht gefunden. Eine amtliche Aussage, die sie verneint, liegt nicht vor. | Seiten der ESTV zur MWST |
+| Aufbewahrung | 10 Jahre ab Ende des Geschäftsjahres | Art. 958f OR |
+| Elektronische Aufbewahrung | Änderungen dürfen nicht unbemerkt möglich sein. Auf Festplatte oder SSD verlangt die Verordnung ein Verfahren für die Integrität, einen nachweisbaren Zeitpunkt der Speicherung, Protokolle und eine Beschreibung des Verfahrens. | [GeBüV](https://media.bs.ch/original_file/8a6dfb6490d154b7ac741a0c483338dfa6ac7ba0/221-431.pdf) Art. 3, 4 und 9 |
+| Angaben auf dem Beleg | MWST-Nummer, Leistung, Entgelt, Steuersatz; Kassenzettel bis 400 Franken ohne Angaben zum Empfänger | Art. 26 MWSTG, Art. 57 MWSTV |
+| Steuersätze | 8,1 %, 2,6 %, 3,8 % (Beherbergung, befristet). Am 29.11.2026 stimmt die Schweiz über eine Erhöhung ab, frühestens ab 2028. | Art. 25 MWSTG, [BSV](https://www.bsv.admin.ch/de/abstimmung-13-ahv-rente) |
+| Steuerpflicht | erst ab 100.000 Franken Umsatz im Jahr; darunter ohne MWST auf dem Beleg | Art. 10 MWSTG |
+| Rundung auf 5 Rappen | Keine Rechtsgrundlage gefunden; ob sie auch bei Kartenzahlung gilt, ist nicht belegt. | – |
+
+**Kartenzahlung.** In der Schweiz zählen TWINT und die PostFinance Card.
+
+| Anbieter | Schnittstelle | TWINT, PostFinance Card | Kosten laut Seite | Offen |
+| --- | --- | --- | --- | --- |
+| PostFinance-Terminal (PAX) mit wallee | lokal im Netz über TCP; die Antwort kommt mit der Anfrage zurück | beide ohne weiteren Vertrag | 9,90 Franken je Monat, 1,2 % bis 1,5 % | Testgerät; das Spa braucht ein Geschäftskonto bei PostFinance; das Modell A50s lässt sich nicht an eine Kassa anbinden |
+| Worldline (TIM) | lokal im Netz, Bibliothek für .NET | TWINT laut Werbung | nicht genannt | Bezug der Bibliothek, Zertifizierung |
+| SumUp Solo | Cloud | TWINT nach eigener Anmeldung des Spas | 1,5 % bis 2,5 % | PostFinance Card nicht belegt |
+| Stripe Terminal | Cloud | am Terminal nicht belegt | nicht belegt | für die Schweiz kaum geeignet |
+
+Quellen: [PostFinance, Terminal](https://checkout.postfinance.ch/de-ch/doc/payment/terminal), [wallee, lokale Schnittstelle](https://lti.docs.wallee.com/lti_2.54/), [Worldline TIM](https://six-tim.github.io/timapi/doc/cs/guide.html), [SumUp Schweiz](https://www.sumup.com/de-ch/preise/).
+
+TWINT ohne Terminal gibt es als Aufkleber mit QR-Code oder als direkte Anbindung der Kassa; was ein Hersteller für die direkte Anbindung braucht, ist nicht belegt ([TWINT, Kassensysteme](https://www.twint.ch/en/business-customers/products/twint-on-site/pos-systems/)).
+
+Für die Zahlung auf Rechnung gilt die QR-Rechnung. Die Bibliothek [`Codecrete.SwissQRBill.Generator`](https://www.nuget.org/packages/Codecrete.SwissQRBill.Generator) steht unter MIT-Lizenz (Fassung 3.5.1 vom September 2026).
+
+**Empfehlung für die Schweiz.**
+
+1. Kassa ohne Signaturschritt, wie heute. Die Verkettung der Belege per SHA-256 passt zur Forderung der GeBüV; der Zeitpunkt der Speicherung und eine Beschreibung des Verfahrens sind zu ergänzen und zu prüfen.
+2. Rundung auf 5 Rappen als Einstellung, nur für Barzahlung, im Vorschlag eingeschaltet. Das ist eine Setzung nach der Praxis, nicht nach einer Norm.
+3. Spa ohne Steuerpflicht: Beleg ohne MWST. Ob die Kassa das heute kann, ist zu prüfen.
+4. Steuersätze mit Gültigkeitsdatum führen, weil sich die Sätze ab 2028 ändern können.
+5. Kartenzahlung zuerst über ein Terminal im Netz (PostFinance mit wallee), weil nur dieser Weg TWINT und PostFinance Card in einem Vertrag bringt. Das ist eine dritte Umsetzung neben ZVT und OPI in der Windows-App. SumUp bleibt der Weg ohne Netzwerkeinstellung.
+6. QR-Rechnung als Ergänzung zur Bankverbindung in Schritt 3, erst nach Kassa und Terminal.
+
+### Was die App je Land anbietet
+
+| Schritt | Österreich | Deutschland | Schweiz |
+| --- | --- | --- | --- |
+| Signatur | Online-Dienst (GLOBALTRUST, PrimeSign) · Karte im Lesegerät · Übungskassa | Cloud-TSE (fiskaly) · TSE als Stick · Übungskassa | entfällt |
+| Meldung an die Behörde | FinanzOnline: von Hand mit Schlüssel und Prüfwert, später über den Webservice | Mein ELSTER: von Hand mit Datenblatt | entfällt |
+| Kartenterminal | SumUp Solo · Terminal im Netz (ZVT) | SumUp Solo · Stripe S700 · Terminal im Netz (ZVT) | PostFinance-Terminal · SumUp Solo · Worldline |
+| Besonderheit | Jahresbeleg bis 31. Dezember | Export für die Kassen-Nachschau | Rundung auf 5 Rappen, QR-Rechnung |
+
+### Empfehlungen im Überblick
+
+| Nr. | Empfehlung | Braucht |
+| --- | --- | --- |
+| 1 | Rahmen für die Anbieterwahl bauen: Liste je Land aus der API, Anbieter je Kassa, Zugangsdaten verschlüsselt, **Verbindung prüfen** | Freigabe des Plans |
+| 2 | Übungskassa in allen drei Ländern, mit Dauerwarnung; in Deutschland auch im Einzelplatz | Antwort auf Frage 2 |
+| 3 | Schlüssel und Prüfwert für FinanzOnline anzeigen; Jahresbeleg rechtzeitig vor dem 31. Dezember | – |
+| 4 | Österreich: zuerst eine Online-Signatur. GLOBALTRUST RKS CLOUD, wenn der Paketpreis unter dem von PrimeSign liegt, sonst PrimeSign (196 € je Jahr, REST) | Testzugang, den der Auftraggeber anlegt |
+| 5 | Österreich, danach: Registrierung und Belegprüfung über den Webservice von FinanzOnline. Das nimmt dem Spa die meisten Schritte außerhalb der App ab. | Test-Benutzer in FinanzOnline |
+| 6 | Kartenterminal über die Cloud: SumUp Solo mit Abfrage statt Webhook; Stripe als zweiter Weg, weil Stripe für Online-Zahlungen schon angebunden ist | Entwicklerkonto, das der Auftraggeber anlegt |
+| 7 | ZVT mit `Portalum.Zvt` hinter der bestehenden Schnittstelle, danach Test an einem echten Gerät | Zustimmung zum Tausch; Leihgerät oder Testvertrag |
+| 8 | Deutschland: Cloud-TSE von fiskaly, Datenblatt für Mein ELSTER | Anfrage beim Anbieter und Entscheidung zum Preismodell |
+| 9 | Schweiz: Rundung, Beleg ohne MWST, Steuersätze mit Datum, danach Terminal im Netz | Testgerät |
+| 10 | Kein fremdes Kassensystem hinter der eigenen Oberfläche; kein Fiskal-Dienst, der die Belegkette selbst führt, solange die eigene Kassa sie führt | – |
+| 11 | Fragen 3 bis 5: Bestätigungen mit Datum speichern, Anleitungen mit Link zeigen, Recht `ManageLocation` | – |
+| 12 | Fragen 6 und 7: „erledigt“ heißt „kann Belege bilden“; die Kassa bekommt eine eigene Karte nach „Betrieb einrichten“ | Antwort des Auftraggebers |
+
+Reihenfolge: 1 bis 3 brauchen keinen Vertrag und machen den Assistenten in Österreich fertig. 4 und 6 folgen mit den Testzugängen. Deutschland und die Schweiz folgen nach dem ersten echten Beleg in Österreich.
+
+### Weiter offen
+
+- Preis des Pakets BASIC von GLOBALTRUST und die Unterlagen für die Bestellung.
+- Ob ein Ausfall des Internets bei einer Online-Signatur als Ausfall nach § 17 RKSV zählt.
+- Preis und Vertrag von fiskaly; ob die Cloud-TSE ein lokales Sicherheitsmodul verlangt.
+- Die girocard über die Cloud-Schnittstelle von SumUp.
+- Ob die Schweiz wirklich keine Pflicht zur Signatur kennt; eine Anfrage bei der ESTV wäre der Beleg und braucht die Freigabe des Auftraggebers.
+- Testgeräte: kein Anbieter nennt öffentlich einen Weg für Kassenhersteller.
+- Mehrere Quellen sind alt (BMF-Handbuch 2021, Webservice-Beschreibung 2017, AEAO 2023); neuere Fassungen wurden nicht gesucht.
+
 ## Nicht geklärt
 
 Die Punkte zu Anbietern, FinanzOnline und Jahresende sind im Nachtrag vom 27.11.2026 beantwortet; dort stehen auch die Reste, die nicht belegt sind.

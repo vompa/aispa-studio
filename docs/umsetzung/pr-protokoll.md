@@ -8889,3 +8889,23 @@ Auftrag des Auftraggebers vom 27.11.2026: „Wir brauchen einen einfachen Weg wi
 - **Nicht geprüft:** Die Seiten der Anbieter haben zwei Recherche-Läufe gelesen, nicht nachgeschlagen. Preise teils als Aktion oder nicht öffentlich. Kein Testzugang, kein Gerät, keine Bibliothek ausprobiert.
 - **Handtest:** keiner, nichts Sichtbares geändert.
 - **Text-Prüfsatz:** Abschnitt nach [texte.md](../gestaltung/texte.md): Vorschlag zuerst, Belegtes und nicht Belegtes getrennt.
+
+## Befund zum Kassa-Assistenten: Offene Punkte, Deutschland, Schweiz, Empfehlungen (T-137, dritter Nachtrag, 27.11.2026)
+
+Auftrag des Auftraggebers vom 27.11.2026: die offenen Punkte klären, alle Empfehlungen in den Bericht eintragen und dasselbe für Deutschland und die Schweiz erarbeiten.
+
+- **Was:** Abschnitt „Nachtrag vom 27.11.2026: Offene Punkte geklärt, Deutschland, Schweiz, Empfehlungen“ in [kassa-assistent-befund.md](kassa-assistent-befund.md). Kein Code geändert.
+- **Ergebnis in Kürze:**
+  - SumUp und Stripe lassen sich ohne Webhook abfragen; der Einzelplatz bleibt damit möglich.
+  - FinanzOnline hat einen Webservice für Registrierung, Belegprüfung und Ausfallmeldung.
+  - Deutschland: Cloud-TSE von fiskaly als einfachster Weg, mit dem Hersteller der Kassensoftware als Vertragspartner.
+  - Schweiz: keine Pflicht zur Signatur gefunden; Kartenzahlung zuerst über ein Terminal im Netz, weil TWINT und PostFinance Card dort in einem Vertrag liegen.
+  - Zwölf Empfehlungen mit Reihenfolge und dem, was jede braucht.
+- **Detailentscheidungen:**
+  - Die Wahl zwischen GLOBALTRUST und PrimeSign bleibt offen, bis der Paketpreis von GLOBALTRUST bekannt ist; PrimeSign nennt 196 € je Jahr.
+  - Rundung auf 5 Rappen als Einstellung nur für Barzahlung: eine Setzung nach der Praxis, weil keine Norm gefunden wurde.
+- **Beim Schreiben festgestellt:** Im Chat stand „Meldung ab 48 Stunden“. Richtig ist: Jeder nicht nur vorübergehende Ausfall ist zu melden; die 48 Stunden lösen die Frist von einer Woche aus.
+- **Geprüft:** Stand im Code für Deutschland und die Schweiz gelesen (Abschnitt 3 des Befunds, `ITseClient`, `SwissFiscalization`, `StripePayments.cs`).
+- **Nicht geprüft:** Die Quellen haben drei Recherche-Läufe gelesen, nicht nachgeschlagen; Gesetzestexte teils nur als Zusammenfassung. Keine Rechtsberatung. Ob die Kassa Belege ohne MWST und Steuersätze mit Datum kann, ist nicht gelesen. Kein Testzugang, kein Gerät.
+- **Handtest:** keiner, nichts Sichtbares geändert.
+- **Text-Prüfsatz:** Abschnitt nach [texte.md](../gestaltung/texte.md): Ergebnis je Land, danach Empfehlungen, Offenes am Ende.
