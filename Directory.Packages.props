@@ -6,7 +6,7 @@
     <AspNetCoreVersion>10.0.15</AspNetCoreVersion>
     <AvaloniaVersion>12.1.6</AvaloniaVersion>
     <OpenTelemetryVersion>1.21.0</OpenTelemetryVersion>
-    <WolverineVersion>6.64.1</WolverineVersion>
+    <WolverineVersion>6.65.1</WolverineVersion>
   </PropertyGroup>
   <ItemGroup Label="Aspire">
     <PackageVersion Include="Aspire.Hosting.JavaScript" Version="$(AspireVersion)" />
@@ -27,7 +27,7 @@
     <PackageVersion Include="Microsoft.Extensions.ApiDescription.Server" Version="$(AspNetCoreVersion)" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.15" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
-    <PackageVersion Include="Anthropic" Version="13.8.0" />
+    <PackageVersion Include="Anthropic" Version="13.14.0" />
     <!-- Excel-Export und Kunden-Import (ADR 0091), MIT; zieht DocumentFormat.OpenXml und SixLabors.Fonts (Six Labors Split License, für Open Source Apache 2.0) mit. -->
     <PackageVersion Include="ClosedXML" Version="0.105.1" />
     <!-- Word-Ausgabe des Management-Berichts (T-095 D3), MIT, Microsoft; genau die Version, die ClosedXML 0.105.1 schon auflöst (kein zweiter Stand). -->
@@ -37,8 +37,8 @@
     <PackageVersion Include="WolverineFx.RuntimeCompilation" Version="$(WolverineVersion)" />
   </ItemGroup>
   <ItemGroup Label="Service defaults">
-    <PackageVersion Include="Microsoft.Extensions.Http.Resilience" Version="10.11.0" />
-    <PackageVersion Include="Microsoft.Extensions.ServiceDiscovery" Version="10.11.0" />
+    <PackageVersion Include="Microsoft.Extensions.Http.Resilience" Version="10.11.1" />
+    <PackageVersion Include="Microsoft.Extensions.ServiceDiscovery" Version="10.11.1" />
     <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="$(OpenTelemetryVersion)" />
     <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="$(OpenTelemetryVersion)" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.AspNetCore" Version="$(OpenTelemetryVersion)" />
@@ -54,7 +54,7 @@
     <PackageVersion Include="Avalonia.Themes.Fluent" Version="$(AvaloniaVersion)" />
     <PackageVersion Include="AvaloniaUI.DiagnosticsSupport" Version="2.2.3" />
     <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.2" />
-    <PackageVersion Include="QRCoder" Version="1.8.1" />
+    <PackageVersion Include="QRCoder" Version="1.9.0" />
     <!-- Setup und Updates der Windows-App (ADR 0104), MIT; dieselbe Fassung wie das Werkzeug vpk in dotnet-tools.json -->
     <PackageVersion Include="Velopack" Version="1.2.161" />
   </ItemGroup>
@@ -68,8 +68,8 @@
     <PackageVersion Include="System.Security.Cryptography.ProtectedData" Version="$(AspNetCoreVersion)" />
     <!-- Live-Tests der Windows-App über UI Automation (ADR 0090), MIT -->
     <PackageVersion Include="FlaUI.UIA3" Version="5.0.0" />
-    <PackageVersion Include="Testcontainers.PostgreSql" Version="4.16.0" />
-    <PackageVersion Include="Testcontainers.Redis" Version="4.16.0" />
+    <PackageVersion Include="Testcontainers.PostgreSql" Version="4.17.0" />
+    <PackageVersion Include="Testcontainers.Redis" Version="4.17.0" />
     <PackageVersion Include="xunit.v3" Version="4.0.3" />
   </ItemGroup>
 </Project>
