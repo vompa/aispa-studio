@@ -118,7 +118,7 @@ Eine Notiz gehört zu genau einem Termin, z. B. „Lavendelöl, wenig Gespräch,
 
 Urlaub, Schulung und freie Tage kommen aus dem Dienstplan der Verwaltung; im Kalender werden sie nur angezeigt: die Spalte ist getönt, der Kopf zeigt z. B. „Urlaub bis 23.10.“. Hat eine abwesende Person trotzdem Termine, steht „… Termine umbuchen“ im Kopf. Im Kalender selbst lässt sich nur eine Krankmeldung eintragen, siehe [Krank melden und Ausfall-Assistent](hilfe:kalender-krankmeldung).
 
-## Hinweise {#hinweise}
+## Gut zu wissen {#hinweise}
 
 - Eintragen, abhaken und löschen dürfen Rezeption, Standortleitung und Inhaber. Therapeut:innen sehen Pausen, Notizen, die **Notizen heute** und die Meldungen.
 - Pausen, Sperrzeiten und Notizen brauchen eine Verbindung; ohne Verbindung kommt eine Fehlermeldung.

@@ -11,6 +11,8 @@ betrieb: server
 
 Schreibt ein Gast per Mail, SMS oder WhatsApp, dass er absagt (zum Beispiel als Antwort auf die Erinnerung), sucht die KI seinen nächsten Termin. Storniert wird nie von selbst: die Rezeption prüft und storniert mit einem Klick.
 
+## Schritte {#schritte}
+
 1. In der Navigation **Anfragen** öffnen und die Nachricht mit Status „Prüfen“ anklicken.
 2. Unter „Hinweis“ steht, welchen Termin die KI gefunden hat, zum Beispiel „Gast möchte absagen. Nächster Termin: Hot-Stone-Massage am 22.10.2026 um 17:00 Uhr, Wien.“
 3. Passt das, auf **Termin stornieren** klicken. Es erscheint „Termin storniert. Die Antwort wird neu entworfen.“ Der Termin ist im Kalender storniert, der Status der Nachricht ist „Storniert“.

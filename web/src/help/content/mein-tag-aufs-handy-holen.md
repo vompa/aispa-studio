@@ -23,7 +23,7 @@ betrieb: server
 2. Das Menü (drei Punkte) öffnen.
 3. **App installieren** bzw. **Zum Startbildschirm hinzufügen** wählen und bestätigen.
 
-## Hinweise {#hinweise}
+## Gut zu wissen {#hinweise}
 
 - Das Symbol heißt „Mein Tag“.
 - Die Adresse des Spas nennt die Leitung.

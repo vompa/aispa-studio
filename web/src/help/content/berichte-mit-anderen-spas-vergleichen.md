@@ -29,7 +29,7 @@ Ein Klick im Management stellt die eigenen Kennzahlen neben die vergleichbarer D
 - Der Durchschnittsbon lässt verkaufte Wertgutscheine weg: Ein Gutscheinverkauf ist noch kein Umsatz und würde den Bon größer machen, als er ist.
 - Liegt der Standort unter der Mitte, steht darunter ein Tipp, z. B. Erinnerung am Vortag oder Folgetermin schon an der Kassa vorschlagen.
 
-## Hinweise {#hinweise}
+## Gut zu wissen {#hinweise}
 
 - Nur Inhaber, Manager, Standortleitung und Backoffice. Kennzahlen in Euro (Umsatz je Behandlungsstunde, Durchschnittsbon) zeigt der Vergleich nur mit dem Recht „Berichte mit Beträgen“. Der Vergleich gehört zur Abo-Stufe „Spa Plus“; sonst erscheint statt des Vergleichs eine Meldung.
 - Andere Spas erscheinen nur als Verteilung, nie mit Namen, und nur, wenn genug vergleichbare Spas in der Gruppe sind.

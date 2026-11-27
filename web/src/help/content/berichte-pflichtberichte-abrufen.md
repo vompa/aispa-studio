@@ -45,7 +45,7 @@ Für Schweizer Kassen gibt es keinen eigenen Download; dort gilt die Aufbewahrun
 - **Gutscheine**: Zahl und Summe der offenen Gutscheine als Verbindlichkeit, aktueller Stand.
 - **Arbeitszeitaufzeichnung laut Dienstplan**: je Person Stunden, Arbeitstage, Urlaub und Krankenstand im Monat, dazu Hinweise nach dem Arbeitszeitrecht (z. B. zu lange Dienste oder zu kurze Ruhezeit).
 
-## Hinweise {#hinweise}
+## Gut zu wissen {#hinweise}
 
 - Inhaber, Manager, Standortleitung und Backoffice. Die Summe der offenen Gutscheine und die Downloads von DEP, DSFinV-K und TSE-Export gibt es nur mit dem Recht „Berichte mit Beträgen“ ([Berichte mit Beträgen](hilfe:zugaenge#berichte-mit-betraegen)); ohne das Recht steht „Beträge nur mit Berechtigung“.
 - Den Buchhaltungsexport für die Steuerberatung gibt es unter „Buchhaltung“: [Export für die Buchhaltung erstellen](hilfe:buchhaltung-export-erstellen).

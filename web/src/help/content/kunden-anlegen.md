@@ -10,6 +10,8 @@ stichwoerter: Kunde anlegen, neue Kundin, Neukunde, Gast erfassen, Kundenkarte a
 
 Für eine neue Kundin genügt ein Name. Die Maske beginnt mit Vorname, Nachname, Telefon und E-Mail; alles Weitere ist zugeklappt.
 
+## Schritte {#schritte}
+
 1. In der Navigation **Kunden** öffnen.
 2. Am besten zuerst den Namen ins Suchfeld tippen. Findet die Suche niemanden, bietet sie **Neue Kundin „Gruber“ anlegen** an; der Suchtext steht dann schon im Nachnamen. Ein Suchbegriff mit zwei Wörtern wie „Anna Kern“ steht als Vorname „Anna“ und Nachname „Kern“ in den Feldern.
 3. Oder oben auf **Neue Kundin / neuer Kunde** klicken. Der Cursor steht im Vornamen; mit Tab geht es weiter zu Nachname, Telefon und E-Mail.

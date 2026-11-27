@@ -99,7 +99,7 @@ Uhrzeit, Datum, Zahl und Betrag liest der Kalender großzügig und schreibt sie 
 
 Hat ein Knopf ein Tastenkürzel, steht es im Hinweis, der nach einer Viertelsekunde erscheint („Vortag (←)“, „Rückgängig (Strg+Z)“), und in Menüs rechts neben dem Eintrag. Ein Screenreader nennt es zusätzlich als Kürzel des Knopfs. **Tab** geht durch die Bedienelemente in der Reihenfolge, in der sie auf dem Bildschirm stehen: im Terminfenster zuerst der Kopf (Gast, Kundendaten, Schließen), dann die Karten und Knöpfe, zuletzt die Reiter unten.
 
-## Hinweise {#hinweise}
+## Gut zu wissen {#hinweise}
 
 - Buchstaben-Tasten wirken nur, wenn kein Eingabefeld den Fokus hat. Ein Klick auf einen Termin oder eine freie Stelle holt den Fokus in den Kalender zurück; im Suchfeld (nach den Stufen Trefferliste, Text, Feld) und im Feld der KI-Anfrage tut das auch **Esc**. Nach dem Schließen des Panels mit der Maus geben die Pfeiltasten und alle anderen Tasten sofort wieder den Kalender frei.
 - Tasten zum Buchen, Verschieben, Stornieren und Kassieren wirken nur mit dem Recht dazu (Rezeption, Standortleitung, Inhaber). **E** wirkt für Therapeut:innen nur bei eigenen Terminen.

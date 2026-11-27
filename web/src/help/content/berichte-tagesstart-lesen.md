@@ -36,7 +36,7 @@ Ist die KI eingerichtet, erscheint oben zusätzlich eine kurze Zusammenfassung i
 - Gesundheitsdaten bekommt die KI nicht zu sehen.
 - Ändert sich etwas am Tag (neuer Termin, Krankmeldung), wird die Zusammenfassung neu geschrieben.
 
-## Hinweise {#hinweise}
+## Gut zu wissen {#hinweise}
 
 - Den Reiter sehen Rezeption, Standortleitung, Manager und Inhaber, Therapeut:innen und das Backoffice nicht.
 - Eine Frage wie „Was steht heute an?“ beantwortet auch der [KI-Assistent](hilfe:ki-assistent-fragen).

@@ -11,6 +11,8 @@ betrieb: server
 
 Nachrichten auf Englisch, Italienisch, Französisch oder in einer anderen Sprache stehen oben so da, wie der Gast sie geschrieben hat. Die App übersetzt sie von selbst ins Deutsche; **DE** zeigt die Übersetzung.
 
+## Schritte {#schritte}
+
 1. In **Anfragen** die Nachricht anklicken.
 2. Neben dem Betreff auf **DE** klicken oder außerhalb eines Textfelds die Taste **O** drücken: die Nachricht steht auf Deutsch da.
 3. **Original** schaltet zurück.

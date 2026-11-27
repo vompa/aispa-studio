@@ -85,7 +85,7 @@ Später geht es im Panel des stornierten Termins: **Stornierung zurücknehmen** 
 - Alle Termine der Buchung werden storniert (Grund „An der Rezeption storniert (ganze Buchung)“).
 - Nur einen Teil stornieren: diesen Termin wie oben einzeln stornieren.
 
-## Hinweise {#hinweise}
+## Gut zu wissen {#hinweise}
 
 - Stornieren dürfen Rezeption, Standortleitung und Inhaber. Therapeut:innen können „Nicht erschienen“ nur bei eigenen Terminen setzen, aber nicht stornieren.
 - Ohne Verbindung wird ein einzelnes Storno vorgemerkt und beim Abgleich gesendet. **Ganze Buchung stornieren** braucht eine Verbindung. Siehe [Arbeiten ohne Verbindung](hilfe:kalender-offline).

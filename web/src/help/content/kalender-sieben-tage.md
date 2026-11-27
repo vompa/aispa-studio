@@ -43,7 +43,7 @@ In der Ansicht einer Person (oder eines Raums) geht alles wie im Tageskalender; 
 
 ![Raum über sieben Tage](images/app/kalender-woche-raum.png)
 
-## Hinweise {#hinweise}
+## Gut zu wissen {#hinweise}
 
 - Gezählt werden die sieben Tage ab dem angezeigten Tag, nicht die Kalenderwoche.
 - Alle Rollen können die Ansicht öffnen; was man im Panel tun darf, hängt wie sonst von den Rechten ab.

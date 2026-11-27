@@ -23,7 +23,7 @@ Die Meldung „Raum Lotus ist gesperrt (…): 4 Termine umbuchen“ steht in der
 
 ![Umbuchungshilfe mit drei Vorschlägen, der dritte ohne anderen Raum](images/app/kalender-raumsperre-umbuchen.png)
 
-## Hinweise {#hinweise}
+## Gut zu wissen {#hinweise}
 
 - Das Fenster zeigt immer alle offenen Termine der Sperre, auch an anderen Tagen, mit dem Tag vor der Zeit.
 - Ein einzelner Termin lässt sich auch von Hand in einen anderen Raum ziehen: [Termin verschieben](hilfe:kalender-termin-verschieben#andere-person).

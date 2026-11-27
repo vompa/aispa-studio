@@ -11,6 +11,8 @@ betrieb: server
 
 Nicht jede Nachricht braucht einen Termin oder eine Antwort, z. B. Werbung oder ein Dank. Solche Nachrichten schließt man ab, damit sie nicht mehr in der Zahl der offenen Anfragen stehen.
 
+## Schritte {#schritte}
+
 1. In **Anfragen** die Nachricht anklicken.
 2. Unten auf **Erledigt, ohne Termin und Antwort** klicken.
 3. Es erscheint „Als erledigt markiert.“; die Nachricht trägt den Status „Erledigt“.

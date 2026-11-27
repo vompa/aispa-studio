@@ -9,6 +9,8 @@ stichwoerter: abmelden, ausloggen, Logout, Person wechseln, Feierabend, PC verla
 
 Abmelden geht über das eigene Profilbild in der Navigation.
 
+## Schritte {#schritte}
+
 1. In der Navigation auf das Profilbild (die Initialen) klicken. Oben stehen Name, Rolle und Spa.
 2. Auf **Abmelden** klicken. Am Empfangsgerät heißt der Knopf **Person wechseln**.
 3. Die App zeigt wieder die Anmeldeseite, am Empfangsgerät „Wer meldet sich an?“.

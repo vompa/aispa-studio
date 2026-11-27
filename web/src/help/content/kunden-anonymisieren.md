@@ -10,6 +10,8 @@ stichwoerter: anonymisieren, Gast löschen, Kunde löschen, Kundin löschen, Dat
 
 Möchte ein Gast, dass seine Daten gelöscht werden, wird er anonymisiert. Name, Kontaktdaten, Notizen, Anamnese und Online-Zugang verschwinden endgültig. Termine und Belege bleiben als „Gelöschter Gast“ erhalten, weil sie aufbewahrt werden müssen. Das dürfen nur Inhaber und Management.
 
+## Schritte {#schritte}
+
 1. Die Kundenkarte des Gastes öffnen ([Kunden suchen](hilfe:kunden-suchen)).
 2. Im Kopf das Menü **…** öffnen und **Gast anonymisieren …** wählen.
 3. Die Rückfrage nennt, was gelöscht wird und was bleibt. **Endgültig anonymisieren** klicken, oder **Abbrechen**.

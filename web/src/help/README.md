@@ -9,6 +9,31 @@ Eine Quelle und eine Darstellung für die Hilfe in der Windows-App und für die 
 | `seite` | Was eine Seite zeigt und welche Abläufe es dort gibt. Die Seitenleiste zeigt es als „Erklärung zur aktuellen Seite“. | `seite-<seite>`, z. B. `seite-kalender` |
 | `ablauf` | Eine Aufgabe Schritt für Schritt, z. B. „Termin verschieben“. Grundlage der Antworten auf „Wie mache ich …?“. | `<bereich>-<aufgabe>`, z. B. `kalender-termin-verschieben` |
 | `einstellung` | Alle Einstellungen eines Bereichs, Ziel der Fragezeichen neben den Feldern. Standard ohne Angabe. | `<bereich>`, z. B. `kassa` |
+| `erklaerung` | Hintergrund, Warum und Zusammenhänge zu einem Thema. | `<bereich>-<thema>`, z. B. `anfragen-wann-die-ki-zuordnet` |
+
+## Gliederung nach Diátaxis
+
+Die Hilfe folgt dem Rahmen Diátaxis (Tutorial, How-to, Referenz, Explanation). Tutorials gibt es bewusst nicht. Beschlossen vom Auftraggeber am 26.11.2026.
+
+| Diátaxis | `art` | Leitfrage |
+| --- | --- | --- |
+| How-to | `ablauf` | Wie erledige ich diese Aufgabe? |
+| Referenz | `einstellung` | Was bedeuten die Felder und Werte? |
+| Orientierung | `seite` | Was zeigt diese Seite, und wohin geht es von hier? |
+| Explanation | `erklaerung` | Warum ist es so, und wie hängt es zusammen? |
+
+Je Art:
+
+- **`ablauf`**: eine Aufgabe in Schritten, Voraussetzungen, was danach, Fehlerfälle. Nicht hinein: Felderlisten, lange Begründungen, Regelwerke. Typische Überschriften: „Schritte“, „Was danach“, „Wenn etwas schiefgeht“, „Gut zu wissen“, kurz „Hintergrund“.
+- **`einstellung`**: alle Felder eines Bereichs mit Werten und Wirkung. Nicht hinein: Schritt-für-Schritt-Anleitungen, Geschichten. Typische Überschriften: der Name des Feldes oder der Gruppe, „Werte“, „Wirkung“.
+- **`seite`**: Aufbau einer Seite, wer was sieht, Verweise auf die Abläufe. Nicht hinein: ausführliche Begründungen und Regeln (gehören in eine Erklärung), vollständige Felderlisten (gehören in die Einstellung). Typische Überschriften: „Aufbau“, „Wer was sieht“, „Abläufe“, „Was hier nicht geht“.
+- **`erklaerung`**: wie etwas funktioniert und warum, Regeln und Zusammenhänge, Abgrenzungen. Nicht hinein: Schritte zum Mitklicken und Feldwerte. Typische Überschriften: „Wie es funktioniert“, „Wann was gilt“, „Warum“, „Abgrenzung“.
+
+Gemischte Themen:
+
+- Ein `ablauf` mit langem Erklärteil (mehr als etwa drei Absätze Hintergrund) gibt diesen Teil an ein neues Thema der Art `erklaerung` ab. Die Erklärung heißt `<bereich>-<thema>` und erbt `bereich`, `oberflaeche`, `rollen`, `seite` und `betrieb` des Ablaufs. Vom Ablauf führt ein `hilfe:`-Verweis dorthin. Der Wortlaut wird unverändert verschoben, nicht umgeschrieben.
+- Kürzere Erklärungen bleiben als Abschnitt „Hintergrund“ am Ende des Ablaufs.
+- Beim Verschieben wandern die Anker mit. Verweise auf einen verschobenen Anker zeigen danach auf die Erklärung.
 
 ## Aufbau einer Datei
 
@@ -38,7 +63,7 @@ Ein Satz, worum es geht. Die KI zeigt ihn als Kurzantwort.
 
 Kopfangaben (alle optional, Werte durch Kommas getrennt):
 
-- `art`: `seite`, `ablauf` oder `einstellung` (Standard).
+- `art`: `seite`, `ablauf`, `erklaerung` oder `einstellung` (Standard).
 - `bereich`: Überschrift, unter der die Übersicht das Thema einordnet.
 - `oberflaeche`: `windows-app`, `verwaltung` (Masken der Verwaltung in der Windows-App; der Name stammt aus der Zeit der Team-Oberfläche im Browser), `handy` (Mein Tag).
 - `rollen`: `rezeption`, `therapeut`, `leitung` (Standortleitung), `inhaber`. Ohne Angabe für alle. Die Suche reiht passende Rollen vor, versteckt aber nichts.

@@ -25,6 +25,9 @@ public enum HelpKind
 
     /// <summary>Was eine Seite zeigt und welche Abläufe es dort gibt.</summary>
     Page,
+
+    /// <summary>Hintergrund, Warum und Zusammenhänge (Explanation).</summary>
+    Explanation,
 }
 
 /// <summary>Kopfangaben eines Themas; Werte wie in der Datei (klein, ohne Leerzeichen am Rand).</summary>

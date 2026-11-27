@@ -25,7 +25,7 @@ Bei der Behandlung legt die Leitung fest, was vor jedem Termin zu tun ist; darau
 
 Im Kalender führt ein Rechtsklick auf einen Streifen (Vorbereitung, Nachbereitung, Raumpflege) oder auf einen Termin zu **Behandlungszeiten bearbeiten …**. Das öffnet die Verwaltung gleich bei der Behandlung des Termins, im Bereich **Durchführung** (Gruppe „Vor- und Nachbereitung“): dort stehen die Minuten für Vor- und Nachbereitung und die Vorbereitungsschritte. Der Eintrag erscheint nur mit dem Recht, den Katalog zu pflegen (Standortleitung, Manager, Inhaber).
 
-## Hinweise {#hinweise}
+## Gut zu wissen {#hinweise}
 
 - Nur Inhaber, Manager und Standortleitung sehen die Behandlungen in den Stammdaten und dürfen speichern.
 - Gespeichert wird immer die ganze Liste dieser Behandlung, in der angezeigten Reihenfolge. Sie gilt an allen Standorten.

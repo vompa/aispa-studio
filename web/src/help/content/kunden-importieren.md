@@ -10,6 +10,8 @@ stichwoerter: Kunden importieren, Import, Kundenliste übernehmen, Umstieg, Wech
 
 Beim Umstieg von einem anderen Programm übernimmt der Import die Gäste aus einer Excel- oder CSV-Datei. Importieren dürfen nur Inhaberin und Geschäftsführung.
 
+## Schritte {#schritte}
+
 1. **Kunden** öffnen, neben **Exportieren** auf **…** klicken und **Kunden importieren …** wählen.
 2. **Schritt 1 von 4 · Datei wählen**: **Datei wählen …** klicken und die Excel- (`.xlsx`) oder CSV-Datei öffnen. In der ersten Zeile müssen die Spaltenköpfe stehen.
 3. **Schritt 2 von 4 · Spalten zuordnen**: Die App schlägt zu jeder Spalte ein Feld vor (Vorname, Nachname, E-Mail, Telefon, Geburtstag, Anrede, Straße, PLZ, Ort, Land, Werbe-Einwilligung) und zeigt drei Beispielwerte. Vorschläge prüfen, Spalten ohne Gegenstück auf **nicht importieren** lassen. Der Nachname muss zugeordnet sein. Beim **Datumsformat** passt meist **Automatisch**; sonst das Format der Datei wählen, z. B. **TT.MM.JJJJ**.

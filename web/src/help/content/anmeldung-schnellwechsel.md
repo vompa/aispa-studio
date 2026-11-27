@@ -10,6 +10,8 @@ stichwoerter: Schnellwechsel, Person wechseln, mit PIN anmelden, Wer meldet sich
 
 Am Empfangsgerät meldet man sich mit Name und PIN an, ohne Code oder Passwort. So arbeitet jede Person unter ihrem eigenen Namen, auch wenn sich mehrere einen PC teilen.
 
+## Schritte {#schritte}
+
 1. Die vorige Person meldet sich über ihr Profilbild in der Navigation mit **Person wechseln** ab, oder die App hat nach der Leerlaufzeit selbst abgemeldet.
 2. Unter „Wer meldet sich an?“ den eigenen Namen anklicken.
 3. Bei „PIN für …“ die eigene PIN eintippen.

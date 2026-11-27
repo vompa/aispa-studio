@@ -54,7 +54,7 @@ Dieselben Zahlen mit demselben Schwerpunkt und derselben Frage werten nicht neu 
 - **Mit KI auswerten** ist gesperrt: Auf dem Server ist kein Claude-Schlüssel eingetragen. Der Tooltip am Knopf sagt das. Bis dahin bleiben alle Zahlen des Berichts ohne KI lesbar.
 - „Auswertung gescheitert“: Die KI war nicht erreichbar oder hat eine Zahl genannt, die nicht im Bericht steht. Dann zeigt die App nichts von der KI. **Erneut versuchen** startet eine neue Auswertung, oder die Zahlen im Bericht selbst lesen.
 
-## Hinweise {#hinweise}
+## Gut zu wissen {#hinweise}
 
 - Nur Inhaber, Manager, Standortleitung und Backoffice. Ohne das Recht „Berichte mit Beträgen“ sieht die KI keine Beträge, und die Auswertung nennt keine.
 - An die KI gehen nur die Kennzahlen und Tabellen des Berichts, das Personal mit dem Namen im Haus, ersatzweise mit dem Namen der Person, und den Zahlen je Person. Gästenamen und Gesundheitsdaten gehen nie an die KI.

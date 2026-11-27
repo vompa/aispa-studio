@@ -10,6 +10,8 @@ stichwoerter: Firmenrechnung, Rechnung mit Empfänger, Rechnung auf Firma, UID, 
 
 Ein Beleg wird zur Rechnung an eine Firma, wenn man Name, Anschrift und gegebenenfalls UID-Nummer des Empfängers ergänzt. Das geht nach dem Bezahlen oder später unter „Belege“, einmal je Beleg.
 
+## Schritte {#schritte}
+
 1. Nach dem Bezahlen erscheint unter dem Beleg „Rechnung mit Empfänger“. Später: oben **Belege** wählen und links den Beleg anklicken.
 2. Auf **Empfänger erfassen** klicken.
 3. „Empfänger (Name oder Firma)“ und „Anschrift“ ausfüllen, bei Bedarf die „UID-Nummer, z. B. ATU12345678“.

@@ -10,6 +10,8 @@ stichwoerter: Kunden exportieren, Kundenliste Excel, CSV, Portal-CSV, Treatwell,
 
 In **Kunden** speichert **Exportieren** die Liste, wie sie gerade gefiltert ist, als Datei. Wer die Kundenliste sieht, darf sie exportieren.
 
+## Schritte {#schritte}
+
 1. **Kunden** öffnen und bei Bedarf suchen; ohne Suche kommen alle Gäste in die Datei.
 2. Auf **Exportieren** klicken und das Format wählen:
    - **Excel** oder **CSV**: Anrede, Name, Kontakt, Geburtstag, Sprache, Anschrift, Werbe-Einwilligung mit Datum, angelegt am, Kanal, letzter Besuch und Zahl der Besuche. Die Spalte „Vermerk“ steht nur in der Datei von Inhaberin und Geschäftsführung.

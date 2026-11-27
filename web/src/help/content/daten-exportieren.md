@@ -10,6 +10,8 @@ stichwoerter: exportieren, Export, Excel, CSV, Liste herunterladen, Datei speich
 
 Fast jede Liste der App lässt sich als Datei speichern: als **Excel** zum Weiterrechnen oder als **CSV** für andere Programme. Die Datei zeigt dieselben Daten wie die Seite, mit den Filtern, die gerade gelten.
 
+## Schritte {#schritte}
+
 1. Die Seite mit der Liste öffnen und, wo es geht, filtern (Suche, Zeitraum, Standort).
 2. Auf **Exportieren** klicken und die Liste mit dem Format wählen, z. B. **Belegliste (Excel)**.
 3. Im Speicherdialog den Ort wählen. Der Dateiname ist schon vorgeschlagen, z. B. `Belege_2026-11-09.xlsx`. Danach steht kurz „Gespeichert: …“ mit dem Dateinamen.

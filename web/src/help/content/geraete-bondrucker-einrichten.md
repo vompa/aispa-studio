@@ -10,6 +10,8 @@ stichwoerter: Bondrucker einrichten, Drucker anschließen, Belegdrucker, Epson, 
 
 Ein Bondrucker im Netz (ESC/POS, z. B. Epson, Star, Bixolon) wird an jedem PC einzeln eingetragen. Einen Windows-Druckertreiber braucht es nicht.
 
+## Schritte {#schritte}
+
 1. In der Navigation **Geräte** öffnen.
 2. Unter „Bondrucker“ bei „Adresse“ die IP-Adresse des Druckers eintragen, z. B. `192.168.1.60` (Port 9100 gilt ohne Angabe).
 3. Bei „Zeichen pro Zeile“ die Breite wählen: 42 oder 48 Zeichen für 80-mm-Papier, 32 Zeichen für 58-mm-Papier.

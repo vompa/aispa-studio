@@ -43,43 +43,6 @@ Unter jedem Wert zeigt die Kachel, wie er sich gegenüber dem Vergleichszeitraum
 - **Verlauf:** drei kleine Säulendiagramme für Umsatz ohne Gutscheinverkauf (netto), Behandlungen und Auslastung Personal. Bis 62 Tage steht jede Säule für einen Tag, bei längeren Zeiträumen für eine Woche von Montag bis Sonntag. Zeigen Sie mit der Maus auf eine Säule, um ihren Wert zu sehen. **Werte als Tabelle** unter jedem Diagramm klappt dieselben Werte als Liste auf.
 - **Tabellen** nach dem Verlauf: Auslastung nach Wochentag und Tageszeit, Vorschau der nächsten vier Wochen, Räume, Umsatz nach Erlöskonto und Zahlungsart, Personal, Behandlungen, Aktionen, Buchungen nach Kanal und die Gäste. Mehr dazu unter [Auslastung, Räume, Kanäle und Vorschau](#muster) und [Gäste](#gaeste).
 
-## So wird gerechnet {#rechnung}
-
-Alle Kennzahlen gelten für den gewählten Standort und Zeitraum. Der Vergleichszeitraum wird genauso gerechnet. Ein **Termin** heißt hier ein Termin, der im Zeitraum beginnt. Umsätze kommen aus den Kassenbelegen des Standorts, Stunden aus Kalender und Dienstplan. Netto heißt ohne Umsatzsteuer.
-
-### Umsatz und Ertrag {#ertrag}
-
-- **Umsatz brutto:** Summe aller Belegzeilen der Kassen des Standorts mit Belegdatum im Zeitraum, mit Umsatzsteuer. Ein Storno zieht den Betrag wieder ab.
-- **Umsatz netto:** dieselbe Summe ohne Umsatzsteuer, je Steuersatz herausgerechnet.
-- **Durchschnittsbon netto:** Umsatz netto geteilt durch die Zahl der Bons (Verkaufsbelege minus Stornobelege).
-- **Umsatz ohne Gutscheinverkauf (netto):** Umsatz netto ohne die Zeilen, die Wertgutscheine verkaufen.
-- **Durchschnittsbon ohne Gutscheinverkauf (netto):** dieser Umsatz geteilt durch die Bons, die nicht nur Wertgutscheine enthalten.
-- **Gutscheine verkauft** und **Gutscheine eingelöst:** siehe [Gutscheine in den Kennzahlen](#gutscheine).
-- **Deckungsbeitrag:** je Termin der kassierte Betrag netto minus die Vollkosten der Behandlung in seinem Monat, zusammengezählt. Termine ohne gerechnete Vollkosten zählen nicht mit. **Deckungsbeitrag in Prozent** setzt ihn ins Verhältnis zum Umsatz derselben Termine.
-- **Umsatz je Dienststunde:** Umsatz ohne Gutscheinverkauf (netto) geteilt durch die geplanten Dienststunden am Standort. **Umsatz je Behandlungsstunde:** derselbe Umsatz geteilt durch die Stunden der Behandlungen.
-- **Produktanteil am Umsatz:** Anteil der verkauften Artikel am Umsatz ohne Gutscheinverkauf. **Produktumsatz je Behandlung:** Artikelumsatz netto geteilt durch die Behandlungen. **Umsatz je Gast:** Umsatz ohne Gutscheinverkauf geteilt durch die Gäste.
-- **Offene Gutscheine (heute):** Restwert aller aktiven Gutscheine, nicht je Standort. Die Kachel zeigt den Stand von heute und hat keinen Vergleich.
-
-### Auslastung {#auslastung}
-
-- **Behandlungen:** Zahl der Termine im Zeitraum ohne No-Shows und ohne stornierte Termine.
-- **Auslastung Personal:** Minuten dieser Termine geteilt durch die geplanten Dienstminuten am Standort, in Prozent.
-- **Auslastung Räume:** belegte Raumminuten dieser Termine, mit Vor- und Nachbereitung, geteilt durch die Öffnungsminuten mal die Zahl der aktiven Räume, in Prozent.
-- **Offene Anfragen (heute):** Mails der Terminannahme, über die die Rezeption noch entscheiden muss. Stand von heute, ohne Vergleich.
-
-### Gäste {#gaeste-rechnung}
-
-- **Gäste:** Zahl der verschiedenen Gäste mit mindestens einem Termin, der stattfindet oder stattfand.
-- **Neue Gäste:** Gäste, deren erster Termin überhaupt (nicht storniert, kein No-Show) im Zeitraum liegt.
-- **Stammgäste-Anteil:** Gäste ohne die neuen Gäste, geteilt durch alle Gäste, in Prozent.
-- **Folgetermin gebucht:** Anteil der Gäste mit abgeschlossener Behandlung im Zeitraum, die einen späteren Termin nach dem Zeitraum haben. Es zählt jeder spätere Termin, der nicht storniert und kein No-Show ist, auch wenn er inzwischen stattgefunden hat.
-- **Abwandernde Stammgäste (heute):** siehe [Gäste](#gaeste). Stand von heute, ohne Vergleich.
-
-### Ausfälle {#ausfaelle}
-
-- **No-Show-Quote:** No-Shows geteilt durch alle Termine des Zeitraums (stattfindende, No-Shows und stornierte), in Prozent. **Storno-Quote:** stornierte Termine auf dieselbe Weise.
-- **Entgangen durch No-Show** und **Entgangen durch Storno:** Summe der Terminpreise (brutto) der Termine, zu denen der Gast nicht kam bzw. die storniert wurden. Weniger ist hier besser. Eine Ausfallgebühr ist nicht abgezogen.
-
 ## Auslastung, Räume, Kanäle und Vorschau {#muster}
 
 - **Auslastung nach Wochentag und Tageszeit:** je Wochentag mit Diensten die Auslastung Personal im Vormittag (bis 11 Uhr), Mittag (11 bis 14 Uhr), Nachmittag (14 bis 17 Uhr) und Abend (ab 17 Uhr). Gerechnet wird wie bei der Kachel: Behandlungsminuten geteilt durch Dienstminuten in diesem Abschnitt. Eine Behandlung über eine Grenze zählt in beiden Abschnitten anteilig. Ein Feld unter 50 % steht mit dem Wort „schwach“ und ist hervorgehoben: Das sind die Lücken, die sich für Aktionen eignen. Ein Strich heißt, in dieser Tageszeit hatte niemand Dienst.
@@ -150,7 +113,7 @@ Inhaber, Manager und Standortleitung bekommen den Bericht auch per Mail, je Stan
 
 In der Mail stehen der Kommentar der KI, was zu beachten ist, die Kennzahlen mit dem Zeitraum davor und die Aktionen; Beträge nur mit dem Recht „Berichte mit Beträgen“. Dazu hängt der Bericht als PDF an, passend zu dem, was die Person sehen darf, mit Vergleich zum Zeitraum davor und ohne Gästelisten. Wäre das PDF größer als 5 MB, geht die Mail ohne Anhang hinaus. Abbestellen: beim Management im Menü **Ausgabe** das Kästchen **Wochen- und Monatsbericht per Mail** abwählen; wieder wählen bestellt ihn wieder. Das Kästchen gilt nur für Sie selbst. Ohne Mailadresse im Konto kommt keine Mail.
 
-## Hinweise {#hinweise}
+## Gut zu wissen {#hinweise}
 
 - Inhaber, Manager, Standortleitung und Backoffice; die Standortleitung sieht nur ihre Standorte.
 - Beträge (Umsatz, Durchschnittsbon, Umsatz je Behandlung und Person, Marge, Deckungsbeitrag, entgangener Umsatz, Umsatz im Verlauf, gebuchter Umsatz der Vorschau, Ausgaben der besten Gäste) und die Anteile daraus (Deckungsbeitrag in Prozent, Produktanteil) sieht nur, wer das Recht „Berichte mit Beträgen“ hat: Inhaber, Manager und Backoffice immer, Standortleitung und Rezeption nur, wenn es ihnen vergeben ist ([Berichte mit Beträgen](hilfe:zugaenge#berichte-mit-betraegen)). Ohne das Recht fehlen sie, und es steht „Beträge nur mit Berechtigung“; Auslastung, Anzahlen und Quoten bleiben.
@@ -159,3 +122,4 @@ In der Mail stehen der Kommentar der KI, was zu beachten ist, die Kennzahlen mit
 - Eigene Erlöskonten (z. B. Shop) legt man unter „Buchhaltung“ an: [Erlöskonto anlegen](hilfe:buchhaltung-erloeskonto-anlegen).
 - Vergleich mit anderen Day-Spas: [Mit anderen Spas vergleichen](hilfe:berichte-mit-anderen-spas-vergleichen).
 - Kurze Zahlen auf Zuruf liefert auch der [KI-Assistent](hilfe:ki-assistent-fragen), z. B. „Wie war der Umsatz letzte Woche?“.
+- Wie die Kennzahlen gerechnet werden: [Wie die Kennzahlen gerechnet werden](hilfe:berichte-kennzahlen-gerechnet).

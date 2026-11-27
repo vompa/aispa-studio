@@ -11,6 +11,8 @@ betrieb: server
 
 Die KI entwirft zu jeder Anfrage eine Antwort. Nichts geht hinaus, bevor die Rezeption den Entwurf prüft und auf **Senden** klickt.
 
+## Schritte {#schritte}
+
 1. In **Anfragen** links die Nachricht anklicken.
 2. Rechts den Entwurf im Feld „Antwort an …“ (bei SMS und WhatsApp „Antwort per SMS an …“ bzw. „Antwort per WhatsApp an …“) lesen; bei Mails steht der Betreff darüber.
 3. Bei Bedarf Betreff und Text direkt im Feld ändern.

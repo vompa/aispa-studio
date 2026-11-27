@@ -10,6 +10,8 @@ stichwoerter: Rechnung parken, später kassieren, offen lassen, zurückstellen, 
 
 Eine offene Rechnung lässt sich beiseitelegen, z. B. wenn der Gast noch in der Sauna ist, und später weiterkassieren. Inzwischen kann man andere Gäste abrechnen.
 
+## Schritte {#schritte}
+
 1. In der offenen Rechnung auf **Parken** klicken.
 2. Die Rechnung ist nicht mehr offen und steht am Ende der Liste „Heute abzurechnen“ unter „Geparkte Rechnungen“, mit dem Namen des Gastes (oder „Laufkundschaft“) und dem offenen Betrag. Ihre Termine und Eintritte stehen dann in keiner Gruppe der Liste.
 

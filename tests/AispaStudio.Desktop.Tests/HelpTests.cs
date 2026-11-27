@@ -62,6 +62,14 @@ public sealed partial class HelpTests
     }
 
     [Fact]
+    public void Liest_die_Art_erklaerung()
+    {
+        var topic = HelpMarkdown.ToTopic("x-erklaerung", "---\nart: erklaerung\n---\n# Hintergrund\n\nText.");
+
+        Assert.Equal(HelpKind.Explanation, topic.Meta.Kind);
+    }
+
+    [Fact]
     public void Jeder_Verweis_zeigt_auf_ein_vorhandenes_Thema_und_jedes_Bild_ist_erzeugt()
     {
         var images = Path.Combine(RepoRoot(), "web", "src", "help", "images");

@@ -124,7 +124,7 @@ Jeder Termin trägt seine eigene Vorbereitung und Nachbereitung. Beim Buchen kom
 - Das Verschieben rechnet mit den Minuten des Termins. Eine spätere Änderung der Behandlung im Katalog gilt nur für neue Buchungen.
 - Das geht für gebuchte und eingecheckte Termine, für alle, die buchen dürfen (Rezeption, Standortleitung, Inhaber). Bei Paar und Spa-Tag gilt es je Termin, nicht für die ganze Buchung.
 
-## Hinweise {#hinweise}
+## Gut zu wissen {#hinweise}
 
 - Verschieben dürfen Rezeption, Standortleitung und Inhaber.
 - Ohne Verbindung wird die Verschiebung vorgemerkt („vorgemerkt“ am Termin) und erst beim Abgleich geprüft; **Rückgängig** gibt es dann nicht. Siehe [Arbeiten ohne Verbindung](hilfe:kalender-offline).

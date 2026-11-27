@@ -43,7 +43,7 @@ Im Seitenpanel eines Termins ist der Raum unterstrichen. Ein Klick darauf (oder 
 
 ![Raum-Infos im Terminfenster](images/app/kalender-raum-info.png)
 
-## Hinweise {#hinweise}
+## Gut zu wissen {#hinweise}
 
 - Geräte gehören zu Behandlungen, nicht zu Räumen; deshalb zeigt der Raum keine Geräte.
 - Raumpflege und Plätze stellt man beim Raum ein, siehe [Standorte & Räume](hilfe:standorte#raumpflege).

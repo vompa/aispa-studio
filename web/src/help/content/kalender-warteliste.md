@@ -37,7 +37,7 @@ Oben im Panel steht ein Knopfblock mit **Drucken** und **PDF speichern**, ohne *
 
 Wie die Knöpfe arbeiten: [Dokumente drucken, speichern und senden](hilfe:dokumente-drucken-speichern-senden).
 
-## Hinweise {#hinweise}
+## Gut zu wissen {#hinweise}
 
 - Die Liste gilt für den gewählten Standort.
 - Den Knopf **Warteliste** in der Kopfzeile sehen alle Rollen; den Menüeintrag neben **Termin** nur, wer buchen darf.

@@ -24,7 +24,7 @@ Der Kalender zeigt einen Tag an einem Standort: je Person eine Spalte (oder je R
 
 Die Kopfzeile hat **zwei Zeilen**, nie eine dritte. Alle Schaltflächen außer **Termin** haben dieselbe Form: eine Kapsel mit Symbol und Text (ein **Chip**); Zustände zeigen nur die weiche Fläche (blaugrün für „eingeschaltet“, orange für Warnungen, rot für Fehler).
 
-**Zeile 1**
+### Zeile 1 {#zeile-1}
 
 - Ganz links **Heute**, Pfeil links (**Vortag**) und Pfeil rechts (**Nächster Tag**). Sie stehen immer an derselben Stelle, auch wenn der Tagestitel daneben wechselt.
 - **Tag und Datum** danach („Heute“ bzw. der Wochentag, darunter das Datum). Bei mehreren Standorten steht der Name dahinter und wird bei Platzmangel gekürzt (der volle Name steht im Tooltip). Ein Klick öffnet den Datumswähler; gibt es mehrere Standorte, steht darüber **Standort** zur Auswahl. Ohne Verbindung steht darunter „Ohne Verbindung · Stand …“.
@@ -32,7 +32,7 @@ Die Kopfzeile hat **zwei Zeilen**, nie eine dritte. Alle Schaltflächen außer *
 - **Termin** (normaler Knopf, öffnet sofort **Neuer Termin**) mit Pfeil daneben für das Menü: **Termin**, **Freie Zeit suchen**, **Wunsch eintippen (KI)** und, durch einen Trenner abgesetzt, **Paar oder Spa-Tag**, **Sauna-Eintritt**, **Warteliste ansehen**, **Lücken schließen**, **Tagesnotiz**.
 - **Freie Zeit suchen** (Symbol Kalender mit Lupe, die zweite Schaltfläche direkt rechts neben **Termin**, Strg+N): öffnet die [Suche nach freier Zeit](hilfe:kalender-freie-zeit-suchen).
 
-**Zeile 2**
+### Zeile 2 {#zeile-2}
 
 - **Team** (Symbol Personen) und **Räume** (Symbol Tür) schalten zwischen Spalten je Person und je Raum um, siehe [Raumansicht](hilfe:kalender-raumansicht). Es sind zwei Chips nebeneinander, der gewählte ist blaugrün hinterlegt und fett.
 - **Tagesüberblick** (Chip mit z. B. „17 Termine · 2 da · 1 offen“): öffnet die Zahlen **Termine**, **Eingecheckt**, **Noch erwartet** und **Auslastung Team**, sobald Gäste über den Link zusagen auch **Noch nicht zugesagt**, bei begonnenen, nicht eingecheckten Terminen **Überfällig** (in Orange, nur wenn es welche gibt), dazu **Als Nächstes** mit den nächsten Gästen. Hat ein Gast mit Termin am Tag Geburtstag, steht darüber die Zeile „Geburtstag heute: Brigitte Müller (10:30)“ ([Geburtstag](hilfe:seite-kalender#geburtstag)). Ein Klick auf eine Zahl hebt die passenden Termine im Kalender hervor, ein Klick auf **Auslastung Team** öffnet [Freie Zeit suchen](hilfe:kalender-freie-zeit-suchen).

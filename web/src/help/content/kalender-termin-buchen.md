@@ -138,13 +138,25 @@ Für denselben Gast mit derselben Behandlung in vier Wochen:
 
 ## Wenn die Zeit belegt ist {#konflikt}
 
-Die Konfliktmeldung ist eine rote Meldung mit dem Titel „Zeitraum ist belegt.“. Darunter sagt sie, was zu tun ist: „Zuerst verschieben oder einen anderen Zeitraum wählen.“ Es folgt je Belegung eine Zeile mit Symbol und Uhrzeit **in Ortszeit des Standorts**, z. B. „Termin · 09:40–10:50 · Clara Fischer“ (Symbol Kalender), „Sperrzeit · 10:50–12:10 · Mittagspause“ (Schloss), dazu für Räume (Tür) und Geräte (Werkzeug). Liegt die Belegung an einem anderen Tag als dem im Kalender, steht der Tag davor („Do. 22.10. 09:40–10:50“). Bei einem belegten Termin nennt die Zeile zusätzlich Raum bzw. Person („Termin · 09:40–10:50 · Clara Fischer · Raum Zeder“). Ein Klick auf eine Terminzeile markiert diesen Termin im Kalender (bei einem anderen Tag wechselt der Kalender dorthin); das Fenster bleibt offen. In **Neuer Termin** heißt der Knopf der Meldung **Freie Zeit suchen**: Er öffnet die Suche mit Behandlung und Gast, und jede Zeit dort lässt sich buchen. Bei den anderen Meldungen zeigt der Knopf **Zum Konflikt** die Woche der Person mit dem belegenden Termin (bei einem belegten Raum die Woche des Raums), beginnend an dessen Tag, der Termin ist markiert; er fehlt, wenn nur Sperrzeiten oder Geräte im Weg stehen. Ist gar kein passender Raum frei, nennt die Meldung die belegten Räume und die nächste freie Zeit („Räume: Kein geeigneter Raum ist zu dieser Zeit frei. Ein Raum ist frei ab 12:20“). Die Meldung steht im Fenster immer direkt über dem Knopf der Aktion, beim Verschieben im Termin-Fenster in der Karte „Verschieben“. Mit dem Kreuz der Meldung blenden Sie sie aus. Dieselbe Meldung erscheint bei Sperrzeit, Pause, Paar oder Spa-Tag und beim Ändern der Zeiten eines Termins; beim Verschieben per Ziehen steht dieselbe Liste mit dem Knopf **Zum Konflikt** in der Meldung über dem Kalender.
+Die Konfliktmeldung ist eine rote Meldung mit dem Titel „Zeitraum ist belegt.“.
+
+- Darunter sagt sie, was zu tun ist: „Zuerst verschieben oder einen anderen Zeitraum wählen.“
+- Es folgt je Belegung eine Zeile mit Symbol und Uhrzeit **in Ortszeit des Standorts**, z. B. „Termin · 09:40–10:50 · Clara Fischer“ (Symbol Kalender), „Sperrzeit · 10:50–12:10 · Mittagspause“ (Schloss), dazu für Räume (Tür) und Geräte (Werkzeug).
+- Liegt die Belegung an einem anderen Tag als dem im Kalender, steht der Tag davor („Do. 22.10. 09:40–10:50“).
+- Bei einem belegten Termin nennt die Zeile zusätzlich Raum bzw. Person („Termin · 09:40–10:50 · Clara Fischer · Raum Zeder“).
+- Ein Klick auf eine Terminzeile markiert diesen Termin im Kalender (bei einem anderen Tag wechselt der Kalender dorthin); das Fenster bleibt offen.
+- In **Neuer Termin** heißt der Knopf der Meldung **Freie Zeit suchen**: Er öffnet die Suche mit Behandlung und Gast, und jede Zeit dort lässt sich buchen.
+- Bei den anderen Meldungen zeigt der Knopf **Zum Konflikt** die Woche der Person mit dem belegenden Termin (bei einem belegten Raum die Woche des Raums), beginnend an dessen Tag, der Termin ist markiert; er fehlt, wenn nur Sperrzeiten oder Geräte im Weg stehen.
+- Ist gar kein passender Raum frei, nennt die Meldung die belegten Räume und die nächste freie Zeit („Räume: Kein geeigneter Raum ist zu dieser Zeit frei. Ein Raum ist frei ab 12:20“).
+- Die Meldung steht im Fenster immer direkt über dem Knopf der Aktion, beim Verschieben im Termin-Fenster in der Karte „Verschieben“.
+- Mit dem Kreuz der Meldung blenden Sie sie aus.
+- Dieselbe Meldung erscheint bei Sperrzeit, Pause, Paar oder Spa-Tag und beim Ändern der Zeiten eines Termins; beim Verschieben per Ziehen steht dieselbe Liste mit dem Knopf **Zum Konflikt** in der Meldung über dem Kalender.
 
 ![Konfliktmeldung mit Belegungen in Ortszeit](images/app/kalender-konflikt.png)
 
 - Wer nicht weiß, wann etwas frei ist: [Freie Zeit suchen](hilfe:kalender-freie-zeit-suchen) oder [Wunsch eintippen (KI)](hilfe:kalender-ki-anfrage). Beide öffnen am Ende dasselbe Panel **Neuer Termin**, schon ausgefüllt.
 
-## Hinweise {#hinweise}
+## Gut zu wissen {#hinweise}
 
 - Im Termin-Panel speichert **Mehr** › **Kalenderdatei …** den Termin als Datei für Outlook, Apple oder Google, mit Erinnerung einen Tag vorher und ohne Namen der Therapeut:in; bei einem Spa-Tag stehen alle Teile des Gastes darin.
 - Am Knopf **Termin** speichert der Pfeil › **Terminliste exportieren …** die Termine eines Zeitraums als Excel oder CSV; die Spalte „Notiz“ sehen nur Leitung und Inhaber. Jeder Export steht im Verlauf.

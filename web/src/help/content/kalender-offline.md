@@ -45,7 +45,7 @@ Solche Termine tragen im Kalender „vorgemerkt“. Eine Paar- oder Spa-Tag-Buch
 2. Was AISPA Studio ablehnt (z. B. Person inzwischen belegt), steht oben als Fehlermeldung „Beim Abgleich nicht übernommen“, darunter jede Änderung mit der Begründung. Das gilt auch für einen Termin, den inzwischen jemand an einem anderen Arbeitsplatz geändert hat; er bleibt dann so, wie der andere Arbeitsplatz ihn gespeichert hat. Mehrere eigene Änderungen am selben Termin gehen dagegen der Reihe nach durch.
 3. Den Fall mit dem Gast klären, neu buchen oder verschieben und dann **Erledigt** neben der Meldung klicken.
 
-## Hinweise {#hinweise}
+## Gut zu wissen {#hinweise}
 
 - Antwortet AISPA Studio beim Start nicht gleich (es fährt z. B. noch hoch), zeigt die App den Startbildschirm mit dem Stand, etwa „Datenbank wird vorbereitet …“ oder „Anmeldung wird geladen …“. Nach zehn Sekunden steht darunter „Das dauert länger als üblich.“; **Technische Angaben** zeigt die Adresse und die Phase. Nach drei Minuten ohne Antwort steht „Keine Verbindung“ mit **Erneut versuchen**; die Anmeldung bleibt gemerkt.
 - Damit ein Ausfall nicht überrascht, lädt die App bei bestehender Verbindung etwa alle zehn Minuten den Kalender der nächsten sieben Tage aller Standorte, die Kundenkarten dieser Gäste und die Kassa-Artikel vor.

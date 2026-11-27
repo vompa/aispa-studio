@@ -61,7 +61,7 @@ Ist **Gast (optional)** gewählt, trägt der Knopf den Namen („Für Brigitte M
 
 Im Posteingang steht dieselbe Suche rechts neben einer Anfrage; dort merkt **Vormerken und vorschlagen** die Zeit für den Gast vor, siehe [Freie Zeit für eine Anfrage](hilfe:anfragen-freie-zeit-suchen).
 
-## Hinweise {#hinweise}
+## Gut zu wissen {#hinweise}
 
 - Gesucht wird ab dem angezeigten Tag, heute erst ab jetzt. Für einen anderen Starttag vorher den Tag wechseln (← → oder **G**).
 - „An diesem Tag ist nichts frei.“ steht klein über der Liste, wenn die Vorschläge von späteren Tagen kommen. Ist auch in den nächsten 14 Tagen nichts frei, steht darüber eine gelbe Meldung mit der Ursache (zum Beispiel „nachmittags“) und einem Knopf, der die Einschränkung aufhebt, etwa **Tageszeit: egal**.

@@ -12,7 +12,9 @@ Auf der Seite „Betriebsinfo“ steht, wen man für den Betrieb anruft: Versich
 
 ## Aufbau {#aufbau}
 
-Oben stehen **Suchen**, **Kategorie** und **Archivierte zeigen** (nur für alle, die verwalten dürfen) sowie **Neuer Eintrag**. Links die Liste, nach Kategorie gegliedert, mit Bezeichnung, Firma und Ansprechperson; ein Eintrag der Stufe „Leitung“ trägt den Vermerk „Nur Leitung“. Rechts der gewählte Eintrag: oben Telefon, Mobil und E-Mail als Links mit **Kopieren**, darunter die Maske (für alle, die verwalten dürfen) oder die Angaben zum Lesen.
+- Oben stehen **Suchen**, **Kategorie** und **Archivierte zeigen** (nur für alle, die verwalten dürfen) sowie **Neuer Eintrag**.
+- Links die Liste, nach Kategorie gegliedert, mit Bezeichnung, Firma und Ansprechperson; ein Eintrag der Stufe „Leitung“ trägt den Vermerk „Nur Leitung“.
+- Rechts der gewählte Eintrag: oben Telefon, Mobil und E-Mail als Links mit **Kopieren**, darunter die Maske (für alle, die verwalten dürfen) oder die Angaben zum Lesen.
 
 ## Wer was sieht {#rechte}
 

@@ -230,7 +230,7 @@ Findet der Assistent zu einer Frage nichts (weder im Handbuch noch in den Daten 
 - Nach 90 Tagen ohne neue gleiche Frage fällt ein Eintrag von selbst weg.
 - Rezeption, Therapie und Backoffice sehen die Liste nicht.
 
-## Hinweise {#hinweise}
+## Gut zu wissen {#hinweise}
 
 - Unter jeder Antwort steht ein Hinweis zur KI. Bei Antworten aus den Daten des Spas: „Antwort eines KI-Assistenten. Die Angaben stammen aus den Daten des Spas (Quelle unten), nicht von der KI; bei Zweifeln bitte dort nachsehen.“ Sonst: „Antwort eines KI-Assistenten. Zahlen und Zeiten stammen aus Kalender und Kassa; bitte vor dem Buchen kurz prüfen.“
 - Die KI versteht nur die Frage. Freie Zeiten rechnet der Kalender, Zahlen kommen aus Kalender, Kassa und Berichten; Pflichtzahlen für Kassa, Steuer und Behörden rechnet nie die KI.

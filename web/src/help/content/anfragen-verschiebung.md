@@ -11,6 +11,8 @@ betrieb: server
 
 Schreibt ein Gast per Mail, SMS oder WhatsApp, dass er seinen Termin verschieben möchte, sucht die KI seinen nächsten Termin und freie Zeiten für dieselbe Behandlung. Verschoben wird nie von selbst: die Rezeption wählt eine Zeit und bestätigt.
 
+## Schritte {#schritte}
+
 1. In der Navigation **Anfragen** öffnen und die Nachricht mit Status „Prüfen“ anklicken.
 2. Unter „Hinweis“ steht, welchen Termin die KI gefunden hat, zum Beispiel „Gast möchte verschieben. Nächster Termin: Hot-Stone-Massage am 22.10.2026 um 17:00 Uhr, Wien.“
 3. Unter **Freie Zeiten zum Verschieben** steht je Zeit ein Knopf, zum Beispiel **Auf Di. 20.10. 17:00 verschieben**. Die passende Zeit anklicken und in der Rückfrage **Verschieben** wählen.

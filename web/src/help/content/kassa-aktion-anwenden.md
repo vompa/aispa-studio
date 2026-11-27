@@ -10,6 +10,8 @@ stichwoerter: Aktion anwenden, Aktionsrabatt, Rabattaktion, Angebot, Aktion an d
 
 Läuft an diesem Standort eine Aktion, die zu einer Position auf der Rechnung passt, schlägt die Kassa sie vor. Der Rabatt wird erst gesetzt, wenn man auf **Anwenden** klickt. Bei Aktionen für kurzfristig freie Termine und für schwache Zeiten passt nur ein Termin, der kurz genug vor Beginn gebucht wurde bzw. in einem abgehakten Feld des Wochenrasters beginnt.
 
+## Schritte {#schritte}
+
 1. Den Termin (oder das Paket) wie gewohnt auf die Rechnung setzen: [Termin abrechnen](hilfe:kassa-termin-kassieren).
 2. Unten bei der Summe erscheint der Hinweis „Aktion „Herbst“ −10 %“ mit der Zahl der Positionen und dem Rabatt zusammen.
 3. Auf **Anwenden** klicken.

@@ -7,7 +7,7 @@ import { HelpButton } from './HelpButton'
 import { HelpDrawer } from './HelpDrawer'
 import { helpLink, parseMarkdown } from './markdown'
 import { searchHelp } from './search'
-import { forOperation, imageUrl, loadTopics, operationValues, sectionBlocks, toTopic } from './topics'
+import { forOperation, groupByArea, imageUrl, loadTopics, operationValues, sectionBlocks, toTopic } from './topics'
 
 // Der erste Import aller Hilfetexte dauert unter Last länger als die 1 s von findBy…; danach liegen sie im Speicher.
 beforeAll(() => loadTopics(), 60_000)
@@ -61,6 +61,13 @@ describe('Hilfe', () => {
     expect(topic.blocks).toContainEqual({ kind: 'image', name: 'app/kalender-ziehen', alt: 'Beim Ziehen' })
     expect(helpLink('hilfe:kalender-termin-stornieren#no-show')).toEqual({ topic: 'kalender-termin-stornieren', section: 'no-show' })
     expect(sectionBlocks(topic, 'ziehen')).toHaveLength(4)
+  })
+
+  it('erkennt die Art erklaerung und listet das Thema unter Erklärungen', () => {
+    const topic = toTopic('anfragen-wie-die-ki-liest-test', '---\nart: erklaerung\n---\n# Wie die KI liest\n\nHintergrund.')
+    expect(topic.meta.kind).toBe('erklaerung')
+    expect(groupByArea([topic]).map(([name]) => name)).toEqual(['Erklärungen'])
+    expect(topics.filter((t) => t.meta.kind === 'erklaerung').length).toBeGreaterThan(0)
   })
 
   it('jeder Verweis findet sein Thema und jedes Bild ist erzeugt', () => {

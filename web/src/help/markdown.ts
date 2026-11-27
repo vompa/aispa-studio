@@ -33,7 +33,7 @@ export const calloutLabels: Record<CalloutType, string> = {
   warning: "Achtung",
 };
 
-export type HelpKind = "einstellung" | "ablauf" | "seite";
+export type HelpKind = "einstellung" | "ablauf" | "seite" | "erklaerung";
 
 /** Kopfangaben eines Themas, siehe `web/src/help/README.md`. */
 export interface HelpMeta {
@@ -76,7 +76,7 @@ export function splitFrontMatter(source: string): {
   const bodyStart = text.indexOf("\n", end + 1);
   return {
     meta: {
-      kind: kind === "ablauf" || kind === "seite" ? kind : "einstellung",
+      kind: kind === "ablauf" || kind === "seite" || kind === "erklaerung" ? kind : "einstellung",
       area: values.get("bereich") || undefined,
       surfaces: list("oberflaeche").map((v) => v.toLowerCase()),
       roles: list("rollen").map((v) => v.toLowerCase()),

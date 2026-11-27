@@ -10,6 +10,8 @@ stichwoerter: Einlage, Entnahme, Wechselgeld, Bargeld einlegen, Geld entnehmen, 
 
 Wechselgeld in die Lade legen oder Bargeld herausnehmen, z. B. für die Bank. Das ist kein Umsatz, verändert aber den Soll-Bestand für den Tagesabschluss.
 
+## Schritte {#schritte}
+
 1. In der Kassa oben **Kassenlade & Abschluss** wählen.
 2. Rechts unter „Einlage oder Entnahme“ **Einlage** oder **Entnahme** wählen. Ohne Kassenaufsicht heißt der Kasten „Einlage“ und zeigt keine Reiter, es gibt nur die Einlage.
 3. Den „Betrag“ eintragen.

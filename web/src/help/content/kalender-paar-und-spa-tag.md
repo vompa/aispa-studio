@@ -106,7 +106,7 @@ Einzelne Teile lassen sich wie jeder Termin [einchecken](hilfe:kalender-status-s
 
 Ohne Verbindung gibt es keine freien Zeiten. Stattdessen unter **Beginn** die Startzeit eintragen und auf **… vormerken** klicken. Ob alles zusammenpasst und wer behandelt, prüft AISPA Studio beim Abgleich; erst danach steht die Buchung im Kalender. Lehnt er ab, erscheint sie oben unter „Beim Abgleich nicht übernommen“. Siehe [Arbeiten ohne Verbindung](hilfe:kalender-offline).
 
-## Hinweise {#hinweise}
+## Gut zu wissen {#hinweise}
 
 - Buchen dürfen Rezeption, Standortleitung und Inhaber.
 - Gebucht wird für den Tag im Feld **Wann**.

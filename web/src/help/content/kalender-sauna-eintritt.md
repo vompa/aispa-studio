@@ -37,7 +37,7 @@ Beim Eintritt auf das Menü **⋯** und dann auf **Stornieren …** klicken. Die
 
 Beim Eintritt auf das Kassa-Symbol (**Eintritt an der Kassa abrechnen**) klicken; die App wechselt zur Kassa. Siehe [Termin kassieren](hilfe:kalender-kassieren#eintritt).
 
-## Hinweise {#hinweise}
+## Gut zu wissen {#hinweise}
 
 - Bereich-Knopf, Taste **S** und Menüeintrag gibt es nur an Standorten mit Bereichen. Ein Raum wird unter „Verwaltung“ › „Betrieb“ › „Standorte & Räume“ zum Bereich, siehe [Standorte & Räume](hilfe:standorte#bereich).
 - Ansehen dürfen alle; buchen, stornieren und kassieren nur Rezeption, Standortleitung und Inhaber.

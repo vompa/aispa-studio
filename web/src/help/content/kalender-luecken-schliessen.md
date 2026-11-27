@@ -29,7 +29,7 @@ Lässt sich ein Termin der Kette nicht verschieben (z. B. weil inzwischen etwas 
 
 ![Vorschlag mit Kette](images/app/kalender-lueckenvorschlag-kette.png)
 
-## Hinweise {#hinweise}
+## Gut zu wissen {#hinweise}
 
 - Die Seite gilt für den angezeigten Tag und den gewählten Standort; sie lädt neu, wenn Sie den Tag wechseln.
 - In der 7-Tage-Ansicht gilt die Seite für alle sieben Tage. Oben steht dann z. B. „7 Tage ab Mo. 19.10., nur Lena Huber“, und jeder Vorschlag nennt seinen Tag. Zeigt die Ansicht eine Person, kommen nur Vorschläge für sie: [7-Tage-Ansicht](hilfe:kalender-sieben-tage).

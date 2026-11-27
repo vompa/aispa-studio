@@ -10,6 +10,8 @@ stichwoerter: Beleg drucken, Bon drucken, Beleg nochmal, Kopie, Rechnung drucken
 
 Unter „Belege“ stehen die Belege eines Tages an der gewählten Kassa, zuerst die von heute. Jeder lässt sich ansehen, erneut drucken, als PDF speichern und dem Gast per Mail schicken.
 
+## Schritte {#schritte}
+
 1. In der Kassa oben **Belege** wählen. Einen anderen Tag zeigen die Pfeile neben „Belege heute“: **Tag davor** und **Tag danach**.
 2. Links unter „Belege heute“ den Beleg anklicken. Die Liste zeigt Uhrzeit, Nummer, Zahlungsarten und Betrag, neueste zuerst; der neueste ist schon gewählt.
 3. Rechts erscheint der Beleg so, wie er gedruckt wird.

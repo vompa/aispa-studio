@@ -31,15 +31,9 @@ Auf **Neu anlegen** klicken. Die App legt einen Kunden aus Name, Telefon und Mai
 
 War es doch ein anderer Kunde, steht in der geöffneten Nachricht **Zuordnung lösen**. Der Kunde wird dann nicht mehr vorgeschlagen, die Vorschläge werden ohne ihn neu gesucht, und die Nachricht wartet wieder auf die Entscheidung. Das geht nur, solange kein Termin gebucht oder storniert ist.
 
-## Wann die Terminannahme selbst zuordnet {#automatisch}
-
-- **Sicher** (ohne Rückfrage, wie bisher): gleiche Mailadresse (Groß- und Kleinschreibung egal) oder gleiche Telefonnummer (Schreibweise egal: „0660 1234567“ ist „+43 660 1234567“). Teilen sich mehrere Kunden dieselbe Adresse oder Nummer, ist es nicht sicher.
-- **Kein Kandidat**: Gibt es weder einen sicheren Treffer noch einen ähnlichen Kunden, legt die Terminannahme den Gast beim Buchen neu an und vermerkt „Aus Mail angelegt“ (bzw. SMS, WhatsApp, Anruf, Treatwell).
-- **Kandidaten**: In allen anderen Fällen entscheidet die Rezeption. Die Stufen, von oben nach unten: die vom Gast genannte Telefonnummer passt; Name und ein weiteres Merkmal passen (die letzten vier Ziffern der Nummer, der Geburtstag oder ein Termin in den letzten 24 Monaten); nur der Name ist ähnlich (Umlaute, ß und Akzente zählen nicht als Unterschied, kleine Tippfehler auch nicht).
-- Kunden mit dem Kennzeichen „Nicht mehr buchen“ werden trotzdem vorgeschlagen; im Grund steht „„Nicht mehr buchen“ ist gesetzt“.
-
 ## Gut zu wissen {#hinweise}
 
+- Wann die Terminannahme selbst zuordnet und wann sie Vorschläge macht: [Wann die Terminannahme einen Absender selbst zuordnet](hilfe:anfragen-wann-die-ki-zuordnet).
 - Treatwell-Buchungen gehen anders: Der Termin steht sofort im Kalender und blockt die Zeit, auch wenn der Gast noch nicht sicher zugeordnet ist. Der Gast ist dann vorläufig angelegt („Zuordnung offen“). Mit **Zuordnen** wandert der Termin auf den gewählten Kunden, und der vorläufige Gast wird entfernt, wenn er sonst nichts hat (keine weiteren Termine, Rechnungen oder Belege; sonst bleibt er stehen, und die Nachricht sagt es). **Als neuen Kunden bestätigen** macht den vorläufigen Gast zum Kunden. Siehe [Treatwell-Buchung im Posteingang](hilfe:anfragen-treatwell-buchung).
 - „Freie Zeiten“ sind schon vorgeschlagen; gebucht wird aber erst nach der Zuordnung. Wer vorher eine Zeit anklickt, bekommt „Wer ist das?“ als Meldung.
 - Zuordnen, Neu anlegen und Lösen gehen nur mit Verbindung; ohne Verbindung steht „Ohne Verbindung nicht möglich …“.

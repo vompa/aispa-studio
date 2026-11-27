@@ -26,7 +26,7 @@ In der Ansicht „Lohn“ des Bereichs „Team“ entsteht für einen Monat eine
 
 Vorher holt das Programm die Monatswerte und zeigt sie an. Könnte keine Zeile übergeben werden, weil Personalnummern oder Lohnarten fehlen oder der Monat leer ist, entsteht keine Datei, sondern eine Meldung, was fehlt. Fehlt es nur bei einzelnen Personen oder Positionen, kommen sie nicht in die Datei; die Hinweise über der Tabelle der Monatswerte nennen sie. Die Nummer auf der Karte der Person im Bereich **Lohn und Akte**, die Lohnart unter **Einstellungen der Lohnverrechnung** eintragen und den Export erneut starten. Schlägt der Export aus anderem Grund fehl, steht ebenfalls eine Meldung da; Verbindung prüfen und noch einmal versuchen.
 
-## Hinweise {#hinweise}
+## Gut zu wissen {#hinweise}
 
 - Inhaber, Manager und Backoffice.
 - In die Datei kommen nur Personen mit Personalnummer und nur Positionen mit Lohnart. Fehlt eine Nummer: [Personalnummern eintragen](hilfe:lohn-personalnummern-eintragen).

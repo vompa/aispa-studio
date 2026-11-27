@@ -37,7 +37,7 @@ Fällt eine Person aus, schlägt der Ausfall-Assistent für jeden ihrer offenen 
 - Mails gehen nur an Gäste mit Mailadresse.
 - Der Assistent geht auch ohne Krankmeldung, z. B. wenn eine Person früher gehen muss: Rechtsklick auf den Spaltenkopf, **Ersatz für die Termine suchen**.
 
-## Hinweise {#hinweise}
+## Gut zu wissen {#hinweise}
 
 - Den Ausfall-Assistenten dürfen Rezeption, Standortleitung und Inhaber verwenden.
 - Gesucht wird nur am selben Tag, zuerst am selben Standort, notfalls an einem anderen.

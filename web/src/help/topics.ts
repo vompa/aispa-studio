@@ -123,7 +123,9 @@ export function areaOf(topic: HelpTopic): string {
     ? "Seiten"
     : topic.meta.kind === "einstellung"
       ? "Einstellungen"
-      : "Allgemein";
+      : topic.meta.kind === "erklaerung"
+        ? "Erklärungen"
+        : "Allgemein";
 }
 
 /** Zwischenüberschriften der ersten Ebene (`h2` auf der Hilfe-Seite) für „Auf dieser Seite“. */

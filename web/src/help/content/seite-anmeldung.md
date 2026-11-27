@@ -13,7 +13,13 @@ Die Anmeldeseite erscheint beim Start der App und nach dem Abmelden. Was sie zei
 
 ## Mit Server: Code aus dem Browser {#code}
 
-„Diesen PC verbinden“ mit drei Schritten: im Browser die Seite „Anmelden“ öffnen ([Seite „Anmelden“ im Browser](hilfe:anmelden-web)), **Code für die Windows-App** wählen und den angezeigten Code (Form „ABCD-EFGH“) hier eintippen, dann **Anmelden**. Danach bleibt die App auf diesem PC angemeldet.
+„Diesen PC verbinden“ mit drei Schritten:
+
+1. Im Browser die Seite „Anmelden“ öffnen ([Seite „Anmelden“ im Browser](hilfe:anmelden-web)).
+2. **Code für die Windows-App** wählen und den angezeigten Code (Form „ABCD-EFGH“) hier eintippen.
+3. Dann **Anmelden**.
+
+Danach bleibt die App auf diesem PC angemeldet.
 
 ## Einzelplatz: Benutzername und Passwort {#passwort}
 
