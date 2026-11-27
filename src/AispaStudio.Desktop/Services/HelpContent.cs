@@ -19,6 +19,9 @@ public static class HelpContent
     /// <summary>Das Seitenthema zu einer Seite der App (<c>kalender</c>, <c>kassa</c> …), für die Erklärung zur aktuellen Seite.</summary>
     public static HelpTopic? ForPage(string page) => HelpLibrary.ForPage(page);
 
+    /// <summary>Die App läuft im Einzelplatz (setzt der Rahmen nach der Anmeldung): Themen mit <c>betrieb: server</c> werden nicht verlinkt.</summary>
+    public static bool Standalone { get; set; }
+
     public static string? RoleKey(StaffRole? role) => role switch
     {
         StaffRole.Owner => "inhaber",

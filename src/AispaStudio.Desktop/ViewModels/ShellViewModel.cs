@@ -156,6 +156,7 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
         }
         Help.Role = user.Access?.Role;
         Help.Standalone = modules?.Standalone == true;
+        HelpContent.Standalone = modules?.Standalone == true;
         // Strg+Leertaste im eingebetteten Browser der Hilfe kommt als Nachricht der Seite (appShortcuts.ts); sie zählt nur, solange die Seite offen ist.
         Help.CompanionRequested += () => ToggleCompanionFromBrowser(Help);
         Help.KeyHelpRequested += () => HelpKeyRequested?.Invoke();

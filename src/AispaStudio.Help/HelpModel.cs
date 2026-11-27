@@ -34,8 +34,12 @@ public sealed record HelpMeta(
     IReadOnlyList<string> Surfaces,
     IReadOnlyList<string> Roles,
     string? Page,
-    IReadOnlyList<string> Keywords)
+    IReadOnlyList<string> Keywords,
+    string? Operation = null)
 {
+    /// <summary>Kopfangabe <c>betrieb: server</c>: das Thema gilt nur im Server-Betrieb und fehlt im Einzelplatz.</summary>
+    public bool ServerOnly => Operation == "server";
+
     public static readonly HelpMeta Empty = new(HelpKind.Setting, null, [], [], null, []);
 }
 

@@ -338,6 +338,37 @@ public sealed partial class HelpTests
         Assert.Equal("kassa", System.Web.HttpUtility.ParseQueryString(help.Address.Query)["thema"]);
     }
 
+    [Fact]
+    public void Kopfangabe_betrieb_server_gilt_im_Einzelplatz_nicht_in_Suche_und_Seitenthema()
+    {
+        var serverTopic = HelpMarkdown.ToTopic("anfragen-annehmen", "---\nart: ablauf\nseite: anfragen\nbetrieb: server\nstichwoerter: Anfrage annehmen\n---\n# Anfrage annehmen\n\nEinleitung.");
+        var plain = HelpMarkdown.ToTopic("kassa-oeffnen", "---\nart: ablauf\n---\n# Kassa öffnen\n\nEinleitung.");
+
+        Assert.True(serverTopic.Meta.ServerOnly);
+        Assert.False(plain.Meta.ServerOnly);
+        Assert.Equal(["anfragen-annehmen"], HelpSearch.Search([serverTopic, plain], "Anfrage annehmen", new HelpContext(), 5).Select(h => h.Topic.Id));
+        Assert.Empty(HelpSearch.Search([serverTopic, plain], "Anfrage annehmen", new HelpContext(Standalone: true), 5));
+        Assert.True(HelpLibrary.IsServerOnly("anfragen-annehmen"));
+        Assert.Null(HelpLibrary.ForPage("anfragen", standalone: true));
+        Assert.NotNull(HelpLibrary.ForPage("anfragen"));
+    }
+
+    [Theory]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    public void Verweis_auf_ein_Server_Thema_ist_im_Einzelplatz_Text_und_mit_Server_ein_Link(bool standalone, bool linked)
+    {
+        var text = new Controls.HelpText
+        {
+            Standalone = standalone,
+            Spans = [new HelpSpan("Anfrage annehmen", Href: "hilfe:anfragen-annehmen"), new HelpSpan("Kassa", Href: "hilfe:kassa")],
+        };
+
+        var containers = text.Inlines!.OfType<Avalonia.Controls.Documents.InlineUIContainer>().ToList();
+        Assert.Equal(linked ? 2 : 1, containers.Count);
+        Assert.Equal(!linked, text.Inlines!.OfType<Avalonia.Controls.Documents.Run>().Any(r => r.Text == "Anfrage annehmen"));
+    }
+
     private static Uri? ShownAt(ServerWeb server)
     {
         var help = new HelpViewModel(() => server.Address, webRoot: Path.Combine(Path.GetTempPath(), "aispa-ohne-hilfe"));
