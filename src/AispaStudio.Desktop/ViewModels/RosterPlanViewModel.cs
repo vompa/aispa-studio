@@ -280,10 +280,18 @@ public sealed partial class RosterPlanViewModel : ViewModelBase, IEditableArea
     public string DraftBandText => DraftCount == 1 ? "Entwurf: 1 Änderung nicht veröffentlicht" : $"Entwurf: {DraftCount} Änderungen nicht veröffentlicht";
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasLastPublished))]
+    [NotifyPropertyChangedFor(nameof(HasLastPublished), nameof(ShowsLastPublishedLine), nameof(LastPublishedLine))]
     public partial string? LastPublishedText { get; private set; }
 
     public bool HasLastPublished => LastPublishedText is not null;
+
+    /// <summary>Wer veröffentlichen darf, sieht Band und Zeile „Zuletzt veröffentlicht“ immer am selben Platz (T-121); ohne Entwurf bleiben sie leer, damit der Plan nicht um ihre Höhe springt.</summary>
+    public bool ReservesDraftBand => IsEditable && !IsCard;
+
+    public bool ShowsLastPublishedLine => HasLastPublished || ReservesDraftBand;
+
+    /// <summary>Die Zeile, bei reserviertem Platz ohne Text ein geschütztes Leerzeichen, damit sie ihre Höhe behält.</summary>
+    public string LastPublishedLine => LastPublishedText ?? " ";
 
     /// <summary>Ergebnis der Veröffentlichung: Tage, kurzfristige Änderungen und Termine außerhalb eines Dienstes.</summary>
     [ObservableProperty]
