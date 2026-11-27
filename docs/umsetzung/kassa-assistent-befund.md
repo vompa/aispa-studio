@@ -342,6 +342,76 @@ Wer ohne dauerhaftes Internet arbeiten soll, braucht in Österreich eine Karte u
 | Schritt zum Jahresende oder Jahresbeleg ab dem letzten Öffnungstag | Erlass 4.5.7 |
 | Später: Webservice zu FinanzOnline für Registrierung, Start- und Jahresbeleg | nimmt der Person die Belegcheck-App ab |
 
+## Nachtrag vom 27.11.2026: Einfacher Weg für ein kleines Spa
+
+Frage des Auftraggebers: Wie kommt ein kleines Spa (eine Kassa, keine IT-Kenntnisse) mit möglichst wenigen Schritten zu einer echten Kassa und zur Kartenzahlung, und wie zeigt die App die Anbieter je Land?
+
+Zwei Recherche-Läufe haben die Seiten der Anbieter am 27.11.2026 gelesen. „Nicht belegt“ heißt: Auf der Seite des Anbieters stand dazu nichts. Preise stammen von Werbeseiten, teils als Aktion, und sind vor einer Entscheidung neu zu prüfen.
+
+### Vorschlag in drei Stufen (Österreich zuerst)
+
+| Stufe | Was | Was das Spa tut | Was zu bauen ist |
+| --- | --- | --- | --- |
+| 1 | Übungskassa mit Test-Signatur und Dauerwarnung | nichts | vorhanden; hängt an Frage 2 |
+| 2 | Echte Kassa ohne Hardware: Online-Signatur, zuerst GLOBALTRUST RKS CLOUD | bestellt online, trägt die Zugangsdaten ein, meldet Kassa und Signatureinrichtung in FinanzOnline an | Anbieterwahl je Kassa, eine Umsetzung von `IRksvSignatureDevice`, Ablage der Zugangsdaten, Schlüssel und Prüfwert anzeigen |
+| 3 | Kartenzahlung: neues Terminal über eine Cloud-Schnittstelle (zuerst SumUp Solo) oder vorhandenes Terminal über ZVT | koppelt das Gerät mit einem Code oder trägt die Adresse des Terminals ein | eine Umsetzung von `ICardTerminal` für die Cloud; ZVT mit einer erprobten Bibliothek |
+
+Warum GLOBALTRUST RKS CLOUD zuerst: Die Kassa führt Belegkette, Umsatzzähler, Protokoll und QR-Code schon selbst (Abschnitt 2); es fehlt nur die Signatur. Laut Anbieter ist das Zertifikat kostenlos, eine Signatur kostet unter 0,5 Cent, es gibt eine Testumgebung und Beispiele für C# ([globaltrust.eu/en/rks](https://globaltrust.eu/en/rks/)). Die Karte desselben Anbieters (99 € für drei Jahre mit Lesegerät) bleibt der Weg ohne Internet.
+
+Deutschland folgt danach. Der Weg mit den wenigsten Schritten ist dort eine Cloud-TSE; bei fiskaly wäre der Hersteller der Kassensoftware Vertragspartner und reicht die Nutzung weiter, der Preis ist nicht öffentlich.
+
+### Anbieterwahl in der App
+
+- Die Person beantwortet zuerst eine Frage, erst danach wählt sie einen Anbieter: „Wie soll die Kassa signieren?“ mit **Online-Dienst**, **Karte im Lesegerät** (Deutschland: **TSE als Stick oder im Drucker**) und **Übungskassa**.
+- Das Land der Kassa steht aus Schritt 1 fest und filtert die Liste. Die Schweiz zeigt keine Wahl, nur den Satz, dass keine Signatur nötig ist.
+- Die Liste kommt aus der API (Anbieter, Art, nötige Felder, verfügbar oder nicht). Ein neuer Anbieter braucht keine neue Maske.
+- Anbieter ohne Anbindung bleiben sichtbar und gesperrt, mit dem Hinweis, dass die Anbindung folgt.
+- Nach der Wahl folgen nur die Felder dieses Anbieters und **Verbindung prüfen** mit einer Probesignatur. Erst danach legt der Assistent die Kassa an.
+- Die Kassa trägt den gewählten Anbieter. Heute ist `TestSignatureDevice` fest registriert, und die deutsche Seite nimmt die erste TSE, die sie findet.
+- Zugangsdaten liegen verschlüsselt je Spa, nach dem Muster des Claude-Schlüssels (`ClaudeKeyStore`). Die App zeigt sie nach dem Speichern nicht mehr an.
+- Eine Karte im Lesegerät hängt am PC, nicht am Server. Sie läuft wie das Kartenterminal über die App und über PC/SC, das es auch auf dem Mac gibt.
+- Der Wechsel des Anbieters bei einer benutzten Kassa ist ein eigener Ablauf und nicht Teil des ersten Schritts (siehe „Nicht geklärt“).
+
+### Fiskal-Dienste im Vergleich
+
+| Anbieter | Länder | Hardware | Vertragspartner des Spas | Preis laut Seite | Einschätzung |
+| --- | --- | --- | --- | --- | --- |
+| GLOBALTRUST RKS CLOUD | AT | keine | bestellt selbst online | Zertifikat kostenlos, unter 0,5 Cent je Signatur | passt zur vorhandenen Kassa; erster Anbieter |
+| GLOBALTRUST RKS CARD | AT | Karte und Lesegerät | bestellt selbst online | 99 € für 3 Jahre, 149 € für 5 Jahre | Weg ohne Internet |
+| A-Trust a.sign RK HSM | AT | keine | nur über Partner | nicht öffentlich | das Spa kann nicht selbst bestellen |
+| fiskaltrust | AT, DE und weitere | keine in der Cloud-Variante | nicht belegt (Händler, Partner oder Hersteller) | CloudCashBox 74 € je Jahr; Paket mit Online-Signatur 300 bis 499 € je Jahr und Standort | führt Belegkette und Protokoll selbst, die die Kassa schon hat; Alternative für viele Länder |
+| fiskaly SIGN AT, SIGN DE | AT, DE | keine | der Hersteller der Kassensoftware | nicht öffentlich | für Deutschland der kürzeste Weg; für Österreich Zertifikat und FinanzOnline nicht belegt |
+| efsta | AT, DE | lokaler Dienst | über Partner, Prüfung 2 bis 4 Wochen | ein Beispiel: 10,82 € je Kassa und Monat | kein schneller Einstieg; Mac nicht genannt |
+
+Quellen: [fiskaltrust, Bestandteile](https://docs.fiskaltrust.eu/docs/poscreators/middleware-doc/general/components), [fiskaltrust CloudCashBox](https://fiskaltrust.eu/en-at/partner/product/cloudcashbox), [fiskaly SIGN AT](https://workspace.fiskaly.com/pm-hub/service-descriptions/sign-at/2026-03-24), [fiskaly SIGN DE](https://workspace.fiskaly.com/pm-hub/service-descriptions/sign-de/2026-03-24), [A-Trust, RKSV-Angebot](https://a-trust.at/en/products/cash_register/rksv_portfolio), [efsta, Österreich](https://docs.efsta.eu/efr/AT).
+
+Die .NET-Pakete der Dienste sind alt (`fiskaltrust.interface` 1.3.45 vom April 2023, `fiskaly-dotnet-sdk` 1.2.200 vom Mai 2021). Eine Anbindung spricht die Schnittstellen besser direkt an.
+
+### Kartenterminal
+
+Stand im Code: Die API legt Terminals je Standort an und schickt Zahlungen über die Queue; die Windows-App spricht ein Gerät im Netz über ZVT oder OPI an (`ZvtClient.cs`, `OpiClient.cs`, ADR 0034). Beides ist nur gegen nachgebaute Terminals getestet.
+
+| Weg | Anbieter | Schritte für das Spa | Kosten laut Seite | Offen |
+| --- | --- | --- | --- | --- |
+| Cloud | SumUp Solo | Konto online, Kopplungscode eintippen | 1,39 % ohne Monatsgebühr | Ergebnis kommt als Webhook; Partnerschlüssel; Länderliste |
+| Cloud | Stripe Terminal | Konto online, Gerät anmelden | Gerät ab 199 €, 1,4 % + 0,10 € | Girocard und Debitkarten am Gerät |
+| Gerät im Netz, ZVT | hobex, Worldline, Payone, Global Payments, Nexi | Adresse des Terminals eintragen; der Anbieter schaltet ZVT frei | Vertrag des Anbieters | Test am echten Gerät |
+| Gerät im Netz, OPI | Nexi, Worldline | wie ZVT | Vertrag des Anbieters | keine freie .NET-Bibliothek gefunden |
+| Cloud, nur Schweiz | wallee | nicht belegt | nicht belegt | nur CH und CHF |
+
+Adyen (Vertrag über den Vertrieb), Zettle (Schnittstelle für Desktop-Kassen nicht belegt) und myPOS (Anbindung nur über Bluetooth oder USB) sind für ein einzelnes Spa umständlicher.
+
+Bibliothek für ZVT: [`Portalum.Zvt`](https://github.com/Portalum/Portalum.Zvt), MIT-Lizenz, Fassung 3.4.0 vom November 2024, Vorabfassung vom April 2026. Sie deckt Zahlung, Storno, Gutschrift, Kassenschnitt und Abbruch ab und ist laut Beschreibung an Terminals von CardComplete, hobex, Worldline/PAYONE und Global Payments in Österreich getestet. Der mitgelieferte Simulator genehmigt immer und kennt weder Ablehnung noch Abbruch. Ein Tausch der eigenen Umsetzung (436 Zeilen) gegen die Bibliothek ändert Verhalten und braucht vorher die Zustimmung des Auftraggebers.
+
+### Offen vor dem Bau
+
+- **Webhook im Einzelplatz:** SumUp meldet das Ergebnis einer Zahlung per Webhook. Die API des Einzelplatzes läuft nur auf dem Empfangs-PC und ist von außen nicht erreichbar. Ob sich das Ergebnis abfragen lässt, ist nicht belegt.
+- **Partnerschlüssel von SumUp:** Wie ein Hersteller ihn bekommt, steht auf den gelesenen Seiten nicht.
+- **Testzugänge:** Die Testumgebung von GLOBALTRUST und ein Entwicklerkonto bei SumUp legt der Auftraggeber an.
+- **Ausfall ohne Internet:** Bei der Online-Signatur gilt die Signatureinrichtung dann als ausgefallen. Die Kassa kennt den Fall; was die RKSV bei häufigen kurzen Ausfällen verlangt, ist hier nicht geprüft.
+- **Echtes Gerät:** Auch mit der Bibliothek bleibt ein Test an einem Terminal nötig, vor allem für Abbruch, Zeitüberschreitung und Storno nach einem Neustart.
+- **Externe Kassensysteme:** Eine fremde Kassa hinter der eigenen Oberfläche (zum Beispiel über die Schnittstelle eines Kassenherstellers) hielte Artikel, Steuersätze und Gutscheine doppelt; sie ist nicht Teil des Vorschlags. Ein Spa ohne eigene Kassa bleibt möglich (Frage 7), dann erzeugt die App keine Belege.
+
 ## Nicht geklärt
 
 Die Punkte zu Anbietern, FinanzOnline und Jahresende sind im Nachtrag vom 27.11.2026 beantwortet; dort stehen auch die Reste, die nicht belegt sind.

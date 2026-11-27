@@ -8871,3 +8871,21 @@ Auftrag des Auftraggebers vom 27.11.2026: die ersten drei Punkte aus „Nicht ge
 - **Nicht geprüft:** Die Quellen im Netz haben drei Recherche-Läufe gelesen, nicht nachgerechnet. Die Paragrafen der RKSV lagen nur als Zusammenfassung vor. Preise ohne Datum, teils nicht öffentlich. Kein Gerät und kein Testzugang ausprobiert.
 - **Handtest:** keiner, nichts Sichtbares geändert.
 - **Text-Prüfsatz:** Abschnitt nach [texte.md](../gestaltung/texte.md): Ergebnis zuerst, Belegtes und nicht Belegtes getrennt.
+
+## Befund zum Kassa-Assistenten: Einfacher Weg für ein kleines Spa (T-137, zweiter Nachtrag, 27.11.2026)
+
+Auftrag des Auftraggebers vom 27.11.2026: „Wir brauchen einen einfachen Weg wie ein kleines Spa die Kasse verwenden kann“, dazu die Frage, wie die Anbieter verständlich und je Land eingeschränkt in die Konfiguration kommen.
+
+- **Was:** Abschnitt „Nachtrag vom 27.11.2026: Einfacher Weg für ein kleines Spa“ in [kassa-assistent-befund.md](kassa-assistent-befund.md). Kein Code geändert.
+- **Ergebnis in Kürze:**
+  - Drei Stufen: Übungskassa, dann Online-Signatur ohne Hardware (zuerst GLOBALTRUST RKS CLOUD), dann Kartenzahlung über ein Cloud-Terminal (zuerst SumUp Solo) oder ein vorhandenes Terminal über ZVT.
+  - Die App fragt zuerst nach der Art der Signatur und zeigt danach nur die Anbieter des Landes der Kassa; die Liste kommt aus der API.
+  - Für ZVT gibt es mit `Portalum.Zvt` eine an österreichischen Terminals erprobte Bibliothek unter MIT-Lizenz.
+- **Detailentscheidungen:**
+  - GLOBALTRUST vor fiskaltrust, weil die Kassa Belegkette, Umsatzzähler und Protokoll schon selbst führt und nur die Signatur fehlt.
+  - Kein fremdes Kassensystem hinter der eigenen Oberfläche: Artikel, Steuersätze und Gutscheine lägen doppelt vor.
+- **Beim Schreiben festgestellt:** SumUp meldet das Ergebnis per Webhook; die API des Einzelplatzes ist von außen nicht erreichbar.
+- **Geprüft:** Stand im Code selbst gelesen (`IRksvSignatureDevice`, Registrierung in `Program.cs`, `ICardTerminal`, `ZvtClient.cs`, `OpiClient.cs`, `ClaudeKeyStore`); Fassungen der Pakete auf NuGet abgefragt.
+- **Nicht geprüft:** Die Seiten der Anbieter haben zwei Recherche-Läufe gelesen, nicht nachgeschlagen. Preise teils als Aktion oder nicht öffentlich. Kein Testzugang, kein Gerät, keine Bibliothek ausprobiert.
+- **Handtest:** keiner, nichts Sichtbares geändert.
+- **Text-Prüfsatz:** Abschnitt nach [texte.md](../gestaltung/texte.md): Vorschlag zuerst, Belegtes und nicht Belegtes getrennt.
