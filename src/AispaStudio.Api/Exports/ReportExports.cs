@@ -75,7 +75,7 @@ internal static class ReportExports
                 {
                     new("Kennzahl", ColumnKind.Text), new("Wert", ColumnKind.Number), new(compare switch { ManagementReports.CompareModes.Month => "Vormonat", ManagementReports.CompareModes.Year => "Vorjahr", _ => "Vorperiode" }, ColumnKind.Number), new("Einheit", ColumnKind.Text),
                 };
-                var rows = report.Kpis.Select(k => new object?[] { k.Label, Value(k.Value, k.Unit), Value(k.Previous, k.Unit), k.Unit }).ToList();
+                var rows = report.Kpis.Select(k => new object?[] { k.LabelWithNote(), Value(k.Value, k.Unit), Value(k.Previous, k.Unit), k.Unit }).ToList();
                 var table = new ExportTable("Kennzahlen", columns, rows);
                 // Dateiname mit Von und Bis: „Kennzahlen_2026-11-01_bis_2026-11-26.xlsx“.
                 var title = FormattableString.Invariant($"Kennzahlen {from.Value:yyyy-MM-dd} bis");

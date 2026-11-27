@@ -32,6 +32,19 @@ public sealed class ReportExportTests(ApiFixture fixture)
     }
 
     [Fact]
+    public async Task Kennzahl_mit_Zusatz_traegt_ihn_in_der_Excel_Zeile()
+    {
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        _ = await AnswerKit.LocationAsync(spa, "Zweiter Standort", null);
+
+        using var response = await spa.Client.GetAsync($"/api/reports/locations/{spa.Location.Id}/management/export?from=2027-03-01&until=2027-03-07&format=xlsx", Ct);
+        var sheet = await ExportResponses.SheetAsync(response, Ct);
+
+        // Given zwei Standorte; Then steht der Zusatz der Gutschein-Kachel in Klammern hinter ihrem Namen (T-129)
+        Assert.Contains("Offene Gutscheine (heute) (ganzer Betrieb)", Enumerable.Range(2, sheet.LastRowUsed()!.RowNumber() - 1).Select(r => sheet.Row(r).Cell(1).GetString()));
+    }
+
+    [Fact]
     public async Task Bericht_als_Arbeitsmappe_mit_Blaettern_Formaten_und_Druckeinrichtung()
     {
         var spa = await TestSpa.CreateAsync(fixture, Ct);

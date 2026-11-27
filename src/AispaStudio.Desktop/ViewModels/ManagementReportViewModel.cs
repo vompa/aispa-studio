@@ -10,9 +10,12 @@ namespace AispaStudio.Desktop.ViewModels;
 /// Kachel einer Kennzahl. <c>Change</c> ist die Veränderung zum Vergleich mit Pfeil („↓ 24 %“, bei Quoten in Prozentpunkten), <c>State</c> ihre Richtung (Haken: besser, Warnzeichen:
 /// schlechter, sonst keines), <c>Spoken</c> der Satz für Screenreader („24 % unter der Vorperiode“). Pfeil, Text und Zeichen sagen dasselbe wie die Farbe.
 /// </summary>
-public sealed record KpiRow(string Label, string Value, string? Previous, string? Change = null, StatTileState State = StatTileState.None, string? Spoken = null)
+public sealed record KpiRow(string Label, string Value, string? Previous, string? Change = null, StatTileState State = StatTileState.None, string? Spoken = null, string? Note = null)
 {
     public bool HasPrevious => Previous is not null;
+
+    /// <summary>Hinweiszeile der Kachel: Vergleichswert, darunter der Zusatz der API („ganzer Betrieb“ bei den Gutscheinen eines Betriebs mit mehreren Standorten); der Zusatz steht auch im Namen für Screenreader (T-129).</summary>
+    public string? TileHint => Previous is not null && Note is not null ? $"{Previous}{Environment.NewLine}{Note}" : Previous ?? Note;
 
     /// <summary>Zeilen unter dem Wert: Veränderung und darunter der Vergleichswert („↓ 24 %“, „Vorjahr 25.371,00 €“).</summary>
     public string? Hint => Change is not null && Previous is not null ? $"{Change}{Environment.NewLine}{Previous}" : Change ?? Previous;
@@ -589,6 +592,12 @@ public sealed partial class ManagementReportViewModel(IWorkstationApi api, TimeP
     /// Der Haken (besser) oder das Warnzeichen (schlechter) kommt nur bei Kennzahlen, deren Richtung die API kennt (<c>HigherIsBetter</c>); gleiche Werte bleiben ohne Zeichen.
     /// </summary>
     private static KpiRow KpiTile(Kpi kpi, CompareChoice comparison)
+    {
+        var tile = KpiTileWithoutNote(kpi, comparison);
+        return kpi.Note is not { } note ? tile : tile with { Note = note, Spoken = tile.Spoken is { } spoken ? $"{spoken}, {note}" : null };
+    }
+
+    private static KpiRow KpiTileWithoutNote(Kpi kpi, CompareChoice comparison)
     {
         var value = KpiValue(kpi.Value, kpi.Unit);
         if (kpi.Previous is not { } previous)

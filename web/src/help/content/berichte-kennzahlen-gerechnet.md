@@ -25,7 +25,7 @@ Alle Kennzahlen gelten für den gewählten Standort und Zeitraum. Der Vergleichs
 - **Deckungsbeitrag:** je Termin der kassierte Betrag netto minus die Vollkosten der Behandlung in seinem Monat, zusammengezählt. Termine ohne gerechnete Vollkosten zählen nicht mit. **Deckungsbeitrag in Prozent** setzt ihn ins Verhältnis zum Umsatz derselben Termine.
 - **Umsatz je Dienststunde:** Umsatz ohne Gutscheinverkauf (netto) geteilt durch die geplanten Dienststunden am Standort. **Umsatz je Behandlungsstunde:** derselbe Umsatz geteilt durch die Stunden der Behandlungen.
 - **Produktanteil am Umsatz:** Anteil der verkauften Artikel am Umsatz ohne Gutscheinverkauf. **Produktumsatz je Behandlung:** Artikelumsatz netto geteilt durch die Behandlungen. **Umsatz je Gast:** Umsatz ohne Gutscheinverkauf geteilt durch die Gäste.
-- **Offene Gutscheine (heute):** Restwert aller aktiven Gutscheine, nicht je Standort. Die Kachel zeigt den Stand von heute und hat keinen Vergleich.
+- **Offene Gutscheine (heute):** Restwert aller aktiven Gutscheine, nicht je Standort. Hat der Betrieb mehr als einen Standort, steht auf der Kachel „ganzer Betrieb“, auch im Bericht eines einzelnen Standorts; in PDF, Word und Excel steht der Zusatz in Klammern hinter dem Namen. Die Kachel zeigt den Stand von heute und hat keinen Vergleich.
 
 ### Auslastung {#auslastung}
 

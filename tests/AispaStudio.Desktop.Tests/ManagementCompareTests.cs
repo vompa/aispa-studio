@@ -97,6 +97,27 @@ public sealed class ManagementCompareTests
     }
 
     [Fact]
+    public async Task Kachel_mit_Zusatz_zeigt_ihn_in_der_Hinweiszeile_und_im_Screenreader_Namen()
+    {
+        var api = new StubApi().On(Route("from=2026-11-01&until=2026-11-26", "&compare=year"), Report(
+            new Kpi("voucherLiabilities", "Offene Gutscheine (heute)", 100m, null, "€", Note: "ganzer Betrieb"),
+            new Kpi("vouchersSold", "Gutscheine verkauft", 80m, 40m, "€", Note: "ganzer Betrieb")));
+        var report = new ManagementReportViewModel(api.Client(), new Today(new DateOnly(2026, 11, 26)))
+        {
+            SelectedComparison = ManagementReportViewModel.CompareChoices.Single(c => c.Key == "year"),
+        };
+        report.SetRange(new DateOnly(2026, 11, 1), new DateOnly(2026, 11, 26));
+        await report.ShowAsync(Location, new DateOnly(2026, 11, 26));
+
+        var tiles = report.Kpis.ToDictionary(k => k.Label);
+
+        // Then steht ohne Vergleich nur der Zusatz in der Hinweiszeile, mit Vergleich beides untereinander und der Zusatz auch im Satz für Screenreader
+        Assert.Equal("ganzer Betrieb", tiles["Offene Gutscheine (heute)"].TileHint);
+        Assert.Equal($"Vorjahr 40,00 €{Environment.NewLine}ganzer Betrieb", tiles["Gutscheine verkauft"].TileHint);
+        Assert.EndsWith(", ganzer Betrieb", tiles["Gutscheine verkauft"].Spoken);
+    }
+
+    [Fact]
     public async Task Management_Bericht_hat_Drucken_PDF_speichern_und_Senden_fuer_Zeitraum_und_Vergleich_der_Seite()
     {
         var api = new StubApi().On(Route("from=2026-11-01&until=2026-11-26", "&compare=year"), Report());

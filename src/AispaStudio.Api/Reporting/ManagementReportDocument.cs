@@ -136,7 +136,7 @@ internal sealed record ManagementReportDocument(
         ],
         [.. report.Kpis.Select(k => new object?[]
         {
-            k.Label, Typed(k.Value, k.Unit), Typed(k.Previous, k.Unit), k.Unit,
+            k.LabelWithNote(), Typed(k.Value, k.Unit), Typed(k.Previous, k.Unit), k.Unit,
             k.Previous is { } previous ? Typed(k.Value - previous, k.Unit == "%" ? "" : k.Unit) : null,
             k.Previous is { } p && p != 0 && k.Unit != "%" ? Math.Round((k.Value - p) / Math.Abs(p) * 100m, 1) : null,
             k.Group,
