@@ -8854,3 +8854,20 @@ Auftrag des Auftraggebers vom 27.11.2026 ([ADR 0104](../entscheidungen/0104-gefu
   - `scripts/help-images.sh` hat keinen Filter für einzelne Bilder.
 - **Handtest:** Block T-136.
 - **Text-Prüfsatz:** Oberfläche, Hilfethema und dieser Abschnitt nach [texte.md](../gestaltung/texte.md): Ergebnis zuerst, Knöpfe als Verb mit Gegenstand, nummerierte Schritte im Handbuch.
+
+## Befund zum Kassa-Assistenten: Nachtrag zu Anbietern, FinanzOnline und Jahresende (T-137, Nachtrag, 27.11.2026)
+
+Auftrag des Auftraggebers vom 27.11.2026: die ersten drei Punkte aus „Nicht geklärt“ des Befunds klären.
+
+- **Was:** Abschnitt „Nachtrag vom 27.11.2026“ in [kassa-assistent-befund.md](kassa-assistent-befund.md) mit Quellen; die drei beantworteten Punkte sind aus „Nicht geklärt“ entfernt. Kein Code geändert.
+- **Ergebnis in Kürze:**
+  - Österreich hat drei Anbieter für die Signatureinrichtung (A-Trust, GLOBALTRUST, PrimeSign), je mit Karte und Cloud. Deutschland hat Hardware-TSE (Swissbit, Epson) und Cloud-TSE (fiskaly, Deutsche Fiskal, D-Trust).
+  - FinanzOnline verlangt den Schlüssel als 44 Zeichen Base64; die Form der App passt.
+  - Der Jahresbeleg ist laut Erlass grundsätzlich bis 31. Dezember herzustellen und bis 15. Februar zu prüfen.
+- **Beim Schreiben festgestellt:**
+  - Kein Vertrag der API gibt den Umsatzschlüssel heraus, und den Prüfwert für FinanzOnline berechnet der Code nicht. Ohne beides lässt sich keine Kassa registrieren.
+  - `PosService.IssueCoreAsync` erzeugt den Jahresbeleg erst mit dem ersten Beleg im neuen Jahr; der Erlass verlangt ihn grundsätzlich bis 31. Dezember.
+- **Geprüft:** Die Stellen im Code selbst gelesen (`RksvCode.NewTurnoverKey`, `RksvFiscalization`, `PosService.IssueCoreAsync`, Verträge ohne `TurnoverKey`).
+- **Nicht geprüft:** Die Quellen im Netz haben drei Recherche-Läufe gelesen, nicht nachgerechnet. Die Paragrafen der RKSV lagen nur als Zusammenfassung vor. Preise ohne Datum, teils nicht öffentlich. Kein Gerät und kein Testzugang ausprobiert.
+- **Handtest:** keiner, nichts Sichtbares geändert.
+- **Text-Prüfsatz:** Abschnitt nach [texte.md](../gestaltung/texte.md): Ergebnis zuerst, Belegtes und nicht Belegtes getrennt.

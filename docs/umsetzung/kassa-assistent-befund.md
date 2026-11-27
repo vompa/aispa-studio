@@ -243,11 +243,109 @@ Reihenfolge: P1 vor P3 bis P5, P2 vor oder neben P3 (keine gemeinsamen Dateien a
 | 6 | Bleibt „Schritt erledigt“ gleich bedeutend mit „Kassa vorhanden“, oder verlangt die Karte „Betrieb einrichten“ künftig „kann Belege bilden“? | Letzteres, mit sichtbarem Unterschied zu „zugelassen für den Echtbetrieb“. |
 | 7 | Gehört die Kassa weiter in die Karte „Betrieb einrichten“ (Schritt 6 von 6) oder erst nach dem Probetermin als eigene Karte? | Eigene Karte „Kassa einrichten“ nach dem Betrieb, damit ein Spa ohne Kassa (nur Kalender) die erste Karte schließen kann. ADR 0104 sagt, die Kassa bekommt „danach“ einen eigenen Assistenten. |
 
+## Nachtrag vom 27.11.2026: Anbieter, FinanzOnline, Jahresende
+
+Auftrag des Auftraggebers vom 27.11.2026: die ersten drei Punkte aus „Nicht geklärt“ klären. Recherche im Netz, Abruf aller Quellen am 27.11.2026. Die Quellen wurden gelesen, nicht nachgerechnet; die Paragrafen der RKSV lagen nur als Zusammenfassung vor, Erlass und Handbuch als PDF. Was „nicht belegt“ heißt, ist offen. Vor einem Handbuchtext den Wortlaut gegen das RIS prüfen.
+
+### Quellen
+
+| Kürzel | Quelle |
+| --- | --- |
+| RKSV | [RIS, geltende Fassung](https://www.ris.bka.gv.at/GeltendeFassung.wxe?Abfrage=Bundesnormen&Gesetzesnummer=20009390) |
+| Erlass | [BMF-Erlass zur Einzelaufzeichnungs-, Registrierkassen- und Belegerteilungspflicht](https://findok.bmf.gv.at/findok/iwg/84/84454/84454.1.pdf), GZ 2026-0.531.449 vom 23.06.2026 |
+| Handbuch | [BMF, „Registrierkassen in FinanzOnline“](https://finanzonline.bmf.gv.at/eLearning/BMF_Handbuch_Registrierkassen.pdf), Stand 07.01.2021 |
+| Webservice | [BMF, „Registrierkassen-Webservice“](https://www.bmf.gv.at/dam/jcr:19c193f4-99cd-42ff-9b23-655f2ab5734e/BMF_Registrierkassen_Webservice.pdf) |
+| Prüfwert | [BMF, „Prüfwertberechnung AES Schlüssel“](https://www.bmf.gv.at/dam/jcr:c2e5b691-af1b-4bbe-90ae-66887c811818/AES_Pruefsummenberechnung_200716_3.pdf) |
+| BSI | [BSI, Liste der zertifizierten technischen Sicherheitseinrichtungen](https://www.bsi.bund.de/DE/Themen/Unternehmen-und-Organisationen/Standards-und-Zertifizierung/Zertifizierung-und-Anerkennung/Listen/Zertifizierte-Produkte-nach-TR/Technische_Sicherheitseinrichtungen/TSE_node.html) |
+
+### Anbieter in Österreich (Signatureinrichtung)
+
+Die Webservice-Beschreibung des BMF nennt drei Anbieter mit Kennung: AT1 A-Trust, AT2 GLOBALTRUST, AT3 PrimeSign. Weitere wurden nicht gefunden; Wiederverkäufer wie fiskaly SIGN AT sind nicht geprüft.
+
+| | A-Trust (AT1) | GLOBALTRUST (AT2) | PrimeSign (AT3) |
+| --- | --- | --- | --- |
+| Karte, signiert ohne Internet | a.sign RK CHIP | RKS CARD mit Kartenleser | RKSV Smart Card |
+| Cloud, braucht Internet | a.sign RK HSM (Basic, Advanced, Premium) | RKS CLOUD | RKSV Remote Signing Account |
+| Schnittstelle der Cloud | [Doku](https://docs.a-trust.at/apis/RKHSM/) mit Abnahmesystem | SOAP (WSDL), Beispielcode in Java und C# | REST, öffentliche Anleitungen, Testsystem auf Anfrage |
+| Preis ohne USt | nicht öffentlich (Partner, Webshop) | Karte mit Leser 99 EUR für 3 Jahre oder 149 EUR für 5 Jahre; Cloud unter 0,5 Cent je Signatur | Cloud ab 196 EUR im Jahr; Karte nicht genannt |
+| Quelle | [Portfolio](https://a-trust.at/en/products/cash_register/rksv_portfolio) | [Produktseite](https://globaltrust.eu/en/rks/), [Fragen und Antworten](https://globaltrust.eu/faq-globaltrust-rksv/) | [Produktseite](https://primesign.cryptas.com/de/primesign-rksv) |
+
+- **Kartentausch:** Ältere Kartentypen sind laut [BMF](https://www.bmf.gv.at/public/informationen/ablauf-bescheinigung-rksv-signaturkarten.html) nicht mehr normgerecht und bis Mai 2027 zu tauschen. Cloud-Lösungen sind laut [WKO](https://www.wko.at/oe/steuern/ablauf-bescheinigung-rksv-signaturkarten) nicht betroffen.
+- **Nicht belegt:**
+  - wie die Karten aus .NET angesprochen werden (PC/SC, APDU),
+  - ob der Softwarehersteller oder das Spa bestellt,
+  - der Eintrag der Anbieter in der EU-Vertrauensliste.
+  - Die Preisseiten tragen kein Datum.
+
+### Anbieter in Deutschland (TSE)
+
+Gültige Zertifikate laut BSI-Liste (Seiten 1 bis 3 von 4 gelesen):
+
+| Anbieter und Produkt | Art | BSI-K-TR | Gültig bis | Preis | Ohne Internet |
+| --- | --- | --- | --- | --- | --- |
+| Swissbit TSE 2.0 | USB, SD, microSD | 0800-2026 | 20.04.2034 | 245 bis 269 EUR (Listenpreis eines Händlers, ohne Datum) | ja |
+| Epson USB TSE, microSD TSE | USB, microSD | 0781-2025 | 29.04.2033 | 234 bis 245 EUR (Listenpreis eines Händlers, ohne Datum) | ja |
+| fiskaly sign Cloud-TSE | Cloud | 0717-2025 | 30.03.2033 | nicht öffentlich | nein |
+| Deutsche Fiskal, Fiskal Cloud-TSE | Cloud | 0525-2022 | 15.05.2029 | nicht öffentlich | nur Sondervariante über den Vertrieb |
+| D-Trust, Web-Dienst für TSE | Cloud | 0524-2024 | 25.02.2032 | nicht öffentlich | nein |
+
+- **Lebensdauer der Hardware:** Das Signaturzertifikat im Stück läuft bei Swissbit 5 Jahre und 6 Monate; danach ist die TSE zu tauschen.
+- **Schnittstellen:**
+  - fiskaly: REST mit [öffentlicher Doku](https://workspace.fiskaly.com/api/sign-de) und kostenlosem Test, kein gepflegtes SDK.
+  - Swissbit und Epson: Windows-Treiber und eine C-Bibliothek.
+  - Ein .NET-SDK liefert kein Anbieter.
+- **Meldung ans Finanzamt (§ 146a Abs. 4 AO):** seit 01.01.2025 über Mein ELSTER oder aus der Software, binnen eines Monats nach Anschaffung oder Außerbetriebnahme; je Betriebsstätte eine Mitteilung.
+- **Nicht belegt:**
+  - Preise und Vertragspartner bei fiskaly, Deutsche Fiskal und D-Trust,
+  - die Bedingungen der SDKs von Swissbit und Epson,
+  - ein Zertifikat für A-Trust in Deutschland.
+
+### Einschätzung für den Einzelplatz
+
+Wer ohne dauerhaftes Internet arbeiten soll, braucht in Österreich eine Karte und in Deutschland eine Hardware-TSE. Die Cloud ist einfacher anzubinden, signiert aber ohne Leitung nicht; das ist nur über die Ausfallregel tragbar, nicht als Regelbetrieb. Am besten dokumentiert sind GLOBALTRUST und PrimeSign (Österreich) sowie fiskaly und Swissbit (Deutschland). Das ist eine Einschätzung aus den Quellen, keine Probe mit einem Gerät.
+
+### Registrierung in FinanzOnline
+
+- **Zwei Registrierungen** (RKSV § 16, Handbuch 3.2.1 und 3.3.1):
+  - Signatureinrichtung: Art der Einheit, Vertrauensdiensteanbieter, Seriennummer des Zertifikats.
+  - Kassa: Kassenidentifikationsnummer, Benutzerschlüssel AES-256, Prüfwert (4 Zeichen, freiwillig), Bemerkung.
+- **Form des Schlüssels:** 44 Zeichen (Handbuch), Base64 (Webservice). Die App speichert 32 Zufallsbytes als Base64 (`RksvFiscalization.cs`, `RksvCode.NewTurnoverKey`), das sind 44 Zeichen. Die Form passt.
+- **Prüfwert:** SHA-256 über den Base64-Text des Schlüssels, die ersten 3 Bytes, wieder Base64 (Quelle „Prüfwert“). FinanzOnline rechnet gleich und meldet eine Abweichung.
+- **Lücke im Code:** Kein Vertrag der API gibt den Schlüssel heraus (`TurnoverKey` steht nur in `AispaStudio.Api`), und den Prüfwert berechnet der Code nicht. Ohne beides lässt sich die Kassa nicht registrieren, auch nicht mit einer zertifizierten Einrichtung.
+- **Kassenidentifikationsnummer:** Sie ist der Code der Kassa (`CashRegister.Code`) und bis zum geprüften Startbeleg änderbar, danach nicht mehr (Handbuch 3.3.3).
+- **Drei Wege** (Handbuch 1.3):
+  - Eingabe von Hand,
+  - XML-Datei hochladen,
+  - Webservice aus der Kassensoftware, mit eigenem Webservice-Benutzer.
+  - Über Webservice und Datei entfällt die Prüfung des Startbelegs mit der Belegcheck-App.
+- **Reihenfolge** (Handbuch 1.4): Einrichtung in Betrieb nehmen, Einrichtung registrieren, Kassa registrieren, Startbeleg erstellen, Startbeleg prüfen, Betrieb.
+- **Frist:** Registrierung binnen einer Woche nach Inbetriebnahme (RKSV § 6 Abs. 3). Für die Prüfung des Startbelegs nennt der Erlass einmal „nach der Inbetriebnahme“ (3.5.1) und einmal „nach der Registrierung“ (3.5.3.2); die strengere Lesart ist die sichere.
+- **Nicht belegt:** ob es neuere Fassungen von Handbuch (2021) und Webservice-Beschreibung gibt und ob der Webservice ein Feld für den Prüfwert kennt.
+
+### Jahresende und laufende Pflichten
+
+- **Jahresbeleg** (RKSV § 8 Abs. 3, Erlass 4.5.7): Er ist der Monatsbeleg für Dezember, grundsätzlich bis 31. Dezember herzustellen, auszudrucken, aufzubewahren und bis 15. Februar des Folgejahres zu prüfen. Saisonbetriebe erstellen ihn zum Saisonende, spätestens vor Beginn der Tätigkeit im neuen Jahr.
+- **Abweichung im Code:** `PosService.IssueCoreAsync` erzeugt den Jahresbeleg erst mit dem ersten Beleg im neuen Jahr. Bei Betriebsferien im Jänner entsteht er nach dem Jahreswechsel und möglicherweise nach dem 15. Februar. Ob die Praxis des ersten Belegs im neuen Jahr geduldet wird, ist nicht belegt. Der Assistent braucht deshalb einen eigenen Schritt zum Jahresende, oder die Kassa bietet den Jahresbeleg ab dem letzten Öffnungstag an.
+- **Prüfung ohne App:** Über den Webservice prüft FinanzOnline den Jahresbeleg und meldet das Ergebnis an die Kassa zurück (Handbuch 1.3.1). Dass damit auch der Ausdruck entfällt, sagt nur die WKO, nicht der Erlass.
+- **Weitere Pflichten, die der Assistent nennen muss:**
+  - Monatsbeleg zu jedem Monatsende; für Monate ohne Betrieb entfällt er (RKSV § 8 Abs. 2, Erlass 4.5.7).
+  - Sicherung des Datenerfassungsprotokolls mindestens vierteljährlich auf ein externes Medium (RKSV § 7 Abs. 3).
+  - Ausfall der Signatureinrichtung: Bis 48 Stunden gilt er als vorübergehend; darüber ist er binnen einer Woche zu melden, sein Ende ebenfalls (RKSV § 17, Erlass 3.6).
+  - Schlussbeleg bei planmäßiger Außerbetriebnahme (RKSV § 17 Abs. 8).
+  - Betriebsferien sind weder Ausfall noch Außerbetriebnahme (Erlass 3.6).
+
+### Folgen für die Pakete
+
+| Ergänzung | Warum |
+| --- | --- |
+| Schlüssel und Prüfwert in der API und im Assistenten zeigen, nur mit dem Recht, das die Kassa anlegt | ohne sie keine Registrierung |
+| Schritt zum Jahresende oder Jahresbeleg ab dem letzten Öffnungstag | Erlass 4.5.7 |
+| Später: Webservice zu FinanzOnline für Registrierung, Start- und Jahresbeleg | nimmt der Person die Belegcheck-App ab |
+
 ## Nicht geklärt
 
-- Welche Anbieter für Signatureinrichtung und TSE im Handel zulässig und für die App geeignet sind (Preise, Schnittstellen, Einzelplatz); nur die Namen im Code und in ADR 0035 (A-Trust, Global Trust, PrimeSign, fiskaly, Deutsche Fiskal, Swissbit) sind belegt, nicht ihre Eignung.
-- Wie genau FinanzOnline die Registrierung der Kassa verlangt (Felder, ob der AES-Schlüssel dort oder nur im Registrierkassen-System liegt) und ob der Schlüssel der App in der Form vorliegt, die FinanzOnline erwartet. Im Code ist nur die Erzeugung (`RksvCode.NewTurnoverKey`) belegt, nicht der Gebrauch bei der Anmeldung.
-- Ob zu Ende des Jahres ein gesonderter Schritt am Assistenten nötig ist (Jahresbeleg wird automatisch gebucht; nur die Prüfung ist Sache der Person).
+Die Punkte zu Anbietern, FinanzOnline und Jahresende sind im Nachtrag vom 27.11.2026 beantwortet; dort stehen auch die Reste, die nicht belegt sind.
+
 - Wie sich ein Wechsel von einer Test-Signatur zu einer zertifizierten Einrichtung auf eine schon benutzte Kassa auswirkt (neue Kassa-ID nötig? Der Code kennt kein Umstellen; `CertificateSerial` wird nur beim Anlegen gesetzt).
 - Ob das Recht der Schweiz weitere Pflichten für eine Kassa stellt als die im Code genannten (Aufbewahrung nach GeBüV, MWST); ADR 0010 und `docs/stand-und-offene-punkte.md` nennen die Rappenrundung und die MWST-Prüfung mit echtem Mandanten als offen.
 - Ob die Windows-App auf einem PC mit Server-Betrieb eine Kassa der anderen Stelle sinnvoll anzeigen soll (Hinweis `OtherSite`); der Assistent legt nur eine eigene Kassa an.
