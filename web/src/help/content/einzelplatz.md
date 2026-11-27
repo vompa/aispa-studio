@@ -57,7 +57,7 @@ Der Name des Betriebs, wie er in der App erscheint. Pflichtfeld.
 
 Name des ersten Standorts, z. B. Ort oder Adresse. Pflichtfeld. Weitere Standorte legt der Inhaber später an.
 
-### Ihr Name {#inhaber-name}
+### „Ihr Name“ {#inhaber-name}
 
 Der Name der Person, die einrichtet. Sie bekommt die Rolle Inhaber mit Zugang zu allen Standorten. Pflichtfeld.
 

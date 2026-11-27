@@ -31,7 +31,7 @@ Ein Wechsel des Lagerorts passt den Pfad an. Zählliste und Inventurliste druckt
 
 ## Gut zu wissen {#hinweise}
 
-- Mit einem Handscanner findet man die Zeile schneller: Klicken Sie in das Feld **Material suchen oder scannen** und scannen Sie die Verpackung. Der Cursor springt in das Feld **Gezählt** des Materials: [Mit dem Handscanner arbeiten](hilfe:lager#scanner).
+- Mit einem Handscanner findet man die Zeile schneller: [Mit dem Handscanner arbeiten](hilfe:lager#scanner).
 - Gebucht wird je Material, bei dem die Zahl vom Soll abweicht, als Bewegung „Inventur“ am gewählten Lagerort. Die anderen Lagerorte bleiben unberührt.
 - Der gezählte Bestand darf nicht negativ sein.
 - Gezählt wird auch am Handy; die Leitung schließt die Zählung hier ab: [Inventur am Handy zählen](hilfe:lager-inventur-handy).

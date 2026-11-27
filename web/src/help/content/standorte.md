@@ -232,7 +232,7 @@ Ein Raum lässt sich nicht löschen, denn Termine, Kosten und Auswertungen verwe
 
 ### Wieder verwenden {#raum-wieder-verwenden}
 
-Unter der Liste der Räume steht das Häkchen **Nicht mehr verwendete zeigen**. Mit dem Häkchen stehen die Räume, die aus der Planung genommen wurden, gedämpft unter den aktiven, mit dem Kennzeichen „Nicht mehr verwendet“. Ihr Menü **⋯** hat nur **Wieder verwenden**. Danach steht der Raum wieder in der Liste, im Kalender und bei den Behandlungen, und eine Meldung bestätigt es. Zugeordnete Behandlungen, Raumpflege und Tagesstart-Kontrolle sind unverändert. Das Häkchen sehen nur Inhaberin, Manager und Standortleitung.
+Unter der Liste der Räume steht das Häkchen **Nicht mehr verwendete zeigen**. Mit dem Häkchen stehen die Räume, die aus der Planung genommen wurden, gedämpft unter den aktiven, mit dem Kennzeichen „Nicht mehr verwendet“. Das Menü **⋯** eines solchen Raums hat nur **Wieder verwenden**. Danach steht der Raum wieder in der Liste, im Kalender und bei den Behandlungen, und eine Meldung bestätigt es. Zugeordnete Behandlungen, Raumpflege und Tagesstart-Kontrolle sind unverändert. Das Häkchen sehen nur Inhaberin, Manager und Standortleitung.
 
 ![Räume mit dem Häkchen „Nicht mehr verwendete zeigen“: ein gedämpfter Raum mit Kennzeichen und Menü](images/app/verwaltung-standorte-raeume-nicht-mehr-verwendet.png)
 

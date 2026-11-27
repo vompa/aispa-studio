@@ -149,7 +149,7 @@ Die Konfliktmeldung ist eine rote Meldung mit dem Titel „Zeitraum ist belegt.�
 - Bei den anderen Meldungen zeigt der Knopf **Zum Konflikt** die Woche der Person mit dem belegenden Termin (bei einem belegten Raum die Woche des Raums), beginnend an dessen Tag, der Termin ist markiert; er fehlt, wenn nur Sperrzeiten oder Geräte im Weg stehen.
 - Ist gar kein passender Raum frei, nennt die Meldung die belegten Räume und die nächste freie Zeit („Räume: Kein geeigneter Raum ist zu dieser Zeit frei. Ein Raum ist frei ab 12:20“).
 - Die Meldung steht im Fenster immer direkt über dem Knopf der Aktion, beim Verschieben im Termin-Fenster in der Karte „Verschieben“.
-- Mit dem Kreuz der Meldung blenden Sie sie aus.
+- Das Kreuz der Meldung blendet sie aus.
 - Dieselbe Meldung erscheint bei Sperrzeit, Pause, Paar oder Spa-Tag und beim Ändern der Zeiten eines Termins; beim Verschieben per Ziehen steht dieselbe Liste mit dem Knopf **Zum Konflikt** in der Meldung über dem Kalender.
 
 ![Konfliktmeldung mit Belegungen in Ortszeit](images/app/kalender-konflikt.png)

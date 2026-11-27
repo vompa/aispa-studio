@@ -153,7 +153,7 @@ Mit dieser Einstellung unter „Firmendaten“, Abschnitt „Kundenbereich einbe
 
 ### Code kopieren {#einbetten-code}
 
-In der Windows-App legt der Knopf „Code kopieren“ unter der Liste den fertigen Code für die Website in die Zwischenablage, mit der Adresse der Online-Buchung dieses Spas und ihrer Spa-Kennung. Daneben steht „Code kopiert.“. Den Code fügen Sie in die Seite Ihrer Website ein, dort wo die Online-Buchung erscheinen soll. Der Knopf erscheint, sobald AISPA Studio die Adresse nennt, und braucht kein „Speichern“; die Website, die den Code zeigt, muss aber in der Liste stehen.
+In der Windows-App legt der Knopf „Code kopieren“ unter der Liste den fertigen Code für die Website in die Zwischenablage, mit der Adresse der Online-Buchung dieses Spas und ihrer Spa-Kennung. Daneben steht „Code kopiert.“. Den Code fügt man in die Seite der eigenen Website ein, dort wo die Online-Buchung erscheinen soll. Der Knopf erscheint, sobald AISPA Studio die Adresse nennt, und braucht kein „Speichern“; die Website, die den Code zeigt, muss aber in der Liste stehen.
 
 ### Einbetten erlaubt auf {#einbetten-erlaubt-auf}
 

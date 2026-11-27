@@ -27,10 +27,10 @@ Der Abschnitt „Management“ im Reiter „Berichte“ zeigt die Kennzahlen ein
 **Vergleichen mit** steht neben dem Zeitraum und hat ein Fragezeichen. Das Feld wählt, wogegen die Kacheln rechnen. Der kleine Text „Vergleich: …“ in derselben Zeile nennt den Zeitraum.
 
 - **Zeitraum davor** (Standard): der gleich lange Zeitraum direkt davor.
-- **Vormonat**: derselbe Abschnitt im Vormonat, also 1. bis 26. gegen 1. bis 26. des Vormonats. Endet Ihr Zeitraum am Monatsletzten, zählt der ganze Vormonat.
+- **Vormonat**: derselbe Abschnitt im Vormonat, also 1. bis 26. gegen 1. bis 26. des Vormonats. Endet der gewählte Zeitraum am Monatsletzten, zählt der ganze Vormonat.
 - **Vorjahr**: derselbe Zeitraum im Vorjahr.
 
-Unter jedem Wert zeigt die Kachel, wie er sich gegenüber dem Vergleichszeitraum verändert hat: in Prozent, bei Quoten in Prozentpunkten. Prozentpunkte sind der Unterschied der beiden Prozentwerte: Von 40 % auf 45 % sind 5 Prozentpunkte, nicht 5 Prozent. Mehr dazu unter [Veränderung auf den Kacheln lesen](#veraenderung). Der Kommentar der KI und der Bericht per Mail vergleichen immer mit dem Zeitraum davor. Die Auswertung der KI per Knopf nimmt den gewählten Vergleich.
+Prozentpunkte sind der Unterschied der beiden Prozentwerte: Von 40 % auf 45 % sind 5 Prozentpunkte, nicht 5 Prozent. Mehr dazu unter [Veränderung auf den Kacheln lesen](#veraenderung). Der Kommentar der KI und der Bericht per Mail vergleichen immer mit dem Zeitraum davor. Die Auswertung der KI per Knopf nimmt den gewählten Vergleich.
 
 ## Was angezeigt wird {#inhalt}
 
@@ -40,7 +40,7 @@ Unter jedem Wert zeigt die Kachel, wie er sich gegenüber dem Vergleichszeitraum
   - **Auslastung:** Behandlungen, Auslastung Personal, Auslastung Räume und Offene Anfragen (heute).
   - **Gäste:** Gäste, Neue Gäste, Stammgäste-Anteil, Folgetermin gebucht und Abwandernde Stammgäste (heute, ohne Vergleich).
   - **Ausfälle:** No-Show-Quote, Storno-Quote, Entgangen durch No-Show und Entgangen durch Storno.
-- **Verlauf:** drei kleine Säulendiagramme für Umsatz ohne Gutscheinverkauf (netto), Behandlungen und Auslastung Personal. Bis 62 Tage steht jede Säule für einen Tag, bei längeren Zeiträumen für eine Woche von Montag bis Sonntag. Zeigen Sie mit der Maus auf eine Säule, um ihren Wert zu sehen. **Werte als Tabelle** unter jedem Diagramm klappt dieselben Werte als Liste auf.
+- **Verlauf:** drei kleine Säulendiagramme für Umsatz ohne Gutscheinverkauf (netto), Behandlungen und Auslastung Personal. Bis 62 Tage steht jede Säule für einen Tag, bei längeren Zeiträumen für eine Woche von Montag bis Sonntag. Mit der Maus auf eine Säule zeigen, um ihren Wert zu sehen. **Werte als Tabelle** unter jedem Diagramm klappt dieselben Werte als Liste auf.
 - **Tabellen** nach dem Verlauf: Auslastung nach Wochentag und Tageszeit, Vorschau der nächsten vier Wochen, Räume, Umsatz nach Erlöskonto und Zahlungsart, Personal, Behandlungen, Aktionen, Buchungen nach Kanal und die Gäste. Mehr dazu unter [Auslastung, Räume, Kanäle und Vorschau](#muster) und [Gäste](#gaeste).
 
 ## Auslastung, Räume, Kanäle und Vorschau {#muster}
@@ -111,13 +111,12 @@ Inhaber, Manager und Standortleitung bekommen den Bericht auch per Mail, je Stan
 - **Wochenbericht** montags ab 7 Uhr, für Montag bis Sonntag der Vorwoche.
 - **Monatsbericht** am Monatsersten ab 7 Uhr, für den Vormonat.
 
-In der Mail stehen der Kommentar der KI, was zu beachten ist, die Kennzahlen mit dem Zeitraum davor und die Aktionen; Beträge nur mit dem Recht „Berichte mit Beträgen“. Dazu hängt der Bericht als PDF an, passend zu dem, was die Person sehen darf, mit Vergleich zum Zeitraum davor und ohne Gästelisten. Wäre das PDF größer als 5 MB, geht die Mail ohne Anhang hinaus. Abbestellen: beim Management im Menü **Ausgabe** das Kästchen **Wochen- und Monatsbericht per Mail** abwählen; wieder wählen bestellt ihn wieder. Das Kästchen gilt nur für Sie selbst. Ohne Mailadresse im Konto kommt keine Mail.
+In der Mail stehen der Kommentar der KI, was zu beachten ist, die Kennzahlen mit dem Zeitraum davor und die Aktionen; Beträge nur mit dem Recht „Berichte mit Beträgen“. Dazu hängt der Bericht als PDF an, passend zu dem, was die Person sehen darf, mit Vergleich zum Zeitraum davor und ohne Gästelisten. Wäre das PDF größer als 5 MB, geht die Mail ohne Anhang hinaus. Abbestellen: beim Management im Menü **Ausgabe** das Kästchen **Wochen- und Monatsbericht per Mail** abwählen; wieder wählen bestellt ihn wieder. Das Kästchen gilt nur für die eigene Person. Ohne Mailadresse im Konto kommt keine Mail.
 
 ## Gut zu wissen {#hinweise}
 
 - Inhaber, Manager, Standortleitung und Backoffice; die Standortleitung sieht nur ihre Standorte.
 - Beträge (Umsatz, Durchschnittsbon, Umsatz je Behandlung und Person, Marge, Deckungsbeitrag, entgangener Umsatz, Umsatz im Verlauf, gebuchter Umsatz der Vorschau, Ausgaben der besten Gäste) und die Anteile daraus (Deckungsbeitrag in Prozent, Produktanteil) sieht nur, wer das Recht „Berichte mit Beträgen“ hat: Inhaber, Manager und Backoffice immer, Standortleitung und Rezeption nur, wenn es ihnen vergeben ist ([Berichte mit Beträgen](hilfe:zugaenge#berichte-mit-betraegen)). Ohne das Recht fehlen sie, und es steht „Beträge nur mit Berechtigung“; Auslastung, Anzahlen und Quoten bleiben.
-- Die Umsätze kommen aus den Kassenbelegen, Auslastung und Stunden aus Kalender und Dienstplan. Die KI rechnet hier nichts; sie kommentiert nur (siehe oben).
 - Die Marge braucht die Vollkosten unter „Kosten“, siehe [Kosten](hilfe:kosten).
 - Eigene Erlöskonten (z. B. Shop) legt man unter „Buchhaltung“ an: [Erlöskonto anlegen](hilfe:buchhaltung-erloeskonto-anlegen).
 - Vergleich mit anderen Day-Spas: [Mit anderen Spas vergleichen](hilfe:berichte-mit-anderen-spas-vergleichen).

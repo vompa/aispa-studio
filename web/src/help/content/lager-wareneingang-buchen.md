@@ -8,7 +8,7 @@ stichwoerter: Wareneingang, Lieferung, Ware eingegangen, Zugang buchen, Einkauf,
 ---
 # Wareneingang buchen
 
-Mit einem Handscanner geht es schneller: Klicken Sie in das Feld **Material suchen oder scannen** und scannen Sie die Verpackung. Die Buchung öffnet sich mit dem Material, und Sie tragen nur die Menge ein: [Mit dem Handscanner arbeiten](hilfe:lager#scanner).
+Mit einem Handscanner geht es schneller: [Mit dem Handscanner arbeiten](hilfe:lager#scanner).
 
 Ein Wareneingang erhöht den Bestand am gewählten Standort, im Hauptlager. Kam die Ware zu einer Bestellung, bucht man sie besser dort als Lieferung: [Bestellen und Lieferung buchen](hilfe:lager-bestellen#lieferung).
 

@@ -190,7 +190,7 @@ Optional. Mit einem Lagerartikel und einer Menge je Termin bucht jede abgeschlos
 
 ## Passt dazu {#passt-dazu}
 
-Produkte aus der Kassa, die zu dieser Behandlung passen, z. B. das Massageöl zur Hot-Stone-Massage. In der Windows-App steht die Gruppe „Passt dazu“ im Bereich „Grunddaten und Preis“ und erscheint bei einer gespeicherten Behandlung. Wählen Sie einen Artikel aus und klicken Sie **Artikel hinzufügen**; höchstens 5 Artikel, jeder einmal. Die Reihenfolge der Liste ist die Reihenfolge der Vorschläge. Gespeichert wird mit der Behandlung.
+Produkte aus der Kassa, die zu dieser Behandlung passen, z. B. das Massageöl zur Hot-Stone-Massage. In der Windows-App steht die Gruppe „Passt dazu“ im Bereich „Grunddaten und Preis“ und erscheint bei einer gespeicherten Behandlung. Einen Artikel auswählen und auf **Artikel hinzufügen** klicken; höchstens 5 Artikel, jeder einmal. Die Reihenfolge der Liste ist die Reihenfolge der Vorschläge. Gespeichert wird mit der Behandlung.
 
 Nach dem Abschließen des Termins schlagen Termin-Panel und Kassa diese Artikel vor, aber nur, wenn sie am Verkaufsregal des Standorts liegen. Gibt es kein Verkaufsregal, zählt das Hauptlager, wie beim Abbuchen an der Kassa. Ein Artikel ohne Material im Lager wird nie vorgeschlagen, weil sein Bestand unbekannt ist. Eine Provision auf den Verkauf gibt es nicht.
 
@@ -264,7 +264,7 @@ Die Kästchen Mo bis So. Mindestens ein Tag muss gewählt sein.
 
 Nimmt die Behandlung aus dem Angebot: Sie lässt sich nicht mehr neu buchen und verschwindet aus dem Kundenbereich. Bereits gebuchte Termine bleiben bestehen. In der Windows-App steht **Nicht mehr anbieten …** im Menü **⋯** im Kopf der Karte und fragt vorher nach.
 
-Eine nicht mehr angebotene Behandlung verschwindet aus der Liste. Mit dem Schalter **Nicht mehr angebotene zeigen** unter der Liste steht sie wieder da, ausgegraut und mit dem Vermerk „Nicht angeboten“. Ihre Karte lässt sich ansehen, aber nicht ändern; **Wieder anbieten** im Kopf der Karte holt sie zurück. Der Verlauf zeigt, wer sie wann herausgenommen hat.
+Eine nicht mehr angebotene Behandlung verschwindet aus der Liste. Mit dem Schalter **Nicht mehr angebotene zeigen** unter der Liste steht sie wieder da, ausgegraut und mit dem Vermerk „Nicht angeboten“. Die Karte lässt sich ansehen, aber nicht ändern; **Wieder anbieten** im Kopf der Karte holt sie zurück. Der Verlauf zeigt, wer sie wann herausgenommen hat.
 
 ## Verlauf {#verlauf}
 

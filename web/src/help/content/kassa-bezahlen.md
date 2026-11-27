@@ -48,7 +48,7 @@ Ist am Standort der Kassa ein Kartenterminal eingerichtet, steht unter dem Feld 
 1. Bei **Sofortüberweisung** auf **Zahlungsdaten anzeigen** klicken. Die Kassa trägt den Betrag ein (den Betrag des Felds, sonst den offenen Rest) und zeigt Empfänger, IBAN, Betrag und einen QR-Code, den der Gast mit seiner Banking-App scannt.
 2. Der Gast überweist an diese Daten. Ist das Geld da, auf **Bezahlen und Beleg erstellen** klicken.
 
-- Der QR-Code enthält genau die Daten der Kassa. Ändern Sie den Betrag, verschwindet er; klicken Sie dann erneut auf **Zahlungsdaten anzeigen**.
+- Der QR-Code enthält genau die Daten der Kassa. Ändert man den Betrag, verschwindet er; dann erneut auf **Zahlungsdaten anzeigen** klicken.
 - Den Zahlungstext (EPC) kann man aus dem Feld darunter kopieren.
 - Fehlt dem Konto der Kassa die Bankverbindung, nennt die Kassa den Grund und lässt das Feld leer.
 
@@ -78,7 +78,7 @@ Ein Beleg kann mit mehreren Zahlungsarten bezahlt werden, z. B. ein Teil mit Gut
 
 ## Trinkgeld {#trinkgeld}
 
-Gibt der Gast Trinkgeld über die Kassa, zum Beispiel „100, stimmt so“ mit der Karte bei 89,00 €, tragen Sie es bei **Trinkgeld** ein. Es gehört dem Team und ist kein Umsatz des Spas.
+Gibt der Gast Trinkgeld über die Kassa, zum Beispiel „100, stimmt so“ mit der Karte bei 89,00 €, trägt man es bei **Trinkgeld** ein. Es gehört dem Team und ist kein Umsatz des Spas.
 
 1. Bei **Karte** den ganzen Betrag eintragen, den der Gast zahlt, z. B. `100`.
 2. Unter den Feldern steht „Zu viel: 11,00 € über dem offenen Betrag“. Auf **Als Trinkgeld eintragen** klicken. Bei **Trinkgeld** steht dann `11,00`.
@@ -86,16 +86,16 @@ Gibt der Gast Trinkgeld über die Kassa, zum Beispiel „100, stimmt so“ mit d
 
 ![Kassa mit 100,00 € auf der Karte und 11,00 € Trinkgeld](images/app/kassa-trinkgeld.png)
 
-- Sie können das Trinkgeld auch zuerst bei **Trinkgeld** eintragen. **Rest** rechnet es dann mit.
+- Das Trinkgeld lässt sich auch zuerst bei **Trinkgeld** eintragen. **Rest** rechnet es dann mit.
 - Bar: Bei **Bar gegeben** steht, was der Gast hinlegt. Das Rückgeld rechnet die Kassa nach Abzug des Trinkgelds.
 - Der Beleg nennt „Trinkgeld (kein Umsatz)“ bei den Zahlungen. Summe, Steuer und Erlöskonten bleiben ohne Trinkgeld.
 - Das Trinkgeld gilt der Person, die die Termine des Belegs behandelt hat. Stehen Termine mehrerer Personen oder nur Artikel auf dem Beleg, gilt es dem Team.
-- Im Tagesabschluss steht unter den Zahlungsarten „davon Trinkgeld (kein Umsatz)“, darunter je Person „Trinkgeld <Name>“ und „Trinkgeld Team“. So wissen Sie, wem Sie wie viel auszahlen. Bares Trinkgeld liegt in der Lade, bis Sie es als Entnahme auszahlen ([Kassenlade](hilfe:kassa-tagesabschluss)).
+- Im Tagesabschluss steht unter den Zahlungsarten „davon Trinkgeld (kein Umsatz)“, darunter je Person „Trinkgeld <Name>“ und „Trinkgeld Team“. So ist ersichtlich, wem wie viel auszuzahlen ist. Bares Trinkgeld liegt in der Lade, bis es als Entnahme ausgezahlt wird ([Kassenlade](hilfe:kassa-tagesabschluss)).
 - Die Buchhaltung führt das Trinkgeld auf einem eigenen Konto ([Trinkgeld für das Team](hilfe:buchhaltung#trinkgeld)).
 
 ## Nach dem Bezahlen {#nach-dem-bezahlen}
 
-Die Mitte zeigt „Bezahlt“ mit dem Beleg, der Signatur („Signiert nach RKSV“, in Deutschland „Signiert (TSE)“) und ausgestellten Gutscheinen. Ist unter „Geräte“ automatisches Drucken eingeschaltet, druckt der Bondrucker sofort; sonst klicken Sie auf **Drucken**. Ohne eingerichteten Bondrucker ist der Knopf grau, daneben steht der Hinweis auf „Geräte“. Haben Sie einen Empfänger erfasst, druckt er die Rechnung mit Empfänger. Für eine Firmenrechnung siehe [Rechnung mit Empfänger](hilfe:kassa-rechnung-mit-empfaenger). Das × im Kopf des Belegs schließt den Beleg.
+Die Mitte zeigt „Bezahlt“ mit dem Beleg, der Signatur („Signiert nach RKSV“, in Deutschland „Signiert (TSE)“) und ausgestellten Gutscheinen. Ist unter „Geräte“ automatisches Drucken eingeschaltet, druckt der Bondrucker sofort; sonst auf **Drucken** klicken. Ohne eingerichteten Bondrucker ist der Knopf grau, daneben steht der Hinweis auf „Geräte“. Ist ein Empfänger erfasst, druckt er die Rechnung mit Empfänger. Für eine Firmenrechnung siehe [Rechnung mit Empfänger](hilfe:kassa-rechnung-mit-empfaenger). Das × im Kopf des Belegs schließt den Beleg.
 
 ## Gut zu wissen {#hinweise}
 

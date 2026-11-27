@@ -7,7 +7,7 @@ seite: geraete
 ---
 # Geräte
 
-Die Seite „Geräte“ in der Windows-App gilt nur für den PC, an dem Sie gerade sitzen: Bondrucker, Kartenterminal und ob dieser PC ein Empfangsgerät ist. Dazu koppelt die Leitung hier die Anzeigen im Pausenraum. Die Seite sehen alle, die Termine buchen dürfen (Inhaber, Standortleitung, Rezeption).
+Die Seite „Geräte“ in der Windows-App gilt nur für den PC, an dem man gerade sitzt: Bondrucker, Kartenterminal und ob dieser PC ein Empfangsgerät ist. Dazu koppelt die Leitung hier die Anzeigen im Pausenraum. Die Seite sehen alle, die Termine buchen dürfen (Inhaber, Standortleitung, Rezeption).
 
 ## Bondrucker {#bondrucker}
 
@@ -52,7 +52,7 @@ Wichtig: Ein Terminal darf nur an **einem** PC gewählt sein, an dem PC, neben d
 
 ### Terminal an diesem PC {#terminal-auswahl}
 
-Die Auswahlliste zeigt alle Terminals im Netz der Standorte, die Sie sehen dürfen, jeweils mit Name, Standort, Protokoll und Adresse, z. B. „Empfang · Gmunden · ZVT 192.168.1.50:20007“.
+Die Auswahlliste zeigt alle Terminals im Netz der Standorte, die man sehen darf, jeweils mit Name, Standort, Protokoll und Adresse, z. B. „Empfang · Gmunden · ZVT 192.168.1.50:20007“.
 
 - „Keines (Karte am eigenständigen Gerät oder anderer PC)“ ist der Standard. Dann steuert dieser PC kein Terminal an; Kartenzahlungen tippt man am eigenständigen Gerät ein oder sie laufen über das Terminal eines anderen PCs.
 - Die Wahl gilt erst nach „Speichern“. Danach verbindet sich dieser PC mit dem Terminal und fragt alle zwei Sekunden bei AISPA Studio nach, ob eine Zahlung, ein Storno oder eine Gutschrift wartet.

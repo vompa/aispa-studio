@@ -9,7 +9,7 @@ betrieb: server
 ---
 # Anfrage annehmen
 
-Zu einer Terminanfrage steht rechts neben der Nachricht die freie Zeit. Ein Klick merkt die Zeit für den Gast vor und schreibt den Vorschlag in den Antwortentwurf. Die Zeit bleibt im Kalender für den Gast frei, bis Sie bestätigen oder freigeben.
+Zu einer Terminanfrage steht rechts neben der Nachricht die freie Zeit. Ein Klick merkt die Zeit für den Gast vor und schreibt den Vorschlag in den Antwortentwurf. Die Zeit bleibt im Kalender für den Gast frei, bis man bestätigt oder freigibt.
 
 ## Schritte {#schritte}
 

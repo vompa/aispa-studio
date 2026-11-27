@@ -193,9 +193,9 @@ Wo eine KI etwas ausgibt, steht davor die Pille **KI**: beim Assistenten, im Fen
 
 Unter jeder KI-Ausgabe stehen drei Dinge:
 
-- **Ein Hinweis**, dass es ein Vorschlag der KI ist, den Sie prüfen, bevor Sie ihn übernehmen. Der Assistent und „Wunsch eintippen“ bringen einen eigenen Hinweis mit, der dort steht; bei Antworten aus den Daten des Spas sagt er, dass die Angaben aus den Daten stammen und nicht von der KI.
-- **Warum dieser Vorschlag?** (bei Antworten aus den Daten **Warum diese Antwort?**) klappt auf und sagt in zwei, drei Sätzen, woher die Ausgabe kommt: was die KI gelesen hat, was der Kalender oder die Kassa gerechnet hat, bei Antworten aus den Daten auch die Quelle, und dass nichts ohne Ihren Klick gebucht oder gesendet wird.
-- **Hilfreich** und **Nicht hilfreich**. Bei „Nicht hilfreich“ wählen Sie, was zutrifft: ungenau, unvollständig, unangemessen, schädlich, voreingenommen oder Sonstiges. Die Rückmeldung wird nur auf diesem PC gespeichert und enthält keine Gästedaten, auch nicht den Text der Ausgabe.
+- **Ein Hinweis**, dass es ein Vorschlag der KI ist, den man prüft, bevor man ihn übernimmt. Der Assistent und „Wunsch eintippen“ bringen einen eigenen Hinweis mit, der dort steht; bei Antworten aus den Daten des Spas sagt er, dass die Angaben aus den Daten stammen und nicht von der KI.
+- **Warum dieser Vorschlag?** (bei Antworten aus den Daten **Warum diese Antwort?**) klappt auf und sagt in zwei, drei Sätzen, woher die Ausgabe kommt: was die KI gelesen hat, was der Kalender oder die Kassa gerechnet hat, bei Antworten aus den Daten auch die Quelle, und dass nichts ohne Klick gebucht oder gesendet wird.
+- **Hilfreich** und **Nicht hilfreich**. Bei „Nicht hilfreich“ wählt man, was zutrifft: ungenau, unvollständig, unangemessen, schädlich, voreingenommen oder Sonstiges. Die Rückmeldung wird nur auf diesem PC gespeichert und enthält keine Gästedaten, auch nicht den Text der Ausgabe.
 
 Der Antwortentwurf im Posteingang trägt die Zeile „KI-Entwurf, noch nicht gesendet“. Er wird nie von selbst gesendet: erst nach einer eigenen Änderung **Entwurf speichern**, dann **Senden**.
 
@@ -207,15 +207,15 @@ Fragen zur Bedienung, z. B. „Wie storniere ich einen Beleg?“ oder „Wie ers
 
 ## Rückmeldung zu einem Hilfethema {#rueckmeldung}
 
-Am Ende jedes Hilfethemas fragt die Hilfe „War das hilfreich?“. So sagen Sie uns, wo ein Text noch nicht weiterhilft.
+Am Ende jedes Hilfethemas fragt die Hilfe „War das hilfreich?“. So zeigt sich, wo ein Text noch nicht weiterhilft.
 
 1. Unter dem Thema **Ja** oder **Nein** anklicken.
-2. Wenn Sie möchten, etwas dazu schreiben, zum Beispiel was gefehlt hat. Das Feld ist freiwillig.
+2. Wenn gewünscht, etwas dazu schreiben, zum Beispiel was gefehlt hat. Das Feld ist freiwillig.
 3. **Senden** anklicken. „Danke für die Rückmeldung“ erscheint.
 
-- Gespeichert werden nur das Thema, Ihre Antwort, der Text und der Zeitpunkt, nicht wer geantwortet hat. Schreiben Sie keine Namen von Gästen und keine Kontaktdaten in den Text.
+- Gespeichert werden nur das Thema, die Antwort, der Text und der Zeitpunkt, nicht wer geantwortet hat. In den Text keine Namen von Gästen und keine Kontaktdaten schreiben.
 - Die Rückmeldung bleibt auf diesem PC. Es gibt keine Sammlung über mehrere PCs.
-- Zu einem Thema, bei dem Sie schon geantwortet haben, fragt die Hilfe nicht noch einmal.
+- Zu einem Thema, bei dem schon geantwortet wurde, fragt die Hilfe nicht noch einmal.
 
 ## Offene Fragen an die Hilfe {#offene-fragen}
 

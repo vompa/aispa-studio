@@ -92,7 +92,7 @@ Freiwillig, höchstens 50 Zeichen. Steht im Bestelltext vor der Bezeichnung, dam
 
 ### Barcode {#barcode}
 
-Freiwillig, 3 bis 50 Zeichen ohne Leerzeichen, in Ihrem Spa nur für ein Material. Das ist der Code auf der Verpackung, meist eine EAN. Mit dem Code finden Handscanner das Material im Lager und an der Kassa: [Mit dem Handscanner arbeiten](hilfe:lager#scanner). Die Prüfziffer wird nicht geprüft, denn auch Lieferantencodes sind erlaubt.
+Freiwillig, 3 bis 50 Zeichen ohne Leerzeichen, im eigenen Spa nur für ein Material. Das ist der Code auf der Verpackung, meist eine EAN. Mit dem Code finden Handscanner das Material im Lager und an der Kassa: [Mit dem Handscanner arbeiten](hilfe:lager#scanner). Die Prüfziffer wird nicht geprüft, denn auch Lieferantencodes sind erlaubt.
 
 ### Packung und Gebinde {#packung}
 
@@ -110,11 +110,11 @@ Wie viele Tage vor dem Ablauf eine Charge dieses Materials in der Ansicht **Char
 
 ## Mit dem Handscanner arbeiten {#scanner}
 
-Ein USB-Handscanner tippt den Code wie eine Tastatur und schließt mit Enter ab. Sie brauchen keine Einstellung. Klicken Sie in das Feld **Material suchen oder scannen** oben im Lager und scannen Sie. Dasselbe Feld filtert den Bestand, wenn Sie tippen und nicht Enter drücken.
+Ein USB-Handscanner tippt den Code wie eine Tastatur und schließt mit Enter ab. Dafür braucht es keine Einstellung. In das Feld **Material suchen oder scannen** oben im Lager klicken und scannen. Dasselbe Feld filtert den Bestand, wenn man tippt und nicht Enter drückt.
 
 - Der Bestand wählt die Zeile des Materials. Mit dem Recht zu buchen öffnet sich zugleich die Buchung **Wareneingang**, und der Cursor steht im Feld **Menge**.
 - In der laufenden **Inventur** springt der Cursor in das Feld **Gezählt** der Zeile. Ohne gestartete Inventur erscheint ein Hinweis.
-- Gehört der Code zu keinem Material, fragt das Lager, ob Sie ein Material **anlegen** oder dem Code ein vorhandenes Material **zuordnen** wollen. Beim Anlegen steht der Code schon im Feld **Barcode**. Beim Zuordnen wählen Sie die Zeile des Materials und klicken im Seitenpanel auf **Ändern**; der Code steht danach im Formular, und Sie speichern.
+- Gehört der Code zu keinem Material, fragt das Lager, ob man ein Material **anlegen** oder dem Code ein vorhandenes Material **zuordnen** will. Beim Anlegen steht der Code schon im Feld **Barcode**. Beim Zuordnen die Zeile des Materials wählen und im Seitenpanel auf **Ändern** klicken; der Code steht danach im Formular, und man speichert.
 
 Scannen an der Kassa: [Artikel verkaufen](hilfe:kassa-artikel-verkaufen#scannen).
 

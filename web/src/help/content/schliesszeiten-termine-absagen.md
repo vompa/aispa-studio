@@ -36,7 +36,7 @@ Eine geleistete **Anzahlung wird mit der Absage automatisch retourniert**: als S
 
 Die Sprache kommt aus den Kundendaten (**Sprache** im Formular der Kundendaten). Es gibt die Absage in **Deutsch, Englisch, Französisch und Italienisch**, je Art der Schließzeit; die Anrede und die Zeit stehen in der Schreibweise der Sprache. Hat ein Gast keine Sprache oder eine, für die es keine Vorlage gibt (zum Beispiel Spanisch), geht die Absage auf Deutsch; dasselbe gilt für alle anderen Nachrichten an Gäste (Erinnerungen, Bestätigungen, Rückzahlungen, Antworten der Terminannahme). Eintrag der Warteliste: die Sprache, in der sich der Gast eingetragen hat.
 
-Was Sie in der Rückfrage bearbeiten, ist die deutsche Vorlage. Die Vorlagen der anderen Sprachen sind Standard und nicht bearbeitbar; der eigene **Text für Gäste** der Schließzeit gilt nur in der deutschen Nachricht. Der Hinweis auf die KI steht nur in deutschen Nachrichten, weil nur dort die KI den Text umformuliert hat.
+Was man in der Rückfrage bearbeitet, ist die deutsche Vorlage. Die Vorlagen der anderen Sprachen sind Standard und nicht bearbeitbar; der eigene **Text für Gäste** der Schließzeit gilt nur in der deutschen Nachricht. Der Hinweis auf die KI steht nur in deutschen Nachrichten, weil nur dort die KI den Text umformuliert hat.
 
 ## Text mit KI umformulieren {#ki}
 

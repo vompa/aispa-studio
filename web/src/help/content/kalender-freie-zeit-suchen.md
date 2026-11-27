@@ -53,19 +53,8 @@ Ohne Gast steht **Neuer Termin** offen und ist schon ausgefüllt: den Gast wähl
 - Lehnt AISPA Studio beim Buchen für einen Gast ab, bleibt **Neuer Termin** mit dem Gast und der Begründung offen.
 - Wer den Wunsch lieber in Worten eintippt („Massage morgen nach 17 Uhr, nicht bei Marco“): [Wunsch eintippen (KI)](hilfe:kalender-ki-anfrage).
 
-
-
 ## Für einen Gast suchen {#gast}
 
-Ist **Gast (optional)** gewählt, trägt der Knopf den Namen („Für Brigitte Müller buchen (Enter)“): ein Klick bucht die gewählte Zeit gleich für diesen Gast. Lehnt AISPA Studio ab, bleibt **Neuer Termin** mit dem Gast und der Begründung offen. Die Wünsche des Gastes aus der Kundenkarte fließen in die Suche ein: eine feste Person ist vorgewählt, **Gast wünscht** ist gesetzt, Puffer und „Nicht bei mir“ gelten, und Zeiten außerhalb seiner Wochentage und Uhrzeiten stehen weiter unten mit dem Hinweis „außerhalb der Wunschzeit des Gastes“. Die bevorzugte Person trägt die Pille **Wunsch**.
+Ist **Gast (optional)** gewählt, trägt der Knopf den Namen („Für Brigitte Müller buchen (Enter)“): ein Klick bucht die gewählte Zeit gleich für diesen Gast. Die Wünsche des Gastes aus der Kundenkarte fließen in die Suche ein: eine feste Person ist vorgewählt, **Gast wünscht** ist gesetzt, Puffer und „Nicht bei mir“ gelten, und Zeiten außerhalb seiner Wochentage und Uhrzeiten stehen weiter unten mit dem Hinweis „außerhalb der Wunschzeit des Gastes“. Die bevorzugte Person trägt die Pille **Wunsch**.
 
 Im Posteingang steht dieselbe Suche rechts neben einer Anfrage; dort merkt **Vormerken und vorschlagen** die Zeit für den Gast vor, siehe [Freie Zeit für eine Anfrage](hilfe:anfragen-freie-zeit-suchen).
-
-## Gut zu wissen {#hinweise}
-
-- Gesucht wird ab dem angezeigten Tag, heute erst ab jetzt. Für einen anderen Starttag vorher den Tag wechseln (← → oder **G**).
-- „An diesem Tag ist nichts frei.“ steht klein über der Liste, wenn die Vorschläge von späteren Tagen kommen. Ist auch in den nächsten 14 Tagen nichts frei, steht darüber eine gelbe Meldung mit der Ursache (zum Beispiel „nachmittags“) und einem Knopf, der die Einschränkung aufhebt, etwa **Tageszeit: egal**.
-- Esc schließt die Suche.
-- Ohne Verbindung geht die Suche nicht („Ohne Verbindung lassen sich freie Zeiten nicht suchen.“).
-- Wer den Wunsch lieber in Worten eintippt („Massage morgen nach 17 Uhr, nicht bei Marco“): [Wunsch eintippen (KI)](hilfe:kalender-ki-anfrage).
-- Freie Zeit suchen dürfen Rezeption, Standortleitung und Inhaber.

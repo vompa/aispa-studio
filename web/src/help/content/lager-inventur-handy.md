@@ -21,7 +21,7 @@ Im Spa zählt man das Material mit dem Handy am Regal, die Leitung schließt die
 
 ### Ohne Netz im Lagerraum {#ohne-netz}
 
-Fällt die Verbindung beim Zählen aus, zählen Sie weiter. Das Handy merkt sich die Mengen und zeigt „N Mengen warten auf Verbindung.“ Sobald es wieder Netz hat, sendet es sie von selbst; mit **Jetzt senden** geht es sofort.
+Fällt die Verbindung beim Zählen aus, wird weitergezählt. Das Handy merkt sich die Mengen und zeigt „N Mengen warten auf Verbindung.“ Sobald es wieder Netz hat, sendet es sie von selbst; mit **Jetzt senden** geht es sofort.
 
 - **Zählung starten** und **Abschicken** brauchen eine Verbindung. Abschicken geht erst, wenn keine Menge mehr wartet.
 - Die gemerkten Mengen bleiben auch nach dem Schließen der Seite stehen. Wer die Zählung am selben Handy wieder öffnet, sieht sie im Feld; sie gehen dann gleich hinaus.

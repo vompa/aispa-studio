@@ -16,7 +16,7 @@ Den Management-Bericht gibt es als PDF, als Word-Datei und als Excel-Arbeitsmapp
 2. In der Kopfzeile auf **Ausgabe** klicken. Das Menü hat drei Gruppen:
    - **Drucken …**, **Als PDF speichern** und **Per Mail senden …**: der Bericht als PDF. Die Einträge stehen erst, wenn der Bericht geladen ist.
    - **Bericht (Excel)**, **Bericht (Word)** und **Kennzahlen (CSV)**.
-   - Das Kästchen **Wochen- und Monatsbericht per Mail**: bestellt den Bericht ab oder wieder an, nur für Sie selbst. Es steht nur für Inhaber, Manager und Standortleitung, im Einzelplatz nur mit eingerichtetem Mailversand (`Mail:Smtp:Host`). Mehr dazu unter [Bericht per Mail](hilfe:berichte-kennzahlen-ansehen#bericht-per-mail).
+   - Das Kästchen **Wochen- und Monatsbericht per Mail**: bestellt den Bericht ab oder wieder an, nur für die eigene Person. Es steht nur für Inhaber, Manager und Standortleitung, im Einzelplatz nur mit eingerichtetem Mailversand (`Mail:Smtp:Host`). Mehr dazu unter [Bericht per Mail](hilfe:berichte-kennzahlen-ansehen#bericht-per-mail).
 3. Den Eintrag wählen. Nach dem Speichern einer Datei steht „Gespeichert: …“, und **Ordner öffnen** daneben öffnet den Ordner. Drucken, PDF und Mail melden sich mit einer kurzen Meldung.
 
 Das Menü speichert, druckt oder sendet immer den Bericht, den die Seite gerade zeigt. Wer Standort, Zeitraum oder Vergleich ändert, wählt danach neu.
@@ -36,7 +36,7 @@ Der **Vergleich mit anderen Spas** steht in Excel, PDF und Word nur, wenn er auf
 
 **Drucken …**, **Als PDF speichern** und **Per Mail senden …** arbeiten wie bei jedem anderen Dokument der App, mit Druckdialog, Speicherdialog und Rückfrage vor dem Senden. Die Schritte stehen unter [Dokumente drucken, als PDF speichern und per Mail senden](hilfe:dokumente-drucken-speichern-senden). Beim Bericht gilt zusätzlich:
 
-- Die Mail an eine Person geht nur an die Adresse, die im Feld **An** steht. Vorbelegt ist Ihre eigene Mailadresse, nie die einer anderen Person.
+- Die Mail an eine Person geht nur an die Adresse, die im Feld **An** steht. Vorbelegt ist die eigene Mailadresse, nie die einer anderen Person.
 - Betreff mit Standort und Zeitraum und ein kurzer Text mit Gruß sind vorbelegt.
 - Mit dem Anhang darf die Mail höchstens 5 MB groß sein.
 

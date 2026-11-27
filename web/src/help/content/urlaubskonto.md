@@ -8,7 +8,7 @@ stichwoerter: Urlaubskonto, Urlaubsanspruch, Resturlaub, Urlaubstage, Urlaub üb
 ---
 # Urlaubskonto einer Person
 
-Das Urlaubskonto zeigt für ein Kalenderjahr, wie viele Urlaubstage eine Person hat, wie viele genommen und geplant sind und was übrig bleibt. Anspruch und Übertrag tragen Sie ein; genommen und geplant zählt das Programm aus dem Dienstplan.
+Das Urlaubskonto zeigt für ein Kalenderjahr, wie viele Urlaubstage eine Person hat, wie viele genommen und geplant sind und was übrig bleibt. Anspruch und Übertrag trägt man ein; genommen und geplant zählt das Programm aus dem Dienstplan.
 
 ## Anspruch eintragen {#anspruch}
 
@@ -20,7 +20,7 @@ Das Urlaubskonto zeigt für ein Kalenderjahr, wie viele Urlaubstage eine Person 
 
 ![Urlaubskonto auf der Karte einer Person](images/app/verwaltung-team-karte-urlaubskonto.png)
 
-Mit den Pfeilen neben der Überschrift wechseln Sie das Jahr. Jedes Jahr hat seinen eigenen Anspruch und Übertrag.
+Mit den Pfeilen neben der Überschrift wechselt man das Jahr. Jedes Jahr hat seinen eigenen Anspruch und Übertrag.
 
 ## Was gezählt wird {#zaehlung}
 
@@ -36,7 +36,7 @@ Die Zeile unter dem Konto nennt die gezählten Wochentage. Sie sagt auch, wie vi
 ## Gut zu wissen {#hinweise}
 
 - Ohne eingetragenen Anspruch zeigt das Konto nur genommen und geplant; bei **Rest** steht ein Strich. Das Programm nimmt keinen Anspruch an.
-- Der Rest eines Jahres wandert nicht von selbst ins nächste Jahr. Tragen Sie ihn dort als Übertrag ein.
+- Der Rest eines Jahres wandert nicht von selbst ins nächste Jahr. Dort als Übertrag eintragen.
 - Ändern sich die Arbeitstage einer Person im Jahr, zählt das Konto das ganze Jahr nach den aktuellen Arbeitstagen.
 - Der Lohn-Export zählt Urlaub je eingetragenem Tag, auch am Wochenende: [Lohn](hilfe:lohn#monatswerte). Das Urlaubskonto zählt nur Arbeitstage; die Zahlen können sich deshalb unterscheiden.
 - Wer Personalunterlagen nur lesen darf, sieht das Konto, ändert es aber nicht.

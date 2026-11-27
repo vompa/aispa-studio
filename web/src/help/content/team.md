@@ -49,7 +49,7 @@ Das Suchfeld „Name oder E-Mail“ über der Liste filtert die Personen beim Ti
 
 ## Ausgeschiedene zeigen {#ausgeschiedene-zeigen}
 
-Das Kästchen „Ausgeschiedene zeigen“ nimmt Personen in die Liste, die aus dem Team genommen wurden; sie tragen das Kennzeichen „Ausgeschieden“. Ihre Karte ist nur lesbar und sagt „Ausgeschieden: Die Angaben sind nur lesbar.“ Eine ausgeschiedene Person lässt sich nicht wieder aufnehmen. Ausgeschiedene sehen Inhaber, Manager und Standortleitung, die Rezeption nicht.
+Das Kästchen „Ausgeschiedene zeigen“ nimmt Personen in die Liste, die aus dem Team genommen wurden; sie tragen das Kennzeichen „Ausgeschieden“. Die Karte ist nur lesbar und sagt „Ausgeschieden: Die Angaben sind nur lesbar.“ Eine ausgeschiedene Person lässt sich nicht wieder aufnehmen. Ausgeschiedene sehen Inhaber, Manager und Standortleitung, die Rezeption nicht.
 
 Ungespeicherte Änderungen fragen beim Wechsel der Zeile nach, auch ein angefangenes Formular „Person einladen“ oder „Zugang anlegen“. **Speichern** versendet dort nichts: dafür **Einladung senden** wählen oder die Eingaben verwerfen.
 
@@ -127,4 +127,4 @@ Nimmt die Person aus der Planung, z. B. bei einem Austritt. Das geht nur, wenn s
 
 ## Verlauf {#verlauf}
 
-Die Schaltfläche **Verlauf** im Kopf der Karte öffnet in der Windows-App eine Seitenleiste. Sie zeigt, wer Zugang, Rolle, Standorte, Sperre oder Befristung einer Person wann geändert hat, und, wer ihren Dienstplan und ihre Abwesenheiten geändert hat ([Verlauf des Dienstplans](hilfe:dienstplan-verlauf)). Sie sehen nur Inhaber und Manager; für alle anderen fehlt die Schaltfläche. Esc oder das Kreuz schließt die Seitenleiste. Hat die Karte nur einen Bereich, zeigt sie keine Leiste. Mehr dazu: [Verlauf eines Zugangs](hilfe:zugaenge-verlauf).
+Die Schaltfläche **Verlauf** im Kopf der Karte öffnet in der Windows-App eine Seitenleiste. Sie zeigt, wer Zugang, Rolle, Standorte, Sperre oder Befristung einer Person wann geändert hat, und, wer ihren Dienstplan und ihre Abwesenheiten geändert hat ([Verlauf des Dienstplans](hilfe:dienstplan-verlauf)). Das sehen nur Inhaber und Manager; für alle anderen fehlt die Schaltfläche. Esc oder das Kreuz schließt die Seitenleiste. Hat die Karte nur einen Bereich, zeigt sie keine Leiste. Mehr dazu: [Verlauf eines Zugangs](hilfe:zugaenge-verlauf).

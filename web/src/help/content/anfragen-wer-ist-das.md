@@ -17,7 +17,7 @@ Die KI-Terminannahme bucht und antwortet nur dann mit Daten aus der Kundenkarte,
 
 ## Vorschlag übernehmen {#zuordnen}
 
-1. In der Navigation **Anfragen** öffnen und die Nachricht mit Status „Prüfen“ anklicken. Dort steht der Abschnitt **Wer ist das?** mit bis zu drei Kunden; er sagt auch, dass erst nach Ihrer Entscheidung gebucht wird.
+1. In der Navigation **Anfragen** öffnen und die Nachricht mit Status „Prüfen“ anklicken. Dort steht der Abschnitt **Wer ist das?** mit bis zu drei Kunden; er sagt auch, dass erst nach der Entscheidung gebucht wird.
 2. Zu jedem Vorschlag steht, warum er passt, zum Beispiel „gleicher Name, Telefon endet auf 4567, letzter Besuch 14.09.2026“. Darunter steht, wie sicher er ist (zum Beispiel „Name und ein weiteres Merkmal passen“). Die besten stehen oben. Ein Klick auf den Namen zeigt die [Kundenübersicht](hilfe:seite-anfragen#kundenuebersicht) wie im Kalender: Telefon, Mailadresse, Besuche, nächste Termine und Kennzeichen.
 3. Optional das Häkchen **Beim Zuordnen Adresse/Nummer merken** setzen; es gilt nur für **Zuordnen**, nicht für **Neu anlegen**. Dann merkt sich die Kundenkarte die Mailadresse bzw. Nummer des Absenders, und die nächste Nachricht von dort ist sicher zugeordnet. Eine Mailadresse wird die Hauptadresse, wenn die Karte noch keine hat, sonst eine weitere Adresse; eine Nummer wird nur eingetragen, wenn die Karte noch keine hat.
 4. Beim richtigen Kunden auf **Zuordnen** klicken. Es erscheint „Zugeordnet: …“.

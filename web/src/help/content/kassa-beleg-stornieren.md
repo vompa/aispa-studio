@@ -45,7 +45,7 @@ Auf **Stornieren** klicken.
 ## Was danach {#was-danach}
 
 - Der Stornobeleg erscheint oben in der Liste mit „Stornobeleg“, der alte Beleg trägt „storniert“. Fährt man mit der Maus über eine dieser Marken, nennt der Hinweis die Nummer des zugehörigen Belegs. Mit automatischem Druck wird der Stornobeleg gleich gedruckt.
-- Die Rechnung ist wieder offen und steht links unter „Geparkte Rechnungen“. Ihre Positionen lassen sich neu bezahlen, ändern oder entfernen, oder die Rechnung **Verwerfen**.
+- Die Rechnung ist wieder offen und steht links unter „Geparkte Rechnungen“. Die Positionen lassen sich neu bezahlen, ändern oder entfernen, oder die Rechnung **Verwerfen**.
 - Eingelöste Gutscheine bekommen ihren Wert zurück. Mit dem Beleg verkaufte Gutscheine werden ungültig.
 - Wurde am angebundenen Kartenterminal bezahlt, schickt die Kassa die Gutschrift von selbst an das Terminal. Bar Bezahltes gibt man aus der Lade zurück.
 

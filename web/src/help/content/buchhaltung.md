@@ -112,7 +112,7 @@ Ertragskonto, wenn beim Tagesabschluss mehr Bargeld gezählt wird als laut Kassa
 
 ### Trinkgeld für das Team {#trinkgeld}
 
-Konto für Trinkgeld, das Gäste über die Kassa geben, zum Beispiel mit der Karte. Es gehört dem Team und ist kein Umsatz des Spas: Die Kassa bucht es ohne Steuer vom Geldtransit auf dieses Konto, bis es ausbezahlt ist. Vorgabe 3790. Welches Konto in Ihrem Kontenrahmen passt, klären Sie mit der Steuerberatung.
+Konto für Trinkgeld, das Gäste über die Kassa geben, zum Beispiel mit der Karte. Es gehört dem Team und ist kein Umsatz des Spas: Die Kassa bucht es ohne Steuer vom Geldtransit auf dieses Konto, bis es ausbezahlt ist. Vorgabe 3790. Welches Konto im eigenen Kontenrahmen passt, klärt man mit der Steuerberatung.
 
 ### DATEV-Beraternummer {#datev-beraternummer}
 
