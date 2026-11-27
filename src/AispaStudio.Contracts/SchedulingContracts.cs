@@ -87,6 +87,25 @@ public sealed record SetupReadinessDto(bool Ready, SetupFirstSlotDto? FirstSlot 
 /// <summary>Der erste freie Platz, den der Planer für eine Behandlung findet (Beginn in UTC).</summary>
 public sealed record SetupFirstSlotDto(Guid LocationId, string LocationName, Guid TreatmentId, string TreatmentName, DateTimeOffset Start);
 
+/// <summary>
+/// Ein Paket des Startkatalogs (<c>GET /api/setup/catalog</c>): <c>Key</c> ist stabil, <c>Qualification</c> der Name der Qualifikation, die das Paket anlegt
+/// oder nutzt. Die Behandlungen haben keinen Preis.
+/// </summary>
+public sealed record SetupCatalogPackageDto(string Key, string Title, string Hint, string Qualification, IReadOnlyList<SetupCatalogTreatmentDto> Treatments);
+
+/// <summary>Eine Behandlung des Startkatalogs; <c>Exists</c>, wenn es schon eine Behandlung (auch inaktiv) mit diesem Namen gibt (ohne Beachtung der Groß- und Kleinschreibung).</summary>
+public sealed record SetupCatalogTreatmentDto(string Name, int DurationMinutes, int PreparationMinutes, int FollowUpMinutes, string Category, bool Exists);
+
+/// <summary>Auswahl für <c>POST /api/setup/catalog/apply</c>: je Paket die Behandlungsräume, denen seine Behandlungen zugeordnet werden.</summary>
+public sealed record SetupCatalogApplyInput(IReadOnlyList<SetupCatalogChoice> Packages);
+
+public sealed record SetupCatalogChoice(string Key, IReadOnlyList<Guid> RoomIds);
+
+/// <summary>Antwort von <c>apply</c>: je Paket die Zahl der angelegten und der übersprungenen (schon vorhandenen) Behandlungen.</summary>
+public sealed record SetupCatalogApplyResult(IReadOnlyList<SetupCatalogApplied> Packages);
+
+public sealed record SetupCatalogApplied(string Key, int Created, int Skipped);
+
 /// <summary>Ab diesem Tag (Ortszeit des Standorts) ist der Standort geschlossen: keine Buchung mehr, im Kalender wie eine dauernde Schließzeit; vergangene Termine und Belege bleiben.</summary>
 public sealed record LocationCloseInput(DateOnly ClosedFrom);
 

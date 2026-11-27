@@ -11,12 +11,15 @@ namespace AispaStudio.Api.Scheduling;
 /// </summary>
 internal static partial class MasterDataEndpoints
 {
-    private static void MapSetupProgress(RouteGroupBuilder group) =>
+    private static void MapSetupProgress(RouteGroupBuilder group)
+    {
+        MapSetupCatalog(group);
         group.MapGet("/setup/progress", async (AispaDbContext db, BookingService booking, RosterService roster, TimeProvider time, bool? readiness, CancellationToken ct) =>
                 await SetupProgress.LoadAsync(db, booking, roster, time.GetUtcNow(), readiness == true, ct))
             .WithName("GetSetupProgress")
             .RequirePermission(AccessRight.ManageOrganization)
             .WithSummary("Liefert die Schritte der Ersteinrichtung (Standort, Öffnungszeiten, Räume, Behandlungen, Team, Kassa) mit ihrem Stand, mit „readiness=true“ auch, ob sich in den nächsten 14 Tagen eine Behandlung buchen lässt.");
+    }
 }
 
 /// <summary>Die Schritte der Ersteinrichtung in der Reihenfolge, in der man sie sinnvoll abarbeitet.</summary>
@@ -47,7 +50,7 @@ internal static class SetupProgress
                 treatments ? null
                 : facts.Treatments.Count == 0 ? SetupReadiness.NoTreatment
                 : "Keine Behandlung hat einen Raum. Unter „Behandlungen“ jeder Behandlung mindestens einen Raum zuordnen.",
-                MissingPrices(facts.Treatments.Count(t => t.Price == 0))),
+                MissingPrices(facts.Treatments.Count(t => !t.PricedEverywhere))),
             new("people", "Team anlegen", "Wer behandelt und wer an der Rezeption arbeitet.", people, "masterData", "team",
                 people ? null : PeopleMissing(facts)),
             new("register", "Kassa einrichten", "Kassa-ID, Belegkopf und Land für Belege.", facts.AnyRegister, "masterData", "kassa"),
@@ -56,7 +59,7 @@ internal static class SetupProgress
         return new SetupProgressDto(steps, readiness ? await SetupReadiness.CheckAsync(facts, db, booking, roster, now, ct) : null);
     }
 
-    /// <summary>Hinweis auf Behandlungen mit dem Preis 0; lässt den Schritt erledigt, weil eine Behandlung ohne Preis buchbar ist.</summary>
+    /// <summary>Hinweis auf Behandlungen ohne Preis: Grundpreis 0 und nicht an jedem Standort mit Behandlungsraum ein Standortpreis über 0 (Preisregeln zählen nicht, außerhalb der Regel gilt der Grundpreis); lässt den Schritt erledigt, weil eine Behandlung ohne Preis buchbar ist.</summary>
     internal static string? MissingPrices(int count) => count switch
     {
         0 => null,

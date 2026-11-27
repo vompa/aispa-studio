@@ -8759,3 +8759,30 @@ Auftrag des Auftraggebers vom 27.11.2026 ([ADR 0104](../entscheidungen/0104-gefu
   - „Aus einer Sicherung wiederherstellen“ in der Startauswahl (T-132) landet weiter auf Schritt 1; der Bereich ist dort nicht von selbst aufgeklappt.
   - Im aufgeklappten „Wiederherstellen“ oder „Verbinden“ löst Enter keinen Knopf aus; das war vorher auch so.
 - **Text-Prüfsatz:** Texte der Maske, der Hilfe und dieses Abschnitts nach [texte.md](../gestaltung/texte.md): kurze Sätze, Knöpfe fett, kein Richtungswort; `textRules.test.ts` grün.
+
+## Startkatalog nach Art des Spas in der API (T-134b, 27.11.2026)
+
+Auftrag des Auftraggebers vom 27.11.2026 ([ADR 0104](../entscheidungen/0104-gefuehrte-ersteinrichtung.md), Entscheidungen 4 und 5): Der Assistent bietet nach der Art des Spas Pakete typischer Behandlungen an, „wo es sinnvoll ist“.
+
+- **Was:** `GET /api/setup/catalog` liefert vier feste Pakete mit ihren Behandlungen und dem Merkmal `exists`. `POST /api/setup/catalog/apply` legt je gewähltem Paket die fehlende Qualifikation und die fehlenden Behandlungen an, zugeordnet zu den genannten Räumen. Beide verlangen das Recht `ManageCatalog`, wie `POST /api/treatments`. Neue Datei `SetupCatalog.cs`.
+- **Vertrag:** nur erweitert ([ADR 0085](../entscheidungen/0085-api-version-in-den-pfaden.md)); `web/openapi/aispa-api.json` und `schema.d.ts` sind nachgezogen.
+- **Pakete:** Massage (5 Behandlungen), Kosmetik (3), Hand und Fuß (4), Hamam und Wellness (3). Namen und Dauern lehnen sich an die Beispieldaten an. Jedes Paket hat eine Qualifikation und eine Kategorie.
+- **Detailentscheidungen:**
+  1. **Kein zweiter Weg der Anlage.** `apply` ruft dieselbe Prüfung und Anlage wie `POST /api/treatments` und `POST /api/qualifications` auf.
+  2. **Ohne Preis.** Die Behandlungen entstehen mit Preis 0, ohne Gerät, Material und Ausfallgebühr; der Fortschritt meldet „Preis fehlt“.
+  3. **Alles oder nichts.** Die Anlage läuft in einer Transaktion; ein Fehler legt nichts an.
+  4. **Nichts doppelt.** Eine Behandlung gleichen Namens zählt als vorhanden, auch eine inaktive, und wird übersprungen. Sonst gäbe es nach dem Reaktivieren zwei aktive Behandlungen gleichen Namens. Die Qualifikation wird ohne Beachtung der Groß- und Kleinschreibung wiederverwendet.
+  5. **Sperre je Mandant** (`pg_advisory_xact_lock`) gegen zwei gleichzeitige Aufrufe, etwa bei einem Doppelklick.
+  6. **Räume:** nur aktive Behandlungsräume an Standorten, die die Person sieht; keine Bereiche wie die Sauna. Ohne Raum antwortet `apply` mit 400 und Klartext. Der Schritt Räume steht im Assistenten deshalb vor den Behandlungen.
+  7. **Eingabe:** kein Paket, unbekanntes Paket, leeres Element und dasselbe Paket zweimal ergeben 400.
+  8. **Hinweis „Preis fehlt“ berichtigt:** Eine Behandlung gilt als bepreist, wenn der Grundpreis über 0 liegt oder an jedem Standort mit Behandlungsraum ein Standortpreis über 0 steht. Preisregeln zählen nicht, weil außerhalb der Regel der Grundpreis gilt.
+- **Kalt-Review:** fünf Befunde, alle behoben (Punkte 4, 5, 7 und 8, dazu ein Test für den Fall, dass Qualifikation und eine Behandlung schon da sind).
+- **Hilfe:** keine Änderung; die Oberfläche kommt mit dem Assistenten (T-135b) und bringt ihren Hilfetext mit.
+- **Neue Tests:** 6 (Budget 5, vom Lead nach dem Kalt-Review um 2 erhöht): Katalog mit `exists`; Anwenden und erneutes Anwenden; abgelehnte Fälle (Recht, unbekanntes Paket, kein Raum, unbekannter Raum, Bereich, inaktiver Raum, leeres Element, doppeltes Paket) ohne Anlage; zwei gleichzeitige Aufrufe; Teilfall mit vorhandener Qualifikation; Preis-Hinweis mit zwei Standorten. Die Meldungen werden gegen die Konstanten verglichen.
+- **Geprüft:** `dotnet build AispaStudio.slnx -c Release` ohne Warnung, `dotnet format --verify-no-changes` für die geänderten Dateien, `npm run gen:api`, `npm run typecheck`, `SetupCatalogTests` und `SetupProgressTests` grün.
+- **Nicht geprüft:** volle Suite, `DemoBulkTests`; ob der Test der gleichzeitigen Aufrufe ohne die Sperre rot wird.
+- **Beim Schreiben festgestellt:**
+  - `apply` nimmt Räume an einem geschlossenen Standort an, wie `POST /api/treatments`. Der Fortschritt zählt solche Räume nicht und meldet dann weiter „Keine Behandlung hat einen Raum“.
+  - `POST /api/treatments/{id}/reactivate` prüft keinen Namen, `POST /api/qualifications` prüft den Namen ohne Sperre. Beides ist älter als diese Aufgabe.
+- **Handtest:** ohne Block, die App zeigt den Katalog erst mit T-135b.
+- **Text-Prüfsatz:** die Meldungen der API und dieser Abschnitt nach [texte.md](../gestaltung/texte.md): sie sagen, was fehlt und was zu wählen ist, ohne „bitte“.

@@ -514,6 +514,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/setup/catalog": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Liefert die Pakete des Startkatalogs nach Art des Spas mit ihren Behandlungen; „exists“ sagt, ob es eine Behandlung mit diesem Namen schon gibt. */
+        get: operations["GetSetupCatalog"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/setup/catalog/apply": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Legt je gewähltem Paket die fehlende Qualifikation und die fehlenden Behandlungen an, zugeordnet zu den genannten Räumen, mit Preis 0. Vorhandene Behandlungen gleichen Namens (auch inaktive) werden übersprungen; ein Fehler legt nichts an. */
+        post: operations["ApplySetupCatalog"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/setup/progress": {
         parameters: {
             query?: never;
@@ -13850,6 +13884,41 @@ export interface components {
             count: number;
             dueTimes: string[];
         };
+        SetupCatalogApplied: {
+            key: string;
+            /** Format: int32 */
+            created: number;
+            /** Format: int32 */
+            skipped: number;
+        };
+        SetupCatalogApplyInput: {
+            packages: components["schemas"]["SetupCatalogChoice"][];
+        };
+        SetupCatalogApplyResult: {
+            packages: components["schemas"]["SetupCatalogApplied"][];
+        };
+        SetupCatalogChoice: {
+            key: string;
+            roomIds: string[];
+        };
+        SetupCatalogPackageDto: {
+            key: string;
+            title: string;
+            hint: string;
+            qualification: string;
+            treatments: components["schemas"]["SetupCatalogTreatmentDto"][];
+        };
+        SetupCatalogTreatmentDto: {
+            name: string;
+            /** Format: int32 */
+            durationMinutes: number;
+            /** Format: int32 */
+            preparationMinutes: number;
+            /** Format: int32 */
+            followUpMinutes: number;
+            category: string;
+            exists: boolean;
+        };
         SetupFirstSlotDto: {
             /** Format: uuid */
             locationId: string;
@@ -16515,6 +16584,77 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    GetSetupCatalog: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SetupCatalogPackageDto"][];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    ApplySetupCatalog: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetupCatalogApplyInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SetupCatalogApplyResult"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
         };
     };

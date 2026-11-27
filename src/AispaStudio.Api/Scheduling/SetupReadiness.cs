@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 namespace AispaStudio.Api.Scheduling;
 
 /// <summary>Eine aktive Behandlung für die Ersteinrichtung: nötige Qualifikationen (nach Name) und die Standorte, an denen sie einen Behandlungsraum hat.</summary>
-internal sealed record SetupTreatment(Guid Id, string Name, decimal Price, IReadOnlyList<QualificationDto> Required, IReadOnlySet<Guid> RoomLocationIds)
+internal sealed record SetupTreatment(Guid Id, string Name, decimal Price, IReadOnlyList<QualificationDto> Required, IReadOnlySet<Guid> RoomLocationIds, bool PricedEverywhere = false)
 {
     public bool CanBeDoneBy(SetupEmployee employee) => Required.All(q => employee.Qualifications.Contains(q.Id));
 }
@@ -41,6 +41,7 @@ internal sealed record SetupFacts(
                 t.Id,
                 t.Name,
                 t.Price,
+                LocationPrices = t.LocationPrices.Select(p => new { p.LocationId, p.Price }).ToList(),
                 Required = t.RequiredQualifications.OrderBy(q => q.Name).Select(q => new QualificationDto(q.Id, q.Name)).ToList(),
                 RoomLocations = t.Rooms.Where(r => r.IsActive && !r.IsArea && open.Contains(r.LocationId)).Select(r => r.LocationId).ToList(),
             })
@@ -65,7 +66,7 @@ internal sealed record SetupFacts(
             all.Count > 0 && locations.Count == 0,
             rooms.Count > 0,
             rooms.Contains(false),
-            [.. treatments.Select(t => new SetupTreatment(t.Id, t.Name, t.Price, t.Required, t.RoomLocations.ToHashSet()))],
+            [.. treatments.Select(t => new SetupTreatment(t.Id, t.Name, t.Price, t.Required, t.RoomLocations.ToHashSet(), t.Price > 0 || (t.RoomLocations.Count > 0 && t.RoomLocations.All(l => t.LocationPrices.Any(p => p.LocationId == l && p.Price > 0)))))],
             [.. employees.Select(e => new SetupEmployee(e.Id, e.Qualifications.ToHashSet(), e.HasHours))],
             anyRegister);
     }

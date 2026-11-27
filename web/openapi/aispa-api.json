@@ -1214,6 +1214,91 @@
         }
       }
     },
+    "/api/v1/setup/catalog": {
+      "get": {
+        "tags": [
+          "Stammdaten"
+        ],
+        "summary": "Liefert die Pakete des Startkatalogs nach Art des Spas mit ihren Behandlungen; „exists“ sagt, ob es eine Behandlung mit diesem Namen schon gibt.",
+        "operationId": "GetSetupCatalog",
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SetupCatalogPackageDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/setup/catalog/apply": {
+      "post": {
+        "tags": [
+          "Stammdaten"
+        ],
+        "summary": "Legt je gewähltem Paket die fehlende Qualifikation und die fehlenden Behandlungen an, zugeordnet zu den genannten Räumen, mit Preis 0. Vorhandene Behandlungen gleichen Namens (auch inaktive) werden übersprungen; ein Fehler legt nichts an.",
+        "operationId": "ApplySetupCatalog",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetupCatalogApplyInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetupCatalogApplyResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/setup/progress": {
       "get": {
         "tags": [
@@ -51008,6 +51093,138 @@
               "type": "string",
               "format": "date-time"
             }
+          }
+        }
+      },
+      "SetupCatalogApplied": {
+        "required": [
+          "key",
+          "created",
+          "skipped"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "created": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "skipped": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "SetupCatalogApplyInput": {
+        "required": [
+          "packages"
+        ],
+        "type": "object",
+        "properties": {
+          "packages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SetupCatalogChoice"
+            }
+          }
+        }
+      },
+      "SetupCatalogApplyResult": {
+        "required": [
+          "packages"
+        ],
+        "type": "object",
+        "properties": {
+          "packages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SetupCatalogApplied"
+            }
+          }
+        }
+      },
+      "SetupCatalogChoice": {
+        "required": [
+          "key",
+          "roomIds"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "roomIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        }
+      },
+      "SetupCatalogPackageDto": {
+        "required": [
+          "key",
+          "title",
+          "hint",
+          "qualification",
+          "treatments"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "hint": {
+            "type": "string"
+          },
+          "qualification": {
+            "type": "string"
+          },
+          "treatments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SetupCatalogTreatmentDto"
+            }
+          }
+        }
+      },
+      "SetupCatalogTreatmentDto": {
+        "required": [
+          "name",
+          "durationMinutes",
+          "preparationMinutes",
+          "followUpMinutes",
+          "category",
+          "exists"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "durationMinutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "preparationMinutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "followUpMinutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "category": {
+            "type": "string"
+          },
+          "exists": {
+            "type": "boolean"
           }
         }
       },

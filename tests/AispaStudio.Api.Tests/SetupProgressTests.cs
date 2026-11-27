@@ -113,6 +113,28 @@ public sealed class SetupProgressTests(ApiFixture fixture)
         Assert.Null(progress.Readiness);
     }
 
+    // Rot, wenn Standortpreis an nur einem von zwei Standorten oder eine Preisregel allein schon als bepreist zählt, oder ein Standortpreis an allen nicht.
+    [Fact]
+    public async Task Given_Grundpreis_0_When_der_Stand_gelesen_wird_Then_gilt_nur_ein_Preis_an_jedem_Standort_mit_Raum_als_bepreist()
+    {
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        var baden = await spa.CreateLocationAsync("Baden", [.. EveryDay], Ct);
+        var badenRoom = await spa.PostAsync<RoomDto>($"/api/locations/{baden.Id}/rooms", new RoomInput("Raum Baden", 0), Ct);
+        Guid[] both = [spa.RoomA.Id, badenRoom.Id];
+        TreatmentLocationPriceDto[] oneLocation = [new(spa.Location.Id, 15m)];
+        TreatmentLocationPriceDto[] everywhere = [new(spa.Location.Id, 15m), new(baden.Id, 12m)];
+        _ = await spa.PostAsync<TreatmentDto>("/api/treatments", new TreatmentInput("Fußbad", 20, 0, 0, 0m, [], both, [], LocationPrices: oneLocation), Ct);
+        var evening = await spa.PostAsync<TreatmentDto>("/api/treatments", new TreatmentInput("Fußpackung", 20, 0, 0, 0m, [], [spa.RoomA.Id], []), Ct);
+        _ = await spa.PutAsync<List<TreatmentPriceRuleDto>>($"/api/treatments/{evening.Id}/price-rules",
+            new List<TreatmentPriceRuleDto> { new("Abendpreis", [DayOfWeek.Monday], new(17, 0), new(21, 0), 20m) }, Ct);
+        _ = await spa.PostAsync<TreatmentDto>("/api/treatments", new TreatmentInput("Handbad", 20, 0, 0, 0m, [], both, [], LocationPrices: everywhere), Ct);
+        _ = await spa.PostAsync<TreatmentDto>("/api/treatments", new TreatmentInput("Fußwanne", 20, 0, 0, 10m, [], both, []), Ct);
+
+        var treatments = Step(await spa.GetAsync<SetupProgressDto>(Path, Ct), "treatments");
+
+        Assert.Equal(SetupProgress.MissingPrices(2), treatments.Note);
+    }
+
     [Fact]
     public async Task Given_ein_geschlossener_Standort_mit_Behandlungen_und_ein_offener_When_die_Bereitschaft_geprueft_wird_Then_bereit_am_offenen()
     {
