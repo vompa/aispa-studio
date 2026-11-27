@@ -100,3 +100,12 @@ ADR 0005 (Offline-Stand der Windows-App) bleibt für den Server-Betrieb gültig.
 ## Nachtrag Runde R05, Slice 92 (29.10.2026): Webmodule nach ADR 0084
 
 Mit [ADR 0084](0084-alle-masken-nativ-web-fuer-dashboard-und-handy.md) gibt es keine Web-Team-Oberfläche mehr. Zuschaltbare Webmodule sind danach das Dashboard für den Pausenraum, die Handy-App für Mitarbeitende (aus „Mein Tag“) und die Handy-App für Kunden (aus dem Kundenbereich mit der Online-Buchung). Der Einzelplatz läuft ohne sie. Die Hilfe ist kein zuschaltbares Modul: die Windows-App zeigt sie immer im eingebetteten Browser.
+
+## Nachtrag 27.11.2026: PostgreSQL bleibt die Datenbank des Einzelplatzes
+
+Der Auftraggeber hat gefragt, ob der Einzelplatz statt PostgreSQL eine leichtere Datenbank wie SQLite nutzen kann, und am 27.11.2026 entschieden: PostgreSQL bleibt.
+
+- **Grund:** SQLite wäre eine zweite Datenbank neben PostgreSQL, weil Server-Betrieb und Webmodule PostgreSQL behalten. Das hieße doppelte Migrationen für drei Kontexte und doppelte Tests. Die Kassa braucht eine einzige, durchgetestete Datenbank.
+- **Weitere Hindernisse:** die Queue (Wolverine) mit PostgreSQL als Speicher, das Schema `health`, die Demo-Daten per `COPY`, die Sicherung und der Wechsel vom Einzelplatz zum Server.
+- **Was den Nachteil ausgleicht:** Das Setup aus [ADR 0104](0104-gefuehrte-ersteinrichtung.md) liefert PostgreSQL mit und holt fehlende Voraussetzungen nach.
+- **Nicht gemessen:** der Anteil der PostgreSQL an der Paketgröße und an der Startzeit. Ein Befund dazu entsteht nur auf Wunsch des Auftraggebers.
