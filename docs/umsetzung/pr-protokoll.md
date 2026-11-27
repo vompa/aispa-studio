@@ -8537,3 +8537,11 @@ Der volle Lauf `*ViewTests` auf dev 75883b69 hatte 7 rote Tests; alle sieben lag
 - **Was:** `scripts/help-images.sh` über dev d0d68537: 45 Bilder sichtbar geändert, vor allem durch „Netz“/„Im Netz“ unten über „System“ (T-106), den Paar-Block unter dem Kunden (T-107) und die fehlende Pille „Online“ im Einzelplatz (T-110). 14 Bilder mit Rauschen unter 300 Pixeln blieben beim alten Stand.
 - **Geprüft:** Bildtests grün, Skript mit Exitcode 0 (zweiter Lauf; der erste brach nach 925 grünen Tests mit einem Absturz des Testprozesses ab, Exitcode 139). Stichprobe angesehen: `im-netz`, `sicherung`, `paar-und-spa-tag-3`, `ki-betrieb-auswertung`.
 - **Ohne Block:** nur Bilder.
+
+## Entscheidungen vom 27.11.2026 eingeplant, Stichprobe Haiku vorbereitet (T-119, T-120)
+
+- **Auftrag:** Antworten des Auftraggebers vom 27.11.2026 auf die offenen Fragen nach T-098 („ja umsetzen“): Punkt 1 als Handtest vorbereiten, Punkt 6 festhalten und die daraus folgenden Arbeiten einplanen. Punkte 2 bis 5 laufen als T-116, T-117 und T-118.
+- **Was:** Handtestblock „T-119 – Stichprobe vor dem ersten Betrieb“ in `docs/umsetzung/handtests.md` (je 10 Bögen und Lieferscheine, erst mit `claude-haiku-5-5`, dann mit `Ai:Claude:ModelExtract=claude-opus-5-5`, Vergleich und Verbrauch aus der Maske **KI**). Eine Zeile in `docs/stand-und-offene-punkte.md` mit allen Entscheidungen zu Punkt 6 und den neuen Aufgaben.
+- **Detailentscheidungen:** Kein neuer ADR; es sind Entscheidungen innerhalb bestehender Regeln (Brief 5.28, ADR 0008, ADR 0055). Der Layout-Entwurf trug den Vermerk „Nicht freigegeben, nicht umsetzen“ schon, deshalb keine Änderung dort. Die Zeilenbezeichnung „Anamnesebogen lesen“ im Handtest stammt aus `AiViewModel` (Zeile 382).
+- **Geprüft:** nur Doku; Textregeln greifen hier nicht (keine Hilfe).
+- **Ohne Block:** T-120 ist nur Doku. T-119 ist selbst ein Handtest.

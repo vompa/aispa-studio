@@ -2065,3 +2065,20 @@ Expected: „Person einladen“ steht als normaler Text da, ohne Link; unter „
 Expected: Die Kalender-Abos sind da (sie holen Feiertage aus dem Internet). Im Team heißt der Knopf **Zugang anlegen**, nicht „Person einladen“.
 Closes: T-110 (Auftraggeber, 26.11.2026, Punkte 10 und 12)
 Result: ☐
+
+### T-119 – Stichprobe vor dem ersten Betrieb: kleines Modell gegen großes beim Auslesen
+Zweck: Der Auftraggeber prüft vor dem ersten echten Betrieb, ob `claude-haiku-5-5` handschriftliche Anamnesebögen und Lieferscheine so gut liest wie `claude-opus-5-5` (Entscheidung 27.11.2026: Haiku bleibt Vorgabe bis zur Messung).
+Vorbereitung: je 10 echte, handschriftlich ausgefüllte Anamnesebögen und 10 Lieferscheine (gemischt: sauber, schief fotografiert, schwer lesbar), ohne echte Gästedaten oder mit Einwilligung; ein Betrieb mit den passenden Artikeln und offenen Bestellungen; für jedes Blatt eine Zeile in einer Vergleichstabelle (Blatt, Feld, richtig laut Papier, Haiku, Opus).
+Start: `dotnet run --project src/AispaStudio.AppHost` mit gültigem Claude-Schlüssel, ohne `Ai:Claude:ModelExtract` (Vorgabe Haiku), im Aspire-Dashboard die Ressource `windows-app` starten, als Inhaberin anmelden.
+1. **Verwaltung** › **Kontakt** › **KI** öffnen.
+Expected: „Modelle: claude-opus-5-5 für Texte, claude-haiku-5-5 zum Auslesen von Mails, Lieferscheinen und Bögen.“
+2. Die 10 Bögen im Termin-Panel über die Karte **Anamnese** als Papierbogen fotografieren und beim Prüfen jede erkannte Antwort mit dem Papier vergleichen, ohne zu bestätigen; die 10 Lieferscheine am Handy über **Lieferschein fotografieren (optional)** einlesen und Menge, Charge und Ablaufdatum je Position vergleichen, ohne zu buchen. Ergebnis in die Spalte „Haiku“.
+Expected: Jede Abweichung steht als „Bitte prüfen: …“ da oder ist in der Tabelle als falsch erkannt vermerkt.
+3. Die AppHost beenden, `Ai:Claude:ModelExtract` auf `claude-opus-5-5` setzen (`dotnet user-secrets set "Ai:Claude:ModelExtract" "claude-opus-5-5" --project src/AispaStudio.Api`), neu starten und Schritt 2 mit denselben 20 Blättern wiederholen. Ergebnis in die Spalte „Opus“.
+Expected: Die Maske **KI** nennt jetzt `claude-opus-5-5` auch zum Auslesen.
+4. Die Maske **KI** öffnen und unter „Verbrauch (letzte 30 Tage)“ die Zeilen „Anamnesebogen lesen“ und „Lieferschein lesen“ je Modell ablesen.
+Expected: Je Modell 10 Aufrufe je Aufgabe mit Tokens; daraus lassen sich die Kosten je Blatt vergleichen.
+5. Auswerten: Anteil falsch gelesener Felder je Modell, getrennt nach Bogen und Lieferschein; dazu Fälle, in denen Haiku falsch lag, ohne „Bitte prüfen“ zu zeigen.
+Expected: Entscheidung des Auftraggebers: Haiku bleibt, oder `Ai:Claude:ModelExtract` wird für den Betrieb auf Opus gesetzt. Danach den Eintrag mit `dotnet user-secrets remove "Ai:Claude:ModelExtract" --project src/AispaStudio.Api` entfernen, wenn Haiku bleibt.
+Closes: T-119 (Auftraggeber, 27.11.2026, Punkt 1)
+Result: ☐
