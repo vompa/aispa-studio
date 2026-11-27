@@ -2082,3 +2082,19 @@ Expected: Je Modell 10 Aufrufe je Aufgabe mit Tokens; daraus lassen sich die Kos
 Expected: Entscheidung des Auftraggebers: Haiku bleibt, oder `Ai:Claude:ModelExtract` wird für den Betrieb auf Opus gesetzt. Danach den Eintrag mit `dotnet user-secrets remove "Ai:Claude:ModelExtract" --project src/AispaStudio.Api` entfernen, wenn Haiku bleibt.
 Closes: T-119 (Auftraggeber, 27.11.2026, Punkt 1)
 Result: ☐
+
+### T-132 – Startauswahl auf einem PC ohne Einrichtung
+Vorbereitung: Kein Server läuft auf diesem PC. Die Datei `%LOCALAPPDATA%\AispaStudio\einstellungen.json` umbenennen, die Umgebungsvariable `AISPA_API_URL` ist nicht gesetzt.
+Start: `AispaStudio.Desktop.exe` ohne Schalter starten.
+1. Den Start abwarten.
+Expected: Nach wenigen Sekunden steht „Willkommen bei AISPA Studio“ mit **Neues Spa auf diesem PC einrichten** und drei Nebenwegen. Der Hauptknopf hat den Fokus.
+2. **Mit einem vorhandenen Spa verbinden** wählen.
+Expected: Die Karte „Keine Verbindung“ mit Netzwerk- und Server-Verbindung erscheint, der Fokus steht auf **Erneut versuchen**. **Erneut versuchen** zeigt die Startauswahl nicht wieder.
+3. Die App schließen, neu starten und **Beispiel-Spa ansehen** wählen.
+Expected: Die App startet neu und richtet das Beispiel-Spa ein. Nach dem Schließen und einem Start ohne Schalter steht wieder die Startauswahl.
+4. **Neues Spa auf diesem PC einrichten** wählen.
+Expected: Die App startet neu im Einzelplatz und zeigt „Spa einrichten“. Jeder weitere Start läuft als Einzelplatz, ohne Startauswahl.
+5. Die App schließen und die umbenannte `einstellungen.json` zurücklegen.
+Expected: Der PC startet wie vor dem Test.
+Closes: T-132 (ADR 0104, Entscheidung 2)
+Result: ☐

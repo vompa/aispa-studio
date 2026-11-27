@@ -27,7 +27,12 @@ Voraussetzungen: [Windows-PC am Empfang und Zusatz für Einzelplatz](README.md#s
 
 ## 2. Als Einzelplatz starten
 
-Die App einmal mit dem Schalter `--standalone` starten, am einfachsten über eine Verknüpfung:
+Auf einem PC ohne Einrichtung zeigt der erste Start die Startauswahl: **Neues Spa auf diesem PC einrichten** schaltet den
+Einzelplatz ein und startet die App neu. Darunter stehen **Beispiel-Spa ansehen**, **Aus einer Sicherung wiederherstellen**
+und **Mit einem vorhandenen Spa verbinden**. Die Startauswahl erscheint nur, wenn kein Schalter gesetzt ist, keine Adresse
+über `AISPA_API_URL` vorgegeben ist, noch keine Betriebsart gewählt wurde und auf diesem PC kein Server antwortet.
+
+Für Skripte und Verknüpfungen gibt es den Schalter `--standalone`; er schaltet den Einzelplatz ohne Startauswahl ein:
 
 1. Rechtsklick auf `AispaStudio.Desktop.exe` › „Verknüpfung erstellen“.
 2. Rechtsklick auf die Verknüpfung › „Eigenschaften“ › im Feld „Ziel“ hinter den Pfad ` --standalone` anhängen.
@@ -54,7 +59,7 @@ Die App sichert danach einmal am Tag und legt dafür in Windows die Aufgabe „A
 um 23 Uhr, wird nachgeholt, wenn der PC aus war). Die letzten 14 Sicherungen bleiben. Ist die letzte Sicherung älter als
 sieben Tage, steht ein Hinweis über allen Seiten.
 
-Wiederherstellen auf einem neuen PC: App mit `--standalone` starten und vor „Spa einrichten“ „Aus einer Sicherung
+Wiederherstellen auf einem neuen PC: in der Startauswahl **Aus einer Sicherung wiederherstellen** wählen (oder die App mit `--standalone` starten) und vor „Spa einrichten“ „Aus einer Sicherung
 wiederherstellen …“ wählen. Ausführlich: Hilfethema [Sicherung](../../web/src/help/content/sicherung.md).
 
 ## Beispiel-Spa zum Ausprobieren

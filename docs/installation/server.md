@@ -44,6 +44,8 @@ Testkonten und Inhalt des Beispiel-Spas: [Testdaten](../testdaten.md).
 
 **Windows-App verbinden:** die App aus dem Release [„Windows-App“](https://github.com/vompa/aispa-studio/releases/tag/windows-app)
 entpacken und **ohne** `--standalone` starten. Sie verbindet sich ohne weitere Einstellung mit `http://localhost:5086`.
+Antwortet beim allerersten Start noch kein Server, zeigt die App die Startauswahl: dort **Mit einem vorhandenen Spa verbinden**
+wählen oder zuerst den Server starten.
 Angemeldet wird direkt in der App mit einem Testkonto oder im Web über „Als Testkonto anmelden“ › „Code für die
 Windows-App“.
 

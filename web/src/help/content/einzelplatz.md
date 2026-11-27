@@ -12,11 +12,13 @@ Weitere PCs im Spa verbinden sich bei Bedarf mit diesem PC (siehe „Im Netz“)
 
 ## Einzelplatz einschalten {#einschalten}
 
-Die App wird einmal mit dem Schalter `--standalone` gestartet, z. B. über eine Verknüpfung. Sie merkt sich das; jeder weitere Start läuft dann ohne Schalter als Einzelplatz. Mit `--server` schaltet man auf den Betrieb mit Server zurück, auch das wird gemerkt. Die Daten des Einzelplatzes bleiben dabei auf dem PC liegen.
+Auf einem PC, auf dem noch nichts eingerichtet ist, zeigt der erste Start die Startauswahl. **Neues Spa auf diesem PC einrichten** schaltet den Einzelplatz ein; die App startet neu und zeigt „Spa einrichten“. Sie merkt sich das, jeder weitere Start läuft als Einzelplatz. Darunter stehen **Beispiel-Spa ansehen**, **Aus einer Sicherung wiederherstellen** und **Mit einem vorhandenen Spa verbinden**. Die Daten des Einzelplatzes bleiben auf dem PC liegen.
+
+Für Skripte und Verknüpfungen gibt es die Schalter: `--standalone` schaltet den Einzelplatz ein und `--server` den Betrieb mit Server; beides wird gemerkt, und die Startauswahl erscheint dann nicht. Auch eine gespeicherte Verbindung oder ein Server, der auf diesem PC antwortet, übergeht die Startauswahl.
 
 ## Beispiel-Spa ausprobieren {#beispiel-spa}
 
-Zum Ansehen startet man die App mit dem Schalter `--demo`, z. B. über eine zweite Verknüpfung. Sie legt dann eine eigene Datenbank `aispademo` an und füllt sie mit einem Beispiel-Spa. Das echte Spa in der Datenbank `aispadb` bleibt unberührt.
+Zum Ansehen wählt man in der Startauswahl **Beispiel-Spa ansehen**. Für Skripte und Verknüpfungen startet man die App mit dem Schalter `--demo`. Sie legt dann eine eigene Datenbank `aispademo` an und füllt sie mit einem Beispiel-Spa. Das echte Spa in der Datenbank `aispadb` bleibt unberührt.
 
 - Der Schalter gilt nur für diesen Start und schaltet immer den Einzelplatz ein. Die App merkt ihn sich nicht; ohne `--demo` startet wieder das echte Spa.
 - Der erste Start dauert rund eine halbe Minute. Die Anmeldung zeigt den Stand.

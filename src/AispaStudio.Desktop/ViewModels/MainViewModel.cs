@@ -253,6 +253,11 @@ public partial class MainViewModel(IWorkstationApi api, Func<ILiveUpdates>? live
             return;
         }
 
+        if (await ShowStartChoiceIfNoServerAsync().ConfigureAwait(true))
+        {
+            return;
+        }
+
         await CheckStatusAsync().ConfigureAwait(true);
 
         // Ohne Verbindung, aber mit lokalem Stand: mit der zuletzt angemeldeten Person weiterarbeiten (ADR 0005).

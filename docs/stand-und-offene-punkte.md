@@ -401,7 +401,7 @@ Die Nummern sind die Reihenfolge, die der jeweilige Thread gewählt hätte ([Üb
 
 **Einzelplatz-Betrieb ([ADR 0041](entscheidungen/0041-einzelplatz-standalone-und-zuschaltbare-webmodule.md))**
 1. Schritte 1 bis 5 sind fertig; offen sind die Punkte unter „Später“.
-- Geführte Ersteinrichtung ([ADR 0104](entscheidungen/0104-gefuehrte-ersteinrichtung.md), angenommen am 27.11.2026): Setup mit Velopack ohne Signatur, Startauswahl, „Spa einrichten“ in drei Schritten, Assistent „Betrieb einrichten“ mit Startkatalog nach Art des Spas. Noch nichts gebaut; Aufgaben T-130 bis T-137. Die Kassa bekommt danach einen eigenen Assistenten.
+- Geführte Ersteinrichtung ([ADR 0104](entscheidungen/0104-gefuehrte-ersteinrichtung.md), angenommen am 27.11.2026): Setup mit Velopack ohne Signatur, Startauswahl, „Spa einrichten“ in drei Schritten, Assistent „Betrieb einrichten“ mit Startkatalog nach Art des Spas. Fertig: Befund zur Machbarkeit (T-130) und die Startauswahl (T-132); offen: T-131 und T-133 bis T-137. Die Kassa bekommt danach einen eigenen Assistenten.
 - Später: Haupt-PC im Netz automatisch finden; Passkeys zusätzlich nach dem Umstieg auf einen Server; gemeinsamer Formatierer im Web-Projekt.
 
 **Kalender, Dienstplan, Zugänge**
