@@ -2098,3 +2098,19 @@ Expected: Die App startet neu im Einzelplatz und zeigt „Spa einrichten“. Jed
 Expected: Der PC startet wie vor dem Test.
 Closes: T-132 (ADR 0104, Entscheidung 2)
 Result: ☐
+
+### T-131 – Setup und Updates
+Vorbereitung: Ein Windows-PC ohne AISPA Studio; ein grüner Stand auf `main` hat das Release „Windows-Setup“ gefüllt.
+Start: `AispaStudioApp-win-Setup.exe` aus dem Release „Windows-Setup“ laden und starten.
+1. Die Warnung von SmartScreen über „Weitere Informationen“ und „Trotzdem ausführen“ bestätigen.
+Expected: Das Setup läuft ohne Administratorrechte durch, holt fehlende Voraussetzungen nach und startet die App mit der Startauswahl. Im Startmenü steht „AISPA Studio“.
+2. Ein Spa einrichten, einen Kunden anlegen, die App schließen.
+Expected: Das Programm liegt unter `%LOCALAPPDATA%\AispaStudioApp`, die Daten unter `%LOCALAPPDATA%\AispaStudio`.
+3. Nach einem neueren Stand auf `main` die App starten, zwei Minuten warten, schließen und wieder starten.
+Expected: Der zweite Start spielt das Update ein und zeigt danach die Anmeldung. Der Kunde ist noch da.
+4. Die Sicherung einrichten und die Windows-Aufgabe „AISPA Studio Sicherung“ von Hand ausführen, während die App offen ist und ein Update bereitliegt.
+Expected: Die Sicherung läuft, die offene App bleibt offen. `app.log` nennt keinen Fehler der Update-Prüfung.
+5. AISPA Studio über „Apps“ in den Windows-Einstellungen deinstallieren.
+Expected: Der Ordner `AispaStudioApp` ist weg, der Datenordner `AispaStudio` mit der Datenbank ist noch da.
+Closes: T-131 (ADR 0104, Entscheidung 1)
+Result: ☐

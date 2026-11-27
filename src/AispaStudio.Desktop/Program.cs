@@ -1,6 +1,7 @@
 using AispaStudio.Desktop.Services;
 using Avalonia;
 using Avalonia.Threading;
+using Velopack;
 
 namespace AispaStudio.Desktop;
 
@@ -12,6 +13,11 @@ sealed class Program
     [STAThread]
     public static int Main(string[] args)
     {
+        // Velopack zuerst (Setup, ADR 0104): beantwortet die Aufrufe des Installers (--veloapp-*) und beendet sich danach;
+        // spielt ein geladenes Update beim Start ein, aber nicht in der Sicherung und nicht neben einer laufenden App.
+        // vpk pack verlangt diesen Aufruf in Main.
+        VelopackApp.Build().SetAutoApplyOnStartup(AppUpdate.MayApplyOnStartup(args, ScheduledBackup.OtherAppRunning)).Run();
+
         // Abendliche Sicherung aus der Windows-Aufgabe (ADR 0041, Schritt 5): ohne Fenster sichern und wieder beenden.
         if (args.Contains(Services.ScheduledBackup.Argument, StringComparer.OrdinalIgnoreCase))
         {
@@ -23,6 +29,9 @@ sealed class Program
         Dispatcher.UIThread.UnhandledException += (_, e) => e.Handled = handler.OnUiThread(e.Exception);
         TaskScheduler.UnobservedTaskException += handler.OnUnobservedTask;
         AppDomain.CurrentDomain.UnhandledException += handler.OnDomain;
+
+        // Update im Hintergrund holen; eingespielt wird es beim nächsten Start. Der Fehlerfall ist in AppUpdate abgefangen.
+        _ = Task.Run(AppUpdate.Default.CheckAsync);
 
         Views.EmbeddedBrowser.UseNative = true;
         try

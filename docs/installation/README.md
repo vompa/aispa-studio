@@ -4,8 +4,8 @@ AISPA Studio läuft auf einem Windows-PC allein, mit mehreren PCs im eigenen Net
 Diese Seite hilft bei der Wahl und nennt, was der Rechner dafür braucht.
 
 > [!WARNING]
-> AISPA Studio ist ein **Prototyp**. Die Windows-App ist ein Vorabstand ohne Installer und ohne Signatur, die Kassa
-> signiert nur mit einer Test-Signatur, und der Server-Betrieb ist noch nicht für den Echtbetrieb freigegeben
+> AISPA Studio ist ein **Prototyp**. Die Windows-App ist ein Vorabstand: das Setup mit Updates (empfohlen) und die
+> ZIP-Datei sind nicht signiert, die Kassa signiert nur mit einer Test-Signatur, und der Server-Betrieb ist noch nicht für den Echtbetrieb freigegeben
 > (keine fertige Produktions-Konfiguration, kein HTTPS im Paket). Zum Ausprobieren gedacht, nicht für den Alltag
 > eines Spas.
 

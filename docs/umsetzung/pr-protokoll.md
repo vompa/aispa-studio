@@ -8713,3 +8713,27 @@ Auftrag des Auftraggebers vom 27.11.2026 ([ADR 0104](../entscheidungen/0104-gefu
   - Die Karte in der App zeigt `missing`, `note` und `readiness` noch nicht; das kommt mit T-135.
 - **Handtest:** ohne Block, die App zeigt nichts Neues.
 - **Text-Prüfsatz:** die Sätze der API und dieser Abschnitt nach [texte.md](../gestaltung/texte.md): sie sagen, was fehlt und wo es einzutragen ist, ohne „bitte“.
+
+## Setup und Updates mit Velopack (T-131, 27.11.2026)
+
+Auftrag des Auftraggebers vom 27.11.2026 ([ADR 0104](../entscheidungen/0104-gefuehrte-ersteinrichtung.md), Entscheidung 1): ein kleines Setup, das die Voraussetzungen prüft und installiert, statt die ZIP-Datei zu entpacken. Zum Start ohne Signatur.
+
+- **Was:** Paket `Velopack` 1.2.161 und das Werkzeug `vpk` (`dotnet-tools.json`). `VelopackApp.Build()…Run()` ist die erste Anweisung in `Program.Main`. Neuer Dienst `AppUpdate`: prüft 30 Sekunden nach dem Start im Hintergrund, lädt einen neuen Stand und lässt ihn beim nächsten Start einspielen; nur in einer Installation über das Setup. Die CI packt `AispaStudioApp-win-Setup.exe` (Job `desktop`) und pflegt auf `main` das Release `windows-setup` (Job `windows-download`). Die ZIP-Datei im Release `windows-app` bleibt.
+- **Detailentscheidungen:**
+  1. **packId `AispaStudioApp`.** Das Programm liegt unter `%LOCALAPPDATA%\AispaStudioApp`, die Daten bleiben unter `%LOCALAPPDATA%\AispaStudio`. Eine Deinstallation löscht so keine Daten ([Befund T-130](velopack-probe.md)).
+  2. **Fassung `1.0.<Laufnummer der CI>`.** Sie steht nur im Workflow, nicht im Repository.
+  3. **Kein Einspielen neben einer laufenden App.** Das Einspielen beendet jeden Prozess im Programmordner, auch die offene App mit Server und Datenbank. `AppUpdate.MayApplyOnStartup` erlaubt es deshalb nicht im Lauf der Sicherung (`--sichern`) und nicht, solange eine andere Instanz läuft. Das Update kommt dann beim nächsten Start ohne diese Lage.
+  4. **Zum Start keine Delta-Pakete** (`--delta None`). Im Release liegt immer nur die neueste Fassung: Vollpaket, Setup und Index. Es wächst nicht. Jedes Update lädt dafür das volle Paket (rund 200 MB). Delta-Pakete bleiben bewusst offen.
+  5. **Ein älterer Lauf überschreibt keine neuere Fassung.** Der Upload vergleicht die Fassungen und endet sonst mit einem Hinweis.
+  6. **Reihenfolge im Upload:** Paket, Setup, zuletzt der Index; erst danach fallen ältere Pakete weg. Auf `main` bricht ein neuer Push den laufenden Lauf nicht mehr ab (`cancel-in-progress` nur für andere Branches).
+  7. **Voraussetzungen:** `--framework webview2,vcredist143-x64`. Ob PostgreSQL die VC++-Laufzeit braucht, ist nicht belegt; ein Schritt der CI schreibt die Importe von `postgres.exe` ins Protokoll.
+  8. **Keine Oberfläche für Updates** und keine Signatur. SmartScreen warnt; [standalone.md](../installation/standalone.md) nennt den Weg.
+- **Kalt-Review (Opus):** sechs Befunde. Behoben: Einspielen neben laufender App (Punkt 3), Index ersetzt statt ergänzt und Wiederholung eines älteren Laufs (Punkte 4 und 5), Abbruch mitten im Upload (Punkt 6), Größenangabe 65 statt rund 200 MB, ein Testkommentar, der mehr versprach, als der Test prüft.
+- **Hilfe und Doku:** `einzelplatz.md` (`#einschalten`), [standalone.md](../installation/standalone.md), [Installation](../installation/README.md), `README.md`, Release-Notizen `windows-setup.md` und `windows-app.md`, `THIRD-PARTY-NOTICES.md`.
+- **Neue Tests:** 3 in `AppUpdateTests` (Budget 5): Programm- und Datenordner sind getrennt, ohne Installation prüft die App nichts, das Einspielen beim Start ist nur ohne Sicherungsschalter und ohne andere Instanz erlaubt.
+- **Geprüft:** Build der Desktop-Projekte in Release ohne Warnung, `dotnet format --verify-no-changes` für die geänderten Dateien, `*AppUpdateTests*` 3 von 3 grün (`.test-logs/t131-test4.log`), `npm test -- src/help`. `vpk pack` mit `--delta None` lief lokal durch. `ci.yml` parst als YAML.
+- **Nicht geprüft:** die neuen Schritte der CI (laufen erst mit dem Push), der Upload ins Release (erst auf `main`), Installation, Update von Fassung zu Fassung und Deinstallation auf einem frischen Windows, die Erkennung der anderen Instanz im echten Start, die volle Suite.
+- **Beim Schreiben festgestellt:**
+  - Wer die App nie schließt und sie nur neben der laufenden Sicherung startet, bekommt kein Update. Ein Hinweis in der App fehlt.
+  - Der Delta-Weg von Velopack prüft das fertige Paket nicht gegen die Prüfsumme; das ist ein Grund mehr, mit Vollpaketen zu beginnen.
+- **Text-Prüfsatz:** Hilfe, Installationsseiten und dieser Abschnitt nach [texte.md](../gestaltung/texte.md): kurze Sätze, Knöpfe fett, kein „bitte“; `textRules.test.ts` grün.

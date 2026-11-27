@@ -12,6 +12,8 @@ Weitere PCs im Spa verbinden sich bei Bedarf mit diesem PC (siehe „Im Netz“)
 
 ## Einzelplatz einschalten {#einschalten}
 
+Installiert wird AISPA Studio mit dem Setup `AispaStudioApp-win-Setup.exe`. Es braucht keine Administratorrechte und holt fehlende Voraussetzungen nach. Updates kommen von selbst: Die App lädt einen neuen Stand im Hintergrund und spielt ihn beim nächsten Start ein. Läuft die App dabei schon an diesem PC oder sichert sie gerade, wartet das Update bis zum nächsten Start.
+
 Auf einem PC, auf dem noch nichts eingerichtet ist, zeigt der erste Start die Startauswahl. **Neues Spa auf diesem PC einrichten** schaltet den Einzelplatz ein; die App startet neu und zeigt „Spa einrichten“. Sie merkt sich das, jeder weitere Start läuft als Einzelplatz. Darunter stehen **Beispiel-Spa ansehen**, **Aus einer Sicherung wiederherstellen** und **Mit einem vorhandenen Spa verbinden**. Die Daten des Einzelplatzes bleiben auf dem PC liegen.
 
 Für Skripte und Verknüpfungen gibt es die Schalter: `--standalone` schaltet den Einzelplatz ein und `--server` den Betrieb mit Server; beides wird gemerkt, und die Startauswahl erscheint dann nicht. Auch eine gespeicherte Verbindung oder ein Server, der auf diesem PC antwortet, übergeht die Startauswahl.
