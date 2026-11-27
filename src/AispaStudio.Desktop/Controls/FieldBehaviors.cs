@@ -40,6 +40,9 @@ public static class FieldBehaviors
         _ => false,
     };
 
+    /// <summary>Zieht den bestätigten Wert (Stand für Esc) auf den aktuellen Text, wenn das Modell das Feld selbst geleert hat.</summary>
+    internal static void Confirm(TextBox box) => box.SetValue(ConfirmedProperty, box.Text);
+
     private static void OnActiveChanged(TextBox box, AvaloniaPropertyChangedEventArgs e)
     {
         box.GotFocus -= OnGotFocus;

@@ -1,0 +1,204 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             x:Class="AispaStudio.Desktop.Views.SetupWizardView"
+             x:DataType="vm:SetupWizardViewModel"
+             Background="{DynamicResource BgBrush}"
+             AutomationProperties.Name="Betrieb einrichten">
+  <!--
+    Assistent „Betrieb einrichten“ (ADR 0104, Entscheidungen 4 bis 6): ein Schritt je Seite im Inhaltsbereich der Shell. Aufbau wie die übrigen Verwaltungsmasken
+    (masken.md): Überschrift mit Fragezeichen, ein Schritt als Karte, Knopfleiste fest im Fuß. Genau ein Standardknopf je Zustand (SetupWizardViewModel.DefaultButton).
+  -->
+  <Grid RowDefinitions="*,Auto" Margin="16,16,0,0">
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+      <Grid Margin="0,0,16,16">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*" MaxWidth="720" />
+        </Grid.ColumnDefinitions>
+        <StackPanel Spacing="20">
+          <StackPanel Spacing="8">
+            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+              <TextBlock Text="Betrieb einrichten" Classes="h2" VerticalAlignment="Center" />
+              <TextBlock Grid.Column="1" x:Name="StepText" Text="{Binding StepText}" Classes="muted" VerticalAlignment="Center" IsVisible="{Binding HasStep}"
+                         AutomationProperties.LiveSetting="Polite" />
+              <ui:HelpButton Grid.Column="2" Topic="firmendaten" Section="betrieb-einrichten-assistent" />
+            </Grid>
+            <TextBlock Classes="muted" TextWrapping="Wrap" Text="Von den Öffnungszeiten bis zum ersten buchbaren Termin. Jeder Schritt lässt sich überspringen." />
+          </StackPanel>
+
+          <ui:InfoBar x:Name="LoadErrorBar" Severity="Error" Title="Einrichtung nicht geladen" Message="{Binding LoadError}" IsVisible="{Binding HasLoadError}"
+                      ActionText="Erneut laden" ActionCommand="{Binding LoadCommand}" />
+          <TextBlock Text="Lade Einrichtung …" Classes="muted" IsVisible="{Binding IsLoading}" />
+
+          <Border Classes="card" IsVisible="{Binding HasStep}">
+            <StackPanel Spacing="12">
+              <TextBlock x:Name="StepTitle" Text="{Binding LocationHeading}" Classes="h2" TextWrapping="Wrap" IsVisible="{Binding !IsAdminStep}" />
+              <TextBlock x:Name="AdminStepTitle" Text="{Binding Current.Title}" Classes="h2" TextWrapping="Wrap" IsVisible="{Binding IsAdminStep}" />
+              <TextBlock Text="{Binding Current.Hint}" Classes="muted" TextWrapping="Wrap" />
+              <TextBlock x:Name="MissingText" Text="{Binding Missing}" TextWrapping="Wrap" IsVisible="{Binding Missing, Converter={x:Static ObjectConverters.IsNotNull}}" />
+              <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding IsDone}">
+                <ui:Icon Data="{x:Static ui:Icons.Check}" Width="16" Height="16" VerticalAlignment="Center" />
+                <TextBlock Text="Erledigt" VerticalAlignment="Center" />
+              </StackPanel>
+              <TextBlock x:Name="NoteText" Text="{Binding Note}" Classes="muted" TextWrapping="Wrap" IsVisible="{Binding Note, Converter={x:Static ObjectConverters.IsNotNull}}" />
+
+              <!-- Öffnungszeiten -->
+              <StackPanel x:Name="HoursStep" Spacing="8" IsVisible="{Binding IsHoursStep}">
+                <ItemsControl x:Name="DaysList" ItemsSource="{Binding Days}">
+                  <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                      <StackPanel Spacing="8" />
+                    </ItemsPanelTemplate>
+                  </ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:OpeningDayViewModel">
+                      <Grid ColumnDefinitions="160,Auto,Auto,Auto" ColumnSpacing="8">
+                        <CheckBox x:Name="DayOpen" IsChecked="{Binding IsOpen}" Content="{Binding Label}" />
+                        <ui:TimeField Grid.Column="1" CommittedText="{Binding OpensText}" IsVisible="{Binding IsOpen}" AutomationProperties.Name="{Binding OpensName}" />
+                        <TextBlock Grid.Column="2" Text="–" VerticalAlignment="Center" IsVisible="{Binding IsOpen}" />
+                        <ui:TimeField Grid.Column="3" CommittedText="{Binding ClosesText}" IsVisible="{Binding IsOpen}" AutomationProperties.Name="{Binding ClosesName}" />
+                        <TextBlock Grid.Column="1" Text="geschlossen" Classes="muted" VerticalAlignment="Center" IsVisible="{Binding !IsOpen}" />
+                      </Grid>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <Button x:Name="CopyDayButton" Content="Für alle Tage übernehmen" ToolTip.Tip="Überträgt die Zeiten des ersten geöffneten Tages auf alle geöffneten Tage" Command="{Binding CopyFirstDayCommand}" />
+                </StackPanel>
+              </StackPanel>
+
+              <!-- Räume -->
+              <StackPanel x:Name="RoomsStep" Spacing="12" IsVisible="{Binding IsRoomsStep}">
+                <ItemsControl x:Name="RoomList" ItemsSource="{Binding Rooms}">
+                  <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                      <StackPanel Spacing="4" />
+                    </ItemsPanelTemplate>
+                  </ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="x:String">
+                      <TextBlock Text="{Binding}" />
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                  <ui:FormField Label="Name des Raums" IsRequired="True">
+                    <TextBox x:Name="NewRoomBox" Text="{Binding NewRoomName}" PlaceholderText="Neuer Raum" />
+                  </ui:FormField>
+                  <Button Grid.Column="1" x:Name="AddRoomButton" Content="Raum hinzufügen" Command="{Binding AddRoomCommand}" VerticalAlignment="Top" Margin="0,22,0,0"
+                          Classes.primary="{Binding AddRoomIsDefault}" IsDefault="{Binding AddRoomIsDefault}"
+                          ui:DisabledHint.Text="Verfügbar, sobald der Name des Raums eingetragen ist." />
+                </Grid>
+              </StackPanel>
+
+              <!-- Behandlungen: Startkatalog -->
+              <StackPanel x:Name="TreatmentsStep" Spacing="12" IsVisible="{Binding IsTreatmentsStep}">
+                <ItemsControl x:Name="PackageList" ItemsSource="{Binding Packages}">
+                  <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                      <StackPanel Spacing="12" />
+                    </ItemsPanelTemplate>
+                  </ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:SetupPackageChoice">
+                      <StackPanel Spacing="4">
+                        <CheckBox x:Name="PackageCheck" IsChecked="{Binding IsSelected}" Content="{Binding Title}" />
+                        <TextBlock Text="{Binding Hint}" Classes="muted small" TextWrapping="Wrap" Margin="28,0,0,0" />
+                        <ItemsControl ItemsSource="{Binding Lines}" Margin="28,0,0,0">
+                          <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="x:String">
+                              <TextBlock Text="{Binding}" Classes="small" />
+                            </DataTemplate>
+                          </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                      </StackPanel>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <TextBlock Text="Räume für die gewählten Behandlungen" Classes="h3" IsVisible="{Binding HasTreatmentRoom}" />
+                <ItemsControl x:Name="RoomChoiceList" ItemsSource="{Binding RoomChoices}">
+                  <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                      <StackPanel Spacing="4" />
+                    </ItemsPanelTemplate>
+                  </ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:SetupRoomChoice">
+                      <CheckBox IsChecked="{Binding IsSelected}" Content="{Binding Name}" />
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <StackPanel x:Name="NoRoomHint" Spacing="8" IsVisible="{Binding ShowNoRoomHint}">
+                  <TextBlock Text="{x:Static vm:SetupWizardViewModel.NoRoomHint}" TextWrapping="Wrap" />
+                  <Button x:Name="ShowRoomsButton" Content="Zum Schritt Räume" Command="{Binding ShowRoomsStepCommand}" HorizontalAlignment="Left" />
+                </StackPanel>
+                <Button x:Name="ApplyCatalogButton" Content="Behandlungen anlegen" Command="{Binding ApplyCatalogCommand}" HorizontalAlignment="Left"
+                        Classes.primary="{Binding ApplyCatalogIsDefault}" IsDefault="{Binding ApplyCatalogIsDefault}"
+                        ui:DisabledHint.Text="Verfügbar, sobald ein Paket und ein Raum gewählt sind." />
+                <ui:InfoBar x:Name="CatalogResult" Severity="Success" Message="{Binding CatalogMessage}" IsVisible="{Binding HasCatalogMessage}" />
+              </StackPanel>
+
+              <!-- Team -->
+              <StackPanel x:Name="PeopleStep" Spacing="12" IsVisible="{Binding IsPeopleStep}">
+                <ItemsControl x:Name="PeopleList" ItemsSource="{Binding People}">
+                  <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                      <StackPanel Spacing="4" />
+                    </ItemsPanelTemplate>
+                  </ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="x:String">
+                      <TextBlock Text="{Binding}" />
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                  <ui:FormField Label="Vorname" IsRequired="True">
+                    <TextBox x:Name="FirstNameBox" Text="{Binding FirstName}" />
+                  </ui:FormField>
+                  <ui:FormField Grid.Column="1" Label="Nachname" IsRequired="True">
+                    <TextBox x:Name="LastNameBox" Text="{Binding LastName}" />
+                  </ui:FormField>
+                </Grid>
+                <TextBlock Text="Qualifikationen" Classes="h3" IsVisible="{Binding HasQualifications}" />
+                <ItemsControl x:Name="QualificationList" ItemsSource="{Binding QualificationChoices}">
+                  <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                      <StackPanel Spacing="4" />
+                    </ItemsPanelTemplate>
+                  </ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:SetupQualificationChoice">
+                      <CheckBox IsChecked="{Binding IsSelected}" Content="{Binding Name}" />
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <CheckBox x:Name="WorksAtOpeningHoursCheck" IsChecked="{Binding WorksAtOpeningHours}" Content="Arbeitet zu den Öffnungszeiten" />
+                <Button x:Name="AddPersonButton" Content="Person hinzufügen" Command="{Binding AddPersonCommand}" HorizontalAlignment="Left"
+                        Classes.primary="{Binding AddPersonIsDefault}" IsDefault="{Binding AddPersonIsDefault}"
+                        ui:DisabledHint.Text="Verfügbar, sobald Vorname und Nachname eingetragen sind." />
+              </StackPanel>
+
+              <ui:InfoBar x:Name="StepError" Severity="Error" Message="{Binding Error}" IsVisible="{Binding HasError}" />
+            </StackPanel>
+          </Border>
+        </StackPanel>
+      </Grid>
+    </ScrollViewer>
+
+    <Border Grid.Row="1" Classes="divider" VerticalAlignment="Top" />
+    <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8" Margin="0,12,16,12">
+      <Button x:Name="BackButton" Content="Zurück" Classes="ghost" Command="{Binding BackCommand}" IsVisible="{Binding HasBack}" />
+      <Button x:Name="SaveButton" Content="Speichern" Command="{Binding SaveHoursCommand}" IsVisible="{Binding IsHoursStep}"
+              Classes.primary="{Binding SaveIsDefault}" IsDefault="{Binding SaveIsDefault}" />
+      <Button x:Name="OpenAdminButton" Content="In der Verwaltung öffnen" Command="{Binding OpenAdminCommand}" IsVisible="{Binding ShowOpenAdmin}"
+              Classes.primary="{Binding OpenAdminIsDefault}" IsDefault="{Binding OpenAdminIsDefault}" />
+      <Button x:Name="NextButton" Content="Weiter" Command="{Binding NextCommand}" IsVisible="{Binding ShowNext}"
+              Classes.primary="{Binding NextIsDefault}" IsDefault="{Binding NextIsDefault}" />
+      <Button x:Name="SkipButton" Content="Überspringen" Classes="ghost" Command="{Binding NextCommand}" IsVisible="{Binding ShowSkip}" />
+      <Button x:Name="CloseButton" Content="Schließen" Command="{Binding CloseCommand}"
+              Classes.primary="{Binding CloseIsDefault}" IsDefault="{Binding CloseIsDefault}" />
+    </StackPanel>
+  </Grid>
+</UserControl>

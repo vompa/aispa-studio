@@ -190,6 +190,7 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
         if (AdminPage.Company is { } company)
         {
             company.Saved += Companion.OnDataSaved;
+            company.SetupWizardRequested += () => _ = OpenSetupWizardAsync();
         }
 
         if (AdminPage.Locations is { } locations)
@@ -888,6 +889,7 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
         }
 
         _shown = value;
+        CloseSetupWizard();
 
         Companion.InCalendar = value.Page == Calendar;
         Companion.ShowPage(PageKey(value.Title));
@@ -1173,6 +1175,46 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
 
         Toast = null;
         SelectedPage = Pages.First(p => p.Page == AdminPage);
+    }
+
+    /// <summary>Der Assistent „Betrieb einrichten“ (ADR 0104); er liegt über der gewählten Seite, solange er offen ist.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsSetupWizardOpen))]
+    public partial SetupWizardViewModel? SetupWizard { get; private set; }
+
+    public bool IsSetupWizardOpen => SetupWizard is not null;
+
+    /// <summary>Öffnet den Assistenten: auf der Karte „Betrieb einrichten“ und einmal direkt nach „Spa einrichten“.</summary>
+    public async Task OpenSetupWizardAsync()
+    {
+        if (SetupWizard is not null)
+        {
+            return;
+        }
+
+        var wizard = new SetupWizardViewModel(_api, Confirmation, _time);
+        wizard.CloseRequested += CloseSetupWizard;
+        wizard.AdminRequested += step =>
+        {
+            CloseSetupWizard();
+            OpenAdmin(AdminPage.Show(step.Page, step.Tab));
+        };
+        SetupWizard = wizard;
+        await wizard.LoadAsync().ConfigureAwait(true);
+    }
+
+    private void CloseSetupWizard()
+    {
+        if (SetupWizard is null)
+        {
+            return;
+        }
+
+        SetupWizard = null;
+        if (AdminPage.Company is { } company)
+        {
+            _ = company.LoadSetupAsync();
+        }
     }
 
     /// <summary>Meldung unten (Warnung, bleibt bis „Schließen“, meldungen.md M1): ein Sprung in die Verwaltung ging nicht.</summary>

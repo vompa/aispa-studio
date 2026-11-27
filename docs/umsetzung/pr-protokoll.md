@@ -8801,3 +8801,32 @@ Auftrag des Auftraggebers vom 27.11.2026 ([ADR 0104](../entscheidungen/0104-gefu
 - **Folge:** eigener Plan zur Freigabe, sobald der Auftraggeber die Fragen 1, 2, 6 und 7 des Befunds beantwortet hat.
 - **Handtest:** ohne Block, nur ein Dokument.
 - **Text-Prüfsatz:** Befund und dieser Abschnitt nach [texte.md](../gestaltung/texte.md): Empfehlung zuerst, kurze Sätze, je Punkt Befund, Beleg und Folge.
+
+## Assistent „Betrieb einrichten“ in der Windows-App (T-135, 27.11.2026)
+
+Auftrag des Auftraggebers vom 27.11.2026 ([ADR 0104](../entscheidungen/0104-gefuehrte-ersteinrichtung.md), Entscheidungen 4 und 5): Nach „Spa einrichten“ führt ein Assistent von den Öffnungszeiten bis zum Team; die Behandlungen kommen aus dem Startkatalog nach Art des Spas.
+
+- **Was:** neue Ansicht `SetupWizardView` mit `SetupWizardViewModel`. Sie ersetzt die gewählte Seite im Inhaltsbereich und öffnet sich einmal nach „Spa einrichten“ und über **Assistent starten** auf der Karte „Betrieb einrichten“. Die Schritte und ihr Stand kommen aus `GET /api/setup/progress`. Eigene Eingabe haben Öffnungszeiten, Räume, Behandlungen (Startkatalog) und Team; Standort und Kassa führen in die Verwaltung. Die API ist unverändert.
+- **Kein zweiter Datenweg:** Öffnungszeiten über `PUT /api/locations/{id}`, Räume über `POST /api/locations/{id}/rooms`, Behandlungen über `POST /api/setup/catalog/apply`, Personen über `POST /api/employees`.
+- **Detailentscheidungen:**
+  1. **Öffnungszeiten:** Ein Standort ohne Zeiten bekommt den Vorschlag Montag bis Samstag, 09:00 bis 18:00; er gilt erst nach **Speichern**. Der Hauptknopf im Schritt ist immer **Speichern**, weil das Zeitfeld seinen Wert erst mit Enter übernimmt. Ohne geöffneten Tag sendet der Schritt nichts.
+  2. **Räume:** Ein Raum aus dem Assistenten ist ein Behandlungsraum mit einem Platz und 10 Minuten Raumpflege, wie die Vorgabe in den Stammdaten.
+  3. **Behandlungen:** Pakete als Häkchen, nichts vorbelegt; die Räume sind alle vorgewählt und gelten für jedes gewählte Paket. Der Hauptknopf ist immer **Behandlungen anlegen**; **In der Verwaltung öffnen** bleibt der Nebenweg für eigene Behandlungen und Preise.
+  4. **Team:** Vorname, Nachname, Qualifikationen (alle vorgewählt) und „Arbeitet zu den Öffnungszeiten“. Die Anlage braucht kein Anmeldekonto; Zugänge und Einladungen bleiben in der Verwaltung. Für die Inhaberin bietet der Schritt nichts an.
+  5. **Mehrere Standorte:** Die Schritte wirken auf den ersten offenen Standort; sein Name steht in der Überschrift. „Offen“ heißt wie in der API: kein Schließdatum oder eines in der Zukunft.
+  6. **Ein Aufruf zur Zeit:** Während eines Aufrufs sind alle Knöpfe gesperrt, auch im Befehl selbst. Esc schließt nicht, solange Eingaben ungespeichert sind; ungespeicherte Zeiten überleben den Wechsel des Schritts.
+  7. **Fehler:** Antworten der API stehen als Meldung im Schritt. Scheitert das Neuladen nach einem erfolgreichen Schreiben, bleibt das Angelegte in der Liste und eine Meldung nennt es. Ohne das Recht auf Katalog oder Personen (403) führt der Schritt nur in die Verwaltung.
+  8. **Wochentage:** Die Tabelle der Wochentage steht einmal in `OpeningDayViewModel`; `LocationsViewModel` verwendet sie.
+  9. **Knopf gekürzt:** „Zeiten des ersten Tages für alle übernehmen“ heißt **Für alle Tage übernehmen** (Regel der 26 Zeichen).
+- **Abweichung vom Plan:** T-135a und T-135b liefen im selben Worktree und kommen als ein Squash, weil beide dieselben Dateien ändern. `MainViewModel.cs` kam dazu (Übergabe des Merkers nach „Spa einrichten“).
+- **Kalt-Reviews:** zwei, zusammen 14 Befunde, keiner kritisch, alle behoben (unter anderem Enter im Zeitfeld ohne Speichern, verlorene Zeiten beim Schrittwechsel, doppelter Raum nach Esc, verschluckte Ladefehler, Doppelausführung von **Person hinzufügen**).
+- **Hilfe:** `firmendaten.md`, Abschnitt „Assistent“ mit Startkatalog und Team; Fragezeichen in der Ansicht. [Masken-Inventar](masken-inventar.md) nachgezogen.
+- **Neue Tests:** 16 (14 im Modell, 2 Ansichtstests mit Bildern). Je Paket lag das Budget bei 5 und 3 neuen Tests und wurde gehalten; die langsamen Läufe lagen in drei von vier Paketen über dem Budget (5 statt 3, 4 statt 3, 6 statt 4), die Testzeit je Paket unter 3 Minuten.
+- **Geprüft:** Build der Desktop-Tests ohne Warnung, `dotnet format --verify-no-changes` für die geänderten Dateien, `SetupWizardTests` 14 von 14, die Ansichtstests des Assistenten mit den statischen Regeltests 109 von 109, `TermsAndTooltipTests`, `GridValueTests`, `AdminLocationsTests`, Hilfetests 72 von 72. Bilder der Schritte Öffnungszeiten, Behandlungen und Team als Inhaberin angesehen.
+- **Nicht geprüft:** volle Suite, ganze `ViewTests`, dunkles Schema, der Ablauf gegen die echte API im Einzelplatz (nur Stubs), echtes Enter im Zeitfeld und Esc nach dem Anlegen in der laufenden App, der Fall ohne Recht (403) als Test, mehrere Standorte in Behandlungen und Team.
+- **Beim Schreiben festgestellt:**
+  - Jedes Neuladen im Assistenten ruft sechs Endpunkte nacheinander, auch in Schritten, die nicht alle brauchen.
+  - Die Ansicht hat kein Strg+S; die Hilfe der Firmendaten nennt es für die Seite.
+  - Der Assistent endet mit dem letzten Schritt; Abschlussseite und Probetermin kommen mit T-136.
+- **Handtest:** Block T-135.
+- **Text-Prüfsatz:** Oberfläche, Hilfetext und dieser Abschnitt nach [texte.md](../gestaltung/texte.md): Knöpfe als Verb mit Gegenstand, Hinweise an gesperrten Knöpfen beginnen mit „Verfügbar, sobald“, Meldungen ohne „bitte“.

@@ -486,6 +486,12 @@ public partial class LoginViewModel(IWorkstationApi api, Func<CurrentUser, Task>
     private bool CanCompleteSetup => SpaName.Trim().Length > 0 && LocationName.Trim().Length > 0 && OwnerName.Trim().Length > 0
         && UserName.Trim().Length > 0 && Password.Length >= 8 && NewPasswordRepeat.Length > 0;
 
+    /// <summary>
+    /// „Spa einrichten“ ist in diesem Lauf gerade fertig geworden; die App öffnet danach einmal den Assistenten „Betrieb einrichten“ (ADR 0104).
+    /// Nur im Speicher, nirgends gespeichert.
+    /// </summary>
+    public bool SetupJustCompleted { get; private set; }
+
     /// <summary>Einrichtung beim ersten Start; die Wiederholung des Passworts steht in <see cref="NewPasswordRepeat"/>.</summary>
     [RelayCommand(CanExecute = nameof(CanCompleteSetup))]
     private async Task CompleteSetupAsync()
@@ -501,6 +507,7 @@ public partial class LoginViewModel(IWorkstationApi api, Func<CurrentUser, Task>
             UserName.Trim(), Password)).ConfigureAwait(true);
         if (result.Ok)
         {
+            SetupJustCompleted = true;
             SetupRequired = false;
             Password = NewPasswordRepeat = "";
         }

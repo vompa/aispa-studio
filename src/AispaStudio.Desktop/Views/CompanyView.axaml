@@ -44,6 +44,7 @@
               <TextBlock Grid.Column="1" x:Name="SetupSummaryText" Text="{Binding SetupSummary}" Classes="muted" VerticalAlignment="Center" AutomationProperties.LiveSetting="Polite" />
             </Grid>
             <ProgressBar x:Name="SetupProgress" Minimum="0" Maximum="100" Value="{Binding SetupPercent}" AutomationProperties.Name="Fortschritt der Einrichtung" />
+            <Button x:Name="SetupWizardButton" Content="Assistent starten" Classes="primary" HorizontalAlignment="Left" Command="{Binding StartSetupWizardCommand}" />
             <ItemsControl x:Name="SetupList" ItemsSource="{Binding SetupSteps}">
               <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>

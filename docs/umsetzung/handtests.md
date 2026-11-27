@@ -2129,6 +2129,28 @@ Expected: Die Seite bleibt in Schritt 1, der Bereich bleibt offen.
 5. Den Bereich schließen, mit **Weiter** bis Schritt 3 gehen, Name, Benutzername und zwei verschiedene Passwörter mit je 8 Zeichen eintragen und **Spa einrichten** wählen.
 Expected: Die Meldung, dass die Passwörter nicht übereinstimmen, steht in Schritt 3; die Eingaben bleiben.
 6. Die Wiederholung an das Passwort angleichen und **Spa einrichten** wählen.
-Expected: Die App meldet an und zeigt das leere Spa.
+Expected: Die App meldet an und zeigt das leere Spa mit dem Assistenten „Betrieb einrichten“ (T-135).
 Closes: T-133 (ADR 0104, Entscheidung 3)
+Result: ☐
+
+### T-135 – Assistent „Betrieb einrichten“
+Vorbereitung: Ein Einzelplatz ohne Spa (frischer Datenordner).
+Start: „Spa einrichten“ in drei Schritten abschließen.
+1. Nach der Anmeldung die Ansicht ansehen.
+Expected: Der Assistent „Betrieb einrichten“ steht beim Schritt Öffnungszeiten, Montag bis Samstag 09:00 bis 18:00 als Vorschlag, **Speichern** ist der Hauptknopf.
+2. Den Beginn am Montag auf 08:00 ändern, Enter drücken.
+Expected: „Gespeichert“; der Assistent bleibt im Schritt, der Schritt gilt als erledigt. Unter „Standorte & Räume“ stehen später dieselben Zeiten.
+3. **Weiter** wählen, einen Raumnamen eintragen, Enter drücken; einen zweiten Namen tippen und Esc drücken.
+Expected: Der erste Raum steht in der Liste. Esc leert das Feld und holt nicht den ersten Namen zurück; der Assistent bleibt offen.
+4. **Weiter** wählen. Im Schritt Behandlungen ein Paket anhaken und **Behandlungen anlegen** wählen.
+Expected: Eine Meldung nennt, wie viele Behandlungen angelegt und übersprungen wurden; im Paket steht „vorhanden“. Der Hinweis auf fehlende Preise bleibt.
+5. Dasselbe Paket noch einmal anlegen.
+Expected: 0 angelegt, alle übersprungen; in der Verwaltung steht keine Behandlung doppelt.
+6. **Weiter** wählen. Im Schritt Team Vorname und Nachname eintragen und **Person hinzufügen** wählen.
+Expected: Die Person steht in der Liste; im Bereich „Team“ hat sie die Qualifikationen und die Öffnungszeiten als Arbeitszeit.
+7. **Schließen** wählen, „Unternehmen“ öffnen und auf der Karte „Betrieb einrichten“ **Assistent starten** wählen.
+Expected: Die Karte zeigt den neuen Stand; der Assistent öffnet beim ersten offenen Schritt.
+8. Im Assistenten einen Vornamen tippen und Esc drücken; danach in der Seitenleiste „Kalender“ wählen.
+Expected: Esc schließt nicht. Der Klick in die Seitenleiste schließt den Assistenten.
+Closes: T-135 (ADR 0104, Entscheidungen 4 und 5)
 Result: ☐
