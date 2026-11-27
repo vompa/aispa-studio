@@ -54,8 +54,8 @@ Für Skripte und Verknüpfungen gibt es den Schalter `--standalone`; er schaltet
 Die App merkt sich die Betriebsart; jeder weitere Start läuft ohne Schalter als Einzelplatz. `--server` schaltet zurück
 auf den Betrieb mit Server.
 
-Beim ersten Start legt die App die Datenbank an und zeigt dann **„Spa einrichten“**: Name des Spas, Land (Österreich,
-Deutschland oder Schweiz), erster Standort und das Konto der Inhaberin bzw. des Inhabers mit Benutzername und Passwort.
+Beim ersten Start legt die App die Datenbank an und zeigt dann **„Spa einrichten“** in drei Schritten: Name des Spas und Land (Österreich,
+Deutschland oder Schweiz), erster Standort, dann das Konto der Inhaberin bzw. des Inhabers mit Benutzername und Passwort.
 Das geht nur an diesem PC und nur einmal. Weitere Zugänge legt die Leitung danach unter „Zugänge“ an.
 
 Ausführlich: Hilfethema [Einzelplatz](../../web/src/help/content/einzelplatz.md).

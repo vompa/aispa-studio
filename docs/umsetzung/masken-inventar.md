@@ -154,3 +154,5 @@ Der Test `ViewTests.EmptyBusiness` hält das fest: er öffnet die Shell mit eine
 ## Startauswahl (ADR 0104, T-132)
 
 Auf einem PC ohne gewählte Betriebsart, ohne Schalter, ohne `AISPA_API_URL` und ohne antwortenden Server steht auf der Petrolfläche des Startbildschirms (`StartupScreen`) die Karte `StartChoiceCard` statt „Keine Verbindung“. Sie ist nur in der Windows-App, hat keine Webentsprechung und bringt keine eigene Logik: **Neues Spa auf diesem PC einrichten** und **Aus einer Sicherung wiederherstellen** schalten den Einzelplatz ein und starten neu („Spa einrichten“); **Beispiel-Spa ansehen** startet wie `--demo`; **Mit einem vorhandenen Spa verbinden** zeigt die Karten für Netzwerk und Server. Ob das Wiederherstellen dabei gleich geöffnet ist, ist offen: nach dem Neustart steht es auf „Spa einrichten“.
+
+„Spa einrichten“ in `LoginView` hat seit T-133 drei Schritte (Name und Land, erster Standort, Konto der Inhaberin bzw. des Inhabers; ADR 0104, Entscheidung 3) mit **Weiter** und **Zurück** und „Schritt 1 von 3“; Sicherung wiederherstellen und Verbinden stehen schon in Schritt 1, der Vertrag der API bleibt unverändert.

@@ -49,9 +49,11 @@ Im Einzelplatz fehlt außerdem, was nur mit Server geht: im Management das Käst
 
 Beim allerersten Start ist die Datenbank leer, und die App zeigt „Spa einrichten“. Das geht nur direkt an diesem PC, nicht über das Netz, und nur einmal. Danach legt die Leitung alle weiteren Zugänge unter „Zugänge“ an.
 
+Die Einrichtung hat drei kurze Schritte; die Anzeige „Schritt 1 von 3“ nennt den Stand. **Weiter** ist erst aktiv, wenn die Pflichtfelder des Schritts ausgefüllt sind, **Zurück** geht einen Schritt zurück, ohne dass Eingaben verloren gehen. Schritt 1 ist Name des Spas und Land, Schritt 2 der erste Standort, Schritt 3 das Konto des Inhabers. **Aus einer Sicherung wiederherstellen …** und **Mit einem bestehenden Spa verbinden …** stehen schon in Schritt 1.
+
 ### Name des Spas {#spa-name}
 
-Der Name des Betriebs, wie er in der App erscheint. Pflichtfeld.
+Schritt 1. Der Name des Betriebs, wie er in der App erscheint. Pflichtfeld.
 
 ### Land {#land}
 
@@ -59,17 +61,17 @@ Der Name des Betriebs, wie er in der App erscheint. Pflichtfeld.
 
 ### Erster Standort {#erster-standort}
 
-Name des ersten Standorts, z. B. Ort oder Adresse. Pflichtfeld. Weitere Standorte legt der Inhaber später an.
+Schritt 2. Name des ersten Standorts, z. B. Ort oder Adresse. Pflichtfeld. Weitere Standorte legt der Inhaber später an.
 
 ### „Ihr Name“ {#inhaber-name}
 
-Der Name der Person, die einrichtet. Sie bekommt die Rolle Inhaber mit Zugang zu allen Standorten. Pflichtfeld.
+Schritt 3. Der Name der Person, die einrichtet. Sie bekommt die Rolle Inhaber mit Zugang zu allen Standorten. Pflichtfeld.
 
 ### Benutzername und Passwort {#zugang}
 
 Damit meldet sich der Inhaber künftig an. Der Benutzername ist frei wählbar (Umlaute erlaubt). Das Passwort hat mindestens 8 Zeichen, sonst gibt es keine Vorgaben; es muss zweimal gleich eingegeben werden.
 
-„Spa einrichten“ legt Spa, ersten Standort und Inhaber-Konto an und meldet gleich an.
+**Spa einrichten** im dritten Schritt legt Spa, ersten Standort und Inhaber-Konto an und meldet gleich an. Meldet die App dabei einen Fehler, z. B. zum Passwort, steht er in diesem Schritt; liegt er an einem Feld eines früheren Schritts, führt **Zurück** dorthin.
 
 ## Mit einem bestehenden Spa verbinden {#verbinden}
 

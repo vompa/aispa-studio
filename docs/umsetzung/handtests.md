@@ -2114,3 +2114,21 @@ Expected: Die Sicherung läuft, die offene App bleibt offen. `app.log` nennt kei
 Expected: Der Ordner `AispaStudioApp` ist weg, der Datenordner `AispaStudio` mit der Datenbank ist noch da.
 Closes: T-131 (ADR 0104, Entscheidung 1)
 Result: ☐
+
+### T-133 – „Spa einrichten“ in drei Schritten
+Vorbereitung: Ein Einzelplatz ohne Spa (frischer Datenordner oder nach **Neues Spa auf diesem PC einrichten** in der Startauswahl).
+Start: Die App starten und warten, bis „Spa einrichten“ steht.
+1. Die Karte ansehen.
+Expected: „Schritt 1 von 3“, Felder „Name des Spas“ und „Land“. Der Fokus steht im Namen, **Weiter** ist grau.
+2. Einen Namen eintragen und Enter drücken.
+Expected: Schritt 2 mit „Erster Standort“; „Aus einer Sicherung wiederherstellen“ und „Mit einem bestehenden Spa verbinden“ sind nicht mehr zu sehen.
+3. **Zurück** wählen.
+Expected: Schritt 1 mit dem eingetragenen Namen.
+4. „Aus einer Sicherung wiederherstellen“ aufklappen, in das Feld „Wiederherstellungsschlüssel“ klicken und Enter drücken.
+Expected: Die Seite bleibt in Schritt 1, der Bereich bleibt offen.
+5. Den Bereich schließen, mit **Weiter** bis Schritt 3 gehen, Name, Benutzername und zwei verschiedene Passwörter mit je 8 Zeichen eintragen und **Spa einrichten** wählen.
+Expected: Die Meldung, dass die Passwörter nicht übereinstimmen, steht in Schritt 3; die Eingaben bleiben.
+6. Die Wiederholung an das Passwort angleichen und **Spa einrichten** wählen.
+Expected: Die App meldet an und zeigt das leere Spa.
+Closes: T-133 (ADR 0104, Entscheidung 3)
+Result: ☐

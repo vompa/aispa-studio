@@ -7,7 +7,9 @@ using AispaStudio.Desktop.Views;
 using Avalonia.Automation;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.Headless;
 using Avalonia.LogicalTree;
+using Avalonia.Media.Imaging;
 using Avalonia.Styling;
 using Avalonia.VisualTree;
 
@@ -38,7 +40,7 @@ public sealed partial class ViewTests
         else if (state != "Anmeldung mit Code")
         {
             stub.On("GET /api/system/modules", StandaloneModules)
-                .On("GET /api/auth/standalone/setup", new StandaloneSetupState(state == "Einrichtung"))
+                .On("GET /api/auth/standalone/setup", new StandaloneSetupState(state.StartsWith("Einrichtung", StringComparison.Ordinal)))
                 .On("POST /api/auth/standalone/login", StartPasswordUser());
         }
 
@@ -67,6 +69,12 @@ public sealed partial class ViewTests
                 login.Restore!.OpenCommand.Execute(null);
                 login.Join!.OpenCommand.Execute(null);
                 break;
+            case "Einrichtung Schritt 2":
+                GoToSetupStep(login, SetupStep.Location);
+                break;
+            case "Einrichtung Schritt 3":
+                GoToSetupStep(login, SetupStep.Account);
+                break;
             case "Passwort wählen":
                 login.UserName = "rita";
                 login.Password = "start-2026";
@@ -76,6 +84,24 @@ public sealed partial class ViewTests
         }
 
         return login;
+    }
+
+    /// <summary>Geht „Spa einrichten“ mit den nötigen Pflichtfeldern bis zum Schritt vor.</summary>
+    private static void GoToSetupStep(LoginViewModel login, SetupStep step)
+    {
+        while (login.SetupStage < step)
+        {
+            if (login.SetupStage == SetupStep.Spa)
+            {
+                login.SpaName = "Spa am See";
+            }
+            else
+            {
+                login.LocationName = "Gmunden";
+            }
+
+            login.SetupContinueCommand.Execute(null);
+        }
     }
 
     /// <summary>Sichtbare Eingabefelder ohne lesbaren Namen oder mit dem Platzhalter als Namen (den setzte <see cref="AccessibleNames"/> bis R01 Slice 11 als Notbehelf).</summary>
@@ -103,6 +129,8 @@ public sealed partial class ViewTests
     [InlineData("Einzelplatz")]
     [InlineData("Wiederherstellung")]
     [InlineData("Einrichtung")]
+    [InlineData("Einrichtung Schritt 2")]
+    [InlineData("Einrichtung Schritt 3")]
     [InlineData("Passwort wählen")]
     public Task Anmeldeseite_jedes_Feld_hat_in_jedem_Zustand_einen_Namen_der_nicht_aus_dem_Platzhalter_stammt(string state) => Session.Dispatch(async () =>
     {
@@ -125,13 +153,53 @@ public sealed partial class ViewTests
     {
         var login = await LoginIn("Einrichtung");
         var window = await Show(new LoginView { DataContext = login });
-        var setup = window.GetVisualDescendants().OfType<FormField>()
-            .Where(f => f.IsEffectivelyVisible && f.FindAncestorOfType<JoinView>() is null && f.FindAncestorOfType<RestoreView>() is null)
-            .ToList();
-        var required = setup.Where(f => f.Content is Control c && AutomationProperties.GetIsRequiredForForm(c)).Select(f => f.Label).ToList();
+        var required = new List<string>();
+        foreach (var step in new[] { SetupStep.Spa, SetupStep.Location, SetupStep.Account })
+        {
+            GoToSetupStep(login, step);
+            await Pump(Settling);
+            required.AddRange(window.GetVisualDescendants().OfType<FormField>()
+                .Where(f => f.IsEffectivelyVisible && f.FindAncestorOfType<JoinView>() is null && f.FindAncestorOfType<RestoreView>() is null)
+                .Where(f => f.Content is Control c && AutomationProperties.GetIsRequiredForForm(c)).Select(f => f.Label!));
+        }
+
         window.Close();
 
         Assert.Equal(["Name des Spas", "Land", "Erster Standort", "Ihr Name", "Benutzername", "Passwort", "Passwort wiederholen"], required);
+        return true;
+    }, CancellationToken.None);
+
+    /// <summary>Rot, wenn alle Felder in einem Zug sichtbar wären oder der Fokus nicht mit dem Schritt wechselt.</summary>
+    [Fact]
+    public Task Einrichtung_zeigt_in_Schritt_1_nur_dessen_Felder_samt_Sicherung_und_Verbinden_und_setzt_den_Fokus() => Session.Dispatch(async () =>
+    {
+        var login = await LoginIn("Einrichtung");
+        var window = await Show(new LoginView { DataContext = login });
+        await Pump(Settling);
+        var visibleFields = window.GetVisualDescendants().OfType<FormField>()
+            .Where(f => f.IsEffectivelyVisible && f.FindAncestorOfType<JoinView>() is null && f.FindAncestorOfType<RestoreView>() is null)
+            .Select(f => f.Label).Where(l => l != "Testkonto").ToList();
+        var restoreAndJoin = window.GetVisualDescendants().OfType<Control>().Count(c => c is RestoreView or JoinView && c.IsEffectivelyVisible);
+        var focused = TopLevel.GetTopLevel(window)!.FocusManager!.GetFocusedElement() as Control;
+        var firstFieldFocused = focused?.Name;
+        if (Environment.GetEnvironmentVariable("AISPA_SCREENSHOTS") is { Length: > 0 } folder)
+        {
+            Directory.CreateDirectory(folder);
+            window.CaptureRenderedFrame()!.Save(Path.Combine(folder, "einrichten-schritt-1.png"), PngBitmapEncoderOptions.Default);
+        }
+
+        login.SpaName = "Spa am See";
+        window.GetVisualDescendants().OfType<Button>().Single(b => b.Content is "Weiter" && b.IsEffectivelyVisible).Command!.Execute(null);
+        await Pump(Settling);
+        var restoreAndJoinInStep2 = window.GetVisualDescendants().OfType<Control>().Count(c => c is RestoreView or JoinView && c.IsEffectivelyVisible);
+        var secondFieldFocused = (TopLevel.GetTopLevel(window)!.FocusManager!.GetFocusedElement() as Control)?.Name;
+        window.Close();
+
+        Assert.Equal(["Name des Spas", "Land"], visibleFields);
+        Assert.Equal(2, restoreAndJoin);
+        Assert.Equal(0, restoreAndJoinInStep2);
+        Assert.Equal("SetupSpaNameBox", firstFieldFocused);
+        Assert.Equal("SetupLocationBox", secondFieldFocused);
         return true;
     }, CancellationToken.None);
 

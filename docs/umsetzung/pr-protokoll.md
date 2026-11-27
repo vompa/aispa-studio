@@ -8737,3 +8737,25 @@ Auftrag des Auftraggebers vom 27.11.2026 ([ADR 0104](../entscheidungen/0104-gefu
   - Wer die App nie schließt und sie nur neben der laufenden Sicherung startet, bekommt kein Update. Ein Hinweis in der App fehlt.
   - Der Delta-Weg von Velopack prüft das fertige Paket nicht gegen die Prüfsumme; das ist ein Grund mehr, mit Vollpaketen zu beginnen.
 - **Text-Prüfsatz:** Hilfe, Installationsseiten und dieser Abschnitt nach [texte.md](../gestaltung/texte.md): kurze Sätze, Knöpfe fett, kein „bitte“; `textRules.test.ts` grün.
+
+## „Spa einrichten“ in drei Schritten (T-133, 27.11.2026)
+
+Auftrag des Auftraggebers vom 27.11.2026 ([ADR 0104](../entscheidungen/0104-gefuehrte-ersteinrichtung.md), Entscheidung 3): Die Ersteinrichtung führt in kurzen Schritten statt mit einem Formular aus sechs Feldern.
+
+- **Was:** Das Formular „Spa einrichten“ in der Anmeldung (`LoginView`) hat drei Schritte: Name des Spas und Land, erster Standort, Konto der Inhaberin bzw. des Inhabers. Die Anzeige „Schritt n von 3“ nennt den Stand. **Weiter** ist aktiv, sobald die Pflichtfelder des Schritts ausgefüllt sind, **Zurück** behält die Eingaben. **Spa einrichten** steht im dritten Schritt.
+- **Vertrag:** unverändert. Die App schickt am Ende dieselbe Anfrage `StandaloneSetup` wie bisher.
+- **Detailentscheidungen:**
+  1. **Muster übernommen**, nicht neu erfunden: Schritt als Enum (`SetupStep`), `SetupContinueCommand`, `SetupBackCommand`, wie im Kundenimport.
+  2. **Wiederherstellen und Verbinden nur in Schritt 1.** Wer aus einer Sicherung wiederherstellt oder sich mit einem bestehenden Spa verbindet, richtet kein neues Spa ein.
+  3. **Fokus** steht nach jedem Wechsel im ersten Feld des Schritts.
+  4. **Fehler der API** erscheinen im dritten Schritt. Die API prüft nur Pflichtfelder und Land; ein Fehler zu einem früheren Schritt ist damit praktisch ausgeschlossen, **Zurück** führt sonst dorthin.
+  5. **Standardknopf:** **Weiter** in Schritt 1 und 2, **Spa einrichten** in Schritt 3. Ist „Wiederherstellen“ oder „Verbinden“ aufgeklappt, hat die Seite keinen Standardknopf; Enter in deren Feldern sprang sonst zu Schritt 2 und blendete den offenen Bereich aus.
+- **Kalt-Review:** vier Befunde, alle behoben (Punkt 5, Schritt 2 fehlte in zwei Zustandstests, eine Zählung prüfte „mindestens 1“ statt genau 2, ein Richtungswort im Hilfetext).
+- **Hilfe und Doku:** `einzelplatz.md` (Abschnitt „Spa einrichten“), [standalone.md](../installation/standalone.md), [Masken-Inventar](masken-inventar.md).
+- **Neue Tests:** 2 (Budget 5): Schritte mit **Weiter** und **Zurück** samt erhaltenen Eingaben in `StandaloneLoginTests`, Ansichtstest der Schritte mit Fokus. Die Zustandstests der Anmeldeseite (Feldnamen, Standardknopf) kennen jetzt alle drei Schritte.
+- **Geprüft:** `dotnet format --verify-no-changes`, Build in Release ohne Warnung, `--filter-method "*Anmeldeseite*"` 20 von 20, `StandaloneLoginTests` 8 von 8 (`.test-logs/t133-k-anm.log`, `t133-k-vm.log`), `npm test -- src/help` grün. Das Bild von Schritt 1 wurde angesehen.
+- **Nicht geprüft:** Enter in der laufenden App, die Bilder der Schritte 2 und 3, die ganze Klasse `ViewTests`, die volle Suite, Handbuchbilder.
+- **Beim Schreiben festgestellt:**
+  - „Aus einer Sicherung wiederherstellen“ in der Startauswahl (T-132) landet weiter auf Schritt 1; der Bereich ist dort nicht von selbst aufgeklappt.
+  - Im aufgeklappten „Wiederherstellen“ oder „Verbinden“ löst Enter keinen Knopf aus; das war vorher auch so.
+- **Text-Prüfsatz:** Texte der Maske, der Hilfe und dieses Abschnitts nach [texte.md](../gestaltung/texte.md): kurze Sätze, Knöpfe fett, kein Richtungswort; `textRules.test.ts` grün.
