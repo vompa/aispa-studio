@@ -74,6 +74,14 @@ public sealed partial class ViewTests
         await Pump(Settling);
         Assert.Equal(["AddPersonButton"], Defaults());
         SaveShot(window, "betrieb-einrichten-team", "hell");
+
+        // Tippen im zweiten Feld darf den Fokus nicht ins erste Feld holen.
+        var lastName = window.GetVisualDescendants().OfType<TextBox>().Single(t => t.Name == "LastNameBox");
+        lastName.Focus();
+        lastName.Text = "Muster";
+        await Pump();
+        Assert.Same(lastName, Focused(window));
+        lastName.Text = "";
         wizard.BackCommand.Execute(null);
         await Pump(Settling);
         return shell;
@@ -87,4 +95,62 @@ public sealed partial class ViewTests
         new("massage", "Massagen", "Klassiker für den Start.", "Masseur", [new("Klassische Massage", 60, 5, 5, "Massage", false), new("Fußreflexzonenmassage", 30, 0, 0, "Massage", true)]),
         new("beauty", "Kosmetik", "Gesichtsbehandlungen.", "Kosmetikerin", [new("Gesichtsbehandlung", 60, 0, 0, "Kosmetik", false)]),
     }));
+
+    /// <summary>Rot, wenn die Abschlussseite den Fokus nicht auf „Probetermin im Kalender“ setzt, nicht genau einen Standardknopf zeigt oder der Knopf den Assistenten nicht schließt und den Kalender nicht auf Tag und Standort stellt.</summary>
+    [Fact]
+    public Task Betrieb_einrichten_Assistent_zeigt_die_Abschlussseite_und_der_Probetermin_oeffnet_den_Kalender()
+    {
+        var stub = FinishApi();
+        return Render("hell", "betrieb-einrichten-probetermin", async (window, main) =>
+    {
+        var shell = await ShowCustomers(window, main);
+        await shell.OpenSetupWizardAsync();
+        await Pump(Settling);
+
+        var wizard = shell.SetupWizard!;
+        await wizard.NextCommand.ExecuteAsync(null);
+        await Pump(Settling);
+
+        Assert.True(wizard.IsFinishStep);
+        var controls = window.GetVisualDescendants().OfType<Control>().ToList();
+        Assert.Same(controls.OfType<Button>().Single(b => b.Name == "OpenCalendarButton"), Focused(window));
+        Assert.Equal(["OpenCalendarButton"], controls.OfType<Button>().Where(b => b.IsDefault && b.IsEffectivelyVisible).Select(b => b.Name).ToList());
+        Assert.True(controls.Single(c => c.Name == "OpenStepsPanel").IsEffectivelyVisible);
+        SaveShot(window, "betrieb-einrichten-abschluss", "hell");
+
+        // Nicht buchbar: „Zurück“ ist der Hauptknopf (genau ein Standardknopf, nicht zugleich ghost).
+        stub.On("GET /api/setup/progress?readiness=true", FinishProgress(new SetupReadinessDto(false, null, "Es ist keine Behandlung angelegt.")));
+        await wizard.LoadReadinessCommand.ExecuteAsync(null);
+        await Pump(Settling);
+        controls = window.GetVisualDescendants().OfType<Control>().ToList();
+        var back = controls.OfType<Button>().Single(b => b.Name == "BackButton");
+        Assert.Equal(["BackButton"], controls.OfType<Button>().Where(b => b.IsDefault && b.IsEffectivelyVisible).Select(b => b.Name).ToList());
+        Assert.DoesNotContain("ghost", back.Classes);
+        Assert.Contains("primary", back.Classes);
+        SaveShot(window, "betrieb-einrichten-nicht-buchbar", "hell");
+        stub.On("GET /api/setup/progress?readiness=true", FinishProgress(FinishReady()));
+        await wizard.LoadReadinessCommand.ExecuteAsync(null);
+        await Pump(Settling);
+
+        wizard.OpenCalendarCommand.Execute(null);
+        await Pump();
+        Assert.Null(shell.SetupWizard);
+        Assert.Equal((new DateOnly(2026, 12, 1), SpaSample.LocationId), (shell.Calendar.Date, shell.Calendar.Location!.Id));
+        return shell;
+    }, stub);
+    }
+
+    private static StubApi FinishApi() => Api().On("GET /api/setup/progress", FinishProgress(null))
+        .On("GET /api/setup/progress?readiness=true", FinishProgress(FinishReady()))
+        .On("GET /api/setup/catalog", new List<SetupCatalogPackageDto>()).On("GET /api/qualifications", new List<QualificationDto>());
+
+    private static SetupReadinessDto FinishReady() => new(true, new SetupFirstSlotDto(SpaSample.LocationId, SpaSample.Vienna.Name, SpaSample.Treatments[0].Id, SpaSample.Treatments[0].Name,
+        new DateTimeOffset(2026, 12, 1, 9, 0, 0, TimeSpan.Zero)));
+
+    private static SetupProgressDto FinishProgress(SetupReadinessDto? readiness) => new(
+    [
+        new("location", "Standort anlegen", "Name und Zeitzone.", true, "masterData", "locations"),
+        new("treatments", "Behandlungen anlegen", "Was das Spa anbietet.", true, "masterData", "treatments", null, "Bei 2 Behandlungen fehlt der Preis."),
+        new("register", "Kassa einrichten", "Kassa-ID und Belegkopf.", false, "masterData", "kassa", "Es ist keine Kassa eingerichtet."),
+    ], readiness);
 }

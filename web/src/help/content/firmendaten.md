@@ -31,6 +31,8 @@ Der Assistent führt Schritt für Schritt durch dieselben Punkte wie die Karte, 
 - **Team**: Die Liste zeigt die vorhandenen Personen. Vorname und Nachname sind Pflicht; alle Qualifikationen sind vorgewählt, was die Person nicht kann, lässt sich abwählen. **Arbeitet zu den Öffnungszeiten** übernimmt die gespeicherten Öffnungszeiten des Standorts als Arbeitszeit, **Person hinzufügen** legt die Person ohne Zugang an. Zugänge und feinere Arbeitszeiten stehen in der Verwaltung.
 - **Standort und Kassa**: Der Schritt zeigt, was fehlt. **In der Verwaltung öffnen** führt in die Maske, in der es eingetragen wird; der Assistent schließt sich dabei.
 
+**Fertig**: Hinter dem letzten Schritt prüft die Abschlussseite, ob sich in den nächsten 14 Tagen eine Behandlung buchen lässt. Ist das so, nennt sie die Behandlung und den ersten freien Platz mit Tag, Uhrzeit und Standort; **Probetermin im Kalender** schließt den Assistenten und öffnet den Kalender an diesem Tag und Standort. Wenn nicht, steht der Grund da, und **Zurück** führt in die Schritte. Darunter stehen die noch offenen Schritte, etwa die Kassa oder fehlende Preise, jeder mit **Zum Schritt**. Kein Schritt hält auf. Der ganze Ablauf steht unter [Erste Schritte](hilfe:erste-schritte).
+
 **Weiter** geht zum nächsten Schritt, **Zurück** zum vorigen, **Überspringen** lässt einen offenen Schritt aus, **Schließen** beendet den Assistenten. Nichts davon ist Pflicht: Kein Schritt hält auf, und die Karte bleibt, bis alles erledigt ist. Esc schließt den Assistenten nur, solange nichts Ungespeichertes in einem Feld steht. Nach jedem Speichern lädt der Assistent den Stand neu.
 
 ## Firmendaten {#firmendaten}

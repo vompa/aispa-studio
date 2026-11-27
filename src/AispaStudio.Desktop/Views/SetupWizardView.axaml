@@ -183,13 +183,56 @@
               <ui:InfoBar x:Name="StepError" Severity="Error" Message="{Binding Error}" IsVisible="{Binding HasError}" />
             </StackPanel>
           </Border>
+          <!-- Abschlussseite „Fertig“: Bereitschaft aus der API und die offenen Schritte -->
+          <Border x:Name="FinishCard" Classes="card" IsVisible="{Binding IsFinishStep}">
+            <StackPanel Spacing="12">
+              <ui:InfoBar x:Name="ReadinessErrorBar" Severity="Error" Title="Bereitschaft nicht geladen" Message="{Binding ReadinessError}" IsVisible="{Binding HasReadinessError}"
+                          ActionText="Erneut laden" ActionCommand="{Binding LoadReadinessCommand}" />
+              <TextBlock Text="Prüfe die Bereitschaft …" Classes="muted" IsVisible="{Binding IsBusy}" />
+              <StackPanel x:Name="ReadyPanel" Spacing="8" IsVisible="{Binding IsReady}">
+                <TextBlock x:Name="ReadyTitle" Text="Das Spa ist bereit für den ersten Termin" Classes="h2" TextWrapping="Wrap" />
+                <TextBlock x:Name="ReadyTreatment" Text="{Binding FirstSlotTreatment}" TextWrapping="Wrap" />
+                <TextBlock x:Name="ReadyWhen" Text="{Binding FirstSlotWhen}" Classes="muted" TextWrapping="Wrap" />
+                <Button x:Name="OpenCalendarButton" Content="Probetermin im Kalender" Command="{Binding OpenCalendarCommand}" HorizontalAlignment="Left"
+                        Classes.primary="{Binding OpenCalendarIsDefault}" IsDefault="{Binding OpenCalendarIsDefault}" />
+              </StackPanel>
+              <StackPanel x:Name="NotReadyPanel" Spacing="8" IsVisible="{Binding IsNotReady}">
+                <TextBlock Text="Noch nicht buchbar" Classes="h2" TextWrapping="Wrap" />
+                <TextBlock x:Name="NotReadyReason" Text="{Binding NotReadyReason}" TextWrapping="Wrap" />
+              </StackPanel>
+              <StackPanel x:Name="OpenStepsPanel" Spacing="8" IsVisible="{Binding HasOpenSteps}">
+                <TextBlock Text="Noch zu tun" Classes="h3" />
+                <ItemsControl x:Name="OpenStepList" ItemsSource="{Binding OpenSteps}">
+                  <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                      <StackPanel Spacing="8" />
+                    </ItemsPanelTemplate>
+                  </ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:SetupOpenStep">
+                      <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                        <StackPanel>
+                          <TextBlock Text="{Binding Title}" TextWrapping="Wrap" />
+                          <TextBlock Text="{Binding Missing}" Classes="muted small" TextWrapping="Wrap" />
+                        </StackPanel>
+                        <Button Grid.Column="1" Content="Zum Schritt" Classes="ghost" VerticalAlignment="Center"
+                                Command="{Binding $parent[UserControl].((vm:SetupWizardViewModel)DataContext)?.GoToStepCommand}" CommandParameter="{Binding}"
+                                AutomationProperties.Name="{Binding JumpName}" />
+                      </Grid>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+            </StackPanel>
+          </Border>
         </StackPanel>
       </Grid>
     </ScrollViewer>
 
     <Border Grid.Row="1" Classes="divider" VerticalAlignment="Top" />
     <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8" Margin="0,12,16,12">
-      <Button x:Name="BackButton" Content="Zurück" Classes="ghost" Command="{Binding BackCommand}" IsVisible="{Binding HasBack}" />
+      <Button x:Name="BackButton" Content="Zurück" Classes.ghost="{Binding !BackIsDefault}" Command="{Binding BackCommand}" IsVisible="{Binding HasBack}"
+              Classes.primary="{Binding BackIsDefault}" IsDefault="{Binding BackIsDefault}" />
       <Button x:Name="SaveButton" Content="Speichern" Command="{Binding SaveHoursCommand}" IsVisible="{Binding IsHoursStep}"
               Classes.primary="{Binding SaveIsDefault}" IsDefault="{Binding SaveIsDefault}" />
       <Button x:Name="OpenAdminButton" Content="In der Verwaltung öffnen" Command="{Binding OpenAdminCommand}" IsVisible="{Binding ShowOpenAdmin}"

@@ -59,7 +59,6 @@ public sealed partial class SetupWizardTests
         wizard.AdminRequested += step => requested = step;
         Assert.True(wizard.IsAdminStep);
         Assert.Equal(SetupWizardDefault.OpenAdmin, wizard.DefaultButton);
-        Assert.False(wizard.NextCommand.CanExecute(null));
         wizard.OpenAdminCommand.Execute(null);
 
         Assert.Equal(("masterData", "treatments"), (requested!.Page, requested.Tab));

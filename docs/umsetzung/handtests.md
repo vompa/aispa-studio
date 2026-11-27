@@ -2154,3 +2154,19 @@ Expected: Die Karte zeigt den neuen Stand; der Assistent öffnet beim ersten off
 Expected: Esc schließt nicht. Der Klick in die Seitenleiste schließt den Assistenten.
 Closes: T-135 (ADR 0104, Entscheidungen 4 und 5)
 Result: ☐
+
+### T-136 – Abschluss des Assistenten und Probetermin
+Vorbereitung: Der Einzelplatz aus dem Handtest T-135 (Öffnungszeiten, ein Raum, ein Paket, eine Person).
+Start: „Unternehmen“ öffnen und auf der Karte „Betrieb einrichten“ **Assistent starten** wählen.
+1. Mit **Weiter** und **Überspringen** bis hinter den letzten Schritt gehen.
+Expected: „Das Spa ist bereit für den ersten Termin“ mit Behandlung, Tag, Uhrzeit und Standort. Unter „Noch zu tun“ stehen die Kassa und der Hinweis auf fehlende Preise.
+2. Bei „Behandlungen anlegen“ **Zum Schritt** wählen, dann im Schritt Team in das Feld „Nachname“ klicken und einen Namen tippen.
+Expected: Der Assistent steht im Schritt Behandlungen. Im Schritt Team bleibt der Fokus beim Tippen im Feld „Nachname“.
+3. Zur Abschlussseite zurückgehen und **Probetermin im Kalender** wählen.
+Expected: Der Assistent schließt, der Kalender zeigt den genannten Tag am genannten Standort mit dem Raum und der Person aus dem Assistenten. Ein Termin mit einer Behandlung aus dem Paket lässt sich dort anlegen.
+4. Auf einem zweiten frischen Einzelplatz den Assistenten ohne Eingaben bis zum Ende überspringen.
+Expected: „Noch nicht buchbar“ mit dem Grund; **Zurück** ist der Hauptknopf und gut lesbar. Esc schließt den Assistenten.
+5. Die Hilfe öffnen und „Erste Schritte“ suchen.
+Expected: Das Thema zeigt den Weg von der Startauswahl bis zum Probetermin mit drei Bildern; die Verweise unter „Danach“ öffnen ihre Themen.
+Closes: T-136 (ADR 0104, Entscheidung 4)
+Result: ☐

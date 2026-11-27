@@ -1199,8 +1199,20 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
             CloseSetupWizard();
             OpenAdmin(AdminPage.Show(step.Page, step.Tab));
         };
+        wizard.CalendarRequested += slot =>
+        {
+            CloseSetupWizard();
+            _ = ShowCalendarAtAsync(slot, wizard.DayOf(slot));
+        };
         SetupWizard = wizard;
         await wizard.LoadAsync().ConfigureAwait(true);
+    }
+
+    /// <summary>„Probetermin im Kalender“ aus dem Assistenten: der Kalender liest die Stammdaten neu und zeigt den Tag des ersten freien Platzes an diesem Standort.</summary>
+    private async Task ShowCalendarAtAsync(SetupFirstSlotDto slot, DateOnly day)
+    {
+        SelectedPage = Pages.First(p => p.Page == Calendar);
+        await Calendar.ShowDayAsync(slot.LocationId, day).ConfigureAwait(true);
     }
 
     private void CloseSetupWizard()

@@ -39,7 +39,7 @@ public partial class SetupWizardView : UserControl
 
     private void OnModelChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName is nameof(SetupWizardViewModel.Index) or nameof(SetupWizardViewModel.IsLoaded))
+        if (e.PropertyName is nameof(SetupWizardViewModel.Index) or nameof(SetupWizardViewModel.IsLoaded) or nameof(SetupWizardViewModel.ReadinessLoaded))
         {
             FocusStep();
         }
@@ -88,6 +88,7 @@ public partial class SetupWizardView : UserControl
             Control? target = _model switch
             {
                 { IsHoursStep: true } => this.GetVisualDescendants().OfType<CheckBox>().FirstOrDefault(c => c.Name == "DayOpen" && c.IsEffectivelyVisible),
+                { IsFinishStep: true } => _model.IsReady ? OpenCalendarButton : _model.HasBack ? BackButton : CloseButton,
                 { IsRoomsStep: true } => NewRoomBox,
                 { IsTreatmentsStep: true } => this.GetVisualDescendants().OfType<CheckBox>().FirstOrDefault(c => c.Name == "PackageCheck" && c.IsEffectivelyVisible),
                 { IsPeopleStep: true } => FirstNameBox,

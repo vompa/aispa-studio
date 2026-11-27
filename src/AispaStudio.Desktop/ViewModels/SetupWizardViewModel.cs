@@ -15,6 +15,8 @@ public enum SetupWizardDefault
     ApplyCatalog,
     AddPerson,
     OpenAdmin,
+    OpenCalendar,
+    Back,
     Next,
     Close,
 }
@@ -75,7 +77,7 @@ public sealed partial class SetupWizardViewModel : ViewModelBase
 
     /// <summary>Ein Aufruf läuft; solange sind Speichern, Hinzufügen und jede Navigation gesperrt und Esc schließt nicht.</summary>
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(BackCommand), nameof(NextCommand), nameof(CloseCommand), nameof(OpenAdminCommand), nameof(SaveHoursCommand), nameof(AddRoomCommand), nameof(ApplyCatalogCommand), nameof(AddPersonCommand))]
+    [NotifyCanExecuteChangedFor(nameof(BackCommand), nameof(NextCommand), nameof(CloseCommand), nameof(OpenAdminCommand), nameof(SaveHoursCommand), nameof(AddRoomCommand), nameof(ApplyCatalogCommand), nameof(AddPersonCommand), nameof(OpenCalendarCommand), nameof(LoadReadinessCommand), nameof(GoToStepCommand))]
     public partial bool IsBusy { get; private set; }
 
     public bool IsLoading => !IsLoaded && LoadError is null;
@@ -115,7 +117,7 @@ public sealed partial class SetupWizardViewModel : ViewModelBase
 
     public bool HasBack => Index > 0;
 
-    public bool HasNext => Index < _steps.Count - 1;
+    public bool HasNext => Index < _steps.Count;
 
     public bool ShowNext => HasNext && IsDone;
 
@@ -135,12 +137,17 @@ public sealed partial class SetupWizardViewModel : ViewModelBase
 
     public bool HasUnsavedHours => HoursSignature() != _savedHours;
 
-    public bool HasUnsavedInput => HasUnsavedHours || (IsRoomsStep && NewRoomName.Trim().Length > 0) || (IsTreatmentsStep && HasPackageSelection) || (IsPeopleStep && HasPersonInput);
+    public bool HasUnsavedInput => !IsFinishStep && (HasUnsavedHours || (IsRoomsStep && NewRoomName.Trim().Length > 0) || (IsTreatmentsStep && HasPackageSelection) || (IsPeopleStep && HasPersonInput));
 
     public SetupWizardDefault DefaultButton
     {
         get
         {
+            if (IsFinishStep)
+            {
+                return ReadinessLoaded && IsReady ? SetupWizardDefault.OpenCalendar : ReadinessLoaded && HasBack ? SetupWizardDefault.Back : SetupWizardDefault.Close;
+            }
+
             // Das Zeitfeld übernimmt erst bei Enter; deshalb ist Enter im Schritt immer „Speichern“ (ein erneutes Speichern unveränderter Zeiten schadet nicht).
             if (IsHoursStep)
             {
@@ -182,6 +189,10 @@ public sealed partial class SetupWizardViewModel : ViewModelBase
 
     public bool OpenAdminIsDefault => DefaultButton == SetupWizardDefault.OpenAdmin;
 
+    public bool OpenCalendarIsDefault => DefaultButton == SetupWizardDefault.OpenCalendar;
+
+    public bool BackIsDefault => DefaultButton == SetupWizardDefault.Back;
+
     public bool NextIsDefault => DefaultButton == SetupWizardDefault.Next;
 
     public bool CloseIsDefault => DefaultButton == SetupWizardDefault.Close;
@@ -201,8 +212,12 @@ public sealed partial class SetupWizardViewModel : ViewModelBase
         }
 
         var first = _steps.ToList().FindIndex(s => !s.Done);
-        SetIndex(first < 0 ? 0 : first);
+        SetIndex(first < 0 ? _steps.Count : first);
         IsLoaded = true;
+        if (IsFinishStep)
+        {
+            await LoadReadinessAsync().ConfigureAwait(true);
+        }
     }
 
     /// <summary>
@@ -243,6 +258,7 @@ public sealed partial class SetupWizardViewModel : ViewModelBase
         _steps = progress.Steps;
         _multipleLocations = locations.Count(IsOpenLocation) > 1;
         _location = location;
+        _allLocations = locations;
         Rooms.Clear();
         foreach (var room in rooms.Where(r => !r.IsArea))
         {
@@ -364,7 +380,7 @@ public sealed partial class SetupWizardViewModel : ViewModelBase
 
     private void SetIndex(int index)
     {
-        Index = Math.Clamp(index, 0, Math.Max(0, _steps.Count - 1));
+        Index = Math.Clamp(index, 0, _steps.Count);
         Error = null;
         CatalogMessage = null;
         RaiseStateChanged();
@@ -382,10 +398,26 @@ public sealed partial class SetupWizardViewModel : ViewModelBase
     private void Back() => SetIndex(Index - 1);
 
     [RelayCommand(CanExecute = nameof(CanNext))]
-    private void Next() => SetIndex(Index + 1);
+    private async Task NextAsync()
+    {
+        SetIndex(Index + 1);
+        if (IsFinishStep)
+        {
+            await LoadReadinessAsync().ConfigureAwait(true);
+        }
+    }
 
-    [RelayCommand(CanExecute = nameof(CanAct))]
-    private void Close() => CloseRequested?.Invoke();
+    /// <summary>Schließen ist auch während der Abfrage der Bereitschaft möglich; deren Ergebnis wird danach verworfen.</summary>
+    private bool CanClose => !IsBusy || _readinessLoading;
+
+    private void RequestClose()
+    {
+        _closed = true;
+        CloseRequested?.Invoke();
+    }
+
+    [RelayCommand(CanExecute = nameof(CanClose))]
+    private void Close() => RequestClose();
 
     [RelayCommand(CanExecute = nameof(CanAct))]
     private void OpenAdmin()
@@ -503,12 +535,12 @@ public sealed partial class SetupWizardViewModel : ViewModelBase
     /// <summary>Esc schließt nur, wenn keine Eingabe verloren ginge; sonst bleibt der Assistent stehen.</summary>
     public bool TryCloseWithEscape()
     {
-        if (IsBusy || HasUnsavedInput)
+        if ((IsBusy && !_readinessLoading) || HasUnsavedInput)
         {
             return false;
         }
 
-        CloseRequested?.Invoke();
+        RequestClose();
         return true;
     }
 
@@ -523,7 +555,8 @@ public sealed partial class SetupWizardViewModel : ViewModelBase
             nameof(Current), nameof(StepText), nameof(HasStep), nameof(IsDone), nameof(IsOpen), nameof(Missing), nameof(Note), nameof(HasBack), nameof(HasNext),
             nameof(ShowNext), nameof(ShowSkip), nameof(IsHoursStep), nameof(IsRoomsStep), nameof(IsAdminStep), nameof(IsTreatmentsStep), nameof(IsPeopleStep),
             nameof(ShowOpenAdmin), nameof(ShowNoRoomHint), nameof(HasTreatmentRoom), nameof(HasPackageSelection), nameof(HasPersonInput), nameof(ApplyCatalogIsDefault),
-            nameof(AddPersonIsDefault), nameof(HasQualifications), nameof(LocationHeading), nameof(HasUnsavedHours),
+            nameof(AddPersonIsDefault), nameof(HasQualifications), nameof(IsFinishStep), nameof(IsReady), nameof(IsNotReady), nameof(HasOpenSteps),
+            nameof(OpenCalendarIsDefault), nameof(BackIsDefault), nameof(LocationHeading), nameof(HasUnsavedHours),
             nameof(HasUnsavedInput), nameof(DefaultButton), nameof(SaveIsDefault), nameof(AddRoomIsDefault), nameof(OpenAdminIsDefault), nameof(NextIsDefault),
             nameof(CloseIsDefault),
         })

@@ -8830,3 +8830,27 @@ Auftrag des Auftraggebers vom 27.11.2026 ([ADR 0104](../entscheidungen/0104-gefu
   - Der Assistent endet mit dem letzten Schritt; Abschlussseite und Probetermin kommen mit T-136.
 - **Handtest:** Block T-135.
 - **Text-Prüfsatz:** Oberfläche, Hilfetext und dieser Abschnitt nach [texte.md](../gestaltung/texte.md): Knöpfe als Verb mit Gegenstand, Hinweise an gesperrten Knöpfen beginnen mit „Verfügbar, sobald“, Meldungen ohne „bitte“.
+
+## Abschluss des Assistenten mit Probetermin, Handbuch „Erste Schritte“ (T-136, 27.11.2026)
+
+Auftrag des Auftraggebers vom 27.11.2026 ([ADR 0104](../entscheidungen/0104-gefuehrte-ersteinrichtung.md), Entscheidung 4, Zeile „Abschluss“): Der Assistent endet mit der Prüfung, ob sich eine Behandlung buchen lässt, und führt zum ersten Termin.
+
+- **Was:** Abschlussseite des Assistenten „Betrieb einrichten“ (`SetupWizardViewModel.Finish.cs`), neue Methode `CalendarViewModel.ShowDayAsync`, neues Hilfethema [Erste Schritte](../../web/src/help/content/erste-schritte.md) mit drei Bildern. Die API ist unverändert.
+- **Detailentscheidungen:**
+  1. **Abschlussseite:** Sie folgt auf den letzten Schritt und öffnet sich direkt, wenn alle Schritte erledigt sind. „Schritt n von m“ zählt sie nicht mit. Beim Öffnen fragt sie `GET /api/setup/progress?readiness=true`.
+  2. **Buchbar:** Behandlung, Tag, Uhrzeit und Standort des ersten freien Platzes, in der Zeitzone des Standorts. **Probetermin im Kalender** ist der Hauptknopf.
+  3. **Nicht buchbar:** der Grund im Wortlaut der API. Die API nennt zum Grund keinen Schritt, deshalb ist **Zurück** der Hauptknopf.
+  4. **„Noch zu tun“:** offene Schritte und erledigte Schritte mit Hinweis (etwa fehlende Preise), je mit **Zum Schritt**. Nichts blockiert.
+  5. **Sprung in den Kalender:** `ShowDayAsync` liest die Standorte neu, verwirft die zwischengespeicherten Stammdaten und lädt einmal. Ohne das kennt der Kalender Räume, Team und Behandlungen nicht, die der Assistent eben angelegt hat. Der Kalender öffnet den Tag; eine Uhrzeit wählt er nicht vor, weil es dafür keine vorhandene Navigation gibt.
+  6. **Schließen** und Esc bleiben während der Prüfung der Bereitschaft möglich; ein Ergebnis nach dem Schließen wird verworfen.
+  7. **Hilfe:** „Erste Schritte“ beschreibt den Weg von der Startauswahl bis zum Probetermin und nennt unter „Danach“ Zugänge, Kundenimport und Module als Verweise. Eine eigene Oberfläche für diese Hinweise gibt es nicht.
+- **Kalt-Review:** sieben Befunde, einer kritisch, alle behoben. Kritisch: Die Abschlussseite meldete ihren Ladezustand bei jeder Eingabe, die Ansicht setzte darauf den Fokus neu; beim Tippen im Schritt Team sprang der Fokus nach jedem Zeichen ins erste Feld. Ein Test im Modell und einer in der Ansicht halten das fest.
+- **Bilder:** `scripts/help-images.sh` kennt nur den vollen Lauf. Die drei Bilder stammen aus den gezielten Ansichtstests (`AISPA_SCREENSHOTS`), wurden nach `web/src/help/images/app/` kopiert und mit `scripts/help-images-shrink.py` verkleinert. Sie tragen keine Markierung. Der volle Bildlauf erzeugt sie unter denselben Namen neu.
+- **Neue Tests:** 7 (6 im Modell, 1 Ansichtstest); zwei Ansichtstests erweitert. Die langsamen Läufe lagen im Korrekturpaket über dem Budget (6 statt 3), die Testzeit unter 5 Minuten.
+- **Geprüft:** Build der Desktop-Tests ohne Warnung, `dotnet format --verify-no-changes` für die geänderten Dateien, `SetupWizardTests` 20 von 20, Ansichtstests des Assistenten mit den statischen Regeltests 110 von 110, `CalendarTests` 42 von 42, `HelpTests` 25 von 25, `npm run lint`, `npm run typecheck`, Hilfetests 72 von 72. Bilder „bereit“ und „nicht buchbar“ als Inhaberin angesehen.
+- **Nicht geprüft:** volle Suite, ganze `ViewTests`, dunkles Schema, der Ablauf gegen die echte API im Einzelplatz, was der Kalender nach dem Sprung zeigt (nur Datum, Standort und Abfragen), Schließen während der laufenden Prüfung und der zweite Besuch der Seite (nur gelesen). Den Korrekturstand hat kein zweiter Kalt-Review gelesen.
+- **Beim Schreiben festgestellt:**
+  - `SetupReadinessDto` nennt zum Grund keinen Schritt; mit einem Schlüssel könnte die Seite direkt zum passenden Schritt springen.
+  - `scripts/help-images.sh` hat keinen Filter für einzelne Bilder.
+- **Handtest:** Block T-136.
+- **Text-Prüfsatz:** Oberfläche, Hilfethema und dieser Abschnitt nach [texte.md](../gestaltung/texte.md): Ergebnis zuerst, Knöpfe als Verb mit Gegenstand, nummerierte Schritte im Handbuch.
