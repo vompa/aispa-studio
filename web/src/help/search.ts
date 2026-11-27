@@ -144,7 +144,7 @@ function score(
         ? 1
         : topic.meta.kind === "erklaerung"
           ? 0.95
-          : 0.9;
+          : 0.9; // einstellung und referenz
   if (
     context.role &&
     (topic.meta.roles.length === 0 || topic.meta.roles.includes(context.role))

@@ -1,5 +1,5 @@
 ---
-art: ablauf
+art: referenz
 bereich: Kunden
 oberflaeche: windows-app
 rollen: rezeption, leitung, inhaber, manager, therapeut

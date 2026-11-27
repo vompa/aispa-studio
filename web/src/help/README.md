@@ -10,6 +10,7 @@ Eine Quelle und eine Darstellung für die Hilfe in der Windows-App und für die 
 | `ablauf` | Eine Aufgabe Schritt für Schritt, z. B. „Termin verschieben“. Grundlage der Antworten auf „Wie mache ich …?“. | `<bereich>-<aufgabe>`, z. B. `kalender-termin-verschieben` |
 | `einstellung` | Alle Einstellungen eines Bereichs, Ziel der Fragezeichen neben den Feldern. Standard ohne Angabe. | `<bereich>`, z. B. `kassa` |
 | `erklaerung` | Hintergrund, Warum und Zusammenhänge zu einem Thema. | `<bereich>-<thema>`, z. B. `anfragen-wann-die-ki-zuordnet` |
+| `referenz` | Listen und Tabellen zum Nachschlagen, z. B. Tasten, Kennzahlen, Kennzeichen. | `<bereich>-<thema>`, z. B. `kunden-kennzeichen-liste` |
 
 ## Gliederung nach Diátaxis
 
@@ -18,7 +19,7 @@ Die Hilfe folgt dem Rahmen Diátaxis (Tutorial, How-to, Referenz, Explanation). 
 | Diátaxis | `art` | Leitfrage |
 | --- | --- | --- |
 | How-to | `ablauf` | Wie erledige ich diese Aufgabe? |
-| Referenz | `einstellung` | Was bedeuten die Felder und Werte? |
+| Referenz | `einstellung`, `referenz` | Was bedeuten die Felder und Werte? Was gibt es alles? |
 | Orientierung | `seite` | Was zeigt diese Seite, und wohin geht es von hier? |
 | Explanation | `erklaerung` | Warum ist es so, und wie hängt es zusammen? |
 
@@ -27,6 +28,7 @@ Je Art:
 - **`ablauf`**: eine Aufgabe in Schritten, Voraussetzungen, was danach, Fehlerfälle. Nicht hinein: Felderlisten, lange Begründungen, Regelwerke. Typische Überschriften: „Schritte“, „Was danach“, „Wenn etwas schiefgeht“, „Gut zu wissen“, kurz „Hintergrund“.
 - **`einstellung`**: alle Felder eines Bereichs mit Werten und Wirkung. Nicht hinein: Schritt-für-Schritt-Anleitungen, Geschichten. Typische Überschriften: der Name des Feldes oder der Gruppe, „Werte“, „Wirkung“.
 - **`seite`**: Aufbau einer Seite, wer was sieht, Verweise auf die Abläufe. Nicht hinein: ausführliche Begründungen und Regeln (gehören in eine Erklärung), vollständige Felderlisten (gehören in die Einstellung). Typische Überschriften: „Aufbau“, „Wer was sieht“, „Abläufe“, „Was hier nicht geht“.
+- **`referenz`**: Listen und Tabellen zum Nachschlagen, die zu keinem Bereich mit Feldern gehören (Tastenkürzel, Kennzahlen, Kennzeichen mit Wirkung). Nicht hinein: Schritte, Begründungen. Typische Überschriften: „Welche es gibt“, „Übersicht“, „Bedeutung“. Die Übersicht ordnet sie in der Gruppe „Nachschlagen“ nach den Erklärungen ein. Die Suche gewichtet sie wie `einstellung` (0,9): Wer „wie“ fragt, soll zuerst den Ablauf finden.
 - **`erklaerung`**: wie etwas funktioniert und warum, Regeln und Zusammenhänge, Abgrenzungen. Nicht hinein: Schritte zum Mitklicken und Feldwerte. Typische Überschriften: „Wie es funktioniert“, „Wann was gilt“, „Warum“, „Abgrenzung“.
 
 Gemischte Themen:
@@ -63,7 +65,7 @@ Ein Satz, worum es geht. Die KI zeigt ihn als Kurzantwort.
 
 Kopfangaben (alle optional, Werte durch Kommas getrennt):
 
-- `art`: `seite`, `ablauf`, `erklaerung` oder `einstellung` (Standard).
+- `art`: `seite`, `ablauf`, `erklaerung`, `referenz` oder `einstellung` (Standard).
 - `bereich`: Überschrift, unter der die Übersicht das Thema einordnet.
 - `oberflaeche`: `windows-app`, `verwaltung` (Masken der Verwaltung in der Windows-App; der Name stammt aus der Zeit der Team-Oberfläche im Browser), `handy` (Mein Tag).
 - `rollen`: `rezeption`, `therapeut`, `leitung` (Standortleitung), `inhaber`. Ohne Angabe für alle. Die Suche reiht passende Rollen vor, versteckt aber nichts.

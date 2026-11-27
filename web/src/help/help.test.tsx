@@ -70,6 +70,13 @@ describe('Hilfe', () => {
     expect(topics.filter((t) => t.meta.kind === 'erklaerung').length).toBeGreaterThan(0)
   })
 
+  it('erkennt die Art referenz und listet das Thema unter Nachschlagen', () => {
+    const topic = toTopic('kunden-liste-test', '---\nart: referenz\n---\n# Liste\n\nText.')
+    expect(topic.meta.kind).toBe('referenz')
+    expect(groupByArea([topic]).map(([name]) => name)).toEqual(['Nachschlagen'])
+    expect(topics.filter((t) => t.meta.kind === 'referenz').length).toBeGreaterThan(0)
+  })
+
   it('jeder Verweis findet sein Thema und jedes Bild ist erzeugt', () => {
     for (const topic of topics) {
       for (const block of topic.blocks) {

@@ -9,7 +9,7 @@ import {
 import { firstStepIds, orderedRoleEntries } from "./roleEntries";
 import { areaOf, groupByArea, roleName, type HelpTopic } from "./topics";
 
-const kindOrder = { ablauf: 0, seite: 1, erklaerung: 2, einstellung: 3 } as const;
+const kindOrder = { ablauf: 0, seite: 1, erklaerung: 2, referenz: 3, einstellung: 4 } as const;
 const maxHits = 12;
 
 /** Die Zahl der Treffer als Satz für die höfliche Statuszeile; bei der Obergrenze heißt es „besten“, weil es mehr geben kann. */
@@ -30,7 +30,7 @@ function Marked({ text, words }: { text: string; words: string[] }) {
   );
 }
 
-/** Übersicht: Abläufe nach Bereich, dann Seiten, dann Erklärungen, dann Einstellungen. */
+/** Übersicht: Abläufe nach Bereich, dann Seiten, dann Erklärungen, dann Nachschlagen, dann Einstellungen. */
 function groups(topics: HelpTopic[]): [string, HelpTopic[]][] {
   const map = new Map<string, HelpTopic[]>();
   const sorted = [...topics].sort(
@@ -44,7 +44,9 @@ function groups(topics: HelpTopic[]): [string, HelpTopic[]][] {
           ? "Seiten"
           : t.meta.kind === "erklaerung"
             ? "Erklärungen"
-            : "Einstellungen";
+            : t.meta.kind === "referenz"
+              ? "Nachschlagen"
+              : "Einstellungen";
     map.set(name, [...(map.get(name) ?? []), t]);
   }
   return [...map.entries()];

@@ -1,5 +1,5 @@
 ---
-art: ablauf
+art: referenz
 bereich: Kalender
 oberflaeche: windows-app
 rollen: rezeption, therapeut, leitung, inhaber, manager

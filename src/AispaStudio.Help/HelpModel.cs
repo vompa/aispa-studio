@@ -28,6 +28,9 @@ public enum HelpKind
 
     /// <summary>Hintergrund, Warum und Zusammenhänge (Explanation).</summary>
     Explanation,
+
+    /// <summary>Listen und Tabellen zum Nachschlagen (Reference).</summary>
+    Reference,
 }
 
 /// <summary>Kopfangaben eines Themas; Werte wie in der Datei (klein, ohne Leerzeichen am Rand).</summary>

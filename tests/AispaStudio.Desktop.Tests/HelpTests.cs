@@ -70,6 +70,14 @@ public sealed partial class HelpTests
     }
 
     [Fact]
+    public void Liest_die_Art_referenz()
+    {
+        var topic = HelpMarkdown.ToTopic("x-referenz", "---\nart: referenz\n---\n# Liste\n\nText.");
+
+        Assert.Equal(HelpKind.Reference, topic.Meta.Kind);
+    }
+
+    [Fact]
     public void Jeder_Verweis_zeigt_auf_ein_vorhandenes_Thema_und_jedes_Bild_ist_erzeugt()
     {
         var images = Path.Combine(RepoRoot(), "web", "src", "help", "images");

@@ -71,6 +71,7 @@ public static partial class HelpMarkdown
             "ablauf" => HelpKind.Task,
             "seite" => HelpKind.Page,
             "erklaerung" => HelpKind.Explanation,
+            "referenz" => HelpKind.Reference,
             _ => HelpKind.Setting,
         };
         var meta = new HelpMeta(kind, One("bereich"), [.. List("oberflaeche").Select(s => s.ToLowerInvariant())],

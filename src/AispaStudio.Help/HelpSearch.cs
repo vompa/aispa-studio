@@ -75,6 +75,7 @@ public static partial class HelpSearch
             HelpKind.Task => 1.3,
             HelpKind.Page => 1.0,
             HelpKind.Explanation => 0.95,
+            HelpKind.Reference => 0.9,
             _ => 0.9,
         };
         if (context.Role is { } role && (topic.Meta.Roles.Count == 0 || topic.Meta.Roles.Contains(role)))
