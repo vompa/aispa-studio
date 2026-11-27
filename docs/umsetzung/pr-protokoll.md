@@ -8786,3 +8786,18 @@ Auftrag des Auftraggebers vom 27.11.2026 ([ADR 0104](../entscheidungen/0104-gefu
   - `POST /api/treatments/{id}/reactivate` prüft keinen Namen, `POST /api/qualifications` prüft den Namen ohne Sperre. Beides ist älter als diese Aufgabe.
 - **Handtest:** ohne Block, die App zeigt den Katalog erst mit T-135b.
 - **Text-Prüfsatz:** die Meldungen der API und dieser Abschnitt nach [texte.md](../gestaltung/texte.md): sie sagen, was fehlt und was zu wählen ist, ohne „bitte“.
+
+## Befund zum Kassa-Assistenten (T-137, 27.11.2026)
+
+Auftrag des Auftraggebers vom 27.11.2026 ([ADR 0104](../entscheidungen/0104-gefuehrte-ersteinrichtung.md)): Die Kassa bekommt nach dem Assistenten „Betrieb einrichten“ einen eigenen Assistenten. Diese Aufgabe liefert nur den Befund, gebaut wird nichts.
+
+- **Was:** [kassa-assistent-befund.md](kassa-assistent-befund.md): was heute zur Einrichtung der Kassa gehört, was Pflicht ist, Stand je Land (RKSV, TSE, Schweiz), Endpunkte, einschlägige ADRs, ein Vorschlag für die Schritte und den Schnitt in Pakete, sieben offene Entscheidungen des Auftraggebers.
+- **Wichtigste Befunde:**
+  1. Die Windows-App hat keine Maske, die eine Kassa anlegt; nur die API kann es (`POST /api/pos/registers`). Der Schritt „Kassa einrichten“ der Karte führt zum Reiter „Kassa“, der nur Rabatte kennt.
+  2. „Kassa vorhanden“ zählt jede aktive Kassa, auch eine mit Test-Signatur. Als „erledigt“ taugt das nicht.
+  3. Österreich signiert nur mit der Test-Einrichtung, Deutschland hat nur eine Test-TSE, und die ist im Einzelplatz nicht eingeschaltet (`Fiscal:TestTse` steht nur in der Entwicklungs-Konfiguration).
+- **Geprüft:** 59 Angaben mit Datei und Zeile gegen die Quelle, 12 berichtigt; die drei Befunde oben vom Lead an der Quelle nachgelesen.
+- **Nicht geprüft:** kein Lauf der App oder der API; Aussagen zum Recht geben nur wieder, was Code und ADRs sagen. Was offen blieb, steht im Befund unter „Nicht geklärt“.
+- **Folge:** eigener Plan zur Freigabe, sobald der Auftraggeber die Fragen 1, 2, 6 und 7 des Befunds beantwortet hat.
+- **Handtest:** ohne Block, nur ein Dokument.
+- **Text-Prüfsatz:** Befund und dieser Abschnitt nach [texte.md](../gestaltung/texte.md): Empfehlung zuerst, kurze Sätze, je Punkt Befund, Beleg und Folge.
