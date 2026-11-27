@@ -25,7 +25,7 @@ Die Leiste über der Fläche zeigt **Zeiten** nur mit dem Recht, Standorte zu ve
 - Eine Warnung in der Zelle weist auf Arbeitszeitgrenzen hin, z. B. zu kurze Pause, zu kurze Ruhezeit oder „Seit über 12 Stunden eingestempelt: Gehen vergessen?“.
 - Ein Klick auf eine Zelle öffnet unter der Tabelle die Zeiten des Tages: Soll, Ist, Pause, die einzelnen Abschnitte und **Zeit nachtragen**.
 - Ein Klick auf den Namen einer Person wechselt zu **Personen** und öffnet ihre Karte im Bereich **Arbeitszeit**, bei den Zeiten.
-- **Exportieren** speichert die Stundenliste (Soll, Ist, Pause und Differenz je Person und Tag) und die Abwesenheiten des Monats, in dem die angezeigte Woche beginnt, als Excel oder CSV; auf der Karte einer Person nur ihre. Den Knopf sehen nur Inhaberin und Geschäftsführung.
+- Im Menü **Ausgabe** am rechten Rand der Kopfzeile speichert die Gruppe „Liste · Monat der Woche“ die Stundenliste (Soll, Ist, Pause und Differenz je Person und Tag) und die Abwesenheiten des Monats, in dem die angezeigte Woche beginnt, als Excel oder CSV; auf der Karte einer Person nur ihre. Diese Gruppe sehen nur Inhaberin und Geschäftsführung. Die Gruppe „Stundenliste · Monat der Woche“ druckt die Stundenliste einer Person oder speichert sie als PDF, siehe [Arbeitszeit korrigieren](hilfe:zeiten-korrigieren#stundenliste); sie steht nur auf der Karte einer Person.
 
 ![Zeiten einer Woche in der Windows-App](images/app/verwaltung-team-zeiten.png)
 

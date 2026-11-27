@@ -157,12 +157,9 @@ public sealed class OperatorDocumentsTests
         var times = card.Times!;
         Assert.True(times.CanOfferDocument);
 
-        times.ToggleDocumentCommand.Execute(null);
-
         var document = times.Document!;
         Assert.Equal($"api/employees/{RosterSample.Lena.Id}/timesheet/pdf?month=2027-03", document.Source.PdfPath);
         Assert.False(document.HasSend);
-        Assert.Equal("Druckt die Stundenliste für März 2027.", times.DocumentHint);
 
         await times.MoveToAsync(RosterSample.Monday.AddDays(-7));
 
@@ -171,7 +168,7 @@ public sealed class OperatorDocumentsTests
         times.Document.Files = files;
         await times.Document.SaveCommand.ExecuteAsync(null);
         Assert.Equal("Stundenliste-Lena-Huber-2027-02.pdf", files.SavedName);
-        Assert.Equal("Gespeichert: Stundenliste-Lena-Huber-2027-02.pdf", times.DocumentMessage);
+        Assert.Equal("Gespeichert: Stundenliste-Lena-Huber-2027-02.pdf", team.Toast.Text);
     }
 
     [Fact]

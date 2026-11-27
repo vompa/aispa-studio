@@ -117,13 +117,40 @@ public sealed class ListExportTests
         card.Export!.Files = files;
 
         await Click(all.Export, "Stundenliste (Excel)");
-        Assert.Equal("Gespeichert: Stunden_2027-03.xlsx", all.ExportSaved);
+        Assert.Equal("Gespeichert: Stunden_2027-03.xlsx", team.Toast.Text);
 
         await Click(all.Export, "Abwesenheiten (CSV)");
-        Assert.Equal("Gespeichert: Abwesenheiten_2027-03.csv", all.ExportSaved);
+        Assert.Equal("Gespeichert: Abwesenheiten_2027-03.csv", team.Toast.Text);
 
         await Click(card.Export, "Stundenliste (CSV)");
-        Assert.Equal("Gespeichert: Stunden_Lena_2027-03.csv", card.ExportSaved);
+        Assert.Equal("Gespeichert: Stunden_Lena_2027-03.csv", team.Toast.Text);
+    }
+
+    [Fact]
+    public void Zeiten_Menue_Ausgabe_zeigt_je_Rolle_und_Ansicht_nur_die_Gruppen_mit_Recht()
+    {
+        var lena = RosterSample.Lena.Id;
+        var owner = Team(TestData.Owner());
+        var ownerOverview = new TimesheetViewModel(owner, null);
+        var ownerCard = new TimesheetViewModel(owner, lena);
+        Assert.True(ownerOverview.HasOutput);
+        Assert.False(ownerOverview.ShowsDocumentGroup);
+        Assert.Null(ownerOverview.Document);
+        Assert.True(ownerCard.HasOutput);
+        Assert.True(ownerCard.ShowsDocumentGroup);
+        Assert.True(ownerCard.HasExport);
+        Assert.True(ownerCard.ShowsOutputSeparator);
+        Assert.NotNull(ownerCard.Document);
+
+        var manager = Team(TestData.Manager());
+        Assert.False(new TimesheetViewModel(manager, null).HasOutput);
+        var managerCard = new TimesheetViewModel(manager, lena);
+        Assert.True(managerCard.HasOutput);
+        Assert.True(managerCard.ShowsDocumentGroup);
+        Assert.False(managerCard.HasExport);
+        Assert.False(managerCard.ShowsOutputSeparator);
+
+        Assert.False(new TimesheetViewModel(Team(TestData.Reception()), lena).HasOutput);
     }
 
     [Fact]

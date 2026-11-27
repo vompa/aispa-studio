@@ -1,13 +1,15 @@
 using AispaStudio.Contracts;
 using AispaStudio.Desktop.ViewModels;
+using Avalonia.Automation;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.VisualTree;
 using static AispaStudio.Desktop.Tests.StockSample;
 
 namespace AispaStudio.Desktop.Tests;
 
 /// <summary>
-/// PDF-Ausgaben F (ADR 0092): „Aushang als PDF“ im Wochenplan, „Stundenliste als PDF“ auf der Karte einer Person, „Zählliste drucken …“ in der Inventur, der Knopfblock mit Vermerk
+/// PDF-Ausgaben F (ADR 0092): „Aushang als PDF“ im Wochenplan, das Menü „Ausgabe“ der Zeiten mit „Stundenliste“ auf der Karte einer Person, „Zählliste drucken …“ in der Inventur, der Knopfblock mit Vermerk
 /// „Gesendet am … an …“ in der Bestellung und „Ablaufliste als PDF“ in den Ablauf-Aufgaben, als Inhaberin im Fenster (hell; der Wochenplan auch dunkel). Den Inhalt der PDFs prüft die API.
 /// </summary>
 public sealed partial class ViewTests
@@ -19,24 +21,84 @@ public sealed partial class ViewTests
         return card;
     }
 
+    private static List<string?> VisibleMenuHeaders(Window window) =>
+        [.. window.GetVisualDescendants().OfType<MenuItem>().Where(i => i.IsEffectivelyVisible && i.Bounds.Height > 0).Select(i => i.Header as string)];
+
     [Fact]
-    public Task Zeiten_einer_Person_tragen_Stundenliste_als_PDF_in_der_Uebersicht_aller_nicht()
+    public Task Zeiten_Menue_Ausgabe_hat_auf_der_Karte_beide_Gruppen_und_in_der_Uebersicht_nur_die_Liste()
     {
         var (api, _, _) = TimesApi();
-        return Render("hell", "verwaltung-zeiten-stundenliste-pdf", async (window, main) =>
+        return Render("hell", "verwaltung-zeiten-menue-ausgabe", async (window, main) =>
         {
             var team = await OpenTimes(window, main);
-            Assert.False(Named<Button>(window, "TimesDocumentButton").IsEffectivelyVisible);
+            Assert.DoesNotContain(window.GetVisualDescendants().OfType<Control>(), c => c.Name is "TimesDocumentButton" or "TimesDocumentCard" or "TimesExportButton" or "TimesExportSaved");
+
+            var overview = VisibleNamed<Button>(window, "TimesOutputButton");
+            overview.Flyout!.ShowAt(overview);
+            await Pump(Settling);
+            Assert.Equal(["Liste · Monat der Woche", "Stundenliste als Excel", "Stundenliste als CSV", "Abwesenheiten als Excel", "Abwesenheiten als CSV"], VisibleMenuHeaders(window));
+            Press(window, PhysicalKey.Escape);
+            await Pump(Settling);
+
             await ClickSection(window, "Personen");
             await ClickRow(window, "Lena Huber");
             await ClickCardTab(window, "Zeiten");
             await Pump(Settling);
+            var card = VisibleNamed<Button>(window, "TimesOutputButton");
+            card.Flyout!.ShowAt(card);
+            await Pump(Settling);
 
-            await ClickButton(window, VisibleNamed<Button>(window, "TimesDocumentButton"));
+            Assert.Equal(
+            [
+                "Stundenliste · Monat der Woche", "Drucken …", "Als PDF speichern", "Liste · Monat der Woche",
+                "Stundenliste als Excel", "Stundenliste als CSV", "Abwesenheiten als Excel", "Abwesenheiten als CSV",
+            ], VisibleMenuHeaders(window));
+            return team;
+        }, api);
+    }
 
-            var card = VisibleNamed<Border>(window, "TimesDocumentCard");
-            Assert.Equal(["PrintButton", "SaveButton"], VisibleButtonNames(card));
-            Assert.Contains(card.GetVisualDescendants().OfType<TextBlock>(), t => t.IsEffectivelyVisible && t.Text?.StartsWith("Druckt die Stundenliste für", StringComparison.Ordinal) == true);
+    [Fact]
+    public Task Zeiten_Menue_Ausgabe_ist_mit_der_Tastatur_erreichbar_und_Esc_gibt_den_Fokus_zurueck()
+    {
+        var (api, _, _) = TimesApi();
+        return Render("hell", "verwaltung-zeiten-menue-tastatur", async (window, main) =>
+        {
+            var team = await OpenTimes(window, main);
+            await ClickSection(window, "Personen");
+            await ClickRow(window, "Lena Huber");
+            await ClickCardTab(window, "Zeiten");
+            await Pump(Settling);
+            var output = VisibleNamed<Button>(window, "TimesOutputButton");
+            Assert.Equal("Ausgabe", AutomationProperties.GetName(output));
+            output.Focus();
+            await Pump(Settling);
+            Assert.Same(output, Focused(window));
+
+            Press(window, PhysicalKey.Enter);
+            await Pump(Settling);
+            Assert.True(output.Flyout!.IsOpen);
+
+            // Gruppenüberschriften sind abgeschaltet: die Pfeile überspringen sie und erreichen jeden Befehl.
+            var reached = new List<string?>();
+            if (Focused(window) is not MenuItem)
+            {
+                Press(window, PhysicalKey.ArrowDown);
+                await Pump();
+            }
+
+            for (var step = 0; step < 6; step++)
+            {
+                reached.Add((Focused(window) as Control)?.Name);
+                Press(window, PhysicalKey.ArrowDown);
+                await Pump();
+            }
+
+            Assert.Equal(["TimesPrintItem", "TimesSavePdfItem", "TimesHoursExcelItem", "TimesHoursCsvItem", "TimesAbsencesExcelItem", "TimesAbsencesCsvItem"], reached);
+
+            Press(window, PhysicalKey.Escape);
+            await Pump(Settling);
+            Assert.False(output.Flyout.IsOpen);
+            Assert.Same(output, Focused(window));
             return team;
         }, api);
     }
