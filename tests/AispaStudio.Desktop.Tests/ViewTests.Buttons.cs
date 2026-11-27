@@ -249,6 +249,8 @@ public sealed partial class ViewTests
         "Neuen Wiederherstellungsschlüssel erzeugen", "Zeiten dieses Termins ändern …", "In der Verwaltung bearbeiten", "Vorschläge als Antwortentwurf übernehmen",
         "Gewähltes Terminal entfernen", "Diesen PC als Empfangsgerät anmelden", "Erledigt, ohne Termin und Antwort", "Mit einem bestehenden Spa verbinden …",
         "Passwort setzen und anmelden", "Passwort ändern und anmelden", "Bezahlen und Beleg erstellen", "Aus einer Sicherung wiederherstellen …",
+        // Startauswahl (ADR 0104): jeder Knopf allein in einer Zeile der Karte, Wortlaut aus dem ADR und der Installationsanleitung.
+        "Neues Spa auf diesem PC einrichten", "Aus einer Sicherung wiederherstellen", "Mit einem vorhandenen Spa verbinden",
     ];
 
     /// <summary>
