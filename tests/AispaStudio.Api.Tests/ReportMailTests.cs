@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using AispaStudio.Api.Documents;
 using AispaStudio.Api.Reporting;
 using AispaStudio.Contracts;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -102,5 +103,28 @@ public sealed class ReportMailTests(ApiFixture fixture)
         Assert.Contains("- Auslastung niedrig.", body, StringComparison.Ordinal);
         Assert.Contains("Beträge stehen hier nur mit dem Recht", body, StringComparison.Ordinal);
         Assert.DoesNotContain("Kommentar der KI", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Gaestenamen_stehen_nicht_in_der_automatischen_Mail_und_im_Dokument_nur_mit_dem_Recht_der_Kundenliste()
+    {
+        var report = new ManagementReportDto(Guid.NewGuid(), new DateOnly(2027, 3, 1), new DateOnly(2027, 3, 7),
+            [new Kpi("lapsingRegulars", "Abwandernde Stammgäste", 1, 0, "")], [], [], [], [], [])
+        {
+            TopGuests = [new(Guid.NewGuid(), "Eva Muster", 3, 240m)],
+            LapsingGuests = [new(Guid.NewGuid(), "Udo Beispiel", new DateOnly(2026, 11, 1), 3)],
+        };
+        var header = new DocumentHeader("Test-Spa", [], ["Wien"], DateTimeOffset.UtcNow, TimeZoneInfo.Utc, "Lena");
+
+        var body = ReportMailPlanner.Body(report, "Wien", ReportMailKind.Week, null);
+        var automatic = ManagementReportDocument.Build(report, header, ManagementReports.CompareModes.Previous, guests: false);
+        var byHand = ManagementReportDocument.Build(report, header, ManagementReports.CompareModes.Previous, guests: true);
+
+        // Then nennt die Mail nur die Anzahl, und das Blatt mit den Namen gibt es nur, wenn jemand mit dem Recht der Kundenliste die Datei selbst erzeugt
+        Assert.Contains("- Abwandernde Stammgäste: 1", body, StringComparison.Ordinal);
+        Assert.DoesNotContain("Eva Muster", body, StringComparison.Ordinal);
+        Assert.DoesNotContain("Udo Beispiel", body, StringComparison.Ordinal);
+        Assert.DoesNotContain(automatic.Sections, s => s.Name == ManagementReportDocument.GuestsName);
+        Assert.Contains(byHand.Sections, s => s.Name == ManagementReportDocument.GuestsName);
     }
 }

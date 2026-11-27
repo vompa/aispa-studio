@@ -2,10 +2,12 @@ using AispaStudio.Contracts;
 using AispaStudio.Desktop.Controls;
 using AispaStudio.Desktop.Services;
 using AispaStudio.Desktop.ViewModels;
+using Avalonia;
 using Avalonia.Automation;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Headless;
+using Avalonia.Input;
 using Avalonia.VisualTree;
 using static AispaStudio.Desktop.Tests.StockSample;
 
@@ -321,6 +323,50 @@ public sealed partial class ViewTests
 
             Assert.True(Shows(window, "Gib eine Zahl ab 0 ein, z. B. 500."));
             Assert.Equal(0, CallsTo(api, $"PUT /api/stock/orders/{OrderId}"));
+            return shell.AdminPage;
+        }, api);
+    }
+
+    [Fact]
+    public Task Given_kleinstes_Fenster_When_per_Tab_durch_die_Bestellkarte_Then_werden_Senden_und_Speichern_sichtbar_und_Strg_S_speichert_die_Mengen()
+    {
+        var api = StockApi();
+        return Render("hell", "verwaltung-lager-bestellung-kleinstes-fenster", async (window, main) =>
+        {
+            window.Width = 1100;
+            window.Height = 680;
+            var (shell, stock) = await OpenStock(window, main);
+            await ClickScrolled(window, "OrdersTabButton");
+            await Pump(Settling);
+
+            var scroll = Named<ScrollViewer>(window, "StockScroll");
+            var quantity = OrderQuantity(window);
+            quantity.Text = "12";
+            await Pump(Settling);
+            quantity.Focus();
+            var seen = new HashSet<string>();
+            for (var step = 0; step < 15 && seen.Count < 2; step++)
+            {
+                Press(window, PhysicalKey.Tab);
+                await Pump(Settling);
+                if (window.FocusManager!.GetFocusedElement() is Button { } button && AutomationProperties.GetName(button) is { } name
+                    && (name == "Bestellung 7 bestellen und senden" || name == "Mengen der Bestellung 7 speichern"))
+                {
+                    var top = button.TranslatePoint(new Point(0, 0), scroll)!.Value.Y;
+                    Assert.True(top >= 0 && top + button.Bounds.Height <= scroll.Bounds.Height, $"{name} liegt bei {top} außerhalb der sichtbaren Höhe {scroll.Bounds.Height}");
+                    seen.Add(name);
+                }
+            }
+
+            Assert.Equal(2, seen.Count);
+
+            Assert.True(stock.HasUnsavedChanges);
+            PressSave(window);
+            await Pump(Settling);
+            await Pump(Settling);
+
+            Assert.Equal(1, CallsTo(api, $"PUT /api/stock/orders/{OrderId}"));
+            Assert.False(stock.HasUnsavedChanges);
             return shell.AdminPage;
         }, api);
     }
