@@ -12033,6 +12033,7 @@ export interface components {
             unit: string;
             higherIsBetter?: null | boolean;
             group?: null | string;
+            note?: null | string;
         };
         LapsingGuest: {
             /** Format: uuid */

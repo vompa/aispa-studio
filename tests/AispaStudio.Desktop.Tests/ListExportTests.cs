@@ -4,7 +4,7 @@ using AispaStudio.Desktop.ViewModels;
 namespace AispaStudio.Desktop.Tests;
 
 /// <summary>
-/// Der Knopf „Exportieren“ in Kassa, Zeiterfassung, Dienstplan und Management-Bericht (Export/Import, Aufgabe D): wer ihn sieht, welche Einträge er hat, welchen Pfad ein Klick
+/// Das Menü „Ausgabe“ der Kassa (T-125) und der Knopf „Exportieren“ in Zeiterfassung, Dienstplan und Management-Bericht (Export/Import, Aufgabe D): wer ihn sieht, welche Einträge er hat, welchen Pfad ein Klick
 /// aufruft und wie die Seite „Gespeichert: …“ meldet. Inhalt, Format und Rechte der Dateien prüfen die API-Tests.
 /// </summary>
 public sealed class ListExportTests
@@ -63,11 +63,10 @@ public sealed class ListExportTests
         pos.Export!.Files = files;
 
         await Click(pos.Export, "Belegliste (Excel)");
-        Assert.Equal("Gespeichert: Belege_2026-10-19.xlsx", pos.ExportSaved);
-        Assert.True(pos.HasExportSaved);
+        Assert.Equal("Gespeichert: Belege_2026-10-19.xlsx", pos.Toast.Text);
 
         await Click(pos.Export, "Gutscheinbestand (CSV)");
-        Assert.Equal("Gespeichert: Gutscheine.csv", pos.ExportSaved);
+        Assert.Equal("Gespeichert: Gutscheine.csv", pos.Toast.Text);
         Assert.Equal(["Belege_2026-10-19.xlsx", "Gutscheine.csv"], files.Saved.Select(s => s.Name));
     }
 
@@ -80,7 +79,30 @@ public sealed class ListExportTests
         await Click(pos.Export, "Umsatz je Tag (CSV)");
 
         Assert.False(string.IsNullOrEmpty(pos.Error));
-        Assert.Null(pos.ExportSaved);
+    }
+
+    [Fact]
+    public async Task Kassa_Menue_Ausgabe_zeigt_je_Rolle_nur_die_Gruppen_mit_Recht()
+    {
+        var reception = await Pos(PosApi(), ownerLevel: false);
+        Assert.False(reception.HasOutput);
+
+        var supervisor = await Pos(PosApi(), ownerLevel: false);
+        supervisor.MaySuperviseCash = true;
+        Assert.True(supervisor.HasOutput);
+        Assert.True(supervisor.ShowsVoucherListGroup);
+        Assert.False(supervisor.HasExport);
+        Assert.False(supervisor.ShowsOutputSeparator);
+
+        var owner = await Pos(PosApi(), ownerLevel: true);
+        Assert.True(owner.HasOutput);
+        Assert.False(owner.ShowsVoucherListGroup);
+        Assert.True(owner.HasExport);
+        Assert.False(owner.ShowsOutputSeparator);
+
+        owner.MaySeeAmountReports = true;
+        Assert.True(owner.ShowsVoucherListGroup);
+        Assert.True(owner.ShowsOutputSeparator);
     }
 
     // Lager: seit P7 ein Dialog statt Menü, siehe StockExportDialogTests.
@@ -117,13 +139,40 @@ public sealed class ListExportTests
         card.Export!.Files = files;
 
         await Click(all.Export, "Stundenliste (Excel)");
-        Assert.Equal("Gespeichert: Stunden_2027-03.xlsx", all.ExportSaved);
+        Assert.Equal("Gespeichert: Stunden_2027-03.xlsx", team.Toast.Text);
 
         await Click(all.Export, "Abwesenheiten (CSV)");
-        Assert.Equal("Gespeichert: Abwesenheiten_2027-03.csv", all.ExportSaved);
+        Assert.Equal("Gespeichert: Abwesenheiten_2027-03.csv", team.Toast.Text);
 
         await Click(card.Export, "Stundenliste (CSV)");
-        Assert.Equal("Gespeichert: Stunden_Lena_2027-03.csv", card.ExportSaved);
+        Assert.Equal("Gespeichert: Stunden_Lena_2027-03.csv", team.Toast.Text);
+    }
+
+    [Fact]
+    public void Zeiten_Menue_Ausgabe_zeigt_je_Rolle_und_Ansicht_nur_die_Gruppen_mit_Recht()
+    {
+        var lena = RosterSample.Lena.Id;
+        var owner = Team(TestData.Owner());
+        var ownerOverview = new TimesheetViewModel(owner, null);
+        var ownerCard = new TimesheetViewModel(owner, lena);
+        Assert.True(ownerOverview.HasOutput);
+        Assert.False(ownerOverview.ShowsDocumentGroup);
+        Assert.Null(ownerOverview.Document);
+        Assert.True(ownerCard.HasOutput);
+        Assert.True(ownerCard.ShowsDocumentGroup);
+        Assert.True(ownerCard.HasExport);
+        Assert.True(ownerCard.ShowsOutputSeparator);
+        Assert.NotNull(ownerCard.Document);
+
+        var manager = Team(TestData.Manager());
+        Assert.False(new TimesheetViewModel(manager, null).HasOutput);
+        var managerCard = new TimesheetViewModel(manager, lena);
+        Assert.True(managerCard.HasOutput);
+        Assert.True(managerCard.ShowsDocumentGroup);
+        Assert.False(managerCard.HasExport);
+        Assert.False(managerCard.ShowsOutputSeparator);
+
+        Assert.False(new TimesheetViewModel(Team(TestData.Reception()), lena).HasOutput);
     }
 
     [Fact]

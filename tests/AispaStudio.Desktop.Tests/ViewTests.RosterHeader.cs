@@ -13,7 +13,7 @@ public sealed partial class ViewTests
     [Fact]
     public Task Wochenplan_Kopfzeile_bleibt_beim_Blaettern_ueber_vier_Wochen_an_derselben_Stelle()
     {
-        // Ohne Entwürfe: das Band „Veröffentlichen · Verwerfen“ verschiebt den Plan in Wochen mit Entwurf um seine Höhe und ist bewusst nicht Teil dieser Aufgabe (PR-Protokoll).
+        // Ohne Entwürfe; das Band „Veröffentlichen · Verwerfen“ hat seit T-121 einen festen Platz (eigener Test unten).
         var (api, _) = RosterApi();
         _ = new RosterSample(api, SpaSample.Vienna, SpaSample.Day.AddDays(21), RosterLena, SpaSample.Marco);
         return Render("hell", "verwaltung-team-wochenplan-kopf-1100", async (window, main) =>
@@ -56,6 +56,32 @@ public sealed partial class ViewTests
             Assert.Equal(5, titles.Distinct().Count());
             plan.ThisWeekCommand.Execute(null);
             await Pump(Settling);
+            return team;
+        }, api);
+    }
+
+    [Fact]
+    public Task Wochenplan_Entwurfsband_hat_einen_festen_Platz_und_der_Plan_springt_ohne_Entwurf_nicht()
+    {
+        var (api, _) = RosterWeekApi();
+        return Render("hell", "verwaltung-team-wochenplan-entwurfsband-fest", async (window, main) =>
+        {
+            var team = await OpenWeekPlan(window, main);
+            var plan = team.Plan!;
+            var table = VisibleNamed<StackPanel>(window, "RosterTable");
+            Assert.True(plan.CanPublish);
+            var withDraft = PositionIn(window, table).Y;
+
+            plan.NextWeekCommand.Execute(null);
+            await Pump(Settling);
+
+            Assert.False(plan.CanPublish);
+            Assert.Equal(withDraft, PositionIn(window, table).Y);
+            var band = Named<Control>(window, "DraftBand");
+            var publish = Named<Button>(window, "PublishButton");
+            Assert.True(band.Bounds.Height > 0, "das Band behält seine Höhe");
+            Assert.False(band.IsHitTestVisible || publish.IsEffectivelyEnabled || publish.Focusable && publish.IsEffectivelyEnabled, "das leere Band ist weder klickbar noch mit Tab erreichbar");
+            Assert.Equal(0, band.Opacity);
             return team;
         }, api);
     }

@@ -65,7 +65,6 @@ Nach dem Senden steht kurz „Gesendet an …“. Bei Beleg, Rechnung, Terminbes
 Ein grauer Knopf nennt den Grund, sobald der Mauszeiger darauf steht; Screenreader lesen ihn als Hilfetext des Knopfes vor. Die Dokumente folgen den Rechten der Daten, aus denen sie entstehen:
 
 - „Dafür braucht es das Recht „Berichte mit Beträgen“.“ beim Tagesabschluss.
-- „Die Gutscheinliste druckt nur die Kassenaufsicht oder wer „Berichte mit Beträgen“ sehen darf.“ bei der Gutscheinliste.
 - „Die Stundenliste druckt nur, wer die Zeiten lesen darf.“ bei der Stundenliste.
 - „Die Inventur druckt nur die Standortleitung.“ bei Zählliste und Inventurliste, „Die Ablaufliste druckt nur die Standortleitung.“ bei der Ablaufliste.
 - „Das Ende darf nicht vor dem Beginn liegen.“ in der Gutscheinliste, wenn die Daten nicht stimmen.

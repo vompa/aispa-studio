@@ -298,7 +298,7 @@ internal sealed class ReportMailPlanner(
         foreach (var kpi in report.Kpis.Where(k => !(report.AmountsHidden && k.Unit == "€")))
         {
             var was = kpi.Previous is { } p ? $" ({previous}: {Value(p, kpi.Unit)})" : "";
-            text.AppendLine(CultureInfo.InvariantCulture, $"- {kpi.Label}: {Value(kpi.Value, kpi.Unit)}{was}");
+            text.AppendLine(CultureInfo.InvariantCulture, $"- {kpi.LabelWithNote()}: {Value(kpi.Value, kpi.Unit)}{was}");
         }
 
         if (report.Promotions is { Count: > 0 } promotions)

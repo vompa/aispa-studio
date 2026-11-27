@@ -38,13 +38,13 @@ Bei nachgetragenen oder korrigierten Abschnitten steht **Verlauf**. Ein Klick ze
 
 Die Stundenliste einer Person für einen Monat gibt es als PDF zum Unterschreiben.
 
-1. In der Windows-App **Verwaltung** › **Team** › **Personen** öffnen, die Person wählen und den Bereich **Arbeitszeit** öffnen; die Zeiten stehen unter dem Dienstplan. In der Übersicht aller Zeiten gibt es den Knopf nicht.
-2. Auf **Stundenliste als PDF** klicken. Es erscheint die Karte „Stundenliste“ mit dem Satz „Druckt die Stundenliste für <Monat> <Jahr>.“. Der Monat ist der der gezeigten Woche.
-3. Auf **Drucken** oder **PDF speichern** klicken. **Per Mail senden** gibt es hier nicht.
+1. In der Windows-App **Verwaltung** › **Team** › **Personen** öffnen, die Person wählen und den Bereich **Arbeitszeit** öffnen; die Zeiten stehen unter dem Dienstplan. In der Übersicht aller Zeiten gibt es die Stundenliste nicht.
+2. Rechts in der Kopfzeile das Menü **Ausgabe** öffnen. Die Gruppe „Stundenliste · Monat der Woche“ druckt die Stundenliste für den Monat der gezeigten Woche.
+3. Auf **Drucken …** oder **Als PDF speichern** klicken. **Per Mail senden** gibt es hier nicht.
 
 Das PDF `Stundenliste-<Name>-<JJJJ-MM>.pdf` ist A4 hoch. Es zeigt je Tag mit Dienst oder Zeiten Kommen, Gehen, Pause, Ist, Soll und Saldo, unten die Monatssumme und zwei Unterschriftenzeilen („Unterschrift <Name>“, „Unterschrift Leitung“). Tage ohne Dienst und ohne Zeiten sind nicht aufgeführt. Die Zahlen sind dieselben wie in der Zeitenmaske.
 
-Drucken darf die Stundenliste, wer die Zeiten lesen darf, auch das Backoffice; sonst nennt der Hinweis am Knopf den Grund. Wie die Knöpfe arbeiten: [Dokumente drucken, speichern und senden](hilfe:dokumente-drucken-speichern-senden).
+Drucken darf die Stundenliste, wer die Zeiten lesen darf, auch das Backoffice; sonst nennt der Hinweis am Eintrag den Grund. Wie die Knöpfe arbeiten: [Dokumente drucken, speichern und senden](hilfe:dokumente-drucken-speichern-senden).
 
 ## Gut zu wissen {#hinweise}
 

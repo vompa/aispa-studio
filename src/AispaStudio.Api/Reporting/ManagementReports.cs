@@ -20,6 +20,9 @@ internal sealed partial class ManagementReports(AispaDbContext db, RosterService
     /// <summary>Ab dieser Summe der Kassendifferenzen (Beträge, Überschuss wie Fehlbetrag) im Zeitraum steht eine Warnung im Bericht.</summary>
     private const decimal CashDifferenceThreshold = 5.00m;
 
+    /// <summary>Zusatz der Kachel „Offene Gutscheine“, wenn der Betrieb mehrere Standorte hat: Gutscheine gelten betriebsweit (Auftraggeber, 27.11.2026).</summary>
+    private const string WholeBusinessNote = "ganzer Betrieb";
+
     private static readonly CultureInfo German = CultureInfo.GetCultureInfo("de-AT");
 
     /// <summary>
@@ -201,6 +204,8 @@ internal sealed partial class ManagementReports(AispaDbContext db, RosterService
         var promotions = await PromotionsAsync(lines, locationId, ct);
 
         var vouchers = await db.Vouchers.AsNoTracking().Where(v => v.Status == VoucherStatus.Active).SumAsync(v => v.Balance, ct);
+        // Gutscheine gelten für den ganzen Betrieb; ab dem zweiten offenen Standort sagt die Kachel das (T-129).
+        var multipleLocations = await db.Locations.AsNoTracking().CountAsync(l => l.ClosedFrom == null, ct) > 1;
         var closings = await db.DayClosings.AsNoTracking()
             .Where(c => registerIds.Contains(c.RegisterId) && c.Until >= start && c.Until < end)
             .Select(c => c.Report)
@@ -237,7 +242,7 @@ internal sealed partial class ManagementReports(AispaDbContext db, RosterService
             new("newCustomers", "Neue Gäste", current.NewCustomers, previous.NewCustomers, "", true),
             new("returningRate", "Stammgäste-Anteil", Rate(current.Returning, current.Customers), Rate(previous.Returning, previous.Customers), "%", true),
             new("rebookingRate", "Folgetermin gebucht", current.Rebooking, previous.Rebooking, "%", true),
-            new("voucherLiabilities", "Offene Gutscheine (heute)", vouchers, null, "€"),
+            new("voucherLiabilities", "Offene Gutscheine (heute)", vouchers, null, "€", Note: multipleLocations ? WholeBusinessNote : null),
             new("openRequests", "Offene Anfragen (heute)", openRequests, null, ""),
             new("lapsingRegulars", "Abwandernde Stammgäste (heute)", lapsingCount, null, "", false),
         };

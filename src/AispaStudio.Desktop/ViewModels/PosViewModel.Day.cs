@@ -67,6 +67,7 @@ public partial class PosViewModel
             if (SetProperty(ref _ownerLevel, value))
             {
                 OnPropertyChanged(nameof(Export));
+                NotifyOutputChanged();
             }
         }
     }
@@ -129,7 +130,19 @@ public partial class PosViewModel
     public partial DocumentActionsViewModel? ClosingDocument { get; private set; }
 
     /// <summary>Das Recht „Berichte mit Beträgen“: ohne es liest der Server den Abschluss nicht, die Knöpfe sind gesperrt. Die Shell setzt es aus den Rechten.</summary>
-    public bool MaySeeAmountReports { get; set; }
+    public bool MaySeeAmountReports
+    {
+        get;
+        set
+        {
+            if (field != value)
+            {
+                field = value;
+                NotifyOutputChanged();
+                OnPropertyChanged(nameof(MayPrintVoucherList));
+            }
+        }
+    }
 
     public bool HasReport => Report is not null;
 

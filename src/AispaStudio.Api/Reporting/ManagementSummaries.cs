@@ -238,7 +238,7 @@ internal sealed partial class ManagementSummaries(
         foreach (var kpi in report.Kpis.Where(k => !(report.AmountsHidden && k.Unit == "€")))
         {
             var previous = kpi.Previous is { } p ? $" (davor {Number(p)} {kpi.Unit})".Replace(" )", ")", StringComparison.Ordinal) : "";
-            var line = $"- {kpi.Label}: {Number(kpi.Value)} {kpi.Unit}{previous}".TrimEnd();
+            var line = $"- {kpi.LabelWithNote()}: {Number(kpi.Value)} {kpi.Unit}{previous}".TrimEnd();
             text.AppendLine(line);
         }
 

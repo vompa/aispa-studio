@@ -1,54 +1,54 @@
 using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
 
 namespace AispaStudio.Desktop.ViewModels;
 
-// ---------- Stundenliste als PDF (PDF-Ausgaben F, ADR 0092) ----------
+// ---------- Stundenliste als PDF (PDF-Ausgaben F, ADR 0092; Menü „Ausgabe“ T-122) ----------
 public sealed partial class TimesheetViewModel
 {
     private static readonly CultureInfo German = CultureInfo.GetCultureInfo("de-AT");
 
-    private bool _documentOpen;
-
     /// <summary>
-    /// Auf der Karte einer Person: der Knopfblock „Drucken · PDF speichern“ für den Monat der gezeigten Woche; null, solange er zu ist. Die Stundenliste (Tage, Kommen, Gehen, Pausen, Ist, Soll, Saldo,
-    /// Monatssumme, Unterschriften) rechnet die API; ohne Senden, sie wird unterschrieben und abgeheftet.
+    /// Die Befehle „Drucken …“ und „Als PDF speichern“ der Stundenliste für den Monat der gezeigten Woche (Menü „Ausgabe“, T-122); null in der Übersicht aller. Der Pfad nennt Person und Monat,
+    /// deshalb folgt das Modell jedem Wochenwechsel. Ohne Senden, sie wird unterschrieben und abgeheftet; die Zahlen rechnet die API. Erfolge sagt der Toast der Shell, Fehler die Meldung der Maske.
     /// </summary>
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsDocumentOpen))]
     public partial DocumentActionsViewModel? Document { get; private set; }
-
-    [ObservableProperty]
-    public partial string? DocumentMessage { get; private set; }
-
-    public bool IsDocumentOpen => Document is not null;
 
     /// <summary>Die Stundenliste gehört zu einer Person: es gibt sie auf der Karte, nicht in der Übersicht aller.</summary>
     public bool CanOfferDocument => IsCard;
 
-    /// <summary>Sagt, was gedruckt wird: „Druckt die Stundenliste für März 2027.“</summary>
-    public string DocumentHint => $"Druckt die Stundenliste für {WeekStart.ToString("MMMM yyyy", German)}.";
+    /// <summary>Die Gruppe „Stundenliste“ im Menü: auf der Karte einer Person und nur, wer die Zeiten lesen darf (die API verlangt dasselbe).</summary>
+    public bool ShowsDocumentGroup => CanOfferDocument && _context.CanViewTimes;
 
-    [RelayCommand]
-    private void ToggleDocument()
-    {
-        _documentOpen = !_documentOpen;
-        DocumentMessage = null;
-        UpdateDocument();
-    }
+    /// <summary>Der Knopf „Ausgabe“ steht, wenn die Person die Stundenliste oder die Listen sehen darf; sonst fehlt er und das Fragezeichen bleibt am Rand.</summary>
+    public bool HasOutput => ShowsDocumentGroup || HasExport;
 
-    partial void OnWeekStartChanged(DateOnly value)
-    {
-        OnPropertyChanged(nameof(DocumentHint));
-        UpdateDocument();
-    }
+    partial void OnWeekStartChanged(DateOnly value) => UpdateDocument();
 
+    /// <summary>Baut das Modell der Stundenliste für den Monat der gezeigten Woche neu.</summary>
     private void UpdateDocument()
     {
-        Document = _documentOpen && _employeeId is { } employeeId
-            ? new DocumentActionsViewModel(DocumentSourceFor(employeeId, WeekStart, _context.CanViewTimes), _context.Api, Dialogs) { ShowToast = text => DocumentMessage = text }
-            : null;
+        if (!CanOfferDocument || _employeeId is not { } employeeId)
+        {
+            Document = null;
+            return;
+        }
+
+        var document = new DocumentActionsViewModel(DocumentSourceFor(employeeId, WeekStart, _context.CanViewTimes), _context.Api, Dialogs) { ShowToast = text => _context.Toast.Show(text) };
+        document.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(DocumentActionsViewModel.Error) && document.Error is { } problem)
+            {
+                LoadError = problem;
+            }
+        };
+        if (Files is not null)
+        {
+            document.Files = Files;
+        }
+
+        Document = document;
     }
 
     /// <summary>Pfad der Stundenliste (PDF-Ausgaben F) für den Monat, in dem die Woche beginnt; die Leitung und das Backoffice drucken sie (wie die Zeiten).</summary>

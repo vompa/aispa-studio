@@ -386,6 +386,21 @@ public sealed class ReportTests(ApiFixture fixture)
     }
 
     [Fact]
+    public async Task Offene_Gutscheine_sagen_ganzer_Betrieb_erst_bei_mehreren_Standorten()
+    {
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+
+        var single = (await ManagementAsync(spa, TestSpa.Monday, TestSpa.Monday)).Kpis;
+        _ = await AnswerKit.LocationAsync(spa, "Zweiter Standort", null);
+        var several = (await ManagementAsync(spa, TestSpa.Monday, TestSpa.Monday)).Kpis;
+
+        // Given ein Standort; Then bleibt die Kachel ohne Zusatz; When ein zweiter Standort dazukommt, Then sagt nur die betriebsweite Kachel „ganzer Betrieb“ (T-129)
+        Assert.Null(single.Single(k => k.Key == "voucherLiabilities").Note);
+        Assert.Equal("ganzer Betrieb", several.Single(k => k.Key == "voucherLiabilities").Note);
+        Assert.Single(several, k => k.Note is not null);
+    }
+
+    [Fact]
     public async Task Künftiger_Termin_ohne_Beleg_ist_keine_Warnung()
     {
         var spa = await TestSpa.CreateAsync(fixture, Ct);

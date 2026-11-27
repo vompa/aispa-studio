@@ -199,7 +199,7 @@
               <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="vm:KpiRow">
                   <ui:StatTile VerticalAlignment="Stretch" Label="{Binding Label}" Value="{Binding Value}" Change="{Binding Change}" ChangeState="{Binding State}"
-                               Hint="{Binding Previous}" AccessibleHint="{Binding Spoken}" />
+                               Hint="{Binding TileHint}" AccessibleHint="{Binding Spoken}" />
                 </DataTemplate>
               </ItemsControl.ItemTemplate>
             </ItemsControl>

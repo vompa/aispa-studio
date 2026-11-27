@@ -4,11 +4,12 @@ using AispaStudio.Desktop.Views;
 using Avalonia.Automation;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.Input;
 using Avalonia.VisualTree;
 
 namespace AispaStudio.Desktop.Tests;
 
-/// <summary>PDF-Ausgaben, Zusatz (ADR 0092): „Gutscheinliste …“ in der Kopfzeile der Kassa öffnet eine Karte mit Zeitraum, Status, zwei Schaltern und dem Knopfblock „Drucken · PDF speichern“.</summary>
+/// <summary>PDF-Ausgaben, Zusatz (ADR 0092): der Eintrag „Drucken oder als PDF speichern …“ im Menü „Ausgabe“ der Kassa (T-125) öffnet eine Karte mit Zeitraum, Status, zwei Schaltern und dem Knopfblock „Drucken · PDF speichern“.</summary>
 public sealed partial class ViewTests
 {
     [Fact]
@@ -19,7 +20,8 @@ public sealed partial class ViewTests
         await shell.CheckoutAsync(SpaSample.Paying);
         await Pump(Settling);
         var page = window.GetVisualDescendants().OfType<PosView>().First();
-        Assert.Contains(page.GetVisualDescendants().OfType<TextBlock>(), t => t.IsEffectivelyVisible && t.Text == "Gutscheinliste …");
+        Assert.Equal("Ausgabe", AutomationProperties.GetName(Named<Button>(page, "PosOutputButton")));
+        Assert.DoesNotContain(page.GetVisualDescendants().OfType<Control>(), c => c.Name is "VoucherListButton" or "PosExportButton" or "PosExportSaved");
         var popup = page.GetVisualDescendants().OfType<Popup>().Single(p => p.Child is Border { Name: "VoucherListCard" });
         Assert.False(popup.IsOpen);
 
@@ -33,6 +35,50 @@ public sealed partial class ViewTests
         Assert.NotNull(Named<DateField>(card, "VoucherListFromField"));
         Assert.NotNull(Named<DateField>(card, "VoucherListUntilField"));
         Assert.Equal(5, Named<ComboBox>(card, "VoucherListStatus").ItemCount);
+        return shell.Pos;
+    }, Api());
+
+    [Fact]
+    public Task Kassa_Menue_Ausgabe_hat_beide_Gruppen_und_ist_mit_der_Tastatur_erreichbar() => Render("hell", "kassa-menue-ausgabe", async (window, main) =>
+    {
+        await SignedInCalendar(main);
+        var shell = (ShellViewModel)main.Content!;
+        await shell.CheckoutAsync(SpaSample.Paying);
+        await Pump(Settling);
+        var page = window.GetVisualDescendants().OfType<PosView>().First();
+        var output = Named<Button>(page, "PosOutputButton");
+        Assert.True(output.IsEffectivelyVisible);
+        output.Focus();
+        await Pump(Settling);
+
+        Press(window, PhysicalKey.Enter);
+        await Pump(Settling);
+        Assert.True(output.Flyout!.IsOpen);
+        var headers = window.GetVisualDescendants().OfType<MenuItem>().Where(i => i.IsEffectivelyVisible && i.Bounds.Height > 0).Select(i => i.Header as string).ToList();
+        Assert.Equal(["Gutscheinliste · alle Gutscheine", "Drucken oder als PDF speichern …", "Listen · Belegtag"], headers[..3]);
+        Assert.Equal(15, headers.Count);
+
+        // Gruppenüberschriften sind abgeschaltet: die Pfeile überspringen sie und erreichen jeden Befehl.
+        var reached = new List<string?>();
+        if (Focused(window) is not MenuItem)
+        {
+            Press(window, PhysicalKey.ArrowDown);
+            await Pump();
+        }
+
+        for (var step = 0; step < 3; step++)
+        {
+            reached.Add((Focused(window) as Control)?.Name);
+            Press(window, PhysicalKey.ArrowDown);
+            await Pump();
+        }
+
+        Assert.Equal(["PosVoucherListItem", "PosReceiptsExcelItem", "PosReceiptsCsvItem"], reached);
+
+        Press(window, PhysicalKey.Escape);
+        await Pump(Settling);
+        Assert.False(output.Flyout.IsOpen);
+        Assert.Same(output, Focused(window));
         return shell.Pos;
     }, Api());
 

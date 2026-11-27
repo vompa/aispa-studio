@@ -44,24 +44,65 @@
       <Button x:Name="TimesThisWeekButton" Content="Diese Woche" Command="{Binding ThisWeekCommand}" />
       <Button x:Name="TimesNextWeekButton" Content="›" Command="{Binding NextWeekCommand}" Classes="icon" AutomationProperties.Name="Nächste Woche" ToolTip.Tip="Nächste Woche" />
       <TextBlock x:Name="TimesWeekTitleText" Text="{Binding WeekTitle}" Classes="h3" VerticalAlignment="Center" />
-      <!-- Export der Stundenliste und der Abwesenheiten, nur für Inhaberin und Geschäftsführung (Export/Import, Aufgabe D) -->
-      <ui:ExportButton x:Name="TimesExportButton" DataContext="{Binding Export}" VerticalAlignment="Center" />
-      <TextBlock x:Name="TimesExportSaved" Text="{Binding ExportSaved}" Classes="muted small" IsVisible="{Binding HasExportSaved}" VerticalAlignment="Center" AutomationProperties.LiveSetting="Polite" />
       <ui:HelpButton Topic="seite-time" VerticalAlignment="Center" IsVisible="{Binding !IsCard}" />
-      <Button x:Name="TimesDocumentButton" Content="Stundenliste als PDF" Command="{Binding ToggleDocumentCommand}" IsVisible="{Binding CanOfferDocument}"
-              ToolTip.Tip="Druckt oder speichert die Stundenliste dieser Person für den gezeigten Monat." />
+      <!--
+        Menü „Ausgabe“ (T-122, Muster des Wochenplans T-101): Stundenliste (Monat der Woche, nur auf der Personenkarte, mit dem Recht, die Zeiten zu lesen) und Listen (Inhaberin und Geschäftsführung); jede Gruppe nur mit ihrem Recht, ohne beide fehlt der Knopf.
+        Die Befehle sind die bestehenden: Drucken und Speichern der Stundenliste (Document), Export der Listen (Export; Reihenfolge der Optionen: Stundenliste Excel, Stundenliste CSV, Abwesenheiten Excel, Abwesenheiten CSV).
+      -->
+      <Button x:Name="TimesOutputButton" IsVisible="{Binding HasOutput}" VerticalAlignment="Center" AutomationProperties.Name="Ausgabe"
+              ToolTip.Tip="Stundenliste drucken oder als PDF speichern, Listen als Excel oder CSV speichern">
+        <StackPanel Orientation="Horizontal" Spacing="6">
+          <ui:Icon Data="{x:Static ui:Icons.Download}" Width="16" Height="16" />
+          <TextBlock Text="Ausgabe" VerticalAlignment="Center" />
+          <ui:Icon Data="{x:Static ui:Icons.ChevronDown}" Width="16" Height="16" />
+        </StackPanel>
+        <Button.Flyout>
+          <MenuFlyout Placement="BottomEdgeAlignedRight">
+            <MenuItem Classes="menugroup" Header="Stundenliste · Monat der Woche" IsEnabled="False" IsVisible="{Binding ShowsDocumentGroup}" AutomationProperties.Name="Stundenliste, Monat der Woche">
+              <MenuItem.Icon>
+                <Border Width="16" Height="16" />
+              </MenuItem.Icon>
+            </MenuItem>
+            <MenuItem x:Name="TimesPrintItem" Header="Drucken …" Command="{Binding Document.PrintCommand}" IsVisible="{Binding ShowsDocumentGroup}" ui:DisabledHint.Text="{Binding Document.DisabledHint}" AutomationProperties.Name="Stundenliste drucken">
+              <MenuItem.Icon>
+                <ui:Icon Data="{x:Static ui:Icons.Printer}" Width="16" Height="16" />
+              </MenuItem.Icon>
+            </MenuItem>
+            <MenuItem x:Name="TimesSavePdfItem" Header="Als PDF speichern" Command="{Binding Document.SaveCommand}" IsVisible="{Binding ShowsDocumentGroup}" ui:DisabledHint.Text="{Binding Document.DisabledHint}" AutomationProperties.Name="Stundenliste als PDF speichern">
+              <MenuItem.Icon>
+                <ui:Icon Data="{x:Static ui:Icons.SavePdf}" Width="16" Height="16" />
+              </MenuItem.Icon>
+            </MenuItem>
+            <Separator IsVisible="{Binding ShowsOutputSeparator}" />
+            <MenuItem Classes="menugroup" Header="Liste · Monat der Woche" IsEnabled="False" IsVisible="{Binding HasExport}" AutomationProperties.Name="Liste, Monat der Woche">
+              <MenuItem.Icon>
+                <Border Width="16" Height="16" />
+              </MenuItem.Icon>
+            </MenuItem>
+            <MenuItem x:Name="TimesHoursExcelItem" Header="Stundenliste als Excel" Command="{Binding Export.ExportCommand}" CommandParameter="{Binding Export.Options[0]}" IsVisible="{Binding HasExport}" AutomationProperties.Name="Stundenliste als Excel speichern">
+              <MenuItem.Icon>
+                <Border Width="16" Height="16" />
+              </MenuItem.Icon>
+            </MenuItem>
+            <MenuItem x:Name="TimesHoursCsvItem" Header="Stundenliste als CSV" Command="{Binding Export.ExportCommand}" CommandParameter="{Binding Export.Options[1]}" IsVisible="{Binding HasExport}" AutomationProperties.Name="Stundenliste als CSV speichern">
+              <MenuItem.Icon>
+                <Border Width="16" Height="16" />
+              </MenuItem.Icon>
+            </MenuItem>
+            <MenuItem x:Name="TimesAbsencesExcelItem" Header="Abwesenheiten als Excel" Command="{Binding Export.ExportCommand}" CommandParameter="{Binding Export.Options[2]}" IsVisible="{Binding HasExport}" AutomationProperties.Name="Abwesenheiten als Excel speichern">
+              <MenuItem.Icon>
+                <Border Width="16" Height="16" />
+              </MenuItem.Icon>
+            </MenuItem>
+            <MenuItem x:Name="TimesAbsencesCsvItem" Header="Abwesenheiten als CSV" Command="{Binding Export.ExportCommand}" CommandParameter="{Binding Export.Options[3]}" IsVisible="{Binding HasExport}" AutomationProperties.Name="Abwesenheiten als CSV speichern">
+              <MenuItem.Icon>
+                <Border Width="16" Height="16" />
+              </MenuItem.Icon>
+            </MenuItem>
+          </MenuFlyout>
+        </Button.Flyout>
+      </Button>
     </WrapPanel>
-
-    <!-- Stundenliste (PDF-Ausgaben F): „Stundenliste als PDF“ auf der Karte einer Person öffnet den Knopfblock ohne Senden -->
-    <Border x:Name="TimesDocumentCard" Classes="section" IsVisible="{Binding IsDocumentOpen}" HorizontalAlignment="Left">
-      <StackPanel Spacing="8">
-        <TextBlock Text="Stundenliste" FontWeight="Medium" />
-        <TextBlock Text="{Binding DocumentHint}" Classes="muted small" TextWrapping="Wrap" MaxWidth="480" />
-        <ui:DocumentActions DataContext="{Binding Document}" />
-        <TextBlock Text="{Binding DocumentMessage}" Classes="secondary small" AutomationProperties.LiveSetting="Polite"
-                   IsVisible="{Binding DocumentMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
-      </StackPanel>
-    </Border>
 
     <TextBlock x:Name="TimesLegend" Text="{Binding Legend}" Classes="muted" TextWrapping="Wrap" />
 

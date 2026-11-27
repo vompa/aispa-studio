@@ -136,7 +136,8 @@ public sealed record BriefingDto(
 /// <param name="Previous">Wert im Vergleichszeitraum (<c>CompareFrom</c> bis <c>CompareUntil</c> des Berichts); leer bei Werten ohne Vergleich.</param>
 /// <param name="HigherIsBetter">Ob ein höherer Wert gut ist (Umsatz) oder schlecht (No-Show-Quote); leer bei neutralen Werten wie „Offene Gutscheine“.</param>
 /// <param name="Group">Überschrift der Gruppe, unter der die Kennzahl steht („Umsatz und Ertrag“, „Auslastung“, „Gäste“, „Ausfälle“); leer bei älteren Aufrufen.</param>
-public sealed record Kpi(string Key, string Label, decimal Value, decimal? Previous, string Unit, bool? HigherIsBetter = null, string? Group = null);
+/// <param name="Note">Zusatz zur Kachel; „ganzer Betrieb“ bei „Offene Gutscheine“, wenn der Betrieb mehr als einen Standort hat (Gutscheine gelten betriebsweit); sonst leer.</param>
+public sealed record Kpi(string Key, string Label, decimal Value, decimal? Previous, string Unit, bool? HigherIsBetter = null, string? Group = null, string? Note = null);
 
 public sealed record RevenueLine(string Label, string? CostCenter, decimal Gross, decimal Net);
 
