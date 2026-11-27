@@ -19,7 +19,7 @@ Die Seite sehen alle, die Termine buchen dürfen (Inhaber, Standortleitung, Reze
 - Drei Bereiche zum Umschalten: **Kassieren**, **Belege** und **Kassenlade & Abschluss**.
 - Die Auswahl der Kassa („Kassa WIEN-1“ usw.). Kommt man aus dem Kalender, ist die Kassa des Standorts des Termins gewählt.
 - Der Knopf mit den Pfeilen (**Aktualisieren**) lädt die offenen Termine und Rechnungen neu.
-- **Exportieren** speichert Listen der gewählten Kassa als Excel oder CSV: Belegliste, Umsatz je Tag, je Zahlart und je Behandlung und Person sowie die Tagesabschlüsse, jeweils für den Belegtag im Bereich **Belege**, dazu den Gutscheinbestand. Den Knopf sehen nur Inhaberin und Geschäftsführung; jeder Export steht im Verlauf.
+- Im Menü **Ausgabe** speichert die Gruppe „Listen · Belegtag“ Listen der gewählten Kassa als Excel oder CSV: Belegliste, Umsatz je Tag, je Zahlart und je Behandlung und Person sowie die Tagesabschlüsse, jeweils für den Belegtag im Bereich **Belege**, dazu den Gutscheinbestand. Diese Gruppe sehen nur Inhaberin und Geschäftsführung; jeder Export steht im Verlauf. Die Gruppe „Gutscheinliste · alle Gutscheine“ im selben Menü öffnet die Karte zum Drucken der Gutscheinliste, siehe [Gutscheinliste drucken](hilfe:kassa-gutschein-verkaufen#gutscheinliste); sie steht nur mit dem Recht dafür. Ohne eine der beiden Gruppen fehlt der Knopf **Ausgabe**.
 - Rote Hinweise nennen Fehler, gelbe Hinweise Warnungen der Kassa, z. B. „Signatureinrichtung ausgefallen …“ oder „Kassa außer Betrieb (Schlussbeleg erstellt).“
 
 ## Kassieren {#kassieren}

@@ -64,7 +64,7 @@ Unter „Belege“ nennt die Karte über **Beleg stornieren**, was online bezahl
 
 Steht dort „Nicht erstattet: …“, klickt die Kassenaufsicht auf **Erstattung erneut anstoßen**.
 
-Alle Online-Zahlungen des Standorts zeigt das Weltkugel-Symbol **Online-Zahlungen** oben in der Kassa, neben **Gutscheinliste …**. Die Karte listet die neuesten 100 online gekauften Gutscheine mit Stand („Ausgestellt“, „Bezahlt, aber nicht ausgestellt“, „Storniert und erstattet“) und Beleg. Darunter stehen die Erstattungen mit Beleg, Stornobeleg und Stand. Fehlgeschlagenes steht in Rot. Die Karte dient nur zum Nachsehen: Erstattet wird weiter über das Storno des Belegs.
+Alle Online-Zahlungen des Standorts zeigt das Weltkugel-Symbol **Online-Zahlungen** oben in der Kassa, neben dem Menü **Ausgabe**. Die Karte listet die neuesten 100 online gekauften Gutscheine mit Stand („Ausgestellt“, „Bezahlt, aber nicht ausgestellt“, „Storniert und erstattet“) und Beleg. Darunter stehen die Erstattungen mit Beleg, Stornobeleg und Stand. Fehlgeschlagenes steht in Rot. Die Karte dient nur zum Nachsehen: Erstattet wird weiter über das Storno des Belegs.
 
 ![Karte Online-Zahlungen in der Kassa](images/app/kassa-online-zahlungen.png)
 

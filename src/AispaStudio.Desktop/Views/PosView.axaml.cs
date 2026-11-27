@@ -55,6 +55,7 @@ public partial class PosView : UserControl
         if (_pos is not null)
         {
             _pos.PropertyChanged += OnPosChanged;
+            _pos.Files = new StorageFileSaver(this);
         }
     }
 

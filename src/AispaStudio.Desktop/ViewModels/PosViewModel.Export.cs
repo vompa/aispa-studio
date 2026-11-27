@@ -1,34 +1,55 @@
-using CommunityToolkit.Mvvm.ComponentModel;
-
 namespace AispaStudio.Desktop.ViewModels;
 
-// ---------- Export der Kassa-Listen für die Leitung (Export/Import, Aufgabe D) ----------
+// ---------- Export der Kassa-Listen für die Leitung (Export/Import, Aufgabe D; Menü „Ausgabe“ T-125) ----------
 public partial class PosViewModel
 {
     private ExportViewModel? _export;
 
     /// <summary>
-    /// Der Knopf „Exportieren“ in der Kopfzeile: Belege, Umsatz, Tagesabschlüsse und Gutscheinbestand der gewählten Kasse. Nur für Inhaberin und Geschäftsführung (<see cref="OwnerLevel"/>) und mit gewählter Kasse;
-    /// sonst gibt es keinen Knopf. Der Zeitraum ist der Belegtag des Reiters „Belege“, der Pfad wird beim Klick gebildet.
+    /// Die Listen im Menü „Ausgabe“ der Kopfzeile: Belege, Umsatz, Tagesabschlüsse und Gutscheinbestand der gewählten Kasse. Nur für Inhaberin und Geschäftsführung (<see cref="OwnerLevel"/>) und mit gewählter Kasse;
+    /// sonst fehlt die Gruppe. Der Zeitraum ist der Belegtag des Reiters „Belege“, der Pfad wird beim Klick gebildet; die Bestätigung ist der Toast der Shell.
     /// </summary>
     public ExportViewModel? Export => OwnerLevel && Register is not null
         ? _export ??= new ExportViewModel(_api, ExportOptions())
         {
-            Saved = text => ExportSaved = text,
-            Failed = text =>
-            {
-                ExportSaved = null;
-                Error = text;
-            },
+            Saved = ShowToast,
+            Failed = text => Error = text,
+            Files = Files,
         }
         : null;
 
-    /// <summary>„Gespeichert: Belege_2026-10-19.xlsx“, klein neben dem Knopf.</summary>
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasExportSaved))]
-    public partial string? ExportSaved { get; private set; }
+    public bool HasExport => Export is not null;
 
-    public bool HasExportSaved => !string.IsNullOrEmpty(ExportSaved);
+    /// <summary>Die Gruppe „Gutscheinliste“ im Menü: wer sie drucken darf (Kassenaufsicht oder „Berichte mit Beträgen“); der Server verlangt dasselbe.</summary>
+    public bool ShowsVoucherListGroup => MayPrintVoucherList;
+
+    /// <summary>Der Knopf „Ausgabe“ steht, wenn mindestens eine Gruppe da ist; sonst fehlt er.</summary>
+    public bool HasOutput => ShowsVoucherListGroup || HasExport;
+
+    /// <summary>Zwischen den Gruppen „Gutscheinliste“ und „Listen“ steht ein Trenner, solange beide da sind.</summary>
+    public bool ShowsOutputSeparator => ShowsVoucherListGroup && HasExport;
+
+    /// <summary>Der Speicherdialog des Fensters; die Ansicht setzt ihn beim Einhängen und er gilt für die Listen (auch wenn sie erst danach entstehen).</summary>
+    public IFileSaver? Files
+    {
+        get;
+        set
+        {
+            field = value;
+            if (_export is not null)
+            {
+                _export.Files = value;
+            }
+        }
+    }
+
+    private void NotifyOutputChanged()
+    {
+        OnPropertyChanged(nameof(ShowsVoucherListGroup));
+        OnPropertyChanged(nameof(HasExport));
+        OnPropertyChanged(nameof(HasOutput));
+        OnPropertyChanged(nameof(ShowsOutputSeparator));
+    }
 
     private List<ExportOption> ExportOptions() =>
     [

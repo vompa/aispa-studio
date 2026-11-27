@@ -447,7 +447,7 @@ public partial class PosViewModel : ViewModelBase, IFocusTarget
     public ObservableCollection<PaymentEntry> Payments { get; } = [];
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(Currency), nameof(CurrencyUnit), nameof(Export))]
+    [NotifyPropertyChangedFor(nameof(Currency), nameof(CurrencyUnit), nameof(Export), nameof(HasExport), nameof(HasOutput), nameof(ShowsOutputSeparator))]
     public partial CashRegisterDto? Register { get; set; }
 
     [ObservableProperty]

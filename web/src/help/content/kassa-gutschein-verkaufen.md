@@ -82,7 +82,7 @@ Gutscheine drucken und senden darf, wer buchen oder Belege ansehen darf.
 
 Die Gutscheinliste zeigt alle Gutscheine des Standorts mit Werten, Status, Käufern und Versandvermerk, am Ende mit der Summe der offenen Restwerte.
 
-1. In der Kassa in der Kopfzeile auf **Gutscheinliste …** klicken. Es öffnet sich die Karte „Gutscheinliste“.
+1. In der Kassa in der Kopfzeile das Menü **Ausgabe** öffnen und in der Gruppe „Gutscheinliste · alle Gutscheine“ auf **Drucken oder als PDF speichern …** klicken. Es öffnet sich die Karte „Gutscheinliste“.
 2. Bei Bedarf filtern: **Ausgestellt von** und **bis**, **Status** (Alle, aktiv, aufgebraucht, abgelaufen, storniert) und die Haken **Läuft in 30 Tagen ab** und **Noch nicht versendet**. „Noch nicht versendet“ zeigt Gutscheine ohne Versandvermerk, also weder per Mail gesendet noch gedruckt noch übergeben.
 3. Auf **Drucken** oder **PDF speichern** klicken. **Per Mail senden** gibt es hier nicht.
 
@@ -92,7 +92,7 @@ Das PDF `Gutscheinliste-<Standort>-<Datum>.pdf` ist A4 quer. Es hat eine Zeile j
 
 Die Spalte „Versand“ zeigt, wie der Gutschein zum Gast kam: „Mail am <Datum>“ mit „an <Adresse>“, „Zum Drucken geöffnet am <Datum>“ oder „Übergeben am <Datum>“. Der Vermerk „Zum Drucken geöffnet“ entsteht, sobald der Druckdialog für den Gutschein aufgeht, auch wenn danach **Abbrechen** kommt; Windows meldet nicht zurück, ob gedruckt wurde. Mit **noch nicht versendet** stehen nur Gutscheine ohne einen solchen Vermerk auf der Liste.
 
-Die Karte lässt sich immer öffnen. Drucken und Speichern sind gesperrt, wenn das Ende vor dem Beginn liegt („Das Ende darf nicht vor dem Beginn liegen.“) oder wenn das Recht fehlt: „Die Gutscheinliste druckt nur die Kassenaufsicht oder wer „Berichte mit Beträgen“ sehen darf.“ Wie die Knöpfe arbeiten: [Dokumente drucken, speichern und senden](hilfe:dokumente-drucken-speichern-senden).
+Die Gruppe steht nur der Kassenaufsicht und wem „Berichte mit Beträgen“ erlaubt sind; sonst fehlt der Eintrag im Menü. Drucken und Speichern sind gesperrt, wenn das Ende vor dem Beginn liegt („Das Ende darf nicht vor dem Beginn liegen.“). Wie die Knöpfe arbeiten: [Dokumente drucken, speichern und senden](hilfe:dokumente-drucken-speichern-senden).
 
 ## Gut zu wissen {#hinweise}
 

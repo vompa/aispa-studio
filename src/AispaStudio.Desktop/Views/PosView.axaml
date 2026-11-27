@@ -95,9 +95,6 @@
             </DataTemplate>
           </ComboBox.ItemTemplate>
         </ComboBox>
-        <!-- Export der Kassa-Listen, nur für Inhaberin und Geschäftsführung (Export/Import, Aufgabe D) -->
-        <TextBlock x:Name="PosExportSaved" Text="{Binding ExportSaved}" Classes="muted small" IsVisible="{Binding HasExportSaved}" VerticalAlignment="Center" AutomationProperties.LiveSetting="Polite" />
-        <ui:ExportButton x:Name="PosExportButton" DataContext="{Binding Export}" />
         <Button Classes="icon" Command="{Binding LoadDayCommand}" ToolTip.Tip="Aktualisieren" AutomationProperties.Name="Aktualisieren">
           <ui:Icon Data="{x:Static ui:Icons.Refresh}" />
         </Button>
@@ -158,14 +155,100 @@
             </Grid>
           </Border>
         </Popup>
-        <!-- Gutscheinliste (PDF-Ausgaben, Zusatz; ADR 0092): Zeitraum, Status und zwei Schalter wählen, dann Drucken oder PDF speichern; die Liste kommt von der API -->
-        <Button x:Name="VoucherListButton" Command="{Binding ToggleVoucherListCommand}" ToolTip.Tip="Alle Gutscheine des Standorts als Liste drucken" AutomationProperties.Name="Gutscheinliste">
+        <!--
+          Menü „Ausgabe“ (T-125, Muster der Zeiten T-122): Gutscheinliste (öffnet die Karte mit den Filtern; Kassenaufsicht oder „Berichte mit Beträgen“) und Listen (Inhaberin und Geschäftsführung, sechs Listen als Excel und CSV);
+          jede Gruppe nur mit ihrem Recht, ohne beide fehlt der Knopf. Tagesabschluss als PDF, Bon, Beleg und Gutschein behalten ihre Knöpfe an ihrer Stelle.
+        -->
+        <Button x:Name="PosOutputButton" IsVisible="{Binding HasOutput}" VerticalAlignment="Center" AutomationProperties.Name="Ausgabe"
+                ToolTip.Tip="Gutscheinliste drucken, Kassa-Listen als Excel oder CSV speichern">
           <StackPanel Orientation="Horizontal" Spacing="6">
-            <ui:Icon Data="{x:Static ui:Icons.Printer}" Width="16" Height="16" />
-            <TextBlock Text="Gutscheinliste …" />
+            <ui:Icon Data="{x:Static ui:Icons.Download}" Width="16" Height="16" />
+            <TextBlock Text="Ausgabe" VerticalAlignment="Center" />
+            <ui:Icon Data="{x:Static ui:Icons.ChevronDown}" Width="16" Height="16" />
           </StackPanel>
+          <Button.Flyout>
+            <MenuFlyout Placement="BottomEdgeAlignedRight">
+              <MenuItem Classes="menugroup" Header="Gutscheinliste · alle Gutscheine" IsEnabled="False" IsVisible="{Binding ShowsVoucherListGroup}" AutomationProperties.Name="Gutscheinliste, alle Gutscheine">
+                <MenuItem.Icon>
+                  <Border Width="16" Height="16" />
+                </MenuItem.Icon>
+              </MenuItem>
+              <MenuItem x:Name="PosVoucherListItem" Header="Drucken oder als PDF speichern …" Command="{Binding ToggleVoucherListCommand}" IsVisible="{Binding ShowsVoucherListGroup}" AutomationProperties.Name="Gutscheinliste drucken oder als PDF speichern">
+                <MenuItem.Icon>
+                  <ui:Icon Data="{x:Static ui:Icons.Printer}" Width="16" Height="16" />
+                </MenuItem.Icon>
+              </MenuItem>
+              <Separator IsVisible="{Binding ShowsOutputSeparator}" />
+              <MenuItem Classes="menugroup" Header="Listen · Belegtag" IsEnabled="False" IsVisible="{Binding HasExport}" AutomationProperties.Name="Listen, Belegtag">
+                <MenuItem.Icon>
+                  <Border Width="16" Height="16" />
+                </MenuItem.Icon>
+              </MenuItem>
+              <MenuItem x:Name="PosReceiptsExcelItem" Header="Belegliste als Excel" Command="{Binding Export.ExportCommand}" CommandParameter="{Binding Export.Options[0]}" IsVisible="{Binding HasExport}" AutomationProperties.Name="Belegliste als Excel speichern">
+                <MenuItem.Icon>
+                <Border Width="16" Height="16" />
+              </MenuItem.Icon>
+            </MenuItem>
+              <MenuItem x:Name="PosReceiptsCsvItem" Header="Belegliste als CSV" Command="{Binding Export.ExportCommand}" CommandParameter="{Binding Export.Options[1]}" IsVisible="{Binding HasExport}" AutomationProperties.Name="Belegliste als CSV speichern">
+                <MenuItem.Icon>
+                <Border Width="16" Height="16" />
+              </MenuItem.Icon>
+            </MenuItem>
+              <MenuItem x:Name="PosRevenueDaysExcelItem" Header="Umsatz je Tag als Excel" Command="{Binding Export.ExportCommand}" CommandParameter="{Binding Export.Options[2]}" IsVisible="{Binding HasExport}" AutomationProperties.Name="Umsatz je Tag als Excel speichern">
+                <MenuItem.Icon>
+                <Border Width="16" Height="16" />
+              </MenuItem.Icon>
+            </MenuItem>
+              <MenuItem x:Name="PosRevenueDaysCsvItem" Header="Umsatz je Tag als CSV" Command="{Binding Export.ExportCommand}" CommandParameter="{Binding Export.Options[3]}" IsVisible="{Binding HasExport}" AutomationProperties.Name="Umsatz je Tag als CSV speichern">
+                <MenuItem.Icon>
+                <Border Width="16" Height="16" />
+              </MenuItem.Icon>
+            </MenuItem>
+              <MenuItem x:Name="PosRevenuePaymentsExcelItem" Header="Umsatz je Zahlart als Excel" Command="{Binding Export.ExportCommand}" CommandParameter="{Binding Export.Options[4]}" IsVisible="{Binding HasExport}" AutomationProperties.Name="Umsatz je Zahlart als Excel speichern">
+                <MenuItem.Icon>
+                <Border Width="16" Height="16" />
+              </MenuItem.Icon>
+            </MenuItem>
+              <MenuItem x:Name="PosRevenuePaymentsCsvItem" Header="Umsatz je Zahlart als CSV" Command="{Binding Export.ExportCommand}" CommandParameter="{Binding Export.Options[5]}" IsVisible="{Binding HasExport}" AutomationProperties.Name="Umsatz je Zahlart als CSV speichern">
+                <MenuItem.Icon>
+                <Border Width="16" Height="16" />
+              </MenuItem.Icon>
+            </MenuItem>
+              <MenuItem x:Name="PosRevenueTreatmentsExcelItem" Header="Umsatz je Behandlung und Person als Excel" Command="{Binding Export.ExportCommand}" CommandParameter="{Binding Export.Options[6]}" IsVisible="{Binding HasExport}" AutomationProperties.Name="Umsatz je Behandlung und Person als Excel speichern">
+                <MenuItem.Icon>
+                <Border Width="16" Height="16" />
+              </MenuItem.Icon>
+            </MenuItem>
+              <MenuItem x:Name="PosRevenueTreatmentsCsvItem" Header="Umsatz je Behandlung und Person als CSV" Command="{Binding Export.ExportCommand}" CommandParameter="{Binding Export.Options[7]}" IsVisible="{Binding HasExport}" AutomationProperties.Name="Umsatz je Behandlung und Person als CSV speichern">
+                <MenuItem.Icon>
+                <Border Width="16" Height="16" />
+              </MenuItem.Icon>
+            </MenuItem>
+              <MenuItem x:Name="PosDayClosingsExcelItem" Header="Tagesabschlüsse als Excel" Command="{Binding Export.ExportCommand}" CommandParameter="{Binding Export.Options[8]}" IsVisible="{Binding HasExport}" AutomationProperties.Name="Tagesabschlüsse als Excel speichern">
+                <MenuItem.Icon>
+                <Border Width="16" Height="16" />
+              </MenuItem.Icon>
+            </MenuItem>
+              <MenuItem x:Name="PosDayClosingsCsvItem" Header="Tagesabschlüsse als CSV" Command="{Binding Export.ExportCommand}" CommandParameter="{Binding Export.Options[9]}" IsVisible="{Binding HasExport}" AutomationProperties.Name="Tagesabschlüsse als CSV speichern">
+                <MenuItem.Icon>
+                <Border Width="16" Height="16" />
+              </MenuItem.Icon>
+            </MenuItem>
+              <MenuItem x:Name="PosVouchersExcelItem" Header="Gutscheinbestand als Excel" Command="{Binding Export.ExportCommand}" CommandParameter="{Binding Export.Options[10]}" IsVisible="{Binding HasExport}" AutomationProperties.Name="Gutscheinbestand als Excel speichern">
+                <MenuItem.Icon>
+                <Border Width="16" Height="16" />
+              </MenuItem.Icon>
+            </MenuItem>
+              <MenuItem x:Name="PosVouchersCsvItem" Header="Gutscheinbestand als CSV" Command="{Binding Export.ExportCommand}" CommandParameter="{Binding Export.Options[11]}" IsVisible="{Binding HasExport}" AutomationProperties.Name="Gutscheinbestand als CSV speichern">
+                <MenuItem.Icon>
+                <Border Width="16" Height="16" />
+              </MenuItem.Icon>
+            </MenuItem>
+            </MenuFlyout>
+          </Button.Flyout>
         </Button>
-        <Popup PlacementTarget="{Binding #VoucherListButton}" Placement="BottomEdgeAlignedRight" IsOpen="{Binding VoucherList, Converter={x:Static ObjectConverters.IsNotNull}}"
+        <!-- Gutscheinliste (PDF-Ausgaben, Zusatz; ADR 0092): Zeitraum, Status und zwei Schalter wählen, dann Drucken oder PDF speichern; die Liste kommt von der API; geöffnet wird die Karte im Menü „Ausgabe“ (T-125) -->
+        <Popup PlacementTarget="{Binding #PosOutputButton}" Placement="BottomEdgeAlignedRight" IsOpen="{Binding VoucherList, Converter={x:Static ObjectConverters.IsNotNull}}"
                IsLightDismissEnabled="False">
           <Border x:Name="VoucherListCard" Classes="card" Padding="16" Width="400" BoxShadow="{DynamicResource CardShadow}"
                   DataContext="{Binding VoucherList}" x:DataType="vm:VoucherListPrintViewModel">

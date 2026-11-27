@@ -20,6 +20,8 @@ public partial class PosViewModel
 
     partial void OnMaySuperviseCashChanged(bool value)
     {
+        NotifyOutputChanged();
+        OnPropertyChanged(nameof(MayPrintVoucherList));
         if (!value)
         {
             MovementIsWithdrawal = false;

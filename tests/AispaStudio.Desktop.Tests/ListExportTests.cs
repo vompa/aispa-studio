@@ -4,7 +4,7 @@ using AispaStudio.Desktop.ViewModels;
 namespace AispaStudio.Desktop.Tests;
 
 /// <summary>
-/// Der Knopf „Exportieren“ in Kassa, Zeiterfassung, Dienstplan und Management-Bericht (Export/Import, Aufgabe D): wer ihn sieht, welche Einträge er hat, welchen Pfad ein Klick
+/// Das Menü „Ausgabe“ der Kassa (T-125) und der Knopf „Exportieren“ in Zeiterfassung, Dienstplan und Management-Bericht (Export/Import, Aufgabe D): wer ihn sieht, welche Einträge er hat, welchen Pfad ein Klick
 /// aufruft und wie die Seite „Gespeichert: …“ meldet. Inhalt, Format und Rechte der Dateien prüfen die API-Tests.
 /// </summary>
 public sealed class ListExportTests
@@ -63,11 +63,10 @@ public sealed class ListExportTests
         pos.Export!.Files = files;
 
         await Click(pos.Export, "Belegliste (Excel)");
-        Assert.Equal("Gespeichert: Belege_2026-10-19.xlsx", pos.ExportSaved);
-        Assert.True(pos.HasExportSaved);
+        Assert.Equal("Gespeichert: Belege_2026-10-19.xlsx", pos.Toast.Text);
 
         await Click(pos.Export, "Gutscheinbestand (CSV)");
-        Assert.Equal("Gespeichert: Gutscheine.csv", pos.ExportSaved);
+        Assert.Equal("Gespeichert: Gutscheine.csv", pos.Toast.Text);
         Assert.Equal(["Belege_2026-10-19.xlsx", "Gutscheine.csv"], files.Saved.Select(s => s.Name));
     }
 
@@ -80,7 +79,30 @@ public sealed class ListExportTests
         await Click(pos.Export, "Umsatz je Tag (CSV)");
 
         Assert.False(string.IsNullOrEmpty(pos.Error));
-        Assert.Null(pos.ExportSaved);
+    }
+
+    [Fact]
+    public async Task Kassa_Menue_Ausgabe_zeigt_je_Rolle_nur_die_Gruppen_mit_Recht()
+    {
+        var reception = await Pos(PosApi(), ownerLevel: false);
+        Assert.False(reception.HasOutput);
+
+        var supervisor = await Pos(PosApi(), ownerLevel: false);
+        supervisor.MaySuperviseCash = true;
+        Assert.True(supervisor.HasOutput);
+        Assert.True(supervisor.ShowsVoucherListGroup);
+        Assert.False(supervisor.HasExport);
+        Assert.False(supervisor.ShowsOutputSeparator);
+
+        var owner = await Pos(PosApi(), ownerLevel: true);
+        Assert.True(owner.HasOutput);
+        Assert.False(owner.ShowsVoucherListGroup);
+        Assert.True(owner.HasExport);
+        Assert.False(owner.ShowsOutputSeparator);
+
+        owner.MaySeeAmountReports = true;
+        Assert.True(owner.ShowsVoucherListGroup);
+        Assert.True(owner.ShowsOutputSeparator);
     }
 
     // Lager: seit P7 ein Dialog statt Menü, siehe StockExportDialogTests.
