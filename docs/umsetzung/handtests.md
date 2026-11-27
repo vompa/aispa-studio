@@ -2013,3 +2013,18 @@ Expected: Beim zweiten „Terminwunsch lesen“ stehen Tokens bei „Cache geles
 Expected: Die Zeile „Modelle“ nennt zweimal `claude-opus-5-5`.
 Closes: T-112b
 Result: ☐
+
+### T-114 – Hilfe: größere Schrift für Kategorien und Navigation
+Start: `dotnet run --project src/AispaStudio.AppHost`, Ressource `windows-app` starten, als Inhaberin anmelden, die Hilfe aus der App öffnen (WebView2); alternativ im Browser `/help/`.
+1. In der linken Themenliste eine Gruppe wie „Kalender“ aufklappen.
+Expected: Gruppentitel („Kalender“, „Erste Schritte“) sind deutlich lesbar (14 px, fett, grau), die Themeneinträge darunter größer (16 px), keine Zeile wirkt gedrängt, Zeilen mit zwei Zeilen Text sind lesbar.
+2. Ein Thema öffnen und rechts (ab 1180 px Fensterbreite) „Auf dieser Seite“ ansehen; das Fenster schmal ziehen und „Inhalt“ über dem Text ansehen.
+Expected: Titel und Einträge haben 14 px; der gelesene Abschnitt ist fett mit Strich in der Akzentfarbe.
+3. Mit Tab durch die Liste gehen, einen Eintrag mit Enter öffnen.
+Expected: Fokusring sichtbar, Thema öffnet; der gewählte Eintrag bleibt als Pille hervorgehoben.
+4. Die Hilfe auf Handybreite (etwa 400 px) ansehen.
+Expected: Nichts läuft über den Rand, kein waagerechtes Scrollen.
+5. Im Kalender die Hilfe-Schublade öffnen.
+Expected: Die Schublade sieht aus wie vorher.
+Closes: T-114
+Result: ☐

@@ -8334,3 +8334,25 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Geprüft:** Rot zuerst: `dotnet build tests/AispaStudio.Api.Tests` mit den neuen Tests Exitcode 1 (`AskRequest`, `ModelExtract`, `MinCachePrefixChars` fehlen; `.test-logs/t112b-red-build.log`). Danach `ClaudeCostTests` (4 neu), `MailParsingTests`, `BusinessAnswerTests`, `AiUsageTests`, `LocalAiTests`, `ManagementAnalysisTests` 93/93, Exitcode 0 (`t112b-classes.log`); `--filter-method "*Assistant*"` und `"*MailIntake*"` 143/143, Exitcode 0 (`t112b-methods.log`); Release-Build der Lösung Exitcode 0 (`t112b-build.log`); `dotnet format --verify-no-changes` Exitcode 0 (`t112b-format.log`); Hilfetests 66/66, Exitcode 0 (`t112b-help.log`); `npm run gen:api` Exitcode 0. Geändert: `LocalAiTests` auf Nummern statt Ids.
 - **Nicht geprüft:** echter Aufruf von Claude (Cache-Treffer, Annahme von Haiku 5.5 mit Schema und `effort`, Lesequalität von Haiku 5.5 bei Handschrift und Lieferscheinen), Desktop-Tests und Bild des Reiters KI mit der neuen Zeile „Modelle“, Handtest T-112b, volle Prüfkette am Rundenende.
 - **Text-Prüfsatz:** Hilfe, Oberflächentext und Handtest folgen [docs/gestaltung/texte.md](../gestaltung/texte.md): kurze Sätze, Namen wie auf dem Bildschirm, Knöpfe fett, kein „bitte“; `textRules.test.ts` ist grün.
+
+## Hilfe: größere Schrift für Kategorien und Navigation (T-114, 27.11.2026)
+
+- **Auftrag:** Auftraggeber, 26.11.2026, Punkt 2: In der Hilfe sind Kategorien und Navigation zu klein.
+- **Was (nur `web/src/help/helpPage.css`, Werte alt → neu):**
+  - Gruppentitel `.help-page-nav .help-index h3` (Bereichstitel in Suchtreffern und Rollenansicht): 12/16 → 14/20, Abstand oben 12 → 16.
+  - Zwischentitel `.help-index h4`: 12/16 → 14/20, Abstand 8/2 → 12/4.
+  - Gruppenkopf `.help-group > summary` (Kalender, Kassa …): 12/16 → 14/20, Höhe 32 → 40 (Innenabstand 4 → 10).
+  - Themeneinträge `.help-page-nav .help-topics button`: 14/20 → 16/22, Mindesthöhe 40 → 44.
+  - „Auf dieser Seite“ und „Inhalt“ `.help-toc a`: 12/16 → 14/20, Innenabstand 4 → 6; neu `.help-toc-side .help-toc-title`: 12/16 → 14/20.
+  - Design-Brief 5.30: Nachtrag mit Datum.
+- **Detailentscheidungen:**
+  1. *16 statt 15 für Einträge:* Im Brief gibt es keine Stufe 15 (12, 13, 14, 16, 18, 22); 16/22 ist die Stufe Zwischentitel und trägt ein Gewicht 400 sauber neben 14/600 der Gruppentitel.
+  2. *Gruppentitel 14 statt 16:* so bleibt die Rangfolge Titel (fett, grau) vor Eintrag erkennbar; 14/600 ist nach 3 zulässig, 12 ist nur die Mindestgröße.
+  3. *Inhaltsverzeichnis 14:* es ist Navigation, aber nachgeordnet; 14/20 ist die Stufe Text.
+  4. *Höhen nach Brief 5.6:* Zeile mindestens 40; wegen 22 px Zeilenhöhe 44, damit zweizeilige Einträge nicht gedrängt sind. Abstände nur aus 4, 8, 12, 16 und den Innenabständen 6 und 10.
+  5. *Nur Seite `/help/`:* die Regeln stehen in `helpPage.css` und gelten nicht für die Schublade der Verwaltung (`index.css` unverändert).
+  6. *Kontrast:* Farben unverändert (`muted` auf `surface`, `fg`); Fokus und Tastatur unverändert.
+- **Unverändert auf 12 px (gehören nicht zur Navigation):** Rollenchip „Meine Rolle“ (`.help-role-chip`, Stufe Mini, Filter), Fundstelle unter Suchtreffern (`.help-hit-area`), Rollenkennzeichen `.help-roles`, Zählkreis der Schritte (`::before`), Brotkrumen und Bildunterschriften (aus `index.css`), Titel des Inhaltsverzeichnisses in der Schublade (`.help-toc-title` in `index.css`).
+- **Geprüft:** `npm run lint`, `typecheck`, `test -- src/help`, `build`, `check:bundle` in einer Kette, Exitcode 0 (Protokoll `.test-logs/t114-chain.txt`; /help/ 95,5 kB gzip, Budget 100). Sichtprüfung im eingebauten Browser (Vite auf Port 5190, danach beendet): bei 1440 px und 400 px gemessene Werte wie oben, kein waagerechtes Scrollen bei 400 px; Gruppenkopf nach Prüfung auf 40 px korrigiert (zuerst 60 wegen `content-box`). Keine neuen Tests (Pixelwerte wären Wechseldetektoren).
+- **Nicht geprüft:** Ansicht im WebView2 der Windows-App, „Inhalt“ unter 1180 px und „Auf dieser Seite“ als Bild, Hilfebilder (die Hilfeseite hat keine Handbuchbilder), Handtest T-114, volle Prüfkette am Rundenende.
+- **Text-Prüfsatz:** Es ändern sich nur Schriftgrößen und Abstände; Texte der Hilfe und der Oberfläche sind unverändert.
