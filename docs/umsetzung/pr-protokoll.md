@@ -8687,3 +8687,29 @@ Auftrag des Auftraggebers vom 27.11.2026 ([ADR 0104](../entscheidungen/0104-gefu
 - **Nicht geprüft:** der Neustart in der echten App (Einzelplatz, `--demo`), die Probe gegen einen echten Server, die ganze Klasse `ViewTests`, die volle Suite, Handbuchbilder.
 - **Beim Schreiben festgestellt:** „Aus einer Sicherung wiederherstellen“ landet nach dem Neustart auf „Spa einrichten“; die Wiederherstellung ist dort einen Klick weiter. Sie gleich zu öffnen, braucht einen Merker über den Neustart und gehört zu T-133.
 - **Text-Prüfsatz:** Texte der Karte, der Hilfe und dieses Abschnitts nach [texte.md](../gestaltung/texte.md): kurze Sätze, Knöpfe fett, kein „bitte“; `textRules.test.ts` grün.
+
+## Betrieb einrichten: feinere Schritte und Bereitschaftsprüfung in der API (T-134a, 27.11.2026)
+
+Auftrag des Auftraggebers vom 27.11.2026 ([ADR 0104](../entscheidungen/0104-gefuehrte-ersteinrichtung.md), Entscheidungen 4 bis 6): Der Assistent führt bis zum ersten buchbaren Termin. Die API sagt deshalb je Schritt, was fehlt, und prüft, ob sich eine Behandlung buchen lässt.
+
+- **Was:** `GET /api/setup/progress` liefert je Schritt zusätzlich `missing` (was fehlt, mit dem Ort in der App) und `note` (Hinweis bei erledigtem Schritt). Mit `?readiness=true` kommt `readiness` dazu: bereit oder nicht, der erste freie Platz (Standort, Behandlung, Beginn) oder der Grund im Klartext. Neue Datei `SetupReadiness.cs`.
+- **Vertrag:** nur erweitert ([ADR 0085](../entscheidungen/0085-api-version-in-den-pfaden.md)). Alle neuen Felder und der Parameter sind optional; `web/openapi/aispa-api.json` und `schema.d.ts` sind nachgezogen.
+- **Detailentscheidungen:**
+  1. **Ein Schritt gilt erst, wenn er für das Buchen taugt.** Räume zählen ohne Bereiche wie die Sauna. Eine Behandlung braucht einen aktiven Raum. Im Team zählt nur eine Person mit Arbeitszeiten oder Diensten, die alle Qualifikationen einer Behandlung hat.
+  2. **Preis 0 lässt den Schritt erledigt** und setzt nur den Hinweis „Bei n Behandlungen fehlt der Preis“. Der Startkatalog legt Behandlungen ohne Preis an.
+  3. **Bereitschaft nur auf Anforderung.** Die Karte „Betrieb einrichten“ lädt bei jedem Öffnen der Firmendaten; ohne den Parameter bleibt es bei fünf Abfragen. Der Assistent fragt die Bereitschaft gezielt ab.
+  4. **Die Prüfung rechnet mit dem Planer**, nicht daneben: `BookingService.LoadContextAsync` und `ResourcePlanner.FreeSlots` im Raster von 15 Minuten, ab jetzt, über 14 Tage. `ResourcePlanner.cs` ist unverändert.
+  5. **Gründe in fester Reihenfolge:** alle Standorte geschlossen, keine Öffnungszeiten, keine Behandlung oder kein Raum, niemand im Team oder Qualifikation fehlt (mit Namen), niemand im Dienst, sonst der allgemeine Satz.
+  6. **Obergrenzen:** höchstens drei Paare aus Standort und Behandlung, reihum über die Standorte verteilt, und höchstens acht Ladevorgänge des Planungskontexts. Geschlossene Standorte zählen nirgends. Tage ohne Öffnungsfenster (Schließzeiten) werden übersprungen, bevor sie einen Ladevorgang kosten.
+  7. **Die Vorlaufzeit der Online-Buchung zählt nicht.** Gefragt ist, ob der Empfang buchen kann.
+- **Kalt-Review:** fünf Befunde, alle behoben (Paare vor der Eignung gekappt, Schließzeiten verbrauchen die Obergrenze, geschlossene Standorte zählen mit, Last bei jedem Aufruf, Tests auf Teilwörter).
+- **Hilfe:** `firmendaten.md`, Abschnitt `#betrieb-einrichten`: ein Satz, wann ein Schritt als erledigt gilt.
+- **Neue Tests:** 7 in `SetupProgressTests` (Budget 5, vom Lead nach dem Kalt-Review um 2 erhöht): Person ohne Arbeitszeiten, fehlende Qualifikation mit Namen, eingerichteter Betrieb mit erstem Platz, leerer Betrieb, Preis 0 als Hinweis und ohne Parameter keine Bereitschaft, geschlossener neben offenem Standort, Schließzeit über neun Tage. Die Gründe werden gegen die Konstanten verglichen.
+- **Geprüft:** `dotnet build AispaStudio.slnx -c Release` ohne Warnung, `dotnet format --verify-no-changes`, `npm run gen:api`, `npm run typecheck` und `npm test -- src/help` (Exitcode 0). `SetupProgressTests` und `LocationClosingTests`: 17 Tests grün (`.test-logs/t134a-k-run1.log`). Ein roter Lauf davor (7 von 15) zeigte eine fehlende Split-Query und ist behoben.
+- **Nicht geprüft:** volle Suite, `DemoBulkTests`, Desktop-Tests (sie bauen), Laufzeit im Beispielbetrieb, Standorte in verschiedenen Zeitzonen.
+- **Beim Schreiben festgestellt:**
+  - Die Diagnose kennt keine Geräte. Fehlt das Gerät einer Behandlung, endet die Prüfung beim allgemeinen Satz.
+  - Der Hinweis „Preis fehlt“ prüft nur den Grundpreis. Eine Behandlung mit Grundpreis 0 und Preisen je Standort oder Preisregeln zählt fälschlich als ohne Preis; das behebt T-134b.
+  - Die Karte in der App zeigt `missing`, `note` und `readiness` noch nicht; das kommt mit T-135.
+- **Handtest:** ohne Block, die App zeigt nichts Neues.
+- **Text-Prüfsatz:** die Sätze der API und dieser Abschnitt nach [texte.md](../gestaltung/texte.md): sie sagen, was fehlt und wo es einzutragen ist, ohne „bitte“.

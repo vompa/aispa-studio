@@ -521,7 +521,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Die Schritte der Ersteinrichtung (Standort, Öffnungszeiten, Räume, Behandlungen, Team, Kassa) und welche davon erledigt sind. */
+        /** Liefert die Schritte der Ersteinrichtung (Standort, Öffnungszeiten, Räume, Behandlungen, Team, Kassa) mit ihrem Stand, mit „readiness=true“ auch, ob sich in den nächsten 14 Tagen eine Behandlung buchen lässt. */
         get: operations["GetSetupProgress"];
         put?: never;
         post?: never;
@@ -13850,8 +13850,24 @@ export interface components {
             count: number;
             dueTimes: string[];
         };
+        SetupFirstSlotDto: {
+            /** Format: uuid */
+            locationId: string;
+            locationName: string;
+            /** Format: uuid */
+            treatmentId: string;
+            treatmentName: string;
+            /** Format: date-time */
+            start: string;
+        };
         SetupProgressDto: {
             steps: components["schemas"]["SetupStepDto"][];
+            readiness?: null | components["schemas"]["SetupReadinessDto"];
+        };
+        SetupReadinessDto: {
+            ready: boolean;
+            firstSlot?: null | components["schemas"]["SetupFirstSlotDto"];
+            reason?: null | string;
         };
         SetupStepDto: {
             key: string;
@@ -13860,6 +13876,8 @@ export interface components {
             done: boolean;
             page: string;
             tab: null | string;
+            missing?: null | string;
+            note?: null | string;
         };
         SharedDeviceDto: {
             /** Format: uuid */
@@ -16502,7 +16520,9 @@ export interface operations {
     };
     GetSetupProgress: {
         parameters: {
-            query?: never;
+            query?: {
+                readiness?: boolean;
+            };
             header?: never;
             path?: never;
             cookie?: never;

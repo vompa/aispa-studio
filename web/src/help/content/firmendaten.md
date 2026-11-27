@@ -19,7 +19,7 @@ In der Windows-App:
 
 ## Betrieb einrichten {#betrieb-einrichten}
 
-Solange die Ersteinrichtung nicht fertig ist, steht oben in der Maske die Karte **Betrieb einrichten**. Sie zählt, welche Schritte erledigt sind: Standort, Öffnungszeiten, Räume, Behandlungen, Team und Kassa. Ein Schritt gilt als erledigt, sobald es mindestens einen passenden Eintrag gibt. **Öffnen** springt in die passende Maske; fehlt dafür das Recht, erscheint ein Hinweis. Sind alle Schritte erledigt, verschwindet die Karte. Sie ist keine Pflicht und sperrt nichts; die Reihenfolge ist ein Vorschlag.
+Solange die Ersteinrichtung nicht fertig ist, steht oben in der Maske die Karte **Betrieb einrichten**. Sie zählt, welche Schritte erledigt sind: Standort, Öffnungszeiten, Räume, Behandlungen, Team und Kassa. Ein Schritt gilt als erledigt, sobald er für das Buchen taugt: Im Team zählt zum Beispiel nur eine Person mit Arbeitszeiten, die eine Behandlung durchführen kann. **Öffnen** springt in die passende Maske; fehlt dafür das Recht, erscheint ein Hinweis. Sind alle Schritte erledigt, verschwindet die Karte. Sie ist keine Pflicht und sperrt nichts; die Reihenfolge ist ein Vorschlag.
 
 ## Firmendaten {#firmendaten}
 

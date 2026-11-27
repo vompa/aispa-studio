@@ -1219,8 +1219,17 @@
         "tags": [
           "Stammdaten"
         ],
-        "summary": "Die Schritte der Ersteinrichtung (Standort, Öffnungszeiten, Räume, Behandlungen, Team, Kassa) und welche davon erledigt sind.",
+        "summary": "Liefert die Schritte der Ersteinrichtung (Standort, Öffnungszeiten, Räume, Behandlungen, Team, Kassa) mit ihrem Stand, mit „readiness=true“ auch, ob sich in den nächsten 14 Tagen eine Behandlung buchen lässt.",
         "operationId": "GetSetupProgress",
+        "parameters": [
+          {
+            "name": "readiness",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
         "responses": {
           "403": {
             "description": "Forbidden",
@@ -51002,6 +51011,36 @@
           }
         }
       },
+      "SetupFirstSlotDto": {
+        "required": [
+          "locationId",
+          "locationName",
+          "treatmentId",
+          "treatmentName",
+          "start"
+        ],
+        "type": "object",
+        "properties": {
+          "locationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "locationName": {
+            "type": "string"
+          },
+          "treatmentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "treatmentName": {
+            "type": "string"
+          },
+          "start": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "SetupProgressDto": {
         "required": [
           "steps"
@@ -51013,6 +51052,43 @@
             "items": {
               "$ref": "#/components/schemas/SetupStepDto"
             }
+          },
+          "readiness": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/SetupReadinessDto"
+              }
+            ]
+          }
+        }
+      },
+      "SetupReadinessDto": {
+        "required": [
+          "ready"
+        ],
+        "type": "object",
+        "properties": {
+          "ready": {
+            "type": "boolean"
+          },
+          "firstSlot": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/SetupFirstSlotDto"
+              }
+            ]
+          },
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -51043,6 +51119,18 @@
             "type": "string"
           },
           "tab": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "missing": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "note": {
             "type": [
               "null",
               "string"
