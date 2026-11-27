@@ -38,7 +38,7 @@ public sealed partial class TreatmentSection(string id, string label, Action<str
 
 /// <summary>
 /// Eine Behandlung in der nativen Verwaltung (R05 Slice 94): dieselben Felder, Grenzen und Texte wie <c>web/src/admin/TreatmentsTab.tsx</c>, seit ADR 0098 in
-/// vier Bereichen: Übersicht (Kennzahl-Kacheln), Grunddaten und Preis (mit „Passt dazu“ und, aufklappbar, Preis je Standort, Preisen nach Zeit, Ausfallgebühr und
+/// drei Bereichen unter den Kennzahl-Kacheln (seit T-109 über jedem Bereich): Grunddaten und Preis (mit „Passt dazu“ und, aufklappbar, Preis je Standort, Preisen nach Zeit, Ausfallgebühr und
 /// Anzahlung), Durchführung (Ablauf mit Vorbereitungsschritten, Material, Zum Termin bereitstellen) und Qualifikationen/Räume/Geräte. Der Verlauf steht in einer
 /// Seitenleiste. Eine nicht mehr angebotene Behandlung lässt sich ansehen, aber nicht ändern; „Wieder anbieten“ holt sie zurück.
 /// Anders als im Web speichert ein „Speichern“ alles gemeinsam: die Behandlung und danach jede geänderte Teil-Liste. Prüfen und Rechnen macht die API; hier
@@ -50,9 +50,12 @@ public sealed partial class TreatmentEditorViewModel : ViewModelBase, IEditableA
     public const string PriceField = "treatment.price";
     public const string DurationField = "treatment.duration";
     public const string QualificationsField = "qualifications";
+    public const string RecommendedArticleField = "sales.article";
 
-    // Die vier Bereiche der Schiene (masken.md R15, ADR 0098 mit Nachtrag vom 17.11.2026).
+    /// <summary>Bis T-109 der Bereich „Übersicht“; die Kacheln stehen jetzt über jedem Bereich, als Sprungziel führt die Adresse in „Grunddaten und Preis“.</summary>
     public const string Overview = "uebersicht";
+
+    // Die drei Bereiche der Schiene (masken.md R15, ADR 0098 mit Nachtrag vom 17.11.2026, T-109).
     public const string Basics = "grunddaten";
     public const string Execution = "durchfuehrung";
     public const string Resources = "ressourcen";
@@ -72,7 +75,7 @@ public sealed partial class TreatmentEditorViewModel : ViewModelBase, IEditableA
 
     private static readonly (string Id, string Label)[] AllSections =
     [
-        (Overview, "Übersicht"), (Basics, "Grunddaten und Preis"), (Execution, "Durchführung"), (Resources, "Qualifikationen und Räume"),
+        (Basics, "Grunddaten und Preis"), (Execution, "Durchführung"), (Resources, "Qualifikationen und Räume"),
     ];
 
     private static readonly string[] Inputs =
@@ -117,8 +120,7 @@ public sealed partial class TreatmentEditorViewModel : ViewModelBase, IEditableA
         ApplyRecommended([]);
         MoreOpen = NoShowFeePercent is not null || DepositPercent is not null || LocationPrices.Any(p => p.Price is not null);
 
-        // Eine gespeicherte Behandlung beginnt mit der Übersicht, eine neue mit den Grunddaten.
-        SelectSection(treatment is null ? Basics : Overview);
+        SelectSection(Basics);
 
         // Eine neue Behandlung hat keine Teil-Listen; eine gespeicherte lädt sie (LoadAsync).
         IsLoaded = treatment is null;
@@ -162,10 +164,11 @@ public sealed partial class TreatmentEditorViewModel : ViewModelBase, IEditableA
     public partial IReadOnlyList<TreatmentSection> Sections { get; private set; } = [];
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(ShowsOverview), nameof(ShowsBasics), nameof(ShowsExecution), nameof(ShowsResources))]
+    [NotifyPropertyChangedFor(nameof(ShowsBasics), nameof(ShowsExecution), nameof(ShowsResources))]
     public partial string SelectedSection { get; private set; } = Basics;
 
-    public bool ShowsOverview => SelectedSection == Overview;
+    /// <summary>Die Kacheln stehen über jedem Bereich (T-109); eine neue Behandlung hat keine, sie hätten nichts zu zeigen.</summary>
+    public bool ShowsOverview => !IsNew;
 
     public bool ShowsBasics => SelectedSection == Basics;
 
@@ -274,20 +277,32 @@ public sealed partial class TreatmentEditorViewModel : ViewModelBase, IEditableA
     public partial IReadOnlyList<ArticleDto> ArticleChoices { get; private set; } = [];
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(AddRecommendedArticleCommand))]
     public partial ArticleDto? ArticleToAdd { get; set; }
+
+    /// <summary>Fehler am Feld „Artikel wählen“ (masken.md, R8); verschwindet mit der nächsten Wahl.</summary>
+    [ObservableProperty]
+    public partial string? ArticleToAddError { get; private set; }
+
+    partial void OnArticleToAddChanged(ArticleDto? value) => ArticleToAddError = null;
 
     /// <summary>Die Kassa-Artikel wurden nicht geladen: „Passt dazu“ lässt sich dann nicht ändern.</summary>
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(AddRecommendedArticleCommand))]
     public partial bool HasSalesLoadError { get; private set; }
 
-    private bool CanAddRecommendedArticle => !HasSalesLoadError && ArticleToAdd is not null && RecommendedArticles.Count < MaxRecommendedArticles;
+    private bool CanAddRecommendedArticle => !HasSalesLoadError && RecommendedArticles.Count < MaxRecommendedArticles;
 
     [RelayCommand(CanExecute = nameof(CanAddRecommendedArticle))]
     private void AddRecommendedArticle()
     {
-        if (ArticleToAdd is not { } article || RecommendedArticles.Any(r => r.Id == article.Id))
+        if (ArticleToAdd is not { } article)
+        {
+            ArticleToAddError = "Bitte einen Artikel wählen.";
+            FocusTarget = RecommendedArticleField;
+            return;
+        }
+
+        if (RecommendedArticles.Any(r => r.Id == article.Id))
         {
             return;
         }
@@ -456,7 +471,7 @@ public sealed partial class TreatmentEditorViewModel : ViewModelBase, IEditableA
     private static string? AreaOf(string? section) => section switch
     {
         Process or Material or Provide => Execution,
-        Prices or Sales or Offer => Basics,
+        Prices or Sales or Offer or Overview => Basics,
         _ => section,
     };
 
@@ -770,7 +785,7 @@ public sealed partial class TreatmentEditorViewModel : ViewModelBase, IEditableA
     private void Apply(TreatmentDto? treatment)
     {
         _applying = true;
-        var sectionsChange = Sections.Count == 0 || IsNew != (treatment is null);
+        var sectionsChange = Sections.Count == 0;
         _saved = treatment;
         Name = treatment?.Name ?? "";
         Duration = treatment?.DurationMinutes ?? 60;
@@ -806,8 +821,7 @@ public sealed partial class TreatmentEditorViewModel : ViewModelBase, IEditableA
 
         if (sectionsChange)
         {
-            // Neu angelegt gibt es keine Übersicht: sie hätte nichts zu zeigen.
-            Sections = [.. AllSections.Where(s => !IsNew || s.Id != Overview).Select(s => new TreatmentSection(s.Id, s.Label, SelectSection))];
+            Sections = [.. AllSections.Select(s => new TreatmentSection(s.Id, s.Label, SelectSection))];
             SelectSection(SelectedSection);
         }
 
@@ -815,6 +829,7 @@ public sealed partial class TreatmentEditorViewModel : ViewModelBase, IEditableA
         _applying = false;
         OnPropertyChanged(nameof(Id));
         OnPropertyChanged(nameof(IsNew));
+        OnPropertyChanged(nameof(ShowsOverview));
         OnPropertyChanged(nameof(HasMaterial));
         OnPropertyChanged(nameof(Title));
         OnPropertyChanged(nameof(HasUnsavedChanges));

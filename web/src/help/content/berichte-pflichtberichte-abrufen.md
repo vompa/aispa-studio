@@ -28,9 +28,9 @@ Das DEP (Datenerfassungsprotokoll) ist die Aufzeichnung aller signierten Belege 
 
 ## Deutschland: DSFinV-K und TSE-Export {#dsfinvk}
 
-Die DSFinV-K ist die „Digitale Schnittstelle der Finanzverwaltung für Kassensysteme“, das Dateiformat für eine Kassenprüfung. Die TSE ist die technische Sicherheitseinrichtung, die jeden Beleg signiert; ihr Export ist die Datei mit diesen Signaturdaten. „TSE-Export aufbewahren“ bei der Kasse erinnert daran, ihn aufzubewahren.
+Die DSFinV-K ist die „Digitale Schnittstelle der Finanzverwaltung für Kassensysteme“, das Dateiformat für eine Kassenprüfung. Die TSE ist die technische Sicherheitseinrichtung, die jeden Beleg signiert; ihr Export ist die Datei mit diesen Signaturdaten. „TSE-Export aufbewahren“ bei der Kassa erinnert daran, ihn aufzubewahren.
 
-1. Bei der Kasse **DSFinV-K seit Jahresbeginn herunterladen** anklicken. Die Datei reicht vom 1. Jänner bis zum gewählten Datum.
+1. Bei der Kassa **DSFinV-K seit Jahresbeginn herunterladen** anklicken. Die Datei reicht vom 1. Jänner bis zum gewählten Datum.
 2. Für die Daten der TSE **TSE-Export anfordern** anklicken. Die Meldung „TSE-Export angefordert. Er steht gleich in der Liste.“ erscheint.
 3. Warten, bis in der Liste „fertig“ steht, dann den Link mit dem Dateinamen anklicken.
 
@@ -45,7 +45,7 @@ Für Schweizer Kassen gibt es keinen eigenen Download; dort gilt die Aufbewahrun
 - **Gutscheine**: Zahl und Summe der offenen Gutscheine als Verbindlichkeit, aktueller Stand.
 - **Arbeitszeitaufzeichnung laut Dienstplan**: je Person Stunden, Arbeitstage, Urlaub und Krankenstand im Monat, dazu Hinweise nach dem Arbeitszeitrecht (z. B. zu lange Dienste oder zu kurze Ruhezeit).
 
-## Hinweise {#hinweise}
+## Gut zu wissen {#hinweise}
 
 - Inhaber, Manager, Standortleitung und Backoffice. Die Summe der offenen Gutscheine und die Downloads von DEP, DSFinV-K und TSE-Export gibt es nur mit dem Recht „Berichte mit Beträgen“ ([Berichte mit Beträgen](hilfe:zugaenge#berichte-mit-betraegen)); ohne das Recht steht „Beträge nur mit Berechtigung“.
 - Den Buchhaltungsexport für die Steuerberatung gibt es unter „Buchhaltung“: [Export für die Buchhaltung erstellen](hilfe:buchhaltung-export-erstellen).

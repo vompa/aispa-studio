@@ -123,25 +123,34 @@ public sealed class DocumentActionsTests
     }
 
     [Fact]
-    public async Task Ohne_gueltige_Adresse_ist_Senden_gesperrt_und_das_Feld_nennt_den_Grund()
+    public async Task Ohne_gueltige_Adresse_meldet_Senden_den_Fehler_am_Feld_setzt_den_Fokus_und_sendet_nichts()
     {
         var dialogs = new FakeDialogs();
-        var model = Model(Api().On($"GET {SendPath}", new DocumentMailDraft(null, "Betreff", "Text")), dialogs);
+        var api = Api().On($"GET {SendPath}", new DocumentMailDraft(null, "Betreff", "Text"));
+        var model = Model(api, dialogs);
 
         _ = model.SendCommand.ExecuteAsync(null);
         var dialog = Assert.IsType<SendDocumentDialogViewModel>(await Until(() => dialogs.Open));
+        string? focus = null;
+        dialog.FocusRequested += field => focus = field;
 
         Assert.False(dialog.HasAddress);
-        Assert.False(dialog.SendCommand.CanExecute(null));
+        Assert.True(dialog.SendCommand.CanExecute(null));
         Assert.Null(dialog.ToError);
+        dialog.SendCommand.Execute(null);
+        Assert.Equal(("Bitte eine Mailadresse eintragen.", SendDocumentDialogViewModel.ToField), (dialog.ToError, focus));
         dialog.To = "anna@";
         Assert.Equal("Das ist keine gültige Mailadresse.", dialog.ToError);
-        Assert.False(dialog.SendCommand.CanExecute(null));
+        dialog.SendCommand.Execute(null);
+        Assert.Equal(("Das ist keine gültige Mailadresse.", SendDocumentDialogViewModel.ToField), (dialog.ToError, focus));
         dialog.To = " anna@example.at ";
         Assert.Null(dialog.ToError);
-        Assert.True(dialog.SendCommand.CanExecute(null));
         dialog.Subject = " ";
-        Assert.False(dialog.SendCommand.CanExecute(null));
+        dialog.SendCommand.Execute(null);
+        Assert.Equal(("Bitte einen Betreff eintragen.", SendDocumentDialogViewModel.SubjectField), (dialog.SubjectError, focus));
+        dialog.Subject = "Betreff";
+        Assert.Null(dialog.SubjectError);
+        Assert.DoesNotContain(api.Calls, c => c.Route == $"POST {SendPath}");
         dialog.CancelCommand.Execute(null);
     }
 
@@ -169,7 +178,7 @@ public sealed class DocumentActionsTests
     }
 
     [Fact]
-    public async Task Drucken_gibt_das_PDF_an_den_Drucker_und_meldet_Gedruckt()
+    public async Task Drucken_oeffnet_den_Druckdialog_und_meldet_es()
     {
         var printer = new FakePrinter();
         var toasts = new List<string>();
@@ -178,7 +187,25 @@ public sealed class DocumentActionsTests
 
         Assert.Equal("Rechnung-K1-142.pdf", printer.Printed?.FileName);
         Assert.Equal(Pdf, printer.Printed?.Content);
-        Assert.Equal(["Gedruckt"], toasts);
+        Assert.Equal(["Druckdialog geöffnet"], toasts);
+    }
+
+    [Fact]
+    public async Task Waehrend_der_Druckdialog_aufgeht_ist_der_Knopfblock_gesperrt_und_ohne_Fehler()
+    {
+        var opening = new TaskCompletionSource<string?>();
+        var printer = new FakePrinter(answer: opening.Task);
+        var model = Model(Api(), printer: printer);
+
+        var print = model.PrintCommand.ExecuteAsync(null);
+        await Until(() => printer.Printed is null ? null : "gerufen");
+
+        Assert.True(model.IsBusy);
+        Assert.False(model.PrintCommand.CanExecute(null));
+        Assert.Null(model.Error);
+        opening.SetResult(null);
+        await print;
+        Assert.False(model.IsBusy);
     }
 
     [Fact]
@@ -186,7 +213,7 @@ public sealed class DocumentActionsTests
     {
         var toasts = new List<string>();
 
-        await Model(Api(), printer: new FakePrinter(ShellDocumentPrinter.NoPrinter), toasts: toasts).PrintCommand.ExecuteAsync(null);
+        await Model(Api(), printer: new FakePrinter(WindowsPrintDialogPrinter.NoPrinter), toasts: toasts).PrintCommand.ExecuteAsync(null);
 
         Assert.Equal(["Kein Drucker eingerichtet"], toasts);
     }
@@ -221,14 +248,14 @@ public sealed class DocumentActionsTests
         }
     }
 
-    private sealed class FakePrinter(string? problem = null) : IDocumentPrinter
+    private sealed class FakePrinter(string? problem = null, Task<string?>? answer = null) : IDocumentPrinter
     {
         public (string FileName, byte[] Content)? Printed { get; private set; }
 
         public Task<string?> PrintAsync(string fileName, byte[] pdf, CancellationToken ct)
         {
             Printed = (fileName, pdf);
-            return Task.FromResult(problem);
+            return answer ?? Task.FromResult(problem);
         }
     }
 }

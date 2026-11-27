@@ -2,10 +2,12 @@ using AispaStudio.Contracts;
 using AispaStudio.Desktop.Controls;
 using AispaStudio.Desktop.Services;
 using AispaStudio.Desktop.ViewModels;
+using Avalonia;
 using Avalonia.Automation;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Headless;
+using Avalonia.Input;
 using Avalonia.VisualTree;
 using static AispaStudio.Desktop.Tests.StockSample;
 
@@ -77,7 +79,7 @@ public sealed partial class ViewTests
         return Render("hell", "verwaltung-lager-material", async (window, main) =>
         {
             var (shell, stock) = await OpenStock(window, main);
-            Assert.False(Named<Button>(window, "CreateItemButton").IsEffectivelyEnabled);
+            Assert.True(Named<Button>(window, "CreateItemButton").IsEffectivelyEnabled);
 
             await TypeInto(window, "ItemNameField", "Duftkerze");
             await TypeInto(window, "ItemUnitCostField", "2,5");
@@ -105,7 +107,7 @@ public sealed partial class ViewTests
 
             await ClickScrolled(window, "BookMovementButton");
             Assert.True(stock.Booking.IsOpen);
-            Assert.False(Named<Button>(window, "BookButton").IsEffectivelyEnabled);
+            Assert.True(Named<Button>(window, "BookButton").IsEffectivelyEnabled);
             Named<ComboBox>(window, "MovementItemField").SelectedItem = stock.Booking.Items.Single(i => i.Id == OilId);
             await TypeInto(window, "MovementAmountField", "4");
             await TypeInto(window, "MovementBatchField", "L-9");
@@ -216,7 +218,7 @@ public sealed partial class ViewTests
             await ClickScrolled(window, "OrdersTabButton");
             await Pump(Settling);
 
-            ClickCenter(window, OrderButton(window, "Bestellung 7 bestellen und senden"));
+            await ClickOrder(window, "Bestellung 7 bestellen und senden");
             await Pump(Settling);
             var dialog = Assert.IsType<ConfirmDialogViewModel>(main.DialogHost.Current);
             Assert.Equal("Bestellung 7 senden?", dialog.Title);
@@ -245,7 +247,7 @@ public sealed partial class ViewTests
             await ClickScrolled(window, "OrdersTabButton");
             await Pump(Settling);
 
-            ClickCenter(window, OrderButton(window, "Bestellung 7 bestellen und senden"));
+            await ClickOrder(window, "Bestellung 7 bestellen und senden");
             await Pump(Settling);
             ClickCenter(window, DialogButton(window, "CancelButton"));
             await Pump(Settling);
@@ -268,7 +270,7 @@ public sealed partial class ViewTests
             OrderQuantity(window).Text = "12";
             await Pump(Settling);
             Assert.True(stock.HasUnsavedChanges);
-            ClickCenter(window, OrderButton(window, "Mengen der Bestellung 7 speichern"));
+            await ClickOrder(window, "Mengen der Bestellung 7 speichern");
             await Pump(Settling);
             await Pump(Settling);
 
@@ -293,7 +295,7 @@ public sealed partial class ViewTests
 
             OrderQuantity(window).Text = "2";
             await Pump(Settling);
-            ClickCenter(window, OrderButton(window, "Bestellung 7 bestellen und senden"));
+            await ClickOrder(window, "Bestellung 7 bestellen und senden");
             await Pump(Settling);
 
             Assert.Contains("es fehlen 125,00 €", Assert.IsType<ConfirmDialogViewModel>(main.DialogHost.Current).Message, StringComparison.Ordinal);
@@ -316,11 +318,55 @@ public sealed partial class ViewTests
 
             OrderQuantity(window).Text = "viel";
             await Pump(Settling);
-            ClickCenter(window, OrderButton(window, "Mengen der Bestellung 7 speichern"));
+            await ClickOrder(window, "Mengen der Bestellung 7 speichern");
             await Pump(Settling);
 
             Assert.True(Shows(window, "Gib eine Zahl ab 0 ein, z. B. 500."));
             Assert.Equal(0, CallsTo(api, $"PUT /api/stock/orders/{OrderId}"));
+            return shell.AdminPage;
+        }, api);
+    }
+
+    [Fact]
+    public Task Given_kleinstes_Fenster_When_per_Tab_durch_die_Bestellkarte_Then_werden_Senden_und_Speichern_sichtbar_und_Strg_S_speichert_die_Mengen()
+    {
+        var api = StockApi();
+        return Render("hell", "verwaltung-lager-bestellung-kleinstes-fenster", async (window, main) =>
+        {
+            window.Width = 1100;
+            window.Height = 680;
+            var (shell, stock) = await OpenStock(window, main);
+            await ClickScrolled(window, "OrdersTabButton");
+            await Pump(Settling);
+
+            var scroll = Named<ScrollViewer>(window, "StockScroll");
+            var quantity = OrderQuantity(window);
+            quantity.Text = "12";
+            await Pump(Settling);
+            quantity.Focus();
+            var seen = new HashSet<string>();
+            for (var step = 0; step < 15 && seen.Count < 2; step++)
+            {
+                Press(window, PhysicalKey.Tab);
+                await Pump(Settling);
+                if (window.FocusManager!.GetFocusedElement() is Button { } button && AutomationProperties.GetName(button) is { } name
+                    && (name == "Bestellung 7 bestellen und senden" || name == "Mengen der Bestellung 7 speichern"))
+                {
+                    var top = button.TranslatePoint(new Point(0, 0), scroll)!.Value.Y;
+                    Assert.True(top >= 0 && top + button.Bounds.Height <= scroll.Bounds.Height, $"{name} liegt bei {top} außerhalb der sichtbaren Höhe {scroll.Bounds.Height}");
+                    seen.Add(name);
+                }
+            }
+
+            Assert.Equal(2, seen.Count);
+
+            Assert.True(stock.HasUnsavedChanges);
+            PressSave(window);
+            await Pump(Settling);
+            await Pump(Settling);
+
+            Assert.Equal(1, CallsTo(api, $"PUT /api/stock/orders/{OrderId}"));
+            Assert.False(stock.HasUnsavedChanges);
             return shell.AdminPage;
         }, api);
     }
@@ -632,7 +678,14 @@ public sealed partial class ViewTests
             await ClickScrolled(window, "MovementsViewButton");
             await Pump(Settling);
 
-            Assert.False(Named<Button>(window, "TraceBatchButton").IsEffectivelyEnabled);
+            // Ohne Material und Charge ist „Zurückverfolgen“ aktiv; der Klick meldet die Fehler an den Feldern und fragt die API nicht.
+            Assert.True(Named<Button>(window, "TraceBatchButton").IsEffectivelyEnabled);
+            await ClickScrolled(window, "TraceBatchButton");
+            await Pump(Settling);
+            Assert.DoesNotContain(api.Calls, c => c.Route.StartsWith("GET /api/stock/batch-usage", StringComparison.Ordinal));
+            Assert.True(Shows(window, "Bitte das Material der Charge wählen."));
+            Assert.True(Shows(window, "Bitte die Chargennummer eintragen."));
+            Assert.True(Named<ComboBox>(window, "TraceItemField").IsFocused);
             var item = Named<ComboBox>(window, "TraceItemField");
             item.SelectedItem = Choice(item, "Massageöl");
             await TypeInto(window, "TraceBatchField", " L-9 ");

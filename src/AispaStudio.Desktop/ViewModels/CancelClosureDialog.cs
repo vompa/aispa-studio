@@ -131,6 +131,11 @@ public sealed partial class CancelClosureDialogViewModel : ConfirmDialogViewMode
 
     public const int MaxSubject = 200;
 
+    /// <summary>Namen der Felder (<c>x:Name</c>): das erste ungültige Feld bekommt nach „Absagen“ den Fokus.</summary>
+    public const string SubjectField = "ClosureSubject";
+
+    public const string TextField = "ClosureText";
+
     private readonly Func<ReplyRevisionKind, string, Task<(string? Text, string? Problem)>> _revise;
     private readonly string? _currency;
     private bool _updating;
@@ -192,6 +197,10 @@ public sealed partial class CancelClosureDialogViewModel : ConfirmDialogViewMode
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(TextHint), nameof(HasTextError))]
     public partial string? TextError { get; private set; }
+
+    /// <summary>Fehler am Betreff (masken.md, R8); verschwindet mit der nächsten Eingabe.</summary>
+    [ObservableProperty]
+    public partial string? SubjectError { get; private set; }
 
     public bool HasTextError => TextError is not null;
 
@@ -266,12 +275,20 @@ public sealed partial class CancelClosureDialogViewModel : ConfirmDialogViewMode
     public string TextHint => TextError
         ?? (AiWritten
             ? AiLabels.RevisedNotice
-            : "Je Gast ersetzt der Server {Anrede}, {Behandlung} und {Zeit}. Der Text ist die deutsche Vorlage zur Art der Schließzeit und frei bearbeitbar; Gäste mit einer anderen Sprache "
-                + "(Englisch, Französisch, Italienisch) bekommen die Standardvorlage ihrer Sprache. Eine Rückzahlung der Anzahlung ergänzt der Server dort, wo es eine gibt.");
+            : "Je Gast ersetzt AISPA Studio {Anrede}, {Behandlung} und {Zeit}. Der Text ist die deutsche Vorlage zur Art der Schließzeit und frei bearbeitbar; Gäste mit einer anderen Sprache "
+                + "(Englisch, Französisch, Italienisch) bekommen die Standardvorlage ihrer Sprache. Eine Rückzahlung der Anzahlung ergänzt AISPA Studio dort, wo es eine gibt.");
 
-    partial void OnTextChanged(string value) => Refresh();
+    partial void OnTextChanged(string value)
+    {
+        TextError = null;
+        Refresh();
+    }
 
-    partial void OnSubjectChanged(string value) => Refresh();
+    partial void OnSubjectChanged(string value)
+    {
+        SubjectError = null;
+        Refresh();
+    }
 
     private void OnSelectionChanged()
     {
@@ -297,8 +314,7 @@ public sealed partial class CancelClosureDialogViewModel : ConfirmDialogViewMode
             (1, _) => "1 Termin absagen",
             _ => $"{chosen.Count} Termine absagen",
         };
-        // Der Text gehört zu den Terminen: nur Einträge der Warteliste brauchen keinen.
-        CanSend = chosen.Count > 0 ? Text.Trim().Length is > 0 and <= MaxText && Subject.Trim().Length is > 0 and <= MaxSubject : waiting.Count > 0;
+        CanSend = chosen.Count > 0 || waiting.Count > 0;
         OnPropertyChanged(nameof(AllChecked));
         OnPropertyChanged(nameof(AllWaitlistChecked));
     }
@@ -340,7 +356,24 @@ public sealed partial class CancelClosureDialogViewModel : ConfirmDialogViewMode
 
     /// <summary>„Absagen“: antwortet mit „bestätigt“; die Auswahl und die Texte liest der Fragende aus diesem Objekt.</summary>
     [RelayCommand(CanExecute = nameof(CanSend))]
-    private void Send() => Answer(new ConfirmResult(ConfirmChoice.Confirmed));
+    private void Send()
+    {
+        // Der Text gehört zu den Terminen: nur Einträge der Warteliste brauchen keinen.
+        if (Selected.Count > 0)
+        {
+            SubjectError = Subject.Trim().Length == 0 ? "Bitte einen Betreff eintragen."
+                : Subject.Trim().Length > MaxSubject ? $"Der Betreff darf höchstens {MaxSubject} Zeichen haben." : null;
+            TextError = Text.Trim().Length == 0 ? "Bitte den Text der Nachricht eintragen."
+                : Text.Trim().Length > MaxText ? $"Der Text darf höchstens {MaxText} Zeichen haben." : null;
+            if (SubjectError is not null || TextError is not null)
+            {
+                RequestFocus(SubjectError is not null ? SubjectField : TextField);
+                return;
+            }
+        }
+
+        Answer(new ConfirmResult(ConfirmChoice.Confirmed));
+    }
 
     /// <summary>Lässt die KI den Text auf Knopfdruck umformulieren; verwirft der Server die Fassung, bleibt der Text, wie er war, und der Grund steht am Feld.</summary>
     [RelayCommand]

@@ -15,7 +15,7 @@
       <!-- Suche und Zeitraum -->
       <WrapPanel Grid.Row="1" ItemSpacing="8" LineSpacing="8" Margin="0,0,0,8">
         <ui:SearchField x:Name="SearchBox" Width="360" Text="{Binding Query}" PlaceholderText="Gast, Behandlung, Person oder Grund"
-                        AutomationProperties.Name="Verlauf durchsuchen" ToolTip.Tip="Der Server sucht in Gast, Behandlung, Person und Grund (Strg+F)." />
+                        AutomationProperties.Name="Verlauf durchsuchen" ToolTip.Tip="Die Suche geht über Gast, Behandlung, Person und Grund (Strg+F)." />
         <ui:TabButton x:Name="PeriodToday" Classes="headchip" Content="Heute" Command="{Binding SetPeriodCommand}" CommandParameter="{x:Static vm:ActivityPeriod.Today}"
                 IsSelected="{Binding Period, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static vm:ActivityPeriod.Today}, Mode=OneWay}"
                 AutomationProperties.Name="Zeitraum Heute" />

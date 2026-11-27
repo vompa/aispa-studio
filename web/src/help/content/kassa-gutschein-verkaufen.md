@@ -9,11 +9,11 @@ stichwoerter: Gutschein verkaufen, Wertgutschein, Behandlungsgutschein, Einzweck
 ---
 # Gutschein verkaufen
 
-Die Kassa verkauft zwei Arten von Gutscheinen: einen **Wertgutschein** über einen frei gewählten Betrag und einen Gutschein für eine bestimmte **Behandlung**. Den Code stellt der Server beim Bezahlen aus; er steht auf dem Beleg.
+Die Kassa verkauft zwei Arten von Gutscheinen: einen **Wertgutschein** über einen frei gewählten Betrag und einen Gutschein für eine bestimmte **Behandlung**. Den Code stellt AISPA Studio beim Bezahlen aus; er steht auf dem Beleg.
 
 ## Voraussetzungen {#voraussetzungen}
 
-- Rezeption, Standortleitung oder Inhaber; ohne Verbindung zum Server geht der Verkauf nicht.
+- Rezeption, Standortleitung oder Inhaber; ohne Verbindung geht der Verkauf nicht.
 - Die Kassa ist offen, bei Bedarf mit einer offenen Rechnung; ohne offene Rechnung legt sie eine für „Laufkundschaft“ an.
 
 ## Schritte {#schritte}
@@ -50,14 +50,14 @@ Auf dem Beleg steht unter „Ausgestellte Gutscheine“ der Code, z. B. „Gutsc
 ## Gutschein für eine Behandlung {#behandlung}
 
 1. Unter „Gutschein verkaufen“ in der Auswahl **Behandlung** die Behandlung aussuchen.
-2. Auf **Behandlung verkaufen** klicken. Der Preis ist der Preis dieser Behandlung am Standort der Kasse.
+2. Auf **Behandlung verkaufen** klicken. Der Preis ist der Preis dieser Behandlung am Standort der Kassa.
 3. [Bezahlen](hilfe:kassa-bezahlen). Auf dem Beleg steht unter „Ausgestellte Gutscheine“ „Gutschein … (Behandlung)“.
 
 ![Beleg nach dem Bezahlen](images/app/kassa-beleg.png)
 
 ## Ablaufdatum {#ablaufdatum}
 
-Oben unter „Gutschein verkaufen“ steht das Feld **Einzulösen bis**. Es gilt für Wertgutschein, Behandlungsgutschein und [Paket](hilfe:kassa-paket). Die Kassa belegt es nach dem Land der Kasse vor:
+Oben unter „Gutschein verkaufen“ steht das Feld **Einzulösen bis**. Es gilt für Wertgutschein, Behandlungsgutschein und [Paket](hilfe:kassa-paket). Die Kassa belegt es nach dem Land der Kassa vor:
 
 - Deutschland: 31.12. des dritten Jahres nach dem Kauf, z. B. Kauf am 09.11.2026 → 31.12.2029.
 - Schweiz: fünf Jahre ab dem Kauf, z. B. 09.11.2026 → 09.11.2031.
@@ -90,7 +90,7 @@ Die Gutscheinliste zeigt alle Gutscheine des Standorts mit Werten, Status, Käuf
 
 Das PDF `Gutscheinliste-<Standort>-<Datum>.pdf` ist A4 quer. Es hat eine Zeile je Gutschein mit Code, Art, Ausgestellt, Ausgangswert, Restwert, Gültig bis, Status, Käufer, Empfänger, Kanal (Kassa oder Online) und Versand. Die Kopfzeile nennt die gewählten Filter. Unten stehen „Offene Restwerte (Verbindlichkeit)“ mit Betrag und Zahl der aktiven Gutscheine, „Abgelaufen, noch nicht ausgebucht“ und ein Satz zur Berechnung. Bei vielen Gutscheinen läuft die Tabelle über mehrere Seiten mit wiederholtem Kopf.
 
-Die Spalte „Versand“ zeigt, wie der Gutschein zum Gast kam: „Mail am <Datum>“ mit „an <Adresse>“, „Gedruckt am <Datum>“ oder „Übergeben am <Datum>“. Ein Druck, der am Drucker scheitert, hinterlässt keinen Vermerk. Mit **noch nicht versendet** stehen nur Gutscheine ohne einen solchen Vermerk auf der Liste.
+Die Spalte „Versand“ zeigt, wie der Gutschein zum Gast kam: „Mail am <Datum>“ mit „an <Adresse>“, „Zum Drucken geöffnet am <Datum>“ oder „Übergeben am <Datum>“. Der Vermerk „Zum Drucken geöffnet“ entsteht, sobald der Druckdialog für den Gutschein aufgeht, auch wenn danach **Abbrechen** kommt; Windows meldet nicht zurück, ob gedruckt wurde. Mit **noch nicht versendet** stehen nur Gutscheine ohne einen solchen Vermerk auf der Liste.
 
 Die Karte lässt sich immer öffnen. Drucken und Speichern sind gesperrt, wenn das Ende vor dem Beginn liegt („Das Ende darf nicht vor dem Beginn liegen.“) oder wenn das Recht fehlt: „Die Gutscheinliste druckt nur die Kassenaufsicht oder wer „Berichte mit Beträgen“ sehen darf.“ Wie die Knöpfe arbeiten: [Dokumente drucken, speichern und senden](hilfe:dokumente-drucken-speichern-senden).
 

@@ -4,7 +4,7 @@ using AispaStudio.Desktop.ViewModels;
 namespace AispaStudio.Desktop.Tests;
 
 /// <summary>
-/// R07 Slice 142 (Ä350): die lesbare Woche im Dienstplan. Schichten als Chips in der Farbe der Person, Urlaub als Balken über die Tage, Stunden gegen die Wochenarbeitszeit beim Namen,
+/// R07 Slice 142 (Ä350): die lesbare Woche im Dienstplan. Schichten als Chips, Urlaub als Balken über die Tage, Stunden gegen die Wochenarbeitszeit beim Namen,
 /// heute hervorgehoben, Besetzung je Tag und das Entwurfsband statt der Legende.
 /// </summary>
 public sealed class RosterWeekLayoutTests
@@ -103,6 +103,21 @@ public sealed class RosterWeekLayoutTests
     }
 
     [Fact]
+    public async Task Given_heute_ist_Dienstag_When_die_Woche_geoeffnet_wird_Then_nennen_Kopf_und_Zellen_von_heute_das_Wort()
+    {
+        var (_, plan) = await OpenPlan();
+
+        Assert.Contains("Heute", plan.Heads.Single(h => h.IsToday).Label);
+        Assert.DoesNotContain(plan.Heads.Where(h => !h.IsToday), h => h.Label.Contains("Heute"));
+        var lena = plan.Rows.Single(r => r.Name == "Lena Huber");
+        Assert.Contains("heute", lena.Cells[1].AutomationName);
+        Assert.DoesNotContain("heute", lena.Cells[0].AutomationName);
+        Assert.Contains("heute", plan.Coverage[1].AutomationName);
+        Assert.Equal(1, plan.TodayColumn);
+        Assert.True(plan.HasToday);
+    }
+
+    [Fact]
     public async Task Given_eine_andere_Woche_When_sie_geoeffnet_wird_Then_ist_keine_Spalte_hervorgehoben()
     {
         var (_, plan) = await OpenPlan();
@@ -190,108 +205,6 @@ public sealed class RosterWeekLayoutTests
         Assert.False(lena.Cells[0].CanOpen);
         Assert.False(plan.CanPublish);
         Assert.False(plan.IsEditable);
-    }
-
-    [Theory]
-    [InlineData("#2f6f5e")]
-    [InlineData("#7a4fa3")]
-    [InlineData("#ffd400")]
-    [InlineData("#000000")]
-    [InlineData("#ffffff")]
-    [InlineData("#c0392b")]
-    public void Given_eine_Farbe_der_Person_When_der_Chip_gefuellt_wird_Then_hat_die_Zeit_mindestens_4_5_zu_1_Kontrast(string personColor)
-    {
-        var (fill, ink) = FillFor(personColor, dark: false);
-
-        Assert.True(Contrast(fill, ink) >= 4.5, $"{personColor}: Fläche {fill}, Schrift {ink}, Kontrast {Contrast(fill, ink):0.00}");
-    }
-
-    [Theory]
-    [InlineData("#2f6f5e")]
-    [InlineData("#7a4fa3")]
-    [InlineData("#b5524a")]
-    [InlineData("#c28a2c")]
-    [InlineData("#9a3f6e")]
-    [InlineData("#ffd400")]
-    [InlineData("#000000")]
-    [InlineData("#ffffff")]
-    [InlineData("#c0392b")]
-    public void Given_eine_Farbe_der_Person_When_im_Dunkeln_gefuellt_Then_hat_die_Zeit_mindestens_4_5_zu_1_Kontrast(string personColor)
-    {
-        var (fill, ink) = FillFor(personColor, dark: true);
-
-        Assert.True(Contrast(fill, ink) >= 4.5, $"{personColor}: Fläche {fill}, Schrift {ink}, Kontrast {Contrast(fill, ink):0.00}");
-    }
-
-    [Fact]
-    public void Given_die_Farbe_der_Person_When_der_Chip_gefuellt_wird_Then_bleibt_der_Farbton_erkennbar()
-    {
-        var (light, _) = FillFor("#2f6f5e", dark: false);
-        var (dark, _) = FillFor("#2f6f5e", dark: true);
-
-        Assert.NotEqual("#ffffff", light);
-        Assert.NotEqual("#2f6f5e", light);
-        Assert.NotEqual("#2f6f5e", dark);
-        Assert.NotEqual(Token(dark: true, "RosterChipBaseBrush"), dark);
-    }
-
-    [Fact]
-    public void Given_die_Farbe_der_Person_When_im_Dunkeln_gefuellt_Then_ist_die_Flaeche_dunkler_als_im_Hellen()
-    {
-        foreach (var personColor in new[] { "#2f6f5e", "#7a4fa3", "#c28a2c", "#ffd400", "#ffffff" })
-        {
-            var (light, _) = FillFor(personColor, dark: false);
-            var (dark, _) = FillFor(personColor, dark: true);
-
-            Assert.True(Luminance(dark) < Luminance(light), $"{personColor}: dunkel {dark} nicht dunkler als hell {light}");
-        }
-    }
-
-    [Fact]
-    public void Given_alle_Kanalwerte_When_hell_gemischt_Then_gleich_der_bisherigen_Aufhellung()
-    {
-        for (var channel = 0; channel < 256; channel++)
-        {
-            var old = (int)Math.Round(channel + ((255 - channel) * 0.78));
-            var person = $"#{channel:x2}{channel:x2}{channel:x2}";
-
-            var fill = RosterChipColors.Fill(person, Token(dark: false, "RosterChipBaseBrush"), Token(dark: false, "RosterChipInkBrush"), RosterChipColors.ShareLight);
-
-            Assert.Equal($"#{old:x2}{old:x2}{old:x2}", fill);
-        }
-    }
-
-    [Fact]
-    public void Given_eine_ungueltige_Farbe_When_der_Chip_gefuellt_wird_Then_ist_die_Flaeche_die_Basis()
-    {
-        Assert.Equal("#ffffff", RosterChipColors.Fill("rot", "#ffffff", "#1a2321", RosterChipColors.ShareLight));
-        Assert.Equal("#0c1211", RosterChipColors.Fill("", "#0c1211", "#e2eae7", RosterChipColors.ShareDark));
-    }
-
-    private static string Token(bool dark, string key) => DesignTokenTests.AppValues(dark, key).Single();
-
-    private static (string Fill, string Ink) FillFor(string personColor, bool dark)
-    {
-        var ink = Token(dark, "RosterChipInkBrush");
-        var share = dark ? RosterChipColors.ShareDark : RosterChipColors.ShareLight;
-        return (RosterChipColors.Fill(personColor, Token(dark, "RosterChipBaseBrush"), ink, share), ink);
-    }
-
-    private static double Contrast(string a, string b)
-    {
-        var (la, lb) = (Luminance(a), Luminance(b));
-        return (Math.Max(la, lb) + 0.05) / (Math.Min(la, lb) + 0.05);
-    }
-
-    private static double Luminance(string hex)
-    {
-        static double Channel(string pair)
-        {
-            var c = Convert.ToInt32(pair, 16) / 255.0;
-            return c <= 0.03928 ? c / 12.92 : Math.Pow((c + 0.055) / 1.055, 2.4);
-        }
-
-        return (0.2126 * Channel(hex[1..3])) + (0.7152 * Channel(hex[3..5])) + (0.0722 * Channel(hex[5..7]));
     }
 
     private sealed class FixedTime(DateTimeOffset now) : TimeProvider

@@ -5,6 +5,7 @@ oberflaeche: windows-app
 rollen: rezeption, leitung, inhaber, manager
 seite: anfragen
 stichwoerter: Anfragen, Posteingang, Inbox, Mails, Nachrichten, SMS, WhatsApp, Anruf, Treatwell, KI-Terminannahme, Terminanfrage, Buchungsanfrage, inbox, messages, booking requests
+betrieb: server
 ---
 # Seite „Anfragen“ in der Windows-App
 
@@ -34,7 +35,17 @@ Links die Nachrichten mit Status, Absender, Kanal, Uhrzeit, Betreff und dem, was
 
 ## Einzelheiten {#einzelheiten}
 
-Rechts die gewählte Nachricht: Absender und Status (beim erkannten Kunden mit Initialen, siehe [Kundenübersicht](hilfe:seite-anfragen#kundenuebersicht)), darunter gleich die Nachricht selbst (bei fremder Sprache mit **DE**), was die KI erkannt hat, bei unbekanntem Absender „Wer ist das?“ mit Vorschlägen (**Zuordnen**, **Neu anlegen**, **Beim Zuordnen Adresse/Nummer merken**) bzw. nach der Entscheidung „Zugeordnet: …“ mit **Zuordnung lösen**, eine vorgemerkte Zeit mit **Bestätigen** und **Freigeben**, bei einer Absage **Termin stornieren** und der Antwortentwurf mit **Entwurf speichern**, **Senden** und den Knöpfen zum Überarbeiten mit KI. Neben einer Terminanfrage steht rechts **Freie Zeit** mit **Vormerken und vorschlagen**. Ganz unten **Erneut verarbeiten** (bei Fehler) und **Erledigt, ohne Termin und Antwort**. Bei einer Treatwell-Buchung stehen dazu „Vorab über Treatwell bezahlt: …“ oder „Zahlt vor Ort“ und der Abschnitt „In Treatwell noch annehmen“ mit **In Treatwell angenommen**; siehe [Treatwell-Buchung im Posteingang](hilfe:anfragen-treatwell-buchung).
+Rechts die gewählte Nachricht:
+
+- Absender und Status (beim erkannten Kunden mit Initialen, siehe [Kundenübersicht](hilfe:seite-anfragen#kundenuebersicht)), darunter gleich die Nachricht selbst (bei fremder Sprache mit **DE**).
+- Was die KI erkannt hat.
+- Bei unbekanntem Absender „Wer ist das?“ mit Vorschlägen (**Zuordnen**, **Neu anlegen**, **Beim Zuordnen Adresse/Nummer merken**) bzw. nach der Entscheidung „Zugeordnet: …“ mit **Zuordnung lösen**.
+- Eine vorgemerkte Zeit mit **Bestätigen** und **Freigeben**.
+- Bei einer Absage **Termin stornieren**.
+- Der Antwortentwurf mit **Entwurf speichern**, **Senden** und den Knöpfen zum Überarbeiten mit KI.
+- Neben einer Terminanfrage steht rechts **Freie Zeit** mit **Vormerken und vorschlagen**.
+- Ganz unten **Erneut verarbeiten** (bei Fehler) und **Erledigt, ohne Termin und Antwort**.
+- Bei einer Treatwell-Buchung stehen dazu „Vorab über Treatwell bezahlt: …“ oder „Zahlt vor Ort“ und der Abschnitt „In Treatwell noch annehmen“ mit **In Treatwell angenommen**; siehe [Treatwell-Buchung im Posteingang](hilfe:anfragen-treatwell-buchung).
 
 ## Kundenübersicht {#kundenuebersicht}
 

@@ -964,6 +964,9 @@ public partial class CalendarViewModel : ViewModelBase
     /// <summary>Der Termin hat im Rahmen der Seitenleiste einen eigenen Kopf (Initialen, Gastname, Behandlung, Status); alle anderen Leisten den einfachen.</summary>
     public bool HasAppointmentHeader => Selected is not null;
 
+    /// <summary>Die Chips (Status, Dauer, Anamnese) nur bei einem Termin und nicht, solange seine Kundendaten offen sind; ohne Termin fällt die Zeile ganz weg (T-108).</summary>
+    public bool ShowAppointmentChips => Selected is { IsEditingCustomer: false };
+
     partial void OnSelectedChanged(AppointmentViewModel? oldValue, AppointmentViewModel? newValue)
     {
         if (oldValue is not null)
@@ -978,6 +981,7 @@ public partial class CalendarViewModel : ViewModelBase
 
         OnPropertyChanged(nameof(PanelWidth));
         OnPropertyChanged(nameof(HasAppointmentHeader));
+        OnPropertyChanged(nameof(ShowAppointmentChips));
     }
 
     private void OnSelectedPanelChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -985,6 +989,7 @@ public partial class CalendarViewModel : ViewModelBase
         if (e.PropertyName == nameof(AppointmentViewModel.IsEditingCustomer))
         {
             OnPropertyChanged(nameof(PanelWidth));
+            OnPropertyChanged(nameof(ShowAppointmentChips));
         }
     }
 
@@ -1310,7 +1315,7 @@ public partial class CalendarViewModel : ViewModelBase
         if (result.Queued)
         {
             ShowPending();
-            ShowToast("Ohne Verbindung vorgemerkt, Server prüft beim Abgleich");
+            ShowToast("Ohne Verbindung vorgemerkt, wird beim Abgleich geprüft");
             return;
         }
 
@@ -1368,7 +1373,7 @@ public partial class CalendarViewModel : ViewModelBase
         if (result.Queued)
         {
             ShowPending();
-            ShowToast("Ohne Verbindung vorgemerkt, Server prüft beim Abgleich");
+            ShowToast("Ohne Verbindung vorgemerkt, wird beim Abgleich geprüft");
         }
         else
         {

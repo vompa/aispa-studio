@@ -5,10 +5,13 @@ oberflaeche: windows-app
 rollen: rezeption, leitung, inhaber, manager
 seite: anfragen
 stichwoerter: übersetzen, Übersetzung, Fremdsprache, Englisch, Italienisch, Französisch, Original anzeigen, DE, Deutsch, Taste O, ausländischer Gast, translate, translation, foreign language, original text
+betrieb: server
 ---
 # Fremdsprachige Nachricht übersetzen
 
 Nachrichten auf Englisch, Italienisch, Französisch oder in einer anderen Sprache stehen oben so da, wie der Gast sie geschrieben hat. Die App übersetzt sie von selbst ins Deutsche; **DE** zeigt die Übersetzung.
+
+## Schritte {#schritte}
 
 1. In **Anfragen** die Nachricht anklicken.
 2. Neben dem Betreff auf **DE** klicken oder außerhalb eines Textfelds die Taste **O** drücken: die Nachricht steht auf Deutsch da.

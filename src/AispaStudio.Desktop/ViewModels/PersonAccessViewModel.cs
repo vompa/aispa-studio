@@ -183,18 +183,56 @@ public sealed partial class PersonAccessViewModel : ViewModelBase
 
     // Einladen
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(InviteReason), nameof(CanInvite))]
     public partial string InviteName { get; set; }
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(InviteReason), nameof(CanInvite))]
     public partial string InviteEmail { get; set; } = "";
 
-    /// <summary>Warum „Einladung senden“ nicht geht, wie <c>missingText</c> im Web.</summary>
-    public string? InviteReason =>
-        MissingText(InviteName.Trim().Length == 0 ? "Name" : null, InviteEmail.Contains('@', StringComparison.Ordinal) ? null : "E-Mail");
+    /// <summary>Namen der Felder für <see cref="FocusRequested"/>: das erste ungültige Feld bekommt nach dem Klick den Fokus.</summary>
+    public const string InviteNameField = "InviteNameField";
 
-    public bool CanInvite => InviteReason is null;
+    public const string InviteEmailField = "InviteEmailField";
+
+    public const string AccountNameField = "AccountNameField";
+
+    public const string UserNameField = "UserNameField";
+
+    public const string PasswordField = "PasswordField";
+
+    public const string NewPasswordField = "NewPasswordField";
+
+    public event Action<string>? FocusRequested;
+
+    /// <summary>Fehler an den Feldern (masken.md, R8); jeder verschwindet mit der nächsten Eingabe im Feld.</summary>
+    [ObservableProperty]
+    public partial string? InviteNameError { get; private set; }
+
+    [ObservableProperty]
+    public partial string? InviteEmailError { get; private set; }
+
+    [ObservableProperty]
+    public partial string? AccountNameError { get; private set; }
+
+    [ObservableProperty]
+    public partial string? UserNameError { get; private set; }
+
+    [ObservableProperty]
+    public partial string? PasswordError { get; private set; }
+
+    [ObservableProperty]
+    public partial string? NewPasswordError { get; private set; }
+
+    partial void OnInviteNameChanged(string value) => InviteNameError = null;
+
+    partial void OnInviteEmailChanged(string value) => InviteEmailError = null;
+
+    partial void OnAccountNameChanged(string value) => AccountNameError = null;
+
+    partial void OnUserNameChanged(string value) => UserNameError = null;
+
+    partial void OnPasswordChanged(string value) => PasswordError = null;
+
+    partial void OnNewPasswordChanged(string value) => NewPasswordError = null;
 
     /// <summary>Nach dem Senden: „Einladung an … geschickt.“</summary>
     [ObservableProperty]
@@ -213,22 +251,13 @@ public sealed partial class PersonAccessViewModel : ViewModelBase
 
     // Zugang anlegen (Einzelplatz)
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(AccountReason), nameof(CanCreateAccount))]
     public partial string AccountName { get; set; }
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(AccountReason), nameof(CanCreateAccount))]
     public partial string UserName { get; set; } = "";
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(AccountReason), nameof(CanCreateAccount))]
     public partial string Password { get; set; } = "";
-
-    public string? AccountReason =>
-        MissingText(AccountName.Trim().Length == 0 ? "Name" : null, UserName.Trim().Length == 0 ? "Benutzername" : null)
-        ?? (Password.Length < 8 ? "Das Startpasswort braucht mindestens 8 Zeichen." : null);
-
-    public bool CanCreateAccount => AccountReason is null;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasCreated))]
@@ -240,12 +269,7 @@ public sealed partial class PersonAccessViewModel : ViewModelBase
     public bool CanResetPassword => _context.Standalone && IsMember;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(ResetReason), nameof(CanReset))]
     public partial string NewPassword { get; set; } = "";
-
-    public string? ResetReason => NewPassword.Length < 8 ? "Das Startpasswort braucht mindestens 8 Zeichen." : null;
-
-    public bool CanReset => ResetReason is null;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasResetText))]
@@ -316,6 +340,14 @@ public sealed partial class PersonAccessViewModel : ViewModelBase
     [RelayCommand]
     private async Task InviteAsync()
     {
+        InviteNameError = InviteName.Trim().Length == 0 ? "Bitte einen Namen eintragen." : null;
+        InviteEmailError = InviteEmail.Contains('@', StringComparison.Ordinal) ? null : "Bitte eine E-Mail-Adresse mit @ eintragen, z. B. lena@spa.at.";
+        if (InviteNameError is not null || InviteEmailError is not null)
+        {
+            FocusRequested?.Invoke(InviteNameError is not null ? InviteNameField : InviteEmailField);
+            return;
+        }
+
         var (all, ids) = LocationsOf();
         var email = InviteEmail.Trim();
         var input = new InvitationInput(email, InviteName.Trim(), Role.Role, all, ids, Person?.Id, ExpiresOf(), AmountOf(), PlainOf());
@@ -341,6 +373,15 @@ public sealed partial class PersonAccessViewModel : ViewModelBase
     [RelayCommand]
     private async Task CreateAccountAsync()
     {
+        AccountNameError = AccountName.Trim().Length == 0 ? "Bitte einen Namen eintragen." : null;
+        UserNameError = UserName.Trim().Length == 0 ? "Bitte einen Benutzernamen eintragen." : null;
+        PasswordError = Password.Length < 8 ? "Das Startpasswort braucht mindestens 8 Zeichen." : null;
+        if (AccountNameError is not null || UserNameError is not null || PasswordError is not null)
+        {
+            FocusRequested?.Invoke(AccountNameError is not null ? AccountNameField : UserNameError is not null ? UserNameField : PasswordField);
+            return;
+        }
+
         var (all, ids) = LocationsOf();
         var name = AccountName.Trim();
         var userName = UserName.Trim();
@@ -366,6 +407,13 @@ public sealed partial class PersonAccessViewModel : ViewModelBase
     [RelayCommand]
     private async Task ResetPasswordAsync()
     {
+        if (NewPassword.Length < 8)
+        {
+            NewPasswordError = "Das Startpasswort braucht mindestens 8 Zeichen.";
+            FocusRequested?.Invoke(NewPasswordField);
+            return;
+        }
+
         var result = await _context.Api.PostAsync<object>($"api/staff/{_member!.UserId}/password", new PasswordReset(NewPassword)).ConfigureAwait(true);
         ActionError = result.Error;
         if (result.Error is null)
@@ -498,18 +546,6 @@ public sealed partial class PersonAccessViewModel : ViewModelBase
     private bool PlainOf() => !ShowsPlainReports || PlainReports;
 
     private DateTimeOffset? ExpiresOf() => Role.Role == StaffRole.Owner ? null : _context.ExpiresAt(Until);
-
-    /// <summary>„Name fehlt.“, „Name und E-Mail fehlen.“ wie <c>missingText</c> im Web.</summary>
-    private static string? MissingText(params string?[] missing)
-    {
-        var names = missing.OfType<string>().ToList();
-        return names.Count switch
-        {
-            0 => null,
-            1 => $"{names[0]} fehlt.",
-            _ => $"{string.Join(", ", names[..^1])} und {names[^1]} fehlen.",
-        };
-    }
 
     private string State() => JsonSerializer.Serialize(new
     {

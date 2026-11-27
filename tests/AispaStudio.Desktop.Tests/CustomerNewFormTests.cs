@@ -304,15 +304,20 @@ public sealed class CustomerNewFormTests
     }
 
     [Fact]
-    public void Beide_Anlegen_Knoepfe_brauchen_einen_Namen()
+    public async Task Beide_Anlegen_Knoepfe_sind_aktiv_und_melden_den_fehlenden_Namen_am_Feld()
     {
-        var customers = new CustomersViewModel(Api().Client(), TimeProvider.System) { BookRequested = _ => { } };
+        var stub = Api();
+        var customers = new CustomersViewModel(stub.Client(), TimeProvider.System) { BookRequested = _ => { } };
 
-        Assert.False(customers.CreateCommand.CanExecute(null));
-        Assert.False(customers.CreateAndBookCommand.CanExecute(null));
-        customers.NewLastName = "Huber";
         Assert.True(customers.CreateCommand.CanExecute(null));
         Assert.True(customers.CreateAndBookCommand.CanExecute(null));
+        await customers.CreateAndBookCommand.ExecuteAsync(null);
+        Assert.Equal("Bitte einen Vor- oder Nachnamen eintragen.", customers.NewNameError);
+        Assert.Equal(CustomersViewModel.NewFirstNameField, customers.FocusTarget);
+        customers.FocusTarget = null;
+        await customers.CreateCommand.ExecuteAsync(null);
+        Assert.Equal(CustomersViewModel.NewFirstNameField, customers.FocusTarget);
+        Assert.DoesNotContain(stub.Calls, c => c.Route == "POST /api/customers");
     }
 
     // ---------- E-Mail: Feldfehler am Feld statt Leiste über der Liste (Befund B5) ----------

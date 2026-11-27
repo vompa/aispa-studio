@@ -14,7 +14,7 @@ Im Termin-Panel steht die Karte **Anamnese**. Sie zeigt, ob ein Bogen vorliegt u
 
 1. Den Termin im Kalender anklicken. Rechts öffnet sich das Termin-Panel.
 2. In der Karte **Anamnese** auf **Ansehen** klicken. Die Antworten erscheinen, ein „Ja“ ist hervorgehoben.
-3. Auf **Ausblenden** klicken, wenn Sie fertig sind.
+3. Auf **Ausblenden** klicken, wenn man fertig ist.
 
 Die Antworten lädt die App erst mit dem Klick und zeigt sie nur in der Karte.
 
@@ -48,7 +48,7 @@ Der QR-Code auf dem Bogen führt zum selben Bogen im Kundenbereich, wenn der Gas
 
 1. Auf **Foto hochladen** klicken und das Foto des ausgefüllten Bogens wählen. Der Dialog **Papierbogen prüfen** öffnet sich, auch an der Rezeption. Ohne das Recht, Gesundheitsdaten zu lesen, öffnet sich kein Dialog: Das Foto wartet in der Karte, bis jemand mit Leserecht es prüft.
 2. Warten, bis die KI den Bogen gelesen hat. Links steht das Foto, rechts der Vorschlag.
-3. Jede Antwort mit dem Foto vergleichen. Gelbe Felder sind unsicher; sie werden normal, sobald Sie sie ändern oder eine Antwort wählen.
+3. Jede Antwort mit dem Foto vergleichen. Gelbe Felder sind unsicher; sie werden normal, sobald man sie ändert oder eine Antwort wählt.
 4. **Der Bogen ist unterschrieben** und **Einwilligung ist auf dem Papier angekreuzt** ankreuzen und den Namen wie auf dem Bogen eintragen.
 5. Auf **Übernehmen** klicken. Die Karte zeigt den neuen Stand.
 

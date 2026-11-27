@@ -14,7 +14,7 @@ Ein Paket ist ein Gutschein für mehrere gleiche Behandlungen, z. B. ein 10er-Bl
 
 1. Einen Termin oder Eintritt des Gastes auf die Rechnung setzen, damit die Rechnung einen Gast hat, z. B. [Termin kassieren](hilfe:kassa-termin-kassieren).
 2. Im Panel „Artikel und Gutscheine“ neben der Rechnung (aufklappen, falls nur die schmale Leiste zu sehen ist) unter **Gutschein verkaufen** bei **Behandlung** die Behandlung wählen.
-3. Darunter die Anzahl eintragen (2 bis 50, vorbelegt mit 10), wenn gewünscht einen **Paketpreis** (leer heißt Einzelpreis mal Anzahl). Das Ablaufdatum steht oben unter **Einzulösen bis**, vorbelegt nach dem Land der Kasse, siehe [Ablaufdatum](hilfe:kassa-gutschein-verkaufen#ablaufdatum).
+3. Darunter die Anzahl eintragen (2 bis 50, vorbelegt mit 10), wenn gewünscht einen **Paketpreis** (leer heißt Einzelpreis mal Anzahl). Das Ablaufdatum steht oben unter **Einzulösen bis**, vorbelegt nach dem Land der Kassa, siehe [Ablaufdatum](hilfe:kassa-gutschein-verkaufen#ablaufdatum).
 4. Auf **Paket verkaufen** klicken. Auf der Rechnung steht „Paket 10× …“.
 5. Wie gewohnt bezahlen. Der Code des Pakets steht auf dem Beleg.
 

@@ -96,7 +96,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Zeigt, ob Claude eingeschaltet ist und wie es um das optionale lokale KI-Modell steht (ADR 0057). */
+        /** Zeigt, ob Claude eingeschaltet ist, welche Claude-Modelle gelten und wie es um das optionale lokale KI-Modell steht (ADR 0057). */
         get: operations["GetAiStatus"];
         put?: never;
         post?: never;
@@ -117,6 +117,59 @@ export interface paths {
         put?: never;
         /** Lädt das lokale KI-Modell im Hintergrund herunter; den Fortschritt zeigt GET /api/system/ai. */
         post: operations["DownloadLocalAiModel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/system/ai/usage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Verbrauch von Claude des Spas über die letzten Tage (Standard 30, heute eingeschlossen, Tage in UTC): Aufrufe und Tokens je Aufgabe und Modell, ohne Geldbeträge. */
+        get: operations["GetAiUsage"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/system/ai/claude-key": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Zeigt, ob ein Claude-Schlüssel gesetzt ist, woher er kommt und seine Maske; nie den Schlüssel selbst (ADR 0103). */
+        get: operations["GetClaudeKey"];
+        /** Speichert den Claude-Schlüssel des Spas verschlüsselt; gilt sofort, ohne Neustart. 409, wenn der Schlüssel in der Konfiguration gesetzt ist. */
+        put: operations["SaveClaudeKey"];
+        post?: never;
+        /** Entfernt den in der App eingetragenen Claude-Schlüssel; Claude ist danach sofort aus. 409, wenn der Schlüssel in der Konfiguration gesetzt ist. */
+        delete: operations["RemoveClaudeKey"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/system/ai/claude-key/check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Prüft den gesetzten Claude-Schlüssel mit einem kleinen Testaufruf: gültig, ungültig, kein Guthaben oder Limit, nicht erreichbar. */
+        post: operations["CheckClaudeKey"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1218,7 +1271,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Listen des Personals als Excel oder CSV, nur für die Leitung: list=hours (Stundenliste je Person und Tag für month=JJJJ-MM), absences (Abwesenheiten von from bis until), roster (Dienstplan der Woche ab from, Personen als Zeilen, Tage als Spalten); wahlweise nur employeeId. */
+        /** Listen des Personals als Excel oder CSV, nur für die Leitung: list=hours (Stundenliste je Person und Tag für month=JJJJ-MM), absences (Abwesenheiten von from bis until), roster (Dienstplan der Woche ab from, Tage als Zeilen, Personen als Spalten, mit Besetzung je Tag und Stunden je Person); wahlweise nur employeeId. */
         get: operations["ExportStaffList"];
         put?: never;
         post?: never;
@@ -1235,7 +1288,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Kennzahlen des Management-Berichts für from bis until (höchstens ein Jahr) als Excel oder CSV: Kennzahl, Wert, Vorperiode, Einheit; ohne das Recht „Berichte mit Beträgen“ ohne Geldbeträge. */
+        /** Kennzahlen des Management-Berichts für from bis until (höchstens ein Jahr) als Excel oder CSV: Kennzahl, Wert, Vorperiode, Einheit; ohne das Recht „Berichte mit Beträgen“ ohne Geldbeträge. Mit content=report der ganze Bericht als Excel-Arbeitsmappe (ein Blatt je Abschnitt, Gäste nur mit dem Recht der Kundenliste, Vergleich mit anderen Spas, wenn das Modul eingeschaltet ist). Mit format=docx der ganze Bericht als Word-Datei (A4 hoch, Inhalt wie das PDF, der Verlauf als Tabelle, nach jeder Kennzahlen-Gruppe „Anmerkungen:“); content entfällt, ai=true nimmt den schon geschriebenen KI-Kommentar mit Hinweis auf. Mit analysisId stehen Arbeitsmappe und Word-Datei mit der übernommenen KI-Auswertung und Hinweis da (fertig, gleicher Standort, Zeitraum, Vergleich und Sicht, sonst ein Fehler). */
         get: operations["ExportManagementKpis"];
         put?: never;
         post?: never;
@@ -1427,6 +1480,75 @@ export interface paths {
         };
         /** Dienste und Termine einer Person als Kalenderdatei für den privaten Kalender, ohne Namen der Gäste und ohne Erinnerung; nur die Leitung oder die Person selbst. include=appointments,shifts wählt den Inhalt (Standard beides), höchstens ein Jahr. */
         get: operations["ExportEmployeeIcs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/locations/{locationId}/management/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Management-Bericht für from bis until (höchstens ein Jahr) als PDF (A4 hoch): Kennzahlen je Gruppe mit Vergleich (compare wie beim Bericht) und Veränderung, Verlauf als Balken, danach die Tabellen des Berichts. Ohne das Recht „Berichte mit Beträgen“ ohne Geldbeträge, Gäste nur mit dem Recht der Kundenliste; mit ai=true der schon geschriebene KI-Kommentar mit Hinweis, mit analysisId die übernommene KI-Auswertung (fertig, gleicher Standort, Zeitraum, Vergleich und Sicht, sonst ein Fehler) mit Hinweis. Steht im Export-Protokoll. */
+        get: operations["ManagementReportPdf"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/locations/{locationId}/management/send": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Vorbelegung für „Per Mail senden“: die eigene Mailadresse der angemeldeten Person, Betreff mit Standort und Zeitraum, kurzer Text. */
+        get: operations["ManagementReportMailDraft"];
+        put?: never;
+        /** Management-Bericht als PDF per Mail an die eingetippte Adresse (über die Queue); Inhalt wie GET …/management/pdf, auch mit analysisId. Vermerk im Export-Protokoll mit Empfänger. */
+        post: operations["SendManagementReportPdf"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/locations/{locationId}/management/analysis": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** KI-Auswertung des Management-Berichts anlegen (Zeitraum und Vergleich wie beim Bericht, Schwerpunkt, eigene Frage bis 300 Zeichen); geschrieben wird über die Queue, Status mit GET …/analysis/{id}. Zu denselben Zahlen, Schwerpunkt und Frage kommt die gespeicherte Auswertung zurück. Ohne Claude-Schlüssel ein Fehler mit Hinweis. */
+        post: operations["RequestManagementAnalysis"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/locations/{locationId}/management/analysis/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Stand einer KI-Auswertung: Pending (läuft), Done mit Ergebnis oder Failed (nichts anzeigen, erneut anlegen). Immer mit Hinweis auf die KI. */
+        get: operations["GetManagementAnalysis"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2687,7 +2809,7 @@ export interface paths {
         };
         get: operations["ListCashRegisters"];
         put?: never;
-        /** Neue Kasse. Österreich: erzeugt Schlüssel für den Umsatzzähler und den signierten Startbeleg. */
+        /** Neue Kassa. Österreich: erzeugt Schlüssel für den Umsatzzähler und den signierten Startbeleg. */
         post: operations["CreateCashRegister"];
         delete?: never;
         options?: never;
@@ -2753,7 +2875,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Kasse außer Betrieb nehmen (Schlussbeleg). Danach in FinanzOnline abmelden. */
+        /** Kassa außer Betrieb nehmen (Schlussbeleg). Danach in FinanzOnline abmelden. */
         post: operations["DecommissionCashRegister"];
         delete?: never;
         options?: never;
@@ -2768,7 +2890,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Belege einer Kasse an einem Tag (Ortszeit), neueste zuerst. */
+        /** Belege einer Kassa an einem Tag (Ortszeit), neueste zuerst. */
         get: operations["ListReceipts"];
         put?: never;
         post?: never;
@@ -2835,7 +2957,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Die letzten zehn TSE-Exporte einer Kasse mit Stand. */
+        /** Die letzten zehn TSE-Exporte einer Kassa mit Stand. */
         get: operations["ListTseExports"];
         put?: never;
         /** TSE-Export (TAR) anfordern (Deutschland); er läuft im Hintergrund, die Datei steht danach in der Liste. */
@@ -2903,7 +3025,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Die letzten 60 Tagesabschlüsse einer Kasse mit allen Zahlen; nur mit dem Recht „Berichte mit Beträgen“. */
+        /** Die letzten 60 Tagesabschlüsse einer Kassa mit allen Zahlen; nur mit dem Recht „Berichte mit Beträgen“. */
         get: operations["ListDayClosings"];
         put?: never;
         /** Tagesabschluss (Z-Bericht) mit gezähltem Kassenbestand; wird unveränderlich gespeichert. */
@@ -3398,7 +3520,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Vermerkt, dass der Gutschein ausgedruckt wurde (die App meldet es nach dem Drucken); die Gutscheinliste zeigt „Gedruckt am …“. */
+        /** Vermerkt, dass der Druckdialog für den Gutschein geöffnet wurde (die App meldet es, sobald er aufgeht; ob gedruckt wurde, meldet Windows nicht); die Gutscheinliste zeigt „Zum Drucken geöffnet am …“. */
         post: operations["VoucherPrinted"];
         delete?: never;
         options?: never;
@@ -3880,7 +4002,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Lässt die KI den Text der Absage umformulieren, auf Knopfdruck. Neue Zahlen oder verlorene Platzhalter verwirft der Server; der Text trägt danach den Hinweis auf die KI. */
+        /** Lässt die KI den Text der Absage umformulieren, auf Knopfdruck. Neue Zahlen oder verlorene Platzhalter werden verworfen; der Text trägt danach den Hinweis auf die KI. */
         post: operations["ReviseClosureCancellationText"];
         delete?: never;
         options?: never;
@@ -5240,7 +5362,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Stand der Bestellung; der Gutscheincode erscheint, sobald die Kasse ihn ausgestellt hat. */
+        /** Stand der Bestellung; der Gutscheincode erscheint, sobald die Kassa ihn ausgestellt hat. */
         get: operations["GetOnlineVoucherOrder"];
         put?: never;
         post?: never;
@@ -5395,7 +5517,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Ausfallgebühr von der hinterlegten Karte belasten und an der Kasse verbuchen (nur bei Nichterscheinen oder später Absage). */
+        /** Ausfallgebühr von der hinterlegten Karte belasten und an der Kassa verbuchen (nur bei Nichterscheinen oder später Absage). */
         post: operations["ChargeNoShowFee"];
         delete?: never;
         options?: never;
@@ -7563,7 +7685,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Kennzahlen eines Zeitraums mit Vergleich zum gleich langen Zeitraum davor; ohne das Recht „Berichte mit Beträgen“ ohne Geldbeträge. Auch in der Mitarbeiter-App für „Heute im Spa“, mit den Rechten der Rolle. */
+        /** Kennzahlen eines Zeitraums mit Vergleich zum gleich langen Zeitraum davor (compare=previous, Standard), zum selben Abschnitt des Vormonats (month) oder zum Vorjahr (year); ohne das Recht „Berichte mit Beträgen“ ohne Geldbeträge. Auch in der Mitarbeiter-App für „Heute im Spa“, mit den Rechten der Rolle. */
         get: operations["GetManagementReport"];
         put?: never;
         post?: never;
@@ -7580,7 +7702,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Ob die angemeldete Person Wochen- und Monatsbericht per Mail bekommt (Inhaber, Manager, Standortleitung). */
+        /** Ob die angemeldete Person Wochen- und Monatsbericht per Mail bekommt (Inhaber, Manager, Standortleitung); im Einzelplatz nur mit eingerichtetem Mailversand. */
         get: operations["GetReportMailSubscription"];
         /** Wochen- und Monatsbericht per Mail für die angemeldete Person ein- oder abbestellen. */
         put: operations["SetReportMailSubscription"];
@@ -8937,6 +9059,38 @@ export interface components {
             localError: null | string;
             /** Format: date-time */
             checkedAt: null | string;
+            claudeModel?: null | string;
+            claudeModelExtract?: null | string;
+        };
+        AiUsageReport: {
+            /** Format: int32 */
+            days: number;
+            rows: components["schemas"]["AiUsageRow"][];
+        };
+        AiUsageRow: {
+            task: components["schemas"]["AiUsageTask"];
+            model: string;
+            /** Format: int32 */
+            calls: number;
+            /** Format: int64 */
+            inputTokens: number;
+            /** Format: int64 */
+            outputTokens: number;
+            /** Format: int64 */
+            cacheReadTokens: number;
+            /** Format: int64 */
+            cacheWriteTokens: number;
+        };
+        /** @enum {unknown} */
+        AiUsageTask: "BookingRequest" | "ReplyDraft" | "ReplyRevision" | "Translation" | "GuestQuestion" | "Treatwell" | "DeliveryNote" | "Anamnesis" | "AssistantIntent" | "AssistantAnswer" | "BriefingSummary" | "ManagementSummary" | "ManagementAnalysis" | "RebookText";
+        AnalysisFinding: {
+            observation: string;
+            possibleCause: string;
+            kpi: string;
+        };
+        AnalysisMeasure: {
+            action: string;
+            successSign: string;
         };
         AnamnesisAnswer: {
             key: string;
@@ -10174,6 +10328,12 @@ export interface components {
             iban: null | string;
             bic: null | string;
         };
+        ChannelKpi: {
+            source: components["schemas"]["AppointmentSource"];
+            label: string;
+            /** Format: int32 */
+            appointments: number;
+        };
         ChannelMappingDto: {
             /** Format: uuid */
             id: string;
@@ -10201,6 +10361,23 @@ export interface components {
             tip: number;
             /** Format: uuid */
             tipEmployeeId?: null | string;
+        };
+        ClaudeKeyCheck: {
+            outcome: components["schemas"]["ClaudeKeyCheckOutcome"];
+            message: string;
+        };
+        /** @enum {unknown} */
+        ClaudeKeyCheckOutcome: "Valid" | "Invalid" | "NoCredit" | "Unreachable";
+        ClaudeKeyInput: {
+            apiKey: string;
+        };
+        /** @enum {unknown} */
+        ClaudeKeySource: "None" | "Config" | "App";
+        ClaudeKeyStatus: {
+            isSet: boolean;
+            source: components["schemas"]["ClaudeKeySource"];
+            mask: null | string;
+            available: boolean;
         };
         ClockInput: {
             /** Format: uuid */
@@ -11270,6 +11447,18 @@ export interface components {
         FollowUpNote: {
             note: string;
         };
+        ForecastWeek: {
+            /** Format: date */
+            from: string;
+            /** Format: date */
+            until: string;
+            /** Format: int32 */
+            appointments: number;
+            /** Format: double */
+            bookedRevenue: null | number;
+            /** Format: double */
+            staffUtilization: number;
+        };
         GapChainMove: {
             /** Format: uuid */
             appointmentId: string;
@@ -11412,6 +11601,15 @@ export interface components {
             /** Format: int32 */
             ageNow: null | number;
         };
+        GuestKpi: {
+            /** Format: uuid */
+            customerId: string;
+            name: string;
+            /** Format: int32 */
+            visits: number;
+            /** Format: double */
+            spent: null | number;
+        };
         GuestMessageDelayDto: {
             /** Format: int32 */
             minutes: number;
@@ -11507,6 +11705,15 @@ export interface components {
             code: string;
             country: components["schemas"]["FiscalCountry"];
             name: string;
+        };
+        HourlyStaffing: {
+            /** Format: date */
+            date: string;
+            /** Format: int32 */
+            hour: number;
+            open: boolean;
+            /** Format: int32 */
+            count: number;
         };
         HrAgreement: {
             text: string;
@@ -11824,6 +12031,17 @@ export interface components {
             /** Format: double */
             previous: null | number;
             unit: string;
+            higherIsBetter?: null | boolean;
+            group?: null | string;
+        };
+        LapsingGuest: {
+            /** Format: uuid */
+            customerId: string;
+            name: string;
+            /** Format: date */
+            lastVisit: string;
+            /** Format: int32 */
+            visits: number;
         };
         LeaveAccountDto: {
             /** Format: uuid */
@@ -11961,6 +12179,45 @@ export interface components {
         MailboxKind: "Imap" | "Graph";
         /** @enum {unknown} */
         MailboxSecurity: "SslOnConnect" | "StartTls" | "None";
+        ManagementAnalysisDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            locationId: string;
+            /** Format: date */
+            from: string;
+            /** Format: date */
+            until: string;
+            compare: string;
+            focus: components["schemas"]["ManagementAnalysisFocus"];
+            question: null | string;
+            amountsHidden: boolean;
+            status: components["schemas"]["ManagementAnalysisStatus"];
+            result: null | components["schemas"]["ManagementAnalysisResult"];
+            notice: string;
+            /** Format: date-time */
+            requestedAt: string;
+        };
+        /** @enum {unknown} */
+        ManagementAnalysisFocus: "Overall" | "RevenueAndProfit" | "UtilizationAndRoster" | "GuestsAndLoyalty" | "OfferAndPrices";
+        ManagementAnalysisRequest: {
+            /** Format: date */
+            from: string;
+            /** Format: date */
+            until: string;
+            focus?: components["schemas"]["ManagementAnalysisFocus"];
+            question?: null | string;
+            /** @default previous */
+            compare: string;
+        };
+        ManagementAnalysisResult: {
+            keyFindings: string[];
+            findings: components["schemas"]["AnalysisFinding"][];
+            measures: components["schemas"]["AnalysisMeasure"][];
+            notShown: string[];
+        };
+        /** @enum {unknown} */
+        ManagementAnalysisStatus: "Pending" | "Done" | "Failed";
         ManagementReportDto: {
             /** Format: uuid */
             locationId: string;
@@ -11991,6 +12248,22 @@ export interface components {
             aiSummaryPending: boolean;
             aiNotice?: null | string;
             promotions?: null | components["schemas"]["PromotionKpi"][];
+            /** Format: date */
+            compareFrom?: null | string;
+            /** Format: date */
+            compareUntil?: null | string;
+            trend?: null | components["schemas"]["TrendPoint"][];
+            loadByWeekday?: null | components["schemas"]["WeekdayLoad"][];
+            /** Format: double */
+            weakLoadBelow?: null | number;
+            rooms?: null | components["schemas"]["RoomKpi"][];
+            channels?: null | components["schemas"]["ChannelKpi"][];
+            topGuests?: null | components["schemas"]["GuestKpi"][];
+            lapsingGuests?: null | components["schemas"]["LapsingGuest"][];
+            forecast?: null | components["schemas"]["ForecastWeek"][];
+            /** Format: date */
+            forecastAsOf?: null | string;
+            aiAnalysisAvailable?: boolean;
         };
         MarketingConsentDecision: {
             state: components["schemas"]["MarketingConsentState"];
@@ -13321,6 +13594,15 @@ export interface components {
             /** Format: uuid */
             admissionArticleId?: null | string;
         };
+        RoomKpi: {
+            /** Format: uuid */
+            roomId: string;
+            name: string;
+            /** Format: int32 */
+            utilization: number;
+            /** Format: int32 */
+            appointments: number;
+        };
         RoomStartCheckInput: {
             /** Format: date */
             date: string;
@@ -13436,6 +13718,7 @@ export interface components {
             drafts: number;
             /** Format: date-time */
             lastPublishedAt?: null | string;
+            hourlyStaffing?: null | components["schemas"]["HourlyStaffing"][];
         };
         SendDocumentRequest: {
             to: string;
@@ -14893,6 +15176,18 @@ export interface components {
             /** Format: uuid */
             locationId?: null | string;
         };
+        TrendPoint: {
+            /** Format: date */
+            from: string;
+            /** Format: date */
+            until: string;
+            /** Format: double */
+            revenueNet: null | number;
+            /** Format: int32 */
+            appointments: number;
+            /** Format: double */
+            staffUtilization: number;
+        };
         TseExportDto: {
             /** Format: uuid */
             id: string;
@@ -15101,6 +15396,17 @@ export interface components {
         };
         /** @enum {unknown} */
         WaitlistStatus: "Waiting" | "Booked" | "Cancelled" | "Expired";
+        WeekdayLoad: {
+            day: components["schemas"]["DayOfWeek"];
+            /** Format: double */
+            morning: null | number;
+            /** Format: double */
+            midday: null | number;
+            /** Format: double */
+            afternoon: null | number;
+            /** Format: double */
+            evening: null | number;
+        };
         WorkingHours: {
             /** Format: uuid */
             locationId: string;
@@ -15282,6 +15588,175 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    GetAiUsage: {
+        parameters: {
+            query?: {
+                days?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AiUsageReport"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    GetClaudeKey: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClaudeKeyStatus"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    SaveClaudeKey: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClaudeKeyInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClaudeKeyStatus"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    RemoveClaudeKey: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClaudeKeyStatus"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    CheckClaudeKey: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClaudeKeyCheck"];
+                };
+            };
             /** @description Forbidden */
             403: {
                 headers: {
@@ -18410,6 +18885,10 @@ export interface operations {
                 from?: string;
                 until?: string;
                 format?: string;
+                compare?: string;
+                content?: string;
+                ai?: boolean;
+                analysisId?: string;
             };
             header?: never;
             path: {
@@ -18814,6 +19293,247 @@ export interface operations {
                 };
                 content: {
                     "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ManagementReportPdf: {
+        parameters: {
+            query?: {
+                from?: string;
+                until?: string;
+                compare?: string;
+                ai?: boolean;
+                analysisId?: string;
+            };
+            header?: never;
+            path: {
+                locationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ManagementReportMailDraft: {
+        parameters: {
+            query?: {
+                from?: string;
+                until?: string;
+                compare?: string;
+                ai?: boolean;
+            };
+            header?: never;
+            path: {
+                locationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentMailDraft"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    SendManagementReportPdf: {
+        parameters: {
+            query?: {
+                from?: string;
+                until?: string;
+                compare?: string;
+                ai?: boolean;
+                analysisId?: string;
+            };
+            header?: never;
+            path: {
+                locationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SendDocumentRequest"];
+            };
+        };
+        responses: {
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    RequestManagementAnalysis: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                locationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ManagementAnalysisRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ManagementAnalysisDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetManagementAnalysis: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                locationId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ManagementAnalysisDto"];
                 };
             };
             /** @description Forbidden */
@@ -35722,6 +36442,7 @@ export interface operations {
             query: {
                 from: string;
                 until: string;
+                compare?: string;
             };
             header?: never;
             path: {

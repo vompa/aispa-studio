@@ -283,9 +283,15 @@ public sealed class DeviceTests
         await using var devices = new DevicesViewModel(stub.Client(), settings) { CanManageTerminals = true };
         await devices.InitializeAsync();
 
+        // Ohne Adresse ist „Terminal anlegen“ aktiv; der Klick meldet den Fehler am Feld, setzt den Fokus dorthin und sendet nichts.
         var canAddEmpty = devices.AddTerminalCommand.CanExecute(null);
+        string? focus = null;
+        devices.FocusRequested += field => focus = field;
+        await devices.AddTerminalCommand.ExecuteAsync(null);
+        var emptyAddress = (devices.NewTerminalAddressError, focus, stub.Calls.Any(c => c.Route == "POST /api/pos/terminals"));
         devices.NewTerminalProtocol = devices.Protocols.Single(p => p.Protocol == TerminalProtocol.Opi);
         devices.NewTerminalAddress = "192.168.1.60:20002";
+        Assert.Null(devices.NewTerminalAddressError);
         await devices.AddTerminalCommand.ExecuteAsync(null);
         var body = stub.Calls.Single(c => c.Route == "POST /api/pos/terminals").Body!;
         var selected = devices.Terminal;
@@ -301,7 +307,8 @@ public sealed class DeviceTests
         dialogs.AssertRules();
         await devices.AskRemoveTerminalCommand.ExecuteAsync(null);
 
-        Assert.False(canAddEmpty);
+        Assert.True(canAddEmpty);
+        Assert.Equal(("Bitte die Adresse des Terminals eintragen, z. B. 192.168.1.50:20007.", DevicesViewModel.NewTerminalAddressField, false), emptyAddress);
         Assert.Contains("\"protocol\":\"Opi\"", body, StringComparison.Ordinal);
         Assert.Contains("\"provider\":\"Local\"", body, StringComparison.Ordinal);
         Assert.Equal("Empfang · Wien · OPI 192.168.1.60:20002", selected?.Title);

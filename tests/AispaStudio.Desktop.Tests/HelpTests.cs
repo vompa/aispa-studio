@@ -62,6 +62,22 @@ public sealed partial class HelpTests
     }
 
     [Fact]
+    public void Liest_die_Art_erklaerung()
+    {
+        var topic = HelpMarkdown.ToTopic("x-erklaerung", "---\nart: erklaerung\n---\n# Hintergrund\n\nText.");
+
+        Assert.Equal(HelpKind.Explanation, topic.Meta.Kind);
+    }
+
+    [Fact]
+    public void Liest_die_Art_referenz()
+    {
+        var topic = HelpMarkdown.ToTopic("x-referenz", "---\nart: referenz\n---\n# Liste\n\nText.");
+
+        Assert.Equal(HelpKind.Reference, topic.Meta.Kind);
+    }
+
+    [Fact]
     public void Jeder_Verweis_zeigt_auf_ein_vorhandenes_Thema_und_jedes_Bild_ist_erzeugt()
     {
         var images = Path.Combine(RepoRoot(), "web", "src", "help", "images");
@@ -193,6 +209,21 @@ public sealed partial class HelpTests
         Assert.Equal("rezeption", query["rolle"]);
     }
 
+    [Theory]
+    [InlineData(true, "einzelplatz")]
+    [InlineData(false, null)]
+    public async Task Im_Einzelplatz_sagt_die_Adresse_der_Hilfe_den_Betrieb_damit_die_Seite_Server_Themen_ausblendet(bool standalone, string? expected)
+    {
+        // T-110: Die Hilfe-Seite filtert Themen mit „betrieb: server“ nach dem Parameter „betrieb“ (web/src/help/topics.ts, forOperation).
+        var modules = new AispaStudio.Contracts.SystemModules(standalone, !standalone, !standalone, true, !standalone, !standalone, !standalone, !standalone);
+        var shell = new ShellViewModel(new StubApi().Client(), TestData.Reception(), null, TimeProvider.System,
+            new ThemeController(new MemorySettingsStore()), "Test", () => Task.CompletedTask, modules: modules);
+
+        await shell.ShowHelpAsync("kassa", null);
+
+        Assert.Equal(expected, System.Web.HttpUtility.ParseQueryString(shell.Help.Address!.Query)["betrieb"]);
+    }
+
     [Fact]
     public void Mit_der_Hilfe_neben_der_App_oeffnet_sich_die_Seite_ueber_den_virtuellen_Host_ohne_Server()
     {
@@ -321,6 +352,37 @@ public sealed partial class HelpTests
 
         Assert.Equal("http://localhost:5173/help/", help.Address!.GetLeftPart(UriPartial.Path));
         Assert.Equal("kassa", System.Web.HttpUtility.ParseQueryString(help.Address.Query)["thema"]);
+    }
+
+    [Fact]
+    public void Kopfangabe_betrieb_server_gilt_im_Einzelplatz_nicht_in_Suche_und_Seitenthema()
+    {
+        var serverTopic = HelpMarkdown.ToTopic("anfragen-annehmen", "---\nart: ablauf\nseite: anfragen\nbetrieb: server\nstichwoerter: Anfrage annehmen\n---\n# Anfrage annehmen\n\nEinleitung.");
+        var plain = HelpMarkdown.ToTopic("kassa-oeffnen", "---\nart: ablauf\n---\n# Kassa öffnen\n\nEinleitung.");
+
+        Assert.True(serverTopic.Meta.ServerOnly);
+        Assert.False(plain.Meta.ServerOnly);
+        Assert.Equal(["anfragen-annehmen"], HelpSearch.Search([serverTopic, plain], "Anfrage annehmen", new HelpContext(), 5).Select(h => h.Topic.Id));
+        Assert.Empty(HelpSearch.Search([serverTopic, plain], "Anfrage annehmen", new HelpContext(Standalone: true), 5));
+        Assert.True(HelpLibrary.IsServerOnly("anfragen-annehmen"));
+        Assert.Null(HelpLibrary.ForPage("anfragen", standalone: true));
+        Assert.NotNull(HelpLibrary.ForPage("anfragen"));
+    }
+
+    [Theory]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    public void Verweis_auf_ein_Server_Thema_ist_im_Einzelplatz_Text_und_mit_Server_ein_Link(bool standalone, bool linked)
+    {
+        var text = new Controls.HelpText
+        {
+            Standalone = standalone,
+            Spans = [new HelpSpan("Anfrage annehmen", Href: "hilfe:anfragen-annehmen"), new HelpSpan("Kassa", Href: "hilfe:kassa")],
+        };
+
+        var containers = text.Inlines!.OfType<Avalonia.Controls.Documents.InlineUIContainer>().ToList();
+        Assert.Equal(linked ? 2 : 1, containers.Count);
+        Assert.Equal(!linked, text.Inlines!.OfType<Avalonia.Controls.Documents.Run>().Any(r => r.Text == "Anfrage annehmen"));
     }
 
     private static Uri? ShownAt(ServerWeb server)

@@ -266,7 +266,7 @@
               <TextBlock Text="{Binding Pick?.Label, TargetNullValue=''}" FontWeight="SemiBold" TextWrapping="Wrap" />
               <StackPanel Spacing="6" DataContext="{Binding Guest}" x:DataType="vm:CustomerSearchViewModel">
                 <!-- Die Beschriftung bleibt stehen, wenn der Gast gewählt ist; Name und „Ändern“ stehen dann darunter -->
-                <ui:FormField Label="Für wen?">
+                <ui:FormField Label="Für wen?" Error="{Binding Error}">
                   <TextBox x:Name="CompanionGuest" Text="{Binding Query}" PlaceholderText="z. B. Name, Telefon oder E-Mail"
                            IsVisible="{Binding !HasCustomer}" />
                 </ui:FormField>
@@ -304,8 +304,8 @@
                 <StackPanel Spacing="8" DataContext="{Binding NewGuest}" x:DataType="vm:NewGuestFormViewModel">
                   <TextBlock Text="Neuer Gast" Classes="group" />
                   <UniformGrid Columns="2" ColumnSpacing="8">
-                    <ui:FormField Label="Vorname">
-                      <TextBox Text="{Binding FirstName}" />
+                    <ui:FormField Label="Vorname" Error="{Binding NameError}">
+                      <TextBox x:Name="NewGuestFirstNameBox" Text="{Binding FirstName}" />
                     </ui:FormField>
                     <ui:FormField Label="Nachname">
                       <TextBox Text="{Binding LastName}" />

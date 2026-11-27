@@ -370,7 +370,7 @@ public sealed partial class ViewTests
     });
 
     [Fact]
-    public Task Kassa_Kassenlade_nennt_Fragezeichen_Erklaerungen_und_den_Grund_fuer_Buchen() => Render("hell", "kassa-abschluss-hilfe", async (window, main) =>
+    public Task Kassa_Kassenlade_nennt_Fragezeichen_Erklaerungen_und_Buchen_meldet_fehlende_Angaben() => Render("hell", "kassa-abschluss-hilfe", async (window, main) =>
     {
         await SignedInCalendar(main);
         var shell = (ShellViewModel)main.Content!;
@@ -386,9 +386,14 @@ public sealed partial class ViewTests
         string? TipOf(string text) => page.GetVisualDescendants().OfType<TextBlock>().First(t => t.Text == text && t.IsEffectivelyVisible) is { } t ? ToolTip.GetTip(t) as string : null;
         Assert.Equal("Das Bargeld, das laut Kassa in der Lade sein muss", TipOf("Soll-Bestand"));
         Assert.Equal("Der Umsatz, aufgeteilt auf die Konten der Buchhaltung", TipOf("Erlöskonten"));
+        // „Buchen“ ist aktiv; ohne Betrag und Grund meldet der Klick die Fehler an den Feldern (T-086).
         var book = ButtonWithText(page, "Buchen");
-        Assert.False(book.IsEffectivelyEnabled);
-        Assert.Equal("Verfügbar, sobald Betrag und Grund eingetragen sind.", ToolTip.GetTip(book));
+        Assert.True(book.IsEffectivelyEnabled);
+        Assert.Null(ToolTip.GetTip(book));
+        book.Command!.Execute(book.CommandParameter);
+        await Pump(Settling);
+        Assert.Contains(page.GetVisualDescendants().OfType<FormField>(), f => f.Error == "Bitte einen Betrag über 0 eintragen." && f.IsEffectivelyVisible);
+        Assert.Contains(page.GetVisualDescendants().OfType<FormField>(), f => f.Error == "Bitte einen Grund eintragen." && f.IsEffectivelyVisible);
         Assert.EndsWith("4 Belege, 1 Storno", shell.Pos.ReportPeriod, StringComparison.Ordinal);
         Assert.Contains(page.GetVisualDescendants().OfType<FormField>(), f => f.Label == "Betrag (€)" && f.IsEffectivelyVisible);
         return shell.Pos;

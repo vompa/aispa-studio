@@ -5,33 +5,11 @@
              x:Class="AispaStudio.Desktop.Views.StockTodoSection"
              x:DataType="vm:StockTodoViewModel">
   <!--
-    Übersicht des Lagers (R07 Slice 143, Ä351; Kacheln seit ADR 0098): oben die Kennzahl-Kacheln (docs/design.md 5.5: Raster mit 12 Abstand; eine Kachel mit Befehl führt an den Ort der Zahl),
-    darunter „Was ist zu tun“ als eine Fläche, die Punkte durch feine Linien getrennt, jeder mit dem Link an den Ort, an dem man ihn erledigt.
-    Werte stehen in der Hauptfarbe, Bezeichnungen und Einzelheiten klein in der Sekundärfarbe (docs/design.md, 5.5 und 5.8).
+    Reiter „Zu tun“ des Lagers (R07 Slice 143, Ä351; bis T-109 „Übersicht“): „Was ist zu tun“ als eine Fläche, die Punkte durch feine Linien getrennt, jeder mit dem Link an den Ort,
+    an dem man ihn erledigt. Die Kennzahl-Kacheln stehen seit T-109 über der Schiene (StockView). Werte stehen in der Hauptfarbe, Bezeichnungen und Einzelheiten klein in der
+    Sekundärfarbe (docs/design.md, 5.5 und 5.8).
   -->
   <StackPanel Spacing="16">
-    <ItemsControl x:Name="StockStats" ItemsSource="{Binding Stats}" AutomationProperties.Name="Kennzahlen des Lagers">
-      <ItemsControl.ItemsPanel>
-        <ItemsPanelTemplate>
-          <WrapPanel ItemSpacing="12" LineSpacing="12" />
-        </ItemsPanelTemplate>
-      </ItemsControl.ItemsPanel>
-      <ItemsControl.Styles>
-        <!-- Alle Kacheln einer Zeile sind gleich hoch, auch ohne Hinweiszeile -->
-        <Style Selector="ItemsControl#StockStats > ContentPresenter">
-          <Setter Property="VerticalAlignment" Value="Stretch" />
-        </Style>
-      </ItemsControl.Styles>
-      <ItemsControl.ItemTemplate>
-        <DataTemplate x:DataType="vm:StockStat">
-          <!-- Zwei Fassungen: ein Knopf mit gebundenem, aber leerem Befehl wäre deaktiviert; die Anzeige-Kachel bindet deshalb keinen -->
-          <Panel>
-            <ui:StatTile Width="176" VerticalAlignment="Stretch" Label="{Binding Label}" Value="{Binding Value}" Hint="{Binding Hint}" State="{Binding State}" Command="{Binding Command}" IsVisible="{Binding HasCommand}" />
-            <ui:StatTile Width="176" VerticalAlignment="Stretch" Label="{Binding Label}" Value="{Binding Value}" Hint="{Binding Hint}" State="{Binding State}" IsVisible="{Binding !HasCommand}" />
-          </Panel>
-        </DataTemplate>
-      </ItemsControl.ItemTemplate>
-    </ItemsControl>
     <Border Classes="card">
       <StackPanel Spacing="0">
         <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,12">

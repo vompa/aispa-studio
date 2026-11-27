@@ -15,6 +15,7 @@ namespace AispaStudio.Desktop.Views;
 public partial class CompanionContent : UserControl
 {
     private CompanionViewModel? _model;
+    private NewGuestFormViewModel? _guestForm;
 
     public CompanionContent()
     {
@@ -30,6 +31,7 @@ public partial class CompanionContent : UserControl
         {
             _model.PropertyChanged -= OnModelChanged;
             _model.Restarted -= FocusQuestion;
+            _model.FocusRequested -= OnFocusRequested;
         }
 
         _model = DataContext as CompanionViewModel;
@@ -37,7 +39,10 @@ public partial class CompanionContent : UserControl
         {
             _model.PropertyChanged += OnModelChanged;
             _model.Restarted += FocusQuestion;
+            _model.FocusRequested += OnFocusRequested;
         }
+
+        AttachGuestForm();
 
         ArrangeRows();
     }
@@ -58,9 +63,46 @@ public partial class CompanionContent : UserControl
             ArrangeRows();
         }
 
+        if (e.PropertyName == nameof(CompanionViewModel.NewGuest))
+        {
+            AttachGuestForm();
+        }
+
         if (e.PropertyName is nameof(CompanionViewModel.Answer) or nameof(CompanionViewModel.Error))
         {
             Dispatcher.UIThread.Post(() => (_model?.HasError == true ? (Control)ErrorBar : AnswerCard).BringIntoView(), DispatcherPriority.Background);
+        }
+    }
+
+    /// <summary>Termin buchen ohne Gast: der Fokus geht ins Gast-Feld.</summary>
+    private void OnFocusRequested(string field)
+    {
+        if (field == CompanionViewModel.GuestField)
+        {
+            Dispatcher.UIThread.Post(() => CompanionGuest.Focus(), DispatcherPriority.Loaded);
+        }
+    }
+
+    private void AttachGuestForm()
+    {
+        if (_guestForm is not null)
+        {
+            _guestForm.FocusRequested -= OnGuestFocusRequested;
+        }
+
+        _guestForm = _model?.NewGuest;
+        if (_guestForm is not null)
+        {
+            _guestForm.FocusRequested += OnGuestFocusRequested;
+        }
+    }
+
+    /// <summary>Fehler beim Anlegen eines Gasts: das erste ungültige Feld bekommt den Fokus (masken.md, R8).</summary>
+    private void OnGuestFocusRequested(string field)
+    {
+        if (field == NewGuestFormViewModel.NameField)
+        {
+            Dispatcher.UIThread.Post(() => NewGuestFirstNameBox.Focus(), DispatcherPriority.Loaded);
         }
     }
 

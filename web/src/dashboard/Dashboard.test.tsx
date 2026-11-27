@@ -187,7 +187,7 @@ describe('Dashboard im Pausenraum', () => {
 
     await act(async () => started[0].onChanged())
 
-    expect(await screen.findByText('Keine Verbindung zum Server. Gezeigt wird der letzte Stand.')).toBeTruthy()
+    expect(await screen.findByText('Keine Verbindung. Gezeigt wird der letzte Stand.')).toBeTruthy()
     expect(screen.getByText('14:00')).toBeTruthy()
   })
 
@@ -196,7 +196,7 @@ describe('Dashboard im Pausenraum', () => {
     routes['GET /api/v1/display/session'] = () => (up ? { status: 200, body: session } : { status: 502 })
     render(<DashboardApp live={fakeLive().live} />)
 
-    expect(await screen.findByText('Keine Verbindung zum Server. Die Anzeige versucht es weiter.')).toBeTruthy()
+    expect(await screen.findByText('Keine Verbindung. Die Anzeige versucht es weiter.')).toBeTruthy()
     expect(screen.queryByText('Anzeige koppeln')).toBeNull()
     up = true
     await act(async () => void vi.advanceTimersByTime(5100))

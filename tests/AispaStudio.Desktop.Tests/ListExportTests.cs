@@ -133,35 +133,41 @@ public sealed class ListExportTests
             .OnFile(StaffRoute("list=roster&from=2027-03-01&format=xlsx"), File, "Dienstplan_2027-03-01.xlsx")
             .OnFile(StaffRoute("list=absences&from=2027-03-01&until=2027-03-07&format=xlsx"), File, "Abwesenheiten_2027-03-01.xlsx");
         var user = TestData.Owner();
-        var plan = new RosterPlanViewModel(new TeamContext(api.Client(), user, new RosterTests.RosterClock(), false) { Data = Team(user).Data }, null);
+        var context = new TeamContext(api.Client(), user, new RosterTests.RosterClock(), false) { Data = Team(user).Data };
+        var plan = new RosterPlanViewModel(context, null);
         plan.Export!.Files = new FakeFileSaver();
 
         Assert.Equal(["Dienstplan der Woche (Excel)", "Dienstplan der Woche (CSV)", "Abwesenheiten (Excel)", "Abwesenheiten (CSV)"], Labels(plan.Export));
         await Click(plan.Export, "Dienstplan der Woche (Excel)");
-        Assert.Equal("Gespeichert: Dienstplan_2027-03-01.xlsx", plan.ExportSaved);
+        Assert.Equal("Gespeichert: Dienstplan_2027-03-01.xlsx", context.Toast.Text);
 
         await Click(plan.Export, "Abwesenheiten (Excel)");
-        Assert.Equal("Gespeichert: Abwesenheiten_2027-03-01.xlsx", plan.ExportSaved);
+        Assert.Equal("Gespeichert: Abwesenheiten_2027-03-01.xlsx", context.Toast.Text);
     }
 
     // ---------- Management-Bericht ----------
 
     [Fact]
-    public async Task Bericht_Kennzahlen_nehmen_Standort_und_Zeitraum_der_Seite()
+    public async Task Bericht_als_Arbeitsmappe_nimmt_Standort_und_Zeitraum_der_Seite()
     {
         var location = StockSample.Salzburg;
         var api = new StubApi()
             .On($"GET /api/reports/locations/{location.Id}/management?from=2026-10-01&until=2026-10-31",
                 new ManagementReportDto(location.Id, new DateOnly(2026, 10, 1), new DateOnly(2026, 10, 31), [], [], [], [], [], [], false))
-            .OnFile($"GET /api/reports/locations/{location.Id}/management/export?from=2026-10-01&until=2026-10-31&format=xlsx", File, "Kennzahlen_2026-10-01_bis_2026-10-31.xlsx");
+            .OnFile($"GET /api/reports/locations/{location.Id}/management/export?from=2026-10-01&until=2026-10-31&format=xlsx&content=report", File, "Bericht_2026-10-01_bis_2026-10-31.xlsx")
+            .OnFile($"GET /api/reports/locations/{location.Id}/management/export?from=2026-10-01&until=2026-10-31&format=docx", File, "Management-Bericht-Salzburg-2026-10-01-bis-2026-10-31.docx");
         var report = new ManagementReportViewModel(api.Client(), new PosTime());
         report.SetRange(new DateOnly(2026, 10, 1), new DateOnly(2026, 10, 31));
         await report.ShowAsync(location, new DateOnly(2026, 10, 19));
         report.Export.Files = new FakeFileSaver();
 
-        Assert.Equal(["Kennzahlen (Excel)", "Kennzahlen (CSV)"], Labels(report.Export));
-        await Click(report.Export, "Kennzahlen (Excel)");
+        Assert.Equal(["Bericht (Excel)", "Bericht (Word)", "Kennzahlen (CSV)"], Labels(report.Export));
+        await Click(report.Export, "Bericht (Excel)");
 
-        Assert.Equal("Gespeichert: Kennzahlen_2026-10-01_bis_2026-10-31.xlsx", report.ExportSaved);
+        Assert.Equal("Gespeichert: Bericht_2026-10-01_bis_2026-10-31.xlsx", report.ExportSaved);
+
+        await Click(report.Export, "Bericht (Word)");
+
+        Assert.Equal("Gespeichert: Management-Bericht-Salzburg-2026-10-01-bis-2026-10-31.docx", report.ExportSaved);
     }
 }

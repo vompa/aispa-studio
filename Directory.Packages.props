@@ -30,6 +30,8 @@
     <PackageVersion Include="Anthropic" Version="13.8.0" />
     <!-- Excel-Export und Kunden-Import (ADR 0091), MIT; zieht DocumentFormat.OpenXml und SixLabors.Fonts (Six Labors Split License, für Open Source Apache 2.0) mit. -->
     <PackageVersion Include="ClosedXML" Version="0.105.1" />
+    <!-- Word-Ausgabe des Management-Berichts (T-095 D3), MIT, Microsoft; genau die Version, die ClosedXML 0.105.1 schon auflöst (kein zweiter Stand). -->
+    <PackageVersion Include="DocumentFormat.OpenXml" Version="3.1.1" />
     <PackageVersion Include="WolverineFx" Version="$(WolverineVersion)" />
     <PackageVersion Include="WolverineFx.Postgresql" Version="$(WolverineVersion)" />
     <PackageVersion Include="WolverineFx.RuntimeCompilation" Version="$(WolverineVersion)" />

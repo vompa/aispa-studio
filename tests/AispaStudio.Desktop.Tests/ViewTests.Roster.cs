@@ -71,7 +71,14 @@ public sealed partial class ViewTests
     [InlineData("dunkel")]
     public Task Verwaltung_Team_Wochenplan_zeigt_die_Woche_mit_Lena_und_den_Umschalter(string theme)
     {
-        var (api, _) = RosterWeekApi();
+        var (api, roster) = RosterWeekApi();
+        // Für das Hilfebild: Marco an den Werktagen und die Öffnung 9 bis 18 Uhr, damit die Besetzung über den Tag (T-102) Stunden mit einer und zwei Personen und je Tag eine Lücke zeigt.
+        foreach (var (offset, from, until) in new[] { (-1, 9, 17), (0, 10, 18), (1, 10, 18), (2, 9, 17), (3, 10, 18), (4, 9, 17) })
+        {
+            roster.Plan(SpaSample.Marco, RosterTuesday.AddDays(offset), false, new RosterEntry(RosterKind.Work, SpaSample.Vienna.Id, new(from, 0), new(until, 0)));
+        }
+
+        roster.OpenHours = (9, 18);
         return Render(theme, "verwaltung-team-wochenplan", async (window, main) =>
         {
             var team = await OpenWeekPlan(window, main);

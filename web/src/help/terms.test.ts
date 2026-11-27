@@ -59,6 +59,21 @@ describe("Begriffe: Mitarbeitende", () => {
   });
 });
 
+/** Einzahl „Kasse“ als ganzes Wort; „Kassen“, „Kassenlade“ und „Registrierkasse“ treffen nicht. */
+const singularRegister = /(?<![\p{L}\p{N}])Kasse(?![\p{L}\p{N}])/u;
+
+describe("Begriffe: Kassa", () => {
+  it("Given die Hilfetexte When nach der Einzahl „Kasse“ gesucht wird Then gibt es keinen Treffer (Kassa, Mehrzahl Kassen; texte.md T12)", () => {
+    const hits: string[] = [];
+    for (const [path, markdown] of Object.entries(helpTexts)) {
+      for (const line of body(markdown)) {
+        if (singularRegister.test(line)) hits.push(`${path}: „${line.slice(0, 120)}“`);
+      }
+    }
+    expect(hits).toEqual([]);
+  });
+});
+
 describe("Hinweise (title) der Web-Oberfläche", () => {
   it("Given ein title-Hinweis When seine Länge geprüft wird Then hat er höchstens einen Satz und höchstens zwei Kommas", () => {
     const problems: string[] = [];

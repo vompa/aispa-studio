@@ -10,6 +10,8 @@ stichwoerter: PIN festlegen, PIN ändern, PIN entfernen, PIN vergessen, Profilbi
 
 Mit der eigenen PIN wechselt man am Empfangsgerät schnell zum eigenen Zugang. Inhaber und Standortleitung geben mit derselben PIN an der Kassa Rabatte über der Rabattgrenze frei. Jede Person legt ihre PIN selbst fest.
 
+## Schritte {#schritte}
+
 1. In der Navigation auf das eigene Profilbild (die Initialen) klicken.
 2. Im Feld „PIN für den Schnellwechsel (4 bis 8 Ziffern)“ die PIN eintippen; bei schon vorhandener PIN heißt das Feld „Neue PIN (…)“.
 3. Auf **Speichern** klicken. Es erscheint „PIN festgelegt. Am Empfangsgerät reichen ab jetzt Name und PIN.“ bzw. „PIN geändert.“
@@ -20,7 +22,7 @@ Im selben Fenster auf **PIN entfernen** klicken. Danach meldet man sich am Empfa
 
 ## Regeln {#regeln}
 
-- 4 bis 8 Ziffern; für Inhaber mindestens 6. **Speichern** bleibt bis dahin grau.
+- 4 bis 8 Ziffern; für Inhaber mindestens 6. Ist die PIN zu kurz, markiert **Speichern** das Feld rot und nennt, was fehlt.
 - Nicht nur dieselbe Ziffer, also z. B. nicht „1111“.
 - Nach fünf falschen Eingaben ist die PIN 15 Minuten gesperrt.
 - Eine vergessene PIN einfach neu festlegen; die alte muss man dafür nicht kennen.

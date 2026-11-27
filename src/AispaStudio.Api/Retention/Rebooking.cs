@@ -247,7 +247,7 @@ internal sealed class ClaudeRebookWriter(ClaudeJson claude) : IRebookWriter
             Letzte Behandlung: {facts.Treatment}
             Spa: {facts.Spa}
             """;
-        return (await claude.AskAsync<TextJson>(System, prompt, Schema, ct)).Text;
+        return (await claude.AskAsync<TextJson>(AiUsageTask.RebookText, System, prompt, Schema, ct)).Text;
     }
 
     private sealed record TextJson(string Text);

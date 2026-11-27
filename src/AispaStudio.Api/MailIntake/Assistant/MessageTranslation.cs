@@ -83,7 +83,7 @@ internal sealed class ClaudeMessageTranslator(ClaudeJson claude) : IMessageTrans
 
     public async Task<TranslatedText> ToGermanAsync(string subject, string body, CancellationToken ct)
     {
-        var result = await claude.AskAsync<TranslatedText>(System,
+        var result = await claude.AskAsync<TranslatedText>(AiUsageTask.Translation, System,
             $"<nachricht>\nBetreff: {subject}\n\n{body}\n</nachricht>", Schema, ct);
         return new TranslatedText(result.Subject.Trim(), result.Body.Trim());
     }
@@ -124,7 +124,7 @@ internal sealed class ClaudeReplyReviser(ClaudeJson claude) : IReplyReviser
         var prompt = $"Sprache des Entwurfs: {language}\nAufgabe: {task}\n"
             + (instruction is null ? "" : $"<hinweis>\n{instruction}\n</hinweis>\n")
             + $"<entwurf>\n{body}\n</entwurf>";
-        var result = await claude.AskAsync<RevisedJson>(System, prompt, Schema, ct);
+        var result = await claude.AskAsync<RevisedJson>(AiUsageTask.ReplyRevision, System, prompt, Schema, ct);
         return result.Body.Trim();
     }
 

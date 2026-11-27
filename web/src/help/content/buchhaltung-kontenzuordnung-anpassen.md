@@ -25,7 +25,7 @@ Die Kontenzuordnung legt fest, auf welche Konten der Buchhaltungsexport Geld, Ve
 
 Der Knopf erscheint nur, wenn das Land eine eigene Zuordnung hat.
 
-## Hinweise {#hinweise}
+## Gut zu wissen {#hinweise}
 
 - Speichern und zurücksetzen dürfen nur Inhaber und Manager. Alle anderen sehen die Zuordnung und den Satz „Ändern kann nur der Inhaber, weil die Zuordnung für alle Standorte eines Landes gilt.“
 - Hat ein Land noch keine eigene Zuordnung, zeigt die Seite den Standard; erst **Speichern** legt die eigene an.

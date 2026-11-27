@@ -4,6 +4,7 @@ bereich: Stammdaten
 oberflaeche: verwaltung
 rollen: inhaber, manager
 seite: verwaltung
+betrieb: server
 ---
 # Zahlungen
 

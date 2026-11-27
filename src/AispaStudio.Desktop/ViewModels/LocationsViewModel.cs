@@ -55,6 +55,8 @@ public sealed partial class LocationsViewModel : ViewModelBase, IEditableArea, I
     public const string DirectionsField = "location.directions";
     public const string RegionField = "location.region";
     public const string RoomsField = "location.rooms";
+
+    public const string EquipmentField = "location.equipment";
     public const string AreasField = "location.areas";
     public const string CancellationPolicyField = "location.cancellationPolicy";
 
@@ -245,8 +247,13 @@ public sealed partial class LocationsViewModel : ViewModelBase, IEditableArea, I
     public bool HasRoomMessage => RoomMessage is not null;
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(AddEquipmentCommand))]
     public partial string NewEquipmentName { get; set; } = "";
+
+    /// <summary>Fehler am Feld „Neues Gerät“ (masken.md, R8); verschwindet mit der nächsten Eingabe.</summary>
+    [ObservableProperty]
+    public partial string? NewEquipmentError { get; private set; }
+
+    partial void OnNewEquipmentNameChanged(string value) => NewEquipmentError = null;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasEquipmentMessage))]
@@ -744,6 +751,14 @@ public sealed partial class LocationsViewModel : ViewModelBase, IEditableArea, I
         }
 
         RoomMessage = null;
+        if (row.Name.Trim().Length == 0)
+        {
+            row.NameError = "Bitte einen Namen für den Raum eintragen.";
+            RoomMessage = "Der Raum ist nicht gespeichert. Bitte den markierten Namen eintragen.";
+            FocusTarget = row.Id is { } roomId ? $"room:{roomId}" : RoomsField;
+            return;
+        }
+
         var result = row.Id is { } id
             ? await _api.PutAsync<RoomDto>($"api/rooms/{id}", row.Input()).ConfigureAwait(true)
             : await _api.PostAsync<RoomDto>($"api/locations/{locationId}/rooms", row.Input()).ConfigureAwait(true);
@@ -828,13 +843,18 @@ public sealed partial class LocationsViewModel : ViewModelBase, IEditableArea, I
         }
     }
 
-    private bool CanAddEquipment => NewEquipmentName.Trim().Length > 0;
-
-    [RelayCommand(CanExecute = nameof(CanAddEquipment))]
+    [RelayCommand]
     private async Task AddEquipmentAsync()
     {
         if (SelectedChoice?.Id is not { } locationId)
         {
+            return;
+        }
+
+        if (NewEquipmentName.Trim().Length == 0)
+        {
+            NewEquipmentError = "Bitte einen Namen für das Gerät eintragen.";
+            FocusTarget = EquipmentField;
             return;
         }
 

@@ -8,15 +8,15 @@ stichwoerter: Ersatzbeleg, ohne Verbindung, offline, Netzausfall, Ausfall, Inter
 ---
 # Ohne Verbindung kassieren: Ersatzbeleg
 
-Erreicht die App den Server nicht, kassieren Sie trotzdem. Der Gast bekommt einen Ersatzbeleg. Sobald die Verbindung wieder da ist, erstellt die Kasse daraus von selbst den signierten Beleg.
+Hat die App keine Verbindung, wird trotzdem kassiert. Der Gast bekommt einen Ersatzbeleg. Sobald die Verbindung wieder da ist, erstellt die Kassa daraus von selbst den signierten Beleg.
 
-Das gilt für den Betrieb mit Server oder Haupt-PC. Im Einzelplatz liegt die Kasse auf demselben PC; dort gibt es keinen Ersatzbeleg.
+Das gilt für den Betrieb mit Server oder Haupt-PC. Im Einzelplatz liegt die Kassa auf demselben PC; dort gibt es keinen Ersatzbeleg.
 
 ## Kassieren {#kassieren}
 
 1. In der Kassa den Termin oder den Eintritt unter „Heute abzurechnen“ wählen oder im Kalender am Termin **Kassieren** wählen. Artikel kommen wie gewohnt dazu.
 2. Unter „Bezahlen“ steht der Hinweis „Ersatzbeleg“.
-3. Den Betrag bei **Bar gegeben** oder **Karte** eintragen. Mit Karte kassieren Sie am eigenständigen Kartengerät.
+3. Den Betrag bei **Bar gegeben** oder **Karte** eintragen. Mit Karte wird am eigenständigen Kartengerät kassiert.
 4. Auf **Bezahlen und Beleg erstellen** klicken.
 
 ![Kassa ohne Verbindung mit dem Hinweis „Ersatzbeleg“](images/app/kassa-ersatzbeleg-bezahlen.png)
@@ -26,7 +26,7 @@ Die Kassa zeigt den Ersatzbeleg mit eigener Nummer, z. B. „Ersatzbeleg E-WIEN-
 ![Ersatzbeleg nach dem Bezahlen ohne Verbindung](images/app/kassa-ersatzbeleg.png)
 
 - Ein noch nicht eingecheckter Termin wird nach der Rückfrage „Einchecken und kassieren?“ eingecheckt; das Einchecken wird vorgemerkt.
-- Trinkgeld tragen Sie wie sonst bei **Trinkgeld** ein.
+- Trinkgeld wird wie sonst bei **Trinkgeld** eingetragen.
 - Ein Eintritt (Sauna, Ruheraum) kommt mit Personenzahl und dem Preis der zuletzt geladenen Liste „Heute abzurechnen“ auf den Ersatzbeleg. Kennt die Kassa den Preis nicht, etwa bei einem erst ohne Verbindung gebuchten Eintritt, steht „Der Preis dieses Eintritts ist ohne Verbindung nicht bekannt.“; dann den Betrag notieren und mit Verbindung kassieren.
 - Der Ersatzbeleg nennt Beträge inklusive Umsatzsteuer. Steuersatz, Belegnummer und Signatur stehen erst auf dem signierten Beleg.
 
@@ -47,33 +47,33 @@ Unter **Belege** steht über den Belegen des Tages die Liste „Ersatzbelege, no
 
 ![Liste der offenen Ersatzbelege unter „Belege“](images/app/kassa-ersatzbelege.png)
 
-- Der Stand ist „wartet auf Nacherfassung“ oder „nicht übernommen: …“ mit dem Grund der Kasse.
+- Der Stand ist „wartet auf Nacherfassung“ oder „nicht übernommen: …“ mit dem Grund der Kassa.
 - Die Liste zeigt die Ersatzbelege dieses Geräts. Ist sie leer, ist alles nacherfasst.
 - Ein nacherfasster Ersatzbeleg verschwindet aus der Liste; der signierte Beleg steht dann bei den Belegen seines Tages.
 
 ## Nacherfassung {#nacherfassung}
 
-Die App prüft die Verbindung von selbst. Ist der Server wieder erreichbar, sendet sie jeden Ersatzbeleg einzeln an die Kasse. Dort entsteht ein gewöhnlicher signierter Beleg mit dem Vermerk „Nacherfassung zu Ersatzbeleg … vom …“. Sie finden ihn unter **Belege**.
+Die App prüft die Verbindung von selbst. Ist die Verbindung wieder da, sendet sie jeden Ersatzbeleg einzeln an die Kassa. Dort entsteht ein gewöhnlicher signierter Beleg mit dem Vermerk „Nacherfassung zu Ersatzbeleg … vom …“. Er steht unter **Belege**.
 
 - Der Ersatzbeleg bleibt verschlüsselt auf diesem Gerät, bis er nacherfasst ist. Er übersteht Abmelden und Neustart.
 - Derselbe Ersatzbeleg wird nie zweimal gebucht.
 - Der Gast kann den signierten Beleg später bekommen: unter **Belege** öffnen und drucken oder per Mail senden.
 
-## Wenn die Kasse einen Ersatzbeleg nicht übernimmt {#abgelehnt}
+## Wenn die Kassa einen Ersatzbeleg nicht übernimmt {#abgelehnt}
 
-Stimmt etwas nicht überein, bucht die Kasse nichts und die App zeigt oben „Beim Abgleich nicht übernommen“ mit dem Ersatzbeleg und dem Grund. Das Geld ist kassiert, deshalb lässt sich der Eintrag nicht abhaken.
+Stimmt etwas nicht überein, bucht die Kassa nichts und die App zeigt oben „Beim Abgleich nicht übernommen“ mit dem Ersatzbeleg und dem Grund. Das Geld ist kassiert, deshalb lässt sich der Eintrag nicht abhaken.
 
-1. Den Grund lesen, z. B. „Dieser Termin steht schon auf einer Rechnung.“ oder „Der Ersatzbeleg … nennt 89,00 €, an der Kasse ergeben die Positionen 79,00 €“.
+1. Den Grund lesen, z. B. „Dieser Termin steht schon auf einer Rechnung.“ oder „Der Ersatzbeleg … nennt 89,00 €, an der Kassa ergeben die Positionen 79,00 €“.
 2. Die Ursache an der Kassa klären, z. B. eine doppelt angelegte Rechnung verwerfen.
 3. Auf **Erneut senden** klicken, oben im Hinweis oder in der Liste unter **Belege**.
 
 - Häufige Gründe: Der Termin wurde an einem anderen Gerät schon kassiert, der Preis wurde inzwischen geändert, oder auf dem Termin liegt eine Anzahlung.
-- Lässt sich der Grund nicht beheben, den Umsatz an der Kassa von Hand nacherfassen und den Ersatzbeleg aufbewahren. Fragen Sie dazu Ihre Steuerberatung.
+- Lässt sich der Grund nicht beheben, den Umsatz an der Kassa von Hand nacherfassen und den Ersatzbeleg aufbewahren. Dazu die Steuerberatung fragen.
 
 ## Länger ohne Verbindung {#laenger}
 
 - In Österreich ist ein Ausfall der Registrierkasse von mehr als 48 Stunden über FinanzOnline zu melden.
-- Die App erinnert daran: Ist der älteste Ersatzbeleg seit mehr als 48 Stunden nicht nacherfasst, steht im Hinweis „Keine Verbindung zum Server“ zusätzlich „Der älteste Ersatzbeleg ist vom … und seit mehr als 48 Stunden nicht nacherfasst“. Mit Verbindung steht derselbe Satz unter „Beim Abgleich nicht übernommen“, solange ein abgelehnter Ersatzbeleg so lange wartet.
-- Nach der Nacherfassung zeigt die Kassa eine Woche lang „Die Kasse war länger als 48 Stunden nicht erreichbar“ mit Beginn und Ende des Ausfalls. Diese beiden Zeitpunkte brauchen Sie für die Meldung.
-- Bewahren Sie die gedruckten Ersatzbelege auf, bis die Nacherfassung durch ist.
+- Die App erinnert daran: Ist der älteste Ersatzbeleg seit mehr als 48 Stunden nicht nacherfasst, steht im Hinweis „Keine Verbindung“ zusätzlich „Der älteste Ersatzbeleg ist vom … und seit mehr als 48 Stunden nicht nacherfasst“. Mit Verbindung steht derselbe Satz unter „Beim Abgleich nicht übernommen“, solange ein abgelehnter Ersatzbeleg so lange wartet.
+- Nach der Nacherfassung zeigt die Kassa eine Woche lang „Die Kassa war länger als 48 Stunden nicht erreichbar“ mit Beginn und Ende des Ausfalls. Diese beiden Zeitpunkte braucht man für die Meldung.
+- Die gedruckten Ersatzbelege aufbewahren, bis die Nacherfassung durch ist.
 - Siehe auch [Arbeiten ohne Verbindung](hilfe:kalender-offline) und [Bezahlen](hilfe:kassa-bezahlen).

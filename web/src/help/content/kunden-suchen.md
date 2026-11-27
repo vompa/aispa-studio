@@ -10,6 +10,8 @@ stichwoerter: Kunde suchen, Kundin finden, Gast suchen, nach Telefonnummer suche
 
 Das Suchfeld findet Gäste im gemeinsamen Kundenstamm aller Standorte nach Name, Telefonnummer oder E-Mail.
 
+## Schritte {#schritte}
+
 1. In der Navigation **Kunden** öffnen.
 2. Ins Feld „Name, Telefon oder E-Mail“ tippen, z. B. `huber` oder `0664`. Die Liste aktualisiert sich beim Tippen.
 3. Den Treffer anklicken. Rechts öffnet sich die [Kundenkarte](hilfe:kunden-kundenkarte).

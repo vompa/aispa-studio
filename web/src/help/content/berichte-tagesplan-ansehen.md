@@ -54,7 +54,7 @@ Die Vorlieben gehören zum Gast und erscheinen ab dann auf allen seinen Karten.
 
 Die Notiz erscheint beim nächsten Besuch des Gastes auf der Karte. Höchstens 2000 Zeichen; ein leeres Feld löscht die Notiz.
 
-## Hinweise {#hinweise}
+## Gut zu wissen {#hinweise}
 
 - Abhaken, Vorlieben und Notizen darf jede Rolle, die den Status von Terminen setzen darf (alle Rollen).
 - Ist das Konto mit keiner Person im Team verknüpft, steht dort „Dieses Konto ist mit keiner Person im Team verknüpft.“; die Leitung verknüpft es unter „Zugänge“.

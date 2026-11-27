@@ -180,8 +180,33 @@ internal sealed class RosterSample
             })
             .ToList();
         var drafts = _plan.Where(c => c.Value.Draft && dates.Contains(c.Key.Date)).Count();
-        return new RosterWeek(_location.Id, monday, dates, rows, drafts, null);
+        return new RosterWeek(_location.Id, monday, dates, rows, drafts, null, HourlyOf(dates, rows));
     }
+
+    /// <summary>Öffnung Montag bis Samstag von <c>From</c> bis <c>To</c> Uhr (volle Stunden); ohne Wert liefert der Stub keine Besetzung je Stunde, wie die API ohne Öffnungszeiten.</summary>
+    public (int From, int To)? OpenHours { get; set; }
+
+    /// <summary>Besetzung je Stunde wie die API (Zählregel: mindestens 30 Minuten Dienst am Standort in der Stunde); nur für die Ansichtstests.</summary>
+    private List<HourlyStaffing>? HourlyOf(List<DateOnly> dates, List<RosterRow> rows)
+    {
+        if (OpenHours is not { } hours || rows.Count == 0)
+        {
+            return null;
+        }
+
+        return
+        [
+            .. dates.SelectMany((date, day) => Enumerable.Range(hours.From, hours.To - hours.From).Select(hour =>
+            {
+                var open = date.DayOfWeek != DayOfWeek.Sunday;
+                var count = open ? rows.Count(r => r.Days[day].Entries.Any(e => e.Kind == RosterKind.Work && e.LocationId == _location.Id && Overlap(e, hour) >= 30)) : 0;
+                return new HourlyStaffing(date, hour, open, count);
+            })),
+        ];
+    }
+
+    private static double Overlap(RosterEntry entry, int hour) =>
+        Math.Max(0, Math.Min(entry.End!.Value.ToTimeSpan().TotalMinutes, (hour + 1) * 60) - Math.Max(entry.Start!.Value.ToTimeSpan().TotalMinutes, hour * 60));
 
     private DateTimeOffset Utc(DateOnly date, TimeOnly time) => new(TimeZoneInfo.ConvertTimeToUtc(date.ToDateTime(time, DateTimeKind.Unspecified), _zone), TimeSpan.Zero);
 

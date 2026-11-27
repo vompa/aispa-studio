@@ -5,6 +5,7 @@ oberflaeche: handy
 rollen: therapeut
 seite: myday
 stichwoerter: Raum prüfen, Raumcheck, Aufgefüllt, Reicht noch, nachfüllen, Vorbereitung, abhaken, erledigt, Checkliste, To-do, Todo, Behandlungskarte, Notiz, Nachbereitung, nächste Behandlung, Vorlieben lesen, vom letzten Mal, preparation, checklist, note
+betrieb: server
 ---
 # Vorbereitung abhaken und Notiz schreiben
 
@@ -37,7 +38,7 @@ Ist die Behandlung abgeschlossen und liegt im Schrank des Raums Material unter d
 
 Erst wenn jede Zeile beantwortet ist, kann die Raumpflege als erledigt abgehakt werden. Der Ablauf im Kalender steht unter [Raum nach der Behandlung prüfen](hilfe:kalender-raumcheck).
 
-## Hinweise {#hinweise}
+## Gut zu wissen {#hinweise}
 
 - Ohne Netz geht beides nicht, auch der Raumcheck nicht („Nur mit Verbindung“); die Seite zeigt dann „Offline“.
 - Die Schritte legt die Leitung je Behandlung fest: [Vorbereitung je Behandlung festlegen](hilfe:berichte-vorbereitung-festlegen).

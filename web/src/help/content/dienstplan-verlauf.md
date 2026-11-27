@@ -25,7 +25,7 @@ Darüber steht in derselben Seitenleiste der Verlauf von Zugang und Rolle, wenn 
 
 ## Gut zu wissen {#gut-zu-wissen}
 
-- Die Schaltfläche **Verlauf** im Kopf der Karte erscheint nur für Inhaber und Manager. Esc oder das Kreuz schließt die Seitenleiste. Fragt jemand anderes den Verlauf trotzdem ab, lehnt der Server ab.
+- Die Schaltfläche **Verlauf** im Kopf der Karte erscheint nur für Inhaber und Manager. Esc oder das Kreuz schließt die Seitenleiste. Fragt jemand anderes den Verlauf trotzdem ab, lehnt AISPA Studio ab.
 - Der Verlauf gilt für die Person an allen Standorten, nicht nur für den gewählten.
 - Er bleibt 3 Jahre. Aus der Zeit vor dem Verlauf gibt es keine Einträge; dann steht dort „Noch keine Einträge.“
 - Zum Eintragen siehe [Urlaub, Krankenstand oder freien Tag eintragen](hilfe:dienstplan-abwesenheit-eintragen) und [Dienst für einen Tag planen](hilfe:dienstplan-tag-planen).

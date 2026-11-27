@@ -45,7 +45,7 @@ Auf **Stornieren** klicken.
 ## Was danach {#was-danach}
 
 - Der Stornobeleg erscheint oben in der Liste mit „Stornobeleg“, der alte Beleg trägt „storniert“. Fährt man mit der Maus über eine dieser Marken, nennt der Hinweis die Nummer des zugehörigen Belegs. Mit automatischem Druck wird der Stornobeleg gleich gedruckt.
-- Die Rechnung ist wieder offen und steht links unter „Geparkte Rechnungen“. Ihre Positionen lassen sich neu bezahlen, ändern oder entfernen, oder die Rechnung **Verwerfen**.
+- Die Rechnung ist wieder offen und steht links unter „Geparkte Rechnungen“. Die Positionen lassen sich neu bezahlen, ändern oder entfernen, oder die Rechnung **Verwerfen**.
 - Eingelöste Gutscheine bekommen ihren Wert zurück. Mit dem Beleg verkaufte Gutscheine werden ungültig.
 - Wurde am angebundenen Kartenterminal bezahlt, schickt die Kassa die Gutschrift von selbst an das Terminal. Bar Bezahltes gibt man aus der Lade zurück.
 
@@ -77,7 +77,7 @@ Alle Online-Zahlungen des Standorts zeigt das Weltkugel-Symbol **Online-Zahlunge
 ## Gut zu wissen {#hinweise}
 
 - Hat im Spa jemand eine Vollmacht **Kassa-Storno**, auch eine abgelaufene, braucht jede Rolle außer Inhaber und Manager eine heute gültige. Sonst lehnt die App ab und nennt den Grund. Die Vollmacht vergibt die Leitung.
-- Ein **Anzahlungsbeleg** (die Einzahlung einer Anzahlung auf einen Termin) lässt sich nur als Inhaber oder Manager stornieren. Bei Standortleitung und Rezeption ist **Stornieren** gesperrt, der Tooltip nennt den Grund („Anzahlungsbelege storniert nur die Leitung.“), und der Server lehnt den Aufruf mit 403 ab. Üblicher Weg ist der Knopf **Anzahlung retournieren …** (mit Pflichtgrund): [Anzahlung retournieren](hilfe:kassa-anzahlung-retournieren).
+- Ein **Anzahlungsbeleg** (die Einzahlung einer Anzahlung auf einen Termin) lässt sich nur als Inhaber oder Manager stornieren. Bei Standortleitung und Rezeption ist **Stornieren** gesperrt, der Tooltip nennt den Grund („Anzahlungsbelege storniert nur die Leitung.“), und AISPA Studio lehnt den Aufruf mit 403 ab. Üblicher Weg ist der Knopf **Anzahlung retournieren …** (mit Pflichtgrund): [Anzahlung retournieren](hilfe:kassa-anzahlung-retournieren).
 - Nur Verkaufsbelege lassen sich stornieren, und jeder nur einmal. Bei Stornobelegen und stornierten Belegen fehlt „Beleg stornieren“.
 - Ist von einem mit dem Beleg verkauften Gutschein schon etwas eingelöst, geht kein Storno: „Gutschein … wurde schon eingelöst; der Beleg kann nicht storniert werden.“
 - Eine noch nicht bezahlte Rechnung storniert man nicht, man verwirft sie: [Rechnung parken und verwerfen](hilfe:kassa-rechnung-parken#verwerfen).

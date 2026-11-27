@@ -88,7 +88,7 @@ internal sealed class StubApi : HttpMessageHandler
         var route = $"{request.Method} {path}";
         if (Down)
         {
-            throw new HttpRequestException("Keine Verbindung");
+            throw new HttpRequestException("Verbindung verweigert");
         }
 
         Calls.Add((route, request.Content is null ? null : await request.Content.ReadAsStringAsync(cancellationToken)));

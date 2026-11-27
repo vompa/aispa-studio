@@ -62,9 +62,10 @@ public sealed partial class ViewTests
         Assert.False(remove.IsEffectivelyEnabled);
         Assert.StartsWith("Verfügbar", ToolTip.GetTip(remove)?.ToString(), StringComparison.Ordinal);
 
+        // „Terminal anlegen“ ist aktiv und prüft beim Klick: ohne Adresse steht der Fehler am Feld (T-086).
         var add = Named<Button>(window, "AddTerminal");
-        Assert.False(add.IsEffectivelyEnabled);
-        Assert.Contains("Name, Standort und Adresse", ToolTip.GetTip(add)?.ToString(), StringComparison.Ordinal);
+        Assert.True(add.IsEffectivelyEnabled);
+        Assert.Null(ToolTip.GetTip(add));
         var required = window.GetVisualDescendants().OfType<FormField>().Where(f => f.IsRequired).Select(f => f.Label).ToList();
         Assert.Equal(["Name", "Standort", "Adresse"], required);
 

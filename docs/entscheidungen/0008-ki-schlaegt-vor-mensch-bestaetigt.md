@@ -30,6 +30,8 @@ Eine KI, die man auf Deutsch alles zum eigenen Betrieb fragen kann, war in der R
 
 Claude ist das Modell, sobald `Ai:Claude:ApiKey` gesetzt ist; ohne Schlüssel läuft eine regelbasierte Variante (auch in Tests). Gemeinsamer Aufruf in `ClaudeJson`. Assistent je Rolle in PR #18. Offen: AV-Vertrag mit Anthropic (DSGVO).
 
+- Nachtrag (26.11.2026, Entscheidung des Auftraggebers): Im Management-Bericht gehen an die KI (Kurzkommentar und Auswertung per Knopf) das Personal mit dem **Namen im Haus**, ersatzweise mit dem Namen der Person, und die Zahlen je Person. Nie geht der volle bürgerliche Name an die KI, wenn ein Name im Haus eingetragen ist; ein Test hält das fest. **Gästenamen und Gesundheitsdaten gehen nie** an die KI, auch nicht aus den Gästelisten des Berichts. Die Grenze „keine Leistungsbewertung von Mitarbeitenden“ gilt weiter: Der Prompt erlaubt Zahlen je Person, aber keine Bewertung einzelner Personen und keine arbeitsrechtlichen Schritte gegen sie; das ist vorläufig so umgesetzt und wartet auf die Bestätigung des Auftraggebers. Offen bleibt der Vertrag zur Auftragsverarbeitung mit Anthropic: Die Fakten enthalten jetzt Namen im Haus von Mitarbeitenden, er sollte vor dem ersten Kunden mit Schlüssel stehen.
+
 ## Quellen
 
 - [Ergänzende Themen, Abschnitt 2](../konzepte/ergaenzende-themen.md#2-ki-recht-und-ki-telefon)

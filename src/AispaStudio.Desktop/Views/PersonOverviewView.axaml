@@ -5,16 +5,17 @@
              x:Class="AispaStudio.Desktop.Views.PersonOverviewView"
              x:DataType="vm:PersonOverviewViewModel">
   <!--
-    Bereich „Übersicht“ der Personenkarte (ADR 0098): Kennzahl-Kacheln (Brief 5.5, StatTile) im Raster mit 12 px Abstand; jede Kachel springt in ihren Abschnitt.
-    Laden und Fehler nach Abschnitt 6 Punkt 6.
+    Kennzahl-Kacheln der Personenkarte (ADR 0098; seit T-109 über jedem Bereich): StatTile (Brief 5.5) im WrapPanel mit 12 px Abstand, eine Zeile, die bei schmaler Fläche umbricht;
+    jede Kachel springt in ihren Abschnitt. Laden und Fehler nach Abschnitt 6 Punkt 6.
   -->
   <StackPanel x:Name="OverviewSection" Spacing="12">
     <TextBlock Text="Wird geladen …" Classes="muted" IsVisible="{Binding ShowsLoading}" />
-    <ui:InfoBar Severity="Error" Title="Übersicht nicht geladen" Message="{Binding LoadError}" IsVisible="{Binding HasLoadError}"
+    <ui:InfoBar Severity="Error" Title="Kennzahlen nicht geladen" Message="{Binding LoadError}" IsVisible="{Binding HasLoadError}"
                 ActionText="Erneut laden" ActionCommand="{Binding LoadCommand}" />
-    <ItemsControl x:Name="OverviewTiles" ItemsSource="{Binding Tiles}" AutomationProperties.Name="Übersicht">
+    <ItemsControl x:Name="OverviewTiles" ItemsSource="{Binding Tiles}" AutomationProperties.Name="Kennzahlen">
       <ItemsControl.ItemsPanel>
         <ItemsPanelTemplate>
+          <!-- WrapPanel statt TileGrid: „Di. 20.10., 09:00–17:00“ braucht mehr als eine Spalte von 160; jede Kachel behält ihre Breite und rückt erst bei Platzmangel in die nächste Zeile -->
           <WrapPanel ItemSpacing="12" LineSpacing="12" />
         </ItemsPanelTemplate>
       </ItemsControl.ItemsPanel>

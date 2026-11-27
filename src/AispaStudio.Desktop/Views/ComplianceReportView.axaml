@@ -21,7 +21,7 @@
 
     <StackPanel Spacing="8">
       <TextBlock Text="Kassen" Classes="h2" />
-      <TextBlock Text="Keine Kasse an diesem Standort." Classes="muted" IsVisible="{Binding NoRegisters}" />
+      <TextBlock Text="Keine Kassa an diesem Standort." Classes="muted" IsVisible="{Binding NoRegisters}" />
       <ItemsControl ItemsSource="{Binding Registers}">
         <ItemsControl.ItemTemplate>
           <DataTemplate x:DataType="vm:RegisterComplianceRow">

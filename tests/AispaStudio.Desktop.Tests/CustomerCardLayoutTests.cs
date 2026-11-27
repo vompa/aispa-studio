@@ -8,11 +8,14 @@ public sealed class CustomerCardLayoutTests
 {
     private static readonly int[] RelativeSamples = [0, 1, 3, 13, 14, 37];
 
+    /// <summary>Feste Uhr, mittags in Wien: Die Termine der Tests zählen vom Ortsdatum dieser Uhr, nicht vom Tag des Testlaufs.</summary>
+    private static readonly DateTimeOffset Noon = new(2027, 3, 1, 12, 0, 0, TimeSpan.FromHours(1));
+
     private static readonly CustomerPreferences HelgaWishes = new("sanft", null, null, null, null, null, "Füße (kitzlig)", null);
 
     private static async Task<CustomersViewModel> OpenAsync(
         CustomerDto customer, CustomerInsights insights, CustomerPreferences? wishes, List<CustomerFlagDto>? flags = null, List<AppointmentDto>? appointments = null,
-        CurrentUser? user = null)
+        CurrentUser? user = null, DateTimeOffset? now = null)
     {
         var stub = new StubApi()
             .On("GET /api/customers?search=", new List<CustomerDto> { customer })
@@ -24,7 +27,7 @@ public sealed class CustomerCardLayoutTests
             stub.On($"GET /api/reports/customers/{customer.Id}/preferences", wishes);
         }
 
-        var customers = new CustomersViewModel(stub.Client(), TimeProvider.System) { User = user ?? TestData.Owner() };
+        var customers = new CustomersViewModel(stub.Client(), new ActivityTests.TimerTime(now ?? Noon)) { User = user ?? TestData.Owner() };
         await customers.InitializeAsync();
         customers.Selected = customers.Results[0];
         await customers.LoadVisitsAsync(customers.Selected);
@@ -109,9 +112,12 @@ public sealed class CustomerCardLayoutTests
         Assert.False(customers.IsBookPrimary);
     }
 
+    /// <summary>9 Uhr UTC am Ortsdatum der festen Uhr plus <paramref name="days"/> Tage.</summary>
+    private static DateTimeOffset DayAt9(int days) => new(Noon.Date.AddDays(days).AddHours(9), TimeSpan.Zero);
+
     private static AppointmentDto Visit(int days, EmployeeDto person, AppointmentStatus status, string? treatment = null)
     {
-        var start = new DateTimeOffset(DateTime.UtcNow.Date.AddDays(days).AddHours(9), TimeSpan.Zero);
+        var start = DayAt9(days);
         return SpaSample.Selected with
         {
             Id = Guid.NewGuid(),
@@ -123,8 +129,11 @@ public sealed class CustomerCardLayoutTests
         };
     }
 
-    [Fact]
-    public async Task Naechster_Termin_steht_als_Kachel_mit_Abstand_und_Person_weitere_darunter()
+    // Kurz nach Mitternacht liegt das Ortsdatum einen Tag vor dem UTC-Datum; der Abstand zählt in Ortstagen.
+    [Theory]
+    [InlineData(12, 0)]
+    [InlineData(0, 30)]
+    public async Task Naechster_Termin_steht_als_Kachel_mit_Abstand_und_Person_weitere_darunter(int hour, int minute)
     {
         // Given drei kommende Termine, der nächste in drei Tagen bei Lena Huber
         List<AppointmentDto> upcoming =
@@ -133,7 +142,8 @@ public sealed class CustomerCardLayoutTests
             Visit(10, SpaSample.Marco, AppointmentStatus.Booked, "Aromaöl-Massage"),
         ];
 
-        var customers = await OpenAsync(Plain(), SpaSample.Insights(), null, appointments: upcoming);
+        var customers = await OpenAsync(Plain(), SpaSample.Insights(), null, appointments: upcoming,
+            now: new DateTimeOffset(Noon.Year, Noon.Month, Noon.Day, hour, minute, 0, Noon.Offset));
 
         // Then nennt die Kachel Abstand, Behandlung und Person; die beiden späteren stehen kurz darunter.
         Assert.Equal(("in 3 Tagen", "Hot-Stone-Massage bei Lena Huber"), (customers.NextVisit?.Relative, customers.NextVisit?.Text));
@@ -186,7 +196,7 @@ public sealed class CustomerCardLayoutTests
         // Given fünf vergangene Termine im Abstand von je einer Woche
         var past = Enumerable.Range(1, 5).Select(weeks =>
         {
-            var start = new DateTimeOffset(DateTime.UtcNow.Date.AddDays(-7 * weeks).AddHours(9), TimeSpan.Zero);
+            var start = DayAt9(-7 * weeks);
             return SpaSample.Selected with { Id = Guid.NewGuid(), Start = start, End = start.AddMinutes(80), Status = AppointmentStatus.Completed };
         }).ToList();
 
@@ -200,7 +210,7 @@ public sealed class CustomerCardLayoutTests
     [Fact]
     public async Task Nur_vergangene_Termine_ergeben_Kein_Termin_geplant()
     {
-        var start = new DateTimeOffset(DateTime.UtcNow.Date.AddDays(-20).AddHours(9), TimeSpan.Zero);
+        var start = DayAt9(-20);
         var past = SpaSample.Selected with { Id = Guid.NewGuid(), Start = start, End = start.AddMinutes(80), Status = AppointmentStatus.Completed };
 
         var customers = await OpenAsync(Plain(), SpaSample.Insights(), null, appointments: [past]);

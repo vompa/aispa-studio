@@ -8,7 +8,7 @@ stichwoerter: Wareneingang, Lieferung, Ware eingegangen, Zugang buchen, Einkauf,
 ---
 # Wareneingang buchen
 
-Mit einem Handscanner geht es schneller: Klicken Sie in das Feld **Material suchen oder scannen** und scannen Sie die Verpackung. Die Buchung öffnet sich mit dem Material, und Sie tragen nur die Menge ein: [Mit dem Handscanner arbeiten](hilfe:lager#scanner).
+Mit einem Handscanner geht es schneller: [Mit dem Handscanner arbeiten](hilfe:lager#scanner).
 
 Ein Wareneingang erhöht den Bestand am gewählten Standort, im Hauptlager. Kam die Ware zu einer Bestellung, bucht man sie besser dort als Lieferung: [Bestellen und Lieferung buchen](hilfe:lager-bestellen#lieferung).
 
@@ -35,5 +35,5 @@ Kennt das Material Packung oder Gebinde, erscheint das Feld **Erfasst in**.
 
 - Die Menge muss größer als 0 sein.
 - Mit Eingangspreis schreibt das Lager den Einstandspreis als gleitenden Durchschnitt über den Bestand aller Standorte fort. Ohne Preis bleibt er unverändert.
-- Mit Ablaufdatum steht die Charge rechtzeitig in der **Übersicht** unter „Was ist zu tun“ und in der Ansicht [Chargen](hilfe:lager-ablauf-aufgaben) des Reiters **Bestand**. Von dort verteilt man sie mit [Nachfüllen](hilfe:lager-nachfuellen) auf andere Lagerorte; Charge und Ablaufdatum wandern mit.
+- Mit Ablaufdatum steht die Charge rechtzeitig im Reiter **Zu tun** unter „Was ist zu tun“ und in der Ansicht [Chargen](hilfe:lager-ablauf-aufgaben) des Reiters **Bestand**. Von dort verteilt man sie mit [Nachfüllen](hilfe:lager-nachfuellen) auf andere Lagerorte; Charge und Ablaufdatum wandern mit.
 - Charge und Ablaufdatum gibt es nur beim Wareneingang.

@@ -66,6 +66,14 @@ const rules: Rule[] = [
     name: "keine Du-Form",
     pattern: /\b(du|dein|deine|deinem|deinen|deiner|deines|dir|dich)\b/i,
   },
+  // „Sie“ am Satzanfang ist meist die dritte Person Plural („Sie stehen im Kalender“) und bleibt erlaubt;
+  // geprüft werden nur eindeutige Anreden: „Sie“ mitten im Satz oder nach einem Komma, „Sie können/sehen/finden/brauchen“
+  // und „Ihr“ in allen Formen (auch am Satzanfang: dort steht „Deren“ oder das Hauptwort).
+  {
+    name: "keine Sie-Form (unpersönlich schreiben)",
+    pattern:
+      /(?:[\wäöüÄÖÜß,]\s+Sie\b|\bSie\s+(?:können|sehen|finden|brauchen)\b|\b(?:Ihr|Ihre|Ihrem|Ihren|Ihrer|Ihres|Ihnen)\b)/,
+  },
   {
     name: "keine Richtungswörter (oben links, unten rechts …)",
     pattern:
@@ -256,10 +264,24 @@ describe("Textregeln der Hilfe", () => {
       "Erlaubt: „Bitte 15 Minuten früher kommen!“ und **Wer bist du?**.",
     ].join("\n");
     const found = findViolations("probe.md", sample);
-    expect(found.filter((entry) => entry.includes(":4:")).length).toBe(3);
+    expect(found.filter((entry) => entry.includes(":4:")).length).toBe(4);
     expect(found.filter((entry) => entry.includes(":5:")).length).toBe(2);
     expect(found.filter((entry) => entry.includes(":6:")).length).toBe(1);
     expect(found.filter((entry) => entry.includes(":7:")).length).toBe(0);
+  });
+
+  it("erkennt die Sie-Anrede, aber nicht „Sie“ als dritte Person", () => {
+    const sample = [
+      "Wenn Sie fertig sind, klicken Sie auf Speichern.",
+      "Sie stehen im Kalender. Sie können das ändern.",
+      "Ihr Termin fällt aus.",
+      "Zitat „Wenn Sie fertig sind“ und **Ihr nächster Termin**.",
+      "Sie öffnet eine Seitenleiste; Sie zeigt den Verlauf.",
+    ].join("\n");
+    const found = findViolations("probe.md", sample).filter((entry) =>
+      entry.includes("Sie-Form"),
+    );
+    expect(found.map((entry) => entry.split(":")[1])).toEqual(["1", "2", "3"]);
   });
 
   it("hält alle Hilfetexte an die Regeln aus docs/gestaltung/texte.md", () => {

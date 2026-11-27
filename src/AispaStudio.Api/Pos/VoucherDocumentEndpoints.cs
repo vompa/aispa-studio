@@ -67,7 +67,7 @@ internal static class VoucherDocumentEndpoints
             .WithSummary("Gutschein als PDF per Mail an den Käufer oder eine eingetippte Adresse (über die Queue), mit Vermerk; ohne Betreff und Text gilt die Vorbelegung.");
 
         // Vermerke für die Gutscheinliste: ausgedruckt (die App meldet es nach dem erfolgreichen Druck) und persönlich übergeben.
-        MapDispatch(group, "/printed", "VoucherPrinted", SentDocument.PrintChannel, "Vermerkt, dass der Gutschein ausgedruckt wurde (die App meldet es nach dem Drucken); die Gutscheinliste zeigt „Gedruckt am …“.");
+        MapDispatch(group, "/printed", "VoucherPrinted", SentDocument.PrintChannel, "Vermerkt, dass der Druckdialog für den Gutschein geöffnet wurde (die App meldet es, sobald er aufgeht; ob gedruckt wurde, meldet Windows nicht); die Gutscheinliste zeigt „Zum Drucken geöffnet am …“.");
         MapDispatch(group, "/handed-over", "VoucherHandedOver", SentDocument.HandoverChannel, "Vermerkt, dass der Gutschein persönlich übergeben wurde; die Gutscheinliste zeigt „Übergeben am …“.");
 
         return routes;

@@ -315,21 +315,32 @@ public sealed partial class ViewTests
     }
 
     [Fact]
-    public Task Uebernehmen_bleibt_gesperrt_bis_Pflichtangaben_stehen() => Render("hell", "termin-anamnese-gesperrt", async (window, main) =>
+    public Task Uebernehmen_ist_aktiv_und_meldet_fehlende_Pflichtangaben_beim_Klick()
     {
-        var calendar = await OpenWithPhoto(window, main);
-        var accept = Named<Button>(window, "ConfirmButton");
+        var stub = ScanApi();
+        return Render("hell", "termin-anamnese-gesperrt", async (window, main) =>
+        {
+            var calendar = await OpenWithPhoto(window, main);
+            var accept = Named<Button>(window, "ConfirmButton");
 
-        Assert.False(accept.IsEffectivelyEnabled);
-        Assert.Contains("Noch ohne Ja/Nein: 1 Frage(n).", DialogTexts(window));
-        Assert.Contains("Noch gelb: 1 Feld(er).", DialogTexts(window));
+            Assert.True(accept.IsEffectivelyEnabled);
+            Assert.Contains("Noch ohne Ja/Nein: 1 Frage(n).", DialogTexts(window));
+            Assert.Contains("Noch gelb: 1 Feld(er).", DialogTexts(window));
 
-        await AnswerSkinAndConfirmPaper(window);
+            // Der Klick sendet nichts, markiert die fehlende Antwort und sagt es in der Zeile unter den Feldern.
+            await ClickVisible(window, "ConfirmButton");
+            await Pump(Settling);
+            Assert.DoesNotContain(stub.Calls, c => c.Route.Contains("/confirm", StringComparison.Ordinal));
+            Assert.Contains("Bitte Ja oder Nein wählen.", DialogTexts(window));
+            Assert.Contains("Nicht übernommen. Bitte die markierten Angaben ergänzen.", DialogTexts(window));
 
-        Assert.True(accept.IsEffectivelyEnabled);
-        Assert.DoesNotContain("Unsicher: Beide Kästchen angekreuzt", DialogTexts(window));
-        return calendar;
-    }, ScanApi());
+            await AnswerSkinAndConfirmPaper(window);
+
+            Assert.True(accept.IsEffectivelyEnabled);
+            Assert.DoesNotContain("Unsicher: Beide Kästchen angekreuzt", DialogTexts(window));
+            return calendar;
+        }, stub);
+    }
 
     [Fact]
     public Task Geprueft_und_bestaetigt_zeigt_der_Termin_liegt_vor()

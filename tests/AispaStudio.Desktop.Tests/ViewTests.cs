@@ -24,6 +24,7 @@ public sealed class HeadlessApp
         // egal was der PC oder der Runner von GitHub meldet. Tests für „aus“ setzen die Quelle selbst.
         ReducedMotion.SystemSource = () => false;
         // Bildtests öffnen das Fenster mit echten Timern: unter Last dauerte der Start sonst länger als 300 ms, und der Startbildschirm läge im Bild.
+        // Lange Zeitgeber (Ablauf des Toasts) schaltet SampleTime.CreateTimer ab.
         MainViewModel.DefaultStartupScreenDelay = Timeout.InfiniteTimeSpan;
         return AppBuilder.Configure<App>()
             .UseSkia()
@@ -45,6 +46,22 @@ public sealed partial class ViewTests
         public override DateTimeOffset GetUtcNow() => SpaSample.At(11, 40);
 
         public override TimeZoneInfo LocalTimeZone => TimeZoneInfo.FindSystemTimeZoneById("Europe/Vienna");
+
+        // Zeitgeber ab der Dauer eines Toasts feuern im Bildtest nicht: unter Last vergingen zwischen Aktion und Prüfung sonst mehr als
+        // 5 Sekunden, und der Toast war weg. Kürzere laufen mit der echten Uhr; den Ablauf selbst prüfen Tests mit eigener Uhr.
+        public override ITimer CreateTimer(TimerCallback callback, object? state, TimeSpan dueTime, TimeSpan period) =>
+            dueTime >= ToastState.Duration ? new Never() : base.CreateTimer(callback, state, dueTime, period);
+
+        private sealed class Never : ITimer
+        {
+            public bool Change(TimeSpan dueTime, TimeSpan period) => true;
+
+            public void Dispose()
+            {
+            }
+
+            public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+        }
     }
 
     /// <summary>Bildtests und Handbuchbilder melden sich als Inhaberin an (alle Rechte), wie der Auftraggeber beim Prüfen; Rechte-Ausblenden prüft <see cref="ReceptionApi"/>.</summary>
@@ -1286,14 +1303,22 @@ public sealed partial class ViewTests
     });
 
     [Fact]
-    public Task Gemeinsamer_Termin() => Render("hell", "kalender-gemeinsam", async (window, main) =>
+    public Task Gemeinsamer_Termin()
     {
-        var calendar = await SignedInCalendar(main);
-        var couple = calendar.Columns.SelectMany(c => c.Items).First(i => i.Appointment?.GroupId == SpaSample.CoupleId).Appointment!;
-        calendar.OpenAppointment(couple);
-        Assert.True(calendar.Selected!.CanMoveGroup);
-        return calendar;
-    });
+        var api = Api();
+        return Render("hell", "kalender-gemeinsam", async (window, main) =>
+        {
+            var calendar = await SignedInCalendar(main);
+            var couple = calendar.Columns.SelectMany(c => c.Items).First(i => i.Appointment?.GroupId == SpaSample.CoupleId).Appointment!;
+            // Ohne Überblick zur Kundin zeigte das Handbuchbild „Der Überblick wurde nicht geladen.“
+            api.On($"GET /api/customers/{couple.CustomerId}/summary", SpaSample.Summary());
+            calendar.OpenAppointment(couple);
+            await Pump(Settling);
+            Assert.True(calendar.Selected!.CanMoveGroup);
+            Assert.DoesNotContain(Named<Control>(window, "CustomerSection").GetVisualDescendants().OfType<InfoBar>(), b => b.IsEffectivelyVisible);
+            return calendar;
+        }, api);
+    }
 
     [Theory]
     [InlineData("hell")]
@@ -2016,6 +2041,8 @@ public sealed partial class ViewTests
     {
         await SignedInCalendar(main);
         var shell = (ShellViewModel)main.Content!;
+        Assert.Same(shell.Network, shell.Pages[^1].Page);
+        Assert.Same(shell.Help, shell.Pages[^2].Page);
         shell.SelectedPage = shell.Pages.First(p => p.Page == shell.Network);
         Assert.True(shell.Network!.IsShared);
         Assert.Equal("3F9A-12C4-77B0-E1D2-9A0B", shell.Network.Code);

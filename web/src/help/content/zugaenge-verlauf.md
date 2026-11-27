@@ -21,7 +21,7 @@ Bei jedem erneuten Aufklappen lädt der Abschnitt neu.
 
 ## Gut zu wissen {#gut-zu-wissen}
 
-- Der Abschnitt erscheint nur für Inhaber und Manager. Fragt jemand anderes den Verlauf trotzdem ab, lehnt der Server ab.
+- Der Abschnitt erscheint nur für Inhaber und Manager. Fragt jemand anderes den Verlauf trotzdem ab, lehnt AISPA Studio ab.
 - Passwörter und Passkeys stehen nie im Verlauf.
 - Er bleibt 3 Jahre. Aus der Zeit vor dem Verlauf gibt es keine Einträge; dann steht dort „Noch keine Einträge.“
 - Zum Ändern siehe [Rolle oder Standorte ändern](hilfe:zugaenge-rolle-aendern), [Zugang sperren oder wieder freischalten](hilfe:zugaenge-sperren) und [Zugang befristen oder verlängern](hilfe:zugaenge-befristen).

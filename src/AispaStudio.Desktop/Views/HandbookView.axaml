@@ -26,7 +26,7 @@
           </ListBox.Styles>
           <ListBox.ItemTemplate>
             <DataTemplate x:DataType="vm:HandbookRow">
-              <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" Margin="0,2" />
+              <TextBlock Text="{Binding Name}" Classes="listname" TextTrimming="CharacterEllipsis" Margin="0,2" />
             </DataTemplate>
           </ListBox.ItemTemplate>
         </ListBox>

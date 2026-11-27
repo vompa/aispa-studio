@@ -1,8 +1,8 @@
 using System.Globalization;
 using System.Text;
 using System.Text.Json;
+using AispaStudio.Api.MailIntake.Assistant;
 using AispaStudio.Contracts;
-using Anthropic;
 using Anthropic.Models.Beta.Messages;
 using Microsoft.Extensions.Options;
 
@@ -41,11 +41,12 @@ internal sealed class ManualDeliveryNoteReader : IDeliveryNoteReader
         Task.FromResult(new DeliveryNoteReading(null, [], [], null));
 }
 
-/// <summary>Einstellungen wie beim Lesen von Papierbögen (Abschnitt <c>Ai:Claude</c>); der Schlüssel kommt nie aus dem Repository.</summary>
+/// <summary>
+/// Einstellungen wie beim Lesen von Papierbögen (Abschnitt <c>Ai:Claude</c>); den Schlüssel liefert <see cref="ClaudeAccess"/> je Spa (ADR 0103),
+/// das Modell <see cref="ClaudeOptions.ModelExtract"/> (T-112b).
+/// </summary>
 public sealed class DeliveryNoteReaderOptions
 {
-    public string? ApiKey { get; set; }
-    public string Model { get; set; } = "claude-opus-5-5";
     public string Effort { get; set; } = "medium";
 }
 
@@ -53,15 +54,9 @@ public sealed class DeliveryNoteReaderOptions
 /// Liest den Lieferschein mit Claude. Das Bild ist für das Modell nur Daten; es liefert ein festes JSON-Format mit einer Sicherheit
 /// je Position. Das Modell rechnet nichts um und bucht nichts.
 /// </summary>
-internal sealed class ClaudeDeliveryNoteReader(IOptions<DeliveryNoteReaderOptions> options) : IDeliveryNoteReader, IDisposable
+internal sealed class ClaudeDeliveryNoteReader(IOptions<DeliveryNoteReaderOptions> options, ClaudeJson claude) : IDeliveryNoteReader
 {
-    private const string FallbackBeta = "server-side-fallback-2026-07-01";
-
-    private readonly AnthropicClient _client = new() { ApiKey = options.Value.ApiKey };
-
     public bool Enabled => true;
-
-    public void Dispose() => _client.Dispose();
 
     public async Task<DeliveryNoteReading> ReadAsync(DeliveryNoteImage image, IReadOnlyList<DeliveryNoteOrderLine> lines, CancellationToken ct)
     {
@@ -74,19 +69,10 @@ internal sealed class ClaudeDeliveryNoteReader(IOptions<DeliveryNoteReaderOption
                 .AppendLine();
         }
 
-        var response = await _client.Beta.Messages.Create(new MessageCreateParams
-        {
-            Model = options.Value.Model,
-            MaxTokens = 4000,
-            Betas = [FallbackBeta],
-            Fallbacks = new Default(),
-            System = System,
-            OutputConfig = new BetaOutputConfig
-            {
-                Effort = options.Value.Effort,
-                Format = new BetaJsonOutputFormat { Schema = Schema },
-            },
-            Messages =
+        var response = await claude.CreateAsync(AiUsageTask.DeliveryNote, ClaudeJson.Request(
+            claude.ModelFor(AiUsageTask.DeliveryNote),
+            options.Value.Effort,
+            [new BetaTextBlockParam { Text = System }],
             [
                 new BetaUserMessageParam
                 {
@@ -100,7 +86,7 @@ internal sealed class ClaudeDeliveryNoteReader(IOptions<DeliveryNoteReaderOption
                     },
                 },
             ],
-        }, ct);
+            Schema), ct);
 
         if (response.StopReason == BetaStopReason.Refusal)
         {

@@ -3,7 +3,7 @@ using AispaStudio.Contracts;
 
 namespace AispaStudio.Api.MailIntake.Assistant;
 
-/// <summary>Auswahl, aus der die KI wählen darf (Behandlung, Standort, Person). Sie gibt nur diese Ids zurück.</summary>
+/// <summary>Auswahl, aus der die KI wählen darf (Behandlung, Standort, Person). Sie wählt nur aus diesen Einträgen.</summary>
 public sealed record NamedOption(Guid Id, string Name);
 
 /// <summary>Alles, was die KI zum Verstehen einer Mail bekommt. Zeiten der Antwort gelten in der Zeitzone <c>TimeZone</c>.</summary>

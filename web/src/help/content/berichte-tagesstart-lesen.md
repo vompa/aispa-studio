@@ -12,7 +12,7 @@ Der Reiter „Tagesstart“ fasst für die Rezeption zusammen, was an einem Tag 
 
 ## Tagesstart öffnen {#oeffnen}
 
-1. In der Windows-App unter „Verwaltung“ **Zahlen** öffnen. Der Reiter **Tagesstart** ist der erste Reiter und schon gewählt.
+1. In der Windows-App unter „Verwaltung“ **Zahlen** öffnen und den Reiter **Tagesstart** wählen. Wer Berichte sehen darf, landet zuerst bei **Berichte**; für alle anderen ist **Tagesstart** schon gewählt.
 2. **Standort** und **Datum** wählen; sie stehen im Kopf der Maske. Vorbelegt ist heute.
 
 ![Tagesstart der Rezeption](images/app/verwaltung-berichte-tagesstart.png)
@@ -24,7 +24,7 @@ Der Reiter „Tagesstart“ fasst für die Rezeption zusammen, was an einem Tag 
 - **Personal**: jede Person als Zeitleiste von der Öffnung bis zum Schluss. Die Balken sind die Dienstzeiten, die Zeiten stehen daneben als Text. Wer abwesend ist, zeigt statt der Leiste den Grund, z. B. „Urlaub“.
 - **Gäste**: Erstbesuche und Geburtstage.
 - **Räume und Geräte**: was zu welcher Zeit gesperrt ist und warum.
-- **Kassa**: der Anfangsbestand laut letztem Abschluss als Wert, bei einer Kassa ohne Abschluss „kein Abschluss“. Warnungen der Kasse, z. B. zur Signatur, stehen darunter als Warnung.
+- **Kassa**: der Anfangsbestand laut letztem Abschluss als Wert, bei einer Kassa ohne Abschluss „kein Abschluss“. Warnungen der Kassa, z. B. zur Signatur, stehen darunter als Warnung.
 - **Wichtig laut Handbuch**: Einträge des [Rezeptionshandbuchs](hilfe:handbuch), die als „wichtig – am Tagesstart erinnern“ markiert sind und an diesem Wochentag gelten.
 - **Bereitstellen**: die Summen des Tages, z. B. „6 × Früchteteller: 11:20, 12:40 …“, darunter je Termin eine Zeile mit Uhrzeit, Gast, Raum und Wunsch des Gastes (z. B. Teesorte); mit dem Häkchen wird abgehakt, mit Person und Zeit. Wo ein Gesundheitsfragebogen vorliegt, steht „Anamnese beachten“ – nie sein Inhalt. Eingerichtet wird das unter [Behandlungen, Zum Termin bereitstellen](hilfe:behandlungen#zum-termin-bereitstellen).
 
@@ -36,7 +36,7 @@ Ist die KI eingerichtet, erscheint oben zusätzlich eine kurze Zusammenfassung i
 - Gesundheitsdaten bekommt die KI nicht zu sehen.
 - Ändert sich etwas am Tag (neuer Termin, Krankmeldung), wird die Zusammenfassung neu geschrieben.
 
-## Hinweise {#hinweise}
+## Gut zu wissen {#hinweise}
 
 - Den Reiter sehen Rezeption, Standortleitung, Manager und Inhaber, Therapeut:innen und das Backoffice nicht.
 - Eine Frage wie „Was steht heute an?“ beantwortet auch der [KI-Assistent](hilfe:ki-assistent-fragen).

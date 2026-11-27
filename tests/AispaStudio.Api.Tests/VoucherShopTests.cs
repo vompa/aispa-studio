@@ -56,7 +56,7 @@ public sealed class VoucherShopTests(ApiFixture fixture)
         var order = await client.PostAsJsonAsync("/api/online/vouchers/orders", Request(spa, NewEmail()), TestSpa.Json, Ct);
 
         Assert.False(offer!.Available);
-        Assert.Contains("keine Kasse", offer.Reason, StringComparison.Ordinal);
+        Assert.Contains("keine Kassa", offer.Reason, StringComparison.Ordinal);
         Assert.Equal(HttpStatusCode.Conflict, order.StatusCode);
     }
 

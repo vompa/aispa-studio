@@ -5,6 +5,7 @@ oberflaeche: windows-app
 rollen: rezeption, leitung, inhaber, manager
 seite: anfragen
 stichwoerter: Treatwell, Buchung, annehmen, in Treatwell annehmen, vorab bezahlt, Treatwell Pay, Zahlung im Salon, vor Ort, Zuordnung offen, vorläufiger Gast, Kollision, umbuchen, Absender-Regel, Plattform, booking platform, accept, prepaid
+betrieb: server
 ---
 # Treatwell-Buchung im Posteingang
 

@@ -5,10 +5,13 @@ oberflaeche: windows-app
 rollen: leitung, inhaber, manager
 seite: geraete
 stichwoerter: Anzeige koppeln, Pausenraum, Dashboard, Bildschirm, Fernseher, Monitor, Kopplung aufheben, Anzeige widerrufen, Code vom Bildschirm, display, breakroom screen
+betrieb: server
 ---
 # Anzeige im Pausenraum koppeln
 
 Ein Bildschirm im Pausenraum zeigt dem Team den Tag mit Initialen statt Gastnamen. Er bekommt keinen eigenen Zugang mit Person, sondern wird mit einem Code an einen Standort gekoppelt. Koppeln dürfen Inhaber, Manager und Standortleitung.
+
+## Schritte {#schritte}
 
 1. Am Bildschirm im Pausenraum die Anzeige öffnen. Sie zeigt einen Code aus acht Zeichen, z. B. „K7QM-2XRT“.
 2. In der Windows-App in der Navigation **Geräte** öffnen und zu „Anzeigen im Pausenraum“ gehen.

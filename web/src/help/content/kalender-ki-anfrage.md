@@ -35,7 +35,7 @@ Bei einer Behandlung mit Paarraum und ohne Angabe fragt die Leiste „Für eine 
 - **Baustein entfernen**: auf das kleine Kreuz am Baustein klicken (auch Raum und Zahl der Gäste); die Vorschläge rechnen sich ohne ihn neu. Der Tag lässt sich nicht entfernen.
 - **Andere Zeiten**: die drei gezeigten Vorschläge kommen nicht wieder, es gibt drei neue.
 
-## Hinweise {#hinweise}
+## Gut zu wissen {#hinweise}
 
 - Liegt der beste Vorschlag an einem anderen Tag, wechselt der Kalender dorthin; Vorschläge an anderen Tagen tragen das Datum in Gelb.
 - Unter jeder Antwort steht der Hinweis, dass eine KI den Text gelesen hat.

@@ -50,7 +50,9 @@ Windows-App“.
 **Optional:**
 
 - **KI mit Claude** (Assistent, Terminannahme): eine Datei `.env` neben `compose.yaml` mit
-  `AISPA_CLAUDE_API_KEY=<schlüssel>` anlegen. Die Datei steht in `.gitignore`.
+  `AISPA_CLAUDE_API_KEY=<schlüssel>` anlegen. Die Datei steht in `.gitignore`. Ohne diese Zeile trägt jede Inhaberin den
+  Schlüssel ihres Betriebs in der App unter Stammdaten › KI ein (verschlüsselt gespeichert, gilt sofort, ADR 0103); ein Schlüssel
+  hier gilt für alle Betriebe und sperrt das Feld in der App.
 - **Lokale KI ohne Internet:** in `.env` zusätzlich `COMPOSE_PROFILES=ki-lokal` und
   `AISPA_LOCAL_AI_URL=http://ollama:11434`, dann `docker compose up -d` und in der App unter Stammdaten › KI das Modell
   laden. Achtung Größe: [lokale KI](README.md#optional-lokale-ki-ohne-internet).
@@ -96,7 +98,9 @@ Die API wird über Umgebungsvariablen eingestellt: Aus dem Schlüssel `Abschnitt
 | `HealthData__CurrentKeyId`, `HealthData__Keys__<id>` | für Echtbetrieb | Schlüssel für Gesundheitsdaten (32 Byte, Base64); ohne ihn lassen sich keine Anamnesen speichern |
 | `OnlineBooking__PublicUrl`, `Passkeys__ServerDomain` | für Echtbetrieb | öffentliche Adresse für Online-Buchung und Anmeldung mit Passkey |
 | `Mail__Smtp__Host`, `Mail__FromAddress` | für Echtbetrieb | Mailversand |
-| `Ai__Claude__ApiKey` | – | KI mit Claude; ohne Schlüssel sind Assistent und Terminannahme aus |
+| `Ai__Claude__ApiKey` | – | KI mit Claude für alle Betriebe; hat Vorrang vor dem Schlüssel aus der App (ADR 0103). Ohne beide sind Assistent und Terminannahme aus |
+| `Ai__Claude__Model` | – | Claude-Modell für Texte (Antworten, Übersetzungen, Zusammenfassungen, Auswertungen), Standard `claude-opus-5-5` |
+| `Ai__Claude__ModelExtract` | – | kleineres Claude-Modell für das Auslesen (Terminwünsche, Treatwell, Lieferscheine, Anamnesebögen, Absicht im Assistenten), Standard `claude-haiku-5-5` |
 | `Modules__<Name>` | – | Webmodule einzeln ein- oder ausschalten |
 | `Hosting__Role` | – | `All` (Standard), `Api` oder `Worker` für mehrere Instanzen |
 

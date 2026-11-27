@@ -96,8 +96,8 @@ public static partial class ChargeNoShowFeeHandler
         if (register is null && guarantee.BillId is null)
         {
             await FailAsync(online, guarantee, guarantee.ChargeReference is null
-                ? "An diesem Standort gibt es keine aktive Kasse; es wurde nichts belastet."
-                : "Belastet, aber nicht verbucht: an diesem Standort gibt es keine aktive Kasse.", logger, ct);
+                ? "An diesem Standort gibt es keine aktive Kassa; es wurde nichts belastet."
+                : "Belastet, aber nicht verbucht: an diesem Standort gibt es keine aktive Kassa.", logger, ct);
             return;
         }
 

@@ -43,7 +43,7 @@ Auf **Stornieren** klicken. **Abbrechen** bricht ab.
 
 ## Was danach {#was-danach}
 
-Der Termin ist aus dem Kalender verschwunden, die Zeit ist frei. Wer storniert hat und wann, steht im [Verlauf des Termins](hilfe:kalender-termin-verlauf). In der Kopfzeile zählt der Chip **Storniert n** die Stornos des Tages; ein Klick öffnet sie auf der Seite [Verlauf](hilfe:seite-verlauf), etwa um einen Gast zurückzurufen. Die frei gewordene Zeit meldet der Server von selbst passenden Gästen auf der [Warteliste](hilfe:kalender-warteliste). Ein versehentliches Storno lässt sich zurücknehmen, siehe [Stornierung zurücknehmen](hilfe:kalender-termin-stornieren#zuruecknehmen). Eine [Ausfallgebühr](hilfe:standorte#ausfallgebuehr) wird dabei nie automatisch belastet. Hat der Gast online eine Karte hinterlegt, löst die Kassenaufsicht die Gebühr bei „Nicht erschienen“ oder einer späten Absage eigens aus; im Kalender gibt es dafür keinen Knopf.
+Der Termin ist aus dem Kalender verschwunden, die Zeit ist frei. Wer storniert hat und wann, steht im [Verlauf des Termins](hilfe:kalender-termin-verlauf). In der Kopfzeile zählt der Chip **Storniert n** die Stornos des Tages; ein Klick öffnet sie auf der Seite [Verlauf](hilfe:seite-verlauf), etwa um einen Gast zurückzurufen. Die frei gewordene Zeit meldet AISPA Studio von selbst passenden Gästen auf der [Warteliste](hilfe:kalender-warteliste). Ein versehentliches Storno lässt sich zurücknehmen, siehe [Stornierung zurücknehmen](hilfe:kalender-termin-stornieren#zuruecknehmen). Eine [Ausfallgebühr](hilfe:standorte#ausfallgebuehr) wird dabei nie automatisch belastet. Hat der Gast online eine Karte hinterlegt, löst die Kassenaufsicht die Gebühr bei „Nicht erschienen“ oder einer späten Absage eigens aus; im Kalender gibt es dafür keinen Knopf.
 
 ## Wenn etwas schiefgeht {#wenn-etwas-schiefgeht}
 
@@ -85,7 +85,7 @@ Später geht es im Panel des stornierten Termins: **Stornierung zurücknehmen** 
 - Alle Termine der Buchung werden storniert (Grund „An der Rezeption storniert (ganze Buchung)“).
 - Nur einen Teil stornieren: diesen Termin wie oben einzeln stornieren.
 
-## Hinweise {#hinweise}
+## Gut zu wissen {#hinweise}
 
 - Stornieren dürfen Rezeption, Standortleitung und Inhaber. Therapeut:innen können „Nicht erschienen“ nur bei eigenen Terminen setzen, aber nicht stornieren.
 - Ohne Verbindung wird ein einzelnes Storno vorgemerkt und beim Abgleich gesendet. **Ganze Buchung stornieren** braucht eine Verbindung. Siehe [Arbeiten ohne Verbindung](hilfe:kalender-offline).

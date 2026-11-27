@@ -88,6 +88,8 @@ public sealed class ApiFixture : IAsyncLifetime
             builder.UseSetting("ConnectionStrings:aispadb", connectionString);
             builder.UseSetting("Database:MigrateOnStartup", "true");
             builder.UseSetting("Database:SeedDemoData", "false");
+            // Die Tests spielen mit einer Woche Vorschau ein, das wäre sofort veraltet; StaleDemoDataTests ruft die Prüfung selbst auf.
+            builder.UseSetting("DemoData:RefreshWhenStale", "false");
             // Abfragen mit mehreren Collection-Includes ohne AsSplitQuery() sollen in den Tests auffallen (Ä73).
             builder.UseSetting("Database:ThrowOnMultipleCollectionInclude", "true");
             builder.UseSetting("Logging:LogLevel:Default", "Warning");
@@ -131,6 +133,7 @@ public sealed class ApiFixture : IAsyncLifetime
                 services.AddSingleton<Stock.IDeliveryNoteReader>(DeliveryNotes);
                 services.AddSingleton<IBriefingSummarizer, FakeBriefingSummarizer>();
                 services.AddSingleton<IManagementSummarizer, FakeManagementSummarizer>();
+                services.AddSingleton<IManagementAnalyst, FakeManagementAnalyst>();
                 services.AddSingleton<IRebookWriter, FakeRebookWriter>();
                 services.AddSingleton<IQuestionAnswerer, FakeQuestionAnswerer>();
                 services.AddSingleton<IMessageTranslator, FakeMessageTranslator>();

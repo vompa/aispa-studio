@@ -10,11 +10,13 @@ stichwoerter: Rabatt geben, Nachlass, Prozent, billiger, Preisnachlass, Ermäßi
 
 Rabatt gibt es an der Kassa je Position, in Prozent oder als Betrag. Bis zur Rabattgrenze des Spas (Standard 20 %) darf jede Person, darüber gibt die Leitung mit ihrer PIN frei.
 
+## Schritte {#schritte}
+
 1. Die Position auf die Rechnung setzen, z. B. [Termin kassieren](hilfe:kassa-termin-kassieren).
 2. Rechts neben der Position auf das Prozentzeichen („Rabatt auf diese Position“) klicken.
 3. Unter der Rechnung erscheint „Rabatt auf „…“ in %“. **in %** oder **als Betrag** wählen.
 4. Den Wert eintragen, z. B. `10`. Daneben steht, was das im anderen Maß ist, z. B. „= −8,90 €“ oder „= 12,7 %“.
-5. Auf **Übernehmen** klicken. Die Position zeigt den Rabatt, z. B. „20 % USt · Rabatt 10 % −8,90 €“, Summe und Steuer rechnet der Server neu.
+5. Auf **Übernehmen** klicken. Die Position zeigt den Rabatt, z. B. „20 % USt · Rabatt 10 % −8,90 €“, Summe und Steuer rechnet AISPA Studio neu.
 
 ![Rechnung mit Rabatt auf dem Termin](images/app/kassa.png)
 

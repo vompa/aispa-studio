@@ -66,7 +66,7 @@ internal sealed class ClaudeManagementSummarizer(ClaudeJson claude) : IManagemen
 
     public bool Enabled => true;
 
-    public async Task<string?> SummarizeAsync(string facts, CancellationToken ct) => (await claude.AskAsync<SummaryJson>(System, facts, Schema, ct)).Summary;
+    public async Task<string?> SummarizeAsync(string facts, CancellationToken ct) => (await claude.AskAsync<SummaryJson>(AiUsageTask.ManagementSummary, System, facts, Schema, ct)).Summary;
 
     private sealed record SummaryJson(string Summary);
 }
@@ -174,6 +174,20 @@ internal sealed partial class ManagementSummaries(
 
         await WriteAsync(row.Id, ct);
         return await db.ManagementSummaries.AsNoTracking().Where(s => s.Id == row.Id && s.Status == BriefingSummaryStatus.Done)
+            .Select(s => s.Text).FirstOrDefaultAsync(ct);
+    }
+
+    /// <summary>
+    /// Der schon geschriebene Kommentar zu genau diesen Zahlen, ohne einen neuen anzustoßen (für die Dokumente, T-095 D2); <c>null</c>, wenn es keinen gibt
+    /// oder sich die Zahlen seitdem geändert haben.
+    /// </summary>
+    public async Task<string?> StoredAsync(ManagementReportDto report, CancellationToken ct)
+    {
+        var amounts = !report.AmountsHidden;
+        var fingerprint = Fingerprint(report);
+        return await db.ManagementSummaries.AsNoTracking()
+            .Where(s => s.LocationId == report.LocationId && s.From == report.From && s.Until == report.Until && s.Amounts == amounts
+                && s.Fingerprint == fingerprint && s.Status == BriefingSummaryStatus.Done)
             .Select(s => s.Text).FirstOrDefaultAsync(ct);
     }
 

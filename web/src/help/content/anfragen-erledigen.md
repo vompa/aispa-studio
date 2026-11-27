@@ -5,10 +5,13 @@ oberflaeche: windows-app
 rollen: rezeption, leitung, inhaber, manager
 seite: anfragen
 stichwoerter: Anfrage erledigen, ohne Antwort abschließen, Spam, Werbung, ignorieren, abhaken, Fehler, erneut verarbeiten, nochmal versuchen, dismiss, mark done, retry
+betrieb: server
 ---
 # Anfrage ohne Termin erledigen
 
 Nicht jede Nachricht braucht einen Termin oder eine Antwort, z. B. Werbung oder ein Dank. Solche Nachrichten schließt man ab, damit sie nicht mehr in der Zahl der offenen Anfragen stehen.
+
+## Schritte {#schritte}
 
 1. In **Anfragen** die Nachricht anklicken.
 2. Unten auf **Erledigt, ohne Termin und Antwort** klicken.

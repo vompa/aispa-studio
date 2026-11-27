@@ -8,7 +8,7 @@ stichwoerter: Aktion, Aktionen, Rabattaktion, Angebot, Sonderangebot, Rabatt, Pr
 ---
 # Aktionen
 
-Eine Aktion ist ein Rabatt auf Behandlungen oder Pakete, an allen oder an ausgewählten Standorten. Es gibt drei Arten: **Befristet** gilt an jedem Tag eines Zeitraums, zum Beispiel „Herbst: 10 % auf alle Massagen bis Ende Oktober“. **Kurzfristig frei** gilt für Termine, die kurz vor Beginn gebucht werden. **Schwache Zeiten** gilt für Termine in ruhigen Zeiten, die man im Wochenraster abhakt. Die Kassa schlägt eine laufende Aktion vor, wenn eine passende Behandlung auf der Rechnung steht, und setzt den Rabatt erst, wenn man auf **Anwenden** klickt; der Beleg nennt dann den Namen der Aktion. Die Aktion legt nur den Rabatt fest. Gebucht, versteuert und signiert wird wie bei jedem Verkauf über den Beleg: [Aktion an der Kassa anwenden](hilfe:kassa-aktion-anwenden).
+Eine Aktion ist ein Rabatt auf Behandlungen oder Pakete, an allen oder an ausgewählten Standorten. Es gibt drei Arten: **Befristet**, **Kurzfristig frei** und **Schwache Zeiten**; was sie bedeuten, steht unter [Art](#art). Die Kassa schlägt eine laufende Aktion vor, wenn eine passende Behandlung auf der Rechnung steht, und setzt den Rabatt erst, wenn man auf **Anwenden** klickt; der Beleg nennt dann den Namen der Aktion. Die Aktion legt nur den Rabatt fest. Gebucht, versteuert und signiert wird wie bei jedem Verkauf über den Beleg: [Aktion an der Kassa anwenden](hilfe:kassa-aktion-anwenden).
 
 Aktionen verwalten dürfen Inhaber und Standortleitung (Recht „Katalog pflegen“). Die Standortleitung sieht und ändert nur Aktionen ihrer eigenen Standorte und legt keine für alle Standorte an. Die laufenden Aktionen eines Standorts kennen alle Zugänge, weil Kassa und Assistent sie brauchen: Der Assistent beantwortet damit „Welche Rabatte oder Aktionen laufen gerade?“.
 
@@ -29,7 +29,7 @@ Ob eine Aktion läuft, richtet sich nach dem heutigen Tag am Standort. **Pausier
 
 ## Art {#art}
 
-- **Befristet**: Der Rabatt gilt an jedem Tag des Zeitraums.
+- **Befristet**: Der Rabatt gilt an jedem Tag des Zeitraums, zum Beispiel „Herbst: 10 % auf alle Massagen bis Ende Oktober“.
 - **Kurzfristig frei**: Der Rabatt gilt für Termine, die höchstens so viele Stunden vor Beginn gebucht werden, wie unter **Vorlauf (Stunden)** steht (1 bis 168, also höchstens eine Woche). Bei 24 bekommt ein Termin um 10 Uhr den Rabatt, wenn er am Vortag um 10 Uhr oder später gebucht wurde.
 - **Schwache Zeiten**: Der Rabatt gilt für Termine, die in einem abgehakten Feld des Wochenrasters beginnen. Das Raster hat für jeden Wochentag drei Felder: Vormittag (bis 12 Uhr), Nachmittag (12 bis 17 Uhr) und Abend (ab 17 Uhr), jeweils in der Zeit des Standorts. Mindestens ein Feld abhaken. Alle Felder einer Aktion haben denselben Rabatt; für einen anderen Satz legt man eine zweite Aktion an.
 

@@ -78,6 +78,7 @@ public partial class ShellView : UserControl
         if (_shell is { } oldShell)
         {
             oldShell.HelpKeyRequested -= ShowHelpForFocus;
+            oldShell.FocusRequested -= FocusField;
         }
 
         _shell = DataContext as ShellViewModel;
@@ -91,8 +92,12 @@ public partial class ShellView : UserControl
         if (_shell is { } shell)
         {
             shell.HelpKeyRequested += ShowHelpForFocus;
+            shell.FocusRequested += FocusField;
         }
     }
+
+    /// <summary>Ohne gültige PIN springt der Fokus nach „Speichern“ zurück ins PIN-Feld (masken.md, R8).</summary>
+    private void FocusField(string name) => Dispatcher.UIThread.Post(() => this.FindControl<Control>(name)?.Focus());
 
     /// <summary>Ein Fragezeichen will seine Hilfe zeigen: in der Leiste „KI und Hilfe“, die Seite bleibt stehen; das Fragezeichen ist danach markiert.</summary>
     private void OnHelpRequested(object? sender, RoutedEventArgs e)

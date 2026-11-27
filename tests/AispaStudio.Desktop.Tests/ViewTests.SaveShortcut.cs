@@ -165,7 +165,7 @@ public sealed partial class ViewTests
             var form = window.GetVisualDescendants().OfType<CustomerContactForm>().First(f => f.IsEffectivelyVisible);
             var formModel = calendar.Selected.CustomerForm!;
 
-            // Ohne Vor- und Nachnamen ist „Speichern“ gesperrt; Strg+S tut dann nichts.
+            // Ohne Vor- und Nachnamen meldet Strg+S den Fehler am Feld und sendet nichts.
             formModel.FirstName = "";
             formModel.LastName = "";
             form.GetVisualDescendants().OfType<TextBox>().First(t => t.Name == "FirstNameBox").Focus();
@@ -173,6 +173,7 @@ public sealed partial class ViewTests
             PressSave(window);
             await Pump(Settling);
             Assert.Equal(0, CallsTo(api, route));
+            Assert.NotNull(formModel.NameError);
 
             window.KeyTextInput("Gitti");
             PressSave(window);
@@ -183,18 +184,21 @@ public sealed partial class ViewTests
     }
 
     [Fact]
-    public Task Strg_S_bucht_in_Neuer_Termin_ohne_Gast_nichts() => Render("hell", "strg-s-neuer-termin", async (window, main) =>
+    public Task Strg_S_in_Neuer_Termin_ohne_Gast_meldet_den_Fehler_am_Feld_und_bucht_nichts() => Render("hell", "strg-s-neuer-termin", async (window, main) =>
     {
         var calendar = await SignedInCalendar(main);
         calendar.NewAppointmentCommand.Execute(null);
         await Pump(Settling);
         var booking = calendar.Booking!;
         Assert.Null(booking.Customer);
-        Assert.False(booking.BookCommand.CanExecute(null));
+        Assert.True(booking.BookCommand.CanExecute(null));
+        window.GetVisualDescendants().OfType<Control>().First(c => c.Name == "BookingCustomerSearch" && c.IsEffectivelyVisible).Focus();
+        await Pump();
 
         PressSave(window);
         await Pump(Settling);
 
+        Assert.Equal("Bitte eine Kundin oder einen Kunden wählen.", booking.CustomerError);
         Assert.Same(booking, calendar.Booking);
         Assert.Same(booking, calendar.ActivePanel);
         return calendar;

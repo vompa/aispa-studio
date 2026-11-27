@@ -267,20 +267,20 @@ public sealed class AdminStockTests
     }
 
     [Fact]
-    public async Task Given_Bezeichnung_oder_Einheit_fehlt_When_angelegt_Then_Knopf_aus_Fehler_am_Feld_und_kein_POST()
+    public async Task Given_Bezeichnung_oder_Einheit_fehlt_When_angelegt_Then_Knopf_aktiv_Fehler_am_Feld_und_kein_POST()
     {
         var api = Api();
         var stock = await Open(api);
         var form = stock.ItemForm;
 
-        Assert.False(form.CreateCommand.CanExecute(null));
+        Assert.True(form.CreateCommand.CanExecute(null));
         Assert.False(await form.CreateItemAsync());
         Assert.Equal("Die Bezeichnung fehlt. Trage sie ein.", form.NameError);
         Assert.Equal(StockItemFormViewModel.NameField, form.FocusTarget);
 
         form.ItemName = "Kerze";
         form.Unit = " ";
-        Assert.False(form.CreateCommand.CanExecute(null));
+        Assert.True(form.CreateCommand.CanExecute(null));
         Assert.False(await form.CreateItemAsync());
         Assert.Equal(StockItemFormViewModel.UnitField, form.FocusTarget);
         Assert.DoesNotContain(api.Calls, c => c.Route == "POST /api/stock/items");
@@ -426,7 +426,7 @@ public sealed class AdminStockTests
     [InlineData(StockMovementKind.Correction, "0", "Bruch")]
     [InlineData(StockMovementKind.Correction, "-2", "")]
     [InlineData(StockMovementKind.Correction, "-2", "  ")]
-    public async Task Given_ungueltige_Eingabe_When_gebucht_Then_Knopf_aus_und_nichts_geht_an_die_API(StockMovementKind kind, string amount, string reason)
+    public async Task Given_ungueltige_Eingabe_When_gebucht_Then_Knopf_aktiv_Fehler_am_Feld_und_nichts_geht_an_die_API(StockMovementKind kind, string amount, string reason)
     {
         var api = Api();
         var stock = await Open(api);
@@ -438,10 +438,12 @@ public sealed class AdminStockTests
             b.Reason = reason;
         });
 
-        Assert.False(stock.Booking.BookCommand.CanExecute(null));
+        Assert.True(stock.Booking.BookCommand.CanExecute(null));
         Assert.False(await stock.Booking.BookMovementAsync());
         Assert.DoesNotContain(api.Calls, c => c.Route == $"POST {Route("/movements")}");
         Assert.NotNull(stock.Booking.Error);
+        Assert.True(stock.Booking.AmountError is not null || stock.Booking.ReasonError is not null);
+        Assert.Equal(stock.Booking.AmountError is not null ? MovementBookingViewModel.AmountField : MovementBookingViewModel.ReasonField, stock.Booking.FocusTarget);
     }
 
     [Fact]
@@ -456,6 +458,7 @@ public sealed class AdminStockTests
         Assert.False(await stock.Booking.BookMovementAsync());
 
         Assert.Equal(MovementBookingViewModel.ItemField, stock.Booking.FocusTarget);
+        Assert.Equal("Bitte ein Material wählen.", stock.Booking.ItemError);
         Assert.DoesNotContain(api.Calls, c => c.Route == $"POST {Route("/movements")}");
     }
 
@@ -620,17 +623,23 @@ public sealed class AdminStockTests
     }
 
     [Fact]
-    public async Task Given_ein_negativer_gezaehlter_Bestand_When_gebucht_Then_gesperrt_und_nichts_geht_an_die_API()
+    public async Task Given_ein_negativer_gezaehlter_Bestand_When_gebucht_Then_meldet_der_Klick_den_Fehler_und_nichts_geht_an_die_API()
     {
         var api = Api();
         var dialogs = new FakeDialogs().Answer(ConfirmChoice.Confirmed);
         var stock = await Counting(api, dialogs);
-        stock.Count.Rows.Single(r => r.Item.Id == OilId).Entered = "-1";
+        var oil = stock.Count.Rows.Single(r => r.Item.Id == OilId);
+        oil.Entered = "-1";
         stock.Count.Rows.Single(r => r.Item.Id == TowelId).Entered = "3";
+        CountRow? focused = null;
+        stock.Count.RowFocusRequested += row => focused = row;
 
+        // Mit einem ungültigen Wert ist „Inventur buchen“ aktiv; der Klick nennt die Zeile, setzt den Fokus dorthin und fragt und sendet nichts.
         Assert.True(stock.Count.HasInvalid);
-        Assert.False(stock.Count.BookCommand.CanExecute(null));
+        Assert.True(stock.Count.BookCommand.CanExecute(null));
         Assert.False(await stock.Count.BookCountAsync());
+        Assert.Same(oil, focused);
+        Assert.StartsWith("Die Inventur ist nicht gebucht. Massageöl: Bitte eine Zahl ab 0 eintragen", stock.Count.Error, StringComparison.Ordinal);
         Assert.Empty(dialogs.Asked);
         Assert.DoesNotContain(api.Calls, c => c.Route == $"POST {Route("/movements")}");
     }
@@ -755,6 +764,7 @@ public sealed class AdminStockTests
         stock.PlacesAdmin.SelectedRow = stock.PlacesAdmin.Rows.Last();
         await Task.Yield();
 
+        Assert.True(stock.PlacesAdmin.SaveCommand.CanExecute(null));
         Assert.False(await stock.PlacesAdmin.SaveChangesAsync());
 
         Assert.Equal("Der Name fehlt. Trage ihn ein.", stock.PlacesAdmin.NameError);
@@ -870,6 +880,22 @@ public sealed class AdminStockTests
         Assert.Equal("„Lavendelhof“ löschen?", dialogs.AssertRules().Asked.Single().Title);
         Assert.Equal(1, api.Calls.Count(c => c.Route == $"DELETE /api/stock/suppliers/{SupplierId}"));
         Assert.Equal("Lieferant gelöscht", stock.Toast.Text);
+    }
+
+    [Fact]
+    public async Task Given_Lieferant_ohne_Name_When_gespeichert_Then_Knopf_aktiv_Fehler_am_Feld_und_kein_Aufruf()
+    {
+        var api = Api();
+        var stock = await Open(api);
+        stock.SuppliersAdmin.SelectedRow = stock.SuppliersAdmin.Rows.Last();
+        await Task.Yield();
+
+        Assert.True(stock.SuppliersAdmin.SaveCommand.CanExecute(null));
+        Assert.False(await stock.SuppliersAdmin.SaveChangesAsync());
+
+        Assert.Equal("Der Name fehlt. Trage ihn ein.", stock.SuppliersAdmin.NameError);
+        Assert.Equal(StockSuppliersViewModel.NameField, stock.SuppliersAdmin.FocusTarget);
+        Assert.DoesNotContain(api.Calls, c => c.Route == "POST /api/stock/suppliers");
     }
 
     [Fact]

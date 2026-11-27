@@ -121,6 +121,7 @@ public sealed class AispaDbContext(DbContextOptions<AispaDbContext> options, Ten
 
     public DbSet<BriefingSummary> BriefingSummaries => Set<BriefingSummary>();
     public DbSet<ManagementSummary> ManagementSummaries => Set<ManagementSummary>();
+    public DbSet<ManagementAnalysis> ManagementAnalyses => Set<ManagementAnalysis>();
     public DbSet<ReportMailing> ReportMailings => Set<ReportMailing>();
     public DbSet<PayrollSettings> PayrollSettings => Set<PayrollSettings>();
     public DbSet<EmployeePayroll> EmployeePayrolls => Set<EmployeePayroll>();
@@ -190,6 +191,8 @@ public sealed class AispaDbContext(DbContextOptions<AispaDbContext> options, Ten
         Staff.StaffRegulationModel.Configure(builder);
         Staff.StaffDutyModel.Configure(builder);
         Documents.SentDocumentModel.Configure(builder);
+        MailIntake.Assistant.ClaudeKeyModel.Configure(builder);
+        MailIntake.Assistant.AiUsageModel.Configure(builder);
 
         // Zuletzt, damit alle Fachtabellen bekannt sind.
         TenantModel.Configure(builder, (type, shared) =>

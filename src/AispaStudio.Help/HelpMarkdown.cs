@@ -70,10 +70,12 @@ public static partial class HelpMarkdown
         {
             "ablauf" => HelpKind.Task,
             "seite" => HelpKind.Page,
+            "erklaerung" => HelpKind.Explanation,
+            "referenz" => HelpKind.Reference,
             _ => HelpKind.Setting,
         };
         var meta = new HelpMeta(kind, One("bereich"), [.. List("oberflaeche").Select(s => s.ToLowerInvariant())],
-            [.. List("rollen").Select(s => s.ToLowerInvariant())], One("seite"), List("stichwoerter"));
+            [.. List("rollen").Select(s => s.ToLowerInvariant())], One("seite"), List("stichwoerter"), One("betrieb")?.ToLowerInvariant());
         var bodyStart = text.IndexOf('\n', end + 1);
         return (meta, bodyStart < 0 ? "" : text[(bodyStart + 1)..]);
     }

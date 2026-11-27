@@ -128,7 +128,7 @@
         "tags": [
           "System"
         ],
-        "summary": "Zeigt, ob Claude eingeschaltet ist und wie es um das optionale lokale KI-Modell steht (ADR 0057).",
+        "summary": "Zeigt, ob Claude eingeschaltet ist, welche Claude-Modelle gelten und wie es um das optionale lokale KI-Modell steht (ADR 0057).",
         "operationId": "GetAiStatus",
         "responses": {
           "200": {
@@ -162,6 +162,198 @@
         "summary": "Lädt das lokale KI-Modell im Hintergrund herunter; den Fortschritt zeigt GET /api/system/ai.",
         "operationId": "DownloadLocalAiModel",
         "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/system/ai/usage": {
+      "get": {
+        "tags": [
+          "System"
+        ],
+        "summary": "Verbrauch von Claude des Spas über die letzten Tage (Standard 30, heute eingeschlossen, Tage in UTC): Aufrufe und Tokens je Aufgabe und Modell, ohne Geldbeträge.",
+        "operationId": "GetAiUsage",
+        "parameters": [
+          {
+            "name": "days",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 30
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiUsageReport"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/system/ai/claude-key": {
+      "get": {
+        "tags": [
+          "System"
+        ],
+        "summary": "Zeigt, ob ein Claude-Schlüssel gesetzt ist, woher er kommt und seine Maske; nie den Schlüssel selbst (ADR 0103).",
+        "operationId": "GetClaudeKey",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClaudeKeyStatus"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "System"
+        ],
+        "summary": "Speichert den Claude-Schlüssel des Spas verschlüsselt; gilt sofort, ohne Neustart. 409, wenn der Schlüssel in der Konfiguration gesetzt ist.",
+        "operationId": "SaveClaudeKey",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClaudeKeyInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClaudeKeyStatus"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "System"
+        ],
+        "summary": "Entfernt den in der App eingetragenen Claude-Schlüssel; Claude ist danach sofort aus. 409, wenn der Schlüssel in der Konfiguration gesetzt ist.",
+        "operationId": "RemoveClaudeKey",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClaudeKeyStatus"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/system/ai/claude-key/check": {
+      "post": {
+        "tags": [
+          "System"
+        ],
+        "summary": "Prüft den gesetzten Claude-Schlüssel mit einem kleinen Testaufruf: gültig, ungültig, kein Guthaben oder Limit, nicht erreichbar.",
+        "operationId": "CheckClaudeKey",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClaudeKeyCheck"
+                }
+              }
+            }
+          },
           "403": {
             "description": "Forbidden",
             "content": {
@@ -3941,7 +4133,7 @@
         "tags": [
           "Zeiterfassung"
         ],
-        "summary": "Listen des Personals als Excel oder CSV, nur für die Leitung: list=hours (Stundenliste je Person und Tag für month=JJJJ-MM), absences (Abwesenheiten von from bis until), roster (Dienstplan der Woche ab from, Personen als Zeilen, Tage als Spalten); wahlweise nur employeeId.",
+        "summary": "Listen des Personals als Excel oder CSV, nur für die Leitung: list=hours (Stundenliste je Person und Tag für month=JJJJ-MM), absences (Abwesenheiten von from bis until), roster (Dienstplan der Woche ab from, Tage als Zeilen, Personen als Spalten, mit Besetzung je Tag und Stunden je Person); wahlweise nur employeeId.",
         "operationId": "ExportStaffList",
         "parameters": [
           {
@@ -4031,7 +4223,7 @@
         "tags": [
           "Berichte"
         ],
-        "summary": "Kennzahlen des Management-Berichts für from bis until (höchstens ein Jahr) als Excel oder CSV: Kennzahl, Wert, Vorperiode, Einheit; ohne das Recht „Berichte mit Beträgen“ ohne Geldbeträge.",
+        "summary": "Kennzahlen des Management-Berichts für from bis until (höchstens ein Jahr) als Excel oder CSV: Kennzahl, Wert, Vorperiode, Einheit; ohne das Recht „Berichte mit Beträgen“ ohne Geldbeträge. Mit content=report der ganze Bericht als Excel-Arbeitsmappe (ein Blatt je Abschnitt, Gäste nur mit dem Recht der Kundenliste, Vergleich mit anderen Spas, wenn das Modul eingeschaltet ist). Mit format=docx der ganze Bericht als Word-Datei (A4 hoch, Inhalt wie das PDF, der Verlauf als Tabelle, nach jeder Kennzahlen-Gruppe „Anmerkungen:“); content entfällt, ai=true nimmt den schon geschriebenen KI-Kommentar mit Hinweis auf. Mit analysisId stehen Arbeitsmappe und Word-Datei mit der übernommenen KI-Auswertung und Hinweis da (fertig, gleicher Standort, Zeitraum, Vergleich und Sicht, sonst ein Fehler).",
         "operationId": "ExportManagementKpis",
         "parameters": [
           {
@@ -4064,6 +4256,38 @@
             "in": "query",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "compare",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "previous"
+            }
+          },
+          {
+            "name": "content",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "kpis"
+            }
+          },
+          {
+            "name": "ai",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "analysisId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
             }
           }
         ],
@@ -4699,6 +4923,393 @@
               "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/v1/reports/locations/{locationId}/management/pdf": {
+      "get": {
+        "tags": [
+          "Berichte"
+        ],
+        "summary": "Management-Bericht für from bis until (höchstens ein Jahr) als PDF (A4 hoch): Kennzahlen je Gruppe mit Vergleich (compare wie beim Bericht) und Veränderung, Verlauf als Balken, danach die Tabellen des Berichts. Ohne das Recht „Berichte mit Beträgen“ ohne Geldbeträge, Gäste nur mit dem Recht der Kundenliste; mit ai=true der schon geschriebene KI-Kommentar mit Hinweis, mit analysisId die übernommene KI-Auswertung (fertig, gleicher Standort, Zeitraum, Vergleich und Sicht, sonst ein Fehler) mit Hinweis. Steht im Export-Protokoll.",
+        "operationId": "ManagementReportPdf",
+        "parameters": [
+          {
+            "name": "locationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "until",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "compare",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "previous"
+            }
+          },
+          {
+            "name": "ai",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "analysisId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/v1/reports/locations/{locationId}/management/send": {
+      "get": {
+        "tags": [
+          "Berichte"
+        ],
+        "summary": "Vorbelegung für „Per Mail senden“: die eigene Mailadresse der angemeldeten Person, Betreff mit Standort und Zeitraum, kurzer Text.",
+        "operationId": "ManagementReportMailDraft",
+        "parameters": [
+          {
+            "name": "locationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "until",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "compare",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "previous"
+            }
+          },
+          {
+            "name": "ai",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentMailDraft"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Berichte"
+        ],
+        "summary": "Management-Bericht als PDF per Mail an die eingetippte Adresse (über die Queue); Inhalt wie GET …/management/pdf, auch mit analysisId. Vermerk im Export-Protokoll mit Empfänger.",
+        "operationId": "SendManagementReportPdf",
+        "parameters": [
+          {
+            "name": "locationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "until",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "compare",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "previous"
+            }
+          },
+          {
+            "name": "ai",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "analysisId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendDocumentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "Accepted"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/v1/reports/locations/{locationId}/management/analysis": {
+      "post": {
+        "tags": [
+          "Berichte"
+        ],
+        "summary": "KI-Auswertung des Management-Berichts anlegen (Zeitraum und Vergleich wie beim Bericht, Schwerpunkt, eigene Frage bis 300 Zeichen); geschrieben wird über die Queue, Status mit GET …/analysis/{id}. Zu denselben Zahlen, Schwerpunkt und Frage kommt die gespeicherte Auswertung zurück. Ohne Claude-Schlüssel ein Fehler mit Hinweis.",
+        "operationId": "RequestManagementAnalysis",
+        "parameters": [
+          {
+            "name": "locationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManagementAnalysisRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManagementAnalysisDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/v1/reports/locations/{locationId}/management/analysis/{id}": {
+      "get": {
+        "tags": [
+          "Berichte"
+        ],
+        "summary": "Stand einer KI-Auswertung: Pending (läuft), Done mit Ergebnis oder Failed (nichts anzeigen, erneut anlegen). Immer mit Hinweis auf die KI.",
+        "operationId": "GetManagementAnalysis",
+        "parameters": [
+          {
+            "name": "locationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManagementAnalysisDto"
                 }
               }
             }
@@ -9178,7 +9789,7 @@
         "tags": [
           "Kassa"
         ],
-        "summary": "Neue Kasse. Österreich: erzeugt Schlüssel für den Umsatzzähler und den signierten Startbeleg.",
+        "summary": "Neue Kassa. Österreich: erzeugt Schlüssel für den Umsatzzähler und den signierten Startbeleg.",
         "operationId": "CreateCashRegister",
         "requestBody": {
           "content": {
@@ -9377,7 +9988,7 @@
         "tags": [
           "Kassa"
         ],
-        "summary": "Kasse außer Betrieb nehmen (Schlussbeleg). Danach in FinanzOnline abmelden.",
+        "summary": "Kassa außer Betrieb nehmen (Schlussbeleg). Danach in FinanzOnline abmelden.",
         "operationId": "DecommissionCashRegister",
         "parameters": [
           {
@@ -9429,7 +10040,7 @@
         "tags": [
           "Kassa"
         ],
-        "summary": "Belege einer Kasse an einem Tag (Ortszeit), neueste zuerst.",
+        "summary": "Belege einer Kassa an einem Tag (Ortszeit), neueste zuerst.",
         "operationId": "ListReceipts",
         "parameters": [
           {
@@ -9688,7 +10299,7 @@
         "tags": [
           "Kassa"
         ],
-        "summary": "Die letzten zehn TSE-Exporte einer Kasse mit Stand.",
+        "summary": "Die letzten zehn TSE-Exporte einer Kassa mit Stand.",
         "operationId": "ListTseExports",
         "parameters": [
           {
@@ -9941,7 +10552,7 @@
         "tags": [
           "Kassa"
         ],
-        "summary": "Die letzten 60 Tagesabschlüsse einer Kasse mit allen Zahlen; nur mit dem Recht „Berichte mit Beträgen“.",
+        "summary": "Die letzten 60 Tagesabschlüsse einer Kassa mit allen Zahlen; nur mit dem Recht „Berichte mit Beträgen“.",
         "operationId": "ListDayClosings",
         "parameters": [
           {
@@ -11671,7 +12282,7 @@
         "tags": [
           "Kassa"
         ],
-        "summary": "Vermerkt, dass der Gutschein ausgedruckt wurde (die App meldet es nach dem Drucken); die Gutscheinliste zeigt „Gedruckt am …“.",
+        "summary": "Vermerkt, dass der Druckdialog für den Gutschein geöffnet wurde (die App meldet es, sobald er aufgeht; ob gedruckt wurde, meldet Windows nicht); die Gutscheinliste zeigt „Zum Drucken geöffnet am …“.",
         "operationId": "VoucherPrinted",
         "parameters": [
           {
@@ -13581,7 +14192,7 @@
         "tags": [
           "Schließzeiten"
         ],
-        "summary": "Lässt die KI den Text der Absage umformulieren, auf Knopfdruck. Neue Zahlen oder verlorene Platzhalter verwirft der Server; der Text trägt danach den Hinweis auf die KI.",
+        "summary": "Lässt die KI den Text der Absage umformulieren, auf Knopfdruck. Neue Zahlen oder verlorene Platzhalter werden verworfen; der Text trägt danach den Hinweis auf die KI.",
         "operationId": "ReviseClosureCancellationText",
         "parameters": [
           {
@@ -17845,7 +18456,7 @@
         "tags": [
           "Kundenbereich"
         ],
-        "summary": "Stand der Bestellung; der Gutscheincode erscheint, sobald die Kasse ihn ausgestellt hat.",
+        "summary": "Stand der Bestellung; der Gutscheincode erscheint, sobald die Kassa ihn ausgestellt hat.",
         "operationId": "GetOnlineVoucherOrder",
         "parameters": [
           {
@@ -18198,7 +18809,7 @@
         "tags": [
           "Kalender"
         ],
-        "summary": "Ausfallgebühr von der hinterlegten Karte belasten und an der Kasse verbuchen (nur bei Nichterscheinen oder später Absage).",
+        "summary": "Ausfallgebühr von der hinterlegten Karte belasten und an der Kassa verbuchen (nur bei Nichterscheinen oder später Absage).",
         "operationId": "ChargeNoShowFee",
         "parameters": [
           {
@@ -26256,7 +26867,7 @@
         "tags": [
           "Berichte"
         ],
-        "summary": "Kennzahlen eines Zeitraums mit Vergleich zum gleich langen Zeitraum davor; ohne das Recht „Berichte mit Beträgen“ ohne Geldbeträge. Auch in der Mitarbeiter-App für „Heute im Spa“, mit den Rechten der Rolle.",
+        "summary": "Kennzahlen eines Zeitraums mit Vergleich zum gleich langen Zeitraum davor (compare=previous, Standard), zum selben Abschnitt des Vormonats (month) oder zum Vorjahr (year); ohne das Recht „Berichte mit Beträgen“ ohne Geldbeträge. Auch in der Mitarbeiter-App für „Heute im Spa“, mit den Rechten der Rolle.",
         "operationId": "GetManagementReport",
         "parameters": [
           {
@@ -26284,6 +26895,14 @@
             "schema": {
               "type": "string",
               "format": "date"
+            }
+          },
+          {
+            "name": "compare",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "previous"
             }
           }
         ],
@@ -26329,7 +26948,7 @@
         "tags": [
           "Berichte"
         ],
-        "summary": "Ob die angemeldete Person Wochen- und Monatsbericht per Mail bekommt (Inhaber, Manager, Standortleitung).",
+        "summary": "Ob die angemeldete Person Wochen- und Monatsbericht per Mail bekommt (Inhaber, Manager, Standortleitung); im Einzelplatz nur mit eingerichtetem Mailversand.",
         "operationId": "GetReportMailSubscription",
         "responses": {
           "200": {
@@ -32327,6 +32946,129 @@
               "string"
             ],
             "format": "date-time"
+          },
+          "claudeModel": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "claudeModelExtract": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "AiUsageReport": {
+        "required": [
+          "days",
+          "rows"
+        ],
+        "type": "object",
+        "properties": {
+          "days": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AiUsageRow"
+            }
+          }
+        }
+      },
+      "AiUsageRow": {
+        "required": [
+          "task",
+          "model",
+          "calls",
+          "inputTokens",
+          "outputTokens",
+          "cacheReadTokens",
+          "cacheWriteTokens"
+        ],
+        "type": "object",
+        "properties": {
+          "task": {
+            "$ref": "#/components/schemas/AiUsageTask"
+          },
+          "model": {
+            "type": "string"
+          },
+          "calls": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "inputTokens": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "outputTokens": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "cacheReadTokens": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "cacheWriteTokens": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "AiUsageTask": {
+        "enum": [
+          "BookingRequest",
+          "ReplyDraft",
+          "ReplyRevision",
+          "Translation",
+          "GuestQuestion",
+          "Treatwell",
+          "DeliveryNote",
+          "Anamnesis",
+          "AssistantIntent",
+          "AssistantAnswer",
+          "BriefingSummary",
+          "ManagementSummary",
+          "ManagementAnalysis",
+          "RebookText"
+        ]
+      },
+      "AnalysisFinding": {
+        "required": [
+          "observation",
+          "possibleCause",
+          "kpi"
+        ],
+        "type": "object",
+        "properties": {
+          "observation": {
+            "type": "string"
+          },
+          "possibleCause": {
+            "type": "string"
+          },
+          "kpi": {
+            "type": "string"
+          }
+        }
+      },
+      "AnalysisMeasure": {
+        "required": [
+          "action",
+          "successSign"
+        ],
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string"
+          },
+          "successSign": {
+            "type": "string"
           }
         }
       },
@@ -37083,6 +37825,26 @@
           }
         }
       },
+      "ChannelKpi": {
+        "required": [
+          "source",
+          "label",
+          "appointments"
+        ],
+        "type": "object",
+        "properties": {
+          "source": {
+            "$ref": "#/components/schemas/AppointmentSource"
+          },
+          "label": {
+            "type": "string"
+          },
+          "appointments": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "ChannelMappingDto": {
         "required": [
           "id",
@@ -37172,6 +37934,73 @@
               "string"
             ],
             "format": "uuid"
+          }
+        }
+      },
+      "ClaudeKeyCheck": {
+        "required": [
+          "outcome",
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "outcome": {
+            "$ref": "#/components/schemas/ClaudeKeyCheckOutcome"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "ClaudeKeyCheckOutcome": {
+        "enum": [
+          "Valid",
+          "Invalid",
+          "NoCredit",
+          "Unreachable"
+        ]
+      },
+      "ClaudeKeyInput": {
+        "required": [
+          "apiKey"
+        ],
+        "type": "object",
+        "properties": {
+          "apiKey": {
+            "type": "string"
+          }
+        }
+      },
+      "ClaudeKeySource": {
+        "enum": [
+          "None",
+          "Config",
+          "App"
+        ]
+      },
+      "ClaudeKeyStatus": {
+        "required": [
+          "isSet",
+          "source",
+          "mask",
+          "available"
+        ],
+        "type": "object",
+        "properties": {
+          "isSet": {
+            "type": "boolean"
+          },
+          "source": {
+            "$ref": "#/components/schemas/ClaudeKeySource"
+          },
+          "mask": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "available": {
+            "type": "boolean"
           }
         }
       },
@@ -41303,6 +42132,41 @@
           }
         }
       },
+      "ForecastWeek": {
+        "required": [
+          "from",
+          "until",
+          "appointments",
+          "bookedRevenue",
+          "staffUtilization"
+        ],
+        "type": "object",
+        "properties": {
+          "from": {
+            "type": "string",
+            "format": "date"
+          },
+          "until": {
+            "type": "string",
+            "format": "date"
+          },
+          "appointments": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "bookedRevenue": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "staffUtilization": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
       "GapChainMove": {
         "required": [
           "appointmentId",
@@ -41756,6 +42620,35 @@
           }
         }
       },
+      "GuestKpi": {
+        "required": [
+          "customerId",
+          "name",
+          "visits",
+          "spent"
+        ],
+        "type": "object",
+        "properties": {
+          "customerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "visits": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "spent": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
       "GuestMessageDelayDto": {
         "required": [
           "minutes"
@@ -42098,6 +42991,32 @@
           },
           "name": {
             "type": "string"
+          }
+        }
+      },
+      "HourlyStaffing": {
+        "required": [
+          "date",
+          "hour",
+          "open",
+          "count"
+        ],
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "hour": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "open": {
+            "type": "boolean"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
@@ -43309,6 +44228,44 @@
           },
           "unit": {
             "type": "string"
+          },
+          "higherIsBetter": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          },
+          "group": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "LapsingGuest": {
+        "required": [
+          "customerId",
+          "name",
+          "lastVisit",
+          "visits"
+        ],
+        "type": "object",
+        "properties": {
+          "customerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "lastVisit": {
+            "type": "string",
+            "format": "date"
+          },
+          "visits": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
@@ -43820,6 +44777,157 @@
           "None"
         ]
       },
+      "ManagementAnalysisDto": {
+        "required": [
+          "id",
+          "locationId",
+          "from",
+          "until",
+          "compare",
+          "focus",
+          "question",
+          "amountsHidden",
+          "status",
+          "result",
+          "notice",
+          "requestedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "locationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "from": {
+            "type": "string",
+            "format": "date"
+          },
+          "until": {
+            "type": "string",
+            "format": "date"
+          },
+          "compare": {
+            "type": "string"
+          },
+          "focus": {
+            "$ref": "#/components/schemas/ManagementAnalysisFocus"
+          },
+          "question": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "amountsHidden": {
+            "type": "boolean"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ManagementAnalysisStatus"
+          },
+          "result": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ManagementAnalysisResult"
+              }
+            ]
+          },
+          "notice": {
+            "type": "string"
+          },
+          "requestedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ManagementAnalysisFocus": {
+        "enum": [
+          "Overall",
+          "RevenueAndProfit",
+          "UtilizationAndRoster",
+          "GuestsAndLoyalty",
+          "OfferAndPrices"
+        ]
+      },
+      "ManagementAnalysisRequest": {
+        "required": [
+          "from",
+          "until"
+        ],
+        "type": "object",
+        "properties": {
+          "from": {
+            "type": "string",
+            "format": "date"
+          },
+          "until": {
+            "type": "string",
+            "format": "date"
+          },
+          "focus": {
+            "$ref": "#/components/schemas/ManagementAnalysisFocus"
+          },
+          "question": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "compare": {
+            "type": "string",
+            "default": "previous"
+          }
+        }
+      },
+      "ManagementAnalysisResult": {
+        "required": [
+          "keyFindings",
+          "findings",
+          "measures",
+          "notShown"
+        ],
+        "type": "object",
+        "properties": {
+          "keyFindings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "findings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AnalysisFinding"
+            }
+          },
+          "measures": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AnalysisMeasure"
+            }
+          },
+          "notShown": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "ManagementAnalysisStatus": {
+        "enum": [
+          "Pending",
+          "Done",
+          "Failed"
+        ]
+      },
       "ManagementReportDto": {
         "required": [
           "locationId",
@@ -43920,6 +45028,100 @@
             "items": {
               "$ref": "#/components/schemas/PromotionKpi"
             }
+          },
+          "compareFrom": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "compareUntil": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "trend": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/TrendPoint"
+            }
+          },
+          "loadByWeekday": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/WeekdayLoad"
+            }
+          },
+          "weakLoadBelow": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "rooms": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/RoomKpi"
+            }
+          },
+          "channels": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/ChannelKpi"
+            }
+          },
+          "topGuests": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/GuestKpi"
+            }
+          },
+          "lapsingGuests": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/LapsingGuest"
+            }
+          },
+          "forecast": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/ForecastWeek"
+            }
+          },
+          "forecastAsOf": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "aiAnalysisAvailable": {
+            "type": "boolean"
           }
         }
       },
@@ -48838,6 +50040,32 @@
           }
         }
       },
+      "RoomKpi": {
+        "required": [
+          "roomId",
+          "name",
+          "utilization",
+          "appointments"
+        ],
+        "type": "object",
+        "properties": {
+          "roomId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "utilization": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "appointments": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "RoomStartCheckInput": {
         "required": [
           "date",
@@ -49267,6 +50495,15 @@
               "string"
             ],
             "format": "date-time"
+          },
+          "hourlyStaffing": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/HourlyStaffing"
+            }
           }
         }
       },
@@ -54421,6 +55658,41 @@
           }
         }
       },
+      "TrendPoint": {
+        "required": [
+          "from",
+          "until",
+          "revenueNet",
+          "appointments",
+          "staffUtilization"
+        ],
+        "type": "object",
+        "properties": {
+          "from": {
+            "type": "string",
+            "format": "date"
+          },
+          "until": {
+            "type": "string",
+            "format": "date"
+          },
+          "revenueNet": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "appointments": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "staffUtilization": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
       "TseExportDto": {
         "required": [
           "id",
@@ -55193,6 +56465,49 @@
           "Cancelled",
           "Expired"
         ]
+      },
+      "WeekdayLoad": {
+        "required": [
+          "day",
+          "morning",
+          "midday",
+          "afternoon",
+          "evening"
+        ],
+        "type": "object",
+        "properties": {
+          "day": {
+            "$ref": "#/components/schemas/DayOfWeek"
+          },
+          "morning": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "midday": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "afternoon": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "evening": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
       },
       "WorkingHours": {
         "required": [

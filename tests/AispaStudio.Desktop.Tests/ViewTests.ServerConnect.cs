@@ -44,6 +44,8 @@ public sealed partial class ViewTests
         var page = shell.Pages.Single(p => p.Page is ServerLinkViewModel);
         shell.SelectedPage = page;
 
+        Assert.Same(page, shell.Pages[^1]);
+        Assert.Same(shell.Help, shell.Pages[^2].Page);
         Assert.Equal("Netz", page.Title);
         Assert.Same(shell.ServerLink, page.Page);
         Assert.Contains("https://spa.example.at/", shell.ServerLink!.Text, StringComparison.Ordinal);

@@ -19,11 +19,11 @@ Die Meldung „Raum Lotus ist gesperrt (…): 4 Termine umbuchen“ steht in der
 1. Im Kalender in der Seitenleiste **Meldungen** bei „… ist gesperrt: n Termine umbuchen“ auf **Umbuchen …** klicken. Oder in der Raumansicht im Kopf des gesperrten Raums auf **n Termine umbuchen** klicken, oder mit der rechten Maustaste auf den Kopf und **Termine in andere Räume umbuchen**.
 2. Rechts öffnet sich **Umbuchung aus Raum …** mit dem Zeitraum der Sperre. Für jeden offenen Termin steht ein Vorschlag da, mit Tag, Gast und einem Satz, warum: „gleiche Zeit bei Elif Demir, Raum Lavendel“ oder, wenn zur selben Zeit kein anderer Raum frei ist, die nächste freie Zeit am selben Tag. Ohne Vorschlag steht „kein anderer Raum an diesem Tag“; den Gast ruft die Rezeption an.
 3. Mit den Häkchen einzelne Vorschläge abwählen. Auf Wunsch **Gäste per Mail über die Änderung informieren** ankreuzen: wer eine Mailadresse hat und dessen Zeit oder Person sich ändert, bekommt eine Mail; bei einem reinen Raumwechsel geht keine Mail hinaus, weil er den Gast nicht betrifft.
-4. Auf **Gewählte übernehmen** klicken. Der Server verschiebt jeden Termin mit denselben Prüfungen wie beim Verschieben im Kalender; was inzwischen belegt ist, steht an der Zeile („Nicht verschoben: …“). Unten steht, wie viele Termine umgebucht wurden.
+4. Auf **Gewählte übernehmen** klicken. AISPA Studio verschiebt jeden Termin mit denselben Prüfungen wie beim Verschieben im Kalender; was inzwischen belegt ist, steht an der Zeile („Nicht verschoben: …“). Unten steht, wie viele Termine umgebucht wurden.
 
 ![Umbuchungshilfe mit drei Vorschlägen, der dritte ohne anderen Raum](images/app/kalender-raumsperre-umbuchen.png)
 
-## Hinweise {#hinweise}
+## Gut zu wissen {#hinweise}
 
 - Das Fenster zeigt immer alle offenen Termine der Sperre, auch an anderen Tagen, mit dem Tag vor der Zeit.
 - Ein einzelner Termin lässt sich auch von Hand in einen anderen Raum ziehen: [Termin verschieben](hilfe:kalender-termin-verschieben#andere-person).

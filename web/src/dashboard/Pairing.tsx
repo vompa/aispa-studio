@@ -62,7 +62,7 @@ export function Pairing({ onPaired, onOff }: { onPaired: () => void; onOff: () =
       <p className="code" aria-live="polite">
         {start ? start.code : '…'}
       </p>
-      {offline && <p className="hint">Keine Verbindung zum Server. Die Anzeige versucht es weiter.</p>}
+      {offline && <p className="hint">Keine Verbindung. Die Anzeige versucht es weiter.</p>}
     </main>
   )
 }

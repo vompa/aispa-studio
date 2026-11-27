@@ -122,7 +122,7 @@ public sealed class PosDayListTests
 
         await pos.AddUnbilledCommand.ExecuteAsync(row);
 
-        Assert.Equal("Server nicht erreichbar. Verbindung prüfen und erneut versuchen.", pos.Error);
+        Assert.Equal("Keine Verbindung. Verbindung prüfen und erneut versuchen.", pos.Error);
         Assert.False(pos.IsWorking);
         Assert.Null(pos.Bill);
     }

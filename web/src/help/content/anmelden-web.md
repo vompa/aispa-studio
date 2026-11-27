@@ -3,6 +3,7 @@ art: ablauf
 bereich: Anmeldung
 seite: anmeldung
 stichwoerter: Anmelden im Browser, Code für die Windows-App, Einladung annehmen, Passkey hinzufügen, Spa registrieren, Registrierung, Mein Tag anmelden, Passwort, Einzelplatz, Testkonto, sign in, accept invitation, register, passkey, device code
+betrieb: server
 ---
 # Seite „Anmelden“ im Browser
 

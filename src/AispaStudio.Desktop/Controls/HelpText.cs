@@ -17,6 +17,9 @@ public sealed class HelpText : TextBlock
 
     public HelpText() => TextWrapping = TextWrapping.Wrap;
 
+    /// <summary>Im Einzelplatz erscheinen Verweise auf Themen mit <c>betrieb: server</c> als Text ohne Link.</summary>
+    public bool Standalone { get; set; } = HelpContent.Standalone;
+
     protected override Type StyleKeyOverride => typeof(TextBlock);
 
     public IReadOnlyList<HelpSpan>? Spans
@@ -31,13 +34,15 @@ public sealed class HelpText : TextBlock
         Inlines.Clear();
         foreach (var span in Spans ?? [])
         {
-            if (HelpMarkdown.HelpLink(span.Href) is var (topic, section))
+            var help = HelpMarkdown.HelpLink(span.Href);
+            var hidden = Standalone && help is { } target && HelpLibrary.IsServerOnly(target.Topic);
+            if (!hidden && help is var (topic, section))
             {
                 var link = new HyperlinkButton { Content = span.Text, Padding = new Thickness(0) };
                 link.Click += (_, _) => HelpContent.Open(topic, section);
                 Inlines.Add(new InlineUIContainer(link));
             }
-            else if (span.Href is { } href && Uri.TryCreate(href, UriKind.Absolute, out var uri))
+            else if (!hidden && span.Href is { } href && Uri.TryCreate(href, UriKind.Absolute, out var uri))
             {
                 Inlines.Add(new InlineUIContainer(new HyperlinkButton { Content = span.Text, NavigateUri = uri, Padding = new Thickness(0) }));
             }

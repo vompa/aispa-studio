@@ -162,7 +162,8 @@ public sealed partial class ViewTests
 
             Assert.Equal(OwnerModes, window.GetVisualDescendants().OfType<TabButton>().Where(t => t.IsEffectivelyVisible).Select(t => t.Content as string).Where(OwnerModes.Contains));
             var powers = Named<Control>(window, "PowersSection");
-            var duties = Named<Control>(window, "DutiesSection");
+            // Die Personenkarte öffnet seit T-109 im Profil; ihr Abschnitt „Zuständigkeiten“ (gleicher Name) steht dann ausgeblendet im Baum.
+            var duties = VisibleNamed<Control>(window, "DutiesSection");
             Assert.True(powers.IsEffectivelyVisible);
             Assert.True(duties.IsEffectivelyVisible);
             Assert.Equal(20, TopOf(window, duties) - (TopOf(window, powers) + powers.Bounds.Height), 1);
@@ -194,7 +195,7 @@ public sealed partial class ViewTests
 
         // Ohne Person: „zustaendigkeiten“ war früher auch ein Reiter der Karte; der Sprung mit Person bleibt dort (PersonCardTests).
         var scroll = Named<ScrollViewer>(window, "RightsScroll");
-        var duties = Named<Control>(window, "DutiesSection");
+        var duties = VisibleNamed<Control>(window, "DutiesSection");
         var expected = Math.Min(duties.TranslatePoint(default, (Visual)scroll.Content!)!.Value.Y, scroll.Extent.Height - scroll.Viewport.Height);
         Assert.True(expected > 0, "Die Seite ist beim Mindestfenster nicht höher als der sichtbare Bereich");
         Assert.Equal(expected, scroll.Offset.Y, 1);

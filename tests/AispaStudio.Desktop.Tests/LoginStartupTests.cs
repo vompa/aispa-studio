@@ -65,6 +65,19 @@ public sealed class LoginStartupTests
         Assert.True(older.HasTestAccounts);
     }
 
+    [Fact]
+    public async Task Hinweis_bei_bereitem_Start_steht_in_der_Anmeldung_und_die_Testkonten_laden()
+    {
+        const string Notice = "Beispieldaten abgelaufen (letzter Termin 17.11.2026).";
+        var login = Login(Api("Development", StartupPhase.Ready, Notice, Accounts), TimeSpan.Zero);
+
+        await login.LoadAsync();
+
+        Assert.Equal(Notice, login.StartupNotice);
+        Assert.Equal("Hinweis zum Start", login.StartupTitle);
+        Assert.True(login.HasTestAccounts);
+    }
+
     [Theory]
     [InlineData(StaffRole.Reception, "empfang.wien@demo.aispa.test")]
     [InlineData(StaffRole.Owner, "inhaberin@demo.aispa.test")]

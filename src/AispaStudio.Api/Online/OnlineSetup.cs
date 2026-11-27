@@ -1,4 +1,5 @@
 using System.Threading.RateLimiting;
+using AispaStudio.Api.MailIntake;
 using AispaStudio.Api.System;
 
 namespace AispaStudio.Api.Online;
@@ -58,18 +59,10 @@ internal static class OnlineSetup
             services.AddSingleton<IOnlinePaymentProvider, TestPaymentProvider>();
         }
 
-        // Papierbögen lesen: Claude, sobald ein API-Schlüssel eingerichtet ist (Ai:Claude:ApiKey), sonst von Hand übertragen.
-        services.Configure<AnamnesisReaderOptions>(configuration.GetSection("Ai:Claude"));
+        // Papierbögen lesen: Claude, sobald für das Spa ein API-Schlüssel gilt (Konfiguration oder App, ADR 0103), sonst von Hand übertragen.
         // Wie bei der Terminannahme schaltet Ai:Provider=RuleBased die KI ganz ab.
-        if (string.IsNullOrWhiteSpace(configuration["Ai:Claude:ApiKey"])
-            || string.Equals(configuration["Ai:Provider"], "RuleBased", StringComparison.OrdinalIgnoreCase))
-        {
-            services.AddSingleton<IAnamnesisReader, ManualAnamnesisReader>();
-        }
-        else
-        {
-            services.AddSingleton<IAnamnesisReader, ClaudeAnamnesisReader>();
-        }
+        services.Configure<AnamnesisReaderOptions>(configuration.GetSection("Ai:Claude"));
+        services.AddClaudeOr<IAnamnesisReader, ClaudeAnamnesisReader, ManualAnamnesisReader>();
 
         // Öffentliche Endpunkte je IP-Adresse begrenzen: schützt vor Durchprobieren von Codes und vor Massenbuchungen.
         var options = configuration.GetSection(OnlineBookingOptions.Section).Get<OnlineBookingOptions>() ?? new();

@@ -9,7 +9,7 @@ stichwoerter: verschieben, verlegen, umbuchen, umlegen, später, früher, andere
 ---
 # Termin verschieben
 
-Termine lassen sich im Kalender ziehen, mit Alt + Pfeiltasten oder über das Terminfenster auf einen anderen Tag verschieben. Der Termin steht sofort an der neuen Stelle; der Server prüft im Hintergrund, ob Person, Raum und Gerät frei sind.
+Termine lassen sich im Kalender ziehen, mit Alt + Pfeiltasten oder über das Terminfenster auf einen anderen Tag verschieben. Der Termin steht sofort an der neuen Stelle; AISPA Studio prüft im Hintergrund, ob Person, Raum und Gerät frei sind.
 
 ## Voraussetzungen {#voraussetzungen}
 
@@ -39,14 +39,14 @@ Die Maustaste loslassen. Unten erscheint z. B. „Verschoben auf 10:00“ (an ei
 
 ## Was danach {#was-danach}
 
-Die alte Zeit gilt als frei; der Server schreibt passenden Gästen auf der [Warteliste](hilfe:kalender-warteliste). Innerhalb der Meldungsdauer lässt sich die Verschiebung [rückgängig machen](hilfe:kalender-termin-verschieben#rueckgaengig). Ändert sich nur die Vor- oder Nachbereitung, siehe [Zeiten je Termin](hilfe:kalender-termin-verschieben#zeiten-je-termin).
+Die alte Zeit gilt als frei; AISPA Studio schreibt passenden Gästen auf der [Warteliste](hilfe:kalender-warteliste). Innerhalb der Meldungsdauer lässt sich die Verschiebung [rückgängig machen](hilfe:kalender-termin-verschieben#rueckgaengig). Ändert sich nur die Vor- oder Nachbereitung, siehe [Zeiten je Termin](hilfe:kalender-termin-verschieben#zeiten-je-termin).
 
 ## Wenn etwas schiefgeht {#wenn-etwas-schiefgeht}
 
-- Lehnt der Server ab (z. B. Person, Raum oder Gerät belegt), springt der Termin zurück und unten steht „Nicht verschoben: …“ mit der Begründung; belegte Zeiträume stehen darin in Ortszeit des Standorts („Zeitraum ist belegt. Termin · 11:00–11:50 · Clara Fischer“).
+- Lehnt AISPA Studio ab (z. B. Person, Raum oder Gerät belegt), springt der Termin zurück und unten steht „Nicht verschoben: …“ mit der Begründung; belegte Zeiträume stehen darin in Ortszeit des Standorts („Zeitraum ist belegt. Termin · 11:00–11:50 · Clara Fischer“).
 - Erledigte, nicht erschienene und stornierte Termine lassen sich nicht verschieben, eingecheckte schon.
 - Auf einen vergangenen Tag lässt sich kein Termin verschieben, auch keine ganze Buchung: Das Feld „Tag“ nimmt nur heute oder einen späteren Tag an, **−1 Tag** und **Verschieben** sind dann gesperrt („Verfügbar für heute oder einen späteren Tag.“). Ziehen und Alt + Pfeiltasten bleiben ohnehin im angezeigten Tag.
-- Hat jemand den Termin inzwischen an einem anderen Arbeitsplatz geändert, verschiebt der Server nicht. Oben steht „Nicht verschoben“ mit „Der Termin wurde inzwischen an einem anderen Arbeitsplatz geändert. Bitte den aktuellen Stand prüfen.“, und der Kalender zeigt den Termin so, wie ihn der andere Arbeitsplatz gespeichert hat. Dasselbe gilt im Terminfenster für Zeiten, Notiz, Stornieren, Status und Zurücknehmen; die Meldung steht dann oben im Terminfenster. Die eigene Änderung bei Bedarf neu eingeben.
+- Hat jemand den Termin inzwischen an einem anderen Arbeitsplatz geändert, verschiebt AISPA Studio nicht. Oben steht „Nicht verschoben“ mit „Der Termin wurde inzwischen an einem anderen Arbeitsplatz geändert. Bitte den aktuellen Stand prüfen.“, und der Kalender zeigt den Termin so, wie ihn der andere Arbeitsplatz gespeichert hat. Dasselbe gilt im Terminfenster für Zeiten, Notiz, Stornieren, Status und Zurücknehmen; die Meldung steht dann oben im Terminfenster. Die eigene Änderung bei Bedarf neu eingeben.
 - Fehlermeldungen bleiben stehen, bis man sie mit dem Kreuz schließt.
 - **V** auf einem markierten, gebuchten Termin öffnet die Verschieben-Karte im Terminfenster ([anderer Tag](hilfe:kalender-termin-verschieben#anderer-tag)); bei eingecheckten Terminen und gemeinsamen Buchungen erinnert die Taste nur, wie das Verschieben geht.
 - Ohne Verbindung wird die Verschiebung vorgemerkt; siehe [Arbeiten ohne Verbindung](hilfe:kalender-offline).
@@ -61,12 +61,12 @@ Die alte Zeit gilt als frei; der Server schreibt passenden Gästen auf der [Wart
 
 ## Andere Person oder anderer Raum {#andere-person}
 
-- In der Ansicht **Team** wechselt das Ziehen in eine andere Spalte die Person. Der Raum bleibt, wenn er zur neuen Zeit frei ist; sonst wählt der Server einen passenden anderen.
+- In der Ansicht **Team** wechselt das Ziehen in eine andere Spalte die Person. Der Raum bleibt, wenn er zur neuen Zeit frei ist; sonst wählt AISPA Studio einen passenden anderen.
 - In der Ansicht **Räume** wechselt das Ziehen den Raum, die Person bleibt. Siehe [Raumansicht](hilfe:kalender-raumansicht).
 
 ## Rückgängig {#rueckgaengig}
 
-Innerhalb der 8 Sekunden, die die Meldung unten steht (ohne **Rückgängig** sind es 5), **Rückgängig** anklicken oder **Strg+Z** drücken. Der Termin geht an die alte Stelle zurück, wieder über den Server; ist die alte Stelle inzwischen belegt, steht oben im Kalender „Nicht zurückgenommen“ mit dem Grund und der Schaltfläche **Erneut versuchen**. Hat jemand den Termin inzwischen an einem anderen Arbeitsplatz geändert, steht dort „Nicht zurückgenommen“ ohne **Erneut versuchen**, und der Kalender zeigt den Termin so, wie ihn der andere Arbeitsplatz gespeichert hat. Hat jemand den Termin inzwischen an einem anderen Arbeitsplatz geändert, steht dort „Nicht zurückgenommen“ ohne **Erneut versuchen**, und der Kalender zeigt den Termin so, wie ihn der andere Arbeitsplatz gespeichert hat.
+Innerhalb der 8 Sekunden, die die Meldung unten steht (ohne **Rückgängig** sind es 5), **Rückgängig** anklicken oder **Strg+Z** drücken. Der Termin geht an die alte Stelle zurück, ist die alte Stelle inzwischen belegt, steht oben im Kalender „Nicht zurückgenommen“ mit dem Grund und der Schaltfläche **Erneut versuchen**. Hat jemand den Termin inzwischen an einem anderen Arbeitsplatz geändert, steht dort „Nicht zurückgenommen“ ohne **Erneut versuchen**, und der Kalender zeigt den Termin so, wie ihn der andere Arbeitsplatz gespeichert hat. Hat jemand den Termin inzwischen an einem anderen Arbeitsplatz geändert, steht dort „Nicht zurückgenommen“ ohne **Erneut versuchen**, und der Kalender zeigt den Termin so, wie ihn der andere Arbeitsplatz gespeichert hat.
 
 ![Meldung nach dem Verschieben mit Rückgängig](images/app/kalender-verschoben.png)
 
@@ -81,7 +81,7 @@ Ziehen und Alt + Pfeile bleiben im angezeigten Tag. Für einen anderen Tag:
 
 ![Termin auf einen anderen Tag verschieben](images/app/kalender-anderer-tag.png)
 
-- Person und Raum bleiben, wenn sie zur neuen Zeit frei sind; sonst wählt der Server passende. Die Meldung nennt, wer und welcher Raum es geworden ist.
+- Person und Raum bleiben, wenn sie zur neuen Zeit frei sind; sonst wählt AISPA Studio passende. Die Meldung nennt, wer und welcher Raum es geworden ist.
 - Das geht für gebuchte Einzeltermine. Eine gemeinsame Buchung zieht nur als Ganzes um (siehe unten), ein eingecheckter Termin nur innerhalb des Tages.
 
 ## Paar oder Spa-Tag {#gemeinsam}
@@ -118,15 +118,15 @@ Jeder Termin trägt seine eigene Vorbereitung und Nachbereitung. Beim Buchen kom
 
 ![Vor- und Nachbereitung eines Termins ändern](images/app/kalender-panel-zeiten.png)
 
-- Der Server prüft dieselbe Person, denselben Raum und dasselbe Gerät zur selben Startzeit mit den neuen Minuten. Passt es nicht, etwa weil die längere Vorbereitung in den Termin davor ragt, bleibt der Termin unverändert und unten steht „Zeiten nicht geändert: …“ mit der Begründung.
+- AISPA Studio prüft dieselbe Person, denselben Raum und dasselbe Gerät zur selben Startzeit mit den neuen Minuten. Passt es nicht, etwa weil die längere Vorbereitung in den Termin davor ragt, bleibt der Termin unverändert und unten steht „Zeiten nicht geändert: …“ mit der Begründung.
 - Der Puffer bleibt, wie er ist.
 - Weichen die Minuten von der Behandlung ab, steht im Terminfenster und in der Hover-Karte „(geändert)“ dahinter.
 - Das Verschieben rechnet mit den Minuten des Termins. Eine spätere Änderung der Behandlung im Katalog gilt nur für neue Buchungen.
 - Das geht für gebuchte und eingecheckte Termine, für alle, die buchen dürfen (Rezeption, Standortleitung, Inhaber). Bei Paar und Spa-Tag gilt es je Termin, nicht für die ganze Buchung.
 
-## Hinweise {#hinweise}
+## Gut zu wissen {#hinweise}
 
 - Verschieben dürfen Rezeption, Standortleitung und Inhaber.
 - Ohne Verbindung wird die Verschiebung vorgemerkt („vorgemerkt“ am Termin) und erst beim Abgleich geprüft; **Rückgängig** gibt es dann nicht. Siehe [Arbeiten ohne Verbindung](hilfe:kalender-offline).
-- Wird ein Termin verschoben, gilt die alte Zeit als frei; der Server schreibt passenden Gästen auf der [Warteliste](hilfe:kalender-warteliste).
+- Wird ein Termin verschoben, gilt die alte Zeit als frei; AISPA Studio schreibt passenden Gästen auf der [Warteliste](hilfe:kalender-warteliste).
 - Fällt eine Person aus, verschiebt der [Ausfall-Assistent](hilfe:kalender-krankmeldung) alle ihre Termine auf einmal.

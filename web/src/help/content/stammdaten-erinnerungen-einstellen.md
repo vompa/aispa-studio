@@ -5,6 +5,7 @@ oberflaeche: verwaltung
 rollen: inhaber, manager
 seite: verwaltung
 stichwoerter: Terminerinnerung, Erinnerung einstellen, SMS-Erinnerung, Mail-Erinnerung, WhatsApp, vor dem Termin erinnern, No-Show vermeiden, Wiederbuchung, Wiederbuchungs-Hinweis, nächste Behandlung, reminder, appointment reminder, rebooking
+betrieb: server
 ---
 # Terminerinnerungen einstellen
 

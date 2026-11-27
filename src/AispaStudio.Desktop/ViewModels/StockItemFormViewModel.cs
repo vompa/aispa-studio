@@ -203,8 +203,8 @@ public sealed partial class StockItemFormViewModel : ViewModelBase, IFocusTarget
     /// <summary>Eine Eingabe weicht vom leeren Formular oder vom gewählten Material ab.</summary>
     public bool IsDirty => Signature() != _savedSignature;
 
-    /// <summary>Wie im Web: ohne Bezeichnung und Einheit ist der Knopf aus; beim Ändern auch ohne Änderung.</summary>
-    public bool CanCreate => !IsSaving && ItemName.Trim().Length > 0 && Unit.Trim().Length > 0 && (!IsEditing || IsDirty);
+    /// <summary>Gesperrt, solange gespeichert wird und beim Ändern ohne Änderung; fehlende Bezeichnung oder Einheit meldet <see cref="CreateItemAsync"/> am Feld.</summary>
+    public bool CanCreate => !IsSaving && (!IsEditing || IsDirty);
 
     internal void SetArticles(IEnumerable<ArticleDto> articles)
     {

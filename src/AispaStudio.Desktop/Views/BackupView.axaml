@@ -53,8 +53,10 @@
           <TextBlock Text="Am besten ein zweites Laufwerk, ein USB-Laufwerk, das angesteckt bleibt, oder ein Netzordner. Nicht dieselbe Festplatte wie Windows: fällt sie aus, ist sonst auch die Sicherung weg."
                      Classes="muted small" TextWrapping="Wrap" />
           <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-            <TextBox Text="{Binding FolderInput}" AutomationProperties.Name="Sicherungsordner" PlaceholderText="z. B. D:\Sicherung oder \\server\freigabe\aispa" />
-            <Button Grid.Column="1" Classes="primary" Content="Speichern und sichern" Command="{Binding SaveFolderCommand}" ui:DisabledHint.Text="Verfügbar, sobald ein Ordner eingetragen ist." />
+            <ui:FormField Error="{Binding FolderError}">
+              <TextBox x:Name="FolderBox" Text="{Binding FolderInput}" AutomationProperties.Name="Sicherungsordner" PlaceholderText="z. B. D:\Sicherung oder \\server\freigabe\aispa" />
+            </ui:FormField>
+            <Button Grid.Column="1" Classes="primary" Content="Speichern und sichern" Command="{Binding SaveFolderCommand}" VerticalAlignment="Top" />
           </Grid>
           <Button Content="Neuen Wiederherstellungsschlüssel erzeugen" Command="{Binding NewRecoveryKeyCommand}" HorizontalAlignment="Left"
                   ToolTip.Tip="Falls der alte verloren ist; ältere Sicherungen brauchen weiter den alten Schlüssel" />

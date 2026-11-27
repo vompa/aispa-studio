@@ -77,7 +77,7 @@ Auswertungen mit Geldbeträgen über den Betrieb sieht nicht jede Person, die Be
 
 Was dazugehört: Umsätze und Umsatz je Behandlung, Person, Konto und Zahlart, Durchschnittsbon, Kosten und Margen (Seite „Kosten“), Gutscheinsummen, Zahlen der Tagesabschlüsse, Top-Kunden nach Ausgaben auf der Kundenkarte, die Buchhaltung samt Export sowie DEP, DSFinV-K und TSE-Export.
 
-Ohne das Recht bleiben die Berichte ohne Beträge: Auslastung in Prozent, Anzahl der Behandlungen, No-Show- und Storno-Quote, Gäste und Stammgäste, Arbeitszeitaufzeichnung. In „Berichte“ fehlen dann die Beträge, dort steht „Beträge nur mit Berechtigung“. Der Server prüft das bei jeder Abfrage; die Oberfläche blendet nur aus.
+Ohne das Recht bleiben die Berichte ohne Beträge: Auslastung in Prozent, Anzahl der Behandlungen, No-Show- und Storno-Quote, Gäste und Stammgäste, Arbeitszeitaufzeichnung. In „Berichte“ fehlen dann die Beträge, dort steht „Beträge nur mit Berechtigung“. AISPA Studio prüft das bei jeder Abfrage; die Oberfläche blendet nur aus.
 
 Kosten ändern darf zusätzlich nur, wer Behandlungen und Team pflegen darf (Inhaber, Manager, Standortleitung). Rezeption mit dem Recht liest die Kosten nur.
 
@@ -87,7 +87,7 @@ Die Rolle Therapeut:in sieht den Kalender und bekommt deshalb im Assistenten auc
 
 - Der Schalter steht **nur bei der Rolle Therapeut:in**, beim Einladen, Anlegen und Bearbeiten eines Zugangs. Es ist standardmäßig **an**; bei allen anderen Rollen ändert sich dadurch nichts (Rezeption, Standortleitung, Manager, Inhaber und Backoffice haben ihre Rechte wie bisher).
 - Setzen dürfen es **Inhaber, Manager und Standortleitung** (die Standortleitung für Zugänge an ihren Standorten). Anders als bei den Berichten mit Beträgen wird dabei nichts freigegeben, deshalb braucht es keine Inhaber-Rolle.
-- Ist es abgeschaltet, antwortet der Assistent auf solche Fragen mit „Dafür fehlt die Berechtigung.“ Der Server prüft das bei jeder Frage; die Änderung gilt sofort.
+- Ist es abgeschaltet, antwortet der Assistent auf solche Fragen mit „Dafür fehlt die Berechtigung.“ AISPA Studio prüft das bei jeder Frage; die Änderung gilt sofort.
 
 ## Person einladen {#person-einladen}
 
@@ -132,7 +132,7 @@ Diese Felder gibt es beim Einladen, beim Anlegen und beim Bearbeiten eines Zugan
 
 ### Rolle {#rolle}
 
-Die Rolle bestimmt, was die Person darf (siehe „Rollen und was sie dürfen“). Standard beim Einladen ist „Rezeption“. „Inhaber“ und „Manager“ kann nur der Inhaber auswählen. Bei Standortleitung und Rezeption erscheint der Schalter „Berichte mit Beträgen“ (siehe [Berichte mit Beträgen](hilfe:zugaenge#berichte-mit-betraegen)). Eine Änderung gilt sofort. Die Windows-App lässt auch eine Rolle wählen, die man nicht vergeben darf; die Server-Prüfung lehnt dann beim Speichern ab, und die Meldung nennt den Grund über der Leiste. Daneben steht der Hinweis „Vergeben kann das nur der Inhaber.“
+Die Rolle bestimmt, was die Person darf (siehe „Rollen und was sie dürfen“). Standard beim Einladen ist „Rezeption“. „Inhaber“ und „Manager“ kann nur der Inhaber auswählen. Bei Standortleitung und Rezeption erscheint der Schalter „Berichte mit Beträgen“ (siehe [Berichte mit Beträgen](hilfe:zugaenge#berichte-mit-betraegen)). Eine Änderung gilt sofort. Die Windows-App lässt auch eine Rolle wählen, die man nicht vergeben darf; die Prüfung lehnt dann beim Speichern ab, und die Meldung nennt den Grund über der Leiste. Daneben steht der Hinweis „Vergeben kann das nur der Inhaber.“
 
 ### Person im Team {#person-im-team}
 

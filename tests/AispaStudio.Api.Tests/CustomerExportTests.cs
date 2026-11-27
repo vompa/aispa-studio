@@ -149,6 +149,7 @@ public sealed class CustomerExportTests(ApiFixture fixture)
     [Theory]
     [InlineData("ics")]
     [InlineData("pdf")]
+    [InlineData("docx")]
     [InlineData("")]
     public async Task Kalenderdatei_und_unbekanntes_Format_ergeben_einen_Hinweis(string format)
     {

@@ -33,7 +33,7 @@ public sealed class StockLayoutTests
     private static string Place(StockViewModel stock) => stock switch
     {
         { IsSetup: true } => stock.IsPlacesSetup ? "Einrichtung/Lagerorte" : stock.IsSuppliersSetup ? "Einrichtung/Lieferanten" : "Einrichtung",
-        { IsOverviewTab: true } => "Übersicht",
+        { IsOverviewTab: true } => "Zu tun",
         { IsStockTab: true } => stock.IsItemsView ? "Bestand/Material" : stock.IsBatchesView ? "Bestand/Chargen" : stock.IsMovementsView ? "Bestand/Bewegungen" : "Bestand",
         { IsOrdersTab: true } => "Bestellen",
         { IsCountTab: true } => "Inventur",
@@ -41,8 +41,8 @@ public sealed class StockLayoutTests
     };
 
     [Theory]
-    [InlineData(StockTab.Overview, "Übersicht")]
-    [InlineData(StockTab.Usage, "Übersicht")]
+    [InlineData(StockTab.Overview, "Zu tun")]
+    [InlineData(StockTab.Usage, "Zu tun")]
     [InlineData(StockTab.Stock, "Bestand/Material")]
     [InlineData(StockTab.Tasks, "Bestand/Chargen")]
     [InlineData(StockTab.Movements, "Bestand/Bewegungen")]
@@ -230,7 +230,7 @@ public sealed class StockLayoutTests
         stock.SetTab(StockTab.Suppliers);
         Assert.Equal("Einrichtung/Lagerorte", Place(stock));
         stock.CloseSetupCommand.Execute(null);
-        Assert.Equal("Übersicht", Place(stock));
+        Assert.Equal("Zu tun", Place(stock));
     }
 
     [Fact]

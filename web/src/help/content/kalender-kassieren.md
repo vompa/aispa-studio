@@ -38,7 +38,7 @@ Ist der Termin erledigt, zeigt das Panel unter **Kassieren** die Produkte, die z
 
 ![Eintritt an der Kassa](images/app/kassa-eintritt.png)
 
-## Hinweise {#hinweise}
+## Gut zu wissen {#hinweise}
 
 - Kassieren dürfen Rezeption, Standortleitung und Inhaber. Therapeut:innen sehen den Knopf nicht.
 - Ohne Verbindung geht Kassieren nicht; erst wieder, wenn die Verbindung zurück ist.

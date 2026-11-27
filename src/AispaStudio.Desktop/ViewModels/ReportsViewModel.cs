@@ -6,8 +6,8 @@ using CommunityToolkit.Mvvm.Input;
 namespace AispaStudio.Desktop.ViewModels;
 
 /// <summary>
-/// „Zahlen“ (R05 Slice 102, R07 Slice 144): Berichte je Rolle nach web/src/reports/ReportsPage.tsx und die Betriebsinfo unter einer einzigen Reiterebene: Tagesstart · Mein Tag · Hygiene ·
-/// Berichte · Betriebsinfo, je nach Recht. „Berichte“ zeigt Management und Pflichtberichte als Abschnitte untereinander (ADR 0098); ihre Ids bleiben Sprungziele und rollen zum
+/// „Zahlen“ (R05 Slice 102, R07 Slice 144): Berichte je Rolle nach web/src/reports/ReportsPage.tsx und die Betriebsinfo unter einer einzigen Reiterebene: Berichte · Tagesstart · Mein Tag ·
+/// Hygiene · Betriebsinfo, je nach Recht. „Berichte“ zeigt Management und Pflichtberichte als Abschnitte untereinander (ADR 0098); ihre Ids bleiben Sprungziele und rollen zum
 /// Abschnitt. Der Standort gilt für alle Reiter der Berichte gemeinsam; der Tag für alle außer „Management“, das einen eigenen Zeitraum hat. Alle Kennzahlen rechnet die API; die Maske
 /// zeigt nur an.
 /// </summary>
@@ -24,13 +24,13 @@ public sealed partial class ReportsViewModel : ViewModelBase, ITargetedArea, ISa
     public const string ComplianceTab = "compliance";
     public const string BusinessInfoTab = "businessInfo";
 
-    /// <summary>Die Reiterleiste in ihrer Reihenfolge: Alltag zuerst, Verwaltung dahinter (Ä353).</summary>
+    /// <summary>Die Reiterleiste in ihrer Reihenfolge: „Berichte“ zuerst und Startreiter (T-110), dahinter der Alltag, die Betriebsinfo zuletzt.</summary>
     private static readonly (string Id, string Title)[] Strip =
     [
+        (ManagementTab, "Berichte"),
         (BriefingTab, "Tagesstart"),
         (DayTab, "Mein Tag"),
         (HygieneTab, "Hygiene"),
-        (ManagementTab, "Berichte"),
         (BusinessInfoTab, "Betriebsinfo"),
     ];
 
@@ -43,14 +43,15 @@ public sealed partial class ReportsViewModel : ViewModelBase, ITargetedArea, ISa
     /// <summary>Der Toast der Shell, auch für die Betriebsinfo.</summary>
     public ToastState Toast { get; }
 
-    public ReportsViewModel(IWorkstationApi api, CurrentUser user, TimeProvider time, ToastState? toast = null)
+    /// <param name="benchmarkOn">Modul „Vergleich mit anderen Spas“ (ADR 0041); aus, etwa im Einzelplatz, fehlt das Kästchen im Management.</param>
+    public ReportsViewModel(IWorkstationApi api, CurrentUser user, TimeProvider time, ToastState? toast = null, bool benchmarkOn = true)
     {
         Toast = toast ?? new ToastState(time);
         (_api, _user) = (api, user);
         DayPlan = new DayPlanReportViewModel(api, time, user.EmployeeId);
         Briefing = new BriefingReportViewModel(api, time);
         Hygiene = new HygieneReportViewModel(api, time, user);
-        Management = new ManagementReportViewModel(api, time);
+        Management = new ManagementReportViewModel(api, time) { ShowToast = text => Toast.Show(text), CanCompare = benchmarkOn };
         Compliance = new ComplianceReportViewModel(api, time);
         if (CanSeeBusinessInfo)
         {
@@ -91,16 +92,17 @@ public sealed partial class ReportsViewModel : ViewModelBase, ITargetedArea, ISa
     public IFileSaver? Files
     {
         get => Compliance.Files;
-        set => Compliance.Files = Hygiene.Files = value;
+        set => Compliance.Files = Hygiene.Files = Management.Files = Management.Export.Files = value;
     }
 
-    /// <summary>Die Rückfragen des Fensters gelten auch für die Betriebsinfo (Archivieren, ungespeicherte Änderungen).</summary>
+    /// <summary>Die Rückfragen des Fensters gelten auch für die Betriebsinfo (Archivieren, ungespeicherte Änderungen) und für „Per Mail senden“ im Management-Bericht.</summary>
     public override IConfirmDialogs? Dialogs
     {
         get => base.Dialogs;
         set
         {
             base.Dialogs = value;
+            Management.Dialogs = value;
             if (BusinessInfo is not null)
             {
                 BusinessInfo.Dialogs = value;

@@ -8,7 +8,8 @@ namespace AispaStudio.Desktop.ViewModels;
 
 /// <summary>
 /// KI des Servers (R05 Slice 97, ADR 0057), native Maske nach <c>AiTab.tsx</c>: Stand von Claude und vom lokalen Modell, Fortschritt des Downloads und „Modell herunterladen“.
-/// Den Claude-Schlüssel setzt der Betreiber als Einstellung des Servers; die Maske zeigt nur „Eingeschaltet“ oder „Aus“. Es gibt nichts zu speichern. Solange das Modell lädt,
+/// Den Claude-Schlüssel trägt die Inhaberin hier ein, prüft und entfernt ihn (T-111, ADR 0103); „Speichern“ speichert sofort, deshalb gibt es keine Leiste „Speichern / Verwerfen“.
+/// Ist er in der Konfiguration des Servers gesetzt, gilt er, und das Feld ist gesperrt. Der Schlüssel kommt nie zurück, nur seine Maske. Solange das Modell lädt,
 /// fragt die Maske alle zwei Sekunden nach (ihr Abstand ist ein Parameter, damit Tests ihn kurz halten); <see cref="Dispose"/> beendet die Nachfrage.
 /// </summary>
 public sealed partial class AiViewModel : ViewModelBase, INativeArea, IDisposable
@@ -17,6 +18,7 @@ public sealed partial class AiViewModel : ViewModelBase, INativeArea, IDisposabl
     private readonly TimeSpan _pollInterval;
     private readonly CancellationTokenSource _stop = new();
     private AiStatus? _status;
+    private ClaudeKeyStatus? _key;
     private bool _polling;
 
     public AiViewModel(IWorkstationApi api, TimeSpan? pollInterval = null)
@@ -36,7 +38,51 @@ public sealed partial class AiViewModel : ViewModelBase, INativeArea, IDisposabl
 
     public bool HasLoadError => LoadError is not null;
 
-    public string ClaudeText => _status is { Claude: true } ? "Eingeschaltet." : "Aus: auf diesem Server ist kein API-Schlüssel gesetzt.";
+    public string ClaudeText => _status is { Claude: true } ? "Eingeschaltet." : "Aus: es ist kein API-Schlüssel gesetzt.";
+
+    /// <summary>Beide Claude-Modelle nur zur Ansicht (T-112b); ändern lassen sie sich in der Konfiguration des Servers.</summary>
+    public string? ClaudeModelsText => _status is { ClaudeModel: { Length: > 0 } model, ClaudeModelExtract: { Length: > 0 } extract }
+        ? $"Modelle: {model} für Texte, {extract} zum Auslesen von Mails, Lieferscheinen und Bögen."
+        : null;
+
+    public bool HasClaudeModelsText => ClaudeModelsText is not null;
+
+    /// <summary>Neuer Schlüssel; nach dem Speichern wieder leer.</summary>
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(SaveKeyCommand))]
+    public partial string ApiKeyInput { get; set; } = "";
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanEditKey), nameof(CanRemoveKey))]
+    [NotifyCanExecuteChangedFor(nameof(SaveKeyCommand), nameof(CheckKeyCommand), nameof(RemoveKeyCommand))]
+    public partial bool IsKeyBusy { get; private set; }
+
+    /// <summary>Der Schlüssel steht in der Konfiguration des Servers (<c>Ai:Claude:ApiKey</c>) und hat Vorrang.</summary>
+    public bool KeyFromConfig => _key?.Source == ClaudeKeySource.Config;
+
+    public bool CanEditKey => _key is not null && !KeyFromConfig && !IsKeyBusy;
+
+    public string? KeyDisabledHint => KeyFromConfig
+        ? "Der Schlüssel ist in der Konfiguration des Servers gesetzt und gilt vor einem Eintrag hier. Ändern lässt er sich nur dort."
+        : null;
+
+    public string KeyStatusText => _key switch
+    {
+        { Source: ClaudeKeySource.Config } key => $"Aus der Konfiguration gesetzt: {key.Mask}",
+        { Source: ClaudeKeySource.App } key => $"Eingetragen: {key.Mask}",
+        _ => "Kein Schlüssel eingetragen.",
+    };
+
+    public bool CanRemoveKey => _key?.Source == ClaudeKeySource.App && !IsKeyBusy;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasKeyMessage))]
+    public partial string? KeyMessage { get; private set; }
+
+    public bool HasKeyMessage => KeyMessage is not null;
+
+    [ObservableProperty]
+    public partial InfoBarSeverity KeyMessageSeverity { get; private set; } = InfoBarSeverity.Info;
 
     public string LocalText => _status?.Local switch
     {
@@ -64,6 +110,21 @@ public sealed partial class AiViewModel : ViewModelBase, INativeArea, IDisposabl
 
     public bool CanDownload => _status?.Local == LocalAiState.Missing;
 
+    /// <summary>Verbrauch von Claude der letzten 30 Tage je Aufgabe und Modell (T-112a); leer, solange nichts gemessen ist.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasUsage), nameof(ShowNoUsage))]
+    public partial IReadOnlyList<AiUsageLine> UsageLines { get; private set; } = [];
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasUsageError), nameof(ShowNoUsage))]
+    public partial string? UsageError { get; private set; }
+
+    public bool HasUsage => UsageLines.Count > 0;
+
+    public bool HasUsageError => UsageError is not null;
+
+    public bool ShowNoUsage => !HasUsage && !HasUsageError;
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasMessage))]
     public partial string? Message { get; private set; }
@@ -73,7 +134,7 @@ public sealed partial class AiViewModel : ViewModelBase, INativeArea, IDisposabl
     [ObservableProperty]
     public partial InfoBarSeverity MessageSeverity { get; private set; } = InfoBarSeverity.Info;
 
-    /// <summary>Es gibt nichts zu speichern.</summary>
+    /// <summary>„Speichern“ speichert den Schlüssel sofort; ein getippter, nicht gespeicherter Schlüssel löst beim Verlassen keine Rückfrage aus.</summary>
     public bool HasUnsavedChanges => false;
 
     public Task<bool> SaveChangesAsync() => Task.FromResult(true);
@@ -101,6 +162,19 @@ public sealed partial class AiViewModel : ViewModelBase, INativeArea, IDisposabl
         LoadError = null;
         Apply(status);
         IsLoaded = true;
+        // Ohne Stand des Schlüssels bleibt das Feld gesperrt; der Stand der KI ist trotzdem zu sehen.
+        var key = await _api.GetAsync<ClaudeKeyStatus>("api/system/ai/claude-key").ConfigureAwait(true);
+        if (key.Value is { } keyStatus)
+        {
+            ApplyKey(keyStatus);
+        }
+        else
+        {
+            ShowKeyMessage(key.Error ?? "Der Stand des Claude-Schlüssels wurde nicht geladen.", InfoBarSeverity.Error);
+        }
+
+        await LoadUsageAsync().ConfigureAwait(true);
+
         if (IsDownloading && !_polling)
         {
             _ = PollWhileDownloadingAsync();
@@ -130,6 +204,112 @@ public sealed partial class AiViewModel : ViewModelBase, INativeArea, IDisposabl
 
     [RelayCommand]
     private void CloseMessage() => Message = null;
+
+    [RelayCommand]
+    private void CloseKeyMessage() => KeyMessage = null;
+
+    private bool CanSaveKey() => CanEditKey && ApiKeyInput.Trim().Length > 0;
+
+    [RelayCommand(CanExecute = nameof(CanSaveKey))]
+    private async Task SaveKeyAsync()
+    {
+        IsKeyBusy = true;
+        var result = await _api.PutAsync<ClaudeKeyStatus>("api/system/ai/claude-key", new ClaudeKeyInput(ApiKeyInput.Trim())).ConfigureAwait(true);
+        IsKeyBusy = false;
+        if (result.Value is not { } key)
+        {
+            ShowKeyMessage(result.Error ?? "Der Schlüssel wurde nicht gespeichert.", InfoBarSeverity.Error);
+            return;
+        }
+
+        ApiKeyInput = "";
+        ApplyKey(key);
+        ShowKeyMessage("Schlüssel gespeichert. Claude ist ab sofort eingeschaltet; „Prüfen“ zeigt, ob er funktioniert.", InfoBarSeverity.Success);
+        await RefreshClaudeAsync().ConfigureAwait(true);
+    }
+
+    private bool CanCheckKey() => _key is { IsSet: true } && !IsKeyBusy;
+
+    [RelayCommand(CanExecute = nameof(CanCheckKey))]
+    private async Task CheckKeyAsync()
+    {
+        IsKeyBusy = true;
+        var result = await _api.PostAsync<ClaudeKeyCheck>("api/system/ai/claude-key/check", null).ConfigureAwait(true);
+        IsKeyBusy = false;
+        if (result.Value is not { } check)
+        {
+            ShowKeyMessage(result.Error ?? "Der Schlüssel wurde nicht geprüft.", InfoBarSeverity.Error);
+            return;
+        }
+
+        ShowKeyMessage(check.Message, check.Outcome switch
+        {
+            ClaudeKeyCheckOutcome.Valid => InfoBarSeverity.Success,
+            ClaudeKeyCheckOutcome.Invalid => InfoBarSeverity.Error,
+            _ => InfoBarSeverity.Warning,
+        });
+    }
+
+    [RelayCommand(CanExecute = nameof(CanRemoveKey))]
+    private async Task RemoveKeyAsync()
+    {
+        var answer = await AskAsync(new ConfirmRequest("Claude-Schlüssel entfernen?",
+            "Claude ist danach für diesen Betrieb aus: keine Antworten an Gäste, Übersetzungen und Zusammenfassungen durch die KI mehr, bis wieder ein Schlüssel eingetragen ist.",
+            "Entfernen")).ConfigureAwait(true);
+        if (!answer.IsConfirmed)
+        {
+            return;
+        }
+
+        IsKeyBusy = true;
+        var result = await _api.DeleteAsync<ClaudeKeyStatus>("api/system/ai/claude-key").ConfigureAwait(true);
+        IsKeyBusy = false;
+        if (result.Value is not { } key)
+        {
+            ShowKeyMessage(result.Error ?? "Der Schlüssel wurde nicht entfernt.", InfoBarSeverity.Error);
+            return;
+        }
+
+        ApplyKey(key);
+        ShowKeyMessage("Schlüssel entfernt. Claude ist aus.", InfoBarSeverity.Success);
+        await RefreshClaudeAsync().ConfigureAwait(true);
+    }
+
+    /// <summary>Ohne Verbrauch bleibt der Rest der Maske nutzbar; ein Fehler steht nur im Abschnitt.</summary>
+    private async Task LoadUsageAsync()
+    {
+        var usage = await _api.GetAsync<AiUsageReport>("api/system/ai/usage?days=30").ConfigureAwait(true);
+        UsageError = usage.Value is null ? usage.Error ?? "Der Verbrauch wurde nicht geladen." : null;
+        UsageLines = usage.Value is { } report ? [.. report.Rows.Select(AiUsageLine.From)] : [];
+    }
+
+    private void ShowKeyMessage(string message, InfoBarSeverity severity)
+    {
+        KeyMessage = message;
+        KeyMessageSeverity = severity;
+    }
+
+    /// <summary>Nach Speichern oder Entfernen den Stand „Eingeschaltet / Aus“ neu holen; schlägt das fehl, bleibt der alte stehen.</summary>
+    private async Task RefreshClaudeAsync()
+    {
+        if ((await _api.GetAsync<AiStatus>("api/system/ai").ConfigureAwait(true)).Value is { } status)
+        {
+            Apply(status);
+        }
+    }
+
+    private void ApplyKey(ClaudeKeyStatus key)
+    {
+        _key = key;
+        foreach (var name in new[] { nameof(KeyFromConfig), nameof(CanEditKey), nameof(KeyDisabledHint), nameof(KeyStatusText), nameof(CanRemoveKey) })
+        {
+            OnPropertyChanged(name);
+        }
+
+        SaveKeyCommand.NotifyCanExecuteChanged();
+        CheckKeyCommand.NotifyCanExecuteChanged();
+        RemoveKeyCommand.NotifyCanExecuteChanged();
+    }
 
     public void Open(Guid? id, string? section, string? field)
     {
@@ -169,7 +349,7 @@ public sealed partial class AiViewModel : ViewModelBase, INativeArea, IDisposabl
         _status = status;
         foreach (var name in new[]
             {
-                nameof(ClaudeText), nameof(LocalText), nameof(ModelText), nameof(HasModelText), nameof(IsDownloading), nameof(DownloadPercent), nameof(LocalError),
+                nameof(ClaudeText), nameof(ClaudeModelsText), nameof(HasClaudeModelsText), nameof(LocalText), nameof(ModelText), nameof(HasModelText), nameof(IsDownloading), nameof(DownloadPercent), nameof(LocalError),
                 nameof(HasLocalError), nameof(CanDownload),
             })
         {
@@ -178,4 +358,34 @@ public sealed partial class AiViewModel : ViewModelBase, INativeArea, IDisposabl
 
         DownloadCommand.NotifyCanExecuteChanged();
     }
+}
+
+/// <summary>Eine Zeile der Tabelle „Verbrauch“: Aufgabe in Worten, Zahlen mit Tausenderpunkt.</summary>
+public sealed record AiUsageLine(string Task, string Model, string Calls, string InputTokens, string OutputTokens, string CacheReadTokens)
+{
+    public string SpokenName => $"{Task}, {Model}: {Calls} Aufrufe, {InputTokens} Tokens Eingang, {OutputTokens} Tokens Ausgang, {CacheReadTokens} aus dem Cache gelesen";
+
+    public static AiUsageLine From(AiUsageRow row) =>
+        new(TaskName(row.Task), row.Model, Number(row.Calls), Number(row.InputTokens), Number(row.OutputTokens), Number(row.CacheReadTokens));
+
+    private static string Number(long value) => value.ToString("#,##0", GermanNumbers.Format);
+
+    private static string TaskName(AiUsageTask task) => task switch
+    {
+        AiUsageTask.BookingRequest => "Terminwunsch lesen",
+        AiUsageTask.ReplyDraft => "Antwortentwurf",
+        AiUsageTask.ReplyRevision => "Antwort überarbeiten",
+        AiUsageTask.Translation => "Übersetzung",
+        AiUsageTask.GuestQuestion => "Frage eines Gastes",
+        AiUsageTask.Treatwell => "Treatwell-Mail lesen",
+        AiUsageTask.DeliveryNote => "Lieferschein lesen",
+        AiUsageTask.Anamnesis => "Anamnesebogen lesen",
+        AiUsageTask.AssistantIntent => "Assistent: Frage verstehen",
+        AiUsageTask.AssistantAnswer => "Assistent: Antwort formulieren",
+        AiUsageTask.BriefingSummary => "Tagesbriefing",
+        AiUsageTask.ManagementSummary => "Management-Bericht",
+        AiUsageTask.ManagementAnalysis => "Management-Auswertung",
+        AiUsageTask.RebookText => "Wiederbuchen",
+        _ => task.ToString(),
+    };
 }

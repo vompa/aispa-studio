@@ -106,6 +106,23 @@ Das Management bekommt ein Cockpit mit wenigen Kennzahlen, die echte Entscheidun
 | Kanäle | Buchungen je Kanal (Web, Telefon, KI-Mail, Treatwell) inkl. Provisionskosten | Kanal-Strategie |
 | Lager | Verbrauch Soll gegen Ist, Schwund, Mindestbestände | Einkauf |
 
+### Stand der Umsetzung des Management-Berichts (26.11.2026)
+
+Gebaut in T-092 bis T-096 und T-104 ([Arbeitsanweisung](../umsetzung/arbeitsanweisung-berichte-ausbau.md), [ADR 0102](../entscheidungen/0102-berichte-als-dokument-aus-einem-kern.md)); die Zeilen folgen der Tabelle oben.
+
+| Bereich | Stand |
+| --- | --- |
+| Auslastung | **gebaut:** Auslastung Personal und Räume, je Raum, je Person, nach Wochentag und Tageszeit, Umsatz je Dienst- und je Behandlungsstunde. **Offen:** Umsatz je Raumstunde, Auslastung je Standort nebeneinander |
+| Ertrag | **gebaut:** Umsatz brutto und netto, Umsatz ohne Gutscheinverkauf, Deckungsbeitrag (Euro und Prozent), Marge je Termin aus der Vollkostenrechnung, Umsatz je Gast |
+| Kunden | **gebaut:** Gäste, Neue Gäste, Stammgäste-Anteil, Folgetermin gebucht, abwandernde Stammgäste, beste Gäste. **Offen:** Kundenwert |
+| Ausfälle | **gebaut:** No-Show- und Storno-Quote, entgangener Umsatz. **Offen:** eingenommene Ausfallgebühren (es gibt keine eigene Buchung dafür) |
+| Personal | **gebaut:** Dienststunden, Behandlungsstunden, Auslastung, Umsatz je Behandlungsstunde je Person. **Offen:** Provisionen, Überstunden, Krankenstand, Kundenzufriedenheit |
+| Verkauf | **gebaut:** Produktanteil, Produktumsatz je Behandlung, Gutscheine verkauft und eingelöst, offene Gutscheine, Aktionen. **Offen:** Provisionskosten der Kanäle |
+| Kanäle | **gebaut:** Termine je Herkunft (Rezeption, Online-Buchung, Mail, SMS, WhatsApp, Telefon, Treatwell). **Offen:** Umsatz je Kanal, Anrufe getrennt von Laufkundschaft |
+| Lager | im Management-Bericht nicht enthalten; der Lagerverbrauch hat einen eigenen Bericht |
+
+Dazu gebaut: wählbarer Vergleich (Zeitraum davor, Vormonat, Vorjahr) mit Veränderung je Kennzahl, Verlauf als Säulen, Vorschau der nächsten vier Wochen (Termine, gebuchter Umsatz, gebuchte Auslastung), Alarme mit Schwellen, Ausgabe als PDF, Word und Excel aus einem Berichtskern, Wochen- und Monatsbericht per Mail mit PDF-Anhang und die KI-Auswertung per Knopf mit Kernaussagen, Auffälligkeiten, Maßnahmen und Übernahme in die Dokumente. **Offen:** Aufschlüsselung jeder Kennzahl bis zur einzelnen Buchung, Filter nach Therapeut und Behandlung, Standorte nebeneinander, Vergleich zu Vormonat und Vorjahr im Mailbericht (er vergleicht mit dem Zeitraum davor), Auswertung der KI in der Mail.
+
 ### Standortvergleich und Benchmark
 
 - Alle Kennzahlen nebeneinander für jeden Standort, Abweichungen farblich markiert

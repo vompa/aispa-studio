@@ -9,6 +9,33 @@ Eine Quelle und eine Darstellung für die Hilfe in der Windows-App und für die 
 | `seite` | Was eine Seite zeigt und welche Abläufe es dort gibt. Die Seitenleiste zeigt es als „Erklärung zur aktuellen Seite“. | `seite-<seite>`, z. B. `seite-kalender` |
 | `ablauf` | Eine Aufgabe Schritt für Schritt, z. B. „Termin verschieben“. Grundlage der Antworten auf „Wie mache ich …?“. | `<bereich>-<aufgabe>`, z. B. `kalender-termin-verschieben` |
 | `einstellung` | Alle Einstellungen eines Bereichs, Ziel der Fragezeichen neben den Feldern. Standard ohne Angabe. | `<bereich>`, z. B. `kassa` |
+| `erklaerung` | Hintergrund, Warum und Zusammenhänge zu einem Thema. | `<bereich>-<thema>`, z. B. `anfragen-wann-die-ki-zuordnet` |
+| `referenz` | Listen und Tabellen zum Nachschlagen, z. B. Tasten, Kennzahlen, Kennzeichen. | `<bereich>-<thema>`, z. B. `kunden-kennzeichen-liste` |
+
+## Gliederung nach Diátaxis
+
+Die Hilfe folgt dem Rahmen Diátaxis (Tutorial, How-to, Referenz, Explanation). Tutorials gibt es bewusst nicht. Beschlossen vom Auftraggeber am 26.11.2026.
+
+| Diátaxis | `art` | Leitfrage |
+| --- | --- | --- |
+| How-to | `ablauf` | Wie erledige ich diese Aufgabe? |
+| Referenz | `einstellung`, `referenz` | Was bedeuten die Felder und Werte? Was gibt es alles? |
+| Orientierung | `seite` | Was zeigt diese Seite, und wohin geht es von hier? |
+| Explanation | `erklaerung` | Warum ist es so, und wie hängt es zusammen? |
+
+Je Art:
+
+- **`ablauf`**: eine Aufgabe in Schritten, Voraussetzungen, was danach, Fehlerfälle. Nicht hinein: Felderlisten, lange Begründungen, Regelwerke. Typische Überschriften: „Schritte“, „Was danach“, „Wenn etwas schiefgeht“, „Gut zu wissen“, kurz „Hintergrund“.
+- **`einstellung`**: alle Felder eines Bereichs mit Werten und Wirkung. Nicht hinein: Schritt-für-Schritt-Anleitungen, Geschichten. Typische Überschriften: der Name des Feldes oder der Gruppe, „Werte“, „Wirkung“.
+- **`seite`**: Aufbau einer Seite, wer was sieht, Verweise auf die Abläufe. Nicht hinein: ausführliche Begründungen und Regeln (gehören in eine Erklärung), vollständige Felderlisten (gehören in die Einstellung). Typische Überschriften: „Aufbau“, „Wer was sieht“, „Abläufe“, „Was hier nicht geht“.
+- **`referenz`**: Listen und Tabellen zum Nachschlagen, die zu keinem Bereich mit Feldern gehören (Tastenkürzel, Kennzahlen, Kennzeichen mit Wirkung). Nicht hinein: Schritte, Begründungen. Typische Überschriften: „Welche es gibt“, „Übersicht“, „Bedeutung“. Die Übersicht ordnet sie in der Gruppe „Nachschlagen“ nach den Erklärungen ein. Die Suche gewichtet sie wie `einstellung` (0,9): Wer „wie“ fragt, soll zuerst den Ablauf finden.
+- **`erklaerung`**: wie etwas funktioniert und warum, Regeln und Zusammenhänge, Abgrenzungen. Nicht hinein: Schritte zum Mitklicken und Feldwerte. Typische Überschriften: „Wie es funktioniert“, „Wann was gilt“, „Warum“, „Abgrenzung“.
+
+Gemischte Themen:
+
+- Ein `ablauf` mit langem Erklärteil (mehr als etwa drei Absätze Hintergrund) gibt diesen Teil an ein neues Thema der Art `erklaerung` ab. Die Erklärung heißt `<bereich>-<thema>` und erbt `bereich`, `oberflaeche`, `rollen`, `seite` und `betrieb` des Ablaufs. Vom Ablauf führt ein `hilfe:`-Verweis dorthin. Der Wortlaut wird unverändert verschoben, nicht umgeschrieben.
+- Kürzere Erklärungen bleiben als Abschnitt „Hintergrund“ am Ende des Ablaufs.
+- Beim Verschieben wandern die Anker mit. Verweise auf einen verschobenen Anker zeigen danach auf die Erklärung.
 
 ## Aufbau einer Datei
 
@@ -38,12 +65,13 @@ Ein Satz, worum es geht. Die KI zeigt ihn als Kurzantwort.
 
 Kopfangaben (alle optional, Werte durch Kommas getrennt):
 
-- `art`: `seite`, `ablauf` oder `einstellung` (Standard).
+- `art`: `seite`, `ablauf`, `erklaerung`, `referenz` oder `einstellung` (Standard).
 - `bereich`: Überschrift, unter der die Übersicht das Thema einordnet.
 - `oberflaeche`: `windows-app`, `verwaltung` (Masken der Verwaltung in der Windows-App; der Name stammt aus der Zeit der Team-Oberfläche im Browser), `handy` (Mein Tag).
 - `rollen`: `rezeption`, `therapeut`, `leitung` (Standortleitung), `inhaber`. Ohne Angabe für alle. Die Suche reiht passende Rollen vor, versteckt aber nichts.
 - `seite`: Kennung der Seite, zu der das Thema gehört (Windows-App: `kalender`, `kunden`, `anfragen`, `kassa`, `geraete`, `abgleich`, `sicherung`, `im-netz`, `netz`, `verwaltung`, `anmeldung`; Handy: `myday`).
 - `stichwoerter`: Wörter, mit denen jemand danach fragen würde, auch umgangssprachlich und auf Englisch.
+- `betrieb`: nur der Wert `server`, für Themen, die es nur mit Server bzw. einem Webmodul gibt (Online-Buchung, Terminannahme, Dashboard im Pausenraum, Handy-Apps, Einladungen, Vergleich mit anderen Spas). Im Einzelplatz blendet die Hilfe-Seite sie aus (`forOperation` in `topics.ts`). Ohne Angabe gilt das Thema in beiden Betriebsarten; „Abgleich“, „Sicherung“ und „KI“ bekommen die Angabe nie. Andere Werte lehnt `help.test.tsx` ab. Ein `hilfe:`-Verweis eines sichtbaren Themas auf ein ausgeblendetes erscheint im Einzelplatz als normaler Text ohne Link und ohne Hinweis.
 
 Erlaubtes Markdown: Überschriften `#` bis `####` mit optionalem Anker `{#anker}`, Absätze, Aufzählungen `-`, nummerierte Schritte `1.`, **fett**, `Code`, Links und Bilder in eigener Zeile `![Beschreibung](images/app/name.png)` bzw. `![Beschreibung](images/web/name.png)`.
 
@@ -104,7 +132,7 @@ Die Startseite der Hilfe (`HelpIndex.tsx`) zeigt über den Bereichen „Erste Sc
 
 Bilder liegen nach Oberfläche getrennt unter `images/app/` (Windows-App) und `images/web/` (Handy-Seite „Mein Tag“) und werden erzeugt, nicht von Hand gemacht:
 
-- Windows-App (`images/app/`): `scripts/help-images.sh` lässt die Bildtests (`tests/AispaStudio.Desktop.Tests/ViewTests.cs`) mit `AISPA_SCREENSHOTS` laufen und übernimmt jedes Bild, das ein Hilfetext mit `images/app/<name>.png` verwendet. Der Bildname ist der Name im Aufruf `Render("hell", "<name>", …)`.
+- Windows-App (`images/app/`): `scripts/help-images.sh` lässt die Bildtests (`tests/AispaStudio.Desktop.Tests/ViewTests.cs`) mit `AISPA_SCREENSHOTS` laufen und übernimmt jedes Bild, das ein Hilfetext mit `images/app/<name>.png` verwendet. Der Bildname ist der Name im Aufruf `Render("hell", "<name>", …)`. Das Skript verkleinert die Bilder und setzt jedes zurück, das sich nicht sichtbar geändert hat (`scripts/help-images-keep-changed.py`: unter 300 abweichende Pixel; die Ausgabe nennt diese Bilder), sodass nur echte Änderungen im Arbeitsbaum stehen. Ist ein Bildtest rot, übernimmt es nichts und nennt den Ordner mit Protokoll und Bildern.
 - Handy-Seite „Mein Tag“ (`images/web/`): `web/scripts/help-images.mjs` meldet sich mit den Testkonten an einer laufenden Umgebung mit Testdaten an und fotografiert die Seiten aus `web/scripts/help-images.json` (Name ohne Ordner und Endung).
 
 Tests in Web und Windows-App schlagen fehl, wenn ein Text ein Bild verwendet, das fehlt, oder auf ein Thema oder einen Anker verweist, den es nicht gibt.
@@ -121,6 +149,7 @@ Das Ziel steht in der Adresse:
 | `abschnitt` | Anker einer Zwischenüberschrift, nur zusammen mit `thema`; die Seite rollt dorthin und färbt die Überschrift |
 | `oberflaeche` | `windows-app`, `verwaltung` oder `handy`; die Suche reiht Themen dieser Oberfläche vor (Standard `verwaltung`) |
 | `rolle` | Rollenschlüssel wie `rezeption`; die Suche reiht passende Rollen vor |
+| `betrieb` | `einzelplatz`: die Windows-App läuft im Einzelplatz; Themen mit der Kopfangabe `betrieb: server` fehlen in Liste, Suche und Übersicht. Die Windows-App setzt ihn selbst |
 
 Die Windows-App öffnet die Seite im eingebetteten Browser (WebView2): aus dem Ordner `web` neben der App, wenn es ihn gibt (ohne Server und Internet; der Browser ordnet ihn dem virtuellen Host `help.aispa.local` zu und lädt `https://help.aispa.local/help/index.html?…`), sonst vom Server unter `/help/`. Der Build der Seite ist derselbe wie für die übrigen Seiten. Das Budget für die Seite steht in `web/scripts/check-bundles.mjs`.
 

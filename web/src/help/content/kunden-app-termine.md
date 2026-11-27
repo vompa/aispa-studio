@@ -4,6 +4,7 @@ bereich: Kunden-App
 oberflaeche: handy
 rollen: rezeption, leitung, inhaber, manager
 stichwoerter: Kunden-App, Handy, installieren, Meine Termine, Gast sagt ab, späte Absage, Stornogebühr, Ausfallgebühr, ics, Kalender, Gutschein Restwert, Fragebogen vorab, customer app, late cancellation
+betrieb: server
 ---
 # Was Gäste in der Kunden-App tun können
 

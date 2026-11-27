@@ -106,5 +106,8 @@ Neue Entscheidungen bekommen die nächste freie Nummer und die Vorlage [`vorlage
 | 0098 | [Verwaltungsmasken: eine Schiene, Übersicht zuerst, Verlauf als Seitenleiste](0098-verwaltungsmasken-eine-schiene-uebersicht-seitenleiste.md) | 16.11.2026 | Auftraggeber, Umsetzung Claude |
 | 0099 | [Anlegen, Entfernen und leerer Betrieb](0099-anlegen-entfernen-und-leerer-betrieb.md) | 17.11.2026 | Auftraggeber, Umsetzung Claude |
 | 0100 | [Beispiel-Spa in eigener Datenbank](0100-beispiel-spa-in-eigener-datenbank.md) | 18.11.2026 | Auftraggeber, Umsetzung Claude |
+| 0101 | [Drucken mit dem Druckdialog von Windows statt Verb `print`](0101-drucken-mit-druckdialog-statt-verb-print.md) | 26.11.2026 | Auftraggeber (Druckdialog, Vermerk beim Öffnen), Umsetzung Claude |
+| 0102 | [Berichte als Dokument aus einem Kern (Excel, Word, PDF)](0102-berichte-als-dokument-aus-einem-kern.md) | 26.11.2026 | Auftraggeber (Arbeitsanweisung Berichte-Ausbau), Paketwahl und Aufbau Claude, autonom nach ADR 0019 (T-095) |
+| 0103 | [Claude-Schlüssel je Betrieb in der App](0103-claude-schluessel-je-betrieb-in-der-app.md) | 26.11.2026 | Auftraggeber (Plan zu T-111), Umsetzung Claude, autonom nach ADR 0019 |
 
 Detailentscheidungen einzelner Pull Requests stehen im [PR-Protokoll](../umsetzung/pr-protokoll.md).

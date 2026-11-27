@@ -19,26 +19,6 @@ public sealed partial class ViewTests
         return card;
     }
 
-    [Theory]
-    [InlineData("hell")]
-    [InlineData("dunkel")]
-    public Task Wochenplan_traegt_Aushang_als_PDF_mit_Drucken_und_Speichern_ohne_Senden(string theme)
-    {
-        var (api, _) = RosterApi();
-        return Render(theme, "verwaltung-wochenplan-aushang-pdf", async (window, main) =>
-        {
-            var team = await OpenWeekPlan(window, main);
-            Assert.False(Named<Border>(window, "RosterDocumentCard").IsEffectivelyVisible);
-
-            await ClickButton(window, Named<Button>(window, "RosterDocumentButton"));
-
-            var card = CardNamed(window, "RosterDocumentCard");
-            Assert.Equal(["PrintButton", "SaveButton"], VisibleButtonNames(card));
-            Assert.Contains(card.GetVisualDescendants().OfType<TextBlock>(), t => t.IsEffectivelyVisible && t.Text?.StartsWith("Druckt den veröffentlichten Dienstplan der Woche", StringComparison.Ordinal) == true);
-            return team;
-        }, api);
-    }
-
     [Fact]
     public Task Zeiten_einer_Person_tragen_Stundenliste_als_PDF_in_der_Uebersicht_aller_nicht()
     {

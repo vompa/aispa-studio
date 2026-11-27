@@ -1,9 +1,10 @@
-<UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
-             xmlns:ui="using:AispaStudio.Desktop.Controls"
-             x:Class="AispaStudio.Desktop.Views.StockBatchTraceSection"
-             x:DataType="vm:StockBatchTraceViewModel">
+<views:FocusRequestView xmlns="https://github.com/avaloniaui"
+                        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                        xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+                        xmlns:ui="using:AispaStudio.Desktop.Controls"
+                        xmlns:views="using:AispaStudio.Desktop.Views"
+                        x:Class="AispaStudio.Desktop.Views.StockBatchTraceSection"
+                        x:DataType="vm:StockBatchTraceViewModel">
   <!-- Chargen-Rückverfolgung (R05 Slice 123, Ä223) nach web/src/stock/BatchTrace.tsx: wer hat Material dieser Charge bekommen, über alle Standorte? Zusammengestellt wird in der API. -->
   <Border Classes="card">
     <StackPanel Spacing="12" Grid.IsSharedSizeScope="True">
@@ -13,10 +14,10 @@
       </Grid>
       <TextBlock Text="Bei einem Rückruf zeigt die Liste über alle Standorte, wer Material dieser Charge in einer Behandlung oder beim Kauf bekommen hat. Verbrauch und Verkauf buchen zuerst die Charge, die zuerst abläuft." Classes="muted small" TextWrapping="Wrap" />
       <WrapPanel ItemSpacing="12" LineSpacing="8">
-        <ui:FormField Label="Material der Charge">
+        <ui:FormField Label="Material der Charge" Error="{Binding ItemError}">
           <ComboBox x:Name="TraceItemField" ItemsSource="{Binding Items}" SelectedItem="{Binding SelectedItem}" MinWidth="200" />
         </ui:FormField>
-        <ui:FormField Label="Chargennummer">
+        <ui:FormField Label="Chargennummer" Error="{Binding BatchError}">
           <TextBox x:Name="TraceBatchField" Text="{Binding Batch}" MaxLength="50" Width="160" />
         </ui:FormField>
         <Button x:Name="TraceBatchButton" Content="Zurückverfolgen" Command="{Binding TraceCommand}" VerticalAlignment="Bottom" />
@@ -69,4 +70,4 @@
       </ScrollViewer>
     </StackPanel>
   </Border>
-</UserControl>
+</views:FocusRequestView>

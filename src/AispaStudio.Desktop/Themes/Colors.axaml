@@ -43,8 +43,6 @@
       <SolidColorBrush x:Key="StCheckedInBgBrush" Color="#dcf1e4" />
       <SolidColorBrush x:Key="StDoneBrush" Color="#656c68" />
       <SolidColorBrush x:Key="StDoneBgBrush" Color="#efede8" />
-      <SolidColorBrush x:Key="RosterChipBaseBrush" Color="#ffffff" />
-      <SolidColorBrush x:Key="RosterChipInkBrush" Color="#1a2321" />
       <SolidColorBrush x:Key="HatchBrush" Color="#e5e0d6" />
       <!-- Einwirkzeit im Termin: Fläche wie Surface3 mit 55 % Deckkraft und diagonale Linien in LineStrong -->
       <VisualBrush x:Key="ProcessingHatchBrush" TileMode="Tile" SourceRect="0,0,8,8" DestinationRect="0,0,8,8">
@@ -109,8 +107,6 @@
       <SolidColorBrush x:Key="StCheckedInBgBrush" Color="#163525" />
       <SolidColorBrush x:Key="StDoneBrush" Color="#97a6a2" />
       <SolidColorBrush x:Key="StDoneBgBrush" Color="#1f2826" />
-      <SolidColorBrush x:Key="RosterChipBaseBrush" Color="#0c1211" />
-      <SolidColorBrush x:Key="RosterChipInkBrush" Color="#e2eae7" />
       <SolidColorBrush x:Key="HatchBrush" Color="#25302e" />
       <VisualBrush x:Key="ProcessingHatchBrush" TileMode="Tile" SourceRect="0,0,8,8" DestinationRect="0,0,8,8">
         <VisualBrush.Visual>

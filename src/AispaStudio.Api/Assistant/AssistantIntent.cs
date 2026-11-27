@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 using AispaStudio.Api.Assistant.Answers;
 using AispaStudio.Api.MailIntake.Assistant;
 using AispaStudio.Api.Scheduling;
+using AispaStudio.Contracts;
 
 namespace AispaStudio.Api.Assistant;
 
@@ -193,7 +194,7 @@ internal sealed class ModelAssistantClassifier(IAiJson model) : IAssistantClassi
     {
         var local = TimeZoneInfo.ConvertTime(now, LocalTime.Zone(timeZone));
         var prompt = $"Heute (Ortszeit {timeZone}): {local:yyyy-MM-dd}, {local.ToString("dddd", CultureInfo.GetCultureInfo("de-AT"))}.\n\n<frage>\n{question}\n</frage>";
-        var result = await model.AskAsync<IntentJson>(System, prompt, Schema, ct);
+        var result = await model.AskAsync<IntentJson>(AiUsageTask.AssistantIntent, System, prompt, Schema, ct);
         return new AssistantIntent(
             Enum.TryParse<AssistantTask>(result.Task, ignoreCase: true, out var task) ? task : AssistantTask.Unknown,
             ParseDate(result.From),

@@ -5,7 +5,7 @@ using Avalonia.Interactivity;
 namespace AispaStudio.Desktop.Views;
 
 /// <summary>Absenderregeln im Bereich „Postfach &amp; Nummern“ (R05 Slice 97).</summary>
-public partial class SenderRulesSection : UserControl
+public partial class SenderRulesSection : FocusRequestView
 {
     public SenderRulesSection() => InitializeComponent();
 

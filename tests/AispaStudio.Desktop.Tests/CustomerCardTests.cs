@@ -25,9 +25,17 @@ public sealed class CustomerCardTests
         Assert.True(customers.IsEditingContact);
         var form = customers.Contact!;
         Assert.Equal(customer.FirstName, form.FirstName);
+        // Ohne Namen ist „Speichern“ aktiv; der Klick meldet den Fehler am Feld, setzt den Fokus dorthin und sendet nichts.
+        string? focus = null;
+        form.FocusRequested += field => focus = field;
         form.FirstName = form.LastName = " ";
-        Assert.False(form.SaveCommand.CanExecute(null));
+        Assert.True(form.SaveCommand.CanExecute(null));
+        await form.SaveCommand.ExecuteAsync(null);
+        Assert.Equal("Bitte einen Vor- oder Nachnamen eintragen.", form.NameError);
+        Assert.Equal(CustomerContactFormViewModel.NameField, focus);
+        Assert.DoesNotContain(stub.Calls, c => c.Route.StartsWith("PUT ", StringComparison.Ordinal));
         form.FirstName = customer.FirstName;
+        Assert.Null(form.NameError);
         form.Phone = "+43 660 999";
         form.BirthDate = "31.02.1985";
         await form.SaveCommand.ExecuteAsync(null);
@@ -66,15 +74,22 @@ public sealed class CustomerCardTests
         var before = customers.BillingText;
 
         customers.EditBillingCommand.Execute(null);
+        // Ohne Angaben ist „Speichern“ aktiv; der Klick meldet die Fehler an den Feldern, setzt den Fokus ins erste und sendet nichts.
         var canSaveEmpty = customers.SaveBillingCommand.CanExecute(null);
+        await customers.SaveBillingCommand.ExecuteAsync(null);
+        var emptyErrors = (customers.BillingNameError, customers.BillingAddressError, customers.FocusTarget);
+        Assert.DoesNotContain(stub.Calls, c => c.Route.StartsWith("PUT ", StringComparison.Ordinal));
         customers.BillingName = billing.Name;
+        Assert.Null(customers.BillingNameError);
+        Assert.NotNull(customers.BillingAddressError);
         customers.BillingAddress = billing.Address;
         customers.BillingVatId = " ATU12345678 ";
         await customers.SaveBillingCommand.ExecuteAsync(null);
         var saved = JsonSerializer.Deserialize<CustomerBilling>(stub.Calls.Last(c => c.Route.StartsWith("PUT ", StringComparison.Ordinal)).Body!, ApiClient.Json);
 
         Assert.Empty(before); // ohne Empfänger kein Abschnitt, nur „…“ → „Rechnungsempfänger“ (Slice 141)
-        Assert.False(canSaveEmpty);
+        Assert.True(canSaveEmpty);
+        Assert.Equal(("Bitte den Empfänger (Name oder Firma) eintragen.", "Bitte die Anschrift eintragen.", CustomersViewModel.BillingNameField), emptyErrors);
         Assert.Equal(billing, saved);
         Assert.False(customers.IsEditingBilling);
         Assert.Equal("Müller Consulting GmbH\nRingstraße 1\n1010 Wien\nUID ATU12345678", customers.BillingText);
@@ -109,17 +124,24 @@ public sealed class CustomerCardTests
         var before = customers.DiscountText;
 
         await customers.EditDiscountCommand.ExecuteAsync(null);
+        // Ohne lesbaren Rabatt ist „Speichern“ aktiv; der Klick meldet den Fehler am Feld, setzt den Fokus dorthin und sendet nichts.
         var canSaveEmpty = customers.SaveDiscountCommand.CanExecute(null);
+        await customers.SaveDiscountCommand.ExecuteAsync(null);
+        var emptyError = (customers.DiscountPercentError, customers.FocusTarget);
         customers.DiscountPercent = "100";
-        var canSaveHundred = customers.SaveDiscountCommand.CanExecute(null);
+        Assert.Null(customers.DiscountPercentError);
+        await customers.SaveDiscountCommand.ExecuteAsync(null);
+        var hundredError = customers.DiscountPercentError;
+        Assert.DoesNotContain(stub.Calls, c => c.Route.StartsWith("PUT ", StringComparison.Ordinal));
         customers.DiscountPercent = "12,5 %";
         customers.DiscountScope = CustomersViewModel.DiscountScopes.Single(o => o.Scope == CustomerDiscountScope.Products);
         await customers.SaveDiscountCommand.ExecuteAsync(null);
         var saved = JsonSerializer.Deserialize<CustomerDiscount>(stub.Calls.Last(c => c.Route.StartsWith("PUT ", StringComparison.Ordinal)).Body!, ApiClient.Json);
 
         Assert.Empty(before); // ohne Rabatt kein Abschnitt, nur „…“ → „Stammrabatt“ (Slice 141)
-        Assert.False(canSaveEmpty);
-        Assert.False(canSaveHundred);
+        Assert.True(canSaveEmpty);
+        Assert.Equal(("Bitte einen Rabatt zwischen 0,01 und 99,99 % eintragen.", CustomersViewModel.DiscountPercentField), emptyError);
+        Assert.Equal("Bitte einen Rabatt zwischen 0,01 und 99,99 % eintragen.", hundredError);
         Assert.Equal(discount, saved);
         Assert.False(customers.IsEditingDiscount);
         Assert.StartsWith("12,5 % nur auf Produkte", customers.DiscountText, StringComparison.Ordinal);
@@ -137,19 +159,20 @@ public sealed class CustomerCardTests
     }
 
     [Fact]
-    public void Neue_Kundin_braucht_nur_einen_Namen()
+    public async Task Neue_Kundin_ohne_Namen_meldet_den_Fehler_am_Feld_und_sendet_nichts()
     {
-        var customers = new CustomersViewModel(new StubApi().Client(), TimeProvider.System);
+        var stub = new StubApi();
+        var customers = new CustomersViewModel(stub.Client(), TimeProvider.System);
 
-        var empty = customers.CreateCommand.CanExecute(null);
-        customers.NewLastName = "Huber";
-        var lastOnly = customers.CreateCommand.CanExecute(null);
-        customers.NewLastName = "";
-        customers.NewFirstName = "Mia";
-
-        Assert.False(empty);
-        Assert.True(lastOnly);
         Assert.True(customers.CreateCommand.CanExecute(null));
+        Assert.True(customers.CreateAndBookCommand.CanExecute(null));
+        await customers.CreateCommand.ExecuteAsync(null);
+
+        Assert.Equal("Bitte einen Vor- oder Nachnamen eintragen.", customers.NewNameError);
+        Assert.Equal(CustomersViewModel.NewFirstNameField, customers.FocusTarget);
+        Assert.Empty(stub.Calls);
+        customers.NewLastName = "Huber";
+        Assert.Null(customers.NewNameError);
     }
 
     private static readonly PreferenceChip PackageChip = new("Paket Hot-Stone-Massage: 7 von 10 offen", Tip: "Paket Hot-Stone-Massage: 7 von 10 offen, gültig bis 30.06.2027");
@@ -284,9 +307,15 @@ public sealed class CustomerCardTests
         lead.AddFlagCommand.Execute(null);
         Assert.Equal([CustomerFlagKind.MoreTime, CustomerFlagKind.InformManagement, CustomerFlagKind.DoNotBook], lead.FlagChoices.Select(c => c.Kind));
         lead.NewFlag = lead.FlagChoices[^1];
-        Assert.False(lead.SaveFlagCommand.CanExecute(null));
-        lead.NewFlagReason = "offene Rechnungen";
+        // Ohne Grund ist „Kennzeichen setzen“ aktiv; der Klick meldet den Fehler am Feld, setzt den Fokus dorthin und sendet nichts.
         Assert.True(lead.SaveFlagCommand.CanExecute(null));
+        var posts = stub.Calls.Count(c => c.Route.StartsWith("POST ", StringComparison.Ordinal));
+        await lead.SaveFlagCommand.ExecuteAsync(null);
+        Assert.Equal("Bitte einen Grund eintragen.", lead.FlagReasonError);
+        Assert.Equal(CustomersViewModel.FlagReasonField, lead.FocusTarget);
+        Assert.Equal(posts, stub.Calls.Count(c => c.Route.StartsWith("POST ", StringComparison.Ordinal)));
+        lead.NewFlagReason = "offene Rechnungen";
+        Assert.Null(lead.FlagReasonError);
     }
 
     [Fact]

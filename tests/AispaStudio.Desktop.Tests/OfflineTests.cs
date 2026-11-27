@@ -148,7 +148,7 @@ public sealed class OfflineTests
 
         stub.Down = true;
         await shell.Calendar.LoadAsync();
-        Assert.Contains("Die App prüft alle 15 Sekunden von selbst und lädt neu, sobald der Server wieder antwortet.", shell.OfflineBanner, StringComparison.Ordinal);
+        Assert.Contains("Die App prüft alle 15 Sekunden von selbst und lädt neu, sobald die Verbindung wieder steht.", shell.OfflineBanner, StringComparison.Ordinal);
         var before = stub.Calls.Count(c => c.Route == "GET /api/customers?search=");
 
         stub.Down = false;

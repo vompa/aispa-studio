@@ -41,7 +41,7 @@ internal static class VoucherShopEndpoints
                 string token, VoucherShop shop, CancellationToken ct) =>
                 await shop.FindAsync(token, ct) is { } order ? TypedResults.Ok(order) : TypedResults.NotFound())
             .WithName("GetOnlineVoucherOrder")
-            .WithSummary("Stand der Bestellung; der Gutscheincode erscheint, sobald die Kasse ihn ausgestellt hat.");
+            .WithSummary("Stand der Bestellung; der Gutscheincode erscheint, sobald die Kassa ihn ausgestellt hat.");
 
         group.MapPost("/vouchers/orders/{token}/test-payment", async Task<Results<Ok<VoucherOrderDto>, NotFound>> (
                 string token, TestPaymentResult result, VoucherShop shop, CancellationToken ct) =>

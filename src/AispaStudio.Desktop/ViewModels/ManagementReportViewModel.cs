@@ -1,13 +1,39 @@
 using AispaStudio.Contracts;
+using AispaStudio.Desktop.Controls;
 using AispaStudio.Desktop.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 
 namespace AispaStudio.Desktop.ViewModels;
 
-public sealed record KpiRow(string Label, string Value, string? Previous)
+/// <summary>
+/// Kachel einer Kennzahl. <c>Change</c> ist die Veränderung zum Vergleich mit Pfeil („↓ 24 %“, bei Quoten in Prozentpunkten), <c>State</c> ihre Richtung (Haken: besser, Warnzeichen:
+/// schlechter, sonst keines), <c>Spoken</c> der Satz für Screenreader („24 % unter der Vorperiode“). Pfeil, Text und Zeichen sagen dasselbe wie die Farbe.
+/// </summary>
+public sealed record KpiRow(string Label, string Value, string? Previous, string? Change = null, StatTileState State = StatTileState.None, string? Spoken = null)
 {
     public bool HasPrevious => Previous is not null;
+
+    /// <summary>Zeilen unter dem Wert: Veränderung und darunter der Vergleichswert („↓ 24 %“, „Vorjahr 25.371,00 €“).</summary>
+    public string? Hint => Change is not null && Previous is not null ? $"{Change}{Environment.NewLine}{Previous}" : Change ?? Previous;
 }
+
+/// <summary>Wählbarer Vergleich (API-Parameter <c>compare</c>): Zeitraum davor, Vormonat bis zum selben Tag oder Vorjahr. <c>Noun</c> beschriftet den Vergleichswert, <c>Dative</c> den Satz für Screenreader.</summary>
+public sealed record CompareChoice(string Key, string Label, string Noun, string Dative)
+{
+    public bool IsDefault => Key == "previous";
+
+    public override string ToString() => Label;
+}
+
+/// <summary>Schnellwahl für den Zeitraum; <c>Range</c> rechnet Von und Bis aus dem heutigen Tag, beim eigenen Zeitraum fehlt es.</summary>
+public sealed record QuickRange(string Label, Func<DateOnly, (DateOnly From, DateOnly Until)>? Range)
+{
+    public override string ToString() => Label;
+}
+
+/// <summary>Kacheln einer Gruppe mit ihrer Überschrift („Umsatz und Ertrag“, „Auslastung“, „Gäste“, „Ausfälle“), wie die API sie ordnet.</summary>
+public sealed record KpiGroupRow(string Title, IReadOnlyList<KpiRow> Kpis);
 
 public sealed record RevenueRow(string Label, string Gross, string Net);
 
@@ -17,6 +43,15 @@ public sealed record TreatmentKpiRow(string Name, string Appointments, string Re
 
 /// <summary>Wirkung einer Aktion: Positionen, Gäste (davon neu), Rabatt und Umsatz; „–“ ohne das Recht „Berichte mit Beträgen“.</summary>
 public sealed record PromotionKpiRow(string Name, string Positions, string Guests, string NewGuests, string Discount, string Revenue);
+
+/// <summary>Ein Feld der Tabelle Wochentag × Tageszeit: „33,3 % · schwach“ trägt die Kennzeichnung im Text, nicht nur in der Farbe; <c>Spoken</c> für Screenreader.</summary>
+public sealed record LoadCell(string Text, bool IsWeak, string Spoken);
+
+/// <summary>Zeile der Tabelle Wochentag × Tageszeit (Vormittag, Mittag, Nachmittag, Abend).</summary>
+public sealed record WeekdayLoadRow(string Day, LoadCell Morning, LoadCell Midday, LoadCell Afternoon, LoadCell Evening);
+
+/// <summary>Zeile einer einfachen Tabelle mit Name und bis zu drei Werten (Räume, Kanäle, Gäste, Vorschau); leere Spalten bleiben leer.</summary>
+public sealed record ReportRow(string Name, string First, string Second = "", string Third = "");
 
 public sealed record BenchmarkPeriod(int Days, string Label)
 {
@@ -47,6 +82,99 @@ public sealed partial class ManagementReportViewModel(IWorkstationApi api, TimeP
 
     public bool HasAiSummary => AiSummary is not null;
 
+    // ---------- „Mit KI auswerten“ (T-096 E2) ----------
+
+    private ManagementAnalysisViewModel? _analysis;
+
+    /// <summary>Die Seitenleiste „Mit KI auswerten“; ihre übernommene Auswertung geht an PDF, Word und Excel, ein Kennzahl-Chip markiert die Kachel dazu.</summary>
+    public ManagementAnalysisViewModel Analysis => _analysis ??= new ManagementAnalysisViewModel(Api, Time)
+    {
+        AdoptedChanged = OnAnalysisAdoptedChanged,
+        FindTile = TileLabel,
+        MarkTile = MarkKpi,
+    };
+
+    /// <summary>
+    /// Die Kachel, die ein Kennzahl-Chip der KI-Auswertung markiert hat (T-104); die Ansicht hebt sie hervor und rollt zu ihr. Ein neuer Bericht nimmt die Markierung weg.
+    /// </summary>
+    [ObservableProperty]
+    public partial string? MarkedKpi { get; private set; }
+
+    /// <summary>Markiert die Kachel und meldet es auch, wenn sie schon markiert war, damit die Ansicht wieder zu ihr rollt.</summary>
+    public void MarkKpi(string label)
+    {
+        MarkedKpi = label;
+        OnPropertyChanged(nameof(MarkedKpi));
+    }
+
+    /// <summary>
+    /// Die Beschriftung der Kachel, die die KI mit <paramref name="kpi"/> meint: gleicher Name ohne Groß- und Kleinschreibung, sonst null (dann ist der Chip nur Text).
+    /// Die KI bekommt die Kennzahlen mit ihrem Namen (Fakten der Auswertung) und nennt sie so.
+    /// </summary>
+    private string? TileLabel(string kpi) => Kpis.FirstOrDefault(k => string.Equals(k.Label, kpi.Trim(), StringComparison.OrdinalIgnoreCase))?.Label;
+
+    /// <summary>Ohne Claude-Schlüssel im Server ist „Mit KI auswerten“ gesperrt (<see cref="AnalysisUnavailableHint"/>).</summary>
+    [ObservableProperty]
+    public partial bool AiAnalysisAvailable { get; private set; }
+
+    public const string AnalysisUnavailableHint = "Verfügbar, sobald auf dem Server ein Claude-Schlüssel eingetragen ist.";
+
+    private void OnAnalysisAdoptedChanged()
+    {
+        if (Location is { } location && From is { } from && Until is { } until)
+        {
+            UpdateDocument(location, from, until, Comparison);
+        }
+    }
+
+    public static IReadOnlyList<CompareChoice> CompareChoices { get; } =
+    [
+        new("previous", "Zeitraum davor", "Vorperiode", "der Vorperiode"),
+        new("month", "Vormonat", "Vormonat", "dem Vormonat"),
+        new("year", "Vorjahr", "Vorjahr", "dem Vorjahr"),
+    ];
+
+    /// <summary>Steht in der Schnellwahl, wenn Von und Bis zu keiner anderen Wahl passen; die Schnellwahl zeigt so immer einen Wert.</summary>
+    public static QuickRange CustomRange { get; } = new("Eigener Zeitraum", null);
+
+    public static IReadOnlyList<QuickRange> QuickRanges { get; } =
+    [
+        new("Dieser Monat", today => (new DateOnly(today.Year, today.Month, 1), today)),
+        new("Letzter Monat", today =>
+        {
+            var first = new DateOnly(today.Year, today.Month, 1).AddMonths(-1);
+            return (first, first.AddMonths(1).AddDays(-1));
+        }),
+        new("Dieses Quartal", today => (new DateOnly(today.Year, (today.Month - 1) / 3 * 3 + 1, 1), today)),
+        new("Dieses Jahr", today => (new DateOnly(today.Year, 1, 1), today)),
+        new("Letzte 12 Monate", today => (today.AddYears(-1).AddDays(1), today)),
+        CustomRange,
+    ];
+
+    /// <summary>Womit der Zeitraum verglichen wird; wirkt auf alle Kacheln. Standard ist der gleich lange Zeitraum davor, wie bisher.</summary>
+    [ObservableProperty]
+    public partial CompareChoice? SelectedComparison { get; set; } = CompareChoices[0];
+
+    private CompareChoice Comparison => SelectedComparison ?? CompareChoices[0];
+
+    /// <summary>Schnellwahl für Von und Bis; sie bleibt stehen, solange die Daten ihrem Zeitraum entsprechen.</summary>
+    [ObservableProperty]
+    public partial QuickRange? SelectedQuickRange { get; set; }
+
+    private bool _applyingQuickRange;
+
+    /// <summary>Reicht „Bis“ bis heute oder darüber, fehlt dem heutigen Tag noch der Rest: Umsatz und Termine können noch wachsen.</summary>
+    public bool IsTodayOpen => Until is { } until && until >= Today();
+
+    public const string TodayOpenText = "Heute läuft noch, die Zahlen können sich ändern.";
+
+    /// <summary>„Vergleich: Vormonat · 01.10.2026 bis 26.10.2026“, damit klar ist, womit die Kacheln rechnen.</summary>
+    [ObservableProperty]
+    public partial string? CompareInfo { get; private set; }
+
+    /// <summary>Öffnet den Ordner der gespeicherten Datei („Ordner öffnen“ neben „Gespeichert: …“); Tests setzen einen eigenen.</summary>
+    public IFolderOpener FolderOpener { get; set; } = new ExplorerFolderOpener();
+
     // ---------- Wochen- und Monatsbericht per Mail ----------
 
     /// <summary>Den Haken gibt es nur für Rollen, die den Bericht per Mail bekommen (Inhaber, Manager, Standortleitung).</summary>
@@ -58,6 +186,10 @@ public sealed partial class ManagementReportViewModel(IWorkstationApi api, TimeP
     public partial bool MailReports { get; set; }
 
     private bool _settingMail;
+
+    /// <summary>Das Kästchen im Menü „Ausgabe“ (T-104) schaltet über diesen Befehl um; so wirkt ein Klick genau einmal, auch wenn das Menü selbst den Haken setzt.</summary>
+    [RelayCommand]
+    private void ToggleMailReports() => MailReports = !MailReports;
 
     private async Task LoadMailSubscriptionAsync()
     {
@@ -102,6 +234,7 @@ public sealed partial class ManagementReportViewModel(IWorkstationApi api, TimeP
     public partial DateOnly? From { get; set; }
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsTodayOpen))]
     public partial DateOnly? Until { get; set; }
 
     [ObservableProperty]
@@ -109,6 +242,39 @@ public sealed partial class ManagementReportViewModel(IWorkstationApi api, TimeP
 
     [ObservableProperty]
     public partial IReadOnlyList<KpiRow> Kpis { get; private set; } = [];
+
+    /// <summary>Die Kacheln nach Gruppen mit Überschrift; Kennzahlen ohne Gruppe (ältere API) stehen unter „Kennzahlen“.</summary>
+    [ObservableProperty]
+    public partial IReadOnlyList<KpiGroupRow> KpiGroups { get; private set; } = [];
+
+    /// <summary>Verlauf je Tag (über 62 Tage je Woche) als drei Reihen; der Umsatz fehlt ohne das Recht „Berichte mit Beträgen“.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasTrend), nameof(HasTrendRevenue))]
+    public partial IReadOnlyList<TrendPoint> Trend { get; private set; } = [];
+
+    public bool HasTrend => Trend.Count > 0;
+
+    public bool HasTrendRevenue => Trend.Any(p => p.RevenueNet is not null);
+
+    public IReadOnlyList<TrendBar> TrendRevenue => [.. Trend.Select(p => new TrendBar(TrendLabel(p), (double)(p.RevenueNet ?? 0), Money.Format(p.RevenueNet ?? 0)))];
+
+    public IReadOnlyList<TrendBar> TrendAppointments => [.. Trend.Select(p => new TrendBar(TrendLabel(p), p.Appointments, Number(p.Appointments)))];
+
+    public IReadOnlyList<TrendBar> TrendUtilization => [.. Trend.Select(p => new TrendBar(TrendLabel(p), (double)p.StaffUtilization, $"{Number(p.StaffUtilization, 1)} %"))];
+
+    /// <summary>„Mo 02.11.“ für einen Tag, „02.11.–08.11.“ für eine Woche.</summary>
+    private static string TrendLabel(TrendPoint point) => point.From == point.Until
+        ? $"{German.DateTimeFormat.GetAbbreviatedDayName(point.From.DayOfWeek)[..2]} {point.From:dd.MM.}"
+        : $"{point.From:dd.MM.}–{point.Until:dd.MM.}";
+
+    private static readonly global::System.Globalization.CultureInfo German = global::System.Globalization.CultureInfo.GetCultureInfo("de-AT");
+
+    partial void OnTrendChanged(IReadOnlyList<TrendPoint> value)
+    {
+        OnPropertyChanged(nameof(TrendRevenue));
+        OnPropertyChanged(nameof(TrendAppointments));
+        OnPropertyChanged(nameof(TrendUtilization));
+    }
 
     [ObservableProperty]
     public partial IReadOnlyList<RevenueRow> RevenueByAccount { get; private set; } = [];
@@ -126,6 +292,34 @@ public sealed partial class ManagementReportViewModel(IWorkstationApi api, TimeP
     [ObservableProperty]
     public partial IReadOnlyList<PromotionKpiRow> Promotions { get; private set; } = [];
 
+    /// <summary>Auslastung Personal je Wochentag und Tageszeit; schwache Felder (unter der Schwelle der API) tragen „schwach“ im Text.</summary>
+    [ObservableProperty]
+    public partial IReadOnlyList<WeekdayLoadRow> LoadByWeekday { get; private set; } = [];
+
+    /// <summary>„Schwach: unter 50 % ausgelastet, Lücken für Aktionen.“</summary>
+    [ObservableProperty]
+    public partial string? WeakLoadInfo { get; private set; }
+
+    [ObservableProperty]
+    public partial IReadOnlyList<ReportRow> Rooms { get; private set; } = [];
+
+    [ObservableProperty]
+    public partial IReadOnlyList<ReportRow> Channels { get; private set; } = [];
+
+    /// <summary>Beste Gäste und abwandernde Stammgäste; leer ohne das Recht, Kunden zu sehen.</summary>
+    [ObservableProperty]
+    public partial IReadOnlyList<ReportRow> TopGuests { get; private set; } = [];
+
+    [ObservableProperty]
+    public partial IReadOnlyList<ReportRow> LapsingGuests { get; private set; } = [];
+
+    /// <summary>Gebuchter Stand der nächsten vier Wochen; <c>ForecastInfo</c> nennt den Stand („Stand heute, 26.11.2026“).</summary>
+    [ObservableProperty]
+    public partial IReadOnlyList<ReportRow> Forecast { get; private set; } = [];
+
+    [ObservableProperty]
+    public partial string? ForecastInfo { get; private set; }
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowAmounts))]
     public partial bool AmountsHidden { get; private set; }
@@ -134,6 +328,9 @@ public sealed partial class ManagementReportViewModel(IWorkstationApi api, TimeP
 
     [ObservableProperty]
     public partial bool Compare { get; set; }
+
+    /// <summary>Das Kästchen „Mit anderen Spas vergleichen“; ohne das Modul Vergleich (z. B. im Einzelplatz, ADR 0041) fehlt es, der Server antwortete dort mit 404.</summary>
+    public bool CanCompare { get; init; } = true;
 
     public IReadOnlyList<BenchmarkPeriod> BenchmarkPeriods { get; } = [new(30, "30 Tage"), new(90, "90 Tage"), new(365, "12 Monate")];
 
@@ -180,6 +377,7 @@ public sealed partial class ManagementReportViewModel(IWorkstationApi api, TimeP
         _rangeIsSet = true;
         var today = Today();
         (From, Until) = (from ?? new DateOnly(today.Year, today.Month, 1), until ?? today);
+        MatchQuickRange();
     }
 
     protected override async Task ReloadAsync()
@@ -196,7 +394,9 @@ public sealed partial class ManagementReportViewModel(IWorkstationApi api, TimeP
 
         var version = NextVersion();
         LoadError = null;
-        var result = await Api.GetAsync<ManagementReportDto>($"api/reports/locations/{location.Id}/management?from={Iso(from)}&until={Iso(until)}").ConfigureAwait(true);
+        var comparison = Comparison;
+        var path = ReportPath(location, from, until, comparison);
+        var result = await Api.GetAsync<ManagementReportDto>(path).ConfigureAwait(true);
         if (version != Version)
         {
             return;
@@ -207,17 +407,32 @@ public sealed partial class ManagementReportViewModel(IWorkstationApi api, TimeP
             LoadError = result.Error ?? "Der Bericht konnte nicht geladen werden.";
             Alerts = [];
             AiSummary = null;
+            AiAnalysisAvailable = false;
             IsAiPending = false;
             Kpis = [];
+            KpiGroups = [];
+            Trend = [];
             RevenueByAccount = [];
             RevenueByPayment = [];
             Employees = [];
             Treatments = [];
             Promotions = [];
+            LoadByWeekday = [];
+            WeakLoadInfo = null;
+            Rooms = [];
+            Channels = [];
+            TopGuests = [];
+            LapsingGuests = [];
+            Forecast = [];
+            ForecastInfo = null;
+            CompareInfo = null;
+            Document = null;
             return;
         }
 
-        Apply(report);
+        Apply(report, comparison);
+        Analysis.SetScope(new AnalysisScope(location.Id, from, until, comparison.Key));
+        UpdateDocument(location, from, until, comparison);
         IsLoaded = true;
         await LoadBenchmarkAsync().ConfigureAwait(true);
         await LoadMailSubscriptionAsync().ConfigureAwait(true);
@@ -231,20 +446,63 @@ public sealed partial class ManagementReportViewModel(IWorkstationApi api, TimeP
                 return;
             }
 
-            var again = await Api.GetAsync<ManagementReportDto>($"api/reports/locations/{location.Id}/management?from={Iso(from)}&until={Iso(until)}").ConfigureAwait(true);
+            var again = await Api.GetAsync<ManagementReportDto>(path).ConfigureAwait(true);
             if (version != Version || again.Value is not { } next)
             {
                 return;
             }
 
             report = next;
-            Apply(report);
+            Apply(report, comparison);
+            UpdateDocument(location, from, until, comparison);
         }
     }
 
-    partial void OnFromChanged(DateOnly? value) => ReloadAfterRangeChange();
+    partial void OnFromChanged(DateOnly? value) => RangeEdited();
 
-    partial void OnUntilChanged(DateOnly? value) => ReloadAfterRangeChange();
+    partial void OnUntilChanged(DateOnly? value) => RangeEdited();
+
+    partial void OnSelectedComparisonChanged(CompareChoice? value) => ReloadAfterRangeChange();
+
+    partial void OnSelectedQuickRangeChanged(QuickRange? value)
+    {
+        if (_applyingQuickRange || value?.Range is null)
+        {
+            return;
+        }
+
+        _applyingQuickRange = true;
+        _rangeIsSet = true;
+        (From, Until) = value.Range(Today());
+        _applyingQuickRange = false;
+        ReloadAfterRangeChange();
+    }
+
+    private void RangeEdited()
+    {
+        if (_applyingQuickRange)
+        {
+            return;
+        }
+
+        MatchQuickRange();
+        ReloadAfterRangeChange();
+    }
+
+    /// <summary>Stellt die Schnellwahl auf die Wahl, deren Zeitraum Von und Bis entspricht; passt keine (oder fehlt ein Datum), auf „Eigener Zeitraum“.</summary>
+    private void MatchQuickRange()
+    {
+        var range = (From ?? default, Until ?? default);
+        var match = SelectedQuickRange?.Range?.Invoke(Today()) == range
+            ? SelectedQuickRange
+            : QuickRanges.FirstOrDefault(q => q.Range?.Invoke(Today()) == range) ?? CustomRange;
+        _applyingQuickRange = true;
+        SelectedQuickRange = match;
+        _applyingQuickRange = false;
+    }
+
+    private static string ReportPath(LocationDto location, DateOnly from, DateOnly until, CompareChoice comparison) =>
+        $"api/reports/locations/{location.Id}/management?from={Iso(from)}&until={Iso(until)}{(comparison.IsDefault ? "" : $"&compare={comparison.Key}")}";
 
     partial void OnCompareChanged(bool value)
     {
@@ -272,14 +530,22 @@ public sealed partial class ManagementReportViewModel(IWorkstationApi api, TimeP
 
     private DateOnly Today() => DateOnly.FromDateTime(Time.GetLocalNow().DateTime);
 
-    private void Apply(ManagementReportDto report)
+    private void Apply(ManagementReportDto report, CompareChoice comparison)
     {
+        CompareInfo = report.CompareFrom is { } compareFrom && report.CompareUntil is { } compareUntil
+            ? $"Vergleich: {comparison.Label} · {compareFrom:dd.MM.yyyy} bis {compareUntil:dd.MM.yyyy}"
+            : null;
         AmountsHidden = report.AmountsHidden;
         Alerts = report.Alerts;
         AiSummary = report.AiSummary;
         AiNotice = report.AiNotice;
         IsAiPending = report.AiSummaryPending;
-        Kpis = [.. report.Kpis.Select(k => new KpiRow(k.Label, KpiValue(k.Value, k.Unit), k.Previous is { } previous ? $"Vorperiode {KpiValue(previous, k.Unit)}" : null))];
+        AiAnalysisAvailable = report.AiAnalysisAvailable;
+        MarkedKpi = null;
+        Kpis = [.. report.Kpis.Select(k => KpiTile(k, comparison))];
+        KpiGroups = [.. report.Kpis.Select((k, i) => (Kpi: k, Tile: Kpis[i])).GroupBy(k => k.Kpi.Group ?? "Kennzahlen")
+            .Select(g => new KpiGroupRow(g.Key, [.. g.Select(k => k.Tile)]))];
+        Trend = report.Trend ?? [];
         RevenueByAccount = [.. report.RevenueByAccount.Select(r => new RevenueRow(r.CostCenter is { } center ? $"{r.Label} ({center})" : r.Label, Money.Format(r.Gross), $"netto {Money.Format(r.Net)}"))];
         RevenueByPayment = [.. report.RevenueByPayment.Select(r => new RevenueRow(r.Label, Money.Format(r.Gross), ""))];
         Employees = [.. report.Employees.Select(e => new EmployeeKpiRow(
@@ -288,6 +554,69 @@ public sealed partial class ManagementReportViewModel(IWorkstationApi api, TimeP
             t.Name, Number(t.Appointments), t.NetRevenue is { } net ? Money.Format(net) : "–", t.MarginPerAppointment is { } margin ? Money.Format(margin) : "–", t.MarginPerAppointment < 0))];
         Promotions = [.. (report.Promotions ?? []).Select(p => new PromotionKpiRow(p.Name, Number(p.Positions), Number(p.Guests), Number(p.NewGuests),
             p.Discount is { } discount ? Money.Format(discount) : "–", p.Revenue is { } revenue ? Money.Format(revenue) : "–"))];
+        var weakBelow = report.WeakLoadBelow;
+        LoadByWeekday = [.. (report.LoadByWeekday ?? []).Select(d =>
+        {
+            var day = German.DateTimeFormat.GetDayName(d.Day);
+            return new WeekdayLoadRow(day, Cell(day, "Vormittag", d.Morning, weakBelow), Cell(day, "Mittag", d.Midday, weakBelow),
+                Cell(day, "Nachmittag", d.Afternoon, weakBelow), Cell(day, "Abend", d.Evening, weakBelow));
+        })];
+        WeakLoadInfo = weakBelow is { } below ? $"Schwach: unter {Number(below)} % ausgelastet. Das sind die Lücken für Aktionen." : null;
+        Rooms = [.. (report.Rooms ?? []).Select(r => new ReportRow(r.Name, $"{r.Utilization} %", Number(r.Appointments)))];
+        Channels = [.. (report.Channels ?? []).Select(c => new ReportRow(c.Label, Number(c.Appointments)))];
+        TopGuests = [.. (report.TopGuests ?? []).Select(g => new ReportRow(g.Name, Number(g.Visits), g.Spent is { } spent ? Money.Format(spent) : "–"))];
+        LapsingGuests = [.. (report.LapsingGuests ?? []).Select(g => new ReportRow(g.Name, StockFormat.Date(g.LastVisit), Number(g.Visits)))];
+        Forecast = [.. (report.Forecast ?? []).Select(w => new ReportRow($"{w.From:dd.MM.}–{w.Until:dd.MM.}", Number(w.Appointments),
+            w.BookedRevenue is { } revenue ? Money.Format(revenue) : "–", $"{Number(w.StaffUtilization, 1)} %"))];
+        ForecastInfo = report.ForecastAsOf is { } asOf ? $"Stand heute, {StockFormat.Date(asOf)}: nur, was schon gebucht ist." : null;
+    }
+
+    /// <summary>„33,3 %“, unter der Schwelle „33,3 % · schwach“, ohne Dienst „–“; der Screenreader hört Tag, Tageszeit und Wert.</summary>
+    private static LoadCell Cell(string day, string daypart, decimal? value, decimal? weakBelow)
+    {
+        if (value is not { } load)
+        {
+            return new LoadCell("–", false, $"{day} {daypart}: kein Dienst");
+        }
+
+        var weak = load < weakBelow;
+        var text = $"{Number(load, 1)} %{(weak ? " · schwach" : "")}";
+        return new LoadCell(text, weak, $"{day} {daypart}: {text.Replace(" · ", ", ", StringComparison.Ordinal)}");
+    }
+
+    /// <summary>
+    /// Kachel mit Veränderung zum Vergleich: Quoten (Einheit %) in Prozentpunkten, alles andere in Prozent des Vergleichswerts; ein Vergleichswert 0 hat keine Prozent.
+    /// Der Haken (besser) oder das Warnzeichen (schlechter) kommt nur bei Kennzahlen, deren Richtung die API kennt (<c>HigherIsBetter</c>); gleiche Werte bleiben ohne Zeichen.
+    /// </summary>
+    private static KpiRow KpiTile(Kpi kpi, CompareChoice comparison)
+    {
+        var value = KpiValue(kpi.Value, kpi.Unit);
+        if (kpi.Previous is not { } previous)
+        {
+            return new KpiRow(kpi.Label, value, null);
+        }
+
+        var shown = $"{comparison.Noun} {KpiValue(previous, kpi.Unit)}";
+        var delta = kpi.Value - previous;
+        var points = kpi.Unit == "%";
+        var size = points ? Math.Abs(delta) : previous == 0 ? 0 : Math.Abs(delta / previous * 100);
+        var digits = size < 10 ? 1 : 0;
+        var same = delta == 0 || ((previous != 0 || points) && Math.Round(size, digits) == 0);
+        if (same)
+        {
+            return new KpiRow(kpi.Label, value, shown, "→ unverändert", StatTileState.None, $"unverändert gegenüber {comparison.Dative}");
+        }
+
+        var up = delta > 0;
+        var arrow = up ? "↑" : "↓";
+        var state = kpi.HigherIsBetter is { } higherIsBetter ? up == higherIsBetter ? StatTileState.Ok : StatTileState.Warn : StatTileState.None;
+        if (!points && previous == 0)
+        {
+            return new KpiRow(kpi.Label, value, shown, $"{arrow} von 0", state, $"{(up ? "gestiegen" : "gesunken")}, {comparison.Noun} war 0");
+        }
+
+        var amount = points ? $"{Number(size, 1)} Prozentpunkte" : $"{Number(size, digits)} %";
+        return new KpiRow(kpi.Label, value, shown, $"{arrow} {amount}", state, $"{amount} {(up ? "über" : "unter")} {comparison.Dative}");
     }
 
     private static string KpiValue(decimal value, string unit) => unit switch

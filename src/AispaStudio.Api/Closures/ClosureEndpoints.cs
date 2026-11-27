@@ -99,7 +99,7 @@ internal static class ClosureEndpoints
                 return errors.Problem();
             })
             .WithName("ReviseClosureCancellationText")
-            .WithSummary("Lässt die KI den Text der Absage umformulieren, auf Knopfdruck. Neue Zahlen oder verlorene Platzhalter verwirft der Server; der Text trägt danach den Hinweis auf die KI.")
+            .WithSummary("Lässt die KI den Text der Absage umformulieren, auf Knopfdruck. Neue Zahlen oder verlorene Platzhalter werden verworfen; der Text trägt danach den Hinweis auf die KI.")
             .RequirePermission(AccessRight.ManageLocation)
             .AlsoRequire(AccessRight.Book);
 

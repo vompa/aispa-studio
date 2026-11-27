@@ -16,26 +16,27 @@ public sealed partial class ViewTests
     private static readonly string[] TimeActionLabels = ["Schließen", "Ändern", "Verlauf"];
 
     [Fact]
-    public Task Team_neue_Person_ist_ohne_Namen_nicht_speicherbar_und_der_Tooltip_nennt_den_Weg() => Render("hell", "verwaltung-team-neue-person", async (window, main) =>
+    public Task Team_neue_Person_ohne_Namen_meldet_beim_Speichern_den_Fehler_am_Feld_und_setzt_den_Fokus()
+    {
+        var api = TeamApi();
+        return Render("hell", "verwaltung-team-neue-person", async (window, main) =>
     {
         var team = await OpenTeam(window, main);
         await ClickNew(window, "AddPersonButton");
 
-        // 86a: Speichern bleibt gesperrt, bis der Pflichtname da ist (masken.md R5); der Tooltip nennt, wann es verfügbar wird.
+        // 86a: Speichern ist aktiv; der Klick ohne Pflichtname setzt den Fehler am Feld und den Fokus dorthin (masken.md R5, R8).
         var save = Named<Button>(window, "SaveButton");
-        Assert.False(save.IsEffectivelyEnabled);
-        Assert.Equal("Verfügbar, sobald der vollständige Name eingetragen ist.", ToolTip.GetTip(save)?.ToString());
-
-        await TypeInto(window, "PersonNameField", "Nora Kern");
-        await Pump(Settling);
         Assert.True(save.IsEffectivelyEnabled);
         Assert.Equal("Speichern (Strg+S)", ToolTip.GetTip(save)?.ToString());
 
-        team.Card!.Details!.Name = "  ";
+        await team.SaveCommand.ExecuteAsync(null);
         await Pump(Settling);
-        Assert.False(save.IsEffectivelyEnabled);
+        Assert.Equal("Der Name der Person fehlt. Trage den vollständigen Namen ein.", team.Card!.Details!.NameError);
+        Assert.Same(Named<TextBox>(window, "PersonNameField"), TopLevel.GetTopLevel(window)!.FocusManager!.GetFocusedElement());
+        Assert.DoesNotContain(api.Calls, c => c.Route == "POST /api/employees");
         return team;
-    }, TeamApi());
+    }, api);
+    }
 
     [Fact]
     public Task Team_Lohn_der_Karte_hat_ein_Fragezeichen_Spaltenkoepfe_und_der_Ladefehler_nennt_den_Weg() => Render("hell", "verwaltung-team-karte-lohn-durchsicht", async (window, main) =>
@@ -202,7 +203,7 @@ public sealed partial class ViewTests
         await Pump(Settling);
 
         // 96a: ein Fragezeichen für Zertifikate und Liste.
-        var duties = Named<Control>(window, "DutiesSection");
+        var duties = VisibleNamed<Control>(window, "DutiesSection");
         var help = Assert.Single(duties.GetVisualDescendants().OfType<HelpButton>(), b => b.IsEffectivelyVisible);
         Assert.Equal("liste", help.Section);
 

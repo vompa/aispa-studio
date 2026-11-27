@@ -69,7 +69,7 @@ public sealed partial class ViewTests
     });
 
     [Fact]
-    public Task Gruppenbuchung_hat_ein_Datumsfeld_mit_Minimum_heute_und_der_Knopf_nennt_den_Sperrgrund() => Render("hell", "kalender-gruppe-datum", async (window, main) =>
+    public Task Gruppenbuchung_hat_ein_Datumsfeld_mit_Minimum_heute_und_der_Knopf_meldet_fehlende_Gaeste_am_Feld() => Render("hell", "kalender-gruppe-datum", async (window, main) =>
     {
         var calendar = await SignedInCalendar(main);
         calendar.OpenGroupBookingCommand.Execute(null);
@@ -80,9 +80,11 @@ public sealed partial class ViewTests
         var date = Assert.Single(panel.GetVisualDescendants().OfType<DateField>());
         Assert.Equal(group.Today, date.Minimum);
         var button = Assert.Single(ButtonsFor(panel, group.BookCommand));
-        Assert.False(button.IsEffectivelyEnabled);
-        Assert.Equal(group.BookBlocker, DisabledHint.GetText(button));
-        Assert.StartsWith("Verfügbar, sobald Gast 1", DisabledHint.GetText(button), StringComparison.Ordinal);
+        Assert.Null(group.BookBlocker);
+        Assert.True(button.IsEffectivelyEnabled);
+        await group.BookCommand.ExecuteAsync(null);
+        await Pump(Settling);
+        Assert.Contains(panel.GetVisualDescendants().OfType<TextBlock>(), t => t.IsEffectivelyVisible && t.Text == "Bitte Gast 1 wählen oder „Name folgt“ einschalten.");
         var guestCards = panel.GetVisualDescendants().OfType<Border>().Count(b => b.Classes.Contains("guestcard"));
         Assert.Equal(group.Guests.Count, guestCards);
         return calendar;
@@ -107,7 +109,7 @@ public sealed partial class ViewTests
         calendar.OpenAreasCommand.Execute(null);
         await Pump();
         var areas = calendar.Areas!;
-        areas.Persons = 2;
+        areas.PersonsText = "2";
         await Pump();
 
         var panel = SidePanelOf(window);
@@ -122,7 +124,7 @@ public sealed partial class ViewTests
         window.KeyPressQwerty(PhysicalKey.ArrowUp, RawInputModifiers.None);
         await Pump();
         Assert.Equal("3", persons.Text);
-        Assert.Equal(3, areas.Persons);
+        Assert.Equal("3", areas.PersonsText);
         AssertFieldsNamedNotFromPlaceholder(panel, 4);
 
         // Für das Bild: das Formular „Neuer Eintritt“ im Ausschnitt.
@@ -161,7 +163,7 @@ public sealed partial class ViewTests
     [Theory]
     [InlineData("25")]
     [InlineData("")]
-    public Task Personen_ausserhalb_1_bis_20_oder_leer_sperrt_Eintritt_buchen(string typed) => Render("hell", "kalender-felder-sauna-fehler", async (window, main) =>
+    public Task Personen_ausserhalb_1_bis_20_oder_leer_meldet_Eintritt_buchen_am_Feld(string typed) => Render("hell", "kalender-felder-sauna-fehler", async (window, main) =>
     {
         var calendar = await SignedInCalendar(main);
         calendar.OpenAreasCommand.Execute(null);
@@ -187,8 +189,15 @@ public sealed partial class ViewTests
 
         await Blur(book);
         Assert.NotNull(persons.Error);
-        Assert.False(book.IsEffectivelyEnabled);
-        Assert.Equal(1, areas.Persons);
+
+        // „Eintritt buchen“ bleibt aktiv; der Klick meldet den Wert am Feld, setzt den Fokus dorthin und bucht nichts.
+        Assert.True(book.IsEffectivelyEnabled);
+        await areas.BookCommand.ExecuteAsync(null);
+        await Pump(Settling);
+        Assert.Equal("Bitte 1 bis 20 Personen eintragen.", areas.PersonsError);
+        Assert.Equal(typed, areas.PersonsText);
+        Assert.Null(areas.Info);
+        Assert.Same(persons, TopLevel.GetTopLevel(window)!.FocusManager!.GetFocusedElement());
         return calendar;
     });
 

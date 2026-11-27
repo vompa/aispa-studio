@@ -44,6 +44,7 @@ internal static class TenantModel
         (typeof(CalendarSubscription), [nameof(CalendarSubscription.Preset)]),
         (typeof(Staff.DutyType), [nameof(Staff.DutyType.Key)]),
         (typeof(Retention.CategoryRebookInterval), [nameof(Retention.CategoryRebookInterval.Category)]),
+        (typeof(MailIntake.Assistant.AiUsageDay), [nameof(MailIntake.Assistant.AiUsageDay.Day), nameof(MailIntake.Assistant.AiUsageDay.Task), nameof(MailIntake.Assistant.AiUsageDay.Model)]),
     ];
 
     public static bool IsTenantOwned(IReadOnlyEntityType type) =>

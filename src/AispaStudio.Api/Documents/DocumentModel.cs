@@ -18,6 +18,9 @@ public enum DocumentAlign
 /// <summary>Spalte einer Tabelle: Titel, Gewicht als Anteil an der Breite und Ausrichtung; Beträge stehen rechtsbündig (dokumente.md).</summary>
 public sealed record DocumentColumn(string Title, double Weight = 1, DocumentAlign Align = DocumentAlign.Left);
 
+/// <summary>Ein waagrechter Balken: Beschriftung links, Länge nach <paramref name="Value"/> (Anteil am größten Wert der Reihe), der Wert als Text rechts.</summary>
+public sealed record DocumentBar(string Label, decimal Value, string Text);
+
 /// <summary>
 /// Zeile einer Tabelle; <paramref name="Bold"/> für Summen, <paramref name="Muted"/> ganze Zeile grau hinterlegt, <paramref name="MutedCells"/> nur die genannten Zellen
 /// (Nummern ab 0), z. B. die Pause einer Person im Tagesplan.

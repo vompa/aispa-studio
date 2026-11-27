@@ -14,7 +14,7 @@ Beim Rundenabschluss wird geprüft, dass jede Aufgabe der Runde einen vollständ
 
 ## Blöcke
 
-Ohne Block, weil die Aufgabe nichts Sichtbares ändert: Antwortvorschläge auf Fragen kennen Anreise, Schließtage, Hinweise der Behandlungen und den Gutscheinkauf (19.11.2026); Erinnerung vor Ablauf der Frist für Karte oder Anzahlung (Mail an den Gast nach Stunden Wartezeit; durch Tests gedeckt), Obergrenze von 2 Erinnerungen je Gast und Tag (greift nur bei nachgebuchten Terminen; durch Test gedeckt), Entscheidung zur Mindestlücke (nur Doku), Kopfzeile `List-Unsubscribe` in der Erinnerung an die nächste Behandlung, Lückenvorschläge mit Treatwell-Hinweis und Einwirkzeit (ein Treatwell-Termin lässt sich ohne echtes Postfach nicht von Hand erzeugen; durch Ansichtstest gedeckt), Erinnerung nach 48 Stunden mit Verbindung (derselbe Satz wie im Block „Hinweis nach 48 Stunden“, nur unter „Beim Abgleich nicht übernommen“), Kassa ohne Verbindung Schritt 1 (nur Schnittstelle; der Block kommt mit Schritt 2), T-013 (Entscheidung, nur Doku), T-014 (Entscheidung, keine Änderung), T-016 (Sichtung der zurückgestellten Kleinigkeiten), T-030 (CI-Zeitlimits), T-033 (Beispieldaten und Test), T-034 (Werkzeug knip, unbenutztes Paket entfernt), T-035 (Skill und Doku), T-040 (ADR und Konzept, nur Doku), Export/Import Aufgabe A (Export-Dienst, Knopf ohne Seite; der Knopf ist im Block „Export/Import B“ geprüft), Verwaltungsmasken Schritt 1 (T-060: Regeln und zwei Bausteine, noch in keiner Maske verwendet).
+Ohne Block, weil die Aufgabe nichts Sichtbares ändert: Antwortvorschläge auf Fragen kennen Anreise, Schließtage, Hinweise der Behandlungen und den Gutscheinkauf (19.11.2026); Erinnerung vor Ablauf der Frist für Karte oder Anzahlung (Mail an den Gast nach Stunden Wartezeit; durch Tests gedeckt), Obergrenze von 2 Erinnerungen je Gast und Tag (greift nur bei nachgebuchten Terminen; durch Test gedeckt), Entscheidung zur Mindestlücke (nur Doku), Kopfzeile `List-Unsubscribe` in der Erinnerung an die nächste Behandlung, Lückenvorschläge mit Treatwell-Hinweis und Einwirkzeit (ein Treatwell-Termin lässt sich ohne echtes Postfach nicht von Hand erzeugen; durch Ansichtstest gedeckt), Erinnerung nach 48 Stunden mit Verbindung (derselbe Satz wie im Block „Hinweis nach 48 Stunden“, nur unter „Beim Abgleich nicht übernommen“), Kassa ohne Verbindung Schritt 1 (nur Schnittstelle; der Block kommt mit Schritt 2), T-013 (Entscheidung, nur Doku), T-014 (Entscheidung, keine Änderung), T-016 (Sichtung der zurückgestellten Kleinigkeiten), T-030 (CI-Zeitlimits), T-033 (Beispieldaten und Test), T-034 (Werkzeug knip, unbenutztes Paket entfernt), T-035 (Skill und Doku), T-040 (ADR und Konzept, nur Doku), Export/Import Aufgabe A (Export-Dienst, Knopf ohne Seite; der Knopf ist im Block „Export/Import B“ geprüft), Verwaltungsmasken Schritt 1 (T-060: Regeln und zwei Bausteine, noch in keiner Maske verwendet), T-085 (Bildskript der Handbuchbilder, nur Werkzeug), T-089 und T-090 (Beispieldaten nur für die Vorschau im Designer).
 
 ### T-015 – Keine Stempeluhr in „Mein Tag“, Zeiten trägt die Leitung ein
 Start: Browser in Handybreite (z. B. 390 px), die Adresse des Spas mit `/mein-tag/` öffnen, als Mitarbeiterin (Therapeutin) anmelden
@@ -810,8 +810,8 @@ Expected: Bestand je Material und Lagerort; Bewegungen der letzten 30 Tage bis h
 Expected: `Stundenliste_<Monatserster>.xlsx` mit Person, Tag, Soll, Ist, Pause und Differenz für den Monat, in dem die gezeigte Woche beginnt.
 6. **Team** › **Wochenplan** öffnen, **Exportieren** › **Dienstplan der Woche (Excel)** speichern.
 Expected: Personen als Zeilen, Montag bis Sonntag als Spalten („Mo 1.3.“), Dienste als „9:00–17:00“, Abwesenheiten als „Urlaub“ usw., ganz rechts die Stunden.
-7. **Zahlen** › **Berichte** › **Management** öffnen, **Exportieren** › **Kennzahlen (Excel)** speichern.
-Expected: Kennzahl, Wert, Vorperiode und Einheit mit denselben Zahlen wie auf der Seite.
+7. **Zahlen** › **Berichte** › **Management** öffnen, **Exportieren** › **Bericht (Excel)** speichern.
+Expected: Das erste Blatt „Übersicht“ hat als erste vier Spalten Kennzahl, Wert, Vorperiode und Einheit mit denselben Zahlen wie auf der Seite.
 8. Abmelden, als Manager eines Standorts anmelden, Kassa, Lager, Zeiten und Wochenplan öffnen.
 Expected: Der Knopf **Exportieren** fehlt dort; im Bericht „Management“ ist er da.
 Closes: Export/Import Aufgabe D (arbeitsanweisung-export-import.md)
@@ -944,7 +944,7 @@ Expected: Die Karte „Gutscheinliste“ mit „Ausgestellt von“ und „bis“
 2. Den Zeitraum auf heute und gestern stellen, den Status auf „aktiv“ stellen, speichern; dann „läuft in 30 Tagen ab“ ankreuzen, speichern.
 Expected: Der Pfad der Karte ändert sich mit jeder Wahl; die Kopfzeile des PDFs nennt die Auswahl („Ausgestellt 08.11.2026 bis 09.11.2026 · Status: aktiv“, „läuft in 30 Tagen ab“); mit „läuft in 30 Tagen ab“ steht nur der Gutschein mit dem Ablaufdatum in 10 Tagen darauf. Ein Ende vor dem Beginn sperrt „Drucken“ und „PDF speichern“ mit dem Hinweis „Das Ende darf nicht vor dem Beginn liegen.“.
 3. Einen frisch verkauften Gutschein unter dem Beleg **Per Mail senden**, einen zweiten **Drucken** (Drucker oder PDF-Drucker), einen dritten **Übergeben** klicken; danach die Liste mit „noch nicht versendet“ drucken.
-Expected: Toasts „Gesendet an …“, „Gedruckt“ und „Gutschein … als übergeben vermerkt“; mit „noch nicht versendet“ fehlen diese drei, der Rest steht darauf. In der Liste ohne Filter steht beim ersten „Mail am <Datum>“ mit „an <Adresse>“, beim zweiten „Gedruckt am <Datum>“, beim dritten „Übergeben am <Datum>“; beim online gekauften Gutschein „Mail am …“ an die Adresse des Käufers. Ein Druck, der am Drucker scheitert, hinterlässt keinen Vermerk.
+Expected: Toasts „Gesendet an …“, „Druckdialog geöffnet“ (seit T-099) und „Gutschein … als übergeben vermerkt“; mit „noch nicht versendet“ fehlen diese drei, der Rest steht darauf. In der Liste ohne Filter steht beim ersten „Mail am <Datum>“ mit „an <Adresse>“, beim zweiten „Zum Drucken geöffnet am <Datum>“ (seit T-099), beim dritten „Übergeben am <Datum>“; beim online gekauften Gutschein „Mail am …“ an die Adresse des Käufers. Lässt sich der Druckdialog nicht öffnen, bleibt kein Vermerk.
 4. Als Rezeption ohne das Recht „Berichte mit Beträgen“ die Kassa öffnen und die Karte öffnen; als Rezeption die Adresse `…/api/pos/locations/<id>/vouchers/pdf` aufrufen.
 Expected: Die Karte lässt sich öffnen, „Drucken“ und „PDF speichern“ sind gesperrt mit dem Hinweis auf Kassenaufsicht oder „Berichte mit Beträgen“; der Aufruf antwortet mit 403. Mit Standortleitung oder Backoffice geht es.
 Closes: Zusatz zur Arbeitsanweisung PDF-Ausgaben (Gutscheinliste)
@@ -1628,4 +1628,457 @@ Expected: Die Meldung „Gespeichert: …“ trägt den Knopf **Ordner öffnen**
 5. Im Team **Person hinzufügen**, mit Zugang anlegen.
 Expected: Der Hinweis zur Anmeldung mit dem Startpasswort steht als Hinweisleiste auf der Karte und bleibt, bis man ihn schließt.
 Closes: –
+Result: ☐
+
+### Meldung unten – Toast sitzt über der unteren Leiste jeder Seite
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App als Inhaberin anmelden
+1. Im **Kalender** einen Termin auf eine andere Zeit ziehen.
+Expected: Die Meldung „Verschoben auf …“ steht über der Tastenleiste am unteren Rand; die Leiste bleibt ganz lesbar.
+2. Das Fenster auf etwa 1100 Pixel Breite ziehen, **Verwaltung** › **Aktionen** öffnen, eine Aktion ändern und **Speichern** klicken.
+Expected: „Gespeichert“ steht über der Leiste mit **Speichern** und **Verwerfen**; beide Knöpfe bleiben frei.
+3. In der **Kassa** einen verkauften Gutschein als übergeben vermerken.
+Expected: Die Meldung „Gutschein … als übergeben vermerkt“ steht über der Zeile **Summe**; die Summe bleibt frei.
+Closes: –
+Result: ☐
+
+### T-086 – „Speichern“ bleibt aktiv und prüft
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App als Inhaberin anmelden
+1. **Verwaltung** › **Team**, **Person hinzufügen**, nichts eintragen, **Speichern** klicken.
+Expected: **Speichern** ist nicht grau. Das Feld **Vollständiger Name** wird rot und nennt, was fehlt; der Cursor steht darin; es wird keine Person angelegt.
+2. Im **Kalender** **Termin** öffnen, Behandlung wählen, keinen Gast eintragen, **Termin buchen** klicken.
+Expected: Das Feld für den Gast wird rot mit Fehlertext und hat den Cursor; es wird nichts gebucht.
+3. In der **Kassa** **Einlage** wählen, Grund eintragen, den Betrag leer lassen, den Knopf klicken.
+Expected: Das Betragsfeld wird rot und nennt, was fehlt; es wird nichts gebucht.
+4. In einer **Kundenkarte** einen Rabatt eintragen, die PIN der Freigabe leer lassen, den Knopf klicken.
+Expected: Das Feld der PIN wird rot und hat den Cursor; es wird kein Rabatt vergeben.
+5. **Verwaltung** › **Geräte**, ein Terminal ohne Adresse speichern.
+Expected: Das Feld der Adresse wird rot mit Fehlertext; nichts wird gespeichert.
+6. Gegenprobe: In der **Kassa** weniger zahlen, als die Rechnung verlangt.
+Expected: **Bezahlen und Beleg erstellen** bleibt grau; der Hinweis am Knopf lautet „Verfügbar, sobald die Zahlungen den Betrag decken und jeder Betrag lesbar ist.“
+7. Wieder in **Team** **Person hinzufügen**, den Namen leer lassen, **Strg+S** drücken.
+Expected: Dasselbe wie in Schritt 1: Das Namensfeld wird rot, nichts wird gespeichert.
+Closes: Regelfrage 2 der Masken-Durchsicht vom 19.11.2026 (Speichern ohne Pflichtangaben)
+Result: ☐
+
+### T-087 – Kalender: Knöpfe zu verdeckten Spalten stehen in der Kopfzeile
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App als Inhaberin anmelden
+1. Im **Kalender** auf **Räume** schalten und das Fenster so schmal ziehen, dass nicht alle Räume Platz haben.
+Expected: Ganz rechts in der zweiten Zeile der Kopfzeile steht ein Knopf mit „+n“ und Pfeil nach rechts. Über den Karten der letzten Spalte liegt kein Knopf; ihr Text ist ganz lesbar.
+2. Auf den Knopf klicken.
+Expected: Der Kalender blättert eine Fensterbreite weiter. Links daneben erscheint ein zweiter Knopf mit Pfeil nach links und „+n“; der Hinweis nennt die Namen der verdeckten Räume.
+3. Das Fenster auf etwa 1100 Pixel Breite ziehen und in die Mitte scrollen.
+Expected: Beide Knöpfe stehen nebeneinander rechts in Zeile 2, kein Chip liegt darunter oder darüber, die Kopfzeile bleibt zwei Zeilen hoch.
+4. Das Fenster so breit ziehen, dass alle Spalten Platz haben.
+Expected: Beide Knöpfe verschwinden; die Chips der Zeile 2 stehen wie bisher.
+Closes: R1 der Masken-Durchsicht vom 19.11.2026 (Knopf am rechten Kalenderrand deckt Kartentext)
+Result: ☐
+
+### T-088 – Begriffe: „Kassa“, „Haupt-PC“, „Server“
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App als Inhaberin anmelden
+1. Die **Kassa** öffnen und die Auswahl oben ansehen.
+Expected: Dort steht „Kassa WIEN-1“, nicht „Kasse WIEN-1“.
+2. Einen Termin kassieren und den Beleg ansehen; danach den Tagesabschluss als PDF öffnen.
+Expected: Auf Beleg und Tagesabschluss steht „Kassa“ vor der Kassen-ID. „Kassenlade“ und „Kassenjournal“ heißen wie bisher.
+3. Die API anhalten (im Aspire-Dashboard den Dienst stoppen) und in der App **Verbindung prüfen** klicken.
+Expected: Die Warnung beginnt mit „Keine Verbindung.“ und nennt keinen Server.
+4. Im **Kalender** die **Warteliste** öffnen.
+Expected: Der Hinweis lautet „Wird etwas frei, schreibt AISPA Studio den Wartenden selbst.“
+5. Die Hilfe öffnen und nach „Kasse“ suchen.
+Expected: Die Seiten zur Kassa erscheinen (Suchwort bleibt), im Text steht „Kassa“.
+6. Gegenprobe: **System** › **Netz** öffnen.
+Expected: „Mit Server verbinden“ und „Haupt-PC“ stehen dort wie bisher.
+Closes: Regelfrage „einheitliche Begriffe“ der Masken-Durchsicht vom 19.11.2026
+Result: ☐
+
+### T-091 – Veraltete Beispieldaten beim Start neu einspielen
+Start: Visual Studio, Startprojekt `AispaStudio.AppHost`, Konfiguration Debug
+1. In `src/AispaStudio.Api/appsettings.Development.json` `"DemoData": { "WeeksAhead": 1 }` eintragen, den AppHost starten, an `postgres` im Aspire-Dashboard „Beispiel-Spa neu einspielen …“ ausführen und warten, bis die API bereit ist.
+Expected: Der Kalender reicht nur rund eine Woche voraus.
+2. Den Eintrag aus Schritt 1 wieder entfernen und den AppHost neu starten.
+Expected: Im Log der API steht „Beispieldaten veraltet (letzter Termin …): Datenbank aispadb neu angelegt“. Nach etwa einer halben Minute reicht der Kalender wieder vier Wochen voraus.
+3. Den AppHost ein zweites Mal neu starten.
+Expected: Keine solche Logzeile; die Daten bleiben, wie sie sind.
+Closes: Auftrag vom 25.11.2026 (Kalender nach Ablauf der Beispieldaten leer)
+Result: ☐
+
+### T-099 – Drucken öffnet den Druckdialog von Windows
+Start: `dotnet run --project src/AispaStudio.AppHost`, Windows-App, als Inhaberin anmelden; in Windows „Microsoft Print to PDF“ oder OneNote als Standarddrucker, ein zweiter Drucker ist eingerichtet.
+1. **Team** → **Wochenplan**, eine veröffentlichte Woche wählen, **Aushang als PDF**, dann **Drucken**.
+Expected: Nach ein bis zwei Sekunden öffnet sich der Druckdialog von Windows („Microsoft Edge WebView2 – Drucken“), unten steht kurz „Druckdialog geöffnet“. Es öffnet sich weder OneNote noch eine Frage nach dem Speicherort. Kein zusätzliches Fenster der App und kein Eintrag in der Taskleiste.
+2. Im Dialog den zweiten Drucker wählen, die Ausrichtung ansehen, **Querformat** wählen und drucken.
+Expected: Der zweite Drucker ist wählbar. Notieren, ob die Ausrichtung auf Hoch- oder Querformat vorbelegt war. Der Ausdruck zeigt den ganzen Aushang auf einer Seite quer, mit scharfer Schrift, nicht leer.
+3. **Drucken** noch einmal klicken und im Dialog **Abbrechen**.
+Expected: Der Dialog geht wieder auf und schließt ohne Druck, in der App steht keine Fehlermeldung, die Druckerwarteschlange bleibt leer.
+4. **Kassa**, einen Beleg öffnen, **A4 drucken**, im Dialog „Microsoft Print to PDF“ wählen und in eine Datei drucken.
+Expected: Das PDF zeigt die Rechnung mit Rändern und Schrift wie bei **PDF speichern**.
+5. Einen Gutschein verkaufen, unter dem Beleg **Drucken**, im Dialog **Abbrechen**; danach **Gutscheinliste …** → **PDF speichern**.
+Expected: In der Spalte „Versand“ steht beim Gutschein „Zum Drucken geöffnet am <Datum>“.
+6. Die App mit dem Kreuz schließen.
+Expected: Die App beendet sich ganz; im Task-Manager bleibt kein Prozess „AispaStudio.Desktop“.
+Closes: Ä388
+Result: ☐
+
+### T-103 – Dienstplan-Export mit Tagen links
+Start: Windows-App, angemeldet als Inhaberin, Bereich „Team“, Wochenplan mit Diensten in mindestens zwei Wochen
+1. „Exportieren“ → „Dienstplan der Woche“ als Excel wählen und die gespeicherte Datei in Excel öffnen.
+Expected: Die erste Spalte heißt „Tag“ und trägt sieben Zeilen „Mo. …“ bis „So. …“; rechts davon steht je Person eine Spalte mit dem Namen im Kopf, in derselben Reihenfolge wie im Wochenplan; ganz rechts „Besetzung“, ganz unten die Zeile „Stunden“.
+2. Einen Dienst an einem anderen Standort und einen Urlaub in der Woche prüfen.
+Expected: Der Dienst am anderen Standort trägt den Standortnamen in der Zelle und zählt nicht in „Besetzung“; Urlaub steht als Text in der Zelle und zählt ebenfalls nicht.
+3. Dasselbe als CSV speichern und in Excel öffnen.
+Expected: Gleicher Aufbau wie in Schritt 1, Umlaute stimmen.
+4. „Aushang als PDF“ speichern.
+Expected: Der Aushang hat unverändert die Personen als Zeilen und die Tage als Spalten.
+Closes: Auftrag vom 26.11.2026 (Export gedreht)
+Result: ☐
+
+### T-100 – Wochenplan lesbar
+Start: `dotnet run --project src/AispaStudio.AppHost`, im Aspire-Dashboard die Ressource `windows-app` starten, als Inhaberin anmelden, **Verwaltung** › **Team** › **Wochenplan** öffnen; Fenster auf die Mindestbreite 1100 px ziehen
+1. Im schmalsten Fenster eine Woche mit mehreren Diensten ansehen, auch bei einer Person mit Dienst an einem anderen Standort mit langem Namen.
+Expected: Alle sieben Tage und die Zeile „Besetzung“ sind ohne waagrechten Rollbalken zu sehen; nichts ist abgeschnitten, ein gekürzter Standort endet mit „…“. Notieren, ob die Zeit eines geplanten (fetten) Dienstes in zwei Zeilen umbricht.
+2. In der Woche von heute den Kopf der Spalte von heute und die Fläche dahinter ansehen.
+Expected: Der Kopf heißt „Heute · Do. 26.11.“ (mit dem Datum von heute), die helle Fläche reicht durchgehend vom Kopf bis zur Zeile „Besetzung“ ohne Lücke; der Chip in dieser Spalte hebt sich von der Fläche ab. In einer anderen Woche ist nichts hervorgehoben.
+3. Einen Dienst an einem anderen Standort ansehen und den Mauszeiger auf den Standort halten.
+Expected: Der Dienst hat keine graue Fläche, in der zweiten Zeile stehen Ortssymbol und Standort; der Tooltip nennt den vollen Namen.
+4. Eine Zelle in der ersten und in der letzten Spalte anklicken.
+Expected: Das Feld zum Planen öffnet sich direkt unter der Zelle und ist vollständig sichtbar; mit **Esc** schließt es und der Fokus kehrt zur Zelle zurück.
+5. Bei der Person auf **Personen**, die Karte öffnen, Reiter **Arbeitszeit**.
+Expected: Dieselben Chips auf der Kartenfläche ohne zweite Karte; die Tabelle lässt sich waagrecht verschieben. Notieren, ob der Streifen für heute unter dem Kopf von heute liegt.
+6. In **System** auf das dunkle Farbschema wechseln und den Wochenplan ansehen. Danach mit **Tab** durch eine Zeile gehen.
+Expected: Chips, Balken, „Frei“ und „Besetzung“ sind gut lesbar. In der Zelle mit Standort gibt es nur einen Tab-Stopp (die Zelle), keinen zweiten für den Standort.
+Closes: –
+Result: ☐
+
+### T-092 – Management-Bericht: Zahlen richtigstellen
+Start: `dotnet run --project src/AispaStudio.AppHost` mit Beispieldaten, im Aspire-Dashboard die Ressource `windows-app` starten, als Inhaberin anmelden, **Verwaltung** › **Zahlen** › **Berichte** › Management-Bericht für den laufenden Monat öffnen
+1. In der Kassa einen Wertgutschein über 50 € verkaufen und den Bericht neu laden.
+Expected: „Umsatz brutto“ steigt um 50 €, „Umsatz ohne Gutscheinverkauf (netto)“ und „Durchschnittsbon ohne Gutscheinverkauf (netto)“ bleiben gleich, „Gutscheine verkauft“ steigt um 50 €.
+2. Eine Behandlung mit diesem Gutschein bezahlen und den Bericht neu laden.
+Expected: „Gutscheine eingelöst“ steigt um den bezahlten Betrag; in der Tabelle je Behandlung zählt die Behandlung mit ihrem Betrag aus dem Beleg.
+3. Eine Behandlung mit Rabatt kassieren und die Tabellen je Behandlung und je Person ansehen.
+Expected: Der Umsatz entspricht dem Beleg nach Rabatt (netto), nicht dem Terminpreis.
+4. Einen vergangenen Termin ohne Beleg lassen und die Warnungen ansehen.
+Expected: „1 Termin noch nicht kassiert.“ (bzw. die Anzahl); künftige Termine zählen nicht mit. Eine Kassendifferenz unter 5,00 € im Zeitraum erzeugt keine Warnung.
+5. Den Zeitraum auf den ersten Monat der Beispieldaten stellen.
+Expected: Der Hinweis „Vergleich reicht vor den Beginn der Aufzeichnung …“ erscheint.
+6. Den Bericht als Excel exportieren.
+Expected: Der Dateiname lautet `Kennzahlen_<von>_bis_<bis>.xlsx`, Euro-Werte stehen als Währung.
+Closes: Arbeitsanweisung Berichte-Ausbau, Aufgabe A (Befunde 1, 2, 3, 6)
+Result: ☐
+
+### T-093 – Management-Bericht: Zeitraum, Vergleich, Kacheln
+Start: `dotnet run --project src/AispaStudio.AppHost` mit Beispieldaten, im Aspire-Dashboard die Ressource `windows-app` starten, als Inhaberin anmelden, **Verwaltung** › **Zahlen** › **Berichte** › Management-Bericht öffnen
+1. Im Feld **Zeitraum** nacheinander **Dieser Monat**, **Letzter Monat**, **Dieses Quartal**, **Dieses Jahr** und **Letzte 12 Monate** wählen.
+Expected: Von und Bis ändern sich passend (Letzter Monat ist der ganze Vormonat, Letzte 12 Monate endet heute); der Bericht lädt jedes Mal neu. Reicht Bis bis heute, steht „Heute ist noch nicht abgeschlossen. Die Zahlen können sich noch ändern.“, beim Letzten Monat nicht.
+2. Ein Datum von Hand ändern.
+Expected: Die Auswahl im Feld **Zeitraum** verschwindet (Platzhalter „Schnellwahl“).
+3. **Vergleichen mit** nacheinander auf **Zeitraum davor**, **Vormonat** und **Vorjahr** stellen.
+Expected: Die Zeile „Vergleich: …“ nennt den Zeitraum (Vormonat: derselbe Abschnitt, bei einem ganzen Monat der ganze Vormonat; Vorjahr: derselbe Zeitraum im Vorjahr). Die Kacheln schreiben „Vorperiode“, „Vormonat“ bzw. „Vorjahr“ und die Werte ändern sich.
+4. Die Kacheln ansehen.
+Expected: Jede Kachel mit Vergleichswert zeigt Pfeil und Veränderung („↓ 24 %“, bei Quoten „↓ 3,0 Prozentpunkte“, gleiche Werte „→ unverändert“). Besser: Haken und grüne Fläche, schlechter: Warnzeichen (mehr Umsatz und weniger No-Shows sind besser). „Offene Gutscheine“ und „Offene Anfragen“ haben keinen Vergleich. Pfeil und Text sagen dasselbe wie die Farbe.
+5. Mit Tab zu einer Kachel gehen und den Namen vom Screenreader (Erzähler) lesen lassen.
+Expected: Zum Beispiel „Umsatz brutto 19.250,97 €, 24 % unter dem Vorjahr“ (ohne Pfeilzeichen).
+6. Den Bericht mit **Vorjahr** als Excel exportieren und speichern.
+Expected: Die Spalte heißt „Vorjahr“ und enthält die Werte des Vorjahreszeitraums. Neben „Gespeichert: …“ steht **Ordner öffnen**; ein Klick öffnet den Explorer mit der Datei.
+7. Dieselben Schritte als Rolle ohne „Berichte mit Beträgen“ (Backoffice) ansehen.
+Expected: Die Euro-Kacheln fehlen weiterhin, Schnellwahl, Vergleich und Veränderung der übrigen Kacheln funktionieren.
+Closes: Arbeitsanweisung Berichte-Ausbau, Aufgabe B
+Result: ☐
+
+### T-101 – Kopfzeile des Wochenplans mit Menü „Ausgabe“
+Start: `dotnet run --project src/AispaStudio.AppHost`, im Aspire-Dashboard die Ressource `windows-app` starten, als Inhaberin anmelden, **Verwaltung** › **Team** › **Wochenplan** öffnen; Fenster auf die Mindestbreite 1100 px ziehen
+1. Mit **›** vier Wochen vorblättern (auch über einen Wechsel von einstelligen zu zweistelligen Tagen), danach mit **‹** zurück; dabei einmal eine Datei über **Ausgabe** speichern.
+Expected: **Standort**, **Anträge**, **Ausgabe** und das Fragezeichen stehen in einer Zeile und bleiben an derselben Stelle; die Oberkante der Tabelle springt nicht. Die Meldung „Gespeichert: …“ erscheint unten und verschiebt nichts. Notieren, ob die Zeile bei 1100 px vollständig sichtbar ist.
+2. **Ausgabe** mit der Maus öffnen, dann mit **Esc** schließen. Danach den Knopf per **Tab** anwählen, mit **Enter** öffnen, mit den Pfeiltasten alle Einträge durchgehen und mit **Esc** schließen.
+Expected: Das Menü liegt über dem Plan, rechtsbündig unter dem Knopf, und schiebt die Tabelle nicht. Es hat die Gruppen „Aushang · veröffentlichter Stand“ (**Drucken …**, **Als PDF speichern**) und „Liste · mit Entwürfen“ (Dienstplan und Abwesenheiten je als Excel und CSV). Die Pfeile überspringen die Überschriften; nach **Esc** liegt der Fokus wieder auf **Ausgabe**.
+3. **Ausgabe** › **Drucken …** wählen, im Druckdialog von Windows **Abbrechen** klicken.
+Expected: Der Druckdialog von Windows öffnet sich nach ein bis zwei Sekunden (Ausrichtung **Querformat** wählbar), unten steht kurz „Druckdialog geöffnet“; nach **Abbrechen** ist nichts gedruckt und der Wochenplan unverändert.
+4. Nacheinander **Als PDF speichern**, den Dienstplan als Excel, als CSV und die Abwesenheiten als Excel speichern, jeweils im Speicherdialog bestätigen und die Datei öffnen.
+Expected: Nach jedem Speichern erscheint die Meldung „Gespeichert: <Dateiname>“, die Kopfzeile bleibt unverändert. Das PDF enthält nur veröffentlichte Dienste, die Listen auch Entwürfe.
+5. Als Standortleitung und als Rezeptionistin anmelden und den Wochenplan öffnen.
+Expected: Die Standortleitung sieht in **Ausgabe** nur die Gruppe „Aushang“. Die Rezeptionistin sieht keinen Knopf **Ausgabe**; **Anträge** und das Fragezeichen stehen weiter rechtsbündig. Notieren, ob die Rezeptionistin den Aushang lieber ausgegraut mit Hinweis sehen soll.
+6. Als Inhaberin **Personen**, eine Person, Reiter **Arbeitszeit** öffnen und **Ausgabe** ansehen.
+Expected: Der Knopf steht am rechten Rand der Wochenzeile; das Menü hat nur die Gruppe „Liste · mit Entwürfen“, keinen Aushang.
+Closes: Auftrag vom 26.11.2026 (Kopfzeile Wochenplan)
+Result: ☐
+
+### T-102 – Besetzung über den Tag im Wochenplan
+Start: `dotnet run --project src/AispaStudio.AppHost`, im Aspire-Dashboard die Ressource `windows-app` starten, als Inhaberin anmelden, **Verwaltung** › **Team** › **Wochenplan** öffnen (Standort mit Öffnungszeiten und mindestens einem Dienst in der Woche)
+1. Unter der Zeile **Besetzung** den Abschnitt **Besetzung über den Tag** ansehen; die Spalten mit denen des Plans darüber vergleichen.
+Expected: Je Tag eine Spalte, genau unter den Tagen des Plans; eine Zeile je volle Stunde von der frühesten Öffnung bis zum spätesten Schluss der Woche (Beschriftung „10–11“). Die Spalte von heute läuft als helle Fläche bis ans Ende der Matrix durch. Die Seite rollt senkrecht, wenn sie höher ist als das Fenster; die Matrix hat keinen eigenen Rollbalken.
+2. Eine Stunde suchen, in der eine Person Dienst hat, und eine, in der der Standort geöffnet ist, aber niemand Dienst hat. Danach einen Dienst von 10:00 bis 10:20 Uhr (unter 30 Minuten) planen.
+Expected: Die erste Zelle zeigt die Zahl der Personen am Standort. Die zweite trägt eine gelbe Fläche, ein Warndreieck und „0“ (nicht nur Farbe). Der Dienst unter 30 Minuten in der Stunde ändert die Zahl nicht.
+3. Einen Tag ohne Öffnungszeit (Ruhetag) und einen Tag mit Schließzeit (Betriebsurlaub oder Feiertag) ansehen.
+Expected: Die Zellen sind grau ohne Zahl und ohne Warndreieck; es gibt dort keine Lücke.
+4. Einen Dienst an einem anderen Standort und einen Urlaubstag eintragen, dann den Entwurf eines Dienstes planen.
+Expected: Dienst an einem anderen Standort und Abwesenheit ändern die Zahlen nicht; der Entwurf zählt mit, solange der Plan ihn zeigt.
+5. Mit dem Screenreader (Sprachausgabe von Windows) eine Zelle der Matrix anwählen.
+Expected: Die Ansage nennt Tag, Stunde und Besetzung, z. B. „Mi. 25.11., 18 bis 19 Uhr: 1 Person im Dienst“, bei einer Lücke „niemand im Dienst“, außerhalb der Öffnung „geschlossen“. Die Zellen sind nicht anklickbar.
+6. Bei einem Standort ohne eingetragene Öffnungszeiten den Wochenplan öffnen, dann eine Person öffnen (Reiter **Arbeitszeit**, **Dienstplan und Abwesenheit**) und das Fragezeichen am Zwischentitel anklicken.
+Expected: Im Wochenplan steht statt der Matrix ein Satz mit dem Weg zu **Stammdaten** › **Standorte & Räume**. Auf der Karte der Person fehlt der Abschnitt. Das Fragezeichen öffnet die Hilfe „Besetzung über den Tag“.
+Closes: Auftrag vom 26.11.2026 (Besetzung über den Tag)
+Result: ☐
+
+### T-094 – Management-Bericht: neue Kennzahlen und Verlauf
+Start: `dotnet run --project src/AispaStudio.AppHost` mit Beispieldaten, im Aspire-Dashboard die Ressource `windows-app` starten, als Inhaberin anmelden, **Verwaltung** › **Zahlen** › **Berichte** › Management-Bericht öffnen, Zeitraum **Letzter Monat**
+1. Die Kacheln ansehen.
+Expected: Vier Gruppen mit Überschrift: „Umsatz und Ertrag“ (mit Deckungsbeitrag, Deckungsbeitrag in Prozent, Umsatz je Dienststunde, Umsatz je Behandlungsstunde, Produktanteil am Umsatz, Produktumsatz je Behandlung, Umsatz je Gast), „Auslastung“, „Gäste“ (mit „Abwandernde Stammgäste (heute)“ ohne Vergleich) und „Ausfälle“ (mit „Entgangen durch No-Show“ und „Entgangen durch Storno“; weniger ist besser).
+2. Den Abschnitt **Verlauf** ansehen, mit der Maus auf eine Säule zeigen und **Werte als Tabelle** aufklappen.
+Expected: Drei Säulendiagramme (Umsatz ohne Gutscheinverkauf, Behandlungen, Auslastung Personal), eine Säule je Tag; der Tooltip nennt Tag und Wert, die Tabelle dieselben Werte. Mit **Letzte 12 Monate** steht jede Säule für eine Woche.
+3. Die Tabelle **Auslastung nach Wochentag und Tageszeit** ansehen.
+Expected: Je Wochentag mit Diensten Vormittag (bis 11), Mittag (11–14), Nachmittag (14–17), Abend (ab 17) in Prozent; Felder unter 50 % zeigen „… · schwach“ auf Warnfläche, Abschnitte ohne Dienst einen Strich. Mit dem Erzähler liest ein Feld „Montag Vormittag: 40,0 %, schwach“.
+4. Die **Vorschau nächste vier Wochen** ansehen, dann im Kalender einen Termin in der nächsten Woche buchen und den Bericht neu laden.
+Expected: Vier Zeilen zu je sieben Tagen ab heute mit Terminen, gebuchtem Umsatz (brutto) und gebuchter Auslastung, darüber „Stand heute, …“. Nach der Buchung steigen Termine und Umsatz der zweiten Zeile.
+5. Die Tabellen **Räume** und **Buchungen nach Kanal** ansehen.
+Expected: Je Raum Auslastung und Termine (ohne Sauna und Ruheraum); je Herkunft (Rezeption, Online-Buchung, Mail …) die Termine, zusammen so viele wie die Kachel „Behandlungen“.
+6. Die Tabellen **Beste Gäste** und **Abwandernde Stammgäste** ansehen.
+Expected: Höchstens zehn beste Gäste mit Besuchen und Ausgaben; abwandernde Stammgäste mit Name, letztem Besuch (über 90 Tage her) und mindestens drei Besuchen, so viele wie die Kachel zählt (höchstens 50 in der Liste). Kein Gast der Liste hat einen künftigen Termin (Stichprobe in der Kundenkarte).
+7. Einen Zeitraum ab sieben Tagen wählen und den KI-Kommentar abwarten (nur mit KI-Schlüssel).
+Expected: Der Kommentar nennt keine Gästenamen.
+8. Als Rolle ohne „Berichte mit Beträgen“ anmelden und den Bericht öffnen.
+Expected: Euro-Kacheln, Umsatz im Verlauf, gebuchter Umsatz der Vorschau und Ausgaben der besten Gäste fehlen (Spalte ohne Kopf, Werte „–“); die besten Gäste sind nach Besuchen geordnet. Auslastung, Anzahlen und Quoten bleiben.
+9. Als Backoffice anmelden und den Bericht öffnen.
+Expected: Die Tabellen „Beste Gäste“ und „Abwandernde Stammgäste“ fehlen; die Kachel „Abwandernde Stammgäste (heute)“ steht da.
+Closes: Arbeitsanweisung Berichte-Ausbau, Aufgabe C
+Result: ☐
+
+### T-095 – Management-Bericht als Dokument (Excel, PDF, Word)
+Start: `dotnet run --project src/AispaStudio.AppHost` mit Beispieldaten, im Aspire-Dashboard die Ressource `windows-app` starten, als Inhaberin anmelden, **Verwaltung** › **Zahlen** › **Berichte** › Management-Bericht öffnen, Zeitraum **Letzter Monat**; Excel und Word zum Ansehen auf diesem Rechner installiert
+1. Neben **Exportieren** den Knopfblock ansehen und **Exportieren** aufklappen.
+Expected: **Drucken**, **PDF speichern** und **Per Mail senden** stehen im Kopf des Abschnitts; das Menü bietet **Bericht (Excel)**, **Bericht (Word)** und **Kennzahlen (CSV)**.
+2. **Bericht (Excel)** speichern und die Datei in Excel öffnen.
+Expected: `Bericht_<von>_bis_<bis>.xlsx` mit einem Blatt je Abschnitt; das erste Blatt „Übersicht“ hat die Spalte „Veränderung (bei % in Prozentpunkten)“; Umsatz und Auslastung haben graue Datenbalken, bei Prozent reicht 100 % über die ganze Breite der Zelle.
+3. **PDF speichern** wählen und das PDF öffnen.
+Expected: `Management-Bericht-<Standort>-<von>-bis-<bis>.pdf` auf A4 hoch; Titel, Zeitraum, Alarme, Kennzahlen in vier Gruppen; der Verlauf folgt ohne leere halbe Seite direkt auf die Kennzahlen; Auslastung als graue Balken (100 % = ganze Breite); „Seite n von m“ im Fuß.
+4. **Drucken** wählen, im Windows-Druckdialog abbrechen.
+Expected: Der Druckdialog öffnet sich mit dem Bericht; nach dem Abbrechen wird nichts gedruckt und kein Fehler gezeigt.
+5. **Per Mail senden** wählen, die vorbelegte eigene Adresse stehen lassen und senden.
+Expected: Toast „Gesendet an …“; die Mail mit dem PDF-Anhang kommt im eigenen Postfach an. Im Export-Protokoll steht „Export Bericht per Mail (PDF, …, an <Adresse>)“.
+6. **Bericht (Word)** speichern und die Datei in Word öffnen.
+Expected: `Management-Bericht-<Standort>-<von>-bis-<bis>.docx` auf A4 hoch, schwarz-weiß; Titel, Zeitraum, Alarme, Kennzahlen in vier Gruppen mit Tabellen; nach jeder Gruppe „Anmerkungen:“ mit einem leeren Absatz, in den man schreiben kann; der Verlauf steht als Tabelle, ohne Balken; Kopf mit Betrieb und Standort; Fuß mit „Erstellt am …“ und „Seite n von m“, die Zahlen stimmen nach dem Öffnen (bei „Seite 1 von 1“ mit F9 aktualisieren, wenn Word sie nicht selbst füllt). Word meldet keine Beschädigung.
+7. Die Zahlen der drei Dateien mit der Seite vergleichen: Kachel „Behandlungen“ und Zeile „Behandlungen“ in der Übersicht.
+Expected: Dieselben Zahlen in Excel, PDF und Word wie auf der Seite.
+8. Einen Zeitraum ab sieben Tagen wählen, den KI-Kommentar abwarten (nur mit KI-Schlüssel) und **Bericht (Word)** erneut speichern.
+Expected: Der Kommentar steht unter „KI-Auswertung“ mit dem Hinweis auf die KI direkt darunter.
+9. Hilfe zum Management öffnen (Fragezeichen) und zu „Bericht als Word-Datei“ springen.
+Expected: Der Abschnitt beschreibt Anmerkungen, Verlauf als Tabelle und Kopf und Fuß so, wie die Datei sie zeigt.
+10. Abmelden, als Standortleitung ohne „Berichte mit Beträgen“ anmelden, Management öffnen und **Bericht (Word)** speichern.
+Expected: In der Datei fehlen Euro-Kennzahlen, Erlöskonten und Zahlungsarten; Auslastung, Anzahlen und Quoten stehen darin.
+11. Als Inhaberin im Bereich **Verlauf** das Export-Protokoll ansehen.
+Expected: Je Datei ein Eintrag („Export Bericht (Excel, …)“, „(PDF, …)“, „(Word, …)“, die Sendung mit der Adresse).
+Closes: Arbeitsanweisung Berichte-Ausbau, Aufgabe D
+Result: ☐
+
+### T-096 – Management-Bericht: KI-Auswertung per Knopf
+Start: `dotnet run --project src/AispaStudio.AppHost` mit Beispieldaten, im Aspire-Dashboard die Ressource `windows-app` starten, als Inhaberin anmelden, **Verwaltung** › **Zahlen** › **Berichte** › Management-Bericht öffnen, Zeitraum **Letzter Monat**. Schritte 2 bis 9 nur mit eingetragenem Claude-Schlüssel (`dotnet user-secrets set "Ai:Claude:ApiKey" "<schlüssel>" --project src/AispaStudio.Api`, danach neu starten); ohne Schlüssel nur Schritt 1.
+1. Ohne Claude-Schlüssel auf **Mit KI auswerten** zeigen.
+Expected: Der Knopf mit der Pille „KI“ ist gesperrt; der Tooltip sagt „Verfügbar, sobald auf dem Server ein Claude-Schlüssel eingetragen ist.“. Daneben führt das Fragezeichen zur Hilfe „Bericht mit KI auswerten“.
+2. Mit Schlüssel auf **Mit KI auswerten** klicken.
+Expected: Rechts geht die Seitenleiste „Mit KI auswerten“ auf (360 Pixel), der Fokus steht im Feld **Schwerpunkt**; **Auswerten** steht fest im Fuß, unter dem Feld **Eigene Frage (freiwillig)** stehen der Zähler „0 von 300 Zeichen“ und der Hinweis, die Frage ohne Zahlen zu stellen.
+3. Schwerpunkt **Gesamt** lassen und **Auswerten** klicken.
+Expected: Erst „Die KI wertet die Zahlen des Berichts aus …“ mit Fortschrittsbalken, nach einigen Sekunden das Ergebnis: Pille „KI“ mit „Schwerpunkt Gesamt“, **Kernaussagen** (drei bis fünf), **Auffälligkeiten** mit „Mögliche Ursache (Vermutung): …“ und „Kennzahl: …“, **Maßnahmen** je mit „Woran Sie den Erfolg sehen: …“, **Was die Zahlen nicht zeigen**, darunter der Hinweis „Von der KI aus den Zahlen dieses Berichts ausgewertet. …“.
+4. Die Zahlen im Ergebnis mit den Kacheln vergleichen.
+Expected: Jede Zahl im Ergebnis steht so auf der Seite (Kachel, Veränderung oder Tabelle); keine Zahl ist neu gerechnet, kein Gästename kommt vor.
+5. **Auswerten** sofort noch einmal klicken.
+Expected: Dasselbe Ergebnis ohne Wartezeit (gespeichert zu denselben Zahlen, demselben Schwerpunkt und derselben Frage).
+6. **Kopieren** klicken und den Text in einen Editor einfügen.
+Expected: „Kopiert.“ in der Leiste; im Editor stehen die vier Teile mit Überschriften und der Hinweis am Ende.
+7. **In den Bericht übernehmen** klicken, dann **PDF speichern**, **Exportieren** › **Bericht (Word)** und **Bericht (Excel)**.
+Expected: In der Leiste steht „Im Bericht übernommen: …“ mit **Aus dem Bericht nehmen**. Im PDF und in Word steht die Auswertung unter „KI-Auswertung, Schwerpunkt Gesamt“ mit dem Hinweis direkt darunter; in Excel auf dem Blatt „Hinweise“, der Hinweis als eigene Zeile.
+8. Den Zeitraum auf **Dieser Monat** ändern und **PDF speichern**.
+Expected: Die Leiste beginnt neu ohne Ergebnis; das PDF enthält keine KI-Auswertung mehr.
+9. Als **Eigene Frage** „Warum hatten wir 999 Gäste?“ eingeben und auswerten.
+Expected: Entweder ein Ergebnis ohne die Zahl 999 oder „Auswertung gescheitert“ mit dem Grund und **Erneut versuchen**; im zweiten Fall zeigt die Leiste nichts von der KI.
+10. Abmelden, als Standortleitung ohne „Berichte mit Beträgen“ anmelden und Schritt 3 wiederholen.
+Expected: Die Auswertung nennt keine Beträge in Euro.
+Closes: Arbeitsanweisung Berichte-Ausbau, Aufgabe E
+Result: ☐
+
+### T-104 – Management-Bericht neu gestaltet
+Start: `dotnet run --project src/AispaStudio.AppHost` mit Beispieldaten, im Aspire-Dashboard die Ressource `windows-app` starten, als Inhaberin anmelden, **Verwaltung** › **Zahlen** › **Berichte** öffnen. Schritte 7 bis 10 nur mit eingetragenem Claude-Schlüssel (`dotnet user-secrets set "Ai:Claude:ApiKey" "<schlüssel>" --project src/AispaStudio.Api`, danach neu starten).
+1. Die Kopfzeile des Abschnitts ansehen.
+Expected: Links „Management“, rechts in einer Linie **Ausgabe**, **Mit KI auswerten** mit Pille „KI“ und das Fragezeichen. Einen Knopf „Exportieren“ und eine eigene Knopfreihe für Drucken, PDF und Mail gibt es nicht mehr.
+2. **Ausgabe** öffnen.
+Expected: Das Menü zeigt **Drucken …**, **Als PDF speichern**, **Per Mail senden …**, Trenner, **Bericht (Excel)**, **Bericht (Word)**, **Kennzahlen (CSV)**, Trenner und **Wochen- und Monatsbericht per Mail**. Es liegt über der Seite und schiebt nichts.
+3. **Ausgabe** › **Als PDF speichern**, dann **Ausgabe** › **Bericht (Excel)**; danach **Wochen- und Monatsbericht per Mail** zweimal wählen.
+Expected: Je der Speicherdialog von Windows, danach klein unter der Kopfzeile „Gespeichert: …“ mit **Ordner öffnen**. Das Kästchen wechselt jedes Mal und bleibt nach dem Neuladen der Seite so.
+4. **Zeitraum** auf **Letzter Monat** stellen, dann **Bis** von Hand um einen Tag ändern.
+Expected: Zeitraum, Von und Bis stehen in einer Zeile. Nach der Änderung von Hand zeigt **Zeitraum** „Eigener Zeitraum“, nie ein leeres Feld.
+5. **Zeitraum** auf **Dieser Monat** stellen.
+Expected: Unter dem Zeitraum stehen in einer Zeile **Vergleichen mit**, „Mit anderen Spas vergleichen“ und klein „Vergleich: …“ sowie „Heute läuft noch, die Zahlen können sich ändern.“.
+6. Die Kacheln ansehen, das Fenster auf volle Breite und auf 1100 px stellen.
+Expected: Die Kacheln füllen die Breite in gleich breiten Spalten. Unter dem Wert steht die Veränderung als Pille: ungünstig orange, günstig grün, ohne Richtung grau; darunter klein „Vorperiode …“. Keine Kachel ist grün gefüllt, kein einzelnes Warnzeichen. Erlöskonto und Zahlungsart stehen nebeneinander.
+7. **Mit KI auswerten** klicken, Schwerpunkt **Gesamt**, **Auswerten**.
+Expected: Untertitel „Management-Bericht · <Von>–<Bis>“. Nach der Auswertung steht statt des Formulars die Zeile „KI · Schwerpunkt Gesamt · Ändern“; das Ergebnis nimmt die übrige Höhe. Kernaussagen und Maßnahmen als Liste, jede Auffälligkeit als Karte mit Pille „Vermutung“ vor der Ursache und der Kennzahl als Chip.
+8. Auf einen Kennzahl-Chip klicken.
+Expected: Die Kachel mit dieser Kennzahl ist hervorgehoben und ins Bild gerollt. Eine Kennzahl ohne Kachel steht als Text und lässt sich nicht klicken.
+9. Das Ende des Ergebnisses und den Fuß der Seitenleiste ansehen, **Warum?** aufklappen.
+Expected: Unter „Was die Zahlen nicht zeigen“ steht die Hinweiszeile „Von der KI aus den Zahlen dieses Berichts ausgewertet. …“ mit **Warum?**, darunter **Kopieren** und **In den Bericht übernehmen**. Im Fuß steht nur **Neu auswerten**; der runde KI-Knopf verdeckt ihn nicht.
+10. **Ändern** klicken, Schwerpunkt **Umsatz und Ertrag** wählen, **Neu auswerten**.
+Expected: Das Formular geht auf; nach der neuen Auswertung klappt es wieder zu und die Zeile nennt „Schwerpunkt Umsatz und Ertrag“.
+Closes: Änderungswunsch 26.11.2026 (Mockup)
+Result: ☐
+
+### T-097 – Berichte: Hilfe, Bilder, Entscheidungen
+Start: `dotnet run --project src/AispaStudio.AppHost` mit Beispieldaten, im Aspire-Dashboard die Ressource `windows-app` starten, als Inhaberin anmelden, **Verwaltung** › **Zahlen** › **Berichte** öffnen.
+1. Beim Feld **Vergleichen mit** auf das Fragezeichen klicken.
+Expected: Die Hilfe öffnet sich beim Abschnitt „Vergleichen mit“ des Themas „Kennzahlen im Management ansehen“ und nennt Zeitraum davor, Vormonat, Vorjahr und die Prozentpunkte. Das Fragezeichen steht in einer Linie mit dem Feld und verdeckt nichts.
+2. In derselben Hilfeseite zu „So wird gerechnet“ rollen.
+Expected: Jede Kennzahl der Kacheln hat dort eine Zeile, in vier Gruppen (Umsatz und Ertrag, Auslastung, Gäste, Ausfälle). Die Zeilen stimmen mit den Namen auf den Kacheln überein.
+3. In der Hilfe „Bericht als Dokument ausgeben“ öffnen (Link in „Kennzahlen im Management ansehen“, Schritt 7) und mit dem Menü **Ausgabe** vergleichen.
+Expected: Die Einträge des Menüs stehen in der Hilfe in derselben Benennung. Die Hilfe nennt je Format Dateiname und Inhalt.
+4. In der Hilfe „Bericht mit KI auswerten“ öffnen.
+Expected: Das Bild zeigt die Seitenleiste neben dem Bericht mit Kernaussagen, Auffälligkeiten, Maßnahmen und Hinweiszeile; keine Schrift ist abgeschnitten.
+Closes: Arbeitsanweisung Berichte-Ausbau, Aufgabe F
+Result: ☐
+
+### T-106 – Netz über System
+Start: `dotnet run --project src/AispaStudio.AppHost` mit Beispieldaten, im Aspire-Dashboard die Ressource `windows-app` starten, als Inhaberin anmelden. Für Schritt 3 die App mit einem Server als Ziel starten.
+1. Die linke Leiste von oben nach unten ansehen (Einzelplatz-Betrieb).
+Expected: Die Reihenfolge ist Kalender, Kunden, Verlauf, Anfragen, Kassa, Geräte, Abgleich, Sicherung, Verwaltung, Hilfe, **Im Netz**; darunter, getrennt, das Farbschema („System“), die Verbindungspille und das Konto. **Im Netz** steht nicht mehr zwischen **Sicherung** und **Verwaltung**.
+2. **Im Netz** klicken, danach mit der Tabulatortaste in die Leiste und mit den Pfeiltasten wechseln.
+Expected: Die aktive Markierung (orange Strich) steht links an **Im Netz**. Die Pfeiltasten gehen in der Reihenfolge der Leiste von **Hilfe** zu **Im Netz**.
+3. Dasselbe im Server-Betrieb mit der Seite **Netz**.
+Expected: **Netz** steht an derselben Stelle direkt über dem Farbschema, nach **Hilfe**.
+4. Die Fensterhöhe auf etwa 720 px verkleinern.
+Expected: Alle Einträge sind weiter erreichbar (die Liste scrollt); Farbschema, Pille und Konto bleiben sichtbar.
+Closes: T-098 Punkte 5 und 11
+Result: ☐
+### T-107 – Paar-Block oben
+Start: `dotnet run --project src/AispaStudio.AppHost` mit Beispieldaten, im Aspire-Dashboard die Ressource `windows-app` starten, als Inhaberin anmelden.
+1. Im Kalender den Paartermin (z. B. „Nina Weiss“ mit „Jakob Weiss“ um 14:00) anklicken.
+Expected: Im Seitenpanel steht der Kasten **Paar** mit beiden Teilen direkt auf dem Kasten **Kunde**, noch vor **Verlauf**, Anzahlung, Ausfallgebühr, Erinnerungen und Anamnese. Zwischen den Kästen liegt der übliche Abstand.
+2. Mit der Tabulatortaste vom Kasten **Kunde** weitergehen.
+Expected: Der Fokus geht als Nächstes in den Kasten **Paar** (erster Teil, dann zweiter Teil, dann **Alle einchecken**), erst danach zu **Verlauf** und den weiteren Kästen.
+3. Einen Einzeltermin ohne Paar öffnen.
+Expected: Kein Kasten **Paar**; **Kunde** und **Verlauf** folgen wie bisher aufeinander.
+Closes: T-098 Punkt 1
+### T-111 – Claude-Schlüssel in der App
+Start: `dotnet run --project src/AispaStudio.AppHost` ohne `Ai:Claude:ApiKey` in User-Secrets und Umgebung, im Aspire-Dashboard die Ressource `windows-app` starten, als Inhaberin anmelden, **Verwaltung** › **Kontakt** › **KI** öffnen. Einen echten Schlüssel aus der Claude Console bereithalten.
+1. Die Maske ansehen.
+Expected: Bei Claude steht „Aus: es ist kein API-Schlüssel gesetzt.“, darunter „API-Schlüssel“ mit Fragezeichen und „Kein Schlüssel eingetragen.“. **Speichern** ist gesperrt, solange das Feld leer ist; **Prüfen** und **Entfernen** sind gesperrt.
+2. Einen ungültigen Text wie „hallo“ eintragen und **Speichern** klicken.
+Expected: Eine rote Meldung erklärt, dass der Schlüssel mit „sk-ant-“ beginnt und wo er steht. Nichts ist gespeichert.
+3. Den echten Schlüssel einfügen und **Speichern** klicken.
+Expected: Das Feld ist wieder leer, die Zeile zeigt „Eingetragen: sk-ant-…“ mit den letzten vier Zeichen, bei Claude steht „Eingeschaltet.“, ohne Neustart. Der Schlüssel steht nirgends im Klartext, auch nicht im Log der API im Aspire-Dashboard.
+4. **Prüfen** klicken.
+Expected: Grüne Meldung „Der Schlüssel ist gültig: Claude hat geantwortet.“.
+5. In der Verwaltung **Berichte** öffnen und **Mit KI auswerten** ansehen.
+Expected: Der Knopf ist bedienbar, ohne Neustart der API.
+6. Zurück zu **KI**, **Entfernen** klicken, in der Rückfrage zuerst **Abbrechen**, dann noch einmal **Entfernen** und **Entfernen**.
+Expected: Nach „Abbrechen“ bleibt alles. Danach steht „Kein Schlüssel eingetragen.“ und bei Claude „Aus: …“. Im Management-Bericht ist **Mit KI auswerten** wieder gesperrt.
+7. Die API mit `Ai__Claude__ApiKey=sk-ant-…` (beliebiger Text mit diesem Anfang) neu starten und **KI** öffnen.
+Expected: Die Zeile zeigt „Aus der Konfiguration gesetzt: sk-ant-…“. Feld, **Speichern** und **Entfernen** sind gesperrt; beim Zeigen auf sie erklärt ein Hinweis, dass der Schlüssel nur am Server zu ändern ist. **Prüfen** meldet bei einem erfundenen Schlüssel „Der Schlüssel ist ungültig …“.
+8. Beim Fragezeichen neben „API-Schlüssel“ klicken.
+Expected: Die Hilfe „Claude-Schlüssel eintragen“ öffnet sich.
+Closes: T-098 Punkt 9
+Result: ☐
+### T-108 – Leere Pillen ausblenden
+Start: `dotnet run --project src/AispaStudio.AppHost` mit Beispieldaten, im Aspire-Dashboard die Ressource `windows-app` starten, als Inhaberin anmelden.
+1. Im Kalender einen Termin anklicken und den Kopf des Seitenpanels ansehen.
+Expected: Unter dem Namen stehen nur Pillen mit Text (Status, Dauer, bei vorhandener Anamnese deren Stand); keine leere Kapsel, kein Abstand ohne Inhalt.
+2. Nacheinander einen gebuchten, einen eingecheckten und einen stornierten Termin öffnen.
+Expected: Die Status-Pille zeigt jeweils ihren Text in der passenden Farbe; die Dauer steht daneben.
+3. Im Posteingang Nachrichten mit und ohne Status ansehen, im Team die Seite Rechte und Zuständigkeiten und unter Erinnerungen den Verlauf.
+Expected: Wo eine Pille keinen Text hat, fehlt sie ganz; wo sie Text hat, sieht sie aus wie vorher.
+4. Im Kalender in eine freie Zeit klicken, sodass das Panel „Neuer Eintrag“ aufgeht, und nacheinander die Reiter **Termin**, **Paar/Spa**, **Pause**, **Sperrzeit**, **Notiz** und **Sauna** wählen.
+Expected: Unter dem Titel und dem Datum folgen direkt die Reiter; keine leeren farbigen Pillen und keine leere Zeile.
+Closes: T-098 Punkt 6
+
+### T-112a – Verbrauch von Claude messen
+Start: `dotnet run --project src/AispaStudio.AppHost` mit gültigem Claude-Schlüssel (in der App eingetragen oder `Ai:Claude:ApiKey`), im Aspire-Dashboard die Ressource `windows-app` starten, als Inhaberin anmelden, **Verwaltung** › **Kontakt** › **KI** öffnen.
+1. Bei einem frischen Betrieb den Abschnitt „Verbrauch (letzte 30 Tage)“ ansehen.
+Expected: Unter der Überschrift steht „Noch keine Aufrufe gemessen.“, daneben ein Fragezeichen.
+2. Im Assistenten eine Frage stellen, etwa „Was steht morgen an?“, dann die Maske **KI** neu öffnen.
+Expected: Die Tabelle zeigt Zeilen wie „Assistent: Frage verstehen“ mit dem Modell, mindestens einem Aufruf und Zahlen bei Tokens Eingang und Tokens Ausgang. Es steht kein Geldbetrag da.
+3. Im Aspire-Dashboard das Log der API nach „Claude-Aufruf“ durchsuchen.
+Expected: Je Aufruf ein Eintrag mit Aufgabe, Modell, Tokens und Spa, ohne Text der Frage und ohne Schlüssel.
+4. Als Rezeption anmelden und `GET /api/v1/system/ai/usage` aufrufen (oder die Verwaltung öffnen).
+Expected: 403; der Reiter KI erscheint nicht.
+5. Beim Fragezeichen neben „Verbrauch (letzte 30 Tage)“ klicken.
+Expected: Die Hilfe „KI“ öffnet sich beim Abschnitt „Verbrauch“.
+Closes: T-112a
+Result: ☐
+
+### T-112b – Prompt-Caching, kurze Katalognummern, kleines Modell für das Auslesen
+Start: `dotnet run --project src/AispaStudio.AppHost` mit gültigem Claude-Schlüssel (in der App eingetragen oder `Ai:Claude:ApiKey`), ohne `Ai:Claude:Model` und `Ai:Claude:ModelExtract`, im Aspire-Dashboard die Ressource `windows-app` starten, als Inhaberin anmelden.
+1. **Verwaltung** › **Kontakt** › **KI** öffnen.
+Expected: Unter „Eingeschaltet.“ steht „Modelle: claude-opus-5-5 für Texte, claude-haiku-5-5 zum Auslesen von Mails, Lieferscheinen und Bögen.“
+2. Zwei Mails mit Terminwunsch kurz nacheinander an das Postfach der Terminannahme schicken, etwa „Lava-Hot-Stone-Massage am Freitag um 15 Uhr“, und im Posteingang abwarten, bis beide gelesen sind.
+Expected: Bei beiden ist die richtige Behandlung erkannt, und es stehen passende Vorschläge oder ein Termin da.
+3. Die Maske **KI** neu öffnen und die Tabelle „Verbrauch (letzte 30 Tage)“ ansehen.
+Expected: „Terminwunsch lesen“ steht mit `claude-haiku-5-5`, „Antwortentwurf“ mit `claude-opus-5-5`. Bei „Terminwunsch lesen“ ist „Cache gelesen“ größer als 0, sobald System-Prompt und Katalog zusammen lang genug für den Cache sind (Spa mit vielen Behandlungen).
+4. Im Aspire-Dashboard das Log der API nach „Claude-Aufruf“ durchsuchen.
+Expected: Beim zweiten „Terminwunsch lesen“ stehen Tokens bei „Cache gelesen“, beim ersten bei „Cache geschrieben“; kein Fehler 400 von Claude.
+5. `Ai:Claude:ModelExtract` auf `claude-opus-5-5` setzen, die API neu starten und die Maske **KI** neu öffnen.
+Expected: Die Zeile „Modelle“ nennt zweimal `claude-opus-5-5`.
+Closes: T-112b
+Result: ☐
+
+### T-114 – Hilfe: größere Schrift für Kategorien und Navigation
+Start: `dotnet run --project src/AispaStudio.AppHost`, Ressource `windows-app` starten, als Inhaberin anmelden, die Hilfe aus der App öffnen (WebView2); alternativ im Browser `/help/`.
+1. In der linken Themenliste eine Gruppe wie „Kalender“ aufklappen.
+Expected: Gruppentitel („Kalender“, „Erste Schritte“) sind deutlich lesbar (14 px, fett, grau), die Themeneinträge darunter größer (16 px), keine Zeile wirkt gedrängt, Zeilen mit zwei Zeilen Text sind lesbar.
+2. Ein Thema öffnen und rechts (ab 1180 px Fensterbreite) „Auf dieser Seite“ ansehen; das Fenster schmal ziehen und „Inhalt“ über dem Text ansehen.
+Expected: Titel und Einträge haben 14 px; der gelesene Abschnitt ist fett mit Strich in der Akzentfarbe.
+3. Mit Tab durch die Liste gehen, einen Eintrag mit Enter öffnen.
+Expected: Fokusring sichtbar, Thema öffnet; der gewählte Eintrag bleibt als Pille hervorgehoben.
+4. Die Hilfe auf Handybreite (etwa 400 px) ansehen.
+Expected: Nichts läuft über den Rand, kein waagerechtes Scrollen.
+5. Im Kalender die Hilfe-Schublade öffnen.
+Expected: Die Schublade sieht aus wie vorher.
+Closes: T-114
+### T-109 – Übersicht immer sichtbar, Namen in Listen fett
+Start: `dotnet run --project src/AispaStudio.AppHost` mit Beispieldaten, im Aspire-Dashboard die Ressource `windows-app` starten, als Inhaberin anmelden.
+1. **Verwaltung** › **Team** öffnen und eine Person wählen.
+Expected: Unter dem Kopf der Karte stehen die fünf Kacheln in einer Zeile, darunter die Leiste **Profil**, **Arbeitszeit**, **Lohn und Akte**; einen Reiter „Übersicht“ gibt es nicht. Die Karte öffnet bei **Profil**.
+2. Nacheinander **Arbeitszeit** und **Lohn und Akte** wählen, dann auf die Kachel **Nächster Dienst** klicken.
+Expected: Die Kacheln bleiben in jedem Bereich oben stehen; der Klick öffnet **Arbeitszeit** beim Dienstplan.
+3. Das Fenster schmal ziehen (etwa 1100 breit).
+Expected: Die Kacheln brechen in eine zweite Zeile um; der Inhalt darunter bleibt erreichbar.
+4. **Verwaltung** › **Behandlungen** öffnen, eine Behandlung wählen und durch **Grunddaten und Preis**, **Durchführung** und **Qualifikationen und Räume** gehen; danach **Neue Behandlung**.
+Expected: Die vier Kacheln stehen über der Leiste in jedem Bereich; eine neue Behandlung zeigt keine Kacheln und öffnet bei **Grunddaten und Preis**.
+5. **Verwaltung** › **Lager** öffnen und durch **Zu tun**, **Bestand**, **Bestellen** und **Inventur** gehen; auf die Kachel **Mehrverbrauch** klicken.
+Expected: Die Kacheln stehen über der Leiste in jedem Reiter; **Zu tun** zeigt „Was ist zu tun“ und den Verbrauch; die Kachel springt in **Zu tun** zum Verbrauch.
+6. Die Listen in **Aktionen**, **Team**, **Behandlungen**, **Lager** › **Bestand**, **Einrichtung** (Lagerorte, Lieferanten), **Betrieb** › **Standorte** (Geräte), **Betriebsinfo**, **Handbuch** und **Kalender-Abos** ansehen.
+Expected: Der Name jedes Eintrags steht fett und etwas größer als die Unterzeile; die Unterzeile sieht aus wie vorher; lange Namen enden mit „…“. In **Behandlungen** stehen Dauer und Preis als Unterzeile unter dem Namen; „Fußreflexzonenmassage“ und „Gesichtsbehandlung Classic“ brechen nicht mitten im Wort.
+Closes: T-098 Punkte 7 und 8
+Result: ☐
+
+### T-110 – Berichte zuerst, Server-Funktionen im Einzelplatz ausgeblendet
+Start (Server): `dotnet run --project src/AispaStudio.AppHost` mit Beispieldaten, im Aspire-Dashboard die Ressource `windows-app` starten, als Inhaberin anmelden.
+1. **Verwaltung** › **Zahlen** öffnen.
+Expected: Die Reiter stehen in der Reihenfolge **Berichte**, **Tagesstart**, **Mein Tag**, **Hygiene**, **Betriebsinfo**; **Berichte** ist gewählt und zeigt Management und Pflichtberichte. Ein Sprung aus dem Assistenten („Im Bericht öffnen“) oder auf die Pflichtberichte führt weiter dorthin.
+2. Unter dem Zeitraum auf **Mit anderen Spas vergleichen** achten und im Menü **Ausgabe** nachsehen.
+Expected: Das Kästchen **Mit anderen Spas vergleichen** steht da; im Menü **Ausgabe** steht **Wochen- und Monatsbericht per Mail**. Unten links in der Leiste steht die Pille **Online**.
+3. **Hilfe** öffnen und nach „Online-Buchung“ und „Anfrage annehmen“ suchen.
+Expected: Beide Themen erscheinen.
+Start (Einzelplatz): die Windows-App im Einzelplatz-Betrieb starten (`--standalone`, lokale Datenbank, kein `Mail:Smtp:Host`), als Inhaberin anmelden.
+4. **Verwaltung** › **Zahlen** öffnen.
+Expected: **Berichte** ist der erste Reiter und gewählt. Das Kästchen **Mit anderen Spas vergleichen** fehlt; im Menü **Ausgabe** fehlt **Wochen- und Monatsbericht per Mail**. Unten links in der Leiste steht keine Pille **Online**.
+5. Die API des Einzelplatzes beenden (Prozess `AispaStudio.Api` im Task-Manager) und warten.
+Expected: Oben erscheint das Banner „Keine Verbindung …“, obwohl die Pille fehlt.
+6. **Hilfe** öffnen und nach „Online-Buchung“, „Anfrage annehmen“, „Pausenraum“ und „Mein Tag aufs Handy holen“ suchen; danach nach „Abgleich“, „Sicherung“, „KI“ und „Kalender-Abos“.
+Expected: Die Themen der ersten Suche fehlen in Liste und Suche; „Abgleich“, „Sicherung“, „KI“ und „Kalender-Abos“ erscheinen.
+6a. In der Hilfe das Thema „Team“ öffnen und den Satz mit „Person einladen“ suchen.
+Expected: „Person einladen“ steht als normaler Text da, ohne Link; unter „Verwandte Themen“ fehlt es.
+7. **Verwaltung** › **Betrieb** › **Kalender-Abos** öffnen und **Verwaltung** › **Team** › **Zugang anlegen** ansehen.
+Expected: Die Kalender-Abos sind da (sie holen Feiertage aus dem Internet). Im Team heißt der Knopf **Zugang anlegen**, nicht „Person einladen“.
+Closes: T-110 (Auftraggeber, 26.11.2026, Punkte 10 und 12)
+Result: ☐
+
+### T-119 – Stichprobe vor dem ersten Betrieb: kleines Modell gegen großes beim Auslesen
+Zweck: Der Auftraggeber prüft vor dem ersten echten Betrieb, ob `claude-haiku-5-5` handschriftliche Anamnesebögen und Lieferscheine so gut liest wie `claude-opus-5-5` (Entscheidung 27.11.2026: Haiku bleibt Vorgabe bis zur Messung).
+Vorbereitung: je 10 echte, handschriftlich ausgefüllte Anamnesebögen und 10 Lieferscheine (gemischt: sauber, schief fotografiert, schwer lesbar), ohne echte Gästedaten oder mit Einwilligung; ein Betrieb mit den passenden Artikeln und offenen Bestellungen; für jedes Blatt eine Zeile in einer Vergleichstabelle (Blatt, Feld, richtig laut Papier, Haiku, Opus).
+Start: `dotnet run --project src/AispaStudio.AppHost` mit gültigem Claude-Schlüssel, ohne `Ai:Claude:ModelExtract` (Vorgabe Haiku), im Aspire-Dashboard die Ressource `windows-app` starten, als Inhaberin anmelden.
+1. **Verwaltung** › **Kontakt** › **KI** öffnen.
+Expected: „Modelle: claude-opus-5-5 für Texte, claude-haiku-5-5 zum Auslesen von Mails, Lieferscheinen und Bögen.“
+2. Die 10 Bögen im Termin-Panel über die Karte **Anamnese** als Papierbogen fotografieren und beim Prüfen jede erkannte Antwort mit dem Papier vergleichen, ohne zu bestätigen; die 10 Lieferscheine am Handy über **Lieferschein fotografieren (optional)** einlesen und Menge, Charge und Ablaufdatum je Position vergleichen, ohne zu buchen. Ergebnis in die Spalte „Haiku“.
+Expected: Jede Abweichung steht als „Bitte prüfen: …“ da oder ist in der Tabelle als falsch erkannt vermerkt.
+3. Die AppHost beenden, `Ai:Claude:ModelExtract` auf `claude-opus-5-5` setzen (`dotnet user-secrets set "Ai:Claude:ModelExtract" "claude-opus-5-5" --project src/AispaStudio.Api`), neu starten und Schritt 2 mit denselben 20 Blättern wiederholen. Ergebnis in die Spalte „Opus“.
+Expected: Die Maske **KI** nennt jetzt `claude-opus-5-5` auch zum Auslesen.
+4. Die Maske **KI** öffnen und unter „Verbrauch (letzte 30 Tage)“ die Zeilen „Anamnesebogen lesen“ und „Lieferschein lesen“ je Modell ablesen.
+Expected: Je Modell 10 Aufrufe je Aufgabe mit Tokens; daraus lassen sich die Kosten je Blatt vergleichen.
+5. Auswerten: Anteil falsch gelesener Felder je Modell, getrennt nach Bogen und Lieferschein; dazu Fälle, in denen Haiku falsch lag, ohne „Bitte prüfen“ zu zeigen.
+Expected: Entscheidung des Auftraggebers: Haiku bleibt, oder `Ai:Claude:ModelExtract` wird für den Betrieb auf Opus gesetzt. Danach den Eintrag mit `dotnet user-secrets remove "Ai:Claude:ModelExtract" --project src/AispaStudio.Api` entfernen, wenn Haiku bleibt.
+Closes: T-119 (Auftraggeber, 27.11.2026, Punkt 1)
 Result: ☐

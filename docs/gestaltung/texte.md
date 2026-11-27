@@ -12,7 +12,7 @@ Verbindlich für alles, was der Auftraggeber, das Team und die Gäste lesen: Hil
 
 Beide Leitfäden sind englisch. Die Regeln unten sind auf Deutsch übertragen und nur dort übernommen, wo sie im Deutschen tragen. Wo ein Beispiel „vorher“ heißt, stand es so im Repository und wurde mit T-012 geändert; „Muster“ ist ein ausgedachter Fall.
 
-**Geprüft wird automatisch** nur ein Teil: `web/src/help/textRules.test.ts` prüft die Hilfetexte auf T1 (Du-Form), T8, T9 (nur Richtungspaare), T10 (nur „klicken Sie hier“), T14 und T15. Zitate in „…“ und fett gesetzte Beschriftungen bleiben ungeprüft, weil dort die App oder der Gast wörtlich spricht. Alles andere ist Sache der Durchsicht; der PR-Abschnitt hakt es ab (Abschnitt 4).
+**Geprüft wird automatisch** nur ein Teil: `web/src/help/textRules.test.ts` prüft die Hilfetexte auf T1 (Du-Form und Sie-Anrede), T8, T9 (nur Richtungspaare), T10 (nur „klicken Sie hier“), T14 und T15. Zitate in „…“ und fett gesetzte Beschriftungen bleiben ungeprüft, weil dort die App oder der Gast wörtlich spricht. Alles andere ist Sache der Durchsicht; der PR-Abschnitt hakt es ab (Abschnitt 4).
 
 ## 2. Regeln
 
@@ -71,7 +71,8 @@ Beide Leitfäden sind englisch. Die Regeln unten sind auf Deutsch übertragen un
 
 | Gemeint | Schreibweise | Nicht |
 | --- | --- | --- |
-| Verkauf und Bezahlen | Kassa (feste Wörter: Kassenlade, Kassenjournal) | Registrierkasse, POS |
+| Verkauf und Bezahlen | Einzahl „Kassa“ („die Kassa“, „Kassa WIEN-1“), Mehrzahl „Kassen“; Zusammensetzungen mit „Kassen-“ bleiben (Kassenlade, Kassenjournal, Kassenaufsicht, Kassenbeleg, Kassendifferenz) (Auftraggeber, 20.11.2026) | Kasse (Einzahl), POS; „Registrierkasse“ nur im Rechtszitat |
+| Wo die Daten liegen | Haupt-PC (der PC im Spa, auf dem die Daten liegen); Server (eigener oder gemieteter Server, Technik wie „SMTP-Server“); allgemeine Sätze nennen keinen Rechner („Keine Verbindung.“, „AISPA Studio prüft …“) (Auftraggeber, 20.11.2026) | „Server“ als allgemeines Wort für das Programm, Hauptrechner |
 | Person, die behandelt wird | Gast; Kundin/Kunde nur für den Stammdatensatz | Patient, Klient |
 | Leistung am Gast | Behandlung | Anwendung, Service |
 | Buchung im Kalender | Termin | Reservierung |
@@ -135,7 +136,7 @@ Beide Leitfäden sind englisch. Die Regeln unten sind auf Deutsch übertragen un
 
 | Text | Regeln |
 | --- | --- |
-| Hilfethema (`web/src/help/content/`) | T1 bis T18, T19 für Meldungstexte; automatisch geprüft: T1 (Du-Form), T8, T9 (Richtungspaare), T10, T14, T15 |
+| Hilfethema (`web/src/help/content/`) | T1 bis T18, T19 für Meldungstexte; automatisch geprüft: T1 (Du-Form, Sie-Anrede), T8, T9 (Richtungspaare), T10, T14, T15 |
 | Oberflächentext (App, Web) | T1, T3, T6, T8, T11, T12, T14 bis T19, T22; Werte in design.md |
 | ADR, PR-Text, Protokoll | T2, T3, T12, T14, T15, T20 |
 | OpenAPI-Beschreibung | T3, T12, T21 |

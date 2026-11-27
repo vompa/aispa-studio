@@ -5,6 +5,7 @@ oberflaeche: handy
 rollen: therapeut
 seite: myday
 stichwoerter: meine Termine, mein Tag, heute, morgen, Vortag, Folgetag, Tagesplan, Dienst, welche Behandlung als nächstes, nächster Gast, offline, kein WLAN, Standort wechseln, anmelden, my schedule, today, next appointment
+betrieb: server
 ---
 # Eigenen Tag am Handy ansehen
 
@@ -53,7 +54,7 @@ Wer an mehreren Standorten arbeitet, wählt oben bei **Standort** den Standort. 
 - Ein Tag, der noch nie geladen wurde, ist offline nicht zu sehen. Darum den Tag vorher einmal mit Netz öffnen.
 - Mit Netz holt **Aktualisieren** den neuesten Stand.
 
-## Hinweise {#hinweise}
+## Gut zu wissen {#hinweise}
 
 - Es erscheinen nur die eigenen Termine; den Plan anderer sieht man hier nicht.
 - Steht auf einer Karte „Anamnese prüfen“, verlangt die Behandlung einen Blick in den Fragebogen, und der Gast hat dort Angaben gemacht. Den Bogen selbst öffnet man in der Windows-App.

@@ -1,8 +1,6 @@
-using Avalonia.Controls;
-
 namespace AispaStudio.Desktop.Views;
 
-public sealed partial class StockBatchTraceSection : UserControl
+public sealed partial class StockBatchTraceSection : FocusRequestView
 {
     public StockBatchTraceSection() => InitializeComponent();
 }

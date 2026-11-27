@@ -17,7 +17,7 @@ Ohne Personalnummer wird für eine Person nichts an die Lohnverrechnung übergeb
 3. Ins Feld **Personalnummer** klicken und die Nummer der Lohnverrechnung eintippen.
 4. Unten **Speichern** klicken oder Strg+S drücken. Unten erscheint kurz „Gespeichert“. Ist die Nummer schon vergeben, bleibt die Karte im Bereich **Lohn und Akte** und die Meldung nennt den Grund.
 
-## Hinweise {#hinweise}
+## Gut zu wissen {#hinweise}
 
 - Eintragen dürfen nur Inhaber und Manager; das Backoffice sieht die Nummer nur.
 - Höchstens 20 Zeichen; jede Nummer darf nur einmal vergeben sein.

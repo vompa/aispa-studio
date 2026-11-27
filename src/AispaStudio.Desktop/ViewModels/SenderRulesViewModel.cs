@@ -131,7 +131,7 @@ public sealed partial class SenderRuleRow : ObservableObject
 /// Absenderregeln des Spas (ADR 0062), Teil der Maske „Postfach &amp; Nummern“ (R05 Slice 97) nach <c>SenderRulesSection.tsx</c>: welche Absender Buchungsplattformen sind und was mit
 /// ihren Mails geschieht. Die Tabelle ist eine eigene Speicherebene: Änderungen an einer Zeile gehen sofort an die API (PUT), unabhängig vom Formular des Postfachs.
 /// </summary>
-public sealed partial class SenderRulesViewModel : ViewModelBase
+public sealed partial class SenderRulesViewModel : ViewModelBase, IFocusTarget
 {
     private readonly IWorkstationApi _api;
     private readonly Func<ConfirmRequest, Task<ConfirmResult>> _ask;
@@ -164,8 +164,19 @@ public sealed partial class SenderRulesViewModel : ViewModelBase
     public bool ShowEmpty => IsLoaded && Rules.Count == 0;
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(AddCommand))]
     public partial string NewPattern { get; set; } = "";
+
+    /// <summary>Name des Felds (<c>x:Name</c>) für <see cref="FocusTarget"/>.</summary>
+    public const string PatternField = "RulePatternField";
+
+    [ObservableProperty]
+    public partial string? FocusTarget { get; set; }
+
+    /// <summary>Fehler am Feld (masken.md, R8); verschwindet mit der nächsten Eingabe.</summary>
+    [ObservableProperty]
+    public partial string? PatternError { get; private set; }
+
+    partial void OnNewPatternChanged(string value) => PatternError = null;
 
     [ObservableProperty]
     public partial PlatformOption NewPlatform { get; set; } = Platforms[0];
@@ -216,11 +227,16 @@ public sealed partial class SenderRulesViewModel : ViewModelBase
         Refresh();
     }
 
-    private bool CanAdd => NewPattern.Trim().Length > 0;
-
-    [RelayCommand(CanExecute = nameof(CanAdd))]
+    [RelayCommand]
     private async Task AddAsync()
     {
+        if (NewPattern.Trim().Length == 0)
+        {
+            PatternError = "Bitte eine Adresse oder Domain eintragen, z. B. plattform.example.";
+            FocusTarget = PatternField;
+            return;
+        }
+
         var input = new SenderRuleInput(NewPattern.Trim(), NewPlatform.Value, NewHandling.Value, true, Trimmed(NewNote));
         var result = await _api.PostAsync<SenderRuleDto>("api/intake/sender-rules", input).ConfigureAwait(true);
         if (result.Value is not { } created)

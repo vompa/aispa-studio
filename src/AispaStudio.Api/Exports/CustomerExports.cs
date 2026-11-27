@@ -41,7 +41,7 @@ internal static class CustomerExports
                     return Problem("format", "Die Newsletter-Liste gibt es als CSV oder Excel.");
                 }
 
-                if (kind == ExportFormat.Ics)
+                if (kind is not (ExportFormat.Xlsx or ExportFormat.Csv or ExportFormat.Portal or ExportFormat.Vcf))
                 {
                     return Problem("format", "Die Kundenliste gibt es als Excel, CSV, Portal-CSV oder vCard.");
                 }

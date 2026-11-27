@@ -69,4 +69,4 @@ Berichte, Kosten, Buchhaltungs- und Lohnexport und der Vergleich mit anderen Spa
 
 - Die Zahlen sind plausibel, nicht repräsentativ; die Auslastung liegt bewusst unter dem Median der Vergleichsgruppe, damit der Vergleich etwas zu zeigen hat.
 - Der Datensatz kommt nur in eine leere Datenbank. Wer ihn nach einer Änderung neu sehen will, leert die Datenbank.
-- Weil „heute“ der Tag des ersten Starts ist, liegen die Termine nach einigen Wochen alle in der Vergangenheit. Dann ebenfalls neu laden.
+- Weil „heute“ der Tag des ersten Starts ist, liegen die Termine nach einigen Wochen alle in der Vergangenheit. Liegt der späteste Termin weniger als 14 Tage voraus, spielt die API die Daten beim Start im Debug-Build und im Beispiel-Spa selbst neu ein; sonst meldet sie es im Log und auf der Anmeldung der Windows-App, und man lädt von Hand neu (Befehl „Beispiel-Spa neu einspielen …“ an `postgres` im Aspire-Dashboard). Regeln und Schutz für eingespielte Sicherungen: [development.md](development.md).

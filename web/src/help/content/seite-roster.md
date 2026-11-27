@@ -25,17 +25,28 @@ Sehen dürfen den Plan alle Rollen, auch das Backoffice. Planen, Veröffentliche
 - Oben die Auswahl des Standorts.
 - Daneben **‹** (vorherige Woche), **Diese Woche** und **›** (nächste Woche), dazu die Überschrift „Woche ab …“.
 - Gibt es Entwürfe in der angezeigten Woche, steht oben ein Band: „Entwurf: 2 Änderungen nicht veröffentlicht“ mit **Veröffentlichen** und **Verwerfen**, darunter „Zuletzt veröffentlicht …“. Die Karte einer Person zeigt das Band nicht.
-- **Die Tabelle**: eine Zeile je Person mit Farbpunkt, eine Spalte je Tag. Beim Namen stehen die geplanten Stunden der Woche gegen die Wochenarbeitszeit, z. B. „8 / 40 h“; ohne Wochenarbeitszeit nur die Stunden. Die Spalte von heute ist hervorgehoben.
-- **Dienste** sind Chips in der Farbe der Person mit der Zeit, z. B. „09:00–17:00“; Dienste an einem anderen Standort tragen dessen Namen. Ein fett gesetzter Chip ist für diesen Tag geplant, ein normaler folgt der Wochenarbeitszeit. Ein Tag ohne Dienst zeigt ein schwaches „frei“.
+- **Die Tabelle**: eine Zeile je Person mit Farbpunkt, eine Spalte je Tag. Beim Namen stehen die geplanten Stunden der Woche gegen die Wochenarbeitszeit, z. B. „8 / 40 h“; ohne Wochenarbeitszeit nur die Stunden. Die Spalte von heute trägt eine helle Fläche vom Kopf bis zum Ende der Besetzung über den Tag; ihr Kopf heißt „Heute · Do. 26.11.“.
+- **Dienste** sind graue Chips mit der Zeit, z. B. „09:00–17:00“. Die Farbe der Person steht nur als Punkt vor dem Namen. Ein Dienst an einem anderen Standort hat keine Fläche und nennt in einer zweiten Zeile mit Ortssymbol den Standort; ein langer Name wird gekürzt, die Maus zeigt ihn ganz. Ein fett gesetzter Chip ist für diesen Tag geplant, ein normaler folgt der Wochenarbeitszeit. Ein Tag ohne Dienst zeigt ein schwaches „frei“.
 - **Abwesenheiten** sind ein Balken über die Tage, z. B. „Urlaub Di–Fr“, ebenso „Krank“, „Frei“ und „Schulung“. Jeder Tag unter dem Balken bleibt einzeln anklickbar.
 - Ein **Entwurf** trägt einen gestrichelten Rand um die Zelle.
-- Unter der Tabelle zählt die Zeile **Besetzung**, wie viele Personen pro Tag am Standort im Dienst sind. Auf der Karte einer Person fehlt sie.
+- Unter der Tabelle zählt die Zeile **Besetzung**, wie viele Personen pro Tag am Standort im Dienst sind. Darunter zeigt **Besetzung über den Tag**, in welchen Stunden wie viele da sind, siehe [Besetzung über den Tag](#besetzung). Auf der Karte einer Person fehlt beides.
 - Eine Warnung in einer Zelle oder bei den Stunden weist auf Arbeitszeitgrenzen hin, z. B. zu kurze Ruhezeit, zu kurze Pause oder zu viele Stunden. Die Grenzen richten sich nach dem Land des Spas.
 - Ein Klick auf eine Zelle öffnet direkt an der Zelle das Feld zum Planen dieses Tages. Für eine Person weiter unten zuerst **Schließen**.
 - Ein Klick auf den Namen einer Person wechselt zu **Personen** und öffnet ihre Karte im Bereich **Arbeitszeit**, beim Dienstplan. Das geht nur mit dem Recht, Personen zu sehen.
-- **Exportieren** speichert den Dienstplan der angezeigten Woche (Personen als Zeilen, Tage als Spalten, mit Entwürfen) und die Abwesenheiten dieser Woche als Excel oder CSV. Den Knopf sehen nur Inhaberin und Geschäftsführung.
+- **Ausgabe** am rechten Rand der Kopfzeile, neben **Anträge** und dem Fragezeichen, ist ein Menü, das beim Blättern an seinem Platz bleibt. Die Gruppe „Liste · mit Entwürfen“ speichert den Dienstplan der angezeigten Woche (Tage als Zeilen, Personen als Spalten, mit Entwürfen; rechts die Besetzung je Tag, unten die Stunden je Person) und die Abwesenheiten dieser Woche als Excel oder CSV; sie sehen nur Inhaberin und Geschäftsführung. Die Gruppe „Aushang · veröffentlichter Stand“ druckt den Aushang oder speichert ihn als PDF, siehe [Dienstplan veröffentlichen](hilfe:dienstplan-veroeffentlichen#aushang). Die Bestätigung „Gespeichert: …“ erscheint als kurze Meldung und verschiebt nichts. Wer keine der beiden Gruppen sehen darf, sieht den Knopf nicht.
 
 ![Wochenplan in der Windows-App](images/app/verwaltung-team-wochenplan.png)
+
+## Besetzung über den Tag {#besetzung}
+
+Die Zeile **Besetzung** nennt nur die Summe je Tag. Zwei Dienste von 10 bis 18 Uhr und von 11 bis 19 Uhr ergeben dort „2“, obwohl von 10 bis 11 Uhr und von 18 bis 19 Uhr nur eine Person da ist. Unter der Zeile **Besetzung** zeigt der Abschnitt **Besetzung über den Tag**, wann am Tag der Standort dünn besetzt ist. Er steht nur im Wochenplan, nicht auf der Karte einer Person.
+
+- Die Matrix hat dieselben sieben Tagesspalten wie der Plan und eine Zeile je volle Stunde, von der frühesten Öffnung bis zum spätesten Schluss der Woche. „10–11“ steht für die Stunde von 10:00 bis 11:00 Uhr.
+- Die Zahl in einer Zelle nennt, wie viele Personen in dieser Stunde am gewählten Standort im Dienst sind. Eine Person zählt, wenn sie in der Stunde mindestens 30 Minuten Dienst hat. Entwürfe zählen mit, wenn der Plan sie zeigt. Abwesenheiten und Dienste an einem anderen Standort zählen nicht. Ein Dienst über Mitternacht zählt nicht mit.
+- Ein Warndreieck mit „0“ auf gelber Fläche kennzeichnet eine **Lücke**: Der Standort ist in dieser Stunde geöffnet, aber niemand hat Dienst.
+- Eine graue Zelle ohne Zahl liegt außerhalb der Öffnungszeit, auch an Tagen mit einer Schließzeit wie Betriebsurlaub oder Feiertag. Dort ist keine Lücke.
+- Ist der Standort in der ganzen Woche nie geöffnet, steht statt der Matrix ein Satz mit dem Weg zu den Öffnungszeiten ([Öffnungszeiten ändern](hilfe:stammdaten-oeffnungszeiten-aendern)). Ohne Personen im Plan fehlt der Abschnitt.
+- Die Zellen sind nicht anklickbar. Ein Screenreader liest je Zelle Tag, Stunde und Besetzung, z. B. „Mi. 25.11., 18 bis 19 Uhr: 1 Person im Dienst“.
 
 Wer an einem Tag ungespeicherte Änderungen hat und die Woche, den Standort oder die Ansicht wechselt, wird gefragt: „Änderungen speichern?“ mit **Speichern**, **Verwerfen** und **Abbrechen**.
 

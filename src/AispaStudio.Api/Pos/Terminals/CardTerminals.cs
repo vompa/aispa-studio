@@ -242,7 +242,7 @@ internal sealed class CardTerminalService(AispaDbContext db, IEnumerable<ICardTe
         {
             case CardPaymentStatus.Pending:
                 payment.Status = CardPaymentStatus.Cancelled;
-                payment.Message = "An der Kasse abgebrochen.";
+                payment.Message = "An der Kassa abgebrochen.";
                 payment.CompletedAt = time.GetUtcNow();
                 break;
             case CardPaymentStatus.Approved when payment.ReceiptId is null:
@@ -283,7 +283,7 @@ internal sealed class CardTerminalService(AispaDbContext db, IEnumerable<ICardTe
         if (payment.Status == CardPaymentStatus.Cancelled)
         {
             payment.Status = CardPaymentStatus.Pending;
-            Apply(payment, result with { Message = "Nach dem Abbruch an der Kasse doch genehmigt: kassieren oder stornieren." });
+            Apply(payment, result with { Message = "Nach dem Abbruch an der Kassa doch genehmigt: kassieren oder stornieren." });
         }
         else
         {

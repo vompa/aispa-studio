@@ -114,7 +114,7 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
         var warnings = new List<string>();
         if (r is { LongOutageSince: { } outageFrom, LongOutageReenteredAt: { } outageUntil } && time.GetUtcNow() - outageUntil <= LongOutageReminder)
         {
-            warnings.Add($"Die Kasse war länger als 48 Stunden nicht erreichbar: Ersatzbeleg vom {outageFrom.ToUniversalTime():yyyy-MM-dd HH:mm} UTC, " +
+            warnings.Add($"Die Kassa war länger als 48 Stunden nicht erreichbar: Ersatzbeleg vom {outageFrom.ToUniversalTime():yyyy-MM-dd HH:mm} UTC, " +
                 $"nacherfasst am {outageUntil.ToUniversalTime():yyyy-MM-dd HH:mm} UTC." +
                 (r.Country == FiscalCountry.AT ? " Beginn und Ende des Ausfalls über FinanzOnline melden." : " Den Ausfall dokumentieren."));
         }
@@ -131,7 +131,7 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
 
         if (!r.IsActive)
         {
-            warnings.Add("Kasse außer Betrieb (Schlussbeleg erstellt).");
+            warnings.Add("Kassa außer Betrieb (Schlussbeleg erstellt).");
         }
 
         if (fiscal.For(r.Country).Notice is { } notice)
@@ -898,7 +898,7 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
 
             // Das Geld ist schon kassiert: gebucht wird nur, was genau dem Ersatzbeleg entspricht; alles andere klärt ein Mensch.
             PosFailure Mismatch(decimal atRegister) => PosFailure.Conflict(
-                $"Der Ersatzbeleg {number} nennt {Money(input.Total)}, an der Kasse ergeben die Positionen {Money(atRegister)}. "
+                $"Der Ersatzbeleg {number} nennt {Money(input.Total)}, an der Kassa ergeben die Positionen {Money(atRegister)}. "
                 + "Den Ersatzbeleg von Hand an der Kassa nacherfassen.");
             if (bill.Lines.Sum(l => l.Amount) != input.Total)
             {
@@ -1064,7 +1064,7 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
         var receiptId = Guid.CreateVersion7();
         if ((request.Payments ?? []).FirstOrDefault(p => !available.Contains(p.Method)) is { } unavailable)
         {
-            throw PosFailure.Invalid("payments", $"{PaymentMethods.Label(unavailable.Method)} ist an dieser Kasse nicht verfügbar.");
+            throw PosFailure.Invalid("payments", $"{PaymentMethods.Label(unavailable.Method)} ist an dieser Kassa nicht verfügbar.");
         }
 
         // Welche Beträge welcher Positionen jetzt bezahlt werden; ohne Angabe alles noch Offene.
@@ -1614,7 +1614,7 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
         var register = await db.CashRegisters.AsNoTracking().FirstOrDefaultAsync(r => r.Id == registerId, ct);
         if (register is null)
         {
-            return new PosError(PosErrorKind.NotFound, "registerId", "Kasse nicht gefunden.");
+            return new PosError(PosErrorKind.NotFound, "registerId", "Kassa nicht gefunden.");
         }
 
         if (IsOtherSite(register))
@@ -2061,7 +2061,7 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
     {
         if (registerId == Guid.Empty)
         {
-            return (Guid.Empty, new PosError(PosErrorKind.NotFound, "registerId", "Kasse oder Rechnung nicht gefunden."));
+            return (Guid.Empty, new PosError(PosErrorKind.NotFound, "registerId", "Kassa oder Rechnung nicht gefunden."));
         }
 
         var strategy = db.Database.CreateExecutionStrategy();
@@ -2088,13 +2088,13 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
         {
             db.ChangeTracker.Clear();
             return (Guid.Empty, new PosError(PosErrorKind.Conflict, "",
-                "Gleichzeitig wurde an einer anderen Kasse dasselbe geändert (Termin oder Gutschein). Bitte neu laden."));
+                "Gleichzeitig wurde an einer anderen Kassa dasselbe geändert (Termin oder Gutschein). Bitte neu laden."));
         }
     }
 
     private async Task<CashRegister> LockRegisterAsync(Guid registerId, CancellationToken ct) =>
         (await db.CashRegisters.FromSql($"""SELECT * FROM aispa."CashRegisters" WHERE "Id" = {registerId} FOR UPDATE""").ToListAsync(ct))
-        .FirstOrDefault() ?? throw PosFailure.NotFound("Kasse");
+        .FirstOrDefault() ?? throw PosFailure.NotFound("Kassa");
 
     private async Task<Guid> RegisterOfBillAsync(Guid billId, CancellationToken ct) =>
         await db.Bills.Where(b => b.Id == billId).Select(b => b.RegisterId).FirstOrDefaultAsync(ct);
@@ -2110,7 +2110,7 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
         LocalTime.Zone(await db.Locations.Where(l => l.Id == register.LocationId).Select(l => l.TimeZone).FirstAsync(ct));
 
     private const string OtherSiteMessage =
-        "Diese Kasse kassiert an einer anderen Stelle (anderer PC oder Server). Hier nur ansehen; zum Kassieren hier eine eigene Kasse anlegen.";
+        "Diese Kassa kassiert an einer anderen Stelle (an einem anderen PC). Hier nur ansehen; zum Kassieren hier eine eigene Kassa anlegen.";
 
     private bool IsOtherSite(CashRegister register) => register.SiteId is { } owner && site.Get(db) is { } here && owner != here;
 
@@ -2132,7 +2132,7 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
     {
         if (!register.IsActive)
         {
-            throw PosFailure.Invalid("registerId", "Die Kasse ist außer Betrieb.");
+            throw PosFailure.Invalid("registerId", "Die Kassa ist außer Betrieb.");
         }
     }
 

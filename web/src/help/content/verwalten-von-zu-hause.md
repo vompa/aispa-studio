@@ -5,6 +5,7 @@ oberflaeche: windows-app
 rollen: inhaber, manager, leitung
 seite: netz
 stichwoerter: von zu Hause, Homeoffice, Verwaltung zu Hause, remote, VPN, Portweiterleitung, Port öffnen, Server verbinden, verlorenes Gerät, Laptop weg, Zugang sperren, Laufwerksverschlüsselung, BitLocker, work from home, lost device
+betrieb: server
 ---
 # Verwalten von zu Hause
 
@@ -18,7 +19,7 @@ Von zu Hause verwaltet die Leitung mit derselben Windows-App und derselben Anmel
 
 ## Mit einem Server verbinden {#server}
 
-1. Die App am Heim-PC starten. Findet sie keinen Server, zeigt der Startbildschirm „Keine Verbindung zum Server“.
+1. Die App am Heim-PC starten. Findet sie keinen Server, zeigt der Startbildschirm „Keine Verbindung“.
 2. Unter **Mit Server verbinden** die Serveradresse eintragen, z. B. `https://spa.example.at`, und auf **Server verbinden** klicken.
 3. Die App prüft die Verbindung und das Zertifikat, merkt sich die Adresse und startet neu.
 4. Wie im Spa mit Benutzername und Passwort anmelden.

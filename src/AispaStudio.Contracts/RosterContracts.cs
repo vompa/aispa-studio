@@ -50,6 +50,7 @@ public sealed record RosterRow(Guid EmployeeId, string DisplayName, string Color
 /// <summary>
 /// Dienstplan eines Standorts für mehrere Tage. Enthält auch Dienste der Personen an anderen Standorten, damit Überschneidungen und Ruhezeiten sichtbar sind.
 /// <c>Drafts</c>: Entwürfe dieses Standorts im Zeitraum, die noch zu veröffentlichen sind. <c>LastPublishedAt</c>: letzte Veröffentlichung des Standorts.
+/// <c>HourlyStaffing</c>: Besetzung je Tag und voller Stunde am Standort (Stand wie der Plan, mit Entwürfen); leer ohne Öffnungszeiten oder ohne Dienste.
 /// </summary>
 public sealed record RosterWeek(
     Guid LocationId,
@@ -57,7 +58,15 @@ public sealed record RosterWeek(
     IReadOnlyList<DateOnly> Dates,
     IReadOnlyList<RosterRow> Employees,
     int Drafts = 0,
-    DateTimeOffset? LastPublishedAt = null);
+    DateTimeOffset? LastPublishedAt = null,
+    IReadOnlyList<HourlyStaffing>? HourlyStaffing = null);
+
+/// <summary>
+/// Besetzung eines Tages in einer vollen Ortsstunde: <c>Hour</c> ist der Stundenbeginn (0 bis 23), <c>Open</c> ob der Standort in dieser Stunde ganz oder teilweise geöffnet ist
+/// (Schließzeiten und Tage ohne Öffnungszeit: <c>false</c>), <c>Count</c> die Personen mit mindestens 30 Minuten Dienst an diesem Standort in der Stunde.
+/// Je Tag der Woche steht jede Stunde des Wochenbereichs genau einmal.
+/// </summary>
+public sealed record HourlyStaffing(DateOnly Date, int Hour, bool Open, int Count);
 
 /// <summary>Ergebnis einer Änderung: der neue Tag und Termine, die jetzt außerhalb der Dienstzeit liegen (bitte verschieben).</summary>
 public sealed record RosterDayResult(RosterCell Day, IReadOnlyList<AppointmentDto> AppointmentsOutsideShift);

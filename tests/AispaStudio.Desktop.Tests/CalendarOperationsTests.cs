@@ -250,12 +250,17 @@ public sealed class CalendarOperationsTests
         api.Calls.Clear();
         var reception = await OpenAsync(api);
         var operations = reception.Operations!;
+        string? focus = null;
+        reception.PanelFocusRequested += field => focus = field;
         await operations.Rooms.Single().ApproveCommand.ExecuteAsync(null);
         Assert.True(operations.IsAskingApproval);
         Assert.Equal("Marta Leitner", operations.Approver!.DisplayName);
-        Assert.False(operations.ConfirmApprovalCommand.CanExecute(null));
-        operations.ApprovalPin = "1234";
+        // Ohne PIN ist „Abnehmen“ aktiv; der Klick meldet den Fehler am Feld, setzt den Fokus dorthin und sendet nichts.
         Assert.True(operations.ConfirmApprovalCommand.CanExecute(null));
+        await operations.ConfirmApprovalCommand.ExecuteAsync(null);
+        Assert.Equal(("Bitte die PIN mit mindestens 4 Ziffern eintragen.", DayOperationsViewModel.ApprovalPinField), (operations.ApprovalPinError, focus));
+        operations.ApprovalPin = "1234";
+        Assert.Null(operations.ApprovalPinError);
         Assert.DoesNotContain(api.Calls, c => c.Route.StartsWith("POST /api/rooms/", StringComparison.Ordinal));
 
         await operations.ConfirmApprovalCommand.ExecuteAsync(null);

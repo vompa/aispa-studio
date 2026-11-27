@@ -66,7 +66,7 @@ Wurden wegen der Schließzeit Termine abgesagt, zeigt das Formular unten das **P
 
 ## Wartezeit vor der Nachricht an den Gast {#wartezeit}
 
-Sagt das Team Termine ab, geht die Nachricht an den Gast nicht sofort raus, sondern erst nach einer **Wartezeit**. So lässt sich ein Versehen noch zurücknehmen, bevor der Gast etwas erfährt. Die Wartezeit gilt je Standort. Man ändert sie selten, deshalb steht sie hinter dem Knopf **Einrichtung** oben auf der Seite: Er öffnet eine Seitenleiste mit dem Feld **Senden nach (Minuten)**, 0 bis 60, vorgegeben sind 10. Mit **Wartezeit speichern** übernehmen Sie den Wert; unten erscheint kurz „Wartezeit gespeichert“. Bei 0 geht jede Nachricht sofort.
+Sagt das Team Termine ab, geht die Nachricht an den Gast nicht sofort raus, sondern erst nach einer **Wartezeit**. So lässt sich ein Versehen noch zurücknehmen, bevor der Gast etwas erfährt. Die Wartezeit gilt je Standort. Man ändert sie selten, deshalb steht sie hinter dem Knopf **Einrichtung** oben auf der Seite: Er öffnet eine Seitenleiste mit dem Feld **Senden nach (Minuten)**, 0 bis 60, vorgegeben sind 10. Mit **Wartezeit speichern** übernimmt man den Wert; unten erscheint kurz „Wartezeit gespeichert“. Bei 0 geht jede Nachricht sofort.
 
 ![Seitenleiste Einrichtung mit der Wartezeit vor der Nachricht an den Gast](images/app/verwaltung-schliesszeiten-einrichtung.png)
 
@@ -75,4 +75,4 @@ Sagt das Team Termine ab, geht die Nachricht an den Gast nicht sofort raus, sond
 - Der **Termin ist sofort abgesagt** und eine Anzahlung geht sofort zurück. Nur die Nachricht wartet.
 - Im Protokoll der Absagen steht bei einer wartenden Nachricht **„Nachricht an den Gast geht um 14:32 raus.“** Mit **Jetzt senden** geht sie gleich raus, mit **Nicht senden** nie. Danach zeigt der Zustand „gesendet“ oder „nicht gesendet (zurückgenommen)“. Eine gesendete Nachricht lässt sich nicht mehr zurücknehmen.
 
-> Hinweis: **Nicht senden** nimmt nur die Nachricht zurück. Der Termin bleibt abgesagt, und der Gast erfährt nichts davon. Rufen Sie ihn in diesem Fall an.
+> Hinweis: **Nicht senden** nimmt nur die Nachricht zurück. Der Termin bleibt abgesagt, und der Gast erfährt nichts davon. In diesem Fall den Gast anrufen.

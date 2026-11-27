@@ -132,13 +132,11 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
             };
             pages.Add(new NavItem("Sicherung", Icons.Archive, Backup));
             Network = new NetworkViewModel(local) { CanConfigure = user.Rights.Contains(AccessRight.ManageLocation) };
-            pages.Add(new NavItem("Im Netz", Icons.Wifi, Network));
         }
         else if (serverLink is not null)
         {
             // Verwalten von zu Hause (ADR 0084, Punkt 5): zeigt den Server und löst ihn wieder.
             ServerLink = serverLink;
-            pages.Add(new NavItem("Netz", Icons.Wifi, serverLink));
         }
 
         // Verwaltung (ADR 0084): alle Bereiche nativ in der App (seit Slice 103 ohne eingebettete Team-Oberfläche).
@@ -147,14 +145,25 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
         _web = new ServerWeb(api);
         Help = new HelpViewModel(() => _web.Address, time: time, prepare: _web.LookUpAsync);
         pages.Add(new NavItem("Hilfe", Icons.Help, Help));
+        // Unten, direkt über dem Farbschema (T-106): Netz gehört zur Verbindung, nicht zu den Fachbereichen.
+        if (Network is not null)
+        {
+            pages.Add(new NavItem("Im Netz", Icons.Wifi, Network));
+        }
+        else if (serverLink is not null)
+        {
+            pages.Add(new NavItem("Netz", Icons.Wifi, serverLink));
+        }
         Help.Role = user.Access?.Role;
+        Help.Standalone = modules?.Standalone == true;
+        HelpContent.Standalone = modules?.Standalone == true;
         // Strg+Leertaste im eingebetteten Browser der Hilfe kommt als Nachricht der Seite (appShortcuts.ts); sie zählt nur, solange die Seite offen ist.
         Help.CompanionRequested += () => ToggleCompanionFromBrowser(Help);
         Help.KeyHelpRequested += () => HelpKeyRequested?.Invoke();
         HelpContent.ShowInApp = ShowHelpInPanel;
         HelpContent.ShowManualInApp = ShowHelp;
         // Hilfe in der Leiste (ADR 0079, Nachtrag): dieselbe Hilfe-Seite im Modus „ansicht=leiste“, mit eigenem eingebetteten Browser.
-        var helpArea = new HelpViewModel(() => _web.Address, time: time, prepare: _web.LookUpAsync) { Role = user.Access?.Role, InPanel = true };
+        var helpArea = new HelpViewModel(() => _web.Address, time: time, prepare: _web.LookUpAsync) { Role = user.Access?.Role, Standalone = modules?.Standalone == true, InPanel = true };
         Companion = new CompanionViewModel(api, theme.Store,
             // Das Backoffice hat keinen Kalender, aber Auswertungen: der Assistent beantwortet ihm nur diese und Fragen zur Bedienung (ADR 0072).
             (user.Rights.Contains(AccessRight.ViewCalendar) || user.Rights.Contains(AccessRight.ViewFinance)) && modules?.Assistant != false,
@@ -459,16 +468,22 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
     [RelayCommand]
     private void OpenBackup() => SelectedPage = Pages.FirstOrDefault(p => p.Page == Backup && Backup is not null) ?? SelectedPage;
 
+    /// <summary>
+    /// Die Pille unten links in der Leiste. Läuft die API auf diesem PC (Einzelplatz), zeigte sie nur die Verbindung zum eigenen PC und fehlt (T-110);
+    /// fällt die API dort aus, meldet das das Banner „Keine Verbindung“. An einem weiteren PC im Netz und mit Server bleibt sie.
+    /// </summary>
+    public bool ShowConnection => !_runsLocally;
+
     public string ConnectionText => IsOffline ? "Offline" : PendingCount > 0 ? "Gleicht ab" : "Online";
 
     public string ConnectionTip => IsOffline
-        ? $"Keine Verbindung zum Server.{(PendingCount > 0 ? $" {PendingCount} Änderung(en) vorgemerkt." : "")}"
+        ? $"Keine Verbindung.{(PendingCount > 0 ? $" {PendingCount} Änderung(en) vorgemerkt." : "")}"
         : PendingCount > 0 ? $"{PendingCount} vorgemerkte Änderung(en) werden gesendet." : Connection;
 
     public string? OfflineBanner => IsOffline
-        ? "Keine Verbindung zum Server. Kalender und Kunden zeigen den zuletzt geladenen Stand; Buchungen, Verschieben und Status werden " +
+        ? "Keine Verbindung. Kalender und Kunden zeigen den zuletzt geladenen Stand; Buchungen, Verschieben und Status werden " +
           "vorgemerkt und beim nächsten Kontakt gesendet. Die Kassa gibt Ersatzbelege aus. " +
-          $"Die App prüft alle {_checkInterval.TotalSeconds:0} Sekunden von selbst und lädt neu, sobald der Server wieder antwortet." +
+          $"Die App prüft alle {_checkInterval.TotalSeconds:0} Sekunden von selbst und lädt neu, sobald die Verbindung wieder steht." +
           (PendingCount > 0 ? $" Vorgemerkt: {PendingCount}." : "") +
           (LongOutageHint is { } outage ? $" {outage}" : "")
         : null;
@@ -494,7 +509,7 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
                 .Select(s => s?.SubstituteIssuedAt).OfType<DateTimeOffset>().ToList();
             return issued.Count > 0 && issued.Min() is var oldest && _time.GetUtcNow() - oldest > LongOutage
                 ? $"Der älteste Ersatzbeleg ist vom {DayLayout.Local(oldest, _time.LocalTimeZone):dd.MM.yyyy HH:mm} und seit mehr als 48 Stunden nicht nacherfasst: " +
-                  "In Österreich den Ausfall der Kasse über FinanzOnline melden."
+                  "In Österreich den Ausfall der Kassa über FinanzOnline melden."
                 : null;
         }
     }
@@ -522,14 +537,24 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
     private int PinMinimum => User.Access?.Role is StaffRole.Owner or StaffRole.GeneralManager ? 6 : 4;
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(SavePinCommand))]
     public partial string PinInput { get; set; } = "";
+
+    /// <summary>Name des PIN-Felds (<c>x:Name</c>) für <see cref="FocusRequested"/>.</summary>
+    public const string PinField = "PinBox";
+
+    /// <summary>Die Ansicht setzt den Fokus in das Feld dieses Namens.</summary>
+    public event Action<string>? FocusRequested;
+
+    /// <summary>Fehler am PIN-Feld (masken.md, R8); verschwindet mit der nächsten Eingabe.</summary>
+    [ObservableProperty]
+    public partial string? PinError { get; private set; }
 
     [ObservableProperty]
     public partial string? PinText { get; private set; }
 
     partial void OnPinInputChanged(string value)
     {
+        PinError = null;
         var digits = new string(value.Where(char.IsAsciiDigit).Take(8).ToArray());
         if (digits != value)
         {
@@ -537,12 +562,17 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
         }
     }
 
-    private bool CanSavePin => PinInput.Length >= PinMinimum;
-
     /// <summary>Eigene PIN festlegen oder ändern; sie gilt nur auf Empfangsgeräten.</summary>
-    [RelayCommand(CanExecute = nameof(CanSavePin))]
+    [RelayCommand]
     private async Task SavePinAsync()
     {
+        if (PinInput.Length < PinMinimum)
+        {
+            PinError = $"Bitte eine PIN mit mindestens {PinMinimum} Ziffern eintragen.";
+            FocusRequested?.Invoke(PinField);
+            return;
+        }
+
         var result = await _api.PutAsync<object>("api/auth/pin", new QuickSwitchPin(PinInput)).ConfigureAwait(true);
         PinInput = "";
         if (!result.Ok)

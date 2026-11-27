@@ -100,8 +100,8 @@ public sealed class StartupWaitTests
 
         Assert.True(server.StatusCalls >= 3);
         Assert.False(vm.IsConnected);
-        Assert.Equal("Keine Verbindung zum Server", vm.ConnectionTitle);
-        Assert.Equal("Der Server antwortet nicht.", vm.StatusText);
+        Assert.Equal("Keine Verbindung", vm.ConnectionTitle);
+        Assert.Equal("AISPA Studio antwortet nicht.", vm.StatusText);
     }
 
     [Fact]
@@ -144,7 +144,7 @@ public sealed class StartupWaitTests
             }
         };
 
-        Assert.Equal("Server wird gestartet …", vm.StartupStatus);
+        Assert.Equal("AISPA Studio wird gestartet …", vm.StartupStatus);
         await vm.StartAsync();
 
         Assert.Equal(
@@ -174,7 +174,7 @@ public sealed class StartupWaitTests
         await vm.StartAsync();
 
         Assert.Equal([true, false], starting);
-        Assert.Equal("Server wird gestartet …", vm.StartupStatus);
+        Assert.Equal("AISPA Studio wird gestartet …", vm.StartupStatus);
         Assert.Equal("Verbinden", vm.StartupStep);
         Assert.True(vm.IsOffline);
         // Die Karte steht mit Logo und Namen auf der Petrolfläche, auch wenn der Startbildschirm vorher nicht zu sehen war.
@@ -207,7 +207,7 @@ public sealed class StartupWaitTests
 
         Assert.Contains(seen, s => s.StartsWith("Verbindung wird aufgebaut …", StringComparison.Ordinal));
         Assert.False(vm.IsConnected);
-        Assert.Equal("Keine Verbindung zum Server", vm.ConnectionTitle);
+        Assert.Equal("Keine Verbindung", vm.ConnectionTitle);
         Assert.Equal(MainViewModel.ServerUnreachableAdvice, vm.StatusText);
     }
 

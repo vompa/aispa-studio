@@ -22,8 +22,8 @@ public sealed partial class ViewTests
         Assert.True(Shows(window, "Was ist zu tun"));
         Assert.True(Shows(window, "1 Position nachbestellen"));
         Assert.True(Shows(window, "1 Material unter dem Mindestbestand"));
-        Assert.Equal("Übersicht", Named<TabButton>(window, "OverviewTabButton").Content);
-        Assert.Equal(["Übersicht", "Bestand", "Bestellen", "Inventur"], StockRailTabs(window).Select(t => (string)t.Content!));
+        Assert.Equal("Zu tun", Named<TabButton>(window, "OverviewTabButton").Content);
+        Assert.Equal(["Zu tun", "Bestand", "Bestellen", "Inventur"], StockRailTabs(window).Select(t => (string)t.Content!));
         // Kennzahlen als Kacheln (ADR 0098): der Lagerwert ohne Sprung, die Zahlen mit Sprung an ihren Ort
         var tiles = window.GetVisualDescendants().OfType<StatTile>().Where(t => t.IsEffectivelyVisible).ToList();
         Assert.Equal(["Lagerwert", "Nachbestellen", "Unter Minimum", "Chargen laufen ab", "Mehrverbrauch"], tiles.Select(t => t.Label));
@@ -98,7 +98,7 @@ public sealed partial class ViewTests
     {
         var (shell, _) = await OpenStockOverview(window, main);
 
-        Assert.Equal(["Übersicht", "Bestand", "Bestellen"], StockRailTabs(window).Select(t => (string)t.Content!));
+        Assert.Equal(["Zu tun", "Bestand", "Bestellen"], StockRailTabs(window).Select(t => (string)t.Content!));
         Assert.False(Named<Button>(window, "SetupButton").IsEffectivelyVisible);
         Assert.False(Named<StackPanel>(window, "UsageArea").IsEffectivelyVisible);
         await ClickScrolled(window, "OrdersTabButton");

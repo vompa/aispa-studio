@@ -4,26 +4,41 @@ bereich: Stammdaten
 oberflaeche: verwaltung
 rollen: inhaber, manager
 seite: verwaltung
-stichwoerter: künstliche Intelligenz, Claude, offline, ohne Internet, Ollama, lokales Modell, Modell herunterladen, AI
+stichwoerter: künstliche Intelligenz, Claude, offline, ohne Internet, Ollama, lokales Modell, Modell herunterladen, AI, Verbrauch, Tokens, Kosten
 ---
 # KI
 
-AISPA Studio arbeitet mit zwei KI-Arten, beide sind freiwillig. Claude läuft über das Internet und kann am meisten. Das lokale Modell läuft im eigenen Netz, auch ohne Internet, und übernimmt nur einfache Aufgaben. Ohne beide arbeitet AISPA Studio nach festen Regeln weiter. Pflichtzahlen wie Kasse, Steuer und Berichte für Behörden rechnet nie eine KI, und freie Zeiten rechnet immer der Kalender.
+AISPA Studio arbeitet mit zwei KI-Arten, beide sind freiwillig. Claude läuft über das Internet und kann am meisten. Das lokale Modell läuft im eigenen Netz, auch ohne Internet, und übernimmt nur einfache Aufgaben. Ohne beide arbeitet AISPA Studio nach festen Regeln weiter. Pflichtzahlen wie Kassa, Steuer und Berichte für Behörden rechnet nie eine KI, und freie Zeiten rechnet immer der Kalender.
 
-Den Stand beider sieht die Leitung in der Windows-App unter „Verwaltung“ › „Kontakt“ › „KI“. Die Maske zeigt den Stand und lädt das lokale Modell herunter; einen Schlüssel trägt man dort nicht ein.
+Den Stand beider sieht die Leitung in der Windows-App unter „Verwaltung“ › „Kontakt“ › „KI“. Die Maske zeigt den Stand und den Verbrauch von Claude, nimmt den Claude-Schlüssel auf und lädt das lokale Modell herunter.
 
 ## Claude {#claude}
 
-Claude schreibt Antwortvorschläge an Gäste, übersetzt Nachrichten, fasst den Tag zusammen, liest Anamnesebögen auf Papier und versteht Terminwünsche aus Mails, SMS und Anrufen. Eingeschaltet ist Claude, sobald der Betreiber des Servers einen API-Schlüssel hinterlegt hat (siehe „Server-Einstellungen“, Abschnitt KI). In der App lässt sich das nicht umstellen, weil der Schlüssel ein Geheimnis des Servers ist.
+Claude schreibt Antwortvorschläge an Gäste, übersetzt Nachrichten, fasst den Tag zusammen, liest Anamnesebögen auf Papier und versteht Terminwünsche aus Mails, SMS und Anrufen. Eingeschaltet ist Claude, sobald ein API-Schlüssel gilt. Die Inhaberin trägt ihn in der Windows-App unter **KI** ein: [Claude-Schlüssel eintragen](hilfe:ki-schluessel-eintragen). Hat der Betreiber des Servers einen Schlüssel in der Konfiguration hinterlegt (siehe „Server-Einstellungen“, Abschnitt KI), gilt dieser vor dem Eintrag in der App.
+
+Claude arbeitet mit zwei Modellen: ein großes schreibt Texte für Menschen, ein kleineres und günstigeres liest feste Angaben aus Mails, Lieferscheinen und Bögen. Die Maske **KI** zeigt beide unter „Modelle“; ändern lassen sie sich nur in der Konfiguration des Servers.
 
 Jede Nachricht, die eine KI an Gäste schreibt, trägt einen Hinweis darauf. Den Hinweis fügt AISPA Studio selbst an; er lässt sich nicht weglassen.
+
+## Verbrauch {#verbrauch}
+
+Der Abschnitt „Verbrauch (letzte 30 Tage)“ zeigt, wie oft Claude für den Betrieb gearbeitet hat und wie viele Tokens das waren. Tokens sind Wortteile; nach ihnen rechnet Anthropic ab. Geldbeträge zeigt die Maske nicht, denn der Preis hängt vom Vertrag mit Anthropic ab.
+
+Eine Zeile steht für eine Aufgabe mit einem Modell, zum Beispiel „Terminwunsch lesen“ oder „Lieferschein lesen“:
+
+- **Aufrufe:** wie oft Claude diese Aufgabe erledigt hat.
+- **Tokens Eingang:** Tokens, die AISPA Studio an Claude geschickt hat, also Anweisung, Nachricht und Angaben des Spas.
+- **Tokens Ausgang:** Tokens der Antwort von Claude.
+- **Cache gelesen:** Tokens im Eingang, die Claude aus einem Zwischenspeicher wiederverwendet hat. Sie kosten deutlich weniger als der übrige Eingang.
+
+AISPA Studio zählt jeden Aufruf mit Antwort, auch wenn Claude die Anfrage ablehnt. Arbeitet das lokale Modell oder gelten die festen Regeln, zählt nichts. Steht dort „Noch keine Aufrufe gemessen.“, hat Claude in den letzten 30 Tagen nicht gearbeitet, oder die Messung lief noch nicht. Die Tage zählen nach Weltzeit (UTC), ein Aufruf kurz nach Mitternacht kann also zum Vortag gehören.
 
 ## Lokales Modell {#lokales-modell}
 
 Ein kleines Sprachmodell (Standard: Gemma 3 mit 4 Milliarden Parametern) läuft auf dem eigenen PC oder Server, ohne Grafikkarte und ohne Internet. Es macht zwei Dinge:
 
 - Es liest Terminwünsche aus Mails und Nachrichten und zerlegt sie in Behandlung, Standort, Person und Wunschzeit, zum Beispiel „morgen 17 Uhr Massage, nicht bei Marco“. Welche Zeiten frei sind, rechnet danach der Kalender.
-- Es versteht Fragen ans Team im Assistenten („Was steht morgen an?“, „Wie lief letzte Woche?“, „Wie storniere ich einen Beleg?“). Die Zahlen dazu rechnet der Server, die Antwort auf Hilfefragen kommt aus dem Handbuch.
+- Es versteht Fragen ans Team im Assistenten („Was steht morgen an?“, „Wie lief letzte Woche?“, „Wie storniere ich einen Beleg?“). Die Zahlen dazu rechnet AISPA Studio, die Antwort auf Hilfefragen kommt aus dem Handbuch.
 
 Antworten an Gäste, Übersetzungen und Zusammenfassungen schreibt es nicht. Kleine Modelle formulieren vor allem auf Französisch und Italienisch zu unsicher; ohne Claude kommen Antworten deshalb aus den festen Textbausteinen.
 

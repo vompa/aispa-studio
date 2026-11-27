@@ -67,6 +67,13 @@ public partial class PosView : UserControl
             FocusSearch(DispatcherPriority.Background);
         }
 
+        // Fehler nach einem Klick: das erste ungültige Feld bekommt den Fokus (masken.md R8, meldungen.md M2).
+        if (e.PropertyName == nameof(PosViewModel.FocusTarget) && _pos is { FocusTarget: { } field } pos)
+        {
+            pos.FocusTarget = null;
+            Dispatcher.UIThread.Post(() => this.FindControl<Control>(field)?.Focus(), DispatcherPriority.Loaded);
+        }
+
         // Nach dem Bezahlen verschwindet der Knopf mit dem Fokus: die nächste Rechnung beginnt im Suchfeld.
         if (e.PropertyName == nameof(PosViewModel.ShowPayForm) && _pos is { IsCheckout: true, ShowPayForm: false })
         {

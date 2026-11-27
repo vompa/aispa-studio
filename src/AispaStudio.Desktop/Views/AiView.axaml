@@ -5,8 +5,9 @@
              x:Class="AispaStudio.Desktop.Views.AiView"
              x:DataType="vm:AiViewModel">
   <!--
-    KI (R05 Slice 97, ADR 0057), native Maske nach web/src/admin/AiTab.tsx: nur Anzeige. Stand von Claude (der Schlüssel ist eine Einstellung des Servers, hier gibt es kein Feld
-    dafür) und vom lokalen Modell mit Fortschritt und „Modell herunterladen“. Es gibt nichts zu speichern, deshalb keine Leiste „Speichern / Verwerfen“.
+    KI (R05 Slice 97, ADR 0057), native Maske nach web/src/admin/AiTab.tsx: Stand von Claude mit Feld für den Schlüssel (T-111, ADR 0103: Speichern, Prüfen, Entfernen mit Rückfrage;
+    gesperrt, wenn der Schlüssel in der Konfiguration des Servers steht) und vom lokalen Modell mit Fortschritt und „Modell herunterladen“. Jede Aktion gilt sofort, deshalb keine
+    Leiste „Speichern / Verwerfen“.
   -->
   <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
     <StackPanel Spacing="20" MaxWidth="720" HorizontalAlignment="Left" Margin="0,0,16,16">
@@ -22,8 +23,30 @@
             <ui:HelpButton Grid.Column="1" Topic="ki" Section="claude" />
           </Grid>
           <TextBlock x:Name="ClaudeState" Text="{Binding ClaudeText}" TextWrapping="Wrap" />
+          <TextBlock x:Name="ClaudeModels" Classes="muted" Text="{Binding ClaudeModelsText}" IsVisible="{Binding HasClaudeModelsText}" TextWrapping="Wrap" />
           <TextBlock Classes="muted" TextWrapping="Wrap"
                      Text="Claude schreibt Antworten an Gäste, übersetzt, fasst zusammen und liest Anamnesebögen. Das braucht Internet." />
+        </StackPanel>
+
+        <StackPanel Spacing="8">
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Text="API-Schlüssel" Classes="h3" VerticalAlignment="Center" />
+            <ui:HelpButton Grid.Column="1" Topic="ki-schluessel-eintragen" />
+          </Grid>
+          <TextBlock x:Name="KeyState" Text="{Binding KeyStatusText}" TextWrapping="Wrap" />
+          <ui:FormField Label="Neuer Schlüssel" Help="Beginnt mit „sk-ant-“. Sie finden ihn in der Claude Console unter „API Keys“.">
+            <TextBox x:Name="ApiKeyField" Text="{Binding ApiKeyInput}" PasswordChar="●" IsEnabled="{Binding CanEditKey}"
+                     ui:DisabledHint.Text="{Binding KeyDisabledHint}" AutomationProperties.Name="Neuer Claude-Schlüssel" />
+          </ui:FormField>
+          <Grid ColumnDefinitions="Auto,8,Auto,*,Auto">
+            <Button x:Name="SaveKeyButton" Content="Speichern" Classes="primary" Command="{Binding SaveKeyCommand}"
+                    ui:DisabledHint.Text="{Binding KeyDisabledHint}" />
+            <Button x:Name="CheckKeyButton" Grid.Column="2" Content="Prüfen" Command="{Binding CheckKeyCommand}" />
+            <Button x:Name="RemoveKeyButton" Grid.Column="4" Content="Entfernen" Classes="danger" Command="{Binding RemoveKeyCommand}"
+                    ui:DisabledHint.Text="{Binding KeyDisabledHint}" />
+          </Grid>
+          <ui:InfoBar x:Name="KeyMessageBar" Severity="{Binding KeyMessageSeverity}" Message="{Binding KeyMessage}" IsVisible="{Binding HasKeyMessage}"
+                      CloseCommand="{Binding CloseKeyMessageCommand}" />
         </StackPanel>
 
         <StackPanel Spacing="8">
@@ -38,6 +61,61 @@
           <ui:InfoBar Severity="Error" Message="{Binding LocalError}" IsVisible="{Binding HasLocalError}" />
           <Button x:Name="DownloadButton" Content="Modell herunterladen" Command="{Binding DownloadCommand}" IsVisible="{Binding CanDownload}" HorizontalAlignment="Left" />
           <ui:InfoBar Severity="{Binding MessageSeverity}" Message="{Binding Message}" IsVisible="{Binding HasMessage}" CloseCommand="{Binding CloseMessageCommand}" />
+        </StackPanel>
+
+        <!-- Verbrauch von Claude (T-112a): nur Tokens, keine Geldbeträge -->
+        <StackPanel Spacing="8">
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Text="Verbrauch (letzte 30 Tage)" Classes="h2" VerticalAlignment="Center" />
+            <ui:HelpButton Grid.Column="1" Topic="ki" Section="verbrauch" />
+          </Grid>
+          <TextBlock Classes="muted" TextWrapping="Wrap" Text="Aufrufe von Claude und Tokens je Aufgabe. Tokens sind die Einheit, nach der Anthropic abrechnet." />
+          <TextBlock x:Name="NoUsage" Classes="muted" Text="Noch keine Aufrufe gemessen." IsVisible="{Binding ShowNoUsage}" />
+          <ui:InfoBar Severity="Error" Message="{Binding UsageError}" IsVisible="{Binding HasUsageError}" />
+          <Border Classes="card" Padding="12" IsVisible="{Binding HasUsage}">
+            <StackPanel Grid.IsSharedSizeScope="True" Spacing="4">
+              <Grid AutomationProperties.AccessibilityView="Raw" ColumnSpacing="12">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="Auto" SharedSizeGroup="Task" />
+                  <ColumnDefinition Width="Auto" SharedSizeGroup="Model" />
+                  <ColumnDefinition Width="Auto" SharedSizeGroup="Calls" />
+                  <ColumnDefinition Width="Auto" SharedSizeGroup="Input" />
+                  <ColumnDefinition Width="Auto" SharedSizeGroup="Output" />
+                  <ColumnDefinition Width="Auto" SharedSizeGroup="CacheRead" />
+                  <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="Aufgabe" Classes="group" />
+                <TextBlock Grid.Column="1" Text="Modell" Classes="group" />
+                <TextBlock Grid.Column="2" Text="Aufrufe" Classes="group" HorizontalAlignment="Right" />
+                <TextBlock Grid.Column="3" Text="Tokens Eingang" Classes="group" HorizontalAlignment="Right" />
+                <TextBlock Grid.Column="4" Text="Tokens Ausgang" Classes="group" HorizontalAlignment="Right" />
+                <TextBlock Grid.Column="5" Text="Cache gelesen" Classes="group" HorizontalAlignment="Right" />
+              </Grid>
+              <ItemsControl x:Name="UsageList" ItemsSource="{Binding UsageLines}" AutomationProperties.Name="Verbrauch von Claude">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:AiUsageLine">
+                    <Grid Margin="0,4" ColumnSpacing="12" AutomationProperties.Name="{Binding SpokenName}">
+                      <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" SharedSizeGroup="Task" />
+                        <ColumnDefinition Width="Auto" SharedSizeGroup="Model" />
+                        <ColumnDefinition Width="Auto" SharedSizeGroup="Calls" />
+                        <ColumnDefinition Width="Auto" SharedSizeGroup="Input" />
+                        <ColumnDefinition Width="Auto" SharedSizeGroup="Output" />
+                        <ColumnDefinition Width="Auto" SharedSizeGroup="CacheRead" />
+                        <ColumnDefinition Width="*" />
+                      </Grid.ColumnDefinitions>
+                      <TextBlock Text="{Binding Task}" />
+                      <TextBlock Grid.Column="1" Text="{Binding Model}" />
+                      <TextBlock Grid.Column="2" Text="{Binding Calls}" Classes="num" HorizontalAlignment="Right" />
+                      <TextBlock Grid.Column="3" Text="{Binding InputTokens}" Classes="num" HorizontalAlignment="Right" />
+                      <TextBlock Grid.Column="4" Text="{Binding OutputTokens}" Classes="num" HorizontalAlignment="Right" />
+                      <TextBlock Grid.Column="5" Text="{Binding CacheReadTokens}" Classes="num" HorizontalAlignment="Right" />
+                    </Grid>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </Border>
         </StackPanel>
       </StackPanel>
     </StackPanel>

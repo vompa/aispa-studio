@@ -10,6 +10,8 @@ stichwoerter: exportieren, Export, Excel, CSV, Liste herunterladen, Datei speich
 
 Fast jede Liste der App lässt sich als Datei speichern: als **Excel** zum Weiterrechnen oder als **CSV** für andere Programme. Die Datei zeigt dieselben Daten wie die Seite, mit den Filtern, die gerade gelten.
 
+## Schritte {#schritte}
+
 1. Die Seite mit der Liste öffnen und, wo es geht, filtern (Suche, Zeitraum, Standort).
 2. Auf **Exportieren** klicken und die Liste mit dem Format wählen, z. B. **Belegliste (Excel)**.
 3. Im Speicherdialog den Ort wählen. Der Dateiname ist schon vorgeschlagen, z. B. `Belege_2026-11-09.xlsx`. Danach steht kurz „Gespeichert: …“ mit dem Dateinamen.
@@ -21,7 +23,7 @@ Fast jede Liste der App lässt sich als Datei speichern: als **Excel** zum Weite
 - **Kassa**: Belegliste, Umsatz je Tag, je Zahlart und je Behandlung und Person, Tagesabschlüsse und Gutscheinbestand, siehe [Seite „Kassa“](hilfe:seite-kassa#kopfzeile).
 - **Lager**: ein Dialog mit Inhalt (Bestand je Lagerort, Inventur, Lagerbewegungen, Bestellungen, Ablaufliste), Format und Zeitraum, siehe [Seite „Lager“](hilfe:seite-stock#aufbau).
 - **Zeiten** und **Wochenplan**: Stundenliste, Abwesenheiten und Dienstplan der Woche, siehe [Seite „Zeiten“](hilfe:seite-time#aufbau) und [Seite „Dienstplan“](hilfe:seite-roster#aufbau).
-- **Berichte** › **Management**: die Kennzahlen des Zeitraums, siehe [Kennzahlen im Management ansehen](hilfe:berichte-kennzahlen-ansehen#zeitraum).
+- **Berichte** › **Management**: der Bericht des Zeitraums als Excel, Word, PDF oder CSV, siehe [Bericht als Dokument ausgeben](hilfe:berichte-als-dokument-ausgeben).
 
 Kunden, Terminliste und Kennzahlen exportiert, wer die Seite sieht. Kassa, Lager, Zeiten, Dienstplan und die Newsletter-Liste exportieren nur Inhaberin und Geschäftsführung.
 

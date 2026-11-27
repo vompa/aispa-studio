@@ -177,6 +177,7 @@ public partial class TreatmentEditorView : UserControl
         TreatmentEditorViewModel.NameField => NameField,
         TreatmentEditorViewModel.PriceField => PriceField,
         TreatmentEditorViewModel.DurationField => DurationField,
+        TreatmentEditorViewModel.RecommendedArticleField => RecommendedArticlePicker,
         TreatmentEditorViewModel.QualificationsField => QualificationsField.GetLogicalDescendants().OfType<CheckBox>().FirstOrDefault(),
         _ => null,
     };

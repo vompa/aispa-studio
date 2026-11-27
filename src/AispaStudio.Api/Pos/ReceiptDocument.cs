@@ -123,11 +123,11 @@ internal static class ReceiptDocument
         {
             facts.Add(("Rechnung an", string.Join('\n', RecipientLines(recipient))));
             facts.Add(("Rechnungs- und Leistungsdatum", DocumentBuilder.Date(receipt.IssuedAt, zone)));
-            facts.Add(("Beleg", $"{ReceiptPrinter.KindLabel(receipt.Kind)} Nr. {receipt.Number}, Kasse {receipt.RegisterCode}"));
+            facts.Add(("Beleg", $"{ReceiptPrinter.KindLabel(receipt.Kind)} Nr. {receipt.Number}, Kassa {receipt.RegisterCode}"));
         }
         else
         {
-            facts.Add(("Kasse", receipt.RegisterCode));
+            facts.Add(("Kassa", receipt.RegisterCode));
         }
 
         facts.Add(("Ausgestellt", DocumentBuilder.DateTime(receipt.IssuedAt, zone)));

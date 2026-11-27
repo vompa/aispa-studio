@@ -10,6 +10,8 @@ stichwoerter: Aktion anwenden, Aktionsrabatt, Rabattaktion, Angebot, Aktion an d
 
 Läuft an diesem Standort eine Aktion, die zu einer Position auf der Rechnung passt, schlägt die Kassa sie vor. Der Rabatt wird erst gesetzt, wenn man auf **Anwenden** klickt. Bei Aktionen für kurzfristig freie Termine und für schwache Zeiten passt nur ein Termin, der kurz genug vor Beginn gebucht wurde bzw. in einem abgehakten Feld des Wochenrasters beginnt.
 
+## Schritte {#schritte}
+
 1. Den Termin (oder das Paket) wie gewohnt auf die Rechnung setzen: [Termin abrechnen](hilfe:kassa-termin-kassieren).
 2. Unten bei der Summe erscheint der Hinweis „Aktion „Herbst“ −10 %“ mit der Zahl der Positionen und dem Rabatt zusammen.
 3. Auf **Anwenden** klicken.
@@ -22,7 +24,7 @@ Läuft an diesem Standort eine Aktion, die zu einer Position auf der Rechnung pa
 
 - Nichts wird von selbst angewendet. Ohne Klick bleibt der volle Preis.
 - Passen mehrere Aktionen, steht die mit dem höheren Rabatt zuerst. Angewendet wird immer nur eine; danach gibt es für diese Positionen keinen Vorschlag mehr.
-- Den Rabatt rechnet die Kassa auf dem Server; er geht wie jeder Rabatt in Summe, Umsatzsteuer, Signatur und Beleg ein. Es entsteht kein Umsatz an der Kassa vorbei.
+- Den Rabatt rechnet die Kassa; er geht wie jeder Rabatt in Summe, Umsatzsteuer, Signatur und Beleg ein. Es entsteht kein Umsatz an der Kassa vorbei.
 - Die Aktion braucht keine Freigabe über der [Rabattgrenze](hilfe:kassa#rabattgrenze): Inhaberin oder Leitung haben sie festgelegt.
 - Eine Position, die schon einen Rabatt hat (Kundenrabatt oder von Hand gegeben), bekommt die Aktion nicht dazu; der erste Rabatt geht vor. Dann gibt es für diese Position keinen Vorschlag.
 - Wer die Aktion nicht geben will, klickt nicht auf **Anwenden**. Einen schon angewendeten Rabatt nimmt man mit dem Prozentzeichen an der Position zurück ([Rabatt geben](hilfe:kassa-rabatt-geben)); bei einem Paket das Paket entfernen und neu verkaufen.

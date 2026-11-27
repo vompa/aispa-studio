@@ -88,7 +88,7 @@
               </ItemsControl>
               <StackPanel Spacing="8" IsVisible="{Binding IsDraft}">
                 <TextBlock Text="{Binding MailText}" Classes="muted small" IsVisible="{Binding HasMail}" TextWrapping="Wrap" />
-                <TextBlock Text="Beim Lieferanten fehlt die Mailadresse. Trage sie im Reiter „Lieferanten“ ein, dann lässt sich die Bestellung senden." Classes="warn small" IsVisible="{Binding ShowMissingMail}" TextWrapping="Wrap" />
+                <TextBlock Text="Beim Lieferanten fehlt die Mailadresse. Im Reiter „Lieferanten“ eintragen, dann lässt sich die Bestellung senden." Classes="warn small" IsVisible="{Binding ShowMissingMail}" TextWrapping="Wrap" />
               </StackPanel>
               <ui:FormField Label="Lieferschein" Width="240" HorizontalAlignment="Left" IsVisible="{Binding IsReceiving}">
                 <TextBox Text="{Binding DeliveryNote}" MaxLength="100" AutomationProperties.Name="{Binding DeliveryNoteName}" />

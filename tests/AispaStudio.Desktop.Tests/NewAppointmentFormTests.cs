@@ -30,9 +30,9 @@ public sealed class NewAppointmentFormTests
             null, null, null, false, null))
         .On($"GET /api/reports/customers/{Demir.Id}/preferences", new CustomerPreferences("fest", null, null, null, null, "Nacken", null, null));
 
-    private static async Task<(CalendarViewModel Calendar, BookingViewModel Booking)> OpenAsync()
+    private static async Task<(CalendarViewModel Calendar, BookingViewModel Booking)> OpenAsync(StubApi? api = null)
     {
-        var vm = new CalendarViewModel(Api().Client(), TestData.Owner(), null, new FixedTime());
+        var vm = new CalendarViewModel((api ?? Api()).Client(), TestData.Owner(), null, new FixedTime());
         await vm.InitializeAsync();
         await vm.LoadAsync();
         vm.StartBooking(vm.Columns[0], 30 * DayLayout.PixelsPerMinute);
@@ -135,38 +135,76 @@ public sealed class NewAppointmentFormTests
     }
 
     [Fact]
-    public async Task Ein_unlesbares_Datum_sperrt_das_Buchen_und_laesst_das_alte_Datum_stehen()
+    public async Task Ein_unlesbares_Datum_meldet_beim_Buchen_den_Fehler_am_Feld_und_laesst_das_alte_Datum_stehen()
     {
-        var (_, booking) = await OpenAsync();
+        var api = Api();
+        var (vm, booking) = await OpenAsync(api);
         await ChooseDemirAsync(booking);
+        booking.Treatment = TestData.MassageTreatment;
+        string? focus = null;
+        vm.PanelFocusRequested += field => focus = field;
 
         booking.DateText = "abc";
 
         Assert.Equal(new DateOnly(2027, 3, 1), booking.Date);
-        Assert.False(booking.BookCommand.CanExecute(null));
+        Assert.True(booking.BookCommand.CanExecute(null));
+        await booking.BookCommand.ExecuteAsync(null);
+        Assert.Equal(AispaStudio.Desktop.Controls.DateInputParser.FormatError, booking.DateError);
+        Assert.Equal(BookingViewModel.DateField, focus);
+        Assert.Equal("Der Termin ist nicht gebucht. Bitte die markierten Felder prüfen.", booking.Error);
+        Assert.DoesNotContain(api.Calls, c => c.Route == "POST /api/appointments");
     }
 
     [Fact]
-    public async Task Ein_Datum_vor_heute_sperrt_Termin_buchen_heute_und_spaeter_nicht()
+    public async Task Termin_buchen_ohne_Gast_und_Behandlung_meldet_beide_Fehler_am_Feld_und_fokussiert_zuerst_den_Gast()
     {
-        var (_, booking) = await OpenAsync();
+        var api = Api();
+        var (vm, booking) = await OpenAsync(api);
+        string? focus = null;
+        vm.PanelFocusRequested += field => focus = field;
+        booking.Treatment = null;
+
+        Assert.True(booking.BookCommand.CanExecute(null));
+        await booking.BookCommand.ExecuteAsync(null);
+
+        Assert.Equal("Bitte eine Kundin oder einen Kunden wählen.", booking.CustomerError);
+        Assert.Equal("Bitte eine Behandlung wählen.", booking.TreatmentError);
+        Assert.Null(booking.DateError);
+        Assert.Null(booking.StartError);
+        Assert.Equal(BookingViewModel.CustomerSearchName, focus);
+        Assert.DoesNotContain(api.Calls, c => c.Route == "POST /api/appointments");
+
+        await ChooseDemirAsync(booking);
+        Assert.Null(booking.CustomerError);
+        await booking.BookCommand.ExecuteAsync(null);
+        Assert.Equal(BookingViewModel.TreatmentField, focus);
+    }
+
+    [Fact]
+    public async Task Ein_Datum_vor_heute_meldet_Termin_buchen_am_Feld_heute_und_spaeter_nicht()
+    {
+        var api = Api();
+        var (vm, booking) = await OpenAsync(api);
         await ChooseDemirAsync(booking);
         booking.Treatment = TestData.MassageTreatment;
+        string? focus = null;
+        vm.PanelFocusRequested += field => focus = field;
 
         Assert.Equal(new DateOnly(2027, 3, 1), booking.Today);
         Assert.True(booking.BookCommand.CanExecute(null));
 
         booking.DateText = "28.02.2027";
-        Assert.False(booking.BookCommand.CanExecute(null));
+        await booking.BookCommand.ExecuteAsync(null);
+        Assert.Equal("Der Tag liegt vor heute. Bitte heute oder einen späteren Tag wählen.", booking.DateError);
+        Assert.Equal(BookingViewModel.DateField, focus);
+        Assert.DoesNotContain(api.Calls, c => c.Route == "POST /api/appointments");
 
-        booking.DateText = "01.03.2027";
-        Assert.True(booking.BookCommand.CanExecute(null));
-
-        booking.DateText = "02.03.2027";
-        Assert.True(booking.BookCommand.CanExecute(null));
-
-        booking.DateText = "27.03.2027";
-        Assert.True(booking.BookCommand.CanExecute(null));
+        foreach (var day in new[] { "01.03.2027", "02.03.2027", "27.03.2027" })
+        {
+            booking.DateText = day;
+            await booking.BookCommand.ExecuteAsync(null);
+            Assert.Null(booking.DateError);
+        }
     }
 
     [Theory]

@@ -6,6 +6,7 @@ using AispaStudio.Api.Data;
 using AispaStudio.Api.MailIntake.Assistant;
 using AispaStudio.Api.Online;
 using AispaStudio.Api.Scheduling;
+using AispaStudio.Api.System;
 using AispaStudio.Contracts;
 using AispaStudio.Help;
 using Microsoft.EntityFrameworkCore;
@@ -26,6 +27,7 @@ internal sealed class RoleAssistant(
     GuestFinder guests,
     IAnswerPhraser phraser,
     AssistantOrders orders,
+    ModuleSwitches modules,
     TimeProvider time)
 {
     private const int MaxSlots = 6;
@@ -45,7 +47,7 @@ internal sealed class RoleAssistant(
         AssistantAnswer Answer(string text, IReadOnlyList<AssistantFigure>? figures = null, IReadOnlyList<AssistantSuggestion>? suggestions = null,
             IReadOnlyList<AssistantHelpLink>? help = null, AssistantBlock? block = null, string? unanswered = null) =>
             new(audience, text, figures ?? [], suggestions ?? [], block is null ? Disclosure : BlockDisclosure, help ?? [], block, unanswered);
-        var helpContext = new HelpContext(question.Surface, RoleKey(access.Role), question.Page);
+        var helpContext = new HelpContext(question.Surface, RoleKey(access.Role), question.Page, modules.Standalone);
 
         var locations = (await db.Locations.AsNoTracking().OrderBy(l => l.Name).ToListAsync(ct)).Where(l => access.CanSee(l.Id)).ToList();
         var location = locations.FirstOrDefault(l => l.Id == question.LocationId) ?? locations.FirstOrDefault();
@@ -218,7 +220,7 @@ internal sealed class RoleAssistant(
             }
 
             // Allgemeine Frage wie „Was kann ich hier machen?“: die Erklärung zur aktuellen Seite.
-            return context.Page is { } page && HelpLibrary.ForPage(page) is { } pageTopic
+            return context.Page is { } page && HelpLibrary.ForPage(page, context.Standalone) is { } pageTopic
                 ? ($"Das geht auf dieser Seite: {pageTopic.Summary}", [new(pageTopic.Id, null, pageTopic.Title, pageTopic.Summary)])
                 : ("Dazu habe ich im Handbuch nichts gefunden. Unter „Hilfe“ sind alle Abläufe nach Bereichen geordnet; vielleicht hilft ein anderes Wort.", []);
         }

@@ -1,7 +1,9 @@
 using System.Net;
 using System.Net.Http.Json;
+using AispaStudio.Api.Documents;
 using AispaStudio.Api.Reporting;
 using AispaStudio.Contracts;
+using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace AispaStudio.Api.Tests;
@@ -39,6 +41,9 @@ public sealed class ReportMailTests(ApiFixture fixture)
         Assert.Contains("- Umsatz brutto: ", mail.Text, StringComparison.Ordinal);
         Assert.Contains("Kommentar der KI:", mail.Text, StringComparison.Ordinal);
         Assert.Contains("Abbestellen:", mail.Text, StringComparison.Ordinal);
+        var pdf = Assert.Single(mail.Attachments ?? []);
+        Assert.Equal("application/pdf", pdf.ContentType);
+        Assert.Equal("%PDF"u8.ToArray(), pdf.Content[..4]);
         Assert.Empty(fixture.Mailbox.To(receptionMail));
     }
 
@@ -61,6 +66,30 @@ public sealed class ReportMailTests(ApiFixture fixture)
         Assert.Equal(HttpStatusCode.Forbidden, (await reception.GetAsync("/api/reports/mail-subscription", Ct)).StatusCode);
     }
 
+    [Theory]
+    [InlineData(null, false)]
+    [InlineData("smtp.spa-am-see.at", true)]
+    public async Task Im_Einzelplatz_gibt_es_den_Bericht_per_Mail_nur_mit_eingerichtetem_Mailversand(string? smtpHost, bool offered)
+    {
+        // T-110: Ohne Mail:Smtp:Host gingen die Mails im Einzelplatz nur ins Log; der Haken fehlt dort. Mit Server gilt die Rolle allein (Test oben).
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        await using var host = fixture.Factory.WithWebHostBuilder(b =>
+        {
+            b.UseSetting("Hosting:Standalone", "true");
+            if (smtpHost is not null)
+            {
+                b.UseSetting("Mail:Smtp:Host", smtpHost);
+            }
+        });
+        using var client = host.CreateClient(new WebApplicationFactoryClientOptions { HandleCookies = false });
+        client.DefaultRequestHeaders.Add("Cookie", spa.Cookie);
+        client.DefaultRequestHeaders.Add("X-Aispa-Spa", spa.TenantId.ToString());
+
+        var subscription = await client.GetFromJsonAsync<ReportMailSubscription>("/api/reports/mail-subscription", TestSpa.Json, Ct);
+
+        Assert.Equal(new ReportMailSubscription(offered, offered), subscription);
+    }
+
     [Fact]
     public void Ohne_Recht_auf_Betraege_stehen_keine_Betraege_in_der_Mail()
     {
@@ -74,5 +103,28 @@ public sealed class ReportMailTests(ApiFixture fixture)
         Assert.Contains("- Auslastung niedrig.", body, StringComparison.Ordinal);
         Assert.Contains("Beträge stehen hier nur mit dem Recht", body, StringComparison.Ordinal);
         Assert.DoesNotContain("Kommentar der KI", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Gaestenamen_stehen_nicht_in_der_automatischen_Mail_und_im_Dokument_nur_mit_dem_Recht_der_Kundenliste()
+    {
+        var report = new ManagementReportDto(Guid.NewGuid(), new DateOnly(2027, 3, 1), new DateOnly(2027, 3, 7),
+            [new Kpi("lapsingRegulars", "Abwandernde Stammgäste", 1, 0, "")], [], [], [], [], [])
+        {
+            TopGuests = [new(Guid.NewGuid(), "Eva Muster", 3, 240m)],
+            LapsingGuests = [new(Guid.NewGuid(), "Udo Beispiel", new DateOnly(2026, 11, 1), 3)],
+        };
+        var header = new DocumentHeader("Test-Spa", [], ["Wien"], DateTimeOffset.UtcNow, TimeZoneInfo.Utc, "Lena");
+
+        var body = ReportMailPlanner.Body(report, "Wien", ReportMailKind.Week, null);
+        var automatic = ManagementReportDocument.Build(report, header, ManagementReports.CompareModes.Previous, guests: false);
+        var byHand = ManagementReportDocument.Build(report, header, ManagementReports.CompareModes.Previous, guests: true);
+
+        // Then nennt die Mail nur die Anzahl, und das Blatt mit den Namen gibt es nur, wenn jemand mit dem Recht der Kundenliste die Datei selbst erzeugt
+        Assert.Contains("- Abwandernde Stammgäste: 1", body, StringComparison.Ordinal);
+        Assert.DoesNotContain("Eva Muster", body, StringComparison.Ordinal);
+        Assert.DoesNotContain("Udo Beispiel", body, StringComparison.Ordinal);
+        Assert.DoesNotContain(automatic.Sections, s => s.Name == ManagementReportDocument.GuestsName);
+        Assert.Contains(byHand.Sections, s => s.Name == ManagementReportDocument.GuestsName);
     }
 }

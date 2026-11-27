@@ -42,20 +42,20 @@ internal static class LocalAiSetup
     {
         var group = routes.MapGroup("/api/system/ai").WithTags("System");
 
-        group.MapGet("", (LocalModelStatus status, IServiceProvider services) =>
+        group.MapGet("", (LocalModelStatus status, ClaudeAccess claude, IOptions<ClaudeOptions> claudeOptions) =>
             {
                 var (local, percent, error, checkedAt) = status.Current;
-                return new AiStatus(services.GetService<ClaudeJson>() is not null, local, status.Model, percent, error, checkedAt);
+                return new AiStatus(claude.Available, local, status.Model, percent, error, checkedAt, claudeOptions.Value.Model, claudeOptions.Value.ModelExtract);
             })
             .RequirePermission(AccessRight.ManageOrganization)
             .WithName("GetAiStatus")
-            .WithSummary("Zeigt, ob Claude eingeschaltet ist und wie es um das optionale lokale KI-Modell steht (ADR 0057).");
+            .WithSummary("Zeigt, ob Claude eingeschaltet ist, welche Claude-Modelle gelten und wie es um das optionale lokale KI-Modell steht (ADR 0057).");
 
         group.MapPost("/local/download", async (IOptions<LocalModelOptions> options, LocalModelStatus status, IMessageBus bus) =>
             {
                 if (!options.Value.Enabled)
                 {
-                    return Results.Problem("Das lokale KI-Modell ist auf diesem Server nicht eingerichtet.", statusCode: StatusCodes.Status409Conflict);
+                    return Results.Problem("Das lokale KI-Modell ist nicht eingerichtet.", statusCode: StatusCodes.Status409Conflict);
                 }
 
                 if (!status.Downloading)
@@ -68,6 +68,9 @@ internal static class LocalAiSetup
             .RequirePermission(AccessRight.ManageOrganization)
             .WithName("DownloadLocalAiModel")
             .WithSummary("Lädt das lokale KI-Modell im Hintergrund herunter; den Fortschritt zeigt GET /api/system/ai.");
+
+        group.MapClaudeKeyEndpoints();
+        group.MapAiUsageEndpoints();
 
         return routes;
     }

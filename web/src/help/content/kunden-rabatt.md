@@ -10,6 +10,8 @@ stichwoerter: dauerhafter Rabatt, Kundenrabatt, Stammkundenrabatt, Mitarbeiterra
 
 Ein Rabatt in der Kundenkartei gilt bei jedem Besuch: Die Kassa zieht ihn bei neuen Positionen selbst ab und weist ihn auf dem Beleg als „Kundenrabatt … %“ aus.
 
+## Schritte {#schritte}
+
 1. Die [Kundenkarte](hilfe:kunden-kundenkarte) öffnen.
 2. Im Menü **…** auf **Stammrabatt** klicken; ist schon einer hinterlegt, geht auch der Stift beim Rabatt.
 3. Den Prozentsatz eintragen, z. B. `10`.

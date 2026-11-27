@@ -10,6 +10,8 @@ stichwoerter: Einlage, Entnahme, Wechselgeld, Bargeld einlegen, Geld entnehmen, 
 
 Wechselgeld in die Lade legen oder Bargeld herausnehmen, z. B. für die Bank. Das ist kein Umsatz, verändert aber den Soll-Bestand für den Tagesabschluss.
 
+## Schritte {#schritte}
+
 1. In der Kassa oben **Kassenlade & Abschluss** wählen.
 2. Rechts unter „Einlage oder Entnahme“ **Einlage** oder **Entnahme** wählen. Ohne Kassenaufsicht heißt der Kasten „Einlage“ und zeigt keine Reiter, es gibt nur die Einlage.
 3. Den „Betrag“ eintragen.
@@ -19,7 +21,7 @@ Wechselgeld in die Lade legen oder Bargeld herausnehmen, z. B. für die Bank. Da
 ## Wer darf {#rechte}
 
 - Einlagen bucht jede Person, die kassieren darf.
-- Entnehmen dürfen nur Inhaber und Standortleitung (die Kassenaufsicht, siehe [Wer darf stornieren](hilfe:kassa-beleg-stornieren#rechte)); die Rezeption sieht den Tab **Entnahme** nicht. Der Server prüft es ebenso („Bargeld entnehmen darf die Standortleitung; Einlagen darf auch die Rezeption buchen.“).
+- Entnehmen dürfen nur Inhaber und Standortleitung (die Kassenaufsicht, siehe [Wer darf stornieren](hilfe:kassa-beleg-stornieren#rechte)); die Rezeption sieht den Tab **Entnahme** nicht. AISPA Studio prüft es ebenso („Bargeld entnehmen darf die Standortleitung; Einlagen darf auch die Rezeption buchen.“).
 
 ## Gut zu wissen {#hinweise}
 

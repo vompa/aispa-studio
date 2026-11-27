@@ -5,10 +5,11 @@ oberflaeche: windows-app
 rollen: rezeption, leitung, inhaber, manager
 seite: anfragen
 stichwoerter: Anfrage annehmen, Termin vorschlagen, vormerken, Vormerkung, reservieren, freihalten, bestätigen, freigeben, Gast antwortet, Terminwunsch eintragen, KI-Vorschlag, accept request, hold, propose time
+betrieb: server
 ---
 # Anfrage annehmen
 
-Zu einer Terminanfrage steht rechts neben der Nachricht die freie Zeit. Ein Klick merkt die Zeit für den Gast vor und schreibt den Vorschlag in den Antwortentwurf. Die Zeit bleibt im Kalender für den Gast frei, bis Sie bestätigen oder freigeben.
+Zu einer Terminanfrage steht rechts neben der Nachricht die freie Zeit. Ein Klick merkt die Zeit für den Gast vor und schreibt den Vorschlag in den Antwortentwurf. Die Zeit bleibt im Kalender für den Gast frei, bis man bestätigt oder freigibt.
 
 ## Schritte {#schritte}
 
@@ -35,4 +36,4 @@ Meldet sich der Gast nicht, erinnert der Kalender unter [Meldungen](hilfe:kalend
 - **Freigeben** storniert den Termin, ohne dem Gast zu schreiben.
 - Vorgemerkte Termine bekommen keine Termin-Erinnerung an den Gast.
 - Passt keine Zeit und will der Gast nichts buchen: [Anfrage ohne Termin erledigen](hilfe:anfragen-erledigen).
-- Ohne Verbindung zum Server geht der Posteingang nicht.
+- Ohne Verbindung geht der Posteingang nicht.

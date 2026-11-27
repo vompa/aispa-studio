@@ -205,19 +205,19 @@ public sealed partial class ViewTests
     });
 
     [Fact]
-    public Task Deaktivierter_Knopf_im_Programm_traegt_den_Grund_die_Raumpflege_und_der_Buchen_Knopf() => Render("hell", "knopf-grund", async (window, main) =>
+    public Task Termin_buchen_ist_ohne_Gast_aktiv_und_meldet_den_fehlenden_Gast_am_Feld() => Render("hell", "knopf-grund", async (window, main) =>
     {
         var calendar = await SignedInCalendar(main);
         calendar.StartBookingAt(10, calendar.Hours.Single(h => h.Label == "12:00").Top + 1);
         await Pump();
 
-        // „Termin buchen“ ist ohne Gast gesperrt und sagt, was fehlt.
+        // „Termin buchen“ ist ohne Gast aktiv; der Klick sagt am Feld, was fehlt, und bucht nichts.
         var book = window.GetVisualDescendants().OfType<Button>().First(b => b.IsEffectivelyVisible && b.Content as string == "Termin buchen");
-        Assert.False(book.IsEffectivelyEnabled);
-        Assert.StartsWith("Verfügbar, sobald", ToolTip.GetTip(book) as string, StringComparison.Ordinal);
-        Assert.True(ToolTip.GetShowOnDisabled(book));
-        // Derselbe Grund steht im Hilfetext, den der Screenreader am gesperrten Knopf liest (W-Muster 12).
-        Assert.Equal(ToolTip.GetTip(book), ControlAutomationPeer.CreatePeerForElement(book).GetHelpText());
+        Assert.True(book.IsEffectivelyEnabled);
+        Assert.Equal("Termin buchen (Strg+S)", ToolTip.GetTip(book));
+        await calendar.Booking!.BookCommand.ExecuteAsync(null);
+        await Pump(Settling);
+        Assert.Contains(window.GetVisualDescendants().OfType<TextBlock>(), t => t.IsEffectivelyVisible && t.Text == "Bitte eine Kundin oder einen Kunden wählen.");
         return calendar;
     });
 
@@ -231,7 +231,7 @@ public sealed partial class ViewTests
             reasons.AddRange(document.Descendants().SelectMany(e => e.Attributes()).Where(a => a.Name.LocalName == "DisabledHint.Text" && !a.Value.StartsWith('{')).Select(a => a.Value));
         }
 
-        Assert.True(reasons.Count >= 30, $"Es gibt nur {reasons.Count} Gründe");
+        Assert.True(reasons.Count >= 15, $"Es gibt nur {reasons.Count} Gründe");
         Assert.All(reasons, r =>
         {
             Assert.StartsWith("Verfügbar", r, StringComparison.Ordinal);

@@ -160,7 +160,7 @@ internal static class PosEndpoints
             })
             .WithName("CreateCashRegister")
             .RequirePermission(AccessRight.ManageLocation)
-            .WithSummary("Neue Kasse. Österreich: erzeugt Schlüssel für den Umsatzzähler und den signierten Startbeleg.");
+            .WithSummary("Neue Kassa. Österreich: erzeugt Schlüssel für den Umsatzzähler und den signierten Startbeleg.");
 
         group.MapPost("/registers/{registerId:guid}/null-receipt", async Task<Results<Ok<ReceiptDto>, ValidationProblem, ProblemHttpResult>> (
                 Guid registerId, PosService pos, CancellationToken ct) => Respond(await pos.NullReceiptAsync(registerId, ct)))
@@ -171,7 +171,7 @@ internal static class PosEndpoints
                 Guid registerId, PosService pos, CancellationToken ct) => Respond(await pos.DecommissionAsync(registerId, ct)))
             .WithName("DecommissionCashRegister")
             .RequirePermission(AccessRight.ManageLocation)
-            .WithSummary("Kasse außer Betrieb nehmen (Schlussbeleg). Danach in FinanzOnline abmelden.");
+            .WithSummary("Kassa außer Betrieb nehmen (Schlussbeleg). Danach in FinanzOnline abmelden.");
 
         group.MapGet("/registers/{registerId:guid}/receipts", async Task<Results<Ok<List<ReceiptDto>>, NotFound>> (
                 Guid registerId, DateOnly date, AispaDbContext db, PosService pos, CancellationToken ct) =>
@@ -191,7 +191,7 @@ internal static class PosEndpoints
             })
             .WithName("ListReceipts")
             .AlsoAllow(AccessRight.ViewReceipts, insteadOf: AccessRight.Book)
-            .WithSummary("Belege einer Kasse an einem Tag (Ortszeit), neueste zuerst.");
+            .WithSummary("Belege einer Kassa an einem Tag (Ortszeit), neueste zuerst.");
 
         group.MapGet("/registers/{registerId:guid}/bills", async (Guid registerId, AispaDbContext db, PosService pos, CancellationToken ct) =>
             {
@@ -263,7 +263,7 @@ internal static class PosEndpoints
                 await exports.ListAsync(registerId, ct))
             .WithName("ListTseExports")
             .RequirePermission(AccessRight.ViewAmountReports).AlsoAllow(AccessRight.ViewAmountReports, insteadOf: AccessRight.Book)
-            .WithSummary("Die letzten zehn TSE-Exporte einer Kasse mit Stand.");
+            .WithSummary("Die letzten zehn TSE-Exporte einer Kassa mit Stand.");
 
         group.MapGet("/tse-exports/{exportId:guid}/file", async Task<Results<FileContentHttpResult, NotFound>> (
                 Guid exportId, TseExports exports, CancellationToken ct) =>
@@ -295,7 +295,7 @@ internal static class PosEndpoints
             .WithName("ListDayClosings")
             .RequirePermission(AccessRight.ViewAmountReports)
             .AlsoAllow(AccessRight.ViewAmountReports, insteadOf: AccessRight.Book)
-            .WithSummary("Die letzten 60 Tagesabschlüsse einer Kasse mit allen Zahlen; nur mit dem Recht „Berichte mit Beträgen“.");
+            .WithSummary("Die letzten 60 Tagesabschlüsse einer Kassa mit allen Zahlen; nur mit dem Recht „Berichte mit Beträgen“.");
 
         // PDF-Ausgaben (ADR 0092): der gespeicherte Tagesabschluss als PDF zum Abheften; Recht wie das Lesen der Abschlüsse, kein Versand.
         group.MapGet("/registers/{registerId:guid}/day-closings/{closingId:guid}/pdf", async Task<Results<FileContentHttpResult, NotFound>> (
@@ -506,7 +506,7 @@ internal static class PosEndpoints
                 if (iban is null || payee is null || location.Currency != "EUR")
                 {
                     return TypedResults.Problem(statusCode: StatusCodes.Status400BadRequest,
-                        title: "Für Sofortüberweisung braucht es eine IBAN in den Firmendaten oder an der Kasse (nur in Euro).");
+                        title: "Für Sofortüberweisung braucht es eine IBAN in den Firmendaten oder an der Kassa (nur in Euro).");
                 }
 
                 var due = amount is > 0 && amount <= bill.Open ? amount.Value : bill.Open;

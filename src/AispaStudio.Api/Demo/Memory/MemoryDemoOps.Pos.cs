@@ -94,7 +94,7 @@ internal sealed partial class MemoryDemoOps
     {
         if (!_world.BillsById.TryGetValue(billId, out var bill))
         {
-            return Task.FromResult<PosError?>(new PosError(PosErrorKind.NotFound, "registerId", "Kasse oder Rechnung nicht gefunden."));
+            return Task.FromResult<PosError?>(new PosError(PosErrorKind.NotFound, "registerId", "Kassa oder Rechnung nicht gefunden."));
         }
 
         if (bill.Status != BillStatus.Open)
@@ -408,7 +408,7 @@ internal sealed partial class MemoryDemoOps
 
         if (!_snapshot.Registers.ContainsKey(registerId))
         {
-            return Task.FromResult<PosResult<CashMovementDto>>(new PosError(PosErrorKind.NotFound, "registerId", "Kasse nicht gefunden."));
+            return Task.FromResult<PosResult<CashMovementDto>>(new PosError(PosErrorKind.NotFound, "registerId", "Kassa nicht gefunden."));
         }
 
         var movement = new CashMovement
@@ -431,7 +431,7 @@ internal sealed partial class MemoryDemoOps
         {
             if (!_snapshot.Registers.TryGetValue(registerId, out var register))
             {
-                throw PosFailure.NotFound("Kasse");
+                throw PosFailure.NotFound("Kassa");
             }
 
             if (close is not null)
@@ -473,12 +473,12 @@ internal sealed partial class MemoryDemoOps
     {
         if (!register.IsActive)
         {
-            throw PosFailure.Invalid("registerId", "Die Kasse ist außer Betrieb.");
+            throw PosFailure.Invalid("registerId", "Die Kassa ist außer Betrieb.");
         }
 
         if (register.SiteId is { } owner && _siteId is { } here && owner != here)
         {
-            throw new PosFailure(new PosError(PosErrorKind.Conflict, "registerId", "Diese Kasse kassiert an einer anderen Stelle."));
+            throw new PosFailure(new PosError(PosErrorKind.Conflict, "registerId", "Diese Kassa kassiert an einer anderen Stelle."));
         }
 
         register.SiteId ??= _siteId;
@@ -489,7 +489,7 @@ internal sealed partial class MemoryDemoOps
     {
         if (registerId == Guid.Empty || !_snapshot.Registers.TryGetValue(registerId, out var register))
         {
-            return new PosError(PosErrorKind.NotFound, "registerId", "Kasse oder Rechnung nicht gefunden.");
+            return new PosError(PosErrorKind.NotFound, "registerId", "Kassa oder Rechnung nicht gefunden.");
         }
 
         var undo = new List<Action>();

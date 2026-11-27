@@ -1,0 +1,62 @@
+---
+art: ablauf
+bereich: Berichte
+oberflaeche: verwaltung
+rollen: leitung, inhaber, manager
+seite: verwaltung
+stichwoerter: KI, Auswertung, Claude, auswerten lassen, Kernaussagen, Maßnahmen, Auffälligkeiten, Ursachen, was tun, Empfehlung, Analyse, Bericht erklären, Neu auswerten, Ändern, Vermutung, analysis, insights, recommendations
+---
+# Bericht mit KI auswerten
+
+Die KI liest die Zahlen des Management-Berichts und schreibt Kernaussagen, Auffälligkeiten und Maßnahmen dazu. Sie rechnet nichts; maßgeblich bleiben die Zahlen im Bericht.
+
+## Auswertung starten {#starten}
+
+1. In der Windows-App unter „Verwaltung“ **Zahlen** öffnen und den Reiter **Berichte** wählen.
+2. **Standort**, Zeitraum und **Vergleichen mit** wie für den Bericht wählen. Die KI wertet genau diesen Bericht aus.
+3. In der Kopfzeile auf **Mit KI auswerten** klicken. Rechts geht die Seitenleiste auf. Unter dem Titel stehen der Bericht und der Zeitraum, etwa „Management-Bericht · 01.10.–19.10.2026“.
+4. Einen **Schwerpunkt** wählen: Gesamt, Umsatz und Ertrag, Auslastung und Dienstplan, Gäste und Bindung oder Angebot und Preise.
+5. Wer will, schreibt eine **Eigene Frage** dazu, höchstens 300 Zeichen, zum Beispiel „Warum sind die Vormittage schwach?“.
+6. Auf **Auswerten** klicken. Die Auswertung dauert meist einige Sekunden; die Seitenleiste zeigt „Die KI wertet die Zahlen des Berichts aus …“.
+
+> Hinweis: Die eigene Frage ohne Zahlen stellen. Die KI darf nur Zahlen nennen, die im Bericht stehen. Übernimmt sie eine Zahl aus der Frage, scheitert die Auswertung.
+
+## So liest man die Auswertung {#lesen}
+
+Nach der Auswertung klappt das Formular zu einer Zeile zusammen, etwa „KI · Schwerpunkt Gesamt · Ändern“. So bleibt die ganze Höhe für das Ergebnis.
+
+![Seitenleiste mit der Auswertung der KI neben dem Management-Bericht](images/app/verwaltung-berichte-management-ki-auswertung.png)
+
+- **Kernaussagen:** drei bis fünf Sätze zum Zeitraum, als Liste.
+- **Auffälligkeiten:** je eine Karte mit der Beobachtung, darunter der möglichen Ursache mit der Pille „Vermutung“ und der betroffenen Kennzahl. Die Ursache ist immer eine Vermutung der KI.
+- **Kennzahl anklicken:** Gibt es zur Kennzahl eine Kachel, steht sie als Knopf. Ein Klick hebt die Kachel im Bericht hervor und rollt zu ihr. Ohne passende Kachel steht die Kennzahl als einfacher Text.
+- **Maßnahmen:** höchstens fünf, nach erwarteter Wirkung gereiht, als Liste, je mit „Woran Sie den Erfolg sehen“.
+- **Was die Zahlen nicht zeigen:** was sich aus dem Bericht nicht ablesen lässt.
+- Die Pille „KI“ und der Hinweis unter dem Ergebnis kennzeichnen den Text als Auswertung der KI. **Warum?** daneben klappt auf, was die KI gelesen hat und was sie nicht tut.
+
+## Schwerpunkt oder Frage ändern {#aendern}
+
+1. In der Zeile über dem Ergebnis auf **Ändern** klicken. Das Formular geht wieder auf.
+2. **Schwerpunkt** oder **Eigene Frage** ändern.
+3. Im Fuß der Seitenleiste auf **Neu auswerten** klicken. Vor der ersten Auswertung heißt der Knopf **Auswerten**.
+
+Dieselben Zahlen mit demselben Schwerpunkt und derselben Frage werten nicht neu aus: Die Seitenleiste zeigt die schon geschriebene Auswertung.
+
+## Kopieren und in den Bericht übernehmen {#uebernehmen}
+
+- **Kopieren** legt die Auswertung mit Überschriften und Hinweis in die Zwischenablage.
+- **In den Bericht übernehmen** nimmt die Auswertung in PDF, Word und Excel auf, immer mit dem Hinweis der KI. Das gilt im Menü **Ausgabe** für **Drucken …**, **Als PDF speichern**, **Per Mail senden …**, **Bericht (Excel)** und **Bericht (Word)**; **Kennzahlen (CSV)** enthält sie nicht. Mehr dazu unter [Bericht als Dokument ausgeben](hilfe:berichte-als-dokument-ausgeben#ki).
+- **Aus dem Bericht nehmen** macht das rückgängig.
+- Wer Standort, Zeitraum oder Vergleich ändert, bekommt einen neuen Bericht; die übernommene Auswertung gilt dann nicht mehr und fällt aus den Dateien.
+
+## Wenn etwas schiefgeht {#wenn-etwas-schiefgeht}
+
+- **Mit KI auswerten** ist gesperrt: Auf dem Server ist kein Claude-Schlüssel eingetragen. Der Tooltip am Knopf sagt das. Bis dahin bleiben alle Zahlen des Berichts ohne KI lesbar.
+- „Auswertung gescheitert“: Die KI war nicht erreichbar oder hat eine Zahl genannt, die nicht im Bericht steht. Dann zeigt die App nichts von der KI. **Erneut versuchen** startet eine neue Auswertung, oder die Zahlen im Bericht selbst lesen.
+
+## Gut zu wissen {#hinweise}
+
+- Nur Inhaber, Manager, Standortleitung und Backoffice. Ohne das Recht „Berichte mit Beträgen“ sieht die KI keine Beträge, und die Auswertung nennt keine.
+- An die KI gehen nur die Kennzahlen und Tabellen des Berichts, das Personal mit dem Namen im Haus, ersatzweise mit dem Namen der Person, und den Zahlen je Person. Gästenamen und Gesundheitsdaten gehen nie an die KI.
+- Die KI bewertet keine einzelnen Personen und empfiehlt keine Schritte gegen einzelne Personen.
+- Die Kennzahlen selbst: [Kennzahlen im Management ansehen](hilfe:berichte-kennzahlen-ansehen).

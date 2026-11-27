@@ -34,13 +34,13 @@ Im Termin-Panel stehen weitere Abschnitte, sobald es dazu etwas gibt:
 ![Termin mit dem Abschnitt Anzahlung, nachdem der Link verschickt ist](images/app/termin-anzahlung-anfordern.png)
 
 - **Terminerinnerungen** zeigt, welche Erinnerungen der Gast bekommen hat, mit Kanal, Zustand und Zeit.
-- **Wiederbuchungs-Hinweis** ist eine Werbe-Mail einige Wochen nach der letzten Behandlung und braucht die Einwilligung des Gastes. Die Karte zeigt, ob der Gast eingewilligt hat. **Einwilligung anfragen** schickt ihm eine Mail (Sprache wählbar), er bestätigt per Link; erst dann kommen Hinweise. Sagt der Gast am Empfang, er möchte keine mehr, klicken Sie **Widerrufen**. In der Mail selbst kann sich der Gast über den Link unten abmelden; viele Mailprogramme bieten dafür auch einen Knopf **Abmelden** an, der ohne Rückfrage wirkt. Beide Knöpfe sehen nur Personen, die buchen dürfen.
+- **Wiederbuchungs-Hinweis** ist eine Werbe-Mail einige Wochen nach der letzten Behandlung und braucht die Einwilligung des Gastes. Die Karte zeigt, ob der Gast eingewilligt hat. **Einwilligung anfragen** schickt ihm eine Mail (Sprache wählbar), er bestätigt per Link; erst dann kommen Hinweise. Sagt der Gast am Empfang, er möchte keine mehr, **Widerrufen** klicken. In der Mail selbst kann sich der Gast über den Link unten abmelden; viele Mailprogramme bieten dafür auch einen Knopf **Abmelden** an, der ohne Rückfrage wirkt. Beide Knöpfe sehen nur Personen, die buchen dürfen.
 
 ## Gut zu wissen {#gut-zu-wissen}
 
 - Den Verlauf sieht, wer den Termin sieht.
 - Alles, was am Standort passiert ist, über alle Termine hinweg, zeigt die Seite [Verlauf](hilfe:seite-verlauf).
-- Was ohne Person geschieht, nennt den Weg: „automatisch“ für Aufgaben im Hintergrund, „beim Abgleich“ für Änderungen vom zentralen Server.
+- Was ohne Person geschieht, nennt den Weg: „automatisch“ für Aufgaben im Hintergrund, „beim Abgleich“ für Änderungen von einem anderen PC.
 - Der Verlauf bleibt 3 Jahre und wird mit dem Gast gelöscht. Inhalte von Gesundheitsdaten stehen nie darin.
 - Termine aus der Zeit vor dem Verlauf zeigen „Noch keine Einträge.“
 - Die Behandlung eines gebuchten Termins lässt sich nicht ändern. Dafür den Termin stornieren und neu buchen, siehe [Termin stornieren](hilfe:kalender-termin-stornieren) und [Termin verschieben](hilfe:kalender-termin-verschieben).

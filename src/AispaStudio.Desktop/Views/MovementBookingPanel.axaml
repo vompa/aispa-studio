@@ -37,13 +37,13 @@
         </StackPanel>
       </Border>
 
-      <ui:FormField Label="Material" IsRequired="True">
+      <ui:FormField Label="Material" IsRequired="True" Error="{Binding ItemError}">
         <ComboBox x:Name="MovementItemField" ItemsSource="{Binding Items}" SelectedItem="{Binding SelectedItem}" HorizontalAlignment="Stretch" />
       </ui:FormField>
       <ui:FormField Label="{Binding PlaceLabel}" IsVisible="{Binding ShowPlace}">
         <ComboBox x:Name="MovementPlaceField" ItemsSource="{Binding PlaceOptions}" SelectedItem="{Binding SelectedPlace}" HorizontalAlignment="Stretch" />
       </ui:FormField>
-      <ui:FormField Label="{Binding TargetLabel}" IsRequired="True" IsVisible="{Binding ShowTarget}">
+      <ui:FormField Label="{Binding TargetLabel}" IsRequired="True" IsVisible="{Binding ShowTarget}" Error="{Binding TargetError}">
         <ComboBox x:Name="MovementTargetField" ItemsSource="{Binding Targets}" SelectedItem="{Binding SelectedTarget}" HorizontalAlignment="Stretch" />
       </ui:FormField>
       <ui:FormField Label="Erfasst in" IsVisible="{Binding ShowPackages}">
@@ -64,11 +64,10 @@
           <ui:DateField x:Name="MovementExpiresField" Value="{Binding ExpiresOn}" />
         </ui:FormField>
       </StackPanel>
-      <ui:FormField Label="{Binding ReasonLabel}" IsRequired="{Binding IsCorrection}">
+      <ui:FormField Label="{Binding ReasonLabel}" IsRequired="{Binding IsCorrection}" Error="{Binding ReasonError}">
         <TextBox x:Name="MovementReasonField" Text="{Binding Reason}" MaxLength="200" />
       </ui:FormField>
 
-      <TextBlock Text="{Binding Hint}" Classes="muted small" TextWrapping="Wrap" IsVisible="{Binding Hint, Converter={x:Static ObjectConverters.IsNotNull}}" />
       <ui:InfoBar Severity="Error" Title="Nicht gebucht" Message="{Binding Error}" IsVisible="{Binding HasError}" />
       <StackPanel Orientation="Horizontal">
         <Button x:Name="BookButton" Classes="primary" Content="Buchen" Command="{Binding BookCommand}" />

@@ -245,10 +245,13 @@ public sealed partial class ViewTests
             Assert.Equal(tip, ToolTip.GetTip(next));
             Assert.Equal(tip, AutomationProperties.GetName(next));
             return calendar;
-        }, Api().On($"GET /api/locations/{SpaSample.LocationId}/resources", SpaSample.Resources with
-        {
-            Rooms = [.. SpaSample.Resources.Rooms.Take(6), SpaSample.Lotus with { Id = Guid.NewGuid(), Name = "Salzraum" }, .. SpaSample.Resources.Rooms.Skip(6)],
-        }));
+        }, SevenRoomsApi());
+
+    /// <summary>Ein siebter Behandlungsraum: in der Raumansicht liegen bei schmalem Fenster drei Spalten rechts außerhalb.</summary>
+    private static StubApi SevenRoomsApi() => Api().On($"GET /api/locations/{SpaSample.LocationId}/resources", SpaSample.Resources with
+    {
+        Rooms = [.. SpaSample.Resources.Rooms.Take(6), SpaSample.Lotus with { Id = Guid.NewGuid(), Name = "Salzraum" }, .. SpaSample.Resources.Rooms.Skip(6)],
+    });
 
     [Fact]
     public Task Klick_auf_Weiter_rueckt_das_Raster_um_eine_Breite_weiter_und_zeigt_den_Zurueck_Knopf() =>
@@ -288,6 +291,92 @@ public sealed partial class ViewTests
             Assert.False(window.GetVisualDescendants().OfType<Control>().Single(c => c.Name == name).IsEffectivelyVisible, name);
         }
 
+        return calendar;
+    });
+
+    // ---------- T-087: die Knöpfe liegen als Paar in Zeile 2 der Kopfzeile, nicht mehr über dem Raster ----------
+
+    private static Rect WindowBoxOf(Window window, string name) => BoundsIn(window.GetVisualDescendants().OfType<Control>().Single(c => c.Name == name), window);
+
+    private static void AssertInHeaderNotOverGrid(Window window, string name)
+    {
+        var button = EdgeButton(window, name);
+        Assert.True(button.IsEffectivelyVisible, name);
+        var box = BoundsIn(button, window);
+        Assert.False(box.Intersects(WindowBoxOf(window, "BodyScroll")), $"{name} {box} liegt über dem Raster");
+        var header = WindowBoxOf(window, "CalendarHeader");
+        Assert.True(header.Contains(box.TopLeft) && header.Contains(box.BottomRight - new Vector(0.5, 0.5)), $"{name} {box} liegt nicht in der Kopfzeile {header}");
+    }
+
+    [Fact]
+    public Task Raumansicht_mit_verdeckten_Spalten_haelt_die_Knoepfe_Weiter_und_Zurueck_in_der_Kopfzeile_und_nicht_ueber_dem_Raster() =>
+        Render("hell", "kalender-weitere-spalten-kopfzeile", async (window, main) =>
+        {
+            var calendar = await SignedInCalendar(main);
+            calendar.ByRoom = true;
+            await Pump(Settling);
+
+            AssertInHeaderNotOverGrid(window, "EdgeNext");
+            Assert.False(EdgeButton(window, "EdgePrevious").IsEffectivelyVisible);
+
+            ClickCenter(window, EdgeButton(window, "EdgeNext"));
+            await Pump(Settling);
+            AssertInHeaderNotOverGrid(window, "EdgePrevious");
+            return calendar;
+        }, SevenRoomsApi());
+
+    [Fact]
+    public Task Schmale_Kopfzeile_mit_beiden_Knoepfen_und_beiden_Filtern_zeigt_alles_auf_einer_Linie_ohne_dass_ein_Knopf_in_den_Ueberlauf_faellt() =>
+        Render("hell", "kalender-kopfzeile-schmal", async (window, main) =>
+        {
+            var calendar = await SignedInCalendar(main);
+            calendar.ByRoom = true;
+            await Pump(Settling);
+            window.Width = window.MinWidth;
+            await Pump(Settling);
+            BodyScrollOf(window).Offset = new Vector(calendar.Scale.ColumnWidth * 1.5, 0);
+            await Pump(Settling);
+
+            var previous = EdgeButton(window, "EdgePrevious");
+            var next = EdgeButton(window, "EdgeNext");
+            Assert.True(previous.IsEffectivelyVisible && next.IsEffectivelyVisible);
+            var strip = RowTwo(window);
+            var line = TopOf(window, Named<Button>(window, "HeadTeam"));
+            foreach (var button in new[] { previous, next })
+            {
+                Assert.Equal(line, TopOf(window, button), 0.5);
+                Assert.Equal(34, button.Bounds.Height, 0.5);
+                Assert.False(strip.IsVisualAncestorOf(button), "Die Knöpfe liegen nicht im Überlauf-Streifen");
+            }
+
+            var boxes = new[] { BoundsIn(previous, window), BoundsIn(next, window) };
+            Assert.True(boxes[0].Right <= boxes[1].Left + 0.5, "Zurück steht links von Weiter, ohne Überlappung");
+            var shown = strip.GetVisualDescendants().OfType<Button>().Where(b => b.IsEffectivelyVisible && b.Bounds.Width > 0).ToList();
+            Assert.NotEmpty(shown);
+            foreach (var chip in shown)
+            {
+                var box = BoundsIn(chip, window);
+                Assert.False(boxes.Any(b => b.Intersects(box)), $"Chip {chip.Name} {box} überlappt einen Knopf");
+            }
+
+            var header = WindowBoxOf(window, "CalendarHeader");
+            Assert.True(boxes[1].Right <= header.Right + 0.5, "Weiter ragt nicht über die Kopfzeile");
+            Assert.Equal(34, header.Bottom - line, 0.5);
+            return calendar;
+        }, SevenRoomsApi());
+
+    [Fact]
+    public Task Ohne_verdeckte_Spalten_reserviert_die_Kopfzeile_keinen_Platz_fuer_die_Knoepfe() => Render("hell", "kalender-kopfzeile-ohne-knoepfe", async (window, main) =>
+    {
+        var calendar = await SignedInCalendar(main);
+        await Pump(Settling);
+
+        Assert.False(EdgeButton(window, "EdgePrevious").IsEffectivelyVisible);
+        Assert.False(EdgeButton(window, "EdgeNext").IsEffectivelyVisible);
+        var row2 = WindowBoxOf(window, "HeaderRow2");
+        var header = WindowBoxOf(window, "CalendarHeader");
+        Assert.Equal(header.Width, row2.Width, 0.5);
+        Assert.Equal(header.Left, row2.Left, 0.5);
         return calendar;
     });
 }

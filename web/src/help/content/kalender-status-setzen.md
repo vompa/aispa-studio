@@ -86,7 +86,7 @@ Oder per Rechtsklick **Mehr** › **Nicht erschienen**.
 - Therapeut:innen setzen den Status nur bei ihren eigenen Terminen. Bei Terminen anderer fehlen die Knöpfe.
 - Stornieren, Verschieben und Kassieren gibt es für Therapeut:innen nicht.
 
-## Hinweise {#hinweise}
+## Gut zu wissen {#hinweise}
 
 - Den Status setzen Rezeption, Standortleitung, Inhaber und Therapeut:innen (eigene Termine).
 - Ohne Verbindung wird der Statuswechsel vorgemerkt und beim Abgleich gesendet, siehe [Arbeiten ohne Verbindung](hilfe:kalender-offline).

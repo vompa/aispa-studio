@@ -5,6 +5,7 @@ oberflaeche: handy
 rollen: therapeut
 seite: myday
 stichwoerter: Urlaub beantragen, frei beantragen, Abwesenheit, Antrag, Urlaubsantrag, Entscheidung, genehmigt, abgelehnt, request leave, day off
+betrieb: server
 ---
 # Abwesenheit am Handy beantragen
 

@@ -19,7 +19,7 @@ Statt einer Spalte je Person zeigt der Kalender eine Spalte je Raum. So sieht ma
 
 ## Was die Raumansicht zeigt {#inhalt}
 
-- Je Raum eine Spalte, **genauso breit wie in der Ansicht Team** und mit demselben Kopf: die Breite richtet sich nach den Personenspalten des Tages, nicht nach der Zahl der Räume. Gibt es mehr Räume, als ins Fenster passen, scrollt der Kalender waagrecht wie bei vielen Personen. Der Kopf hat wie bei Personen genau zwei Zeilen: oben den Namen (lange Namen enden mit „…“, der volle Name steht im Hinweis), darunter z. B. „Raumpflege 10 Min. · 6 Behandlungen“. Wer kurz mit der Maus auf dem Kopf bleibt, sieht höchstens fünf kurze Zeilen: Raumart, Raumpflege, die Zahl der Termine heute, eine Warnung und was ein Klick tut. Welche Behandlungen im Raum möglich sind, steht in den [Raum-Infos](hilfe:kalender-raumansicht#raum-infos).
+- Je Raum eine Spalte, **genauso breit wie in der Ansicht Team** und mit demselben Kopf: die Breite richtet sich nach den Personenspalten des Tages, nicht nach der Zahl der Räume. Gibt es mehr Räume, als ins Fenster passen, scrollt der Kalender waagrecht wie bei vielen Personen; die zwei Pfeilknöpfe ganz rechts in der zweiten Zeile der Kopfzeile blättern zu den verdeckten Räumen. Der Kopf hat wie bei Personen genau zwei Zeilen: oben den Namen (lange Namen enden mit „…“, der volle Name steht im Hinweis), darunter z. B. „Raumpflege 10 Min. · 6 Behandlungen“. Wer kurz mit der Maus auf dem Kopf bleibt, sieht höchstens fünf kurze Zeilen: Raumart, Raumpflege, die Zahl der Termine heute, eine Warnung und was ein Klick tut. Welche Behandlungen im Raum möglich sind, steht in den [Raum-Infos](hilfe:kalender-raumansicht#raum-infos).
 - **Paarräume** (Raum mit zwei Plätzen) heben sich ab: eigenes Symbol mit zwei Personen in der Akzentfarbe statt des grauen Türsymbols der Einzelräume. Ein Etikett gibt es nicht; „Paarraum · 2 Plätze“ steht im Hinweis am Kopf.
 - Hell ist die Öffnungszeit des Standorts, außerhalb ist die Spalte schraffiert. Auch eine [Raumsperre](hilfe:raumsperren) ist schraffiert, mit einer Kapsel für Art und Grund; im Kopf steht dann „gesperrt: Wartung bis 3.12.“ und, wenn Termine im Raum liegen, **n Termine umbuchen**.
 - Jeder Termin zeigt in einem farbigen Kreis, wer behandelt (den vollen Namen nennt die Hover-Karte); so bleibt in der Karte mehr Platz für Gast und Behandlung.
@@ -43,7 +43,7 @@ Im Seitenpanel eines Termins ist der Raum unterstrichen. Ein Klick darauf (oder 
 
 ![Raum-Infos im Terminfenster](images/app/kalender-raum-info.png)
 
-## Hinweise {#hinweise}
+## Gut zu wissen {#hinweise}
 
 - Geräte gehören zu Behandlungen, nicht zu Räumen; deshalb zeigt der Raum keine Geräte.
 - Raumpflege und Plätze stellt man beim Raum ein, siehe [Standorte & Räume](hilfe:standorte#raumpflege).

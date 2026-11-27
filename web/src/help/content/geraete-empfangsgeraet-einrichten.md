@@ -10,6 +10,8 @@ stichwoerter: Empfangsgerät einrichten, gemeinsamer PC, Rezeption PC, Schnellwe
 
 Am Empfangsgerät wechselt das Team mit Name und PIN, statt sich jedes Mal neu anzumelden. So bleibt jede Buchung und jeder Beleg der richtigen Person zugeordnet. Anmelden darf das Gerät nur, wer Zugänge verwalten darf (Inhaber, Standortleitung).
 
+## Schritte {#schritte}
+
 1. Als Inhaber oder Standortleitung an diesem PC anmelden.
 2. In der Navigation **Geräte** öffnen und zu „Empfangsgerät“ gehen.
 3. „Name des Geräts“ eintragen, z. B. „Empfang“.

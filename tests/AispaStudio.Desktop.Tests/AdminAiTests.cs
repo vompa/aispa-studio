@@ -4,11 +4,15 @@ using AispaStudio.Desktop.ViewModels;
 
 namespace AispaStudio.Desktop.Tests;
 
-/// <summary>R05 Slice 97 (Ä191): native Maske „KI“ nach AiTab.tsx: Stand von Claude und lokalem Modell, Download mit Nachfrage; es gibt keine Schlüsseleingabe.</summary>
+/// <summary>R05 Slice 97 (Ä191): native Maske „KI“ nach AiTab.tsx: Stand von Claude und lokalem Modell, Download mit Nachfrage; seit T-111 auch der Claude-Schlüssel.</summary>
 public sealed class AdminAiTests
 {
+    // Erfundener Testwert, aus Teilen zusammengesetzt, damit kein Token-Muster im Quelltext steht.
+    private const string TestKey = "sk-" + "ant-" + "test-only-a1b2";
+
     private const string StatusRoute = "/api/system/ai";
     private const string DownloadRoute = "/api/system/ai/local/download";
+    private const string UsageRoute = "GET /api/system/ai/usage?days=30";
 
     private static AiStatus Status(bool claude = true, LocalAiState local = LocalAiState.Missing, string? model = "gemma3:4b", int? percent = null, string? error = null) =>
         new(claude, local, model, percent, error, null);
@@ -32,13 +36,34 @@ public sealed class AdminAiTests
 
     [Theory]
     [InlineData(true, "Eingeschaltet.")]
-    [InlineData(false, "Aus: auf diesem Server ist kein API-Schlüssel gesetzt.")]
+    [InlineData(false, "Aus: es ist kein API-Schlüssel gesetzt.")]
     public async Task Given_Claude_mit_und_ohne_Schluessel_Then_Text_Eingeschaltet_oder_Aus(bool claude, string expected)
     {
         using var ai = await Open(new StubApi().On($"GET {StatusRoute}", Status(claude)));
 
         Assert.True(ai.IsLoaded);
         Assert.Equal(expected, ai.ClaudeText);
+    }
+
+    [Fact]
+    public async Task Given_Schluessel_gespeichert_Then_zeigt_die_Maske_nur_die_Maske_und_Claude_ist_eingeschaltet()
+    {
+        var api = new StubApi()
+            .On($"GET {StatusRoute}", Status(claude: false))
+            .On("GET /api/system/ai/claude-key", new ClaudeKeyStatus(false, ClaudeKeySource.None, null, false))
+            .On("PUT /api/system/ai/claude-key", new ClaudeKeyStatus(true, ClaudeKeySource.App, "sk-ant-…a1b2", true));
+        using var ai = await Open(api);
+        Assert.False(ai.SaveKeyCommand.CanExecute(null));
+
+        ai.ApiKeyInput = " " + TestKey + " ";
+        api.On($"GET {StatusRoute}", Status(claude: true));
+        await ai.SaveKeyCommand.ExecuteAsync(null);
+
+        Assert.Contains(api.Calls, c => c.Route == "PUT /api/system/ai/claude-key" && c.Body!.Contains("\"" + TestKey + "\"", StringComparison.Ordinal));
+        Assert.Equal("", ai.ApiKeyInput);
+        Assert.Equal("Eingetragen: sk-ant-…a1b2", ai.KeyStatusText);
+        Assert.Equal("Eingeschaltet.", ai.ClaudeText);
+        Assert.True(ai.CanRemoveKey);
     }
 
     [Theory]
@@ -178,6 +203,28 @@ public sealed class AdminAiTests
 
         Assert.Equal("Es läuft schon ein Download.", ai.Message);
         Assert.Equal(Controls.InfoBarSeverity.Error, ai.MessageSeverity);
+    }
+
+    [Fact]
+    public async Task Given_gemessener_Verbrauch_Then_zeigt_die_Tabelle_je_Aufgabe_und_Modell_die_Zahlen()
+    {
+        var api = new StubApi()
+            .On($"GET {StatusRoute}", Status())
+            .On(UsageRoute, new AiUsageReport(30, [new AiUsageRow(AiUsageTask.ReplyDraft, "claude-sonnet-4-6", 3, 12_345, 678, 9_000, 100)]));
+        using var ai = await Open(api);
+
+        var line = Assert.Single(ai.UsageLines);
+        Assert.Equal(new AiUsageLine("Antwortentwurf", "claude-sonnet-4-6", "3", "12.345", "678", "9.000"), line);
+        Assert.False(ai.ShowNoUsage);
+    }
+
+    [Fact]
+    public async Task Given_noch_kein_Aufruf_gemessen_Then_steht_der_Leerzustand_da()
+    {
+        using var ai = await Open(new StubApi().On($"GET {StatusRoute}", Status()).On(UsageRoute, new AiUsageReport(30, [])));
+
+        Assert.False(ai.HasUsage);
+        Assert.True(ai.ShowNoUsage);
     }
 
     [Fact]

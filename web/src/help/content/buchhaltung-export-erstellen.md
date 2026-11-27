@@ -35,7 +35,7 @@ Vor dem DATEV-Download prüft das Programm, ob jeder Steuersatz einen BU-Schlüs
 
 Für Österreich passen meist BMD oder RZL; diese Dateien brauchen keinen BU-Schlüssel.
 
-## Hinweise {#hinweise}
+## Gut zu wissen {#hinweise}
 
 - Wer das Recht „Berichte mit Beträgen“ hat ([Berichte mit Beträgen](hilfe:zugaenge#berichte-mit-betraegen)); die Standortleitung bekommt nur die Kassen ihrer Standorte.
 - Der Zeitraum darf höchstens ein Jahr lang sein, beide Tage zählen mit.

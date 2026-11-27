@@ -278,7 +278,10 @@ public partial class CalendarViewModel
                 return EntryPanel(CalendarEntryKind.Note, column, start, 15, Clear);
             case NewEntryKind.Area:
                 var areas = new AreasViewModel(_api, _resources.Location.Id, carried ?? date, _zone, _day.Opening, CanBook, _time, Clear, ShowAreaGlances,
-                    CanBook ? CheckoutVisitRequested : null);
+                    CanBook ? CheckoutVisitRequested : null)
+                {
+                    FocusRequested = RequestPanelFocus,
+                };
                 _ = areas.LoadAsync();
                 return areas;
             default:
@@ -306,6 +309,7 @@ public partial class CalendarViewModel
             clear, _time)
         {
             Links = ConflictLinksOf,
+            FocusRequested = RequestPanelFocus,
         };
 
     /// <summary>Eingabe für Sperrzeit, Pause oder Notiz an einer Zeit; <paramref name="minutes"/> bestimmt das vorgeschlagene Ende.</summary>

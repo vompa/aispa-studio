@@ -5,6 +5,7 @@ oberflaeche: windows-app
 rollen: rezeption, leitung, inhaber, manager
 seite: anfragen
 stichwoerter: Freie Zeit, Anfrage, Zeit suchen, Standort, Behandlung, vormerken, Vorschlag, Zeiten vorschlagen, Posteingang, free time, hold
+betrieb: server
 ---
 # Freie Zeit für eine Anfrage
 

@@ -107,7 +107,7 @@ public sealed class NewEntryCarryTests
         Assert.Equal("14:30", areas.FromText);
         Assert.Equal("17:30", areas.UntilText);
         Assert.Equal(Wish, areas.Note);
-        Assert.Equal(1, areas.Persons);
+        Assert.Equal("1", areas.PersonsText);
     }
 
     [Fact]

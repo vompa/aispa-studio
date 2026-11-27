@@ -5,6 +5,7 @@ oberflaeche: handy
 rollen: inhaber
 seite: myday
 stichwoerter: Heute im Spa, Kennzahlen, Tageszahlen, Umsatz, Auslastung, Absagen, offene Anfragen, Inhaberin, Managerin, Leitung, Handy, key figures, revenue today
+betrieb: server
 ---
 # Kennzahlen des Tages am Handy lesen
 

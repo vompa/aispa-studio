@@ -96,7 +96,7 @@ public sealed class SharedClientTests
         var result = await api.GetAsync<List<LocationDto>>("api/locations", Ct);
 
         Assert.Equal((HttpStatusCode)0, result.Status);
-        Assert.StartsWith("Server nicht erreichbar", result.Error, StringComparison.Ordinal);
+        Assert.StartsWith("Keine Verbindung", result.Error, StringComparison.Ordinal);
         Assert.True(api.IsOffline);
         Assert.Equal(1, changes);
     }
@@ -112,13 +112,13 @@ public sealed class SharedClientTests
         var again = await api.GetAsync<List<LocationDto>>("api/locations", Ct);
         var bytes = await api.GetBytesAsync("api/pos/receipts/x/escpos", Ct);
 
-        const string Expected = "Server nicht erreichbar. Verbindung prüfen und erneut versuchen.";
+        const string Expected = "Keine Verbindung. Verbindung prüfen und erneut versuchen.";
         Assert.Equal(Expected, json.Error);
         Assert.Equal(Expected, again.Error);
         Assert.Equal(Expected, bytes.Error);
-        Assert.DoesNotContain("Keine Verbindung", json.Error, StringComparison.Ordinal);
+        Assert.DoesNotContain("Verbindung verweigert", json.Error, StringComparison.Ordinal);
         // Die Ursache steht einmal im Protokoll (beim Übergang zu „ohne Verbindung“), nicht bei jedem weiteren Versuch.
-        Assert.Equal("Keine Verbindung", Assert.Single(logged).Message);
+        Assert.Equal("Verbindung verweigert", Assert.Single(logged).Message);
     }
 
     /// <summary>Der Typ selbst oder ein Typargument darin (<c>Func&lt;ApiClient&gt;</c>, <c>Lazy&lt;HttpClient&gt;</c>) ist ein HTTP-Typ.</summary>

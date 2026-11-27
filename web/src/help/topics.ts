@@ -6,6 +6,7 @@ import {
   splitFrontMatter,
   type Block,
   type HelpMeta,
+  type Span,
 } from "./markdown";
 import imageSizes from "virtual:help-image-sizes";
 
@@ -89,6 +90,32 @@ export function loadTopics(): Promise<HelpTopic[]> {
   return loaded;
 }
 
+/** Erlaubte Werte der Kopfangabe `betrieb`. */
+export const operationValues = ["server"];
+
+/**
+ * Im Einzelplatz (`betrieb=einzelplatz` in der Adresse) fehlen die Themen mit `betrieb: server`, und `hilfe:`-Verweise der übrigen
+ * Themen auf sie werden zu Text ohne Link (der Linktext bleibt); sonst alle Themen unverändert (T-110).
+ */
+export function forOperation(topics: HelpTopic[], operation: string | undefined): HelpTopic[] {
+  if (operation !== "einzelplatz") return topics;
+  const hidden = new Set(topics.filter((t) => t.meta.operation === "server").map((t) => t.id));
+  const unlink = (spans: Span[]): Span[] =>
+    spans.map((s) => {
+      const target = helpLink(s.href)?.topic;
+      if (target === undefined || !hidden.has(target)) return s;
+      const { href: _href, ...text } = s;
+      return text;
+    });
+  const withoutHidden = (b: Block): Block =>
+    b.kind === "paragraph" || b.kind === "callout"
+      ? { ...b, spans: unlink(b.spans) }
+      : b.kind === "list"
+        ? { ...b, items: b.items.map(unlink) }
+        : b;
+  return topics.filter((t) => !hidden.has(t.id)).map((t) => ({ ...t, blocks: t.blocks.map(withoutHidden) }));
+}
+
 /** Bereich für Brotkrumen und Trefferliste: die Kopfangabe `bereich`, sonst die Art des Themas wie in der Übersicht. */
 export function areaOf(topic: HelpTopic): string {
   if (topic.meta.area) return topic.meta.area;
@@ -96,7 +123,11 @@ export function areaOf(topic: HelpTopic): string {
     ? "Seiten"
     : topic.meta.kind === "einstellung"
       ? "Einstellungen"
-      : "Allgemein";
+      : topic.meta.kind === "erklaerung"
+        ? "Erklärungen"
+        : topic.meta.kind === "referenz"
+          ? "Nachschlagen"
+          : "Allgemein";
 }
 
 /** Zwischenüberschriften der ersten Ebene (`h2` auf der Hilfe-Seite) für „Auf dieser Seite“. */

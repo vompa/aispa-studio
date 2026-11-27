@@ -19,13 +19,13 @@ Bei der Behandlung legt die Leitung fest, was vor jedem Termin zu tun ist; darau
 5. Ins zweite Feld (Minuten vorher) eintragen, wie viele Minuten vor Beginn der Schritt fällig ist, z. B. 30. Leer lassen, wenn keine Uhrzeit nötig ist.
 6. Optional bei **Material aus dem Lager** den Artikel wählen, den der Schritt braucht; die Menge je Termin steht schon beim Material der Behandlung.
 7. Weitere Schritte genauso anlegen. Einen Schritt mit **Entfernen** löschen.
-8. **Vorbereitung speichern** anklicken. Die Meldung „Vorbereitung gespeichert.“ erscheint.
+8. Oben auf **Speichern** klicken. Unten in der App erscheint „Gespeichert“.
 
 ## Aus dem Kalender öffnen {#aus-dem-kalender}
 
 Im Kalender führt ein Rechtsklick auf einen Streifen (Vorbereitung, Nachbereitung, Raumpflege) oder auf einen Termin zu **Behandlungszeiten bearbeiten …**. Das öffnet die Verwaltung gleich bei der Behandlung des Termins, im Bereich **Durchführung** (Gruppe „Vor- und Nachbereitung“): dort stehen die Minuten für Vor- und Nachbereitung und die Vorbereitungsschritte. Der Eintrag erscheint nur mit dem Recht, den Katalog zu pflegen (Standortleitung, Manager, Inhaber).
 
-## Hinweise {#hinweise}
+## Gut zu wissen {#hinweise}
 
 - Nur Inhaber, Manager und Standortleitung sehen die Behandlungen in den Stammdaten und dürfen speichern.
 - Gespeichert wird immer die ganze Liste dieser Behandlung, in der angezeigten Reihenfolge. Sie gilt an allen Standorten.

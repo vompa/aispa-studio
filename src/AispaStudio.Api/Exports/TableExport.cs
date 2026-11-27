@@ -23,6 +23,35 @@ internal static class TableExport
     public static byte[] ToExcel(ExportTable table)
     {
         using var workbook = new XLWorkbook();
+        WriteSheet(workbook, table);
+        return Save(workbook);
+    }
+
+    /// <summary>
+    /// Arbeitsmappe mit einem Blatt je Tabelle, druckfertig: A4 quer, Kopfzeile wiederholt, „Seite n von m“ im Fuß, Datenbalken in den Spalten mit
+    /// <see cref="ColumnHint.Bar"/>, graue Pfeile in den Spalten mit <see cref="ColumnHint.Change"/>. <paramref name="facts"/> steht als Kopfblock rechts
+    /// neben der ersten Tabelle (Betrieb, Zeitraum …), damit deren Spalten und Kopfzeile in Zeile 1 bleiben.
+    /// </summary>
+    public static byte[] ToWorkbook(IReadOnlyList<ExportTable> tables, IReadOnlyList<KeyValuePair<string, string>> facts)
+    {
+        using var workbook = new XLWorkbook();
+        foreach (var table in tables)
+        {
+            var sheet = WriteSheet(workbook, table);
+            Emphasize(sheet, table);
+            PrintSetup(sheet);
+        }
+
+        if (tables.Count > 0)
+        {
+            WriteFacts(workbook.Worksheet(1), tables[0].Columns.Count + 2, facts);
+        }
+
+        return Save(workbook);
+    }
+
+    private static IXLWorksheet WriteSheet(XLWorkbook workbook, ExportTable table)
+    {
         var sheet = workbook.AddWorksheet(SheetName(table.Name));
         for (var column = 0; column < table.Columns.Count; column++)
         {
@@ -48,9 +77,74 @@ internal static class TableExport
 
         sheet.RangeUsed()?.SetAutoFilter();
         sheet.SheetView.FreezeRows(1);
+        return sheet;
+    }
+
+    private static byte[] Save(XLWorkbook workbook)
+    {
         using var stream = new MemoryStream();
         workbook.SaveAs(stream);
         return stream.ToArray();
+    }
+
+    /// <summary>Datenbalken in Grau für Größen, der graue Pfeil-Symbolsatz für Veränderungen (unter 0 ab, 0 waagrecht, über 0 auf).</summary>
+    private static void Emphasize(IXLWorksheet sheet, ExportTable table)
+    {
+        if (table.Rows.Count == 0)
+        {
+            return;
+        }
+
+        for (var column = 0; column < table.Columns.Count; column++)
+        {
+            var cells = sheet.Range(2, column + 1, table.Rows.Count + 1, column + 1);
+            switch (table.Columns[column].Hint)
+            {
+                case ColumnHint.Bar when table.Columns[column].Kind == ColumnKind.Percent:
+                    // Prozent von 0 bis 100 %, damit 5 % nicht wie ein voller Balken aussehen (Zellen tragen Wert/100).
+                    cells.AddConditionalFormat().DataBar(XLColor.FromHtml("#A6A6A6")).Minimum(XLCFContentType.Number, 0).Maximum(XLCFContentType.Number, 1);
+                    break;
+                case ColumnHint.Bar:
+                    cells.AddConditionalFormat().DataBar(XLColor.FromHtml("#A6A6A6")).Minimum(XLCFContentType.Number, 0).HighestValue();
+                    break;
+                case ColumnHint.Change:
+                    cells.AddConditionalFormat().IconSet(XLIconSetStyle.ThreeArrowsGray)
+                        .AddValue(XLCFIconSetOperator.EqualOrGreaterThan, "0", XLCFContentType.Percent)
+                        .AddValue(XLCFIconSetOperator.EqualOrGreaterThan, "0", XLCFContentType.Number)
+                        .AddValue(XLCFIconSetOperator.GreaterThan, "0", XLCFContentType.Number);
+                    break;
+            }
+        }
+    }
+
+    private static void PrintSetup(IXLWorksheet sheet)
+    {
+        sheet.PageSetup.PaperSize = XLPaperSize.A4Paper;
+        sheet.PageSetup.PageOrientation = XLPageOrientation.Landscape;
+        sheet.PageSetup.SetRowsToRepeatAtTop(1, 1);
+        sheet.PageSetup.FitToPages(1, 0);
+        var footer = sheet.PageSetup.Footer.Right;
+        footer.AddText("Seite ");
+        footer.AddText(XLHFPredefinedText.PageNumber);
+        footer.AddText(" von ");
+        footer.AddText(XLHFPredefinedText.NumberOfPages);
+    }
+
+    private static void WriteFacts(IXLWorksheet sheet, int firstColumn, IReadOnlyList<KeyValuePair<string, string>> facts)
+    {
+        for (var row = 0; row < facts.Count; row++)
+        {
+            var label = sheet.Cell(row + 1, firstColumn);
+            label.Value = facts[row].Key;
+            label.Style.Font.Bold = true;
+            sheet.Cell(row + 1, firstColumn + 1).Value = facts[row].Value;
+        }
+
+        if (facts.Count > 0)
+        {
+            sheet.Column(firstColumn).Width = Math.Clamp(facts.Max(f => f.Key.Length) * 1.1 + 2, 8, 30);
+            sheet.Column(firstColumn + 1).Width = Math.Clamp(facts.Max(f => f.Value.Length) * 1.1 + 2, 8, 60);
+        }
     }
 
     /// <summary>Strichpunkt für Excel in Österreich und Deutschland; Komma nur für die Portal-CSV mit englischen Spalten.</summary>
@@ -72,6 +166,9 @@ internal static class TableExport
         {
             case null:
                 return;
+            case ExportCell typed:
+                Fill(cell, typed.Kind, typed.Value);
+                return;
             case DateOnly date:
                 cell.Value = date.ToDateTime(TimeOnly.MinValue);
                 cell.Style.NumberFormat.Format = "DD.MM.YYYY";
@@ -82,6 +179,10 @@ internal static class TableExport
                 return;
             case bool yes:
                 cell.Value = yes ? "Ja" : "Nein";
+                return;
+            case decimal share when kind == ColumnKind.Percent:
+                cell.Value = share / 100m;
+                cell.Style.NumberFormat.Format = "0.0%";
                 return;
             case decimal amount:
                 cell.Value = amount;
@@ -106,9 +207,11 @@ internal static class TableExport
     private static string CsvText(ColumnKind kind, object? value) => value switch
     {
         null => "",
+        ExportCell typed => CsvText(typed.Kind, typed.Value),
         DateOnly date => date.ToString("dd.MM.yyyy", German),
         TimeOnly time => time.ToString("HH:mm", German),
         bool yes => yes ? "Ja" : "Nein",
+        decimal share when kind == ColumnKind.Percent => share.ToString("0.0", German) + " %",
         decimal amount => amount.ToString(kind == ColumnKind.Money ? "0.00" : "0.####", German),
         int number => number.ToString(German),
         long number => number.ToString(German),

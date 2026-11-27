@@ -1,3 +1,4 @@
+using AispaStudio.Desktop.ViewModels;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Threading;
@@ -23,6 +24,13 @@ public partial class RosterPlanView : UserControl
     {
         InitializeComponent();
         PlanRoot.LayoutUpdated += (_, _) => PlaceDay();
+        DataContextChanged += (_, _) =>
+        {
+            if (DataContext is RosterPlanViewModel plan)
+            {
+                plan.Files ??= new StorageFileSaver(this);
+            }
+        };
     }
 
     /// <summary>

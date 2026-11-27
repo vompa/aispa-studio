@@ -44,7 +44,7 @@ internal sealed partial class TreatwellReader(IServiceProvider services, ILogger
             try
             {
                 var prompt = Prompt(subject, text.Length <= MaxTextLength ? text : text[..MaxTextLength], receivedAt, zone);
-                var extraction = await ai.AskAsync<TreatwellExtraction>(SystemPrompt, prompt, Schema, ct);
+                var extraction = await ai.AskAsync<TreatwellExtraction>(AiUsageTask.Treatwell, SystemPrompt, prompt, Schema, ct);
                 var (booking, why) = Validate(extraction, subject, text, receivedAt, zone);
                 if (booking is not null)
                 {

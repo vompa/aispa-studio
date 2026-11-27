@@ -244,7 +244,9 @@ public partial class CalendarView : UserControl
     private void FocusInPanel(string name) =>
         Dispatcher.UIThread.Post(() =>
         {
-            var target = SidePanel.GetVisualDescendants().OfType<Control>().FirstOrDefault(c => c.Name == name && c.IsEffectivelyVisible && c.IsEffectivelyEnabled && c.Focusable);
+            // Heißt ein Feld in mehreren Karten gleich (Gäste, Abschnitte), bekommt das mit dem Fehler den Fokus.
+            var candidates = SidePanel.GetVisualDescendants().OfType<Control>().Where(c => c.Name == name && c.IsEffectivelyVisible && c.IsEffectivelyEnabled && c.Focusable).ToList();
+            var target = candidates.FirstOrDefault(c => c.GetVisualAncestors().OfType<FormField>().FirstOrDefault()?.Error is { Length: > 0 }) ?? candidates.FirstOrDefault();
             if (target is null)
             {
                 Focus();

@@ -33,8 +33,19 @@ public partial class BackupViewModel(ILocalServer local, ISettingsStore settings
     public bool ShowFolderSettings => CanConfigure && !IsDemo;
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(SaveFolderCommand))]
     public partial string FolderInput { get; set; } = settings.Load().BackupFolder ?? "";
+
+    /// <summary>Name des Ordnerfelds (<c>x:Name</c>) für <see cref="FocusRequested"/>.</summary>
+    public const string FolderField = "FolderBox";
+
+    /// <summary>Die Ansicht setzt den Fokus in das Feld dieses Namens.</summary>
+    public event Action<string>? FocusRequested;
+
+    /// <summary>Fehler am Ordnerfeld (masken.md, R8); verschwindet mit der nächsten Eingabe.</summary>
+    [ObservableProperty]
+    public partial string? FolderError { get; private set; }
+
+    partial void OnFolderInputChanged(string value) => FolderError = null;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(LastBackupText), nameof(ReminderText), nameof(HasReminder), nameof(FolderText))]
@@ -83,13 +94,20 @@ public partial class BackupViewModel(ILocalServer local, ISettingsStore settings
     /// <summary>Warum „Jetzt sichern“ gesperrt ist.</summary>
     public string BackupNowHint => IsDemo ? DemoText : "Verfügbar, sobald ein Sicherungsordner gespeichert ist.";
 
-    private bool CanSaveFolder => ShowFolderSettings && !IsBusy && FolderInput.Trim().Length > 0;
+    private bool CanSaveFolder => ShowFolderSettings && !IsBusy;
 
     /// <summary>Ordner merken, beim ersten Mal den Wiederherstellungsschlüssel erzeugen und gleich sichern.</summary>
     [RelayCommand(CanExecute = nameof(CanSaveFolder))]
     private async Task SaveFolderAsync()
     {
         var folder = FolderInput.Trim();
+        if (folder.Length == 0)
+        {
+            FolderError = "Bitte den Ordner für die Sicherung eintragen, z. B. D:\\Sicherung.";
+            FocusRequested?.Invoke(FolderField);
+            return;
+        }
+
         if (!Path.IsPathFullyQualified(folder))
         {
             ErrorText = "Bitte den vollständigen Pfad angeben, z. B. D:\\Sicherung oder \\\\server\\freigabe\\aispa.";

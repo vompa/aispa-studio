@@ -41,15 +41,20 @@ public sealed class BookingPreferenceTests
         var day = customers.Weekdays.Where(d => d.IsChecked).Select(d => d.Day).ToList();
         customers.BookingFixed = true;
         customers.BookingUntil = "9";
-        var cannotSaveBackwards = customers.SaveBookingCommand.CanExecute(null);
+        // Ein Ende vor dem Beginn: „Speichern“ ist aktiv; der Klick meldet den Fehler am Feld, setzt den Fokus dorthin und sendet nichts.
+        var canSaveBackwards = customers.SaveBookingCommand.CanExecute(null);
+        await customers.SaveBookingCommand.ExecuteAsync(null);
+        var backwards = (customers.BookingUntilError, customers.FocusTarget, stub.Calls.Any(c => c.Route.StartsWith("PUT ", StringComparison.Ordinal)));
         customers.BookingUntil = "17:00";
+        Assert.Null(customers.BookingUntilError);
         await customers.SaveBookingCommand.ExecuteAsync(null);
         var sent = JsonSerializer.Deserialize<CustomerBookingPreferences>(stub.Calls.Last(c => c.Route.StartsWith("PUT ", StringComparison.Ordinal)).Body!, ApiClient.Json)!;
 
         Assert.Empty(before); // ohne Wunsch kein Abschnitt, nur „+ Termine am liebsten“ (Slice 141)
         Assert.True(customers.HasSuggestion);
         Assert.Equal([DayOfWeek.Tuesday], day);
-        Assert.False(cannotSaveBackwards);
+        Assert.True(canSaveBackwards);
+        Assert.Equal(("Ende liegt vor dem Beginn.", CustomersViewModel.BookingUntilField, false), backwards);
         Assert.Equal(lena.Id, sent.EmployeeId);
         Assert.True(sent.EmployeeFixed);
         Assert.Equal([DayOfWeek.Tuesday], sent.Weekdays);

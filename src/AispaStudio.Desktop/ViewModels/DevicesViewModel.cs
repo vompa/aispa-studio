@@ -49,13 +49,42 @@ public partial class DevicesViewModel(
         ? $"Dieser PC ist Empfangsgerät „{d.Name}“ in {d.LocationName}. Nach {d.IdleMinutes} Minuten ohne Eingabe meldet die App ab."
         : "";
 
+    /// <summary>Namen der Felder (<c>x:Name</c>) für <see cref="FocusRequested"/>: das erste ungültige Feld bekommt nach dem Klick den Fokus (masken.md, R8).</summary>
+    public const string DeviceNameField = "DeviceNameBox";
+
+    public const string DeviceLocationField = "DeviceLocationBox";
+
+    public const string NewTerminalNameField = "NewTerminalName";
+
+    public const string NewTerminalLocationField = "NewTerminalLocationBox";
+
+    public const string NewTerminalAddressField = "NewTerminalAddress";
+
+    public const string DisplayCodeField = "DisplayCode";
+
+    public const string DisplayNameField = "DisplayNameBox";
+
+    public const string DisplayLocationField = "DisplayLocationBox";
+
+    /// <summary>Die Ansicht setzt den Fokus in das Feld dieses Namens.</summary>
+    public event Action<string>? FocusRequested;
+
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(RegisterDeviceCommand))]
     public partial string DeviceName { get; set; } = "Empfang";
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(RegisterDeviceCommand))]
     public partial LocationDto? DeviceLocation { get; set; }
+
+    /// <summary>Fehler an den Feldern des Empfangsgeräts; jeder verschwindet mit der nächsten Eingabe im Feld.</summary>
+    [ObservableProperty]
+    public partial string? DeviceNameError { get; private set; }
+
+    [ObservableProperty]
+    public partial string? DeviceLocationError { get; private set; }
+
+    partial void OnDeviceNameChanged(string value) => DeviceNameError = null;
+
+    partial void OnDeviceLocationChanged(LocationDto? value) => DeviceLocationError = null;
 
     public IReadOnlyList<int> IdleChoices { get; } = [2, 5, 10, 15, 30, 60];
 
@@ -65,11 +94,19 @@ public partial class DevicesViewModel(
     [ObservableProperty]
     public partial string? DeviceError { get; private set; }
 
-    private bool CanRegisterDevice => CanManageDevice && DeviceName.Trim().Length > 0 && DeviceLocation is not null;
+    private bool CanRegisterDevice => CanManageDevice;
 
     [RelayCommand(CanExecute = nameof(CanRegisterDevice))]
     private async Task RegisterDeviceAsync()
     {
+        DeviceNameError = DeviceName.Trim().Length == 0 ? "Bitte einen Namen für das Gerät eintragen." : null;
+        DeviceLocationError = DeviceLocation is null ? "Bitte einen Standort wählen." : null;
+        if (DeviceNameError is not null || DeviceLocationError is not null)
+        {
+            FocusRequested?.Invoke(DeviceNameError is not null ? DeviceNameField : DeviceLocationField);
+            return;
+        }
+
         var result = await api.RegisterDeviceAsync(new SharedDeviceInput(DeviceName.Trim(), DeviceLocation!.Id, DeviceIdleMinutes)).ConfigureAwait(true);
         DeviceError = result.Error;
         if (result.Value is { } device)
@@ -107,30 +144,52 @@ public partial class DevicesViewModel(
     ];
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(AddTerminalCommand))]
     public partial string NewTerminalName { get; set; } = "Empfang";
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(AddTerminalCommand))]
     public partial LocationDto? NewTerminalLocation { get; set; }
 
     [ObservableProperty]
     public partial ProtocolChoice? NewTerminalProtocol { get; set; }
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(AddTerminalCommand))]
     public partial string NewTerminalAddress { get; set; } = "";
+
+    /// <summary>Fehler an den Feldern des neuen Terminals; jeder verschwindet mit der nächsten Eingabe im Feld.</summary>
+    [ObservableProperty]
+    public partial string? NewTerminalNameError { get; private set; }
+
+    [ObservableProperty]
+    public partial string? NewTerminalLocationError { get; private set; }
+
+    [ObservableProperty]
+    public partial string? NewTerminalAddressError { get; private set; }
+
+    partial void OnNewTerminalNameChanged(string value) => NewTerminalNameError = null;
+
+    partial void OnNewTerminalLocationChanged(LocationDto? value) => NewTerminalLocationError = null;
+
+    partial void OnNewTerminalAddressChanged(string value) => NewTerminalAddressError = null;
 
     [ObservableProperty]
     public partial string? TerminalText { get; private set; }
 
-    private bool CanAddTerminal => CanManageTerminals && NewTerminalName.Trim().Length > 0 && NewTerminalAddress.Trim().Length > 0
-        && NewTerminalLocation is not null;
+    private bool CanAddTerminal => CanManageTerminals;
 
     /// <summary>Terminal im Netz am Server anlegen und hier auswählen; angesteuert wird es nach „Speichern“ von diesem PC.</summary>
     [RelayCommand(CanExecute = nameof(CanAddTerminal))]
     private async Task AddTerminalAsync()
     {
+        NewTerminalNameError = NewTerminalName.Trim().Length == 0 ? "Bitte einen Namen eintragen." : null;
+        NewTerminalLocationError = NewTerminalLocation is null ? "Bitte einen Standort wählen." : null;
+        NewTerminalAddressError = NewTerminalAddress.Trim().Length == 0 ? "Bitte die Adresse des Terminals eintragen, z. B. 192.168.1.50:20007." : null;
+        if (NewTerminalNameError is not null || NewTerminalLocationError is not null || NewTerminalAddressError is not null)
+        {
+            FocusRequested?.Invoke(NewTerminalNameError is not null ? NewTerminalNameField
+                : NewTerminalLocationError is not null ? NewTerminalLocationField : NewTerminalAddressField);
+            return;
+        }
+
         var location = NewTerminalLocation!;
         var result = await api.PostAsync<PaymentTerminalDto>("api/pos/terminals", new PaymentTerminalInput(location.Id, NewTerminalName.Trim(),
             TerminalProvider.Local, NewTerminalAddress.Trim(), NewTerminalProtocol?.Protocol ?? TerminalProtocol.Zvt)).ConfigureAwait(true);
@@ -202,16 +261,29 @@ public partial class DevicesViewModel(
     public bool HasDisplays => Displays.Count > 0;
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(PairDisplayCommand))]
     public partial string DisplayCode { get; set; } = "";
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(PairDisplayCommand))]
     public partial string DisplayName { get; set; } = "Pausenraum";
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(PairDisplayCommand))]
     public partial LocationDto? DisplayLocation { get; set; }
+
+    /// <summary>Fehler an den Feldern der Kopplung; jeder verschwindet mit der nächsten Eingabe im Feld.</summary>
+    [ObservableProperty]
+    public partial string? DisplayCodeError { get; private set; }
+
+    [ObservableProperty]
+    public partial string? DisplayNameError { get; private set; }
+
+    [ObservableProperty]
+    public partial string? DisplayLocationError { get; private set; }
+
+    partial void OnDisplayCodeChanged(string value) => DisplayCodeError = null;
+
+    partial void OnDisplayNameChanged(string value) => DisplayNameError = null;
+
+    partial void OnDisplayLocationChanged(LocationDto? value) => DisplayLocationError = null;
 
     [ObservableProperty]
     public partial string? DisplayError { get; private set; }
@@ -219,11 +291,20 @@ public partial class DevicesViewModel(
     [ObservableProperty]
     public partial string? DisplayText { get; private set; }
 
-    private bool CanPairDisplay => CanManageDisplays && DisplayCode.Trim().Length > 0 && DisplayName.Trim().Length > 0 && DisplayLocation is not null;
+    private bool CanPairDisplay => CanManageDisplays;
 
     [RelayCommand(CanExecute = nameof(CanPairDisplay))]
     private async Task PairDisplayAsync()
     {
+        DisplayCodeError = DisplayCode.Trim().Length == 0 ? "Bitte den Code vom Bildschirm eintragen." : null;
+        DisplayNameError = DisplayName.Trim().Length == 0 ? "Bitte einen Namen für die Anzeige eintragen." : null;
+        DisplayLocationError = DisplayLocation is null ? "Bitte einen Standort wählen." : null;
+        if (DisplayCodeError is not null || DisplayNameError is not null || DisplayLocationError is not null)
+        {
+            FocusRequested?.Invoke(DisplayCodeError is not null ? DisplayCodeField : DisplayNameError is not null ? DisplayNameField : DisplayLocationField);
+            return;
+        }
+
         var result = await api.PostAsync<DisplayDeviceDto>("api/displays",
             new DisplayPairInput(DisplayCode.Trim(), DisplayName.Trim(), DisplayLocation!.Id)).ConfigureAwait(true);
         DisplayError = result.Error;

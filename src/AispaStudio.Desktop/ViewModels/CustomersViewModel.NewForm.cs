@@ -23,6 +23,13 @@ public partial class CustomersViewModel
     /// <summary>Name des E-Mail-Felds der Maske „Neue Kundin“ (<c>x:Name</c>); so verlangt <see cref="FocusTarget"/> den Fokus dorthin.</summary>
     public const string NewEmailField = "NewEmailBox";
 
+    /// <summary>Name des Vornamen-Felds der Maske „Neue Kundin“ (<c>x:Name</c>); das erste Feld, wenn der Name fehlt.</summary>
+    public const string NewFirstNameField = "NewFirstNameBox";
+
+    /// <summary>Feldfehler unter dem Vornamen der Maske „Neue Kundin“, wenn weder Vor- noch Nachname steht; <see langword="null"/> ohne Fehler.</summary>
+    [ObservableProperty]
+    public partial string? NewNameError { get; private set; }
+
     /// <summary>Feldfehler unter dem E-Mail-Feld der Maske „Neue Kundin“; <see langword="null"/> ohne Fehler.</summary>
     [ObservableProperty]
     public partial string? NewEmailError { get; private set; }
@@ -30,6 +37,20 @@ public partial class CustomersViewModel
     /// <summary>Das Feld, das nach einem Fehler den Fokus bekommen soll (Name des Feldes); die Ansicht setzt ihn und leert die Angabe (masken.md R8).</summary>
     [ObservableProperty]
     public partial string? FocusTarget { get; set; }
+
+    /// <summary>Pflicht ist nur ein Name (Vor- oder Nachname); Telefon, E-Mail und Notiz lassen sich in der Kundenkarte mit „Bearbeiten“ ergänzen.</summary>
+    private bool ValidateNewName(bool focusOnError)
+    {
+        NewNameError = NewFirstName.Trim().Length > 0 || NewLastName.Trim().Length > 0
+            ? null
+            : "Bitte einen Vor- oder Nachnamen eintragen.";
+        if (NewNameError is not null && focusOnError)
+        {
+            FocusTarget = NewFirstNameField;
+        }
+
+        return NewNameError is null;
+    }
 
     /// <summary>
     /// Prüft die E-Mail-Adresse der Maske mit derselben Regel wie die API (leer oder mit „@“; <c>CustomerEndpoints</c>), nicht strenger.

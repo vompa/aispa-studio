@@ -5,10 +5,13 @@ oberflaeche: windows-app
 rollen: rezeption, leitung, inhaber, manager
 seite: anfragen
 stichwoerter: Antwort freigeben, Antwort senden, Entwurf prüfen, Antwort bearbeiten, Antwort überarbeiten, freundlicher formulieren, kürzer formulieren, Siezen, Duzen, Sie, du, Entschuldigung, KI-Entwurf, Mail beantworten, SMS beantworten, reply, approve answer, send reply, rewrite
+betrieb: server
 ---
 # Antwort prüfen, überarbeiten und senden
 
 Die KI entwirft zu jeder Anfrage eine Antwort. Nichts geht hinaus, bevor die Rezeption den Entwurf prüft und auf **Senden** klickt.
+
+## Schritte {#schritte}
 
 1. In **Anfragen** links die Nachricht anklicken.
 2. Rechts den Entwurf im Feld „Antwort an …“ (bei SMS und WhatsApp „Antwort per SMS an …“ bzw. „Antwort per WhatsApp an …“) lesen; bei Mails steht der Betreff darüber.

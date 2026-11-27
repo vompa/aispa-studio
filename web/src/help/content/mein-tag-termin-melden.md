@@ -5,6 +5,7 @@ oberflaeche: handy
 rollen: therapeut
 seite: myday
 stichwoerter: Termin begonnen, Termin beendet, melden, Behandlung läuft, Behandlung fertig, laufend, Allergie, Hinweis zum Gast, nächster Termin, start treatment, finish treatment
+betrieb: server
 ---
 # Termin begonnen oder beendet melden
 

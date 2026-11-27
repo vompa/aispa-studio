@@ -31,7 +31,7 @@ Ein Feiertag sperrt den Tag nicht: wie bisher kann gebucht werden, der Titel wei
 
 Die Liste nennt zu jedem Abo den Namen, die Art (Feiertage, Schulferien, Hinweise), den Stand des letzten Abrufs und bei einem fehlgeschlagenen Abruf den Grund. Sind Abos ausgeblendet, trägt der Chip **Kalender** einen kleinen Punkt. Der Feiertag aus den Feiertagsregeln des Programms bleibt auch bei ausgeblendetem Abo im Titel stehen.
 
-Bei Abos für gesetzliche Feiertage steht der Hinweis „Nur zur Information, ändert keine Buchung; aktiv/inaktiv nur Leitung“: Ausblenden gilt nur für Sie, ob das Abo überhaupt gilt, bestimmt die Leitung.
+Bei Abos für gesetzliche Feiertage steht der Hinweis „Nur zur Information, ändert keine Buchung; aktiv/inaktiv nur Leitung“: Ausblenden gilt nur für die eigene Person, ob das Abo überhaupt gilt, bestimmt die Leitung.
 
 Die Leitung (Inhaber, Manager, Standortleitung) sieht bei jedem Abo zusätzlich den Schalter **Aktiv (für alle)**. Ausgeschaltet gilt das Abo für alle nirgends mehr. Angelegt und ausführlich bearbeitet werden Abos in der Windows-App unter **Verwaltung** › **Betrieb** › **Kalender-Abos** ([Kalender-Abos](hilfe:kalender-abos)). Dort steht auch der Haken **Im Kalender zeigen**, der dasselbe umschaltet wie der Schalter **Zeigen**.
 

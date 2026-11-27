@@ -36,7 +36,7 @@
               <StackPanel Spacing="4" Margin="0,4">
                 <TextBlock Text="{Binding GroupHeader}" Classes="group" IsVisible="{Binding HasGroupHeader}" />
                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                  <TextBlock Text="{Binding Designation}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                  <TextBlock Text="{Binding Designation}" Classes="listname" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
                   <Border Grid.Column="1" Classes="pill" IsVisible="{Binding IsArchived}">
                     <TextBlock Text="Archiviert" />
                   </Border>

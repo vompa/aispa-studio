@@ -1,14 +1,23 @@
 using System.Text.Json;
+using AispaStudio.Contracts;
 
 namespace AispaStudio.Api.MailIntake.Assistant;
 
 /// <summary>
 /// Ein Sprachmodell, das auf eine Anfrage ein festes JSON-Schema füllt: Claude (<see cref="ClaudeJson"/>) oder das lokale
-/// Modell (<see cref="LocalAi.LocalModelJson"/>). Das Modell liefert nur Daten und löst keine Aktionen aus.
+/// Modell (<see cref="LocalAi.LocalModelJson"/>). Das Modell liefert nur Daten und löst keine Aktionen aus. Die Aufgabe dient der
+/// Verbrauchsmessung von Claude (T-112a).
 /// </summary>
 internal interface IAiJson
 {
-    Task<T> AskAsync<T>(string system, string prompt, Dictionary<string, JsonElement> schema, CancellationToken ct);
+    Task<T> AskAsync<T>(AiUsageTask task, string system, string prompt, Dictionary<string, JsonElement> schema, CancellationToken ct);
+
+    /// <summary>
+    /// Wie oben, mit einem gleichbleibenden Teil (<paramref name="context"/>, z. B. dem Katalog) vor der Mail oder Frage. Claude legt ihn
+    /// in den Cache (T-112b); andere Modelle bekommen beides als einen Text.
+    /// </summary>
+    Task<T> AskAsync<T>(AiUsageTask task, string system, string context, string prompt, Dictionary<string, JsonElement> schema, CancellationToken ct) =>
+        AskAsync<T>(task, system, $"{context}\n{prompt}", schema, ct);
 }
 
 /// <summary>
@@ -17,16 +26,22 @@ internal interface IAiJson
 /// </summary>
 internal sealed partial class FallbackAiJson(IAiJson primary, IAiJson fallback, ILogger<FallbackAiJson> log) : IAiJson
 {
-    public async Task<T> AskAsync<T>(string system, string prompt, Dictionary<string, JsonElement> schema, CancellationToken ct)
+    public Task<T> AskAsync<T>(AiUsageTask task, string system, string prompt, Dictionary<string, JsonElement> schema, CancellationToken ct) =>
+        FirstAnswerAsync(model => model.AskAsync<T>(task, system, prompt, schema, ct), ct);
+
+    public Task<T> AskAsync<T>(AiUsageTask task, string system, string context, string prompt, Dictionary<string, JsonElement> schema, CancellationToken ct) =>
+        FirstAnswerAsync(model => model.AskAsync<T>(task, system, context, prompt, schema, ct), ct);
+
+    private async Task<T> FirstAnswerAsync<T>(Func<IAiJson, Task<T>> ask, CancellationToken ct)
     {
         try
         {
-            return await primary.AskAsync<T>(system, prompt, schema, ct);
+            return await ask(primary);
         }
         catch (Exception ex) when (!ct.IsCancellationRequested)
         {
             LogFallback(log, ex);
-            return await fallback.AskAsync<T>(system, prompt, schema, ct);
+            return await ask(fallback);
         }
     }
 

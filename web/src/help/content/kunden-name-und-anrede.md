@@ -16,7 +16,7 @@ Dieselben Felder lassen sich auch im Kalender ergänzen: der Stift neben dem Gas
 
 ## Name {#name}
 
-Eine Zeile mit **Anrede**, **Vorname** und **Nachname**. Der rote Stern an Vor- und Nachname kennzeichnet, was ausgefüllt sein muss: Zum Speichern genügt ein Name (Vor- oder Nachname), bis dahin bleibt **Speichern** ausgegraut. Unter der Zeile stehen, sobald ein Name da ist, die Adresszeile („Anschrift: Frau Mag. Brigitte Müller“) und die Anrede in Nachrichten („Anrede: Guten Tag Frau Mag. Müller“); hat das Spa Standorte in mehreren Ländern, steht die Anrede je Land da.
+Eine Zeile mit **Anrede**, **Vorname** und **Nachname**. Der rote Stern an Vor- und Nachname kennzeichnet, was ausgefüllt sein muss: Zum Speichern genügt ein Name (Vor- oder Nachname), fehlt er, markiert **Speichern** das Feld rot und nennt, was fehlt. Unter der Zeile stehen, sobald ein Name da ist, die Adresszeile („Anschrift: Frau Mag. Brigitte Müller“) und die Anrede in Nachrichten („Anrede: Guten Tag Frau Mag. Müller“); hat das Spa Standorte in mehreren Ländern, steht die Anrede je Land da.
 
 ### Anrede {#anrede}
 

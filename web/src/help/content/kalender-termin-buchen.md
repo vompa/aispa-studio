@@ -9,7 +9,7 @@ stichwoerter: Termin buchen, Termin anlegen, Termin eintragen, neuer Termin, buc
 ---
 # Termin buchen
 
-Ein Termin entsteht über **Neuer Termin** im Seitenpanel: Gast, Behandlung, Tag und Beginn wählen, dann **Termin buchen**. Ob Person, Raum und Gerät frei sind, prüft der Server beim Buchen.
+Ein Termin entsteht über **Neuer Termin** im Seitenpanel: Gast, Behandlung, Tag und Beginn wählen, dann **Termin buchen**. Ob Person, Raum und Gerät frei sind, prüft AISPA Studio beim Buchen.
 
 ## Voraussetzungen {#voraussetzungen}
 
@@ -50,7 +50,7 @@ Der Termin steht sofort im Kalender; Person, Raum und Gerät sind für die Zeit 
 
 ## Wenn etwas schiefgeht {#wenn-etwas-schiefgeht}
 
-- **Termin buchen** bleibt grau, solange Behandlung, Gast, ein lesbares Datum oder eine gültige Uhrzeit fehlen.
+- Fehlen Behandlung, Gast, ein lesbares Datum oder eine gültige Uhrzeit, markiert **Termin buchen** das erste betroffene Feld rot, setzt den Cursor dorthin und nennt, was fehlt; es wird nichts gebucht.
 - Ein Klick auf eine andere freie Stelle im Kalender schließt die offene Maske nicht: der angefangene Termin wandert an diese Stelle (Spalte, Tag und Beginn), alle Eingaben bleiben. Verworfen wird er nur mit dem Kreuz, mit **Esc** oder mit **Strg+W**, mit Rückfrage, wenn schon etwas eingetragen ist.
 - Ist die Person, der Raum oder ein Gerät belegt, erscheint rot im Panel eine Konfliktmeldung; nichts wird gebucht. Dann eine andere Zeit wählen oder in der Meldung auf **Freie Zeit suchen** klicken. Siehe [Wenn die Zeit belegt ist](hilfe:kalender-termin-buchen#konflikt).
 - Liegt die Zeit außerhalb der Öffnungszeit oder nach dem Dienst der Person, steht über dem Knopf eine gelbe Warnung mit **Trotzdem buchen**, siehe [Außerhalb der Öffnungszeit](hilfe:kalender-termin-buchen#ausserhalb).
@@ -58,7 +58,7 @@ Der Termin steht sofort im Kalender; Person, Raum und Gerät sind für die Zeit 
 
 ## Außerhalb der Öffnungszeit {#ausserhalb}
 
-Liegt der Termin ganz oder teilweise außerhalb der Öffnungszeit oder in einer Schließzeit, steht schon beim Tippen der Uhrzeit die Warnung „Der Standort hat zu dieser Zeit geschlossen.“. Lehnt der Server ab, weil die Person zu dieser Zeit keinen Dienst hat, nennt die Warnung den Grund, z. B. „Lena Huber ist zu dieser Zeit nicht im Dienst.“.
+Liegt der Termin ganz oder teilweise außerhalb der Öffnungszeit oder in einer Schließzeit, steht schon beim Tippen der Uhrzeit die Warnung „Der Standort hat zu dieser Zeit geschlossen.“. Lehnt AISPA Studio ab, weil die Person zu dieser Zeit keinen Dienst hat, nennt die Warnung den Grund, z. B. „Lena Huber ist zu dieser Zeit nicht im Dienst.“.
 
 1. Prüfen, ob der Termin wirklich zu dieser Zeit stattfinden soll.
 2. In der Warnung auf **Trotzdem buchen** klicken.
@@ -71,7 +71,7 @@ Der Termin wird gespeichert, solange Person, Raum und Gerät frei sind; eine Dop
 
 Solange das Fenster **Neuer Termin** offen ist, steht der geplante Eintrag als gestrichelte Karte in der Spalte: bei der Person bzw. im Raum, zum **Beginn**, so lang wie die gewählte **Behandlung**, mit Vorbereitung und Nachbereitung in Grau darüber und darunter. Der Text der Karte ist die Behandlung. Die Vorschau folgt jeder Änderung: andere Behandlung, anderer Beginn, ein Wechsel der Art (**Pause**, **Sperrzeit**, **Notiz**, mit „Pause“, dem Grund bzw. dem Notiztext). Beim Schließen des Fensters verschwindet sie.
 
-- Belegt die Zeit schon etwas (ein Termin samt Vor- und Nachbereitung, eine Pause oder Sperrzeit), oder passt die Behandlung nicht in die freie Zeit, steht die Karte in **Warnfarbe**, so wie der Hinweis „länger als die freie Zeit“ in der Liste der Behandlungen. Gebucht werden kann trotzdem; ob es geht, entscheidet der Server beim Buchen.
+- Belegt die Zeit schon etwas (ein Termin samt Vor- und Nachbereitung, eine Pause oder Sperrzeit), oder passt die Behandlung nicht in die freie Zeit, steht die Karte in **Warnfarbe**, so wie der Hinweis „länger als die freie Zeit“ in der Liste der Behandlungen. Gebucht werden kann trotzdem; ob es geht, entscheidet AISPA Studio beim Buchen.
 - **Paar/Spa** sucht seine Zeit selbst: die Vorschau steht an der angeklickten Stelle, so lang wie die längste Behandlung des ersten Abschnitts. Die gefundene Zeit zeigt sie nicht.
 - Solange die Vorschau steht, zeigt die Maus keine eigene Viertelstunde mehr.
 - Die Vorschau eines Termins lässt sich mit der Maus an eine andere Stelle ziehen: zu einer anderen Uhrzeit, in die Spalte einer anderen Person oder in der [7-Tage-Ansicht](hilfe:kalender-sieben-tage) auf einen anderen Tag. Beim Loslassen übernimmt das Fenster Person, Datum und Beginn (auf 5 Minuten gerundet); Gast, Behandlung und Notiz bleiben stehen. **Esc** oder Hinausfahren aus dem Kalender bricht das Ziehen ab.
@@ -103,7 +103,7 @@ In **Neuer Termin** stehen die Behandlungen, die mit Vor- und Nachbereitung in d
 
 - „passt genau“ oder „passt (50 von 55 Min.)“: Belegung und die Zeit von der Vorbereitung bis zum Ende der Lücke.
 - „Vorbereitung passt nicht davor“: hinten wäre Platz, die Vorbereitung ragt aber in den Termin davor. Einen Beginn etwas später wählen.
-- „länger als die freie Zeit“: die Behandlung lässt sich trotzdem wählen; ob es geht, entscheidet der Server beim Buchen.
+- „länger als die freie Zeit“: die Behandlung lässt sich trotzdem wählen; ob es geht, entscheidet AISPA Studio beim Buchen.
 
 ![Lange Lücke: Termin mit passenden Behandlungen zuerst](images/app/kalender-eintrag-termin.png)
 
@@ -138,13 +138,25 @@ Für denselben Gast mit derselben Behandlung in vier Wochen:
 
 ## Wenn die Zeit belegt ist {#konflikt}
 
-Die Konfliktmeldung ist eine rote Meldung mit dem Titel „Zeitraum ist belegt.“. Darunter sagt sie, was zu tun ist: „Zuerst verschieben oder einen anderen Zeitraum wählen.“ Es folgt je Belegung eine Zeile mit Symbol und Uhrzeit **in Ortszeit des Standorts**, z. B. „Termin · 09:40–10:50 · Clara Fischer“ (Symbol Kalender), „Sperrzeit · 10:50–12:10 · Mittagspause“ (Schloss), dazu für Räume (Tür) und Geräte (Werkzeug). Liegt die Belegung an einem anderen Tag als dem im Kalender, steht der Tag davor („Do. 22.10. 09:40–10:50“). Bei einem belegten Termin nennt die Zeile zusätzlich Raum bzw. Person („Termin · 09:40–10:50 · Clara Fischer · Raum Zeder“). Ein Klick auf eine Terminzeile markiert diesen Termin im Kalender (bei einem anderen Tag wechselt der Kalender dorthin); das Fenster bleibt offen. In **Neuer Termin** heißt der Knopf der Meldung **Freie Zeit suchen**: Er öffnet die Suche mit Behandlung und Gast, und jede Zeit dort lässt sich buchen. Bei den anderen Meldungen zeigt der Knopf **Zum Konflikt** die Woche der Person mit dem belegenden Termin (bei einem belegten Raum die Woche des Raums), beginnend an dessen Tag, der Termin ist markiert; er fehlt, wenn nur Sperrzeiten oder Geräte im Weg stehen. Ist gar kein passender Raum frei, nennt die Meldung die belegten Räume und die nächste freie Zeit („Räume: Kein geeigneter Raum ist zu dieser Zeit frei. Ein Raum ist frei ab 12:20“). Die Meldung steht im Fenster immer direkt über dem Knopf der Aktion, beim Verschieben im Termin-Fenster in der Karte „Verschieben“. Mit dem Kreuz der Meldung blenden Sie sie aus. Dieselbe Meldung erscheint bei Sperrzeit, Pause, Paar oder Spa-Tag und beim Ändern der Zeiten eines Termins; beim Verschieben per Ziehen steht dieselbe Liste mit dem Knopf **Zum Konflikt** in der Meldung über dem Kalender.
+Die Konfliktmeldung ist eine rote Meldung mit dem Titel „Zeitraum ist belegt.“.
+
+- Darunter sagt sie, was zu tun ist: „Zuerst verschieben oder einen anderen Zeitraum wählen.“
+- Es folgt je Belegung eine Zeile mit Symbol und Uhrzeit **in Ortszeit des Standorts**, z. B. „Termin · 09:40–10:50 · Clara Fischer“ (Symbol Kalender), „Sperrzeit · 10:50–12:10 · Mittagspause“ (Schloss), dazu für Räume (Tür) und Geräte (Werkzeug).
+- Liegt die Belegung an einem anderen Tag als dem im Kalender, steht der Tag davor („Do. 22.10. 09:40–10:50“).
+- Bei einem belegten Termin nennt die Zeile zusätzlich Raum bzw. Person („Termin · 09:40–10:50 · Clara Fischer · Raum Zeder“).
+- Ein Klick auf eine Terminzeile markiert diesen Termin im Kalender (bei einem anderen Tag wechselt der Kalender dorthin); das Fenster bleibt offen.
+- In **Neuer Termin** heißt der Knopf der Meldung **Freie Zeit suchen**: Er öffnet die Suche mit Behandlung und Gast, und jede Zeit dort lässt sich buchen.
+- Bei den anderen Meldungen zeigt der Knopf **Zum Konflikt** die Woche der Person mit dem belegenden Termin (bei einem belegten Raum die Woche des Raums), beginnend an dessen Tag, der Termin ist markiert; er fehlt, wenn nur Sperrzeiten oder Geräte im Weg stehen.
+- Ist gar kein passender Raum frei, nennt die Meldung die belegten Räume und die nächste freie Zeit („Räume: Kein geeigneter Raum ist zu dieser Zeit frei. Ein Raum ist frei ab 12:20“).
+- Die Meldung steht im Fenster immer direkt über dem Knopf der Aktion, beim Verschieben im Termin-Fenster in der Karte „Verschieben“.
+- Das Kreuz der Meldung blendet sie aus.
+- Dieselbe Meldung erscheint bei Sperrzeit, Pause, Paar oder Spa-Tag und beim Ändern der Zeiten eines Termins; beim Verschieben per Ziehen steht dieselbe Liste mit dem Knopf **Zum Konflikt** in der Meldung über dem Kalender.
 
 ![Konfliktmeldung mit Belegungen in Ortszeit](images/app/kalender-konflikt.png)
 
 - Wer nicht weiß, wann etwas frei ist: [Freie Zeit suchen](hilfe:kalender-freie-zeit-suchen) oder [Wunsch eintippen (KI)](hilfe:kalender-ki-anfrage). Beide öffnen am Ende dasselbe Panel **Neuer Termin**, schon ausgefüllt.
 
-## Hinweise {#hinweise}
+## Gut zu wissen {#hinweise}
 
 - Im Termin-Panel speichert **Mehr** › **Kalenderdatei …** den Termin als Datei für Outlook, Apple oder Google, mit Erinnerung einen Tag vorher und ohne Namen der Therapeut:in; bei einem Spa-Tag stehen alle Teile des Gastes darin.
 - Am Knopf **Termin** speichert der Pfeil › **Terminliste exportieren …** die Termine eines Zeitraums als Excel oder CSV; die Spalte „Notiz“ sehen nur Leitung und Inhaber. Jeder Export steht im Verlauf.

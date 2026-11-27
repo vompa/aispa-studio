@@ -140,7 +140,7 @@ internal sealed partial class VatIdChecks(AispaDbContext db, IVatIdValidator val
             .Join(db.Locations, r => r.LocationId, l => l.Id, (_, l) => new { l.VatId }).FirstOrDefaultAsync(ct);
         if (requester is null)
         {
-            return new PosError(PosErrorKind.NotFound, nameof(input.RegisterId), "Kasse nicht gefunden.");
+            return new PosError(PosErrorKind.NotFound, nameof(input.RegisterId), "Kassa nicht gefunden.");
         }
 
         var check = new VatIdCheck

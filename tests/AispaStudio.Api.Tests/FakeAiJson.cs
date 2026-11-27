@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Text.Json;
 using AispaStudio.Api.MailIntake.Assistant;
+using AispaStudio.Contracts;
 
 namespace AispaStudio.Api.Tests;
 
@@ -13,7 +14,7 @@ internal sealed class FakeAiJson : IAiJson
     public static readonly ConcurrentDictionary<string, object> Answers = new();
     public static readonly ConcurrentDictionary<string, (string System, string Prompt)> Requests = new();
 
-    public Task<T> AskAsync<T>(string system, string prompt, Dictionary<string, JsonElement> schema, CancellationToken ct)
+    public Task<T> AskAsync<T>(AiUsageTask task, string system, string prompt, Dictionary<string, JsonElement> schema, CancellationToken ct)
     {
         foreach (var (marker, answer) in Answers)
         {

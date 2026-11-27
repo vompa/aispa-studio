@@ -117,6 +117,9 @@ internal static class DatabaseCommands
         }
     }
 
+    /// <summary>Gleicher Wert wie <c>StaleDemoData.RestoredBackupComment</c> in der API (das AppHost kennt deren Typen nicht).</summary>
+    private const string RestoredBackupComment = "aispa:restored-backup";
+
     private static async Task<ExecuteCommandResult> RestoreBackupAsync(
         ExecuteCommandContext context, PostgresServerResource server, string apiResourceName, string backupFolder)
     {
@@ -141,6 +144,10 @@ internal static class DatabaseCommands
             {
                 await postgres.RecreateDatabaseAsync(DatabaseName, context.CancellationToken);
                 await postgres.RestoreAsync(DatabaseName, stream, context.CancellationToken);
+                // Kennzeichen für die Startprüfung der API (StaleDemoData.RestoredBackupComment): eine eingespielte Sicherung nie als
+                // veraltete Beispieldaten neu anlegen. „Beispiel-Spa neu einspielen …“ legt die Datenbank neu an und entfernt es damit.
+                await postgres.ExecuteSqlAsync(
+                    DatabaseName, $"COMMENT ON DATABASE \"{DatabaseName}\" IS '{RestoredBackupComment}'", context.CancellationToken);
             });
 
             var message = $"Sicherung {Path.GetFileName(path)} eingespielt, die API wurde neu gestartet.";

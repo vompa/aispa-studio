@@ -33,18 +33,18 @@
 }
 
 .help-page-nav .help-index h3 {
-  margin: 12px 4px 4px;
-  font-size: 12px;
+  margin: 16px 4px 4px;
+  font-size: 14px;
   font-weight: 600;
-  line-height: 16px;
+  line-height: 20px;
   color: var(--muted);
 }
 
 .help-index h4 {
-  margin: 8px 4px 2px;
-  font-size: 12px;
+  margin: 12px 4px 4px;
+  font-size: 14px;
   font-weight: 600;
-  line-height: 16px;
+  line-height: 20px;
   color: var(--muted);
 }
 
@@ -54,9 +54,11 @@
 
 .help-page-nav .help-topics button {
   justify-content: flex-start;
-  min-height: 40px;
+  min-height: 44px;
   padding: 10px 12px;
   border-color: transparent;
+  font-size: 16px;
+  line-height: 22px;
   border-left: 3px solid transparent;
   border-radius: 8px;
   background: transparent;
@@ -95,12 +97,12 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  min-height: 32px;
-  padding: 4px 12px;
+  min-height: 20px;
+  padding: 10px 12px;
   border-radius: 8px;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 600;
-  line-height: 16px;
+  line-height: 20px;
   color: var(--muted);
   cursor: pointer;
   list-style: none;
@@ -184,12 +186,17 @@
 .help-toc-side .help-toc a,
 .help-toc-fold .help-toc a {
   display: block;
-  padding: 4px 12px;
+  padding: 6px 12px;
   border-left: 2px solid var(--border);
-  font-size: 12px;
-  line-height: 16px;
+  font-size: 14px;
+  line-height: 20px;
   color: var(--muted);
   text-decoration: none;
+}
+
+.help-toc-side .help-toc-title {
+  font-size: 14px;
+  line-height: 20px;
 }
 
 .help-toc-side .help-toc a[aria-current='location'] {

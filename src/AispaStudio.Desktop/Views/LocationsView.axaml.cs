@@ -122,6 +122,7 @@ public partial class LocationsView : UserControl
             LocationsViewModel.OpeningHoursField => this.GetVisualDescendants().OfType<CheckBox>().FirstOrDefault(c => c.Name == "DayOpen"),
             LocationsViewModel.RoomsField => RoomControl("NewRoomRow", "RoomNameField", _ => true),
             LocationsViewModel.AreasField => RoomControl("NewRoomRow", "RoomAreaField", _ => true),
+            LocationsViewModel.EquipmentField => Named("NewEquipmentField"),
             LocationsViewModel.CancellationPolicyField => Named("CancellationPolicyField"),
             _ => null,
         };

@@ -49,7 +49,7 @@ internal sealed class DepositRequests(
             .FirstOrDefaultAsync(ct);
         string? reason = (percent, existing) switch
         {
-            ( <= 0, _) => "Für diese Behandlung ist keine Anzahlung eingestellt, oder Zahlungskonto oder Kasse des Standorts fehlen.",
+            ( <= 0, _) => "Für diese Behandlung ist keine Anzahlung eingestellt, oder Zahlungskonto oder Kassa des Standorts fehlen.",
             // Eine offene oder abgebrochene Anforderung lässt sich wiederholen; alles andere ist schon bezahlt oder erledigt.
             (_, { } status) when status is not (OnlineDepositStatus.Pending or OnlineDepositStatus.Failed) => "Für diesen Termin gibt es schon eine Anzahlung.",
             _ when card is CardGuaranteeStatus.Saved or CardGuaranteeStatus.Pending or CardGuaranteeStatus.AwaitingConsent => "Für diesen Termin ist schon eine Karte für die Ausfallgebühr hinterlegt oder angefordert.",

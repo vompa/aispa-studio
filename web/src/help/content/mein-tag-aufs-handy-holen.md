@@ -5,6 +5,7 @@ oberflaeche: handy
 rollen: therapeut
 seite: myday
 stichwoerter: App installieren, Startbildschirm, Home-Bildschirm, Symbol, Icon, aufs Handy, iPhone, Android, Safari, Chrome, PWA, Verknüpfung, install app, home screen, add to home screen
+betrieb: server
 ---
 # „Mein Tag“ aufs Handy holen
 
@@ -22,7 +23,7 @@ stichwoerter: App installieren, Startbildschirm, Home-Bildschirm, Symbol, Icon, 
 2. Das Menü (drei Punkte) öffnen.
 3. **App installieren** bzw. **Zum Startbildschirm hinzufügen** wählen und bestätigen.
 
-## Hinweise {#hinweise}
+## Gut zu wissen {#hinweise}
 
 - Das Symbol heißt „Mein Tag“.
 - Die Adresse des Spas nennt die Leitung.

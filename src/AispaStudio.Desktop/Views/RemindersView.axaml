@@ -214,7 +214,7 @@
                             </StackPanel>
                             <TextBlock Text="{Binding Detail}" Classes="muted small" TextWrapping="Wrap" />
                           </StackPanel>
-                          <Border Grid.Column="2" Classes="pill" Classes.ok="{Binding IsSent}" Classes.crit="{Binding IsFailed}" VerticalAlignment="Top">
+                          <Border Grid.Column="2" Classes="pill" Classes.ok="{Binding IsSent}" Classes.crit="{Binding IsFailed}" VerticalAlignment="Top" IsVisible="{Binding StateText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
                             <TextBlock Text="{Binding StateText}" />
                           </Border>
                         </Grid>

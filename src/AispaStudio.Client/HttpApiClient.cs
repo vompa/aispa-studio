@@ -72,7 +72,7 @@ public class HttpApiClient : IAispaApi
     public event Action<Exception>? TransportFailed;
 
     /// <summary>Lesbarer Fehler mit Weg, ohne Systemtext (meldungen.md M5).</summary>
-    public const string Unreachable = "Server nicht erreichbar. Verbindung prüfen und erneut versuchen.";
+    public const string Unreachable = "Keine Verbindung. Verbindung prüfen und erneut versuchen.";
 
     /// <summary>Aktuelles Anmelde-Cookie für SignalR (das eine eigene Verbindung aufbaut).</summary>
     public string? SessionCookie => _cookies.GetCookies(BaseAddress)[CookieName]?.Value ?? _store.Load();
@@ -377,7 +377,7 @@ public class HttpApiClient : IAispaApi
         catch (TaskCanceledException) when (!ct.IsCancellationRequested)
         {
             SetOffline(true);
-            return new(default, "Server antwortet nicht.", 0);
+            return new(default, "AISPA Studio antwortet nicht.", 0);
         }
     }
 

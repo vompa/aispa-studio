@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using AispaStudio.Api.Access;
 using AispaStudio.Api.Data;
+using AispaStudio.Api.Mail;
 using AispaStudio.Api.Online;
 using AispaStudio.Api.Scheduling;
 using AispaStudio.Api.Stock;
@@ -8,6 +9,7 @@ using AispaStudio.Api.System;
 using AispaStudio.Contracts;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace AispaStudio.Api.Reporting;
 
@@ -381,33 +383,41 @@ internal static class ReportEndpoints
             .RequirePermission(AccessRight.Book);
 
         group.MapGet("/locations/{locationId:guid}/management", async Task<Results<Ok<ManagementReportDto>, NotFound, ValidationProblem>> (
-                Guid locationId, DateOnly from, DateOnly until, ManagementReports reports, ManagementSummaries summaries, AccessService accessService,
-                CancellationToken ct) =>
+                Guid locationId, DateOnly from, DateOnly until, ManagementReports reports, ManagementSummaries summaries, IManagementAnalyst analyst, AccessService accessService,
+                CancellationToken ct, string compare = ManagementReports.CompareModes.Previous) =>
             {
                 if (from > until || until.DayNumber - from.DayNumber > 366)
                 {
                     return TypedResults.ValidationProblem(new Dictionary<string, string[]> { ["until"] = ["Zeitraum von höchstens einem Jahr, Ende nach Beginn."] });
                 }
 
-                var amounts = (await accessService.CurrentAsync(ct))!.Has(AccessRight.ViewAmountReports);
-                return await reports.ManagementAsync(locationId, from, until, amounts, ct) is { } report
-                    ? TypedResults.Ok(await summaries.AttachAsync(report, ct))
+                if (!ManagementReports.CompareModes.IsKnown(compare))
+                {
+                    return TypedResults.ValidationProblem(new Dictionary<string, string[]> { ["compare"] = ["Vergleich: previous (Zeitraum davor), month (Vormonat) oder year (Vorjahr)."] });
+                }
+
+                var access = (await accessService.CurrentAsync(ct))!;
+                // Gästenamen (beste und abwandernde Gäste) mit demselben Recht wie die Kundenliste.
+                return await reports.ManagementAsync(locationId, from, until, access.Has(AccessRight.ViewAmountReports), ct, compare,
+                        guests: access.Has(AccessRight.ViewCalendar)) is { } report
+                    ? TypedResults.Ok(await summaries.AttachAsync(report, ct) with { AiAnalysisAvailable = analyst.Enabled })
                     : TypedResults.NotFound();
             })
             .WithName("GetManagementReport")
-            .WithSummary("Kennzahlen eines Zeitraums mit Vergleich zum gleich langen Zeitraum davor; ohne das Recht „Berichte mit Beträgen“ ohne Geldbeträge. Auch in der Mitarbeiter-App für „Heute im Spa“, mit den Rechten der Rolle.")
+            .WithSummary("Kennzahlen eines Zeitraums mit Vergleich zum gleich langen Zeitraum davor (compare=previous, Standard), zum selben Abschnitt des Vormonats (month) oder zum Vorjahr (year); ohne das Recht „Berichte mit Beträgen“ ohne Geldbeträge. Auch in der Mitarbeiter-App für „Heute im Spa“, mit den Rechten der Rolle.")
             .RequirePermission(AccessRight.ViewFinance)
             .AllowChannel(AccessChannel.StaffApp);
 
-        group.MapGet("/mail-subscription", async Task<Ok<ReportMailSubscription>> (AccessService accessService, AispaDbContext db, CancellationToken ct) =>
+        group.MapGet("/mail-subscription", async Task<Ok<ReportMailSubscription>> (
+                AccessService accessService, AispaDbContext db, ModuleSwitches modules, IOptions<MailOptions> mail, CancellationToken ct) =>
             {
                 var access = (await accessService.CurrentAsync(ct))!;
                 var row = await db.StaffAccess.AsNoTracking().FirstOrDefaultAsync(a => a.UserId == access.UserId, ct);
-                var available = ReportMailSetup.Receives(access.Role);
+                var available = ReportMailSetup.Offered(access.Role, modules, mail.Value);
                 return TypedResults.Ok(new ReportMailSubscription(available && row?.ReportMails != false, available));
             })
             .WithName("GetReportMailSubscription")
-            .WithSummary("Ob die angemeldete Person Wochen- und Monatsbericht per Mail bekommt (Inhaber, Manager, Standortleitung).")
+            .WithSummary("Ob die angemeldete Person Wochen- und Monatsbericht per Mail bekommt (Inhaber, Manager, Standortleitung); im Einzelplatz nur mit eingerichtetem Mailversand.")
             .RequirePermission(AccessRight.ViewFinance);
 
         group.MapPut("/mail-subscription", async Task<Results<Ok<ReportMailSubscription>, ValidationProblem>> (

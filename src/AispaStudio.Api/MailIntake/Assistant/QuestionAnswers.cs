@@ -6,6 +6,7 @@ using AispaStudio.Api.Data;
 using AispaStudio.Api.Online;
 using AispaStudio.Api.Scheduling;
 using AispaStudio.Api.Tenancy;
+using AispaStudio.Contracts;
 using Microsoft.EntityFrameworkCore;
 
 namespace AispaStudio.Api.MailIntake.Assistant;
@@ -83,7 +84,7 @@ internal sealed class ClaudeQuestionAnswerer(ClaudeJson claude) : IQuestionAnswe
             Betreff: {request.Subject}
             {request.Body}
             """;
-        var result = await claude.AskAsync<AnswerJson>(System, prompt, Schema, ct);
+        var result = await claude.AskAsync<AnswerJson>(AiUsageTask.GuestQuestion, System, prompt, Schema, ct);
         return new QuestionAnswer(result.Answerable, result.Body);
     }
 

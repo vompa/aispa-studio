@@ -28,7 +28,7 @@ internal static class MailIntakeSetup
 
     /// <summary>
     /// Dienste der Terminannahme. Postfach nach <c>MailIntake:Mailbox</c>: „Imap“, „Graph“ oder ohne Angabe das Test-Postfach; gesendet wird über den gemeinsamen Mailversand (<c>AddMail</c>). KI: Claude, sobald ein API-Schlüssel
-    /// konfiguriert ist (<c>Ai:Claude:ApiKey</c>), dazu optional das lokale Modell (<c>Ai:Local:Url</c>), sonst die regelbasierte Variante ohne KI.
+    /// konfiguriert (<c>Ai:Claude:ApiKey</c>) oder in der App eingetragen ist (ADR 0103), dazu optional das lokale Modell (<c>Ai:Local:Url</c>), sonst die regelbasierte Variante ohne KI.
     /// </summary>
     public static IHostApplicationBuilder AddMailIntake(this IHostApplicationBuilder builder, ModuleSwitches modules)
     {
@@ -63,51 +63,48 @@ internal static class MailIntakeSetup
 
         // KI (ADR 0057): Claude mit Schlüssel; das optionale lokale Modell (Ai:Local:Url) übernimmt das Lesen von Terminwünschen
         // und Fragen, wenn Claude nicht antwortet oder kein Schlüssel da ist. Formulieren, Übersetzen und Zusammenfassen bleibt Claude.
+        // Den Schlüssel gibt es je Spa (ADR 0103): Konfiguration vor App. Welche Umsetzung gilt, entscheidet sich je Scope (Anfrage oder
+        // Hintergrundauftrag nach TenantContext.Use), deshalb ohne Neustart. Ohne Schlüssel genau die Umsetzungen wie früher ohne Claude.
         var aiOff = string.Equals(builder.Configuration["Ai:Provider"], "RuleBased", StringComparison.OrdinalIgnoreCase);
-        var useClaude = !aiOff && !string.IsNullOrWhiteSpace(builder.Configuration["Ai:Claude:ApiKey"]);
         var local = services.AddLocalAi(builder.Configuration);
         var useLocal = !aiOff && local.Enabled;
-        if (useClaude)
-        {
-            services.AddSingleton<ClaudeJson>();
-            services.AddSingleton<IAiJson>(sp => useLocal
-                ? new FallbackAiJson(sp.GetRequiredService<ClaudeJson>(), sp.GetRequiredService<LocalModelJson>(),
-                    sp.GetRequiredService<ILogger<FallbackAiJson>>())
-                : sp.GetRequiredService<ClaudeJson>());
-            services.AddSingleton<IBookingAssistant, ClaudeBookingAssistant>();
-            services.AddSingleton<IAssistantClassifier, ModelAssistantClassifier>();
-            services.AddSingleton<IAnswerPhraser>(sp => new ModelAnswerPhraser(sp.GetRequiredService<ClaudeJson>(), sp.GetRequiredService<ILogger<ModelAnswerPhraser>>()));
-            services.AddSingleton<IBriefingSummarizer, ClaudeBriefingSummarizer>();
-            services.AddSingleton<IManagementSummarizer, ClaudeManagementSummarizer>();
-            services.AddSingleton<IRebookWriter, ClaudeRebookWriter>();
-            services.AddSingleton<IQuestionAnswerer, ClaudeQuestionAnswerer>();
-            services.AddSingleton<IMessageTranslator, ClaudeMessageTranslator>();
-            services.AddSingleton<IReplyReviser, ClaudeReplyReviser>();
-        }
-        else
-        {
-            if (useLocal)
-            {
-                services.AddSingleton<IAiJson>(sp => sp.GetRequiredService<LocalModelJson>());
-                services.AddSingleton<RuleBasedBookingAssistant>();
-                services.AddSingleton<RuleBasedAssistantClassifier>();
-                services.AddSingleton<IBookingAssistant, LocalBookingAssistant>();
-                services.AddSingleton<IAssistantClassifier, LocalAssistantClassifier>();
-            }
-            else
-            {
-                services.AddSingleton<IBookingAssistant, RuleBasedBookingAssistant>();
-                services.AddSingleton<IAssistantClassifier, RuleBasedAssistantClassifier>();
-            }
+        services.AddSingleton<ClaudeKeyStore>();
+        services.AddSingleton<ClaudeClients>();
+        services.AddSingleton<IClaudeKeyCheck, AnthropicKeyCheck>();
+        services.AddScoped<ClaudeAccess>();
+        services.AddScoped<AiUsageRecorder>();
+        services.AddScoped<ClaudeJson>();
 
-            services.AddSingleton<IAnswerPhraser, NoAnswerPhraser>();
-            services.AddSingleton<IBriefingSummarizer, NoBriefingSummarizer>();
-            services.AddSingleton<IManagementSummarizer, NoManagementSummarizer>();
-            services.AddSingleton<IRebookWriter, NoRebookWriter>();
-            services.AddSingleton<IQuestionAnswerer, NoQuestionAnswerer>();
-            services.AddSingleton<IMessageTranslator, NoMessageTranslator>();
-            services.AddSingleton<IReplyReviser, NoReplyReviser>();
+        // Ohne Claude und ohne lokales Modell gibt es kein IAiJson (null): Der Treatwell-Leser nimmt dann gleich die Regeln.
+        services.AddScoped<IAiJson>(sp => ClaudeOn(sp)
+            ? useLocal
+                ? new FallbackAiJson(sp.GetRequiredService<ClaudeJson>(), sp.GetRequiredService<LocalModelJson>(), sp.GetRequiredService<ILogger<FallbackAiJson>>())
+                : sp.GetRequiredService<ClaudeJson>()
+            : useLocal ? sp.GetRequiredService<LocalModelJson>() : null!);
+        services.AddSingleton<RuleBasedBookingAssistant>();
+        services.AddSingleton<RuleBasedAssistantClassifier>();
+        if (useLocal)
+        {
+            services.AddSingleton<LocalBookingAssistant>();
+            services.AddSingleton<LocalAssistantClassifier>();
         }
+
+        services.AddScoped<IBookingAssistant>(sp => ClaudeOn(sp)
+            ? ActivatorUtilities.CreateInstance<ClaudeBookingAssistant>(sp)
+            : useLocal ? sp.GetRequiredService<LocalBookingAssistant>() : sp.GetRequiredService<RuleBasedBookingAssistant>());
+        services.AddScoped<IAssistantClassifier>(sp => ClaudeOn(sp)
+            ? ActivatorUtilities.CreateInstance<ModelAssistantClassifier>(sp)
+            : useLocal ? sp.GetRequiredService<LocalAssistantClassifier>() : sp.GetRequiredService<RuleBasedAssistantClassifier>());
+        services.AddScoped<IAnswerPhraser>(sp => ClaudeOn(sp)
+            ? new ModelAnswerPhraser(sp.GetRequiredService<ClaudeJson>(), sp.GetRequiredService<ILogger<ModelAnswerPhraser>>())
+            : new NoAnswerPhraser());
+        services.AddClaudeOr<IBriefingSummarizer, ClaudeBriefingSummarizer, NoBriefingSummarizer>();
+        services.AddClaudeOr<IManagementSummarizer, ClaudeManagementSummarizer, NoManagementSummarizer>();
+        services.AddClaudeOr<IManagementAnalyst, ClaudeManagementAnalyst, NoManagementAnalyst>();
+        services.AddClaudeOr<IRebookWriter, ClaudeRebookWriter, NoRebookWriter>();
+        services.AddClaudeOr<IQuestionAnswerer, ClaudeQuestionAnswerer, NoQuestionAnswerer>();
+        services.AddClaudeOr<IMessageTranslator, ClaudeMessageTranslator, NoMessageTranslator>();
+        services.AddClaudeOr<IReplyReviser, ClaudeReplyReviser, NoReplyReviser>();
 
         // SMS, WhatsApp und Anrufe: Anbieter nach TextChannels, ohne Angabe nur ins Log.
         services.Configure<TextChannelOptions>(builder.Configuration.GetSection(TextChannelOptions.Section));
@@ -148,6 +145,20 @@ internal static class MailIntakeSetup
         }
 
         return builder;
+    }
+
+    /// <summary>Ob für das Spa des Scopes ein Claude-Schlüssel gilt (ADR 0103).</summary>
+    public static bool ClaudeOn(IServiceProvider services) => services.GetRequiredService<ClaudeAccess>().Available;
+
+    /// <summary>Mit Schlüssel die Claude-Umsetzung, sonst die Umsetzung ohne KI; entschieden je Scope.</summary>
+    public static IServiceCollection AddClaudeOr<TService, TClaude, TFallback>(this IServiceCollection services)
+        where TService : class
+        where TClaude : class, TService
+        where TFallback : class, TService
+    {
+        services.AddSingleton<TFallback>();
+        services.AddScoped<TService>(sp => ClaudeOn(sp) ? ActivatorUtilities.CreateInstance<TClaude>(sp) : sp.GetRequiredService<TFallback>());
+        return services;
     }
 
     /// <summary>

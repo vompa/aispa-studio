@@ -29,9 +29,9 @@ Der Abschnitt erscheint nur, wenn es mehr als einen Standort gibt.
 1. Die Behandlung anklicken und zu **Preise nach Wochentag und Uhrzeit** gehen.
 2. Auf **Preisregel hinzufügen** klicken. Die neue Regel ist mit Montag bis Freitag, 09:00 bis 12:00 Uhr und dem Grundpreis vorbelegt.
 3. **Bezeichnung** (z. B. „Vormittag“), **Von**, **Bis**, **Preis** und die Wochentage einstellen. Bei mehreren Standorten zusätzlich **Standort** wählen oder „Alle Standorte“ lassen.
-4. Auf **Preisregeln speichern** klicken. Es erscheint „Preisregeln gespeichert. Gilt für neue Buchungen.“
+4. Auf **Speichern** klicken. Unten in der App erscheint „Gespeichert“. Die Regeln gelten für neue Buchungen.
 
-**Entfernen** in einer Regel löscht sie; danach ebenfalls **Preisregeln speichern**.
+**Entfernen** in einer Regel löscht sie; danach ebenfalls **Speichern**.
 
 ## Gut zu wissen {#hinweise}
 

@@ -99,8 +99,14 @@ public sealed class PosTests
         var line = LastLine(stub);
         Assert.Equal((BillLineKind.Voucher, VoucherKind.SinglePurpose, 10, 699m, new DateOnly(2027, 6, 30)),
             (line.Kind, line.VoucherKind, line.Units, line.UnitPrice, line.ValidUntil));
+        // Ohne Behandlung und mit zu kleiner Anzahl ist „Paket verkaufen“ aktiv; der Klick meldet die Fehler an den Feldern, setzt den Fokus ins erste und sendet nichts.
         pos.PackageUnits = "1";
-        Assert.False(pos.SellPackageCommand.CanExecute(null));
+        Assert.True(pos.SellPackageCommand.CanExecute(null));
+        var lineCalls = stub.Calls.Count(c => c.Route.EndsWith("/lines", StringComparison.Ordinal));
+        await pos.SellPackageCommand.ExecuteAsync(null);
+        Assert.Equal(("Bitte eine Behandlung wählen.", "Bitte eine Anzahl von 2 bis 50 eintragen.", PosViewModel.VoucherTreatmentField),
+            (pos.VoucherTreatmentError, pos.PackageUnitsError, pos.FocusTarget));
+        Assert.Equal(lineCalls, stub.Calls.Count(c => c.Route.EndsWith("/lines", StringComparison.Ordinal)));
     }
 
     [Fact]
@@ -214,8 +220,12 @@ public sealed class PosTests
         pos.EditDiscountCommand.Execute(line);
         var titleWhileEditing = pos.DiscountTitle;
         pos.DiscountInput = "fünfzehn";
+        // Unlesbar ist „Übernehmen“ aktiv; der Klick meldet den Fehler am Feld, setzt den Fokus dorthin und sendet nichts.
         var canApplyUnreadable = pos.ApplyDiscountCommand.CanExecute(null);
+        await pos.ApplyDiscountCommand.ExecuteAsync(null);
+        var unreadable = (pos.DiscountInputError, pos.FocusTarget, stub.Calls.Any(c => c.Route.EndsWith("/discount", StringComparison.Ordinal)));
         pos.DiscountInput = "10";
+        Assert.Null(pos.DiscountInputError);
         var percentPreview = pos.DiscountPreview;
         pos.DiscountInAmount = true;
         pos.DiscountInput = "15";
@@ -227,7 +237,8 @@ public sealed class PosTests
         Assert.False(voucherSale.CanDiscount);
         Assert.Equal("Rabatt auf „Klassische Massage (Lena Huber)“ in %", titleWhileEditing);
         Assert.Equal("Rabatt auf „Klassische Massage (Lena Huber)“ in EUR", amountTitle);
-        Assert.False(canApplyUnreadable);
+        Assert.True(canApplyUnreadable);
+        Assert.Equal(("Der Rabatt ist nicht lesbar. Bitte z. B. 10 oder 5,50 eintragen.", PosViewModel.DiscountPercentField, false), unreadable);
         Assert.Equal("= −8,90 €", percentPreview);
         Assert.Equal("= 16,9 %", amountPreview);
         Assert.Contains("\"discount\":15", stub.Calls.Single(c => c.Route.EndsWith("/discount", StringComparison.Ordinal)).Body, StringComparison.Ordinal);
@@ -278,16 +289,19 @@ public sealed class PosTests
             await Task.Delay(10, TestContext.Current.CancellationToken);
         }
 
+        // Ohne PIN ist „Übernehmen“ aktiv; der Klick meldet den Fehler am Feld, setzt den Fokus dorthin und sendet nichts.
         var withoutPin = pos.ApplyDiscountCommand.CanExecute(null);
+        await pos.ApplyDiscountCommand.ExecuteAsync(null);
+        var pinProblem = (pos.ApprovalPinError, pos.FocusTarget, stub.Calls.Any(c => c.Route.EndsWith("/discount", StringComparison.Ordinal)));
         pos.ApprovalPin = "4711";
-        var withPin = pos.ApplyDiscountCommand.CanExecute(null);
+        Assert.Null(pos.ApprovalPinError);
         await pos.ApplyDiscountCommand.ExecuteAsync(null);
 
         Assert.False(withinLimit);
         Assert.True(pos.Approvers.Count == 1);
         Assert.Equal(manager, pos.Approver);
-        Assert.False(withoutPin);
-        Assert.True(withPin);
+        Assert.True(withoutPin);
+        Assert.Equal(("Bitte die PIN mit mindestens 4 Ziffern eintragen.", PosViewModel.ApprovalPinField, false), pinProblem);
         var body = stub.Calls.Single(c => c.Route.EndsWith("/discount", StringComparison.Ordinal)).Body!;
         Assert.Contains("\"approval\":{\"userId\":\"u-leitung\",\"pin\":\"4711\"}", body, StringComparison.Ordinal);
         Assert.Equal("", pos.ApprovalPin);
@@ -388,8 +402,15 @@ public sealed class PosTests
         var pos = new PosViewModel(stub.Client(), new SampleTime());
         await pos.InitializeAsync(SpaSample.LocationId);
 
+        // Ohne Betrag und ohne Behandlung sind die Knöpfe aktiv; der Klick meldet den Fehler am Feld, setzt den Fokus dorthin und sendet nichts.
         var canSellEmpty = pos.SellVoucherCommand.CanExecute(null);
+        await pos.SellVoucherCommand.ExecuteAsync(null);
+        var noValue = (pos.VoucherValueError, pos.FocusTarget);
+        await pos.SellTreatmentVoucherCommand.ExecuteAsync(null);
+        var noTreatment = (pos.VoucherTreatmentError, pos.FocusTarget);
+        Assert.DoesNotContain(stub.Calls, c => c.Route.EndsWith("/lines", StringComparison.Ordinal));
         pos.VoucherValue = "50";
+        Assert.Null(pos.VoucherValueError);
         await pos.SellVoucherCommand.ExecuteAsync(null);
         var lineBody = stub.Calls.Single(c => c.Route.EndsWith("/lines", StringComparison.Ordinal)).Body!;
         pos.VoucherTreatment = SpaSample.Treatments[2];
@@ -399,7 +420,9 @@ public sealed class PosTests
         pos.Payments.First(p => p.Method == PaymentMethod.Card).Amount = Money.Input(pos.Bill!.Open);
         await pos.PayCommand.ExecuteAsync(null);
 
-        Assert.False(canSellEmpty);
+        Assert.True(canSellEmpty);
+        Assert.Equal(("Bitte einen Betrag über 0 eintragen.", PosViewModel.VoucherValueField), noValue);
+        Assert.Equal(("Bitte eine Behandlung wählen.", PosViewModel.VoucherTreatmentField), noTreatment);
         Assert.Equal(SpaSample.Treatments.Length, pos.Treatments.Count);
         Assert.Contains("\"voucherKind\":\"MultiPurpose\"", lineBody, StringComparison.Ordinal);
         Assert.Contains("\"unitPrice\":50", lineBody, StringComparison.Ordinal);
@@ -460,8 +483,15 @@ public sealed class PosTests
         var before = pos.Receipt!;
         var hint = before.InvoiceHint;
         await pos.StartInvoiceCommand.ExecuteAsync(before);
+        // Ohne Angaben sind „Empfänger übernehmen“ und „UID prüfen“ aktiv; der Klick meldet den Fehler am Feld, setzt den Fokus dorthin und sendet nichts.
         var canAddEmpty = pos.AddRecipientCommand.CanExecute(null);
+        await pos.AddRecipientCommand.ExecuteAsync(null);
+        var emptyRecipient = (pos.RecipientNameError, pos.RecipientAddressError, pos.FocusTarget);
+        await pos.CheckVatIdCommand.ExecuteAsync(null);
+        var emptyVatId = (pos.RecipientVatIdError, pos.FocusTarget);
+        Assert.DoesNotContain(stub.Calls, c => c.Route.EndsWith("/recipient", StringComparison.Ordinal) || c.Route == "POST /api/pos/vat-checks");
         pos.RecipientVatId = "atu 87654321";
+        Assert.Null(pos.RecipientVatIdError);
         await pos.CheckVatIdCommand.ExecuteAsync(null);
         var vatText = pos.VatCheckText;
         await pos.AddRecipientCommand.ExecuteAsync(null);
@@ -469,7 +499,9 @@ public sealed class PosTests
 
         Assert.True(before.CanAddRecipient);
         Assert.Equal("Über 400,00 €: Für ein Unternehmen braucht die Rechnung Name und Anschrift des Empfängers.", hint);
-        Assert.False(canAddEmpty);
+        Assert.True(canAddEmpty);
+        Assert.Equal(("Bitte den Namen oder die Firma eintragen.", "Bitte die Anschrift eintragen.", PosViewModel.RecipientNameField), emptyRecipient);
+        Assert.Equal(("Bitte die UID-Nummer eintragen, mindestens 4 Zeichen.", PosViewModel.RecipientVatIdField), emptyVatId);
         Assert.Equal("ATU87654321", pos.RecipientVatId);
         Assert.Equal("Beispiel Consulting GmbH", pos.RecipientName);
         Assert.StartsWith("UID gültig: Beispiel Consulting GmbH · Abfrage WAPIAAAAX3RKnNxd", vatText, StringComparison.Ordinal);
@@ -620,7 +652,7 @@ public sealed class PosTests
             .On("GET /api/pos/articles", new List<ArticleDto>())
             .On("GET /api/pos/registers", new List<CashRegisterDto>()).Client(), new SampleTime());
         await pos.InitializeAsync();
-        Assert.Contains("keine Kasse", pos.Error, StringComparison.Ordinal);
+        Assert.Contains("keine Kassa", pos.Error, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -802,8 +834,14 @@ public sealed class PosTests
 
         Assert.Equal("Nr. 1842", pos.Receipts.Single().Number);
         Assert.True(pos.SelectedReceipt!.CanVoid);
-        Assert.False(pos.VoidReceiptCommand.CanExecute(null));
+        // Ohne Grund ist „Stornieren“ aktiv; der Klick meldet den Fehler am Feld, setzt den Fokus dorthin und fragt und sendet nichts.
+        Assert.True(pos.VoidReceiptCommand.CanExecute(null));
+        await pos.AskVoidReceiptCommand.ExecuteAsync(null);
+        Assert.Equal("Bitte einen Grund mit mindestens 3 Zeichen eintragen.", pos.VoidReasonError);
+        Assert.Equal(PosViewModel.VoidReasonField, pos.FocusTarget);
+        Assert.DoesNotContain(stub.Calls, c => c.Route.EndsWith("/void", StringComparison.Ordinal));
         pos.VoidReasonInput = "Falsche Behandlung";
+        Assert.Null(pos.VoidReasonError);
         Assert.True(pos.VoidReceiptCommand.CanExecute(null));
 
         stub.On($"GET /api/pos/registers/{SpaSample.Register.Id}/receipts?date=2026-10-19",
@@ -854,7 +892,7 @@ public sealed class PosTests
         Assert.Equal(canVoid, pos.VoidReceiptCommand.CanExecute(null));
         Assert.Equal(canVoid, pos.AskVoidReceiptCommand.CanExecute(null));
         Assert.Equal(!canVoid, pos.SelectedReceipt!.VoidBlockedByRole);
-        Assert.Equal(canVoid ? "Verfügbar, sobald ein Grund mit mindestens 3 Zeichen eingetragen ist." : "Anzahlungsbelege storniert nur die Leitung.", pos.VoidDisabledHint);
+        Assert.Equal(canVoid ? null : "Anzahlungsbelege storniert nur die Leitung.", pos.VoidDisabledHint);
     }
 
     [Fact]
@@ -891,15 +929,28 @@ public sealed class PosTests
         Assert.Equal("462,30 €", pos.ExpectedCashText);
 
         pos.MovementIsWithdrawal = true;
+        // Ohne Betrag und Grund ist „Buchen“ aktiv; der Klick meldet die Fehler an den Feldern, setzt den Fokus ins erste und bucht nichts.
+        Assert.True(pos.AddMovementCommand.CanExecute(null));
+        await pos.AddMovementCommand.ExecuteAsync(null);
+        Assert.Equal(("Bitte einen Betrag über 0 eintragen.", "Bitte einen Grund eintragen.", PosViewModel.MovementAmountField),
+            (pos.MovementAmountError, pos.MovementReasonError, pos.FocusTarget));
+        Assert.DoesNotContain(stub.Calls, c => c.Route.EndsWith("/cash-movements", StringComparison.Ordinal));
         pos.MovementAmount = "100";
         pos.MovementReason = "Bank";
+        Assert.Null(pos.MovementAmountError);
         await pos.AddMovementCommand.ExecuteAsync(null);
         Assert.Contains("\"kind\":\"Withdrawal\"", stub.Calls.Single(c => c.Route.EndsWith("/cash-movements", StringComparison.Ordinal)).Body,
             StringComparison.Ordinal);
         Assert.Equal("", pos.MovementAmount);
 
-        Assert.False(pos.CloseDayCommand.CanExecute(null));
+        // Ohne gezählten Bestand ist „Tagesabschluss durchführen“ aktiv; der Klick meldet den Fehler am Feld, setzt den Fokus dorthin und speichert nichts.
+        Assert.True(pos.CloseDayCommand.CanExecute(null));
+        await pos.CloseDayCommand.ExecuteAsync(null);
+        Assert.Equal("Bitte den gezählten Bargeldbestand eintragen, z. B. 120,50.", pos.CountedCashError);
+        Assert.Equal(PosViewModel.CountedCashField, pos.FocusTarget);
+        Assert.DoesNotContain(stub.Calls, c => c.Route == DayClosingRoute);
         pos.CountedCash = "460,30";
+        Assert.Null(pos.CountedCashError);
         Assert.Equal("Differenz −2,00 €", pos.DifferenceText);
         pos.Dialogs = new FakeDialogs().Answer(ConfirmChoice.Confirmed);
         await pos.CloseDayCommand.ExecuteAsync(null);

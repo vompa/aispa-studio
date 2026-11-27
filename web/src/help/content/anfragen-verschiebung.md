@@ -5,10 +5,13 @@ oberflaeche: windows-app
 rollen: rezeption, leitung, inhaber, manager
 seite: anfragen
 stichwoerter: Termin verschieben per SMS, Gast möchte verschieben, anderer Tag, umbuchen aus Nachricht, Verschiebungswunsch, reschedule by text, guest moves
+betrieb: server
 ---
 # Verschiebungswunsch eines Gasts übernehmen
 
 Schreibt ein Gast per Mail, SMS oder WhatsApp, dass er seinen Termin verschieben möchte, sucht die KI seinen nächsten Termin und freie Zeiten für dieselbe Behandlung. Verschoben wird nie von selbst: die Rezeption wählt eine Zeit und bestätigt.
+
+## Schritte {#schritte}
 
 1. In der Navigation **Anfragen** öffnen und die Nachricht mit Status „Prüfen“ anklicken.
 2. Unter „Hinweis“ steht, welchen Termin die KI gefunden hat, zum Beispiel „Gast möchte verschieben. Nächster Termin: Hot-Stone-Massage am 22.10.2026 um 17:00 Uhr, Wien.“

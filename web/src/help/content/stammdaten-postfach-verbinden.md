@@ -5,6 +5,7 @@ oberflaeche: verwaltung
 rollen: inhaber, manager
 seite: verwaltung
 stichwoerter: Postfach verbinden, Mailpostfach, E-Mail-Anfragen, IMAP, Microsoft 365, Outlook, Gmail, Terminannahme per Mail, Nummern, SMS, WhatsApp-Nummer, mailbox, email intake, connect inbox
+betrieb: server
 ---
 # Eigenes Postfach verbinden
 

@@ -78,15 +78,15 @@ public sealed class PersonCardTests
             [AccessRight.ViewCalendar, AccessRight.Book, AccessRight.ChangeStatus, AccessRight.ManageLocation, AccessRight.ManageCatalog, AccessRight.ManageStaff]);
 
     [Fact]
-    public async Task Inhaberin_oeffnet_Lena_und_landet_in_der_Uebersicht_mit_fuenf_Kacheln()
+    public async Task Inhaberin_oeffnet_Lena_und_landet_im_Profil_mit_fuenf_Kacheln_darueber()
     {
         var team = await Loaded(Api());
         var card = await Choose(team, "Lena Huber");
         await Until(() => card.Overview!.Tiles.Count > 0);
 
-        Assert.Equal(PersonCardViewModel.OverviewArea, card.SelectedTab);
+        Assert.Equal(PersonCardViewModel.ProfileArea, card.SelectedTab);
         Assert.True(card.ShowsOverview);
-        Assert.False(card.ShowsDetails);
+        Assert.True(card.ShowsDetails);
         Assert.Null(card.FocusedSection);
         var tiles = card.Overview!.Tiles;
         Assert.Equal(["Nächster Dienst", "Diese Woche", "Resturlaub 2026", "Offene Anträge", "Zertifikate"], tiles.Select(t => t.Label));
@@ -182,7 +182,8 @@ public sealed class PersonCardTests
         Assert.Equal(area, card.SelectedTab);
         Assert.Equal(section, card.FocusedSection);
         Assert.Equal([section], requested);
-        Assert.False(card.ShowsOverview);
+        // Seit T-109 bleiben die Kacheln nach dem Sprung über dem Bereich stehen.
+        Assert.True(card.ShowsOverview);
     }
 
     [Fact]
@@ -270,16 +271,17 @@ public sealed class PersonCardTests
 
     [Theory]
     [InlineData("unbekannt")]
+    [InlineData(PersonCardViewModel.OverviewArea)]
     [InlineData(null)]
-    public async Task Unbekanntes_Ziel_faellt_auf_die_Uebersicht_zurueck(string? id)
+    public async Task Unbekanntes_Ziel_und_die_fruehere_Uebersicht_fallen_auf_den_ersten_Bereich_zurueck(string? id)
     {
         var team = await Loaded(Api());
         var card = await Choose(team, "Lena Huber");
-        card.SelectTab(PersonCardViewModel.ProfileArea);
+        card.SelectTab(PersonCardViewModel.WorkTimeArea);
 
         card.SelectTab(id);
 
-        Assert.Equal(PersonCardViewModel.OverviewArea, card.SelectedTab);
+        Assert.Equal(PersonCardViewModel.ProfileArea, card.SelectedTab);
         Assert.Null(card.FocusedSection);
     }
 
@@ -288,12 +290,12 @@ public sealed class PersonCardTests
     {
         var team = await Loaded(Api(), LocationManager());
         var card = await Choose(team, "Lena Huber");
-        card.SelectTab(PersonCardViewModel.ProfileArea);
+        card.SelectTab(PersonCardViewModel.WorkTimeArea);
 
         card.SelectTab(PersonCardViewModel.HrFileTab);
 
         Assert.False(card.HasSection(PersonCardViewModel.HrFileTab));
-        Assert.Equal(PersonCardViewModel.OverviewArea, card.SelectedTab);
+        Assert.Equal(PersonCardViewModel.ProfileArea, card.SelectedTab);
         Assert.False(card.ShowsHrFile);
     }
 
@@ -325,7 +327,6 @@ public sealed class PersonCardTests
 
         Assert.Equal(new Dictionary<string, bool>
         {
-            [PersonCardViewModel.OverviewArea] = false,
             [PersonCardViewModel.ProfileArea] = true,
             [PersonCardViewModel.WorkTimeArea] = false,
             [PersonCardViewModel.PayAndFileArea] = true,
@@ -336,9 +337,6 @@ public sealed class PersonCardTests
         card.SelectTab(PersonCardViewModel.WorkTimeArea);
         Assert.True(card.HasSaveBar);
         Assert.True(team.HasSaveBar);
-        card.SelectTab(PersonCardViewModel.OverviewArea);
-        Assert.True(card.HasSaveBar);
-        Assert.True(card.HasSaveBar);
 
         team.Discard();
         Assert.False(card.HasSaveBar);
@@ -407,7 +405,7 @@ public sealed class PersonCardTests
         var team = await Loaded(Api());
         var card = await Choose(team, "Lena Huber");
         card.Details!.Name = "";
-        card.SelectTab(PersonCardViewModel.OverviewArea);
+        card.SelectTab(PersonCardViewModel.WorkTimeArea);
 
         Assert.False(await team.SaveChangesAsync());
 

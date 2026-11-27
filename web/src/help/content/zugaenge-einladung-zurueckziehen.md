@@ -5,6 +5,7 @@ oberflaeche: verwaltung
 rollen: inhaber, manager, leitung
 seite: verwaltung
 stichwoerter: Einladung zurückziehen, Einladung löschen, Link ungültig machen, falsche Adresse, Einladung widerrufen, revoke invitation, cancel invite
+betrieb: server
 ---
 # Einladung zurückziehen
 

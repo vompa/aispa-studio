@@ -251,11 +251,12 @@ Ein Einzelplatz oder ein Standort kann seine Daten mit einer zentralen Datenbank
 
 ## KI {#ki}
 
-Claude übernimmt Terminannahme, Assistent, Zusammenfassungen, Texte für die Wiederbuchungs-Hinweise und das Lesen von Anamnesebögen auf Papier. Ohne Schlüssel arbeitet der Server ohne KI: Die Terminannahme läuft nach festen Regeln, Papierbögen überträgt das Team von Hand. Pflichtzahlen wie Kasse und Steuer rechnet nie die KI.
+Claude übernimmt Terminannahme, Assistent, Zusammenfassungen, Texte für die Wiederbuchungs-Hinweise und das Lesen von Anamnesebögen auf Papier. Ohne Schlüssel arbeitet der Server ohne KI: Die Terminannahme läuft nach festen Regeln, Papierbögen überträgt das Team von Hand. Pflichtzahlen wie Kassa und Steuer rechnet nie die KI.
 
 - `Ai:Claude:ApiKey`: API-Schlüssel von Anthropic. Ist er gesetzt, ist die KI an. Nur über Geheimnisspeicher, Umgebungsvariable oder in der Entwicklung über User-Secrets. In Docker Compose zum Beispiel aus der Variable `AISPA_CLAUDE_API_KEY` in einer Datei `.env`.
 - `Ai:Provider`: `RuleBased` schaltet die KI ganz ab, auch wenn ein Schlüssel gesetzt ist, und auch das lokale Modell. Ohne Angabe gilt der Schlüssel.
-- `Ai:Claude:Model`: welches Modell, Standard `claude-opus-5-5`.
+- `Ai:Claude:Model`: Modell für Texte, die Menschen lesen (Antworten an Gäste, Übersetzungen, Zusammenfassungen, Auswertungen), Standard `claude-opus-5-5`.
+- `Ai:Claude:ModelExtract`: kleineres Modell für das Auslesen fester Angaben (Terminwünsche, Treatwell-Mails, Lieferscheine, Anamnesebögen, Fragen an den Assistenten verstehen), Standard `claude-haiku-5-5`. Es kostet weniger als das Modell für Texte.
 - `Ai:Claude:Effort`: Denktiefe, zum Beispiel `low`, `medium` oder `high`. Ohne Angabe nimmt die Terminannahme `low` und das Lesen von Anamnesebögen `medium`. Ein gesetzter Wert gilt für beide.
 - `Ai:Local:Url`, `Ai:Local:Model` und weitere: das optionale lokale KI-Modell ohne Internet, beschrieben im Hilfethema „KI“, Abschnitt „Einstellungen am Server“. Leer heißt aus.
 

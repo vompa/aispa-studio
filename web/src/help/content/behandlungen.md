@@ -7,9 +7,8 @@ seite: verwaltung
 ---
 # Behandlungen
 
-Einstellungen in der Windows-App unter „Verwaltung“ › „Behandlungen“: was das Spa anbietet, wie lange es dauert, was es kostet und was dafür gebraucht wird. Links steht die Liste: oben der Knopf **Neue Behandlung**, darunter die Suche, dann die Behandlungen nach Kategorie. Ein Klick auf eine Kategorie klappt sie ein und wieder aus; rechts neben jeder Behandlung stehen Dauer und Preis, z. B. „60 Min. · 115 €“. Wer eine Behandlung sucht, tippt einen Teil von Name oder Kategorie in die Suche. Alles zu einer Behandlung steht an dieser einen Stelle, gegliedert in vier Bereiche:
+Einstellungen in der Windows-App unter „Verwaltung“ › „Behandlungen“: was das Spa anbietet, wie lange es dauert, was es kostet und was dafür gebraucht wird. Links steht die Liste: oben der Knopf **Neue Behandlung**, darunter die Suche, dann die Behandlungen nach Kategorie. Ein Klick auf eine Kategorie klappt sie ein und wieder aus; rechts neben jeder Behandlung stehen Dauer und Preis, z. B. „60 Min. · 115 €“. Wer eine Behandlung sucht, tippt einen Teil von Name oder Kategorie in die Suche. Alles zu einer Behandlung steht an dieser einen Stelle. Oben stehen vier Kacheln mit Preis, Dauer, wie viele Personen die Behandlung geben dürfen und in wie vielen Räumen sie stattfindet. Sie bleiben in jedem Bereich sichtbar; ein Klick auf eine Kachel springt zur passenden Stelle. Eine neue Behandlung hat noch keine Kacheln. Darunter ist die Karte in drei Bereiche gegliedert:
 
-- **Übersicht**: vier Kacheln mit Preis, Dauer, wie viele Personen die Behandlung geben dürfen und in wie vielen Räumen sie stattfindet. Ein Klick auf eine Kachel springt zur passenden Stelle. Eine neue Behandlung hat noch keine Übersicht.
 - **Grunddaten und Preis**: Name und Kategorie, Dauer und Preis, Hinweis für Gäste, „Anamnese prüfen“ und „Passt dazu“ (Produkte, die zur Behandlung passen und die Kassa vorschlägt). Eingeklappt darunter steht die Gruppe **Weitere Angaben** mit „Preis je Standort“ (nur bei mehreren Standorten), „Preise nach Wochentag und Uhrzeit“, Ausfallgebühr und Anzahlung; sie ist von selbst offen, wenn die Behandlung dort schon einen Wert hat.
 - **Durchführung**: was um den Termin herum geschieht, in Gruppen untereinander: „Vor- und Nachbereitung“ (Minuten und Einwirkzeit), „Vorbereitungsschritte“, „Material je Termin“ (nur mit dem Recht auf Berichte mit Beträgen) und „Zum Termin bereitstellen“.
 - **Qualifikationen und Räume**: „Nötige Qualifikationen“ mit „Wer kann das?“ daneben, darunter die Räume und Geräte je Standort.
@@ -20,7 +19,7 @@ Im Kopf der Karte stehen rechts neben dem Namen **Speichern** und **Verwerfen**,
 
 Ändern dürfen Inhaber und Standortleitung. Eine Standortleitung ändert Räume, Geräte, Preise und Preisregeln nur an ihren eigenen Standorten; Einträge an anderen Standorten bleiben beim Speichern unverändert.
 
-![Behandlungen in der Windows-App: Liste und Übersicht](images/app/verwaltung-behandlungen.png)
+![Behandlungen in der Windows-App: Liste, Kacheln und Grunddaten](images/app/verwaltung-behandlungen.png)
 
 In der Windows-App speichert ein **Speichern** im Kopf der Karte alles zur offenen Behandlung gemeinsam, aus allen Bereichen:
 
@@ -46,7 +45,7 @@ Wie lange die Behandlung beim Gast dauert. Erlaubt sind 1 bis 600 Minuten, Stand
 
 ### Preis {#preis}
 
-Grundpreis in der Währung des Standorts, inklusive Umsatzsteuer. Ab 0, mit Komma oder Punkt und höchstens zwei Nachkommastellen, z. B. „89,90“. Standard ist 0,00. Ein Preis, der fehlt oder sich nicht lesen lässt, bekommt beim Verlassen des Feldes einen Hinweis; **Speichern** bleibt dann grau.
+Grundpreis in der Währung des Standorts, inklusive Umsatzsteuer. Ab 0, mit Komma oder Punkt und höchstens zwei Nachkommastellen, z. B. „89,90“. Standard ist 0,00. Ein Preis, der fehlt oder sich nicht lesen lässt, bekommt beim Verlassen des Feldes einen Hinweis; **Speichern** markiert das Feld rot, nennt, was fehlt, und speichert nichts.
 
 - Er gilt, wenn weder ein Preis je Standort noch eine Preisregel passt.
 - Der Preis wird beim Buchen in den Termin übernommen. Spätere Änderungen betreffen nur neue Buchungen.
@@ -71,7 +70,7 @@ Eigene Anzahlung nur für diese Behandlung, in Prozent des Terminpreises. Erlaub
 
 - Leer gilt die Anzahlung aus der Online-Buchung des Standorts, 0 heißt: für diese Behandlung nie eine Anzahlung.
 - Ein Wert über 0 gilt statt des Werts des Standorts, z. B. 100 für ein Ritual, das vorbereitet werden muss.
-- Verlangt die Behandlung eine Anzahlung, braucht sie keine Karte für die Ausfallgebühr. Wirkt nur mit eingerichtetem Zahlungsanbieter und aktiver Kasse am Standort.
+- Verlangt die Behandlung eine Anzahlung, braucht sie keine Karte für die Ausfallgebühr. Wirkt nur mit eingerichtetem Zahlungsanbieter und aktiver Kassa am Standort.
 
 ### Hinweis für Gäste {#hinweis-fuer-gaeste}
 
@@ -129,7 +128,7 @@ Zeit, in der der Gast allein im Raum liegt und die Person frei ist, z. B. 20 Min
 
 Das Behandlungsrezept: was vor jeder Behandlung dieser Art vorzubereiten ist. Aus diesen Schritten entsteht die Vorbereitungsliste auf jeder Behandlungskarte, zum Beispiel unter „Mein Tag“. Ändern dürfen Inhaber und Standortleitung; sehen und abhaken kann die Schritte auf den Karten das ganze Team. Die Gruppe erscheint bei einer gespeicherten Behandlung.
 
-„Schritt hinzufügen“ legt eine Zeile an, „Entfernen“ löscht sie, „Vorbereitung speichern“ speichert die ganze Liste dieser Behandlung in der angezeigten Reihenfolge. Die Schritte gelten an allen Standorten.
+„Schritt hinzufügen“ legt eine Zeile an, „Entfernen“ löscht sie, „Speichern“ der Behandlung speichert die ganze Liste in der angezeigten Reihenfolge. Die Schritte gelten an allen Standorten.
 
 #### Schritt {#schritt}
 
@@ -151,7 +150,7 @@ Bleibt ein Schritt beim Speichern gleich (gleicher Text, gleiche Minuten und gle
 
 ## Material {#material}
 
-Welches Material ein Termin dieser Behandlung verbraucht (die Rezeptur). In der Windows-App ist das die Gruppe „Material je Termin“ im Bereich „Durchführung“; sie erscheint nur mit dem Recht auf Berichte mit Beträgen. Die Gruppe erscheint bei einer gespeicherten Behandlung und hat einen eigenen Knopf; die Vollkosten auf der Seite „Kosten“ rechnen damit. „Material hinzufügen“ legt eine Zeile an, „Entfernen“ löscht sie, „Material speichern“ ersetzt die ganze bisherige Liste. Höchstens 50 Zeilen.
+Welches Material ein Termin dieser Behandlung verbraucht (die Rezeptur). In der Windows-App ist das die Gruppe „Material je Termin“ im Bereich „Durchführung“; sie erscheint nur mit dem Recht auf Berichte mit Beträgen. Die Gruppe erscheint bei einer gespeicherten Behandlung und wird mit „Speichern“ der Behandlung gespeichert; die Vollkosten auf der Seite „Kosten“ rechnen damit. „Material hinzufügen“ legt eine Zeile an, „Entfernen“ löscht sie, „Speichern“ ersetzt die ganze bisherige Liste. Höchstens 50 Zeilen.
 
 ### Aus dem Lager {#aus-dem-lager}
 
@@ -175,7 +174,7 @@ Frei erfasstes Material zählt nur für die Vollkosten. Es bucht nichts im Lager
 
 ## Zum Termin bereitstellen {#zum-termin-bereitstellen}
 
-Getränke, Früchteteller und Extras, die zu jedem Termin dieser Behandlung gehören. In der Windows-App ist das die Gruppe „Zum Termin bereitstellen“ im Bereich „Durchführung“. Sie erscheint bei einer gespeicherten Behandlung und gilt an allen Standorten. Je Termin entsteht daraus ein Eintrag mit Uhrzeit, den das Team abhakt, und der Tagesstart zählt die Summen des Tages (z. B. „6 × Früchteteller“). Mit „Bereitstellen speichern“ wird immer die ganze Liste gespeichert; höchstens 20 Einträge.
+Getränke, Früchteteller und Extras, die zu jedem Termin dieser Behandlung gehören. In der Windows-App ist das die Gruppe „Zum Termin bereitstellen“ im Bereich „Durchführung“. Sie erscheint bei einer gespeicherten Behandlung und gilt an allen Standorten. Je Termin entsteht daraus ein Eintrag mit Uhrzeit, den das Team abhakt, und der Tagesstart zählt die Summen des Tages (z. B. „6 × Früchteteller“). Mit „Speichern“ der Behandlung wird immer die ganze Liste gespeichert; höchstens 20 Einträge.
 
 ### Bezeichnung {#extra-bezeichnung}
 
@@ -191,7 +190,7 @@ Optional. Mit einem Lagerartikel und einer Menge je Termin bucht jede abgeschlos
 
 ## Passt dazu {#passt-dazu}
 
-Produkte aus der Kassa, die zu dieser Behandlung passen, z. B. das Massageöl zur Hot-Stone-Massage. In der Windows-App steht die Gruppe „Passt dazu“ im Bereich „Grunddaten und Preis“ und erscheint bei einer gespeicherten Behandlung. Wählen Sie einen Artikel aus und klicken Sie **Artikel hinzufügen**; höchstens 5 Artikel, jeder einmal. Die Reihenfolge der Liste ist die Reihenfolge der Vorschläge. Gespeichert wird mit der Behandlung.
+Produkte aus der Kassa, die zu dieser Behandlung passen, z. B. das Massageöl zur Hot-Stone-Massage. In der Windows-App steht die Gruppe „Passt dazu“ im Bereich „Grunddaten und Preis“ und erscheint bei einer gespeicherten Behandlung. Einen Artikel auswählen und auf **Artikel hinzufügen** klicken; höchstens 5 Artikel, jeder einmal. Die Reihenfolge der Liste ist die Reihenfolge der Vorschläge. Gespeichert wird mit der Behandlung.
 
 Nach dem Abschließen des Termins schlagen Termin-Panel und Kassa diese Artikel vor, aber nur, wenn sie am Verkaufsregal des Standorts liegen. Gibt es kein Verkaufsregal, zählt das Hauptlager, wie beim Abbuchen an der Kassa. Ein Artikel ohne Material im Lager wird nie vorgeschlagen, weil sein Bestand unbekannt ist. Eine Provision auf den Verkauf gibt es nicht.
 
@@ -229,7 +228,7 @@ Steht im Bereich „Grunddaten und Preis“ unter „Weitere Angaben“, nur bei
 
 Steht im Bereich „Grunddaten und Preis“ unter „Weitere Angaben“, sobald die Behandlung angelegt ist. Hier lassen sich Preise für bestimmte Zeiten festlegen, z. B. günstiger am Vormittag oder teurer am Wochenende. Höchstens 20 Regeln je Behandlung.
 
-Wichtig: Preisregeln haben einen eigenen Knopf „Preisregeln speichern“. Der Knopf „Speichern“ der Behandlung speichert sie nicht mit.
+Wichtig: „Speichern“ der Behandlung speichert die Preisregeln mit; einen eigenen Knopf gibt es nicht.
 
 So wird der Preis eines Termins bestimmt:
 
@@ -239,7 +238,7 @@ So wird der Preis eines Termins bestimmt:
 
 Der Kundenbereich zeigt bei Behandlungen mit Preisregeln den Preis zu jeder angebotenen Startzeit. Ein gebuchter Termin behält seinen Preis, auch wenn er später verschoben wird.
 
-„Preisregel hinzufügen“ fügt eine Regel für Montag bis Freitag, 09:00 bis 12:00 Uhr, mit dem Grundpreis hinzu. „Entfernen“ löscht eine Regel; wirksam wird das erst mit „Preisregeln speichern“.
+„Preisregel hinzufügen“ fügt eine Regel für Montag bis Freitag, 09:00 bis 12:00 Uhr, mit dem Grundpreis hinzu. „Entfernen“ löscht eine Regel; wirksam wird das erst mit „Speichern“.
 
 ### Bezeichnung {#preisregel-bezeichnung}
 
@@ -251,7 +250,7 @@ Die Regel gilt für Termine, die ab „Von“ und vor „Bis“ beginnen. Ein Te
 
 ### Preis {#preisregel-preis}
 
-Preis für Termine, auf die die Regel passt. Ab 0 und unter 100.000, mit Komma oder Punkt und höchstens zwei Nachkommastellen. Ein Preis, der fehlt oder sich nicht lesen lässt, bekommt beim Verlassen des Feldes einen Hinweis; **Preisregeln speichern** bleibt dann grau.
+Preis für Termine, auf die die Regel passt. Ab 0 und unter 100.000, mit Komma oder Punkt und höchstens zwei Nachkommastellen. Ein Preis, der fehlt oder sich nicht lesen lässt, bekommt beim Verlassen des Feldes einen Hinweis; **Speichern** markiert das Feld rot, nennt, was fehlt, und speichert nichts.
 
 ### Standort {#preisregel-standort}
 
@@ -265,7 +264,7 @@ Die Kästchen Mo bis So. Mindestens ein Tag muss gewählt sein.
 
 Nimmt die Behandlung aus dem Angebot: Sie lässt sich nicht mehr neu buchen und verschwindet aus dem Kundenbereich. Bereits gebuchte Termine bleiben bestehen. In der Windows-App steht **Nicht mehr anbieten …** im Menü **⋯** im Kopf der Karte und fragt vorher nach.
 
-Eine nicht mehr angebotene Behandlung verschwindet aus der Liste. Mit dem Schalter **Nicht mehr angebotene zeigen** unter der Liste steht sie wieder da, ausgegraut und mit dem Vermerk „Nicht angeboten“. Ihre Karte lässt sich ansehen, aber nicht ändern; **Wieder anbieten** im Kopf der Karte holt sie zurück. Der Verlauf zeigt, wer sie wann herausgenommen hat.
+Eine nicht mehr angebotene Behandlung verschwindet aus der Liste. Mit dem Schalter **Nicht mehr angebotene zeigen** unter der Liste steht sie wieder da, ausgegraut und mit dem Vermerk „Nicht angeboten“. Die Karte lässt sich ansehen, aber nicht ändern; **Wieder anbieten** im Kopf der Karte holt sie zurück. Der Verlauf zeigt, wer sie wann herausgenommen hat.
 
 ## Verlauf {#verlauf}
 

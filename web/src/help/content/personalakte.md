@@ -29,7 +29,7 @@ Ab dem Tag des Folgetermins erinnert der Kalender Inhaber und Manager mit der Me
 
 ### Ablaufdatum {#ablaufdatum}
 
-Das Ablaufdatum ist der letzte Tag der Verwarnung. Bleibt das Feld leer, gilt sie 2 Jahre ab ihrem Datum. Am Tag danach löscht ein Hintergrunddienst die Verwarnung, und im Verlauf bleibt nur die Löschung. Die passende Frist hängt vom Arbeitsrecht ab: Klären Sie sie mit Ihrer Rechtsberatung, die App bewertet das nicht.
+Das Ablaufdatum ist der letzte Tag der Verwarnung. Bleibt das Feld leer, gilt sie 2 Jahre ab ihrem Datum. Am Tag danach löscht ein Hintergrunddienst die Verwarnung, und im Verlauf bleibt nur die Löschung. Die passende Frist hängt vom Arbeitsrecht ab: Sie ist mit der Rechtsberatung zu klären, die App bewertet das nicht.
 
 ## Auskunft als PDF {#auskunft}
 

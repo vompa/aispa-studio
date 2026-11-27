@@ -13,6 +13,9 @@ public sealed class SentDocument
     public const string VoucherKind = "voucher";
     public const string PurchaseOrderKind = "purchase-order";
 
+    /// <summary>Management-Bericht; Ziel ist der Standort.</summary>
+    public const string ManagementReportKind = "management-report";
+
     /// <summary>Weg des Versands: per Mail (auch alle Vermerke vor dem Zusatz), ausgedruckt oder persönlich übergeben.</summary>
     public const string MailChannel = "mail";
     public const string PrintChannel = "print";

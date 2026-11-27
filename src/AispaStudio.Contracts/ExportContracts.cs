@@ -17,6 +17,12 @@ public enum ExportFormat
 
     /// <summary>Termine als iCalendar (.ics).</summary>
     Ics,
+
+    /// <summary>Dokument als PDF (Management-Bericht); steht im Export-Protokoll, die Listen gibt es nicht als PDF.</summary>
+    Pdf,
+
+    /// <summary>Dokument als Word-Datei (.docx, Management-Bericht); steht im Export-Protokoll.</summary>
+    Docx,
 }
 
 /// <summary>

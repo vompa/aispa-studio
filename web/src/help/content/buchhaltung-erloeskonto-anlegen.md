@@ -18,7 +18,7 @@ Ein eigenes Erlöskonto trennt einen Geschäftsbereich, z. B. Shop oder Hotelgä
 4. Wenn gewünscht eine **Kostenstelle** eintragen.
 5. **Erlöskonto anlegen** anklicken. Die Meldung „Erlöskonto 4200 angelegt.“ erscheint und das Konto steht in der Liste.
 
-## Hinweise {#hinweise}
+## Gut zu wissen {#hinweise}
 
 - Inhaber, Manager und Standortleitung dürfen Erlöskonten anlegen; das Backoffice sieht sie nur.
 - Ein angelegtes Konto lässt sich auf dieser Seite nicht mehr ändern oder löschen; vorher die Nummer mit der Steuerberatung abstimmen.

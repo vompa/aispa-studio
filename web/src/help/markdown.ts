@@ -33,7 +33,7 @@ export const calloutLabels: Record<CalloutType, string> = {
   warning: "Achtung",
 };
 
-export type HelpKind = "einstellung" | "ablauf" | "seite";
+export type HelpKind = "einstellung" | "ablauf" | "seite" | "erklaerung" | "referenz";
 
 /** Kopfangaben eines Themas, siehe `web/src/help/README.md`. */
 export interface HelpMeta {
@@ -43,6 +43,8 @@ export interface HelpMeta {
   roles: string[];
   page?: string;
   keywords: string[];
+  /** Kopfangabe `betrieb`: `server`, wenn es das Thema nur mit Server bzw. Webmodul gibt; im Einzelplatz blendet die Hilfe es aus (`forOperation`). */
+  operation?: string;
 }
 
 export const emptyMeta: HelpMeta = {
@@ -74,12 +76,13 @@ export function splitFrontMatter(source: string): {
   const bodyStart = text.indexOf("\n", end + 1);
   return {
     meta: {
-      kind: kind === "ablauf" || kind === "seite" ? kind : "einstellung",
+      kind: kind === "ablauf" || kind === "seite" || kind === "erklaerung" || kind === "referenz" ? kind : "einstellung",
       area: values.get("bereich") || undefined,
       surfaces: list("oberflaeche").map((v) => v.toLowerCase()),
       roles: list("rollen").map((v) => v.toLowerCase()),
       page: values.get("seite") || undefined,
       keywords: list("stichwoerter"),
+      operation: values.get("betrieb") || undefined,
     },
     body: bodyStart < 0 ? "" : text.slice(bodyStart + 1),
   };

@@ -20,8 +20,16 @@ public partial class CustomersViewModel
     public ObservableCollection<OtherEmailRow> OtherEmails { get; } = [];
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(AddEmailCommand))]
     public partial string NewOtherEmail { get; set; } = "";
+
+    /// <summary>Name des Felds für <see cref="FocusTarget"/>: nach „Hinzufügen“ ohne gültige Adresse bekommt es den Fokus.</summary>
+    public const string OtherEmailField = "OtherEmailBox";
+
+    /// <summary>Fehler am Feld (masken.md, R8); verschwindet mit der nächsten Eingabe.</summary>
+    [ObservableProperty]
+    public partial string? OtherEmailError { get; private set; }
+
+    partial void OnNewOtherEmailChanged(string value) => OtherEmailError = null;
 
     /// <summary>„Aus Mail angelegt“: die Terminannahme hat den Kunden aus einer Nachricht angelegt; die Rezeption prüft die Angaben.</summary>
     public string? CreatedFromText => Enum.TryParse<BookingChannel>(Selected?.CreatedFromChannel, out var channel)
@@ -55,11 +63,16 @@ public partial class CustomersViewModel
         RaiseSections();
     }
 
-    private bool CanAddEmail => NewOtherEmail.Contains('@', StringComparison.Ordinal);
-
-    [RelayCommand(CanExecute = nameof(CanAddEmail))]
+    [RelayCommand]
     private async Task AddEmailAsync()
     {
+        if (!NewOtherEmail.Contains('@', StringComparison.Ordinal))
+        {
+            OtherEmailError = "Bitte eine E-Mail-Adresse mit @ eintragen, z. B. privat@example.at.";
+            FocusTarget = OtherEmailField;
+            return;
+        }
+
         if (Selected is not { } customer)
         {
             return;
@@ -99,6 +112,6 @@ public partial class CustomersViewModel
 
     /// <summary>Weitere Adressen ändern geht nur mit Verbindung (anders als das Anlegen wird nichts vorgemerkt).</summary>
     private static string? EmailError<T>(ApiResult<T> result) => result.Status == 0
-        ? "Ohne Verbindung zum Server nicht möglich. Weitere Mailadressen lassen sich nur mit Verbindung ändern."
+        ? "Ohne Verbindung nicht möglich. Weitere Mailadressen lassen sich nur mit Verbindung ändern."
         : result.Error;
 }

@@ -227,7 +227,7 @@ internal sealed class VoucherShop(
 
         return await db.CashRegisters.AnyAsync(r => r.LocationId == locationId && r.IsActive, ct)
             ? null
-            : "An diesem Standort gibt es noch keine Kasse für den Gutscheinverkauf.";
+            : "An diesem Standort gibt es noch keine Kassa für den Gutscheinverkauf.";
     }
 
     private async Task<VoucherOrder?> FindOrderAsync(string token, CancellationToken ct)

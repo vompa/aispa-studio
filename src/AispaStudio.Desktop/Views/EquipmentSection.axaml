@@ -11,8 +11,10 @@
       <ui:HelpButton Grid.Column="1" Topic="standorte" Section="geraete" />
     </Grid>
     <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-      <TextBox x:Name="NewEquipmentField" Text="{Binding NewEquipmentName}" PlaceholderText="Neues Gerät" AutomationProperties.Name="Neues Gerät" MaxLength="100" />
-      <Button Grid.Column="1" Content="Hinzufügen" Command="{Binding AddEquipmentCommand}" ui:DisabledHint.Text="Verfügbar, sobald ein Name eingetragen ist." />
+      <ui:FormField Error="{Binding NewEquipmentError}">
+        <TextBox x:Name="NewEquipmentField" Text="{Binding NewEquipmentName}" PlaceholderText="Neues Gerät" AutomationProperties.Name="Neues Gerät" MaxLength="100" />
+      </ui:FormField>
+      <Button Grid.Column="1" Content="Hinzufügen" Command="{Binding AddEquipmentCommand}" VerticalAlignment="Top" />
     </Grid>
     <TextBlock x:Name="EquipmentEmpty" Text="Noch kein Gerät angelegt." Classes="muted" IsVisible="{Binding !Equipment.Count}" />
     <ItemsControl x:Name="EquipmentList" ItemsSource="{Binding Equipment}">
@@ -24,7 +26,7 @@
       <ItemsControl.ItemTemplate>
         <DataTemplate x:DataType="vm:EquipmentRowViewModel">
           <Grid ColumnDefinitions="*,Auto">
-            <TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
+            <TextBlock Text="{Binding Name}" Classes="listname" VerticalAlignment="Center" />
             <ui:MoreMenuButton Grid.Column="1" Subject="{Binding Name}" DeactivateCommand="{Binding RemoveCommand}" DeleteCommand="{Binding DeleteCommand}" />
           </Grid>
         </DataTemplate>

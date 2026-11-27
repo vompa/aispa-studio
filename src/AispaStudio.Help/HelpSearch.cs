@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 namespace AispaStudio.Help;
 
 /// <summary>Wer fragt und von wo: Oberfläche (<c>windows-app</c>, <c>verwaltung</c>, <c>handy</c>), Rolle und aktuelle Seite.</summary>
-public sealed record HelpContext(string? Surface = null, string? Role = null, string? Page = null);
+public sealed record HelpContext(string? Surface = null, string? Role = null, string? Page = null, bool Standalone = false);
 
 /// <summary>Ein Treffer: Thema und, wenn ein Abschnitt besser passt, dessen Anker.</summary>
 public sealed record HelpHit(HelpTopic Topic, string? Section, string Title, string Excerpt, double Score);
@@ -38,6 +38,7 @@ public static partial class HelpSearch
 
         context ??= new();
         return [.. topics
+            .Where(t => !(context.Standalone && t.Meta.ServerOnly))
             .Select(t => Score(t, words, context))
             .Where(h => h is not null && h.Score >= MinScore)
             .OrderByDescending(h => h!.Score)
@@ -73,6 +74,8 @@ public static partial class HelpSearch
         {
             HelpKind.Task => 1.3,
             HelpKind.Page => 1.0,
+            HelpKind.Explanation => 0.95,
+            HelpKind.Reference => 0.9,
             _ => 0.9,
         };
         if (context.Role is { } role && (topic.Meta.Roles.Count == 0 || topic.Meta.Roles.Contains(role)))

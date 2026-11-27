@@ -27,7 +27,7 @@
               <ui:FormField Label="Anrede">
                 <ComboBox ItemsSource="{x:Static vm:SalutationChoice.All}" SelectedItem="{Binding Salutation}" HorizontalAlignment="Stretch" />
               </ui:FormField>
-              <ui:FormField Grid.Column="1" Label="Vorname" IsRequired="True">
+              <ui:FormField Grid.Column="1" Label="Vorname" IsRequired="True" Error="{Binding NameError}">
                 <TextBox x:Name="FirstNameBox" Text="{Binding FirstName}" />
               </ui:FormField>
               <ui:FormField Grid.Column="2" Label="Nachname" IsRequired="True">
@@ -155,7 +155,7 @@
                   ActionText="Erneut versuchen" ActionCommand="{Binding SaveCommand}" CloseCommand="{Binding CloseErrorCommand}" />
       <StackPanel Orientation="Horizontal" Spacing="8">
         <Button Classes="primary" Content="Speichern" Command="{Binding SaveCommand}" IsDefault="True"
-                ui:SaveShortcut.IsSave="True" ToolTip.Tip="Speichern (Strg+S)" ui:DisabledHint.Text="Verfügbar, sobald ein Vor- oder Nachname eingetragen ist." />
+                ui:SaveShortcut.IsSave="True" ToolTip.Tip="Speichern (Strg+S)" />
         <Button Classes="ghost" Content="Abbrechen" Command="{Binding CancelCommand}" />
       </StackPanel>
     </StackPanel>

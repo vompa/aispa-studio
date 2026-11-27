@@ -10,7 +10,11 @@ public enum StartupPhase
 }
 
 /// <summary>Startzustand mit Text für die Anzeige, z. B. „Beispiel-Spa wird eingerichtet (seit 12 s)“ oder der Fehler.</summary>
-public sealed record StartupInfo(StartupPhase Phase, string Text);
+public sealed record StartupInfo(StartupPhase Phase, string Text)
+{
+    /// <summary>Text bei bereitem Start ohne Hinweis; ein anderer Text bei <see cref="StartupPhase.Ready"/> ist ein Hinweis (T-091).</summary>
+    public const string ReadyText = "Bereit";
+}
 
 /// <summary>Zustand des Servers, z. B. für die Statusanzeige in Web und Windows-App. Ohne <c>Startup</c> (älterer Server) gilt: bereit.</summary>
 public sealed record SystemStatus(string Version, string Environment, DateTimeOffset ServerTime, StartupInfo? Startup = null);
@@ -106,10 +110,119 @@ public enum LocalAiState
 /// <param name="DownloadPercent">Fortschritt beim Herunterladen in Prozent.</param>
 /// <param name="LocalError">Letzter Fehler des lokalen Modells, verständlich für die Leitung.</param>
 /// <param name="CheckedAt">Wann der Server das lokale Modell zuletzt geprüft hat.</param>
+/// <param name="ClaudeModel">Claude-Modell für Texte (<c>Ai:Claude:Model</c>), nur zur Ansicht.</param>
+/// <param name="ClaudeModelExtract">Claude-Modell für das Auslesen von Mails, Lieferscheinen und Bögen (<c>Ai:Claude:ModelExtract</c>), nur zur Ansicht.</param>
 public sealed record AiStatus(
     bool Claude,
     LocalAiState Local,
     string? LocalModel,
     int? DownloadPercent,
     string? LocalError,
-    DateTimeOffset? CheckedAt);
+    DateTimeOffset? CheckedAt,
+    string? ClaudeModel = null,
+    string? ClaudeModelExtract = null);
+
+/// <summary>Woher der Claude-Schlüssel kommt (ADR 0103).</summary>
+public enum ClaudeKeySource
+{
+    /// <summary>Kein Schlüssel.</summary>
+    None,
+
+    /// <summary>Einstellung des Servers (<c>Ai:Claude:ApiKey</c>); hat Vorrang, die App kann ihn nicht ändern.</summary>
+    Config,
+
+    /// <summary>In der App eingetragen, verschlüsselt beim Spa gespeichert.</summary>
+    App,
+}
+
+/// <summary>Stand des Claude-Schlüssels; der Schlüssel selbst kommt nie zurück.</summary>
+/// <param name="IsSet">Ob ein Schlüssel gesetzt ist.</param>
+/// <param name="Source">Woher er kommt.</param>
+/// <param name="Mask">Anfang und letzte vier Zeichen, z. B. <c>sk-ant-…a1b2</c>.</param>
+/// <param name="Available">Ob Claude damit eingeschaltet ist; falsch, wenn der Server die KI abschaltet (<c>Ai:Provider=RuleBased</c>).</param>
+public sealed record ClaudeKeyStatus(bool IsSet, ClaudeKeySource Source, string? Mask, bool Available);
+
+/// <summary>Neuer Claude-Schlüssel, beginnt mit <c>sk-ant-</c>.</summary>
+public sealed record ClaudeKeyInput(string ApiKey);
+
+/// <summary>Ergebnis der Prüfung eines Claude-Schlüssels.</summary>
+public enum ClaudeKeyCheckOutcome
+{
+    /// <summary>Claude hat geantwortet.</summary>
+    Valid,
+
+    /// <summary>Der Schlüssel wird abgelehnt.</summary>
+    Invalid,
+
+    /// <summary>Kein Guthaben oder ein Limit ist erreicht.</summary>
+    NoCredit,
+
+    /// <summary>Claude ist nicht erreichbar.</summary>
+    Unreachable,
+}
+
+/// <summary>Prüfung eines Claude-Schlüssels mit einem kleinen Testaufruf.</summary>
+/// <param name="Outcome">Ergebnis.</param>
+/// <param name="Message">Verständlicher Satz für die Leitung.</param>
+public sealed record ClaudeKeyCheck(ClaudeKeyCheckOutcome Outcome, string Message);
+
+/// <summary>Wofür Claude aufgerufen wurde; Grundlage der Verbrauchsmessung (T-112a).</summary>
+public enum AiUsageTask
+{
+    /// <summary>Terminwunsch aus Mail, SMS oder Anruf lesen.</summary>
+    BookingRequest,
+
+    /// <summary>Antwortentwurf an einen Gast.</summary>
+    ReplyDraft,
+
+    /// <summary>Antwortentwurf nach Anweisung des Teams überarbeiten.</summary>
+    ReplyRevision,
+
+    /// <summary>Nachricht eines Gastes übersetzen.</summary>
+    Translation,
+
+    /// <summary>Frage eines Gastes beantworten.</summary>
+    GuestQuestion,
+
+    /// <summary>Buchungsmail von Treatwell lesen.</summary>
+    Treatwell,
+
+    /// <summary>Lieferschein lesen.</summary>
+    DeliveryNote,
+
+    /// <summary>Anamnesebogen auf Papier lesen.</summary>
+    Anamnesis,
+
+    /// <summary>Absicht einer Frage im Assistenten erkennen.</summary>
+    AssistantIntent,
+
+    /// <summary>Antwort des Assistenten formulieren.</summary>
+    AssistantAnswer,
+
+    /// <summary>Tagesbriefing zusammenfassen.</summary>
+    BriefingSummary,
+
+    /// <summary>Management-Bericht zusammenfassen.</summary>
+    ManagementSummary,
+
+    /// <summary>Management-Auswertung.</summary>
+    ManagementAnalysis,
+
+    /// <summary>Text der Erinnerung zum Wiederbuchen.</summary>
+    RebookText,
+}
+
+/// <summary>Verbrauch von Claude je Aufgabe und Modell, aufsummiert über einen Zeitraum; Tokens, keine Geldbeträge.</summary>
+/// <param name="Task">Aufgabe.</param>
+/// <param name="Model">Modell, das geantwortet hat, z. B. <c>claude-sonnet-4-6</c>.</param>
+/// <param name="Calls">Anzahl der Aufrufe.</param>
+/// <param name="InputTokens">Tokens im Eingang, ohne Cache.</param>
+/// <param name="OutputTokens">Tokens in der Antwort.</param>
+/// <param name="CacheReadTokens">Tokens im Eingang, aus dem Cache gelesen.</param>
+/// <param name="CacheWriteTokens">Tokens im Eingang, in den Cache geschrieben.</param>
+public sealed record AiUsageRow(AiUsageTask Task, string Model, int Calls, long InputTokens, long OutputTokens, long CacheReadTokens, long CacheWriteTokens);
+
+/// <summary>Verbrauch von Claude über die letzten Tage, heute eingeschlossen (Tage in UTC).</summary>
+/// <param name="Days">Anzahl der Tage.</param>
+/// <param name="Rows">Summen je Aufgabe und Modell; leer, wenn nichts gemessen wurde.</param>
+public sealed record AiUsageReport(int Days, IReadOnlyList<AiUsageRow> Rows);

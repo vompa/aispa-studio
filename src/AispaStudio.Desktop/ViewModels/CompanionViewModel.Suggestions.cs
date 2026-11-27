@@ -91,7 +91,6 @@ public sealed partial class CompanionViewModel
     public bool IsBooking => Pick is not null;
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(BookCommand))]
     public partial CustomerSearchViewModel? Guest { get; private set; }
 
     [ObservableProperty]
@@ -134,7 +133,6 @@ public sealed partial class CompanionViewModel
         {
             case AssistantSuggestionKind.BookSlot:
                 var guest = new CustomerSearchViewModel(_api);
-                guest.Changed += BookCommand.NotifyCanExecuteChanged;
                 Guest = guest;
                 Pick = item;
                 break;
@@ -190,13 +188,30 @@ public sealed partial class CompanionViewModel
         NewGuest = null;
     }
 
-    private bool CanBookNow() => Pick is not null && Guest?.Customer is not null && !IsBookingBusy;
+    private bool CanBookNow() => Pick is not null && !IsBookingBusy;
+
+    /// <summary>Name des Gast-Felds in „Termin buchen“ (<c>x:Name</c>), für den Fokus nach einem Fehler.</summary>
+    public const string GuestField = "CompanionGuest";
+
+    /// <summary>Ein Feld soll den Fokus bekommen (Name des Feldes); die Ansicht setzt ihn.</summary>
+    public event Action<string>? FocusRequested;
 
     [RelayCommand(CanExecute = nameof(CanBookNow))]
     private async Task BookAsync()
     {
-        if (Pick?.Suggestion is not { LocationId: { } location, TreatmentId: { } treatment, Start: { } start } slot || Guest?.Customer is not { } customer)
+        if (Pick?.Suggestion is not { LocationId: { } location, TreatmentId: { } treatment, Start: { } start } slot)
         {
+            return;
+        }
+
+        if (Guest?.Customer is not { } customer)
+        {
+            if (Guest is { } search)
+            {
+                search.Error = "Bitte einen Gast wählen.";
+                FocusRequested?.Invoke(GuestField);
+            }
+
             return;
         }
 

@@ -9,7 +9,7 @@ seite: verwaltung
 
 Einstellungen in der Windows-App unter „Verwaltung“ › „Team“: die Personen, die Behandlungen geben, mit Kalenderfarbe, Qualifikationen und Regelarbeitszeit.
 
-In der Windows-App steht die Liste der Personen neben der Personenkarte. Über der Liste stehen **Person hinzufügen** und **Person einladen**. Der Kopf der Karte mit dem Namen und die Leiste der Bereiche bleiben beim Scrollen stehen. Die Karte hat bis zu vier Bereiche in einer Leiste: **Übersicht**, **Profil**, **Arbeitszeit** sowie **Lohn und Akte**. Welche zu sehen sind, hängt von den Rechten ab. Anmeldung und Rolle einer Person (Zugang zur Software) sowie ihre Qualifikationen sind Abschnitte im Bereich **Profil**; „Zugänge“ und „Qualifikationen“ gibt es in der App nicht mehr als eigene Einträge.
+In der Windows-App steht die Liste der Personen neben der Personenkarte. Über der Liste stehen **Person hinzufügen** und **Person einladen**. Der Kopf der Karte mit dem Namen und die Leiste der Bereiche bleiben beim Scrollen stehen. Unter dem Kopf stehen die Kacheln mit den Kennzahlen der Person, darunter bis zu drei Bereiche in einer Leiste: **Profil**, **Arbeitszeit** sowie **Lohn und Akte**. Welche zu sehen sind, hängt von den Rechten ab. Anmeldung und Rolle einer Person (Zugang zur Software) sowie ihre Qualifikationen sind Abschnitte im Bereich **Profil**; „Zugänge“ und „Qualifikationen“ gibt es in der App nicht mehr als eigene Einträge.
 
 ![Team in der Windows-App](images/app/verwaltung-team.png)
 
@@ -49,7 +49,7 @@ Das Suchfeld „Name oder E-Mail“ über der Liste filtert die Personen beim Ti
 
 ## Ausgeschiedene zeigen {#ausgeschiedene-zeigen}
 
-Das Kästchen „Ausgeschiedene zeigen“ nimmt Personen in die Liste, die aus dem Team genommen wurden; sie tragen das Kennzeichen „Ausgeschieden“. Ihre Karte ist nur lesbar und sagt „Ausgeschieden: Die Angaben sind nur lesbar.“ Eine ausgeschiedene Person lässt sich nicht wieder aufnehmen. Ausgeschiedene sehen Inhaber, Manager und Standortleitung, die Rezeption nicht.
+Das Kästchen „Ausgeschiedene zeigen“ nimmt Personen in die Liste, die aus dem Team genommen wurden; sie tragen das Kennzeichen „Ausgeschieden“. Die Karte ist nur lesbar und sagt „Ausgeschieden: Die Angaben sind nur lesbar.“ Eine ausgeschiedene Person lässt sich nicht wieder aufnehmen. Ausgeschiedene sehen Inhaber, Manager und Standortleitung, die Rezeption nicht.
 
 Ungespeicherte Änderungen fragen beim Wechsel der Zeile nach, auch ein angefangenes Formular „Person einladen“ oder „Zugang anlegen“. **Speichern** versendet dort nichts: dafür **Einladung senden** wählen oder die Eingaben verwerfen.
 
@@ -57,9 +57,8 @@ Scheitert nur der Zugang, bleiben Stammdaten und Qualifikationen gespeichert. Di
 
 ## Person {#person}
 
-Die Karte einer Person hat bis zu vier Bereiche:
+Oben auf der Karte einer Person stehen fünf Kacheln mit dem nächsten Dienst, den Stunden dieser Woche, dem Resturlaub, den offenen Anträgen und den Zertifikaten. Sie bleiben in jedem Bereich sichtbar. Ein Klick auf eine Kachel springt in den passenden Bereich; **Offene Anträge** öffnet den **Wochenplan** mit der Seitenleiste **Anträge**. Darunter hat die Karte bis zu drei Bereiche:
 
-- **Übersicht**: fünf Kacheln mit dem nächsten Dienst, den Stunden dieser Woche, dem Resturlaub, den offenen Anträgen und den Zertifikaten. Ein Klick auf eine Kachel springt in den passenden Bereich; **Offene Anträge** öffnet den **Wochenplan** mit der Seitenleiste **Anträge**.
 - **Profil**: **Stammdaten** und **Zugang und Rolle** nebeneinander (bei schmalem Fenster untereinander), darunter **Qualifikationen** und **Zuständigkeiten**. Jeder Abschnitt ist eine eigene Karte; Ein und Aus sind Schalter, Qualifikationen, Standorte und Sprachen Auswahl-Chips.
 - **Arbeitszeit**: **Dienstplan und Abwesenheit** mit Urlaubskonto und Kalenderdatei, darunter die **Regelarbeitszeit** und die **Zeiten**.
 - **Lohn und Akte**: **Lohn**, **Personalakte** sowie **Regelungen und Vollmachten**.
@@ -128,4 +127,4 @@ Nimmt die Person aus der Planung, z. B. bei einem Austritt. Das geht nur, wenn s
 
 ## Verlauf {#verlauf}
 
-Die Schaltfläche **Verlauf** im Kopf der Karte öffnet in der Windows-App eine Seitenleiste. Sie zeigt, wer Zugang, Rolle, Standorte, Sperre oder Befristung einer Person wann geändert hat, und, wer ihren Dienstplan und ihre Abwesenheiten geändert hat ([Verlauf des Dienstplans](hilfe:dienstplan-verlauf)). Sie sehen nur Inhaber und Manager; für alle anderen fehlt die Schaltfläche. Esc oder das Kreuz schließt die Seitenleiste. Hat die Karte nur einen Bereich, zeigt sie keine Leiste. Mehr dazu: [Verlauf eines Zugangs](hilfe:zugaenge-verlauf).
+Die Schaltfläche **Verlauf** im Kopf der Karte öffnet in der Windows-App eine Seitenleiste. Sie zeigt, wer Zugang, Rolle, Standorte, Sperre oder Befristung einer Person wann geändert hat, und, wer ihren Dienstplan und ihre Abwesenheiten geändert hat ([Verlauf des Dienstplans](hilfe:dienstplan-verlauf)). Das sehen nur Inhaber und Manager; für alle anderen fehlt die Schaltfläche. Esc oder das Kreuz schließt die Seitenleiste. Hat die Karte nur einen Bereich, zeigt sie keine Leiste. Mehr dazu: [Verlauf eines Zugangs](hilfe:zugaenge-verlauf).

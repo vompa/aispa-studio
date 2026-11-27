@@ -7,7 +7,7 @@ using CommunityToolkit.Mvvm.Input;
 namespace AispaStudio.Desktop.ViewModels;
 
 /// <summary>
-/// Orte des Lagers (ADR 0098, T-061). Die Schiene hat vier Reiter: <see cref="Overview"/>, <see cref="Stock"/>, <see cref="Orders"/> (mit der Bedarfsprüfung) und <see cref="Count"/>.
+/// Orte des Lagers (ADR 0098, T-061). Die Schiene hat vier Reiter: <see cref="Overview"/> („Zu tun“, bis T-109 „Übersicht“), <see cref="Stock"/>, <see cref="Orders"/> (mit der Bedarfsprüfung) und <see cref="Count"/>.
 /// <see cref="Tasks"/> (Chargen) und <see cref="Movements"/> sind Sichten im Bestand, <see cref="Places"/> und <see cref="Suppliers"/> die Seite „Einrichtung“, <see cref="Usage"/> ist ein
 /// Abschnitt der Übersicht. Alle Werte bleiben Sprungadressen: <see cref="StockViewModel.SetTab"/> führt mit jedem an den heutigen Ort.
 /// </summary>
@@ -37,7 +37,7 @@ public sealed record PlaceChoice(Guid? Id, string Name)
 }
 
 /// <summary>
-/// Lager (R05 Slice 101, ADR 0084; Aufbau seit ADR 0098), native Maske: die Reiter Übersicht (Kennzahlen, „Was ist zu tun“, Verbrauch), Bestand (Sichten Material mit „Material anlegen“, Chargen und
+/// Lager (R05 Slice 101, ADR 0084; Aufbau seit ADR 0098), native Maske: über allen Reitern die Kennzahlen (T-109), die Reiter Zu tun („Was ist zu tun“, Verbrauch), Bestand (Sichten Material mit „Material anlegen“, Chargen und
 /// Bewegungen), Bestellen und Inventur; Lagerorte und Lieferanten stehen auf der Seite „Einrichtung“. Verbrauch und Verkauf bucht das System selbst; von Hand kommen Wareneingang, Nachfüllen, Umbuchen,
 /// Korrektur und die Inventur. Die Maske zeigt nur an und sendet; gerechnet wird in der API. Chargen, Inventur, Lagerorte und Bestellungen gibt es nur mit ManageLocation, Material und Lieferanten
 /// nur mit ManageCatalog, den Verbrauch nur mit ViewFinance; die API prüft ohnehin.

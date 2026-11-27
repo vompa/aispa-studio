@@ -5,6 +5,7 @@ oberflaeche: verwaltung
 rollen: inhaber, manager, leitung
 seite: verwaltung
 stichwoerter: einladen, Einladung, neue Mitarbeiterin, neuer Mitarbeiter, Zugang geben, Benutzer anlegen, Konto anlegen, Passkey, Link schicken, onboarding, invite, add user, new employee
+betrieb: server
 ---
 # Person einladen
 

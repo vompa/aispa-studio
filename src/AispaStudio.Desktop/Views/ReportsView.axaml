@@ -8,12 +8,12 @@
                         x:DataType="vm:ReportsViewModel"
                         ui:SaveShortcut.IsScope="True">
   <!--
-    „Zahlen“ (R05 Slice 102, R07 Slice 144, Ä352): eine einzige Reiterebene (Tagesstart · Mein Tag · Hygiene · Berichte · Betriebsinfo, je nach Recht), Standort und Datum rechts im Kopf.
+    „Zahlen“ (R05 Slice 102, R07 Slice 144, Ä352): eine einzige Reiterebene (Berichte · Tagesstart · Mein Tag · Hygiene · Betriebsinfo, je nach Recht; Berichte ist der Startreiter, T-110), Standort und Datum rechts im Kopf.
     Management und Pflichtberichte stehen im Reiter „Berichte“ als Abschnitte untereinander (ADR 0098, masken.md R15), jeder mit eigenem Kopf: Management hat seinen Zeitraum,
     nur die Pflichtberichte ein Datum. Die Betriebsinfo hat ihre eigene Maske ohne Standort und Datum.
     Die Inhalte der Reiter stehen in eigenen Ansichten, die App.axaml den ViewModels zuordnet.
   -->
-  <Grid RowDefinitions="Auto,Auto,*">
+  <Grid RowDefinitions="Auto,Auto,*" ColumnDefinitions="*,Auto">
     <StackPanel Spacing="12" Margin="0,0,16,12">
       <ui:InfoBar Severity="Error" Title="Berichte nicht geladen" Message="{Binding LoadError}" IsVisible="{Binding HasLoadError}"
                   ActionText="Erneut laden" ActionCommand="{Binding RetryCommand}" />
@@ -23,10 +23,10 @@
     <ui:ReflowRow x:Name="ReportHeader" Grid.Row="1" Spacing="16" LineSpacing="8" Margin="0,0,16,16" IsVisible="{Binding IsLoaded}">
       <Border Classes="segmented" HorizontalAlignment="Left" VerticalAlignment="Bottom" ui:RegionNavigation.IsRegion="True" AutomationProperties.Name="Reiter von Zahlen">
         <StackPanel Orientation="Horizontal">
+          <ui:TabButton x:Name="ReportManagementTab" Content="Berichte" IsVisible="{Binding CanSeeManagement}" IsSelected="{Binding IsManagementTab}" Command="{Binding SelectTabCommand}" CommandParameter="management" />
           <ui:TabButton x:Name="ReportBriefingTab" Content="Tagesstart" IsVisible="{Binding CanSeeBriefing}" IsSelected="{Binding IsBriefingTab}" Command="{Binding SelectTabCommand}" CommandParameter="briefing" />
           <ui:TabButton x:Name="ReportDayTab" Content="Mein Tag" IsVisible="{Binding CanSeeDay}" IsSelected="{Binding IsDayTab}" Command="{Binding SelectTabCommand}" CommandParameter="day" />
           <ui:TabButton x:Name="ReportHygieneTab" Content="Hygiene" IsVisible="{Binding CanSeeHygiene}" IsSelected="{Binding IsHygieneTab}" Command="{Binding SelectTabCommand}" CommandParameter="hygiene" />
-          <ui:TabButton x:Name="ReportManagementTab" Content="Berichte" IsVisible="{Binding CanSeeManagement}" IsSelected="{Binding IsManagementTab}" Command="{Binding SelectTabCommand}" CommandParameter="management" />
           <ui:TabButton x:Name="ReportBusinessInfoTab" Content="Betriebsinfo" IsVisible="{Binding CanSeeBusinessInfo}" IsSelected="{Binding IsBusinessInfoTab}" Command="{Binding SelectTabCommand}" CommandParameter="businessInfo" />
         </StackPanel>
       </Border>
@@ -44,8 +44,8 @@
       <StackPanel Spacing="16" Margin="0,0,16,16" IsVisible="{Binding IsLoaded}">
         <ContentControl Content="{Binding CurrentTab}" IsVisible="{Binding !IsManagementTab}" />
         <StackPanel Spacing="20" IsVisible="{Binding IsManagementTab}">
+          <!-- Titel „Management“ und Kopfzeile mit „Ausgabe“, „Mit KI auswerten“ und Hilfe stehen in der Ansicht des Berichts (T-104) -->
           <StackPanel x:Name="ReportManagementSection" Spacing="12">
-            <TextBlock Text="Management" Classes="h1" />
             <ContentControl Content="{Binding Management}" />
           </StackPanel>
           <Border x:Name="ReportComplianceSection" Classes="section" Padding="0,20,0,0" IsVisible="{Binding CanSeeCompliance}">
@@ -64,5 +64,18 @@
     </ScrollViewer>
 
     <ContentControl Grid.Row="2" x:Name="BusinessInfoHost" Margin="0,0,16,16" Content="{Binding BusinessInfo}" IsVisible="{Binding IsBusinessInfoTab}" />
+
+    <!-- „Mit KI auswerten“ als Seitenleiste (ADR 0066, T-096 E2): neben dem Bericht, außerhalb der Bildlaufleiste; nur im Reiter „Berichte“ -->
+    <Panel Grid.Column="1" Grid.RowSpan="3" IsVisible="{Binding IsManagementTab}">
+      <ui:SidePanel x:Name="ManagementAnalysisPanel" Title="Mit KI auswerten" Subtitle="{Binding Subtitle}" DataContext="{Binding Management.Analysis}"
+                    IsOpen="{Binding IsOpen, Mode=TwoWay}" x:DataType="vm:ManagementAnalysisViewModel">
+        <ui:SidePanel.HeaderAction>
+          <ui:HelpButton Topic="berichte-mit-ki-auswerten" Margin="0,0,4,0" VerticalAlignment="Center" />
+        </ui:SidePanel.HeaderAction>
+        <ui:SidePanel.Body>
+          <views:ManagementAnalysisPanel />
+        </ui:SidePanel.Body>
+      </ui:SidePanel>
+    </Panel>
   </Grid>
 </views:FocusRequestView>

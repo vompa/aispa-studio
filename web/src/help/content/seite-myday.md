@@ -5,6 +5,7 @@ oberflaeche: handy
 rollen: therapeut
 seite: myday
 stichwoerter: Mein Tag, Handy, Smartphone, Handy-App, App, Therapeutin, Therapeut, meine Termine, Tagesplan, Behandlungskarte, offline, Behandlungsraum, mobile, phone, my day, PWA
+betrieb: server
 ---
 # „Mein Tag“ am Handy
 
@@ -21,7 +22,11 @@ stichwoerter: Mein Tag, Handy, Smartphone, Handy-App, App, Therapeutin, Therapeu
 
 ## Was auf einer Karte steht {#karte}
 
-Uhrzeit, Behandlung, Ende, Dauer, Raum und Gerät; der Gast mit Vorname und Initiale, Besuchszahl und Anlass; der Status, wenn der Termin eingecheckt, abgeschlossen, nicht erschienen oder storniert ist; der Stand des Gesundheitsfragebogens (nie die Antworten); **Vorlieben**, **Vom letzten Mal**, **Vorbereitung** zum Abhaken und das Feld **Notiz für die nächste Behandlung**.
+- Uhrzeit, Behandlung, Ende, Dauer, Raum und Gerät.
+- Der Gast mit Vorname und Initiale, Besuchszahl und Anlass.
+- Der Status, wenn der Termin eingecheckt, abgeschlossen, nicht erschienen oder storniert ist.
+- Der Stand des Gesundheitsfragebogens (nie die Antworten).
+- **Vorlieben**, **Vom letzten Mal**, **Vorbereitung** zum Abhaken und das Feld **Notiz für die nächste Behandlung**.
 
 ## Abläufe {#ablaeufe}
 

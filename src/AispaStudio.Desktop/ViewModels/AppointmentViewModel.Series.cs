@@ -112,7 +112,10 @@ public partial class AppointmentViewModel
         }
     }
 
-    public bool CanCreateSeries => SeriesRows.Any(r => r.Take);
+    /// <summary>Namen der Elemente für <see cref="FocusRequested"/>: ohne angekreuzten Termin bekommt der erste Haken den Fokus, ohne Vorschau „Termine prüfen“.</summary>
+    public const string SeriesTakeBox = "SeriesTakeBox";
+
+    public const string PreviewSeriesButton = "PreviewSeriesButton";
 
     [RelayCommand]
     private void EditSeries()
@@ -204,7 +207,6 @@ public partial class AppointmentViewModel
     {
         OnPropertyChanged(nameof(HasSeriesRows));
         OnPropertyChanged(nameof(CreateSeriesText));
-        OnPropertyChanged(nameof(CanCreateSeries));
     }
 
     [RelayCommand]
@@ -212,6 +214,13 @@ public partial class AppointmentViewModel
     {
         if (Rule() is not { } rule)
         {
+            return;
+        }
+
+        if (!SeriesRows.Any(r => r.Take))
+        {
+            Error = "Es ist kein Termin angekreuzt. Kreuze mindestens einen Termin der Vorschau an; sie entsteht mit „Termine prüfen“.";
+            FocusRequested?.Invoke(HasSeriesRows ? SeriesTakeBox : PreviewSeriesButton);
             return;
         }
 

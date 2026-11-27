@@ -10,6 +10,8 @@ stichwoerter: Geburtstag, Alter, nächster Geburtstag, Kundenkarte, Sterne, Stam
 
 Die Kundenkarte zeigt auf einen Blick, wer der Gast ist, was man über ihn wissen sollte und welche Termine anstehen. Oben stehen Gast und Kontakt, links „Gut zu wissen“, rechts „Termine“.
 
+## Öffnen und Aufbau {#aufbau}
+
 1. Den Gast [suchen](hilfe:kunden-suchen) und anklicken, oder im Kalender im Panel des Termins im Abschnitt [Kunde](hilfe:seite-kalender#kunde-im-termin) (oder in der [Kundenübersicht](hilfe:seite-kalender#kundenuebersicht) hinter den Initialen) **Kundenkarte öffnen** wählen.
 2. Oben stehen groß der Name im Haus (mit [Rufname](hilfe:kunden-name-und-anrede#rufname) und ♀/♂ aus der Anrede) und der Chip **★ Stammgast** ([Sterne](hilfe:kunden-kennzahlen#sterne)), darunter klein die Adresszeile mit dem gültigen Namen und den Titeln („Frau Mag. Stefanie Huber, MSc“), dann Telefon, E-Mail, Postanschrift, Geburtstag (mit Alter und „Nächster Geburtstag in 12 Tagen“, am Tag selbst „Geburtstag heute · 46“; wer am 29. Februar geboren ist, feiert in Jahren ohne Schalttag am 28. Februar). Ein Klick auf Telefon oder E-Mail kopiert sie; daneben steht kurz „Kopiert.“. Steht darunter „Aus Mail angelegt, bitte Angaben prüfen“ (oder SMS, WhatsApp, Anruf, Treatwell), hat die Terminannahme den Kunden aus einer Nachricht angelegt: die Angaben gegebenenfalls korrigieren. Wie Mails, Erinnerungen und Antworten der KI den Gast anreden, zeigt der Hinweis am Namen (Maus darüber oder Tab).
 3. Im Kopf neben dem Namen stehen **Termin buchen**, **Kassieren** (nur wenn heute ein Termin eingecheckt oder erledigt ist) und das Menü **…** mit **Bearbeiten (Name, Anrede, Kontakt, Notiz)**, **Weitere E-Mail-Adresse**, **Rechnungsempfänger**, **Stammrabatt** und **Kontakt als vCard** (speichert den Gast als Kontaktdatei für Outlook oder das Handy). Standortleitung und Inhaber finden dort auch **Leitung informieren …** und **Nicht mehr buchen …** ([Kennzeichen](hilfe:kunden-kennzeichen)), Inhaber und Management außerdem **Gast anonymisieren …** ([Gast anonymisieren](hilfe:kunden-anonymisieren)).
@@ -36,7 +38,7 @@ Zwei Dokumente zur Kundenkarte gibt es als PDF. Beide stehen im Menü **…** im
 - Stammdaten, Kontakt, Wünsche und Vermerke,
 - Termine mit Status, Eintritte, Einträge auf der Warteliste, Zahlungen, Gutscheine auf den Namen und das Online-Konto,
 - die Einwilligung in Werbung mit Stand und Zeitpunkten,
-- zugeordnete Nachrichten mit Zeitpunkt, Kanal, Absender und Betreff. Den Wortlaut einer Nachricht geben Sie auf Wunsch aus dem Posteingang heraus.
+- zugeordnete Nachrichten mit Zeitpunkt, Kanal, Absender und Betreff. Den Wortlaut einer Nachricht gibt man auf Wunsch aus dem Posteingang heraus.
 - Gesundheitsangaben, und zwar die Antworten des Bogens nur mit dem Recht für die Anamnese. Ohne das Recht steht nur der Satz „Gesundheitsangaben: vorhanden, Auskunft durch die Leitung“. Gibt es keinen Bogen, steht „Keine Gesundheitsangaben gespeichert.“
 - den Verlauf der Änderungen.
 

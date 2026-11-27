@@ -33,4 +33,4 @@ Steht unter dem Namen z. B. „Kein Material erfasst.“, „Kein Stundensatz f�
 - **Termine** zählt die Termine im Monat ohne stornierte und nicht erschienene, auch noch kommende.
 - Preise ändert man in den Stammdaten: [Preise festlegen](hilfe:stammdaten-preise-festlegen).
 
-Die Rechnung im Einzelnen: [Vollkosten pro Behandlung](hilfe:kosten#berechnung).
+Die Rechnung im Einzelnen: [Wie die Vollkosten gerechnet werden](hilfe:kosten-wie-gerechnet).

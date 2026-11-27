@@ -7,20 +7,40 @@
              x:DataType="vm:StockViewModel"
              ui:SaveShortcut.IsScope="True">
   <!--
-    Lager (R05 Slice 101, ADR 0084; Aufbau nach ADR 0098, masken.md R15): eine Schiene mit vier Reitern, Übersicht, Bestand, Bestellen (mit dem Recht zu buchen oder für den Standort) und
+    Lager (R05 Slice 101, ADR 0084; Aufbau nach ADR 0098, masken.md R15): oben die Kennzahl-Kacheln über jedem Reiter (T-109), darunter eine Schiene mit vier Reitern, Zu tun (bis T-109
+    „Übersicht“), Bestand, Bestellen (mit dem Recht zu buchen oder für den Standort) und
     Inventur (Recht für den Standort). Rechts daneben die Werkzeuge: „Material suchen oder scannen“, Standort, Export, „Einrichtung“, das Fragezeichen und „Bewegung buchen“; reicht die Breite
     nicht, stehen sie rechtsbündig in einer zweiten Zeile (ReflowRow), die Schiene bricht nie um. Der Bestand hat darunter seine eigene Zeile mit der Ansicht (Material, Chargen, Bewegungen) und
     dem Lagerort. „Einrichtung“ ist eine eigene Seite mit „Zurück“: Lagerorte (Recht für den Standort) und Lieferanten (Recht auf den Katalog). Der Verbrauch (nur mit ViewFinance) ist ein
-    Abschnitt der Übersicht. Rechts neben dem Inhalt die Leiste „Bewegung buchen“.
+    Abschnitt im Reiter „Zu tun“. Rechts neben dem Inhalt die Leiste „Bewegung buchen“.
   -->
   <Grid>
   <ScrollViewer x:Name="StockScroll" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
     <StackPanel Spacing="16" Margin="0,0,16,16">
+      <!-- Kennzahl-Kacheln über jedem Reiter (docs/design.md 5.5, T-109): eine Zeile, die bei schmaler Fläche umbricht; eine Kachel mit Befehl führt an den Ort der Zahl -->
+      <Panel IsVisible="{Binding ShowContent}">
+      <ItemsControl x:Name="StockStats" DataContext="{Binding Todo}" x:DataType="vm:StockTodoViewModel" ItemsSource="{Binding Stats}" AutomationProperties.Name="Kennzahlen des Lagers">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <ui:TileGrid MinColumnWidth="160" Spacing="12" />
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="vm:StockStat">
+            <!-- Zwei Fassungen: ein Knopf mit gebundenem, aber leerem Befehl wäre deaktiviert; die Anzeige-Kachel bindet deshalb keinen -->
+            <Panel>
+              <ui:StatTile VerticalAlignment="Stretch" Label="{Binding Label}" Value="{Binding Value}" Hint="{Binding Hint}" State="{Binding State}" Command="{Binding Command}" IsVisible="{Binding HasCommand}" />
+              <ui:StatTile VerticalAlignment="Stretch" Label="{Binding Label}" Value="{Binding Value}" Hint="{Binding Hint}" State="{Binding State}" IsVisible="{Binding !HasCommand}" />
+            </Panel>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+      </Panel>
       <ui:ReflowRow x:Name="StockHeader" Spacing="12" LineSpacing="12" IsVisible="{Binding ShowContent}">
         <Panel VerticalAlignment="Bottom">
           <Border Classes="segmented" x:Name="Tabs" HorizontalAlignment="Left" IsVisible="{Binding !IsSetup}" AutomationProperties.Name="Reiter des Lagers">
             <StackPanel Orientation="Horizontal">
-              <ui:TabButton x:Name="OverviewTabButton" Content="Übersicht" IsSelected="{Binding IsOverviewTab}" Command="{Binding ShowOverviewCommand}" Padding="12,3" AutomationProperties.Name="Übersicht" />
+              <ui:TabButton x:Name="OverviewTabButton" Content="Zu tun" IsSelected="{Binding IsOverviewTab}" Command="{Binding ShowOverviewCommand}" Padding="12,3" AutomationProperties.Name="Zu tun" />
               <ui:TabButton x:Name="StockTabButton" Content="Bestand" IsSelected="{Binding IsStockTab}" Command="{Binding ShowStockCommand}" Padding="12,3" AutomationProperties.Name="Bestand" />
               <ui:TabButton x:Name="OrdersTabButton" Content="Bestellen" IsSelected="{Binding IsOrdersTab}" Command="{Binding ShowOrdersCommand}" Padding="12,3" IsVisible="{Binding CanSeeOrdersTab}" AutomationProperties.Name="Bestellen" />
               <ui:TabButton x:Name="CountTabButton" Content="Inventur" IsSelected="{Binding IsCountTab}" Command="{Binding ShowCountCommand}" Padding="12,3" IsVisible="{Binding CanManage}" AutomationProperties.Name="Inventur" />

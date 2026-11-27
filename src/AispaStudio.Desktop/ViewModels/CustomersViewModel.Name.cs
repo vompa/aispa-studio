@@ -77,6 +77,7 @@ public partial class CustomersViewModel
         NewFirstName = NewLastName = NewPhone = NewEmail = NewNote = NewPreferredName = NewTitlesBefore = "";
         NewSalutation = SalutationChoice.All[0];
         NewMoreOpen = false;
+        NewNameError = null;
     }
 
     // ---------- Texte ----------

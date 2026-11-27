@@ -8,7 +8,7 @@ stichwoerter: Verlauf durchsuchen, wer hat storniert, Stornos heute, bezahlt bar
 ---
 # Im Verlauf suchen
 
-Mit der Seite [Verlauf](hilfe:seite-verlauf) finden Sie heraus, wer was wann getan hat, und springen von dort direkt zum Gast, zum Termin oder zum Beleg.
+Mit der Seite [Verlauf](hilfe:seite-verlauf) findet man heraus, wer was wann getan hat, und springen von dort direkt zum Gast, zum Termin oder zum Beleg.
 
 ## Suchen {#suchen}
 

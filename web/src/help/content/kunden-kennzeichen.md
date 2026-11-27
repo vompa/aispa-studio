@@ -12,14 +12,7 @@ Statt eines Freitexts wie „schwierige Kundin“ gibt es feste, sachliche Kennz
 
 ![Kennzeichen auf der Kundenkarte](images/app/kunden-kennzeichen.png)
 
-## Welche es gibt {#arten}
-
-| Kennzeichen | Wer setzt es | Wirkung |
-|---|---|---|
-| Braucht mehr Zeit | wer Termine buchen darf | Jeder neue Termin bekommt 10 Minuten Puffer nach der Behandlung. Im Kalender steht **+10**; der Puffer steht getrennt von der Nachbereitung im Streifen („Nachb. 10 · Puffer 10 Min.“), in der Hover-Karte und im Terminfenster. |
-| Leitung informieren | Standortleitung, Inhaber | Im Kalender steht **L** am Termin; wer den Gast empfängt, sagt der Leitung Bescheid. |
-| Nicht bei mir | die Therapeut:in für sich selbst, die Leitung | Kalender, KI-Terminannahme und Online-Buchung schlagen diese Person für den Gast nicht mehr vor. Wird sie ausdrücklich gewählt, lehnt der Kalender ab. Der Gast erfährt davon nichts. |
-| Nicht mehr buchen | Standortleitung, Inhaber, mit Grund | Online-Buchung und KI-Terminannahme buchen nicht und schlagen nichts vor; die Anfrage geht an die Rezeption. Die Rezeption kann trotzdem buchen. Im Kalender steht **STOP**. |
+Welche Kennzeichen es gibt und was sie bewirken, steht in der Übersicht [Kennzeichen im Überblick](hilfe:kunden-kennzeichen-liste).
 
 ## Setzen {#setzen}
 

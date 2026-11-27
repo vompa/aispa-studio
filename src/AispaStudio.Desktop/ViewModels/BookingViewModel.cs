@@ -97,6 +97,7 @@ public partial class BookingViewModel : ViewModelBase
 
     partial void OnStartTextChanged(string value)
     {
+        StartError = null;
         RefreshClosedHint();
         OnPropertyChanged(nameof(EndText));
     }
@@ -189,11 +190,11 @@ public partial class BookingViewModel : ViewModelBase
 
     /// <summary>Das Datumsfeld neben „Beginn“; ein unlesbarer Text lässt <see cref="Date"/> stehen und sperrt das Buchen.</summary>
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(BookCommand), nameof(BookAnywayCommand))]
     public partial string DateText { get; set; }
 
     partial void OnDateTextChanged(string value)
     {
+        DateError = null;
         if (DateInputParser.TryParse(value, _today) is { } date && date != Date)
         {
             Date = date;
@@ -263,12 +264,10 @@ public partial class BookingViewModel : ViewModelBase
     public ObservableCollection<CustomerDto> Customers { get; } = [];
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(BookCommand), nameof(BookAnywayCommand))]
     [NotifyPropertyChangedFor(nameof(HasTreatmentSuggestion))]
     public partial TreatmentDto? Treatment { get; set; }
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(BookCommand), nameof(BookAnywayCommand))]
     public partial string StartText { get; set; }
 
     [ObservableProperty]
@@ -276,7 +275,6 @@ public partial class BookingViewModel : ViewModelBase
     public partial string CustomerQuery { get; set; } = "";
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(BookCommand), nameof(BookAnywayCommand))]
     [NotifyPropertyChangedFor(nameof(PreferenceHint), nameof(HasPreferenceHint), nameof(PreferenceIsWarning), nameof(HasChosenCustomer), nameof(IsPicking), nameof(PanelTabText), nameof(HasNoContact))]
     public partial CustomerDto? Customer { get; set; }
 
@@ -325,6 +323,7 @@ public partial class BookingViewModel : ViewModelBase
 
     partial void OnTreatmentChanged(TreatmentDto? value)
     {
+        TreatmentError = null;
         RefreshClosedHint();
         OnPropertyChanged(nameof(EndText));
         _ = LoadAnamnesisCheckAsync();
@@ -332,6 +331,7 @@ public partial class BookingViewModel : ViewModelBase
 
     partial void OnCustomerChanged(CustomerDto? value)
     {
+        CustomerError = null;
         _ = LoadAnamnesisCheckAsync();
         if (value is not null)
         {
@@ -503,6 +503,7 @@ public partial class BookingViewModel : ViewModelBase
         FreeTimeSearch?.Invoke(new FreeTimePrefill((treatment ?? Treatment)?.Id, Guest: Customer, Note: string.IsNullOrWhiteSpace(Note) ? null : Note), Date) ?? Task.CompletedTask;
 
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(BookCommand), nameof(BookAnywayCommand))]
     public partial bool Busy { get; set; }
 
     partial void OnCustomerQueryChanged(string value)
@@ -582,7 +583,44 @@ public partial class BookingViewModel : ViewModelBase
         Duplicates.Clear();
     }
 
-    private bool CanBook => Treatment is not null && Customer is not null && DateInputParser.TryParse(DateText, _today) is { } day && day >= _today && TryStart(out _) && !Busy;
+    private bool CanBook => !Busy;
+
+    /// <summary>Namen der Felder der Maske für <see cref="FocusRequested"/>: das erste ungültige Feld bekommt nach „Termin buchen“ den Fokus.</summary>
+    public const string TreatmentField = "BookingTreatmentBox";
+
+    public const string DateField = "BookingDateBox";
+
+    public const string StartField = "BookingStartBox";
+
+    /// <summary>Fehler am Feld (masken.md, R8): ersetzt den Hilfetext unter dem Feld und färbt den Rand.</summary>
+    [ObservableProperty]
+    public partial string? CustomerError { get; private set; }
+
+    [ObservableProperty]
+    public partial string? TreatmentError { get; private set; }
+
+    [ObservableProperty]
+    public partial string? DateError { get; private set; }
+
+    [ObservableProperty]
+    public partial string? StartError { get; private set; }
+
+    /// <summary>Prüft Gast, Behandlung, Tag (nicht vor heute) und Beginn; setzt die Fehler am Feld und nennt das erste ungültige Feld in der Reihenfolge der Maske, sonst <c>null</c>.</summary>
+    private string? Validate()
+    {
+        CustomerError = Customer is null ? "Bitte eine Kundin oder einen Kunden wählen." : null;
+        TreatmentError = Treatment is null ? "Bitte eine Behandlung wählen." : null;
+        var day = DateInputParser.Parse(DateText, _today);
+        DateError = day.Error ?? (day.Value is not { } date ? DateInputParser.MissingError
+            : date < _today ? "Der Tag liegt vor heute. Bitte heute oder einen späteren Tag wählen." : null);
+        var time = TimeInputParser.Parse(StartText);
+        StartError = time.Error ?? (time.Value is null ? TimeInputParser.MissingError : null);
+        return CustomerError is not null ? CustomerSearchName
+            : TreatmentError is not null ? TreatmentField
+            : DateError is not null ? DateField
+            : StartError is not null ? StartField
+            : null;
+    }
 
     /// <summary>Heute am Standort: früher lässt sich nicht buchen, das Datumsfeld nimmt keinen früheren Tag.</summary>
     public DateOnly Today => _today;
@@ -608,10 +646,14 @@ public partial class BookingViewModel : ViewModelBase
     {
         _staffRuleWarned = false;
         _outsideConfirmed = confirmed;
-        if (!TryStart(out var start))
+        if (Validate() is { } invalid)
         {
+            Error = "Der Termin ist nicht gebucht. Bitte die markierten Felder prüfen.";
+            FocusRequested?.Invoke(invalid);
             return;
         }
+
+        TryStart(out var start);
 
         Conflict = null;
         if (!confirmed && ClosedHint() is { } closed)

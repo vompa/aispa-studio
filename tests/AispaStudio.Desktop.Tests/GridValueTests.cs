@@ -15,6 +15,7 @@ public sealed partial class GridValueTests
     private static readonly (string File, string Attribute, int Count, string Reason)[] GridExceptions =
     [
         ("Views/PosView.axaml", "MinHeight=\"46\"", 1, "Bezahlknopf der Kassa: die eine Hauptaktion hebt sich aus der Zahlungsspalte heraus (Design-Brief 4.4)"),
+        ("Views/RosterPlanView.axaml", "MinHeight=\"44\"", 1, "Zeile des Wochenplans: Tabellenzeile 44 statt 34, weil sie Dienst-Chips mit zwei Zeilen trägt (Design-Brief 4.4, T-100)"),
     ];
 
     /// <summary>

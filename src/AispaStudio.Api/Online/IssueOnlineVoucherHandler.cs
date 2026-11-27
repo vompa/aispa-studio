@@ -53,7 +53,7 @@ public static partial class IssueOnlineVoucherHandler
                 .Where(r => r.LocationId == order.LocationId && r.IsActive).OrderBy(r => r.Code).FirstOrDefaultAsync(ct);
             if (register is null)
             {
-                await FailAsync(online, order, "An diesem Standort gibt es keine aktive Kasse mehr.", logger, ct);
+                await FailAsync(online, order, "An diesem Standort gibt es keine aktive Kassa mehr.", logger, ct);
                 return;
             }
 

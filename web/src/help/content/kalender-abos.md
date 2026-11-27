@@ -14,9 +14,9 @@ Einstellungen in der Windows-App unter **Verwaltung** › **Betrieb** › **Kale
 
 ![Kalender-Abos in der Windows-App: Liste der Abos mit Stand des Abrufs](images/app/kalender-abos-liste.png)
 
-Jedes Spa hat von Anfang an drei Abos für gesetzliche Feiertage, je eines für Österreich, Deutschland und die Schweiz. Eingeschaltet ist nur das Abo des Landes, in dem das Spa liegt; die anderen beiden stehen ausgeschaltet in der Liste und lassen sich mit einem Haken bei **Aktiv** einschalten. Die Adressen der drei sind öffentliche Feiertagskalender von Google. **Das Programm prüft diese Quelle nicht für Sie:** der Betrieb bestätigt sie oder tauscht sie gegen eine andere Adresse. Ein Fehler beim Abruf erscheint als Meldung im Kalender.
+Jedes Spa hat von Anfang an drei Abos für gesetzliche Feiertage, je eines für Österreich, Deutschland und die Schweiz. Eingeschaltet ist nur das Abo des Landes, in dem das Spa liegt; die anderen beiden stehen ausgeschaltet in der Liste und lassen sich mit einem Haken bei **Aktiv** einschalten. Die Adressen der drei sind öffentliche Feiertagskalender von Google. **Das Programm prüft diese Quelle nicht:** der Betrieb bestätigt sie oder tauscht sie gegen eine andere Adresse. Ein Fehler beim Abruf erscheint als Meldung im Kalender.
 
-Der Server holt ein Abo im Hintergrund, einmal am Tag und sofort nach dem Anlegen, Einschalten oder Ändern der Adresse. Er ruft nur ab, was in der Adresse steht, und schickt nichts nach außen. Ohne Internet oder bei einem Fehler gilt die zuletzt gespeicherte Kopie weiter.
+AISPA Studio holt ein Abo im Hintergrund, einmal am Tag und sofort nach dem Anlegen, Einschalten oder Ändern der Adresse. Es ruft nur ab, was in der Adresse steht, und schickt nichts nach außen. Ohne Internet oder bei einem Fehler gilt die zuletzt gespeicherte Kopie weiter.
 
 Wer darf was:
 
@@ -81,7 +81,7 @@ Vorab eingetragene Abos lassen sich ausschalten, nicht löschen. Andere Abos lö
 
 Die Zeile unter **Aktiv** nennt den Stand („Stand gestern · 136 Tage“), den Zeitraum der gespeicherten Tage und bei einem Fehler den Grund. **Jetzt abrufen** stößt den Abruf im Hintergrund an (nur bei einem eingeschalteten Abo mit Adresse und ohne ungespeicherte Änderungen); das Ergebnis erscheint nach wenigen Sekunden als Meldung über der Maske („Abgerufen: Stand heute · 150 Tage“ oder der Grund des Fehlers).
 
-**Im Kalender zeigen** (Haken unter dem Knopf, nur für Sie) schaltet um, ob Sie dieses Abo im Kalender sehen. Es wirkt sofort und ist dasselbe wie der Schalter **Zeigen** im Chip **Kalender** ([Kalender-Abos im Kalender](hilfe:kalender-abos-anzeigen)); für die anderen Personen ändert es nichts.
+**Im Kalender zeigen** (Haken unter dem Knopf, nur für die eigene Person) schaltet um, ob man dieses Abo im Kalender sieht. Es wirkt sofort und ist dasselbe wie der Schalter **Zeigen** im Chip **Kalender** ([Kalender-Abos im Kalender](hilfe:kalender-abos-anzeigen)); für die anderen Personen ändert es nichts.
 
 Nach jedem Abruf vergleicht das Programm die neue mit der alten Kopie. Ändert sich etwas, erscheint im Kalender unter **Meldungen** eine Meldung, zum Beispiel „Abo ‚Feiertage Salzburg‘: 2 neue Tage, 1 Tag entfernt“. Schlägt der Abruf fehl, steht dort „Kalender-Abo nicht abgerufen“ mit **Erneut versuchen**. Ein Kalender ohne Einträge im Zeitraum ersetzt eine vorhandene Kopie nicht.
 

@@ -23,6 +23,7 @@ Zum Ansehen startet man die App mit dem Schalter `--demo`, z. B. über eine zwei
 - Alle Beispielkonten haben das Passwort `demo`, zum Beispiel `inhaberin@demo.aispa.test`.
 - Über allen Seiten steht die Leiste „Sie sehen Beispieldaten.“ Wer den Standort verwalten darf, löscht das Beispiel-Spa dort mit **Beispieldaten löschen …**. Nach der Rückfrage schließt sich die App.
 - Im Beispiel-Spa sichert die App nicht und gleicht nicht ab.
+- Die Termine reichen vier Wochen voraus. Reichen sie weniger als zwei Wochen voraus, legt die App das Beispiel-Spa beim nächsten Start mit `--demo` neu an. Eigene Einträge im Beispiel-Spa gehen dabei verloren.
 
 ## Wo die Daten liegen {#daten}
 
@@ -37,6 +38,8 @@ Weil der PC ohne Abgleich die einzige Kopie aller Daten ist, gehört zum Einzelp
 ## Ausgeschaltete Webmodule {#module}
 
 Ist ein Webmodul ausgeschaltet, fehlt sein Bereich in der Verwaltung: **Erinnerungen** (Modul Erinnerungen oder Wiederbuchung), **Postfach & Nummern** (Terminannahme) und **Zahlungen** (Online-Buchung). **KI** bleibt immer da. Bei einem Server mit der Stufe „Start“ stehen die Erinnerungen vor dem Termin in der Maske **Erinnerungen**, die Wiederbuchungs-Hinweise fehlen dort, weil sie erst ab der Stufe „Spa“ dabei sind. Einschalten lassen sich die Module in den Einstellungen des Servers, nicht in der App.
+
+Im Einzelplatz fehlt außerdem, was nur mit Server geht: im Management das Kästchen **Mit anderen Spas vergleichen**, im Menü **Ausgabe** das Kästchen **Wochen- und Monatsbericht per Mail** (solange kein Mailversand eingerichtet ist), am PC mit der Datenbank in der Navigationsleiste die Pille **Online** (sie zeigte dort nur die Verbindung zum eigenen PC) und in der Hilfe die Themen zu Online-Buchung, Anfragen, Pausenraum, Handy-Apps und Einladungen. **Kalender-Abos** und die Kalenderdatei bleiben: Sie holen Feiertage aus dem Internet bzw. speichern eine Datei auf dem PC.
 
 ## Spa einrichten {#einrichten}
 
@@ -54,7 +57,7 @@ Der Name des Betriebs, wie er in der App erscheint. Pflichtfeld.
 
 Name des ersten Standorts, z. B. Ort oder Adresse. Pflichtfeld. Weitere Standorte legt der Inhaber später an.
 
-### Ihr Name {#inhaber-name}
+### „Ihr Name“ {#inhaber-name}
 
 Der Name der Person, die einrichtet. Sie bekommt die Rolle Inhaber mit Zugang zu allen Standorten. Pflichtfeld.
 

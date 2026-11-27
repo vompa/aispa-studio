@@ -5,8 +5,8 @@ using AispaStudio.Contracts;
 namespace AispaStudio.Api.Tests;
 
 /// <summary>
-/// Listen des Personals als Excel (Export/Import, Aufgabe D): Stundenliste je Person und Monat, Abwesenheiten eines Zeitraums und Dienstplan der Woche mit Personen
-/// als Zeilen und Tagen als Spalten; nur für die Leitung, ein fremder Mandant sieht nichts. Anna und Ben arbeiten laut Wochenmuster montags 9 bis 17 Uhr.
+/// Listen des Personals als Excel (Export/Import, Aufgabe D): Stundenliste je Person und Monat, Abwesenheiten eines Zeitraums und Dienstplan der Woche mit Tagen
+/// als Zeilen und Personen als Spalten; nur für die Leitung, ein fremder Mandant sieht nichts. Anna und Ben arbeiten laut Wochenmuster montags 9 bis 17 Uhr.
 /// </summary>
 public sealed class StaffExportTests(ApiFixture fixture)
 {
@@ -45,13 +45,15 @@ public sealed class StaffExportTests(ApiFixture fixture)
     }
 
     [Fact]
-    public async Task Abwesenheiten_als_Spannen_und_Dienstplan_der_Woche_mit_Tagen_als_Spalten()
+    public async Task Abwesenheiten_als_Spannen_und_Dienstplan_der_Woche_mit_Tagen_als_Zeilen()
     {
         var spa = await TestSpa.CreateAsync(fixture, Ct);
         var vacation = new RosterEntry(RosterKind.Vacation, null, null, null);
         await PlanAsync(spa, spa.Anna.Id, TestSpa.Monday.AddDays(1), vacation);
         await PlanAsync(spa, spa.Anna.Id, TestSpa.Monday.AddDays(2), vacation);
         await PlanAsync(spa, spa.Ben.Id, TestSpa.Monday, new RosterEntry(RosterKind.Work, spa.Location.Id, new TimeOnly(10, 0), new TimeOnly(14, 0)));
+        var graz = await spa.CreateLocationAsync("Graz", [DayOfWeek.Tuesday], Ct);
+        await PlanAsync(spa, spa.Ben.Id, TestSpa.Monday.AddDays(1), new RosterEntry(RosterKind.Work, graz.Id, new TimeOnly(10, 0), new TimeOnly(14, 0)));
 
         using var absences = await spa.Client.GetAsync($"{Base(spa)}?list=absences&from=2027-03-01&until=2027-03-31&format=xlsx", Ct);
         using var roster = await spa.Client.GetAsync($"{Base(spa)}?list=roster&from=2027-03-01&format=xlsx", Ct);
@@ -65,12 +67,19 @@ public sealed class StaffExportTests(ApiFixture fixture)
             (row.Cell(1).GetString(), row.Cell(2).GetString(), row.Cell(3).GetDateTime(), row.Cell(4).GetDateTime(), row.Cell(5).GetDouble()));
 
         Assert.Equal("Dienstplan_2027-03-01.xlsx", ExportResponses.FileName(roster));
-        Assert.Equal(["Person", "Mo 1.3.", "Di 2.3.", "Mi 3.3.", "Do 4.3.", "Fr 5.3.", "Sa 6.3.", "So 7.3.", "Stunden"], ExportResponses.Headers(rosterSheet));
-        var anna = rosterSheet.Row(2);
-        var ben = rosterSheet.Row(3);
-        Assert.Equal(("Anna", "9:00–17:00", "Urlaub", "Urlaub", "", 8d),
-            (anna.Cell(1).GetString(), anna.Cell(2).GetString(), anna.Cell(3).GetString(), anna.Cell(4).GetString(), anna.Cell(5).GetString(), anna.Cell(9).GetDouble()));
-        Assert.Equal(("Ben", "10:00–14:00", 4d), (ben.Cell(1).GetString(), ben.Cell(2).GetString(), ben.Cell(9).GetDouble()));
+        Assert.Equal(["Tag", "Anna", "Ben", "Besetzung"], ExportResponses.Headers(rosterSheet));
+        var (monday, tuesday, wednesday, sunday, hours) = (rosterSheet.Row(2), rosterSheet.Row(3), rosterSheet.Row(4), rosterSheet.Row(8), rosterSheet.Row(9));
+        Assert.Equal(("Mo. 1.3.2027", "9:00–17:00", "10:00–14:00", 2d), (monday.Cell(1).GetString(), monday.Cell(2).GetString(), monday.Cell(3).GetString(), monday.Cell(4).GetDouble()));
+        // Urlaub und ein Dienst in Graz zählen nicht zur Besetzung in Wien; der Dienst in Graz trägt den Standort in der Zelle.
+        Assert.Equal(("Di. 2.3.2027", "Urlaub", "10:00–14:00 Graz", 0d), (tuesday.Cell(1).GetString(), tuesday.Cell(2).GetString(), tuesday.Cell(3).GetString(), tuesday.Cell(4).GetDouble()));
+        Assert.Equal(("Mi. 3.3.2027", "Urlaub", ""), (wednesday.Cell(1).GetString(), wednesday.Cell(2).GetString(), wednesday.Cell(3).GetString()));
+        Assert.Equal(("So. 7.3.2027", "Stunden", 8d, 8d), (sunday.Cell(1).GetString(), hours.Cell(1).GetString(), hours.Cell(2).GetDouble(), hours.Cell(3).GetDouble()));
+        Assert.Equal(9, rosterSheet.LastRowUsed()!.RowNumber());
+
+        using var csv = await spa.Client.GetAsync($"{Base(spa)}?list=roster&from=2027-03-01&format=csv", Ct);
+        var lines = (await csv.Content.ReadAsStringAsync(Ct)).TrimStart('\uFEFF').Split("\r\n", StringSplitOptions.RemoveEmptyEntries);
+        Assert.Equal(["Tag;Anna;Ben;Besetzung", "Mo. 1.3.2027;9:00–17:00;10:00–14:00;2", "Di. 2.3.2027;Urlaub;10:00–14:00 Graz;0"], lines[..3]);
+        Assert.Equal("Stunden;8;8;", lines[^1]);
     }
 
     [Fact]
