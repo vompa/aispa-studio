@@ -8519,3 +8519,15 @@ Auftraggeber (23.10.2026): „Räume sollen wie Urlaub auch gesperrt werden kön
 - **Neue Tests:** keine (reine Textgliederung).
 - **Text-Prüfsatz:** die 89 Themen und die neue Erklärung `kosten-wie-gerechnet` nach [docs/gestaltung/texte.md](../gestaltung/texte.md): Wortlaut unverändert, Knöpfe fett, Schritte im Infinitiv; die geänderten Stellen sind Überschriften „Gut zu wissen“ und „Schritte“, Titel, Einleitungssatz, Überschrift und Verweiszeile der Erklärung ohne „bitte“ und ohne Richtungswörter.
 - **Nicht geprüft:** Anblick der Hilfe im Browser und in der Windows-App (Gruppe „Erklärungen“ mit dem neuen Thema); Bilder (unverändert).
+
+## Rote Ansichtstests nach T-109 behoben (27.11.2026)
+
+Der volle Lauf `*ViewTests` auf dev 75883b69 hatte 7 rote Tests; alle sieben lagen an veralteten Tests, nicht an der App.
+
+- **Lager bestellen (5 Tests):** `Given_Bestellen_und_senden_…bestaetigt`, `…im_Dialog_abbricht`, `…Mindestwert_When_direkt_gesendet`, `Menge_im_Entwurf_aendern_…` und `Given_ungueltige_Menge_…`. Seit T-109 stehen die Kennzahl-Kacheln über allen Reitern; die Knöpfe „Bestellung 7 bestellen und senden“ und „Mengen der Bestellung 7 speichern“ liegen dadurch unter dem Rand des Testfensters. `ClickCenter` klickte ins Leere (kein Dialog, kein PUT, keine Fehlermeldung am Feld). Die Maske scrollt, die App verhält sich richtig. Änderung: die fünf Klicks gehen über `ClickOrder` (holt den Knopf in den sichtbaren Bereich, klickt, wartet). Zusicherungen unverändert.
+- **Leerer Betrieb (1 Test):** Die Personenkarte öffnet seit T-109 im Profil und lädt dabei Zuständigkeiten und Zertifikate; im leeren Betrieb fehlten die Antworten auf `GET /api/employees/{id}/duties` und `…/certificates`. Änderung: zwei Stubs mit leerer Liste in `ViewTests.EmptyBusiness.cs`.
+- **Behandlung, Öl hinzufügen (1 Test):** durch bb832ade behoben (Stub überschrieb die Artikelliste), hier nur mitgeprüft: grün.
+- **Geprüft:** gezielter Lauf der sieben vorher 6 rot von 7 (`.test-logs/fix-red.log`, Exitcode 2), nachher 7 von 7 grün (`.test-logs/fix-green.log`, Exitcode 0); `dotnet build -c Release` 0 Fehler; `dotnet format --verify-no-changes` Exitcode 0.
+- **Neue Tests:** keine. App-Code unverändert, daher keine Unit-Testklassen nachgezogen.
+- **Nicht geprüft:** voller `*ViewTests`-Lauf nach der Änderung.
+- **Ohne Block** (nur Tests und Doku, keine sichtbare Änderung).

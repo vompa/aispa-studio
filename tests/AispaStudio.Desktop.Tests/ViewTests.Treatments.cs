@@ -53,11 +53,10 @@ public sealed partial class ViewTests
                     new List<PreparationStepDto> { new(Guid.NewGuid(), "Steine auf 55 °C aufheizen", 30) })
                 .On($"GET /api/costs/treatments/{treatment.Id}/materials", new List<MaterialLine> { new("Massageöl", 20, "ml", 0.04m) })
                 .On($"GET /api/treatments/{treatment.Id}/extras", new List<TreatmentExtraDto> { new(Guid.NewGuid(), "Früchteteller", ExtraTiming.AfterTreatment, null, null, null, null, 0) })
-                // Ohne diese Antworten zeigte „Passt dazu“ in den Handbuchbildern die Warnung, die Kassa-Artikel seien nicht geladen.
+                // Ohne diese Antwort zeigte „Passt dazu“ in den Handbuchbildern die Warnung, die Kassa-Artikel seien nicht geladen.
                 .On($"GET /api/treatments/{treatment.Id}/recommended-articles", new List<Guid>());
         }
 
-        api.On("GET /api/pos/articles", new List<ArticleDto>());
         return api;
     }
 

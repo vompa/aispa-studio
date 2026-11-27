@@ -113,6 +113,8 @@ public sealed partial class ViewTests
         .On($"GET /api/stock/locations/{OnlyLocation.Id}/reorder", new List<ReorderSuggestionDto>())
         .On("GET /api/staff-regulations/flags", new List<StaffFlagsDto>())
         .On($"GET /api/employees/{OnlyOwner.Id}/overview", new EmployeeOverviewDto(OnlyOwner.Id, null, 0m, 0m, null, 0, 0, 0))
+        .On($"GET /api/employees/{OnlyOwner.Id}/duties", new List<StaffDutyDto>())
+        .On($"GET /api/employees/{OnlyOwner.Id}/certificates", new List<StaffCertificateDto>())
         .On($"GET /api/stock/locations/{OnlyLocation.Id}/demand?from=2026-10-19&until=2026-10-25", new StockDemandDto(OnlyLocation.Id, SpaSample.Day, SpaSample.Day, 0, [], []))
         .On($"GET /api/stock/locations/{OnlyLocation.Id}/count-sessions?status=Submitted", new List<StockCountSessionDto>())
         .On($"GET /api/reports/locations/{OnlyLocation.Id}/stock-usage?from=2026-09-20&until=2026-10-19", new StockUsageReportDto(OnlyLocation.Id, SpaSample.Day, SpaSample.Day, [], 0m, false))

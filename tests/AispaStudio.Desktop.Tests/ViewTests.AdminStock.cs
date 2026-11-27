@@ -216,7 +216,7 @@ public sealed partial class ViewTests
             await ClickScrolled(window, "OrdersTabButton");
             await Pump(Settling);
 
-            ClickCenter(window, OrderButton(window, "Bestellung 7 bestellen und senden"));
+            await ClickOrder(window, "Bestellung 7 bestellen und senden");
             await Pump(Settling);
             var dialog = Assert.IsType<ConfirmDialogViewModel>(main.DialogHost.Current);
             Assert.Equal("Bestellung 7 senden?", dialog.Title);
@@ -245,7 +245,7 @@ public sealed partial class ViewTests
             await ClickScrolled(window, "OrdersTabButton");
             await Pump(Settling);
 
-            ClickCenter(window, OrderButton(window, "Bestellung 7 bestellen und senden"));
+            await ClickOrder(window, "Bestellung 7 bestellen und senden");
             await Pump(Settling);
             ClickCenter(window, DialogButton(window, "CancelButton"));
             await Pump(Settling);
@@ -268,7 +268,7 @@ public sealed partial class ViewTests
             OrderQuantity(window).Text = "12";
             await Pump(Settling);
             Assert.True(stock.HasUnsavedChanges);
-            ClickCenter(window, OrderButton(window, "Mengen der Bestellung 7 speichern"));
+            await ClickOrder(window, "Mengen der Bestellung 7 speichern");
             await Pump(Settling);
             await Pump(Settling);
 
@@ -293,7 +293,7 @@ public sealed partial class ViewTests
 
             OrderQuantity(window).Text = "2";
             await Pump(Settling);
-            ClickCenter(window, OrderButton(window, "Bestellung 7 bestellen und senden"));
+            await ClickOrder(window, "Bestellung 7 bestellen und senden");
             await Pump(Settling);
 
             Assert.Contains("es fehlen 125,00 €", Assert.IsType<ConfirmDialogViewModel>(main.DialogHost.Current).Message, StringComparison.Ordinal);
@@ -316,7 +316,7 @@ public sealed partial class ViewTests
 
             OrderQuantity(window).Text = "viel";
             await Pump(Settling);
-            ClickCenter(window, OrderButton(window, "Mengen der Bestellung 7 speichern"));
+            await ClickOrder(window, "Mengen der Bestellung 7 speichern");
             await Pump(Settling);
 
             Assert.True(Shows(window, "Gib eine Zahl ab 0 ein, z. B. 500."));
