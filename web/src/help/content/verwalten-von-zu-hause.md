@@ -5,6 +5,7 @@ oberflaeche: windows-app
 rollen: inhaber, manager, leitung
 seite: netz
 stichwoerter: von zu Hause, Homeoffice, Verwaltung zu Hause, remote, VPN, Portweiterleitung, Port öffnen, Server verbinden, verlorenes Gerät, Laptop weg, Zugang sperren, Laufwerksverschlüsselung, BitLocker, work from home, lost device
+betrieb: server
 ---
 # Verwalten von zu Hause
 

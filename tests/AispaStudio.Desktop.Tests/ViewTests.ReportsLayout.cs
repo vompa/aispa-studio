@@ -37,7 +37,7 @@ public sealed partial class ViewTests
 
         // Then gibt es genau eine Reiterebene (kein zweiter Streifen der Verwaltung), und Standort und Datum stehen rechts von den Reitern.
         Assert.False(Named<Controls.OverflowStrip>(window, "AreaStrip").IsEffectivelyVisible);
-        Assert.Equal(["Tagesstart", "Mein Tag", "Hygiene", "Berichte", "Betriebsinfo"], VisibleTabs(window).Select(t => t.Content as string));
+        Assert.Equal(["Berichte", "Tagesstart", "Mein Tag", "Hygiene", "Betriebsinfo"], VisibleTabs(window).Select(t => t.Content as string));
         var last = Named<Controls.TabButton>(window, "ReportBusinessInfoTab");
         Assert.True(LeftOf(window, Named<ComboBox>(window, "ReportLocationField")) >= LeftOf(window, last) + last.Bounds.Width);
         Assert.True(LeftOf(window, Named<Controls.DateField>(window, "ReportDateField")) > LeftOf(window, Named<ComboBox>(window, "ReportLocationField")));

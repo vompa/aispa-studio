@@ -112,7 +112,7 @@
           </ui:FormField>
           <ui:HelpButton Topic="berichte-kennzahlen-ansehen" Section="vergleich" VerticalAlignment="Bottom" Margin="0,0,0,7" />
         </StackPanel>
-        <CheckBox x:Name="ManagementCompareField" Content="Mit anderen Spas vergleichen" IsChecked="{Binding Compare}" VerticalAlignment="Bottom" />
+        <CheckBox x:Name="ManagementCompareField" Content="Mit anderen Spas vergleichen" IsChecked="{Binding Compare}" IsVisible="{Binding CanCompare}" VerticalAlignment="Bottom" />
         <!-- Womit die Kacheln vergleichen, und dass der heutige Tag noch läuft -->
         <StackPanel VerticalAlignment="Bottom">
           <TextBlock x:Name="ManagementCompareInfo" Text="{Binding CompareInfo}" Classes="muted small" IsVisible="{Binding CompareInfo, Converter={x:Static ObjectConverters.IsNotNull}}" />

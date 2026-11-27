@@ -4,6 +4,7 @@ bereich: Betrieb
 oberflaeche: windows-app
 seite: netz
 stichwoerter: Netz, Server, Serveradresse, Verbindung lösen, von zu Hause, Homeoffice, VPN, AISPA_API_URL, remote, server address
+betrieb: server
 ---
 # Seite „Netz“ in der Windows-App
 

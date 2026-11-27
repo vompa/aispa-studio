@@ -44,6 +44,7 @@ Kopfangaben (alle optional, Werte durch Kommas getrennt):
 - `rollen`: `rezeption`, `therapeut`, `leitung` (Standortleitung), `inhaber`. Ohne Angabe für alle. Die Suche reiht passende Rollen vor, versteckt aber nichts.
 - `seite`: Kennung der Seite, zu der das Thema gehört (Windows-App: `kalender`, `kunden`, `anfragen`, `kassa`, `geraete`, `abgleich`, `sicherung`, `im-netz`, `netz`, `verwaltung`, `anmeldung`; Handy: `myday`).
 - `stichwoerter`: Wörter, mit denen jemand danach fragen würde, auch umgangssprachlich und auf Englisch.
+- `betrieb`: nur der Wert `server`, für Themen, die es nur mit Server bzw. einem Webmodul gibt (Online-Buchung, Terminannahme, Dashboard im Pausenraum, Handy-Apps, Einladungen, Vergleich mit anderen Spas). Im Einzelplatz blendet die Hilfe-Seite sie aus (`forOperation` in `topics.ts`). Ohne Angabe gilt das Thema in beiden Betriebsarten; „Abgleich“, „Sicherung“ und „KI“ bekommen die Angabe nie. Andere Werte lehnt `help.test.tsx` ab. Ein `hilfe:`-Verweis eines sichtbaren Themas auf ein ausgeblendetes erscheint im Einzelplatz als normaler Text ohne Link und ohne Hinweis.
 
 Erlaubtes Markdown: Überschriften `#` bis `####` mit optionalem Anker `{#anker}`, Absätze, Aufzählungen `-`, nummerierte Schritte `1.`, **fett**, `Code`, Links und Bilder in eigener Zeile `![Beschreibung](images/app/name.png)` bzw. `![Beschreibung](images/web/name.png)`.
 
@@ -121,6 +122,7 @@ Das Ziel steht in der Adresse:
 | `abschnitt` | Anker einer Zwischenüberschrift, nur zusammen mit `thema`; die Seite rollt dorthin und färbt die Überschrift |
 | `oberflaeche` | `windows-app`, `verwaltung` oder `handy`; die Suche reiht Themen dieser Oberfläche vor (Standard `verwaltung`) |
 | `rolle` | Rollenschlüssel wie `rezeption`; die Suche reiht passende Rollen vor |
+| `betrieb` | `einzelplatz`: die Windows-App läuft im Einzelplatz; Themen mit der Kopfangabe `betrieb: server` fehlen in Liste, Suche und Übersicht. Die Windows-App setzt ihn selbst |
 
 Die Windows-App öffnet die Seite im eingebetteten Browser (WebView2): aus dem Ordner `web` neben der App, wenn es ihn gibt (ohne Server und Internet; der Browser ordnet ihn dem virtuellen Host `help.aispa.local` zu und lädt `https://help.aispa.local/help/index.html?…`), sonst vom Server unter `/help/`. Der Build der Seite ist derselbe wie für die übrigen Seiten. Das Budget für die Seite steht in `web/scripts/check-bundles.mjs`.
 

@@ -58,6 +58,13 @@ internal static class ReportMailSetup
 
     /// <summary>Rollen, die den Bericht per Mail bekommen: Inhaber, Manager, Standortleitung.</summary>
     public static bool Receives(StaffRole role) => role is StaffRole.Owner or StaffRole.GeneralManager or StaffRole.Manager;
+
+    /// <summary>
+    /// Der Haken steht der Person zur Wahl: ihre Rolle bekommt den Bericht, und im Einzelplatz ist ein Mailversand eingerichtet (<c>Mail:Smtp:Host</c>, T-110).
+    /// Ohne Versand gingen die Mails dort nur ins Log; der Server-Betrieb bleibt wie bisher.
+    /// </summary>
+    public static bool Offered(StaffRole role, ModuleSwitches modules, MailOptions mail) =>
+        Receives(role) && (!modules.Standalone || !string.IsNullOrWhiteSpace(mail.Smtp.Host));
 }
 
 /// <summary>Sieht regelmäßig in allen Spas nach, ob ein Wochen- oder Monatsbericht fällig ist (<c>ReportMails:PollSeconds</c>).</summary>

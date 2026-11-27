@@ -143,7 +143,7 @@ Hat jemand den Rabatt der Position von Hand geändert, zählt sie nicht mehr zur
 
 ## Bericht per Mail {#bericht-per-mail}
 
-Inhaber, Manager und Standortleitung bekommen den Bericht auch per Mail, je Standort, den sie sehen:
+Inhaber, Manager und Standortleitung bekommen den Bericht auch per Mail, je Standort, den sie sehen. Im Einzelplatz geht das nur mit eingerichtetem Mailversand (`Mail:Smtp:Host`); ohne ihn fehlt das Kästchen im Menü **Ausgabe**.
 
 - **Wochenbericht** montags ab 7 Uhr, für Montag bis Sonntag der Vorwoche.
 - **Monatsbericht** am Monatsersten ab 7 Uhr, für den Vormonat.

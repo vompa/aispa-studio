@@ -5,6 +5,7 @@ oberflaeche: handy
 rollen: therapeut
 seite: myday
 stichwoerter: Raum prüfen, Raumcheck, Aufgefüllt, Reicht noch, nachfüllen, Vorbereitung, abhaken, erledigt, Checkliste, To-do, Todo, Behandlungskarte, Notiz, Nachbereitung, nächste Behandlung, Vorlieben lesen, vom letzten Mal, preparation, checklist, note
+betrieb: server
 ---
 # Vorbereitung abhaken und Notiz schreiben
 

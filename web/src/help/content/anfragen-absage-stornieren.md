@@ -5,6 +5,7 @@ oberflaeche: windows-app
 rollen: rezeption, leitung, inhaber, manager
 seite: anfragen
 stichwoerter: Absage per SMS, Gast sagt ab, Termin absagen, Storno aus Nachricht, Antwort-SMS, kommt nicht, cancel by text, guest cancels
+betrieb: server
 ---
 # Absage eines Gasts stornieren
 

@@ -43,6 +43,8 @@ export interface HelpMeta {
   roles: string[];
   page?: string;
   keywords: string[];
+  /** Kopfangabe `betrieb`: `server`, wenn es das Thema nur mit Server bzw. Webmodul gibt; im Einzelplatz blendet die Hilfe es aus (`forOperation`). */
+  operation?: string;
 }
 
 export const emptyMeta: HelpMeta = {
@@ -80,6 +82,7 @@ export function splitFrontMatter(source: string): {
       roles: list("rollen").map((v) => v.toLowerCase()),
       page: values.get("seite") || undefined,
       keywords: list("stichwoerter"),
+      operation: values.get("betrieb") || undefined,
     },
     body: bodyStart < 0 ? "" : text.slice(bodyStart + 1),
   };

@@ -193,6 +193,21 @@ public sealed partial class HelpTests
         Assert.Equal("rezeption", query["rolle"]);
     }
 
+    [Theory]
+    [InlineData(true, "einzelplatz")]
+    [InlineData(false, null)]
+    public async Task Im_Einzelplatz_sagt_die_Adresse_der_Hilfe_den_Betrieb_damit_die_Seite_Server_Themen_ausblendet(bool standalone, string? expected)
+    {
+        // T-110: Die Hilfe-Seite filtert Themen mit „betrieb: server“ nach dem Parameter „betrieb“ (web/src/help/topics.ts, forOperation).
+        var modules = new AispaStudio.Contracts.SystemModules(standalone, !standalone, !standalone, true, !standalone, !standalone, !standalone, !standalone);
+        var shell = new ShellViewModel(new StubApi().Client(), TestData.Reception(), null, TimeProvider.System,
+            new ThemeController(new MemorySettingsStore()), "Test", () => Task.CompletedTask, modules: modules);
+
+        await shell.ShowHelpAsync("kassa", null);
+
+        Assert.Equal(expected, System.Web.HttpUtility.ParseQueryString(shell.Help.Address!.Query)["betrieb"]);
+    }
+
     [Fact]
     public void Mit_der_Hilfe_neben_der_App_oeffnet_sich_die_Seite_ueber_den_virtuellen_Host_ohne_Server()
     {

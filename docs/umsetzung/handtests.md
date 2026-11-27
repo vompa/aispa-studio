@@ -2043,3 +2043,25 @@ Expected: Die Kacheln stehen über der Leiste in jedem Reiter; **Zu tun** zeigt 
 Expected: Der Name jedes Eintrags steht fett und etwas größer als die Unterzeile; die Unterzeile sieht aus wie vorher; lange Namen enden mit „…“. In **Behandlungen** stehen Dauer und Preis als Unterzeile unter dem Namen; „Fußreflexzonenmassage“ und „Gesichtsbehandlung Classic“ brechen nicht mitten im Wort.
 Closes: T-098 Punkte 7 und 8
 Result: ☐
+
+### T-110 – Berichte zuerst, Server-Funktionen im Einzelplatz ausgeblendet
+Start (Server): `dotnet run --project src/AispaStudio.AppHost` mit Beispieldaten, im Aspire-Dashboard die Ressource `windows-app` starten, als Inhaberin anmelden.
+1. **Verwaltung** › **Zahlen** öffnen.
+Expected: Die Reiter stehen in der Reihenfolge **Berichte**, **Tagesstart**, **Mein Tag**, **Hygiene**, **Betriebsinfo**; **Berichte** ist gewählt und zeigt Management und Pflichtberichte. Ein Sprung aus dem Assistenten („Im Bericht öffnen“) oder auf die Pflichtberichte führt weiter dorthin.
+2. Unter dem Zeitraum auf **Mit anderen Spas vergleichen** achten und im Menü **Ausgabe** nachsehen.
+Expected: Das Kästchen **Mit anderen Spas vergleichen** steht da; im Menü **Ausgabe** steht **Wochen- und Monatsbericht per Mail**. Unten links in der Leiste steht die Pille **Online**.
+3. **Hilfe** öffnen und nach „Online-Buchung“ und „Anfrage annehmen“ suchen.
+Expected: Beide Themen erscheinen.
+Start (Einzelplatz): die Windows-App im Einzelplatz-Betrieb starten (`--standalone`, lokale Datenbank, kein `Mail:Smtp:Host`), als Inhaberin anmelden.
+4. **Verwaltung** › **Zahlen** öffnen.
+Expected: **Berichte** ist der erste Reiter und gewählt. Das Kästchen **Mit anderen Spas vergleichen** fehlt; im Menü **Ausgabe** fehlt **Wochen- und Monatsbericht per Mail**. Unten links in der Leiste steht keine Pille **Online**.
+5. Die API des Einzelplatzes beenden (Prozess `AispaStudio.Api` im Task-Manager) und warten.
+Expected: Oben erscheint das Banner „Keine Verbindung …“, obwohl die Pille fehlt.
+6. **Hilfe** öffnen und nach „Online-Buchung“, „Anfrage annehmen“, „Pausenraum“ und „Mein Tag aufs Handy holen“ suchen; danach nach „Abgleich“, „Sicherung“, „KI“ und „Kalender-Abos“.
+Expected: Die Themen der ersten Suche fehlen in Liste und Suche; „Abgleich“, „Sicherung“, „KI“ und „Kalender-Abos“ erscheinen.
+6a. In der Hilfe das Thema „Team“ öffnen und den Satz mit „Person einladen“ suchen.
+Expected: „Person einladen“ steht als normaler Text da, ohne Link; unter „Verwandte Themen“ fehlt es.
+7. **Verwaltung** › **Betrieb** › **Kalender-Abos** öffnen und **Verwaltung** › **Team** › **Zugang anlegen** ansehen.
+Expected: Die Kalender-Abos sind da (sie holen Feiertage aus dem Internet). Im Team heißt der Knopf **Zugang anlegen**, nicht „Person einladen“.
+Closes: T-110 (Auftraggeber, 26.11.2026, Punkte 10 und 12)
+Result: ☐

@@ -29,6 +29,9 @@ public sealed partial class HelpViewModel(Func<Uri?>? serverWeb = null, string? 
     /// <summary>Rolle der angemeldeten Person; die Suche der Hilfe reiht passende Abläufe vor.</summary>
     public StaffRole? Role { get; set; }
 
+    /// <summary>Einzelplatz (ADR 0041): die Hilfe blendet Themen mit <c>betrieb: server</c> aus (<c>betrieb=einzelplatz</c> in der Adresse, T-110).</summary>
+    public bool Standalone { get; set; }
+
     private readonly TimeProvider _time = time ?? TimeProvider.System;
 
     private IUnansweredQuestionStore Questions => questions ?? UnansweredQuestionLog.Current;
@@ -146,6 +149,11 @@ public sealed partial class HelpViewModel(Func<Uri?>? serverWeb = null, string? 
         if (HelpContent.RoleKey(Role) is { } role)
         {
             query.Add($"rolle={role}");
+        }
+
+        if (Standalone)
+        {
+            query.Add("betrieb=einzelplatz");
         }
 
         query.Add($"n={++_shown}");

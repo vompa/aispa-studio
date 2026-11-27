@@ -5,6 +5,7 @@ oberflaeche: handy
 rollen: therapeut
 seite: myday
 stichwoerter: App installieren, Startbildschirm, Home-Bildschirm, Symbol, Icon, aufs Handy, iPhone, Android, Safari, Chrome, PWA, Verknüpfung, install app, home screen, add to home screen
+betrieb: server
 ---
 # „Mein Tag“ aufs Handy holen
 

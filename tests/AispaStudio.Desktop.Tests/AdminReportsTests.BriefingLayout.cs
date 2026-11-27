@@ -35,6 +35,8 @@ public sealed partial class AdminReportsTests
 
         var reports = Reports(api);
         await reports.EnsureLoadedAsync();
+        reports.SelectTabCommand.Execute(ReportsViewModel.BriefingTab);
+        await Task.Yield();
         Assert.True(reports.IsBriefingTab);
         return reports.Briefing;
     }
@@ -48,13 +50,14 @@ public sealed partial class AdminReportsTests
     };
 
     [Fact]
-    public async Task Given_die_Inhaberin_When_sie_Zahlen_oeffnet_Then_gibt_es_genau_eine_Reiterebene_und_Tagesstart_ist_offen()
+    public async Task Given_die_Inhaberin_When_sie_Zahlen_oeffnet_Then_gibt_es_genau_eine_Reiterebene_und_Berichte_ist_als_erster_Reiter_offen()
     {
+        // T-110 (Auftraggeber, 26.11.2026): „Berichte“ ist der erste Reiter und der Startreiter.
         var reports = Reports(AddReports(new StubApi()));
         await reports.EnsureLoadedAsync();
 
-        Assert.Equal(["Tagesstart", "Mein Tag", "Hygiene", "Berichte", "Betriebsinfo"], reports.TabTitles);
-        Assert.True(reports.IsBriefingTab);
+        Assert.Equal(["Berichte", "Tagesstart", "Mein Tag", "Hygiene", "Betriebsinfo"], reports.TabTitles);
+        Assert.True(reports.IsManagementTab);
         Assert.NotNull(reports.BusinessInfo);
 
         var group = Shell(AddReports(new StubApi())).AdminPage.Groups.Single(g => g.Title == "Zahlen");
@@ -124,6 +127,8 @@ public sealed partial class AdminReportsTests
         var api = AddReports(new StubApi());
         var reports = Reports(api);
         await reports.EnsureLoadedAsync();
+        reports.SelectTabCommand.Execute(ReportsViewModel.BriefingTab);
+        await Task.Yield();
         Assert.True(reports.IsBriefingTab);
 
         reports.Open(new AdminTarget(Section: ReportsViewModel.ComplianceTab));

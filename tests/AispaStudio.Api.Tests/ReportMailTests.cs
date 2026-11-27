@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using AispaStudio.Api.Reporting;
 using AispaStudio.Contracts;
+using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace AispaStudio.Api.Tests;
@@ -62,6 +63,30 @@ public sealed class ReportMailTests(ApiFixture fixture)
         Assert.Equal(HttpStatusCode.OK, refused.StatusCode);
         using var reception = await TestUsers.ClientAsync(fixture, Ct, StaffRole.Reception, [spa.Location.Id]);
         Assert.Equal(HttpStatusCode.Forbidden, (await reception.GetAsync("/api/reports/mail-subscription", Ct)).StatusCode);
+    }
+
+    [Theory]
+    [InlineData(null, false)]
+    [InlineData("smtp.spa-am-see.at", true)]
+    public async Task Im_Einzelplatz_gibt_es_den_Bericht_per_Mail_nur_mit_eingerichtetem_Mailversand(string? smtpHost, bool offered)
+    {
+        // T-110: Ohne Mail:Smtp:Host gingen die Mails im Einzelplatz nur ins Log; der Haken fehlt dort. Mit Server gilt die Rolle allein (Test oben).
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        await using var host = fixture.Factory.WithWebHostBuilder(b =>
+        {
+            b.UseSetting("Hosting:Standalone", "true");
+            if (smtpHost is not null)
+            {
+                b.UseSetting("Mail:Smtp:Host", smtpHost);
+            }
+        });
+        using var client = host.CreateClient(new WebApplicationFactoryClientOptions { HandleCookies = false });
+        client.DefaultRequestHeaders.Add("Cookie", spa.Cookie);
+        client.DefaultRequestHeaders.Add("X-Aispa-Spa", spa.TenantId.ToString());
+
+        var subscription = await client.GetFromJsonAsync<ReportMailSubscription>("/api/reports/mail-subscription", TestSpa.Json, Ct);
+
+        Assert.Equal(new ReportMailSubscription(offered, offered), subscription);
     }
 
     [Fact]

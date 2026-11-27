@@ -13,6 +13,8 @@ export interface HelpPageParams extends HelpTarget {
   role?: string;
   /** `leiste`: schmale Ansicht für die Leiste „KI und Hilfe“ (ADR 0079, Nachtrag). */
   view?: "leiste";
+  /** `einzelplatz`: die Windows-App läuft im Einzelplatz; Themen mit `betrieb: server` fehlen (T-110). */
+  operation?: "einzelplatz";
 }
 
 export function readHelpUrl(search: string): HelpPageParams {
@@ -23,10 +25,11 @@ export function readHelpUrl(search: string): HelpPageParams {
     surface: q.get("oberflaeche") ?? undefined,
     role: q.get("rolle") ?? undefined,
     view: q.get("ansicht") === "leiste" ? "leiste" : undefined,
+    operation: q.get("betrieb") === "einzelplatz" ? "einzelplatz" : undefined,
   };
 }
 
-/** Die Adresse zu einem Ziel; Oberfläche, Rolle und Ansicht bleiben erhalten, `n` entfällt. */
+/** Die Adresse zu einem Ziel; Oberfläche, Rolle, Ansicht und Betrieb bleiben erhalten, `n` entfällt. */
 export function buildHelpUrl(target: HelpTarget, keep: HelpPageParams): string {
   const q = new URLSearchParams();
   if (target.topic) q.set("thema", target.topic);
@@ -34,6 +37,7 @@ export function buildHelpUrl(target: HelpTarget, keep: HelpPageParams): string {
   if (keep.surface) q.set("oberflaeche", keep.surface);
   if (keep.role) q.set("rolle", keep.role);
   if (keep.view) q.set("ansicht", keep.view);
+  if (keep.operation) q.set("betrieb", keep.operation);
   const text = q.toString();
   return text ? `?${text}` : "";
 }

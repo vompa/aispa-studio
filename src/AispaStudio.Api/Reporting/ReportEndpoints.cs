@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using AispaStudio.Api.Access;
 using AispaStudio.Api.Data;
+using AispaStudio.Api.Mail;
 using AispaStudio.Api.Online;
 using AispaStudio.Api.Scheduling;
 using AispaStudio.Api.Stock;
@@ -8,6 +9,7 @@ using AispaStudio.Api.System;
 using AispaStudio.Contracts;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace AispaStudio.Api.Reporting;
 
@@ -406,15 +408,16 @@ internal static class ReportEndpoints
             .RequirePermission(AccessRight.ViewFinance)
             .AllowChannel(AccessChannel.StaffApp);
 
-        group.MapGet("/mail-subscription", async Task<Ok<ReportMailSubscription>> (AccessService accessService, AispaDbContext db, CancellationToken ct) =>
+        group.MapGet("/mail-subscription", async Task<Ok<ReportMailSubscription>> (
+                AccessService accessService, AispaDbContext db, ModuleSwitches modules, IOptions<MailOptions> mail, CancellationToken ct) =>
             {
                 var access = (await accessService.CurrentAsync(ct))!;
                 var row = await db.StaffAccess.AsNoTracking().FirstOrDefaultAsync(a => a.UserId == access.UserId, ct);
-                var available = ReportMailSetup.Receives(access.Role);
+                var available = ReportMailSetup.Offered(access.Role, modules, mail.Value);
                 return TypedResults.Ok(new ReportMailSubscription(available && row?.ReportMails != false, available));
             })
             .WithName("GetReportMailSubscription")
-            .WithSummary("Ob die angemeldete Person Wochen- und Monatsbericht per Mail bekommt (Inhaber, Manager, Standortleitung).")
+            .WithSummary("Ob die angemeldete Person Wochen- und Monatsbericht per Mail bekommt (Inhaber, Manager, Standortleitung); im Einzelplatz nur mit eingerichtetem Mailversand.")
             .RequirePermission(AccessRight.ViewFinance);
 
         group.MapPut("/mail-subscription", async Task<Results<Ok<ReportMailSubscription>, ValidationProblem>> (

@@ -12,7 +12,7 @@ Der Reiter „Tagesstart“ fasst für die Rezeption zusammen, was an einem Tag 
 
 ## Tagesstart öffnen {#oeffnen}
 
-1. In der Windows-App unter „Verwaltung“ **Zahlen** öffnen. Der Reiter **Tagesstart** ist der erste Reiter und schon gewählt.
+1. In der Windows-App unter „Verwaltung“ **Zahlen** öffnen und den Reiter **Tagesstart** wählen. Wer Berichte sehen darf, landet zuerst bei **Berichte**; für alle anderen ist **Tagesstart** schon gewählt.
 2. **Standort** und **Datum** wählen; sie stehen im Kopf der Maske. Vorbelegt ist heute.
 
 ![Tagesstart der Rezeption](images/app/verwaltung-berichte-tagesstart.png)

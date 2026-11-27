@@ -100,6 +100,8 @@ public sealed partial class AdminReportsTests
         var api = AddReports(new StubApi()).On(OctoberReport, Report());
         var reports = Reports(api);
         await reports.EnsureLoadedAsync();
+        reports.SelectTabCommand.Execute(ReportsViewModel.BriefingTab);
+        await Task.Yield();
         Assert.True(reports.IsBriefingTab);
 
         reports.Open(new AdminTarget(null, SalzburgId, new DateOnly(2026, 10, 1), new DateOnly(2026, 10, 31), null, ReportsViewModel.ManagementTab));
@@ -183,9 +185,9 @@ public sealed partial class AdminReportsTests
         var route = ManagementRoute(new DateOnly(2026, 10, 1), Today);
         var api = AddReports(new StubApi()).On(route, Management() with { AiSummaryPending = true });
         var reports = Reports(api, time: time);
-        await reports.EnsureLoadedAsync();
 
-        reports.SelectTabCommand.Execute(ReportsViewModel.ManagementTab);
+        // „Berichte“ ist der Startreiter (T-110): Das Laden endet erst mit dem Nachfragen, also nicht darauf warten.
+        _ = reports.EnsureLoadedAsync();
         await WaitUntilAsync(() => reports.Management.IsAiPending);
         Assert.False(reports.Management.HasAiSummary);
         var before = api.Calls.Count(c => c.Route == route);
@@ -261,8 +263,9 @@ public sealed partial class AdminReportsTests
         var api = AddReports(new StubApi()).On(BriefingRoute, Briefing(pending: true));
         var reports = Reports(api, time: time);
 
-        // Der Tagesstart ist der erste Reiter (R07 Slice 144): Das Laden endet erst mit dem Nachfragen, also nicht darauf warten.
-        _ = reports.EnsureLoadedAsync();
+        // „Berichte“ ist der Startreiter (T-110); der Tagesstart endet erst mit dem Nachfragen, also nicht auf ihn warten.
+        await reports.EnsureLoadedAsync();
+        reports.SelectTabCommand.Execute(ReportsViewModel.BriefingTab);
         await WaitUntilAsync(() => reports.Briefing.IsAiPending);
         Assert.True(reports.IsBriefingTab);
         Assert.True(reports.Briefing.IsAiPending);

@@ -5,6 +5,7 @@ oberflaeche: windows-app
 rollen: rezeption, leitung, inhaber, manager
 seite: anfragen
 stichwoerter: Anfrage annehmen, Termin vorschlagen, vormerken, Vormerkung, reservieren, freihalten, bestätigen, freigeben, Gast antwortet, Terminwunsch eintragen, KI-Vorschlag, accept request, hold, propose time
+betrieb: server
 ---
 # Anfrage annehmen
 

@@ -26948,7 +26948,7 @@
         "tags": [
           "Berichte"
         ],
-        "summary": "Ob die angemeldete Person Wochen- und Monatsbericht per Mail bekommt (Inhaber, Manager, Standortleitung).",
+        "summary": "Ob die angemeldete Person Wochen- und Monatsbericht per Mail bekommt (Inhaber, Manager, Standortleitung); im Einzelplatz nur mit eingerichtetem Mailversand.",
         "operationId": "GetReportMailSubscription",
         "responses": {
           "200": {

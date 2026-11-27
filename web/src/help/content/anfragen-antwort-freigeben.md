@@ -5,6 +5,7 @@ oberflaeche: windows-app
 rollen: rezeption, leitung, inhaber, manager
 seite: anfragen
 stichwoerter: Antwort freigeben, Antwort senden, Entwurf prüfen, Antwort bearbeiten, Antwort überarbeiten, freundlicher formulieren, kürzer formulieren, Siezen, Duzen, Sie, du, Entschuldigung, KI-Entwurf, Mail beantworten, SMS beantworten, reply, approve answer, send reply, rewrite
+betrieb: server
 ---
 # Antwort prüfen, überarbeiten und senden
 

@@ -5,6 +5,7 @@ oberflaeche: windows-app
 rollen: rezeption, leitung, inhaber, manager
 seite: anfragen
 stichwoerter: Anfragen, Posteingang, Inbox, Mails, Nachrichten, SMS, WhatsApp, Anruf, Treatwell, KI-Terminannahme, Terminanfrage, Buchungsanfrage, inbox, messages, booking requests
+betrieb: server
 ---
 # Seite „Anfragen“ in der Windows-App
 

@@ -73,8 +73,8 @@
               <TextBlock Text="{Binding ThemeText}" Classes="navtitle" FontSize="12" FontWeight="Medium" HorizontalAlignment="Center" />
             </StackPanel>
           </Button>
-          <Border Classes="pill" Classes.ok="{Binding !IsOffline}" Classes.warn="{Binding IsOffline}" HorizontalAlignment="Center"
-                  ToolTip.Tip="{Binding ConnectionTip}">
+          <Border x:Name="ConnectionPill" Classes="pill" Classes.ok="{Binding !IsOffline}" Classes.warn="{Binding IsOffline}" HorizontalAlignment="Center"
+                  IsVisible="{Binding ShowConnection}" ToolTip.Tip="{Binding ConnectionTip}">
             <StackPanel Orientation="Horizontal" Spacing="5">
               <Panel VerticalAlignment="Center">
                 <Ellipse Width="7" Height="7" Fill="{DynamicResource OkBrush}" IsVisible="{Binding !IsOffline}" />

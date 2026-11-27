@@ -8,7 +8,7 @@
                         x:DataType="vm:ReportsViewModel"
                         ui:SaveShortcut.IsScope="True">
   <!--
-    „Zahlen“ (R05 Slice 102, R07 Slice 144, Ä352): eine einzige Reiterebene (Tagesstart · Mein Tag · Hygiene · Berichte · Betriebsinfo, je nach Recht), Standort und Datum rechts im Kopf.
+    „Zahlen“ (R05 Slice 102, R07 Slice 144, Ä352): eine einzige Reiterebene (Berichte · Tagesstart · Mein Tag · Hygiene · Betriebsinfo, je nach Recht; Berichte ist der Startreiter, T-110), Standort und Datum rechts im Kopf.
     Management und Pflichtberichte stehen im Reiter „Berichte“ als Abschnitte untereinander (ADR 0098, masken.md R15), jeder mit eigenem Kopf: Management hat seinen Zeitraum,
     nur die Pflichtberichte ein Datum. Die Betriebsinfo hat ihre eigene Maske ohne Standort und Datum.
     Die Inhalte der Reiter stehen in eigenen Ansichten, die App.axaml den ViewModels zuordnet.
@@ -23,10 +23,10 @@
     <ui:ReflowRow x:Name="ReportHeader" Grid.Row="1" Spacing="16" LineSpacing="8" Margin="0,0,16,16" IsVisible="{Binding IsLoaded}">
       <Border Classes="segmented" HorizontalAlignment="Left" VerticalAlignment="Bottom" ui:RegionNavigation.IsRegion="True" AutomationProperties.Name="Reiter von Zahlen">
         <StackPanel Orientation="Horizontal">
+          <ui:TabButton x:Name="ReportManagementTab" Content="Berichte" IsVisible="{Binding CanSeeManagement}" IsSelected="{Binding IsManagementTab}" Command="{Binding SelectTabCommand}" CommandParameter="management" />
           <ui:TabButton x:Name="ReportBriefingTab" Content="Tagesstart" IsVisible="{Binding CanSeeBriefing}" IsSelected="{Binding IsBriefingTab}" Command="{Binding SelectTabCommand}" CommandParameter="briefing" />
           <ui:TabButton x:Name="ReportDayTab" Content="Mein Tag" IsVisible="{Binding CanSeeDay}" IsSelected="{Binding IsDayTab}" Command="{Binding SelectTabCommand}" CommandParameter="day" />
           <ui:TabButton x:Name="ReportHygieneTab" Content="Hygiene" IsVisible="{Binding CanSeeHygiene}" IsSelected="{Binding IsHygieneTab}" Command="{Binding SelectTabCommand}" CommandParameter="hygiene" />
-          <ui:TabButton x:Name="ReportManagementTab" Content="Berichte" IsVisible="{Binding CanSeeManagement}" IsSelected="{Binding IsManagementTab}" Command="{Binding SelectTabCommand}" CommandParameter="management" />
           <ui:TabButton x:Name="ReportBusinessInfoTab" Content="Betriebsinfo" IsVisible="{Binding CanSeeBusinessInfo}" IsSelected="{Binding IsBusinessInfoTab}" Command="{Binding SelectTabCommand}" CommandParameter="businessInfo" />
         </StackPanel>
       </Border>

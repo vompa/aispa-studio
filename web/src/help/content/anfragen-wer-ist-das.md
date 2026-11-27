@@ -5,6 +5,7 @@ oberflaeche: windows-app
 rollen: rezeption, leitung, inhaber, manager
 seite: anfragen
 stichwoerter: Wer ist das, Kunde zuordnen, Absender zuordnen, Kundenzuordnung, Vorschlag übernehmen, neu anlegen, Zuordnung lösen, Adresse merken, Nummer merken, doppelter Kunde, Dublette, unbekannter Absender, assign customer, match sender, duplicate
+betrieb: server
 ---
 # Wer ist das? Absender einem Kunden zuordnen
 

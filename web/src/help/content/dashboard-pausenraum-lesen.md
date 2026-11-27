@@ -5,6 +5,7 @@ oberflaeche: windows-app
 rollen: leitung, inhaber, manager
 seite: geraete
 stichwoerter: Dashboard, Pausenraum, Tafel, Bildschirm, Fernseher, Tagesleiste, freie Räume, nächste Termine, Initialen, Vollbild, F11, breakroom, display board
+betrieb: server
 ---
 # Tafel im Pausenraum lesen
 

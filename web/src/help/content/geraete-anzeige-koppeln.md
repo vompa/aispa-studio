@@ -5,6 +5,7 @@ oberflaeche: windows-app
 rollen: leitung, inhaber, manager
 seite: geraete
 stichwoerter: Anzeige koppeln, Pausenraum, Dashboard, Bildschirm, Fernseher, Monitor, Kopplung aufheben, Anzeige widerrufen, Code vom Bildschirm, display, breakroom screen
+betrieb: server
 ---
 # Anzeige im Pausenraum koppeln
 

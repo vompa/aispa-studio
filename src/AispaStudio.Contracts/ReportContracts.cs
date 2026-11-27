@@ -332,7 +332,7 @@ public sealed record ForecastWeek(DateOnly From, DateOnly Until, int Appointment
 /// </summary>
 public sealed record TrendPoint(DateOnly From, DateOnly Until, decimal? RevenueNet, int Appointments, decimal StaffUtilization);
 
-/// <summary>Wochen- und Monatsbericht per Mail für die angemeldete Person: <c>Enabled</c>, ob sie ihn bekommt; <c>Available</c>, ob ihre Rolle ihn überhaupt bekommt.</summary>
+/// <summary>Wochen- und Monatsbericht per Mail für die angemeldete Person: <c>Enabled</c>, ob sie ihn bekommt; <c>Available</c>, ob ihre Rolle ihn überhaupt bekommt und, im Einzelplatz, ein Mailversand eingerichtet ist.</summary>
 public sealed record ReportMailSubscription(bool Enabled, bool Available);
 
 /// <summary>Ein- oder abbestellen.</summary>

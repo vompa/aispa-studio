@@ -155,13 +155,14 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
             pages.Add(new NavItem("Netz", Icons.Wifi, serverLink));
         }
         Help.Role = user.Access?.Role;
+        Help.Standalone = modules?.Standalone == true;
         // Strg+Leertaste im eingebetteten Browser der Hilfe kommt als Nachricht der Seite (appShortcuts.ts); sie zählt nur, solange die Seite offen ist.
         Help.CompanionRequested += () => ToggleCompanionFromBrowser(Help);
         Help.KeyHelpRequested += () => HelpKeyRequested?.Invoke();
         HelpContent.ShowInApp = ShowHelpInPanel;
         HelpContent.ShowManualInApp = ShowHelp;
         // Hilfe in der Leiste (ADR 0079, Nachtrag): dieselbe Hilfe-Seite im Modus „ansicht=leiste“, mit eigenem eingebetteten Browser.
-        var helpArea = new HelpViewModel(() => _web.Address, time: time, prepare: _web.LookUpAsync) { Role = user.Access?.Role, InPanel = true };
+        var helpArea = new HelpViewModel(() => _web.Address, time: time, prepare: _web.LookUpAsync) { Role = user.Access?.Role, Standalone = modules?.Standalone == true, InPanel = true };
         Companion = new CompanionViewModel(api, theme.Store,
             // Das Backoffice hat keinen Kalender, aber Auswertungen: der Assistent beantwortet ihm nur diese und Fragen zur Bedienung (ADR 0072).
             (user.Rights.Contains(AccessRight.ViewCalendar) || user.Rights.Contains(AccessRight.ViewFinance)) && modules?.Assistant != false,
@@ -465,6 +466,12 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
     /// <summary>Aktion „Sicherung öffnen“ am Sicherungs-Banner.</summary>
     [RelayCommand]
     private void OpenBackup() => SelectedPage = Pages.FirstOrDefault(p => p.Page == Backup && Backup is not null) ?? SelectedPage;
+
+    /// <summary>
+    /// Die Pille unten links in der Leiste. Läuft die API auf diesem PC (Einzelplatz), zeigte sie nur die Verbindung zum eigenen PC und fehlt (T-110);
+    /// fällt die API dort aus, meldet das das Banner „Keine Verbindung“. An einem weiteren PC im Netz und mit Server bleibt sie.
+    /// </summary>
+    public bool ShowConnection => !_runsLocally;
 
     public string ConnectionText => IsOffline ? "Offline" : PendingCount > 0 ? "Gleicht ab" : "Online";
 

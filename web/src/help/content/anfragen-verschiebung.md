@@ -5,6 +5,7 @@ oberflaeche: windows-app
 rollen: rezeption, leitung, inhaber, manager
 seite: anfragen
 stichwoerter: Termin verschieben per SMS, Gast möchte verschieben, anderer Tag, umbuchen aus Nachricht, Verschiebungswunsch, reschedule by text, guest moves
+betrieb: server
 ---
 # Verschiebungswunsch eines Gasts übernehmen
 

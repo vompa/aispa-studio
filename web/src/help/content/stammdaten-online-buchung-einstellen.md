@@ -5,6 +5,7 @@ oberflaeche: verwaltung
 rollen: inhaber, manager, leitung
 seite: verwaltung
 stichwoerter: Route planen, Anreise im Kundenbereich, Karten-App, Online-Buchung, Onlinebuchung einstellen, online buchbar, Vorlauf, Stornofrist, No-Show, Ausfallgebühr, Kreditkarte hinterlegen, Raster, Hinweis für Gäste, online booking rules, cancellation policy
+betrieb: server
 ---
 # Online-Buchung eines Standorts einstellen
 

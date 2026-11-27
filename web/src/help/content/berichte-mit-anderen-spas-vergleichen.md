@@ -5,6 +5,7 @@ oberflaeche: verwaltung
 rollen: leitung, inhaber, manager
 seite: verwaltung
 stichwoerter: Benchmark, Vergleich, andere Spas, Branchenvergleich, Mitbewerb, Konkurrenz, wie stehen wir da, Median, Mitte, stärkstes Viertel, Hebel, Tipps, Vergleichsgruppe, compare, peers, benchmarking
+betrieb: server
 ---
 # Mit anderen Spas vergleichen
 

@@ -329,6 +329,9 @@ public sealed partial class ManagementReportViewModel(IWorkstationApi api, TimeP
     [ObservableProperty]
     public partial bool Compare { get; set; }
 
+    /// <summary>Das Kästchen „Mit anderen Spas vergleichen“; ohne das Modul Vergleich (z. B. im Einzelplatz, ADR 0041) fehlt es, der Server antwortete dort mit 404.</summary>
+    public bool CanCompare { get; init; } = true;
+
     public IReadOnlyList<BenchmarkPeriod> BenchmarkPeriods { get; } = [new(30, "30 Tage"), new(90, "90 Tage"), new(365, "12 Monate")];
 
     [ObservableProperty]

@@ -7702,7 +7702,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Ob die angemeldete Person Wochen- und Monatsbericht per Mail bekommt (Inhaber, Manager, Standortleitung). */
+        /** Ob die angemeldete Person Wochen- und Monatsbericht per Mail bekommt (Inhaber, Manager, Standortleitung); im Einzelplatz nur mit eingerichtetem Mailversand. */
         get: operations["GetReportMailSubscription"];
         /** Wochen- und Monatsbericht per Mail für die angemeldete Person ein- oder abbestellen. */
         put: operations["SetReportMailSubscription"];

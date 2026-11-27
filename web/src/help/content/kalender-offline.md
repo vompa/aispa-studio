@@ -12,7 +12,7 @@ Fällt die Verbindung aus, zeigt der Kalender den zuletzt geladenen Stand, und d
 
 ## Woran man es erkennt {#erkennen}
 
-- Links in der Leiste steht **Offline** statt **Online** (bzw. **Gleicht ab**, solange Vorgemerktes gesendet wird).
+- Links in der Leiste steht **Offline** statt **Online** (bzw. **Gleicht ab**, solange Vorgemerktes gesendet wird). Am PC des Einzelplatzes, auf dem die Datenbank läuft, gibt es diese Pille nicht; dort zeigt nur die Warnung den Ausfall.
 - Oben erscheint eine Warnung: „Keine Verbindung. Kalender und Kunden zeigen den zuletzt geladenen Stand; …“ mit der Zahl der vorgemerkten Änderungen. Die App prüft alle 15 Sekunden von selbst; **Verbindung prüfen** fragt sofort an, statt auf den nächsten Durchgang zu warten.
 - Oben stehen höchstens zwei solche Meldungen. Steht eine dritte an (z. B. die Erinnerung an die Sicherung), zeigt **Alle zeigen** auch sie.
 - Unter dem Datum steht „Ohne Verbindung · Stand 19.10. 08:45“.

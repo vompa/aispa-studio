@@ -5,6 +5,7 @@ oberflaeche: handy, verwaltung
 rollen: therapeut, rezeption, leitung, inhaber, manager
 seite: myday
 stichwoerter: Lieferschein, Lieferschein fotografieren, Lieferung buchen, Lieferschein-Foto, delivery note, Inventur am Handy, Zählung vom Handy, Lager zählen, Handy zählen, Barcode scannen, Kamera, Wareneingang scannen, Zählung abschließen, Zählung übernehmen, count on phone, scan barcode
+betrieb: server
 ---
 # Inventur am Handy zählen
 

@@ -7,7 +7,7 @@ import { TopicFoot, TopicHead, TopicToc } from "./HelpTopicParts";
 import { openHelp, useHelpRequest } from "./help";
 import { buildHelpUrl, readHelpUrl } from "./helpUrl";
 import { orderedRoleEntries } from "./roleEntries";
-import { loadTopics, sectionsOf, type HelpTopic } from "./topics";
+import { forOperation, loadTopics, sectionsOf, type HelpTopic } from "./topics";
 
 /** Ab dieser Fensterbreite steht „Auf dieser Seite“ rechts neben dem Text, darunter als „Inhalt“ über dem Text. */
 const wideQuery = "(min-width: 1180px)";
@@ -66,7 +66,7 @@ export function HelpApp() {
   const synced = useRef(false);
   const wide = useWide();
 
-  useEffect(() => void loadTopics().then(setTopics), []);
+  useEffect(() => void loadTopics().then((all) => setTopics(forOperation(all, params.operation))), [params.operation]);
   // Eingebettet in der Windows-App meldet Strg+Leertaste „KI und Hilfe“, F1 und in der Leiste Esc an die App.
   useEffect(() => installAppShortcuts(), []);
 

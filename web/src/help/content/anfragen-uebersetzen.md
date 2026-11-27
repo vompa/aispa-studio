@@ -5,6 +5,7 @@ oberflaeche: windows-app
 rollen: rezeption, leitung, inhaber, manager
 seite: anfragen
 stichwoerter: übersetzen, Übersetzung, Fremdsprache, Englisch, Italienisch, Französisch, Original anzeigen, DE, Deutsch, Taste O, ausländischer Gast, translate, translation, foreign language, original text
+betrieb: server
 ---
 # Fremdsprachige Nachricht übersetzen
 

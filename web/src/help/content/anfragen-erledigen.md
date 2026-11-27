@@ -5,6 +5,7 @@ oberflaeche: windows-app
 rollen: rezeption, leitung, inhaber, manager
 seite: anfragen
 stichwoerter: Anfrage erledigen, ohne Antwort abschließen, Spam, Werbung, ignorieren, abhaken, Fehler, erneut verarbeiten, nochmal versuchen, dismiss, mark done, retry
+betrieb: server
 ---
 # Anfrage ohne Termin erledigen
 

@@ -5,6 +5,7 @@ oberflaeche: handy
 rollen: therapeut
 seite: myday
 stichwoerter: meine Termine, mein Tag, heute, morgen, Vortag, Folgetag, Tagesplan, Dienst, welche Behandlung als nächstes, nächster Gast, offline, kein WLAN, Standort wechseln, anmelden, my schedule, today, next appointment
+betrieb: server
 ---
 # Eigenen Tag am Handy ansehen
 

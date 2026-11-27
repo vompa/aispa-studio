@@ -5,6 +5,7 @@ oberflaeche: handy
 rollen: therapeut
 seite: myday
 stichwoerter: Mein Tag, Handy, Smartphone, Handy-App, App, Therapeutin, Therapeut, meine Termine, Tagesplan, Behandlungskarte, offline, Behandlungsraum, mobile, phone, my day, PWA
+betrieb: server
 ---
 # „Mein Tag“ am Handy
 

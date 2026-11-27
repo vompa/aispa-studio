@@ -16,7 +16,7 @@ Den Management-Bericht gibt es als PDF, als Word-Datei und als Excel-Arbeitsmapp
 2. In der Kopfzeile auf **Ausgabe** klicken. Das Menü hat drei Gruppen:
    - **Drucken …**, **Als PDF speichern** und **Per Mail senden …**: der Bericht als PDF. Die Einträge stehen erst, wenn der Bericht geladen ist.
    - **Bericht (Excel)**, **Bericht (Word)** und **Kennzahlen (CSV)**.
-   - Das Kästchen **Wochen- und Monatsbericht per Mail**: bestellt den Bericht ab oder wieder an, nur für Sie selbst. Es steht nur für Inhaber, Manager und Standortleitung. Mehr dazu unter [Bericht per Mail](hilfe:berichte-kennzahlen-ansehen#bericht-per-mail).
+   - Das Kästchen **Wochen- und Monatsbericht per Mail**: bestellt den Bericht ab oder wieder an, nur für Sie selbst. Es steht nur für Inhaber, Manager und Standortleitung, im Einzelplatz nur mit eingerichtetem Mailversand (`Mail:Smtp:Host`). Mehr dazu unter [Bericht per Mail](hilfe:berichte-kennzahlen-ansehen#bericht-per-mail).
 3. Den Eintrag wählen. Nach dem Speichern einer Datei steht „Gespeichert: …“, und **Ordner öffnen** daneben öffnet den Ordner. Drucken, PDF und Mail melden sich mit einer kurzen Meldung.
 
 Das Menü speichert, druckt oder sendet immer den Bericht, den die Seite gerade zeigt. Wer Standort, Zeitraum oder Vergleich ändert, wählt danach neu.

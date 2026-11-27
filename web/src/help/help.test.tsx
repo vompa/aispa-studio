@@ -7,7 +7,7 @@ import { HelpButton } from './HelpButton'
 import { HelpDrawer } from './HelpDrawer'
 import { helpLink, parseMarkdown } from './markdown'
 import { searchHelp } from './search'
-import { imageUrl, loadTopics, sectionBlocks, toTopic } from './topics'
+import { forOperation, imageUrl, loadTopics, operationValues, sectionBlocks, toTopic } from './topics'
 
 // Der erste Import aller Hilfetexte dauert unter Last länger als die 1 s von findBy…; danach liegen sie im Speicher.
 beforeAll(() => loadTopics(), 60_000)
@@ -83,6 +83,43 @@ describe('Hilfe', () => {
   it('jede Seite der Windows-App und der Web-Apps hat eine Erklärung', () => {
     for (const page of ['kalender', 'kunden', 'anfragen', 'kassa', 'geraete', 'abgleich', 'sicherung', 'im-netz', 'netz', 'verwaltung', 'anmeldung', 'myday'])
       expect(topics.some((t) => t.meta.kind === 'seite' && t.meta.page === page), `Seitenthema für ${page}`).toBe(true)
+  })
+
+  it('Themen mit „betrieb: server“ fehlen im Einzelplatz und erscheinen mit Server; andere Werte von „betrieb“ gibt es nicht', () => {
+    const online = toTopic('online-probe', '---\nbetrieb: server\n---\n# Online-Buchung\n\nText.')
+    const backup = toTopic('sicherung-probe', '---\nart: einstellung\n---\n# Sicherung\n\nText.')
+
+    expect(forOperation([online, backup], 'einzelplatz').map((t) => t.id)).toEqual(['sicherung-probe'])
+    expect(forOperation([online, backup], undefined).map((t) => t.id)).toEqual(['online-probe', 'sicherung-probe'])
+    for (const topic of topics)
+      if (topic.meta.operation !== undefined) expect(operationValues, `${topic.id}: betrieb „${topic.meta.operation}“`).toContain(topic.meta.operation)
+    for (const kept of ['abgleich', 'sicherung', 'ki']) expect(topics.find((t) => t.id === kept)?.meta.operation, kept).toBeUndefined()
+  })
+
+  it('ein Verweis auf ein Server-Thema ist im Einzelplatz Text ohne Link und mit Server ein Link', () => {
+    const online = toTopic('online-probe', '---\nbetrieb: server\n---\n# Online-Buchung\n\nText.')
+    const team = toTopic('team-probe', '# Team\n\nSiehe [Online-Buchung](hilfe:online-probe) und [Team](hilfe:team-probe).')
+    const spans = (t: ReturnType<typeof toTopic>) => (t.blocks[0].kind === 'paragraph' ? t.blocks[0].spans : [])
+
+    const standalone = forOperation([online, team], 'einzelplatz').find((t) => t.id === 'team-probe')!
+    const server = forOperation([online, team], undefined).find((t) => t.id === 'team-probe')!
+
+    expect(spans(standalone).find((s) => s.text === 'Online-Buchung')).toEqual({ text: 'Online-Buchung' })
+    expect(spans(standalone).find((s) => s.text === 'Team')?.href).toBe('hilfe:team-probe')
+    expect(spans(server).find((s) => s.text === 'Online-Buchung')?.href).toBe('hilfe:online-probe')
+  })
+
+  it('im Einzelplatz zeigt kein Verweis eines sichtbaren Themas auf ein ausgeblendetes', () => {
+    const visible = forOperation(topics, 'einzelplatz')
+    const ids = new Set(visible.map((t) => t.id))
+    for (const topic of visible)
+      for (const b of topic.blocks) {
+        const spans = b.kind === 'paragraph' || b.kind === 'callout' ? b.spans : b.kind === 'list' ? b.items.flat() : []
+        for (const span of spans) {
+          const link = helpLink(span.href)
+          if (link) expect(ids.has(link.topic), `${topic.id}: Verweis auf ${link.topic}`).toBe(true)
+        }
+      }
   })
 
   it('die Suche findet Abläufe vor Einstellungen', () => {

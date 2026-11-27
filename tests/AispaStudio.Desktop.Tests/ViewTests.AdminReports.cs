@@ -55,6 +55,21 @@ public sealed partial class ViewTests
         return shell.AdminPage;
     }, ReportsApi());
 
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public Task Verwaltung_Berichte_im_Einzelplatz_ohne_Spa_Vergleich_und_ohne_Verbindungspille(bool standalone) =>
+        Render("hell", $"verwaltung-berichte-{(standalone ? "einzelplatz" : "server")}", async (window, main) =>
+        {
+            // T-110: Im Einzelplatz fehlen der Vergleich mit anderen Spas (Modul aus) und die Pille „Online“ (sie zeigte nur den eigenen PC).
+            var (shell, reports) = await OpenReports(window, main, ReportsViewModel.ManagementTab);
+            Assert.True(reports.IsManagementTab);
+            Assert.Equal(!standalone, Named<CheckBox>(window, "ManagementCompareField").IsEffectivelyVisible);
+            Assert.Equal(!standalone, Named<Border>(window, "ConnectionPill").IsEffectivelyVisible);
+            return shell.AdminPage;
+        }, ReportsApi().On("GET /api/system/modules", new SystemModules(standalone, !standalone, !standalone, true, !standalone, !standalone, !standalone, !standalone)),
+            local: standalone ? new SampleLocal() : null);
+
     [Fact]
     public Task Verwaltung_Berichte_Management_mit_KI_Kommentar() => Render("hell", "verwaltung-berichte-management-ki", async (window, main) =>
     {

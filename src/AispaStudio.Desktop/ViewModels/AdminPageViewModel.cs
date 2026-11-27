@@ -278,7 +278,7 @@ public sealed partial class AdminPageViewModel : ViewModelBase
         "ai" => new AiViewModel(api),
         _ when area.Page == "stock" => new StockViewModel(api, user, time, live, FileSettingsStore.Default, toast),
         _ when area.Page == "promotions" => new PromotionsViewModel(api, time, toast),
-        _ when area.Page == "reports" => new ReportsViewModel(api, user, time, toast),
+        _ when area.Page == "reports" => new ReportsViewModel(api, user, time, toast, benchmarkOn: modules?.Benchmark != false),
         _ when area.Page == "accounting" => new AccountingViewModel(api, user, time, toast),
         _ when area.Page == "costs" => new CostsViewModel(api, user, time, toast),
         _ => throw new InvalidOperationException($"Der Bereich „{area.Title}“ hat keine native Maske."),
