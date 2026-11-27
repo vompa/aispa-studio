@@ -111,4 +111,6 @@ Neue Entscheidungen bekommen die nächste freie Nummer und die Vorlage [`vorlage
 | 0103 | [Claude-Schlüssel je Betrieb in der App](0103-claude-schluessel-je-betrieb-in-der-app.md) | 26.11.2026 | Auftraggeber (Plan zu T-111), Umsetzung Claude, autonom nach ADR 0019 |
 | 0104 | [Geführte Ersteinrichtung: Setup, Startauswahl und Assistent](0104-gefuehrte-ersteinrichtung.md) | 27.11.2026 | Auftraggeber (Einzelplatz als Normalfall, Setup mit Velopack), Einzelheiten Claude |
 
+| 0105 | [Kassa einrichten: Anbieterrahmen und Übungskassa](0105-kassa-einrichten-anbieterrahmen-und-uebungskassa.md) | 27.11.2026 | Auftraggeber, Ausführung Codex im Automodus |
+
 Detailentscheidungen einzelner Pull Requests stehen im [PR-Protokoll](../umsetzung/pr-protokoll.md).

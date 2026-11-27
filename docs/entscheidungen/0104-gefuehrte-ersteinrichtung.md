@@ -136,6 +136,10 @@ Umgesetzt ist noch nichts. Die Aufgaben stehen in der Aufgabenliste.
 - Startkatalog: ja, nach Art des Spas in Paketen.
 - Kassa: danach, mit eigenem Assistenten. Belege bleiben in jedem Fall bei der Kassa ([ADR 0010](0010-kassa-compliance-by-design.md)).
 
+## Nachtrag vom 27.11.2026: eigene Kassa-Einrichtung
+
+[ADR 0105](0105-kassa-einrichten-anbieterrahmen-und-uebungskassa.md) führt die Entscheidung für eine eigene Karte und einen eigenen Assistenten „Kassa einrichten“ aus. Die neue allgemeine Einrichtung endet nach Standort, Öffnungszeiten, Räumen, Behandlungen und Team. Die Kassa-Karte zeigt getrennt, ob eine Kassa fehlt, nur Übungsbetrieb möglich ist oder eine echte Kassa an dieser Stelle Belege bilden kann. Der Verwaltungsweg des Standortschritts bleibt erhalten.
+
 ## Quellen
 
 - [ADR 0099](0099-anlegen-entfernen-und-leerer-betrieb.md) (Karte „Betrieb einrichten“, leerer Betrieb), [ADR 0041](0041-einzelplatz-standalone-und-zuschaltbare-webmodule.md), [ADR 0049](0049-mehrplatz-im-eigenen-netz.md), [ADR 0051](0051-passwort-vergessen-mit-wiederherstellungsschluessel.md), [ADR 0059](0059-zum-start-nur-die-windows-app.md), [ADR 0084](0084-alle-masken-nativ-web-fuer-dashboard-und-handy.md), [ADR 0085](0085-api-version-in-den-pfaden.md), [ADR 0100](0100-beispiel-spa-in-eigener-datenbank.md)
