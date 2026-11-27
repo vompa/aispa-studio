@@ -1303,14 +1303,22 @@ public sealed partial class ViewTests
     });
 
     [Fact]
-    public Task Gemeinsamer_Termin() => Render("hell", "kalender-gemeinsam", async (window, main) =>
+    public Task Gemeinsamer_Termin()
     {
-        var calendar = await SignedInCalendar(main);
-        var couple = calendar.Columns.SelectMany(c => c.Items).First(i => i.Appointment?.GroupId == SpaSample.CoupleId).Appointment!;
-        calendar.OpenAppointment(couple);
-        Assert.True(calendar.Selected!.CanMoveGroup);
-        return calendar;
-    });
+        var api = Api();
+        return Render("hell", "kalender-gemeinsam", async (window, main) =>
+        {
+            var calendar = await SignedInCalendar(main);
+            var couple = calendar.Columns.SelectMany(c => c.Items).First(i => i.Appointment?.GroupId == SpaSample.CoupleId).Appointment!;
+            // Ohne Überblick zur Kundin zeigte das Handbuchbild „Der Überblick wurde nicht geladen.“
+            api.On($"GET /api/customers/{couple.CustomerId}/summary", SpaSample.Summary());
+            calendar.OpenAppointment(couple);
+            await Pump(Settling);
+            Assert.True(calendar.Selected!.CanMoveGroup);
+            Assert.DoesNotContain(Named<Control>(window, "CustomerSection").GetVisualDescendants().OfType<InfoBar>(), b => b.IsEffectivelyVisible);
+            return calendar;
+        }, api);
+    }
 
     [Theory]
     [InlineData("hell")]
