@@ -12,7 +12,7 @@
       <StackPanel Spacing="12">
         <Grid ColumnDefinitions="*,Auto">
           <TextBlock Text="Signatureinrichtung" Classes="h2" TextWrapping="Wrap" />
-          <ui:HelpButton Grid.Column="1" Topic="kassa-einrichten" />
+          <ui:HelpButton Grid.Column="1" Topic="kassa-einrichten" Section="signatureinrichtung" />
         </Grid>
         <TextBlock Text="{Binding ProviderName}" TextWrapping="Wrap" />
         <StackPanel Spacing="8" IsVisible="{Binding ShowProviderActions}">
@@ -35,7 +35,7 @@
       <StackPanel Spacing="12">
         <Grid ColumnDefinitions="*,Auto">
           <TextBlock Text="Für FinanzOnline" Classes="h2" />
-          <ui:HelpButton Grid.Column="1" Topic="kassa-einrichten" />
+          <ui:HelpButton Grid.Column="1" Topic="kassa-einrichten" Section="finanzonline" />
         </Grid>
         <ui:InfoBar Severity="Warning" Title="Übungskassa" Message="Diese Kassa nicht in FinanzOnline registrieren." IsVisible="{Binding IsPractice}" />
         <Button x:Name="LoadFiscalRegistrationButton" Content="Registrierungsdaten anzeigen" Command="{Binding LoadRegistrationCommand}"
@@ -64,7 +64,7 @@
       <StackPanel Spacing="8">
         <Grid ColumnDefinitions="*,Auto">
           <TextBlock Text="Meldung über ELSTER" Classes="h2" TextWrapping="Wrap" />
-          <ui:HelpButton Grid.Column="1" Topic="kassa-einrichten" />
+          <ui:HelpButton Grid.Column="1" Topic="kassa-einrichten" Section="elster" />
         </Grid>
         <TextBlock Text="Die Übungskassa nicht über ELSTER melden." TextWrapping="Wrap" IsVisible="{Binding IsPractice}" />
         <TextBlock Text="Die Kassa über ELSTER melden und die Meldung bestätigen." TextWrapping="Wrap" IsVisible="{Binding !IsPractice}" />
@@ -75,7 +75,7 @@
       <StackPanel Spacing="12">
         <Grid ColumnDefinitions="*,Auto">
           <TextBlock Text="Bestätigungen" Classes="h2" />
-          <ui:HelpButton Grid.Column="1" Topic="kassa-einrichten" />
+          <ui:HelpButton Grid.Column="1" Topic="kassa-einrichten" Section="bestaetigungen" />
         </Grid>
         <ItemsControl ItemsSource="{Binding Confirmations}">
           <ItemsControl.ItemsPanel>

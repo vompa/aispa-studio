@@ -33,11 +33,17 @@ Der Assistent führt durch dieselben fünf Schritte wie die Karte, bis sich der 
 
 Hinter dem letzten Schritt prüft die Abschlussseite „Fertig“, ob sich in den nächsten 14 Tagen eine Behandlung buchen lässt. Ist das so, nennt sie die Behandlung und den ersten freien Platz mit Tag, Uhrzeit und Standort. **Probetermin im Kalender** schließt den Assistenten und öffnet den Kalender an diesem Tag und Standort. Fehlt etwas, steht der Grund da. **Zurück** führt in die Schritte. Zu offenen Schritten führt **Zum Schritt**. Der ganze Ablauf steht unter [Erste Schritte](hilfe:erste-schritte).
 
+**Weiter** geht zum nächsten Schritt, **Zurück** zum vorigen, **Überspringen** lässt einen offenen Schritt aus, **Schließen** beendet den Assistenten. Nichts davon ist Pflicht: Kein Schritt hält auf, und die Karte bleibt, bis alles erledigt ist. Esc schließt den Assistenten nur, solange nichts Ungespeichertes in einem Feld steht. Nach jedem Speichern lädt der Assistent den Stand neu.
+
 ## Kassa einrichten {#kassa-einrichten}
 
 Die Karte „Kassa einrichten“ zeigt, ob an dieser Stelle eine Kassa fehlt, eine Übungskassa verwendbar oder eine Kassa für den Echtbetrieb bereit ist. Über **Kassa einrichten** öffnet sich der Kassenassistent. Angaben zur Anlage, zu den Anbietern und zum Jahresbeleg stehen unter [Kassa einrichten](hilfe:kassa-einrichten).
 
-**Weiter** geht zum nächsten Schritt, **Zurück** zum vorigen, **Überspringen** lässt einen offenen Schritt aus, **Schließen** beendet den Assistenten. Nichts davon ist Pflicht: Kein Schritt hält auf, und die Karte bleibt, bis alles erledigt ist. Esc schließt den Assistenten nur, solange nichts Ungespeichertes in einem Feld steht. Nach jedem Speichern lädt der Assistent den Stand neu.
+![Karte „Kassa einrichten“ im Zustand „Offen“ mit Einstieg in den Assistenten](images/app/firmendaten-kassa-notready.png)
+
+![Karte „Kassa einrichten“ im Zustand „Übungsbetrieb“ mit Hinweis auf eine eigene Kassa für den Echtbetrieb](images/app/firmendaten-kassa-practice.png)
+
+![Karte „Kassa einrichten“ im Zustand „Bereit“](images/app/firmendaten-kassa-ready.png)
 
 ## Firmendaten {#firmendaten}
 

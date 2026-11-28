@@ -13,6 +13,7 @@ public sealed partial class ViewTests
     private static CashRegisterDto PracticeRegister => SpaSample.Register with
     {
         IsPractice = true,
+        FiscalProvider = "test",
         Readiness = new(FiscalReadinessState.Practice, ["Für den Echtbetrieb eine eigene Kassa einrichten."]),
     };
 
@@ -22,15 +23,22 @@ public sealed partial class ViewTests
     public Task Registers_owner_can_navigate_by_keyboard_and_decommission_a_register(int width, string screenshot)
     {
         var practice = PracticeRegister;
+        var basel = SpaSample.Salzburg with { Name = "Basel", Region = "CH-BS", Currency = "CHF", TimeZone = "Europe/Zurich" };
         var real = SpaSample.Register with
         {
             Id = Guid.NewGuid(),
-            Code = "WIEN-2",
+            LocationId = basel.Id,
+            Code = "BASEL-1",
             Country = FiscalCountry.CH,
+            FiscalProvider = "none",
             Readiness = new(FiscalReadinessState.Ready, []),
         };
         var path = $"POST /api/pos/registers/{real.Id}/decommission";
-        var stub = Api().On("GET /api/pos/registers", new[] { practice, real }).On(path, SpaSample.Receipt());
+        var stub = Api().On("GET /api/pos/registers", new[] { practice, real })
+            .On("GET /api/locations", new[] { SpaSample.Vienna, basel })
+            .On("GET /api/pos/fiscal/providers?country=AT", new[] { HandbookProvider(FiscalCountry.AT) })
+            .On("GET /api/pos/fiscal/providers?country=CH", new[] { HandbookProvider(FiscalCountry.CH) })
+            .On(path, SpaSample.Receipt());
         return Render("hell", screenshot, async (window, main) =>
         {
             window.Width = width;
@@ -48,6 +56,11 @@ public sealed partial class ViewTests
             Assert.True(create.Bounds.Width >= 96 && create.Bounds.Height >= 24);
             Assert.True(decommission.Bounds.Width >= 96 && decommission.Bounds.Height >= 24);
             Assert.True(RightOf(window, decommission) <= RightOf(window, Named<ContentControl>(window, "AreaHost")));
+            if (width == 1440)
+            {
+                SaveShot(window, "verwaltung-kassen-aktiv", "hell");
+            }
+
             var row = Assert.IsType<ListBoxItem>(list.ContainerFromIndex(0));
             Assert.False(string.IsNullOrWhiteSpace(AutomationProperties.GetName(row)));
             Assert.True(row.Focus());

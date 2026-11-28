@@ -14,6 +14,8 @@ Unter **Verwaltung** › **Kassa & Geld** › **Kassen** stehen die Kassen mit S
 
 Die ausgewählte Kassa zeigt bei Bedarf, warum sie noch keine Belege ausstellen kann. **Außer Betrieb nehmen** beendet das Kassieren an dieser Kassa. Wer den Standort verwalten darf, darf dort Kassen anlegen und außer Betrieb nehmen, Zugangsdaten verwalten, Registrierungsdaten abrufen und Bestätigungen pflegen.
 
+![Kassenverwaltung mit einer österreichischen Übungskassa und einer Schweizer Kassa für den Echtbetrieb](images/app/verwaltung-kassen-aktiv.png)
+
 Die Karte „Kassa einrichten“ zeigt den Stand an dieser Stelle.
 
 - „Offen“ bedeutet, dass hier eine verwendbare Kassa fehlt. Die Karte nennt den Grund, auch wenn bereits eine Kassa angelegt ist.
@@ -27,11 +29,25 @@ Die Karte „Kassa einrichten“ zeigt den Stand an dieser Stelle.
 - Die Testanbieter legen immer eine Übungskassa an. In der Schweiz ist „Übungsbetrieb wählen“ eine eigene Auswahl. „Anlage als Übungskassa bestätigen“ ist bei jeder Übungskassa erforderlich.
 - „Kassen-ID“ ist die Kennung der Kassa. „Belegkopf“ enthält den Firmennamen und die Anschrift, wie sie auf den Belegen stehen.
 
+![Assistent mit Standort „Salzburg“ und Land der Kassa „Österreich“](images/app/kassa-einrichten-standort.png)
+
+![AT0-Testeinrichtung mit bestätigter Anlage als Übungskassa](images/app/kassa-einrichten-uebungsbetrieb.png)
+
+![Kassen-ID und Belegkopf einer neuen Kassa](images/app/kassa-einrichten-belegkopf.png)
+
+![Österreichischer Abschluss des Assistenten mit Abschnitten für FinanzOnline und Bestätigungen](images/app/kassa-einrichten-at.png)
+
+![Deutscher Abschluss des Assistenten mit ELSTER-Hinweis für die Übungskassa](images/app/kassa-einrichten-de.png)
+
+![Schweizer Abschluss des Assistenten für eine Kassa im Echtbetrieb](images/app/kassa-einrichten-ch.png)
+
 ## Übungskassa {#uebungskassa}
 
 Eine Übungskassa bleibt dauerhaft im Übungsbetrieb. Für den Wechsel zum Echtbetrieb die Übungskassa außer Betrieb nehmen und eine eigene Kassa mit neuer „Kassen-ID“ anlegen. Diese beginnt mit einer eigenen Belegkette.
 
 Übungsbelege tragen den Hinweis „ÜBUNGSKASSA – kein gültiger Beleg“. Übungsumsätze bleiben in Berichten, Abschlüssen und Exporten enthalten und gekennzeichnet. Bei vorgeschriebenen Exportformaten kann der Hinweis in einer Begleitinformation stehen.
+
+![Tagesabschluss einer Übungskassa mit dauerhaftem Übungsband und ausgewiesenen Umsätzen](images/app/kassa-uebungsabschluss.png)
 
 ## Signatureinrichtung und Zugangsdaten {#signatureinrichtung}
 
@@ -49,13 +65,19 @@ Diesen Abschnitt gibt es nur bei österreichischen Kassen. **Registrierungsdaten
 
 > Achtung: Daten einer Übungskassa nicht in FinanzOnline registrieren.
 
+![FinanzOnline-Abschnitt mit öffentlichen Musterwerten für Umsatzzählerschlüssel und Prüfwert](images/app/verwaltung-finanzonline-musterwerte.png)
+
 Das BMF erklärt die Anmeldung im Handbuch [„Registrierkassen in FinanzOnline“](https://finanzonline.bmf.gv.at/eLearning/BMF_Handbuch_Registrierkassen.pdf) und den Prüfwert in den [Detailfragen zur RKSV](https://www.bmf.gv.at/dam/jcr%3A66a8edac-3dbf-4e67-b768-634ce2e5bb1e/20160905-Detailfragen-RKSV-V1.2.pdf).
 
 ## Bestätigungen {#bestaetigungen}
 
-Bei österreichischen Kassen können berechtigte Personen die „Registrierung in FinanzOnline“ und die Prüfung des Startbelegs und des jeweiligen Jahresbelegs festhalten. Bei deutschen Kassen dokumentieren sie die „Meldung über ELSTER“. Diesen Abschnitt bei einer Übungskassa nur zur Orientierung verwenden.
+Bei österreichischen Kassen können berechtigte Personen die „Registrierung in FinanzOnline“ und die Prüfung des Startbelegs und des jeweiligen Jahresbelegs festhalten. Diesen Abschnitt bei einer Übungskassa nur zur Orientierung verwenden.
 
 **Bestätigen** speichert Datum und Person. **Zurücknehmen** nimmt die Bestätigung zurück. Die Meldung und die Prüfung erledigt eine Person außerhalb der App. Der gespeicherte Stand dokumentiert deren Bestätigung.
+
+### Meldung über ELSTER {#elster}
+
+Bei einer deutschen Kassa für den Echtbetrieb dokumentiert „Meldung über ELSTER“ die Bestätigung der zuständigen Person. Die Meldung erfolgt außerhalb der App. Eine Übungskassa nicht über ELSTER melden.
 
 ## Österreichischer Jahresbeleg {#jahresbeleg}
 

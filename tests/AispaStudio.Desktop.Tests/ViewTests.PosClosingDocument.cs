@@ -28,6 +28,7 @@ public sealed partial class ViewTests
 
             Assert.True(pos.IsClosed);
             Assert.Equal(practice, pos.IsPracticeReport);
+            Assert.Equal(practice, Named<InfoBar>(window, "PracticeRegisterBand").IsEffectivelyVisible);
             Assert.Equal(practice, Named<InfoBar>(window, "PracticeClosingBand").IsEffectivelyVisible);
             var visible = window.GetVisualDescendants().OfType<PosView>().First().GetVisualDescendants().OfType<Control>().Where(c => c.IsEffectivelyVisible).ToList();
             var print = Assert.Single(visible.OfType<Button>(), b => b.Name == "PrintButton");
@@ -35,6 +36,6 @@ public sealed partial class ViewTests
             Assert.Single(visible.OfType<Button>(), b => b.Name == "SaveButton");
             Assert.DoesNotContain(visible.OfType<Button>(), b => b.Name == "SendButton");
             return pos;
-        }, Api().On($"POST /api/pos/registers/{SpaSample.Register.Id}/day-closings",
+        }, Api().On("GET /api/pos/registers", new[] { practice ? PracticeRegister : SpaSample.Register }).On($"POST /api/pos/registers/{SpaSample.Register.Id}/day-closings",
             DayReport() with { Id = Guid.NewGuid(), CountedCash = 356.30m, Difference = -1.50m, IsPractice = practice }));
 }

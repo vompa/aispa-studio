@@ -133,15 +133,16 @@ public sealed partial class HelpTests
     public void Jedes_Fragezeichen_der_App_zeigt_auf_ein_vorhandenes_Thema_und_einen_vorhandenen_Abschnitt()
     {
         var views = Directory.GetFiles(Path.Combine(RepoRoot(), "src", "AispaStudio.Desktop", "Views"), "*.axaml");
-        var links = views.SelectMany(f => HelpLink().Matches(File.ReadAllText(f)).Select(m => (File: Path.GetFileName(f), Topic: m.Groups[1].Value,
-            Section: m.Groups[2].Success ? m.Groups[2].Value : null))).ToList();
+        var links = views.SelectMany(file => HelpButtonTag().Matches(File.ReadAllText(file)).Select(match =>
+                (File: Path.GetFileName(file), Topic: AttributeOf(match.Value, "Topic"), Section: AttributeOf(match.Value, "Section"))))
+            .Where(link => link.Topic is { Length: > 0 } topic && !topic.StartsWith('{')).ToList();
 
         Assert.NotEmpty(links);
         Assert.All(links, l =>
         {
-            var topic = HelpContent.Find(l.Topic);
+            var topic = HelpContent.Find(l.Topic!);
             Assert.True(topic is not null, $"{l.File}: Thema {l.Topic}");
-            Assert.True(l.Section is null || topic.HasSection(l.Section), $"{l.File}: Abschnitt {l.Topic}#{l.Section}");
+            Assert.True(l.Section is null || l.Section.StartsWith('{') || topic.HasSection(l.Section), $"{l.File}: Abschnitt {l.Topic}#{l.Section}");
         });
     }
 
@@ -401,6 +402,4 @@ public sealed partial class HelpTests
     }
 
     // Nur feste Themen: ein gebundenes Thema ({Binding HelpTopic}) steht im ViewModel und lässt sich aus der AXAML-Datei nicht auflösen
-    [GeneratedRegex("<ui:HelpButton\\s+Topic=\"([^\"{][^\"]*)\"(?:\\s+Section=\"([^\"]+)\")?")]
-    private static partial Regex HelpLink();
 }

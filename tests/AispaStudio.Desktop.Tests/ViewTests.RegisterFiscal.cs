@@ -5,6 +5,7 @@ using AispaStudio.Desktop.Services;
 using AispaStudio.Desktop.ViewModels;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.VisualTree;
 
@@ -12,6 +13,37 @@ namespace AispaStudio.Desktop.Tests;
 
 public sealed partial class ViewTests
 {
+    [Fact]
+    public Task Kassenverwaltung_zeigt_oeffentliche_FinanzOnline_Musterwerte_ohne_Zugangsfelder()
+    {
+        const string PublicSampleKey = "cWhay3H4asTvRzXzXGZQ3KyBEu9BZaIxl8J+L4Bhr5A=";
+        var register = PracticeRegister;
+        var path = $"/api/pos/registers/{register.Id}";
+        var stub = Api().On("GET /api/pos/registers", new[] { register })
+            .On("GET /api/pos/fiscal/providers?country=AT", new[] { HandbookProvider(FiscalCountry.AT) })
+            .On($"GET {path}/fiscal-registration", new FiscalRegistrationDto(register.Code, PublicSampleKey, "qx6p",
+                "AT0", "test", true, "Übungskassa – bitte nicht bei FinanzOnline registrieren."));
+        return Render("hell", "verwaltung-finanzonline-musterwerte", async (window, main) =>
+        {
+            var shell = await OpenAdminPage(window, main);
+            shell.AdminPage.Show("masterData", "registers");
+            await Pump(Settling);
+            var fiscal = shell.AdminPage.Registers!.Fiscal!;
+            Assert.Empty(fiscal.Fields);
+            await ClickScrolled(window, Named<Button>(window, "LoadFiscalRegistrationButton"));
+            await Pump(Settling);
+            Assert.Contains(fiscal.Registration, row => row.Value == PublicSampleKey);
+            var copyButtons = window.GetVisualDescendants().OfType<Button>()
+                .Where(button => button.Name == "CopyFiscalValue").ToList();
+            var checksum = Assert.Single(copyButtons, button => button.Tag is "qx6p");
+            await ClickScrolled(window, checksum);
+            Assert.Equal("qx6p", await window.Clipboard!.TryGetTextAsync());
+            Assert.Single(copyButtons, button => button.Tag is "AT0").BringIntoView();
+            await Pump(Settling);
+            return fiscal;
+        }, stub);
+    }
+
     [Theory]
     [InlineData(1440)]
     [InlineData(1100)]
@@ -94,7 +126,17 @@ public sealed partial class ViewTests
             await ClickScrolled(window, copy);
             var assistantLeft = Named<Button>(window, "CompanionFab").TranslatePoint(new Point(), window)!.Value.X;
             Assert.True(RightOf(window, copy) <= assistantLeft);
-            Assert.Equal("MUSTER-NUR-BILD", await window.Clipboard!.TryGetTextAsync());
+            var clipboard = Assert.IsAssignableFrom<IClipboard>(window.Clipboard);
+            Assert.Equal("MUSTER-NUR-BILD", await clipboard.TryGetTextAsync());
+            var exclude = DataFormat.CreateBytesPlatformFormat("ExcludeClipboardContentFromMonitorProcessing");
+            Assert.Contains(exclude, await clipboard.GetDataFormatsAsync());
+            var selectable = window.GetVisualDescendants().OfType<SelectableTextBlock>().Single(text => text.Text == "MUSTER-NUR-BILD");
+            selectable.SelectionStart = 0;
+            selectable.SelectionEnd = "MUSTER".Length;
+            selectable.Copy();
+            await Pump();
+            Assert.Equal("MUSTER", await clipboard.TryGetTextAsync());
+            Assert.Contains(exclude, await clipboard.GetDataFormatsAsync());
             if (width == 1440)
             {
                 SaveShot(window, "verwaltung-finanzonline", "hell");
