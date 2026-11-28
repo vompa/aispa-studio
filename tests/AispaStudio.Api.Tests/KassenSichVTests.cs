@@ -8,6 +8,9 @@ using System.Text;
 using AispaStudio.Api.Pos;
 using AispaStudio.Api.Pos.Fiscal;
 using AispaStudio.Contracts;
+using AispaStudio.Api.Data;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace AispaStudio.Api.Tests;
 
@@ -105,7 +108,16 @@ public sealed class KassenSichVTests(ApiFixture fixture)
         }
 
         Assert.Equal(TseExportStatus.Done, export.Status);
+        await using var scope = fixture.Factory.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<AispaDbContext>();
+        var archive = db.Set<TseExport>().Where(e => e.Id == export.Id);
+        var original = await archive.Select(e => e.Content!).SingleAsync(Ct);
+        await archive.ExecuteUpdateAsync(update => update.SetProperty(e => e.FileName, "archiv.tar"), Ct);
+        var legacy = (await spa.GetAsync<List<TseExportDto>>($"/api/pos/registers/{register.Id}/tse-exports", Ct)).Single();
+        Assert.Equal("uebungskassa-archiv.tar", legacy.FileName);
         var response = await spa.Client.GetAsync($"/api/pos/tse-exports/{export.Id}/file", Ct);
+        Assert.Equal("uebungskassa-archiv.tar", response.Content.Headers.ContentDisposition?.FileName?.Trim('"'));
+        Assert.Equal(original, await response.Content.ReadAsByteArrayAsync(Ct));
         Assert.Equal("application/x-tar", response.Content.Headers.ContentType?.MediaType);
         var files = new Dictionary<string, string>();
         await using (var tar = new TarReader(await response.Content.ReadAsStreamAsync(Ct)))

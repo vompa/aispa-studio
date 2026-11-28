@@ -80,7 +80,8 @@ internal sealed partial class TseExports(AispaDbContext db, IEnumerable<ITseClie
     public async Task<List<TseExportDto>> ListAsync(Guid registerId, CancellationToken ct) =>
         await db.Set<TseExport>().AsNoTracking().Where(e => e.RegisterId == registerId)
             .OrderByDescending(e => e.RequestedAt).Take(Shown)
-            .Select(e => new TseExportDto(e.Id, e.RegisterId, e.From, e.Until, e.Status, e.RequestedAt, e.CompletedAt, e.FileName,
+            .Select(e => new TseExportDto(e.Id, e.RegisterId, e.From, e.Until, e.Status, e.RequestedAt, e.CompletedAt,
+                MarkFileName(e.FileName, db.CashRegisters.Any(r => r.Id == e.RegisterId && r.IsPractice)),
                 e.Content == null ? null : e.Content.Length, e.Error))
             .ToListAsync(ct);
 
@@ -117,8 +118,7 @@ internal sealed partial class TseExports(AispaDbContext db, IEnumerable<ITseClie
         {
             export.Status = TseExportStatus.Done;
             export.Content = content;
-            var prefix = register.IsPractice ? "uebungskassa-" : "";
-            export.FileName = $"{prefix}tse-export-{register.Code}-{export.From:yyyyMMdd}-{export.Until:yyyyMMdd}.tar";
+            export.FileName = MarkFileName($"tse-export-{register.Code}-{export.From:yyyyMMdd}-{export.Until:yyyyMMdd}.tar", register.IsPractice);
         }
 
         await db.SaveChangesAsync(ct);
@@ -126,9 +126,13 @@ internal sealed partial class TseExports(AispaDbContext db, IEnumerable<ITseClie
 
     public async Task<(byte[] Content, string FileName)?> FileAsync(Guid exportId, CancellationToken ct) =>
         await db.Set<TseExport>().AsNoTracking().Where(e => e.Id == exportId && e.Status == TseExportStatus.Done)
-            .Select(e => new { e.Content, e.FileName }).FirstOrDefaultAsync(ct) is { Content: { } content, FileName: { } name }
-            ? (content, name)
+            .Select(e => new { e.Content, e.FileName, Practice = db.CashRegisters.Any(r => r.Id == e.RegisterId && r.IsPractice) })
+            .FirstOrDefaultAsync(ct) is { Content: { } content, FileName: { } name } file
+            ? (content, MarkFileName(name, file.Practice)!)
             : null;
+
+    private static string? MarkFileName(string? name, bool practice) =>
+        practice && name is not null && !name.StartsWith("uebungskassa-", StringComparison.Ordinal) ? $"uebungskassa-{name}" : name;
 
     private static TseExportDto ToDto(TseExport e) =>
         new(e.Id, e.RegisterId, e.From, e.Until, e.Status, e.RequestedAt, e.CompletedAt, e.FileName, e.Content?.Length, e.Error);

@@ -140,6 +140,20 @@ public sealed class PaymentRecoveryTests(ApiFixture fixture)
             Assert.Equal(1, changed);
         }
 
+        await using (var issue = fixture.Factory.Services.CreateAsyncScope())
+        {
+            var db = issue.ServiceProvider.GetRequiredService<AispaStudio.Api.Data.AispaDbContext>();
+            var orders = issue.ServiceProvider.GetRequiredService<OnlineDbContext>().VoucherOrders;
+            var paid = await orders.AsNoTracking().SingleAsync(o => o.BuyerEmail == email, Ct);
+            await db.CashRegisters.Where(r => r.LocationId == spa.Location.Id).ExecuteUpdateAsync(u => u.SetProperty(r => r.IsActive, false), Ct);
+            await IssueOnlineVoucherHandler.Handle(new(paid.Id), fixture.Factory.Services.GetRequiredService<IServiceScopeFactory>(), Ct);
+            var deferred = await orders.AsNoTracking().SingleAsync(o => o.Id == paid.Id, Ct);
+            Assert.Equal(VoucherOrderStatus.Paid, deferred.Status);
+            Assert.Equal(paid.PaidAt, deferred.PaidAt);
+            Assert.Equal(paid.ProviderReference, deferred.ProviderReference);
+            Assert.NotNull(deferred.Error);
+            await db.CashRegisters.Where(r => r.LocationId == spa.Location.Id).ExecuteUpdateAsync(u => u.SetProperty(r => r.IsActive, true), Ct);
+        }
         Assert.Equal(1, await fixture.Factory.Services.GetRequiredService<PaymentRecovery>().RunOnceAsync(now, spa.Location.Id, Ct));
 
         await fixture.Mailbox.WaitForAsync(email, _ => true, Ct);

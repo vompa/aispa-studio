@@ -87,11 +87,11 @@ public sealed class PosExportTests(ApiFixture fixture)
 
         Assert.Equal(HttpStatusCode.OK, days.StatusCode);
         Assert.Equal($"Umsatz_je_Tag_{ViennaToday:yyyy-MM-dd}.csv", ExportResponses.FileName(days));
-        Assert.Equal($"Tag;Belege;Stornos;Umsatz\r\n{ViennaToday:dd.MM.yyyy};2;1;129,00\r\n", Encoding.UTF8.GetString(daysBytes.AsSpan(3)));
-        Assert.Equal(["Zahlart", "Betrag"], ExportResponses.Headers(paymentSheet));
+        Assert.Equal($"Tag;Belege;Stornos;Umsatz;Hinweis\r\n{ViennaToday:dd.MM.yyyy};2;1;129,00;Die Auswertung enthält Umsätze von Übungskassen.\r\n", Encoding.UTF8.GetString(daysBytes.AsSpan(3)));
+        Assert.Equal(["Zahlart", "Betrag", "Hinweis"], ExportResponses.Headers(paymentSheet));
         Assert.Equal(("Bar", 129d), (paymentSheet.Row(2).Cell(1).GetString(), paymentSheet.Row(2).Cell(2).GetDouble()));
         Assert.Equal(2, paymentSheet.LastRowUsed()!.RowNumber());
-        Assert.Equal(["Behandlung", "Person", "Termine", "Umsatz"], ExportResponses.Headers(treatmentSheet));
+        Assert.Equal(["Behandlung", "Person", "Termine", "Umsatz", "Hinweis"], ExportResponses.Headers(treatmentSheet));
         var row = treatmentSheet.Row(2);
         Assert.Equal(("Massage", "Anna", 1d, 79d), (row.Cell(1).GetString(), row.Cell(2).GetString(), row.Cell(3).GetDouble(), row.Cell(4).GetDouble()));
         Assert.Equal(2, treatmentSheet.LastRowUsed()!.RowNumber());
@@ -101,14 +101,25 @@ public sealed class PosExportTests(ApiFixture fixture)
     public async Task Gutscheinbestand_ohne_Zeitraum_und_Tagesabschluesse_mit_Differenz()
     {
         var (spa, _, _, _) = await SalesAsync();
+        var live = await spa.PostAsync<CashRegisterDto>("/api/pos/registers",
+            new CashRegisterInput(spa.Location.Id, "CH-REAL", FiscalCountry.CH, "Schweiz", null, null, null), Ct);
+        var liveBill = await spa.PostAsync<BillDto>("/api/pos/bills", new BillInput(live.Id, null, []), Ct);
+        liveBill = await spa.PostAsync<BillDto>($"/api/pos/bills/{liveBill.Id}/lines",
+            new BillLineInput(BillLineKind.Voucher, null, null, 1, 30m, 0, null, null, null, VoucherKind.MultiPurpose, null), Ct);
+        await CheckoutAsync(spa, liveBill);
 
         using var vouchers = await spa.Client.GetAsync($"/api/pos/locations/{spa.Location.Id}/export?list=vouchers&format=xlsx", Ct);
         using var closings = await spa.Client.GetAsync(Path(spa, "day-closings"), Ct);
         var voucherSheet = await ExportResponses.SheetAsync(vouchers, Ct);
         var closingSheet = await ExportResponses.SheetAsync(closings, Ct);
 
-        Assert.Equal(["Code", "Art", "Wert", "Rest", "Gültig bis", "Status", "Käufer"], ExportResponses.Headers(voucherSheet));
+        Assert.Equal(["Code", "Art", "Wert", "Rest", "Gültig bis", "Status", "Käufer", "Kasse"], ExportResponses.Headers(voucherSheet));
         var voucher = voucherSheet.Row(2);
+        Assert.Contains("Übungskassa", voucher.Cell(8).GetString(), StringComparison.Ordinal);
+        Assert.Equal((30d, live.Code), (voucherSheet.Row(3).Cell(3).GetDouble(), voucherSheet.Row(3).Cell(8).GetString()));
+        var csv = Encoding.UTF8.GetString(await spa.Client.GetByteArrayAsync(Path(spa, "vouchers", "csv"), Ct));
+        Assert.Contains("Übungskassa", csv, StringComparison.Ordinal);
+        Assert.Contains(live.Code, csv, StringComparison.Ordinal);
         Assert.False(string.IsNullOrWhiteSpace(voucher.Cell(1).GetString()));
         Assert.Equal(("Mehrzweck", 50d, 50d, "Offen", $"{spa.Customer.FirstName} {spa.Customer.LastName}"),
             (voucher.Cell(2).GetString(), voucher.Cell(3).GetDouble(), voucher.Cell(4).GetDouble(), voucher.Cell(6).GetString(), voucher.Cell(7).GetString()));

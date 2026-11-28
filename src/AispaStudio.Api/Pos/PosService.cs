@@ -212,7 +212,7 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
         {
             reasons.Add(OtherSiteMessage);
         }
-        if (reasons.Count == 0 && !await FiscalAvailableAsync(register, ct))
+        if (reasons.Count == 0 && !await FiscalReadyAsync(register, ct))
         {
             reasons.Add("Die Signatureinrichtung ist nicht erreichbar.");
         }
@@ -228,7 +228,7 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
         }
 
         var zone = await ZoneAsync(register, ct);
-        var closing = await ClosingStatusAsync(register, LocalTime.LocalDate(time.GetUtcNow(), zone), zone, ct);
+        var closing = await ClosingStatusAsync(register, LocalTime.LocalDate(time.GetUtcNow(), zone), ct);
         return dto with
         {
             Readiness = new(state, reasons),
@@ -248,7 +248,7 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
             .OrderBy(r => r.IsPractice).ThenBy(r => r.Code).ThenBy(r => r.Id).ToListAsync(ct);
         foreach (var register in candidates)
         {
-            if (await FiscalAvailableAsync(register, ct))
+            if (await FiscalReadyAsync(register, ct))
             {
                 return register;
             }
@@ -359,8 +359,27 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
             return PosFailure.Conflict(OtherSiteMessage).Error;
         }
 
-        var available = await FiscalAvailableAsync(register, ct);
-        return new(new(available, available ? "Die Einrichtung ist erreichbar." : "Die Einrichtung ist nicht erreichbar. Bitte Zugangsdaten und Verbindung prüfen."), null);
+        try
+        {
+            var available = await FiscalAvailableAsync(register, ct);
+            return new(new(available, available ? "Die Einrichtung ist erreichbar." : "Die Einrichtung ist nicht erreichbar. Bitte Zugangsdaten und Verbindung prüfen."), null);
+        }
+        catch (PosFailure failure)
+        {
+            return failure.Error;
+        }
+    }
+
+    private async Task<bool> FiscalReadyAsync(CashRegister register, CancellationToken ct)
+    {
+        try
+        {
+            return await FiscalAvailableAsync(register, ct);
+        }
+        catch (PosFailure)
+        {
+            return false;
+        }
     }
 
     private Task<bool> FiscalAvailableAsync(CashRegister register, CancellationToken ct) =>
@@ -2212,56 +2231,37 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
     {
         var zone = await ZoneAsync(register, ct);
         var now = time.GetUtcNow();
-        var previousReceiptAt = register.LastReceiptAt;
-        var priorClosureValid = false;
-        if (automatic && register.Country == FiscalCountry.AT && register.LastReceiptAt is { } last)
+        DateOnly? previousFiscalDate = null;
+        if (automatic && register.Country == FiscalCountry.AT && register.LastReceiptNumber > 0)
         {
-            var previousYear = LocalTime.LocalDate(last, zone).Year;
-            if (previousYear < LocalTime.LocalDate(now, zone).Year)
+            var history = await FiscalYearsAsync(register, ct);
+            if (history.LastLocal is { } last)
             {
-                priorClosureValid = await CurrentYearlyAsync(register.Id, previousYear, zone, ct) is not null;
+                previousFiscalDate = DateOnly.FromDateTime(last);
             }
-            var currentYear = LocalTime.LocalDate(now, zone).Year;
-            var failedYears = await db.Receipts.Where(r => r.RegisterId == register.Id && r.SignatureDeviceFailed
-                    && r.ClosingYear < currentYear && !db.Receipts.Any(s => s.RegisterId == r.RegisterId && s.ClosingYear == r.ClosingYear
-                        && s.Number > r.Number && !s.SignatureDeviceFailed))
-                .Select(r => r.ClosingYear!.Value).Distinct().Order().ToListAsync(ct);
-            foreach (var year in failedYears)
-            {
-                if (await CurrentYearlyAsync(register.Id, year, zone, ct) is null && await FiscalAvailableAsync(register, ct))
-                {
-                    var recovered = await IssueCoreAsync(register, ReceiptKind.Yearly, fiscal.For(register.Country), zone, now,
-                        null, false, r => db.Receipts.Add(r), ct);
-                    recovered.ClosingYear = year;
-                    priorClosureValid |= year == previousYear;
-                }
-            }
+            await CloseEarlierYearsAsync(register, history, LocalTime.LocalDate(now, zone).Year, zone, now, ct);
         }
-
         return await IssueCoreAsync(register, kind, fiscal.For(register.Country), zone, now, build, automatic,
-            receipt => db.Receipts.Add(receipt), ct, priorClosureValid, previousReceiptAt);
+            receipt => db.Receipts.Add(receipt), ct, previousFiscalDate);
     }
 
     /// <summary>Wie <see cref="IssueAsync"/>, aber ohne Datenbank: Nummer, Signatur und Kassenstand; <paramref name="add"/> nimmt jeden fertigen Beleg entgegen.</summary>
     internal static async Task<Receipt> IssueCoreAsync(CashRegister register, ReceiptKind kind, IFiscalization fiscalization, TimeZoneInfo zone,
         DateTimeOffset now, Func<long, DateTimeOffset, Receipt>? build, bool automatic, Action<Receipt> add, CancellationToken ct,
-        bool priorClosureValid = false, DateTimeOffset? previousReceiptAt = null)
+        DateOnly? previousFiscalDate = null)
     {
         if (automatic)
         {
-            if ((previousReceiptAt ?? register.LastReceiptAt) is { } last)
+            var previousDate = register.Country == FiscalCountry.AT ? previousFiscalDate
+                : register.LastReceiptAt is { } last ? LocalTime.LocalDate(last, zone) : (DateOnly?)null;
+            if (previousDate is { } previous)
             {
-                var previous = LocalTime.LocalDate(last, zone);
                 var current = LocalTime.LocalDate(now, zone);
                 if (previous.Year != current.Year)
                 {
-                    if (!priorClosureValid)
+                    if (register.Country != FiscalCountry.AT)
                     {
-                        var yearly = await IssueCoreAsync(register, ReceiptKind.Yearly, fiscalization, zone, now, null, false, add, ct);
-                        if (register.Country == FiscalCountry.AT)
-                        {
-                            yearly.ClosingYear = previous.Year;
-                        }
+                        await IssueCoreAsync(register, ReceiptKind.Yearly, fiscalization, zone, now, null, false, add, ct);
                     }
                 }
                 else if (previous.Month != current.Month)

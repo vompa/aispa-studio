@@ -550,7 +550,7 @@ internal sealed partial class ManagementReports(AispaDbContext db, RosterService
             switch (r.Country)
             {
                 case FiscalCountry.AT:
-                    reminders.AddRange((await pos.ClosingStatusAsync(r, date, LocalTime.Zone(location.TimeZone), ct)).Warnings);
+                    reminders.AddRange((await pos.ClosingStatusAsync(r, date, ct)).Warnings);
                     duties.Add("Registrierkasse und Signatureinrichtung in FinanzOnline registriert halten; Startbeleg mit der BMF-Belegcheck-App prüfen.");
                     duties.Add("Jahresbeleg (Dezember-Monatsbeleg) ausdrucken, 7 Jahre aufbewahren und bis 15. Februar mit der Belegcheck-App prüfen.");
                     duties.Add("Datenerfassungsprotokoll (DEP) mindestens vierteljährlich extern sichern.");

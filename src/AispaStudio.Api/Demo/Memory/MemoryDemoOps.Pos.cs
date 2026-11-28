@@ -346,8 +346,13 @@ internal sealed partial class MemoryDemoOps
     }
 
     private async Task<Receipt> IssueAsync(CashRegister register, ReceiptKind kind, TimeZoneInfo zone, DateTimeOffset now, Func<long, DateTimeOffset, Receipt> build,
-        CancellationToken ct) =>
-        await PosService.IssueCoreAsync(register, kind, Fiscal(register), zone, now, build, true, _world.AddReceipt, ct);
+        CancellationToken ct)
+    {
+        var adapter = Fiscal(register);
+        var previous = await PosService.PrepareMemoryYearsAsync(register, _world.ReceiptsByRegister.GetValueOrDefault(register.Id, []),
+            adapter, zone, now, _world.AddReceipt, ct);
+        return await PosService.IssueCoreAsync(register, kind, adapter, zone, now, build, true, _world.AddReceipt, ct, previous);
+    }
 
     private ReceiptDto ReceiptOf(Guid receiptId)
     {

@@ -911,10 +911,35 @@ public sealed class PosTests(ApiFixture fixture)
         Assert.Equal(PosErrorKind.Conflict,
             (await pos.ConfirmAsync(register.Id, RegisterConfirmationKind.YearlyReceiptCheck, 2029, failed.Id, "owner", false, Ct)).Error!.Kind);
         clock.Now = clock.Now.AddDays(1);
-        await pos.NullReceiptAsync(register.Id, Ct);
+        var januaryBill = (await pos.CreateBillAsync(new(register.Id, null, []), Ct)).Value!;
+        await pos.AddLineAsync(januaryBill.Id, new(BillLineKind.Custom, null, null, 1, 3m, 0, "Januar",
+            TaxCategory.Normal, PosModel.Treatments.Id, null, null), true, Ct);
+        Assert.Null((await pos.CheckoutAsync(januaryBill.Id, new(null, [new(PaymentMethod.Cash, 3m, null, null)]), "owner", Ct)).Error);
         device.SetFailing(register.Id, false);
         await pos.NullReceiptAsync(register.Id, Ct);
-        Assert.Single(await db.Receipts.Where(r => r.RegisterId == register.Id && r.ClosingYear == 2029 && !r.SignatureDeviceFailed).ToListAsync(Ct));
+        Assert.Empty(await db.Receipts.Where(r => r.RegisterId == register.Id && r.ClosingYear == 2029 && !r.SignatureDeviceFailed).Select(r => r.Id).ToListAsync(Ct));
+        var open = await pos.RegisterDtoAsync(await db.CashRegisters.FirstAsync(r => r.Id == register.Id, Ct), Ct);
+        Assert.Contains(open.Warnings, w => w.Contains("Jahresbeleg 2029", StringComparison.Ordinal) && w.Contains("Umsatzzähler", StringComparison.Ordinal));
+        Assert.Null(open.YearlyReceipt!.ReceiptId);
+        clock.Now = new(2031, 12, 15, 10, 0, 0, TimeSpan.Zero);
+        Assert.Null((await pos.YearlyReceiptAsync(register.Id, Ct)).Error);
+        Assert.Single(await db.Receipts.Where(r => r.RegisterId == register.Id && r.ClosingYear == 2030 && !r.SignatureDeviceFailed).ToListAsync(Ct));
+
+        // Alter Jahreswechsel über eine Betriebspause. Am Standort war es schon der 1. Januar 2033.
+        clock.Now = new(2032, 12, 31, 23, 30, 0, TimeSpan.Zero);
+        var legacy = (await pos.CreateRegisterAsync(RegisterInput(spa, FiscalCountry.AT), Ct)).Value!;
+        clock.Now = new(2035, 1, 1, 9, 0, 0, TimeSpan.Zero);
+        await pos.NullReceiptAsync(legacy.Id, Ct);
+        var original = await db.Receipts.AsNoTracking().SingleAsync(r => r.RegisterId == legacy.Id && r.Kind == ReceiptKind.Yearly, Ct);
+        await db.Receipts.Where(r => r.Id == original.Id).ExecuteUpdateAsync(s => s.SetProperty(r => r.ClosingYear, (int?)null), Ct);
+        await db.Locations.Where(l => l.Id == spa.Location.Id).ExecuteUpdateAsync(s => s.SetProperty(l => l.TimeZone, "America/Los_Angeles"), Ct);
+        var legacyStatus = await pos.RegisterDtoAsync(await db.CashRegisters.SingleAsync(r => r.Id == legacy.Id, Ct), Ct);
+        Assert.Contains(legacyStatus.PendingYearlyReceipts!, r => r.Year == 2033 && r.ReceiptId == original.Id);
+        Assert.DoesNotContain(legacyStatus.Warnings, w => w.Contains("2034 fehlt", StringComparison.Ordinal));
+        Assert.Null((await pos.ConfirmAsync(legacy.Id, RegisterConfirmationKind.YearlyReceiptCheck, 2033, original.Id, "owner", false, Ct)).Error);
+        var preserved = await db.Receipts.AsNoTracking().SingleAsync(r => r.Id == original.Id, Ct);
+        Assert.Equal((original.FiscalCode, original.FiscalSignature), (preserved.FiscalCode, preserved.FiscalSignature));
+        Assert.Null(preserved.ClosingYear);
     }
 
     [Fact]
@@ -943,6 +968,67 @@ public sealed class PosTests(ApiFixture fixture)
         using var confirmation = await spa.Client.PutAsync($"/api/pos/registers/{register.Id}/confirmations/StartReceiptCheck", null, Ct);
         var stored = await confirmation.Content.ReadFromJsonAsync<RegisterConfirmationDto>(TestSpa.Json, Ct);
         Assert.False(string.IsNullOrWhiteSpace(stored!.ConfirmedByName));
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Jahresende_bleibt_an_Fiskalzeit_und_Jahresendzaehler_gebunden(bool januarySale)
+    {
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        await using var scope = fixture.Factory.Services.CreateAsyncScope();
+        scope.ServiceProvider.GetRequiredService<TenantContext>().Use(spa.TenantId);
+        var db = scope.ServiceProvider.GetRequiredService<AispaDbContext>();
+        var clock = new MovableTime(new(2028, 12, 27, 10, 0, 0, TimeSpan.Zero));
+        var pos = ActivatorUtilities.CreateInstance<PosService>(scope.ServiceProvider, clock);
+        var register = (await pos.CreateRegisterAsync(RegisterInput(spa, FiscalCountry.AT), Ct)).Value!;
+        async Task SellAsync(decimal amount)
+        {
+            var bill = (await pos.CreateBillAsync(new(register.Id, null, []), Ct)).Value!;
+            await pos.AddLineAsync(bill.Id, new(BillLineKind.Custom, null, null, 1, amount, 0, "Ware",
+                TaxCategory.Normal, PosModel.Treatments.Id, null, null), true, Ct);
+            Assert.Null((await pos.CheckoutAsync(bill.Id, new(null, [new(PaymentMethod.Cash, amount, null, null)]), "owner", Ct)).Error);
+        }
+        await SellAsync(10m);
+        var device = fixture.Factory.Services.GetRequiredService<TestSignatureDeviceSwitch>();
+        device.SetFailing(register.Id, true);
+        clock.Now = new(2028, 12, 31, 23, 10, 0, TimeSpan.Zero);
+        if (januarySale)
+        {
+            await SellAsync(3m);
+        }
+        else
+        {
+            await pos.NullReceiptAsync(register.Id, Ct);
+        }
+        device.SetFailing(register.Id, false);
+        if (januarySale)
+        {
+            await db.Locations.Where(l => l.Id == spa.Location.Id).ExecuteUpdateAsync(s => s.SetProperty(l => l.TimeZone, "America/Los_Angeles"), Ct);
+            clock.Now = clock.Now.AddDays(2);
+            await pos.NullReceiptAsync(register.Id, Ct);
+        }
+        else
+        {
+            clock.Now = new(2029, 12, 15, 10, 0, 0, TimeSpan.Zero);
+            Assert.Null((await pos.YearlyReceiptAsync(register.Id, Ct)).Error);
+            Assert.Null((await pos.YearlyReceiptAsync(register.Id, Ct)).Error);
+        }
+        var signed = await db.Receipts.Where(r => r.RegisterId == register.Id && r.ClosingYear == 2028 && !r.SignatureDeviceFailed)
+            .Select(r => r.Id).ToListAsync(Ct);
+        Assert.Equal(januarySale ? 0 : 1, signed.Count);
+        if (januarySale)
+        {
+            // Simuliert die frühere Fehlzuordnung eines echten 13-Euro-Zählerstands zum 10-Euro-Abschluss.
+            clock.Now = new(2029, 12, 15, 12, 0, 0, TimeSpan.Zero);
+            var misplaced = (await pos.YearlyReceiptAsync(register.Id, Ct)).Value!;
+            await db.Receipts.Where(r => r.Id == misplaced.Id).ExecuteUpdateAsync(s => s.SetProperty(r => r.ClosingYear, 2028), Ct);
+            var rejected = await pos.ConfirmAsync(register.Id, RegisterConfirmationKind.YearlyReceiptCheck, 2028, misplaced.Id, "owner", false, Ct);
+            Assert.Equal(PosErrorKind.Conflict, rejected.Error!.Kind);
+            await db.Receipts.Where(r => r.RegisterId == register.Id && r.Number == 1)
+                .ExecuteUpdateAsync(s => s.SetProperty(r => r.FiscalCode, (string?)null), Ct);
+            Assert.Equal(PosErrorKind.Conflict, (await pos.YearlyReceiptAsync(register.Id, Ct)).Error!.Kind);
+        }
     }
 
     [Fact]

@@ -185,7 +185,8 @@ internal static class PosEndpoints
                 {
                     FiscalReadinessState.Ready => "Die Kassa ist für den Echtbetrieb bereit.",
                     FiscalReadinessState.Practice => "Für den Echtbetrieb eine eigene Kassa einrichten.",
-                    _ => "Eine Kassa einrichten oder die Hinweise der vorhandenen Kassa prüfen.",
+                    _ when registers.Count > 0 => string.Join(" ", registers.Select(r => $"{r.Code}: {string.Join(" ", r.Readiness!.Reasons)}")),
+                    _ => "Eine Kassa einrichten.",
                 });
             })
             .WithName("GetPosSetup");

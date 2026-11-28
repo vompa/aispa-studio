@@ -127,7 +127,6 @@ public static partial class IssueOnlineVoucherHandler
 
     private static async Task FailAsync(OnlineDbContext online, VoucherOrder order, string error, ILogger logger, CancellationToken ct)
     {
-        order.Status = VoucherOrderStatus.Failed;
         order.Error = error.Length > 500 ? error[..500] : error;
         await online.SaveChangesAsync(ct);
         IssueFailed(logger, order.Id, error);

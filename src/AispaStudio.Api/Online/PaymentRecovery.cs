@@ -82,7 +82,7 @@ internal sealed partial class PaymentRecovery(
                 && (locationId == null || d.LocationId == locationId))
             .Select(d => d.Id).ToListAsync(ct);
         var vouchers = await online.VoucherOrders.AsNoTracking()
-            .Where(o => o.Status == VoucherOrderStatus.Paid && o.Error == null && o.PaidAt <= until && o.PaidAt >= from
+            .Where(o => o.Status == VoucherOrderStatus.Paid && o.PaidAt <= until && o.PaidAt >= from
                 && (locationId == null || o.LocationId == locationId))
             .Select(o => o.Id).ToListAsync(ct);
         var refunds = await online.Refunds.AsNoTracking()

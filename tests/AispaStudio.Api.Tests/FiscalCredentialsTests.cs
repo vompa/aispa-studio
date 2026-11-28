@@ -84,6 +84,17 @@ public sealed class FiscalCredentialsTests(ApiFixture fixture)
         var spa = await TestSpa.CreateAsync(fixture, Ct);
         await using var host = ProviderHost();
         using var client = Client(host, spa.Cookie);
+        const string UnknownAvailability = "ok-unexpected-availability";
+        using var unexpectedCreate = await client.PostAsJsonAsync("/api/pos/registers", Input(spa, UnknownAvailability), TestSpa.Json, Ct);
+        Assert.Equal(HttpStatusCode.Created, unexpectedCreate.StatusCode);
+        var unexpected = (await unexpectedCreate.Content.ReadFromJsonAsync<CashRegisterDto>(TestSpa.Json, Ct))!;
+        Assert.Equal(FiscalReadinessState.NotReady, unexpected.Readiness!.State);
+        var setup = await client.GetFromJsonAsync<PosSetupDto>($"/api/pos/setup?locationId={spa.Location.Id}", TestSpa.Json, Ct);
+        Assert.Contains(unexpected.Code, setup!.NextStep, StringComparison.Ordinal);
+        Assert.DoesNotContain(UnknownAvailability, setup.NextStep, StringComparison.Ordinal);
+        using var unexpectedCheck = await client.PostAsync($"/api/pos/registers/{unexpected.Id}/fiscal-check", null, Ct);
+        Assert.Equal(HttpStatusCode.Conflict, unexpectedCheck.StatusCode);
+        Assert.DoesNotContain(UnknownAvailability, await unexpectedCheck.Content.ReadAsStringAsync(Ct), StringComparison.Ordinal);
         var key = $"ok-{Guid.NewGuid():N}";
         var input = Input(spa, key);
         using var created = await client.PostAsJsonAsync("/api/pos/registers", input, TestSpa.Json, Ct);
@@ -343,6 +354,7 @@ public sealed class FiscalCredentialsTests(ApiFixture fixture)
         {
             var values = await store.ReadAsync(register.Id, ct);
             if (!values.TryGetValue("token", out var key)) return false;
+            if (key == "ok-unexpected-availability") throw new KeyNotFoundException(key);
             if (!key.StartsWith("ok-", StringComparison.Ordinal)) throw new InvalidOperationException(key);
             return true;
         }

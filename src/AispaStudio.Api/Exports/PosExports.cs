@@ -43,7 +43,7 @@ internal static class PosExports
                 var registers = sources.ToDictionary(r => r.Id, r => r.IsPractice ? $"{r.Code} (Übungskassa)" : r.Code);
                 if (request.List == Vouchers)
                 {
-                    var vouchers = await VoucherTableAsync(db, [.. registers.Keys], ct);
+                    var vouchers = await VoucherTableAsync(db, registers, ct);
                     return await FileAsync(vouchers, request.Format, "Gutscheinbestand", null, "Gutscheine", null, log, ct);
                 }
 
@@ -169,23 +169,24 @@ internal static class PosExports
         return new ExportTable("Umsatz je Behandlung und Person", columns, rows);
     }
 
-    private static async Task<ExportTable> VoucherTableAsync(AispaDbContext db, List<Guid> registerIds, CancellationToken ct)
+    private static async Task<ExportTable> VoucherTableAsync(AispaDbContext db, Dictionary<Guid, string> registers, CancellationToken ct)
     {
         // Gutscheine hängen an keinem Standort; zum Standort gehört, was an seinen Kassen verkauft wurde.
+        var registerIds = registers.Keys.ToArray();
         var vouchers = await db.Vouchers.AsNoTracking()
-            .Join(db.Receipts.Where(r => registerIds.Contains(r.RegisterId)), v => v.SoldOnReceiptId, r => r.Id, (v, r) => new { Voucher = v, Buyer = r.CustomerId })
+            .Join(db.Receipts.Where(r => registerIds.Contains(r.RegisterId)), v => v.SoldOnReceiptId, r => r.Id, (v, r) => new { Voucher = v, Buyer = r.CustomerId, r.RegisterId })
             .OrderBy(x => x.Voucher.CreatedAt).ThenBy(x => x.Voucher.Code)
             .ToListAsync(ct);
         var guests = await GuestNamesAsync(db, vouchers.Select(x => x.Buyer), ct);
         var columns = new ExportColumn[]
         {
             new("Code", ColumnKind.Text), new("Art", ColumnKind.Text), new("Wert", ColumnKind.Money), new("Rest", ColumnKind.Money), new("Gültig bis", ColumnKind.Date),
-            new("Status", ColumnKind.Text), new("Käufer", ColumnKind.Text),
+            new("Status", ColumnKind.Text), new("Käufer", ColumnKind.Text), new("Kasse", ColumnKind.Text),
         };
         var rows = vouchers.Select(x => new object?[]
             {
                 x.Voucher.Code, x.Voucher.Kind == VoucherKind.SinglePurpose ? "Einzweck" : "Mehrzweck", x.Voucher.InitialValue, x.Voucher.Balance, x.Voucher.ValidUntil,
-                VoucherStatusText(x.Voucher.Status), x.Buyer is { } c ? guests.GetValueOrDefault(c) : null,
+                VoucherStatusText(x.Voucher.Status), x.Buyer is { } c ? guests.GetValueOrDefault(c) : null, registers[x.RegisterId],
             })
             .ToList();
         return new ExportTable("Gutscheinbestand", columns, rows);
