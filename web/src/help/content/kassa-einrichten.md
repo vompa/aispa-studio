@@ -22,7 +22,7 @@ Die Karte „Kassa einrichten“ zeigt den Stand an dieser Stelle.
 
 ## Angaben im Assistenten {#angaben}
 
-- „Standort“ ordnet die Kassa einem Standort zu. „Land der Kassa“ bestimmt Währung und Signatureinrichtung.
+- „Standort“ ordnet die Kassa einem Standort zu. „Land der Kassa“ bestimmt Kassenrecht, Steuersätze und Signatureinrichtung.
 - „Signatureinrichtung“ zeigt die verfügbaren Anbieter. Österreich verwendet „AT0-Testeinrichtung“, Deutschland verwendet „Test-TSE“ und die Schweiz verwendet „Ohne Signatureinrichtung“. Diese Auswahlmöglichkeiten brauchen keine Zugangsdaten. Für den Echtbetrieb in Österreich und Deutschland braucht es einen echten Signaturanbieter. In dieser Version stehen dort Testanbieter für Übungskassen zur Verfügung.
 - Die Testanbieter legen immer eine Übungskassa an. In der Schweiz ist „Übungsbetrieb wählen“ eine eigene Auswahl. „Anlage als Übungskassa bestätigen“ ist bei jeder Übungskassa erforderlich.
 - „Kassen-ID“ ist die Kennung der Kassa. „Belegkopf“ enthält den Firmennamen und die Anschrift, wie sie auf den Belegen stehen.
