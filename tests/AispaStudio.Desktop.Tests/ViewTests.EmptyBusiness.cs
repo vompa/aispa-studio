@@ -58,6 +58,7 @@ public sealed partial class ViewTests
         .On("GET /api/holidays/regions", new List<HolidayRegionDto>())
         .On("GET /api/pos/articles", new List<ArticleDto>())
         .On("GET /api/pos/registers", new List<CashRegisterDto>())
+        .On("GET /api/pos/setup", new PosSetupDto(FiscalReadinessState.NotReady, "Eine Kassa einrichten."))
         .On("GET /api/pos/revenue-accounts", StandardRevenueAccounts)
         .On("GET /api/pos/settings", new PosSettingsDto(10m, false))
         .On("GET /api/treatments", new List<TreatmentDto>())
@@ -182,6 +183,7 @@ public sealed partial class ViewTests
         ("Lager Lagerorte", a => { a.Show("stock"); a.Stock!.SetTab(StockTab.Places); }, ["#NewPlaceButton"]),
         ("Lager Lieferanten", a => { a.Show("stock"); a.Stock!.SetTab(StockTab.Suppliers); }, ["#NewSupplierButton", "Noch kein Lieferant angelegt."]),
         ("Kassa", a => a.Show("masterData", "kassa"), []),
+        ("Kassen", a => a.Show("masterData", "registers"), ["#CreateRegisterButton", "Es ist noch keine Kassa eingerichtet."]),
         ("Zahlungen", a => a.Show("masterData", "payments"), []),
         ("Kosten", a => a.Show("costs"), ["Noch kein Raum angelegt. Räume entstehen", "Noch niemand im Team."]),
         ("Buchhaltung", a => a.Show("accounting"), ["#AddAccountButton"]),
