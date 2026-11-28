@@ -236,9 +236,10 @@ public sealed class RegulationsTests
     [Fact]
     public async Task Given_keine_Verbindung_When_die_Rezeption_bucht_Then_geht_der_Termin_bestaetigt_in_die_Warteschlange_damit_der_Abgleich_nicht_scheitert()
     {
-        var cache = new OfflineCache(new MemoryOfflineStore(), new FixedTime());
+        var user = TestData.Owner();
+        var cache = new OfflineCache(new MemoryOfflineStore(), new FixedTime()) { Tenant = user.Access!.TenantId };
         var api = CalendarApi();
-        var calendar = new CalendarViewModel(api.Client(cache), TestData.Owner(), null, new FixedTime());
+        var calendar = new CalendarViewModel(api.Client(cache), user, null, new FixedTime());
         await calendar.InitializeAsync();
         await calendar.LoadAsync();
         calendar.StartBooking(calendar.Columns[0], 30 * DayLayout.PixelsPerMinute);

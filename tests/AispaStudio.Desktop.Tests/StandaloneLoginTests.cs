@@ -19,7 +19,7 @@ public sealed class StandaloneLoginTests
         var api = new StubApi()
             .On("GET /api/system/modules", Standalone)
             .On("GET /api/auth/standalone/setup", new StandaloneSetupState(false))
-            .On("POST /api/auth/standalone/login", Rita(false));
+            .OnSignIn("POST /api/auth/standalone/login", Rita(false));
         CurrentUser? signedIn = null;
         var login = new LoginViewModel(api.Client(), user => { signedIn = user; return Task.CompletedTask; });
         await login.LoadAsync();
@@ -40,7 +40,7 @@ public sealed class StandaloneLoginTests
         var api = new StubApi()
             .On("GET /api/system/modules", Standalone)
             .On("GET /api/auth/standalone/setup", new StandaloneSetupState(false))
-            .On("POST /api/auth/standalone/recover", Rita(false));
+            .OnSignIn("POST /api/auth/standalone/recover", Rita(false));
         CurrentUser? signedIn = null;
         var login = new LoginViewModel(api.Client(), user => { signedIn = user; return Task.CompletedTask; });
         await login.LoadAsync();
@@ -123,8 +123,8 @@ public sealed class StandaloneLoginTests
         var api = new StubApi()
             .On("GET /api/system/modules", Standalone)
             .On("GET /api/auth/standalone/setup", new StandaloneSetupState(false))
-            .On("POST /api/auth/standalone/login", Rita(true))
-            .On("POST /api/auth/standalone/password", Rita(false));
+            .OnSignIn("POST /api/auth/standalone/login", Rita(true))
+            .OnSignIn("POST /api/auth/standalone/password", Rita(false));
         CurrentUser? signedIn = null;
         var login = new LoginViewModel(api.Client(), user => { signedIn = user; return Task.CompletedTask; });
         await login.LoadAsync();
@@ -156,7 +156,7 @@ public sealed class StandaloneLoginTests
         var api = new StubApi()
             .On("GET /api/system/modules", Standalone)
             .On("GET /api/auth/standalone/setup", new StandaloneSetupState(true))
-            .On("POST /api/auth/standalone/setup", owner);
+            .OnSignIn("POST /api/auth/standalone/setup", owner);
         CurrentUser? signedIn = null;
         var login = new LoginViewModel(api.Client(), user => { signedIn = user; return Task.CompletedTask; });
         await login.LoadAsync();
@@ -193,7 +193,7 @@ public sealed class StandaloneLoginTests
         var api = new StubApi()
             .On("GET /api/system/modules", Standalone)
             .On("GET /api/auth/standalone/setup", new StandaloneSetupState(true))
-            .On("POST /api/auth/standalone/setup", Rita(false));
+            .OnSignIn("POST /api/auth/standalone/setup", Rita(false));
         var login = new LoginViewModel(api.Client(), _ => Task.CompletedTask);
         await login.LoadAsync();
 

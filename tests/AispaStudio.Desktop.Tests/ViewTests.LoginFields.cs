@@ -41,7 +41,7 @@ public sealed partial class ViewTests
         {
             stub.On("GET /api/system/modules", StandaloneModules)
                 .On("GET /api/auth/standalone/setup", new StandaloneSetupState(state.StartsWith("Einrichtung", StringComparison.Ordinal)))
-                .On("POST /api/auth/standalone/login", StartPasswordUser());
+                .OnSignIn("POST /api/auth/standalone/login", StartPasswordUser());
         }
 
         var local = new SampleLocal();

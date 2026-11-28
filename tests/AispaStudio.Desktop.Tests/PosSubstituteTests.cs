@@ -28,7 +28,7 @@ public sealed class PosSubstituteTests
             .On("GET /api/pos/articles", SpaSample.Articles)
             .On($"GET /api/pos/locations/{SpaSample.LocationId}/day-list?date=2026-10-19", SpaSample.DayList(SpaSample.UnbilledVisits()))
             .On($"GET /api/pos/registers/{SpaSample.Register.Id}/bills", new List<BillDto>());
-        var cache = new OfflineCache(new MemoryOfflineStore(), new SampleTime());
+        var cache = new OfflineCache(new MemoryOfflineStore(), new SampleTime()) { Tenant = TestData.Owner().Access!.TenantId };
         var api = stub.Client(cache);
         var pos = new PosViewModel(api, new SampleTime());
         await pos.InitializeAsync(SpaSample.LocationId);

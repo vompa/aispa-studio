@@ -2,6 +2,7 @@ using System.Runtime.Versioning;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using AispaStudio.Contracts;
 
 namespace AispaStudio.Desktop.Services;
@@ -138,6 +139,7 @@ public sealed class OfflineCache
     private readonly IOfflineStore _store;
     private readonly TimeProvider _time;
     private readonly Lock _lock = new();
+    internal Lock SyncRoot => _lock;
     private readonly HashSet<Guid> _decommissionedRegisters = [];
     private OfflineState _state;
     private DateTimeOffset _lastSave = DateTimeOffset.MinValue;
@@ -443,9 +445,7 @@ public sealed class OfflineCache
         }
     }
 
-    public void Enqueue(PendingChange change) => EnqueueForTenant(change, change.TenantId ?? Tenant);
-
-    internal void EnqueueForTenant(PendingChange change, Guid? tenant)
+    public void Enqueue(PendingChange change)
     {
         if (!CanQueue(change.Path))
         {
@@ -454,28 +454,62 @@ public sealed class OfflineCache
 
         lock (_lock)
         {
-            State.Pending.Add(change with { TenantId = tenant });
+            State.Pending.Add(change with { TenantId = change.TenantId ?? _tenant });
             Persist();
         }
 
         Changed?.Invoke();
     }
 
-    public void Complete(Guid id, FailedChange? failure = null)
+    internal PendingChange? FindPending(Guid id)
     {
         lock (_lock)
         {
-            var tenant = State.Pending.FirstOrDefault(p => p.Id == id)?.TenantId ?? _tenant;
+            return State.Pending.Find(change => change.Id == id);
+        }
+    }
+
+    public void Complete(Guid id, FailedChange? failure = null) => Complete(id, failure, null, null);
+
+    internal void Complete(Guid id, FailedChange? failure, Guid? sendingTenant, AppointmentDto? confirmed)
+    {
+        lock (_lock)
+        {
+            var change = State.Pending.Find(p => p.Id == id);
+            var tenant = change?.TenantId ?? sendingTenant ?? _tenant;
             State.Pending.RemoveAll(p => p.Id == id);
             if (failure is not null && (failure.Path is null || CanQueue(failure.Path)))
             {
                 State.Failed.Add(failure.TenantId is null ? failure with { TenantId = tenant } : failure);
             }
 
+            if (confirmed is not null && change?.Preview?.Id == confirmed.Id
+                && JsonNode.Parse(change.Body) is JsonObject body && body["expectedVersion"] is JsonValue field
+                && field.TryGetValue<uint>(out var used) && used != confirmed.Version)
+            {
+                AdvancePendingVersions(tenant, confirmed, used);
+            }
+
             Persist();
         }
 
         Changed?.Invoke();
+    }
+
+    // Den bestätigten Versionsanschluss zusammen mit dem Abschluss speichern, auch wenn der Abgleich danach pausiert.
+    private void AdvancePendingVersions(Guid? tenant, AppointmentDto confirmed, uint used)
+    {
+        for (var i = 0; i < State.Pending.Count; i++)
+        {
+            var next = State.Pending[i];
+            if (next.Preview?.Id == confirmed.Id && (next.TenantId is null || next.TenantId == tenant)
+                && JsonNode.Parse(next.Body) is JsonObject body && body["expectedVersion"] is JsonValue field
+                && field.TryGetValue<uint>(out var expected) && expected == used)
+            {
+                body["expectedVersion"] = confirmed.Version;
+                State.Pending[i] = next with { Body = body.ToJsonString() };
+            }
+        }
     }
 
     /// <summary>Abgelehnte Vormerkung als erledigt abhaken; ein abgelehnter Ersatzbeleg bleibt (ADR 0096).</summary>

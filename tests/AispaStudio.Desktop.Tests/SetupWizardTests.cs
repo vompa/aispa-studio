@@ -179,7 +179,7 @@ public sealed partial class SetupWizardTests
             .On("GET /api/auth/me", null, System.Net.HttpStatusCode.Unauthorized)
             .On("GET /api/system/modules", new SystemModules(true, false, false, false, false, false, false, false))
             .On("GET /api/auth/standalone/setup", new StandaloneSetupState(true))
-            .On("POST /api/auth/standalone/setup", owner)
+            .OnSignIn("POST /api/auth/standalone/setup", owner)
             .On("GET /api/tenant", new TenantDto(Guid.NewGuid(), "Spa", "AT", CompanyProfile.Empty))
             .On("GET /api/tenant/embedding", new EmbeddingSettings([], null))
             .On("GET /api/tenant/history", new List<HistoryEntry>());

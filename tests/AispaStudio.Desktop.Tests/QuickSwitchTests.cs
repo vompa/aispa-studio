@@ -54,7 +54,7 @@ public sealed class QuickSwitchTests
         Assert.Contains("PIN falsch", login.Error, StringComparison.Ordinal);
         Assert.Equal("", login.Pin);
 
-        api.On("POST /api/auth/quick-switch", TestData.Reception()).On("GET /api/auth/me", TestData.Reception());
+        api.OnSignIn("POST /api/auth/quick-switch", TestData.Reception()).On("GET /api/auth/me", TestData.Reception());
         login.Pin = "1234";
         await login.QuickSwitchCommand.ExecuteAsync(null);
         var shell = Assert.IsType<ShellViewModel>(main.Content);

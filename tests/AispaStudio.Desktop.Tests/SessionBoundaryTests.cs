@@ -61,7 +61,7 @@ public sealed class SessionBoundaryTests
     {
         var store = new MemoryOfflineStore();
         var (session, cache) = Seed(store);
-        var api = new StubApi().On("POST /api/auth/" + route, TestData.Reception() with { Id = "next" }).Client(cache, session);
+        var api = new StubApi().OnSignIn("POST /api/auth/" + route, TestData.Reception() with { Id = "next" }).Client(cache, session);
         var result = route switch
         {
             "device-code/redeem" => await api.SignInWithCodeAsync("test", Ct),
@@ -77,6 +77,12 @@ public sealed class SessionBoundaryTests
         if (route == "quick-switch")
         {
             Assert.Null(session.Load());
+            Assert.Null(new OfflineCache(store).Get(Identity));
+        }
+        else
+        {
+            Assert.True(api.SessionCookie is not null && session.Load() == api.SessionCookie);
+            Assert.Equal("next", new OfflineCache(store).Read<CurrentUser>(Identity)?.Value?.Id);
         }
     }
 
@@ -182,7 +188,7 @@ public sealed class SessionBoundaryTests
         var store = new FailingStore();
         var (session, cache) = Seed(store);
         store.Fail = true;
-        var api = new StubApi().On("POST /api/auth/dev/login", TestData.Reception()).Client(cache, session);
+        var api = new StubApi().OnSignIn("POST /api/auth/dev/login", TestData.Reception()).Client(cache, session);
         await Assert.ThrowsAsync<IOException>(() => api.SignInAsTestAccountAsync("test", Ct));
         Assert.Null(session.Load());
     }
@@ -193,7 +199,7 @@ public sealed class SessionBoundaryTests
         var store = new MemoryOfflineStore();
         var (session, cache) = Seed(store);
         var user = TestData.Reception() with { MustChangePassword = true };
-        var server = new StubApi().On("POST /api/auth/standalone/login", user).On("GET /" + Identity, user);
+        var server = new StubApi().OnSignIn("POST /api/auth/standalone/login", user).On("GET /" + Identity, user);
         var api = server.Client(cache, session);
         await api.SignInWithPasswordAsync("test", "test", Ct);
         await api.GetAsync<CurrentUser>(Identity, Ct);
@@ -214,7 +220,7 @@ public sealed class SessionBoundaryTests
         var gate = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var path = denied ? Identity : "api/customers/late";
         var server = new StubApi().On("GET /" + path, denied ? null : TestData.Reception(), denied ? HttpStatusCode.Unauthorized : HttpStatusCode.OK)
-            .Hold("GET /" + path, gate.Task).On("POST /api/auth/dev/login", TestData.Reception() with { Id = "next" });
+            .Hold("GET /" + path, gate.Task).OnSignIn("POST /api/auth/dev/login", TestData.Reception() with { Id = "next" });
         var api = server.Client(cache, session);
         var pending = api.GetAsync<CurrentUser>(path, Ct);
         await api.SignInAsTestAccountAsync("test", Ct);
@@ -232,7 +238,7 @@ public sealed class SessionBoundaryTests
         var (session, cache) = Seed(store);
         var original = cache.Tenant;
         var gate = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        var api = new StubApi().Hold("POST /api/customers", gate.Task).On("POST /api/auth/dev/login", TestData.Reception()).Client(cache, session);
+        var api = new StubApi().Hold("POST /api/customers", gate.Task).OnSignIn("POST /api/auth/dev/login", TestData.Reception()).Client(cache, session);
         var id = Guid.NewGuid();
         var create = api.CreateCustomerAsync(new("Test", "Test", null, null, null, null, ClientId: id), Ct);
         await api.SignInAsTestAccountAsync("test", Ct);
@@ -418,7 +424,7 @@ public sealed class SessionBoundaryTests
         }
     }
 
-    private static async Task<string> ReadHeadersAsync(TcpClient client)
+    internal static async Task<string> ReadHeadersAsync(TcpClient client)
     {
         using var reader = new StreamReader(client.GetStream(), Encoding.ASCII, false, 1024, leaveOpen: true);
         var headers = new StringBuilder();
@@ -448,10 +454,11 @@ public sealed class SessionBoundaryTests
         }
     }
 
-    private static async Task RespondAsync(TcpClient client, string body, string cookie)
+    internal static async Task RespondAsync(TcpClient client, string body, string? cookie)
     {
         var bytes = Encoding.UTF8.GetBytes(body);
-        var header = $"HTTP/1.1 200 OK\r\nConnection: close\r\nContent-Type: application/json\r\nContent-Length: {bytes.Length}\r\nSet-Cookie: {cookie}\r\n\r\n";
+        var setCookie = cookie is null ? "" : $"Set-Cookie: {cookie}\r\n";
+        var header = $"HTTP/1.1 200 OK\r\nConnection: close\r\nContent-Type: application/json\r\nContent-Length: {bytes.Length}\r\n{setCookie}\r\n";
         await client.GetStream().WriteAsync(Encoding.ASCII.GetBytes(header), Ct);
         await client.GetStream().WriteAsync(bytes, Ct);
     }

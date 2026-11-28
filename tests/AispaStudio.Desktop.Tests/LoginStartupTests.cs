@@ -83,7 +83,7 @@ public sealed class LoginStartupTests
     [InlineData(StaffRole.Owner, "inhaberin@demo.aispa.test")]
     public async Task Schnellanmeldung_als_Rezeption_oder_Inhaberin_mit_einem_Klick(StaffRole role, string email)
     {
-        var api = Api("Development", StartupPhase.Ready, "Bereit", Accounts).On("POST /api/auth/dev/login", TestData.Reception());
+        var api = Api("Development", StartupPhase.Ready, "Bereit", Accounts).OnSignIn("POST /api/auth/dev/login", TestData.Reception());
         var signedIn = new List<CurrentUser>();
         var login = new LoginViewModel(api.Client(), user =>
         {

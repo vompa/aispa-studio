@@ -144,7 +144,7 @@ public sealed class AppointmentVersionTests
     {
         var seen = Seen();
         var stub = new StubApi { Down = true };
-        var cache = new OfflineCache(new MemoryOfflineStore(), new FixedTime());
+        var cache = new OfflineCache(new MemoryOfflineStore(), new FixedTime()) { Tenant = TestData.Owner().Access!.TenantId };
         var api = stub.Client(cache);
         var synced = new List<AppointmentDto>();
         api.Synced += synced.Add;
@@ -166,7 +166,7 @@ public sealed class AppointmentVersionTests
     {
         var seen = Seen();
         var stub = new StubApi { Down = true };
-        var cache = new OfflineCache(new MemoryOfflineStore(), new FixedTime());
+        var cache = new OfflineCache(new MemoryOfflineStore(), new FixedTime()) { Tenant = TestData.Owner().Access!.TenantId };
         var api = stub.Client(cache);
         var path = $"api/appointments/{seen.Id}/move";
         await api.PostOrQueueAsync(path, new MoveAppointmentRequest(TestData.At(11), null, null, null, seen.Version), "erste", seen with { Start = TestData.At(11) }, ct: Ct);

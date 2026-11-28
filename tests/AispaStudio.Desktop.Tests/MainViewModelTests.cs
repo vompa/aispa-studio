@@ -62,7 +62,7 @@ public sealed class MainViewModelTests
         login.Code = "abcd-efgh";
         await login.SignInCommand.ExecuteAsync(null);
         var error = login.Error;
-        api.On("POST /api/auth/device-code/redeem", TestData.Reception());
+        api.OnSignIn("POST /api/auth/device-code/redeem", TestData.Reception());
         await login.SignInCommand.ExecuteAsync(null);
 
         Assert.False(tooShort);
@@ -105,7 +105,7 @@ public sealed class MainViewModelTests
                 new("inhaberin@demo.aispa.test", "Katrin Aigner", StaffRole.Owner, ["alle Standorte"]),
                 new("empfang.wien@demo.aispa.test", "Nina Kovač", StaffRole.Reception, ["Wien Innere Stadt"]),
             })
-            .On("POST /api/auth/dev/login", TestData.Reception())
+            .OnSignIn("POST /api/auth/dev/login", TestData.Reception())
             .On("GET /api/locations", new List<LocationDto>());
         var withAccounts = new MainViewModel(development.Client());
         await withAccounts.StartAsync();

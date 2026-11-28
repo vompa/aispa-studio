@@ -52,6 +52,7 @@ public partial class App : Application
                 : new ApiClient(local.ApiAddress, store, deviceStore: device);
             // Die Oberfläche nennt nur Problem und Weg; der Systemtext mit Host und Port steht im Protokoll der App.
             api.TransportFailed += error => CrashLog.Default.Write("Server nicht erreichbar", error);
+            api.LocalStateFailed += error => CrashLog.Default.Write("Lokale Abmeldung", error);
             var theme = new ThemeController(FileSettingsStore.Default);
             theme.Apply();
             var viewModel = new MainViewModel(api, () => new LiveUpdates(api), theme: theme, local: local, facts: new SystemFacts())

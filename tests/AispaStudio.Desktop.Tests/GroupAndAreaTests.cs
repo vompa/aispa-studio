@@ -148,9 +148,10 @@ public sealed class GroupAndAreaTests
     public async Task Paarbuchung_ohne_Verbindung_mit_eigenem_Beginn_vormerken_und_beim_Abgleich_senden()
     {
         var api = Api();
-        var cache = new OfflineCache(new MemoryOfflineStore(), new FixedTime());
+        var user = TestData.Reception();
+        var cache = new OfflineCache(new MemoryOfflineStore(), new FixedTime()) { Tenant = user.Access!.TenantId };
         var client = api.Client(cache);
-        var vm = new CalendarViewModel(client, TestData.Reception(), null, new FixedTime());
+        var vm = new CalendarViewModel(client, user, null, new FixedTime());
         await vm.InitializeAsync();
         await vm.LoadAsync();
         vm.OpenGroupBookingCommand.Execute(null);
@@ -516,9 +517,10 @@ public sealed class GroupAndAreaTests
     {
         var areas = $"GET /api/locations/{TestData.LocationId}/areas?date=2027-03-01";
         var api = Api().On(areas, new List<AreaDay> { new(Sauna.Id, Sauna.Name, 12, [], []) });
-        var cache = new OfflineCache(new MemoryOfflineStore(), new FixedTime());
+        var user = TestData.Reception();
+        var cache = new OfflineCache(new MemoryOfflineStore(), new FixedTime()) { Tenant = user.Access!.TenantId };
         var client = api.Client(cache);
-        var vm = new CalendarViewModel(client, TestData.Reception(), null, new FixedTime());
+        var vm = new CalendarViewModel(client, user, null, new FixedTime());
         await vm.InitializeAsync();
         await vm.LoadAsync();
         vm.OpenAreasCommand.Execute(null);

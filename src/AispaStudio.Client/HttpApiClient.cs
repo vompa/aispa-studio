@@ -15,6 +15,7 @@ namespace AispaStudio.Client;
 public class HttpApiClient : IAispaApi
 {
     private const string CookieName = "aispa.auth";
+    private const string UnconfirmedSignIn = "Der Server hat die Anmeldung nicht bestätigt.";
 
     /// <summary>Kennzeichen des Empfangsgeräts (ADR 0042); bleibt beim Abmelden und beim Personenwechsel erhalten.</summary>
     private const string DeviceCookieName = "aispa.device";
@@ -30,6 +31,7 @@ public class HttpApiClient : IAispaApi
     {
         private int _references = 1;
 
+        public bool Remember { get; set; }
         public CookieContainer Cookies { get; } = cookies;
         public HttpClient Http { get; } = http;
 
@@ -99,6 +101,7 @@ public class HttpApiClient : IAispaApi
         }
 
         _transport = CreateTransport(cookies);
+        _transport.Remember = cookies.GetCookies(baseAddress)[CookieName] is not null;
     }
 
     public Uri BaseAddress { get; }
@@ -125,7 +128,9 @@ public class HttpApiClient : IAispaApi
             }
         }
 
-        return CreateTransport(cookies);
+        var copy = CreateTransport(cookies);
+        copy.Remember = !deviceOnly && _transport.Remember;
+        return copy;
     }
 
     private SessionTransport CurrentTransport()
@@ -482,7 +487,7 @@ public class HttpApiClient : IAispaApi
         }
     }
 
-    private async Task<ApiResult<T>> SendAsync<T>(HttpMethod method, string path, object? body, SessionTransport transport, long version, CancellationToken ct)
+    private async Task<ApiResult<T>> SendAsync<T>(HttpMethod method, string path, object? body, SessionTransport transport, long version, CancellationToken ct, bool requireAuthCookie = false)
     {
         try
         {
@@ -500,6 +505,11 @@ public class HttpApiClient : IAispaApi
             SetOffline(false);
             if (response.IsSuccessStatusCode)
             {
+                if (requireAuthCookie && !ConfirmResponseCookie(response, new Uri(BaseAddress, Versioned(path)), transport))
+                {
+                    return new(default, UnconfirmedSignIn, HttpStatusCode.BadGateway);
+                }
+
                 if (response.Content.Headers.ContentLength == 0 || response.StatusCode == HttpStatusCode.NoContent)
                 {
                     return new(default, null, response.StatusCode);
@@ -618,6 +628,42 @@ public class HttpApiClient : IAispaApi
         };
     }
 
+    // Nur die Header dieser Antwort belegen die Ausstellung, auch bei der Erneuerung einer vorhandenen Sitzung.
+    private bool ConfirmResponseCookie(HttpResponseMessage response, Uri requestUri, SessionTransport transport)
+    {
+        var origin = response.RequestMessage?.RequestUri ?? requestUri;
+        if (origin != requestUri || !response.Headers.TryGetValues("Set-Cookie", out var headers))
+        {
+            return false;
+        }
+
+        var issued = new CookieContainer();
+        foreach (var header in headers)
+        {
+            try
+            {
+                issued.SetCookies(origin, header);
+            }
+            catch (CookieException)
+            {
+                return false;
+            }
+        }
+
+        if (issued.GetCookies(BaseAddress)[CookieName] is not { Name: CookieName, Value.Length: > 0 } cookie)
+        {
+            return false;
+        }
+
+        // Der native HTTP-Handler pflegt seinen Container selbst. Injizierte Handler liefern nur die Header.
+        if (_handler is not null)
+        {
+            transport.Cookies.Add(BaseAddress, cookie);
+        }
+
+        return transport.Cookies.GetCookies(BaseAddress)[CookieName]?.Value == cookie.Value;
+    }
+
     private async Task<ApiResult<CurrentUser>> AuthenticateAsync(string path, object input, CancellationToken ct, bool remember = true, bool renew = false)
     {
         var (turn, finished) = ReserveCookieChange();
@@ -628,12 +674,12 @@ public class HttpApiClient : IAispaApi
         {
             lock (SessionLock)
             {
-                candidate = CopyTransport();
+                candidate = CopyTransport(deviceOnly: !renew);
                 _authenticating = true;
                 _sessionVersion++;
             }
 
-            var result = await SendAsync<CurrentUser>(HttpMethod.Post, path, input, candidate, SessionVersion, ct).ConfigureAwait(false);
+            var result = await SendAsync<CurrentUser>(HttpMethod.Post, path, input, candidate, SessionVersion, ct, requireAuthCookie: true).ConfigureAwait(false);
             lock (SessionLock)
             {
                 if (_pendingLogouts != 0)
@@ -641,20 +687,28 @@ public class HttpApiClient : IAispaApi
                     return new(null, "Die Anmeldung wurde beendet.", HttpStatusCode.Conflict);
                 }
 
-                if (result.Ok && result.Value is { } user)
+                if (!result.Ok)
                 {
-                    changingIdentity = true;
-                    ReplaceTransport(candidate.Retain());
-                    if (!renew)
-                    {
-                        ClearRememberedSession();
-                    }
+                    return result;
+                }
 
-                    if (remember && user is { Access: not null, MustChangePassword: false } && _transport.Cookies.GetCookies(BaseAddress)[CookieName] is { } cookie)
-                    {
-                        OnSessionConfirmed(user);
-                        _store.Save(cookie.Value);
-                    }
+                if (result.Value is not { } user || string.IsNullOrWhiteSpace(user.Id))
+                {
+                    return new(null, UnconfirmedSignIn, HttpStatusCode.BadGateway);
+                }
+
+                changingIdentity = true;
+                ReplaceTransport(candidate.Retain());
+                if (!renew)
+                {
+                    ClearRememberedSession();
+                    candidate.Remember = remember;
+                }
+
+                if (candidate.Remember && user is { Access: not null, MustChangePassword: false } && candidate.Cookies.GetCookies(BaseAddress)[CookieName] is { } cookie)
+                {
+                    OnSessionConfirmed(user);
+                    _store.Save(cookie.Value);
                 }
             }
 

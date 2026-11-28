@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using AispaStudio.Contracts;
 using AispaStudio.Desktop.Services;
 
 namespace AispaStudio.Desktop.Tests;
@@ -25,6 +26,17 @@ internal sealed class StubApi : HttpMessageHandler
     public StubApi On(string route, object? body, HttpStatusCode status = HttpStatusCode.OK)
     {
         _routes[route] = _ => new HttpResponseMessage(status) { Content = body is null ? null : JsonContent.Create(body, body.GetType(), options: ApiClient.Json) };
+        return this;
+    }
+
+    public StubApi OnSignIn(string route, CurrentUser user)
+    {
+        _routes[route] = _ =>
+        {
+            var response = new HttpResponseMessage(HttpStatusCode.OK) { Content = JsonContent.Create(user, options: ApiClient.Json) };
+            response.Headers.Add("Set-Cookie", $"aispa.auth={Guid.NewGuid():N}; Path=/; HttpOnly");
+            return response;
+        };
         return this;
     }
 
