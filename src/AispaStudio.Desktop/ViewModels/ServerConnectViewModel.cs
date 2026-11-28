@@ -18,6 +18,7 @@ public partial class ServerConnectViewModel(ISettingsStore settings, Action rest
     Func<Uri, CancellationToken, Task<string?>>? probe = null, Action? forgetSignIn = null) : ViewModelBase
 {
     private readonly Func<Uri, CancellationToken, Task<string?>> _probe = probe ?? ((address, ct) => ProbeAsync(address, ct));
+    internal ConnectionSettings Connection { get; init; } = new(settings, restart, forgetSignIn);
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(ConnectCommand))]
@@ -65,16 +66,16 @@ public partial class ServerConnectViewModel(ISettingsStore settings, Action rest
 
         if (Error is null)
         {
-            SaveConnection(address);
+            await SaveConnectionAsync(address).ConfigureAwait(true);
         }
     }
 
     /// <summary>Den gemerkten Server wieder austragen.</summary>
     [RelayCommand]
-    private void Forget() => SaveConnection(null);
+    private Task ForgetAsync() => SaveConnectionAsync(null);
 
-    private void SaveConnection(Uri? address) =>
-        ConnectionSettings.Change(settings, address, null, forgetSignIn, restart, message => Error = message);
+    private Task SaveConnectionAsync(Uri? address) =>
+        Connection.ChangeAsync(address, null, message => Error = message);
 
     /// <summary>Fragt den Status ab; das Zertifikat prüft Windows.</summary>
     public static async Task<string?> ProbeAsync(Uri address, CancellationToken ct, HttpMessageHandler? handler = null)

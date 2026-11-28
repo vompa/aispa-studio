@@ -46,8 +46,11 @@ public partial class StartupScreen : UserControl
     public StartupScreen()
     {
         InitializeComponent();
-        Quit.Click += (_, _) => (TopLevel.GetTopLevel(this) as Window)?.Close();
+        Quit.Click += CloseWindow;
+        LocalQuit.Click += CloseWindow;
     }
+
+    private void CloseWindow(object? sender, Avalonia.Interactivity.RoutedEventArgs e) => (TopLevel.GetTopLevel(this) as Window)?.Close();
 
     /// <summary>Die Ansicht dahinter: sie blendet nach dem Übergang ein; ihre Leiste bzw. Markenspalte (<c>BrandSurface</c>, <c>BrandTile</c>, <c>BrandName</c>) ist das Ziel.</summary>
     public Control? Target
@@ -81,7 +84,7 @@ public partial class StartupScreen : UserControl
     private void OnViewModelChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName is nameof(MainViewModel.IsStarting) or nameof(MainViewModel.IsStartupScreenShown) or nameof(MainViewModel.IsOffline)
-            or nameof(MainViewModel.IsStartChoiceShown))
+            or nameof(MainViewModel.IsStartChoiceShown) or nameof(MainViewModel.HasLocalSessionFailure))
         {
             Update();
         }
@@ -91,6 +94,16 @@ public partial class StartupScreen : UserControl
     {
         if (_viewModel is not { } vm || _leaving)
         {
+            return;
+        }
+
+        if (vm.HasLocalSessionFailure)
+        {
+            IsVisible = true;
+            Tile.IsVisible = BrandName.IsVisible = true;
+            Status.IsVisible = false;
+            StopBar();
+            Dispatcher.UIThread.Post(() => LocalQuit.Focus(), DispatcherPriority.Loaded);
             return;
         }
 

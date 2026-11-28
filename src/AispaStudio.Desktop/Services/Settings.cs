@@ -59,19 +59,99 @@ public interface ISettingsStore
 }
 
 /// <summary>Nur im Speicher (Tests, Designer).</summary>
-public sealed class MemorySettingsStore : ISettingsStore
+public sealed class MemorySettingsStore : ISettingsStore, IPreparedSettingsStore
 {
     private DesktopSettings _settings = new();
 
     public DesktopSettings Load() => _settings;
 
     public void Save(DesktopSettings settings) => _settings = settings;
+
+    PreparedSettingsWrite IPreparedSettingsStore.Prepare(Func<DesktopSettings, DesktopSettings> update)
+    {
+        var expected = JsonSerializer.SerializeToUtf8Bytes(update(Load()), FileSettingsStore.Json);
+        return new(() => Save(JsonSerializer.Deserialize<DesktopSettings>(expected, FileSettingsStore.Json)!),
+            () => PreparedSettingsWrite.Verify(expected, JsonSerializer.SerializeToUtf8Bytes(Load(), FileSettingsStore.Json)));
+    }
 }
 
 /// <summary>Als JSON im Benutzerprofil; eine kaputte oder fehlende Datei ergibt die Voreinstellung.</summary>
-public sealed class FileSettingsStore(string path) : ISettingsStore
+public sealed class FileSettingsStore(string path) : ISettingsStore, IPreparedSettingsStore
 {
-    private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web) { Converters = { new JsonStringEnumConverter() } };
+    internal static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web) { Converters = { new JsonStringEnumConverter() } };
+
+    PreparedSettingsWrite IPreparedSettingsStore.Prepare(Func<DesktopSettings, DesktopSettings> update)
+    {
+        var target = Path.GetFullPath(path);
+        var name = Path.GetFileName(target);
+        if (name.Length == 0 || OperatingSystem.IsWindows() && IsWindowsDevice(target, name))
+        {
+            throw new IOException("Die Einstellungen benötigen einen regulären Dateipfad.");
+        }
+
+        var directory = Path.GetDirectoryName(target) ?? throw new IOException("Der Einstellungsordner fehlt.");
+        Directory.CreateDirectory(directory);
+        DesktopSettings previous;
+        try
+        {
+            var attributes = File.GetAttributes(target);
+            if ((attributes & (FileAttributes.Device | FileAttributes.Directory | FileAttributes.ReparsePoint | FileAttributes.ReadOnly)) != 0)
+            {
+                throw new IOException("Die Einstellungen benötigen eine beschreibbare reguläre Datei.");
+            }
+
+            using var source = new FileStream(target, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete);
+            if (!source.CanSeek)
+            {
+                throw new IOException("Die Einstellungen können von diesem Dateityp nicht gelesen werden.");
+            }
+
+            previous = JsonSerializer.Deserialize<DesktopSettings>(source, Json) ?? throw new JsonException("Leere Einstellungen.");
+        }
+        catch (FileNotFoundException)
+        {
+            previous = new();
+        }
+
+        var expected = JsonSerializer.SerializeToUtf8Bytes(update(previous), Json);
+        var temporary = Path.Combine(directory, $".{name}.{Guid.NewGuid():N}.tmp");
+        using (var stream = new FileStream(temporary, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+        {
+            try
+            {
+                stream.Write(expected);
+                stream.Flush(flushToDisk: true);
+            }
+            catch
+            {
+                stream.Dispose();
+                PreparedSettingsWrite.Discard(temporary);
+                throw;
+            }
+        }
+
+        var write = new PreparedSettingsWrite(() => File.Move(temporary, target, overwrite: true),
+            () => PreparedSettingsWrite.Verify(expected, File.ReadAllBytes(target)), () => PreparedSettingsWrite.Discard(temporary));
+        try
+        {
+            PreparedSettingsWrite.Verify(expected, File.ReadAllBytes(temporary));
+            return write;
+        }
+        catch
+        {
+            write.Dispose();
+            throw;
+        }
+    }
+
+    private static bool IsWindowsDevice(string path, string fileName)
+    {
+        var stem = fileName.Split('.')[0].TrimEnd().ToUpperInvariant();
+        return path.StartsWith(@"\\.\", StringComparison.Ordinal) || path.StartsWith(@"\\?\GLOBALROOT\", StringComparison.OrdinalIgnoreCase)
+            || fileName.Contains(':', StringComparison.Ordinal) || stem is "CON" or "NUL" or "AUX" or "PRN" or "CONIN$" or "CONOUT$"
+            || stem.Length == 4 && (stem.StartsWith("COM", StringComparison.Ordinal) || stem.StartsWith("LPT", StringComparison.Ordinal))
+                && "0123456789¹²³".Contains(stem[3], StringComparison.Ordinal);
+    }
 
     public static FileSettingsStore Default { get; } = new(Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "AispaStudio", "einstellungen.json"));

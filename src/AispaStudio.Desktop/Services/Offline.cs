@@ -556,11 +556,11 @@ public sealed class OfflineCache
     /// genutzten PC nichts davon zurückbleibt. Vorgemerkte und abgelehnte Änderungen bleiben und gehen mit der nächsten Anmeldung
     /// im selben Spa an den Server; sonst wäre ohne Verbindung Eingetragenes verloren.
     /// </summary>
-    public void Clear()
+    public void Clear(bool keepDevice = true)
     {
         lock (_lock)
         {
-            var kept = OfflineState.Empty() with { SharedDevice = State.SharedDevice };
+            var kept = OfflineState.Empty() with { SharedDevice = keepDevice ? State.SharedDevice : null };
             kept.Pending.AddRange(State.Pending);
             kept.Failed.AddRange(State.Failed);
             _state = kept;

@@ -64,7 +64,9 @@ public class HttpApiClient : IAispaApi
 
     protected long SessionVersion => Volatile.Read(ref _sessionVersion);
 
-    protected bool IsCurrentSession(long version) => version == SessionVersion && _pendingLogouts == 0 && !_authenticating;
+    protected bool ServerContextClosed { get; private set; }
+
+    protected bool IsCurrentSession(long version) => !ServerContextClosed && version == SessionVersion && _pendingLogouts == 0 && !_authenticating;
 
     // CookieContainer übernimmt Set-Cookie schon beim Empfang der Antwort. Nur diese Anmeldewechsel laufen in Aufrufreihenfolge.
     private (Task Previous, TaskCompletionSource Finished) ReserveCookieChange()
@@ -290,12 +292,28 @@ public class HttpApiClient : IAispaApi
         await turn.ConfigureAwait(false);
         try
         {
-            using var active = CurrentTransport();
+            SessionTransport active;
+            lock (SessionLock)
+            {
+                if (ServerContextClosed)
+                {
+                    return new(default, "Die Serververbindung wurde beendet.", HttpStatusCode.Conflict);
+                }
+
+                active = _transport.Retain();
+            }
+
+            using var lease = active;
             var result = await SendAsync<T>(method, "api/auth/shared-device", input, active, SessionVersion, ct).ConfigureAwait(false);
             if (result.Ok)
             {
                 lock (SessionLock)
                 {
+                    if (ServerContextClosed)
+                    {
+                        return new(default, "Die Serververbindung wurde beendet.", HttpStatusCode.Conflict);
+                    }
+
                     if (result.Value is SharedDeviceDto device)
                     {
                         if (active.Cookies.GetCookies(BaseAddress)[DeviceCookieName] is { } cookie)
@@ -331,16 +349,28 @@ public class HttpApiClient : IAispaApi
     protected void RejectSession()
     {
         _sessionVersion++;
-        ReplaceTransport(CopyTransport(deviceOnly: true));
+        ReplaceTransport(ServerContextClosed ? CreateTransport(new CookieContainer()) : CopyTransport(deviceOnly: true));
         ClearRememberedSession();
     }
 
-    private void ClearRememberedSession()
+    protected void RejectServerContext()
+    {
+        lock (SessionLock)
+        {
+            ServerContextClosed = true;
+            ClearBoth(RejectSession, _deviceStore.Clear, "Zugang und Gerätebindung konnten nicht vollständig gelöscht werden.");
+        }
+    }
+
+    private void ClearRememberedSession() =>
+        ClearBoth(_store.Clear, OnSessionEnded, "Sitzung und lokaler Lesestand konnten nicht gelöscht werden.");
+
+    private static void ClearBoth(Action first, Action second, string message)
     {
         ExceptionDispatchInfo? sessionFailure = null;
         try
         {
-            _store.Clear();
+            first();
         }
         catch (Exception error)
         {
@@ -350,11 +380,11 @@ public class HttpApiClient : IAispaApi
         // Beide Speicher sind unabhängig. Jeder erhält seinen Löschversuch, bevor ein Fehler zurückgeht.
         try
         {
-            OnSessionEnded();
+            second();
         }
         catch (Exception cacheError) when (sessionFailure is not null)
         {
-            throw new IOException("Sitzung und lokaler Lesestand konnten nicht gelöscht werden.", new AggregateException(sessionFailure.SourceException, cacheError));
+            throw new IOException(message, new AggregateException(sessionFailure.SourceException, cacheError));
         }
 
         sessionFailure?.Throw();
@@ -674,6 +704,11 @@ public class HttpApiClient : IAispaApi
         {
             lock (SessionLock)
             {
+                if (ServerContextClosed)
+                {
+                    return new(null, "Die Serververbindung wurde beendet.", HttpStatusCode.Conflict);
+                }
+
                 candidate = CopyTransport(deviceOnly: !renew);
                 _authenticating = true;
                 _sessionVersion++;
@@ -682,7 +717,7 @@ public class HttpApiClient : IAispaApi
             var result = await SendAsync<CurrentUser>(HttpMethod.Post, path, input, candidate, SessionVersion, ct, requireAuthCookie: true).ConfigureAwait(false);
             lock (SessionLock)
             {
-                if (_pendingLogouts != 0)
+                if (_pendingLogouts != 0 || ServerContextClosed)
                 {
                     return new(null, "Die Anmeldung wurde beendet.", HttpStatusCode.Conflict);
                 }

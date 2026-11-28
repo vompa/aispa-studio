@@ -42,10 +42,24 @@ public partial class MainViewModel
     public partial string StartupStep { get; private set; } = ConnectingStep;
 
     /// <summary>Die Anmeldung braucht eine Verbindung. Die Arbeitsfläche ist mit gemerktem Zugriff auch offline bedienbar (ADR 0005).</summary>
-    public bool CanShowContent => !IsIdleSigningOut && Content is not null && (IsConnected || Content is ShellViewModel);
+    public bool CanShowContent => CanStart && !IsIdleSigningOut && Content is not null && (IsConnected || Content is ShellViewModel);
+
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(StartCommand), nameof(CheckStatusCommand))]
+    [NotifyPropertyChangedFor(nameof(CanShowContent), nameof(IsOffline))]
+    public partial bool CanStart { get; private set; } = true;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasLocalSessionFailure))]
+    public partial string? LocalFailureTitle { get; private set; }
+
+    [ObservableProperty]
+    public partial string? LocalFailureMessage { get; private set; }
+
+    public bool HasLocalSessionFailure => LocalFailureTitle is not null;
 
     /// <summary>Der Start ist beendet und es gibt weder eine Verbindung noch eine Arbeitsfläche aus dem lokalen Stand.</summary>
-    public bool IsOffline => !CanShowContent && !IsStarting && !IsIdleSigningOut;
+    public bool IsOffline => CanStart && !CanShowContent && !IsStarting && !IsIdleSigningOut;
 
     private StartChoiceViewModel? _startChoice;
 
@@ -85,11 +99,19 @@ public partial class MainViewModel
         {
             using var attempt = new CancellationTokenSource(ProbeTimeout, _time);
             await api.StatusAsync(attempt.Token).ConfigureAwait(true);
+            if (!CanStart)
+            {
+                return true;
+            }
             choice.MarkMade();
             return false;
         }
         catch (Exception ex) when (ex is HttpRequestException or OperationCanceledException)
         {
+            if (!CanStart)
+            {
+                return true;
+            }
             IsConnected = false;
             ConnectionTitle = NoConnectionTitle;
             StatusText = ServerUnreachableAdvice;

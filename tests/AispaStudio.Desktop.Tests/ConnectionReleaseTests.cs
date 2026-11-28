@@ -82,7 +82,7 @@ public sealed class ConnectionReleaseTests
             Assert.NotNull(new OfflineCache(disk).Get("api/auth/me"));
             if (action == ConnectionAction.Forget)
             {
-                (mainPc ? network.ForgetCommand : connect.ForgetCommand).Execute(null);
+                await (mainPc ? network.ForgetCommand : connect.ForgetCommand).ExecuteAsync(null);
             }
             else
             {
@@ -94,7 +94,7 @@ public sealed class ConnectionReleaseTests
         else
         {
             var link = new ServerLinkViewModel(settings, current, Restart, api.ForgetSignIn);
-            link.ReleaseCommand.Execute(null);
+            await link.ReleaseCommand.ExecuteAsync(null);
         }
         Assert.NotNull(startup);
         await startup;
@@ -120,7 +120,7 @@ public sealed class ConnectionReleaseTests
     }
 
     [Fact]
-    public void Gesperrter_Sitzungsspeicher_stoppt_Adresswechsel_und_Neustart()
+    public async Task Gesperrter_Sitzungsspeicher_stoppt_Adresswechsel_und_Neustart()
     {
         var settings = new MemorySettingsStore();
         var original = new DesktopSettings(ServerAddress: "https://localhost/", ServerCode: "test");
@@ -129,11 +129,16 @@ public sealed class ConnectionReleaseTests
         var session = new LockedSession();
         var api = new ApiClient(current.Address, session);
         var restarts = 0;
-        var link = new ServerLinkViewModel(settings, current, () => restarts++, api.ForgetSignIn);
+        Exception? cause = null;
+        string? notice = null;
+        var change = new ConnectionSettings(settings, () => restarts++, null, () => { api.ForgetSignIn(); return Task.CompletedTask; },
+            (_, message) => notice = message, error => cause = error);
+        var link = new ServerLinkViewModel(settings, current, () => restarts++) { Connection = change };
 
-        var failure = Assert.Throws<IOException>(() => link.ReleaseCommand.Execute(null));
+        await link.ReleaseCommand.ExecuteAsync(null);
 
-        Assert.Same(session.Failure, failure);
+        Assert.Same(session.Failure, cause);
+        Assert.Contains("Anmeldung", notice, StringComparison.Ordinal);
         Assert.Equal(original, settings.Load());
         Assert.Equal(0, restarts);
     }
@@ -159,11 +164,11 @@ public sealed class ConnectionReleaseTests
         };
         if (connect)
         {
-            await Assert.ThrowsAsync<IOException>(() => (mainPc ? network.ConnectCommand : server.ConnectCommand).ExecuteAsync(null));
+            await (mainPc ? network.ConnectCommand : server.ConnectCommand).ExecuteAsync(null);
         }
         else
         {
-            Assert.Throws<IOException>(() => (mainPc ? network.ForgetCommand : server.ForgetCommand).Execute(null));
+            await (mainPc ? network.ForgetCommand : server.ForgetCommand).ExecuteAsync(null);
         }
 
         Assert.Contains("Anmeldung", mainPc ? network.Error : server.Error, StringComparison.Ordinal);

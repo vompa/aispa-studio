@@ -20,6 +20,7 @@
             <ui:HelpButton Topic="im-netz" Section="verbinden-server" />
           </StackPanel>
           <TextBlock Text="{Binding Text}" TextWrapping="Wrap" />
+          <ui:InfoBar Severity="Error" Message="{Binding Error}" IsVisible="{Binding Error, Converter={x:Static ObjectConverters.IsNotNull}}" />
           <TextBlock Text="Verbindung lösen trägt die Adresse auf diesem PC aus und startet die App neu. Danach fragt der Startbildschirm wieder nach einem Server."
                      Classes="muted small" TextWrapping="Wrap" />
           <Button Content="Verbindung lösen" Command="{Binding ReleaseCommand}" HorizontalAlignment="Left"

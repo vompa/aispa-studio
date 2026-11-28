@@ -129,7 +129,7 @@ public sealed class ServerConnectTests
     }
 
     [Fact]
-    public void Gemerkter_Server_laesst_sich_vergessen_und_erscheint_nicht_als_Haupt_PC()
+    public async Task Gemerkter_Server_laesst_sich_vergessen_und_erscheint_nicht_als_Haupt_PC()
     {
         var settings = new MemorySettingsStore();
         settings.Save(new DesktopSettings(ServerAddress: "https://spa.example.at/"));
@@ -140,7 +140,7 @@ public sealed class ServerConnectTests
         Assert.True(server.HasSaved);
         Assert.False(mainPc.HasSaved);
 
-        server.ForgetCommand.Execute(null);
+        await server.ForgetCommand.ExecuteAsync(null);
 
         Assert.Equal((null, 1), (settings.Load().ServerAddress, restarts));
     }
@@ -193,7 +193,7 @@ public sealed class ServerConnectTests
     }
 
     [Fact]
-    public void Seite_Netz_zeigt_den_Server_und_loest_ihn()
+    public async Task Seite_Netz_zeigt_den_Server_und_loest_ihn()
     {
         var settings = new MemorySettingsStore();
         settings.Save(new DesktopSettings(ServerAddress: "https://spa.example.at/"));
@@ -203,7 +203,7 @@ public sealed class ServerConnectTests
         Assert.Contains("https://spa.example.at/", link.Text, StringComparison.Ordinal);
         Assert.True(link.ReleaseCommand.CanExecute(null));
 
-        link.ReleaseCommand.Execute(null);
+        await link.ReleaseCommand.ExecuteAsync(null);
 
         Assert.Equal((null, null, 1), (settings.Load().ServerAddress, settings.Load().ServerCode, restarts));
     }

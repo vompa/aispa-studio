@@ -92,6 +92,13 @@
       </StackPanel>
 
       <!-- Server nicht erreichbar: die heutige Karte, auf der Petrolfläche -->
+      <Border Width="480" Padding="24,20" Margin="0,20,0,0" CornerRadius="12" Background="{DynamicResource RailHoverBrush}" IsVisible="{Binding HasLocalSessionFailure}">
+        <StackPanel Spacing="12">
+          <TextBlock Text="{Binding LocalFailureTitle}" Classes="h1" Foreground="{DynamicResource RailFgBrush}" TextWrapping="Wrap" />
+          <TextBlock Text="{Binding LocalFailureMessage}" Foreground="{DynamicResource RailFg2Brush}" TextWrapping="Wrap" AutomationProperties.LiveSetting="Assertive" />
+          <Button x:Name="LocalQuit" Classes="startup-retry" Content="Beenden" HorizontalAlignment="Left" />
+        </StackPanel>
+      </Border>
       <StackPanel Spacing="12" Margin="0,20,0,0" IsVisible="{Binding IsOffline}">
         <!-- Startauswahl (ADR 0104): auf einem PC ohne Einrichtung statt „Keine Verbindung“; die Wege führen zu den vorhandenen Ansichten -->
         <Border x:Name="StartChoiceCard" Classes="card" Width="480" Padding="24" IsVisible="{Binding IsStartChoiceShown}">

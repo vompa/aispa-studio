@@ -1,4 +1,5 @@
 using AispaStudio.Desktop.Services;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
 namespace AispaStudio.Desktop.ViewModels;
@@ -12,6 +13,11 @@ namespace AispaStudio.Desktop.ViewModels;
 /// <param name="forgetSignIn">Widerruft den lokalen Zugang zum bisherigen Server.</param>
 public partial class ServerLinkViewModel(ISettingsStore settings, ServerChoice.Choice current, Action restart, Action? forgetSignIn = null) : ViewModelBase
 {
+    internal ConnectionSettings Connection { get; init; } = new(settings, restart, forgetSignIn);
+
+    [ObservableProperty]
+    public partial string? Error { get; private set; }
+
     public string Text => current.Source switch
     {
         ServerSource.Server => $"Die App ist mit dem Server {current.Address} verbunden.",
@@ -23,30 +29,80 @@ public partial class ServerLinkViewModel(ISettingsStore settings, ServerChoice.C
     private bool CanRelease => current.Source is ServerSource.Server or ServerSource.MainPc;
 
     [RelayCommand(CanExecute = nameof(CanRelease))]
-    private void Release() => ConnectionSettings.Change(settings, null, null, forgetSignIn, restart);
+    private Task ReleaseAsync() => Connection.ChangeAsync(null, null, message => Error = message);
 }
 
-internal static class ConnectionSettings
+internal sealed class ConnectionSettings(ISettingsStore settings, Action restart, string? environmentUrl, Func<Task> endContext,
+    Action<string, string>? showClosedError, Action<Exception>? log)
 {
-    // Beide Startkarten und die Seite „Netz“ wechseln dasselbe Ziel im selben lokalen Profil.
-    internal static void Change(ISettingsStore settings, Uri? address, string? code, Action? forgetSignIn, Action restart, Action<string>? showError = null)
+    public ConnectionSettings(ISettingsStore settings, Action restart, Action? forgetSignIn)
+        : this(settings, restart, null, () => { forgetSignIn?.Invoke(); return Task.CompletedTask; }, null, null)
     {
-        var previous = settings.Load();
-        var updated = previous with { ServerAddress = address?.ToString(), ServerCode = code };
-        if (ServerChoice.Resolve(previous, null) != ServerChoice.Resolve(updated, null))
+    }
+
+    private int _changing;
+
+    public async Task ChangeAsync(Uri? address, string? code, Action<string?> showError)
+    {
+        if (Interlocked.Exchange(ref _changing, 1) != 0)
         {
-            try
-            {
-                forgetSignIn?.Invoke();
-            }
-            catch (Exception error) when (error is IOException or UnauthorizedAccessException)
-            {
-                showError?.Invoke("Die bisherige Anmeldung konnte nicht vollständig entfernt werden. Die Serververbindung wurde nicht geändert.");
-                throw;
-            }
+            showError("Ein Verbindungswechsel läuft bereits.");
+            return;
         }
 
-        settings.Save(updated);
-        restart();
+        try
+        {
+            showError(null);
+            var changed = false;
+            var closing = false;
+            var publishing = false;
+            try
+            {
+                var store = settings as IPreparedSettingsStore ?? throw new IOException("Dieser Speicher kann eine Änderung der Verbindung nicht bestätigen.");
+                using var write = store.Prepare(previous =>
+                {
+                    var updated = previous with { ServerAddress = address?.ToString(), ServerCode = code };
+                    var before = ServerChoice.Resolve(previous, environmentUrl);
+                    var after = ServerChoice.Resolve(updated, environmentUrl);
+                    changed = before.Address != after.Address || !SamePin(before.Code, after.Code);
+                    return changed ? updated with { AssistantHistory = null } : updated;
+                });
+                if (changed)
+                {
+                    closing = true;
+                    await endContext().ConfigureAwait(true);
+                }
+
+                publishing = true;
+                write.CommitAndVerify();
+            }
+            catch (Exception error) when (error is IOException or UnauthorizedAccessException or System.Text.Json.JsonException or ArgumentException or NotSupportedException
+                || closing && error is AggregateException)
+            {
+                var message = publishing ? "Der Serverwechsel konnte nicht bestätigt werden. Die App wurde nicht neu gestartet."
+                    : closing ? "Die bisherige Anmeldung konnte nicht vollständig entfernt werden. Die Serververbindung wurde nicht geändert."
+                    : "Die Änderung der Serververbindung konnte nicht vorbereitet werden. Die App wurde nicht neu gestartet.";
+                log?.Invoke(error);
+                if (closing && showClosedError is not null)
+                {
+                    showClosedError("Serverwechsel unterbrochen", message);
+                }
+                else
+                {
+                    showError(message);
+                }
+
+                return;
+            }
+
+            restart();
+        }
+        finally
+        {
+            Volatile.Write(ref _changing, 0);
+        }
     }
+
+    private static bool SamePin(string? first, string? second) => first == second ||
+        first is not null && second is not null && NetworkShare.NormalizeCode(first) is { } normalized && normalized == NetworkShare.NormalizeCode(second);
 }

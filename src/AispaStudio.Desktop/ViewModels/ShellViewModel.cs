@@ -42,6 +42,9 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
     private readonly CancellationTokenSource _stop = new();
     private DateTimeOffset _lastPrefetch = DateTimeOffset.MinValue;
     private Task? _loop;
+    private Task? _deviceInitialization;
+
+    internal Func<Func<Task>, Task>? SignOutScope { private get; init; }
 
     public ShellViewModel(IWorkstationApi api, CurrentUser user, ILiveUpdates? live, TimeProvider time, ThemeController theme,
         string connection, Func<Task> signOut, TimeSpan? checkInterval = null, SystemModules? modules = null,
@@ -636,7 +639,7 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
     {
         if (User.Rights.Contains(AccessRight.Book))
         {
-            _ = Devices.InitializeAsync();
+            _deviceInitialization = Devices.InitializeAsync();
         }
 
         if (HasInbox)
@@ -1305,12 +1308,55 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
     private void NextTheme() => _theme.Next();
 
     [RelayCommand]
-    private async Task SignOutAsync()
+    private Task SignOutAsync()
     {
-        Companion.ForgetHistory();
+        Task EndAsync() => EndSessionAsync(_signOut, this, forgetHistory: true);
+        return SignOutScope is { } scope ? scope(EndAsync) : EndAsync();
+    }
+
+    // Der Widerruf läuft vor dem Speichern des Verlaufs und vor jedem Warten auf das Terminal.
+    internal static async Task EndSessionAsync(Func<Task> revoke, ShellViewModel? shell, bool forgetHistory, Task? pending = null)
+    {
+        async Task RevokeAsync() => await revoke().ConfigureAwait(true);
+        var revoking = RevokeAsync();
+        var history = Task.CompletedTask;
+        if (forgetHistory && shell is not null)
+        {
+            try
+            {
+                shell.Companion.ForgetHistory();
+            }
+            catch (Exception ex)
+            {
+                history = Task.FromException(ex);
+            }
+        }
+
+        var ending = Task.WhenAll(revoking, history, shell?.StopAsync() ?? Task.CompletedTask, pending ?? Task.CompletedTask);
+        try
+        {
+            await ending.ConfigureAwait(true);
+        }
+        catch when (ending.Exception is { InnerExceptions.Count: > 1 } failures)
+        {
+            throw failures;
+        }
+    }
+
+    private async Task StopAsync()
+    {
         Dispose();
-        // Die Abmeldung widerruft den lokalen Zugang sofort, auch wenn das Terminal seinen letzten Aufruf noch beendet.
-        await Task.WhenAll(_signOut(), Devices.DisposeAsync().AsTask()).ConfigureAwait(true);
+        try
+        {
+            if (_deviceInitialization is not null)
+            {
+                await _deviceInitialization.ConfigureAwait(true);
+            }
+        }
+        finally
+        {
+            await Task.WhenAll(Devices.DisposeAsync().AsTask(), _loop ?? Task.CompletedTask).ConfigureAwait(true);
+        }
     }
 
     internal static string RoleText(StaffRole role) => role switch

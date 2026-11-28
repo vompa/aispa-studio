@@ -55,12 +55,17 @@ public partial class App : Application
             api.LocalStateFailed += error => CrashLog.Default.Write("Lokale Abmeldung", error);
             var theme = new ThemeController(FileSettingsStore.Default);
             theme.Apply();
-            var viewModel = new MainViewModel(api, () => new LiveUpdates(api), theme: theme, local: local, facts: new SystemFacts())
+            MainViewModel? viewModel = null;
+            var connection = new ConnectionSettings(FileSettingsStore.Default, () => Restart(desktop), apiUrl,
+                () => viewModel!.EndConnectionContextAsync(api.ForgetSignIn),
+                (title, message) => viewModel!.ShowLocalSessionFailure(title, message),
+                error => CrashLog.Default.Write("Serverwechsel", error));
+            viewModel = new MainViewModel(api, () => new LiveUpdates(api), theme: theme, local: local, facts: new SystemFacts())
             {
                 CloseApp = () => Dispatcher.UIThread.Post(() => desktop.Shutdown()),
-                Connect = local is null ? new NetworkConnectViewModel(FileSettingsStore.Default, () => Restart(desktop), forgetSignIn: api.ForgetSignIn) : null,
-                ServerConnect = local is null ? new ServerConnectViewModel(FileSettingsStore.Default, () => Restart(desktop), forgetSignIn: api.ForgetSignIn) : null,
-                ServerLink = local is null ? new ServerLinkViewModel(FileSettingsStore.Default, server, () => Restart(desktop), api.ForgetSignIn) : null,
+                Connect = local is null ? new NetworkConnectViewModel(FileSettingsStore.Default, () => Restart(desktop)) { Connection = connection } : null,
+                ServerConnect = local is null ? new ServerConnectViewModel(FileSettingsStore.Default, () => Restart(desktop)) { Connection = connection } : null,
+                ServerLink = local is null ? new ServerLinkViewModel(FileSettingsStore.Default, server, () => Restart(desktop)) { Connection = connection } : null,
                 StartChoice = local is null && showStartChoice ? new StartChoiceViewModel(FileSettingsStore.Default, demo => Restart(desktop, demo)) : null,
             };
             if (local is not null)

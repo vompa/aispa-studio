@@ -16,6 +16,7 @@ public partial class NetworkConnectViewModel(ISettingsStore settings, Action res
     Func<Uri, string, CancellationToken, Task<string?>>? probe = null, Action? forgetSignIn = null) : ViewModelBase
 {
     private readonly Func<Uri, string, CancellationToken, Task<string?>> _probe = probe ?? ProbeAsync;
+    internal ConnectionSettings Connection { get; init; } = new(settings, restart, forgetSignIn);
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(ConnectCommand))]
@@ -67,16 +68,16 @@ public partial class NetworkConnectViewModel(ISettingsStore settings, Action res
 
         if (Error is null)
         {
-            SaveConnection(address, code);
+            await SaveConnectionAsync(address, code).ConfigureAwait(true);
         }
     }
 
     /// <summary>Zurück zum Server aus der Voreinstellung (z. B. nach einem Umzug auf einen echten Server).</summary>
     [RelayCommand]
-    private void Forget() => SaveConnection(null, null);
+    private Task ForgetAsync() => SaveConnectionAsync(null, null);
 
-    private void SaveConnection(Uri? address, string? code) =>
-        ConnectionSettings.Change(settings, address, code, forgetSignIn, restart, message => Error = message);
+    private Task SaveConnectionAsync(Uri? address, string? code) =>
+        Connection.ChangeAsync(address, code, message => Error = message);
 
     /// <summary>Fragt den Status ab, nur mit dem Zertifikat zum Code.</summary>
     public static async Task<string?> ProbeAsync(Uri address, string code, CancellationToken ct)

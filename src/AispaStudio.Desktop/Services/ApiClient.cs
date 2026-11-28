@@ -38,15 +38,9 @@ public sealed class ApiClient : HttpApiClient, IWorkstationApi
     public event Action<Exception>? LocalStateFailed;
 
     /// <summary>Widerruft beim Lösen der Serververbindung den lokalen Zugang vor dem Neustart.</summary>
-    public void ForgetSignIn()
-    {
-        lock (SessionLock)
-        {
-            RejectSession();
-        }
-    }
+    public void ForgetSignIn() => RejectServerContext();
 
-    protected override void OnSessionEnded() => Offline?.Clear();
+    protected override void OnSessionEnded() => Offline?.Clear(keepDevice: !ServerContextClosed);
 
     protected override void OnSessionConfirmed(CurrentUser user)
     {

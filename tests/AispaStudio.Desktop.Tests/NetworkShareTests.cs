@@ -96,7 +96,7 @@ public sealed class NetworkShareTests
         Assert.Equal(1, restarts);
         Assert.True(connect.HasSaved);
 
-        connect.ForgetCommand.Execute(null);
+        await connect.ForgetCommand.ExecuteAsync(null);
         Assert.Equal((null, null), (settings.Load().ServerAddress, settings.Load().ServerCode));
         Assert.Equal(2, restarts);
     }

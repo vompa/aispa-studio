@@ -177,12 +177,12 @@ public partial class MainViewModel(IWorkstationApi api, Func<ILiveUpdates>? live
     /// </summary>
     public TimeSpan SignInTimeout { get; init; } = TimeSpan.FromSeconds(20);
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanStart))]
     private async Task CheckStatusAsync()
     {
         StatusText = "Verbinde …";
         var started = _time.GetTimestamp();
-        while (true)
+        while (CanStart)
         {
             SystemStatus? status;
             try
@@ -192,6 +192,10 @@ public partial class MainViewModel(IWorkstationApi api, Func<ILiveUpdates>? live
             }
             catch (Exception ex) when (ex is HttpRequestException or OperationCanceledException)
             {
+                if (!CanStart)
+                {
+                    return;
+                }
                 // Der Server nimmt die Verbindung nicht an, antwortet nicht oder noch mit einem Fehler (er fährt vielleicht noch hoch): kurz warten und
                 // es noch einmal versuchen. Mit lokalem Stand (ADR 0005) gibt es nichts zu warten, die App arbeitet gleich ohne Verbindung weiter.
                 ShowStartupStep(ConnectingStep, ServerStartingText);
@@ -206,6 +210,10 @@ public partial class MainViewModel(IWorkstationApi api, Func<ILiveUpdates>? live
                 return;
             }
 
+            if (!CanStart)
+            {
+                return;
+            }
             IsConnected = status is not null;
             if (status?.Startup is { Phase: StartupPhase.Migrating or StartupPhase.Seeding } startup)
             {
@@ -228,7 +236,7 @@ public partial class MainViewModel(IWorkstationApi api, Func<ILiveUpdates>? live
     /// <summary>Zeigt „Verbindung wird aufgebaut …“ mit dem Grund und wartet bis zum nächsten Versuch; <c>false</c>, wenn die Wartezeit <paramref name="limit"/> um ist.</summary>
     private async Task<bool> WaitForServerAsync(long started, TimeSpan limit, string reason)
     {
-        if (_time.GetElapsedTime(started) >= limit)
+        if (!CanStart || _time.GetElapsedTime(started) >= limit)
         {
             return false;
         }
@@ -242,9 +250,14 @@ public partial class MainViewModel(IWorkstationApi api, Func<ILiveUpdates>? live
     private static string ConnectedText(SystemStatus status) => $"Verbunden · Version {status.Version.Split('+')[0]} · {status.Environment}";
 
     /// <summary>Beim Start: mit gemerkter Anmeldung direkt in den Kalender, sonst zur Anmeldung. Solange steht der Startbildschirm.</summary>
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanStart))]
     public async Task StartAsync()
     {
+        if (!CanStart)
+        {
+            return;
+        }
+
         using var startup = BeginStartup();
         try
         {
@@ -268,12 +281,16 @@ public partial class MainViewModel(IWorkstationApi api, Func<ILiveUpdates>? live
             return;
         }
 
-        if (await ShowStartChoiceIfNoServerAsync().ConfigureAwait(true))
+        if (!CanStart || await ShowStartChoiceIfNoServerAsync().ConfigureAwait(true) || !CanStart)
         {
             return;
         }
 
         await CheckStatusAsync().ConfigureAwait(true);
+        if (!CanStart)
+        {
+            return;
+        }
 
         // Ohne Verbindung, aber mit lokalem Stand: mit der zuletzt angemeldeten Person weiterarbeiten (ADR 0005).
         if (!IsConnected && api.Offline?.Get("api/auth/me") is null)
@@ -283,6 +300,10 @@ public partial class MainViewModel(IWorkstationApi api, Func<ILiveUpdates>? live
         }
 
         var signIn = await LoadSignInAsync().ConfigureAwait(true);
+        if (!CanStart)
+        {
+            return;
+        }
         if (signIn.CachedAt is not null)
         {
             IsConnected = false;
@@ -329,7 +350,7 @@ public partial class MainViewModel(IWorkstationApi api, Func<ILiveUpdates>? live
                 result = new(null, "AISPA Studio antwortet nicht.", 0);
             }
 
-            if (result.Status != 0 || result.Value is not null
+            if (!CanStart || result.Status != 0 || result.Value is not null
                 || !await WaitForServerAsync(started, StartupWindow, "Die Anmeldung wird geladen. AISPA Studio antwortet noch nicht, die App versucht es weiter.").ConfigureAwait(true))
             {
                 return result;
@@ -359,27 +380,34 @@ public partial class MainViewModel(IWorkstationApi api, Func<ILiveUpdates>? live
         }
     }
 
+    private Task _endingShell = Task.CompletedTask;
+
     [RelayCommand]
-    private async Task SignOutAsync()
+    private Task SignOutAsync() => Content is ShellViewModel shell
+        ? shell.SignOutCommand.ExecuteAsync(null)
+        : CompleteSignOutAsync(() => api.SignOutAsync());
+
+    private async Task CompleteSignOutAsync(Func<Task> signOut)
     {
+        if (!CanStart)
+        {
+            return;
+        }
         // Bei Leerlauf umfasst die äußere Sperre auch den noch laufenden Geräteabbau der Shell.
         var idleSignOut = IsIdleSigningOut;
         IsIdleSigningOut = true;
+        CloseSessionUi();
         try
         {
-            IdleSecondsLeft = null;
-            User = null;
-            Content = null;
-            // Ein noch speichernder Dialog gehört zur abgemeldeten Person und darf später nicht über der Anmeldung erscheinen.
-            var dialog = DialogHost.Current;
-            DialogHost = new();
-            if (dialog?.CancelCommand.CanExecute(null) == true)
-            {
-                dialog.CancelCommand.Execute(null);
-            }
-
-            await api.SignOutAsync().ConfigureAwait(true);
+            _endingShell = signOut();
+            await _endingShell.ConfigureAwait(true);
             await ShowLoginAsync().ConfigureAwait(true);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or AggregateException)
+        {
+            ShowLocalSessionFailure("Abmeldung konnte nicht gespeichert werden",
+                "Die Arbeitsfläche ist geschlossen. Prüfen Sie den lokalen Speicher und die Zugriffsrechte, bevor Sie AISPA Studio erneut starten.");
+            throw;
         }
         finally
         {
@@ -387,11 +415,52 @@ public partial class MainViewModel(IWorkstationApi api, Func<ILiveUpdates>? live
         }
     }
 
+    public async Task EndConnectionContextAsync(Action revoke)
+    {
+        CanStart = false;
+        var shell = Content as ShellViewModel;
+        CloseSessionUi();
+        Device = null;
+        await ShellViewModel.EndSessionAsync(() =>
+        {
+            revoke();
+            return Task.CompletedTask;
+        }, shell, forgetHistory: false, _endingShell).ConfigureAwait(true);
+    }
+
+    private void CloseSessionUi()
+    {
+        IdleSecondsLeft = null;
+        User = null;
+        Content = null;
+        var dialog = DialogHost.Current;
+        DialogHost = new();
+        if (dialog?.CancelCommand.CanExecute(null) == true)
+        {
+            dialog.CancelCommand.Execute(null);
+        }
+    }
+
+    public void ShowLocalSessionFailure(string title, string message)
+    {
+        CanStart = false;
+        LocalFailureMessage = message;
+        LocalFailureTitle = title;
+    }
+
     private async Task ShowLoginAsync()
     {
+        if (!CanStart)
+        {
+            return;
+        }
         var login = new LoginViewModel(api, ShowShellAsync) { Restore = Restore, Join = Join };
         Content = login;
         var result = await login.LoadAsync().ConfigureAwait(true);
+        if (!CanStart || !ReferenceEquals(Content, login))
+        {
+            return;
+        }
         IsConnected = result.Value is not null;
         if (result.Value is { } status)
         {
@@ -408,10 +477,22 @@ public partial class MainViewModel(IWorkstationApi api, Func<ILiveUpdates>? live
 
     private async Task ShowShellAsync(CurrentUser user)
     {
+        if (!CanStart)
+        {
+            return;
+        }
         var openSetupWizard = Content is LoginViewModel { SetupJustCompleted: true };
         // Ohne Antwort (älterer Server) alles zeigen wie bisher; ausgeschaltete Module antworten ohnehin mit 404 (ADR 0041).
         var modules = (await api.GetAsync<SystemModules>("api/system/modules").ConfigureAwait(true)).Value;
+        if (!CanStart)
+        {
+            return;
+        }
         var deviceResult = await api.GetAsync<QuickSwitchState>("api/auth/quick-switch").ConfigureAwait(true);
+        if (!CanStart)
+        {
+            return;
+        }
         Device = deviceResult.Value is { } state ? state.Device : api.Offline?.SharedDevice;
         if (deviceResult.Value is null && Device is null && api.HasDeviceCookie)
         {
@@ -433,11 +514,18 @@ public partial class MainViewModel(IWorkstationApi api, Func<ILiveUpdates>? live
 
         User = user;
         NoteActivity();
-        var shell = new ShellViewModel(api, user, liveFactory?.Invoke(), _time, _theme, StatusText, SignOutAsync,
-            modules: modules, device: Device, deviceChanged: device => Device = device, local: local, dialogs: DialogHost, serverLink: ServerLink, closeApp: CloseApp);
+        var shell = new ShellViewModel(api, user, liveFactory?.Invoke(), _time, _theme, StatusText, () => api.SignOutAsync(),
+            modules: modules, device: Device, deviceChanged: device =>
+            {
+                if (CanStart && ReferenceEquals(User, user))
+                {
+                    Device = device;
+                }
+            }, local: local, dialogs: DialogHost, serverLink: ServerLink, closeApp: CloseApp)
+        { SignOutScope = CompleteSignOutAsync };
         Content = shell;
         await shell.InitializeAsync().ConfigureAwait(true);
-        if (openSetupWizard)
+        if (openSetupWizard && ReferenceEquals(Content, shell))
         {
             await shell.OpenSetupWizardAsync().ConfigureAwait(true);
         }
