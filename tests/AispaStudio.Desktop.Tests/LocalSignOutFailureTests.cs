@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text.Json;
 using AispaStudio.Contracts;
 using AispaStudio.Desktop.Services;
 using AispaStudio.Desktop.ViewModels;
@@ -10,17 +11,81 @@ namespace AispaStudio.Desktop.Tests;
 
 public sealed partial class ViewTests
 {
-    private sealed class ObservedSettings : ISettingsStore
+    private sealed class ObservedSettings : ISettingsStore, IPreparedSettingsStore
     {
-        private DesktopSettings _settings = new();
-        public Action? Saving { get; set; }
-        public DesktopSettings Load() => _settings;
-        public void Save(DesktopSettings settings)
+        private readonly MemorySettingsStore _store = new();
+        public Action? Preparing { get; set; }
+        public DesktopSettings Load() => _store.Load();
+        public void Save(DesktopSettings settings) => _store.Save(settings);
+        PreparedSettingsWrite IPreparedSettingsStore.Prepare(Func<DesktopSettings, DesktopSettings> update)
         {
-            Saving?.Invoke();
-            _settings = settings;
+            Preparing?.Invoke();
+            return ((IPreparedSettingsStore)_store).Prepare(update);
         }
     }
+
+    [Theory]
+    [InlineData("beschreibbar")]
+    [InlineData("gesperrt")]
+    [InlineData("beschädigt")]
+    public Task Abmelden_bestaetigt_die_Verlaufsloeschung_in_der_echten_Einstellungsdatei(string state) => Session.Dispatch(async () =>
+    {
+        if (state == "gesperrt" && !OperatingSystem.IsWindows())
+        {
+            return true;
+        }
+        var path = Path.Combine(Path.GetTempPath(), $"aispa-history-logout-{Guid.NewGuid():N}.json");
+        try
+        {
+            var store = new FileSettingsStore(path);
+            var session = new MemorySessionStore();
+            session.Save("test-session");
+            var stub = Api().On("POST /api/auth/logout", null, HttpStatusCode.NoContent);
+            var main = new MainViewModel(stub.Client(session: session), theme: new ThemeController(store));
+            await main.StartAsync();
+            var shell = Assert.IsType<ShellViewModel>(main.Content);
+            var history = new AssistantHistory(Owner().Id, DateOnly.FromDateTime(DateTime.Today), ["Testfrage"]);
+            store.Save(store.Load() with { AssistantHistory = history });
+            Assert.Equal(history.Questions, new FileSettingsStore(path).Load().AssistantHistory!.Questions);
+            if (state == "beschädigt")
+            {
+                File.WriteAllText(path, "{");
+            }
+            var before = File.ReadAllBytes(path);
+            using var hold = state == "gesperrt" ? new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read) : null;
+            var error = await Record.ExceptionAsync(() => shell.SignOutCommand.ExecuteAsync(null));
+            Assert.Null(session.Load());
+            Assert.False(main.IsSignedIn);
+            Assert.Contains(stub.Calls, call => call.Route == "POST /api/auth/logout");
+            if (state == "beschreibbar")
+            {
+                Assert.Null(error);
+                Assert.IsType<LoginViewModel>(main.Content);
+                Assert.Null(new FileSettingsStore(path).Load().AssistantHistory);
+            }
+            else
+            {
+                if (state == "beschädigt")
+                {
+                    var local = Assert.IsType<IOException>(error);
+                    Assert.IsType<JsonException>(local.InnerException);
+                }
+                else
+                {
+                    Assert.True(error is IOException or UnauthorizedAccessException, error?.ToString());
+                }
+                Assert.Equal(before, File.ReadAllBytes(path));
+                Assert.Null(main.Content);
+                Assert.True(main.HasLocalSessionFailure);
+                Assert.False(main.StartCommand.CanExecute(null));
+            }
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+        return true;
+    }, CancellationToken.None);
 
     private sealed class DeniedSession(Exception failure) : ISessionStore
     {
@@ -49,7 +114,7 @@ public sealed partial class ViewTests
             var shell = Assert.IsType<ShellViewModel>(main.Content);
             var dialog = main.DialogHost.AskAsync(new ConfirmRequest("Termin stornieren?", "Test", "Stornieren"));
             bool? closedWhenSaving = null;
-            settings.Saving = () =>
+            settings.Preparing = () =>
             {
                 closedWhenSaving = !main.IsSignedIn && main.Content is null && !main.DialogHost.HasDialog;
                 if (historyFails)

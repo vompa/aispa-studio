@@ -1,3 +1,4 @@
+using System.Security.AccessControl;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -98,6 +99,12 @@ public sealed class FileSettingsStore(string path) : ISettingsStore, IPreparedSe
             if ((attributes & (FileAttributes.Device | FileAttributes.Directory | FileAttributes.ReparsePoint | FileAttributes.ReadOnly)) != 0)
             {
                 throw new IOException("Die Einstellungen benötigen eine beschreibbare reguläre Datei.");
+            }
+
+            if (OperatingSystem.IsWindows())
+            {
+                // Auch ein Leser mit Löschfreigabe kann den späteren Austausch blockieren. Vor dem Widerruf exklusiv prüfen.
+                using var probe = new FileInfo(target).Create(FileMode.Open, FileSystemRights.Delete, FileShare.None, 4096, FileOptions.None, null);
             }
 
             using var source = new FileStream(target, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete);

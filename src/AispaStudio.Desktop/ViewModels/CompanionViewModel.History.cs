@@ -197,7 +197,16 @@ public sealed partial class CompanionViewModel
         OnPropertyChanged(nameof(HasRecentQuestions));
         OnPropertyChanged(nameof(VisibleRecentQuestions));
         OnPropertyChanged(nameof(HasVisibleRecentQuestions));
-        _store.Save(_store.Load() with { AssistantHistory = null });
+        var store = _store as IPreparedSettingsStore ?? throw new IOException("Die Löschung des lokalen Assistentenverlaufs kann nicht bestätigt werden.");
+        try
+        {
+            using var write = store.Prepare(settings => settings with { AssistantHistory = null });
+            write.CommitAndVerify();
+        }
+        catch (System.Text.Json.JsonException ex)
+        {
+            throw new IOException("Die lokalen Einstellungen für den Assistentenverlauf sind nicht lesbar.", ex);
+        }
     }
 
     private DateOnly Today => DateOnly.FromDateTime(_time.GetLocalNow().DateTime);

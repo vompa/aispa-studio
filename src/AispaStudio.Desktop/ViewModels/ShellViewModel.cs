@@ -46,6 +46,8 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
 
     internal Func<Func<Task>, Task>? SignOutScope { private get; init; }
 
+    internal Action<Exception>? LogDeviceLoadFailure { private get; init; }
+
     public ShellViewModel(IWorkstationApi api, CurrentUser user, ILiveUpdates? live, TimeProvider time, ThemeController theme,
         string connection, Func<Task> signOut, TimeSpan? checkInterval = null, SystemModules? modules = null,
         SharedDeviceDto? device = null, Action<SharedDeviceDto?>? deviceChanged = null, ILocalServer? local = null, IConfirmDialogs? dialogs = null,
@@ -639,7 +641,7 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
     {
         if (User.Rights.Contains(AccessRight.Book))
         {
-            _deviceInitialization = Devices.InitializeAsync();
+            _deviceInitialization ??= ObserveDeviceInitializationAsync();
         }
 
         if (HasInbox)
@@ -665,6 +667,19 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
 
         // Nach Dispose ist die Quelle freigegeben; ihr Token darf nicht mehr gelesen werden.
         _loop ??= _stop.IsCancellationRequested ? Task.CompletedTask : RunAsync(_stop.Token);
+    }
+
+    private async Task ObserveDeviceInitializationAsync()
+    {
+        try
+        {
+            await Devices.InitializeAsync().ConfigureAwait(true);
+        }
+        catch (Exception ex)
+        {
+            LogDeviceLoadFailure?.Invoke(ex);
+            Toast = "Die Geräte konnten nicht geladen werden.";
+        }
     }
 
     /// <summary>Im Hintergrund: Verbindung prüfen, Vorgemerktes senden und den Stand für den Betrieb ohne Internet auffrischen.</summary>
@@ -1332,7 +1347,12 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
             }
         }
 
-        var ending = Task.WhenAll(revoking, history, shell?.StopAsync() ?? Task.CompletedTask, pending ?? Task.CompletedTask);
+        await AwaitAllAsync(revoking, history, shell?.StopAsync() ?? Task.CompletedTask, pending ?? Task.CompletedTask).ConfigureAwait(true);
+    }
+
+    private static async Task AwaitAllAsync(params Task[] tasks)
+    {
+        var ending = Task.WhenAll(tasks);
         try
         {
             await ending.ConfigureAwait(true);
@@ -1355,7 +1375,7 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
         }
         finally
         {
-            await Task.WhenAll(Devices.DisposeAsync().AsTask(), _loop ?? Task.CompletedTask).ConfigureAwait(true);
+            await AwaitAllAsync(Devices.DisposeAsync().AsTask(), _loop ?? Task.CompletedTask).ConfigureAwait(true);
         }
     }
 

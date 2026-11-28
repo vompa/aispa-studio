@@ -38,7 +38,7 @@
           <ui:HelpButton Grid.Column="1" Topic="kassa-einrichten" Section="finanzonline" />
         </Grid>
         <ui:InfoBar Severity="Warning" Title="Übungskassa" Message="Diese Kassa nicht in FinanzOnline registrieren." IsVisible="{Binding IsPractice}" />
-        <Button x:Name="LoadFiscalRegistrationButton" Content="Registrierungsdaten anzeigen" Command="{Binding LoadRegistrationCommand}"
+        <Button x:Name="LoadFiscalRegistrationButton" Content="Registrierungsdaten laden" Command="{Binding LoadRegistrationCommand}"
                 HorizontalAlignment="Left" IsVisible="{Binding !HasRegistration}" />
         <ItemsControl ItemsSource="{Binding Registration}" IsVisible="{Binding HasRegistration}" Margin="0,0,48,0">
           <ItemsControl.ItemsPanel>

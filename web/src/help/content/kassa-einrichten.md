@@ -57,7 +57,7 @@ Für Anbieter mit Zugangsfeldern zeigt der Abschnitt den maskierten Stand der ge
 
 ## Für FinanzOnline {#finanzonline}
 
-Diesen Abschnitt gibt es nur bei österreichischen Kassen. **Registrierungsdaten anzeigen** ruft die Werte online ab. **Kopieren** übernimmt den Wert des jeweiligen Felds in die Zwischenablage.
+Diesen Abschnitt gibt es nur bei österreichischen Kassen. **Registrierungsdaten laden** ruft die Werte online ab. **Kopieren** übernimmt den Wert des jeweiligen Felds in die Zwischenablage.
 
 - „Kassen-ID“ ist die Kennung der Kassa.
 - „Umsatzzählerschlüssel“ ist der AES-Schlüssel. „Prüfwert“ ist der zugehörige Kontrollwert. Der Schlüssel ist nur online verfügbar.

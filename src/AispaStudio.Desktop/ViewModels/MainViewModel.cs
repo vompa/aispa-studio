@@ -21,6 +21,8 @@ public partial class MainViewModel(IWorkstationApi api, Func<ILiveUpdates>? live
     /// <summary>Schließt die App (nach dem Löschen der Beispieldaten im Einzelplatz); sie beendet dabei API und Datenbank geordnet.</summary>
     public Action? CloseApp { get; init; }
 
+    public Action<Exception>? LogDeviceLoadFailure { get; init; }
+
     private readonly ThemeController _theme = theme ?? new ThemeController(new MemorySettingsStore());
     private readonly TimeProvider _time = time ?? TimeProvider.System;
     private DateTimeOffset _lastActivity;
@@ -522,7 +524,7 @@ public partial class MainViewModel(IWorkstationApi api, Func<ILiveUpdates>? live
                     Device = device;
                 }
             }, local: local, dialogs: DialogHost, serverLink: ServerLink, closeApp: CloseApp)
-        { SignOutScope = CompleteSignOutAsync };
+        { SignOutScope = CompleteSignOutAsync, LogDeviceLoadFailure = LogDeviceLoadFailure };
         Content = shell;
         await shell.InitializeAsync().ConfigureAwait(true);
         if (openSetupWizard && ReferenceEquals(Content, shell))

@@ -13,6 +13,95 @@ public sealed class SettingsTransactionTests
     private static DesktopSettings Original() => new(ServerAddress: "https://bisher/", CompanionPages: new Dictionary<string, bool> { ["kalender"] = true },
         AssistantHistory: new("test", new DateOnly(2026, 1, 1), ["Frage"]));
 
+    [Theory]
+    [InlineData(true, null, null)]
+    [InlineData(false, null, null)]
+    [InlineData(true, FileAccess.Read, FileShare.Read)]
+    [InlineData(true, FileAccess.Read, FileShare.ReadWrite)]
+    [InlineData(true, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete)]
+    [InlineData(true, FileAccess.ReadWrite, FileShare.ReadWrite)]
+    [InlineData(true, FileAccess.ReadWrite, FileShare.ReadWrite | FileShare.Delete)]
+    public async Task Verbindung_loesen_prueft_die_bestehende_Ersetzungsfreigabe_vor_dem_Widerruf(bool existing, FileAccess? access, FileShare? share)
+    {
+        Assert.SkipUnless(OperatingSystem.IsWindows(), "Windows-Freigabe für das Ersetzen einer geöffneten Datei.");
+        var directory = Directory.CreateTempSubdirectory("aispa-ersetzungsfreigabe-");
+        try
+        {
+            var path = Path.Combine(directory.FullName, "settings.json");
+            var settings = new FileSettingsStore(path);
+            if (existing)
+            {
+                settings.Save(Original());
+            }
+
+            var before = existing ? File.ReadAllBytes(path) : null;
+            var canReplace = access is null;
+
+            var session = new MemorySessionStore();
+            var disk = new MemoryOfflineStore();
+            var user = TestData.Reception();
+            var current = ServerChoice.Resolve(settings.Load(), null);
+            using var server = new StubApi().OnSignIn($"POST {current.Address.Authority}/api/auth/dev/login", user);
+            var api = new ApiClient(current.Address, session, server, new OfflineCache(disk));
+            Assert.True((await api.SignInAsTestAccountAsync("test", TestContext.Current.CancellationToken)).Ok);
+            var cookie = api.SessionCookie;
+            Assert.NotNull(cookie);
+            var ends = 0;
+            var restarts = 0;
+            void Revoke()
+            {
+                ends++;
+                api.ForgetSignIn();
+            }
+
+            string? error;
+            using (var holder = access.HasValue && share.HasValue ? File.Open(path, FileMode.Open, access.Value, share.Value) : null)
+            {
+                if (existing)
+                {
+                    var form = new ServerLinkViewModel(settings, current, () => restarts++, Revoke);
+                    Assert.True(form.ReleaseCommand.CanExecute(null));
+                    await form.ReleaseCommand.ExecuteAsync(null);
+                    error = form.Error;
+                }
+                else
+                {
+                    var form = new ServerConnectViewModel(settings, () => restarts++, (_, _) => Task.FromResult<string?>(null), Revoke) { Address = "https://neu/" };
+                    await form.ConnectCommand.ExecuteAsync(null);
+                    error = form.Error;
+                }
+            }
+
+            Assert.Equal(canReplace ? 1 : 0, ends);
+            Assert.Equal(canReplace ? 1 : 0, restarts);
+            if (canReplace)
+            {
+                Assert.Null(error);
+                Assert.True(File.Exists(path));
+                Assert.Equal(existing ? null : "https://neu/", settings.Load().ServerAddress);
+                Assert.Null(api.SessionCookie);
+                Assert.Null(session.Load());
+            }
+            else
+            {
+                Assert.Contains("vorbereitet", error, StringComparison.Ordinal);
+                Assert.Equal(before, File.ReadAllBytes(path));
+                Assert.True(api.SessionCookie == cookie && session.Load() == cookie);
+            }
+
+            server.Down = true;
+            var next = ServerChoice.Resolve(settings.Load(), null);
+            var reopened = new MainViewModel(new ApiClient(next.Address, session, server, new OfflineCache(disk))) { ProbeWindow = TimeSpan.Zero };
+            await reopened.StartAsync();
+            Assert.Equal(!canReplace, reopened.IsSignedIn && reopened.CanShowContent);
+            Assert.Equal(canReplace ? null : user.Id, reopened.User?.Id);
+        }
+        finally
+        {
+            directory.Delete(recursive: true);
+        }
+    }
+
     [Fact]
     public async Task Ungueltiges_Speicherziel_belaesst_die_bisherige_Offlineanmeldung()
     {

@@ -63,6 +63,7 @@ public partial class App : Application
             viewModel = new MainViewModel(api, () => new LiveUpdates(api), theme: theme, local: local, facts: new SystemFacts())
             {
                 CloseApp = () => Dispatcher.UIThread.Post(() => desktop.Shutdown()),
+                LogDeviceLoadFailure = error => CrashLog.Default.Write("Geräte laden", error),
                 Connect = local is null ? new NetworkConnectViewModel(FileSettingsStore.Default, () => Restart(desktop)) { Connection = connection } : null,
                 ServerConnect = local is null ? new ServerConnectViewModel(FileSettingsStore.Default, () => Restart(desktop)) { Connection = connection } : null,
                 ServerLink = local is null ? new ServerLinkViewModel(FileSettingsStore.Default, server, () => Restart(desktop)) { Connection = connection } : null,
