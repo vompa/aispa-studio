@@ -106,6 +106,7 @@ Browser (Chrome, Edge, Firefox, Safari). Sie brauchen den Server bzw. den Haupt-
 
 ## Weiter
 
+- [Kassen im Standortverbund gemeinsam aktualisieren](cash-register-upgrade.md): Voraussetzung für Anbieterrahmen und neue Übungskassen, einschließlich zeitweise ausgeschalteter Stellen
 - [Einzelplatz und mehrere PCs im Spa](standalone.md)
 - [Eigener Server mit Docker](server.md)
 - [Betriebsarten und Module: Referenz](operating-modes.md) mit allen technischen Einzelheiten

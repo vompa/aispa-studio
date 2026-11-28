@@ -122,6 +122,8 @@ Immer mit demselben Windows-Konto arbeiten: Ein anderes Konto kann `zugang.bin` 
 
 ## Neuer Stand
 
+Für gekoppelte Stellen mit zentralem Abgleich gilt vor der neuen Kassa-Einrichtung zusätzlich die [gemeinsame Upgrade-Checkliste](cash-register-upgrade.md). Alle Stellen, auch zeitweise ausgeschaltete, müssen bestätigt aktualisiert sein, bevor die neuen Funktionen und der Abgleich wieder genutzt werden.
+
 **Mit Setup** kommt ein neuer Stand von selbst. Die App prüft nach dem Start im Hintergrund, ob es einen neuen Stand
 gibt, und lädt ihn. Eingespielt wird er beim nächsten Start der App; ein neuer Stand ist also meist beim übernächsten
 Start da. Fehlt das Netz, passiert nichts. Läuft die App an diesem PC schon oder startet gerade die abendliche Sicherung,
