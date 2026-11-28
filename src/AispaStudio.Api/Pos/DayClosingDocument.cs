@@ -61,6 +61,10 @@ internal static class DayClosingDocument
             ("Gezählter Bestand", DocumentBuilder.Money(closing.CountedCash)),
             ("Differenz", DocumentBuilder.Money(closing.Difference)),
         ]);
+        if (closing.IsPractice)
+        {
+            pdf.Paragraph("Tagesabschluss einer Übungskassa.");
+        }
         if (closing.Note is { } note)
         {
             pdf.Paragraph($"Notiz: {note}");

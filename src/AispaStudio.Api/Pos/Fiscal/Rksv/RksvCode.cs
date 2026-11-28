@@ -25,6 +25,9 @@ internal static class RksvCode
 
     public static byte[] NewTurnoverKey() => RandomNumberGenerator.GetBytes(32);
 
+    public static string TurnoverKeyChecksum(string base64Key) =>
+        Convert.ToBase64String(SHA256.HashData(Encoding.ASCII.GetBytes(base64Key)), 0, 3);
+
     public static string EncryptTurnover(long counterCents, string registerCode, long receiptNumber, byte[] key)
     {
         var plain = new byte[16];

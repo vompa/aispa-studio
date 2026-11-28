@@ -154,7 +154,20 @@ public sealed record CashRegisterDto(
     bool OtherSite = false,
     string? FiscalProvider = null,
     bool IsPractice = false,
-    FiscalReadinessDto? Readiness = null);
+    FiscalReadinessDto? Readiness = null,
+    IReadOnlyList<RegisterConfirmationDto>? Confirmations = null,
+    YearlyReceiptStatusDto? YearlyReceipt = null,
+    IReadOnlyList<YearlyReceiptStatusDto>? PendingYearlyReceipts = null);
+
+public sealed record FiscalRegistrationDto(string RegisterCode, string TurnoverKey, string Checksum,
+    string? CertificateSerial, string FiscalProvider, bool IsPractice, string? Notice);
+
+public enum RegisterConfirmationKind { FinanzOnlineRegistration, StartReceiptCheck, YearlyReceiptCheck, ElsterRegistration }
+
+public sealed record RegisterConfirmationDto(RegisterConfirmationKind Kind, int? Year, Guid? ReceiptId,
+    DateTimeOffset ConfirmedAt, string ConfirmedBy, string? ConfirmedByName = null);
+
+public sealed record YearlyReceiptStatusDto(int Year, Guid? ReceiptId, bool Confirmed, bool CanCreate);
 
 public enum FiscalReadinessState { NotReady, Practice, Ready }
 
@@ -476,7 +489,8 @@ public sealed record DayClosingDto(
     decimal Difference,
     string? Note,
     decimal Tips = 0,
-    IReadOnlyList<TipTotal>? TipsByEmployee = null);
+    IReadOnlyList<TipTotal>? TipsByEmployee = null,
+    bool IsPractice = false);
 
 /// <summary>Inhalt für einen EPC-QR-Code („GiroCode“): Kunde scannt mit der Banking-App und überweist sofort.</summary>
 public sealed record InstantTransferQr(string Payload, decimal Amount, string Iban, string PayeeName);

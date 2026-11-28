@@ -49,8 +49,7 @@ public static partial class IssueOnlineVoucherHandler
 
         if (order.BillId is null)
         {
-            var register = await db.CashRegisters.AsNoTracking()
-                .Where(r => r.LocationId == order.LocationId && r.IsActive).OrderBy(r => r.Code).FirstOrDefaultAsync(ct);
+            var register = await pos.SelectOnlineRegisterAsync(order.LocationId, ct);
             if (register is null)
             {
                 await FailAsync(online, order, "An diesem Standort gibt es keine aktive Kassa mehr.", logger, ct);

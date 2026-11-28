@@ -139,6 +139,7 @@ public sealed class BillLine
 
 public sealed class Receipt
 {
+    public int? ClosingYear { get; set; }
     public Guid Id { get; init; } = Guid.CreateVersion7();
     public Guid RegisterId { get; init; }
     public long Number { get; init; }

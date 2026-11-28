@@ -53,8 +53,7 @@ public static partial class ReceiptOnlineDepositHandler
         services.GetRequiredService<TenantContext>().Use(tenantId);
         if (deposit.BillId is null)
         {
-            var register = await db.CashRegisters.AsNoTracking()
-                .Where(r => r.LocationId == deposit.LocationId && r.IsActive).OrderBy(r => r.Code).FirstOrDefaultAsync(ct);
+            var register = await pos.SelectOnlineRegisterAsync(deposit.LocationId, ct);
             if (register is null)
             {
                 await FailAsync(online, deposit, "An diesem Standort gibt es keine aktive Kassa mehr.", logger, ct);

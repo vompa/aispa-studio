@@ -9887,6 +9887,319 @@
         }
       }
     },
+    "/api/v1/pos/registers/{registerId}/yearly-receipt": {
+      "post": {
+        "tags": [
+          "Kassa"
+        ],
+        "operationId": "CreateYearlyReceipt",
+        "parameters": [
+          {
+            "name": "registerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReceiptDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/pos/registers/{registerId}/confirmations/{kind}": {
+      "put": {
+        "tags": [
+          "Kassa"
+        ],
+        "operationId": "SetRegisterConfirmation",
+        "parameters": [
+          {
+            "name": "registerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "kind",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/RegisterConfirmationKind"
+            }
+          },
+          {
+            "name": "year",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "receiptId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegisterConfirmationDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Kassa"
+        ],
+        "operationId": "DeleteRegisterConfirmation",
+        "parameters": [
+          {
+            "name": "registerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "kind",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/RegisterConfirmationKind"
+            }
+          },
+          {
+            "name": "year",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "receiptId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/pos/registers/{registerId}/fiscal-registration": {
+      "get": {
+        "tags": [
+          "Kassa"
+        ],
+        "operationId": "GetFiscalRegistration",
+        "parameters": [
+          {
+            "name": "registerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FiscalRegistrationDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/pos/registers/{registerId}/fiscal-credentials": {
       "get": {
         "tags": [
@@ -38264,6 +38577,34 @@
                 "$ref": "#/components/schemas/FiscalReadinessDto"
               }
             ]
+          },
+          "confirmations": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/RegisterConfirmationDto"
+            }
+          },
+          "yearlyReceipt": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/YearlyReceiptStatusDto"
+              }
+            ]
+          },
+          "pendingYearlyReceipts": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/YearlyReceiptStatusDto"
+            }
           }
         }
       },
@@ -40938,6 +41279,10 @@
             "items": {
               "$ref": "#/components/schemas/TipTotal"
             }
+          },
+          "isPractice": {
+            "type": "boolean",
+            "default": false
           }
         }
       },
@@ -42765,6 +43110,47 @@
           "Practice",
           "Ready"
         ]
+      },
+      "FiscalRegistrationDto": {
+        "required": [
+          "registerCode",
+          "turnoverKey",
+          "checksum",
+          "certificateSerial",
+          "fiscalProvider",
+          "isPractice",
+          "notice"
+        ],
+        "type": "object",
+        "properties": {
+          "registerCode": {
+            "type": "string"
+          },
+          "turnoverKey": {
+            "type": "string"
+          },
+          "checksum": {
+            "type": "string"
+          },
+          "certificateSerial": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "fiscalProvider": {
+            "type": "string"
+          },
+          "isPractice": {
+            "type": "boolean"
+          },
+          "notice": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
       },
       "FollowUpNote": {
         "required": [
@@ -49690,6 +50076,56 @@
             ]
           }
         }
+      },
+      "RegisterConfirmationDto": {
+        "required": [
+          "kind",
+          "year",
+          "receiptId",
+          "confirmedAt",
+          "confirmedBy"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/RegisterConfirmationKind"
+          },
+          "year": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "receiptId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "confirmedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "confirmedBy": {
+            "type": "string"
+          },
+          "confirmedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "RegisterConfirmationKind": {
+        "enum": [
+          "FinanzOnlineRegistration",
+          "StartReceiptCheck",
+          "YearlyReceiptCheck",
+          "ElsterRegistration"
+        ]
       },
       "ReminderChannel": {
         "enum": [
@@ -57456,6 +57892,34 @@
             "items": {
               "type": "string"
             }
+          }
+        }
+      },
+      "YearlyReceiptStatusDto": {
+        "required": [
+          "year",
+          "receiptId",
+          "confirmed",
+          "canCreate"
+        ],
+        "type": "object",
+        "properties": {
+          "year": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "receiptId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "confirmed": {
+            "type": "boolean"
+          },
+          "canCreate": {
+            "type": "boolean"
           }
         }
       }

@@ -117,7 +117,8 @@ internal sealed partial class TseExports(AispaDbContext db, IEnumerable<ITseClie
         {
             export.Status = TseExportStatus.Done;
             export.Content = content;
-            export.FileName = $"tse-export-{register.Code}-{export.From:yyyyMMdd}-{export.Until:yyyyMMdd}.tar";
+            var prefix = register.IsPractice ? "uebungskassa-" : "";
+            export.FileName = $"{prefix}tse-export-{register.Code}-{export.From:yyyyMMdd}-{export.Until:yyyyMMdd}.tar";
         }
 
         await db.SaveChangesAsync(ct);

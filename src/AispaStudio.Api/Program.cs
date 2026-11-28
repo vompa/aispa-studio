@@ -219,6 +219,8 @@ builder.Services.AddCalendarSubscriptions(builder.Configuration, modules);
 // Fiskaladapter werden anhand des Landes und des beim Anlegen festgelegten Anbieters gewählt.
 builder.Services.Configure<PaymentOptions>(builder.Configuration.GetSection("Payments"));
 builder.Services.AddScoped<PosService>();
+builder.Services.AddSingleton<YearlyReceiptScheduler>();
+builder.Services.AddBackgroundService<YearlyReceiptScheduler>(modules);
 builder.Services.AddSingleton<SiteIdentity>();
 builder.Services.AddScoped<CardTerminalService>();
 builder.Services.AddSingleton<ICardTerminal, TestCardTerminal>();

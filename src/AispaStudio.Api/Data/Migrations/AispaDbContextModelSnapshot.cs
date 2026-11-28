@@ -3086,6 +3086,9 @@ namespace AispaStudio.Api.Data.Migrations
                         .HasPrecision(10, 2)
                         .HasColumnType("numeric(10,2)");
 
+                    b.Property<int?>("ClosingYear")
+                        .HasColumnType("integer");
+
                     b.Property<string>("CreatedByUserId")
                         .HasMaxLength(450)
                         .HasColumnType("character varying(450)");
@@ -3330,6 +3333,39 @@ namespace AispaStudio.Api.Data.Migrations
                     b.HasIndex("VatIdCheckId");
 
                     b.ToTable("ReceiptRecipients", "aispa");
+                });
+
+            modelBuilder.Entity("AispaStudio.Api.Pos.RegisterConfirmation", b =>
+                {
+                    b.Property<Guid>("RegisterId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("YearKey")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("ConfirmedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ConfirmedBy")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid?>("ReceiptId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("RegisterId", "Kind", "YearKey");
+
+                    b.HasIndex("ReceiptId");
+
+                    b.HasIndex("TenantId");
+
+                    b.ToTable("RegisterConfirmation", "aispa");
                 });
 
             modelBuilder.Entity("AispaStudio.Api.Pos.RevenueAccount", b =>
@@ -7891,6 +7927,26 @@ namespace AispaStudio.Api.Data.Migrations
                         .WithMany()
                         .HasForeignKey("VatIdCheckId")
                         .OnDelete(DeleteBehavior.Restrict);
+                });
+
+            modelBuilder.Entity("AispaStudio.Api.Pos.RegisterConfirmation", b =>
+                {
+                    b.HasOne("AispaStudio.Api.Pos.Receipt", null)
+                        .WithMany()
+                        .HasForeignKey("ReceiptId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AispaStudio.Api.Pos.CashRegister", null)
+                        .WithMany()
+                        .HasForeignKey("RegisterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AispaStudio.Api.Tenancy.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("AispaStudio.Api.Pos.RevenueAccount", b =>

@@ -2850,6 +2850,54 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/pos/registers/{registerId}/yearly-receipt": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["CreateYearlyReceipt"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pos/registers/{registerId}/confirmations/{kind}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["SetRegisterConfirmation"];
+        post?: never;
+        delete: operations["DeleteRegisterConfirmation"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pos/registers/{registerId}/fiscal-registration": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetFiscalRegistration"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/pos/registers/{registerId}/fiscal-credentials": {
         parameters: {
             query?: never;
@@ -10419,6 +10467,9 @@ export interface components {
             /** @default false */
             isPractice: boolean;
             readiness?: null | components["schemas"]["FiscalReadinessDto"];
+            confirmations?: null | components["schemas"]["RegisterConfirmationDto"][];
+            yearlyReceipt?: null | components["schemas"]["YearlyReceiptStatusDto"];
+            pendingYearlyReceipts?: null | components["schemas"]["YearlyReceiptStatusDto"][];
         };
         CashRegisterInput: {
             /** Format: uuid */
@@ -11112,6 +11163,8 @@ export interface components {
              */
             tips: number;
             tipsByEmployee?: null | components["schemas"]["TipTotal"][];
+            /** @default false */
+            isPractice: boolean;
         };
         DayClosingInput: {
             /** Format: double */
@@ -11586,6 +11639,15 @@ export interface components {
         };
         /** @enum {unknown} */
         FiscalReadinessState: "NotReady" | "Practice" | "Ready";
+        FiscalRegistrationDto: {
+            registerCode: string;
+            turnoverKey: string;
+            checksum: string;
+            certificateSerial: null | string;
+            fiscalProvider: string;
+            isPractice: boolean;
+            notice: null | string;
+        };
         FollowUpNote: {
             note: string;
         };
@@ -13441,6 +13503,19 @@ export interface components {
             duties: string[];
             exportPath: null | string;
         };
+        RegisterConfirmationDto: {
+            kind: components["schemas"]["RegisterConfirmationKind"];
+            /** Format: int32 */
+            year: null | number;
+            /** Format: uuid */
+            receiptId: null | string;
+            /** Format: date-time */
+            confirmedAt: string;
+            confirmedBy: string;
+            confirmedByName?: null | string;
+        };
+        /** @enum {unknown} */
+        RegisterConfirmationKind: "FinanzOnlineRegistration" | "StartReceiptCheck" | "YearlyReceiptCheck" | "ElsterRegistration";
         /** @enum {unknown} */
         ReminderChannel: "Email" | "Sms" | "WhatsApp";
         ReminderSettingsDto: {
@@ -15631,6 +15706,14 @@ export interface components {
             /** Format: int32 */
             sickDays: number;
             warnings: string[];
+        };
+        YearlyReceiptStatusDto: {
+            /** Format: int32 */
+            year: number;
+            /** Format: uuid */
+            receiptId: null | string;
+            confirmed: boolean;
+            canCreate: boolean;
         };
     };
     responses: never;
@@ -23251,6 +23334,235 @@ export interface operations {
             };
             /** @description Forbidden */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    CreateYearlyReceipt: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                registerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReceiptDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    SetRegisterConfirmation: {
+        parameters: {
+            query?: {
+                year?: number;
+                receiptId?: string;
+            };
+            header?: never;
+            path: {
+                registerId: string;
+                kind: components["schemas"]["RegisterConfirmationKind"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RegisterConfirmationDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    DeleteRegisterConfirmation: {
+        parameters: {
+            query?: {
+                year?: number;
+                receiptId?: string;
+            };
+            header?: never;
+            path: {
+                registerId: string;
+                kind: components["schemas"]["RegisterConfirmationKind"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    GetFiscalRegistration: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                registerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FiscalRegistrationDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };

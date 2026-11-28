@@ -15,7 +15,7 @@ namespace AispaStudio.Api.Reporting;
 /// Management-Cockpit und Pflichtberichte. Umsätze kommen aus den signierten Belegen (nie aus Schätzungen),
 /// Termine und Auslastung aus Kalender und Dienstplan, Margen aus der Vollkostenrechnung.
 /// </summary>
-internal sealed partial class ManagementReports(AispaDbContext db, RosterService roster, CostAnalysis costs, TimeProvider time)
+internal sealed partial class ManagementReports(AispaDbContext db, RosterService roster, CostAnalysis costs, TimeProvider time, PosService pos)
 {
     /// <summary>Ab dieser Summe der Kassendifferenzen (Beträge, Überschuss wie Fehlbetrag) im Zeitraum steht eine Warnung im Bericht.</summary>
     private const decimal CashDifferenceThreshold = 5.00m;
@@ -258,6 +258,14 @@ internal sealed partial class ManagementReports(AispaDbContext db, RosterService
             [.. plans.SelectMany(p => p.Value.Shifts.Where(s => s.LocationId == locationId).Select(s => (p.Key.Item2, (s.End!.Value - s.Start!.Value).TotalMinutes)))]);
 
         var alerts = new List<string>();
+        var compareStart = LocalTime.Day(compareFrom, zone).From;
+        var compareEnd = LocalTime.Day(compareUntil, zone).Until;
+        if (await db.Receipts.AnyAsync(r => ((r.IssuedAt >= start && r.IssuedAt < end) || (r.IssuedAt >= compareStart && r.IssuedAt < compareEnd))
+            && (r.Kind == ReceiptKind.Sale || r.Kind == ReceiptKind.Void)
+            && db.CashRegisters.Any(c => c.Id == r.RegisterId && c.LocationId == locationId && c.IsPractice), ct))
+        {
+            alerts.Add("Die Auswertung einschließlich Vergleichszeitraum enthält Umsätze von Übungskassen.");
+        }
         if (Rate(current.NoShows, all) > 10)
         {
             alerts.Add($"No-Show-Quote {Rate(current.NoShows, all).ToString("0.#", German)} %: Anzahlung oder Ausfallgebühr erwägen.");
@@ -534,10 +542,15 @@ internal sealed partial class ManagementReports(AispaDbContext db, RosterService
                 .GroupBy(x => x.Kind).Select(g => new { Kind = g.Key, Last = g.Max(x => x.IssuedAt) }).ToListAsync(ct);
             DateTimeOffset? Last(ReceiptKind kind) => special.FirstOrDefault(s => s.Kind == kind)?.Last;
             var duties = new List<string>();
+            if (r.IsPractice)
+            {
+                duties.Add("Übungskassa – ihre Umsätze sind im Bericht enthalten.");
+            }
             string? export = null;
             switch (r.Country)
             {
                 case FiscalCountry.AT:
+                    reminders.AddRange((await pos.ClosingStatusAsync(r, date, LocalTime.Zone(location.TimeZone), ct)).Warnings);
                     duties.Add("Registrierkasse und Signatureinrichtung in FinanzOnline registriert halten; Startbeleg mit der BMF-Belegcheck-App prüfen.");
                     duties.Add("Jahresbeleg (Dezember-Monatsbeleg) ausdrucken, 7 Jahre aufbewahren und bis 15. Februar mit der Belegcheck-App prüfen.");
                     duties.Add("Datenerfassungsprotokoll (DEP) mindestens vierteljährlich extern sichern.");
@@ -562,10 +575,6 @@ internal sealed partial class ManagementReports(AispaDbContext db, RosterService
                 Last(ReceiptKind.Yearly), duties, export));
         }
 
-        if (registers.Any(r => r.Country == FiscalCountry.AT && r.IsActive) && date.Month <= 2)
-        {
-            reminders.Add($"Bis 15.02.{date.Year}: Jahresbeleg {date.Year - 1} jeder österreichischen Kassa mit der Belegcheck-App prüfen.");
-        }
 
         var vouchers = await db.Vouchers.AsNoTracking().Where(v => v.Status == VoucherStatus.Active && v.Balance > 0)
             .GroupBy(_ => 1).Select(g => new { Count = g.Count(), Sum = g.Sum(v => v.Balance) }).FirstOrDefaultAsync(ct);

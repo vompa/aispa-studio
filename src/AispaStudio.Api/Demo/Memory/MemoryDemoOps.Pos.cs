@@ -445,7 +445,9 @@ internal sealed partial class MemoryDemoOps
             var receipts = _world.ReceiptsByRegister.GetValueOrDefault(registerId, [])
                 .Where(r => r.IssuedAt >= from && r.IssuedAt < until && r.Kind is ReceiptKind.Sale or ReceiptKind.Void).ToList();
             var movements = _world.CashMovements.Where(m => m.RegisterId == registerId && m.At >= from && m.At < until).ToList();
-            var report = PosService.BuildDayReport(registerId, from, until, last?.CountedCash ?? 0, receipts, movements, _snapshot.Accounts, close);
+            var report = PosService.BuildDayReport(registerId, from, until, last?.CountedCash ?? 0, receipts, movements, _snapshot.Accounts, close)
+                with
+            { IsPractice = register.IsPractice };
             if (close is not null)
             {
                 if (close.CountedCash < 0)

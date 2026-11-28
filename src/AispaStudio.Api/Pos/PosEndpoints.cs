@@ -132,6 +132,31 @@ internal static class PosEndpoints
         group.MapGet("/fiscal/providers", (FiscalCountry country, FiscalProviderCatalog providers) => providers.For(country))
             .WithName("ListFiscalProviders");
 
+        group.MapPost("/registers/{registerId:guid}/yearly-receipt", async (Guid registerId, PosService pos, CancellationToken ct) =>
+                Respond(await pos.YearlyReceiptAsync(registerId, ct)))
+            .WithName("CreateYearlyReceipt").RequirePermission(AccessRight.ManageLocation)
+            .ProducesProblem(StatusCodes.Status404NotFound).ProducesProblem(StatusCodes.Status409Conflict);
+
+        group.MapPut("/registers/{registerId:guid}/confirmations/{kind}", async (Guid registerId, RegisterConfirmationKind kind,
+                int? year, Guid? receiptId, ClaimsPrincipal user, PosService pos, CancellationToken ct) =>
+                Respond(await pos.ConfirmAsync(registerId, kind, year, receiptId, UserId(user), false, ct)))
+            .WithName("SetRegisterConfirmation").RequirePermission(AccessRight.ManageLocation)
+            .ProducesProblem(StatusCodes.Status404NotFound).ProducesProblem(StatusCodes.Status409Conflict);
+
+        group.MapDelete("/registers/{registerId:guid}/confirmations/{kind}", async Task<Results<NoContent, ProblemHttpResult>> (Guid registerId,
+                RegisterConfirmationKind kind, int? year, Guid? receiptId, ClaimsPrincipal user, PosService pos, CancellationToken ct) =>
+                (await pos.ConfirmAsync(registerId, kind, year, receiptId, UserId(user), true, ct)).Error is { } error ? Problem(error) : TypedResults.NoContent())
+            .WithName("DeleteRegisterConfirmation").RequirePermission(AccessRight.ManageLocation)
+            .ProducesProblem(StatusCodes.Status404NotFound).ProducesProblem(StatusCodes.Status409Conflict);
+
+        group.MapGet("/registers/{registerId:guid}/fiscal-registration", async (Guid registerId, HttpContext http, PosService pos, CancellationToken ct) =>
+            {
+                http.Response.Headers.CacheControl = "no-store";
+                return Respond(await pos.FiscalRegistrationAsync(registerId, ct));
+            })
+            .WithName("GetFiscalRegistration").RequirePermission(AccessRight.ManageLocation)
+            .ProducesProblem(StatusCodes.Status404NotFound).ProducesProblem(StatusCodes.Status409Conflict);
+
         group.MapGet("/registers/{registerId:guid}/fiscal-credentials", async (Guid registerId, PosService pos, CancellationToken ct) =>
                 Respond(await pos.FiscalCredentialsAsync(registerId, ct)))
             .WithName("GetFiscalCredentials").RequirePermission(AccessRight.ManageLocation)
@@ -244,7 +269,7 @@ internal static class PosEndpoints
             .WithName("ListOpenBills");
 
         group.MapGet("/registers/{registerId:guid}/dep", async Task<Results<Ok<DepExport>, NotFound, ProblemHttpResult>> (
-                Guid registerId, AispaDbContext db, FiscalizationResolver fiscal, CancellationToken ct) =>
+                Guid registerId, HttpContext http, AispaDbContext db, FiscalizationResolver fiscal, CancellationToken ct) =>
             {
                 var register = await db.CashRegisters.AsNoTracking().FirstOrDefaultAsync(r => r.Id == registerId, ct);
                 if (register is null)
@@ -265,6 +290,10 @@ internal static class PosEndpoints
 
                 var receipts = await db.Receipts.AsNoTracking().Where(r => r.RegisterId == registerId)
                     .OrderBy(r => r.Number).Select(r => r.FiscalSignature!).ToListAsync(ct);
+                if (register.IsPractice)
+                {
+                    http.Response.Headers.ContentDisposition = "attachment; filename=uebungskassa-dep.json";
+                }
                 return TypedResults.Ok(new DepExport([new DepGroup(Convert.ToBase64String(certificate), [], receipts)]));
             })
             .WithName("ExportDep")
@@ -288,7 +317,7 @@ internal static class PosEndpoints
                 }
 
                 var (content, name) = (await export.ZipAsync(registerId, from, until, ct))!.Value;
-                return TypedResults.File(content, "application/zip", name);
+                return TypedResults.File(content, "application/zip", register.IsPractice ? $"uebungskassa-{name}" : name);
             })
             .WithName("ExportDsfinvk")
             .RequirePermission(AccessRight.ViewAmountReports).AlsoAllow(AccessRight.ViewAmountReports, insteadOf: AccessRight.Book)
@@ -332,8 +361,8 @@ internal static class PosEndpoints
 
         group.MapGet("/registers/{registerId:guid}/day-closings", async (Guid registerId, AispaDbContext db, CancellationToken ct) =>
                 (await db.DayClosings.AsNoTracking().Where(c => c.RegisterId == registerId).OrderByDescending(c => c.Until).Take(60)
-                    .Select(c => c.Report).ToListAsync(ct))
-                .Select(r => JsonSerializer.Deserialize<DayClosingDto>(r, PosJson.Options)!).ToList())
+                    .Select(c => new { c.Report, Practice = db.CashRegisters.Any(r => r.Id == c.RegisterId && r.IsPractice) }).ToListAsync(ct))
+                .Select(r => JsonSerializer.Deserialize<DayClosingDto>(r.Report, PosJson.Options)! with { IsPractice = r.Practice }).ToList())
             .WithName("ListDayClosings")
             .RequirePermission(AccessRight.ViewAmountReports)
             .AlsoAllow(AccessRight.ViewAmountReports, insteadOf: AccessRight.Book)
@@ -350,7 +379,9 @@ internal static class PosEndpoints
                 }
 
                 var closing = JsonSerializer.Deserialize<DayClosingDto>(stored, PosJson.Options)!;
-                var code = await db.CashRegisters.Where(r => r.Id == registerId).Select(r => r.Code).FirstAsync(ct);
+                var register = await db.CashRegisters.Where(r => r.Id == registerId).Select(r => new { r.Code, r.IsPractice }).FirstAsync(ct);
+                var code = register.Code;
+                closing = closing with { IsPractice = register.IsPractice };
                 var location = await RegisterLocationAsync(db, registerId, ct);
                 var zone = LocalTime.Zone(location.TimeZone);
                 var numbers = await db.Receipts.AsNoTracking()

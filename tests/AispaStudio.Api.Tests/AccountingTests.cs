@@ -189,6 +189,9 @@ public sealed class AccountingTests(ApiFixture fixture)
         var period = $"from={ViennaToday:yyyy-MM-dd}&until={ViennaToday:yyyy-MM-dd}";
         var postings = await spa.GetAsync<List<AccountingPosting>>($"/api/accounting/postings?{period}", Ct);
         var germany = await spa.GetAsync<AccountingSettingsDto>("/api/accounting/settings?country=DE", Ct);
+        var nextDay = ViennaToday.AddDays(1);
+        var comparison = await spa.GetAsync<ManagementReportDto>($"/api/reports/locations/{spa.Location.Id}/management?from={nextDay:yyyy-MM-dd}&until={nextDay:yyyy-MM-dd}", Ct);
+        Assert.Contains(comparison.Alerts, message => message.Contains("Übungskassen", StringComparison.Ordinal));
         var reset = await spa.Client.DeleteAsync("/api/accounting/settings?country=CH", Ct);
         var afterReset = await spa.GetAsync<AccountingSettingsDto>("/api/accounting/settings?country=CH", Ct);
 
@@ -199,6 +202,8 @@ public sealed class AccountingTests(ApiFixture fixture)
         Assert.Equal((FiscalCountry.CH, false), (own.Country, own.Inherited));
         var swissPostings = postings.Where(p => p.Document.StartsWith($"{swiss.Code}-", StringComparison.Ordinal)).ToList();
         var euroPostings = postings.Where(p => p.Document.StartsWith($"{euro.Code}-", StringComparison.Ordinal)).ToList();
+        Assert.All(swissPostings, p => Assert.DoesNotContain("Übungskassa", p.Text, StringComparison.Ordinal));
+        Assert.All(euroPostings, p => Assert.Contains("Übungskassa", p.Text, StringComparison.Ordinal));
         Assert.Contains(swissPostings, p => p is { DebitAccount: "1099", CreditAccount: "3200", Amount: 54m, CostCenter: "KST-SHOP" });
         Assert.Contains(swissPostings, p => p is { DebitAccount: "1091", CreditAccount: "1099", Amount: 54m });
         Assert.Contains(euroPostings, p => p.DebitAccount == defaults.TransitAccount && p.CreditAccount == shop.Code);

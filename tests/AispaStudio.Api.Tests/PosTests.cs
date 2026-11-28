@@ -866,6 +866,135 @@ public sealed class PosTests(ApiFixture fixture)
         Assert.Equal([ReceiptKind.Start, ReceiptKind.Monthly, ReceiptKind.Null, ReceiptKind.Yearly, ReceiptKind.Null], kinds);
         Assert.Equal(3, february.Number);
         Assert.Equal(5, nextYear.Number);
+
+        clock.Now = new(2028, 12, 14, 10, 0, 0, TimeSpan.Zero);
+        Assert.Equal(PosErrorKind.Conflict, (await pos.YearlyReceiptAsync(register.Id, Ct)).Error!.Kind);
+        clock.Now = clock.Now.AddDays(1);
+        var manual = (await pos.YearlyReceiptAsync(register.Id, Ct)).Value!;
+        Assert.Equal(manual.Id, (await pos.YearlyReceiptAsync(register.Id, Ct)).Value!.Id);
+        Assert.Null((await pos.ConfirmAsync(register.Id, RegisterConfirmationKind.YearlyReceiptCheck, 2028, manual.Id, "owner", false, Ct)).Error);
+        Assert.True((await pos.RegisterDtoAsync(await db.CashRegisters.FirstAsync(r => r.Id == register.Id, Ct), Ct)).YearlyReceipt!.Confirmed);
+        await pos.NullReceiptAsync(register.Id, Ct);
+        Assert.Equal(PosErrorKind.Conflict,
+            (await pos.ConfirmAsync(register.Id, RegisterConfirmationKind.YearlyReceiptCheck, 2028, manual.Id, "owner", false, Ct)).Error!.Kind);
+        clock.Now = new(2028, 12, 31, 22, 30, 0, TimeSpan.Zero);
+        await using var concurrentScope = fixture.Factory.Services.CreateAsyncScope();
+        concurrentScope.ServiceProvider.GetRequiredService<TenantContext>().Use(spa.TenantId);
+        var concurrent = ActivatorUtilities.CreateInstance<PosService>(concurrentScope.ServiceProvider, clock);
+        var secondary = (await pos.CreateRegisterAsync(RegisterInput(spa, FiscalCountry.AT), Ct)).Value!;
+        var manualRace = concurrent.YearlyReceiptAsync(register.Id, Ct);
+        await Task.WhenAll(pos.ScheduleYearlyAsync(clock.Now, Ct), manualRace);
+        var scheduledId = await db.Receipts.Where(r => r.RegisterId == register.Id && r.ClosingYear == 2028)
+            .OrderByDescending(r => r.Number).Select(r => r.Id).FirstAsync(Ct);
+        var scheduled = (await pos.YearlyReceiptAsync(register.Id, Ct)).Value!;
+        Assert.Equal(scheduledId, scheduled.Id);
+        Assert.Equal(scheduledId, (await manualRace).Value!.Id);
+        Assert.Equal(2, await db.Receipts.CountAsync(r => r.RegisterId == register.Id && r.ClosingYear == 2028, Ct));
+        var secondaryId = await db.Receipts.Where(r => r.RegisterId == secondary.Id && r.ClosingYear == 2028).Select(r => r.Id).SingleAsync(Ct);
+        await pos.ConfirmAsync(secondary.Id, RegisterConfirmationKind.YearlyReceiptCheck, 2028, secondaryId, "owner", false, Ct);
+        var reportPath = $"/api/reports/locations/{spa.Location.Id}/compliance?date=2029-01-02";
+        var reminders = (await spa.GetAsync<ComplianceReportDto>(reportPath, Ct)).Reminders;
+        Assert.Contains(reminders, r => r.Contains(register.Code, StringComparison.Ordinal) && r.Contains("2028", StringComparison.Ordinal));
+        Assert.DoesNotContain(reminders, r => r.Contains(secondary.Code, StringComparison.Ordinal) && r.Contains("2028", StringComparison.Ordinal));
+        await pos.ConfirmAsync(register.Id, RegisterConfirmationKind.YearlyReceiptCheck, 2028, scheduled.Id, "owner", false, Ct);
+        Assert.DoesNotContain((await spa.GetAsync<ComplianceReportDto>(reportPath, Ct)).Reminders, r => r.Contains("Jahresbeleg 2028", StringComparison.Ordinal));
+        Assert.NotEqual(manual.Id, scheduled.Id);
+        Assert.Equal(scheduled.Number, await db.Receipts.Where(r => r.RegisterId == register.Id).MaxAsync(r => r.Number, Ct));
+        clock.Now = clock.Now.AddDays(1);
+        Assert.Equal(scheduled.Number + 1, (await pos.NullReceiptAsync(register.Id, Ct)).Value!.Number);
+
+        clock.Now = new(2029, 12, 31, 22, 30, 0, TimeSpan.Zero);
+        var device = fixture.Factory.Services.GetRequiredService<TestSignatureDeviceSwitch>();
+        device.SetFailing(register.Id, true);
+        var failed = (await pos.YearlyReceiptAsync(register.Id, Ct)).Value!;
+        Assert.True(failed.SignatureDeviceFailed);
+        Assert.Equal(PosErrorKind.Conflict,
+            (await pos.ConfirmAsync(register.Id, RegisterConfirmationKind.YearlyReceiptCheck, 2029, failed.Id, "owner", false, Ct)).Error!.Kind);
+        clock.Now = clock.Now.AddDays(1);
+        await pos.NullReceiptAsync(register.Id, Ct);
+        device.SetFailing(register.Id, false);
+        await pos.NullReceiptAsync(register.Id, Ct);
+        Assert.Single(await db.Receipts.Where(r => r.RegisterId == register.Id && r.ClosingYear == 2029 && !r.SignatureDeviceFailed).ToListAsync(Ct));
+    }
+
+    [Fact]
+    public async Task FinanzOnline_zeigt_den_amtlichen_Pruefwert_und_nur_AT_Registrierungsdaten()
+    {
+        Assert.Equal("qx6p", RksvCode.TurnoverKeyChecksum("cWhay3H4asTvRzXzXGZQ3KyBEu9BZaIxl8J+L4Bhr5A="));
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        var register = await CreateRegisterAsync(spa);
+        var route = $"/api/pos/registers/{register.Id}/fiscal-registration";
+        using var result = await spa.Client.GetAsync(route, Ct);
+        Assert.True(result.IsSuccessStatusCode);
+        Assert.True(result.Headers.CacheControl?.NoStore);
+        var data = (await result.Content.ReadFromJsonAsync<FiscalRegistrationDto>(TestSpa.Json, Ct))!;
+        Assert.Equal(register.Code, data.RegisterCode);
+        Assert.True(data.IsPractice);
+        Assert.Equal(RksvCode.TurnoverKeyChecksum(data.TurnoverKey), data.Checksum);
+        var swiss = await CreateRegisterAsync(spa, FiscalCountry.CH);
+        using var unavailable = await spa.Client.GetAsync($"/api/pos/registers/{swiss.Id}/fiscal-registration", Ct);
+        Assert.Equal(HttpStatusCode.Conflict, unavailable.StatusCode);
+        var foreign = await TestSpa.CreateAsync(fixture, Ct);
+        using var other = await foreign.Client.GetAsync(route, Ct);
+        Assert.Equal(HttpStatusCode.NotFound, other.StatusCode);
+        using var reception = await TestUsers.ClientAsync(fixture, Ct, StaffRole.Reception, [spa.Location.Id]);
+        using var denied = await reception.GetAsync(route, Ct);
+        Assert.Equal(HttpStatusCode.Forbidden, denied.StatusCode);
+        using var confirmation = await spa.Client.PutAsync($"/api/pos/registers/{register.Id}/confirmations/StartReceiptCheck", null, Ct);
+        var stored = await confirmation.Content.ReadFromJsonAsync<RegisterConfirmationDto>(TestSpa.Json, Ct);
+        Assert.False(string.IsNullOrWhiteSpace(stored!.ConfirmedByName));
+    }
+
+    [Fact]
+    public async Task Online_Kassenauswahl_bevorzugt_echte_lokale_Kassa_und_behaelt_Uebungsrueckfall()
+    {
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        var practice = await CreateRegisterAsync(spa);
+        var real = await CreateRegisterAsync(spa, FiscalCountry.CH);
+        await using var scope = fixture.Factory.Services.CreateAsyncScope();
+        scope.ServiceProvider.GetRequiredService<TenantContext>().Use(spa.TenantId);
+        var pos = scope.ServiceProvider.GetRequiredService<PosService>();
+        Assert.Equal(real.Id, (await pos.SelectOnlineRegisterAsync(spa.Location.Id, Ct))!.Id);
+        var db = scope.ServiceProvider.GetRequiredService<AispaDbContext>();
+        await db.CashRegisters.Where(r => r.Id == real.Id).ExecuteUpdateAsync(setters => setters.SetProperty(r => r.SiteId, Guid.NewGuid()), Ct);
+        Assert.Equal(practice.Id, (await pos.SelectOnlineRegisterAsync(spa.Location.Id, Ct))!.Id);
+    }
+
+    [Fact]
+    public async Task Jahresabschluss_Migration_erhaelt_Jahr_und_Person_beim_Downgrade()
+    {
+        var connection = await fixture.CreateDatabaseAsync(Ct);
+        var options = new DbContextOptionsBuilder<AispaDbContext>().UseNpgsql(connection).Options;
+        await using var db = new AispaDbContext(options, new TenantContext(new Microsoft.AspNetCore.Http.HttpContextAccessor()));
+        await db.Database.ExecuteSqlRawAsync("""
+            CREATE SCHEMA aispa;
+            CREATE TABLE aispa."Tenants" ("Id" uuid PRIMARY KEY);
+            CREATE TABLE aispa."CashRegisters" ("Id" uuid PRIMARY KEY, "TenantId" uuid REFERENCES aispa."Tenants");
+            CREATE TABLE aispa."Receipts" ("Id" uuid PRIMARY KEY, "RegisterId" uuid REFERENCES aispa."CashRegisters", "TenantId" uuid REFERENCES aispa."Tenants");
+            """, Ct);
+        var migration = new AispaStudio.Api.Data.Migrations.FiscalYearlyReceipts();
+        async Task MigrateAsync(bool up)
+        {
+            await using var tx = await db.Database.BeginTransactionAsync(Ct);
+            var ops = up ? migration.UpOperations : migration.DownOperations;
+            foreach (var command in db.GetService<IMigrationsSqlGenerator>().Generate(ops, db.GetService<IDesignTimeModel>().Model))
+            {
+                await db.Database.ExecuteSqlRawAsync(command.CommandText, Ct);
+            }
+            await tx.CommitAsync(Ct);
+        }
+        await MigrateAsync(true);
+        var tenant = Guid.NewGuid();
+        var register = Guid.NewGuid();
+        var receipt = Guid.NewGuid();
+        await db.Database.ExecuteSqlAsync($"""INSERT INTO aispa."Tenants" VALUES ({tenant})""", Ct);
+        await db.Database.ExecuteSqlAsync($"""INSERT INTO aispa."CashRegisters" VALUES ({register}, {tenant})""", Ct);
+        await db.Database.ExecuteSqlAsync($"""INSERT INTO aispa."Receipts" VALUES ({receipt}, {register}, {tenant}, 2028)""", Ct);
+        await db.Database.ExecuteSqlAsync($"""INSERT INTO aispa."RegisterConfirmation" VALUES ({register}, 2, 2028, {receipt}, now(), 'tester', {tenant})""", Ct);
+        await MigrateAsync(false);
+        await MigrateAsync(true);
+        Assert.Equal(2028, await db.Database.SqlQuery<int>($"""SELECT "ClosingYear" AS "Value" FROM aispa."Receipts" WHERE "Id" = {receipt}""").SingleAsync(Ct));
+        Assert.Equal("tester", await db.Database.SqlQuery<string>($"""SELECT "ConfirmedBy" AS "Value" FROM aispa."RegisterConfirmation" WHERE "ReceiptId" = {receipt}""").SingleAsync(Ct));
     }
 
     [Fact]

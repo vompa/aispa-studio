@@ -91,8 +91,7 @@ public static partial class ChargeNoShowFeeHandler
         var local = TimeZoneInfo.ConvertTime(appointment.Start, LocalTime.Zone(location.TimeZone));
         var description = $"Ausfallgebühr {appointment.Treatment.Name} {local:dd.MM.yyyy HH:mm}";
 
-        var register = await db.CashRegisters.AsNoTracking()
-            .Where(r => r.LocationId == guarantee.LocationId && r.IsActive).OrderBy(r => r.Code).FirstOrDefaultAsync(ct);
+        var register = guarantee.BillId is null ? await pos.SelectOnlineRegisterAsync(guarantee.LocationId, ct) : null;
         if (register is null && guarantee.BillId is null)
         {
             await FailAsync(online, guarantee, guarantee.ChargeReference is null

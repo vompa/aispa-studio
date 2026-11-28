@@ -38,7 +38,9 @@ internal static class PosExports
                     return failure!;
                 }
 
-                var registers = await db.CashRegisters.AsNoTracking().Where(r => r.LocationId == locationId).ToDictionaryAsync(r => r.Id, r => r.Code, ct);
+                var sources = await db.CashRegisters.AsNoTracking().Where(r => r.LocationId == locationId)
+                    .Select(r => new { r.Id, r.Code, r.IsPractice }).ToListAsync(ct);
+                var registers = sources.ToDictionary(r => r.Id, r => r.IsPractice ? $"{r.Code} (Übungskassa)" : r.Code);
                 if (request.List == Vouchers)
                 {
                     var vouchers = await VoucherTableAsync(db, [.. registers.Keys], ct);
@@ -72,6 +74,14 @@ internal static class PosExports
                     RevenuePayments => (RevenuePaymentTable(receipts), "Umsatz je Zahlart", "Umsatz_je_Zahlart"),
                     _ => (await RevenueTreatmentTableAsync(db, receipts, ct), "Umsatz je Behandlung und Person", "Umsatz_je_Behandlung"),
                 };
+                if (request.List != Receipts && sources.Any(s => s.IsPractice && receipts.Any(r => r.RegisterId == s.Id)))
+                {
+                    table = table with
+                    {
+                        Columns = [.. table.Columns, new("Hinweis", ColumnKind.Text)],
+                        Rows = [.. table.Rows.Select(row => (object?[])[.. row, "Die Auswertung enthält Umsätze von Übungskassen."])],
+                    };
+                }
                 return await FileAsync(table, request.Format, kind, period, title, from, log, ct);
             })
             .WithTags("Kassa")

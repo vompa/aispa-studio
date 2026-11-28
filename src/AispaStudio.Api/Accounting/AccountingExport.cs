@@ -121,7 +121,11 @@ internal sealed class AccountingExport(AispaDbContext db)
                 registerPostings.Add((closing.Until, new(date, document, debit, credit, Math.Abs(difference), 0, $"{label} Tagesabschluss {register.Code}", null, currency)));
             }
 
-            postings.AddRange(registerPostings.OrderBy(p => p.At).Select(p => p.Posting with { Country = register.Country }));
+            postings.AddRange(registerPostings.OrderBy(p => p.At).Select(p => p.Posting with
+            {
+                Country = register.Country,
+                Text = register.IsPractice ? $"{p.Posting.Text} (Übungskassa)" : p.Posting.Text,
+            }));
         }
 
         return postings;
@@ -225,7 +229,9 @@ internal sealed class AccountingExport(AispaDbContext db)
             fields[8] = Quote(p.TaxPercent == 0 ? "" : p.TaxKey ?? "");
             fields[9] = p.Date.ToString("ddMM", Invariant);
             fields[10] = Quote(Cut(p.Document, 36));
-            fields[13] = Quote(Cut(p.Text, 60));
+            const string Practice = " (Übungskassa)";
+            fields[13] = Quote(p.Text.EndsWith(Practice, StringComparison.Ordinal)
+                ? Cut(p.Text[..^Practice.Length], 60 - Practice.Length) + Practice : Cut(p.Text, 60));
             fields[36] = Quote(Cut(p.CostCenter ?? "", 36));
             sb.Append(string.Join(';', fields));
             sb.Append("\r\n");

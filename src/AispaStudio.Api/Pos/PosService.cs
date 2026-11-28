@@ -227,7 +227,34 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
             }
         }
 
-        return dto with { Readiness = new(state, reasons) };
+        var zone = await ZoneAsync(register, ct);
+        var closing = await ClosingStatusAsync(register, LocalTime.LocalDate(time.GetUtcNow(), zone), zone, ct);
+        return dto with
+        {
+            Readiness = new(state, reasons),
+            Confirmations = closing.Confirmations,
+            YearlyReceipt = closing.Status,
+            PendingYearlyReceipts = closing.Pending,
+            Warnings = [.. dto.Warnings, .. closing.Warnings]
+        };
+    }
+
+    public async Task<CashRegister?> SelectOnlineRegisterAsync(Guid locationId, CancellationToken ct)
+    {
+        var here = site.Get(db);
+        var candidates = await db.CashRegisters.AsNoTracking()
+            .Where(r => r.LocationId == locationId && r.IsActive && (here == null || r.SiteId == null || r.SiteId == here)
+                && db.Receipts.Any(receipt => receipt.RegisterId == r.Id && receipt.Kind == ReceiptKind.Start))
+            .OrderBy(r => r.IsPractice).ThenBy(r => r.Code).ThenBy(r => r.Id).ToListAsync(ct);
+        foreach (var register in candidates)
+        {
+            if (await FiscalAvailableAsync(register, ct))
+            {
+                return register;
+            }
+        }
+
+        return null;
     }
 
     public async Task<List<CashRegisterDto>> RegistersAsync(UserAccess access, Guid? locationId, CancellationToken ct)
@@ -251,6 +278,28 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
         }
 
         return result;
+    }
+
+    public async Task<PosResult<FiscalRegistrationDto>> FiscalRegistrationAsync(Guid registerId, CancellationToken ct)
+    {
+        var register = await db.CashRegisters.AsNoTracking().SingleOrDefaultAsync(r => r.Id == registerId, ct);
+        if (register is null)
+        {
+            return PosFailure.NotFound("Kassa").Error;
+        }
+
+        if (IsOtherSite(register))
+        {
+            return PosFailure.Conflict(OtherSiteMessage).Error;
+        }
+
+        if (register.Country != FiscalCountry.AT || register.TurnoverKey is not { Length: > 0 } key)
+        {
+            return PosFailure.Conflict("Für diese Kassa liegen keine FinanzOnline-Registrierungsdaten vor.").Error;
+        }
+
+        return new(new(register.Code, key, Fiscal.Rksv.RksvCode.TurnoverKeyChecksum(key), register.CertificateSerial,
+            register.FiscalProvider ?? "test", register.IsPractice, register.IsPractice ? "Übungskassa – bitte nicht bei FinanzOnline registrieren." : null), null);
     }
 
     public async Task<PosResult<FiscalCredentialsDto>> FiscalCredentialsAsync(Guid registerId, CancellationToken ct)
@@ -1836,7 +1885,9 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
 
                 var tipped = receipts.Where(r => r.TipEmployeeId is not null).Select(r => r.TipEmployeeId!.Value).Distinct().ToList();
                 var tipNames = (await db.Employees.AsNoTracking().Where(e => tipped.Contains(e.Id)).ToListAsync(ct)).ToDictionary(e => e.Id, e => e.InHouseName);
-                var report = BuildDayReport(registerId, from, until, opening, receipts, movements, accounts, close, tipNames);
+                var report = BuildDayReport(registerId, from, until, opening, receipts, movements, accounts, close, tipNames)
+                    with
+                { IsPractice = register.IsPractice };
 
                 if (close is not null)
                 {
@@ -2157,23 +2208,61 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
         ReceiptKind kind,
         CancellationToken ct,
         Func<long, DateTimeOffset, Receipt>? build = null,
-        bool automatic = true) =>
-        await IssueCoreAsync(register, kind, fiscal.For(register.Country), await ZoneAsync(register, ct), time.GetUtcNow(), build, automatic,
-            receipt => db.Receipts.Add(receipt), ct);
+        bool automatic = true)
+    {
+        var zone = await ZoneAsync(register, ct);
+        var now = time.GetUtcNow();
+        var previousReceiptAt = register.LastReceiptAt;
+        var priorClosureValid = false;
+        if (automatic && register.Country == FiscalCountry.AT && register.LastReceiptAt is { } last)
+        {
+            var previousYear = LocalTime.LocalDate(last, zone).Year;
+            if (previousYear < LocalTime.LocalDate(now, zone).Year)
+            {
+                priorClosureValid = await CurrentYearlyAsync(register.Id, previousYear, zone, ct) is not null;
+            }
+            var currentYear = LocalTime.LocalDate(now, zone).Year;
+            var failedYears = await db.Receipts.Where(r => r.RegisterId == register.Id && r.SignatureDeviceFailed
+                    && r.ClosingYear < currentYear && !db.Receipts.Any(s => s.RegisterId == r.RegisterId && s.ClosingYear == r.ClosingYear
+                        && s.Number > r.Number && !s.SignatureDeviceFailed))
+                .Select(r => r.ClosingYear!.Value).Distinct().Order().ToListAsync(ct);
+            foreach (var year in failedYears)
+            {
+                if (await CurrentYearlyAsync(register.Id, year, zone, ct) is null && await FiscalAvailableAsync(register, ct))
+                {
+                    var recovered = await IssueCoreAsync(register, ReceiptKind.Yearly, fiscal.For(register.Country), zone, now,
+                        null, false, r => db.Receipts.Add(r), ct);
+                    recovered.ClosingYear = year;
+                    priorClosureValid |= year == previousYear;
+                }
+            }
+        }
+
+        return await IssueCoreAsync(register, kind, fiscal.For(register.Country), zone, now, build, automatic,
+            receipt => db.Receipts.Add(receipt), ct, priorClosureValid, previousReceiptAt);
+    }
 
     /// <summary>Wie <see cref="IssueAsync"/>, aber ohne Datenbank: Nummer, Signatur und Kassenstand; <paramref name="add"/> nimmt jeden fertigen Beleg entgegen.</summary>
     internal static async Task<Receipt> IssueCoreAsync(CashRegister register, ReceiptKind kind, IFiscalization fiscalization, TimeZoneInfo zone,
-        DateTimeOffset now, Func<long, DateTimeOffset, Receipt>? build, bool automatic, Action<Receipt> add, CancellationToken ct)
+        DateTimeOffset now, Func<long, DateTimeOffset, Receipt>? build, bool automatic, Action<Receipt> add, CancellationToken ct,
+        bool priorClosureValid = false, DateTimeOffset? previousReceiptAt = null)
     {
         if (automatic)
         {
-            if (register.LastReceiptAt is { } last)
+            if ((previousReceiptAt ?? register.LastReceiptAt) is { } last)
             {
                 var previous = LocalTime.LocalDate(last, zone);
                 var current = LocalTime.LocalDate(now, zone);
                 if (previous.Year != current.Year)
                 {
-                    await IssueCoreAsync(register, ReceiptKind.Yearly, fiscalization, zone, now, null, false, add, ct);
+                    if (!priorClosureValid)
+                    {
+                        var yearly = await IssueCoreAsync(register, ReceiptKind.Yearly, fiscalization, zone, now, null, false, add, ct);
+                        if (register.Country == FiscalCountry.AT)
+                        {
+                            yearly.ClosingYear = previous.Year;
+                        }
+                    }
                 }
                 else if (previous.Month != current.Month)
                 {
