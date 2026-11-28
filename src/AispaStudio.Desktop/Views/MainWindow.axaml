@@ -19,7 +19,7 @@
 
   <Panel>
     <!-- Während der Abmelde-Warnung ist der ganze Inhalt weichgezeichnet: Namen und Termine sind für Gäste an der Theke nicht lesbar (Datenschutz) -->
-    <ContentControl x:Name="Main" Content="{Binding Content}" IsVisible="{Binding IsConnected}" Classes="blurhost" Classes.blurred="{Binding IsIdleWarning}" />
+    <ContentControl x:Name="Main" Content="{Binding Content}" IsVisible="{Binding CanShowContent}" Classes="blurhost" Classes.blurred="{Binding IsIdleWarning}" />
 
     <!-- Startbildschirm bis die API bereit ist, danach ohne Verbindung die Karte „Keine Verbindung zum Server“ (Design-Brief 5.31) -->
     <local:StartupScreen Target="{Binding #Main}" />

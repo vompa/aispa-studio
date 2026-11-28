@@ -125,7 +125,7 @@ public partial class MainViewModel(IWorkstationApi api, Func<ILiveUpdates>? live
     public partial string StatusText { get; set; } = "Noch nicht geprüft.";
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsOffline))]
+    [NotifyPropertyChangedFor(nameof(CanShowContent), nameof(IsOffline))]
     public partial bool IsConnected { get; set; }
 
     [ObservableProperty]
@@ -134,7 +134,7 @@ public partial class MainViewModel(IWorkstationApi api, Func<ILiveUpdates>? live
 
     /// <summary>Anmeldung oder Arbeitsfläche.</summary>
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(AreHintsShown))]
+    [NotifyPropertyChangedFor(nameof(AreHintsShown), nameof(CanShowContent), nameof(IsOffline))]
     public partial ViewModelBase? Content { get; private set; }
 
     public bool IsSignedIn => User is not null;

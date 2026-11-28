@@ -97,8 +97,61 @@ public sealed partial class ViewTests
 
         Assert.False(main.IsStartupScreenShown);
         Assert.False(window.GetVisualDescendants().OfType<StartupScreen>().Single().IsVisible);
-        Assert.Equal(1, window.GetVisualDescendants().OfType<ShellView>().Single().Opacity);
+        var shell = window.GetVisualDescendants().OfType<ShellView>().Single();
+        Assert.True(shell.IsEffectivelyVisible);
+        Assert.Equal(1, shell.Opacity);
         window.Close();
+        return true;
+    }, CancellationToken.None);
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public Task Startbildschirm_offline_nach_Neustart_zeigt_die_Arbeitsflaeche_nur_mit_gemerktem_Zugriff(bool hasAccess) => Session.Dispatch(async () =>
+    {
+        var time = new StoppedTime();
+        var store = new MemoryOfflineStore();
+        var cache = new OfflineCache(store, time);
+        var stub = Api();
+        if (!hasAccess)
+        {
+            stub.On("GET /api/auth/me", Owner() with { Access = null });
+        }
+
+        await new MainViewModel(stub.Client(cache), time: time).StartAsync();
+        cache.Flush();
+        Assert.NotNull(cache.Get("api/auth/me"));
+
+        stub.Down = true;
+        var main = new MainViewModel(stub.Client(new OfflineCache(store, time)), time: time) { ProbeWindow = TimeSpan.Zero };
+        var window = new MainWindow { DataContext = main };
+        window.Show();
+        try
+        {
+            await main.StartAsync();
+            await Pump();
+
+            Assert.False(main.IsConnected);
+            var screen = window.GetVisualDescendants().OfType<StartupScreen>().Single();
+            var card = screen.GetVisualDescendants().OfType<Border>().Single(b => b.Name == "OfflineCard");
+            if (hasAccess)
+            {
+                Assert.IsType<ShellViewModel>(main.Content);
+                Assert.Contains(window.GetVisualDescendants().OfType<ShellView>(), shell => shell.IsEffectivelyVisible);
+                Assert.False(screen.IsEffectivelyVisible);
+                Assert.False(main.IsStartupScreenShown);
+            }
+            else
+            {
+                Assert.True(card.IsEffectivelyVisible);
+                Assert.False(window.FindControl<ContentControl>("Main")!.IsEffectivelyVisible);
+            }
+        }
+        finally
+        {
+            window.Close();
+        }
+
         return true;
     }, CancellationToken.None);
 
@@ -109,6 +162,7 @@ public sealed partial class ViewTests
 
         // Kein heller Blitz: die Fläche steht sofort, Logo und Stand noch nicht.
         Assert.True(startup.Screen.IsVisible);
+        Assert.False(startup.Part<Border>("OfflineCard").IsEffectivelyVisible);
         Assert.True(startup.Part<Border>("Surface").IsEffectivelyVisible);
         Assert.False(startup.Part<Border>("Tile").IsEffectivelyVisible);
 
@@ -197,6 +251,7 @@ public sealed partial class ViewTests
         Assert.True(startup.Main.IsOffline);
         var card = startup.Part<Border>("OfflineCard");
         Assert.True(card.IsEffectivelyVisible);
+        Assert.False(startup.Window.FindControl<ContentControl>("Main")!.IsEffectivelyVisible);
         Assert.Equal(12, card.CornerRadius.TopLeft);
         Assert.True(startup.Part<Border>("Tile").IsEffectivelyVisible);
         Assert.False(startup.Part<StackPanel>("Status").IsEffectivelyVisible);

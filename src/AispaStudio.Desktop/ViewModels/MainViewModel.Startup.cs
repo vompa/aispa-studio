@@ -41,8 +41,11 @@ public partial class MainViewModel
     [ObservableProperty]
     public partial string StartupStep { get; private set; } = ConnectingStep;
 
-    /// <summary>Kein Start mehr und keine Verbindung: die Karte „Keine Verbindung zum Server“ steht auf der Petrolfläche.</summary>
-    public bool IsOffline => !IsConnected && !IsStarting;
+    /// <summary>Die Anmeldung braucht eine Verbindung. Die Arbeitsfläche ist mit gemerktem Zugriff auch offline bedienbar (ADR 0005).</summary>
+    public bool CanShowContent => IsConnected || Content is ShellViewModel;
+
+    /// <summary>Der Start ist beendet und es gibt weder eine Verbindung noch eine Arbeitsfläche aus dem lokalen Stand.</summary>
+    public bool IsOffline => !CanShowContent && !IsStarting;
 
     private StartChoiceViewModel? _startChoice;
 
@@ -106,7 +109,7 @@ public partial class MainViewModel
     private CancellationTokenSource BeginStartup()
     {
         // Nach „Erneut versuchen“ steht der Startbildschirm schon: er bleibt, statt für 300 ms zu verschwinden.
-        IsStartupScreenShown = IsStartupScreenShown && !IsConnected;
+        IsStartupScreenShown = IsStartupScreenShown && !CanShowContent;
         IsSlowStart = false;
         ShowStartupStep(ConnectingStep, ServerStartingText);
         IsStarting = true;
@@ -119,7 +122,7 @@ public partial class MainViewModel
     private void EndStartup(CancellationTokenSource startup)
     {
         startup.Cancel();
-        if (!IsConnected)
+        if (!CanShowContent)
         {
             IsStartupScreenShown = true;
         }
