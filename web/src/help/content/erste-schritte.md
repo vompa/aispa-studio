@@ -46,6 +46,7 @@ Der Kalender zeigt den Tag mit dem freien Platz. Termine buchen die Rezeption un
 
 Der Assistent legt die Grundlage; was sonst noch zum Start gehört, steht in den vorhandenen Themen:
 
+- Für die erste Kassa in den „Firmendaten“ auf der Karte „Kassa einrichten“ **Kassa einrichten** wählen. Die Felder und den Übungsbetrieb erklärt [Kassa einrichten](hilfe:kassa-einrichten).
 - Zugänge für das Team: [Zugang anlegen](hilfe:zugaenge-zugang-anlegen) und [Team](hilfe:team).
 - Bestehende Kundinnen und Kunden übernehmen: [Kunden importieren](hilfe:kunden-importieren).
 - Betriebsarten und zuschaltbare Module: [Einzelplatz](hilfe:einzelplatz).

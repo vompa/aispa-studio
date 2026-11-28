@@ -43,7 +43,7 @@ Jede Slice hat ihren Bereich vollständig ersetzt, mit denselben Feldern, Regeln
 | `masterData` | `intake` | Postfach & Nummern | Slice 97 | mit Absenderregeln; Bereich steht nur bei eingeschaltetem Modul Terminannahme (T-081) |
 | `masterData` | `company` | Firmendaten | Slice 93 | erste native Maske, Vorbild der übrigen |
 | `masterData` | `payments` | Zahlungen | Slice 96 | Schlüssel nur maskiert; Bereich steht nur bei eingeschaltetem Modul Online-Buchung (T-081) |
-| `masterData` | `kassa` | Kassa | Slice 96 | RKSV/TSE unverändert |
+| `masterData` | `kassa` | Kassa | Slice 96 | Rabattregeln für das Spa. Kassenverwaltung in der eigenen nativen Maske „Kassen“ |
 | `masterData` | `ai` | KI | Slice 97 | |
 
 ## Sprungziele in die Verwaltung
@@ -138,6 +138,7 @@ Stand: 17.11.2026, zweiter Teil von P10b. Bestandsaufnahme aller Seiten aus `Adm
 | Lager › Einrichtung › Lagerorte | Lagerorte | Knopf über der Liste (P10a) | nie leer (das Hauptlager gibt es immer) | unverändert |
 | Lager › Einrichtung › Lieferanten | Lieferanten | Knopf über der Liste (P10a) | keiner | Satz „Noch kein Lieferant angelegt.“ |
 | Lager › Übersicht, Chargen, Bewegungen, Bestellen, Inventur | nichts anzulegen | – | Sätze („Nichts zu tun …“, „Keine Aufgaben …“, „Noch keine Bestellungen.“) | unverändert |
+| Kassa & Geld › Kassen | Kassen am Standort | **Kassa anlegen** über der Liste | „Es ist noch keine Kassa eingerichtet.“ | Auswahl mit Status und Länderabschnitten |
 | Kassa & Geld › Kassa, Zahlungen | keine Liste | – | – | unverändert |
 | Kassa & Geld › Kosten | Räume, Personal | – (die Daten kommen aus Standorten und Team) | Überschrift mit Spaltenköpfen, kein Satz | Sätze „Noch kein Raum angelegt. Räume entstehen unter „Betrieb“ › „Standorte & Räume“.“ und „Noch niemand im Team. …“; Spaltenköpfe nur mit Zeilen |
 | Kassa & Geld › Buchhaltung | Erlöskonten | Formular unter der Liste | – (drei Konten gibt es immer) | Formular „Erlöskonto anlegen“ über der Liste |
@@ -159,6 +160,16 @@ Auf einem PC ohne gewählte Betriebsart, ohne Schalter, ohne `AISPA_API_URL` und
 
 ## Assistent „Betrieb einrichten“ (ADR 0104, T-135a)
 
-Neue native Maske der Windows-App (ADR 0084), keine Webentsprechung: `SetupWizardView` im Inhaltsbereich der Shell (ersetzt die gewählte Seite, solange er offen ist). Einstieg: **Assistent starten** auf der Karte „Betrieb einrichten“ und einmal von selbst nach „Spa einrichten“ (Merker nur im Speicher, `LoginViewModel.SetupJustCompleted`). Die Schritte kommen aus `GET api/setup/progress`; eigene Eingabe haben **Öffnungszeiten** (`PUT api/locations/{id}`, Kontakt und Unternehmensangaben weggelassen) und **Räume** (`POST api/locations/{id}/rooms`, Behandlungsraum). Standort und Kassa führen mit **In der Verwaltung öffnen** in die Maske der Karte; seit T-135b haben auch **Behandlungen** (Startkatalog: `GET api/setup/catalog`, `POST api/setup/catalog/apply`, Pakete mit Häkchen und gemeinsamer Raumauswahl) und **Team** (`POST api/employees`, Person ohne Zugang mit Name, Qualifikationen und den Öffnungszeiten als Arbeitszeit) eigene Eingabe; dort bleibt **In der Verwaltung öffnen** als Nebenweg. Hilfe: `firmendaten`, Abschnitt `betrieb-einrichten-assistent`.
+Die native `SetupWizardView` ersetzt die gewählte Seite im Inhaltsbereich der Shell, solange der Assistent offen ist. Er öffnet sich einmal von selbst nach „Spa einrichten“ über `LoginViewModel.SetupJustCompleted` und danach über **Assistent starten** auf der Karte „Betrieb einrichten“. Die App fragt mit `GET api/setup/progress?includeRegister=false` fünf Schritte ab. Die API liefert ohne diesen Parameter weiterhin sechs Schritte.
 
-Abschlussseite „Fertig“ (T-136): letzter Eintrag des Assistenten, erreichbar mit **Weiter** vom letzten Schritt und direkt, wenn alle Schritte erledigt sind; sie zählt nicht in „Schritt n von m“. Sie ruft `GET api/setup/progress?readiness=true` und zeigt, was die API sagt: den ersten freien Platz (Behandlung, Tag, Uhrzeit, Standort; **Probetermin im Kalender** stellt den Kalender über `Calendar.Location` und `Calendar.Date` auf diesen Tag und Standort) oder den Grund, dazu die offenen Schritte mit **Zum Schritt**. Die API nennt zum Grund keinen Schritt, deshalb ist **Zurück** der Hauptknopf im Zustand „nicht buchbar“. Hilfe: Absatz „Fertig“ in `firmendaten` und das Thema `erste-schritte`.
+Die Schritte „Öffnungszeiten“ und „Räume“ schreiben über `PUT api/locations/{id}` und `POST api/locations/{id}/rooms`. „Behandlungen“ lädt und übernimmt Pakete über `GET api/setup/catalog` und `POST api/setup/catalog/apply`. „Team“ legt Personen ohne Zugang mit Qualifikationen und Arbeitszeiten über `POST api/employees` an. Im Standortschritt führt **In der Verwaltung öffnen** in die Standortverwaltung. Bei Behandlungen und Team bleibt dieser Knopf als zweiter Weg erhalten. Hilfe bietet `firmendaten#betrieb-einrichten-assistent`.
+
+Die Abschlussseite „Fertig“ (T-136) öffnet sich mit **Weiter** nach dem letzten Schritt oder direkt, wenn alle Schritte erledigt sind. Sie lädt die Bereitschaft mit `readiness=true` und `includeRegister=false`. **Probetermin im Kalender** stellt `Calendar.Location` und `Calendar.Date` auf den ersten freien Platz. Fehlt die Buchbarkeit, zeigt die Seite den Grund und führt mit **Zurück** wieder in die Schritte. Offene Schritte lassen sich mit **Zum Schritt** öffnen. Hilfe bieten `firmendaten` und `erste-schritte`.
+
+## Kassen und Assistent „Kassa einrichten“ (ADR 0105, T-141 bis T-144)
+
+**Verwaltung** › **Kassa & Geld** › **Kassen** öffnet die native `RegistersView`. Die Liste zeigt Kassen-ID, Standort und Status. Die Auswahl zeigt Gründe für fehlende Bereitschaft und **Außer Betrieb nehmen**. `ManageLocation` schützt Kassenverwaltung, Zugangsdaten, Registrierungsdaten und Bestätigungen. Die Maske „Kassa“ mit Rabattregeln verwendet `ManageOrganization`.
+
+**Kassa anlegen** und **Kassa einrichten** auf der eigenen Karte in `CompanyView` öffnen `RegisterWizardView`. Der Assistent erfasst Standort, Land, Signatureinrichtung, gegebenenfalls Zugangsdaten und Übungsbestätigung sowie Kassen-ID und Belegkopf. Die Karte zeigt „Offen“, „Übungsbetrieb“ oder „Bereit“ für diese Stelle.
+
+`RegisterFiscalView` zeigt die Signatureinrichtung und gegebenenfalls deren Online-Zugangsdaten. Österreichische Kassen haben „Für FinanzOnline“ mit Online-Abruf und Kopierknöpfen, Bestätigungen und die Jahresbelegaktion. Deutsche Kassen zeigen die Meldung über ELSTER. Die Bestätigungen halten die Handlung einer Person fest. Hilfe bietet `kassa-einrichten`.

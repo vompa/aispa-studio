@@ -357,7 +357,8 @@ Der Server sucht regelmäßig nach Arbeit. `0` schaltet die jeweilige Aufgabe ab
 ## Kassa {#kassa-server}
 
 - `Payments:DigitalEuro`: `true` bietet an Kassen in Euro-Ländern den digitalen Euro als Zahlungsart an. Standard `false`. Erst einschalten, wenn die EZB ihn ausgibt und der Zahlungsdienstleister ihn abwickelt.
-- `Fiscal:TestTse`: `true` signiert deutsche Kassen mit einer Test-TSE. Standard `false`. Nur für Entwicklung und Prototyp, nie im Echtbetrieb. Ohne TSE lässt sich eine deutsche Kassa nicht einrichten.
+- `Fiscal:TestTse` gilt für ältere deutsche Anlageanfragen ohne ausdrückliche Anbieter- oder Übungsauswahl. `true` erlaubt diesen Anfragen, eine Kassa mit Test-TSE anzulegen. Ohne Konfiguration gilt in `Development` die Entwicklungs-Vorgabe und ansonsten `false`. Ein ausdrücklich gesetztes `false` gilt auch in `Development`. Der Testanbieter bleibt für ausdrücklich gewählte Übungskassen verfügbar.
+- Der österreichische Jahresabschluss prüft am 31. Dezember ab 23:30 Uhr Ortszeit, ob der Abschluss fehlt. Dazu muss die API laufen. Im Einzelplatz läuft sie zusammen mit der App. Die weiteren Auslöser stehen unter [Österreichischer Jahresbeleg](hilfe:kassa-einrichten#jahresbeleg).
 - `VatIdCheck:Provider`: `Test` prüft UID-Nummern ohne Netz: Nummern mit `000` am Ende gelten als ungültig, bei `999` am Ende antwortet der Dienst nicht. Ohne Angabe prüft der Server über VIES der EU. Im Echtbetrieb leer lassen.
 
 ## Schlüsselring des Servers {#schluesselring}

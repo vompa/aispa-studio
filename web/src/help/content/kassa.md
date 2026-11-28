@@ -7,7 +7,7 @@ seite: verwaltung
 ---
 # Kassa
 
-Einstellungen in der Windows-App unter „Verwaltung“ › „Kassa & Geld“ › „Kassa“. Sie gelten für alle Kassen und Standorte des Spas; ändern darf sie, wer die Firmendaten pflegen darf (Inhaber). „Speichern“ ohne Änderung schickt nichts; an Belegen, RKSV und Signatur ändert sich dadurch nichts.
+Einstellungen in der Windows-App unter **Verwaltung** › **Kassa & Geld** › **Kassa**. Die Rabattgrenzen gelten für alle Kassen und Standorte des Spas. Ändern darf sie, wer die Firmendaten pflegen darf. Kassen und Signatureinrichtungen stehen unter [Kassen](hilfe:kassa-einrichten).
 
 ![Kassa-Einstellungen in der Windows-App](images/app/verwaltung-kassa.png)
 
