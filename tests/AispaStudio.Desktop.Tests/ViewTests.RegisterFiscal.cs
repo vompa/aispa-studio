@@ -1,8 +1,10 @@
 using System.Net;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using AispaStudio.Contracts;
 using AispaStudio.Desktop.Services;
 using AispaStudio.Desktop.ViewModels;
+using AispaStudio.Desktop.Views;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -17,12 +19,13 @@ public sealed partial class ViewTests
     public Task Kassenverwaltung_zeigt_oeffentliche_FinanzOnline_Musterwerte_ohne_Zugangsfelder()
     {
         const string PublicSampleKey = "cWhay3H4asTvRzXzXGZQ3KyBEu9BZaIxl8J+L4Bhr5A=";
+        const string PublicSampleSerial = "123456789ABCDEF0";
         var register = PracticeRegister;
         var path = $"/api/pos/registers/{register.Id}";
         var stub = Api().On("GET /api/pos/registers", new[] { register })
             .On("GET /api/pos/fiscal/providers?country=AT", new[] { HandbookProvider(FiscalCountry.AT) })
             .On($"GET {path}/fiscal-registration", new FiscalRegistrationDto(register.Code, PublicSampleKey, "qx6p",
-                "AT0", "test", true, "Übungskassa – bitte nicht bei FinanzOnline registrieren."));
+                PublicSampleSerial, "test", true, "Übungskassa – bitte nicht bei FinanzOnline registrieren."));
         return Render("hell", "verwaltung-finanzonline-musterwerte", async (window, main) =>
         {
             var shell = await OpenAdminPage(window, main);
@@ -38,7 +41,10 @@ public sealed partial class ViewTests
             var checksum = Assert.Single(copyButtons, button => button.Tag is "qx6p");
             await ClickScrolled(window, checksum);
             Assert.Equal("qx6p", await window.Clipboard!.TryGetTextAsync());
-            Assert.Single(copyButtons, button => button.Tag is "AT0").BringIntoView();
+            var serial = Assert.Single(copyButtons, button => button.Tag is PublicSampleSerial);
+            await ClickScrolled(window, serial);
+            Assert.Equal(PublicSampleSerial, await window.Clipboard!.TryGetTextAsync());
+            serial.BringIntoView();
             await Pump(Settling);
             return fiscal;
         }, stub);
@@ -140,6 +146,13 @@ public sealed partial class ViewTests
             if (width == 1440)
             {
                 SaveShot(window, "verwaltung-finanzonline", "hell");
+                var view = window.GetVisualDescendants().OfType<RegisterFiscalView>().Single(item => item.DataContext == fiscal);
+                var clipboardError = Assert.IsType<COMException>(Marshal.GetExceptionForHR(unchecked((int)0x800401D0), new IntPtr(-1)));
+                await view.CopyRegistrationAsync("MUSTER-NUR-BILD", "MUSTER", _ =>
+                    Task.FromException(clipboardError));
+                Assert.Equal("Zwischenablage nicht verfügbar. Wert wurde nicht kopiert", shell.Confirmation.Text);
+                Assert.Equal("MUSTER", await clipboard.TryGetTextAsync());
+                shell.Confirmation.Close();
             }
 
             var before = Assert.Single(fiscal.Confirmations, item => item.Year == 2025);

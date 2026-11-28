@@ -107,6 +107,9 @@ public sealed partial class RegisterFiscalViewModel : ViewModelBase
 
     internal bool MayCopy(string value) => !_stopped && !_api.IsOffline && Registration.Any(field => field.Value == value);
 
+    internal void ReportClipboardFailure() =>
+        _toast.Show("Zwischenablage nicht verfügbar. Wert wurde nicht kopiert");
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowConfirmationRows))]
     public partial IReadOnlyList<FiscalConfirmationItem> Confirmations { get; private set; } = [];

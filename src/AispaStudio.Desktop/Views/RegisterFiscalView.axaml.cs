@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using AispaStudio.Desktop.ViewModels;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -57,16 +58,33 @@ public partial class RegisterFiscalView : UserControl
         }
     }
 
-    private async Task CopyRegistrationAsync(string value, string text)
+    private Task CopyRegistrationAsync(string value, string text) =>
+        CopyRegistrationAsync(value, text, TopLevel.GetTopLevel(this)?.Clipboard is { } clipboard ? clipboard.SetDataAsync : null);
+
+    internal async Task CopyRegistrationAsync(string value, string text, Func<DataTransfer, Task>? setClipboard)
     {
-        if (text.Length != 0 && _model?.MayCopy(value) == true
-            && TopLevel.GetTopLevel(this)?.Clipboard is { } clipboard)
+        if (text.Length == 0 || _model is not { } model || !model.MayCopy(value))
         {
-            var item = DataTransferItem.CreateText(text);
-            item.Set(ExcludeFromClipboardHistory, [0]);
-            var transfer = new DataTransfer();
-            transfer.Add(item);
-            await clipboard.SetDataAsync(transfer);
+            return;
+        }
+
+        if (setClipboard is null)
+        {
+            model.ReportClipboardFailure();
+            return;
+        }
+
+        var item = DataTransferItem.CreateText(text);
+        item.Set(ExcludeFromClipboardHistory, [0]);
+        var transfer = new DataTransfer();
+        transfer.Add(item);
+        try
+        {
+            await setClipboard(transfer);
+        }
+        catch (COMException)
+        {
+            model.ReportClipboardFailure();
         }
     }
 }
