@@ -24,13 +24,7 @@ public partial class ReportsView : FocusRequestView
     {
         if (DataContext is ReportsViewModel model && TopLevel.GetTopLevel(this) is { } window)
         {
-            var previous = model.Files;
             StorageFileSaver.BindWindow(model, window);
-            // Das Menü speichert über das bereits geladene Dokument, auch wenn die Ansicht neu entsteht.
-            if (model.Management.Document is { } document && (document.Files is null || document.Files == previous))
-            {
-                document.Files = model.Files;
-            }
         }
     }
 

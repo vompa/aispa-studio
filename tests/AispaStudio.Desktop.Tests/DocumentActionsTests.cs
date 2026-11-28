@@ -114,14 +114,7 @@ public sealed class DocumentActionsTests
     [InlineData(true)]
     public Task Management_PDF_Speichern_oeffnet_nach_erneuter_Navigation_den_Dialog(bool alreadyLoaded) => FileDialogSession.Current.Dispatch(async () =>
     {
-        var location = StockSample.Salzburg;
-        var from = new DateOnly(2026, 10, 1);
-        var until = new DateOnly(2026, 10, 31);
-        var route = $"GET /api/reports/locations/{location.Id}/management";
-        var range = "?from=2026-10-01&until=2026-10-31";
-        var api = new StubApi().On(route + range, new ManagementReportDto(location.Id, from, until, [], [], [], [], [], [], false))
-            .OnFile(route + "/pdf" + range, Pdf, "Bericht.pdf");
-        var reports = new ReportsViewModel(api.Client(), TestData.Owner(), TimeProvider.System);
+        var reports = ReportsWithOctoberPdf();
         var first = new ReportsView { DataContext = reports };
         var window = new Window();
         try
@@ -131,8 +124,7 @@ public sealed class DocumentActionsTests
                 window.Content = first;
                 window.Show();
             }
-            reports.Management.SetRange(from, until);
-            await reports.Management.ShowAsync(location, until);
+            await reports.Management.ShowAsync(StockSample.Salzburg, new DateOnly(2026, 10, 31));
             var document = Assert.IsType<DocumentActionsViewModel>(reports.Management.Document);
             if (alreadyLoaded)
             {
@@ -151,16 +143,70 @@ public sealed class DocumentActionsTests
         return true;
     }, TestContext.Current.CancellationToken);
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public Task Management_PDF_uebernimmt_den_gewechselten_Speicheradapter_bei_geerbtem_Ziel(bool individual) => FileDialogSession.Current.Dispatch(async () =>
+    {
+        var reports = ReportsWithOctoberPdf();
+        var window = new Window { Content = new ReportsView { DataContext = reports } };
+        window.Show();
+        try
+        {
+            await reports.Management.ShowAsync(StockSample.Salzburg, new DateOnly(2026, 10, 31));
+            var document = Assert.IsType<DocumentActionsViewModel>(reports.Management.Document);
+            var ownSaver = new RecordingFileSaver();
+            if (individual)
+            {
+                document.Files = ownSaver;
+            }
+            window.Content = null;
+            var replacement = new RecordingFileSaver();
+            reports.Files = replacement;
+            window.Content = new ReportsView { DataContext = reports };
+            Assert.Same(document, reports.Management.Document);
+            var saving = document.SaveCommand.ExecuteAsync(null);
+            await WaitForSaveOrDialogAsync(saving, window);
+            Assert.Empty(window.OwnedWindows);
+            await saving;
+            Assert.Equal(Pdf, (individual ? ownSaver : replacement).Saved?.Content);
+            Assert.Null((individual ? replacement : ownSaver).Saved);
+        }
+        finally
+        {
+            window.Close();
+        }
+        return true;
+    }, TestContext.Current.CancellationToken);
+
+    private static ReportsViewModel ReportsWithOctoberPdf()
+    {
+        var location = StockSample.Salzburg;
+        var from = new DateOnly(2026, 10, 1);
+        var until = new DateOnly(2026, 10, 31);
+        var route = $"GET /api/reports/locations/{location.Id}/management";
+        var range = "?from=2026-10-01&until=2026-10-31";
+        var api = new StubApi().On(route + range, new ManagementReportDto(location.Id, from, until, [], [], [], [], [], [], false))
+            .OnFile(route + "/pdf" + range, Pdf, "Bericht.pdf");
+        var reports = new ReportsViewModel(api.Client(), TestData.Owner(), TimeProvider.System);
+        reports.Management.SetRange(from, until);
+        return reports;
+    }
+
     private static async Task AssertSaveDialogAsync(DocumentActionsViewModel model, Window owner)
     {
         var saving = model.SaveCommand.ExecuteAsync(null);
+        await WaitForSaveOrDialogAsync(saving, owner);
+        Assert.Single(owner.OwnedWindows).Close();
+        await saving;
+    }
+
+    private static async Task WaitForSaveOrDialogAsync(Task saving, Window owner)
+    {
         for (var attempt = 0; !saving.IsCompleted && owner.OwnedWindows.Count == 0 && attempt < 200; attempt++)
         {
             await Task.Delay(10, TestContext.Current.CancellationToken);
         }
-
-        Assert.Single(owner.OwnedWindows).Close();
-        await saving;
     }
 
     private static class FileDialogSession
