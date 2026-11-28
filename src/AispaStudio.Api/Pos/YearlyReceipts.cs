@@ -1,10 +1,10 @@
-using AispaStudio.Api.Scheduling;
+using System.Globalization;
 using AispaStudio.Api.Data;
-using AispaStudio.Api.Tenancy;
 using AispaStudio.Api.Pos.Fiscal;
+using AispaStudio.Api.Scheduling;
+using AispaStudio.Api.Tenancy;
 using AispaStudio.Contracts;
 using Microsoft.EntityFrameworkCore;
-using System.Globalization;
 
 namespace AispaStudio.Api.Pos;
 

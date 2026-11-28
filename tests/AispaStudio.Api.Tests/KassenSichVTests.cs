@@ -5,10 +5,10 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Security.Cryptography;
 using System.Text;
+using AispaStudio.Api.Data;
 using AispaStudio.Api.Pos;
 using AispaStudio.Api.Pos.Fiscal;
 using AispaStudio.Contracts;
-using AispaStudio.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
