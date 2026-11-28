@@ -15,7 +15,9 @@ internal sealed class RksvFiscalization(IEnumerable<IRksvSignatureDevice> device
     private IRksvSignatureDevice Device(CashRegister register) =>
         devices.Single(d => d.ProviderId == (register.FiscalProvider ?? "test"));
 
-    public string? Notice(CashRegister register) => Device(register).ZdaId == "AT0"
+    public bool IsTestProvider(CashRegister register) => Device(register).ZdaId == "AT0";
+
+    public string? Notice(CashRegister register) => IsTestProvider(register)
         ? "Test-Signatureinrichtung: nicht für den Echtbetrieb. Vor dem Start eine zertifizierte Signatureinrichtung anbinden, " +
           "Kassa und Signatureinrichtung in FinanzOnline registrieren und den Startbeleg mit der BMF-Belegcheck-App prüfen."
         : null;
@@ -23,13 +25,15 @@ internal sealed class RksvFiscalization(IEnumerable<IRksvSignatureDevice> device
     public async Task<string?> InitializeAsync(CashRegister register, CancellationToken ct)
     {
         register.TurnoverKey = Convert.ToBase64String(RksvCode.NewTurnoverKey());
-        register.CertificateSerial = await Device(register).SetUpAsync(register, ct);
-        return null;
+        register.CertificateSerial = await FiscalAdapterCalls.TryAsync(() => Device(register).SetUpAsync(register, ct), "", ct);
+        return string.IsNullOrEmpty(register.CertificateSerial) ? "Die Signatureinrichtung hat die Anmeldung der Kassa nicht bestätigt." : null;
     }
 
-    public Task<bool> IsDeviceAvailableAsync(CashRegister register, CancellationToken ct) => Device(register).IsAvailableAsync(register, ct);
+    public Task<bool> IsDeviceAvailableAsync(CashRegister register, CancellationToken ct) =>
+        FiscalAdapterCalls.TryAsync(() => Device(register).IsAvailableAsync(register, ct), false, ct);
 
-    public Task<byte[]?> GetCertificateAsync(CashRegister register, CancellationToken ct) => Device(register).GetCertificateAsync(register, ct);
+    public Task<byte[]?> GetCertificateAsync(CashRegister register, CancellationToken ct) =>
+        FiscalAdapterCalls.TryAsync(() => Device(register).GetCertificateAsync(register, ct), null, ct);
 
     public async Task<FiscalResult> SignAsync(CashRegister register, FiscalInput input, CancellationToken ct)
     {
@@ -55,7 +59,7 @@ internal sealed class RksvFiscalization(IEnumerable<IRksvSignatureDevice> device
             RksvCode.ChainValue(register.LastChainValue, register.Code));
         var signingInput = RksvCode.SigningInput(machineCode);
 
-        var signature = await device.SignAsync(register, Encoding.ASCII.GetBytes(signingInput), ct);
+        var signature = await FiscalAdapterCalls.TryAsync(() => device.SignAsync(register, Encoding.ASCII.GetBytes(signingInput), ct), null, ct);
         var failed = signature is null;
         signature ??= RksvCode.DeviceFailedSignature;
 

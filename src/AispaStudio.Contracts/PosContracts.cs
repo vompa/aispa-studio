@@ -125,7 +125,14 @@ public sealed record CashRegisterInput(
     string? Iban,
     string? Bic,
     string? FiscalProvider = null,
-    bool? Practice = null);
+    bool? Practice = null,
+    IReadOnlyDictionary<string, string>? FiscalCredentials = null);
+
+public sealed record FiscalCredentialsInput(IReadOnlyDictionary<string, string> Values);
+
+public sealed record FiscalCredentialsDto(IReadOnlyList<string> ConfiguredFields, DateTimeOffset? UpdatedAt);
+
+public sealed record FiscalCheckDto(bool Available, string Message);
 
 /// <summary>
 /// Kasse mit Zustand. <c>Warnings</c> nennt, was die Rezeption oder Leitung tun muss, z. B. einen Ausfall an FinanzOnline melden.

@@ -25,7 +25,7 @@ namespace AispaStudio.Api.Pos;
 /// auch wenn an zwei Plätzen gleichzeitig kassiert wird.
 /// </summary>
 internal sealed partial class PosService(AispaDbContext db, FiscalizationResolver fiscal, TimeProvider time, IOptions<PaymentOptions> paymentOptions,
-    SiteIdentity site, IConfiguration? configuration = null)
+    SiteIdentity site, FiscalProviderCatalog providers, FiscalCredentialStore credentials, IConfiguration? configuration = null)
 {
     private static readonly CultureInfo German = CultureInfo.GetCultureInfo("de-AT");
 
@@ -58,7 +58,7 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
                 throw PosFailure.Invalid(nameof(input.Code), "Diese Kassen-ID gibt es schon.");
             }
 
-            var provider = FiscalProviderCatalog.Select(input.Country, input.FiscalProvider)
+            var provider = providers.Select(input.Country, input.FiscalProvider)
                 ?? throw PosFailure.Invalid(nameof(input.FiscalProvider), "Dieser Anbieter steht für das gewählte Land nicht zur Verfügung.");
             if (provider.IsTest && input.Practice == false)
             {
@@ -71,46 +71,71 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
                 throw PosFailure.Invalid(nameof(input.Practice), "Für eine deutsche Übungskassa die Test-TSE ausdrücklich wählen.");
             }
 
-            var register = new CashRegister
-            {
-                LocationId = location.Id,
-                Code = input.Code,
-                Country = input.Country,
-                FiscalProvider = provider.Id,
-                IsPractice = provider.IsTest || input.Practice == true,
-                ReceiptHeader = input.ReceiptHeader.Trim(),
-                PayeeName = Blank(input.PayeeName),
-                Iban = string.IsNullOrEmpty(iban) ? null : iban,
-                Bic = Blank(input.Bic)?.ToUpperInvariant(),
-                CreatedAt = time.GetUtcNow(),
-                SiteId = site.Get(db),
-            };
-
-            var fiscalization = fiscal.For(register.Country);
-            if (await fiscalization.InitializeAsync(register, ct) is { } problem)
-            {
-                throw PosFailure.Invalid(nameof(input.Country), problem);
-            }
-
+            var registerId = Guid.CreateVersion7();
             var strategy = db.Database.CreateExecutionStrategy();
-            await strategy.ExecuteAsync(async () =>
+            var retry = false;
+            var created = await strategy.ExecuteAsync(async () =>
             {
+                if (retry)
+                {
+                    db.ChangeTracker.Clear();
+                    if (await db.CashRegisters.AsNoTracking().FirstOrDefaultAsync(r => r.Id == registerId, ct) is { } committed)
+                    {
+                        return committed;
+                    }
+                }
+
+                retry = true;
                 await using var tx = await db.Database.BeginTransactionAsync(ct);
+                var register = new CashRegister
+                {
+                    Id = registerId,
+                    LocationId = location.Id,
+                    Code = input.Code,
+                    Country = input.Country,
+                    FiscalProvider = provider.Id,
+                    IsPractice = provider.IsTest || input.Practice == true,
+                    ReceiptHeader = input.ReceiptHeader.Trim(),
+                    PayeeName = Blank(input.PayeeName),
+                    Iban = string.IsNullOrEmpty(iban) ? null : iban,
+                    Bic = Blank(input.Bic)?.ToUpperInvariant(),
+                    CreatedAt = time.GetUtcNow(),
+                    SiteId = site.Get(db),
+                };
+                if (fiscal.For(register.Country).IsTestProvider(register) != provider.IsTest)
+                {
+                    throw PosFailure.Conflict("Der Übungsstatus des Fiskalanbieters stimmt nicht mit der Einrichtung überein.");
+                }
+
                 db.CashRegisters.Add(register);
+                await credentials.StageAsync(register.Id, provider, input.FiscalCredentials, ct);
                 await db.SaveChangesAsync(ct);
 
-                // Der Startbeleg (Betrag 0) eröffnet die Signaturkette; ohne funktionierende Signatureinrichtung geht die Kasse nicht in Betrieb.
-                var start = await IssueAsync(register, ReceiptKind.Start, ct, automatic: false);
-                if (start.SignatureDeviceFailed)
+                try
                 {
-                    throw PosFailure.Invalid(nameof(input.Country), "Die Signatureinrichtung ist nicht erreichbar; der Startbeleg muss signiert sein.");
+                    if (await fiscal.For(register.Country).InitializeAsync(register, ct) is { } problem)
+                    {
+                        throw PosFailure.Invalid(nameof(input.Country), problem);
+                    }
+
+                    var start = await IssueAsync(register, ReceiptKind.Start, ct, automatic: false);
+                    if (start.SignatureDeviceFailed)
+                    {
+                        throw PosFailure.Invalid(nameof(input.Country), "Die Signatureinrichtung ist nicht erreichbar; der Startbeleg muss signiert sein.");
+                    }
+                }
+                catch (Exception ex) when (provider.Fields.Count > 0 && ex is not OperationCanceledException)
+                {
+                    // Antworten externer Anbieter können Zugangsdaten enthalten.
+                    throw PosFailure.Invalid("fiscalCredentials", "Die Einrichtung hat den Startbeleg nicht bestätigt. Bitte Zugangsdaten und Verbindung prüfen.");
                 }
 
                 await db.SaveChangesAsync(ct);
                 await tx.CommitAsync(ct);
+                return register;
             });
 
-            return new PosResult<CashRegisterDto>(await RegisterDtoAsync(register, ct), null);
+            return new PosResult<CashRegisterDto>(await RegisterDtoAsync(created, ct), null);
         }
         catch (PosFailure f)
         {
@@ -163,7 +188,7 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
 
         return new(r.Id, r.LocationId, r.Code, r.Country, r.ReceiptHeader, r.IsActive, r.LastReceiptNumber,
             r.SignatureDeviceFailedSince, r.CertificateSerial, warnings, PaymentMethods.Available(r.Country, paymentOptions.Value), otherSite,
-            r.FiscalProvider ?? FiscalProviderCatalog.Select(r.Country, null)?.Id, r.IsPractice);
+            r.FiscalProvider ?? providers.Select(r.Country, null)?.Id, r.IsPractice);
     }
 
     public async Task<CashRegisterDto> RegisterDtoAsync(CashRegister register, CancellationToken ct) =>
@@ -187,7 +212,7 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
         {
             reasons.Add(OtherSiteMessage);
         }
-        if (reasons.Count == 0 && !await fiscal.For(register.Country).IsDeviceAvailableAsync(register, ct))
+        if (reasons.Count == 0 && !await FiscalAvailableAsync(register, ct))
         {
             reasons.Add("Die Signatureinrichtung ist nicht erreichbar.");
         }
@@ -227,6 +252,70 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
 
         return result;
     }
+
+    public async Task<PosResult<FiscalCredentialsDto>> FiscalCredentialsAsync(Guid registerId, CancellationToken ct)
+    {
+        if (!await db.CashRegisters.AnyAsync(r => r.Id == registerId, ct))
+        {
+            return PosFailure.NotFound("Kassa").Error;
+        }
+
+        try
+        {
+            return new(await credentials.StatusAsync(registerId, ct), null);
+        }
+        catch (PosFailure failure)
+        {
+            return failure.Error;
+        }
+    }
+
+    public async Task<PosResult<FiscalCredentialsDto>> SaveFiscalCredentialsAsync(Guid registerId, FiscalCredentialsInput input, CancellationToken ct)
+    {
+        FiscalCredentialsDto? status = null;
+        var (_, error) = await InRegisterAsync(registerId, async register =>
+        {
+            if (input.Values is null)
+            {
+                throw PosFailure.Invalid("values", "Bitte die Zugangsfelder angeben.");
+            }
+
+            var provider = providers.Select(register.Country, register.FiscalProvider) ?? throw PosFailure.Conflict("Anbieter nicht verfügbar.");
+            status = await credentials.StageAsync(register.Id, provider, input.Values, ct);
+            return register.Id;
+        }, ct);
+        return new(status, error);
+    }
+
+    public async Task<PosError?> DeleteFiscalCredentialsAsync(Guid registerId, CancellationToken ct)
+    {
+        var (_, error) = await InRegisterAsync(registerId, async register =>
+        {
+            await db.Set<FiscalCredential>().Where(c => c.RegisterId == register.Id).ExecuteDeleteAsync(ct);
+            return register.Id;
+        }, ct);
+        return error;
+    }
+
+    public async Task<PosResult<FiscalCheckDto>> CheckFiscalAsync(Guid registerId, CancellationToken ct)
+    {
+        var register = await db.CashRegisters.AsNoTracking().FirstOrDefaultAsync(r => r.Id == registerId, ct);
+        if (register is null)
+        {
+            return PosFailure.NotFound("Kassa").Error;
+        }
+
+        if (IsOtherSite(register))
+        {
+            return PosFailure.Conflict(OtherSiteMessage).Error;
+        }
+
+        var available = await FiscalAvailableAsync(register, ct);
+        return new(new(available, available ? "Die Einrichtung ist erreichbar." : "Die Einrichtung ist nicht erreichbar. Bitte Zugangsdaten und Verbindung prüfen."), null);
+    }
+
+    private Task<bool> FiscalAvailableAsync(CashRegister register, CancellationToken ct) =>
+        fiscal.For(register.Country).IsDeviceAvailableAsync(register, ct);
 
     /// <summary>Nullbeleg auf Wunsch, z. B. zur Prüfung mit der Belegcheck-App.</summary>
     public Task<PosResult<ReceiptDto>> NullReceiptAsync(Guid registerId, CancellationToken ct) =>

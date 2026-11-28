@@ -219,6 +219,12 @@ internal static class PosModel
             e.HasOne<CashRegister>().WithOne().HasForeignKey<TestSignatureKey>(k => k.RegisterId).OnDelete(DeleteBehavior.Cascade);
         });
 
+        builder.Entity<FiscalCredential>(e =>
+        {
+            e.HasKey(c => c.RegisterId);
+            e.HasOne<CashRegister>().WithOne().HasForeignKey<FiscalCredential>(c => c.RegisterId).OnDelete(DeleteBehavior.Cascade);
+        });
+
         builder.Entity<TestTseClientState>(e =>
         {
             e.Property(s => s.Id).ValueGeneratedNever();

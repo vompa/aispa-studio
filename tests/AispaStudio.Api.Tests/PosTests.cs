@@ -90,7 +90,8 @@ public sealed class PosTests(ApiFixture fixture)
         services.GetRequiredService<TenantContext>().Use(spa.TenantId);
         var configuration = new Microsoft.Extensions.Configuration.ConfigurationBuilder().Build();
         var pos = new PosService(services.GetRequiredService<AispaDbContext>(), services.GetRequiredService<FiscalizationResolver>(),
-            TimeProvider.System, services.GetRequiredService<IOptions<PaymentOptions>>(), services.GetRequiredService<SiteIdentity>(), configuration);
+            TimeProvider.System, services.GetRequiredService<IOptions<PaymentOptions>>(), services.GetRequiredService<SiteIdentity>(),
+            services.GetRequiredService<FiscalProviderCatalog>(), services.GetRequiredService<FiscalCredentialStore>(), configuration);
         var legacy = await pos.CreateRegisterAsync(RegisterInput(spa, FiscalCountry.DE), Ct);
         Assert.NotNull(legacy.Error);
         var explicitPractice = await pos.CreateRegisterAsync(RegisterInput(spa, FiscalCountry.DE) with { Practice = true }, Ct);
@@ -852,7 +853,8 @@ public sealed class PosTests(ApiFixture fixture)
         scope.ServiceProvider.GetRequiredService<TenantContext>().Use((await spa.GetAsync<CurrentUser>("/api/auth/me", Ct)).Access!.TenantId);
         var db = scope.ServiceProvider.GetRequiredService<AispaDbContext>();
         var pos = new PosService(db, scope.ServiceProvider.GetRequiredService<FiscalizationResolver>(), clock, scope.ServiceProvider.GetRequiredService<IOptions<PaymentOptions>>(),
-            scope.ServiceProvider.GetRequiredService<SiteIdentity>());
+            scope.ServiceProvider.GetRequiredService<SiteIdentity>(), scope.ServiceProvider.GetRequiredService<FiscalProviderCatalog>(),
+            scope.ServiceProvider.GetRequiredService<FiscalCredentialStore>());
         var register = (await pos.CreateRegisterAsync(RegisterInput(spa, FiscalCountry.AT), Ct)).Value!;
 
         clock.Now = new(2027, 2, 1, 9, 0, 0, TimeSpan.Zero);
@@ -927,7 +929,8 @@ public sealed class PosTests(ApiFixture fixture)
         scope.ServiceProvider.GetRequiredService<TenantContext>().Use(spa.TenantId);
         var db = scope.ServiceProvider.GetRequiredService<AispaDbContext>();
         var pos = new PosService(db, scope.ServiceProvider.GetRequiredService<FiscalizationResolver>(), TimeProvider.System,
-            Options.Create(new PaymentOptions { DigitalEuro = true }), scope.ServiceProvider.GetRequiredService<SiteIdentity>());
+            Options.Create(new PaymentOptions { DigitalEuro = true }), scope.ServiceProvider.GetRequiredService<SiteIdentity>(), scope.ServiceProvider.GetRequiredService<FiscalProviderCatalog>(),
+            scope.ServiceProvider.GetRequiredService<FiscalCredentialStore>());
         var swiss = (await pos.CreateRegisterAsync(RegisterInput(spa, FiscalCountry.CH), Ct)).Value!;
         Assert.DoesNotContain(PaymentMethod.DigitalEuro, swiss.PaymentMethods);
         var austrian = pos.ToDto(await db.CashRegisters.AsNoTracking().FirstAsync(r => r.Id == register.Id, Ct));

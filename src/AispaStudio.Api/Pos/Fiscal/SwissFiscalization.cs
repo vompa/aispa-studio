@@ -12,6 +12,7 @@ namespace AispaStudio.Api.Pos.Fiscal;
 internal sealed class SwissFiscalization : IFiscalization
 {
     public FiscalCountry Country => FiscalCountry.CH;
+    public bool IsTestProvider(CashRegister register) => false;
 
     public string? Notice(CashRegister register) => null;
 

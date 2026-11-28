@@ -17,7 +17,7 @@ internal interface ITseClient
     /// <summary>Seriennummer der TSE (Hash des öffentlichen Schlüssels), steht auf jedem Beleg.</summary>
     Task<string> RegisterClientAsync(string clientId, CancellationToken ct);
 
-    Task<bool> IsAvailableAsync(CancellationToken ct);
+    Task<bool> IsAvailableAsync(CashRegister register, CancellationToken ct);
 
     /// <summary>Startet und beendet eine Transaktion mit Vorgangsart „Kassenbeleg-V1“ und den Vorgangsdaten nach DSFinV-K.</summary>
     Task<TseSignature?> SignTransactionAsync(string clientId, string processType, string processData, CancellationToken ct);
@@ -45,7 +45,9 @@ internal sealed class KassenSichVFiscalization(IEnumerable<ITseClient> clients) 
 {
     public FiscalCountry Country => FiscalCountry.DE;
 
-    public string? Notice(CashRegister register) => Client(register)?.IsTest == true
+    public bool IsTestProvider(CashRegister register) => Client(register)?.IsTest == true;
+
+    public string? Notice(CashRegister register) => IsTestProvider(register)
         ? "Nur Test-TSE angebunden: Belege sind nicht für den Echtbetrieb. Vor dem Start eine zertifizierte Cloud- oder USB-TSE einrichten."
         : "Kasse und TSE innerhalb eines Monats nach Anschaffung über ELSTER an das Finanzamt melden (§ 146a Abs. 4 AO).";
 
@@ -64,15 +66,15 @@ internal sealed class KassenSichVFiscalization(IEnumerable<ITseClient> clients) 
             return "Für Deutschland ist noch keine TSE angebunden. Bitte eine Cloud-TSE oder USB-TSE einrichten.";
         }
 
-        register.CertificateSerial = await client.RegisterClientAsync(register.Code, ct);
-        return null;
+        register.CertificateSerial = await FiscalAdapterCalls.TryAsync(() => client.RegisterClientAsync(register.Code, ct), "", ct);
+        return string.IsNullOrEmpty(register.CertificateSerial) ? "Die TSE hat die Anmeldung der Kassa nicht bestätigt." : null;
     }
 
     public async Task<bool> IsDeviceAvailableAsync(CashRegister register, CancellationToken ct) =>
-        Client(register) is { } client && await client.IsAvailableAsync(ct);
+        Client(register) is { } client && await FiscalAdapterCalls.TryAsync(() => client.IsAvailableAsync(register, ct), false, ct);
 
     public async Task<byte[]?> GetCertificateAsync(CashRegister register, CancellationToken ct) =>
-        Client(register) is { } client ? await client.GetPublicKeyAsync(register.Code, ct) : null;
+        Client(register) is { } client ? await FiscalAdapterCalls.TryAsync(() => client.GetPublicKeyAsync(register.Code, ct), null, ct) : null;
 
     public async Task<FiscalResult> SignAsync(CashRegister register, FiscalInput input, CancellationToken ct)
     {
@@ -80,7 +82,7 @@ internal sealed class KassenSichVFiscalization(IEnumerable<ITseClient> clients) 
 
         var processData = ProcessData(input);
         var signature = Client(register) is { } client
-            ? await client.SignTransactionAsync(register.Code, ProcessType, processData, ct)
+            ? await FiscalAdapterCalls.TryAsync(() => client.SignTransactionAsync(register.Code, ProcessType, processData, ct), null, ct)
             : null;
         if (signature is null)
         {

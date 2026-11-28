@@ -280,10 +280,9 @@ builder.Services.AddScoped<DsfinvkExport>();
 builder.Services.AddScoped<TseExports>();
 builder.Services.AddScoped<IFiscalization, RksvFiscalization>();
 builder.Services.AddScoped<IFiscalization, KassenSichVFiscalization>();
-builder.Services.AddScoped<IFiscalization, SwissFiscalization>();
-builder.Services.AddScoped<IRksvSignatureDevice, TestSignatureDevice>();
+builder.Services.AddFiscalProviders();
+builder.Services.AddScoped<FiscalCredentialStore>();
 builder.Services.AddSingleton<TestSignatureDeviceSwitch>();
-builder.Services.AddScoped<ITseClient, TestTseClient>();
 
 // Startzustand für Health-Check „startup“ und /api/system/status; ohne Migration und Beispieldaten von Anfang an bereit.
 builder.Services.AddSingleton<StartupState>();

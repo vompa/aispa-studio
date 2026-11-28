@@ -2913,6 +2913,28 @@ namespace AispaStudio.Api.Data.Migrations
                     b.ToTable("DayClosings", "aispa");
                 });
 
+            modelBuilder.Entity("AispaStudio.Api.Pos.Fiscal.FiscalCredential", b =>
+                {
+                    b.Property<Guid>("RegisterId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ProtectedValues")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("RegisterId");
+
+                    b.HasIndex("TenantId");
+
+                    b.ToTable("FiscalCredential", "aispa");
+                });
+
             modelBuilder.Entity("AispaStudio.Api.Pos.Fiscal.TestTseClientState", b =>
                 {
                     b.Property<Guid>("Id")
@@ -7738,6 +7760,21 @@ namespace AispaStudio.Api.Data.Migrations
                         .WithMany()
                         .HasForeignKey("RegisterId")
                         .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AispaStudio.Api.Tenancy.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AispaStudio.Api.Pos.Fiscal.FiscalCredential", b =>
+                {
+                    b.HasOne("AispaStudio.Api.Pos.CashRegister", null)
+                        .WithOne()
+                        .HasForeignKey("AispaStudio.Api.Pos.Fiscal.FiscalCredential", "RegisterId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("AispaStudio.Api.Tenancy.Tenant", null)

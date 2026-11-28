@@ -25,6 +25,7 @@ internal sealed record FiscalResult(string? Code, string? Signature, bool Device
 internal interface IFiscalization
 {
     FiscalCountry Country { get; }
+    bool IsTestProvider(CashRegister register);
 
     /// <summary>Hinweis für die Leitung, z. B. dass nur eine Test-Signatureinrichtung angebunden ist.</summary>
     string? Notice(CashRegister register);
@@ -40,6 +41,32 @@ internal interface IFiscalization
 
     /// <summary>Zertifikat bzw. öffentlicher Schlüssel für Prüfungen, z. B. im Datenerfassungsprotokoll.</summary>
     Task<byte[]?> GetCertificateAsync(CashRegister register, CancellationToken ct);
+}
+
+/// <summary>Antworten externer Fiskaladapter können Zugangsdaten enthalten. Nur der fachliche Ausfall verlässt den Adapteraufruf.</summary>
+internal static class FiscalAdapterCalls
+{
+    public static async Task<T> TryAsync<T>(Func<Task<T>> call, T unavailable, CancellationToken ct)
+    {
+        ct.ThrowIfCancellationRequested();
+        try
+        {
+            var result = await call();
+            ct.ThrowIfCancellationRequested();
+            return result;
+        }
+        catch (Exception ex)
+        {
+            ct.ThrowIfCancellationRequested();
+            if (ex is OperationCanceledException or HttpRequestException or TimeoutException or InvalidOperationException
+                or IOException or global::System.Security.Cryptography.CryptographicException or PosFailure)
+            {
+                return unavailable;
+            }
+
+            throw PosFailure.Conflict("Die Fiskaleinrichtung hat den Auftrag nicht abgeschlossen.");
+        }
+    }
 }
 
 internal sealed class FiscalizationResolver(IEnumerable<IFiscalization> fiscalizations)

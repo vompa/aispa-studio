@@ -100,13 +100,10 @@ internal sealed partial class TseExports(AispaDbContext db, IEnumerable<ITseClie
         var client = KassenSichVFiscalization.SelectClient(clients, register);
         if (client is not null)
         {
-            try
+            content = await FiscalAdapterCalls.TryAsync(() => client.ExportAsync(register.Code, from, until, ct), null, ct);
+            if (content is null)
             {
-                content = await client.ExportAsync(register.Code, from, until, ct);
-            }
-            catch (Exception ex) when (ex is HttpRequestException or InvalidOperationException or TimeoutException)
-            {
-                ExportFailed(log, ex, register.Code);
+                ExportFailed(log, register.Code);
             }
         }
 
@@ -136,5 +133,5 @@ internal sealed partial class TseExports(AispaDbContext db, IEnumerable<ITseClie
         new(e.Id, e.RegisterId, e.From, e.Until, e.Status, e.RequestedAt, e.CompletedAt, e.FileName, e.Content?.Length, e.Error);
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "TSE-Export der Kasse {Code} fehlgeschlagen")]
-    private static partial void ExportFailed(ILogger logger, Exception ex, string code);
+    private static partial void ExportFailed(ILogger logger, string code);
 }

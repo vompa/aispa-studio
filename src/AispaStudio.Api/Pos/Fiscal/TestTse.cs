@@ -63,7 +63,7 @@ internal sealed class TestTseClient(AispaDbContext db, TimeProvider time) : ITse
         return Serial(state.PublicKey);
     }
 
-    public Task<bool> IsAvailableAsync(CancellationToken ct) => Task.FromResult(true);
+    public Task<bool> IsAvailableAsync(CashRegister register, CancellationToken ct) => Task.FromResult(true);
 
     public async Task<TseSignature?> SignTransactionAsync(string clientId, string processType, string processData, CancellationToken ct)
     {

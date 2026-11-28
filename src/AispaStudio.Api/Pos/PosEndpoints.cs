@@ -129,8 +129,28 @@ internal static class PosEndpoints
 
         // ---------- Kassen ----------
 
-        group.MapGet("/fiscal/providers", (FiscalCountry country) => FiscalProviderCatalog.For(country))
+        group.MapGet("/fiscal/providers", (FiscalCountry country, FiscalProviderCatalog providers) => providers.For(country))
             .WithName("ListFiscalProviders");
+
+        group.MapGet("/registers/{registerId:guid}/fiscal-credentials", async (Guid registerId, PosService pos, CancellationToken ct) =>
+                Respond(await pos.FiscalCredentialsAsync(registerId, ct)))
+            .WithName("GetFiscalCredentials").RequirePermission(AccessRight.ManageLocation)
+            .ProducesProblem(StatusCodes.Status404NotFound).ProducesProblem(StatusCodes.Status409Conflict);
+
+        group.MapPut("/registers/{registerId:guid}/fiscal-credentials", async (Guid registerId, FiscalCredentialsInput input, PosService pos, CancellationToken ct) =>
+                Respond(await pos.SaveFiscalCredentialsAsync(registerId, input, ct)))
+            .WithName("SetFiscalCredentials").RequirePermission(AccessRight.ManageLocation)
+            .ProducesProblem(StatusCodes.Status404NotFound).ProducesProblem(StatusCodes.Status409Conflict);
+
+        group.MapDelete("/registers/{registerId:guid}/fiscal-credentials", async Task<Results<NoContent, ProblemHttpResult>> (Guid registerId, PosService pos, CancellationToken ct) =>
+                await pos.DeleteFiscalCredentialsAsync(registerId, ct) is { } error ? Problem(error) : TypedResults.NoContent())
+            .WithName("DeleteFiscalCredentials").RequirePermission(AccessRight.ManageLocation)
+            .ProducesProblem(StatusCodes.Status404NotFound).ProducesProblem(StatusCodes.Status409Conflict);
+
+        group.MapPost("/registers/{registerId:guid}/fiscal-check", async (Guid registerId, PosService pos, CancellationToken ct) =>
+                Respond(await pos.CheckFiscalAsync(registerId, ct)))
+            .WithName("CheckFiscalProvider").RequirePermission(AccessRight.ManageLocation)
+            .ProducesProblem(StatusCodes.Status404NotFound).ProducesProblem(StatusCodes.Status409Conflict);
 
         group.MapGet("/setup", async (Guid? locationId, AccessService access, PosService pos, CancellationToken ct) =>
             {
@@ -238,11 +258,17 @@ internal static class PosEndpoints
                 }
 
                 var certificate = await fiscal.For(register.Country).GetCertificateAsync(register, ct);
+                if (certificate is null)
+                {
+                    return TypedResults.Problem(statusCode: StatusCodes.Status409Conflict, title: "Das Zertifikat der Signatureinrichtung ist nicht verfügbar.");
+                }
+
                 var receipts = await db.Receipts.AsNoTracking().Where(r => r.RegisterId == registerId)
                     .OrderBy(r => r.Number).Select(r => r.FiscalSignature!).ToListAsync(ct);
-                return TypedResults.Ok(new DepExport([new DepGroup(Convert.ToBase64String(certificate ?? []), [], receipts)]));
+                return TypedResults.Ok(new DepExport([new DepGroup(Convert.ToBase64String(certificate), [], receipts)]));
             })
             .WithName("ExportDep")
+            .ProducesProblem(StatusCodes.Status409Conflict)
             .RequirePermission(AccessRight.ViewAmountReports).AlsoAllow(AccessRight.ViewAmountReports, insteadOf: AccessRight.Book)
             .WithSummary("Datenerfassungsprotokoll (RKSV) für die Betriebsprüfung.");
 
