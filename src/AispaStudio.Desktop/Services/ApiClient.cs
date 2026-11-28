@@ -37,6 +37,14 @@ public sealed class ApiClient : HttpApiClient, IWorkstationApi
 
     protected override void OnSessionEnded() => Offline?.Clear();
 
+    protected override void OnSharedDeviceChanged(SharedDeviceDto? device)
+    {
+        if (Offline is not null)
+        {
+            Offline.SharedDevice = device;
+        }
+    }
+
     protected override void OnJsonReceived(string path, string json)
     {
         if (Offline is not null && OfflineCache.IsCacheable(path))
@@ -51,18 +59,12 @@ public sealed class ApiClient : HttpApiClient, IWorkstationApi
     public override async Task<ApiResult<T>> GetAsync<T>(string path, CancellationToken ct = default)
     {
         var result = await base.GetAsync<T>(path, ct).ConfigureAwait(false);
-        if (result.Status == 0 && Offline is not null && OfflineCache.IsCacheable(path) && Offline.Get(path) is { } cached)
+        if (result.Ok && result.Value is QuickSwitchState state)
         {
-            try
-            {
-                return new(JsonSerializer.Deserialize<T>(cached.Json, Json), null, 0) { CachedAt = cached.SavedAt };
-            }
-            catch (JsonException)
-            {
-            }
+            OnSharedDeviceChanged(state.Device);
         }
 
-        return result;
+        return result.Status == 0 ? Offline?.Read<T>(path) ?? result : result;
     }
 
     /// <summary>

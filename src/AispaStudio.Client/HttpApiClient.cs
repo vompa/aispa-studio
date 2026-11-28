@@ -77,6 +77,9 @@ public class HttpApiClient : IAispaApi
     /// <summary>Aktuelles Anmelde-Cookie für SignalR (das eine eigene Verbindung aufbaut).</summary>
     public string? SessionCookie => _cookies.GetCookies(BaseAddress)[CookieName]?.Value ?? _store.Load();
 
+    /// <summary>Das Gerätekennzeichen ist vorhanden, auch wenn die letzte bestätigte Leerlaufvorgabe auf diesem PC noch fehlt.</summary>
+    public bool HasDeviceCookie => _cookies.GetCookies(BaseAddress)[DeviceCookieName] is not null;
+
     public async Task<SystemStatus?> StatusAsync(CancellationToken ct = default) =>
         await _http.GetFromJsonAsync<SystemStatus>(Versioned("api/system/status"), ApiJson.Options, ct).ConfigureAwait(false);
 
@@ -199,6 +202,11 @@ public class HttpApiClient : IAispaApi
             _deviceStore.Save(cookie.Value);
         }
 
+        if (result.Ok && result.Value is { } device)
+        {
+            OnSharedDeviceChanged(device);
+        }
+
         return result;
     }
 
@@ -214,6 +222,7 @@ public class HttpApiClient : IAispaApi
             }
 
             _deviceStore.Clear();
+            OnSharedDeviceChanged(null);
         }
 
         return result;
@@ -235,6 +244,11 @@ public class HttpApiClient : IAispaApi
 
     /// <summary>Die Anmeldung dieser Person endet (Abmelden, Personenwechsel); ein abgeleiteter Client löscht hier ihren lokalen Stand.</summary>
     protected virtual void OnSessionEnded()
+    {
+    }
+
+    /// <summary>Die Registrierung dieses Geräts wurde vom Server bestätigt oder aufgehoben.</summary>
+    protected virtual void OnSharedDeviceChanged(SharedDeviceDto? device)
     {
     }
 

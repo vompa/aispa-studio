@@ -94,6 +94,49 @@ public sealed class QuickSwitchTests
     }
 
     [Fact]
+    public async Task Nur_die_bestaetigte_Geraetevorgabe_bleibt_beim_Abmelden_und_bis_zum_Widerruf_erhalten()
+    {
+        var store = new MemoryOfflineStore();
+        var cache = new OfflineCache(store);
+        var server = Api().On("POST /api/auth/logout", null);
+        var api = server.Client(cache);
+        await api.GetAsync<QuickSwitchState>("api/auth/quick-switch", TestContext.Current.CancellationToken);
+        Assert.Equal(Device, store.Load().SharedDevice);
+        Assert.DoesNotContain("api/auth/quick-switch", store.Load().Responses.Keys);
+
+        await api.SignOutAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(Device, store.Load().SharedDevice);
+        server.Down = true;
+        Assert.False((await api.RevokeDeviceAsync(TestContext.Current.CancellationToken)).Ok);
+        Assert.Equal(Device, store.Load().SharedDevice);
+        server.Down = false;
+        server.On("DELETE /api/auth/shared-device", null, HttpStatusCode.NoContent);
+        Assert.True((await api.RevokeDeviceAsync(TestContext.Current.CancellationToken)).Ok);
+        Assert.Null(store.Load().SharedDevice);
+    }
+
+    [Fact]
+    public async Task Ein_gemerktes_Empfangsgeraet_ohne_lokale_Leerlaufvorgabe_braucht_den_Server()
+    {
+        var session = new MemorySessionStore();
+        session.Save("test-session");
+        var cookie = new MemorySessionStore();
+        cookie.Save("test-device");
+        var cache = new OfflineCache(new MemoryOfflineStore());
+        var server = Api().On("GET /api/auth/me", TestData.Reception());
+        var api = new ApiClient(new Uri("http://localhost/"), session, server, cache, deviceStore: cookie);
+        Assert.NotNull((await api.GetAsync<CurrentUser>("api/auth/me", TestContext.Current.CancellationToken)).Value);
+        server.Down = true;
+        var main = new MainViewModel(api);
+
+        await main.StartAsync();
+
+        Assert.Null(main.Content);
+        Assert.False(main.IsSignedIn);
+        Assert.Contains("Leerlaufzeit", main.StatusText, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task Ohne_Empfangsgeraet_meldet_die_App_nicht_ab()
     {
         var time = new MovingTime();

@@ -49,6 +49,49 @@ public sealed class StartupSignInTests
         };
 
     [Fact]
+    public async Task Nach_Verbindungsausfall_und_Zeitlimit_der_Anmeldung_startet_die_gemerkte_Person_offline()
+    {
+        var server = new StubApi().On("GET /api/auth/me", TestData.Reception());
+        var cache = new OfflineCache(new MemoryOfflineStore());
+        var session = new MemorySessionStore();
+        session.Save("test-session");
+        Assert.NotNull((await server.Client(cache, session).GetAsync<CurrentUser>("api/auth/me", TestContext.Current.CancellationToken)).Value);
+        server.On("GET /api/system/status", null, HttpStatusCode.ServiceUnavailable);
+        server.Hold("GET /api/auth/me", new TaskCompletionSource().Task);
+        var vm = new MainViewModel(server.Client(cache, session))
+        {
+            SignInTimeout = TimeSpan.FromMilliseconds(100),
+            StartupWindow = TimeSpan.Zero,
+        };
+
+        await vm.StartAsync();
+
+        Assert.False(vm.IsConnected);
+        Assert.IsType<ShellViewModel>(vm.Content);
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.Unauthorized)]
+    [InlineData(HttpStatusCode.Forbidden)]
+    public async Task Eine_abgelehnte_Anmeldung_hat_Vorrang_vor_dem_gemerkten_Zugriff(HttpStatusCode status)
+    {
+        var server = new StubApi().On("GET /api/auth/me", TestData.Reception());
+        var cache = new OfflineCache(new MemoryOfflineStore());
+        var session = new MemorySessionStore();
+        session.Save("test-session");
+        var api = server.Client(cache, session);
+        Assert.NotNull((await api.GetAsync<CurrentUser>("api/auth/me", TestContext.Current.CancellationToken)).Value);
+        server.On("GET /api/system/status", null, HttpStatusCode.ServiceUnavailable);
+        server.On("GET /api/auth/me", null, status);
+        var vm = new MainViewModel(api);
+
+        await vm.StartAsync();
+
+        Assert.False(vm.IsSignedIn);
+        Assert.IsNotType<ShellViewModel>(vm.Content);
+    }
+
+    [Fact]
     public async Task Antwortet_die_Anmeldung_erst_beim_dritten_Mal_wartet_der_Start_sichtbar_statt_zur_Anmeldeseite_zu_springen()
     {
         var server = new SlowSignIn(hangs: 2);

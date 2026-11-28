@@ -73,9 +73,9 @@ public sealed class OfflineTests
         .On($"GET /api/locations/{SpaSample.LocationId}/calendar?date=2026-10-19", SpaSample.CalendarDay())
         .On("GET /api/customers?search=", SpaSample.Customers.ToList());
 
-    private static async Task<ShellViewModel> StartAsync(StubApi stub, OfflineCache cache)
+    private static async Task<ShellViewModel> StartAsync(StubApi stub, OfflineCache cache, ISessionStore? session = null)
     {
-        var main = new MainViewModel(stub.Client(cache), time: new SampleTime());
+        var main = new MainViewModel(stub.Client(cache, session), time: new SampleTime());
         await main.StartAsync();
         var shell = Assert.IsType<ShellViewModel>(main.Content);
         await shell.Calendar.LoadAsync();
@@ -142,7 +142,9 @@ public sealed class OfflineTests
         var stub = Api();
         var store = new MemoryOfflineStore();
         var cache = new OfflineCache(store, new SampleTime());
-        var shell = await StartAsync(stub, cache);
+        var session = new MemorySessionStore();
+        session.Save("test-session");
+        var shell = await StartAsync(stub, cache, session);
         Assert.Null(shell.Calendar.OfflineNote);
 
         stub.Down = true;
@@ -161,7 +163,7 @@ public sealed class OfflineTests
         Assert.Equal(1, shell.PendingCount);
 
         // App neu gestartet, Netz immer noch weg: angemeldet bleiben, Stand und Vorgemerktes sind noch da.
-        var restarted = await StartAsync(stub, new OfflineCache(store, new SampleTime()));
+        var restarted = await StartAsync(stub, new OfflineCache(store, new SampleTime()), session);
         Assert.True(Item(restarted.Calendar, SpaSample.Selected.Id).IsPending);
         Assert.Equal(1, restarted.PendingCount);
 

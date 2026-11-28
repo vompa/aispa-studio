@@ -77,7 +77,7 @@ internal sealed class StubApi : HttpMessageHandler
         return this;
     }
 
-    public ApiClient Client(OfflineCache? offline = null) => new(new Uri("http://localhost/"), new MemorySessionStore(), this, offline);
+    public ApiClient Client(OfflineCache? offline = null, ISessionStore? session = null) => new(new Uri("http://localhost/"), session ?? new MemorySessionStore(), this, offline);
 
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
@@ -94,7 +94,7 @@ internal sealed class StubApi : HttpMessageHandler
         Calls.Add((route, request.Content is null ? null : await request.Content.ReadAsStringAsync(cancellationToken)));
         if (_gates.TryGetValue(route, out var gate))
         {
-            await gate.ConfigureAwait(false);
+            await gate.WaitAsync(cancellationToken).ConfigureAwait(false);
         }
 
         // „GET localhost:5173/“ gilt nur für diesen Rechner und Port, „GET /“ für jede Adresse.

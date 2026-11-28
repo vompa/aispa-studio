@@ -1,4 +1,5 @@
 using System.Net;
+using AispaStudio.Contracts;
 using AispaStudio.Desktop.Services;
 using AispaStudio.Desktop.ViewModels;
 using AispaStudio.Desktop.Views;
@@ -105,9 +106,12 @@ public sealed partial class ViewTests
     }, CancellationToken.None);
 
     [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public Task Startbildschirm_offline_nach_Neustart_zeigt_die_Arbeitsflaeche_nur_mit_gemerktem_Zugriff(bool hasAccess) => Session.Dispatch(async () =>
+    [InlineData(true, true, false)]
+    [InlineData(true, true, true)]
+    [InlineData(false, true, false)]
+    [InlineData(true, false, false)]
+    [InlineData(true, false, true)]
+    public Task Startbildschirm_offline_nach_Neustart_zeigt_die_Arbeitsflaeche_nur_mit_gemerktem_Zugriff(bool hasAccess, bool hasSession, bool statusAvailable) => Session.Dispatch(async () =>
     {
         var time = new StoppedTime();
         var store = new MemoryOfflineStore();
@@ -118,12 +122,31 @@ public sealed partial class ViewTests
             stub.On("GET /api/auth/me", Owner() with { Access = null });
         }
 
-        await new MainViewModel(stub.Client(cache), time: time).StartAsync();
+        var session = new MemorySessionStore();
+        session.Save("test-session");
+        await new MainViewModel(stub.Client(cache, session), time: time).StartAsync();
         cache.Flush();
         Assert.NotNull(cache.Get("api/auth/me"));
 
-        stub.Down = true;
-        var main = new MainViewModel(stub.Client(new OfflineCache(store, time)), time: time) { ProbeWindow = TimeSpan.Zero };
+        if (!hasSession)
+        {
+            session.Clear();
+        }
+
+        if (statusAvailable)
+        {
+            stub.OnJson("GET /api/system/status", _ =>
+            {
+                stub.Down = true;
+                return new SystemStatus("0.9.0", "Development", time.GetUtcNow());
+            });
+        }
+        else
+        {
+            stub.Down = true;
+        }
+
+        var main = new MainViewModel(stub.Client(new OfflineCache(store, time), session), time: time) { ProbeWindow = TimeSpan.Zero };
         var window = new MainWindow { DataContext = main };
         window.Show();
         try
@@ -134,7 +157,7 @@ public sealed partial class ViewTests
             Assert.False(main.IsConnected);
             var screen = window.GetVisualDescendants().OfType<StartupScreen>().Single();
             var card = screen.GetVisualDescendants().OfType<Border>().Single(b => b.Name == "OfflineCard");
-            if (hasAccess)
+            if (hasAccess && hasSession)
             {
                 Assert.IsType<ShellViewModel>(main.Content);
                 Assert.Contains(window.GetVisualDescendants().OfType<ShellView>(), shell => shell.IsEffectivelyVisible);
@@ -143,9 +166,57 @@ public sealed partial class ViewTests
             }
             else
             {
+                Assert.Null(main.User);
                 Assert.True(card.IsEffectivelyVisible);
                 Assert.False(window.FindControl<ContentControl>("Main")!.IsEffectivelyVisible);
             }
+        }
+        finally
+        {
+            window.Close();
+        }
+
+        return true;
+    }, CancellationToken.None);
+
+    [Fact]
+    public Task Startbildschirm_offline_am_Empfangsgeraet_warnt_und_sperrt_die_Arbeitsflaeche_nach_Leerlauf() => Session.Dispatch(async () =>
+    {
+        var time = new StoppedTime();
+        var store = new MemoryOfflineStore();
+        var session = new MemorySessionStore();
+        session.Save("test-session");
+        var cache = new OfflineCache(store, time);
+        var device = QuickSwitchTests.Device;
+        var stub = Api().On("POST /api/auth/shared-device", device);
+        var online = stub.Client(cache, session);
+        await new MainViewModel(online, time: time).StartAsync();
+        Assert.True((await online.RegisterDeviceAsync(new SharedDeviceInput(device.Name, device.LocationId, device.IdleMinutes))).Ok);
+        cache.Flush();
+
+        stub.Down = true;
+        var main = new MainViewModel(stub.Client(new OfflineCache(store, time), session), time: time);
+        var window = new MainWindow { DataContext = main };
+        window.Show();
+        try
+        {
+            await main.StartAsync();
+            await Pump();
+            Assert.False(main.IsConnected);
+            Assert.Contains(window.GetVisualDescendants().OfType<ShellView>(), shell => shell.IsEffectivelyVisible);
+            time.Advance(TimeSpan.FromSeconds(280));
+            await main.TickAsync();
+            await Pump();
+            Assert.Equal(20, main.IdleSecondsLeft);
+            Assert.True(window.FindControl<Panel>("IdleOverlay")!.IsEffectivelyVisible);
+
+            time.Advance(TimeSpan.FromSeconds(20));
+            await main.TickAsync();
+            await Pump();
+            Assert.False(main.IsSignedIn);
+            Assert.Null(session.Load());
+            Assert.DoesNotContain(window.GetVisualDescendants().OfType<ShellView>(), shell => shell.IsEffectivelyVisible);
+            Assert.True(window.GetVisualDescendants().OfType<StartupScreen>().Single().IsEffectivelyVisible);
         }
         finally
         {

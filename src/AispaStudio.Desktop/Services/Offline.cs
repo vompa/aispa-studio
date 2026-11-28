@@ -39,6 +39,8 @@ public sealed record OfflineState(
     List<PendingChange> Pending,
     List<FailedChange> Failed)
 {
+    public SharedDeviceDto? SharedDevice { get; init; }
+
     public static OfflineState Empty() => new([], [], []);
 }
 
@@ -221,6 +223,29 @@ public sealed class OfflineCache
 
     private OfflineState State => _state;
 
+    /// <summary>Bestätigte Gerätevorgabe für die Abmeldung ohne Verbindung. Sie gehört zum PC und überdauert einen Personenwechsel.</summary>
+    public SharedDeviceDto? SharedDevice
+    {
+        get
+        {
+            lock (_lock)
+            {
+                return State.SharedDevice;
+            }
+        }
+        set
+        {
+            lock (_lock)
+            {
+                if (State.SharedDevice != value)
+                {
+                    _state = State with { SharedDevice = value };
+                    Persist();
+                }
+            }
+        }
+    }
+
     public void Put(string path, string json)
     {
         if (IsProtected(path))
@@ -366,6 +391,23 @@ public sealed class OfflineCache
         }
     }
 
+    internal ApiResult<T>? Read<T>(string path)
+    {
+        if (!IsCacheable(path) || Get(path) is not { } cached)
+        {
+            return null;
+        }
+
+        try
+        {
+            return new(JsonSerializer.Deserialize<T>(cached.Json, ApiClient.Json), null, 0) { CachedAt = cached.SavedAt };
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
+    }
+
     /// <summary>Wann zuletzt etwas vom Server kam, für den Hinweis „Stand …“.</summary>
     public DateTimeOffset? LastSaved
     {
@@ -472,13 +514,13 @@ public sealed class OfflineCache
     {
         lock (_lock)
         {
-            var kept = OfflineState.Empty();
+            var kept = OfflineState.Empty() with { SharedDevice = State.SharedDevice };
             kept.Pending.AddRange(State.Pending);
             kept.Failed.AddRange(State.Failed);
             _state = kept;
             _tenant = null;
             _decommissionedRegisters.Clear();
-            if (kept.Pending.Count == 0 && kept.Failed.Count == 0)
+            if (kept.Pending.Count == 0 && kept.Failed.Count == 0 && kept.SharedDevice is null)
             {
                 _store.Clear();
             }

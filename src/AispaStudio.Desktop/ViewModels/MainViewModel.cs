@@ -268,17 +268,19 @@ public partial class MainViewModel(IWorkstationApi api, Func<ILiveUpdates>? live
         }
 
         var signIn = await LoadSignInAsync().ConfigureAwait(true);
-        if (signIn.Value is { Access: not null } user)
+        if (signIn.CachedAt is not null)
+        {
+            IsConnected = false;
+        }
+
+        if (signIn.Value is { Access: not null } user && (signIn.CachedAt is null || !string.IsNullOrWhiteSpace(api.SessionCookie)))
         {
             await ShowShellAsync(user).ConfigureAwait(true);
         }
-        else if (signIn.Status == 0 && signIn.Value is null)
+        else if (signIn.Status == 0)
         {
             // Der Server antwortet auf die Anmeldung nicht: „keine Verbindung“ statt der Anmeldeseite, die eine gültige Anmeldung nur verdecken würde.
-            IsConnected = false;
-            ConnectionTitle = NoConnectionTitle;
-            StatusText = "AISPA Studio antwortet nicht.";
-            Content = null;
+            ShowConnectionFailure("AISPA Studio antwortet nicht.");
         }
         else
         {
@@ -304,6 +306,11 @@ public partial class MainViewModel(IWorkstationApi api, Func<ILiveUpdates>? live
             }
             catch (OperationCanceledException)
             {
+                if (!IsConnected && api.Offline?.Read<CurrentUser>("api/auth/me") is { } cached)
+                {
+                    return cached;
+                }
+
                 result = new(null, "AISPA Studio antwortet nicht.", 0);
             }
 
@@ -355,11 +362,18 @@ public partial class MainViewModel(IWorkstationApi api, Func<ILiveUpdates>? live
 
     private async Task ShowShellAsync(CurrentUser user)
     {
-        User = user;
         var openSetupWizard = Content is LoginViewModel { SetupJustCompleted: true };
         // Ohne Antwort (älterer Server) alles zeigen wie bisher; ausgeschaltete Module antworten ohnehin mit 404 (ADR 0041).
         var modules = (await api.GetAsync<SystemModules>("api/system/modules").ConfigureAwait(true)).Value;
-        Device = (await api.GetAsync<QuickSwitchState>("api/auth/quick-switch").ConfigureAwait(true)).Value?.Device;
+        var deviceState = (await api.GetAsync<QuickSwitchState>("api/auth/quick-switch").ConfigureAwait(true)).Value;
+        Device = deviceState is null ? api.Offline?.SharedDevice : deviceState.Device;
+        if (deviceState is null && Device is null && api.HasDeviceCookie)
+        {
+            ShowConnectionFailure("Zum Laden der Leerlaufzeit dieses Empfangsgeräts ist eine Verbindung zum Server nötig.");
+            return;
+        }
+
+        User = user;
         NoteActivity();
         var shell = new ShellViewModel(api, user, liveFactory?.Invoke(), _time, _theme, StatusText, SignOutAsync,
             modules: modules, device: Device, deviceChanged: device => Device = device, local: local, dialogs: DialogHost, serverLink: ServerLink, closeApp: CloseApp);
@@ -369,6 +383,15 @@ public partial class MainViewModel(IWorkstationApi api, Func<ILiveUpdates>? live
         {
             await shell.OpenSetupWizardAsync().ConfigureAwait(true);
         }
+    }
+
+    private void ShowConnectionFailure(string message)
+    {
+        User = null;
+        Content = null;
+        IsConnected = false;
+        ConnectionTitle = NoConnectionTitle;
+        StatusText = message;
     }
 
     /// <summary>

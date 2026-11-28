@@ -14,6 +14,8 @@ public interface IWorkstationApi : IAispaApi
     /// <summary>Lokaler Stand für den Betrieb ohne Internet; ohne ihn liefern Aufrufe ohne Verbindung nur eine Fehlermeldung.</summary>
     OfflineCache? Offline { get; }
 
+    bool HasDeviceCookie { get; }
+
     /// <summary>Ein vorgemerkter Termin wurde beim Abgleich vom Server bestätigt.</summary>
     event Action<AppointmentDto>? Synced;
 
