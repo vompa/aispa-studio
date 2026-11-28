@@ -24,11 +24,11 @@ internal static class FiscalProviders
     {
         services.AddSingleton<FiscalProviderCatalog>();
         services.AddFiscalProvider<IRksvSignatureDevice, TestSignatureDevice>(FiscalCountry.AT,
-            new("test", "AT0-Testeinrichtung", FiscalProviderKind.Test, true, [], "kassa"));
+            new("test", "AT0-Testeinrichtung", FiscalProviderKind.Test, true, [], "kassa-einrichten"));
         services.AddFiscalProvider<ITseClient, TestTseClient>(FiscalCountry.DE,
-            new("test", "Test-TSE", FiscalProviderKind.Test, true, [], "kassa"));
+            new("test", "Test-TSE", FiscalProviderKind.Test, true, [], "kassa-einrichten"));
         services.AddFiscalProvider<IFiscalization, SwissFiscalization>(FiscalCountry.CH,
-            new("none", "Ohne Signatureinrichtung", FiscalProviderKind.NoSignature, false, [], "kassa"));
+            new("none", "Ohne Signatureinrichtung", FiscalProviderKind.NoSignature, false, [], "kassa-einrichten"));
     }
 
     public static void AddFiscalProvider<TService, TAdapter>(this IServiceCollection services, FiscalCountry country, FiscalProviderDto provider)
