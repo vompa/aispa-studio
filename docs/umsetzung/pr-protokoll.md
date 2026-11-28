@@ -8996,3 +8996,5 @@ Zusätzlich bestand der reguläre Zwei-Datenbank-Test `Fiskalanbieter_Abgleich_u
 ## Jahresbelegstatus nach der Handprüfung einer neuen Kassa (28.11.2026)
 
 Eine im November neu eingerichtete österreichische Kassa zeigte im Assistenten und in der Verwaltung einen fehlenden Jahresbeleg für das Jahr vor ihrer Einrichtung. Die API liefert einen Prüfstatus jetzt nur für einen gültigen Beleg oder einen fälligen Abschluss. Für das laufende Jahr beginnt die Anzeige am 15. Dezember. Bereits ausgestellte Jahresbelege bleiben auch nach einer Betriebspause zur Prüfung oder mit ihrer Bestätigung sichtbar.
+
+Fehlt beim Weiterbetrieb im neuen Jahr ein gültiger Vorjahresabschluss, bleibt sein Status auch bei anschließender Außerbetriebnahme sichtbar. Der Kassenstatus lässt dann keine Erstellung zu.

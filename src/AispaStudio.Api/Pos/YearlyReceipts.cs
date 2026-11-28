@@ -82,7 +82,8 @@ internal sealed partial class PosService
             return (null, confirmations, warnings, []);
         }
 
-        var canCreate = register.IsActive && !IsOtherSite(register) && today.Month == 12 && today.Day >= 15;
+        var closingPeriod = today.Month == 12 && today.Day >= 15;
+        var canCreate = register.IsActive && !IsOtherSite(register) && closingPeriod;
         var currentYear = today.Month == 12 ? today.Year : today.Year - 1;
         var history = await FiscalYearsAsync(register, ct);
         if (history.Unknown)
@@ -95,6 +96,7 @@ internal sealed partial class PosService
         foreach (var year in history.Years.Append(currentYear).Distinct().Order())
         {
             var receipt = history.Valid(year);
+            var priorOperatingYear = year < today.Year && history.Years.Contains(year);
             var confirmation = stored.Find(c => c.YearKey == year && receipt != null && c.ReceiptId == receipt.Value);
             if (confirmation is not null)
             {
@@ -105,15 +107,13 @@ internal sealed partial class PosService
                 pending.Add(new(year, receipt.Value, false, false));
                 warnings.Add($"Kassa {register.Code}: Jahresbeleg {year} bis 15.02.{year + 1} mit der Belegcheck-App prüfen.");
             }
-            else if (register.IsActive
-                && (today.Year > year || today.Month == 12 && today.Day >= 15)
-                && (today.Year == year || history.Years.Contains(year)))
+            else if (register.IsActive && (priorOperatingYear || year == today.Year && closingPeriod))
             {
-                var reason = year < today.Year && !history.CanClose(year, register.TurnoverCounter)
+                var reason = priorOperatingYear && !history.CanClose(year, register.TurnoverCounter)
                     ? " Der aktuelle Umsatzzähler weicht vom Jahresendstand ab. Den offenen Abschluss fachlich klären." : "";
                 warnings.Add($"Kassa {register.Code}: Der gültige Jahresbeleg {year} fehlt.{reason}");
             }
-            else
+            else if (!priorOperatingYear || !history.Years.Any(laterYear => laterYear > year))
             {
                 continue;
             }

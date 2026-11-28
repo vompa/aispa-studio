@@ -872,6 +872,31 @@ public sealed class PosTests(ApiFixture fixture)
     }
 
     [Fact]
+    public async Task Ausserbetriebnahme_erhaelt_den_offenen_Abschluss_eines_frueheren_Betriebsjahres()
+    {
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        await using var scope = fixture.Factory.Services.CreateAsyncScope();
+        scope.ServiceProvider.GetRequiredService<TenantContext>().Use(spa.TenantId);
+        var db = scope.ServiceProvider.GetRequiredService<AispaDbContext>();
+        var clock = new MovableTime(new(2026, 12, 27, 10, 0, 0, TimeSpan.Zero));
+        var pos = ActivatorUtilities.CreateInstance<PosService>(scope.ServiceProvider, clock);
+        var register = (await pos.CreateRegisterAsync(RegisterInput(spa, FiscalCountry.AT), Ct)).Value!;
+
+        await SellAsync(pos, register.Id, 10m);
+        var device = fixture.Factory.Services.GetRequiredService<TestSignatureDeviceSwitch>();
+        device.SetFailing(register.Id, true);
+        clock.Now = new(2027, 1, 2, 10, 0, 0, TimeSpan.Zero);
+        await SellAsync(pos, register.Id, 3m);
+        device.SetFailing(register.Id, false);
+
+        Assert.Equal(ReceiptKind.Closing, (await pos.DecommissionAsync(register.Id, Ct)).Value!.Kind);
+        var closed = await pos.RegisterDtoAsync(await db.CashRegisters.AsNoTracking().SingleAsync(r => r.Id == register.Id, Ct), Ct);
+        Assert.False(closed.IsActive);
+        Assert.Equal(new YearlyReceiptStatusDto(2026, null, false, false), closed.YearlyReceipt);
+        Assert.DoesNotContain(closed.Warnings, w => w.Contains("Jahresbeleg 2026", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public async Task Monats_und_Jahresbeleg_entstehen_beim_ersten_Beleg_im_neuen_Zeitraum()
     {
         var spa = await TestSpa.CreateAsync(fixture, Ct);
@@ -1019,20 +1044,13 @@ public sealed class PosTests(ApiFixture fixture)
         var clock = new MovableTime(new(2028, 12, 27, 10, 0, 0, TimeSpan.Zero));
         var pos = ActivatorUtilities.CreateInstance<PosService>(scope.ServiceProvider, clock);
         var register = (await pos.CreateRegisterAsync(RegisterInput(spa, FiscalCountry.AT), Ct)).Value!;
-        async Task SellAsync(decimal amount)
-        {
-            var bill = (await pos.CreateBillAsync(new(register.Id, null, []), Ct)).Value!;
-            await pos.AddLineAsync(bill.Id, new(BillLineKind.Custom, null, null, 1, amount, 0, "Ware",
-                TaxCategory.Normal, PosModel.Treatments.Id, null, null), true, Ct);
-            Assert.Null((await pos.CheckoutAsync(bill.Id, new(null, [new(PaymentMethod.Cash, amount, null, null)]), "owner", Ct)).Error);
-        }
-        await SellAsync(10m);
+        await SellAsync(pos, register.Id, 10m);
         var device = fixture.Factory.Services.GetRequiredService<TestSignatureDeviceSwitch>();
         device.SetFailing(register.Id, true);
         clock.Now = new(2028, 12, 31, 23, 10, 0, TimeSpan.Zero);
         if (januarySale)
         {
-            await SellAsync(3m);
+            await SellAsync(pos, register.Id, 3m);
         }
         else
         {
@@ -1649,6 +1667,14 @@ public sealed class PosTests(ApiFixture fixture)
 
     private static async Task<CashRegisterDto> CreateRegisterAsync(TestSpa spa, FiscalCountry country = FiscalCountry.AT) =>
         await spa.PostAsync<CashRegisterDto>("/api/pos/registers", RegisterInput(spa, country), Ct);
+
+    private static async Task SellAsync(PosService pos, Guid registerId, decimal amount)
+    {
+        var bill = (await pos.CreateBillAsync(new(registerId, null, []), Ct)).Value!;
+        await pos.AddLineAsync(bill.Id, new(BillLineKind.Custom, null, null, 1, amount, 0, "Ware",
+            TaxCategory.Normal, PosModel.Treatments.Id, null, null), true, Ct);
+        Assert.Null((await pos.CheckoutAsync(bill.Id, new(null, [Cash(amount)]), "owner", Ct)).Error);
+    }
 
     private static CashRegisterInput RegisterInput(TestSpa spa, FiscalCountry country) =>
         new(spa.Location.Id, $"T-{Guid.NewGuid():N}"[..14], country, "Test-Spa GmbH\nTeststraße 1, 1010 Wien\nATU12345678",
