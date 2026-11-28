@@ -75,9 +75,9 @@ Bei österreichischen Kassen können berechtigte Personen die „Registrierung i
 
 **Bestätigen** speichert Datum und Person. **Zurücknehmen** nimmt die Bestätigung zurück. Die Meldung und die Prüfung erledigt eine Person außerhalb der App. Der gespeicherte Stand dokumentiert deren Bestätigung.
 
-### Meldung über ELSTER {#elster}
+### Meldung in Deutschland {#elster}
 
-Bei einer deutschen Kassa für den Echtbetrieb dokumentiert „Meldung über ELSTER“ die Bestätigung der zuständigen Person. Die Meldung erfolgt außerhalb der App. Eine Übungskassa nicht über ELSTER melden.
+Bei einer deutschen Kassa für den Echtbetrieb dokumentiert „Meldung über ELSTER“ die Bestätigung der zuständigen Person. Die Meldung erfolgt außerhalb der App. Eine Übungskassa dort nicht melden.
 
 ## Österreichischer Jahresbeleg {#jahresbeleg}
 
