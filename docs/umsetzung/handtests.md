@@ -2224,3 +2224,36 @@ Expected: Der letzte erfolgreiche Kartenstand bleibt sichtbar, der Hinweis biete
 Expected: Er zählt fünf Schritte. Die Kassa hat ihre eigene Karte und ihren eigenen Assistenten.
 Closes: T-142 (ADR 0105, eigener Assistent und Karte)
 Result: ☐
+
+### T-140 – Österreichischer Jahresbeleg und erneuter Dezemberabschluss
+Start: Zwei isolierte österreichische Übungskassen mit Testumsätzen im Dezember. Den manuellen Weg ab dem tatsächlichen 15. Dezember prüfen. Für eine frühere Simulation gibt es den kontrollierten API-Testhost mit `MovableTime` in den automatisierten Tests. Die Rechneruhr bleibt unverändert.
+1. Ab dem 15. Dezember an der ersten Kassa „Jahresbeleg erstellen“ wählen und den angezeigten Beleg öffnen. Den Vorgang mit demselben Stand erneut versuchen.
+Expected: Es gibt genau einen gültigen signierten Abschluss für das vorbereitete Jahr.
+2. Diesen Beleg als geprüft bestätigen und an derselben Kassa einen weiteren Dezemberumsatz kassieren. Den Jahresbeleg erneut erstellen.
+Expected: Abschluss und Prüfung werden wieder offen. Der neue Jahresbeleg enthält den aktualisierten Zähler. Erst eine Bestätigung dieses Belegs zeigt die Prüfung wieder als erledigt.
+3. Im vorbereiteten Fall eines offenen früheren Jahres mit falschem Zähler oder uneindeutiger Historie den Prüfstand öffnen.
+Expected: Der Fall bleibt erkennbar offen. Der unklare Beleg lässt sich nicht als gültiger Vorjahresabschluss bestätigen.
+4. Die zweite isolierte Übungskassa am tatsächlichen 31. Dezember über 23:30 Uhr Ortszeit mit laufender API beobachten, ohne Systemzeit oder Zeitzone zu verstellen. Den ersten Folgebeleg an einer separaten vorbereiteten Kassa mit ausgefallenem Zeitplan prüfen.
+Expected: Der Zeitplan erzeugt einen fehlenden Abschluss bei laufender API. Beim ausgefallenen Zeitplan löst der erste Folgebeleg die Nachholung aus. Jeweils Abschlussjahr, Belegnummer und Zähler dokumentieren.
+Closes: T-140 (ADR 0105, Jahresbeleg und Bestätigung)
+Result: ☐
+
+### T-143 – FinanzOnline-Daten, Offlinezustand und Bestätigungen
+Start: Isoliertes Test-Spa mit österreichischer sowie deutscher Übungskassa. Als berechtigte Inhaberin anmelden und ausschließlich Übungsdaten verwenden.
+1. Für die österreichische Kassa „Registrierungsdaten anzeigen“ wählen. Ein Feld über „Kopieren“ in einen lokalen Testeditor übernehmen.
+Expected: Der übernommene Wert entspricht dem gewählten Feld. Der Abschnitt warnt vor der Registrierung einer Übungskassa. Keine Werte an FinanzOnline übertragen.
+2. Die Verbindung der App trennen. Den Abruf und das Kopieren wiederholen, die Kassa wechseln und die Kassenverwaltung offline erneut öffnen.
+Expected: Alte Schlüsselwerte erscheinen nicht erneut. Kopieren und Nachladen sensibler Werte sind offline gesperrt. Die übrigen erlaubten Offline-Ansichten bleiben benutzbar.
+3. Verbindung wiederherstellen, die Startbelegprüfung bestätigen und die Kassenverwaltung erneut öffnen. Datum und Person kontrollieren, dann „Zurücknehmen“ wählen.
+Expected: Die Bestätigung bleibt beim Wiederöffnen erhalten. Nach dem Zurücknehmen steht die Prüfung wieder offen. Die deutsche Übungskassa zeigt den Hinweis zur Meldung über ELSTER und keine FinanzOnline-Felder.
+Closes: T-143 (ADR 0105, Länderabschnitte und Online-Schlüssel)
+Result: ☐
+
+### T-144 – Hilfe aus den Masken und Übungsbeleg auf Papier
+Start: Windows-App mit isoliertem Test-Spa, AT- und DE-Übungskassa sowie angeschlossenem Bondrucker.
+1. Die Hilfe aus der Karte „Kassa einrichten“, dem Assistenten und der Kassenverwaltung öffnen. In den Länderansichten die Fragezeichen bei „Signatureinrichtung“, „Für FinanzOnline“, „Meldung über ELSTER“ und „Bestätigungen“ öffnen.
+Expected: Jedes Fragezeichen öffnet das passende Hilfethema oder den passenden Abschnitt. Bilder zeigen Übungsdaten. Die Seite „Erste Schritte“ führt zur eigenen Karte.
+2. An der deutschen Übungskassa einen isolierten Testverkauf abschließen. Beleg in der App öffnen, als PDF speichern und auf dem Bondrucker ausgeben. Die Zweitschrift prüfen.
+Expected: App, PDF, Bon und Zweitschrift kennzeichnen die Übungskassa. Die vollständige Kassen-ID ist lesbar. Belegnummer, Betrag und Übungshinweis sind in allen Ausgaben nachvollziehbar.
+Closes: T-144 (Hilfe und physischer Bondruck)
+Result: ☐
