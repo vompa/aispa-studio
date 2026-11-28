@@ -268,7 +268,7 @@ public sealed partial class AdminPageViewModel : ViewModelBase
     /// </summary>
     private static ViewModelBase CreateNative(AdminArea area, IWorkstationApi api, CurrentUser user, TimeProvider time, ILiveUpdates? live, SystemModules? modules, ToastState toast) => area.Tab switch
     {
-        "company" => new CompanyViewModel(api, time.LocalTimeZone, toast),
+        "company" => new CompanyViewModel(api, time.LocalTimeZone, toast, user.Rights.Contains(AccessRight.ManageLocation)),
         "locations" => new LocationsViewModel(api, user, toast),
         ClosuresPageViewModel.ClosuresSection => new ClosuresPageViewModel(api, user, time, toast),
         "subscriptions" => new SubscriptionsViewModel(api, time, toast),

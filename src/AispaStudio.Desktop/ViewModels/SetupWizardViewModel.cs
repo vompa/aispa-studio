@@ -28,6 +28,8 @@ public enum SetupWizardDefault
 /// </summary>
 public sealed partial class SetupWizardViewModel : ViewModelBase
 {
+    internal const string ProgressPath = "api/setup/progress?includeRegister=false";
+
     public const string HoursKey = "hours";
     public const string RoomsKey = "rooms";
     public const string IncompleteHours = "Trage für jeden geöffneten Tag Beginn und Ende ein, z. B. 09:00 und 18:00.";
@@ -226,7 +228,7 @@ public sealed partial class SetupWizardViewModel : ViewModelBase
     /// </summary>
     private async Task<bool> RefreshAsync()
     {
-        var progress = (await _api.GetAsync<SetupProgressDto>("api/setup/progress").ConfigureAwait(true)).Value;
+        var progress = (await _api.GetAsync<SetupProgressDto>(ProgressPath).ConfigureAwait(true)).Value;
         var locations = (await _api.GetAsync<List<LocationDto>>("api/locations").ConfigureAwait(true)).Value;
         if (progress is null || locations is null)
         {

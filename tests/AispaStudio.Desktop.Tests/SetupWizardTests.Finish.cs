@@ -7,7 +7,7 @@ namespace AispaStudio.Desktop.Tests;
 /// <summary>ADR 0104, Entscheidung 6: Abschlussseite „Fertig“ mit Bereitschaft und Probetermin.</summary>
 public sealed partial class SetupWizardTests
 {
-    private const string ReadinessRoute = "GET /api/setup/progress?readiness=true";
+    private const string ReadinessRoute = "GET /api/setup/progress?includeRegister=false&readiness=true";
 
     private sealed class FixedClock : TimeProvider
     {

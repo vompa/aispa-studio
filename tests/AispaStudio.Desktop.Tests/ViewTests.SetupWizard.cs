@@ -45,7 +45,7 @@ public sealed partial class ViewTests
 
         wizard.Days[0].OpensText = original;
         return shell;
-    }, Api().On("GET /api/setup/progress", WizardProgress())
+    }, Api().On("GET /api/setup/progress?includeRegister=false", WizardProgress())
         .On("GET /api/setup/catalog", new List<SetupCatalogPackageDto>()).On("GET /api/qualifications", new List<QualificationDto>())
         .On("GET /api/locations", new List<LocationDto> { SpaSample.Vienna with { OpeningHours = [] }, SpaSample.Salzburg }));
 
@@ -85,7 +85,7 @@ public sealed partial class ViewTests
         wizard.BackCommand.Execute(null);
         await Pump(Settling);
         return shell;
-    }, Api().On("GET /api/setup/progress", new SetupProgressDto(
+    }, Api().On("GET /api/setup/progress?includeRegister=false", new SetupProgressDto(
     [
         new("location", "Standort anlegen", "Name und Zeitzone.", true, "masterData", "locations"),
         new("treatments", "Behandlungen anlegen", "Was das Spa anbietet.", false, "masterData", "treatments", "Es fehlen Behandlungen."),
@@ -119,7 +119,7 @@ public sealed partial class ViewTests
         SaveShot(window, "betrieb-einrichten-abschluss", "hell");
 
         // Nicht buchbar: „Zurück“ ist der Hauptknopf (genau ein Standardknopf, nicht zugleich ghost).
-        stub.On("GET /api/setup/progress?readiness=true", FinishProgress(new SetupReadinessDto(false, null, "Es ist keine Behandlung angelegt.")));
+        stub.On("GET /api/setup/progress?includeRegister=false&readiness=true", FinishProgress(new SetupReadinessDto(false, null, "Es ist keine Behandlung angelegt.")));
         await wizard.LoadReadinessCommand.ExecuteAsync(null);
         await Pump(Settling);
         controls = window.GetVisualDescendants().OfType<Control>().ToList();
@@ -128,7 +128,7 @@ public sealed partial class ViewTests
         Assert.DoesNotContain("ghost", back.Classes);
         Assert.Contains("primary", back.Classes);
         SaveShot(window, "betrieb-einrichten-nicht-buchbar", "hell");
-        stub.On("GET /api/setup/progress?readiness=true", FinishProgress(FinishReady()));
+        stub.On("GET /api/setup/progress?includeRegister=false&readiness=true", FinishProgress(FinishReady()));
         await wizard.LoadReadinessCommand.ExecuteAsync(null);
         await Pump(Settling);
 
@@ -140,8 +140,8 @@ public sealed partial class ViewTests
     }, stub);
     }
 
-    private static StubApi FinishApi() => Api().On("GET /api/setup/progress", FinishProgress(null))
-        .On("GET /api/setup/progress?readiness=true", FinishProgress(FinishReady()))
+    private static StubApi FinishApi() => Api().On("GET /api/setup/progress?includeRegister=false", FinishProgress(null))
+        .On("GET /api/setup/progress?includeRegister=false&readiness=true", FinishProgress(FinishReady()))
         .On("GET /api/setup/catalog", new List<SetupCatalogPackageDto>()).On("GET /api/qualifications", new List<QualificationDto>());
 
     private static SetupReadinessDto FinishReady() => new(true, new SetupFirstSlotDto(SpaSample.LocationId, SpaSample.Vienna.Name, SpaSample.Treatments[0].Id, SpaSample.Treatments[0].Name,
@@ -151,6 +151,6 @@ public sealed partial class ViewTests
     [
         new("location", "Standort anlegen", "Name und Zeitzone.", true, "masterData", "locations"),
         new("treatments", "Behandlungen anlegen", "Was das Spa anbietet.", true, "masterData", "treatments", null, "Bei 2 Behandlungen fehlt der Preis."),
-        new("register", "Kassa einrichten", "Kassa-ID und Belegkopf.", false, "masterData", "kassa", "Es ist keine Kassa eingerichtet."),
+        new("people", "Team anlegen", "Wer Termine übernimmt.", false, "masterData", "team", "Das Team fehlt."),
     ], readiness);
 }

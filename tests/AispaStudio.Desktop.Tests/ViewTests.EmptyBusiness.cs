@@ -28,7 +28,6 @@ public sealed partial class ViewTests
         new("rooms", "Räume anlegen", "Hinweis.", false, "masterData", "locations"),
         new("treatments", "Behandlungen anlegen", "Hinweis.", false, "masterData", "treatments"),
         new("people", "Team anlegen", "Hinweis.", false, "masterData", "team"),
-        new("register", "Kassa einrichten", "Hinweis.", false, "masterData", "kassa"),
     ]);
 
     /// <summary>Die drei Erlöskonten, die jeder Betrieb von Anfang an hat (Migration „Kassa“); eigene kommen dazu.</summary>
@@ -55,7 +54,7 @@ public sealed partial class ViewTests
         .On("GET /api/system/modules", new SystemModules(false, true, true, true, true, true, true, true))
         .On("GET /api/auth/quick-switch", new QuickSwitchState(null, []))
         .On("GET /api/employees", new List<EmployeeDto> { OnlyOwner })
-        .On("GET /api/setup/progress", SetupAfterFirstLocation)
+        .On("GET /api/setup/progress?includeRegister=false", SetupAfterFirstLocation)
         .On("GET /api/holidays/regions", new List<HolidayRegionDto>())
         .On("GET /api/pos/articles", new List<ArticleDto>())
         .On("GET /api/pos/registers", new List<CashRegisterDto>())

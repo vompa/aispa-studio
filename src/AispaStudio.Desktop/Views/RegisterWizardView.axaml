@@ -1,0 +1,120 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:c="using:AispaStudio.Contracts"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             x:Class="AispaStudio.Desktop.Views.RegisterWizardView"
+             x:DataType="vm:RegisterWizardViewModel"
+             Background="{DynamicResource BgBrush}"
+             AutomationProperties.Name="Kassa einrichten">
+  <Grid RowDefinitions="*,Auto" Margin="16,16,0,0">
+    <ScrollViewer x:Name="RegisterWizardScroll" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+      <Grid Margin="0,0,16,16">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*" MaxWidth="720" />
+        </Grid.ColumnDefinitions>
+        <StackPanel Spacing="16">
+          <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+            <TextBlock Text="Kassa einrichten" Classes="h2" VerticalAlignment="Center" />
+            <TextBlock Grid.Column="1" Text="{Binding StepText}" Classes="muted" VerticalAlignment="Center"
+                       AutomationProperties.LiveSetting="Polite" />
+            <ui:HelpButton Grid.Column="2" Topic="kassa-einrichten" />
+          </Grid>
+
+          <ProgressBar IsIndeterminate="True" IsVisible="{Binding IsBusy}" AutomationProperties.Name="Kasseneinrichtung läuft" />
+          <ui:InfoBar Severity="Error" Message="{Binding Error}" IsVisible="{Binding Error, Converter={x:Static ObjectConverters.IsNotNull}}" />
+
+          <Border Classes="card" Padding="16" IsVisible="{Binding !ShowFinish}">
+            <StackPanel Spacing="12" IsEnabled="{Binding !IsBusy}">
+              <TextBlock Text="{Binding StepTitle}" Classes="h2" TextWrapping="Wrap" />
+              <StackPanel Spacing="12" IsVisible="{Binding ShowPlace}">
+                <Button Content="Standorte laden" Command="{Binding LoadCommand}" HorizontalAlignment="Left"
+                        IsVisible="{Binding !LocationsLoaded}" />
+                <ui:InfoBar Severity="Info" Message="Zuerst unter „Verwaltung“ → „Standorte &amp; Räume“ einen Standort anlegen."
+                            IsVisible="{Binding ShowNoLocations}" />
+                <ui:FormField Label="Standort" IsRequired="True" IsVisible="{Binding LocationsLoaded}">
+                  <ComboBox x:Name="RegisterLocationBox" ItemsSource="{Binding Locations}" SelectedItem="{Binding Location}"
+                            HorizontalAlignment="Stretch">
+                    <ComboBox.ItemTemplate>
+                      <DataTemplate x:DataType="c:LocationDto">
+                        <TextBlock Text="{Binding Name}" TextWrapping="Wrap" />
+                      </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                  </ComboBox>
+                </ui:FormField>
+                <ui:FormField Label="Land der Kassa" IsRequired="True" IsVisible="{Binding LocationsLoaded}">
+                  <ComboBox x:Name="RegisterCountryBox" ItemsSource="{x:Static vm:RegisterWizardViewModel.Countries}"
+                            SelectedItem="{Binding Country}" HorizontalAlignment="Stretch" />
+                </ui:FormField>
+              </StackPanel>
+
+              <StackPanel Spacing="12" IsVisible="{Binding ShowProvider}">
+                <ui:InfoBar Severity="Info" Message="Für dieses Land steht derzeit kein Anbieter zur Verfügung." IsVisible="{Binding ShowNoProviders}" />
+                <ui:FormField Label="Signatureinrichtung" IsRequired="True" IsVisible="{Binding !ShowNoProviders}">
+                  <ComboBox x:Name="RegisterProviderBox" ItemsSource="{Binding Providers}" SelectedItem="{Binding Provider}"
+                            HorizontalAlignment="Stretch">
+                    <ComboBox.ItemTemplate>
+                      <DataTemplate x:DataType="c:FiscalProviderDto">
+                        <TextBlock Text="{Binding Name}" TextWrapping="Wrap" />
+                      </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                  </ComboBox>
+                </ui:FormField>
+                <CheckBox Content="Übungsbetrieb wählen" IsChecked="{Binding PracticeMode}" IsVisible="{Binding ShowPracticeChoice}" />
+                <StackPanel Spacing="8" IsVisible="{Binding IsPractice}">
+                  <ui:InfoBar Severity="Warning" Title="Übungskassa"
+                              Message="Die Kassa erstellt nur Übungsbelege. Für den Echtbetrieb braucht es eine eigene Kassa mit neuer Kassen-ID." />
+                  <CheckBox x:Name="ConfirmPracticeBox" Content="Anlage als Übungskassa bestätigen" IsChecked="{Binding PracticeConfirmed}" />
+                </StackPanel>
+              </StackPanel>
+
+              <StackPanel Spacing="12" IsVisible="{Binding ShowDetails}">
+                <ui:FormField Label="Kassen-ID" IsRequired="True" Error="{Binding CodeError}"
+                              Help="Eindeutige Kennung auf jedem Beleg.">
+                  <TextBox x:Name="RegisterCodeBox" Text="{Binding Code}" MaxLength="50" PlaceholderText="z. B. WIEN-1" />
+                </ui:FormField>
+                <ui:FormField Label="Belegkopf" IsRequired="True" Help="Firmenname und Anschrift, wie sie auf jedem Beleg stehen.">
+                  <TextBox x:Name="RegisterHeaderBox" Text="{Binding ReceiptHeader}" MaxLength="1000" MinHeight="88"
+                           AcceptsReturn="True" TextWrapping="Wrap" />
+                </ui:FormField>
+              </StackPanel>
+
+              <StackPanel Spacing="8" IsVisible="{Binding ShowCreate}">
+                <TextBlock Text="{Binding Code}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                <TextBlock Text="{Binding Location?.Name}" TextWrapping="Wrap" />
+                <TextBlock Text="{Binding Country.Label}" TextWrapping="Wrap" />
+                <TextBlock Text="{Binding Provider?.Name}" TextWrapping="Wrap" />
+                <TextBlock Text="{Binding ReceiptHeader}" TextWrapping="Wrap" />
+                <TextBlock Text="Die App legt die Kassa an und erstellt den erforderlichen Startbeleg." TextWrapping="Wrap" />
+                <ui:InfoBar Severity="Warning" Title="Übungskassa" Message="Die Kassa bleibt dauerhaft im Übungsbetrieb."
+                            IsVisible="{Binding IsPractice}" />
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
+          <Border x:Name="RegisterFinishCard" Classes="card" Padding="16" IsVisible="{Binding ShowFinish}">
+            <StackPanel Spacing="8">
+              <TextBlock Text="{Binding StepTitle}" Classes="h2" />
+              <TextBlock Text="{Binding Created?.Code}" FontWeight="SemiBold" TextWrapping="Wrap" />
+              <ui:InfoBar Severity="Warning" Title="Übungskassa" Message="Diese Kassa erstellt nur Übungsbelege."
+                          IsVisible="{Binding ShowPracticeFinish}" />
+              <TextBlock Text="{Binding FinishText}" TextWrapping="Wrap" />
+            </StackPanel>
+          </Border>
+        </StackPanel>
+      </Grid>
+    </ScrollViewer>
+
+    <Border Grid.Row="1" Classes="divider" VerticalAlignment="Top" />
+    <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8" Margin="0,12,16,12">
+        <Button x:Name="RegisterCloseButton" Content="Schließen" Command="{Binding CloseCommand}" IsVisible="{Binding !ShowFinish}" />
+        <Button Content="Zurück" Command="{Binding BackCommand}" IsVisible="{Binding ShowBack}" />
+        <Button x:Name="RegisterNextButton" Classes="primary" Content="Weiter" Command="{Binding NextCommand}"
+                IsVisible="{Binding ShowNext}" IsDefault="{Binding ShowNext}" />
+        <Button x:Name="RegisterSubmitButton" Classes="primary" Content="Kassa anlegen" Command="{Binding CreateCommand}"
+                IsVisible="{Binding ShowCreate}" IsDefault="{Binding ShowCreate}" />
+        <Button x:Name="RegisterFinishButton" Classes="primary" Content="Fertig" Command="{Binding CloseCommand}"
+                IsVisible="{Binding ShowFinish}" IsDefault="{Binding ShowFinish}" />
+    </StackPanel>
+  </Grid>
+</UserControl>

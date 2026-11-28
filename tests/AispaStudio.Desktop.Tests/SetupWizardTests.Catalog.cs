@@ -54,7 +54,7 @@ public sealed partial class SetupWizardTests
         var choice = Assert.Single(sent.Packages);
         Assert.Equal("massage", choice.Key);
         Assert.Equal(RoomOne.Id, Assert.Single(choice.RoomIds));
-        Assert.Equal(2, api.Calls.Count(c => c.Route == "GET /api/setup/progress"));
+        Assert.Equal(2, api.Calls.Count(c => c.Route == "GET /api/setup/progress?includeRegister=false"));
         Assert.DoesNotContain(wizard.Packages, p => p.IsSelected);
         Assert.NotNull(wizard.CatalogMessage);
     }

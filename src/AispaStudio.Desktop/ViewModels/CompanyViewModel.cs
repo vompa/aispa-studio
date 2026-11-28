@@ -58,12 +58,13 @@ public sealed partial class CompanyViewModel : ViewModelBase, INativeArea
     private string? _bookingUrl;
     private bool _applying;
 
-    public CompanyViewModel(IWorkstationApi api, TimeZoneInfo zone, ToastState? toast = null)
+    public CompanyViewModel(IWorkstationApi api, TimeZoneInfo zone, ToastState? toast = null, bool canManageRegisters = false)
     {
         _api = api;
         Toast = toast ?? new ToastState(TimeProvider.System);
         History = new HistorySectionViewModel(api, "api/tenant/history", zone, "Wer die Firmendaten wann geändert hat");
         HistorySections = [History];
+        CanManageRegisters = canManageRegisters;
     }
 
     public string Title => "Firmendaten";
@@ -90,6 +91,66 @@ public sealed partial class CompanyViewModel : ViewModelBase, INativeArea
     /// <summary>„Assistent starten“ auf der Karte „Betrieb einrichten“ (ADR 0104): die Shell öffnet den Assistenten.</summary>
     public event Action? SetupWizardRequested;
 
+    public event Action? RegisterWizardRequested;
+
+    private bool CanManageRegisters { get; }
+    private int _registerSetupRequest;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowRegisterSetup), nameof(ShowRegisterSetupButton), nameof(RegisterSetupState))]
+    public partial PosSetupDto? RegisterSetup { get; private set; }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowRegisterSetup), nameof(ShowRegisterSetupButton))]
+    public partial string? RegisterSetupError { get; private set; }
+
+    public bool ShowRegisterSetup => RegisterSetup is not null || RegisterSetupError is not null;
+
+    public bool ShowRegisterSetupButton => RegisterSetupError is null && RegisterSetup is { State: not FiscalReadinessState.Ready };
+
+    public string RegisterSetupState => RegisterSetup?.State switch
+    {
+        FiscalReadinessState.Ready => "Bereit",
+        FiscalReadinessState.Practice => "Übungsbetrieb",
+        FiscalReadinessState.NotReady => "Offen",
+        _ => "Unbekannt",
+    };
+
+    [RelayCommand]
+    private void StartRegisterWizard()
+    {
+        if (CanManageRegisters && ShowRegisterSetupButton)
+        {
+            RegisterWizardRequested?.Invoke();
+        }
+    }
+
+    [RelayCommand]
+    internal async Task LoadRegisterSetupAsync()
+    {
+        if (!CanManageRegisters)
+        {
+            return;
+        }
+
+        var request = ++_registerSetupRequest;
+        var setup = await _api.GetAsync<PosSetupDto>("api/pos/setup").ConfigureAwait(true);
+        if (request != _registerSetupRequest)
+        {
+            return;
+        }
+
+        if (setup.Value is { } state)
+        {
+            RegisterSetup = state;
+            RegisterSetupError = null;
+        }
+        else
+        {
+            RegisterSetupError = setup.Error ?? "Der aktuelle Kassenstatus wurde nicht geladen.";
+        }
+    }
+
     /// <summary>Die Schritte der Ersteinrichtung mit ihrem Stand (<c>GET api/setup/progress</c>, ADR 0099); leer, wenn die API sie nicht lieferte.</summary>
     public ObservableCollection<SetupStepItem> SetupSteps { get; } = [];
 
@@ -97,7 +158,7 @@ public sealed partial class CompanyViewModel : ViewModelBase, INativeArea
     [ObservableProperty]
     public partial bool ShowSetup { get; private set; }
 
-    /// <summary>„2 von 6 Schritten erledigt“.</summary>
+    /// <summary>„2 von 5 Schritten erledigt“.</summary>
     [ObservableProperty]
     public partial string SetupSummary { get; private set; } = "";
 
@@ -120,7 +181,7 @@ public sealed partial class CompanyViewModel : ViewModelBase, INativeArea
     /// <summary>Lädt den Stand der Ersteinrichtung; scheitert der Aufruf, bleibt die Karte weg und die Maske unberührt.</summary>
     public async Task LoadSetupAsync()
     {
-        var progress = await _api.GetAsync<SetupProgressDto>("api/setup/progress").ConfigureAwait(true);
+        var progress = await _api.GetAsync<SetupProgressDto>(SetupWizardViewModel.ProgressPath).ConfigureAwait(true);
         SetupSteps.Clear();
         foreach (var step in progress.Value?.Steps ?? [])
         {
@@ -263,12 +324,12 @@ public sealed partial class CompanyViewModel : ViewModelBase, INativeArea
 
         Apply(tenant);
         ApplyEmbed(settings);
-        await LoadSetupAsync().ConfigureAwait(true);
+        await Task.WhenAll(LoadSetupAsync(), LoadRegisterSetupAsync()).ConfigureAwait(true);
         IsLoaded = true;
     }
 
     /// <summary>Lädt nur, wenn noch nichts geladen ist (beim Öffnen des Bereichs).</summary>
-    public Task EnsureLoadedAsync() => IsLoaded ? Task.CompletedTask : LoadAsync();
+    public Task EnsureLoadedAsync() => IsLoaded ? LoadRegisterSetupAsync() : LoadAsync();
 
     private bool CanSave => !IsSaving;
 

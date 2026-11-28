@@ -191,11 +191,17 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
         {
             company.Saved += Companion.OnDataSaved;
             company.SetupWizardRequested += () => _ = OpenSetupWizardAsync();
+            company.RegisterWizardRequested += () => _ = OpenRegisterWizardAsync();
         }
 
         if (AdminPage.Registers is { } registers)
         {
-            registers.RegisterChanged += register => _ = Pos.ApplyRegisterChangeAsync(register);
+            registers.RegisterChanged += register =>
+            {
+                _ = Pos.ApplyRegisterChangeAsync(register);
+                _ = AdminPage.Company?.LoadRegisterSetupAsync();
+            };
+            registers.RegisterWizardRequested += () => _ = OpenRegisterWizardAsync();
         }
 
         if (AdminPage.Locations is { } locations)
@@ -885,6 +891,12 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
             return;
         }
 
+        if (RegisterWizard is { IsBusy: true } && _shown is { } shown && value != shown)
+        {
+            ReturnTo(shown);
+            return;
+        }
+
         if (_shown?.Page == AdminPage && value != _shown && AdminPage.HasUnsavedChanges)
         {
             // Ungespeicherte Änderungen in der Verwaltung: erst fragen, dann wechseln; bis dahin bleibt die Seite stehen.
@@ -895,6 +907,7 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
 
         _shown = value;
         CloseSetupWizard();
+        RegisterWizard?.Close();
 
         Companion.InCalendar = value.Page == Calendar;
         Companion.ShowPage(PageKey(value.Title));
@@ -1184,15 +1197,38 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
 
     /// <summary>Der Assistent „Betrieb einrichten“ (ADR 0104); er liegt über der gewählten Seite, solange er offen ist.</summary>
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsSetupWizardOpen))]
+    [NotifyPropertyChangedFor(nameof(IsSetupWizardOpen), nameof(IsWizardOpen))]
     public partial SetupWizardViewModel? SetupWizard { get; private set; }
 
     public bool IsSetupWizardOpen => SetupWizard is not null;
 
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsRegisterWizardOpen), nameof(IsWizardOpen))]
+    public partial RegisterWizardViewModel? RegisterWizard { get; private set; }
+
+    public bool IsRegisterWizardOpen => RegisterWizard is not null;
+
+    public bool IsWizardOpen => IsSetupWizardOpen || IsRegisterWizardOpen;
+
+    private async Task OpenRegisterWizardAsync()
+    {
+        if (IsWizardOpen || AdminPage.Registers is not { } registers || User.Access is not { } access)
+        {
+            return;
+        }
+
+        var wizard = new RegisterWizardViewModel(_api, access, Calendar.Location?.Id);
+        wizard.CloseRequested += () => RegisterWizard = null;
+        wizard.RegisterCreated += register => Task.WhenAll(registers.RefreshAfterCreationAsync(register, wizard.Location?.Name),
+            Pos.ApplyRegisterChangeAsync(register), AdminPage.Company?.LoadRegisterSetupAsync() ?? Task.CompletedTask);
+        RegisterWizard = wizard;
+        await wizard.LoadAsync().ConfigureAwait(true);
+    }
+
     /// <summary>Öffnet den Assistenten: auf der Karte „Betrieb einrichten“ und einmal direkt nach „Spa einrichten“.</summary>
     public async Task OpenSetupWizardAsync()
     {
-        if (SetupWizard is not null)
+        if (IsWizardOpen)
         {
             return;
         }

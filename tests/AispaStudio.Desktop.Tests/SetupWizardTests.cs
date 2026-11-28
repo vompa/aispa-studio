@@ -25,7 +25,7 @@ public sealed partial class SetupWizardTests
         new(key, title, "Hinweis.", done.Contains(key), page, tab, done.Contains(key) ? null : missing);
 
     private static StubApi Api(SetupProgressDto progress, params RoomDto[] rooms) => new StubApi()
-        .On("GET /api/setup/progress", progress)
+        .On("GET /api/setup/progress?includeRegister=false", progress)
         .On("GET /api/locations", new List<LocationDto> { Location })
         .On("GET /api/setup/catalog", new List<SetupCatalogPackageDto>())
         .On("GET /api/employees", new List<EmployeeDto>())
@@ -70,7 +70,7 @@ public sealed partial class SetupWizardTests
     {
         var api = Api(Progress("location"));
         var wizard = await OpenAsync(api);
-        api.On($"PUT /api/locations/{LocationId}", Location).On("GET /api/setup/progress", Progress("location", "hours"));
+        api.On($"PUT /api/locations/{LocationId}", Location).On("GET /api/setup/progress?includeRegister=false", Progress("location", "hours"));
 
         wizard.Days[0].OpensText = "08:00";
         wizard.Days[0].ClosesText = "17:30";
@@ -83,7 +83,7 @@ public sealed partial class SetupWizardTests
         Assert.Equal(["Monday", "Tuesday", "Wednesday", "Saturday"], sent.OpeningHours.Select(h => h.Day.ToString()));
         Assert.All(sent.OpeningHours, h => Assert.Equal((new TimeOnly(8, 0), new TimeOnly(17, 30)), (h.Opens, h.Closes)));
         Assert.Equal(("Wien", "AT-9", null), (sent.Name, sent.Region, sent.Contact));
-        Assert.Equal(2, api.Calls.Count(c => c.Route == "GET /api/setup/progress"));
+        Assert.Equal(2, api.Calls.Count(c => c.Route == "GET /api/setup/progress?includeRegister=false"));
         Assert.True(wizard.IsDone);
         Assert.False(wizard.HasUnsavedHours);
     }
@@ -97,7 +97,7 @@ public sealed partial class SetupWizardTests
         var room = new RoomDto(Guid.NewGuid(), LocationId, "Meerblick", 10);
         api.On($"POST /api/locations/{LocationId}/rooms", room)
             .On($"GET /api/locations/{LocationId}/resources", new LocationResources(Location, [room], [], [], [], []))
-            .On("GET /api/setup/progress", Progress("location", "hours", "rooms"));
+            .On("GET /api/setup/progress?includeRegister=false", Progress("location", "hours", "rooms"));
 
         Assert.Equal("rooms", wizard.Current!.Key);
         await wizard.AddRoomCommand.ExecuteAsync(null);
@@ -159,7 +159,7 @@ public sealed partial class SetupWizardTests
         var api = Api(Progress("location", "hours"));
         var wizard = await OpenAsync(api);
         api.On($"POST /api/locations/{LocationId}/rooms", new RoomDto(Guid.NewGuid(), LocationId, "Meerblick", 10))
-            .On("GET /api/setup/progress", null, System.Net.HttpStatusCode.InternalServerError);
+            .On("GET /api/setup/progress?includeRegister=false", null, System.Net.HttpStatusCode.InternalServerError);
 
         wizard.NewRoomName = "Meerblick";
         await wizard.AddRoomCommand.ExecuteAsync(null);

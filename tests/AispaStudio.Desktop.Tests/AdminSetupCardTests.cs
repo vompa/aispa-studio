@@ -13,14 +13,13 @@ public sealed class AdminSetupCardTests
         Step("rooms", "Räume anlegen", "masterData", "locations", done),
         Step("treatments", "Behandlungen anlegen", "masterData", "treatments", done),
         Step("people", "Team anlegen", "masterData", "team", done),
-        Step("register", "Kassa einrichten", "masterData", "kassa", done),
     ]);
 
     private static SetupStepDto Step(string key, string title, string page, string tab, string[] done) => new(key, title, "Hinweis.", done.Contains(key), page, tab);
 
     private static StubApi Api(SetupProgressDto? progress) => progress is null
         ? ApiWithoutSetup()
-        : ApiWithoutSetup().On("GET /api/setup/progress", progress);
+        : ApiWithoutSetup().On("GET /api/setup/progress?includeRegister=false", progress);
 
     private static StubApi ApiWithoutSetup() => new StubApi()
         .On("GET /api/tenant", new TenantDto(Guid.NewGuid(), "Day-Spa Wien", "AT", CompanyProfile.Empty))
@@ -35,13 +34,13 @@ public sealed class AdminSetupCardTests
     }
 
     [Fact]
-    public async Task Given_zwei_von_sechs_Schritten_erledigt_When_die_Firmendaten_oeffnen_Then_zeigt_die_Karte_den_Fortschritt_und_die_offenen_Schritte()
+    public async Task Given_zwei_von_fuenf_Schritten_erledigt_When_die_Firmendaten_oeffnen_Then_zeigt_die_Karte_den_Fortschritt_und_die_offenen_Schritte()
     {
         var company = await Open(Api(Progress("location", "hours")));
 
         Assert.True(company.ShowSetup);
-        Assert.Equal("2 von 6 Schritten erledigt", company.SetupSummary);
-        Assert.Equal(100.0 / 3, company.SetupPercent, 0.01);
+        Assert.Equal("2 von 5 Schritten erledigt", company.SetupSummary);
+        Assert.Equal(40, company.SetupPercent, 0.01);
         Assert.Equal(["location", "hours"], company.SetupSteps.Where(s => s.IsDone).Select(s => s.Step.Key));
         Assert.Equal("Räume anlegen, noch offen", company.SetupSteps[2].AccessibleName);
         Assert.Equal("Standort anlegen, erledigt", company.SetupSteps[0].AccessibleName);
@@ -50,10 +49,10 @@ public sealed class AdminSetupCardTests
     [Fact]
     public async Task Given_alle_Schritte_erledigt_When_die_Firmendaten_oeffnen_Then_verschwindet_die_Karte()
     {
-        var company = await Open(Api(Progress("location", "hours", "rooms", "treatments", "people", "register")));
+        var company = await Open(Api(Progress("location", "hours", "rooms", "treatments", "people")));
 
         Assert.False(company.ShowSetup);
-        Assert.Equal("6 von 6 Schritten erledigt", company.SetupSummary);
+        Assert.Equal("5 von 5 Schritten erledigt", company.SetupSummary);
     }
 
     [Fact]
@@ -80,12 +79,12 @@ public sealed class AdminSetupCardTests
     }
 
     [Fact]
-    public void Given_die_Verwaltung_When_die_Karte_den_Schritt_Kassa_meldet_Then_oeffnet_die_Seite_die_Maske_Kassa()
+    public void Given_die_Verwaltung_When_die_Karte_den_Schritt_Standort_meldet_Then_oeffnet_die_Seite_die_Standorte()
     {
         var admin = new AdminPageViewModel(ApiWithoutSetup().Client(), TestData.Owner(), TimeProvider.System);
 
-        admin.Company!.OpenSetupStepCommand.Execute(new SetupStepItem(Step("register", "Kassa einrichten", "masterData", "kassa", [])));
+        admin.Company!.OpenSetupStepCommand.Execute(new SetupStepItem(Step("location", "Standort anlegen", "masterData", "locations", [])));
 
-        Assert.Equal("Kassa", admin.SelectedArea?.Title);
+        Assert.Equal("Standorte & Räume", admin.SelectedArea?.Title);
     }
 }

@@ -90,6 +90,9 @@
     <DataTemplate DataType="vm:SetupWizardViewModel">
       <views:SetupWizardView />
     </DataTemplate>
+    <DataTemplate DataType="vm:RegisterWizardViewModel">
+      <views:RegisterWizardView />
+    </DataTemplate>
     <DataTemplate DataType="vm:CompanyViewModel">
       <views:CompanyView />
     </DataTemplate>

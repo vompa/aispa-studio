@@ -66,26 +66,24 @@ public sealed partial class ViewTests
             var shell = await OpenAdminPage(window, main);
             var company = shell.AdminPage.Company!;
 
-            // Given vier von sechs Schritten erledigt: die Karte steht oben, vor den Feldern der Firmendaten
+            // Given vier von fünf Schritten erledigt: die Karte steht vor den Feldern der Firmendaten
             var card = Named<Border>(window, "SetupCard");
             Assert.True(card.IsEffectivelyVisible);
-            Assert.Equal("4 von 6 Schritten erledigt", Named<TextBlock>(window, "SetupSummaryText").Text);
+            Assert.Equal("4 von 5 Schritten erledigt", Named<TextBlock>(window, "SetupSummaryText").Text);
             Assert.True(BottomOf(window, card) <= TopOf(window, Named<TextBox>(window, "NameField")) + 0.5);
 
-            // When der offene Schritt „Kassa einrichten“ gewählt wird, Then springt die Verwaltung zur Maske Kassa
-            company.OpenSetupStepCommand.Execute(company.SetupSteps.Single(s => s.Step.Key == "register"));
+            company.OpenSetupStepCommand.Execute(company.SetupSteps.Single(s => s.Step.Key == "people"));
             await Pump(Settling);
-            Assert.Equal("Kassa", shell.AdminPage.SelectedArea?.Title);
+            Assert.Equal("Team", shell.AdminPage.SelectedArea?.Title);
             shell.AdminPage.SelectedArea = shell.AdminPage.Areas.Single(a => a.Title == "Firmendaten");
             await Pump(Settling);
             return shell.AdminPage;
-        }, CompanyApi().On("GET /api/setup/progress", new SetupProgressDto(
+        }, CompanyApi().On("GET /api/setup/progress?includeRegister=false", new SetupProgressDto(
         [
             new("location", "Standort anlegen", "Name, Zeitzone und Anschrift des Spas.", true, "masterData", "locations"),
             new("hours", "Öffnungszeiten eintragen", "Wann Gäste buchen können.", true, "masterData", "locations"),
             new("rooms", "Räume anlegen", "Behandlungsräume und Bereiche wie die Sauna.", true, "masterData", "locations"),
             new("treatments", "Behandlungen anlegen", "Was das Spa anbietet, mit Dauer und Preis.", true, "masterData", "treatments"),
             new("people", "Team anlegen", "Wer behandelt und wer an der Rezeption arbeitet.", false, "masterData", "team"),
-            new("register", "Kassa einrichten", "Kassa-ID, Belegkopf und Land für Belege.", false, "masterData", "kassa"),
         ])));
 }

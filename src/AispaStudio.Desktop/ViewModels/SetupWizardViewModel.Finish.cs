@@ -14,7 +14,7 @@ public sealed record SetupOpenStep(int Index, string Title, string? Missing)
 
 /// <summary>
 /// Abschlussseite „Fertig“ (ADR 0104, Entscheidung 6): der letzte Eintrag des Assistenten, hinter dem letzten Schritt, ohne Zählung in „Schritt n von m“.
-/// Sie fragt <c>GET api/setup/progress?readiness=true</c> und zeigt nur, was die API sagt: den ersten freien Platz oder den Grund, dazu die offenen Schritte.
+/// Sie fragt den Einrichtungsstand mit Ersttermin und zeigt den ersten freien Platz oder den Grund, dazu die offenen Schritte.
 /// </summary>
 public sealed partial class SetupWizardViewModel
 {
@@ -92,7 +92,7 @@ public sealed partial class SetupWizardViewModel
         IsBusy = true;
         try
         {
-            var result = (await _api.GetAsync<SetupProgressDto>("api/setup/progress?readiness=true").ConfigureAwait(true)).Value;
+            var result = (await _api.GetAsync<SetupProgressDto>(ProgressPath + "&readiness=true").ConfigureAwait(true)).Value;
             if (_closed)
             {
                 return;

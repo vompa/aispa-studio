@@ -165,9 +165,10 @@
         <Button Classes="ghost" Content="Alle zeigen" Command="{Binding RevealBannersCommand}" />
       </StackPanel>
       <ContentControl Grid.Row="3" x:Name="PageHost" Content="{Binding SelectedPage.Page, FallbackValue={x:Null}}" AutomationProperties.Name="{Binding SelectedPage.Title, FallbackValue=Seite}"
-                      IsVisible="{Binding !IsSetupWizardOpen}" />
+                      IsVisible="{Binding !IsWizardOpen}" />
       <!-- Assistent „Betrieb einrichten“ (ADR 0104): ersetzt die Seite, solange er offen ist -->
       <ContentControl Grid.Row="3" x:Name="SetupWizardHost" Content="{Binding SetupWizard}" IsVisible="{Binding IsSetupWizardOpen}" />
+      <ContentControl Grid.Row="3" x:Name="RegisterWizardHost" Content="{Binding RegisterWizard}" IsVisible="{Binding IsRegisterWizardOpen}" />
       <!-- Ein Sprung in die Verwaltung ging nicht, und die Person hat dort keinen Bereich (Slice 103): Warnung unten mittig, bleibt bis „Schließen“ (meldungen.md M1) -->
       <!-- Ohne Meldung auch unsichtbar: der Schließen-Knopf soll kein Tab-Halt sein, solange nichts steht -->
       <!-- 64 px vom unteren Rand: über der unteren Leiste jeder Seite (Tastenleiste im Kalender und Speichern-Leiste 50 px, Summe der Kassa 56 px; T-084) -->

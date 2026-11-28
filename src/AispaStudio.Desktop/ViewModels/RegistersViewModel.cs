@@ -55,6 +55,8 @@ public sealed class RegisterRow(CashRegisterDto register, string location) : Obs
 public sealed partial class RegistersViewModel(IWorkstationApi api, ToastState toast) : ViewModelBase, INativeArea
 {
     private Guid? _requestedRegisterId;
+    private Task? _loading;
+    private int _registerVersion;
 
     public ObservableCollection<RegisterRow> Rows { get; } = [];
 
@@ -112,41 +114,63 @@ public sealed partial class RegistersViewModel(IWorkstationApi api, ToastState t
 
     public Task EnsureLoadedAsync() => IsLoaded ? Task.CompletedTask : LoadAsync();
 
-    [RelayCommand(CanExecute = nameof(CanLoad))]
-    public async Task LoadAsync()
+    internal async Task RefreshAfterCreationAsync(CashRegisterDto register, string? location)
     {
-        if (IsLoading)
+        _registerVersion++;
+        await LoadAsync().ConfigureAwait(true);
+        var row = Rows.FirstOrDefault(item => item.Register.Id == register.Id);
+        if (row is null)
         {
-            return;
+            row = new RegisterRow(register, location ?? "Unbekannter Standort");
+            Rows.Add(row);
         }
 
+        SelectedRow = row;
+        OnPropertyChanged(nameof(ShowEmpty));
+    }
+
+    [RelayCommand(CanExecute = nameof(CanLoad))]
+    public Task LoadAsync() => _loading is { IsCompleted: false } active ? active : _loading = LoadLatestAsync();
+
+    private async Task LoadLatestAsync()
+    {
         IsLoading = true;
         LoadError = null;
         try
         {
-            var registersTask = api.GetAsync<List<CashRegisterDto>>("api/pos/registers");
-            var locationsTask = api.GetAsync<List<LocationDto>>("api/locations");
-            await Task.WhenAll(registersTask, locationsTask).ConfigureAwait(true);
-            var registers = await registersTask.ConfigureAwait(true);
-            var locations = await locationsTask.ConfigureAwait(true);
-            if (registers.Value is null || locations.Value is null)
+            while (true)
             {
-                LoadError = registers.Error ?? locations.Error;
+                var version = _registerVersion;
+                var registersTask = api.GetAsync<List<CashRegisterDto>>("api/pos/registers");
+                var locationsTask = api.GetAsync<List<LocationDto>>("api/locations");
+                await Task.WhenAll(registersTask, locationsTask).ConfigureAwait(true);
+                var registers = await registersTask.ConfigureAwait(true);
+                var locations = await locationsTask.ConfigureAwait(true);
+                if (version != _registerVersion)
+                {
+                    continue;
+                }
+
+                if (registers.Value is null || locations.Value is null)
+                {
+                    LoadError = registers.Error ?? locations.Error;
+                    return;
+                }
+
+                var selectedId = _requestedRegisterId ?? SelectedRow?.Register.Id;
+                _requestedRegisterId = null;
+                var names = locations.Value.ToDictionary(location => location.Id, location => location.Name);
+                Rows.Clear();
+                foreach (var register in registers.Value)
+                {
+                    Rows.Add(new RegisterRow(register, names.GetValueOrDefault(register.LocationId, "Unbekannter Standort")));
+                }
+
+                SelectedRow = Rows.FirstOrDefault(row => row.Register.Id == selectedId) ?? Rows.FirstOrDefault();
+                IsLoaded = true;
+                OnPropertyChanged(nameof(ShowEmpty));
                 return;
             }
-
-            var selectedId = _requestedRegisterId ?? SelectedRow?.Register.Id;
-            _requestedRegisterId = null;
-            var names = locations.Value.ToDictionary(location => location.Id, location => location.Name);
-            Rows.Clear();
-            foreach (var register in registers.Value)
-            {
-                Rows.Add(new RegisterRow(register, names.GetValueOrDefault(register.LocationId, "Unbekannter Standort")));
-            }
-
-            SelectedRow = Rows.FirstOrDefault(row => row.Register.Id == selectedId) ?? Rows.FirstOrDefault();
-            IsLoaded = true;
-            OnPropertyChanged(nameof(ShowEmpty));
         }
         finally
         {
@@ -192,6 +216,7 @@ public sealed partial class RegistersViewModel(IWorkstationApi api, ToastState t
         }
 
         var updated = register with { IsActive = false, Readiness = null };
+        _registerVersion++;
         Rows.FirstOrDefault(item => item.Register.Id == register.Id)?.MarkDecommissioned(updated);
         DecommissionCommand.NotifyCanExecuteChanged();
         RegisterChanged?.Invoke(updated);

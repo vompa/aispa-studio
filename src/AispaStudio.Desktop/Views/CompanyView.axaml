@@ -69,6 +69,24 @@
           </StackPanel>
         </Border>
 
+        <Border x:Name="RegisterSetupCard" Classes="card" IsVisible="{Binding ShowRegisterSetup}" AutomationProperties.Name="Kassa einrichten">
+          <StackPanel Spacing="12">
+            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+              <TextBlock Text="Kassa einrichten" Classes="h2" VerticalAlignment="Center" />
+              <TextBlock Grid.Column="1" Text="{Binding RegisterSetupState}" Classes="muted" VerticalAlignment="Center"
+                         AutomationProperties.LiveSetting="Polite" />
+              <ui:HelpButton Grid.Column="2" Topic="kassa-einrichten" />
+            </Grid>
+            <TextBlock Text="{Binding RegisterSetup?.NextStep}" TextWrapping="Wrap"
+                       IsVisible="{Binding RegisterSetupError, Converter={x:Static ObjectConverters.IsNull}}" />
+            <ui:InfoBar x:Name="RegisterSetupErrorBar" Severity="Warning" Title="Kassenstatus nicht aktualisiert"
+                        Message="{Binding RegisterSetupError}" IsVisible="{Binding RegisterSetupError, Converter={x:Static ObjectConverters.IsNotNull}}"
+                        ActionText="Erneut laden" ActionCommand="{Binding LoadRegisterSetupCommand}" Stacked="True" />
+            <Button x:Name="RegisterSetupButton" Content="Kassa einrichten" HorizontalAlignment="Left"
+                    Command="{Binding StartRegisterWizardCommand}" IsVisible="{Binding ShowRegisterSetupButton}" />
+          </StackPanel>
+        </Border>
+
         <ui:InfoBar Severity="Error" Title="Firmendaten nicht geladen" Message="{Binding LoadError}" IsVisible="{Binding HasLoadError}"
                     ActionText="Erneut laden" ActionCommand="{Binding LoadCommand}" />
         <TextBlock Text="Lade Firmendaten …" Classes="muted" IsVisible="{Binding !IsLoaded}" />
