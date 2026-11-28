@@ -20,11 +20,11 @@ public sealed class PosSubstituteTests
     private static string ReenterRoute => $"POST /api/pos/registers/{SpaSample.Register.Id}/substitute-receipts";
 
     /// <summary>Kassa mit lokalem Stand, geladen mit Verbindung; danach ist der Server weg.</summary>
-    private static async Task<(PosViewModel Pos, StubApi Stub, ApiClient Api, OfflineCache Cache)> OfflinePosAsync()
+    private static async Task<(PosViewModel Pos, StubApi Stub, ApiClient Api, OfflineCache Cache)> OfflinePosAsync(bool practice = false)
     {
         var stub = new StubApi()
             .On("GET /api/locations", new List<LocationDto> { SpaSample.Vienna })
-            .On("GET /api/pos/registers", new List<CashRegisterDto> { SpaSample.Register })
+            .On("GET /api/pos/registers", new List<CashRegisterDto> { SpaSample.Register with { IsPractice = practice } })
             .On("GET /api/pos/articles", SpaSample.Articles)
             .On($"GET /api/pos/locations/{SpaSample.LocationId}/day-list?date=2026-10-19", SpaSample.DayList(SpaSample.UnbilledVisits()))
             .On($"GET /api/pos/registers/{SpaSample.Register.Id}/bills", new List<BillDto>());
@@ -36,6 +36,26 @@ public sealed class PosSubstituteTests
         await api.GetAsync<List<LocationDto>>("api/locations", Ct);
         Assert.True(api.IsOffline);
         return (pos, stub, api, cache);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Ersatzbeleg_behält_das_Übungskennzeichen_im_lokalen_Stand_und_auf_dem_Bon(bool practice)
+    {
+        var (pos, _, _, cache) = await OfflinePosAsync(practice);
+        await pos.AddAppointmentAsync(SpaSample.Paying);
+        pos.FillRestCommand.Execute(pos.Payments.First(payment => payment.Method == PaymentMethod.Cash));
+        await pos.PayCommand.ExecuteAsync(null);
+
+        var receipt = Assert.Single(cache.Pending).Substitute!;
+        Assert.Equal(practice, receipt.IsPractice);
+        Assert.Equal(practice, pos.Receipt!.IsPractice);
+        var narrow = PosViewModel.SubstituteText(receipt, TimeZoneInfo.Utc, "EUR", 24).Split('\n');
+        var wide = PosViewModel.SubstituteText(receipt, TimeZoneInfo.Utc, "EUR", 42).Split('\n');
+        Assert.Equal(practice, wide[0] == ReceiptViewModel.PracticeLabel);
+        Assert.Equal(practice, narrow.Take(2).SequenceEqual(["ÜBUNGSKASSA", "kein gültiger Beleg"]));
+        Assert.All(narrow, line => Assert.InRange(line.Length, 0, 24));
     }
 
     [Fact]

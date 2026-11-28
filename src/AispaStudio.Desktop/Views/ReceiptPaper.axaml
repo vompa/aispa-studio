@@ -6,6 +6,8 @@
   <!-- Beleg wie gedruckt: Kopf, Positionen, Summe, Zahlungen, Steuern, Signatur -->
     <Border Classes="card" Background="{DynamicResource Surface2Brush}" Padding="16" MaxWidth="420" HorizontalAlignment="Left">
       <StackPanel Spacing="6" Width="380">
+        <TextBlock x:Name="PracticeReceiptHeading" Text="{x:Static vm:ReceiptViewModel.PracticeLabel}" IsVisible="{Binding IsPractice}"
+                   HorizontalAlignment="Center" FontWeight="SemiBold" TextWrapping="Wrap" />
         <ItemsControl ItemsSource="{Binding Header}">
           <ItemsControl.ItemTemplate>
             <DataTemplate x:DataType="x:String">
@@ -85,7 +87,8 @@
         </ItemsControl>
         <TextBlock x:Name="SubstituteNote" Text="{Binding SubstituteNote}" Classes="muted small" TextWrapping="Wrap" Margin="0,6,0,0"
                    IsVisible="{Binding SubstituteNote, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
-        <Border Classes="pill ok" Classes.warn="{Binding IsSubstitute}" Classes.crit="{Binding SignatureFailed}" Margin="0,8,0,0" HorizontalAlignment="Center">
+        <Border Classes="pill" Classes.ok="{Binding !HasPracticeSignature}" Classes.warn="{Binding IsSubstitute}"
+                Classes.crit="{Binding SignatureFailed}" Margin="0,8,0,0" HorizontalAlignment="Center">
           <TextBlock Text="{Binding SignatureText}" />
         </Border>
       </StackPanel>

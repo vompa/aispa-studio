@@ -22,6 +22,49 @@ public sealed class PosTests
         .On("POST /api/pos/bills", SpaSample.Bill())
         .On($"POST /api/pos/bills/{SpaSample.BillId}/checkout", SpaSample.Receipt());
 
+    [Fact]
+    public async Task Decommission_retains_open_bill_at_another_register_and_blocks_stale_checkout()
+    {
+        var first = SpaSample.Register;
+        var last = first with { Id = Guid.NewGuid(), Code = "WIEN-2" };
+        var firstBill = SpaSample.Bill();
+        var lastBill = firstBill with { Id = Guid.NewGuid(), RegisterId = last.Id };
+        var parked = SpaSample.Parked with { RegisterId = last.Id };
+        var stub = Api()
+            .On("GET /api/pos/registers", new[] { first, last })
+            .On($"GET /api/pos/registers/{last.Id}/bills", new[] { lastBill, parked })
+            .On($"GET /api/pos/bills/{firstBill.Id}", firstBill)
+            .On($"GET /api/pos/bills/{lastBill.Id}", lastBill)
+            .On($"GET /api/pos/bills/{parked.Id}", parked);
+        var pos = new PosViewModel(stub.Client(), new SampleTime());
+        await pos.InitializeAsync(SpaSample.LocationId);
+
+        await pos.OpenBillByIdAsync(lastBill.Id);
+        Assert.Equal(last.Id, pos.Register!.Id);
+        Assert.Equal(lastBill.Id, pos.Bill!.Id);
+        Assert.NotEmpty(pos.Lines);
+        Assert.Contains(pos.OpenBills, bill => bill.Id == parked.Id);
+
+        await pos.ApplyRegisterChangeAsync(first with { IsActive = false });
+        Assert.Equal(lastBill.Id, pos.Bill!.Id);
+        await pos.OpenBillByIdAsync(firstBill.Id);
+        Assert.Equal(lastBill.Id, pos.Bill!.Id);
+
+        await pos.ApplyRegisterChangeAsync(last with { IsActive = false });
+        Assert.Null(pos.Register);
+        Assert.Null(pos.Bill);
+        Assert.Empty(pos.OpenBills);
+        Assert.Empty(pos.Lines);
+        Assert.Empty(pos.Payments);
+        Assert.Empty(pos.Unbilled);
+        Assert.False(pos.CanPay);
+
+        var calls = stub.Calls.Count;
+        await pos.OpenBillByIdAsync(parked.Id);
+        Assert.Equal(calls, stub.Calls.Count);
+        Assert.Null(pos.Bill);
+    }
+
     [Theory]
     [InlineData("12,50", 12.5)]
     [InlineData("12.50", 12.5)]

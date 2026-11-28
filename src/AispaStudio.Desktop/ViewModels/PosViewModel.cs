@@ -448,7 +448,10 @@ public partial class PosViewModel : ViewModelBase, IFocusTarget
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(Currency), nameof(CurrencyUnit), nameof(Export), nameof(HasExport), nameof(HasOutput), nameof(ShowsOutputSeparator))]
+    [NotifyPropertyChangedFor(nameof(IsPracticeRegister))]
     public partial CashRegisterDto? Register { get; set; }
+
+    public bool IsPracticeRegister => Register?.IsPractice == true;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasBill), nameof(TotalText), nameof(OpenText), nameof(CustomerText), nameof(CashDiscountText), nameof(PlatformPrepaidText))]
@@ -576,6 +579,8 @@ public partial class PosViewModel : ViewModelBase, IFocusTarget
 
     private Task? _initialization;
 
+    private const string NoRegisterMessage = "An diesem Standort ist noch keine Kassa eingerichtet. Kassen legt die Standortleitung unter „Verwaltung“ → „Kassen“ an.";
+
     /// <summary>Lädt Kassen und Artikel einmal; weitere Aufrufe warten auf dasselbe Laden.</summary>
     public Task InitializeAsync(Guid? locationId = null) => _initialization ??= LoadAsync(locationId);
 
@@ -612,23 +617,70 @@ public partial class PosViewModel : ViewModelBase, IFocusTarget
 
         if (Registers.Count == 0 && registers.Value.Any(r => r.IsActive))
         {
-            Error = "Die Kassen dieses Spas kassieren an einer anderen Stelle (an einem anderen PC). Für diesen PC bitte eine eigene Kassa anlegen.";
+            Error = "Die Kassen dieses Spas sind an einer anderen Stelle eingerichtet. Unter „Verwaltung“ → „Kassen“ eine Kassa für diese Stelle anlegen.";
             return;
         }
 
         if (Registers.Count == 0)
         {
-            Error = "An diesem Standort ist noch keine Kassa eingerichtet. Kassen legt die Standortleitung unter „Verwaltung“ → „Kassa“ an.";
+            Error = NoRegisterMessage;
             return;
         }
 
         Register = Registers.FirstOrDefault(r => r.LocationId == locationId) ?? Registers[0];
     }
 
+    /// <summary>Übernimmt eine bestätigte Änderung aus der Verwaltung. Eine laufende Rechnung bleibt an ihrer gewählten Kassa.</summary>
+    internal async Task ApplyRegisterChangeAsync(CashRegisterDto updated)
+    {
+        if (_initialization is not { } initialization)
+        {
+            return;
+        }
+
+        await initialization.ConfigureAwait(true);
+        var selected = Register;
+        var previous = Registers.FirstOrDefault(register => register.Id == updated.Id);
+        if (updated is { IsActive: true, OtherSite: false })
+        {
+            if (previous is null)
+            {
+                Registers.Add(updated);
+            }
+
+            if (selected is null)
+            {
+                Error = null;
+                Register = updated;
+            }
+        }
+        else if (previous is not null)
+        {
+            var wasSelected = selected?.Id == updated.Id;
+            Registers.Remove(previous);
+            if (wasSelected)
+            {
+                Register = Registers.FirstOrDefault(register => register.LocationId == updated.LocationId) ?? Registers.FirstOrDefault();
+                Error = Register is null ? NoRegisterMessage : null;
+            }
+        }
+    }
+
     partial void OnRegisterChanged(CashRegisterDto? value)
     {
-        Bill = null;
+        SetBill(null);
         Receipt = null;
+        OpenBills.Clear();
+        _dayRows.Clear();
+        _dayVisits.Clear();
+        Done.Clear();
+        OnPropertyChanged(nameof(DoneTitle));
+        OnPropertyChanged(nameof(HasDone));
+        ScanText = "";
+        ApplySearch();
+        PrintText = null;
+        CancelInvoice();
+        OnlinePayments = null;
         Warning = value?.Warnings.Count > 0 ? string.Join(" ", value.Warnings) : null;
         Payments.Clear();
         foreach (var method in value?.PaymentMethods ?? [])
@@ -1358,13 +1410,30 @@ public partial class PosViewModel : ViewModelBase, IFocusTarget
     /// <summary>Offene Rechnung öffnen, wie ein Klick in der Liste; auch für „offene Rechnung …“ aus „KI und Hilfe“ (Ä319).</summary>
     public async Task OpenBillByIdAsync(Guid billId)
     {
-        if (CardBlocks())
+        if (Register is not { IsActive: true, OtherSite: false } selected || CardBlocks())
         {
             return;
         }
 
-        Receipt = null;
         var result = await _api.GetAsync<BillDto>($"api/pos/bills/{billId}").ConfigureAwait(true);
+        if (Register?.Id != selected.Id)
+        {
+            return;
+        }
+
+        if (result.Value is { } bill)
+        {
+            var register = Registers.FirstOrDefault(item => item.Id == bill.RegisterId && item.IsActive && !item.OtherSite);
+            if (register is null)
+            {
+                Error = "Die Kassa dieser Rechnung ist an diesem Gerät nicht verfügbar.";
+                return;
+            }
+
+            Register = register;
+        }
+
+        Receipt = null;
         await ShowBillAsync(result).ConfigureAwait(true);
     }
 
@@ -1601,6 +1670,11 @@ public partial class PosViewModel : ViewModelBase, IFocusTarget
             return;
         }
 
+        if (Register is not { IsActive: true, OtherSite: false } register || result.Value.RegisterId != register.Id)
+        {
+            return;
+        }
+
         Error = null;
         SetBill(result.Value);
         await LoadDayAsync().ConfigureAwait(true);
@@ -1702,7 +1776,11 @@ public sealed record VoucherDocumentItem(string Label, DocumentActionsViewModel 
 /// </summary>
 public sealed class ReceiptViewModel(ReceiptDto receipt, TimeZoneInfo zone, FiscalCountry country, bool ownerLevel = false)
 {
+    public const string PracticeLabel = "ÜBUNGSKASSA – kein gültiger Beleg";
+
     public ReceiptDto Receipt { get; } = receipt;
+
+    public bool IsPractice => Receipt.IsPractice;
 
     /// <summary>Knopfblock „Drucken · PDF speichern · Per Mail senden“ (ADR 0092); null in Masken ohne Knopfblock.</summary>
     public DocumentActionsViewModel? Document { get; init; }
@@ -1822,11 +1900,14 @@ public sealed class ReceiptViewModel(ReceiptDto receipt, TimeZoneInfo zone, Fisc
 
     public bool HasChange => Receipt.Change > 0;
 
+    public bool HasPracticeSignature => IsPractice && !IsSubstitute && !SignatureFailed && Receipt.FiscalCode is not null;
+
     /// <summary>Ohne funktionierende Signatureinrichtung muss der Beleg den Hinweis tragen (RKSV, KassenSichV).</summary>
     public string SignatureText => IsSubstitute ? "Ersatzbeleg, der signierte Beleg folgt"
         : Receipt.SignatureDeviceFailed
         ? "Sicherheitseinrichtung ausgefallen"
         : Receipt.FiscalCode is null ? "Ohne Signaturpflicht"
+        : HasPracticeSignature ? "Test-Signatur"
         : country == FiscalCountry.DE ? "Signiert (TSE)" : "Signiert nach RKSV";
 
     public bool SignatureFailed => Receipt.SignatureDeviceFailed;

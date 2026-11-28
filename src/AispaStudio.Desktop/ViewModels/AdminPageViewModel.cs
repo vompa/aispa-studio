@@ -49,6 +49,7 @@ public sealed partial class AdminPageViewModel : ViewModelBase
         (new("Postfach & Nummern", "masterData", "intake"), [AccessRight.ManageOrganization], m => m.BookingIntake),
         (new("Zahlungen", "masterData", "payments"), [AccessRight.ManageOrganization], m => m.OnlineBooking),
         (new("Kassa", "masterData", "kassa"), [AccessRight.ManageOrganization], null),
+        (new("Kassen", "masterData", "registers"), [AccessRight.ManageLocation], null),
         (new("KI", "masterData", "ai"), [AccessRight.ManageOrganization], null),
         (new("Lager", "stock", null), [AccessRight.Book], null),
         (new("Aktionen", "promotions", null), [AccessRight.ManageCatalog], null),
@@ -68,7 +69,7 @@ public sealed partial class AdminPageViewModel : ViewModelBase
         ("Aktionen", Icons.Gift, ["Aktionen"]),
         ("Team", Icons.Users, ["Team"]),
         ("Lager", Icons.Archive, ["Lager"]),
-        ("Kassa & Geld", Icons.Register, ["Kassa", "Zahlungen", "Kosten", "Buchhaltung"]),
+        ("Kassa & Geld", Icons.Register, ["Kassa", "Kassen", "Zahlungen", "Kosten", "Buchhaltung"]),
         ("Kontakt", Icons.Chat, ["Erinnerungen", "Postfach & Nummern", "KI"]),
         ("Zahlen", Icons.Percent, ["Zahlen"]),
     ];
@@ -126,6 +127,7 @@ public sealed partial class AdminPageViewModel : ViewModelBase
         Reminders = _native.Values.OfType<RemindersViewModel>().SingleOrDefault();
         Payments = _native.Values.OfType<PaymentsViewModel>().SingleOrDefault();
         PosSettings = _native.Values.OfType<PosSettingsViewModel>().SingleOrDefault();
+        Registers = _native.Values.OfType<RegistersViewModel>().SingleOrDefault();
         Team = _native.Values.OfType<TeamViewModel>().SingleOrDefault();
         Handbook = _native.Values.OfType<HandbookViewModel>().SingleOrDefault();
         Intake = _native.Values.OfType<IntakeViewModel>().SingleOrDefault();
@@ -191,6 +193,8 @@ public sealed partial class AdminPageViewModel : ViewModelBase
 
     /// <summary>Kassa-Einstellungen (R05 Slice 96); nur mit ManageOrganization.</summary>
     public PosSettingsViewModel? PosSettings { get; }
+
+    public RegistersViewModel? Registers { get; }
     /// <summary>Handbuch (R05 Slice 97); nur, wer Standorte verwalten darf (ManageLocation).</summary>
     public HandbookViewModel? Handbook { get; }
 
@@ -272,6 +276,7 @@ public sealed partial class AdminPageViewModel : ViewModelBase
         "reminders" => new RemindersViewModel(api, time.LocalTimeZone, remindersOn: modules?.Reminders != false, rebookingOn: modules?.Rebooking != false, toast: toast),
         "payments" => new PaymentsViewModel(api, toast),
         "kassa" => new PosSettingsViewModel(api, toast),
+        "registers" => new RegistersViewModel(api, toast),
         "team" => new TeamViewModel(api, user, time, toast),
         "handbook" => new HandbookViewModel(api, toast),
         "intake" => new IntakeViewModel(api, time.LocalTimeZone, toast: toast),

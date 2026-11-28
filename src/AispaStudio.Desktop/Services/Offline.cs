@@ -116,6 +116,7 @@ public sealed class OfflineCache(IOfflineStore store, TimeProvider? time = null)
     public const string AnonymizedPath = "api/customers/anonymized";
 
     private const string CustomerSearch = "api/customers?search=";
+    private const string RegistersPath = "api/pos/registers";
 
     // Antworten, die Name oder Mailadresse eines Gastes ohne seine Kunden-Id tragen können (gehaltene Termine, Lückenvorschläge,
     // Schließzeiten und Raumsperren mit betroffenen Terminen, Gutscheinbestellungen); beim Bereinigen fallen sie ganz weg und laden
@@ -134,6 +135,7 @@ public sealed class OfflineCache(IOfflineStore store, TimeProvider? time = null)
 
     private readonly TimeProvider _time = time ?? TimeProvider.System;
     private readonly Lock _lock = new();
+    private readonly HashSet<Guid> _decommissionedRegisters = [];
     private OfflineState? _state;
     private DateTimeOffset _lastSave = DateTimeOffset.MinValue;
     private bool _dirty;
@@ -194,7 +196,8 @@ public sealed class OfflineCache(IOfflineStore store, TimeProvider? time = null)
             }
             else
             {
-                State.Responses[Key(path)] = new CachedResponse(json, _time.GetUtcNow());
+                var key = Key(path);
+                State.Responses[key] = new CachedResponse(ApplyDecommissionedRegisters(key, json), _time.GetUtcNow());
             }
 
             _dirty = true;
@@ -206,6 +209,74 @@ public sealed class OfflineCache(IOfflineStore store, TimeProvider? time = null)
             }
         }
     }
+
+    internal bool HasUnresolvedSubstitute(Guid registerId)
+    {
+        lock (_lock)
+        {
+            return State.Pending.Any(change => Mine(change.TenantId) && change.Substitute?.RegisterId == registerId)
+                || State.Failed.Any(change => Mine(change.TenantId) && change.Substitute?.RegisterId == registerId);
+        }
+    }
+
+    internal void MarkRegisterDecommissioned(Guid registerId)
+    {
+        lock (_lock)
+        {
+            _decommissionedRegisters.Add(registerId);
+            foreach (var (key, response) in State.Responses.ToArray())
+            {
+                var json = ApplyDecommissionedRegisters(key, response.Json);
+                if (json != response.Json)
+                {
+                    State.Responses[key] = response with { Json = json };
+                    _dirty = true;
+                }
+            }
+
+            if (_dirty)
+            {
+                Persist();
+            }
+        }
+    }
+
+    private string ApplyDecommissionedRegisters(string key, string json)
+    {
+        if (_decommissionedRegisters.Count == 0 || !key.StartsWith(RegistersPath, StringComparison.Ordinal))
+        {
+            return json;
+        }
+
+        var queryStart = key.IndexOf('?');
+        var path = queryStart < 0 ? key : key[..queryStart];
+        try
+        {
+            if (path == RegistersPath && JsonSerializer.Deserialize<List<CashRegisterDto>>(json, ApiClient.Json) is { } registers
+                && registers.Any(IsDecommissioned))
+            {
+                return JsonSerializer.Serialize(registers.Select(register => IsDecommissioned(register) ? Decommissioned(register) : register), ApiClient.Json);
+            }
+
+            if (path.StartsWith(RegistersPath + "/", StringComparison.Ordinal)
+                && Guid.TryParse(path.AsSpan(RegistersPath.Length + 1), out var id)
+                && _decommissionedRegisters.Contains(id)
+                && JsonSerializer.Deserialize<CashRegisterDto>(json, ApiClient.Json) is { } register && IsDecommissioned(register))
+            {
+                return JsonSerializer.Serialize(Decommissioned(register), ApiClient.Json);
+            }
+        }
+        catch (JsonException)
+        {
+            // GetAsync behandelt einen nicht lesbaren Eintrag wie eine fehlende Offline-Antwort.
+        }
+
+        return json;
+    }
+
+    private bool IsDecommissioned(CashRegisterDto register) => register.IsActive && _decommissionedRegisters.Contains(register.Id);
+
+    private static CashRegisterDto Decommissioned(CashRegisterDto register) => register with { IsActive = false, Readiness = null };
 
     /// <summary>Noch nicht Gespeichertes jetzt schreiben, z. B. nach dem Vorausladen.</summary>
     public void Flush()
@@ -352,6 +423,7 @@ public sealed class OfflineCache(IOfflineStore store, TimeProvider? time = null)
             kept.Failed.AddRange(State.Failed);
             _state = kept;
             _tenant = null;
+            _decommissionedRegisters.Clear();
             if (kept.Pending.Count == 0 && kept.Failed.Count == 0)
             {
                 store.Clear();

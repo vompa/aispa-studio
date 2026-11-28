@@ -193,6 +193,11 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
             company.SetupWizardRequested += () => _ = OpenSetupWizardAsync();
         }
 
+        if (AdminPage.Registers is { } registers)
+        {
+            registers.RegisterChanged += register => _ = Pos.ApplyRegisterChangeAsync(register);
+        }
+
         if (AdminPage.Locations is { } locations)
         {
             locations.Saved += Companion.OnDataSaved;

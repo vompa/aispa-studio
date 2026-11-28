@@ -290,6 +290,8 @@
     </Grid>
 
     <StackPanel Grid.Row="1" Grid.ColumnSpan="4" Spacing="8">
+      <ui:InfoBar x:Name="PracticeRegisterBand" Severity="Warning" Margin="0,0,0,12" Title="Übungskassa"
+                  Message="Diese Kassa erstellt nur Übungsbelege." IsVisible="{Binding IsPracticeRegister}" />
       <ProgressBar IsIndeterminate="True" Margin="0,0,0,12" IsVisible="{Binding IsWorking}" AutomationProperties.Name="Der Termin wird eingecheckt" />
       <ui:InfoBar Severity="Error" Margin="0,0,0,12" Message="{Binding Error}" IsVisible="{Binding Error, Converter={x:Static ObjectConverters.IsNotNull}}" />
       <ui:InfoBar Severity="Warning" Margin="0,0,0,12" Message="{Binding Warning}" IsVisible="{Binding ShowWarning}" />

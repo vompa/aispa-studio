@@ -246,6 +246,8 @@ public partial class PosViewModel
 
     private void OnRegisterChangedForModes()
     {
+        SelectedReceiptItem = null;
+        SelectedSubstitute = null;
         Receipts.Clear();
         Report = null;
         IsClosed = false;

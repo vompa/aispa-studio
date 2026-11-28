@@ -284,7 +284,7 @@ public partial class PosViewModel
             [.. bill.Lines.Where(l => l.AreaVisitId is not null).Select(l => l.AreaVisitId!.Value)]);
         var receipt = new ReceiptDto(id, register.Id, register.Code, 0, ReceiptKind.Sale, now, register.ReceiptHeader, null, bill.CustomerId, lines, [],
             [.. payments.Select(p => new PaymentDto(p.Method, p.Amount, null, null))], total, cashGiven - cashDue, null, null, null, null, false, [],
-            Tip: tip, SubstituteNumber: number, SubstituteIssuedAt: now);
+            Tip: tip, SubstituteNumber: number, SubstituteIssuedAt: now, IsPractice: register.IsPractice);
         offline.Enqueue(new PendingChange(id, $"api/pos/registers/{register.Id}/substitute-receipts", JsonSerializer.Serialize(input, ApiClient.Json),
             $"Ersatzbeleg {number}: {Format(total)}", now, null, Substitute: receipt));
         offline.Flush();
@@ -328,6 +328,19 @@ public partial class PosViewModel
         {
             var room = Math.Max(1, width - right.Length - 1);
             Line((left.Length > room ? left[..room] : left).PadRight(room) + " " + right);
+        }
+
+        if (receipt.IsPractice)
+        {
+            if (ReceiptViewModel.PracticeLabel.Length <= width)
+            {
+                Line(ReceiptViewModel.PracticeLabel);
+            }
+            else
+            {
+                Line("ÜBUNGSKASSA");
+                Line("kein gültiger Beleg");
+            }
         }
 
         foreach (var part in receipt.ReceiptHeader.Split('\n', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))

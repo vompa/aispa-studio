@@ -34,7 +34,7 @@ public sealed class AdminPageTests
 
         Assert.Equal(
             ["Firmendaten", "Standorte & Räume", "Schließzeiten", "Kalender-Abos", "Handbuch", "Behandlungen", "Team",
-                "Erinnerungen", "Postfach & Nummern", "Zahlungen", "Kassa", "KI", "Lager", "Aktionen", "Zahlen",
+                "Erinnerungen", "Postfach & Nummern", "Zahlungen", "Kassa", "Kassen", "KI", "Lager", "Aktionen", "Zahlen",
                 "Kosten", "Buchhaltung"],
             shell.AdminPage.Areas.Select(a => a.Title));
         Assert.Equal("Firmendaten", shell.AdminPage.SelectedArea?.Title);
@@ -56,7 +56,7 @@ public sealed class AdminPageTests
                 "Aktionen: Aktionen",
                 "Team: Team",
                 "Lager: Lager",
-                "Kassa & Geld: Kassa, Zahlungen, Kosten, Buchhaltung",
+                "Kassa & Geld: Kassa, Kassen, Zahlungen, Kosten, Buchhaltung",
                 "Kontakt: Erinnerungen, Postfach & Nummern, KI",
                 "Zahlen: Zahlen",
             ],

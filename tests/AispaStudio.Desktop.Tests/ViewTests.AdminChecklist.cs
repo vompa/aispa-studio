@@ -15,7 +15,7 @@ public sealed partial class ViewTests
 {
     [Theory]
     [InlineData("Betrieb", "betrieb", 5)]
-    [InlineData("Kassa & Geld", "kassa-geld", 4)]
+    [InlineData("Kassa & Geld", "kassa-geld", 5)]
     [InlineData("Kontakt", "kontakt", 3)]
     public Task Die_Reiterzeile_hat_hoechstens_fuenf_Eintraege_und_bricht_bei_Mindestfenster_nicht_um(string group, string slug, int count) =>
         Render("hell", $"probe-verwaltung-reiter-{slug}", async (window, main) =>

@@ -114,6 +114,9 @@
     <DataTemplate DataType="vm:PosSettingsViewModel">
       <views:PosSettingsView />
     </DataTemplate>
+    <DataTemplate DataType="vm:RegistersViewModel">
+      <views:RegistersView />
+    </DataTemplate>
     <DataTemplate DataType="vm:TreatmentEditorViewModel">
       <views:TreatmentEditorView />
     </DataTemplate>
