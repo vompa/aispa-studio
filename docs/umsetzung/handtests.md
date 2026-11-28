@@ -2196,3 +2196,14 @@ Expected: Die außer Betrieb genommene Kassa steht auch im gespeicherten Stand i
 Expected: Beide zeigen „ÜBUNGSKASSA – kein gültiger Beleg“, die Maske das feste Übungsband und „Test-Signatur“.
 Closes: T-141 (ADR 0105, native Verwaltung und Kennzeichnung)
 Result: ☐
+
+### T-139 – Anbieterzugang und Verbindungsprüfung
+Start: Isolierten Testdatenbestand nach dem Upgrade mit der Oberfläche ab T-143 öffnen. Die eingebauten Testanbieter haben keine Zugangsfelder; reale Anbieter sind nicht angebunden.
+1. Als Inhaberin eine vorhandene Kassa in „Verwaltung → Kassen“ auswählen und den Anbieterabschnitt öffnen.
+Expected: Anbieter und Verbindungsprüfung sind sichtbar; bei den eingebauten Anbietern werden keine erfundenen Zugangsfelder angezeigt.
+2. „Verbindung prüfen“ wählen, danach mit einem Rezeptionskonto denselben Verwaltungsweg aufrufen.
+Expected: Die Inhaberin erhält das Prüfergebnis. Die Rezeption kann keine Anbieterzugänge lesen, ändern oder löschen.
+3. Bei einer späteren echten Anbindung den providerbezogenen Ablauf mit dessen Testzugang gesondert prüfen: speichern, nur konfigurierten Stand erneut laden, Verbindung prüfen, löschen und Ausfallbeleg erzeugen.
+Expected: Kein Geheimnis wird zurückgelesen oder protokolliert. Nach Löschen bleiben die Daten gelöscht. Dieser Anbieterfall ist mit den eingebauten feldlosen Testanbietern nicht vor Ort ausführbar; die automatisierten Integrationstests verwenden dafür ausschließlich einen Testadapter.
+Closes: T-139 (ADR 0105, geschützte Zugangsdaten)
+Result: ☐
